@@ -2093,6 +2093,11 @@ function renderLaptop(){
     hint='Der Spielstand liegt in diesem Browser.';
     const st=phase==='closed'?`Der Laden ist geschlossen. Heute ist der ${DATES[S.day]}, Saison ${S.season}.`:phase==='open'?'Geöffnet bis 22 Uhr.':phase==='closing'?'22 Uhr, die letzten Kunden sind noch da.':'Feierabend. Du kannst den Tag beenden.';
     h=`<div class="row"><div class="rm"><b>${st}</b><small>Heute: ${eur(DS.revenue)} Umsatz, ${DS.customers} Kunden</small></div>${phase==='closed'?'<button data-a="open">Laden öffnen</button>':phase==='after'?'<button data-a="end">Tag beenden</button>':''}</div>`+
+      `<div class="row"><div class="rm"><b>Testmodus</b>`+
+        (S.test
+          ? `<small class="warn">Aktiv: Level 20, alle Produkte und Ausbauten offen.</small><small>Beim Ausschalten kommen dein altes Level (${S.test.lvl}), deine XP und dein Kontostand zurück. Gekaufte Regale, Deko und Personal bleiben im Laden.</small>`
+          : `<small>Schaltet vorübergehend alles frei: Level 20 und ein volles Konto zum Ausprobieren.</small><small>Dein jetziger Stand wird gemerkt und beim Ausschalten wiederhergestellt.</small>`)+
+        `</div><button class="${S.test?'red':''}" data-a="test">${S.test?'Testmodus aus':'Testmodus an'}</button></div>`+
       `<div class="row"><div class="rm"><b>Spielstand</b><small>Wird automatisch gespeichert.</small></div><button class="ghost" data-a="reset">${resetArm?'Wirklich löschen?':'Spielstand löschen'}</button></div>`;
   }
   $('lbody').innerHTML=h; $('lHint').textContent=hint;
@@ -2112,10 +2117,23 @@ $('lbody').addEventListener('click',e=>{
   else if(a==='repay') repayLoan(+b.dataset.v);
   else if(a==='open'){ openShop(); closeLaptop(true); return; }
   else if(a==='end'){ endDay(); return; }
+  else if(a==='test'){ toggleTest(); }
   else if(a==='reset'){ if(!resetArm) resetArm=true; else { try{ localStorage.removeItem(KEY); }catch(err){} location.reload(); return; } }
   renderLaptop();
 });
 $('lclose').addEventListener('click',()=>closeLaptop(true));
+function toggleTest(){
+  if(S.test){
+    const t=S.test; S.level=Math.max(1,t.lvl|0); S.xp=Math.max(0,t.xp|0); S.money=r2(t.money); S.test=null;
+    pendingLevels.length=0;
+    toast('Testmodus aus. Level und Konto sind zurück.');
+  } else {
+    S.test={lvl:S.level,xp:S.xp,money:S.money};
+    S.level=20; S.xp=0; S.money=Math.max(S.money,250000);
+    toast('Testmodus an: Level 20, alle Produkte freigeschaltet.','money');
+  }
+  sfx.cash(); updateTool(); save();
+}
 function buyUp(id){
   const u=UPGRADES.find(x=>x.id===id); if(!u||u.done()||S.level<u.lvl) return; const cost=u.cost(); if(S.money<cost) return;
   S.money=r2(S.money-cost); DS.upgrades=r2(DS.upgrades+cost);
@@ -2149,7 +2167,7 @@ function setFloor(id){ const f=FLOORS.find(x=>x.id===id); if(!f||S.level<f.lvl||
 function freshState(){ const prices={}; ORDER.forEach(t=>prices[t]=P[t].market);
   return {v:3,money:400,rep:50,level:1,xp:0,season:1,day:1,loan:null,prices,
     up:{plakat:false,terminal:false,tag4:false,heizung:false,musik:false,radio:false,cams:false,regallicht:false,alarm:false},
-    staff:{},deko:[],wall:'creme',floor:'grau',paint:[],
+    staff:{},deko:[],wall:'creme',floor:'grau',paint:[],test:null,
     shelves:[null,null,null],racks:[null],
     boxes:[{type:'wunder',count:36},{type:'knallerbsen',count:32},{type:'tisch',count:16},{type:'wunder',count:36},{type:'knallerbsen',count:32}],
     carrying:null,tut:{},seasonRevenue:0}; }
@@ -2159,7 +2177,7 @@ function save(){
   if(!S) return;
   try{
     const d={v:3,money:S.money,rep:S.rep,level:S.level,xp:S.xp,season:S.season,day:S.day,loan:S.loan,prices:S.prices,up:S.up,staff:S.staff,
-      wall:S.wall,floor:S.floor,paint:S.paint,tut:S.tut,seasonRevenue:S.seasonRevenue,carrying:S.carrying,
+      wall:S.wall,floor:S.floor,paint:S.paint,test:S.test,tut:S.tut,seasonRevenue:S.seasonRevenue,carrying:S.carrying,
       deko:dekos.map(d2=>Object.assign({id:d2.id},mpos(d2.g))),
       ck:mpos(ckG),desk:mpos(deskG),
       shelves:shelves.map(s=>Object.assign(mpos(s.g),{levels:s.levels.map(l=>({type:l.type,count:l.count}))})),
@@ -2179,6 +2197,7 @@ function startGame(fresh){
   if(!WALLS.some(w=>w.id===S.wall)) S.wall='creme';
   if(!FLOORS.some(f=>f.id===S.floor)) S.floor='grau';
   if(S.loan&&(!S.loan.remaining||S.loan.remaining<=0)) S.loan=null;
+  if(S.test&&typeof S.test.lvl!=='number') S.test=null;
   if(S.carrying&&!P[S.carrying.type]) S.carrying=null;
   repaint();
   if(d&&d.ck) placeMovable(ckMov,d.ck.x,d.ck.z,d.ck.ry);
@@ -2228,7 +2247,7 @@ function updateHUD(){
     ?(phase==='closed'?'zu':phase==='open'?'offen':phase==='closing'?'letzte Kunden':'Feierabend')
     :(phase==='closed'?'Geschlossen':phase==='open'?'Geöffnet bis 22 Uhr':phase==='closing'?'Letzte Kunden':'Feierabend');
   st.classList.toggle('on',phase==='open');
-  $('hLevel').textContent='Level '+S.level;
+  $('hLevel').textContent=(S.test?'TEST · ':'')+'Level '+S.level;
   $('hMoney').textContent=eur(S.money);
   const stars=Math.round(S.rep/20); $('hRep').textContent=compact?'★'+stars:'★'.repeat(stars)+'☆'.repeat(5-stars);
   $('hLoan').textContent=S.loan?(compact?'K '+Math.round(S.loan.remaining)+' €':`Kredit ${eur(S.loan.remaining)}`):'';

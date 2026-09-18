@@ -21,7 +21,8 @@ html,body{margin:0;height:100%;overflow:hidden;background:var(--night);color:var
 #c{position:fixed;inset:0;width:100%;height:100%;display:block}
 #hud{position:fixed;inset:0;pointer-events:none;z-index:10}
 .tl{position:absolute;left:max(12px,env(safe-area-inset-left));top:max(12px,env(safe-area-inset-top));display:flex;gap:12px;align-items:flex-start}
-#clock{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 12px;min-width:158px}
+#clock{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 12px;min-width:158px;display:flex;flex-direction:column}
+#hDate{order:-1}
 #hDate{font-weight:700;font-size:18px;line-height:1.1}
 #hTime{font-family:var(--display);font-size:26px;line-height:1.15}
 #hStatus{font-size:15px;color:var(--muted);line-height:1.2}
@@ -42,6 +43,8 @@ html,body{margin:0;height:100%;overflow:hidden;background:var(--night);color:var
 #hLevel{position:absolute;right:6px;bottom:-12px;background:var(--ink);color:var(--signal);font-family:var(--display);font-size:13px;padding:2px 8px;border-radius:5px;transform:rotate(1deg)}
 #tip{position:absolute;right:max(12px,env(safe-area-inset-right));top:max(12px,env(safe-area-inset-top));max-width:min(320px,42vw);background:var(--panel);border-left:4px solid var(--signal);border-radius:8px;padding:9px 12px;font-size:17px;line-height:1.25;font-weight:600}
 #tip:empty{display:none}
+#tip{transition:opacity .4s}
+#tip.dim{opacity:0}
 #staff{position:absolute;right:max(12px,env(safe-area-inset-right));top:calc(max(12px,env(safe-area-inset-top)) + 84px);display:flex;flex-direction:column;gap:4px;align-items:flex-end}
 .chip{background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:3px 11px;font-size:15px;font-weight:600;color:var(--muted)}
 #cross{position:absolute;left:50%;top:50%;width:8px;height:8px;margin:-4px 0 0 -4px;border-radius:50%;background:var(--snow);box-shadow:0 0 0 2px rgba(0,0,0,.45);opacity:.85}
@@ -65,6 +68,7 @@ kbd{font-family:var(--display);font-size:13px;background:var(--signal);color:var
 .toast.lvl{background:var(--signal);color:var(--ink);font-family:var(--display);font-size:19px}
 @keyframes tin{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 #touch{position:fixed;inset:0;z-index:5;display:none}
+body:has(.ov.show) #touch{display:none}
 .coarse #touch{display:block}
 #look{position:absolute;inset:0}
 #joy{position:absolute;left:0;bottom:0;width:45%;height:55%}
@@ -76,6 +80,8 @@ kbd{font-family:var(--display);font-size:13px;background:var(--signal);color:var
 #btnTool{right:calc(24px + env(safe-area-inset-right));bottom:calc(140px + env(safe-area-inset-bottom));width:60px;height:60px;background:#ff8f7f;font-size:14px}
 #btnMove{right:calc(112px + env(safe-area-inset-right));bottom:calc(112px + env(safe-area-inset-bottom));width:56px;height:56px;background:#9fdcff;font-size:14px}
 .tbtn.down{transform:translateY(3px);box-shadow:none}
+#btnTool.on{background:var(--fire);color:#fff}
+#btnMove.on{background:var(--spark)}
 .coarse #carry{bottom:calc(210px + env(safe-area-inset-bottom))}
 .coarse #tool{bottom:calc(210px + env(safe-area-inset-bottom));right:auto;left:14px}
 .coarse #toasts{bottom:258px}
@@ -148,7 +154,60 @@ h2{font-family:var(--display);font-weight:400;font-size:28px;margin:0 0 6px;colo
   .steps button{padding:7px 7px;font-size:15px} .price{min-width:74px;font-size:17px} .row{flex-wrap:wrap}
   .denoms button{font-size:17px;padding:11px 2px} .tabs button{font-size:15px;padding:7px 10px}
 }
-@media (prefers-reduced-motion: reduce){ .toast{animation:none} .bar i{transition:none} }
+
+/* ---- Kompaktmodus: flaches HUD auf niedrigen Bildschirmen ---- */
+body.compact .tl{gap:6px;align-items:center;left:max(8px,env(safe-area-inset-left));top:max(8px,env(safe-area-inset-top))}
+body.compact .tlcol{display:flex;flex-direction:row;align-items:center;gap:6px}
+body.compact #clock{flex-direction:row;align-items:baseline;gap:7px;padding:3px 9px;min-width:0;border-radius:8px}
+body.compact #hDate{order:0}
+body.compact #hTime{font-size:16px;line-height:1.1}
+body.compact #hDate{font-size:12px;font-weight:600}
+body.compact #hStatus{font-size:11px}
+body.compact .meter{margin-top:0;width:62px}
+body.compact .meter span{font-size:10px;line-height:1.1}
+body.compact #mXp span i:first-child,body.compact #mHype span,body.compact #mClean span{display:none}
+body.compact .bar{height:5px;margin-top:1px}
+body.compact .tag{display:flex;align-items:center;gap:8px;padding:3px 10px 3px 18px;border-radius:5px 14px 14px 5px;transform:rotate(-1.5deg);box-shadow:0 2px 0 rgba(0,0,0,.35)}
+body.compact .tag::before{left:6px;width:6px;height:6px;margin-top:-3px}
+body.compact #hMoney{font-size:16px}
+body.compact #hRep{font-size:12px}
+body.compact #hLoan{font-size:11px}
+body.compact #hLevel{position:static;transform:none;order:-1;font-size:10px;padding:1px 6px;border-radius:4px}
+body.compact #tip{font-size:12px;line-height:1.25;padding:5px 8px;max-width:min(210px,31vw);border-left-width:3px;overflow:hidden;max-height:calc(3.75em + 10px)}
+body.compact #staff{display:none}
+body.compact .tl{max-width:calc(100% - 215px)}
+body.compact #staff{top:calc(max(8px,env(safe-area-inset-top)) + 46px);gap:3px}
+body.compact .chip{font-size:11px;padding:1px 8px}
+body.compact #prompt{font-size:14px;padding:4px 9px;top:calc(50% + 16px)}
+body.compact #mode{font-size:12px;padding:3px 10px;top:calc(max(8px,env(safe-area-inset-top)) + 42px)}
+body.compact #carry{font-size:13px;padding:4px 10px}
+body.compact #tool{display:none}
+body.compact .toast{font-size:13px;padding:4px 10px}
+body.compact .toast.money,body.compact .toast.lvl{font-size:14px}
+body.compact #btnAct{width:64px;height:64px;font-size:15px;right:calc(12px + env(safe-area-inset-right));bottom:calc(12px + env(safe-area-inset-bottom));box-shadow:0 3px 0 rgba(0,0,0,.35)}
+body.compact #btnDrop{width:50px;height:50px;font-size:11px;right:calc(84px + env(safe-area-inset-right));bottom:calc(10px + env(safe-area-inset-bottom))}
+body.compact #btnTool{width:42px;height:42px;font-size:11px;right:calc(14px + env(safe-area-inset-right));bottom:calc(84px + env(safe-area-inset-bottom))}
+body.compact #btnMove{width:42px;height:42px;font-size:11px;right:calc(80px + env(safe-area-inset-right));bottom:calc(66px + env(safe-area-inset-bottom))}
+body.compact.coarse #carry{bottom:calc(10px + env(safe-area-inset-bottom));left:calc(50% - 60px);transform:none}
+body.compact.coarse #toasts{bottom:calc(48px + env(safe-area-inset-bottom))}
+body.compact .card{padding:14px;border-radius:12px}
+body.compact .logo{font-size:clamp(30px,7vw,42px)}
+body.compact .lead{font-size:16px;margin:6px 0 10px}
+body.compact .ctrl{font-size:14px;margin:0 0 12px}
+body.compact h2{font-size:22px}
+body.compact button{font-size:16px;padding:8px 13px}
+body.compact .rm b{font-size:17px}
+body.compact .rm small{font-size:14px}
+body.compact .row{padding:9px 0}
+body.compact .sumrow{font-size:16px;padding:5px 0}
+body.compact .sumrow.big{font-size:18px}
+body.compact .lbody{padding:2px 12px 8px}
+body.compact .lhead{padding:8px 12px}
+body.compact .lfoot{padding:8px 12px}
+body.compact .tabs button{font-size:15px;padding:6px 9px}
+body.compact .denoms button{font-size:15px;padding:9px 2px}
+body.compact .cashtop b{font-size:18px}
+@media (prefers-reduced-motion: reduce){ .toast{animation:none} .bar i{transition:none} #tip{transition:none} }
 </style>
 </head>
 <body>
@@ -158,19 +217,19 @@ h2{font-family:var(--display);font-weight:400;font-size:28px;margin:0 0 6px;colo
   <div id="look"></div>
   <div id="joy"></div>
   <div id="joyBase"><div id="joyKnob"></div></div>
-  <button class="tbtn" id="btnMove" aria-label="Umbaumodus">Um&shy;bau</button>
+  <button class="tbtn" id="btnMove" aria-label="Umbaumodus">Umbau</button>
   <button class="tbtn" id="btnTool" aria-label="Pfefferspray">Spray</button>
-  <button class="tbtn" id="btnDrop" aria-label="Karton abstellen">Ab&shy;stellen</button>
+  <button class="tbtn" id="btnDrop" aria-label="Karton abstellen">Ablegen</button>
   <button class="tbtn" id="btnAct" aria-label="Aktion">Aktion</button>
 </div>
 
 <div id="hud">
   <div class="tl">
-    <div>
-      <div id="clock"><div id="hDate"></div><div id="hTime"></div><div id="hStatus"></div></div>
-      <div class="meter"><span><i>Erfahrung</i><i id="hXpTxt"></i></span><div class="bar xp"><i id="hXp"></i></div></div>
-      <div class="meter"><span><i>Hype</i></span><div class="bar"><i id="hHype"></i></div></div>
-      <div class="meter"><span><i>Sauberkeit</i><i id="hCleanTxt"></i></span><div class="bar clean"><i id="hClean"></i></div></div>
+    <div class="tlcol">
+      <div id="clock"><div id="hTime"></div><div id="hDate"></div><div id="hStatus"></div></div>
+      <div class="meter" id="mXp"><span><i>Erfahrung</i><i id="hXpTxt"></i></span><div class="bar xp"><i id="hXp"></i></div></div>
+      <div class="meter" id="mHype"><span><i>Hype</i></span><div class="bar"><i id="hHype"></i></div></div>
+      <div class="meter" id="mClean"><span><i>Sauberkeit</i><i id="hCleanTxt"></i></span><div class="bar clean"><i id="hClean"></i></div></div>
     </div>
     <div class="tag"><div id="hLevel"></div><div id="hMoney"></div><div id="hRep"></div><div id="hLoan"></div></div>
   </div>
@@ -401,16 +460,16 @@ function levelUnlocks(l){
   return out;
 }
 const TUT=[
-  ['pick','Heb einen Karton auf. Lieferungen stehen vorne links an der Warenannahme.'],
-  ['stock','Räum die Ware ins Regal. Jedes Fach nimmt eine Sorte auf.'],
-  ['open','Dreh das Schild neben der Tür um, dann öffnet der Laden.'],
-  ['scan','Der Kunde legt die Ware aufs Band. Klick jeden Artikel an, um ihn zu scannen.'],
-  ['pay','Karte: Terminal anklicken. Bargeld: Kasse anklicken und Rückgeld geben.'],
-  ['order','Bestell am Laptop im Büro-Eck rechts Nachschub.'],
-  ['lager','Im Lager links kannst du Kartons in die Regale stellen.'],
-  ['launch','Im Hof hinten kannst du Feuerwerk zünden. Das lockt Kunden an.'],
-  ['clean','Dreck kostet Ruf. Stell dich davor und halt die Aktionstaste.'],
-  ['move','Im Umbaumodus verschiebst du Regale, Kasse und Deko.']
+  ['pick','Heb einen Karton auf. Lieferungen stehen vorne links an der Warenannahme.','Karton aufheben: vorne links an der Warenannahme.'],
+  ['stock','Räum die Ware ins Regal. Jedes Fach nimmt eine Sorte auf.','Ware ins Regalfach einräumen.'],
+  ['open','Dreh das Schild neben der Tür um, dann öffnet der Laden.','Türschild umdrehen, dann öffnet der Laden.'],
+  ['scan','Der Kunde legt die Ware aufs Band. Klick jeden Artikel an, um ihn zu scannen.','Artikel auf dem Band antippen zum Scannen.'],
+  ['pay','Karte: Terminal anklicken. Bargeld: Kasse anklicken und Rückgeld geben.','Karte: Terminal. Bar: Kasse antippen.'],
+  ['order','Bestell am Laptop im Büro-Eck rechts Nachschub.','Nachschub am Laptop im Büro-Eck.'],
+  ['lager','Im Lager links kannst du Kartons in die Regale stellen.','Kartons ins Lagerregal links stellen.'],
+  ['launch','Im Hof hinten kannst du Feuerwerk zünden. Das lockt Kunden an.','Im Hof zünden bringt Hype.'],
+  ['clean','Dreck kostet Ruf. Stell dich davor und halt die Aktionstaste.','Vor den Dreck stellen, Aktion halten.'],
+  ['move','Im Umbaumodus verschiebst du Regale, Kasse und Deko.','Umbau: Möbel verschieben.']
 ];
 
 let S=null, phase='closed', clock=OPEN_T, hype=0, DS=null, paused=true, shake=0, ambient=0;
@@ -453,7 +512,7 @@ const shopFill2=new THREE.PointLight(0xe9f0ff,0.5,14,1.5); shopFill2.position.se
 const lagerLight=new THREE.PointLight(0xe8f0ff,1.0,13,1.3); lagerLight.position.set(-11.5,3.2,-2); scene.add(lagerLight);
 const yardLight=new THREE.PointLight(0xffc98a,0,16,1.6); yardLight.position.set(3,3.6,-9.5); scene.add(yardLight);
 const shelfLight=new THREE.PointLight(0xfff4e0,0,11,1.6); shelfLight.position.set(-2.5,2.3,-4.6); scene.add(shelfLight);
-addEventListener('resize',()=>{ renderer.setSize(innerWidth,innerHeight,false); camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix(); });
+addEventListener('resize',()=>{ renderer.setSize(innerWidth,innerHeight,false); camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix(); setCompact(); });
 
 function box(w,h,d,m,x,y,z,parent,shadow){ const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m); o.position.set(x,y,z); if(HIQ&&shadow!==false){ o.castShadow=true; o.receiveShadow=true; } (parent||scene).add(o); return o; }
 function plane(w,h,m,x,y,z,ry,parent){ const o=new THREE.Mesh(new THREE.PlaneGeometry(w,h),m); o.position.set(x,y,z); o.rotation.y=ry||0; (parent||scene).add(o); return o; }
@@ -1712,7 +1771,8 @@ function spotFree(m,x,z,ry){
 function toggleBuild(on){
   build=on===undefined?!build:on;
   if(!build&&grabbed) cancelGrab();
-  $('mode').textContent=build?(COARSE?'Umbaumodus – Objekt antippen':'Umbaumodus – E greifen, R drehen, F beenden'):'';
+  $('mode').textContent=build?(COARSE?'Umbau: antippen, greifen, absetzen':'Umbaumodus – E greifen, R drehen, F beenden'):'';
+  $('btnMove').classList.toggle('on',build);
   S.tut.move=true;
 }
 function grab(m){
@@ -1752,6 +1812,7 @@ function updateTool(){
   const el=$('tool');
   el.textContent=sprayOn?'Pfefferspray bereit':(S.level>=4?(COARSE?'Spray: Knopf rechts':'Pfefferspray: G'):'');
   el.classList.toggle('on',sprayOn);
+  $('btnTool').classList.toggle('on',sprayOn);
 }
 function doSpray(){
   if(sprayCool>0) return; sprayCool=0.6; sfx.spray();
@@ -2137,40 +2198,52 @@ function startGame(fresh){
    HUD
    ========================================================= */
 function tipText(){
-  if(build) return 'Umbaumodus: Objekt anvisieren, greifen, drehen, absetzen.';
-  if(phase==='after') return 'Feierabend. Räum in Ruhe auf und beende den Tag am Türschild.';
-  for(const [k,txt] of TUT){
+  if(build) return compact?'Objekt anvisieren, greifen, absetzen.':'Umbaumodus: Objekt anvisieren, greifen, drehen, absetzen.';
+  if(phase==='after') return compact?'Feierabend: Tag am Türschild beenden.':'Feierabend. Räum in Ruhe auf und beende den Tag am Türschild.';
+  for(const [k,txt,short] of TUT){
     if(S.tut[k]) continue;
     if((k==='scan'||k==='pay')&&phase==='closed') continue;
     if(k==='pay'&&!regCustomer()) continue;
     if(k==='clean'&&!dirts.length) continue;
     if(k==='move'&&S.level<3) continue;
     if(k==='lager'&&S.level<3) continue;
-    return txt;
+    return compact&&short?short:txt;
   }
-  if(phase==='closed') return 'Wenn du bereit bist: Schild an der Tür umdrehen.';
+  if(phase==='closed') return compact?'Bereit? Türschild umdrehen.':'Wenn du bereit bist: Schild an der Tür umdrehen.';
   return '';
 }
+let compact=false, tipShown=null, tipT=0;
+function setCompact(){
+  const c=innerHeight<560||innerWidth<620;
+  if(c===compact) return; compact=c; document.body.classList.toggle('compact',c); tipShown=null;
+}
+const MON=['28.12.','29.12.','30.12.','31.12.'];
 let toastLast='';
 function toast(msg,cls){ const box_=$('toasts'); const el=document.createElement('div'); el.className='toast'+(cls?' '+cls:''); el.textContent=msg; box_.appendChild(el); while(box_.children.length>4) box_.removeChild(box_.firstChild); setTimeout(()=>el.remove(),2600); toastLast=msg; }
 function updateHUD(){
-  $('hDate').textContent=`${DATES[S.day]}, Saison ${S.season}`;
+  $('hDate').textContent=compact?MON[S.day]:`${DATES[S.day]}, Saison ${S.season}`;
   $('hTime').textContent=fmtClock(clock);
   const st=$('hStatus');
-  st.textContent=phase==='closed'?'Geschlossen':phase==='open'?'Geöffnet bis 22 Uhr':phase==='closing'?'Letzte Kunden':'Feierabend';
+  st.textContent=compact
+    ?(phase==='closed'?'zu':phase==='open'?'offen':phase==='closing'?'letzte Kunden':'Feierabend')
+    :(phase==='closed'?'Geschlossen':phase==='open'?'Geöffnet bis 22 Uhr':phase==='closing'?'Letzte Kunden':'Feierabend');
   st.classList.toggle('on',phase==='open');
   $('hLevel').textContent='Level '+S.level;
   $('hMoney').textContent=eur(S.money);
-  const stars=Math.round(S.rep/20); $('hRep').textContent='★'.repeat(stars)+'☆'.repeat(5-stars);
-  $('hLoan').textContent=S.loan?`Kredit ${eur(S.loan.remaining)}`:'';
+  const stars=Math.round(S.rep/20); $('hRep').textContent=compact?'★'+stars:'★'.repeat(stars)+'☆'.repeat(5-stars);
+  $('hLoan').textContent=S.loan?(compact?'K '+Math.round(S.loan.remaining)+' €':`Kredit ${eur(S.loan.remaining)}`):'';
   const need=xpFor(S.level);
   $('hXp').style.width=clamp(S.xp/need*100,0,100)+'%'; $('hXpTxt').textContent=`${S.xp}/${need}`;
   $('hHype').style.width=hype+'%';
   const cl=cleanliness(); $('hClean').style.width=cl+'%'; $('hCleanTxt').textContent=cl+'%';
+  $('mHype').hidden=compact&&hype<1;
+  $('mClean').hidden=compact&&cl>=100;
   let chips='';
   STAFF.forEach(s=>{ if(S.staff[s.id]) chips+=`<div class="chip">${s.name}</div>`; });
   const el=$('staff'); if(el.innerHTML!==chips) el.innerHTML=chips;
-  const tp=tipText(); if($('tip').textContent!==tp) $('tip').textContent=tp;
+  const tp=tipText(), tel=$('tip');
+  if(tp!==tipShown){ tipShown=tp; tel.textContent=tp; tel.classList.remove('dim'); tipT=performance.now(); }
+  else if(compact&&tp&&performance.now()-tipT>13000) tel.classList.add('dim');
   if(laptopOpen){ $('lMoney').textContent=eur(S.money); }
 }
 function updatePrompt(){
@@ -2319,6 +2392,7 @@ function fontsReady(){
   if(!document.fonts||!document.fonts.load) return Promise.resolve();
   return Promise.race([Promise.all([document.fonts.load('112px Bungee'),document.fonts.load('700 30px "Barlow Condensed"')]),new Promise(r=>setTimeout(r,2500))]).catch(()=>{});
 }
+setCompact();
 fontsReady().then(()=>{
   buildKartons(); ORDER.forEach(t=>{ pools[t]=new ItemPool(buildProduct(t),poolCap(t)); });
   buildWorld();

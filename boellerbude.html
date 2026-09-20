@@ -502,6 +502,12 @@ const UPGRADES=[
   {id:'regallicht',lvl:11,name:'Regalbeleuchtung',desc:'Ware wirkt hochwertiger, bessere Stimmung.',cost:()=>700,done:()=>S.up.regallicht},
   {id:'alarm',lvl:14,name:'Warensicherung',desc:'Diebe werden am Ausgang meistens gestoppt.',cost:()=>2200,done:()=>S.up.alarm},
   {id:'grosskunden',lvl:6,name:'Eintrag im Branchenbuch',desc:'Pyrotechniker und Veranstalter rufen dich für Großbestellungen an.',cost:()=>500,done:()=>S.up.grosskunden},
+  {id:'onlineshop',lvl:18,name:'Onlineshop',desc:'Bringt jeden Tag Umsatz nebenbei, abhängig von deinem Ruf.',cost:()=>3200,done:()=>S.up.onlineshop},
+  {id:'kundenkarte',lvl:21,name:'Stammkundenkarte',desc:'Stammkunden kommen öfter wieder und zahlen bereitwilliger.',cost:()=>2600,done:()=>S.up.kundenkarte},
+  {id:'tafel',lvl:23,name:'Digitale Werbetafel',desc:'Große Tafel an der Fassade. Noch einmal deutlich mehr Kundschaft.',cost:()=>4200,done:()=>S.up.tafel},
+  {id:'lizenz',lvl:25,name:'Großhandelslizenz',desc:'Alle Lieferanten geben dir zusätzlich zehn Prozent Nachlass.',cost:()=>6500,done:()=>S.up.lizenz},
+  {id:'klima',lvl:27,name:'Klima und Musikanlage XL',desc:'Deutlich bessere Stimmung, Kunden bleiben spürbar länger.',cost:()=>5400,done:()=>S.up.klima},
+  {id:'meister',lvl:30,name:'Meisterbrief Pyrotechnik',desc:'Die höchste Stufe. Großaufträge zahlen ein Drittel mehr.',cost:()=>12000,done:()=>S.up.meister},
   {id:'gravur',lvl:9,name:'Gravur-Automat',desc:'Kunden beschriften ihre eigene Rakete. Hohe Marge, du musst nur Blanko-Ware nachfüllen.',cost:()=>1200,done:()=>S.up.gravur}
 ];
 const DEKO=[
@@ -517,6 +523,8 @@ const DEKO=[
   {id:'bild_raketen',lvl:5,name:'Bild: Raketennacht',amb:4,buy:0.03,cost:180,wall:true,desc:'Großformat an der Wand. Kunden greifen etwas beherzter zu.'},
   {id:'bild_stadt',lvl:8,name:'Bild: Feuerwerk über der Stadt',amb:6,buy:0.04,cost:320,wall:true,desc:'Macht Lust auf Silvester. Wirkt auf die Kauflaune.'},
   {id:'bild_sortiment',lvl:11,name:'Bild: Sortimentstafel',amb:5,buy:0.05,cost:420,wall:true,desc:'Zeigt, was der Laden alles hat. Kunden nehmen mehr mit.'},
+  {id:'saeule',lvl:19,name:'Leuchtsäule',amb:10,cost:900,desc:'Dreht sich langsam und zieht Blicke.'},
+  {id:'vitrine',lvl:22,name:'Schauvitrine',amb:12,buy:0.04,cost:1400,desc:'Zeigt die teuersten Stücke im besten Licht.'},
   {id:'bild_meister',lvl:16,name:'Bild: Der Sprengmeister',amb:9,buy:0.07,cost:820,wall:true,desc:'Das Prunkstück. Deutlich höhere Kauflaune im ganzen Laden.'}
 ];
 const STAFF=[
@@ -538,6 +546,9 @@ const SUPPLIERS=[
   {id:'premium',lvl:15,name:'Pyro Premium',short:'Premium',desc:'Markenware mit Prüfsiegel. Teurer im Einkauf, aber die Kunden zahlen deutlich mehr.',
     mult:1.28,quality:1.15,delay:[5,9],tiers:[{n:1,d:0},{n:5,d:0.06},{n:20,d:0.12}]}
 ];
+const LATE_SUP={id:'direkt',lvl:22,name:'Werksdirekt Hübner',short:'Werk',desc:'Direkt ab Werk. Große Mengen, feste Konditionen, beste Ware.',
+    mult:1.12,quality:1.2,delay:[12,18],tiers:[{n:5,d:0.06},{n:20,d:0.15},{n:50,d:0.24}]};
+SUPPLIERS.push(LATE_SUP);
 const PACKS=[
   {id:'tuete',lvl:8,name:'Kleine Wundertüte',desc:'Sechs Kartons Restware, bunt gemischt.',cost:210,n:6},
   {id:'kiste',lvl:10,name:'Große Wundertüte',desc:'Vierzehn Kartons. Manchmal ist etwas richtig Teures dabei.',cost:620,n:14},
@@ -555,7 +566,9 @@ const LOANS=[
   {lvl:5,amount:1000,term:10,rate:0.012},
   {lvl:8,amount:2500,term:12,rate:0.013},
   {lvl:12,amount:5000,term:14,rate:0.014},
-  {lvl:15,amount:10000,term:16,rate:0.015}
+  {lvl:15,amount:10000,term:16,rate:0.015},
+  {lvl:20,amount:25000,term:20,rate:0.016},
+  {lvl:26,amount:60000,term:24,rate:0.017}
 ];
 const WALLS=[
   {id:'creme',lvl:1,name:'Creme',cost:0,up:'#efe9dd',low:'#223055',rail:'#c8322a'},
@@ -630,17 +643,73 @@ function silvesterNah(n){ const i=dateInfo(n); return i.m===11&&i.d>=26; }
 const OPEN_T=480, CLOSE_T=1320, MIN_PER_SEC=840/330;
 /* Regaltypen. Klein ist der Einstieg, der Kühlschrank nimmt nur Sekt & Co. */
 const SHELFKIND={
-  klein:{id:'klein',name:'Kleines Regal',w:1.0,d:0.42,lv:[0.12,0.52,0.92],lvl:1,cost:60,step:40,amb:0},
-  standard:{id:'standard',name:'Verkaufsregal',w:2.0,d:0.52,lv:[0.115,0.565,1.015,1.465],lvl:4,cost:170,step:95,amb:1},
-  hoch:{id:'hoch',name:'Hochregal',w:2.0,d:0.52,lv:[0.11,0.47,0.83,1.19,1.55],lvl:10,cost:340,step:130,amb:2},
-  kuehl:{id:'kuehl',name:'Sekt-Kühlschrank',w:1.1,d:0.58,lv:[0.2,0.64,1.08,1.52],lvl:6,cost:540,step:210,amb:5,cold:true}
+  klein:{id:'klein',name:'Kleines Regal',w:1.0,d:0.42,lv:[0.12,0.52,0.92],lvl:1,cost:45,step:28,amb:0},
+  standard:{id:'standard',name:'Verkaufsregal',w:2.0,d:0.52,lv:[0.115,0.565,1.015,1.465],lvl:4,cost:130,step:70,amb:1},
+  hoch:{id:'hoch',name:'Hochregal',w:2.0,d:0.52,lv:[0.11,0.47,0.83,1.19,1.55],lvl:10,cost:260,step:95,amb:2},
+  kuehl:{id:'kuehl',name:'Sekt-Kühlschrank',w:1.1,d:0.58,lv:[0.2,0.64,1.08,1.52],lvl:6,cost:430,step:155,amb:5,cold:true}
 };
 const SHELFORDER=['klein','standard','hoch','kuehl'];
 const SLOTS=[{x:-6.4,z:-5.5},{x:-4.2,z:-5.5},{x:-2.0,z:-5.5},{x:0.2,z:-5.5},{x:2.4,z:-5.5},{x:-4.2,z:-1.2},{x:-2.0,z:-1.2},{x:0.2,z:-1.2},{x:2.4,z:-1.2},{x:-6.4,z:-1.2}];
 const RACKS=[{x:-12.4,z:-5.35,ry:0},{x:-15.5,z:-5.35,ry:0},{x:-12.4,z:1.35,ry:Math.PI},{x:-15.5,z:1.35,ry:Math.PI},{x:-18.6,z:-5.35,ry:0},{x:-18.6,z:1.35,ry:Math.PI},{x:-9.3,z:-5.35,ry:0},{x:-9.3,z:1.35,ry:Math.PI}];
 const WALLSPOTS=[{x:7.86,z:-2.0,ry:-Math.PI/2},{x:-2.5,z:-5.86,ry:0},{x:7.86,z:1.0,ry:-Math.PI/2},{x:2.0,z:-5.86,ry:0},{x:-7.86,z:3.6,ry:Math.PI/2},{x:-5.5,z:-5.86,ry:0}];
 const DEKOSPOTS=[{x:6.9,z:-4.6},{x:-7.1,z:3.2},{x:6.9,z:-2.2},{x:-7.1,z:-3.6},{x:3.6,z:5.2},{x:-6.2,z:1.2},{x:6.9,z:0.4},{x:-3.4,z:3.4},{x:1.4,z:-3.4}];
-function xpFor(l){ return Math.round(80*Math.pow(l,1.75)); }
+function xpFor(l){ return Math.round(50*Math.pow(l,1.55)); }
+
+/* =========================================================
+   Tagesereignisse: jeder Tag bekommt eine eigene Färbung
+   Werte sind Multiplikatoren, 1 heißt unverändert.
+   ========================================================= */
+const EVENTS=[
+  {id:'busgruppe',name:'Reisegruppe in der Stadt',txt:'Ein Bus mit Silvestertouristen steht am Marktplatz. Heute wird es voll.',cust:1.8,pat:0.85,w:8},
+  {id:'zeitung',name:'Artikel im Lokalblatt',txt:'Die Lokalzeitung hat über deinen Laden geschrieben. Das spricht sich herum.',cust:1.45,tol:1.06,rep:2,w:7},
+  {id:'influencer',name:'Video geht viral',txt:'Jemand hat dein Testfeld gefilmt. Das Video läuft überall.',cust:1.7,tol:1.08,hype:35,w:5},
+  {id:'feiertag',name:'Brückentag',txt:'Viele haben frei und decken sich ein.',cust:1.5,items:1.2,w:7},
+  {id:'sperrung',name:'Straße gesperrt',txt:'Bauarbeiten vor der Tür. Kaum jemand kommt vorbei.',cust:0.55,w:7},
+  {id:'regen',name:'Dauerregen',txt:'Es schüttet den ganzen Tag. Weniger Laufkundschaft, mehr Dreck.',cust:0.75,dirt:2.2,w:8},
+  {id:'kaelte',name:'Kältewelle',txt:'Minus zwölf Grad. Wer rausgeht, will schnell wieder rein.',cust:0.85,pat:0.7,heiz:true,w:7},
+  {id:'konkurrenz',name:'Konkurrent wirbt mit Rabatten',txt:'Der Laden zwei Straßen weiter wirft die Preise. Deine Kunden vergleichen.',tol:0.88,cust:0.9,w:8},
+  {id:'engpass',name:'Lieferengpass',txt:'Ein Werk steht still. Der Einkauf ist heute teuer.',ek:1.35,w:7},
+  {id:'schnaeppchen',name:'Restposten am Markt',txt:'Ein Großhändler räumt sein Lager. Heute ist der Einkauf günstig.',ek:0.68,w:7},
+  {id:'jugendbande',name:'Jugendliche ziehen umher',txt:'Eine Gruppe streift durch die Straßen. Heute besser aufpassen.',theft:3.0,cust:1.1,w:6},
+  {id:'stromausfall',name:'Stromausfall am Vormittag',txt:'Erst ab Mittag geht das Licht wieder an. Der Laden öffnet später.',late:180,w:5},
+  {id:'lieferverzug',name:'Stau auf der Autobahn',txt:'Alle Lieferungen brauchen heute deutlich länger.',delay:2.1,w:6},
+  {id:'veranstalter',name:'Veranstalter in der Stadt',txt:'Mehrere Agenturen suchen kurzfristig Ware. Das Telefon steht nicht still.',pyro:0.45,w:6},
+  {id:'pruefung',name:'Gewerbeaufsicht angekündigt',txt:'Heute schaut jemand vorbei. Ein sauberer Laden zahlt sich aus.',pruef:true,w:5},
+  {id:'sektlaune',name:'Sektlaune',txt:'Irgendein Anlass. Zubehör und Sekt gehen heute besonders gut.',cat0:1.8,w:6},
+  {id:'knallerlaune',name:'Alle wollen knallen',txt:'Die Leute fragen gezielt nach den lauten Sachen.',cat2:1.7,tol:1.05,w:6}
+];
+function eventById(id){ return EVENTS.find(e=>e.id===id)||null; }
+function todayEvent(){ return S&&S.ev?eventById(S.ev):null; }
+function evv(k,d){ const e=todayEvent(); return e&&e[k]!==undefined?e[k]:(d===undefined?1:d); }
+
+/* Kundentypen: unterschiedliche Geldbeutel, Geduld und Warenkörbe */
+const CUSTTYPES=[
+  {id:'normal',w:30,tol:1.0,items:1.0,pat:1.0,name:null},
+  {id:'spar',w:15,tol:0.85,items:1.15,pat:1.15,name:'Sparfuchs'},
+  {id:'familie',w:13,tol:1.0,items:1.8,pat:1.3,name:'Familie'},
+  {id:'jugend',w:12,tol:0.92,items:0.8,pat:0.7,name:'Jugendliche',f1:true},
+  {id:'stamm',w:10,tol:1.12,items:1.35,pat:1.45,name:'Stammkunde'},
+  {id:'angeber',w:8,tol:1.28,items:1.25,pat:0.78,name:'Angeber'},
+  {id:'eilig',w:7,tol:1.1,items:0.7,pat:0.5,name:'in Eile'},
+  {id:'profi',w:5,tol:1.06,items:2.6,pat:1.25,name:'Profi',f2:true}
+];
+function rollCustType(){
+  const pool=CUSTTYPES.filter(c=>!c.f2||S.level>=8);
+  let tot=0; pool.forEach(c=>tot+=c.w);
+  let r=Math.random()*tot;
+  for(const c of pool){ r-=c.w; if(r<=0) return c; }
+  return pool[0];
+}
+
+/* Wochenziele */
+const GOALS=[
+  {id:'umsatz',name:'Wochenumsatz',mk:l=>({need:Math.round(600+l*260),unit:'€',kind:'rev'}),pay:l=>Math.round(120+l*45)},
+  {id:'kunden',name:'Kundschaft bedienen',mk:l=>({need:Math.round(40+l*14),unit:'Kunden',kind:'cust'}),pay:l=>Math.round(100+l*40)},
+  {id:'artikel',name:'Artikel verkaufen',mk:l=>({need:Math.round(90+l*34),unit:'Artikel',kind:'sold'}),pay:l=>Math.round(110+l*42)},
+  {id:'f2',name:'Feuerwerk F2 absetzen',mk:l=>({need:Math.round(30+l*16),unit:'F2-Artikel',kind:'f2'}),pay:l=>Math.round(150+l*55)},
+  {id:'sauber',name:'Sauber bleiben',mk:l=>({need:5,unit:'Tage ohne Beschwerde',kind:'clean'}),pay:l=>Math.round(130+l*40)},
+  {id:'gross',name:'Großaufträge erfüllen',mk:l=>({need:Math.max(1,Math.round(l/5)),unit:'Aufträge',kind:'orders'}),pay:l=>Math.round(200+l*60)}
+];
 function levelUnlocks(l){
   const out=[];
   ORDER.forEach(t=>{ if(P[t].lvl===l) out.push(`Neue Ware: ${P[t].name}`); });
@@ -3321,16 +3390,24 @@ function route(from,to){
 }
 function spotPos(i){ return i===0?ck(1.05,1.05):ck(0.1-(i-1)*0.8,1.68); }
 function queueApproach(){ return ck(-4.0,1.7); }
-function priceTol(){ return 0.95+ambienteScore()/450+S.rep/900+bildBoost()+(friendliness()-1)*0.12; }
-function buyChance(t,price,q,cold){ const r=price/P[t].market, lo=priceTol()+((q||1)-1)*0.18+(cold?0.16:0); if(r<=lo) return 1; if(r>=lo+0.5) return 0; return 1-(r-lo)/0.5; }
+function priceTol(){ return (0.95+ambienteScore()/450+S.rep/900+bildBoost()+(friendliness()-1)*0.12)*evv('tol')*(S.comp||1); }
+function buyChance(t,price,q,cold,ct){ const r=price/P[t].market, lo=priceTol()*(ct?ct.tol:1)+((q||1)-1)*0.18+(cold?0.16:0); if(r<=lo) return 1; if(r>=lo+0.5) return 0; return 1-(r-lo)/0.5; }
 function dayIndex(){ return S.day; }
-function makeWishes(){
+function makeWishes(ct){
   const avail=ORDER.filter(t=>isUnlocked(t)&&canWish(t)), list=[], used=new Set();
   const late=silvesterNah(S.day);
-  const n=Math.random()<0.38?1:(Math.random()<0.6?2:(Math.random()<0.8?3:4));
+  let n=Math.random()<0.38?1:(Math.random()<0.6?2:(Math.random()<0.8?3:4));
+  if(ct) n=Math.max(1,Math.round(n*ct.items));
   for(let k=0;k<n;k++){
     const pool=avail.filter(a=>!used.has(a)); if(!pool.length) break;
-    const wt=pool.map(t=>{ let w=P[t].weight; if(late&&P[t].cat===2) w*=1.9; if(hype>40&&P[t].cat===2) w*=1.3; if(P[t].cat===0) w*=1.1; return w; });
+    const wt=pool.map(t=>{ let w=P[t].weight;
+      if(late&&P[t].cat===2) w*=1.9;
+      if(hype>40&&P[t].cat===2) w*=1.3;
+      if(P[t].cat===0) w*=1.1*evv('cat0');
+      if(P[t].cat===2) w*=evv('cat2');
+      if(ct&&ct.f1&&P[t].cat===2) w*=0.12;
+      if(ct&&ct.f2&&P[t].cat===2) w*=2.6;
+      return w; });
     let r=Math.random()*wt.reduce((a,b)=>a+b,0), t=pool[0];
     for(let j=0;j<pool.length;j++){ r-=wt[j]; if(r<=0){ t=pool[j]; break; } }
     used.add(t);
@@ -3346,14 +3423,15 @@ function thiefChance(){
   let c=0.035+Math.min(0.05,S.level*0.0035);
   if(S.up.cams) c*=0.5;
   if(staff.security) c*=0.35;
-  return c;
+  return c*evv('theft');
 }
 class Customer{
   constructor(){
     this.g=makePerson(); this.g.position.set(rand(-4,4),0,13.5); scene.add(this.g);
     this.path=[V(0,0,7.6),V(0,0,4.9)]; this.state='enter'; this.speed=rand(1.2,1.6);
-    this.wishes=makeWishes(); this.items=[]; this.missed=false; this.total=0;
-    this.patience=(rand(75,110)+S.rep*0.3+(S.up.heizung?30:0)+ambienteScore()*0.35)*(0.72+0.3*friendliness());
+    this.ct=rollCustType();
+    this.wishes=makeWishes(this.ct); this.items=[]; this.missed=false; this.total=0;
+    this.patience=(rand(75,110)+S.rep*0.3+(S.up.heizung?30:0)+(S.up.klima?35:0)+ambienteScore()*0.35)*(0.72+0.3*friendliness())*this.ct.pat*evv('pat');
     this.wait=0; this.bub=null; this.bubT=0; this.moving=false;
     this.thief=Math.random()<thiefChance(); this.mark=null; this.caught=false;
     this.wantGrav=!!(S.up.gravur&&Math.random()<0.3); this.gravDone=false;
@@ -3392,7 +3470,7 @@ class Customer{
     for(let k=0;k<w.qty;k++){
       if(lv.count<=0||lv.type!==w.type) break;
       const price=S.prices[w.type];
-      if(this.thief||Math.random()<buyChance(w.type,price,lv.q,kindOf(lv.sh).cold)){ removeFromLevel(lv); this.items.push({type:w.type,price}); got++; } else pricey=true;
+      if(this.thief||Math.random()<buyChance(w.type,price,lv.q,kindOf(lv.sh).cold,this.ct)){ removeFromLevel(lv); this.items.push({type:w.type,price}); got++; } else pricey=true;
     }
     if(got===0){ this.missed=true; if(pricey){ this.say('Viel zu teuer!',true); rep(-0.5); } else DS.missed+=w.qty; }
     else if(pricey) this.say('Hm, ganz schön teuer.');
@@ -3438,6 +3516,8 @@ class Customer{
   complete(net,over){
     S.money=r2(S.money+net); S.seasonRevenue=r2(S.seasonRevenue+this.total); DS.revenue=r2(DS.revenue+this.total);
     DS.changeLoss=r2(DS.changeLoss+over); DS.sold+=this.items.length; DS.customers++;
+    const nf2=this.items.filter(i2=>P[i2.type].cat===2).length; DS.f2+=nf2;
+    goalAdd('rev',this.total); goalAdd('cust',1); goalAdd('sold',this.items.length); goalAdd('f2',nf2);
     let gain=Math.round(this.total*0.5)+4; if(over<=0.001&&this.method==='cash') gain+=3;
     addXP(gain);
     rep(this.missed?0.2:0.8); sfx.cash(); toast('+'+eur(this.total),'money');
@@ -3543,7 +3623,7 @@ function makeCall(){
 function updatePhone(dt){
   if(!pyroUnlocked()||phase!=='open') return;
   if(order||phone.state){ if(phone.state==='ringing'){ phone.t-=dt; if(phone.t<=0){ phone.state=null; $('phone').textContent=''; phone.cd=rand(60,110); toast('Anruf verpasst.','bad'); } } return; }
-  phone.cd-=dt;
+  phone.cd-=dt/evv('pyro');
   if(phone.cd<=0){
     const c=makeCall();
     if(!c){ phone.cd=90; return; }
@@ -3605,7 +3685,7 @@ function haggle(step){
 }
 function acceptDeal(){
   const c=phone.call; if(!c) return;
-  const pay=r2(c.value*c.mult);
+  const pay=r2(c.value*c.mult*(S.up&&S.up.meister?1.33:1));
   order={name:c.name,typeId:c.type.id,items:c.items,pay,arrive:rand(18,30),t:0,done:false};
   S.stamm=S.stamm||{}; S.stamm[c.type.id]=(S.stamm[c.type.id]||0)+1;
   closeDeal(); phone.state=null; phone.call=null; phone.cd=rand(150,260);
@@ -3650,7 +3730,7 @@ function shipOne(){
 function finishOrder(){
   const o=order; order=null;
   S.money=r2(S.money+o.pay); DS.revenue=r2(DS.revenue+o.pay); S.seasonRevenue=r2(S.seasonRevenue+o.pay);
-  DS.orders=(DS.orders||0)+1;
+  DS.orders=(DS.orders||0)+1; goalAdd('orders',1);
   rep(2.5); addXP(Math.round(o.pay*0.4)+40,'Großauftrag erfüllt'); sfx.cash();
   toast(`${o.name}: Ware ist raus, ${eur(o.pay)} gutgeschrieben.`,'money');
   save();
@@ -4821,18 +4901,59 @@ function repayLoan(v){
 /* =========================================================
    Tagesablauf
    ========================================================= */
-function newDayStats(){ DS={revenue:0,customers:0,sold:0,missed:0,angry:0,goods:0,upgrades:0,interest:0,changeLoss:0,stolen:0,caught:0,burned:0,orders:0,gravur:0,rep0:S.rep,xpGained:0}; }
+function newDayStats(){ DS={revenue:0,customers:0,sold:0,f2:0,missed:0,angry:0,goods:0,upgrades:0,interest:0,changeLoss:0,stolen:0,caught:0,burned:0,orders:0,gravur:0,rep0:S.rep,xpGained:0}; }
+/* Marktlage: Einkaufspreise und Konkurrenz schwanken von Tag zu Tag */
+function rollMarket(){
+  S.mkt=clamp((S.mkt||1)*rand(0.93,1.08),0.72,1.34);
+  S.comp=clamp((S.comp||1)*rand(0.95,1.05),0.88,1.12);
+}
+function ekFactor(){ return (S.mkt||1)*evv('ek')*(S.up&&S.up.lizenz?0.9:1); }
+function marktText(){ const m=S.mkt||1; return m<0.85?'Einkauf günstig':m<0.96?'Einkauf leicht günstig':m<1.05?'Einkauf normal':m<1.18?'Einkauf teuer':'Einkauf sehr teuer'; }
+/* Tagesereignis würfeln */
+function rollEvent(){
+  S.ev=null;
+  if(S.day<3) return;
+  if(Math.random()<0.34) return;
+  let tot=0; EVENTS.forEach(e=>tot+=e.w);
+  let r=Math.random()*tot;
+  for(const e of EVENTS){ r-=e.w; if(r<=0){ S.ev=e.id; break; } }
+  const e=todayEvent(); if(!e) return;
+  if(e.rep) rep(e.rep);
+  if(e.hype) hype=Math.min(100,hype+e.hype);
+}
+/* Wochenziel */
+function newGoal(){
+  const g=pick(GOALS), m=g.mk(S.level);
+  S.goal={id:g.id,name:g.name,kind:m.kind,need:m.need,unit:m.unit,have:0,pay:g.pay(S.level),days:7};
+}
+function goalAdd(kind,n){
+  const g=S&&S.goal; if(!g||g.done||g.kind!==kind) return;
+  g.have=r2(g.have+n);
+  if(g.have>=g.need){ g.done=true;
+    S.money=r2(S.money+g.pay); addXP(Math.round(g.pay/3),'Wochenziel geschafft'); sfx.cash();
+    toast(`Wochenziel geschafft: ${g.name}. ${eur(g.pay)} Prämie.`,'money'); }
+}
+function goalTick(){
+  if(!S.goal){ newGoal(); return; }
+  const g=S.goal;
+  if(g.kind==='clean'&&!g.done&&DS.angry===0&&cleanliness()>=75) goalAdd('clean',1);
+  g.days--;
+  if(g.days<=0||g.done){
+    if(!g.done) toast(`Wochenziel verfehlt: ${g.name}.`,'bad');
+    newGoal();
+  }
+}
 let spawnT=2;
 function spawnInterval(){
-  const m=dayMult(S.day)*(1+0.05*(S.season-1))*(0.55+S.rep/100)*(S.up.plakat?1.3:1)*(S.up.radio?1.25:1)*(1+hype/50)*(0.85+ambienteScore()/180)*(0.75+cleanliness()/300);
-  return Math.max(1.0,11.5/m);
+  const m=dayMult(S.day)*evv('cust')*eroeffnung()*(1+0.05*(S.season-1))*(0.55+S.rep/100)*(S.up.plakat?1.3:1)*(S.up.radio?1.25:1)*(S.up.tafel?1.3:1)*(S.up.kundenkarte?1.12:1)*(1+hype/50)*(0.85+ambienteScore()/180)*(0.75+cleanliness()/300);
+  return Math.max(0.9,9.2/m);
 }
 function ruhetag(){ return isSunday(S.day)&&!S.up.tag4; }
 function openShop(){
   if(phase!=='closed') return;
   if(ruhetag()){ toast('Sonntag ist Ruhetag. Nutz den Tag zum Nachfüllen oder zum Testen im Hof.','bad'); return; }
-  phase='open'; clock=OPEN_T; spawnT=1.5; S.tut.open=true; updateSign(); sfx.pop();
-  toast(`Der Laden ist offen. ${seasonInfo(S.day)[1]}.`);
+  phase='open'; clock=OPEN_T+evv('late',0); spawnT=1.5; S.tut.open=true; updateSign(); sfx.pop();
+  toast(S.day<7?'Der Laden ist offen. Die Neueröffnung spricht sich noch herum.':`Der Laden ist offen. ${seasonInfo(S.day)[1]}.`);
 }
 function updateDay(dt){
   if(phase==='closed'&&ruhetag()&&clock<CLOSE_T) clock=Math.min(CLOSE_T,clock+dt*MIN_PER_SEC*0.6);
@@ -4856,14 +4977,23 @@ function showSummary(title,text,rows,btn,fn){
   $('summary').classList.add('show'); summaryOpen=true; paused=true; if(locked) document.exitPointerLock();
 }
 const SHELFFIX={klein:4,standard:9,hoch:12,kuehl:18};
-function fixedCosts(){ let f=20+12*racks.length; shelves.forEach(sh=>f+=SHELFFIX[sh.kind]||9); return f; }
+function fixedCosts(){
+  let f=10+6*racks.length+Math.round(Math.max(0,S.level-4)*4);
+  shelves.forEach(sh=>f+=SHELFFIX[sh.kind]||9);
+  return f;
+}
+/* Die ersten Tage läuft es besser: Neueröffnung spricht sich herum */
+function eroeffnung(){ return S.day<7?1.75-S.day*0.11:1; }
 function endDay(){
   if(phase!=='after') return;
   if(laptopOpen) closeLaptop(false);
   if(order) failOrder();
   clearStations();
   addGrime(0.06); staffMorale();
-  const wages=dailyWages(), fix=fixedCosts(), extra=hasDeko('automat')?45:0;
+  const ev=todayEvent();
+  if(ev&&ev.pruef){ if(cleanliness()>=70){ rep(3); toast('Die Prüfung war zufrieden. Das hebt den Ruf.','money'); } else { rep(-5); toast('Die Prüfung hat einen dreckigen Laden vorgefunden.','bad'); } }
+  const online=S.up.onlineshop?Math.round(40+S.rep*1.6+S.level*4):0;
+  const wages=dailyWages(), fix=fixedCosts(), extra=(hasDeko('automat')?45:0)+online;
   let pay=0, rate=0;
   if(S.loan){ rate=loanDaily(); const interest=r2(S.loan.remaining*S.loan.rate); pay=Math.min(rate,S.loan.remaining+interest);
     S.loan.remaining=r2(S.loan.remaining-(pay-interest)); S.loan.paid=r2(S.loan.paid+pay);
@@ -4876,7 +5006,9 @@ function endDay(){
   if(S.money<0){ rep(-3); toast('Konto im Minus. Das kostet Ruf.','bad'); }
   const rows=[
     {head:'Einnahmen'},['Verkäufe',eur(DS.revenue)]];
-  if(extra) rows.push(['Getränkeautomat',eur(extra)]);
+  if(hasDeko('automat')) rows.push(['Getränkeautomat',eur(45)]);
+  if(online) rows.push(['Onlineshop',eur(online)]);
+  if(S.goal) rows.push(['Wochenziel',`${S.goal.name}: ${Math.round(S.goal.have)}/${S.goal.need} ${S.goal.unit}`]);
   rows.push({head:'Ausgaben'},['Wareneinkauf',eur(DS.goods)],['Ausbau und Deko',eur(DS.upgrades)],['Löhne',eur(wages)],['Fixkosten',eur(fix)],['Kreditrate',eur(pay)],['Zu viel Rückgeld',eur(DS.changeLoss)],['Selbst gezündet',eur(DS.burned)],
     ['Gewinn des Tages',(profit>=0?'+':'')+eur(profit),true],
     {head:'Laden'},['Kunden bedient',DS.customers],['Verkaufte Artikel',DS.sold],['Verpasst, weil Fach leer',DS.missed],['Genervt gegangen',DS.angry],['Diebstahl',eur(DS.stolen)],['Diebe gestellt',DS.caught],['Großaufträge',DS.orders||0],['Gravuren verkauft',DS.gravur||0],
@@ -4887,7 +5019,7 @@ function endDay(){
   const morgen=isSunday(S.day+1)&&!S.up.tag4?'Morgen ist Sonntag, Ruhetag. Gute Gelegenheit zum Auffüllen.'
     :`Morgen: ${dateStr(S.day+1)}. ${seasonInfo(S.day+1)[1]}.`;
   showSummary(`Tagesabschluss · ${dateStr(S.day)}`,morgen,rows,'Nächster Tag',()=>{
-    S.day++;
+    S.day++; goalTick(); rollMarket(); rollEvent();
     if(jahresende){
       const n=S.season; S.season++;
       const jahr=S.seasonRevenue; S.seasonRevenue=0; addXP(200,'Ein Jahr geschafft');
@@ -4924,7 +5056,7 @@ function orderBox(t,n,supId){
   const cost=tierPrice(t,sup,tier); if(S.money<cost) return;
   S.money=r2(S.money-cost); DS.goods=r2(DS.goods+cost);
   const [d0,d1]=sup.delay;
-  for(let i=0;i<n;i++) pending.push({type:t,t:rand(d0,d1)+i*1.1,q:sup.quality,sup:sup.id});
+  for(let i=0;i<n;i++) pending.push({type:t,t:(rand(d0,d1)+i*1.1)*evv('delay'),q:sup.quality,sup:sup.id});
   S.tut.order=true; sfx.pop();
   toast(`${n>1?n+' Kartons ':''}${p.name} bei ${sup.short} bestellt.`); save();
 }
@@ -4944,7 +5076,7 @@ function buyPack(id){
   const items=packContents(pk.n); if(!items.length) return;
   S.money=r2(S.money-pk.cost); DS.goods=r2(DS.goods+pk.cost);
   const sup=supplierOf('ratzke');
-  items.forEach((t,i)=>pending.push({type:t,t:rand(sup.delay[0],sup.delay[1])+i*0.9,q:sup.quality,sup:sup.id}));
+  items.forEach((t,i)=>pending.push({type:t,t:(rand(sup.delay[0],sup.delay[1])+i*0.9)*evv('delay'),q:sup.quality,sup:sup.id}));
   const cnt={}; items.forEach(t=>cnt[t]=(cnt[t]||0)+1);
   const keys=Object.keys(cnt), txt=keys.slice(0,4).map(t=>`${cnt[t]}× ${P[t].short}`).join(', ')+(keys.length>4?' …':'');
   const worth=r2(items.reduce((a,t)=>a+P[t].cost*P[t].box,0));
@@ -5029,6 +5161,9 @@ function renderLaptop(){
     h=`<div class="row"><div class="rm"><b>Level ${S.level}</b><small>${S.xp} von ${need} XP bis Level ${S.level+1}</small><small>${nxt.length?'Als Nächstes: '+nxt.slice(0,3).join(', '):'Weitere Freischaltungen folgen.'}</small></div><div class="price">${Math.round(S.xp/need*100)} %</div></div>`+
       `<div class="row"><div class="rm"><b>Heute</b><small>Umsatz ${eur(DS.revenue)} · ${DS.customers} Kunden · ${DS.sold} Artikel</small><small>Verpasst ${DS.missed} · genervt ${DS.angry} · Diebstahl ${eur(DS.stolen)}</small></div></div>`+
       `<div class="row"><div class="rm"><b>Laden</b><small>Ruf ${Math.round(S.rep)}/100 · Stimmung ${ambienteScore()}/100 · Sauberkeit ${cleanliness()}/100</small><small>${shelves.length} Verkaufsregale · ${racks.length} Lagerregale · ${dekos.length} Deko</small></div></div>`+
+      (todayEvent()?`<div class="row"><div class="rm"><b>Heute: ${todayEvent().name}</b><small>${todayEvent().txt}</small></div></div>`:'')+
+      (S.goal?`<div class="row"><div class="rm"><b>Wochenziel: ${S.goal.name}</b><small>${Math.round(S.goal.have)} von ${S.goal.need} ${S.goal.unit} · noch ${S.goal.days} Tag${S.goal.days===1?'':'e'}</small><small>Prämie ${eur(S.goal.pay)}</small></div><div class="price">${Math.min(100,Math.round(S.goal.have/S.goal.need*100))} %</div></div>`:'')+
+      `<div class="row"><div class="rm"><b>Marktlage</b><small>${marktText()} · Einkauf ${Math.round(ekFactor()*100)} % vom Listenpreis</small><small>Konkurrenz: ${(S.comp||1)<0.96?'drückt die Preise':(S.comp||1)>1.04?'ist teuer, gut für dich':'unauffällig'}</small></div></div>`+
       `<div class="row"><div class="rm"><b>Fixkosten pro Tag</b><small>Miete und Strom ${eur(fixedCosts())} · Löhne ${eur(dailyWages())}</small><small>Umsatz im Jahr ${eur(S.seasonRevenue)}</small></div></div>`;
   } else {
     hint='Der Spielstand liegt in diesem Browser.';
@@ -5114,7 +5249,7 @@ function setFloor(id){ const f=FLOORS.find(x=>x.id===id); if(!f||S.level<f.lvl||
 function freshState(){ const prices={}; ORDER.forEach(t=>prices[t]=P[t].market);
   return {v:3,money:500,rep:50,level:1,xp:0,season:1,day:0,loan:null,prices,grime:0,
     up:{plakat:false,terminal:false,tag4:false,heizung:false,musik:false,radio:false,cams:false,regallicht:false,alarm:false},
-    staff:{},prio:{},wage:{},deko:[],wall:'creme',floor:'grau',paint:[],test:null,stamm:{},
+    staff:{},prio:{},wage:{},ev:null,goal:null,mkt:1,comp:1,deko:[],wall:'creme',floor:'grau',paint:[],test:null,stamm:{},
     shelves:[],racks:[null],
     boxes:[],
     carrying:null,tut:{},seasonRevenue:0}; }
@@ -5123,7 +5258,7 @@ function mpos(g){ return {x:+g.position.x.toFixed(2),z:+g.position.z.toFixed(2),
 function save(){
   if(!S) return;
   try{
-    const d={v:3,money:S.money,rep:S.rep,level:S.level,xp:S.xp,season:S.season,day:S.day,loan:S.loan,prices:S.prices,up:S.up,staff:S.staff,prio:S.prio||{},wage:S.wage||{},
+    const d={v:3,money:S.money,rep:S.rep,level:S.level,xp:S.xp,season:S.season,day:S.day,loan:S.loan,prices:S.prices,up:S.up,staff:S.staff,prio:S.prio||{},wage:S.wage||{},ev:S.ev||null,goal:S.goal||null,mkt:r2(S.mkt||1),comp:r2(S.comp||1),
       wall:S.wall,floor:S.floor,paint:S.paint,test:S.test,stamm:S.stamm,blanks:gravBlanks,grav:gravG?mpos(gravG):null,grime:r2(S.grime||0),tut:S.tut,seasonRevenue:S.seasonRevenue,carrying:S.carrying,
       deko:dekos.map(d2=>Object.assign({id:d2.id},mpos(d2.g))),
       ck:mpos(ckG),desk:mpos(deskG),
@@ -5138,7 +5273,7 @@ function startGame(fresh){
   const d=fresh?null:loadSave();
   S=Object.assign(freshState(),d||{});
   const F=freshState();
-  S.prices=Object.assign(F.prices,S.prices||{}); S.up=Object.assign(F.up,S.up||{}); S.staff=Object.assign({},S.staff||{}); S.prio=Object.assign({},S.prio||{}); S.grime=clamp(+S.grime||0,0,1); S.wage=Object.assign({},S.wage||{}); S.tut=S.tut||{}; S.paint=S.paint||[]; S.stamm=S.stamm||{};
+  S.prices=Object.assign(F.prices,S.prices||{}); S.up=Object.assign(F.up,S.up||{}); S.staff=Object.assign({},S.staff||{}); S.prio=Object.assign({},S.prio||{}); S.grime=clamp(+S.grime||0,0,1); S.mkt=clamp(+S.mkt||1,0.7,1.4); S.comp=clamp(+S.comp||1,0.85,1.15); if(S.ev&&!eventById(S.ev)) S.ev=null; S.wage=Object.assign({},S.wage||{}); S.tut=S.tut||{}; S.paint=S.paint||[]; S.stamm=S.stamm||{};
   S.level=Math.max(1,S.level|0); S.xp=Math.max(0,S.xp|0); S.season=Math.max(1,S.season|0); S.day=Math.max(0,S.day|0);
   if(!WALLS.some(w=>w.id===S.wall)) S.wall='creme';
   if(!FLOORS.some(f=>f.id===S.floor)) S.floor='grau';
@@ -5157,6 +5292,7 @@ function startGame(fresh){
   if(S.up.gravur){ buildGravur(d&&d.grav?d.grav:null); gravBlanks=Math.max(0,Math.min(GRAV_MAX,(d&&d.blanks)|0)); drawGrav(); }
   STAFF.forEach(s=>{ if(S.staff[s.id]) hireStaff(s.id); });
   if(S.up.regallicht){ shelfLight.intensity=0.8; shelfStrips.forEach(m=>m.emissiveIntensity=1.5); }
+  if(!S.goal) newGoal();
   phase='closed'; clock=OPEN_T; newDayStats(); updateSign(); updateCarry(); updateTool(); paused=false;
 }
 
@@ -5210,6 +5346,9 @@ function updateHUD(){
   $('mHype').hidden=compact&&hype<1;
   $('mClean').hidden=compact&&cl>=100;
   let chips='';
+  const ev=todayEvent(), gl=S.goal;
+  if(ev) chips+=`<div class="chip" style="background:rgba(255,210,63,.2);color:var(--signal)">${ev.name}</div>`;
+  if(gl&&!gl.done&&!compact) chips+=`<div class="chip">${gl.name} ${Math.round(gl.have)}/${gl.need}</div>`;
   STAFF.forEach(s=>{ if(S.staff[s.id]) chips+=`<div class="chip">${s.name}</div>`; });
   const el=$('staff'); if(el.innerHTML!==chips) el.innerHTML=chips;
   const ph=$('phone');
@@ -5281,7 +5420,7 @@ function step(dt){
   for(const k in staff) if(staff[k]) staff[k].update(dt);
   updateBelt(dt);
   updatePhone(dt); updateOrder(dt);
-  if(phase==='open'){ dirtT-=dt; if(dirtT<=0){ dirtT=rand(34,62)/(1+customers.length*0.09); if(Math.random()<(hasDeko('muell')?0.2:0.42)) addDirt(rand(-6,6),rand(-4.5,5)); } }
+  if(phase==='open'){ dirtT-=dt; if(dirtT<=0){ dirtT=rand(34,62)/((1+customers.length*0.09)*evv('dirt')); if(Math.random()<(hasDeko('muell')?0.2:0.42)) addDirt(rand(-6,6),rand(-4.5,5)); } }
   for(const pd of pending) pd.t-=dt;
   if(!truck&&pending.some(pd=>pd.t<=0)){
     const wave=[];
@@ -5421,7 +5560,7 @@ fontsReady().then(()=>{
   camera.position.set(pl.x,1.65,pl.z); camera.rotation.set(pitch,yaw,0);
   lastF=-1; applyTOD(); updateSign(); buildStart(); requestAnimationFrame(frame);
   window.__bb={get S(){return S},get phase(){return phase},set phase(v){phase=v},set clock(v){clock=v},get clock(){return clock},pickUp,floorBoxes,shelves,racks,dekos,stockOne,openShop,step,customers,queue,belt,scanBelt,buyUp,buyDeko,get DS(){return DS},endDay,pending,save,openLaptop,closeLaptop,pl,addXP,hireStaff,fireStaff,staff,dirts,addDirt,movables,toggleBuild,setWall,setFloor,
-    stations,firePult,placeOnStation,igniteType,get order(){return order},get phone(){return phone},makeCall,answerPhone,haggle,acceptDeal,declineDeal,get truck(){return truck},spawnTruck,takeFromTruck,updateTruck,orderReady,orderLeft,prioOf,setPrio,racks,updateCarry,spawnFloorBox,staff,SHELFKIND,layout,shelfCapOf,shelfAccepts,emptyLevel,dateInfo,dateStr,seasonInfo,isSunday,dayMult,ruhetag,wageOf,setWage,friendliness,windowGrime,addGrime,cleanWindowTick,ambienteScore,bildBoost,fixedCosts,dailyWages,buildGravur,refillGrav,openGravInput,closeGravInput,get gravBlanks(){return gravBlanks},set gravBlanks(v){gravBlanks=v},orderBox,buyPack,
+    stations,firePult,placeOnStation,igniteType,get order(){return order},get phone(){return phone},makeCall,answerPhone,haggle,acceptDeal,declineDeal,get truck(){return truck},spawnTruck,takeFromTruck,updateTruck,orderReady,orderLeft,prioOf,setPrio,racks,updateCarry,spawnFloorBox,staff,SHELFKIND,layout,shelfCapOf,shelfAccepts,emptyLevel,dateInfo,dateStr,dateShort,seasonInfo,isSunday,dayMult,ruhetag,wageOf,setWage,friendliness,windowGrime,addGrime,cleanWindowTick,ambienteScore,bildBoost,fixedCosts,dailyWages,EVENTS,GOALS,CUSTTYPES,UPGRADES,STAFF,stockOf,spawnInterval,pools,todayEvent,evv,rollEvent,rollMarket,newGoal,goalAdd,goalTick,ekFactor,marktText,xpFor,rollCustType,priceTol,buyChance,regCustomer,makeWishes,buildGravur,refillGrav,openGravInput,closeGravInput,get gravBlanks(){return gravBlanks},set gravBlanks(v){gravBlanks=v},orderBox,buyPack,
     scene,P,EFF,SHOWS,togglePDA,openPDA,closePDA,setPost,get postOn(){return postOn},get pdaOn(){return pdaOn},showLength,psBig,psMid,psSmall,rockets,emitters,timersLen:()=>timers.length,setView:(x,z,y,p)=>{pl.x=x;pl.z=z;yaw=y;pitch=p;},allLevels,addToLevel,putInSlot,regCustomer,
     shot:()=>{ noLoop=true; camera.position.set(pl.x,1.65,pl.z); camera.rotation.set(pitch,yaw,0); camera.updateMatrixWorld(); updateTarget(); applyTOD(); renderFrame(0.016); return canvas.toDataURL('image/jpeg',0.85); },
     run:(sec,dt)=>{ noLoop=true; const n=Math.round(sec/(dt||0.05)); for(let i=0;i<n;i++) step(dt||0.05); }};

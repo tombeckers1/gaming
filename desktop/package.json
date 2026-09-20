@@ -1,0 +1,57 @@
+{
+  "name": "boellerladen-simulator",
+  "productName": "Böllerladen Simulator",
+  "version": "0.1.0",
+  "description": "Feuerwerksladen-Simulator",
+  "author": "Tom Beckers",
+  "license": "UNLICENSED",
+  "main": "main.js",
+  "private": true,
+  "scripts": {
+    "prepare-app": "node prepare.mjs",
+    "start": "npm run prepare-app && electron .",
+    "dist": "npm run prepare-app && electron-builder --win",
+    "dist:portable": "npm run prepare-app && electron-builder --win portable"
+  },
+  "devDependencies": {
+    "electron": "^32.0.0",
+    "electron-builder": "^25.0.0"
+  },
+  "build": {
+    "appId": "com.tombeckers.boellerladen",
+    "productName": "Boellerladen Simulator",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "main.js",
+      "app/**/*"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "shortcutName": "Böllerladen Simulator"
+    },
+    "portable": {
+      "artifactName": "BoellerladenSimulator-portable-${version}.exe"
+    }
+  }
+}

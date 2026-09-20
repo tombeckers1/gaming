@@ -3261,9 +3261,10 @@ function clearRaum(){
 function leaveTruck(){
   if(!truck||truck.state!=='docked') return;
   truck.state='closing'; truck.t=0;
-  /* Das Aussenmodell bleibt versteckt, bis das Tor ganz unten ist -
-     sonst schiebt sich der geschlossene Kasten sichtbar ins Tor. */
-  clearRaum(); doorOpen(false);
+  /* Laderaum, Bruecke und Aussenmodell bleiben unveraendert, bis das Tor
+     ganz unten ist: sonst verschwindet der LKW mitten im Blickfeld
+     oder sein geschlossener Kasten schiebt sich sichtbar ins Tor. */
+  doorOpen(false);
   if(truckDriver){ scene.remove(truckDriver); truckDriver=null; }
 }
 function removeTruck(){
@@ -3310,7 +3311,7 @@ function updateTruck(dt){
     if(!truck.cargo.length&&!trailerOccupied()){ truck.t+=dt; if(truck.t>1.2) leaveTruck(); }
     else truck.t=0;
   } else if(truck.state==='closing'){
-    if(door&&door.t<=0.02){ truck.state='out'; truck.t=0; g.visible=true; }
+    if(door&&door.t<=0.02){ truck.state='out'; truck.t=0; clearRaum(); g.visible=true; }
   } else if(truck.state==='out'){
     truck.t+=dt;
     if(truck.t>0.6){ g.position.x-=Math.min(7,(truck.t-0.6)*5)*dt; if(g.position.x<lrFront()-14) removeTruck(); }

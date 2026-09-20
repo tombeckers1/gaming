@@ -1291,7 +1291,7 @@ function buildWorld(){
   flat(10,9,new THREE.MeshStandardMaterial({map:yardGroundTex(),roughness:0.92}),3,0.013,-10.5);
   // Warenannahme
   const zone=new THREE.Mesh(new THREE.PlaneGeometry(4.3,2.3),new THREE.MeshBasicMaterial({transparent:true,depthWrite:false,map:tex(430,230,(g,W,H)=>{ g.clearRect(0,0,W,H); g.strokeStyle='#ffd23f'; g.lineWidth=10; g.setLineDash([26,14]); g.strokeRect(8,8,W-16,H-16); g.setLineDash([]); g.fillStyle='rgba(255,210,63,.95)'; g.font=BAR(30); g.fillText('Wareneingang',24,H-26); })}));
-  zone.rotation.x=-Math.PI/2; zone.position.set(-17.9,0.022,-2.9); zone.renderOrder=2; scene.add(zone);
+  zone.rotation.x=-Math.PI/2; zone.position.set(-16.6,0.022,-2.9); zone.renderOrder=2; scene.add(zone);
   // Laden: Frontwand mit Schaufenstern
   const H=WH;
   wall(-8,-7.2,5.9,6.1,0,H,'-z',shopWall); wall(-2,-1.2,5.9,6.1,0,H,'-z',shopWall);
@@ -1882,7 +1882,6 @@ function buildFacade(){
     const cx=(a+b)/2, w=b-a;
     bbox(w+0.2,0.1,0.34,std(0xbcb6a8,{roughness:0.95}),cx,0.9,zf+0.1,null,false);
     bbox(w+0.24,0.06,0.36,snow,cx,0.96,zf+0.12,null,false);
-    bbox(w,0.14,0.26,std(0x6d4c35,{roughness:0.9}),cx,1.05,6.06,null,false);
   }
   // --- Eingang
   {
@@ -1898,7 +1897,9 @@ function buildFacade(){
   // --- Sockel, Poller, Gitter, Kamera
   const plinth=tex(256,64,(g,W,Hh)=>{ g.fillStyle='#4e5560'; g.fillRect(0,0,W,Hh); for(let r=0;r<2;r++) for(let c=0;c<8;c++){ g.fillStyle=pick(['#5c646f','#545c67','#646c78']); g.fillRect(c*32+2+(r%2?16:0),r*32+2,28,28);} });
   plinth.wrapS=THREE.RepeatWrapping; plinth.repeat.set(8,1);
-  bbox(16.2,0.5,0.1,new THREE.MeshStandardMaterial({map:plinth,roughness:0.9}),0,0.25,zf+0.06,null,false);
+  const plinthM=new THREE.MeshStandardMaterial({map:plinth,roughness:0.9});
+  bbox(6.85,0.5,0.1,plinthM,-4.72,0.25,zf+0.06,null,false);
+  bbox(6.85,0.5,0.1,plinthM, 4.72,0.25,zf+0.06,null,false);
   for(const x of [-5.4,5.4]){
     bbox(0.16,0.85,0.16,std(0x2f3542,{metalness:0.5,roughness:0.5}),x,0.42,7.5,null,false);
     bbox(0.2,0.06,0.2,std(0xd9c07a,{metalness:0.7}),x,0.87,7.5,null,false);
@@ -2228,14 +2229,7 @@ function buildTor(steel,snow){
   for(const dz of [-1.72,1.72]) bbox(0.4,3.1,0.26,rub,-20.22,1.55,Z+dz,null,false);
   bbox(0.4,0.26,3.9,rub,-20.22,3.12,Z,null,false);
   for(const dz of [-1.55,1.55]) bbox(0.24,0.5,0.3,rub,-20.28,0.55,Z+dz,null,false);
-  const plate=tex(128,128,(c,W,H)=>{ c.fillStyle='#8f959e'; c.fillRect(0,0,W,H);
-    for(let y=0;y<H;y+=22) for(let x=0;x<W;x+=22){ c.save(); c.translate(x+11,y+11); c.rotate((x/22+y/22)%2?0.7:-0.7);
-      c.fillStyle='#a8aeb8'; c.fillRect(-8,-2.5,16,5); c.fillStyle='rgba(0,0,0,.25)'; c.fillRect(-8,2.5,16,1.5); c.restore(); }
-    for(let i=0;i<400;i++){ c.fillStyle=`rgba(0,0,0,${Math.random()*0.07})`; c.fillRect(Math.random()*W,Math.random()*H,3,3); } });
-  const pl=new THREE.MeshStandardMaterial({map:plate,metalness:0.6,roughness:0.45});
-  bbox(1.5,0.05,3.1,pl,-19.3,0.035,Z,null,false);
-  const lip=bbox(0.34,0.04,3.1,pl,-20.12,0.035,Z,null,false); lip.rotation.z=0.05;
-  for(const dz of [-1.5,1.5]) bbox(1.5,0.02,0.1,std(0xf2c230),-19.3,0.07,Z+dz,null,false);
+  /* Die Ueberladebruecke gehoert zum LKW (siehe makeBruecke) und existiert nur, solange er andockt. */
   door={g,panels,t:TOR.h,target:0,moving:false,snd:0,col:null,warn,lampR,lampG};
   doorSet(0);
 }
@@ -2363,42 +2357,30 @@ function buildCheckout(){
   { const t=new THREE.Group(); t.position.set(BELT_A-0.25,0.985,0); t.rotation.y=0.08; ckG.add(t);
     bbox(0.035,0.055,0.42,std(0x2f3a5e),0,0,0,t,false);
     plane(0.4,0.05,new THREE.MeshStandardMaterial({map:tex(600,78,(g,W,H)=>{ g.fillStyle='#2f3a5e'; g.fillRect(0,0,W,H); g.fillStyle='#ffd23f'; g.font=BAR(51); g.textAlign='center'; g.textBaseline='middle'; g.fillText('NÄCHSTER KUNDE',W/2,H/2+3); })}),0.019,0,0,Math.PI/2,t); }
-  /* Scanner: Waagefeld im Rahmen plus Turm, beide mit Laserfenster */
-  const lensTex=(w,h,n)=>tex(w,h,(g,W,H)=>{
-    g.fillStyle='#0a0d12'; g.fillRect(0,0,W,H);
-    const gl=g.createRadialGradient(W/2,H/2,2,W/2,H/2,W*0.62);
-    gl.addColorStop(0,'rgba(60,16,14,.9)'); gl.addColorStop(1,'rgba(10,12,18,0)');
-    g.fillStyle=gl; g.fillRect(0,0,W,H);
-    g.lineCap='round';
-    for(let i=0;i<n;i++){
-      const a2=(i/n)*Math.PI+(i%2?0.28:-0.28), len=W*rand(0.34,0.48);
-      const cx2=W/2+Math.cos(a2*2)*W*0.13, cy2=H/2+Math.sin(a2*3)*H*0.13;
-      const dx=Math.cos(a2)*len, dy=Math.sin(a2)*len*(H/W);
-      g.strokeStyle='rgba(255,60,44,.16)'; g.lineWidth=9;
-      g.beginPath(); g.moveTo(cx2-dx,cy2-dy); g.lineTo(cx2+dx,cy2+dy); g.stroke();
-      g.strokeStyle='rgba(255,92,70,.55)'; g.lineWidth=3.4;
-      g.beginPath(); g.moveTo(cx2-dx,cy2-dy); g.lineTo(cx2+dx,cy2+dy); g.stroke();
-      g.strokeStyle='rgba(255,208,196,.9)'; g.lineWidth=1.2;
-      g.beginPath(); g.moveTo(cx2-dx,cy2-dy); g.lineTo(cx2+dx,cy2+dy); g.stroke();
-    }
-    g.fillStyle='rgba(255,255,255,.05)'; g.fillRect(0,0,W,H*0.42);
-    g.strokeStyle='rgba(150,160,175,.35)'; g.lineWidth=3; g.strokeRect(2,2,W-4,H-4);
-  });
-  const housing=std(0x3c424c,{metalness:0.15,roughness:0.55});
-  const bezel=std(0xb9bfc8,{metalness:0.2,roughness:0.5});
-  rbox(0.48,0.05,0.46,0.012,bezel,-0.22,0.94,0,ckG);
-  rbox(0.4,0.04,0.38,0.008,housing,-0.22,0.958,0,ckG,false);
-  const lensH=plane(0.34,0.32,new THREE.MeshBasicMaterial({map:lensTex(384,352,9),toneMapped:false}),-0.22,0.9785,0,0,ckG);
-  lensH.rotation.x=-Math.PI/2;
-  /* Turm mit senkrechtem Scanfenster */
-  const tower=rbox(0.4,0.34,0.13,0.018,housing,-0.22,1.13,-0.19,ckG);
-  tower.rotation.x=0.1;
-  const lensV=plane(0.3,0.24,new THREE.MeshBasicMaterial({map:lensTex(352,288,7),toneMapped:false}),-0.22,1.135,-0.125,0,ckG);
-  lensV.rotation.x=0.1;
-  rbox(0.42,0.05,0.15,0.012,bezel,-0.22,1.32,-0.187,ckG,false);
-  bbox(0.44,0.03,0.17,bezel,-0.22,0.968,-0.2,ckG,false);
-  const led=new THREE.MeshBasicMaterial({color:0x4dff92,toneMapped:false});
-  bbox(0.028,0.028,0.012,led,-0.38,1.27,-0.115,ckG,false);
+  /* Scanner: eine in die Platte eingelassene Glasscheibe, sonst nichts */
+  {
+    const bezel=std(0xaeb4bd,{metalness:0.18,roughness:0.5});
+    const frameIn=std(0x30353d,{metalness:0.1,roughness:0.62});
+    const scanGlass=new THREE.MeshStandardMaterial({
+      color:LIN(0x121620),roughness:0.07,metalness:0.25,
+      map:tex(512,512,(g,W,H)=>{
+        g.fillStyle='#10141c'; g.fillRect(0,0,W,H);
+        const gl=g.createLinearGradient(0,0,W*0.7,H);
+        gl.addColorStop(0,'rgba(210,226,244,.24)'); gl.addColorStop(0.35,'rgba(210,226,244,.05)');
+        gl.addColorStop(0.62,'rgba(210,226,244,.14)'); gl.addColorStop(1,'rgba(210,226,244,.03)');
+        g.fillStyle=gl; g.fillRect(0,0,W,H);
+        for(let i=0;i<70;i++){ g.strokeStyle=`rgba(230,238,250,${rand(0.02,0.07)})`; g.lineWidth=rand(0.6,1.6);
+          const x=Math.random()*W, y=Math.random()*H;
+          g.beginPath(); g.moveTo(x,y); g.lineTo(x+rand(-70,70),y+rand(-18,18)); g.stroke(); }
+        for(let i=0;i<900;i++){ g.fillStyle=`rgba(255,255,255,${Math.random()*0.035})`; g.fillRect(Math.random()*W,Math.random()*H,2,2); }
+      })});
+    rbox(0.5,0.05,0.44,0.012,bezel,-0.22,0.938,0,ckG);
+    bbox(0.42,0.035,0.36,frameIn,-0.22,0.958,0,ckG,false);
+    const pane=plane(0.38,0.32,scanGlass,-0.22,0.9765,0,0,ckG);
+    pane.rotation.x=-Math.PI/2;
+    const led=new THREE.MeshBasicMaterial({color:0x4dff92,toneMapped:false});
+    bbox(0.026,0.026,0.01,led,-0.42,0.9775,0.16,ckG,false);
+  }
   /* Kassenmonitor auf Schwenkarm */
   bbox(0.16,0.03,0.16,std(0x2c3140,{metalness:0.3}),-0.8,0.96,-0.25,ckG,false);
   const post=new THREE.Mesh(new THREE.CylinderGeometry(0.022,0.028,0.34,12),steel); post.position.set(-0.8,1.12,-0.25); ckG.add(post);
@@ -2612,13 +2594,76 @@ const rackBlue=std(0x2f5d9e,{metalness:0.4,roughness:0.5}), rackOrange=std(0xe06
 function createRack(i,data){
   const r=data&&data.x!==undefined?data:RACKS[Math.min(i,RACKS.length-1)], g=new THREE.Group();
   g.position.set(r.x,0,r.z); g.rotation.y=r.ry||0; scene.add(g);
-  for(const x of [-1.22,1.22]) for(const z of [-0.28,0.28]) bbox(0.06,2.3,0.06,rackBlue,x,1.15,z,g);
+  const HT=2.34, XO=1.22, ZO=0.3;
+  /* Gelochte Stützen als Textur, damit das Profil erkennbar bleibt */
+  const holeT=tex(64,512,(c,W,H)=>{
+    c.fillStyle='#2f5d9e'; c.fillRect(0,0,W,H);
+    c.fillStyle='rgba(255,255,255,.16)'; c.fillRect(0,0,6,H);
+    c.fillStyle='rgba(0,0,0,.24)'; c.fillRect(W-7,0,7,H);
+    for(let y=10;y<H-8;y+=22){
+      c.fillStyle='#16335c'; c.fillRect(W/2-7,y,14,11);
+      c.fillStyle='rgba(0,0,0,.45)'; c.fillRect(W/2-7,y+9,14,2);
+    }
+    for(let i2=0;i2<700;i2++){ c.fillStyle=`rgba(0,0,0,${Math.random()*0.07})`; c.fillRect(Math.random()*W,Math.random()*H,2,2); }
+  });
+  const postM=new THREE.MeshStandardMaterial({map:holeT,metalness:0.35,roughness:0.5});
+  const braceM=std(0x2a538c,{metalness:0.4,roughness:0.5});
+  const beamM=std(0xe06a1f,{metalness:0.3,roughness:0.45});
+  const beamTop=std(0xf08a3a,{metalness:0.3,roughness:0.45});
+  const connM=std(0x1f2a3a,{metalness:0.5,roughness:0.42});
+  const boardT=tex(256,256,(c,W,H)=>{
+    c.fillStyle='#b99a6a'; c.fillRect(0,0,W,H);
+    for(let i2=0;i2<9000;i2++){ const v=Math.random();
+      c.fillStyle=`rgba(${v<0.45?70:236},${v<0.45?52:216},${v<0.45?28:182},${Math.random()*0.5})`;
+      c.save(); c.translate(Math.random()*W,Math.random()*H); c.rotate(Math.random()*3);
+      c.fillRect(0,0,rand(3,11),rand(2,5)); c.restore(); }
+    c.fillStyle='rgba(60,42,20,.18)'; c.fillRect(0,0,W,5); c.fillRect(0,H-5,W,5);
+  });
+  boardT.wrapS=boardT.wrapT=THREE.RepeatWrapping; boardT.repeat.set(3,1);
+  const deckM=new THREE.MeshStandardMaterial({map:boardT,roughness:0.85});
+  /* Rahmen: Stützen, Fußplatten, Diagonalverband */
+  for(const x of [-XO,XO]){
+    for(const z of [-ZO,ZO]){
+      bbox(0.085,HT,0.075,postM,x,HT/2,z,g);
+      bbox(0.2,0.022,0.17,connM,x,0.011,z,g,false);
+      for(const bx of [-0.06,0.06]) bbox(0.022,0.03,0.022,std(0x8d939d,{metalness:0.6}),x+bx,0.03,z,g,false);
+    }
+    /* Waagerechte Riegel und Diagonalen zwischen Vorder- und Hinterstiel */
+    for(const y of [0.42,1.12,1.82]) bbox(0.04,0.04,2*ZO,braceM,x,y,0,g,false);
+    for(let k=0;k<3;k++){
+      const d=bbox(0.035,0.035,0.78,braceM,x,0.77+k*0.7,0,g,false);
+      d.rotation.x=(k%2?1:-1)*0.69;
+    }
+  }
   const rk={i,g,slots:[]};
   RLV.forEach((y,li)=>{
-    bbox(2.5,0.08,0.05,rackOrange,0,y-0.04,0.28,g); bbox(2.5,0.08,0.05,rackOrange,0,y-0.04,-0.28,g); bbox(2.4,0.02,0.56,deck,0,y-0.01,0,g);
-    [-0.8,0,0.8].forEach((x,si)=>{ const hit=bbox(0.78,0.74,0.6,hitM,x,y+0.37,0,g,false); const sl={rk,li,si,x,y,box:null,hit}; hit.userData={kind:'rslot',ref:sl}; rk.slots.push(sl); });
+    for(const z of [-ZO+0.03,ZO-0.03]){
+      /* Traverse als Kastenprofil mit Auflagelippe */
+      bbox(2.44,0.095,0.05,beamM,0,y-0.05,z,g);
+      bbox(2.44,0.022,0.062,beamTop,0,y-0.005,z,g,false);
+      bbox(2.44,0.018,0.05,std(0xb4520f),0,y-0.098,z,g,false);
+      for(const x of [-1.22,1.22]){
+        bbox(0.05,0.14,0.07,connM,x,y-0.045,z,g,false);
+        bbox(0.022,0.035,0.022,std(0xd8d8d2,{metalness:0.6}),x*0.94,y+0.02,z,g,false);
+      }
+    }
+    bbox(2.36,0.022,2*ZO-0.09,deckM,0,y-0.005,0,g);
+    [-0.8,0,0.8].forEach((x,si)=>{
+      const hit=bbox(0.78,0.74,0.6,hitM,x,y+0.37,0,g,false);
+      const sl={rk,li,si,x,y,box:null,hit}; hit.userData={kind:'rslot',ref:sl}; rk.slots.push(sl);
+    });
   });
-  rk.mov=addMovable({kind:'rack',name:'Lagerregal',g,fw:2.55,fd:0.7,ref:rk});
+  /* Typenschild mit Traglast */
+  plane(0.3,0.2,new THREE.MeshStandardMaterial({roughness:0.7,map:tex(300,200,(c,W,H)=>{
+    c.fillStyle='#f2f0e8'; c.fillRect(0,0,W,H);
+    c.fillStyle='#c8322a'; c.fillRect(0,0,W,42);
+    c.fillStyle='#fff'; c.font=BUN(24); c.textAlign='center'; c.fillText('TRAGLAST',W/2,30);
+    c.fillStyle='#1b2340'; c.font=BUN(40); c.fillText('800 kg',W/2,90);
+    c.font=BAR(20); c.fillStyle='#5a6070'; c.fillText('je Fachebene',W/2,124);
+    c.fillText('Regal '+(i+1),W/2,156);
+    c.strokeStyle='#c9c4b8'; c.lineWidth=3; c.strokeRect(3,3,W-6,H-6); })}),
+    -XO+0.06,1.62,ZO+0.008,0,g);
+  rk.mov=addMovable({kind:'rack',name:'Lagerregal',g,fw:2.6,fd:0.74,ref:rk});
   racks.push(rk);
   if(data&&data.slots) data.slots.forEach((sd,k)=>{ if(sd&&P[sd.type]&&rk.slots[k]) putInSlot(rk.slots[k],sd.type,sd.count,sd.q); });
   return rk;
@@ -3103,14 +3148,33 @@ function spawnTruck(cargo,supId,supName){
   const colr=TRUCKCOL[supId]||TRUCKCOL.mertens;
   const g=makeTruck(supName||'Lieferung',colr);
   g.position.set(LR.rear-9.5,0,LR.z); scene.add(g);
-  truck={g,cargo,boxes:[],raum:null,state:'reverse',t:0,name:supName,col:colr,cols:[]};
+  truck={g,cargo,boxes:[],raum:null,bruecke:null,state:'reverse',t:0,name:supName,col:colr,cols:[]};
   sfx.beep();
   toast(`${supName} setzt an die Rampe.`);
+}
+/* Ueberladebruecke = die heruntergeklappte Klappe des LKW.
+   Existiert nur, solange der LKW an der Rampe steht. */
+function makeBruecke(){
+  const g=new THREE.Group();
+  const plate=tex(128,128,(c,W,H)=>{ c.fillStyle='#8f959e'; c.fillRect(0,0,W,H);
+    for(let y=0;y<H;y+=22) for(let x=0;x<W;x+=22){ c.save(); c.translate(x+11,y+11); c.rotate((x/22+y/22)%2?0.7:-0.7);
+      c.fillStyle='#a8aeb8'; c.fillRect(-8,-2.5,16,5); c.fillStyle='rgba(0,0,0,.25)'; c.fillRect(-8,2.5,16,1.5); c.restore(); }
+    for(let i=0;i<400;i++){ c.fillStyle=`rgba(0,0,0,${Math.random()*0.07})`; c.fillRect(Math.random()*W,Math.random()*H,3,3); } });
+  const pl=new THREE.MeshStandardMaterial({map:plate,metalness:0.6,roughness:0.45});
+  bbox(1.5,0.05,3.1,pl,-19.3,0.035,LR.z,g,false);
+  const lip=bbox(0.34,0.04,3.1,pl,-20.12,0.035,LR.z,g,false); lip.rotation.z=0.05;
+  for(const dz of [-1.5,1.5]) bbox(1.5,0.02,0.1,std(0xf2c230),-19.3,0.07,LR.z+dz,g,false);
+  /* Scharnier zum Laderaum hin */
+  const hg=std(0x6f757e,{metalness:0.7,roughness:0.4});
+  for(const dz of [-1.1,0,1.1]) bbox(0.12,0.08,0.34,hg,-20.02,0.05,LR.z+dz,g,false);
+  scene.add(g);
+  return g;
 }
 function dockTruck(){
   truck.g.position.x=LR.rear;
   truck.state='opening';
   truck.raum=makeLaderaum(truck.name||'Lieferung',truck.col);
+  truck.bruecke=makeBruecke();
   fillCargo();
   /* Der Laderaum wird begehbar: Seitenwände und Stirnwand begrenzen */
   truck.cols=[
@@ -3138,6 +3202,7 @@ function clearRaum(){
   if(!truck) return;
   truck.boxes.forEach(m=>scene.remove(m)); truck.boxes=[];
   if(truck.raum){ scene.remove(truck.raum); truck.raum=null; }
+  if(truck.bruecke){ scene.remove(truck.bruecke); truck.bruecke=null; }
   truck.cols.forEach(c=>dropCol(c)); truck.cols=[];
 }
 function leaveTruck(){

@@ -1561,7 +1561,9 @@ function buildYard(){
   }
   /* --- Zündpult --- */
   {
-    const g=new THREE.Group(); g.position.set(5.9,0,-8.2); g.rotation.y=-0.5; scene.add(g);
+    /* Das Pult ist so gedreht, dass der Bediener davor in Richtung
+       Zuendtisch und Abschussroehren blickt. */
+    const g=new THREE.Group(); g.position.set(5.9,0,-8.2); g.rotation.y=0.977; scene.add(g);
     bbox(0.1,1.0,0.1,steelDark,-0.28,0.5,0,g); bbox(0.1,1.0,0.1,steelDark,0.28,0.5,0,g);
     bbox(0.75,0.3,0.05,steelDark,0,0.25,0,g,false);
     const top=bbox(0.8,0.12,0.55,std(0x2f3644,{metalness:0.5,roughness:0.4}),0,1.05,0,g); top.rotation.x=-0.32;
@@ -1574,7 +1576,7 @@ function buildYard(){
     bbox(0.06,0.03,0.06,pultLamp,0.34,1.14,-0.1,g,false);
     const key=new THREE.Mesh(new THREE.CylinderGeometry(0.02,0.02,0.05,10),steel); key.position.set(-0.32,1.12,0.02); key.rotation.x=1.25; g.add(key);
     const hit=bbox(0.95,1.3,0.75,hitM,0,0.75,0,g,false); hit.userData={kind:'pult'};
-    pultHit=hit; col(5.5,6.3,-8.55,-7.85);
+    pultHit=hit; col(5.42,6.38,-8.68,-7.72);
     drawPult();
   }
   /* Flutlicht */
@@ -1627,9 +1629,15 @@ function placeOnStation(st){
   updateCarry(); drawPult();
 }
 function clearStations(){ for(const k in stations){ stations[k].items.forEach(it=>{ if(it.h) it.h.pool.remove(it.h); if(it.mesh) disposeEngraved(it.mesh); }); stations[k].items.length=0; } drawPult(); }
+/* Mitte zwischen Zuendtisch und Abschussroehren - dahin schaut man beim Zuenden */
+function testfeldMitte(){
+  const a=STATION_POS.tisch, b=STATION_POS.rampe;
+  return {x:(a.x+b.x)/2,z:(a.z+b.z)/2};
+}
 function firePult(){
   const n=placedCount();
   if(!n){ toast('Erst Ware auf Tisch oder Röhren stellen.'); return; }
+  const m=testfeldMitte(); aimAt(m.x,m.z,0.24);
   const all=[]; for(const k in stations) stations[k].items.forEach(it=>all.push(it));
   all.sort((a,b)=>P[a.type].hype-P[b.type].hype);
   let t=0, duds=0;
@@ -3009,6 +3017,8 @@ const TRUCKCOL={mertens:0x2f6bb8,kowalski:0xc8322a,ratzke:0x6f7684,import:0x3f8a
 /* Laderaum: Heck bündig an der Wand, Innenmaße begehbar */
 const LR={rear:-20.05,len:9.4,w:3.0,h:2.88,z:-2};
 function lrFront(){ return LR.rear-LR.len; }
+/* Scharnier der Ladebordwand und ihr Ausschlag beim Hochklappen */
+const BRUECKE_X=-20.1, FLAP_MAX=1.5, FLAP_T=1.1;
 
 function liveryTex(name,col,innen){
   const hex='#'+new THREE.Color(col).getHexString();
@@ -3199,26 +3209,33 @@ function spawnTruck(cargo,supId,supName){
   const colr=TRUCKCOL[supId]||TRUCKCOL.mertens;
   const g=makeTruck(supName||'Lieferung',colr);
   g.position.set(LR.rear-9.5,0,LR.z); scene.add(g);
-  truck={g,cargo,boxes:[],raum:null,bruecke:null,state:'reverse',t:0,name:supName,col:colr,cols:[]};
+  truck={g,cargo,boxes:[],raum:null,bruecke:null,flap:0,flapCol:null,state:'reverse',t:0,name:supName,col:colr,cols:[]};
   toast(`${supName} setzt an die Rampe.`);
 }
 /* Ueberladebruecke = die heruntergeklappte Klappe des LKW.
    Existiert nur, solange der LKW an der Rampe steht. */
 function makeBruecke(){
-  const g=new THREE.Group();
+  /* Scharnier sitzt an der Heckkante des LKW, die Platte reicht ins
+     Lager hinein. Ein Drehen um z klappt sie hoch wie eine echte
+     Ladebordwand. */
+  const g=new THREE.Group(); g.position.set(BRUECKE_X,0.035,LR.z);
   const plate=tex(128,128,(c,W,H)=>{ c.fillStyle='#8f959e'; c.fillRect(0,0,W,H);
     for(let y=0;y<H;y+=22) for(let x=0;x<W;x+=22){ c.save(); c.translate(x+11,y+11); c.rotate((x/22+y/22)%2?0.7:-0.7);
       c.fillStyle='#a8aeb8'; c.fillRect(-8,-2.5,16,5); c.fillStyle='rgba(0,0,0,.25)'; c.fillRect(-8,2.5,16,1.5); c.restore(); }
     for(let i=0;i<400;i++){ c.fillStyle=`rgba(0,0,0,${Math.random()*0.07})`; c.fillRect(Math.random()*W,Math.random()*H,3,3); } });
   const pl=new THREE.MeshStandardMaterial({map:plate,metalness:0.6,roughness:0.45});
-  bbox(1.5,0.05,3.1,pl,-19.3,0.035,LR.z,g,false);
-  const lip=bbox(0.34,0.04,3.1,pl,-20.12,0.035,LR.z,g,false); lip.rotation.z=0.05;
-  for(const dz of [-1.5,1.5]) bbox(1.5,0.02,0.1,std(0xf2c230),-19.3,0.07,LR.z+dz,g,false);
-  /* Scharnier zum Laderaum hin */
+  bbox(1.5,0.05,3.1,pl,0.8,0,0,g,false);
+  const lip=bbox(0.34,0.04,3.1,pl,-0.02,0,0,g,false); lip.rotation.z=0.05;
+  for(const dz of [-1.5,1.5]) bbox(1.5,0.02,0.1,std(0xf2c230),0.8,0.035,dz,g,false);
+  /* Scharniere zum Laderaum hin */
   const hg=std(0x6f757e,{metalness:0.7,roughness:0.4});
-  for(const dz of [-1.1,0,1.1]) bbox(0.12,0.08,0.34,hg,-20.02,0.05,LR.z+dz,g,false);
+  for(const dz of [-1.1,0,1.1]) bbox(0.12,0.08,0.34,hg,0.08,0.015,dz,g,false);
   scene.add(g);
   return g;
+}
+/* Klappenstellung: 0 liegt flach als Bruecke, 1 steht senkrecht am Heck */
+function setFlap(){
+  if(truck&&truck.bruecke) truck.bruecke.rotation.z=truck.flap*FLAP_MAX;
 }
 function dockTruck(){
   truck.g.position.x=LR.rear;
@@ -3227,7 +3244,7 @@ function dockTruck(){
      und verdeckt den begehbaren Laderaum. */
   truck.g.visible=false;
   truck.raum=makeLaderaum(truck.name||'Lieferung',truck.col);
-  truck.bruecke=makeBruecke();
+  truck.flap=0; truck.bruecke=makeBruecke();
   fillCargo();
   /* Der Laderaum wird begehbar: Seitenwände und Stirnwand begrenzen */
   truck.cols=[
@@ -3256,15 +3273,14 @@ function clearRaum(){
   truck.boxes.forEach(m=>scene.remove(m)); truck.boxes=[];
   if(truck.raum){ scene.remove(truck.raum); truck.raum=null; }
   if(truck.bruecke){ scene.remove(truck.bruecke); truck.bruecke=null; }
+  if(truck.flapCol){ dropCol(truck.flapCol); truck.flapCol=null; }
   truck.cols.forEach(c=>dropCol(c)); truck.cols=[];
 }
 function leaveTruck(){
   if(!truck||truck.state!=='docked') return;
-  truck.state='closing'; truck.t=0;
-  /* Laderaum, Bruecke und Aussenmodell bleiben unveraendert, bis das Tor
-     ganz unten ist: sonst verschwindet der LKW mitten im Blickfeld
-     oder sein geschlossener Kasten schiebt sich sichtbar ins Tor. */
-  doorOpen(false);
+  /* Reihenfolge: Ladebordwand hoch, dann faehrt das Tor herunter, und
+     erst wenn es ganz unten ist, verschwindet der LKW. */
+  truck.state='flap'; truck.t=0;
   if(truckDriver){ scene.remove(truckDriver); truckDriver=null; }
 }
 function removeTruck(){
@@ -3310,6 +3326,17 @@ function updateTruck(dt){
   } else if(truck.state==='docked'){
     if(!truck.cargo.length&&!trailerOccupied()){ truck.t+=dt; if(truck.t>1.2) leaveTruck(); }
     else truck.t=0;
+  } else if(truck.state==='flap'){
+    /* Steht doch wieder jemand im Laderaum, klappt sie zurueck herunter. */
+    if(trailerOccupied()){
+      truck.flap=Math.max(0,truck.flap-dt/FLAP_T); setFlap();
+      if(truck.flapCol&&truck.flap<0.6){ dropCol(truck.flapCol); truck.flapCol=null; }
+      if(truck.flap<=0) truck.state='docked';
+      return;
+    }
+    truck.flap=Math.min(1,truck.flap+dt/FLAP_T); setFlap();
+    if(truck.flap>=0.6&&!truck.flapCol) truck.flapCol=col(-20.26,-20.0,LR.z-1.6,LR.z+1.6);
+    if(truck.flap>=1){ truck.state='closing'; doorOpen(false); }
   } else if(truck.state==='closing'){
     if(door&&door.t<=0.02){ truck.state='out'; truck.t=0; clearRaum(); g.visible=true; }
   } else if(truck.state==='out'){
@@ -4713,6 +4740,22 @@ function igniteType(t){
    Spieler
    ========================================================= */
 const pl={x:-2.5,z:1.5}; let yaw=Math.atan2(2.5,-3), pitch=-0.3, bobT=0;
+/* Sanfte Blickfuehrung, z.B. beim Zuenden auf das Testfeld.
+   Jede eigene Mausbewegung bricht sie sofort ab. */
+let aim=null;
+function aimAt(x,z,p2){
+  const dx=x-pl.x, dz=z-pl.z;
+  aim={yaw:Math.atan2(-dx,-dz),pitch:p2===undefined?0.2:p2,t:0.9};
+}
+function updateAim(dt){
+  if(!aim) return;
+  let d=aim.yaw-yaw;
+  while(d>Math.PI) d-=Math.PI*2;
+  while(d<-Math.PI) d+=Math.PI*2;
+  const k=Math.min(1,dt*7);
+  yaw+=d*k; pitch+=(aim.pitch-pitch)*k;
+  aim.t-=dt; if(aim.t<=0||Math.abs(d)<0.004) aim=null;
+}
 const keys={}; const joy={x:0,y:0,id:null,ox:0,oy:0};
 let sprayOn=false, sprayCool=0, build=false, grabbed=null, grabRy=0, grabHome=null;
 function collide(p,R){
@@ -4726,7 +4769,7 @@ function collide(p,R){
   }
   p.x=clamp(p.x,-26.3,11.6); p.z=clamp(p.z,-14.7,10.8);
 }
-function look(dx,dy,s){ yaw-=dx*s; pitch=clamp(pitch-dy*s,-1.45,1.45); }
+function look(dx,dy,s){ aim=null; yaw-=dx*s; pitch=clamp(pitch-dy*s,-1.45,1.45); }
 function updatePlayer(dt){
   let mx_=0,mz=0;
   if(keys.KeyW||keys.ArrowUp) mz-=1; if(keys.KeyS||keys.ArrowDown) mz+=1;
@@ -4738,6 +4781,7 @@ function updatePlayer(dt){
   if(len>0.1) bobT+=dt*sp*2.6;
   const sx=shake>0?rand(-shake,shake)*0.15:0; shake=Math.max(0,shake-dt*1.5);
   camera.position.set(pl.x+sx,1.65+Math.sin(bobT)*0.035+sx,pl.z);
+  updateAim(dt);
   camera.rotation.set(pitch,yaw,0);
   if(sprayCool>0) sprayCool-=dt;
 }
@@ -5886,7 +5930,7 @@ fontsReady().then(()=>{
   lastF=-1; applyTOD(); updateSign(); buildStart(); requestAnimationFrame(frame);
   window.__bb={get S(){return S},get phase(){return phase},set phase(v){phase=v},set clock(v){clock=v},get clock(){return clock},pickUp,floorBoxes,shelves,racks,dekos,stockOne,openShop,step,customers,queue,belt,scanBelt,buyUp,buyDeko,get DS(){return DS},endDay,pending,save,openLaptop,closeLaptop,pl,addXP,hireStaff,fireStaff,staff,dirts,addDirt,movables,toggleBuild,setWall,setFloor,
     stations,firePult,placeOnStation,igniteType,get order(){return order},get phone(){return phone},makeCall,answerPhone,haggle,acceptDeal,declineDeal,get truck(){return truck},spawnTruck,takeFromTruck,takeBox,updateTruck,get door(){return door},get tuer(){return tuer},tuerSet,tuerNah,updateSchiebetuer,doorOpen,doorIsOpen,trailerOccupied,LR,lrFront,TOR,orderReady,orderLeft,prioOf,setPrio,racks,updateCarry,spawnFloorBox,staff,SHELFKIND,layout,shelfCapOf,shelfAccepts,emptyLevel,dateInfo,dateStr,dateShort,seasonInfo,isSunday,dayMult,ruhetag,wageOf,setWage,friendliness,windowGrime,addGrime,cleanWindowTick,ambienteScore,bildBoost,fixedCosts,dailyWages,EVENTS,GOALS,CUSTTYPES,UPGRADES,STAFF,stockOf,spawnInterval,pools,todayEvent,evv,rollEvent,rollMarket,newGoal,goalAdd,goalTick,ekFactor,marktText,xpFor,rollCustType,priceTol,buyChance,regCustomer,makeWishes,buildGravur,refillGrav,openGravInput,closeGravInput,get gravBlanks(){return gravBlanks},set gravBlanks(v){gravBlanks=v},orderBox,buyPack,cartAdd,cartAddPack,cartOrder,cartClear,cartDel,cartGoods,cartFee,cartTotal,cartBoxes,cartLines,LIEFERZEIT_SEK,VERSAND,VERSANDFREI,lieferSek,
-    scene,P,EFF,SHOWS,togglePDA,openPDA,closePDA,setPost,get postOn(){return postOn},get pdaOn(){return pdaOn},showLength,psBig,psMid,psSmall,rockets,emitters,timersLen:()=>timers.length,setView:(x,z,y,p)=>{pl.x=x;pl.z=z;yaw=y;pitch=p;},allLevels,addToLevel,putInSlot,regCustomer,
+    scene,P,EFF,SHOWS,togglePDA,openPDA,closePDA,setPost,get postOn(){return postOn},get pdaOn(){return pdaOn},showLength,psBig,psMid,psSmall,rockets,emitters,timersLen:()=>timers.length,setView:(x,z,y,p)=>{pl.x=x;pl.z=z;yaw=y;pitch=p;aim=null;},camYaw:()=>yaw,camPitch:()=>pitch,playerPos:()=>({x:pl.x,z:pl.z}),pultYaw:()=>pultHit?pultHit.parent.rotation.y:null,testfeldMitte,STATION_POS,aimAt,allLevels,addToLevel,putInSlot,regCustomer,
     shot:()=>{ noLoop=true; camera.position.set(pl.x,1.65,pl.z); camera.rotation.set(pitch,yaw,0); camera.updateMatrixWorld(); updateTarget(); applyTOD(); renderFrame(0.016); return canvas.toDataURL('image/jpeg',0.85); },
     run:(sec,dt)=>{ noLoop=true; const n=Math.round(sec/(dt||0.05)); for(let i=0;i<n;i++) step(dt||0.05); }};
 });

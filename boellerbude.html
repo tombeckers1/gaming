@@ -1322,21 +1322,31 @@ function buildWorld(){
   const ceil=std(0xe6e8ee,{roughness:1}); const c1=new THREE.Mesh(new THREE.PlaneGeometry(16,12),ceil); c1.rotation.x=Math.PI/2; c1.position.y=H-0.01; scene.add(c1);
   const c2=new THREE.Mesh(new THREE.PlaneGeometry(12,8),ceil); c2.rotation.x=Math.PI/2; c2.position.set(-14,H-0.01,-2); scene.add(c2);
   /* Flächenbündige Leuchten: schmaler Rahmen, gleichmäßig leuchtende Scheibe */
-  const diffT=tex(256,128,(g,W,Hh)=>{
+  const diffT=tex(512,256,(g,W,Hh)=>{
+    g.fillStyle='#fffaf0'; g.fillRect(0,0,W,Hh);
     const gr=g.createLinearGradient(0,0,0,Hh);
-    gr.addColorStop(0,'#cfd6e2'); gr.addColorStop(0.16,'#ffffff'); gr.addColorStop(0.84,'#ffffff'); gr.addColorStop(1,'#cfd6e2');
+    gr.addColorStop(0,'rgba(196,206,222,.95)'); gr.addColorStop(0.2,'rgba(255,252,246,0)');
+    gr.addColorStop(0.8,'rgba(255,252,246,0)'); gr.addColorStop(1,'rgba(196,206,222,.95)');
     g.fillStyle=gr; g.fillRect(0,0,W,Hh);
     const gx=g.createLinearGradient(0,0,W,0);
-    gx.addColorStop(0,'rgba(180,190,208,.9)'); gx.addColorStop(0.07,'rgba(255,255,255,0)');
-    gx.addColorStop(0.93,'rgba(255,255,255,0)'); gx.addColorStop(1,'rgba(180,190,208,.9)');
+    gx.addColorStop(0,'rgba(190,200,218,.95)'); gx.addColorStop(0.06,'rgba(255,252,246,0)');
+    gx.addColorStop(0.94,'rgba(255,252,246,0)'); gx.addColorStop(1,'rgba(190,200,218,.95)');
     g.fillStyle=gx; g.fillRect(0,0,W,Hh);
+    /* feine Struktur der Streuscheibe */
+    for(let i=0;i<9000;i++){ g.fillStyle=`rgba(255,255,255,${Math.random()*0.05})`; g.fillRect(Math.random()*W,Math.random()*Hh,2,2); }
+    for(let x=0;x<W;x+=7){ g.fillStyle='rgba(228,232,240,.22)'; g.fillRect(x,0,3,Hh); }
   });
-  const panelM=new THREE.MeshStandardMaterial({color:0xffffff,map:diffT,emissive:LIN(0xffffff),emissiveMap:diffT,emissiveIntensity:1.35});
-  const fixM=std(0xd4d8de,{metalness:0.55,roughness:0.3});
+  /* Die Scheibe leuchtet gleichmäßig und spiegelt nichts.
+     Das Gehäuse ist mattes Aluminium ohne Metallanteil, damit beim
+     Durchlaufen kein wanderndes Glanzlicht entsteht. */
+  const panelM=new THREE.MeshBasicMaterial({map:diffT,toneMapped:false});
+  const fixM=std(0xdfe3e9,{metalness:0,roughness:0.62});
+  const rev=std(0x252932,{metalness:0,roughness:0.9});
   for(const [x,z] of [[-5,-3],[-1,-3],[3,-3],[-5,1.5],[-1,1.5],[3,1.5],[5,3.5],[-18.6,-3],[-15.6,-3],[-12.6,-3],[-9.6,-3],[-17,0.6],[-13,0.6],[-9.8,0.6]]){
-    bbox(1.3,0.035,0.34,fixM,x,H-0.018,z,null,false);
-    const d=new THREE.Mesh(new THREE.PlaneGeometry(1.22,0.28),panelM);
-    d.rotation.x=Math.PI/2; d.position.set(x,H-0.036,z); scene.add(d);
+    bbox(1.44,0.03,0.42,rev,x,H-0.008,z,null,false);          // Schattenfuge
+    bbox(1.36,0.028,0.36,fixM,x,H-0.026,z,null,false);        // Rahmen
+    const d=new THREE.Mesh(new THREE.PlaneGeometry(1.26,0.28),panelM);
+    d.rotation.x=Math.PI/2; d.position.set(x,H-0.043,z); scene.add(d);
   }
   roomAO(-7.9,7.9,-5.9,5.9); roomAO(-19.9,-8.1,-5.9,1.9);
   buildFacade();
@@ -1876,18 +1886,7 @@ function buildFacade(){
   }
   // --- Eingang
   {
-    const glass=new THREE.MeshStandardMaterial({color:LIN(0xcfe6ff),transparent:true,opacity:0.2,roughness:0.06,metalness:0.2,depthWrite:false});
-    for(const s of [-1,1]){
-      bbox(1.1,2.3,0.04,glass,s*0.58,1.2,zf-0.06,null,false);
-      bbox(1.16,0.07,0.09,steel,s*0.58,2.36,zf-0.06,null,false);
-      bbox(1.16,0.07,0.09,steel,s*0.58,0.06,zf-0.06,null,false);
-      bbox(0.07,2.3,0.09,steel,s*1.14,1.2,zf-0.06,null,false);
-      bbox(1.16,0.32,0.07,steel,s*0.58,0.26,zf-0.05,null,false);              // Stoßblech
-      bbox(0.07,0.95,0.07,std(0xd9c07a,{metalness:0.8,roughness:0.3}),s*0.12,1.25,zf+0.02,null,false); // Griffstange
-      bbox(0.16,0.07,0.07,std(0xd9c07a,{metalness:0.8,roughness:0.3}),s*0.19,1.68,zf+0.02,null,false);
-      bbox(0.16,0.07,0.07,std(0xd9c07a,{metalness:0.8,roughness:0.3}),s*0.19,0.82,zf+0.02,null,false);
-    }
-    bbox(2.6,0.12,0.4,std(0x2b3040,{metalness:0.5}),0,2.52,zf+0.04,null,false);   // Türsturz
+    buildSchiebetuer(zf);
     flat(1.9,1.0,new THREE.MeshStandardMaterial({map:tex(190,100,(g,W,Hh)=>{ g.fillStyle='#2d3038'; g.fillRect(0,0,W,Hh); for(let i=0;i<600;i++){ g.fillStyle=`rgba(255,255,255,${Math.random()*0.08})`; g.fillRect(Math.random()*W,Math.random()*Hh,3,2);} g.strokeStyle='#8a8f99'; g.lineWidth=5; g.strokeRect(7,7,W-14,Hh-14); g.fillStyle='#c9cfd8'; g.font=BUN(26); g.textAlign='center'; g.fillText('WILLKOMMEN',W/2,Hh/2+9); }),roughness:1}),0,0.02,6.85);
     // Neon "GEÖFFNET" im Oberlicht
     const nm=new THREE.MeshStandardMaterial({color:LIN(0x2a1f10),emissive:LIN(0xffd23f),emissiveIntensity:0,transparent:true,opacity:0.95,
@@ -1968,6 +1967,80 @@ function cleanWindowTick(first){
 }
 
 /* =========================================================
+   Automatische Schiebetür zum Ladenlokal
+   ========================================================= */
+const TUER={z:6.14,y:2.44,w:1.24,hub:1.30, r:3.1};
+let tuer=null;
+function buildSchiebetuer(zf){
+  const g=new THREE.Group(); scene.add(g);
+  const alu=std(0xc4cad3,{metalness:0,roughness:0.5});
+  const aluD=std(0x8f959e,{metalness:0,roughness:0.55});
+  const dark=std(0x23272f,{metalness:0,roughness:0.6});
+  const glass=new THREE.MeshStandardMaterial({color:LIN(0xd6ecff),transparent:true,opacity:0.17,roughness:0.05,metalness:0.1,depthWrite:false});
+  const W=TUER.w, HH=TUER.y, Z=TUER.z;
+  /* Antriebskasten über der Öffnung, reicht über beide Parktaschen */
+  bbox(5.4,0.24,0.26,alu,0,HH+0.14,Z,null,false);
+  bbox(5.44,0.05,0.3,aluD,0,HH+0.27,Z,null,false);
+  bbox(5.3,0.05,0.2,dark,0,HH+0.005,Z,null,false);
+  /* Laufschiene */
+  bbox(5.2,0.045,0.06,aluD,0,HH+0.05,Z-0.06,null,false);
+  /* Bewegungsmelder innen und außen */
+  for(const s of [-1,1]){
+    const sIn=bbox(0.26,0.075,0.05,dark,s*0.78,HH+0.05,Z-0.15,null,false); sIn.rotation.x=0.42;
+    const sOut=bbox(0.26,0.075,0.05,dark,s*0.78,HH+0.05,Z+0.15,null,false); sOut.rotation.x=-0.42;
+  }
+  /* Bodenführung */
+  bbox(2.6,0.012,0.045,aluD,0,0.008,Z-0.02,null,false);
+  /* Seitliche Festfelder als Rahmen der Öffnung */
+  for(const s of [-1,1]) bbox(0.07,HH,0.09,alu,s*1.29,HH/2,Z,null,false);
+  /* Zwei Flügel */
+  const leaves=[];
+  for(const s of [-1,1]){
+    const lf=new THREE.Group(); g.add(lf); leaves.push(lf);
+    bbox(W,0.09,0.055,alu,0,HH-0.05,0,lf,false);
+    bbox(W,0.11,0.055,alu,0,0.055,0,lf,false);
+    bbox(0.055,HH-0.12,0.055,alu,-W/2+0.028,HH/2,0,lf,false);
+    bbox(0.055,HH-0.12,0.055,alu,W/2-0.028,HH/2,0,lf,false);
+    bbox(W-0.09,HH-0.2,0.022,glass,0,HH/2,0,lf,false);
+    /* Sicherheitsmarkierung auf Griffhöhe */
+    bbox(W-0.1,0.055,0.026,new THREE.MeshStandardMaterial({color:LIN(0xe8eef6),transparent:true,opacity:0.65,roughness:0.6}),0,1.32,0,lf,false);
+    /* Laufwagen oben */
+    for(const dx of [-0.34,0.34]){
+      bbox(0.09,0.05,0.05,aluD,dx,HH+0.02,-0.06,lf,false);
+      const rl=new THREE.Mesh(new THREE.CylinderGeometry(0.022,0.022,0.03,10),dark);
+      rl.rotation.z=Math.PI/2; rl.position.set(dx,HH+0.045,-0.06); lf.add(rl);
+    }
+  }
+  tuer={g,leaves,t:0,target:0,moving:false,col:null,snd:0};
+  tuerSet(0);
+}
+function tuerSet(t){
+  if(!tuer) return;
+  tuer.t=clamp(t,0,1);
+  const off=tuer.t*TUER.hub;
+  tuer.leaves[0].position.set(-TUER.w/2-off+0.01,0,TUER.z);
+  tuer.leaves[1].position.set( TUER.w/2+off-0.01,0,TUER.z);
+  if(tuer.t>0.3){ if(tuer.col){ dropCol(tuer.col); tuer.col=null; } }
+  else if(!tuer.col) tuer.col=col(-1.28,1.28,TUER.z-0.09,TUER.z+0.09);
+}
+/* Öffnet, sobald jemand in die Nähe kommt: Spieler oder Kundschaft */
+function tuerNah(){
+  const nah=(x,z)=>Math.abs(x)<2.5&&Math.abs(z-TUER.z)<TUER.r;
+  if(typeof pl!=='undefined'&&nah(pl.x,pl.z)) return true;
+  if(typeof customers!=='undefined')
+    for(const c of customers){ if(c.pos&&nah(c.pos.x,c.pos.z)) return true; }
+  return false;
+}
+function updateSchiebetuer(dt){
+  if(!tuer) return;
+  tuer.target=tuerNah()?1:0;
+  const d=tuer.target-tuer.t;
+  if(Math.abs(d)<0.004){ if(tuer.t!==tuer.target) tuerSet(tuer.target); tuer.moving=false; return; }
+  if(!tuer.moving){ tuer.moving=true; sfx.schiebetuer(distVol(V(0,1.2,TUER.z))); }
+  tuerSet(tuer.t+(d>0?1:-1)*Math.min(Math.abs(d),1.45*dt));
+}
+
+/* =========================================================
    Ladehof hinter dem Lager: Tor, Hofmauer, Zufahrt
    ========================================================= */
 const DOCK={door:V(-20,0,-2),stand:V(-21.9,0,-2),park:V(-23.5,0,-2.2)};
@@ -2006,7 +2079,7 @@ function updateDoor(dt){
   if(!door.moving){ door.moving=true; door.snd=0; }
   door.snd-=dt; if(door.snd<=0){ door.snd=0.42; sfx.rolltor(distVol(V(-20,1.5,-2))); }
   if(door.warn) door.warn.emissiveIntensity=(Math.sin(performance.now()*0.012)>0?1.8:0.05);
-  doorSet(door.t+clamp(d,-1,1)*Math.min(Math.abs(d),0.95*dt));
+  doorSet(door.t+(d>0?1:-1)*Math.min(Math.abs(d),0.95*dt));
 }
 function buildDock(){
   const snow=std(0xeef2f8,{roughness:1});
@@ -2290,13 +2363,42 @@ function buildCheckout(){
   { const t=new THREE.Group(); t.position.set(BELT_A-0.25,0.985,0); t.rotation.y=0.08; ckG.add(t);
     bbox(0.035,0.055,0.42,std(0x2f3a5e),0,0,0,t,false);
     plane(0.4,0.05,new THREE.MeshStandardMaterial({map:tex(600,78,(g,W,H)=>{ g.fillStyle='#2f3a5e'; g.fillRect(0,0,W,H); g.fillStyle='#ffd23f'; g.font=BAR(51); g.textAlign='center'; g.textBaseline='middle'; g.fillText('NÄCHSTER KUNDE',W/2,H/2+3); })}),0.019,0,0,Math.PI/2,t); }
-  /* Scannerfeld: Glasplatte in Stahlrahmen, Laserfächer */
-  bbox(0.42,0.03,0.42,steel,-0.22,0.945,0,ckG,false);
-  bbox(0.34,0.012,0.34,std(0x0e1116,{roughness:0.08,metalness:0.35}),-0.22,0.962,0,ckG,false);
-  for(let i=0;i<3;i++) bbox(0.3,0.002,0.006,new THREE.MeshBasicMaterial({color:0xff2a2a,toneMapped:false}),-0.22,0.969,-0.06+i*0.06,ckG,false);
-  bbox(0.26,0.016,0.26,std(0xdfe3ea,{roughness:0.3}),-0.22,0.976,0,ckG,false);
-  bbox(0.34,0.14,0.05,std(0x2a2e38),-0.22,1.03,-0.2,ckG);
-  bbox(0.05,0.03,0.02,new THREE.MeshStandardMaterial({color:LIN(0x0a2a12),emissive:LIN(0x3dff7a),emissiveIntensity:1.4}),-0.36,1.03,-0.176,ckG,false);
+  /* Scanner: Waagefeld im Rahmen plus Turm, beide mit Laserfenster */
+  const lensTex=(w,h,n)=>tex(w,h,(g,W,H)=>{
+    g.fillStyle='#0a0d12'; g.fillRect(0,0,W,H);
+    const gl=g.createRadialGradient(W/2,H/2,2,W/2,H/2,W*0.62);
+    gl.addColorStop(0,'rgba(60,16,14,.9)'); gl.addColorStop(1,'rgba(10,12,18,0)');
+    g.fillStyle=gl; g.fillRect(0,0,W,H);
+    g.lineCap='round';
+    for(let i=0;i<n;i++){
+      const a2=(i/n)*Math.PI+(i%2?0.28:-0.28), len=W*rand(0.34,0.48);
+      const cx2=W/2+Math.cos(a2*2)*W*0.13, cy2=H/2+Math.sin(a2*3)*H*0.13;
+      const dx=Math.cos(a2)*len, dy=Math.sin(a2)*len*(H/W);
+      g.strokeStyle='rgba(255,60,44,.16)'; g.lineWidth=9;
+      g.beginPath(); g.moveTo(cx2-dx,cy2-dy); g.lineTo(cx2+dx,cy2+dy); g.stroke();
+      g.strokeStyle='rgba(255,92,70,.55)'; g.lineWidth=3.4;
+      g.beginPath(); g.moveTo(cx2-dx,cy2-dy); g.lineTo(cx2+dx,cy2+dy); g.stroke();
+      g.strokeStyle='rgba(255,208,196,.9)'; g.lineWidth=1.2;
+      g.beginPath(); g.moveTo(cx2-dx,cy2-dy); g.lineTo(cx2+dx,cy2+dy); g.stroke();
+    }
+    g.fillStyle='rgba(255,255,255,.05)'; g.fillRect(0,0,W,H*0.42);
+    g.strokeStyle='rgba(150,160,175,.35)'; g.lineWidth=3; g.strokeRect(2,2,W-4,H-4);
+  });
+  const housing=std(0x3c424c,{metalness:0.15,roughness:0.55});
+  const bezel=std(0xb9bfc8,{metalness:0.2,roughness:0.5});
+  rbox(0.48,0.05,0.46,0.012,bezel,-0.22,0.94,0,ckG);
+  rbox(0.4,0.04,0.38,0.008,housing,-0.22,0.958,0,ckG,false);
+  const lensH=plane(0.34,0.32,new THREE.MeshBasicMaterial({map:lensTex(384,352,9),toneMapped:false}),-0.22,0.9785,0,0,ckG);
+  lensH.rotation.x=-Math.PI/2;
+  /* Turm mit senkrechtem Scanfenster */
+  const tower=rbox(0.4,0.34,0.13,0.018,housing,-0.22,1.13,-0.19,ckG);
+  tower.rotation.x=0.1;
+  const lensV=plane(0.3,0.24,new THREE.MeshBasicMaterial({map:lensTex(352,288,7),toneMapped:false}),-0.22,1.135,-0.125,0,ckG);
+  lensV.rotation.x=0.1;
+  rbox(0.42,0.05,0.15,0.012,bezel,-0.22,1.32,-0.187,ckG,false);
+  bbox(0.44,0.03,0.17,bezel,-0.22,0.968,-0.2,ckG,false);
+  const led=new THREE.MeshBasicMaterial({color:0x4dff92,toneMapped:false});
+  bbox(0.028,0.028,0.012,led,-0.38,1.27,-0.115,ckG,false);
   /* Kassenmonitor auf Schwenkarm */
   bbox(0.16,0.03,0.16,std(0x2c3140,{metalness:0.3}),-0.8,0.96,-0.25,ckG,false);
   const post=new THREE.Mesh(new THREE.CylinderGeometry(0.022,0.028,0.34,12),steel); post.position.set(-0.8,1.12,-0.25); ckG.add(post);
@@ -3975,6 +4077,7 @@ const sfx={
   thump:v=>{ noise(0.16,0.55*v,260); tone(90,0.14,'sine',0.05*v,40); },
   crackle:v=>{ for(let i=0;i<9;i++) later(i*0.055+Math.random()*0.03,()=>noise(0.045,0.16*v,7000)); },
   rolltor:v=>{ noise(0.45,0.16*v,520); tone(62,0.4,'sawtooth',0.022*v,54); },
+  schiebetuer:v=>{ noise(0.7,0.07*v,1500); tone(220,0.5,'sine',0.012*v,150); },
   whistle:v=>tone(700,1.1,'sine',0.035*v,2600),
   fizz:v=>noise(1.4,0.12*v,7000),
   alarm:()=>{ tone(880,0.12,'square',0.05); later(0.16,()=>tone(660,0.16,'square',0.05)); },
@@ -5408,7 +5511,7 @@ function step(dt){
       spawnTruck(wave.map(w=>({type:w.type,q:w.q||1})),sid,supplierOf(sid).name);
     }
   }
-  updateTruck(dt);
+  updateTruck(dt); updateSchiebetuer(dt);
   for(let i=timers.length-1;i>=0;i--){ timers[i].t-=dt; if(timers[i].t<=0){ const fn=timers[i].fn; timers.splice(i,1); fn(); } }
   if(phase==='open') addGrime(dt*0.0016*(1+customers.length*0.05));
   hype=Math.max(0,hype-dt*1.1);
@@ -5537,7 +5640,7 @@ fontsReady().then(()=>{
   camera.position.set(pl.x,1.65,pl.z); camera.rotation.set(pitch,yaw,0);
   lastF=-1; applyTOD(); updateSign(); buildStart(); requestAnimationFrame(frame);
   window.__bb={get S(){return S},get phase(){return phase},set phase(v){phase=v},set clock(v){clock=v},get clock(){return clock},pickUp,floorBoxes,shelves,racks,dekos,stockOne,openShop,step,customers,queue,belt,scanBelt,buyUp,buyDeko,get DS(){return DS},endDay,pending,save,openLaptop,closeLaptop,pl,addXP,hireStaff,fireStaff,staff,dirts,addDirt,movables,toggleBuild,setWall,setFloor,
-    stations,firePult,placeOnStation,igniteType,get order(){return order},get phone(){return phone},makeCall,answerPhone,haggle,acceptDeal,declineDeal,get truck(){return truck},spawnTruck,takeFromTruck,takeBox,updateTruck,get door(){return door},doorOpen,doorIsOpen,trailerOccupied,LR,lrFront,TOR,orderReady,orderLeft,prioOf,setPrio,racks,updateCarry,spawnFloorBox,staff,SHELFKIND,layout,shelfCapOf,shelfAccepts,emptyLevel,dateInfo,dateStr,dateShort,seasonInfo,isSunday,dayMult,ruhetag,wageOf,setWage,friendliness,windowGrime,addGrime,cleanWindowTick,ambienteScore,bildBoost,fixedCosts,dailyWages,EVENTS,GOALS,CUSTTYPES,UPGRADES,STAFF,stockOf,spawnInterval,pools,todayEvent,evv,rollEvent,rollMarket,newGoal,goalAdd,goalTick,ekFactor,marktText,xpFor,rollCustType,priceTol,buyChance,regCustomer,makeWishes,buildGravur,refillGrav,openGravInput,closeGravInput,get gravBlanks(){return gravBlanks},set gravBlanks(v){gravBlanks=v},orderBox,buyPack,
+    stations,firePult,placeOnStation,igniteType,get order(){return order},get phone(){return phone},makeCall,answerPhone,haggle,acceptDeal,declineDeal,get truck(){return truck},spawnTruck,takeFromTruck,takeBox,updateTruck,get door(){return door},get tuer(){return tuer},tuerSet,tuerNah,updateSchiebetuer,doorOpen,doorIsOpen,trailerOccupied,LR,lrFront,TOR,orderReady,orderLeft,prioOf,setPrio,racks,updateCarry,spawnFloorBox,staff,SHELFKIND,layout,shelfCapOf,shelfAccepts,emptyLevel,dateInfo,dateStr,dateShort,seasonInfo,isSunday,dayMult,ruhetag,wageOf,setWage,friendliness,windowGrime,addGrime,cleanWindowTick,ambienteScore,bildBoost,fixedCosts,dailyWages,EVENTS,GOALS,CUSTTYPES,UPGRADES,STAFF,stockOf,spawnInterval,pools,todayEvent,evv,rollEvent,rollMarket,newGoal,goalAdd,goalTick,ekFactor,marktText,xpFor,rollCustType,priceTol,buyChance,regCustomer,makeWishes,buildGravur,refillGrav,openGravInput,closeGravInput,get gravBlanks(){return gravBlanks},set gravBlanks(v){gravBlanks=v},orderBox,buyPack,
     scene,P,EFF,SHOWS,togglePDA,openPDA,closePDA,setPost,get postOn(){return postOn},get pdaOn(){return pdaOn},showLength,psBig,psMid,psSmall,rockets,emitters,timersLen:()=>timers.length,setView:(x,z,y,p)=>{pl.x=x;pl.z=z;yaw=y;pitch=p;},allLevels,addToLevel,putInSlot,regCustomer,
     shot:()=>{ noLoop=true; camera.position.set(pl.x,1.65,pl.z); camera.rotation.set(pitch,yaw,0); camera.updateMatrixWorld(); updateTarget(); applyTOD(); renderFrame(0.016); return canvas.toDataURL('image/jpeg',0.85); },
     run:(sec,dt)=>{ noLoop=true; const n=Math.round(sec/(dt||0.05)); for(let i=0;i<n;i++) step(dt||0.05); }};

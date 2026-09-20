@@ -641,10 +641,10 @@ const WDMULT=[0.55,0.82,0.84,0.9,1.0,1.28,1.35];
 function dayMult(n){ const i=dateInfo(n); return seasonInfo(n)[0]*WDMULT[i.wd]; }
 function silvesterNah(n){ const i=dateInfo(n); return i.m===11&&i.d>=26; }
 const OPEN_T=480, CLOSE_T=1320, MIN_PER_SEC=840/330;
-/* Jede Bestellung ist eine Lieferung: 30 Spielminuten Vorlauf, dazu eine
+/* Jede Bestellung ist eine Lieferung: 30 Sekunden Vorlauf, dazu eine
    kleine Liefergebuehr, die ab einem groesseren Warenwert entfaellt. */
-const LIEFERZEIT_MIN=30, VERSAND=5.9, VERSANDFREI=150;
-function lieferSek(){ return LIEFERZEIT_MIN/MIN_PER_SEC; }
+const LIEFERZEIT_SEK=30, VERSAND=5.9, VERSANDFREI=150;
+function lieferSek(){ return LIEFERZEIT_SEK; }
 /* Regaltypen. Klein ist der Einstieg, der Kühlschrank nimmt nur Sekt & Co. */
 const SHELFKIND={
   klein:{id:'klein',name:'Kleines Regal',w:1.0,d:0.42,lv:[0.12,0.52,0.92],lvl:1,cost:45,step:28,amb:0},
@@ -5027,7 +5027,7 @@ function renderPDA(){
     (canOrder(t)?
       `<div class="pdahead">Nachbestellen</div>`+
       `<div class="pdasteps">${SUPPLIERS.filter(x=>S.level>=x.lvl).map(x=>`<button data-a="ps" data-t="${x.id}" ${pdaSup===x.id?'style="background:var(--signal);color:var(--ink)"':''}>${x.short}</button>`).join('')}</div>`+
-      `<div class="pdarow"><span>${sup.name}</span><span>Lieferung in ${LIEFERZEIT_MIN} Minuten</span></div>`+
+      `<div class="pdarow"><span>${sup.name}</span><span>Lieferung in ${LIEFERZEIT_SEK} Sekunden</span></div>`+
       `<div class="pdarow"><span>Warenkorb</span><span>${cartBoxes()} Kartons · ${eur(cartTotal())}</span></div>`+
       `<div class="pdasteps">${tiers.map(tr=>{ const c=tierPrice(t,sup,tr);
         return `<button data-a="po" data-n="${tr.n}">+ ${tr.n}× Karton · ${eur(c)}${tr.d?` −${Math.round(tr.d*100)} %`:''}</button>`; }).join('')}</div>`+
@@ -5284,7 +5284,7 @@ function cartOrder(){
   let n=0; cartLines().forEach(l=>{ n+=pushLine(l,delay); });
   const fee=cartFee();
   S.cart=[]; S.tut.order=true; sfx.cash();
-  toast(`${n} Karton${n===1?'':'s'} bestellt · ${eur(total)}${fee?` inkl. ${eur(fee)} Versand`:' · versandkostenfrei'}. Ankunft in ${LIEFERZEIT_MIN} Minuten.`,'money');
+  toast(`${n} Karton${n===1?'':'s'} bestellt · ${eur(total)}${fee?` inkl. ${eur(fee)} Versand`:' · versandkostenfrei'}. Ankunft in ${LIEFERZEIT_SEK} Sekunden.`,'money');
   save();
 }
 /* Direktbestellung eines einzelnen Postens (eigene Lieferung, eigener Versand) */
@@ -5335,7 +5335,7 @@ function cartHTML(){
   }).join('');
   return `<div class="row"><div class="rm"><b>Warenkorb · ${cartBoxes()} Karton${cartBoxes()===1?'':'s'}</b>`+
     `<small>Warenwert ${eur(goods)} · Versand ${fee?eur(fee):'frei'}${fee&&rest>0?` · noch ${eur(rest)} bis versandkostenfrei`:''}</small>`+
-    `<small>Ankunft ${LIEFERZEIT_MIN} Minuten nach der Bestellung, alles in einer Lieferung.</small></div>`+
+    `<small>Ankunft ${LIEFERZEIT_SEK} Sekunden nach der Bestellung, alles in einer Lieferung.</small></div>`+
     `<div class="price">${eur(total)}</div>`+
     `<div class="steps"><button data-a="cartgo" ${S.money<total?'disabled':''}>Bestellen</button>`+
     `<button class="ghost" data-a="cartclear">Leeren</button></div></div>`+rows;
@@ -5348,8 +5348,8 @@ function renderLaptop(){
   if(ltab==='order'){
     const sup=supplierOf(lsup), avail=supAvail();
     if(!avail.some(x=>x.id===lsup)) lsup='mertens';
-    hint=`Artikel in den Warenkorb legen, dann alles zusammen bestellen. Eine Lieferung braucht ${LIEFERZEIT_MIN} Minuten, Versand ${eur(VERSAND)} und ab ${eur(VERSANDFREI)} Warenwert frei.`;
-    h=`<div class="row"><div class="rm"><b>Lieferanten</b><small>${sup.desc}</small><small class="${qualityLabel(sup.quality)[0]}">${qualityLabel(sup.quality)[1]} · Lieferzeit ${LIEFERZEIT_MIN} Minuten</small></div></div>`+
+    hint=`Artikel in den Warenkorb legen, dann alles zusammen bestellen. Eine Lieferung braucht ${LIEFERZEIT_SEK} Sekunden, Versand ${eur(VERSAND)} und ab ${eur(VERSANDFREI)} Warenwert frei.`;
+    h=`<div class="row"><div class="rm"><b>Lieferanten</b><small>${sup.desc}</small><small class="${qualityLabel(sup.quality)[0]}">${qualityLabel(sup.quality)[1]} · Lieferzeit ${LIEFERZEIT_SEK} Sekunden</small></div></div>`+
       `<div class="row" style="padding-top:6px"><div class="steps" style="justify-content:flex-start">`+
       SUPPLIERS.map(x=>S.level>=x.lvl
         ? `<button data-a="sup" data-t="${x.id}" style="${x.id===lsup?'background:var(--signal);color:var(--ink)':'opacity:.8'}">${x.short}</button>`
@@ -5822,7 +5822,7 @@ fontsReady().then(()=>{
   camera.position.set(pl.x,1.65,pl.z); camera.rotation.set(pitch,yaw,0);
   lastF=-1; applyTOD(); updateSign(); buildStart(); requestAnimationFrame(frame);
   window.__bb={get S(){return S},get phase(){return phase},set phase(v){phase=v},set clock(v){clock=v},get clock(){return clock},pickUp,floorBoxes,shelves,racks,dekos,stockOne,openShop,step,customers,queue,belt,scanBelt,buyUp,buyDeko,get DS(){return DS},endDay,pending,save,openLaptop,closeLaptop,pl,addXP,hireStaff,fireStaff,staff,dirts,addDirt,movables,toggleBuild,setWall,setFloor,
-    stations,firePult,placeOnStation,igniteType,get order(){return order},get phone(){return phone},makeCall,answerPhone,haggle,acceptDeal,declineDeal,get truck(){return truck},spawnTruck,takeFromTruck,takeBox,updateTruck,get door(){return door},get tuer(){return tuer},tuerSet,tuerNah,updateSchiebetuer,doorOpen,doorIsOpen,trailerOccupied,LR,lrFront,TOR,orderReady,orderLeft,prioOf,setPrio,racks,updateCarry,spawnFloorBox,staff,SHELFKIND,layout,shelfCapOf,shelfAccepts,emptyLevel,dateInfo,dateStr,dateShort,seasonInfo,isSunday,dayMult,ruhetag,wageOf,setWage,friendliness,windowGrime,addGrime,cleanWindowTick,ambienteScore,bildBoost,fixedCosts,dailyWages,EVENTS,GOALS,CUSTTYPES,UPGRADES,STAFF,stockOf,spawnInterval,pools,todayEvent,evv,rollEvent,rollMarket,newGoal,goalAdd,goalTick,ekFactor,marktText,xpFor,rollCustType,priceTol,buyChance,regCustomer,makeWishes,buildGravur,refillGrav,openGravInput,closeGravInput,get gravBlanks(){return gravBlanks},set gravBlanks(v){gravBlanks=v},orderBox,buyPack,cartAdd,cartAddPack,cartOrder,cartClear,cartDel,cartGoods,cartFee,cartTotal,cartBoxes,cartLines,LIEFERZEIT_MIN,VERSAND,VERSANDFREI,lieferSek,
+    stations,firePult,placeOnStation,igniteType,get order(){return order},get phone(){return phone},makeCall,answerPhone,haggle,acceptDeal,declineDeal,get truck(){return truck},spawnTruck,takeFromTruck,takeBox,updateTruck,get door(){return door},get tuer(){return tuer},tuerSet,tuerNah,updateSchiebetuer,doorOpen,doorIsOpen,trailerOccupied,LR,lrFront,TOR,orderReady,orderLeft,prioOf,setPrio,racks,updateCarry,spawnFloorBox,staff,SHELFKIND,layout,shelfCapOf,shelfAccepts,emptyLevel,dateInfo,dateStr,dateShort,seasonInfo,isSunday,dayMult,ruhetag,wageOf,setWage,friendliness,windowGrime,addGrime,cleanWindowTick,ambienteScore,bildBoost,fixedCosts,dailyWages,EVENTS,GOALS,CUSTTYPES,UPGRADES,STAFF,stockOf,spawnInterval,pools,todayEvent,evv,rollEvent,rollMarket,newGoal,goalAdd,goalTick,ekFactor,marktText,xpFor,rollCustType,priceTol,buyChance,regCustomer,makeWishes,buildGravur,refillGrav,openGravInput,closeGravInput,get gravBlanks(){return gravBlanks},set gravBlanks(v){gravBlanks=v},orderBox,buyPack,cartAdd,cartAddPack,cartOrder,cartClear,cartDel,cartGoods,cartFee,cartTotal,cartBoxes,cartLines,LIEFERZEIT_SEK,VERSAND,VERSANDFREI,lieferSek,
     scene,P,EFF,SHOWS,togglePDA,openPDA,closePDA,setPost,get postOn(){return postOn},get pdaOn(){return pdaOn},showLength,psBig,psMid,psSmall,rockets,emitters,timersLen:()=>timers.length,setView:(x,z,y,p)=>{pl.x=x;pl.z=z;yaw=y;pitch=p;},allLevels,addToLevel,putInSlot,regCustomer,
     shot:()=>{ noLoop=true; camera.position.set(pl.x,1.65,pl.z); camera.rotation.set(pitch,yaw,0); camera.updateMatrixWorld(); updateTarget(); applyTOD(); renderFrame(0.016); return canvas.toDataURL('image/jpeg',0.85); },
     run:(sec,dt)=>{ noLoop=true; const n=Math.round(sec/(dt||0.05)); for(let i=0;i<n;i++) step(dt||0.05); }};

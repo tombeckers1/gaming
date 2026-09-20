@@ -293,7 +293,7 @@ body.compact .pdahead2 b{font-size:16px}
 <div class="ov" id="laptop"><div class="card">
   <div class="lhead"><b>Böllerladen OS</b><em id="lLevel"></em><span id="lMoney"></span></div>
   <div class="tabs" id="ltabs">
-    <button data-tab="order">Bestellen</button><button data-tab="price">Preise</button><button data-tab="up">Ausbau</button><button data-tab="deko">Deko</button><button data-tab="staff">Personal</button><button data-tab="bank">Bank</button><button data-tab="stats">Bericht</button><button data-tab="shop">Laden</button>
+    <button data-tab="order">Bestellen</button><button data-tab="korb" id="tabKorb">Warenkorb</button><button data-tab="price">Preise</button><button data-tab="up">Ausbau</button><button data-tab="deko">Deko</button><button data-tab="staff">Personal</button><button data-tab="bank">Bank</button><button data-tab="stats">Bericht</button><button data-tab="shop">Laden</button>
   </div>
   <div class="lbody" id="lbody"></div>
   <div class="lfoot"><small id="lHint"></small><button id="lclose">Laptop zuklappen</button></div>
@@ -641,9 +641,10 @@ const WDMULT=[0.55,0.82,0.84,0.9,1.0,1.28,1.35];
 function dayMult(n){ const i=dateInfo(n); return seasonInfo(n)[0]*WDMULT[i.wd]; }
 function silvesterNah(n){ const i=dateInfo(n); return i.m===11&&i.d>=26; }
 const OPEN_T=480, CLOSE_T=1320, MIN_PER_SEC=840/330;
-/* Jede Bestellung ist eine Lieferung: 30 Sekunden Vorlauf, dazu eine
-   kleine Liefergebuehr, die ab einem groesseren Warenwert entfaellt. */
-const LIEFERZEIT_SEK=30, VERSAND=5.9, VERSANDFREI=150;
+/* Jede Bestellung ist eine Lieferung: kurzer Vorlauf, bis der Lieferant
+   an der Rampe steht, dazu eine kleine Liefergebuehr, die ab einem
+   groesseren Warenwert entfaellt. */
+const LIEFERZEIT_SEK=5, VERSAND=5.9, VERSANDFREI=150;
 function lieferSek(){ return LIEFERZEIT_SEK; }
 /* Regaltypen. Klein ist der Einstieg, der Kühlschrank nimmt nur Sekt & Co. */
 const SHELFKIND={
@@ -3248,7 +3249,9 @@ function clearRaum(){
 function leaveTruck(){
   if(!truck||truck.state!=='docked') return;
   truck.state='closing'; truck.t=0;
-  clearRaum(); truck.g.visible=true; doorOpen(false);
+  /* Das Aussenmodell bleibt versteckt, bis das Tor ganz unten ist -
+     sonst schiebt sich der geschlossene Kasten sichtbar ins Tor. */
+  clearRaum(); doorOpen(false);
   if(truckDriver){ scene.remove(truckDriver); truckDriver=null; }
 }
 function removeTruck(){
@@ -3295,7 +3298,7 @@ function updateTruck(dt){
     if(!truck.cargo.length&&!trailerOccupied()){ truck.t+=dt; if(truck.t>1.2) leaveTruck(); }
     else truck.t=0;
   } else if(truck.state==='closing'){
-    if(door&&door.t<=0.02){ truck.state='out'; truck.t=0; }
+    if(door&&door.t<=0.02){ truck.state='out'; truck.t=0; g.visible=true; }
   } else if(truck.state==='out'){
     truck.t+=dt;
     if(truck.t>0.6){ g.position.x-=Math.min(7,(truck.t-0.6)*5)*dt; if(g.position.x<lrFront()-14) removeTruck(); }
@@ -5266,6 +5269,10 @@ function cartAddPack(id){
   sfx.pop(); toast(`${pk.name} im Warenkorb.`); save();
 }
 function cartDel(i){ cartLines().splice(i,1); save(); }
+function cartStep(i,d){ const l=cartLines()[i]; if(!l) return;
+  l.n+=d*(l.pack?1:(l.step||1));
+  if(l.n<=0) cartLines().splice(i,1);
+  sfx.pop(); save(); }
 function cartClear(){ S.cart=[]; save(); }
 /* Legt die Kartons einer Zeile in die Lieferung */
 function pushLine(l,delay){
@@ -5286,7 +5293,7 @@ function cartOrder(){
   S.money=r2(S.money-total); DS.goods=r2(DS.goods+total);
   let n=0; cartLines().forEach(l=>{ n+=pushLine(l,delay); });
   const fee=cartFee();
-  S.cart=[]; S.tut.order=true; sfx.cash();
+  S.cart=[]; S.tut.order=true; sfx.cash(); ltab='order';
   toast(`${n} Karton${n===1?'':'s'} bestellt · ${eur(total)}${fee?` inkl. ${eur(fee)} Versand`:' · versandkostenfrei'}. Ankunft in ${LIEFERZEIT_SEK} Sekunden.`,'money');
   save();
 }
@@ -5328,25 +5335,42 @@ function buyPack(id){
 }
 function cartHTML(){
   const lines=cartLines();
-  if(!lines.length)
-    return `<div class="row"><div class="rm"><b>Warenkorb</b><small>Noch leer. Leg unten Kartons hinein und bestelle dann alles auf einmal.</small></div></div>`;
   const goods=cartGoods(), fee=cartFee(), total=r2(goods+fee), rest=r2(VERSANDFREI-goods);
+  if(!lines.length)
+    return `<div class="row"><div class="rm"><b>Dein Warenkorb ist leer</b>`+
+      `<small>Geh auf „Bestellen“ und leg Kartons hinein. Hier kannst du sie dann prüfen, einzeln wieder löschen und alles in einem Rutsch bestellen.</small></div>`+
+      `<button data-a="tab" data-t="order">Zum Sortiment</button></div>`;
   const rows=lines.map((l,i)=>{
-    const sup=lineSup(l);
-    return `<div class="row"><div class="rm"><b>${l.n}× ${lineName(l)}</b><small>${l.pack?'Inhalt zufällig':sup.short} · ${lineBoxes(l)} Karton${lineBoxes(l)===1?'':'s'}</small></div>`+
-      `<div class="price">${eur(lineCost(l))}</div><button class="ghost" data-a="cartdel" data-i="${i}">Entfernen</button></div>`;
+    const sup=lineSup(l), boxes=lineBoxes(l);
+    return `<div class="row"><div class="rm"><b>${lineName(l)}</b>`+
+      `<small>${l.pack?'Inhalt zufällig · Restposten':sup.name}</small>`+
+      `<small>${boxes} Karton${boxes===1?'':'s'}${l.pack?'':` à ${eur(r2(lineCost(l)/Math.max(1,l.n)))}`}</small></div>`+
+      `<div class="steps"><button data-a="cartminus" data-i="${i}">−</button>`+
+      `<b style="min-width:34px;text-align:center;font-family:var(--display);font-size:19px">${l.n}</b>`+
+      `<button data-a="cartplus" data-i="${i}">+</button></div>`+
+      `<div class="price">${eur(lineCost(l))}</div>`+
+      `<button class="ghost" data-a="cartdel" data-i="${i}">Löschen</button></div>`;
   }).join('');
-  return `<div class="row"><div class="rm"><b>Warenkorb · ${cartBoxes()} Karton${cartBoxes()===1?'':'s'}</b>`+
-    `<small>Warenwert ${eur(goods)} · Versand ${fee?eur(fee):'frei'}${fee&&rest>0?` · noch ${eur(rest)} bis versandkostenfrei`:''}</small>`+
-    `<small>Ankunft ${LIEFERZEIT_SEK} Sekunden nach der Bestellung, alles in einer Lieferung.</small></div>`+
+  const summe=`<div class="row"><div class="rm"><b>Zwischensumme</b><small>${cartBoxes()} Karton${cartBoxes()===1?'':'s'} in ${lines.length} Position${lines.length===1?'':'en'}</small></div><div class="price">${eur(goods)}</div></div>`+
+    `<div class="row"><div class="rm"><b>Liefergebühr</b><small>${fee?`Ab ${eur(VERSANDFREI)} Warenwert frei · noch ${eur(rest)}`:'Entfällt ab '+eur(VERSANDFREI)+' Warenwert'}</small></div><div class="price ${fee?'':'ok'}">${fee?eur(fee):'frei'}</div></div>`+
+    `<div class="row"><div class="rm"><b>Gesamt</b><small>${S.money<total?'Dein Guthaben reicht nicht.':`Danach noch ${eur(r2(S.money-total))} auf dem Konto`}</small></div>`+
     `<div class="price">${eur(total)}</div>`+
-    `<div class="steps"><button data-a="cartgo" ${S.money<total?'disabled':''}>Bestellen</button>`+
-    `<button class="ghost" data-a="cartclear">Leeren</button></div></div>`+rows;
+    `<div class="steps"><button data-a="cartgo" ${S.money<total?'disabled':''}>Jetzt bestellen</button>`+
+    `<button class="ghost" data-a="cartclear">Korb leeren</button></div></div>`;
+  return rows+summe;
+}
+/* Kurzer Hinweis oben im Bestell-Tab */
+function cartTeaser(){
+  const n=cartBoxes();
+  if(!n) return `<div class="row"><div class="rm"><b>Warenkorb</b><small>Noch leer. Tippe unten auf „+“, um Kartons hineinzulegen.</small></div></div>`;
+  return `<div class="row"><div class="rm"><b>Warenkorb · ${n} Karton${n===1?'':'s'}</b><small>Warenwert ${eur(cartGoods())} · Versand ${cartFee()?eur(cartFee()):'frei'}</small></div>`+
+    `<div class="price">${eur(cartTotal())}</div><button data-a="tab" data-t="korb">Warenkorb ansehen</button></div>`;
 }
 function renderLaptop(){
   $('lMoney').textContent=eur(S.money);
   $('lLevel').textContent=`Level ${S.level} · ${S.xp}/${xpFor(S.level)} XP`;
   document.querySelectorAll('#ltabs button').forEach(b=>b.classList.toggle('on',b.dataset.tab===ltab));
+  const kt=$('tabKorb'); if(kt) kt.textContent=cartBoxes()?`Warenkorb (${cartBoxes()})`:'Warenkorb';
   let h='', hint='';
   if(ltab==='order'){
     const sup=supplierOf(lsup), avail=supAvail();
@@ -5357,7 +5381,7 @@ function renderLaptop(){
       SUPPLIERS.map(x=>S.level>=x.lvl
         ? `<button data-a="sup" data-t="${x.id}" style="${x.id===lsup?'background:var(--signal);color:var(--ink)':'opacity:.8'}">${x.short}</button>`
         : `<button disabled>${x.short} · Lvl ${x.lvl}</button>`).join('')+`</div></div>`;
-    h+=cartHTML();
+    h+=cartTeaser();
     if(sup.mystery){
       h+=PACKS.map(pk=>{ const lock=S.level<pk.lvl;
         return `<div class="row${lock?' locked':''}"><div class="rm"><b>${pk.name}</b><small>${pk.desc}</small><small>Inhalt zufällig, Restposten-Qualität</small></div>`+
@@ -5371,6 +5395,9 @@ function renderLaptop(){
         return `<div class="row"><div class="rm"><b>${p.name} ${catPill(p)}</b><small>Karton mit ${p.box} Stück${canShelf(t)?(cap?` · größtes Fach fasst ${cap}`:' · kein passendes Regal'):' · nur für den Automaten'}</small><small>Im Laden: ${shelfStockOf(t)} im Regal, ${stockOf(t)} insgesamt</small></div>`+
           `<div class="steps">${btns}</div></div>`; }).join('');
     }
+  } else if(ltab==='korb'){
+    hint=`Alles im Korb geht als eine Lieferung raus. Der Lieferant steht ${LIEFERZEIT_SEK} Sekunden später an der Rampe.`;
+    h=cartHTML();
   } else if(ltab==='price'){
     hint='Marktpreis ist das, was die Kunden erwarten. Ein besserer Laden verträgt mehr.';
     h=ORDER.filter(t=>isUnlocked(t)&&t!=='blanko').map(t=>{ const p=P[t], hi=priceHint(t);
@@ -5444,6 +5471,9 @@ $('lbody').addEventListener('click',e=>{
   if(a==='order') orderBox(t,+b.dataset.n||1);
   else if(a==='cart') cartAdd(t,+b.dataset.n||1);
   else if(a==='cartdel') cartDel(+b.dataset.i);
+  else if(a==='cartplus') cartStep(+b.dataset.i,1);
+  else if(a==='cartminus') cartStep(+b.dataset.i,-1);
+  else if(a==='tab'){ ltab=t; }
   else if(a==='cartgo') cartOrder();
   else if(a==='cartclear') cartClear();
   else if(a==='sup'){ lsup=t; }

@@ -126,6 +126,13 @@ button:focus-visible{outline:3px solid var(--spark);outline-offset:2px}
 .pill.zub{background:rgba(255,210,63,.18);color:var(--signal)}
 .ok{color:var(--mint)!important}.warn{color:var(--signal)!important}.no{color:#ffab9f!important}
 .lfoot{padding:12px 16px;border-top:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:10px;flex-shrink:0}
+.lfoot-r{justify-content:flex-end}
+#korbOv{z-index:24}
+#korbOv .card{max-width:660px;padding:0;overflow:hidden;display:flex;flex-direction:column;background:#0f1530}
+.ksum{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:8px 0;border-top:1px solid var(--line)}
+.ksum b{font-size:17px}.ksum small{display:block;color:var(--muted);font-size:14px}
+.ksum .price{font-size:19px}
+.ksum.total .price{font-size:26px;color:var(--signal)}
 .lfoot small{color:var(--muted);font-size:15px}
 .lfoot button{white-space:nowrap}
 .sumrow{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid var(--line);font-size:19px}
@@ -293,10 +300,15 @@ body.compact .pdahead2 b{font-size:16px}
 <div class="ov" id="laptop"><div class="card">
   <div class="lhead"><b>Böllerladen OS</b><em id="lLevel"></em><span id="lMoney"></span></div>
   <div class="tabs" id="ltabs">
-    <button data-tab="order">Bestellen</button><button data-tab="korb" id="tabKorb">Warenkorb</button><button data-tab="price">Preise</button><button data-tab="up">Ausbau</button><button data-tab="deko">Deko</button><button data-tab="staff">Personal</button><button data-tab="bank">Bank</button><button data-tab="stats">Bericht</button><button data-tab="shop">Laden</button>
+    <button data-tab="order">Bestellen</button><button data-tab="price">Preise</button><button data-tab="up">Ausbau</button><button data-tab="deko">Deko</button><button data-tab="staff">Personal</button><button data-tab="bank">Bank</button><button data-tab="stats">Bericht</button><button data-tab="shop">Laden</button>
   </div>
   <div class="lbody" id="lbody"></div>
-  <div class="lfoot"><small id="lHint"></small><button id="lclose">Laptop zuklappen</button></div>
+  <div class="lfoot lfoot-r"><button class="ghost" id="lclose">Laptop zuklappen</button><button id="lKorb">Warenkorb anzeigen</button></div>
+</div></div>
+<div class="ov" id="korbOv"><div class="card korbcard">
+  <div class="lhead"><b>Warenkorb</b><em id="korbCount"></em><span id="korbSum"></span></div>
+  <div class="lbody" id="korbBody"></div>
+  <div class="lfoot lfoot-r" id="korbFoot"></div>
 </div></div>
 
 <div class="ov" id="cash"><div class="card">
@@ -5228,9 +5240,9 @@ function closeSummary(){
 /* =========================================================
    Laptop
    ========================================================= */
-let laptopOpen=false, startOpen=true, pauseOpen=false, ltab='order', resetArm=false, lsup='mertens';
+let laptopOpen=false, startOpen=true, pauseOpen=false, ltab='order', resetArm=false, lsup='mertens', korbOpen=false;
 function openLaptop(){ laptopOpen=true; resetArm=false; for(const k in keys) keys[k]=false; mouseDown=false; touchAct=false; renderLaptop(); $('laptop').classList.add('show'); if(locked) document.exitPointerLock(); }
-function closeLaptop(relock){ laptopOpen=false; $('laptop').classList.remove('show'); if(relock) requestLock(); else if(lockWorked&&!COARSE&&!locked&&!summaryOpen&&!levelOpen) showPause(); }
+function closeLaptop(relock){ laptopOpen=false; korbOpen=false; $('korbOv').classList.remove('show'); $('laptop').classList.remove('show'); if(relock) requestLock(); else if(lockWorked&&!COARSE&&!locked&&!summaryOpen&&!levelOpen) showPause(); }
 function priceHint(t){ const r=S.prices[t]/P[t].market, lo=priceTol();
   if(r<=lo) return ['ok','Kunden greifen gern zu'];
   if(r<=lo+0.2) return ['warn','Einige zögern'];
@@ -5294,6 +5306,7 @@ function cartOrder(){
   let n=0; cartLines().forEach(l=>{ n+=pushLine(l,delay); });
   const fee=cartFee();
   S.cart=[]; S.tut.order=true; sfx.cash(); ltab='order';
+  if(korbOpen) closeKorb();
   toast(`${n} Karton${n===1?'':'s'} bestellt · ${eur(total)}${fee?` inkl. ${eur(fee)} Versand`:' · versandkostenfrei'}. Ankunft in ${LIEFERZEIT_SEK} Sekunden.`,'money');
   save();
 }
@@ -5333,44 +5346,50 @@ function buyPack(id){
   later(0.6,()=>toast(worth>pk.cost?`Einkaufswert ${eur(worth)}. Guter Griff.`:`Einkaufswert ${eur(worth)}. Diesmal Pech.`,worth>pk.cost?'money':'bad'));
   addXP(20,'Wundertüte'); S.tut.order=true; save();
 }
-function cartHTML(){
-  const lines=cartLines();
-  const goods=cartGoods(), fee=cartFee(), total=r2(goods+fee), rest=r2(VERSANDFREI-goods);
-  if(!lines.length)
-    return `<div class="row"><div class="rm"><b>Dein Warenkorb ist leer</b>`+
-      `<small>Geh auf „Bestellen“ und leg Kartons hinein. Hier kannst du sie dann prüfen, einzeln wieder löschen und alles in einem Rutsch bestellen.</small></div>`+
-      `<button data-a="tab" data-t="order">Zum Sortiment</button></div>`;
-  const rows=lines.map((l,i)=>{
-    const sup=lineSup(l), boxes=lineBoxes(l);
+/* =========================================================
+   Warenkorb-Maske: eigene Ansicht ueber dem Laptop
+   ========================================================= */
+function openKorb(){ korbOpen=true; $('korbOv').classList.add('show'); renderKorb(); }
+function closeKorb(){ korbOpen=false; $('korbOv').classList.remove('show'); renderLaptop(); }
+function renderKorb(){
+  const lines=cartLines(), goods=cartGoods(), fee=cartFee(), total=r2(goods+fee);
+  const n=cartBoxes(), rest=r2(VERSANDFREI-goods);
+  $('korbCount').textContent=n?`${n} Karton${n===1?'':'s'} · ${lines.length} Position${lines.length===1?'':'en'}`:'leer';
+  $('korbSum').textContent=eur(total);
+  if(!lines.length){
+    $('korbBody').innerHTML=`<div class="row"><div class="rm"><b>Dein Warenkorb ist leer</b>`+
+      `<small>Leg im Tab „Bestellen“ mit „+“ Kartons hinein. Hier siehst du dann jede Position mit Preis, die Liefergebühr und die Gesamtsumme.</small></div></div>`;
+    $('korbFoot').innerHTML=`<button class="ghost" data-a="korbclose">Weiter einkaufen</button>`;
+    return;
+  }
+  $('korbBody').innerHTML=lines.map((l,i)=>{
+    const sup=lineSup(l), boxes=lineBoxes(l), cost=lineCost(l), each=r2(cost/Math.max(1,boxes));
     return `<div class="row"><div class="rm"><b>${lineName(l)}</b>`+
-      `<small>${l.pack?'Inhalt zufällig · Restposten':sup.name}</small>`+
-      `<small>${boxes} Karton${boxes===1?'':'s'}${l.pack?'':` à ${eur(r2(lineCost(l)/Math.max(1,l.n)))}`}</small></div>`+
+      `<small>${l.pack?'Inhalt zufällig · Restposten-Qualität':sup.name}</small>`+
+      `<small>${boxes} Karton${boxes===1?'':'s'} × ${eur(each)}</small></div>`+
       `<div class="steps"><button data-a="cartminus" data-i="${i}">−</button>`+
-      `<b style="min-width:34px;text-align:center;font-family:var(--display);font-size:19px">${l.n}</b>`+
+      `<b style="min-width:32px;text-align:center;font-family:var(--display);font-size:19px">${l.n}</b>`+
       `<button data-a="cartplus" data-i="${i}">+</button></div>`+
-      `<div class="price">${eur(lineCost(l))}</div>`+
+      `<div class="price">${eur(cost)}</div>`+
       `<button class="ghost" data-a="cartdel" data-i="${i}">Löschen</button></div>`;
-  }).join('');
-  const summe=`<div class="row"><div class="rm"><b>Zwischensumme</b><small>${cartBoxes()} Karton${cartBoxes()===1?'':'s'} in ${lines.length} Position${lines.length===1?'':'en'}</small></div><div class="price">${eur(goods)}</div></div>`+
-    `<div class="row"><div class="rm"><b>Liefergebühr</b><small>${fee?`Ab ${eur(VERSANDFREI)} Warenwert frei · noch ${eur(rest)}`:'Entfällt ab '+eur(VERSANDFREI)+' Warenwert'}</small></div><div class="price ${fee?'':'ok'}">${fee?eur(fee):'frei'}</div></div>`+
-    `<div class="row"><div class="rm"><b>Gesamt</b><small>${S.money<total?'Dein Guthaben reicht nicht.':`Danach noch ${eur(r2(S.money-total))} auf dem Konto`}</small></div>`+
-    `<div class="price">${eur(total)}</div>`+
-    `<div class="steps"><button data-a="cartgo" ${S.money<total?'disabled':''}>Jetzt bestellen</button>`+
-    `<button class="ghost" data-a="cartclear">Korb leeren</button></div></div>`;
-  return rows+summe;
+  }).join('')+
+    `<div class="ksum"><div><b>Zwischensumme</b><small>${n} Karton${n===1?'':'s'}</small></div><div class="price">${eur(goods)}</div></div>`+
+    `<div class="ksum"><div><b>Liefergebühr</b><small>${fee?`Ab ${eur(VERSANDFREI)} Warenwert frei · noch ${eur(rest)}`:`Entfällt ab ${eur(VERSANDFREI)} Warenwert`}</small></div><div class="price ${fee?'':'ok'}">${fee?eur(fee):'frei'}</div></div>`+
+    `<div class="ksum total"><div><b>Gesamt</b><small>${S.money<total?'Dein Guthaben reicht nicht.':`Danach noch ${eur(r2(S.money-total))} auf dem Konto · Lieferant kommt in ${LIEFERZEIT_SEK} Sekunden`}</small></div><div class="price">${eur(total)}</div></div>`;
+  $('korbFoot').innerHTML=
+    `<button class="ghost" data-a="korbclose">Weiter einkaufen</button>`+
+    `<button class="ghost" data-a="cartclear">Korb leeren</button>`+
+    `<button data-a="cartgo" ${S.money<total?'disabled':''}>Jetzt bestellen · ${eur(total)}</button>`;
 }
-/* Kurzer Hinweis oben im Bestell-Tab */
-function cartTeaser(){
+function korbBtnText(){
   const n=cartBoxes();
-  if(!n) return `<div class="row"><div class="rm"><b>Warenkorb</b><small>Noch leer. Tippe unten auf „+“, um Kartons hineinzulegen.</small></div></div>`;
-  return `<div class="row"><div class="rm"><b>Warenkorb · ${n} Karton${n===1?'':'s'}</b><small>Warenwert ${eur(cartGoods())} · Versand ${cartFee()?eur(cartFee()):'frei'}</small></div>`+
-    `<div class="price">${eur(cartTotal())}</div><button data-a="tab" data-t="korb">Warenkorb ansehen</button></div>`;
+  return n?`Warenkorb anzeigen (${n}) · ${eur(cartTotal())}`:'Warenkorb anzeigen';
 }
 function renderLaptop(){
   $('lMoney').textContent=eur(S.money);
   $('lLevel').textContent=`Level ${S.level} · ${S.xp}/${xpFor(S.level)} XP`;
   document.querySelectorAll('#ltabs button').forEach(b=>b.classList.toggle('on',b.dataset.tab===ltab));
-  const kt=$('tabKorb'); if(kt) kt.textContent=cartBoxes()?`Warenkorb (${cartBoxes()})`:'Warenkorb';
+  const kb=$('lKorb'); if(kb) kb.textContent=korbBtnText();
   let h='', hint='';
   if(ltab==='order'){
     const sup=supplierOf(lsup), avail=supAvail();
@@ -5381,7 +5400,6 @@ function renderLaptop(){
       SUPPLIERS.map(x=>S.level>=x.lvl
         ? `<button data-a="sup" data-t="${x.id}" style="${x.id===lsup?'background:var(--signal);color:var(--ink)':'opacity:.8'}">${x.short}</button>`
         : `<button disabled>${x.short} · Lvl ${x.lvl}</button>`).join('')+`</div></div>`;
-    h+=cartTeaser();
     if(sup.mystery){
       h+=PACKS.map(pk=>{ const lock=S.level<pk.lvl;
         return `<div class="row${lock?' locked':''}"><div class="rm"><b>${pk.name}</b><small>${pk.desc}</small><small>Inhalt zufällig, Restposten-Qualität</small></div>`+
@@ -5395,9 +5413,6 @@ function renderLaptop(){
         return `<div class="row"><div class="rm"><b>${p.name} ${catPill(p)}</b><small>Karton mit ${p.box} Stück${canShelf(t)?(cap?` · größtes Fach fasst ${cap}`:' · kein passendes Regal'):' · nur für den Automaten'}</small><small>Im Laden: ${shelfStockOf(t)} im Regal, ${stockOf(t)} insgesamt</small></div>`+
           `<div class="steps">${btns}</div></div>`; }).join('');
     }
-  } else if(ltab==='korb'){
-    hint=`Alles im Korb geht als eine Lieferung raus. Der Lieferant steht ${LIEFERZEIT_SEK} Sekunden später an der Rampe.`;
-    h=cartHTML();
   } else if(ltab==='price'){
     hint='Marktpreis ist das, was die Kunden erwarten. Ein besserer Laden verträgt mehr.';
     h=ORDER.filter(t=>isUnlocked(t)&&t!=='blanko').map(t=>{ const p=P[t], hi=priceHint(t);
@@ -5463,8 +5478,21 @@ function renderLaptop(){
         `</div><button class="${S.test?'red':''}" data-a="test">${S.test?'Testmodus aus':'Testmodus an'}</button></div>`+
       `<div class="row"><div class="rm"><b>Spielstand</b><small>Wird automatisch gespeichert.</small></div><button class="ghost" data-a="reset">${resetArm?'Wirklich löschen?':'Spielstand löschen'}</button></div>`;
   }
-  $('lbody').innerHTML=h; $('lHint').textContent=hint;
+  $('lbody').innerHTML=h;
+  if(korbOpen) renderKorb();
 }
+$('lKorb').addEventListener('click',()=>openKorb());
+for(const id of ['korbBody','korbFoot']) $(id).addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b||b.disabled) return; const a=b.dataset.a;
+  if(a==='korbclose'){ closeKorb(); return; }
+  else if(a==='cartdel') cartDel(+b.dataset.i);
+  else if(a==='cartplus') cartStep(+b.dataset.i,1);
+  else if(a==='cartminus') cartStep(+b.dataset.i,-1);
+  else if(a==='cartclear') cartClear();
+  else if(a==='cartgo'){ cartOrder(); return; }
+  renderKorb(); renderLaptop();
+});
+$('korbOv').addEventListener('click',e=>{ if(e.target.id==='korbOv') closeKorb(); });
 $('ltabs').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b) return; ltab=b.dataset.tab; resetArm=false; renderLaptop(); });
 $('lbody').addEventListener('click',e=>{
   const b=e.target.closest('button'); if(!b||b.disabled) return; const a=b.dataset.a, t=b.dataset.t;
@@ -5474,6 +5502,7 @@ $('lbody').addEventListener('click',e=>{
   else if(a==='cartplus') cartStep(+b.dataset.i,1);
   else if(a==='cartminus') cartStep(+b.dataset.i,-1);
   else if(a==='tab'){ ltab=t; }
+  else if(a==='korbclose'){ closeKorb(); return; }
   else if(a==='cartgo') cartOrder();
   else if(a==='cartclear') cartClear();
   else if(a==='sup'){ lsup=t; }

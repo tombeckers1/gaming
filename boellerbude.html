@@ -1307,7 +1307,7 @@ function buildWorld(){
   flat(10,9,new THREE.MeshStandardMaterial({map:yardGroundTex(),roughness:0.92}),3,0.013,-10.5);
   // Warenannahme
   const zone=new THREE.Mesh(new THREE.PlaneGeometry(4.3,2.3),new THREE.MeshBasicMaterial({transparent:true,depthWrite:false,map:tex(430,230,(g,W,H)=>{ g.clearRect(0,0,W,H); g.strokeStyle='#ffd23f'; g.lineWidth=10; g.setLineDash([26,14]); g.strokeRect(8,8,W-16,H-16); g.setLineDash([]); g.fillStyle='rgba(255,210,63,.95)'; g.font=BAR(30); g.fillText('Wareneingang',24,H-26); })}));
-  zone.rotation.x=-Math.PI/2; zone.position.set(-16.6,0.022,-2.9); zone.renderOrder=2; scene.add(zone);
+  zone.rotation.set(-Math.PI/2,0,-Math.PI/2); zone.position.set(-15.3,0.022,-2); zone.renderOrder=2; scene.add(zone);
   // Laden: Frontwand mit Schaufenstern
   const H=WH;
   wall(-8,-7.2,5.9,6.1,0,H,'-z',shopWall); wall(-2,-1.2,5.9,6.1,0,H,'-z',shopWall);
@@ -1339,8 +1339,11 @@ function buildWorld(){
   for(const [a,b] of [[-5.9,-3.2],[-1.8,5.9]]) bbox(0.02,0.1,b-a,base,-7.89,0.05,(a+b)/2,null,false);
   // Dächer & Decken
   bbox(16.4,0.25,12.4,std(0x2b2f3a),0,H+0.13,0); bbox(12.4,0.25,8.4,std(0x2b2f3a),-14,H+0.13,-2);
-  const ceil=std(0xe6e8ee,{roughness:1}); const c1=new THREE.Mesh(new THREE.PlaneGeometry(16,12),ceil); c1.rotation.x=Math.PI/2; c1.position.y=H-0.01; scene.add(c1);
-  const c2=new THREE.Mesh(new THREE.PlaneGeometry(12,8),ceil); c2.rotation.x=Math.PI/2; c2.position.set(-14,H-0.01,-2); scene.add(c2);
+  const ceil=std(0xe6e8ee,{roughness:1});
+  /* Beide Decken reichen ueber die Innenseiten aller Waende hinaus und
+     stossen in der Trennwand aneinander - kein Spalt, keine Ueberlappung. */
+  const c1=new THREE.Mesh(new THREE.PlaneGeometry(16.1,12.3),ceil); c1.rotation.x=Math.PI/2; c1.position.set(0.1,H-0.01,0); scene.add(c1);
+  const c2=new THREE.Mesh(new THREE.PlaneGeometry(12.15,8.3),ceil); c2.rotation.x=Math.PI/2; c2.position.set(-14.025,H-0.01,-2); scene.add(c2);
   /* Flächenbündige Leuchten: schmaler Rahmen, gleichmäßig leuchtende Scheibe */
   const diffT=tex(512,256,(g,W,Hh)=>{
     g.fillStyle='#fffaf0'; g.fillRect(0,0,W,Hh);
@@ -2060,7 +2063,7 @@ function updateSchiebetuer(dt){
   tuer.target=tuerNah()?1:0;
   const d=tuer.target-tuer.t;
   if(Math.abs(d)<0.004){ if(tuer.t!==tuer.target) tuerSet(tuer.target); tuer.moving=false; return; }
-  if(!tuer.moving){ tuer.moving=true; sfx.schiebetuer(distVol(V(0,1.2,TUER.z))); }
+  if(!tuer.moving){ tuer.moving=true; }
   tuerSet(tuer.t+(d>0?1:-1)*Math.min(Math.abs(d),1.45*dt));
 }
 
@@ -3173,7 +3176,6 @@ function spawnTruck(cargo,supId,supName){
   const g=makeTruck(supName||'Lieferung',colr);
   g.position.set(LR.rear-9.5,0,LR.z); scene.add(g);
   truck={g,cargo,boxes:[],raum:null,bruecke:null,state:'reverse',t:0,name:supName,col:colr,cols:[]};
-  sfx.beep();
   toast(`${supName} setzt an die Rampe.`);
 }
 /* Ueberladebruecke = die heruntergeklappte Klappe des LKW.
@@ -3197,6 +3199,9 @@ function makeBruecke(){
 function dockTruck(){
   truck.g.position.x=LR.rear;
   truck.state='opening';
+  /* Der geschlossene Kasten des Aussenmodells steht sonst genau im Tor
+     und verdeckt den begehbaren Laderaum. */
+  truck.g.visible=false;
   truck.raum=makeLaderaum(truck.name||'Lieferung',truck.col);
   truck.bruecke=makeBruecke();
   fillCargo();
@@ -3232,7 +3237,7 @@ function clearRaum(){
 function leaveTruck(){
   if(!truck||truck.state!=='docked') return;
   truck.state='closing'; truck.t=0;
-  clearRaum(); doorOpen(false);
+  clearRaum(); truck.g.visible=true; doorOpen(false);
   if(truckDriver){ scene.remove(truckDriver); truckDriver=null; }
 }
 function removeTruck(){
@@ -3272,7 +3277,6 @@ function updateTruck(dt){
   if(truck.state==='reverse'){
     const d=LR.rear-g.position.x, sp=clamp(d*0.9,0.5,2.6);
     g.position.x+=sp*dt;
-    truck.t-=dt; if(truck.t<=0){ truck.t=0.75; sfx.beep(); }
     if(d<=0.03) dockTruck();
   } else if(truck.state==='opening'){
     if(doorIsOpen()) truck.state='docked';
@@ -3280,7 +3284,7 @@ function updateTruck(dt){
     if(!truck.cargo.length&&!trailerOccupied()){ truck.t+=dt; if(truck.t>1.2) leaveTruck(); }
     else truck.t=0;
   } else if(truck.state==='closing'){
-    if(door&&door.t<=0.02){ truck.state='out'; truck.t=0; sfx.beep(); }
+    if(door&&door.t<=0.02){ truck.state='out'; truck.t=0; }
   } else if(truck.state==='out'){
     truck.t+=dt;
     if(truck.t>0.6){ g.position.x-=Math.min(7,(truck.t-0.6)*5)*dt; if(g.position.x<lrFront()-14) removeTruck(); }

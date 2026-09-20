@@ -3110,7 +3110,7 @@ function makeLaderaum(name,col){
     for(let i=0;i<1400;i++){ c.fillStyle=`rgba(255,255,255,${Math.random()*0.04})`; c.fillRect(Math.random()*Wc,Math.random()*Hc,2,2); } });
   plank.wrapS=plank.wrapT=THREE.RepeatWrapping; plank.repeat.set(3,1);
   const fl=new THREE.Mesh(new THREE.PlaneGeometry(L,W),new THREE.MeshStandardMaterial({map:plank,roughness:0.88}));
-  fl.rotation.x=-Math.PI/2; fl.rotation.z=Math.PI/2; fl.position.set(-L/2,0.025,0);
+  fl.rotation.x=-Math.PI/2; fl.position.set(-L/2,0.025,0);
   if(HIQ) fl.receiveShadow=true; g.add(fl);
   /* Seitenwaende: helle Sperrholzverkleidung mit feinen Stossfugen */
   const wallTexI=tex(512,256,(c,Wc,Hc)=>{
@@ -3127,7 +3127,7 @@ function makeLaderaum(name,col){
   const alu=std(0xb6bcc4,{metalness:0.55,roughness:0.42});
   for(const s of [-1,1]){
     const wl=new THREE.Mesh(new THREE.PlaneGeometry(L,HH),wm);
-    wl.rotation.y=s>0?-Math.PI/2:Math.PI/2; wl.position.set(-L/2,HH/2,s*W/2); g.add(wl);
+    wl.rotation.y=s>0?Math.PI:0; wl.position.set(-L/2,HH/2,s*W/2); g.add(wl);
     /* Zwei buendige Zurrschienen statt drei Gestaengen */
     for(const yy of [0.52,1.46]){
       bbox(L-0.12,0.05,0.026,alu,-L/2,yy,s*(W/2-0.02),g,false);
@@ -3141,10 +3141,10 @@ function makeLaderaum(name,col){
   }
   /* Decke mit lichtdurchlaessigem Dachband */
   const ceil=new THREE.Mesh(new THREE.PlaneGeometry(L,W),std(0xf0ece2,{roughness:0.9,side:THREE.DoubleSide}));
-  ceil.rotation.x=Math.PI/2; ceil.rotation.z=Math.PI/2; ceil.position.set(-L/2,HH,0); g.add(ceil);
+  ceil.rotation.x=Math.PI/2; ceil.position.set(-L/2,HH,0); g.add(ceil);
   const dach=new THREE.Mesh(new THREE.PlaneGeometry(L-0.4,W*0.5),
     new THREE.MeshBasicMaterial({color:0xfbf7ec,toneMapped:false}));
-  dach.rotation.x=Math.PI/2; dach.rotation.z=Math.PI/2; dach.position.set(-L/2,HH-0.012,0); g.add(dach);
+  dach.rotation.x=Math.PI/2; dach.position.set(-L/2,HH-0.012,0); g.add(dach);
   const led=new THREE.MeshBasicMaterial({color:0xfff6e2,toneMapped:false});
   for(const s of [-1,1]) bbox(L-0.8,0.03,0.07,led,-L/2,HH-0.07,s*(W/2-0.22),g,false);
   const lamp=new THREE.PointLight(0xffeccf,0.85,11,1.4); lamp.position.set(-L*0.45,HH-0.3,0); g.add(lamp);
@@ -3154,8 +3154,11 @@ function makeLaderaum(name,col){
   const front=new THREE.Mesh(new THREE.PlaneGeometry(W,HH),fm);
   front.rotation.y=Math.PI/2; front.position.set(-L+0.02,HH/2,0); g.add(front);
   for(const s of [-1,1]) bbox(0.05,HH,0.07,alu,-L+0.05,HH/2,s*(W/2-0.07),g,false);
-  /* Kantenschutz am Heck */
+  /* Heck: Kantenschutz innen, Rahmen aussen gegen die Torlaibung */
   for(const s of [-1,1]) bbox(0.09,HH,0.09,alu,-0.05,HH/2,s*(W/2-0.05),g,false);
+  const rah=std(0x2f343c,{roughness:0.8});
+  for(const s of [-1,1]) bbox(0.14,HH+0.34,0.28,rah,-0.07,HH/2,s*(W/2+0.13),g,false);
+  bbox(0.14,0.28,W+0.54,rah,-0.07,HH+0.14,0,g,false);
   bbox(0.14,0.09,W,std(0x6a7078,{metalness:0.5}),-0.04,0.05,0,g,false);
   bbox(0.1,0.1,W,alu,-0.05,HH-0.05,0,g,false);
   return g;

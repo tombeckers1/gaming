@@ -641,6 +641,10 @@ const WDMULT=[0.55,0.82,0.84,0.9,1.0,1.28,1.35];
 function dayMult(n){ const i=dateInfo(n); return seasonInfo(n)[0]*WDMULT[i.wd]; }
 function silvesterNah(n){ const i=dateInfo(n); return i.m===11&&i.d>=26; }
 const OPEN_T=480, CLOSE_T=1320, MIN_PER_SEC=840/330;
+/* Jede Bestellung ist eine Lieferung: 30 Spielminuten Vorlauf, dazu eine
+   kleine Liefergebuehr, die ab einem groesseren Warenwert entfaellt. */
+const LIEFERZEIT_MIN=30, VERSAND=5.9, VERSANDFREI=150;
+function lieferSek(){ return LIEFERZEIT_MIN/MIN_PER_SEC; }
 /* Regaltypen. Klein ist der Einstieg, der Kühlschrank nimmt nur Sekt & Co. */
 const SHELFKIND={
   klein:{id:'klein',name:'Kleines Regal',w:1.0,d:0.42,lv:[0.12,0.52,0.92],lvl:1,cost:45,step:28,amb:0},
@@ -2113,28 +2117,28 @@ function buildDock(){
   const steel=std(0x8d939d,{metalness:0.6,roughness:0.42});
   const yard=concreteTex(); yard.repeat.set(4,6);
   const ym=new THREE.MeshStandardMaterial({map:yard,roughness:0.92,color:LIN(0xb0b4ba)});
-  flat(10,9,ym,-25,0.014,-2);
+  flat(14,9,ym,-27,0.014,-2);
   const drv=concreteTex(); drv.repeat.set(4,6);
   flat(10,9.2,new THREE.MeshStandardMaterial({map:drv,roughness:0.92,color:LIN(0xa8acb2)}),-25,0.013,6.9);
   // Hofmauer
-  const mw=brickMat(10,2.8);
-  bbox(10.1,2.8,0.24,mw,-25,1.4,-6.0,null,false);
-  bbox(10.2,0.14,0.34,snow,-25,2.84,-6.0,null,false);
+  const mw=brickMat(14,2.8);
+  bbox(14.1,2.8,0.24,mw,-27,1.4,-6.0,null,false);
+  bbox(14.2,0.14,0.34,snow,-27,2.84,-6.0,null,false);
   /* Westmauer mit Einfahrt fuer den LKW */
   const mw2=brickMat(6,2.8);
-  bbox(0.24,2.8,2.5,mw2,-30.0,1.4,-4.85,null,false);
-  bbox(0.24,2.8,10.6,mw2,-30.0,1.4,5.9,null,false);
-  bbox(0.34,0.14,2.6,snow,-30.0,2.84,-4.85,null,false);
-  bbox(0.34,0.14,10.7,snow,-30.0,2.84,5.9,null,false);
-  for(const z of [-3.6,0.6]){ bbox(0.42,3.2,0.42,std(0x5f584e,{roughness:1}),-30.0,1.6,z,null,false);
-    bbox(0.5,0.16,0.5,std(0x3a4150),-30.0,3.24,z,null,false); }
+  bbox(0.24,2.8,2.5,mw2,-34.0,1.4,-4.85,null,false);
+  bbox(0.24,2.8,10.6,mw2,-34.0,1.4,5.9,null,false);
+  bbox(0.34,0.14,2.6,snow,-34.0,2.84,-4.85,null,false);
+  bbox(0.34,0.14,10.7,snow,-34.0,2.84,5.9,null,false);
+  for(const z of [-3.6,0.6]){ bbox(0.42,3.2,0.42,std(0x5f584e,{roughness:1}),-34.0,1.6,z,null,false);
+    bbox(0.5,0.16,0.5,std(0x3a4150),-34.0,3.24,z,null,false); }
   /* Schiebetor, offen an die Mauer gefahren */
-  { const g2=new THREE.Group(); g2.position.set(-30.0,0,3.1); scene.add(g2);
+  { const g2=new THREE.Group(); g2.position.set(-34.0,0,3.1); scene.add(g2);
     bbox(0.1,0.1,4.2,steel,0.12,2.25,0,g2,false);
     bbox(0.1,0.1,4.2,steel,0.12,0.35,0,g2,false);
     for(let i=0;i<14;i++) bbox(0.07,1.9,0.07,steel,0.12,1.3,-2.0+i*0.31,g2,false);
     for(let i=0;i<5;i++) bbox(0.05,0.05,4.2,steel,0.12,0.6+i*0.4,0,g2,false); }
-  col(-30.15,-29.85,-6.6,-3.6); col(-30.15,-29.85,0.6,11.2); col(-30.1,-20,-6.15,-5.85);
+  col(-34.15,-33.85,-6.6,-3.6); col(-34.15,-33.85,0.6,11.2); col(-34.1,-20,-6.15,-5.85);
   // Anbau zwischen Lager und Gehweg, damit die Lücke nicht leer wirkt
   const ab=brickMat(12,2.9);
   bbox(12,2.9,4.1,ab,-14,1.45,4,null,false);
@@ -2148,18 +2152,18 @@ function buildDock(){
   bbox(1.95,0.09,4.45,snow,-20.95,3.42,-2,null,false).rotation.z=0.08;
   for(const z of [-1.9,1.9]){ const st=bbox(0.07,0.9,0.07,steel,-21.8,2.95,z,null,false); st.rotation.x=0; st.rotation.z=-0.7; }
   // Hoflampen
-  for(const [x,z] of [[-20.6,-4.9],[-20.6,0.9],[-28.6,-2]]){
+  for(const [x,z] of [[-20.6,-4.9],[-20.6,0.9],[-26.6,-4.9],[-32.6,-2]]){
     bbox(0.1,0.34,0.1,std(0x3a4150),x,3.0,z,null,false);
     const lm=new THREE.MeshStandardMaterial({color:0x222222,emissive:LIN(0xfff0d0),emissiveIntensity:0}); lampMats.push(lm);
     const sh=new THREE.Mesh(new THREE.CylinderGeometry(0.2,0.12,0.2,10),lm); sh.position.set(x,2.8,z); sh.rotation.x=Math.PI; scene.add(sh);
   }
   // Bodenmarkierung für den LKW
   const mark=(w,d,x,z,c)=>flat(w,d,std(c||0xf2c230),x,0.017,z);
-  for(let x2=-29;x2<-20.6;x2+=1.0){ mark(0.6,0.12,x2,-3.55); mark(0.6,0.12,x2,-0.45); }
-  mark(0.14,3.4,-29.3,-2);
+  for(let x2=-33;x2<-20.6;x2+=1.0){ mark(0.6,0.12,x2,-3.55); mark(0.6,0.12,x2,-0.45); }
+  mark(0.14,3.4,-33.3,-2);
   const zm=new THREE.Mesh(new THREE.PlaneGeometry(3.4,1.1),new THREE.MeshBasicMaterial({transparent:true,depthWrite:false,map:tex(340,110,(g,W,H)=>{
     g.clearRect(0,0,W,H); g.fillStyle='rgba(255,210,63,.9)'; g.font=BUN(52); g.textAlign='center'; g.textBaseline='middle'; g.fillText('ANLIEFERUNG',W/2,H/2+3); })}));
-  zm.rotation.x=-Math.PI/2; zm.position.set(-24.5,0.018,2.9); zm.renderOrder=2; scene.add(zm);
+  zm.rotation.x=-Math.PI/2; zm.position.set(-27,0.018,2.9); zm.renderOrder=2; scene.add(zm);
   // Poller neben dem Tor
   for(const z of [-4.0,0.0]){ bbox(0.2,0.95,0.2,std(0xf2c230,{roughness:0.7}),-20.6,0.48,z,null,false);
     bbox(0.22,0.14,0.22,std(0x1f1f24),-20.6,0.86,z,null,false); col(-20.75,-20.45,z-0.15,z+0.15); }
@@ -2990,7 +2994,7 @@ function shelfStockOf(t){ let n=0; allLevels().forEach(l=>{ if(l.type===t) n+=l.
 let truck=null, truckDriver=null;
 const TRUCKCOL={mertens:0x2f6bb8,kowalski:0xc8322a,ratzke:0x6f7684,import:0x3f8a5a,premium:0x1b2340,direkt:0x8a6ab8,pack:0xd08a2f};
 /* Laderaum: Heck bündig an der Wand, Innenmaße begehbar */
-const LR={rear:-20.05,len:6.2,w:2.6,h:2.55,z:-2};
+const LR={rear:-20.05,len:9.4,w:3.0,h:2.88,z:-2};
 function lrFront(){ return LR.rear-LR.len; }
 
 function liveryTex(name,col,innen){
@@ -3094,75 +3098,79 @@ function makeTruck(name,col){
 function makeLaderaum(name,col){
   const g=new THREE.Group(); g.position.set(LR.rear,0,LR.z); scene.add(g);
   const L=LR.len, W=LR.w, HH=LR.h;
-  /* Boden: Siebdruckplatte mit Abrieb */
-  const plank=tex(256,256,(c,Wc,Hc)=>{
-    c.fillStyle='#8a6f4a'; c.fillRect(0,0,Wc,Hc);
-    for(let i=0;i<7;i++){ c.fillStyle=i%2?'#7d6341':'#937852'; c.fillRect(0,i*37,Wc,35);
-      c.strokeStyle='rgba(40,26,12,.22)'; c.lineWidth=1;
-      for(let k=0;k<7;k++){ c.beginPath(); c.moveTo(rand(0,Wc),i*37); c.bezierCurveTo(rand(0,Wc),i*37+12,rand(0,Wc),i*37+24,rand(0,Wc),i*37+35); c.stroke(); } }
-    for(let i=0;i<40;i++){ c.fillStyle=`rgba(30,20,10,${rand(0.05,0.3)})`; c.beginPath();
-      c.ellipse(Math.random()*Wc,Math.random()*Hc,rand(4,18),rand(3,10),Math.random()*3,0,Math.PI*2); c.fill(); }
-    for(let i=0;i<900;i++){ c.fillStyle=`rgba(255,255,255,${Math.random()*0.05})`; c.fillRect(Math.random()*Wc,Math.random()*Hc,2,2); } });
-  plank.wrapS=plank.wrapT=THREE.RepeatWrapping; plank.repeat.set(3,1.2);
-  const fl=new THREE.Mesh(new THREE.PlaneGeometry(L,W),new THREE.MeshStandardMaterial({map:plank,roughness:0.85}));
+  /* Boden: Siebdruckplatte mit zwei Laufspuren */
+  const plank=tex(512,256,(c,Wc,Hc)=>{
+    c.fillStyle='#9a8058'; c.fillRect(0,0,Wc,Hc);
+    for(let i=0;i<5;i++){ c.fillStyle=i%2?'#8e7550':'#a3885e'; c.fillRect(0,i*Hc/5,Wc,Hc/5-2);
+      c.strokeStyle='rgba(40,26,12,.16)'; c.lineWidth=1;
+      for(let k=0;k<9;k++){ c.beginPath(); c.moveTo(rand(0,Wc),i*Hc/5); c.bezierCurveTo(rand(0,Wc),i*Hc/5+14,rand(0,Wc),i*Hc/5+34,rand(0,Wc),i*Hc/5+Hc/5); c.stroke(); } }
+    for(const y of [Hc*0.24,Hc*0.76]){ const gr=c.createLinearGradient(0,y-26,0,y+26);
+      gr.addColorStop(0,'rgba(60,44,24,0)'); gr.addColorStop(0.5,'rgba(60,44,24,.22)'); gr.addColorStop(1,'rgba(60,44,24,0)');
+      c.fillStyle=gr; c.fillRect(0,y-26,Wc,52); }
+    for(let i=0;i<1400;i++){ c.fillStyle=`rgba(255,255,255,${Math.random()*0.04})`; c.fillRect(Math.random()*Wc,Math.random()*Hc,2,2); } });
+  plank.wrapS=plank.wrapT=THREE.RepeatWrapping; plank.repeat.set(3,1);
+  const fl=new THREE.Mesh(new THREE.PlaneGeometry(L,W),new THREE.MeshStandardMaterial({map:plank,roughness:0.88}));
   fl.rotation.x=-Math.PI/2; fl.rotation.z=Math.PI/2; fl.position.set(-L/2,0.025,0);
   if(HIQ) fl.receiveShadow=true; g.add(fl);
-  /* Seitenwände mit Zurrschienen */
-  const wallTexI=tex(256,256,(c,Wc,Hc)=>{
-    c.fillStyle='#cfcabc'; c.fillRect(0,0,Wc,Hc);
-    for(let x=0;x<Wc;x+=16){ c.fillStyle='rgba(0,0,0,.08)'; c.fillRect(x,0,4,Hc); c.fillStyle='rgba(255,255,255,.45)'; c.fillRect(x+5,0,3,Hc); }
-    for(let i=0;i<26;i++){ c.fillStyle=`rgba(90,80,64,${rand(0.05,0.2)})`; c.beginPath();
-      c.ellipse(Math.random()*Wc,Hc*0.6+Math.random()*Hc*0.4,rand(5,22),rand(3,9),0,0,Math.PI*2); c.fill(); } });
-  wallTexI.wrapS=wallTexI.wrapT=THREE.RepeatWrapping; wallTexI.repeat.set(3,1);
-  const wm=new THREE.MeshStandardMaterial({map:wallTexI,roughness:0.8,side:THREE.DoubleSide});
+  /* Seitenwaende: helle Sperrholzverkleidung mit feinen Stossfugen */
+  const wallTexI=tex(512,256,(c,Wc,Hc)=>{
+    c.fillStyle='#e2ddd0'; c.fillRect(0,0,Wc,Hc);
+    for(let x=0;x<Wc;x+=64){ c.fillStyle='rgba(120,110,92,.16)'; c.fillRect(x,0,2,Hc);
+      c.fillStyle='rgba(255,255,255,.5)'; c.fillRect(x+2,0,2,Hc); }
+    const gr=c.createLinearGradient(0,0,0,Hc);
+    gr.addColorStop(0,'rgba(255,255,255,.14)'); gr.addColorStop(0.75,'rgba(0,0,0,0)'); gr.addColorStop(1,'rgba(90,80,64,.18)');
+    c.fillStyle=gr; c.fillRect(0,0,Wc,Hc);
+    for(let i=0;i<20;i++){ c.fillStyle=`rgba(110,100,82,${rand(0.03,0.1)})`; c.beginPath();
+      c.ellipse(Math.random()*Wc,Hc*0.62+Math.random()*Hc*0.38,rand(8,30),rand(4,11),0,0,Math.PI*2); c.fill(); } });
+  wallTexI.wrapS=wallTexI.wrapT=THREE.RepeatWrapping; wallTexI.repeat.set(3.2,1);
+  const wm=new THREE.MeshStandardMaterial({map:wallTexI,roughness:0.82,side:THREE.DoubleSide});
+  const alu=std(0xb6bcc4,{metalness:0.55,roughness:0.42});
   for(const s of [-1,1]){
     const wl=new THREE.Mesh(new THREE.PlaneGeometry(L,HH),wm);
     wl.rotation.y=s>0?-Math.PI/2:Math.PI/2; wl.position.set(-L/2,HH/2,s*W/2); g.add(wl);
-    for(const yy of [0.55,1.35,2.05]){
-      bbox(L-0.1,0.07,0.035,std(0x9aa0a8,{metalness:0.6,roughness:0.4}),-L/2,yy,s*(W/2-0.03),g,false);
-      for(let k=0;k<8;k++) bbox(0.05,0.045,0.02,std(0x2a2e38),-0.5-k*0.72,yy,s*(W/2-0.05),g,false);
+    /* Zwei buendige Zurrschienen statt drei Gestaengen */
+    for(const yy of [0.52,1.46]){
+      bbox(L-0.12,0.05,0.026,alu,-L/2,yy,s*(W/2-0.02),g,false);
+      for(let k=0;k<Math.floor((L-0.8)/1.1);k++)
+        bbox(0.09,0.028,0.014,std(0x7d838c,{metalness:0.7,roughness:0.35}),-0.55-k*1.1,yy,s*(W/2-0.036),g,false);
     }
-    bbox(L-0.1,0.16,0.05,std(0x6a5f4a,{roughness:0.9}),-L/2,0.09,s*(W/2-0.04),g,false);
+    /* Scheuerleiste unten */
+    bbox(L-0.1,0.18,0.04,std(0x8a7f6a,{roughness:0.9}),-L/2,0.1,s*(W/2-0.03),g,false);
+    /* Dachkante */
+    bbox(L-0.1,0.07,0.05,alu,-L/2,HH-0.05,s*(W/2-0.03),g,false);
   }
-  /* Decke mit Lichtband und LED-Leiste */
-  const ceil=new THREE.Mesh(new THREE.PlaneGeometry(L,W),std(0xe8e4d8,{roughness:0.85,side:THREE.DoubleSide}));
+  /* Decke mit lichtdurchlaessigem Dachband */
+  const ceil=new THREE.Mesh(new THREE.PlaneGeometry(L,W),std(0xf0ece2,{roughness:0.9,side:THREE.DoubleSide}));
   ceil.rotation.x=Math.PI/2; ceil.rotation.z=Math.PI/2; ceil.position.set(-L/2,HH,0); g.add(ceil);
-  const led=new THREE.MeshStandardMaterial({color:LIN(0xf6f8ff),emissive:LIN(0xfff2d8),emissiveIntensity:1.5});
-  bbox(L-0.6,0.04,0.12,led,-L/2,HH-0.04,0,g,false);
-  bbox(L-0.5,0.06,0.2,std(0xb8bec8,{metalness:0.5}),-L/2,HH-0.01,0,g,false);
-  const lamp=new THREE.PointLight(0xffeccf,0.9,7,1.4); lamp.position.set(-L/2,HH-0.25,0); g.add(lamp);
+  const dach=new THREE.Mesh(new THREE.PlaneGeometry(L-0.4,W*0.5),
+    new THREE.MeshBasicMaterial({color:0xfbf7ec,toneMapped:false}));
+  dach.rotation.x=Math.PI/2; dach.rotation.z=Math.PI/2; dach.position.set(-L/2,HH-0.012,0); g.add(dach);
+  const led=new THREE.MeshBasicMaterial({color:0xfff6e2,toneMapped:false});
+  for(const s of [-1,1]) bbox(L-0.8,0.03,0.07,led,-L/2,HH-0.07,s*(W/2-0.22),g,false);
+  const lamp=new THREE.PointLight(0xffeccf,0.85,11,1.4); lamp.position.set(-L*0.45,HH-0.3,0); g.add(lamp);
+  const lamp2=new THREE.PointLight(0xffeccf,0.6,9,1.4); lamp2.position.set(-L*0.85,HH-0.3,0); g.add(lamp2);
   /* Stirnwand mit Lieferantenschrift */
   const fm=new THREE.MeshStandardMaterial({map:liveryTex(name,col,true),roughness:0.78});
   const front=new THREE.Mesh(new THREE.PlaneGeometry(W,HH),fm);
   front.rotation.y=Math.PI/2; front.position.set(-L+0.02,HH/2,0); g.add(front);
-  bbox(0.06,HH,0.08,std(0x8d939d,{metalness:0.5}),-L+0.05,HH/2,-W/2+0.08,g,false);
-  bbox(0.06,HH,0.08,std(0x8d939d,{metalness:0.5}),-L+0.05,HH/2,W/2-0.08,g,false);
-  /* Ladungssicherung: Sperrbalken und Netz */
-  bbox(0.06,0.06,W-0.1,std(0x2f6bd8,{metalness:0.4}),-L+0.7,1.6,0,g,false);
-  bbox(0.06,0.06,W-0.1,std(0x2f6bd8,{metalness:0.4}),-L+0.7,0.9,0,g,false);
-  const net=new THREE.Mesh(new THREE.PlaneGeometry(W-0.2,1.5),
-    new THREE.MeshStandardMaterial({color:LIN(0x2a2e38),transparent:true,opacity:0.45,side:THREE.DoubleSide,
-      map:tex(64,64,(c,Wc,Hc)=>{ c.clearRect(0,0,Wc,Hc); c.strokeStyle='#1c1f26'; c.lineWidth=4;
-        for(let i=0;i<=4;i++){ c.beginPath(); c.moveTo(i*16,0); c.lineTo(i*16,Hc); c.stroke();
-          c.beginPath(); c.moveTo(0,i*16); c.lineTo(Wc,i*16); c.stroke(); } })}));
-  net.rotation.y=Math.PI/2; net.position.set(-L+0.72,1.25,0); g.add(net);
-  /* Kantenschutz und Schmutz am Heck */
-  bbox(0.1,HH,0.1,std(0x9aa0a8,{metalness:0.55}),-0.06,HH/2,-W/2+0.06,g,false);
-  bbox(0.1,HH,0.1,std(0x9aa0a8,{metalness:0.55}),-0.06,HH/2,W/2-0.06,g,false);
-  bbox(0.16,0.1,W,std(0x6a7078,{metalness:0.5}),-0.04,0.05,0,g,false);
+  for(const s of [-1,1]) bbox(0.05,HH,0.07,alu,-L+0.05,HH/2,s*(W/2-0.07),g,false);
+  /* Kantenschutz am Heck */
+  for(const s of [-1,1]) bbox(0.09,HH,0.09,alu,-0.05,HH/2,s*(W/2-0.05),g,false);
+  bbox(0.14,0.09,W,std(0x6a7078,{metalness:0.5}),-0.04,0.05,0,g,false);
+  bbox(0.1,0.1,W,alu,-0.05,HH-0.05,0,g,false);
   return g;
 }
 /* --- Ladung als einzeln aufhebbare Pakete --- */
 function cargoSlot(i){
-  const col2=i%2, row=Math.floor(i/2)%5, lev=Math.floor(i/10);
-  return {x:LR.rear-0.95-row*0.72,y:0.21+lev*0.42,z:LR.z+(col2?0.62:-0.62)};
+  const col2=i%2, row=Math.floor(i/2)%8, lev=Math.floor(i/16);
+  return {x:LR.rear-0.95-row*0.72,y:0.21+lev*0.42,z:LR.z+(col2?1.05:-1.05)};
 }
 function fillCargo(){
   if(!truck) return;
   truck.boxes.forEach(m=>scene.remove(m));
   truck.boxes=[];
   truck.cargo.forEach((c,i)=>{
-    if(i>=20) return;
+    if(i>=32) return;
     const s=cargoSlot(i);
     const m=new THREE.Mesh(kartonGeo,kartonMat[c.type]);
     m.position.set(s.x,s.y,s.z); m.rotation.y=rand(-0.07,0.07);
@@ -5019,9 +5027,11 @@ function renderPDA(){
     (canOrder(t)?
       `<div class="pdahead">Nachbestellen</div>`+
       `<div class="pdasteps">${SUPPLIERS.filter(x=>S.level>=x.lvl).map(x=>`<button data-a="ps" data-t="${x.id}" ${pdaSup===x.id?'style="background:var(--signal);color:var(--ink)"':''}>${x.short}</button>`).join('')}</div>`+
-      `<div class="pdarow"><span>${sup.name}</span><span>Lieferung in ${sup.delay[0]}–${sup.delay[1]} s</span></div>`+
+      `<div class="pdarow"><span>${sup.name}</span><span>Lieferung in ${LIEFERZEIT_MIN} Minuten</span></div>`+
+      `<div class="pdarow"><span>Warenkorb</span><span>${cartBoxes()} Kartons · ${eur(cartTotal())}</span></div>`+
       `<div class="pdasteps">${tiers.map(tr=>{ const c=tierPrice(t,sup,tr);
-        return `<button data-a="po" data-n="${tr.n}" ${S.money<c?'disabled':''}>${tr.n}× Karton · ${eur(c)}${tr.d?` −${Math.round(tr.d*100)} %`:''}</button>`; }).join('')}</div>`
+        return `<button data-a="po" data-n="${tr.n}">+ ${tr.n}× Karton · ${eur(c)}${tr.d?` −${Math.round(tr.d*100)} %`:''}</button>`; }).join('')}</div>`+
+      `<div class="pdahead">Am Laptop bestellst du den ganzen Warenkorb.</div>`
       :`<div class="pdahead">Diese Ware kann man nicht bestellen.</div>`);
 }
 
@@ -5223,13 +5233,69 @@ function priceHint(t){ const r=S.prices[t]/P[t].market, lo=priceTol();
 function catPill(p){ return p.cat?`<span class="pill f${p.cat}">F${p.cat}</span>`:'<span class="pill zub">Zubehör</span>'; }
 function supAvail(){ return SUPPLIERS.filter(x=>S.level>=x.lvl); }
 function tierPrice(t,sup,tier){ return r2(P[t].cost*P[t].box*tier.n*sup.mult*(1-tier.d)); }
+/* =========================================================
+   Warenkorb: Artikel sammeln, am Ende in einem Rutsch bestellen.
+   Jede Bestellung ist genau eine Lieferung und kostet einmal Versand.
+   ========================================================= */
+function cartLines(){ return S.cart||(S.cart=[]); }
+function lineSup(l){ return supplierOf(l.sup); }
+function lineName(l){ return l.pack?(PACKS.find(x=>x.id===l.pack)||{name:'Wundertüte'}).name:P[l.t].name; }
+function lineCost(l){
+  if(l.pack){ const pk=PACKS.find(x=>x.id===l.pack); return pk?r2(pk.cost*l.n):0; }
+  const sup=lineSup(l), tier=(sup.tiers||[{n:1,d:0}]).find(x=>x.n===l.step)||{n:l.step||1,d:0};
+  return r2(tierPrice(l.t,sup,tier)*(l.n/(tier.n||1)));
+}
+function lineBoxes(l){ return l.pack?(PACKS.find(x=>x.id===l.pack)||{n:1}).n*l.n:l.n; }
+function cartGoods(){ return r2(cartLines().reduce((a,l)=>a+lineCost(l),0)); }
+function cartBoxes(){ return cartLines().reduce((a,l)=>a+lineBoxes(l),0); }
+function cartFee(){ return cartLines().length?(cartGoods()>=VERSANDFREI?0:VERSAND):0; }
+function cartTotal(){ return r2(cartGoods()+cartFee()); }
+function cartAdd(t,n,supId){
+  const sup=supplierOf(supId||lsup);
+  const l=cartLines().find(x=>!x.pack&&x.t===t&&x.sup===sup.id&&x.step===n);
+  if(l) l.n+=n; else cartLines().push({t,n,step:n,sup:sup.id});
+  sfx.pop(); toast(`${n}× ${P[t].name} im Warenkorb.`); save();
+}
+function cartAddPack(id){
+  const pk=PACKS.find(x=>x.id===id); if(!pk||S.level<pk.lvl) return;
+  const l=cartLines().find(x=>x.pack===id);
+  if(l) l.n++; else cartLines().push({pack:id,n:1,sup:'ratzke'});
+  sfx.pop(); toast(`${pk.name} im Warenkorb.`); save();
+}
+function cartDel(i){ cartLines().splice(i,1); save(); }
+function cartClear(){ S.cart=[]; save(); }
+/* Legt die Kartons einer Zeile in die Lieferung */
+function pushLine(l,delay){
+  const sup=lineSup(l);
+  if(l.pack){
+    const pk=PACKS.find(x=>x.id===l.pack);
+    const items=packContents(pk.n*l.n);
+    items.forEach(t=>pending.push({type:t,t:delay,q:supplierOf('ratzke').quality,sup:'ratzke'}));
+    return items.length;
+  }
+  for(let i=0;i<l.n;i++) pending.push({type:l.t,t:delay,q:sup.quality,sup:sup.id});
+  return l.n;
+}
+function cartOrder(){
+  if(!cartLines().length) return;
+  const total=cartTotal(); if(S.money<total) return;
+  const delay=lieferSek()*evv('delay');
+  S.money=r2(S.money-total); DS.goods=r2(DS.goods+total);
+  let n=0; cartLines().forEach(l=>{ n+=pushLine(l,delay); });
+  const fee=cartFee();
+  S.cart=[]; S.tut.order=true; sfx.cash();
+  toast(`${n} Karton${n===1?'':'s'} bestellt · ${eur(total)}${fee?` inkl. ${eur(fee)} Versand`:' · versandkostenfrei'}. Ankunft in ${LIEFERZEIT_MIN} Minuten.`,'money');
+  save();
+}
+/* Direktbestellung eines einzelnen Postens (eigene Lieferung, eigener Versand) */
 function orderBox(t,n,supId){
   const sup=supplierOf(supId||lsup), p=P[t];
   const tier=(sup.tiers||[{n:1,d:0}]).find(x=>x.n===n)||{n,d:0};
-  const cost=tierPrice(t,sup,tier); if(S.money<cost) return;
+  const goods=tierPrice(t,sup,tier), fee=goods>=VERSANDFREI?0:VERSAND, cost=r2(goods+fee);
+  if(S.money<cost) return;
   S.money=r2(S.money-cost); DS.goods=r2(DS.goods+cost);
-  const [d0,d1]=sup.delay;
-  for(let i=0;i<n;i++) pending.push({type:t,t:(rand(d0,d1)+i*1.1)*evv('delay'),q:sup.quality,sup:sup.id});
+  const delay=lieferSek()*evv('delay');
+  for(let i=0;i<n;i++) pending.push({type:t,t:delay,q:sup.quality,sup:sup.id});
   S.tut.order=true; sfx.pop();
   toast(`${n>1?n+' Kartons ':''}${p.name} bei ${sup.short} bestellt.`); save();
 }
@@ -5248,14 +5314,31 @@ function buyPack(id){
   const pk=PACKS.find(x=>x.id===id); if(!pk||S.level<pk.lvl||S.money<pk.cost) return;
   const items=packContents(pk.n); if(!items.length) return;
   S.money=r2(S.money-pk.cost); DS.goods=r2(DS.goods+pk.cost);
-  const sup=supplierOf('ratzke');
-  items.forEach((t,i)=>pending.push({type:t,t:(rand(sup.delay[0],sup.delay[1])+i*0.9)*evv('delay'),q:sup.quality,sup:sup.id}));
+  const sup=supplierOf('ratzke'), delay=lieferSek()*evv('delay');
+  items.forEach(t=>pending.push({type:t,t:delay,q:sup.quality,sup:sup.id}));
   const cnt={}; items.forEach(t=>cnt[t]=(cnt[t]||0)+1);
   const keys=Object.keys(cnt), txt=keys.slice(0,4).map(t=>`${cnt[t]}× ${P[t].short}`).join(', ')+(keys.length>4?' …':'');
   const worth=r2(items.reduce((a,t)=>a+P[t].cost*P[t].box,0));
   sfx.cash(); toast(`Wundertüte: ${txt}`,'money');
   later(0.6,()=>toast(worth>pk.cost?`Einkaufswert ${eur(worth)}. Guter Griff.`:`Einkaufswert ${eur(worth)}. Diesmal Pech.`,worth>pk.cost?'money':'bad'));
   addXP(20,'Wundertüte'); S.tut.order=true; save();
+}
+function cartHTML(){
+  const lines=cartLines();
+  if(!lines.length)
+    return `<div class="row"><div class="rm"><b>Warenkorb</b><small>Noch leer. Leg unten Kartons hinein und bestelle dann alles auf einmal.</small></div></div>`;
+  const goods=cartGoods(), fee=cartFee(), total=r2(goods+fee), rest=r2(VERSANDFREI-goods);
+  const rows=lines.map((l,i)=>{
+    const sup=lineSup(l);
+    return `<div class="row"><div class="rm"><b>${l.n}× ${lineName(l)}</b><small>${l.pack?'Inhalt zufällig':sup.short} · ${lineBoxes(l)} Karton${lineBoxes(l)===1?'':'s'}</small></div>`+
+      `<div class="price">${eur(lineCost(l))}</div><button class="ghost" data-a="cartdel" data-i="${i}">Entfernen</button></div>`;
+  }).join('');
+  return `<div class="row"><div class="rm"><b>Warenkorb · ${cartBoxes()} Karton${cartBoxes()===1?'':'s'}</b>`+
+    `<small>Warenwert ${eur(goods)} · Versand ${fee?eur(fee):'frei'}${fee&&rest>0?` · noch ${eur(rest)} bis versandkostenfrei`:''}</small>`+
+    `<small>Ankunft ${LIEFERZEIT_MIN} Minuten nach der Bestellung, alles in einer Lieferung.</small></div>`+
+    `<div class="price">${eur(total)}</div>`+
+    `<div class="steps"><button data-a="cartgo" ${S.money<total?'disabled':''}>Bestellen</button>`+
+    `<button class="ghost" data-a="cartclear">Leeren</button></div></div>`+rows;
 }
 function renderLaptop(){
   $('lMoney').textContent=eur(S.money);
@@ -5265,22 +5348,23 @@ function renderLaptop(){
   if(ltab==='order'){
     const sup=supplierOf(lsup), avail=supAvail();
     if(!avail.some(x=>x.id===lsup)) lsup='mertens';
-    hint='Ein Karton passt meist genau in ein Regalfach.';
-    h=`<div class="row"><div class="rm"><b>Lieferanten</b><small>${sup.desc}</small><small class="${qualityLabel(sup.quality)[0]}">${qualityLabel(sup.quality)[1]} · Lieferzeit ${Math.round(sup.delay[0])}–${Math.round(sup.delay[1])} Sekunden</small></div></div>`+
+    hint=`Artikel in den Warenkorb legen, dann alles zusammen bestellen. Eine Lieferung braucht ${LIEFERZEIT_MIN} Minuten, Versand ${eur(VERSAND)} und ab ${eur(VERSANDFREI)} Warenwert frei.`;
+    h=`<div class="row"><div class="rm"><b>Lieferanten</b><small>${sup.desc}</small><small class="${qualityLabel(sup.quality)[0]}">${qualityLabel(sup.quality)[1]} · Lieferzeit ${LIEFERZEIT_MIN} Minuten</small></div></div>`+
       `<div class="row" style="padding-top:6px"><div class="steps" style="justify-content:flex-start">`+
       SUPPLIERS.map(x=>S.level>=x.lvl
         ? `<button data-a="sup" data-t="${x.id}" style="${x.id===lsup?'background:var(--signal);color:var(--ink)':'opacity:.8'}">${x.short}</button>`
         : `<button disabled>${x.short} · Lvl ${x.lvl}</button>`).join('')+`</div></div>`;
+    h+=cartHTML();
     if(sup.mystery){
       h+=PACKS.map(pk=>{ const lock=S.level<pk.lvl;
         return `<div class="row${lock?' locked':''}"><div class="rm"><b>${pk.name}</b><small>${pk.desc}</small><small>Inhalt zufällig, Restposten-Qualität</small></div>`+
-          (lock?`<small>ab Level ${pk.lvl}</small>`:`<button data-a="pack" data-t="${pk.id}" ${S.money<pk.cost?'disabled':''}>${eur(pk.cost)}</button>`)+'</div>'; }).join('');
+          (lock?`<small>ab Level ${pk.lvl}</small>`:`<button data-a="pack" data-t="${pk.id}">+ ${eur(pk.cost)}</button>`)+'</div>'; }).join('');
     } else {
       const tiers=sup.tiers||[{n:1,d:0}];
       h+=ORDER.filter(canOrder).map(t=>{ const p=P[t], un=isUnlocked(t), cap=shelfCapOf(t);
         if(!un) return `<div class="row locked"><div class="rm"><b>${p.name} ${catPill(p)}</b><small>Wird ab Level ${p.lvl} freigeschaltet.</small></div><small>Level ${p.lvl}</small></div>`;
         const btns=tiers.map(tr=>{ const c=tierPrice(t,sup,tr);
-          return `<button data-a="order" data-t="${t}" data-n="${tr.n}" ${S.money<c?'disabled':''}>${tr.n}× ${eur(c)}${tr.d?` <span style="opacity:.7">−${Math.round(tr.d*100)}%</span>`:''}</button>`; }).join('');
+          return `<button data-a="cart" data-t="${t}" data-n="${tr.n}">+ ${tr.n}× ${eur(c)}${tr.d?` <span style="opacity:.7">−${Math.round(tr.d*100)}%</span>`:''}</button>`; }).join('');
         return `<div class="row"><div class="rm"><b>${p.name} ${catPill(p)}</b><small>Karton mit ${p.box} Stück${canShelf(t)?(cap?` · größtes Fach fasst ${cap}`:' · kein passendes Regal'):' · nur für den Automaten'}</small><small>Im Laden: ${shelfStockOf(t)} im Regal, ${stockOf(t)} insgesamt</small></div>`+
           `<div class="steps">${btns}</div></div>`; }).join('');
     }
@@ -5355,8 +5439,12 @@ $('ltabs').addEventListener('click',e=>{ const b=e.target.closest('button'); if(
 $('lbody').addEventListener('click',e=>{
   const b=e.target.closest('button'); if(!b||b.disabled) return; const a=b.dataset.a, t=b.dataset.t;
   if(a==='order') orderBox(t,+b.dataset.n||1);
+  else if(a==='cart') cartAdd(t,+b.dataset.n||1);
+  else if(a==='cartdel') cartDel(+b.dataset.i);
+  else if(a==='cartgo') cartOrder();
+  else if(a==='cartclear') cartClear();
   else if(a==='sup'){ lsup=t; }
-  else if(a==='pack') buyPack(t);
+  else if(a==='pack') cartAddPack(t);
   else if(a==='p'){ S.prices[t]=Math.max(0.1,r2(S.prices[t]+parseFloat(b.dataset.d))); allLevels().forEach(l=>{ if(l.type===t) updateLabel(l); }); }
   else if(a==='up') buyUp(t);
   else if(a==='deko') buyDeko(t);
@@ -5425,14 +5513,14 @@ function freshState(){ const prices={}; ORDER.forEach(t=>prices[t]=P[t].market);
     staff:{},prio:{},wage:{},ev:null,goal:null,mkt:1,comp:1,deko:[],wall:'creme',floor:'grau',paint:[],test:null,stamm:{},
     shelves:[],racks:[null],
     boxes:[],
-    carrying:null,tut:{},seasonRevenue:0}; }
+    carrying:null,tut:{},seasonRevenue:0,cart:[]}; }
 function loadSave(){ try{ const r=localStorage.getItem(KEY); if(!r) return null; const d=JSON.parse(r); return d&&d.v===3?d:null; }catch(e){ return null; } }
 function mpos(g){ return {x:+g.position.x.toFixed(2),z:+g.position.z.toFixed(2),ry:+g.rotation.y.toFixed(3)}; }
 function save(){
   if(!S) return;
   try{
     const d={v:3,money:S.money,rep:S.rep,level:S.level,xp:S.xp,season:S.season,day:S.day,loan:S.loan,prices:S.prices,up:S.up,staff:S.staff,prio:S.prio||{},wage:S.wage||{},ev:S.ev||null,goal:S.goal||null,mkt:r2(S.mkt||1),comp:r2(S.comp||1),
-      wall:S.wall,floor:S.floor,paint:S.paint,test:S.test,stamm:S.stamm,blanks:gravBlanks,grav:gravG?mpos(gravG):null,grime:r2(S.grime||0),tut:S.tut,seasonRevenue:S.seasonRevenue,carrying:S.carrying,
+      wall:S.wall,floor:S.floor,paint:S.paint,test:S.test,stamm:S.stamm,blanks:gravBlanks,grav:gravG?mpos(gravG):null,grime:r2(S.grime||0),tut:S.tut,seasonRevenue:S.seasonRevenue,carrying:S.carrying,cart:S.cart||[],
       deko:dekos.map(d2=>Object.assign({id:d2.id},mpos(d2.g))),
       ck:mpos(ckG),desk:mpos(deskG),
       shelves:shelves.map(s=>Object.assign(mpos(s.g),{kind:s.kind,levels:s.levels.map(l=>({type:l.type,count:l.count,q:l.q||1}))})),
@@ -5447,6 +5535,7 @@ function startGame(fresh){
   S=Object.assign(freshState(),d||{});
   const F=freshState();
   S.prices=Object.assign(F.prices,S.prices||{}); S.up=Object.assign(F.up,S.up||{}); S.staff=Object.assign({},S.staff||{}); S.prio=Object.assign({},S.prio||{}); S.grime=clamp(+S.grime||0,0,1); S.mkt=clamp(+S.mkt||1,0.7,1.4); S.comp=clamp(+S.comp||1,0.85,1.15); if(S.ev&&!eventById(S.ev)) S.ev=null; S.wage=Object.assign({},S.wage||{}); S.tut=S.tut||{}; S.paint=S.paint||[]; S.stamm=S.stamm||{};
+  S.cart=(Array.isArray(S.cart)?S.cart:[]).filter(l=>l&&(l.pack?PACKS.some(x=>x.id===l.pack):(P[l.t]&&l.n>0))).slice(0,40);
   S.level=Math.max(1,S.level|0); S.xp=Math.max(0,S.xp|0); S.season=Math.max(1,S.season|0); S.day=Math.max(0,S.day|0);
   if(!WALLS.some(w=>w.id===S.wall)) S.wall='creme';
   if(!FLOORS.some(f=>f.id===S.floor)) S.floor='grau';
@@ -5597,7 +5686,7 @@ function step(dt){
   for(const pd of pending) pd.t-=dt;
   if(!truck&&pending.some(pd=>pd.t<=0)){
     const wave=[];
-    for(let i=0;i<pending.length&&wave.length<18;i++) if(pending[i].t<=16) wave.push(pending[i]);
+    for(let i=0;i<pending.length&&wave.length<32;i++) if(pending[i].t<=16) wave.push(pending[i]);
     if(wave.length){
       wave.forEach(w=>pending.splice(pending.indexOf(w),1));
       const sid=wave[0].sup||'mertens';
@@ -5701,7 +5790,7 @@ $('pdaBody').addEventListener('click',e=>{
   if(a==='pp'){ S.prices[t]=Math.max(0.1,r2(S.prices[t]+parseFloat(b.dataset.d))); allLevels().forEach(l=>{ if(l.type===t) updateLabel(l); }); sfx.beep(); }
   else if(a==='pm'){ S.prices[t]=P[t].market; allLevels().forEach(l=>{ if(l.type===t) updateLabel(l); }); sfx.beep(); }
   else if(a==='ps'){ pdaSup=b.dataset.t; }
-  else if(a==='po'){ orderBox(t,+b.dataset.n,pdaSup); }
+  else if(a==='po'){ cartAdd(t,+b.dataset.n,pdaSup); }
   renderPDA(); drawPDA(true); save();
 });
 btnMove.addEventListener('touchstart',e=>{ e.preventDefault(); if(!S||overlayOpen()) return; ac(); if(build&&grabbed) rotateGrab(); else toggleBuild(); },{passive:false});
@@ -5733,7 +5822,7 @@ fontsReady().then(()=>{
   camera.position.set(pl.x,1.65,pl.z); camera.rotation.set(pitch,yaw,0);
   lastF=-1; applyTOD(); updateSign(); buildStart(); requestAnimationFrame(frame);
   window.__bb={get S(){return S},get phase(){return phase},set phase(v){phase=v},set clock(v){clock=v},get clock(){return clock},pickUp,floorBoxes,shelves,racks,dekos,stockOne,openShop,step,customers,queue,belt,scanBelt,buyUp,buyDeko,get DS(){return DS},endDay,pending,save,openLaptop,closeLaptop,pl,addXP,hireStaff,fireStaff,staff,dirts,addDirt,movables,toggleBuild,setWall,setFloor,
-    stations,firePult,placeOnStation,igniteType,get order(){return order},get phone(){return phone},makeCall,answerPhone,haggle,acceptDeal,declineDeal,get truck(){return truck},spawnTruck,takeFromTruck,takeBox,updateTruck,get door(){return door},get tuer(){return tuer},tuerSet,tuerNah,updateSchiebetuer,doorOpen,doorIsOpen,trailerOccupied,LR,lrFront,TOR,orderReady,orderLeft,prioOf,setPrio,racks,updateCarry,spawnFloorBox,staff,SHELFKIND,layout,shelfCapOf,shelfAccepts,emptyLevel,dateInfo,dateStr,dateShort,seasonInfo,isSunday,dayMult,ruhetag,wageOf,setWage,friendliness,windowGrime,addGrime,cleanWindowTick,ambienteScore,bildBoost,fixedCosts,dailyWages,EVENTS,GOALS,CUSTTYPES,UPGRADES,STAFF,stockOf,spawnInterval,pools,todayEvent,evv,rollEvent,rollMarket,newGoal,goalAdd,goalTick,ekFactor,marktText,xpFor,rollCustType,priceTol,buyChance,regCustomer,makeWishes,buildGravur,refillGrav,openGravInput,closeGravInput,get gravBlanks(){return gravBlanks},set gravBlanks(v){gravBlanks=v},orderBox,buyPack,
+    stations,firePult,placeOnStation,igniteType,get order(){return order},get phone(){return phone},makeCall,answerPhone,haggle,acceptDeal,declineDeal,get truck(){return truck},spawnTruck,takeFromTruck,takeBox,updateTruck,get door(){return door},get tuer(){return tuer},tuerSet,tuerNah,updateSchiebetuer,doorOpen,doorIsOpen,trailerOccupied,LR,lrFront,TOR,orderReady,orderLeft,prioOf,setPrio,racks,updateCarry,spawnFloorBox,staff,SHELFKIND,layout,shelfCapOf,shelfAccepts,emptyLevel,dateInfo,dateStr,dateShort,seasonInfo,isSunday,dayMult,ruhetag,wageOf,setWage,friendliness,windowGrime,addGrime,cleanWindowTick,ambienteScore,bildBoost,fixedCosts,dailyWages,EVENTS,GOALS,CUSTTYPES,UPGRADES,STAFF,stockOf,spawnInterval,pools,todayEvent,evv,rollEvent,rollMarket,newGoal,goalAdd,goalTick,ekFactor,marktText,xpFor,rollCustType,priceTol,buyChance,regCustomer,makeWishes,buildGravur,refillGrav,openGravInput,closeGravInput,get gravBlanks(){return gravBlanks},set gravBlanks(v){gravBlanks=v},orderBox,buyPack,cartAdd,cartAddPack,cartOrder,cartClear,cartDel,cartGoods,cartFee,cartTotal,cartBoxes,cartLines,LIEFERZEIT_MIN,VERSAND,VERSANDFREI,lieferSek,
     scene,P,EFF,SHOWS,togglePDA,openPDA,closePDA,setPost,get postOn(){return postOn},get pdaOn(){return pdaOn},showLength,psBig,psMid,psSmall,rockets,emitters,timersLen:()=>timers.length,setView:(x,z,y,p)=>{pl.x=x;pl.z=z;yaw=y;pitch=p;},allLevels,addToLevel,putInSlot,regCustomer,
     shot:()=>{ noLoop=true; camera.position.set(pl.x,1.65,pl.z); camera.rotation.set(pitch,yaw,0); camera.updateMatrixWorld(); updateTarget(); applyTOD(); renderFrame(0.016); return canvas.toDataURL('image/jpeg',0.85); },
     run:(sec,dt)=>{ noLoop=true; const n=Math.round(sec/(dt||0.05)); for(let i=0;i<n;i++) step(dt||0.05); }};

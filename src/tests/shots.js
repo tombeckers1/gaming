@@ -1,0 +1,26 @@
+const { chromium } = require('/opt/node22/lib/node_modules/playwright');
+(async()=>{
+  const b=await chromium.launch({args:['--no-sandbox']});
+  const p=await b.newPage({viewport:{width:1180,height:760}});
+  await p.goto('file://'+process.argv[2]);
+  await p.waitForFunction('window.__bb!==undefined');
+  await p.evaluate(()=>localStorage.clear());
+  await p.reload(); await p.waitForFunction('window.__bb!==undefined');
+  await p.click('#startBtns button'); await p.waitForTimeout(200);
+  await p.evaluate(()=>{ const bb=window.__bb; bb.S.money=12000; bb.S.level=9; bb.S.xp=300; bb.addDirt(1,1); bb.addDirt(2,0); bb.S.loan={amount:1000,remaining:820,term:10,rate:0.012,paid:0};
+    bb.S.staff.reinigung=true; bb.hireStaff('reinigung'); bb.step(0.05); });
+  await p.evaluate(()=>window.__bb.openLaptop());
+  await p.waitForTimeout(100);
+  await p.screenshot({path:'/tmp/s_order.png'});
+  await p.click('#ltabs button[data-tab="deko"]'); await p.waitForTimeout(80);
+  await p.screenshot({path:'/tmp/s_deko.png'});
+  await p.click('#ltabs button[data-tab="bank"]'); await p.waitForTimeout(80);
+  await p.screenshot({path:'/tmp/s_bank.png'});
+  await p.click('#ltabs button[data-tab="staff"]'); await p.waitForTimeout(80);
+  await p.screenshot({path:'/tmp/s_staff.png'});
+  await p.evaluate(()=>window.__bb.closeLaptop(false));
+  await p.evaluate(()=>{ const bb=window.__bb; bb.toggleBuild(true); bb.step(0.05); });
+  await p.waitForTimeout(100);
+  await p.screenshot({path:'/tmp/s_hud.png'});
+  await b.close();
+})();

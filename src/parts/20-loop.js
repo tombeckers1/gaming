@@ -1,0 +1,85 @@
+
+/* =========================================================
+   Tageszeit, Himmel, Schnee
+   ========================================================= */
+const SKY={top:[LIN(0x5d97d6),LIN(0x3a3f86),LIN(0x050817)],hor:[LIN(0xd6e7f5),LIN(0xf19a68),LIN(0x18203f)]};
+const _c1=new THREE.Color(), _c2=new THREE.Color(), _c3=new THREE.Color();
+let lastF=-1;
+function mix3(arr,f,out){ if(f<0.5) return out.copy(arr[0]).lerp(arr[1],f*2); return out.copy(arr[1]).lerp(arr[2],(f-0.5)*2); }
+function applyTOD(){
+  const f=clamp((clock-960)/100,0,1);
+  if(Math.abs(f-lastF)<0.002) return; lastF=f;
+  mix3(SKY.top,f,_c1); mix3(SKY.hor,f,_c2);
+  const pos=skyGeo.attributes.position, colA=skyGeo.attributes.color;
+  for(let i=0;i<pos.count;i++){ const y=pos.getY(i)/760, k=y<0?0:Math.pow(y,0.55); _c3.copy(_c2).lerp(_c1,k); if(y<0) _c3.multiplyScalar(0.6); colA.setXYZ(i,_c3.r,_c3.g,_c3.b); }
+  colA.needsUpdate=true; scene.fog.color.copy(_c2);
+  sun.intensity=1.6*(1-f)+0.05; hemi.intensity=0.72*(1-f)+0.16;
+  starsMat.opacity=clamp((f-0.6)/0.4,0,1);
+  houseMats.forEach(m=>m.emissiveIntensity=f*0.9); lampMats.forEach(m=>m.emissiveIntensity=f*3); yardLight.intensity=f*1.4;
+}
+/* Wanduhr laeuft nach der Spielzeit: clock sind Minuten seit Mitternacht */
+function updateUhr(){
+  if(!uhrStd) return;
+  const min=clock%720, sek=(performance.now()*0.001)%60;
+  uhrStd.rotation.z=-(min/720)*Math.PI*2;
+  uhrMin.rotation.z=-((clock%60)/60)*Math.PI*2;
+  uhrSek.rotation.z=-(sek/60)*Math.PI*2;
+}
+function updateSnow(dt){
+  const a=snowPts.geometry.attributes.position, arr=a.array, t=performance.now()*0.001;
+  for(let i=0;i<arr.length;i+=3){
+    arr[i+1]-=dt*(0.55+((i*13)%7)*0.05); arr[i]+=Math.sin(t+i)*dt*0.12;
+    const x=arr[i], z=arr[i+2], y=arr[i+1];
+    /* Laden, Lager und Anbau sind ueberdacht: darunter faellt kein Schnee. */
+    const inside=y<3.9&&((x>-8.3&&x<8.3&&z>-6.3&&z<6.3)||(x>-20.3&&x<-7.7&&z>-6.3&&z<2.3)||(x>-20.3&&x<-7.7&&z>1.9&&z<6.2));
+    if(arr[i+1]<0||inside){ arr[i]=rand(-30,30); arr[i+1]=rand(10,14); arr[i+2]=rand(-24,30); }
+  }
+  a.needsUpdate=true;
+}
+function updateDeko(dt){
+  for(const d of dekos){
+    if(d.g.userData.rot) d.g.userData.rot.rotation.y+=dt*2.4;
+    if(d.g.userData.bulbs){ const t=performance.now()*0.002; d.g.userData.bulbs.forEach((m,i)=>m.emissiveIntensity=0.45+0.35*Math.sin(t+i*0.7)); }
+  }
+}
+
+/* =========================================================
+   Hauptschleife
+   ========================================================= */
+let last=performance.now(), hudT=0, saveT=0, dirtT=0;
+function step(dt){
+  updatePlayer(dt);
+  if(build) updateGrab();
+  updateDay(dt);
+  for(const c of customers.slice()) c.update(dt);
+  for(const k in staff) if(staff[k]) staff[k].update(dt);
+  updateBelt(dt);
+  updatePhone(dt); updateOrder(dt);
+  if(phase==='open'){ dirtT-=dt; if(dirtT<=0){ dirtT=rand(34,62)/((1+customers.length*0.09)*evv('dirt')); if(Math.random()<(hasDeko('muell')?0.2:0.42)) addDirt(rand(-6,6),rand(-4.5,5)); } }
+  for(const pd of pending) pd.t-=dt;
+  if(!truck&&pending.some(pd=>pd.t<=0)){
+    const wave=[];
+    for(let i=0;i<pending.length&&wave.length<32;i++) if(pending[i].t<=16) wave.push(pending[i]);
+    if(wave.length){
+      wave.forEach(w=>pending.splice(pending.indexOf(w),1));
+      const sid=wave[0].sup||'mertens';
+      spawnTruck(wave.map(w=>({type:w.type,q:w.q||1})),sid,supplierOf(sid).name);
+    }
+  }
+  updateTruck(dt); updateSchiebetuer(dt); updateVersand(dt);
+  for(let i=timers.length-1;i>=0;i--){ timers[i].t-=dt; if(timers[i].t<=0){ const fn=timers[i].fn; timers.splice(i,1); fn(); } }
+  if(phase==='open') addGrime(dt*0.0016*(1+customers.length*0.05));
+  hype=Math.max(0,hype-dt*1.1);
+  updateFireworks(dt); updateSnow(dt); updateDeko(dt); updateStadt(dt);
+  updateTarget(); holdRepeat(dt); applyTOD(); updateUhr();
+  hudT-=dt; if(hudT<=0){ hudT=0.1; updateHUD(); updatePrompt(); if(pdaOn) drawPDA(); }
+  saveT+=dt; if(saveT>25){ saveT=0; save(); }
+}
+let noLoop=location.hash.indexOf('test')>=0;
+function frame(now){
+  requestAnimationFrame(frame);
+  if(noLoop) return;
+  let dt=(now-last)/1000; last=now; if(dt>0.05) dt=0.05;
+  if(S&&!paused) step(dt);
+  renderFrame(dt);
+}

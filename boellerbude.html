@@ -590,11 +590,15 @@ const CATNAME={0:'Zubehör',1:'F1',2:'F2'};
 
 /* Ausbau, Deko, Personal ---------------------------------- */
 const UPGRADES=[
-  {id:'shelf_klein',kat:'einr',lvl:1,name:'Kleines Regal',desc:'Drei schmale Fächer. Der günstige Einstieg.',cost:()=>SHELFKIND.klein.cost+SHELFKIND.klein.step*shelfCount('klein'),done:()=>shelves.length>=slotsOffen().length},
-  {id:'shelf_standard',kat:'einr',lvl:4,name:'Verkaufsregal',desc:'Vier volle Fächer, doppelt so breit wie das kleine.',cost:()=>SHELFKIND.standard.cost+SHELFKIND.standard.step*shelfCount('standard'),done:()=>shelves.length>=slotsOffen().length},
-  {id:'shelf_kuehl',kat:'einr',lvl:6,name:'Sekt-Kühlschrank',desc:'Glastüren, Innenlicht. Nimmt nur Sekt und Kindersekt, die verkaufen sich darin deutlich besser.',cost:()=>SHELFKIND.kuehl.cost+SHELFKIND.kuehl.step*shelfCount('kuehl'),done:()=>shelves.length>=slotsOffen().length},
-  {id:'shelf_hoch',kat:'einr',lvl:10,name:'Hochregal',desc:'Fünf Fächer auf zwei Metern. Mehr Ware pro Stellfläche.',cost:()=>SHELFKIND.hoch.cost+SHELFKIND.hoch.step*shelfCount('hoch'),done:()=>shelves.length>=slotsOffen().length},
-  {id:'rack',kat:'einr',lvl:3,name:'Lagerregal',desc:'Neun Stellplätze für Kartons im Lager.',cost:()=>120+80*(racks.length-1),done:()=>racks.length>=RACKS.filter(r=>!r.zone||zoneOffen(r.zone)).length},
+  {id:'shelf_klein',kat:'einr',lvl:1,name:'Kleines Regal',desc:'Drei schmale Fächer. Der günstige Einstieg.',cost:()=>SHELFKIND.klein.cost+SHELFKIND.klein.step*shelfCount('klein'),done:()=>!freiFuer('klein')},
+  {id:'shelf_standard',kat:'einr',lvl:4,name:'Verkaufsregal',desc:'Vier volle Fächer, doppelt so breit wie das kleine.',cost:()=>SHELFKIND.standard.cost+SHELFKIND.standard.step*shelfCount('standard'),done:()=>!freiFuer('standard')},
+  {id:'shelf_kuehl',kat:'einr',lvl:6,name:'Sekt-Kühlschrank',desc:'Glastüren, Innenlicht. Nimmt nur Sekt und Kindersekt, die verkaufen sich darin deutlich besser.',cost:()=>SHELFKIND.kuehl.cost+SHELFKIND.kuehl.step*shelfCount('kuehl'),done:()=>!freiFuer('kuehl')},
+  {id:'shelf_hoch',kat:'einr',lvl:10,name:'Hochregal',desc:'Fünf Fächer auf zwei Metern. Mehr Ware pro Stellfläche.',cost:()=>SHELFKIND.hoch.cost+SHELFKIND.hoch.step*shelfCount('hoch'),done:()=>!freiFuer('hoch')},
+  {id:'rack',kat:'einr',lvl:3,name:'Lagerregal',desc:'Neun Stellplätze für Kartons im Lager.',cost:()=>120+80*rackCount('standard'),done:()=>!rackFreiFuer('standard')},
+  {id:'shelf_gondel',kat:'einr',lvl:12,req:'shop_gross',name:'Mittelgondel',desc:'Steht frei im Raum, Ware auf beiden Seiten: acht Fächer auf einer Stellfläche. Braucht einen Inselplatz in der neuen Verkaufsfläche.',cost:()=>SHELFKIND.gondel.cost+SHELFKIND.gondel.step*shelfCount('gondel'),done:()=>!freiFuer('gondel')},
+  {id:'shelf_eck',kat:'einr',lvl:14,req:'shop_gross',name:'Eckregal',desc:'Zwei Schenkel über Eck. Nutzt die Raumecken, die sonst tote Fläche wären.',cost:()=>SHELFKIND.eck.cost+SHELFKIND.eck.step*shelfCount('eck'),done:()=>!freiFuer('eck')},
+  {id:'rack_hoch',kat:'einr',lvl:12,req:'lager_sued',name:'Hochregal (Lager)',desc:'Fünf Ebenen auf über vier Metern. Passt nur in die hohen Hallen Süd und West.',cost:()=>RACKKIND.hoch.cost+RACKKIND.hoch.step*rackCount('hoch'),done:()=>!rackFreiFuer('hoch')},
+  {id:'rack_schwer',kat:'einr',lvl:18,req:'lager_sued',name:'Schwerlastregal',desc:'Breiter, tiefer, vier Stellplätze je Ebene. Das größte Regal im Lager.',cost:()=>RACKKIND.schwer.cost+RACKKIND.schwer.step*rackCount('schwer'),done:()=>!rackFreiFuer('schwer')},
   {id:'plakat',kat:'markt',lvl:4,name:'Werbeplakate in der Stadt',desc:'Dauerhaft rund 30 Prozent mehr Kunden.',cost:()=>400,done:()=>S.up.plakat},
   {id:'terminal',kat:'einr',lvl:6,name:'Kontaktlos-Terminal',desc:'Kartenzahlung geht deutlich schneller.',cost:()=>320,done:()=>S.up.terminal},
   {id:'tag4',kat:'markt',lvl:7,name:'Sonntagsgenehmigung',desc:'Du darfst auch sonntags öffnen. Sonst ist Sonntag Ruhetag.',cost:()=>900,done:()=>S.up.tag4},
@@ -613,6 +617,10 @@ const UPGRADES=[
   {id:'meister',kat:'markt',lvl:30,name:'Meisterbrief Pyrotechnik',desc:'Die höchste Stufe. Großaufträge zahlen ein Drittel mehr.',cost:()=>12000,done:()=>S.up.meister},
   {id:'shop_gross',kat:'flaeche',lvl:12,name:'Verkaufsfläche erweitern',desc:'Kauft das leerstehende Ladenlokal rechts nebenan. Die Ostwand wird durchbrochen, die Schaufenster werden entmauert: rund 78 Quadratmeter mehr Fläche und acht zusätzliche Regalplätze.',cost:()=>7500,done:()=>S.up.shop_gross},
   {id:'lager_gross',kat:'flaeche',lvl:15,name:'Lager erweitern',desc:'Die Nordwand des Lagers wird zum Anbau hin durchbrochen. Sechs zusätzliche Lagerregale passen hinein, und erst hier ist Platz für die Packstation.',cost:()=>6200,done:()=>S.up.lager_gross},
+  {id:'shop_ost',kat:'flaeche',lvl:20,req:'shop_gross',name:'Zweites Ladenlokal',desc:'Das nächste leerstehende Lokal an der Ostseite: noch einmal 212 Quadratmeter, Gondelgassen, Eckregal und eine lange Wandreihe.',cost:()=>16000,done:()=>S.up.shop_ost},
+  {id:'shop_sued',kat:'flaeche',lvl:26,req:'shop_ost',name:'Rückgebäude Süd',desc:'Die große Halle hinter dem Laden, zwei breite Durchgänge: 478 Quadratmeter Verkaufsfläche mit zwei Gondelgassen. Damit ist der Laden fünfeinhalbmal so groß wie am Anfang.',cost:()=>34000,done:()=>S.up.shop_sued},
+  {id:'lager_sued',kat:'flaeche',lvl:22,req:'lager_gross',name:'Lagerhalle Süd',desc:'283 Quadratmeter mit 6,4 Metern lichter Höhe. Erst hier passen Hochregale und Schwerlastregale hinein.',cost:()=>13000,done:()=>S.up.lager_sued},
+  {id:'lager_west',kat:'flaeche',lvl:28,req:'lager_sued',name:'Lagerhalle West',desc:'Die große Halle an den drei Westrampen: 505 Quadratmeter, zwölf Stellplätze für Hochregale und ein Hof, auf dem mehrere Auflieger stehen können.',cost:()=>38000,done:()=>S.up.lager_west},
   {id:'packstation',kat:'flaeche',lvl:18,req:'lager_gross',name:'Packstation für den Versand',desc:'Packtisch, Waage, Etikettendrucker und Abholrampe. Zusammen mit dem Onlineshop kommen Bestellungen als echte Pakete herein: packen, auf die Rampe stellen, DDL holt am Abend ab.',cost:()=>6400,done:()=>S.up.packstation},
   {id:'kasse2',kat:'einr',lvl:16,req:'shop_gross',name:'SB-Kassen',desc:'Zwei Selbstbedienungsterminals in der neuen Verkaufsfläche. Kunden mit wenig Ware zahlen dort selbst, das entlastet deine Schlange spürbar.',cost:()=>3400,done:()=>S.up.kasse2},
   {id:'labor',kat:'einr',lvl:25,req:'shop_gross',name:'Entwicklungslabor',desc:'Ein Labortisch im Lager. Ab hier entwickelst du eigene Rezepturen: Träger, Bruchbild und Farben aussuchen, Prototyp auf dem Testfeld zünden, in Produktion geben. Verbauen darfst du nur Bruchbilder, die du selbst schon am Himmel gesehen hast.',cost:()=>9800,done:()=>S.up.labor},
@@ -764,13 +772,88 @@ const SHELFKIND={
   klein:{id:'klein',name:'Kleines Regal',w:1.0,d:0.42,lv:[0.12,0.52,0.92],lvl:1,cost:45,step:28,amb:0},
   standard:{id:'standard',name:'Verkaufsregal',w:2.0,d:0.52,lv:[0.115,0.565,1.015,1.465],lvl:4,cost:130,step:70,amb:1},
   hoch:{id:'hoch',name:'Hochregal',w:2.0,d:0.52,lv:[0.11,0.47,0.83,1.19,1.55],lvl:10,cost:260,step:95,amb:2},
-  kuehl:{id:'kuehl',name:'Sekt-Kühlschrank',w:1.1,d:0.58,lv:[0.2,0.64,1.08,1.52],lvl:6,cost:430,step:155,amb:5,cold:true}
+  kuehl:{id:'kuehl',name:'Sekt-Kühlschrank',w:1.1,d:0.58,lv:[0.2,0.64,1.08,1.52],lvl:6,cost:430,step:155,amb:5,cold:true},
+  /* Mittelgondel: steht frei im Raum, Ware auf beiden Seiten. */
+  gondel:{id:'gondel',name:'Mittelgondel',w:2.0,d:0.46,fw:2.1,fd:1.0,lv:[0.12,0.5,0.88,1.26],lvl:12,cost:560,step:190,amb:3,art:'insel',
+    seiten:[{ry:0,ox:0,oz:0.24},{ry:Math.PI,ox:0,oz:-0.24}]},
+  /* Eckregal: zwei Schenkel ueber Eck, wie im Supermarkt. */
+  eck:{id:'eck',name:'Eckregal',w:1.2,d:0.5,fw:1.74,fd:1.74,lv:[0.115,0.565,1.015,1.465],lvl:14,cost:480,step:165,amb:2,art:'ecke',
+    seiten:[{ry:0,ox:0.25,oz:-0.60},{ry:Math.PI/2,ox:-0.60,oz:0.25}]}
 };
-const SHELFORDER=['klein','standard','hoch','kuehl'];
-const SLOTS=[{x:-6.4,z:-5.5},{x:-4.2,z:-5.5},{x:-2.0,z:-5.5},{x:0.2,z:-5.5},{x:2.4,z:-5.5},{x:-4.2,z:-1.2},{x:-2.0,z:-1.2},{x:0.2,z:-1.2},{x:2.4,z:-1.2},{x:-6.4,z:-1.2},{x:9.0,z:-5.5,zone:'shop_gross'},{x:11.2,z:-5.5,zone:'shop_gross'},{x:13.4,z:-5.5,zone:'shop_gross'},{x:9.0,z:-1.2,zone:'shop_gross'},{x:11.2,z:-1.2,zone:'shop_gross'},{x:13.4,z:-1.2,zone:'shop_gross'},{x:9.0,z:3.1,zone:'shop_gross'},{x:11.2,z:3.1,zone:'shop_gross'}];
-const RACKS=[{x:-12.4,z:-5.35,ry:0},{x:-15.5,z:-5.35,ry:0},{x:-12.4,z:1.35,ry:Math.PI},{x:-15.5,z:1.35,ry:Math.PI},{x:-18.6,z:-5.35,ry:0},{x:-18.6,z:1.35,ry:Math.PI},{x:-9.3,z:-5.35,ry:0},{x:-9.3,z:1.35,ry:Math.PI},{x:-19.0,z:5.45,ry:Math.PI,zone:'lager_gross'},{x:-15.9,z:5.45,ry:Math.PI,zone:'lager_gross'},{x:-12.8,z:5.45,ry:Math.PI,zone:'lager_gross'},{x:-9.7,z:5.45,ry:Math.PI,zone:'lager_gross'},{x:-11.0,z:2.75,ry:0,zone:'lager_gross'},{x:-14.1,z:2.75,ry:0,zone:'lager_gross'}];
-const WALLSPOTS=[{x:7.86,z:-2.0,ry:-Math.PI/2},{x:-2.5,z:-5.86,ry:0},{x:7.86,z:1.0,ry:-Math.PI/2},{x:2.0,z:-5.86,ry:0},{x:-7.86,z:3.6,ry:Math.PI/2},{x:-5.5,z:-5.86,ry:0}];
-const DEKOSPOTS=[{x:6.9,z:-4.6},{x:-7.1,z:3.2},{x:6.9,z:-2.2},{x:-7.1,z:-3.6},{x:3.6,z:5.2},{x:-6.2,z:1.2},{x:6.9,z:0.4},{x:-3.4,z:3.4},{x:1.4,z:-3.4}];
+const SHELFORDER=['klein','standard','hoch','kuehl','gondel','eck'];
+/* =========================================================
+   Stellplaetze im Laden. Die Basisflaeche bleibt genau wie
+   bisher, die Ausbaustufen bringen Wandreihen, Mittelgondeln
+   und Eckregale dazu.
+   art: wand (Standardregale), insel (Gondeln), ecke (Eckregale)
+   ========================================================= */
+function mkSlots(){
+  const A=[];
+  const add=(x,z,o)=>A.push(Object.assign({x:Math.round(x*100)/100,z:Math.round(z*100)/100},o||{}));
+  const reihe=(x0,n,dx,z,o)=>{ for(let i=0;i<n;i++) add(x0+i*dx,z,o); };
+  const spalte=(z0,n,dz,x,o)=>{ for(let i=0;i<n;i++) add(x,z0+i*dz,o); };
+  /* --- Basis, unveraendert --- */
+  reihe(-6.4,5,2.2,-5.5);
+  reihe(-6.4,5,2.2,-1.2);
+  /* --- Ost I: Wandreihe, zwei Gondelreihen. Vorn bleibt der
+         Durchgang aus dem Basisladen frei. --- */
+  const A1={zone:'shop_gross'}, I1={zone:'shop_gross',art:'insel'};
+  reihe(11.0,4,2.2,-5.5,A1);
+  reihe(11.2,3,3.0,-1.6,I1);
+  reihe(11.2,3,3.0, 2.4,I1);
+  /* --- Ost II: lange Wandreihe, Gondeln, Ostwand und Eckregal --- */
+  const A2={zone:'shop_ost'}, I2={zone:'shop_ost',art:'insel'};
+  reihe(22.6,5,2.2,-5.5,A2);
+  reihe(23.0,4,3.0,-1.6,I2);
+  reihe(23.0,4,3.0, 2.4,I2);
+  spalte(-2.0,2,2.2,37.5,Object.assign({ry:-Math.PI/2},A2));
+  add(37.05,-5.05,Object.assign({ry:-Math.PI/2,art:'ecke'},A2));
+  /* --- Sued: die grosse Halle. Zwei Gondelgassen, Wandreihe an
+         der Suedwand, Regale an West- und Ostwand, zwei Ecken. --- */
+  const A3={zone:'shop_sued'}, I3={zone:'shop_sued',art:'insel'};
+  reihe(11.0,5,3.4,-9.4,I3);
+  reihe(11.0,5,3.4,-13.8,I3);
+  reihe(11.4,4,4.4,-21.5,A3);
+  spalte(-11.0,2,3.2,8.28,Object.assign({ry:Math.PI/2},A3));
+  spalte(-11.0,2,3.2,37.62,Object.assign({ry:-Math.PI/2},A3));
+  add(8.85,-21.05,Object.assign({art:'ecke'},A3));
+  add(37.05,-21.05,Object.assign({ry:-Math.PI/2,art:'ecke'},A3));
+  return A;
+}
+const SLOTS=mkSlots();
+/* =========================================================
+   Lagerplaetze. h ist die lichte Hoehe - danach entscheidet
+   sich, ob ein Hochregal ueberhaupt hineinpasst.
+   ========================================================= */
+function mkRacks(){
+  const A=[];
+  const add=(x,z,ry,h,zone)=>A.push({x:Math.round(x*100)/100,z:Math.round(z*100)/100,ry:ry,h:h,zone:zone});
+  /* Basislager, 3,6 m - nur Standardregale */
+  [-9.3,-12.4,-15.5,-18.6].forEach(x=>{ add(x,-5.35,0,3.6); add(x,1.35,Math.PI,3.6); });
+  /* Anbau Nord, nur 2,84 m */
+  [-9.7,-12.8,-15.9,-19.0].forEach(x=>add(x,5.45,Math.PI,2.84,'lager_gross'));
+  [-11.0,-14.1].forEach(x=>add(x,2.75,0,2.84,'lager_gross'));
+  /* Halle Sued, 6,4 m - hier passen Hoch- und Schwerlastregale */
+  [-7.6,-11.6,-15.6,-19.6,-23.6].forEach(z=>{
+    add(-10.2,z,0,6.4,'lager_sued'); add(-17.6,z,0,6.4,'lager_sued'); });
+  /* Halle West, 6,4 m - die grosse Halle an den drei Rampen */
+  [-9.5,-13.5,-17.5,-21.5,-25.5,-28.8].forEach(z=>{
+    add(-24.5,z,0,6.4,'lager_west'); add(-31.5,z,0,6.4,'lager_west'); });
+  return A;
+}
+const RACKS=mkRacks();
+/* Plaetze fuer Plakate und Deko. Die Ausbaustufen bringen eigene
+   dazu - ein leerer Anbau soll sich nicht kahler anfuehlen als der
+   Basisladen. */
+const WALLSPOTS=[{x:7.86,z:-2.0,ry:-Math.PI/2},{x:-2.5,z:-5.86,ry:0},{x:7.86,z:1.0,ry:-Math.PI/2},{x:2.0,z:-5.86,ry:0},{x:-7.86,z:3.6,ry:Math.PI/2},{x:-5.5,z:-5.86,ry:0},
+  {x:19.8,z:-5.0,ry:-Math.PI/2,zone:'shop_gross'},{x:19.8,z:5.0,ry:-Math.PI/2,zone:'shop_gross'},
+  {x:20.2,z:-5.0,ry:Math.PI/2,zone:'shop_ost'},  {x:20.2,z:5.0,ry:Math.PI/2,zone:'shop_ost'},
+  {x:8.22,z:-8.0,ry:Math.PI/2,zone:'shop_sued'}, {x:37.68,z:-8.0,ry:-Math.PI/2,zone:'shop_sued'}];
+const DEKOSPOTS=[{x:6.9,z:-4.6},{x:-7.1,z:3.2},{x:6.9,z:-2.2},{x:-7.1,z:-3.6},{x:3.6,z:5.2},{x:-6.2,z:1.2},{x:6.9,z:0.4},{x:-3.4,z:3.4},{x:1.4,z:-3.4},
+  {x:9.3,z:4.6,zone:'shop_gross'},{x:19.0,z:-4.8,zone:'shop_gross'},
+  {x:21.0,z:4.6,zone:'shop_ost'},{x:36.5,z:4.6,zone:'shop_ost'},
+  {x:9.5,z:-7.5,zone:'shop_sued'},{x:36.0,z:-7.5,zone:'shop_sued'},
+  {x:9.5,z:-19.0,zone:'shop_sued'},{x:36.0,z:-19.0,zone:'shop_sued'}];
 function xpFor(l){ return Math.round(50*Math.pow(l,1.55)); }
 
 /* =========================================================
@@ -1902,8 +1985,51 @@ let grimeMats=[], windowHits=[], winWork=0;
 let uhrStd=null, uhrMin=null, uhrSek=null;
 let wallTex=null, floorTexRef=null, shopWall=null, shopUpper=null, shopLower=null, floorMat=null;
 const WH=3.6;
+/* =========================================================
+   Grundriss. Die ganze Flaeche steht von Anfang an, aber nur
+   der Kern ist begehbar - der Rest liegt hinter Bauwaenden und
+   waechst Stueck fuer Stueck hinzu.
+
+        Strasse z 13..20 / Gehweg z 8.5
+   +--------+------------------+--------------------------+
+   | Lager  | Lager Basis      |  Verkauf Basis  | shop_  |
+   | Nord   | x -19.9..-8.1    |  x -7.9..8      | gross  |
+   +--------+ z -5.9..1.9      |  z -5.9..5.9    | +ost   |
+   | Lager West | Lager Sued   +-----------------+--------+
+   | x -41.9..  | x -19.9..    |    Testfeld     | shop_  |
+   |   -19.9    |   -8.1       |  x -7.9..8      | sued   |
+   | z -29.9..-7| z -29.9..-5.9|  z -28..-6      |        |
+   +------------+--------------+-----------------+--------+
+   ========================================================= */
+const LAY={
+  /* Verkaufsflaeche, zusammen 1018 m2 */
+  shop  :{x0:-7.9, x1:37.9, z0:-21.9, z1:5.9},
+  basis :{x0:-7.9, x1:8.0,  z0:-5.9,  z1:5.9},   /* 186 m2, von Anfang an */
+  ost1  :{x0:8.0,  x1:20.0, z0:-5.9,  z1:5.9},   /* 142 m2 */
+  ost2  :{x0:20.0, x1:37.9, z0:-5.9,  z1:5.9},   /* 212 m2 */
+  sued  :{x0:8.0,  x1:37.9, z0:-21.9, z1:-5.9},  /* 478 m2 */
+  /* Lager, zusammen 927 m2 */
+  lager :{x0:-41.9,x1:-8.1, z0:-29.9, z1:5.9},
+  lbasis:{x0:-19.9,x1:-8.1, z0:-5.9,  z1:1.9},   /*  92 m2, von Anfang an */
+  lnord :{x0:-19.9,x1:-8.1, z0:1.9,   z1:5.9},   /*  47 m2 */
+  lsued :{x0:-19.9,x1:-8.1, z0:-29.9, z1:-5.9},  /* 283 m2 */
+  lwest :{x0:-41.9,x1:-19.9,z0:-29.9, z1:-7.0},  /* 505 m2 */
+  /* Testfeld hinter dem Basisladen, durch die Hintertuer erreichbar */
+  test  :{x0:-7.9, x1:8.0,  z0:-28.0, z1:-6.0},
+  /* Hoefe: der kleine an der Basisrampe, der grosse an der Westrampe */
+  hof   :{x0:-34.0,x1:-20.0,z0:-6.5,  z1:2.5},
+  hof2  :{x0:-64.0,x1:-42.0,z0:-30.0, z1:-7.0},
+  /* Logistikzentrum, vorerst nur von aussen */
+  logi  :{x0:44.0, x1:90.0, z0:-16.0, z1:14.0}
+};
+const LW=0.2;                      /* Wandstaerke                      */
+function flaeche(r){ return Math.round((r.x1-r.x0)*(r.z1-r.z0)); }
+/* Hintertuer aus dem Basisladen aufs Testfeld */
+const HINTERTUER={x0:4.4, x1:6.1};
 /* Lichte Hoehe des Anbaus hinter dem Lager (spaetere Lagererweiterung) */
 const ANBAU_H=2.9;
+/* Lichte Hoehe der grossen Lagerhallen Sued und West */
+const HALLE_H=6.4;
 function paintWall(g,W,H,c){
   g.fillStyle=c.up; g.fillRect(0,0,W,H);
   const band=Math.round(H*(1-1.1/WH));
@@ -2002,6 +2128,7 @@ function wall(x0,x1,z0,z1,y0,y1,inFace,inMat,exMat){
   mats[FACE[inFace]]=inMat; mats[FACE[OPP[inFace]]]=exMat||wallBrickMat();
   const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mats); m.position.set((x0+x1)/2,(y0+y1)/2,(z0+z1)/2);
   meterUV(m);
+  m.userData.aabb={x0:Math.min(x0,x1),x1:Math.max(x0,x1),z0:Math.min(z0,z1),z1:Math.max(z0,z1)};
   if(HIQ){ m.castShadow=true; m.receiveShadow=true; } scene.add(m); occluders.push(m); return m;
 }
 const aoTex=tex(8,64,(g,W,H)=>{ const gr=g.createLinearGradient(0,H,0,0); gr.addColorStop(0,'#fff'); gr.addColorStop(0.35,'#777'); gr.addColorStop(1,'#000'); g.fillStyle=gr; g.fillRect(0,0,W,H); },false);
@@ -2117,7 +2244,8 @@ function buildWorld(){
   wall(-8.1,-7.9,-3.2,-1.8,2.5,H,'+x',shopWall,lagerWall);
   // Lager
   wall(-20.1,-19.9,-6.1,-3.6,0,H,'+x',lagerWall); wall(-20.1,-19.9,-0.4,2.1,0,H,'+x',lagerWall); wall(-20.1,-19.9,-3.6,-0.4,3.0,H,'+x',lagerWall);
-  wall(-20.1,-8.1,-6.1,-5.9,0,H,'+z',lagerWall);
+  /* Die Suedwand des Lagers baut jetzt die Durchbruchwand in 05h:
+     dort sitzt die Oeffnung zur Halle Sued. */
   /* Nordwand des Lagers mit vorbereitetem Durchbruch in den Anbau */
   wall(-20.1,-19.0,1.9,2.1,0,H,'-z',lagerWall); wall(-9.0,-8.1,1.9,2.1,0,H,'-z',lagerWall);
   wall(-19.0,-9.0,1.9,2.1,2.6,H,'-z',lagerWall);
@@ -2213,12 +2341,12 @@ function buildWorld(){
   snowPts=new THREE.Points(sg2,new THREE.PointsMaterial({color:0xffffff,size:0.09,map:dotTex,transparent:true,opacity:0.9,depthWrite:false})); snowPts.frustumCulled=false; scene.add(snowPts);
   // Kollision
   zWandCol('lager_gross',col(-20,-8,2.1,6.1));
-  col(-20,-2,-20,-6.1); col(-20,12,-16,-14.9);
-  col(7.9,12,-16,-6.1);
-  zWandCol('shop_gross',col(7.9,14.8,-6.1,6.1));
+  /* Die alten Testfeldgrenzen sind weg: im Westen steht jetzt die
+     Lagerhalle Sued, im Osten das Rueckgebaeude, im Sueden der Zaun. */
+  zWandCol('shop_gross',col(7.9,20.0,-6.1,6.1));
   col(-8,-1.2,5.9,6.1); col(1.2,8,5.9,6.1); col(-8,4.4,-6.1,-5.9); col(6.1,8,-6.1,-5.9);
   col(-8.1,-7.9,-6.1,-3.2); col(-8.1,-7.9,-1.8,6.1);
-  col(-20.1,-19.9,-6.1,-3.6); col(-20.1,-19.9,-0.4,2.1); col(-20.1,-8,-6.1,-5.9);
+  col(-20.1,-19.9,-6.1,-3.6); col(-20.1,-19.9,-0.4,2.1);
   col(-20.1,-19.0,1.9,2.1); col(-9.0,-8,1.9,2.1);
   zWandCol('lager_gross',col(-19.0,-9.0,1.9,2.1));
   buildDock();
@@ -2663,11 +2791,25 @@ function zaunLauf(x0,z0,x1,z1,h){
     }
   }
 }
+/* Das Testfeld reicht jetzt von der Lagerwand bis an die Suedhalle.
+   Im Norden steht die Ladenrueckwand, im Westen die Lagerwand, im
+   Osten die Westwand des Rueckgebaeudes - eingezaeunt wird nur, was
+   sonst offen waere. */
 function buildZaun(){
-  const H=1.8;
-  zaunLauf(-2,-6.5,-2,-15,H);
-  zaunLauf(-2,-15,7.94,-15,H);
-  zaunLauf(7.94,-15,7.94,-6.5,H);
+  const H=2.0, T=LAY.test;
+  zaunLauf(T.x0,T.z0,T.x1,T.z0,H);            /* Sueden        */
+  zaunLauf(T.x1,T.z0,T.x1,LAY.sued.z0,H);     /* Osten, unten  */
+  col(T.x0,T.x1,T.z0-0.1,T.z0+0.1);
+  col(T.x1-0.1,T.x1+0.1,T.z0,LAY.sued.z0);
+  /* Warnschild am Zaun */
+  plane(1.6,0.9,new THREE.MeshStandardMaterial({side:THREE.DoubleSide,map:tex(320,180,(g,W,Hh)=>{
+    g.fillStyle='#f2c230'; g.fillRect(0,0,W,Hh);
+    g.strokeStyle='#1f1f24'; g.lineWidth=8; g.strokeRect(6,6,W-12,Hh-12);
+    g.textAlign='center'; g.textBaseline='middle'; g.fillStyle='#1f1f24';
+    g.font=BUN(34); g.fillText('TESTFELD',W/2,48);
+    g.font=BAR(26); g.fillText('Zutritt nur für Personal',W/2,92);
+    g.fillText('Schutzbrille tragen',W/2,126); })}),
+    (T.x0+T.x1)/2,1.2,T.z0+0.12,0,null);
 }
 /* Strassenleuchte: Sockel, konischer Mast, Ausleger, echter Leuchtenkopf */
 function strassenlampe(x,z,dir){
@@ -3080,7 +3222,13 @@ function makeBaum(){
    Verkaufsschild. Hier waechst der Laden spaeter hinein.
    ========================================================= */
 function buildNachbar(){
-  const x0=8.1, x1=14.6, zf=6.1, H=WH+0.6;
+  /* Die Ladenzeile laeuft bis ans Ende des Blocks. Jeder Abschnitt
+     gehoert zu einer Ausbaustufe und steht bis dahin leer. */
+  nachbarFassade(8.1,20.0,'shop_gross','ca. 142 m² · direkt nebenan');
+  nachbarFassade(20.0,37.9,'shop_ost','ca. 212 m² · Eckhaus der Zeile');
+}
+function nachbarFassade(x0,x1,zid,unterzeile){
+  const zf=6.1, H=WH+0.6;
   const g=new THREE.Group(); scene.add(g);
   /* Backsteinwand mit Verband, Fugen und Ausblühungen */
   const zieg=tex(512,512,(c,W,Hh)=>{
@@ -3101,14 +3249,20 @@ function buildNachbar(){
   /* UV in Metern: dadurch passt der Verband ueber alle Wandstuecke hinweg */
   zieg.wrapS=zieg.wrapT=THREE.RepeatWrapping; zieg.repeat.set(1/1.6,1/1.6); zieg.anisotropy=8;
   const zm=new THREE.MeshStandardMaterial({map:zieg,roughness:0.95});
-  const w=x1-x0, cx=(x0+x1)/2, zid='shop_gross';
+  const w=x1-x0, cx=(x0+x1)/2;
   /* Die Fassade hat echte Oeffnungen. Solange nebenan nicht gekauft ist,
-     sind sie zugemauert; nach dem Kauf sitzen dort Schaufenster. */
-  const OEFF=[[9.0,10.4,0,2.3],[11.0,12.6,0.9,2.5],[13.0,14.4,0.9,2.5]];
-  const F=(a,b,y0,y1)=>wall(a,b,zf-0.3,zf+0.1,y0,y1,'-z',shopWall,zm);
-  F(x0,9.0,0,H); F(10.4,11.0,0,H); F(12.6,13.0,0,H); F(14.4,x1,0,H);
-  F(9.0,10.4,2.3,H); F(11.0,12.6,2.5,H); F(13.0,14.4,2.5,H);
-  F(11.0,12.6,0,0.9); F(13.0,14.4,0,0.9);
+     sind sie zugemauert; nach dem Kauf sitzen dort Schaufenster.
+     Die Achsen werden ueber die Laenge verteilt: die erste als hohes
+     Schaufenster, die uebrigen als Fenster ueber Brueckungshoehe. */
+  const OEFF=[]; const n=Math.max(2,Math.floor((w-0.8)/2.6));
+  for(let i=0;i<n;i++){ const a=x0+0.9+i*2.6;
+    OEFF.push(i%3===0?[a,a+1.6,0,2.3]:[a,a+1.6,0.9,2.5]); }
+  const F=(a,b,y0,y1)=>{ if(b>a+0.01) wall(a,b,zf-0.3,zf+0.1,y0,y1,'-z',shopWall,zm); };
+  let px=x0;
+  for(const [a,b,y0,y1] of OEFF){
+    F(px,a,0,H); F(a,b,y1,H); if(y0>0) F(a,b,0,y0); px=b;
+  }
+  F(px,x1,0,H);
   /* Attika, Gesims und Sockel */
   bbox(w+0.2,0.28,0.56,std(0x5f584e,{roughness:1}),cx,H+0.12,zf-0.1,g);
   bbox(w+0.1,0.1,0.5,std(0xe8ecf2,{roughness:1}),cx,H+0.3,zf-0.1,g,false);
@@ -3136,7 +3290,7 @@ function buildNachbar(){
     c.fillStyle='#1b2340'; c.font=BUN(66);
     c.fillText('VERKAUFSFLÄCHE',W/2,180);
     c.font=BAR(44); c.fillStyle='#3d4658';
-    c.fillText('ca. 78 m² · direkt nebenan',W/2,250);
+    c.fillText(unterzeile,W/2,250);
     c.fillText('ideal zur Erweiterung',W/2,300);
     c.strokeStyle='#c8322a'; c.lineWidth=8; c.strokeRect(70,340,W-140,120);
     c.fillStyle='#c8322a'; c.font=BUN(46);
@@ -3152,7 +3306,7 @@ function buildNachbar(){
   bbox(2.7,1.36,0.05,std(0x3a3f48,{roughness:0.7}),cx,1.85,zf+0.6,gs,false);
   plane(2.6,1.28,new THREE.MeshStandardMaterial({map:schildT,roughness:0.62}),cx,1.85,zf+0.635,0,gs);
   /* Bauzaunelement davor */
-  for(let i=0;i<3;i++){
+  for(let i=0,nz=Math.max(2,Math.floor((w-0.4)/2.2));i<nz;i++){
     const bx=x0+0.9+i*2.2;
     bbox(2.0,1.8,0.05,std(0x8a9099,{metalness:0.4,roughness:0.6}),bx,0.92,zf+1.25,gs,false);
     for(const sx of [-0.95,0.95]) bbox(0.07,1.85,0.07,std(0x6a7078,{metalness:0.5}),bx+sx,0.93,zf+1.25,gs,false);
@@ -3181,7 +3335,6 @@ function buildNachbar(){
     /* Fensterbank aussen */
     if(y0>0.2) bbox(bw+0.16,0.06,0.5,bank,bxc,y0-0.02,zf-0.02,go,false);
   });
-  col(x0,x1,zf+1.1,zf+1.4);
   col(x0,x1,zf-0.35,zf+0.15);
   return g;
 }
@@ -3540,8 +3693,8 @@ function doorSet(t){
     const po=panelPose(door.t+i*TOR.ph+TOR.ph/2);
     pn.position.set(po.x,po.y,TOR.z); pn.rotation.z=po.rz;
   });
-  if(door.t>0.35){ if(door.col){ dropCol(door.col); door.col=null; } }
-  else if(!door.col) door.col=col(-20.12,-19.88,-3.62,-0.38);
+  if(door.t>0.35){ if(door.col){ dropCol(door.col); door.col=null; if(typeof navDirty==='function') navDirty(); } }
+  else if(!door.col){ door.col=col(-20.12,-19.88,-3.62,-0.38); if(typeof navDirty==='function') navDirty(); }
   const open=door.t>=TOR.h-0.02;
   if(door.lampG) door.lampG.emissiveIntensity=open?1.6:0;
   if(door.lampR) door.lampR.emissiveIntensity=open?0:1.4;
@@ -3789,6 +3942,7 @@ function oeffneZone(id,leise){
   z.wandCols.forEach(c=>dropCol(c));
   z.obj.forEach(o=>{ o.visible=true; });
   z.cols.forEach(c=>{ if(colliders.indexOf(c)<0) colliders.push(c); });
+  if(typeof navDirty==='function') navDirty();
   if(!leise) sfx.cash();
 }
 /* Nach dem Laden eines Spielstands alle gekauften Bereiche oeffnen */
@@ -3802,6 +3956,7 @@ function applyZonen(){
       z.cols.forEach(c=>dropCol(c));
       z.wandCols.forEach(c=>{ if(colliders.indexOf(c)<0) colliders.push(c); }); }
   }
+  if(typeof navDirty==='function') navDirty();
 }
 
 /* --------------------------------------------------------
@@ -3861,70 +4016,143 @@ function bauwand(id,x0,z0,x1,z1,h,text,unter){
 /* =========================================================
    Die drei Ausbaustufen
    ========================================================= */
-const SHOP_X2=14.6;          /* Aussenkante der erweiterten Verkaufsflaeche */
-const LAGER_Z2=6.0;          /* Innenkante der Anbau-Rueckwand               */
+/* =========================================================
+   Die Ausbaustufen. Jede ist eine Halle: Boden, Decke, Dach,
+   Aussenwaende, Sockelleisten, Beleuchtung und Bodenschatten.
+   Alles liegt hinter einer Bauwand, bis es gekauft wird.
+   ========================================================= */
+const SHOP_X2=LAY.shop.x1, LAGER_Z2=LAY.lnord.z1;
+
+let _panelM=null, _korpusM=null;
+function leuchtenMat(){
+  if(!_panelM){ _panelM=new THREE.MeshBasicMaterial({map:deckenDiffuse(),toneMapped:false});
+    _korpusM=new THREE.MeshStandardMaterial({vertexColors:true,metalness:0,roughness:0.72}); }
+  return _panelM;
+}
+/* Deckenleuchten im Raster. Eine grosse Halle bekommt schnell dreissig
+   Leuchten - als Einzelmeshes waere das teuer, deshalb wird das ganze
+   Raster zu zwei Meshes verschmolzen: Korpus und Leuchtflaeche. */
+function leuchtenRaster(id,r,y,ax,az){
+  leuchtenMat();
+  const nx=Math.max(1,Math.round((r.x1-r.x0)/ax)), nz=Math.max(1,Math.round((r.z1-r.z0)/az));
+  const gRev=new THREE.BoxGeometry(1.44,0.03,0.42), gFix=new THREE.BoxGeometry(1.36,0.028,0.36);
+  const gDif=new THREE.PlaneGeometry(1.26,0.28);
+  const korpus=[], diff=[];
+  for(let i=0;i<nx;i++) for(let k=0;k<nz;k++){
+    const x=r.x0+(i+0.5)*(r.x1-r.x0)/nx, z=r.z0+(k+0.5)*(r.z1-r.z0)/nz;
+    korpus.push({geo:gRev,m:tm(x,y-0.008,z),color:0x252932});
+    korpus.push({geo:gFix,m:tm(x,y-0.026,z),color:0xdfe3e9});
+    diff.push({geo:gDif,m:tm(x,y-0.043,z,Math.PI/2,0,0)});
+  }
+  const mk=new THREE.Mesh(merge(korpus),_korpusM); scene.add(mk); zAdd(id,mk);
+  const md=new THREE.Mesh(merge(diff),_panelM); scene.add(md); zAdd(id,md);
+  gRev.dispose(); gFix.dispose(); gDif.dispose();
+}
+/* Eine ganze Halle in einem Rutsch.
+   aussen sagt, welche Seiten eine echte Aussenwand bekommen;
+   die uebrigen grenzen an einen Nachbarbereich. */
+function halle(id,r,opt){
+  opt=opt||{};
+  const H=opt.h||WH;
+  const lager=opt.art==='lager';
+  const innen=lager?lagerWall:shopWall;
+  const ceil=std(0xe6e8ee,{roughness:1});
+  const au=opt.aussen||{};
+  const ex=opt.ex||undefined;
+  /* Boden */
+  let bodenMat;
+  if(lager){ const lc=concreteTex(); lc.repeat.set((r.x1-r.x0)/2,(r.z1-r.z0)/2); bodenMat=new THREE.MeshStandardMaterial({map:lc,roughness:0.85}); }
+  else bodenMat=floorMat;
+  const bo=new THREE.Mesh(new THREE.PlaneGeometry(r.x1-r.x0,r.z1-r.z0),bodenMat);
+  bo.rotation.x=-Math.PI/2; bo.position.set((r.x0+r.x1)/2,0.015,(r.z0+r.z1)/2); scene.add(bo); zAdd(id,bo);
+  /* Decke und Dach */
+  const ce=new THREE.Mesh(new THREE.PlaneGeometry(r.x1-r.x0+0.3,r.z1-r.z0+0.3),ceil);
+  ce.rotation.x=Math.PI/2; ce.position.set((r.x0+r.x1)/2,H-0.01,(r.z0+r.z1)/2); scene.add(ce); zAdd(id,ce);
+  if(!opt.keinDach) bbox(r.x1-r.x0+LW*3,0.25,r.z1-r.z0+LW*3,std(0x2b2f3a),(r.x0+r.x1)/2,H+0.13,(r.z0+r.z1)/2,null,true);
+  /* Aussenwaende: stehen immer, auch solange der Bereich gesperrt ist.
+     Von der Strasse aus sieht man sonst ein Loch im Gebaeude. */
+  if(au.w) wall(r.x0-LW,r.x0,r.z0,r.z1,0,H,'+x',innen,ex);
+  if(au.e) wall(r.x1,r.x1+LW,r.z0,r.z1,0,H,'-x',innen,ex);
+  if(au.n) wall(r.x0-LW,r.x1+LW,r.z1,r.z1+LW,0,H,'-z',innen,ex);
+  if(au.s) wall(r.x0-LW,r.x1+LW,r.z0-LW,r.z0,0,H,'+z',innen,ex);
+  if(au.w) col(r.x0-LW,r.x0,r.z0,r.z1);
+  if(au.e) col(r.x1,r.x1+LW,r.z0,r.z1);
+  if(au.n) col(r.x0-LW,r.x1+LW,r.z1,r.z1+LW);
+  if(au.s) col(r.x0-LW,r.x1+LW,r.z0-LW,r.z0);
+  /* Sockelleisten nur im Laden */
+  if(!lager){
+    const base=std(0x1a2038);
+    if(au.n) zAdd(id,bbox(r.x1-r.x0,0.1,0.02,base,(r.x0+r.x1)/2,0.05,r.z1-0.01,null,false));
+    if(au.s) zAdd(id,bbox(r.x1-r.x0,0.1,0.02,base,(r.x0+r.x1)/2,0.05,r.z0+0.01,null,false));
+    if(au.w) zAdd(id,bbox(0.02,0.1,r.z1-r.z0,base,r.x0+0.01,0.05,(r.z0+r.z1)/2,null,false));
+    if(au.e) zAdd(id,bbox(0.02,0.1,r.z1-r.z0,base,r.x1-0.01,0.05,(r.z0+r.z1)/2,null,false));
+  }
+  leuchtenRaster(id,r,H,lager?3.6:3.4,lager?4.2:3.6);
+  roomAO(r.x0+0.02,r.x1-0.02,r.z0+0.02,r.z1-0.02,id);
+}
+
+/* Eine Wand mit vorbereiteten Durchbruechen. Pfeiler und Sturz
+   bleiben stehen, die Fuellungen fallen beim Kauf des Bereichs.
+   laengs = die Wand laeuft in x-Richtung. */
+function durchbruchWand(id,laengs,fest,von,bis,oeffnungen,mat,exMat,sturzY,hoehe){
+  const H=hoehe||WH, sy=sturzY||2.7;
+  const w=(a2,b2,y0,y1)=>laengs
+    ? wall(a2,b2,fest-LW/2,fest+LW/2,y0,y1,'-z',mat,exMat)
+    : wall(fest-LW/2,fest+LW/2,a2,b2,y0,y1,'-x',mat,exMat);
+  const c=(a2,b2)=>laengs?col(a2,b2,fest-LW/2,fest+LW/2):col(fest-LW/2,fest+LW/2,a2,b2);
+  const zc=(a2,b2)=>zWandCol(id,c(a2,b2));
+  let x=von;
+  for(const [oa,ob] of oeffnungen){
+    if(oa>x){ w(x,oa,0,H); c(x,oa); }
+    w(oa,ob,sy,H);                       /* Sturz ueber der Oeffnung */
+    zc(oa,ob);                           /* sperrt, solange die Bauwand steht */
+    bauwand(id,laengs?oa:fest,laengs?fest:oa,laengs?ob:fest,laengs?fest:ob,sy,
+            ausbauText(id)[0],ausbauText(id)[1]);
+    x=ob;
+  }
+  if(bis>x){ w(x,bis,0,H); c(x,bis); }
+}
+const AUSBAU_TEXT={
+  shop_gross:['VERKAUFSFLÄCHE OST','Nachbarlokal · über den Laptop freischalten'],
+  shop_ost  :['VERKAUFSFLÄCHE OST II','Zweites Nachbarlokal · über den Laptop'],
+  shop_sued :['VERKAUFSFLÄCHE SÜD','Rückgebäude · über den Laptop freischalten'],
+  lager_gross:['LAGER NORD','Anbau · über den Laptop freischalten'],
+  lager_sued :['LAGER SÜD','Hallenteil Süd · über den Laptop freischalten'],
+  lager_west :['LAGER WEST','Halle mit drei Rampen · über den Laptop']
+};
+function ausbauText(id){ return AUSBAU_TEXT[id]||['ERWEITERUNG','über den Laptop freischalten']; }
 
 function buildAusbau(){
-  const H=WH;
-  const ceil=std(0xe6e8ee,{roughness:1});
-  const panelM=new THREE.MeshBasicMaterial({map:deckenDiffuse(),toneMapped:false});
-  const fixM=std(0xdfe3e9,{metalness:0,roughness:0.62});
-  const rev=std(0x252932,{metalness:0,roughness:0.9});
-  /* Deckenleuchte; y ist die Unterkante der Decke */
-  const leuchte=(id,x,z,y)=>{
-    zAdd(id,bbox(1.44,0.03,0.42,rev,x,y-0.008,z,null,false));
-    zAdd(id,bbox(1.36,0.028,0.36,fixM,x,y-0.026,z,null,false));
-    const d=new THREE.Mesh(new THREE.PlaneGeometry(1.26,0.28),panelM);
-    d.rotation.x=Math.PI/2; d.position.set(x,y-0.043,z); scene.add(d); zAdd(id,d);
-  };
+  /* ---------- Verkaufsflaeche ----------
+     Die Front uebernimmt die Nachbarfassade (05e), deshalb bekommen
+     Ost I und Ost II von der Halle keine Nordwand. */
+  halle('shop_gross',LAY.ost1,{aussen:{}});
+  halle('shop_ost',  LAY.ost2,{aussen:{e:true}});
+  halle('shop_sued', LAY.sued,{aussen:{s:true,e:true,w:true}});
+  /* Ost I zu Ost II */
+  durchbruchWand('shop_ost',false,LAY.ost1.x1,LAY.ost1.z0,LAY.ost1.z1,[[-4.2,4.2]],shopWall);
+  /* Ost nach Sued: zwei breite Durchgaenge */
+  durchbruchWand('shop_sued',true,LAY.sued.z1,LAY.sued.x0,LAY.sued.x1,[[10.0,17.0],[24.0,32.0]],shopWall);
+  /* Die beiden ersten Durchbrueche stehen schon in 05c beziehungsweise
+     im Dock - hier kommt nur die Bauwand in die Oeffnung. */
+  bauwand('shop_gross',8.0,-4.4,8.0,4.4,2.7,ausbauText('shop_gross')[0],ausbauText('shop_gross')[1]);
 
-  /* ---------- 1) Verkaufsflaeche nach Osten ----------
-     Das Nachbarhaus steht bereits (Fassade in 05e). Hier kommen die
-     restliche Huelle und der Innenausbau dazu. */
-  {
-    const id='shop_gross', x0=8.1, x1=SHOP_X2;
-    /* Dauerhafte Huelle: Ost- und Rueckwand, Dach. Von aussen sieht das
-       Nachbarhaus dadurch immer wie ein echtes Gebaeude aus. */
-    wall(x1,x1+0.2,-6.1,6.1,0,H+0.6,'-x',shopWall);
-    wall(x0,x1+0.2,-6.1,-5.9,0,H+0.6,'+z',shopWall);
-    col(x1,x1+0.2,-6.1,6.1); col(x0,x1+0.2,-6.1,-5.9);
-    bbox(x1-x0+0.6,0.25,12.4,std(0x2b2f3a),(x0+x1)/2,H+0.73,0,null,true);
+  /* ---------- Lager ---------- */
+  halle('lager_gross',LAY.lnord,{art:'lager',aussen:{n:true,w:true},h:ANBAU_H-0.06,keinDach:true});
+  /* Sued und West sind echte Hallen mit 6,4 m lichter Hoehe -
+     nur so haben Hochregale und Schwerlastregale ueberhaupt Platz. */
+  halle('lager_sued', LAY.lsued,{art:'lager',aussen:{e:true,s:true},h:HALLE_H});
+  halle('lager_west', LAY.lwest,{art:'lager',aussen:{s:true,n:true},h:HALLE_H,ex:blechMat()});
+  /* Basislager nach Sueden */
+  durchbruchWand('lager_sued',true,LAY.lbasis.z0,LAY.lbasis.x0,LAY.lbasis.x1,[[-17.5,-10.5]],lagerWall,null,null,HALLE_H);
+  /* Sued nach West */
+  durchbruchWand('lager_west',false,LAY.lwest.x1,LAY.lwest.z0,LAY.lwest.z1,[[-26.0,-13.0]],lagerWall,null,3.4,HALLE_H);
+  bauwand('lager_gross',-19.0,1.9,-9.0,1.9,2.5,ausbauText('lager_gross')[0],ausbauText('lager_gross')[1]);
 
-    /* Innenausbau erst nach dem Kauf */
-    const bo=new THREE.Mesh(new THREE.PlaneGeometry(x1-x0,11.8),floorMat);
-    bo.rotation.x=-Math.PI/2; bo.position.set((x0+x1)/2,0.015,0); scene.add(bo); zAdd(id,bo);
-    const ce=new THREE.Mesh(new THREE.PlaneGeometry(x1-x0+0.3,12.3),ceil);
-    ce.rotation.x=Math.PI/2; ce.position.set((x0+x1)/2+0.05,H-0.01,0); scene.add(ce); zAdd(id,ce);
-    /* Sockelleisten */
-    const base=std(0x1a2038);
-    zAdd(id,bbox(x1-x0,0.1,0.02,base,(x0+x1)/2,0.05,-5.89,null,false));
-    zAdd(id,bbox(0.02,0.1,11.8,base,x1-0.01,0.05,0,null,false));
-    for(const [za,zb] of [[-5.9,-4.4],[4.4,5.9]])
-      zAdd(id,bbox(0.02,0.1,zb-za,base,8.11,0.05,(za+zb)/2,null,false));
-    for(const x of [9.6,13.0]) for(const z of [-3.6,0,3.6]) leuchte(id,x,z,H);
-    roomAO(x0+0.02,x1-0.02,-5.88,5.78,id);
-    /* Bauwand im Durchbruch der alten Ostwand */
-    bauwand(id,8.0,-4.4,8.0,4.4,2.7,'ERWEITERUNG','Verkaufsfläche · über den Laptop freischalten');
-  }
-
-  /* ---------- 2) Lager nach Norden in den Anbau ----------
-     Die Huelle des Anbaus steht schon (05g). Hier kommt der Innenraum. */
-  {
-    const id='lager_gross', z0=2.1, z1=LAGER_Z2, x0=-19.9, x1=-8.1, AH=ANBAU_H-0.06;
-    const lc=concreteTex(); lc.repeat.set(6,2);
-    const bo=new THREE.Mesh(new THREE.PlaneGeometry(x1-x0,z1-z0),new THREE.MeshStandardMaterial({map:lc,roughness:0.85}));
-    bo.rotation.x=-Math.PI/2; bo.position.set((x0+x1)/2,0.015,(z0+z1)/2); scene.add(bo); zAdd(id,bo);
-    const ce=new THREE.Mesh(new THREE.PlaneGeometry(x1-x0+0.3,z1-z0+0.4),ceil);
-    ce.rotation.x=Math.PI/2; ce.position.set((x0+x1)/2,AH,(z0+z1)/2+0.1); scene.add(ce); zAdd(id,ce);
-    for(const x of [-17.5,-13.5,-9.8]) leuchte(id,x,4.0,AH);
-    roomAO(x0+0.02,x1-0.02,z0+0.02,5.93,id);
-    /* Bauwand im Durchbruch der Lager-Nordwand */
-    bauwand(id,-19.0,2.0,-9.0,2.0,2.6,'ERWEITERUNG','Lager · über den Laptop freischalten');
-  }
-
-  /* ---------- 3) Packstation im erweiterten Lager ---------- */
+  /* ---------- Packstation, Rampen, Logistikzentrum ---------- */
   buildPackstation();
-
+  buildWestrampen();
+  buildLogistik();
 }
 
 /* =========================================================
@@ -4099,6 +4327,434 @@ function ddlAbholung(){
 }
 
 /* =========================================================
+   Westrampen: drei Ladetore in der Westhalle und der grosse
+   Hof dahinter. Hier passen mehrere Auflieger nebeneinander -
+   der kleine Hof an der Basisrampe reicht dafuer nicht.
+   ========================================================= */
+const WRAMPEN=[-25.6,-18.6,-11.6];          /* Mitte der drei Tore in z */
+const WTOR={w:3.4,h:3.05};
+
+/* Trapezblech fuer Hallenwaende. Die Wand-UVs stehen in Metern,
+   deshalb passt ein einziges Material auf jede Wandlaenge. */
+let _blech=null;
+function blechMat(){
+  if(_blech) return _blech;
+  const t=tex(256,64,(g,W,H)=>{
+    g.fillStyle='#b9bec6'; g.fillRect(0,0,W,H);
+    /* eine Sicke je 32 px, also je 0,4 m */
+    for(let x=0;x<W;x+=32){
+      const gr=g.createLinearGradient(x,0,x+32,0);
+      gr.addColorStop(0.00,'#8f959e'); gr.addColorStop(0.16,'#cfd4da');
+      gr.addColorStop(0.42,'#e4e8ed'); gr.addColorStop(0.58,'#c4c9d1');
+      gr.addColorStop(0.84,'#9aa0a9'); gr.addColorStop(1.00,'#7d838c');
+      g.fillStyle=gr; g.fillRect(x,0,32,H);
+      g.fillStyle='rgba(255,255,255,.35)'; g.fillRect(x+12,0,2,H);
+      g.fillStyle='rgba(0,0,0,.18)';       g.fillRect(x+30,0,2,H);
+    }
+    for(let i=0;i<900;i++){ g.fillStyle=`rgba(0,0,0,${Math.random()*0.05})`; g.fillRect(Math.random()*W,Math.random()*H,2,2); }
+  });
+  t.wrapS=t.wrapT=THREE.RepeatWrapping; t.repeat.set(1/3.2,1/3.2); t.anisotropy=8;
+  _blech=new THREE.MeshStandardMaterial({map:t,roughness:0.52,metalness:0.38});
+  return _blech;
+}
+/* Sektionaltorblatt, geschlossen. Fuenf Panele, mittleres mit Fenstern. */
+let _torBlatt=null;
+function torBlattMat(){
+  if(_torBlatt) return _torBlatt;
+  const t=tex(512,640,(g,W,H)=>{
+    const ph=H/5;
+    for(let i=0;i<5;i++){
+      const y=i*ph;
+      const gr=g.createLinearGradient(0,y,0,y+ph);
+      gr.addColorStop(0,'#e9ebee'); gr.addColorStop(0.1,'#f4f5f7');
+      gr.addColorStop(0.5,'#dcdfe4'); gr.addColorStop(0.9,'#eff1f3'); gr.addColorStop(1,'#b7bcc3');
+      g.fillStyle=gr; g.fillRect(0,y,W,ph);
+      for(let k=y+18;k<y+ph-14;k+=22){ g.fillStyle='rgba(255,255,255,.45)'; g.fillRect(0,k,W,2);
+        g.fillStyle='rgba(110,116,126,.28)'; g.fillRect(0,k+2,W,3); }
+      g.fillStyle='rgba(50,56,66,.45)'; g.fillRect(0,y+ph-5,W,5);
+      if(i===1){ for(let k=0;k<4;k++){ const wx=48+k*108;
+          g.fillStyle='#6f7a88'; g.fillRect(wx-3,y+22,84,ph-47);
+          const gg=g.createLinearGradient(wx,y+24,wx+78,y+ph-26);
+          gg.addColorStop(0,'#aab8c8'); gg.addColorStop(0.5,'#8d9db0'); gg.addColorStop(1,'#c3cedb');
+          g.fillStyle=gg; g.fillRect(wx,y+25,78,ph-53); } }
+    }
+    /* Schmutzrand und Anfahrspuren unten */
+    const gr2=g.createLinearGradient(0,H-90,0,H);
+    gr2.addColorStop(0,'rgba(86,82,74,0)'); gr2.addColorStop(1,'rgba(86,82,74,.3)');
+    g.fillStyle=gr2; g.fillRect(0,H-90,W,90);
+    for(let i=0;i<20;i++){ g.strokeStyle=`rgba(120,126,136,${rand(0.08,0.24)})`; g.lineWidth=rand(0.6,1.8);
+      const x=Math.random()*W,y=H-rand(0,150); g.beginPath(); g.moveTo(x,y); g.lineTo(x+rand(-70,70),y+rand(-4,4)); g.stroke(); }
+  });
+  t.anisotropy=8;
+  _torBlatt=new THREE.MeshStandardMaterial({map:t,metalness:0.4,roughness:0.46});
+  return _torBlatt;
+}
+/* Ein Ladetor in der Westwand, von aussen gesehen. Das Tor bleibt zu. */
+function westTor(cz,nr){
+  const X=LAY.lwest.x0, steel=std(0x8d939d,{metalness:0.6,roughness:0.42});
+  const dark=std(0x2a2e38,{metalness:0.5,roughness:0.45});
+  const rub=std(0x16181d,{roughness:0.96});
+  const g=new THREE.Group(); g.position.set(X,0,cz); scene.add(g);
+  /* Torblatt buendig in der Laibung - von aussen wie von innen ein
+     Sektionaltor, nicht ein schwarzes Loch. */
+  const tb=torBlattMat(), kante=std(0x6f757e,{metalness:0.5,roughness:0.5});
+  const bl=new THREE.Mesh(new THREE.BoxGeometry(0.1,WTOR.h,WTOR.w),[tb,tb,kante,kante,kante,kante]);
+  bl.position.set(-0.15,WTOR.h/2,0); g.add(bl);
+  /* Zarge */
+  for(const s of [-1,1]) bbox(0.3,WTOR.h+0.26,0.18,steel,-0.24,(WTOR.h+0.26)/2,s*(WTOR.w/2+0.09),g,false);
+  bbox(0.3,0.22,WTOR.w+0.36,steel,-0.24,WTOR.h+0.13,0,g,false);
+  /* Anfahrpuffer aus Gummi */
+  for(const s of [-1,1]){
+    bbox(0.22,0.52,0.28,rub,-0.33,1.05,s*(WTOR.w/2+0.28),g,true);
+    bbox(0.06,0.56,0.32,dark,-0.21,1.05,s*(WTOR.w/2+0.28),g,false);
+  }
+  /* Vordach mit Schneeauflage */
+  const cano=bbox(1.35,0.1,WTOR.w+1.2,std(0x3a4150,{metalness:0.5}),-0.85,WTOR.h+0.52,0,g,false);
+  cano.rotation.z=-0.09;
+  const sn=bbox(1.38,0.08,WTOR.w+1.24,std(0xeef2f8,{roughness:1}),-0.85,WTOR.h+0.61,0,g,false);
+  sn.rotation.z=-0.09;
+  for(const s of [-1,1]){ const st=bbox(0.07,0.95,0.07,steel,-1.2,WTOR.h+0.1,s*(WTOR.w/2+0.4),g,false); st.rotation.z=-0.74; }
+  /* Torbeschlaege: Fuehrungsschienen und Antriebskasten sieht man
+     von aussen nicht - dafuer Ampel, Taster und Torkennung. */
+  bbox(0.14,0.44,0.14,dark,-0.3,2.0,WTOR.w/2+0.62,g,false);
+  const lr=new THREE.MeshStandardMaterial({color:LIN(0x300808),emissive:LIN(0xff2a2a),emissiveIntensity:1.2});
+  const lg=new THREE.MeshStandardMaterial({color:LIN(0x082a12),emissive:LIN(0x3dff7a),emissiveIntensity:0});
+  for(const [m,y] of [[lr,2.12],[lg,1.9]]){
+    const c2=new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.05,0.04,10),m);
+    c2.rotation.z=Math.PI/2; c2.position.set(-0.38,y,WTOR.w/2+0.62); g.add(c2);
+  }
+  bbox(0.12,0.24,0.16,std(0xf2c230,{roughness:0.6}),-0.3,1.35,WTOR.w/2+0.62,g,false);
+  for(let k=0;k<3;k++) bbox(0.04,0.05,0.05,std([0x2f9e57,0xd8352a,0x2a2e38][k]),-0.37,1.43-k*0.07,WTOR.w/2+0.62,g,false);
+  /* Torkennung ueber dem Vordach */
+  plane(0.8,0.62,new THREE.MeshStandardMaterial({map:tex(160,124,(c,W,H)=>{
+    c.fillStyle='#1b2340'; c.fillRect(0,0,W,H);
+    c.strokeStyle='#ffd23f'; c.lineWidth=6; c.strokeRect(5,5,W-10,H-10);
+    c.fillStyle='#ffd23f'; c.font=BUN(78); c.textAlign='center'; c.textBaseline='middle';
+    c.fillText(String(nr),W/2,H/2+6); })}),-0.22,WTOR.h+0.95,0,-Math.PI/2,g);
+  /* Poller neben der Torlaibung */
+  for(const s of [-1,1]){
+    const pz=cz+s*(WTOR.w/2+1.15);
+    bbox(0.2,0.95,0.2,std(0xf2c230,{roughness:0.7}),X-0.9,0.48,pz,null,true);
+    bbox(0.22,0.14,0.22,std(0x1f1f24),X-0.9,0.86,pz,null,false);
+    col(X-1.05,X-0.75,pz-0.15,pz+0.15);
+  }
+}
+/* Die Westwand der Halle: massive Abschnitte, drei Tore, Sturz darueber. */
+function westWand(){
+  const x0=LAY.lwest.x0, z0=LAY.lwest.z0, z1=LAY.lwest.z1, H=HALLE_H, ex=blechMat();
+  let z=z0;
+  for(const cz of WRAMPEN){
+    const a=cz-WTOR.w/2, b=cz+WTOR.w/2;
+    if(a>z){ wall(x0-LW,x0,z,a,0,H,'+x',lagerWall,ex); col(x0-LW,x0,z,a); }
+    wall(x0-LW,x0,a,b,WTOR.h,H,'+x',lagerWall,ex);
+    col(x0-LW,x0,a,b);                     /* die Tore bleiben zu */
+    z=b;
+  }
+  if(z1>z){ wall(x0-LW,x0,z,z1,0,H,'+x',lagerWall,ex); col(x0-LW,x0,z,z1); }
+  /* Sockelband gegen Spritzwasser */
+  bbox(0.06,1.05,z1-z0,std(0x4a5058,{roughness:0.9}),x0-LW-0.03,0.525,(z0+z1)/2,null,false);
+}
+/* Flutlichtmast fuer den Hof */
+function hofMast(x,z,ry){
+  const g=new THREE.Group(); g.position.set(x,0,z); g.rotation.y=ry||0; scene.add(g);
+  const mast=std(0x4b515c,{metalness:0.62,roughness:0.38});
+  const dark=std(0x2a2e38,{metalness:0.5,roughness:0.5});
+  const so=new THREE.Mesh(new THREE.CylinderGeometry(0.2,0.26,0.4,12),dark); so.position.y=0.2; g.add(so);
+  const m1=new THREE.Mesh(new THREE.CylinderGeometry(0.09,0.14,7.4,12),mast);
+  m1.position.y=4.1; if(HIQ) m1.castShadow=true; g.add(m1);
+  bbox(1.7,0.09,0.09,mast,0,7.7,0,g,false);
+  for(const s of [-1,1]){
+    const geh=rbox(0.62,0.3,0.34,0.04,dark,s*0.62,7.55,0,g); geh.rotation.x=0.42;
+    const lm=new THREE.MeshStandardMaterial({color:LIN(0x23262e),emissive:LIN(0xfff2d6),emissiveIntensity:0}); lampMats.push(lm);
+    const fl=bbox(0.54,0.03,0.26,lm,s*0.62,7.4,0.06,g,false); fl.rotation.x=0.42;
+  }
+  col(x-0.3,x+0.3,z-0.3,z+0.3);
+}
+/* Abgestellter Auflieger, von aussen. Kein Innenraum noetig. */
+function abstellAuflieger(x,z,ry,name,farbe){
+  const g=new THREE.Group(); g.position.set(x,0,z); g.rotation.y=ry; scene.add(g);
+  const L=13.2, W2=2.55, HH=2.95, FY=1.15;      /* Ladeflaechenhoehe */
+  const alu=std(0xb6bcc4,{metalness:0.55,roughness:0.42});
+  const dark=std(0x22262e,{metalness:0.4,roughness:0.6});
+  /* Aufbau mit Werbung auf den Seiten */
+  const side=new THREE.MeshStandardMaterial({map:liveryTex(name,farbe,false),roughness:0.74});
+  const body=new THREE.Mesh(new THREE.BoxGeometry(L,HH,W2),[dark,dark,alu,dark,side,side]);
+  body.position.set(0,FY+HH/2,0); if(HIQ){ body.castShadow=true; body.receiveShadow=true; } g.add(body);
+  bbox(L+0.05,0.1,W2+0.06,alu,0,FY+HH-0.04,0,g,false);
+  bbox(L+0.05,0.16,W2+0.06,std(0x8a7f6a,{roughness:0.9}),0,FY+0.1,0,g,false);
+  /* Hecktueren mit Scharnieren und Stangen */
+  for(const s of [-1,1]) bbox(0.06,HH-0.2,W2/2-0.08,std(0xe6e8ec,{roughness:0.6}),-L/2-0.04,FY+HH/2,s*W2/4,g,false);
+  for(const s of [-1,1]) for(const o of [0.28,0.9]){
+    const st=new THREE.Mesh(new THREE.CylinderGeometry(0.022,0.022,HH-0.34,8),alu);
+    st.position.set(-L/2-0.09,FY+HH/2,s*o*W2/2.2); g.add(st); }
+  /* Chassis, Stuetzwinden, Achsen und Heckleuchten: ein Mesh.
+     Vierzig Einzelteile je Auflieger waeren fuer eine Kulisse zu viel. */
+  const gRahmen=new THREE.BoxGeometry(L-0.3,0.22,0.16), gWinde=new THREE.BoxGeometry(0.14,0.85,0.14);
+  const gFuss=new THREE.BoxGeometry(0.3,0.06,0.3), gKoenig=new THREE.BoxGeometry(0.9,0.12,1.5);
+  const gRad=new THREE.CylinderGeometry(0.52,0.52,0.28,HIQ?16:10);
+  const gFelge=new THREE.CylinderGeometry(0.24,0.24,0.3,HIQ?14:8);
+  const gAchse=new THREE.BoxGeometry(0.3,0.14,W2-0.3), gKotfl=new THREE.BoxGeometry(1.2,0.3,0.1);
+  const gSchutz=new THREE.BoxGeometry(0.1,0.16,W2-0.2), gRueck=new THREE.BoxGeometry(0.05,0.2,0.34);
+  const gBlink=new THREE.BoxGeometry(0.05,0.08,0.12), gSchild=new THREE.BoxGeometry(0.03,0.12,0.5);
+  const ch=[];
+  for(const s of [-1,1]) ch.push({geo:gRahmen,m:tm(0,FY-0.16,s*0.42),color:0x5a6068});
+  for(const s of [-1,1]){ ch.push({geo:gWinde,m:tm(L/2-3.3,FY-0.62,s*0.95),color:0x22262e});
+    ch.push({geo:gFuss,m:tm(L/2-3.3,FY-1.04,s*0.95),color:0x22262e}); }
+  ch.push({geo:gKoenig,m:tm(L/2-0.7,FY-0.2,0),color:0x6a7078});
+  for(let a=0;a<3;a++){ const ax=-L/2+2.1+a*1.34;
+    for(const s of [-1,1]) for(const dz of [0.16,-0.16]){
+      const pz=s*(W2/2-0.22)+s*dz;
+      ch.push({geo:gRad,  m:tm(ax,0.52,pz,Math.PI/2,0,0),color:0x16181d});
+      ch.push({geo:gFelge,m:tm(ax,0.52,pz,Math.PI/2,0,0),color:0x9aa1ac}); }
+    ch.push({geo:gAchse,m:tm(ax,0.52,0),color:0x22262e});
+    for(const s of [-1,1]) ch.push({geo:gKotfl,m:tm(ax,1.05,s*(W2/2-0.02)),color:0x3a4048}); }
+  ch.push({geo:gSchutz,m:tm(-L/2+0.1,0.62,0),color:0x6a7078});
+  for(const s of [-1,1]){
+    ch.push({geo:gRueck,m:tm(-L/2-0.09,0.92,s*(W2/2-0.35)),color:0x9a2a24});
+    ch.push({geo:gBlink,m:tm(-L/2-0.09,1.12,s*(W2/2-0.35)),color:0xf2a01c}); }
+  ch.push({geo:gSchild,m:tm(-L/2-0.1,0.72,0),color:0xf2f0e8});
+  const chm=new THREE.Mesh(merge(ch),new THREE.MeshStandardMaterial({vertexColors:true,metalness:0.35,roughness:0.62}));
+  if(HIQ) chm.castShadow=true; g.add(chm);
+  [gRahmen,gWinde,gFuss,gKoenig,gRad,gFelge,gAchse,gKotfl,gSchutz,gRueck,gBlink,gSchild].forEach(q=>q.dispose());
+  /* Kollision als ein Block */
+  const c=Math.cos(ry), s2=Math.sin(ry);
+  const hx=Math.abs(c)*L/2+Math.abs(s2)*W2/2, hz=Math.abs(s2)*L/2+Math.abs(c)*W2/2;
+  col(x-hx,x+hx,z-hz,z+hz);
+  return g;
+}
+/* Palettenstapel als Hofdeko. Ein Stapel sind ueber achtzig Bretter -
+   die werden zu einem einzigen Mesh verschmolzen. */
+let _holzM=null;
+function holzMat(){ if(!_holzM) _holzM=new THREE.MeshStandardMaterial({vertexColors:true,roughness:0.94}); return _holzM; }
+function palettenStapel(x,z,n,ry){
+  const kl=new THREE.BoxGeometry(1.16,0.08,0.13), br=new THREE.BoxGeometry(1.16,0.03,0.09);
+  const qu=new THREE.BoxGeometry(0.1,0.04,1.0), sn=new THREE.BoxGeometry(1.2,0.05,1.05);
+  const ps=[];
+  for(let i=0;i<n;i++){ const y=i*0.15, jx=rand(-0.02,0.02);
+    for(const dz of [-0.48,0,0.48]) ps.push({geo:kl,m:tm(jx,y+0.04,dz),color:0x8e7550});
+    for(const dz of [-0.48,-0.24,0,0.24,0.48]) ps.push({geo:br,m:tm(0,y+0.1,dz),color:0xa58a5e});
+    for(const dx of [-0.5,0,0.5]) ps.push({geo:qu,m:tm(dx,y+0.125,0),color:0xa58a5e}); }
+  ps.push({geo:sn,m:tm(0,n*0.15+0.14,0),color:0xeef2f8});
+  const m=new THREE.Mesh(merge(ps),holzMat());
+  m.position.set(x,0,z); m.rotation.y=ry||0;
+  if(HIQ){ m.castShadow=true; m.receiveShadow=true; }
+  scene.add(m);
+  kl.dispose(); br.dispose(); qu.dispose(); sn.dispose();
+  col(x-0.62,x+0.62,z-0.55,z+0.55);
+  return m;
+}
+function buildWestrampen(){
+  const r=LAY.hof2;
+  westWand();
+  for(let i=0;i<WRAMPEN.length;i++) westTor(WRAMPEN[i],i+1);
+  /* Hofbelag: grosse Betonplatte mit Zufahrt zum alten Hof */
+  const bt=concreteTex(); bt.repeat.set((r.x1-r.x0)/2.4,(r.z1-r.z0)/2.4);
+  flat(r.x1-r.x0,r.z1-r.z0,new THREE.MeshStandardMaterial({map:bt,roughness:0.93,color:LIN(0xaaaeb4)}),
+       (r.x0+r.x1)/2,0.013,(r.z0+r.z1)/2);
+  const zt=concreteTex(); zt.repeat.set(10,2);
+  flat(21,4.2,new THREE.MeshStandardMaterial({map:zt,roughness:0.93,color:LIN(0xa4a8ae)}),-44.5,0.012,-1.5);
+  flat(6,7,new THREE.MeshStandardMaterial({map:zt,roughness:0.93,color:LIN(0xa4a8ae)}),-52,0.012,-4.0);
+  /* Stellplatzmarkierung vor jedem Tor */
+  const gelb=std(0xf2c230);
+  for(const cz of WRAMPEN){
+    for(const s of [-1,1]) flat(14,0.14,gelb,r.x1-7.4,0.017,cz+s*1.9);
+    flat(0.14,3.8,gelb,r.x1-14.4,0.017,cz);
+    for(let k=0;k<5;k++) flat(0.5,0.1,gelb,r.x1-1.2-k*1.1,0.017,cz);
+  }
+  /* Wartespur fuer abgestellte Auflieger: laengs an der Westseite,
+     nebeneinander, damit sie nicht quer im Hof stehen. */
+  for(let i=0;i<4;i++){ const px=r.x0+2.2+i*3.6;
+    for(const s of [-1,1]) flat(0.14,14,gelb,px+s*1.5,0.017,r.z0+9.6); }
+  abstellAuflieger(r.x0+2.2, r.z0+9.6,Math.PI/2,'Kowalski',TRUCKCOL.kowalski);
+  abstellAuflieger(r.x0+5.8, r.z0+9.2,Math.PI/2,'Mertens', TRUCKCOL.mertens);
+  abstellAuflieger(r.x0+9.4, r.z0+10.0,Math.PI/2,'Ratzke', TRUCKCOL.ratzke);
+  /* Zaun: Westseite, Sueden, Norden mit Einfahrt */
+  const ZH=2.2;
+  zaunLauf(r.x0,r.z0,r.x0,r.z1,ZH);
+  zaunLauf(r.x0,r.z0,r.x1,r.z0,ZH);
+  zaunLauf(r.x0,r.z1,-55,r.z1,ZH);
+  zaunLauf(-49,r.z1,r.x1,r.z1,ZH);
+  col(r.x0-0.1,r.x0+0.1,r.z0,r.z1);
+  col(r.x0,r.x1,r.z0-0.1,r.z0+0.1);
+  col(r.x0,-55,r.z1-0.1,r.z1+0.1);
+  col(-49,r.x1,r.z1-0.1,r.z1+0.1);
+  /* Schiebetor, offen an den Zaun gefahren */
+  { const g2=new THREE.Group(); g2.position.set(-49,0,r.z1); scene.add(g2);
+    const steel=std(0x8d939d,{metalness:0.6,roughness:0.42});
+    bbox(6.4,0.1,0.1,steel,3.2,ZH-0.1,0.16,g2,false);
+    bbox(6.4,0.1,0.1,steel,3.2,0.34,0.16,g2,false);
+    for(let i=0;i<21;i++) bbox(0.07,ZH-0.5,0.07,steel,0.2+i*0.31,ZH/2,0.16,g2,false);
+    for(const dx of [0.2,6.2]) bbox(0.1,ZH+0.2,0.1,steel,dx,ZH/2,0.16,g2,false);
+    col(-48.9,-42.6,r.z1+0.06,r.z1+0.26); }
+  /* Licht, Deko, Winterdienst */
+  hofMast(r.x0+1.6,-27.5,Math.PI/2); hofMast(r.x0+1.6,-11.5,Math.PI/2);
+  hofMast(-46.5,r.z0+1.6,0);         hofMast(-56.5,r.z1-1.6,Math.PI);
+  palettenStapel(r.x1-2.4,-29.0,7,0.1);
+  palettenStapel(r.x1-3.8,-28.8,5,-0.2);
+  palettenStapel(r.x1-2.6,-7.9,6,0.3);
+  /* Abrollcontainer an der Sued-Ecke */
+  { const cx=-58.5, cz=-28.4;
+    const cm=std(0x4a6f52,{metalness:0.35,roughness:0.7});
+    bbox(6.0,2.2,2.5,cm,cx,1.1,cz,null,true);
+    bbox(6.1,0.14,2.6,std(0xeef2f8,{roughness:1}),cx,2.24,cz,null,false);
+    for(let i=0;i<9;i++) bbox(0.08,2.1,2.56,std(0x3f6047,{metalness:0.3,roughness:0.75}),cx-2.8+i*0.7,1.1,cz,null,false);
+    col(cx-3.1,cx+3.1,cz-1.35,cz+1.35); }
+  /* Schneehaufen vom Raeumen, an den Zaun geschoben */
+  for(const [sx,sz,sw] of [[-62,-24,3.2],[-62,-16,2.6],[-52,-29,3.6],[-45,-9.4,2.4]]){
+    const h=new THREE.Mesh(new THREE.SphereGeometry(sw/2,HIQ?14:8,8),std(0xeef2f8,{roughness:1}));
+    h.scale.set(1,0.42,0.8); h.position.set(sx,0.1,sz); scene.add(h);
+    col(sx-sw/2,sx+sw/2,sz-sw/2.6,sz+sw/2.6); }
+  /* Hinweisschild an der Einfahrt */
+  { const px=-49.8, pz=r.z1+0.2;
+    bbox(0.1,2.4,0.1,std(0x59606b,{metalness:0.6}),px,1.2,pz,null,false);
+    plane(1.5,0.95,new THREE.MeshStandardMaterial({side:THREE.DoubleSide,map:tex(300,190,(g,W,H)=>{
+      g.fillStyle='#1b2340'; g.fillRect(0,0,W,H);
+      g.strokeStyle='#ffd23f'; g.lineWidth=6; g.strokeRect(7,7,W-14,H-14);
+      g.textAlign='center'; g.textBaseline='middle';
+      g.fillStyle='#ffd23f'; g.font=BUN(32); g.fillText('WESTRAMPE',W/2,44);
+      g.fillStyle='#bcd0ea'; g.font=BAR(24);
+      g.fillText('Tor 1 – 3 · Auflieger',W/2,86);
+      g.fillText('Schrittgeschwindigkeit',W/2,118);
+      g.fillStyle='#ff9d92'; g.font=BAR(22); g.fillText('Rauchen und Feuer verboten',W/2,152); })}),
+      px,1.75,pz,Math.PI/2,null);
+    col(px-0.15,px+0.15,pz-0.15,pz+0.15); }
+}
+
+/* =========================================================
+   Logistikzentrum im Osten. Steht fertig hinter Zaun und
+   Bauschild, betreten kann man es noch nicht.
+   ========================================================= */
+const LOGI={
+  halle:{x0:46.5,x1:90.0,z0:-16.0,z1:7.5},
+  buero:{x0:46.5,x1:60.0,z0:7.5,  z1:14.0},
+  zaun :{x:41.0, z0:-16.0, z1:14.0},
+  hoehe:11.2, bh:7.4
+};
+function logiSchriftzug(){
+  return tex(1024,180,(g,W,H)=>{
+    g.fillStyle='#16213f'; g.fillRect(0,0,W,H);
+    const gr=g.createLinearGradient(0,0,0,H);
+    gr.addColorStop(0,'rgba(255,255,255,.12)'); gr.addColorStop(0.5,'rgba(255,255,255,0)');
+    g.fillStyle=gr; g.fillRect(0,0,W,H);
+    g.textAlign='left'; g.textBaseline='middle';
+    g.fillStyle='#ffd23f'; g.font=BUN(92); g.fillText('LOGISTIK',44,H/2-4);
+    g.fillStyle='#e8eefc'; g.font=BUN(92); g.fillText('ZENTRUM',430,H/2-4);
+    g.fillStyle='#7f8db0'; g.font=BAR(34); g.fillText('UMSCHLAG · KOMMISSIONIERUNG · VERSAND',44,H-34);
+    /* Rautenlogo rechts */
+    g.save(); g.translate(W-96,H/2); g.rotate(Math.PI/4);
+    g.fillStyle='#ffd23f'; g.fillRect(-42,-42,84,84);
+    g.fillStyle='#16213f'; g.fillRect(-22,-22,44,44); g.restore();
+  });
+}
+/* Fensterband fuer das Buero: zwei Geschosse, ein Teil beleuchtet */
+function logiGlas(len,rows){
+  const cols=Math.max(4,Math.round(len/1.8));
+  return tex(1024,256,(g,W,H)=>{
+    g.fillStyle='#2b3348'; g.fillRect(0,0,W,H);
+    const cw=W/cols, rh=H/rows;
+    for(let c=0;c<cols;c++) for(let r=0;r<rows;r++){
+      const x=c*cw+3, y=r*rh+4, w=cw-6, h=rh-8;
+      const gg=g.createLinearGradient(x,y,x+w,y+h);
+      if(Math.random()<0.42){ gg.addColorStop(0,'#f6e6bd'); gg.addColorStop(1,'#d8c294'); }
+      else { gg.addColorStop(0,'#9fb4cc'); gg.addColorStop(0.55,'#6d8299'); gg.addColorStop(1,'#b6c8dc'); }
+      g.fillStyle=gg; g.fillRect(x,y,w,h);
+      g.fillStyle='rgba(255,255,255,.22)'; g.fillRect(x,y,w,4);
+      g.fillStyle='rgba(0,0,0,.18)'; g.fillRect(x,y+h-4,w,4);
+    }
+    g.fillStyle='#c9ced6';
+    for(let c=0;c<=cols;c++) g.fillRect(c*cw-2,0,5,H);
+    for(let r=0;r<=rows;r++) g.fillRect(0,r*rh-2,W,5);
+  });
+}
+function buildLogistik(){
+  const H=LOGI.hoehe, ha=LOGI.halle, bu=LOGI.buero;
+  const blech=blechMat();
+  const sockel=std(0x3f454e,{roughness:0.88});
+  const attika=std(0x2b2f3a,{metalness:0.4,roughness:0.6});
+  const steel=std(0x8d939d,{metalness:0.6,roughness:0.42});
+  /* --- Halle --- */
+  const hw=ha.x1-ha.x0, hd=ha.z1-ha.z0, hcx=(ha.x0+ha.x1)/2, hcz=(ha.z0+ha.z1)/2;
+  const halleM=new THREE.Mesh(new THREE.BoxGeometry(hw,H,hd),blech);
+  halleM.position.set(hcx,H/2,hcz);
+  if(HIQ){ halleM.castShadow=true; halleM.receiveShadow=true; }
+  scene.add(halleM); occluders.push(halleM); meterUV(halleM);
+  bbox(hw+0.1,1.3,hd+0.1,sockel,hcx,0.65,hcz,null,false);
+  bbox(hw+0.5,0.7,hd+0.5,attika,hcx,H+0.3,hcz,null,false);
+  bbox(hw+0.2,0.5,hd+0.2,std(0x1b2340,{roughness:0.8}),hcx,H-1.4,hcz,null,false);
+  /* Dach mit Lichtband und Lueftern */
+  flat(hw-0.6,hd-0.6,std(0x4a4f58,{roughness:0.95}),hcx,H+0.02,hcz);
+  for(let i=0;i<7;i++) flat(3.4,hd-4,new THREE.MeshBasicMaterial({color:0xdfe6ef,toneMapped:false}),ha.x0+4+i*6.2,H+0.05,hcz);
+  for(let i=0;i<5;i++){ const rx=ha.x0+6+i*8.4;
+    rbox(2.4,1.1,2.0,0.1,std(0xa7adb6,{metalness:0.5,roughness:0.5}),rx,H+0.85,ha.z1-4.5,null);
+    bbox(2.5,0.12,2.1,std(0xeef2f8,{roughness:1}),rx,H+1.46,ha.z1-4.5,null,false); }
+  /* --- Buerokopf --- */
+  const bw=bu.x1-bu.x0, bd=bu.z1-bu.z0, bcx=(bu.x0+bu.x1)/2, bcz=(bu.z0+bu.z1)/2;
+  const glasN=new THREE.MeshStandardMaterial({map:logiGlas(bw,2),roughness:0.22,metalness:0.4});
+  const glasW=new THREE.MeshStandardMaterial({map:logiGlas(bd,2),roughness:0.22,metalness:0.4});
+  const putz=std(0xdde1e7,{roughness:0.9});
+  const bm=new THREE.Mesh(new THREE.BoxGeometry(bw,LOGI.bh,bd),[glasW,glasW,putz,putz,glasN,glasN]);
+  bm.position.set(bcx,LOGI.bh/2,bcz);
+  if(HIQ){ bm.castShadow=true; bm.receiveShadow=true; }
+  scene.add(bm); occluders.push(bm);
+  bbox(bw+0.4,0.45,bd+0.4,attika,bcx,LOGI.bh+0.22,bcz,null,false);
+  bbox(bw+0.1,0.9,bd+0.1,sockel,bcx,0.45,bcz,null,false);
+  /* Eingangsvordach und Schriftzug */
+  bbox(5.0,0.18,2.4,std(0x9aa1ac,{metalness:0.6,roughness:0.4}),bu.x0+3.2,3.35,bu.z1+1.0,null,false);
+  for(const dx of [-2.0,2.0]) bbox(0.09,3.3,0.09,steel,bu.x0+3.2+dx,1.65,bu.z1+1.9,null,false);
+  plane(11.0,1.95,new THREE.MeshStandardMaterial({map:logiSchriftzug()}),bcx,LOGI.bh-1.5,bu.z1+0.06,0,null);
+  /* --- Ladetore an der Westfassade der Halle --- */
+  const tm2=torBlattMat();
+  for(let i=0;i<4;i++){
+    const tz=ha.z0+3.4+i*5.6;
+    const bl=new THREE.Mesh(new THREE.PlaneGeometry(3.6,4.2),tm2);
+    bl.rotation.y=-Math.PI/2; bl.position.set(ha.x0-0.06,2.1,tz); scene.add(bl);
+    for(const s of [-1,1]) bbox(0.16,4.5,0.2,steel,ha.x0-0.08,2.25,tz+s*1.9,null,false);
+    bbox(0.16,0.24,4.0,steel,ha.x0-0.08,4.32,tz,null,false);
+    bbox(1.2,0.12,4.6,std(0x3a4150,{metalness:0.5}),ha.x0-0.65,4.85,tz,null,false);
+    for(const s of [-1,1]) bbox(0.2,0.6,0.26,std(0x16181d,{roughness:0.96}),ha.x0-0.16,1.2,tz+s*2.1,null,false);
+  }
+  /* --- Vorplatz, Zaun, Bauschild --- */
+  const ap=concreteTex(); ap.repeat.set(3,14);
+  flat(6.0,30.0,new THREE.MeshStandardMaterial({map:ap,roughness:0.93,color:LIN(0xa8acb2)}),43.5,0.013,-1.0);
+  const ap2=concreteTex(); ap2.repeat.set(10,3);
+  flat(hw-2,5.5,new THREE.MeshStandardMaterial({map:ap2,roughness:0.93,color:LIN(0xa8acb2)}),hcx,0.012,ha.z1+2.8);
+  for(let i=0;i<4;i++){ const tz=ha.z0+3.4+i*5.6;
+    for(const s of [-1,1]) flat(4.4,0.14,std(0xf2c230),ha.x0-2.6,0.017,tz+s*2.4); }
+  /* Zaun mit Bauschild: faellt, sobald das Zentrum freigeschaltet wird */
+  const Z=LOGI.zaun, ZH=2.4;
+  zaunLauf(Z.x,Z.z0,Z.x,Z.z1,ZH);
+  zaunLauf(Z.x,Z.z0,ha.x0,Z.z0,ZH);
+  zaunLauf(Z.x,Z.z1,bu.x0,Z.z1,ZH);
+  col(Z.x-0.12,Z.x+0.12,Z.z0,Z.z1);
+  col(Z.x,ha.x0,Z.z0-0.12,Z.z0+0.12);
+  col(Z.x,bu.x0,Z.z1-0.12,Z.z1+0.12);
+  zWandCol('logistik',col(Z.x,ha.x1+1,Z.z0,Z.z1));
+  /* Doppeltor in der Zaunflucht, verschlossen */
+  { const g2=new THREE.Group(); g2.position.set(Z.x,0,2.0); scene.add(g2);
+    for(const s of [-1,1]){
+      bbox(0.1,0.1,3.0,steel,0,ZH-0.14,s*1.55,g2,false);
+      bbox(0.1,0.1,3.0,steel,0,0.4,s*1.55,g2,false);
+      for(let i=0;i<10;i++) bbox(0.07,ZH-0.6,0.07,steel,0,ZH/2,s*0.1+s*i*0.32,g2,false);
+      bbox(0.12,ZH+0.3,0.12,steel,0,(ZH+0.3)/2,s*3.05,g2,false); }
+    bbox(0.14,0.3,0.24,std(0xf2c230,{roughness:0.6}),0.1,1.15,0,g2,false); }
+  /* Bauschild am Zaun */
+  { const sx=Z.x+0.16, sz=-6.0;
+    const t=bauwandTex('LOGISTIKZENTRUM','Bauabschnitt 2 · über den Laptop freischalten');
+    t.repeat.set(1,1);
+    zWand('logistik',plane(5.4,2.4,new THREE.MeshStandardMaterial({map:t,side:THREE.DoubleSide}),sx,1.45,sz,-Math.PI/2,null));
+    for(const dz of [-2.4,2.4]) zWand('logistik',bbox(0.1,2.8,0.1,std(0x59606b,{metalness:0.6}),sx,1.4,sz+dz,null,false)); }
+  /* Abgestellte Auflieger hinter dem Zaun, damit es belebt wirkt */
+  abstellAuflieger(ha.x0-9.0,ha.z0+4.0,Math.PI,'Import',TRUCKCOL.import);
+  abstellAuflieger(ha.x0-9.0,ha.z0+9.6,Math.PI,'Premium',TRUCKCOL.premium);
+  /* Masten und Deko */
+  hofMast(ha.x0-7.4,ha.z0-1.0,Math.PI/2);
+  hofMast(ha.x0-7.4,ha.z1-1.0,Math.PI/2);
+  hofMast(bu.x1+4.0,Z.z1-2.0,Math.PI);
+  palettenStapel(ha.x0-3.2,ha.z1-1.2,8,0.2);
+  palettenStapel(ha.x0-4.6,ha.z1-1.4,6,-0.3);
+}
+
+/* =========================================================
    Oberflächenrelief und Ladendetails
    ========================================================= */
 /* Normal-Map aus einer Höhenzeichnung (Sobel) */
@@ -4162,8 +4818,9 @@ function stadtAdd(m){ m.userData.stadt=true; scene.add(m); return m; }
 
 /* Der Spielbereich bleibt frei: hier steht schon etwas */
 const STADT_FREI=[
-  {x0:-48,x1:26,z0:-27,z1:38},       /* Laden, Hof, Testfeld, eigener Gehweg */
-  {x0:-260,x1:260,z0:8,z1:23}        /* die Fahrbahn bleibt frei */
+  {x0:-88,x1:42,z0:-44,z1:38},       /* Laden, Lager, beide Hoefe, Testfeld  */
+  {x0:42, x1:96,z0:-20,z1:18},       /* Logistikzentrum mit Vorplatz         */
+  {x0:-260,x1:260,z0:8,z1:23}        /* die Fahrbahn bleibt frei             */
 ];
 function stadtFrei(x,z,r){
   for(const f of STADT_FREI)
@@ -4803,6 +5460,7 @@ function updateStadt(dt){
    ========================================================= */
 const movables=[];
 function applyFootprint(m){
+  if(typeof navDirty==='function') navDirty();
   if(m.col){ dropCol(m.col); m.col=null; }
   if(!m.fw) return;
   const s=Math.abs(Math.sin(m.g.rotation.y))>0.5, w=(s?m.fd:m.fw)/2, d=(s?m.fw:m.fd)/2;
@@ -5173,6 +5831,8 @@ function buildDesk(){
 const shelves=[];
 const shUp=std(0x4a5266,{metalness:0.5,roughness:0.45}), shBoard=std(0xd9dde4,{roughness:0.6}), shRail=std(0xc8322a,{roughness:0.5});
 const shSide=std(0xe4e7ec,{roughness:0.7}); const shelfStrips=[];
+let _gestell=null;
+function gestellMat(){ if(!_gestell) _gestell=new THREE.MeshStandardMaterial({vertexColors:true,metalness:0,roughness:0.72}); return _gestell; }
 const coldFrame=std(0xc8ccd4,{metalness:0.6,roughness:0.3});
 const coldGlass=new THREE.MeshStandardMaterial({color:LIN(0xd8ecff),transparent:true,opacity:0.2,roughness:0.05,metalness:0.2,depthWrite:false});
 const pegMat=new THREE.MeshStandardMaterial({roughness:0.8,map:(()=>{ const t=tex(128,128,(g,W,H)=>{ g.fillStyle='#e9ecf1'; g.fillRect(0,0,W,H); g.fillStyle='#9aa1ad'; for(let x=8;x<W;x+=16) for(let y=8;y<H;y+=16){ g.beginPath(); g.arc(x,y,2.2,0,Math.PI*2); g.fill(); } }); t.wrapS=t.wrapT=THREE.RepeatWrapping; t.repeat.set(4,4); return t; })()});
@@ -5196,56 +5856,96 @@ function slotLocal(t,idx,sh){
   return {x:-tw/2+L.w/2+c*(L.w+L.g), y:layer*L.h, z:L.K.d/2-0.03-L.d/2-row*(L.d+L.g)};
 }
 function slotFrei(sl){ return !sl.zone||zoneOffen(sl.zone); }
+/* Mittelgondeln und Eckregale brauchen den passenden Stellplatz */
+function slotPasst(K,sl){
+  const art=K.art||'wand';
+  if((sl.art||'wand')!==art) return false;
+  return !shelves.some(s=>Math.abs(s.g.position.x-sl.x)<0.05&&Math.abs(s.g.position.z-sl.z)<0.05);
+}
 function slotsOffen(){ return SLOTS.filter(slotFrei); }
+/* Gibt es noch einen freien Stellplatz fuer diesen Regaltyp? */
+function freiFuer(kindId){ const K=SHELFKIND[kindId]; return K?slotsOffen().some(sl=>slotPasst(K,sl)):false; }
+/* Ein Regal kann mehrere Warenseiten haben: das normale Regal eine,
+   die Mittelgondel zwei (Ware rundum) und das Eckregal zwei ueber Eck.
+   Jede Seite ist eine eigene Gruppe mit eigenen Faechern. */
+const FACE1=[{ry:0,ox:0,oz:0}];
+function seitenVon(K){ return K.seiten||FACE1; }
+function faceOf(sh,lv){ return seitenVon(kindOf(sh))[lv.face||0]; }
+/* Punkt in der Seitenebene -> Weltkoordinate */
+function faceWorld(sh,f,x,z){
+  const si=Math.sin(f.ry), c=Math.cos(f.ry);
+  return localToWorld(sh.g,f.ox+x*c+z*si,f.oz-x*si+z*c);
+}
 function createShelf(i,data){
   const kind=(data&&data.kind&&SHELFKIND[data.kind])?data.kind:'standard';
   const K=SHELFKIND[kind];
-  const g=new THREE.Group(); const frei=slotsOffen(); const s=data&&data.x!==undefined?data:frei[Math.min(i,frei.length-1)]||SLOTS[0];
+  const g=new THREE.Group(); const frei=slotsOffen().filter(sl=>slotPasst(K,sl));
+  const s=data&&data.x!==undefined?data:(frei[0]||slotsOffen()[0]||SLOTS[0]);
   g.position.set(s.x,0,s.z); g.rotation.y=s.ry||0; scene.add(g);
   const W=K.w, D=K.d, top=K.lv[K.lv.length-1]+0.48, hw=W/2, iw=W-0.1;
   const sh={i,g,kind,levels:[],W,D};
-  const frame=K.cold?coldFrame:shUp;
-  bbox(0.05,top,D,frame,-hw+0.025,top/2,0,g); bbox(0.05,top,D,frame,hw-0.025,top/2,0,g);
-  bbox(iw,top-0.1,0.02,K.cold?std(0xeef4fa,{roughness:0.5}):pegMat,0,top/2,-D/2+0.03,g);
-  bbox(W,0.06,D,frame,0,top+0.03,0,g); bbox(iw,0.08,D-0.02,frame,0,0.04,0,g);
-  for(const sx of [-1,1]) bbox(0.022,top-0.08,D,K.cold?coldFrame:shSide,sx*(hw+0.005),top/2,0,g,false);
-  bbox(W-0.06,0.14,0.03,K.cold?coldFrame:shSide,0,0.11,D/2-0.005,g,false);
-  for(const sx of [-1,1]) for(const sz of [-1,1]) bbox(0.09,0.04,0.09,std(0x2a2e38),sx*(hw-0.1),0.02,sz*(D/2-0.1),g,false);
-  K.lv.forEach((y,li)=>{
-    bbox(iw,0.03,D-0.04,shBoard,0,y-0.015,0,g);
-    bbox(iw,0.05,0.014,K.cold?coldFrame:shRail,0,y-0.02,D/2-0.013,g,false);
-    bbox(iw,0.012,0.02,std(0xe8ecf2),0,y-0.045,D/2-0.011,g,false);
-    bbox(iw-0.04,0.018,0.05,frame,0,y-0.055,-D/2+0.06,g,false);
-    if(li>0||K.cold){ const strip=new THREE.MeshStandardMaterial({color:LIN(0xf5f7fb),emissive:LIN(K.cold?0xcfe8ff:0xfff2dc),emissiveIntensity:K.cold?1.1:0});
+  /* Das Gestell ist reine Kulisse und wird je Warenseite zu einem
+     Mesh verschmolzen - bei fuenfzig Regalen im Endausbau zaehlt das. */
+  const GB={}; const box=(w,h,d)=>GB[w+'|'+h+'|'+d]||(GB[w+'|'+h+'|'+d]=new THREE.BoxGeometry(w,h,d));
+  const rahmenFarbe=K.cold?0xc8ccd4:0x4a5266, seitenFarbe=K.cold?0xc8ccd4:0xe4e7ec;
+  seitenVon(K).forEach((f,fi)=>{
+    const fg=new THREE.Group(); fg.position.set(f.ox,0,f.oz); fg.rotation.y=f.ry; g.add(fg);
+    const st=[];   /* Gestell */
+    const li0=[];  /* Lichtleisten */
+    st.push({geo:box(0.05,top,D),m:tm(-hw+0.025,top/2,0),color:rahmenFarbe});
+    st.push({geo:box(0.05,top,D),m:tm( hw-0.025,top/2,0),color:rahmenFarbe});
+    st.push({geo:box(W,0.06,D),  m:tm(0,top+0.03,0),color:rahmenFarbe});
+    st.push({geo:box(iw,0.08,D-0.02),m:tm(0,0.04,0),color:rahmenFarbe});
+    for(const sx of [-1,1]) st.push({geo:box(0.022,top-0.08,D),m:tm(sx*(hw+0.005),top/2,0),color:seitenFarbe});
+    st.push({geo:box(W-0.06,0.14,0.03),m:tm(0,0.11,D/2-0.005),color:seitenFarbe});
+    for(const sx of [-1,1]) for(const sz of [-1,1])
+      st.push({geo:box(0.09,0.04,0.09),m:tm(sx*(hw-0.1),0.02,sz*(D/2-0.1)),color:0x2a2e38});
+    /* Rueckwand bleibt eigenes Mesh: Lochblech beziehungsweise Kuehlschrankwand */
+    bbox(iw,top-0.1,0.02,K.cold?std(0xeef4fa,{roughness:0.5}):pegMat,0,top/2,-D/2+0.03,fg);
+    K.lv.forEach((y,li)=>{
+      st.push({geo:box(iw,0.03,D-0.04),m:tm(0,y-0.015,0),color:0xd9dde4});
+      st.push({geo:box(iw,0.05,0.014),m:tm(0,y-0.02,D/2-0.013),color:K.cold?0xc8ccd4:0xc8322a});
+      st.push({geo:box(iw,0.012,0.02),m:tm(0,y-0.045,D/2-0.011),color:0xe8ecf2});
+      st.push({geo:box(iw-0.04,0.018,0.05),m:tm(0,y-0.055,-D/2+0.06),color:rahmenFarbe});
+      if(li>0||K.cold) li0.push({geo:box(iw-0.06,0.016,0.04),m:tm(0,y-0.048,D/2-0.07)});
+      const lt=tex(700,80,()=>{}); lt.anisotropy=8;
+      plane(Math.min(0.46,iw*0.46),0.052,new THREE.MeshBasicMaterial({map:lt,toneMapped:false}),0,y-0.02,D/2-0.004,0,fg);
+      const hit=bbox(iw,0.42,D,hitM,0,y+0.21,0.01,fg,false);
+      const lv={sh,li,face:fi,type:null,count:0,q:1,items:[],tex:lt,hit}; hit.userData={kind:'level',ref:lv}; sh.levels.push(lv);
+    });
+    /* Kopfschild ueber jeder Warenseite */
+    if(fi===0) sh.headTex=tex(1024,160,()=>{});
+    const hy=top+(K.cold?0.34:0.18);
+    st.push({geo:box(W-0.04,0.28,0.05),m:tm(0,hy,0.02),color:0x1b2340});
+    plane(W-0.1,0.24,new THREE.MeshBasicMaterial({map:sh.headTex,toneMapped:false}),0,hy,0.051,0,fg);
+    const gest=new THREE.Mesh(merge(st),gestellMat());
+    if(HIQ){ gest.castShadow=true; gest.receiveShadow=true; } fg.add(gest);
+    if(li0.length){
+      const strip=new THREE.MeshStandardMaterial({color:LIN(0xf5f7fb),emissive:LIN(K.cold?0xcfe8ff:0xfff2dc),emissiveIntensity:K.cold?1.1:0});
       if(!K.cold) shelfStrips.push(strip);
-      bbox(iw-0.06,0.016,0.04,strip,0,y-0.048,D/2-0.07,g,false); }
-    const lt=tex(700,80,()=>{}); lt.anisotropy=8;
-    plane(Math.min(0.46,iw*0.46),0.052,new THREE.MeshBasicMaterial({map:lt,toneMapped:false}),0,y-0.02,D/2-0.004,0,g);
-    const hit=bbox(iw,0.42,D,hitM,0,y+0.21,0.01,g,false);
-    const lv={sh,li,type:null,count:0,q:1,items:[],tex:lt,hit}; hit.userData={kind:'level',ref:lv}; sh.levels.push(lv);
-  });
-  if(K.cold){
-    for(const sx of [-1,1]){
-      bbox(W/2-0.02,top-0.14,0.03,coldGlass,sx*W/4,top/2,D/2-0.002,g,false);
-      bbox(0.03,top-0.14,0.04,coldFrame,sx*(W/2-0.03),top/2,D/2,g,false);
-      bbox(0.035,0.5,0.05,std(0xdfe3ea,{metalness:0.6}),sx*0.06,top*0.55,D/2+0.03,g,false);
+      fg.add(new THREE.Mesh(merge(li0),strip));
     }
-    bbox(W,0.16,D,coldFrame,0,top+0.12,0,g);
-    plane(W*0.8,0.11,new THREE.MeshBasicMaterial({toneMapped:false,map:tex(256,36,(c,Wc,Hc)=>{ c.fillStyle='#0e2a44'; c.fillRect(0,0,Wc,Hc); c.fillStyle='#8fd6ff'; c.font=BUN(22); c.textAlign='center'; c.textBaseline='middle'; c.fillText('GEKÜHLT  4 °C',Wc/2,Hc/2+1); })}),0,top+0.12,D/2+0.005,0,g);
-  }
-  sh.headTex=tex(1024,160,()=>{});
-  bbox(W-0.04,0.28,0.05,std(0x1b2340),0,top+(K.cold?0.34:0.18),0.02,g,false);
-  plane(W-0.1,0.24,new THREE.MeshBasicMaterial({map:sh.headTex,toneMapped:false}),0,top+(K.cold?0.34:0.18),0.051,0,g);
+    if(K.cold){
+      for(const sx of [-1,1]){
+        bbox(W/2-0.02,top-0.14,0.03,coldGlass,sx*W/4,top/2,D/2-0.002,fg,false);
+        bbox(0.03,top-0.14,0.04,coldFrame,sx*(W/2-0.03),top/2,D/2,fg,false);
+        bbox(0.035,0.5,0.05,std(0xdfe3ea,{metalness:0.6}),sx*0.06,top*0.55,D/2+0.03,fg,false);
+      }
+      bbox(W,0.16,D,coldFrame,0,top+0.12,0,fg);
+      plane(W*0.8,0.11,new THREE.MeshBasicMaterial({toneMapped:false,map:tex(256,36,(c,Wc,Hc)=>{ c.fillStyle='#0e2a44'; c.fillRect(0,0,Wc,Hc); c.fillStyle='#8fd6ff'; c.font=BUN(22); c.textAlign='center'; c.textBaseline='middle'; c.fillText('GEKÜHLT  4 °C',Wc/2,Hc/2+1); })}),0,top+0.12,D/2+0.005,0,fg);
+    }
+  });
+  for(const k in GB) GB[k].dispose();
   sh.headY=top+(K.cold?0.34:0.18);
-  sh.mov=addMovable({kind:'shelf',name:K.name,g,fw:W+0.06,fd:D+0.04,ref:sh,onPlace:()=>syncShelf(sh)});
+  sh.mov=addMovable({kind:'shelf',name:K.name,g,fw:(K.fw||W)+0.06,fd:(K.fd||D)+0.04,ref:sh,onPlace:()=>syncShelf(sh)});
   shelves.push(sh);
   if(data&&data.levels) data.levels.forEach((ld,li)=>{ if(ld&&ld.type&&P[ld.type]&&sh.levels[li]){ const n=Math.min(ld.count|0,layout(ld.type,sh).cap); for(let k=0;k<n;k++) addToLevel(sh.levels[li],ld.type,ld.q||1); } });
   sh.levels.forEach(updateLabel); updateHead(sh);
   return sh;
 }
-function shelfStand(sh){ return localToWorld(sh.g,0,kindOf(sh).d/2+0.65); }
-function itemMatrix(sh,lv,idx,jit){ const p=slotLocal(lv.type,idx,sh), w=localToWorld(sh.g,p.x,p.z);
-  return mx(w.x,kindOf(sh).lv[lv.li]+p.y,w.z,sh.g.rotation.y+jit); }
+function shelfStand(sh,lv){ const K=kindOf(sh); return faceWorld(sh,lv?faceOf(sh,lv):seitenVon(K)[0],0,K.d/2+0.65); }
+function itemMatrix(sh,lv,idx,jit){ const f=faceOf(sh,lv), p=slotLocal(lv.type,idx,sh), w=faceWorld(sh,f,p.x,p.z);
+  return mx(w.x,kindOf(sh).lv[lv.li]+p.y,w.z,sh.g.rotation.y+f.ry+jit); }
 function syncShelf(sh){ sh.levels.forEach(lv=>{ lv.items.forEach((h,k)=>{ if(lv.type) h.pool.set(h,itemMatrix(sh,lv,k,h.jit||0)); }); }); }
 const HEADNAME={0:['SILVESTER-ZUBEHÖR','#2f7fd0'],1:['KLEINFEUERWERK F1','#2f9e57'],2:['FEUERWERK F2 · AB 18','#c8322a']};
 function updateHead(sh){
@@ -5282,7 +5982,7 @@ function addToLevel(lv,t,q){
 }
 function removeFromLevel(lv){ const h=lv.items.pop(); if(h) h.pool.remove(h); lv.count--; if(lv.count<=0){ lv.count=0; lv.type=null; lv.q=1; } updateLabel(lv); updateHead(lv.sh); }
 function allLevels(){ const a=[]; shelves.forEach(s=>s.levels.forEach(l=>a.push(l))); return a; }
-function findLevel(t,from){ let best=null,bd=1e9; for(const l of allLevels()){ if(l.type===t&&l.count>0){ const d=from?from.distanceTo(shelfStand(l.sh)):0; if(d<bd){ bd=d; best=l; } } } return best; }
+function findLevel(t,from){ let best=null,bd=1e9; for(const l of allLevels()){ if(l.type===t&&l.count>0){ const d=from?from.distanceTo(shelfStand(l.sh,l)):0; if(d<bd){ bd=d; best=l; } } } return best; }
 /* Größtes Fach, das dieses Produkt überhaupt aufnehmen kann */
 function shelfCapOf(t){ let m=0; shelves.forEach(sh=>{ if(shelfAccepts(sh,t)) m=Math.max(m,layout(t,sh).cap); }); return m; }
 function shelfAccepts(sh,t){ const K=kindOf(sh); return K.cold?!!P[t].cold:true; }
@@ -5300,6 +6000,21 @@ function emptyLevel(t){ if(!canShelf(t)) return null;
    Lager
    ========================================================= */
 const racks=[], RLV=[0.14,0.94,1.74];
+/* Regaltypen im Lager. Alles bleibt in Reichweite: das oberste Fach
+   liegt so hoch, dass man es von unten noch anvisieren kann. */
+const RACKKIND={
+  standard:{id:'standard',name:'Lagerregal',     w:2.44,zo:0.30,lv:RLV,                          sp:[-0.8,0,0.8],          cost:0,  step:0,  lvl:1, hoch:2.34},
+  hoch:    {id:'hoch',    name:'Hochregal',      w:2.44,zo:0.30,lv:[0.14,1.02,1.90,2.78,3.66],   sp:[-0.8,0,0.8],          cost:520,step:150,lvl:12,hoch:4.26},
+  schwer:  {id:'schwer',  name:'Schwerlastregal',w:3.30,zo:0.42,lv:[0.16,1.26,2.36,3.46],        sp:[-1.2,-0.4,0.4,1.2],   cost:880,step:240,lvl:18,hoch:4.20}
+};
+const RACKORDER=['standard','hoch','schwer'];
+function rackKindOf(rk){ return RACKKIND[rk&&rk.kind]||RACKKIND.standard; }
+function rackCount(k){ return racks.filter(r=>r.kind===k).length; }
+/* Ein Stellplatz nimmt nur Regale, die unter die Decke passen */
+function rackPasst(K,sl){ return K.hoch+0.5<=(sl.h||WH); }
+function racksOffen(){ return RACKS.filter(x=>!x.zone||zoneOffen(x.zone)); }
+function rackPlatzFrei(K){ return racksOffen().filter(sl=>rackPasst(K,sl)&&!racks.some(r=>Math.abs(r.g.position.x-sl.x)<0.05&&Math.abs(r.g.position.z-sl.z)<0.05)); }
+function rackFreiFuer(kindId){ const K=RACKKIND[kindId]; return K?rackPlatzFrei(K).length>0:false; }
 /* Was liegt gerade drin? Die drei haeufigsten Sorten auf das Schild. */
 function drawRackSchild(rk){
   if(!rk||!rk.schildTex) return;
@@ -5329,12 +6044,11 @@ function drawRackSchild(rk){
 }
 function refreshRackSchilder(){ racks.forEach(r=>{ if(r) drawRackSchild(r); }); }
 const rackBlue=std(0x2f5d9e,{metalness:0.4,roughness:0.5}), rackOrange=std(0xe06a1f,{metalness:0.3,roughness:0.5}), deck=std(0x8d939d,{metalness:0.5,roughness:0.5});
-function createRack(i,data){
-  const rf=RACKS.filter(x=>!x.zone||zoneOffen(x.zone));
-  const r=data&&data.x!==undefined?data:rf[Math.min(i,rf.length-1)]||RACKS[0], g=new THREE.Group();
-  g.position.set(r.x,0,r.z); g.rotation.y=r.ry||0; scene.add(g);
-  const HT=2.34, XO=1.22, ZO=0.3;
-  /* Gelochte Stützen als Textur, damit das Profil erkennbar bleibt */
+/* Stuetzenprofil und Blechauflage einmal erzeugen und teilen -
+   bei ueber dreissig Regalen sonst dreissig Texturen im Speicher. */
+let _postM=null,_deckM=null,_rahmenM=null;
+function rackMats(){
+  if(_postM) return;
   const holeT=tex(64,512,(c,W,H)=>{
     c.fillStyle='#2f5d9e'; c.fillRect(0,0,W,H);
     c.fillStyle='rgba(255,255,255,.16)'; c.fillRect(0,0,6,H);
@@ -5345,11 +6059,7 @@ function createRack(i,data){
     }
     for(let i2=0;i2<700;i2++){ c.fillStyle=`rgba(0,0,0,${Math.random()*0.07})`; c.fillRect(Math.random()*W,Math.random()*H,2,2); }
   });
-  const postM=new THREE.MeshStandardMaterial({map:holeT,metalness:0.35,roughness:0.5});
-  const braceM=std(0x2a538c,{metalness:0.4,roughness:0.5});
-  const beamM=std(0xe06a1f,{metalness:0.3,roughness:0.45});
-  const beamTop=std(0xf08a3a,{metalness:0.3,roughness:0.45});
-  const connM=std(0x1f2a3a,{metalness:0.5,roughness:0.42});
+  _postM=new THREE.MeshStandardMaterial({map:holeT,metalness:0.35,roughness:0.5});
   /* Glatte, lackierte Stahlblechauflage statt Spanplattenoptik */
   const boardT=tex(256,256,(c,W,H)=>{
     const g0=c.createLinearGradient(0,0,0,H);
@@ -5361,45 +6071,63 @@ function createRack(i,data){
     c.fillStyle='rgba(40,46,56,.22)'; c.fillRect(0,0,W,4); c.fillRect(0,H-4,W,4);
   });
   boardT.wrapS=boardT.wrapT=THREE.RepeatWrapping; boardT.repeat.set(3,1); boardT.anisotropy=8;
-  const deckM=new THREE.MeshStandardMaterial({map:boardT,roughness:0.38,metalness:0.45});
-  /* Rahmen: Stützen, Fußplatten, Diagonalverband */
+  _deckM=new THREE.MeshStandardMaterial({map:boardT,roughness:0.38,metalness:0.45});
+  _rahmenM=new THREE.MeshStandardMaterial({vertexColors:true,metalness:0.38,roughness:0.46});
+}
+function createRack(i,data){
+  const kind=(data&&data.kind&&RACKKIND[data.kind])?data.kind:'standard';
+  const K=RACKKIND[kind];
+  /* Stellplatz: gespeicherte Koordinate, sonst der erste freie, in den
+     dieser Regaltyp auch hineinpasst. */
+  let slot=null;
+  if(!(data&&data.x!==undefined)){ const frei=rackPlatzFrei(K); slot=frei[0]||racksOffen().filter(sl=>rackPasst(K,sl))[0]||RACKS[0]; }
+  const r=data&&data.x!==undefined?data:slot, g=new THREE.Group();
+  g.position.set(r.x,0,r.z); g.rotation.y=r.ry||0; scene.add(g);
+  const HT=K.hoch, XO=K.w/2, ZO=K.zo, BW=K.w;
+  rackMats();
+  const GB={}; const box=(w,h,d)=>GB[w+'|'+h+'|'+d]||(GB[w+'|'+h+'|'+d]=new THREE.BoxGeometry(w,h,d));
+  const fr=[];                                 /* alles Starre in einem Mesh */
+  /* Rahmen: Stuetzen, Fussplatten, Diagonalverband */
   for(const x of [-XO,XO]){
     for(const z of [-ZO,ZO]){
-      bbox(0.085,HT,0.075,postM,x,HT/2,z,g);
-      bbox(0.2,0.022,0.17,connM,x,0.011,z,g,false);
-      for(const bx of [-0.06,0.06]) bbox(0.022,0.03,0.022,std(0x8d939d,{metalness:0.6}),x+bx,0.03,z,g,false);
+      const po=bbox(0.085,HT,0.075,_postM,x,HT/2,z,g);
+      fr.push({geo:box(0.2,0.022,0.17),m:tm(x,0.011,z),color:0x1f2a3a});
+      for(const bx of [-0.06,0.06]) fr.push({geo:box(0.022,0.03,0.022),m:tm(x+bx,0.03,z),color:0x8d939d});
     }
-    /* Waagerechte Riegel und Diagonalen zwischen Vorder- und Hinterstiel */
-    for(const y of [0.42,1.12,1.82]) bbox(0.04,0.04,2*ZO,braceM,x,y,0,g,false);
-    for(let k=0;k<3;k++){
-      const d=bbox(0.035,0.035,0.78,braceM,x,0.77+k*0.7,0,g,false);
-      d.rotation.x=(k%2?1:-1)*0.69;
-    }
+    /* Waagerechte Riegel und Diagonalen ueber die ganze Rahmenhoehe */
+    const nR=Math.max(3,Math.round(HT/0.7));
+    for(let k=0;k<nR;k++) fr.push({geo:box(0.04,0.04,2*ZO),m:tm(x,0.42+k*0.7,0),color:0x2a538c});
+    for(let k=0;k<nR-1;k++)
+      fr.push({geo:box(0.035,0.035,2*ZO*1.3+0.06),m:tm(x,0.77+k*0.7,0,(k%2?1:-1)*Math.atan2(0.7,2*ZO),0,0),color:0x2a538c});
   }
-  const rk={i,g,slots:[]};
-  RLV.forEach((y,li)=>{
+  const rk={i,g,kind,slot:slot||null,slots:[]};
+  const sw=(K.sp.length>1?K.sp[1]-K.sp[0]:0.8)-0.02;
+  K.lv.forEach((y,li)=>{
     for(const z of [-ZO+0.03,ZO-0.03]){
       /* Traverse als Kastenprofil mit Auflagelippe */
-      bbox(2.44,0.095,0.05,beamM,0,y-0.05,z,g);
-      bbox(2.44,0.022,0.062,beamTop,0,y-0.005,z,g,false);
-      bbox(2.44,0.018,0.05,std(0xb4520f),0,y-0.098,z,g,false);
-      for(const x of [-1.22,1.22]){
-        bbox(0.05,0.14,0.07,connM,x,y-0.045,z,g,false);
-        bbox(0.022,0.035,0.022,std(0xd8d8d2,{metalness:0.6}),x*0.94,y+0.02,z,g,false);
+      fr.push({geo:box(BW,0.095,0.05),m:tm(0,y-0.05,z),color:0xe06a1f});
+      fr.push({geo:box(BW,0.022,0.062),m:tm(0,y-0.005,z),color:0xf08a3a});
+      fr.push({geo:box(BW,0.018,0.05),m:tm(0,y-0.098,z),color:0xb4520f});
+      for(const x of [-BW/2,BW/2]){
+        fr.push({geo:box(0.05,0.14,0.07),m:tm(x,y-0.045,z),color:0x1f2a3a});
+        fr.push({geo:box(0.022,0.035,0.022),m:tm(x*0.94,y+0.02,z),color:0xd8d8d2});
       }
     }
-    bbox(2.36,0.022,2*ZO-0.09,deckM,0,y-0.005,0,g);
-    [-0.8,0,0.8].forEach((x,si)=>{
-      const hit=bbox(0.78,0.74,0.6,hitM,x,y+0.37,0,g,false);
+    bbox(BW-0.08,0.022,2*ZO-0.09,_deckM,0,y-0.005,0,g);
+    K.sp.forEach((x,si)=>{
+      const hit=bbox(sw,0.74,2*ZO,hitM,x,y+0.37,0,g,false);
       const sl={rk,li,si,x,y,box:null,hit}; hit.userData={kind:'rslot',ref:sl}; rk.slots.push(sl);
     });
   });
+  const fm=new THREE.Mesh(merge(fr),_rahmenM);
+  if(HIQ){ fm.castShadow=true; fm.receiveShadow=true; } g.add(fm);
+  for(const k in GB) GB[k].dispose();
   /* Inhaltsschild: zeigt, was gerade im Regal liegt */
   rk.schildTex=tex(512,256,()=>{});
   plane(0.52,0.26,new THREE.MeshStandardMaterial({roughness:0.6,map:rk.schildTex}),
     -XO+0.34,1.6,ZO+0.012,0,g);
   bbox(0.56,0.3,0.012,std(0x2f3540,{metalness:0.4,roughness:0.5}),-XO+0.34,1.6,ZO+0.004,g,false);
-  rk.mov=addMovable({kind:'rack',name:'Lagerregal',g,fw:2.6,fd:0.74,ref:rk});
+  rk.mov=addMovable({kind:'rack',name:K.name,g,fw:BW+0.16,fd:2*ZO+0.14,ref:rk});
   rk.nr=racks.length; racks.push(rk); drawRackSchild(rk);
   if(data&&data.slots) data.slots.forEach((sd,k)=>{ if(sd&&P[sd.type]&&rk.slots[k]) putInSlot(rk.slots[k],sd.type,sd.count,sd.q); });
   drawRackSchild(rk);
@@ -5614,8 +6342,10 @@ function makeDekoMesh(id,g){
   }
   return {fw:0.5,fd:0.5};
 }
-function wallSpot(i){ const s=WALLSPOTS[i%WALLSPOTS.length]; return {x:s.x,z:s.z,ry:s.ry}; }
-function dekoSpot(i){ const s=DEKOSPOTS[i%DEKOSPOTS.length]; return {x:s.x,z:s.z,ry:0}; }
+/* Nur Plaetze in Raeumen, die schon freigeschaltet sind */
+function spotsOffen(a){ const f=a.filter(s=>!s.zone||zoneOffen(s.zone)); return f.length?f:a; }
+function wallSpot(i){ const a=spotsOffen(WALLSPOTS), s=a[i%a.length]; return {x:s.x,z:s.z,ry:s.ry}; }
+function dekoSpot(i){ const a=spotsOffen(DEKOSPOTS), s=a[i%a.length]; return {x:s.x,z:s.z,ry:0}; }
 function createDeko(id,pos){
   const D0=DEKO.find(x=>x.id===id)||{};
   const g=new THREE.Group();
@@ -5635,10 +6365,23 @@ function hasDeko(id){ return dekos.some(d=>d.id===id); }
 const dirts=[];
 const dirtTex=tex(64,64,(g,W,H)=>{ g.clearRect(0,0,W,H); for(let i=0;i<14;i++){ g.fillStyle=`rgba(${60+Math.random()*40},${50+Math.random()*30},${40+Math.random()*25},${0.35+Math.random()*0.35})`; g.beginPath(); g.ellipse(rand(14,50),rand(14,50),rand(4,13),rand(4,11),Math.random()*3,0,Math.PI*2); g.fill(); } });
 const dirtMat=new THREE.MeshBasicMaterial({map:dirtTex,transparent:true,depthWrite:false,opacity:0.85});
+/* Dreck faellt dort an, wo gelaufen wird - also in dem Raum, in dem
+   der Kunde gerade steht, nicht immer im Basisladen. */
+function dreckRaum(x,z){
+  const R=[LAY.basis];
+  if(zoneOffen('shop_gross')) R.push(LAY.ost1);
+  if(zoneOffen('shop_ost'))   R.push(LAY.ost2);
+  if(zoneOffen('shop_sued'))  R.push(LAY.sued);
+  let best=R[0],bd=1e9;
+  for(const r of R){ const dx=Math.max(r.x0-x,0,x-r.x1), dz=Math.max(r.z0-z,0,z-r.z1), d=dx*dx+dz*dz;
+    if(d<bd){ bd=d; best=r; } }
+  return best;
+}
 function addDirt(x,z){
   if(dirts.length>13) return;
+  const r=dreckRaum(x,z);
   const m=new THREE.Mesh(new THREE.PlaneGeometry(0.55,0.55),dirtMat); m.rotation.x=-Math.PI/2; m.rotation.z=Math.random()*3;
-  m.position.set(clamp(x,-7.4,7.4),0.028,clamp(z,-5.4,5.4)); m.renderOrder=3; scene.add(m);
+  m.position.set(clamp(x,r.x0+0.5,r.x1-0.5),0.028,clamp(z,r.z0+0.5,r.z1-0.5)); m.renderOrder=3; scene.add(m);
   const hit=bbox(0.6,0.5,0.6,hitM,m.position.x,0.25,m.position.z,null,false);
   const d={m,hit,work:0}; hit.userData={kind:'dirt',ref:d}; dirts.push(d); return d;
 }
@@ -6340,7 +7083,102 @@ function alertSprite(){ const s=new THREE.Sprite(new THREE.SpriteMaterial({map:a
 const customers=[], queue=[];
 const A=V(2.9,0,0.3), B=V(2.9,0,-4.4);
 const zoneOf=p=>p.z<-2.2?'back':'front';
+
+/* =========================================================
+   Wegenetz. Solange der Laden aus zwei Raeumen bestand, reichten
+   zwei feste Wegpunkte. Auf ueber tausend Quadratmetern mit
+   Gondelgassen und Eckregalen geht das nicht mehr: es gibt ein
+   Raster ueber die ganze Verkaufsflaeche, darin wird gesucht.
+   Das Raster wird nur neu gebaut, wenn sich etwas veraendert
+   hat - nach einem Umbau oder wenn ein Bereich aufgeht.
+   ========================================================= */
+const NAV={x0:-42.6,z0:-30.6,x1:38.6,z1:8.6,s:0.5,w:0,h:0,g:null,dist:null,dirty:true};
+function navDirty(){ NAV.dirty=true; }
+function navBuild(){
+  NAV.w=Math.ceil((NAV.x1-NAV.x0)/NAV.s); NAV.h=Math.ceil((NAV.z1-NAV.z0)/NAV.s);
+  const n=NAV.w*NAV.h;
+  if(!NAV.g||NAV.g.length!==n){ NAV.g=new Uint8Array(n); NAV.dist=new Int32Array(n); }
+  NAV.g.fill(0);
+  const R=0.3;                                    /* halbe Schulterbreite */
+  for(const c of colliders){
+    if(c.maxX<NAV.x0||c.minX>NAV.x1||c.maxZ<NAV.z0||c.minZ>NAV.z1) continue;
+    const i0=Math.max(0,Math.floor((c.minX-R-NAV.x0)/NAV.s)), i1=Math.min(NAV.w-1,Math.floor((c.maxX+R-NAV.x0)/NAV.s));
+    const k0=Math.max(0,Math.floor((c.minZ-R-NAV.z0)/NAV.s)), k1=Math.min(NAV.h-1,Math.floor((c.maxZ+R-NAV.z0)/NAV.s));
+    for(let i=i0;i<=i1;i++) for(let k=k0;k<=k1;k++) NAV.g[k*NAV.w+i]=1;
+  }
+  NAV.dirty=false;
+}
+function navIdx(x,z){
+  const i=Math.floor((x-NAV.x0)/NAV.s), k=Math.floor((z-NAV.z0)/NAV.s);
+  if(i<0||k<0||i>=NAV.w||k>=NAV.h) return -1;
+  return k*NAV.w+i;
+}
+function navPos(id){ return V(NAV.x0+(id%NAV.w+0.5)*NAV.s,0,NAV.z0+(Math.floor(id/NAV.w)+0.5)*NAV.s); }
+function navFrei(id){ return id>=0&&!NAV.g[id]; }
+/* Naechste begehbare Zelle, falls ein Ziel direkt an einem Regal liegt */
+function navNah(x,z){
+  const id=navIdx(x,z); if(navFrei(id)) return id;
+  for(let r=1;r<=6;r++){
+    let best=-1,bd=1e9;
+    for(let dx=-r;dx<=r;dx++) for(let dz=-r;dz<=r;dz++){
+      if(Math.max(Math.abs(dx),Math.abs(dz))!==r) continue;
+      const c=navIdx(x+dx*NAV.s,z+dz*NAV.s);
+      if(navFrei(c)){ const d=dx*dx+dz*dz; if(d<bd){ bd=d; best=c; } }
+    }
+    if(best>=0) return best;
+  }
+  return -1;
+}
+/* Sichtlinie zwischen zwei Punkten, in Rasterschritten geprueft */
+function navSicht(ax,az,bx,bz){
+  const d=Math.hypot(bx-ax,bz-az), n=Math.ceil(d/(NAV.s*0.6));
+  for(let i=1;i<n;i++){ const t=i/n;
+    if(!navFrei(navIdx(ax+(bx-ax)*t,az+(bz-az)*t))) return false; }
+  return true;
+}
+const _navQ=[];
+/* Breitensuche vom Ziel aus, danach die Kette glaetten */
+function navPfad(from,to){
+  const start=navNah(from.x,from.z), ziel=navNah(to.x,to.z);
+  if(start<0||ziel<0) return null;
+  if(start===ziel||navSicht(from.x,from.z,to.x,to.z)) return [to.clone?to.clone():V(to.x,0,to.z)];
+  const D=NAV.dist; D.fill(-1); D[ziel]=0;
+  let head=0; _navQ.length=0; _navQ.push(ziel);
+  const W=NAV.w, H=NAV.h;
+  while(head<_navQ.length){
+    const c=_navQ[head++]; if(c===start) break;
+    const i=c%W, k=(c-i)/W, d=D[c]+1;
+    if(i>0)   { const n2=c-1; if(!NAV.g[n2]&&D[n2]<0){ D[n2]=d; _navQ.push(n2); } }
+    if(i<W-1) { const n2=c+1; if(!NAV.g[n2]&&D[n2]<0){ D[n2]=d; _navQ.push(n2); } }
+    if(k>0)   { const n2=c-W; if(!NAV.g[n2]&&D[n2]<0){ D[n2]=d; _navQ.push(n2); } }
+    if(k<H-1) { const n2=c+W; if(!NAV.g[n2]&&D[n2]<0){ D[n2]=d; _navQ.push(n2); } }
+  }
+  if(D[start]<0) return null;
+  /* absteigend zum Ziel laufen */
+  const roh=[]; let c=start;
+  while(c!==ziel&&roh.length<4000){
+    const i=c%W, k=(c-i)/W; let best=-1,bd=D[c];
+    const nb=[i>0?c-1:-1,i<W-1?c+1:-1,k>0?c-W:-1,k<H-1?c+W:-1];
+    for(const n2 of nb) if(n2>=0&&D[n2]>=0&&D[n2]<bd){ bd=D[n2]; best=n2; }
+    if(best<0) break;
+    c=best; roh.push(c);
+  }
+  /* glaetten: immer zum entferntesten noch sichtbaren Punkt springen */
+  const out=[]; let px=from.x, pz=from.z, i2=0;
+  while(i2<roh.length){
+    let j=roh.length-1;
+    while(j>i2){ const p=navPos(roh[j]); if(navSicht(px,pz,p.x,p.z)) break; j--; }
+    const p=navPos(roh[j]); out.push(p); px=p.x; pz=p.z; i2=j+1;
+  }
+  out.push(to.clone?to.clone():V(to.x,0,to.z));
+  return out;
+}
 function route(from,to){
+  if(NAV.dirty) navBuild();
+  const p=navPfad(from,to);
+  if(p) return p;
+  /* Ausserhalb des Rasters - Strasse, Hof, geschlossenes Rolltor -
+     gelten weiter die festen Durchgaenge. */
   if((from.x<-20)!==(to.x<-20)){
     const a=V(-20.8,0,-2), b=V(-19.2,0,-2), mid=from.x<-20?b:a;
     return (from.x<-20?[a,b]:[b,a]).concat(route(mid,to));
@@ -6372,6 +7210,7 @@ function makeWishes(ct){
   const late=silvesterNah(S.day);
   let n=Math.random()<0.38?1:(Math.random()<0.6?2:(Math.random()<0.8?3:4));
   if(ct) n=Math.max(1,Math.round(n*ct.items));
+  n=Math.max(1,Math.round(n*korbGroesse()));
   for(let k=0;k<n;k++){
     const pool=avail.filter(a=>!used.has(a)); if(!pool.length) break;
     const wt=pool.map(t=>{ let w=P[t].weight;
@@ -7935,11 +8774,23 @@ function updatePlayer(dt){
 
 /* ---------- Umbaumodus ---------- */
 function rectOf(m,x,z,ry){ const s=Math.abs(Math.sin(ry))>0.5, w=(s?m.fd:m.fw)/2, d=(s?m.fw:m.fd)/2; return {minX:x-w,maxX:x+w,minZ:z-d,maxZ:z+d}; }
+/* Umgebaut werden darf in jedem Raum, der schon freigeschaltet ist.
+   Ein Moebel muss ganz in einen Raum passen - so landet nichts in
+   einem Durchgang oder halb in der Wand. */
+const UMBAU_RAUM=[
+  {r:LAY.basis},                        {r:LAY.lbasis},
+  {r:LAY.ost1, z:'shop_gross'},         {r:LAY.ost2, z:'shop_ost'},
+  {r:LAY.sued, z:'shop_sued'},          {r:LAY.lnord,z:'lager_gross'},
+  {r:LAY.lsued,z:'lager_sued'},         {r:LAY.lwest,z:'lager_west'}
+];
+function imRaum(minX,maxX,minZ,maxZ){
+  return UMBAU_RAUM.some(b=>(!b.z||zoneOffen(b.z))&&
+    minX>=b.r.x0+0.08&&maxX<=b.r.x1-0.08&&minZ>=b.r.z0+0.08&&maxZ<=b.r.z1-0.08);
+}
 function spotFree(m,x,z,ry){
-  if(!m.fw) return x>-14.8&&x<7.8&&z>-5.8&&z<5.9;
+  if(!m.fw) return imRaum(x,x,z,z);
   const r=rectOf(m,x,z,ry);
-  if(r.minX<-14.8||r.maxX>7.8||r.minZ<-5.8||r.maxZ>5.8) return false;
-  if(r.minX<-7.9&&r.maxX>-7.9) return false;
+  if(!imRaum(r.minX,r.maxX,r.minZ,r.maxZ)) return false;
   for(const c of colliders){ if(c.ref===m) continue;
     if(r.minX<c.maxX&&r.maxX>c.minX&&r.minZ<c.maxZ&&r.maxZ>c.minZ) return false; }
   return true;
@@ -8005,27 +8856,37 @@ function doSpray(){
 const ray=new THREE.Raycaster(), center=new THREE.Vector2(0,0);
 let target=null, repeatT=0, touchAct=false, mouseDown=false;
 function movableOf(obj){ let o=obj; while(o){ const m=movables.find(m=>m.g===o); if(m) return m; o=o.parent; } return null; }
+/* Der Strahl reicht hoechstens sechs Meter weit. Alles, was weiter
+   weg steht, muss gar nicht erst geprueft werden - bei ueber fuenfzig
+   Regalen und einem Lager voller Stellplaetze ist das der Unterschied
+   zwischen tausend Tests pro Bild und ein paar Dutzend. */
+function nahDran(p,r){ return Math.abs(p.x-pl.x)<r&&Math.abs(p.z-pl.z)<r; }
+function nahBox(a,r){ return pl.x>a.x0-r&&pl.x<a.x1+r&&pl.z>a.z0-r&&pl.z<a.z1+r; }
 function updateTarget(){
   ray.setFromCamera(center,camera); ray.far=build?6:3.3;
   target=null;
   if(build){
     if(grabbed){ target={kind:'placing'}; return; }
-    const list=movables.map(m=>m.g);
+    const list=movables.filter(m=>nahDran(m.g.position,8)).map(m=>m.g);
     const hits=ray.intersectObjects(list,true);
     if(hits.length){ const m=movableOf(hits[0].object); if(m) target={kind:'movable',ref:m}; }
     return;
   }
-  const list=[...floorBoxes.map(b=>b.mesh),...allLevels().map(l=>l.hit),...dirts.map(d=>d.hit)];
-  racks.forEach(r=>r.slots.forEach(s=>list.push(s.hit)));
+  const R=5.5;
+  const list=[];
+  floorBoxes.forEach(b=>{ if(nahDran(b.mesh.position,R)) list.push(b.mesh); });
+  shelves.forEach(sh=>{ if(nahDran(sh.g.position,R)) sh.levels.forEach(l=>list.push(l.hit)); });
+  dirts.forEach(d=>{ if(nahDran(d.m.position,R)) list.push(d.hit); });
+  racks.forEach(r=>{ if(nahDran(r.g.position,R)) r.slots.forEach(s=>list.push(s.hit)); });
   belt.forEach(b=>list.push(b.hit));
-  for(const k in stations) list.push(stations[k].hit);
+  for(const k in stations) if(nahDran(stations[k].g.position,R)) list.push(stations[k].hit);
   list.push(lapHit,doorSign,posHit,cardHit);
   if(pultHit) list.push(pultHit);
   if(gravHit) list.push(gravHit);
   if(packHit&&zoneOffen('packstation')) list.push(packHit);
   if(truck&&truck.state==='docked') truck.boxes.forEach(m=>list.push(m));
   list.push(...windowHits);
-  list.push(...occluders);
+  for(const o of occluders) if(!o.userData.aabb||nahBox(o.userData.aabb,6.5)) list.push(o);
   const hits=ray.intersectObjects(list,false);
   if(hits.length){ const ud=hits[0].object.userData; if(ud&&ud.kind) target={kind:ud.kind,ref:ud.ref,obj:hits[0].object}; }
 }
@@ -8358,13 +9219,19 @@ function sortimentBreite(){
 function sortimentZug(){ return 0.78+Math.min(1,sortimentBreite()/34)*0.52; }
 /* Der Ruf eines eingesessenen Ladens spricht sich herum */
 function bekanntheit(){ return 1+Math.min(20,Math.max(0,S.level-1))*0.019; }
+/* Wie gross ist der Laden? Ein Markt mit Gondelgassen spricht sich
+   anders herum als der Kiosk an der Ecke - und die Koerbe werden
+   voller, weil die Leute laenger drin unterwegs sind. */
+function ladenGroesse(){
+  return 1+(S.up.shop_gross?0.34:0)+(S.up.shop_ost?0.26:0)+(S.up.shop_sued?0.30:0);
+}
+function korbGroesse(){ return 0.78+ladenGroesse()*0.22; }
 function spawnInterval(){
   const m=dayMult(S.day)*evv('cust')*eroeffnung()*(1+0.05*(S.season-1))
-    *(0.55+S.rep/100)*bekanntheit()*sortimentZug()
-    *(S.up.shop_gross?1.34:1)
+    *(0.55+S.rep/100)*bekanntheit()*sortimentZug()*ladenGroesse()
     *(S.up.plakat?1.3:1)*(S.up.radio?1.25:1)*(S.up.tafel?1.3:1)*(S.up.kundenkarte?1.12:1)
     *(1+hype/50)*(0.85+ambienteScore()/180)*(0.75+cleanliness()/300);
-  return Math.max(0.65,9.2/m);
+  return Math.max(0.55,9.2/m);
 }
 function ruhetag(){ return isSunday(S.day)&&!S.up.tag4; }
 function openShop(){
@@ -8775,6 +9642,51 @@ function upPic(id){
         g.fillStyle='#37d977'; g.beginPath(); g.arc(bx+7,56,5,0,Math.PI*2); g.fill();
       }
       break;
+    case 'shelf_gondel':
+      bg('#1b2540','#0d1326');
+      /* Gondel von der Seite: Ware links und rechts */
+      g.fillStyle='#4a5266'; g.fillRect(104,26,16,104);
+      for(let i=0;i<4;i++){ const y=36+i*24;
+        g.fillStyle='#c9ced8'; g.fillRect(44,y,76,5); g.fillRect(104,y,76,5);
+        for(let k=0;k<3;k++){ g.fillStyle=['#d8b468','#c05a4a','#6fa8d8'][k];
+          g.fillRect(48+k*24,y-13,18,13); g.fillRect(110+k*24,y-13,18,13); } }
+      g.fillStyle='#1b2340'; g.fillRect(44,18,136,10); break;
+    case 'shelf_eck':
+      bg('#1b2540','#0d1326');
+      /* Eckregal von oben: zwei Schenkel ueber Eck */
+      g.fillStyle='#39434f'; g.fillRect(34,30,26,92); g.fillRect(34,96,152,26);
+      for(let i=0;i<5;i++){ g.fillStyle=['#d8b468','#c05a4a','#6fa8d8','#8fd6a8','#e0a0c8'][i%5];
+        g.fillRect(38,36+i*17,18,12); g.fillRect(66+i*24,100,18,12); }
+      g.strokeStyle='#6cf2a8'; g.lineWidth=3; g.strokeRect(32,28,156,96); break;
+    case 'rack_hoch': case 'rack_schwer':
+      bg('#16203a','#0b1222');
+      { const nf=id==='rack_schwer'?4:5, bw=id==='rack_schwer'?176:150, x0=(W-bw)/2;
+        g.fillStyle='#2f5d9e'; g.fillRect(x0-10,16,10,120); g.fillRect(x0+bw,16,10,120);
+        for(let i=0;i<nf;i++){ const y=26+i*(112/nf);
+          g.fillStyle='#e06a1f'; g.fillRect(x0,y,bw,6);
+          for(let k=0;k<(id==='rack_schwer'?4:3);k++){ g.fillStyle='#c9a978';
+            g.fillRect(x0+6+k*(bw-8)/(id==='rack_schwer'?4:3),y-14,(bw-24)/(id==='rack_schwer'?4:3),14); } } }
+      break;
+    case 'shop_ost': case 'shop_sued':
+      bg('#20283c','#121826');
+      g.fillStyle='#e9e4da'; g.fillRect(14,44,60,90);
+      g.fillStyle='#d9d4c6'; g.fillRect(76,34,60,100);
+      g.fillStyle='#8a4f3c'; g.fillRect(138,24,72,110);
+      for(let r=0;r<7;r++) for(let c2=0;c2<3;c2++){ g.fillStyle=r%2?'#7e4735':'#93573f'; g.fillRect(140+c2*24+(r%2?6:0),26+r*16,20,13); }
+      g.fillStyle='#ffd23f'; g.fillRect(14,34,60,10);
+      g.strokeStyle='#6cf2a8'; g.setLineDash([7,6]); g.lineWidth=4;
+      g.strokeRect(id==='shop_ost'?134:72,id==='shop_ost'?22:32,id==='shop_ost'?78:68,114); g.setLineDash([]);
+      break;
+    case 'lager_sued': case 'lager_west':
+      bg('#1a2030','#0e131e');
+      /* hohe Halle neben der niedrigen */
+      g.fillStyle='#a3a8b0'; g.fillRect(16,76,80,58);
+      g.fillStyle='#b9bec6'; g.fillRect(104,24,104,110);
+      for(let i=0;i<9;i++){ g.fillStyle=i%2?'#a7adb6':'#c4c9d1'; g.fillRect(106+i*11,26,7,106); }
+      g.fillStyle='#2b2f3a'; g.fillRect(100,18,112,10);
+      g.fillStyle='#e9ebee'; g.fillRect(128,86,24,46); g.fillRect(166,86,24,46);
+      g.strokeStyle='#6cf2a8'; g.setLineDash([7,6]); g.lineWidth=4; g.strokeRect(100,20,112,116); g.setLineDash([]);
+      g.fillStyle='#f2c230'; g.fillRect(16,134,192,6); break;
     case 'shop_gross':
       bg('#20283c','#121826');
       g.fillStyle='#8a4f3c'; g.fillRect(112,24,96,110);
@@ -9110,12 +10022,18 @@ function buyUp(id){
   const cost=u.cost(); if(S.money<cost) return;
   S.money=r2(S.money-cost); DS.upgrades=r2(DS.upgrades+cost);
   if(id.indexOf('shelf_')===0){ const k=id.slice(6); createShelf(shelves.length,{kind:k}); S.tut.shelf=true; toast(`${SHELFKIND[k].name} steht im Laden.`); }
-  else if(id==='rack'){ createRack(racks.length,null); toast('Neues Lagerregal steht im Lager.'); }
+  else if(id==='rack'||id.indexOf('rack_')===0){
+    const k=id==='rack'?'standard':id.slice(5);
+    createRack(racks.length,{kind:k}); toast(`${RACKKIND[k].name} steht im Lager.`); }
   else { S.up[id]=true;
     if(ZONEN[id]){
       oeffneZone(id,true);
       if(id==='shop_gross') toast('Die Wand ist durchbrochen. Deine Verkaufsfläche ist jetzt deutlich größer.','money');
+      else if(id==='shop_ost') toast('Das zweite Lokal gehört dir. Die Verkaufsfläche reicht jetzt bis ans Ende der Zeile.','money');
+      else if(id==='shop_sued') toast('Das Rückgebäude ist offen. Zwei Durchgänge, zwei Gondelgassen, 478 Quadratmeter.','money');
       else if(id==='lager_gross') toast('Das Lager ist geöffnet. Hinten ist Platz für Regale und die Packstation.','money');
+      else if(id==='lager_sued') toast('Die Halle Süd steht offen: 6,4 Meter hoch, Platz für Hochregale.','money');
+      else if(id==='lager_west') toast('Die Westhalle mit den drei Rampen gehört dir. Auf dem Hof stehen die Auflieger.','money');
       else if(id==='packstation'){ drawPackSchild(); toast(S.up.onlineshop?'Die Packstation steht. Ab jetzt kommen Onlinebestellungen als Pakete herein.':'Die Packstation steht. Für den Versand brauchst du noch den Onlineshop.','money'); }
       addXP(Math.round(cost/12),'Ausbau'); sfx.cash(); save(); return;
     }
@@ -9387,7 +10305,7 @@ function save(){
       deko:dekos.map(d2=>Object.assign({id:d2.id},mpos(d2.g))),
       ck:mpos(ckG),desk:mpos(deskG),
       shelves:shelves.map(s=>Object.assign(mpos(s.g),{kind:s.kind,levels:s.levels.map(l=>({type:l.type,count:l.count,q:l.q||1}))})),
-      racks:racks.map(r=>Object.assign(mpos(r.g),{slots:r.slots.map(s=>s.box?{type:s.box.type,count:s.box.count,q:s.box.q||1}:null)})),
+      racks:racks.map(r=>Object.assign(mpos(r.g),{kind:r.kind,slots:r.slots.map(s=>s.box?{type:s.box.type,count:s.box.count,q:s.box.q||1}:null)})),
       boxes:floorBoxes.map(b=>({type:b.type,count:b.count,q:b.q||1,x:+b.mesh.position.x.toFixed(2),y:+b.mesh.position.y.toFixed(2),z:+b.mesh.position.z.toFixed(2),ry:+b.mesh.rotation.y.toFixed(2)})).concat(pending.map(p=>({type:p.type,count:P[p.type].box,q:p.q||1}))).concat((typeof truck!=='undefined'&&truck?truck.cargo:[]).map(c=>({type:c.type,count:P[c.type].box,q:c.q||1})))};
     localStorage.setItem(KEY,JSON.stringify(d));
   }catch(e){}
@@ -9805,8 +10723,8 @@ fontsReady().then(()=>{
   camera.position.set(pl.x,1.65,pl.z); camera.rotation.set(pitch,yaw,0);
   lastF=-1; applyTOD(); updateSign(); buildStart(); requestAnimationFrame(frame);
   window.__bb={get S(){return S},get phase(){return phase},set phase(v){phase=v},set clock(v){clock=v},get clock(){return clock},pickUp,floorBoxes,shelves,racks,dekos,stockOne,openShop,step,customers,queue,belt,scanBelt,buyUp,buyDeko,get DS(){return DS},endDay,pending,save,openLaptop,closeLaptop,pl,addXP,hireStaff,fireStaff,staff,dirts,addDirt,movables,toggleBuild,setWall,setFloor,
-    stations,firePult,placeOnStation,igniteType,get order(){return order},get phone(){return phone},makeCall,answerPhone,haggle,acceptDeal,declineDeal,get truck(){return truck},spawnTruck,takeFromTruck,takeBox,updateTruck,get door(){return door},get tuer(){return tuer},tuerSet,tuerNah,updateSchiebetuer,doorOpen,doorIsOpen,trailerOccupied,LR,lrFront,TOR,orderReady,orderLeft,prioOf,setPrio,racks,updateCarry,spawnFloorBox,staff,SHELFKIND,layout,shelfCapOf,shelfAccepts,emptyLevel,dateInfo,dateStr,dateShort,seasonInfo,isSunday,dayMult,ruhetag,wageOf,setWage,friendliness,inPause,setPause,windowGrime,addGrime,cleanWindowTick,ambienteScore,bildBoost,fixedCosts,dailyWages,dispoLimit,verfuegbar,dispoZins,EVENTS,GOALS,CUSTTYPES,UPGRADES,STAFF,stockOf,spawnInterval,pools,todayEvent,evv,rollEvent,rollMarket,newGoal,goalAdd,goalTick,ekFactor,marktText,xpFor,rollCustType,priceTol,buyChance,regCustomer,makeWishes,nachfrageFaktor,shelfStockOf,buildGravur,refillGrav,openGravInput,closeGravInput,get gravBlanks(){return gravBlanks},set gravBlanks(v){gravBlanks=v},orderBox,buyPack,cartAdd,cartAddPack,cartOrder,cartClear,cartDel,cartGoods,cartFee,cartTotal,cartBoxes,cartLines,LIEFERZEIT_SEK,VERSAND,VERSANDFREI,lieferSek,
-    scene,P,EFF,EFF_ALL,EFF_KLEIN,EFF_GROSS,EFF_PRO,SHOWS,kugelbombe,shot,mine,FW,stations,stationOf,placedCount,togglePDA,openPDA,closePDA,setPost,get postOn(){return postOn},get pdaOn(){return pdaOn},showLength,psHuge,psBig,psMid,psSmall,rockets,emitters,timersLen:()=>timers.length,setView:(x,z,y,p)=>{pl.x=x;pl.z=z;yaw=y;pitch=p;aim=null;},camYaw:()=>yaw,camPitch:()=>pitch,playerPos:()=>({x:pl.x,z:pl.z}),pultYaw:()=>pultHit?pultHit.parent.rotation.y:null,applyShopName,shopName,shopSlogan,signTexPx:()=>signTex&&signTex.image?signTex.image.getContext('2d').getImageData(0,0,signTex.image.width,40).data.join(''):null,ckTexPx:()=>ckNameTex&&ckNameTex.image?ckNameTex.image.getContext('2d').getImageData(0,0,ckNameTex.image.width,60).data.join(''):null,testfeldMitte,STATION_POS,aimAt,UPGRADES,upPic,uhrZeiger:()=>({std:uhrStd?+uhrStd.rotation.z.toFixed(4):0,min:uhrMin?+uhrMin.rotation.z.toFixed(4):0}),drawRackSchild,get snowPts(){return snowPts},buildStadt,updateStadt,get stadtBoxen(){return stadtBoxen},get stadtBaeume(){return stadtBaeume},buildFernbaeume,schwaerme,beacons,silhouetten,get verkehrPts(){return verkehrPts},get rauchPts(){return rauchPts},get flieger(){return flieger},stadtFrei,STADT_FREI,WALLS,FLOORS,allLevels,addToLevel,putInSlot,regCustomer,ZONEN,zoneOffen,oeffneZone,applyZonen,SLOTS,RACKS,slotsOffen,colliders,sbLanes,buildSBKasse,packBereit,packOne,paketWert,bestellungenProTag,pakete,PAKET_BAYS,ddlAbholung,updateVersand,createShelf,createRack,startGame,promptFor,ERFOLGE,erfOffen,erfStufe,erfStand,erfZiel,erfFertig,erfAnteil,erfGeschafft,erfGesamt,stat,statAdd,statRekord,statVerkauf,bruchGesehen,gruppeVon,GRUPPE,TRAEGER,BRUCH,BRUCH_IDS,REZ_FARBEN,ETIKETT,traegerVon,traegerOffen,bruchOffen,bruchListe,rezeptWow,rezeptKosten,rezeptMarkt,rezeptHype,rezeptDauer,rezeptEntwicklung,rezeptGueltig,eigeneListe,eigenesEintragen,rezepteTick,rezProto,rezBauen,renderRezeptur,get entwurf(){return entwurf},set entwurf(v){entwurf=v},entwurfInit,ORDER,LIZENZEN,lizenzOf,hatLizenz,lizenzDaten,naechsteLizenz,buyLizenz,VOLA,volaOf,REGIME,marketOf,costOf,marktZiel,marktLuecke,meOf,miOf,marktDelta,marktNiveau,marktPhase,marktSchock,marktLabel,marktSchnitt,marktExtrem,marktChance,sortimentBreite,sortimentZug,bekanntheit,spawnInterval,rollMarkt,marktInit,inflOf,inflText,setPreisAufMarkt,igniteType,get packHit(){return packHit},get target(){return target},
+    stations,firePult,placeOnStation,igniteType,get order(){return order},get phone(){return phone},makeCall,answerPhone,haggle,acceptDeal,declineDeal,get truck(){return truck},spawnTruck,takeFromTruck,takeBox,updateTruck,get door(){return door},get tuer(){return tuer},tuerSet,tuerNah,updateSchiebetuer,doorOpen,doorIsOpen,trailerOccupied,LR,lrFront,TOR,orderReady,orderLeft,shipOne,removeFloorBox,prioOf,setPrio,racks,updateCarry,spawnFloorBox,staff,SHELFKIND,layout,shelfCapOf,shelfAccepts,emptyLevel,dateInfo,dateStr,dateShort,seasonInfo,isSunday,dayMult,ruhetag,wageOf,setWage,friendliness,inPause,setPause,windowGrime,addGrime,cleanWindowTick,ambienteScore,bildBoost,fixedCosts,dailyWages,dispoLimit,verfuegbar,dispoZins,EVENTS,GOALS,CUSTTYPES,UPGRADES,STAFF,stockOf,spawnInterval,pools,todayEvent,evv,rollEvent,rollMarket,newGoal,goalAdd,goalTick,ekFactor,marktText,xpFor,rollCustType,priceTol,buyChance,regCustomer,makeWishes,nachfrageFaktor,shelfStockOf,buildGravur,refillGrav,openGravInput,closeGravInput,get gravBlanks(){return gravBlanks},set gravBlanks(v){gravBlanks=v},orderBox,buyPack,cartAdd,cartAddPack,cartOrder,cartClear,cartDel,cartGoods,cartFee,cartTotal,cartBoxes,cartLines,LIEFERZEIT_SEK,VERSAND,VERSANDFREI,lieferSek,
+    scene,P,EFF,EFF_ALL,EFF_KLEIN,EFF_GROSS,EFF_PRO,SHOWS,kugelbombe,shot,mine,FW,stations,stationOf,placedCount,togglePDA,openPDA,closePDA,setPost,get postOn(){return postOn},get pdaOn(){return pdaOn},showLength,psHuge,psBig,psMid,psSmall,rockets,emitters,timersLen:()=>timers.length,setView:(x,z,y,p)=>{pl.x=x;pl.z=z;yaw=y;pitch=p;aim=null;},camYaw:()=>yaw,camPitch:()=>pitch,playerPos:()=>({x:pl.x,z:pl.z}),pultYaw:()=>pultHit?pultHit.parent.rotation.y:null,applyShopName,shopName,shopSlogan,signTexPx:()=>signTex&&signTex.image?signTex.image.getContext('2d').getImageData(0,0,signTex.image.width,40).data.join(''):null,ckTexPx:()=>ckNameTex&&ckNameTex.image?ckNameTex.image.getContext('2d').getImageData(0,0,ckNameTex.image.width,60).data.join(''):null,testfeldMitte,STATION_POS,aimAt,UPGRADES,upPic,uhrZeiger:()=>({std:uhrStd?+uhrStd.rotation.z.toFixed(4):0,min:uhrMin?+uhrMin.rotation.z.toFixed(4):0}),drawRackSchild,get snowPts(){return snowPts},buildStadt,updateStadt,get stadtBoxen(){return stadtBoxen},get stadtBaeume(){return stadtBaeume},buildFernbaeume,schwaerme,beacons,silhouetten,get verkehrPts(){return verkehrPts},get rauchPts(){return rauchPts},get flieger(){return flieger},stadtFrei,STADT_FREI,WALLS,FLOORS,allLevels,addToLevel,putInSlot,regCustomer,ZONEN,zoneOffen,oeffneZone,applyZonen,SLOTS,RACKS,slotsOffen,colliders,LAY,LOGI,WRAMPEN,flaeche,WTOR,RACKKIND,route,NAV,navFrei,navIdx,navBuild,shelfStand,shelves,sbLanes,buildSBKasse,packBereit,packOne,paketWert,bestellungenProTag,pakete,PAKET_BAYS,ddlAbholung,updateVersand,createShelf,createRack,startGame,promptFor,ERFOLGE,erfOffen,erfStufe,erfStand,erfZiel,erfFertig,erfAnteil,erfGeschafft,erfGesamt,stat,statAdd,statRekord,statVerkauf,bruchGesehen,gruppeVon,GRUPPE,TRAEGER,BRUCH,BRUCH_IDS,REZ_FARBEN,ETIKETT,traegerVon,traegerOffen,bruchOffen,bruchListe,rezeptWow,rezeptKosten,rezeptMarkt,rezeptHype,rezeptDauer,rezeptEntwicklung,rezeptGueltig,eigeneListe,eigenesEintragen,rezepteTick,rezProto,rezBauen,renderRezeptur,get entwurf(){return entwurf},set entwurf(v){entwurf=v},entwurfInit,ORDER,LIZENZEN,lizenzOf,hatLizenz,lizenzDaten,naechsteLizenz,buyLizenz,VOLA,volaOf,REGIME,marketOf,costOf,marktZiel,marktLuecke,meOf,miOf,marktDelta,marktNiveau,marktPhase,marktSchock,marktLabel,marktSchnitt,marktExtrem,marktChance,sortimentBreite,sortimentZug,bekanntheit,spawnInterval,rollMarkt,marktInit,inflOf,inflText,setPreisAufMarkt,igniteType,get packHit(){return packHit},get target(){return target},
     shot:()=>{ noLoop=true; camera.position.set(pl.x,1.65,pl.z); camera.rotation.set(pitch,yaw,0); camera.updateMatrixWorld(); updateTarget(); applyTOD(); renderFrame(0.016); return canvas.toDataURL('image/jpeg',0.85); },
     run:(sec,dt)=>{ noLoop=true; const n=Math.round(sec/(dt||0.05)); for(let i=0;i<n;i++) step(dt||0.05); }};
 });

@@ -409,6 +409,103 @@ function wallPreis(w){
   if((S.paint||[]).indexOf(w.id)>=0||!w.cost) return 'Gekauft';
   return 'Kosten '+eur(w.cost)+(S.level<w.lvl?` · ab Level ${w.lvl}`:'');
 }
+/* =========================================================
+   Onlineshop. Bis hierher lief der komplett im Hintergrund: der
+   Ausbau brachte Geld, die Bestellungen kamen als Pakete ins
+   Lager - eine Oberflaeche dafuer gab es nirgends. Jetzt laeuft
+   er ueber diesen Reiter.
+   ========================================================= */
+function onlineStufe(){
+  if(!S.up.onlineshop) return 'zu';
+  return packBereit()?'versand':'pauschal';
+}
+function onlineHint(){
+  const st=onlineStufe();
+  if(st==='zu') return 'Der Onlineshop ist noch nicht freigeschaltet. Du findest ihn unter Marketing.';
+  if(st==='pauschal') return 'Der Shop läuft, aber ohne Packstation bleibt es bei einer Tagespauschale. Mit Packstation kommen echte Bestellungen herein, die du hier packst - das bringt deutlich mehr.';
+  return 'Bestellungen laufen den ganzen Verkaufstag über ein. Jedes gepackte Paket wird sofort gutgeschrieben; DDL holt am Abend alles von der Rampe ab.';
+}
+/* Nur Zahlen, kein Neuaufbau: so springt die Liste beim Tippen nicht. */
+function onlineZahlen(){
+  const offen=S.offen|0, pak=S.pakete|0;
+  return {
+    offen, pak,
+    wert  : paketWert(),
+    proTag: bestellungenProTag(),
+    heute : r2(DS.versand||0),
+    frei  : Math.max(0,PAKET_BAYS-pak)
+  };
+}
+function updateOnline(){
+  if(!laptopOpen||ltab!=='online') return;
+  const z=onlineZahlen();
+  const set=(id,v)=>{ const e=document.getElementById(id); if(e) e.textContent=v; };
+  set('onOffen',z.offen); set('onPak',z.pak+' von '+PAKET_BAYS);
+  set('onHeute',eur(z.heute)); set('onWert',eur(z.wert));
+  const b1=document.getElementById('onPack'), b2=document.getElementById('onPackAll');
+  if(b1) b1.disabled=z.offen<=0;
+  if(b2) b2.disabled=z.offen<=0;
+  const w=document.getElementById('onWarn');
+  if(w) w.textContent=z.offen>8?`${z.offen} offene Bestellungen - über acht kostet dich das heute Abend Ruf.`:'';
+}
+function renderOnline(){
+  const st=onlineStufe(), z=onlineZahlen();
+  if(st==='zu'){
+    const u=UPGRADES.find(x=>x.id==='onlineshop');
+    return `<div class="row"><img class="pic" src="${upPic('onlineshop')}" alt="">`+
+      `<div class="rm"><b>Onlineshop</b><small>${u?u.desc:''}</small>`+
+      `<small class="warn">${S.level<(u?u.lvl:18)?`Ab Level ${u?u.lvl:18}`:`Kosten ${eur(u.cost())}`}</small></div>`+
+      (S.level<(u?u.lvl:18)?`<small>Level ${u?u.lvl:18}</small>`
+        :`<button data-a="up" data-t="onlineshop" ${S.money<u.cost()?'disabled':''}>${eur(u.cost())}</button>`)+
+      `</div>`;
+  }
+  let h=`<div class="row"><div class="rm"><b>Shop ist online</b>`+
+    `<small>Ruf ${Math.round(S.rep)} von 100 · Level ${S.level}. Beides bestimmt, wie viel über den Shop hereinkommt.</small>`+
+    `<small class="ok">${st==='versand'?`Rund ${z.proTag} Bestellungen an einem vollen Verkaufstag`:'Tagespauschale, keine echten Bestellungen'}</small>`+
+    `</div></div>`;
+  if(st==='pauschal'){
+    const u=UPGRADES.find(x=>x.id==='packstation'), fehlt=u&&u.req&&!S.up[u.req]?UPGRADES.find(x=>x.id===u.req):null;
+    h+=`<div class="row"><img class="pic" src="${upPic('packstation')}" alt="">`+
+      `<div class="rm"><b>Packstation fehlt</b><small>${u?u.desc:''}</small>`+
+      `<small class="warn">${fehlt?`Setzt „${fehlt.name}“ voraus`:S.level<u.lvl?`Ab Level ${u.lvl}`:`Kosten ${eur(u.cost())}`}</small></div>`+
+      (fehlt||S.level<u.lvl?'<small>gesperrt</small>'
+        :`<button data-a="up" data-t="packstation" ${S.money<u.cost()?'disabled':''}>${eur(u.cost())}</button>`)+
+      `</div>`;
+    return h;
+  }
+  h+=`<div class="row"><div class="rm"><b>Offene Bestellungen</b>`+
+      `<small>Warten darauf, gepackt zu werden. Jedes Paket bringt <span id="onWert">${eur(z.wert)}</span>.</small>`+
+      `<small class="warn" id="onWarn">${z.offen>8?`${z.offen} offene Bestellungen - über acht kostet dich das heute Abend Ruf.`:''}</small></div>`+
+    `<div class="mkcol"><small>offen</small><b style="font-family:var(--display);font-size:24px" id="onOffen">${z.offen}</b></div>`+
+    `<button id="onPack" data-a="vpack" ${z.offen<=0?'disabled':''}>Paket packen</button>`+
+    `<button class="ghost" id="onPackAll" data-a="vpackall" ${z.offen<=0?'disabled':''}>Alle packen</button>`+
+    `</div>`;
+  h+=`<div class="row"><div class="rm"><b>Pakete auf der Abholrampe</b>`+
+      `<small>Ist die Rampe voll, fährt DDL zwischendurch vor. Am Abend wird ohnehin alles abgeholt.</small></div>`+
+    `<div class="mkcol"><small>Rampe</small><b style="font-family:var(--display);font-size:20px" id="onPak">${z.pak} von ${PAKET_BAYS}</b></div></div>`;
+  h+=`<div class="row"><div class="rm"><b>Versand heute</b>`+
+      `<small>Was der Onlineshop heute schon eingebracht hat. Der Betrag steckt bereits im Tagesumsatz.</small></div>`+
+    `<div class="mkcol"><small>Umsatz</small><b style="font-family:var(--display);font-size:20px" id="onHeute">${eur(z.heute)}</b></div></div>`;
+  const pk=staff&&staff.packer;
+  h+=`<div class="row${pk?'':' locked'}"><div class="rm"><b>Packer</b>`+
+      `<small>${pk?'Packt selbstständig, solange Bestellungen offen sind.':'Ohne Packer bleibt alles an dir hängen - einstellen kannst du ihn unter Personal.'}</small></div>`+
+    `<small class="${pk?'ok':''}">${pk?'im Dienst':'nicht eingestellt'}</small></div>`;
+  return h;
+}
+/* Packen aus dem Laptop heraus: derselbe Vorgang wie am Packtisch. */
+function packLaptop(alle){
+  if(!packBereit()) return;
+  if((S.offen|0)<=0){ toast('Gerade sind keine Bestellungen offen.'); return; }
+  /* packOne(true) unterdrueckt Ton, Erfahrung und Einzelmeldung -
+     sonst prasselt beim Sammelpacken ein Dutzend Toasts herunter.
+     Beides kommt danach einmal fuer den ganzen Stapel. */
+  const max=alle?PAKET_BAYS*8:1;
+  let n=0, wert=0;
+  while(n<max&&(S.offen|0)>0){ const w=paketWert(); if(!packOne(true)) break; n++; wert=r2(wert+w); }
+  if(n>0){ addXP(3*n); sfx.beep(); save();
+    toast(`${n} Paket${n===1?'':'e'} gepackt: +${eur(wert)}`,'money'); }
+  renderLaptop();
+}
 function renderLaptop(){
   $('lMoney').textContent=eur(S.money);
   $('lLevel').textContent=`Level ${S.level} · ${S.xp}/${xpFor(S.level)} XP`;
@@ -500,6 +597,8 @@ function renderLaptop(){
             :S.level<u.lvl?`<small>Level ${u.lvl}</small>`
             :`<button data-a="up" data-t="${u.id}" ${S.money<cost?'disabled':''}>${eur(cost)}</button>`)+
         '</div>'; }).join('');
+  } else if(ltab==='online'){
+    h=renderOnline(); hint=onlineHint();
   } else if(ltab==='erf'){
     const offen=ERFOLGE.filter(erfOffen);
     hint=`${erfGeschafft()} von ${erfGesamt()} Stufen geschafft. Jeder Zähler steigt nur — verlieren kannst du hier nichts. Neue Herausforderungen kommen dazu, sobald du den passenden Bereich freischaltest.`;
@@ -649,11 +748,23 @@ $('lbody').addEventListener('click',e=>{
   else if(a==='repay') repayLoan(+b.dataset.v);
   else if(a==='open'){ openShop(); closeLaptop(true); return; }
   else if(a==='end'){ endDay(); return; }
+  /* 'pack' ist schon vergeben - das legt ein Lieferantenpaket in den
+     Warenkorb. Der Versand heisst deshalb 'vpack'. */
+  else if(a==='vpack')   { packLaptop(false); return; }
+  else if(a==='vpackall'){ packLaptop(true);  return; }
   else if(a==='test'){ toggleTest(); }
   else if(a==='reset'){ if(!resetArm) resetArm=true; else { try{ localStorage.removeItem(KEY); }catch(err){} location.reload(); return; } }
   renderLaptop();
 });
 $('lclose').addEventListener('click',()=>closeLaptop(true));
+/* Hoechste Stufe, die im Spiel ueberhaupt verlangt wird - Ausbauten,
+   Lizenzen und Regale zusammengenommen. */
+function testLevel(){
+  let m=1;
+  UPGRADES.forEach(u=>{ if(u.lvl>m) m=u.lvl; });
+  LIZENZEN.forEach(l=>{ if(l.lvl>m) m=l.lvl; });
+  return m;
+}
 function toggleTest(){
   if(S.test){
     const t=S.test; S.level=Math.max(1,t.lvl|0); S.xp=Math.max(0,t.xp|0); S.money=r2(t.money);
@@ -662,17 +773,29 @@ function toggleTest(){
     toast('Testmodus aus. Level und Konto sind zurück.');
   } else {
     S.test={lvl:S.level,xp:S.xp,money:S.money,lic:(S.lic||['start']).slice()};
-    S.level=25; S.xp=0; S.money=Math.max(S.money,250000);
+    /* Feste 25 waren zu wenig: die Lagerhalle West steht auf 28, der
+       Meisterbrief auf 30. Im Testmodus soll alles erreichbar sein,
+       also richtet sich die Stufe nach dem teuersten Eintrag im
+       Spiel und nicht nach einer Zahl von damals. */
+    S.level=Math.max(S.level,testLevel()); S.xp=0; S.money=Math.max(S.money,250000);
     S.lic=LIZENZEN.map(l=>l.id);
     LIZENZEN.forEach(l=>l.items.forEach(t2=>{ if(P[t2]&&!(S.prices[t2]>0)) S.prices[t2]=marketOf(t2); }));
-    toast('Testmodus an: Level 25, alle Lizenzpakete freigeschaltet.','money');
+    toast(`Testmodus an: Level ${S.level}, alle Lizenzpakete freigeschaltet.`,'money');
   }
   sfx.cash(); updateTool(); save();
 }
+/* Frueher brach der Kauf bei jedem Hindernis wortlos ab - der Knopf
+   tat schlicht nichts und man stand ratlos davor. Jetzt sagt das
+   Spiel, was fehlt. */
 function buyUp(id){
-  const u=UPGRADES.find(x=>x.id===id); if(!u||u.done()||S.level<u.lvl) return;
-  if(u.req&&!S.up[u.req]) return;
-  const cost=u.cost(); if(S.money<cost) return;
+  const u=UPGRADES.find(x=>x.id===id); if(!u) return;
+  if(u.done()){ toast(`${u.name} hast du schon.`); return; }
+  if(S.level<u.lvl){ toast(`${u.name} gibt es erst ab Level ${u.lvl} — du bist auf ${S.level}.`,'bad'); return; }
+  if(u.req&&!S.up[u.req]){
+    const v=UPGRADES.find(x=>x.id===u.req);
+    toast(`${u.name} setzt „${v?v.name:u.req}“ voraus.`,'bad'); return; }
+  const cost=u.cost();
+  if(S.money<cost){ toast(`${u.name} kostet ${eur(cost)} — dir fehlen ${eur(r2(cost-S.money))}.`,'bad'); return; }
   S.money=r2(S.money-cost); DS.upgrades=r2(DS.upgrades+cost);
   if(id.indexOf('shelf_')===0){ const k=id.slice(6); createShelf(shelves.length,{kind:k}); S.tut.shelf=true; toast(`${SHELFKIND[k].name} steht im Laden.`); }
   else if(id==='rack'||id.indexOf('rack_')===0){

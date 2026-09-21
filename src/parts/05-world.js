@@ -115,19 +115,144 @@ function repaint(){
   if(floorTexRef) redraw(floorTexRef,(g,W,H)=>paintFloor(g,W,H,f));
   if(typeof applyReliefs==='function') applyReliefs();
 }
+/* =========================================================
+   Aussenhaut der Gebaeude.
+
+   Vorher lag ueberall dieselbe Ziegeltapete: 256 Pixel, die sich
+   alle 1,3 Meter wiederholten. Auf einer 30 Meter langen Hallenwand
+   sind das zwei Dutzend sichtbare Naehte, und Ziegel passen ohnehin
+   nicht zu einem Fachmarkt.
+
+   Jetzt haengen grossformatige Faserzementtafeln davor. Der Trick
+   gegen die Naht: die Kachel ist genau zwei Tafeln breit und die
+   Fuge liegt exakt auf dem Kachelrand. Wo sich die Textur
+   wiederholt, sitzt also eine Fuge - und Fugen duerfen sich
+   wiederholen. Senkrecht laeuft die Kachel ueber die volle
+   Wandhoehe und wird geklemmt, damit der dunkle Sockel unten
+   bleibt und nicht alle zwei Meter noch einmal auftaucht.
+   ========================================================= */
+const FASS={b:2.4, h:8.0, sockel:0.62, tafel:1.18};
+function fassadeTex(){
+  const PXB=256, PXH=1024;                       /* 107 px/m quer, 128 px/m hoch */
+  return tex(PXB,PXH,(g,W,H)=>{
+    const mx=W/FASS.b, my=H/FASS.h;              /* Pixel je Meter */
+    const yv=m=>H-m*my;                          /* Meter ueber Boden -> Pixel */
+    /* Grundton der Tafeln, leicht warmes Hellgrau */
+    g.fillStyle='#c9cbc7'; g.fillRect(0,0,W,H);
+    /* Jede Tafel bekommt ihren eigenen Ton. Quer wechseln nur zwei
+       Werte - mehr passt nicht in eine Kachel -, senkrecht laeuft
+       die Reihe ueber die ganze Wandhoehe und wiederholt sich
+       darum gar nicht. So wirkt die Flaeche wie verlegte Platten
+       und nicht wie ein Stueck Pappe. */
+    { let sd=7; const rnd=()=>{ sd=(sd*1103515245+12345)&0x7fffffff; return sd/0x7fffffff; };
+      for(let m=FASS.sockel;m<FASS.h;m+=FASS.tafel){
+        const y0=H-(m+FASS.tafel)*my, y1=H-m*my;
+        for(const [xa,xb] of [[0,W/2],[W/2,W]]){
+          const t2=(rnd()-0.5)*2;
+          g.fillStyle=`rgba(${t2>0?'255,255,255':'96,100,106'},${Math.abs(t2)*0.085})`;
+          g.fillRect(xa,y0,xb-xa,y1-y0);
+        }
+      }
+    }
+    /* grossflaechige Wolke, damit die Wand nicht wie Pappe wirkt */
+    for(let i=0;i<70;i++){
+      const r=rand(40,150);
+      g.fillStyle=`rgba(${Math.random()<0.5?'255,255,255':'120,124,128'},${rand(0.012,0.045)})`;
+      g.beginPath(); g.ellipse(rand(0,W),rand(0,H),r,r*rand(0.4,1.0),rand(0,3.14),0,Math.PI*2); g.fill();
+    }
+    /* feines Korn */
+    for(let i=0;i<14000;i++){
+      g.fillStyle=`rgba(${Math.random()<0.5?'255,255,255':'90,94,98'},${rand(0.02,0.09)})`;
+      g.fillRect(Math.random()*W,Math.random()*H,1,1);
+    }
+    /* Regenschlieren von den Fugen abwaerts */
+    for(let i=0;i<90;i++){
+      const x=rand(0,W), y=rand(yv(FASS.h),yv(FASS.sockel)), l=rand(20,140);
+      g.fillStyle=`rgba(96,99,104,${rand(0.02,0.06)})`; g.fillRect(x,y,rand(1,3),l);
+    }
+    /* --- Fugen. Eine senkrechte sitzt auf dem Kachelrand (x=0),
+       die zweite in der Mitte. Beide bekommen Tiefe: dunkler
+       Schattenkern, rechts eine helle Kante.                     --- */
+    const fugeV=x=>{
+      const w2=Math.max(2,Math.round(0.022*mx));
+      g.fillStyle='rgba(58,60,64,.62)'; g.fillRect(x-w2/2,0,w2,H);
+      g.fillStyle='rgba(255,255,255,.22)'; g.fillRect(x+w2/2,0,1.5,H);
+      g.fillStyle='rgba(30,32,36,.30)';  g.fillRect(x-w2/2-1.5,0,1.5,H);
+    };
+    const fugeH=y=>{
+      const w2=Math.max(2,Math.round(0.022*my));
+      g.fillStyle='rgba(58,60,64,.58)'; g.fillRect(0,y-w2/2,W,w2);
+      g.fillStyle='rgba(255,255,255,.20)'; g.fillRect(0,y+w2/2,W,1.5);
+    };
+    for(let m=FASS.sockel;m<FASS.h+FASS.tafel;m+=FASS.tafel) fugeH(yv(m));
+    fugeV(0); fugeV(W/2); fugeV(W);
+    /* Nieten an den Tafelecken */
+    g.fillStyle='rgba(84,88,94,.5)';
+    for(let m=FASS.sockel+0.10;m<FASS.h;m+=FASS.tafel)
+      for(const x of [0.12*mx,W/2-0.12*mx,W/2+0.12*mx,W-0.12*mx]){
+        g.beginPath(); g.arc(x,yv(m),Math.max(1,0.018*my),0,Math.PI*2); g.fill(); }
+    /* --- Sockel: dunkler, rauer, mit Tropfkante und Spritzwasser --- */
+    const sy=yv(FASS.sockel);
+    g.fillStyle='#3b4049'; g.fillRect(0,sy,W,H-sy);
+    for(let i=0;i<5000;i++){
+      g.fillStyle=`rgba(${Math.random()<0.5?'255,255,255':'0,0,0'},${rand(0.02,0.08)})`;
+      g.fillRect(Math.random()*W,sy+Math.random()*(H-sy),1,1);
+    }
+    const sp=g.createLinearGradient(0,H-0.45*my,0,H);
+    sp.addColorStop(0,'rgba(24,26,30,0)'); sp.addColorStop(1,'rgba(24,26,30,.55)');
+    g.fillStyle=sp; g.fillRect(0,H-0.45*my,W,0.45*my);
+    /* Tropfkante als schmales helles Blech ueber dem Sockel */
+    g.fillStyle='#9aa0a8'; g.fillRect(0,sy-Math.max(2,0.05*my),W,Math.max(2,0.05*my));
+    g.fillStyle='rgba(255,255,255,.35)'; g.fillRect(0,sy-Math.max(2,0.05*my),W,1.5);
+    g.fillStyle='rgba(20,22,26,.45)'; g.fillRect(0,sy,W,2);
+  });
+}
+let wallBrick=null;
+function wallBrickMat(){
+  if(!wallBrick){
+    const t=fassadeTex();
+    t.wrapS=THREE.RepeatWrapping; t.wrapT=THREE.ClampToEdgeWrapping;
+    t.repeat.set(1/FASS.b,1/FASS.h); t.anisotropy=8;
+    wallBrick=new THREE.MeshStandardMaterial({map:t,roughness:0.78,metalness:0.04});
+  }
+  return wallBrick;
+}
+/* Hof- und Grundstuecksmauern stehen als einfache Kaesten in der
+   Welt, ihre UVs laufen von 0 bis 1 je Seite. Deshalb bekommen sie
+   ein eigenes Material, dessen Wiederholung aus den Massen kommt:
+   Betonfertigteile mit Stossfugen und Abplatzungen. */
 function brickMat(len,h){
-  const t=tex(256,256,(g,W,H)=>{ g.fillStyle='#6d3a2c'; g.fillRect(0,0,W,H); const rows=8, bh=H/rows;
-    for(let r=0;r<rows;r++){ const off=(r%2)*32; for(let x=-64;x<W;x+=64){ g.fillStyle=pick(['#9a4b36','#a4533c','#8e4431','#a85a41']); g.fillRect(x+off+3,r*bh+3,58,bh-6); } } });
-  t.wrapS=t.wrapT=THREE.RepeatWrapping; t.repeat.set(len/1.3,h/0.65);
-  return new THREE.MeshStandardMaterial({map:t,roughness:0.95});
+  const t=tex(256,256,(g,W,H)=>{
+    g.fillStyle='#a2a5a4'; g.fillRect(0,0,W,H);
+    for(let i=0;i<40;i++){ const r=rand(30,110);
+      g.fillStyle=`rgba(${Math.random()<0.5?'255,255,255':'110,112,116'},${rand(0.02,0.06)})`;
+      g.beginPath(); g.ellipse(rand(0,W),rand(0,H),r,r*rand(0.4,1),rand(0,3.14),0,Math.PI*2); g.fill(); }
+    for(let i=0;i<9000;i++){
+      g.fillStyle=`rgba(${Math.random()<0.5?'255,255,255':'86,88,92'},${rand(0.02,0.1)})`;
+      g.fillRect(Math.random()*W,Math.random()*H,1,1); }
+    /* Stossfuge am Kachelrand - dort faellt die Wiederholung nicht auf */
+    g.fillStyle='rgba(66,68,72,.55)'; g.fillRect(0,0,4,H); g.fillRect(W-4,0,4,H);
+    g.fillStyle='rgba(255,255,255,.18)'; g.fillRect(4,0,1.5,H);
+    /* Schalungsstoss waagerecht auf halber Hoehe */
+    g.fillStyle='rgba(66,68,72,.35)'; g.fillRect(0,H/2-1.5,W,3);
+    /* Ankerloecher der Schalung */
+    g.fillStyle='rgba(92,94,98,.45)';
+    for(const y of [H*0.22,H*0.72]) for(const x of [W*0.25,W*0.75]){
+      g.beginPath(); g.arc(x,y,3,0,Math.PI*2); g.fill(); }
+    /* Schmutzrand unten */
+    const gr=g.createLinearGradient(0,H-40,0,H);
+    gr.addColorStop(0,'rgba(78,76,70,0)'); gr.addColorStop(1,'rgba(78,76,70,.38)');
+    g.fillStyle=gr; g.fillRect(0,H-40,W,40);
+  });
+  t.wrapS=t.wrapT=THREE.RepeatWrapping; t.anisotropy=8;
+  t.repeat.set(Math.max(1,Math.round(len/2.5)),1);
+  return new THREE.MeshStandardMaterial({map:t,roughness:0.92,metalness:0.02});
 }
 const trimMat=std(0xd2d5db,{roughness:0.95});
 const lagerWallTex=tex(32,512,(g,W,H)=>{ g.fillStyle='#a3a8b0'; g.fillRect(0,0,W,H); const b=Math.round(H*(1-0.35/WH)); for(let y=b;y<H;y+=16){ g.fillStyle=((y-b)/16)%2<1?'#f2c230':'#1f1f24'; g.fillRect(0,y,W,16);} });
 lagerWallTex.wrapS=THREE.RepeatWrapping; lagerWallTex.wrapT=THREE.ClampToEdgeWrapping; lagerWallTex.repeat.set(1/2.6,1/WH);
 const lagerWall=new THREE.MeshStandardMaterial({map:lagerWallTex,roughness:0.95});
 const lagerUpper=std(0xa3a8b0,{roughness:0.95});
-let wallBrick=null;
-function wallBrickMat(){ if(!wallBrick){ wallBrick=brickMat(1.3,0.65); wallBrick.map.repeat.set(1/1.3,1/0.65); } return wallBrick; }
 /* Wand-UVs in Metern: dadurch ist die Tapete auf jedem Wandstueck gleich
    gross, die Scheuerleiste laeuft durch und Teilstuecke ueber Tuer oder
    Fenster zeigen genau den passenden Ausschnitt - keine Naehte mehr. */

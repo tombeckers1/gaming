@@ -3,6 +3,10 @@
    Testfeld: Metalltisch und Abschussröhren, dazu das Zündpult
    ========================================================= */
 const PULT_RY=1.121+Math.PI;
+/* Modell und Kollision des Zuendpults haengen an derselben Zahl -
+   beim Verschieben ist die Kollision sonst stehen geblieben und
+   sperrte als unsichtbare Wand den Lagergang. */
+const PULT_POS={x:5.9,z:-11.0};
 const stations={}; let pultHit=null, pultTex=null, pultLamp=null;
 /* Hinweisschild auf zwei Rohrpfosten, damit es nicht in der Luft haengt */
 function schild(x,y,z,w,h,mat,steelM){
@@ -22,10 +26,15 @@ function schild(x,y,z,w,h,mat,steelM){
   return g;
 }
 
+/* Die ganze Testfeldausstattung ist um 2,8 m nach Sueden gerueckt.
+   Davor stand der Zuendtisch bei z -9,6 und das Pult bei z -8,2 -
+   beide liegen jetzt im Lagergang, der dicht hinter der Rueckwand
+   des Ladens quer ueber das Testfeld laeuft. Platz ist genug: das
+   Testfeld reicht bis z -28. */
 const STATION_POS={
-  tisch :{x:-0.3,z:-9.6, ry:0,name:'Zündtisch',cap:6},
-  rampe :{x:-0.3,z:-12.8,ry:0,name:'Abschussröhren',cap:6},
-  moerser:{x:4.6,z:-12.8,ry:0,name:'Mörserbatterie',cap:3}
+  tisch :{x:-0.3,z:-12.4,ry:0,name:'Zündtisch',cap:6},
+  rampe :{x:-0.3,z:-15.6,ry:0,name:'Abschussröhren',cap:6},
+  moerser:{x:4.6,z:-15.6,ry:0,name:'Mörserbatterie',cap:3}
 };
 function stationOf(t){
   const p=P[t]; if(!p||!p.cat) return null;
@@ -215,7 +224,7 @@ function buildYard(){
   {
     /* Um 180 Grad gedreht gegenueber vorher: der Bediener steht auf der
        Rueckseite und blickt ueber das Pult aufs Testfeld. */
-    const g=new THREE.Group(); g.position.set(5.9,0,-8.2); g.rotation.y=PULT_RY; scene.add(g);
+    const g=new THREE.Group(); g.position.set(PULT_POS.x,0,PULT_POS.z); g.rotation.y=PULT_RY; scene.add(g);
     const korpus=std(0x2b3240,{metalness:0.42,roughness:0.44});
     const kante=std(0x9aa1ac,{metalness:0.7,roughness:0.3});
     const pulver=std(0xf2c230,{roughness:0.55});
@@ -302,15 +311,17 @@ function buildYard(){
     lr.position.set(0.36,1.183,0.032); lr.rotation.x=1.27; g.add(lr);
 
     const hit=bbox(0.98,1.35,0.66,hitM,0,0.75,0,g,false); hit.userData={kind:'pult'};
-    pultHit=hit; col(5.42,6.38,-8.68,-7.72);
+    pultHit=hit; col(PULT_POS.x-0.48,PULT_POS.x+0.48,PULT_POS.z-0.48,PULT_POS.z+0.48);
     drawPult();
   }
   /* Flutlicht */
-  for(const [x,z] of [[-1.4,-7.2],[7.3,-13.6]]){
+  /* Der erste Mast stand bei z -7,2 und ragte durch die Decke des
+     Lagergangs. Beide sind mit den Stationen nach Sueden gerueckt. */
+  for(const [x,z] of [[-1.4,-10.4],[7.3,-16.4]]){
     bbox(0.12,3.4,0.12,std(0x4a4f5a,{metalness:0.5}),x,1.7,z);
     const head=bbox(0.55,0.3,0.25,std(0x2a2e38),x,3.45,z); head.rotation.x=0.4;
     const lm=new THREE.MeshStandardMaterial({color:0x222222,emissive:LIN(0xfff0d0),emissiveIntensity:0}); lampMats.push(lm);
-    bbox(0.45,0.03,0.2,lm,x,3.33,z+(z<-10?0.1:-0.12),null,false);
+    bbox(0.45,0.03,0.2,lm,x,3.33,z+(z<-13?0.1:-0.12),null,false);
   }
 }
 function drawPult(){

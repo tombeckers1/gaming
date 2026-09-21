@@ -8,9 +8,9 @@
 const ZONEN={};
 function zone(id){ return ZONEN[id]||(ZONEN[id]={obj:[],cols:[],wand:[],wandCols:[],offen:false}); }
 /* Objekt gehoert zum noch gesperrten Bereich */
-function zAdd(id,o){ if(o){ o.visible=false; zone(id).obj.push(o); } return o; }
+function zAdd(id,o){ if(o&&id){ o.visible=false; zone(id).obj.push(o); } return o; }
 /* Kollision, die erst nach dem Kauf gilt */
-function zCol(id,c){ if(c){ dropCol(c); zone(id).cols.push(c); } return c; }
+function zCol(id,c){ if(c&&id){ dropCol(c); zone(id).cols.push(c); } return c; }
 /* Teil der Bauwand: sichtbar, bis gekauft wird */
 function zWand(id,o){ if(o) zone(id).wand.push(o); return o; }
 function zWandCol(id,c){ if(c) zone(id).wandCols.push(c); return c; }
@@ -66,10 +66,11 @@ function sockelLeiste(id,laengs,fest,a0,a1){
   }
 }
 /* Fuellung einer vorbereiteten Oeffnung. laengs = die Wand laeuft in x. */
-function trennwand(id,laengs,fest,a0,a1,h,innen,aussen){
+function trennwand(id,laengs,fest,a0,a1,h,innen,aussen,face){
+  const f=face||(laengs?'-z':'-x');
   const m=laengs
-    ? stilleWand(a0,a1,fest-LW/2,fest+LW/2,0,h,'-z',innen,aussen||innen)
-    : stilleWand(fest-LW/2,fest+LW/2,a0,a1,0,h,'-x',innen,aussen||innen);
+    ? stilleWand(a0,a1,fest-LW/2,fest+LW/2,0,h,f,innen,aussen||innen)
+    : stilleWand(fest-LW/2,fest+LW/2,a0,a1,0,h,f,innen,aussen||innen);
   zWand(id,m);
   if(innen===shopWall) sockelLeiste(id,laengs,fest,a0,a1);
   zWandCol(id,laengs?col(a0,a1,fest-LW/2,fest+LW/2):col(fest-LW/2,fest+LW/2,a0,a1));
@@ -159,11 +160,16 @@ function halle(id,r,opt){
    Solange sie stehen, sieht man ihnen nichts an - es ist dieselbe
    Wand wie daneben, nur eben durchgehend.
    laengs = die Wand laeuft in x-Richtung. */
-function durchbruchWand(id,laengs,fest,von,bis,oeffnungen,mat,exMat,sturzY,hoehe){
+function durchbruchWand(id,laengs,fest,von,bis,oeffnungen,mat,exMat,sturzY,hoehe,face){
   const H=hoehe||WH, sy=sturzY||2.7;
+  /* Welche Seite der Wand die Innenseite ist, stand bisher fest.
+     Die Westwand des Rueckgebaeudes zeigt aber nach +x in den
+     Verkaufsraum, nicht nach -x - sonst klebt die Ladentapete
+     aussen und die Fassade innen. */
+  const f=face||(laengs?'-z':'-x');
   const w=(a2,b2,y0,y1)=>laengs
-    ? wall(a2,b2,fest-LW/2,fest+LW/2,y0,y1,'-z',mat,exMat)
-    : wall(fest-LW/2,fest+LW/2,a2,b2,y0,y1,'-x',mat,exMat);
+    ? wall(a2,b2,fest-LW/2,fest+LW/2,y0,y1,f,mat,exMat)
+    : wall(fest-LW/2,fest+LW/2,a2,b2,y0,y1,f,mat,exMat);
   const c=(a2,b2)=>laengs?col(a2,b2,fest-LW/2,fest+LW/2):col(fest-LW/2,fest+LW/2,a2,b2);
   const zc=(a2,b2)=>zWandCol(id,c(a2,b2));
   let x=von;
@@ -171,19 +177,70 @@ function durchbruchWand(id,laengs,fest,von,bis,oeffnungen,mat,exMat,sturzY,hoehe
     if(oa>x){ w(x,oa,0,H); c(x,oa); if(mat===shopWall) sockelLeiste(null,laengs,fest,x,oa); }
     w(oa,ob,sy,H);                       /* Sturz ueber der Oeffnung */
     zc(oa,ob);                           /* sperrt, solange die Fuellung steht */
-    trennwand(id,laengs,fest,oa,ob,sy,mat,exMat);
+    trennwand(id,laengs,fest,oa,ob,sy,mat,exMat,f);
     x=ob;
   }
   if(bis>x){ w(x,bis,0,H); c(x,bis); if(mat===shopWall) sockelLeiste(null,laengs,fest,x,bis); }
 }
 
+/* =========================================================
+   Lagergang: der kurze Weg vom Verkauf ins Lager.
+
+   Das Rueckgebaeude liegt ganz im Osten, die Lagerhalle West ganz
+   im Westen, dazwischen das Testfeld. Wer eine Palette holen
+   wollte, lief vorher quer durch den Basisladen. Der Gang laeuft
+   dicht hinter der Rueckwand des Basisladens ueber das Testfeld
+   und verbindet beide Seiten direkt.
+
+   Die Hintertuer des Ladens muendet jetzt in den Gang; genau
+   gegenueber steht ein Durchgang aufs Testfeld, sodass der
+   gewohnte Weg nach draussen unveraendert geradeaus fuehrt.
+   Die Huelle steht wie alles andere von Anfang an, nur die beiden
+   Kopfenden sind zugesetzt, bis die Lagerhalle West gekauft ist.
+   ========================================================= */
+const GANG={x0:-7.9, x1:7.8, z0:-8.9, z1:-6.1, h:2.9};
+const GANGTUER={a:4.4, b:6.1};        /* fluchtet mit der Hintertuer */
+function buildLagergang(){
+  const G=GANG, mitteX=(G.x0+G.x1)/2, mitteZ=(G.z0+G.z1)/2;
+  const breite=G.x1-G.x0, tiefe=G.z1-G.z0;
+  /* Boden: derselbe Estrich wie im Lager */
+  const bc=concreteTex(); bc.repeat.set(breite/2,tiefe/2);
+  const bo=new THREE.Mesh(new THREE.PlaneGeometry(breite,tiefe),
+    new THREE.MeshStandardMaterial({map:bc,roughness:0.85}));
+  bo.rotation.x=-Math.PI/2; bo.position.set(mitteX,0.016,mitteZ); scene.add(bo);
+  /* Decke und Dachrand */
+  const ce=new THREE.Mesh(new THREE.PlaneGeometry(breite+0.3,tiefe+0.3),std(0xe6e8ee,{roughness:1}));
+  ce.rotation.x=Math.PI/2; ce.position.set(mitteX,G.h-0.01,mitteZ); scene.add(ce);
+  /* Der Dachrand deckt die Kopf- und Suedwand ab, aber keinen
+     Zentimeter mehr: mit dem sonst ueblichen Ueberstand ragte er
+     durch die Ostwand der Lagerhalle Sued hinein. */
+  bbox(breite+LW*2,0.25,tiefe+LW*2,std(0x2b2f3a),mitteX,G.h+0.13,mitteZ,null,true);
+  /* Suedwand mit dem Durchgang aufs Testfeld. Der Sturz bleibt
+     stehen, sonst steht das Dach in der Luft. */
+  const zs=G.z0;
+  wall(G.x0-LW,GANGTUER.a,zs-LW,zs,0,G.h,'+z',lagerWall);
+  wall(GANGTUER.b,G.x1+LW,zs-LW,zs,0,G.h,'+z',lagerWall);
+  wall(GANGTUER.a,GANGTUER.b,zs-LW,zs,2.5,G.h,'+z',lagerWall);
+  col(G.x0-LW,GANGTUER.a,zs-LW,zs);
+  col(GANGTUER.b,G.x1+LW,zs-LW,zs);
+  leuchtenRaster(null,{x0:G.x0,x1:G.x1,z0:G.z0,z1:G.z1},G.h,3.4,2.6);
+  roomAO(G.x0+0.02,G.x1-0.02,G.z0+0.02,G.z1-0.02);
+  /* Hinweisschild ueber dem Durchgang zum Lager */
+  plane(1.5,0.3,new THREE.MeshBasicMaterial({toneMapped:false,side:THREE.DoubleSide,
+    map:tex(512,104,(g,W,H)=>{
+      g.fillStyle='#1b2340'; g.fillRect(0,0,W,H);
+      g.fillStyle='#f2c230'; g.fillRect(0,H-7,W,7);
+      g.textAlign='center'; g.textBaseline='middle';
+      g.fillStyle='#e8ecf5'; g.font=BUN(40); g.fillText('◄  LAGER      VERKAUF  ►',W/2,H/2-3);
+    })}),mitteX,2.45,G.z1-0.06,Math.PI,null);
+}
 function buildAusbau(){
   /* ---------- Verkaufsflaeche ----------
      Die Front uebernimmt die Nachbarfassade (05e), deshalb bekommen
      Ost I und Ost II von der Halle keine Nordwand. */
   halle('shop_gross',LAY.ost1,{aussen:{}});
   halle('shop_ost',  LAY.ost2,{aussen:{e:true}});
-  halle('shop_sued', LAY.sued,{aussen:{s:true,e:true,w:true}});
+  halle('shop_sued', LAY.sued,{aussen:{s:true,e:true}});
   /* Innenwaende zwischen zwei Verkaufsraeumen: auf beiden Seiten
      Ladentapete, sonst schaut man von drinnen auf Backstein. */
   durchbruchWand('shop_ost',false,LAY.ost1.x1,LAY.ost1.z0,LAY.ost1.z1,[[-4.2,4.2]],shopWall,shopWall);
@@ -196,7 +253,7 @@ function buildAusbau(){
   halle('lager_gross',LAY.lnord,{art:'lager',aussen:{n:true,w:true},h:ANBAU_H-0.06,keinDach:true});
   /* Sued und West sind echte Hallen mit 6,4 m lichter Hoehe -
      nur so haben Hochregale und Schwerlastregale ueberhaupt Platz. */
-  halle('lager_sued', LAY.lsued,{art:'lager',aussen:{e:true,s:true},h:HALLE_H});
+  halle('lager_sued', LAY.lsued,{art:'lager',aussen:{s:true},h:HALLE_H});
   halle('lager_west', LAY.lwest,{art:'lager',aussen:{s:true,n:true},h:HALLE_H,ex:blechMat()});
   /* Basislager nach Sueden */
   durchbruchWand('lager_sued',true,LAY.lbasis.z0,LAY.lbasis.x0,LAY.lbasis.x1,[[-17.5,-10.5]],lagerWall,lagerWall,null,HALLE_H);
@@ -206,6 +263,14 @@ function buildAusbau(){
   trennwand('lager_gross',true,2.0,-19.0,-9.0,2.6,lagerWall,lagerWall);
 
   /* ---------- Packstation, Rampen, Logistikzentrum ---------- */
+  /* Die beiden Kopfwaende des Lagergangs. Sie ersetzen die
+     Westwand des Rueckgebaeudes und die Ostwand der Halle Sued;
+     beide bekommen an der Stelle des Gangs eine Oeffnung, die
+     zusammen mit der Lagerhalle West freigegeben wird. */
+  const GT=[[GANG.z0+0.25,GANG.z1-0.25]];
+  durchbruchWand('lager_west',false,7.9,LAY.sued.z0,LAY.sued.z1,GT,shopWall,undefined,2.5,WH,'+x');
+  durchbruchWand('lager_west',false,-8.0,LAY.lsued.z0,LAY.lsued.z1,GT,lagerWall,undefined,2.5,HALLE_H,'-x');
+  buildLagergang();
   buildPackstation();
   buildWestrampen();
   buildLogistik();
@@ -396,6 +461,7 @@ function ddlAbholung(){
    der kleine Hof an der Basisrampe reicht dafuer nicht.
    ========================================================= */
 const WRAMPEN=[-25.6,-18.6,-11.6];          /* Mitte der drei Tore in z */
+const WTORE=[];                             /* Torblatt und Ampel je Rampe */
 const WTOR={w:3.4,h:3.05};
 
 /* Trapezblech fuer Hallenwaende. Die Wand-UVs stehen in Metern,
@@ -464,6 +530,10 @@ function westTor(cz,nr){
   const tb=torBlattMat(), kante=std(0x6f757e,{metalness:0.5,roughness:0.5});
   const bl=new THREE.Mesh(new THREE.BoxGeometry(0.1,WTOR.h,WTOR.w),[tb,tb,kante,kante,kante,kante]);
   bl.position.set(-0.15,WTOR.h/2,0); g.add(bl);
+  /* Das Tor war reine Kulisse. Jetzt merkt sich die Rampe ihr
+     Torblatt und ihre Ampel, damit eine zugekaufte Andockstation
+     wirklich aufmachen kann. */
+  const eintrag={nr,z:cz,blatt:bl,zu:WTOR.h/2,auf:WTOR.h/2+WTOR.h-0.06,t:0};
   /* Zarge */
   for(const s of [-1,1]) bbox(0.3,WTOR.h+0.26,0.18,steel,-0.24,(WTOR.h+0.26)/2,s*(WTOR.w/2+0.09),g,false);
   bbox(0.3,0.22,WTOR.w+0.36,steel,-0.24,WTOR.h+0.13,0,g,false);
@@ -487,6 +557,15 @@ function westTor(cz,nr){
     const c2=new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.05,0.04,10),m);
     c2.rotation.z=Math.PI/2; c2.position.set(-0.38,y,WTOR.w/2+0.62); g.add(c2);
   }
+  eintrag.rot=lr; eintrag.gruen=lg; WTORE[nr-1]=eintrag;
+  /* Torabdichtung. Der Auflieger ist 2,55 m breit, das Tor 3,4 -
+     ohne Dichtung schaut man links und rechts am Heck vorbei ins
+     Freie. Drei Polster aus Planenstoff schliessen den Spalt, so
+     wie an jeder echten Rampe. */
+  const planeM=std(0x23262c,{roughness:0.95});
+  for(const s2 of [-1,1])
+    bbox(0.46,WTOR.h+0.1,0.5,planeM,-0.26,(WTOR.h+0.1)/2,s2*(WTOR.w/2-0.2),g,false);
+  bbox(0.46,0.42,WTOR.w+0.1,planeM,-0.26,WTOR.h-0.09,0,g,false);
   bbox(0.12,0.24,0.16,std(0xf2c230,{roughness:0.6}),-0.3,1.35,WTOR.w/2+0.62,g,false);
   for(let k=0;k<3;k++) bbox(0.04,0.05,0.05,std([0x2f9e57,0xd8352a,0x2a2e38][k]),-0.37,1.43-k*0.07,WTOR.w/2+0.62,g,false);
   /* Torkennung ueber dem Vordach */
@@ -536,9 +615,11 @@ function hofMast(x,z,ry){
   col(x-0.3,x+0.3,z-0.3,z+0.3);
 }
 /* Abgestellter Auflieger, von aussen. Kein Innenraum noetig. */
-function abstellAuflieger(x,z,ry,name,farbe){
+function abstellAuflieger(x,z,ry,name,farbe,fahrend){
   const g=new THREE.Group(); g.position.set(x,0,z); g.rotation.y=ry; scene.add(g);
   g.userData.hof='auflieger';
+  /* Laenge des Aufbaus, damit der Anrufer das Heck ausrichten kann */
+  g.userData.len=13.2;
   const L=13.2, W2=2.55, HH=2.95, FY=1.15;      /* Ladeflaechenhoehe */
   const alu=std(0xb6bcc4,{metalness:0.55,roughness:0.42});
   const dark=std(0x22262e,{metalness:0.4,roughness:0.6});
@@ -583,9 +664,13 @@ function abstellAuflieger(x,z,ry,name,farbe){
   if(HIQ) chm.castShadow=true; g.add(chm);
   [gRahmen,gWinde,gFuss,gKoenig,gRad,gFelge,gAchse,gKotfl,gSchutz,gRueck,gBlink,gSchild].forEach(q=>q.dispose());
   /* Kollision als ein Block */
-  const c=Math.cos(ry), s2=Math.sin(ry);
-  const hx=Math.abs(c)*L/2+Math.abs(s2)*W2/2, hz=Math.abs(s2)*L/2+Math.abs(c)*W2/2;
-  col(x-hx,x+hx,z-hz,z+hz);
+  /* Ein Auflieger, der noch faehrt, bekommt keine feste Kollision -
+     die zoege sonst als unsichtbarer Block ueber den Hof. */
+  if(!fahrend){
+    const c=Math.cos(ry), s2=Math.sin(ry);
+    const hx=Math.abs(c)*L/2+Math.abs(s2)*W2/2, hz=Math.abs(s2)*L/2+Math.abs(c)*W2/2;
+    col(x-hx,x+hx,z-hz,z+hz);
+  }
   return g;
 }
 /* Palettenstapel als Hofdeko. Ein Stapel sind ueber achtzig Bretter -

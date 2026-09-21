@@ -19,6 +19,10 @@ function updateAim(dt){
   yaw+=d*k; pitch+=(aim.pitch-pitch)*k;
   aim.t-=dt; if(aim.t<=0||Math.abs(d)<0.004) aim=null;
 }
+/* Noerdlich vom Gehweg faengt die Strasse an - da hat der Spieler
+   nichts zu suchen, deshalb bleibt diese eine Grenze enger als das
+   Navgitter. */
+const PLZ_MAX=10.8;
 const keys={}; const joy={x:0,y:0,id:null,ox:0,oy:0};
 let sprayOn=false, sprayCool=0, build=false, grabbed=null, grabRy=0, grabHome=null;
 function collide(p,R){
@@ -30,7 +34,13 @@ function collide(p,R){
         if(m===a) p.x=c.minX-R; else if(m===b) p.x=c.maxX+R; else if(m===e) p.z=c.minZ-R; else p.z=c.maxZ+R; }
     }
   }
-  p.x=clamp(p.x,-26.3,11.6); p.z=clamp(p.z,-14.7,10.8);
+  /* Notbremse, falls doch einmal eine Wand fehlt. Die Grenzen standen
+     noch auf der alten kleinen Karte: bei x 11,6 war das zweite
+     Ladenlokal zu Ende und das Rueckgebaeude, die Suedhalle, die
+     Westhalle und das halbe Testfeld waren ueberhaupt nicht zu
+     betreten. Jetzt umschliessen sie die ganze bebaute Flaeche -
+     dasselbe Rechteck, auf dem auch das Navgitter steht. */
+  p.x=clamp(p.x,NAV.x0+0.4,NAV.x1-0.4); p.z=clamp(p.z,NAV.z0+0.4,PLZ_MAX);
 }
 function look(dx,dy,s){ aim=null; yaw-=dx*s; pitch=clamp(pitch-dy*s,-1.45,1.45); }
 function updatePlayer(dt){

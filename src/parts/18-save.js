@@ -58,6 +58,9 @@ function startGame(fresh){
   S.news=Array.isArray(S.news)?S.news.slice(0,4):[];
   repaint();
   applyZonen();
+  /* Die Westtore stehen nach dem Laden zu, ganz gleich was beim
+     Speichern gerade an ihnen stand. */
+  if(typeof wbaysInit==='function') wbaysInit();
   setSB(!!S.up.kasse2);
   drawPackSchild(); syncPakete();
   if(d&&d.ck) placeMovable(ckMov,d.ck.x,d.ck.z,d.ck.ry);

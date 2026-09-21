@@ -57,22 +57,28 @@ function step(dt){
   updatePhone(dt); updateOrder(dt);
   if(phase==='open'){ dirtT-=dt; if(dirtT<=0){ dirtT=rand(34,62)/((1+customers.length*0.09)*evv('dirt')); if(Math.random()<(hasDeko('muell')?0.2:0.42)) addDirt(rand(-6,6),rand(-4.5,5)); } }
   for(const pd of pending) pd.t-=dt;
-  if(!truck&&pending.some(pd=>pd.t<=0)){
+  /* Frueher hing alles an der einen Basisrampe: stand dort ein LKW,
+     wartete jede weitere Lieferung. Jetzt bekommt die naechste Welle
+     die Basisrampe, wenn sie frei ist, sonst eine zugekaufte
+     Andockstation in der Westhalle. */
+  while(pending.some(pd=>pd.t<=0)){
+    const frei=!truck?-1:wbayFrei();
+    if(truck&&frei<0) break;
     const wave=[];
     for(let i=0;i<pending.length&&wave.length<32;i++) if(pending[i].t<=16) wave.push(pending[i]);
-    if(wave.length){
-      wave.forEach(w=>pending.splice(pending.indexOf(w),1));
-      const sid=wave[0].sup||'mertens';
-      spawnTruck(wave.map(w=>({type:w.type,q:w.q||1})),sid,supplierOf(sid).name);
-    }
+    if(!wave.length) break;
+    wave.forEach(w=>pending.splice(pending.indexOf(w),1));
+    const sid=wave[0].sup||'mertens', ladung=wave.map(w=>({type:w.type,q:w.q||1}));
+    if(frei<0) spawnTruck(ladung,sid,supplierOf(sid).name);
+    else if(!spawnWTruck(frei,ladung,sid,supplierOf(sid).name)) break;
   }
-  updateTruck(dt); updateSchiebetuer(dt); updateVersand(dt);
+  updateTruck(dt); updateWBays(dt); updateSchiebetuer(dt); updateVersand(dt);
   for(let i=timers.length-1;i>=0;i--){ timers[i].t-=dt; if(timers[i].t<=0){ const fn=timers[i].fn; timers.splice(i,1); fn(); } }
   if(phase==='open') addGrime(dt*0.0016*(1+customers.length*0.05));
   hype=Math.max(0,hype-dt*1.1);
   updateFireworks(dt); updateSnow(dt); updateDeko(dt); updateStadt(dt);
   updateTarget(); holdRepeat(dt); applyTOD(); updateUhr();
-  hudT-=dt; if(hudT<=0){ hudT=0.1; updateHUD(); updatePrompt(); if(pdaOn) drawPDA(); }
+  hudT-=dt; if(hudT<=0){ hudT=0.1; updateHUD(); updatePrompt(); if(pdaOn) drawPDA(); if(laptopOpen) updateOnline(); }
   saveT+=dt; if(saveT>25){ saveT=0; save(); }
 }
 let noLoop=location.hash.indexOf('test')>=0;

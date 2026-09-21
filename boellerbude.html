@@ -126,7 +126,7 @@ button:focus-visible{outline:3px solid var(--spark);outline-offset:2px}
 .lhead b{font-family:var(--display);font-weight:400;font-size:17px;color:var(--signal)}
 .lhead span{font-family:var(--display);font-size:18px}
 .lhead em{font-style:normal;font-size:15px;color:var(--muted)}
-.tabs{display:flex;gap:4px;padding:10px 12px 0;border-bottom:1px solid var(--line);overflow-x:auto;flex-shrink:0}
+.tabs{display:flex;flex-wrap:wrap;gap:4px;padding:10px 12px 0;border-bottom:1px solid var(--line);overflow-x:auto;flex-shrink:0}
 .tabs button{background:transparent;color:var(--muted);border-radius:8px 8px 0 0;padding:8px 10px;white-space:nowrap;font-size:16px}
 .tabs button.on{background:var(--signal);color:var(--ink)}
 .lbody{padding:4px 16px 12px;overflow:auto;touch-action:pan-y;flex:1;min-height:180px}
@@ -373,7 +373,7 @@ body.compact .pdahead2 b{font-size:16px}
 <div class="ov" id="laptop"><div class="card">
   <div class="lhead"><b>Böllerladen OS</b><em id="lLevel"></em><span id="lMoney"></span></div>
   <div class="tabs" id="ltabs">
-    <button data-tab="order">Bestellen</button><button data-tab="price">Preise &amp; Markt</button><button data-tab="liz">Sortiment</button><button data-tab="rez">Entwicklung</button><button data-tab="erf">Herausforderungen</button><button data-tab="up">Ausbau</button><button data-tab="einr">Einrichtung</button><button data-tab="markt">Marketing</button><button data-tab="deko">Deko</button><button data-tab="staff">Personal</button><button data-tab="bank">Bank</button><button data-tab="stats">Bericht</button><button data-tab="shop">Laden</button>
+    <button data-tab="order">Bestellen</button><button data-tab="price">Preise &amp; Markt</button><button data-tab="liz">Sortiment</button><button data-tab="rez">Entwicklung</button><button data-tab="erf">Herausforderungen</button><button data-tab="up">Ausbau</button><button data-tab="einr">Einrichtung</button><button data-tab="markt">Marketing</button><button data-tab="online">Onlineshop</button><button data-tab="deko">Deko</button><button data-tab="staff">Personal</button><button data-tab="bank">Bank</button><button data-tab="stats">Bericht</button><button data-tab="shop">Laden</button>
   </div>
   <div class="lbody" id="lbody"></div>
   <div class="lfoot lfoot-r"><button class="ghost" id="lclose">Laptop zuklappen</button><button id="lKorb">Warenkorb anzeigen</button></div>
@@ -620,7 +620,13 @@ const UPGRADES=[
   {id:'shop_ost',kat:'flaeche',lvl:20,req:'shop_gross',name:'Zweites Ladenlokal',desc:'Das nächste leerstehende Lokal an der Ostseite: noch einmal 212 Quadratmeter, Gondelgassen, Eckregal und eine lange Wandreihe.',cost:()=>16000,done:()=>S.up.shop_ost},
   {id:'shop_sued',kat:'flaeche',lvl:26,req:'shop_ost',name:'Rückgebäude Süd',desc:'Die große Halle hinter dem Laden, zwei breite Durchgänge: 478 Quadratmeter Verkaufsfläche mit zwei Gondelgassen. Damit ist der Laden fünfeinhalbmal so groß wie am Anfang.',cost:()=>34000,done:()=>S.up.shop_sued},
   {id:'lager_sued',kat:'flaeche',lvl:22,req:'lager_gross',name:'Lagerhalle Süd',desc:'283 Quadratmeter mit 6,4 Metern lichter Höhe. Erst hier passen Hochregale und Schwerlastregale hinein.',cost:()=>13000,done:()=>S.up.lager_sued},
-  {id:'lager_west',kat:'flaeche',lvl:28,req:'lager_sued',name:'Lagerhalle West',desc:'Die große Halle an den drei Westrampen: 505 Quadratmeter, zwölf Stellplätze für Hochregale und ein Hof, auf dem mehrere Auflieger stehen können.',cost:()=>38000,done:()=>S.up.lager_west},
+  {id:'lager_west',kat:'flaeche',lvl:28,req:'lager_sued',name:'Lagerhalle West',desc:'Die große Halle an den drei Westrampen: 505 Quadratmeter, zwölf Stellplätze für Hochregale und ein Hof, auf dem mehrere Auflieger stehen können. Dazu wird der Lagergang hinter dem Laden geöffnet — der kurze Weg vom Rückgebäude direkt ins Lager, ohne Umweg über den Verkaufsraum.',cost:()=>38000,done:()=>S.up.lager_west},
+  /* Andockstationen. Die Basisrampe hinter dem Lager ist die erste
+     und bleibt die begehbare; jede zugekaufte Westrampe nimmt eine
+     Lieferung zusaetzlich an, parallel zu allen anderen. */
+  {id:'rampe2',kat:'flaeche',lvl:28,req:'lager_west',name:'Zweite Andockstation',desc:'Tor 2 der Westhalle geht in Betrieb. Ab jetzt können zwei Lieferungen gleichzeitig anrollen: während du an der Basisrampe auslädst, stapelt der Fahrer hier seine Kartons selbst in der Halle ab.',cost:()=>14000,done:()=>S.up.rampe2},
+  {id:'rampe3',kat:'flaeche',lvl:29,req:'rampe2',name:'Dritte Andockstation',desc:'Tor 3 kommt dazu. Drei Lieferungen nebeneinander — ab hier staut sich der Einkauf auch an starken Tagen nicht mehr.',cost:()=>19000,done:()=>S.up.rampe3},
+  {id:'rampe4',kat:'flaeche',lvl:30,req:'rampe3',name:'Vierte Andockstation',desc:'Das letzte Tor der Westhalle. Vier Lieferungen gleichzeitig, mehr gibt das Grundstück nicht her.',cost:()=>25000,done:()=>S.up.rampe4},
   {id:'packstation',kat:'flaeche',lvl:18,req:'lager_gross',name:'Packstation für den Versand',desc:'Packtisch, Waage, Etikettendrucker und Abholrampe. Zusammen mit dem Onlineshop kommen Bestellungen als echte Pakete herein: packen, auf die Rampe stellen, DDL holt am Abend ab.',cost:()=>6400,done:()=>S.up.packstation},
   {id:'kasse2',kat:'einr',lvl:16,req:'shop_gross',name:'SB-Kassen',desc:'Zwei Selbstbedienungsterminals in der neuen Verkaufsfläche. Kunden mit wenig Ware zahlen dort selbst, das entlastet deine Schlange spürbar.',cost:()=>3400,done:()=>S.up.kasse2},
   {id:'labor',kat:'einr',lvl:25,req:'shop_gross',name:'Entwicklungslabor',desc:'Ein Labortisch im Lager. Ab hier entwickelst du eigene Rezepturen: Träger, Bruchbild und Farben aussuchen, Prototyp auf dem Testfeld zünden, in Produktion geben. Verbauen darfst du nur Bruchbilder, die du selbst schon am Himmel gesehen hast.',cost:()=>9800,done:()=>S.up.labor},
@@ -2142,19 +2148,144 @@ function repaint(){
   if(floorTexRef) redraw(floorTexRef,(g,W,H)=>paintFloor(g,W,H,f));
   if(typeof applyReliefs==='function') applyReliefs();
 }
+/* =========================================================
+   Aussenhaut der Gebaeude.
+
+   Vorher lag ueberall dieselbe Ziegeltapete: 256 Pixel, die sich
+   alle 1,3 Meter wiederholten. Auf einer 30 Meter langen Hallenwand
+   sind das zwei Dutzend sichtbare Naehte, und Ziegel passen ohnehin
+   nicht zu einem Fachmarkt.
+
+   Jetzt haengen grossformatige Faserzementtafeln davor. Der Trick
+   gegen die Naht: die Kachel ist genau zwei Tafeln breit und die
+   Fuge liegt exakt auf dem Kachelrand. Wo sich die Textur
+   wiederholt, sitzt also eine Fuge - und Fugen duerfen sich
+   wiederholen. Senkrecht laeuft die Kachel ueber die volle
+   Wandhoehe und wird geklemmt, damit der dunkle Sockel unten
+   bleibt und nicht alle zwei Meter noch einmal auftaucht.
+   ========================================================= */
+const FASS={b:2.4, h:8.0, sockel:0.62, tafel:1.18};
+function fassadeTex(){
+  const PXB=256, PXH=1024;                       /* 107 px/m quer, 128 px/m hoch */
+  return tex(PXB,PXH,(g,W,H)=>{
+    const mx=W/FASS.b, my=H/FASS.h;              /* Pixel je Meter */
+    const yv=m=>H-m*my;                          /* Meter ueber Boden -> Pixel */
+    /* Grundton der Tafeln, leicht warmes Hellgrau */
+    g.fillStyle='#c9cbc7'; g.fillRect(0,0,W,H);
+    /* Jede Tafel bekommt ihren eigenen Ton. Quer wechseln nur zwei
+       Werte - mehr passt nicht in eine Kachel -, senkrecht laeuft
+       die Reihe ueber die ganze Wandhoehe und wiederholt sich
+       darum gar nicht. So wirkt die Flaeche wie verlegte Platten
+       und nicht wie ein Stueck Pappe. */
+    { let sd=7; const rnd=()=>{ sd=(sd*1103515245+12345)&0x7fffffff; return sd/0x7fffffff; };
+      for(let m=FASS.sockel;m<FASS.h;m+=FASS.tafel){
+        const y0=H-(m+FASS.tafel)*my, y1=H-m*my;
+        for(const [xa,xb] of [[0,W/2],[W/2,W]]){
+          const t2=(rnd()-0.5)*2;
+          g.fillStyle=`rgba(${t2>0?'255,255,255':'96,100,106'},${Math.abs(t2)*0.085})`;
+          g.fillRect(xa,y0,xb-xa,y1-y0);
+        }
+      }
+    }
+    /* grossflaechige Wolke, damit die Wand nicht wie Pappe wirkt */
+    for(let i=0;i<70;i++){
+      const r=rand(40,150);
+      g.fillStyle=`rgba(${Math.random()<0.5?'255,255,255':'120,124,128'},${rand(0.012,0.045)})`;
+      g.beginPath(); g.ellipse(rand(0,W),rand(0,H),r,r*rand(0.4,1.0),rand(0,3.14),0,Math.PI*2); g.fill();
+    }
+    /* feines Korn */
+    for(let i=0;i<14000;i++){
+      g.fillStyle=`rgba(${Math.random()<0.5?'255,255,255':'90,94,98'},${rand(0.02,0.09)})`;
+      g.fillRect(Math.random()*W,Math.random()*H,1,1);
+    }
+    /* Regenschlieren von den Fugen abwaerts */
+    for(let i=0;i<90;i++){
+      const x=rand(0,W), y=rand(yv(FASS.h),yv(FASS.sockel)), l=rand(20,140);
+      g.fillStyle=`rgba(96,99,104,${rand(0.02,0.06)})`; g.fillRect(x,y,rand(1,3),l);
+    }
+    /* --- Fugen. Eine senkrechte sitzt auf dem Kachelrand (x=0),
+       die zweite in der Mitte. Beide bekommen Tiefe: dunkler
+       Schattenkern, rechts eine helle Kante.                     --- */
+    const fugeV=x=>{
+      const w2=Math.max(2,Math.round(0.022*mx));
+      g.fillStyle='rgba(58,60,64,.62)'; g.fillRect(x-w2/2,0,w2,H);
+      g.fillStyle='rgba(255,255,255,.22)'; g.fillRect(x+w2/2,0,1.5,H);
+      g.fillStyle='rgba(30,32,36,.30)';  g.fillRect(x-w2/2-1.5,0,1.5,H);
+    };
+    const fugeH=y=>{
+      const w2=Math.max(2,Math.round(0.022*my));
+      g.fillStyle='rgba(58,60,64,.58)'; g.fillRect(0,y-w2/2,W,w2);
+      g.fillStyle='rgba(255,255,255,.20)'; g.fillRect(0,y+w2/2,W,1.5);
+    };
+    for(let m=FASS.sockel;m<FASS.h+FASS.tafel;m+=FASS.tafel) fugeH(yv(m));
+    fugeV(0); fugeV(W/2); fugeV(W);
+    /* Nieten an den Tafelecken */
+    g.fillStyle='rgba(84,88,94,.5)';
+    for(let m=FASS.sockel+0.10;m<FASS.h;m+=FASS.tafel)
+      for(const x of [0.12*mx,W/2-0.12*mx,W/2+0.12*mx,W-0.12*mx]){
+        g.beginPath(); g.arc(x,yv(m),Math.max(1,0.018*my),0,Math.PI*2); g.fill(); }
+    /* --- Sockel: dunkler, rauer, mit Tropfkante und Spritzwasser --- */
+    const sy=yv(FASS.sockel);
+    g.fillStyle='#3b4049'; g.fillRect(0,sy,W,H-sy);
+    for(let i=0;i<5000;i++){
+      g.fillStyle=`rgba(${Math.random()<0.5?'255,255,255':'0,0,0'},${rand(0.02,0.08)})`;
+      g.fillRect(Math.random()*W,sy+Math.random()*(H-sy),1,1);
+    }
+    const sp=g.createLinearGradient(0,H-0.45*my,0,H);
+    sp.addColorStop(0,'rgba(24,26,30,0)'); sp.addColorStop(1,'rgba(24,26,30,.55)');
+    g.fillStyle=sp; g.fillRect(0,H-0.45*my,W,0.45*my);
+    /* Tropfkante als schmales helles Blech ueber dem Sockel */
+    g.fillStyle='#9aa0a8'; g.fillRect(0,sy-Math.max(2,0.05*my),W,Math.max(2,0.05*my));
+    g.fillStyle='rgba(255,255,255,.35)'; g.fillRect(0,sy-Math.max(2,0.05*my),W,1.5);
+    g.fillStyle='rgba(20,22,26,.45)'; g.fillRect(0,sy,W,2);
+  });
+}
+let wallBrick=null;
+function wallBrickMat(){
+  if(!wallBrick){
+    const t=fassadeTex();
+    t.wrapS=THREE.RepeatWrapping; t.wrapT=THREE.ClampToEdgeWrapping;
+    t.repeat.set(1/FASS.b,1/FASS.h); t.anisotropy=8;
+    wallBrick=new THREE.MeshStandardMaterial({map:t,roughness:0.78,metalness:0.04});
+  }
+  return wallBrick;
+}
+/* Hof- und Grundstuecksmauern stehen als einfache Kaesten in der
+   Welt, ihre UVs laufen von 0 bis 1 je Seite. Deshalb bekommen sie
+   ein eigenes Material, dessen Wiederholung aus den Massen kommt:
+   Betonfertigteile mit Stossfugen und Abplatzungen. */
 function brickMat(len,h){
-  const t=tex(256,256,(g,W,H)=>{ g.fillStyle='#6d3a2c'; g.fillRect(0,0,W,H); const rows=8, bh=H/rows;
-    for(let r=0;r<rows;r++){ const off=(r%2)*32; for(let x=-64;x<W;x+=64){ g.fillStyle=pick(['#9a4b36','#a4533c','#8e4431','#a85a41']); g.fillRect(x+off+3,r*bh+3,58,bh-6); } } });
-  t.wrapS=t.wrapT=THREE.RepeatWrapping; t.repeat.set(len/1.3,h/0.65);
-  return new THREE.MeshStandardMaterial({map:t,roughness:0.95});
+  const t=tex(256,256,(g,W,H)=>{
+    g.fillStyle='#a2a5a4'; g.fillRect(0,0,W,H);
+    for(let i=0;i<40;i++){ const r=rand(30,110);
+      g.fillStyle=`rgba(${Math.random()<0.5?'255,255,255':'110,112,116'},${rand(0.02,0.06)})`;
+      g.beginPath(); g.ellipse(rand(0,W),rand(0,H),r,r*rand(0.4,1),rand(0,3.14),0,Math.PI*2); g.fill(); }
+    for(let i=0;i<9000;i++){
+      g.fillStyle=`rgba(${Math.random()<0.5?'255,255,255':'86,88,92'},${rand(0.02,0.1)})`;
+      g.fillRect(Math.random()*W,Math.random()*H,1,1); }
+    /* Stossfuge am Kachelrand - dort faellt die Wiederholung nicht auf */
+    g.fillStyle='rgba(66,68,72,.55)'; g.fillRect(0,0,4,H); g.fillRect(W-4,0,4,H);
+    g.fillStyle='rgba(255,255,255,.18)'; g.fillRect(4,0,1.5,H);
+    /* Schalungsstoss waagerecht auf halber Hoehe */
+    g.fillStyle='rgba(66,68,72,.35)'; g.fillRect(0,H/2-1.5,W,3);
+    /* Ankerloecher der Schalung */
+    g.fillStyle='rgba(92,94,98,.45)';
+    for(const y of [H*0.22,H*0.72]) for(const x of [W*0.25,W*0.75]){
+      g.beginPath(); g.arc(x,y,3,0,Math.PI*2); g.fill(); }
+    /* Schmutzrand unten */
+    const gr=g.createLinearGradient(0,H-40,0,H);
+    gr.addColorStop(0,'rgba(78,76,70,0)'); gr.addColorStop(1,'rgba(78,76,70,.38)');
+    g.fillStyle=gr; g.fillRect(0,H-40,W,40);
+  });
+  t.wrapS=t.wrapT=THREE.RepeatWrapping; t.anisotropy=8;
+  t.repeat.set(Math.max(1,Math.round(len/2.5)),1);
+  return new THREE.MeshStandardMaterial({map:t,roughness:0.92,metalness:0.02});
 }
 const trimMat=std(0xd2d5db,{roughness:0.95});
 const lagerWallTex=tex(32,512,(g,W,H)=>{ g.fillStyle='#a3a8b0'; g.fillRect(0,0,W,H); const b=Math.round(H*(1-0.35/WH)); for(let y=b;y<H;y+=16){ g.fillStyle=((y-b)/16)%2<1?'#f2c230':'#1f1f24'; g.fillRect(0,y,W,16);} });
 lagerWallTex.wrapS=THREE.RepeatWrapping; lagerWallTex.wrapT=THREE.ClampToEdgeWrapping; lagerWallTex.repeat.set(1/2.6,1/WH);
 const lagerWall=new THREE.MeshStandardMaterial({map:lagerWallTex,roughness:0.95});
 const lagerUpper=std(0xa3a8b0,{roughness:0.95});
-let wallBrick=null;
-function wallBrickMat(){ if(!wallBrick){ wallBrick=brickMat(1.3,0.65); wallBrick.map.repeat.set(1/1.3,1/0.65); } return wallBrick; }
 /* Wand-UVs in Metern: dadurch ist die Tapete auf jedem Wandstueck gleich
    gross, die Scheuerleiste laeuft durch und Teilstuecke ueber Tuer oder
    Fenster zeigen genau den passenden Ausschnitt - keine Naehte mehr. */
@@ -2414,6 +2545,10 @@ function updateSign(){
    Testfeld: Metalltisch und Abschussröhren, dazu das Zündpult
    ========================================================= */
 const PULT_RY=1.121+Math.PI;
+/* Modell und Kollision des Zuendpults haengen an derselben Zahl -
+   beim Verschieben ist die Kollision sonst stehen geblieben und
+   sperrte als unsichtbare Wand den Lagergang. */
+const PULT_POS={x:5.9,z:-11.0};
 const stations={}; let pultHit=null, pultTex=null, pultLamp=null;
 /* Hinweisschild auf zwei Rohrpfosten, damit es nicht in der Luft haengt */
 function schild(x,y,z,w,h,mat,steelM){
@@ -2433,10 +2568,15 @@ function schild(x,y,z,w,h,mat,steelM){
   return g;
 }
 
+/* Die ganze Testfeldausstattung ist um 2,8 m nach Sueden gerueckt.
+   Davor stand der Zuendtisch bei z -9,6 und das Pult bei z -8,2 -
+   beide liegen jetzt im Lagergang, der dicht hinter der Rueckwand
+   des Ladens quer ueber das Testfeld laeuft. Platz ist genug: das
+   Testfeld reicht bis z -28. */
 const STATION_POS={
-  tisch :{x:-0.3,z:-9.6, ry:0,name:'Zündtisch',cap:6},
-  rampe :{x:-0.3,z:-12.8,ry:0,name:'Abschussröhren',cap:6},
-  moerser:{x:4.6,z:-12.8,ry:0,name:'Mörserbatterie',cap:3}
+  tisch :{x:-0.3,z:-12.4,ry:0,name:'Zündtisch',cap:6},
+  rampe :{x:-0.3,z:-15.6,ry:0,name:'Abschussröhren',cap:6},
+  moerser:{x:4.6,z:-15.6,ry:0,name:'Mörserbatterie',cap:3}
 };
 function stationOf(t){
   const p=P[t]; if(!p||!p.cat) return null;
@@ -2626,7 +2766,7 @@ function buildYard(){
   {
     /* Um 180 Grad gedreht gegenueber vorher: der Bediener steht auf der
        Rueckseite und blickt ueber das Pult aufs Testfeld. */
-    const g=new THREE.Group(); g.position.set(5.9,0,-8.2); g.rotation.y=PULT_RY; scene.add(g);
+    const g=new THREE.Group(); g.position.set(PULT_POS.x,0,PULT_POS.z); g.rotation.y=PULT_RY; scene.add(g);
     const korpus=std(0x2b3240,{metalness:0.42,roughness:0.44});
     const kante=std(0x9aa1ac,{metalness:0.7,roughness:0.3});
     const pulver=std(0xf2c230,{roughness:0.55});
@@ -2713,15 +2853,17 @@ function buildYard(){
     lr.position.set(0.36,1.183,0.032); lr.rotation.x=1.27; g.add(lr);
 
     const hit=bbox(0.98,1.35,0.66,hitM,0,0.75,0,g,false); hit.userData={kind:'pult'};
-    pultHit=hit; col(5.42,6.38,-8.68,-7.72);
+    pultHit=hit; col(PULT_POS.x-0.48,PULT_POS.x+0.48,PULT_POS.z-0.48,PULT_POS.z+0.48);
     drawPult();
   }
   /* Flutlicht */
-  for(const [x,z] of [[-1.4,-7.2],[7.3,-13.6]]){
+  /* Der erste Mast stand bei z -7,2 und ragte durch die Decke des
+     Lagergangs. Beide sind mit den Stationen nach Sueden gerueckt. */
+  for(const [x,z] of [[-1.4,-10.4],[7.3,-16.4]]){
     bbox(0.12,3.4,0.12,std(0x4a4f5a,{metalness:0.5}),x,1.7,z);
     const head=bbox(0.55,0.3,0.25,std(0x2a2e38),x,3.45,z); head.rotation.x=0.4;
     const lm=new THREE.MeshStandardMaterial({color:0x222222,emissive:LIN(0xfff0d0),emissiveIntensity:0}); lampMats.push(lm);
-    bbox(0.45,0.03,0.2,lm,x,3.33,z+(z<-10?0.1:-0.12),null,false);
+    bbox(0.45,0.03,0.2,lm,x,3.33,z+(z<-13?0.1:-0.12),null,false);
   }
 }
 function drawPult(){
@@ -2847,21 +2989,38 @@ function zaunLauf(x0,z0,x1,z1,h){
    Im Norden steht die Ladenrueckwand, im Westen die Lagerwand, im
    Osten die Westwand des Rueckgebaeudes - eingezaeunt wird nur, was
    sonst offen waere. */
+let _warnTex=null;
+function warnTex(){
+  if(!_warnTex) _warnTex=tex(320,180,(g,W,Hh)=>{
+    g.fillStyle='#f2c230'; g.fillRect(0,0,W,Hh);
+    g.strokeStyle='#1f1f24'; g.lineWidth=8; g.strokeRect(6,6,W-12,Hh-12);
+    g.textAlign='center'; g.textBaseline='middle'; g.fillStyle='#1f1f24';
+    g.font=BUN(34); g.fillText('TESTFELD',W/2,48);
+    g.font=BAR(26); g.fillText('Zutritt nur für Personal',W/2,92);
+    g.fillText('Schutzbrille tragen',W/2,126);
+  });
+  return _warnTex;
+}
+function warnSchild(x,z,ry){
+  plane(1.6,0.9,new THREE.MeshStandardMaterial({side:THREE.DoubleSide,map:warnTex()}),x,1.2,z,ry,null);
+}
+/* Das Testfeld reicht jetzt von der Lagerwand bis an die Suedhalle.
+   Im Norden steht der Lagergang, im Westen die Lagerwand, im Osten
+   die Westwand des Rueckgebaeudes - eingezaeunt wird nur, was sonst
+   offen waere. Auf der gewachsenen Flaeche haengt nicht mehr nur ein
+   einziges Schild in der Mitte: alle acht Meter eines, damit man von
+   ueberall sieht, wo man steht. */
 function buildZaun(){
   const H=2.0, T=LAY.test;
   zaunLauf(T.x0,T.z0,T.x1,T.z0,H);            /* Sueden        */
   zaunLauf(T.x1,T.z0,T.x1,LAY.sued.z0,H);     /* Osten, unten  */
   col(T.x0,T.x1,T.z0-0.1,T.z0+0.1);
   col(T.x1-0.1,T.x1+0.1,T.z0,LAY.sued.z0);
-  /* Warnschild am Zaun */
-  plane(1.6,0.9,new THREE.MeshStandardMaterial({side:THREE.DoubleSide,map:tex(320,180,(g,W,Hh)=>{
-    g.fillStyle='#f2c230'; g.fillRect(0,0,W,Hh);
-    g.strokeStyle='#1f1f24'; g.lineWidth=8; g.strokeRect(6,6,W-12,Hh-12);
-    g.textAlign='center'; g.textBaseline='middle'; g.fillStyle='#1f1f24';
-    g.font=BUN(34); g.fillText('TESTFELD',W/2,48);
-    g.font=BAR(26); g.fillText('Zutritt nur für Personal',W/2,92);
-    g.fillText('Schutzbrille tragen',W/2,126); })}),
-    (T.x0+T.x1)/2,1.2,T.z0+0.12,0,null);
+  /* Warnschilder laengs der Zaunlaeufe */
+  const nS=Math.max(2,Math.round((T.x1-T.x0)/8));
+  for(let i=0;i<nS;i++) warnSchild(T.x0+(i+0.5)*(T.x1-T.x0)/nS,T.z0+0.12,0);
+  const lo=LAY.sued.z0, nO=Math.max(1,Math.round((lo-T.z0)/8));
+  for(let i=0;i<nO;i++) warnSchild(T.x1-0.12,T.z0+(i+0.5)*(lo-T.z0)/nO,-Math.PI/2);
 }
 /* Strassenleuchte: Sockel, konischer Mast, Ausleger, echter Leuchtenkopf */
 function strassenlampe(x,z,dir){
@@ -3367,8 +3526,9 @@ function makeBaum(){
   const m=new THREE.Mesh(merge(parts),vcMat); if(HIQ) m.castShadow=true; return m;
 }
 /* =========================================================
-   Nachbargrundstueck rechts vom Laden: Backsteinfassade mit
-   Verkaufsschild. Hier waechst der Laden spaeter hinein.
+   Nachbargrundstueck rechts vom Laden: gleiche Fassade wie der
+   eigene Laden, mit Verkaufsschild. Hier waechst der Laden spaeter
+   hinein.
    ========================================================= */
 function buildNachbar(){
   /* Die Ladenzeile laeuft bis ans Ende des Blocks. Jeder Abschnitt
@@ -3379,25 +3539,10 @@ function buildNachbar(){
 function nachbarFassade(x0,x1,zid,unterzeile){
   const zf=6.1, H=WH+0.6;
   const g=new THREE.Group(); scene.add(g);
-  /* Backsteinwand mit Verband, Fugen und Ausblühungen */
-  const zieg=tex(512,512,(c,W,Hh)=>{
-    c.fillStyle='#6a5348'; c.fillRect(0,0,W,Hh);
-    const rows=16, bh=Hh/rows;
-    for(let r=0;r<rows;r++){ const off=(r%2)*40;
-      for(let x=-80;x<W;x+=80){
-        c.fillStyle=pick(['#8a4f3c','#7e4735','#93573f','#74402f','#8a5a44','#6d4132']);
-        c.fillRect(x+off+3,r*bh+3,74,bh-6);
-        c.fillStyle='rgba(255,255,255,.06)'; c.fillRect(x+off+3,r*bh+3,74,2);
-        c.fillStyle='rgba(0,0,0,.16)'; c.fillRect(x+off+3,r*bh+bh-5,74,2);
-      } }
-    for(let i=0;i<9;i++){ const x=Math.random()*W;
-      const gr=c.createLinearGradient(x,0,x,Hh); gr.addColorStop(0,'rgba(230,226,214,.20)'); gr.addColorStop(1,'rgba(230,226,214,0)');
-      c.fillStyle=gr; c.fillRect(x,rand(0,Hh*0.4),rand(20,70),Hh); }
-    for(let i=0;i<2200;i++){ c.fillStyle=`rgba(0,0,0,${Math.random()*0.05})`; c.fillRect(Math.random()*W,Math.random()*Hh,2,2); }
-  });
-  /* UV in Metern: dadurch passt der Verband ueber alle Wandstuecke hinweg */
-  zieg.wrapS=zieg.wrapT=THREE.RepeatWrapping; zieg.repeat.set(1/1.6,1/1.6); zieg.anisotropy=8;
-  const zm=new THREE.MeshStandardMaterial({map:zieg,roughness:0.95});
+  /* Die Ladenzeile ist ein Gebaeude, also traegt sie dieselbe
+     Fassade wie der eigene Laden - vorher sass hier eine zweite,
+     noch groebere Ziegeltextur daneben. */
+  const zm=wallBrickMat();
   const w=x1-x0, cx=(x0+x1)/2;
   /* Die Fassade hat echte Oeffnungen. Solange nebenan nicht gekauft ist,
      sind sie zugemauert; nach dem Kauf sitzen dort Schaufenster.
@@ -3412,10 +3557,12 @@ function nachbarFassade(x0,x1,zid,unterzeile){
     F(px,a,0,H); F(a,b,y1,H); if(y0>0) F(a,b,0,y0); px=b;
   }
   F(px,x1,0,H);
-  /* Attika, Gesims und Sockel */
-  bbox(w+0.2,0.28,0.56,std(0x5f584e,{roughness:1}),cx,H+0.12,zf-0.1,g);
+  /* Attika, Gesims und Sockel. Die Farben gehen mit der Fassade:
+     anthrazit wie der Sockel in der Textur, nicht mehr das
+     Sandsteinbeige von der Ziegelwand. */
+  bbox(w+0.2,0.28,0.56,std(0x2f343d,{roughness:0.9}),cx,H+0.12,zf-0.1,g);
   bbox(w+0.1,0.1,0.5,std(0xe8ecf2,{roughness:1}),cx,H+0.3,zf-0.1,g,false);
-  bbox(w+0.12,0.5,0.5,std(0x6f6a62,{roughness:0.96}),cx,0.25,zf-0.06,g);
+  bbox(w+0.12,0.62,0.5,std(0x3b4049,{roughness:0.9}),cx,0.31,zf-0.06,g);
 
   /* ---------- Zustand „steht zum Verkauf“ ---------- */
   const gs=new THREE.Group(); g.add(gs); zWand(zid,gs);
@@ -4075,9 +4222,9 @@ function buildTor(steel,snow){
 const ZONEN={};
 function zone(id){ return ZONEN[id]||(ZONEN[id]={obj:[],cols:[],wand:[],wandCols:[],offen:false}); }
 /* Objekt gehoert zum noch gesperrten Bereich */
-function zAdd(id,o){ if(o){ o.visible=false; zone(id).obj.push(o); } return o; }
+function zAdd(id,o){ if(o&&id){ o.visible=false; zone(id).obj.push(o); } return o; }
 /* Kollision, die erst nach dem Kauf gilt */
-function zCol(id,c){ if(c){ dropCol(c); zone(id).cols.push(c); } return c; }
+function zCol(id,c){ if(c&&id){ dropCol(c); zone(id).cols.push(c); } return c; }
 /* Teil der Bauwand: sichtbar, bis gekauft wird */
 function zWand(id,o){ if(o) zone(id).wand.push(o); return o; }
 function zWandCol(id,c){ if(c) zone(id).wandCols.push(c); return c; }
@@ -4133,10 +4280,11 @@ function sockelLeiste(id,laengs,fest,a0,a1){
   }
 }
 /* Fuellung einer vorbereiteten Oeffnung. laengs = die Wand laeuft in x. */
-function trennwand(id,laengs,fest,a0,a1,h,innen,aussen){
+function trennwand(id,laengs,fest,a0,a1,h,innen,aussen,face){
+  const f=face||(laengs?'-z':'-x');
   const m=laengs
-    ? stilleWand(a0,a1,fest-LW/2,fest+LW/2,0,h,'-z',innen,aussen||innen)
-    : stilleWand(fest-LW/2,fest+LW/2,a0,a1,0,h,'-x',innen,aussen||innen);
+    ? stilleWand(a0,a1,fest-LW/2,fest+LW/2,0,h,f,innen,aussen||innen)
+    : stilleWand(fest-LW/2,fest+LW/2,a0,a1,0,h,f,innen,aussen||innen);
   zWand(id,m);
   if(innen===shopWall) sockelLeiste(id,laengs,fest,a0,a1);
   zWandCol(id,laengs?col(a0,a1,fest-LW/2,fest+LW/2):col(fest-LW/2,fest+LW/2,a0,a1));
@@ -4226,11 +4374,16 @@ function halle(id,r,opt){
    Solange sie stehen, sieht man ihnen nichts an - es ist dieselbe
    Wand wie daneben, nur eben durchgehend.
    laengs = die Wand laeuft in x-Richtung. */
-function durchbruchWand(id,laengs,fest,von,bis,oeffnungen,mat,exMat,sturzY,hoehe){
+function durchbruchWand(id,laengs,fest,von,bis,oeffnungen,mat,exMat,sturzY,hoehe,face){
   const H=hoehe||WH, sy=sturzY||2.7;
+  /* Welche Seite der Wand die Innenseite ist, stand bisher fest.
+     Die Westwand des Rueckgebaeudes zeigt aber nach +x in den
+     Verkaufsraum, nicht nach -x - sonst klebt die Ladentapete
+     aussen und die Fassade innen. */
+  const f=face||(laengs?'-z':'-x');
   const w=(a2,b2,y0,y1)=>laengs
-    ? wall(a2,b2,fest-LW/2,fest+LW/2,y0,y1,'-z',mat,exMat)
-    : wall(fest-LW/2,fest+LW/2,a2,b2,y0,y1,'-x',mat,exMat);
+    ? wall(a2,b2,fest-LW/2,fest+LW/2,y0,y1,f,mat,exMat)
+    : wall(fest-LW/2,fest+LW/2,a2,b2,y0,y1,f,mat,exMat);
   const c=(a2,b2)=>laengs?col(a2,b2,fest-LW/2,fest+LW/2):col(fest-LW/2,fest+LW/2,a2,b2);
   const zc=(a2,b2)=>zWandCol(id,c(a2,b2));
   let x=von;
@@ -4238,19 +4391,70 @@ function durchbruchWand(id,laengs,fest,von,bis,oeffnungen,mat,exMat,sturzY,hoehe
     if(oa>x){ w(x,oa,0,H); c(x,oa); if(mat===shopWall) sockelLeiste(null,laengs,fest,x,oa); }
     w(oa,ob,sy,H);                       /* Sturz ueber der Oeffnung */
     zc(oa,ob);                           /* sperrt, solange die Fuellung steht */
-    trennwand(id,laengs,fest,oa,ob,sy,mat,exMat);
+    trennwand(id,laengs,fest,oa,ob,sy,mat,exMat,f);
     x=ob;
   }
   if(bis>x){ w(x,bis,0,H); c(x,bis); if(mat===shopWall) sockelLeiste(null,laengs,fest,x,bis); }
 }
 
+/* =========================================================
+   Lagergang: der kurze Weg vom Verkauf ins Lager.
+
+   Das Rueckgebaeude liegt ganz im Osten, die Lagerhalle West ganz
+   im Westen, dazwischen das Testfeld. Wer eine Palette holen
+   wollte, lief vorher quer durch den Basisladen. Der Gang laeuft
+   dicht hinter der Rueckwand des Basisladens ueber das Testfeld
+   und verbindet beide Seiten direkt.
+
+   Die Hintertuer des Ladens muendet jetzt in den Gang; genau
+   gegenueber steht ein Durchgang aufs Testfeld, sodass der
+   gewohnte Weg nach draussen unveraendert geradeaus fuehrt.
+   Die Huelle steht wie alles andere von Anfang an, nur die beiden
+   Kopfenden sind zugesetzt, bis die Lagerhalle West gekauft ist.
+   ========================================================= */
+const GANG={x0:-7.9, x1:7.8, z0:-8.9, z1:-6.1, h:2.9};
+const GANGTUER={a:4.4, b:6.1};        /* fluchtet mit der Hintertuer */
+function buildLagergang(){
+  const G=GANG, mitteX=(G.x0+G.x1)/2, mitteZ=(G.z0+G.z1)/2;
+  const breite=G.x1-G.x0, tiefe=G.z1-G.z0;
+  /* Boden: derselbe Estrich wie im Lager */
+  const bc=concreteTex(); bc.repeat.set(breite/2,tiefe/2);
+  const bo=new THREE.Mesh(new THREE.PlaneGeometry(breite,tiefe),
+    new THREE.MeshStandardMaterial({map:bc,roughness:0.85}));
+  bo.rotation.x=-Math.PI/2; bo.position.set(mitteX,0.016,mitteZ); scene.add(bo);
+  /* Decke und Dachrand */
+  const ce=new THREE.Mesh(new THREE.PlaneGeometry(breite+0.3,tiefe+0.3),std(0xe6e8ee,{roughness:1}));
+  ce.rotation.x=Math.PI/2; ce.position.set(mitteX,G.h-0.01,mitteZ); scene.add(ce);
+  /* Der Dachrand deckt die Kopf- und Suedwand ab, aber keinen
+     Zentimeter mehr: mit dem sonst ueblichen Ueberstand ragte er
+     durch die Ostwand der Lagerhalle Sued hinein. */
+  bbox(breite+LW*2,0.25,tiefe+LW*2,std(0x2b2f3a),mitteX,G.h+0.13,mitteZ,null,true);
+  /* Suedwand mit dem Durchgang aufs Testfeld. Der Sturz bleibt
+     stehen, sonst steht das Dach in der Luft. */
+  const zs=G.z0;
+  wall(G.x0-LW,GANGTUER.a,zs-LW,zs,0,G.h,'+z',lagerWall);
+  wall(GANGTUER.b,G.x1+LW,zs-LW,zs,0,G.h,'+z',lagerWall);
+  wall(GANGTUER.a,GANGTUER.b,zs-LW,zs,2.5,G.h,'+z',lagerWall);
+  col(G.x0-LW,GANGTUER.a,zs-LW,zs);
+  col(GANGTUER.b,G.x1+LW,zs-LW,zs);
+  leuchtenRaster(null,{x0:G.x0,x1:G.x1,z0:G.z0,z1:G.z1},G.h,3.4,2.6);
+  roomAO(G.x0+0.02,G.x1-0.02,G.z0+0.02,G.z1-0.02);
+  /* Hinweisschild ueber dem Durchgang zum Lager */
+  plane(1.5,0.3,new THREE.MeshBasicMaterial({toneMapped:false,side:THREE.DoubleSide,
+    map:tex(512,104,(g,W,H)=>{
+      g.fillStyle='#1b2340'; g.fillRect(0,0,W,H);
+      g.fillStyle='#f2c230'; g.fillRect(0,H-7,W,7);
+      g.textAlign='center'; g.textBaseline='middle';
+      g.fillStyle='#e8ecf5'; g.font=BUN(40); g.fillText('◄  LAGER      VERKAUF  ►',W/2,H/2-3);
+    })}),mitteX,2.45,G.z1-0.06,Math.PI,null);
+}
 function buildAusbau(){
   /* ---------- Verkaufsflaeche ----------
      Die Front uebernimmt die Nachbarfassade (05e), deshalb bekommen
      Ost I und Ost II von der Halle keine Nordwand. */
   halle('shop_gross',LAY.ost1,{aussen:{}});
   halle('shop_ost',  LAY.ost2,{aussen:{e:true}});
-  halle('shop_sued', LAY.sued,{aussen:{s:true,e:true,w:true}});
+  halle('shop_sued', LAY.sued,{aussen:{s:true,e:true}});
   /* Innenwaende zwischen zwei Verkaufsraeumen: auf beiden Seiten
      Ladentapete, sonst schaut man von drinnen auf Backstein. */
   durchbruchWand('shop_ost',false,LAY.ost1.x1,LAY.ost1.z0,LAY.ost1.z1,[[-4.2,4.2]],shopWall,shopWall);
@@ -4263,7 +4467,7 @@ function buildAusbau(){
   halle('lager_gross',LAY.lnord,{art:'lager',aussen:{n:true,w:true},h:ANBAU_H-0.06,keinDach:true});
   /* Sued und West sind echte Hallen mit 6,4 m lichter Hoehe -
      nur so haben Hochregale und Schwerlastregale ueberhaupt Platz. */
-  halle('lager_sued', LAY.lsued,{art:'lager',aussen:{e:true,s:true},h:HALLE_H});
+  halle('lager_sued', LAY.lsued,{art:'lager',aussen:{s:true},h:HALLE_H});
   halle('lager_west', LAY.lwest,{art:'lager',aussen:{s:true,n:true},h:HALLE_H,ex:blechMat()});
   /* Basislager nach Sueden */
   durchbruchWand('lager_sued',true,LAY.lbasis.z0,LAY.lbasis.x0,LAY.lbasis.x1,[[-17.5,-10.5]],lagerWall,lagerWall,null,HALLE_H);
@@ -4273,6 +4477,14 @@ function buildAusbau(){
   trennwand('lager_gross',true,2.0,-19.0,-9.0,2.6,lagerWall,lagerWall);
 
   /* ---------- Packstation, Rampen, Logistikzentrum ---------- */
+  /* Die beiden Kopfwaende des Lagergangs. Sie ersetzen die
+     Westwand des Rueckgebaeudes und die Ostwand der Halle Sued;
+     beide bekommen an der Stelle des Gangs eine Oeffnung, die
+     zusammen mit der Lagerhalle West freigegeben wird. */
+  const GT=[[GANG.z0+0.25,GANG.z1-0.25]];
+  durchbruchWand('lager_west',false,7.9,LAY.sued.z0,LAY.sued.z1,GT,shopWall,undefined,2.5,WH,'+x');
+  durchbruchWand('lager_west',false,-8.0,LAY.lsued.z0,LAY.lsued.z1,GT,lagerWall,undefined,2.5,HALLE_H,'-x');
+  buildLagergang();
   buildPackstation();
   buildWestrampen();
   buildLogistik();
@@ -4463,6 +4675,7 @@ function ddlAbholung(){
    der kleine Hof an der Basisrampe reicht dafuer nicht.
    ========================================================= */
 const WRAMPEN=[-25.6,-18.6,-11.6];          /* Mitte der drei Tore in z */
+const WTORE=[];                             /* Torblatt und Ampel je Rampe */
 const WTOR={w:3.4,h:3.05};
 
 /* Trapezblech fuer Hallenwaende. Die Wand-UVs stehen in Metern,
@@ -4531,6 +4744,10 @@ function westTor(cz,nr){
   const tb=torBlattMat(), kante=std(0x6f757e,{metalness:0.5,roughness:0.5});
   const bl=new THREE.Mesh(new THREE.BoxGeometry(0.1,WTOR.h,WTOR.w),[tb,tb,kante,kante,kante,kante]);
   bl.position.set(-0.15,WTOR.h/2,0); g.add(bl);
+  /* Das Tor war reine Kulisse. Jetzt merkt sich die Rampe ihr
+     Torblatt und ihre Ampel, damit eine zugekaufte Andockstation
+     wirklich aufmachen kann. */
+  const eintrag={nr,z:cz,blatt:bl,zu:WTOR.h/2,auf:WTOR.h/2+WTOR.h-0.06,t:0};
   /* Zarge */
   for(const s of [-1,1]) bbox(0.3,WTOR.h+0.26,0.18,steel,-0.24,(WTOR.h+0.26)/2,s*(WTOR.w/2+0.09),g,false);
   bbox(0.3,0.22,WTOR.w+0.36,steel,-0.24,WTOR.h+0.13,0,g,false);
@@ -4554,6 +4771,15 @@ function westTor(cz,nr){
     const c2=new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.05,0.04,10),m);
     c2.rotation.z=Math.PI/2; c2.position.set(-0.38,y,WTOR.w/2+0.62); g.add(c2);
   }
+  eintrag.rot=lr; eintrag.gruen=lg; WTORE[nr-1]=eintrag;
+  /* Torabdichtung. Der Auflieger ist 2,55 m breit, das Tor 3,4 -
+     ohne Dichtung schaut man links und rechts am Heck vorbei ins
+     Freie. Drei Polster aus Planenstoff schliessen den Spalt, so
+     wie an jeder echten Rampe. */
+  const planeM=std(0x23262c,{roughness:0.95});
+  for(const s2 of [-1,1])
+    bbox(0.46,WTOR.h+0.1,0.5,planeM,-0.26,(WTOR.h+0.1)/2,s2*(WTOR.w/2-0.2),g,false);
+  bbox(0.46,0.42,WTOR.w+0.1,planeM,-0.26,WTOR.h-0.09,0,g,false);
   bbox(0.12,0.24,0.16,std(0xf2c230,{roughness:0.6}),-0.3,1.35,WTOR.w/2+0.62,g,false);
   for(let k=0;k<3;k++) bbox(0.04,0.05,0.05,std([0x2f9e57,0xd8352a,0x2a2e38][k]),-0.37,1.43-k*0.07,WTOR.w/2+0.62,g,false);
   /* Torkennung ueber dem Vordach */
@@ -4603,9 +4829,11 @@ function hofMast(x,z,ry){
   col(x-0.3,x+0.3,z-0.3,z+0.3);
 }
 /* Abgestellter Auflieger, von aussen. Kein Innenraum noetig. */
-function abstellAuflieger(x,z,ry,name,farbe){
+function abstellAuflieger(x,z,ry,name,farbe,fahrend){
   const g=new THREE.Group(); g.position.set(x,0,z); g.rotation.y=ry; scene.add(g);
   g.userData.hof='auflieger';
+  /* Laenge des Aufbaus, damit der Anrufer das Heck ausrichten kann */
+  g.userData.len=13.2;
   const L=13.2, W2=2.55, HH=2.95, FY=1.15;      /* Ladeflaechenhoehe */
   const alu=std(0xb6bcc4,{metalness:0.55,roughness:0.42});
   const dark=std(0x22262e,{metalness:0.4,roughness:0.6});
@@ -4650,9 +4878,13 @@ function abstellAuflieger(x,z,ry,name,farbe){
   if(HIQ) chm.castShadow=true; g.add(chm);
   [gRahmen,gWinde,gFuss,gKoenig,gRad,gFelge,gAchse,gKotfl,gSchutz,gRueck,gBlink,gSchild].forEach(q=>q.dispose());
   /* Kollision als ein Block */
-  const c=Math.cos(ry), s2=Math.sin(ry);
-  const hx=Math.abs(c)*L/2+Math.abs(s2)*W2/2, hz=Math.abs(s2)*L/2+Math.abs(c)*W2/2;
-  col(x-hx,x+hx,z-hz,z+hz);
+  /* Ein Auflieger, der noch faehrt, bekommt keine feste Kollision -
+     die zoege sonst als unsichtbarer Block ueber den Hof. */
+  if(!fahrend){
+    const c=Math.cos(ry), s2=Math.sin(ry);
+    const hx=Math.abs(c)*L/2+Math.abs(s2)*W2/2, hz=Math.abs(s2)*L/2+Math.abs(c)*W2/2;
+    col(x-hx,x+hx,z-hz,z+hz);
+  }
   return g;
 }
 /* Palettenstapel als Hofdeko. Ein Stapel sind ueber achtzig Bretter -
@@ -6957,6 +7189,101 @@ function updateTruck(dt){
     }
   }
 }
+/* =========================================================
+   Westrampen im Betrieb.
+
+   Bisher gab es genau einen LKW an genau einer Rampe: solange der
+   an der Basisrampe stand, wartete jede weitere Bestellung. Die
+   drei Tore in der Westhalle waren reine Kulisse.
+
+   Jetzt sind sie einzeln zukaufbar. Eine gekaufte Andockstation
+   nimmt eine Lieferung parallel zur Basisrampe an: der Auflieger
+   setzt zurueck, das Tor faehrt hoch, und der Fahrer stapelt die
+   Kartons in der Halle ab. Abholen und einraeumen bleibt deine
+   Arbeit - die Station spart das Ausladen, nicht den Weg.
+
+   Die Basisrampe bleibt unveraendert die begehbare: dort steigt
+   man in den Laderaum. Der Code dafuer liegt in 08b und wird hier
+   nicht angefasst.
+   ========================================================= */
+const WBAY_UP=['rampe2','rampe3','rampe4'];   /* je Tor eine Ausbaustufe */
+const WBAY_TAKT=1.9;                          /* Sekunden je Karton      */
+const wbays=[null,null,null];
+
+/* Wie viele Lieferungen gleichzeitig laufen koennen: die Basisrampe
+   plus jede gekaufte Andockstation. */
+function dockPlaetze(){
+  let n=1;
+  for(const id of WBAY_UP) if(S&&S.up&&S.up[id]) n++;
+  return n;
+}
+function wbayOffen(i){ return !!(S&&S.up&&S.up[WBAY_UP[i]]&&zoneOffen('lager_west')); }
+/* Erste freie, gekaufte Rampe - oder -1 */
+function wbayFrei(){
+  for(let i=0;i<wbays.length;i++) if(wbayOffen(i)&&!wbays[i]) return i;
+  return -1;
+}
+/* Abstellplatz fuer den n-ten Karton dieser Rampe: drei nebeneinander,
+   drei uebereinander, dann eine Reihe weiter in die Halle hinein. */
+function wbaySlot(cz,n){
+  const X=LAY.lwest.x0+1.7;
+  const reihe=n%3, stapel=Math.floor(n/3)%3, tief=Math.floor(n/9);
+  return {x:X+tief*1.05, y:0.2+stapel*0.41, z:cz-0.95+reihe*0.95, ry:rand(-0.08,0.08)};
+}
+/* Torblatt einer Rampe auf Stellung t (0 zu, 1 offen) */
+function wtorSet(i,t){
+  const T=WTORE[i]; if(!T) return;
+  T.t=clamp(t,0,1);
+  T.blatt.position.y=T.zu+(T.auf-T.zu)*T.t;
+  if(T.gruen) T.gruen.emissiveIntensity=T.t>0.9?1.4:0;
+  if(T.rot)   T.rot.emissiveIntensity=T.t>0.9?0:1.2;
+}
+/* Eine Lieferung an eine Westrampe schicken */
+function spawnWTruck(i,cargo,supId,supName){
+  const T=WTORE[i]; if(!T||wbays[i]) return false;
+  const farbe=TRUCKCOL[supId]||TRUCKCOL.mertens;
+  const zielX=LAY.lwest.x0-0.05-13.2/2;       /* Heck buendig an der Wand */
+  const g=abstellAuflieger(zielX-11,T.z,Math.PI,supName||'Lieferung',farbe,true);
+  wbays[i]={g,cargo:cargo.slice(),zielX,z:T.z,state:'anfahrt',t:0,n:0,name:supName};
+  toast(`${supName} setzt an Tor ${i+2}.`);
+  return true;
+}
+function wbayRaeumen(i){
+  const b=wbays[i]; if(!b) return;
+  scene.remove(b.g); wbays[i]=null; wtorSet(i,0);
+}
+/* Laeuft mit der Hauptschleife */
+function updateWBays(dt){
+  for(let i=0;i<wbays.length;i++){
+    const b=wbays[i]; if(!b) continue;
+    if(b.state==='anfahrt'){
+      const d=b.zielX-b.g.position.x;
+      b.g.position.x+=clamp(d*0.9,0.6,3.0)*dt;
+      if(d<=0.04){ b.g.position.x=b.zielX; b.state='toroeffnen'; b.t=0; }
+    } else if(b.state==='toroeffnen'){
+      b.t+=dt/2.2; wtorSet(i,b.t);
+      if(b.t>=1){ b.state='entladen'; b.t=0;
+        toast(`Tor ${i+2} ist offen, ${b.cargo.length} Karton${b.cargo.length===1?'':'s'} kommen herein.`); }
+    } else if(b.state==='entladen'){
+      b.t-=dt;
+      if(b.t<=0){
+        b.t=WBAY_TAKT;
+        const c=b.cargo.shift();
+        if(c) spawnFloorBox(c.type,P[c.type].box,wbaySlot(b.z,b.n++),c.q||1);
+        if(!b.cargo.length){ b.state='torzu'; b.t=1;
+          toast(`Tor ${i+2}: abgeladen. Die Kartons stehen in der Westhalle.`,'money'); }
+      }
+    } else if(b.state==='torzu'){
+      b.t-=dt/2.2; wtorSet(i,Math.max(0,b.t));
+      if(b.t<=0){ b.state='abfahrt'; b.t=0; }
+    } else if(b.state==='abfahrt'){
+      b.g.position.x-=Math.min(7,3+b.t*6)*dt; b.t+=dt;
+      if(b.g.position.x<LAY.hof2.x0-4) wbayRaeumen(i);
+    }
+  }
+}
+/* Nach dem Laden eines Spielstands: Tore stehen zu */
+function wbaysInit(){ for(let i=0;i<wbays.length;i++){ wbayRaeumen(i); wtorSet(i,0); } }
 
 /* =========================================================
    Figuren
@@ -8913,6 +9240,10 @@ function updateAim(dt){
   yaw+=d*k; pitch+=(aim.pitch-pitch)*k;
   aim.t-=dt; if(aim.t<=0||Math.abs(d)<0.004) aim=null;
 }
+/* Noerdlich vom Gehweg faengt die Strasse an - da hat der Spieler
+   nichts zu suchen, deshalb bleibt diese eine Grenze enger als das
+   Navgitter. */
+const PLZ_MAX=10.8;
 const keys={}; const joy={x:0,y:0,id:null,ox:0,oy:0};
 let sprayOn=false, sprayCool=0, build=false, grabbed=null, grabRy=0, grabHome=null;
 function collide(p,R){
@@ -8924,7 +9255,13 @@ function collide(p,R){
         if(m===a) p.x=c.minX-R; else if(m===b) p.x=c.maxX+R; else if(m===e) p.z=c.minZ-R; else p.z=c.maxZ+R; }
     }
   }
-  p.x=clamp(p.x,-26.3,11.6); p.z=clamp(p.z,-14.7,10.8);
+  /* Notbremse, falls doch einmal eine Wand fehlt. Die Grenzen standen
+     noch auf der alten kleinen Karte: bei x 11,6 war das zweite
+     Ladenlokal zu Ende und das Rueckgebaeude, die Suedhalle, die
+     Westhalle und das halbe Testfeld waren ueberhaupt nicht zu
+     betreten. Jetzt umschliessen sie die ganze bebaute Flaeche -
+     dasselbe Rechteck, auf dem auch das Navgitter steht. */
+  p.x=clamp(p.x,NAV.x0+0.4,NAV.x1-0.4); p.z=clamp(p.z,NAV.z0+0.4,PLZ_MAX);
 }
 function look(dx,dy,s){ aim=null; yaw-=dx*s; pitch=clamp(pitch-dy*s,-1.45,1.45); }
 function updatePlayer(dt){
@@ -9953,6 +10290,103 @@ function wallPreis(w){
   if((S.paint||[]).indexOf(w.id)>=0||!w.cost) return 'Gekauft';
   return 'Kosten '+eur(w.cost)+(S.level<w.lvl?` · ab Level ${w.lvl}`:'');
 }
+/* =========================================================
+   Onlineshop. Bis hierher lief der komplett im Hintergrund: der
+   Ausbau brachte Geld, die Bestellungen kamen als Pakete ins
+   Lager - eine Oberflaeche dafuer gab es nirgends. Jetzt laeuft
+   er ueber diesen Reiter.
+   ========================================================= */
+function onlineStufe(){
+  if(!S.up.onlineshop) return 'zu';
+  return packBereit()?'versand':'pauschal';
+}
+function onlineHint(){
+  const st=onlineStufe();
+  if(st==='zu') return 'Der Onlineshop ist noch nicht freigeschaltet. Du findest ihn unter Marketing.';
+  if(st==='pauschal') return 'Der Shop läuft, aber ohne Packstation bleibt es bei einer Tagespauschale. Mit Packstation kommen echte Bestellungen herein, die du hier packst - das bringt deutlich mehr.';
+  return 'Bestellungen laufen den ganzen Verkaufstag über ein. Jedes gepackte Paket wird sofort gutgeschrieben; DDL holt am Abend alles von der Rampe ab.';
+}
+/* Nur Zahlen, kein Neuaufbau: so springt die Liste beim Tippen nicht. */
+function onlineZahlen(){
+  const offen=S.offen|0, pak=S.pakete|0;
+  return {
+    offen, pak,
+    wert  : paketWert(),
+    proTag: bestellungenProTag(),
+    heute : r2(DS.versand||0),
+    frei  : Math.max(0,PAKET_BAYS-pak)
+  };
+}
+function updateOnline(){
+  if(!laptopOpen||ltab!=='online') return;
+  const z=onlineZahlen();
+  const set=(id,v)=>{ const e=document.getElementById(id); if(e) e.textContent=v; };
+  set('onOffen',z.offen); set('onPak',z.pak+' von '+PAKET_BAYS);
+  set('onHeute',eur(z.heute)); set('onWert',eur(z.wert));
+  const b1=document.getElementById('onPack'), b2=document.getElementById('onPackAll');
+  if(b1) b1.disabled=z.offen<=0;
+  if(b2) b2.disabled=z.offen<=0;
+  const w=document.getElementById('onWarn');
+  if(w) w.textContent=z.offen>8?`${z.offen} offene Bestellungen - über acht kostet dich das heute Abend Ruf.`:'';
+}
+function renderOnline(){
+  const st=onlineStufe(), z=onlineZahlen();
+  if(st==='zu'){
+    const u=UPGRADES.find(x=>x.id==='onlineshop');
+    return `<div class="row"><img class="pic" src="${upPic('onlineshop')}" alt="">`+
+      `<div class="rm"><b>Onlineshop</b><small>${u?u.desc:''}</small>`+
+      `<small class="warn">${S.level<(u?u.lvl:18)?`Ab Level ${u?u.lvl:18}`:`Kosten ${eur(u.cost())}`}</small></div>`+
+      (S.level<(u?u.lvl:18)?`<small>Level ${u?u.lvl:18}</small>`
+        :`<button data-a="up" data-t="onlineshop" ${S.money<u.cost()?'disabled':''}>${eur(u.cost())}</button>`)+
+      `</div>`;
+  }
+  let h=`<div class="row"><div class="rm"><b>Shop ist online</b>`+
+    `<small>Ruf ${Math.round(S.rep)} von 100 · Level ${S.level}. Beides bestimmt, wie viel über den Shop hereinkommt.</small>`+
+    `<small class="ok">${st==='versand'?`Rund ${z.proTag} Bestellungen an einem vollen Verkaufstag`:'Tagespauschale, keine echten Bestellungen'}</small>`+
+    `</div></div>`;
+  if(st==='pauschal'){
+    const u=UPGRADES.find(x=>x.id==='packstation'), fehlt=u&&u.req&&!S.up[u.req]?UPGRADES.find(x=>x.id===u.req):null;
+    h+=`<div class="row"><img class="pic" src="${upPic('packstation')}" alt="">`+
+      `<div class="rm"><b>Packstation fehlt</b><small>${u?u.desc:''}</small>`+
+      `<small class="warn">${fehlt?`Setzt „${fehlt.name}“ voraus`:S.level<u.lvl?`Ab Level ${u.lvl}`:`Kosten ${eur(u.cost())}`}</small></div>`+
+      (fehlt||S.level<u.lvl?'<small>gesperrt</small>'
+        :`<button data-a="up" data-t="packstation" ${S.money<u.cost()?'disabled':''}>${eur(u.cost())}</button>`)+
+      `</div>`;
+    return h;
+  }
+  h+=`<div class="row"><div class="rm"><b>Offene Bestellungen</b>`+
+      `<small>Warten darauf, gepackt zu werden. Jedes Paket bringt <span id="onWert">${eur(z.wert)}</span>.</small>`+
+      `<small class="warn" id="onWarn">${z.offen>8?`${z.offen} offene Bestellungen - über acht kostet dich das heute Abend Ruf.`:''}</small></div>`+
+    `<div class="mkcol"><small>offen</small><b style="font-family:var(--display);font-size:24px" id="onOffen">${z.offen}</b></div>`+
+    `<button id="onPack" data-a="vpack" ${z.offen<=0?'disabled':''}>Paket packen</button>`+
+    `<button class="ghost" id="onPackAll" data-a="vpackall" ${z.offen<=0?'disabled':''}>Alle packen</button>`+
+    `</div>`;
+  h+=`<div class="row"><div class="rm"><b>Pakete auf der Abholrampe</b>`+
+      `<small>Ist die Rampe voll, fährt DDL zwischendurch vor. Am Abend wird ohnehin alles abgeholt.</small></div>`+
+    `<div class="mkcol"><small>Rampe</small><b style="font-family:var(--display);font-size:20px" id="onPak">${z.pak} von ${PAKET_BAYS}</b></div></div>`;
+  h+=`<div class="row"><div class="rm"><b>Versand heute</b>`+
+      `<small>Was der Onlineshop heute schon eingebracht hat. Der Betrag steckt bereits im Tagesumsatz.</small></div>`+
+    `<div class="mkcol"><small>Umsatz</small><b style="font-family:var(--display);font-size:20px" id="onHeute">${eur(z.heute)}</b></div></div>`;
+  const pk=staff&&staff.packer;
+  h+=`<div class="row${pk?'':' locked'}"><div class="rm"><b>Packer</b>`+
+      `<small>${pk?'Packt selbstständig, solange Bestellungen offen sind.':'Ohne Packer bleibt alles an dir hängen - einstellen kannst du ihn unter Personal.'}</small></div>`+
+    `<small class="${pk?'ok':''}">${pk?'im Dienst':'nicht eingestellt'}</small></div>`;
+  return h;
+}
+/* Packen aus dem Laptop heraus: derselbe Vorgang wie am Packtisch. */
+function packLaptop(alle){
+  if(!packBereit()) return;
+  if((S.offen|0)<=0){ toast('Gerade sind keine Bestellungen offen.'); return; }
+  /* packOne(true) unterdrueckt Ton, Erfahrung und Einzelmeldung -
+     sonst prasselt beim Sammelpacken ein Dutzend Toasts herunter.
+     Beides kommt danach einmal fuer den ganzen Stapel. */
+  const max=alle?PAKET_BAYS*8:1;
+  let n=0, wert=0;
+  while(n<max&&(S.offen|0)>0){ const w=paketWert(); if(!packOne(true)) break; n++; wert=r2(wert+w); }
+  if(n>0){ addXP(3*n); sfx.beep(); save();
+    toast(`${n} Paket${n===1?'':'e'} gepackt: +${eur(wert)}`,'money'); }
+  renderLaptop();
+}
 function renderLaptop(){
   $('lMoney').textContent=eur(S.money);
   $('lLevel').textContent=`Level ${S.level} · ${S.xp}/${xpFor(S.level)} XP`;
@@ -10044,6 +10478,8 @@ function renderLaptop(){
             :S.level<u.lvl?`<small>Level ${u.lvl}</small>`
             :`<button data-a="up" data-t="${u.id}" ${S.money<cost?'disabled':''}>${eur(cost)}</button>`)+
         '</div>'; }).join('');
+  } else if(ltab==='online'){
+    h=renderOnline(); hint=onlineHint();
   } else if(ltab==='erf'){
     const offen=ERFOLGE.filter(erfOffen);
     hint=`${erfGeschafft()} von ${erfGesamt()} Stufen geschafft. Jeder Zähler steigt nur — verlieren kannst du hier nichts. Neue Herausforderungen kommen dazu, sobald du den passenden Bereich freischaltest.`;
@@ -10193,11 +10629,23 @@ $('lbody').addEventListener('click',e=>{
   else if(a==='repay') repayLoan(+b.dataset.v);
   else if(a==='open'){ openShop(); closeLaptop(true); return; }
   else if(a==='end'){ endDay(); return; }
+  /* 'pack' ist schon vergeben - das legt ein Lieferantenpaket in den
+     Warenkorb. Der Versand heisst deshalb 'vpack'. */
+  else if(a==='vpack')   { packLaptop(false); return; }
+  else if(a==='vpackall'){ packLaptop(true);  return; }
   else if(a==='test'){ toggleTest(); }
   else if(a==='reset'){ if(!resetArm) resetArm=true; else { try{ localStorage.removeItem(KEY); }catch(err){} location.reload(); return; } }
   renderLaptop();
 });
 $('lclose').addEventListener('click',()=>closeLaptop(true));
+/* Hoechste Stufe, die im Spiel ueberhaupt verlangt wird - Ausbauten,
+   Lizenzen und Regale zusammengenommen. */
+function testLevel(){
+  let m=1;
+  UPGRADES.forEach(u=>{ if(u.lvl>m) m=u.lvl; });
+  LIZENZEN.forEach(l=>{ if(l.lvl>m) m=l.lvl; });
+  return m;
+}
 function toggleTest(){
   if(S.test){
     const t=S.test; S.level=Math.max(1,t.lvl|0); S.xp=Math.max(0,t.xp|0); S.money=r2(t.money);
@@ -10206,17 +10654,29 @@ function toggleTest(){
     toast('Testmodus aus. Level und Konto sind zurück.');
   } else {
     S.test={lvl:S.level,xp:S.xp,money:S.money,lic:(S.lic||['start']).slice()};
-    S.level=25; S.xp=0; S.money=Math.max(S.money,250000);
+    /* Feste 25 waren zu wenig: die Lagerhalle West steht auf 28, der
+       Meisterbrief auf 30. Im Testmodus soll alles erreichbar sein,
+       also richtet sich die Stufe nach dem teuersten Eintrag im
+       Spiel und nicht nach einer Zahl von damals. */
+    S.level=Math.max(S.level,testLevel()); S.xp=0; S.money=Math.max(S.money,250000);
     S.lic=LIZENZEN.map(l=>l.id);
     LIZENZEN.forEach(l=>l.items.forEach(t2=>{ if(P[t2]&&!(S.prices[t2]>0)) S.prices[t2]=marketOf(t2); }));
-    toast('Testmodus an: Level 25, alle Lizenzpakete freigeschaltet.','money');
+    toast(`Testmodus an: Level ${S.level}, alle Lizenzpakete freigeschaltet.`,'money');
   }
   sfx.cash(); updateTool(); save();
 }
+/* Frueher brach der Kauf bei jedem Hindernis wortlos ab - der Knopf
+   tat schlicht nichts und man stand ratlos davor. Jetzt sagt das
+   Spiel, was fehlt. */
 function buyUp(id){
-  const u=UPGRADES.find(x=>x.id===id); if(!u||u.done()||S.level<u.lvl) return;
-  if(u.req&&!S.up[u.req]) return;
-  const cost=u.cost(); if(S.money<cost) return;
+  const u=UPGRADES.find(x=>x.id===id); if(!u) return;
+  if(u.done()){ toast(`${u.name} hast du schon.`); return; }
+  if(S.level<u.lvl){ toast(`${u.name} gibt es erst ab Level ${u.lvl} — du bist auf ${S.level}.`,'bad'); return; }
+  if(u.req&&!S.up[u.req]){
+    const v=UPGRADES.find(x=>x.id===u.req);
+    toast(`${u.name} setzt „${v?v.name:u.req}“ voraus.`,'bad'); return; }
+  const cost=u.cost();
+  if(S.money<cost){ toast(`${u.name} kostet ${eur(cost)} — dir fehlen ${eur(r2(cost-S.money))}.`,'bad'); return; }
   S.money=r2(S.money-cost); DS.upgrades=r2(DS.upgrades+cost);
   if(id.indexOf('shelf_')===0){ const k=id.slice(6); createShelf(shelves.length,{kind:k}); S.tut.shelf=true; toast(`${SHELFKIND[k].name} steht im Laden.`); }
   else if(id==='rack'||id.indexOf('rack_')===0){
@@ -10550,6 +11010,9 @@ function startGame(fresh){
   S.news=Array.isArray(S.news)?S.news.slice(0,4):[];
   repaint();
   applyZonen();
+  /* Die Westtore stehen nach dem Laden zu, ganz gleich was beim
+     Speichern gerade an ihnen stand. */
+  if(typeof wbaysInit==='function') wbaysInit();
   setSB(!!S.up.kasse2);
   drawPackSchild(); syncPakete();
   if(d&&d.ck) placeMovable(ckMov,d.ck.x,d.ck.z,d.ck.ry);
@@ -10706,22 +11169,28 @@ function step(dt){
   updatePhone(dt); updateOrder(dt);
   if(phase==='open'){ dirtT-=dt; if(dirtT<=0){ dirtT=rand(34,62)/((1+customers.length*0.09)*evv('dirt')); if(Math.random()<(hasDeko('muell')?0.2:0.42)) addDirt(rand(-6,6),rand(-4.5,5)); } }
   for(const pd of pending) pd.t-=dt;
-  if(!truck&&pending.some(pd=>pd.t<=0)){
+  /* Frueher hing alles an der einen Basisrampe: stand dort ein LKW,
+     wartete jede weitere Lieferung. Jetzt bekommt die naechste Welle
+     die Basisrampe, wenn sie frei ist, sonst eine zugekaufte
+     Andockstation in der Westhalle. */
+  while(pending.some(pd=>pd.t<=0)){
+    const frei=!truck?-1:wbayFrei();
+    if(truck&&frei<0) break;
     const wave=[];
     for(let i=0;i<pending.length&&wave.length<32;i++) if(pending[i].t<=16) wave.push(pending[i]);
-    if(wave.length){
-      wave.forEach(w=>pending.splice(pending.indexOf(w),1));
-      const sid=wave[0].sup||'mertens';
-      spawnTruck(wave.map(w=>({type:w.type,q:w.q||1})),sid,supplierOf(sid).name);
-    }
+    if(!wave.length) break;
+    wave.forEach(w=>pending.splice(pending.indexOf(w),1));
+    const sid=wave[0].sup||'mertens', ladung=wave.map(w=>({type:w.type,q:w.q||1}));
+    if(frei<0) spawnTruck(ladung,sid,supplierOf(sid).name);
+    else if(!spawnWTruck(frei,ladung,sid,supplierOf(sid).name)) break;
   }
-  updateTruck(dt); updateSchiebetuer(dt); updateVersand(dt);
+  updateTruck(dt); updateWBays(dt); updateSchiebetuer(dt); updateVersand(dt);
   for(let i=timers.length-1;i>=0;i--){ timers[i].t-=dt; if(timers[i].t<=0){ const fn=timers[i].fn; timers.splice(i,1); fn(); } }
   if(phase==='open') addGrime(dt*0.0016*(1+customers.length*0.05));
   hype=Math.max(0,hype-dt*1.1);
   updateFireworks(dt); updateSnow(dt); updateDeko(dt); updateStadt(dt);
   updateTarget(); holdRepeat(dt); applyTOD(); updateUhr();
-  hudT-=dt; if(hudT<=0){ hudT=0.1; updateHUD(); updatePrompt(); if(pdaOn) drawPDA(); }
+  hudT-=dt; if(hudT<=0){ hudT=0.1; updateHUD(); updatePrompt(); if(pdaOn) drawPDA(); if(laptopOpen) updateOnline(); }
   saveT+=dt; if(saveT>25){ saveT=0; save(); }
 }
 let noLoop=location.hash.indexOf('test')>=0;
@@ -10930,7 +11399,7 @@ fontsReady().then(()=>{
   lastF=-1; applyTOD(); updateSign(); buildStart(); requestAnimationFrame(frame);
   window.__bb={get S(){return S},get phase(){return phase},set phase(v){phase=v},set clock(v){clock=v},get clock(){return clock},pickUp,floorBoxes,shelves,racks,dekos,stockOne,openShop,step,customers,queue,belt,scanBelt,buyUp,buyDeko,get DS(){return DS},endDay,pending,save,openLaptop,closeLaptop,pl,addXP,hireStaff,fireStaff,staff,dirts,addDirt,movables,toggleBuild,setWall,setFloor,
     stations,firePult,placeOnStation,igniteType,get order(){return order},get phone(){return phone},makeCall,answerPhone,haggle,acceptDeal,declineDeal,get truck(){return truck},spawnTruck,takeFromTruck,takeBox,updateTruck,get door(){return door},get tuer(){return tuer},tuerSet,tuerNah,updateSchiebetuer,doorOpen,doorIsOpen,trailerOccupied,LR,lrFront,TOR,orderReady,orderLeft,shipOne,removeFloorBox,prioOf,setPrio,racks,updateCarry,spawnFloorBox,staff,SHELFKIND,layout,shelfCapOf,shelfAccepts,emptyLevel,dateInfo,dateStr,dateShort,seasonInfo,isSunday,dayMult,ruhetag,wageOf,setWage,friendliness,inPause,setPause,windowGrime,addGrime,cleanWindowTick,ambienteScore,bildBoost,fixedCosts,dailyWages,dispoLimit,verfuegbar,dispoZins,takeLoan,loanTier,loanDaily,EVENTS,GOALS,CUSTTYPES,UPGRADES,STAFF,stockOf,spawnInterval,pools,todayEvent,evv,rollEvent,rollMarket,newGoal,goalAdd,goalTick,ekFactor,marktText,xpFor,rollCustType,priceTol,buyChance,regCustomer,makeWishes,nachfrageFaktor,shelfStockOf,buildGravur,refillGrav,openGravInput,closeGravInput,get gravBlanks(){return gravBlanks},set gravBlanks(v){gravBlanks=v},orderBox,buyPack,cartAdd,cartAddPack,cartOrder,cartClear,cartDel,cartGoods,cartFee,cartTotal,cartBoxes,cartLines,LIEFERZEIT_SEK,VERSAND,VERSANDFREI,lieferSek,
-    scene,P,EFF,EFF_ALL,EFF_KLEIN,EFF_GROSS,EFF_PRO,SHOWS,kugelbombe,shot,mine,FW,stations,stationOf,placedCount,togglePDA,openPDA,closePDA,setPost,get postOn(){return postOn},get pdaOn(){return pdaOn},showLength,psHuge,psBig,psMid,psSmall,rockets,emitters,timersLen:()=>timers.length,setView:(x,z,y,p)=>{pl.x=x;pl.z=z;yaw=y;pitch=p;aim=null;},camYaw:()=>yaw,camPitch:()=>pitch,playerPos:()=>({x:pl.x,z:pl.z}),pultYaw:()=>pultHit?pultHit.parent.rotation.y:null,applyShopName,shopName,shopSlogan,signTexPx:()=>signTex&&signTex.image?signTex.image.getContext('2d').getImageData(0,0,signTex.image.width,40).data.join(''):null,ckTexPx:()=>ckNameTex&&ckNameTex.image?ckNameTex.image.getContext('2d').getImageData(0,0,ckNameTex.image.width,60).data.join(''):null,testfeldMitte,STATION_POS,aimAt,UPGRADES,upPic,uhrZeiger:()=>({std:uhrStd?+uhrStd.rotation.z.toFixed(4):0,min:uhrMin?+uhrMin.rotation.z.toFixed(4):0}),drawRackSchild,get snowPts(){return snowPts},buildStadt,updateStadt,get stadtBoxen(){return stadtBoxen},get stadtBaeume(){return stadtBaeume},buildFernbaeume,schwaerme,beacons,silhouetten,get verkehrPts(){return verkehrPts},get rauchPts(){return rauchPts},get flieger(){return flieger},stadtFrei,STADT_FREI,WALLS,FLOORS,SCHILDBG,SCHILDFG,setSchild,schildBg,schildFg,repaintSchilder,updateHead,allLevels,addToLevel,putInSlot,regCustomer,ZONEN,zoneOffen,oeffneZone,applyZonen,SLOTS,RACKS,slotsOffen,colliders,LAY,LOGI,WRAMPEN,flaeche,WTOR,RACKKIND,route,NAV,navFrei,navIdx,navBuild,shelfStand,shelves,sbLanes,buildSBKasse,packBereit,packOne,paketWert,bestellungenProTag,pakete,PAKET_BAYS,ddlAbholung,updateVersand,createShelf,createRack,startGame,promptFor,ERFOLGE,erfOffen,erfStufe,erfStand,erfZiel,erfFertig,erfAnteil,erfGeschafft,erfGesamt,stat,statAdd,statRekord,statVerkauf,bruchGesehen,gruppeVon,GRUPPE,TRAEGER,BRUCH,BRUCH_IDS,REZ_FARBEN,ETIKETT,traegerVon,traegerOffen,bruchOffen,bruchListe,rezeptWow,rezeptKosten,rezeptMarkt,rezeptHype,rezeptDauer,rezeptEntwicklung,rezeptGueltig,eigeneListe,eigenesEintragen,rezepteTick,rezProto,rezBauen,renderRezeptur,get entwurf(){return entwurf},set entwurf(v){entwurf=v},entwurfInit,ORDER,LIZENZEN,lizenzOf,hatLizenz,lizenzDaten,naechsteLizenz,buyLizenz,VOLA,volaOf,REGIME,marketOf,costOf,marktZiel,marktLuecke,meOf,miOf,marktDelta,marktNiveau,marktPhase,marktSchock,marktLabel,marktSchnitt,marktExtrem,marktChance,sortimentBreite,sortimentZug,bekanntheit,spawnInterval,rollMarkt,marktInit,inflOf,inflText,setPreisAufMarkt,igniteType,get packHit(){return packHit},get target(){return target},
+    scene,P,EFF,EFF_ALL,EFF_KLEIN,EFF_GROSS,EFF_PRO,SHOWS,kugelbombe,shot,mine,FW,stations,stationOf,placedCount,togglePDA,openPDA,closePDA,setPost,get postOn(){return postOn},get pdaOn(){return pdaOn},showLength,psHuge,psBig,psMid,psSmall,rockets,emitters,timersLen:()=>timers.length,setView:(x,z,y,p)=>{pl.x=x;pl.z=z;yaw=y;pitch=p;aim=null;},schiebe:(x,z)=>{pl.x=x;pl.z=z;collide(pl,0.32);return{x:pl.x,z:pl.z};},PLZ_MAX,camYaw:()=>yaw,camPitch:()=>pitch,playerPos:()=>({x:pl.x,z:pl.z}),pultYaw:()=>pultHit?pultHit.parent.rotation.y:null,applyShopName,shopName,shopSlogan,signTexPx:()=>signTex&&signTex.image?signTex.image.getContext('2d').getImageData(0,0,signTex.image.width,40).data.join(''):null,ckTexPx:()=>ckNameTex&&ckNameTex.image?ckNameTex.image.getContext('2d').getImageData(0,0,ckNameTex.image.width,60).data.join(''):null,testfeldMitte,STATION_POS,aimAt,UPGRADES,upPic,uhrZeiger:()=>({std:uhrStd?+uhrStd.rotation.z.toFixed(4):0,min:uhrMin?+uhrMin.rotation.z.toFixed(4):0}),drawRackSchild,get snowPts(){return snowPts},buildStadt,updateStadt,get stadtBoxen(){return stadtBoxen},get stadtBaeume(){return stadtBaeume},buildFernbaeume,schwaerme,beacons,silhouetten,get verkehrPts(){return verkehrPts},get rauchPts(){return rauchPts},get flieger(){return flieger},stadtFrei,STADT_FREI,WALLS,FLOORS,renderOnline,onlineHint,onlineStufe,onlineZahlen,updateOnline,packLaptop,SCHILDBG,SCHILDFG,setSchild,schildBg,schildFg,repaintSchilder,updateHead,allLevels,addToLevel,putInSlot,regCustomer,ZONEN,zoneOffen,oeffneZone,applyZonen,SLOTS,RACKS,slotsOffen,colliders,LAY,LOGI,WRAMPEN,WTORE,toggleTest,testLevel,buyUp,get toastLast(){return toastLast},__floorBoxen:()=>floorBoxes.length,WBAY_UP,wbays,dockPlaetze,wbayFrei,wbayOffen,spawnWTruck,updateWBays,wbaysInit,wtorSet,GANG,GANGTUER,buildLagergang,flaeche,WTOR,RACKKIND,route,NAV,navFrei,navIdx,navBuild,shelfStand,shelves,sbLanes,buildSBKasse,packBereit,packOne,paketWert,bestellungenProTag,pakete,PAKET_BAYS,ddlAbholung,updateVersand,createShelf,createRack,startGame,promptFor,ERFOLGE,erfOffen,erfStufe,erfStand,erfZiel,erfFertig,erfAnteil,erfGeschafft,erfGesamt,stat,statAdd,statRekord,statVerkauf,bruchGesehen,gruppeVon,GRUPPE,TRAEGER,BRUCH,BRUCH_IDS,REZ_FARBEN,ETIKETT,traegerVon,traegerOffen,bruchOffen,bruchListe,rezeptWow,rezeptKosten,rezeptMarkt,rezeptHype,rezeptDauer,rezeptEntwicklung,rezeptGueltig,eigeneListe,eigenesEintragen,rezepteTick,rezProto,rezBauen,renderRezeptur,get entwurf(){return entwurf},set entwurf(v){entwurf=v},entwurfInit,ORDER,LIZENZEN,lizenzOf,hatLizenz,lizenzDaten,naechsteLizenz,buyLizenz,VOLA,volaOf,REGIME,marketOf,costOf,marktZiel,marktLuecke,meOf,miOf,marktDelta,marktNiveau,marktPhase,marktSchock,marktLabel,marktSchnitt,marktExtrem,marktChance,sortimentBreite,sortimentZug,bekanntheit,spawnInterval,rollMarkt,marktInit,inflOf,inflText,setPreisAufMarkt,igniteType,get packHit(){return packHit},get target(){return target},
     shot:()=>{ noLoop=true; camera.position.set(pl.x,1.65,pl.z); camera.rotation.set(pitch,yaw,0); camera.updateMatrixWorld(); updateTarget(); applyTOD(); renderFrame(0.016); return canvas.toDataURL('image/jpeg',0.85); },
     run:(sec,dt)=>{ noLoop=true; const n=Math.round(sec/(dt||0.05)); for(let i=0;i<n;i++) step(dt||0.05); }};
 });

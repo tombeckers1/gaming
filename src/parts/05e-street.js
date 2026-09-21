@@ -50,21 +50,38 @@ function zaunLauf(x0,z0,x1,z1,h){
    Im Norden steht die Ladenrueckwand, im Westen die Lagerwand, im
    Osten die Westwand des Rueckgebaeudes - eingezaeunt wird nur, was
    sonst offen waere. */
+let _warnTex=null;
+function warnTex(){
+  if(!_warnTex) _warnTex=tex(320,180,(g,W,Hh)=>{
+    g.fillStyle='#f2c230'; g.fillRect(0,0,W,Hh);
+    g.strokeStyle='#1f1f24'; g.lineWidth=8; g.strokeRect(6,6,W-12,Hh-12);
+    g.textAlign='center'; g.textBaseline='middle'; g.fillStyle='#1f1f24';
+    g.font=BUN(34); g.fillText('TESTFELD',W/2,48);
+    g.font=BAR(26); g.fillText('Zutritt nur für Personal',W/2,92);
+    g.fillText('Schutzbrille tragen',W/2,126);
+  });
+  return _warnTex;
+}
+function warnSchild(x,z,ry){
+  plane(1.6,0.9,new THREE.MeshStandardMaterial({side:THREE.DoubleSide,map:warnTex()}),x,1.2,z,ry,null);
+}
+/* Das Testfeld reicht jetzt von der Lagerwand bis an die Suedhalle.
+   Im Norden steht der Lagergang, im Westen die Lagerwand, im Osten
+   die Westwand des Rueckgebaeudes - eingezaeunt wird nur, was sonst
+   offen waere. Auf der gewachsenen Flaeche haengt nicht mehr nur ein
+   einziges Schild in der Mitte: alle acht Meter eines, damit man von
+   ueberall sieht, wo man steht. */
 function buildZaun(){
   const H=2.0, T=LAY.test;
   zaunLauf(T.x0,T.z0,T.x1,T.z0,H);            /* Sueden        */
   zaunLauf(T.x1,T.z0,T.x1,LAY.sued.z0,H);     /* Osten, unten  */
   col(T.x0,T.x1,T.z0-0.1,T.z0+0.1);
   col(T.x1-0.1,T.x1+0.1,T.z0,LAY.sued.z0);
-  /* Warnschild am Zaun */
-  plane(1.6,0.9,new THREE.MeshStandardMaterial({side:THREE.DoubleSide,map:tex(320,180,(g,W,Hh)=>{
-    g.fillStyle='#f2c230'; g.fillRect(0,0,W,Hh);
-    g.strokeStyle='#1f1f24'; g.lineWidth=8; g.strokeRect(6,6,W-12,Hh-12);
-    g.textAlign='center'; g.textBaseline='middle'; g.fillStyle='#1f1f24';
-    g.font=BUN(34); g.fillText('TESTFELD',W/2,48);
-    g.font=BAR(26); g.fillText('Zutritt nur für Personal',W/2,92);
-    g.fillText('Schutzbrille tragen',W/2,126); })}),
-    (T.x0+T.x1)/2,1.2,T.z0+0.12,0,null);
+  /* Warnschilder laengs der Zaunlaeufe */
+  const nS=Math.max(2,Math.round((T.x1-T.x0)/8));
+  for(let i=0;i<nS;i++) warnSchild(T.x0+(i+0.5)*(T.x1-T.x0)/nS,T.z0+0.12,0);
+  const lo=LAY.sued.z0, nO=Math.max(1,Math.round((lo-T.z0)/8));
+  for(let i=0;i<nO;i++) warnSchild(T.x1-0.12,T.z0+(i+0.5)*(lo-T.z0)/nO,-Math.PI/2);
 }
 /* Strassenleuchte: Sockel, konischer Mast, Ausleger, echter Leuchtenkopf */
 function strassenlampe(x,z,dir){
@@ -570,8 +587,9 @@ function makeBaum(){
   const m=new THREE.Mesh(merge(parts),vcMat); if(HIQ) m.castShadow=true; return m;
 }
 /* =========================================================
-   Nachbargrundstueck rechts vom Laden: Backsteinfassade mit
-   Verkaufsschild. Hier waechst der Laden spaeter hinein.
+   Nachbargrundstueck rechts vom Laden: gleiche Fassade wie der
+   eigene Laden, mit Verkaufsschild. Hier waechst der Laden spaeter
+   hinein.
    ========================================================= */
 function buildNachbar(){
   /* Die Ladenzeile laeuft bis ans Ende des Blocks. Jeder Abschnitt
@@ -582,25 +600,10 @@ function buildNachbar(){
 function nachbarFassade(x0,x1,zid,unterzeile){
   const zf=6.1, H=WH+0.6;
   const g=new THREE.Group(); scene.add(g);
-  /* Backsteinwand mit Verband, Fugen und Ausblühungen */
-  const zieg=tex(512,512,(c,W,Hh)=>{
-    c.fillStyle='#6a5348'; c.fillRect(0,0,W,Hh);
-    const rows=16, bh=Hh/rows;
-    for(let r=0;r<rows;r++){ const off=(r%2)*40;
-      for(let x=-80;x<W;x+=80){
-        c.fillStyle=pick(['#8a4f3c','#7e4735','#93573f','#74402f','#8a5a44','#6d4132']);
-        c.fillRect(x+off+3,r*bh+3,74,bh-6);
-        c.fillStyle='rgba(255,255,255,.06)'; c.fillRect(x+off+3,r*bh+3,74,2);
-        c.fillStyle='rgba(0,0,0,.16)'; c.fillRect(x+off+3,r*bh+bh-5,74,2);
-      } }
-    for(let i=0;i<9;i++){ const x=Math.random()*W;
-      const gr=c.createLinearGradient(x,0,x,Hh); gr.addColorStop(0,'rgba(230,226,214,.20)'); gr.addColorStop(1,'rgba(230,226,214,0)');
-      c.fillStyle=gr; c.fillRect(x,rand(0,Hh*0.4),rand(20,70),Hh); }
-    for(let i=0;i<2200;i++){ c.fillStyle=`rgba(0,0,0,${Math.random()*0.05})`; c.fillRect(Math.random()*W,Math.random()*Hh,2,2); }
-  });
-  /* UV in Metern: dadurch passt der Verband ueber alle Wandstuecke hinweg */
-  zieg.wrapS=zieg.wrapT=THREE.RepeatWrapping; zieg.repeat.set(1/1.6,1/1.6); zieg.anisotropy=8;
-  const zm=new THREE.MeshStandardMaterial({map:zieg,roughness:0.95});
+  /* Die Ladenzeile ist ein Gebaeude, also traegt sie dieselbe
+     Fassade wie der eigene Laden - vorher sass hier eine zweite,
+     noch groebere Ziegeltextur daneben. */
+  const zm=wallBrickMat();
   const w=x1-x0, cx=(x0+x1)/2;
   /* Die Fassade hat echte Oeffnungen. Solange nebenan nicht gekauft ist,
      sind sie zugemauert; nach dem Kauf sitzen dort Schaufenster.
@@ -615,10 +618,12 @@ function nachbarFassade(x0,x1,zid,unterzeile){
     F(px,a,0,H); F(a,b,y1,H); if(y0>0) F(a,b,0,y0); px=b;
   }
   F(px,x1,0,H);
-  /* Attika, Gesims und Sockel */
-  bbox(w+0.2,0.28,0.56,std(0x5f584e,{roughness:1}),cx,H+0.12,zf-0.1,g);
+  /* Attika, Gesims und Sockel. Die Farben gehen mit der Fassade:
+     anthrazit wie der Sockel in der Textur, nicht mehr das
+     Sandsteinbeige von der Ziegelwand. */
+  bbox(w+0.2,0.28,0.56,std(0x2f343d,{roughness:0.9}),cx,H+0.12,zf-0.1,g);
   bbox(w+0.1,0.1,0.5,std(0xe8ecf2,{roughness:1}),cx,H+0.3,zf-0.1,g,false);
-  bbox(w+0.12,0.5,0.5,std(0x6f6a62,{roughness:0.96}),cx,0.25,zf-0.06,g);
+  bbox(w+0.12,0.62,0.5,std(0x3b4049,{roughness:0.9}),cx,0.31,zf-0.06,g);
 
   /* ---------- Zustand „steht zum Verkauf“ ---------- */
   const gs=new THREE.Group(); g.add(gs); zWand(zid,gs);

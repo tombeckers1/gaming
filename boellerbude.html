@@ -143,6 +143,17 @@ button:focus-visible{outline:3px solid var(--spark);outline-offset:2px}
 .pill.f2{background:rgba(230,59,46,.2);color:#ff9d92}
 .pill.f1{background:rgba(142,240,168,.16);color:var(--mint)}
 .pill.zub{background:rgba(255,210,63,.18);color:var(--signal)}
+.pill.up{background:rgba(255,120,100,.2);color:#ff9d92}
+.pill.dn{background:rgba(108,242,168,.16);color:var(--mint)}
+.pill.fl{background:rgba(242,245,255,.12);color:var(--muted)}
+.spark{display:block;width:104px;height:30px;flex-shrink:0;opacity:.95}
+.mkcol{display:flex;flex-direction:column;align-items:flex-end;gap:3px;min-width:104px}
+.mkcol small{font-size:13px;color:var(--muted);line-height:1.1}
+.lizrow{align-items:flex-start}
+.lizitems{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px}
+.lizitems span{background:rgba(242,245,255,.10);border-radius:5px;padding:2px 7px;font-size:14px;color:var(--snow)}
+body.compact .spark{width:74px;height:24px}
+body.compact .mkcol{min-width:74px}
 .ok{color:var(--mint)!important}.warn{color:var(--signal)!important}.no{color:#ffab9f!important}
 .lfoot{padding:12px 16px;border-top:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:10px;flex-shrink:0}
 .lfoot-r{justify-content:flex-end}
@@ -332,7 +343,7 @@ body.compact .pdahead2 b{font-size:16px}
 <div class="ov" id="laptop"><div class="card">
   <div class="lhead"><b>Böllerladen OS</b><em id="lLevel"></em><span id="lMoney"></span></div>
   <div class="tabs" id="ltabs">
-    <button data-tab="order">Bestellen</button><button data-tab="price">Preise</button><button data-tab="up">Ausbau</button><button data-tab="einr">Einrichtung</button><button data-tab="markt">Marketing</button><button data-tab="deko">Deko</button><button data-tab="staff">Personal</button><button data-tab="bank">Bank</button><button data-tab="stats">Bericht</button><button data-tab="shop">Laden</button>
+    <button data-tab="order">Bestellen</button><button data-tab="price">Preise &amp; Markt</button><button data-tab="liz">Sortiment</button><button data-tab="up">Ausbau</button><button data-tab="einr">Einrichtung</button><button data-tab="markt">Marketing</button><button data-tab="deko">Deko</button><button data-tab="staff">Personal</button><button data-tab="bank">Bank</button><button data-tab="stats">Bericht</button><button data-tab="shop">Laden</button>
   </div>
   <div class="lbody" id="lbody"></div>
   <div class="lfoot lfoot-r"><button class="ghost" id="lclose">Laptop zuklappen</button><button id="lKorb">Warenkorb anzeigen</button></div>
@@ -523,8 +534,15 @@ const P={
     art:{title:'BLANKO',sub:'Für Gravur',bg1:'#4a4f5e',bg2:'#1b1e28',ac:'#f2f5ff',ac2:'#ffd23f'}},
   gravur:{name:'Gravur-Rakete',short:'Gravur',cat:2,lvl:9,shape:'rocketset',dims:[0.42,0.055,0.11],grid:[1,1,1],box:1,cost:3.20,market:24.99,weight:0,hype:16,risk:7,noShelf:true,noWish:true,noOrder:true,
     art:{title:'FÜR DICH',sub:'Persönliche Gravur',bg1:'#6a24c9',bg2:'#25093f',ac:'#ffd23f',ac2:'#ff4fa3'}},
-  profi:{name:'Profi-Verbund Götterfunken',short:'Götterfunken',cat:2,lvl:20,shape:'battery',dims:[0.55,0.36,0.42],grid:[3,1,1],box:1,cost:68.00,market:149.99,weight:3,hype:90,risk:10,
-    art:{title:'GÖTTERFUNKEN',sub:'200 Schuss Profi',bg1:'#0e1226',bg2:'#000000',ac:'#ffd23f',ac2:'#e63b2e',gold:true}}
+  profi:{name:'Profi-Verbund Götterfunken',short:'Götterfunken',cat:2,lvl:22,shape:'battery',dims:[0.55,0.36,0.42],grid:[3,1,1],box:1,cost:68.00,market:149.99,weight:3,hype:90,risk:10,
+    art:{title:'GÖTTERFUNKEN',sub:'200 Schuss Profi',bg1:'#0e1226',bg2:'#000000',ac:'#ffd23f',ac2:'#e63b2e',gold:true}},
+  /* Schabernack-Edition: der Spaßkram ganz am Ende */
+  stinkbombe:{name:'Stinkbomben 12er',short:'Stinkbomben',cat:1,lvl:19,shape:'boxA',dims:[0.09,0.05,0.062],grid:[8,2,2],box:24,cost:0.75,market:2.29,weight:9,hype:4,risk:2,
+    art:{title:'PFUI DEIBEL',sub:'12 Stinkbomben',bg1:'#4a5a22',bg2:'#161d07',ac:'#c8e04a',ac2:'#ffffff'}},
+  heuler:{name:'Heulender Derwisch',short:'Heuler',cat:2,lvl:19,shape:'tubepack',dims:[0.14,0.065,0.065],grid:[8,2,2],box:12,cost:3.40,market:8.49,weight:8,hype:16,risk:5,
+    art:{title:'DERWISCH',sub:'6 Heuler mit Knall',bg1:'#2a1f5a',bg2:'#0a0620',ac:'#ff9d2a',ac2:'#5ce1ff'}},
+  furzrakete:{name:'Furzrakete »Donnerbalken«',short:'Furzrakete',cat:2,lvl:19,shape:'rocketset',dims:[0.44,0.06,0.12],grid:[4,2,2],box:6,cost:6.20,market:15.99,weight:9,hype:28,risk:4,
+    art:{title:'DONNERBALKEN',sub:'3 Furzraketen',bg1:'#6b4a1c',bg2:'#241504',ac:'#c8e04a',ac2:'#ffd23f'}}
 };
 const ORDER=Object.keys(P);
 const CATNAME={0:'Zubehör',1:'F1',2:'F2'};
@@ -552,8 +570,8 @@ const UPGRADES=[
   {id:'lizenz',kat:'markt',lvl:25,name:'Großhandelslizenz',desc:'Alle Lieferanten geben dir zusätzlich zehn Prozent Nachlass.',cost:()=>6500,done:()=>S.up.lizenz},
   {id:'klima',kat:'einr',lvl:27,name:'Klima und Musikanlage XL',desc:'Deutlich bessere Stimmung, Kunden bleiben spürbar länger.',cost:()=>5400,done:()=>S.up.klima},
   {id:'meister',kat:'markt',lvl:30,name:'Meisterbrief Pyrotechnik',desc:'Die höchste Stufe. Großaufträge zahlen ein Drittel mehr.',cost:()=>12000,done:()=>S.up.meister},
-  {id:'shop_gross',kat:'flaeche',lvl:12,name:'Verkaufsfläche erweitern',desc:'Kauft das leerstehende Ladenlokal rechts nebenan. Die Ostwand wird durchbrochen, die Schaufenster werden entmauert: rund 78 Quadratmeter mehr Fläche und acht zusätzliche Regalplätze.',cost:()=>9500,done:()=>S.up.shop_gross},
-  {id:'lager_gross',kat:'flaeche',lvl:15,name:'Lager erweitern',desc:'Die Nordwand des Lagers wird zum Anbau hin durchbrochen. Sechs zusätzliche Lagerregale passen hinein, und erst hier ist Platz für die Packstation.',cost:()=>7800,done:()=>S.up.lager_gross},
+  {id:'shop_gross',kat:'flaeche',lvl:12,name:'Verkaufsfläche erweitern',desc:'Kauft das leerstehende Ladenlokal rechts nebenan. Die Ostwand wird durchbrochen, die Schaufenster werden entmauert: rund 78 Quadratmeter mehr Fläche und acht zusätzliche Regalplätze.',cost:()=>7500,done:()=>S.up.shop_gross},
+  {id:'lager_gross',kat:'flaeche',lvl:15,name:'Lager erweitern',desc:'Die Nordwand des Lagers wird zum Anbau hin durchbrochen. Sechs zusätzliche Lagerregale passen hinein, und erst hier ist Platz für die Packstation.',cost:()=>6200,done:()=>S.up.lager_gross},
   {id:'packstation',kat:'flaeche',lvl:18,req:'lager_gross',name:'Packstation für den Versand',desc:'Packtisch, Waage, Etikettendrucker und Abholrampe. Zusammen mit dem Onlineshop kommen Bestellungen als echte Pakete herein: packen, auf die Rampe stellen, DDL holt am Abend ab.',cost:()=>6400,done:()=>S.up.packstation},
   {id:'kasse2',kat:'einr',lvl:16,req:'shop_gross',name:'SB-Kassen',desc:'Zwei Selbstbedienungsterminals in der neuen Verkaufsfläche. Kunden mit wenig Ware zahlen dort selbst, das entlastet deine Schlange spürbar.',cost:()=>3400,done:()=>S.up.kasse2},
   {id:'gravur',kat:'einr',lvl:9,name:'Gravur-Automat',desc:'Kunden beschriften ihre eigene Rakete. Hohe Marge, du musst nur Blanko-Ware nachfüllen.',cost:()=>1200,done:()=>S.up.gravur}
@@ -673,9 +691,9 @@ function seasonInfo(n){
   if(m===11&&d>=20) return [1.25,'Weihnachtswoche'];
   if(m===11) return [1.1,'Vorweihnachtszeit'];
   if(m===0&&d===1) return [1.35,'Neujahr, Restverkauf'];
-  if(m===0&&d<=14) return [0.72,'Ruhige Januartage'];
-  if(m===0||m===1) return [0.62,'Tiefste Nebensaison'];
-  if(m===2) return [0.72,'Frühjahr, wenig los'];
+  if(m===0&&d<=14) return [0.80,'Ruhige Januartage'];
+  if(m===0||m===1) return [0.72,'Tiefste Nebensaison'];
+  if(m===2) return [0.80,'Frühjahr, wenig los'];
   if(m===3&&d>=25) return [1.45,'Walpurgisnacht steht an'];
   if(m===4&&d<=2) return [1.3,'Erster Mai'];
   if(m===3||m===4) return [0.9,'Frühling'];
@@ -769,7 +787,7 @@ const GOALS=[
 ];
 function levelUnlocks(l){
   const out=[];
-  ORDER.forEach(t=>{ if(P[t].lvl===l) out.push(`Neue Ware: ${P[t].name}`); });
+  LIZENZEN.forEach(x=>{ if(x.lvl===l) out.push(`Lizenzpaket: ${x.name} (${x.items.length} Sorten)`); });
   UPGRADES.forEach(u=>{ if(u.lvl===l) out.push(`Ausbau: ${u.name}`); });
   STAFF.forEach(s=>{ if(s.lvl===l) out.push(`Personal: ${s.name}`); });
   DEKO.forEach(d=>{ if(d.lvl===l) out.push(`Deko: ${d.name}`); });
@@ -800,7 +818,9 @@ const TUT=[
 ];
 
 let S=null, phase='closed', clock=OPEN_T, hype=0, DS=null, paused=true, shake=0, ambient=0;
-const isUnlocked=t=>S.level>=P[t].lvl;
+/* Freigeschaltet wird nur noch ueber Lizenzpakete (siehe 02b-markt.js) */
+const isUnlocked=t=>{ const l=LIZ_VON[t]; return l?hatLizenz(l):S.level>=P[t].lvl; };
+const lizLevel=t=>{ const l=LIZ_VON[t]; const d=l&&LIZENZEN.find(x=>x.id===l); return d?d.lvl:P[t].lvl; };
 const rep=d=>{ S.rep=clamp(S.rep+d,0,100); };
 const cleanliness=()=>clamp(100-dirts.length*7,0,100);
 const canShelf=t=>!P[t].noShelf;
@@ -818,6 +838,210 @@ function ambienteScore(){
   a+=Math.max(0,w)*2+Math.max(0,f)*2;
   return clamp(a,0,100);
 }
+/* =========================================================
+   Markt: jedes Produkt hat einen eigenen Preisindex, der sich
+   Tag fuer Tag bewegt. Wie stark, haengt an der Volatilitaet
+   des Produkts und an seiner aktuellen Marktphase. Manche
+   Waren liegen monatelang still, andere schlagen wild aus.
+   Dazu eine langsame Inflation, die alles teurer macht.
+   ========================================================= */
+const VOLA={
+  feuerzeug:0.15, knicklichter:0.20, brille:0.25, konfetti:0.30, luftschlangen:0.30,
+  knallerbsen:0.32, wunder:0.35, bleigiessen:0.40, stinkbombe:0.40, tisch:0.45,
+  knallfrosch:0.50, blanko:0.50, gravur:0.50, schwaermer:0.55, fontaene:0.65,
+  chips:0.70, kindersekt:0.70, boeller:0.70, roemisch:0.70, raketenklein:0.70,
+  bowle:0.80, vulkan:0.80, sortiment:0.80, wasserfall:0.80, grossboeller:0.85,
+  raketen:0.85, kanonen:0.90, doppelschlag:0.90, batterie16:0.90, heuler:0.90,
+  raketengold:0.95, batterie25:0.95, sekt:1.00, faecher:1.00, batterie49:1.05,
+  furzrakete:1.10, batterie100:1.20, sprengmeister:1.30, profi:1.40, xxlpolen:1.60
+};
+function volaOf(t){ const v=VOLA[t]; if(v!==undefined) return v; const p=P[t]; return p&&p.cat===2?0.85:p&&p.cat===1?0.6:0.45; }
+
+/* Marktphasen. amp skaliert das Tagesrauschen, rev zieht zurueck zur Mitte. */
+const REGIME={
+  fest  :{amp:0.10, rev:0.26, d:[12,30], name:'stabil',      farbe:'ok'},
+  ruhig :{amp:0.34, rev:0.15, d:[8,20],  name:'ruhig',       farbe:''},
+  normal:{amp:0.85, rev:0.07, d:[5,14],  name:'schwankend',  farbe:'warn'},
+  sturm :{amp:2.10, rev:0.04, d:[3,9],   name:'turbulent',   farbe:'no'}
+};
+const REGIME_ALL=['fest','ruhig','normal','sturm'];
+/* Wie wahrscheinlich welche Phase ist, haengt an der Volatilitaet */
+function regimeWahl(t){
+  const v=volaOf(t);
+  const w = v<0.30 ? [72,26,2,0]
+          : v<0.60 ? [32,44,23,1]
+          : v<0.95 ? [12,32,43,13]
+          :          [4,19,45,32];
+  let s=0; for(const x of w) s+=x;
+  let r=Math.random()*s;
+  for(let i=0;i<4;i++){ r-=w[i]; if(r<=0) return REGIME_ALL[i]; }
+  return 'normal';
+}
+function regimeNeu(t){
+  const k=regimeWahl(t), d=REGIME[k].d;
+  return {k,t:Math.round(rand(d[0],d[1]))};
+}
+const MI_MIN=0.62, MI_MAX=1.88;
+/* Zwei Gleichverteilungen ergeben eine brauchbare Glockenkurve */
+const gauss=()=>(Math.random()+Math.random()+Math.random()-1.5)*1.15;
+
+const SCHOCK_KNAPP=[
+  'Zoll hält eine ganze Lieferung fest',
+  'Die Fabrik in Liuyang steht still',
+  'Frachtraten haben sich verdoppelt',
+  'Ein Großabnehmer hat den Markt leergekauft',
+  'Sicherheitsprüfung stoppt eine Charge',
+  'Rohstoff für den Satz ist knapp',
+  'Der Importeur sitzt im Stau vor Rotterdam'
+];
+const SCHOCK_SCHWEMME=[
+  'Ein Großhändler räumt sein Lager',
+  'Restposten aus Polen überschwemmen den Markt',
+  'Importeur insolvent, alles muss raus',
+  'Überproduktion aus dem Vorjahr kommt in den Handel',
+  'Konkurrenz verramscht ihre Bestände',
+  'Neue Fabrik drückt die Preise'
+];
+
+function marktInit(){
+  S.mi=S.mi||{}; S.me=S.me||{}; S.reg=S.reg||{}; S.mh=S.mh||{}; S.schock=S.schock||{};
+  S.infl=+S.infl||1;
+  ORDER.forEach(t=>{
+    if(typeof S.mi[t]!=='number'||!isFinite(S.mi[t])) S.mi[t]=r3(clamp(1+gauss()*0.06*volaOf(t),MI_MIN,MI_MAX));
+    if(typeof S.me[t]!=='number'||!isFinite(S.me[t])) S.me[t]=S.mi[t];
+    if(!S.reg[t]||!REGIME[S.reg[t].k]) S.reg[t]=regimeNeu(t);
+    if(!Array.isArray(S.mh[t])||!S.mh[t].length) S.mh[t]=[S.mi[t]];
+  });
+}
+const r3=x=>Math.round(x*1000)/1000;
+/* Aktueller Marktpreis und Einkaufspreis eines Produkts */
+function miOf(t){ const v=S&&S.mi?S.mi[t]:1; return (typeof v==='number'&&isFinite(v))?v:1; }
+/* Was die Kunden erwarten, zieht dem Grosshandel ein paar Tage hinterher.
+   Genau daraus entsteht das Geschaeft: billig einkaufen, teuer verkaufen. */
+function meOf(t){ const v=S&&S.me?S.me[t]:null; return (typeof v==='number'&&isFinite(v))?v:miOf(t); }
+function inflOf(){ const v=S?+S.infl:1; return (typeof v==='number'&&isFinite(v)&&v>0)?v:1; }
+function marketOf(t){ return r2(P[t].market*meOf(t)*inflOf()); }
+/* Der rohe Marktwert, auf den die Erwartung noch zulaeuft */
+function marktZiel(t){ return r2(P[t].market*miOf(t)*inflOf()); }
+/* Positiv heisst: Einkauf ist gerade guenstiger als die Erwartung der Kunden */
+function marktLuecke(t){ const e=meOf(t), m=miOf(t); return Math.round((e/m-1)*100); }
+function costOf(t){ return r2(P[t].cost*miOf(t)*inflOf()); }
+/* Veraenderung zum Vortag in Prozent */
+function marktDelta(t){
+  const h=(S&&S.mh&&S.mh[t])||[]; if(h.length<2) return 0;
+  const a=h[h.length-2], b=h[h.length-1];
+  return a>0?Math.round((b/a-1)*1000)/10:0;
+}
+/* Wie weit liegt der Preis ueber oder unter dem Normalniveau */
+function marktNiveau(t){ return Math.round((meOf(t)-1)*100); }
+function marktPhase(t){ const r=(S&&S.reg&&S.reg[t])?REGIME[S.reg[t].k]:null; return r||REGIME.ruhig; }
+function marktSchock(t){ return S&&S.schock?S.schock[t]:null; }
+function marktLabel(t){
+  const n=marktNiveau(t);
+  if(n<=-22) return ['ok','Sehr günstig eingekauft'];
+  if(n<=-9)  return ['ok','Günstiger als sonst'];
+  if(n<9)    return ['','Normales Niveau'];
+  if(n<24)   return ['warn','Teurer als sonst'];
+  return ['no','Deutlich überteuert'];
+}
+/* Das am staerksten aus dem Rahmen gefallene Produkt (r=1 teuer, -1 guenstig) */
+function marktExtrem(r){
+  let best=null, bv=0;
+  ORDER.forEach(t=>{ if(P[t].noOrder||!isUnlocked(t)) return;
+    const n=marktNiveau(t)*r; if(n>bv){ bv=n; best=t; } });
+  return bv>=8?best:null;
+}
+/* Wo lohnt sich der Einkauf gerade am meisten */
+function marktChance(){
+  let best=null, bv=6;
+  ORDER.forEach(t=>{ if(P[t].noOrder||!isUnlocked(t)) return;
+    const l=marktLuecke(t); if(l>bv){ bv=l; best=t; } });
+  return best;
+}
+/* Durchschnittliches Marktniveau ueber alle freigeschalteten Waren */
+function marktSchnitt(){
+  let n=0,s=0;
+  ORDER.forEach(t=>{ if(P[t].noOrder) return; if(!isUnlocked(t)) return; n++; s+=miOf(t); });
+  return n?s/n:1;
+}
+
+/* Ein Tag Marktbewegung. Gibt die Meldungen des Tages zurueck. */
+function rollMarkt(){
+  marktInit();
+  const news=[];
+  /* Inflation: meistens ein kleiner Schritt, selten ein groesserer */
+  let inf=rand(0.0008,0.0028);
+  if(Math.random()<0.05) inf+=rand(0.003,0.009);
+  S.infl=r3(clamp(inflOf()*(1+inf),1,4));
+  ORDER.forEach(t=>{
+    const reg=S.reg[t];
+    reg.t--;
+    if(reg.t<=0) S.reg[t]=regimeNeu(t);
+    const r=REGIME[S.reg[t].k], v=volaOf(t);
+    /* laufender Schock haelt den Markt in Bewegung */
+    const sch=S.schock[t];
+    if(sch){ sch.t--; if(sch.t<=0) delete S.schock[t]; }
+    let mi=miOf(t);
+    mi+=(1-mi)*r.rev + gauss()*0.045*v*r.amp;
+    /* Neuer Schock? Nur bei Waren, die ueberhaupt schwanken. */
+    if(!sch&&v>=0.48&&Math.random()<0.012*v){
+      const knapp=Math.random()<0.55;
+      const f=knapp?1+rand(0.28,0.80):1-rand(0.18,0.40);
+      mi*=f;
+      S.schock[t]={k:knapp?'knapp':'schwemme',t:Math.round(rand(3,9))};
+      S.reg[t]={k:'sturm',t:Math.round(rand(3,8))};
+      news.push({t,knapp,text:knapp?pick(SCHOCK_KNAPP):pick(SCHOCK_SCHWEMME)});
+    }
+    S.mi[t]=r3(clamp(mi,MI_MIN,MI_MAX));
+    /* Erwartung der Kunden laeuft traege nach */
+    S.me[t]=r3(clamp(meOf(t)+(S.mi[t]-meOf(t))*0.26,MI_MIN,MI_MAX));
+    const h=S.mh[t]; h.push(S.me[t]); if(h.length>16) h.shift();
+  });
+  S.mkt=r2(clamp(marktSchnitt(),0.7,1.5));
+  S.news=news.slice(0,4);
+  return S.news;
+}
+
+/* =========================================================
+   Lizenzpakete: Produkte werden nicht mehr einzeln
+   freigeschaltet, sondern in Paketen gekauft.
+   ========================================================= */
+const LIZENZEN=[
+  {id:'start',lvl:1,cost:0,name:'Grundsortiment',
+   desc:'Womit jeder Laden anfängt: Wunderkerzen, Knallerbsen, Tischfeuerwerk, Knallfrösche.',
+   items:['wunder','knallerbsen','tisch','knallfrosch']},
+  {id:'zubehoer',lvl:3,cost:120,name:'Silvesterzubehör',
+   desc:'Alles um das Feuerwerk herum. Kleine Margen, aber fast jeder Kunde nimmt etwas davon mit.',
+   items:['feuerzeug','luftschlangen','knicklichter','brille','chips','konfetti']},
+  {id:'klassiker',lvl:5,cost:380,name:'Silvester-Klassiker',
+   desc:'Die Ware, wegen der die Leute überhaupt kommen: erste Böller, Schwärmer, kleine Raketen und der Sekt für Mitternacht.',
+   items:['boeller','schwaermer','raketenklein','sekt','kindersekt']},
+  {id:'krach',lvl:8,cost:1100,name:'Abteilung Krach',
+   desc:'Große Böller, Kanonenschläge, Doppelschläge, Römische Lichter und Fontänen. Ab hier wird es laut.',
+   items:['grossboeller','kanonen','doppelschlag','roemisch','fontaene','blanko','gravur']},
+  {id:'himmel',lvl:11,cost:2600,name:'Bunte Nacht',
+   desc:'Raketensortimente, Goldraketen, Vulkane und alles, was den Himmel füllt. Dazu Wachsgießen und Feuerzangenbowle.',
+   items:['raketen','raketengold','vulkan','wasserfall','bleigiessen','bowle']},
+  {id:'verbund',lvl:14,cost:6000,name:'Verbundfeuerwerk',
+   desc:'Batterien und Fächer. Ein einziger Verkauf bringt mehr als ein halber Tag Kleinkram.',
+   items:['batterie16','batterie25','batterie49','sortiment','faecher']},
+  {id:'import',lvl:17,cost:13000,name:'Import & Sonderposten',
+   desc:'Sprengmeister, der XXL-Bomber und der 100er-Verbund. Teuer im Einkauf, launisch im Preis, aber die Kunden reden darüber.',
+   items:['sprengmeister','xxlpolen','batterie100']},
+  {id:'schabernack',lvl:19,cost:16000,name:'Schabernack-Edition',
+   desc:'Stinkbomben, Heulende Derwische und die Furzrakete »Donnerbalken«. Verkauft sich von allein, weil jeder sie einmal gesehen haben will.',
+   items:['stinkbombe','heuler','furzrakete']},
+  {id:'profi',lvl:22,cost:26000,name:'Profiklasse',
+   desc:'Der Götterfunken-Verbund. Zweihundert Schuss, neunzig Sekunden, und der halbe Ort steht auf der Straße.',
+   items:['profi']}
+];
+const LIZ_VON={};
+LIZENZEN.forEach(l=>l.items.forEach(t=>{ LIZ_VON[t]=l.id; }));
+function lizenzOf(t){ return LIZ_VON[t]||null; }
+function hatLizenz(id){ return !!(S&&S.lic&&S.lic.indexOf(id)>=0); }
+function lizenzDaten(id){ return LIZENZEN.find(l=>l.id===id)||null; }
+/* Die naechste Lizenz, die noch fehlt */
+function naechsteLizenz(){ return LIZENZEN.find(l=>!hatLizenz(l.id))||null; }
 
 /* =========================================================
    Renderer & Szene
@@ -4927,7 +5151,7 @@ function route(from,to){
 function spotPos(i){ return i===0?ck(1.05,1.05):ck(0.1-(i-1)*0.8,1.68); }
 function queueApproach(){ return ck(-4.0,1.7); }
 function priceTol(){ return (0.95+ambienteScore()/450+S.rep/900+bildBoost()+(friendliness()-1)*0.12)*evv('tol')*(S.comp||1); }
-function buyChance(t,price,q,cold,ct){ const r=price/P[t].market, lo=priceTol()*(ct?ct.tol:1)+((q||1)-1)*0.18+(cold?0.16:0); if(r<=lo) return 1; if(r>=lo+0.5) return 0; return 1-(r-lo)/0.5; }
+function buyChance(t,price,q,cold,ct){ const r=price/marketOf(t), lo=priceTol()*(ct?ct.tol:1)+((q||1)-1)*0.18+(cold?0.16:0); if(r<=lo) return 1; if(r>=lo+0.5) return 0; return 1-(r-lo)/0.5; }
 function dayIndex(){ return S.day; }
 function makeWishes(ct){
   const avail=ORDER.filter(t=>isUnlocked(t)&&canWish(t)), list=[], used=new Set();
@@ -4947,8 +5171,8 @@ function makeWishes(ct){
     let r=Math.random()*wt.reduce((a,b)=>a+b,0), t=pool[0];
     for(let j=0;j<pool.length;j++){ r-=wt[j]; if(r<=0){ t=pool[j]; break; } }
     used.add(t);
-    const big=P[t].market>20;
-    let q=big?1:(P[t].market>7?(Math.random()<0.65?1:2):1+Math.floor(Math.random()*3));
+    const mp=marketOf(t), big=mp>20;
+    let q=big?1:(mp>7?(Math.random()<0.65?1:2):1+Math.floor(Math.random()*3));
     if(late&&!big&&Math.random()<0.45) q++;
     list.push({type:t,qty:q});
   }
@@ -5019,7 +5243,7 @@ class Customer{
     S.tut.thief=true; toast('Da klaut jemand! Pfefferspray zücken.','bad'); sfx.alarm();
     if(staff.security) staff.security.chase=this;
   }
-  stolenValue(){ return this.items.reduce((a,b)=>a+P[b.type].cost,0); }
+  stolenValue(){ return this.items.reduce((a,b)=>a+costOf(b.type),0); }
   caughtBy(what){
     if(this.caught) return; this.caught=true;
     if(this.mark){ this.g.remove(this.mark); this.mark=null; }
@@ -5190,7 +5414,10 @@ function makeCall(){
 function updatePhone(dt){
   if(!pyroUnlocked()||phase!=='open') return;
   if(order||phone.state){ if(phone.state==='ringing'){ phone.t-=dt; if(phone.t<=0){ phone.state=null; $('phone').textContent=''; phone.cd=rand(60,110); toast('Anruf verpasst.','bad'); } } return; }
-  phone.cd-=dt/evv('pyro');
+  /* In der Nebensaison ist im Laden wenig los, dafuer melden sich mehr
+     Veranstalter. Das haelt Januar bis September lebendig. */
+  const flau=clamp(1.9-dayMult(S.day)*0.9,0.8,1.9);
+  phone.cd-=dt*flau/evv('pyro');
   if(phone.cd<=0){
     const c=makeCall();
     if(!c){ phone.cd=90; return; }
@@ -5338,6 +5565,17 @@ const WAGES=[
   {f:1.65,name:'Top',desc:'schnell, gründlich, freundlich'}
 ];
 function wageOf(id){ const v=(S&&S.wage&&S.wage[id]); return WAGES.some(w=>w.f===v)?v:1.0; }
+/* Saisonpause: von Januar bis Herbst braucht kein Laden volle Besetzung.
+   Statt zu kuendigen und spaeter wieder Einstellungskosten zu zahlen,
+   geht das Personal in Kurzarbeit: 30 Prozent Lohn, dafuer keine Arbeit. */
+function inPause(id){ return !!(S&&S.pause&&S.pause[id]); }
+function setPause(id,an){
+  if(!S.staff||!S.staff[id]) return;
+  S.pause=S.pause||{};
+  if(an){ S.pause[id]=true; fireStaff(id); }
+  else { delete S.pause[id]; hireStaff(id); }
+  save();
+}
 function wageName(id){ const f=wageOf(id), w=WAGES.find(x=>x.f===f); return w?w.name:'Normal'; }
 function setWage(id,f){ S.wage=S.wage||{}; S.wage[id]=f; if(staff[id]) staff[id].applyWage(); save(); }
 /* Freundlichkeit: Mittel aller Lohnfaktoren, wirkt auf Geduld und Kauflaune */
@@ -5475,11 +5713,11 @@ class Worker{
 }
 function hireStaff(id){ if(staff[id]) return; staff[id]=new Worker(id); }
 function fireStaff(id){ if(!staff[id]) return; staff[id].remove(); staff[id]=null; }
-function dailyWages(){ let w=0; STAFF.forEach(s=>{ if(S.staff[s.id]) w+=r2(s.wage*wageOf(s.id)); }); return r2(w); }
+function dailyWages(){ let w=0; STAFF.forEach(s=>{ if(S.staff[s.id]) w+=r2(s.wage*wageOf(s.id)*(inPause(s.id)?0.3:1)); }); return r2(w); }
 /* Wer zu schlecht bezahlt wird, kündigt irgendwann */
 function staffMorale(){
   STAFF.forEach(st=>{
-    if(!S.staff[st.id]) return;
+    if(!S.staff[st.id]||inPause(st.id)) return;
     if(wageOf(st.id)<0.8&&Math.random()<0.14){
       S.staff[st.id]=false; fireStaff(st.id); rep(-1);
       toast(`${st.name} hat gekündigt. Für den Lohn macht das keiner lange.`,'bad');
@@ -5578,7 +5816,17 @@ const sfx={
   alarm:()=>{ tone(880,0.12,'square',0.05); later(0.16,()=>tone(660,0.16,'square',0.05)); },
   ring:()=>{ for(let i=0;i<2;i++) later(i*0.42,()=>{ tone(1318,0.1,'sine',0.05); later(0.12,()=>tone(1046,0.12,'sine',0.05)); }); },
   spray:()=>noise(0.5,0.25,4200),
-  level:()=>{ tone(784,0.1,'square',0.05); later(0.1,()=>tone(1046,0.1,'square',0.05)); later(0.2,()=>tone(1318,0.28,'square',0.055)); }
+  level:()=>{ tone(784,0.1,'square',0.05); later(0.1,()=>tone(1046,0.1,'square',0.05)); later(0.2,()=>tone(1318,0.28,'square',0.055)); },
+  /* Furzrakete: flatternder Aufstieg und eine breite, tiefe Entladung */
+  pfffft:v=>{ if(!AC) return;
+    for(let i=0;i<7;i++) later(i*0.055,()=>tone(rand(105,190),0.11,'sawtooth',0.030*v,rand(65,130)));
+    noise(0.5,0.09*v,900); },
+  furz:v=>{ if(!AC) return;
+    tone(92,0.55,'sawtooth',0.075*v,38);
+    later(0.03,()=>tone(61,0.6,'square',0.055*v,29));
+    for(let i=0;i<14;i++) later(0.04+i*0.035,()=>tone(rand(52,128),0.09,'sawtooth',0.040*v,rand(30,70)));
+    noise(0.85,0.30*v,520); later(0.28,()=>noise(0.6,0.18*v,320)); },
+  heul:v=>{ tone(340,1.5,'sawtooth',0.035*v,2100); later(0.2,()=>tone(300,1.3,'square',0.018*v,1700)); }
 };
 /* =========================================================
    Feuerwerk: Partikelsystem
@@ -5637,7 +5885,8 @@ const FW={
   gold:[1,.80,.22], zitrone:[1,.97,.34], limette:[.62,1,.20], gruen:[.14,1,.28],
   mint:[.36,1,.70], tuerkis:[.18,.96,1], himmel:[.36,.72,1], blau:[.20,.36,1],
   indigo:[.44,.32,1], violett:[.70,.30,1], magenta:[1,.20,.92], rose:[1,.46,.74],
-  weiss:[1,1,1], silber:[.82,.90,1], pfirsich:[1,.72,.55], aqua:[.25,1,.88]
+  weiss:[1,1,1], silber:[.82,.90,1], pfirsich:[1,.72,.55], aqua:[.25,1,.88],
+  braun:[.46,.28,.11], kot:[.33,.19,.07], senf:[.62,.48,.13], sumpf:[.40,.52,.16]
 };
 const K=n=>FW[n];
 /* Farbpaare, die zusammen gut aussehen */
@@ -5839,6 +6088,29 @@ const EFF={
     later(0.72,()=>{ const q={x:p.x+rand(-2.5,2.5),y:p.y+rand(-2,1),z:p.z+rand(-2.5,2.5)}; EFF.chrys(q,C,C,s*0.85); shellSound(q,s*0.7); });
   }
 };
+/* Die Furzwolke: eine breite, langsam aufsteigende Schwade mit Spritzern */
+EFF.furz=function(p,A,B,s){
+  const n=Math.round(240*s*QUAL());
+  for(let i=0;i<n;i++){
+    const d=randDir(), v=rand(2.0,6.8)*s;
+    const c=i%6===0?FW.sumpf:(i%3?FW.braun:FW.kot);
+    psBig.emit(p.x,p.y,p.z,d[0]*v,d[1]*v*0.6+rand(0.2,1.6),d[2]*v,c[0],c[1],c[2],rand(3.6,5.6),-0.45);
+  }
+  /* Spritzer, die wieder herunterkommen */
+  for(let i=0;i<Math.round(46*s*QUAL());i++){
+    const d=randDir(), v=rand(7,13)*s;
+    psMid.emit(p.x,p.y,p.z,d[0]*v,d[1]*v,d[2]*v,FW.senf[0],FW.senf[1],FW.senf[2],rand(1.1,2.0),4.2);
+  }
+  /* Nachschwaden, damit die Wolke noch eine Weile haengt */
+  for(let k=1;k<=3;k++) later(k*0.45,()=>{
+    for(let i=0;i<Math.round(55*s*QUAL());i++){
+      const d=randDir(), v=rand(1.2,3.6)*s;
+      const c=i%4?FW.braun:FW.sumpf;
+      psBig.emit(p.x+rand(-2,2),p.y+rand(-1,1.6),p.z+rand(-2,2),d[0]*v,d[1]*v*0.5+0.5,d[2]*v,c[0],c[1],c[2],rand(3.0,4.6),-0.4);
+    }
+  });
+  flash({x:p.x,y:p.y,z:p.z},FW.senf,1.6,0.45);
+};
 const EFF_ALL=Object.keys(EFF);
 const EFF_KLEIN=['kugel','ring','knister','fische','kreisel','wechsel'];
 const EFF_GROSS=['chrys','weide','palme','brokat','doppelring','crossette','dreifach','blink'];
@@ -5898,6 +6170,15 @@ function updateFireworks(dt){
       e.fl=(e.fl||0)-dt; if(e.fl<=0){ e.fl=0.3; flash({x:o.x,y:o.y+1.4,z:o.z},A,big?1.8:1.2,0.34); }
       for(let k=0;k<n;k++){ const a=Math.random()*Math.PI*2, s=rand(0.3,wf?2.6:big?1.9:1.2), c=Math.random()<0.72?A:B;
         psMid.emit(o.x+(wf?rand(-1.6,1.6):0),o.y+0.2,o.z,Math.cos(a)*s,wf?rand(3,6):rand(4.5,big?10.5:6.8),Math.sin(a)*s,c[0],c[1],c[2],rand(0.8,wf?2.4:big?1.9:1.3),wf?7:5,4); } }
+    else if(e.k==='furzfont'){
+      /* brauner Schweif, waehrend die Rakete steigt */
+      for(let k=0;k<9;k++){ const a=Math.random()*Math.PI*2, sp=rand(0.2,1.3);
+        const c=k%4?FW.braun:FW.sumpf;
+        psMid.emit(o.x,o.y+0.25,o.z,Math.cos(a)*sp,rand(2.5,5.5),Math.sin(a)*sp,c[0],c[1],c[2],rand(1.2,2.2),-0.2); } }
+    else if(e.k==='stink'){
+      for(let k=0;k<6;k++){ const a=Math.random()*Math.PI*2, sp=rand(0.2,1.6);
+        const c=k%3?FW.sumpf:FW.braun;
+        psMid.emit(o.x+rand(-.5,.5),0.18,o.z+rand(-.5,.5),Math.cos(a)*sp,rand(0.3,1.4),Math.sin(a)*sp,c[0],c[1],c[2],rand(2.0,3.4),-0.5); } }
     else if(e.k==='spark'){
       for(let k=0;k<7;k++){ const d=randDir(), s=rand(1,2.4);
         psSmall.emit(o.x,o.y+0.3,o.z,d[0]*s,d[1]*s+0.4,d[2]*s,1,rand(0.8,1),rand(0.45,0.85),rand(0.25,0.55),4,3); } }
@@ -6021,8 +6302,45 @@ function showLength(id){ const f=SHOWS[id]; if(!f) return 0; let t=0; f().forEac
 function igniteType(t){
   const p=P[t]; if(!p||!p.cat) return;
   const o=padOf(t), sh=p.shape;
-  hype=Math.min(100,hype+p.hype); DS.burned=r2(DS.burned+p.cost); addXP(Math.max(1,Math.round(p.hype/3)));
+  hype=Math.min(100,hype+p.hype); DS.burned=r2(DS.burned+costOf(t)); addXP(Math.max(1,Math.round(p.hype/3)));
   if(SHOWS[t]){ emitters.push({t:0.8,k:'fuse',o}); later(0.8,()=>playShow(o,SHOWS[t]())); return; }
+  /* ----- Schabernack-Edition ----- */
+  if(t==='furzrakete'){
+    const v=distVol(o);
+    for(let i=0;i<3;i++) later(i*1.5,()=>{
+      emitters.push({t:0.55,k:'fuse',o});
+      later(0.55,()=>{
+        emitters.push({t:1.5,k:'furzfont',o});
+        sfx.pfffft(v);
+        /* die Rakete selbst: langsamer Aufstieg, dann die Entladung */
+        shot(o,{pw:-4,sz:1.5,eff:'furz',A:FW.braun,B:FW.sumpf,fuse:1.55,trail:FW.braun});
+        later(2.0,()=>{ sfx.furz(Math.min(1.5,v*1.3)); shake=Math.max(shake,0.5*v); });
+      });
+    });
+    return;
+  }
+  if(t==='heuler'){
+    const v=distVol(o);
+    for(let i=0;i<4;i++) later(i*0.9,()=>{
+      sfx.heul(v);
+      const x=o.x+rand(-1.2,1.2), z=o.z+rand(-1.2,1.2);
+      const c=K(pick(['tuerkis','magenta','zitrone','limette']));
+      /* aufsteigende Spirale */
+      for(let k=0;k<70;k++){ const a=k*0.4, r=0.2+k*0.02;
+        psMid.emit(x+Math.cos(a)*r,0.2+k*0.05,z+Math.sin(a)*r,Math.cos(a)*1.4,rand(2,4),Math.sin(a)*1.4,c[0],c[1],c[2],rand(0.7,1.4),3.2); }
+      later(1.4,()=>{ smallPop(x,3.4,z,90,7,0.6,c); sfx.crack(v); });
+    });
+    return;
+  }
+  if(t==='stinkbombe'){
+    const v=distVol(o);
+    for(let i=0;i<6;i++) later(i*0.35+rand(0,0.15),()=>{
+      const x=o.x+rand(-1.3,1.3), z=o.z+rand(-1.3,1.3);
+      emitters.push({t:4.5,k:'stink',o:{x,y:0,z}});
+      sfx.pfffft(v*0.5);
+    });
+    return;
+  }
   if(sh==='sparkler'){ emitters.push({t:5,k:'spark',o}); sfx.fizz(distVol(o)); }
   else if(t==='knallerbsen'||t==='knallfrosch'){
     const n=t==='knallfrosch'?10:7;
@@ -6406,13 +6724,13 @@ function drawPDA(force){
       g.fillText('Umsatz heute '+eur(DS.revenue),10,H-26);
       return;
     }
-    const p=P[t], price=S.prices[t], marge=price-p.cost, r=price/p.market;
+    const p=P[t], mp=marketOf(t), ek=costOf(t), price=S.prices[t], marge=price-ek, r=price/mp;
     g.fillStyle='#e8fff2'; g.font=BAR(23); g.textAlign='left';
     fitFont(g,p.name,W-20,23,BAR); g.fillText(p.name,10,52);
     g.fillStyle='#3dff7a'; g.font=BUN(44); g.fillText(price.toFixed(2).replace('.',',')+' €',10,96);
     g.fillStyle=r>1.22?'#ff8a7a':r<0.9?'#ffd23f':'#6cf2a8'; g.font=BAR(19);
     g.fillText(r>1.22?'teuer':r<0.9?'günstig':'marktüblich',10,124);
-    g.fillStyle='#4f9c72'; g.fillText(`Markt ${eur(p.market)} · EK ${eur(p.cost)}`,10,148);
+    g.fillStyle='#4f9c72'; g.fillText(`Markt ${eur(mp)} · EK ${eur(ek)}`,10,148);
     g.fillStyle=marge>0?'#8ef0a8':'#ff8a7a'; g.fillText(`Marge ${eur(r2(marge))}`,10,172);
     g.fillStyle='#123a26'; g.fillRect(0,H-70,W,70);
     g.fillStyle='#6cf2a8'; g.font=BAR(18);
@@ -6429,7 +6747,7 @@ function openPDA(t){
 function closePDA(){ $('pda').classList.remove('show'); pdaOpen=false; pdaItem=null; paused=false; requestLock(); }
 function renderPDA(){
   const t=pdaItem; if(!t) return;
-  const p=P[t], price=S.prices[t], marge=r2(price-p.cost), r=price/p.market;
+  const p=P[t], mp=marketOf(t), ek=costOf(t), price=S.prices[t], marge=r2(price-ek), r=price/mp;
   const sup=supplierOf(pdaSup), tiers=sup.tiers||[{n:1,d:0}];
   const tol=priceTol(), ch=Math.round(buyChance(t,price,1)*100);
   $('pdaTitle').textContent=p.name;
@@ -6440,8 +6758,8 @@ function renderPDA(){
       `<button data-a="pm" class="ghost">Markt</button>`+
       [0.05,0.1,0.2,0.5].map(d=>`<button data-a="pp" data-d="${d}">+${d.toFixed(2).replace('.',',')}</button>`).join('')+
     `</div>`+
-    `<div class="pdarow"><span>Marktpreis</span><span>${eur(p.market)} · ${Math.round(r*100)} %</span></div>`+
-    `<div class="pdarow"><span>Einkauf / Marge</span><span class="${marge>0?'ok':'no'}">${eur(p.cost)} → ${eur(marge)}</span></div>`+
+    `<div class="pdarow"><span>Marktpreis</span><span>${eur(mp)} · ${Math.round(r*100)} %</span></div>`+
+    `<div class="pdarow"><span>Einkauf / Marge</span><span class="${marge>0?'ok':'no'}">${eur(ek)} → ${eur(marge)}</span></div>`+
     `<div class="pdarow"><span>Kaufbereitschaft</span><span class="${ch>75?'ok':ch>35?'warn':'no'}">${ch} %</span></div>`+
     `<div class="pdarow"><span>Bestand</span><span>${shelfStockOf(t)} im Regal · ${stockOf(t)} gesamt</span></div>`+
     (canOrder(t)?
@@ -6505,13 +6823,16 @@ function repayLoan(v){
    Tagesablauf
    ========================================================= */
 function newDayStats(){ DS={revenue:0,customers:0,sold:0,f2:0,missed:0,angry:0,goods:0,upgrades:0,interest:0,changeLoss:0,stolen:0,caught:0,burned:0,orders:0,gravur:0,versand:0,sb:0,rep0:S.rep,xpGained:0}; }
-/* Marktlage: Einkaufspreise und Konkurrenz schwanken von Tag zu Tag */
+/* Marktlage: die Preise pro Produkt bewegen sich in 02b-markt.js,
+   hier kommt nur noch die Konkurrenz dazu. */
 function rollMarket(){
-  S.mkt=clamp((S.mkt||1)*rand(0.93,1.08),0.72,1.34);
+  rollMarkt();
   S.comp=clamp((S.comp||1)*rand(0.95,1.05),0.88,1.12);
 }
-function ekFactor(){ return (S.mkt||1)*evv('ek')*(S.up&&S.up.lizenz?0.9:1); }
-function marktText(){ const m=S.mkt||1; return m<0.85?'Einkauf günstig':m<0.96?'Einkauf leicht günstig':m<1.05?'Einkauf normal':m<1.18?'Einkauf teuer':'Einkauf sehr teuer'; }
+/* Auf den Marktpreis kommt nur noch das Tagesereignis und der Rabatt */
+function ekFactor(){ return evv('ek')*(S.up&&S.up.lizenz?0.9:1); }
+function marktText(){ const m=S.mkt||1; return m<0.88?'Markt günstig':m<0.97?'Markt leicht günstig':m<1.05?'Markt normal':m<1.16?'Markt teuer':'Markt sehr teuer'; }
+function inflText(){ const i=Math.round((inflOf()-1)*100); return i<=0?'keine':'+'+i+' %'; }
 /* Tagesereignis würfeln */
 function rollEvent(){
   S.ev=null;
@@ -6547,9 +6868,22 @@ function goalTick(){
   }
 }
 let spawnT=2;
+/* Wie viele Sorten stehen ueberhaupt im Regal? Ein Laden mit breitem
+   Sortiment zieht spuerbar mehr Leute als einer mit vier Artikeln. */
+function sortimentBreite(){
+  let n=0; ORDER.forEach(t=>{ if(!P[t].noOrder&&!P[t].noShelf&&isUnlocked(t)) n++; });
+  return n;
+}
+function sortimentZug(){ return 0.78+Math.min(1,sortimentBreite()/34)*0.52; }
+/* Der Ruf eines eingesessenen Ladens spricht sich herum */
+function bekanntheit(){ return 1+Math.min(20,Math.max(0,S.level-1))*0.019; }
 function spawnInterval(){
-  const m=dayMult(S.day)*evv('cust')*eroeffnung()*(1+0.05*(S.season-1))*(0.55+S.rep/100)*(S.up.plakat?1.3:1)*(S.up.radio?1.25:1)*(S.up.tafel?1.3:1)*(S.up.kundenkarte?1.12:1)*(1+hype/50)*(0.85+ambienteScore()/180)*(0.75+cleanliness()/300);
-  return Math.max(0.9,9.2/m);
+  const m=dayMult(S.day)*evv('cust')*eroeffnung()*(1+0.05*(S.season-1))
+    *(0.55+S.rep/100)*bekanntheit()*sortimentZug()
+    *(S.up.shop_gross?1.34:1)
+    *(S.up.plakat?1.3:1)*(S.up.radio?1.25:1)*(S.up.tafel?1.3:1)*(S.up.kundenkarte?1.12:1)
+    *(1+hype/50)*(0.85+ambienteScore()/180)*(0.75+cleanliness()/300);
+  return Math.max(0.65,9.2/m);
 }
 function ruhetag(){ return isSunday(S.day)&&!S.up.tag4; }
 function openShop(){
@@ -6580,6 +6914,12 @@ function showSummary(title,text,rows,btn,fn){
   $('summary').classList.add('show'); summaryOpen=true; paused=true; if(locked) document.exitPointerLock();
 }
 const SHELFFIX={klein:4,standard:9,hoch:12,kuehl:18};
+/* Dispokredit: solange der Laden laeuft, gibt die Bank einen Rahmen.
+   Ohne den koennte ein schlechter Januar das Spiel unrettbar festfahren:
+   kein Geld -> keine Ware -> keine Kunden -> kein Geld. */
+function dispoLimit(){ return S.level>=4?Math.round(260+S.level*70):0; }
+function verfuegbar(){ return r2(S.money+dispoLimit()); }
+function dispoZins(){ return S.money<0?r2(-S.money*0.006):0; }
 function fixedCosts(){
   let f=10+6*racks.length+Math.round(Math.max(0,S.level-4)*4);
   shelves.forEach(sh=>f+=SHELFFIX[sh.kind]||9);
@@ -6597,17 +6937,22 @@ function endDay(){
   if(ev&&ev.pruef){ if(cleanliness()>=70){ rep(3); toast('Die Prüfung war zufrieden. Das hebt den Ruf.','money'); } else { rep(-5); toast('Die Prüfung hat einen dreckigen Laden vorgefunden.','bad'); } }
   /* Mit Packstation laeuft der Onlineshop ueber echte Pakete statt ueber eine Pauschale */
   const abgeholt=typeof ddlAbholung==='function'?ddlAbholung():0;
-  const online=(S.up.onlineshop&&!packBereit())?Math.round(40+S.rep*1.6+S.level*4):0;
+  /* Ohne Packstation kommt der Onlineumsatz pauschal herein. Mit Packstation
+     laeuft das meiste ueber echte Pakete, ein Sockel bleibt aber stehen,
+     damit die Packstation nie eine Verschlechterung ist. */
+  const onlineBasis=S.up.onlineshop?Math.round(40+S.rep*1.6+S.level*4):0;
+  const online=packBereit()?Math.round(onlineBasis*0.4):onlineBasis;
+  const dispo=dispoZins();
   if(abgeholt) toast(`DDL hat ${abgeholt} Paket${abgeholt===1?'':'e'} abgeholt.`,'money');
-  if(packBereit()&&(S.offen|0)>0){ rep(-Math.min(4,0.4*S.offen)); }
+  if(packBereit()&&(S.offen|0)>8){ rep(-Math.min(2,0.12*(S.offen-8))); }
   const wages=dailyWages(), fix=fixedCosts(), extra=(hasDeko('automat')?45:0)+online;
   let pay=0, rate=0;
   if(S.loan){ rate=loanDaily(); const interest=r2(S.loan.remaining*S.loan.rate); pay=Math.min(rate,S.loan.remaining+interest);
     S.loan.remaining=r2(S.loan.remaining-(pay-interest)); S.loan.paid=r2(S.loan.paid+pay);
     if(S.loan.remaining<=0.01){ S.loan=null; toast('Kredit vollständig abbezahlt.','money'); } }
   DS.interest=pay;
-  S.money=r2(S.money-wages-fix-pay+extra);
-  const out=r2(DS.goods+DS.upgrades+pay+DS.changeLoss+wages+fix+DS.burned), profit=r2(DS.revenue+extra-out), dr=S.rep-DS.rep0;
+  S.money=r2(S.money-wages-fix-pay-dispo+extra);
+  const out=r2(DS.goods+DS.upgrades+pay+dispo+DS.changeLoss+wages+fix+DS.burned), profit=r2(DS.revenue+extra-out), dr=S.rep-DS.rep0;
   const dayXP=60+Math.round(DS.revenue*0.05)+(DS.angry===0?40:0);
   addXP(dayXP);
   if(S.money<0){ rep(-3); toast('Konto im Minus. Das kostet Ruf.','bad'); }
@@ -6619,15 +6964,29 @@ function endDay(){
   if(DS.sb) rows.push(['Davon an den SB-Kassen',`${DS.sb} Kunden`]);
   if(packBereit()&&(S.offen|0)>0) rows.push(['Nicht gepackte Bestellungen',String(S.offen|0)]);
   if(S.goal) rows.push(['Wochenziel',`${S.goal.name}: ${Math.round(S.goal.have)}/${S.goal.need} ${S.goal.unit}`]);
-  rows.push({head:'Ausgaben'},['Wareneinkauf',eur(DS.goods)],['Ausbau und Deko',eur(DS.upgrades)],['Löhne',eur(wages)],['Fixkosten',eur(fix)],['Kreditrate',eur(pay)],['Zu viel Rückgeld',eur(DS.changeLoss)],['Selbst gezündet',eur(DS.burned)],
+  rows.push({head:'Ausgaben'},['Wareneinkauf',eur(DS.goods)],['Ausbau und Deko',eur(DS.upgrades)],['Löhne',eur(wages)],['Fixkosten',eur(fix)],['Kreditrate',eur(pay)],['Dispozinsen',eur(dispo)],['Zu viel Rückgeld',eur(DS.changeLoss)],['Selbst gezündet',eur(DS.burned)],
     ['Gewinn des Tages',(profit>=0?'+':'')+eur(profit),true],
     {head:'Laden'},['Kunden bedient',DS.customers],['Verkaufte Artikel',DS.sold],['Verpasst, weil Fach leer',DS.missed],['Genervt gegangen',DS.angry],['Diebstahl',eur(DS.stolen)],['Diebe gestellt',DS.caught],['Großaufträge',DS.orders||0],['Gravuren verkauft',DS.gravur||0],
     ['Ruf',(dr>=0?'+':'')+dr.toFixed(1).replace('.',',')],['Erfahrung',`+${DS.xpGained} XP`],
     ['Kontostand',eur(S.money)],['Offener Kredit',S.loan?eur(S.loan.remaining):'kein Kredit']);
+  /* Marktlage des Tages */
+  rows.push({head:'Markt'},['Preisniveau',marktText()],['Inflation seit Beginn',inflText()]);
+  (S.news||[]).forEach(n=>{ if(P[n.t]) rows.push([P[n.t].short,`${n.text} · ${n.knapp?'Preis zieht an':'Preis fällt'}`]); });
+  { const chance=marktChance();
+    if(chance) rows.push(['Einkaufschance',`${P[chance].short} · Einkauf ${marktLuecke(chance)} % unter dem Kundenpreis`]); }
+  { const teuer=marktExtrem(1), billig=marktExtrem(-1);
+    if(teuer) rows.push(['Am teuersten',`${P[teuer].short} · ${marktNiveau(teuer)>0?'+':''}${marktNiveau(teuer)} % (${eur(marketOf(teuer))})`]);
+    if(billig) rows.push(['Am günstigsten',`${P[billig].short} · ${marktNiveau(billig)} % (${eur(marketOf(billig))})`]); }
+  { const l=naechsteLizenz();
+    if(l) rows.push(['Nächstes Lizenzpaket',`${l.name} · ab Level ${l.lvl} · ${eur(l.cost)}`]); }
   const cur=dateInfo(S.day), nxt=dateInfo(S.day+1);
   const jahresende=nxt.y>cur.y;
+  const aktiv=STAFF.filter(st=>S.staff[st.id]&&!inPause(st.id)).length;
+  const flau=dayMult(S.day+1)<0.95;
   const morgen=isSunday(S.day+1)&&!S.up.tag4?'Morgen ist Sonntag, Ruhetag. Gute Gelegenheit zum Auffüllen.'
-    :`Morgen: ${dateStr(S.day+1)}. ${seasonInfo(S.day+1)[1]}.`;
+    :(flau&&aktiv>0&&profit<0)
+      ? `Morgen: ${dateStr(S.day+1)}. ${seasonInfo(S.day+1)[1]}. Die Saison ist vorbei und der Tag war im Minus — schick Personal unter Personal in die Saisonpause, das kostet nur 30 Prozent Lohn.`
+      : `Morgen: ${dateStr(S.day+1)}. ${seasonInfo(S.day+1)[1]}.`;
   showSummary(`Tagesabschluss · ${dateStr(S.day)}`,morgen,rows,'Nächster Tag',()=>{
     S.day++; goalTick(); rollMarket(); rollEvent();
     if(jahresende){
@@ -6652,14 +7011,95 @@ function closeSummary(){
 let laptopOpen=false, startOpen=true, pauseOpen=false, ltab='order', resetArm=false, lsup='mertens', korbOpen=false;
 function openLaptop(){ laptopOpen=true; resetArm=false; for(const k in keys) keys[k]=false; mouseDown=false; touchAct=false; renderLaptop(); $('laptop').classList.add('show'); if(locked) document.exitPointerLock(); }
 function closeLaptop(relock){ laptopOpen=false; korbOpen=false; $('korbOv').classList.remove('show'); $('laptop').classList.remove('show'); if(relock) requestLock(); else if(lockWorked&&!COARSE&&!locked&&!summaryOpen&&!levelOpen) showPause(); }
-function priceHint(t){ const r=S.prices[t]/P[t].market, lo=priceTol();
+function priceHint(t){ const r=S.prices[t]/marketOf(t), lo=priceTol();
   if(r<=lo) return ['ok','Kunden greifen gern zu'];
   if(r<=lo+0.2) return ['warn','Einige zögern'];
   if(r<lo+0.45) return ['no','Viele lassen es liegen'];
   return ['no','Zu dem Preis kauft niemand']; }
+/* Verkaufspreis auf das aktuelle Marktniveau setzen */
+function setPreisAufMarkt(t,f){
+  S.prices[t]=Math.max(0.1,r2(marketOf(t)*(f||1)));
+  allLevels().forEach(l=>{ if(l.type===t) updateLabel(l); });
+}
+/* Kleine Kursgrafik der letzten Tage */
+const _sparkCache={};
+function sparkPic(t){
+  const h=(S&&S.mh&&S.mh[t])||[1];
+  const key=t+'|'+h.length+'|'+h[h.length-1];
+  if(_sparkCache[t]&&_sparkCache[t].k===key) return _sparkCache[t].u;
+  const W=208,H=60, c=document.createElement('canvas'); c.width=W; c.height=H;
+  const g=c.getContext('2d');
+  g.fillStyle='#0b1020'; g.fillRect(0,0,W,H);
+  const lo=Math.min(...h,0.98), hi=Math.max(...h,1.02), sp=Math.max(0.04,hi-lo);
+  const X=i=>h.length<2?W/2:8+i*(W-16)/(h.length-1);
+  const Y=v=>H-8-((v-lo)/sp)*(H-16);
+  /* Normalniveau als Hilfslinie */
+  g.strokeStyle='rgba(242,245,255,.18)'; g.lineWidth=1.5; g.setLineDash([4,4]);
+  g.beginPath(); g.moveTo(0,Y(1)); g.lineTo(W,Y(1)); g.stroke(); g.setLineDash([]);
+  const steigt=h[h.length-1]>=h[0];
+  const col=steigt?'#ff9d92':'#8ef0a8';
+  g.beginPath(); h.forEach((v,i)=>{ const x=X(i),y=Y(v); i?g.lineTo(x,y):g.moveTo(x,y); });
+  g.lineTo(X(h.length-1),H); g.lineTo(X(0),H); g.closePath();
+  g.fillStyle=steigt?'rgba(255,157,146,.16)':'rgba(142,240,168,.16)'; g.fill();
+  g.beginPath(); h.forEach((v,i)=>{ const x=X(i),y=Y(v); i?g.lineTo(x,y):g.moveTo(x,y); });
+  g.strokeStyle=col; g.lineWidth=2.6; g.lineJoin='round'; g.stroke();
+  g.fillStyle=col; g.beginPath(); g.arc(X(h.length-1),Y(h[h.length-1]),3.4,0,Math.PI*2); g.fill();
+  const u=c.toDataURL('image/png');
+  _sparkCache[t]={k:key,u};
+  return u;
+}
+/* Paketbild: die Farben der enthaltenen Produkte als Regalreihe */
+const _lizCache={};
+function lizPic(id){
+  if(_lizCache[id]) return _lizCache[id];
+  const l=lizenzDaten(id)||{items:[]};
+  const W=224,H=152, c=document.createElement('canvas'); c.width=W; c.height=H;
+  const g=c.getContext('2d');
+  const gr=g.createLinearGradient(0,0,0,H); gr.addColorStop(0,'#1b2340'); gr.addColorStop(1,'#0a0f1e');
+  g.fillStyle=gr; g.fillRect(0,0,W,H);
+  /* Regalbrett */
+  g.fillStyle='#3a4256'; g.fillRect(12,112,200,7);
+  g.fillStyle='#2a3145'; g.fillRect(12,119,200,4);
+  const alle=l.items.filter(t=>P[t]), it=alle.slice(0,4);
+  const bw=Math.min(46,(192-(it.length-1)*10)/Math.max(1,it.length));
+  it.forEach((t,i)=>{
+    const a=P[t].art||{}, x=18+i*(bw+10), hh=54+((i*41)%32);
+    g.fillStyle='rgba(0,0,0,.35)'; g.fillRect(x+3,112-hh+4,bw,hh);
+    g.fillStyle=a.bg2||'#20283c'; g.fillRect(x,112-hh,bw,hh);
+    g.fillStyle=a.bg1||'#2f3a58'; g.fillRect(x+3,112-hh+3,bw-6,hh-6);
+    g.fillStyle=a.ac||'#ffd23f'; g.fillRect(x+3,112-hh+3,bw-6,11);
+    g.fillStyle=a.ac2||'#ffffff';
+    for(let k=0;k<3;k++) g.fillRect(x+7,112-hh+22+k*9,bw-14,3.5);
+    g.fillStyle=a.ac||'#ffd23f'; g.fillRect(x+7,112-hh+52,(bw-14)*0.6,3.5);
+  });
+  /* Zaehler, wenn mehr drin ist als gezeigt wird */
+  g.fillStyle='rgba(14,18,38,.85)'; g.fillRect(170,14,40,26);
+  g.strokeStyle='rgba(255,210,63,.6)'; g.lineWidth=2; g.strokeRect(170,14,40,26);
+  g.fillStyle='#ffd23f'; g.font='700 18px "Barlow Condensed",sans-serif'; g.textAlign='center'; g.textBaseline='middle';
+  g.fillText(String(alle.length),190,28);
+  /* Banderole */
+  g.fillStyle='rgba(255,210,63,.95)'; g.fillRect(0,124,W,26);
+  g.fillStyle='#0e1226'; g.font='700 17px "Barlow Condensed",sans-serif'; g.textAlign='center'; g.textBaseline='middle';
+  g.fillText((l.name||'').toUpperCase(),W/2,138);
+  const u=c.toDataURL('image/png');
+  _lizCache[id]=u;
+  return u;
+}
+/* Lizenzpaket kaufen: alle Produkte daraus kommen ins Sortiment */
+function buyLizenz(id){
+  const l=lizenzDaten(id);
+  if(!l||hatLizenz(id)||S.level<l.lvl||S.money<l.cost) return;
+  S.money=r2(S.money-l.cost); DS.upgrades=r2(DS.upgrades+l.cost);
+  S.lic=(S.lic||[]).concat(id);
+  /* Startpreise der neuen Ware auf Marktniveau */
+  l.items.forEach(t=>{ if(P[t]) S.prices[t]=marketOf(t); });
+  sfx.cash(); addXP(Math.round(l.cost/14)+30,'Lizenz');
+  toast(`${l.name} freigeschaltet: ${l.items.filter(t=>P[t]).map(t=>P[t].short).join(', ')}.`,'money');
+  save();
+}
 function catPill(p){ return p.cat?`<span class="pill f${p.cat}">F${p.cat}</span>`:'<span class="pill zub">Zubehör</span>'; }
 function supAvail(){ return SUPPLIERS.filter(x=>S.level>=x.lvl); }
-function tierPrice(t,sup,tier){ return r2(P[t].cost*P[t].box*tier.n*sup.mult*(1-tier.d)); }
+function tierPrice(t,sup,tier){ return r2(costOf(t)*ekFactor()*P[t].box*tier.n*sup.mult*(1-tier.d)); }
 /* =========================================================
    Warenkorb: Artikel sammeln, am Ende in einem Rutsch bestellen.
    Jede Bestellung ist genau eine Lieferung und kostet einmal Versand.
@@ -6709,7 +7149,7 @@ function pushLine(l,delay){
 }
 function cartOrder(){
   if(!cartLines().length) return;
-  const total=cartTotal(); if(S.money<total) return;
+  const total=cartTotal(); if(verfuegbar()<total) return;
   const delay=lieferSek()*evv('delay');
   S.money=r2(S.money-total); DS.goods=r2(DS.goods+total);
   let n=0; cartLines().forEach(l=>{ n+=pushLine(l,delay); });
@@ -6724,7 +7164,7 @@ function orderBox(t,n,supId){
   const sup=supplierOf(supId||lsup), p=P[t];
   const tier=(sup.tiers||[{n:1,d:0}]).find(x=>x.n===n)||{n,d:0};
   const goods=tierPrice(t,sup,tier), fee=goods>=VERSANDFREI?0:VERSAND, cost=r2(goods+fee);
-  if(S.money<cost) return;
+  if(verfuegbar()<cost) return;
   S.money=r2(S.money-cost); DS.goods=r2(DS.goods+cost);
   const delay=lieferSek()*evv('delay');
   for(let i=0;i<n;i++) pending.push({type:t,t:delay,q:sup.quality,sup:sup.id});
@@ -6737,20 +7177,20 @@ function packContents(n){
   const out=[];
   for(let i=0;i<n;i++){
     const jackpot=Math.random()<0.12;
-    const cand=pool.filter(t=>jackpot?P[t].cost>=6:P[t].cost<6);
+    const cand=pool.filter(t=>jackpot?costOf(t)>=6:costOf(t)<6);
     out.push(pick(cand.length?cand:pool));
   }
   return out;
 }
 function buyPack(id){
-  const pk=PACKS.find(x=>x.id===id); if(!pk||S.level<pk.lvl||S.money<pk.cost) return;
+  const pk=PACKS.find(x=>x.id===id); if(!pk||S.level<pk.lvl||verfuegbar()<pk.cost) return;
   const items=packContents(pk.n); if(!items.length) return;
   S.money=r2(S.money-pk.cost); DS.goods=r2(DS.goods+pk.cost);
   const sup=supplierOf('ratzke'), delay=lieferSek()*evv('delay');
   items.forEach(t=>pending.push({type:t,t:delay,q:sup.quality,sup:sup.id}));
   const cnt={}; items.forEach(t=>cnt[t]=(cnt[t]||0)+1);
   const keys=Object.keys(cnt), txt=keys.slice(0,4).map(t=>`${cnt[t]}× ${P[t].short}`).join(', ')+(keys.length>4?' …':'');
-  const worth=r2(items.reduce((a,t)=>a+P[t].cost*P[t].box,0));
+  const worth=r2(items.reduce((a,t)=>a+costOf(t)*P[t].box,0));
   sfx.cash(); toast(`Wundertüte: ${txt}`,'money');
   later(0.6,()=>toast(worth>pk.cost?`Einkaufswert ${eur(worth)}. Guter Griff.`:`Einkaufswert ${eur(worth)}. Diesmal Pech.`,worth>pk.cost?'money':'bad'));
   addXP(20,'Wundertüte'); S.tut.order=true; save();
@@ -6784,11 +7224,11 @@ function renderKorb(){
   }).join('')+
     `<div class="ksum"><div><b>Zwischensumme</b><small>${n} Karton${n===1?'':'s'}</small></div><div class="price">${eur(goods)}</div></div>`+
     `<div class="ksum"><div><b>Liefergebühr</b><small>${fee?`Ab ${eur(VERSANDFREI)} Warenwert frei · noch ${eur(rest)}`:`Entfällt ab ${eur(VERSANDFREI)} Warenwert`}</small></div><div class="price ${fee?'':'ok'}">${fee?eur(fee):'frei'}</div></div>`+
-    `<div class="ksum total"><div><b>Gesamt</b><small>${S.money<total?'Dein Guthaben reicht nicht.':`Danach noch ${eur(r2(S.money-total))} auf dem Konto · Lieferant kommt in ${LIEFERZEIT_SEK} Sekunden`}</small></div><div class="price">${eur(total)}</div></div>`;
+    `<div class="ksum total"><div><b>Gesamt</b><small>${verfuegbar()<total?`Nicht genug: Konto ${eur(S.money)}${dispoLimit()?` plus ${eur(dispoLimit())} Dispo`:''}.`:`Danach noch ${eur(r2(S.money-total))} auf dem Konto${S.money-total<0?' (im Dispo)':''} · Lieferant kommt in ${LIEFERZEIT_SEK} Sekunden`}</small></div><div class="price">${eur(total)}</div></div>`;
   $('korbFoot').innerHTML=
     `<button class="ghost" data-a="korbclose">Weiter einkaufen</button>`+
     `<button class="ghost" data-a="cartclear">Korb leeren</button>`+
-    `<button data-a="cartgo" ${S.money<total?'disabled':''}>Jetzt bestellen · ${eur(total)}</button>`;
+    `<button data-a="cartgo" ${verfuegbar()<total?'disabled':''}>Jetzt bestellen · ${eur(total)}</button>`;
 }
 function korbBtnText(){
   const n=cartBoxes();
@@ -6946,18 +7386,54 @@ function renderLaptop(){
           (lock?`<small>ab Level ${pk.lvl}</small>`:`<button data-a="pack" data-t="${pk.id}">+ ${eur(pk.cost)}</button>`)+'</div>'; }).join('');
     } else {
       const tiers=sup.tiers||[{n:1,d:0}];
-      h+=ORDER.filter(canOrder).map(t=>{ const p=P[t], un=isUnlocked(t), cap=shelfCapOf(t);
-        if(!un) return `<div class="row locked"><div class="rm"><b>${p.name} ${catPill(p)}</b><small>Wird ab Level ${p.lvl} freigeschaltet.</small></div><small>Level ${p.lvl}</small></div>`;
+      /* Gesperrte Ware nur so weit zeigen, wie sie in Reichweite ist */
+      h+=ORDER.filter(t=>canOrder(t)&&(isUnlocked(t)||lizLevel(t)<=S.level+5)).map(t=>{ const p=P[t], un=isUnlocked(t), cap=shelfCapOf(t);
+        if(!un){ const l=lizenzDaten(lizenzOf(t));
+          return `<div class="row locked"><div class="rm"><b>${p.name} ${catPill(p)}</b><small>${l?`Gehört zum Lizenzpaket „${l.name}“ (ab Level ${l.lvl}). Unter Sortiment freischalten.`:`Wird ab Level ${p.lvl} freigeschaltet.`}</small></div><small>${l?'Lizenz':'Level '+p.lvl}</small></div>`; }
         const btns=tiers.map(tr=>{ const c=tierPrice(t,sup,tr);
           return `<button data-a="cart" data-t="${t}" data-n="${tr.n}">+ ${tr.n}× ${eur(c)}${tr.d?` <span style="opacity:.7">−${Math.round(tr.d*100)}%</span>`:''}</button>`; }).join('');
         return `<div class="row"><div class="rm"><b>${p.name} ${catPill(p)}</b><small>Karton mit ${p.box} Stück${canShelf(t)?(cap?` · größtes Fach fasst ${cap}`:' · kein passendes Regal'):' · nur für den Automaten'}</small><small>Im Laden: ${shelfStockOf(t)} im Regal, ${stockOf(t)} insgesamt</small></div>`+
           `<div class="steps">${btns}</div></div>`; }).join('');
     }
   } else if(ltab==='price'){
-    hint='Marktpreis ist das, was die Kunden erwarten. Ein besserer Laden verträgt mehr.';
-    h=ORDER.filter(t=>isUnlocked(t)&&t!=='blanko').map(t=>{ const p=P[t], hi=priceHint(t);
-      return `<div class="row"><div class="rm"><b>${p.name}</b><small>Marktpreis ${eur(p.market)} · Gewinn je Stück ${eur(r2(S.prices[t]-p.cost))}</small><small class="${hi[0]}">${hi[1]}</small></div>`+
-        `<div class="price">${eur(S.prices[t])}</div><div class="steps"><button data-a="p" data-t="${t}" data-d="-1">−1</button><button data-a="p" data-t="${t}" data-d="-0.1">−0,10</button><button data-a="p" data-t="${t}" data-d="0.1">+0,10</button><button data-a="p" data-t="${t}" data-d="1">+1</button></div></div>`; }).join('');
+    hint=`Der Markt bewegt sich jeden Tag. Marktpreis ist, was die Kunden gerade erwarten; der Einkauf reagiert schneller als sie. Fällt der Einkauf, kaufst du günstig ein und verkaufst noch zum alten Preis. Marktlage: ${marktText()} · Inflation seit Beginn ${inflText()}.`;
+    const news=(S.news||[]);
+    if(news.length) h+=`<div class="row"><div class="rm"><b>Meldungen von heute</b>`+
+      news.map(n=>`<small class="${n.knapp?'no':'ok'}">${P[n.t]?P[n.t].short:''}: ${n.text} · ${n.knapp?'Preis zieht an':'Preis fällt'}</small>`).join('')+
+      `</div></div>`;
+    h+=`<div class="row"><div class="rm"><b>Alle Preise nachziehen</b><small>Setzt jeden Verkaufspreis auf das aktuelle Marktniveau. Praktisch nach einem Preissprung.</small></div>`+
+      `<div class="steps"><button data-a="pall" data-d="1">auf Markt</button><button data-a="pall" data-d="1.08">Markt +8 %</button><button data-a="pall" data-d="0.94">Markt −6 %</button></div></div>`;
+    h+=ORDER.filter(t=>isUnlocked(t)&&t!=='blanko'&&!P[t].noOrder).map(t=>{
+      const p=P[t], hi=priceHint(t), mp=marketOf(t), ek=r2(costOf(t)*ekFactor()), d=marktDelta(t),
+            ph=marktPhase(t), sch=marktSchock(t), lab=marktLabel(t);
+      const pill=d>0.4?`<span class="pill up">+${d.toFixed(1)} %</span>`:d<-0.4?`<span class="pill dn">${d.toFixed(1)} %</span>`:`<span class="pill fl">±0</span>`;
+      return `<div class="row"><div class="rm"><b>${p.name} ${pill}</b>`+
+        `<small>Markt ${eur(mp)} · Einkauf ${eur(ek)} · Gewinn je Stück ${eur(r2(S.prices[t]-ek))}</small>`+
+        `<small class="${lab[0]}">${lab[1]} · Markt ${ph.name}${sch?(sch.k==='knapp'?' · Ware knapp':' · Ware im Überfluss'):''}</small>`+
+        (marktLuecke(t)>=7?`<small class="ok">Günstige Gelegenheit: Einkauf liegt ${marktLuecke(t)} % unter dem, was die Kunden zahlen</small>`
+         :marktLuecke(t)<=-7?`<small class="no">Schlechter Moment: Einkauf liegt ${-marktLuecke(t)} % über dem Kundenpreis</small>`:'')+
+        `<small class="${hi[0]}">${hi[1]}</small></div>`+
+        `<div class="mkcol"><img class="spark" src="${sparkPic(t)}" alt=""><small>Normalpreis ${marktNiveau(t)>0?'+':''}${marktNiveau(t)} %</small></div>`+
+        `<div class="price">${eur(S.prices[t])}</div>`+
+        `<div class="steps"><button data-a="p" data-t="${t}" data-d="-1">−1</button><button data-a="p" data-t="${t}" data-d="-0.1">−0,10</button><button data-a="p" data-t="${t}" data-d="0.1">+0,10</button><button data-a="p" data-t="${t}" data-d="1">+1</button><button data-a="pm" data-t="${t}">= Markt</button></div></div>`; }).join('');
+  } else if(ltab==='liz'){
+    const next=naechsteLizenz();
+    hint=next
+      ? `Neue Ware kommt als Lizenzpaket ins Sortiment. Als Nächstes: ${next.name} ab Level ${next.lvl}.`
+      : 'Du hast jedes Lizenzpaket. Im Regal steht alles, was der Markt hergibt.';
+    h=LIZENZEN.map(l=>{ const hat=hatLizenz(l.id), lock=S.level<l.lvl;
+      const sichtbar=hat||S.level>=l.lvl-3;
+      const items=l.items.filter(t=>P[t]).map(t=>hat||sichtbar?`<span>${P[t].short}</span>`:'<span>???</span>').join('');
+      return `<div class="row lizrow${lock&&!hat?' locked':''}">`+
+        `<img class="pic" src="${lizPic(l.id)}" alt="">`+
+        `<div class="rm"><b>${l.name}</b><small>${sichtbar?l.desc:'Noch nicht im Angebot. Spiel weiter, dann meldet sich der Großhandel.'}</small>`+
+        `<div class="lizitems">${items}</div>`+
+        (hat?'':lock?`<small class="warn">Ab Level ${l.lvl}</small>`:`<small>Lizenzgebühr ${eur(l.cost)} · einmalig</small>`)+
+        `</div>`+
+        (hat?'<small class="ok">Im Sortiment</small>'
+            :lock?`<small>Level ${l.lvl}</small>`
+            :`<button data-a="liz" data-t="${l.id}" ${S.money<l.cost?'disabled':''}>${eur(l.cost)}</button>`)+
+        '</div>'; }).join('');
   } else if(ltab==='up'||ltab==='einr'||ltab==='markt'){
     const kat=ltab==='up'?'flaeche':ltab;
     hint=kat==='flaeche'
@@ -6997,12 +7473,13 @@ function renderLaptop(){
           (lock?`<small>ab Level ${d.lvl}</small>`:`<button data-a="deko" data-t="${d.id}" ${S.money<d.cost?'disabled':''}>${eur(d.cost)}</button>`)+'</div>'; }).join('');
   } else if(ltab==='staff'){
     hint=`Löhne heute: ${eur(dailyWages())} · werden beim Tagesabschluss abgebucht.`;
-    hint+=` Freundlichkeit im Laden: ${Math.round(friendliness()*100)} %. Höhere Löhne machen schneller und freundlicher.`;
+    hint+=` Freundlichkeit im Laden: ${Math.round(friendliness()*100)} %. Höhere Löhne machen schneller und freundlicher. Außerhalb der Saison kannst du Leute in die Saisonpause schicken: 30 % Lohn, keine Arbeit, Rückkehr jederzeit ohne neue Einstellungskosten.`;
     h=STAFF.map(s=>{ const fehlt=s.req&&!S.up[s.req], lock=S.level<s.lvl||fehlt, has=!!S.staff[s.id];
       const isStock=s.id.indexOf('auffueller')===0;
       const prio=isStock&&has?`<small>Priorität: ${Object.keys(PRIO).map(k=>`<button data-a="prio" data-t="${s.id}" data-v="${k}" style="padding:4px 9px;font-size:14px;margin-right:4px;${prioOf(s.id)===k?'background:var(--signal);color:var(--ink)':'background:rgba(242,245,255,.12);color:var(--snow)'}">${PRIO[k]}</button>`).join('')}</small>`:'';
       const lohn=has?`<small>Lohn: ${WAGES.map(w=>`<button data-a="wage" data-t="${s.id}" data-v="${w.f}" title="${w.desc}" style="padding:4px 8px;font-size:14px;margin-right:4px;${wageOf(s.id)===w.f?'background:var(--mint);color:var(--ink)':'background:rgba(242,245,255,.12);color:var(--snow)'}">${w.name} ${eur(r2(s.wage*w.f))}</button>`).join('')}</small>`:'';
-      return `<div class="row${lock?' locked':''}"><div class="rm"><b>${s.name}</b><small>${s.desc}</small><small>Einstellung ${eur(s.hire)} · Grundlohn ${eur(s.wage)} pro Tag</small>${lohn}${prio}</div>`+
+      const pause=has?`<small>${inPause(s.id)?`In Saisonpause · ${eur(r2(s.wage*wageOf(s.id)*0.3))} pro Tag`:'Im Dienst'} <button data-a="pause" data-t="${s.id}" style="padding:4px 9px;font-size:14px;margin-left:6px;${inPause(s.id)?'background:var(--mint);color:var(--ink)':'background:rgba(242,245,255,.12);color:var(--snow)'}">${inPause(s.id)?'Zurück in den Dienst':'In Saisonpause schicken'}</button></small>`:'';
+      return `<div class="row${lock?' locked':''}"><div class="rm"><b>${s.name}</b><small>${s.desc}</small><small>Einstellung ${eur(s.hire)} · Grundlohn ${eur(s.wage)} pro Tag</small>${lohn}${pause}${prio}</div>`+
         (fehlt?'<small>braucht die Packstation</small>':lock?`<small>ab Level ${s.lvl}</small>`:has?`<button class="red" data-a="fire" data-t="${s.id}">Kündigen</button>`:`<button data-a="hire" data-t="${s.id}" ${S.money<s.hire?'disabled':''}>Einstellen</button>`)+'</div>'; }).join('');
   } else if(ltab==='bank'){
     const t=loanTier(), L=S.loan;
@@ -7023,7 +7500,9 @@ function renderLaptop(){
       `<div class="row"><div class="rm"><b>Laden</b><small>Ruf ${Math.round(S.rep)}/100 · Stimmung ${ambienteScore()}/100 · Sauberkeit ${cleanliness()}/100</small><small>${shelves.length} Verkaufsregale · ${racks.length} Lagerregale · ${dekos.length} Deko</small></div></div>`+
       (todayEvent()?`<div class="row"><div class="rm"><b>Heute: ${todayEvent().name}</b><small>${todayEvent().txt}</small></div></div>`:'')+
       (S.goal?`<div class="row"><div class="rm"><b>Wochenziel: ${S.goal.name}</b><small>${Math.round(S.goal.have)} von ${S.goal.need} ${S.goal.unit} · noch ${S.goal.days} Tag${S.goal.days===1?'':'e'}</small><small>Prämie ${eur(S.goal.pay)}</small></div><div class="price">${Math.min(100,Math.round(S.goal.have/S.goal.need*100))} %</div></div>`:'')+
-      `<div class="row"><div class="rm"><b>Marktlage</b><small>${marktText()} · Einkauf ${Math.round(ekFactor()*100)} % vom Listenpreis</small><small>Konkurrenz: ${(S.comp||1)<0.96?'drückt die Preise':(S.comp||1)>1.04?'ist teuer, gut für dich':'unauffällig'}</small></div></div>`+
+      `<div class="row"><div class="rm"><b>Marktlage</b><small>${marktText()} · Inflation seit Beginn ${inflText()}</small><small>Konkurrenz: ${(S.comp||1)<0.96?'drückt die Preise':(S.comp||1)>1.04?'ist teuer, gut für dich':'unauffällig'}</small>${marktChance()?`<small class="ok">Gerade günstig im Einkauf: ${P[marktChance()].short}</small>`:''}</div></div>`+
+      (()=>{ const offen=ORDER.filter(t=>isUnlocked(t)&&!P[t].noOrder).length, n=naechsteLizenz();
+        return `<div class="row"><div class="rm"><b>Sortiment</b><small>${offen} Sorten im Angebot · ${(S.lic||[]).length} von ${LIZENZEN.length} Lizenzpaketen</small><small>${n?`Als Nächstes: ${n.name} ab Level ${n.lvl} für ${eur(n.cost)}`:'Alle Lizenzpakete gekauft.'}</small></div><div class="price">${Math.round((S.lic||[]).length/LIZENZEN.length*100)} %</div></div>`; })()+
       `<div class="row"><div class="rm"><b>Fixkosten pro Tag</b><small>Miete und Strom ${eur(fixedCosts())} · Löhne ${eur(dailyWages())}</small><small>Umsatz im Jahr ${eur(S.seasonRevenue)}</small></div></div>`;
   } else {
     hint='Der Spielstand liegt in diesem Browser.';
@@ -7031,8 +7510,8 @@ function renderLaptop(){
     h=`<div class="row"><div class="rm"><b>${st}</b><small>Heute: ${eur(DS.revenue)} Umsatz, ${DS.customers} Kunden</small></div>${phase==='closed'?'<button data-a="open">Laden öffnen</button>':phase==='after'?'<button data-a="end">Tag beenden</button>':''}</div>`+
       `<div class="row"><div class="rm"><b>Testmodus</b>`+
         (S.test
-          ? `<small class="warn">Aktiv: Level 20, alle Produkte und Ausbauten offen.</small><small>Beim Ausschalten kommen dein altes Level (${S.test.lvl}), deine XP und dein Kontostand zurück. Gekaufte Regale, Deko und Personal bleiben im Laden.</small>`
-          : `<small>Schaltet vorübergehend alles frei: Level 20 und ein volles Konto zum Ausprobieren.</small><small>Dein jetziger Stand wird gemerkt und beim Ausschalten wiederhergestellt.</small>`)+
+          ? `<small class="warn">Aktiv: Level 25, alle Lizenzpakete und Ausbauten offen.</small><small>Beim Ausschalten kommen dein altes Level (${S.test.lvl}), deine XP, dein Kontostand und dein altes Sortiment zurück. Gekaufte Regale, Deko und Personal bleiben im Laden.</small>`
+          : `<small>Schaltet vorübergehend alles frei: Level 25, jedes Lizenzpaket und ein volles Konto zum Ausprobieren.</small><small>Dein jetziger Stand wird gemerkt und beim Ausschalten wiederhergestellt.</small>`)+
         `</div><button class="${S.test?'red':''}" data-a="test">${S.test?'Testmodus aus':'Testmodus an'}</button></div>`+
       `<div class="row"><div class="rm"><b>Spielstand</b><small>Wird automatisch gespeichert.</small></div><button class="ghost" data-a="reset">${resetArm?'Wirklich löschen?':'Spielstand löschen'}</button></div>`;
   }
@@ -7066,12 +7545,18 @@ $('lbody').addEventListener('click',e=>{
   else if(a==='sup'){ lsup=t; }
   else if(a==='pack') cartAddPack(t);
   else if(a==='p'){ S.prices[t]=Math.max(0.1,r2(S.prices[t]+parseFloat(b.dataset.d))); allLevels().forEach(l=>{ if(l.type===t) updateLabel(l); }); }
+  else if(a==='pm'){ setPreisAufMarkt(t,1); }
+  else if(a==='pall'){ const f=parseFloat(b.dataset.d)||1; let n=0;
+    ORDER.forEach(t2=>{ if(isUnlocked(t2)&&!P[t2].noOrder&&t2!=='blanko'){ setPreisAufMarkt(t2,f); n++; } });
+    toast(`${n} Preise ans Marktniveau angepasst.`); save(); }
+  else if(a==='liz') buyLizenz(t);
   else if(a==='up') buyUp(t);
   else if(a==='deko') buyDeko(t);
   else if(a==='wall') setWall(t);
   else if(a==='floor') setFloor(t);
   else if(a==='hire'){ const s=STAFF.find(x=>x.id===t); if(!s||S.money<s.hire||S.staff[t]||S.level<s.lvl||(s.req&&!S.up[s.req])) return; S.money=r2(S.money-s.hire); DS.upgrades=r2(DS.upgrades+s.hire); S.staff[t]=true; hireStaff(t); sfx.cash(); toast(`${s.name} eingestellt.`); save(); }
   else if(a==='fire'){ const s=STAFF.find(x=>x.id===t); if(!s) return; S.staff[t]=false; fireStaff(t); toast(`${s.name} gekündigt.`); save(); }
+  else if(a==='pause'){ setPause(t,!inPause(t)); toast(inPause(t)?`${STAFF.find(x=>x.id===t).name}: Saisonpause.`:`${STAFF.find(x=>x.id===t).name} ist zurück im Dienst.`); }
   else if(a==='wage'){ setWage(t,+b.dataset.v); toast(`${STAFF.find(x=>x.id===t).name}: ${wageName(t)}.`); }
   else if(a==='prio'){ setPrio(t,b.dataset.v); toast(`${STAFF.find(x=>x.id===t).name}: ${PRIO[b.dataset.v]}.`); }
   else if(a==='loan') takeLoan(+b.dataset.v);
@@ -7085,13 +7570,16 @@ $('lbody').addEventListener('click',e=>{
 $('lclose').addEventListener('click',()=>closeLaptop(true));
 function toggleTest(){
   if(S.test){
-    const t=S.test; S.level=Math.max(1,t.lvl|0); S.xp=Math.max(0,t.xp|0); S.money=r2(t.money); S.test=null;
+    const t=S.test; S.level=Math.max(1,t.lvl|0); S.xp=Math.max(0,t.xp|0); S.money=r2(t.money);
+    S.lic=Array.isArray(t.lic)&&t.lic.length?t.lic.slice():['start']; S.test=null;
     pendingLevels.length=0;
     toast('Testmodus aus. Level und Konto sind zurück.');
   } else {
-    S.test={lvl:S.level,xp:S.xp,money:S.money};
-    S.level=20; S.xp=0; S.money=Math.max(S.money,250000);
-    toast('Testmodus an: Level 20, alle Produkte freigeschaltet.','money');
+    S.test={lvl:S.level,xp:S.xp,money:S.money,lic:(S.lic||['start']).slice()};
+    S.level=25; S.xp=0; S.money=Math.max(S.money,250000);
+    S.lic=LIZENZEN.map(l=>l.id);
+    LIZENZEN.forEach(l=>l.items.forEach(t2=>{ if(P[t2]&&!(S.prices[t2]>0)) S.prices[t2]=marketOf(t2); }));
+    toast('Testmodus an: Level 25, alle Lizenzpakete freigeschaltet.','money');
   }
   sfx.cash(); updateTool(); save();
 }
@@ -7141,16 +7629,16 @@ function setFloor(id){ const f=FLOORS.find(x=>x.id===id); if(!f||S.level<f.lvl||
 function freshState(){ const prices={}; ORDER.forEach(t=>prices[t]=P[t].market);
   return {v:3,money:500,rep:50,level:1,xp:0,season:1,day:0,loan:null,prices,grime:0,
     up:{plakat:false,terminal:false,tag4:false,heizung:false,musik:false,radio:false,cams:false,regallicht:false,alarm:false,shop_gross:false,lager_gross:false,packstation:false,kasse2:false},
-    staff:{},prio:{},wage:{},ev:null,goal:null,mkt:1,comp:1,deko:[],wall:'creme',floor:'grau',paint:[],test:null,stamm:{},
+    staff:{},prio:{},wage:{},pause:{},ev:null,goal:null,mkt:1,comp:1,deko:[],wall:'creme',floor:'grau',paint:[],test:null,stamm:{},
     shelves:[],racks:[null],
     boxes:[],
-    carrying:null,tut:{},seasonRevenue:0,cart:[],offen:0,pakete:0,shopName:SHOP_DEFAULT,slogan:SLOGAN_DEFAULT}; }
+    carrying:null,tut:{},seasonRevenue:0,cart:[],offen:0,pakete:0,lic:['start'],mi:{},me:{},reg:{},mh:{},schock:{},news:[],infl:1,shopName:SHOP_DEFAULT,slogan:SLOGAN_DEFAULT}; }
 function loadSave(){ try{ const r=localStorage.getItem(KEY); if(!r) return null; const d=JSON.parse(r); return d&&d.v===3?d:null; }catch(e){ return null; } }
 function mpos(g){ return {x:+g.position.x.toFixed(2),z:+g.position.z.toFixed(2),ry:+g.rotation.y.toFixed(3)}; }
 function save(){
   if(!S) return;
   try{
-    const d={v:3,money:S.money,rep:S.rep,level:S.level,xp:S.xp,season:S.season,day:S.day,loan:S.loan,prices:S.prices,up:S.up,staff:S.staff,prio:S.prio||{},wage:S.wage||{},ev:S.ev||null,goal:S.goal||null,mkt:r2(S.mkt||1),comp:r2(S.comp||1),
+    const d={v:3,money:S.money,rep:S.rep,level:S.level,xp:S.xp,season:S.season,day:S.day,loan:S.loan,prices:S.prices,up:S.up,staff:S.staff,prio:S.prio||{},wage:S.wage||{},pause:S.pause||{},ev:S.ev||null,goal:S.goal||null,mkt:r2(S.mkt||1),comp:r2(S.comp||1),lic:S.lic||['start'],mi:S.mi||{},me:S.me||{},reg:S.reg||{},mh:S.mh||{},schock:S.schock||{},news:S.news||[],infl:S.infl||1,
       wall:S.wall,floor:S.floor,paint:S.paint,test:S.test,stamm:S.stamm,blanks:gravBlanks,grav:gravG?mpos(gravG):null,grime:r2(S.grime||0),tut:S.tut,seasonRevenue:S.seasonRevenue,carrying:S.carrying,cart:S.cart||[],offen:S.offen|0,pakete:S.pakete|0,shopName:S.shopName||SHOP_DEFAULT,slogan:S.slogan||'',
       deko:dekos.map(d2=>Object.assign({id:d2.id},mpos(d2.g))),
       ck:mpos(ckG),desk:mpos(deskG),
@@ -7165,7 +7653,7 @@ function startGame(fresh){
   const d=fresh?null:loadSave();
   S=Object.assign(freshState(),d||{});
   const F=freshState();
-  S.prices=Object.assign(F.prices,S.prices||{}); S.up=Object.assign(F.up,S.up||{}); S.staff=Object.assign({},S.staff||{}); S.prio=Object.assign({},S.prio||{}); S.grime=clamp(+S.grime||0,0,1); S.mkt=clamp(+S.mkt||1,0.7,1.4); S.comp=clamp(+S.comp||1,0.85,1.15); if(S.ev&&!eventById(S.ev)) S.ev=null; S.wage=Object.assign({},S.wage||{}); S.tut=S.tut||{}; S.paint=S.paint||[]; S.stamm=S.stamm||{};
+  S.prices=Object.assign(F.prices,S.prices||{}); S.up=Object.assign(F.up,S.up||{}); S.staff=Object.assign({},S.staff||{}); S.prio=Object.assign({},S.prio||{}); S.grime=clamp(+S.grime||0,0,1); S.mkt=clamp(+S.mkt||1,0.7,1.4); S.comp=clamp(+S.comp||1,0.85,1.15); if(S.ev&&!eventById(S.ev)) S.ev=null; S.wage=Object.assign({},S.wage||{}); S.pause=Object.assign({},S.pause||{}); S.tut=S.tut||{}; S.paint=S.paint||[]; S.stamm=S.stamm||{};
   S.shopName=(typeof S.shopName==='string'&&S.shopName.trim())?S.shopName.trim().slice(0,22):SHOP_DEFAULT;
   S.slogan=(typeof S.slogan==='string')?S.slogan.trim().slice(0,38):SLOGAN_DEFAULT;
   S.cart=(Array.isArray(S.cart)?S.cart:[]).filter(l=>l&&(l.pack?PACKS.some(x=>x.id===l.pack):(P[l.t]&&l.n>0))).slice(0,40);
@@ -7177,6 +7665,14 @@ function startGame(fresh){
   if(S.carrying&&!P[S.carrying.type]) S.carrying=null;
   if(S.carrying&&S.carrying.type==='gravur'&&!S.carrying.text) S.carrying=null;
   S.offen=Math.max(0,S.offen|0); S.pakete=Math.max(0,S.pakete|0);
+  /* Lizenzen und Marktdaten pruefen */
+  S.lic=(Array.isArray(S.lic)?S.lic:[]).filter(id=>LIZENZEN.some(l=>l.id===id));
+  if(S.lic.indexOf('start')<0) S.lic.unshift('start');
+  S.infl=clamp(+S.infl||1,1,4);
+  marktInit();
+  ORDER.forEach(t=>{ if(typeof S.prices[t]!=='number'||!isFinite(S.prices[t])||S.prices[t]<=0) S.prices[t]=marketOf(t); });
+  S.mkt=r2(clamp(marktSchnitt(),0.7,1.5));
+  S.news=Array.isArray(S.news)?S.news.slice(0,4):[];
   repaint();
   applyZonen();
   setSB(!!S.up.kasse2);
@@ -7189,7 +7685,7 @@ function startGame(fresh){
   (S.deko||[]).forEach(dk=>{ if(DEKO.some(x=>x.id===dk.id)) createDeko(dk.id,dk); });
   (S.boxes||F.boxes).forEach(fb=>{ if(P[fb.type]&&fb.count>0) spawnFloorBox(fb.type,fb.count,fb.x!==undefined?{x:fb.x,y:fb.y,z:fb.z,ry:fb.ry}:null,fb.q||1); });
   if(S.up.gravur){ buildGravur(d&&d.grav?d.grav:null); gravBlanks=Math.max(0,Math.min(GRAV_MAX,(d&&d.blanks)|0)); drawGrav(); }
-  STAFF.forEach(s=>{ if(S.staff[s.id]) hireStaff(s.id); });
+  STAFF.forEach(s=>{ if(S.staff[s.id]&&!inPause(s.id)) hireStaff(s.id); });
   if(S.up.regallicht){ shelfLight.intensity=0.8; shelfStrips.forEach(m=>m.emissiveIntensity=1.5); }
   if(!S.goal) newGoal();
   phase='closed'; clock=OPEN_T; newDayStats(); updateSign(); updateCarry(); updateTool(); paused=false;
@@ -7236,7 +7732,12 @@ function updateHUD(){
   st.classList.toggle('on',phase==='open');
   $('hLevel').textContent=(S.test?'TEST · ':'')+'Level '+S.level;
   $('hMoney').textContent=eur(S.money);
-  $('hLoan').textContent=S.loan?(compact?'K '+Math.round(S.loan.remaining)+' €':`Kredit ${eur(S.loan.remaining)}`):'';
+  /* Im Dispo soll man es sofort sehen */
+  const dispo=S.money<0;
+  $('hLoan').textContent=dispo
+    ? (compact?'DISPO':`Dispo · Rahmen ${eur(dispoLimit())}`)
+    : (S.loan?(compact?'K '+Math.round(S.loan.remaining)+' €':`Kredit ${eur(S.loan.remaining)}`):'');
+  $('hLoan').style.color=dispo?'#8a1410':'';
   /* Fortschritt bis zum naechsten Level steckt jetzt im Preisschild */
   const need=xpFor(S.level);
   $('hXp').style.width=clamp(S.xp/need*100,0,100)+'%';
@@ -7553,8 +8054,8 @@ fontsReady().then(()=>{
   camera.position.set(pl.x,1.65,pl.z); camera.rotation.set(pitch,yaw,0);
   lastF=-1; applyTOD(); updateSign(); buildStart(); requestAnimationFrame(frame);
   window.__bb={get S(){return S},get phase(){return phase},set phase(v){phase=v},set clock(v){clock=v},get clock(){return clock},pickUp,floorBoxes,shelves,racks,dekos,stockOne,openShop,step,customers,queue,belt,scanBelt,buyUp,buyDeko,get DS(){return DS},endDay,pending,save,openLaptop,closeLaptop,pl,addXP,hireStaff,fireStaff,staff,dirts,addDirt,movables,toggleBuild,setWall,setFloor,
-    stations,firePult,placeOnStation,igniteType,get order(){return order},get phone(){return phone},makeCall,answerPhone,haggle,acceptDeal,declineDeal,get truck(){return truck},spawnTruck,takeFromTruck,takeBox,updateTruck,get door(){return door},get tuer(){return tuer},tuerSet,tuerNah,updateSchiebetuer,doorOpen,doorIsOpen,trailerOccupied,LR,lrFront,TOR,orderReady,orderLeft,prioOf,setPrio,racks,updateCarry,spawnFloorBox,staff,SHELFKIND,layout,shelfCapOf,shelfAccepts,emptyLevel,dateInfo,dateStr,dateShort,seasonInfo,isSunday,dayMult,ruhetag,wageOf,setWage,friendliness,windowGrime,addGrime,cleanWindowTick,ambienteScore,bildBoost,fixedCosts,dailyWages,EVENTS,GOALS,CUSTTYPES,UPGRADES,STAFF,stockOf,spawnInterval,pools,todayEvent,evv,rollEvent,rollMarket,newGoal,goalAdd,goalTick,ekFactor,marktText,xpFor,rollCustType,priceTol,buyChance,regCustomer,makeWishes,buildGravur,refillGrav,openGravInput,closeGravInput,get gravBlanks(){return gravBlanks},set gravBlanks(v){gravBlanks=v},orderBox,buyPack,cartAdd,cartAddPack,cartOrder,cartClear,cartDel,cartGoods,cartFee,cartTotal,cartBoxes,cartLines,LIEFERZEIT_SEK,VERSAND,VERSANDFREI,lieferSek,
-    scene,P,EFF,SHOWS,togglePDA,openPDA,closePDA,setPost,get postOn(){return postOn},get pdaOn(){return pdaOn},showLength,psBig,psMid,psSmall,rockets,emitters,timersLen:()=>timers.length,setView:(x,z,y,p)=>{pl.x=x;pl.z=z;yaw=y;pitch=p;aim=null;},camYaw:()=>yaw,camPitch:()=>pitch,playerPos:()=>({x:pl.x,z:pl.z}),pultYaw:()=>pultHit?pultHit.parent.rotation.y:null,applyShopName,shopName,shopSlogan,signTexPx:()=>signTex&&signTex.image?signTex.image.getContext('2d').getImageData(0,0,signTex.image.width,40).data.join(''):null,ckTexPx:()=>ckNameTex&&ckNameTex.image?ckNameTex.image.getContext('2d').getImageData(0,0,ckNameTex.image.width,60).data.join(''):null,testfeldMitte,STATION_POS,aimAt,UPGRADES,upPic,uhrZeiger:()=>({std:uhrStd?+uhrStd.rotation.z.toFixed(4):0,min:uhrMin?+uhrMin.rotation.z.toFixed(4):0}),drawRackSchild,get snowPts(){return snowPts},WALLS,FLOORS,allLevels,addToLevel,putInSlot,regCustomer,ZONEN,zoneOffen,oeffneZone,applyZonen,SLOTS,RACKS,slotsOffen,colliders,sbLanes,buildSBKasse,packBereit,packOne,paketWert,bestellungenProTag,pakete,PAKET_BAYS,ddlAbholung,updateVersand,createShelf,createRack,startGame,promptFor,get packHit(){return packHit},get target(){return target},
+    stations,firePult,placeOnStation,igniteType,get order(){return order},get phone(){return phone},makeCall,answerPhone,haggle,acceptDeal,declineDeal,get truck(){return truck},spawnTruck,takeFromTruck,takeBox,updateTruck,get door(){return door},get tuer(){return tuer},tuerSet,tuerNah,updateSchiebetuer,doorOpen,doorIsOpen,trailerOccupied,LR,lrFront,TOR,orderReady,orderLeft,prioOf,setPrio,racks,updateCarry,spawnFloorBox,staff,SHELFKIND,layout,shelfCapOf,shelfAccepts,emptyLevel,dateInfo,dateStr,dateShort,seasonInfo,isSunday,dayMult,ruhetag,wageOf,setWage,friendliness,inPause,setPause,windowGrime,addGrime,cleanWindowTick,ambienteScore,bildBoost,fixedCosts,dailyWages,dispoLimit,verfuegbar,dispoZins,EVENTS,GOALS,CUSTTYPES,UPGRADES,STAFF,stockOf,spawnInterval,pools,todayEvent,evv,rollEvent,rollMarket,newGoal,goalAdd,goalTick,ekFactor,marktText,xpFor,rollCustType,priceTol,buyChance,regCustomer,makeWishes,buildGravur,refillGrav,openGravInput,closeGravInput,get gravBlanks(){return gravBlanks},set gravBlanks(v){gravBlanks=v},orderBox,buyPack,cartAdd,cartAddPack,cartOrder,cartClear,cartDel,cartGoods,cartFee,cartTotal,cartBoxes,cartLines,LIEFERZEIT_SEK,VERSAND,VERSANDFREI,lieferSek,
+    scene,P,EFF,SHOWS,togglePDA,openPDA,closePDA,setPost,get postOn(){return postOn},get pdaOn(){return pdaOn},showLength,psBig,psMid,psSmall,rockets,emitters,timersLen:()=>timers.length,setView:(x,z,y,p)=>{pl.x=x;pl.z=z;yaw=y;pitch=p;aim=null;},camYaw:()=>yaw,camPitch:()=>pitch,playerPos:()=>({x:pl.x,z:pl.z}),pultYaw:()=>pultHit?pultHit.parent.rotation.y:null,applyShopName,shopName,shopSlogan,signTexPx:()=>signTex&&signTex.image?signTex.image.getContext('2d').getImageData(0,0,signTex.image.width,40).data.join(''):null,ckTexPx:()=>ckNameTex&&ckNameTex.image?ckNameTex.image.getContext('2d').getImageData(0,0,ckNameTex.image.width,60).data.join(''):null,testfeldMitte,STATION_POS,aimAt,UPGRADES,upPic,uhrZeiger:()=>({std:uhrStd?+uhrStd.rotation.z.toFixed(4):0,min:uhrMin?+uhrMin.rotation.z.toFixed(4):0}),drawRackSchild,get snowPts(){return snowPts},WALLS,FLOORS,allLevels,addToLevel,putInSlot,regCustomer,ZONEN,zoneOffen,oeffneZone,applyZonen,SLOTS,RACKS,slotsOffen,colliders,sbLanes,buildSBKasse,packBereit,packOne,paketWert,bestellungenProTag,pakete,PAKET_BAYS,ddlAbholung,updateVersand,createShelf,createRack,startGame,promptFor,LIZENZEN,lizenzOf,hatLizenz,lizenzDaten,naechsteLizenz,buyLizenz,VOLA,volaOf,REGIME,marketOf,costOf,marktZiel,marktLuecke,meOf,miOf,marktDelta,marktNiveau,marktPhase,marktSchock,marktLabel,marktSchnitt,marktExtrem,marktChance,sortimentBreite,sortimentZug,bekanntheit,spawnInterval,rollMarkt,marktInit,inflOf,inflText,setPreisAufMarkt,igniteType,get packHit(){return packHit},get target(){return target},
     shot:()=>{ noLoop=true; camera.position.set(pl.x,1.65,pl.z); camera.rotation.set(pitch,yaw,0); camera.updateMatrixWorld(); updateTarget(); applyTOD(); renderFrame(0.016); return canvas.toDataURL('image/jpeg',0.85); },
     run:(sec,dt)=>{ noLoop=true; const n=Math.round(sec/(dt||0.05)); for(let i=0;i<n;i++) step(dt||0.05); }};
 });

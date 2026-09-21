@@ -35,6 +35,7 @@ Die wichtigsten:
 | `karte.js`  | Grundriss, Vollausbau, Wege, Hofobjekte, Szenengroesse     |
 | `ausbau.js` | Bauwaende, Zonen, SB-Kassen, Packstation                   |
 | `durch.js`  | Geometrie, die in begehbare Raeume hineinragt              |
+| `schild.js` | Regalschilder: Farben setzen, alle Kombinationen, Speichern |
 | `bal.js`    | Wirtschaftssimulation ueber beliebig viele Tage            |
 | `blick.js`  | Standbilder aus dem Laden (braucht echtes three.js)        |
 

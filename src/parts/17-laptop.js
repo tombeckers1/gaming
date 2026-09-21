@@ -536,8 +536,18 @@ function renderLaptop(){
       if(kind==='floor'&&w.wood) bg=`repeating-linear-gradient(90deg,${w.a} 0 6px,${w.b} 6px 12px)`;
       return `<button class="sw${own?' on':''}" title="${w.name}${w.cost?' · '+eur(w.cost):' · frei'}${S.level<w.lvl?' (ab Lvl '+w.lvl+')':''}" data-a="${kind}" data-t="${w.id}" style="background:${bg}" ${lock?'disabled':''}></button>`; }).join('');
     const wNow=WALLS.find(w=>w.id===S.wall)||WALLS[0], fNow=FLOORS.find(f=>f.id===S.floor)||FLOORS[0];
+    /* Regalschilder: die Muster zeigen immer die Kombination aus
+       Hintergrund und Schrift, damit man sieht, was man bekommt. */
+    const bgN=schildBg(), fgN=schildFg();
+    const swSchild=(arr,cur,kind)=>arr.map(o=>{
+      const bg=kind==='schildbg'?(o.c||'linear-gradient(90deg,#2f7fd0 33%,#2f9e57 33% 66%,#c8322a 66%)'):(bgN.c||'#2f5d9e');
+      const fg=kind==='schildbg'?fgN.c:o.c;
+      return `<button class="sw${cur===o.id?' on':''}" title="${o.name}" data-a="${kind}" data-t="${o.id}"`+
+        ` style="background:${bg};color:${fg};font-family:var(--display);font-size:13px;line-height:42px">Aa</button>`; }).join('');
     h=`<div class="row dekorow"><div class="rm"><b>Wandfarbe</b><small>Aktuell: ${wNow.name}</small><small>${wallPreis(wNow)}</small></div><div class="swatches">${sw(WALLS,S.wall,'wall')}</div></div>`+
       `<div class="row dekorow"><div class="rm"><b>Bodenbelag</b><small>Aktuell: ${fNow.name}</small><small>${wallPreis(fNow)}</small></div><div class="swatches">${sw(FLOORS,S.floor,'floor')}</div></div>`+
+      `<div class="row dekorow"><div class="rm"><b>Regalschilder: Hintergrund</b><small>Aktuell: ${bgN.name}</small><small>Die Kopfschilder über den Verkaufsregalen. Drucken kostet nichts.</small></div><div class="swatches">${swSchild(SCHILDBG,S.schildBg||'auto','schildbg')}</div></div>`+
+      `<div class="row dekorow"><div class="rm"><b>Regalschilder: Schrift</b><small>Aktuell: ${fgN.name}</small></div><div class="swatches">${swSchild(SCHILDFG,S.schildFg||'weiss','schildfg')}</div></div>`+
       DEKO.map(d=>{ const lock=S.level<d.lvl, n=dekos.filter(x=>x.id===d.id).length;
         return `<div class="row${lock?' locked':''}"><div class="rm"><b>${d.name}</b><small>Stimmung +${d.amb}${d.desc?' · '+d.desc:''}${n?` · ${n} im Laden`:''}</small></div>`+
           (lock?`<small>ab Level ${d.lvl}</small>`:`<button data-a="deko" data-t="${d.id}" ${S.money<d.cost?'disabled':''}>${eur(d.cost)}</button>`)+'</div>'; }).join('');
@@ -629,6 +639,7 @@ $('lbody').addEventListener('click',e=>{
   else if(a==='deko') buyDeko(t);
   else if(a==='wall') setWall(t);
   else if(a==='floor') setFloor(t);
+  else if(a==='schildbg'||a==='schildfg') setSchild(a,t);
   else if(a==='hire'){ const s=STAFF.find(x=>x.id===t); if(!s||S.money<s.hire||S.staff[t]||S.level<s.lvl||(s.req&&!S.up[s.req])) return; S.money=r2(S.money-s.hire); DS.upgrades=r2(DS.upgrades+s.hire); S.staff[t]=true; hireStaff(t); sfx.cash(); toast(`${s.name} eingestellt.`); save(); }
   else if(a==='fire'){ const s=STAFF.find(x=>x.id===t); if(!s) return; S.staff[t]=false; fireStaff(t); toast(`${s.name} gekündigt.`); save(); }
   else if(a==='pause'){ setPause(t,!inPause(t)); toast(inPause(t)?`${STAFF.find(x=>x.id===t).name}: Saisonpause.`:`${STAFF.find(x=>x.id===t).name} ist zurück im Dienst.`); }
@@ -699,6 +710,15 @@ function setWall(id){ const w=WALLS.find(x=>x.id===id); if(!w||S.level<w.lvl||S.
   const paid=(S.paint||[]).indexOf(id)>=0;
   if(!paid&&w.cost){ if(S.money<w.cost) return; S.money=r2(S.money-w.cost); DS.upgrades=r2(DS.upgrades+w.cost); S.paint=(S.paint||[]).concat(id); }
   S.wall=id; repaint(); sfx.pop(); toast(`Wände neu gestrichen: ${w.name}.`); save(); }
+function setSchild(kind,id){
+  const liste=kind==='schildbg'?SCHILDBG:SCHILDFG;
+  if(!liste.some(x=>x.id===id)) return;
+  if(kind==='schildbg'){ if(S.schildBg===id) return; S.schildBg=id; }
+  else { if(S.schildFg===id) return; S.schildFg=id; }
+  repaintSchilder(); sfx.pop();
+  toast(`Regalschilder neu gedruckt: ${(liste.find(x=>x.id===id)||{}).name}.`);
+  save();
+}
 function setFloor(id){ const f=FLOORS.find(x=>x.id===id); if(!f||S.level<f.lvl||S.floor===id) return;
   const paid=(S.paint||[]).indexOf(id)>=0;
   if(!paid&&f.cost){ if(S.money<f.cost) return; S.money=r2(S.money-f.cost); DS.upgrades=r2(DS.upgrades+f.cost); S.paint=(S.paint||[]).concat(id); }

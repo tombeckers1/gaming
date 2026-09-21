@@ -359,6 +359,37 @@ const RACKS=mkRacks();
 /* Plaetze fuer Plakate und Deko. Die Ausbaustufen bringen eigene
    dazu - ein leerer Anbau soll sich nicht kahler anfuehlen als der
    Basisladen. */
+/* =========================================================
+   Regalschilder. Die Kopfschilder ueber den Verkaufsregalen
+   lassen sich umfaerben - Hintergrund und Schrift getrennt.
+   „auto" faerbt nach Warengruppe, wie es vorher fest war.
+   Drucken kostet nichts, es ist nur ein Schild.
+   ========================================================= */
+const SCHILDBG=[
+  {id:'auto',      name:'Nach Warengruppe', c:null},
+  {id:'rot',       name:'Signalrot',        c:'#c8322a'},
+  {id:'blau',      name:'Tiefblau',         c:'#2f5d9e'},
+  {id:'gruen',     name:'Tannengrün',       c:'#2f7a4a'},
+  {id:'anthrazit', name:'Anthrazit',        c:'#23283a'},
+  {id:'schwarz',   name:'Schwarz',          c:'#14161c'},
+  {id:'bordeaux',  name:'Bordeaux',         c:'#7a2036'},
+  {id:'tuerkis',   name:'Türkis',           c:'#17827d'},
+  {id:'violett',   name:'Violett',          c:'#5b3a8e'},
+  {id:'orange',    name:'Orange',           c:'#e06a1f'},
+  {id:'gelb',      name:'Signalgelb',       c:'#f2c230'},
+  {id:'weiss',     name:'Reinweiß',         c:'#eef1f6'}
+];
+const SCHILDFG=[
+  {id:'weiss',   name:'Weiß',      c:'#f2f5ff'},
+  {id:'schwarz', name:'Schwarz',   c:'#10131c'},
+  {id:'gelb',    name:'Gelb',      c:'#ffd23f'},
+  {id:'mint',    name:'Mint',      c:'#8ef0a8'},
+  {id:'hellblau',name:'Hellblau',  c:'#9fd8ff'},
+  {id:'rot',     name:'Rot',       c:'#ff6a5a'},
+  {id:'sand',    name:'Sand',      c:'#e8d6ae'}
+];
+function schildBg(){ return SCHILDBG.find(x=>x.id===(S&&S.schildBg))||SCHILDBG[0]; }
+function schildFg(){ return SCHILDFG.find(x=>x.id===(S&&S.schildFg))||SCHILDFG[0]; }
 const WALLSPOTS=[{x:7.86,z:-2.0,ry:-Math.PI/2},{x:-2.5,z:-5.86,ry:0},{x:7.86,z:1.0,ry:-Math.PI/2},{x:2.0,z:-5.86,ry:0},{x:-7.86,z:3.6,ry:Math.PI/2},{x:-5.5,z:-5.86,ry:0},
   {x:19.8,z:-5.0,ry:-Math.PI/2,zone:'shop_gross'},{x:19.8,z:5.0,ry:-Math.PI/2,zone:'shop_gross'},
   {x:20.2,z:-5.0,ry:Math.PI/2,zone:'shop_ost'},  {x:20.2,z:5.0,ry:Math.PI/2,zone:'shop_ost'},

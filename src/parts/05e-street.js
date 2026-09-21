@@ -341,12 +341,25 @@ function makeAuto(col,form){
      (Schweller), in der Mitte am breitesten, zur Guertellinie wieder
      eingezogen. Das ist die Form, die ein Auto von vorn rund macht. */
   const kh=gurt-schwelle;                   /* Hoehe der Flanke */
-  /* Eine einzige, stark gerundete Box. Drei gestufte Volumen gaben an
-     der Flanke zwei waagerechte Kanten, die im Streiflicht wie Wuelste
-     aussahen - eine Autotuer ist aber fast plan. */
-  K(RB(B,kh,L-0.02,0.30), 0, schwelle+kh/2, 0, 0,0,0, col);
+  const mY2=schwelle+kh/2;
+  /* Die Karosserie ist zwischen den Achsen am breitesten und laeuft
+     davor und dahinter schmaler zu. Genau dort, vor der Vorderachse
+     und hinter der Hinterachse, verjuengt sich auch ein echtes Auto -
+     eine durchgehend gleich breite Box bleibt immer eine Kiste. */
+  const mz0=hA-0.30, mz1=vA+0.30;
+  K(RB(B,kh,mz1-mz0,0.30), 0, mY2, (mz0+mz1)/2, 0,0,0, col);
+  /* Vorderwagen und Nase */
+  { const z0=mz1-0.12, z1=L/2-0.02;
+    K(RB(B-0.08,kh,z1-z0,0.26), 0, mY2, (z0+z1)/2, 0,0,0, col);
+    K(RB(B-0.22,kh*0.90,0.30,0.20), 0, mY2-kh*0.03, z1-0.13, 0,0,0, col); }
+  /* Hinterwagen und Heckabschluss */
+  { const z1=mz0+0.12, z0=-(L/2-0.02);
+    K(RB(B-0.07,kh,z1-z0,0.26), 0, mY2, (z0+z1)/2, 0,0,0, col);
+    K(RB(B-0.19,kh*0.92,0.26,0.20), 0, mY2-kh*0.02, z0+0.11, 0,0,0, col); }
   /* flache Sicke unter den Fenstern, nur ein Zentimeter tief */
-  K(RB(B+0.012,kh*0.16,L-0.60,0.03), 0, gurt-kh*0.30, 0, 0,0,0, col);
+  K(RB(B+0.012,kh*0.16,L-0.90,0.03), 0, gurt-kh*0.30, 0, 0,0,0, col);
+  /* Fuge zwischen Seitenteil und Klappe */
+  K(RB(B-0.13,0.012,0.016,0.004), 0, gurt-0.035, mz0+0.10, 0,0,0, 0x0d0f14);
   /* Schweller bleibt matt und ist kaum schmaler als die Flanke */
   G(RB(B-0.015,0.11,L-1.45,0.04), 0, schwelle+0.02, 0, 0,0,0, 0x1b1e24);
 
@@ -395,8 +408,11 @@ function makeAuto(col,form){
     K(RB(0.03,0.035,kabL-rwZ*0.5-wsZ*0.8,0.012), s*(B/2-0.07), gurt+0.02,
       kabZ+(rwZ*0.25-wsZ*0.4), 0,0,0, chrome);
   }
-  /* Dachhaut und Schnee darauf */
-  K(RB(B-0.19,0.075,dachL+0.06,0.03), 0, dach-0.038, dachZ, 0,0,0, col);
+  /* Dachhaut in drei Laengsbahnen: die mittlere sitzt zwei Zentimeter
+     hoeher. Ein Autodach ist quer gewoelbt, nicht plan. */
+  K(RB(B-0.19,0.075,dachL+0.06,0.03), 0, dach-0.050, dachZ, 0,0,0, col);
+  K(RB(B-0.30,0.075,dachL+0.05,0.03), 0, dach-0.038, dachZ, 0,0,0, col);
+  K(RB(B-0.46,0.075,dachL+0.04,0.03), 0, dach-0.030, dachZ, 0,0,0, col);
   K(RB(B-0.33,0.022,dachL-0.16,0.01), 0, dach+0.001, dachZ, 0,0,0, 0xe8ecf2);
 
   /* ---------- Raeder ----------
@@ -404,8 +420,12 @@ function makeAuto(col,form){
      und Felgenhorn. Radlauf als halber Ring in Wagenfarbe. */
   for(const sx of [-1,1]) for(const z of [vA,hA]){
     const x=sx*RX;
+    /* Radlauf: der Bogen selbst und eine schmale, leicht ausgestellte
+       Kante davor - ohne die sitzt das Rad wie in einem Loch. */
     K(new THREE.TorusGeometry(rad+0.055,0.07,HIQ?8:5,HIQ?18:10,Math.PI),
       x-sx*0.035, rad+0.01, z, 0,Math.PI/2,0, col);
+    K(new THREE.TorusGeometry(rad+0.085,0.028,HIQ?6:4,HIQ?18:10,Math.PI),
+      x+sx*0.012, rad+0.01, z, 0,Math.PI/2,0, col);
     G(CY(rad,rad,0.205),                 x, rad, z, 0,0,Math.PI/2, 0x16181c);
     G(CY(rad*0.995,rad*0.995,0.215,HIQ?24:12), x, rad, z, 0,0,Math.PI/2, 0x1d2027);
     /* dunkle Felgenschuessel - das Loch, durch das man die Bremse sieht */

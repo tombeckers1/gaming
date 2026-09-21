@@ -845,6 +845,37 @@ const RACKS=mkRacks();
 /* Plaetze fuer Plakate und Deko. Die Ausbaustufen bringen eigene
    dazu - ein leerer Anbau soll sich nicht kahler anfuehlen als der
    Basisladen. */
+/* =========================================================
+   Regalschilder. Die Kopfschilder ueber den Verkaufsregalen
+   lassen sich umfaerben - Hintergrund und Schrift getrennt.
+   „auto" faerbt nach Warengruppe, wie es vorher fest war.
+   Drucken kostet nichts, es ist nur ein Schild.
+   ========================================================= */
+const SCHILDBG=[
+  {id:'auto',      name:'Nach Warengruppe', c:null},
+  {id:'rot',       name:'Signalrot',        c:'#c8322a'},
+  {id:'blau',      name:'Tiefblau',         c:'#2f5d9e'},
+  {id:'gruen',     name:'Tannengrün',       c:'#2f7a4a'},
+  {id:'anthrazit', name:'Anthrazit',        c:'#23283a'},
+  {id:'schwarz',   name:'Schwarz',          c:'#14161c'},
+  {id:'bordeaux',  name:'Bordeaux',         c:'#7a2036'},
+  {id:'tuerkis',   name:'Türkis',           c:'#17827d'},
+  {id:'violett',   name:'Violett',          c:'#5b3a8e'},
+  {id:'orange',    name:'Orange',           c:'#e06a1f'},
+  {id:'gelb',      name:'Signalgelb',       c:'#f2c230'},
+  {id:'weiss',     name:'Reinweiß',         c:'#eef1f6'}
+];
+const SCHILDFG=[
+  {id:'weiss',   name:'Weiß',      c:'#f2f5ff'},
+  {id:'schwarz', name:'Schwarz',   c:'#10131c'},
+  {id:'gelb',    name:'Gelb',      c:'#ffd23f'},
+  {id:'mint',    name:'Mint',      c:'#8ef0a8'},
+  {id:'hellblau',name:'Hellblau',  c:'#9fd8ff'},
+  {id:'rot',     name:'Rot',       c:'#ff6a5a'},
+  {id:'sand',    name:'Sand',      c:'#e8d6ae'}
+];
+function schildBg(){ return SCHILDBG.find(x=>x.id===(S&&S.schildBg))||SCHILDBG[0]; }
+function schildFg(){ return SCHILDFG.find(x=>x.id===(S&&S.schildFg))||SCHILDFG[0]; }
 const WALLSPOTS=[{x:7.86,z:-2.0,ry:-Math.PI/2},{x:-2.5,z:-5.86,ry:0},{x:7.86,z:1.0,ry:-Math.PI/2},{x:2.0,z:-5.86,ry:0},{x:-7.86,z:3.6,ry:Math.PI/2},{x:-5.5,z:-5.86,ry:0},
   {x:19.8,z:-5.0,ry:-Math.PI/2,zone:'shop_gross'},{x:19.8,z:5.0,ry:-Math.PI/2,zone:'shop_gross'},
   {x:20.2,z:-5.0,ry:Math.PI/2,zone:'shop_ost'},  {x:20.2,z:5.0,ry:Math.PI/2,zone:'shop_ost'},
@@ -3107,12 +3138,25 @@ function makeAuto(col,form){
      (Schweller), in der Mitte am breitesten, zur Guertellinie wieder
      eingezogen. Das ist die Form, die ein Auto von vorn rund macht. */
   const kh=gurt-schwelle;                   /* Hoehe der Flanke */
-  /* Eine einzige, stark gerundete Box. Drei gestufte Volumen gaben an
-     der Flanke zwei waagerechte Kanten, die im Streiflicht wie Wuelste
-     aussahen - eine Autotuer ist aber fast plan. */
-  K(RB(B,kh,L-0.02,0.30), 0, schwelle+kh/2, 0, 0,0,0, col);
+  const mY2=schwelle+kh/2;
+  /* Die Karosserie ist zwischen den Achsen am breitesten und laeuft
+     davor und dahinter schmaler zu. Genau dort, vor der Vorderachse
+     und hinter der Hinterachse, verjuengt sich auch ein echtes Auto -
+     eine durchgehend gleich breite Box bleibt immer eine Kiste. */
+  const mz0=hA-0.30, mz1=vA+0.30;
+  K(RB(B,kh,mz1-mz0,0.30), 0, mY2, (mz0+mz1)/2, 0,0,0, col);
+  /* Vorderwagen und Nase */
+  { const z0=mz1-0.12, z1=L/2-0.02;
+    K(RB(B-0.08,kh,z1-z0,0.26), 0, mY2, (z0+z1)/2, 0,0,0, col);
+    K(RB(B-0.22,kh*0.90,0.30,0.20), 0, mY2-kh*0.03, z1-0.13, 0,0,0, col); }
+  /* Hinterwagen und Heckabschluss */
+  { const z1=mz0+0.12, z0=-(L/2-0.02);
+    K(RB(B-0.07,kh,z1-z0,0.26), 0, mY2, (z0+z1)/2, 0,0,0, col);
+    K(RB(B-0.19,kh*0.92,0.26,0.20), 0, mY2-kh*0.02, z0+0.11, 0,0,0, col); }
   /* flache Sicke unter den Fenstern, nur ein Zentimeter tief */
-  K(RB(B+0.012,kh*0.16,L-0.60,0.03), 0, gurt-kh*0.30, 0, 0,0,0, col);
+  K(RB(B+0.012,kh*0.16,L-0.90,0.03), 0, gurt-kh*0.30, 0, 0,0,0, col);
+  /* Fuge zwischen Seitenteil und Klappe */
+  K(RB(B-0.13,0.012,0.016,0.004), 0, gurt-0.035, mz0+0.10, 0,0,0, 0x0d0f14);
   /* Schweller bleibt matt und ist kaum schmaler als die Flanke */
   G(RB(B-0.015,0.11,L-1.45,0.04), 0, schwelle+0.02, 0, 0,0,0, 0x1b1e24);
 
@@ -3161,8 +3205,11 @@ function makeAuto(col,form){
     K(RB(0.03,0.035,kabL-rwZ*0.5-wsZ*0.8,0.012), s*(B/2-0.07), gurt+0.02,
       kabZ+(rwZ*0.25-wsZ*0.4), 0,0,0, chrome);
   }
-  /* Dachhaut und Schnee darauf */
-  K(RB(B-0.19,0.075,dachL+0.06,0.03), 0, dach-0.038, dachZ, 0,0,0, col);
+  /* Dachhaut in drei Laengsbahnen: die mittlere sitzt zwei Zentimeter
+     hoeher. Ein Autodach ist quer gewoelbt, nicht plan. */
+  K(RB(B-0.19,0.075,dachL+0.06,0.03), 0, dach-0.050, dachZ, 0,0,0, col);
+  K(RB(B-0.30,0.075,dachL+0.05,0.03), 0, dach-0.038, dachZ, 0,0,0, col);
+  K(RB(B-0.46,0.075,dachL+0.04,0.03), 0, dach-0.030, dachZ, 0,0,0, col);
   K(RB(B-0.33,0.022,dachL-0.16,0.01), 0, dach+0.001, dachZ, 0,0,0, 0xe8ecf2);
 
   /* ---------- Raeder ----------
@@ -3170,8 +3217,12 @@ function makeAuto(col,form){
      und Felgenhorn. Radlauf als halber Ring in Wagenfarbe. */
   for(const sx of [-1,1]) for(const z of [vA,hA]){
     const x=sx*RX;
+    /* Radlauf: der Bogen selbst und eine schmale, leicht ausgestellte
+       Kante davor - ohne die sitzt das Rad wie in einem Loch. */
     K(new THREE.TorusGeometry(rad+0.055,0.07,HIQ?8:5,HIQ?18:10,Math.PI),
       x-sx*0.035, rad+0.01, z, 0,Math.PI/2,0, col);
+    K(new THREE.TorusGeometry(rad+0.085,0.028,HIQ?6:4,HIQ?18:10,Math.PI),
+      x+sx*0.012, rad+0.01, z, 0,Math.PI/2,0, col);
     G(CY(rad,rad,0.205),                 x, rad, z, 0,0,Math.PI/2, 0x16181c);
     G(CY(rad*0.995,rad*0.995,0.215,HIQ?24:12), x, rad, z, 0,0,Math.PI/2, 0x1d2027);
     /* dunkle Felgenschuessel - das Loch, durch das man die Bremse sieht */
@@ -6065,15 +6116,18 @@ function updateHead(sh){
   const cnt={}; sh.levels.forEach(l=>{ if(l.type){ const c=P[l.type].cat; cnt[c]=(cnt[c]||0)+l.count; } });
   let best=null,bn=0; for(const k in cnt) if(cnt[k]>bn){ bn=cnt[k]; best=k; }
   const H=best!==null?HEADNAME[best]:['REGAL FREI','#39405a'];
+  const bg=schildBg().c||H[1], fg=schildFg().c;
   redraw(sh.headTex,(g,W,Hh)=>{
     g.setTransform(1,0,0,1,0,0); g.scale(W/512,Hh/80); W=512; Hh=80;
-    g.fillStyle=H[1]; g.fillRect(0,0,W,Hh);
+    g.fillStyle=bg; g.fillRect(0,0,W,Hh);
     g.fillStyle='rgba(255,255,255,.16)'; g.fillRect(0,0,W,10);
     g.fillStyle='rgba(0,0,0,.2)'; g.fillRect(0,Hh-8,W,8);
-    g.fillStyle='#f2f5ff'; g.textAlign='center'; g.textBaseline='middle';
+    g.fillStyle=fg; g.textAlign='center'; g.textBaseline='middle';
     fitFont(g,H[0],W-40,44,BUN); g.fillText(H[0],W/2,Hh/2+2);
   });
 }
+/* Alle Kopfschilder neu drucken, nachdem die Farbe gewechselt wurde */
+function repaintSchilder(){ shelves.forEach(updateHead); }
 function updateLabel(lv){
   redraw(lv.tex,(g,W,H)=>{ g.setTransform(1,0,0,1,0,0); g.scale(W/300,H/34); W=300; H=34;
     g.fillStyle=lv.type?'#ffd23f':'#39405a'; g.fillRect(0,0,W,H); g.textBaseline='middle';
@@ -10026,8 +10080,18 @@ function renderLaptop(){
       if(kind==='floor'&&w.wood) bg=`repeating-linear-gradient(90deg,${w.a} 0 6px,${w.b} 6px 12px)`;
       return `<button class="sw${own?' on':''}" title="${w.name}${w.cost?' · '+eur(w.cost):' · frei'}${S.level<w.lvl?' (ab Lvl '+w.lvl+')':''}" data-a="${kind}" data-t="${w.id}" style="background:${bg}" ${lock?'disabled':''}></button>`; }).join('');
     const wNow=WALLS.find(w=>w.id===S.wall)||WALLS[0], fNow=FLOORS.find(f=>f.id===S.floor)||FLOORS[0];
+    /* Regalschilder: die Muster zeigen immer die Kombination aus
+       Hintergrund und Schrift, damit man sieht, was man bekommt. */
+    const bgN=schildBg(), fgN=schildFg();
+    const swSchild=(arr,cur,kind)=>arr.map(o=>{
+      const bg=kind==='schildbg'?(o.c||'linear-gradient(90deg,#2f7fd0 33%,#2f9e57 33% 66%,#c8322a 66%)'):(bgN.c||'#2f5d9e');
+      const fg=kind==='schildbg'?fgN.c:o.c;
+      return `<button class="sw${cur===o.id?' on':''}" title="${o.name}" data-a="${kind}" data-t="${o.id}"`+
+        ` style="background:${bg};color:${fg};font-family:var(--display);font-size:13px;line-height:42px">Aa</button>`; }).join('');
     h=`<div class="row dekorow"><div class="rm"><b>Wandfarbe</b><small>Aktuell: ${wNow.name}</small><small>${wallPreis(wNow)}</small></div><div class="swatches">${sw(WALLS,S.wall,'wall')}</div></div>`+
       `<div class="row dekorow"><div class="rm"><b>Bodenbelag</b><small>Aktuell: ${fNow.name}</small><small>${wallPreis(fNow)}</small></div><div class="swatches">${sw(FLOORS,S.floor,'floor')}</div></div>`+
+      `<div class="row dekorow"><div class="rm"><b>Regalschilder: Hintergrund</b><small>Aktuell: ${bgN.name}</small><small>Die Kopfschilder über den Verkaufsregalen. Drucken kostet nichts.</small></div><div class="swatches">${swSchild(SCHILDBG,S.schildBg||'auto','schildbg')}</div></div>`+
+      `<div class="row dekorow"><div class="rm"><b>Regalschilder: Schrift</b><small>Aktuell: ${fgN.name}</small></div><div class="swatches">${swSchild(SCHILDFG,S.schildFg||'weiss','schildfg')}</div></div>`+
       DEKO.map(d=>{ const lock=S.level<d.lvl, n=dekos.filter(x=>x.id===d.id).length;
         return `<div class="row${lock?' locked':''}"><div class="rm"><b>${d.name}</b><small>Stimmung +${d.amb}${d.desc?' · '+d.desc:''}${n?` · ${n} im Laden`:''}</small></div>`+
           (lock?`<small>ab Level ${d.lvl}</small>`:`<button data-a="deko" data-t="${d.id}" ${S.money<d.cost?'disabled':''}>${eur(d.cost)}</button>`)+'</div>'; }).join('');
@@ -10119,6 +10183,7 @@ $('lbody').addEventListener('click',e=>{
   else if(a==='deko') buyDeko(t);
   else if(a==='wall') setWall(t);
   else if(a==='floor') setFloor(t);
+  else if(a==='schildbg'||a==='schildfg') setSchild(a,t);
   else if(a==='hire'){ const s=STAFF.find(x=>x.id===t); if(!s||S.money<s.hire||S.staff[t]||S.level<s.lvl||(s.req&&!S.up[s.req])) return; S.money=r2(S.money-s.hire); DS.upgrades=r2(DS.upgrades+s.hire); S.staff[t]=true; hireStaff(t); sfx.cash(); toast(`${s.name} eingestellt.`); save(); }
   else if(a==='fire'){ const s=STAFF.find(x=>x.id===t); if(!s) return; S.staff[t]=false; fireStaff(t); toast(`${s.name} gekündigt.`); save(); }
   else if(a==='pause'){ setPause(t,!inPause(t)); toast(inPause(t)?`${STAFF.find(x=>x.id===t).name}: Saisonpause.`:`${STAFF.find(x=>x.id===t).name} ist zurück im Dienst.`); }
@@ -10189,6 +10254,15 @@ function setWall(id){ const w=WALLS.find(x=>x.id===id); if(!w||S.level<w.lvl||S.
   const paid=(S.paint||[]).indexOf(id)>=0;
   if(!paid&&w.cost){ if(S.money<w.cost) return; S.money=r2(S.money-w.cost); DS.upgrades=r2(DS.upgrades+w.cost); S.paint=(S.paint||[]).concat(id); }
   S.wall=id; repaint(); sfx.pop(); toast(`Wände neu gestrichen: ${w.name}.`); save(); }
+function setSchild(kind,id){
+  const liste=kind==='schildbg'?SCHILDBG:SCHILDFG;
+  if(!liste.some(x=>x.id===id)) return;
+  if(kind==='schildbg'){ if(S.schildBg===id) return; S.schildBg=id; }
+  else { if(S.schildFg===id) return; S.schildFg=id; }
+  repaintSchilder(); sfx.pop();
+  toast(`Regalschilder neu gedruckt: ${(liste.find(x=>x.id===id)||{}).name}.`);
+  save();
+}
 function setFloor(id){ const f=FLOORS.find(x=>x.id===id); if(!f||S.level<f.lvl||S.floor===id) return;
   const paid=(S.paint||[]).indexOf(id)>=0;
   if(!paid&&f.cost){ if(S.money<f.cost) return; S.money=r2(S.money-f.cost); DS.upgrades=r2(DS.upgrades+f.cost); S.paint=(S.paint||[]).concat(id); }
@@ -10423,7 +10497,7 @@ function rezBauen(){
 function freshState(){ const prices={}; ORDER.forEach(t=>prices[t]=P[t].market);
   return {v:3,money:500,rep:50,level:1,xp:0,season:1,day:0,loan:null,prices,grime:0,
     up:{plakat:false,terminal:false,tag4:false,heizung:false,musik:false,radio:false,cams:false,regallicht:false,alarm:false,shop_gross:false,lager_gross:false,packstation:false,kasse2:false,labor:false,labor2:false},
-    staff:{},prio:{},wage:{},pause:{},ev:null,goal:null,mkt:1,comp:1,deko:[],wall:'creme',floor:'grau',paint:[],test:null,stamm:{},
+    staff:{},prio:{},wage:{},pause:{},ev:null,goal:null,mkt:1,comp:1,deko:[],wall:'creme',floor:'grau',schildBg:'auto',schildFg:'weiss',paint:[],test:null,stamm:{},
     shelves:[],racks:[null],
     boxes:[],
     carrying:null,tut:{},seasonRevenue:0,cart:[],offen:0,pakete:0,lic:['start'],stat:{},erf:{},gesehen:[],eigene:[],gutschrift:0,mi:{},me:{},reg:{},mh:{},schock:{},news:[],infl:1,shopName:SHOP_DEFAULT,slogan:SLOGAN_DEFAULT}; }
@@ -10433,7 +10507,7 @@ function save(){
   if(!S) return;
   try{
     const d={v:3,money:S.money,rep:S.rep,level:S.level,xp:S.xp,season:S.season,day:S.day,loan:S.loan,prices:S.prices,up:S.up,staff:S.staff,prio:S.prio||{},wage:S.wage||{},pause:S.pause||{},ev:S.ev||null,goal:S.goal||null,mkt:r2(S.mkt||1),comp:r2(S.comp||1),lic:S.lic||['start'],stat:S.stat||{},erf:S.erf||{},gesehen:S.gesehen||[],eigene:S.eigene||[],gutschrift:r2(S.gutschrift||0),mi:S.mi||{},me:S.me||{},reg:S.reg||{},mh:S.mh||{},schock:S.schock||{},news:S.news||[],infl:S.infl||1,
-      wall:S.wall,floor:S.floor,paint:S.paint,test:S.test,stamm:S.stamm,blanks:gravBlanks,grav:gravG?mpos(gravG):null,grime:r2(S.grime||0),tut:S.tut,seasonRevenue:S.seasonRevenue,carrying:S.carrying,cart:S.cart||[],offen:S.offen|0,pakete:S.pakete|0,shopName:S.shopName||SHOP_DEFAULT,slogan:S.slogan||'',
+      wall:S.wall,floor:S.floor,schildBg:S.schildBg||'auto',schildFg:S.schildFg||'weiss',paint:S.paint,test:S.test,stamm:S.stamm,blanks:gravBlanks,grav:gravG?mpos(gravG):null,grime:r2(S.grime||0),tut:S.tut,seasonRevenue:S.seasonRevenue,carrying:S.carrying,cart:S.cart||[],offen:S.offen|0,pakete:S.pakete|0,shopName:S.shopName||SHOP_DEFAULT,slogan:S.slogan||'',
       deko:dekos.map(d2=>Object.assign({id:d2.id},mpos(d2.g))),
       ck:mpos(ckG),desk:mpos(deskG),
       shelves:shelves.map(s=>Object.assign(mpos(s.g),{kind:s.kind,levels:s.levels.map(l=>({type:l.type,count:l.count,q:l.q||1}))})),
@@ -10856,7 +10930,7 @@ fontsReady().then(()=>{
   lastF=-1; applyTOD(); updateSign(); buildStart(); requestAnimationFrame(frame);
   window.__bb={get S(){return S},get phase(){return phase},set phase(v){phase=v},set clock(v){clock=v},get clock(){return clock},pickUp,floorBoxes,shelves,racks,dekos,stockOne,openShop,step,customers,queue,belt,scanBelt,buyUp,buyDeko,get DS(){return DS},endDay,pending,save,openLaptop,closeLaptop,pl,addXP,hireStaff,fireStaff,staff,dirts,addDirt,movables,toggleBuild,setWall,setFloor,
     stations,firePult,placeOnStation,igniteType,get order(){return order},get phone(){return phone},makeCall,answerPhone,haggle,acceptDeal,declineDeal,get truck(){return truck},spawnTruck,takeFromTruck,takeBox,updateTruck,get door(){return door},get tuer(){return tuer},tuerSet,tuerNah,updateSchiebetuer,doorOpen,doorIsOpen,trailerOccupied,LR,lrFront,TOR,orderReady,orderLeft,shipOne,removeFloorBox,prioOf,setPrio,racks,updateCarry,spawnFloorBox,staff,SHELFKIND,layout,shelfCapOf,shelfAccepts,emptyLevel,dateInfo,dateStr,dateShort,seasonInfo,isSunday,dayMult,ruhetag,wageOf,setWage,friendliness,inPause,setPause,windowGrime,addGrime,cleanWindowTick,ambienteScore,bildBoost,fixedCosts,dailyWages,dispoLimit,verfuegbar,dispoZins,takeLoan,loanTier,loanDaily,EVENTS,GOALS,CUSTTYPES,UPGRADES,STAFF,stockOf,spawnInterval,pools,todayEvent,evv,rollEvent,rollMarket,newGoal,goalAdd,goalTick,ekFactor,marktText,xpFor,rollCustType,priceTol,buyChance,regCustomer,makeWishes,nachfrageFaktor,shelfStockOf,buildGravur,refillGrav,openGravInput,closeGravInput,get gravBlanks(){return gravBlanks},set gravBlanks(v){gravBlanks=v},orderBox,buyPack,cartAdd,cartAddPack,cartOrder,cartClear,cartDel,cartGoods,cartFee,cartTotal,cartBoxes,cartLines,LIEFERZEIT_SEK,VERSAND,VERSANDFREI,lieferSek,
-    scene,P,EFF,EFF_ALL,EFF_KLEIN,EFF_GROSS,EFF_PRO,SHOWS,kugelbombe,shot,mine,FW,stations,stationOf,placedCount,togglePDA,openPDA,closePDA,setPost,get postOn(){return postOn},get pdaOn(){return pdaOn},showLength,psHuge,psBig,psMid,psSmall,rockets,emitters,timersLen:()=>timers.length,setView:(x,z,y,p)=>{pl.x=x;pl.z=z;yaw=y;pitch=p;aim=null;},camYaw:()=>yaw,camPitch:()=>pitch,playerPos:()=>({x:pl.x,z:pl.z}),pultYaw:()=>pultHit?pultHit.parent.rotation.y:null,applyShopName,shopName,shopSlogan,signTexPx:()=>signTex&&signTex.image?signTex.image.getContext('2d').getImageData(0,0,signTex.image.width,40).data.join(''):null,ckTexPx:()=>ckNameTex&&ckNameTex.image?ckNameTex.image.getContext('2d').getImageData(0,0,ckNameTex.image.width,60).data.join(''):null,testfeldMitte,STATION_POS,aimAt,UPGRADES,upPic,uhrZeiger:()=>({std:uhrStd?+uhrStd.rotation.z.toFixed(4):0,min:uhrMin?+uhrMin.rotation.z.toFixed(4):0}),drawRackSchild,get snowPts(){return snowPts},buildStadt,updateStadt,get stadtBoxen(){return stadtBoxen},get stadtBaeume(){return stadtBaeume},buildFernbaeume,schwaerme,beacons,silhouetten,get verkehrPts(){return verkehrPts},get rauchPts(){return rauchPts},get flieger(){return flieger},stadtFrei,STADT_FREI,WALLS,FLOORS,allLevels,addToLevel,putInSlot,regCustomer,ZONEN,zoneOffen,oeffneZone,applyZonen,SLOTS,RACKS,slotsOffen,colliders,LAY,LOGI,WRAMPEN,flaeche,WTOR,RACKKIND,route,NAV,navFrei,navIdx,navBuild,shelfStand,shelves,sbLanes,buildSBKasse,packBereit,packOne,paketWert,bestellungenProTag,pakete,PAKET_BAYS,ddlAbholung,updateVersand,createShelf,createRack,startGame,promptFor,ERFOLGE,erfOffen,erfStufe,erfStand,erfZiel,erfFertig,erfAnteil,erfGeschafft,erfGesamt,stat,statAdd,statRekord,statVerkauf,bruchGesehen,gruppeVon,GRUPPE,TRAEGER,BRUCH,BRUCH_IDS,REZ_FARBEN,ETIKETT,traegerVon,traegerOffen,bruchOffen,bruchListe,rezeptWow,rezeptKosten,rezeptMarkt,rezeptHype,rezeptDauer,rezeptEntwicklung,rezeptGueltig,eigeneListe,eigenesEintragen,rezepteTick,rezProto,rezBauen,renderRezeptur,get entwurf(){return entwurf},set entwurf(v){entwurf=v},entwurfInit,ORDER,LIZENZEN,lizenzOf,hatLizenz,lizenzDaten,naechsteLizenz,buyLizenz,VOLA,volaOf,REGIME,marketOf,costOf,marktZiel,marktLuecke,meOf,miOf,marktDelta,marktNiveau,marktPhase,marktSchock,marktLabel,marktSchnitt,marktExtrem,marktChance,sortimentBreite,sortimentZug,bekanntheit,spawnInterval,rollMarkt,marktInit,inflOf,inflText,setPreisAufMarkt,igniteType,get packHit(){return packHit},get target(){return target},
+    scene,P,EFF,EFF_ALL,EFF_KLEIN,EFF_GROSS,EFF_PRO,SHOWS,kugelbombe,shot,mine,FW,stations,stationOf,placedCount,togglePDA,openPDA,closePDA,setPost,get postOn(){return postOn},get pdaOn(){return pdaOn},showLength,psHuge,psBig,psMid,psSmall,rockets,emitters,timersLen:()=>timers.length,setView:(x,z,y,p)=>{pl.x=x;pl.z=z;yaw=y;pitch=p;aim=null;},camYaw:()=>yaw,camPitch:()=>pitch,playerPos:()=>({x:pl.x,z:pl.z}),pultYaw:()=>pultHit?pultHit.parent.rotation.y:null,applyShopName,shopName,shopSlogan,signTexPx:()=>signTex&&signTex.image?signTex.image.getContext('2d').getImageData(0,0,signTex.image.width,40).data.join(''):null,ckTexPx:()=>ckNameTex&&ckNameTex.image?ckNameTex.image.getContext('2d').getImageData(0,0,ckNameTex.image.width,60).data.join(''):null,testfeldMitte,STATION_POS,aimAt,UPGRADES,upPic,uhrZeiger:()=>({std:uhrStd?+uhrStd.rotation.z.toFixed(4):0,min:uhrMin?+uhrMin.rotation.z.toFixed(4):0}),drawRackSchild,get snowPts(){return snowPts},buildStadt,updateStadt,get stadtBoxen(){return stadtBoxen},get stadtBaeume(){return stadtBaeume},buildFernbaeume,schwaerme,beacons,silhouetten,get verkehrPts(){return verkehrPts},get rauchPts(){return rauchPts},get flieger(){return flieger},stadtFrei,STADT_FREI,WALLS,FLOORS,SCHILDBG,SCHILDFG,setSchild,schildBg,schildFg,repaintSchilder,updateHead,allLevels,addToLevel,putInSlot,regCustomer,ZONEN,zoneOffen,oeffneZone,applyZonen,SLOTS,RACKS,slotsOffen,colliders,LAY,LOGI,WRAMPEN,flaeche,WTOR,RACKKIND,route,NAV,navFrei,navIdx,navBuild,shelfStand,shelves,sbLanes,buildSBKasse,packBereit,packOne,paketWert,bestellungenProTag,pakete,PAKET_BAYS,ddlAbholung,updateVersand,createShelf,createRack,startGame,promptFor,ERFOLGE,erfOffen,erfStufe,erfStand,erfZiel,erfFertig,erfAnteil,erfGeschafft,erfGesamt,stat,statAdd,statRekord,statVerkauf,bruchGesehen,gruppeVon,GRUPPE,TRAEGER,BRUCH,BRUCH_IDS,REZ_FARBEN,ETIKETT,traegerVon,traegerOffen,bruchOffen,bruchListe,rezeptWow,rezeptKosten,rezeptMarkt,rezeptHype,rezeptDauer,rezeptEntwicklung,rezeptGueltig,eigeneListe,eigenesEintragen,rezepteTick,rezProto,rezBauen,renderRezeptur,get entwurf(){return entwurf},set entwurf(v){entwurf=v},entwurfInit,ORDER,LIZENZEN,lizenzOf,hatLizenz,lizenzDaten,naechsteLizenz,buyLizenz,VOLA,volaOf,REGIME,marketOf,costOf,marktZiel,marktLuecke,meOf,miOf,marktDelta,marktNiveau,marktPhase,marktSchock,marktLabel,marktSchnitt,marktExtrem,marktChance,sortimentBreite,sortimentZug,bekanntheit,spawnInterval,rollMarkt,marktInit,inflOf,inflText,setPreisAufMarkt,igniteType,get packHit(){return packHit},get target(){return target},
     shot:()=>{ noLoop=true; camera.position.set(pl.x,1.65,pl.z); camera.rotation.set(pitch,yaw,0); camera.updateMatrixWorld(); updateTarget(); applyTOD(); renderFrame(0.016); return canvas.toDataURL('image/jpeg',0.85); },
     run:(sec,dt)=>{ noLoop=true; const n=Math.round(sec/(dt||0.05)); for(let i=0;i<n;i++) step(dt||0.05); }};
 });

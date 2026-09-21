@@ -513,15 +513,18 @@ function updateHead(sh){
   const cnt={}; sh.levels.forEach(l=>{ if(l.type){ const c=P[l.type].cat; cnt[c]=(cnt[c]||0)+l.count; } });
   let best=null,bn=0; for(const k in cnt) if(cnt[k]>bn){ bn=cnt[k]; best=k; }
   const H=best!==null?HEADNAME[best]:['REGAL FREI','#39405a'];
+  const bg=schildBg().c||H[1], fg=schildFg().c;
   redraw(sh.headTex,(g,W,Hh)=>{
     g.setTransform(1,0,0,1,0,0); g.scale(W/512,Hh/80); W=512; Hh=80;
-    g.fillStyle=H[1]; g.fillRect(0,0,W,Hh);
+    g.fillStyle=bg; g.fillRect(0,0,W,Hh);
     g.fillStyle='rgba(255,255,255,.16)'; g.fillRect(0,0,W,10);
     g.fillStyle='rgba(0,0,0,.2)'; g.fillRect(0,Hh-8,W,8);
-    g.fillStyle='#f2f5ff'; g.textAlign='center'; g.textBaseline='middle';
+    g.fillStyle=fg; g.textAlign='center'; g.textBaseline='middle';
     fitFont(g,H[0],W-40,44,BUN); g.fillText(H[0],W/2,Hh/2+2);
   });
 }
+/* Alle Kopfschilder neu drucken, nachdem die Farbe gewechselt wurde */
+function repaintSchilder(){ shelves.forEach(updateHead); }
 function updateLabel(lv){
   redraw(lv.tex,(g,W,H)=>{ g.setTransform(1,0,0,1,0,0); g.scale(W/300,H/34); W=300; H=34;
     g.fillStyle=lv.type?'#ffd23f':'#39405a'; g.fillRect(0,0,W,H); g.textBaseline='middle';

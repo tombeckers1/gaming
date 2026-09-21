@@ -287,116 +287,187 @@ function buildHaus(x,z,w,d,h,o){
   }
   return g;
 }
+/* =========================================================
+   Autos am Bordstein.
+   Die Masse sind echte Fahrzeugmasse, keine geschaetzten: eine
+   Limousine ist 4,62 m lang und 1,45 m hoch, nicht 1,84 m, und der
+   Radstand betraegt 2,76 m. Vorher stand da ein zu hoher Kasten mit
+   zu kurzem Radstand - das liest sich sofort als Spielzeug.
+   Entscheidend ist ausserdem das Rad: eine Felge ist innen offen und
+   dunkel, mit hellen Speichen und hellem Horn davor. Eine massive
+   helle Scheibe, wie sie hier vorher steckte, gibt es an keinem Auto.
+   ========================================================= */
+const AUTOFORM={
+  /* L/B/H und Radstand nach gaengigen Fahrzeugen der Klasse.
+     vu/hu sind die Ueberhaenge - der Kombi hat hinten deutlich mehr,
+     der Kleinwagen vorn und hinten wenig. */
+  limo : {L:4.62,B:1.80,H:1.45,rad:0.330,kabL:2.26,kabZ:-0.30,vu:0.86,hu:0.98,stufe:true },
+  kombi: {L:4.76,B:1.81,H:1.49,rad:0.330,kabL:2.78,kabZ:-0.46,vu:0.88,hu:1.18,stufe:false},
+  suv  : {L:4.58,B:1.87,H:1.68,rad:0.365,kabL:2.52,kabZ:-0.34,vu:0.90,hu:0.98,stufe:false},
+  van  : {L:4.55,B:1.83,H:1.70,rad:0.330,kabL:2.70,kabZ:-0.22,vu:0.87,hu:0.96,stufe:false},
+  klein: {L:4.05,B:1.74,H:1.46,rad:0.305,kabL:2.06,kabZ:-0.34,vu:0.72,hu:0.78,stufe:false}
+};
+let _lackM=null,_gummiM=null;
+function autoMats(){
+  if(!_lackM){
+    /* Lack spiegelt, Gummi nicht - in einem Mesh ginge das nicht */
+    _lackM=new THREE.MeshStandardMaterial({vertexColors:true,roughness:0.34,metalness:0.22});
+    _gummiM=new THREE.MeshStandardMaterial({vertexColors:true,roughness:0.92,metalness:0.02});
+  }
+}
 function makeAuto(col,form){
-  /* Karosserie aus vielen weich abgerundeten Volumen statt aus Kisten:
-     Motorhaube, geneigte Scheiben, Dachbogen, Radlaeufe, Schweller,
-     Leuchten mit Glas, Spiegel, Griffe, Kennzeichen, Auspuff. */
-  form=form||pick(['kombi','limo','van','suv']);
-  const parts=[], dark=0x14161c, glas=0x1d2836, chrome=0xb9bec8, gummi=0x0f1116;
+  form=AUTOFORM[form]?form:pick(['limo','kombi','suv','van','klein']);
+  autoMats();
+  const F=AUTOFORM[form];
+  const L=F.L, B=F.B, rad=F.rad, kabL=F.kabL, kabZ=F.kabZ;
+  const schwelle=rad*0.92;                  /* Unterkante Tuer        */
+  const gurt=F.H*(F.stufe?0.655:0.640);     /* Unterkante Seitenfenster */
+  const dach=F.H;                           /* Dachhaut               */
+  const gh=dach-gurt;                       /* Hoehe der Fahrgastzelle */
+  const vA= L/2-F.vu, hA=-(L/2-F.hu);       /* Radmitten */
+  const RX=B/2-0.125;                       /* Rad buendig unter der Flanke */
+
+  const lack=[], gummi=[];
+  const dunkel=0x15171d, glas=0x1a2431, chrome=0xb9bec8, alu=0xa8aeb8;
   const SEG=HIQ?4:2;
   const RB=(w,h,d,r)=>roundedBoxGeo(w,h,d,r,SEG);
-  const CY=(r1,r2,h,sg)=>new THREE.CylinderGeometry(r1,r2,h,sg||(HIQ?20:12));
-  const P=(geo,x,y,z,rx,ry,rz,c)=>parts.push({geo,m:tm(x,y,z,rx||0,ry||0,rz||0),color:c});
+  const CY=(r1,r2,h,sg)=>new THREE.CylinderGeometry(r1,r2,h,sg||(HIQ?18:10));
+  const P=(a,geo,x,y,z,rx,ry,rz,c)=>a.push({geo,m:tm(x,y,z,rx||0,ry||0,rz||0),color:c});
+  const K=(geo,x,y,z,rx,ry,rz,c)=>P(lack,geo,x,y,z,rx,ry,rz,c);
+  const G=(geo,x,y,z,rx,ry,rz,c)=>P(gummi,geo,x,y,z,rx,ry,rz,c);
 
-  const L = form==='van'?4.75 : form==='suv'?4.5 : form==='kombi'?4.45 : 4.25;
-  const B = form==='van'?1.92 : form==='suv'?1.9 : 1.8;
-  const bodenY = form==='suv'?0.36 : form==='van'?0.34 : 0.28;
-  const kabH = form==='van'?1.22 : form==='suv'?0.82 : 0.66;
-  const kabL = form==='kombi'?2.6 : form==='van'?3.2 : form==='suv'?2.4 : 2.05;
-  const kabZ = form==='kombi'?-0.08 : form==='van'?0.06 : -0.22;
-  const gY = bodenY+0.58;                       // Guerteillinie
+  /* ---------- Karosserie ----------
+     Drei uebereinanderliegende Volumen geben die Flanke: unten schmal
+     (Schweller), in der Mitte am breitesten, zur Guertellinie wieder
+     eingezogen. Das ist die Form, die ein Auto von vorn rund macht. */
+  const kh=gurt-schwelle;                   /* Hoehe der Flanke */
+  /* Eine einzige, stark gerundete Box. Drei gestufte Volumen gaben an
+     der Flanke zwei waagerechte Kanten, die im Streiflicht wie Wuelste
+     aussahen - eine Autotuer ist aber fast plan. */
+  K(RB(B,kh,L-0.02,0.30), 0, schwelle+kh/2, 0, 0,0,0, col);
+  /* flache Sicke unter den Fenstern, nur ein Zentimeter tief */
+  K(RB(B+0.012,kh*0.16,L-0.60,0.03), 0, gurt-kh*0.30, 0, 0,0,0, col);
+  /* Schweller bleibt matt und ist kaum schmaler als die Flanke */
+  G(RB(B-0.015,0.11,L-1.45,0.04), 0, schwelle+0.02, 0, 0,0,0, 0x1b1e24);
 
-  /* Bodengruppe und Schweller */
-  P(RB(B-0.1,0.3,L-0.3,0.1),0,bodenY+0.12,0,0,0,0,dark);
-  for(const s2 of [-1,1]) P(RB(0.1,0.17,L-1.6,0.05),s2*(B/2-0.04),bodenY+0.12,0,0,0,0,gummi);
+  /* Motorhaube: vom Fuss der Frontscheibe bis zur Nase, leicht fallend */
+  const hz0=kabZ+kabL/2, hz1=L/2-0.06, hL=hz1-hz0;
+  K(RB(B-0.12,0.17,hL,0.13), 0, gurt-0.03, (hz0+hz1)/2, -0.055,0,0, col);
+  /* Haubenfuge statt zweiter Platte: die lag ueber der Guertellinie
+     und stand als heller Wulst ueber der Nase. */
+  for(const s of [-1,1])
+    K(RB(0.012,0.02,hL-0.18,0.005), s*(B/2-0.20), gurt+0.015-0.055*0, (hz0+hz1)/2+0.04, -0.055,0,0, 0x0d0f14);
+  /* Heck: Kofferraumdeckel oder steile Klappe */
+  const kz0=-(L/2-0.10), kz1=kabZ-kabL/2;
+  if(F.stufe) K(RB(B-0.16,0.15,kz1-kz0,0.12), 0, gurt-0.03, (kz0+kz1)/2, 0.035,0,0, col);
+  else        K(RB(B-0.16,gh*0.86,0.34,0.14), 0, gurt+gh*0.43, kz1-0.06, 0,0,0, col);
 
-  /* Hauptvolumen: drei ueberlappende Koerper geben eine weiche Flanke */
-  P(RB(B,0.62,L,0.26),0,gY-0.1,0,0,0,0,col);
-  P(RB(B-0.06,0.3,L-0.5,0.14),0,gY+0.2,0,0,0,0,col);
-  /* Motorhaube faellt nach vorn ab */
-  P(RB(B-0.12,0.22,1.35,0.16),0,gY+0.28,L/2-0.78,-0.05,0,0,col);
-  P(RB(B-0.2,0.12,0.7,0.1),0,gY+0.3,L/2-0.3,-0.14,0,0,col);
-  /* Heck */
-  if(form==='kombi'||form==='van') P(RB(B-0.08,kabH*0.9,0.5,0.16),0,gY+0.2+kabH*0.45,-L/2+0.3,0,0,0,col);
-  else P(RB(B-0.16,0.2,0.85,0.12),0,gY+0.28,-L/2+0.5,0.07,0,0,col);
-
-  /* Fahrgastzelle: Dachbogen aus drei Lagen */
-  P(RB(B-0.14,kabH,kabL,0.24),0,gY+0.2+kabH/2,kabZ,0,0,0,col);
-  P(RB(B-0.3,0.16,kabL-0.5,0.1),0,gY+0.2+kabH+0.04,kabZ,0,0,0,col);
-  /* Seitenscheiben und Heckscheibe als eigene, leicht eingelassene Flaechen */
-  P(RB(B-0.06,kabH*0.6,kabL-0.34,0.12),0,gY+0.26+kabH*0.52,kabZ,0,0,0,glas);
-  /* Frontscheibe geneigt */
-  P(RB(B-0.22,0.62,0.16,0.05),0,gY+0.2+kabH*0.55,kabZ+kabL/2+0.03,-0.44,0,0,glas);
+  /* ---------- Fahrgastzelle ----------
+     Aufgebaut wie am echten Auto: rundum Glas, davor die Saeulen,
+     darauf die Dachhaut. Vorher waren Front- und Heckscheibe schraege
+     Platten, die vor der Zelle in der Luft standen - von der Seite ein
+     schwarzer Keil ueber der Motorhaube. Jetzt schliessen sie die
+     Zelle vorn und hinten bündig ab, und das Dach dazwischen ist
+     genau so lang, wie die beiden Neigungen uebrig lassen. */
+  const aF=0.60, aH=F.stufe?0.52:0.20;        /* Neigung Front / Heck */
+  const wsZ=gh*Math.tan(aF), rwZ=gh*Math.tan(aH);
+  const zF=kabZ+kabL/2, zH=kabZ-kabL/2;       /* Fuss der Scheiben */
+  const dachL=Math.max(0.42,kabL-wsZ-rwZ);
+  const dachZ=zF-wsZ-dachL/2;
+  const mY=(gurt+dach)/2;
+  /* Seitenfenster als durchgehendes Glasband */
+  { const gl0=zH+rwZ*0.30, gl1=zF-wsZ*0.72;
+    for(const s of [-1,1])
+      K(RB(0.035,gh*0.92,gl1-gl0,0.03), s*(B/2-0.085), gurt+gh*0.50, (gl0+gl1)/2, 0,0,0, glas); }
+  /* Frontscheibe: Fuss auf der Guertellinie, Kopf an der Dachkante */
+  K(RB(B-0.26,gh/Math.cos(aF),0.05,0.02), 0, mY, zF-wsZ/2, -aF,0,0, glas);
   /* Heckscheibe */
-  P(RB(B-0.26,0.5,0.14,0.05),0,gY+0.2+kabH*0.58,kabZ-kabL/2-0.02,form==='kombi'?-0.12:0.42,0,0,glas);
-  /* Fensterrahmen in Chrom */
-  for(const s2 of [-1,1]) P(RB(0.035,0.04,kabL-0.32,0.015),s2*(B/2-0.04),gY+0.24+kabH*0.82,kabZ,0,0,0,chrome);
-  /* B-Saeule */
-  for(const s2 of [-1,1]) P(RB(0.05,kabH*0.62,0.11,0.02),s2*(B/2-0.045),gY+0.26+kabH*0.52,kabZ-0.1,0,0,0,0x23272f);
-  /* Dach mit Schnee */
-  P(RB(B-0.36,0.06,kabL-0.6,0.03),0,gY+0.28+kabH+0.04,kabZ,0,0,0,0xe8ecf2);
+  K(RB(B-0.30,gh/Math.cos(aH),0.05,0.02), 0, mY, zH+rwZ/2,  aH,0,0, glas);
+  /* A- und C-Saeule liegen auf den Scheibenkanten */
+  for(const s of [-1,1]){
+    K(RB(0.075,gh/Math.cos(aF),0.075,0.03), s*(B/2-0.095), mY, zF-wsZ/2, -aF,0,0, col);
+    K(RB(0.075,gh/Math.cos(aH),0.075,0.03), s*(B/2-0.105), mY, zH+rwZ/2,  aH,0,0, col);
+    /* B-Saeule und Dachkante */
+    K(RB(0.055,gh*0.94,0.085,0.02), s*(B/2-0.08), gurt+gh*0.50, kabZ+kabL*0.02, 0,0,0, 0x1e222a);
+    K(RB(0.05,0.07,dachL,0.02), s*(B/2-0.10), dach-0.05, dachZ, 0,0,0, col);
+    K(RB(0.028,0.03,dachL,0.01), s*(B/2-0.115), dach-0.015, dachZ, 0,0,0, chrome);
+    /* Fensterbruestung in Chrom */
+    K(RB(0.03,0.035,kabL-rwZ*0.5-wsZ*0.8,0.012), s*(B/2-0.07), gurt+0.02,
+      kabZ+(rwZ*0.25-wsZ*0.4), 0,0,0, chrome);
+  }
+  /* Dachhaut und Schnee darauf */
+  K(RB(B-0.19,0.075,dachL+0.06,0.03), 0, dach-0.038, dachZ, 0,0,0, col);
+  K(RB(B-0.33,0.022,dachL-0.16,0.01), 0, dach+0.001, dachZ, 0,0,0, 0xe8ecf2);
 
-  /* Radlaeufe und Raeder */
-  const rad = form==='suv'?0.38 : form==='van'?0.36 : 0.33;
-  const RX=B/2-0.03, RZ=L/2-1.12;
-  for(const [sx,sz] of [[-1,-1],[1,-1],[-1,1],[1,1]]){
-    const x=sx*RX, z=sz*RZ;
-    /* Kotfluegelbogen */
-    P(new THREE.TorusGeometry(rad+0.08,0.075,HIQ?8:5,HIQ?18:10,Math.PI),x-sx*0.03,rad+0.02,z,0,Math.PI/2,0,col);
-    /* Reifen mit Flanke und Profil */
-    P(CY(rad,rad,0.23),x,rad,z,0,0,Math.PI/2,gummi);
-    P(CY(rad*0.99,rad*0.99,0.245,HIQ?24:12),x,rad,z,0,0,Math.PI/2,0x191c22);
-    /* Felge, Speichen, Nabe */
-    P(CY(rad*0.66,rad*0.66,0.255),x*1.005,rad,z,0,0,Math.PI/2,0x9aa1ac);
+  /* ---------- Raeder ----------
+     Reifen mit Flanke, Felge innen dunkel und offen, davor Speichen
+     und Felgenhorn. Radlauf als halber Ring in Wagenfarbe. */
+  for(const sx of [-1,1]) for(const z of [vA,hA]){
+    const x=sx*RX;
+    K(new THREE.TorusGeometry(rad+0.055,0.07,HIQ?8:5,HIQ?18:10,Math.PI),
+      x-sx*0.035, rad+0.01, z, 0,Math.PI/2,0, col);
+    G(CY(rad,rad,0.205),                 x, rad, z, 0,0,Math.PI/2, 0x16181c);
+    G(CY(rad*0.995,rad*0.995,0.215,HIQ?24:12), x, rad, z, 0,0,Math.PI/2, 0x1d2027);
+    /* dunkle Felgenschuessel - das Loch, durch das man die Bremse sieht */
+    G(CY(rad*0.63,rad*0.63,0.225),       x*1.004, rad, z, 0,0,Math.PI/2, 0x2a2e35);
+    K(new THREE.TorusGeometry(rad*0.615,0.026,6,HIQ?18:10),
+      x*1.018, rad, z, 0,Math.PI/2,0, alu);
     for(let k=0;k<5;k++){ const a=k/5*Math.PI*2;
-      P(RB(0.055,rad*0.9,0.05,0.02),x*1.02,rad+Math.cos(a)*rad*0.3,z+Math.sin(a)*rad*0.3,0,0,a,0x7d838c); }
-    P(CY(rad*0.2,rad*0.2,0.27,10),x*1.02,rad,z,0,0,Math.PI/2,0x5a6068);
-    P(CY(rad*0.08,rad*0.08,0.28,8),x*1.03,rad,z,0,0,Math.PI/2,chrome);
+      K(RB(0.045,rad*0.56,0.038,0.015),
+        x*1.016, rad+Math.cos(a)*rad*0.30, z+Math.sin(a)*rad*0.30, 0,0,a, alu); }
+    K(CY(rad*0.15,rad*0.15,0.235,10),    x*1.02, rad, z, 0,0,Math.PI/2, 0x8d939d);
+    K(CY(rad*0.055,rad*0.055,0.245,8),   x*1.03, rad, z, 0,0,Math.PI/2, chrome);
   }
 
-  /* Stossfaenger mit Unterfahrschutz */
-  P(RB(B+0.02,0.26,0.34,0.1),0,gY-0.3,L/2+0.02,0,0,0,0x2b2f38);
-  P(RB(B+0.02,0.26,0.34,0.1),0,gY-0.3,-L/2-0.02,0,0,0,0x2b2f38);
-  P(RB(B-0.3,0.09,0.2,0.04),0,gY-0.44,L/2+0.06,0,0,0,0x8f959e);
-  /* Grill mit Lamellen */
-  P(RB(B*0.55,0.2,0.1,0.03),0,gY-0.06,L/2+0.09,0,0,0,0x11141a);
-  for(let k=0;k<4;k++) P(RB(B*0.52,0.02,0.06,0.01),0,gY-0.12+k*0.045,L/2+0.11,0,0,0,chrome);
-  /* Scheinwerfer: Gehaeuse, Glas, zwei Reflektoren */
-  for(const s2 of [-1,1]){
-    P(RB(0.46,0.19,0.16,0.06),s2*(B/2-0.3),gY,L/2+0.02,0,0,0,0x1b1e25);
-    P(RB(0.42,0.15,0.09,0.04),s2*(B/2-0.3),gY,L/2+0.07,0,0,0,0xdfe8f4);
-    for(const dx of [-0.09,0.09]) P(CY(0.055,0.055,0.06,10),s2*(B/2-0.3)+dx,gY,L/2+0.1,Math.PI/2,0,0,0xf6f4ea);
+  /* ---------- Front und Heck ---------- */
+  const lampY=gurt-kh*0.30;
+  /* Stossfaenger sind lackiert und schliessen buendig ab; dunkel
+     bleibt nur die Schuerze darunter. Vorher standen vorn und hinten
+     zwei schwarze Kloetze ueber die Karosserie hinaus. */
+  K(RB(B-0.01,0.26,0.18,0.08), 0, schwelle+0.17,  L/2-0.10, 0,0,0, col);
+  K(RB(B-0.01,0.26,0.18,0.08), 0, schwelle+0.17, -L/2+0.10, 0,0,0, col);
+  G(RB(B-0.14,0.13,0.14,0.05), 0, schwelle+0.02,  L/2-0.08, 0,0,0, 0x24282f);
+  G(RB(B-0.14,0.13,0.14,0.05), 0, schwelle+0.02, -L/2+0.08, 0,0,0, 0x24282f);
+  G(RB(B-0.42,0.06,0.10,0.02), 0, schwelle-0.03,  L/2-0.06, 0,0,0, 0x6f757e);
+  /* Kuehlergrill */
+  K(RB(B*0.52,0.17,0.08,0.03), 0, lampY+0.02, L/2-0.02, 0,0,0, 0x101319);
+  for(let k=0;k<3;k++) K(RB(B*0.50,0.018,0.05,0.008), 0, lampY-0.04+k*0.05, L/2+0.005, 0,0,0, chrome);
+  for(const s of [-1,1]){
+    /* Scheinwerfer: dunkles Gehaeuse, Glas, zwei Reflektoren */
+    K(RB(0.42,0.15,0.13,0.05), s*(B/2-0.29), lampY+0.02, L/2-0.06, 0,0,0, 0x191c22);
+    K(RB(0.39,0.12,0.06,0.03), s*(B/2-0.29), lampY+0.02, L/2-0.01, 0,0,0, 0xcfdae8);
+    for(const dx of [-0.085,0.085])
+      K(CY(0.048,0.048,0.05,10), s*(B/2-0.29)+dx, lampY+0.02, L/2+0.01, Math.PI/2,0,0, 0xf6f4ea);
     /* Rueckleuchten */
-    P(RB(0.4,0.24,0.14,0.05),s2*(B/2-0.28),gY+0.03,-L/2-0.02,0,0,0,0x2a1214);
-    P(RB(0.34,0.18,0.07,0.03),s2*(B/2-0.28),gY+0.03,-L/2-0.07,0,0,0,0x9a2a24);
-    P(RB(0.1,0.1,0.06,0.02),s2*(B/2-0.44),gY+0.03,-L/2-0.08,0,0,0,0xe8b060);
-    P(RB(0.09,0.09,0.06,0.02),s2*(B/2-0.14),gY+0.03,-L/2-0.08,0,0,0,0xf2f2ee);
+    K(RB(0.36,0.20,0.11,0.04), s*(B/2-0.27), lampY+0.06, -L/2+0.05, 0,0,0, 0x2a1214);
+    K(RB(0.32,0.16,0.05,0.02), s*(B/2-0.27), lampY+0.06, -L/2+0.005,0,0,0, 0x9a2a24);
+    K(RB(0.09,0.08,0.04,0.015),s*(B/2-0.42), lampY+0.06, -L/2-0.005,0,0,0, 0xe8b060);
+    K(RB(0.08,0.07,0.04,0.015),s*(B/2-0.13), lampY+0.06, -L/2-0.005,0,0,0, 0xf2f2ee);
+    /* Spiegel am Fuss der A-Saeule */
+    K(RB(0.07,0.04,0.07,0.02), s*(B/2-0.02), gurt+gh*0.20, kabZ+kabL/2-0.10, 0,0,0, col);
+    K(RB(0.17,0.10,0.07,0.03), s*(B/2+0.07), gurt+gh*0.22, kabZ+kabL/2-0.14, 0,0,0.10, col);
+    K(RB(0.13,0.075,0.02,0.008),s*(B/2+0.11),gurt+gh*0.22, kabZ+kabL/2-0.14, 0,0,0.10, 0x4e545e);
+    /* Tuergriffe und Fugen */
+    for(const dz of [kabZ+kabL*0.20, kabZ-kabL*0.24])
+      K(RB(0.035,0.038,0.17,0.014), s*(B/2+0.002), gurt-0.10, dz, 0,0,0, chrome);
+    K(RB(0.01,kh*0.80,0.016,0.004), s*(B/2+0.006), schwelle+kh*0.52, kabZ+kabL/2-0.16, 0,0,0, 0x0d0f14);
+    K(RB(0.01,kh*0.62,0.016,0.004), s*(B/2+0.006), schwelle+kh*0.52, kabZ-kabL*0.30, 0,0,0, 0x0d0f14);
   }
   /* Kennzeichen */
-  for(const sz of [1,-1]) P(RB(0.52,0.12,0.03,0.01),0,gY-0.34,sz*(L/2+0.19),0,0,0,0xf2f2ee);
-  /* Spiegel mit Arm */
-  for(const s2 of [-1,1]){
-    P(RB(0.09,0.05,0.09,0.02),s2*(B/2+0.02),gY+0.42,kabZ+kabL/2-0.12,0,0,0,col);
-    P(RB(0.2,0.12,0.08,0.03),s2*(B/2+0.1),gY+0.44,kabZ+kabL/2-0.17,0,0,0.12,col);
-    P(RB(0.16,0.09,0.02,0.01),s2*(B/2+0.14),gY+0.44,kabZ+kabL/2-0.17,0,0,0.12,0x59606b);
-  }
-  /* Tuergriffe, Fuge, Tankklappe */
-  for(const s2 of [-1,1]){
-    for(const dz of [kabZ+0.35,kabZ-0.55]) P(RB(0.045,0.05,0.2,0.018),s2*(B/2+0.005),gY+0.16,dz,0,0,0,chrome);
-    P(RB(0.012,0.62,0.02,0.005),s2*(B/2+0.008),gY,kabZ+kabL/2-0.18,0,0,0,0x0f1116);
-    P(RB(0.012,0.44,0.02,0.005),s2*(B/2+0.008),gY,kabZ-kabL/2+0.22,0,0,0,0x0f1116);
-  }
-  P(RB(0.02,0.18,0.18,0.02),B/2+0.005,gY+0.02,-L/2+0.95,0,0,0,0x0f1116);
-  /* Scheibenwischer */
-  for(const s2 of [-1,1]) P(RB(0.42,0.02,0.02,0.008),s2*0.3,gY+0.24,kabZ+kabL/2+0.16,0,0,s2*0.25,0x1b1e25);
-  /* Auspuff */
-  P(CY(0.045,0.05,0.16,10),0.42,gY-0.46,-L/2-0.06,Math.PI/2,0,0,chrome);
-  /* Antenne */
-  P(CY(0.012,0.018,0.28,6),0,gY+0.3+kabH,kabZ-kabL/2+0.1,0.25,0,0,0x23272f);
+  for(const sz of [1,-1]) K(RB(0.50,0.11,0.025,0.01), 0, schwelle+0.20, sz*(L/2+0.02), 0,0,0, 0xf2f2ee);
+  /* Tankklappe, Scheibenwischer, Auspuff, Antenne */
+  K(RB(0.012,0.16,0.16,0.015), B/2+0.006, gurt-kh*0.30, hA-0.22, 0,0,0, 0x0d0f14);
+  for(const s of [-1,1])
+    K(RB(0.38,0.018,0.018,0.007), s*0.28, gurt+0.03, kabZ+kabL/2+0.12, 0,0,s*0.22, 0x1b1e25);
+  G(CY(0.04,0.045,0.13,10), 0.40, schwelle-0.02, -L/2-0.02, Math.PI/2,0,0, 0x9aa1ac);
+  K(CY(0.009,0.014,0.24,6), 0, dach+0.09, kabZ-kabL/2+0.16, 0.22,0,0, 0x23272f);
 
-  const mesh=new THREE.Mesh(merge(parts),vcMat);
-  if(HIQ){ mesh.castShadow=true; mesh.receiveShadow=true; }
-  return mesh;
+  const g=new THREE.Group();
+  const m1=new THREE.Mesh(merge(lack),_lackM);
+  const m2=new THREE.Mesh(merge(gummi),_gummiM);
+  if(HIQ){ m1.castShadow=true; m1.receiveShadow=true; m2.castShadow=true; }
+  g.add(m1); g.add(m2);
+  return g;
 }
 function makeBaum(){
   /* Echter Winterbaum: Wurzelanlauf, sich verjuengender Stamm mit
@@ -411,8 +482,14 @@ function makeBaum(){
     const e={x:p.x+dir.x*l,y:p.y+dir.y*l,z:p.z+dir.z*l};
     const m={x:(p.x+e.x)/2,y:(p.y+e.y)/2,z:(p.z+e.z)/2};
     const len=Math.hypot(dir.x,dir.y,dir.z)*l;
-    /* Ausrichtung: Zylinder zeigt in +y, also um x und z kippen */
-    const rz=Math.atan2(dir.x,dir.y), rx=-Math.atan2(dir.z,Math.hypot(dir.x,dir.y));
+    /* Ausrichtung: der Zylinder zeigt in +y und wird um x und z
+       gekippt. Bei der Eulerfolge XYZ gilt R = Rz*Rx, angewandt auf
+       (0,1,0) ergibt das (-cos(rx)*sin(rz), cos(rx)*cos(rz), sin(rx)).
+       Beide Winkel hatten hier das falsche Vorzeichen: die Segmente
+       zeigten spiegelverkehrt, waehrend die Kinderaeste am richtig
+       gerechneten Endpunkt ansetzten - daher die Aeste, die frei im
+       Himmel hingen. */
+    const rz=-Math.atan2(dir.x,dir.y), rx=Math.atan2(dir.z,Math.hypot(dir.x,dir.y));
     parts.push({geo:new THREE.CylinderGeometry(r1,r0,len,Math.max(4,SEG-(r0<0.05?3:0))),
       m:tm(m.x,m.y,m.z,rx,0,rz),color:col});
     /* Knoten an der Gabelung, damit keine Kante klafft */
@@ -432,7 +509,7 @@ function makeBaum(){
     /* Schneeauflage auf der Oberseite des Astes */
     if(r>0.035) parts.push({geo:new THREE.CylinderGeometry(r*0.42,r*0.62,l*0.5,4),
       m:tm((p.x+e1.x)/2,(p.y+e1.y)/2+r*0.7,(p.z+e1.z)/2,
-           -Math.atan2(d1.z,Math.hypot(d1.x,d1.y)),0,Math.atan2(d1.x,d1.y)),color:SCHNEE});
+           Math.atan2(d1.z,Math.hypot(d1.x,d1.y)),0,-Math.atan2(d1.x,d1.y)),color:SCHNEE});
     if(d<=0){
       /* Feine Endzweige */
       for(let k=0;k<3;k++){
@@ -675,7 +752,7 @@ function buildStreet(){
     bbox(w,h,8,std(pick([0x5a5f6b,0x6b6258,0x4f5560,0x6a5f55]),{roughness:1}),-72+i*(COARSE?19:9.6),h/2,40,null,false); }
   // Autos am gegenüberliegenden Bordstein
   const carCols=[0xb8bcc4,0x2a3442,0x8a2f28,0x2f5d9e,0x3c4a3a,0xd8d4cc,0x6a5f55];
-  for(let i=0;i<(COARSE?4:7);i++){ const c=makeAuto(pick(carCols),pick(['kombi','limo','van','suv','limo'])); c.position.set(-22+i*6.6+rand(-0.5,0.5),0,16.1); c.rotation.y=Math.PI/2+rand(-0.03,0.03); scene.add(c); }
+  for(let i=0;i<(COARSE?4:7);i++){ const c=makeAuto(pick(carCols),pick(['kombi','limo','van','suv','klein','limo'])); c.position.set(-22+i*6.6+rand(-0.6,0.6),0,16.0+rand(-0.12,0.12)); c.rotation.y=Math.PI/2+rand(-0.035,0.035); scene.add(c); }
   buildNachbar();
   buildMuelleimer(-3.1,7.55,0.4); buildMuelleimer(5.6,7.55,-0.3);
   // Bäume und Stadtmöbel auf unserer Seite

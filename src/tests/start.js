@@ -39,14 +39,15 @@ const fs=require('fs');
     return o;
   })));
   const B=[
-    ['a-laden-ost',      2.0,  1.0, -Math.PI/2, -0.02],
-    ['b-laden-mitte',   -2.5,  1.5, -Math.PI/2,  0.02],
-    ['c-laden-sued',     0.0,  3.0,  0.0,        0.0 ],
-    ['d-lager-sued',   -14.0, -2.0,  0.0,        0.02],
-    ['e-lager-nord',   -14.0, -2.0,  Math.PI,    0.02],
-    ['f-vor-dem-laden',  0.0, 11.0,  Math.PI,    0.04],
-    ['g-himmel',         0.0,  1.5, -Math.PI/2,  0.9 ]
+    ['auto-seite',      -8.0, 13.6,  Math.PI,       0.02],
+    ['auto-schraeg',   -12.0, 12.2,  Math.PI*0.72,  0.02],
+    ['auto-front',      -2.0, 13.2,  Math.PI*1.25,  0.02],
+    ['baum',           -11.0,  6.2,  Math.PI,       0.34],
+    ['baum2',          -14.5,  8.0,  Math.PI*0.80,  0.30]
   ];
+
+
+
   for(const [n,x,z,yaw,pit] of B){
     await p.evaluate(v=>window.__bb.setView(v[0],v[1],v[2],v[3]),[x,z,yaw,pit]);
     const d=await p.evaluate(()=>{ window.__bb.clock=760; return window.__bb.shot(); });

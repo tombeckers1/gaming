@@ -42,57 +42,38 @@ function applyZonen(){
 }
 
 /* --------------------------------------------------------
-   Bauwand: Trockenbau mit Staenderwerk, Folie und Schild
+   Noch nicht gekaufte Bereiche liegen hinter einer ganz normalen
+   Wand: gleiches Material, gleiche Fugen, gleiche Sockelleiste wie
+   im uebrigen Raum. Wer den Laden betritt, sieht schlicht eine Wand.
+   Beim Kauf faellt sie weg und der Laden ist einfach groesser.
    -------------------------------------------------------- */
-function bauwandTex(text,unter){
-  return tex(1024,512,(g,W,H)=>{
-    g.fillStyle='#d9d4c6'; g.fillRect(0,0,W,H);
-    /* Gipsplatten mit Fugen und Spachtelstellen */
-    for(let x=0;x<W;x+=256){ g.fillStyle='rgba(150,142,126,.35)'; g.fillRect(x,0,3,H); }
-    for(let y=0;y<H;y+=256){ g.fillStyle='rgba(150,142,126,.28)'; g.fillRect(0,y,W,3); }
-    for(let i=0;i<46;i++){ g.fillStyle=`rgba(236,232,220,${rand(0.3,0.75)})`;
-      g.beginPath(); g.ellipse(Math.random()*W,Math.random()*H,rand(14,52),rand(8,26),Math.random()*3,0,Math.PI*2); g.fill(); }
-    for(let i=0;i<2400;i++){ g.fillStyle=`rgba(0,0,0,${Math.random()*0.045})`; g.fillRect(Math.random()*W,Math.random()*H,2,2); }
-    /* Schraubenkoepfe im Raster */
-    for(let x=28;x<W;x+=128) for(let y=40;y<H;y+=96){
-      g.fillStyle='rgba(120,112,98,.5)'; g.beginPath(); g.arc(x,y,3.2,0,Math.PI*2); g.fill(); }
-    /* Bauschild */
-    const bw=W*0.56, bh=H*0.42, bx=(W-bw)/2, by=(H-bh)/2;
-    g.fillStyle='rgba(0,0,0,.18)'; g.fillRect(bx+8,by+10,bw,bh);
-    g.fillStyle='#f4f2ea'; g.fillRect(bx,by,bw,bh);
-    g.fillStyle='#1b2340'; g.fillRect(bx,by,bw,58);
-    g.textAlign='center'; g.textBaseline='middle';
-    g.fillStyle='#ffd23f'; g.font=BUN(34); g.fillText('BAUSTELLE',bx+bw/2,by+30);
-    g.fillStyle='#1b2340'; fitFont(g,text,bw-60,44,BUN); g.fillText(text,bx+bw/2,by+bh*0.48);
-    g.fillStyle='#5a6070'; g.font=BAR(28); g.fillText(unter,bx+bw/2,by+bh*0.72);
-    g.strokeStyle='#c8322a'; g.lineWidth=6; g.strokeRect(bx+10,by+68,bw-20,bh-80);
-    /* Absperrband quer */
-    for(const y of [H*0.16,H*0.84]){
-      g.save(); g.translate(0,y); g.rotate(-0.03);
-      for(let k=0;k<26;k++){ g.fillStyle=k%2?'#f2c230':'#1f1f24'; g.fillRect(k*W/26,-16,W/26+12,32); }
-      g.restore();
-    }
-  });
+let _sockelM=null;
+function sockelM(){ if(!_sockelM) _sockelM=std(0x1a2038); return _sockelM; }
+/* Eine Wand, die nicht den Blick auf Regale verstellen soll:
+   sie liegt nicht in der Liste, die der Zielstrahl abfragt. */
+function stilleWand(x0,x1,z0,z1,y0,y1,inFace,inMat,exMat){
+  const m=wall(x0,x1,z0,z1,y0,y1,inFace,inMat,exMat);
+  const i=occluders.indexOf(m); if(i>=0) occluders.splice(i,1);
+  return m;
 }
-/* Eine Bauwand von (x0,z0) bis (x1,z1), Hoehe h */
-function bauwand(id,x0,z0,x1,z1,h,text,unter){
-  const laengs=Math.abs(x1-x0)>Math.abs(z1-z0);
-  const len=laengs?Math.abs(x1-x0):Math.abs(z1-z0);
-  const cx=(x0+x1)/2, cz=(z0+z1)/2;
-  const t=bauwandTex(text,unter); t.wrapS=THREE.RepeatWrapping; t.repeat.set(Math.max(1,len/6),1); t.anisotropy=8;
-  const m=new THREE.MeshStandardMaterial({map:t,roughness:0.92});
-  const kante=std(0x9aa1ac,{metalness:0.5,roughness:0.5});
-  const w=laengs?len:0.16, d=laengs?0.16:len;
-  zWand(id,bbox(w,h,d,m,cx,h/2,cz,null,true));
-  /* Staenderwerk sichtbar an den Kanten */
-  zWand(id,bbox(laengs?len+0.06:0.1,0.1,laengs?0.1:len+0.06,kante,cx,h-0.05,cz,null,false));
-  zWand(id,bbox(laengs?len+0.06:0.1,0.08,laengs?0.1:len+0.06,kante,cx,0.04,cz,null,false));
-  const n=Math.max(2,Math.round(len/1.6));
-  for(let i=0;i<=n;i++){
-    const f=i/n, px=laengs?(x0+(x1-x0)*f):cx, pz=laengs?cz:(z0+(z1-z0)*f);
-    zWand(id,bbox(laengs?0.08:0.12,h-0.1,laengs?0.12:0.08,kante,px,h/2,pz,null,false));
+/* Scheuerleiste auf beiden Seiten einer Wandflucht */
+function sockelLeiste(id,laengs,fest,a0,a1){
+  for(const s of [-1,1]){
+    const o=laengs
+      ? bbox(a1-a0,0.1,0.02,sockelM(),(a0+a1)/2,0.05,fest+s*(LW/2+0.011),null,false)
+      : bbox(0.02,0.1,a1-a0,sockelM(),fest+s*(LW/2+0.011),0.05,(a0+a1)/2,null,false);
+    if(id) zWand(id,o);
   }
-  zWandCol(id,col(Math.min(x0,x1)-0.1,Math.max(x0,x1)+0.1,Math.min(z0,z1)-0.1,Math.max(z0,z1)+0.1));
+}
+/* Fuellung einer vorbereiteten Oeffnung. laengs = die Wand laeuft in x. */
+function trennwand(id,laengs,fest,a0,a1,h,innen,aussen){
+  const m=laengs
+    ? stilleWand(a0,a1,fest-LW/2,fest+LW/2,0,h,'-z',innen,aussen||innen)
+    : stilleWand(fest-LW/2,fest+LW/2,a0,a1,0,h,'-x',innen,aussen||innen);
+  zWand(id,m);
+  if(innen===shopWall) sockelLeiste(id,laengs,fest,a0,a1);
+  zWandCol(id,laengs?col(a0,a1,fest-LW/2,fest+LW/2):col(fest-LW/2,fest+LW/2,a0,a1));
+  return m;
 }
 
 /* =========================================================
@@ -175,6 +156,8 @@ function halle(id,r,opt){
 
 /* Eine Wand mit vorbereiteten Durchbruechen. Pfeiler und Sturz
    bleiben stehen, die Fuellungen fallen beim Kauf des Bereichs.
+   Solange sie stehen, sieht man ihnen nichts an - es ist dieselbe
+   Wand wie daneben, nur eben durchgehend.
    laengs = die Wand laeuft in x-Richtung. */
 function durchbruchWand(id,laengs,fest,von,bis,oeffnungen,mat,exMat,sturzY,hoehe){
   const H=hoehe||WH, sy=sturzY||2.7;
@@ -185,24 +168,14 @@ function durchbruchWand(id,laengs,fest,von,bis,oeffnungen,mat,exMat,sturzY,hoehe
   const zc=(a2,b2)=>zWandCol(id,c(a2,b2));
   let x=von;
   for(const [oa,ob] of oeffnungen){
-    if(oa>x){ w(x,oa,0,H); c(x,oa); }
+    if(oa>x){ w(x,oa,0,H); c(x,oa); if(mat===shopWall) sockelLeiste(null,laengs,fest,x,oa); }
     w(oa,ob,sy,H);                       /* Sturz ueber der Oeffnung */
-    zc(oa,ob);                           /* sperrt, solange die Bauwand steht */
-    bauwand(id,laengs?oa:fest,laengs?fest:oa,laengs?ob:fest,laengs?fest:ob,sy,
-            ausbauText(id)[0],ausbauText(id)[1]);
+    zc(oa,ob);                           /* sperrt, solange die Fuellung steht */
+    trennwand(id,laengs,fest,oa,ob,sy,mat,exMat);
     x=ob;
   }
-  if(bis>x){ w(x,bis,0,H); c(x,bis); }
+  if(bis>x){ w(x,bis,0,H); c(x,bis); if(mat===shopWall) sockelLeiste(null,laengs,fest,x,bis); }
 }
-const AUSBAU_TEXT={
-  shop_gross:['VERKAUFSFLÄCHE OST','Nachbarlokal · über den Laptop freischalten'],
-  shop_ost  :['VERKAUFSFLÄCHE OST II','Zweites Nachbarlokal · über den Laptop'],
-  shop_sued :['VERKAUFSFLÄCHE SÜD','Rückgebäude · über den Laptop freischalten'],
-  lager_gross:['LAGER NORD','Anbau · über den Laptop freischalten'],
-  lager_sued :['LAGER SÜD','Hallenteil Süd · über den Laptop freischalten'],
-  lager_west :['LAGER WEST','Halle mit drei Rampen · über den Laptop']
-};
-function ausbauText(id){ return AUSBAU_TEXT[id]||['ERWEITERUNG','über den Laptop freischalten']; }
 
 function buildAusbau(){
   /* ---------- Verkaufsflaeche ----------
@@ -216,8 +189,8 @@ function buildAusbau(){
   durchbruchWand('shop_ost',false,LAY.ost1.x1,LAY.ost1.z0,LAY.ost1.z1,[[-4.2,4.2]],shopWall,shopWall);
   durchbruchWand('shop_sued',true,LAY.sued.z1,LAY.sued.x0,LAY.sued.x1,[[10.0,17.0],[24.0,32.0]],shopWall,shopWall);
   /* Die beiden ersten Durchbrueche stehen schon in 05c beziehungsweise
-     im Dock - hier kommt nur die Bauwand in die Oeffnung. */
-  bauwand('shop_gross',8.0,-4.4,8.0,4.4,2.7,ausbauText('shop_gross')[0],ausbauText('shop_gross')[1]);
+     im Dock - hier kommt nur die Fuellung in die Oeffnung. */
+  trennwand('shop_gross',false,8.0,-4.4,4.4,2.7,shopWall,shopWall);
 
   /* ---------- Lager ---------- */
   halle('lager_gross',LAY.lnord,{art:'lager',aussen:{n:true,w:true},h:ANBAU_H-0.06,keinDach:true});
@@ -230,7 +203,7 @@ function buildAusbau(){
   /* Sued nach West. Die Wand laeuft bis an die Suedwand des Basislagers
      durch - sonst bleibt zwischen Halle West und Hof ein Loch. */
   durchbruchWand('lager_west',false,LAY.lwest.x1,LAY.lwest.z0,LAY.lsued.z1,[[-26.0,-13.0]],lagerWall,lagerWall,3.4,HALLE_H);
-  bauwand('lager_gross',-19.0,1.9,-9.0,1.9,2.5,ausbauText('lager_gross')[0],ausbauText('lager_gross')[1]);
+  trennwand('lager_gross',true,2.0,-19.0,-9.0,2.6,lagerWall,lagerWall);
 
   /* ---------- Packstation, Rampen, Logistikzentrum ---------- */
   buildPackstation();
@@ -832,8 +805,19 @@ function buildLogistik(){
     bbox(0.14,0.3,0.24,std(0xf2c230,{roughness:0.6}),0.1,1.15,0,g2,false); }
   /* Bauschild am Zaun */
   { const sx=Z.x+0.16, sz=-6.0;
-    const t=bauwandTex('LOGISTIKZENTRUM','Bauabschnitt 2 · noch nicht zu haben');
-    t.repeat.set(1,1);
+    const t=tex(1024,460,(g,W,H)=>{
+      g.fillStyle='#f4f2ea'; g.fillRect(0,0,W,H);
+      for(let i=0;i<2600;i++){ g.fillStyle=`rgba(0,0,0,${Math.random()*0.035})`; g.fillRect(Math.random()*W,Math.random()*H,2,2); }
+      g.fillStyle='#1b2340'; g.fillRect(0,0,W,110);
+      g.textAlign='center'; g.textBaseline='middle';
+      g.fillStyle='#ffd23f'; g.font=BUN(58); g.fillText('LOGISTIKZENTRUM',W/2,57);
+      g.fillStyle='#1b2340'; g.font=BUN(52); g.fillText('BAUABSCHNITT 2',W/2,190);
+      g.fillStyle='#5a6070'; g.font=BAR(38);
+      g.fillText('Umschlag · Kommissionierung · Versand',W/2,258);
+      g.strokeStyle='#c8322a'; g.lineWidth=7; g.strokeRect(120,300,W-240,110);
+      g.fillStyle='#c8322a'; g.font=BUN(40); g.fillText('NOCH NICHT ZU HABEN',W/2,357);
+      g.strokeStyle='#c9c4b8'; g.lineWidth=8; g.strokeRect(4,4,W-8,H-8);
+    });
     zWand('logistik',plane(5.4,2.4,new THREE.MeshStandardMaterial({map:t,side:THREE.DoubleSide}),sx,1.45,sz,-Math.PI/2,null));
     for(const dz of [-2.4,2.4]) zWand('logistik',bbox(0.1,2.8,0.1,std(0x59606b,{metalness:0.6}),sx,1.4,sz+dz,null,false)); }
   /* Abgestellte Auflieger laengs auf dem Vorplatz - quer wuerden sie

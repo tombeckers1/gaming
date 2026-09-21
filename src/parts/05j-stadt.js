@@ -236,8 +236,6 @@ function buildFernsehturm(x,z){
   baueBeacon(x,H*0.72+9,z,false);
 }
 function buildKran(x,z,h,ry){
-  const g=new THREE.Group(); g.position.set(x,0,z); g.rotation.y=ry; scene.add(g);
-  const gelb=std(0xe0a520,{roughness:0.8});
   const gitter=[];
   /* Mast */
   for(let i=0;i<Math.round(h/3);i++){
@@ -253,8 +251,12 @@ function buildKran(x,z,h,ry){
   /* Seil und Haken */
   gitter.push({geo:new THREE.BoxGeometry(0.1,h*0.5,0.1),m:tm(18,h*0.75,0),color:0x3a3f48});
   gitter.push({geo:new THREE.BoxGeometry(0.7,0.7,0.7),m:tm(18,h*0.5,0),color:0x6a7078});
-  stadtAdd(new THREE.Mesh(merge(gitter),new THREE.MeshStandardMaterial({vertexColors:true,roughness:0.85})));
-  baueBeacon(x+Math.cos(ry)*0+0,h+3.6,z,false);
+  /* Das verschmolzene Gitter stand bisher im Nullpunkt statt am
+     Bauplatz - mitten im Laden. Position und Drehung gehoeren an das
+     Mesh, eine Gruppe drumherum braucht es nicht. */
+  const kran=stadtAdd(new THREE.Mesh(merge(gitter),new THREE.MeshStandardMaterial({vertexColors:true,roughness:0.85})));
+  kran.position.set(x,0,z); kran.rotation.y=ry;
+  baueBeacon(x,h+3.6,z,false);
 }
 function buildKirche(x,z,ry){
   const g=new THREE.Group(); g.position.set(x,0,z); g.rotation.y=ry; scene.add(g);

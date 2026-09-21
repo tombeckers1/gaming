@@ -45,7 +45,7 @@ const fs=require('fs');
     ['12-testfeld',       0.0,-22.0,  Math.PI,    0.04],
     ['13-strasse-ost',   24.0,  9.5, -Math.PI/2,  0.03],
     ['14-logistik',      30.0,  4.0, -Math.PI/2,  0.05],
-    ['15-ladenfront',    12.0, 19.0,  0.0,        0.06],
+    ['15-ladenfront',    12.0, 21.5,  0.0,        0.06],
     ['16-eck-sued',       11.0,-18.6,  Math.PI*0.25,-0.06],
     ['17-lagerhoch',    -12.0,-20.0,  0.0,        0.18]
   ];

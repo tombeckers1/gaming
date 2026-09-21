@@ -56,7 +56,25 @@ function setPost(on){
   toast(postOn?'Bildeffekte an.':'Bildeffekte aus.');
 }
 let postT=0;
+/* Der Schattenwurf der Sonne deckt nur einen Ausschnitt ab. Solange
+   der Laden zwei Raeume gross war, reichte ein fester Kasten um den
+   Nullpunkt; auf ueber tausend Quadratmetern lag der halbe Laden
+   ausserhalb - und was ausserhalb liegt, bekommt volle Sonne, auch
+   unter dem Dach. Deshalb laeuft der Kasten jetzt mit dem Spieler mit,
+   gerastert, damit die Schattenkanten nicht flimmern. */
+let _sunX=1e9, _sunZ=1e9;
+function sonneNachfuehren(){
+  if(!sun.castShadow) return;
+  const r=2, tx=Math.round(pl.x/r)*r, tz=Math.round(pl.z/r)*r;
+  if(tx===_sunX&&tz===_sunZ) return;
+  _sunX=tx; _sunZ=tz;
+  sun.position.set(tx-18,30,tz+26);
+  sun.target.position.set(tx,0,tz);
+  sun.target.updateMatrixWorld();
+  sun.shadow.camera.updateProjectionMatrix();
+}
 function renderFrame(dt){
+  sonneNachfuehren();
   if(!postOK||!postOn){ if(renderer.setRenderTarget) renderer.setRenderTarget(null); renderer.render(scene,camera); return; }
   try{
     postT+=dt||0.016;

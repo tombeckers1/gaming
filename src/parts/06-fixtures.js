@@ -488,6 +488,13 @@ function createShelf(i,data){
       plane(W*0.8,0.11,new THREE.MeshBasicMaterial({toneMapped:false,map:tex(256,36,(c,Wc,Hc)=>{ c.fillStyle='#0e2a44'; c.fillRect(0,0,Wc,Hc); c.fillStyle='#8fd6ff'; c.font=BUN(22); c.textAlign='center'; c.textBaseline='middle'; c.fillText('GEKÜHLT  4 °C',Wc/2,Hc/2+1); })}),0,top+0.12,D/2+0.005,0,fg);
     }
   });
+  /* Beim Eckregal bleibt zwischen den beiden Schenkeln eine tote Ecke.
+     Im Supermarkt steht dort ein Blindfeld - sonst schaut man durch
+     den Spalt auf die Wand. */
+  if(K.art==='ecke'){
+    bbox(0.52,top,0.52,std(0x4a5266,{roughness:0.8}),-0.6,top/2,-0.6,g);
+    bbox(0.56,0.06,0.56,std(0xe4e7ec,{roughness:0.7}),-0.6,top+0.03,-0.6,g,false);
+  }
   for(const k in GB) GB[k].dispose();
   sh.headY=top+(K.cold?0.34:0.18);
   sh.mov=addMovable({kind:'shelf',name:K.name,g,fw:(K.fw||W)+0.06,fd:(K.fd||D)+0.04,ref:sh,onPlace:()=>syncShelf(sh)});
@@ -684,7 +691,7 @@ function createRack(i,data){
   rk.schildTex=tex(512,256,()=>{});
   plane(0.52,0.26,new THREE.MeshStandardMaterial({roughness:0.6,map:rk.schildTex}),
     -XO+0.34,1.6,ZO+0.012,0,g);
-  bbox(0.56,0.3,0.012,std(0x2f3540,{metalness:0.4,roughness:0.5}),-XO+0.34,1.6,ZO+0.004,g,false);
+  bbox(0.56,0.3,0.012,std(0x8d939d,{metalness:0.4,roughness:0.55}),-XO+0.34,1.6,ZO+0.004,g,false);
   rk.mov=addMovable({kind:'rack',name:K.name,g,fw:BW+0.16,fd:2*ZO+0.14,ref:rk});
   rk.nr=racks.length; racks.push(rk); drawRackSchild(rk);
   if(data&&data.slots) data.slots.forEach((sd,k)=>{ if(sd&&P[sd.type]&&rk.slots[k]) putInSlot(rk.slots[k],sd.type,sd.count,sd.q); });

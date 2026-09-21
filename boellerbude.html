@@ -531,11 +531,11 @@ const CATNAME={0:'Zubehör',1:'F1',2:'F2'};
 
 /* Ausbau, Deko, Personal ---------------------------------- */
 const UPGRADES=[
-  {id:'shelf_klein',kat:'einr',lvl:1,name:'Kleines Regal',desc:'Drei schmale Fächer. Der günstige Einstieg.',cost:()=>SHELFKIND.klein.cost+SHELFKIND.klein.step*shelfCount('klein'),done:()=>shelves.length>=SLOTS.length},
-  {id:'shelf_standard',kat:'einr',lvl:4,name:'Verkaufsregal',desc:'Vier volle Fächer, doppelt so breit wie das kleine.',cost:()=>SHELFKIND.standard.cost+SHELFKIND.standard.step*shelfCount('standard'),done:()=>shelves.length>=SLOTS.length},
-  {id:'shelf_kuehl',kat:'einr',lvl:6,name:'Sekt-Kühlschrank',desc:'Glastüren, Innenlicht. Nimmt nur Sekt und Kindersekt, die verkaufen sich darin deutlich besser.',cost:()=>SHELFKIND.kuehl.cost+SHELFKIND.kuehl.step*shelfCount('kuehl'),done:()=>shelves.length>=SLOTS.length},
-  {id:'shelf_hoch',kat:'einr',lvl:10,name:'Hochregal',desc:'Fünf Fächer auf zwei Metern. Mehr Ware pro Stellfläche.',cost:()=>SHELFKIND.hoch.cost+SHELFKIND.hoch.step*shelfCount('hoch'),done:()=>shelves.length>=SLOTS.length},
-  {id:'rack',kat:'einr',lvl:3,name:'Lagerregal',desc:'Neun Stellplätze für Kartons im Lager.',cost:()=>120+80*(racks.length-1),done:()=>racks.length>=RACKS.length},
+  {id:'shelf_klein',kat:'einr',lvl:1,name:'Kleines Regal',desc:'Drei schmale Fächer. Der günstige Einstieg.',cost:()=>SHELFKIND.klein.cost+SHELFKIND.klein.step*shelfCount('klein'),done:()=>shelves.length>=slotsOffen().length},
+  {id:'shelf_standard',kat:'einr',lvl:4,name:'Verkaufsregal',desc:'Vier volle Fächer, doppelt so breit wie das kleine.',cost:()=>SHELFKIND.standard.cost+SHELFKIND.standard.step*shelfCount('standard'),done:()=>shelves.length>=slotsOffen().length},
+  {id:'shelf_kuehl',kat:'einr',lvl:6,name:'Sekt-Kühlschrank',desc:'Glastüren, Innenlicht. Nimmt nur Sekt und Kindersekt, die verkaufen sich darin deutlich besser.',cost:()=>SHELFKIND.kuehl.cost+SHELFKIND.kuehl.step*shelfCount('kuehl'),done:()=>shelves.length>=slotsOffen().length},
+  {id:'shelf_hoch',kat:'einr',lvl:10,name:'Hochregal',desc:'Fünf Fächer auf zwei Metern. Mehr Ware pro Stellfläche.',cost:()=>SHELFKIND.hoch.cost+SHELFKIND.hoch.step*shelfCount('hoch'),done:()=>shelves.length>=slotsOffen().length},
+  {id:'rack',kat:'einr',lvl:3,name:'Lagerregal',desc:'Neun Stellplätze für Kartons im Lager.',cost:()=>120+80*(racks.length-1),done:()=>racks.length>=RACKS.filter(r=>!r.zone||zoneOffen(r.zone)).length},
   {id:'plakat',kat:'markt',lvl:4,name:'Werbeplakate in der Stadt',desc:'Dauerhaft rund 30 Prozent mehr Kunden.',cost:()=>400,done:()=>S.up.plakat},
   {id:'terminal',kat:'einr',lvl:6,name:'Kontaktlos-Terminal',desc:'Kartenzahlung geht deutlich schneller.',cost:()=>320,done:()=>S.up.terminal},
   {id:'tag4',kat:'markt',lvl:7,name:'Sonntagsgenehmigung',desc:'Du darfst auch sonntags öffnen. Sonst ist Sonntag Ruhetag.',cost:()=>900,done:()=>S.up.tag4},
@@ -546,17 +546,16 @@ const UPGRADES=[
   {id:'regallicht',kat:'einr',lvl:11,name:'Regalbeleuchtung',desc:'Ware wirkt hochwertiger, bessere Stimmung.',cost:()=>700,done:()=>S.up.regallicht},
   {id:'alarm',kat:'einr',lvl:14,name:'Warensicherung',desc:'Diebe werden am Ausgang meistens gestoppt.',cost:()=>2200,done:()=>S.up.alarm},
   {id:'grosskunden',kat:'markt',lvl:6,name:'Eintrag im Branchenbuch',desc:'Pyrotechniker und Veranstalter rufen dich für Großbestellungen an.',cost:()=>500,done:()=>S.up.grosskunden},
-  {id:'onlineshop',kat:'markt',lvl:18,name:'Onlineshop',desc:'Bringt jeden Tag Umsatz nebenbei, abhängig von deinem Ruf.',cost:()=>3200,done:()=>S.up.onlineshop},
+  {id:'onlineshop',kat:'markt',lvl:18,name:'Onlineshop',desc:'Bringt jeden Tag Umsatz nebenbei, abhängig von deinem Ruf. Mit Packstation kommen die Bestellungen als echte Pakete ins Lager und bringen deutlich mehr.',cost:()=>3200,done:()=>S.up.onlineshop},
   {id:'kundenkarte',kat:'markt',lvl:21,name:'Stammkundenkarte',desc:'Stammkunden kommen öfter wieder und zahlen bereitwilliger.',cost:()=>2600,done:()=>S.up.kundenkarte},
   {id:'tafel',kat:'markt',lvl:23,name:'Digitale Werbetafel',desc:'Große Tafel an der Fassade. Noch einmal deutlich mehr Kundschaft.',cost:()=>4200,done:()=>S.up.tafel},
   {id:'lizenz',kat:'markt',lvl:25,name:'Großhandelslizenz',desc:'Alle Lieferanten geben dir zusätzlich zehn Prozent Nachlass.',cost:()=>6500,done:()=>S.up.lizenz},
   {id:'klima',kat:'einr',lvl:27,name:'Klima und Musikanlage XL',desc:'Deutlich bessere Stimmung, Kunden bleiben spürbar länger.',cost:()=>5400,done:()=>S.up.klima},
   {id:'meister',kat:'markt',lvl:30,name:'Meisterbrief Pyrotechnik',desc:'Die höchste Stufe. Großaufträge zahlen ein Drittel mehr.',cost:()=>12000,done:()=>S.up.meister},
-  {id:'shop_gross',kat:'flaeche',lvl:12,name:'Verkaufsfläche erweitern',desc:'Kauft das Nachbargrundstück rechts vom Laden. Die Wand wird durchbrochen, du bekommst rund 60 Quadratmeter mehr Fläche und Platz für weitere Regale.',cost:()=>9500,done:()=>S.up.shop_gross},
-  {id:'lager_gross',kat:'flaeche',lvl:15,name:'Lager erweitern',desc:'Der Anbau hinter dem Lager wird geöffnet. Platz für mehr Lagerregale und für die Packstation.',cost:()=>7800,done:()=>S.up.lager_gross},
-  {id:'packstation',kat:'flaeche',lvl:18,name:'Packstation für den Versand',desc:'Packtisch, Kartonlager und Abholrampe für den Paketdienst. Braucht das erweiterte Lager.',cost:()=>6400,done:()=>S.up.packstation},
-  {id:'tor2',kat:'flaeche',lvl:20,name:'Zweites Rolltor',desc:'Ein zweiter Wareneingang. Zwei Lieferungen können gleichzeitig andocken.',cost:()=>8200,done:()=>S.up.tor2},
-  {id:'kasse2',kat:'einr',lvl:16,name:'Zweite Kasse',desc:'Eine zweite Kasse halbiert die Schlange, wenn viel los ist.',cost:()=>3400,done:()=>S.up.kasse2},
+  {id:'shop_gross',kat:'flaeche',lvl:12,name:'Verkaufsfläche erweitern',desc:'Kauft das leerstehende Ladenlokal rechts nebenan. Die Ostwand wird durchbrochen, die Schaufenster werden entmauert: rund 78 Quadratmeter mehr Fläche und acht zusätzliche Regalplätze.',cost:()=>9500,done:()=>S.up.shop_gross},
+  {id:'lager_gross',kat:'flaeche',lvl:15,name:'Lager erweitern',desc:'Die Nordwand des Lagers wird zum Anbau hin durchbrochen. Sechs zusätzliche Lagerregale passen hinein, und erst hier ist Platz für die Packstation.',cost:()=>7800,done:()=>S.up.lager_gross},
+  {id:'packstation',kat:'flaeche',lvl:18,req:'lager_gross',name:'Packstation für den Versand',desc:'Packtisch, Waage, Etikettendrucker und Abholrampe. Zusammen mit dem Onlineshop kommen Bestellungen als echte Pakete herein: packen, auf die Rampe stellen, DDL holt am Abend ab.',cost:()=>6400,done:()=>S.up.packstation},
+  {id:'kasse2',kat:'einr',lvl:16,req:'shop_gross',name:'SB-Kassen',desc:'Zwei Selbstbedienungsterminals in der neuen Verkaufsfläche. Kunden mit wenig Ware zahlen dort selbst, das entlastet deine Schlange spürbar.',cost:()=>3400,done:()=>S.up.kasse2},
   {id:'gravur',kat:'einr',lvl:9,name:'Gravur-Automat',desc:'Kunden beschriften ihre eigene Rakete. Hohe Marge, du musst nur Blanko-Ware nachfüllen.',cost:()=>1200,done:()=>S.up.gravur}
 ];
 const DEKO=[
@@ -581,7 +580,8 @@ const STAFF=[
   {id:'auffueller',lvl:9,name:'Regalauffüller',desc:'Lädt den LKW aus, räumt ins Lager und füllt die Regale. Priorität einstellbar.',hire:450,wage:110},
   {id:'auffueller2',lvl:12,name:'Zweiter Auffüller',desc:'Zweites Paar Hände. Andere Priorität einstellen, dann greift es ineinander.',hire:600,wage:130},
   {id:'kassierer',lvl:11,name:'Kassierer',desc:'Scannt und kassiert selbstständig an der Kasse.',hire:600,wage:145},
-  {id:'security',lvl:13,name:'Sicherheitsdienst',desc:'Hält Diebe im Laden auf, bevor sie rauskommen.',hire:800,wage:190}
+  {id:'security',lvl:13,name:'Sicherheitsdienst',desc:'Hält Diebe im Laden auf, bevor sie rauskommen.',hire:800,wage:190},
+  {id:'packer',lvl:18,req:'packstation',name:'Versandmitarbeiter',desc:'Steht an der Packstation und packt die Onlinebestellungen, während du vorne im Laden bist.',hire:700,wage:165}
 ];
 const SUPPLIERS=[
   {id:'mertens',lvl:1,name:'Pyro Mertens',short:'Mertens',desc:'Dein Stammlieferant seit Jahren. Faire Preise, pünktlich, keine Überraschungen.',
@@ -706,8 +706,8 @@ const SHELFKIND={
   kuehl:{id:'kuehl',name:'Sekt-Kühlschrank',w:1.1,d:0.58,lv:[0.2,0.64,1.08,1.52],lvl:6,cost:430,step:155,amb:5,cold:true}
 };
 const SHELFORDER=['klein','standard','hoch','kuehl'];
-const SLOTS=[{x:-6.4,z:-5.5},{x:-4.2,z:-5.5},{x:-2.0,z:-5.5},{x:0.2,z:-5.5},{x:2.4,z:-5.5},{x:-4.2,z:-1.2},{x:-2.0,z:-1.2},{x:0.2,z:-1.2},{x:2.4,z:-1.2},{x:-6.4,z:-1.2}];
-const RACKS=[{x:-12.4,z:-5.35,ry:0},{x:-15.5,z:-5.35,ry:0},{x:-12.4,z:1.35,ry:Math.PI},{x:-15.5,z:1.35,ry:Math.PI},{x:-18.6,z:-5.35,ry:0},{x:-18.6,z:1.35,ry:Math.PI},{x:-9.3,z:-5.35,ry:0},{x:-9.3,z:1.35,ry:Math.PI}];
+const SLOTS=[{x:-6.4,z:-5.5},{x:-4.2,z:-5.5},{x:-2.0,z:-5.5},{x:0.2,z:-5.5},{x:2.4,z:-5.5},{x:-4.2,z:-1.2},{x:-2.0,z:-1.2},{x:0.2,z:-1.2},{x:2.4,z:-1.2},{x:-6.4,z:-1.2},{x:9.0,z:-5.5,zone:'shop_gross'},{x:11.2,z:-5.5,zone:'shop_gross'},{x:13.4,z:-5.5,zone:'shop_gross'},{x:9.0,z:-1.2,zone:'shop_gross'},{x:11.2,z:-1.2,zone:'shop_gross'},{x:13.4,z:-1.2,zone:'shop_gross'},{x:9.0,z:3.1,zone:'shop_gross'},{x:11.2,z:3.1,zone:'shop_gross'}];
+const RACKS=[{x:-12.4,z:-5.35,ry:0},{x:-15.5,z:-5.35,ry:0},{x:-12.4,z:1.35,ry:Math.PI},{x:-15.5,z:1.35,ry:Math.PI},{x:-18.6,z:-5.35,ry:0},{x:-18.6,z:1.35,ry:Math.PI},{x:-9.3,z:-5.35,ry:0},{x:-9.3,z:1.35,ry:Math.PI},{x:-19.0,z:5.45,ry:Math.PI,zone:'lager_gross'},{x:-15.9,z:5.45,ry:Math.PI,zone:'lager_gross'},{x:-12.8,z:5.45,ry:Math.PI,zone:'lager_gross'},{x:-9.7,z:5.45,ry:Math.PI,zone:'lager_gross'},{x:-11.0,z:2.75,ry:0,zone:'lager_gross'},{x:-14.1,z:2.75,ry:0,zone:'lager_gross'}];
 const WALLSPOTS=[{x:7.86,z:-2.0,ry:-Math.PI/2},{x:-2.5,z:-5.86,ry:0},{x:7.86,z:1.0,ry:-Math.PI/2},{x:2.0,z:-5.86,ry:0},{x:-7.86,z:3.6,ry:Math.PI/2},{x:-5.5,z:-5.86,ry:0}];
 const DEKOSPOTS=[{x:6.9,z:-4.6},{x:-7.1,z:3.2},{x:6.9,z:-2.2},{x:-7.1,z:-3.6},{x:3.6,z:5.2},{x:-6.2,z:1.2},{x:6.9,z:0.4},{x:-3.4,z:3.4},{x:1.4,z:-3.4}];
 function xpFor(l){ return Math.round(50*Math.pow(l,1.55)); }
@@ -1215,6 +1215,8 @@ let grimeMats=[], windowHits=[], winWork=0;
 let uhrStd=null, uhrMin=null, uhrSek=null;
 let wallTex=null, floorTexRef=null, shopWall=null, shopUpper=null, shopLower=null, floorMat=null;
 const WH=3.6;
+/* Lichte Hoehe des Anbaus hinter dem Lager (spaetere Lagererweiterung) */
+const ANBAU_H=2.9;
 function paintWall(g,W,H,c){
   g.fillStyle=c.up; g.fillRect(0,0,W,H);
   const band=Math.round(H*(1-1.1/WH));
@@ -1322,6 +1324,7 @@ function aoFloor(cx,cz,len,depth,dir,y,ceil){
   const m=new THREE.Mesh(new THREE.PlaneGeometry(len,depth),aoMatF);
   const th=ceil?{'-z':0,'+z':Math.PI,'+x':Math.PI/2,'-x':-Math.PI/2}[dir]:{'+z':0,'-z':Math.PI,'-x':-Math.PI/2,'+x':Math.PI/2}[dir];
   m.rotation.set(ceil?Math.PI/2:-Math.PI/2,0,th); m.position.set(cx,y,cz); m.renderOrder=1; scene.add(m);
+  return m;
 }
 function aoCorner(cx,cz,nx,nz,ax,az,h){ // Ecke (cx,cz), Wand-Normale n, Richtung weg von der Ecke a
   const w=0.45, m=new THREE.Mesh(new THREE.PlaneGeometry(h,w),aoMatW), ry=Math.atan2(nx,nz);
@@ -1329,16 +1332,33 @@ function aoCorner(cx,cz,nx,nz,ax,az,h){ // Ecke (cx,cz), Wand-Normale n, Richtun
   m.rotation.set(0,ry,dot>0?Math.PI/2:-Math.PI/2);
   m.position.set(cx+ax*w/2+nx*0.012,h/2,cz+az*w/2+nz*0.012); m.renderOrder=1; scene.add(m);
 }
-function roomAO(x0,x1,z0,z1){
+function roomAO(x0,x1,z0,z1,zoneId){
   const d=0.4, y=0.021;
-  aoFloor((x0+x1)/2,z0+d/2,x1-x0,d,'-z',y); aoFloor((x0+x1)/2,z1-d/2,x1-x0,d,'+z',y);
-  aoFloor(x0+d/2,(z0+z1)/2,z1-z0,d,'-x',y); aoFloor(x1-d/2,(z0+z1)/2,z1-z0,d,'+x',y);
+  const reg=m=>{ if(zoneId) zAdd(zoneId,m); return m; };
+  reg(aoFloor((x0+x1)/2,z0+d/2,x1-x0,d,'-z',y)); reg(aoFloor((x0+x1)/2,z1-d/2,x1-x0,d,'+z',y));
+  reg(aoFloor(x0+d/2,(z0+z1)/2,z1-z0,d,'-x',y)); reg(aoFloor(x1-d/2,(z0+z1)/2,z1-z0,d,'+x',y));
   /* Keine Baender an der Decke und keine Streifen in den Wandecken:
      die gaben harte Kanten, die wie ein Balken an der Wand aussahen. */
 }
 function concreteTex(){ const t=tex(256,256,(g,W,H)=>{ g.fillStyle='#8a8e94'; g.fillRect(0,0,W,H); for(let i=0;i<2500;i++){ const v=Math.random(); g.fillStyle=`rgba(${v<0.5?0:255},${v<0.5?0:255},${v<0.5?0:255},${Math.random()*0.06})`; g.fillRect(Math.random()*W,Math.random()*H,2,2); } g.strokeStyle='rgba(0,0,0,.18)'; g.lineWidth=2; g.strokeRect(0,0,W,H); });
   t.wrapS=t.wrapT=THREE.RepeatWrapping; return t; }
 function flat(w,d,m,x,y,z){ const o=new THREE.Mesh(new THREE.PlaneGeometry(w,d),m); o.rotation.x=-Math.PI/2; o.position.set(x,y,z); if(HIQ) o.receiveShadow=true; scene.add(o); return o; }
+/* Streuscheibe der Deckenleuchten, auch vom Ausbau genutzt */
+let _deckenT=null;
+function deckenDiffuse(){ if(_deckenT) return _deckenT; _deckenT=tex(512,256,(g,W,Hh)=>{
+    g.fillStyle='#fffaf0'; g.fillRect(0,0,W,Hh);
+    const gr=g.createLinearGradient(0,0,0,Hh);
+    gr.addColorStop(0,'rgba(196,206,222,.95)'); gr.addColorStop(0.2,'rgba(255,252,246,0)');
+    gr.addColorStop(0.8,'rgba(255,252,246,0)'); gr.addColorStop(1,'rgba(196,206,222,.95)');
+    g.fillStyle=gr; g.fillRect(0,0,W,Hh);
+    const gx=g.createLinearGradient(0,0,W,0);
+    gx.addColorStop(0,'rgba(190,200,218,.95)'); gx.addColorStop(0.06,'rgba(255,252,246,0)');
+    gx.addColorStop(0.94,'rgba(255,252,246,0)'); gx.addColorStop(1,'rgba(190,200,218,.95)');
+    g.fillStyle=gx; g.fillRect(0,0,W,Hh);
+    /* feine Struktur der Streuscheibe */
+    for(let i=0;i<9000;i++){ g.fillStyle=`rgba(255,255,255,${Math.random()*0.05})`; g.fillRect(Math.random()*W,Math.random()*Hh,2,2); }
+    for(let x=0;x<W;x+=7){ g.fillStyle='rgba(228,232,240,.22)'; g.fillRect(x,0,3,Hh); }
+  }); return _deckenT; }
 function buildWorld(){
   const w0=WALLS[0], f0=FLOORS[0];
   wallTex=tex(256,512,(g,W,H)=>paintWall(g,W,H,w0)); wallTex.wrapS=THREE.RepeatWrapping; wallTex.wrapT=THREE.ClampToEdgeWrapping; wallTex.repeat.set(1/2.6,1/WH);
@@ -1382,17 +1402,23 @@ function buildWorld(){
   bbox(0.08,2.5,0.14,frame,-1.2,1.25,6.0); bbox(0.08,2.5,0.14,frame,1.2,1.25,6.0); bbox(2.4,0.08,0.14,frame,0,2.5,6.0);
   // Rückwand, rechte Wand
   wall(-8,4.4,-6.1,-5.9,0,H,'+z',shopWall); wall(6.1,8,-6.1,-5.9,0,H,'+z',shopWall); wall(4.4,6.1,-6.1,-5.9,2.5,H,'+z',shopWall);
-  wall(7.9,8.1,-6.1,6.1,0,H,'-x',shopWall);
-  wall(-8.1,-7.9,-6.1,-3.2,0,H,'+x',shopWall,lagerWall); wall(-8.1,-7.9,-1.8,2,0,H,'+x',shopWall,lagerWall); wall(-8.1,-7.9,2,6.1,0,H,'+x',shopWall);
+  /* Ostwand: spaeter wird hier ein grosser Durchbruch zur Nachbarflaeche
+     geschlagen. Pfeiler und Sturz bleiben stehen, die Fuellung faellt. */
+  wall(7.9,8.1,-6.1,-4.4,0,H,'-x',shopWall); wall(7.9,8.1,4.4,6.1,0,H,'-x',shopWall);
+  wall(7.9,8.1,-4.4,4.4,2.7,H,'-x',shopWall);
+  wall(-8.1,-7.9,-6.1,-3.2,0,H,'+x',shopWall,lagerWall); wall(-8.1,-7.9,-1.8,2,0,H,'+x',shopWall,lagerWall); wall(-8.1,-7.9,2,6.1,0,H,'+x',shopWall,lagerWall);
   wall(-8.1,-7.9,-3.2,-1.8,2.5,H,'+x',shopWall,lagerWall);
   // Lager
   wall(-20.1,-19.9,-6.1,-3.6,0,H,'+x',lagerWall); wall(-20.1,-19.9,-0.4,2.1,0,H,'+x',lagerWall); wall(-20.1,-19.9,-3.6,-0.4,3.0,H,'+x',lagerWall);
-  wall(-20.1,-8.1,-6.1,-5.9,0,H,'+z',lagerWall); wall(-20.1,-8.1,1.9,2.1,0,H,'-z',lagerWall);
+  wall(-20.1,-8.1,-6.1,-5.9,0,H,'+z',lagerWall);
+  /* Nordwand des Lagers mit vorbereitetem Durchbruch in den Anbau */
+  wall(-20.1,-19.0,1.9,2.1,0,H,'-z',lagerWall); wall(-9.0,-8.1,1.9,2.1,0,H,'-z',lagerWall);
+  wall(-19.0,-9.0,1.9,2.1,2.6,H,'-z',lagerWall);
   const base=std(0x1a2038);
   /* Sockelleisten enden an den Tueroeffnungen, statt durchzulaufen */
   for(const [a,b] of [[-7.9,4.4],[6.1,7.9]]) bbox(b-a,0.1,0.02,base,(a+b)/2,0.05,-5.89,null,false);
   for(const [a,b] of [[-7.9,-1.2],[1.2,7.9]]) bbox(b-a,0.1,0.02,base,(a+b)/2,0.05,5.89,null,false);
-  bbox(0.02,0.1,11.8,base,7.89,0.05,0,null,false);
+  for(const [a,b] of [[-5.9,-4.4],[4.4,5.9]]) bbox(0.02,0.1,b-a,base,7.89,0.05,(a+b)/2,null,false);
   for(const [a,b] of [[-5.9,-3.2],[-1.8,5.9]]) bbox(0.02,0.1,b-a,base,-7.89,0.05,(a+b)/2,null,false);
   // Dächer & Decken
   bbox(16.4,0.25,12.4,std(0x2b2f3a),0,H+0.13,0); bbox(12.4,0.25,8.4,std(0x2b2f3a),-14,H+0.13,-2);
@@ -1402,20 +1428,8 @@ function buildWorld(){
   const c1=new THREE.Mesh(new THREE.PlaneGeometry(16.1,12.3),ceil); c1.rotation.x=Math.PI/2; c1.position.set(0.1,H-0.01,0); scene.add(c1);
   const c2=new THREE.Mesh(new THREE.PlaneGeometry(12.15,8.3),ceil); c2.rotation.x=Math.PI/2; c2.position.set(-14.025,H-0.01,-2); scene.add(c2);
   /* Flächenbündige Leuchten: schmaler Rahmen, gleichmäßig leuchtende Scheibe */
-  const diffT=tex(512,256,(g,W,Hh)=>{
-    g.fillStyle='#fffaf0'; g.fillRect(0,0,W,Hh);
-    const gr=g.createLinearGradient(0,0,0,Hh);
-    gr.addColorStop(0,'rgba(196,206,222,.95)'); gr.addColorStop(0.2,'rgba(255,252,246,0)');
-    gr.addColorStop(0.8,'rgba(255,252,246,0)'); gr.addColorStop(1,'rgba(196,206,222,.95)');
-    g.fillStyle=gr; g.fillRect(0,0,W,Hh);
-    const gx=g.createLinearGradient(0,0,W,0);
-    gx.addColorStop(0,'rgba(190,200,218,.95)'); gx.addColorStop(0.06,'rgba(255,252,246,0)');
-    gx.addColorStop(0.94,'rgba(255,252,246,0)'); gx.addColorStop(1,'rgba(190,200,218,.95)');
-    g.fillStyle=gx; g.fillRect(0,0,W,Hh);
-    /* feine Struktur der Streuscheibe */
-    for(let i=0;i<9000;i++){ g.fillStyle=`rgba(255,255,255,${Math.random()*0.05})`; g.fillRect(Math.random()*W,Math.random()*Hh,2,2); }
-    for(let x=0;x<W;x+=7){ g.fillStyle='rgba(228,232,240,.22)'; g.fillRect(x,0,3,Hh); }
-  });
+  const diffT=deckenDiffuse();
+;
   /* Die Scheibe leuchtet gleichmäßig und spiegelt nichts.
      Das Gehäuse ist mattes Aluminium ohne Metallanteil, damit beim
      Durchlaufen kein wanderndes Glanzlicht entsteht. */
@@ -1432,6 +1446,7 @@ function buildWorld(){
     d.rotation.x=Math.PI/2; d.position.set(x,H-0.043,z); scene.add(d);
   }
   roomAO(-7.9,7.9,-5.9,5.9); roomAO(-19.9,-8.1,-5.9,1.9);
+  buildAusbau();
   buildFacade();
   plane(1.4,0.35,new THREE.MeshStandardMaterial({map:tex(280,70,(g,W,Hh)=>{ g.fillStyle='#f2c230'; g.fillRect(0,0,W,Hh); g.fillStyle='#16181f'; g.font=BUN(40); g.textAlign='center'; g.textBaseline='middle'; g.fillText('LAGER',W/2,Hh/2+2); })}),-7.88,2.85,-2.5,Math.PI/2);
   // Wanduhr: echtes Gehaeuse mit Glas, Zeiger laufen nach der Spielzeit
@@ -1489,10 +1504,15 @@ function buildWorld(){
   const sg2=new THREE.BufferGeometry(); sg2.setAttribute('position',new THREE.BufferAttribute(sp2,3));
   snowPts=new THREE.Points(sg2,new THREE.PointsMaterial({color:0xffffff,size:0.09,map:dotTex,transparent:true,opacity:0.9,depthWrite:false})); snowPts.frustumCulled=false; scene.add(snowPts);
   // Kollision
-  col(-20,-8,2.1,6.1); col(-20,-2,-20,-6.1); col(7.9,12,-16,6.1); col(-20,12,-16,-14.9);
+  zWandCol('lager_gross',col(-20,-8,2.1,6.1));
+  col(-20,-2,-20,-6.1); col(-20,12,-16,-14.9);
+  col(7.9,12,-16,-6.1);
+  zWandCol('shop_gross',col(7.9,14.8,-6.1,6.1));
   col(-8,-1.2,5.9,6.1); col(1.2,8,5.9,6.1); col(-8,4.4,-6.1,-5.9); col(6.1,8,-6.1,-5.9);
   col(-8.1,-7.9,-6.1,-3.2); col(-8.1,-7.9,-1.8,6.1);
-  col(-20.1,-19.9,-6.1,-3.6); col(-20.1,-19.9,-0.4,2.1); col(-20.1,-8,-6.1,-5.9); col(-20.1,-8,1.9,2.1);
+  col(-20.1,-19.9,-6.1,-3.6); col(-20.1,-19.9,-0.4,2.1); col(-20.1,-8,-6.1,-5.9);
+  col(-20.1,-19.0,1.9,2.1); col(-9.0,-8,1.9,2.1);
+  zWandCol('lager_gross',col(-19.0,-9.0,1.9,2.1));
   buildDock();
 }
 function updateSign(){
@@ -2304,21 +2324,35 @@ function buildNachbar(){
       c.fillStyle=gr; c.fillRect(x,rand(0,Hh*0.4),rand(20,70),Hh); }
     for(let i=0;i<2200;i++){ c.fillStyle=`rgba(0,0,0,${Math.random()*0.05})`; c.fillRect(Math.random()*W,Math.random()*Hh,2,2); }
   });
-  zieg.wrapS=zieg.wrapT=THREE.RepeatWrapping; zieg.repeat.set((x1-x0)/1.6,H/1.6); zieg.anisotropy=8;
+  /* UV in Metern: dadurch passt der Verband ueber alle Wandstuecke hinweg */
+  zieg.wrapS=zieg.wrapT=THREE.RepeatWrapping; zieg.repeat.set(1/1.6,1/1.6); zieg.anisotropy=8;
   const zm=new THREE.MeshStandardMaterial({map:zieg,roughness:0.95});
-  const w=x1-x0, cx=(x0+x1)/2;
-  bbox(w,H,0.4,zm,cx,H/2,zf-0.1,g);
+  const w=x1-x0, cx=(x0+x1)/2, zid='shop_gross';
+  /* Die Fassade hat echte Oeffnungen. Solange nebenan nicht gekauft ist,
+     sind sie zugemauert; nach dem Kauf sitzen dort Schaufenster. */
+  const OEFF=[[9.0,10.4,0,2.3],[11.0,12.6,0.9,2.5],[13.0,14.4,0.9,2.5]];
+  const F=(a,b,y0,y1)=>wall(a,b,zf-0.3,zf+0.1,y0,y1,'-z',shopWall,zm);
+  F(x0,9.0,0,H); F(10.4,11.0,0,H); F(12.6,13.0,0,H); F(14.4,x1,0,H);
+  F(9.0,10.4,2.3,H); F(11.0,12.6,2.5,H); F(13.0,14.4,2.5,H);
+  F(11.0,12.6,0,0.9); F(13.0,14.4,0,0.9);
+  /* Attika, Gesims und Sockel */
   bbox(w+0.2,0.28,0.56,std(0x5f584e,{roughness:1}),cx,H+0.12,zf-0.1,g);
   bbox(w+0.1,0.1,0.5,std(0xe8ecf2,{roughness:1}),cx,H+0.3,zf-0.1,g,false);
   bbox(w+0.12,0.5,0.5,std(0x6f6a62,{roughness:0.96}),cx,0.25,zf-0.06,g);
-  /* Zugemauerte Tuer und zwei zugesetzte Fenster */
+
+  /* ---------- Zustand „steht zum Verkauf“ ---------- */
+  const gs=new THREE.Group(); g.add(gs); zWand(zid,gs);
   const brett=std(0x6d5a44,{roughness:0.95});
-  bbox(1.1,2.1,0.1,std(0x5a4a3e,{roughness:0.95}),x0+1.4,1.05,zf+0.12,g,false);
-  for(let k=0;k<4;k++) bbox(1.24,0.16,0.06,brett,x0+1.4,0.4+k*0.55,zf+0.17,g,false);
-  for(const fx of [x0+3.6,x0+5.2]){
-    bbox(1.0,1.3,0.1,std(0x5a4a3e,{roughness:0.95}),fx,1.75,zf+0.12,g,false);
-    for(let k=0;k<3;k++) bbox(1.1,0.18,0.06,brett,fx,1.3+k*0.45,zf+0.17,g,false);
-  }
+  const zugemauert=std(0x5a4a3e,{roughness:0.95});
+  OEFF.forEach(([a,b,y0,y1],i)=>{
+    const bw=b-a, bh=y1-y0, bxc=(a+b)/2, byc=(y0+y1)/2;
+    bbox(bw,bh,0.34,zugemauert,bxc,byc,zf-0.1,gs,false);
+    const n=Math.max(3,Math.round(bh/0.55));
+    for(let k=0;k<n;k++) bbox(bw+0.14,0.16,0.06,brett,bxc,y0+0.22+k*(bh-0.4)/(n-1),zf+0.13,gs,false);
+    /* zwei schraege Bretter ueber Kreuz */
+    for(const sgn of [1,-1]){ const d=bbox(Math.hypot(bw,bh)+0.1,0.14,0.05,brett,bxc,byc,zf+0.15,gs,false);
+      d.rotation.z=sgn*Math.atan2(bh,bw); }
+  });
   /* Bauschild: Verkaufsflaeche wird verkauft */
   const schildT=tex(1024,512,(c,W,Hh)=>{
     c.fillStyle='#f4f2ea'; c.fillRect(0,0,W,Hh);
@@ -2328,7 +2362,7 @@ function buildNachbar(){
     c.fillStyle='#1b2340'; c.font=BUN(66);
     c.fillText('VERKAUFSFLÄCHE',W/2,180);
     c.font=BAR(44); c.fillStyle='#3d4658';
-    c.fillText('ca. 60 m² · direkt nebenan',W/2,250);
+    c.fillText('ca. 78 m² · direkt nebenan',W/2,250);
     c.fillText('ideal zur Erweiterung',W/2,300);
     c.strokeStyle='#c8322a'; c.lineWidth=8; c.strokeRect(70,340,W-140,120);
     c.fillStyle='#c8322a'; c.font=BUN(46);
@@ -2338,19 +2372,41 @@ function buildNachbar(){
   const rahmen=std(0x4a4f5a,{metalness:0.4,roughness:0.55});
   for(const sx of [-1.15,1.15]){
     const p2=new THREE.Mesh(new THREE.CylinderGeometry(0.045,0.045,2.6,10),rahmen);
-    p2.position.set(cx+sx,1.3,zf+0.6); g.add(p2);
-    bbox(0.14,0.03,0.14,rahmen,cx+sx,0.016,zf+0.6,g,false);
+    p2.position.set(cx+sx,1.3,zf+0.6); gs.add(p2);
+    bbox(0.14,0.03,0.14,rahmen,cx+sx,0.016,zf+0.6,gs,false);
   }
-  bbox(2.7,1.36,0.05,std(0x3a3f48,{roughness:0.7}),cx,1.85,zf+0.6,g,false);
-  plane(2.6,1.28,new THREE.MeshStandardMaterial({map:schildT,roughness:0.62}),cx,1.85,zf+0.635,0,g);
+  bbox(2.7,1.36,0.05,std(0x3a3f48,{roughness:0.7}),cx,1.85,zf+0.6,gs,false);
+  plane(2.6,1.28,new THREE.MeshStandardMaterial({map:schildT,roughness:0.62}),cx,1.85,zf+0.635,0,gs);
   /* Bauzaunelement davor */
   for(let i=0;i<3;i++){
     const bx=x0+0.9+i*2.2;
-    bbox(2.0,1.8,0.05,std(0x8a9099,{metalness:0.4,roughness:0.6}),bx,0.92,zf+1.25,g,false);
-    for(const sx of [-0.95,0.95]) bbox(0.07,1.85,0.07,std(0x6a7078,{metalness:0.5}),bx+sx,0.93,zf+1.25,g,false);
-    bbox(0.5,0.1,0.34,std(0x2f343c,{roughness:0.9}),bx-0.95,0.05,zf+1.25,g,false);
-    bbox(0.5,0.1,0.34,std(0x2f343c,{roughness:0.9}),bx+0.95,0.05,zf+1.25,g,false);
+    bbox(2.0,1.8,0.05,std(0x8a9099,{metalness:0.4,roughness:0.6}),bx,0.92,zf+1.25,gs,false);
+    for(const sx of [-0.95,0.95]) bbox(0.07,1.85,0.07,std(0x6a7078,{metalness:0.5}),bx+sx,0.93,zf+1.25,gs,false);
+    bbox(0.5,0.1,0.34,std(0x2f343c,{roughness:0.9}),bx-0.95,0.05,zf+1.25,gs,false);
+    bbox(0.5,0.1,0.34,std(0x2f343c,{roughness:0.9}),bx+0.95,0.05,zf+1.25,gs,false);
   }
+  zWandCol(zid,col(x0,x1,zf+1.1,zf+1.4));
+
+  /* ---------- Zustand „gehoert dir“: Schaufenster ---------- */
+  const go=new THREE.Group(); g.add(go); zAdd(zid,go);
+  const glas=new THREE.MeshStandardMaterial({color:LIN(0xbfe0ff),transparent:true,opacity:0.16,roughness:0.05,metalness:0.2,depthWrite:false});
+  const prof=std(0x2b3040,{metalness:0.5,roughness:0.4});
+  const bank=std(0xd7dae0,{roughness:0.5});
+  OEFF.forEach(([a,b,y0,y1],i)=>{
+    const bw=b-a, bh=y1-y0, bxc=(a+b)/2, byc=(y0+y1)/2;
+    bbox(bw-0.12,bh-0.12,0.04,glas,bxc,byc,zf-0.1,go,false);
+    /* umlaufendes Profil aussen und innen */
+    for(const zz of [zf+0.09,zf-0.29]){
+      bbox(bw,0.1,0.06,prof,bxc,y1-0.05,zz,go,false);
+      bbox(bw,0.1,0.06,prof,bxc,y0+0.05,zz,go,false);
+      bbox(0.1,bh,0.06,prof,a+0.05,byc,zz,go,false);
+      bbox(0.1,bh,0.06,prof,b-0.05,byc,zz,go,false);
+    }
+    /* Mittelsprosse */
+    bbox(0.07,bh-0.1,0.05,prof,bxc,byc,zf-0.1,go,false);
+    /* Fensterbank aussen */
+    if(y0>0.2) bbox(bw+0.16,0.06,0.5,bank,bxc,y0-0.02,zf-0.02,go,false);
+  });
   col(x0,x1,zf+1.1,zf+1.4);
   col(x0,x1,zf-0.35,zf+0.15);
   return g;
@@ -2757,13 +2813,16 @@ function buildDock(){
     for(let i=0;i<14;i++) bbox(0.07,1.9,0.07,steel,0.12,1.3,-2.0+i*0.31,g2,false);
     for(let i=0;i<5;i++) bbox(0.05,0.05,4.2,steel,0.12,0.6+i*0.4,0,g2,false); }
   col(-34.15,-33.85,-6.6,-3.6); col(-34.15,-33.85,0.6,11.2); col(-34.1,-20,-6.15,-5.85);
-  // Anbau zwischen Lager und Gehweg, damit die Lücke nicht leer wirkt
-  const ab=brickMat(12,2.9);
-  bbox(12,2.9,3.95,ab,-14,1.45,4.075,null,false);
-  bbox(12.1,0.16,4.05,std(0x5f584e,{roughness:1}),-14.05,2.94,4.125,null,false);
-  bbox(12.1,0.12,3.9,snow,-14,3.06,4.15,null,false);
-  for(const x of [-18,-14,-10]){ bbox(0.7,0.9,0.1,std(0x2a3040,{metalness:0.4}),x,1.9,6.02,null,false);
-    bbox(0.62,0.82,0.04,new THREE.MeshStandardMaterial({color:LIN(0x9fb4cc),transparent:true,opacity:0.3,roughness:0.1}),x,1.9,6.06,null,false); }
+  // Anbau zwischen Lager und Gehweg: echte Huelle statt massivem Block,
+  // damit das Lager spaeter hier hinein wachsen kann.
+  const AH=ANBAU_H;
+  wall(-20.1,-19.9,2.1,6.15,0,AH,'+x',lagerWall);
+  wall(-20.1,-8.1,5.95,6.15,0,AH,'-z',lagerWall);
+  col(-20.1,-19.9,2.1,6.15); col(-20.1,-8.1,5.95,6.15);
+  bbox(12.1,0.16,4.05,std(0x5f584e,{roughness:1}),-14.05,AH+0.04,4.125,null,false);
+  bbox(12.1,0.12,3.9,snow,-14,AH+0.16,4.15,null,false);
+  for(const x of [-18,-14,-10]){ bbox(0.7,0.9,0.1,std(0x2a3040,{metalness:0.4}),x,1.9,6.2,null,false);
+    bbox(0.62,0.82,0.04,new THREE.MeshStandardMaterial({color:LIN(0x9fb4cc),transparent:true,opacity:0.3,roughness:0.1}),x,1.9,6.24,null,false); }
   buildTor(steel,snow);
   // Vordach über dem Tor
   const cano=bbox(1.9,0.1,4.4,std(0x3a4150,{metalness:0.5}),-20.95,3.32,-2,null,false); cano.rotation.z=0.08;
@@ -2929,6 +2988,338 @@ function buildTor(steel,snow){
   /* Die Ueberladebruecke gehoert zum LKW (siehe makeBruecke) und existiert nur, solange er andockt. */
   door={g,panels,t:TOR.h,target:0,moving:false,snd:0,col:null,warn,lampR,lampG};
   doorSet(0);
+}
+
+/* =========================================================
+   Ausbau: Die Welt steht von Anfang an in voller Groesse.
+   Noch nicht gekaufte Bereiche liegen hinter einer Bauwand und
+   sind unsichtbar. Beim Kauf faellt die Wand und der Bereich
+   wird freigegeben.
+   ========================================================= */
+const ZONEN={};
+function zone(id){ return ZONEN[id]||(ZONEN[id]={obj:[],cols:[],wand:[],wandCols:[],offen:false}); }
+/* Objekt gehoert zum noch gesperrten Bereich */
+function zAdd(id,o){ if(o){ o.visible=false; zone(id).obj.push(o); } return o; }
+/* Kollision, die erst nach dem Kauf gilt */
+function zCol(id,c){ if(c){ dropCol(c); zone(id).cols.push(c); } return c; }
+/* Teil der Bauwand: sichtbar, bis gekauft wird */
+function zWand(id,o){ if(o) zone(id).wand.push(o); return o; }
+function zWandCol(id,c){ if(c) zone(id).wandCols.push(c); return c; }
+
+function zoneOffen(id){ return !!(S&&S.up&&S.up[id]); }
+/* Bereich freigeben: Bauwand weg, Inhalt sichtbar, Kollisionen tauschen */
+function oeffneZone(id,leise){
+  const z=ZONEN[id]; if(!z||z.offen) return;
+  z.offen=true;
+  z.wand.forEach(o=>{ o.visible=false; });
+  z.wandCols.forEach(c=>dropCol(c));
+  z.obj.forEach(o=>{ o.visible=true; });
+  z.cols.forEach(c=>{ if(colliders.indexOf(c)<0) colliders.push(c); });
+  if(!leise) sfx.cash();
+}
+/* Nach dem Laden eines Spielstands alle gekauften Bereiche oeffnen */
+function applyZonen(){
+  for(const id in ZONEN){
+    const z=ZONEN[id];
+    if(zoneOffen(id)) oeffneZone(id,true);
+    else { z.offen=false;
+      z.wand.forEach(o=>{ o.visible=true; });
+      z.obj.forEach(o=>{ o.visible=false; });
+      z.cols.forEach(c=>dropCol(c));
+      z.wandCols.forEach(c=>{ if(colliders.indexOf(c)<0) colliders.push(c); }); }
+  }
+}
+
+/* --------------------------------------------------------
+   Bauwand: Trockenbau mit Staenderwerk, Folie und Schild
+   -------------------------------------------------------- */
+function bauwandTex(text,unter){
+  return tex(1024,512,(g,W,H)=>{
+    g.fillStyle='#d9d4c6'; g.fillRect(0,0,W,H);
+    /* Gipsplatten mit Fugen und Spachtelstellen */
+    for(let x=0;x<W;x+=256){ g.fillStyle='rgba(150,142,126,.35)'; g.fillRect(x,0,3,H); }
+    for(let y=0;y<H;y+=256){ g.fillStyle='rgba(150,142,126,.28)'; g.fillRect(0,y,W,3); }
+    for(let i=0;i<46;i++){ g.fillStyle=`rgba(236,232,220,${rand(0.3,0.75)})`;
+      g.beginPath(); g.ellipse(Math.random()*W,Math.random()*H,rand(14,52),rand(8,26),Math.random()*3,0,Math.PI*2); g.fill(); }
+    for(let i=0;i<2400;i++){ g.fillStyle=`rgba(0,0,0,${Math.random()*0.045})`; g.fillRect(Math.random()*W,Math.random()*H,2,2); }
+    /* Schraubenkoepfe im Raster */
+    for(let x=28;x<W;x+=128) for(let y=40;y<H;y+=96){
+      g.fillStyle='rgba(120,112,98,.5)'; g.beginPath(); g.arc(x,y,3.2,0,Math.PI*2); g.fill(); }
+    /* Bauschild */
+    const bw=W*0.56, bh=H*0.42, bx=(W-bw)/2, by=(H-bh)/2;
+    g.fillStyle='rgba(0,0,0,.18)'; g.fillRect(bx+8,by+10,bw,bh);
+    g.fillStyle='#f4f2ea'; g.fillRect(bx,by,bw,bh);
+    g.fillStyle='#1b2340'; g.fillRect(bx,by,bw,58);
+    g.textAlign='center'; g.textBaseline='middle';
+    g.fillStyle='#ffd23f'; g.font=BUN(34); g.fillText('BAUSTELLE',bx+bw/2,by+30);
+    g.fillStyle='#1b2340'; fitFont(g,text,bw-60,44,BUN); g.fillText(text,bx+bw/2,by+bh*0.48);
+    g.fillStyle='#5a6070'; g.font=BAR(28); g.fillText(unter,bx+bw/2,by+bh*0.72);
+    g.strokeStyle='#c8322a'; g.lineWidth=6; g.strokeRect(bx+10,by+68,bw-20,bh-80);
+    /* Absperrband quer */
+    for(const y of [H*0.16,H*0.84]){
+      g.save(); g.translate(0,y); g.rotate(-0.03);
+      for(let k=0;k<26;k++){ g.fillStyle=k%2?'#f2c230':'#1f1f24'; g.fillRect(k*W/26,-16,W/26+12,32); }
+      g.restore();
+    }
+  });
+}
+/* Eine Bauwand von (x0,z0) bis (x1,z1), Hoehe h */
+function bauwand(id,x0,z0,x1,z1,h,text,unter){
+  const laengs=Math.abs(x1-x0)>Math.abs(z1-z0);
+  const len=laengs?Math.abs(x1-x0):Math.abs(z1-z0);
+  const cx=(x0+x1)/2, cz=(z0+z1)/2;
+  const t=bauwandTex(text,unter); t.wrapS=THREE.RepeatWrapping; t.repeat.set(Math.max(1,len/6),1); t.anisotropy=8;
+  const m=new THREE.MeshStandardMaterial({map:t,roughness:0.92});
+  const kante=std(0x9aa1ac,{metalness:0.5,roughness:0.5});
+  const w=laengs?len:0.16, d=laengs?0.16:len;
+  zWand(id,bbox(w,h,d,m,cx,h/2,cz,null,true));
+  /* Staenderwerk sichtbar an den Kanten */
+  zWand(id,bbox(laengs?len+0.06:0.1,0.1,laengs?0.1:len+0.06,kante,cx,h-0.05,cz,null,false));
+  zWand(id,bbox(laengs?len+0.06:0.1,0.08,laengs?0.1:len+0.06,kante,cx,0.04,cz,null,false));
+  const n=Math.max(2,Math.round(len/1.6));
+  for(let i=0;i<=n;i++){
+    const f=i/n, px=laengs?(x0+(x1-x0)*f):cx, pz=laengs?cz:(z0+(z1-z0)*f);
+    zWand(id,bbox(laengs?0.08:0.12,h-0.1,laengs?0.12:0.08,kante,px,h/2,pz,null,false));
+  }
+  zWandCol(id,col(Math.min(x0,x1)-0.1,Math.max(x0,x1)+0.1,Math.min(z0,z1)-0.1,Math.max(z0,z1)+0.1));
+}
+
+/* =========================================================
+   Die drei Ausbaustufen
+   ========================================================= */
+const SHOP_X2=14.6;          /* Aussenkante der erweiterten Verkaufsflaeche */
+const LAGER_Z2=6.0;          /* Innenkante der Anbau-Rueckwand               */
+
+function buildAusbau(){
+  const H=WH;
+  const ceil=std(0xe6e8ee,{roughness:1});
+  const panelM=new THREE.MeshBasicMaterial({map:deckenDiffuse(),toneMapped:false});
+  const fixM=std(0xdfe3e9,{metalness:0,roughness:0.62});
+  const rev=std(0x252932,{metalness:0,roughness:0.9});
+  /* Deckenleuchte; y ist die Unterkante der Decke */
+  const leuchte=(id,x,z,y)=>{
+    zAdd(id,bbox(1.44,0.03,0.42,rev,x,y-0.008,z,null,false));
+    zAdd(id,bbox(1.36,0.028,0.36,fixM,x,y-0.026,z,null,false));
+    const d=new THREE.Mesh(new THREE.PlaneGeometry(1.26,0.28),panelM);
+    d.rotation.x=Math.PI/2; d.position.set(x,y-0.043,z); scene.add(d); zAdd(id,d);
+  };
+
+  /* ---------- 1) Verkaufsflaeche nach Osten ----------
+     Das Nachbarhaus steht bereits (Fassade in 05e). Hier kommen die
+     restliche Huelle und der Innenausbau dazu. */
+  {
+    const id='shop_gross', x0=8.1, x1=SHOP_X2;
+    /* Dauerhafte Huelle: Ost- und Rueckwand, Dach. Von aussen sieht das
+       Nachbarhaus dadurch immer wie ein echtes Gebaeude aus. */
+    wall(x1,x1+0.2,-6.1,6.1,0,H+0.6,'-x',shopWall);
+    wall(x0,x1+0.2,-6.1,-5.9,0,H+0.6,'+z',shopWall);
+    col(x1,x1+0.2,-6.1,6.1); col(x0,x1+0.2,-6.1,-5.9);
+    bbox(x1-x0+0.6,0.25,12.4,std(0x2b2f3a),(x0+x1)/2,H+0.73,0,null,true);
+
+    /* Innenausbau erst nach dem Kauf */
+    const bo=new THREE.Mesh(new THREE.PlaneGeometry(x1-x0,11.8),floorMat);
+    bo.rotation.x=-Math.PI/2; bo.position.set((x0+x1)/2,0.015,0); scene.add(bo); zAdd(id,bo);
+    const ce=new THREE.Mesh(new THREE.PlaneGeometry(x1-x0+0.3,12.3),ceil);
+    ce.rotation.x=Math.PI/2; ce.position.set((x0+x1)/2+0.05,H-0.01,0); scene.add(ce); zAdd(id,ce);
+    /* Sockelleisten */
+    const base=std(0x1a2038);
+    zAdd(id,bbox(x1-x0,0.1,0.02,base,(x0+x1)/2,0.05,-5.89,null,false));
+    zAdd(id,bbox(0.02,0.1,11.8,base,x1-0.01,0.05,0,null,false));
+    for(const [za,zb] of [[-5.9,-4.4],[4.4,5.9]])
+      zAdd(id,bbox(0.02,0.1,zb-za,base,8.11,0.05,(za+zb)/2,null,false));
+    for(const x of [9.6,13.0]) for(const z of [-3.6,0,3.6]) leuchte(id,x,z,H);
+    roomAO(x0+0.02,x1-0.02,-5.88,5.78,id);
+    /* Bauwand im Durchbruch der alten Ostwand */
+    bauwand(id,8.0,-4.4,8.0,4.4,2.7,'ERWEITERUNG','Verkaufsfläche · über den Laptop freischalten');
+  }
+
+  /* ---------- 2) Lager nach Norden in den Anbau ----------
+     Die Huelle des Anbaus steht schon (05g). Hier kommt der Innenraum. */
+  {
+    const id='lager_gross', z0=2.1, z1=LAGER_Z2, x0=-19.9, x1=-8.1, AH=ANBAU_H-0.06;
+    const lc=concreteTex(); lc.repeat.set(6,2);
+    const bo=new THREE.Mesh(new THREE.PlaneGeometry(x1-x0,z1-z0),new THREE.MeshStandardMaterial({map:lc,roughness:0.85}));
+    bo.rotation.x=-Math.PI/2; bo.position.set((x0+x1)/2,0.015,(z0+z1)/2); scene.add(bo); zAdd(id,bo);
+    const ce=new THREE.Mesh(new THREE.PlaneGeometry(x1-x0+0.3,z1-z0+0.4),ceil);
+    ce.rotation.x=Math.PI/2; ce.position.set((x0+x1)/2,AH,(z0+z1)/2+0.1); scene.add(ce); zAdd(id,ce);
+    for(const x of [-17.5,-13.5,-9.8]) leuchte(id,x,4.0,AH);
+    roomAO(x0+0.02,x1-0.02,z0+0.02,5.93,id);
+    /* Bauwand im Durchbruch der Lager-Nordwand */
+    bauwand(id,-19.0,2.0,-9.0,2.0,2.6,'ERWEITERUNG','Lager · über den Laptop freischalten');
+  }
+
+  /* ---------- 3) Packstation im erweiterten Lager ---------- */
+  buildPackstation();
+
+}
+
+/* =========================================================
+   Packstation: Packtisch, Kartonlager, Waage, Paketrutsche
+   ========================================================= */
+let packHit=null, packTisch=null;
+const pakete=[];                       /* fertige Pakete auf der Rampe */
+function buildPackstation(){
+  const id='packstation', PX=-17.2, PZ=4.2;
+  const g=new THREE.Group(); g.position.set(PX,0,PZ); scene.add(g); zAdd(id,g);
+  packTisch=g;
+  const stahl=std(0x7d838c,{metalness:0.6,roughness:0.4});
+  const dunkel=std(0x2f343e,{metalness:0.45,roughness:0.5});
+  const platte=new THREE.MeshStandardMaterial({roughness:0.42,metalness:0.12,
+    map:(()=>{ const t=tex(512,256,(c,W,H)=>{
+      const gr=c.createLinearGradient(0,0,0,H); gr.addColorStop(0,'#cdd3dc'); gr.addColorStop(1,'#aeb5c0');
+      c.fillStyle=gr; c.fillRect(0,0,W,H);
+      for(let i=0;i<1800;i++){ c.fillStyle=`rgba(255,255,255,${Math.random()*0.04})`; c.fillRect(Math.random()*W,Math.random()*H,2,2); }
+      for(let i=0;i<30;i++){ c.strokeStyle=`rgba(120,128,140,${rand(0.05,0.18)})`; c.lineWidth=rand(0.5,1.4);
+        const x=Math.random()*W,y=Math.random()*H; c.beginPath(); c.moveTo(x,y); c.lineTo(x+rand(-70,70),y+rand(-8,8)); c.stroke(); }
+    }); t.anisotropy=8; return t; })()});
+  /* Packtisch mit Untergestell und Rollenbahn */
+  rbox(2.6,0.06,0.9,0.012,platte,0,0.92,0,g);
+  bbox(2.64,0.05,0.94,dunkel,0,0.87,0,g,false);
+  for(const sx of [-1.15,1.15]) for(const sz of [-0.36,0.36]){
+    bbox(0.07,0.88,0.07,stahl,sx,0.44,sz,g);
+    bbox(0.13,0.02,0.13,dunkel,sx,0.011,sz,g,false);
+  }
+  for(const sz of [-0.36,0.36]) bbox(2.3,0.05,0.05,stahl,0,0.28,sz,g,false);
+  /* Ablage unten mit leeren Kartons */
+  bbox(2.3,0.03,0.7,dunkel,0,0.3,0,g,false);
+  for(let k=0;k<4;k++) bbox(0.5,0.34,0.4,std(0xc9a978,{roughness:0.9}),-0.9+k*0.6,0.5,0.02,g,true);
+  /* Rollenbahn zur Abholrampe */
+  for(let k=0;k<9;k++){
+    const r=new THREE.Mesh(new THREE.CylinderGeometry(0.035,0.035,0.62,10),stahl);
+    r.rotation.x=Math.PI/2; r.position.set(1.5+k*0.26,0.9,0); g.add(r);
+  }
+  for(const sz of [-0.33,0.33]) bbox(2.5,0.09,0.05,dunkel,2.54,0.86,sz,g,false);
+  for(const sx of [1.6,3.4]) for(const sz of [-0.33,0.33]) bbox(0.06,0.86,0.06,stahl,sx,0.43,sz,g);
+  /* Waage, Etikettendrucker, Klebebandroller */
+  bbox(0.46,0.07,0.4,dunkel,-0.95,0.98,0.1,g,false);
+  bbox(0.3,0.012,0.28,std(0x9aa1ac,{metalness:0.7,roughness:0.3}),-0.95,1.02,0.1,g,false);
+  const disp=plane(0.2,0.08,new THREE.MeshBasicMaterial({toneMapped:false,map:tex(200,80,(c,W,H)=>{
+    c.fillStyle='#0d1a12'; c.fillRect(0,0,W,H);
+    c.fillStyle='#6cf2a8'; c.font=BUN(38); c.textAlign='right'; c.textBaseline='middle';
+    c.fillText('1,24 kg',W-12,H/2); })}),-0.95,1.04,-0.14,0,g);
+  disp.rotation.x=-1.1;
+  rbox(0.36,0.22,0.3,0.02,dunkel,0.55,1.05,-0.2,g);
+  bbox(0.3,0.02,0.16,std(0xf2f0e8),0.55,0.95,-0.02,g,false);
+  const roll=new THREE.Mesh(new THREE.CylinderGeometry(0.075,0.075,0.09,14),std(0xd8b46a,{roughness:0.7}));
+  roll.rotation.z=Math.PI/2; roll.position.set(1.05,1.0,0.22); g.add(roll);
+  /* Hinweisschild ueber dem Tisch */
+  for(const sx of [-1.2,1.2]) bbox(0.06,1.5,0.06,stahl,sx,1.72,-0.42,g,false);
+  bbox(2.6,0.5,0.05,std(0x1b2340,{roughness:0.7}),0,2.3,-0.42,g,false);
+  packSchildTex=tex(1024,200,()=>{});
+  plane(2.5,0.44,new THREE.MeshBasicMaterial({map:packSchildTex,toneMapped:false}),0,2.3,-0.39,0,g);
+  drawPackSchild();
+  /* Abholrampe mit Paketstellplaetzen */
+  for(let k=0;k<6;k++){
+    const px=3.9+(k%3)*0.62, pz=-0.3+Math.floor(k/3)*0.6;
+    bbox(0.52,0.02,0.52,std(0xf2c230),px,0.016,pz,g,false);
+  }
+  const hit=bbox(3.0,2.0,1.4,hitM,0.6,1.0,0,g,false);
+  hit.userData={kind:'pack'}; packHit=hit;
+  zCol('packstation',col(PX-1.4,PX+3.9,PZ-0.5,PZ+0.5));
+}
+let packSchildTex=null;
+function packBereit(){ return zoneOffen('packstation')&&S&&S.up&&S.up.onlineshop; }
+function drawPackSchild(){
+  if(!packSchildTex) return;
+  redraw(packSchildTex,(g,W,H)=>{
+    g.fillStyle='#1b2340'; g.fillRect(0,0,W,H);
+    g.textAlign='center'; g.textBaseline='middle';
+    if(packBereit()){
+      g.fillStyle='#6cf2a8'; g.font=BUN(58); g.fillText('VERSAND · BEREIT',W/2,H/2-14);
+      g.fillStyle='#bcd0ea'; g.font=BAR(34); g.fillText((S.pakete|0)+' Pakete warten auf Abholung',W/2,H-38);
+    } else {
+      g.fillStyle='#ffd23f'; g.font=BUN(52); g.fillText('VERSAND',W/2,H/2-16);
+      g.fillStyle='#ff9d92'; g.font=BAR(32); g.fillText('Onlineshop noch nicht freigeschaltet',W/2,H-38);
+    }
+    g.strokeStyle='#2f3a5e'; g.lineWidth=6; g.strokeRect(3,3,W-6,H-6);
+  });
+}
+
+/* =========================================================
+   Versand: Onlinebestellungen kommen herein, werden am
+   Packtisch zu Paketen und warten auf der Rampe auf DDL.
+   ========================================================= */
+const PAKET_BAYS=6;
+let versandT=0, paketTex=null;
+/* Kartonoberflaeche mit Klebeband, Aufdruck und Adressaufkleber */
+function paketMaterial(){
+  if(paketTex) return paketTex;
+  const t=tex(512,512,(g,W,H)=>{
+    const gr=g.createLinearGradient(0,0,0,H); gr.addColorStop(0,'#c8a271'); gr.addColorStop(1,'#a98454');
+    g.fillStyle=gr; g.fillRect(0,0,W,H);
+    /* Wellpappe-Struktur */
+    for(let y=0;y<H;y+=6){ g.fillStyle=`rgba(120,92,58,${rand(0.05,0.13)})`; g.fillRect(0,y,W,2); }
+    for(let i=0;i<5200;i++){ g.fillStyle=`rgba(255,240,215,${Math.random()*0.07})`; g.fillRect(Math.random()*W,Math.random()*H,2,2); }
+    /* Klebeband ueber der Mitte */
+    g.fillStyle='rgba(216,180,106,.85)'; g.fillRect(0,H/2-26,W,52);
+    g.fillStyle='rgba(255,255,255,.14)'; g.fillRect(0,H/2-26,W,8);
+    g.strokeStyle='rgba(150,118,64,.6)'; g.lineWidth=2;
+    g.beginPath(); g.moveTo(0,H/2-26); g.lineTo(W,H/2-26); g.moveTo(0,H/2+26); g.lineTo(W,H/2+26); g.stroke();
+    /* Adressaufkleber */
+    g.fillStyle='#f6f4ec'; g.fillRect(46,64,236,150);
+    g.strokeStyle='#c6c1b2'; g.lineWidth=3; g.strokeRect(46,64,236,150);
+    g.fillStyle='#22262e'; g.font=BUN(26); g.textAlign='left'; g.textBaseline='top';
+    g.fillText('DDL EXPRESS',60,76);
+    g.fillStyle='#5b6270'; g.font=BAR(18);
+    g.fillText('Paketmarke bezahlt',60,110);
+    g.fillText('Empfänger siehe Barcode',60,134);
+    for(let i=0,x=60;i<40&&x<268;i++){ const w=rand(2,7); g.fillStyle='#1c2028'; g.fillRect(x,162,w,40); x+=w+rand(2,6); }
+    /* Zerbrechlich-Aufdruck */
+    g.strokeStyle='rgba(60,50,38,.5)'; g.lineWidth=4;
+    g.strokeRect(330,300,132,132);
+    g.fillStyle='rgba(60,50,38,.5)'; g.font=BUN(22); g.textAlign='center';
+    g.fillText('ZERBRECHLICH',396,444);
+    g.beginPath(); g.moveTo(370,410); g.lineTo(370,336); g.lineTo(422,336); g.lineTo(422,410); g.stroke();
+  });
+  paketTex=new THREE.MeshStandardMaterial({map:t,roughness:0.86});
+  return paketTex;
+}
+function paketPose(i){ return {x:3.9+(i%3)*0.62,z:-0.3+Math.floor(i/3)*0.6}; }
+function syncPakete(){
+  if(!packTisch) return;
+  const soll=Math.min(PAKET_BAYS,S?(S.pakete|0):0);
+  while(pakete.length<soll){
+    const i=pakete.length, p=paketPose(i), h=rand(0.3,0.42);
+    const m=rbox(0.46,h,0.46,0.012,paketMaterial(),p.x,h/2+0.02,p.z,packTisch);
+    m.rotation.y=rand(-0.16,0.16);
+    pakete.push(m);
+  }
+  while(pakete.length>soll){ const m=pakete.pop(); if(m.parent) m.parent.remove(m); }
+}
+/* Ein Paket packen: eine offene Bestellung wird zur Ware auf der Rampe */
+function paketWert(){ return r2(5+S.rep*0.06+S.level*0.25); }
+function bestellungenProTag(){
+  if(!packBereit()) return 0;
+  return Math.max(4,Math.min(20,Math.round((40+S.rep*1.6+S.level*4)/Math.max(6,paketWert()))));
+}
+function packOne(auto){
+  if(!packBereit()||(S.offen|0)<=0||(S.pakete|0)>=PAKET_BAYS) return false;
+  S.offen--; S.pakete=(S.pakete|0)+1;
+  const w=paketWert();
+  S.money=r2(S.money+w); DS.revenue=r2(DS.revenue+w); DS.versand=r2((DS.versand||0)+w);
+  goalAdd('rev',w);
+  syncPakete(); drawPackSchild();
+  if(!auto){ addXP(3); sfx.beep(); toast('Paket fertig: +'+eur(w),'money'); }
+  return true;
+}
+function updateVersand(dt){
+  if(!packBereit()){ versandT=0; return; }
+  if(phase==='open'){
+    const n=bestellungenProTag(); if(n>0){
+      versandT-=dt;
+      if(versandT<=0){ versandT=330/n; S.offen=(S.offen|0)+1; drawPackSchild(); }
+    }
+  }
+  if(staff.packer&&(S.offen|0)>0){
+    S.packT=(S.packT||0)-dt;
+    if(S.packT<=0){ S.packT=3.4/(staff.packer.wf||1); packOne(true); }
+  }
+}
+/* Tagesende: DDL holt ab, offene Bestellungen bleiben liegen */
+function ddlAbholung(){
+  const n=S.pakete|0; if(n<=0) return 0;
+  S.pakete=0; syncPakete(); drawPackSchild();
+  return n;
 }
 
 /* =========================================================
@@ -3143,6 +3534,109 @@ function buildCheckout(){
   ckMov=addMovable({kind:'ck',name:'Kasse',g:ckG,fw:3.4,fd:0.95,onPlace:()=>{ belt.forEach(b=>syncBeltItem(b)); syncBag(); }});
   drawPOS();
 }
+/* =========================================================
+   SB-Kassen: zwei Selbstbedienungsterminals in der neuen
+   Verkaufsflaeche. Kunden mit wenig Ware zahlen dort selbst.
+   ========================================================= */
+let sbG=null; const sbLanes=[], sbCols=[];
+function sbScreenTex(){
+  return tex(512,384,(g,W,H)=>{
+    g.fillStyle='#0f1726'; g.fillRect(0,0,W,H);
+    g.fillStyle='#16233a'; g.fillRect(0,0,W,68);
+    g.fillStyle='#ffd23f'; g.font=BUN(34); g.textAlign='left'; g.textBaseline='middle';
+    g.fillText('SB-KASSE', 20, 34);
+    g.fillStyle='#6cf2a8'; g.font=BAR(24); g.textAlign='right';
+    g.fillText('BEREIT', W-20, 34);
+    g.textAlign='left';
+    const zeilen=[['Batteriebox 100 Schuss','24,90'],['Raketensortiment','12,50'],['Wunderkerzen','2,40']];
+    zeilen.forEach((z,i)=>{
+      g.fillStyle=i%2?'#132034':'#101b2d'; g.fillRect(16,92+i*46,W-32,42);
+      g.fillStyle='#cfe0f5'; g.font=BAR(22); g.fillText(z[0],28,113+i*46);
+      g.textAlign='right'; g.fillStyle='#ffffff'; g.fillText(z[1]+' €',W-28,113+i*46); g.textAlign='left';
+    });
+    g.fillStyle='#1d2c47'; g.fillRect(16,246,W-32,52);
+    g.fillStyle='#ffffff'; g.font=BUN(30); g.fillText('Summe',30,272);
+    g.textAlign='right'; g.fillText('39,80 €',W-30,272); g.textAlign='left';
+    g.fillStyle='#2f9e57'; g.fillRect(16,310,(W-40)/2,56);
+    g.fillStyle='#3a4560'; g.fillRect(24+(W-40)/2,310,(W-40)/2,56);
+    g.fillStyle='#ffffff'; g.font=BUN(26); g.textAlign='center';
+    g.fillText('BEZAHLEN',16+(W-40)/4,340);
+    g.fillText('HILFE',24+(W-40)*0.75,340);
+  });
+}
+function sbTerminal(parent,x,z){
+  const korpus=std(0x20283c,{roughness:0.58}),
+        blende=std(0xe4e8ef,{roughness:0.42,metalness:0.06}),
+        stahl=std(0xb4bac4,{metalness:0.7,roughness:0.3}),
+        dunkel=std(0x14171f,{roughness:0.5}),
+        akzent=std(0xc8322a,{roughness:0.5});
+  const g=new THREE.Group(); g.position.set(x,0,z); parent.add(g);
+  /* Sockel und Korpus */
+  bbox(0.72,0.1,0.62,dunkel,0,0.05,0,g,false);
+  const c=rbox(0.78,0.86,0.68,0.02,korpus,0,0.53,0,g); occluders.push(c);
+  bbox(0.8,0.04,0.7,stahl,0,0.98,0,g,false);
+  bbox(0.8,0.035,0.03,akzent,0,0.74,0.345,g,false);
+  /* Abstellflaechen links und rechts */
+  for(const s of [-1,1]){
+    rbox(0.42,0.05,0.5,0.014,blende,s*0.6,0.97,0,g);
+    bbox(0.05,0.9,0.05,stahl,s*0.6,0.47,-0.2,g,false);
+    bbox(0.05,0.9,0.05,stahl,s*0.6,0.47,0.2,g,false);
+  }
+  /* Scannerfenster in der Arbeitsplatte */
+  bbox(0.3,0.012,0.24,dunkel,0,1.005,0.12,g,false);
+  const scan=plane(0.26,0.2,new THREE.MeshBasicMaterial({toneMapped:false,
+    color:LIN(0x8f2a22)}),0,1.014,0.12,0,g);
+  scan.rotation.x=-Math.PI/2; scan.renderOrder=2;
+  /* Saeule mit Touchscreen */
+  const saeule=rbox(0.24,0.62,0.18,0.02,korpus,0,1.3,-0.16,g);
+  const rahmen=rbox(0.56,0.42,0.045,0.012,dunkel,0,1.62,-0.1,g); rahmen.rotation.x=0.22;
+  const scr=plane(0.5,0.36,new THREE.MeshBasicMaterial({map:sbScreenTex(),toneMapped:false}),0,1.627,-0.075,0,g);
+  scr.rotation.x=0.22;
+  /* Kartenleser auf kurzem Arm */
+  bbox(0.05,0.05,0.14,stahl,0.2,1.16,0.02,g,false);
+  const leser=rbox(0.13,0.2,0.05,0.012,dunkel,0.27,1.22,0.02,g); leser.rotation.x=-0.35;
+  plane(0.09,0.06,new THREE.MeshBasicMaterial({toneMapped:false,color:LIN(0x2f9e57)}),0.27,1.28,0.0,0,g).rotation.x=-0.35;
+  /* Statusleuchte auf einer Stange */
+  const st=new THREE.Mesh(new THREE.CylinderGeometry(0.018,0.018,0.86,10),stahl);
+  st.position.set(-0.3,1.42,-0.2); g.add(st);
+  const lampM=new THREE.MeshStandardMaterial({color:LIN(0x1d5f36),emissive:LIN(0x37d977),emissiveIntensity:1.6});
+  const lamp=new THREE.Mesh(new THREE.CylinderGeometry(0.055,0.055,0.11,12),lampM);
+  lamp.position.set(-0.3,1.9,-0.2); g.add(lamp);
+  /* Tuete am Buegel */
+  bbox(0.02,0.3,0.24,stahl,0.6,1.14,0,g,false);
+  return {g,lamp,lampM,busy:null,t:0};
+}
+function buildSBKasse(){
+  if(sbG) return sbG;
+  sbG=new THREE.Group(); sbG.position.set(0,0,0); scene.add(sbG);
+  /* Rueckwand mit Beschilderung hinter den Terminals */
+  const w=std(0x1b2340,{roughness:0.7});
+  bbox(3.6,0.34,0.12,w,10.6,2.35,3.75,sbG,false);
+  const schild=tex(1024,140,(g,W,H)=>{
+    g.fillStyle='#1b2340'; g.fillRect(0,0,W,H);
+    g.fillStyle='#ffd23f'; g.font=BUN(64); g.textAlign='center'; g.textBaseline='middle';
+    g.fillText('SB-KASSEN',W/2,H/2+4);
+    g.strokeStyle='#2f3a5e'; g.lineWidth=6; g.strokeRect(3,3,W-6,H-6);
+  });
+  plane(3.4,0.3,new THREE.MeshBasicMaterial({map:schild,toneMapped:false}),10.6,2.35,3.82,0,sbG);
+  for(const sx of [9.0,12.2]) bbox(0.07,2.2,0.07,std(0x8d939d,{metalness:0.6,roughness:0.4}),sx,1.15,3.75,sbG,false);
+  for(const x of [9.7,11.5]) sbLanes.push(sbTerminal(sbG,x,4.4));
+  sbCols.push(col(9.0,10.4,4.05,4.75),col(10.8,12.2,4.05,4.75));
+  return sbG;
+}
+function sbLampe(l,frei){
+  l.lampM.color.copy(LIN(frei?0x1d5f36:0x5f3a1d));
+  l.lampM.emissive.copy(LIN(frei?0x37d977:0xf2a23a));
+}
+/* Beim Laden eines anderen Spielstands muessen die Terminals wieder weg */
+function setSB(an){
+  if(an){ buildSBKasse(); sbG.visible=true;
+    sbCols.forEach(c=>{ if(colliders.indexOf(c)<0) colliders.push(c); }); }
+  else if(sbG){ sbG.visible=false; sbCols.forEach(c=>dropCol(c)); }
+  sbLanes.forEach(l=>{ l.busy=null; sbLampe(l,true); });
+}
+function sbPos(i){ return V(sbLanes[i].g.position.x,0,sbLanes[i].g.position.z+0.95); }
+function sbFrei(){ for(let i=0;i<sbLanes.length;i++) if(!sbLanes[i].busy) return i; return -1; }
 let deskG=null;
 function buildDesk(){
   deskG=new THREE.Group(); deskG.position.set(7.35,0,0.9); scene.add(deskG);
@@ -3276,10 +3770,12 @@ function slotLocal(t,idx,sh){
   const tw=L.cols*(L.w+L.g)-L.g;
   return {x:-tw/2+L.w/2+c*(L.w+L.g), y:layer*L.h, z:L.K.d/2-0.03-L.d/2-row*(L.d+L.g)};
 }
+function slotFrei(sl){ return !sl.zone||zoneOffen(sl.zone); }
+function slotsOffen(){ return SLOTS.filter(slotFrei); }
 function createShelf(i,data){
   const kind=(data&&data.kind&&SHELFKIND[data.kind])?data.kind:'standard';
   const K=SHELFKIND[kind];
-  const g=new THREE.Group(); const s=data&&data.x!==undefined?data:SLOTS[Math.min(i,SLOTS.length-1)];
+  const g=new THREE.Group(); const frei=slotsOffen(); const s=data&&data.x!==undefined?data:frei[Math.min(i,frei.length-1)]||SLOTS[0];
   g.position.set(s.x,0,s.z); g.rotation.y=s.ry||0; scene.add(g);
   const W=K.w, D=K.d, top=K.lv[K.lv.length-1]+0.48, hw=W/2, iw=W-0.1;
   const sh={i,g,kind,levels:[],W,D};
@@ -3408,7 +3904,8 @@ function drawRackSchild(rk){
 function refreshRackSchilder(){ racks.forEach(r=>{ if(r) drawRackSchild(r); }); }
 const rackBlue=std(0x2f5d9e,{metalness:0.4,roughness:0.5}), rackOrange=std(0xe06a1f,{metalness:0.3,roughness:0.5}), deck=std(0x8d939d,{metalness:0.5,roughness:0.5});
 function createRack(i,data){
-  const r=data&&data.x!==undefined?data:RACKS[Math.min(i,RACKS.length-1)], g=new THREE.Group();
+  const rf=RACKS.filter(x=>!x.zone||zoneOffen(x.zone));
+  const r=data&&data.x!==undefined?data:rf[Math.min(i,rf.length-1)]||RACKS[0], g=new THREE.Group();
   g.position.set(r.x,0,r.z); g.rotation.y=r.ry||0; scene.add(g);
   const HT=2.34, XO=1.22, ZO=0.3;
   /* Gelochte Stützen als Textur, damit das Profil erkennbar bleibt */
@@ -4280,7 +4777,7 @@ function faceFor(){
   if(FACEPOOL.length<FACEMAX){ const f=newFace(); FACEPOOL.push(f); return f; }
   return pick(FACEPOOL);
 }
-const STAFFLOOK={reinigung:{jacket:0x2f9e57,cap:0x2f9e57},auffueller:{jacket:0xd07f2f,cap:0xd07f2f},auffueller2:{jacket:0xb8541f,cap:0x2a2e38},kassierer:{jacket:0x2f7fd0,cap:0xffd23f},security:{jacket:0x222634,cap:0x222634}};
+const STAFFLOOK={reinigung:{jacket:0x2f9e57,cap:0x2f9e57},auffueller:{jacket:0xd07f2f,cap:0xd07f2f},auffueller2:{jacket:0xb8541f,cap:0x2a2e38},kassierer:{jacket:0x2f7fd0,cap:0xffd23f},security:{jacket:0x222634,cap:0x222634},packer:{jacket:0xf2c230,cap:0xc8322a}};
 function makePerson(opt){
   opt=opt||{};
   const g=new THREE.Group(), F=faceFor();
@@ -4469,7 +4966,7 @@ class Customer{
     this.g=makePerson(); this.g.position.set(rand(-4,4),0,13.5); scene.add(this.g);
     this.path=[V(0,0,7.6),V(0,0,4.9)]; this.state='enter'; this.speed=rand(1.2,1.6);
     this.ct=rollCustType();
-    this.wishes=makeWishes(this.ct); this.items=[]; this.missed=false; this.total=0;
+    this.wishes=makeWishes(this.ct); this.items=[]; this.missed=false; this.total=0; this.sb=null;
     this.patience=(rand(75,110)+S.rep*0.3+(S.up.heizung?30:0)+(S.up.klima?35:0)+ambienteScore()*0.35)*(0.72+0.3*friendliness())*this.ct.pat*evv('pat');
     this.wait=0; this.bub=null; this.bubT=0; this.moving=false;
     this.thief=Math.random()<thiefChance(); this.mark=null; this.caught=false;
@@ -4541,7 +5038,27 @@ class Customer{
     toast(`Dieb entkommen: Ware für ${eur(v)} weg.`,'bad');
     if(staff.security&&staff.security.chase===this) staff.security.chase=null;
   }
-  joinQueue(){ queue.push(this); this.state='queue'; this.path=[...route(this.pos,queueApproach()),spotPos(queue.length-1)]; }
+  joinQueue(){
+    /* Wenig Ware und die Hauptschlange steht? Dann lieber SB-Kasse. */
+    if(S.up.kasse2&&sbLanes.length&&this.items.length<=3&&(queue.length>=1||Math.random()<0.45)){
+      const i=sbFrei();
+      if(i>=0){ this.sb=i; sbLanes[i].busy=this; sbLampe(sbLanes[i],false);
+        this.state='sbGo'; this.path=[...route(this.pos,sbPos(i))]; DS.sb=(DS.sb||0)+1; return; }
+    }
+    queue.push(this); this.state='queue'; this.path=[...route(this.pos,queueApproach()),spotPos(queue.length-1)];
+  }
+  sbStart(){
+    this.state='sbPay';
+    this.total=r2(this.items.reduce((a,it)=>a+it.price,0));
+    this.sbT=1.1+this.items.length*1.25;
+    this.method='card';
+    this.say(pick(['Geht auch selbst.','Schnell durch hier.','Piep.']));
+  }
+  sbFree(){
+    if(this.sb===undefined||this.sb===null) return;
+    const l=sbLanes[this.sb]; if(l&&l.busy===this){ l.busy=null; sbLampe(l,true); }
+    this.sb=null;
+  }
   atRegister(){ this.state='unload'; this.ui=0; this.unT=0.5; this.scanned=0; this.sum=0; posReset(); posStatus='Kunde legt Ware aufs Band'; drawPOS(); }
   startPay(){
     this.state='pay'; this.method=Math.random()<0.6?'card':'cash';
@@ -4566,17 +5083,19 @@ class Customer{
   }
   cleanupRegister(){
     if(this.prop){ scene.remove(this.prop); this.prop=null; }
+    if(this.sb!==undefined&&this.sb!==null){ this.sbFree(); return; }
     for(let k=belt.length-1;k>=0;k--) if(belt[k].cust===this) removeBeltItem(belt[k]);
     clearBag(); posReset(); posStatus='Bereit'; drawPOS();
     if(cashCust===this) closeCash(false);
   }
   giveUp(){
     this.say('Dauert mir zu lange!',true); rep(-2); DS.angry++;
-    if(['unload','scan','pay'].includes(this.state)) this.cleanupRegister();
+    if(['unload','scan','pay','sbPay'].includes(this.state)) this.cleanupRegister();
     this.items=[]; this.leave();
   }
   leave(){
     const qi=queue.indexOf(this); if(qi>=0) queue.splice(qi,1);
+    this.sbFree();
     if(this.mark){ this.g.remove(this.mark); this.mark=null; }
     this.state='leave'; this.path=[...route(this.pos,V(0,0,4.9)),V(0,0,7.6),V(rand(-5,5),0,14)];
     if(Math.random()<(hasDeko('muell')?0.1:0.22)) addDirt(this.pos.x+rand(-1,1),this.pos.z+rand(-1,1));
@@ -4616,6 +5135,15 @@ class Customer{
         this.patience-=dt*0.3;
         if(staff.kassierer){ this.autoT-=dt; if(this.autoT<=0){ if(this.method==='card') this.finishCard(); else this.finishCash(r2(this.given-this.total)); } }
         if(this.state==='pay'&&this.patience<=0) this.giveUp(); break;
+      case 'sbGo':
+        if(this.walk(dt)){ this.face(Math.PI); this.sbStart(); }
+        this.patience-=dt; if(this.patience<=0) this.giveUp();
+        break;
+      case 'sbPay':
+        this.sbT-=dt; this.patience-=dt*0.3;
+        if(this.sbT<=0){ sfx.beep(); this.complete(this.total,0); }
+        else if(this.patience<=0) this.giveUp();
+        break;
       case 'leave': if(this.walk(dt)) this.remove(); break;
     }
     animPerson(this.g,this.moving,dt,this.speed);
@@ -4799,8 +5327,8 @@ function updateOrder(dt){
 /* =========================================================
    Personal
    ========================================================= */
-const staff={reinigung:null,auffueller:null,auffueller2:null,kassierer:null,security:null};
-const IDLE={reinigung:V(-6.6,0,4.2),auffueller:V(-7.0,0,1.0),auffueller2:V(-7.0,0,-0.4),kassierer:V(0,0,0),security:V(1.4,0,4.6)};
+const staff={reinigung:null,auffueller:null,auffueller2:null,kassierer:null,security:null,packer:null};
+const IDLE={reinigung:V(-6.6,0,4.2),auffueller:V(-7.0,0,1.0),auffueller2:V(-7.0,0,-0.4),kassierer:V(0,0,0),security:V(1.4,0,4.6),packer:V(-16.3,0,3.4)};
 const PRIO={lkw:'LKW zuerst',regal:'Regale zuerst'};
 /* Lohnstufen: mehr Geld heißt schneller, gründlicher und freundlicher */
 const WAGES=[
@@ -4844,12 +5372,19 @@ class Worker{
     else if(this.kind==='auffueller') this.stockLoop(dt);
     else if(this.kind==='kassierer') this.cashLoop(dt);
     else if(this.kind==='security') this.guardLoop(dt);
+    else if(this.kind==='packer') this.packLoop(dt);
     animPerson(this.g,this.moving,dt,this.speed);
   }
   cleanLoop(dt){
     if(this.state==='idle'){ const d=nearestDirt(this.pos); if(d){ this.target=d; this.goTo(V(d.m.position.x,0,d.m.position.z+0.5)); this.state='go'; } else if(this.path.length===0&&this.pos.distanceTo(IDLE.reinigung)>0.5) this.goTo(IDLE.reinigung); else this.walk(dt); }
     else if(this.state==='go'){ if(!this.target||dirts.indexOf(this.target)<0){ this.state='idle'; return; } if(this.walk(dt)){ this.state='work'; this.t=2.2; } }
     else if(this.state==='work'){ this.t-=dt*(this.wf||1); if(this.t<=0){ if(this.target&&dirts.indexOf(this.target)>=0){ removeDirt(this.target); sfx.pop(); } this.target=null; this.state='idle'; } }
+  }
+  packLoop(dt){
+    const home=IDLE.packer;
+    if(this.pos.distanceTo(home)>0.45){ if(!this.path.length) this.goTo(home); this.walk(dt); return; }
+    this.g.rotation.y+=((-Math.PI/2)-this.g.rotation.y)*Math.min(1,dt*6);
+    if((S.offen|0)>0){ this.moving=true; }
   }
   stockLoop(dt){
     if(this.state==='idle'){
@@ -5688,6 +6223,7 @@ function updateTarget(){
   list.push(lapHit,doorSign,posHit,cardHit);
   if(pultHit) list.push(pultHit);
   if(gravHit) list.push(gravHit);
+  if(packHit&&zoneOffen('packstation')) list.push(packHit);
   if(truck&&truck.state==='docked') truck.boxes.forEach(m=>list.push(m));
   list.push(...windowHits);
   list.push(...occluders);
@@ -5715,6 +6251,13 @@ function promptFor(t){
     case 'card': return reg&&reg.state==='pay'&&reg.method==='card'?{t:'Kartenzahlung abschließen',a:true}:{t:'Kartenterminal',a:false};
     case 'pos': if(reg&&reg.state==='pay') return reg.method==='cash'?{t:`Bargeld annehmen: ${eur(reg.given)}`,a:true}:{t:'Kartenzahlung abschließen',a:true}; return {t:'Kasse',a:false};
     case 'laptop': return {t:'Laptop öffnen',a:true};
+    case 'pack': {
+      if(!zoneOffen('packstation')) return {t:'Packstation',a:false};
+      if(!S.up.onlineshop) return {t:'Onlineshop muss noch freigeschaltet werden',a:false};
+      const o=S.offen|0;
+      if(o<=0) return {t:`Packstation: keine offenen Bestellungen · ${S.pakete|0} Pakete auf der Rampe`,a:false};
+      if((S.pakete|0)>=PAKET_BAYS) return {t:'Rampe ist voll. DDL holt am Tagesende ab.',a:false};
+      return {t:`Paket packen (${o} offen) · +${eur(paketWert())}`,a:true}; }
     case 'station': { const st=t.ref, nm=STATION_POS[st.id].name;
       if(c){ const want=stationOf(c.type);
         if(!want) return {t:`${nm}: damit kann man nichts zünden`,a:false};
@@ -5755,6 +6298,7 @@ function doAction(){
   else if(k==='belt') scanBelt(r);
   else if(k==='card'){ if(reg&&reg.state==='pay'){ if(reg.method==='card') reg.finishCard(); else toast('Der Kunde zahlt bar. Klick die Kasse an.'); } }
   else if(k==='pos'){ if(reg&&reg.state==='pay'){ if(reg.method==='cash') openCash(reg); else reg.finishCard(); } }
+  else if(k==='pack'){ if((S.pakete|0)<PAKET_BAYS) packOne(false); }
   else if(k==='laptop') openLaptop();
   else if(k==='station'){ if(S.carrying) placeOnStation(r); }
   else if(k==='pult') firePult();
@@ -5960,7 +6504,7 @@ function repayLoan(v){
 /* =========================================================
    Tagesablauf
    ========================================================= */
-function newDayStats(){ DS={revenue:0,customers:0,sold:0,f2:0,missed:0,angry:0,goods:0,upgrades:0,interest:0,changeLoss:0,stolen:0,caught:0,burned:0,orders:0,gravur:0,rep0:S.rep,xpGained:0}; }
+function newDayStats(){ DS={revenue:0,customers:0,sold:0,f2:0,missed:0,angry:0,goods:0,upgrades:0,interest:0,changeLoss:0,stolen:0,caught:0,burned:0,orders:0,gravur:0,versand:0,sb:0,rep0:S.rep,xpGained:0}; }
 /* Marktlage: Einkaufspreise und Konkurrenz schwanken von Tag zu Tag */
 function rollMarket(){
   S.mkt=clamp((S.mkt||1)*rand(0.93,1.08),0.72,1.34);
@@ -6051,7 +6595,11 @@ function endDay(){
   addGrime(0.06); staffMorale();
   const ev=todayEvent();
   if(ev&&ev.pruef){ if(cleanliness()>=70){ rep(3); toast('Die Prüfung war zufrieden. Das hebt den Ruf.','money'); } else { rep(-5); toast('Die Prüfung hat einen dreckigen Laden vorgefunden.','bad'); } }
-  const online=S.up.onlineshop?Math.round(40+S.rep*1.6+S.level*4):0;
+  /* Mit Packstation laeuft der Onlineshop ueber echte Pakete statt ueber eine Pauschale */
+  const abgeholt=typeof ddlAbholung==='function'?ddlAbholung():0;
+  const online=(S.up.onlineshop&&!packBereit())?Math.round(40+S.rep*1.6+S.level*4):0;
+  if(abgeholt) toast(`DDL hat ${abgeholt} Paket${abgeholt===1?'':'e'} abgeholt.`,'money');
+  if(packBereit()&&(S.offen|0)>0){ rep(-Math.min(4,0.4*S.offen)); }
   const wages=dailyWages(), fix=fixedCosts(), extra=(hasDeko('automat')?45:0)+online;
   let pay=0, rate=0;
   if(S.loan){ rate=loanDaily(); const interest=r2(S.loan.remaining*S.loan.rate); pay=Math.min(rate,S.loan.remaining+interest);
@@ -6067,6 +6615,9 @@ function endDay(){
     {head:'Einnahmen'},['Verkäufe',eur(DS.revenue)]];
   if(hasDeko('automat')) rows.push(['Getränkeautomat',eur(45)]);
   if(online) rows.push(['Onlineshop',eur(online)]);
+  if(DS.versand) rows.push(['Versand (Pakete)',eur(DS.versand)]);
+  if(DS.sb) rows.push(['Davon an den SB-Kassen',`${DS.sb} Kunden`]);
+  if(packBereit()&&(S.offen|0)>0) rows.push(['Nicht gepackte Bestellungen',String(S.offen|0)]);
   if(S.goal) rows.push(['Wochenziel',`${S.goal.name}: ${Math.round(S.goal.have)}/${S.goal.need} ${S.goal.unit}`]);
   rows.push({head:'Ausgaben'},['Wareneinkauf',eur(DS.goods)],['Ausbau und Deko',eur(DS.upgrades)],['Löhne',eur(wages)],['Fixkosten',eur(fix)],['Kreditrate',eur(pay)],['Zu viel Rückgeld',eur(DS.changeLoss)],['Selbst gezündet',eur(DS.burned)],
     ['Gewinn des Tages',(profit>=0?'+':'')+eur(profit),true],
@@ -6281,11 +6832,19 @@ function upPic(id){
       break;
     case 'kasse2':
       bg('#16203a','#0b1222');
-      g.fillStyle='#223055'; g.fillRect(34,70,156,58);
-      g.fillStyle='#d6dae2'; g.fillRect(30,62,164,10);
-      g.fillStyle='#1b2130'; g.fillRect(118,28,64,38); g.fillStyle='#2f6bb8'; g.fillRect(122,32,56,30);
-      g.fillStyle='#8a9099'; g.fillRect(148,66,6,6);
-      g.fillStyle='#111'; g.fillRect(48,56,52,10); break;
+      /* zwei SB-Terminals nebeneinander */
+      for(const bx of [26,120]){
+        g.fillStyle='#223055'; g.fillRect(bx,74,78,58);
+        g.fillStyle='#d6dae2'; g.fillRect(bx-4,68,86,8);
+        g.fillStyle='#c8322a'; g.fillRect(bx,92,78,4);
+        g.fillStyle='#39425c'; g.fillRect(bx+32,46,14,24);
+        g.fillStyle='#1b2130'; g.fillRect(bx+14,24,50,32);
+        g.fillStyle='#2f6bb8'; g.fillRect(bx+17,27,44,26);
+        g.fillStyle='#6cf2a8'; g.fillRect(bx+17,46,20,5);
+        g.fillStyle='#8a9099'; g.fillRect(bx+4,60,6,12);
+        g.fillStyle='#37d977'; g.beginPath(); g.arc(bx+7,56,5,0,Math.PI*2); g.fill();
+      }
+      break;
     case 'shop_gross':
       bg('#20283c','#121826');
       g.fillStyle='#8a4f3c'; g.fillRect(112,24,96,110);
@@ -6308,11 +6867,6 @@ function upPic(id){
       for(let k=0;k<3;k++){ g.fillStyle='#c9a978'; g.fillRect(44+k*50,44,40,32);
         g.strokeStyle='#8a7350'; g.lineWidth=2; g.strokeRect(44+k*50,44,40,32); }
       g.fillStyle='#e8b800'; g.fillRect(150,26,56,16); g.fillStyle='#c8322a'; g.fillRect(150,26,28,16); break;
-    case 'tor2':
-      bg('#1a2030','#0e131e');
-      for(let i=0;i<5;i++){ g.fillStyle=i%2?'#e7e9ec':'#dfe2e6'; g.fillRect(52,26+i*21,120,19); }
-      g.fillStyle='#59606b'; g.fillRect(44,20,8,116); g.fillRect(172,20,8,116);
-      g.fillStyle='#f2c230'; g.fillRect(52,130,120,8); break;
     case 'plakat': case 'radio': case 'tafel':
       bg('#1c2438','#0e1424');
       g.fillStyle='#c8322a'; g.fillRect(40,26,144,88);
@@ -6407,18 +6961,24 @@ function renderLaptop(){
   } else if(ltab==='up'||ltab==='einr'||ltab==='markt'){
     const kat=ltab==='up'?'flaeche':ltab;
     hint=kat==='flaeche'
-      ? 'Mehr Fläche für Verkauf und Lager. Die teuerste, aber auch die nachhaltigste Investition.'
+      ? 'Mehr Fläche für Verkauf und Lager. Die Bauwände im Laden zeigen, was du hier freischaltest. Teuer, aber die nachhaltigste Investition.'
       : kat==='einr'
       ? 'Regale, Kassen und Technik im Laden. Ein Karton passt meist genau in ein Regalfach.'
       : 'Alles, was dir mehr Kundschaft und bessere Konditionen bringt.';
     const liste=UPGRADES.filter(u=>(u.kat||'einr')===kat).sort((a,b)=>a.lvl-b.lvl);
-    h=liste.map(u=>{ const lock=S.level<u.lvl, done=u.done(), cost=u.cost();
-      return `<div class="row${lock?' locked':''}">`+
+    h=liste.map(u=>{ const done=u.done(), cost=u.cost();
+      const fehlt=u.req&&!S.up[u.req]?UPGRADES.find(x=>x.id===u.req):null;
+      const lock=S.level<u.lvl||!!fehlt;
+      return `<div class="row${lock&&!done?' locked':''}">`+
         `<img class="pic" src="${upPic(u.id)}" alt="">`+
         `<div class="rm"><b>${u.name}</b><small>${u.desc}</small>`+
-        (lock?`<small class="warn">Ab Level ${u.lvl}</small>`:done?'':`<small>Kosten ${eur(cost)}</small>`)+
+        (done?'':fehlt?`<small class="warn">Setzt „${fehlt.name}“ voraus</small>`
+             :S.level<u.lvl?`<small class="warn">Ab Level ${u.lvl}</small>`:`<small>Kosten ${eur(cost)}</small>`)+
         `</div>`+
-        (lock?`<small>Level ${u.lvl}</small>`:done?'<small class="ok">Erledigt</small>':`<button data-a="up" data-t="${u.id}" ${S.money<cost?'disabled':''}>${eur(cost)}</button>`)+
+        (done?'<small class="ok">Erledigt</small>'
+            :fehlt?'<small>gesperrt</small>'
+            :S.level<u.lvl?`<small>Level ${u.lvl}</small>`
+            :`<button data-a="up" data-t="${u.id}" ${S.money<cost?'disabled':''}>${eur(cost)}</button>`)+
         '</div>'; }).join('');
   } else if(ltab==='deko'){
     hint=`Stimmung im Laden: ${ambienteScore()} von 100. Verschieben geht im Umbaumodus.`;
@@ -6438,12 +6998,12 @@ function renderLaptop(){
   } else if(ltab==='staff'){
     hint=`Löhne heute: ${eur(dailyWages())} · werden beim Tagesabschluss abgebucht.`;
     hint+=` Freundlichkeit im Laden: ${Math.round(friendliness()*100)} %. Höhere Löhne machen schneller und freundlicher.`;
-    h=STAFF.map(s=>{ const lock=S.level<s.lvl, has=!!S.staff[s.id];
+    h=STAFF.map(s=>{ const fehlt=s.req&&!S.up[s.req], lock=S.level<s.lvl||fehlt, has=!!S.staff[s.id];
       const isStock=s.id.indexOf('auffueller')===0;
       const prio=isStock&&has?`<small>Priorität: ${Object.keys(PRIO).map(k=>`<button data-a="prio" data-t="${s.id}" data-v="${k}" style="padding:4px 9px;font-size:14px;margin-right:4px;${prioOf(s.id)===k?'background:var(--signal);color:var(--ink)':'background:rgba(242,245,255,.12);color:var(--snow)'}">${PRIO[k]}</button>`).join('')}</small>`:'';
       const lohn=has?`<small>Lohn: ${WAGES.map(w=>`<button data-a="wage" data-t="${s.id}" data-v="${w.f}" title="${w.desc}" style="padding:4px 8px;font-size:14px;margin-right:4px;${wageOf(s.id)===w.f?'background:var(--mint);color:var(--ink)':'background:rgba(242,245,255,.12);color:var(--snow)'}">${w.name} ${eur(r2(s.wage*w.f))}</button>`).join('')}</small>`:'';
       return `<div class="row${lock?' locked':''}"><div class="rm"><b>${s.name}</b><small>${s.desc}</small><small>Einstellung ${eur(s.hire)} · Grundlohn ${eur(s.wage)} pro Tag</small>${lohn}${prio}</div>`+
-        (lock?`<small>ab Level ${s.lvl}</small>`:has?`<button class="red" data-a="fire" data-t="${s.id}">Kündigen</button>`:`<button data-a="hire" data-t="${s.id}" ${S.money<s.hire?'disabled':''}>Einstellen</button>`)+'</div>'; }).join('');
+        (fehlt?'<small>braucht die Packstation</small>':lock?`<small>ab Level ${s.lvl}</small>`:has?`<button class="red" data-a="fire" data-t="${s.id}">Kündigen</button>`:`<button data-a="hire" data-t="${s.id}" ${S.money<s.hire?'disabled':''}>Einstellen</button>`)+'</div>'; }).join('');
   } else if(ltab==='bank'){
     const t=loanTier(), L=S.loan;
     hint=t?`Dein Kreditrahmen: ${eur(t.amount)}.`:'Kredite gibt es ab Level 5.';
@@ -6510,7 +7070,7 @@ $('lbody').addEventListener('click',e=>{
   else if(a==='deko') buyDeko(t);
   else if(a==='wall') setWall(t);
   else if(a==='floor') setFloor(t);
-  else if(a==='hire'){ const s=STAFF.find(x=>x.id===t); if(!s||S.money<s.hire||S.staff[t]) return; S.money=r2(S.money-s.hire); DS.upgrades=r2(DS.upgrades+s.hire); S.staff[t]=true; hireStaff(t); sfx.cash(); toast(`${s.name} eingestellt.`); save(); }
+  else if(a==='hire'){ const s=STAFF.find(x=>x.id===t); if(!s||S.money<s.hire||S.staff[t]||S.level<s.lvl||(s.req&&!S.up[s.req])) return; S.money=r2(S.money-s.hire); DS.upgrades=r2(DS.upgrades+s.hire); S.staff[t]=true; hireStaff(t); sfx.cash(); toast(`${s.name} eingestellt.`); save(); }
   else if(a==='fire'){ const s=STAFF.find(x=>x.id===t); if(!s) return; S.staff[t]=false; fireStaff(t); toast(`${s.name} gekündigt.`); save(); }
   else if(a==='wage'){ setWage(t,+b.dataset.v); toast(`${STAFF.find(x=>x.id===t).name}: ${wageName(t)}.`); }
   else if(a==='prio'){ setPrio(t,b.dataset.v); toast(`${STAFF.find(x=>x.id===t).name}: ${PRIO[b.dataset.v]}.`); }
@@ -6536,11 +7096,22 @@ function toggleTest(){
   sfx.cash(); updateTool(); save();
 }
 function buyUp(id){
-  const u=UPGRADES.find(x=>x.id===id); if(!u||u.done()||S.level<u.lvl) return; const cost=u.cost(); if(S.money<cost) return;
+  const u=UPGRADES.find(x=>x.id===id); if(!u||u.done()||S.level<u.lvl) return;
+  if(u.req&&!S.up[u.req]) return;
+  const cost=u.cost(); if(S.money<cost) return;
   S.money=r2(S.money-cost); DS.upgrades=r2(DS.upgrades+cost);
   if(id.indexOf('shelf_')===0){ const k=id.slice(6); createShelf(shelves.length,{kind:k}); S.tut.shelf=true; toast(`${SHELFKIND[k].name} steht im Laden.`); }
   else if(id==='rack'){ createRack(racks.length,null); toast('Neues Lagerregal steht im Lager.'); }
   else { S.up[id]=true;
+    if(ZONEN[id]){
+      oeffneZone(id,true);
+      if(id==='shop_gross') toast('Die Wand ist durchbrochen. Deine Verkaufsfläche ist jetzt deutlich größer.','money');
+      else if(id==='lager_gross') toast('Das Lager ist geöffnet. Hinten ist Platz für Regale und die Packstation.','money');
+      else if(id==='packstation'){ drawPackSchild(); toast(S.up.onlineshop?'Die Packstation steht. Ab jetzt kommen Onlinebestellungen als Pakete herein.':'Die Packstation steht. Für den Versand brauchst du noch den Onlineshop.','money'); }
+      addXP(Math.round(cost/12),'Ausbau'); sfx.cash(); save(); return;
+    }
+    if(id==='onlineshop'){ drawPackSchild(); }
+    if(id==='kasse2'){ setSB(true); toast('Die SB-Kassen stehen. Kunden mit wenig Ware bedienen sich jetzt selbst.','money'); }
     if(id==='gravur'){ buildGravur(null); toast('Der Gravur-Automat steht. Blanko-Raketen bei Mertens bestellen.'); }
     else if(id==='grosskunden') toast('Eintrag ist online. Veranstalter rufen jetzt an.');
     else if(id==='plakat') toast('Plakate hängen. Mehr Kunden ab sofort.');
@@ -6569,18 +7140,18 @@ function setFloor(id){ const f=FLOORS.find(x=>x.id===id); if(!f||S.level<f.lvl||
    ========================================================= */
 function freshState(){ const prices={}; ORDER.forEach(t=>prices[t]=P[t].market);
   return {v:3,money:500,rep:50,level:1,xp:0,season:1,day:0,loan:null,prices,grime:0,
-    up:{plakat:false,terminal:false,tag4:false,heizung:false,musik:false,radio:false,cams:false,regallicht:false,alarm:false,shop_gross:false,lager_gross:false,packstation:false,tor2:false,kasse2:false},
+    up:{plakat:false,terminal:false,tag4:false,heizung:false,musik:false,radio:false,cams:false,regallicht:false,alarm:false,shop_gross:false,lager_gross:false,packstation:false,kasse2:false},
     staff:{},prio:{},wage:{},ev:null,goal:null,mkt:1,comp:1,deko:[],wall:'creme',floor:'grau',paint:[],test:null,stamm:{},
     shelves:[],racks:[null],
     boxes:[],
-    carrying:null,tut:{},seasonRevenue:0,cart:[],shopName:SHOP_DEFAULT,slogan:SLOGAN_DEFAULT}; }
+    carrying:null,tut:{},seasonRevenue:0,cart:[],offen:0,pakete:0,shopName:SHOP_DEFAULT,slogan:SLOGAN_DEFAULT}; }
 function loadSave(){ try{ const r=localStorage.getItem(KEY); if(!r) return null; const d=JSON.parse(r); return d&&d.v===3?d:null; }catch(e){ return null; } }
 function mpos(g){ return {x:+g.position.x.toFixed(2),z:+g.position.z.toFixed(2),ry:+g.rotation.y.toFixed(3)}; }
 function save(){
   if(!S) return;
   try{
     const d={v:3,money:S.money,rep:S.rep,level:S.level,xp:S.xp,season:S.season,day:S.day,loan:S.loan,prices:S.prices,up:S.up,staff:S.staff,prio:S.prio||{},wage:S.wage||{},ev:S.ev||null,goal:S.goal||null,mkt:r2(S.mkt||1),comp:r2(S.comp||1),
-      wall:S.wall,floor:S.floor,paint:S.paint,test:S.test,stamm:S.stamm,blanks:gravBlanks,grav:gravG?mpos(gravG):null,grime:r2(S.grime||0),tut:S.tut,seasonRevenue:S.seasonRevenue,carrying:S.carrying,cart:S.cart||[],shopName:S.shopName||SHOP_DEFAULT,slogan:S.slogan||'',
+      wall:S.wall,floor:S.floor,paint:S.paint,test:S.test,stamm:S.stamm,blanks:gravBlanks,grav:gravG?mpos(gravG):null,grime:r2(S.grime||0),tut:S.tut,seasonRevenue:S.seasonRevenue,carrying:S.carrying,cart:S.cart||[],offen:S.offen|0,pakete:S.pakete|0,shopName:S.shopName||SHOP_DEFAULT,slogan:S.slogan||'',
       deko:dekos.map(d2=>Object.assign({id:d2.id},mpos(d2.g))),
       ck:mpos(ckG),desk:mpos(deskG),
       shelves:shelves.map(s=>Object.assign(mpos(s.g),{kind:s.kind,levels:s.levels.map(l=>({type:l.type,count:l.count,q:l.q||1}))})),
@@ -6605,7 +7176,11 @@ function startGame(fresh){
   if(S.test&&typeof S.test.lvl!=='number') S.test=null;
   if(S.carrying&&!P[S.carrying.type]) S.carrying=null;
   if(S.carrying&&S.carrying.type==='gravur'&&!S.carrying.text) S.carrying=null;
+  S.offen=Math.max(0,S.offen|0); S.pakete=Math.max(0,S.pakete|0);
   repaint();
+  applyZonen();
+  setSB(!!S.up.kasse2);
+  drawPackSchild(); syncPakete();
   if(d&&d.ck) placeMovable(ckMov,d.ck.x,d.ck.z,d.ck.ry);
   if(d&&d.desk){ const m=movables.find(m=>m.kind==='desk'); if(m) placeMovable(m,d.desk.x,d.desk.z,d.desk.ry); }
   (S.shelves||F.shelves).slice(0,SLOTS.length).forEach((sd,i)=>createShelf(i,sd));
@@ -6764,7 +7339,7 @@ function step(dt){
       spawnTruck(wave.map(w=>({type:w.type,q:w.q||1})),sid,supplierOf(sid).name);
     }
   }
-  updateTruck(dt); updateSchiebetuer(dt);
+  updateTruck(dt); updateSchiebetuer(dt); updateVersand(dt);
   for(let i=timers.length-1;i>=0;i--){ timers[i].t-=dt; if(timers[i].t<=0){ const fn=timers[i].fn; timers.splice(i,1); fn(); } }
   if(phase==='open') addGrime(dt*0.0016*(1+customers.length*0.05));
   hype=Math.max(0,hype-dt*1.1);
@@ -6979,7 +7554,7 @@ fontsReady().then(()=>{
   lastF=-1; applyTOD(); updateSign(); buildStart(); requestAnimationFrame(frame);
   window.__bb={get S(){return S},get phase(){return phase},set phase(v){phase=v},set clock(v){clock=v},get clock(){return clock},pickUp,floorBoxes,shelves,racks,dekos,stockOne,openShop,step,customers,queue,belt,scanBelt,buyUp,buyDeko,get DS(){return DS},endDay,pending,save,openLaptop,closeLaptop,pl,addXP,hireStaff,fireStaff,staff,dirts,addDirt,movables,toggleBuild,setWall,setFloor,
     stations,firePult,placeOnStation,igniteType,get order(){return order},get phone(){return phone},makeCall,answerPhone,haggle,acceptDeal,declineDeal,get truck(){return truck},spawnTruck,takeFromTruck,takeBox,updateTruck,get door(){return door},get tuer(){return tuer},tuerSet,tuerNah,updateSchiebetuer,doorOpen,doorIsOpen,trailerOccupied,LR,lrFront,TOR,orderReady,orderLeft,prioOf,setPrio,racks,updateCarry,spawnFloorBox,staff,SHELFKIND,layout,shelfCapOf,shelfAccepts,emptyLevel,dateInfo,dateStr,dateShort,seasonInfo,isSunday,dayMult,ruhetag,wageOf,setWage,friendliness,windowGrime,addGrime,cleanWindowTick,ambienteScore,bildBoost,fixedCosts,dailyWages,EVENTS,GOALS,CUSTTYPES,UPGRADES,STAFF,stockOf,spawnInterval,pools,todayEvent,evv,rollEvent,rollMarket,newGoal,goalAdd,goalTick,ekFactor,marktText,xpFor,rollCustType,priceTol,buyChance,regCustomer,makeWishes,buildGravur,refillGrav,openGravInput,closeGravInput,get gravBlanks(){return gravBlanks},set gravBlanks(v){gravBlanks=v},orderBox,buyPack,cartAdd,cartAddPack,cartOrder,cartClear,cartDel,cartGoods,cartFee,cartTotal,cartBoxes,cartLines,LIEFERZEIT_SEK,VERSAND,VERSANDFREI,lieferSek,
-    scene,P,EFF,SHOWS,togglePDA,openPDA,closePDA,setPost,get postOn(){return postOn},get pdaOn(){return pdaOn},showLength,psBig,psMid,psSmall,rockets,emitters,timersLen:()=>timers.length,setView:(x,z,y,p)=>{pl.x=x;pl.z=z;yaw=y;pitch=p;aim=null;},camYaw:()=>yaw,camPitch:()=>pitch,playerPos:()=>({x:pl.x,z:pl.z}),pultYaw:()=>pultHit?pultHit.parent.rotation.y:null,applyShopName,shopName,shopSlogan,signTexPx:()=>signTex&&signTex.image?signTex.image.getContext('2d').getImageData(0,0,signTex.image.width,40).data.join(''):null,ckTexPx:()=>ckNameTex&&ckNameTex.image?ckNameTex.image.getContext('2d').getImageData(0,0,ckNameTex.image.width,60).data.join(''):null,testfeldMitte,STATION_POS,aimAt,UPGRADES,upPic,uhrZeiger:()=>({std:uhrStd?+uhrStd.rotation.z.toFixed(4):0,min:uhrMin?+uhrMin.rotation.z.toFixed(4):0}),drawRackSchild,get snowPts(){return snowPts},WALLS,FLOORS,allLevels,addToLevel,putInSlot,regCustomer,
+    scene,P,EFF,SHOWS,togglePDA,openPDA,closePDA,setPost,get postOn(){return postOn},get pdaOn(){return pdaOn},showLength,psBig,psMid,psSmall,rockets,emitters,timersLen:()=>timers.length,setView:(x,z,y,p)=>{pl.x=x;pl.z=z;yaw=y;pitch=p;aim=null;},camYaw:()=>yaw,camPitch:()=>pitch,playerPos:()=>({x:pl.x,z:pl.z}),pultYaw:()=>pultHit?pultHit.parent.rotation.y:null,applyShopName,shopName,shopSlogan,signTexPx:()=>signTex&&signTex.image?signTex.image.getContext('2d').getImageData(0,0,signTex.image.width,40).data.join(''):null,ckTexPx:()=>ckNameTex&&ckNameTex.image?ckNameTex.image.getContext('2d').getImageData(0,0,ckNameTex.image.width,60).data.join(''):null,testfeldMitte,STATION_POS,aimAt,UPGRADES,upPic,uhrZeiger:()=>({std:uhrStd?+uhrStd.rotation.z.toFixed(4):0,min:uhrMin?+uhrMin.rotation.z.toFixed(4):0}),drawRackSchild,get snowPts(){return snowPts},WALLS,FLOORS,allLevels,addToLevel,putInSlot,regCustomer,ZONEN,zoneOffen,oeffneZone,applyZonen,SLOTS,RACKS,slotsOffen,colliders,sbLanes,buildSBKasse,packBereit,packOne,paketWert,bestellungenProTag,pakete,PAKET_BAYS,ddlAbholung,updateVersand,createShelf,createRack,startGame,promptFor,get packHit(){return packHit},get target(){return target},
     shot:()=>{ noLoop=true; camera.position.set(pl.x,1.65,pl.z); camera.rotation.set(pitch,yaw,0); camera.updateMatrixWorld(); updateTarget(); applyTOD(); renderFrame(0.016); return canvas.toDataURL('image/jpeg',0.85); },
     run:(sec,dt)=>{ noLoop=true; const n=Math.round(sec/(dt||0.05)); for(let i=0;i<n;i++) step(dt||0.05); }};
 });

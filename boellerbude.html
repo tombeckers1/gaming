@@ -37,7 +37,10 @@ html,body{margin:0;height:100%;overflow:hidden;background:var(--night);color:var
 .tag{position:relative;background:var(--signal);color:var(--ink);border-radius:6px 18px 18px 6px;padding:8px 16px 8px 28px;transform:rotate(-2.5deg);box-shadow:0 3px 0 rgba(0,0,0,.35)}
 .tag::before{content:"";position:absolute;left:10px;top:50%;width:9px;height:9px;margin-top:-4.5px;border-radius:50%;background:var(--night)}
 #hMoney{font-family:var(--display);font-size:24px;line-height:1.05}
-#hRep{font-size:16px;font-weight:700;letter-spacing:.08em}
+#hXpWrap{margin-top:3px}
+.xpbar{height:7px;border-radius:4px;background:rgba(14,18,38,.28);overflow:hidden}
+.xpbar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#1b2340,#3f5aa8);transition:width .3s}
+#hXpTxt{display:block;font-size:12px;font-weight:700;color:rgba(14,18,38,.72);line-height:1.2;margin-top:1px}
 #hLoan{font-size:14px;font-weight:700}
 #hLoan:empty{display:none}
 #hLevel{position:absolute;right:6px;bottom:-12px;background:var(--ink);color:var(--signal);font-family:var(--display);font-size:13px;padding:2px 8px;border-radius:5px;transform:rotate(1deg)}
@@ -210,12 +213,13 @@ body.compact #hDate{font-size:12px;font-weight:600}
 body.compact #hStatus{font-size:11px}
 body.compact .meter{margin-top:0;width:62px}
 body.compact .meter span{font-size:10px;line-height:1.1}
-body.compact #mXp span i:first-child,body.compact #mHype span,body.compact #mClean span{display:none}
+body.compact #mHype span{display:none}
 body.compact .bar{height:5px;margin-top:1px}
 body.compact .tag{display:flex;align-items:center;gap:8px;padding:3px 10px 3px 18px;border-radius:5px 14px 14px 5px;transform:rotate(-1.5deg);box-shadow:0 2px 0 rgba(0,0,0,.35)}
 body.compact .tag::before{left:6px;width:6px;height:6px;margin-top:-3px}
 body.compact #hMoney{font-size:16px}
-body.compact #hRep{font-size:12px}
+body.compact #hXpTxt{font-size:10px}
+body.compact .xpbar{height:5px}
 body.compact #hLoan{font-size:11px}
 body.compact #hLevel{position:static;transform:none;order:-1;font-size:10px;padding:1px 6px;border-radius:4px}
 body.compact #tip{font-size:12px;line-height:1.25;padding:5px 8px;max-width:min(210px,31vw);border-left-width:3px;overflow:hidden;max-height:calc(3.75em + 10px)}
@@ -288,11 +292,9 @@ body.compact .pdahead2 b{font-size:16px}
   <div class="tl">
     <div class="tlcol">
       <div id="clock"><div id="hTime"></div><div id="hDate"></div><div id="hStatus"></div></div>
-      <div class="meter" id="mXp"><span><i>Erfahrung</i><i id="hXpTxt"></i></span><div class="bar xp"><i id="hXp"></i></div></div>
       <div class="meter" id="mHype"><span><i>Hype</i></span><div class="bar"><i id="hHype"></i></div></div>
-      <div class="meter" id="mClean"><span><i>Sauberkeit</i><i id="hCleanTxt"></i></span><div class="bar clean"><i id="hClean"></i></div></div>
     </div>
-    <div class="tag"><div id="hLevel"></div><div id="hMoney"></div><div id="hRep"></div><div id="hLoan"></div></div>
+    <div class="tag"><div id="hLevel"></div><div id="hMoney"></div><div id="hXpWrap"><div class="xpbar"><i id="hXp"></i></div><small id="hXpTxt"></small></div><div id="hLoan"></div></div>
   </div>
   <div id="tip"></div>
   <div id="staff"></div>
@@ -609,31 +611,31 @@ const LOANS=[
 const WALLS=[
   {id:'creme',lvl:1,name:'Creme',cost:0,up:'#efe9dd',low:'#223055',rail:'#c8322a'},
   {id:'weiss',lvl:1,name:'Reinweiß',cost:0,up:'#f6f6f4',low:'#3a3f4a',rail:'#8a8f99'},
-  {id:'salbei',lvl:4,name:'Salbeigrün',cost:180,up:'#dfe7dc',low:'#2f4a3c',rail:'#e0b64a'},
-  {id:'sand',lvl:5,name:'Sandbeige',cost:200,up:'#ece0cb',low:'#6b5334',rail:'#b8863a'},
-  {id:'streifen',lvl:6,name:'Tapete Streifen',cost:320,up:'#efe7d8',low:'#3b4262',rail:'#c8322a',pat:'streifen',pat2:'#d8cbb0'},
-  {id:'anthrazit',lvl:7,name:'Anthrazit',cost:300,up:'#d5d8df',low:'#232733',rail:'#7fd1ff'},
-  {id:'raute',lvl:8,name:'Tapete Raute',cost:380,up:'#e6e9f2',low:'#2b3550',rail:'#ffd23f',pat:'raute',pat2:'#cbd2e4'},
-  {id:'ziegel',lvl:9,name:'Ziegeltapete',cost:420,up:'#c4816a',low:'#3a2a22',rail:'#e0b64a',pat:'ziegel',pat2:'#a86450'},
-  {id:'beere',lvl:10,name:'Beere',cost:400,up:'#f0e2e6',low:'#5a1f36',rail:'#ffd23f'},
-  {id:'blume',lvl:11,name:'Tapete Blumen',cost:520,up:'#f2ece0',low:'#4a3a52',rail:'#c86a8a',pat:'blume',pat2:'#c9a2b4'},
-  {id:'holzvert',lvl:12,name:'Holzvertäfelung',cost:560,up:'#c69a68',low:'#5a3c22',rail:'#8a6034',pat:'holz',pat2:'#b08454'},
-  {id:'mitternacht',lvl:13,name:'Mitternachtsblau',cost:600,up:'#cfd9ef',low:'#16224a',rail:'#ffd23f'},
-  {id:'petrol',lvl:15,name:'Petrol',cost:700,up:'#cfe4e6',low:'#123c44',rail:'#e0b64a'},
-  {id:'gold',lvl:17,name:'Goldornament',cost:950,up:'#1c1b22',low:'#0e0d12',rail:'#e0b64a',pat:'ornament',pat2:'#8a6f2a'}
+  {id:'salbei',lvl:1,name:'Salbeigrün',cost:0,up:'#dfe7dc',low:'#2f4a3c',rail:'#e0b64a'},
+  {id:'sand',lvl:1,name:'Sandbeige',cost:0,up:'#ece0cb',low:'#6b5334',rail:'#b8863a'},
+  {id:'streifen',lvl:1,name:'Tapete Streifen',cost:0,up:'#efe7d8',low:'#3b4262',rail:'#c8322a',pat:'streifen',pat2:'#d8cbb0'},
+  {id:'anthrazit',lvl:1,name:'Anthrazit',cost:0,up:'#d5d8df',low:'#232733',rail:'#7fd1ff'},
+  {id:'raute',lvl:1,name:'Tapete Raute',cost:0,up:'#e6e9f2',low:'#2b3550',rail:'#ffd23f',pat:'raute',pat2:'#cbd2e4'},
+  {id:'ziegel',lvl:1,name:'Ziegeltapete',cost:0,up:'#c4816a',low:'#3a2a22',rail:'#e0b64a',pat:'ziegel',pat2:'#a86450'},
+  {id:'beere',lvl:1,name:'Beere',cost:0,up:'#f0e2e6',low:'#5a1f36',rail:'#ffd23f'},
+  {id:'blume',lvl:1,name:'Tapete Blumen',cost:0,up:'#f2ece0',low:'#4a3a52',rail:'#c86a8a',pat:'blume',pat2:'#c9a2b4'},
+  {id:'holzvert',lvl:1,name:'Holzvertäfelung',cost:0,up:'#c69a68',low:'#5a3c22',rail:'#8a6034',pat:'holz',pat2:'#b08454'},
+  {id:'mitternacht',lvl:1,name:'Mitternachtsblau',cost:0,up:'#cfd9ef',low:'#16224a',rail:'#ffd23f'},
+  {id:'petrol',lvl:1,name:'Petrol',cost:0,up:'#cfe4e6',low:'#123c44',rail:'#e0b64a'},
+  {id:'gold',lvl:1,name:'Goldornament',cost:0,up:'#1c1b22',low:'#0e0d12',rail:'#e0b64a',pat:'ornament',pat2:'#8a6f2a'}
 ];
 const FLOORS=[
   {id:'grau',lvl:1,name:'Grauer Estrich',cost:0,a:'#b9b6b0',b:'#9a9690'},
-  {id:'vinyl',lvl:3,name:'Vinyl Hellgrau',cost:140,a:'#cfd0cd',b:'#b9bab7'},
-  {id:'holz',lvl:5,name:'Dielenboden',cost:240,a:'#a97b4c',b:'#8a6038',wood:true},
-  {id:'schach',lvl:7,name:'Schachbrett',cost:320,a:'#e8e6e2',b:'#2a2e38',check:true},
-  {id:'eiche',lvl:8,name:'Eiche dunkel',cost:380,a:'#6b4a2c',b:'#553a22',wood:true},
-  {id:'fliese',lvl:9,name:'Großformatfliese',cost:420,a:'#dad6cd',b:'#c9c4ba',big:true},
-  {id:'beton',lvl:10,name:'Polierter Beton',cost:460,a:'#8f949c',b:'#7d828a'},
-  {id:'industrie',lvl:12,name:'Riffelblech',cost:540,a:'#9aa0a8',b:'#848a92',plate:true},
-  {id:'teppich',lvl:13,name:'Nadelfilz Rot',cost:500,a:'#8a2f2a',b:'#7a2824',carpet:true},
-  {id:'terrazzo',lvl:15,name:'Terrazzo',cost:720,a:'#e3ded2',b:'#c9b9a0',terra:true},
-  {id:'marmor',lvl:18,name:'Marmor',cost:1100,a:'#efeee9',b:'#dcd9d0',marble:true}
+  {id:'vinyl',lvl:1,name:'Vinyl Hellgrau',cost:0,a:'#cfd0cd',b:'#b9bab7'},
+  {id:'holz',lvl:1,name:'Dielenboden',cost:0,a:'#a97b4c',b:'#8a6038',wood:true},
+  {id:'schach',lvl:1,name:'Schachbrett',cost:0,a:'#e8e6e2',b:'#2a2e38',check:true},
+  {id:'eiche',lvl:1,name:'Eiche dunkel',cost:0,a:'#6b4a2c',b:'#553a22',wood:true},
+  {id:'fliese',lvl:1,name:'Großformatfliese',cost:0,a:'#dad6cd',b:'#c9c4ba',big:true},
+  {id:'beton',lvl:1,name:'Polierter Beton',cost:0,a:'#8f949c',b:'#7d828a'},
+  {id:'industrie',lvl:1,name:'Riffelblech',cost:0,a:'#9aa0a8',b:'#848a92',plate:true},
+  {id:'teppich',lvl:1,name:'Nadelfilz Rot',cost:0,a:'#8a2f2a',b:'#7a2824',carpet:true},
+  {id:'terrazzo',lvl:1,name:'Terrazzo',cost:0,a:'#e3ded2',b:'#c9b9a0',terra:true},
+  {id:'marmor',lvl:1,name:'Marmor',cost:0,a:'#efeee9',b:'#dcd9d0',marble:true}
 ];
 
 /* Fortschritt ---------------------------------------------- */
@@ -1958,6 +1960,64 @@ function buildHaus(x,z,w,d,h,o){
     bbox(0.05,rand(0.8,1.6),0.05,std(0x3a3f48),px2,h+0.8,-d*0.2,g,false);
     const dish=new THREE.Mesh(new THREE.SphereGeometry(0.28,10,6,0,Math.PI*2,0,Math.PI*0.42),std(0xd8d8d2));
     dish.position.set(px2+0.1,h+1.2,-d*0.2); dish.rotation.x=1.1; g.add(dish); }
+  /* --- Plastische Fassade: Sockel, Fensterbaenke, Schaufensterfront,
+     Regenrinne und Fallrohr. Nimmt der Front das Kulissenhafte. --- */
+  const zf=d/2;
+  const stein=std(0x6f6a62,{roughness:0.96});
+  
+  /* Sockel */
+  bbox(w+0.12,0.55,d+0.12,stein,0,0.275,0,g);
+  bbox(w+0.16,0.07,d+0.16,std(0x8a857c,{roughness:0.9}),0,0.58,0,g,false);
+  /* Erdgeschoss als echte Schaufensterfront */
+  {
+    const gfH=h*0.3, rahmen=std(0x2f3540,{metalness:0.3,roughness:0.5});
+    const scheibe=new THREE.MeshStandardMaterial({color:LIN(0x2a3646),roughness:0.12,metalness:0.25,transparent:true,opacity:0.72});
+    const bw=w*0.78;
+    bbox(bw+0.16,0.22,0.22,rahmen,0,gfH+0.05,zf+0.1,g,false);          // Sturz
+    bbox(bw+0.16,0.16,0.22,rahmen,0,0.62,zf+0.1,g,false);              // Brueste
+    const np=Math.max(2,Math.round(bw/1.5));
+    for(let i=0;i<=np;i++) bbox(0.1,gfH-0.5,0.2,rahmen,-bw/2+i*(bw/np),0.68+(gfH-0.5)/2,zf+0.1,g,false);
+    const sc=bbox(bw,gfH-0.56,0.05,scheibe,0,0.7+(gfH-0.56)/2,zf+0.06,g,false);
+    /* Eingangstuer seitlich */
+    bbox(0.95,gfH-0.1,0.12,rahmen,w*0.34,(gfH-0.1)/2,zf+0.12,g,false);
+    bbox(0.72,gfH-0.34,0.06,scheibe,w*0.34,(gfH-0.34)/2+0.1,zf+0.16,g,false);
+    /* Leuchtkasten mit Ladenname */
+    if(o.shop){
+      const sm=new THREE.MeshStandardMaterial({color:LIN(0xf2efe6),roughness:0.7,
+        emissive:LIN(0xffffff),emissiveIntensity:0,
+        map:tex(512,96,(c,W2,H2)=>{ c.fillStyle=o.shopSign||'#2b3a5e'; c.fillRect(0,0,W2,H2);
+          c.fillStyle='#f6f3ea'; c.textAlign='center'; c.textBaseline='middle';
+          fitFont(c,o.shopName||'LADEN',W2-40,58,BUN); c.fillText(o.shopName||'LADEN',W2/2,H2/2+3); }),
+        emissiveMap:tex(512,96,(c,W2,H2)=>{ c.fillStyle='#000'; c.fillRect(0,0,W2,H2);
+          c.fillStyle='#fff'; c.textAlign='center'; c.textBaseline='middle';
+          fitFont(c,o.shopName||'LADEN',W2-40,58,BUN); c.fillText(o.shopName||'LADEN',W2/2,H2/2+3); })});
+      houseMats.push(sm);
+      bbox(bw*0.92,0.42,0.14,sm,0,gfH+0.36,zf+0.14,g,false);
+      bbox(bw*0.96,0.06,0.2,std(0x3a3f48),0,gfH+0.6,zf+0.15,g,false);
+    }
+  }
+  /* Fensterbaenke und Leibungen passend zum Texturraster */
+  {
+    const gfH=h*0.3, upH=h-gfH-0.9, cw=w/o.cols, rh=upH/o.rows;
+    const bank=std(0xd8d4cc,{roughness:0.9});
+    for(let r=0;r<o.rows;r++) for(let c=0;c<o.cols;c++){
+      const ww=cw*0.46;
+      const x=-w/2+cw*(c+0.5);
+      const y=h-0.9-rh*r-rh*0.2-rh*0.58;
+      bbox(ww+0.16,0.07,0.16,bank,x,y-0.04,zf+0.06,g,false);
+      bbox(ww+0.16,0.04,0.1,std(0xe8ecf2),x,y+0.01,zf+0.08,g,false);
+      for(const sx of [-1,1]) bbox(0.07,rh*0.58,0.09,std(0xdad5cb,{roughness:0.95}),x+sx*(ww/2+0.05),y+rh*0.29,zf+0.04,g,false);
+    }
+  }
+  /* Regenrinne und Fallrohr */
+  {
+    const zn=std(0x8f959e,{metalness:0.45,roughness:0.55});
+    bbox(w+0.3,0.12,0.16,zn,0,h-0.3,zf+0.2,g,false);
+    const fx=w/2-0.2;
+    bbox(0.11,h-0.4,0.11,zn,fx,(h-0.4)/2,zf+0.16,g,false);
+    bbox(0.15,0.13,0.15,zn,fx,h-0.38,zf+0.16,g,false);
+    bbox(0.15,0.13,0.15,zn,fx,0.25,zf+0.16,g,false);
+  }
   // Balkone
   if(o.balkon){ for(let i=0;i<o.balkonN;i++){ const by=h*0.42+i*h*0.22, bx=rand(-w*0.25,w*0.25);
     bbox(1.9,0.12,0.85,std(0xb9b2a6,{roughness:1}),bx,by,d/2+0.42,g);
@@ -1973,33 +2033,107 @@ function buildHaus(x,z,w,d,h,o){
   }
   return g;
 }
-function makeAuto(col){
-  const parts=[], dark=0x14161c, glass=0x2a3442;
-  const RB=(w,h,d,r)=>roundedBoxGeo(w,h,d,r,2);
-  parts.push({geo:RB(1.75,0.55,4.1,0.16),m:tm(0,0.64,0),color:col});
-  parts.push({geo:RB(1.62,0.55,2.0,0.14),m:tm(0,1.1,-0.2),color:col});
-  parts.push({geo:RB(1.66,0.42,1.9,0.1),m:tm(0,1.12,-0.2),color:glass});
-  parts.push({geo:RB(1.8,0.16,4.2,0.06),m:tm(0,0.4,0),color:dark});
-  parts.push({geo:RB(1.7,0.1,0.5,0.04),m:tm(0,0.52,2.0),color:dark});
-  parts.push({geo:RB(1.7,0.1,0.5,0.04),m:tm(0,0.52,-2.0),color:dark});
-  for(const s2 of [-1,1]) parts.push({geo:RB(0.1,0.14,0.3,0.03),m:tm(s2*0.84,1.02,0.75),color:dark});
-  for(const [x,z] of [[-0.86,-1.35],[0.86,-1.35],[-0.86,1.35],[0.86,1.35]])
-    parts.push({geo:new THREE.CylinderGeometry(0.33,0.33,0.2,12),m:tm(x,0.33,z,0,0,Math.PI/2),color:0x101216});
-  parts.push({geo:RB(1.5,0.14,0.1,0.04),m:tm(0,0.68,2.06),color:0xf2efe0});
-  parts.push({geo:RB(1.5,0.14,0.1,0.04),m:tm(0,0.68,-2.06),color:0x9a2a24});
-  parts.push({geo:RB(1.5,0.1,1.8,0.04),m:tm(0,1.4,-0.2),color:0xe8ecf2});
+function makeAuto(col,form){
+  /* Drei Karosserieformen, abgerundete Flaechen, Radhaeuser mit Felgen,
+     Spiegel, Leuchten, Kennzeichen und Schnee auf dem Dach. */
+  form=form||pick(['kombi','limo','van']);
+  const parts=[], dark=0x14161c, glass=0x223044, chrome=0xb9bec8;
+  const RB=(w,h,d,r)=>roundedBoxGeo(w,h,d,r,HIQ?3:2);
+  const L=form==='van'?4.5:form==='kombi'?4.35:4.2;
+  const HH=form==='van'?1.15:0.62;
+  const kabZ=form==='kombi'?-0.05:form==='van'?0.05:-0.25;
+  const kabL=form==='kombi'?2.5:form==='van'?3.1:2.0;
+  /* Unterbau und Schweller */
+  parts.push({geo:RB(1.78,0.28,L-0.2,0.09),m:tm(0,0.42,0),color:dark});
+  for(const s2 of [-1,1]) parts.push({geo:RB(0.09,0.14,L-1.5,0.04),m:tm(s2*0.88,0.44,0),color:0x0f1116});
+  /* Hauptkoerper */
+  parts.push({geo:RB(1.8,0.58,L,0.22),m:tm(0,0.72,0),color:col});
+  /* Motorhaube und Heck leicht abgesenkt */
+  parts.push({geo:RB(1.72,0.2,1.25,0.16),m:tm(0,0.97,L/2-0.72),color:col});
+  if(form!=='van') parts.push({geo:RB(1.7,0.16,1.0,0.14),m:tm(0,0.97,-L/2+0.62),color:col});
+  /* Fahrgastzelle */
+  parts.push({geo:RB(1.66,HH,kabL,0.2),m:tm(0,1.0+HH/2,kabZ),color:col});
+  parts.push({geo:RB(1.69,HH*0.62,kabL-0.16,0.16),m:tm(0,1.05+HH*0.5,kabZ),color:glass});
+  /* A-Saeule schraeg, damit die Scheibe Neigung bekommt */
+  parts.push({geo:RB(1.6,0.5,0.14,0.05),m:tm(0,1.16,kabZ+kabL/2-0.02,-0.38,0,0),color:glass});
+  /* Dach mit Schneeauflage */
+  parts.push({geo:RB(1.56,0.07,kabL-0.3,0.04),m:tm(0,1.0+HH,kabZ),color:0xe8ecf2});
+  if(form==='van') parts.push({geo:RB(1.2,0.1,1.4,0.05),m:tm(0,1.06+HH,kabZ-0.2),color:0xd8dce4});
+  /* Stossfaenger */
+  parts.push({geo:RB(1.82,0.24,0.3,0.08),m:tm(0,0.6,L/2+0.02),color:0x2b2f38});
+  parts.push({geo:RB(1.82,0.24,0.3,0.08),m:tm(0,0.6,-L/2-0.02),color:0x2b2f38});
+  /* Scheinwerfer und Rueckleuchten */
+  for(const s2 of [-1,1]){
+    parts.push({geo:RB(0.42,0.16,0.12,0.05),m:tm(s2*0.58,0.87,L/2+0.02),color:0xf4f1e2});
+    parts.push({geo:RB(0.16,0.1,0.1,0.03),m:tm(s2*0.28,0.83,L/2+0.03),color:0xd9e4f2});
+    parts.push({geo:RB(0.36,0.2,0.1,0.05),m:tm(s2*0.62,0.9,-L/2-0.02),color:0x9a2a24});
+    parts.push({geo:RB(0.12,0.1,0.09,0.03),m:tm(s2*0.4,0.86,-L/2-0.03),color:0xe8b060});
+  }
+  /* Kuehlergrill, Kennzeichen */
+  parts.push({geo:RB(0.9,0.14,0.08,0.03),m:tm(0,0.86,L/2+0.05),color:0x1b1e25});
+  parts.push({geo:RB(0.52,0.12,0.04,0.01),m:tm(0,0.66,L/2+0.16),color:0xf2f2ee});
+  parts.push({geo:RB(0.52,0.12,0.04,0.01),m:tm(0,0.66,-L/2-0.16),color:0xf2f2ee});
+  /* Spiegel */
+  for(const s2 of [-1,1]){
+    parts.push({geo:RB(0.06,0.05,0.1,0.02),m:tm(s2*0.85,1.18,kabZ+kabL/2-0.1),color:col});
+    parts.push({geo:RB(0.16,0.09,0.06,0.025),m:tm(s2*0.95,1.2,kabZ+kabL/2-0.14),color:col});
+  }
+  /* Tuergriffe und Fugen */
+  for(const s2 of [-1,1]){
+    parts.push({geo:RB(0.04,0.045,0.18,0.015),m:tm(s2*0.9,0.98,kabZ+0.2),color:chrome});
+    parts.push({geo:RB(0.02,0.5,0.03,0.005),m:tm(s2*0.905,0.85,kabZ+kabL/2-0.1),color:0x0f1116});
+  }
+  /* Raeder mit Reifenflanke, Felge und Nabe */
+  const rad=form==='van'?0.36:0.33;
+  for(const [x,z] of [[-0.86,-L/2+1.1],[0.86,-L/2+1.1],[-0.86,L/2-1.1],[0.86,L/2-1.1]]){
+    parts.push({geo:new THREE.CylinderGeometry(rad,rad,0.22,HIQ?18:12),m:tm(x,rad,z,0,0,Math.PI/2),color:0x101216});
+    parts.push({geo:new THREE.CylinderGeometry(rad*0.62,rad*0.62,0.24,HIQ?16:10),m:tm(x*1.01,rad,z,0,0,Math.PI/2),color:0x8f959e});
+    parts.push({geo:new THREE.CylinderGeometry(rad*0.22,rad*0.22,0.26,10),m:tm(x*1.02,rad,z,0,0,Math.PI/2),color:0x5a6068});
+    /* Radlauf */
+    parts.push({geo:new THREE.TorusGeometry(rad+0.04,0.05,6,14,Math.PI),m:tm(x*0.99,rad,z,0,Math.PI/2,0),color:0x1b1e25});
+  }
   const mesh=new THREE.Mesh(merge(parts),vcMat);
   if(HIQ){ mesh.castShadow=true; mesh.receiveShadow=true; }
   return mesh;
 }
 function makeBaum(){
+  /* Winterbaum: Wurzelanlauf, sich gabelnder Stamm, zwei Astordnungen,
+     Schnee auf den Oberseiten. */
   const parts=[];
-  parts.push({geo:new THREE.CylinderGeometry(0.13,0.2,2.6,8),m:tm(0,1.3,0),color:0x4a3a2c});
-  for(let i=0;i<9;i++){ const a=i/9*Math.PI*2+rand(-0.3,0.3), l=rand(0.9,1.7), y=rand(2.1,3.4);
-    const br=new THREE.CylinderGeometry(0.03,0.07,l,5);
-    parts.push({geo:br,m:tm(Math.cos(a)*l*0.28,y,Math.sin(a)*l*0.28,rand(0.5,1.1),a,0),color:0x54422f}); }
-  for(let i=0;i<7;i++){ const a=Math.random()*Math.PI*2, r=rand(0.2,0.9);
-    parts.push({geo:new THREE.SphereGeometry(rand(0.1,0.2),6,4),m:tm(Math.cos(a)*r,rand(2.6,3.6),Math.sin(a)*r),color:0xe8ecf2}); }
+  const RINDE=0x4a3a2c, RINDE2=0x584634, SCHNEE=0xe8ecf2;
+  /* Wurzelanlauf */
+  for(let i=0;i<6;i++){ const a=i/6*Math.PI*2+rand(-0.2,0.2);
+    parts.push({geo:new THREE.CylinderGeometry(0.05,0.13,0.5,6),
+      m:tm(Math.cos(a)*0.16,0.2,Math.sin(a)*0.16,0.4,a,0),color:RINDE}); }
+  /* Stamm in drei Abschnitten mit leichter Neigung */
+  let px=0,pz=0,py=0,r=0.21;
+  for(let seg=0;seg<3;seg++){
+    const h=rand(0.85,1.05), nr=r*0.72, tx=rand(-0.07,0.07), tz=rand(-0.07,0.07);
+    parts.push({geo:new THREE.CylinderGeometry(nr,r,h,HIQ?10:7),
+      m:tm(px+tx/2,py+h/2,pz+tz/2,tz*0.5,0,-tx*0.5),color:seg?RINDE2:RINDE});
+    px+=tx; pz+=tz; py+=h; r=nr;
+  }
+  /* Hauptaeste, jeder mit zwei Zweigen */
+  const n=HIQ?7:5;
+  for(let i=0;i<n;i++){
+    const a=i/n*Math.PI*2+rand(-0.35,0.35), l=rand(1.1,1.8), st=rand(0.55,0.95);
+    const y0=py-rand(0.1,0.7);
+    const ex=Math.cos(a)*l*0.5, ez=Math.sin(a)*l*0.5, ey=y0+Math.cos(st)*l*0.5;
+    parts.push({geo:new THREE.CylinderGeometry(0.035,0.085,l,6),
+      m:tm(ex*0.5,(y0+ey)/2,ez*0.5,st*Math.sin(a),0,-st*Math.cos(a)),color:RINDE2});
+    parts.push({geo:new THREE.CylinderGeometry(0.02,0.05,l*0.34,5),
+      m:tm(ex*0.5,(y0+ey)/2+0.03,ez*0.5,st*Math.sin(a),0,-st*Math.cos(a)),color:SCHNEE});
+    for(let k=0;k<2;k++){
+      const a2=a+rand(-0.7,0.7), l2=l*rand(0.4,0.65), st2=st*rand(0.5,0.9);
+      const bx=ex+Math.cos(a2)*l2*0.4, bz=ez+Math.sin(a2)*l2*0.4, by=ey+Math.cos(st2)*l2*0.45;
+      parts.push({geo:new THREE.CylinderGeometry(0.014,0.034,l2,5),
+        m:tm((ex+bx)/2,(ey+by)/2,(ez+bz)/2,st2*Math.sin(a2),0,-st2*Math.cos(a2)),color:RINDE2});
+    }
+  }
+  /* Schneehaeufchen in den Astgabeln */
+  for(let i=0;i<(HIQ?9:5);i++){ const a=Math.random()*Math.PI*2, rr=rand(0.25,0.95);
+    const sp=new THREE.SphereGeometry(rand(0.09,0.17),7,5);
+    parts.push({geo:sp,m:tm(Math.cos(a)*rr,py+rand(-0.4,0.9),Math.sin(a)*rr),color:SCHNEE}); }
   const m=new THREE.Mesh(merge(parts),vcMat); if(HIQ) m.castShadow=true; return m;
 }
 function buildStreet(){
@@ -2030,7 +2164,7 @@ function buildStreet(){
     bbox(w,h,8,std(pick([0x5a5f6b,0x6b6258,0x4f5560,0x6a5f55]),{roughness:1}),-38+i*(COARSE?17:9.5),h/2,40,null,false); }
   // Autos am gegenüberliegenden Bordstein
   const carCols=[0xb8bcc4,0x2a3442,0x8a2f28,0x2f5d9e,0x3c4a3a,0xd8d4cc,0x6a5f55];
-  for(let i=0;i<(COARSE?4:7);i++){ const c=makeAuto(pick(carCols)); c.position.set(-22+i*6.6+rand(-0.5,0.5),0,16.1); c.rotation.y=Math.PI/2+rand(-0.03,0.03); scene.add(c); }
+  for(let i=0;i<(COARSE?4:7);i++){ const c=makeAuto(pick(carCols),pick(['kombi','limo','van','limo'])); c.position.set(-22+i*6.6+rand(-0.5,0.5),0,16.1); c.rotation.y=Math.PI/2+rand(-0.03,0.03); scene.add(c); }
   // Bäume und Stadtmöbel auf unserer Seite
   for(const bx of (COARSE?[-16.5,13]:[-16.5,-11,13])){ const b=makeBaum(); b.position.set(bx,0,10.4); b.scale.setScalar(rand(0.9,1.2)); scene.add(b);
     const ring=new THREE.Mesh(new THREE.TorusGeometry(0.55,0.06,6,14),std(0x3a3d44)); ring.rotation.x=Math.PI/2; ring.position.set(bx,0.06,10.4); scene.add(ring);
@@ -2351,7 +2485,7 @@ function buildDock(){
   // Anbau zwischen Lager und Gehweg, damit die Lücke nicht leer wirkt
   const ab=brickMat(12,2.9);
   bbox(12,2.9,3.95,ab,-14,1.45,4.075,null,false);
-  bbox(12.3,0.16,4.05,std(0x5f584e,{roughness:1}),-14,2.94,4.125,null,false);
+  bbox(12.1,0.16,4.05,std(0x5f584e,{roughness:1}),-14.05,2.94,4.125,null,false);
   bbox(12.1,0.12,3.9,snow,-14,3.06,4.15,null,false);
   for(const x of [-18,-14,-10]){ bbox(0.7,0.9,0.1,std(0x2a3040,{metalness:0.4}),x,1.9,6.02,null,false);
     bbox(0.62,0.82,0.04,new THREE.MeshStandardMaterial({color:LIN(0x9fb4cc),transparent:true,opacity:0.3,roughness:0.1}),x,1.9,6.06,null,false); }
@@ -2370,9 +2504,16 @@ function buildDock(){
   const mark=(w,d,x,z,c)=>flat(w,d,std(c||0xf2c230),x,0.017,z);
   for(let x2=-33;x2<-20.6;x2+=1.0){ mark(0.6,0.12,x2,-3.55); mark(0.6,0.12,x2,-0.45); }
   mark(0.14,3.4,-33.3,-2);
-  const zm=new THREE.Mesh(new THREE.PlaneGeometry(3.4,1.1),new THREE.MeshBasicMaterial({transparent:true,depthWrite:false,map:tex(340,110,(g,W,H)=>{
-    g.clearRect(0,0,W,H); g.fillStyle='rgba(255,210,63,.9)'; g.font=BUN(52); g.textAlign='center'; g.textBaseline='middle'; g.fillText('ANLIEFERUNG',W/2,H/2+3); })}));
-  zm.rotation.x=-Math.PI/2; zm.position.set(-27,0.018,2.9); zm.renderOrder=2; scene.add(zm);
+  const zm=new THREE.Mesh(new THREE.PlaneGeometry(5.2,1.6),new THREE.MeshBasicMaterial({transparent:true,depthWrite:false,map:tex(1040,320,(g,W,H)=>{
+    g.clearRect(0,0,W,H);
+    /* dunkles Feld unter der Schrift, damit sie sich vom Beton abhebt */
+    g.fillStyle='rgba(18,20,26,.62)'; g.fillRect(0,0,W,H);
+    g.strokeStyle='#ffd23f'; g.lineWidth=12; g.strokeRect(6,6,W-12,H-12);
+    g.textAlign='center'; g.textBaseline='middle';
+    g.font=BUN(120);
+    g.fillStyle='rgba(0,0,0,.75)'; g.fillText('ANLIEFERUNG',W/2+6,H/2+9);
+    g.fillStyle='#ffd23f'; g.fillText('ANLIEFERUNG',W/2,H/2+3); })}));
+  zm.rotation.x=-Math.PI/2; zm.position.set(-26,0.018,2.6); zm.renderOrder=2; scene.add(zm);
   // Poller neben dem Tor
   for(const z of [-4.0,0.0]){ bbox(0.2,0.95,0.2,std(0xf2c230,{roughness:0.7}),-20.6,0.48,z,null,false);
     bbox(0.22,0.14,0.22,std(0x1f1f24),-20.6,0.86,z,null,false); col(-20.75,-20.45,z-0.15,z+0.15); }
@@ -2639,9 +2780,47 @@ function buildCheckout(){
   bbox(0.46,0.02,0.05,dark,-0.8,1.23,-0.056,ckG,false);
   /* Tastatur und Kassenlade: die Tastatur liegt auf der Bedienerseite
      vor dem Monitor, nicht dahinter beim Kunden. */
-  const kb=bbox(0.42,0.025,0.16,std(0x232833,{roughness:0.6}),-0.8,0.955,-0.32,ckG,false); kb.rotation.x=-0.06;
-  for(let r=0;r<3;r++) for(let ccc=0;ccc<8;ccc++)
-    bbox(0.036,0.008,0.032,std(0x3a4150),-0.96+ccc*0.046,0.972,-0.36+r*0.042,ckG,false);
+  /* Kassentastatur: Wanne mit Rand, beschriftete Tasten, farbige
+     Funktionsblöcke und Summentaste. */
+  {
+    const kbT=tex(768,384,(g,W,H)=>{
+      g.fillStyle='#1b1f28'; g.fillRect(0,0,W,H);
+      const cols=8, rows=4, mx=26, my=22;
+      const cw=(W-mx*2)/cols, ch=(H-my*2)/rows;
+      const label=['7','8','9','STORNO','4','5','6','KARTE','1','2','3','BAR','0','00',',','SUMME'];
+      for(let r=0;r<rows;r++) for(let c=0;c<cols;c++){
+        const i=r*cols+c;
+        const x=mx+c*cw+3, y=my+r*ch+3, w=cw-6, h=ch-6;
+        const isFn=c>=6, isSum=(r===3&&c>=6);
+        /* Tastenschatten und Kappe */
+        g.fillStyle='rgba(0,0,0,.55)'; g.fillRect(x+2,y+3,w,h);
+        const base=isSum?'#2f7a48':isFn?'#3d4658':'#e8e9ec';
+        const top =isSum?'#3f9a5c':isFn?'#4e596e':'#f7f8fa';
+        const gr=g.createLinearGradient(0,y,0,y+h);
+        gr.addColorStop(0,top); gr.addColorStop(1,base);
+        g.fillStyle=gr; g.fillRect(x,y,w,h);
+        g.fillStyle='rgba(255,255,255,.25)'; g.fillRect(x,y,w,2);
+        g.fillStyle='rgba(0,0,0,.22)'; g.fillRect(x,y+h-2,w,2);
+        /* Beschriftung */
+        const t=label[(r*4+(c%4))%label.length];
+        g.fillStyle=isFn||isSum?'#eef2f8':'#1b1f28';
+        g.textAlign='center'; g.textBaseline='middle';
+        g.font=BAR(t.length>3?15:26);
+        g.fillText(t,x+w/2,y+h/2+1);
+      }
+      /* Rand der Wanne */
+      g.strokeStyle='#0f1218'; g.lineWidth=10; g.strokeRect(5,5,W-10,H-10);
+      for(let i=0;i<500;i++){ g.fillStyle=`rgba(255,255,255,${Math.random()*0.03})`; g.fillRect(Math.random()*W,Math.random()*H,2,2); }
+    });
+    kbT.anisotropy=8;
+    const wanne=std(0x141820,{roughness:0.55,metalness:0.1});
+    const kb=rbox(0.44,0.026,0.175,0.006,wanne,-0.8,0.954,-0.32,ckG); kb.rotation.x=-0.06;
+    const face=plane(0.4,0.15,new THREE.MeshStandardMaterial({map:kbT,roughness:0.42}),-0.8,0.9685,-0.32,0,ckG);
+    face.rotation.set(-Math.PI/2-0.06,0,0);
+    /* Kabel zur Kasse */
+    const kab=new THREE.Mesh(new THREE.CylinderGeometry(0.006,0.006,0.13,6),std(0x20242c,{roughness:0.9}));
+    kab.position.set(-0.8,0.952,-0.4); kab.rotation.x=1.35; ckG.add(kab);
+  }
   posHit=bbox(0.66,0.72,0.6,hitM,-0.8,1.2,-0.1,ckG,false); posHit.userData={kind:'pos'};
   cardHit=bbox(0.34,0.3,0.34,hitM,0.58,1.06,0.26,ckG,false); cardHit.userData={kind:'card'};
   ckMov=addMovable({kind:'ck',name:'Kasse',g:ckG,fw:3.4,fd:0.95,onPlace:()=>{ belt.forEach(b=>syncBeltItem(b)); syncBag(); }});
@@ -3449,7 +3628,8 @@ function spawnTruck(cargo,supId,supName){
   const colr=TRUCKCOL[supId]||TRUCKCOL.mertens;
   const g=makeTruck(supName||'Lieferung',colr);
   g.position.set(LR.rear-9.5,0,LR.z); scene.add(g);
-  truck={g,cargo,boxes:[],raum:null,bruecke:null,flap:0,flapCol:null,state:'reverse',t:0,name:supName,col:colr,cols:[]};
+  truck={g,cargo,boxes:[],raum:null,bruecke:null,flap:0,flapCol:null,state:'torauf',t:0,name:supName,col:colr,cols:[]};
+  doorOpen(true);
   toast(`${supName} setzt an die Rampe.`);
 }
 /* Ueberladebruecke = die heruntergeklappte Klappe des LKW.
@@ -3479,7 +3659,7 @@ function setFlap(){
 }
 function dockTruck(){
   truck.g.position.x=LR.rear;
-  truck.state='opening';
+  truck.state='docked';
   /* Der geschlossene Kasten des Aussenmodells steht sonst genau im Tor
      und verdeckt den begehbaren Laderaum. */
   truck.g.visible=false;
@@ -3492,7 +3672,6 @@ function dockTruck(){
     col(lrFront()-0.3,LR.rear+0.2,LR.z+LR.w/2-0.02,LR.z+LR.w/2+0.2),
     col(lrFront()-0.25,lrFront()-0.02,LR.z-LR.w/2,LR.z+LR.w/2)
   ];
-  doorOpen(true);
   S.tut.lkw=true;
   toast('Tor fährt hoch. Geh in den Laderaum und hol die Kartons.',COARSE?'':'xp');
   if(!truckDriver){
@@ -3518,8 +3697,8 @@ function clearRaum(){
 }
 function leaveTruck(){
   if(!truck||truck.state!=='docked') return;
-  /* Reihenfolge: Ladebordwand hoch, dann faehrt das Tor herunter, und
-     erst wenn es ganz unten ist, verschwindet der LKW. */
+  /* Reihenfolge: Ladebordwand hoch, dann faehrt der LKW heraus, und
+     erst wenn er ganz draussen ist, geht das Tor zu. */
   truck.state='flap'; truck.t=0;
   if(truckDriver){ scene.remove(truckDriver); truckDriver=null; }
 }
@@ -3557,7 +3736,10 @@ function updateTruck(dt){
   updateDoor(dt);
   if(!truck) return;
   const g=truck.g;
-  if(truck.state==='reverse'){
+  if(truck.state==='torauf'){
+    /* Der LKW wartet vor dem Hof, bis das Tor ganz oben ist. */
+    if(doorIsOpen()) truck.state='reverse';
+  } else if(truck.state==='reverse'){
     const d=LR.rear-g.position.x, sp=clamp(d*0.9,0.5,2.6);
     g.position.x+=sp*dt;
     if(d<=0.03) dockTruck();
@@ -3576,12 +3758,20 @@ function updateTruck(dt){
     }
     truck.flap=Math.min(1,truck.flap+dt/FLAP_T); setFlap();
     if(truck.flap>=0.6&&!truck.flapCol) truck.flapCol=col(-20.26,-20.0,LR.z-1.6,LR.z+1.6);
-    if(truck.flap>=1){ truck.state='closing'; doorOpen(false); }
-  } else if(truck.state==='closing'){
-    if(door&&door.t<=0.02){ truck.state='out'; truck.t=0; clearRaum(); g.visible=true; }
+    if(truck.flap>=1){
+      /* Hinter der hochgeklappten Bordwand wird der begehbare Laderaum
+         gegen das Aussenmodell getauscht. */
+      clearRaum(); g.visible=true;
+      truck.state='out'; truck.t=0;
+    }
   } else if(truck.state==='out'){
     truck.t+=dt;
-    if(truck.t>0.6){ g.position.x-=Math.min(7,(truck.t-0.6)*5)*dt; if(g.position.x<lrFront()-14) removeTruck(); }
+    if(truck.t>0.45){
+      g.position.x-=Math.min(7,(truck.t-0.45)*5)*dt;
+      /* Ganz aus dem Tor heraus: jetzt erst faehrt es zu. */
+      if(g.position.x<TOR.x-0.9&&door&&door.target!==0) doorOpen(false);
+      if(g.position.x<lrFront()-14) removeTruck();
+    }
   }
 }
 
@@ -3767,16 +3957,56 @@ function makePerson(opt){
   box(0.014,0.5,0.02,std(0x1a1a1a),0,1.17,0.135,g,false);
   for(const sx of [-1,1]) box(0.075,0.07,0.02,std(0x1a1a1a),sx*0.1,0.98,0.13,g,false);
   const collar=new THREE.Mesh(new THREE.TorusGeometry(0.1,0.035,8,16),jm); collar.rotation.x=Math.PI/2; collar.position.y=1.47; collar.scale.z=0.8; g.add(collar);
-  for(const sx of [-1,1]){ const pv=new THREE.Group(); pv.position.set(sx*0.235,1.42,0); g.add(pv);
-    cyl(0.068,0.05,0.54,jm,0,-0.27,0,pv);
-    cyl(0.052,0.052,0.05,std(shade2(jc,0.8)),0,-0.545,0,pv);
-    const hand=new THREE.Mesh(new THREE.SphereGeometry(0.055,10,8),sk); hand.position.y=-0.6; hand.scale.set(0.85,1.05,0.8); pv.add(hand);
-    pv.rotation.z=sx*0.07; arms.push(pv); }
-  const shoulders=new THREE.Mesh(new THREE.SphereGeometry(0.205,16,10,0,Math.PI*2,0,Math.PI/2),jm); shoulders.position.y=1.41; shoulders.scale.set(1,0.38,0.72); g.add(shoulders);
-  cyl(0.055,0.06,0.11,sk,0,1.51,0,g);
-  const head=new THREE.Mesh(new THREE.SphereGeometry(0.152,28,22),new THREE.MeshStandardMaterial({map:faceTex(skin,hair,v,eye,beard,glass,fe),roughness:0.62}));
-  head.position.y=1.68; head.scale.set(0.96,1.08,0.94); if(HIQ) head.castShadow=true; g.add(head);
-  for(const sx of [-1,1]){ const e=new THREE.Mesh(new THREE.SphereGeometry(0.032,8,6),sk); e.position.set(sx*0.145,1.67,-0.005); e.scale.set(0.45,1,0.75); g.add(e); }
+  for(const sx of [-1,1]){
+    const pv=new THREE.Group(); pv.position.set(sx*0.232,1.405,0); g.add(pv);
+    /* Oberarm, Ellenbogen, Unterarm: der Knick nimmt die Steifheit raus */
+    const ob=new THREE.Mesh(new THREE.SphereGeometry(0.072,12,8),jm);
+    ob.position.y=-0.01; ob.scale.set(1,0.9,0.95); pv.add(ob);
+    cyl(0.068,0.056,0.29,jm,0,-0.16,0,pv);
+    const fa=new THREE.Group(); fa.position.y=-0.3; fa.rotation.x=-0.22; pv.add(fa);
+    const el=new THREE.Mesh(new THREE.SphereGeometry(0.055,10,8),jm); el.scale.set(1,0.85,1); fa.add(el);
+    cyl(0.054,0.045,0.27,jm,0,-0.14,0,fa);
+    cyl(0.047,0.047,0.045,std(shade2(jc,0.8)),0,-0.278,0,fa);
+    const wrist=new THREE.Mesh(new THREE.SphereGeometry(0.038,8,6),sk); wrist.position.y=-0.3; fa.add(wrist);
+    const hand=new THREE.Mesh(new THREE.SphereGeometry(0.052,12,9),sk);
+    hand.position.set(0,-0.345,0.008); hand.scale.set(0.82,1.18,0.62); hand.rotation.x=0.12; fa.add(hand);
+    pv.rotation.z=sx*0.06; arms.push(pv); }
+  /* Schultern haengen ab, statt als Kugelkappe aufzusitzen */
+  const shoulders=new THREE.Mesh(new THREE.SphereGeometry(0.215,20,12,0,Math.PI*2,0,Math.PI/2),jm);
+  shoulders.position.y=1.372; shoulders.scale.set(1.04,0.42,0.74); g.add(shoulders);
+  for(const sx of [-1,1]){
+    const trap=new THREE.Mesh(new THREE.SphereGeometry(0.115,12,8),jm);
+    trap.position.set(sx*0.108,1.415,0); trap.scale.set(1.15,0.62,0.85); g.add(trap);
+  }
+  /* Hals: unten breit, oben schmal, leicht nach vorn - kein Rohrstueck */
+  const neck=new THREE.Mesh(new THREE.CylinderGeometry(0.052,0.083,0.135,16),sk);
+  neck.position.set(0,1.478,0.012); neck.rotation.x=-0.07; g.add(neck);
+  /* Halsansatz verschmilzt mit dem Rumpf */
+  const nb=new THREE.Mesh(new THREE.SphereGeometry(0.086,14,10),sk);
+  nb.position.set(0,1.428,0.008); nb.scale.set(1.05,0.72,0.95); g.add(nb);
+  /* Kragen deckt die Naht ab */
+  const nc=new THREE.Mesh(new THREE.TorusGeometry(0.086,0.03,8,18),jm);
+  nc.rotation.x=Math.PI/2; nc.position.set(0,1.418,0.006); nc.scale.z=0.86; g.add(nc);
+  /* Aus der Kugel wird ein Schaedel: schmaler Kiefer, laengeres Kinn,
+     etwas flacherer Hinterkopf. Die UVs bleiben, das Gesicht sitzt. */
+  const hg=new THREE.SphereGeometry(0.152,28,22);
+  { const ap=hg.attributes.position, R=0.152;
+    for(let i=0;i<ap.count;i++){
+      const x=ap.getX(i), y=ap.getY(i), z=ap.getZ(i), t=clamp(y/R,-1,1);
+      const jaw  = t<0 ? 1-0.26*Math.pow(-t,1.3) : 1;
+      const crown= t>0.5 ? 1-0.08*((t-0.5)/0.5) : 1;
+      const nape = z<0 ? 1+0.05*(-z/R) : 1;
+      ap.setXYZ(i, x*jaw*crown*0.985, y*(1+0.07*Math.max(0,-t)), z*jaw*crown*nape);
+    }
+    ap.needsUpdate=true; if(hg.computeVertexNormals) hg.computeVertexNormals(); }
+  const head=new THREE.Mesh(hg,new THREE.MeshStandardMaterial({map:faceTex(skin,hair,v,eye,beard,glass,fe),roughness:0.62}));
+  head.position.set(0,1.672,0.014); head.scale.set(0.97,1.06,0.95); head.rotation.x=0.03;
+  if(HIQ) head.castShadow=true; g.add(head);
+  /* Kieferschatten unter dem Kinn nimmt die Plastiklook-Kante */
+  const jawS=new THREE.Mesh(new THREE.SphereGeometry(0.093,12,8),sk);
+  jawS.position.set(0,1.575,0.026); jawS.scale.set(1.0,0.56,0.86); g.add(jawS);
+  for(const sx of [-1,1]){ const e=new THREE.Mesh(new THREE.SphereGeometry(0.029,10,7),sk);
+    e.position.set(sx*0.139,1.666,-0.004); e.scale.set(0.42,1.12,0.78); e.rotation.z=sx*0.12; g.add(e); }
   const hm=std(hair,{roughness:0.85});
   if(opt.cap!==undefined){
     const cm=std(opt.cap,{roughness:0.8});
@@ -5717,8 +5947,8 @@ function renderLaptop(){
       if(kind==='floor'&&w.check) bg=`repeating-conic-gradient(${w.a} 0 25%,${w.b} 0 50%) 0 0/16px 16px`;
       if(kind==='floor'&&w.wood) bg=`repeating-linear-gradient(90deg,${w.a} 0 6px,${w.b} 6px 12px)`;
       return `<button class="sw${own?' on':''}" title="${w.name}" data-a="${kind}" data-t="${w.id}" style="background:${bg}" ${lock?'disabled':''}></button>`; }).join('');
-    h=`<div class="row"><div class="rm"><b>Wandfarbe</b><small>${WALLS.map(w=>S.level>=w.lvl?w.name+(w.cost?` (${eur(w.cost)})`:' (frei)'):`${w.name} ab Lvl ${w.lvl}`).join(' · ')}</small></div><div class="swatches">${sw(WALLS,S.wall,'wall')}</div></div>`+
-      `<div class="row"><div class="rm"><b>Bodenbelag</b><small>${FLOORS.map(f=>S.level>=f.lvl?f.name+(f.cost?` (${eur(f.cost)})`:' (frei)'):`${f.name} ab Lvl ${f.lvl}`).join(' · ')}</small></div><div class="swatches">${sw(FLOORS,S.floor,'floor')}</div></div>`+
+    h=`<div class="row"><div class="rm"><b>Wandfarbe</b><small>${(WALLS.find(w=>w.id===S.wall)||WALLS[0]).name}</small></div><div class="swatches">${sw(WALLS,S.wall,'wall')}</div></div>`+
+      `<div class="row"><div class="rm"><b>Bodenbelag</b><small>${(FLOORS.find(f=>f.id===S.floor)||FLOORS[0]).name}</small></div><div class="swatches">${sw(FLOORS,S.floor,'floor')}</div></div>`+
       DEKO.map(d=>{ const lock=S.level<d.lvl, n=dekos.filter(x=>x.id===d.id).length;
         return `<div class="row${lock?' locked':''}"><div class="rm"><b>${d.name}</b><small>Stimmung +${d.amb}${d.desc?' · '+d.desc:''}${n?` · ${n} im Laden`:''}</small></div>`+
           (lock?`<small>ab Level ${d.lvl}</small>`:`<button data-a="deko" data-t="${d.id}" ${S.money<d.cost?'disabled':''}>${eur(d.cost)}</button>`)+'</div>'; }).join('');
@@ -5948,14 +6178,13 @@ function updateHUD(){
   st.classList.toggle('on',phase==='open');
   $('hLevel').textContent=(S.test?'TEST · ':'')+'Level '+S.level;
   $('hMoney').textContent=eur(S.money);
-  const stars=Math.round(S.rep/20); $('hRep').textContent=compact?'★'+stars:'★'.repeat(stars)+'☆'.repeat(5-stars);
   $('hLoan').textContent=S.loan?(compact?'K '+Math.round(S.loan.remaining)+' €':`Kredit ${eur(S.loan.remaining)}`):'';
+  /* Fortschritt bis zum naechsten Level steckt jetzt im Preisschild */
   const need=xpFor(S.level);
-  $('hXp').style.width=clamp(S.xp/need*100,0,100)+'%'; $('hXpTxt').textContent=`${S.xp}/${need}`;
+  $('hXp').style.width=clamp(S.xp/need*100,0,100)+'%';
+  $('hXpTxt').textContent=compact?`${S.xp}/${need}`:`${S.xp} / ${need} bis Level ${S.level+1}`;
   $('hHype').style.width=hype+'%';
-  const cl=cleanliness(); $('hClean').style.width=cl+'%'; $('hCleanTxt').textContent=cl+'%';
   $('mHype').hidden=compact&&hype<1;
-  $('mClean').hidden=compact&&cl>=100;
   let chips='';
   const ev=todayEvent(), gl=S.goal;
   if(ev) chips+=`<div class="chip" style="background:rgba(255,210,63,.2);color:var(--signal)">${ev.name}</div>`;
@@ -6007,7 +6236,9 @@ function updateSnow(dt){
   const a=snowPts.geometry.attributes.position, arr=a.array, t=performance.now()*0.001;
   for(let i=0;i<arr.length;i+=3){
     arr[i+1]-=dt*(0.55+((i*13)%7)*0.05); arr[i]+=Math.sin(t+i)*dt*0.12;
-    const x=arr[i], z=arr[i+2], inside=x>-15.3&&x<8.3&&z>-6.3&&z<6.3&&arr[i+1]<3.9;
+    const x=arr[i], z=arr[i+2], y=arr[i+1];
+    /* Laden, Lager und Anbau sind ueberdacht: darunter faellt kein Schnee. */
+    const inside=y<3.9&&((x>-8.3&&x<8.3&&z>-6.3&&z<6.3)||(x>-20.3&&x<-7.7&&z>-6.3&&z<2.3)||(x>-20.3&&x<-7.7&&z>1.9&&z<6.2));
     if(arr[i+1]<0||inside){ arr[i]=rand(-30,30); arr[i+1]=rand(10,14); arr[i+2]=rand(-24,30); }
   }
   a.needsUpdate=true;
@@ -6257,7 +6488,7 @@ fontsReady().then(()=>{
   lastF=-1; applyTOD(); updateSign(); buildStart(); requestAnimationFrame(frame);
   window.__bb={get S(){return S},get phase(){return phase},set phase(v){phase=v},set clock(v){clock=v},get clock(){return clock},pickUp,floorBoxes,shelves,racks,dekos,stockOne,openShop,step,customers,queue,belt,scanBelt,buyUp,buyDeko,get DS(){return DS},endDay,pending,save,openLaptop,closeLaptop,pl,addXP,hireStaff,fireStaff,staff,dirts,addDirt,movables,toggleBuild,setWall,setFloor,
     stations,firePult,placeOnStation,igniteType,get order(){return order},get phone(){return phone},makeCall,answerPhone,haggle,acceptDeal,declineDeal,get truck(){return truck},spawnTruck,takeFromTruck,takeBox,updateTruck,get door(){return door},get tuer(){return tuer},tuerSet,tuerNah,updateSchiebetuer,doorOpen,doorIsOpen,trailerOccupied,LR,lrFront,TOR,orderReady,orderLeft,prioOf,setPrio,racks,updateCarry,spawnFloorBox,staff,SHELFKIND,layout,shelfCapOf,shelfAccepts,emptyLevel,dateInfo,dateStr,dateShort,seasonInfo,isSunday,dayMult,ruhetag,wageOf,setWage,friendliness,windowGrime,addGrime,cleanWindowTick,ambienteScore,bildBoost,fixedCosts,dailyWages,EVENTS,GOALS,CUSTTYPES,UPGRADES,STAFF,stockOf,spawnInterval,pools,todayEvent,evv,rollEvent,rollMarket,newGoal,goalAdd,goalTick,ekFactor,marktText,xpFor,rollCustType,priceTol,buyChance,regCustomer,makeWishes,buildGravur,refillGrav,openGravInput,closeGravInput,get gravBlanks(){return gravBlanks},set gravBlanks(v){gravBlanks=v},orderBox,buyPack,cartAdd,cartAddPack,cartOrder,cartClear,cartDel,cartGoods,cartFee,cartTotal,cartBoxes,cartLines,LIEFERZEIT_SEK,VERSAND,VERSANDFREI,lieferSek,
-    scene,P,EFF,SHOWS,togglePDA,openPDA,closePDA,setPost,get postOn(){return postOn},get pdaOn(){return pdaOn},showLength,psBig,psMid,psSmall,rockets,emitters,timersLen:()=>timers.length,setView:(x,z,y,p)=>{pl.x=x;pl.z=z;yaw=y;pitch=p;aim=null;},camYaw:()=>yaw,camPitch:()=>pitch,playerPos:()=>({x:pl.x,z:pl.z}),pultYaw:()=>pultHit?pultHit.parent.rotation.y:null,applyShopName,shopName,shopSlogan,signTexPx:()=>signTex&&signTex.image?signTex.image.getContext('2d').getImageData(0,0,signTex.image.width,40).data.join(''):null,ckTexPx:()=>ckNameTex&&ckNameTex.image?ckNameTex.image.getContext('2d').getImageData(0,0,ckNameTex.image.width,60).data.join(''):null,testfeldMitte,STATION_POS,aimAt,allLevels,addToLevel,putInSlot,regCustomer,
+    scene,P,EFF,SHOWS,togglePDA,openPDA,closePDA,setPost,get postOn(){return postOn},get pdaOn(){return pdaOn},showLength,psBig,psMid,psSmall,rockets,emitters,timersLen:()=>timers.length,setView:(x,z,y,p)=>{pl.x=x;pl.z=z;yaw=y;pitch=p;aim=null;},camYaw:()=>yaw,camPitch:()=>pitch,playerPos:()=>({x:pl.x,z:pl.z}),pultYaw:()=>pultHit?pultHit.parent.rotation.y:null,applyShopName,shopName,shopSlogan,signTexPx:()=>signTex&&signTex.image?signTex.image.getContext('2d').getImageData(0,0,signTex.image.width,40).data.join(''):null,ckTexPx:()=>ckNameTex&&ckNameTex.image?ckNameTex.image.getContext('2d').getImageData(0,0,ckNameTex.image.width,60).data.join(''):null,testfeldMitte,STATION_POS,aimAt,get snowPts(){return snowPts},WALLS,FLOORS,allLevels,addToLevel,putInSlot,regCustomer,
     shot:()=>{ noLoop=true; camera.position.set(pl.x,1.65,pl.z); camera.rotation.set(pitch,yaw,0); camera.updateMatrixWorld(); updateTarget(); applyTOD(); renderFrame(0.016); return canvas.toDataURL('image/jpeg',0.85); },
     run:(sec,dt)=>{ noLoop=true; const n=Math.round(sec/(dt||0.05)); for(let i=0;i<n;i++) step(dt||0.05); }};
 });

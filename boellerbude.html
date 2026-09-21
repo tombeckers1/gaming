@@ -121,7 +121,7 @@ button.ghost{background:transparent;color:var(--snow);border:1px solid var(--lin
 button.red{background:var(--fire);color:#fff}
 button:disabled{opacity:.4;cursor:not-allowed}
 button:focus-visible{outline:3px solid var(--spark);outline-offset:2px}
-#laptop .card{max-width:700px;padding:0;overflow:hidden;display:flex;flex-direction:column;background:#0f1530}
+#laptop .card{max-width:min(1180px,96vw);padding:0;overflow:hidden;display:flex;flex-direction:column;background:#0f1530}
 .lhead{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 16px;background:var(--ink);border-bottom:1px solid var(--line)}
 .lhead b{font-family:var(--display);font-weight:400;font-size:17px;color:var(--signal)}
 .lhead span{font-family:var(--display);font-size:18px}
@@ -147,7 +147,7 @@ button:focus-visible{outline:3px solid var(--spark);outline-offset:2px}
 .lfoot{padding:12px 16px;border-top:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:10px;flex-shrink:0}
 .lfoot-r{justify-content:flex-end}
 #korbOv{z-index:24}
-#korbOv .card{max-width:660px;padding:0;overflow:hidden;display:flex;flex-direction:column;background:#0f1530}
+#korbOv .card{max-width:min(860px,94vw);padding:0;overflow:hidden;display:flex;flex-direction:column;background:#0f1530}
 .ksum{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:8px 0;border-top:1px solid var(--line)}
 .ksum b{font-size:17px}.ksum small{display:block;color:var(--muted);font-size:14px}
 .ksum .price{font-size:19px}
@@ -171,7 +171,13 @@ h2{font-family:var(--display);font-weight:400;font-size:28px;margin:0 0 6px;colo
 .denoms button{padding:12px 4px;font-size:19px;color:var(--ink)}
 .n50{background:#f2a25a}.n20{background:#7aa9df}.n10{background:#e58c85}.n5{background:#b9bec8}
 .c2,.c1{background:#e3cf8a;border-radius:999px}.c50,.c20,.c10{background:#e8c65a;border-radius:999px}.c5,.c2c,.c1c{background:#d08a5a;border-radius:999px}
-.swatches{display:flex;gap:8px;flex-wrap:wrap}
+.swatches{display:flex;gap:8px;flex-wrap:wrap;max-width:420px;justify-content:flex-end}
+/* Katalogzeile mit Bild */
+.pic{width:112px;height:76px;border-radius:9px;flex-shrink:0;border:1px solid var(--line);background:#0b1020;display:block}
+.row .pic{margin-right:4px}
+body.compact .pic{width:78px;height:54px}
+.dekorow{align-items:flex-start}
+.dekorow .rm{max-width:300px}
 .sw{width:42px;height:42px;border-radius:8px;border:2px solid transparent;cursor:pointer;padding:0}
 .sw.on{border-color:var(--signal);box-shadow:0 0 0 2px rgba(255,210,63,.35)}
 .sw:disabled{opacity:.28}
@@ -326,7 +332,7 @@ body.compact .pdahead2 b{font-size:16px}
 <div class="ov" id="laptop"><div class="card">
   <div class="lhead"><b>Böllerladen OS</b><em id="lLevel"></em><span id="lMoney"></span></div>
   <div class="tabs" id="ltabs">
-    <button data-tab="order">Bestellen</button><button data-tab="price">Preise</button><button data-tab="up">Ausbau</button><button data-tab="deko">Deko</button><button data-tab="staff">Personal</button><button data-tab="bank">Bank</button><button data-tab="stats">Bericht</button><button data-tab="shop">Laden</button>
+    <button data-tab="order">Bestellen</button><button data-tab="price">Preise</button><button data-tab="up">Ausbau</button><button data-tab="einr">Einrichtung</button><button data-tab="markt">Marketing</button><button data-tab="deko">Deko</button><button data-tab="staff">Personal</button><button data-tab="bank">Bank</button><button data-tab="stats">Bericht</button><button data-tab="shop">Laden</button>
   </div>
   <div class="lbody" id="lbody"></div>
   <div class="lfoot lfoot-r"><button class="ghost" id="lclose">Laptop zuklappen</button><button id="lKorb">Warenkorb anzeigen</button></div>
@@ -525,28 +531,33 @@ const CATNAME={0:'Zubehör',1:'F1',2:'F2'};
 
 /* Ausbau, Deko, Personal ---------------------------------- */
 const UPGRADES=[
-  {id:'shelf_klein',lvl:1,name:'Kleines Regal',desc:'Drei schmale Fächer. Der günstige Einstieg.',cost:()=>SHELFKIND.klein.cost+SHELFKIND.klein.step*shelfCount('klein'),done:()=>shelves.length>=SLOTS.length},
-  {id:'shelf_standard',lvl:4,name:'Verkaufsregal',desc:'Vier volle Fächer, doppelt so breit wie das kleine.',cost:()=>SHELFKIND.standard.cost+SHELFKIND.standard.step*shelfCount('standard'),done:()=>shelves.length>=SLOTS.length},
-  {id:'shelf_kuehl',lvl:6,name:'Sekt-Kühlschrank',desc:'Glastüren, Innenlicht. Nimmt nur Sekt und Kindersekt, die verkaufen sich darin deutlich besser.',cost:()=>SHELFKIND.kuehl.cost+SHELFKIND.kuehl.step*shelfCount('kuehl'),done:()=>shelves.length>=SLOTS.length},
-  {id:'shelf_hoch',lvl:10,name:'Hochregal',desc:'Fünf Fächer auf zwei Metern. Mehr Ware pro Stellfläche.',cost:()=>SHELFKIND.hoch.cost+SHELFKIND.hoch.step*shelfCount('hoch'),done:()=>shelves.length>=SLOTS.length},
-  {id:'rack',lvl:3,name:'Lagerregal',desc:'Neun Stellplätze für Kartons im Lager.',cost:()=>120+80*(racks.length-1),done:()=>racks.length>=RACKS.length},
-  {id:'plakat',lvl:4,name:'Werbeplakate in der Stadt',desc:'Dauerhaft rund 30 Prozent mehr Kunden.',cost:()=>400,done:()=>S.up.plakat},
-  {id:'terminal',lvl:6,name:'Kontaktlos-Terminal',desc:'Kartenzahlung geht deutlich schneller.',cost:()=>320,done:()=>S.up.terminal},
-  {id:'tag4',lvl:7,name:'Sonntagsgenehmigung',desc:'Du darfst auch sonntags öffnen. Sonst ist Sonntag Ruhetag.',cost:()=>900,done:()=>S.up.tag4},
-  {id:'heizung',lvl:7,name:'Heizstrahler',desc:'Kunden warten länger, bevor sie genervt gehen.',cost:()=>450,done:()=>S.up.heizung},
-  {id:'musik',lvl:8,name:'Soundanlage',desc:'Bessere Stimmung im Laden.',cost:()=>380,done:()=>S.up.musik},
-  {id:'radio',lvl:9,name:'Radiowerbung',desc:'Noch einmal rund 25 Prozent mehr Kunden.',cost:()=>1200,done:()=>S.up.radio},
-  {id:'cams',lvl:10,name:'Überwachungskameras',desc:'Halbiert die Zahl der Diebstahlversuche.',cost:()=>900,done:()=>S.up.cams},
-  {id:'regallicht',lvl:11,name:'Regalbeleuchtung',desc:'Ware wirkt hochwertiger, bessere Stimmung.',cost:()=>700,done:()=>S.up.regallicht},
-  {id:'alarm',lvl:14,name:'Warensicherung',desc:'Diebe werden am Ausgang meistens gestoppt.',cost:()=>2200,done:()=>S.up.alarm},
-  {id:'grosskunden',lvl:6,name:'Eintrag im Branchenbuch',desc:'Pyrotechniker und Veranstalter rufen dich für Großbestellungen an.',cost:()=>500,done:()=>S.up.grosskunden},
-  {id:'onlineshop',lvl:18,name:'Onlineshop',desc:'Bringt jeden Tag Umsatz nebenbei, abhängig von deinem Ruf.',cost:()=>3200,done:()=>S.up.onlineshop},
-  {id:'kundenkarte',lvl:21,name:'Stammkundenkarte',desc:'Stammkunden kommen öfter wieder und zahlen bereitwilliger.',cost:()=>2600,done:()=>S.up.kundenkarte},
-  {id:'tafel',lvl:23,name:'Digitale Werbetafel',desc:'Große Tafel an der Fassade. Noch einmal deutlich mehr Kundschaft.',cost:()=>4200,done:()=>S.up.tafel},
-  {id:'lizenz',lvl:25,name:'Großhandelslizenz',desc:'Alle Lieferanten geben dir zusätzlich zehn Prozent Nachlass.',cost:()=>6500,done:()=>S.up.lizenz},
-  {id:'klima',lvl:27,name:'Klima und Musikanlage XL',desc:'Deutlich bessere Stimmung, Kunden bleiben spürbar länger.',cost:()=>5400,done:()=>S.up.klima},
-  {id:'meister',lvl:30,name:'Meisterbrief Pyrotechnik',desc:'Die höchste Stufe. Großaufträge zahlen ein Drittel mehr.',cost:()=>12000,done:()=>S.up.meister},
-  {id:'gravur',lvl:9,name:'Gravur-Automat',desc:'Kunden beschriften ihre eigene Rakete. Hohe Marge, du musst nur Blanko-Ware nachfüllen.',cost:()=>1200,done:()=>S.up.gravur}
+  {id:'shelf_klein',kat:'einr',lvl:1,name:'Kleines Regal',desc:'Drei schmale Fächer. Der günstige Einstieg.',cost:()=>SHELFKIND.klein.cost+SHELFKIND.klein.step*shelfCount('klein'),done:()=>shelves.length>=SLOTS.length},
+  {id:'shelf_standard',kat:'einr',lvl:4,name:'Verkaufsregal',desc:'Vier volle Fächer, doppelt so breit wie das kleine.',cost:()=>SHELFKIND.standard.cost+SHELFKIND.standard.step*shelfCount('standard'),done:()=>shelves.length>=SLOTS.length},
+  {id:'shelf_kuehl',kat:'einr',lvl:6,name:'Sekt-Kühlschrank',desc:'Glastüren, Innenlicht. Nimmt nur Sekt und Kindersekt, die verkaufen sich darin deutlich besser.',cost:()=>SHELFKIND.kuehl.cost+SHELFKIND.kuehl.step*shelfCount('kuehl'),done:()=>shelves.length>=SLOTS.length},
+  {id:'shelf_hoch',kat:'einr',lvl:10,name:'Hochregal',desc:'Fünf Fächer auf zwei Metern. Mehr Ware pro Stellfläche.',cost:()=>SHELFKIND.hoch.cost+SHELFKIND.hoch.step*shelfCount('hoch'),done:()=>shelves.length>=SLOTS.length},
+  {id:'rack',kat:'einr',lvl:3,name:'Lagerregal',desc:'Neun Stellplätze für Kartons im Lager.',cost:()=>120+80*(racks.length-1),done:()=>racks.length>=RACKS.length},
+  {id:'plakat',kat:'markt',lvl:4,name:'Werbeplakate in der Stadt',desc:'Dauerhaft rund 30 Prozent mehr Kunden.',cost:()=>400,done:()=>S.up.plakat},
+  {id:'terminal',kat:'einr',lvl:6,name:'Kontaktlos-Terminal',desc:'Kartenzahlung geht deutlich schneller.',cost:()=>320,done:()=>S.up.terminal},
+  {id:'tag4',kat:'markt',lvl:7,name:'Sonntagsgenehmigung',desc:'Du darfst auch sonntags öffnen. Sonst ist Sonntag Ruhetag.',cost:()=>900,done:()=>S.up.tag4},
+  {id:'heizung',kat:'einr',lvl:7,name:'Heizstrahler',desc:'Kunden warten länger, bevor sie genervt gehen.',cost:()=>450,done:()=>S.up.heizung},
+  {id:'musik',kat:'einr',lvl:8,name:'Soundanlage',desc:'Bessere Stimmung im Laden.',cost:()=>380,done:()=>S.up.musik},
+  {id:'radio',kat:'markt',lvl:9,name:'Radiowerbung',desc:'Noch einmal rund 25 Prozent mehr Kunden.',cost:()=>1200,done:()=>S.up.radio},
+  {id:'cams',kat:'einr',lvl:10,name:'Überwachungskameras',desc:'Halbiert die Zahl der Diebstahlversuche.',cost:()=>900,done:()=>S.up.cams},
+  {id:'regallicht',kat:'einr',lvl:11,name:'Regalbeleuchtung',desc:'Ware wirkt hochwertiger, bessere Stimmung.',cost:()=>700,done:()=>S.up.regallicht},
+  {id:'alarm',kat:'einr',lvl:14,name:'Warensicherung',desc:'Diebe werden am Ausgang meistens gestoppt.',cost:()=>2200,done:()=>S.up.alarm},
+  {id:'grosskunden',kat:'markt',lvl:6,name:'Eintrag im Branchenbuch',desc:'Pyrotechniker und Veranstalter rufen dich für Großbestellungen an.',cost:()=>500,done:()=>S.up.grosskunden},
+  {id:'onlineshop',kat:'markt',lvl:18,name:'Onlineshop',desc:'Bringt jeden Tag Umsatz nebenbei, abhängig von deinem Ruf.',cost:()=>3200,done:()=>S.up.onlineshop},
+  {id:'kundenkarte',kat:'markt',lvl:21,name:'Stammkundenkarte',desc:'Stammkunden kommen öfter wieder und zahlen bereitwilliger.',cost:()=>2600,done:()=>S.up.kundenkarte},
+  {id:'tafel',kat:'markt',lvl:23,name:'Digitale Werbetafel',desc:'Große Tafel an der Fassade. Noch einmal deutlich mehr Kundschaft.',cost:()=>4200,done:()=>S.up.tafel},
+  {id:'lizenz',kat:'markt',lvl:25,name:'Großhandelslizenz',desc:'Alle Lieferanten geben dir zusätzlich zehn Prozent Nachlass.',cost:()=>6500,done:()=>S.up.lizenz},
+  {id:'klima',kat:'einr',lvl:27,name:'Klima und Musikanlage XL',desc:'Deutlich bessere Stimmung, Kunden bleiben spürbar länger.',cost:()=>5400,done:()=>S.up.klima},
+  {id:'meister',kat:'markt',lvl:30,name:'Meisterbrief Pyrotechnik',desc:'Die höchste Stufe. Großaufträge zahlen ein Drittel mehr.',cost:()=>12000,done:()=>S.up.meister},
+  {id:'shop_gross',kat:'flaeche',lvl:12,name:'Verkaufsfläche erweitern',desc:'Kauft das Nachbargrundstück rechts vom Laden. Die Wand wird durchbrochen, du bekommst rund 60 Quadratmeter mehr Fläche und Platz für weitere Regale.',cost:()=>9500,done:()=>S.up.shop_gross},
+  {id:'lager_gross',kat:'flaeche',lvl:15,name:'Lager erweitern',desc:'Der Anbau hinter dem Lager wird geöffnet. Platz für mehr Lagerregale und für die Packstation.',cost:()=>7800,done:()=>S.up.lager_gross},
+  {id:'packstation',kat:'flaeche',lvl:18,name:'Packstation für den Versand',desc:'Packtisch, Kartonlager und Abholrampe für den Paketdienst. Braucht das erweiterte Lager.',cost:()=>6400,done:()=>S.up.packstation},
+  {id:'tor2',kat:'flaeche',lvl:20,name:'Zweites Rolltor',desc:'Ein zweiter Wareneingang. Zwei Lieferungen können gleichzeitig andocken.',cost:()=>8200,done:()=>S.up.tor2},
+  {id:'kasse2',kat:'einr',lvl:16,name:'Zweite Kasse',desc:'Eine zweite Kasse halbiert die Schlange, wenn viel los ist.',cost:()=>3400,done:()=>S.up.kasse2},
+  {id:'gravur',kat:'einr',lvl:9,name:'Gravur-Automat',desc:'Kunden beschriften ihre eigene Rakete. Hohe Marge, du musst nur Blanko-Ware nachfüllen.',cost:()=>1200,done:()=>S.up.gravur}
 ];
 const DEKO=[
   {id:'pflanze',lvl:6,name:'Zimmerpflanze',amb:2,cost:70},
@@ -610,32 +621,32 @@ const LOANS=[
 ];
 const WALLS=[
   {id:'creme',lvl:1,name:'Creme',cost:0,up:'#efe9dd',low:'#223055',rail:'#c8322a'},
-  {id:'weiss',lvl:1,name:'Reinweiß',cost:0,up:'#f6f6f4',low:'#3a3f4a',rail:'#8a8f99'},
-  {id:'salbei',lvl:1,name:'Salbeigrün',cost:0,up:'#dfe7dc',low:'#2f4a3c',rail:'#e0b64a'},
-  {id:'sand',lvl:1,name:'Sandbeige',cost:0,up:'#ece0cb',low:'#6b5334',rail:'#b8863a'},
-  {id:'streifen',lvl:1,name:'Tapete Streifen',cost:0,up:'#efe7d8',low:'#3b4262',rail:'#c8322a',pat:'streifen',pat2:'#d8cbb0'},
-  {id:'anthrazit',lvl:1,name:'Anthrazit',cost:0,up:'#d5d8df',low:'#232733',rail:'#7fd1ff'},
-  {id:'raute',lvl:1,name:'Tapete Raute',cost:0,up:'#e6e9f2',low:'#2b3550',rail:'#ffd23f',pat:'raute',pat2:'#cbd2e4'},
-  {id:'ziegel',lvl:1,name:'Ziegeltapete',cost:0,up:'#c4816a',low:'#3a2a22',rail:'#e0b64a',pat:'ziegel',pat2:'#a86450'},
-  {id:'beere',lvl:1,name:'Beere',cost:0,up:'#f0e2e6',low:'#5a1f36',rail:'#ffd23f'},
-  {id:'blume',lvl:1,name:'Tapete Blumen',cost:0,up:'#f2ece0',low:'#4a3a52',rail:'#c86a8a',pat:'blume',pat2:'#c9a2b4'},
-  {id:'holzvert',lvl:1,name:'Holzvertäfelung',cost:0,up:'#c69a68',low:'#5a3c22',rail:'#8a6034',pat:'holz',pat2:'#b08454'},
-  {id:'mitternacht',lvl:1,name:'Mitternachtsblau',cost:0,up:'#cfd9ef',low:'#16224a',rail:'#ffd23f'},
-  {id:'petrol',lvl:1,name:'Petrol',cost:0,up:'#cfe4e6',low:'#123c44',rail:'#e0b64a'},
-  {id:'gold',lvl:1,name:'Goldornament',cost:0,up:'#1c1b22',low:'#0e0d12',rail:'#e0b64a',pat:'ornament',pat2:'#8a6f2a'}
+  {id:'weiss',lvl:1,name:'Reinweiß',cost:50,up:'#f6f6f4',low:'#3a3f4a',rail:'#8a8f99'},
+  {id:'salbei',lvl:1,name:'Salbeigrün',cost:140,up:'#dfe7dc',low:'#2f4a3c',rail:'#e0b64a'},
+  {id:'sand',lvl:1,name:'Sandbeige',cost:250,up:'#ece0cb',low:'#6b5334',rail:'#b8863a'},
+  {id:'streifen',lvl:1,name:'Tapete Streifen',cost:370,up:'#efe7d8',low:'#3b4262',rail:'#c8322a',pat:'streifen',pat2:'#d8cbb0'},
+  {id:'anthrazit',lvl:1,name:'Anthrazit',cost:520,up:'#d5d8df',low:'#232733',rail:'#7fd1ff'},
+  {id:'raute',lvl:1,name:'Tapete Raute',cost:670,up:'#e6e9f2',low:'#2b3550',rail:'#ffd23f',pat:'raute',pat2:'#cbd2e4'},
+  {id:'ziegel',lvl:1,name:'Ziegeltapete',cost:840,up:'#c4816a',low:'#3a2a22',rail:'#e0b64a',pat:'ziegel',pat2:'#a86450'},
+  {id:'beere',lvl:1,name:'Beere',cost:1020,up:'#f0e2e6',low:'#5a1f36',rail:'#ffd23f'},
+  {id:'blume',lvl:1,name:'Tapete Blumen',cost:1210,up:'#f2ece0',low:'#4a3a52',rail:'#c86a8a',pat:'blume',pat2:'#c9a2b4'},
+  {id:'holzvert',lvl:1,name:'Holzvertäfelung',cost:1410,up:'#c69a68',low:'#5a3c22',rail:'#8a6034',pat:'holz',pat2:'#b08454'},
+  {id:'mitternacht',lvl:1,name:'Mitternachtsblau',cost:1620,up:'#cfd9ef',low:'#16224a',rail:'#ffd23f'},
+  {id:'petrol',lvl:1,name:'Petrol',cost:1840,up:'#cfe4e6',low:'#123c44',rail:'#e0b64a'},
+  {id:'gold',lvl:1,name:'Goldornament',cost:2060,up:'#1c1b22',low:'#0e0d12',rail:'#e0b64a',pat:'ornament',pat2:'#8a6f2a'}
 ];
 const FLOORS=[
   {id:'grau',lvl:1,name:'Grauer Estrich',cost:0,a:'#b9b6b0',b:'#9a9690'},
-  {id:'vinyl',lvl:1,name:'Vinyl Hellgrau',cost:0,a:'#cfd0cd',b:'#b9bab7'},
-  {id:'holz',lvl:1,name:'Dielenboden',cost:0,a:'#a97b4c',b:'#8a6038',wood:true},
-  {id:'schach',lvl:1,name:'Schachbrett',cost:0,a:'#e8e6e2',b:'#2a2e38',check:true},
-  {id:'eiche',lvl:1,name:'Eiche dunkel',cost:0,a:'#6b4a2c',b:'#553a22',wood:true},
-  {id:'fliese',lvl:1,name:'Großformatfliese',cost:0,a:'#dad6cd',b:'#c9c4ba',big:true},
-  {id:'beton',lvl:1,name:'Polierter Beton',cost:0,a:'#8f949c',b:'#7d828a'},
-  {id:'industrie',lvl:1,name:'Riffelblech',cost:0,a:'#9aa0a8',b:'#848a92',plate:true},
-  {id:'teppich',lvl:1,name:'Nadelfilz Rot',cost:0,a:'#8a2f2a',b:'#7a2824',carpet:true},
-  {id:'terrazzo',lvl:1,name:'Terrazzo',cost:0,a:'#e3ded2',b:'#c9b9a0',terra:true},
-  {id:'marmor',lvl:1,name:'Marmor',cost:0,a:'#efeee9',b:'#dcd9d0',marble:true}
+  {id:'vinyl',lvl:1,name:'Vinyl Hellgrau',cost:70,a:'#cfd0cd',b:'#b9bab7'},
+  {id:'holz',lvl:1,name:'Dielenboden',cost:190,a:'#a97b4c',b:'#8a6038',wood:true},
+  {id:'schach',lvl:1,name:'Schachbrett',cost:340,a:'#e8e6e2',b:'#2a2e38',check:true},
+  {id:'eiche',lvl:1,name:'Eiche dunkel',cost:520,a:'#6b4a2c',b:'#553a22',wood:true},
+  {id:'fliese',lvl:1,name:'Großformatfliese',cost:720,a:'#dad6cd',b:'#c9c4ba',big:true},
+  {id:'beton',lvl:1,name:'Polierter Beton',cost:940,a:'#8f949c',b:'#7d828a'},
+  {id:'industrie',lvl:1,name:'Riffelblech',cost:1180,a:'#9aa0a8',b:'#848a92',plate:true},
+  {id:'teppich',lvl:1,name:'Nadelfilz Rot',cost:1430,a:'#8a2f2a',b:'#7a2824',carpet:true},
+  {id:'terrazzo',lvl:1,name:'Terrazzo',cost:1690,a:'#e3ded2',b:'#c9b9a0',terra:true},
+  {id:'marmor',lvl:1,name:'Marmor',cost:1970,a:'#efeee9',b:'#dcd9d0',marble:true}
 ];
 
 /* Fortschritt ---------------------------------------------- */
@@ -1201,6 +1212,7 @@ function buildKartons(){
    ========================================================= */
 let lapHit, padHit, doorSign, doorSignTex, starsMat, posHit, cardHit, posTex, beltTex, skyGeo, lampMats=[], houseMats=[], snowPts;
 let grimeMats=[], windowHits=[], winWork=0;
+let uhrStd=null, uhrMin=null, uhrSek=null;
 let wallTex=null, floorTexRef=null, shopWall=null, shopUpper=null, shopLower=null, floorMat=null;
 const WH=3.6;
 function paintWall(g,W,H,c){
@@ -1422,9 +1434,42 @@ function buildWorld(){
   roomAO(-7.9,7.9,-5.9,5.9); roomAO(-19.9,-8.1,-5.9,1.9);
   buildFacade();
   plane(1.4,0.35,new THREE.MeshStandardMaterial({map:tex(280,70,(g,W,Hh)=>{ g.fillStyle='#f2c230'; g.fillRect(0,0,W,Hh); g.fillStyle='#16181f'; g.font=BUN(40); g.textAlign='center'; g.textBaseline='middle'; g.fillText('LAGER',W/2,Hh/2+2); })}),-7.88,2.85,-2.5,Math.PI/2);
-  // Wanduhr
-  const clockT=tex(128,128,(g,W,Hh)=>{ g.fillStyle='#f2f5ff'; g.beginPath(); g.arc(64,64,60,0,Math.PI*2); g.fill(); g.strokeStyle='#0e1226'; g.lineWidth=5; g.stroke(); g.fillStyle='#0e1226'; for(let i=0;i<12;i++){ const a=i/12*Math.PI*2; g.fillRect(64+Math.cos(a)*48-2,64+Math.sin(a)*48-2,4,4); } g.lineWidth=6; g.beginPath(); g.moveTo(64,64); g.lineTo(64,34); g.stroke(); g.lineWidth=4; g.beginPath(); g.moveTo(64,64); g.lineTo(90,72); g.stroke(); });
-  plane(0.42,0.42,new THREE.MeshStandardMaterial({map:clockT}),7.86,2.6,2.4,-Math.PI/2);
+  // Wanduhr: echtes Gehaeuse mit Glas, Zeiger laufen nach der Spielzeit
+  {
+    const zg=new THREE.Group(); zg.position.set(7.84,2.6,2.4); zg.rotation.y=-Math.PI/2; scene.add(zg);
+    const geh=new THREE.Mesh(new THREE.CylinderGeometry(0.24,0.24,0.055,HIQ?36:18),std(0x2b3140,{metalness:0.35,roughness:0.45}));
+    geh.rotation.x=Math.PI/2; zg.add(geh);
+    const rand2=new THREE.Mesh(new THREE.TorusGeometry(0.235,0.018,10,HIQ?30:16),std(0x9aa1ac,{metalness:0.7,roughness:0.3}));
+    rand2.position.z=0.03; zg.add(rand2);
+    const blattT=tex(512,512,(g,W,H)=>{
+      g.fillStyle='#f4f6fb'; g.beginPath(); g.arc(256,256,248,0,Math.PI*2); g.fill();
+      const gr=g.createRadialGradient(190,180,20,256,256,250);
+      gr.addColorStop(0,'rgba(255,255,255,.9)'); gr.addColorStop(1,'rgba(206,214,228,.5)');
+      g.fillStyle=gr; g.beginPath(); g.arc(256,256,248,0,Math.PI*2); g.fill();
+      for(let i=0;i<60;i++){ const a=i/60*Math.PI*2-Math.PI/2, gross=i%5===0;
+        g.strokeStyle=gross?'#0e1226':'#6b7182'; g.lineWidth=gross?9:3;
+        g.beginPath(); g.moveTo(256+Math.cos(a)*(gross?200:212),256+Math.sin(a)*(gross?200:212));
+        g.lineTo(256+Math.cos(a)*228,256+Math.sin(a)*228); g.stroke(); }
+      g.fillStyle='#0e1226'; g.textAlign='center'; g.textBaseline='middle'; g.font=BUN(44);
+      for(let i=1;i<=12;i++){ const a=i/12*Math.PI*2-Math.PI/2;
+        g.fillText(String(i),256+Math.cos(a)*166,256+Math.sin(a)*166+3); }
+      g.fillStyle='#8a9099'; g.font=BAR(26); g.fillText('QUARZ',256,336);
+    });
+    const blatt=plane(0.42,0.42,new THREE.MeshStandardMaterial({map:blattT,roughness:0.75}),0,0,0.032,0,zg);
+    const zeigerM=std(0x141a2c,{roughness:0.5}), secM=std(0xc8322a,{roughness:0.45});
+    uhrStd=new THREE.Group(); uhrStd.position.z=0.038; zg.add(uhrStd);
+    bbox(0.026,0.125,0.008,zeigerM,0,0.052,0,uhrStd,false);
+    uhrMin=new THREE.Group(); uhrMin.position.z=0.045; zg.add(uhrMin);
+    bbox(0.019,0.185,0.008,zeigerM,0,0.082,0,uhrMin,false);
+    uhrSek=new THREE.Group(); uhrSek.position.z=0.051; zg.add(uhrSek);
+    bbox(0.008,0.2,0.006,secM,0,0.076,0,uhrSek,false);
+    bbox(0.008,0.05,0.006,secM,0,-0.028,0,uhrSek,false);
+    const nabe=new THREE.Mesh(new THREE.CylinderGeometry(0.018,0.018,0.014,12),std(0x9aa1ac,{metalness:0.7}));
+    nabe.rotation.x=Math.PI/2; nabe.position.z=0.056; zg.add(nabe);
+    /* Glas mit Reflex */
+    const glasM=new THREE.MeshStandardMaterial({color:LIN(0xdfe8f4),transparent:true,opacity:0.14,roughness:0.06,metalness:0.3});
+    const gl=new THREE.Mesh(new THREE.CircleGeometry(0.225,HIQ?32:16),glasM); gl.position.z=0.062; zg.add(gl);
+  }
   buildCheckout(); buildDesk(); buildDetails();
   // Türschild
   doorSignTex=tex(360,150,()=>{});
@@ -1460,7 +1505,7 @@ function updateSign(){
 /* =========================================================
    Testfeld: Metalltisch und Abschussröhren, dazu das Zündpult
    ========================================================= */
-const PULT_RY=0.977+Math.PI;
+const PULT_RY=1.121+Math.PI;
 const stations={}; let pultHit=null, pultTex=null, pultLamp=null;
 /* Hinweisschild auf zwei Rohrpfosten, damit es nicht in der Luft haengt */
 function schild(x,y,z,w,h,mat,steelM){
@@ -1481,8 +1526,8 @@ function schild(x,y,z,w,h,mat,steelM){
 }
 
 const STATION_POS={
-  tisch:{x:2.2,z:-9.0,ry:0,name:'Zündtisch',cap:6},
-  rampe:{x:2.2,z:-12.4,ry:0,name:'Abschussröhren',cap:6}
+  tisch:{x:-0.3,z:-9.6,ry:0,name:'Zündtisch',cap:6},
+  rampe:{x:-0.3,z:-12.8,ry:0,name:'Abschussröhren',cap:6}
 };
 function stationOf(t){
   const p=P[t]; if(!p||!p.cat) return null;
@@ -1654,12 +1699,27 @@ function buildYard(){
     scr.rotation.x=-0.3;
 
     /* Schlagtaster unter Bügel */
-    const sockel=new THREE.Mesh(new THREE.CylinderGeometry(0.075,0.082,0.03,20),kante);
-    sockel.position.set(0.22,1.175,0.045); sockel.rotation.x=-0.3; g.add(sockel);
-    const btn=new THREE.Mesh(new THREE.CylinderGeometry(0.062,0.07,0.05,22),std(0xd8352a,{roughness:0.3}));
+    /* Schlagtaster: Metallsockel, gewoelbte Pilzkappe mit Aufdruck */
+    const sockel=new THREE.Mesh(new THREE.CylinderGeometry(0.078,0.088,0.026,HIQ?28:16),kante);
+    sockel.position.set(0.22,1.172,0.044); sockel.rotation.x=-0.3; g.add(sockel);
+    const kragen=new THREE.Mesh(new THREE.TorusGeometry(0.074,0.009,8,HIQ?26:14),std(0x6f757e,{metalness:0.7,roughness:0.32}));
+    kragen.position.set(0.22,1.186,0.048); kragen.rotation.x=Math.PI/2-0.3; g.add(kragen);
+    const btn=new THREE.Mesh(new THREE.CylinderGeometry(0.069,0.062,0.034,HIQ?30:18),std(0xb4261d,{roughness:0.34}));
     btn.position.set(0.22,1.2,0.053); btn.rotation.x=-0.3; if(HIQ) btn.castShadow=true; g.add(btn);
-    const kappe=new THREE.Mesh(new THREE.CylinderGeometry(0.062,0.062,0.006,22),std(0xe8554a,{roughness:0.2}));
-    kappe.position.set(0.22,1.226,0.061); kappe.rotation.x=-0.3; g.add(kappe);
+    /* Gewoelbte Kappe: halbe Kugel, flachgedrueckt - keine harte Scheibe mehr */
+    const kappe=new THREE.Mesh(new THREE.SphereGeometry(0.069,HIQ?30:18,HIQ?14:8,0,Math.PI*2,0,Math.PI*0.5),
+      new THREE.MeshStandardMaterial({roughness:0.24,metalness:0.06,
+        map:tex(256,256,(c,W,H)=>{
+          const gr=c.createRadialGradient(W*0.38,H*0.34,10,W/2,H/2,W*0.52);
+          gr.addColorStop(0,'#ff6a5c'); gr.addColorStop(0.45,'#e0392c'); gr.addColorStop(1,'#a81f18');
+          c.fillStyle=gr; c.beginPath(); c.arc(W/2,H/2,W*0.5,0,Math.PI*2); c.fill();
+          c.strokeStyle='rgba(255,255,255,.35)'; c.lineWidth=6;
+          c.beginPath(); c.arc(W/2,H/2,W*0.44,Math.PI*0.95,Math.PI*1.75); c.stroke();
+          c.fillStyle='rgba(255,255,255,.9)'; c.textAlign='center'; c.textBaseline='middle';
+          c.font=BUN(36); c.fillText('ZÜNDEN',W/2,H/2+4);
+          c.fillStyle='rgba(0,0,0,.28)'; c.beginPath(); c.arc(W/2,H*0.72,W*0.3,0,Math.PI*2); c.fill();
+        })}));
+    kappe.position.set(0.22,1.218,0.061); kappe.rotation.x=-0.3; kappe.scale.y=0.42; g.add(kappe);
     for(const a2 of [0.6,2.7,4.3]){
       const b2=new THREE.Mesh(new THREE.TorusGeometry(0.105,0.011,8,10,1.1),kante);
       b2.position.set(0.22,1.24,0.05); b2.rotation.set(-0.3,0,a2); g.add(b2);
@@ -1936,7 +1996,10 @@ function drawFassade(g,W,H,o,lit){
   g.fillStyle='rgba(60,56,50,.55)'; g.fillRect(0,H-16,W,16);
 }
 function buildHaus(x,z,w,d,h,o){
-  const g=new THREE.Group(); g.position.set(x,0,z); scene.add(g);
+  const g=new THREE.Group(); g.position.set(x,0,z);
+  /* Die texturierte Front liegt auf +z. Die Zeile steht aber jenseits der
+     Strasse, also muss sie sich zum Laden drehen. */
+  g.rotation.y=Math.PI; scene.add(g);
   const q=COARSE?0.5:1, px=Math.round(clamp(w*46,192,512)*q), py=Math.round(clamp(h*46,256,640)*q);
   const m=new THREE.MeshStandardMaterial({color:LIN(0xffffff),roughness:0.94,
     map:tex(px,py,(c,W,H)=>drawFassade(c,W,H,o,false)),
@@ -2034,107 +2097,317 @@ function buildHaus(x,z,w,d,h,o){
   return g;
 }
 function makeAuto(col,form){
-  /* Drei Karosserieformen, abgerundete Flaechen, Radhaeuser mit Felgen,
-     Spiegel, Leuchten, Kennzeichen und Schnee auf dem Dach. */
-  form=form||pick(['kombi','limo','van']);
-  const parts=[], dark=0x14161c, glass=0x223044, chrome=0xb9bec8;
-  const RB=(w,h,d,r)=>roundedBoxGeo(w,h,d,r,HIQ?3:2);
-  const L=form==='van'?4.5:form==='kombi'?4.35:4.2;
-  const HH=form==='van'?1.15:0.62;
-  const kabZ=form==='kombi'?-0.05:form==='van'?0.05:-0.25;
-  const kabL=form==='kombi'?2.5:form==='van'?3.1:2.0;
-  /* Unterbau und Schweller */
-  parts.push({geo:RB(1.78,0.28,L-0.2,0.09),m:tm(0,0.42,0),color:dark});
-  for(const s2 of [-1,1]) parts.push({geo:RB(0.09,0.14,L-1.5,0.04),m:tm(s2*0.88,0.44,0),color:0x0f1116});
-  /* Hauptkoerper */
-  parts.push({geo:RB(1.8,0.58,L,0.22),m:tm(0,0.72,0),color:col});
-  /* Motorhaube und Heck leicht abgesenkt */
-  parts.push({geo:RB(1.72,0.2,1.25,0.16),m:tm(0,0.97,L/2-0.72),color:col});
-  if(form!=='van') parts.push({geo:RB(1.7,0.16,1.0,0.14),m:tm(0,0.97,-L/2+0.62),color:col});
-  /* Fahrgastzelle */
-  parts.push({geo:RB(1.66,HH,kabL,0.2),m:tm(0,1.0+HH/2,kabZ),color:col});
-  parts.push({geo:RB(1.69,HH*0.62,kabL-0.16,0.16),m:tm(0,1.05+HH*0.5,kabZ),color:glass});
-  /* A-Saeule schraeg, damit die Scheibe Neigung bekommt */
-  parts.push({geo:RB(1.6,0.5,0.14,0.05),m:tm(0,1.16,kabZ+kabL/2-0.02,-0.38,0,0),color:glass});
-  /* Dach mit Schneeauflage */
-  parts.push({geo:RB(1.56,0.07,kabL-0.3,0.04),m:tm(0,1.0+HH,kabZ),color:0xe8ecf2});
-  if(form==='van') parts.push({geo:RB(1.2,0.1,1.4,0.05),m:tm(0,1.06+HH,kabZ-0.2),color:0xd8dce4});
-  /* Stossfaenger */
-  parts.push({geo:RB(1.82,0.24,0.3,0.08),m:tm(0,0.6,L/2+0.02),color:0x2b2f38});
-  parts.push({geo:RB(1.82,0.24,0.3,0.08),m:tm(0,0.6,-L/2-0.02),color:0x2b2f38});
-  /* Scheinwerfer und Rueckleuchten */
+  /* Karosserie aus vielen weich abgerundeten Volumen statt aus Kisten:
+     Motorhaube, geneigte Scheiben, Dachbogen, Radlaeufe, Schweller,
+     Leuchten mit Glas, Spiegel, Griffe, Kennzeichen, Auspuff. */
+  form=form||pick(['kombi','limo','van','suv']);
+  const parts=[], dark=0x14161c, glas=0x1d2836, chrome=0xb9bec8, gummi=0x0f1116;
+  const SEG=HIQ?4:2;
+  const RB=(w,h,d,r)=>roundedBoxGeo(w,h,d,r,SEG);
+  const CY=(r1,r2,h,sg)=>new THREE.CylinderGeometry(r1,r2,h,sg||(HIQ?20:12));
+  const P=(geo,x,y,z,rx,ry,rz,c)=>parts.push({geo,m:tm(x,y,z,rx||0,ry||0,rz||0),color:c});
+
+  const L = form==='van'?4.75 : form==='suv'?4.5 : form==='kombi'?4.45 : 4.25;
+  const B = form==='van'?1.92 : form==='suv'?1.9 : 1.8;
+  const bodenY = form==='suv'?0.36 : form==='van'?0.34 : 0.28;
+  const kabH = form==='van'?1.22 : form==='suv'?0.82 : 0.66;
+  const kabL = form==='kombi'?2.6 : form==='van'?3.2 : form==='suv'?2.4 : 2.05;
+  const kabZ = form==='kombi'?-0.08 : form==='van'?0.06 : -0.22;
+  const gY = bodenY+0.58;                       // Guerteillinie
+
+  /* Bodengruppe und Schweller */
+  P(RB(B-0.1,0.3,L-0.3,0.1),0,bodenY+0.12,0,0,0,0,dark);
+  for(const s2 of [-1,1]) P(RB(0.1,0.17,L-1.6,0.05),s2*(B/2-0.04),bodenY+0.12,0,0,0,0,gummi);
+
+  /* Hauptvolumen: drei ueberlappende Koerper geben eine weiche Flanke */
+  P(RB(B,0.62,L,0.26),0,gY-0.1,0,0,0,0,col);
+  P(RB(B-0.06,0.3,L-0.5,0.14),0,gY+0.2,0,0,0,0,col);
+  /* Motorhaube faellt nach vorn ab */
+  P(RB(B-0.12,0.22,1.35,0.16),0,gY+0.28,L/2-0.78,-0.05,0,0,col);
+  P(RB(B-0.2,0.12,0.7,0.1),0,gY+0.3,L/2-0.3,-0.14,0,0,col);
+  /* Heck */
+  if(form==='kombi'||form==='van') P(RB(B-0.08,kabH*0.9,0.5,0.16),0,gY+0.2+kabH*0.45,-L/2+0.3,0,0,0,col);
+  else P(RB(B-0.16,0.2,0.85,0.12),0,gY+0.28,-L/2+0.5,0.07,0,0,col);
+
+  /* Fahrgastzelle: Dachbogen aus drei Lagen */
+  P(RB(B-0.14,kabH,kabL,0.24),0,gY+0.2+kabH/2,kabZ,0,0,0,col);
+  P(RB(B-0.3,0.16,kabL-0.5,0.1),0,gY+0.2+kabH+0.04,kabZ,0,0,0,col);
+  /* Seitenscheiben und Heckscheibe als eigene, leicht eingelassene Flaechen */
+  P(RB(B-0.06,kabH*0.6,kabL-0.34,0.12),0,gY+0.26+kabH*0.52,kabZ,0,0,0,glas);
+  /* Frontscheibe geneigt */
+  P(RB(B-0.22,0.62,0.16,0.05),0,gY+0.2+kabH*0.55,kabZ+kabL/2+0.03,-0.44,0,0,glas);
+  /* Heckscheibe */
+  P(RB(B-0.26,0.5,0.14,0.05),0,gY+0.2+kabH*0.58,kabZ-kabL/2-0.02,form==='kombi'?-0.12:0.42,0,0,glas);
+  /* Fensterrahmen in Chrom */
+  for(const s2 of [-1,1]) P(RB(0.035,0.04,kabL-0.32,0.015),s2*(B/2-0.04),gY+0.24+kabH*0.82,kabZ,0,0,0,chrome);
+  /* B-Saeule */
+  for(const s2 of [-1,1]) P(RB(0.05,kabH*0.62,0.11,0.02),s2*(B/2-0.045),gY+0.26+kabH*0.52,kabZ-0.1,0,0,0,0x23272f);
+  /* Dach mit Schnee */
+  P(RB(B-0.36,0.06,kabL-0.6,0.03),0,gY+0.28+kabH+0.04,kabZ,0,0,0,0xe8ecf2);
+
+  /* Radlaeufe und Raeder */
+  const rad = form==='suv'?0.38 : form==='van'?0.36 : 0.33;
+  const RX=B/2-0.03, RZ=L/2-1.12;
+  for(const [sx,sz] of [[-1,-1],[1,-1],[-1,1],[1,1]]){
+    const x=sx*RX, z=sz*RZ;
+    /* Kotfluegelbogen */
+    P(new THREE.TorusGeometry(rad+0.08,0.075,HIQ?8:5,HIQ?18:10,Math.PI),x-sx*0.03,rad+0.02,z,0,Math.PI/2,0,col);
+    /* Reifen mit Flanke und Profil */
+    P(CY(rad,rad,0.23),x,rad,z,0,0,Math.PI/2,gummi);
+    P(CY(rad*0.99,rad*0.99,0.245,HIQ?24:12),x,rad,z,0,0,Math.PI/2,0x191c22);
+    /* Felge, Speichen, Nabe */
+    P(CY(rad*0.66,rad*0.66,0.255),x*1.005,rad,z,0,0,Math.PI/2,0x9aa1ac);
+    for(let k=0;k<5;k++){ const a=k/5*Math.PI*2;
+      P(RB(0.055,rad*0.9,0.05,0.02),x*1.02,rad+Math.cos(a)*rad*0.3,z+Math.sin(a)*rad*0.3,0,0,a,0x7d838c); }
+    P(CY(rad*0.2,rad*0.2,0.27,10),x*1.02,rad,z,0,0,Math.PI/2,0x5a6068);
+    P(CY(rad*0.08,rad*0.08,0.28,8),x*1.03,rad,z,0,0,Math.PI/2,chrome);
+  }
+
+  /* Stossfaenger mit Unterfahrschutz */
+  P(RB(B+0.02,0.26,0.34,0.1),0,gY-0.3,L/2+0.02,0,0,0,0x2b2f38);
+  P(RB(B+0.02,0.26,0.34,0.1),0,gY-0.3,-L/2-0.02,0,0,0,0x2b2f38);
+  P(RB(B-0.3,0.09,0.2,0.04),0,gY-0.44,L/2+0.06,0,0,0,0x8f959e);
+  /* Grill mit Lamellen */
+  P(RB(B*0.55,0.2,0.1,0.03),0,gY-0.06,L/2+0.09,0,0,0,0x11141a);
+  for(let k=0;k<4;k++) P(RB(B*0.52,0.02,0.06,0.01),0,gY-0.12+k*0.045,L/2+0.11,0,0,0,chrome);
+  /* Scheinwerfer: Gehaeuse, Glas, zwei Reflektoren */
   for(const s2 of [-1,1]){
-    parts.push({geo:RB(0.42,0.16,0.12,0.05),m:tm(s2*0.58,0.87,L/2+0.02),color:0xf4f1e2});
-    parts.push({geo:RB(0.16,0.1,0.1,0.03),m:tm(s2*0.28,0.83,L/2+0.03),color:0xd9e4f2});
-    parts.push({geo:RB(0.36,0.2,0.1,0.05),m:tm(s2*0.62,0.9,-L/2-0.02),color:0x9a2a24});
-    parts.push({geo:RB(0.12,0.1,0.09,0.03),m:tm(s2*0.4,0.86,-L/2-0.03),color:0xe8b060});
+    P(RB(0.46,0.19,0.16,0.06),s2*(B/2-0.3),gY,L/2+0.02,0,0,0,0x1b1e25);
+    P(RB(0.42,0.15,0.09,0.04),s2*(B/2-0.3),gY,L/2+0.07,0,0,0,0xdfe8f4);
+    for(const dx of [-0.09,0.09]) P(CY(0.055,0.055,0.06,10),s2*(B/2-0.3)+dx,gY,L/2+0.1,Math.PI/2,0,0,0xf6f4ea);
+    /* Rueckleuchten */
+    P(RB(0.4,0.24,0.14,0.05),s2*(B/2-0.28),gY+0.03,-L/2-0.02,0,0,0,0x2a1214);
+    P(RB(0.34,0.18,0.07,0.03),s2*(B/2-0.28),gY+0.03,-L/2-0.07,0,0,0,0x9a2a24);
+    P(RB(0.1,0.1,0.06,0.02),s2*(B/2-0.44),gY+0.03,-L/2-0.08,0,0,0,0xe8b060);
+    P(RB(0.09,0.09,0.06,0.02),s2*(B/2-0.14),gY+0.03,-L/2-0.08,0,0,0,0xf2f2ee);
   }
-  /* Kuehlergrill, Kennzeichen */
-  parts.push({geo:RB(0.9,0.14,0.08,0.03),m:tm(0,0.86,L/2+0.05),color:0x1b1e25});
-  parts.push({geo:RB(0.52,0.12,0.04,0.01),m:tm(0,0.66,L/2+0.16),color:0xf2f2ee});
-  parts.push({geo:RB(0.52,0.12,0.04,0.01),m:tm(0,0.66,-L/2-0.16),color:0xf2f2ee});
-  /* Spiegel */
+  /* Kennzeichen */
+  for(const sz of [1,-1]) P(RB(0.52,0.12,0.03,0.01),0,gY-0.34,sz*(L/2+0.19),0,0,0,0xf2f2ee);
+  /* Spiegel mit Arm */
   for(const s2 of [-1,1]){
-    parts.push({geo:RB(0.06,0.05,0.1,0.02),m:tm(s2*0.85,1.18,kabZ+kabL/2-0.1),color:col});
-    parts.push({geo:RB(0.16,0.09,0.06,0.025),m:tm(s2*0.95,1.2,kabZ+kabL/2-0.14),color:col});
+    P(RB(0.09,0.05,0.09,0.02),s2*(B/2+0.02),gY+0.42,kabZ+kabL/2-0.12,0,0,0,col);
+    P(RB(0.2,0.12,0.08,0.03),s2*(B/2+0.1),gY+0.44,kabZ+kabL/2-0.17,0,0,0.12,col);
+    P(RB(0.16,0.09,0.02,0.01),s2*(B/2+0.14),gY+0.44,kabZ+kabL/2-0.17,0,0,0.12,0x59606b);
   }
-  /* Tuergriffe und Fugen */
+  /* Tuergriffe, Fuge, Tankklappe */
   for(const s2 of [-1,1]){
-    parts.push({geo:RB(0.04,0.045,0.18,0.015),m:tm(s2*0.9,0.98,kabZ+0.2),color:chrome});
-    parts.push({geo:RB(0.02,0.5,0.03,0.005),m:tm(s2*0.905,0.85,kabZ+kabL/2-0.1),color:0x0f1116});
+    for(const dz of [kabZ+0.35,kabZ-0.55]) P(RB(0.045,0.05,0.2,0.018),s2*(B/2+0.005),gY+0.16,dz,0,0,0,chrome);
+    P(RB(0.012,0.62,0.02,0.005),s2*(B/2+0.008),gY,kabZ+kabL/2-0.18,0,0,0,0x0f1116);
+    P(RB(0.012,0.44,0.02,0.005),s2*(B/2+0.008),gY,kabZ-kabL/2+0.22,0,0,0,0x0f1116);
   }
-  /* Raeder mit Reifenflanke, Felge und Nabe */
-  const rad=form==='van'?0.36:0.33;
-  for(const [x,z] of [[-0.86,-L/2+1.1],[0.86,-L/2+1.1],[-0.86,L/2-1.1],[0.86,L/2-1.1]]){
-    parts.push({geo:new THREE.CylinderGeometry(rad,rad,0.22,HIQ?18:12),m:tm(x,rad,z,0,0,Math.PI/2),color:0x101216});
-    parts.push({geo:new THREE.CylinderGeometry(rad*0.62,rad*0.62,0.24,HIQ?16:10),m:tm(x*1.01,rad,z,0,0,Math.PI/2),color:0x8f959e});
-    parts.push({geo:new THREE.CylinderGeometry(rad*0.22,rad*0.22,0.26,10),m:tm(x*1.02,rad,z,0,0,Math.PI/2),color:0x5a6068});
-    /* Radlauf */
-    parts.push({geo:new THREE.TorusGeometry(rad+0.04,0.05,6,14,Math.PI),m:tm(x*0.99,rad,z,0,Math.PI/2,0),color:0x1b1e25});
-  }
+  P(RB(0.02,0.18,0.18,0.02),B/2+0.005,gY+0.02,-L/2+0.95,0,0,0,0x0f1116);
+  /* Scheibenwischer */
+  for(const s2 of [-1,1]) P(RB(0.42,0.02,0.02,0.008),s2*0.3,gY+0.24,kabZ+kabL/2+0.16,0,0,s2*0.25,0x1b1e25);
+  /* Auspuff */
+  P(CY(0.045,0.05,0.16,10),0.42,gY-0.46,-L/2-0.06,Math.PI/2,0,0,chrome);
+  /* Antenne */
+  P(CY(0.012,0.018,0.28,6),0,gY+0.3+kabH,kabZ-kabL/2+0.1,0.25,0,0,0x23272f);
+
   const mesh=new THREE.Mesh(merge(parts),vcMat);
   if(HIQ){ mesh.castShadow=true; mesh.receiveShadow=true; }
   return mesh;
 }
 function makeBaum(){
-  /* Winterbaum: Wurzelanlauf, sich gabelnder Stamm, zwei Astordnungen,
-     Schnee auf den Oberseiten. */
+  /* Echter Winterbaum: Wurzelanlauf, sich verjuengender Stamm mit
+     Neigung, drei Astordnungen mit abnehmendem Radius und Laenge,
+     feine Zweige an den Enden, Schnee auf den Oberseiten. */
   const parts=[];
-  const RINDE=0x4a3a2c, RINDE2=0x584634, SCHNEE=0xe8ecf2;
-  /* Wurzelanlauf */
-  for(let i=0;i<6;i++){ const a=i/6*Math.PI*2+rand(-0.2,0.2);
-    parts.push({geo:new THREE.CylinderGeometry(0.05,0.13,0.5,6),
-      m:tm(Math.cos(a)*0.16,0.2,Math.sin(a)*0.16,0.4,a,0),color:RINDE}); }
-  /* Stamm in drei Abschnitten mit leichter Neigung */
-  let px=0,pz=0,py=0,r=0.21;
-  for(let seg=0;seg<3;seg++){
-    const h=rand(0.85,1.05), nr=r*0.72, tx=rand(-0.07,0.07), tz=rand(-0.07,0.07);
-    parts.push({geo:new THREE.CylinderGeometry(nr,r,h,HIQ?10:7),
-      m:tm(px+tx/2,py+h/2,pz+tz/2,tz*0.5,0,-tx*0.5),color:seg?RINDE2:RINDE});
-    px+=tx; pz+=tz; py+=h; r=nr;
-  }
-  /* Hauptaeste, jeder mit zwei Zweigen */
-  const n=HIQ?7:5;
-  for(let i=0;i<n;i++){
-    const a=i/n*Math.PI*2+rand(-0.35,0.35), l=rand(1.1,1.8), st=rand(0.55,0.95);
-    const y0=py-rand(0.1,0.7);
-    const ex=Math.cos(a)*l*0.5, ez=Math.sin(a)*l*0.5, ey=y0+Math.cos(st)*l*0.5;
-    parts.push({geo:new THREE.CylinderGeometry(0.035,0.085,l,6),
-      m:tm(ex*0.5,(y0+ey)/2,ez*0.5,st*Math.sin(a),0,-st*Math.cos(a)),color:RINDE2});
-    parts.push({geo:new THREE.CylinderGeometry(0.02,0.05,l*0.34,5),
-      m:tm(ex*0.5,(y0+ey)/2+0.03,ez*0.5,st*Math.sin(a),0,-st*Math.cos(a)),color:SCHNEE});
-    for(let k=0;k<2;k++){
-      const a2=a+rand(-0.7,0.7), l2=l*rand(0.4,0.65), st2=st*rand(0.5,0.9);
-      const bx=ex+Math.cos(a2)*l2*0.4, bz=ez+Math.sin(a2)*l2*0.4, by=ey+Math.cos(st2)*l2*0.45;
-      parts.push({geo:new THREE.CylinderGeometry(0.014,0.034,l2,5),
-        m:tm((ex+bx)/2,(ey+by)/2,(ez+bz)/2,st2*Math.sin(a2),0,-st2*Math.cos(a2)),color:RINDE2});
+  const RINDE=[0x4a3a2c,0x53422f,0x5c4a35,0x463728], SCHNEE=0xe8ecf2;
+  const tiefe=HIQ?3:2, SEG=HIQ?8:5;
+  let aeste=0;
+  /* Ein Segment von p in Richtung (dir) mit Laenge l und Radien r0/r1 */
+  const seg=(p,dir,l,r0,r1,col)=>{
+    const e={x:p.x+dir.x*l,y:p.y+dir.y*l,z:p.z+dir.z*l};
+    const m={x:(p.x+e.x)/2,y:(p.y+e.y)/2,z:(p.z+e.z)/2};
+    const len=Math.hypot(dir.x,dir.y,dir.z)*l;
+    /* Ausrichtung: Zylinder zeigt in +y, also um x und z kippen */
+    const rz=Math.atan2(dir.x,dir.y), rx=-Math.atan2(dir.z,Math.hypot(dir.x,dir.y));
+    parts.push({geo:new THREE.CylinderGeometry(r1,r0,len,Math.max(4,SEG-(r0<0.05?3:0))),
+      m:tm(m.x,m.y,m.z,rx,0,rz),color:col});
+    /* Knoten an der Gabelung, damit keine Kante klafft */
+    if(r1>0.03) parts.push({geo:new THREE.SphereGeometry(r1*1.12,6,4),m:tm(e.x,e.y,e.z),color:col});
+    return e;
+  };
+  const norm=v=>{ const n=Math.hypot(v.x,v.y,v.z)||1; return {x:v.x/n,y:v.y/n,z:v.z/n}; };
+  const ast=(p,dir,l,r,d)=>{
+    aeste++;
+    const col=pick(RINDE);
+    /* Leichter Bogen: der Ast wird in zwei Teilen gesetzt */
+    const d1=norm({x:dir.x,y:dir.y,z:dir.z});
+    const e1=seg(p,d1,l*0.55,r,r*0.74,col);
+    const droop=d>0?-0.12:-0.03;
+    const d2=norm({x:d1.x*1.12+rand(-0.12,0.12),y:d1.y+droop,z:d1.z*1.12+rand(-0.12,0.12)});
+    const e2=seg(e1,d2,l*0.45,r*0.74,r*0.5,col);
+    /* Schneeauflage auf der Oberseite des Astes */
+    if(r>0.035) parts.push({geo:new THREE.CylinderGeometry(r*0.42,r*0.62,l*0.5,4),
+      m:tm((p.x+e1.x)/2,(p.y+e1.y)/2+r*0.7,(p.z+e1.z)/2,
+           -Math.atan2(d1.z,Math.hypot(d1.x,d1.y)),0,Math.atan2(d1.x,d1.y)),color:SCHNEE});
+    if(d<=0){
+      /* Feine Endzweige */
+      for(let k=0;k<3;k++){
+        const dz=norm({x:d2.x+rand(-0.55,0.55),y:d2.y+rand(-0.1,0.35),z:d2.z+rand(-0.55,0.55)});
+        seg(e2,dz,l*rand(0.2,0.36),r*0.5,r*0.16,col);
+      }
+      return;
     }
+    const n=2+(Math.random()<0.45?1:0);
+    for(let k=0;k<n;k++){
+      const dz=norm({x:d2.x+rand(-0.75,0.75),y:d2.y+rand(0.05,0.45),z:d2.z+rand(-0.75,0.75)});
+      ast(e2,dz,l*rand(0.52,0.68),r*rand(0.46,0.6),d-1);
+    }
+  };
+  /* Wurzelanlauf */
+  for(let i=0;i<7;i++){ const a=i/7*Math.PI*2+rand(-0.18,0.18);
+    parts.push({geo:new THREE.CylinderGeometry(0.045,0.15,0.62,6),
+      m:tm(Math.cos(a)*0.17,0.24,Math.sin(a)*0.17,0.42*Math.sin(a+Math.PI/2),0,-0.42*Math.cos(a+Math.PI/2)),color:RINDE[3]}); }
+  /* Stamm in vier Abschnitten, jeder etwas schlanker und leicht versetzt */
+  let p={x:0,y:0,z:0}, r=0.23;
+  const gabeln=[];
+  for(let i=0;i<4;i++){
+    const h=rand(0.7,0.95), nr=r*rand(0.76,0.85);
+    const d=norm({x:rand(-0.09,0.09),y:1,z:rand(-0.09,0.09)});
+    p=seg(p,d,h,r,nr,RINDE[i%2]);
+    r=nr;
+    if(i>=1) gabeln.push({p:{x:p.x,y:p.y,z:p.z},r});
   }
-  /* Schneehaeufchen in den Astgabeln */
-  for(let i=0;i<(HIQ?9:5);i++){ const a=Math.random()*Math.PI*2, rr=rand(0.25,0.95);
-    const sp=new THREE.SphereGeometry(rand(0.09,0.17),7,5);
-    parts.push({geo:sp,m:tm(Math.cos(a)*rr,py+rand(-0.4,0.9),Math.sin(a)*rr),color:SCHNEE}); }
+  /* Krone: Hauptaeste aus den oberen Gabelungen */
+  const n=HIQ?6:4;
+  for(let i=0;i<n;i++){
+    const gsel=gabeln[Math.min(gabeln.length-1,Math.floor(i/n*gabeln.length))];
+    const a=i/n*Math.PI*2+rand(-0.4,0.4), auf=rand(0.55,1.05);
+    ast(gsel.p,norm({x:Math.cos(a),y:auf,z:Math.sin(a)}),rand(1.0,1.5),gsel.r*rand(0.5,0.68),tiefe-1);
+  }
+  /* Spitze */
+  ast(p,norm({x:rand(-0.15,0.15),y:1,z:rand(-0.15,0.15)}),rand(0.8,1.1),r*0.8,tiefe-1);
   const m=new THREE.Mesh(merge(parts),vcMat); if(HIQ) m.castShadow=true; return m;
+}
+/* =========================================================
+   Nachbargrundstueck rechts vom Laden: Backsteinfassade mit
+   Verkaufsschild. Hier waechst der Laden spaeter hinein.
+   ========================================================= */
+function buildNachbar(){
+  const x0=8.1, x1=14.6, zf=6.1, H=WH+0.6;
+  const g=new THREE.Group(); scene.add(g);
+  /* Backsteinwand mit Verband, Fugen und Ausblühungen */
+  const zieg=tex(512,512,(c,W,Hh)=>{
+    c.fillStyle='#6a5348'; c.fillRect(0,0,W,Hh);
+    const rows=16, bh=Hh/rows;
+    for(let r=0;r<rows;r++){ const off=(r%2)*40;
+      for(let x=-80;x<W;x+=80){
+        c.fillStyle=pick(['#8a4f3c','#7e4735','#93573f','#74402f','#8a5a44','#6d4132']);
+        c.fillRect(x+off+3,r*bh+3,74,bh-6);
+        c.fillStyle='rgba(255,255,255,.06)'; c.fillRect(x+off+3,r*bh+3,74,2);
+        c.fillStyle='rgba(0,0,0,.16)'; c.fillRect(x+off+3,r*bh+bh-5,74,2);
+      } }
+    for(let i=0;i<9;i++){ const x=Math.random()*W;
+      const gr=c.createLinearGradient(x,0,x,Hh); gr.addColorStop(0,'rgba(230,226,214,.20)'); gr.addColorStop(1,'rgba(230,226,214,0)');
+      c.fillStyle=gr; c.fillRect(x,rand(0,Hh*0.4),rand(20,70),Hh); }
+    for(let i=0;i<2200;i++){ c.fillStyle=`rgba(0,0,0,${Math.random()*0.05})`; c.fillRect(Math.random()*W,Math.random()*Hh,2,2); }
+  });
+  zieg.wrapS=zieg.wrapT=THREE.RepeatWrapping; zieg.repeat.set((x1-x0)/1.6,H/1.6); zieg.anisotropy=8;
+  const zm=new THREE.MeshStandardMaterial({map:zieg,roughness:0.95});
+  const w=x1-x0, cx=(x0+x1)/2;
+  bbox(w,H,0.4,zm,cx,H/2,zf-0.1,g);
+  bbox(w+0.2,0.28,0.56,std(0x5f584e,{roughness:1}),cx,H+0.12,zf-0.1,g);
+  bbox(w+0.1,0.1,0.5,std(0xe8ecf2,{roughness:1}),cx,H+0.3,zf-0.1,g,false);
+  bbox(w+0.12,0.5,0.5,std(0x6f6a62,{roughness:0.96}),cx,0.25,zf-0.06,g);
+  /* Zugemauerte Tuer und zwei zugesetzte Fenster */
+  const brett=std(0x6d5a44,{roughness:0.95});
+  bbox(1.1,2.1,0.1,std(0x5a4a3e,{roughness:0.95}),x0+1.4,1.05,zf+0.12,g,false);
+  for(let k=0;k<4;k++) bbox(1.24,0.16,0.06,brett,x0+1.4,0.4+k*0.55,zf+0.17,g,false);
+  for(const fx of [x0+3.6,x0+5.2]){
+    bbox(1.0,1.3,0.1,std(0x5a4a3e,{roughness:0.95}),fx,1.75,zf+0.12,g,false);
+    for(let k=0;k<3;k++) bbox(1.1,0.18,0.06,brett,fx,1.3+k*0.45,zf+0.17,g,false);
+  }
+  /* Bauschild: Verkaufsflaeche wird verkauft */
+  const schildT=tex(1024,512,(c,W,Hh)=>{
+    c.fillStyle='#f4f2ea'; c.fillRect(0,0,W,Hh);
+    c.fillStyle='#1b2340'; c.fillRect(0,0,W,96);
+    c.fillStyle='#ffd23f'; c.textAlign='center'; c.textBaseline='middle';
+    c.font=BUN(52); c.fillText('ZU VERKAUFEN',W/2,50);
+    c.fillStyle='#1b2340'; c.font=BUN(66);
+    c.fillText('VERKAUFSFLÄCHE',W/2,180);
+    c.font=BAR(44); c.fillStyle='#3d4658';
+    c.fillText('ca. 60 m² · direkt nebenan',W/2,250);
+    c.fillText('ideal zur Erweiterung',W/2,300);
+    c.strokeStyle='#c8322a'; c.lineWidth=8; c.strokeRect(70,340,W-140,120);
+    c.fillStyle='#c8322a'; c.font=BUN(46);
+    c.fillText('ANFRAGE ÜBER DEN LAPTOP',W/2,402);
+    c.strokeStyle='#1b2340'; c.lineWidth=10; c.strokeRect(5,5,W-10,Hh-10);
+  });
+  const rahmen=std(0x4a4f5a,{metalness:0.4,roughness:0.55});
+  for(const sx of [-1.15,1.15]){
+    const p2=new THREE.Mesh(new THREE.CylinderGeometry(0.045,0.045,2.6,10),rahmen);
+    p2.position.set(cx+sx,1.3,zf+0.6); g.add(p2);
+    bbox(0.14,0.03,0.14,rahmen,cx+sx,0.016,zf+0.6,g,false);
+  }
+  bbox(2.7,1.36,0.05,std(0x3a3f48,{roughness:0.7}),cx,1.85,zf+0.6,g,false);
+  plane(2.6,1.28,new THREE.MeshStandardMaterial({map:schildT,roughness:0.62}),cx,1.85,zf+0.635,0,g);
+  /* Bauzaunelement davor */
+  for(let i=0;i<3;i++){
+    const bx=x0+0.9+i*2.2;
+    bbox(2.0,1.8,0.05,std(0x8a9099,{metalness:0.4,roughness:0.6}),bx,0.92,zf+1.25,g,false);
+    for(const sx of [-0.95,0.95]) bbox(0.07,1.85,0.07,std(0x6a7078,{metalness:0.5}),bx+sx,0.93,zf+1.25,g,false);
+    bbox(0.5,0.1,0.34,std(0x2f343c,{roughness:0.9}),bx-0.95,0.05,zf+1.25,g,false);
+    bbox(0.5,0.1,0.34,std(0x2f343c,{roughness:0.9}),bx+0.95,0.05,zf+1.25,g,false);
+  }
+  col(x0,x1,zf+1.1,zf+1.4);
+  col(x0,x1,zf-0.35,zf+0.15);
+  return g;
+}
+/* =========================================================
+   Muelleimer vor dem Laden
+   ========================================================= */
+function buildMuelleimer(x,z,ry){
+  const g=new THREE.Group(); g.position.set(x,0,z); g.rotation.y=ry||0; scene.add(g);
+  const stahl=std(0x50575f,{metalness:0.62,roughness:0.42});
+  const dunkel=std(0x2b3038,{metalness:0.5,roughness:0.5});
+  /* Pfosten mit Fussplatte */
+  bbox(0.22,0.025,0.22,stahl,0,0.012,0,g,false);
+  for(let k=0;k<4;k++){ const a=k/4*Math.PI*2;
+    bbox(0.03,0.02,0.03,std(0x8f959e,{metalness:0.7}),Math.cos(a)*0.07,0.03,Math.sin(a)*0.07,g,false); }
+  const post=new THREE.Mesh(new THREE.CylinderGeometry(0.045,0.055,0.92,12),stahl);
+  post.position.y=0.46; if(HIQ) post.castShadow=true; g.add(post);
+  /* Korpus: konischer Behaelter mit Lochblech */
+  const loch=tex(256,256,(c,W,H)=>{
+    c.fillStyle='#4b525a'; c.fillRect(0,0,W,H);
+    for(let y=10;y<H;y+=22) for(let x=((y/22)%2)*11+10;x<W;x+=22){
+      c.fillStyle='#14171c'; c.beginPath(); c.arc(x,y,6,0,Math.PI*2); c.fill();
+      c.fillStyle='rgba(255,255,255,.18)'; c.beginPath(); c.arc(x-1.4,y-1.6,6,Math.PI*0.9,Math.PI*1.7); c.stroke?0:0; c.fill(); }
+    for(let i=0;i<700;i++){ c.fillStyle=`rgba(0,0,0,${Math.random()*0.06})`; c.fillRect(Math.random()*W,Math.random()*H,2,2); }
+  });
+  loch.wrapS=loch.wrapT=THREE.RepeatWrapping; loch.repeat.set(3,2); loch.anisotropy=8;
+  const korb=new THREE.Mesh(new THREE.CylinderGeometry(0.2,0.165,0.5,HIQ?22:14,1,true),
+    new THREE.MeshStandardMaterial({map:loch,metalness:0.5,roughness:0.5,side:THREE.DoubleSide}));
+  korb.position.y=1.06; if(HIQ) korb.castShadow=true; g.add(korb);
+  /* Boden, obere und untere Ringe */
+  const bo=new THREE.Mesh(new THREE.CylinderGeometry(0.165,0.165,0.02,16),dunkel); bo.position.y=0.82; g.add(bo);
+  for(const [y,r] of [[1.31,0.205],[0.83,0.17]]){
+    const ring=new THREE.Mesh(new THREE.TorusGeometry(r,0.016,8,HIQ?22:12),stahl);
+    ring.rotation.x=Math.PI/2; ring.position.y=y; g.add(ring);
+  }
+  /* Deckel mit Einwurf und Ascher */
+  const deck=new THREE.Mesh(new THREE.CylinderGeometry(0.225,0.205,0.06,HIQ?22:14),stahl);
+  deck.position.y=1.35; g.add(deck);
+  const kegel=new THREE.Mesh(new THREE.CylinderGeometry(0.1,0.21,0.1,HIQ?22:14),dunkel);
+  kegel.position.y=1.42; g.add(kegel);
+  bbox(0.19,0.055,0.13,std(0x14171c,{roughness:0.9}),0.07,1.43,0,g,false);
+  const asch=new THREE.Mesh(new THREE.CylinderGeometry(0.055,0.05,0.07,12),dunkel);
+  asch.position.set(-0.12,1.47,0); g.add(asch);
+  /* Halterung am Pfosten und Piktogramm */
+  bbox(0.09,0.22,0.06,stahl,-0.2,1.06,0,g,false);
+  plane(0.16,0.2,new THREE.MeshStandardMaterial({transparent:true,roughness:0.6,map:tex(160,200,(c,W,H)=>{
+    c.clearRect(0,0,W,H);
+    c.fillStyle='#e8ecf2'; c.beginPath();
+    c.moveTo(38,58); c.lineTo(122,58); c.lineTo(112,178); c.lineTo(48,178); c.closePath(); c.fill();
+    c.fillRect(30,44,100,12); c.fillRect(66,32,28,10);
+    c.fillStyle='#4b525a'; c.fillRect(58,74,8,88); c.fillRect(76,74,8,88); c.fillRect(94,74,8,88);
+  })}),0,1.1,0.202,0,g);
+  /* Schnee auf dem Deckel */
+  const sn=new THREE.Mesh(new THREE.CylinderGeometry(0.13,0.21,0.04,HIQ?20:12),std(0xe8ecf2,{roughness:1}));
+  sn.position.y=1.47; g.add(sn);
+  col(x-0.26,x+0.26,z-0.26,z+0.26);
+  return g;
 }
 function buildStreet(){
   // Bordstein und Gehweg gegenüber
@@ -2164,7 +2437,9 @@ function buildStreet(){
     bbox(w,h,8,std(pick([0x5a5f6b,0x6b6258,0x4f5560,0x6a5f55]),{roughness:1}),-38+i*(COARSE?17:9.5),h/2,40,null,false); }
   // Autos am gegenüberliegenden Bordstein
   const carCols=[0xb8bcc4,0x2a3442,0x8a2f28,0x2f5d9e,0x3c4a3a,0xd8d4cc,0x6a5f55];
-  for(let i=0;i<(COARSE?4:7);i++){ const c=makeAuto(pick(carCols),pick(['kombi','limo','van','limo'])); c.position.set(-22+i*6.6+rand(-0.5,0.5),0,16.1); c.rotation.y=Math.PI/2+rand(-0.03,0.03); scene.add(c); }
+  for(let i=0;i<(COARSE?4:7);i++){ const c=makeAuto(pick(carCols),pick(['kombi','limo','van','suv','limo'])); c.position.set(-22+i*6.6+rand(-0.5,0.5),0,16.1); c.rotation.y=Math.PI/2+rand(-0.03,0.03); scene.add(c); }
+  buildNachbar();
+  buildMuelleimer(-3.1,7.55,0.4); buildMuelleimer(5.6,7.55,-0.3);
   // Bäume und Stadtmöbel auf unserer Seite
   for(const bx of (COARSE?[-16.5,13]:[-16.5,-11,13])){ const b=makeBaum(); b.position.set(bx,0,10.4); b.scale.setScalar(rand(0.9,1.2)); scene.add(b);
     const ring=new THREE.Mesh(new THREE.TorusGeometry(0.55,0.06,6,14),std(0x3a3d44)); ring.rotation.x=Math.PI/2; ring.position.set(bx,0.06,10.4); scene.add(ring);
@@ -2494,12 +2769,19 @@ function buildDock(){
   const cano=bbox(1.9,0.1,4.4,std(0x3a4150,{metalness:0.5}),-20.95,3.32,-2,null,false); cano.rotation.z=0.08;
   bbox(1.95,0.09,4.45,snow,-20.95,3.42,-2,null,false).rotation.z=0.08;
   for(const z of [-1.9,1.9]){ const st=bbox(0.07,0.9,0.07,steel,-21.8,2.95,z,null,false); st.rotation.x=0; st.rotation.z=-0.7; }
-  // Hoflampen
-  for(const [x,z] of [[-20.6,-4.9],[-20.6,0.9],[-26.6,-4.9],[-32.6,-2]]){
-    bbox(0.1,0.34,0.1,std(0x3a4150),x,3.0,z,null,false);
-    const lm=new THREE.MeshStandardMaterial({color:0x222222,emissive:LIN(0xfff0d0),emissiveIntensity:0}); lampMats.push(lm);
-    const sh=new THREE.Mesh(new THREE.CylinderGeometry(0.2,0.12,0.2,10),lm); sh.position.set(x,2.8,z); sh.rotation.x=Math.PI; scene.add(sh);
+  /* Hofbeleuchtung: zwei Wandstrahler an der Lagerwand, dazu zwei
+     Mastleuchten im Hof. Vorher schwebten die Leuchten frei in der Luft. */
+  for(const z of [-4.9,0.9]){
+    const wm=std(0x3a4150,{metalness:0.5,roughness:0.5});
+    bbox(0.16,0.22,0.16,wm,-20.16,2.85,z,null,false);              // Wandsockel
+    const arm=bbox(0.34,0.07,0.07,wm,-20.42,2.95,z,null,false); arm.rotation.z=0.22;
+    const geh=rbox(0.3,0.16,0.4,0.03,std(0x2f343e,{metalness:0.5,roughness:0.45}),-20.64,3.02,z,null);
+    geh.rotation.z=0.34;
+    const lm=new THREE.MeshStandardMaterial({color:LIN(0x23262e),emissive:LIN(0xfff0d0),emissiveIntensity:0}); lampMats.push(lm);
+    const wa=bbox(0.06,0.13,0.34,lm,-20.76,2.94,z,null,false); wa.rotation.z=0.34;
+    bbox(0.34,0.03,0.44,std(0x8f959e,{metalness:0.6}),-20.62,3.12,z,null,false);
   }
+  if(typeof strassenlampe==='function'){ strassenlampe(-26.4,-5.2,Math.PI/2); strassenlampe(-31.6,-2,Math.PI/2); }
   // Bodenmarkierung für den LKW
   const mark=(w,d,x,z,c)=>flat(w,d,std(c||0xf2c230),x,0.017,z);
   for(let x2=-33;x2<-20.6;x2+=1.0){ mark(0.6,0.12,x2,-3.55); mark(0.6,0.12,x2,-0.45); }
@@ -2573,21 +2855,36 @@ function buildTor(steel,snow){
   bbox(0.12,0.24,0.16,std(0xf2c230,{roughness:0.6}),XD+0.3,1.35,Z+1.92,g,false);
   for(let k=0;k<3;k++) bbox(0.04,0.05,0.05,std([0x2f9e57,0xd8352a,0x2a2e38][k]),XD+0.37,1.43-k*0.07,Z+1.92,g,false);
   /* Torpanele */
-  const panelTex=tex(256,128,(c,W,H)=>{
-    c.fillStyle='#c2c7cf'; c.fillRect(0,0,W,H);
-    const gr=c.createLinearGradient(0,0,0,H); gr.addColorStop(0,'rgba(255,255,255,.35)');
-    gr.addColorStop(0.45,'rgba(255,255,255,0)'); gr.addColorStop(0.55,'rgba(0,0,0,.1)'); gr.addColorStop(1,'rgba(0,0,0,.22)');
-    c.fillStyle=gr; c.fillRect(0,0,W,H);
-    for(let y=10;y<H-8;y+=17){ c.fillStyle='rgba(0,0,0,.14)'; c.fillRect(0,y,W,2); c.fillStyle='rgba(255,255,255,.4)'; c.fillRect(0,y+2,W,1); }
-    c.fillStyle='rgba(0,0,0,.3)'; c.fillRect(0,0,W,4); c.fillRect(0,H-4,W,4);
-    for(let i=0;i<500;i++){ c.fillStyle=`rgba(0,0,0,${Math.random()*0.05})`; c.fillRect(Math.random()*W,Math.random()*H,3,3); }
-    for(let i=0;i<9;i++){ c.fillStyle=`rgba(90,80,64,${rand(0.05,0.16)})`; c.beginPath();
-      c.ellipse(Math.random()*W,H*0.8+Math.random()*H*0.2,rand(6,20),rand(3,7),0,0,Math.PI*2); c.fill(); }
+  const pm=std(0xdfe2e6,{metalness:0.4,roughness:0.5});
+  /* Sandwichpanel mit Sicken, Nut-und-Feder-Fuge und Gebrauchsspuren */
+  const panelTex=tex(1024,256,(c,W,H)=>{
+    const g0=c.createLinearGradient(0,0,0,H);
+    g0.addColorStop(0,'#e7e9ec'); g0.addColorStop(0.12,'#f4f5f7');
+    g0.addColorStop(0.5,'#dfe2e6'); g0.addColorStop(0.88,'#f1f2f4'); g0.addColorStop(1,'#c9ccd1');
+    c.fillStyle=g0; c.fillRect(0,0,W,H);
+    /* waagerechte Sicken */
+    for(let y=34;y<H-30;y+=42){
+      c.fillStyle='rgba(255,255,255,.55)'; c.fillRect(0,y,W,3);
+      c.fillStyle='rgba(120,126,136,.35)'; c.fillRect(0,y+3,W,4);
+      c.fillStyle='rgba(0,0,0,.10)'; c.fillRect(0,y+7,W,2);
+    }
+    /* Nut oben, Feder unten */
+    c.fillStyle='rgba(60,66,76,.55)'; c.fillRect(0,0,W,10);
+    c.fillStyle='rgba(0,0,0,.30)'; c.fillRect(0,H-12,W,12);
+    /* feiner Lackstaub und Kratzer */
+    for(let i=0;i<2600;i++){ c.fillStyle=`rgba(${Math.random()<0.5?0:255},${Math.random()<0.5?0:255},${Math.random()<0.5?0:255},${Math.random()*0.045})`; c.fillRect(Math.random()*W,Math.random()*H,2,2); }
+    for(let i=0;i<26;i++){ c.strokeStyle=`rgba(140,146,156,${rand(0.1,0.3)})`; c.lineWidth=rand(0.6,1.6);
+      const x=Math.random()*W,y=Math.random()*H; c.beginPath(); c.moveTo(x,y); c.lineTo(x+rand(-90,90),y+rand(-5,5)); c.stroke(); }
+    /* Schmutzrand unten */
+    const gr=c.createLinearGradient(0,H-46,0,H); gr.addColorStop(0,'rgba(90,86,78,0)'); gr.addColorStop(1,'rgba(90,86,78,.26)');
+    c.fillStyle=gr; c.fillRect(0,H-46,W,46);
   });
-  const pm=new THREE.MeshStandardMaterial({map:panelTex,roughness:0.55,metalness:0.3});
+  panelTex.wrapS=THREE.RepeatWrapping; panelTex.repeat.set(1.6,1); panelTex.anisotropy=8;
+  const pmT=new THREE.MeshStandardMaterial({map:panelTex,metalness:0.42,roughness:0.44});
   const panels=[];
   for(let i=0;i<TOR.n;i++){
-    const pn=new THREE.Mesh(new THREE.BoxGeometry(0.095,TOR.ph-0.012,TOR.w),pm);
+    const pn=new THREE.Mesh(new THREE.BoxGeometry(0.095,TOR.ph-0.012,TOR.w),
+      [pm,pm,pm,pm,pmT,pmT]);
     if(HIQ){ pn.castShadow=true; pn.receiveShadow=true; }
     g.add(pn); panels.push(pn);
     /* Scharnierrollen an den Panelkanten */
@@ -2602,8 +2899,28 @@ function buildTor(steel,snow){
         wnd.position.set(0.004,0,-1.2+k*0.8); pn.add(wnd);
       }
     }
-    if(i===0){ const seal=new THREE.Mesh(new THREE.BoxGeometry(0.12,0.055,TOR.w),rub);
-      seal.position.set(0,-TOR.ph/2+0.01,0); pn.add(seal); }
+    /* Nut-und-Feder-Profil an den Panelkanten */
+    const nut=new THREE.Mesh(new THREE.BoxGeometry(0.075,0.022,TOR.w-0.02),steel);
+    nut.position.set(0,TOR.ph/2-0.014,0); pn.add(nut);
+    const fed=new THREE.Mesh(new THREE.BoxGeometry(0.06,0.018,TOR.w-0.04),std(0x9aa1ac,{metalness:0.6,roughness:0.4}));
+    fed.position.set(0,-TOR.ph/2+0.012,0); pn.add(fed);
+    /* Scharnierbaender in der Flaeche */
+    for(const dz of [-0.55,0.55]){
+      const sch=new THREE.Mesh(new THREE.BoxGeometry(0.02,0.11,0.16),steel);
+      sch.position.set(-0.058,-TOR.ph/2+0.03,dz); pn.add(sch);
+    }
+    if(i===0){
+      const seal=new THREE.Mesh(new THREE.BoxGeometry(0.12,0.055,TOR.w),rub);
+      seal.position.set(0,-TOR.ph/2+0.01,0); pn.add(seal);
+      /* Griffmulde und Warnstreifen auf dem untersten Panel */
+      const gr2=new THREE.Mesh(new THREE.BoxGeometry(0.03,0.09,0.5),std(0x59606b,{metalness:0.6,roughness:0.4}));
+      gr2.position.set(-0.056,0.06,0); pn.add(gr2);
+      const wt=new THREE.Mesh(new THREE.BoxGeometry(0.012,0.12,TOR.w-0.06),
+        new THREE.MeshStandardMaterial({roughness:0.6,map:tex(512,48,(c,W,H)=>{
+          for(let k=0;k<16;k++){ c.save(); c.translate(k*W/16,0); c.transform(1,0,-0.5,1,0,0);
+            c.fillStyle=k%2?'#f2c230':'#1f1f24'; c.fillRect(0,-H,W/16+H,H*3); c.restore(); } })}));
+      wt.position.set(-0.056,-TOR.ph/2+0.1,0); pn.add(wt);
+    }
   }
   /* Torabdichtung aussen, Gummipuffer, Ueberladebruecke */
   for(const dz of [-1.72,1.72]) bbox(0.4,3.1,0.26,rub,-20.22,1.55,Z+dz,null,false);
@@ -3061,6 +3378,34 @@ function emptyLevel(t){ if(!canShelf(t)) return null;
    Lager
    ========================================================= */
 const racks=[], RLV=[0.14,0.94,1.74];
+/* Was liegt gerade drin? Die drei haeufigsten Sorten auf das Schild. */
+function drawRackSchild(rk){
+  if(!rk||!rk.schildTex) return;
+  const cnt={};
+  rk.slots.forEach(sl=>{ if(sl.box&&P[sl.box.type]) cnt[sl.box.type]=(cnt[sl.box.type]||0)+sl.box.count; });
+  const list=Object.keys(cnt).sort((a,b)=>cnt[b]-cnt[a]);
+  redraw(rk.schildTex,(c,W,H)=>{
+    c.fillStyle='#f4f2ea'; c.fillRect(0,0,W,H);
+    c.fillStyle='#1b2340'; c.fillRect(0,0,W,54);
+    c.textAlign='left'; c.textBaseline='middle';
+    c.fillStyle='#ffd23f'; c.font=BUN(30); c.fillText('LAGERPLATZ '+((rk.nr||0)+1),16,29);
+    if(!list.length){
+      c.fillStyle='#8a9099'; c.font=BAR(40); c.textAlign='center';
+      c.fillText('leer',W/2,150);
+    } else {
+      c.font=BAR(34);
+      list.slice(0,3).forEach((t,k)=>{
+        const y=96+k*52;
+        c.fillStyle='#1b2340'; c.fillText(P[t].name,18,y);
+        c.textAlign='right'; c.fillStyle='#3d7a52'; c.fillText(cnt[t]+' St.',W-18,y); c.textAlign='left';
+        c.fillStyle='rgba(27,35,64,.14)'; c.fillRect(16,y+22,W-32,2);
+      });
+      if(list.length>3){ c.fillStyle='#8a9099'; c.font=BAR(26); c.fillText('+ '+(list.length-3)+' weitere',18,242); }
+    }
+    c.strokeStyle='#c9c4b8'; c.lineWidth=4; c.strokeRect(2,2,W-4,H-4);
+  });
+}
+function refreshRackSchilder(){ racks.forEach(r=>{ if(r) drawRackSchild(r); }); }
 const rackBlue=std(0x2f5d9e,{metalness:0.4,roughness:0.5}), rackOrange=std(0xe06a1f,{metalness:0.3,roughness:0.5}), deck=std(0x8d939d,{metalness:0.5,roughness:0.5});
 function createRack(i,data){
   const r=data&&data.x!==undefined?data:RACKS[Math.min(i,RACKS.length-1)], g=new THREE.Group();
@@ -3082,16 +3427,18 @@ function createRack(i,data){
   const beamM=std(0xe06a1f,{metalness:0.3,roughness:0.45});
   const beamTop=std(0xf08a3a,{metalness:0.3,roughness:0.45});
   const connM=std(0x1f2a3a,{metalness:0.5,roughness:0.42});
+  /* Glatte, lackierte Stahlblechauflage statt Spanplattenoptik */
   const boardT=tex(256,256,(c,W,H)=>{
-    c.fillStyle='#b99a6a'; c.fillRect(0,0,W,H);
-    for(let i2=0;i2<9000;i2++){ const v=Math.random();
-      c.fillStyle=`rgba(${v<0.45?70:236},${v<0.45?52:216},${v<0.45?28:182},${Math.random()*0.5})`;
-      c.save(); c.translate(Math.random()*W,Math.random()*H); c.rotate(Math.random()*3);
-      c.fillRect(0,0,rand(3,11),rand(2,5)); c.restore(); }
-    c.fillStyle='rgba(60,42,20,.18)'; c.fillRect(0,0,W,5); c.fillRect(0,H-5,W,5);
+    const g0=c.createLinearGradient(0,0,0,H);
+    g0.addColorStop(0,'#9aa1ac'); g0.addColorStop(0.45,'#aeb5c0'); g0.addColorStop(1,'#8f959f');
+    c.fillStyle=g0; c.fillRect(0,0,W,H);
+    for(let x=0;x<W;x+=64){ c.fillStyle='rgba(255,255,255,.08)'; c.fillRect(x,0,2,H);
+      c.fillStyle='rgba(0,0,0,.08)'; c.fillRect(x+2,0,2,H); }
+    for(let i2=0;i2<600;i2++){ c.fillStyle=`rgba(255,255,255,${Math.random()*0.035})`; c.fillRect(Math.random()*W,Math.random()*H,2,2); }
+    c.fillStyle='rgba(40,46,56,.22)'; c.fillRect(0,0,W,4); c.fillRect(0,H-4,W,4);
   });
-  boardT.wrapS=boardT.wrapT=THREE.RepeatWrapping; boardT.repeat.set(3,1);
-  const deckM=new THREE.MeshStandardMaterial({map:boardT,roughness:0.85});
+  boardT.wrapS=boardT.wrapT=THREE.RepeatWrapping; boardT.repeat.set(3,1); boardT.anisotropy=8;
+  const deckM=new THREE.MeshStandardMaterial({map:boardT,roughness:0.38,metalness:0.45});
   /* Rahmen: Stützen, Fußplatten, Diagonalverband */
   for(const x of [-XO,XO]){
     for(const z of [-ZO,ZO]){
@@ -3124,22 +3471,18 @@ function createRack(i,data){
       const sl={rk,li,si,x,y,box:null,hit}; hit.userData={kind:'rslot',ref:sl}; rk.slots.push(sl);
     });
   });
-  /* Typenschild mit Traglast */
-  plane(0.3,0.2,new THREE.MeshStandardMaterial({roughness:0.7,map:tex(300,200,(c,W,H)=>{
-    c.fillStyle='#f2f0e8'; c.fillRect(0,0,W,H);
-    c.fillStyle='#c8322a'; c.fillRect(0,0,W,42);
-    c.fillStyle='#fff'; c.font=BUN(24); c.textAlign='center'; c.fillText('TRAGLAST',W/2,30);
-    c.fillStyle='#1b2340'; c.font=BUN(40); c.fillText('800 kg',W/2,90);
-    c.font=BAR(20); c.fillStyle='#5a6070'; c.fillText('je Fachebene',W/2,124);
-    c.fillText('Regal '+(i+1),W/2,156);
-    c.strokeStyle='#c9c4b8'; c.lineWidth=3; c.strokeRect(3,3,W-6,H-6); })}),
-    -XO+0.06,1.62,ZO+0.008,0,g);
+  /* Inhaltsschild: zeigt, was gerade im Regal liegt */
+  rk.schildTex=tex(512,256,()=>{});
+  plane(0.52,0.26,new THREE.MeshStandardMaterial({roughness:0.6,map:rk.schildTex}),
+    -XO+0.34,1.6,ZO+0.012,0,g);
+  bbox(0.56,0.3,0.012,std(0x2f3540,{metalness:0.4,roughness:0.5}),-XO+0.34,1.6,ZO+0.004,g,false);
   rk.mov=addMovable({kind:'rack',name:'Lagerregal',g,fw:2.6,fd:0.74,ref:rk});
-  racks.push(rk);
+  rk.nr=racks.length; racks.push(rk); drawRackSchild(rk);
   if(data&&data.slots) data.slots.forEach((sd,k)=>{ if(sd&&P[sd.type]&&rk.slots[k]) putInSlot(rk.slots[k],sd.type,sd.count,sd.q); });
+  drawRackSchild(rk);
   return rk;
 }
-function putInSlot(sl,type,count,q){ const m=new THREE.Mesh(kartonGeo,kartonMat[type]); m.position.set(sl.x,sl.y+0.2,0); m.rotation.y=rand(-0.05,0.05); if(HIQ){ m.castShadow=true; m.receiveShadow=true; } sl.rk.g.add(m); sl.box={type,count,q:q||1,mesh:m}; }
+function putInSlot(sl,type,count,q){ const m=new THREE.Mesh(kartonGeo,kartonMat[type]); m.position.set(sl.x,sl.y+0.2,0); m.rotation.y=rand(-0.05,0.05); if(HIQ){ m.castShadow=true; m.receiveShadow=true; } sl.rk.g.add(m); sl.box={type,count,q:q||1,mesh:m}; drawRackSchild(sl.rk); }
 function findStoredBox(type){ for(const r of racks) for(const s of r.slots) if(s.box&&(!type||s.box.type===type)) return s; return null; }
 
 /* =========================================================
@@ -4414,7 +4757,7 @@ function shipOne(){
     if(it.loaded>=it.cartons) continue;
     for(const r of racks) for(const sl of r.slots){
       if(sl.box&&sl.box.type===it.type&&sl.box.count>=fullBox(it.type)){
-        sl.rk.g.remove(sl.box.mesh); sl.box=null; it.loaded++; return it;
+        sl.rk.g.remove(sl.box.mesh); sl.box=null; drawRackSchild(sl.rk); it.loaded++; return it;
       }
     }
     for(const b of floorBoxes.slice()){
@@ -4547,7 +4890,7 @@ class Worker{
       if(this.walk(dt)){
         const s=this.src;
         if(s.kind==='floor'&&floorBoxes.indexOf(s.box)>=0){ this.carry={type:s.box.type,count:s.box.count}; removeFloorBox(s.box); }
-        else if(s.kind==='rack'&&s.slot.box){ this.carry={type:s.slot.box.type,count:s.slot.box.count}; s.slot.rk.g.remove(s.slot.box.mesh); s.slot.box=null; }
+        else if(s.kind==='rack'&&s.slot.box){ this.carry={type:s.slot.box.type,count:s.slot.box.count}; s.slot.rk.g.remove(s.slot.box.mesh); s.slot.box=null; drawRackSchild(s.slot.rk); }
         this.state=this.carry?'toShelf':'idle'; if(this.carry) this.pickShelf();
       }
     }
@@ -5407,7 +5750,7 @@ function doAction(){
   else if(k==='window') cleanWindowTick(true);
   else if(k==='rslot'){
     if(S.carrying&&!r.box){ putInSlot(r,S.carrying.type,S.carrying.count); S.carrying=null; S.tut.lager=true; sfx.pop(); updateCarry(); }
-    else if(!S.carrying&&r.box){ S.carrying={type:r.box.type,count:r.box.count}; r.rk.g.remove(r.box.mesh); r.box=null; sfx.pop(); updateCarry(); }
+    else if(!S.carrying&&r.box){ S.carrying={type:r.box.type,count:r.box.count}; r.rk.g.remove(r.box.mesh); r.box=null; drawRackSchild(r.rk); sfx.pop(); updateCarry(); }
   }
   else if(k==='belt') scanBelt(r);
   else if(k==='card'){ if(reg&&reg.state==='pay'){ if(reg.method==='card') reg.finishCard(); else toast('Der Kunde zahlt bar. Klick die Kasse an.'); } }
@@ -5900,6 +6243,134 @@ function korbBtnText(){
   const n=cartBoxes();
   return n?`Warenkorb anzeigen (${n}) · ${eur(cartTotal())}`:'Warenkorb anzeigen';
 }
+/* =========================================================
+   Katalogbilder: kleine gezeichnete Vorschauen fuer den Laptop
+   ========================================================= */
+const _picCache={};
+function upPic(id){
+  if(_picCache[id]) return _picCache[id];
+  const c=document.createElement('canvas'); c.width=224; c.height=152;
+  const g=c.getContext('2d');
+  const W=224,H=152;
+  const bg=(a,b)=>{ const gr=g.createLinearGradient(0,0,0,H); gr.addColorStop(0,a); gr.addColorStop(1,b); g.fillStyle=gr; g.fillRect(0,0,W,H); };
+  const regal=(faecher,breit,farbe)=>{
+    bg('#1b2540','#0d1326');
+    const x0=(W-breit)/2, h=104, y0=H-18-h;
+    g.fillStyle=farbe; g.fillRect(x0-6,y0,6,h); g.fillRect(x0+breit,y0,6,h);
+    for(let i=0;i<faecher;i++){ const y=y0+8+i*(h-12)/faecher;
+      g.fillStyle='#c9ced8'; g.fillRect(x0,y,breit,5);
+      for(let k=0;k<3;k++){ g.fillStyle=['#d8b468','#c05a4a','#6fa8d8'][k]; g.fillRect(x0+8+k*(breit-20)/3,y-13,(breit-30)/3,13); } }
+    g.fillStyle='rgba(0,0,0,.35)'; g.fillRect(0,H-18,W,18);
+  };
+  switch(id){
+    case 'shelf_klein':  regal(3,86,'#8a9099'); break;
+    case 'shelf_standard':regal(4,128,'#8a9099'); break;
+    case 'shelf_hoch':   regal(5,120,'#7d838c'); break;
+    case 'shelf_kuehl':
+      bg('#0f2030','#081420');
+      g.fillStyle='#39434f'; g.fillRect(64,22,96,112);
+      g.fillStyle='rgba(170,220,255,.32)'; g.fillRect(70,28,84,100);
+      for(let i=0;i<3;i++){ g.fillStyle='#e8e2c8'; g.fillRect(76,46+i*30,72,5);
+        for(let k=0;k<4;k++){ g.fillStyle='#b8d8a8'; g.fillRect(80+k*18,32+i*30,12,14); } }
+      g.strokeStyle='#9fd8ff'; g.lineWidth=2; g.strokeRect(70,28,84,100); break;
+    case 'rack':
+      bg('#16203a','#0b1222');
+      g.fillStyle='#2f5d9e'; g.fillRect(28,26,10,106); g.fillRect(186,26,10,106);
+      for(let i=0;i<3;i++){ const y=44+i*34; g.fillStyle='#e06a1f'; g.fillRect(28,y,168,7);
+        for(let k=0;k<3;k++){ g.fillStyle='#c9a978'; g.fillRect(40+k*54,y-20,44,20); } }
+      break;
+    case 'kasse2':
+      bg('#16203a','#0b1222');
+      g.fillStyle='#223055'; g.fillRect(34,70,156,58);
+      g.fillStyle='#d6dae2'; g.fillRect(30,62,164,10);
+      g.fillStyle='#1b2130'; g.fillRect(118,28,64,38); g.fillStyle='#2f6bb8'; g.fillRect(122,32,56,30);
+      g.fillStyle='#8a9099'; g.fillRect(148,66,6,6);
+      g.fillStyle='#111'; g.fillRect(48,56,52,10); break;
+    case 'shop_gross':
+      bg('#20283c','#121826');
+      g.fillStyle='#8a4f3c'; g.fillRect(112,24,96,110);
+      for(let r=0;r<7;r++) for(let c2=0;c2<4;c2++){ g.fillStyle=r%2?'#7e4735':'#93573f'; g.fillRect(114+c2*24+(r%2?6:0),26+r*16,20,13); }
+      g.fillStyle='#e9e4da'; g.fillRect(20,30,84,104);
+      g.fillStyle='#2c3646'; g.fillRect(28,44,28,34); g.fillRect(64,44,28,34);
+      g.fillStyle='#ffd23f'; g.fillRect(20,20,84,12);
+      g.strokeStyle='#6cf2a8'; g.setLineDash([7,6]); g.lineWidth=4; g.strokeRect(108,22,102,114); g.setLineDash([]);
+      break;
+    case 'lager_gross':
+      bg('#1a2030','#0e131e');
+      g.fillStyle='#a3a8b0'; g.fillRect(16,40,96,94);
+      g.fillStyle='#8a9099'; g.fillRect(116,40,92,94);
+      g.strokeStyle='#6cf2a8'; g.setLineDash([7,6]); g.lineWidth=4; g.strokeRect(114,38,96,98); g.setLineDash([]);
+      g.fillStyle='#f2c230'; g.fillRect(16,126,192,8); break;
+    case 'packstation':
+      bg('#1a2030','#0e131e');
+      g.fillStyle='#6b5a42'; g.fillRect(30,76,164,14);
+      g.fillStyle='#8a9099'; g.fillRect(36,90,10,42); g.fillRect(178,90,10,42);
+      for(let k=0;k<3;k++){ g.fillStyle='#c9a978'; g.fillRect(44+k*50,44,40,32);
+        g.strokeStyle='#8a7350'; g.lineWidth=2; g.strokeRect(44+k*50,44,40,32); }
+      g.fillStyle='#e8b800'; g.fillRect(150,26,56,16); g.fillStyle='#c8322a'; g.fillRect(150,26,28,16); break;
+    case 'tor2':
+      bg('#1a2030','#0e131e');
+      for(let i=0;i<5;i++){ g.fillStyle=i%2?'#e7e9ec':'#dfe2e6'; g.fillRect(52,26+i*21,120,19); }
+      g.fillStyle='#59606b'; g.fillRect(44,20,8,116); g.fillRect(172,20,8,116);
+      g.fillStyle='#f2c230'; g.fillRect(52,130,120,8); break;
+    case 'plakat': case 'radio': case 'tafel':
+      bg('#1c2438','#0e1424');
+      g.fillStyle='#c8322a'; g.fillRect(40,26,144,88);
+      g.fillStyle='#ffd23f'; g.font='700 30px sans-serif'; g.textAlign='center'; g.fillText('SALE',112,78);
+      g.fillStyle='#59606b'; g.fillRect(104,114,16,24); break;
+    case 'cams': case 'alarm':
+      bg('#1a2030','#0e131e');
+      g.fillStyle='#4a515c'; g.fillRect(70,54,84,30);
+      g.fillStyle='#1b1e25'; g.beginPath(); g.arc(158,69,17,0,Math.PI*2); g.fill();
+      g.fillStyle='#7fd1ff'; g.beginPath(); g.arc(158,69,9,0,Math.PI*2); g.fill();
+      g.fillStyle='#4a515c'; g.fillRect(104,30,12,26); g.fillStyle='#e63b2e'; g.fillRect(76,60,8,8); break;
+    case 'gravur':
+      bg('#1a2030','#0e131e');
+      g.fillStyle='#39434f'; g.fillRect(48,40,128,80);
+      g.fillStyle='#0e1226'; g.fillRect(58,50,108,44);
+      g.fillStyle='#6cf2a8'; g.font='700 20px sans-serif'; g.textAlign='center'; g.fillText('TOM',112,78);
+      g.fillStyle='#c8322a'; g.fillRect(96,100,32,14); break;
+    case 'terminal':
+      bg('#1a2030','#0e131e');
+      g.fillStyle='#2b3140'; g.fillRect(78,34,68,92);
+      g.fillStyle='#0e1226'; g.fillRect(84,42,56,34);
+      g.fillStyle='#6cf2a8'; g.fillRect(90,86,44,8); g.fillRect(90,100,44,8);
+      g.fillStyle='#ffd23f'; g.fillRect(96,20,40,16); break;
+    case 'heizung': case 'klima': case 'musik':
+      bg('#20222c','#12141c');
+      g.fillStyle='#4a515c'; g.fillRect(56,34,112,22);
+      for(let i=0;i<5;i++){ g.fillStyle='#e8894a'; g.fillRect(62+i*22,58,14,44); }
+      g.fillStyle='#59606b'; g.fillRect(104,102,16,30); break;
+    case 'regallicht':
+      bg('#141a2c','#0a0f1c');
+      g.fillStyle='#f6f2e2'; g.fillRect(34,38,156,10);
+      const gr2=g.createLinearGradient(0,48,0,140); gr2.addColorStop(0,'rgba(255,244,214,.55)'); gr2.addColorStop(1,'rgba(255,244,214,0)');
+      g.fillStyle=gr2; g.fillRect(34,48,156,92);
+      g.fillStyle='#c9ced8'; g.fillRect(40,110,144,6); break;
+    case 'onlineshop':
+      bg('#101a2e','#0a1120');
+      g.fillStyle='#e9edf5'; g.fillRect(34,30,156,96);
+      g.fillStyle='#2f5d9e'; g.fillRect(34,30,156,18);
+      g.fillStyle='#c9ced8'; g.fillRect(44,58,60,44); g.fillRect(114,58,62,14); g.fillRect(114,80,40,10);
+      g.fillStyle='#6cf2a8'; g.fillRect(114,98,52,16); break;
+    case 'tag4': case 'lizenz': case 'meister': case 'grosskunden': case 'kundenkarte':
+      bg('#1c2438','#0e1424');
+      g.fillStyle='#f2efe4'; g.fillRect(52,26,120,100);
+      g.fillStyle='#c8322a'; g.beginPath(); g.arc(112,60,22,0,Math.PI*2); g.fill();
+      g.fillStyle='#1b2340'; g.fillRect(66,94,92,6); g.fillRect(66,108,66,6); break;
+    default:
+      bg('#1a2030','#0e131e');
+      g.fillStyle='#39434f'; g.fillRect(62,44,100,64);
+      g.fillStyle='#ffd23f'; g.font='700 40px sans-serif'; g.textAlign='center'; g.fillText('?',112,92);
+  }
+  g.strokeStyle='rgba(242,245,255,.18)'; g.lineWidth=2; g.strokeRect(1,1,W-2,H-2);
+  _picCache[id]=c.toDataURL('image/png');
+  return _picCache[id];
+}
+function wallPreis(w){
+  if((S.paint||[]).indexOf(w.id)>=0||!w.cost) return 'Gekauft';
+  return 'Kosten '+eur(w.cost)+(S.level<w.lvl?` · ab Level ${w.lvl}`:'');
+}
 function renderLaptop(){
   $('lMoney').textContent=eur(S.money);
   $('lLevel').textContent=`Level ${S.level} · ${S.xp}/${xpFor(S.level)} XP`;
@@ -5933,11 +6404,22 @@ function renderLaptop(){
     h=ORDER.filter(t=>isUnlocked(t)&&t!=='blanko').map(t=>{ const p=P[t], hi=priceHint(t);
       return `<div class="row"><div class="rm"><b>${p.name}</b><small>Marktpreis ${eur(p.market)} · Gewinn je Stück ${eur(r2(S.prices[t]-p.cost))}</small><small class="${hi[0]}">${hi[1]}</small></div>`+
         `<div class="price">${eur(S.prices[t])}</div><div class="steps"><button data-a="p" data-t="${t}" data-d="-1">−1</button><button data-a="p" data-t="${t}" data-d="-0.1">−0,10</button><button data-a="p" data-t="${t}" data-d="0.1">+0,10</button><button data-a="p" data-t="${t}" data-d="1">+1</button></div></div>`; }).join('');
-  } else if(ltab==='up'){
-    hint='Ausbau lohnt sich meistens schon nach ein bis zwei Tagen.';
-    h=UPGRADES.map(u=>{ const lock=S.level<u.lvl, done=u.done(), cost=u.cost();
-      return `<div class="row${lock?' locked':''}"><div class="rm"><b>${u.name}</b><small>${u.desc}</small></div>`+
-        (lock?`<small>ab Level ${u.lvl}</small>`:done?'<small class="ok">Erledigt</small>':`<button data-a="up" data-t="${u.id}" ${S.money<cost?'disabled':''}>${eur(cost)}</button>`)+'</div>'; }).join('');
+  } else if(ltab==='up'||ltab==='einr'||ltab==='markt'){
+    const kat=ltab==='up'?'flaeche':ltab;
+    hint=kat==='flaeche'
+      ? 'Mehr Fläche für Verkauf und Lager. Die teuerste, aber auch die nachhaltigste Investition.'
+      : kat==='einr'
+      ? 'Regale, Kassen und Technik im Laden. Ein Karton passt meist genau in ein Regalfach.'
+      : 'Alles, was dir mehr Kundschaft und bessere Konditionen bringt.';
+    const liste=UPGRADES.filter(u=>(u.kat||'einr')===kat).sort((a,b)=>a.lvl-b.lvl);
+    h=liste.map(u=>{ const lock=S.level<u.lvl, done=u.done(), cost=u.cost();
+      return `<div class="row${lock?' locked':''}">`+
+        `<img class="pic" src="${upPic(u.id)}" alt="">`+
+        `<div class="rm"><b>${u.name}</b><small>${u.desc}</small>`+
+        (lock?`<small class="warn">Ab Level ${u.lvl}</small>`:done?'':`<small>Kosten ${eur(cost)}</small>`)+
+        `</div>`+
+        (lock?`<small>Level ${u.lvl}</small>`:done?'<small class="ok">Erledigt</small>':`<button data-a="up" data-t="${u.id}" ${S.money<cost?'disabled':''}>${eur(cost)}</button>`)+
+        '</div>'; }).join('');
   } else if(ltab==='deko'){
     hint=`Stimmung im Laden: ${ambienteScore()} von 100. Verschieben geht im Umbaumodus.`;
     const sw=(arr,cur,kind)=>arr.map(w=>{ const lock=S.level<w.lvl, own=cur===w.id;
@@ -5946,9 +6428,10 @@ function renderLaptop(){
       if(kind==='wall'&&w.pat) bg=`repeating-linear-gradient(${w.pat==='raute'?'45deg':w.pat==='holz'?'90deg':'0deg'},${w.pat2} 0 3px,${w.up} 3px 8px)`;
       if(kind==='floor'&&w.check) bg=`repeating-conic-gradient(${w.a} 0 25%,${w.b} 0 50%) 0 0/16px 16px`;
       if(kind==='floor'&&w.wood) bg=`repeating-linear-gradient(90deg,${w.a} 0 6px,${w.b} 6px 12px)`;
-      return `<button class="sw${own?' on':''}" title="${w.name}" data-a="${kind}" data-t="${w.id}" style="background:${bg}" ${lock?'disabled':''}></button>`; }).join('');
-    h=`<div class="row"><div class="rm"><b>Wandfarbe</b><small>${(WALLS.find(w=>w.id===S.wall)||WALLS[0]).name}</small></div><div class="swatches">${sw(WALLS,S.wall,'wall')}</div></div>`+
-      `<div class="row"><div class="rm"><b>Bodenbelag</b><small>${(FLOORS.find(f=>f.id===S.floor)||FLOORS[0]).name}</small></div><div class="swatches">${sw(FLOORS,S.floor,'floor')}</div></div>`+
+      return `<button class="sw${own?' on':''}" title="${w.name}${w.cost?' · '+eur(w.cost):' · frei'}${S.level<w.lvl?' (ab Lvl '+w.lvl+')':''}" data-a="${kind}" data-t="${w.id}" style="background:${bg}" ${lock?'disabled':''}></button>`; }).join('');
+    const wNow=WALLS.find(w=>w.id===S.wall)||WALLS[0], fNow=FLOORS.find(f=>f.id===S.floor)||FLOORS[0];
+    h=`<div class="row dekorow"><div class="rm"><b>Wandfarbe</b><small>Aktuell: ${wNow.name}</small><small>${wallPreis(wNow)}</small></div><div class="swatches">${sw(WALLS,S.wall,'wall')}</div></div>`+
+      `<div class="row dekorow"><div class="rm"><b>Bodenbelag</b><small>Aktuell: ${fNow.name}</small><small>${wallPreis(fNow)}</small></div><div class="swatches">${sw(FLOORS,S.floor,'floor')}</div></div>`+
       DEKO.map(d=>{ const lock=S.level<d.lvl, n=dekos.filter(x=>x.id===d.id).length;
         return `<div class="row${lock?' locked':''}"><div class="rm"><b>${d.name}</b><small>Stimmung +${d.amb}${d.desc?' · '+d.desc:''}${n?` · ${n} im Laden`:''}</small></div>`+
           (lock?`<small>ab Level ${d.lvl}</small>`:`<button data-a="deko" data-t="${d.id}" ${S.money<d.cost?'disabled':''}>${eur(d.cost)}</button>`)+'</div>'; }).join('');
@@ -6086,7 +6569,7 @@ function setFloor(id){ const f=FLOORS.find(x=>x.id===id); if(!f||S.level<f.lvl||
    ========================================================= */
 function freshState(){ const prices={}; ORDER.forEach(t=>prices[t]=P[t].market);
   return {v:3,money:500,rep:50,level:1,xp:0,season:1,day:0,loan:null,prices,grime:0,
-    up:{plakat:false,terminal:false,tag4:false,heizung:false,musik:false,radio:false,cams:false,regallicht:false,alarm:false},
+    up:{plakat:false,terminal:false,tag4:false,heizung:false,musik:false,radio:false,cams:false,regallicht:false,alarm:false,shop_gross:false,lager_gross:false,packstation:false,tor2:false,kasse2:false},
     staff:{},prio:{},wage:{},ev:null,goal:null,mkt:1,comp:1,deko:[],wall:'creme',floor:'grau',paint:[],test:null,stamm:{},
     shelves:[],racks:[null],
     boxes:[],
@@ -6232,6 +6715,14 @@ function applyTOD(){
   starsMat.opacity=clamp((f-0.6)/0.4,0,1);
   houseMats.forEach(m=>m.emissiveIntensity=f*0.9); lampMats.forEach(m=>m.emissiveIntensity=f*3); yardLight.intensity=f*1.4;
 }
+/* Wanduhr laeuft nach der Spielzeit: clock sind Minuten seit Mitternacht */
+function updateUhr(){
+  if(!uhrStd) return;
+  const min=clock%720, sek=(performance.now()*0.001)%60;
+  uhrStd.rotation.z=-(min/720)*Math.PI*2;
+  uhrMin.rotation.z=-((clock%60)/60)*Math.PI*2;
+  uhrSek.rotation.z=-(sek/60)*Math.PI*2;
+}
 function updateSnow(dt){
   const a=snowPts.geometry.attributes.position, arr=a.array, t=performance.now()*0.001;
   for(let i=0;i<arr.length;i+=3){
@@ -6278,7 +6769,7 @@ function step(dt){
   if(phase==='open') addGrime(dt*0.0016*(1+customers.length*0.05));
   hype=Math.max(0,hype-dt*1.1);
   updateFireworks(dt); updateSnow(dt); updateDeko(dt);
-  updateTarget(); holdRepeat(dt); applyTOD();
+  updateTarget(); holdRepeat(dt); applyTOD(); updateUhr();
   hudT-=dt; if(hudT<=0){ hudT=0.1; updateHUD(); updatePrompt(); if(pdaOn) drawPDA(); }
   saveT+=dt; if(saveT>25){ saveT=0; save(); }
 }
@@ -6488,7 +6979,7 @@ fontsReady().then(()=>{
   lastF=-1; applyTOD(); updateSign(); buildStart(); requestAnimationFrame(frame);
   window.__bb={get S(){return S},get phase(){return phase},set phase(v){phase=v},set clock(v){clock=v},get clock(){return clock},pickUp,floorBoxes,shelves,racks,dekos,stockOne,openShop,step,customers,queue,belt,scanBelt,buyUp,buyDeko,get DS(){return DS},endDay,pending,save,openLaptop,closeLaptop,pl,addXP,hireStaff,fireStaff,staff,dirts,addDirt,movables,toggleBuild,setWall,setFloor,
     stations,firePult,placeOnStation,igniteType,get order(){return order},get phone(){return phone},makeCall,answerPhone,haggle,acceptDeal,declineDeal,get truck(){return truck},spawnTruck,takeFromTruck,takeBox,updateTruck,get door(){return door},get tuer(){return tuer},tuerSet,tuerNah,updateSchiebetuer,doorOpen,doorIsOpen,trailerOccupied,LR,lrFront,TOR,orderReady,orderLeft,prioOf,setPrio,racks,updateCarry,spawnFloorBox,staff,SHELFKIND,layout,shelfCapOf,shelfAccepts,emptyLevel,dateInfo,dateStr,dateShort,seasonInfo,isSunday,dayMult,ruhetag,wageOf,setWage,friendliness,windowGrime,addGrime,cleanWindowTick,ambienteScore,bildBoost,fixedCosts,dailyWages,EVENTS,GOALS,CUSTTYPES,UPGRADES,STAFF,stockOf,spawnInterval,pools,todayEvent,evv,rollEvent,rollMarket,newGoal,goalAdd,goalTick,ekFactor,marktText,xpFor,rollCustType,priceTol,buyChance,regCustomer,makeWishes,buildGravur,refillGrav,openGravInput,closeGravInput,get gravBlanks(){return gravBlanks},set gravBlanks(v){gravBlanks=v},orderBox,buyPack,cartAdd,cartAddPack,cartOrder,cartClear,cartDel,cartGoods,cartFee,cartTotal,cartBoxes,cartLines,LIEFERZEIT_SEK,VERSAND,VERSANDFREI,lieferSek,
-    scene,P,EFF,SHOWS,togglePDA,openPDA,closePDA,setPost,get postOn(){return postOn},get pdaOn(){return pdaOn},showLength,psBig,psMid,psSmall,rockets,emitters,timersLen:()=>timers.length,setView:(x,z,y,p)=>{pl.x=x;pl.z=z;yaw=y;pitch=p;aim=null;},camYaw:()=>yaw,camPitch:()=>pitch,playerPos:()=>({x:pl.x,z:pl.z}),pultYaw:()=>pultHit?pultHit.parent.rotation.y:null,applyShopName,shopName,shopSlogan,signTexPx:()=>signTex&&signTex.image?signTex.image.getContext('2d').getImageData(0,0,signTex.image.width,40).data.join(''):null,ckTexPx:()=>ckNameTex&&ckNameTex.image?ckNameTex.image.getContext('2d').getImageData(0,0,ckNameTex.image.width,60).data.join(''):null,testfeldMitte,STATION_POS,aimAt,get snowPts(){return snowPts},WALLS,FLOORS,allLevels,addToLevel,putInSlot,regCustomer,
+    scene,P,EFF,SHOWS,togglePDA,openPDA,closePDA,setPost,get postOn(){return postOn},get pdaOn(){return pdaOn},showLength,psBig,psMid,psSmall,rockets,emitters,timersLen:()=>timers.length,setView:(x,z,y,p)=>{pl.x=x;pl.z=z;yaw=y;pitch=p;aim=null;},camYaw:()=>yaw,camPitch:()=>pitch,playerPos:()=>({x:pl.x,z:pl.z}),pultYaw:()=>pultHit?pultHit.parent.rotation.y:null,applyShopName,shopName,shopSlogan,signTexPx:()=>signTex&&signTex.image?signTex.image.getContext('2d').getImageData(0,0,signTex.image.width,40).data.join(''):null,ckTexPx:()=>ckNameTex&&ckNameTex.image?ckNameTex.image.getContext('2d').getImageData(0,0,ckNameTex.image.width,60).data.join(''):null,testfeldMitte,STATION_POS,aimAt,UPGRADES,upPic,uhrZeiger:()=>({std:uhrStd?+uhrStd.rotation.z.toFixed(4):0,min:uhrMin?+uhrMin.rotation.z.toFixed(4):0}),drawRackSchild,get snowPts(){return snowPts},WALLS,FLOORS,allLevels,addToLevel,putInSlot,regCustomer,
     shot:()=>{ noLoop=true; camera.position.set(pl.x,1.65,pl.z); camera.rotation.set(pitch,yaw,0); camera.updateMatrixWorld(); updateTarget(); applyTOD(); renderFrame(0.016); return canvas.toDataURL('image/jpeg',0.85); },
     run:(sec,dt)=>{ noLoop=true; const n=Math.round(sec/(dt||0.05)); for(let i=0;i<n;i++) step(dt||0.05); }};
 });

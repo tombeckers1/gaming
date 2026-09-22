@@ -629,6 +629,7 @@ const UPGRADES=[
   {id:'rampe4',kat:'flaeche',lvl:30,req:'rampe3',name:'Vierte Andockstation',desc:'Das dritte Tor der Westhalle. Vier Lieferungen gleichzeitig.',cost:()=>25000,done:()=>S.up.rampe4},
   {id:'rampe5',kat:'flaeche',lvl:30,req:'rampe4',name:'Fünfte Andockstation',desc:'Das vierte Tor der Westhalle. Zusammen mit der Basisrampe rollen dann fünf Lieferungen gleichzeitig an — mehr gibt das Grundstück nicht her.',cost:()=>31000,done:()=>S.up.rampe5},
   {id:'packstation',kat:'flaeche',lvl:18,req:'lager_gross',name:'Packstation für den Versand',desc:'Packtisch, Waage, Etikettendrucker und Abholrampe. Zusammen mit dem Onlineshop kommen Bestellungen als echte Pakete herein: packen, auf die Rampe stellen, DDL holt am Abend ab.',cost:()=>6400,done:()=>S.up.packstation},
+  {id:'eingang2',kat:'flaeche',lvl:24,req:'shop_ost',name:'Zweiter Eingang mit Kasse',desc:'Im Eckhaus ist die mittlere Achse bis zum Boden offen und wartet auf eine Tür. Der Ausbau setzt dieselbe Schiebetür wie am Haupteingang hinein, mit Vordach und Matte, und stellt dahinter eine eigene SB-Kassenzeile auf. Kunden nehmen ab jetzt den Eingang, der näher liegt, und die Schlange am Band wird spürbar kürzer. Die Kassenzeile lässt sich im Umbaumodus verschieben.',cost:()=>11500,done:()=>S.up.eingang2},
   {id:'kasse2',kat:'einr',lvl:16,req:'shop_gross',name:'SB-Kassen',desc:'Zwei Selbstbedienungsterminals in der neuen Verkaufsfläche. Kunden mit wenig Ware zahlen dort selbst, das entlastet deine Schlange spürbar.',cost:()=>3400,done:()=>S.up.kasse2},
   {id:'labor',kat:'einr',lvl:25,req:'shop_gross',name:'Entwicklungslabor',desc:'Ein Labortisch im Lager. Ab hier entwickelst du eigene Rezepturen: Träger, Bruchbild und Farben aussuchen, Prototyp auf dem Testfeld zünden, in Produktion geben. Verbauen darfst du nur Bruchbilder, die du selbst schon am Himmel gesehen hast.',cost:()=>9800,done:()=>S.up.labor},
   {id:'labor2',kat:'einr',lvl:28,req:'labor',name:'Zweite Zündstufe',desc:'Erweitert das Labor um eine zweite Stufe im Rezept: Nach dem Hauptbruch geht ein zweites Bruchbild auf. Der größte einzelne Sprung im Wert einer Rezeptur.',cost:()=>16500,done:()=>S.up.labor2},
@@ -3639,9 +3640,11 @@ function buildNachbar(){
   /* Die Ladenzeile laeuft bis ans Ende des Blocks. Jeder Abschnitt
      gehoert zu einer Ausbaustufe und steht bis dahin leer. */
   nachbarFassade(8.1,20.0,'shop_gross','ca. 142 m² · direkt nebenan');
-  nachbarFassade(20.0,37.9,'shop_ost','ca. 212 m² · Eckhaus der Zeile');
+  /* Die mittlere Achse des Eckhauses ist bis zum Boden offen - dort
+     sitzt spaeter der zweite Eingang. */
+  nachbarFassade(20.0,37.9,'shop_ost','ca. 212 m² · Eckhaus der Zeile',1);
 }
-function nachbarFassade(x0,x1,zid,unterzeile){
+function nachbarFassade(x0,x1,zid,unterzeile,eingang){
   const zf=6.1, H=WH+0.6;
   const g=new THREE.Group(); scene.add(g);
   /* Die Ladenzeile ist ein Gebaeude, also traegt sie dieselbe
@@ -3665,12 +3668,12 @@ function nachbarFassade(x0,x1,zid,unterzeile){
   for(let i=0;i<nB;i++){ const a2=x0+PF+i*(bw+PF); OEFF.push([a2,a2+bw]); }
   const F=(a2,b2,y0,y1)=>{ if(b2>a2+0.01) wall(a2,b2,zf-0.3,zf+0.1,y0,y1,'-z',shopWall,zm,0); };
   let px=x0;
-  for(const [a2,b2] of OEFF){
-    F(px,a2,0,H);            /* Pfeiler          */
-    F(a2,b2,0,BR);           /* Bruestung        */
-    F(a2,b2,ST,H);           /* Sturz            */
+  OEFF.forEach(([a2,b2],i)=>{
+    F(px,a2,0,H);                        /* Pfeiler          */
+    if(i!==eingang) F(a2,b2,0,BR);       /* Bruestung        */
+    F(a2,b2,ST,H);                       /* Sturz            */
     px=b2;
-  }
+  });
   F(px,x1,0,H);
   /* Attika, Gesims und Sockel. Die Farben gehen mit der Fassade:
      anthrazit wie der Sockel in der Textur, nicht mehr das
@@ -3692,7 +3695,7 @@ function nachbarFassade(x0,x1,zid,unterzeile){
      Eintrag und wurde hier mit ausgelesen - nach der Umstellung kam
      dabei NaN heraus und die Bretter landeten im Nirgendwo. */
   OEFF.forEach(([a,b],i)=>{
-    const y0=BR, y1=ST;
+    const y0=i===eingang?0:BR, y1=ST;
     const bw=b-a, bh=y1-y0, bxc=(a+b)/2, byc=(y0+y1)/2;
     bbox(bw,bh,0.34,zugemauert,bxc,byc,zf-0.1,gs,false);
     const n=Math.max(3,Math.round(bh/0.55));
@@ -3741,6 +3744,7 @@ function nachbarFassade(x0,x1,zid,unterzeile){
   const prof=std(0x2b3040,{metalness:0.5,roughness:0.4});
   const bank=std(0xd7dae0,{roughness:0.5});
   OEFF.forEach(([a,b],i)=>{
+    if(i===eingang){ eingangsAchse(go,a,b,zf,ST,glas,prof); return; }
     const y0=BR, y1=ST;
     const bw=b-a, bh=y1-y0, bxc=(a+b)/2, byc=(y0+y1)/2;
     bbox(bw-0.12,bh-0.12,0.04,glas,bxc,byc,zf-0.1,go,false);
@@ -3758,7 +3762,13 @@ function nachbarFassade(x0,x1,zid,unterzeile){
        im Basisladen sitzt unter dem Fenster direkt die Sockelfarbe. */
     if(y0>0.2) bbox(bw+0.16,0.06,0.26,bank,bxc,y0-0.02,zf+0.16,go,false);
   });
-  col(x0,x1,zf-0.35,zf+0.15);
+  if(eingang!==undefined&&EING2.x!==null){
+    col(x0,EING2.x-1.28,zf-0.35,zf+0.15);
+    col(EING2.x+1.28,x1,zf-0.35,zf+0.15);
+    /* Solange der Eingang nicht gekauft ist, steht dort eine feste
+       Scheibe - die sperrt wie jedes andere Schaufenster. */
+    zWandCol('eingang2',col(EING2.x-1.28,EING2.x+1.28,zf-0.35,zf+0.15));
+  } else col(x0,x1,zf-0.35,zf+0.15);
   return g;
 }
 /* =========================================================
@@ -3916,7 +3926,7 @@ function buildFacade(){
   }
   // --- Eingang
   {
-    buildSchiebetuer(zf);
+    tuer=buildSchiebetuer(0);
     /* Fussmatte: Gummirahmen mit eingefasster Buerstenflaeche */
     {
       const mt=tex(1024,540,(g,W,Hh)=>{
@@ -4026,28 +4036,35 @@ function cleanWindowTick(first){
    ========================================================= */
 const TUER={z:6.14,y:2.44,w:1.24,hub:1.30, r:3.1};
 let tuer=null;
-function buildSchiebetuer(zf){
-  const g=new THREE.Group(); scene.add(g);
+const TUEREN=[];
+/* Schiebetuer an der Stelle cx der Fassade. hb ist die Breite des
+   Antriebskastens - der zweite Eingang sitzt in einer Fensterachse
+   des Nachbarhauses und hat dort weniger Platz als der Haupteingang.
+   Alles haengt in einer Gruppe, damit eine zweite Tuer nur eine
+   zweite Gruppe ist und nicht eine Kopie des ganzen Codes. */
+function buildSchiebetuer(cx,hb){
+  const HB=hb||5.4;
+  const g=new THREE.Group(); g.position.x=cx||0; scene.add(g);
   const alu=std(0xc4cad3,{metalness:0,roughness:0.5});
   const aluD=std(0x8f959e,{metalness:0,roughness:0.55});
   const dark=std(0x23272f,{metalness:0,roughness:0.6});
   const glass=new THREE.MeshStandardMaterial({color:LIN(0xd6ecff),transparent:true,opacity:0.17,roughness:0.05,metalness:0.1,depthWrite:false});
   const W=TUER.w, HH=TUER.y, Z=TUER.z;
   /* Antriebskasten über der Öffnung, reicht über beide Parktaschen */
-  bbox(5.4,0.24,0.26,alu,0,HH+0.14,Z,null,false);
-  bbox(5.44,0.05,0.3,aluD,0,HH+0.27,Z,null,false);
-  bbox(5.3,0.05,0.2,dark,0,HH+0.005,Z,null,false);
+  bbox(HB,0.24,0.26,alu,0,HH+0.14,Z,g,false);
+  bbox(HB+0.04,0.05,0.3,aluD,0,HH+0.27,Z,g,false);
+  bbox(HB-0.1,0.05,0.2,dark,0,HH+0.005,Z,g,false);
   /* Laufschiene */
-  bbox(5.2,0.045,0.06,aluD,0,HH+0.05,Z-0.06,null,false);
+  bbox(HB-0.2,0.045,0.06,aluD,0,HH+0.05,Z-0.06,g,false);
   /* Bewegungsmelder innen und außen */
   for(const s of [-1,1]){
-    const sIn=bbox(0.26,0.075,0.05,dark,s*0.78,HH+0.05,Z-0.15,null,false); sIn.rotation.x=0.42;
-    const sOut=bbox(0.26,0.075,0.05,dark,s*0.78,HH+0.05,Z+0.15,null,false); sOut.rotation.x=-0.42;
+    const sIn=bbox(0.26,0.075,0.05,dark,s*0.78,HH+0.05,Z-0.15,g,false); sIn.rotation.x=0.42;
+    const sOut=bbox(0.26,0.075,0.05,dark,s*0.78,HH+0.05,Z+0.15,g,false); sOut.rotation.x=-0.42;
   }
   /* Bodenführung */
-  bbox(2.6,0.012,0.045,aluD,0,0.008,Z-0.02,null,false);
+  bbox(2.6,0.012,0.045,aluD,0,0.008,Z-0.02,g,false);
   /* Seitliche Festfelder als Rahmen der Öffnung */
-  for(const s of [-1,1]) bbox(0.07,HH,0.09,alu,s*1.29,HH/2,Z,null,false);
+  for(const s of [-1,1]) bbox(0.07,HH,0.09,alu,s*1.29,HH/2,Z,g,false);
   /* Zwei Flügel */
   const leaves=[];
   for(const s of [-1,1]){
@@ -4066,33 +4083,46 @@ function buildSchiebetuer(zf){
       rl.rotation.z=Math.PI/2; rl.position.set(dx,HH+0.045,-0.06); lf.add(rl);
     }
   }
-  tuer={g,leaves,t:0,target:0,moving:false,col:null,snd:0};
-  tuerSet(0);
+  const d={g,cx:cx||0,leaves,t:0,target:0,moving:false,col:null,snd:0};
+  TUEREN.push(d);
+  tuerSetD(d,0);
+  return d;
 }
-function tuerSet(t){
-  if(!tuer) return;
-  tuer.t=clamp(t,0,1);
-  const off=tuer.t*TUER.hub;
-  tuer.leaves[0].position.set(-TUER.w/2-off+0.01,0,TUER.z);
-  tuer.leaves[1].position.set( TUER.w/2+off-0.01,0,TUER.z);
-  if(tuer.t>0.3){ if(tuer.col){ dropCol(tuer.col); tuer.col=null; } }
-  else if(!tuer.col) tuer.col=col(-1.28,1.28,TUER.z-0.09,TUER.z+0.09);
+/* Eine bestimmte Tuer auf den Oeffnungsgrad t stellen */
+function tuerSetD(d,t){
+  if(!d) return;
+  d.t=clamp(t,0,1);
+  const off=d.t*TUER.hub;
+  d.leaves[0].position.set(-TUER.w/2-off+0.01,0,TUER.z);
+  d.leaves[1].position.set( TUER.w/2+off-0.01,0,TUER.z);
+  if(d.t>0.3){ if(d.col){ dropCol(d.col); d.col=null; } }
+  else if(!d.col) d.col=col(d.cx-1.28,d.cx+1.28,TUER.z-0.09,TUER.z+0.09);
 }
+function tuerSet(t){ tuerSetD(tuer,t); }
 /* Öffnet, sobald jemand in die Nähe kommt: Spieler oder Kundschaft */
-function tuerNah(){
-  const nah=(x,z)=>Math.abs(x)<2.5&&Math.abs(z-TUER.z)<TUER.r;
+function tuerNahD(d){
+  const cx=d?d.cx:0;
+  const nah=(x,z)=>Math.abs(x-cx)<2.5&&Math.abs(z-TUER.z)<TUER.r;
   if(typeof pl!=='undefined'&&nah(pl.x,pl.z)) return true;
   if(typeof customers!=='undefined')
     for(const c of customers){ if(c.pos&&nah(c.pos.x,c.pos.z)) return true; }
   return false;
 }
+function tuerNah(){ return tuerNahD(tuer); }
 function updateSchiebetuer(dt){
-  if(!tuer) return;
-  tuer.target=tuerNah()?1:0;
-  const d=tuer.target-tuer.t;
-  if(Math.abs(d)<0.004){ if(tuer.t!==tuer.target) tuerSet(tuer.target); tuer.moving=false; return; }
-  if(!tuer.moving){ tuer.moving=true; }
-  tuerSet(tuer.t+(d>0?1:-1)*Math.min(Math.abs(d),1.45*dt));
+  for(const t of TUEREN){
+    /* Eine noch nicht gekaufte Tuer haengt in einer unsichtbaren
+       Gruppe - sie darf nicht aufgehen. Die eigene visible-Flagge
+       reicht dafuer nicht, sichtbar ist erst, wer keinen
+       unsichtbaren Vorfahren hat. */
+    let sicht=true; for(let o=t.g;o;o=o.parent) if(!o.visible) sicht=false;
+    if(!sicht) continue;
+    t.target=tuerNahD(t)?1:0;
+    const d=t.target-t.t;
+    if(Math.abs(d)<0.004){ if(t.t!==t.target) tuerSetD(t,t.target); t.moving=false; continue; }
+    t.moving=true;
+    tuerSetD(t,t.t+(d>0?1:-1)*Math.min(Math.abs(d),1.45*dt));
+  }
 }
 
 /* =========================================================
@@ -6563,6 +6593,138 @@ function buildRampenVorschau(){
     bbox(1.08,0.63,0.03,std(0x2f343d,{metalness:0.4,roughness:0.55}),0,1.62,-0.01,g,false);
   }
 }
+/* =========================================================
+   Zweiter Eingang mit eigener Kasse.
+
+   Das Eckhaus hat eine Achse, die bis zum Boden offen ist.
+   Solange der Eingang nicht gekauft ist, steht dort eine feste
+   Scheibe mit einem Hinweis; danach sitzt darin dieselbe
+   Schiebetuer wie am Haupteingang, mit Vordach, Fussmatte und
+   einer eigenen SB-Kassenzeile dahinter.
+   ========================================================= */
+const EING2={x:null, tuer:null};
+/* Die Eingangsachse im Schaufenstergrundriss. Wird aus 05e heraus
+   gerufen, wenn der Laden die Achse besitzt. */
+function eingangsAchse(go,a,b,zf,ST,glas,prof){
+  const cx=(a+b)/2;
+  EING2.x=Math.round(cx*100)/100;
+  /* Festverglaste Seitenfelder links und rechts der Tuer */
+  for(const [fa,fb] of [[a,cx-1.34],[cx+1.34,b]]){
+    const bw=fb-fa; if(bw<0.12) continue;
+    const bxc=(fa+fb)/2;
+    bbox(bw-0.1,ST-0.12,0.04,glas,bxc,ST/2,zf-0.1,go,false);
+    for(const zz of [zf+0.09,zf-0.29]){
+      bbox(bw,0.1,0.06,prof,bxc,ST-0.05,zz,go,false);
+      bbox(bw,0.1,0.06,prof,bxc,0.05,zz,go,false);
+      bbox(0.1,ST,0.06,prof,fa+0.05,ST/2,zz,go,false);
+      bbox(0.1,ST,0.06,prof,fb-0.05,ST/2,zz,go,false);
+    }
+  }
+  /* Sturzfeld ueber der Tuer bis zum Schaufenstersturz */
+  bbox(2.72,ST-TUER.y-0.3,0.06,prof,cx,(ST+TUER.y+0.3)/2,zf-0.1,go,false);
+
+  /* --- Zustand „noch nicht gekauft“: feste Scheibe mit Hinweis --- */
+  const zu=new THREE.Group(); go.add(zu); zWand('eingang2',zu);
+  bbox(2.6,ST-0.1,0.04,glas,cx,ST/2,zf-0.1,zu,false);
+  for(const zz of [zf+0.09,zf-0.29]){
+    bbox(2.72,0.1,0.06,prof,cx,ST-0.05,zz,zu,false);
+    bbox(2.72,0.1,0.06,prof,cx,0.05,zz,zu,false);
+  }
+  bbox(0.09,ST-0.1,0.05,prof,cx,ST/2,zf-0.1,zu,false);
+  const hin=tex(640,300,(g2,W,H)=>{
+    g2.fillStyle='#1b2340'; g2.fillRect(0,0,W,H);
+    g2.strokeStyle='#ffd23f'; g2.lineWidth=7; g2.strokeRect(8,8,W-16,H-16);
+    g2.textAlign='center'; g2.textBaseline='middle';
+    g2.fillStyle='#ffd23f'; g2.font=BUN(42); g2.fillText('KEIN EINGANG',W/2,62);
+    g2.fillStyle='#ffffff'; g2.font=BAR(30);
+    g2.fillText('Diese Achse ist als zweiter',W/2,120);
+    g2.fillText('Eingang vorbereitet.',W/2,158);
+    g2.fillStyle='#8fb4e4'; g2.font=BAR(27);
+    g2.fillText('Freischalten am Laptop unter Ausbau',W/2,218);
+    g2.fillStyle='#ff9d92'; g2.font=BUN(30);
+    g2.fillText('BITTE HAUPTEINGANG BENUTZEN',W/2,262);
+  });
+  plane(1.5,0.7,new THREE.MeshStandardMaterial({map:hin,roughness:0.6}),cx,1.5,zf+0.12,0,zu);
+
+  /* --- Zustand „gekauft“: Tuer, Vordach, Matte --- */
+  const auf=new THREE.Group(); go.add(auf); zAdd('eingang2',auf);
+  const d=buildSchiebetuer(cx,4.0);
+  scene.remove(d.g); auf.add(d.g);
+  EING2.tuer=d;
+  const stahl=std(0x4a4f5a,{metalness:0.5,roughness:0.45});
+  /* Vordach ueber dem Eingang, wie am Haupthaus */
+  const vd=bbox(3.4,0.08,1.5,std(0x2f343d,{metalness:0.4,roughness:0.6}),cx,TUER.y+0.62,zf+0.85,auf,false);
+  vd.rotation.x=0.05;
+  for(const s of [-1,1]){
+    const st=bbox(0.06,1.1,0.06,stahl,cx+s*1.5,TUER.y+0.15,zf+1.45,auf,false);
+    st.rotation.x=-0.5;
+  }
+  /* Schmutzfangmatte innen und aussen */
+  const matte=std(0x232830,{roughness:0.98});
+  bbox(2.4,0.014,1.1,matte,cx,0.02,zf-0.72,auf,false);
+  bbox(2.4,0.014,1.0,matte,cx,0.02,zf+0.68,auf,false);
+  /* „Eingang 2“ ueber der Tuer */
+  const sch=tex(512,110,(g2,W,H)=>{
+    g2.fillStyle='#1b2340'; g2.fillRect(0,0,W,H);
+    g2.fillStyle='#ffd23f'; g2.font=BUN(56); g2.textAlign='center'; g2.textBaseline='middle';
+    g2.fillText('EINGANG 2',W/2,H/2+3);
+  });
+  bbox(2.3,0.46,0.06,std(0x1b2340,{roughness:0.7}),cx,TUER.y+0.42,zf+0.13,auf,false);
+  plane(2.2,0.4,new THREE.MeshBasicMaterial({map:sch,toneMapped:false}),cx,TUER.y+0.42,zf+0.17,0,auf);
+}
+
+/* --------------------------------------------------------
+   SB-Kassenzeile am zweiten Eingang
+   -------------------------------------------------------- */
+let sb2G=null, sb2Mov=null;
+function buildSBKasse2(){
+  if(sb2G||EING2.x===null) return sb2G;
+  sb2G=new THREE.Group(); sb2G.position.set(EING2.x,0,3.5); scene.add(sb2G);
+  const w=std(0x1b2340,{roughness:0.7});
+  bbox(3.6,0.34,0.12,w,0,2.35,-0.6,sb2G,false);
+  const schild=tex(1024,140,(g,W,H)=>{
+    g.fillStyle='#1b2340'; g.fillRect(0,0,W,H);
+    g.fillStyle='#ffd23f'; g.font=BUN(60); g.textAlign='center'; g.textBaseline='middle';
+    g.fillText('KASSE EINGANG 2',W/2,H/2+4);
+    g.strokeStyle='#2f3a5e'; g.lineWidth=6; g.strokeRect(3,3,W-6,H-6);
+  });
+  /* Das Schild gehoert auf die Kundenseite der Rueckwand, also
+     nach +z - von hinten liest es ohnehin niemand. */
+  plane(3.4,0.3,new THREE.MeshBasicMaterial({map:schild,toneMapped:false}),0,2.35,-0.53,0,sb2G);
+  for(const sx of [-1.6,1.6]) bbox(0.07,2.2,0.07,std(0x8d939d,{metalness:0.6,roughness:0.4}),sx,1.15,-0.6,sb2G,false);
+  /* Die beiden Terminals gehoeren zur Gruppe und wandern beim
+     Verschieben mit; sbPos() fragt spaeter die Weltposition ab. */
+  for(const x of [-0.9,0.9]){
+    const l=sbTerminal(sb2G,x,0.0); l.up='eingang2'; sbLanes.push(l);
+  }
+  /* Die Kollision der ganzen Zeile setzt addMovable selbst und
+     zieht sie beim Verschieben nach. */
+  sb2Mov=addMovable({kind:'sb2',name:'Kasse Eingang 2',g:sb2G,fw:3.8,fd:1.7,ref:null});
+  return sb2G;
+}
+function setEingang2(an){
+  if(an){ buildSBKasse2(); if(sb2G) sb2G.visible=true; if(sb2Mov) applyFootprint(sb2Mov); }
+  else if(sb2G){ sb2G.visible=false; if(sb2Mov&&sb2Mov.col){ dropCol(sb2Mov.col); sb2Mov.col=null; } }
+  sbLanes.forEach(l=>{ if(l.up==='eingang2'){ l.busy=null; sbLampe(l,true); } });
+  if(typeof navDirty==='function') navDirty();
+}
+/* Wie viele SB-Terminals stehen dem Kunden gerade offen? */
+function sbNutzbar(i){
+  const l=sbLanes[i]; if(!l) return false;
+  if(l.up) return !!(S&&S.up&&S.up[l.up]);
+  return !!(S&&S.up&&S.up.kasse2);
+}
+/* Die Eingaenge, die Kunden benutzen duerfen */
+function eingaenge(){
+  const a=[0];
+  if(S&&S.up&&S.up.eingang2&&EING2.x!==null) a.push(EING2.x);
+  return a;
+}
+function naechsterEingang(x){
+  const a=eingaenge(); let best=a[0], bd=1e9;
+  for(const e of a){ const d=Math.abs(e-x); if(d<bd){ bd=d; best=e; } }
+  return best;
+}
 
 /* =========================================================
    Verschiebbare Einrichtung
@@ -6825,10 +6987,20 @@ function setSB(an){
   if(an){ buildSBKasse(); sbG.visible=true;
     sbCols.forEach(c=>{ if(colliders.indexOf(c)<0) colliders.push(c); }); }
   else if(sbG){ sbG.visible=false; sbCols.forEach(c=>dropCol(c)); }
-  sbLanes.forEach(l=>{ l.busy=null; sbLampe(l,true); });
+  sbLanes.forEach(l=>{ if(!l.up){ l.busy=null; sbLampe(l,true); } });
 }
-function sbPos(i){ return V(sbLanes[i].g.position.x,0,sbLanes[i].g.position.z+0.95); }
-function sbFrei(){ for(let i=0;i<sbLanes.length;i++) if(!sbLanes[i].busy) return i; return -1; }
+/* Anlaufpunkt vor einem SB-Terminal. Die Zeile am zweiten Eingang
+   haengt in einer verschobenen und drehbaren Gruppe - die lokale
+   Position des Terminals ist dort nicht die Weltposition. */
+function sbPos(i){
+  const g=sbLanes[i].g, p=g.parent;
+  if(p&&p!==scene) return localToWorld(p,g.position.x,g.position.z+0.95);
+  return V(g.position.x,0,g.position.z+0.95);
+}
+/* Seit dem zweiten Eingang gibt es zwei Kassenzeilen. Eine Spur
+   zaehlt nur, wenn ihr Ausbau auch gekauft ist. */
+function sbFrei(){ for(let i=0;i<sbLanes.length;i++) if(!sbLanes[i].busy&&sbNutzbar(i)) return i; return -1; }
+function sbOffen(){ let n=0; for(let i=0;i<sbLanes.length;i++) if(sbNutzbar(i)) n++; return n; }
 let deskG=null;
 function buildDesk(){
   deskG=new THREE.Group(); deskG.position.set(7.35,0,0.9); scene.add(deskG);
@@ -8471,8 +8643,12 @@ function thiefChance(){
 }
 class Customer{
   constructor(){
-    this.g=makePerson(); this.g.position.set(rand(-4,4),0,13.5); scene.add(this.g);
-    this.path=[V(0,0,7.6),V(0,0,4.9)]; this.state='enter'; this.speed=rand(1.2,1.6);
+    /* Seit dem zweiten Eingang kommt nicht mehr jeder vorn herein:
+       jeder Kunde sucht sich eine der offenen Tueren aus. */
+    const ein=pick(eingaenge());
+    this.ein=ein;
+    this.g=makePerson(); this.g.position.set(ein+rand(-4,4),0,13.5); scene.add(this.g);
+    this.path=[V(ein,0,7.6),V(ein,0,4.9)]; this.state='enter'; this.speed=rand(1.2,1.6);
     this.ct=rollCustType();
     this.wishes=makeWishes(this.ct); this.items=[]; this.missed=false; this.total=0; this.sb=null;
     this.patience=(rand(75,110)+S.rep*0.3+(S.up.heizung?30:0)+(S.up.klima?35:0)+ambienteScore()*0.35)*(0.72+0.3*friendliness())*this.ct.pat*evv('pat');
@@ -8537,7 +8713,8 @@ class Customer{
     DS.caught++; addXP(25,'Dieb gestellt'); rep(0.6); sfx.beep();
     toast(what==='spray'?'Erwischt! Ware zurück im Regal.':'Der Sicherheitsdienst hat ihn gestoppt.','money');
     this.say('Schon gut, schon gut!');
-    this.speed=2.4; this.state='leave'; this.path=[V(rand(-3,3),0,8),V(rand(-5,5),0,15)];
+    { const e=naechsterEingang(this.pos.x);
+      this.speed=2.4; this.state='leave'; this.path=[V(e+rand(-1.2,1.2),0,8),V(e+rand(-5,5),0,15)]; }
     if(staff.security&&staff.security.chase===this) staff.security.chase=null;
   }
   escaped(){
@@ -8548,7 +8725,7 @@ class Customer{
   }
   joinQueue(){
     /* Wenig Ware und die Hauptschlange steht? Dann lieber SB-Kasse. */
-    if(S.up.kasse2&&sbLanes.length&&this.items.length<=3&&(queue.length>=1||Math.random()<0.45)){
+    if(sbOffen()&&this.items.length<=3&&(queue.length>=1||Math.random()<0.45)){
       const i=sbFrei();
       if(i>=0){ this.sb=i; sbLanes[i].busy=this; sbLampe(sbLanes[i],false);
         this.state='sbGo'; this.path=[...route(this.pos,sbPos(i))]; DS.sb=(DS.sb||0)+1; return; }
@@ -8607,7 +8784,8 @@ class Customer{
     const qi=queue.indexOf(this); if(qi>=0) queue.splice(qi,1);
     this.sbFree();
     if(this.mark){ this.g.remove(this.mark); this.mark=null; }
-    this.state='leave'; this.path=[...route(this.pos,V(0,0,4.9)),V(0,0,7.6),V(rand(-5,5),0,14)];
+    { const e=naechsterEingang(this.pos.x);
+      this.state='leave'; this.path=[...route(this.pos,V(e,0,4.9)),V(e,0,7.6),V(e+rand(-5,5),0,14)]; }
     if(Math.random()<(hasDeko('muell')?0.1:0.22)) addDirt(this.pos.x+rand(-1,1),this.pos.z+rand(-1,1));
   }
   update(dt){
@@ -8624,7 +8802,7 @@ class Customer{
       case 'steal':
         if(this.walk(dt)){
           if(S.up.alarm&&Math.random()<0.7){ this.caughtBy('alarm'); }
-          else { this.escaped(); this.state='leave'; this.path=[V(rand(-5,5),0,15)]; if(this.mark){ this.g.remove(this.mark); this.mark=null; } }
+          else { this.escaped(); this.state='leave'; this.path=[V(naechsterEingang(this.pos.x)+rand(-5,5),0,15)]; if(this.mark){ this.g.remove(this.mark); this.mark=null; } }
         } break;
       case 'queue': {
         const i=queue.indexOf(this), spot=spotPos(i);
@@ -11431,6 +11609,7 @@ function buyUp(id){
       else if(id==='lager_gross') toast('Das Lager ist geöffnet. Hinten ist Platz für Regale und die Packstation.','money');
       else if(id==='lager_sued') toast('Die Halle Süd steht offen: 6,4 Meter hoch, Platz für Hochregale.','money');
       else if(id==='lager_west') toast('Die Westhalle mit den drei Rampen gehört dir. Auf dem Hof stehen die Auflieger.','money');
+      else if(id==='eingang2'){ setEingang2(true); toast('Der zweite Eingang ist offen. Die Kassenzeile dahinter kannst du im Umbaumodus verschieben.','money'); }
       else if(id.indexOf('rampe')===0) toast(`${u.name.split(' ')[0]} Andockstation geht in Betrieb. Das Tor ist frei.`,'money');
       else if(id==='packstation'){ drawPackSchild(); toast(S.up.onlineshop?'Die Packstation steht. Ab jetzt kommen Onlinebestellungen als Pakete herein.':'Die Packstation steht. Für den Versand brauchst du noch den Onlineshop.','money'); }
       addXP(Math.round(cost/12),'Ausbau'); sfx.cash(); save(); return;
@@ -11703,14 +11882,14 @@ function freshState(){ const prices={}; ORDER.forEach(t=>prices[t]=P[t].market);
     boxes:[],
     carrying:null,tut:{},seasonRevenue:0,cart:[],offen:0,pakete:0,lic:['start'],stat:{},erf:{},gesehen:[],eigene:[],gutschrift:0,mi:{},me:{},reg:{},mh:{},schock:{},news:[],infl:1,shopName:SHOP_DEFAULT,slogan:SLOGAN_DEFAULT}; }
 function loadSave(){ try{ const r=localStorage.getItem(KEY); if(!r) return null; const d=JSON.parse(r); return d&&d.v===3?d:null; }catch(e){ return null; } }
-function mpos(g){ return {x:+g.position.x.toFixed(2),z:+g.position.z.toFixed(2),ry:+g.rotation.y.toFixed(3)}; }
+function mpos(g){ return g?{x:+g.position.x.toFixed(2),z:+g.position.z.toFixed(2),ry:+g.rotation.y.toFixed(3)}:null; }
 function save(){
   if(!S) return;
   try{
     const d={v:3,money:S.money,rep:S.rep,level:S.level,xp:S.xp,season:S.season,day:S.day,loan:S.loan,prices:S.prices,up:S.up,staff:S.staff,prio:S.prio||{},wage:S.wage||{},pause:S.pause||{},ev:S.ev||null,goal:S.goal||null,mkt:r2(S.mkt||1),comp:r2(S.comp||1),lic:S.lic||['start'],stat:S.stat||{},erf:S.erf||{},gesehen:S.gesehen||[],eigene:S.eigene||[],gutschrift:r2(S.gutschrift||0),mi:S.mi||{},me:S.me||{},reg:S.reg||{},mh:S.mh||{},schock:S.schock||{},news:S.news||[],infl:S.infl||1,
       wall:S.wall,floor:S.floor,schildBg:S.schildBg||'auto',schildFg:S.schildFg||'weiss',paint:S.paint,test:S.test,stamm:S.stamm,blanks:gravBlanks,grav:gravG?mpos(gravG):null,grime:r2(S.grime||0),tut:S.tut,seasonRevenue:S.seasonRevenue,carrying:S.carrying,cart:S.cart||[],offen:S.offen|0,pakete:S.pakete|0,shopName:S.shopName||SHOP_DEFAULT,slogan:S.slogan||'',
       deko:dekos.map(d2=>Object.assign({id:d2.id},mpos(d2.g))),
-      ck:mpos(ckG),desk:mpos(deskG),
+      ck:mpos(ckG),desk:mpos(deskG),sb2:mpos(sb2G),
       shelves:shelves.map(s=>Object.assign(mpos(s.g),{kind:s.kind,levels:s.levels.map(l=>({type:l.type,count:l.count,q:l.q||1}))})),
       racks:racks.map(r=>Object.assign(mpos(r.g),{kind:r.kind,slots:r.slots.map(s=>s.box?{type:s.box.type,count:s.box.count,q:s.box.q||1}:null)})),
       boxes:floorBoxes.map(b=>({type:b.type,count:b.count,q:b.q||1,x:+b.mesh.position.x.toFixed(2),y:+b.mesh.position.y.toFixed(2),z:+b.mesh.position.z.toFixed(2),ry:+b.mesh.rotation.y.toFixed(2)})).concat(pending.map(p=>({type:p.type,count:P[p.type].box,q:p.q||1}))).concat((typeof truck!=='undefined'&&truck?truck.cargo:[]).map(c=>({type:c.type,count:P[c.type].box,q:c.q||1})))};
@@ -11756,9 +11935,11 @@ function startGame(fresh){
   if(typeof wbaysInit==='function') wbaysInit();
   if(typeof drawBautafeln==='function') drawBautafeln();
   setSB(!!S.up.kasse2);
+  setEingang2(!!S.up.eingang2);
   drawPackSchild(); syncPakete();
   if(d&&d.ck) placeMovable(ckMov,d.ck.x,d.ck.z,d.ck.ry);
   if(d&&d.desk){ const m=movables.find(m=>m.kind==='desk'); if(m) placeMovable(m,d.desk.x,d.desk.z,d.desk.ry); }
+  if(d&&d.sb2&&sb2Mov) placeMovable(sb2Mov,d.sb2.x,d.sb2.z,d.sb2.ry);
   (S.shelves||F.shelves).slice(0,SLOTS.length).forEach((sd,i)=>createShelf(i,sd));
   (S.racks||F.racks).slice(0,RACKS.length).forEach((rd,i)=>createRack(i,rd));
   while(racks.length<1) createRack(racks.length,null);
@@ -12166,7 +12347,7 @@ fontsReady().then(()=>{
   lastF=-1; applyTOD(); updateSign(); buildStart(); requestAnimationFrame(frame);
   window.__bb={get S(){return S},get phase(){return phase},set phase(v){phase=v},set clock(v){clock=v},get clock(){return clock},pickUp,floorBoxes,shelves,racks,dekos,stockOne,openShop,step,customers,queue,belt,scanBelt,buyUp,buyDeko,get DS(){return DS},endDay,pending,save,openLaptop,closeLaptop,pl,addXP,hireStaff,fireStaff,staff,dirts,addDirt,movables,toggleBuild,setWall,setFloor,
     stations,firePult,placeOnStation,igniteType,get order(){return order},get phone(){return phone},makeCall,answerPhone,haggle,acceptDeal,declineDeal,get truck(){return truck},spawnTruck,takeFromTruck,takeBox,updateTruck,get door(){return door},get tuer(){return tuer},tuerSet,tuerNah,updateSchiebetuer,doorOpen,doorIsOpen,trailerOccupied,LR,lrFront,TOR,orderReady,orderLeft,shipOne,removeFloorBox,prioOf,setPrio,racks,updateCarry,spawnFloorBox,staff,SHELFKIND,layout,shelfCapOf,shelfAccepts,emptyLevel,dateInfo,dateStr,dateShort,seasonInfo,isSunday,dayMult,ruhetag,wageOf,setWage,friendliness,inPause,setPause,windowGrime,addGrime,cleanWindowTick,ambienteScore,bildBoost,fixedCosts,dailyWages,dispoLimit,verfuegbar,dispoZins,takeLoan,loanTier,loanDaily,EVENTS,GOALS,CUSTTYPES,UPGRADES,STAFF,stockOf,spawnInterval,pools,todayEvent,evv,rollEvent,rollMarket,newGoal,goalAdd,goalTick,ekFactor,marktText,xpFor,rollCustType,priceTol,buyChance,regCustomer,makeWishes,nachfrageFaktor,shelfStockOf,buildGravur,refillGrav,openGravInput,closeGravInput,get gravBlanks(){return gravBlanks},set gravBlanks(v){gravBlanks=v},orderBox,buyPack,cartAdd,cartAddPack,cartOrder,cartClear,cartDel,cartGoods,cartFee,cartTotal,cartBoxes,cartLines,LIEFERZEIT_SEK,VERSAND,VERSANDFREI,lieferSek,
-    scene,P,EFF,EFF_ALL,EFF_KLEIN,EFF_GROSS,EFF_PRO,SHOWS,kugelbombe,shot,mine,FW,stations,stationOf,placedCount,togglePDA,openPDA,closePDA,setPost,get postOn(){return postOn},get pdaOn(){return pdaOn},showLength,psHuge,psBig,psMid,psSmall,rockets,emitters,timersLen:()=>timers.length,setView:(x,z,y,p)=>{pl.x=x;pl.z=z;yaw=y;pitch=p;aim=null;},schiebe:(x,z)=>{pl.x=x;pl.z=z;collide(pl,0.32);return{x:pl.x,z:pl.z};},PLZ_MAX,camYaw:()=>yaw,camPitch:()=>pitch,playerPos:()=>({x:pl.x,z:pl.z}),pultYaw:()=>pultHit?pultHit.parent.rotation.y:null,applyShopName,shopName,shopSlogan,signTexPx:()=>signTex&&signTex.image?signTex.image.getContext('2d').getImageData(0,0,signTex.image.width,40).data.join(''):null,ckTexPx:()=>ckNameTex&&ckNameTex.image?ckNameTex.image.getContext('2d').getImageData(0,0,ckNameTex.image.width,60).data.join(''):null,testfeldMitte,STATION_POS,aimAt,UPGRADES,upPic,uhrZeiger:()=>({std:uhrStd?+uhrStd.rotation.z.toFixed(4):0,min:uhrMin?+uhrMin.rotation.z.toFixed(4):0}),drawRackSchild,get snowPts(){return snowPts},buildStadt,updateStadt,get stadtBoxen(){return stadtBoxen},get stadtBaeume(){return stadtBaeume},buildFernbaeume,schwaerme,beacons,silhouetten,get verkehrPts(){return verkehrPts},get rauchPts(){return rauchPts},get flieger(){return flieger},stadtFrei,STADT_FREI,WALLS,FLOORS,renderOnline,onlineHint,onlineStufe,onlineZahlen,updateOnline,packLaptop,SCHILDBG,SCHILDFG,setSchild,schildBg,schildFg,repaintSchilder,updateHead,allLevels,addToLevel,putInSlot,regCustomer,ZONEN,zoneOffen,oeffneZone,applyZonen,SLOTS,RACKS,slotsOffen,colliders,LAY,LOGI,WRAMPEN,WTORE,BAUTAFELN,drawBautafeln,buildBauabschnitte,updateSnow,unterDach,dachBereiche,get lapHit2(){return lapHit2},buildLagerTerminal,toggleTest,testLevel,buyUp,get toastLast(){return toastLast},__floorBoxen:()=>floorBoxes.length,WBAY_UP,wbays,dockPlaetze,wbayFrei,wbayOffen,spawnWTruck,updateWBays,wbaysInit,wtorSet,GANG,GANGTUER,buildLagergang,flaeche,WTOR,RACKKIND,route,NAV,navFrei,navIdx,navBuild,shelfStand,shelves,sbLanes,buildSBKasse,packBereit,packOne,paketWert,bestellungenProTag,pakete,PAKET_BAYS,ddlAbholung,updateVersand,createShelf,createRack,startGame,promptFor,ERFOLGE,erfOffen,erfStufe,erfStand,erfZiel,erfFertig,erfAnteil,erfGeschafft,erfGesamt,stat,statAdd,statRekord,statVerkauf,bruchGesehen,gruppeVon,GRUPPE,TRAEGER,BRUCH,BRUCH_IDS,REZ_FARBEN,ETIKETT,traegerVon,traegerOffen,bruchOffen,bruchListe,rezeptWow,rezeptKosten,rezeptMarkt,rezeptHype,rezeptDauer,rezeptEntwicklung,rezeptGueltig,eigeneListe,eigenesEintragen,rezepteTick,rezProto,rezBauen,renderRezeptur,get entwurf(){return entwurf},set entwurf(v){entwurf=v},entwurfInit,ORDER,LIZENZEN,lizenzOf,hatLizenz,lizenzDaten,naechsteLizenz,buyLizenz,VOLA,volaOf,REGIME,marketOf,costOf,marktZiel,marktLuecke,meOf,miOf,marktDelta,marktNiveau,marktPhase,marktSchock,marktLabel,marktSchnitt,marktExtrem,marktChance,sortimentBreite,sortimentZug,bekanntheit,spawnInterval,rollMarkt,marktInit,inflOf,inflText,setPreisAufMarkt,igniteType,get packHit(){return packHit},get target(){return target},
+    scene,P,EFF,EFF_ALL,EFF_KLEIN,EFF_GROSS,EFF_PRO,SHOWS,kugelbombe,shot,mine,FW,stations,stationOf,placedCount,togglePDA,openPDA,closePDA,setPost,get postOn(){return postOn},get pdaOn(){return pdaOn},showLength,psHuge,psBig,psMid,psSmall,rockets,emitters,timersLen:()=>timers.length,setView:(x,z,y,p)=>{pl.x=x;pl.z=z;yaw=y;pitch=p;aim=null;},schiebe:(x,z)=>{pl.x=x;pl.z=z;collide(pl,0.32);return{x:pl.x,z:pl.z};},PLZ_MAX,camYaw:()=>yaw,camPitch:()=>pitch,playerPos:()=>({x:pl.x,z:pl.z}),pultYaw:()=>pultHit?pultHit.parent.rotation.y:null,applyShopName,shopName,shopSlogan,signTexPx:()=>signTex&&signTex.image?signTex.image.getContext('2d').getImageData(0,0,signTex.image.width,40).data.join(''):null,ckTexPx:()=>ckNameTex&&ckNameTex.image?ckNameTex.image.getContext('2d').getImageData(0,0,ckNameTex.image.width,60).data.join(''):null,testfeldMitte,STATION_POS,aimAt,UPGRADES,upPic,uhrZeiger:()=>({std:uhrStd?+uhrStd.rotation.z.toFixed(4):0,min:uhrMin?+uhrMin.rotation.z.toFixed(4):0}),drawRackSchild,get snowPts(){return snowPts},buildStadt,updateStadt,get stadtBoxen(){return stadtBoxen},get stadtBaeume(){return stadtBaeume},buildFernbaeume,schwaerme,beacons,silhouetten,get verkehrPts(){return verkehrPts},get rauchPts(){return rauchPts},get flieger(){return flieger},stadtFrei,STADT_FREI,WALLS,FLOORS,renderOnline,onlineHint,onlineStufe,onlineZahlen,updateOnline,packLaptop,SCHILDBG,SCHILDFG,setSchild,schildBg,schildFg,repaintSchilder,updateHead,allLevels,addToLevel,putInSlot,regCustomer,ZONEN,zoneOffen,oeffneZone,applyZonen,SLOTS,RACKS,slotsOffen,colliders,LAY,LOGI,WRAMPEN,WTORE,BAUTAFELN,drawBautafeln,buildBauabschnitte,updateSnow,unterDach,dachBereiche,get lapHit2(){return lapHit2},buildLagerTerminal,toggleTest,testLevel,buyUp,get toastLast(){return toastLast},__floorBoxen:()=>floorBoxes.length,WBAY_UP,wbays,dockPlaetze,wbayFrei,wbayOffen,spawnWTruck,updateWBays,wbaysInit,wtorSet,GANG,GANGTUER,buildLagergang,flaeche,WTOR,RACKKIND,route,NAV,navFrei,navIdx,navBuild,shelfStand,shelves,sbLanes,buildSBKasse,sbFrei,sbOffen,sbNutzbar,EING2,eingaenge,naechsterEingang,setEingang2,buildSBKasse2,get sb2G(){return sb2G},TUEREN,tuerSetD,tuerNahD,VORSCHAU,buildVorschau,buildRampenVorschau,packBereit,packOne,paketWert,bestellungenProTag,pakete,PAKET_BAYS,ddlAbholung,updateVersand,createShelf,createRack,startGame,promptFor,ERFOLGE,erfOffen,erfStufe,erfStand,erfZiel,erfFertig,erfAnteil,erfGeschafft,erfGesamt,stat,statAdd,statRekord,statVerkauf,bruchGesehen,gruppeVon,GRUPPE,TRAEGER,BRUCH,BRUCH_IDS,REZ_FARBEN,ETIKETT,traegerVon,traegerOffen,bruchOffen,bruchListe,rezeptWow,rezeptKosten,rezeptMarkt,rezeptHype,rezeptDauer,rezeptEntwicklung,rezeptGueltig,eigeneListe,eigenesEintragen,rezepteTick,rezProto,rezBauen,renderRezeptur,get entwurf(){return entwurf},set entwurf(v){entwurf=v},entwurfInit,ORDER,LIZENZEN,lizenzOf,hatLizenz,lizenzDaten,naechsteLizenz,buyLizenz,VOLA,volaOf,REGIME,marketOf,costOf,marktZiel,marktLuecke,meOf,miOf,marktDelta,marktNiveau,marktPhase,marktSchock,marktLabel,marktSchnitt,marktExtrem,marktChance,sortimentBreite,sortimentZug,bekanntheit,spawnInterval,rollMarkt,marktInit,inflOf,inflText,setPreisAufMarkt,igniteType,get packHit(){return packHit},get target(){return target},
     shot:()=>{ noLoop=true; camera.position.set(pl.x,1.65,pl.z); camera.rotation.set(pitch,yaw,0); camera.updateMatrixWorld(); updateTarget(); applyTOD(); renderFrame(0.016); return canvas.toDataURL('image/jpeg',0.85); },
     run:(sec,dt)=>{ noLoop=true; const n=Math.round(sec/(dt||0.05)); for(let i=0;i<n;i++) step(dt||0.05); }};
 });

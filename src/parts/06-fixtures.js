@@ -260,10 +260,20 @@ function setSB(an){
   if(an){ buildSBKasse(); sbG.visible=true;
     sbCols.forEach(c=>{ if(colliders.indexOf(c)<0) colliders.push(c); }); }
   else if(sbG){ sbG.visible=false; sbCols.forEach(c=>dropCol(c)); }
-  sbLanes.forEach(l=>{ l.busy=null; sbLampe(l,true); });
+  sbLanes.forEach(l=>{ if(!l.up){ l.busy=null; sbLampe(l,true); } });
 }
-function sbPos(i){ return V(sbLanes[i].g.position.x,0,sbLanes[i].g.position.z+0.95); }
-function sbFrei(){ for(let i=0;i<sbLanes.length;i++) if(!sbLanes[i].busy) return i; return -1; }
+/* Anlaufpunkt vor einem SB-Terminal. Die Zeile am zweiten Eingang
+   haengt in einer verschobenen und drehbaren Gruppe - die lokale
+   Position des Terminals ist dort nicht die Weltposition. */
+function sbPos(i){
+  const g=sbLanes[i].g, p=g.parent;
+  if(p&&p!==scene) return localToWorld(p,g.position.x,g.position.z+0.95);
+  return V(g.position.x,0,g.position.z+0.95);
+}
+/* Seit dem zweiten Eingang gibt es zwei Kassenzeilen. Eine Spur
+   zaehlt nur, wenn ihr Ausbau auch gekauft ist. */
+function sbFrei(){ for(let i=0;i<sbLanes.length;i++) if(!sbLanes[i].busy&&sbNutzbar(i)) return i; return -1; }
+function sbOffen(){ let n=0; for(let i=0;i<sbLanes.length;i++) if(sbNutzbar(i)) n++; return n; }
 let deskG=null;
 function buildDesk(){
   deskG=new THREE.Group(); deskG.position.set(7.35,0,0.9); scene.add(deskG);

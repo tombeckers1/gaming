@@ -165,8 +165,12 @@ function thiefChance(){
 }
 class Customer{
   constructor(){
-    this.g=makePerson(); this.g.position.set(rand(-4,4),0,13.5); scene.add(this.g);
-    this.path=[V(0,0,7.6),V(0,0,4.9)]; this.state='enter'; this.speed=rand(1.2,1.6);
+    /* Seit dem zweiten Eingang kommt nicht mehr jeder vorn herein:
+       jeder Kunde sucht sich eine der offenen Tueren aus. */
+    const ein=pick(eingaenge());
+    this.ein=ein;
+    this.g=makePerson(); this.g.position.set(ein+rand(-4,4),0,13.5); scene.add(this.g);
+    this.path=[V(ein,0,7.6),V(ein,0,4.9)]; this.state='enter'; this.speed=rand(1.2,1.6);
     this.ct=rollCustType();
     this.wishes=makeWishes(this.ct); this.items=[]; this.missed=false; this.total=0; this.sb=null;
     this.patience=(rand(75,110)+S.rep*0.3+(S.up.heizung?30:0)+(S.up.klima?35:0)+ambienteScore()*0.35)*(0.72+0.3*friendliness())*this.ct.pat*evv('pat');
@@ -231,7 +235,8 @@ class Customer{
     DS.caught++; addXP(25,'Dieb gestellt'); rep(0.6); sfx.beep();
     toast(what==='spray'?'Erwischt! Ware zurück im Regal.':'Der Sicherheitsdienst hat ihn gestoppt.','money');
     this.say('Schon gut, schon gut!');
-    this.speed=2.4; this.state='leave'; this.path=[V(rand(-3,3),0,8),V(rand(-5,5),0,15)];
+    { const e=naechsterEingang(this.pos.x);
+      this.speed=2.4; this.state='leave'; this.path=[V(e+rand(-1.2,1.2),0,8),V(e+rand(-5,5),0,15)]; }
     if(staff.security&&staff.security.chase===this) staff.security.chase=null;
   }
   escaped(){
@@ -242,7 +247,7 @@ class Customer{
   }
   joinQueue(){
     /* Wenig Ware und die Hauptschlange steht? Dann lieber SB-Kasse. */
-    if(S.up.kasse2&&sbLanes.length&&this.items.length<=3&&(queue.length>=1||Math.random()<0.45)){
+    if(sbOffen()&&this.items.length<=3&&(queue.length>=1||Math.random()<0.45)){
       const i=sbFrei();
       if(i>=0){ this.sb=i; sbLanes[i].busy=this; sbLampe(sbLanes[i],false);
         this.state='sbGo'; this.path=[...route(this.pos,sbPos(i))]; DS.sb=(DS.sb||0)+1; return; }
@@ -301,7 +306,8 @@ class Customer{
     const qi=queue.indexOf(this); if(qi>=0) queue.splice(qi,1);
     this.sbFree();
     if(this.mark){ this.g.remove(this.mark); this.mark=null; }
-    this.state='leave'; this.path=[...route(this.pos,V(0,0,4.9)),V(0,0,7.6),V(rand(-5,5),0,14)];
+    { const e=naechsterEingang(this.pos.x);
+      this.state='leave'; this.path=[...route(this.pos,V(e,0,4.9)),V(e,0,7.6),V(e+rand(-5,5),0,14)]; }
     if(Math.random()<(hasDeko('muell')?0.1:0.22)) addDirt(this.pos.x+rand(-1,1),this.pos.z+rand(-1,1));
   }
   update(dt){
@@ -318,7 +324,7 @@ class Customer{
       case 'steal':
         if(this.walk(dt)){
           if(S.up.alarm&&Math.random()<0.7){ this.caughtBy('alarm'); }
-          else { this.escaped(); this.state='leave'; this.path=[V(rand(-5,5),0,15)]; if(this.mark){ this.g.remove(this.mark); this.mark=null; } }
+          else { this.escaped(); this.state='leave'; this.path=[V(naechsterEingang(this.pos.x)+rand(-5,5),0,15)]; if(this.mark){ this.g.remove(this.mark); this.mark=null; } }
         } break;
       case 'queue': {
         const i=queue.indexOf(this), spot=spotPos(i);

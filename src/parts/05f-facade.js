@@ -60,7 +60,7 @@ function buildFacade(){
   }
   // --- Eingang
   {
-    buildSchiebetuer(zf);
+    tuer=buildSchiebetuer(0);
     /* Fussmatte: Gummirahmen mit eingefasster Buerstenflaeche */
     {
       const mt=tex(1024,540,(g,W,Hh)=>{
@@ -170,28 +170,35 @@ function cleanWindowTick(first){
    ========================================================= */
 const TUER={z:6.14,y:2.44,w:1.24,hub:1.30, r:3.1};
 let tuer=null;
-function buildSchiebetuer(zf){
-  const g=new THREE.Group(); scene.add(g);
+const TUEREN=[];
+/* Schiebetuer an der Stelle cx der Fassade. hb ist die Breite des
+   Antriebskastens - der zweite Eingang sitzt in einer Fensterachse
+   des Nachbarhauses und hat dort weniger Platz als der Haupteingang.
+   Alles haengt in einer Gruppe, damit eine zweite Tuer nur eine
+   zweite Gruppe ist und nicht eine Kopie des ganzen Codes. */
+function buildSchiebetuer(cx,hb){
+  const HB=hb||5.4;
+  const g=new THREE.Group(); g.position.x=cx||0; scene.add(g);
   const alu=std(0xc4cad3,{metalness:0,roughness:0.5});
   const aluD=std(0x8f959e,{metalness:0,roughness:0.55});
   const dark=std(0x23272f,{metalness:0,roughness:0.6});
   const glass=new THREE.MeshStandardMaterial({color:LIN(0xd6ecff),transparent:true,opacity:0.17,roughness:0.05,metalness:0.1,depthWrite:false});
   const W=TUER.w, HH=TUER.y, Z=TUER.z;
   /* Antriebskasten über der Öffnung, reicht über beide Parktaschen */
-  bbox(5.4,0.24,0.26,alu,0,HH+0.14,Z,null,false);
-  bbox(5.44,0.05,0.3,aluD,0,HH+0.27,Z,null,false);
-  bbox(5.3,0.05,0.2,dark,0,HH+0.005,Z,null,false);
+  bbox(HB,0.24,0.26,alu,0,HH+0.14,Z,g,false);
+  bbox(HB+0.04,0.05,0.3,aluD,0,HH+0.27,Z,g,false);
+  bbox(HB-0.1,0.05,0.2,dark,0,HH+0.005,Z,g,false);
   /* Laufschiene */
-  bbox(5.2,0.045,0.06,aluD,0,HH+0.05,Z-0.06,null,false);
+  bbox(HB-0.2,0.045,0.06,aluD,0,HH+0.05,Z-0.06,g,false);
   /* Bewegungsmelder innen und außen */
   for(const s of [-1,1]){
-    const sIn=bbox(0.26,0.075,0.05,dark,s*0.78,HH+0.05,Z-0.15,null,false); sIn.rotation.x=0.42;
-    const sOut=bbox(0.26,0.075,0.05,dark,s*0.78,HH+0.05,Z+0.15,null,false); sOut.rotation.x=-0.42;
+    const sIn=bbox(0.26,0.075,0.05,dark,s*0.78,HH+0.05,Z-0.15,g,false); sIn.rotation.x=0.42;
+    const sOut=bbox(0.26,0.075,0.05,dark,s*0.78,HH+0.05,Z+0.15,g,false); sOut.rotation.x=-0.42;
   }
   /* Bodenführung */
-  bbox(2.6,0.012,0.045,aluD,0,0.008,Z-0.02,null,false);
+  bbox(2.6,0.012,0.045,aluD,0,0.008,Z-0.02,g,false);
   /* Seitliche Festfelder als Rahmen der Öffnung */
-  for(const s of [-1,1]) bbox(0.07,HH,0.09,alu,s*1.29,HH/2,Z,null,false);
+  for(const s of [-1,1]) bbox(0.07,HH,0.09,alu,s*1.29,HH/2,Z,g,false);
   /* Zwei Flügel */
   const leaves=[];
   for(const s of [-1,1]){
@@ -210,31 +217,44 @@ function buildSchiebetuer(zf){
       rl.rotation.z=Math.PI/2; rl.position.set(dx,HH+0.045,-0.06); lf.add(rl);
     }
   }
-  tuer={g,leaves,t:0,target:0,moving:false,col:null,snd:0};
-  tuerSet(0);
+  const d={g,cx:cx||0,leaves,t:0,target:0,moving:false,col:null,snd:0};
+  TUEREN.push(d);
+  tuerSetD(d,0);
+  return d;
 }
-function tuerSet(t){
-  if(!tuer) return;
-  tuer.t=clamp(t,0,1);
-  const off=tuer.t*TUER.hub;
-  tuer.leaves[0].position.set(-TUER.w/2-off+0.01,0,TUER.z);
-  tuer.leaves[1].position.set( TUER.w/2+off-0.01,0,TUER.z);
-  if(tuer.t>0.3){ if(tuer.col){ dropCol(tuer.col); tuer.col=null; } }
-  else if(!tuer.col) tuer.col=col(-1.28,1.28,TUER.z-0.09,TUER.z+0.09);
+/* Eine bestimmte Tuer auf den Oeffnungsgrad t stellen */
+function tuerSetD(d,t){
+  if(!d) return;
+  d.t=clamp(t,0,1);
+  const off=d.t*TUER.hub;
+  d.leaves[0].position.set(-TUER.w/2-off+0.01,0,TUER.z);
+  d.leaves[1].position.set( TUER.w/2+off-0.01,0,TUER.z);
+  if(d.t>0.3){ if(d.col){ dropCol(d.col); d.col=null; } }
+  else if(!d.col) d.col=col(d.cx-1.28,d.cx+1.28,TUER.z-0.09,TUER.z+0.09);
 }
+function tuerSet(t){ tuerSetD(tuer,t); }
 /* Öffnet, sobald jemand in die Nähe kommt: Spieler oder Kundschaft */
-function tuerNah(){
-  const nah=(x,z)=>Math.abs(x)<2.5&&Math.abs(z-TUER.z)<TUER.r;
+function tuerNahD(d){
+  const cx=d?d.cx:0;
+  const nah=(x,z)=>Math.abs(x-cx)<2.5&&Math.abs(z-TUER.z)<TUER.r;
   if(typeof pl!=='undefined'&&nah(pl.x,pl.z)) return true;
   if(typeof customers!=='undefined')
     for(const c of customers){ if(c.pos&&nah(c.pos.x,c.pos.z)) return true; }
   return false;
 }
+function tuerNah(){ return tuerNahD(tuer); }
 function updateSchiebetuer(dt){
-  if(!tuer) return;
-  tuer.target=tuerNah()?1:0;
-  const d=tuer.target-tuer.t;
-  if(Math.abs(d)<0.004){ if(tuer.t!==tuer.target) tuerSet(tuer.target); tuer.moving=false; return; }
-  if(!tuer.moving){ tuer.moving=true; }
-  tuerSet(tuer.t+(d>0?1:-1)*Math.min(Math.abs(d),1.45*dt));
+  for(const t of TUEREN){
+    /* Eine noch nicht gekaufte Tuer haengt in einer unsichtbaren
+       Gruppe - sie darf nicht aufgehen. Die eigene visible-Flagge
+       reicht dafuer nicht, sichtbar ist erst, wer keinen
+       unsichtbaren Vorfahren hat. */
+    let sicht=true; for(let o=t.g;o;o=o.parent) if(!o.visible) sicht=false;
+    if(!sicht) continue;
+    t.target=tuerNahD(t)?1:0;
+    const d=t.target-t.t;
+    if(Math.abs(d)<0.004){ if(t.t!==t.target) tuerSetD(t,t.target); t.moving=false; continue; }
+    t.moving=true;
+    tuerSetD(t,t.t+(d>0?1:-1)*Math.min(Math.abs(d),1.45*dt));
+  }
 }

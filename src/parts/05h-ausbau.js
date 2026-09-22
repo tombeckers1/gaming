@@ -291,6 +291,43 @@ function buildLagergang(){
    Dazwischen steht ein niedriger Zwischenbau, durch den man von
    einem Gebaeude ins andere geht.
    ========================================================= */
+/* =========================================================
+   Streifenvorhang. Ein Durchgang zwischen zwei Hallen ist in
+   echt nie ein blosses Loch - dort haengt ein Vorhang aus
+   PVC-Streifen. Er haelt die Waerme und sieht aus wie das, was
+   er ist. Kollision bekommt er keine, man geht hindurch.
+   ========================================================= */
+let _pvcM=null;
+function pvcMat(){
+  if(!_pvcM) _pvcM=new THREE.MeshStandardMaterial({vertexColors:true,transparent:true,
+    opacity:0.38,roughness:0.3,metalness:0,side:THREE.DoubleSide,depthWrite:false});
+  return _pvcM;
+}
+function streifenvorhang(zid,laengs,fest,a0,a1,hoehe){
+  const len=a1-a0, mitte=(a0+a1)/2, H=hoehe-0.12;
+  /* Traverse mit Halteklemmen */
+  const stahl=std(0x8d939d,{metalness:0.6,roughness:0.4});
+  zAdd(zid,laengs
+    ? bbox(len+0.16,0.1,0.14,stahl,mitte,hoehe-0.05,fest,null,false)
+    : bbox(0.14,0.1,len+0.16,stahl,fest,hoehe-0.05,mitte,null,false));
+  /* Die Streifen ueberlappen sich um sechs Zentimeter, so wie an
+     jeder Laderampe. Alles in ein Mesh, sonst haengen an drei
+     Durchgaengen fuenfzig Einzelobjekte in der Szene. */
+  const B=0.30, T=0.24, n=Math.max(2,Math.floor(len/T));
+  const rest=(len-(n-1)*T-B)/2;
+  const geo=new THREE.BoxGeometry(B,H,0.006);
+  const teile=[];
+  for(let i=0;i<n;i++){
+    const a=a0+rest+B/2+i*T;
+    const kipp=(i%2?1:-1)*0.035;           /* leicht schraeg, wie benutzt */
+    teile.push({geo,color:i%2?0xeef3f7:0xe4ecf2,
+      m:laengs?tm(a,H/2+0.02,fest,0,kipp,0):tm(fest,H/2+0.02,a,0,Math.PI/2+kipp,0)});
+  }
+  const m=new THREE.Mesh(merge(teile),pvcMat());
+  m.renderOrder=1; scene.add(m); zAdd(zid,m);
+  geo.dispose();
+  return m;
+}
 function buildSchleuse(){
   const S2=LAY.schleuse, H=SCHLEUSE_H;
   const mx=(S2.x0+S2.x1)/2, mz=(S2.z0+S2.z1)/2;
@@ -530,6 +567,10 @@ function buildAusbau(){
      verschiedene Waende aneinander. */
   durchbruchWand('lager_west',false,LAY.lwest.x1,LAY.lwest.z0,LAY.lwest.z1,ST,lagerWall,lagerWall,3.0,GH_H);
   buildSchleuse();
+  /* Die beiden Schleusentore und der Gang bekommen Streifenvorhaenge
+     statt blanker Loecher. */
+  streifenvorhang('lager_west',false,LAY.lsued.x0,ST[0][0],ST[0][1],3.0);
+  streifenvorhang('lager_west',false,LAY.lwest.x1,ST[0][0],ST[0][1],3.0);
   trennwand('lager_gross',true,2.0,-19.0,-9.0,2.6,lagerWall,lagerWall);
 
   /* ---------- Packstation, Rampen, Logistikzentrum ---------- */
@@ -550,6 +591,7 @@ function buildAusbau(){
   durchbruchWand('shop_sued',false,7.9,GANG.z1,LAY.sued.z1,[],shopWall,undefined,2.5,WH,'+x');
   /* Der Gang muendet in die Halle Sued und wird mit ihr freigegeben. */
   durchbruchWand('lager_sued',false,-8.0,LAY.lsued.z0,LAY.lsued.z1,GT,lagerWall,undefined,2.5,HALLE_H,'-x');
+  streifenvorhang('lager_sued',false,-8.0,GT[0][0],GT[0][1],2.5);
   buildLagergang();
   buildLagerTerminal();
   buildBauabschnitte();
@@ -613,7 +655,10 @@ function buildPackstation(){
   for(const sx of [-1.2,1.2]) bbox(0.06,1.5,0.06,stahl,sx,1.72,-0.42,g,false);
   bbox(2.6,0.5,0.05,std(0x1b2340,{roughness:0.7}),0,2.3,-0.42,g,false);
   packSchildTex=tex(1024,200,()=>{});
-  plane(2.5,0.44,new THREE.MeshBasicMaterial({map:packSchildTex,toneMapped:false}),0,2.3,-0.39,0,g);
+  /* Die Schrift gehoert auf die Seite, von der man kommt: der
+     Zugang zum Anbau liegt im Sueden. Vorher las man das Schild
+     nur, wenn man mit dem Ruecken zur Wand stand. */
+  plane(2.5,0.44,new THREE.MeshBasicMaterial({map:packSchildTex,toneMapped:false}),0,2.3,-0.455,Math.PI,g);
   drawPackSchild();
   /* Abholrampe mit Paketstellplaetzen */
   for(let k=0;k<6;k++){
@@ -623,6 +668,61 @@ function buildPackstation(){
   const hit=bbox(3.0,2.0,1.4,hitM,0.6,1.0,0,g,false);
   hit.userData={kind:'pack'}; packHit=hit;
   zCol('packstation',col(PX-1.4,PX+3.9,PZ-0.5,PZ+0.5));
+  versandFlaeche(g,id,PX,PZ);
+}
+/* Der Packtisch stand bisher frei im Lager herum, als haette ihn
+   jemand vergessen. Er bekommt eine eigene Flaeche: markierter
+   Boden mit Beschriftung, Schild an der Westwand und ein
+   Abholfeld fuer DDL am Ende der Rollenbahn. */
+function versandFlaeche(g,id,PX,PZ){
+  const BW=6.6, BT=1.8, cxl=1.6;
+  const t=tex(1320,360,(c,W,H)=>{
+    c.fillStyle='#57606c'; c.fillRect(0,0,W,H);
+    for(let i=0;i<9000;i++){ c.fillStyle=`rgba(255,255,255,${Math.random()*0.03})`;
+      c.fillRect(Math.random()*W,Math.random()*H,2,2); }
+    /* Gelbe Umrandung mit Schraffur an den Schmalseiten */
+    c.strokeStyle='#f2c230'; c.lineWidth=14; c.strokeRect(7,7,W-14,H-14);
+    c.save(); c.beginPath(); c.rect(0,0,W,H); c.clip();
+    c.strokeStyle='rgba(242,194,48,.75)'; c.lineWidth=10;
+    for(const x0 of [0,W-62]) for(let y=-H;y<H*2;y+=34){
+      c.beginPath(); c.moveTo(x0,y); c.lineTo(x0+62,y-62); c.stroke(); }
+    c.restore();
+    c.fillStyle='rgba(242,194,48,.9)'; c.font=BUN(112);
+    c.textAlign='center'; c.textBaseline='middle';
+    c.fillText('VERSANDZENTRUM',W/2,H/2+6);
+  });
+  const bo=new THREE.Mesh(new THREE.PlaneGeometry(BW,BT),
+    new THREE.MeshStandardMaterial({map:t,roughness:0.62}));
+  bo.rotation.x=-Math.PI/2; bo.rotation.z=Math.PI; bo.position.set(cxl,0.022,-0.05);
+  g.add(bo); zAdd(id,bo);
+  /* Abholfeld am Ende der Rollenbahn */
+  const dt=tex(520,260,(c,W,H)=>{
+    c.fillStyle='#1b2340'; c.fillRect(0,0,W,H);
+    c.strokeStyle='#ffd23f'; c.lineWidth=10; c.strokeRect(8,8,W-16,H-16);
+    c.textAlign='center'; c.textBaseline='middle';
+    c.fillStyle='#ffd23f'; c.font=BUN(58); c.fillText('ABHOLUNG',W/2,66);
+    c.fillStyle='#ffffff'; c.font=BUN(72); c.fillText('DDL',W/2,142);
+    c.fillStyle='#bcd0ea'; c.font=BAR(34); c.fillText('täglich ab 18:00 Uhr',W/2,212);
+  });
+  const stahl=std(0x8d939d,{metalness:0.6,roughness:0.4});
+  /* Der Pfosten steht neben der Rollenbahn an der Wand, nicht im
+     Gang - und er ist fest, man laeuft nicht hindurch. */
+  const dz=-1.05;
+  bbox(0.07,2.05,0.07,stahl,5.35,1.02,dz,g,false);
+  bbox(0.26,0.04,0.26,std(0x2f343e,{roughness:0.8}),5.35,0.02,dz,g,false);
+  bbox(1.06,0.56,0.04,std(0x2f343d,{metalness:0.4,roughness:0.55}),5.35,1.72,dz,g,false);
+  plane(1.0,0.5,new THREE.MeshStandardMaterial({map:dt,roughness:0.6}),5.35,1.72,dz-0.045,Math.PI,g);
+  zCol(id,col(PX+5.22,PX+5.48,PZ+dz-0.13,PZ+dz+0.13));
+  /* Schild an der Westwand, dort ist die einzige freie Wandflaeche */
+  const wt=tex(760,200,(c,W,H)=>{
+    c.fillStyle='#1b2340'; c.fillRect(0,0,W,H);
+    c.fillStyle='#ffd23f'; c.font=BUN(96); c.textAlign='center'; c.textBaseline='middle';
+    c.fillText('VERSAND',W/2,H/2+4);
+    c.strokeStyle='#2f3a5e'; c.lineWidth=8; c.strokeRect(4,4,W-8,H-8);
+  });
+  const wx=LAY.lnord.x0+0.06-PX;
+  bbox(0.04,0.5,1.44,std(0x1b2340,{roughness:0.7}),wx,2.05,0,g,false);
+  plane(1.4,0.44,new THREE.MeshBasicMaterial({map:wt,toneMapped:false}),wx+0.03,2.05,0,Math.PI/2,g);
 }
 let packSchildTex=null;
 function packBereit(){ return zoneOffen('packstation')&&S&&S.up&&S.up.onlineshop; }

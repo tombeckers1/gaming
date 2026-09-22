@@ -122,6 +122,40 @@ function buildDock(){
 /* =========================================================
    Sektionaltor mit Zarge, Fuehrungsschienen, Antrieb und Rampentechnik
    ========================================================= */
+/* Sandwichpanel eines Sektionaltors. Die Westrampen bauen ihre
+   Torblaetter aus denselben Panelen wie die Basisrampe - vorher war
+   dort nur eine Textur auf einen Kasten geklebt. */
+let _torPanel=null;
+function torPanelMat(){
+  if(_torPanel) return _torPanel;
+  /* Sandwichpanel mit Sicken, Nut-und-Feder-Fuge und Gebrauchsspuren */
+  const panelTex=tex(1024,256,(c,W,H)=>{
+    const g0=c.createLinearGradient(0,0,0,H);
+    g0.addColorStop(0,'#e7e9ec'); g0.addColorStop(0.12,'#f4f5f7');
+    g0.addColorStop(0.5,'#dfe2e6'); g0.addColorStop(0.88,'#f1f2f4'); g0.addColorStop(1,'#c9ccd1');
+    c.fillStyle=g0; c.fillRect(0,0,W,H);
+    /* waagerechte Sicken */
+    for(let y=34;y<H-30;y+=42){
+      c.fillStyle='rgba(255,255,255,.55)'; c.fillRect(0,y,W,3);
+      c.fillStyle='rgba(120,126,136,.35)'; c.fillRect(0,y+3,W,4);
+      c.fillStyle='rgba(0,0,0,.10)'; c.fillRect(0,y+7,W,2);
+    }
+    /* Nut oben, Feder unten */
+    c.fillStyle='rgba(60,66,76,.55)'; c.fillRect(0,0,W,10);
+    c.fillStyle='rgba(0,0,0,.30)'; c.fillRect(0,H-12,W,12);
+    /* feiner Lackstaub und Kratzer */
+    for(let i=0;i<2600;i++){ c.fillStyle=`rgba(${Math.random()<0.5?0:255},${Math.random()<0.5?0:255},${Math.random()<0.5?0:255},${Math.random()*0.045})`; c.fillRect(Math.random()*W,Math.random()*H,2,2); }
+    for(let i=0;i<26;i++){ c.strokeStyle=`rgba(140,146,156,${rand(0.1,0.3)})`; c.lineWidth=rand(0.6,1.6);
+      const x=Math.random()*W,y=Math.random()*H; c.beginPath(); c.moveTo(x,y); c.lineTo(x+rand(-90,90),y+rand(-5,5)); c.stroke(); }
+    /* Schmutzrand unten */
+    const gr=c.createLinearGradient(0,H-46,0,H); gr.addColorStop(0,'rgba(90,86,78,0)'); gr.addColorStop(1,'rgba(90,86,78,.26)');
+    c.fillStyle=gr; c.fillRect(0,H-46,W,46);
+  });
+  panelTex.wrapS=THREE.RepeatWrapping; panelTex.repeat.set(1.6,1); panelTex.anisotropy=8;
+  panelTex.wrapS=THREE.RepeatWrapping; panelTex.repeat.set(1.6,1); panelTex.anisotropy=8;
+  _torPanel=new THREE.MeshStandardMaterial({map:panelTex,metalness:0.42,roughness:0.44});
+  return _torPanel;
+}
 function buildTor(steel,snow){
   const g=new THREE.Group(); scene.add(g);
   const dark=std(0x2a2e38,{metalness:0.5,roughness:0.45});
@@ -169,31 +203,7 @@ function buildTor(steel,snow){
   for(let k=0;k<3;k++) bbox(0.04,0.05,0.05,std([0x2f9e57,0xd8352a,0x2a2e38][k]),XD+0.37,1.43-k*0.07,Z+1.92,g,false);
   /* Torpanele */
   const pm=std(0xdfe2e6,{metalness:0.4,roughness:0.5});
-  /* Sandwichpanel mit Sicken, Nut-und-Feder-Fuge und Gebrauchsspuren */
-  const panelTex=tex(1024,256,(c,W,H)=>{
-    const g0=c.createLinearGradient(0,0,0,H);
-    g0.addColorStop(0,'#e7e9ec'); g0.addColorStop(0.12,'#f4f5f7');
-    g0.addColorStop(0.5,'#dfe2e6'); g0.addColorStop(0.88,'#f1f2f4'); g0.addColorStop(1,'#c9ccd1');
-    c.fillStyle=g0; c.fillRect(0,0,W,H);
-    /* waagerechte Sicken */
-    for(let y=34;y<H-30;y+=42){
-      c.fillStyle='rgba(255,255,255,.55)'; c.fillRect(0,y,W,3);
-      c.fillStyle='rgba(120,126,136,.35)'; c.fillRect(0,y+3,W,4);
-      c.fillStyle='rgba(0,0,0,.10)'; c.fillRect(0,y+7,W,2);
-    }
-    /* Nut oben, Feder unten */
-    c.fillStyle='rgba(60,66,76,.55)'; c.fillRect(0,0,W,10);
-    c.fillStyle='rgba(0,0,0,.30)'; c.fillRect(0,H-12,W,12);
-    /* feiner Lackstaub und Kratzer */
-    for(let i=0;i<2600;i++){ c.fillStyle=`rgba(${Math.random()<0.5?0:255},${Math.random()<0.5?0:255},${Math.random()<0.5?0:255},${Math.random()*0.045})`; c.fillRect(Math.random()*W,Math.random()*H,2,2); }
-    for(let i=0;i<26;i++){ c.strokeStyle=`rgba(140,146,156,${rand(0.1,0.3)})`; c.lineWidth=rand(0.6,1.6);
-      const x=Math.random()*W,y=Math.random()*H; c.beginPath(); c.moveTo(x,y); c.lineTo(x+rand(-90,90),y+rand(-5,5)); c.stroke(); }
-    /* Schmutzrand unten */
-    const gr=c.createLinearGradient(0,H-46,0,H); gr.addColorStop(0,'rgba(90,86,78,0)'); gr.addColorStop(1,'rgba(90,86,78,.26)');
-    c.fillStyle=gr; c.fillRect(0,H-46,W,46);
-  });
-  panelTex.wrapS=THREE.RepeatWrapping; panelTex.repeat.set(1.6,1); panelTex.anisotropy=8;
-  const pmT=new THREE.MeshStandardMaterial({map:panelTex,metalness:0.42,roughness:0.44});
+  const pmT=torPanelMat();
   const panels=[];
   for(let i=0;i<TOR.n;i++){
     const pn=new THREE.Mesh(new THREE.BoxGeometry(0.095,TOR.ph-0.012,TOR.w),

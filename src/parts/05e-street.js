@@ -631,7 +631,7 @@ function nachbarFassade(x0,x1,zid,unterzeile){
   const bw=(w-(nB+1)*PF)/nB;
   const OEFF=[];
   for(let i=0;i<nB;i++){ const a2=x0+PF+i*(bw+PF); OEFF.push([a2,a2+bw]); }
-  const F=(a2,b2,y0,y1)=>{ if(b2>a2+0.01) wall(a2,b2,zf-0.3,zf+0.1,y0,y1,'-z',shopWall,zm); };
+  const F=(a2,b2,y0,y1)=>{ if(b2>a2+0.01) wall(a2,b2,zf-0.3,zf+0.1,y0,y1,'-z',shopWall,zm,0); };
   let px=x0;
   for(const [a2,b2] of OEFF){
     F(px,a2,0,H);            /* Pfeiler          */
@@ -643,9 +643,12 @@ function nachbarFassade(x0,x1,zid,unterzeile){
   /* Attika, Gesims und Sockel. Die Farben gehen mit der Fassade:
      anthrazit wie der Sockel in der Textur, nicht mehr das
      Sandsteinbeige von der Ziegelwand. */
-  bbox(w+0.2,0.28,0.56,std(0x2f343d,{roughness:0.9}),cx,H+0.12,zf-0.1,g);
-  bbox(w+0.1,0.1,0.5,std(0xe8ecf2,{roughness:1}),cx,H+0.3,zf-0.1,g,false);
-  bbox(w+0.12,0.62,0.5,std(0x3b4049,{roughness:0.9}),cx,0.31,zf-0.06,g);
+  bbox(w+0.2,0.28,0.4,std(0x2f343d,{roughness:0.9}),cx,H+0.12,zf+0.12,g);
+  bbox(w+0.1,0.1,0.36,std(0xe8ecf2,{roughness:1}),cx,H+0.3,zf+0.14,g,false);
+  /* Der Sockel war 50 cm tief und mittig auf der Wand - damit stand
+     er zur Haelfte IM Laden und zog dort ein schwarzes Band unter
+     der ganzen Fensterfront entlang. Er gehoert nach draussen. */
+  bbox(w+0.12,0.62,0.26,std(0x3b4049,{roughness:0.9}),cx,0.31,zf+0.16,g);
 
   /* ---------- Zustand „steht zum Verkauf“ ---------- */
   const gs=new THREE.Group(); g.add(gs); zWand(zid,gs);
@@ -718,8 +721,10 @@ function nachbarFassade(x0,x1,zid,unterzeile){
     }
     /* Mittelsprosse */
     bbox(0.07,bh-0.1,0.05,prof,bxc,byc,zf-0.1,go,false);
-    /* Fensterbank aussen */
-    if(y0>0.2) bbox(bw+0.16,0.06,0.5,bank,bxc,y0-0.02,zf-0.02,go,false);
+    /* Fensterbank nur aussen. Sie ragte 13 cm in den Laden hinein und
+       warf dort einen dunklen Schatten unter die ganze Fensterfront -
+       im Basisladen sitzt unter dem Fenster direkt die Sockelfarbe. */
+    if(y0>0.2) bbox(bw+0.16,0.06,0.26,bank,bxc,y0-0.02,zf+0.16,go,false);
   });
   col(x0,x1,zf-0.35,zf+0.15);
   return g;

@@ -298,9 +298,22 @@ function bodenUV(m,kachel){
   uv.needsUpdate=true; return m;
 }
 const FACE={'+x':0,'-x':1,'+z':4,'-z':5}, OPP={'+x':'-x','-x':'+x','+z':'-z','-z':'+z'};
-function wall(x0,x1,z0,z1,y0,y1,inFace,inMat,exMat){
-  if(x1-x0>z1-z0){ x0-=0.006; x1+=0.006; } else { z0-=0.006; z1+=0.006; }
-  const w=x1-x0,h=y1-y0,d=z1-z0; const mats=[trimMat,trimMat,trimMat,trimMat,trimMat,trimMat];
+/* ue: Ueberstand in Laengsrichtung. Er schliesst Haarfugen an den
+   Enden einer Wandflucht. Zwischen zwei Stuecken DERSELBEN Flucht
+   richtet er Schaden an: die beiden Stuecke ueberlappen sich dann um
+   zwoelf Millimeter, ihre Vorderseiten liegen in einer Ebene und
+   flimmern gegeneinander - das sind die senkrechten Streifen, die
+   ueberall dort standen, wo eine Wand aus Abschnitten gebaut wird.
+   Solche Abschnitte setzen ue auf 0. */
+function wall(x0,x1,z0,z1,y0,y1,inFace,inMat,exMat,ue,randMat){
+  const u=ue===undefined?0.006:ue;
+  if(x1-x0>z1-z0){ x0-=u; x1+=u; } else { z0-=u; z1+=u; }
+  /* Die vier Schmalseiten sind die Laibung. Sie standen ueberall auf
+     hellem Grau; an einer Tuer in einer dunklen Fassade sah das aus
+     wie ein weisser Klotz, der vor der Wand steht. Wer eine Oeffnung
+     baut, gibt hier das passende Material mit. */
+  const rm=randMat||trimMat;
+  const w=x1-x0,h=y1-y0,d=z1-z0; const mats=[rm,rm,rm,rm,rm,rm];
   mats[FACE[inFace]]=inMat; mats[FACE[OPP[inFace]]]=exMat||wallBrickMat();
   const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mats); m.position.set((x0+x1)/2,(y0+y1)/2,(z0+z1)/2);
   meterUV(m);

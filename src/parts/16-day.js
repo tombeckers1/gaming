@@ -8,7 +8,11 @@ function addXP(n,label){
   if(label) toast(`+${n} XP · ${label}`,'xp');
   let up=false;
   while(S.xp>=xpFor(S.level)){ S.xp-=xpFor(S.level); S.level++; pendingLevels.push(S.level); up=true; }
-  if(up){ sfx.level(); toast(`Level ${S.level} erreicht!`,'lvl'); if(phase==='closed'||phase==='after') showLevelUp(); }
+  if(up){ sfx.level(); toast(`Level ${S.level} erreicht!`,'lvl');
+    /* Die Bautafeln zeigen, wie viele Level noch fehlen - das muss
+       nach jedem Aufstieg stimmen. */
+    if(typeof drawBautafeln==='function') drawBautafeln();
+    if(phase==='closed'||phase==='after') showLevelUp(); }
 }
 function showLevelUp(){
   if(!pendingLevels.length||overlayOpen()) return;

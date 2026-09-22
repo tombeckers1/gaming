@@ -67,6 +67,10 @@ function sockelLeiste(id,laengs,fest,a0,a1){
 }
 /* Fuellung einer vorbereiteten Oeffnung. laengs = die Wand laeuft in x. */
 function trennwand(id,laengs,fest,a0,a1,h,innen,aussen,face){
+  /* Bereiche mit Vorschau bekommen statt einer blinden Wand einen
+     Bauzaun: bedruckter Sockel, Gitterfeld auf Augenhoehe, dahinter
+     der Rohbau mit den Umrissen der kuenftigen Regale (05k). */
+  if(id&&VORSCHAU[id]) return bauwand(id,laengs,fest,a0,a1,h,face);
   const f=face||(laengs?'-z':'-x');
   const m=laengs
     ? stilleWand(a0,a1,fest-LW/2,fest+LW/2,0,h,f,innen,aussen||innen,0)
@@ -396,15 +400,19 @@ function bandMat(wdh){
 function absperrband(zid,laengs,fest,a0,a1,hoehe){
   const len=a1-a0, mitte=(a0+a1)/2;
   const m=bandMat(len*1.6);
+  /* vorschau=true: das Band gehoert zur Baustelle und nicht zum
+     Inventar - der Leer-Test darf es nicht als Fremdkoerper in
+     einer leeren Halle melden. */
+  const mark=o=>{ o.userData.vorschau=true; return o; };
   for(const y of [hoehe,hoehe-0.34]){
     const b=plane(len,0.11,m,laengs?mitte:fest,y,laengs?fest:mitte,laengs?0:Math.PI/2,null);
-    zWand(zid,b);
+    zWand(zid,mark(b));
   }
   const pf=std(0xd8352a,{roughness:0.6}), fuss=std(0x2a2e38,{roughness:0.8});
   for(const a of [a0+0.12,a1-0.12]){
     const px=laengs?a:fest, pz=laengs?fest:a;
-    zWand(zid,bbox(0.055,hoehe+0.06,0.055,pf,px,(hoehe+0.06)/2,pz,null,false));
-    zWand(zid,bbox(0.28,0.05,0.28,fuss,px,0.025,pz,null,false));
+    zWand(zid,mark(bbox(0.055,hoehe+0.06,0.055,pf,px,(hoehe+0.06)/2,pz,null,false)));
+    zWand(zid,mark(bbox(0.28,0.05,0.28,fuss,px,0.025,pz,null,false)));
   }
 }
 /* Der Anstrich der Tafel haengt daran, ob die Stufe schon
@@ -468,25 +476,22 @@ function bautafel(zid,x,y,z,ry){
 /* Nach jedem Levelaufstieg neu beschriften */
 function drawBautafeln(){
   BAUTAFELN.forEach(b=>redraw(b.tex,(g,W,H)=>tafelZeichnen(g,W,H,b.u)));
+  drawZaunbanner(); drawRampenschilder();
 }
 /* Tafeln und Baender an die Bauwaende stellen */
 function buildBauabschnitte(){
-  /* Verkauf */
-  bautafel('shop_gross',7.6,1.75,0.0,-Math.PI/2);
-  absperrband('shop_gross',false,7.75,-4.4,4.4,1.05);
-  bautafel('shop_ost',19.6,1.75,0.0,-Math.PI/2);
-  absperrband('shop_ost',false,19.75,-4.2,4.2,1.05);
+  /* Die Tafel steht neben der Oeffnung, nicht davor - sonst
+     verdeckt sie genau den Blick, den sie ankuendigt. Das
+     Absperrband haengt nur dort, wo kein Bauzaun steht; der
+     traegt seine Warnstreifen selbst. */
+  bautafel('shop_gross',7.6,1.75,-3.3,-Math.PI/2);
+  bautafel('shop_ost',19.6,1.75,-3.2,-Math.PI/2);
   bautafel('shop_sued',20.5,1.75,-5.55,0);
-  absperrband('shop_sued',true,-5.75,10.0,17.0,1.05);
-  absperrband('shop_sued',true,-5.75,24.0,32.0,1.05);
-  /* Lager */
-  bautafel('lager_gross',-14.0,1.75,1.72,Math.PI);
-  absperrband('lager_gross',true,1.85,-19.0,-9.0,1.05);
-  bautafel('lager_sued',-11.0,1.75,-5.55,0);
-  absperrband('lager_sued',true,-5.75,-17.5,-10.5,1.05);
-  bautafel('lager_west',-19.6,1.75,-20.5,Math.PI/2);
-  absperrband('lager_west',false,-19.75,LAY.schleuse.z0+1.6,LAY.schleuse.z1-1.6,1.05);
+  bautafel('lager_gross',-8.4,1.75,1.72,Math.PI);
+  bautafel('lager_sued',-9.4,1.75,-5.55,0);
+  bautafel('lager_west',-19.6,1.75,-16.6,Math.PI/2);
 }
+
 function buildAusbau(){
   /* ---------- Verkaufsflaeche ----------
      Die Front uebernimmt die Nachbarfassade (05e), deshalb bekommen
@@ -548,8 +553,10 @@ function buildAusbau(){
   buildLagergang();
   buildLagerTerminal();
   buildBauabschnitte();
+  buildVorschau();
   buildPackstation();
   buildWestrampen();
+  buildRampenVorschau();
   buildLogistik();
 }
 

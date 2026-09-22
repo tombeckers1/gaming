@@ -810,6 +810,7 @@ function buyUp(id){
       else if(id==='lager_gross') toast('Das Lager ist geöffnet. Hinten ist Platz für Regale und die Packstation.','money');
       else if(id==='lager_sued') toast('Die Halle Süd steht offen: 6,4 Meter hoch, Platz für Hochregale.','money');
       else if(id==='lager_west') toast('Die Westhalle mit den drei Rampen gehört dir. Auf dem Hof stehen die Auflieger.','money');
+      else if(id.indexOf('rampe')===0) toast(`${u.name.split(' ')[0]} Andockstation geht in Betrieb. Das Tor ist frei.`,'money');
       else if(id==='packstation'){ drawPackSchild(); toast(S.up.onlineshop?'Die Packstation steht. Ab jetzt kommen Onlinebestellungen als Pakete herein.':'Die Packstation steht. Für den Versand brauchst du noch den Onlineshop.','money'); }
       addXP(Math.round(cost/12),'Ausbau'); sfx.cash(); save(); return;
     }

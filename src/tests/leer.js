@@ -23,8 +23,8 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     const out=[], vek=new THREE.Vector3();
     bb.scene.traverse(o=>{
       if(!o.isMesh||!o.geometry) return;
-      /* Gewollte Einrichtung ueberspringen */
-      for(let a=o;a;a=a.parent) if(a.userData&&a.userData.inventar) return;
+      /* Gewollte Einrichtung und die Baustellen-Vorschau ueberspringen */
+      for(let a=o;a;a=a.parent) if(a.userData&&(a.userData.inventar||a.userData.vorschau)) return;
       const pos=o.geometry.attributes&&o.geometry.attributes.position; if(!pos) return;
       let n=0,kx=1e9,gx=-1e9,ky=1e9,gy=-1e9,kz=1e9,gz=-1e9;
       for(let i=0;i<pos.count;i++){

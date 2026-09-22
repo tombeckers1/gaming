@@ -1188,7 +1188,7 @@ function buildWestrampen(){
       g.textAlign='center'; g.textBaseline='middle';
       g.fillStyle='#ffd23f'; g.font=BUN(32); g.fillText('WESTRAMPE',W/2,44);
       g.fillStyle='#bcd0ea'; g.font=BAR(24);
-      g.fillText('Tor 1 – 3 · Auflieger',W/2,86);
+      g.fillText('Tor 1 – 4 · Auflieger',W/2,86);
       g.fillText('Schrittgeschwindigkeit',W/2,118);
       g.fillStyle='#ff9d92'; g.font=BAR(22); g.fillText('Rauchen und Feuer verboten',W/2,152); })}),
       px,1.75,pz,Math.PI/2,null);

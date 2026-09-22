@@ -36,7 +36,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   const auf=await p.evaluate(()=>{
     const bb=window.__bb, o={};
     bb.S.level=30; bb.S.money=200000;
-    ['shop_gross','lager_gross','packstation','onlineshop','kasse2'].forEach(id=>bb.buyUp(id));
+    ['shop_gross','lager_gross','packstation','onlineshop','kasse2'].forEach(id=>bb.testKauf(id));
     o.gekauft={shop:bb.S.up.shop_gross,lager:bb.S.up.lager_gross,pack:bb.S.up.packstation,online:bb.S.up.onlineshop,sb:bb.S.up.kasse2};
     const z=id=>bb.ZONEN[id];
     o.wandSichtbar=['shop_gross','lager_gross','packstation'].map(id=>id+':'+z(id).wand.filter(m=>m.visible).length);
@@ -64,11 +64,11 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   const regale=await p.evaluate(()=>{
     const bb=window.__bb, o={};
     const vor=bb.shelves.length;
-    for(let i=0;i<8;i++) bb.buyUp('shelf_standard');
+    for(let i=0;i<8;i++) bb.regalStellen('standard');
     o.neu=bb.shelves.length-vor;
     o.maxX=Math.max(...bb.shelves.map(s=>+s.g.position.x.toFixed(1)));
     const vr=bb.racks.length;
-    for(let i=0;i<6;i++) bb.buyUp('rack');
+    for(let i=0;i<6;i++) bb.regalStellen('rack');
     o.racksNeu=bb.racks.length-vr;
     o.maxZ=Math.max(...bb.racks.map(r=>+r.g.position.z.toFixed(1)));
     return o;
@@ -174,8 +174,8 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   const voll=await p.evaluate(()=>{
     const bb=window.__bb, o={};
     bb.S.money=500000;
-    for(let i=0;i<20;i++) bb.buyUp('shelf_standard');
-    for(let i=0;i<20;i++) bb.buyUp('rack');
+    for(let i=0;i<20;i++) bb.regalStellen('standard');
+    for(let i=0;i<20;i++) bb.regalStellen('rack');
     o.regale=bb.shelves.length; o.racks=bb.racks.length;
     o.xNeu=bb.shelves.filter(sh=>sh.g.position.x>8).length;
     o.zNeu=bb.racks.filter(r=>r.g.position.z>2).length;

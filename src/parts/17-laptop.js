@@ -158,6 +158,21 @@ function cartOrder(){
   toast(`${n} Karton${n===1?'':'s'} bestellt · ${eur(total)}${fee?` inkl. ${eur(fee)} Versand`:' · versandkostenfrei'}. Ankunft in ${LIEFERZEIT_SEK} Sekunden.`,'money');
   save();
 }
+/* Ein Regal bei Regalbau Stegemann bestellen. Es kommt als
+   flaches Paket mit der naechsten Lieferung an die Rampe. */
+function orderRegal(id){
+  const r=regalOf(id); if(!r) return;
+  const K=regalKind(r);
+  if(!regalOffen(id)){ toast(`${K.name} ist noch nicht freigeschaltet.`,'bad'); return; }
+  if(!regalPlatz(id)){ toast(`Für ein weiteres ${K.name} ist kein Stellplatz frei.`,'bad'); return; }
+  const preis=regalPreis(id);
+  if(verfuegbar()<preis){ toast(`${K.name} kostet ${eur(preis)} — dir fehlen ${eur(r2(preis-verfuegbar()))}.`,'bad'); return; }
+  S.money=r2(S.money-preis); DS.upgrades=r2(DS.upgrades+preis);
+  pending.push({regal:id,t:lieferSek()*evv('delay'),sup:'mertens'});
+  sfx.cash(); S.tut.order=true;
+  toast(`${K.name} bestellt. Kommt mit dem nächsten LKW an die Rampe.`,'money');
+  save();
+}
 /* Direktbestellung eines einzelnen Postens (eigene Lieferung, eigener Versand) */
 function orderBox(t,n,supId){
   const sup=supplierOf(supId||lsup), p=P[t];
@@ -507,14 +522,41 @@ function renderLaptop(){
   const kb=$('lKorb'); if(kb) kb.textContent=korbBtnText();
   let h='', hint='';
   if(ltab==='order'){
-    const sup=supplierOf(lsup), avail=supAvail();
-    if(!avail.some(x=>x.id===lsup)) lsup='mertens';
-    hint=`Artikel in den Warenkorb legen, dann alles zusammen bestellen. Eine Lieferung braucht ${LIEFERZEIT_SEK} Sekunden, Versand ${eur(VERSAND)} und ab ${eur(VERSANDFREI)} Warenwert frei.`;
-    h=`<div class="row"><div class="rm"><b>Lieferanten</b><small>${sup.desc}</small><small class="${qualityLabel(sup.quality)[0]}">${qualityLabel(sup.quality)[1]} · Lieferzeit ${LIEFERZEIT_SEK} Sekunden</small></div></div>`+
-      `<div class="row" style="padding-top:6px"><div class="steps" style="justify-content:flex-start">`+
+    /* Regalbau Stegemann steht in derselben Reihe wie die
+       Warenlieferanten - er liefert nur eben Regale statt Ware. */
+    const istRegal=lsup==='regal';
+    const avail=supAvail();
+    if(!istRegal&&!avail.some(x=>x.id===lsup)) lsup='mertens';
+    const sup=istRegal?null:supplierOf(lsup);
+    const knoepfe=`<div class="row" style="padding-top:6px"><div class="steps" style="justify-content:flex-start">`+
       SUPPLIERS.map(x=>S.level>=x.lvl
         ? `<button data-a="sup" data-t="${x.id}" style="${x.id===lsup?'background:var(--signal);color:var(--ink)':'opacity:.8'}">${x.short}</button>`
-        : `<button disabled>${x.short} · Lvl ${x.lvl}</button>`).join('')+`</div></div>`;
+        : `<button disabled>${x.short} · Lvl ${x.lvl}</button>`).join('')+
+      `<button data-a="sup" data-t="regal" style="${istRegal?'background:var(--signal);color:var(--ink)':'opacity:.8'}">Regalbau</button>`+
+      `</div></div>`;
+    if(istRegal){
+      h=`<div class="row"><div class="rm"><b>Regalbau Stegemann</b><small>Ladenbau und Lagertechnik, seit 1974. Liefert an die Rampe — aufbauen musst du selbst.</small>`+
+        `<small>Paket aus dem Laderaum nehmen, an die Stelle tragen, an der es stehen soll, und mit „Ablegen“ aufbauen.</small>`+
+        `<small>Lieferzeit ${LIEFERZEIT_SEK} Sekunden · kein Versandzuschlag</small></div></div>`+knoepfe+
+        REGALWARE.map(r=>{
+          const K=regalKind(r), offen=regalOffen(r.id), platz=regalPlatz(r.id), pr=regalPreis(r.id);
+          const wo=r.art==='rack'?'Lager':'Verkaufsfläche';
+          if(!offen){
+            const v=r.req?UPGRADES.find(u=>u.id===r.req):null;
+            return `<div class="row locked"><div class="rm"><b>${K.name}</b><small>${wo}</small></div>`+
+              `<small>${S.level<r.lvl?`ab Level ${r.lvl}`:`braucht „${v?v.name:r.req}“`}</small></div>`;
+          }
+          return `<div class="row"><div class="rm"><b>${K.name}</b><small>${wo} · ${r.art==='rack'?`${K.lv.length} Ebenen, ${K.sp.length} Plätze je Ebene`:`${K.lv.length} Fächer`}</small>`+
+            `<small class="${platz?'ok':'no'}">${platz?'Ein Stellplatz ist frei':'Alle Stellplätze belegt'}</small></div>`+
+            `<div class="price">${eur(pr)}</div>`+
+            `<div class="steps"><button data-a="rbuy" data-t="${r.id}"${platz?'':' disabled'}>bestellen</button></div></div>`;
+        }).join('');
+      $('lbody').innerHTML=h;
+      if(korbOpen) renderKorb();
+      return;
+    }
+    hint=`Artikel in den Warenkorb legen, dann alles zusammen bestellen. Eine Lieferung braucht ${LIEFERZEIT_SEK} Sekunden, Versand ${eur(VERSAND)} und ab ${eur(VERSANDFREI)} Warenwert frei.`;
+    h=`<div class="row"><div class="rm"><b>Lieferanten</b><small>${sup.desc}</small><small class="${qualityLabel(sup.quality)[0]}">${qualityLabel(sup.quality)[1]} · Lieferzeit ${LIEFERZEIT_SEK} Sekunden</small></div></div>`+knoepfe;
     if(sup.mystery){
       h+=PACKS.map(pk=>{ const lock=S.level<pk.lvl;
         return `<div class="row${lock?' locked':''}"><div class="rm"><b>${pk.name}</b><small>${pk.desc}</small><small>Inhalt zufällig, Restposten-Qualität</small></div>`+
@@ -716,6 +758,7 @@ $('lbody').addEventListener('click',e=>{
   else if(a==='cartgo') cartOrder();
   else if(a==='cartclear') cartClear();
   else if(a==='sup'){ lsup=t; }
+  else if(a==='rbuy') orderRegal(t);
   else if(a==='pack') cartAddPack(t);
   else if(a==='p'){ S.prices[t]=Math.max(0.1,r2(S.prices[t]+parseFloat(b.dataset.d))); allLevels().forEach(l=>{ if(l.type===t) updateLabel(l); }); }
   else if(a==='pm'){ setPreisAufMarkt(t,1); }

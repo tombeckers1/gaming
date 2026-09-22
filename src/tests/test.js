@@ -37,7 +37,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     const bb=window.__bb,out={};
     bb.S.level=20; bb.S.money=90000;
     // Ausbau + Deko + Personal
-    ['shelf_klein','shelf_standard','shelf_standard','shelf_kuehl','rack','plakat','terminal','tag4','heizung','musik','radio','cams','regallicht','alarm'].forEach(id=>bb.buyUp(id));
+    ['REGAL:klein','REGAL:standard','REGAL:standard','REGAL:kuehl','REGAL:rack','plakat','terminal','tag4','heizung','musik','radio','cams','regallicht','alarm'].forEach(id=>bb.testKauf(id));
     ['pflanze','stehtisch','muell','teppich','lichter','ventilator','baum','neon','automat'].forEach(id=>bb.buyDeko(id));
     bb.setWall('mitternacht'); bb.setFloor('terrazzo');
     ['reinigung','auffueller','kassierer','security'].forEach(id=>{ bb.S.staff[id]=true; bb.hireStaff(id); });

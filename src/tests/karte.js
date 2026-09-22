@@ -91,12 +91,12 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     const bb=window.__bb, o={};
     bb.S.level=40; bb.S.money=5e6;
     ['shop_gross','shop_ost','shop_sued','lager_gross','lager_sued','lager_west','packstation','onlineshop','kasse2']
-      .forEach(id=>bb.buyUp(id));
+      .forEach(id=>bb.testKauf(id));
     o.zonen=['shop_gross','shop_ost','shop_sued','lager_gross','lager_sued','lager_west'].map(z=>z+':'+bb.zoneOffen(z));
     /* alles vollstellen */
-    const kauf=['shelf_klein','shelf_standard','shelf_hoch','shelf_kuehl','shelf_gondel','shelf_eck','rack','rack_hoch','rack_schwer'];
+    const kauf=['klein','standard','hoch','kuehl','gondel','eck','rack','rhoch','rschwer'];
     for(let r=0;r<80;r++){ let w=false;
-      for(const id of kauf){ const u=bb.UPGRADES.find(x=>x.id===id); if(u&&!u.done()){ bb.buyUp(id); w=true; } }
+      for(const id of kauf){ if(bb.regalStellen(id)) w=true; }
       if(!w) break; }
     o.slots=bb.SLOTS.length; o.regale=bb.shelves.length;
     o.racks=bb.racks.length; o.rackPlaetze=bb.RACKS.length;

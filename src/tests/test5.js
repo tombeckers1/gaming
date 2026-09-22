@@ -21,7 +21,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   const A=await p.evaluate(()=>{
     const bb=window.__bb,S=bb.S,o={};
     S.level=20; S.money=300000;
-    ['shelf_klein','shelf_standard','shelf_standard','shelf_hoch','shelf_kuehl'].forEach(id=>bb.buyUp(id));
+    ['REGAL:klein','REGAL:standard','REGAL:standard','REGAL:hoch','REGAL:kuehl'].forEach(id=>bb.testKauf(id));
     o.regale=bb.shelves.map(x=>x.kind);
     bb.orderBox('wunder',1,'mertens'); bb.orderBox('boeller',5,'kowalski'); bb.orderBox('raketen',20,'import');
     o.pending=bb.pending.length;
@@ -67,7 +67,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   // ---- Gravur ----
   const C=await p.evaluate(()=>{
     const bb=window.__bb,S=bb.S,o={};
-    bb.buyUp('gravur'); o.automat=!!document.querySelector('canvas')&&true;
+    bb.testKauf('gravur'); o.automat=!!document.querySelector('canvas')&&true;
     bb.orderBox('blanko',1,'mertens');
     for(let r=0;r<6;r++){ bb.run(12,0.05);
       for(let k=0;k<30;k++){ if(!bb.truck||bb.truck.state!=='docked'||!bb.truck.cargo.length) break;
@@ -106,7 +106,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   // ---- Großauftrag ----
   const E=await p.evaluate(()=>{
     const bb=window.__bb,S=bb.S,o={};
-    bb.buyUp('grosskunden');
+    bb.testKauf('grosskunden');
     bb.phase='open'; bb.clock=600;
     bb.phone.cd=0.01; bb.run(1,0.05);
     o.klingelt=bb.phone.state;

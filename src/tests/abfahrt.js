@@ -36,15 +36,17 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     o.schritteKlappe=torWaehrendKlappe.length;
     o.nachKlappe={zustand:bb.truck?bb.truck.state:'weg',klappe:bb.truck?+bb.truck.flap.toFixed(2):null,winkel:bb.truck&&bb.truck.bruecke?+bb.truck.bruecke.rotation.z.toFixed(2):null};
     o.torBliebOben=torWaehrendKlappe.every(t=>t>2.9);
-    /* Phase 2: Tor faehrt zu, LKW muss vollstaendig da bleiben */
+    /* Phase 2: Erst faehrt das Tor zu, dann erst der LKW weg. Er
+       darf sich keinen Zentimeter bewegen, solange das Tor noch
+       offen ist - sonst sieht man ihn durch die Oeffnung fahren. */
     let fehler=null, guard=0;
-    while(bb.truck&&bb.truck.state==='closing'&&guard++<3000){ bb.updateTruck(0.05);
+    const xZu=bb.truck?bb.truck.g.position.x:0;
+    while(bb.truck&&bb.truck.state==='torzu'&&guard++<3000){ bb.updateTruck(0.05);
       if(!bb.truck) break;
-      if(!bb.truck.raum&&bb.door.t>0.02) fehler='Laderaum weg bei offenem Tor';
-      if(!bb.truck.bruecke&&bb.door.t>0.02) fehler=fehler||'Klappe weg bei offenem Tor';
-      if(bb.truck.g.visible&&bb.door.t>0.02) fehler=fehler||'Aussenmodell sichtbar bei offenem Tor';
+      if(Math.abs(bb.truck.g.position.x-xZu)>0.02) fehler='LKW faehrt, waehrend das Tor noch zufaehrt';
       if(bb.truck.flap<0.99) fehler=fehler||'Klappe faellt wieder herunter'; }
     o.fehler=fehler;
+    o.torWarZuVorAbfahrt=bb.truck?bb.door.t<=0.05:null;
     o.nachTor=bb.truck?{zustand:bb.truck.state,tor:+bb.door.t.toFixed(2),raum:!!bb.truck.raum,aussen:bb.truck.g.visible}:'weg';
     /* Phase 3: LKW faehrt weg */
     for(let i=0;i<2000&&bb.truck;i++) bb.updateTruck(0.05);

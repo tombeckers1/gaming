@@ -52,6 +52,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     const bb=window.__bb,S=bb.S,o={};
     // Großauftrag: Ware muss im Lager liegen
     bb.openShop(); S.up.grosskunden=true;
+    while(bb.racks.length<2&&bb.regalStellen('rack'));   /* Lagerregale aufstellen */
     let call=null; for(let i=0;i<40&&!call;i++) call=bb.makeCall();
     o.auftrag=!!call;
     bb.phone.call=call; bb.phone.state='ringing'; bb.answerPhone(); bb.acceptDeal();

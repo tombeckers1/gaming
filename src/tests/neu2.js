@@ -47,34 +47,36 @@ async function neuesSpiel(p){
       if(y<3.6&&((x>-19.8&&x<-8.2&&z>-5.8&&z<1.8)||(x>-7.8&&x<7.8&&z>-5.8&&z<5.8))) drin++; }
     return {flocken:gesamt,imGebaeude:drin};
   })));
+  /* Neue Reihenfolge: erst faehrt der LKW an, dann erst geht das Tor
+     hoch; am Ende erst das Tor zu, dann faehrt er weg. Die Feinheiten
+     prueft lieferung.js, hier nur die Reihenfolge. */
   console.log('LKW:',JSON.stringify(await p.evaluate(()=>{
     const bb=window.__bb,o={};
     bb.doorOpen(false); for(let i=0;i<400;i++) bb.updateTruck(0.05);
     o.torVorher=+bb.door.t.toFixed(2);
     bb.spawnTruck([{type:'boeller',q:1}],'mertens','Mertens');
-    o.zustand0=bb.truck.state; o.torFaehrtAuf=bb.door.target>0;
-    let g=0; while(bb.truck.state==='torauf'&&g++<600) bb.updateTruck(0.05);
-    o.torOffenBeiFahrtbeginn=+bb.door.t.toFixed(2); o.zustand1=bb.truck.state;
-    const x0=bb.truck.g.position.x;
-    while(bb.truck.state==='reverse'&&g++<2000) bb.updateTruck(0.05);
-    o.rueckwaerts=bb.truck.g.position.x>x0; o.zustand2=bb.truck.state;
-    /* ausladen und rausfahren */
+    o.zustand0=bb.truck.state;
+    o.torBleibtZu=bb.door.target===0;
+    let g=0; while(bb.truck&&bb.truck.state==='anfahrt'&&g++<4000) bb.updateTruck(0.05);
+    o.zustand1=bb.truck?bb.truck.state:'weg';
+    o.torFaehrtAufNachAnfahrt=bb.door.target>0;
+    while(bb.truck&&bb.truck.state!=='docked'&&g++<6000) bb.updateTruck(0.05);
+    o.zustand2=bb.truck?bb.truck.state:'weg';
+    o.torOffen=+bb.door.t.toFixed(2);
     bb.setView(-22.5,-2,0,0);
-    while(bb.truck.cargo.length){ bb.S.carrying=null; bb.takeBox(bb.truck.cargo[0]); }
+    let s=0; while(bb.truck&&bb.truck.cargo.length&&s++<60){ bb.S.carrying=null; bb.takeBox(bb.truck.cargo[0]); }
+    o.laderaumLeer=bb.truck?bb.truck.cargo.length===0:null;
     bb.S.carrying=null; bb.updateCarry(); bb.setView(-14,-2,0,0);
-    while(bb.truck&&bb.truck.state==='docked'&&g++<600) bb.updateTruck(0.05);
-    while(bb.truck&&bb.truck.state==='flap'&&g++<900) bb.updateTruck(0.05);
-    o.zustand3=bb.truck?bb.truck.state:'weg';
-    o.torNochOffen=+bb.door.t.toFixed(2);
-    let torZuBei=null, fehler=null;
-    while(bb.truck&&g++<6000){
-      const vor=bb.door.target;
+    let torZuVorAbfahrt=null, fehler=null, xZu=null;
+    while(bb.truck&&g++<9000){
+      const st=bb.truck.state;
       bb.updateTruck(0.05);
       if(!bb.truck) break;
-      if(vor!==0&&bb.door.target===0) torZuBei=+bb.truck.g.position.x.toFixed(2);
-      if(bb.door.target===0&&bb.truck.g.position.x>bb.TOR.x-0.5) fehler='Tor zu obwohl LKW noch im Tor';
+      if(st==='torzu'){ if(xZu===null) xZu=bb.truck.g.position.x;
+        else if(Math.abs(bb.truck.g.position.x-xZu)>0.02) fehler='LKW faehrt, waehrend das Tor noch zufaehrt'; }
+      if(bb.truck.state==='out'&&torZuVorAbfahrt===null) torZuVorAbfahrt=bb.door.t<=0.05;
     }
-    o.torSchliesstBeiX=torZuBei; o.fehler=fehler;
+    o.torWarZuVorAbfahrt=torZuVorAbfahrt; o.fehler=fehler; o.amEnde=bb.truck?'noch da':'weg';
     return o;
   })));
   console.log('ERRORS:',errs.length?errs.join('\n'):'keine');

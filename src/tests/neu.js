@@ -25,7 +25,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
 
   console.log('REGALE:',JSON.stringify(await p.evaluate(()=>{ const bb=window.__bb,S=bb.S,o={};
     S.money=99999; S.level=20;
-    ['shelf_klein','shelf_standard','shelf_hoch','shelf_kuehl'].forEach(id=>bb.buyUp(id));
+    ['REGAL:klein','REGAL:standard','REGAL:hoch','REGAL:kuehl'].forEach(id=>bb.testKauf(id));
     o.arten=bb.shelves.map(s=>s.kind);
     o.faecher=bb.shelves.map(s=>s.levels.length);
     o.kapaKnallerbsen=bb.shelves.map(s=>bb.layout('knallerbsen',s).cap);
@@ -71,7 +71,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   await neuesSpiel(p); await p.waitForTimeout(200);
   console.log('ANFANG:',JSON.stringify(await p.evaluate(()=>{
     const bb=window.__bb,S=bb.S,o={start:S.money};
-    bb.buyUp('shelf_klein'); o.nachRegal=S.money; o.regale=bb.shelves.length; o.tutRegal=!!S.tut.shelf;
+    bb.regalStellen('klein'); o.nachRegal=S.money; o.regale=bb.shelves.length; o.tutRegal=!!S.tut.shelf;
     bb.orderBox('knallerbsen',1,'mertens'); bb.orderBox('wunder',1,'mertens');
     o.nachWare=Math.round(S.money*100)/100; o.bestellt=bb.pending.length;
     const drain=()=>{ for(let k=0;k<30;k++){ if(!bb.truck||bb.truck.state!=='docked'||!bb.truck.cargo.length) break;

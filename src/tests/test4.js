@@ -18,7 +18,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   await neuesSpiel(p); await p.waitForTimeout(200);
   const o=await p.evaluate(()=>{
     const bb=window.__bb,S=bb.S,o={};
-    S.level=10; S.money=25000; ['shelf_klein','shelf_standard','shelf_standard'].forEach(id=>bb.buyUp(id)); S.money=5000; bb.openShop(); bb.run(60,0.05);
+    S.level=10; S.money=25000; ['REGAL:klein','REGAL:standard','REGAL:standard'].forEach(id=>bb.testKauf(id)); S.money=5000; bb.openShop(); bb.run(60,0.05);
     let c=bb.customers[0];
     if(!c){ bb.run(60,0.05); c=bb.customers[0]; }
     if(!c) return {noCustomer:true};

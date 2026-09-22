@@ -28,7 +28,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   console.log('GESPERRT  ',JSON.stringify(await p.evaluate(()=>{
     const bb=window.__bb; bb.__toast=null;
     const alt=window.toast;
-    bb.buyUp('lager_west');
+    bb.testKauf('lager_west');
     return {gekauft:!!bb.S.up.lager_west, meldung:bb.toastLast||null};
   })));
 
@@ -38,7 +38,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     const kette=['shop_gross','shop_ost','shop_sued','lager_gross','lager_sued',
                  'lager_west','rampe2','rampe3','rampe4','packstation'];
     const out={};
-    for(const id of kette){ bb.buyUp(id); out[id]=!!bb.S.up[id]; }
+    for(const id of kette){ bb.testKauf(id); out[id]=!!bb.S.up[id]; }
     out.__alleGekauft=kette.every(id=>bb.S.up[id]);
     out.__dockPlaetze=bb.dockPlaetze();
     return out;
@@ -47,7 +47,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   /* Zu wenig Geld: auch das muss erklaert werden */
   console.log('ZU TEUER  ',JSON.stringify(await p.evaluate(()=>{
     const bb=window.__bb; bb.S.up.meister=false; bb.S.money=10;
-    bb.buyUp('meister');
+    bb.testKauf('meister');
     return {gekauft:!!bb.S.up.meister, meldung:bb.toastLast||null};
   })));
 

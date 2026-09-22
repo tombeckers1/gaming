@@ -126,7 +126,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     o.name=bb.P[e.id]?bb.P[e.id].name:null;
     o.station=bb.stationOf(e.id);
     /* Regalplatz und Bestellbarkeit */
-    for(let i=0;i<4;i++) bb.buyUp('shelf_standard');
+    for(let i=0;i<4;i++) bb.regalStellen('standard');
     o.regalPlatz=bb.shelfCapOf(e.id);
     o.einraeumbar=!!bb.emptyLevel(e.id);
     bb.cartClear(); bb.cartAdd(e.id,1,'mertens');

@@ -40,7 +40,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   r=await lauf(RAMPE,[-14.0,-9.0]);
   sag(`Halle Sued I vor dem Kauf zu (bis ${r.x}/${r.z})`,!r.an);
 
-  const kauf=id=>p.evaluate(i=>{ const bb=window.__bb; bb.S.level=99; bb.S.money=5e6; bb.buyUp(i);
+  const kauf=id=>p.evaluate(i=>{ const bb=window.__bb; bb.S.level=99; bb.S.money=5e6; bb.testKauf(i);
     return !!bb.S.up[i]; },id);
   sag('Halle Sued I gekauft',await kauf('lager_gross'));
   r=await lauf(RAMPE,[-14.0,-9.0]);

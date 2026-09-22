@@ -16,7 +16,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   console.log(JSON.stringify(await p.evaluate(()=>{
     const bb=window.__bb,S=bb.S,o={};
     S.money=5000; S.level=4;
-    ['shelf_klein','shelf_klein','shelf_standard'].forEach(id=>bb.buyUp(id));
+    ['REGAL:klein','REGAL:klein','REGAL:standard'].forEach(id=>bb.testKauf(id));
     o.regale=bb.shelves.map(s=>s.kind);
     o.faecher=bb.allLevels().length;
     o.freigeschaltet=Object.keys(bb.P).filter(t=>S.level>=bb.P[t].lvl&&!bb.P[t].noShelf).length;

@@ -16,7 +16,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   await p.click('#nameGo');
   await p.waitForFunction("!document.getElementById('start').classList.contains('show')",{timeout:20000});
   await p.evaluate(()=>{ const bb=window.__bb; bb.S.level=99; bb.S.money=5e6;
-    ['shop_gross','shop_ost','shop_sued','lager_gross','lager_sued','lager_west'].forEach(id=>bb.buyUp(id)); });
+    ['shop_gross','shop_ost','shop_sued','lager_gross','lager_sued','lager_west'].forEach(id=>bb.testKauf(id)); });
 
   let bad=0;
   const sag=(t,ok)=>{ console.log(`${t}: ${ok?'ok':'FEHLER'}`); if(!ok) bad++; };

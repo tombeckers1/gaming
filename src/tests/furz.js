@@ -44,8 +44,8 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     o.emitterLeer=bb.emitters.length===0;
     /* Verkauf: passen sie ins Regal und werden sie gekauft? */
     /* Erst Regale kaufen, dann passt auch etwas hinein */
-    for(let i=0;i<4;i++) bb.buyUp('shelf_standard');
-    for(let i=0;i<2;i++) bb.buyUp('shelf_hoch');
+    for(let i=0;i<4;i++) bb.regalStellen('standard');
+    for(let i=0;i<2;i++) bb.regalStellen('hoch');
     o.regale=bb.shelves.length;
     o.regalPlatz=['furzrakete','heuler','stinkbombe'].map(t=>bb.shelfCapOf(t));
     o.vergleich={raketenklein:bb.shelfCapOf('raketenklein'),doppelschlag:bb.shelfCapOf('doppelschlag'),knallerbsen:bb.shelfCapOf('knallerbsen')};

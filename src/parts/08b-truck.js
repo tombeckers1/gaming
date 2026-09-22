@@ -189,8 +189,13 @@ function fillCargo(){
   truck.cargo.forEach((c,i)=>{
     if(i>=32) return;
     const s=cargoSlot(i);
-    const m=new THREE.Mesh(kartonGeo,kartonMat[c.type]);
-    m.position.set(s.x,s.y,s.z); m.rotation.y=rand(-0.07,0.07);
+    /* Ein Regal kommt flach verpackt: ein langes schmales Paket,
+       kein Karton. So sieht man im Laderaum sofort, was drin ist. */
+    const m=c.regal
+      ? new THREE.Mesh(regalPaketGeo(),regalPaketMat())
+      : new THREE.Mesh(kartonGeo,kartonMat[c.type]);
+    m.position.set(s.x,c.regal?0.12+Math.floor(i/16)*0.42:s.y,s.z);
+    m.rotation.y=rand(-0.07,0.07);
     if(HIQ){ m.castShadow=true; m.receiveShadow=true; }
     m.userData={kind:'tbox',ref:c};
     scene.add(m); truck.boxes.push(m);
@@ -200,9 +205,11 @@ function spawnTruck(cargo,supId,supName){
   const colr=TRUCKCOL[supId]||TRUCKCOL.mertens;
   const g=makeTruck(supName||'Lieferung',colr);
   g.position.set(LR.rear-9.5,0,LR.z); scene.add(g);
-  truck={g,cargo,boxes:[],raum:null,bruecke:null,flap:0,flapCol:null,state:'torauf',t:0,name:supName,col:colr,cols:[]};
-  doorOpen(true);
-  toast(`${supName} setzt an die Rampe.`);
+  /* Erst faehrt der LKW an, dann geht das Tor hoch. Vorher lief es
+     andersherum: das Tor ging auf und man sah durch die offene
+     Oeffnung eine graue Wand auf sich zurollen. */
+  truck={g,cargo,boxes:[],raum:null,bruecke:null,flap:0,flapCol:null,state:'anfahrt',t:0,name:supName,col:colr,cols:[]};
+  toast(`${supName} rollt an die Rampe.`);
 }
 /* Ueberladebruecke = die heruntergeklappte Klappe des LKW.
    Existiert nur, solange der LKW an der Rampe steht. */
@@ -270,8 +277,8 @@ function clearRaum(){
 }
 function leaveTruck(){
   if(!truck||truck.state!=='docked') return;
-  /* Reihenfolge: Ladebordwand hoch, dann faehrt der LKW heraus, und
-     erst wenn er ganz draussen ist, geht das Tor zu. */
+  /* Reihenfolge: Ladebordwand hoch, dann geht das Tor zu, und erst
+     dann faehrt der LKW weg. */
   truck.state='flap'; truck.t=0;
   if(truckDriver){ scene.remove(truckDriver); truckDriver=null; }
 }
@@ -283,26 +290,57 @@ function removeTruck(){
 }
 function truckLeft(){ return truck&&truck.state==='docked'?truck.cargo.length:0; }
 /* Jeder vom LKW genommene Karton zaehlt als Lieferungsteil */
+/* Flaches Paket fuer ein Regal: Bretter und Profile, in Folie */
+let _rpGeo=null,_rpMat=null;
+function regalPaketGeo(){ if(!_rpGeo) _rpGeo=new THREE.BoxGeometry(0.34,0.24,1.18); return _rpGeo; }
+function regalPaketMat(){
+  if(_rpMat) return _rpMat;
+  const t=tex(256,128,(c,W,H)=>{
+    c.fillStyle='#b9bec6'; c.fillRect(0,0,W,H);
+    for(let i=0;i<900;i++){ c.fillStyle=`rgba(255,255,255,${Math.random()*0.16})`;
+      c.fillRect(Math.random()*W,Math.random()*H,rand(4,22),1); }
+    /* Umreifungsbaender */
+    c.fillStyle='#2b3040'; c.fillRect(W*0.22,0,8,H); c.fillRect(W*0.72,0,8,H);
+    /* Etikett */
+    c.fillStyle='#f4f2ea'; c.fillRect(W*0.34,H*0.28,W*0.32,H*0.44);
+    c.strokeStyle='#8f959e'; c.lineWidth=2; c.strokeRect(W*0.34,H*0.28,W*0.32,H*0.44);
+    c.fillStyle='#1b2340'; c.font=BUN(15); c.textAlign='center'; c.textBaseline='middle';
+    c.fillText('REGALBAU',W*0.5,H*0.42);
+    c.fillStyle='#5a6070'; c.font=BAR(13); c.fillText('Stegemann',W*0.5,H*0.58);
+  });
+  _rpMat=new THREE.MeshStandardMaterial({map:t,roughness:0.62});
+  return _rpMat;
+}
 function takeBox(item){ statAdd('kartons',1);
 
   if(!truck||truck.state!=='docked') return;
-  if(S.carrying){ toast('Du hast schon einen Karton auf dem Arm.'); return; }
+  if(S.carrying){ toast('Du hast schon etwas auf dem Arm.'); return; }
   const i=truck.cargo.indexOf(item); if(i<0) return;
   truck.cargo.splice(i,1);
-  S.carrying={type:item.type,count:P[item.type].box,q:item.q||1};
+  S.carrying=item.regal?{regal:item.regal}:{type:item.type,count:P[item.type].box,q:item.q||1};
   S.tut.pick=true; sfx.pop(); fillCargo(); updateCarry();
   if(!truck.cargo.length) toast('Laderaum leer. Geh raus, dann fährt er los.');
 }
 function takeFromTruck(){ if(truck&&truck.cargo.length) takeBox(truck.cargo[0]); }
+/* Ein Regalpaket ist kein Karton: der Mitarbeiter stellt es gleich
+   an der Rampe auf. Ist kein Stellplatz frei, geht es zurueck an den
+   Lieferanten - sonst stuende der LKW bis in alle Ewigkeit da. */
+function regalAusladen(c){
+  if(regalAufbauen(c.regal,DOCK.stand.x,DOCK.stand.z)) return;
+  S.money=r2(S.money+regalPreis(c.regal));
+  toast(`${regalName(c.regal)}: kein Stellplatz frei, der Fahrer nimmt es wieder mit.`,'bad');
+}
 function pullFromTruck(){
   if(!truck||truck.state!=='docked'||!truck.cargo.length) return null;
+  while(truck.cargo.length&&truck.cargo[0].regal){ regalAusladen(truck.cargo.shift()); fillCargo(); }
+  if(!truck.cargo.length) return null;
   const c=truck.cargo.shift(); fillCargo();
   return {type:c.type,count:P[c.type].box,q:c.q||1};
 }
 function dumpTruck(){
   if(!truck) return;
   const n=truck.cargo.length;
-  truck.cargo.forEach(c=>spawnFloorBox(c.type,P[c.type].box,null,c.q||1));
+  truck.cargo.forEach(c=>{ if(c.regal) regalAusladen(c); else spawnFloorBox(c.type,P[c.type].box,null,c.q||1); });
   truck.cargo.length=0;
   if(n) toast(`Der Fahrer hat ${n} Karton${n>1?'s':''} im Lager abgestellt.`);
   if(truck.state==='docked') leaveTruck(); else removeTruck();
@@ -311,15 +349,18 @@ function updateTruck(dt){
   updateDoor(dt);
   if(!truck) return;
   const g=truck.g;
-  if(truck.state==='torauf'){
-    /* Der LKW wartet vor dem Hof, bis das Tor ganz oben ist. */
-    if(doorIsOpen()) truck.state='reverse';
-  } else if(truck.state==='reverse'){
+  if(truck.state==='anfahrt'){
+    /* Rueckwaerts an die Rampe, das Tor bleibt dabei zu. */
     const d=LR.rear-g.position.x, sp=clamp(d*0.9,0.5,2.6);
     g.position.x+=sp*dt;
-    if(d<=0.03) dockTruck();
-  } else if(truck.state==='opening'){
-    if(doorIsOpen()) truck.state='docked';
+    if(d<=0.03){
+      g.position.x=LR.rear; truck.state='torauf';
+      doorOpen(true); toast('Der Fahrer steht an der Rampe. Das Tor fährt hoch.');
+    }
+  } else if(truck.state==='torauf'){
+    /* Der LKW steht schon; sobald das Tor oben ist, geht die
+       Bordwand herunter und der Laderaum wird begehbar. */
+    if(doorIsOpen()) dockTruck();
   } else if(truck.state==='docked'){
     if(!truck.cargo.length&&!trailerOccupied()){ truck.t+=dt; if(truck.t>1.2) leaveTruck(); }
     else truck.t=0;
@@ -335,17 +376,16 @@ function updateTruck(dt){
     if(truck.flap>=0.6&&!truck.flapCol) truck.flapCol=col(-20.26,-20.0,LR.z-1.6,LR.z+1.6);
     if(truck.flap>=1){
       /* Hinter der hochgeklappten Bordwand wird der begehbare Laderaum
-         gegen das Aussenmodell getauscht. */
+         gegen das Aussenmodell getauscht. Danach faehrt erst das Tor
+         zu und dann der LKW weg - nicht umgekehrt. */
       clearRaum(); g.visible=true;
-      truck.state='out'; truck.t=0;
+      truck.state='torzu'; truck.t=0; doorOpen(false);
     }
+  } else if(truck.state==='torzu'){
+    if(!door||door.t<=0.05){ truck.state='out'; truck.t=0; }
   } else if(truck.state==='out'){
     truck.t+=dt;
-    if(truck.t>0.45){
-      g.position.x-=Math.min(7,(truck.t-0.45)*5)*dt;
-      /* Ganz aus dem Tor heraus: jetzt erst faehrt es zu. */
-      if(g.position.x<TOR.x-0.9&&door&&door.target!==0) doorOpen(false);
-      if(g.position.x<lrFront()-14) removeTruck();
-    }
+    g.position.x-=Math.min(7,truck.t*5)*dt;
+    if(g.position.x<lrFront()-14) removeTruck();
   }
 }

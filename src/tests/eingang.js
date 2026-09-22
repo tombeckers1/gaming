@@ -32,7 +32,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   sag('vor dem Kauf keine SB-Spur offen',vor.offen===0);
 
   await p.evaluate(()=>{ const bb=window.__bb; bb.S.level=99; bb.S.money=5e6;
-    ['shop_gross','shop_ost','eingang2'].forEach(id=>bb.buyUp(id)); });
+    ['shop_gross','shop_ost','eingang2'].forEach(id=>bb.testKauf(id)); });
   /* Vor die Tuer stellen und ein paar Bilder laufen lassen, damit
      der Bewegungsmelder anspricht - die Tuer geht im Loop auf. */
   await p.evaluate(()=>window.__bb.setView(window.__bb.EING2.x,4.6,0,0));

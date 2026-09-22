@@ -20,7 +20,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     const bb=window.__bb,S=bb.S,o={};
     S.money=200000; S.level=20;
     // alles freischalten
-    ['shelf_klein','shelf_standard','shelf_standard','shelf_hoch','shelf_kuehl','shelf_standard','shelf_hoch','shelf_standard','rack','rack','rack','plakat','terminal','tag4','heizung','musik','radio','cams','regallicht','alarm'].forEach(id=>bb.buyUp(id));
+    ['REGAL:klein','REGAL:standard','REGAL:standard','REGAL:hoch','REGAL:kuehl','REGAL:standard','REGAL:hoch','REGAL:standard','REGAL:rack','REGAL:rack','REGAL:rack','plakat','terminal','tag4','heizung','musik','radio','cams','regallicht','alarm'].forEach(id=>bb.testKauf(id));
     ['pflanze','muell','teppich','lichter','ventilator','baum','neon','automat'].forEach(id=>bb.buyDeko(id));
     ['reinigung','auffueller','kassierer','security'].forEach(id=>{ S.staff[id]=true; bb.hireStaff(id); });
     o.shelves=bb.shelves.length; o.racks=bb.racks.length;

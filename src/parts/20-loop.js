@@ -93,7 +93,7 @@ function step(dt){
     for(let i=0;i<pending.length&&wave.length<32;i++) if(pending[i].t<=16) wave.push(pending[i]);
     if(!wave.length) break;
     wave.forEach(w=>pending.splice(pending.indexOf(w),1));
-    const sid=wave[0].sup||'mertens', ladung=wave.map(w=>({type:w.type,q:w.q||1}));
+    const sid=wave[0].sup||'mertens', ladung=wave.map(w=>w.regal?{regal:w.regal}:{type:w.type,q:w.q||1});
     if(frei<0) spawnTruck(ladung,sid,supplierOf(sid).name);
     else if(!spawnWTruck(frei,ladung,sid,supplierOf(sid).name)) break;
   }

@@ -39,7 +39,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   const start=await p.evaluate(()=>{
     const bb=window.__bb;
     bb.S.level=20; bb.S.money=99999;
-    bb.buyUp('shelf_standard');
+    bb.regalStellen('standard');
     const lv=bb.shelves[0].levels[0];
     for(let i=0;i<6;i++) bb.addToLevel(lv,'boeller',1);
     return {regale:bb.shelves.length,bg:bb.S.schildBg,fg:bb.S.schildFg};

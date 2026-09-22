@@ -25,14 +25,18 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
       /* Nebensaison: Personal in Kurzarbeit, in der Saison zurueck an Bord */
       const flau=bb.dayMult(S.day)<0.95;
       for(const st of bb.STAFF){ if(S.staff[st.id]&&bb.inPause(st.id)!==flau) bb.setPause(st.id,flau); }
-      const kinds=['shelf_klein','shelf_standard','shelf_hoch','shelf_kuehl','shelf_gondel','shelf_eck'];
+      /* Regale kommen jetzt vom Lieferanten: bestellen, bezahlen,
+         der LKW bringt sie. Pro Durchlauf hoechstens eines je Art,
+         sonst bestellt der Testspieler auf denselben Platz zehnmal. */
+      const unterwegs=()=>bb.pending.filter(q=>q.regal).length;
+      const kinds=['klein','standard','hoch','kuehl','gondel','eck','rack','rhoch','rschwer'];
       for(const id of kinds){
-        const u=bb.UPGRADES.find(x=>x.id===id);
-        while(u&&S.level>=u.lvl&&!u.done()&&S.money>u.cost()*1.7+90&&bb.shelves.length<bb.slotsOffen().length) bb.buyUp(id);
+        if(bb.regalOffen(id)&&bb.regalPlatz(id)&&S.money>bb.regalPreis(id)*1.7+90
+           &&bb.shelves.length+bb.racks.length+unterwegs()<bb.slotsOffen().length+bb.RACKS.length) bb.orderRegal(id);
       }
-      for(const id of ['shop_gross','lager_gross','packstation','kasse2','onlineshop','grosskunden','rack','rack_hoch','rack_schwer','shop_ost','lager_sued','shop_sued','lager_west','plakat','terminal','heizung','musik','cams','regallicht','alarm','klima']){
+      for(const id of ['shop_gross','lager_gross','packstation','kasse2','onlineshop','grosskunden','shop_ost','lager_sued','shop_sued','lager_west','plakat','terminal','heizung','musik','cams','regallicht','alarm','klima']){
         const u=bb.UPGRADES.find(x=>x.id===id);
-        if(u&&S.level>=u.lvl&&!u.done()&&(!u.req||S.up[u.req])&&S.money>u.cost()*(u.kat==='flaeche'?1.25:2.2)*puffer+400) bb.buyUp(id);
+        if(u&&S.level>=u.lvl&&!u.done()&&(!u.req||S.up[u.req])&&S.money>u.cost()*(u.kat==='flaeche'?1.25:2.2)*puffer+400) bb.testKauf(id);
       }
       /* Lizenzpakete kaufen, sobald sie ohne Not bezahlbar sind.
          In der Nebensaison bleibt mehr Puffer stehen. */

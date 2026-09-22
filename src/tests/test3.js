@@ -21,7 +21,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     o.startLevel=S.level; o.startDay=S.day; o.startBoxes=bb.floorBoxes.length; o.startShelves=bb.shelves.length; o.startRacks=bb.racks.length;
     o.unlockedAtStart=Object.keys(S.prices).filter(t=>S.level>=window.__bb.S.level&&true).length;
     // Bestellung
-    S.money=20000; ['shelf_klein','shelf_standard','shelf_standard'].forEach(id=>bb.buyUp(id)); S.money=1000; bb.openLaptop();
+    S.money=20000; ['REGAL:klein','REGAL:standard','REGAL:standard'].forEach(id=>bb.testKauf(id)); S.money=1000; bb.openLaptop();
     document.querySelector('#lbody button[data-a="cart"][data-t="wunder"]').click();
     o.imKorb=bb.cartBoxes(); o.versand=bb.cartFee();
     document.getElementById('lKorb').click();

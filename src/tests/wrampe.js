@@ -23,7 +23,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
       .forEach(id=>{ bb.S.up[id]=true; if(bb.ZONEN[id]) bb.oeffneZone(id,false); });
     bb.applyZonen(); bb.wbaysInit();
     r.halleOffen=bb.dockPlaetze();
-    ['rampe2','rampe3','rampe4'].forEach(id=>bb.buyUp(id));
+    ['rampe2','rampe3','rampe4'].forEach(id=>bb.testKauf(id));
     r.alleGekauft=bb.dockPlaetze();
     r.gekaufteIds=['rampe2','rampe3','rampe4'].map(id=>!!bb.S.up[id]);
     r.freieRampe=bb.wbayFrei();

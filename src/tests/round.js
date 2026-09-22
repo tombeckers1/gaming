@@ -57,6 +57,7 @@ async function neuesSpiel(p){
   })));
   console.log('REGAL:',JSON.stringify(await p.evaluate(()=>{
     const bb=window.__bb,o={};
+    bb.regalStellen('rack');
     const rk=bb.racks[0];
     const px=()=>rk.schildTex.image.getContext('2d').getImageData(0,80,rk.schildTex.image.width,120).data.join('');
     const leer=px();

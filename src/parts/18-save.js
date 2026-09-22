@@ -6,8 +6,11 @@ function freshState(){ const prices={}; ORDER.forEach(t=>prices[t]=P[t].market);
   return {v:3,money:500,rep:50,level:1,xp:0,season:1,day:0,loan:null,prices,grime:0,
     up:{plakat:false,terminal:false,tag4:false,heizung:false,musik:false,radio:false,cams:false,regallicht:false,alarm:false,shop_gross:false,lager_gross:false,packstation:false,kasse2:false,labor:false,labor2:false},
     staff:{},prio:{},wage:{},pause:{},ev:null,goal:null,mkt:1,comp:1,deko:[],wall:'creme',floor:'grau',schildBg:'auto',schildFg:'weiss',paint:[],test:null,stamm:{},
-    shelves:[],racks:[null],
-    boxes:[],
+    /* Der Laden startet leer: kein Verkaufsregal, kein Lagerregal.
+       Beides bestellt man bei Regalbau Stegemann, und der LKW
+       bringt es an die Rampe. */
+    shelves:[],racks:[],
+    boxes:[],regale:[],
     carrying:null,tut:{},seasonRevenue:0,cart:[],offen:0,pakete:0,lic:['start'],stat:{},erf:{},gesehen:[],eigene:[],gutschrift:0,mi:{},me:{},reg:{},mh:{},schock:{},news:[],infl:1,shopName:SHOP_DEFAULT,slogan:SLOGAN_DEFAULT}; }
 function loadSave(){ try{ const r=localStorage.getItem(KEY); if(!r) return null; const d=JSON.parse(r); return d&&d.v===3?d:null; }catch(e){ return null; } }
 function mpos(g){ return g?{x:+g.position.x.toFixed(2),z:+g.position.z.toFixed(2),ry:+g.rotation.y.toFixed(3)}:null; }
@@ -20,7 +23,12 @@ function save(){
       ck:mpos(ckG),desk:mpos(deskG),sb2:mpos(sb2G),
       shelves:shelves.map(s=>Object.assign(mpos(s.g),{kind:s.kind,levels:s.levels.map(l=>({type:l.type,count:l.count,q:l.q||1}))})),
       racks:racks.map(r=>Object.assign(mpos(r.g),{kind:r.kind,slots:r.slots.map(s=>s.box?{type:s.box.type,count:s.box.count,q:s.box.q||1}:null)})),
-      boxes:floorBoxes.map(b=>({type:b.type,count:b.count,q:b.q||1,x:+b.mesh.position.x.toFixed(2),y:+b.mesh.position.y.toFixed(2),z:+b.mesh.position.z.toFixed(2),ry:+b.mesh.rotation.y.toFixed(2)})).concat(pending.map(p=>({type:p.type,count:P[p.type].box,q:p.q||1}))).concat((typeof truck!=='undefined'&&truck?truck.cargo:[]).map(c=>({type:c.type,count:P[c.type].box,q:c.q||1})))};
+      /* Unterwegs bestellte Regale gehen beim Speichern nicht
+         verloren: sie stehen als eigene Liste im Spielstand. */
+      regale:pending.filter(p=>p.regal).map(p=>p.regal)
+        .concat((typeof truck!=='undefined'&&truck?truck.cargo:[]).filter(c=>c.regal).map(c=>c.regal))
+        .concat(S.carrying&&S.carrying.regal?[S.carrying.regal]:[]),
+      boxes:floorBoxes.map(b=>({type:b.type,count:b.count,q:b.q||1,x:+b.mesh.position.x.toFixed(2),y:+b.mesh.position.y.toFixed(2),z:+b.mesh.position.z.toFixed(2),ry:+b.mesh.rotation.y.toFixed(2)})).concat(pending.filter(p=>!p.regal).map(p=>({type:p.type,count:P[p.type].box,q:p.q||1}))).concat((typeof truck!=='undefined'&&truck?truck.cargo:[]).filter(c=>!c.regal).map(c=>({type:c.type,count:P[c.type].box,q:c.q||1})))};
     localStorage.setItem(KEY,JSON.stringify(d));
   }catch(e){}
 }
@@ -69,9 +77,12 @@ function startGame(fresh){
   if(d&&d.sb2&&sb2Mov) placeMovable(sb2Mov,d.sb2.x,d.sb2.z,d.sb2.ry);
   (S.shelves||F.shelves).slice(0,SLOTS.length).forEach((sd,i)=>createShelf(i,sd));
   (S.racks||F.racks).slice(0,RACKS.length).forEach((rd,i)=>createRack(i,rd));
-  while(racks.length<1) createRack(racks.length,null);
+
   (S.deko||[]).forEach(dk=>{ if(DEKO.some(x=>x.id===dk.id)) createDeko(dk.id,dk); });
   (S.boxes||F.boxes).forEach(fb=>{ if(P[fb.type]&&fb.count>0) spawnFloorBox(fb.type,fb.count,fb.x!==undefined?{x:fb.x,y:fb.y,z:fb.z,ry:fb.ry}:null,fb.q||1); });
+  /* Bestellte, aber noch nicht aufgebaute Regale wieder auf den Weg
+     bringen - sie kommen mit der naechsten Lieferung. */
+  (S.regale||[]).forEach(id=>{ if(regalOf(id)) pending.push({regal:id,t:lieferSek(),sup:'mertens'}); });
   if(S.up.gravur){ buildGravur(d&&d.grav?d.grav:null); gravBlanks=Math.max(0,Math.min(GRAV_MAX,(d&&d.blanks)|0)); drawGrav(); }
   STAFF.forEach(s=>{ if(S.staff[s.id]&&!inPause(s.id)) hireStaff(s.id); });
   if(S.up.regallicht){ shelfLight.intensity=0.8; shelfStrips.forEach(m=>m.emissiveIntensity=1.5); }

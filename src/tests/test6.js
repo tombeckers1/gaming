@@ -19,7 +19,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   // Gier-Test: platzt der Deal?
   const G=await p.evaluate(()=>{
     const bb=window.__bb,o={};
-    bb.S.level=20; bb.S.money=99999; bb.buyUp('grosskunden');
+    bb.S.level=20; bb.S.money=99999; bb.testKauf('grosskunden');
     bb.phase='open'; bb.clock=600; bb.phone.cd=0.01; bb.run(1,0.05); bb.answerPhone();
     for(let i=0;i<8;i++) bb.haggle(0.2);
     o.geplatztAngezeigt=document.getElementById('dLine').textContent;

@@ -103,16 +103,9 @@ const ORDER=Object.keys(P);
 const CATNAME={0:'Zubehör',1:'F1',2:'F2'};
 
 /* Ausbau, Deko, Personal ---------------------------------- */
+/* Regale stehen hier nicht mehr: sie werden bei Regalbau
+   Stegemann bestellt und kommen mit dem LKW (siehe REGALWARE). */
 const UPGRADES=[
-  {id:'shelf_klein',kat:'einr',lvl:1,name:'Kleines Regal',desc:'Drei schmale Fächer. Der günstige Einstieg.',cost:()=>SHELFKIND.klein.cost+SHELFKIND.klein.step*shelfCount('klein'),done:()=>alleBelegt('klein')},
-  {id:'shelf_standard',kat:'einr',lvl:4,name:'Verkaufsregal',desc:'Vier volle Fächer, doppelt so breit wie das kleine.',cost:()=>SHELFKIND.standard.cost+SHELFKIND.standard.step*shelfCount('standard'),done:()=>alleBelegt('standard')},
-  {id:'shelf_kuehl',kat:'einr',lvl:6,name:'Sekt-Kühlschrank',desc:'Glastüren, Innenlicht. Nimmt nur Sekt und Kindersekt, die verkaufen sich darin deutlich besser.',cost:()=>SHELFKIND.kuehl.cost+SHELFKIND.kuehl.step*shelfCount('kuehl'),done:()=>alleBelegt('kuehl')},
-  {id:'shelf_hoch',kat:'einr',lvl:10,name:'Hochregal',desc:'Fünf Fächer auf zwei Metern. Mehr Ware pro Stellfläche.',cost:()=>SHELFKIND.hoch.cost+SHELFKIND.hoch.step*shelfCount('hoch'),done:()=>alleBelegt('hoch')},
-  {id:'rack',kat:'einr',lvl:3,name:'Lagerregal',desc:'Neun Stellplätze für Kartons im Lager.',cost:()=>120+80*rackCount('standard'),done:()=>rackAlleBelegt('standard')},
-  {id:'shelf_gondel',kat:'einr',lvl:12,req:'shop_gross',name:'Mittelgondel',desc:'Steht frei im Raum, Ware auf beiden Seiten: acht Fächer auf einer Stellfläche. Braucht einen Inselplatz in der neuen Verkaufsfläche.',cost:()=>SHELFKIND.gondel.cost+SHELFKIND.gondel.step*shelfCount('gondel'),done:()=>alleBelegt('gondel')},
-  {id:'shelf_eck',kat:'einr',lvl:14,req:'shop_gross',name:'Eckregal',desc:'Zwei Schenkel über Eck. Nutzt die Raumecken, die sonst tote Fläche wären.',cost:()=>SHELFKIND.eck.cost+SHELFKIND.eck.step*shelfCount('eck'),done:()=>alleBelegt('eck')},
-  {id:'rack_hoch',kat:'einr',lvl:16,req:'lager_gross',name:'Hochregal (Lager)',desc:'Fünf Ebenen auf über vier Metern. Passt nur in die hohe Halle Süd und in den Großhandel.',cost:()=>RACKKIND.hoch.cost+RACKKIND.hoch.step*rackCount('hoch'),done:()=>rackAlleBelegt('hoch')},
-  {id:'rack_schwer',kat:'einr',lvl:18,req:'lager_gross',name:'Schwerlastregal',desc:'Breiter, tiefer, vier Stellplätze je Ebene. Das größte Regal im Lager.',cost:()=>RACKKIND.schwer.cost+RACKKIND.schwer.step*rackCount('schwer'),done:()=>rackAlleBelegt('schwer')},
   {id:'plakat',kat:'markt',lvl:4,name:'Werbeplakate in der Stadt',desc:'Dauerhaft rund 30 Prozent mehr Kunden.',cost:()=>400,done:()=>S.up.plakat},
   {id:'terminal',kat:'einr',lvl:6,name:'Kontaktlos-Terminal',desc:'Kartenzahlung geht deutlich schneller.',cost:()=>320,done:()=>S.up.terminal},
   {id:'tag4',kat:'markt',lvl:7,name:'Sonntagsgenehmigung',desc:'Du darfst auch sonntags öffnen. Sonst ist Sonntag Ruhetag.',cost:()=>900,done:()=>S.up.tag4},
@@ -305,6 +298,45 @@ const SHELFKIND={
 };
 const SHELFORDER=['klein','standard','hoch','kuehl','gondel','eck'];
 /* =========================================================
+   Regalbau Stegemann. Regale stehen nicht mehr auf Knopfdruck im
+   Laden - man bestellt sie wie Ware, der LKW bringt sie als
+   flache Pakete an die Rampe, und wo man das Paket abstellt,
+   baut man das Regal auf. Der Lieferant ist von Anfang an da;
+   was man bei ihm bekommt, haengt am Level wie bei allem anderen.
+   ========================================================= */
+const REGALWARE=[
+  {id:'klein',   art:'shelf',kind:'klein',   lvl:1},
+  {id:'rack',    art:'rack', kind:'standard',lvl:1},
+  {id:'standard',art:'shelf',kind:'standard',lvl:4},
+  {id:'kuehl',   art:'shelf',kind:'kuehl',   lvl:6},
+  {id:'hoch',    art:'shelf',kind:'hoch',    lvl:10},
+  {id:'gondel',  art:'shelf',kind:'gondel',  lvl:12,req:'shop_gross'},
+  {id:'eck',     art:'shelf',kind:'eck',     lvl:14,req:'shop_gross'},
+  {id:'rhoch',   art:'rack', kind:'hoch',    lvl:16,req:'lager_gross'},
+  {id:'rschwer', art:'rack', kind:'schwer',  lvl:18,req:'lager_gross'}
+];
+function regalOf(id){ return REGALWARE.find(x=>x.id===id)||null; }
+function regalKind(r){ return r.art==='rack'?RACKKIND[r.kind]:SHELFKIND[r.kind]; }
+function regalName(id){ const r=regalOf(id); return r?regalKind(r).name:'Regal'; }
+/* Preis wie bisher: Grundpreis plus Aufschlag je bereits
+   aufgestelltem Regal derselben Art. */
+function regalPreis(id){
+  const r=regalOf(id); if(!r) return 0;
+  const K=regalKind(r);
+  const n=r.art==='rack'?rackCount(r.kind):shelfCount(r.kind);
+  return r2(K.cost+K.step*n);
+}
+/* Passt noch eins in den Laden? */
+function regalPlatz(id){
+  const r=regalOf(id); if(!r) return false;
+  return r.art==='rack'?rackFreiFuer(r.kind):freiFuer(r.kind);
+}
+function regalOffen(id){
+  const r=regalOf(id); if(!r) return false;
+  if(S.level<r.lvl) return false;
+  return !r.req||!!S.up[r.req];
+}
+/* =========================================================
    Stellplaetze im Laden. Die Basisflaeche bleibt genau wie
    bisher, die Ausbaustufen bringen Wandreihen, Mittelgondeln
    und Eckregale dazu.
@@ -488,7 +520,7 @@ function levelUnlocks(l){
   return out;
 }
 const TUT=[
-  ['shelf','Dein Laden ist leer. Geh an den Laptop im Büro-Eck rechts und kauf unter Ausbau ein kleines Regal.','Laptop: kleines Regal kaufen.'],
+  ['shelf','Dein Laden ist leer. Geh an den Laptop im Büro-Eck rechts und bestell unter Bestellen bei Regalbau ein kleines Regal.','Laptop: Regal bei Regalbau bestellen.'],
   ['order','Jetzt Ware: im Laptop unter Bestellen einen Karton ordern.','Laptop: Ware bestellen.'],
   ['lkw','Die Lieferung kommt per LKW in den Hof hinterm Lager. Geh durchs Lager nach draußen und lade aus.','LKW im Hof hinterm Lager ausladen.'],
   ['stock','Räum die Ware ins Regal. Jedes Fach nimmt eine Sorte auf.','Ware ins Regalfach einräumen.'],

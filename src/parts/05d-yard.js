@@ -346,26 +346,30 @@ function buildYard(){
     const scr=plane(0.285,0.155,new THREE.MeshBasicMaterial({map:pultTex,toneMapped:false}),-0.030,0.031,-0.042,0,pult);
     scr.rotation.x=-Math.PI/2;
 
-    /* Schlagtaster rechts: Sockel, Kragen, gewoelbte Pilzkappe */
+    /* Schlagtaster rechts. Keine Textur auf der Kuppel: eine
+       Kugel bekommt ihre UV um den Aequator gewickelt, ein
+       aufgemalter Schriftzug wird dort zu einem schwarzen Fleck
+       am Pol. Der Taster ist darum aus Volumen gebaut -
+       Einbauring, Raendelmutter, Schaft, Teller, Kuppel - und die
+       Beschriftung steht auf der Pultplatte daneben. */
     const TX=0.295, TZ=-0.02;
-    const sockel=new THREE.Mesh(new THREE.CylinderGeometry(0.080,0.090,0.026,HIQ?28:16),kante);
-    sockel.position.set(TX,0.022,TZ); pult.add(sockel);
-    const kragen=new THREE.Mesh(new THREE.TorusGeometry(0.076,0.009,8,HIQ?26:14),std(0x6f757e,{metalness:0.7,roughness:0.32}));
-    kragen.position.set(TX,0.036,TZ); kragen.rotation.x=Math.PI/2; pult.add(kragen);
-    const btn=new THREE.Mesh(new THREE.CylinderGeometry(0.070,0.063,0.030,HIQ?30:18),std(0xb4261d,{roughness:0.34}));
-    btn.position.set(TX,0.050,TZ); if(HIQ) btn.castShadow=true; pult.add(btn);
-    const kappe=new THREE.Mesh(new THREE.SphereGeometry(0.070,HIQ?30:18,HIQ?14:8,0,Math.PI*2,0,Math.PI*0.5),
-      new THREE.MeshStandardMaterial({roughness:0.22,metalness:0.06,
-        map:tex(256,256,(c,W,H)=>{
-          const gr=c.createRadialGradient(W*0.38,H*0.34,10,W/2,H/2,W*0.52);
-          gr.addColorStop(0,'#ff6f60'); gr.addColorStop(0.45,'#df382b'); gr.addColorStop(1,'#a01c15');
-          c.fillStyle=gr; c.beginPath(); c.arc(W/2,H/2,W*0.5,0,Math.PI*2); c.fill();
-          c.strokeStyle='rgba(255,255,255,.4)'; c.lineWidth=7;
-          c.beginPath(); c.arc(W/2,H/2,W*0.43,Math.PI*0.95,Math.PI*1.7); c.stroke();
-          c.fillStyle='rgba(255,255,255,.95)'; c.textAlign='center'; c.textBaseline='middle';
-          c.font=BUN(40); c.fillText('ZÜNDEN',W/2,H/2+4);
-        })}));
-    kappe.position.set(TX,0.065,TZ); kappe.scale.y=0.45; pult.add(kappe);
+    const rotDunkel=std(0x8e1a11,{roughness:0.42,metalness:0.02});
+    const rotKorpus=std(0xbe2418,{roughness:0.3,metalness:0.03});
+    const rotHell=std(0xd93b2c,{roughness:0.24,metalness:0.03});
+    const ring=new THREE.Mesh(new THREE.CylinderGeometry(0.086,0.092,0.020,HIQ?32:16),kante);
+    ring.position.set(TX,0.020,TZ); pult.add(ring);
+    const raend=new THREE.Mesh(new THREE.CylinderGeometry(0.079,0.079,0.015,HIQ?24:12),
+      std(0x7a8089,{metalness:0.75,roughness:0.28}));
+    raend.position.set(TX,0.036,TZ); pult.add(raend);
+    const schaft=new THREE.Mesh(new THREE.CylinderGeometry(0.050,0.050,0.022,HIQ?24:12),rotDunkel);
+    schaft.position.set(TX,0.051,TZ); pult.add(schaft);
+    const teller=new THREE.Mesh(new THREE.CylinderGeometry(0.075,0.057,0.028,HIQ?32:16),rotKorpus);
+    teller.position.set(TX,0.073,TZ); if(HIQ) teller.castShadow=true; pult.add(teller);
+    const kuppe=new THREE.Mesh(new THREE.SphereGeometry(0.075,HIQ?32:16,HIQ?12:6,0,Math.PI*2,0,Math.PI*0.5),rotHell);
+    kuppe.position.set(TX,0.086,TZ); kuppe.scale.y=0.26; pult.add(kuppe);
+    /* Fase am Tellerrand, damit die Kante nicht hart abbricht */
+    const fase=new THREE.Mesh(new THREE.TorusGeometry(0.0735,0.006,6,HIQ?28:14),rotDunkel);
+    fase.position.set(TX,0.0865,TZ); fase.rotation.x=Math.PI/2; pult.add(fase);
     /* Schutzbuegel: zwei Stuetzen und ein Halbbogen darueber. Der
        Torus liegt von Haus aus in der xy-Ebene - genau so, wie ein
        Buegel ueber dem Taster stehen muss. Eine Drehung braucht er

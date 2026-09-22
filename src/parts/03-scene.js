@@ -21,7 +21,19 @@ camera.rotation.order='YXZ';
 scene.add(camera);
 const hemi=new THREE.HemisphereLight(0xdde8ff,0x4a4034,0.72); scene.add(hemi);
 const sun=new THREE.DirectionalLight(0xfff0dc,1.6); sun.position.set(-18,30,26); scene.add(sun); scene.add(sun.target);
-if(HIQ){ sun.castShadow=true; sun.shadow.mapSize.set(2048,2048); const sc=sun.shadow.camera; sc.left=-30; sc.right=30; sc.top=30; sc.bottom=-30; sc.near=5; sc.far=95; sun.shadow.bias=-0.0006; sun.shadow.normalBias=0.02; }
+/* Der Schattenbereich der Sonne ist 68 x 68 Meter gross. Das
+   Grundstueck ist inzwischen ueber 180 Meter lang, also kann die
+   Box nicht fest stehen: sie endete mitten auf dem Testfeld, und
+   dort lief eine harte Kante quer ueber den Boden - links Schatten,
+   rechts keiner. updateSonne() zieht sie im Loop dem Spieler nach,
+   die Lichtrichtung bleibt dabei dieselbe. */
+const SONNE_OFF={x:-18,y:30,z:26};
+if(HIQ){ sun.castShadow=true; sun.shadow.mapSize.set(2048,2048); const sc=sun.shadow.camera; sc.left=-34; sc.right=34; sc.top=34; sc.bottom=-34; sc.near=5; sc.far=95; sun.shadow.bias=-0.0006; sun.shadow.normalBias=0.02; }
+function updateSonne(x,z){
+  sun.target.position.set(x,0,z);
+  sun.position.set(x+SONNE_OFF.x,SONNE_OFF.y,z+SONNE_OFF.z);
+  sun.target.updateMatrixWorld();
+}
 const shopSpot=new THREE.SpotLight(0xfff1dc,1.35,24,1.2,0.8,1.1); shopSpot.position.set(-0.5,3.45,-0.3); shopSpot.target.position.set(-0.5,0,-0.3); scene.add(shopSpot); scene.add(shopSpot.target);
 if(HIQ){ shopSpot.castShadow=true; shopSpot.shadow.mapSize.set(1024,1024); shopSpot.shadow.camera.near=0.5; shopSpot.shadow.camera.far=9; shopSpot.shadow.bias=-0.0008; shopSpot.shadow.normalBias=0.02; }
 const shopFill=new THREE.PointLight(0xffe9cf,0.75,15,1.4); shopFill.position.set(4.5,3.2,2.5); scene.add(shopFill);

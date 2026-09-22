@@ -1622,7 +1622,19 @@ camera.rotation.order='YXZ';
 scene.add(camera);
 const hemi=new THREE.HemisphereLight(0xdde8ff,0x4a4034,0.72); scene.add(hemi);
 const sun=new THREE.DirectionalLight(0xfff0dc,1.6); sun.position.set(-18,30,26); scene.add(sun); scene.add(sun.target);
-if(HIQ){ sun.castShadow=true; sun.shadow.mapSize.set(2048,2048); const sc=sun.shadow.camera; sc.left=-30; sc.right=30; sc.top=30; sc.bottom=-30; sc.near=5; sc.far=95; sun.shadow.bias=-0.0006; sun.shadow.normalBias=0.02; }
+/* Der Schattenbereich der Sonne ist 68 x 68 Meter gross. Das
+   Grundstueck ist inzwischen ueber 180 Meter lang, also kann die
+   Box nicht fest stehen: sie endete mitten auf dem Testfeld, und
+   dort lief eine harte Kante quer ueber den Boden - links Schatten,
+   rechts keiner. updateSonne() zieht sie im Loop dem Spieler nach,
+   die Lichtrichtung bleibt dabei dieselbe. */
+const SONNE_OFF={x:-18,y:30,z:26};
+if(HIQ){ sun.castShadow=true; sun.shadow.mapSize.set(2048,2048); const sc=sun.shadow.camera; sc.left=-34; sc.right=34; sc.top=34; sc.bottom=-34; sc.near=5; sc.far=95; sun.shadow.bias=-0.0006; sun.shadow.normalBias=0.02; }
+function updateSonne(x,z){
+  sun.target.position.set(x,0,z);
+  sun.position.set(x+SONNE_OFF.x,SONNE_OFF.y,z+SONNE_OFF.z);
+  sun.target.updateMatrixWorld();
+}
 const shopSpot=new THREE.SpotLight(0xfff1dc,1.35,24,1.2,0.8,1.1); shopSpot.position.set(-0.5,3.45,-0.3); shopSpot.target.position.set(-0.5,0,-0.3); scene.add(shopSpot); scene.add(shopSpot.target);
 if(HIQ){ shopSpot.castShadow=true; shopSpot.shadow.mapSize.set(1024,1024); shopSpot.shadow.camera.near=0.5; shopSpot.shadow.camera.far=9; shopSpot.shadow.bias=-0.0008; shopSpot.shadow.normalBias=0.02; }
 const shopFill=new THREE.PointLight(0xffe9cf,0.75,15,1.4); shopFill.position.set(4.5,3.2,2.5); scene.add(shopFill);
@@ -2500,13 +2512,15 @@ function buildWorld(){
   buildWindowGrime();
   bbox(0.08,2.5,0.14,frame,-1.2,1.25,6.0); bbox(0.08,2.5,0.14,frame,1.2,1.25,6.0); bbox(2.4,0.08,0.14,frame,0,2.5,6.0);
   // Rückwand, rechte Wand
-  /* Rueckwand des Basisladens. Ihre Aussenseite steht seit dem
-     Lagergang nicht mehr im Freien, sondern im Gang - also Lager-
-     wand statt Fassade, damit der Gang durchgehend wie das Lager
-     aussieht. */
-  wall(-8,4.4,-6.1,-5.9,0,H,'+z',shopWall,lagerWall);
-  wall(6.1,8,-6.1,-5.9,0,H,'+z',shopWall,lagerWall);
-  wall(4.4,6.1,-6.1,-5.9,2.5,H,'+z',shopWall,lagerWall);
+  /* Rueckwand des Basisladens. Ihre Aussenseite traegt die
+     Fassade wie jede andere Aussenwand - vom Testfeld aus sah man
+     dort die Lagerwand mit dem gelben Streifen, obwohl das die
+     Rueckseite des Ladens ist. Der Lagergang kommt spaeter als
+     Anbau davor; dass er an einer Fassade endet, ist richtig so. */
+  const fas=wallBrickMat();
+  wall(-8,4.4,-6.1,-5.9,0,H,'+z',shopWall,fas);
+  wall(6.1,8,-6.1,-5.9,0,H,'+z',shopWall,fas);
+  wall(4.4,6.1,-6.1,-5.9,2.5,H,'+z',shopWall,fas);
   /* Ostwand: spaeter wird hier ein grosser Durchbruch zur Nachbarflaeche
      geschlagen. Pfeiler und Sturz bleiben stehen, die Fuellung faellt. */
   /* Beim Kauf faellt die Ostwand komplett - Pfeiler und Sturz
@@ -2999,26 +3013,30 @@ function buildYard(){
     const scr=plane(0.285,0.155,new THREE.MeshBasicMaterial({map:pultTex,toneMapped:false}),-0.030,0.031,-0.042,0,pult);
     scr.rotation.x=-Math.PI/2;
 
-    /* Schlagtaster rechts: Sockel, Kragen, gewoelbte Pilzkappe */
+    /* Schlagtaster rechts. Keine Textur auf der Kuppel: eine
+       Kugel bekommt ihre UV um den Aequator gewickelt, ein
+       aufgemalter Schriftzug wird dort zu einem schwarzen Fleck
+       am Pol. Der Taster ist darum aus Volumen gebaut -
+       Einbauring, Raendelmutter, Schaft, Teller, Kuppel - und die
+       Beschriftung steht auf der Pultplatte daneben. */
     const TX=0.295, TZ=-0.02;
-    const sockel=new THREE.Mesh(new THREE.CylinderGeometry(0.080,0.090,0.026,HIQ?28:16),kante);
-    sockel.position.set(TX,0.022,TZ); pult.add(sockel);
-    const kragen=new THREE.Mesh(new THREE.TorusGeometry(0.076,0.009,8,HIQ?26:14),std(0x6f757e,{metalness:0.7,roughness:0.32}));
-    kragen.position.set(TX,0.036,TZ); kragen.rotation.x=Math.PI/2; pult.add(kragen);
-    const btn=new THREE.Mesh(new THREE.CylinderGeometry(0.070,0.063,0.030,HIQ?30:18),std(0xb4261d,{roughness:0.34}));
-    btn.position.set(TX,0.050,TZ); if(HIQ) btn.castShadow=true; pult.add(btn);
-    const kappe=new THREE.Mesh(new THREE.SphereGeometry(0.070,HIQ?30:18,HIQ?14:8,0,Math.PI*2,0,Math.PI*0.5),
-      new THREE.MeshStandardMaterial({roughness:0.22,metalness:0.06,
-        map:tex(256,256,(c,W,H)=>{
-          const gr=c.createRadialGradient(W*0.38,H*0.34,10,W/2,H/2,W*0.52);
-          gr.addColorStop(0,'#ff6f60'); gr.addColorStop(0.45,'#df382b'); gr.addColorStop(1,'#a01c15');
-          c.fillStyle=gr; c.beginPath(); c.arc(W/2,H/2,W*0.5,0,Math.PI*2); c.fill();
-          c.strokeStyle='rgba(255,255,255,.4)'; c.lineWidth=7;
-          c.beginPath(); c.arc(W/2,H/2,W*0.43,Math.PI*0.95,Math.PI*1.7); c.stroke();
-          c.fillStyle='rgba(255,255,255,.95)'; c.textAlign='center'; c.textBaseline='middle';
-          c.font=BUN(40); c.fillText('ZÜNDEN',W/2,H/2+4);
-        })}));
-    kappe.position.set(TX,0.065,TZ); kappe.scale.y=0.45; pult.add(kappe);
+    const rotDunkel=std(0x8e1a11,{roughness:0.42,metalness:0.02});
+    const rotKorpus=std(0xbe2418,{roughness:0.3,metalness:0.03});
+    const rotHell=std(0xd93b2c,{roughness:0.24,metalness:0.03});
+    const ring=new THREE.Mesh(new THREE.CylinderGeometry(0.086,0.092,0.020,HIQ?32:16),kante);
+    ring.position.set(TX,0.020,TZ); pult.add(ring);
+    const raend=new THREE.Mesh(new THREE.CylinderGeometry(0.079,0.079,0.015,HIQ?24:12),
+      std(0x7a8089,{metalness:0.75,roughness:0.28}));
+    raend.position.set(TX,0.036,TZ); pult.add(raend);
+    const schaft=new THREE.Mesh(new THREE.CylinderGeometry(0.050,0.050,0.022,HIQ?24:12),rotDunkel);
+    schaft.position.set(TX,0.051,TZ); pult.add(schaft);
+    const teller=new THREE.Mesh(new THREE.CylinderGeometry(0.075,0.057,0.028,HIQ?32:16),rotKorpus);
+    teller.position.set(TX,0.073,TZ); if(HIQ) teller.castShadow=true; pult.add(teller);
+    const kuppe=new THREE.Mesh(new THREE.SphereGeometry(0.075,HIQ?32:16,HIQ?12:6,0,Math.PI*2,0,Math.PI*0.5),rotHell);
+    kuppe.position.set(TX,0.086,TZ); kuppe.scale.y=0.26; pult.add(kuppe);
+    /* Fase am Tellerrand, damit die Kante nicht hart abbricht */
+    const fase=new THREE.Mesh(new THREE.TorusGeometry(0.0735,0.006,6,HIQ?28:14),rotDunkel);
+    fase.position.set(TX,0.0865,TZ); fase.rotation.x=Math.PI/2; pult.add(fase);
     /* Schutzbuegel: zwei Stuetzen und ein Halbbogen darueber. Der
        Torus liegt von Haus aus in der xy-Ebene - genau so, wie ein
        Buegel ueber dem Taster stehen muss. Eine Drehung braucht er
@@ -4382,7 +4400,14 @@ function buildTor(steel,snow){
       const rl=bbox(0.06,0.14,0.06,steel,XD+0.1+R-R*Math.cos(a),TOR.h+R*Math.sin(a),Z+dz,g,false);
       rl.rotation.z=a; }
     bbox(2.6,0.07,0.07,steel,XD+R+1.35,TOR.h+R,Z+dz,g,false);
-    for(const bx of [XD+R+0.5,XD+R+1.6,XD+R+2.5]) bbox(0.05,0.3,0.05,steel,bx,TOR.h+R+0.18,Z+dz,g,false);
+    /* Die Schiene haengt an der Decke. Seit das Lager fuenf Meter
+       licht ist, endeten die alten 30-cm-Abhaenger in der Luft und
+       die Schiene sah aus wie ein Balken, der frei im Raum haengt. */
+    { const oben=LAGER_H-0.02, lang=oben-(TOR.h+R);
+      for(const bx of [XD+R+0.5,XD+R+1.6,XD+R+2.5]){
+        bbox(0.05,lang,0.05,steel,bx,TOR.h+R+lang/2,Z+dz,g,false);
+        bbox(0.22,0.05,0.12,steel,bx,oben-0.02,Z+dz,g,false);
+      } }
   }
   /* Torwelle mit Federn und Antrieb */
   const shaft=new THREE.Mesh(new THREE.CylinderGeometry(0.035,0.035,3.6,10),steel);
@@ -12018,6 +12043,7 @@ function step(dt){
     if(frei<0) spawnTruck(ladung,sid,supplierOf(sid).name);
     else if(!spawnWTruck(frei,ladung,sid,supplierOf(sid).name)) break;
   }
+  updateSonne(pl.x,pl.z);
   updateTruck(dt); updateWBays(dt); updateSchiebetuer(dt); updateVersand(dt);
   for(let i=timers.length-1;i>=0;i--){ timers[i].t-=dt; if(timers[i].t<=0){ const fn=timers[i].fn; timers.splice(i,1); fn(); } }
   if(phase==='open') addGrime(dt*0.0016*(1+customers.length*0.05));

@@ -169,7 +169,14 @@ function buildTor(steel,snow){
       const rl=bbox(0.06,0.14,0.06,steel,XD+0.1+R-R*Math.cos(a),TOR.h+R*Math.sin(a),Z+dz,g,false);
       rl.rotation.z=a; }
     bbox(2.6,0.07,0.07,steel,XD+R+1.35,TOR.h+R,Z+dz,g,false);
-    for(const bx of [XD+R+0.5,XD+R+1.6,XD+R+2.5]) bbox(0.05,0.3,0.05,steel,bx,TOR.h+R+0.18,Z+dz,g,false);
+    /* Die Schiene haengt an der Decke. Seit das Lager fuenf Meter
+       licht ist, endeten die alten 30-cm-Abhaenger in der Luft und
+       die Schiene sah aus wie ein Balken, der frei im Raum haengt. */
+    { const oben=LAGER_H-0.02, lang=oben-(TOR.h+R);
+      for(const bx of [XD+R+0.5,XD+R+1.6,XD+R+2.5]){
+        bbox(0.05,lang,0.05,steel,bx,TOR.h+R+lang/2,Z+dz,g,false);
+        bbox(0.22,0.05,0.12,steel,bx,oben-0.02,Z+dz,g,false);
+      } }
   }
   /* Torwelle mit Federn und Antrieb */
   const shaft=new THREE.Mesh(new THREE.CylinderGeometry(0.035,0.035,3.6,10),steel);

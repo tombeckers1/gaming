@@ -28,28 +28,19 @@ function eingangsAchse(go,a,b,zf,ST,glas,prof){
   /* Sturzfeld ueber der Tuer bis zum Schaufenstersturz */
   bbox(2.72,ST-TUER.y-0.3,0.06,prof,cx,(ST+TUER.y+0.3)/2,zf-0.1,go,false);
 
-  /* --- Zustand „noch nicht gekauft“: feste Scheibe mit Hinweis --- */
+  /* --- Zustand „noch nicht gekauft“: ganz normales Schaufenster ---
+     Kein Hinweisschild, kein Bauzaun: der Laden soll schick
+     aussehen und nicht wie eine Baustelle. Dass hier eine Tuer
+     hinkommen kann, steht im Laptop. --- */
   const zu=new THREE.Group(); go.add(zu); zWand('eingang2',zu);
   bbox(2.6,ST-0.1,0.04,glas,cx,ST/2,zf-0.1,zu,false);
   for(const zz of [zf+0.09,zf-0.29]){
     bbox(2.72,0.1,0.06,prof,cx,ST-0.05,zz,zu,false);
     bbox(2.72,0.1,0.06,prof,cx,0.05,zz,zu,false);
+    bbox(0.1,ST,0.06,prof,cx-1.34,ST/2,zz,zu,false);
+    bbox(0.1,ST,0.06,prof,cx+1.34,ST/2,zz,zu,false);
   }
   bbox(0.09,ST-0.1,0.05,prof,cx,ST/2,zf-0.1,zu,false);
-  const hin=tex(640,300,(g2,W,H)=>{
-    g2.fillStyle='#1b2340'; g2.fillRect(0,0,W,H);
-    g2.strokeStyle='#ffd23f'; g2.lineWidth=7; g2.strokeRect(8,8,W-16,H-16);
-    g2.textAlign='center'; g2.textBaseline='middle';
-    g2.fillStyle='#ffd23f'; g2.font=BUN(42); g2.fillText('KEIN EINGANG',W/2,62);
-    g2.fillStyle='#ffffff'; g2.font=BAR(30);
-    g2.fillText('Diese Achse ist als zweiter',W/2,120);
-    g2.fillText('Eingang vorbereitet.',W/2,158);
-    g2.fillStyle='#8fb4e4'; g2.font=BAR(27);
-    g2.fillText('Freischalten am Laptop unter Ausbau',W/2,218);
-    g2.fillStyle='#ff9d92'; g2.font=BUN(30);
-    g2.fillText('BITTE HAUPTEINGANG BENUTZEN',W/2,262);
-  });
-  plane(1.5,0.7,new THREE.MeshStandardMaterial({map:hin,roughness:0.6}),cx,1.5,zf+0.12,0,zu);
 
   /* --- Zustand „gekauft“: Tuer, Vordach, Matte --- */
   const auf=new THREE.Group(); go.add(auf); zAdd('eingang2',auf);

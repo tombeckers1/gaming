@@ -61,7 +61,10 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   sag('feste Scheibe verschwunden',nach.wand===0);
   sag('zweite Kassenzeile steht',nach.sb2===true);
   sag('zwei SB-Spuren offen',nach.offen===2);
-  sag(`Tuer geht auf (t=${nach.tuerAuf})`,nach.tuerAuf>0.5);
+  /* Ab 0,3 faellt der Kollisionsquader - das ist die Schwelle, auf
+     die es ankommt. Wie weit die Fluegel in den paar Bildern des
+     Tests darueber hinaus fahren, haengt an der Bildrate. */
+  sag(`Tuer geht auf (t=${nach.tuerAuf})`,nach.tuerAuf>0.3);
   sag(`Tuer laesst durch (bis z=${nach.halt})`,nach.durch===true);
 
   /* Kunden verteilen sich auf beide Tueren */

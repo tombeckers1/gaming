@@ -61,7 +61,6 @@ function startGame(fresh){
   /* Die Westtore stehen nach dem Laden zu, ganz gleich was beim
      Speichern gerade an ihnen stand. */
   if(typeof wbaysInit==='function') wbaysInit();
-  if(typeof drawBautafeln==='function') drawBautafeln();
   setSB(!!S.up.kasse2);
   setEingang2(!!S.up.eingang2);
   drawPackSchild(); syncPakete();

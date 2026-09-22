@@ -281,70 +281,125 @@ function buildYard(){
         c.fillStyle='#f2c230'; c.fillRect(0,0,H*0.8,H);
         c.fillStyle='#1b1e26'; c.fillRect(H*0.8,0,H*0.8,H); c.restore(); }
     })}),0,0.145,0.292,0,g);
-    /* Korpus mit abgeschraegter Bedienplatte */
-    const body=rbox(0.86,0.26,0.52,0.03,korpus,0,1.02,0,g);
-    bbox(0.88,0.02,0.54,kante,0,1.16,0,g,false);
-    const top=rbox(0.84,0.05,0.46,0.02,korpus,0,1.16,0.01,g); top.rotation.x=-0.3;
-    /* Seitengriffe */
-    for(const sx of [-0.45,0.45]){
-      const h1=new THREE.Mesh(new THREE.TorusGeometry(0.065,0.012,8,14,Math.PI),kante);
-      h1.rotation.y=Math.PI/2; h1.rotation.z=sx>0?0:Math.PI; h1.position.set(sx,1.04,0); g.add(h1);
-    }
-    /* Typenschild und Warnstreifen */
-    plane(0.3,0.055,new THREE.MeshStandardMaterial({map:tex(600,110,(g2,W,H)=>{
-      g2.fillStyle='#161a22'; g2.fillRect(0,0,W,H);
-      g2.strokeStyle='#6f7684'; g2.lineWidth=4; g2.strokeRect(5,5,W-10,H-10);
-      g2.fillStyle='#c9cfd8'; g2.font=BAR(44); g2.textAlign='center'; g2.textBaseline='middle';
-      g2.fillText('ZÜNDANLAGE ZA-6',W/2,H/2+2); })}),-0.24,0.98,0.262,0,g);
-    for(const sx of [-0.31,0.31]) bbox(0.16,0.045,0.006,pulver,sx,0.9,0.262,g,false);
+    /* --- Bedienpult ---
+       Der Zuendmeister steht hinter dem Pult und blickt ueber die
+       Platte aufs Feld. Die Platte faellt deshalb zu ihm hin ab,
+       nach +z. Vorher war die Neigung andersherum: man schaute von
+       oben auf eine wegkippende Flaeche und sah von den Bedien-
+       elementen fast nichts.
+       Alles Bedienbare haengt in einer geneigten Gruppe, damit die
+       Lage der Teile nicht von Hand durchgerechnet werden muss. --- */
+    const body=rbox(0.92,0.30,0.56,0.03,korpus,0,1.03,0,g);
+    if(HIQ) body.castShadow=true;
+    bbox(0.96,0.025,0.60,kante,0,1.19,0,g,false);
+    const NEIG=0.30;
+    const pult=new THREE.Group(); pult.position.set(0,1.215,0); pult.rotation.x=NEIG; g.add(pult);
+    /* Die Pultplatte ist bedruckt: Beschriftungsfelder, Kanalreihe,
+       Warnhinweis. Eine nackte graue Platte sah aus wie ein Brett. */
+    const platteTex=tex(1024,560,(c,W,H)=>{
+      const gr=c.createLinearGradient(0,0,0,H);
+      gr.addColorStop(0,'#3a4152'); gr.addColorStop(0.55,'#2d3342'); gr.addColorStop(1,'#242938');
+      c.fillStyle=gr; c.fillRect(0,0,W,H);
+      /* gebuerstetes Blech */
+      for(let i=0;i<2600;i++){ c.fillStyle=`rgba(255,255,255,${Math.random()*0.035})`;
+        c.fillRect(Math.random()*W,Math.random()*H,rand(8,40),1); }
+      /* Umlaufende Fase */
+      c.strokeStyle='rgba(255,255,255,.14)'; c.lineWidth=5; c.strokeRect(9,9,W-18,H-18);
+      /* Feld links: Schluesselschalter */
+      /* Die Beschriftung steht unter dem jeweiligen Bedienteil, zum
+         Bediener hin - darueber sitzt Taster, Schloss oder Display
+         und wuerde sie verdecken. */
+      const feld=(x,y,w,h,titel,farbe)=>{
+        c.fillStyle='rgba(12,15,22,.58)'; c.fillRect(x,y,w,h);
+        c.strokeStyle=farbe||'#6f7684'; c.lineWidth=3; c.strokeRect(x,y,w,h);
+        c.fillStyle=farbe||'#aab2c0'; c.font=BAR(27); c.textAlign='center'; c.textBaseline='bottom';
+        c.fillText(titel,x+w/2,y+h-12);
+      };
+      feld(40,250,196,270,'SCHLÜSSEL · SCHARF');
+      feld(276,250,290,270,'ANZEIGE');
+      feld(606,250,378,270,'ZÜNDUNG','#e0574a');
+      /* Kanalreihe oben: nur Nummern, die Leuchten sitzen darueber */
+      c.fillStyle='rgba(12,15,22,.5)'; c.fillRect(40,44,944,176);
+      c.strokeStyle='#6f7684'; c.lineWidth=3; c.strokeRect(40,44,944,176);
+      c.fillStyle='#8f97a6'; c.font=BAR(24); c.textAlign='left'; c.textBaseline='bottom';
+      c.fillText('KANÄLE',54,206);
+      for(let i=0;i<6;i++){
+        const cx2=155+i*143;
+        c.fillStyle='#c9cfd8'; c.font=BUN(32); c.textAlign='center'; c.textBaseline='middle';
+        c.fillText(String(i+1),cx2,186);
+      }
+      /* Warnzeile unten */
+      c.fillStyle='#f2c230'; c.fillRect(40,524,944,22);
+      c.fillStyle='#1b1e26'; c.font=BUN(20); c.textAlign='center'; c.textBaseline='middle';
+      c.fillText('ZÜNDANLAGE ZA-6 · NUR MIT SCHLÜSSEL SCHARFSCHALTEN · SICHERHEITSABSTAND BEACHTEN',W/2,536);
+    });
+    const platte=new THREE.Mesh(new THREE.BoxGeometry(0.90,0.022,0.50),
+      [kante,kante,new THREE.MeshStandardMaterial({map:platteTex,roughness:0.45,metalness:0.18}),kante,kante,kante]);
+    pult.add(platte);
+    /* Handballenauflage an der Vorderkante */
+    { const auf=new THREE.Mesh(new THREE.CylinderGeometry(0.022,0.022,0.90,HIQ?16:8),kante);
+      auf.rotation.z=Math.PI/2; auf.position.set(0,0.012,0.248); pult.add(auf); }
 
-    /* Anzeige */
+    /* Anzeige im Rahmen, mittig auf der Platte */
     pultTex=tex(960,480,()=>{});
-    const rahmen=rbox(0.4,0.22,0.02,0.01,std(0x11141b,{roughness:0.5}),-0.18,1.185,0.055,g);
-    rahmen.rotation.x=-0.3;
-    const scr=plane(0.36,0.185,new THREE.MeshBasicMaterial({map:pultTex,toneMapped:false}),-0.18,1.2,0.065,0,g);
-    scr.rotation.x=-0.3;
+    rbox(0.32,0.02,0.19,0.008,std(0x11141b,{roughness:0.5}),-0.030,0.02,-0.042,pult);
+    const scr=plane(0.285,0.155,new THREE.MeshBasicMaterial({map:pultTex,toneMapped:false}),-0.030,0.031,-0.042,0,pult);
+    scr.rotation.x=-Math.PI/2;
 
-    /* Schlagtaster unter Bügel */
-    /* Schlagtaster: Metallsockel, gewoelbte Pilzkappe mit Aufdruck */
-    const sockel=new THREE.Mesh(new THREE.CylinderGeometry(0.078,0.088,0.026,HIQ?28:16),kante);
-    sockel.position.set(0.22,1.172,0.044); sockel.rotation.x=-0.3; g.add(sockel);
-    const kragen=new THREE.Mesh(new THREE.TorusGeometry(0.074,0.009,8,HIQ?26:14),std(0x6f757e,{metalness:0.7,roughness:0.32}));
-    kragen.position.set(0.22,1.186,0.048); kragen.rotation.x=Math.PI/2-0.3; g.add(kragen);
-    const btn=new THREE.Mesh(new THREE.CylinderGeometry(0.069,0.062,0.034,HIQ?30:18),std(0xb4261d,{roughness:0.34}));
-    btn.position.set(0.22,1.2,0.053); btn.rotation.x=-0.3; if(HIQ) btn.castShadow=true; g.add(btn);
-    /* Gewoelbte Kappe: halbe Kugel, flachgedrueckt - keine harte Scheibe mehr */
-    const kappe=new THREE.Mesh(new THREE.SphereGeometry(0.069,HIQ?30:18,HIQ?14:8,0,Math.PI*2,0,Math.PI*0.5),
-      new THREE.MeshStandardMaterial({roughness:0.24,metalness:0.06,
+    /* Schlagtaster rechts: Sockel, Kragen, gewoelbte Pilzkappe */
+    const TX=0.295, TZ=-0.02;
+    const sockel=new THREE.Mesh(new THREE.CylinderGeometry(0.080,0.090,0.026,HIQ?28:16),kante);
+    sockel.position.set(TX,0.022,TZ); pult.add(sockel);
+    const kragen=new THREE.Mesh(new THREE.TorusGeometry(0.076,0.009,8,HIQ?26:14),std(0x6f757e,{metalness:0.7,roughness:0.32}));
+    kragen.position.set(TX,0.036,TZ); kragen.rotation.x=Math.PI/2; pult.add(kragen);
+    const btn=new THREE.Mesh(new THREE.CylinderGeometry(0.070,0.063,0.030,HIQ?30:18),std(0xb4261d,{roughness:0.34}));
+    btn.position.set(TX,0.050,TZ); if(HIQ) btn.castShadow=true; pult.add(btn);
+    const kappe=new THREE.Mesh(new THREE.SphereGeometry(0.070,HIQ?30:18,HIQ?14:8,0,Math.PI*2,0,Math.PI*0.5),
+      new THREE.MeshStandardMaterial({roughness:0.22,metalness:0.06,
         map:tex(256,256,(c,W,H)=>{
           const gr=c.createRadialGradient(W*0.38,H*0.34,10,W/2,H/2,W*0.52);
-          gr.addColorStop(0,'#ff6a5c'); gr.addColorStop(0.45,'#e0392c'); gr.addColorStop(1,'#a81f18');
+          gr.addColorStop(0,'#ff6f60'); gr.addColorStop(0.45,'#df382b'); gr.addColorStop(1,'#a01c15');
           c.fillStyle=gr; c.beginPath(); c.arc(W/2,H/2,W*0.5,0,Math.PI*2); c.fill();
-          c.strokeStyle='rgba(255,255,255,.35)'; c.lineWidth=6;
-          c.beginPath(); c.arc(W/2,H/2,W*0.44,Math.PI*0.95,Math.PI*1.75); c.stroke();
-          c.fillStyle='rgba(255,255,255,.9)'; c.textAlign='center'; c.textBaseline='middle';
-          c.font=BUN(36); c.fillText('ZÜNDEN',W/2,H/2+4);
-          c.fillStyle='rgba(0,0,0,.28)'; c.beginPath(); c.arc(W/2,H*0.72,W*0.3,0,Math.PI*2); c.fill();
+          c.strokeStyle='rgba(255,255,255,.4)'; c.lineWidth=7;
+          c.beginPath(); c.arc(W/2,H/2,W*0.43,Math.PI*0.95,Math.PI*1.7); c.stroke();
+          c.fillStyle='rgba(255,255,255,.95)'; c.textAlign='center'; c.textBaseline='middle';
+          c.font=BUN(40); c.fillText('ZÜNDEN',W/2,H/2+4);
         })}));
-    kappe.position.set(0.22,1.218,0.061); kappe.rotation.x=-0.3; kappe.scale.y=0.42; g.add(kappe);
-    for(const a2 of [0.6,2.7,4.3]){
-      const b2=new THREE.Mesh(new THREE.TorusGeometry(0.105,0.011,8,10,1.1),kante);
-      b2.position.set(0.22,1.24,0.05); b2.rotation.set(-0.3,0,a2); g.add(b2);
-    }
+    kappe.position.set(TX,0.065,TZ); kappe.scale.y=0.45; pult.add(kappe);
+    /* Schutzbuegel: zwei Stuetzen und ein Halbbogen darueber. Der
+       Torus liegt von Haus aus in der xy-Ebene - genau so, wie ein
+       Buegel ueber dem Taster stehen muss. Eine Drehung braucht er
+       nicht, vorher stand er quer. */
+    for(const sx of [-1,1]) bbox(0.016,0.10,0.016,pulver,TX+sx*0.103,0.072,TZ,pult,false);
+    { const bo=new THREE.Mesh(new THREE.TorusGeometry(0.103,0.010,8,HIQ?22:12,Math.PI),pulver);
+      bo.position.set(TX,0.122,TZ); pult.add(bo); }
 
-    /* Schluesselschalter und Meldeleuchten */
-    const zyl=new THREE.Mesh(new THREE.CylinderGeometry(0.026,0.026,0.022,14),kante);
-    zyl.position.set(-0.4,1.185,0.04); zyl.rotation.x=1.27; g.add(zyl);
-    const key=new THREE.Mesh(new THREE.BoxGeometry(0.008,0.052,0.014),std(0xb9a05a,{metalness:0.8,roughness:0.3}));
-    key.position.set(-0.4,1.2,0.055); key.rotation.x=-0.3; g.add(key);
-    pultLamp=new THREE.MeshStandardMaterial({color:0x331111,emissive:LIN(0xff3b2e),emissiveIntensity:0});
-    for(const [dx,m] of [[0.0,pultLamp],[0.07,std(0x1e2a1e)]]){
-      const l=new THREE.Mesh(new THREE.CylinderGeometry(0.018,0.018,0.014,12),m);
-      l.position.set(0.36+dx*0,1.18,0.03); l.rotation.x=1.27; g.add(l);
-      break;
+    /* Schluesselschalter links mit Stellungsmarke */
+    const zylR=new THREE.Mesh(new THREE.CylinderGeometry(0.030,0.030,0.020,HIQ?18:10),kante);
+    zylR.position.set(-0.328,0.022,-0.018); pult.add(zylR);
+    const key=new THREE.Mesh(new THREE.BoxGeometry(0.009,0.014,0.055),std(0xb9a05a,{metalness:0.8,roughness:0.3}));
+    key.position.set(-0.328,0.036,0.009); key.rotation.x=-0.5; pult.add(key);
+    /* Meldeleuchten ueber der Kanalreihe */
+    pultLamp=new THREE.MeshStandardMaterial({color:LIN(0x331111),emissive:LIN(0xff3b2e),emissiveIntensity:0});
+    for(let i=0;i<6;i++){
+      const lx=-0.31+i*0.124;
+      const l=new THREE.Mesh(new THREE.CylinderGeometry(0.019,0.019,0.012,HIQ?14:8),i?std(0x1e232e,{roughness:0.5}):pultLamp);
+      l.position.set(lx,0.019,-0.193); pult.add(l);
+      const r2=new THREE.Mesh(new THREE.TorusGeometry(0.024,0.005,6,HIQ?14:8),kante);
+      r2.position.set(lx,0.021,-0.193); r2.rotation.x=Math.PI/2; pult.add(r2);
     }
-    const lr=new THREE.Mesh(new THREE.TorusGeometry(0.024,0.005,6,14),kante);
-    lr.position.set(0.36,1.183,0.032); lr.rotation.x=1.27; g.add(lr);
+    /* Seitengriffe am Korpus */
+    for(const sx of [-0.48,0.48]){
+      const h1=new THREE.Mesh(new THREE.TorusGeometry(0.065,0.012,8,HIQ?16:8,Math.PI),kante);
+      h1.rotation.y=Math.PI/2; h1.rotation.z=sx>0?0:Math.PI; h1.position.set(sx,1.05,0); g.add(h1);
+    }
+    /* Typenschild an der Zarge unter der Platte */
+    plane(0.3,0.05,new THREE.MeshStandardMaterial({map:tex(600,100,(g2,W,H)=>{
+      g2.fillStyle='#161a22'; g2.fillRect(0,0,W,H);
+      g2.strokeStyle='#6f7684'; g2.lineWidth=4; g2.strokeRect(5,5,W-10,H-10);
+      g2.fillStyle='#c9cfd8'; g2.font=BAR(42); g2.textAlign='center'; g2.textBaseline='middle';
+      g2.fillText('ZÜNDANLAGE ZA-6',W/2,H/2+2); })}),-0.26,1.00,0.282,0,g);
+    for(const sx of [-0.33,0.33]) bbox(0.16,0.04,0.006,pulver,sx,0.93,0.282,g,false);
 
     const hit=bbox(0.98,1.35,0.66,hitM,0,0.75,0,g,false); hit.userData={kind:'pult'};
     pultHit=hit; col(PULT_POS.x-0.48,PULT_POS.x+0.48,PULT_POS.z-0.48,PULT_POS.z+0.48);

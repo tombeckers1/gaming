@@ -67,10 +67,6 @@ function sockelLeiste(id,laengs,fest,a0,a1){
 }
 /* Fuellung einer vorbereiteten Oeffnung. laengs = die Wand laeuft in x. */
 function trennwand(id,laengs,fest,a0,a1,h,innen,aussen,face){
-  /* Bereiche mit Vorschau bekommen statt einer blinden Wand einen
-     Bauzaun: bedruckter Sockel, Gitterfeld auf Augenhoehe, dahinter
-     der Rohbau mit den Umrissen der kuenftigen Regale (05k). */
-  if(id&&VORSCHAU[id]) return bauwand(id,laengs,fest,a0,a1,h,face);
   const f=face||(laengs?'-z':'-x');
   const m=laengs
     ? stilleWand(a0,a1,fest-LW/2,fest+LW/2,0,h,f,innen,aussen||innen,0)
@@ -417,118 +413,6 @@ function buildLagerTerminal(){
    zu haben ist. Damit weiss man mit Level 1 schon, wohin die
    Reise geht, statt vor einer stummen Wand zu stehen.
    ========================================================= */
-const BAUTAFELN=[];
-/* Rot-weisses Absperrband. Jeder Lauf bekommt sein eigenes
-   Material, damit die Wiederholung zur Laenge passt - Materialien
-   zu klonen kennt der Test-Stub nicht. */
-function bandMat(wdh){
-  const t=tex(256,32,(c,W,H)=>{
-    for(let x=-H;x<W+H;x+=H*1.5){
-      c.save(); c.translate(x,0); c.transform(1,0,-0.5,1,0,0);
-      c.fillStyle='#d8352a'; c.fillRect(0,0,H*0.75,H);
-      c.fillStyle='#f4f5f7'; c.fillRect(H*0.75,0,H*0.75,H); c.restore();
-    }
-    c.fillStyle='rgba(0,0,0,.18)'; c.fillRect(0,H-3,W,3);
-  });
-  t.wrapS=THREE.RepeatWrapping; t.anisotropy=8; t.repeat.set(Math.max(2,wdh),1);
-  return new THREE.MeshBasicMaterial({map:t,side:THREE.DoubleSide,toneMapped:false});
-}
-/* Ein Absperrband ueber die Breite einer Oeffnung, auf zwei Pfosten */
-function absperrband(zid,laengs,fest,a0,a1,hoehe){
-  const len=a1-a0, mitte=(a0+a1)/2;
-  const m=bandMat(len*1.6);
-  /* vorschau=true: das Band gehoert zur Baustelle und nicht zum
-     Inventar - der Leer-Test darf es nicht als Fremdkoerper in
-     einer leeren Halle melden. */
-  const mark=o=>{ o.userData.vorschau=true; return o; };
-  for(const y of [hoehe,hoehe-0.34]){
-    const b=plane(len,0.11,m,laengs?mitte:fest,y,laengs?fest:mitte,laengs?0:Math.PI/2,null);
-    zWand(zid,mark(b));
-  }
-  const pf=std(0xd8352a,{roughness:0.6}), fuss=std(0x2a2e38,{roughness:0.8});
-  for(const a of [a0+0.12,a1-0.12]){
-    const px=laengs?a:fest, pz=laengs?fest:a;
-    zWand(zid,mark(bbox(0.055,hoehe+0.06,0.055,pf,px,(hoehe+0.06)/2,pz,null,false)));
-    zWand(zid,mark(bbox(0.28,0.05,0.28,fuss,px,0.025,pz,null,false)));
-  }
-}
-/* Der Anstrich der Tafel haengt daran, ob die Stufe schon
-   erreichbar ist - das sieht man beim Vorbeilaufen. */
-function tafelZeichnen(g,W,H,u){
-  const lvl=u.lvl, frei=S&&S.level>=lvl, fehlt=u.req&&S&&!S.up[u.req];
-  const vor=UPGRADES.find(x=>x.id===u.req);
-  g.fillStyle='#f4f2ea'; g.fillRect(0,0,W,H);
-  /* Kopfleiste */
-  g.fillStyle='#1b2340'; g.fillRect(0,0,W,86);
-  g.fillStyle='#ffd23f'; g.textAlign='left'; g.textBaseline='middle';
-  g.font=BUN(40); g.fillText('BAUABSCHNITT',24,45);
-  g.textAlign='right'; g.font=BAR(30); g.fillStyle='#bcd0ea';
-  g.fillText('Böllerladen · Erweiterung',W-24,46);
-  /* Name und Beschreibung */
-  g.textAlign='left'; g.fillStyle='#1b2340'; g.font=BUN(54);
-  fitFont(g,u.name,W-48,54,BUN); g.fillText(u.name,24,138);
-  g.fillStyle='#4a5468'; g.font=BAR(27);
-  const worte=(u.desc||'').split(' '); let zeile='', y=190;
-  for(const w of worte){
-    const t2=zeile?zeile+' '+w:w;
-    if(g.measureText(t2).width>W-52){ g.fillText(zeile,24,y); zeile=w; y+=34; if(y>282) break; }
-    else zeile=t2;
-  }
-  if(y<=282&&zeile) g.fillText(zeile,24,y);
-  /* Statusband */
-  const bg=fehlt?'#6a7182':frei?'#2f9e57':'#c8322a';
-  g.fillStyle=bg; g.fillRect(0,H-108,W,108);
-  g.fillStyle='#ffffff'; g.textAlign='left'; g.font=BUN(46);
-  g.fillText(fehlt?`ZUERST: ${vor?vor.name:u.req}`:frei?'JETZT VERFÜGBAR':`AB LEVEL ${lvl}`,24,H-58);
-  g.textAlign='right'; g.font=BUN(40);
-  g.fillText(eur(u.cost()),W-24,H-58);
-  if(!frei&&!fehlt&&S){
-    g.textAlign='left'; g.font=BAR(25);
-    g.fillText(`noch ${Math.max(0,lvl-S.level)} Level · dein Stand: ${S.level}`,24,H-20);
-  } else if(frei&&!fehlt){
-    g.textAlign='left'; g.font=BAR(25);
-    g.fillText('Freischalten am Laptop unter Ausbau',24,H-20);
-  }
-  g.strokeStyle='#1b2340'; g.lineWidth=8; g.strokeRect(4,4,W-8,H-8);
-}
-function bautafel(zid,x,y,z,ry){
-  const u=UPGRADES.find(q=>q.id===zid); if(!u) return;
-  const t=tex(1024,560,g2=>{});
-  const m=new THREE.MeshStandardMaterial({map:t,roughness:0.62});
-  const g=new THREE.Group(); g.position.set(x,0,z); g.rotation.y=ry||0; scene.add(g);
-  zWand(zid,g);
-  /* Rahmen, Tafel, zwei Stuetzen */
-  bbox(1.86,1.06,0.05,std(0x2f343d,{metalness:0.4,roughness:0.55}),0,y,-0.03,g,false);
-  plane(1.78,0.98,m,0,y,0.005,0,g);
-  const rohr=std(0x59606b,{metalness:0.6,roughness:0.42});
-  for(const sx of [-0.78,0.78]){
-    bbox(0.06,y-0.53,0.06,rohr,sx,(y-0.53)/2,-0.03,g,false);
-    bbox(0.2,0.04,0.2,rohr,sx,0.02,-0.03,g,false);
-  }
-  BAUTAFELN.push({tex:t,u});
-  tafelZeichnen(t.image.getContext('2d'),t.image.width,t.image.height,u);
-  t.needsUpdate=true;
-  return g;
-}
-/* Nach jedem Levelaufstieg neu beschriften */
-function drawBautafeln(){
-  BAUTAFELN.forEach(b=>redraw(b.tex,(g,W,H)=>tafelZeichnen(g,W,H,b.u)));
-  drawZaunbanner(); drawRampenschilder();
-}
-/* Tafeln und Baender an die Bauwaende stellen */
-function buildBauabschnitte(){
-  /* Die Tafel steht neben der Oeffnung, nicht davor - sonst
-     verdeckt sie genau den Blick, den sie ankuendigt. Das
-     Absperrband haengt nur dort, wo kein Bauzaun steht; der
-     traegt seine Warnstreifen selbst. */
-  bautafel('shop_gross',7.6,1.75,-3.3,-Math.PI/2);
-  bautafel('shop_ost',19.6,1.75,-3.2,-Math.PI/2);
-  bautafel('shop_sued',20.5,1.75,-5.55,0);
-  bautafel('lager_gross',-8.4,1.75,1.72,Math.PI);
-  bautafel('lager_sued',-9.4,1.75,-5.55,0);
-  bautafel('lager_west',-19.6,1.75,-16.6,Math.PI/2);
-}
-
 function buildAusbau(){
   /* ---------- Verkaufsflaeche ----------
      Die Front uebernimmt die Nachbarfassade (05e), deshalb bekommen
@@ -594,11 +478,8 @@ function buildAusbau(){
   streifenvorhang('lager_sued',false,-8.0,GT[0][0],GT[0][1],2.5);
   buildLagergang();
   buildLagerTerminal();
-  buildBauabschnitte();
-  buildVorschau();
   buildPackstation();
   buildWestrampen();
-  buildRampenVorschau();
   buildLogistik();
 }
 

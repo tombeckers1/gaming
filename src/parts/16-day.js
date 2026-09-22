@@ -11,7 +11,6 @@ function addXP(n,label){
   if(up){ sfx.level(); toast(`Level ${S.level} erreicht!`,'lvl');
     /* Die Bautafeln zeigen, wie viele Level noch fehlen - das muss
        nach jedem Aufstieg stimmen. */
-    if(typeof drawBautafeln==='function') drawBautafeln();
     if(phase==='closed'||phase==='after') showLevelUp(); }
 }
 function showLevelUp(){

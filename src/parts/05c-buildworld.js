@@ -101,8 +101,13 @@ function buildWorld(){
   /* Die Suedwand des Lagers baut jetzt die Durchbruchwand in 05h:
      dort sitzt die Oeffnung zur Halle Sued. */
   /* Nordwand des Lagers mit vorbereitetem Durchbruch in den Anbau */
-  wall(-20.1,-19.0,1.9,2.1,0,H,'-z',lagerWall); wall(-9.0,-8.1,1.9,2.1,0,H,'-z',lagerWall);
-  wall(-19.0,-9.0,1.9,2.1,2.6,H,'-z',lagerWall);
+  /* Zum Anbau nach Norden: Die Wand kann nicht ganz weg, weil
+     der Anbau niedriger ist - aber die Oeffnung geht fast ueber
+     die ganze Breite und bis unter die Anbaudecke. Frueher war
+     das eine zugemauerte Ausbaustufe; der Anbau gehoert jetzt
+     von Anfang an zum Lager. */
+  wall(-20.1,-19.4,1.9,2.1,0,H,'-z',lagerWall); wall(-8.6,-8.1,1.9,2.1,0,H,'-z',lagerWall);
+  wall(-19.4,-8.6,1.9,2.1,2.78,H,'-z',lagerWall);
   const base=std(0x1a2038);
   /* Sockelleisten enden an den Tueroeffnungen, statt durchzulaufen */
   for(const [a,b] of [[-7.9,4.4],[6.1,7.9]]) bbox(b-a,0.1,0.02,base,(a+b)/2,0.05,-5.89,null,false);
@@ -140,7 +145,9 @@ function buildWorld(){
   roomAO(-7.9,7.9,-5.9,5.9,null,{n:true,s:true,w:true});
   zWand('shop_gross',aoFloor(7.9-0.2,0,11.8,0.4,'+x',0.021));
   roomAO(-19.9,-8.1,-5.9,1.9,null,{s:true,w:true,e:true});
-  zWand('lager_gross',aoFloor((-19.9-8.1)/2,1.9-0.2,11.8,0.4,'+z',0.021));
+  /* Die Nordkante des Basislagers grenzt jetzt dauerhaft an den
+     Anbau - dort ist eine Oeffnung, kein Schatten. */
+  roomAO(-19.9,-8.1,1.9,5.9,null,{n:true,w:true,e:true});
   buildAusbau();
   buildFacade();
   plane(1.4,0.35,new THREE.MeshStandardMaterial({map:tex(280,70,(g,W,Hh)=>{ g.fillStyle='#f2c230'; g.fillRect(0,0,W,Hh); g.fillStyle='#16181f'; g.font=BUN(40); g.textAlign='center'; g.textBaseline='middle'; g.fillText('LAGER',W/2,Hh/2+2); })}),-7.88,2.85,-2.5,Math.PI/2);
@@ -203,15 +210,15 @@ function buildWorld(){
   const sg2=new THREE.BufferGeometry(); sg2.setAttribute('position',new THREE.BufferAttribute(sp2,3));
   snowPts=new THREE.Points(sg2,new THREE.PointsMaterial({color:0xffffff,size:0.09,map:dotTex,transparent:true,opacity:0.9,depthWrite:false})); snowPts.frustumCulled=false; scene.add(snowPts);
   // Kollision
-  zWandCol('lager_gross',col(-20,-8,2.1,6.1));
+  /* Der Anbau Nord war frueher gesperrt; jetzt gehoert er von
+     Anfang an zum Lager und braucht keine Sperre mehr. */
   /* Die alten Testfeldgrenzen sind weg: im Westen steht jetzt die
      Lagerhalle Sued, im Osten das Rueckgebaeude, im Sueden der Zaun. */
   zWandCol('shop_gross',col(7.9,20.0,-6.1,6.1));
   col(-8,-1.2,5.9,6.1); col(1.2,8,5.9,6.1); col(-8,4.4,-6.1,-5.9); col(6.1,8,-6.1,-5.9);
   col(-8.1,-7.9,-6.1,-3.2); col(-8.1,-7.9,-1.8,6.1);
   col(-20.1,-19.9,-6.1,-3.6); col(-20.1,-19.9,-0.4,2.1);
-  col(-20.1,-19.0,1.9,2.1); col(-9.0,-8,1.9,2.1);
-  zWandCol('lager_gross',col(-19.0,-9.0,1.9,2.1));
+  col(-20.1,-19.4,1.9,2.1); col(-8.6,-8,1.9,2.1);
   buildDock();
 }
 function updateSign(){

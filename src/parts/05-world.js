@@ -32,9 +32,20 @@ const LAY={
   sued  :{x0:8.0,  x1:37.9, z0:-21.9, z1:-5.9},  /* 478 m2 */
   /* Lager, zusammen 927 m2 */
   lager :{x0:-66.0,x1:-8.1, z0:-45.0, z1:5.9},
+  /* Das kleine Lager besteht von Anfang an aus zwei Teilen: dem
+     Raum an der Rampe und dem Anbau nach Norden. Frueher musste
+     man den Anbau kaufen - er war aber nie mehr als ein Stueck
+     Lager, und die Wand dazwischen stand nur im Weg. */
   lbasis:{x0:-19.9,x1:-8.1, z0:-5.9,  z1:1.9},   /*  92 m2, von Anfang an */
-  lnord :{x0:-19.9,x1:-8.1, z0:1.9,   z1:5.9},   /*  47 m2 */
-  lsued :{x0:-19.9,x1:-8.1, z0:-29.9, z1:-5.9},  /* 283 m2 */
+  lnord :{x0:-19.9,x1:-8.1, z0:1.9,   z1:5.9},   /*  47 m2, von Anfang an */
+  /* Die Halle Sued waechst vom Rolltor aus nach Sueden, in drei
+     Abschnitten. Der erste traegt die Packstation - ab dort laeuft
+     der Versand. Zwischen den Abschnitten faellt die Wand beim
+     Kauf ganz weg, damit am Ende eine durchgehende Halle steht. */
+  lsued :{x0:-19.9,x1:-8.1, z0:-29.9, z1:-5.9},  /* 283 m2 gesamt */
+  ls1   :{x0:-19.9,x1:-8.1, z0:-15.9, z1:-5.9},  /* 118 m2 */
+  ls2   :{x0:-19.9,x1:-8.1, z0:-22.9, z1:-15.9}, /*  83 m2 */
+  ls3   :{x0:-19.9,x1:-8.1, z0:-29.9, z1:-22.9}, /*  83 m2 */
   /* Grosshandel: eigenes Gebaeude, 40 x 38 m und zwoelf Meter licht.
      Palettenregale und ein Hubwagen brauchen die Hoehe; die alte
      Halle mit 505 m2 und 6,4 m war dafuer zu klein. */

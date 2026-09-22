@@ -319,7 +319,7 @@ function upPic(id){
       g.strokeStyle='#6cf2a8'; g.setLineDash([7,6]); g.lineWidth=4;
       g.strokeRect(id==='shop_ost'?134:72,id==='shop_ost'?22:32,id==='shop_ost'?78:68,114); g.setLineDash([]);
       break;
-    case 'lager_sued': case 'lager_west':
+    case 'lager_gross': case 'lager_sued': case 'lager_sued2': case 'lager_west':
       bg('#1a2030','#0e131e');
       /* hohe Halle neben der niedrigen */
       g.fillStyle='#a3a8b0'; g.fillRect(16,76,80,58);
@@ -338,12 +338,6 @@ function upPic(id){
       g.fillStyle='#ffd23f'; g.fillRect(20,20,84,12);
       g.strokeStyle='#6cf2a8'; g.setLineDash([7,6]); g.lineWidth=4; g.strokeRect(108,22,102,114); g.setLineDash([]);
       break;
-    case 'lager_gross':
-      bg('#1a2030','#0e131e');
-      g.fillStyle='#a3a8b0'; g.fillRect(16,40,96,94);
-      g.fillStyle='#8a9099'; g.fillRect(116,40,92,94);
-      g.strokeStyle='#6cf2a8'; g.setLineDash([7,6]); g.lineWidth=4; g.strokeRect(114,38,96,98); g.setLineDash([]);
-      g.fillStyle='#f2c230'; g.fillRect(16,126,192,8); break;
     case 'packstation':
       bg('#1a2030','#0e131e');
       g.fillStyle='#6b5a42'; g.fillRect(30,76,164,14);
@@ -807,8 +801,9 @@ function buyUp(id){
       if(id==='shop_gross') toast('Die Wand ist durchbrochen. Deine Verkaufsfläche ist jetzt deutlich größer.','money');
       else if(id==='shop_ost') toast('Das zweite Lokal gehört dir. Die Verkaufsfläche reicht jetzt bis ans Ende der Zeile.','money');
       else if(id==='shop_sued') toast('Das Rückgebäude ist offen. Zwei Durchgänge, zwei Gondelgassen, 478 Quadratmeter.','money');
-      else if(id==='lager_gross') toast('Das Lager ist geöffnet. Hinten ist Platz für Regale und die Packstation.','money');
-      else if(id==='lager_sued') toast('Die Halle Süd steht offen: 6,4 Meter hoch, Platz für Hochregale.','money');
+      else if(id==='lager_gross') toast('Der erste Abschnitt der Halle Süd steht offen: fünf Meter hoch, Platz für Hochregale und die Packstation.','money');
+      else if(id==='lager_sued') toast('Der zweite Abschnitt ist offen. Die Wand dazwischen ist ganz weg.','money');
+      else if(id==='lager_sued2') toast('Die Halle Süd ist komplett: 283 Quadratmeter am Stück.','money');
       else if(id==='lager_west') toast('Die Westhalle mit den drei Rampen gehört dir. Auf dem Hof stehen die Auflieger.','money');
       else if(id==='eingang2'){ setEingang2(true); toast('Der zweite Eingang ist offen. Die Kassenzeile dahinter kannst du im Umbaumodus verschieben.','money'); }
       else if(id.indexOf('rampe')===0) toast(`${u.name.split(' ')[0]} Andockstation geht in Betrieb. Das Tor ist frei.`,'money');

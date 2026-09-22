@@ -242,10 +242,11 @@ function durchbruchWand(id,laengs,fest,von,bis,oeffnungen,mat,exMat,sturzY,hoehe
 const GANG={x0:-7.9, x1:7.8, z0:-8.9, z1:-6.1, h:2.9};
 const GANGTUER={a:4.4, b:6.1};        /* fluchtet mit der Hintertuer */
 function buildLagergang(){
-  /* Der Gang gehoert zur Lagerhalle Sued und erscheint mit ihr.
-     Vorher stand er von Tag eins da und die Hintertuer fuehrte in
-     einen Gang, den man noch gar nicht gekauft hatte. */
-  const Z='lager_sued';
+  /* Der Gang gehoert zum Grosshandel und erscheint mit ihm - er
+     ist der kurze Weg vom Rueckgebaeude dorthin. Vorher stand er
+     von Tag eins da und die Hintertuer fuehrte in einen Gang, den
+     man noch gar nicht gekauft hatte. */
+  const Z='lager_west';
   const G=GANG, mitteX=(G.x0+G.x1)/2, mitteZ=(G.z0+G.z1)/2;
   const breite=G.x1-G.x0, tiefe=G.z1-G.z0;
   /* Boden: derselbe Estrich wie im Lager */
@@ -471,17 +472,32 @@ function buildAusbau(){
      im Dock - hier kommt nur die Fuellung in die Oeffnung. */
   trennwand('shop_gross',false,8.0,-4.4,4.4,2.7,shopWall,shopWall);
 
-  /* ---------- Lager ---------- */
-  halle('lager_gross',LAY.lnord,{art:'lager',aussen:{n:true,w:true},ao:{n:true,w:true,e:true},h:ANBAU_H-0.06,keinDach:true});
-  /* Sued und West sind echte Hallen mit 6,4 m lichter Hoehe -
-     nur so haben Hochregale und Schwerlastregale ueberhaupt Platz. */
-  halle('lager_sued', LAY.lsued,{art:'lager',aussen:{s:true},ao:{s:true,w:true,e:true},h:HALLE_H});
+  /* ---------- Lager ----------
+     Das kleine Lager ist von Anfang an fertig: der Raum an der
+     Rampe und der Anbau nach Norden. Dazwischen steht keine Wand
+     mehr - der Anbau war nie mehr als ein Stueck Lager, und die
+     Trennwand stand nur im Weg. */
+  halle(null,LAY.lnord,{art:'lager',aussen:{n:true,w:true},ao:{n:true,w:true,e:true},h:ANBAU_H-0.06,keinDach:true});
+  /* Die Halle Sued in drei Abschnitten. Alle drei sind gleich
+     hoch, damit zwischen ihnen keine Wand stehen bleiben muss. */
+  halle('lager_gross',LAY.ls1,{art:'lager',ao:{w:true,e:true},h:HALLE_H});
+  halle('lager_sued', LAY.ls2,{art:'lager',ao:{w:true,e:true},h:HALLE_H});
+  halle('lager_sued2',LAY.ls3,{art:'lager',aussen:{s:true},ao:{s:true,w:true,e:true},h:HALLE_H});
   /* Der Grosshandel ist ein eigenes Gebaeude: 1520 m2 und zwoelf
      Meter licht, damit Palettenregale und ein Hubwagen hineinpassen.
      Die Westwand mit den Ladetoren baut westWand(). */
   halle('lager_west', LAY.lwest,{art:'lager',aussen:{s:true,n:true},ao:{n:true,s:true,w:true,e:true},h:GH_H,ex:blechMat(),ax:6.5,az:7.5});
-  /* Basislager nach Sueden */
-  durchbruchWand('lager_sued',true,LAY.lbasis.z0,LAY.lbasis.x0,LAY.lbasis.x1,[[-17.5,-10.5]],lagerWall,lagerWall,null,HALLE_H);
+  /* Vom Rolltor in die Halle Sued. Hier muss die Wand stehen
+     bleiben, weil sich dahinter die Deckenhoehe aendert - dafuer
+     ist die Oeffnung neun Meter breit und hat einen hohen Sturz.
+     Ein schmaler Durchgang haette die Halle wie einen Nebenraum
+     wirken lassen. */
+  durchbruchWand('lager_gross',true,LAY.lbasis.z0,LAY.lbasis.x0,LAY.lbasis.x1,[[-18.7,-9.3]],lagerWall,lagerWall,3.3,HALLE_H);
+  /* Zwischen den drei Abschnitten faellt die Wand beim Kauf ganz
+     weg (offen=true) - am Ende steht eine durchgehende Halle ohne
+     Pfeiler und Sturz quer im Raum. */
+  durchbruchWand('lager_sued', true,LAY.ls1.z0,LAY.ls1.x0,LAY.ls1.x1,[[-18.7,-9.3]],lagerWall,lagerWall,3.3,HALLE_H,null,true);
+  durchbruchWand('lager_sued2',true,LAY.ls2.z0,LAY.ls2.x0,LAY.ls2.x1,[[-18.7,-9.3]],lagerWall,lagerWall,3.3,HALLE_H,null,true);
   /* Halle Sued und Grosshandel stehen nicht mehr aneinander, zwischen
      ihnen liegen sechs Meter Hof. Beide bekommen eine Aussenwand mit
      einer Tuer in die Schleuse. */
@@ -498,7 +514,6 @@ function buildAusbau(){
      statt blanker Loecher. */
   streifenvorhang('lager_west',false,LAY.lsued.x0,ST[0][0],ST[0][1],3.0);
   streifenvorhang('lager_west',false,LAY.lwest.x1,ST[0][0],ST[0][1],3.0);
-  trennwand('lager_gross',true,2.0,-19.0,-9.0,2.6,lagerWall,lagerWall);
 
   /* ---------- Packstation, Rampen, Logistikzentrum ---------- */
   /* Die beiden Kopfwaende des Lagergangs. Sie ersetzen die
@@ -517,8 +532,11 @@ function buildAusbau(){
   durchbruchWand('shop_sued',false,7.9,GANG.z0,GANG.z1,[],shopWall,lagerWall,2.5,WH,'+x');
   durchbruchWand('shop_sued',false,7.9,GANG.z1,LAY.sued.z1,[],shopWall,undefined,2.5,WH,'+x');
   /* Der Gang muendet in die Halle Sued und wird mit ihr freigegeben. */
-  durchbruchWand('lager_sued',false,-8.0,LAY.lsued.z0,LAY.lsued.z1,GT,lagerWall,undefined,2.5,HALLE_H,'-x');
-  streifenvorhang('lager_sued',false,-8.0,GT[0][0],GT[0][1],2.5);
+  /* Der Gang muendet in den ersten Abschnitt der Halle Sued, wird
+     aber erst mit dem Grosshandel geoeffnet - vorher fuehrt er
+     nirgendwohin. */
+  durchbruchWand('lager_west',false,-8.0,LAY.lsued.z0,LAY.lsued.z1,GT,lagerWall,undefined,2.5,HALLE_H,'-x');
+  streifenvorhang('lager_west',false,-8.0,GT[0][0],GT[0][1],2.5);
   buildLagergang();
   buildLagerTerminal();
   buildPackstation();
@@ -532,7 +550,11 @@ function buildAusbau(){
 let packHit=null, packTisch=null;
 const pakete=[];                       /* fertige Pakete auf der Rampe */
 function buildPackstation(){
-  const id='packstation', PX=-17.2, PZ=4.2;
+  /* Die Packstation steht jetzt im ersten Abschnitt der Halle
+     Sued, gleich hinter dem Rolltor - dort, wo der LKW anfaehrt
+     und die Ware hereinkommt. Vorher stand sie im Anbau Nord,
+     quer durch das ganze Lager vom Wareneingang entfernt. */
+  const id='packstation', PX=-18.3, PZ=-8.6;
   const g=new THREE.Group(); g.position.set(PX,0,PZ); scene.add(g); zAdd(id,g);
   packTisch=g;
   const stahl=std(0x7d838c,{metalness:0.6,roughness:0.4});
@@ -617,7 +639,9 @@ function versandFlaeche(g,id,PX,PZ){
   });
   const bo=new THREE.Mesh(new THREE.PlaneGeometry(BW,BT),
     new THREE.MeshStandardMaterial({map:t,roughness:0.62}));
-  bo.rotation.x=-Math.PI/2; bo.rotation.z=Math.PI; bo.position.set(cxl,0.022,-0.05);
+  /* Man kommt vom Rolltor her, also muss die Schrift von dort aus
+     lesbar sein. */
+  bo.rotation.x=-Math.PI/2; bo.position.set(cxl,0.022,-0.05);
   g.add(bo); zAdd(id,bo);
   /* Abholfeld am Ende der Rollenbahn */
   const dt=tex(520,260,(c,W,H)=>{
@@ -631,12 +655,15 @@ function versandFlaeche(g,id,PX,PZ){
   const stahl=std(0x8d939d,{metalness:0.6,roughness:0.4});
   /* Der Pfosten steht neben der Rollenbahn an der Wand, nicht im
      Gang - und er ist fest, man laeuft nicht hindurch. */
-  const dz=-1.05;
-  bbox(0.07,2.05,0.07,stahl,5.35,1.02,dz,g,false);
-  bbox(0.26,0.04,0.26,std(0x2f343e,{roughness:0.8}),5.35,0.02,dz,g,false);
-  bbox(1.06,0.56,0.04,std(0x2f343d,{metalness:0.4,roughness:0.55}),5.35,1.72,dz,g,false);
-  plane(1.0,0.5,new THREE.MeshStandardMaterial({map:dt,roughness:0.6}),5.35,1.72,dz-0.045,Math.PI,g);
-  zCol(id,col(PX+5.22,PX+5.48,PZ+dz-0.13,PZ+dz+0.13));
+  const dz=-0.72;
+  bbox(0.07,2.05,0.07,stahl,5.15,1.02,dz,g,false);
+  bbox(0.26,0.04,0.26,std(0x2f343e,{roughness:0.8}),5.15,0.02,dz,g,false);
+  bbox(1.06,0.56,0.05,std(0x2f343d,{metalness:0.4,roughness:0.55}),5.15,1.72,dz,g,false);
+  /* beidseitig bedruckt - im Lager laeuft man von beiden Seiten daran vorbei */
+  for(const sg of [-1,1])
+    plane(1.0,0.5,new THREE.MeshStandardMaterial({map:dt,roughness:0.6}),
+      5.15,1.72,dz+sg*0.032,sg<0?Math.PI:0,g);
+  zCol(id,col(PX+5.02,PX+5.28,PZ+dz-0.13,PZ+dz+0.13));
   /* Schild an der Westwand, dort ist die einzige freie Wandflaeche */
   const wt=tex(760,200,(c,W,H)=>{
     c.fillStyle='#1b2340'; c.fillRect(0,0,W,H);
@@ -644,7 +671,7 @@ function versandFlaeche(g,id,PX,PZ){
     c.fillText('VERSAND',W/2,H/2+4);
     c.strokeStyle='#2f3a5e'; c.lineWidth=8; c.strokeRect(4,4,W-8,H-8);
   });
-  const wx=LAY.lnord.x0+0.06-PX;
+  const wx=LAY.ls1.x0+0.06-PX;
   bbox(0.04,0.5,1.44,std(0x1b2340,{roughness:0.7}),wx,2.05,0,g,false);
   plane(1.4,0.44,new THREE.MeshBasicMaterial({map:wt,toneMapped:false}),wx+0.03,2.05,0,Math.PI/2,g);
 }

@@ -111,8 +111,8 @@ const UPGRADES=[
   {id:'rack',kat:'einr',lvl:3,name:'Lagerregal',desc:'Neun Stellplätze für Kartons im Lager.',cost:()=>120+80*rackCount('standard'),done:()=>rackAlleBelegt('standard')},
   {id:'shelf_gondel',kat:'einr',lvl:12,req:'shop_gross',name:'Mittelgondel',desc:'Steht frei im Raum, Ware auf beiden Seiten: acht Fächer auf einer Stellfläche. Braucht einen Inselplatz in der neuen Verkaufsfläche.',cost:()=>SHELFKIND.gondel.cost+SHELFKIND.gondel.step*shelfCount('gondel'),done:()=>alleBelegt('gondel')},
   {id:'shelf_eck',kat:'einr',lvl:14,req:'shop_gross',name:'Eckregal',desc:'Zwei Schenkel über Eck. Nutzt die Raumecken, die sonst tote Fläche wären.',cost:()=>SHELFKIND.eck.cost+SHELFKIND.eck.step*shelfCount('eck'),done:()=>alleBelegt('eck')},
-  {id:'rack_hoch',kat:'einr',lvl:12,req:'lager_sued',name:'Hochregal (Lager)',desc:'Fünf Ebenen auf über vier Metern. Passt nur in die hohen Hallen Süd und West.',cost:()=>RACKKIND.hoch.cost+RACKKIND.hoch.step*rackCount('hoch'),done:()=>rackAlleBelegt('hoch')},
-  {id:'rack_schwer',kat:'einr',lvl:18,req:'lager_sued',name:'Schwerlastregal',desc:'Breiter, tiefer, vier Stellplätze je Ebene. Das größte Regal im Lager.',cost:()=>RACKKIND.schwer.cost+RACKKIND.schwer.step*rackCount('schwer'),done:()=>rackAlleBelegt('schwer')},
+  {id:'rack_hoch',kat:'einr',lvl:16,req:'lager_gross',name:'Hochregal (Lager)',desc:'Fünf Ebenen auf über vier Metern. Passt nur in die hohe Halle Süd und in den Großhandel.',cost:()=>RACKKIND.hoch.cost+RACKKIND.hoch.step*rackCount('hoch'),done:()=>rackAlleBelegt('hoch')},
+  {id:'rack_schwer',kat:'einr',lvl:18,req:'lager_gross',name:'Schwerlastregal',desc:'Breiter, tiefer, vier Stellplätze je Ebene. Das größte Regal im Lager.',cost:()=>RACKKIND.schwer.cost+RACKKIND.schwer.step*rackCount('schwer'),done:()=>rackAlleBelegt('schwer')},
   {id:'plakat',kat:'markt',lvl:4,name:'Werbeplakate in der Stadt',desc:'Dauerhaft rund 30 Prozent mehr Kunden.',cost:()=>400,done:()=>S.up.plakat},
   {id:'terminal',kat:'einr',lvl:6,name:'Kontaktlos-Terminal',desc:'Kartenzahlung geht deutlich schneller.',cost:()=>320,done:()=>S.up.terminal},
   {id:'tag4',kat:'markt',lvl:7,name:'Sonntagsgenehmigung',desc:'Du darfst auch sonntags öffnen. Sonst ist Sonntag Ruhetag.',cost:()=>900,done:()=>S.up.tag4},
@@ -130,11 +130,12 @@ const UPGRADES=[
   {id:'klima',kat:'einr',lvl:27,name:'Klima und Musikanlage XL',desc:'Deutlich bessere Stimmung, Kunden bleiben spürbar länger.',cost:()=>5400,done:()=>S.up.klima},
   {id:'meister',kat:'markt',lvl:30,name:'Meisterbrief Pyrotechnik',desc:'Die höchste Stufe. Großaufträge zahlen ein Drittel mehr.',cost:()=>12000,done:()=>S.up.meister},
   {id:'shop_gross',kat:'flaeche',lvl:12,name:'Verkaufsfläche erweitern',desc:'Kauft das leerstehende Ladenlokal rechts nebenan. Die Ostwand wird durchbrochen, die Schaufenster werden entmauert: rund 78 Quadratmeter mehr Fläche und acht zusätzliche Regalplätze.',cost:()=>7500,done:()=>S.up.shop_gross},
-  {id:'lager_gross',kat:'flaeche',lvl:15,name:'Lager erweitern',desc:'Die Nordwand des Lagers wird zum Anbau hin durchbrochen. Sechs zusätzliche Lagerregale passen hinein, und erst hier ist Platz für die Packstation.',cost:()=>6200,done:()=>S.up.lager_gross},
+  {id:'lager_gross',kat:'flaeche',lvl:15,name:'Lagerhalle Süd I',desc:'Hinter dem Rolltor wird die Wand auf neun Metern durchbrochen: der erste Abschnitt der großen Halle, 118 Quadratmeter mit fünf Metern lichter Höhe. Hier steht die Packstation, und ab hier lohnt sich der Onlineshop. Hochregale passen erst in diese Höhe.',cost:()=>6200,done:()=>S.up.lager_gross},
   {id:'shop_ost',kat:'flaeche',lvl:20,req:'shop_gross',name:'Zweites Ladenlokal',desc:'Das nächste leerstehende Lokal an der Ostseite: noch einmal 212 Quadratmeter, Gondelgassen, Eckregal und eine lange Wandreihe.',cost:()=>16000,done:()=>S.up.shop_ost},
   {id:'shop_sued',kat:'flaeche',lvl:26,req:'shop_ost',name:'Rückgebäude Süd',desc:'Die große Halle hinter dem Laden, zwei breite Durchgänge: 478 Quadratmeter Verkaufsfläche mit zwei Gondelgassen. Damit ist der Laden fünfeinhalbmal so groß wie am Anfang.',cost:()=>34000,done:()=>S.up.shop_sued},
-  {id:'lager_sued',kat:'flaeche',lvl:22,req:'lager_gross',name:'Lagerhalle Süd',desc:'283 Quadratmeter mit 6,4 Metern lichter Höhe. Erst hier passen Hochregale und Schwerlastregale hinein.',cost:()=>13000,done:()=>S.up.lager_sued},
-  {id:'lager_west',kat:'flaeche',lvl:28,req:'lager_sued',name:'Lagerhalle West',desc:'Die große Halle an den drei Westrampen: 505 Quadratmeter, zwölf Stellplätze für Hochregale und ein Hof, auf dem mehrere Auflieger stehen können. Dazu wird der Lagergang hinter dem Laden geöffnet — der kurze Weg vom Rückgebäude direkt ins Lager, ohne Umweg über den Verkaufsraum.',cost:()=>38000,done:()=>S.up.lager_west},
+  {id:'lager_sued',kat:'flaeche',lvl:20,req:'lager_gross',name:'Lagerhalle Süd II',desc:'Der zweite Abschnitt, noch einmal 83 Quadratmeter. Die Wand zum ersten fällt ganz weg — kein Pfeiler, kein Sturz, eine durchgehende Halle.',cost:()=>11000,done:()=>S.up.lager_sued},
+  {id:'lager_sued2',kat:'flaeche',lvl:24,req:'lager_sued',name:'Lagerhalle Süd III',desc:'Der letzte Abschnitt bis zur Südwand. Damit ist die Halle Süd komplett: 283 Quadratmeter am Stück, zwölf Stellplätze für Hoch- und Schwerlastregale.',cost:()=>15000,done:()=>S.up.lager_sued2},
+  {id:'lager_west',kat:'flaeche',lvl:28,req:'lager_sued2',name:'Lagerhalle West',desc:'Die große Halle an den drei Westrampen: 505 Quadratmeter, zwölf Stellplätze für Hochregale und ein Hof, auf dem mehrere Auflieger stehen können. Dazu wird der Lagergang hinter dem Laden geöffnet — der kurze Weg vom Rückgebäude direkt ins Lager, ohne Umweg über den Verkaufsraum.',cost:()=>38000,done:()=>S.up.lager_west},
   /* Andockstationen. Die Basisrampe hinter dem Lager ist die erste
      und bleibt die begehbare; jede zugekaufte Westrampe nimmt eine
      Lieferung zusaetzlich an, parallel zu allen anderen. */
@@ -142,7 +143,7 @@ const UPGRADES=[
   {id:'rampe3',kat:'flaeche',lvl:29,req:'rampe2',name:'Dritte Andockstation',desc:'Tor 3 kommt dazu. Drei Lieferungen nebeneinander — ab hier staut sich der Einkauf auch an starken Tagen nicht mehr.',cost:()=>19000,done:()=>S.up.rampe3},
   {id:'rampe4',kat:'flaeche',lvl:30,req:'rampe3',name:'Vierte Andockstation',desc:'Das dritte Tor der Westhalle. Vier Lieferungen gleichzeitig.',cost:()=>25000,done:()=>S.up.rampe4},
   {id:'rampe5',kat:'flaeche',lvl:30,req:'rampe4',name:'Fünfte Andockstation',desc:'Das vierte Tor der Westhalle. Zusammen mit der Basisrampe rollen dann fünf Lieferungen gleichzeitig an — mehr gibt das Grundstück nicht her.',cost:()=>31000,done:()=>S.up.rampe5},
-  {id:'packstation',kat:'flaeche',lvl:18,req:'lager_gross',name:'Packstation für den Versand',desc:'Packtisch, Waage, Etikettendrucker und Abholrampe. Zusammen mit dem Onlineshop kommen Bestellungen als echte Pakete herein: packen, auf die Rampe stellen, DDL holt am Abend ab.',cost:()=>6400,done:()=>S.up.packstation},
+  {id:'packstation',kat:'flaeche',lvl:16,req:'lager_gross',name:'Packstation für den Versand',desc:'Packtisch, Waage, Etikettendrucker und Abholrampe im ersten Abschnitt der Halle Süd, gleich hinter dem Rolltor. Zusammen mit dem Onlineshop kommen Bestellungen als echte Pakete herein: packen, auf die Rampe stellen, DDL holt am Abend ab.',cost:()=>6400,done:()=>S.up.packstation},
   {id:'eingang2',kat:'flaeche',lvl:24,req:'shop_ost',name:'Zweiter Eingang mit Kasse',desc:'Im Eckhaus ist die mittlere Achse bis zum Boden offen und wartet auf eine Tür. Der Ausbau setzt dieselbe Schiebetür wie am Haupteingang hinein, mit Vordach und Matte, und stellt dahinter eine eigene SB-Kassenzeile auf. Kunden nehmen ab jetzt den Eingang, der näher liegt, und die Schlange am Band wird spürbar kürzer. Die Kassenzeile lässt sich im Umbaumodus verschieben.',cost:()=>11500,done:()=>S.up.eingang2},
   {id:'kasse2',kat:'einr',lvl:16,req:'shop_gross',name:'SB-Kassen',desc:'Zwei Selbstbedienungsterminals in der neuen Verkaufsfläche. Kunden mit wenig Ware zahlen dort selbst, das entlastet deine Schlange spürbar.',cost:()=>3400,done:()=>S.up.kasse2},
   {id:'labor',kat:'einr',lvl:25,req:'shop_gross',name:'Entwicklungslabor',desc:'Ein Labortisch im Lager. Ab hier entwickelst du eigene Rezepturen: Träger, Bruchbild und Farben aussuchen, Prototyp auf dem Testfeld zünden, in Produktion geben. Verbauen darfst du nur Bruchbilder, die du selbst schon am Himmel gesehen hast.',cost:()=>9800,done:()=>S.up.labor},
@@ -350,15 +351,23 @@ const SLOTS=mkSlots();
 function mkRacks(){
   const A=[];
   const add=(x,z,ry,h,zone)=>A.push({x:Math.round(x*100)/100,z:Math.round(z*100)/100,ry:ry,h:h,zone:zone});
-  /* Basislager, 3,6 m - nur Standardregale */
+  /* Basislager an der Rampe, 3,6 m - nur Standardregale */
   [-9.3,-12.4,-15.5,-18.6].forEach(x=>{ add(x,-5.35,0,3.6); add(x,1.35,Math.PI,3.6); });
-  /* Anbau Nord, nur 2,84 m */
-  [-9.7,-12.8,-15.9,-19.0].forEach(x=>add(x,5.45,Math.PI,2.84,'lager_gross'));
-  [-11.0,-14.1].forEach(x=>add(x,2.75,0,2.84,'lager_gross'));
-  /* Halle Sued, 6,4 m - hier passen Hoch- und Schwerlastregale */
-  [-7.6,-11.6,-15.6,-19.6,-23.6].forEach(z=>{
-    add(-10.2,z,0,6.4,'lager_sued'); add(-17.6,z,0,6.4,'lager_sued'); });
-  /* Halle West, 6,4 m - die grosse Halle an den drei Rampen */
+  /* Anbau Nord, 2,84 m. Gehoert ab Level 1 zum Lager. */
+  [-9.7,-12.8,-15.9,-19.0].forEach(x=>add(x,5.45,Math.PI,2.84));
+  [-11.0,-14.1].forEach(x=>add(x,2.75,0,2.84));
+  /* Halle Sued I bis III, lichte Hoehe 5,0 m (HALLE_H steht erst in
+     05-world und ist hier noch nicht da, darum die Zahl).
+     In Halle I steht auch die Packstation, darum haelt der
+     Westrand die ersten Meter frei. */
+  [-8.6,-12.2].forEach(z=>{ add(-10.4,z,0,5.0,'lager_gross'); });
+  [-12.2,-14.8].forEach(z=>{ add(-17.8,z,0,5.0,'lager_gross'); });
+  add(-10.4,-14.8,0,5.0,'lager_gross');
+  /* Halle Sued II */
+  [-17.4,-20.6].forEach(z=>{ add(-10.4,z,0,5.0,'lager_sued'); add(-17.8,z,0,5.0,'lager_sued'); });
+  /* Halle Sued III */
+  [-24.4,-27.6].forEach(z=>{ add(-10.4,z,0,5.0,'lager_sued2'); add(-17.8,z,0,5.0,'lager_sued2'); });
+  /* Grosshandel: die grosse Halle an den vier Rampen */
   [-9.5,-13.5,-17.5,-21.5,-25.5,-28.8].forEach(z=>{
     add(-24.5,z,0,6.4,'lager_west'); add(-31.5,z,0,6.4,'lager_west'); });
   return A;

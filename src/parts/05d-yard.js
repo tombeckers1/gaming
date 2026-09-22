@@ -6,7 +6,7 @@ const PULT_RY=1.121+Math.PI;
 /* Modell und Kollision des Zuendpults haengen an derselben Zahl -
    beim Verschieben ist die Kollision sonst stehen geblieben und
    sperrte als unsichtbare Wand den Lagergang. */
-const PULT_POS={x:5.9,z:-11.0};
+const PULT_POS={x:1.0,z:-11.5};
 const stations={}; let pultHit=null, pultTex=null, pultLamp=null;
 /* Hinweisschild auf zwei Rohrpfosten, damit es nicht in der Luft haengt */
 function schild(x,y,z,w,h,mat,steelM){
@@ -32,9 +32,9 @@ function schild(x,y,z,w,h,mat,steelM){
    des Ladens quer ueber das Testfeld laeuft. Platz ist genug: das
    Testfeld reicht bis z -28. */
 const STATION_POS={
-  tisch :{x:-0.3,z:-12.4,ry:0,name:'Zündtisch',cap:6},
-  rampe :{x:-0.3,z:-15.6,ry:0,name:'Abschussröhren',cap:6},
-  moerser:{x:4.6,z:-15.6,ry:0,name:'Mörserbatterie',cap:3}
+  tisch :{x:-1.5,z:-19.0,ry:0,name:'Zündtisch',cap:6},
+  rampe :{x:-1.5,z:-23.0,ry:0,name:'Abschussröhren',cap:6},
+  moerser:{x:5.0,z:-23.0,ry:0,name:'Mörserbatterie',cap:3}
 };
 function stationOf(t){
   const p=P[t]; if(!p||!p.cat) return null;
@@ -162,20 +162,45 @@ function buildYard(){
      beschwert. Hier kommen die Kugelbomben hinein. */
   {
     const s=STATION_POS.moerser, g=new THREE.Group(); g.position.set(s.x,0,s.z); scene.add(g);
-    const holz=(()=>{ const t=tex(256,256,(c,W,H)=>{
-      c.fillStyle='#6b4f32'; c.fillRect(0,0,W,H);
-      for(let i=0;i<40;i++){ c.strokeStyle=`rgba(${40+Math.random()*60|0},${28+Math.random()*40|0},16,${rand(0.12,0.4)})`;
-        c.lineWidth=rand(0.6,2.4); c.beginPath(); c.moveTo(0,Math.random()*H); c.bezierCurveTo(W*0.3,Math.random()*H,W*0.6,Math.random()*H,W,Math.random()*H); c.stroke(); }
-      for(let i=0;i<1600;i++){ c.fillStyle=`rgba(0,0,0,${Math.random()*0.06})`; c.fillRect(Math.random()*W,Math.random()*H,2,2); }
-      for(let y=0;y<H;y+=64){ c.fillStyle='rgba(30,20,10,.35)'; c.fillRect(0,y,W,3); } });
-      t.wrapS=t.wrapT=THREE.RepeatWrapping; t.repeat.set(2,1);
-      return new THREE.MeshStandardMaterial({map:t,roughness:0.94}); })();
+    /* Gestell aus Stahl. Vorher stand hier ein Holzkasten mit
+       Sandsaecken davor - fuer ein Geraet, aus dem Kugelbomben
+       steigen, das falsche Material. */
+    const riffel=(()=>{ const t=tex(256,256,(c,W,H)=>{
+      c.fillStyle='#7b828d'; c.fillRect(0,0,W,H);
+      for(let y=0;y<H;y+=32) for(let x=0;x<W;x+=32){
+        c.save(); c.translate(x+16,y+16); c.rotate((x/32+y/32)%2?0.7:-0.7);
+        c.fillStyle='#949ba6'; c.fillRect(-11,-3.5,22,7);
+        c.fillStyle='rgba(0,0,0,.3)'; c.fillRect(-11,3.5,22,2); c.restore(); }
+      for(let i=0;i<900;i++){ c.fillStyle=`rgba(0,0,0,${Math.random()*0.07})`; c.fillRect(Math.random()*W,Math.random()*H,2,2); } });
+      t.wrapS=t.wrapT=THREE.RepeatWrapping; t.repeat.set(3,1.5);
+      return new THREE.MeshStandardMaterial({map:t,metalness:0.62,roughness:0.44}); })();
+    const stahl=std(0x767d88,{metalness:0.72,roughness:0.36});
+    const lack =std(0xf2c230,{metalness:0.25,roughness:0.55});
     const rohrM=std(0x2f353f,{metalness:0.78,roughness:0.3});
-    const sand=std(0x9a8f74,{roughness:0.98});
-    /* Holzrahmen als Gestell */
-    bbox(2.3,0.18,1.0,holz,0,0.09,0,g);
-    for(const sx of [-1.02,1.02]) bbox(0.16,0.5,0.96,holz,sx,0.34,0,g);
-    for(const sz of [-0.44,0.44]) bbox(2.0,0.14,0.14,holz,0,0.5,sz,g,false);
+    /* Bodenplatte aus Riffelblech auf vier Fuessen */
+    bbox(2.4,0.05,1.16,riffel,0,0.055,0,g);
+    for(const sx of [-1.06,1.06]) for(const sz of [-0.46,0.46])
+      bbox(0.14,0.08,0.14,stahl,sx,0.04,sz,g,false);
+    /* Vierkantrahmen: Pfosten, oberer Umlauf, Diagonalen */
+    for(const sx of [-1.12,1.12]){
+      for(const sz of [-0.5,0.5]) bbox(0.08,0.62,0.08,stahl,sx,0.39,sz,g);
+      bbox(0.07,0.07,1.0,stahl,sx,0.68,0,g,false);
+      const dia=bbox(0.05,0.05,0.82,stahl,sx,0.39,0,g,false); dia.rotation.x=0.88;
+    }
+    for(const sz of [-0.5,0.5]) bbox(2.24,0.07,0.07,stahl,0,0.68,sz,g,false);
+    /* Rohrschellen: je zwei Halbschalen mit Schraube */
+    const kalX=[-0.72,0,0.78], kalR=[0.115,0.145,0.185];
+    kalX.forEach((x,i)=>{ for(const y of [0.42,0.66]){
+      const sch=new THREE.Mesh(new THREE.TorusGeometry(kalR[i]+0.03,0.026,6,18),stahl);
+      sch.rotation.x=Math.PI/2; sch.position.set(x,y,0); g.add(sch);
+      bbox(0.05,0.05,0.09,stahl,x+kalR[i]+0.05,y,0,g,false); } });
+    /* Anfahrschutz aus Stahlrohr statt Sandsaecken */
+    for(const sz of [-0.78,0.78]){
+      bbox(2.5,0.09,0.09,lack,0,0.5,sz,g,false);
+      for(const sx of [-1.2,1.2]){
+        bbox(0.09,0.5,0.09,lack,sx,0.25,sz,g,false);
+        bbox(0.2,0.04,0.2,stahl,sx,0.02,sz,g,false); }
+    }
     /* drei Rohre in aufsteigendem Kaliber */
     const kal=[[-0.72,0.115,1.30],[0,0.145,1.55],[0.78,0.185,1.85]];
     kal.forEach(([x,r,hh],i)=>{
@@ -202,14 +227,6 @@ function buildYard(){
         c.fillStyle='#0e1226'; c.font=BUN(52); c.textAlign='center'; c.textBaseline='middle';
         c.fillText(mm+' mm',W/2,H/2+2); })}),x,0.62,0.5,0,g);
     });
-    /* Sandsaecke rundherum */
-    for(let i=0;i<7;i++){
-      const a=(i/7)*Math.PI*2, r=rand(1.15,1.35);
-      const sx=Math.cos(a)*r*1.05, sz=Math.sin(a)*r*0.72;
-      const sb=rbox(0.42,0.16,0.26,0.07,sand,sx,0.08,sz,g);
-      sb.rotation.y=a+rand(-0.3,0.3);
-      if(i<4){ const sb2=rbox(0.4,0.15,0.25,0.07,sand,sx+rand(-.05,.05),0.23,sz,g); sb2.rotation.y=a+rand(-0.4,0.4); }
-    }
     const hit=bbox(2.4,1.8,1.1,hitM,0,0.9,0,g,false);
     stations.moerser={id:'moerser',g,items:[],cap:s.cap,hit};
     hit.userData={kind:'station',ref:stations.moerser};
@@ -317,11 +334,11 @@ function buildYard(){
   /* Flutlicht */
   /* Der erste Mast stand bei z -7,2 und ragte durch die Decke des
      Lagergangs. Beide sind mit den Stationen nach Sueden gerueckt. */
-  for(const [x,z] of [[-1.4,-10.4],[7.3,-16.4]]){
+  for(const [x,z] of [[-5.6,-13.0],[6.6,-21.0]]){
     bbox(0.12,3.4,0.12,std(0x4a4f5a,{metalness:0.5}),x,1.7,z);
     const head=bbox(0.55,0.3,0.25,std(0x2a2e38),x,3.45,z); head.rotation.x=0.4;
     const lm=new THREE.MeshStandardMaterial({color:0x222222,emissive:LIN(0xfff0d0),emissiveIntensity:0}); lampMats.push(lm);
-    bbox(0.45,0.03,0.2,lm,x,3.33,z+(z<-13?0.1:-0.12),null,false);
+    bbox(0.45,0.03,0.2,lm,x,3.33,z+(z<-17?0.1:-0.12),null,false);
   }
 }
 function drawPult(){

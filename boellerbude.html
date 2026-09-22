@@ -2421,8 +2421,12 @@ function buildWorld(){
   wall(-8,4.4,-6.1,-5.9,0,H,'+z',shopWall); wall(6.1,8,-6.1,-5.9,0,H,'+z',shopWall); wall(4.4,6.1,-6.1,-5.9,2.5,H,'+z',shopWall);
   /* Ostwand: spaeter wird hier ein grosser Durchbruch zur Nachbarflaeche
      geschlagen. Pfeiler und Sturz bleiben stehen, die Fuellung faellt. */
-  wall(7.9,8.1,-6.1,-4.4,0,H,'-x',shopWall); wall(7.9,8.1,4.4,6.1,0,H,'-x',shopWall);
-  wall(7.9,8.1,-4.4,4.4,2.7,H,'-x',shopWall);
+  /* Beim Kauf faellt die Ostwand komplett - Pfeiler und Sturz
+     eingeschlossen. Sonst steht mitten im vergroesserten Laden
+     weiter ein Wandstueck mit einem Balken darueber. */
+  zWand('shop_gross',wall(7.9,8.1,-6.1,-4.4,0,H,'-x',shopWall));
+  zWand('shop_gross',wall(7.9,8.1,4.4,6.1,0,H,'-x',shopWall));
+  zWand('shop_gross',wall(7.9,8.1,-4.4,4.4,2.7,H,'-x',shopWall));
   wall(-8.1,-7.9,-6.1,-3.2,0,H,'+x',shopWall,lagerWall); wall(-8.1,-7.9,-1.8,2,0,H,'+x',shopWall,lagerWall); wall(-8.1,-7.9,2,6.1,0,H,'+x',shopWall,lagerWall);
   wall(-8.1,-7.9,-3.2,-1.8,2.5,H,'+x',shopWall,lagerWall);
   // Lager
@@ -2436,7 +2440,8 @@ function buildWorld(){
   /* Sockelleisten enden an den Tueroeffnungen, statt durchzulaufen */
   for(const [a,b] of [[-7.9,4.4],[6.1,7.9]]) bbox(b-a,0.1,0.02,base,(a+b)/2,0.05,-5.89,null,false);
   for(const [a,b] of [[-7.9,-1.2],[1.2,7.9]]) bbox(b-a,0.1,0.02,base,(a+b)/2,0.05,5.89,null,false);
-  for(const [a,b] of [[-5.9,-4.4],[4.4,5.9]]) bbox(0.02,0.1,b-a,base,7.89,0.05,(a+b)/2,null,false);
+  for(const [a,b] of [[-5.9,-4.4],[4.4,5.9]])
+    for(const sx of [7.89,8.11]) zWand('shop_gross',bbox(0.02,0.1,b-a,base,sx,0.05,(a+b)/2,null,false));
   for(const [a,b] of [[-5.9,-3.2],[-1.8,5.9]]) bbox(0.02,0.1,b-a,base,-7.89,0.05,(a+b)/2,null,false);
   // Dächer & Decken
   bbox(16.4,0.25,12.4,std(0x2b2f3a),0,H+0.13,0); bbox(12.4,0.25,8.4,std(0x2b2f3a),-14,H+0.13,-2);
@@ -2469,7 +2474,10 @@ function buildWorld(){
   plane(1.4,0.35,new THREE.MeshStandardMaterial({map:tex(280,70,(g,W,Hh)=>{ g.fillStyle='#f2c230'; g.fillRect(0,0,W,Hh); g.fillStyle='#16181f'; g.font=BUN(40); g.textAlign='center'; g.textBaseline='middle'; g.fillText('LAGER',W/2,Hh/2+2); })}),-7.88,2.85,-2.5,Math.PI/2);
   // Wanduhr: echtes Gehaeuse mit Glas, Zeiger laufen nach der Spielzeit
   {
-    const zg=new THREE.Group(); zg.position.set(7.84,2.6,2.4); zg.rotation.y=-Math.PI/2; scene.add(zg);
+    /* Die Uhr hing an der Ostwand. Die faellt jetzt beim ersten
+       Flaechenkauf weg - dann haengt die Uhr in der Luft. Sie sitzt
+       deshalb an der Rueckwand des Basisladens, die immer steht. */
+    const zg=new THREE.Group(); zg.position.set(-2.6,2.6,-5.86); scene.add(zg);
     const geh=new THREE.Mesh(new THREE.CylinderGeometry(0.24,0.24,0.055,HIQ?36:18),std(0x2b3140,{metalness:0.35,roughness:0.45}));
     geh.rotation.x=Math.PI/2; zg.add(geh);
     const rand2=new THREE.Mesh(new THREE.TorusGeometry(0.235,0.018,10,HIQ?30:16),std(0x9aa1ac,{metalness:0.7,roughness:0.3}));
@@ -2548,7 +2556,7 @@ const PULT_RY=1.121+Math.PI;
 /* Modell und Kollision des Zuendpults haengen an derselben Zahl -
    beim Verschieben ist die Kollision sonst stehen geblieben und
    sperrte als unsichtbare Wand den Lagergang. */
-const PULT_POS={x:5.9,z:-11.0};
+const PULT_POS={x:1.0,z:-11.5};
 const stations={}; let pultHit=null, pultTex=null, pultLamp=null;
 /* Hinweisschild auf zwei Rohrpfosten, damit es nicht in der Luft haengt */
 function schild(x,y,z,w,h,mat,steelM){
@@ -2574,9 +2582,9 @@ function schild(x,y,z,w,h,mat,steelM){
    des Ladens quer ueber das Testfeld laeuft. Platz ist genug: das
    Testfeld reicht bis z -28. */
 const STATION_POS={
-  tisch :{x:-0.3,z:-12.4,ry:0,name:'Zündtisch',cap:6},
-  rampe :{x:-0.3,z:-15.6,ry:0,name:'Abschussröhren',cap:6},
-  moerser:{x:4.6,z:-15.6,ry:0,name:'Mörserbatterie',cap:3}
+  tisch :{x:-1.5,z:-19.0,ry:0,name:'Zündtisch',cap:6},
+  rampe :{x:-1.5,z:-23.0,ry:0,name:'Abschussröhren',cap:6},
+  moerser:{x:5.0,z:-23.0,ry:0,name:'Mörserbatterie',cap:3}
 };
 function stationOf(t){
   const p=P[t]; if(!p||!p.cat) return null;
@@ -2704,20 +2712,45 @@ function buildYard(){
      beschwert. Hier kommen die Kugelbomben hinein. */
   {
     const s=STATION_POS.moerser, g=new THREE.Group(); g.position.set(s.x,0,s.z); scene.add(g);
-    const holz=(()=>{ const t=tex(256,256,(c,W,H)=>{
-      c.fillStyle='#6b4f32'; c.fillRect(0,0,W,H);
-      for(let i=0;i<40;i++){ c.strokeStyle=`rgba(${40+Math.random()*60|0},${28+Math.random()*40|0},16,${rand(0.12,0.4)})`;
-        c.lineWidth=rand(0.6,2.4); c.beginPath(); c.moveTo(0,Math.random()*H); c.bezierCurveTo(W*0.3,Math.random()*H,W*0.6,Math.random()*H,W,Math.random()*H); c.stroke(); }
-      for(let i=0;i<1600;i++){ c.fillStyle=`rgba(0,0,0,${Math.random()*0.06})`; c.fillRect(Math.random()*W,Math.random()*H,2,2); }
-      for(let y=0;y<H;y+=64){ c.fillStyle='rgba(30,20,10,.35)'; c.fillRect(0,y,W,3); } });
-      t.wrapS=t.wrapT=THREE.RepeatWrapping; t.repeat.set(2,1);
-      return new THREE.MeshStandardMaterial({map:t,roughness:0.94}); })();
+    /* Gestell aus Stahl. Vorher stand hier ein Holzkasten mit
+       Sandsaecken davor - fuer ein Geraet, aus dem Kugelbomben
+       steigen, das falsche Material. */
+    const riffel=(()=>{ const t=tex(256,256,(c,W,H)=>{
+      c.fillStyle='#7b828d'; c.fillRect(0,0,W,H);
+      for(let y=0;y<H;y+=32) for(let x=0;x<W;x+=32){
+        c.save(); c.translate(x+16,y+16); c.rotate((x/32+y/32)%2?0.7:-0.7);
+        c.fillStyle='#949ba6'; c.fillRect(-11,-3.5,22,7);
+        c.fillStyle='rgba(0,0,0,.3)'; c.fillRect(-11,3.5,22,2); c.restore(); }
+      for(let i=0;i<900;i++){ c.fillStyle=`rgba(0,0,0,${Math.random()*0.07})`; c.fillRect(Math.random()*W,Math.random()*H,2,2); } });
+      t.wrapS=t.wrapT=THREE.RepeatWrapping; t.repeat.set(3,1.5);
+      return new THREE.MeshStandardMaterial({map:t,metalness:0.62,roughness:0.44}); })();
+    const stahl=std(0x767d88,{metalness:0.72,roughness:0.36});
+    const lack =std(0xf2c230,{metalness:0.25,roughness:0.55});
     const rohrM=std(0x2f353f,{metalness:0.78,roughness:0.3});
-    const sand=std(0x9a8f74,{roughness:0.98});
-    /* Holzrahmen als Gestell */
-    bbox(2.3,0.18,1.0,holz,0,0.09,0,g);
-    for(const sx of [-1.02,1.02]) bbox(0.16,0.5,0.96,holz,sx,0.34,0,g);
-    for(const sz of [-0.44,0.44]) bbox(2.0,0.14,0.14,holz,0,0.5,sz,g,false);
+    /* Bodenplatte aus Riffelblech auf vier Fuessen */
+    bbox(2.4,0.05,1.16,riffel,0,0.055,0,g);
+    for(const sx of [-1.06,1.06]) for(const sz of [-0.46,0.46])
+      bbox(0.14,0.08,0.14,stahl,sx,0.04,sz,g,false);
+    /* Vierkantrahmen: Pfosten, oberer Umlauf, Diagonalen */
+    for(const sx of [-1.12,1.12]){
+      for(const sz of [-0.5,0.5]) bbox(0.08,0.62,0.08,stahl,sx,0.39,sz,g);
+      bbox(0.07,0.07,1.0,stahl,sx,0.68,0,g,false);
+      const dia=bbox(0.05,0.05,0.82,stahl,sx,0.39,0,g,false); dia.rotation.x=0.88;
+    }
+    for(const sz of [-0.5,0.5]) bbox(2.24,0.07,0.07,stahl,0,0.68,sz,g,false);
+    /* Rohrschellen: je zwei Halbschalen mit Schraube */
+    const kalX=[-0.72,0,0.78], kalR=[0.115,0.145,0.185];
+    kalX.forEach((x,i)=>{ for(const y of [0.42,0.66]){
+      const sch=new THREE.Mesh(new THREE.TorusGeometry(kalR[i]+0.03,0.026,6,18),stahl);
+      sch.rotation.x=Math.PI/2; sch.position.set(x,y,0); g.add(sch);
+      bbox(0.05,0.05,0.09,stahl,x+kalR[i]+0.05,y,0,g,false); } });
+    /* Anfahrschutz aus Stahlrohr statt Sandsaecken */
+    for(const sz of [-0.78,0.78]){
+      bbox(2.5,0.09,0.09,lack,0,0.5,sz,g,false);
+      for(const sx of [-1.2,1.2]){
+        bbox(0.09,0.5,0.09,lack,sx,0.25,sz,g,false);
+        bbox(0.2,0.04,0.2,stahl,sx,0.02,sz,g,false); }
+    }
     /* drei Rohre in aufsteigendem Kaliber */
     const kal=[[-0.72,0.115,1.30],[0,0.145,1.55],[0.78,0.185,1.85]];
     kal.forEach(([x,r,hh],i)=>{
@@ -2744,14 +2777,6 @@ function buildYard(){
         c.fillStyle='#0e1226'; c.font=BUN(52); c.textAlign='center'; c.textBaseline='middle';
         c.fillText(mm+' mm',W/2,H/2+2); })}),x,0.62,0.5,0,g);
     });
-    /* Sandsaecke rundherum */
-    for(let i=0;i<7;i++){
-      const a=(i/7)*Math.PI*2, r=rand(1.15,1.35);
-      const sx=Math.cos(a)*r*1.05, sz=Math.sin(a)*r*0.72;
-      const sb=rbox(0.42,0.16,0.26,0.07,sand,sx,0.08,sz,g);
-      sb.rotation.y=a+rand(-0.3,0.3);
-      if(i<4){ const sb2=rbox(0.4,0.15,0.25,0.07,sand,sx+rand(-.05,.05),0.23,sz,g); sb2.rotation.y=a+rand(-0.4,0.4); }
-    }
     const hit=bbox(2.4,1.8,1.1,hitM,0,0.9,0,g,false);
     stations.moerser={id:'moerser',g,items:[],cap:s.cap,hit};
     hit.userData={kind:'station',ref:stations.moerser};
@@ -2859,11 +2884,11 @@ function buildYard(){
   /* Flutlicht */
   /* Der erste Mast stand bei z -7,2 und ragte durch die Decke des
      Lagergangs. Beide sind mit den Stationen nach Sueden gerueckt. */
-  for(const [x,z] of [[-1.4,-10.4],[7.3,-16.4]]){
+  for(const [x,z] of [[-5.6,-13.0],[6.6,-21.0]]){
     bbox(0.12,3.4,0.12,std(0x4a4f5a,{metalness:0.5}),x,1.7,z);
     const head=bbox(0.55,0.3,0.25,std(0x2a2e38),x,3.45,z); head.rotation.x=0.4;
     const lm=new THREE.MeshStandardMaterial({color:0x222222,emissive:LIN(0xfff0d0),emissiveIntensity:0}); lampMats.push(lm);
-    bbox(0.45,0.03,0.2,lm,x,3.33,z+(z<-13?0.1:-0.12),null,false);
+    bbox(0.45,0.03,0.2,lm,x,3.33,z+(z<-17?0.1:-0.12),null,false);
   }
 }
 function drawPult(){
@@ -4374,7 +4399,20 @@ function halle(id,r,opt){
    Solange sie stehen, sieht man ihnen nichts an - es ist dieselbe
    Wand wie daneben, nur eben durchgehend.
    laengs = die Wand laeuft in x-Richtung. */
-function durchbruchWand(id,laengs,fest,von,bis,oeffnungen,mat,exMat,sturzY,hoehe,face){
+/* Eine schlanke Stuetze da, wo vorher ein Wandstueck stand. Eine
+   Halle von vierzig Metern ganz ohne Stuetze sieht falsch aus, ein
+   stehengebliebener Wandklotz aber auch. */
+let _stuetzeM=null;
+function stuetzeM(){ if(!_stuetzeM) _stuetzeM=std(0xdfe3ea,{roughness:0.72}); return _stuetzeM; }
+function stuetze(x,z,h){
+  const g=new THREE.Mesh(new THREE.CylinderGeometry(0.17,0.17,h-0.16,HIQ?18:10),stuetzeM());
+  g.position.set(x,(h-0.16)/2,z); if(HIQ){ g.castShadow=true; g.receiveShadow=true; } scene.add(g);
+  bbox(0.46,0.1,0.46,std(0x9aa0ab,{roughness:0.8}),x,0.05,z,null,false);
+  bbox(0.44,0.08,0.44,stuetzeM(),x,h-0.06,z,null,false);
+  col(x-0.22,x+0.22,z-0.22,z+0.22);
+  return g;
+}
+function durchbruchWand(id,laengs,fest,von,bis,oeffnungen,mat,exMat,sturzY,hoehe,face,offen){
   const H=hoehe||WH, sy=sturzY||2.7;
   /* Welche Seite der Wand die Innenseite ist, stand bisher fest.
      Die Westwand des Rueckgebaeudes zeigt aber nach +x in den
@@ -4386,15 +4424,30 @@ function durchbruchWand(id,laengs,fest,von,bis,oeffnungen,mat,exMat,sturzY,hoehe
     : wall(fest-LW/2,fest+LW/2,a2,b2,y0,y1,f,mat,exMat);
   const c=(a2,b2)=>laengs?col(a2,b2,fest-LW/2,fest+LW/2):col(fest-LW/2,fest+LW/2,a2,b2);
   const zc=(a2,b2)=>zWandCol(id,c(a2,b2));
+  /* offen=true: beim Kauf faellt die ganze Wand, nicht nur die
+     Fuellungen. Sonst bleiben bei jeder Erweiterung Pfeiler und ein
+     Sturz quer durch den Raum stehen, und der Laden sieht aus wie
+     eine Reihe aneinandergehaengter Zimmer statt wie eine Halle.
+     Wo sich die Deckenhoehe aendert, muss die Wand stehen bleiben. */
+  const teil=(a2,b2,y0,y1)=>{
+    const m=w(a2,b2,y0,y1);
+    if(offen){ zWand(id,m); if(y0<=0.01) zc(a2,b2); }
+    else { if(y0<=0.01) c(a2,b2); }
+    if(mat===shopWall&&y0<=0.01) sockelLeiste(offen?id:null,laengs,fest,a2,b2);
+    return m;
+  };
+  const saeulen=[];
   let x=von;
   for(const [oa,ob] of oeffnungen){
-    if(oa>x){ w(x,oa,0,H); c(x,oa); if(mat===shopWall) sockelLeiste(null,laengs,fest,x,oa); }
-    w(oa,ob,sy,H);                       /* Sturz ueber der Oeffnung */
+    if(oa>x){ teil(x,oa,0,H); if(offen&&x>von) saeulen.push((x+oa)/2); }
+    teil(oa,ob,sy,H);                    /* Sturz ueber der Oeffnung */
     zc(oa,ob);                           /* sperrt, solange die Fuellung steht */
     trennwand(id,laengs,fest,oa,ob,sy,mat,exMat,f);
     x=ob;
   }
-  if(bis>x){ w(x,bis,0,H); c(x,bis); if(mat===shopWall) sockelLeiste(null,laengs,fest,x,bis); }
+  if(bis>x) teil(x,bis,0,H);
+  /* Stuetzen bleiben stehen, wo vorher ein Zwischenstueck war */
+  for(const p2 of saeulen) stuetze(laengs?p2:fest,laengs?fest:p2,H);
 }
 
 /* =========================================================
@@ -4457,8 +4510,8 @@ function buildAusbau(){
   halle('shop_sued', LAY.sued,{aussen:{s:true,e:true}});
   /* Innenwaende zwischen zwei Verkaufsraeumen: auf beiden Seiten
      Ladentapete, sonst schaut man von drinnen auf Backstein. */
-  durchbruchWand('shop_ost',false,LAY.ost1.x1,LAY.ost1.z0,LAY.ost1.z1,[[-4.2,4.2]],shopWall,shopWall);
-  durchbruchWand('shop_sued',true,LAY.sued.z1,LAY.sued.x0,LAY.sued.x1,[[10.0,17.0],[24.0,32.0]],shopWall,shopWall);
+  durchbruchWand('shop_ost',false,LAY.ost1.x1,LAY.ost1.z0,LAY.ost1.z1,[[-4.2,4.2]],shopWall,shopWall,null,null,null,true);
+  durchbruchWand('shop_sued',true,LAY.sued.z1,LAY.sued.x0,LAY.sued.x1,[[10.0,17.0],[24.0,32.0]],shopWall,shopWall,null,null,null,true);
   /* Die beiden ersten Durchbrueche stehen schon in 05c beziehungsweise
      im Dock - hier kommt nur die Fuellung in die Oeffnung. */
   trennwand('shop_gross',false,8.0,-4.4,4.4,2.7,shopWall,shopWall);

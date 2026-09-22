@@ -82,8 +82,12 @@ function buildWorld(){
   wall(-8,4.4,-6.1,-5.9,0,H,'+z',shopWall); wall(6.1,8,-6.1,-5.9,0,H,'+z',shopWall); wall(4.4,6.1,-6.1,-5.9,2.5,H,'+z',shopWall);
   /* Ostwand: spaeter wird hier ein grosser Durchbruch zur Nachbarflaeche
      geschlagen. Pfeiler und Sturz bleiben stehen, die Fuellung faellt. */
-  wall(7.9,8.1,-6.1,-4.4,0,H,'-x',shopWall); wall(7.9,8.1,4.4,6.1,0,H,'-x',shopWall);
-  wall(7.9,8.1,-4.4,4.4,2.7,H,'-x',shopWall);
+  /* Beim Kauf faellt die Ostwand komplett - Pfeiler und Sturz
+     eingeschlossen. Sonst steht mitten im vergroesserten Laden
+     weiter ein Wandstueck mit einem Balken darueber. */
+  zWand('shop_gross',wall(7.9,8.1,-6.1,-4.4,0,H,'-x',shopWall));
+  zWand('shop_gross',wall(7.9,8.1,4.4,6.1,0,H,'-x',shopWall));
+  zWand('shop_gross',wall(7.9,8.1,-4.4,4.4,2.7,H,'-x',shopWall));
   wall(-8.1,-7.9,-6.1,-3.2,0,H,'+x',shopWall,lagerWall); wall(-8.1,-7.9,-1.8,2,0,H,'+x',shopWall,lagerWall); wall(-8.1,-7.9,2,6.1,0,H,'+x',shopWall,lagerWall);
   wall(-8.1,-7.9,-3.2,-1.8,2.5,H,'+x',shopWall,lagerWall);
   // Lager
@@ -97,7 +101,8 @@ function buildWorld(){
   /* Sockelleisten enden an den Tueroeffnungen, statt durchzulaufen */
   for(const [a,b] of [[-7.9,4.4],[6.1,7.9]]) bbox(b-a,0.1,0.02,base,(a+b)/2,0.05,-5.89,null,false);
   for(const [a,b] of [[-7.9,-1.2],[1.2,7.9]]) bbox(b-a,0.1,0.02,base,(a+b)/2,0.05,5.89,null,false);
-  for(const [a,b] of [[-5.9,-4.4],[4.4,5.9]]) bbox(0.02,0.1,b-a,base,7.89,0.05,(a+b)/2,null,false);
+  for(const [a,b] of [[-5.9,-4.4],[4.4,5.9]])
+    for(const sx of [7.89,8.11]) zWand('shop_gross',bbox(0.02,0.1,b-a,base,sx,0.05,(a+b)/2,null,false));
   for(const [a,b] of [[-5.9,-3.2],[-1.8,5.9]]) bbox(0.02,0.1,b-a,base,-7.89,0.05,(a+b)/2,null,false);
   // Dächer & Decken
   bbox(16.4,0.25,12.4,std(0x2b2f3a),0,H+0.13,0); bbox(12.4,0.25,8.4,std(0x2b2f3a),-14,H+0.13,-2);
@@ -130,7 +135,10 @@ function buildWorld(){
   plane(1.4,0.35,new THREE.MeshStandardMaterial({map:tex(280,70,(g,W,Hh)=>{ g.fillStyle='#f2c230'; g.fillRect(0,0,W,Hh); g.fillStyle='#16181f'; g.font=BUN(40); g.textAlign='center'; g.textBaseline='middle'; g.fillText('LAGER',W/2,Hh/2+2); })}),-7.88,2.85,-2.5,Math.PI/2);
   // Wanduhr: echtes Gehaeuse mit Glas, Zeiger laufen nach der Spielzeit
   {
-    const zg=new THREE.Group(); zg.position.set(7.84,2.6,2.4); zg.rotation.y=-Math.PI/2; scene.add(zg);
+    /* Die Uhr hing an der Ostwand. Die faellt jetzt beim ersten
+       Flaechenkauf weg - dann haengt die Uhr in der Luft. Sie sitzt
+       deshalb an der Rueckwand des Basisladens, die immer steht. */
+    const zg=new THREE.Group(); zg.position.set(-2.6,2.6,-5.86); scene.add(zg);
     const geh=new THREE.Mesh(new THREE.CylinderGeometry(0.24,0.24,0.055,HIQ?36:18),std(0x2b3140,{metalness:0.35,roughness:0.45}));
     geh.rotation.x=Math.PI/2; zg.add(geh);
     const rand2=new THREE.Mesh(new THREE.TorusGeometry(0.235,0.018,10,HIQ?30:16),std(0x9aa1ac,{metalness:0.7,roughness:0.3}));

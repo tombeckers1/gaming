@@ -160,7 +160,20 @@ function halle(id,r,opt){
    Solange sie stehen, sieht man ihnen nichts an - es ist dieselbe
    Wand wie daneben, nur eben durchgehend.
    laengs = die Wand laeuft in x-Richtung. */
-function durchbruchWand(id,laengs,fest,von,bis,oeffnungen,mat,exMat,sturzY,hoehe,face){
+/* Eine schlanke Stuetze da, wo vorher ein Wandstueck stand. Eine
+   Halle von vierzig Metern ganz ohne Stuetze sieht falsch aus, ein
+   stehengebliebener Wandklotz aber auch. */
+let _stuetzeM=null;
+function stuetzeM(){ if(!_stuetzeM) _stuetzeM=std(0xdfe3ea,{roughness:0.72}); return _stuetzeM; }
+function stuetze(x,z,h){
+  const g=new THREE.Mesh(new THREE.CylinderGeometry(0.17,0.17,h-0.16,HIQ?18:10),stuetzeM());
+  g.position.set(x,(h-0.16)/2,z); if(HIQ){ g.castShadow=true; g.receiveShadow=true; } scene.add(g);
+  bbox(0.46,0.1,0.46,std(0x9aa0ab,{roughness:0.8}),x,0.05,z,null,false);
+  bbox(0.44,0.08,0.44,stuetzeM(),x,h-0.06,z,null,false);
+  col(x-0.22,x+0.22,z-0.22,z+0.22);
+  return g;
+}
+function durchbruchWand(id,laengs,fest,von,bis,oeffnungen,mat,exMat,sturzY,hoehe,face,offen){
   const H=hoehe||WH, sy=sturzY||2.7;
   /* Welche Seite der Wand die Innenseite ist, stand bisher fest.
      Die Westwand des Rueckgebaeudes zeigt aber nach +x in den
@@ -172,15 +185,30 @@ function durchbruchWand(id,laengs,fest,von,bis,oeffnungen,mat,exMat,sturzY,hoehe
     : wall(fest-LW/2,fest+LW/2,a2,b2,y0,y1,f,mat,exMat);
   const c=(a2,b2)=>laengs?col(a2,b2,fest-LW/2,fest+LW/2):col(fest-LW/2,fest+LW/2,a2,b2);
   const zc=(a2,b2)=>zWandCol(id,c(a2,b2));
+  /* offen=true: beim Kauf faellt die ganze Wand, nicht nur die
+     Fuellungen. Sonst bleiben bei jeder Erweiterung Pfeiler und ein
+     Sturz quer durch den Raum stehen, und der Laden sieht aus wie
+     eine Reihe aneinandergehaengter Zimmer statt wie eine Halle.
+     Wo sich die Deckenhoehe aendert, muss die Wand stehen bleiben. */
+  const teil=(a2,b2,y0,y1)=>{
+    const m=w(a2,b2,y0,y1);
+    if(offen){ zWand(id,m); if(y0<=0.01) zc(a2,b2); }
+    else { if(y0<=0.01) c(a2,b2); }
+    if(mat===shopWall&&y0<=0.01) sockelLeiste(offen?id:null,laengs,fest,a2,b2);
+    return m;
+  };
+  const saeulen=[];
   let x=von;
   for(const [oa,ob] of oeffnungen){
-    if(oa>x){ w(x,oa,0,H); c(x,oa); if(mat===shopWall) sockelLeiste(null,laengs,fest,x,oa); }
-    w(oa,ob,sy,H);                       /* Sturz ueber der Oeffnung */
+    if(oa>x){ teil(x,oa,0,H); if(offen&&x>von) saeulen.push((x+oa)/2); }
+    teil(oa,ob,sy,H);                    /* Sturz ueber der Oeffnung */
     zc(oa,ob);                           /* sperrt, solange die Fuellung steht */
     trennwand(id,laengs,fest,oa,ob,sy,mat,exMat,f);
     x=ob;
   }
-  if(bis>x){ w(x,bis,0,H); c(x,bis); if(mat===shopWall) sockelLeiste(null,laengs,fest,x,bis); }
+  if(bis>x) teil(x,bis,0,H);
+  /* Stuetzen bleiben stehen, wo vorher ein Zwischenstueck war */
+  for(const p2 of saeulen) stuetze(laengs?p2:fest,laengs?fest:p2,H);
 }
 
 /* =========================================================
@@ -243,8 +271,8 @@ function buildAusbau(){
   halle('shop_sued', LAY.sued,{aussen:{s:true,e:true}});
   /* Innenwaende zwischen zwei Verkaufsraeumen: auf beiden Seiten
      Ladentapete, sonst schaut man von drinnen auf Backstein. */
-  durchbruchWand('shop_ost',false,LAY.ost1.x1,LAY.ost1.z0,LAY.ost1.z1,[[-4.2,4.2]],shopWall,shopWall);
-  durchbruchWand('shop_sued',true,LAY.sued.z1,LAY.sued.x0,LAY.sued.x1,[[10.0,17.0],[24.0,32.0]],shopWall,shopWall);
+  durchbruchWand('shop_ost',false,LAY.ost1.x1,LAY.ost1.z0,LAY.ost1.z1,[[-4.2,4.2]],shopWall,shopWall,null,null,null,true);
+  durchbruchWand('shop_sued',true,LAY.sued.z1,LAY.sued.x0,LAY.sued.x1,[[10.0,17.0],[24.0,32.0]],shopWall,shopWall,null,null,null,true);
   /* Die beiden ersten Durchbrueche stehen schon in 05c beziehungsweise
      im Dock - hier kommt nur die Fuellung in die Oeffnung. */
   trennwand('shop_gross',false,8.0,-4.4,4.4,2.7,shopWall,shopWall);

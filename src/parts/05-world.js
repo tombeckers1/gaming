@@ -57,8 +57,11 @@ function flaeche(r){ return Math.round((r.x1-r.x0)*(r.z1-r.z0)); }
 const HINTERTUER={x0:4.4, x1:6.1};
 /* Lichte Hoehe des Anbaus hinter dem Lager (spaetere Lagererweiterung) */
 const ANBAU_H=2.9;
-/* Lichte Hoehe der grossen Lagerhalle Sued */
-const HALLE_H=6.4;
+/* Lichte Hoehe der Lagerhalle Sued. 6,4 m waren zu viel fuer einen
+   Raum, der nur Regale traegt; unter 4,8 m passt aber kein Hochregal
+   mehr hinein (4,26 m plus Luft). */
+const HALLE_H=5.0;
+const LSUED_H=HALLE_H;
 /* Grosshandel: Hoehe fuer Palettenregale und Hubwagen */
 const GH_H=12.0;
 /* Lichte Hoehe der Schleuse */
@@ -278,6 +281,21 @@ function meterUV(m){
     else             uv.setXY(i,x,y);
   }
   uv.needsUpdate=true;
+}
+/* Bodenkacheln in Weltkoordinaten. Der Basisladen ist 16 x 12 m und
+   kachelte 8 x 6 mal, also 2 x 2 m. Die Erweiterungen bekamen
+   dieselbe Wiederholung auf ihre eigene Groesse - bei Ost I also
+   1,5 x 2 m. Genau an der Raumgrenze sprang die Fuge um. Mit UVs in
+   Metern liegt das Raster ueber die ganze Flaeche durch. */
+function bodenUV(m,kachel){
+  const g=m.geometry, p2=g.attributes.position, uv=g.attributes.uv;
+  if(!p2||!uv) return m;
+  /* Ein Boden liegt immer flach, also um -90 Grad um x gedreht. Aus
+     der lokalen (x,y) wird damit die Welt-(x,-y) plus Position -
+     ohne Matrizen gerechnet, die kennt der Test-Stub nicht. */
+  for(let i=0;i<p2.count;i++)
+    uv.setXY(i,(p2.getX(i)+m.position.x)/kachel,(-p2.getY(i)+m.position.z)/kachel);
+  uv.needsUpdate=true; return m;
 }
 const FACE={'+x':0,'-x':1,'+z':4,'-z':5}, OPP={'+x':'-x','-x':'+x','+z':'-z','-z':'+z'};
 function wall(x0,x1,z0,z1,y0,y1,inFace,inMat,exMat){

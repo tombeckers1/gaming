@@ -15,9 +15,9 @@
    man in den Laderaum. Der Code dafuer liegt in 08b und wird hier
    nicht angefasst.
    ========================================================= */
-const WBAY_UP=['rampe2','rampe3','rampe4'];   /* je Tor eine Ausbaustufe */
+const WBAY_UP=['rampe2','rampe3','rampe4','rampe5'];  /* je Tor eine Ausbaustufe */
 const WBAY_TAKT=1.9;                          /* Sekunden je Karton      */
-const wbays=[null,null,null];
+const wbays=[null,null,null,null];
 
 /* Wie viele Lieferungen gleichzeitig laufen koennen: die Basisrampe
    plus jede gekaufte Andockstation. */

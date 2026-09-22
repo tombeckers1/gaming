@@ -131,7 +131,9 @@ function halle(id,r,opt){
   if(lager){ const lc=concreteTex(); lc.repeat.set((r.x1-r.x0)/2,(r.z1-r.z0)/2); bodenMat=new THREE.MeshStandardMaterial({map:lc,roughness:0.85}); }
   else bodenMat=floorMat;
   const bo=new THREE.Mesh(new THREE.PlaneGeometry(r.x1-r.x0,r.z1-r.z0),bodenMat);
-  bo.rotation.x=-Math.PI/2; bo.position.set((r.x0+r.x1)/2,0.015,(r.z0+r.z1)/2); scene.add(bo); zAdd(id,bo);
+  bo.rotation.x=-Math.PI/2; bo.position.set((r.x0+r.x1)/2,0.015,(r.z0+r.z1)/2); scene.add(bo);
+  if(!lager) bodenUV(bo,2);
+  zAdd(id,bo);
   /* Decke und Dach */
   const ce=new THREE.Mesh(new THREE.PlaneGeometry(r.x1-r.x0+0.3,r.z1-r.z0+0.3),ceil);
   ce.rotation.x=Math.PI/2; ce.position.set((r.x0+r.x1)/2,H-0.01,(r.z0+r.z1)/2); scene.add(ce); zAdd(id,ce);
@@ -214,8 +216,9 @@ function durchbruchWand(id,laengs,fest,von,bis,oeffnungen,mat,exMat,sturzY,hoehe
     x=ob;
   }
   if(bis>x) teil(x,bis,0,H);
-  /* Stuetzen bleiben stehen, wo vorher ein Zwischenstueck war */
-  for(const p2 of saeulen) stuetze(laengs?p2:fest,laengs?fest:p2,H);
+  /* Frueher blieb hier eine Stuetze stehen. Tom will die Flaeche
+     ganz frei haben - die Halle traegt sich ueber die Aussenwaende. */
+  void saeulen;
 }
 
 /* =========================================================
@@ -236,38 +239,45 @@ function durchbruchWand(id,laengs,fest,von,bis,oeffnungen,mat,exMat,sturzY,hoehe
 const GANG={x0:-7.9, x1:7.8, z0:-8.9, z1:-6.1, h:2.9};
 const GANGTUER={a:4.4, b:6.1};        /* fluchtet mit der Hintertuer */
 function buildLagergang(){
+  /* Der Gang gehoert zur Lagerhalle Sued und erscheint mit ihr.
+     Vorher stand er von Tag eins da und die Hintertuer fuehrte in
+     einen Gang, den man noch gar nicht gekauft hatte. */
+  const Z='lager_sued';
   const G=GANG, mitteX=(G.x0+G.x1)/2, mitteZ=(G.z0+G.z1)/2;
   const breite=G.x1-G.x0, tiefe=G.z1-G.z0;
   /* Boden: derselbe Estrich wie im Lager */
   const bc=concreteTex(); bc.repeat.set(breite/2,tiefe/2);
   const bo=new THREE.Mesh(new THREE.PlaneGeometry(breite,tiefe),
     new THREE.MeshStandardMaterial({map:bc,roughness:0.85}));
-  bo.rotation.x=-Math.PI/2; bo.position.set(mitteX,0.016,mitteZ); scene.add(bo);
+  bo.rotation.x=-Math.PI/2; bo.position.set(mitteX,0.016,mitteZ); scene.add(bo); zAdd(Z,bo);
   /* Decke und Dachrand */
   const ce=new THREE.Mesh(new THREE.PlaneGeometry(breite+0.3,tiefe+0.3),std(0xe6e8ee,{roughness:1}));
-  ce.rotation.x=Math.PI/2; ce.position.set(mitteX,G.h-0.01,mitteZ); scene.add(ce);
+  ce.rotation.x=Math.PI/2; ce.position.set(mitteX,G.h-0.01,mitteZ); scene.add(ce); zAdd(Z,ce);
   /* Der Dachrand deckt die Kopf- und Suedwand ab, aber keinen
      Zentimeter mehr: mit dem sonst ueblichen Ueberstand ragte er
      durch die Ostwand der Lagerhalle Sued hinein. */
-  bbox(breite+LW,0.25,tiefe+LW*2,std(0x2b2f3a),mitteX,G.h+0.13,mitteZ,null,true);
+  /* Dachrand in beiden Richtungen INNERHALB der angrenzenden Waende.
+     Lag er mit -5,9 genau in der Ebene der Ladenrueckwand, flimmerte
+     er von innen als dunkler Streifen ueber der Uhr. */
+  zAdd(Z,bbox(breite+LW,0.25,tiefe+LW,std(0x2b2f3a),mitteX,G.h+0.13,mitteZ,null,true));
   /* Suedwand mit dem Durchgang aufs Testfeld. Der Sturz bleibt
      stehen, sonst steht das Dach in der Luft. */
   const zs=G.z0;
-  wall(G.x0-LW,GANGTUER.a,zs-LW,zs,0,G.h,'+z',lagerWall);
-  wall(GANGTUER.b,G.x1+LW,zs-LW,zs,0,G.h,'+z',lagerWall);
-  wall(GANGTUER.a,GANGTUER.b,zs-LW,zs,2.5,G.h,'+z',lagerWall);
-  col(G.x0-LW,GANGTUER.a,zs-LW,zs);
-  col(GANGTUER.b,G.x1+LW,zs-LW,zs);
-  leuchtenRaster(null,{x0:G.x0,x1:G.x1,z0:G.z0,z1:G.z1},G.h,3.4,2.6);
+  zAdd(Z,wall(G.x0-LW,GANGTUER.a,zs-LW,zs,0,G.h,'+z',lagerWall));
+  zAdd(Z,wall(GANGTUER.b,G.x1+LW,zs-LW,zs,0,G.h,'+z',lagerWall));
+  zAdd(Z,wall(GANGTUER.a,GANGTUER.b,zs-LW,zs,2.5,G.h,'+z',lagerWall));
+  zCol(Z,col(G.x0-LW,GANGTUER.a,zs-LW,zs));
+  zCol(Z,col(GANGTUER.b,G.x1+LW,zs-LW,zs));
+  leuchtenRaster(Z,{x0:G.x0,x1:G.x1,z0:G.z0,z1:G.z1},G.h,3.4,2.6);
   roomAO(G.x0+0.02,G.x1-0.02,G.z0+0.02,G.z1-0.02);
   /* Hinweisschild ueber dem Durchgang zum Lager */
-  plane(1.5,0.3,new THREE.MeshBasicMaterial({toneMapped:false,side:THREE.DoubleSide,
+  zAdd(Z,plane(1.5,0.3,new THREE.MeshBasicMaterial({toneMapped:false,side:THREE.DoubleSide,
     map:tex(512,104,(g,W,H)=>{
       g.fillStyle='#1b2340'; g.fillRect(0,0,W,H);
       g.fillStyle='#f2c230'; g.fillRect(0,H-7,W,7);
       g.textAlign='center'; g.textBaseline='middle';
       g.fillStyle='#e8ecf5'; g.font=BUN(36); g.fillText('◄  LAGER · GROSSHANDEL',W/2,H/2-3);
-    })}),mitteX,2.45,G.z1-0.06,Math.PI,null);
+    })}),mitteX,2.45,G.z1-0.06,Math.PI,null));
 }
 /* =========================================================
    Schleuse zwischen Lager und Grosshandel. Das Lager ist 6,4 m
@@ -390,7 +400,10 @@ function buildAusbau(){
   /* Innenseite der Halle Sued liegt oestlich dieser Wand, also '+x' -
      mit dem Standardwert klebte die Aussenfassade innen im Lager. */
   durchbruchWand('lager_west',false,LAY.lsued.x0,LAY.lsued.z0,LAY.lsued.z1,ST,lagerWall,undefined,3.0,HALLE_H,'+x');
-  durchbruchWand('lager_west',false,LAY.lwest.x1,LAY.lwest.z0,LAY.lwest.z1,ST,lagerWall,blechMat(),3.0,GH_H);
+  /* Aussenseite dieser Wand steht in der Schleuse, nicht im Freien -
+     also Lagerwand statt Trapezblech, sonst stossen im Gang zwei
+     verschiedene Waende aneinander. */
+  durchbruchWand('lager_west',false,LAY.lwest.x1,LAY.lwest.z0,LAY.lwest.z1,ST,lagerWall,lagerWall,3.0,GH_H);
   buildSchleuse();
   trennwand('lager_gross',true,2.0,-19.0,-9.0,2.6,lagerWall,lagerWall);
 
@@ -597,7 +610,7 @@ function ddlAbholung(){
    Hof dahinter. Hier passen mehrere Auflieger nebeneinander -
    der kleine Hof an der Basisrampe reicht dafuer nicht.
    ========================================================= */
-const WRAMPEN=[-37.0,-26.0,-15.0];          /* Mitte der drei Tore in z */
+const WRAMPEN=[-39.0,-30.0,-21.0,-12.0];    /* Mitte der vier Tore in z */
 const WTORE=[];                             /* Torblatt und Ampel je Rampe */
 const WTOR={w:3.4,h:3.05};
 

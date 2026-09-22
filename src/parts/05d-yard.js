@@ -2,7 +2,10 @@
 /* =========================================================
    Testfeld: Metalltisch und Abschussröhren, dazu das Zündpult
    ========================================================= */
-const PULT_RY=1.121+Math.PI;
+/* Die Front des Pults zeigt nach Norden. Wer davorsteht, schaut
+   ueber das Pult hinweg genau auf Zuendtisch, Roehren und Moerser -
+   vorher stand es schraeg in der Gegend. */
+const PULT_RY=0;
 /* Modell und Kollision des Zuendpults haengen an derselben Zahl -
    beim Verschieben ist die Kollision sonst stehen geblieben und
    sperrte als unsichtbare Wand den Lagergang. */
@@ -217,9 +220,8 @@ function buildYard(){
       wulst.rotation.x=Math.PI/2; wulst.position.set(x,0.18+hh,0); g.add(wulst);
       for(const f of [0.3,0.62]){ const rg=new THREE.Mesh(new THREE.TorusGeometry(r*1.02,r*0.1,6,18),rohrM);
         rg.rotation.x=Math.PI/2; rg.position.set(x,0.18+hh*f,0); g.add(rg); }
-      /* Zuendkabel am Rohrfuss */
-      const kab=new THREE.Mesh(new THREE.CylinderGeometry(0.008,0.008,0.5,6),std(0xb8322a,{roughness:0.8}));
-      kab.rotation.z=1.2; kab.position.set(x+0.16,0.26,0.28); g.add(kab);
+      /* Frueher hing hier ein rotes Zuendkabel je Rohr. Die drei
+         Striche sahen aus wie vergessene Faeden. */
       /* Kaliberschild */
       const mm=[75,100,150][i];
       plane(0.2,0.09,new THREE.MeshStandardMaterial({roughness:0.6,map:tex(200,90,(c,W,H)=>{
@@ -246,22 +248,39 @@ function buildYard(){
     const kante=std(0x9aa1ac,{metalness:0.7,roughness:0.3});
     const pulver=std(0xf2c230,{roughness:0.55});
 
-    /* Gestell: vier Rohre, Quertraversen, Fussplatten */
-    for(const sx of [-0.34,0.34]) for(const sz of [-0.2,0.2]){
-      const leg=new THREE.Mesh(new THREE.CylinderGeometry(0.032,0.032,0.92,12),steelDark);
-      leg.position.set(sx,0.46,sz); if(HIQ) leg.castShadow=true; g.add(leg);
-      bbox(0.13,0.022,0.13,kante,sx,0.011,sz,g,false);
-      bbox(0.09,0.03,0.09,rubber,sx,0.034,sz,g,false);
-    }
-    for(const sz of [-0.2,0.2]) bbox(0.7,0.035,0.035,steelDark,0,0.26,sz,g,false);
-    bbox(0.035,0.035,0.44,steelDark,-0.34,0.26,0,g,false);
-    bbox(0.035,0.035,0.44,steelDark, 0.34,0.26,0,g,false);
-    /* Diagonalen */
-    for(const sz of [-0.2,0.2]){ const d=bbox(0.78,0.026,0.026,steelDark,0,0.56,sz,g,false); d.rotation.z=0.72; }
-    /* Kabelkanal nach unten */
-    const kab=new THREE.Mesh(new THREE.CylinderGeometry(0.022,0.022,0.5,8),std(0x1c1f26,{roughness:0.9}));
-    kab.position.set(0.24,0.25,-0.18); kab.rotation.x=0.25; g.add(kab);
-
+    /* Unterbau als geschlossener Schaltschrank. Vorher stand das
+       Pult auf vier duennen Rohren und wirkte wie ein Campingtisch -
+       fuer ein Geraet, das Feuerwerk zuendet, zu wenig. */
+    const blech=std(0x353c4a,{metalness:0.5,roughness:0.44});
+    const rippe=std(0x232936,{metalness:0.45,roughness:0.5});
+    /* Sockel mit Fussleiste */
+    bbox(1.02,0.09,0.62,rippe,0,0.045,0,g);
+    bbox(1.06,0.02,0.66,kante,0,0.10,0,g,false);
+    /* Schrankkorpus */
+    const schrank=rbox(0.98,0.80,0.58,0.025,blech,0,0.50,0,g);
+    if(HIQ) schrank.castShadow=true;
+    /* Tuer mit Rahmenfuge, Griff und Schloss */
+    bbox(0.78,0.66,0.012,rippe,0,0.50,0.296,g,false);
+    bbox(0.74,0.62,0.012,blech,0,0.50,0.302,g,false);
+    { const gr=new THREE.Mesh(new THREE.CylinderGeometry(0.014,0.014,0.17,8),kante);
+      gr.position.set(0.30,0.50,0.325); g.add(gr);
+      for(const dy of [-0.085,0.085]) bbox(0.03,0.03,0.05,kante,0.30,0.50+dy,0.312,g,false);
+      const sl=new THREE.Mesh(new THREE.CylinderGeometry(0.018,0.018,0.012,10),kante);
+      sl.rotation.x=Math.PI/2; sl.position.set(-0.28,0.50,0.308); g.add(sl); }
+    /* Lueftungsschlitze an beiden Seiten */
+    for(const sx of [-0.492,0.492]) for(let i=0;i<7;i++)
+      bbox(0.006,0.014,0.30,rippe,sx,0.30+i*0.055,0,g,false);
+    /* Kabeleinfuehrung nach unten, in einem Schutzrohr */
+    { const kr=new THREE.Mesh(new THREE.CylinderGeometry(0.035,0.035,0.16,10),std(0x1c1f26,{roughness:0.9}));
+      kr.position.set(0.30,0.08,-0.24); g.add(kr);
+      const kb=new THREE.Mesh(new THREE.CylinderGeometry(0.02,0.02,0.5,8),std(0x14161c,{roughness:0.95}));
+      kb.rotation.x=1.4; kb.position.set(0.30,0.03,-0.45); g.add(kb); }
+    /* Warnstreifen ueber dem Sockel */
+    plane(0.98,0.07,new THREE.MeshStandardMaterial({map:tex(420,32,(c,W,H)=>{
+      for(let x=-H;x<W;x+=H*1.6){ c.save(); c.translate(x,0); c.rotate(0);
+        c.fillStyle='#f2c230'; c.fillRect(0,0,H*0.8,H);
+        c.fillStyle='#1b1e26'; c.fillRect(H*0.8,0,H*0.8,H); c.restore(); }
+    })}),0,0.145,0.292,0,g);
     /* Korpus mit abgeschraegter Bedienplatte */
     const body=rbox(0.86,0.26,0.52,0.03,korpus,0,1.02,0,g);
     bbox(0.88,0.02,0.54,kante,0,1.16,0,g,false);

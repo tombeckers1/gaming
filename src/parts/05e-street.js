@@ -512,10 +512,10 @@ function makeBaum(){
      feine Zweige an den Enden, Schnee auf den Oberseiten. */
   const parts=[];
   const RINDE=[0x4a3a2c,0x53422f,0x5c4a35,0x463728], SCHNEE=0xe8ecf2;
-  const tiefe=HIQ?3:2, SEG=HIQ?8:5;
+  const tiefe=HIQ?4:2, SEG=HIQ?8:5;
   let aeste=0;
   /* Ein Segment von p in Richtung (dir) mit Laenge l und Radien r0/r1 */
-  const seg=(p,dir,l,r0,r1,col)=>{
+  const seg=(p,dir,l,r0,r1,col,knoten)=>{
     const e={x:p.x+dir.x*l,y:p.y+dir.y*l,z:p.z+dir.z*l};
     const m={x:(p.x+e.x)/2,y:(p.y+e.y)/2,z:(p.z+e.z)/2};
     const len=Math.hypot(dir.x,dir.y,dir.z)*l;
@@ -527,10 +527,15 @@ function makeBaum(){
        gerechneten Endpunkt ansetzten - daher die Aeste, die frei im
        Himmel hingen. */
     const rz=-Math.atan2(dir.x,dir.y), rx=Math.atan2(dir.z,Math.hypot(dir.x,dir.y));
-    parts.push({geo:new THREE.CylinderGeometry(r1,r0,len,Math.max(4,SEG-(r0<0.05?3:0))),
+    /* Dicke Teile runder aufloesen als duenne Zweige */
+    const rs=r0>0.12?(HIQ?12:7):r0>0.05?SEG:Math.max(4,SEG-3);
+    parts.push({geo:new THREE.CylinderGeometry(r1,r0,len,rs),
       m:tm(m.x,m.y,m.z,rx,0,rz),color:col});
-    /* Knoten an der Gabelung, damit keine Kante klafft */
-    if(r1>0.03) parts.push({geo:new THREE.SphereGeometry(r1*1.12,6,4),m:tm(e.x,e.y,e.z),color:col});
+    /* Knoten an der Gabelung. Der sass frueher auf r1*1,12 und war
+       damit breiter als der Ast - an jedem Gelenk ein Wulst, der
+       Stamm sah aus wie gestapelte Dosen. Jetzt schliesst er
+       buendig ab und kommt nur an echten Gabelungen. */
+    if(knoten&&r1>0.045) parts.push({geo:new THREE.SphereGeometry(r1*0.98,7,5),m:tm(e.x,e.y,e.z),color:col});
     return e;
   };
   const norm=v=>{ const n=Math.hypot(v.x,v.y,v.z)||1; return {x:v.x/n,y:v.y/n,z:v.z/n}; };
@@ -542,16 +547,18 @@ function makeBaum(){
     const e1=seg(p,d1,l*0.55,r,r*0.74,col);
     const droop=d>0?-0.12:-0.03;
     const d2=norm({x:d1.x*1.12+rand(-0.12,0.12),y:d1.y+droop,z:d1.z*1.12+rand(-0.12,0.12)});
-    const e2=seg(e1,d2,l*0.45,r*0.74,r*0.5,col);
+    const e2=seg(e1,d2,l*0.45,r*0.74,r*0.5,col,true);
     /* Schneeauflage auf der Oberseite des Astes */
     if(r>0.035) parts.push({geo:new THREE.CylinderGeometry(r*0.42,r*0.62,l*0.5,4),
       m:tm((p.x+e1.x)/2,(p.y+e1.y)/2+r*0.7,(p.z+e1.z)/2,
            Math.atan2(d1.z,Math.hypot(d1.x,d1.y)),0,-Math.atan2(d1.x,d1.y)),color:SCHNEE});
     if(d<=0){
       /* Feine Endzweige */
-      for(let k=0;k<3;k++){
-        const dz=norm({x:d2.x+rand(-0.55,0.55),y:d2.y+rand(-0.1,0.35),z:d2.z+rand(-0.55,0.55)});
-        seg(e2,dz,l*rand(0.2,0.36),r*0.5,r*0.16,col);
+      for(let k=0;k<5;k++){
+        const dz=norm({x:d2.x+rand(-0.6,0.6),y:d2.y+rand(-0.08,0.4),z:d2.z+rand(-0.6,0.6)});
+        const e3=seg(e2,dz,l*rand(0.24,0.42),r*0.5,r*0.14,col);
+        if(Math.random()<0.6){ const d4=norm({x:dz.x+rand(-0.5,0.5),y:dz.y+rand(-0.05,0.3),z:dz.z+rand(-0.5,0.5)});
+          seg(e3,d4,l*rand(0.14,0.24),r*0.14,r*0.05,col); }
       }
       return;
     }
@@ -562,18 +569,23 @@ function makeBaum(){
     }
   };
   /* Wurzelanlauf */
-  for(let i=0;i<7;i++){ const a=i/7*Math.PI*2+rand(-0.18,0.18);
-    parts.push({geo:new THREE.CylinderGeometry(0.045,0.15,0.62,6),
-      m:tm(Math.cos(a)*0.17,0.24,Math.sin(a)*0.17,0.42*Math.sin(a+Math.PI/2),0,-0.42*Math.cos(a+Math.PI/2)),color:RINDE[3]}); }
-  /* Stamm in vier Abschnitten, jeder etwas schlanker und leicht versetzt */
+  /* Wurzelanlauf: mehr und flachere Rippen, die im Stamm verlaufen -
+     vorher sassen sieben dicke Kegel wie ein Kragen aussen herum. */
+  for(let i=0;i<11;i++){ const a=i/11*Math.PI*2+rand(-0.12,0.12), hh=rand(0.34,0.52);
+    parts.push({geo:new THREE.CylinderGeometry(0.02,0.085,hh,5),
+      m:tm(Math.cos(a)*0.13,hh*0.42,Math.sin(a)*0.13,0.5*Math.sin(a+Math.PI/2),0,-0.5*Math.cos(a+Math.PI/2)),color:RINDE[3]}); }
+  /* Stamm. Vorher vier Abschnitte, die je ein Fuenftel duenner
+     wurden - bei so grossen Spruengen sieht man jede Schulter.
+     Jetzt sieben kurze Abschnitte, die sich nur wenig verjuengen
+     und kaum versetzt sind: ein durchgehender Kegel. */
   let p={x:0,y:0,z:0}, r=0.23;
   const gabeln=[];
-  for(let i=0;i<4;i++){
-    const h=rand(0.7,0.95), nr=r*rand(0.76,0.85);
-    const d=norm({x:rand(-0.09,0.09),y:1,z:rand(-0.09,0.09)});
+  for(let i=0;i<7;i++){
+    const h=rand(0.44,0.56), nr=r*rand(0.89,0.94);
+    const d=norm({x:rand(-0.05,0.05),y:1,z:rand(-0.05,0.05)});
     p=seg(p,d,h,r,nr,RINDE[i%2]);
     r=nr;
-    if(i>=1) gabeln.push({p:{x:p.x,y:p.y,z:p.z},r});
+    if(i>=3) gabeln.push({p:{x:p.x,y:p.y,z:p.z},r});
   }
   /* Krone: Hauptaeste aus den oberen Gabelungen */
   const n=HIQ?6:4;
@@ -609,13 +621,23 @@ function nachbarFassade(x0,x1,zid,unterzeile){
      sind sie zugemauert; nach dem Kauf sitzen dort Schaufenster.
      Die Achsen werden ueber die Laenge verteilt: die erste als hohes
      Schaufenster, die uebrigen als Fenster ueber Brueckungshoehe. */
-  const OEFF=[]; const n=Math.max(2,Math.floor((w-0.8)/2.6));
-  for(let i=0;i<n;i++){ const a=x0+0.9+i*2.6;
-    OEFF.push(i%3===0?[a,a+1.6,0,2.3]:[a,a+1.6,0.9,2.5]); }
-  const F=(a,b,y0,y1)=>{ if(b>a+0.01) wall(a,b,zf-0.3,zf+0.1,y0,y1,'-z',shopWall,zm); };
+  /* Schaufenster wie im Basisladen: eine durchgehende Reihe, alle
+     auf derselben Hoehe, Bruestung 0,9 und Sturz 2,4. Vorher wechselte
+     jede dritte Achse auf ein bodentiefes Fenster und die uebrigen
+     sassen hoeher - dadurch standen sie versetzt, waren zu kurz und
+     unter den kleinen Fenstern blieb eine graue Wandflaeche stehen. */
+  const BR=0.9, ST=2.4, PF=1.0;
+  const nB=Math.max(1,Math.round((w-PF)/5.6));
+  const bw=(w-(nB+1)*PF)/nB;
+  const OEFF=[];
+  for(let i=0;i<nB;i++){ const a2=x0+PF+i*(bw+PF); OEFF.push([a2,a2+bw]); }
+  const F=(a2,b2,y0,y1)=>{ if(b2>a2+0.01) wall(a2,b2,zf-0.3,zf+0.1,y0,y1,'-z',shopWall,zm); };
   let px=x0;
-  for(const [a,b,y0,y1] of OEFF){
-    F(px,a,0,H); F(a,b,y1,H); if(y0>0) F(a,b,0,y0); px=b;
+  for(const [a2,b2] of OEFF){
+    F(px,a2,0,H);            /* Pfeiler          */
+    F(a2,b2,0,BR);           /* Bruestung        */
+    F(a2,b2,ST,H);           /* Sturz            */
+    px=b2;
   }
   F(px,x1,0,H);
   /* Attika, Gesims und Sockel. Die Farben gehen mit der Fassade:
@@ -629,7 +651,13 @@ function nachbarFassade(x0,x1,zid,unterzeile){
   const gs=new THREE.Group(); g.add(gs); zWand(zid,gs);
   const brett=std(0x6d5a44,{roughness:0.95});
   const zugemauert=std(0x5a4a3e,{roughness:0.95});
-  OEFF.forEach(([a,b,y0,y1],i)=>{
+  /* Die Oeffnungen sind jetzt eine durchgehende Fensterreihe und
+     tragen nur noch ihre x-Grenzen; Bruestung und Sturz stehen fuer
+     alle gleich in BR und ST. Vorher stand die Hoehe in jedem
+     Eintrag und wurde hier mit ausgelesen - nach der Umstellung kam
+     dabei NaN heraus und die Bretter landeten im Nirgendwo. */
+  OEFF.forEach(([a,b],i)=>{
+    const y0=BR, y1=ST;
     const bw=b-a, bh=y1-y0, bxc=(a+b)/2, byc=(y0+y1)/2;
     bbox(bw,bh,0.34,zugemauert,bxc,byc,zf-0.1,gs,false);
     const n=Math.max(3,Math.round(bh/0.55));
@@ -677,7 +705,8 @@ function nachbarFassade(x0,x1,zid,unterzeile){
   const glas=new THREE.MeshStandardMaterial({color:LIN(0xbfe0ff),transparent:true,opacity:0.16,roughness:0.05,metalness:0.2,depthWrite:false});
   const prof=std(0x2b3040,{metalness:0.5,roughness:0.4});
   const bank=std(0xd7dae0,{roughness:0.5});
-  OEFF.forEach(([a,b,y0,y1],i)=>{
+  OEFF.forEach(([a,b],i)=>{
+    const y0=BR, y1=ST;
     const bw=b-a, bh=y1-y0, bxc=(a+b)/2, byc=(y0+y1)/2;
     bbox(bw-0.12,bh-0.12,0.04,glas,bxc,byc,zf-0.1,go,false);
     /* umlaufendes Profil aussen und innen */

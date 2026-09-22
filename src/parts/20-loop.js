@@ -25,14 +25,39 @@ function updateUhr(){
   uhrMin.rotation.z=-((clock%60)/60)*Math.PI*2;
   uhrSek.rotation.z=-(sek/60)*Math.PI*2;
 }
+/* Alle ueberdachten Bereiche, aus dem Grundriss abgeleitet. Vorher
+   stand die Liste als drei feste Rechtecke hier im Code und kannte
+   nur Basisladen und Basislager - in jede neue Halle schneite es
+   hinein. */
+let _daecher=null;
+function dachBereiche(){
+  if(_daecher) return _daecher;
+  _daecher=[];
+  const r=(a2,h)=>{ if(a2) _daecher.push({x0:a2.x0-0.3,x1:a2.x1+0.3,z0:a2.z0-0.3,z1:a2.z1+0.3,h:h+0.4}); };
+  r(LAY.basis,WH); r(LAY.ost1,WH); r(LAY.ost2,WH); r(LAY.sued,WH);
+  r(LAY.lbasis,WH); r(LAY.lnord,ANBAU_H); r(LAY.lsued,LSUED_H);
+  r(LAY.lwest,GH_H); r(LAY.schleuse,SCHLEUSE_H);
+  r({x0:GANG.x0,x1:GANG.x1,z0:GANG.z0,z1:GANG.z1},GANG.h);
+  return _daecher;
+}
+function unterDach(x,y,z){
+  for(const d of dachBereiche())
+    if(y<d.h&&x>d.x0&&x<d.x1&&z>d.z0&&z<d.z1) return true;
+  return false;
+}
 function updateSnow(dt){
   const a=snowPts.geometry.attributes.position, arr=a.array, t=performance.now()*0.001;
+  /* Die Wolke haengt am Spieler, sonst schneit es auf dem gewachsenen
+     Grundstueck nur noch ueber der alten Kartenmitte. Gerastert, damit
+     sie beim Gehen nicht mitzittert. */
+  const cx=Math.round(pl.x/6)*6, cz=Math.round(pl.z/6)*6;
   for(let i=0;i<arr.length;i+=3){
     arr[i+1]-=dt*(0.55+((i*13)%7)*0.05); arr[i]+=Math.sin(t+i)*dt*0.12;
     const x=arr[i], z=arr[i+2], y=arr[i+1];
-    /* Laden, Lager und Anbau sind ueberdacht: darunter faellt kein Schnee. */
-    const inside=y<3.9&&((x>-8.3&&x<8.3&&z>-6.3&&z<6.3)||(x>-20.3&&x<-7.7&&z>-6.3&&z<2.3)||(x>-20.3&&x<-7.7&&z>1.9&&z<6.2));
-    if(arr[i+1]<0||inside){ arr[i]=rand(-30,30); arr[i+1]=rand(10,14); arr[i+2]=rand(-24,30); }
+    const weg=Math.abs(x-cx)>40||Math.abs(z-cz)>40;
+    if(y<0||weg||unterDach(x,y,z)){
+      arr[i]=cx+rand(-34,34); arr[i+1]=rand(10,15); arr[i+2]=cz+rand(-34,34);
+    }
   }
   a.needsUpdate=true;
 }

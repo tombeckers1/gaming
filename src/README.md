@@ -39,6 +39,7 @@ Die wichtigsten:
 | `gehen.js`  | ob jeder ausgebaute Raum wirklich zu betreten ist          |
 | `gang.js`   | Lagergang: Kopfenden zu vor dem Kauf, offen danach         |
 | `gangfrei.js`| ob im Lagergang etwas steht (braucht echtes three.js)     |
+| `schnee.js` | ob es in Gebaeude hineinschneit und ob die Wolke dem Spieler folgt |
 | `leer.js`   | ob in Grosshandel, Schleuse und Gang etwas steht, das dort nicht hingehoert (braucht echtes three.js) |
 | `online.js` | Onlineshop-Reiter: Stufen, Packen, Live-Zahlen             |
 | `wrampe.js` | Westrampen: Andockstationen, parallele Lieferungen         |

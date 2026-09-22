@@ -53,9 +53,9 @@ function buildWorld(){
   bbox(48,0.14,0.2,std(0x9a9ea6),-2,0.07,11,null,false);
   for(let i=-8;i<=8;i++) flat(2,0.15,std(0xe8e2c8),i*4,0.013,15.5);
   // Innenböden
-  floorTexRef=tex(HIQ?640:256,HIQ?640:256,(g,W,H)=>paintFloor(g,W,H,f0)); floorTexRef.wrapS=floorTexRef.wrapT=THREE.RepeatWrapping; floorTexRef.repeat.set(8,6); floorTexRef.anisotropy=8;
+  floorTexRef=tex(HIQ?640:256,HIQ?640:256,(g,W,H)=>paintFloor(g,W,H,f0)); floorTexRef.wrapS=floorTexRef.wrapT=THREE.RepeatWrapping; floorTexRef.repeat.set(1,1); floorTexRef.anisotropy=8;
   floorMat=new THREE.MeshStandardMaterial({map:floorTexRef,roughness:0.5});
-  flat(16,12,floorMat,0,0.015,0);
+  bodenUV(flat(16,12,floorMat,0,0.015,0),2);
   const lc=concreteTex(); lc.repeat.set(6,4); flat(12,8,new THREE.MeshStandardMaterial({map:lc,roughness:0.85}),-14,0.015,-2);
   /* Testfeldbelag ueber die ganze Flaeche, nicht nur um die Stationen */
   { const T=LAY.test, tg=yardGroundTex(); tg.repeat.set((T.x1-T.x0)/10*2.2,(T.z1-T.z0)/9*2);

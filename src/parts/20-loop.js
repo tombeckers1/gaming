@@ -37,12 +37,18 @@ function dachBereiche(){
   r(LAY.basis,WH); r(LAY.ost1,WH); r(LAY.ost2,WH); r(LAY.sued,WH);
   r(LAY.lbasis,LAGER_H); r(LAY.lnord,LAGER_H); r(LAY.ls1,LAGER_H); r(LAY.ls2,LAGER_H); r(LAY.ls3,LAGER_H);
   r(LAY.lwest,GH_H); r(LAY.schleuse,SCHLEUSE_H);
+  /* Die Hallen haben ihr Dach von Anfang an, auch solange sie
+     gesperrt sind. Der Gang nicht: sein Dach kommt erst mit dem
+     Grosshandel. Bis dahin ist der Streifen hinter dem Laden
+     Hof - dort schneit es, und dort gehoert draussen hin. */
+  const g=_daecher.length;
   r({x0:GANG.x0,x1:GANG.x1,z0:GANG.z0,z1:GANG.z1},GANG.h);
+  _daecher[g].zone='lager_west';
   return _daecher;
 }
 function unterDach(x,y,z){
   for(const d of dachBereiche())
-    if(y<d.h&&x>d.x0&&x<d.x1&&z>d.z0&&z<d.z1) return true;
+    if(y<d.h&&x>d.x0&&x<d.x1&&z>d.z0&&z<d.z1&&(!d.zone||zoneOffen(d.zone))) return true;
   return false;
 }
 function updateSnow(dt){

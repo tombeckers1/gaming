@@ -66,11 +66,16 @@ function sockelLeiste(id,laengs,fest,a0,a1){
   }
 }
 /* Fuellung einer vorbereiteten Oeffnung. laengs = die Wand laeuft in x. */
+/* Die Fuellung einer Oeffnung, solange der Bereich dahinter nicht
+   gekauft ist. Sie bekommt aussen dasselbe Material wie die Wand,
+   in der sie steht. Frueher stand hier aussen||innen - wo die Wand
+   nach draussen zeigt, klebte damit die gelbe Lagerwand mitten in
+   der Fassade, vom Testfeld aus gut zu sehen. */
 function trennwand(id,laengs,fest,a0,a1,h,innen,aussen,face){
   const f=face||(laengs?'-z':'-x');
   const m=laengs
-    ? stilleWand(a0,a1,fest-LW/2,fest+LW/2,0,h,f,innen,aussen||innen,0)
-    : stilleWand(fest-LW/2,fest+LW/2,a0,a1,0,h,f,innen,aussen||innen,0);
+    ? stilleWand(a0,a1,fest-LW/2,fest+LW/2,0,h,f,innen,aussen,0)
+    : stilleWand(fest-LW/2,fest+LW/2,a0,a1,0,h,f,innen,aussen,0);
   zWand(id,m);
   if(innen===shopWall) sockelLeiste(id,laengs,fest,a0,a1);
   zWandCol(id,laengs?col(a0,a1,fest-LW/2,fest+LW/2):col(fest-LW/2,fest+LW/2,a0,a1));
@@ -509,10 +514,15 @@ function buildAusbau(){
   /* Innenseite der Halle Sued liegt oestlich dieser Wand, also '+x' -
      mit dem Standardwert klebte die Aussenfassade innen im Lager. */
   durchbruchWand('lager_west',false,LAY.lsued.x0,LAY.lsued.z0,LAY.lsued.z1,ST,lagerWall,undefined,3.0,HALLE_H,'+x');
-  /* Aussenseite dieser Wand steht in der Schleuse, nicht im Freien -
-     also Lagerwand statt Trapezblech, sonst stossen im Gang zwei
-     verschiedene Waende aneinander. */
-  durchbruchWand('lager_west',false,LAY.lwest.x1,LAY.lwest.z0,LAY.lwest.z1,ST,lagerWall,lagerWall,3.0,GH_H);
+  /* Nur das Stueck in der Schleuse zeigt nach aussen in den Gang -
+     dort gehoert die Lagerwand hin, sonst stossen im Gang zwei
+     verschiedene Waende aneinander. Der lange Rest steht im Hof und
+     bekommt dieselbe Aussenhaut wie die uebrige Halle; vorher zog
+     sich die gelbe Lagerwand ueber die ganze Ostseite ins Freie. */
+  const bl=blechMat();
+  durchbruchWand('lager_west',false,LAY.lwest.x1,LAY.lwest.z0,LAY.schleuse.z0,[],lagerWall,bl,3.0,GH_H);
+  durchbruchWand('lager_west',false,LAY.lwest.x1,LAY.schleuse.z0,LAY.schleuse.z1,ST,lagerWall,lagerWall,3.0,GH_H);
+  durchbruchWand('lager_west',false,LAY.lwest.x1,LAY.schleuse.z1,LAY.lwest.z1,[],lagerWall,bl,3.0,GH_H);
   buildSchleuse();
   /* Die beiden Schleusentore und der Gang bekommen Streifenvorhaenge
      statt blanker Loecher. */
@@ -533,7 +543,11 @@ function buildAusbau(){
      Streifen - der Rest steht am Testfeld im Freien und bekommt die
      Fassade. Vorher lief der gelbe Streifen aussen ums Gebaeude. */
   durchbruchWand('shop_sued',false,7.9,LAY.sued.z0,GANG.z0,[],shopWall,undefined,2.5,WH,'+x');
-  durchbruchWand('shop_sued',false,7.9,GANG.z0,GANG.z1,[],shopWall,lagerWall,2.5,WH,'+x');
+  /* Im Gangstreifen steht die Ostwand des Ladens. Sie zeigt dort
+     nach draussen, solange der Gang nicht gebaut ist, und danach in
+     einen Gang zwischen zwei Gebaeuden - beides ist Fassade, nicht
+     gelbe Lagerwand. */
+  durchbruchWand('shop_sued',false,7.9,GANG.z0,GANG.z1,[],shopWall,undefined,2.5,WH,'+x');
   durchbruchWand('shop_sued',false,7.9,GANG.z1,LAY.sued.z1,[],shopWall,undefined,2.5,WH,'+x');
   /* Der Gang muendet in die Halle Sued und wird mit ihr freigegeben. */
   /* Der Gang muendet in den ersten Abschnitt der Halle Sued, wird

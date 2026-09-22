@@ -351,11 +351,12 @@ const SLOTS=mkSlots();
 function mkRacks(){
   const A=[];
   const add=(x,z,ry,h,zone)=>A.push({x:Math.round(x*100)/100,z:Math.round(z*100)/100,ry:ry,h:h,zone:zone});
-  /* Basislager an der Rampe, 3,6 m - nur Standardregale */
-  [-9.3,-12.4,-15.5,-18.6].forEach(x=>{ add(x,-5.35,0,3.6); add(x,1.35,Math.PI,3.6); });
-  /* Anbau Nord, 2,84 m. Gehoert ab Level 1 zum Lager. */
-  [-9.7,-12.8,-15.9,-19.0].forEach(x=>add(x,5.45,Math.PI,2.84));
-  [-11.0,-14.1].forEach(x=>add(x,2.75,0,2.84));
+  /* Das ganze Lager ist fuenf Meter licht (LAGER_H steht erst in
+     05-world und ist hier noch nicht da, darum die Zahl).
+     Rampenraum und Anbau Nord gehoeren ab Level 1 dazu. */
+  [-9.3,-12.4,-15.5,-18.6].forEach(x=>{ add(x,-5.35,0,5.0); add(x,1.35,Math.PI,5.0); });
+  [-9.7,-12.8,-15.9,-19.0].forEach(x=>add(x,5.45,Math.PI,5.0));
+  [-11.0,-14.1].forEach(x=>add(x,2.75,0,5.0));
   /* Halle Sued I bis III, lichte Hoehe 5,0 m (HALLE_H steht erst in
      05-world und ist hier noch nicht da, darum die Zahl).
      In Halle I steht auch die Packstation, darum haelt der

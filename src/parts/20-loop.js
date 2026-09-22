@@ -35,7 +35,7 @@ function dachBereiche(){
   _daecher=[];
   const r=(a2,h)=>{ if(a2) _daecher.push({x0:a2.x0-0.3,x1:a2.x1+0.3,z0:a2.z0-0.3,z1:a2.z1+0.3,h:h+0.4}); };
   r(LAY.basis,WH); r(LAY.ost1,WH); r(LAY.ost2,WH); r(LAY.sued,WH);
-  r(LAY.lbasis,WH); r(LAY.lnord,ANBAU_H); r(LAY.ls1,LSUED_H); r(LAY.ls2,LSUED_H); r(LAY.ls3,LSUED_H);
+  r(LAY.lbasis,LAGER_H); r(LAY.lnord,LAGER_H); r(LAY.ls1,LAGER_H); r(LAY.ls2,LAGER_H); r(LAY.ls3,LAGER_H);
   r(LAY.lwest,GH_H); r(LAY.schleuse,SCHLEUSE_H);
   r({x0:GANG.x0,x1:GANG.x1,z0:GANG.z0,z1:GANG.z1},GANG.h);
   return _daecher;

@@ -67,14 +67,12 @@ function buildDock(){
     for(let i=0;i<14;i++) bbox(0.07,1.9,0.07,steel,0.12,1.3,-2.0+i*0.31,g2,false);
     for(let i=0;i<5;i++) bbox(0.05,0.05,4.2,steel,0.12,0.6+i*0.4,0,g2,false); }
   col(-34.15,-33.85,-6.6,-3.6); col(-34.15,-33.85,0.6,11.2); col(-34.1,-20,-6.15,-5.85);
-  // Anbau zwischen Lager und Gehweg: echte Huelle statt massivem Block,
-  // damit das Lager spaeter hier hinein wachsen kann.
-  const AH=ANBAU_H;
-  wall(-20.1,-19.9,2.1,6.15,0,AH,'+x',lagerWall);
-  wall(-20.1,-8.1,5.95,6.15,0,AH,'-z',lagerWall);
-  col(-20.1,-19.9,2.1,6.15); col(-20.1,-8.1,5.95,6.15);
-  bbox(12.1,0.16,4.05,std(0x5f584e,{roughness:1}),-14.05,AH+0.04,4.125,null,false);
-  bbox(12.1,0.12,3.9,snow,-14,AH+0.16,4.15,null,false);
+  /* Der Anbau hinter dem Lager ist kein eigener niedriger Bau mehr:
+     Huelle und Dach kommen aus halle() beziehungsweise aus dem
+     Lagerdach in 05c, alles auf Lagerhoehe. Frueher stand hier eine
+     zweite Wand auf 2,90 m und ein eigenes Flachdach - das hing als
+     dunkler Balken quer durch das Lager, sobald die Decke hoeher
+     wurde. Nur die Fenster in der Nordwand bleiben. */
   for(const x of [-18,-14,-10]){ bbox(0.7,0.9,0.1,std(0x2a3040,{metalness:0.4}),x,1.9,6.2,null,false);
     bbox(0.62,0.82,0.04,new THREE.MeshStandardMaterial({color:LIN(0x9fb4cc),transparent:true,opacity:0.3,roughness:0.1}),x,1.9,6.24,null,false); }
   buildTor(steel,snow);

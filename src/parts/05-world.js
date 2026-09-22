@@ -66,13 +66,21 @@ const LW=0.2;                      /* Wandstaerke                      */
 function flaeche(r){ return Math.round((r.x1-r.x0)*(r.z1-r.z0)); }
 /* Hintertuer aus dem Basisladen aufs Testfeld */
 const HINTERTUER={x0:4.4, x1:6.1};
-/* Lichte Hoehe des Anbaus hinter dem Lager (spaetere Lagererweiterung) */
+/* Lichte Hoehe des Anbaus hinter dem Lager. Er ist kein eigener
+   Raum mehr, sondern Teil des Lagers - seine Hoehe ist die
+   Lagerhoehe. Die Konstante bleibt, weil sie an ein paar Stellen
+   als Mass fuer Einbauten dient. */
 const ANBAU_H=2.9;
 /* Lichte Hoehe der Lagerhalle Sued. 6,4 m waren zu viel fuer einen
    Raum, der nur Regale traegt; unter 4,8 m passt aber kein Hochregal
    mehr hinein (4,26 m plus Luft). */
 const HALLE_H=5.0;
 const LSUED_H=HALLE_H;
+/* Das ganze Lager hat dieselbe lichte Hoehe: Raum an der Rampe,
+   Anbau nach Norden und die drei Abschnitte der Halle Sued. Nur so
+   entfallen Stuerze und stehengebliebene Wandstuecke zwischen den
+   Bereichen, und am Ende steht wirklich ein grosser Raum. */
+const LAGER_H=HALLE_H;
 /* Grosshandel: Hoehe fuer Palettenregale und Hubwagen */
 const GH_H=12.0;
 /* Lichte Hoehe der Schleuse */

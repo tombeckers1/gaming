@@ -680,39 +680,9 @@ function nachbarFassade(x0,x1,zid,unterzeile,eingang){
     for(const sgn of [1,-1]){ const d=bbox(Math.hypot(bw,bh)+0.1,0.14,0.05,brett,bxc,byc,zf+0.05,gs,false);
       d.rotation.z=sgn*Math.atan2(bh,bw); }
   });
-  /* Bauschild: Verkaufsflaeche wird verkauft */
-  const schildT=tex(1024,512,(c,W,Hh)=>{
-    c.fillStyle='#f4f2ea'; c.fillRect(0,0,W,Hh);
-    c.fillStyle='#1b2340'; c.fillRect(0,0,W,96);
-    c.fillStyle='#ffd23f'; c.textAlign='center'; c.textBaseline='middle';
-    c.font=BUN(52); c.fillText('ZU VERKAUFEN',W/2,50);
-    c.fillStyle='#1b2340'; c.font=BUN(66);
-    c.fillText('VERKAUFSFLÄCHE',W/2,180);
-    c.font=BAR(44); c.fillStyle='#3d4658';
-    c.fillText(unterzeile,W/2,250);
-    c.fillText('ideal zur Erweiterung',W/2,300);
-    c.strokeStyle='#c8322a'; c.lineWidth=8; c.strokeRect(70,340,W-140,120);
-    c.fillStyle='#c8322a'; c.font=BUN(46);
-    c.fillText('ANFRAGE ÜBER DEN LAPTOP',W/2,402);
-    c.strokeStyle='#1b2340'; c.lineWidth=10; c.strokeRect(5,5,W-10,Hh-10);
-  });
-  const rahmen=std(0x4a4f5a,{metalness:0.4,roughness:0.55});
-  for(const sx of [-1.15,1.15]){
-    const p2=new THREE.Mesh(new THREE.CylinderGeometry(0.045,0.045,2.6,10),rahmen);
-    p2.position.set(cx+sx,1.3,zf+0.6); gs.add(p2);
-    bbox(0.14,0.03,0.14,rahmen,cx+sx,0.016,zf+0.6,gs,false);
-  }
-  bbox(2.7,1.36,0.05,std(0x3a3f48,{roughness:0.7}),cx,1.85,zf+0.6,gs,false);
-  plane(2.6,1.28,new THREE.MeshStandardMaterial({map:schildT,roughness:0.62}),cx,1.85,zf+0.635,0,gs);
-  /* Bauzaunelement davor */
-  for(let i=0,nz=Math.max(2,Math.floor((w-0.4)/2.2));i<nz;i++){
-    const bx=x0+0.9+i*2.2;
-    bbox(2.0,1.8,0.05,std(0x8a9099,{metalness:0.4,roughness:0.6}),bx,0.92,zf+1.25,gs,false);
-    for(const sx of [-0.95,0.95]) bbox(0.07,1.85,0.07,std(0x6a7078,{metalness:0.5}),bx+sx,0.93,zf+1.25,gs,false);
-    bbox(0.5,0.1,0.34,std(0x2f343c,{roughness:0.9}),bx-0.95,0.05,zf+1.25,gs,false);
-    bbox(0.5,0.1,0.34,std(0x2f343c,{roughness:0.9}),bx+0.95,0.05,zf+1.25,gs,false);
-  }
-  zWandCol(zid,col(x0,x1,zf+1.1,zf+1.4));
+  /* Frueher standen hier ein Makler-Schild und ein Bauzaun. Beides
+     ist raus: wer spielt, will einen schicken Laden sehen und keine
+     Baustelle. Dass man das Lokal kaufen kann, steht im Laptop. */
 
   /* ---------- Zustand „gehoert dir“: Schaufenster ---------- */
   const go=new THREE.Group(); g.add(go); zAdd(zid,go);

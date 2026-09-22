@@ -84,6 +84,39 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   sag('keine Trennwand zwischen den Abschnitten',wand.length===0);
   wand.forEach(t=>console.log('   '+t));
 
+  /* Eine Hoehe im ganzen Lager: nichts Massives darf unter der
+     Decke quer durch den Raum haengen. Der alte Anbau hatte ein
+     eigenes Flachdach auf 2,90 m - das lag als dunkler Balken quer
+     im Lager, sobald die Decke hoeher wurde. */
+  const balken=await p.evaluate(()=>{
+    const bb=window.__bb, vek=new THREE.Vector3(), out=[];
+    const R={x0:-19.6,x1:-8.4,z0:-29.6,z1:5.6,y0:2.2,y1:4.7};
+    bb.scene.traverse(o=>{
+      if(!o.isMesh||!o.geometry||!o.geometry.attributes) return;
+      let v=true; for(let a=o;a;a=a.parent) if(!a.visible) v=false; if(!v) return;
+      if(o.material&&(o.material.transparent||o.material.opacity<1)) return;
+      const pos=o.geometry.attributes.position;
+      let kx=1e9,gx=-1e9,ky=1e9,gy=-1e9,kz=1e9,gz=-1e9;
+      for(let i=0;i<pos.count;i++){
+        vek.fromBufferAttribute(pos,i).applyMatrix4(o.matrixWorld);
+        kx=Math.min(kx,vek.x); gx=Math.max(gx,vek.x); ky=Math.min(ky,vek.y);
+        gy=Math.max(gy,vek.y); kz=Math.min(kz,vek.z); gz=Math.max(gz,vek.z);
+      }
+      /* Ueberschneidung mit dem Lager, nicht Enthaltensein: das alte
+         Anbaudach ragte ueber die Waende hinaus und waere sonst
+         durchgerutscht. Die Stadt im Hintergrund hat Bounding-Boxen
+         von hunderten Metern und faellt ueber die Groesse raus. */
+      if(gx<R.x0||kx>R.x1||gz<R.z0||kz>R.z1) return;
+      if(gx-kx>30||gz-kz>40) return;
+      if(ky<R.y0||gy>R.y1) return;
+      if(Math.max(gx-kx,gz-kz)<3) return;
+      out.push(`x[${kx.toFixed(1)},${gx.toFixed(1)}] y[${ky.toFixed(2)},${gy.toFixed(2)}] z[${kz.toFixed(1)},${gz.toFixed(1)}] ${o.geometry.type}`);
+    });
+    return out;
+  });
+  sag('nichts haengt unter der Lagerdecke',balken.length===0);
+  balken.forEach(t=>console.log('   '+t));
+
   console.log(errs.length?'ERRORS:\n'+errs.join('\n'):(bad?`ERRORS: ${bad} Punkte`:'ERRORS: keine'));
   await b.close();
 })();

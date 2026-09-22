@@ -14,12 +14,16 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   /* Leere Hallen muessen leer sein. Beim Vergroessern der Karte sind
      schon einmal Masten, ein Container und Schneehaufen in einem
      Gebaeude gelandet, weil ihre Koordinaten fest verdrahtet waren. */
-  const raeume=[['Grosshandel','lwest',11.5],['Schleuse','schleuse',3.1],['Lagergang',null,2.6]];
+  /* Der Randabstand haelt die Technik an den Waenden heraus - im
+     Grosshandel haengen an jedem der vier Tore Schienen, Torwelle,
+     Antrieb und Kette, die bis etwa 70 cm in die Halle ragen. Der
+     Test sucht Fremdkoerper im Raum, nicht Beschlaege an der Wand. */
+  const raeume=[['Grosshandel','lwest',11.5,1.2],['Schleuse','schleuse',3.1,0.4],['Lagergang',null,2.6,0.4]];
   let schlimm=0;
-  for(const [name,key,ymax] of raeume){
+  for(const [name,key,ymax,rand] of raeume){
   const treffer=await p.evaluate(v=>{
     const bb=window.__bb, L=v.key?bb.LAY[v.key]:bb.GANG;
-    const R={x0:L.x0+0.4,x1:L.x1-0.4,z0:L.z0+0.4,z1:L.z1-0.4,y0:0.15,y1:v.ymax};
+    const R={x0:L.x0+v.rand,x1:L.x1-v.rand,z0:L.z0+v.rand,z1:L.z1-v.rand,y0:0.15,y1:v.ymax};
     const out=[], vek=new THREE.Vector3();
     bb.scene.traverse(o=>{
       if(!o.isMesh||!o.geometry) return;
@@ -39,7 +43,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     out.sort((a,b)=>b.n-a.n);
     return out.slice(0,10).map(e=>
       `      ${String(e.n).padStart(6)} V  x[${e.x}]  y[${e.y}]  z[${e.z}]  ${e.t} ${e.c}`).join('\n');
-  },{key,ymax});
+  },{key,ymax,rand});
   console.log(treffer?`${name}: steht etwas drin\n${treffer}`:`${name}: leer`);
   if(treffer) schlimm++;
   }

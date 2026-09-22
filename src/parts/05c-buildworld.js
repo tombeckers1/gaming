@@ -94,20 +94,19 @@ function buildWorld(){
   zWand('shop_gross',wall(7.9,8.1,-6.1,-4.4,0,H,'-x',shopWall));
   zWand('shop_gross',wall(7.9,8.1,4.4,6.1,0,H,'-x',shopWall));
   zWand('shop_gross',wall(7.9,8.1,-4.4,4.4,2.7,H,'-x',shopWall));
-  wall(-8.1,-7.9,-6.1,-3.2,0,H,'+x',shopWall,lagerWall); wall(-8.1,-7.9,-1.8,2,0,H,'+x',shopWall,lagerWall); wall(-8.1,-7.9,2,6.1,0,H,'+x',shopWall,lagerWall);
-  wall(-8.1,-7.9,-3.2,-1.8,2.5,H,'+x',shopWall,lagerWall);
-  // Lager
-  wall(-20.1,-19.9,-6.1,-3.6,0,H,'+x',lagerWall); wall(-20.1,-19.9,-0.4,2.1,0,H,'+x',lagerWall); wall(-20.1,-19.9,-3.6,-0.4,3.0,H,'+x',lagerWall);
+  /* Die Wand zwischen Verkauf und Lager reicht bis zur Lagerdecke -
+     im Verkauf steht sie oberhalb der Decke und ist dort nicht zu
+     sehen, im Lager schliesst sie sauber ab. */
+  wall(-8.1,-7.9,-6.1,-3.2,0,LAGER_H,'+x',shopWall,lagerWall); wall(-8.1,-7.9,-1.8,2,0,LAGER_H,'+x',shopWall,lagerWall); wall(-8.1,-7.9,2,6.1,0,LAGER_H,'+x',shopWall,lagerWall);
+  wall(-8.1,-7.9,-3.2,-1.8,2.5,LAGER_H,'+x',shopWall,lagerWall);
+  // Lager. Es ist hoeher als der Verkauf: LAGER_H statt H.
+  wall(-20.1,-19.9,-6.1,-3.6,0,LAGER_H,'+x',lagerWall); wall(-20.1,-19.9,-0.4,5.9,0,LAGER_H,'+x',lagerWall); wall(-20.1,-19.9,-3.6,-0.4,3.0,LAGER_H,'+x',lagerWall);
   /* Die Suedwand des Lagers baut jetzt die Durchbruchwand in 05h:
-     dort sitzt die Oeffnung zur Halle Sued. */
-  /* Nordwand des Lagers mit vorbereitetem Durchbruch in den Anbau */
-  /* Zum Anbau nach Norden: Die Wand kann nicht ganz weg, weil
-     der Anbau niedriger ist - aber die Oeffnung geht fast ueber
-     die ganze Breite und bis unter die Anbaudecke. Frueher war
-     das eine zugemauerte Ausbaustufe; der Anbau gehoert jetzt
-     von Anfang an zum Lager. */
-  wall(-20.1,-19.4,1.9,2.1,0,H,'-z',lagerWall); wall(-8.6,-8.1,1.9,2.1,0,H,'-z',lagerWall);
-  wall(-19.4,-8.6,1.9,2.1,2.78,H,'-z',lagerWall);
+     dort sitzt die Oeffnung zur Halle Sued.
+     Zum Anbau nach Norden steht gar keine Wand mehr: beide Teile
+     sind gleich hoch und bilden einen Raum. Frueher war der Anbau
+     eine zugemauerte Ausbaustufe mit niedrigerer Decke, und
+     dazwischen blieb ein Sturz quer im Lager stehen. */
   const base=std(0x1a2038);
   /* Sockelleisten enden an den Tueroeffnungen, statt durchzulaufen */
   for(const [a,b] of [[-7.9,4.4],[6.1,7.9]]) bbox(b-a,0.1,0.02,base,(a+b)/2,0.05,-5.89,null,false);
@@ -116,12 +115,14 @@ function buildWorld(){
     for(const sx of [7.89,8.11]) zWand('shop_gross',bbox(0.02,0.1,b-a,base,sx,0.05,(a+b)/2,null,false));
   for(const [a,b] of [[-5.9,-3.2],[-1.8,5.9]]) bbox(0.02,0.1,b-a,base,-7.89,0.05,(a+b)/2,null,false);
   // Dächer & Decken
-  bbox(16.4,0.25,12.4,std(0x2b2f3a),0,H+0.13,0); bbox(12.4,0.25,8.4,std(0x2b2f3a),-14,H+0.13,-2);
+  bbox(16.4,0.25,12.4,std(0x2b2f3a),0,H+0.13,0);
+  /* Ein Dach ueber das ganze Lager, Rampenraum und Anbau zusammen */
+  bbox(12.4,0.25,12.4,std(0x2b2f3a),-14,LAGER_H+0.13,-0.1);
   const ceil=std(0xe6e8ee,{roughness:1});
   /* Beide Decken reichen ueber die Innenseiten aller Waende hinaus und
      stossen in der Trennwand aneinander - kein Spalt, keine Ueberlappung. */
   const c1=new THREE.Mesh(new THREE.PlaneGeometry(16.1,12.3),ceil); c1.rotation.x=Math.PI/2; c1.position.set(0.1,H-0.01,0); scene.add(c1);
-  const c2=new THREE.Mesh(new THREE.PlaneGeometry(12.15,8.3),ceil); c2.rotation.x=Math.PI/2; c2.position.set(-14.025,H-0.01,-2); scene.add(c2);
+  const c2=new THREE.Mesh(new THREE.PlaneGeometry(12.15,12.3),ceil); c2.rotation.x=Math.PI/2; c2.position.set(-14.025,LAGER_H-0.01,-0.05); scene.add(c2);
   /* Flächenbündige Leuchten: schmaler Rahmen, gleichmäßig leuchtende Scheibe */
   const diffT=deckenDiffuse();
 ;
@@ -132,22 +133,24 @@ function buildWorld(){
   const fixM=std(0xdfe3e9,{metalness:0,roughness:0.62});
   const rev=std(0x252932,{metalness:0,roughness:0.9});
   const leuchten=[];
-  for(const x of [-5.7,-1.9,1.9,5.7]) for(const z of [-3.6,0,3.6]) leuchten.push([x,z]);
-  for(const x of [-17.95,-15.3,-12.7,-10.05]) for(const z of [-4,0]) leuchten.push([x,z]);
-  for(const [x,z] of leuchten){
-    bbox(1.44,0.03,0.42,rev,x,H-0.008,z,null,false);          // Schattenfuge
-    bbox(1.36,0.028,0.36,fixM,x,H-0.026,z,null,false);        // Rahmen
+  for(const x of [-5.7,-1.9,1.9,5.7]) for(const z of [-3.6,0,3.6]) leuchten.push([x,WH,z]);
+  /* Die Lagerleuchten haengen an der Lagerdecke, nicht an der des
+     Verkaufsraums - das Lager ist hoeher. Und der Anbau nach Norden
+     bekommt jetzt auch welche, er gehoert zum selben Raum. */
+  for(const x of [-17.95,-15.3,-12.7,-10.05]) for(const z of [-4,0,4]) leuchten.push([x,LAGER_H,z]);
+  for(const [x,hy,z] of leuchten){
+    bbox(1.44,0.03,0.42,rev,x,hy-0.008,z,null,false);          // Schattenfuge
+    bbox(1.36,0.028,0.36,fixM,x,hy-0.026,z,null,false);        // Rahmen
     const d=new THREE.Mesh(new THREE.PlaneGeometry(1.26,0.28),panelM);
-    d.rotation.x=Math.PI/2; d.position.set(x,H-0.043,z); scene.add(d);
+    d.rotation.x=Math.PI/2; d.position.set(x,hy-0.043,z); scene.add(d);
   }
   /* Ost- beziehungsweise Nordkante gehoeren zu einer Wand, die
      beim Ausbau faellt - der Schatten muss mit ihr verschwinden. */
   roomAO(-7.9,7.9,-5.9,5.9,null,{n:true,s:true,w:true});
   zWand('shop_gross',aoFloor(7.9-0.2,0,11.8,0.4,'+x',0.021));
-  roomAO(-19.9,-8.1,-5.9,1.9,null,{s:true,w:true,e:true});
-  /* Die Nordkante des Basislagers grenzt jetzt dauerhaft an den
-     Anbau - dort ist eine Oeffnung, kein Schatten. */
-  roomAO(-19.9,-8.1,1.9,5.9,null,{n:true,w:true,e:true});
+  /* Rampenraum und Anbau sind ein Raum - der Schatten laeuft
+     einmal aussen herum, nicht an der alten Trennlinie. */
+  roomAO(-19.9,-8.1,-5.9,5.9,null,{n:true,w:true,e:true});
   buildAusbau();
   buildFacade();
   plane(1.4,0.35,new THREE.MeshStandardMaterial({map:tex(280,70,(g,W,Hh)=>{ g.fillStyle='#f2c230'; g.fillRect(0,0,W,Hh); g.fillStyle='#16181f'; g.font=BUN(40); g.textAlign='center'; g.textBaseline='middle'; g.fillText('LAGER',W/2,Hh/2+2); })}),-7.88,2.85,-2.5,Math.PI/2);
@@ -218,7 +221,7 @@ function buildWorld(){
   col(-8,-1.2,5.9,6.1); col(1.2,8,5.9,6.1); col(-8,4.4,-6.1,-5.9); col(6.1,8,-6.1,-5.9);
   col(-8.1,-7.9,-6.1,-3.2); col(-8.1,-7.9,-1.8,6.1);
   col(-20.1,-19.9,-6.1,-3.6); col(-20.1,-19.9,-0.4,2.1);
-  col(-20.1,-19.4,1.9,2.1); col(-8.6,-8,1.9,2.1);
+
   buildDock();
 }
 function updateSign(){

@@ -12,7 +12,7 @@ function stadtAdd(m){ m.userData.stadt=true; scene.add(m); return m; }
 
 /* Der Spielbereich bleibt frei: hier steht schon etwas */
 const STADT_FREI=[
-  {x0:-88,x1:42,z0:-44,z1:38},       /* Laden, Lager, beide Hoefe, Testfeld  */
+  {x0:-101,x1:42,z0:-54,z1:38},      /* Laden, Lager, Grosshandel, Hoefe, Testfeld */
   {x0:42, x1:96,z0:-20,z1:18},       /* Logistikzentrum mit Vorplatz         */
   {x0:-260,x1:260,z0:8,z1:23}        /* die Fahrbahn bleibt frei             */
 ];

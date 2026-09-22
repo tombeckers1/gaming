@@ -3,7 +3,7 @@
    Laptop
    ========================================================= */
 let laptopOpen=false, startOpen=true, pauseOpen=false, ltab='order', resetArm=false, lsup='mertens', korbOpen=false;
-function openLaptop(){ laptopOpen=true; resetArm=false; for(const k in keys) keys[k]=false; mouseDown=false; touchAct=false; renderLaptop(); $('laptop').classList.add('show'); if(locked) document.exitPointerLock(); }
+function openLaptop(tab){ laptopOpen=true; resetArm=false; if(tab) ltab=tab; for(const k in keys) keys[k]=false; mouseDown=false; touchAct=false; renderLaptop(); $('laptop').classList.add('show'); if(locked) document.exitPointerLock(); }
 function closeLaptop(relock){ laptopOpen=false; korbOpen=false; $('korbOv').classList.remove('show'); $('laptop').classList.remove('show'); if(relock) requestLock(); else if(lockWorked&&!COARSE&&!locked&&!summaryOpen&&!levelOpen) showPause(); }
 function priceHint(t){ const r=S.prices[t]/marketOf(t), lo=priceTol();
   if(r<=lo) return ['ok','Kunden greifen gern zu'];

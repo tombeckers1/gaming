@@ -79,7 +79,13 @@ function buildWorld(){
   buildWindowGrime();
   bbox(0.08,2.5,0.14,frame,-1.2,1.25,6.0); bbox(0.08,2.5,0.14,frame,1.2,1.25,6.0); bbox(2.4,0.08,0.14,frame,0,2.5,6.0);
   // Rückwand, rechte Wand
-  wall(-8,4.4,-6.1,-5.9,0,H,'+z',shopWall); wall(6.1,8,-6.1,-5.9,0,H,'+z',shopWall); wall(4.4,6.1,-6.1,-5.9,2.5,H,'+z',shopWall);
+  /* Rueckwand des Basisladens. Ihre Aussenseite steht seit dem
+     Lagergang nicht mehr im Freien, sondern im Gang - also Lager-
+     wand statt Fassade, damit der Gang durchgehend wie das Lager
+     aussieht. */
+  wall(-8,4.4,-6.1,-5.9,0,H,'+z',shopWall,lagerWall);
+  wall(6.1,8,-6.1,-5.9,0,H,'+z',shopWall,lagerWall);
+  wall(4.4,6.1,-6.1,-5.9,2.5,H,'+z',shopWall,lagerWall);
   /* Ostwand: spaeter wird hier ein grosser Durchbruch zur Nachbarflaeche
      geschlagen. Pfeiler und Sturz bleiben stehen, die Fuellung faellt. */
   /* Beim Kauf faellt die Ostwand komplett - Pfeiler und Sturz

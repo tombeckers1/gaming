@@ -29,15 +29,18 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     const out={};
     /* Tag eins: Gang steht, Kopfenden zu, Weg aufs Testfeld offen */
     out.tag1_testfeld = lauf(HINTEN.concat([[5.2,-10.5],[0,-14]]));
-    out.tag1_gang_west = lauf(HINTEN.concat([[0,-7.5],[-9.5,-7.5]]));
-    out.tag1_gang_ost  = lauf(HINTEN.concat([[0,-7.5],[9.5,-7.5]]));
+    out.tag1_gang_west_zu = !lauf(HINTEN.concat([[0,-7.5],[-9.5,-7.5]]));
+    out.tag1_gang_ost_zu  = !lauf(HINTEN.concat([[0,-7.5],[9.5,-7.5]]));
     /* Nach dem Kauf der Lagerhalle West muessen beide Enden offen sein */
     bb.S.level=40; bb.S.money=9e6;
     ['shop_gross','shop_ost','shop_sued','lager_gross','lager_sued','lager_west']
       .forEach(id=>{ bb.S.up[id]=true; if(bb.ZONEN[id]) bb.oeffneZone(id,false); });
     bb.applyZonen(); bb.navBuild();
-    out.gekauft_gang_west = lauf(HINTEN.concat([[0,-7.5],[-9.5,-7.5]]));
-    out.gekauft_gang_ost  = lauf(HINTEN.concat([[0,-7.5],[9.5,-7.5]]));
+    /* Nach dem Kauf fuehrt der Gang ins Lager. Zum Rueckgebaeude
+       bleibt er zu - vom Verkauf geht es nur ueber das Lager
+       weiter, so soll es sein. */
+    out.gekauft_gang_west_offen = lauf(HINTEN.concat([[0,-7.5],[-9.5,-7.5]]));
+    out.gekauft_gang_ost_bleibt_zu = !lauf(HINTEN.concat([[0,-7.5],[9.5,-7.5]]));
     out.gekauft_testfeld  = lauf(HINTEN.concat([[5.2,-10.5],[0,-14]]));
     return out;
   }),null,1));

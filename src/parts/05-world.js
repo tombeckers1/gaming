@@ -31,16 +31,23 @@ const LAY={
   ost2  :{x0:20.0, x1:37.9, z0:-5.9,  z1:5.9},   /* 212 m2 */
   sued  :{x0:8.0,  x1:37.9, z0:-21.9, z1:-5.9},  /* 478 m2 */
   /* Lager, zusammen 927 m2 */
-  lager :{x0:-41.9,x1:-8.1, z0:-29.9, z1:5.9},
+  lager :{x0:-66.0,x1:-8.1, z0:-45.0, z1:5.9},
   lbasis:{x0:-19.9,x1:-8.1, z0:-5.9,  z1:1.9},   /*  92 m2, von Anfang an */
   lnord :{x0:-19.9,x1:-8.1, z0:1.9,   z1:5.9},   /*  47 m2 */
   lsued :{x0:-19.9,x1:-8.1, z0:-29.9, z1:-5.9},  /* 283 m2 */
-  lwest :{x0:-41.9,x1:-19.9,z0:-29.9, z1:-7.0},  /* 505 m2 */
+  /* Grosshandel: eigenes Gebaeude, 40 x 38 m und zwoelf Meter licht.
+     Palettenregale und ein Hubwagen brauchen die Hoehe; die alte
+     Halle mit 505 m2 und 6,4 m war dafuer zu klein. */
+  lwest :{x0:-66.0,x1:-26.0,z0:-45.0, z1:-7.0},  /* 1520 m2 */
+  /* Schleuse zwischen Lager (6,4 m) und Grosshandel (12 m). Zwei
+     Gebaeude mit verschiedenen Deckenhoehen kann man nicht einfach
+     aneinanderstellen - dazwischen gehoert ein Zwischenbau. */
+  schleuse:{x0:-26.0,x1:-19.9,z0:-24.0,z1:-17.0},
   /* Testfeld hinter dem Basisladen, durch die Hintertuer erreichbar */
   test  :{x0:-7.9, x1:8.0,  z0:-28.0, z1:-6.0},
   /* Hoefe: der kleine an der Basisrampe, der grosse an der Westrampe */
   hof   :{x0:-34.0,x1:-20.0,z0:-6.5,  z1:2.5},
-  hof2  :{x0:-64.0,x1:-42.0,z0:-30.0, z1:-7.0},
+  hof2  :{x0:-92.0,x1:-66.1,z0:-45.0, z1:-7.0},
   /* Logistikzentrum, vorerst nur von aussen */
   logi  :{x0:44.0, x1:90.0, z0:-16.0, z1:14.0}
 };
@@ -50,8 +57,12 @@ function flaeche(r){ return Math.round((r.x1-r.x0)*(r.z1-r.z0)); }
 const HINTERTUER={x0:4.4, x1:6.1};
 /* Lichte Hoehe des Anbaus hinter dem Lager (spaetere Lagererweiterung) */
 const ANBAU_H=2.9;
-/* Lichte Hoehe der grossen Lagerhallen Sued und West */
+/* Lichte Hoehe der grossen Lagerhalle Sued */
 const HALLE_H=6.4;
+/* Grosshandel: Hoehe fuer Palettenregale und Hubwagen */
+const GH_H=12.0;
+/* Lichte Hoehe der Schleuse */
+const SCHLEUSE_H=3.4;
 function paintWall(g,W,H,c){
   g.fillStyle=c.up; g.fillRect(0,0,W,H);
   const band=Math.round(H*(1-1.1/WH));

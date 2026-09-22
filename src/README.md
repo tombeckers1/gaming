@@ -39,13 +39,14 @@ Die wichtigsten:
 | `gehen.js`  | ob jeder ausgebaute Raum wirklich zu betreten ist          |
 | `gang.js`   | Lagergang: Kopfenden zu vor dem Kauf, offen danach         |
 | `gangfrei.js`| ob im Lagergang etwas steht (braucht echtes three.js)     |
+| `leer.js`   | ob in Grosshandel, Schleuse und Gang etwas steht, das dort nicht hingehoert (braucht echtes three.js) |
 | `online.js` | Onlineshop-Reiter: Stufen, Packen, Live-Zahlen             |
 | `wrampe.js` | Westrampen: Andockstationen, parallele Lieferungen         |
 | `kauf.js`   | Testmodus und die Begruendung fehlgeschlagener Kaeufe      |
 | `bal.js`    | Wirtschaftssimulation ueber beliebig viele Tage            |
 | `blick.js`  | Standbilder aus dem Laden (braucht echtes three.js)        |
 
-`bal.js`, `blick.js` und `gangfrei.js` brauchen ein echtes three.js. Fuer `blick.js`:
+`bal.js`, `blick.js`, `gangfrei.js` und `leer.js` brauchen ein echtes three.js. Fuer `blick.js`:
 
 ```bash
 npm pack three@0.128.0 && tar xzf three-0.128.0.tgz package/build/three.min.js

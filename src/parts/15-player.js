@@ -168,6 +168,7 @@ function updateTarget(){
   belt.forEach(b=>list.push(b.hit));
   for(const k in stations) if(nahDran(stations[k].g.position,R)) list.push(stations[k].hit);
   list.push(lapHit,doorSign,posHit,cardHit);
+  if(lapHit2&&lapHit2.parent&&lapHit2.parent.visible) list.push(lapHit2);
   if(pultHit) list.push(pultHit);
   if(gravHit) list.push(gravHit);
   if(packHit&&zoneOffen('packstation')) list.push(packHit);
@@ -198,6 +199,7 @@ function promptFor(t){
     case 'card': return reg&&reg.state==='pay'&&reg.method==='card'?{t:'Kartenzahlung abschließen',a:true}:{t:'Kartenterminal',a:false};
     case 'pos': if(reg&&reg.state==='pay') return reg.method==='cash'?{t:`Bargeld annehmen: ${eur(reg.given)}`,a:true}:{t:'Kartenzahlung abschließen',a:true}; return {t:'Kasse',a:false};
     case 'laptop': return {t:'Laptop öffnen',a:true};
+    case 'laptop2': return {t:'Lagerterminal öffnen',a:true};
     case 'pack': {
       if(!zoneOffen('packstation')) return {t:'Packstation',a:false};
       if(!S.up.onlineshop) return {t:'Onlineshop muss noch freigeschaltet werden',a:false};
@@ -247,6 +249,7 @@ function doAction(){
   else if(k==='pos'){ if(reg&&reg.state==='pay'){ if(reg.method==='cash') openCash(reg); else reg.finishCard(); } }
   else if(k==='pack'){ if((S.pakete|0)<PAKET_BAYS) packOne(false); }
   else if(k==='laptop') openLaptop();
+  else if(k==='laptop2') openLaptop('order');
   else if(k==='station'){ if(S.carrying) placeOnStation(r); }
   else if(k==='pult') firePult();
   else if(k==='gravur'){ if(S.carrying&&S.carrying.type==='blanko') refillGrav(); else if(!S.carrying) openGravInput(); }

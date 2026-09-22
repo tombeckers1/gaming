@@ -14,7 +14,10 @@ const zoneOf=p=>p.z<-2.2?'back':'front';
    Das Raster wird nur neu gebaut, wenn sich etwas veraendert
    hat - nach einem Umbau oder wenn ein Bereich aufgeht.
    ========================================================= */
-const NAV={x0:-42.6,z0:-30.6,x1:38.6,z1:8.6,s:0.5,w:0,h:0,g:null,dist:null,dirty:true};
+/* Das Gitter umschliesst die ganze bebaute Flaeche - seit dem
+   Grosshandel reicht sie bis x -66 und z -45. Daran haengt auch die
+   Notbremse fuer den Spieler in 15-player. */
+const NAV={x0:-67.0,z0:-46.0,x1:38.6,z1:8.6,s:0.5,w:0,h:0,g:null,dist:null,dirty:true};
 function navDirty(){ NAV.dirty=true; }
 function navBuild(){
   NAV.w=Math.ceil((NAV.x1-NAV.x0)/NAV.s); NAV.h=Math.ceil((NAV.z1-NAV.z0)/NAV.s);

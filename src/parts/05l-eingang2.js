@@ -18,7 +18,7 @@ function eingangsAchse(go,a,b,zf,ST,glas,prof){
     const bw=fb-fa; if(bw<0.12) continue;
     const bxc=(fa+fb)/2;
     bbox(bw-0.1,ST-0.12,0.04,glas,bxc,ST/2,zf-0.1,go,false);
-    for(const zz of [zf+0.09,zf-0.29]){
+    for(const zz of [zf-0.01,zf-0.19]){
       bbox(bw,0.1,0.06,prof,bxc,ST-0.05,zz,go,false);
       bbox(bw,0.1,0.06,prof,bxc,0.05,zz,go,false);
       bbox(0.1,ST,0.06,prof,fa+0.05,ST/2,zz,go,false);
@@ -34,7 +34,7 @@ function eingangsAchse(go,a,b,zf,ST,glas,prof){
      hinkommen kann, steht im Laptop. --- */
   const zu=new THREE.Group(); go.add(zu); zWand('eingang2',zu);
   bbox(2.6,ST-0.1,0.04,glas,cx,ST/2,zf-0.1,zu,false);
-  for(const zz of [zf+0.09,zf-0.29]){
+  for(const zz of [zf-0.01,zf-0.19]){
     bbox(2.72,0.1,0.06,prof,cx,ST-0.05,zz,zu,false);
     bbox(2.72,0.1,0.06,prof,cx,0.05,zz,zu,false);
     bbox(0.1,ST,0.06,prof,cx-1.34,ST/2,zz,zu,false);
@@ -65,8 +65,8 @@ function eingangsAchse(go,a,b,zf,ST,glas,prof){
     g2.fillStyle='#ffd23f'; g2.font=BUN(56); g2.textAlign='center'; g2.textBaseline='middle';
     g2.fillText('EINGANG 2',W/2,H/2+3);
   });
-  bbox(2.3,0.46,0.06,std(0x1b2340,{roughness:0.7}),cx,TUER.y+0.42,zf+0.13,auf,false);
-  plane(2.2,0.4,new THREE.MeshBasicMaterial({map:sch,toneMapped:false}),cx,TUER.y+0.42,zf+0.17,0,auf);
+  bbox(2.3,0.46,0.06,std(0x1b2340,{roughness:0.7}),cx,TUER.y+0.42,zf+0.05,auf,false);
+  plane(2.2,0.4,new THREE.MeshBasicMaterial({map:sch,toneMapped:false}),cx,TUER.y+0.42,zf+0.09,0,auf);
 }
 
 /* --------------------------------------------------------

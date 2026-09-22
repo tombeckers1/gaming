@@ -13,11 +13,20 @@ function aoCorner(cx,cz,nx,nz,ax,az,h){ // Ecke (cx,cz), Wand-Normale n, Richtun
   m.rotation.set(0,ry,dot>0?Math.PI/2:-Math.PI/2);
   m.position.set(cx+ax*w/2+nx*0.012,h/2,cz+az*w/2+nz*0.012); m.renderOrder=1; scene.add(m);
 }
-function roomAO(x0,x1,z0,z1,zoneId){
+/* seiten sagt, an welchen Kanten wirklich dauerhaft eine Wand
+   steht. Ohne das lag der Bodenschatten auch an einer Kante, die
+   beim Kauf faellt - im fertigen Laden standen dann zwei dunkle
+   Baender mit einem hellen Spalt dazwischen quer im Raum, genau
+   dort, wo frueher die Wand war. Ohne Angabe bleibt es wie bisher
+   bei allen vier Seiten. */
+function roomAO(x0,x1,z0,z1,zoneId,seiten){
   const d=0.4, y=0.021;
+  const S2=seiten||{n:true,s:true,w:true,e:true};
   const reg=m=>{ if(zoneId) zAdd(zoneId,m); return m; };
-  reg(aoFloor((x0+x1)/2,z0+d/2,x1-x0,d,'-z',y)); reg(aoFloor((x0+x1)/2,z1-d/2,x1-x0,d,'+z',y));
-  reg(aoFloor(x0+d/2,(z0+z1)/2,z1-z0,d,'-x',y)); reg(aoFloor(x1-d/2,(z0+z1)/2,z1-z0,d,'+x',y));
+  if(S2.s) reg(aoFloor((x0+x1)/2,z0+d/2,x1-x0,d,'-z',y));
+  if(S2.n) reg(aoFloor((x0+x1)/2,z1-d/2,x1-x0,d,'+z',y));
+  if(S2.w) reg(aoFloor(x0+d/2,(z0+z1)/2,z1-z0,d,'-x',y));
+  if(S2.e) reg(aoFloor(x1-d/2,(z0+z1)/2,z1-z0,d,'+x',y));
   /* Keine Baender an der Decke und keine Streifen in den Wandecken:
      die gaben harte Kanten, die wie ein Balken an der Wand aussahen. */
 }

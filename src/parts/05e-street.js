@@ -606,7 +606,12 @@ function makeBaum(){
 function buildNachbar(){
   /* Die Ladenzeile laeuft bis ans Ende des Blocks. Jeder Abschnitt
      gehoert zu einer Ausbaustufe und steht bis dahin leer. */
-  nachbarFassade(8.1,20.0,'shop_gross','ca. 142 m² · direkt nebenan');
+  /* Die Nachbarzeile setzt genau dort an, wo die Fassade des
+     Basisladens endet (die wall() um ihre 6 mm Ueberstand
+     verlaengert hat). Vorher begann sie bei 8,10 - dazwischen
+     stand nichts, und man sah durch einen neun Zentimeter
+     breiten Schlitz vom Laden auf die Strasse. */
+  nachbarFassade(8.006,20.0,'shop_gross','ca. 142 m² · direkt nebenan');
   /* Die mittlere Achse des Eckhauses ist bis zum Boden offen - dort
      sitzt spaeter der zweite Eingang. */
   nachbarFassade(20.0,37.9,'shop_ost','ca. 212 m² · Eckhaus der Zeile',1);
@@ -633,7 +638,11 @@ function nachbarFassade(x0,x1,zid,unterzeile,eingang){
   const bw=(w-(nB+1)*PF)/nB;
   const OEFF=[];
   for(let i=0;i<nB;i++){ const a2=x0+PF+i*(bw+PF); OEFF.push([a2,a2+bw]); }
-  const F=(a2,b2,y0,y1)=>{ if(b2>a2+0.01) wall(a2,b2,zf-0.3,zf+0.1,y0,y1,'-z',shopWall,zm,0); };
+  /* Die Nachbarfassade war 40 cm dick und stand damit zehn
+     Zentimeter weiter im Laden als die Fassade des Basisladens -
+     an der Stossstelle sprang die Fensterwand. Jetzt liegt sie in
+     derselben Flucht: innen 5,90, aussen 6,10. */
+  const F=(a2,b2,y0,y1)=>{ if(b2>a2+0.01) wall(a2,b2,zf-0.2,zf,y0,y1,'-z',shopWall,zm,0); };
   let px=x0;
   OEFF.forEach(([a2,b2],i)=>{
     F(px,a2,0,H);                        /* Pfeiler          */
@@ -645,12 +654,12 @@ function nachbarFassade(x0,x1,zid,unterzeile,eingang){
   /* Attika, Gesims und Sockel. Die Farben gehen mit der Fassade:
      anthrazit wie der Sockel in der Textur, nicht mehr das
      Sandsteinbeige von der Ziegelwand. */
-  bbox(w+0.2,0.28,0.4,std(0x2f343d,{roughness:0.9}),cx,H+0.12,zf+0.12,g);
-  bbox(w+0.1,0.1,0.36,std(0xe8ecf2,{roughness:1}),cx,H+0.3,zf+0.14,g,false);
+  bbox(w+0.2,0.28,0.4,std(0x2f343d,{roughness:0.9}),cx,H+0.12,zf+0.02,g);
+  bbox(w+0.1,0.1,0.36,std(0xe8ecf2,{roughness:1}),cx,H+0.3,zf+0.04,g,false);
   /* Der Sockel war 50 cm tief und mittig auf der Wand - damit stand
      er zur Haelfte IM Laden und zog dort ein schwarzes Band unter
      der ganzen Fensterfront entlang. Er gehoert nach draussen. */
-  bbox(w+0.12,0.62,0.26,std(0x3b4049,{roughness:0.9}),cx,0.31,zf+0.16,g);
+  bbox(w+0.12,0.62,0.26,std(0x3b4049,{roughness:0.9}),cx,0.31,zf+0.06,g);
 
   /* ---------- Zustand „steht zum Verkauf“ ---------- */
   const gs=new THREE.Group(); g.add(gs); zWand(zid,gs);
@@ -664,11 +673,11 @@ function nachbarFassade(x0,x1,zid,unterzeile,eingang){
   OEFF.forEach(([a,b],i)=>{
     const y0=i===eingang?0:BR, y1=ST;
     const bw=b-a, bh=y1-y0, bxc=(a+b)/2, byc=(y0+y1)/2;
-    bbox(bw,bh,0.34,zugemauert,bxc,byc,zf-0.1,gs,false);
+    bbox(bw,bh,0.18,zugemauert,bxc,byc,zf-0.1,gs,false);
     const n=Math.max(3,Math.round(bh/0.55));
-    for(let k=0;k<n;k++) bbox(bw+0.14,0.16,0.06,brett,bxc,y0+0.22+k*(bh-0.4)/(n-1),zf+0.13,gs,false);
+    for(let k=0;k<n;k++) bbox(bw+0.14,0.16,0.06,brett,bxc,y0+0.22+k*(bh-0.4)/(n-1),zf+0.03,gs,false);
     /* zwei schraege Bretter ueber Kreuz */
-    for(const sgn of [1,-1]){ const d=bbox(Math.hypot(bw,bh)+0.1,0.14,0.05,brett,bxc,byc,zf+0.15,gs,false);
+    for(const sgn of [1,-1]){ const d=bbox(Math.hypot(bw,bh)+0.1,0.14,0.05,brett,bxc,byc,zf+0.05,gs,false);
       d.rotation.z=sgn*Math.atan2(bh,bw); }
   });
   /* Bauschild: Verkaufsflaeche wird verkauft */
@@ -716,7 +725,7 @@ function nachbarFassade(x0,x1,zid,unterzeile,eingang){
     const bw=b-a, bh=y1-y0, bxc=(a+b)/2, byc=(y0+y1)/2;
     bbox(bw-0.12,bh-0.12,0.04,glas,bxc,byc,zf-0.1,go,false);
     /* umlaufendes Profil aussen und innen */
-    for(const zz of [zf+0.09,zf-0.29]){
+    for(const zz of [zf-0.01,zf-0.19]){
       bbox(bw,0.1,0.06,prof,bxc,y1-0.05,zz,go,false);
       bbox(bw,0.1,0.06,prof,bxc,y0+0.05,zz,go,false);
       bbox(0.1,bh,0.06,prof,a+0.05,byc,zz,go,false);
@@ -727,15 +736,15 @@ function nachbarFassade(x0,x1,zid,unterzeile,eingang){
     /* Fensterbank nur aussen. Sie ragte 13 cm in den Laden hinein und
        warf dort einen dunklen Schatten unter die ganze Fensterfront -
        im Basisladen sitzt unter dem Fenster direkt die Sockelfarbe. */
-    if(y0>0.2) bbox(bw+0.16,0.06,0.26,bank,bxc,y0-0.02,zf+0.16,go,false);
+    if(y0>0.2) bbox(bw+0.16,0.06,0.26,bank,bxc,y0-0.02,zf+0.06,go,false);
   });
   if(eingang!==undefined&&EING2.x!==null){
-    col(x0,EING2.x-1.28,zf-0.35,zf+0.15);
-    col(EING2.x+1.28,x1,zf-0.35,zf+0.15);
+    col(x0,EING2.x-1.28,zf-0.25,zf+0.05);
+    col(EING2.x+1.28,x1,zf-0.25,zf+0.05);
     /* Solange der Eingang nicht gekauft ist, steht dort eine feste
        Scheibe - die sperrt wie jedes andere Schaufenster. */
-    zWandCol('eingang2',col(EING2.x-1.28,EING2.x+1.28,zf-0.35,zf+0.15));
-  } else col(x0,x1,zf-0.35,zf+0.15);
+    zWandCol('eingang2',col(EING2.x-1.28,EING2.x+1.28,zf-0.25,zf+0.05));
+  } else col(x0,x1,zf-0.25,zf+0.05);
   return g;
 }
 /* =========================================================

@@ -161,7 +161,10 @@ function halle(id,r,opt){
     if(au.e) zAdd(id,bbox(0.02,0.1,r.z1-r.z0,base,r.x1-0.01,0.05,(r.z0+r.z1)/2,null,false));
   }
   leuchtenRaster(id,r,H,opt.ax||(lager?3.6:3.4),opt.az||(lager?4.2:3.6));
-  roomAO(r.x0+0.02,r.x1-0.02,r.z0+0.02,r.z1-0.02,id);
+  /* Der Bodenschatten gehoert nur an Kanten, an denen dauerhaft
+     eine Wand steht - sonst bleibt er nach dem Kauf mitten im
+     Raum stehen. */
+  roomAO(r.x0+0.02,r.x1-0.02,r.z0+0.02,r.z1-0.02,id,opt.ao||au);
 }
 
 /* Eine Wand mit vorbereiteten Durchbruechen. Pfeiler und Sturz
@@ -413,13 +416,53 @@ function buildLagerTerminal(){
    zu haben ist. Damit weiss man mit Level 1 schon, wohin die
    Reise geht, statt vor einer stummen Wand zu stehen.
    ========================================================= */
+/* =========================================================
+   Fugenfueller.
+
+   Zwei Bauabschnitte stossen auf den Millimeter aneinander: der
+   Boden des Basisladens endet bei x 8,00 und der des Anbaus faengt
+   dort an. Zwischen zwei exakt aneinandergrenzenden Flaechen
+   bleibt beim Rastern eine Haarfuge stehen, und durch die sieht
+   man den Untergrund - als heller Strich quer durch den Laden.
+   Unter allen Boeden liegt deshalb eine durchgehende Platte aus
+   demselben Material; die Fuge zeigt dann wieder nur Boden. Fuer
+   die Decke gilt dasselbe, dort liegt die Fuellplatte hoeher.
+   Die Platten liegen immer unter beziehungsweise ueber den
+   echten Flaechen und sind darum nie direkt zu sehen.
+   ========================================================= */
+function fugenPlatte(r,mat,y,decke,kachel){
+  const m=new THREE.Mesh(new THREE.PlaneGeometry(r.x1-r.x0+0.4,r.z1-r.z0+0.4),mat);
+  m.rotation.x=decke?Math.PI/2:-Math.PI/2;
+  m.position.set((r.x0+r.x1)/2,y,(r.z0+r.z1)/2);
+  scene.add(m);
+  if(kachel) bodenUV(m,kachel);
+  return m;
+}
+function fugenfueller(){
+  const ceil=std(0xe6e8ee,{roughness:1});
+  /* Verkauf: Basis, Ost I und Ost II liegen in einer Flucht, das
+     Rueckgebaeude haengt darunter. Die zweite Platte liegt einen
+     Millimeter tiefer, damit sich die beiden im Ueberlappungs-
+     streifen nicht gegenseitig zerflimmern. */
+  fugenPlatte({x0:-7.9,x1:37.9,z0:-5.9,z1:5.9},floorMat,0.012,false,2);
+  fugenPlatte({x0: 8.0,x1:37.9,z0:-21.9,z1:-5.9},floorMat,0.011,false,2);
+  fugenPlatte({x0:-7.9,x1:37.9,z0:-5.9,z1:5.9},ceil,WH-0.006,true);
+  fugenPlatte({x0: 8.0,x1:37.9,z0:-21.9,z1:-5.9},ceil,WH-0.0065,true);
+  /* Lager: Basislager mit Anbau Nord, dazu die Halle Sued */
+  const bet=(r)=>{ const t=concreteTex(); t.repeat.set((r.x1-r.x0)/2,(r.z1-r.z0)/2);
+    return new THREE.MeshStandardMaterial({map:t,roughness:0.85}); };
+  const l1={x0:-19.9,x1:-8.1,z0:-5.9,z1:5.9}, l2={x0:-19.9,x1:-8.1,z0:-29.9,z1:-5.9};
+  fugenPlatte(l1,bet(l1),0.012,false);
+  fugenPlatte(l2,bet(l2),0.011,false);
+}
 function buildAusbau(){
+  fugenfueller();
   /* ---------- Verkaufsflaeche ----------
      Die Front uebernimmt die Nachbarfassade (05e), deshalb bekommen
      Ost I und Ost II von der Halle keine Nordwand. */
-  halle('shop_gross',LAY.ost1,{aussen:{}});
-  halle('shop_ost',  LAY.ost2,{aussen:{e:true}});
-  halle('shop_sued', LAY.sued,{aussen:{s:true,e:true}});
+  halle('shop_gross',LAY.ost1,{aussen:{},ao:{n:true}});
+  halle('shop_ost',  LAY.ost2,{aussen:{e:true},ao:{n:true,e:true}});
+  halle('shop_sued', LAY.sued,{aussen:{s:true,e:true},ao:{s:true,e:true,w:true}});
   /* Innenwaende zwischen zwei Verkaufsraeumen: auf beiden Seiten
      Ladentapete, sonst schaut man von drinnen auf Backstein. */
   durchbruchWand('shop_ost',false,LAY.ost1.x1,LAY.ost1.z0,LAY.ost1.z1,[[-4.2,4.2]],shopWall,shopWall,null,null,null,true);
@@ -429,14 +472,14 @@ function buildAusbau(){
   trennwand('shop_gross',false,8.0,-4.4,4.4,2.7,shopWall,shopWall);
 
   /* ---------- Lager ---------- */
-  halle('lager_gross',LAY.lnord,{art:'lager',aussen:{n:true,w:true},h:ANBAU_H-0.06,keinDach:true});
+  halle('lager_gross',LAY.lnord,{art:'lager',aussen:{n:true,w:true},ao:{n:true,w:true,e:true},h:ANBAU_H-0.06,keinDach:true});
   /* Sued und West sind echte Hallen mit 6,4 m lichter Hoehe -
      nur so haben Hochregale und Schwerlastregale ueberhaupt Platz. */
-  halle('lager_sued', LAY.lsued,{art:'lager',aussen:{s:true},h:HALLE_H});
+  halle('lager_sued', LAY.lsued,{art:'lager',aussen:{s:true},ao:{s:true,w:true,e:true},h:HALLE_H});
   /* Der Grosshandel ist ein eigenes Gebaeude: 1520 m2 und zwoelf
      Meter licht, damit Palettenregale und ein Hubwagen hineinpassen.
      Die Westwand mit den Ladetoren baut westWand(). */
-  halle('lager_west', LAY.lwest,{art:'lager',aussen:{s:true,n:true},h:GH_H,ex:blechMat(),ax:6.5,az:7.5});
+  halle('lager_west', LAY.lwest,{art:'lager',aussen:{s:true,n:true},ao:{n:true,s:true,w:true,e:true},h:GH_H,ex:blechMat(),ax:6.5,az:7.5});
   /* Basislager nach Sueden */
   durchbruchWand('lager_sued',true,LAY.lbasis.z0,LAY.lbasis.x0,LAY.lbasis.x1,[[-17.5,-10.5]],lagerWall,lagerWall,null,HALLE_H);
   /* Halle Sued und Grosshandel stehen nicht mehr aneinander, zwischen

@@ -135,7 +135,12 @@ function buildWorld(){
     const d=new THREE.Mesh(new THREE.PlaneGeometry(1.26,0.28),panelM);
     d.rotation.x=Math.PI/2; d.position.set(x,H-0.043,z); scene.add(d);
   }
-  roomAO(-7.9,7.9,-5.9,5.9); roomAO(-19.9,-8.1,-5.9,1.9);
+  /* Ost- beziehungsweise Nordkante gehoeren zu einer Wand, die
+     beim Ausbau faellt - der Schatten muss mit ihr verschwinden. */
+  roomAO(-7.9,7.9,-5.9,5.9,null,{n:true,s:true,w:true});
+  zWand('shop_gross',aoFloor(7.9-0.2,0,11.8,0.4,'+x',0.021));
+  roomAO(-19.9,-8.1,-5.9,1.9,null,{s:true,w:true,e:true});
+  zWand('lager_gross',aoFloor((-19.9-8.1)/2,1.9-0.2,11.8,0.4,'+z',0.021));
   buildAusbau();
   buildFacade();
   plane(1.4,0.35,new THREE.MeshStandardMaterial({map:tex(280,70,(g,W,Hh)=>{ g.fillStyle='#f2c230'; g.fillRect(0,0,W,Hh); g.fillStyle='#16181f'; g.font=BUN(40); g.textAlign='center'; g.textBaseline='middle'; g.fillText('LAGER',W/2,Hh/2+2); })}),-7.88,2.85,-2.5,Math.PI/2);

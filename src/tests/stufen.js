@@ -42,9 +42,13 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     };
     window.__kauf=(id)=>{ bb.S.up[id]=true; bb.oeffneZone(id,true); bb.applyZonen(); bb.navBuild(); };
     /* Steht das rote Band noch? */
+    /* Nur die Baender in der Testfeldtuer - vor der Packstation
+       haengen eigene. */
     window.__band=()=>{
       let n=0;
-      bb.scene.traverse(o=>{ if(o.isMesh&&o.visible&&o.userData&&o.userData.sperrband) n++; });
+      bb.scene.traverse(o=>{ if(!o.isMesh||!o.visible||!o.userData||!o.userData.sperrband) return;
+        const bx=new THREE.Box3().setFromObject(o);
+        if(bx.min.x>4.0&&bx.max.x<6.5&&bx.min.z>-6.4&&bx.max.z<-5.6) n++; });
       return n;
     };
   });
@@ -156,6 +160,32 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   const lNach=await leuchten();
   console.log('LEUCHTEN   ',lNach.length?lNach.join(' | '):'keine steckt in einer Wand');
   pruef('LEUCHTEN',lNach.length===0,lNach.length+' Leuchten stecken in einer Wand');
+
+  /* Die Packstation steht von Anfang an da, mit Absperrband davor.
+     Man soll sehen, was man sich damit kauft. */
+  const pack=await p.evaluate(()=>{
+    const bb=window.__bb, o={};
+    const sicht=()=>{ let n=0; bb.scene.traverse(q=>{
+      if(q.isMesh&&q.visible&&q.userData&&q.userData.sperrband){
+        const bx=new THREE.Box3().setFromObject(q);
+        if(bx.min.z<-6.5) n++; } }); return n; };
+    const tisch=()=>{ let v=false; let q=bb.packTisch;
+      if(!q) return false; v=q.visible; for(let a=q.parent;a;a=a.parent) if(!a.visible) v=false;
+      return v; };
+    bb.S.up.packstation=false; bb.applyZonen();
+    o.tischVorKauf=tisch(); o.bandVorKauf=sicht();
+    bb.S.level=99; bb.S.money=9e6;
+    ['lager_nord','lager_gross','packstation'].forEach(id=>bb.testKauf(id));
+    o.gekauft=!!bb.S.up.packstation;
+    o.tischNachKauf=tisch(); o.bandNachKauf=sicht();
+    return o;
+  });
+  console.log('PACKSTATION',JSON.stringify(pack));
+  pruef('PACKSTATION',pack.tischVorKauf===true,'die Packstation ist vor dem Kauf unsichtbar');
+  pruef('PACKSTATION',pack.bandVorKauf>0,'vor der Packstation haengt kein Absperrband');
+  pruef('PACKSTATION',pack.gekauft===true,'die Packstation laesst sich nicht kaufen');
+  pruef('PACKSTATION',pack.tischNachKauf===true,'die Packstation ist nach dem Kauf weg');
+  pruef('PACKSTATION',pack.bandNachKauf===0,'das Absperrband haengt nach dem Kauf noch');
 
   /* Das Schild ueber der Tuer bleibt auch nach dem Kauf haengen */
   const schild=await p.evaluate(()=>{

@@ -240,14 +240,15 @@ function durchbruchWand(id,laengs,fest,von,bis,oeffnungen,mat,exMat,sturzY,hoehe
    Sinn der Sache.
    ========================================================= */
 let tfHit=null;
-function sperrbandTex(){
+function sperrbandTex(text,n){
+  const wdh=n||2;
   const t=tex(1024,64,(g,W,H)=>{
     g.fillStyle='#cf1f16'; g.fillRect(0,0,W,H);
     /* dunkle Webkante oben und unten, wie bei echtem Band */
     g.fillStyle='rgba(0,0,0,.24)'; g.fillRect(0,0,W,5); g.fillRect(0,H-5,W,5);
     g.fillStyle='rgba(255,255,255,.10)'; g.fillRect(0,7,W,4);
     g.fillStyle='#f7f8fc'; g.font=BUN(31); g.textAlign='center'; g.textBaseline='middle';
-    for(let i=0;i<2;i++) g.fillText('TESTFELD GESPERRT',W/4+i*W/2,H/2+2);
+    for(let i=0;i<wdh;i++) g.fillText(text,W/(wdh*2)+i*W/wdh,H/2+2);
   });
   t.wrapS=t.wrapT=THREE.ClampToEdgeWrapping; t.anisotropy=8; return t;
 }
@@ -274,7 +275,7 @@ function sperrband(Z,a,b,z,y,mat){
 }
 function testfeldSperre(){
   const Z='testfeld', a=4.4, b=6.1, z=-6.0;
-  const bandM=new THREE.MeshStandardMaterial({map:sperrbandTex(),roughness:0.72,side:THREE.DoubleSide});
+  const bandM=new THREE.MeshStandardMaterial({map:sperrbandTex('TESTFELD GESPERRT'),roughness:0.72,side:THREE.DoubleSide});
   const halt=std(0x3d4450,{metalness:0.5,roughness:0.5});
   const kopf=std(0x1f242e,{metalness:0.4,roughness:0.55});
   for(const y of [0.5,1.0,1.5]) sperrband(Z,a+0.06,b-0.06,z,y,bandM);
@@ -652,7 +653,10 @@ function buildPackstation(){
      und die Ware hereinkommt. Vorher stand sie im Anbau Nord,
      quer durch das ganze Lager vom Wareneingang entfernt. */
   const id='packstation', PX=-18.3, PZ=-8.6;
-  const g=new THREE.Group(); g.position.set(PX,0,PZ); scene.add(g); zAdd(id,g);
+  /* Die Packstation steht von Anfang an da. Man soll sehen, was
+     man sich damit kauft - bis dahin haengt ein Absperrband
+     davor. Vorher war an dieser Stelle einfach leerer Boden. */
+  const g=new THREE.Group(); g.position.set(PX,0,PZ); scene.add(g);
   packTisch=g;
   const stahl=std(0x7d838c,{metalness:0.6,roughness:0.4});
   const dunkel=std(0x2f343e,{metalness:0.45,roughness:0.5});
@@ -710,8 +714,32 @@ function buildPackstation(){
   }
   const hit=bbox(3.0,2.0,1.4,hitM,0.6,1.0,0,g,false);
   hit.userData={kind:'pack'}; packHit=hit;
-  zCol('packstation',col(PX-1.4,PX+3.9,PZ-0.5,PZ+0.5));
+  /* Tisch und Rollenbahn stehen immer, also gilt ihre Kollision
+     auch immer - sonst laeuft man vor dem Kauf mitten hindurch. */
+  col(PX-1.4,PX+3.9,PZ-0.5,PZ+0.5);
   versandFlaeche(g,id,PX,PZ);
+  packSperre(id,PX,PZ);
+}
+/* Absperrband vor der Packstation, solange sie nicht gekauft ist.
+   Drei Pfosten, zwei Baender dazwischen - man sieht darueber
+   hinweg, kommt aber nicht heran. */
+function packSperre(id,PX,PZ){
+  /* Man kommt vom Rolltor her, also von Norden - das Band gehoert
+     auf diese Seite, sonst steht die Station davor. */
+  const zb=PZ+1.15, x0=PX-1.7, x1=PX+5.5;
+  const bandM=new THREE.MeshStandardMaterial({map:sperrbandTex('NOCH NICHT FREIGESCHALTET'),
+    roughness:0.72,side:THREE.DoubleSide});
+  const halt=std(0x3d4450,{metalness:0.5,roughness:0.5});
+  const kopf=std(0x1f242e,{metalness:0.4,roughness:0.55});
+  const mitte=(x0+x1)/2;
+  for(const [a,b] of [[x0,mitte],[mitte,x1]])
+    for(const y of [0.55,1.05]) sperrband(id,a+0.04,b-0.04,zb,y,bandM);
+  for(const x of [x0,mitte,x1]){
+    zWand(id,bbox(0.055,1.2,0.055,halt,x,0.6,zb,null,false));
+    zWand(id,bbox(0.09,0.055,0.09,kopf,x,1.22,zb,null,false));
+    zWand(id,bbox(0.2,0.03,0.2,kopf,x,0.015,zb,null,false));
+  }
+  zWandCol(id,col(x0,x1,zb-0.12,zb+0.12));
 }
 /* Der Packtisch stand bisher frei im Lager herum, als haette ihn
    jemand vergessen. Er bekommt eine eigene Flaeche: markierter
@@ -739,7 +767,7 @@ function versandFlaeche(g,id,PX,PZ){
   /* Man kommt vom Rolltor her, also muss die Schrift von dort aus
      lesbar sein. */
   bo.rotation.x=-Math.PI/2; bo.position.set(cxl,0.022,-0.05);
-  g.add(bo); zAdd(id,bo);
+  g.add(bo);
   /* Abholfeld am Ende der Rollenbahn */
   const dt=tex(520,260,(c,W,H)=>{
     c.fillStyle='#1b2340'; c.fillRect(0,0,W,H);
@@ -762,7 +790,7 @@ function versandFlaeche(g,id,PX,PZ){
   for(const sg of [-1,1])
     plane(1.0,0.5,new THREE.MeshStandardMaterial({map:dt,roughness:0.6}),
       5.15,1.72,dz+sg*0.032,sg<0?Math.PI:0,g);
-  zCol(id,col(PX+5.02,PX+5.28,PZ+dz-0.13,PZ+dz+0.13));
+  col(PX+5.02,PX+5.28,PZ+dz-0.13,PZ+dz+0.13);
   /* Schild an der Westwand, dort ist die einzige freie Wandflaeche */
   const wt=tex(760,200,(c,W,H)=>{
     c.fillStyle='#1b2340'; c.fillRect(0,0,W,H);

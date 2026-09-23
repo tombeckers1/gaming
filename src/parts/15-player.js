@@ -203,7 +203,7 @@ function promptFor(t){
     case 'laptop': return {t:'Laptop öffnen',a:true};
     case 'laptop2': return {t:'Lagerterminal öffnen',a:true};
     case 'pack': {
-      if(!zoneOffen('packstation')) return {t:'Packstation',a:false};
+      if(!zoneOffen('packstation')) return {t:'Packstation — im Laptop unter Ausbau freischalten',a:false};
       if(!S.up.onlineshop) return {t:'Onlineshop muss noch freigeschaltet werden',a:false};
       const o=S.offen|0;
       if(o<=0) return {t:`Packstation: keine offenen Bestellungen · ${S.pakete|0} Pakete auf der Rampe`,a:false};

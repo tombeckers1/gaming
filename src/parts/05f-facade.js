@@ -32,7 +32,9 @@ function buildFacade(){
   // --- Leuchtschild
   const sg=new THREE.Group(); sg.position.set(0,H+1.35,6.16); scene.add(sg);
   bbox(8.4,2.1,0.3,dark,0,0,0,sg);
-  for(const [w,h,y,x] of [[8.6,0.14,1.05,0],[8.6,0.14,-1.05,0],[0.14,2.2,0,-4.25],[0.14,2.2,0,4.25]]) bbox(w,h,0.42,steel,x,y,0.02,sg,false);
+  /* Rahmen 1 cm vor dem Traufkasten: mit 0,42 m Tiefe lag die untere
+     Leiste genau in dessen Vorderflaeche und flimmerte als Balken. */
+  for(const [w,h,y,x] of [[8.6,0.14,1.05,0],[8.6,0.14,-1.05,0],[0.14,2.2,0,-4.25],[0.14,2.2,0,4.25]]) bbox(w,h,0.44,steel,x,y,0.02,sg,false);
   signTex=signFaceTex();
   const face=new THREE.MeshBasicMaterial({map:signTex,toneMapped:false});
   plane(7.9,1.78,face,0,0,0.17,0,sg);

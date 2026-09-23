@@ -205,9 +205,12 @@ function durchbruchWand(id,laengs,fest,von,bis,oeffnungen,mat,exMat,sturzY,hoehe
      Verkaufsraum, nicht nach -x - sonst klebt die Ladentapete
      aussen und die Fassade innen. */
   const f=face||(laengs?'-z':'-x');
+  /* Die Stuecke ueberlappen sich um die ueblichen 6 mm. Exakt auf
+     Stoss gesetzt blieb an jeder Fuge ein Haarriss, durch den oben
+     der helle Himmel schien - eine duenne Linie in der Wand. */
   const w=(a2,b2,y0,y1)=>laengs
-    ? wall(a2,b2,fest-LW/2,fest+LW/2,y0,y1,f,mat,exMat,0,mat)
-    : wall(fest-LW/2,fest+LW/2,a2,b2,y0,y1,f,mat,exMat,0,mat);
+    ? wall(a2,b2,fest-LW/2,fest+LW/2,y0,y1,f,mat,exMat,undefined,mat)
+    : wall(fest-LW/2,fest+LW/2,a2,b2,y0,y1,f,mat,exMat,undefined,mat);
   const c=(a2,b2)=>laengs?col(a2,b2,fest-LW/2,fest+LW/2):col(fest-LW/2,fest+LW/2,a2,b2);
   const zc=(a2,b2)=>zWandCol(id,c(a2,b2));
   /* offen=true: beim Kauf faellt die ganze Wand, nicht nur die
@@ -346,8 +349,12 @@ function buildLagergang(){
   const zs=G.z0;
   /* Laibung des Testfelddurchgangs in der Fassade, nicht in Grau */
   const lb=wallBrickMat();
-  zAdd(Z,wall(G.x0-LW,GANGTUER.a,zs-LW,zs,0,G.h,'+z',lagerWall,null,0,lb));
-  zAdd(Z,wall(GANGTUER.b,G.x1+LW,zs-LW,zs,0,G.h,'+z',lagerWall,null,0,lb));
+  /* Die Enden stecken bis zur Mitte in den Kopfwaenden. Reichten sie
+     bis zu deren Innenflaeche, lag die Stirnseite genau in derselben
+     Ebene - in der Halle hinterm Laden und im Lager flimmerte dann
+     ein 20 cm breiter, 2,9 m hoher grauer Streifen auf der Wand. */
+  zAdd(Z,wall(G.x0-LW/2,GANGTUER.a,zs-LW,zs,0,G.h,'+z',lagerWall,null,0,lb));
+  zAdd(Z,wall(GANGTUER.b,G.x1+LW/2,zs-LW,zs,0,G.h,'+z',lagerWall,null,0,lb));
   zAdd(Z,wall(GANGTUER.a,GANGTUER.b,zs-LW,zs,2.5,G.h,'+z',lagerWall,null,0,lb));
   zCol(Z,col(G.x0-LW,GANGTUER.a,zs-LW,zs));
   zCol(Z,col(GANGTUER.b,G.x1+LW,zs-LW,zs));

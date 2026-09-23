@@ -238,8 +238,20 @@ function buildHaus(x,z,w,d,h,o){
   /* Sockel */
   bbox(w+0.12,0.55,d+0.12,stein,0,0.275,0,g);
   bbox(w+0.16,0.07,d+0.16,std(0x8a857c,{roughness:0.9}),0,0.58,0,g,false);
+  /* Wohnhaus ohne Laden: echte Haustuer statt Schaufenster. Vorher
+     bekam jedes Haus die Glasfront, und hinter der Scheibe sah man
+     die aufgemalte Haustuer. Rahmen, Sturz und Stufen sitzen genau
+     um die gemalte Tuer (Textur: 38 bis 62 % der Breite). */
+  if(!o.shop){
+    const gfH=h*0.3, tb=w*0.24, th=gfH*0.75, stein2=std(0x8a857c,{roughness:0.9});
+    const rahmen=std(0xd8d2c6,{roughness:0.9});
+    for(const sx of [-1,1]) bbox(0.12,th-0.55,0.1,rahmen,sx*(tb/2+0.06),0.55+(th-0.55)/2,zf+0.05,g,false);
+    bbox(tb+0.36,0.14,0.14,rahmen,0,th+0.07,zf+0.07,g,false);
+    /* Stufen bis zur Schwelle ueber dem Sockel */
+    for(let k=0;k<3;k++) bbox(tb+0.3,0.19,0.32*(3-k),stein2,0,0.095+k*0.19,zf+0.06+0.16*(3-k),g,false);
+  }
   /* Erdgeschoss als echte Schaufensterfront */
-  {
+  if(o.shop){
     const gfH=h*0.3, rahmen=std(0x2f3540,{metalness:0.3,roughness:0.5});
     const scheibe=new THREE.MeshStandardMaterial({color:LIN(0x2a3646),roughness:0.12,metalness:0.25,transparent:true,opacity:0.72});
     const bw=w*0.78;
@@ -668,7 +680,18 @@ function nachbarFassade(x0,x1,zid,unterzeile,eingang){
   /* Der Sockel war 50 cm tief und mittig auf der Wand - damit stand
      er zur Haelfte IM Laden und zog dort ein schwarzes Band unter
      der ganzen Fensterfront entlang. Er gehoert nach draussen. */
-  bbox(w+0.12,0.62,0.26,std(0x3b4049,{roughness:0.9}),cx,0.31,zf+0.06,g);
+  /* An der Eingangsachse hat der Sockel eine Luecke fuer die Tuer, wie
+     am Haupteingang. Vorher lief er durch und stand 62 cm hoch quer in
+     der offenen Schiebetuer. Das Stueck in der Luecke steht nur, bis
+     der zweite Eingang gekauft ist. */
+  { const sm=std(0x3b4049,{roughness:0.9}), sx0=x0-0.06, sx1=x1+0.06;
+    const sockel=(a2,b2,par)=>bbox(b2-a2,0.62,0.26,sm,(a2+b2)/2,0.31,zf+0.06,par);
+    if(eingang!==undefined){
+      const [ea,eb]=OEFF[eingang], ec=(ea+eb)/2, l0=ec-1.3, l1=ec+1.3;
+      sockel(sx0,l0,g); sockel(l1,sx1,g);
+      zWand('eingang2',sockel(l0,l1,g));
+    } else sockel(sx0,sx1,g);
+  }
 
   /* ---------- Zustand „steht zum Verkauf“ ---------- */
   const gs=new THREE.Group(); g.add(gs); zWand(zid,gs);

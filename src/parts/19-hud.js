@@ -72,6 +72,11 @@ function updateHUD(){
   const tp=tipText(), tel=$('tip');
   if(tp!==tipShown){ tipShown=tp; tel.textContent=tp; tel.classList.remove('dim'); tipT=performance.now(); }
   else if(compact&&tp&&performance.now()-tipT>13000) tel.classList.add('dim');
+  /* Die Ziel- und Personal-Chips stehen unter dem Tipp. Fest auf 84 px
+     lagen sie bei einem vierzeiligen Tipp mitten in dessen Text. */
+  { const stE=$('staff'), frei=!tp||tel.classList.contains('dim');
+    const top=frei?'':Math.round(tel.getBoundingClientRect().bottom+6)+'px';
+    if(stE.style.top!==top) stE.style.top=top; }
   if(laptopOpen){ $('lMoney').textContent=eur(S.money); }
 }
 function updatePrompt(){

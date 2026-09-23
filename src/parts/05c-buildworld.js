@@ -92,8 +92,12 @@ function buildWorld(){
      Rueckseite des Ladens ist. Der Lagergang kommt spaeter als
      Anbau davor; dass er an einer Fassade endet, ist richtig so. */
   const fas=wallBrickMat();
-  wall(-8,4.4,-6.1,-5.9,0,H,'+z',shopWall,fas);
-  wall(6.1,8,-6.1,-5.9,0,H,'+z',shopWall,fas);
+  /* Die Stirnseiten tragen die Wandfarbe mit Sockelband: an der
+     Hintertuer als Laibung, und bei x = 8 endet die Wand frei, sobald
+     die Halle hinterm Laden gekauft ist. Dort stand vorher eine
+     hellgraue Kante vom Boden bis zur Decke ohne Sockel und Streifen. */
+  wall(-8,4.4,-6.1,-5.9,0,H,'+z',shopWall,fas,undefined,shopWall);
+  wall(6.1,8,-6.1,-5.9,0,H,'+z',shopWall,fas,undefined,shopWall);
   wall(4.4,6.1,-6.1,-5.9,2.5,H,'+z',shopWall,fas);
   /* Ostwand: spaeter wird hier ein grosser Durchbruch zur Nachbarflaeche
      geschlagen. Pfeiler und Sturz bleiben stehen, die Fuellung faellt. */

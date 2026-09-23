@@ -16,7 +16,15 @@ scene.background=new THREE.Color(0x0b1030);
 /* Die Sichtweite reicht jetzt bis in die Stadt. Der Nebel bleibt, aber
    als Dunst ueber die Distanz statt als Wand bei hundert Metern. */
 scene.fog=new THREE.Fog(0xcfe3f3,55,520);
-const camera=new THREE.PerspectiveCamera(70,innerWidth/innerHeight,0.05,300);
+/* Die nahe Ebene lag auf 5 cm. Bei 300 m Sichtweite bleibt dem
+   Tiefenpuffer damit so wenig Genauigkeit, dass Flaechen, die nur
+   wenige Millimeter uebereinanderliegen - Estrich ueber Fuellplatte
+   ueber Gelaende -, in zehn bis zwanzig Meter Entfernung
+   gegeneinander flimmern und als heller Streifen im Boden stehen.
+   Naeher als 20 cm kommt die Kamera ohnehin an nichts heran: der
+   Spieler hat 32 cm Kollisionsradius, und was er traegt, haengt
+   35 cm oder weiter vor der Linse. */
+const camera=new THREE.PerspectiveCamera(70,innerWidth/innerHeight,0.2,300);
 camera.rotation.order='YXZ';
 scene.add(camera);
 const hemi=new THREE.HemisphereLight(0xdde8ff,0x4a4034,0.72); scene.add(hemi);

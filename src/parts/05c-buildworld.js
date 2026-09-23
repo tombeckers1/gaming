@@ -56,7 +56,14 @@ function buildWorld(){
   floorTexRef=tex(HIQ?640:256,HIQ?640:256,(g,W,H)=>paintFloor(g,W,H,f0)); floorTexRef.wrapS=floorTexRef.wrapT=THREE.RepeatWrapping; floorTexRef.repeat.set(1,1); floorTexRef.anisotropy=8;
   floorMat=new THREE.MeshStandardMaterial({map:floorTexRef,roughness:0.5});
   bodenUV(flat(16,12,floorMat,0,0.015,0),2);
-  const lc=concreteTex(); lc.repeat.set(6,4); flat(12,8,new THREE.MeshStandardMaterial({map:lc,roughness:0.85}),-14,0.015,-2);
+  /* Ein Boden fuer das ganze Basislager, in einem Stueck und in
+     einem Massstab. Vorher lagen hier zwei Platten mit
+     unterschiedlicher Kachelgroesse uebereinander - an ihrer Kante
+     sprang die Helligkeit, das sah aus wie ein Riss im Boden. */
+  { const L=LAY.lbasis, N=LAY.lnord;
+    const lc=concreteTex(); lc.repeat.set((L.x1-L.x0)/2,(N.z1-L.z0)/2);
+    flat(L.x1-L.x0,N.z1-L.z0,new THREE.MeshStandardMaterial({map:lc,roughness:0.85}),
+      (L.x0+L.x1)/2,0.015,(L.z0+N.z1)/2); }
   /* Testfeldbelag ueber die ganze Flaeche, nicht nur um die Stationen */
   { const T=LAY.test, tg=yardGroundTex(); tg.repeat.set((T.x1-T.x0)/10*2.2,(T.z1-T.z0)/9*2);
     flat(T.x1-T.x0,T.z1-T.z0,new THREE.MeshStandardMaterial({map:tg,roughness:0.92}),
@@ -117,7 +124,10 @@ function buildWorld(){
     for(const sx of [7.89,8.11]) zWand('shop_gross',bbox(0.02,0.1,b-a,base,sx,0.05,(a+b)/2,null,false));
   for(const [a,b] of [[-5.9,-3.2],[-1.8,5.9]]) bbox(0.02,0.1,b-a,base,-7.89,0.05,(a+b)/2,null,false);
   // Dächer & Decken
-  bbox(16.4,0.25,12.4,std(0x2b2f3a),0,H+0.13,0);
+  /* Der Dachrand des Ladens darf nach Westen nicht ueber die Wand
+     hinausragen: dahinter steht das hoehere Lager, und der
+     Ueberstand stand dort als dunkler Balken quer in der Wand. */
+  bbox(16.2,0.25,12.4,std(0x2b2f3a),0.1,H+0.13,0);
   /* Ein Dach ueber das ganze Lager, Rampenraum und Anbau zusammen */
   bbox(12.4,0.25,12.4,std(0x2b2f3a),-14,LAGER_H+0.13,-0.1);
   const ceil=std(0xe6e8ee,{roughness:1});

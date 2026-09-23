@@ -122,8 +122,11 @@ const UPGRADES=[
   {id:'lizenz',kat:'markt',lvl:25,name:'Großhandelslizenz',desc:'Alle Lieferanten geben dir zusätzlich zehn Prozent Nachlass.',cost:()=>6500,done:()=>S.up.lizenz},
   {id:'klima',kat:'einr',lvl:27,name:'Klima und Musikanlage XL',desc:'Deutlich bessere Stimmung, Kunden bleiben spürbar länger.',cost:()=>5400,done:()=>S.up.klima},
   {id:'meister',kat:'markt',lvl:30,name:'Meisterbrief Pyrotechnik',desc:'Die höchste Stufe. Großaufträge zahlen ein Drittel mehr.',cost:()=>12000,done:()=>S.up.meister},
-  {id:'shop_gross',kat:'flaeche',lvl:12,name:'Verkaufsfläche erweitern',desc:'Kauft das leerstehende Ladenlokal rechts nebenan. Die Ostwand wird durchbrochen, die Schaufenster werden entmauert: rund 78 Quadratmeter mehr Fläche und acht zusätzliche Regalplätze.',cost:()=>7500,done:()=>S.up.shop_gross},
-  {id:'lager_gross',kat:'flaeche',lvl:15,name:'Lagerhalle Süd I',desc:'Hinter dem Rolltor wird die Wand auf neun Metern durchbrochen: der erste Abschnitt der großen Halle, 118 Quadratmeter mit fünf Metern lichter Höhe. Hier steht die Packstation, und ab hier lohnt sich der Onlineshop. Hochregale passen erst in diese Höhe.',cost:()=>6200,done:()=>S.up.lager_gross},
+  {id:'shop_halb',kat:'flaeche',lvl:4,name:'Zweite Ladenhälfte',desc:'Die zugemauerte Hälfte deines eigenen Ladenlokals: rund 70 Quadratmeter mehr, das zweite Schaufenster und vier weitere Regalplätze. Die Trennwand fällt beim Kauf ganz weg — ein Raum, kein Pfeiler, kein Sturz. Dahinter liegt auch die Tür zum Testfeld.',cost:()=>1400,done:()=>S.up.shop_halb},
+  {id:'testfeld',kat:'flaeche',lvl:9,req:'shop_halb',name:'Zugang zum Testfeld',desc:'Der abgesperrte Hof hinter dem Laden wird dein Testfeld: Zündtisch, Abschussröhren und Mörserbatterie. Erst damit kannst du selbst zünden — und was du gezündet hast, spricht sich herum.',cost:()=>3200,done:()=>S.up.testfeld},
+  {id:'shop_gross',kat:'flaeche',lvl:12,req:'shop_halb',name:'Verkaufsfläche erweitern',desc:'Kauft das leerstehende Ladenlokal rechts nebenan. Die Ostwand wird durchbrochen, die Schaufenster werden entmauert: rund 78 Quadratmeter mehr Fläche und acht zusätzliche Regalplätze.',cost:()=>7500,done:()=>S.up.shop_gross},
+  {id:'lager_nord',kat:'flaeche',lvl:6,name:'Lager Nord',desc:'Der Nordteil des Lagers hinter der Trennwand: 47 Quadratmeter mehr, sechs zusätzliche Stellplätze für Regale. Die Wand fällt beim Kauf ganz weg — kein Sturz, kein Pfeiler, ein durchgehender Raum bis zur Nordwand.',cost:()=>1900,done:()=>S.up.lager_nord},
+  {id:'lager_gross',kat:'flaeche',lvl:15,req:'lager_nord',name:'Lagerhalle Süd I',desc:'Hinter dem Rolltor wird die Wand auf neun Metern durchbrochen: der erste Abschnitt der großen Halle, 118 Quadratmeter mit fünf Metern lichter Höhe. Hier steht die Packstation, und ab hier lohnt sich der Onlineshop. Hochregale passen erst in diese Höhe.',cost:()=>6200,done:()=>S.up.lager_gross},
   {id:'shop_ost',kat:'flaeche',lvl:20,req:'shop_gross',name:'Zweites Ladenlokal',desc:'Das nächste leerstehende Lokal an der Ostseite: noch einmal 212 Quadratmeter, Gondelgassen, Eckregal und eine lange Wandreihe.',cost:()=>16000,done:()=>S.up.shop_ost},
   {id:'shop_sued',kat:'flaeche',lvl:26,req:'shop_ost',name:'Rückgebäude Süd',desc:'Die große Halle hinter dem Laden, zwei breite Durchgänge: 478 Quadratmeter Verkaufsfläche mit zwei Gondelgassen. Damit ist der Laden fünfeinhalbmal so groß wie am Anfang.',cost:()=>34000,done:()=>S.up.shop_sued},
   {id:'lager_sued',kat:'flaeche',lvl:20,req:'lager_gross',name:'Lagerhalle Süd II',desc:'Der zweite Abschnitt, noch einmal 83 Quadratmeter. Die Wand zum ersten fällt ganz weg — kein Pfeiler, kein Sturz, eine durchgehende Halle.',cost:()=>11000,done:()=>S.up.lager_sued},
@@ -347,9 +350,12 @@ function mkSlots(){
   const add=(x,z,o)=>A.push(Object.assign({x:Math.round(x*100)/100,z:Math.round(z*100)/100},o||{}));
   const reihe=(x0,n,dx,z,o)=>{ for(let i=0;i<n;i++) add(x0+i*dx,z,o); };
   const spalte=(z0,n,dz,x,o)=>{ for(let i=0;i<n;i++) add(x,z0+i*dz,o); };
-  /* --- Basis, unveraendert --- */
-  reihe(-6.4,5,2.2,-5.5);
-  reihe(-6.4,5,2.2,-1.2);
+  /* --- Basis: die westliche Haelfte des Ladenlokals. Die oestliche
+         Spalte liegt hinter der Trennwand und kommt mit ihr. --- */
+  reihe(-6.4,4,2.2,-5.5);
+  reihe(-6.4,4,2.2,-1.2);
+  add(2.4,-5.5,{zone:'shop_halb'});
+  add(2.4,-1.2,{zone:'shop_halb'});
   /* --- Ost I: Wandreihe, zwei Gondelreihen. Vorn bleibt der
          Durchgang aus dem Basisladen frei. --- */
   const A1={zone:'shop_gross'}, I1={zone:'shop_gross',art:'insel'};
@@ -385,10 +391,11 @@ function mkRacks(){
   const add=(x,z,ry,h,zone)=>A.push({x:Math.round(x*100)/100,z:Math.round(z*100)/100,ry:ry,h:h,zone:zone});
   /* Das ganze Lager ist fuenf Meter licht (LAGER_H steht erst in
      05-world und ist hier noch nicht da, darum die Zahl).
-     Rampenraum und Anbau Nord gehoeren ab Level 1 dazu. */
+     Ab Level 1 gehoert nur der Raum am Rolltor dazu; was hinter der
+     Trennwand liegt, kommt mit Lager Nord. */
   [-9.3,-12.4,-15.5,-18.6].forEach(x=>{ add(x,-5.35,0,5.0); add(x,1.35,Math.PI,5.0); });
-  [-9.7,-12.8,-15.9,-19.0].forEach(x=>add(x,5.45,Math.PI,5.0));
-  [-11.0,-14.1].forEach(x=>add(x,2.75,0,5.0));
+  [-9.7,-12.8,-15.9,-19.0].forEach(x=>add(x,5.45,Math.PI,5.0,'lager_nord'));
+  [-11.0,-14.1].forEach(x=>add(x,2.75,0,5.0,'lager_nord'));
   /* Halle Sued I bis III, lichte Hoehe 5,0 m (HALLE_H steht erst in
      05-world und ist hier noch nicht da, darum die Zahl).
      In Halle I steht auch die Packstation, darum haelt der
@@ -440,11 +447,15 @@ const SCHILDFG=[
 ];
 function schildBg(){ return SCHILDBG.find(x=>x.id===(S&&S.schildBg))||SCHILDBG[0]; }
 function schildFg(){ return SCHILDFG.find(x=>x.id===(S&&S.schildFg))||SCHILDFG[0]; }
-const WALLSPOTS=[{x:7.86,z:-2.0,ry:-Math.PI/2},{x:-2.5,z:-5.86,ry:0},{x:7.86,z:1.0,ry:-Math.PI/2},{x:2.0,z:-5.86,ry:0},{x:-7.86,z:3.6,ry:Math.PI/2},{x:-5.5,z:-5.86,ry:0},
+/* Die Plaetze oestlich der Trennwand gehoeren zur zweiten
+   Ladenhaelfte - sonst haengt ein Bild hinter einer Wand. */
+const WALLSPOTS=[{x:-2.5,z:-5.86,ry:0},{x:0.6,z:-5.86,ry:0},{x:-7.86,z:3.6,ry:Math.PI/2},{x:-5.5,z:-5.86,ry:0},
+  {x:7.86,z:-2.0,ry:-Math.PI/2,zone:'shop_halb'},{x:7.86,z:1.0,ry:-Math.PI/2,zone:'shop_halb'},
   {x:19.8,z:-5.0,ry:-Math.PI/2,zone:'shop_gross'},{x:19.8,z:5.0,ry:-Math.PI/2,zone:'shop_gross'},
   {x:20.2,z:-5.0,ry:Math.PI/2,zone:'shop_ost'},  {x:20.2,z:5.0,ry:Math.PI/2,zone:'shop_ost'},
   {x:8.22,z:-8.0,ry:Math.PI/2,zone:'shop_sued'}, {x:37.68,z:-8.0,ry:-Math.PI/2,zone:'shop_sued'}];
-const DEKOSPOTS=[{x:6.9,z:-4.6},{x:-7.1,z:3.2},{x:6.9,z:-2.2},{x:-7.1,z:-3.6},{x:3.6,z:5.2},{x:-6.2,z:1.2},{x:6.9,z:0.4},{x:-3.4,z:3.4},{x:1.4,z:-3.4},
+const DEKOSPOTS=[{x:-7.1,z:3.2},{x:-7.1,z:-3.6},{x:-6.2,z:1.2},{x:-3.4,z:3.4},{x:1.4,z:-3.4},{x:-1.6,z:5.2},
+  {x:6.9,z:-4.6,zone:'shop_halb'},{x:6.9,z:-2.2,zone:'shop_halb'},{x:3.6,z:5.2,zone:'shop_halb'},{x:6.9,z:0.4,zone:'shop_halb'},
   {x:9.3,z:4.6,zone:'shop_gross'},{x:19.0,z:-4.8,zone:'shop_gross'},
   {x:21.0,z:4.6,zone:'shop_ost'},{x:36.5,z:4.6,zone:'shop_ost'},
   {x:9.5,z:-7.5,zone:'shop_sued'},{x:36.0,z:-7.5,zone:'shop_sued'},
@@ -520,7 +531,7 @@ function levelUnlocks(l){
   return out;
 }
 const TUT=[
-  ['shelf','Dein Laden ist leer. Geh an den Laptop im Büro-Eck rechts und bestell unter Bestellen bei Regalbau ein kleines Regal.','Laptop: Regal bei Regalbau bestellen.'],
+  ['shelf','Dein Laden ist leer. Geh an den Laptop im Büro-Eck links an der Lagertür und bestell unter Bestellen bei Regalbau ein kleines Regal.','Laptop: Regal bei Regalbau bestellen.'],
   ['order','Jetzt Ware: im Laptop unter Bestellen einen Karton ordern.','Laptop: Ware bestellen.'],
   ['lkw','Die Lieferung kommt per LKW in den Hof hinterm Lager. Geh durchs Lager nach draußen und lade aus.','LKW im Hof hinterm Lager ausladen.'],
   ['stock','Räum die Ware ins Regal. Jedes Fach nimmt eine Sorte auf.','Ware ins Regalfach einräumen.'],

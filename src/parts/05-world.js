@@ -26,7 +26,9 @@ const WH=3.6;
 const LAY={
   /* Verkaufsflaeche, zusammen 1018 m2 */
   shop  :{x0:-7.9, x1:37.9, z0:-21.9, z1:5.9},
-  basis :{x0:-7.9, x1:8.0,  z0:-5.9,  z1:5.9},   /* 186 m2, von Anfang an */
+  basis :{x0:-7.9, x1:8.0,  z0:-5.9,  z1:5.9},   /* 186 m2, das ganze Ladenlokal */
+  /* Am Anfang gehoert nur die westliche Haelfte dazu; oestlich der
+     Trennwand liegt die zweite Haelfte samt Tuer zum Testfeld. */
   ost1  :{x0:8.0,  x1:20.0, z0:-5.9,  z1:5.9},   /* 142 m2 */
   ost2  :{x0:20.0, x1:37.9, z0:-5.9,  z1:5.9},   /* 212 m2 */
   sued  :{x0:8.0,  x1:37.9, z0:-21.9, z1:-5.9},  /* 478 m2 */
@@ -74,6 +76,10 @@ const ANBAU_H=2.9;
 /* Lichte Hoehe der Lagerhalle Sued. 6,4 m waren zu viel fuer einen
    Raum, der nur Regale traegt; unter 4,8 m passt aber kein Hochregal
    mehr hinein (4,26 m plus Luft). */
+/* Die Trennwand im Ladenlokal. Sie steht zwischen Eingangsrahmen
+   und zweitem Schaufenster, damit Eingang, Kasse und Bueroecke in
+   der Starthaelfte liegen. */
+const SHOP_HALB=2.0;
 const HALLE_H=5.0;
 const LSUED_H=HALLE_H;
 /* Das ganze Lager hat dieselbe lichte Hoehe: Raum an der Rampe,

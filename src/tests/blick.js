@@ -18,7 +18,7 @@ const fs=require('fs');
   await p.reload(); await p.waitForFunction('window.__bb!==undefined',{timeout:60000});
   await neuesSpiel(p);
   await p.evaluate(()=>{ const bb=window.__bb; bb.S.level=40; bb.S.money=5e6;
-    ['shop_gross','shop_ost','shop_sued','lager_gross','lager_sued','lager_west','packstation','onlineshop','kasse2'].forEach(id=>bb.testKauf(id));
+    ['shop_halb','shop_gross','shop_ost','shop_sued','lager_nord','lager_gross','lager_sued','lager_west','packstation','onlineshop','kasse2'].forEach(id=>bb.testKauf(id));
     const kauf=['klein','standard','hoch','kuehl','gondel','eck','rack','rhoch','rschwer'];
     for(let r=0;r<80;r++){ let w=false;
       for(const id of kauf){ if(bb.regalStellen(id)) w=true; }

@@ -1,7 +1,10 @@
-/* Im ganzen Spiel darf kein Bauschild und kein Absperrband stehen.
-   Tom will einen schicken Laden sehen, keine Baustelle. Der Test
-   sucht beides an seiner Machart: rot-weiss schraffierte schmale
-   Baender und Tafeln mit dem Wort BAUABSCHNITT. */
+/* Im ganzen Spiel darf kein Bauschild und kein rot-weiss
+   schraffiertes Absperrband stehen. Tom will einen schicken Laden
+   sehen, keine Baustelle. Der Test sucht beides an seiner
+   Machart: rot-weiss schraffierte schmale Baender und Tafeln mit
+   dem Wort BAUABSCHNITT.
+   Ausdruecklich erlaubt ist das eine rote Band in der Tuer zum
+   Testfeld - einfarbig rot, ohne Schraffur und ohne Schild. */
 const { chromium } = require('/opt/node22/lib/node_modules/playwright');
 (async()=>{
   const b=await chromium.launch({args:['--use-gl=swiftshader','--enable-unsafe-swiftshader','--no-sandbox']});
@@ -82,8 +85,9 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
 
   /* Auch nach dem Kauf aller Flaechen darf nichts auftauchen */
   await p.evaluate(()=>{ const bb=window.__bb; bb.S.level=99; bb.S.money=5e6;
-    ['shop_gross','shop_ost','shop_sued','lager_gross','lager_sued','lager_sued2',
-     'lager_west','rampe2','rampe3','rampe4','rampe5','packstation','eingang2'].forEach(id=>bb.testKauf(id)); });
+    ['shop_halb','shop_gross','shop_ost','shop_sued','testfeld','lager_nord','lager_gross',
+     'lager_sued','lager_sued2','lager_west','rampe2','rampe3','rampe4','rampe5',
+     'packstation','eingang2'].forEach(id=>bb.testKauf(id)); });
   const nach=await p.evaluate(()=>{
     const bb=window.__bb; let n=0;
     bb.scene.traverse(o=>{

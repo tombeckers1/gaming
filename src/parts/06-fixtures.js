@@ -33,7 +33,9 @@ function applyShopName(){
 function ck(x,z){ return localToWorld(ckG,x,z); }
 function ckYaw(){ return ckG.rotation.y; }
 function buildCheckout(){
-  ckG=new THREE.Group(); ckG.position.set(5,0,3.2); scene.add(ckG);
+  /* Die Kasse steht in der Starthaelfte, nah an der Lagertuer -
+     der kurze Weg vom Regal zum Nachfuellen und zurueck. */
+  ckG=new THREE.Group(); ckG.position.set(-5,0,3.2); scene.add(ckG);
   const corpus=std(0x1e2a4a,{roughness:0.62}),
         panel=std(0x27365c,{roughness:0.55}),
         laminat=std(0xd6dae2,{roughness:0.38,metalness:0.05}),
@@ -276,7 +278,10 @@ function sbFrei(){ for(let i=0;i<sbLanes.length;i++) if(!sbLanes[i].busy&&sbNutz
 function sbOffen(){ let n=0; for(let i=0;i<sbLanes.length;i++) if(sbNutzbar(i)) n++; return n; }
 let deskG=null;
 function buildDesk(){
-  deskG=new THREE.Group(); deskG.position.set(7.35,0,0.9); scene.add(deskG);
+  /* Die Bueroecke mit dem Laptop haengt an der Westwand, gleich
+     neben der Lagertuer. Vorher stand sie an der Ostwand - die
+     liegt jetzt hinter der Trennwand. */
+  deskG=new THREE.Group(); deskG.position.set(-7.35,0,0.9); deskG.rotation.y=Math.PI; scene.add(deskG);
   /* Hochwertiger Schreibtisch: Nussbaum-Furnier auf Stahlwangen */
   const furnierT=(()=>{ const t=tex(768,768,(g,W,H)=>{
         const base=g.createLinearGradient(0,0,W,H);

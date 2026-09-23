@@ -35,7 +35,8 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   /* Die ganze Flaechenkette der Reihe nach - im Testmodus muss jede gehen */
   console.log('KETTE     ',JSON.stringify(await p.evaluate(()=>{
     const bb=window.__bb; bb.S.money=9e6;
-    const kette=['shop_gross','shop_ost','shop_sued','lager_gross','lager_sued',
+    const kette=['shop_halb','testfeld','shop_gross','shop_ost','shop_sued',
+                 'lager_nord','lager_gross','lager_sued','lager_sued2',
                  'lager_west','rampe2','rampe3','rampe4','packstation'];
     const out={};
     for(const id of kette){ bb.testKauf(id); out[id]=!!bb.S.up[id]; }

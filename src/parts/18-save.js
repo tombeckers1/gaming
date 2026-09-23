@@ -4,7 +4,7 @@
    ========================================================= */
 function freshState(){ const prices={}; ORDER.forEach(t=>prices[t]=P[t].market);
   return {v:3,money:500,rep:50,level:1,xp:0,season:1,day:0,loan:null,prices,grime:0,
-    up:{plakat:false,terminal:false,tag4:false,heizung:false,musik:false,radio:false,cams:false,regallicht:false,alarm:false,shop_gross:false,lager_gross:false,packstation:false,kasse2:false,labor:false,labor2:false},
+    up:{plakat:false,terminal:false,tag4:false,heizung:false,musik:false,radio:false,cams:false,regallicht:false,alarm:false,shop_halb:false,testfeld:false,shop_gross:false,lager_nord:false,lager_gross:false,packstation:false,kasse2:false,labor:false,labor2:false},
     staff:{},prio:{},wage:{},pause:{},ev:null,goal:null,mkt:1,comp:1,deko:[],wall:'creme',floor:'grau',schildBg:'auto',schildFg:'weiss',paint:[],test:null,stamm:{},
     /* Der Laden startet leer: kein Verkaufsregal, kein Lagerregal.
        Beides bestellt man bei Regalbau Stegemann, und der LKW
@@ -36,6 +36,14 @@ function startGame(fresh){
   if(fresh){ try{ localStorage.removeItem(KEY); }catch(e){} }
   const d=fresh?null:loadSave();
   S=Object.assign(freshState(),d||{});
+  /* Spielstaende von vor den kleinen Anfangsstufen kennen deren
+     Schluessel nicht. Wer damals gespielt hat, hatte das ganze
+     Ladenlokal, das ganze Basislager und den Zugang zum Testfeld -
+     das wird nachgetragen, sonst stuenden ploetzlich Waende mitten
+     im eingerichteten Laden. */
+  if(d&&d.up&&d.up.shop_halb===undefined){
+    S.up.shop_halb=true; S.up.lager_nord=true; S.up.testfeld=true;
+  }
   const F=freshState();
   S.prices=Object.assign(F.prices,S.prices||{}); S.up=Object.assign(F.up,S.up||{}); S.staff=Object.assign({},S.staff||{}); S.prio=Object.assign({},S.prio||{}); S.grime=clamp(+S.grime||0,0,1); S.mkt=clamp(+S.mkt||1,0.7,1.4); S.comp=clamp(+S.comp||1,0.85,1.15); if(S.ev&&!eventById(S.ev)) S.ev=null; S.wage=Object.assign({},S.wage||{}); S.pause=Object.assign({},S.pause||{}); S.tut=S.tut||{}; S.paint=S.paint||[]; S.stamm=S.stamm||{};
   S.shopName=(typeof S.shopName==='string'&&S.shopName.trim())?S.shopName.trim().slice(0,22):SHOP_DEFAULT;

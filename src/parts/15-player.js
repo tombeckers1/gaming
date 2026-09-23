@@ -198,6 +198,7 @@ function promptFor(t){
     case 'belt': return {t:`Scannen: ${P[t.ref.type].short} ${eur(t.ref.price)}`,a:true};
     case 'card': return reg&&reg.state==='pay'&&reg.method==='card'?{t:'Kartenzahlung abschließen',a:true}:{t:'Kartenterminal',a:false};
     case 'pos': if(reg&&reg.state==='pay') return reg.method==='cash'?{t:`Bargeld annehmen: ${eur(reg.given)}`,a:true}:{t:'Kartenzahlung abschließen',a:true}; return {t:'Kasse',a:false};
+    case 'tfsperre': return {t:'Zugang zum Testfeld — im Laptop unter Ausbau freischalten',a:false};
     case 'laptop': return {t:'Laptop öffnen',a:true};
     case 'laptop2': return {t:'Lagerterminal öffnen',a:true};
     case 'pack': {

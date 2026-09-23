@@ -34,7 +34,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
         if(bb.regalOffen(id)&&bb.regalPlatz(id)&&S.money>bb.regalPreis(id)*1.7+90
            &&bb.shelves.length+bb.racks.length+unterwegs()<bb.slotsOffen().length+bb.RACKS.length) bb.orderRegal(id);
       }
-      for(const id of ['shop_gross','lager_gross','packstation','kasse2','onlineshop','grosskunden','shop_ost','lager_sued','shop_sued','lager_west','plakat','terminal','heizung','musik','cams','regallicht','alarm','klima']){
+      for(const id of ['shop_halb','shop_gross','lager_nord','lager_gross','packstation','kasse2','onlineshop','grosskunden','shop_ost','lager_sued','shop_sued','lager_west','plakat','terminal','heizung','musik','cams','regallicht','alarm','klima']){
         const u=bb.UPGRADES.find(x=>x.id===id);
         if(u&&S.level>=u.lvl&&!u.done()&&(!u.req||S.up[u.req])&&S.money>u.cost()*(u.kat==='flaeche'?1.25:2.2)*puffer+400) bb.testKauf(id);
       }

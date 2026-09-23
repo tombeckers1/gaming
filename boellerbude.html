@@ -608,8 +608,11 @@ const UPGRADES=[
   {id:'lizenz',kat:'markt',lvl:25,name:'Großhandelslizenz',desc:'Alle Lieferanten geben dir zusätzlich zehn Prozent Nachlass.',cost:()=>6500,done:()=>S.up.lizenz},
   {id:'klima',kat:'einr',lvl:27,name:'Klima und Musikanlage XL',desc:'Deutlich bessere Stimmung, Kunden bleiben spürbar länger.',cost:()=>5400,done:()=>S.up.klima},
   {id:'meister',kat:'markt',lvl:30,name:'Meisterbrief Pyrotechnik',desc:'Die höchste Stufe. Großaufträge zahlen ein Drittel mehr.',cost:()=>12000,done:()=>S.up.meister},
-  {id:'shop_gross',kat:'flaeche',lvl:12,name:'Verkaufsfläche erweitern',desc:'Kauft das leerstehende Ladenlokal rechts nebenan. Die Ostwand wird durchbrochen, die Schaufenster werden entmauert: rund 78 Quadratmeter mehr Fläche und acht zusätzliche Regalplätze.',cost:()=>7500,done:()=>S.up.shop_gross},
-  {id:'lager_gross',kat:'flaeche',lvl:15,name:'Lagerhalle Süd I',desc:'Hinter dem Rolltor wird die Wand auf neun Metern durchbrochen: der erste Abschnitt der großen Halle, 118 Quadratmeter mit fünf Metern lichter Höhe. Hier steht die Packstation, und ab hier lohnt sich der Onlineshop. Hochregale passen erst in diese Höhe.',cost:()=>6200,done:()=>S.up.lager_gross},
+  {id:'shop_halb',kat:'flaeche',lvl:4,name:'Zweite Ladenhälfte',desc:'Die zugemauerte Hälfte deines eigenen Ladenlokals: rund 70 Quadratmeter mehr, das zweite Schaufenster und vier weitere Regalplätze. Die Trennwand fällt beim Kauf ganz weg — ein Raum, kein Pfeiler, kein Sturz. Dahinter liegt auch die Tür zum Testfeld.',cost:()=>1400,done:()=>S.up.shop_halb},
+  {id:'testfeld',kat:'flaeche',lvl:9,req:'shop_halb',name:'Zugang zum Testfeld',desc:'Der abgesperrte Hof hinter dem Laden wird dein Testfeld: Zündtisch, Abschussröhren und Mörserbatterie. Erst damit kannst du selbst zünden — und was du gezündet hast, spricht sich herum.',cost:()=>3200,done:()=>S.up.testfeld},
+  {id:'shop_gross',kat:'flaeche',lvl:12,req:'shop_halb',name:'Verkaufsfläche erweitern',desc:'Kauft das leerstehende Ladenlokal rechts nebenan. Die Ostwand wird durchbrochen, die Schaufenster werden entmauert: rund 78 Quadratmeter mehr Fläche und acht zusätzliche Regalplätze.',cost:()=>7500,done:()=>S.up.shop_gross},
+  {id:'lager_nord',kat:'flaeche',lvl:6,name:'Lager Nord',desc:'Der Nordteil des Lagers hinter der Trennwand: 47 Quadratmeter mehr, sechs zusätzliche Stellplätze für Regale. Die Wand fällt beim Kauf ganz weg — kein Sturz, kein Pfeiler, ein durchgehender Raum bis zur Nordwand.',cost:()=>1900,done:()=>S.up.lager_nord},
+  {id:'lager_gross',kat:'flaeche',lvl:15,req:'lager_nord',name:'Lagerhalle Süd I',desc:'Hinter dem Rolltor wird die Wand auf neun Metern durchbrochen: der erste Abschnitt der großen Halle, 118 Quadratmeter mit fünf Metern lichter Höhe. Hier steht die Packstation, und ab hier lohnt sich der Onlineshop. Hochregale passen erst in diese Höhe.',cost:()=>6200,done:()=>S.up.lager_gross},
   {id:'shop_ost',kat:'flaeche',lvl:20,req:'shop_gross',name:'Zweites Ladenlokal',desc:'Das nächste leerstehende Lokal an der Ostseite: noch einmal 212 Quadratmeter, Gondelgassen, Eckregal und eine lange Wandreihe.',cost:()=>16000,done:()=>S.up.shop_ost},
   {id:'shop_sued',kat:'flaeche',lvl:26,req:'shop_ost',name:'Rückgebäude Süd',desc:'Die große Halle hinter dem Laden, zwei breite Durchgänge: 478 Quadratmeter Verkaufsfläche mit zwei Gondelgassen. Damit ist der Laden fünfeinhalbmal so groß wie am Anfang.',cost:()=>34000,done:()=>S.up.shop_sued},
   {id:'lager_sued',kat:'flaeche',lvl:20,req:'lager_gross',name:'Lagerhalle Süd II',desc:'Der zweite Abschnitt, noch einmal 83 Quadratmeter. Die Wand zum ersten fällt ganz weg — kein Pfeiler, kein Sturz, eine durchgehende Halle.',cost:()=>11000,done:()=>S.up.lager_sued},
@@ -833,9 +836,12 @@ function mkSlots(){
   const add=(x,z,o)=>A.push(Object.assign({x:Math.round(x*100)/100,z:Math.round(z*100)/100},o||{}));
   const reihe=(x0,n,dx,z,o)=>{ for(let i=0;i<n;i++) add(x0+i*dx,z,o); };
   const spalte=(z0,n,dz,x,o)=>{ for(let i=0;i<n;i++) add(x,z0+i*dz,o); };
-  /* --- Basis, unveraendert --- */
-  reihe(-6.4,5,2.2,-5.5);
-  reihe(-6.4,5,2.2,-1.2);
+  /* --- Basis: die westliche Haelfte des Ladenlokals. Die oestliche
+         Spalte liegt hinter der Trennwand und kommt mit ihr. --- */
+  reihe(-6.4,4,2.2,-5.5);
+  reihe(-6.4,4,2.2,-1.2);
+  add(2.4,-5.5,{zone:'shop_halb'});
+  add(2.4,-1.2,{zone:'shop_halb'});
   /* --- Ost I: Wandreihe, zwei Gondelreihen. Vorn bleibt der
          Durchgang aus dem Basisladen frei. --- */
   const A1={zone:'shop_gross'}, I1={zone:'shop_gross',art:'insel'};
@@ -871,10 +877,11 @@ function mkRacks(){
   const add=(x,z,ry,h,zone)=>A.push({x:Math.round(x*100)/100,z:Math.round(z*100)/100,ry:ry,h:h,zone:zone});
   /* Das ganze Lager ist fuenf Meter licht (LAGER_H steht erst in
      05-world und ist hier noch nicht da, darum die Zahl).
-     Rampenraum und Anbau Nord gehoeren ab Level 1 dazu. */
+     Ab Level 1 gehoert nur der Raum am Rolltor dazu; was hinter der
+     Trennwand liegt, kommt mit Lager Nord. */
   [-9.3,-12.4,-15.5,-18.6].forEach(x=>{ add(x,-5.35,0,5.0); add(x,1.35,Math.PI,5.0); });
-  [-9.7,-12.8,-15.9,-19.0].forEach(x=>add(x,5.45,Math.PI,5.0));
-  [-11.0,-14.1].forEach(x=>add(x,2.75,0,5.0));
+  [-9.7,-12.8,-15.9,-19.0].forEach(x=>add(x,5.45,Math.PI,5.0,'lager_nord'));
+  [-11.0,-14.1].forEach(x=>add(x,2.75,0,5.0,'lager_nord'));
   /* Halle Sued I bis III, lichte Hoehe 5,0 m (HALLE_H steht erst in
      05-world und ist hier noch nicht da, darum die Zahl).
      In Halle I steht auch die Packstation, darum haelt der
@@ -926,11 +933,15 @@ const SCHILDFG=[
 ];
 function schildBg(){ return SCHILDBG.find(x=>x.id===(S&&S.schildBg))||SCHILDBG[0]; }
 function schildFg(){ return SCHILDFG.find(x=>x.id===(S&&S.schildFg))||SCHILDFG[0]; }
-const WALLSPOTS=[{x:7.86,z:-2.0,ry:-Math.PI/2},{x:-2.5,z:-5.86,ry:0},{x:7.86,z:1.0,ry:-Math.PI/2},{x:2.0,z:-5.86,ry:0},{x:-7.86,z:3.6,ry:Math.PI/2},{x:-5.5,z:-5.86,ry:0},
+/* Die Plaetze oestlich der Trennwand gehoeren zur zweiten
+   Ladenhaelfte - sonst haengt ein Bild hinter einer Wand. */
+const WALLSPOTS=[{x:-2.5,z:-5.86,ry:0},{x:0.6,z:-5.86,ry:0},{x:-7.86,z:3.6,ry:Math.PI/2},{x:-5.5,z:-5.86,ry:0},
+  {x:7.86,z:-2.0,ry:-Math.PI/2,zone:'shop_halb'},{x:7.86,z:1.0,ry:-Math.PI/2,zone:'shop_halb'},
   {x:19.8,z:-5.0,ry:-Math.PI/2,zone:'shop_gross'},{x:19.8,z:5.0,ry:-Math.PI/2,zone:'shop_gross'},
   {x:20.2,z:-5.0,ry:Math.PI/2,zone:'shop_ost'},  {x:20.2,z:5.0,ry:Math.PI/2,zone:'shop_ost'},
   {x:8.22,z:-8.0,ry:Math.PI/2,zone:'shop_sued'}, {x:37.68,z:-8.0,ry:-Math.PI/2,zone:'shop_sued'}];
-const DEKOSPOTS=[{x:6.9,z:-4.6},{x:-7.1,z:3.2},{x:6.9,z:-2.2},{x:-7.1,z:-3.6},{x:3.6,z:5.2},{x:-6.2,z:1.2},{x:6.9,z:0.4},{x:-3.4,z:3.4},{x:1.4,z:-3.4},
+const DEKOSPOTS=[{x:-7.1,z:3.2},{x:-7.1,z:-3.6},{x:-6.2,z:1.2},{x:-3.4,z:3.4},{x:1.4,z:-3.4},{x:-1.6,z:5.2},
+  {x:6.9,z:-4.6,zone:'shop_halb'},{x:6.9,z:-2.2,zone:'shop_halb'},{x:3.6,z:5.2,zone:'shop_halb'},{x:6.9,z:0.4,zone:'shop_halb'},
   {x:9.3,z:4.6,zone:'shop_gross'},{x:19.0,z:-4.8,zone:'shop_gross'},
   {x:21.0,z:4.6,zone:'shop_ost'},{x:36.5,z:4.6,zone:'shop_ost'},
   {x:9.5,z:-7.5,zone:'shop_sued'},{x:36.0,z:-7.5,zone:'shop_sued'},
@@ -1006,7 +1017,7 @@ function levelUnlocks(l){
   return out;
 }
 const TUT=[
-  ['shelf','Dein Laden ist leer. Geh an den Laptop im Büro-Eck rechts und bestell unter Bestellen bei Regalbau ein kleines Regal.','Laptop: Regal bei Regalbau bestellen.'],
+  ['shelf','Dein Laden ist leer. Geh an den Laptop im Büro-Eck links an der Lagertür und bestell unter Bestellen bei Regalbau ein kleines Regal.','Laptop: Regal bei Regalbau bestellen.'],
   ['order','Jetzt Ware: im Laptop unter Bestellen einen Karton ordern.','Laptop: Ware bestellen.'],
   ['lkw','Die Lieferung kommt per LKW in den Hof hinterm Lager. Geh durchs Lager nach draußen und lade aus.','LKW im Hof hinterm Lager ausladen.'],
   ['stock','Räum die Ware ins Regal. Jedes Fach nimmt eine Sorte auf.','Ware ins Regalfach einräumen.'],
@@ -1649,7 +1660,15 @@ scene.background=new THREE.Color(0x0b1030);
 /* Die Sichtweite reicht jetzt bis in die Stadt. Der Nebel bleibt, aber
    als Dunst ueber die Distanz statt als Wand bei hundert Metern. */
 scene.fog=new THREE.Fog(0xcfe3f3,55,520);
-const camera=new THREE.PerspectiveCamera(70,innerWidth/innerHeight,0.05,300);
+/* Die nahe Ebene lag auf 5 cm. Bei 300 m Sichtweite bleibt dem
+   Tiefenpuffer damit so wenig Genauigkeit, dass Flaechen, die nur
+   wenige Millimeter uebereinanderliegen - Estrich ueber Fuellplatte
+   ueber Gelaende -, in zehn bis zwanzig Meter Entfernung
+   gegeneinander flimmern und als heller Streifen im Boden stehen.
+   Naeher als 20 cm kommt die Kamera ohnehin an nichts heran: der
+   Spieler hat 32 cm Kollisionsradius, und was er traegt, haengt
+   35 cm oder weiter vor der Linse. */
+const camera=new THREE.PerspectiveCamera(70,innerWidth/innerHeight,0.2,300);
 camera.rotation.order='YXZ';
 scene.add(camera);
 const hemi=new THREE.HemisphereLight(0xdde8ff,0x4a4034,0.72); scene.add(hemi);
@@ -2115,7 +2134,9 @@ const WH=3.6;
 const LAY={
   /* Verkaufsflaeche, zusammen 1018 m2 */
   shop  :{x0:-7.9, x1:37.9, z0:-21.9, z1:5.9},
-  basis :{x0:-7.9, x1:8.0,  z0:-5.9,  z1:5.9},   /* 186 m2, von Anfang an */
+  basis :{x0:-7.9, x1:8.0,  z0:-5.9,  z1:5.9},   /* 186 m2, das ganze Ladenlokal */
+  /* Am Anfang gehoert nur die westliche Haelfte dazu; oestlich der
+     Trennwand liegt die zweite Haelfte samt Tuer zum Testfeld. */
   ost1  :{x0:8.0,  x1:20.0, z0:-5.9,  z1:5.9},   /* 142 m2 */
   ost2  :{x0:20.0, x1:37.9, z0:-5.9,  z1:5.9},   /* 212 m2 */
   sued  :{x0:8.0,  x1:37.9, z0:-21.9, z1:-5.9},  /* 478 m2 */
@@ -2163,6 +2184,10 @@ const ANBAU_H=2.9;
 /* Lichte Hoehe der Lagerhalle Sued. 6,4 m waren zu viel fuer einen
    Raum, der nur Regale traegt; unter 4,8 m passt aber kein Hochregal
    mehr hinein (4,26 m plus Luft). */
+/* Die Trennwand im Ladenlokal. Sie steht zwischen Eingangsrahmen
+   und zweitem Schaufenster, damit Eingang, Kasse und Bueroecke in
+   der Starthaelfte liegen. */
+const SHOP_HALB=2.0;
 const HALLE_H=5.0;
 const LSUED_H=HALLE_H;
 /* Das ganze Lager hat dieselbe lichte Hoehe: Raum an der Rampe,
@@ -2521,7 +2546,14 @@ function buildWorld(){
   floorTexRef=tex(HIQ?640:256,HIQ?640:256,(g,W,H)=>paintFloor(g,W,H,f0)); floorTexRef.wrapS=floorTexRef.wrapT=THREE.RepeatWrapping; floorTexRef.repeat.set(1,1); floorTexRef.anisotropy=8;
   floorMat=new THREE.MeshStandardMaterial({map:floorTexRef,roughness:0.5});
   bodenUV(flat(16,12,floorMat,0,0.015,0),2);
-  const lc=concreteTex(); lc.repeat.set(6,4); flat(12,8,new THREE.MeshStandardMaterial({map:lc,roughness:0.85}),-14,0.015,-2);
+  /* Ein Boden fuer das ganze Basislager, in einem Stueck und in
+     einem Massstab. Vorher lagen hier zwei Platten mit
+     unterschiedlicher Kachelgroesse uebereinander - an ihrer Kante
+     sprang die Helligkeit, das sah aus wie ein Riss im Boden. */
+  { const L=LAY.lbasis, N=LAY.lnord;
+    const lc=concreteTex(); lc.repeat.set((L.x1-L.x0)/2,(N.z1-L.z0)/2);
+    flat(L.x1-L.x0,N.z1-L.z0,new THREE.MeshStandardMaterial({map:lc,roughness:0.85}),
+      (L.x0+L.x1)/2,0.015,(L.z0+N.z1)/2); }
   /* Testfeldbelag ueber die ganze Flaeche, nicht nur um die Stationen */
   { const T=LAY.test, tg=yardGroundTex(); tg.repeat.set((T.x1-T.x0)/10*2.2,(T.z1-T.z0)/9*2);
     flat(T.x1-T.x0,T.z1-T.z0,new THREE.MeshStandardMaterial({map:tg,roughness:0.92}),
@@ -2582,7 +2614,10 @@ function buildWorld(){
     for(const sx of [7.89,8.11]) zWand('shop_gross',bbox(0.02,0.1,b-a,base,sx,0.05,(a+b)/2,null,false));
   for(const [a,b] of [[-5.9,-3.2],[-1.8,5.9]]) bbox(0.02,0.1,b-a,base,-7.89,0.05,(a+b)/2,null,false);
   // Dächer & Decken
-  bbox(16.4,0.25,12.4,std(0x2b2f3a),0,H+0.13,0);
+  /* Der Dachrand des Ladens darf nach Westen nicht ueber die Wand
+     hinausragen: dahinter steht das hoehere Lager, und der
+     Ueberstand stand dort als dunkler Balken quer in der Wand. */
+  bbox(16.2,0.25,12.4,std(0x2b2f3a),0.1,H+0.13,0);
   /* Ein Dach ueber das ganze Lager, Rampenraum und Anbau zusammen */
   bbox(12.4,0.25,12.4,std(0x2b2f3a),-14,LAGER_H+0.13,-0.1);
   const ceil=std(0xe6e8ee,{roughness:1});
@@ -4658,10 +4693,12 @@ function halle(id,r,opt){
   let bodenMat;
   if(lager){ const lc=concreteTex(); lc.repeat.set((r.x1-r.x0)/2,(r.z1-r.z0)/2); bodenMat=new THREE.MeshStandardMaterial({map:lc,roughness:0.85}); }
   else bodenMat=floorMat;
-  const bo=new THREE.Mesh(new THREE.PlaneGeometry(r.x1-r.x0,r.z1-r.z0),bodenMat);
-  bo.rotation.x=-Math.PI/2; bo.position.set((r.x0+r.x1)/2,0.015,(r.z0+r.z1)/2); scene.add(bo);
-  if(!lager) bodenUV(bo,2);
-  zAdd(id,bo);
+  if(!opt.keinBoden){
+    const bo=new THREE.Mesh(new THREE.PlaneGeometry(r.x1-r.x0,r.z1-r.z0),bodenMat);
+    bo.rotation.x=-Math.PI/2; bo.position.set((r.x0+r.x1)/2,0.015,(r.z0+r.z1)/2); scene.add(bo);
+    if(!lager) bodenUV(bo,2);
+    zAdd(id,bo);
+  }
   /* Decke und Dach */
   if(!opt.keinDeck){
     const ce=new THREE.Mesh(new THREE.PlaneGeometry(r.x1-r.x0+0.3,r.z1-r.z0+0.3),ceil);
@@ -4752,6 +4789,23 @@ function durchbruchWand(id,laengs,fest,von,bis,oeffnungen,mat,exMat,sturzY,hoehe
   /* Frueher blieb hier eine Stuetze stehen. Tom will die Flaeche
      ganz frei haben - die Halle traegt sich ueber die Aussenwaende. */
   void saeulen;
+}
+
+/* =========================================================
+   Zugang zum Testfeld. Bis er gekauft ist, haengt ein rotes
+   Absperrband in der Hintertuer - kein Schild, kein Bauzaun, nur
+   das Band. Was dahinter steht, sieht man trotzdem: das ist der
+   Sinn der Sache.
+   ========================================================= */
+function testfeldSperre(){
+  const Z='testfeld', a=4.4, b=6.1, z=-6.0, hoch=[0.5,1.0,1.5];
+  const rot=std(0xcc2118,{roughness:0.6});
+  const halt=std(0x3d4450,{metalness:0.5,roughness:0.5});
+  for(const y of hoch) zWand(Z,bbox(b-a-0.06,0.07,0.012,rot,(a+b)/2,y,z,null,false));
+  for(const x of [a+0.03,b-0.03]) zWand(Z,bbox(0.05,1.72,0.05,halt,x,0.86,z,null,false));
+  zWandCol(Z,col(a,b,z-0.14,z+0.14));
+  const h=bbox(b-a-0.1,2.0,0.34,hitM,(a+b)/2,1.0,z,null,false);
+  h.userData={kind:'tfsperre'}; zWand(Z,h);
 }
 
 /* =========================================================
@@ -5005,13 +5059,20 @@ function buildAusbau(){
   /* Die beiden ersten Durchbrueche stehen schon in 05c beziehungsweise
      im Dock - hier kommt nur die Fuellung in die Oeffnung. */
   trennwand('shop_gross',false,8.0,-4.4,4.4,2.7,shopWall,shopWall);
+  /* Das Ladenlokal ist am Anfang nur zur Haelfte ausgebaut: eine
+     Trennwand auf halber Tiefe, oestlich davon das zweite
+     Schaufenster und die Tuer zum Testfeld. Beim Kauf faellt die
+     Wand ganz weg. */
+  durchbruchWand('shop_halb',false,SHOP_HALB,LAY.basis.z0,LAY.basis.z1,[],shopWall,shopWall,2.7,WH,'-x',true);
 
   /* ---------- Lager ----------
-     Das kleine Lager ist von Anfang an fertig: der Raum an der
-     Rampe und der Anbau nach Norden. Dazwischen steht keine Wand
-     mehr - der Anbau war nie mehr als ein Stueck Lager, und die
-     Trennwand stand nur im Weg. */
-  halle(null,LAY.lnord,{art:'lager',aussen:{n:true,w:true},ao:{},h:LAGER_H,keinDach:true,keinDeck:true});
+     Am Anfang gehoert nur der Raum am Rolltor dazu. Der Nordteil
+     liegt dahinter und wird als erste Ausbaustufe gekauft; die
+     Wand faellt dann ganz, damit ein Raum entsteht. */
+  /* Der Nordteil des Lagers bekommt weder eigenen Boden noch eigene
+     Decke: beides zieht 05c in einem Stueck ueber das ganze
+     Basislager. Nur die Aussenwaende kommen von hier. */
+  halle(null,LAY.lnord,{art:'lager',aussen:{n:true,w:true},ao:{},h:LAGER_H,keinDach:true,keinDeck:true,keinBoden:true});
   /* Die Halle Sued in drei Abschnitten. Alle drei sind gleich
      hoch, damit zwischen ihnen keine Wand stehen bleiben muss. */
   halle('lager_gross',LAY.ls1,{art:'lager',ao:{w:true,e:true},h:HALLE_H});
@@ -5025,6 +5086,10 @@ function buildAusbau(){
      dieselbe Hoehe, darum faellt diese Wand beim Kauf komplett
      weg (offen=true) - kein Sturz, kein Pfeiler, ein Raum. */
   durchbruchWand('lager_gross',true,LAY.lbasis.z0,LAY.lbasis.x0,LAY.lbasis.x1,[[-18.7,-9.3]],lagerWall,lagerWall,3.3,LAGER_H,null,true);
+  /* Die Wand zum Nordteil: steht am Anfang durch, faellt beim Kauf
+     ganz weg. Danach ist das Basislager ein Raum von der Suedwand
+     bis zur Nordwand. */
+  durchbruchWand('lager_nord',true,LAY.lbasis.z1,LAY.lbasis.x0,LAY.lbasis.x1,[],lagerWall,lagerWall,3.3,LAGER_H,null,true);
   /* Zwischen den drei Abschnitten faellt die Wand beim Kauf ganz
      weg (offen=true) - am Ende steht eine durchgehende Halle ohne
      Pfeiler und Sturz quer im Raum. */
@@ -5079,6 +5144,7 @@ function buildAusbau(){
   durchbruchWand('lager_west',false,-8.0,LAY.lsued.z0,LAY.lsued.z1,GT,lagerWall,undefined,2.5,HALLE_H,'-x');
   streifenvorhang('lager_west',false,-8.0,GT[0][0],GT[0][1],2.5);
   buildLagergang();
+  testfeldSperre();
   buildLagerTerminal();
   buildPackstation();
   buildWestrampen();
@@ -6724,7 +6790,9 @@ function applyShopName(){
 function ck(x,z){ return localToWorld(ckG,x,z); }
 function ckYaw(){ return ckG.rotation.y; }
 function buildCheckout(){
-  ckG=new THREE.Group(); ckG.position.set(5,0,3.2); scene.add(ckG);
+  /* Die Kasse steht in der Starthaelfte, nah an der Lagertuer -
+     der kurze Weg vom Regal zum Nachfuellen und zurueck. */
+  ckG=new THREE.Group(); ckG.position.set(-5,0,3.2); scene.add(ckG);
   const corpus=std(0x1e2a4a,{roughness:0.62}),
         panel=std(0x27365c,{roughness:0.55}),
         laminat=std(0xd6dae2,{roughness:0.38,metalness:0.05}),
@@ -6967,7 +7035,10 @@ function sbFrei(){ for(let i=0;i<sbLanes.length;i++) if(!sbLanes[i].busy&&sbNutz
 function sbOffen(){ let n=0; for(let i=0;i<sbLanes.length;i++) if(sbNutzbar(i)) n++; return n; }
 let deskG=null;
 function buildDesk(){
-  deskG=new THREE.Group(); deskG.position.set(7.35,0,0.9); scene.add(deskG);
+  /* Die Bueroecke mit dem Laptop haengt an der Westwand, gleich
+     neben der Lagertuer. Vorher stand sie an der Ostwand - die
+     liegt jetzt hinter der Trennwand. */
+  deskG=new THREE.Group(); deskG.position.set(-7.35,0,0.9); deskG.rotation.y=Math.PI; scene.add(deskG);
   /* Hochwertiger Schreibtisch: Nussbaum-Furnier auf Stahlwangen */
   const furnierT=(()=>{ const t=tex(768,768,(g,W,H)=>{
         const base=g.createLinearGradient(0,0,W,H);
@@ -10387,6 +10458,7 @@ function promptFor(t){
     case 'belt': return {t:`Scannen: ${P[t.ref.type].short} ${eur(t.ref.price)}`,a:true};
     case 'card': return reg&&reg.state==='pay'&&reg.method==='card'?{t:'Kartenzahlung abschließen',a:true}:{t:'Kartenterminal',a:false};
     case 'pos': if(reg&&reg.state==='pay') return reg.method==='cash'?{t:`Bargeld annehmen: ${eur(reg.given)}`,a:true}:{t:'Kartenzahlung abschließen',a:true}; return {t:'Kasse',a:false};
+    case 'tfsperre': return {t:'Zugang zum Testfeld — im Laptop unter Ausbau freischalten',a:false};
     case 'laptop': return {t:'Laptop öffnen',a:true};
     case 'laptop2': return {t:'Lagerterminal öffnen',a:true};
     case 'pack': {
@@ -11189,7 +11261,7 @@ function upPic(id){
       g.strokeStyle='#6cf2a8'; g.setLineDash([7,6]); g.lineWidth=4;
       g.strokeRect(id==='shop_ost'?134:72,id==='shop_ost'?22:32,id==='shop_ost'?78:68,114); g.setLineDash([]);
       break;
-    case 'lager_gross': case 'lager_sued': case 'lager_sued2': case 'lager_west':
+    case 'lager_nord': case 'lager_gross': case 'lager_sued': case 'lager_sued2': case 'lager_west':
       bg('#1a2030','#0e131e');
       /* hohe Halle neben der niedrigen */
       g.fillStyle='#a3a8b0'; g.fillRect(16,76,80,58);
@@ -11199,7 +11271,7 @@ function upPic(id){
       g.fillStyle='#e9ebee'; g.fillRect(128,86,24,46); g.fillRect(166,86,24,46);
       g.strokeStyle='#6cf2a8'; g.setLineDash([7,6]); g.lineWidth=4; g.strokeRect(100,20,112,116); g.setLineDash([]);
       g.fillStyle='#f2c230'; g.fillRect(16,134,192,6); break;
-    case 'shop_gross':
+    case 'shop_halb': case 'shop_gross':
       bg('#20283c','#121826');
       g.fillStyle='#8a4f3c'; g.fillRect(112,24,96,110);
       for(let r=0;r<7;r++) for(let c2=0;c2<4;c2++){ g.fillStyle=r%2?'#7e4735':'#93573f'; g.fillRect(114+c2*24+(r%2?6:0),26+r*16,20,13); }
@@ -11260,6 +11332,15 @@ function upPic(id){
       g.fillStyle='#f2efe4'; g.fillRect(52,26,120,100);
       g.fillStyle='#c8322a'; g.beginPath(); g.arc(112,60,22,0,Math.PI*2); g.fill();
       g.fillStyle='#1b2340'; g.fillRect(66,94,92,6); g.fillRect(66,108,66,6); break;
+    case 'testfeld':
+      bg('#1a2238','#0b1020');
+      g.fillStyle='#4a515c'; g.fillRect(0,96,W,56);
+      g.fillStyle='#39414d'; g.fillRect(24,72,176,26);
+      for(const x of [52,112,172]){ g.fillStyle='#8a9099'; g.fillRect(x-7,52,14,22); }
+      g.fillStyle='#cc2118'; for(const y of [26,44,62]) g.fillRect(78,y,68,7);
+      g.fillStyle='#2f3644'; g.fillRect(70,18,8,56); g.fillRect(146,18,8,56);
+      g.fillStyle='#ffd23f'; g.fillRect(0,132,W,4);
+      break;
     default:
       bg('#1a2030','#0e131e');
       g.fillStyle='#39434f'; g.fillRect(62,44,100,64);
@@ -11970,7 +12051,7 @@ function rezBauen(){
    ========================================================= */
 function freshState(){ const prices={}; ORDER.forEach(t=>prices[t]=P[t].market);
   return {v:3,money:500,rep:50,level:1,xp:0,season:1,day:0,loan:null,prices,grime:0,
-    up:{plakat:false,terminal:false,tag4:false,heizung:false,musik:false,radio:false,cams:false,regallicht:false,alarm:false,shop_gross:false,lager_gross:false,packstation:false,kasse2:false,labor:false,labor2:false},
+    up:{plakat:false,terminal:false,tag4:false,heizung:false,musik:false,radio:false,cams:false,regallicht:false,alarm:false,shop_halb:false,testfeld:false,shop_gross:false,lager_nord:false,lager_gross:false,packstation:false,kasse2:false,labor:false,labor2:false},
     staff:{},prio:{},wage:{},pause:{},ev:null,goal:null,mkt:1,comp:1,deko:[],wall:'creme',floor:'grau',schildBg:'auto',schildFg:'weiss',paint:[],test:null,stamm:{},
     /* Der Laden startet leer: kein Verkaufsregal, kein Lagerregal.
        Beides bestellt man bei Regalbau Stegemann, und der LKW
@@ -12002,6 +12083,14 @@ function startGame(fresh){
   if(fresh){ try{ localStorage.removeItem(KEY); }catch(e){} }
   const d=fresh?null:loadSave();
   S=Object.assign(freshState(),d||{});
+  /* Spielstaende von vor den kleinen Anfangsstufen kennen deren
+     Schluessel nicht. Wer damals gespielt hat, hatte das ganze
+     Ladenlokal, das ganze Basislager und den Zugang zum Testfeld -
+     das wird nachgetragen, sonst stuenden ploetzlich Waende mitten
+     im eingerichteten Laden. */
+  if(d&&d.up&&d.up.shop_halb===undefined){
+    S.up.shop_halb=true; S.up.lager_nord=true; S.up.testfeld=true;
+  }
   const F=freshState();
   S.prices=Object.assign(F.prices,S.prices||{}); S.up=Object.assign(F.up,S.up||{}); S.staff=Object.assign({},S.staff||{}); S.prio=Object.assign({},S.prio||{}); S.grime=clamp(+S.grime||0,0,1); S.mkt=clamp(+S.mkt||1,0.7,1.4); S.comp=clamp(+S.comp||1,0.85,1.15); if(S.ev&&!eventById(S.ev)) S.ev=null; S.wage=Object.assign({},S.wage||{}); S.pause=Object.assign({},S.pause||{}); S.tut=S.tut||{}; S.paint=S.paint||[]; S.stamm=S.stamm||{};
   S.shopName=(typeof S.shopName==='string'&&S.shopName.trim())?S.shopName.trim().slice(0,22):SHOP_DEFAULT;

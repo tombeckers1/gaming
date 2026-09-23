@@ -36,7 +36,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   const auf=await p.evaluate(()=>{
     const bb=window.__bb, o={};
     bb.S.level=30; bb.S.money=200000;
-    ['shop_gross','lager_gross','packstation','onlineshop','kasse2'].forEach(id=>bb.testKauf(id));
+    ['shop_halb','shop_gross','lager_nord','lager_gross','packstation','onlineshop','kasse2'].forEach(id=>bb.testKauf(id));
     o.gekauft={shop:bb.S.up.shop_gross,lager:bb.S.up.lager_gross,pack:bb.S.up.packstation,online:bb.S.up.onlineshop,sb:bb.S.up.kasse2};
     const z=id=>bb.ZONEN[id];
     o.wandSichtbar=['shop_gross','lager_gross','packstation'].map(id=>id+':'+z(id).wand.filter(m=>m.visible).length);

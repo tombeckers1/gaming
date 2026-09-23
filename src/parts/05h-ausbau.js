@@ -135,10 +135,12 @@ function halle(id,r,opt){
   let bodenMat;
   if(lager){ const lc=concreteTex(); lc.repeat.set((r.x1-r.x0)/2,(r.z1-r.z0)/2); bodenMat=new THREE.MeshStandardMaterial({map:lc,roughness:0.85}); }
   else bodenMat=floorMat;
-  const bo=new THREE.Mesh(new THREE.PlaneGeometry(r.x1-r.x0,r.z1-r.z0),bodenMat);
-  bo.rotation.x=-Math.PI/2; bo.position.set((r.x0+r.x1)/2,0.015,(r.z0+r.z1)/2); scene.add(bo);
-  if(!lager) bodenUV(bo,2);
-  zAdd(id,bo);
+  if(!opt.keinBoden){
+    const bo=new THREE.Mesh(new THREE.PlaneGeometry(r.x1-r.x0,r.z1-r.z0),bodenMat);
+    bo.rotation.x=-Math.PI/2; bo.position.set((r.x0+r.x1)/2,0.015,(r.z0+r.z1)/2); scene.add(bo);
+    if(!lager) bodenUV(bo,2);
+    zAdd(id,bo);
+  }
   /* Decke und Dach */
   if(!opt.keinDeck){
     const ce=new THREE.Mesh(new THREE.PlaneGeometry(r.x1-r.x0+0.3,r.z1-r.z0+0.3),ceil);
@@ -229,6 +231,23 @@ function durchbruchWand(id,laengs,fest,von,bis,oeffnungen,mat,exMat,sturzY,hoehe
   /* Frueher blieb hier eine Stuetze stehen. Tom will die Flaeche
      ganz frei haben - die Halle traegt sich ueber die Aussenwaende. */
   void saeulen;
+}
+
+/* =========================================================
+   Zugang zum Testfeld. Bis er gekauft ist, haengt ein rotes
+   Absperrband in der Hintertuer - kein Schild, kein Bauzaun, nur
+   das Band. Was dahinter steht, sieht man trotzdem: das ist der
+   Sinn der Sache.
+   ========================================================= */
+function testfeldSperre(){
+  const Z='testfeld', a=4.4, b=6.1, z=-6.0, hoch=[0.5,1.0,1.5];
+  const rot=std(0xcc2118,{roughness:0.6});
+  const halt=std(0x3d4450,{metalness:0.5,roughness:0.5});
+  for(const y of hoch) zWand(Z,bbox(b-a-0.06,0.07,0.012,rot,(a+b)/2,y,z,null,false));
+  for(const x of [a+0.03,b-0.03]) zWand(Z,bbox(0.05,1.72,0.05,halt,x,0.86,z,null,false));
+  zWandCol(Z,col(a,b,z-0.14,z+0.14));
+  const h=bbox(b-a-0.1,2.0,0.34,hitM,(a+b)/2,1.0,z,null,false);
+  h.userData={kind:'tfsperre'}; zWand(Z,h);
 }
 
 /* =========================================================
@@ -482,13 +501,20 @@ function buildAusbau(){
   /* Die beiden ersten Durchbrueche stehen schon in 05c beziehungsweise
      im Dock - hier kommt nur die Fuellung in die Oeffnung. */
   trennwand('shop_gross',false,8.0,-4.4,4.4,2.7,shopWall,shopWall);
+  /* Das Ladenlokal ist am Anfang nur zur Haelfte ausgebaut: eine
+     Trennwand auf halber Tiefe, oestlich davon das zweite
+     Schaufenster und die Tuer zum Testfeld. Beim Kauf faellt die
+     Wand ganz weg. */
+  durchbruchWand('shop_halb',false,SHOP_HALB,LAY.basis.z0,LAY.basis.z1,[],shopWall,shopWall,2.7,WH,'-x',true);
 
   /* ---------- Lager ----------
-     Das kleine Lager ist von Anfang an fertig: der Raum an der
-     Rampe und der Anbau nach Norden. Dazwischen steht keine Wand
-     mehr - der Anbau war nie mehr als ein Stueck Lager, und die
-     Trennwand stand nur im Weg. */
-  halle(null,LAY.lnord,{art:'lager',aussen:{n:true,w:true},ao:{},h:LAGER_H,keinDach:true,keinDeck:true});
+     Am Anfang gehoert nur der Raum am Rolltor dazu. Der Nordteil
+     liegt dahinter und wird als erste Ausbaustufe gekauft; die
+     Wand faellt dann ganz, damit ein Raum entsteht. */
+  /* Der Nordteil des Lagers bekommt weder eigenen Boden noch eigene
+     Decke: beides zieht 05c in einem Stueck ueber das ganze
+     Basislager. Nur die Aussenwaende kommen von hier. */
+  halle(null,LAY.lnord,{art:'lager',aussen:{n:true,w:true},ao:{},h:LAGER_H,keinDach:true,keinDeck:true,keinBoden:true});
   /* Die Halle Sued in drei Abschnitten. Alle drei sind gleich
      hoch, damit zwischen ihnen keine Wand stehen bleiben muss. */
   halle('lager_gross',LAY.ls1,{art:'lager',ao:{w:true,e:true},h:HALLE_H});
@@ -502,6 +528,10 @@ function buildAusbau(){
      dieselbe Hoehe, darum faellt diese Wand beim Kauf komplett
      weg (offen=true) - kein Sturz, kein Pfeiler, ein Raum. */
   durchbruchWand('lager_gross',true,LAY.lbasis.z0,LAY.lbasis.x0,LAY.lbasis.x1,[[-18.7,-9.3]],lagerWall,lagerWall,3.3,LAGER_H,null,true);
+  /* Die Wand zum Nordteil: steht am Anfang durch, faellt beim Kauf
+     ganz weg. Danach ist das Basislager ein Raum von der Suedwand
+     bis zur Nordwand. */
+  durchbruchWand('lager_nord',true,LAY.lbasis.z1,LAY.lbasis.x0,LAY.lbasis.x1,[],lagerWall,lagerWall,3.3,LAGER_H,null,true);
   /* Zwischen den drei Abschnitten faellt die Wand beim Kauf ganz
      weg (offen=true) - am Ende steht eine durchgehende Halle ohne
      Pfeiler und Sturz quer im Raum. */
@@ -556,6 +586,7 @@ function buildAusbau(){
   durchbruchWand('lager_west',false,-8.0,LAY.lsued.z0,LAY.lsued.z1,GT,lagerWall,undefined,2.5,HALLE_H,'-x');
   streifenvorhang('lager_west',false,-8.0,GT[0][0],GT[0][1],2.5);
   buildLagergang();
+  testfeldSperre();
   buildLagerTerminal();
   buildPackstation();
   buildWestrampen();

@@ -1,19 +1,47 @@
 /* =========================================================
    Feuerwerk: Partikelsystem
    ========================================================= */
-const dotTex=tex(64,64,(g,W,H)=>{ const gr=g.createRadialGradient(W/2,H/2,0,W/2,H/2,W/2); gr.addColorStop(0,'rgba(255,255,255,1)'); gr.addColorStop(0.35,'rgba(255,255,255,.7)'); gr.addColorStop(1,'rgba(255,255,255,0)'); g.fillStyle=gr; g.fillRect(0,0,W,H); },false);
-/* Modi: 0 ruhiger Stern · 1 Stroboskop · 2 Farbwechsel · 3 Knistern · 4 Glitzer */
+/* Stern: heller Kern, weicher Hof. Das grosse Sprite hat dazu vier
+   feine Strahlen, wie ein funkelnder Stern auf einem Foto. */
+const dotTex=tex(64,64,(g,W,H)=>{ const gr=g.createRadialGradient(W/2,H/2,0,W/2,H/2,W/2);
+  gr.addColorStop(0,'rgba(255,255,255,1)'); gr.addColorStop(0.14,'rgba(255,255,255,.95)'); gr.addColorStop(0.3,'rgba(255,255,255,.4)');
+  gr.addColorStop(0.6,'rgba(255,255,255,.1)'); gr.addColorStop(1,'rgba(255,255,255,0)'); g.fillStyle=gr; g.fillRect(0,0,W,H); },false);
+const sternTex=tex(128,128,(g,W,H)=>{ const c=W/2;
+  const gr=g.createRadialGradient(c,c,0,c,c,c); gr.addColorStop(0,'rgba(255,255,255,1)'); gr.addColorStop(0.08,'rgba(255,255,255,.95)');
+  gr.addColorStop(0.2,'rgba(255,255,255,.35)'); gr.addColorStop(0.5,'rgba(255,255,255,.06)'); gr.addColorStop(1,'rgba(255,255,255,0)');
+  g.fillStyle=gr; g.fillRect(0,0,W,H);
+  for(const [dx,dy] of [[1,0],[0,1]]){ const lg=g.createLinearGradient(c-dx*c,c-dy*c,c+dx*c,c+dy*c);
+    lg.addColorStop(0,'rgba(255,255,255,0)'); lg.addColorStop(0.5,'rgba(255,255,255,.85)'); lg.addColorStop(1,'rgba(255,255,255,0)');
+    g.fillStyle=lg; if(dx) g.fillRect(0,c-1.5,W,3); else g.fillRect(c-1.5,0,3,H); } },false);
+/* Modi: 0 ruhiger Stern · 1 Stroboskop · 2 Farbwechsel · 3 Knistern · 4 Glitzer
+   Leuchtspuren: jeder Stern zieht eine Linie hinter sich her. Die
+   Spur wird nicht gespeichert, sondern aus der Flugbahn zurueck-
+   gerechnet - Luftwiderstand und Schwerkraft sind bekannt. So
+   entstehen die Strahlen einer Chrysantheme und die haengenden
+   Faeden einer Weide ohne Verlaufsspeicher. */
+const SCHWEIF_MODUS=[0.22,0,0.25,0,0.5];
+let SCHWEIF=null;
+const ZIEH=1.1;
 class PS{
-  constructor(max,size){
+  constructor(max,size,seg,map){
     this.max=max; this.pos=new Float32Array(max*3); this.col=new Float32Array(max*3); this.vel=new Float32Array(max*3);
     this.base=new Float32Array(max*3); this.c2=new Float32Array(max*3);
     this.life=new Float32Array(max); this.maxl=new Float32Array(max); this.grav=new Float32Array(max);
-    this.md=new Uint8Array(max); this.ph=new Float32Array(max);
+    this.md=new Uint8Array(max); this.ph=new Float32Array(max); this.tl=new Float32Array(max);
     this.next=0; this.dirty=false;
     for(let i=0;i<max;i++) this.pos[i*3+1]=-999;
     const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.BufferAttribute(this.pos,3)); g.setAttribute('color',new THREE.BufferAttribute(this.col,3)); this.geo=g;
-    this.pts=new THREE.Points(g,new THREE.PointsMaterial({size,map:dotTex,vertexColors:true,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,fog:false,toneMapped:false}));
+    this.pts=new THREE.Points(g,new THREE.PointsMaterial({size,map:map||dotTex,vertexColors:true,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,fog:false,toneMapped:false}));
     this.pts.frustumCulled=false; scene.add(this.pts);
+    this.seg=seg||0;
+    if(this.seg){
+      const nv=max*this.seg*2;
+      this.lpos=new Float32Array(nv*3); this.lcol=new Float32Array(nv*3);
+      const lg=new THREE.BufferGeometry(); lg.setAttribute('position',new THREE.BufferAttribute(this.lpos,3)); lg.setAttribute('color',new THREE.BufferAttribute(this.lcol,3));
+      lg.setDrawRange(0,0); this.lgeo=lg;
+      this.lines=new THREE.LineSegments(lg,new THREE.LineBasicMaterial({vertexColors:true,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,fog:false,toneMapped:false}));
+      this.lines.frustumCulled=false; scene.add(this.lines);
+    }
   }
   emit(x,y,z,vx,vy,vz,r,g,b,life,grav,mode,r2,g2,b2){
     const i=this.next; this.next=(i+1)%this.max; const j=i*3;
@@ -21,9 +49,12 @@ class PS{
     this.base[j]=r; this.base[j+1]=g; this.base[j+2]=b;
     this.c2[j]=r2===undefined?r:r2; this.c2[j+1]=g2===undefined?g:g2; this.c2[j+2]=b2===undefined?b:b2;
     this.life[i]=life; this.maxl[i]=life; this.grav[i]=grav; this.md[i]=mode||0; this.ph[i]=Math.random()*9;
+    const md=mode||0;
+    this.tl[i]=(md===1||md===3)?0:(SCHWEIF!==null?SCHWEIF:SCHWEIF_MODUS[md]);
   }
   update(dt){
-    const drag=Math.max(0,1-1.1*dt); let any=false;
+    const drag=Math.max(0,1-ZIEH*dt); let any=false, nl=0;
+    const S=this.seg, lp=this.lpos, lc=this.lcol;
     for(let i=0;i<this.max;i++){
       if(this.life[i]<=0) continue; any=true; const j=i*3;
       this.life[i]-=dt;
@@ -38,8 +69,30 @@ class PS{
       else if(m===3){ if(Math.random()<0.26){ k=2.4; r=g=b=1; } else k*=0.06; }
       else k*=0.45+Math.random()*1.05;
       this.col[j]=r*k; this.col[j+1]=g*k; this.col[j+2]=b*k;
+      /* Leuchtspur aus der zurueckgerechneten Flugbahn */
+      if(S&&this.tl[i]>0){
+        const T=Math.min(this.tl[i],this.maxl[i]-this.life[i]);
+        if(T>0.02){
+          const x=this.pos[j], y=this.pos[j+1], z=this.pos[j+2];
+          const vx=this.vel[j], vy=this.vel[j+1]+this.grav[i]/ZIEH, vz=this.vel[j+2], gk=this.grav[i]/ZIEH;
+          const hell=f*(m===4?0.75:0.9);
+          let px=x, py=y, pz=z;
+          for(let s=1;s<=S;s++){
+            const tau=T*s/S, A=(Math.exp(ZIEH*tau)-1)/ZIEH;
+            const qx=x-vx*A, qy=y-vy*A+gk*tau, qz=z-vz*A;
+            const a0=hell*Math.pow(1-(s-1)/S,1.6), a1=hell*Math.pow(1-s/S,1.6);
+            const o=nl*6;
+            lp[o]=px; lp[o+1]=py; lp[o+2]=pz; lp[o+3]=qx; lp[o+4]=qy; lp[o+5]=qz;
+            lc[o]=r*a0; lc[o+1]=g*a0; lc[o+2]=b*a0; lc[o+3]=r*a1; lc[o+4]=g*a1; lc[o+5]=b*a1;
+            nl++; px=qx; py=qy; pz=qz;
+          }
+        }
+      }
     }
     if(any||this.dirty){ this.geo.attributes.position.needsUpdate=true; this.geo.attributes.color.needsUpdate=true; }
+    if(S){ this.lgeo.setDrawRange(0,nl*2);
+      if(nl||this.nl){ this.lgeo.attributes.position.needsUpdate=true; this.lgeo.attributes.color.needsUpdate=true; }
+      this.nl=nl; }
     this.dirty=any;
   }
 }
@@ -495,11 +548,65 @@ EFF.kaskade=function(p,A,B,s){
     sfx.crack(distVol(q)*0.8);
   });
 };
+
+/* =========================================================
+   Bruchbilder nach Toms Vorlagen: Schneeflocke, Spirale,
+   Ring im Ring, Strauss aus kleinen Kugeln
+   ========================================================= */
+/* Schneeflocke: sechs Arme in einer Ebene, jeder mit Seitenaesten */
+EFF.schneeflocke=function(p,A,B,s){
+  const [u,v]=basis(), sp=11*s, c=FW.silber;
+  const dir=a=>[u[0]*Math.cos(a)+v[0]*Math.sin(a),u[1]*Math.cos(a)+v[1]*Math.sin(a),u[2]*Math.cos(a)+v[2]*Math.sin(a)];
+  for(let k=0;k<6;k++){ const a=k/6*Math.PI*2, d=dir(a);
+    const n=Math.round(22*QUAL());
+    for(let i=0;i<n;i++){ const f=0.12+i/n*0.9;
+      psBig.emit(p.x,p.y,p.z,d[0]*sp*f,d[1]*sp*f,d[2]*sp*f,c[0],c[1],c[2],rand(1.8,2.3),0.9,0); }
+    /* Seitenaeste bei 35, 55 und 75 Prozent, nach aussen kuerzer */
+    for(const [f0,L] of [[0.35,0.34],[0.55,0.26],[0.75,0.18]]) for(const sg of [-1,1]){
+      const d2=dir(a+sg*Math.PI/3);
+      for(let i=1;i<=Math.round(7*QUAL());i++){ const w=L*i/7;
+        psBig.emit(p.x,p.y,p.z,(d[0]*f0+d2[0]*w)*sp,(d[1]*f0+d2[1]*w)*sp,(d[2]*f0+d2[2]*w)*sp,A[0]*0.5+0.5,A[1]*0.5+0.5,A[2]*0.5+0.5,rand(1.6,2.1),0.9,0); } }
+    psHuge.emit(p.x,p.y,p.z,d[0]*sp,d[1]*sp,d[2]*sp,1,1,1,rand(1.9,2.3),0.9,0);
+  }
+};
+/* Spirale: acht gebogene Arme, die sich im Kreis drehen */
+EFF.spirale=function(p,A,B,s){
+  const [u,v]=basis(), sp=10.5*s, arme=8;
+  for(let k=0;k<arme;k++){ const a0=k/arme*Math.PI*2;
+    const n=Math.round(26*QUAL());
+    for(let i=0;i<n;i++){ const f=0.15+i/n*0.85, a=a0+f*1.9, c=i%3?A:B;
+      const dx=u[0]*Math.cos(a)+v[0]*Math.sin(a), dy=u[1]*Math.cos(a)+v[1]*Math.sin(a), dz=u[2]*Math.cos(a)+v[2]*Math.sin(a);
+      psBig.emit(p.x,p.y,p.z,dx*sp*f,dy*sp*f,dz*sp*f,c[0],c[1],c[2],rand(1.7,2.2),1.4,i%4?0:4); } }
+};
+/* Ring im Ring: aussen ein Ring, innen ein kleinerer in der Gegenfarbe */
+EFF.ringring=function(p,A,B,s){
+  const [u,v]=basis();
+  for(const [c,sp,n] of [[A,10*s,110],[B,5.4*s,70]]) for(let i=0;i<Math.round(n*QUAL());i++){
+    const a=i/n*Math.PI*2, w=sp*rand(0.97,1.03);
+    const dx=u[0]*Math.cos(a)+v[0]*Math.sin(a), dy=u[1]*Math.cos(a)+v[1]*Math.sin(a), dz=u[2]*Math.cos(a)+v[2]*Math.sin(a);
+    psBig.emit(p.x,p.y,p.z,dx*w,dy*w,dz*w,c[0],c[1],c[2],rand(1.9,2.4),1.8,0); }
+};
+/* Strauss: sechs kleine Kugeln in sechs Farben um die Mitte */
+EFF.strauss=function(p,A,B,s){
+  const F=['rot','gold','blau','gruen','violett','orange'].map(K);
+  for(let k=0;k<6;k++){ const d=randDir(), r=rand(3.5,5.5)*s, q={x:p.x+d[0]*r,y:p.y+d[1]*r*0.7,z:p.z+d[2]*r}, c=F[k];
+    const m=Math.round(80*s*QUAL());
+    for(let i=0;i<m;i++){ const e=randDir(), w=rand(4.2,5.4)*s;
+      psBig.emit(q.x,q.y,q.z,e[0]*w,e[1]*w,e[2]*w,c[0],c[1],c[2],rand(1.5,2.0),2.4,0); }
+    kern(q,c,s*0.6); }
+};
+/* Wie lang die Leuchtspur je Bruchbild ist (Sekunden Flugbahn) */
+const EFF_SCHWEIF={kugel:0.4,chrys:0.75,wechsel:0.35,weide:1.9,palme:1.1,ring:0.3,doppelring:0.3,crossette:0.35,
+  knister:0.3,blink:0,brokat:1.3,herz:0.18,stern:0.18,kreisel:0.4,fische:0.25,doppel:0.4,dreifach:0.45,
+  dahlie:0.45,pistill:0.4,kamuro:1.8,spinne:0.5,strobe:0,zeitregen:0.9,blaetter:0,geist:0.35,salut:0.08,saturn:0.3,
+  tausend:0.25,mehrring:0.35,regenbogen:0.4,glitzerweide:2.0,komet:0.9,titan:0.8,zehnfach:0.35,kaskade:0.5,
+  schneeflocke:0.22,spirale:0.3,ringring:0.25,strauss:0.35,furz:0};
+function mitSchweif(eff,fn){ const alt=SCHWEIF; SCHWEIF=EFF_SCHWEIF[eff]!==undefined?EFF_SCHWEIF[eff]:null; try{ fn(); } finally { SCHWEIF=alt; } }
 const EFF_ALL=Object.keys(EFF);
 /* Was in welcher Groessenklasse geschossen wird */
-const EFF_KLEIN=['kugel','ring','knister','fische','kreisel','wechsel','spinne','strobe','tausend','regenbogen'];
-const EFF_GROSS=['chrys','weide','palme','brokat','doppelring','crossette','dreifach','blink','dahlie','pistill','geist','saturn','blaetter','mehrring','komet','kaskade','glitzerweide'];
-const EFF_PRO=['kamuro','brokat','pistill','zeitregen','dahlie','geist','weide','palme','saturn','chrys','mehrring','komet','glitzerweide','titan'];
+const EFF_KLEIN=['kugel','ring','knister','fische','kreisel','wechsel','spinne','strobe','tausend','regenbogen','ringring','spirale'];
+const EFF_GROSS=['chrys','weide','palme','brokat','doppelring','crossette','dreifach','blink','dahlie','pistill','geist','saturn','blaetter','mehrring','komet','kaskade','glitzerweide','schneeflocke','spirale','ringring','strauss'];
+const EFF_PRO=['kamuro','brokat','pistill','zeitregen','dahlie','geist','weide','palme','saturn','chrys','mehrring','komet','glitzerweide','titan','strauss'];
 
 /* =========================================================
    Raketen
@@ -551,13 +658,13 @@ function ringLage(n,r,kipp){
 }
 function kugelbombe(o,kal,opt){
   opt=opt||{};
-  const K4=Math.max(1,Math.min(4,kal|0));
+  const K4=Math.max(1,Math.min(5,kal|0));
   const [A,B]=opt.A?[opt.A,opt.B||opt.A]:scheme();
-  const groesse=[1.25,1.6,2.0,2.3][K4-1];
-  /* Bruchhoehe etwa 20, 24, 27 und 30 m: hoch genug fuer die grossen
-     Kugeln, aber vom Zuendpult aus noch im Bild */
-  const steig=[1,3,4,5][K4-1];
-  const zuend=[1.4,1.6,1.8,1.95][K4-1];
+  const groesse=[1.4,1.8,2.3,2.7,3.2][K4-1];
+  /* Bruchhoehe etwa 20, 24, 27, 30 und 36 m: hoch genug fuer die
+     grossen Kugeln, aber vom Zuendpult aus noch im Bild */
+  const steig=[1,3,4,5,8][K4-1];
+  const zuend=[1.4,1.6,1.8,1.95,2.25][K4-1];
   /* Abschussknall und Muendungsfeuer im Rohr */
   const v0=distVol(o);
   sfx.boom(Math.min(1.5,v0*(0.55+0.2*K4)));
@@ -599,6 +706,20 @@ function kugelbombe(o,kal,opt){
     stufen.push({t:2.36,eff:'salut',sz:1.0,streu:4,A:FW.weiss,B:FW.weiss});
     stufen.push({t:2.5,eff:'salut',sz:0.9,streu:6,A:FW.weiss,B:FW.weiss});
   }
+  if(K4===5){
+    /* 300 mm Himmelsbrecher: ein Riesenball, dann zwoelf Brueche im
+       Ring, ein zweiter Ring quer dazu, eine Crossette-Krone, zum
+       Schluss eine silberne Weide ueber den ganzen Himmel und Salut */
+    const F=[A,B,C,FW.weiss,FW.gold,FW.tuerkis];
+    ringLage(12,13).forEach((off,i)=>stufen.push({t:0.55,off,leise:i>0,
+      eff:pick(['pistill','mehrring','ringring','regenbogen','schneeflocke']),sz:groesse*0.3,A:F[i%6],B:F[(i+3)%6]}));
+    ringLage(12,9,1.3).forEach((off,i)=>stufen.push({t:1.15,off,leise:i>0,
+      eff:pick(['spirale','kugel','strauss','dahlie']),sz:groesse*0.28,A:F[(i+1)%6],B:F[(i+4)%6]}));
+    stufen.push({t:1.8,eff:'crossette',sz:groesse*0.55,streu:1,A:FW.gold,B:FW.weiss});
+    stufen.push({t:2.2,eff:'tausend',sz:groesse*0.7,streu:2,A:FW.weiss,B:FW.weiss});
+    stufen.push({t:2.8,eff:'glitzerweide',sz:groesse*0.8,streu:1,A,B});
+    for(let i=0;i<4;i++) stufen.push({t:2.9+i*0.12,eff:'salut',sz:1.0,streu:8,A:FW.weiss,B:FW.weiss});
+  }
   shot(o,{pw:steig,sz:groesse,eff:haupt,fuse:zuend,A,B,
           trail:K4>=3?FW.weiss:FW.gold,dick:Math.min(3,K4),stufen});
 }
@@ -612,7 +733,7 @@ function mine(o,A,B,s){
 }
 function fwBurst(r){
   const p=r.p, fn=EFF[r.eff]||EFF.kugel;
-  fn(p,r.A,r.B,r.size);
+  mitSchweif(r.eff,()=>fn(p,r.A,r.B,r.size));
   kern(p,r.A,r.size);
   /* Grosse Brueche glitzern kurz nach dem Aufgehen noch einmal nach */
   if(r.size>=1.1&&r.eff!=='salut'&&r.eff!=='furz') later(0.75,()=>nachglitzer(p,r.size));
@@ -628,7 +749,7 @@ function fwBurst(r){
     const q=st.off?{x:p.x+st.off[0],y:p.y+st.off[1],z:p.z+st.off[2]}
                   :{x:p.x+rand(-st.streu,st.streu),y:p.y+rand(-st.streu*0.55,st.streu*0.55),z:p.z+rand(-st.streu,st.streu)};
     later(st.t,()=>{
-      (EFF[st.eff]||EFF.kugel)(q,st.A||r.A,st.B||r.B,st.sz);
+      mitSchweif(st.eff,()=>(EFF[st.eff]||EFF.kugel)(q,st.A||r.A,st.B||r.B,st.sz));
       if(!st.leise) kern(q,st.A||r.A,st.sz);
       if(st.eff!=='salut'&&!st.leise){
         flash(q,st.A||mix,1.6+2.2*st.sz,0.5);
@@ -677,6 +798,28 @@ function updateFireworks(dt){
       e.fl=(e.fl||0)-dt; if(e.fl<=0){ e.fl=0.3; flash({x:o.x,y:o.y+1.4,z:o.z},A,big?1.8:1.2,0.34); }
       for(let k=0;k<n;k++){ const a=Math.random()*Math.PI*2, s=rand(0.3,wf?2.6:big?1.9:1.2), c=Math.random()<0.72?A:B;
         psMid.emit(o.x+(wf?rand(-1.6,1.6):0),o.y+0.2,o.z,Math.cos(a)*s,wf?rand(3,6):rand(4.5,big?10.5:6.8),Math.sin(a)*s,c[0],c[1],c[2],rand(0.8,wf?2.4:big?1.9:1.3),wf?7:5,4); } }
+    else if(e.k==='riesen'){
+      /* Riesenfontaene: ein Goldstrahl von zehn Metern und mehr, oben
+         eine knisternde Krone, dazwischen farbige Sterne. Die Menge je
+         Sekunde ist fest, nicht je Bild - sonst waere sie auf schnellen
+         Rechnern dichter. */
+      const H=e.h||1, A=e.A||FW.gold, B=e.B||FW.weiss;
+      e.fl=(e.fl||0)-dt; if(e.fl<=0){ e.fl=0.22; flash({x:o.x,y:o.y+4,z:o.z},A,2.6*H,0.3); }
+      e.acc=(e.acc||0)+dt*560*H*QUAL();
+      const alt=SCHWEIF; SCHWEIF=0.6;
+      for(;e.acc>=1;e.acc--){ const a=Math.random()*Math.PI*2, w=rand(0,1.5)*H, c=Math.random()<0.8?A:B;
+        psMid.emit(o.x,o.y+0.25,o.z,Math.cos(a)*w,rand(17,21)*Math.sqrt(H),Math.sin(a)*w,c[0],c[1],c[2],rand(1.6,2.6),6,4); }
+      e.acc2=(e.acc2||0)+dt*16*H;
+      SCHWEIF=0.45;
+      for(;e.acc2>=1;e.acc2--){ const a=Math.random()*Math.PI*2, w=rand(0.5,2.4)*H, c=e.C||pick(SCHEMES.map(x=>K(x[0])));
+        psBig.emit(o.x,o.y+0.25,o.z,Math.cos(a)*w,rand(19,24)*Math.sqrt(H),Math.sin(a)*w,c[0],c[1],c[2],rand(2.0,2.6),6,0); }
+      SCHWEIF=alt;
+      /* knisternde Krone auf etwa zehn Metern */
+      const kr=10.2*H;
+      for(let k=0;k<Math.round(dt*220*H);k++){ const a=Math.random()*Math.PI*2, r=rand(0,2.4)*H;
+        psSmall.emit(o.x+Math.cos(a)*r,o.y+kr+rand(-1.2,0.6),o.z+Math.sin(a)*r,rand(-.5,.5),rand(-1,0.5),rand(-.5,.5),1,.95,.8,rand(0.2,0.45),2,3); }
+      e.kn=(e.kn||0)-dt; if(e.kn<=0){ e.kn=rand(0.35,0.8); sfx.crackle(distVol(o)*0.6); }
+      e.fz=(e.fz||0)-dt; if(e.fz<=0){ e.fz=1.2; sfx.fizz(distVol(o)); } }
     else if(e.k==='furzfont'){
       /* brauner Schweif, waehrend die Rakete steigt */
       for(let k=0;k<9;k++){ const a=Math.random()*Math.PI*2, sp=rand(0.2,1.3);

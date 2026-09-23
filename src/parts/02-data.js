@@ -80,6 +80,11 @@ const P={
     art:{title:'BLITZGEWITTER',sub:'48 Schuss Z-Fächer',bg1:'#0f2a4a',bg2:'#02060f',ac:'#f2f5ff',ac2:'#5ce1ff'}},
   kometen:{name:'Kometenregen · 64 Schuss Brokat',short:'Kometen 64',cat:2,lvl:19,shape:'battery',dims:[0.34,0.26,0.32],grid:[4,1,1],box:3,cost:36.00,market:82.99,weight:4,hype:66,risk:9,
     art:{title:'KOMETENREGEN',sub:'64 Schuss Brokat',bg1:'#4a3308',bg2:'#150e02',ac:'#ffd23f',ac2:'#ff7a3d',gold:true}},
+  /* Riesenfontaenen: zehn bzw. fuenfzehn Meter Feuer vom Boden */
+  goldgeysir:{name:'Goldgeysir · 10-m-Riesenfontäne',short:'Goldgeysir',cat:2,lvl:14,shape:'cylinder',dims:[0.2,0.34,0.2],grid:[8,1,1],box:4,cost:11.00,market:26.99,weight:5,hype:36,risk:7,
+    art:{title:'GOLDGEYSIR',sub:'10 m Riesenfontäne · 20 s',bg1:'#6b4a0c',bg2:'#1f1402',ac:'#ffd23f',ac2:'#fff3c4',gold:true}},
+  feuersaeule:{name:'Feuersäule · 15-m-Farbfontäne',short:'Feuersäule',cat:2,lvl:20,shape:'cylinder',dims:[0.24,0.4,0.24],grid:[6,1,1],box:3,cost:24.00,market:57.99,weight:4,hype:62,risk:9,
+    art:{title:'FEUERSÄULE',sub:'15 m · Farbwechsel · 28 s',bg1:'#7a1010',bg2:'#1a0202',ac:'#ff7a1c',ac2:'#ffd23f',gold:true}},
   wasserfall:{name:'Niagara · Silberwasserfall 3 m',short:'Wasserfall',cat:2,lvl:18,shape:'cylinder',dims:[0.16,0.36,0.16],grid:[10,1,1],box:5,cost:14.00,market:32.99,weight:4,hype:38,risk:7,
     art:{title:'NIAGARA',sub:'3 m Silberfall, 60 s',bg1:'#8a9299',bg2:'#2a2f36',ac:'#f2f5ff',ac2:'#5ce1ff'}},
   bowle:{name:'Feuerzangenbowle-Set',short:'Bowle-Set',cat:0,lvl:13,shape:'boxA',dims:[0.18,0.14,0.14],grid:[8,1,1],box:8,cost:6.50,market:15.99,weight:5,hype:0,risk:3,
@@ -88,6 +93,8 @@ const P={
     art:{title:'BLANKO',sub:'Für Gravur',bg1:'#4a4f5e',bg2:'#1b1e28',ac:'#f2f5ff',ac2:'#ffd23f'}},
   gravur:{name:'Gravur-Rakete',short:'Gravur',cat:2,lvl:9,shape:'rocketset',dims:[0.42,0.055,0.11],grid:[1,1,1],box:1,cost:3.20,market:24.99,weight:0,hype:16,risk:7,noShelf:true,noWish:true,noOrder:true,
     art:{title:'FÜR DICH',sub:'Persönliche Gravur',bg1:'#6a24c9',bg2:'#25093f',ac:'#ffd23f',ac2:'#ff4fa3'}},
+  donnerwand:{name:'Donnerwand · 120 Schuss Salvenwand',short:'Donnerwand',cat:2,lvl:20,shape:'battery',dims:[0.5,0.3,0.4],grid:[3,1,1],box:2,cost:47.00,market:109.99,weight:3,hype:78,risk:10,
+    art:{title:'DONNERWAND',sub:'120 Schuss · 20 Salven',bg1:'#1c1c24',bg2:'#000000',ac:'#ff3b2e',ac2:'#f2f5ff'}},
   profi:{name:'Götterfunken · 200 Schuss Profiverbund',short:'Götterfunken',cat:2,lvl:22,shape:'battery',dims:[0.55,0.36,0.42],grid:[3,1,1],box:1,cost:68.00,market:149.99,weight:3,hype:90,risk:10,
     art:{title:'GÖTTERFUNKEN',sub:'200 Schuss Profi',bg1:'#0e1226',bg2:'#000000',ac:'#ffd23f',ac2:'#e63b2e',gold:true}},
   finale:{name:'Weltuntergang · 300 Schuss Finale',short:'Weltuntergang',cat:2,lvl:24,shape:'battery',dims:[0.58,0.34,0.42],grid:[2,1,1],box:1,cost:115.00,market:249.99,weight:2,hype:100,risk:10,
@@ -107,6 +114,8 @@ const P={
     art:{title:'WELTENBRAND',sub:'Kugelbombe 150 mm · Mehrfachbruch',bg1:'#1a0b2e',bg2:'#050109',ac:'#c8a2ff',ac2:'#ffd23f',gold:true}},
   kugel200:{name:'Götterzorn · Kugelbombe 200 mm Zehnfachbruch',short:'Kugel 200',cat:2,lvl:21,shape:'shell',dims:[0.21,0.25,0.21],grid:[3,1,1],box:2,cost:44.00,market:104.99,weight:4,hype:95,risk:10,
     art:{title:'GÖTTERZORN',sub:'200 mm · zehn Brüche auf einmal',bg1:'#2a0f5a',bg2:'#050109',ac:'#ff4fd8',ac2:'#ffd23f',gold:true}},
+  kugel300:{name:'Himmelsbrecher · Kugelbombe 300 mm',short:'Kugel 300',cat:2,lvl:23,shape:'shell',dims:[0.3,0.34,0.3],grid:[2,1,1],box:1,cost:70.00,market:164.99,weight:3,hype:100,risk:10,
+    art:{title:'HIMMELSBRECHER',sub:'300 mm · 24 Brüche · Silberweide',bg1:'#0e1226',bg2:'#000000',ac:'#d1e5ff',ac2:'#ffd23f',gold:true}},
   /* Fontaene, die oben in einen Kometen uebergeht und aufblueht */
   sternenbrunnen:{name:'Sternenbrunnen · Fontäne mit Aufstieg',short:'Sternenbrunnen',cat:2,lvl:12,shape:'cylinder',dims:[0.145,0.34,0.145],grid:[7,2,1],box:6,cost:7.90,market:18.99,weight:7,hype:26,risk:6,
     art:{title:'STERNENBRUNNEN',sub:'Fontäne, Komet, Blüte',bg1:'#123a6b',bg2:'#04101f',ac:'#5ce1ff',ac2:'#ffd23f'}}

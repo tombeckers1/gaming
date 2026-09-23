@@ -550,10 +550,11 @@ function raketeModell(t){
   return g;
 }
 /* Kugelbombe im Rohr mit Zuendschnur ueber den Rand */
-const KUGEL_R={kugel75:0.042,kugel100:0.058,kugel150:0.08,kugel200:0.1};
+const KUGEL_R={kugel75:0.042,kugel100:0.058,kugel150:0.08,kugel200:0.1,kugel300:0.15};
 const MOERSER_R=[0.115,0.145,0.185];
 function kugelModell(t,slot){
-  const g=new THREE.Group(), rk=KUGEL_R[t]||0.06, rr=MOERSER_R[slot%3]*0.9;
+  /* passt nicht jede Kugel in jedes Rohr - dann eben knapp unter die Innenweite */
+  const g=new THREE.Group(), rr=MOERSER_R[slot%3]*0.9, rk=Math.min(KUGEL_R[t]||0.06,rr*0.92);
   const papier=std(0xb58a55,{roughness:0.95});
   const kugel=new THREE.Mesh(new THREE.SphereGeometry(rk,HIQ?16:10,HIQ?12:8),papier);
   kugel.position.y=-0.14-rk; g.add(kugel);
@@ -635,11 +636,11 @@ function brennDauer(t){
   const p=P[t]; if(!p) return 3;
   if(typeof SHOWS!=='undefined'&&SHOWS[t]) return 0.8+showLength(t)+1.5;
   const fest={wunder:5,knallerbsen:2.2,knallfrosch:2.8,tisch:3,schwaermer:3.8,vulkan:14,wasserfall:23,
-    sternenbrunnen:6,fontaene:12,furzrakete:6,heuler:5};
+    sternenbrunnen:6,fontaene:12,goldgeysir:22,feuersaeule:30,furzrakete:6,heuler:5};
   if(fest[t]) return fest[t];
   if(p.rezept) return 7;
   const sh=p.shape;
-  if(sh==='shell') return {kugel150:4.5,kugel200:5}[t]||3.5;
+  if(sh==='shell') return {kugel150:4.5,kugel200:5,kugel300:6.5}[t]||3.5;
   if(sh==='tubepack') return 2.6;
   if(sh==='rocketset'){ const k=typeof RAKETEN_KL!=='undefined'&&RAKETEN_KL[t]; return k?Math.max(3,(k.n-1)*k.gap+2):3; }
   if(sh==='battery'||sh==='fan') return 9;

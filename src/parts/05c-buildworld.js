@@ -226,11 +226,17 @@ function buildWorld(){
   for(const x of [-11,-4,3,10]) strassenlampe(x,10.9,Math.PI);
   buildStreet();
   buildStadt();
-  skyGeo=new THREE.SphereGeometry(760,32,18); skyGeo.setAttribute('color',new THREE.BufferAttribute(new Float32Array(skyGeo.attributes.position.count*3),3));
-  scene.add(new THREE.Mesh(skyGeo,new THREE.MeshBasicMaterial({vertexColors:true,side:THREE.BackSide,fog:false,depthWrite:false})));
-  const sp=[]; for(let i=0;i<500;i++){ const a=Math.random()*Math.PI*2, e=rand(0.12,1.45), r=700; sp.push(Math.cos(a)*Math.cos(e)*r,Math.sin(e)*r,Math.sin(a)*Math.cos(e)*r); }
+  /* Himmel: die Kuppel muss innerhalb der Sichtweite der Kamera
+     (300 m) liegen, sonst wird sie weggeschnitten und man sieht nur
+     die Hintergrundfarbe. Sie wandert mit dem Spieler mit, damit sie
+     trotz des kleineren Radius nie naeher kommt. */
+  skyGeo=new THREE.SphereGeometry(SKY_R,48,64); skyGeo.setAttribute('color',new THREE.BufferAttribute(new Float32Array(skyGeo.attributes.position.count*3),3));
+  skyMesh=new THREE.Mesh(skyGeo,new THREE.MeshBasicMaterial({vertexColors:true,side:THREE.BackSide,fog:false,depthWrite:false}));
+  skyMesh.renderOrder=-10; skyMesh.frustumCulled=false; scene.add(skyMesh);
+  const sp=[]; for(let i=0;i<700;i++){ const a=Math.random()*Math.PI*2, e=rand(0.12,1.45), r=SKY_R-15; sp.push(Math.cos(a)*Math.cos(e)*r,Math.sin(e)*r,Math.sin(a)*Math.cos(e)*r); }
   const sg=new THREE.BufferGeometry(); sg.setAttribute('position',new THREE.Float32BufferAttribute(sp,3));
-  starsMat=new THREE.PointsMaterial({color:0xffffff,size:1.6,sizeAttenuation:false,transparent:true,opacity:0,fog:false}); scene.add(new THREE.Points(sg,starsMat));
+  starsMat=new THREE.PointsMaterial({color:0xffffff,size:1.6,sizeAttenuation:false,transparent:true,opacity:0,fog:false,depthWrite:false});
+  starPts=new THREE.Points(sg,starsMat); starPts.renderOrder=-9; starPts.frustumCulled=false; scene.add(starPts);
   const N=COARSE?500:1100, sp2=new Float32Array(N*3); for(let i=0;i<N;i++){ sp2[i*3]=rand(-30,30); sp2[i*3+1]=rand(0,14); sp2[i*3+2]=rand(-24,30); }
   const sg2=new THREE.BufferGeometry(); sg2.setAttribute('position',new THREE.BufferAttribute(sp2,3));
   snowPts=new THREE.Points(sg2,new THREE.PointsMaterial({color:0xffffff,size:0.09,map:dotTex,transparent:true,opacity:0.9,depthWrite:false})); snowPts.frustumCulled=false; scene.add(snowPts);

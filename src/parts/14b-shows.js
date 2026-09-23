@@ -3,6 +3,8 @@
    Choreografie: Batterien und Verbunde laufen als Show ab
    ========================================================= */
 const FANDIR=Math.PI/2;                 // Fächer quer zum Blickfeld
+/* Alle Verbunde brechen ein Fuenftel groesser als frueher */
+const SHOW_GROESSE=1.2;
 function playShow(o,phases){
   let t=0;
   phases.forEach(ph=>{
@@ -19,7 +21,7 @@ function playShow(o,phases){
       const eff=Array.isArray(ph.eff)?pick(ph.eff):(ph.eff||pick(EFF_GROSS));
       const sc=ph.sc==='each'?-1:fixed;
       const dir=ph.fan||ph.vfan?FANDIR:undefined;
-      const opt={eff,sz:ph.sz||1,pw:ph.pw||0,ang,dir,sc,fuse:ph.fuse,dick:ph.dick};
+      const opt={eff,sz:(ph.sz||1)*SHOW_GROESSE,pw:ph.pw||0,ang,dir,sc,fuse:ph.fuse,dick:ph.dick};
       later(tt,()=>{
         if(ph.mine) mine(o,scheme(sc)[0],scheme(sc)[1],ph.mineSz||0.8);
         /* bomb: echte Kugelbombe mit Nachbruechen statt einer Rakete */
@@ -108,6 +110,30 @@ const SHOWS={
     {n:14,gap:0.35,eff:['chrys','dreifach','crossette','brokat','zeitregen','mehrring'],sc:'each',sz:1.3,pw:4,pause:1.2},
     {n:12,gap:0.22,eff:['palme','weide','kamuro','chrys','pistill','glitzerweide'],sc:'each',sz:1.55,pw:7,pause:0.8},
     {n:5,gap:0.12,eff:'salut',sz:1.1,pause:4.0}
+  ],
+  /* Donnerwand, 120 Schuss in Salven: jede Salve sechs Rohre auf
+     einmal im Faecher, dazwischen kurze Luft - eine Wand aus Feuer */
+  donnerwand:()=>[
+    {n:6,gap:0.07,eff:'kugel',fan:true,ang:0.55,sz:1.05,mine:true,mineSz:1.4,pause:3.3},
+    {n:6,gap:0.07,eff:'ringring',fan:true,ang:-0.55,sz:1.05,pause:3.3},
+    {n:6,gap:0.07,eff:'palme',fan:true,ang:0.55,sz:1.1,pw:2,pause:3.7},
+    {n:6,gap:0.07,eff:['chrys','spirale'],fan:true,ang:-0.55,sz:1.1,pause:3.3},
+    {n:6,gap:0.07,eff:'spinne',fan:true,ang:0.55,sz:1.1,pause:3.3},
+    {n:6,gap:0.07,eff:'glitzerweide',fan:true,ang:-0.5,sz:1.15,pw:3,pause:4.3},
+    {n:6,gap:0.07,eff:['schneeflocke','stern'],fan:true,ang:0.55,sz:1.1,pause:3.5},
+    {n:6,gap:0.07,eff:'tausend',fan:true,ang:-0.55,sz:1.1,pause:3.3},
+    {n:6,gap:0.07,eff:['mehrring','pistill'],fan:true,ang:0.55,sz:1.2,pw:2,pause:3.7},
+    {n:6,gap:0.07,eff:'komet',fan:true,ang:-0.55,sz:1.2,pw:2,pause:3.5},
+    {n:6,gap:0.07,eff:'kamuro',fan:true,ang:0.5,sz:1.25,pw:3,pause:4.5},
+    {n:6,gap:0.07,eff:['regenbogen','strauss'],fan:true,ang:-0.55,sz:1.2,pause:3.5},
+    {n:6,gap:0.07,eff:'crossette',fan:true,ang:0.55,sz:1.2,pw:2,pause:3.5},
+    {n:6,gap:0.07,eff:'brokat',fan:true,ang:-0.55,sz:1.25,pw:3,pause:4.1},
+    {n:6,gap:0.07,eff:['dahlie','titan'],fan:true,ang:0.55,sz:1.3,pw:3,pause:3.7},
+    {n:6,gap:0.07,eff:'weide',fan:true,ang:-0.55,sz:1.3,pw:3,pause:4.5},
+    {n:6,gap:0.07,eff:'strauss',fan:true,ang:0.55,sz:1.3,pw:3,pause:3.3},
+    {n:6,gap:0.07,eff:'glitzerweide',fan:true,ang:-0.55,sz:1.35,pw:4,pause:2.7},
+    {n:6,gap:0.07,eff:['titan','mehrring'],fan:true,ang:0.55,sz:1.4,pw:4,pause:2.3},
+    {n:6,gap:0.05,eff:'salut',fan:true,ang:-0.5,sz:1.2,pause:5.0}
   ],
   /* Profi-Verbund, 200 Schuss: gut zwei Minuten, Wasserfaelle, Kugelbomben und
      ein Zehnfachbruch in der Mitte */
@@ -221,8 +247,21 @@ function igniteType(t,o0){
   }
   /* ----- Kugelbomben aus der Moerserbatterie ----- */
   if(sh==='shell'){
-    const kal={kugel75:1,kugel100:2,kugel150:3,kugel200:4}[t]||1;
+    const kal={kugel75:1,kugel100:2,kugel150:3,kugel200:4,kugel300:5}[t]||1;
     kugelbombe(o,kal);
+    return;
+  }
+  /* ----- Riesenfontaenen ----- */
+  if(t==='goldgeysir'||t==='feuersaeule'){
+    const gross=t==='feuersaeule', dauer=gross?28:20;
+    const e={t:dauer,k:'riesen',o,h:gross?1.35:1,A:FW.gold,B:FW.weiss};
+    emitters.push(e);
+    /* die Feuersaeule wechselt alle paar Sekunden die Farbe */
+    if(gross) for(let i=1;i<6;i++) later(i*dauer/6,()=>{ const [A,B]=scheme(); e.A=A; e.B=FW.gold; e.C=B; });
+    /* zum Schluss steigen aus der Fontaene Kometen mit Bluete auf */
+    const n=gross?7:4;
+    for(let i=0;i<n;i++) later(dauer-1.8+i*0.22,()=>shot(o,{pw:gross?3:0,sz:gross?1.35:1.05,
+      eff:pick(gross?['palme','glitzerweide','mehrring','titan']:['palme','chrys','kugel']),ang:rand(-0.25,0.25),trail:FW.gold}));
     return;
   }
   /* ----- Sternenbrunnen: Fontaene, Komet, Bluete ----- */

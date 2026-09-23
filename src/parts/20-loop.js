@@ -11,7 +11,7 @@ function applyTOD(){
   if(Math.abs(f-lastF)<0.002) return; lastF=f;
   mix3(SKY.top,f,_c1); mix3(SKY.hor,f,_c2);
   const pos=skyGeo.attributes.position, colA=skyGeo.attributes.color;
-  for(let i=0;i<pos.count;i++){ const y=pos.getY(i)/760, k=y<0?0:Math.pow(y,0.55); _c3.copy(_c2).lerp(_c1,k); if(y<0) _c3.multiplyScalar(0.6); colA.setXYZ(i,_c3.r,_c3.g,_c3.b); }
+  for(let i=0;i<pos.count;i++){ const y=pos.getY(i)/SKY_R, k=y<0?0:Math.pow(y,0.55); _c3.copy(_c2).lerp(_c1,k); if(y<0) _c3.multiplyScalar(0.6); colA.setXYZ(i,_c3.r,_c3.g,_c3.b); }
   colA.needsUpdate=true; scene.fog.color.copy(_c2);
   sun.intensity=1.6*(1-f)+0.05; hemi.intensity=0.72*(1-f)+0.16;
   starsMat.opacity=clamp((f-0.6)/0.4,0,1);

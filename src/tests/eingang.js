@@ -36,7 +36,10 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   /* Vor die Tuer stellen und ein paar Bilder laufen lassen, damit
      der Bewegungsmelder anspricht - die Tuer geht im Loop auf. */
   await p.evaluate(()=>window.__bb.setView(window.__bb.EING2.x,4.6,0,0));
-  await p.waitForTimeout(6000);
+  /* Warten, bis die Tuer offen ist, statt einer festen Zeit: im
+     Software-Renderer der Tests schwankt die Bildrate stark. */
+  await p.waitForFunction(()=>window.__bb.EING2.tuer.t>0.3,{timeout:20000}).catch(()=>{});
+  await p.waitForTimeout(500);
   const nach=await p.evaluate(()=>{
     const bb=window.__bb;
     const sicht=o=>{ for(let a=o;a;a=a.parent) if(!a.visible) return false; return true; };

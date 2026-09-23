@@ -65,6 +65,7 @@ class BufferGeometry{
   computeBoundingSphere(){this.boundingSphere={radius:1};}
   computeVertexNormals(){return this;}
   setIndex(){return this;}
+  setDrawRange(a,b){this.drawRange={start:a,count:b};return this;}
   dispose(){}
 }
 function mkGeo(n){
@@ -92,6 +93,7 @@ class Group extends Object3D{}
 class Scene extends Object3D{}
 class Mesh extends Object3D{constructor(g,m){super();this.geometry=g;this.material=m;this.isMesh=true;}}
 class Points extends Object3D{constructor(g,m){super();this.geometry=g;this.material=m;}}
+class LineSegments extends Object3D{constructor(g,m){super();this.geometry=g;this.material=m;}}
 class Sprite extends Object3D{constructor(m){super();this.material=m;}}
 class InstancedMesh extends Mesh{constructor(g,m,c){super(g,m);this.count=0;this.instanceMatrix=new BufferAttribute(new Float32Array(16*c),16);}
   setMatrixAt(i,m){this._last=m;}}
@@ -100,6 +102,7 @@ class Material{constructor(o){Object.assign(this,o||{});if(this.color===undefine
 class MeshStandardMaterial extends Material{}
 class MeshBasicMaterial extends Material{}
 class PointsMaterial extends Material{}
+class LineBasicMaterial extends Material{}
 class ShaderMaterial extends Material{constructor(o){super(o);this.uniforms=(o&&o.uniforms)||{};this.vertexShader=(o&&o.vertexShader)||'';this.fragmentShader=(o&&o.fragmentShader)||'';}}
 class WebGLRenderTarget{constructor(w,h,o){this.width=w||1;this.height=h||1;this.texture={encoding:0,image:{width:w,height:h}};this.samples=0;Object.assign(this,o||{});}
   setSize(w,h){this.width=w;this.height=h;this.texture.image={width:w,height:h};return this;}
@@ -128,7 +131,7 @@ class WebGLRenderer{
   getDrawingBufferSize(v){ if(v){v.x=1280;v.y=760;} return {x:1280,y:760}; }
   readRenderTargetPixels(){}
 }
-Object.assign(T,{Uniform,ShaderMaterial,WebGLRenderTarget,WebGLMultisampleRenderTarget,OrthographicCamera,LinearFilter:1006,NearestFilter:1003,RGBAFormat:1023,RGBFormat:1022,UnsignedByteType:1009,Vector3,Vector2,Euler,Quaternion,Matrix4,Color,BufferAttribute,Float32BufferAttribute,BufferGeometry,BoxGeometry,PlaneGeometry,CylinderGeometry,SphereGeometry,ConeGeometry,TorusGeometry,CircleGeometry,Object3D,Group,Scene,Mesh,Points,Sprite,InstancedMesh,Material,MeshStandardMaterial,MeshBasicMaterial,PointsMaterial,SpriteMaterial,HemisphereLight,DirectionalLight,PointLight,SpotLight,PerspectiveCamera,Fog,CanvasTexture,Raycaster,WebGLRenderer,
+Object.assign(T,{Uniform,ShaderMaterial,WebGLRenderTarget,WebGLMultisampleRenderTarget,OrthographicCamera,LinearFilter:1006,NearestFilter:1003,RGBAFormat:1023,RGBFormat:1022,UnsignedByteType:1009,HalfFloatType:1016,Vector3,Vector2,Euler,Quaternion,Matrix4,Color,BufferAttribute,Float32BufferAttribute,BufferGeometry,BoxGeometry,PlaneGeometry,CylinderGeometry,SphereGeometry,ConeGeometry,TorusGeometry,CircleGeometry,Object3D,Group,Scene,Mesh,Points,LineSegments,LineBasicMaterial,Sprite,InstancedMesh,Material,MeshStandardMaterial,MeshBasicMaterial,PointsMaterial,SpriteMaterial,HemisphereLight,DirectionalLight,PointLight,SpotLight,PerspectiveCamera,Fog,CanvasTexture,Raycaster,WebGLRenderer,
   RepeatWrapping:1000,ClampToEdgeWrapping:1001,SRGBColorSpace:'srgb',LinearSRGBColorSpace:'srgb-linear',NoToneMapping:0,HalfFloatType:1016,FloatType:1015,REVISION:'161-stub',sRGBEncoding:3001,DoubleSide:2,BackSide:1,AdditiveBlending:2,ACESFilmicToneMapping:4,PCFSoftShadowMap:2,DynamicDrawUsage:35048});
 window.THREE=T;
 })();

@@ -2,7 +2,8 @@
 /* =========================================================
    Wände, Böden, Welt
    ========================================================= */
-let lapHit, padHit, doorSign, doorSignTex, starsMat, posHit, cardHit, posTex, beltTex, skyGeo, lampMats=[], houseMats=[], snowPts;
+const SKY_R=285;
+let lapHit, padHit, doorSign, doorSignTex, starsMat, posHit, cardHit, posTex, beltTex, skyGeo, skyMesh=null, starPts=null, lampMats=[], houseMats=[], snowPts;
 let grimeMats=[], windowHits=[], winWork=0;
 let uhrStd=null, uhrMin=null, uhrSek=null;
 let wallTex=null, floorTexRef=null, shopWall=null, shopUpper=null, shopLower=null, floorMat=null;

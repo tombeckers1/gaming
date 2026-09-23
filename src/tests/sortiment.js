@@ -32,7 +32,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     const bb=window.__bb,P=bb.P,o={};
     bb.S.level=30; bb.S.money=9e6; bb.LIZENZEN.forEach(l=>bb.buyLizenz(l.id));
     o.weg=['batterie25','stinkbombe'].filter(t=>P[t]||bb.LIZENZEN.some(l=>l.items.includes(t)));
-    const NEU=['knatter','zfaecher','kometen','finale','pfeifraketen','titanraketen','kugel200'];
+    const NEU=['knatter','zfaecher','kometen','finale','pfeifraketen','titanraketen','kugel200','goldgeysir','feuersaeule','donnerwand','kugel300'];
     o.neu={};
     for(let i=0;i<4;i++) bb.regalStellen('hoch');
     NEU.forEach(t=>{ const q=P[t];
@@ -43,13 +43,13 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     Object.keys(bb.SHOWS).forEach(t=>{ const m=/(\d+) Schuss/.exec(P[t]&&P[t].name||''); if(!m) return;
       o.schuss[t]=[+m[1],bb.SHOWS[t]().reduce((a,ph)=>a+(ph.n||1),0)]; });
     /* Leiter: Schuss und Laenge wachsen */
-    const LEITER=['batterie16','knatter','faecher','zfaecher','batterie49','kometen','batterie100','profi','finale'];
+    const LEITER=['batterie16','knatter','faecher','zfaecher','batterie49','kometen','batterie100','donnerwand','profi','finale'];
     o.leiter=LEITER.map(t=>[t,bb.SHOWS[t]().reduce((a,ph)=>a+(ph.n||1),0),bb.showLength(t),P[t].market]);
     /* alle verwendeten Bruchbilder existieren */
     const benutzt=new Set([].concat(bb.EFF_KLEIN,bb.EFF_GROSS,bb.EFF_PRO));
     Object.keys(bb.SHOWS).forEach(t=>bb.SHOWS[t]().forEach(ph=>{ const e=ph.eff; (Array.isArray(e)?e:[e]).forEach(x=>x&&benutzt.add(x)); }));
     o.fehlend=[...benutzt].filter(e=>typeof bb.EFF[e]!=='function');
-    o.neueEff=['tausend','mehrring','regenbogen','glitzerweide','komet','titan','zehnfach','kaskade'].filter(e=>typeof bb.EFF[e]!=='function');
+    o.neueEff=['tausend','mehrring','regenbogen','glitzerweide','komet','titan','zehnfach','kaskade','schneeflocke','spirale','ringring','strauss'].filter(e=>typeof bb.EFF[e]!=='function');
     return o;
   });
   console.log('WEG     ',JSON.stringify(r.weg));

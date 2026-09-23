@@ -605,6 +605,11 @@ const P={
     art:{title:'BLITZGEWITTER',sub:'48 Schuss Z-Fächer',bg1:'#0f2a4a',bg2:'#02060f',ac:'#f2f5ff',ac2:'#5ce1ff'}},
   kometen:{name:'Kometenregen · 64 Schuss Brokat',short:'Kometen 64',cat:2,lvl:19,shape:'battery',dims:[0.34,0.26,0.32],grid:[4,1,1],box:3,cost:36.00,market:82.99,weight:4,hype:66,risk:9,
     art:{title:'KOMETENREGEN',sub:'64 Schuss Brokat',bg1:'#4a3308',bg2:'#150e02',ac:'#ffd23f',ac2:'#ff7a3d',gold:true}},
+  /* Riesenfontaenen: zehn bzw. fuenfzehn Meter Feuer vom Boden */
+  goldgeysir:{name:'Goldgeysir · 10-m-Riesenfontäne',short:'Goldgeysir',cat:2,lvl:14,shape:'cylinder',dims:[0.2,0.34,0.2],grid:[8,1,1],box:4,cost:11.00,market:26.99,weight:5,hype:36,risk:7,
+    art:{title:'GOLDGEYSIR',sub:'10 m Riesenfontäne · 20 s',bg1:'#6b4a0c',bg2:'#1f1402',ac:'#ffd23f',ac2:'#fff3c4',gold:true}},
+  feuersaeule:{name:'Feuersäule · 15-m-Farbfontäne',short:'Feuersäule',cat:2,lvl:20,shape:'cylinder',dims:[0.24,0.4,0.24],grid:[6,1,1],box:3,cost:24.00,market:57.99,weight:4,hype:62,risk:9,
+    art:{title:'FEUERSÄULE',sub:'15 m · Farbwechsel · 28 s',bg1:'#7a1010',bg2:'#1a0202',ac:'#ff7a1c',ac2:'#ffd23f',gold:true}},
   wasserfall:{name:'Niagara · Silberwasserfall 3 m',short:'Wasserfall',cat:2,lvl:18,shape:'cylinder',dims:[0.16,0.36,0.16],grid:[10,1,1],box:5,cost:14.00,market:32.99,weight:4,hype:38,risk:7,
     art:{title:'NIAGARA',sub:'3 m Silberfall, 60 s',bg1:'#8a9299',bg2:'#2a2f36',ac:'#f2f5ff',ac2:'#5ce1ff'}},
   bowle:{name:'Feuerzangenbowle-Set',short:'Bowle-Set',cat:0,lvl:13,shape:'boxA',dims:[0.18,0.14,0.14],grid:[8,1,1],box:8,cost:6.50,market:15.99,weight:5,hype:0,risk:3,
@@ -613,6 +618,8 @@ const P={
     art:{title:'BLANKO',sub:'Für Gravur',bg1:'#4a4f5e',bg2:'#1b1e28',ac:'#f2f5ff',ac2:'#ffd23f'}},
   gravur:{name:'Gravur-Rakete',short:'Gravur',cat:2,lvl:9,shape:'rocketset',dims:[0.42,0.055,0.11],grid:[1,1,1],box:1,cost:3.20,market:24.99,weight:0,hype:16,risk:7,noShelf:true,noWish:true,noOrder:true,
     art:{title:'FÜR DICH',sub:'Persönliche Gravur',bg1:'#6a24c9',bg2:'#25093f',ac:'#ffd23f',ac2:'#ff4fa3'}},
+  donnerwand:{name:'Donnerwand · 120 Schuss Salvenwand',short:'Donnerwand',cat:2,lvl:20,shape:'battery',dims:[0.5,0.3,0.4],grid:[3,1,1],box:2,cost:47.00,market:109.99,weight:3,hype:78,risk:10,
+    art:{title:'DONNERWAND',sub:'120 Schuss · 20 Salven',bg1:'#1c1c24',bg2:'#000000',ac:'#ff3b2e',ac2:'#f2f5ff'}},
   profi:{name:'Götterfunken · 200 Schuss Profiverbund',short:'Götterfunken',cat:2,lvl:22,shape:'battery',dims:[0.55,0.36,0.42],grid:[3,1,1],box:1,cost:68.00,market:149.99,weight:3,hype:90,risk:10,
     art:{title:'GÖTTERFUNKEN',sub:'200 Schuss Profi',bg1:'#0e1226',bg2:'#000000',ac:'#ffd23f',ac2:'#e63b2e',gold:true}},
   finale:{name:'Weltuntergang · 300 Schuss Finale',short:'Weltuntergang',cat:2,lvl:24,shape:'battery',dims:[0.58,0.34,0.42],grid:[2,1,1],box:1,cost:115.00,market:249.99,weight:2,hype:100,risk:10,
@@ -632,6 +639,8 @@ const P={
     art:{title:'WELTENBRAND',sub:'Kugelbombe 150 mm · Mehrfachbruch',bg1:'#1a0b2e',bg2:'#050109',ac:'#c8a2ff',ac2:'#ffd23f',gold:true}},
   kugel200:{name:'Götterzorn · Kugelbombe 200 mm Zehnfachbruch',short:'Kugel 200',cat:2,lvl:21,shape:'shell',dims:[0.21,0.25,0.21],grid:[3,1,1],box:2,cost:44.00,market:104.99,weight:4,hype:95,risk:10,
     art:{title:'GÖTTERZORN',sub:'200 mm · zehn Brüche auf einmal',bg1:'#2a0f5a',bg2:'#050109',ac:'#ff4fd8',ac2:'#ffd23f',gold:true}},
+  kugel300:{name:'Himmelsbrecher · Kugelbombe 300 mm',short:'Kugel 300',cat:2,lvl:23,shape:'shell',dims:[0.3,0.34,0.3],grid:[2,1,1],box:1,cost:70.00,market:164.99,weight:3,hype:100,risk:10,
+    art:{title:'HIMMELSBRECHER',sub:'300 mm · 24 Brüche · Silberweide',bg1:'#0e1226',bg2:'#000000',ac:'#d1e5ff',ac2:'#ffd23f',gold:true}},
   /* Fontaene, die oben in einen Kometen uebergeht und aufblueht */
   sternenbrunnen:{name:'Sternenbrunnen · Fontäne mit Aufstieg',short:'Sternenbrunnen',cat:2,lvl:12,shape:'cylinder',dims:[0.145,0.34,0.145],grid:[7,2,1],box:6,cost:7.90,market:18.99,weight:7,hype:26,risk:6,
     art:{title:'STERNENBRUNNEN',sub:'Fontäne, Komet, Blüte',bg1:'#123a6b',bg2:'#04101f',ac:'#5ce1ff',ac2:'#ffd23f'}}
@@ -1132,7 +1141,8 @@ const VOLA={
   raketengold:0.95, knatter:0.95, pfeifraketen:0.80, sekt:1.00, faecher:1.00, batterie49:1.05,
   furzrakete:1.10, batterie100:1.20, sprengmeister:1.30, profi:1.40, xxlpolen:1.60,
   sternenbrunnen:0.75, kugel75:0.95, kugel100:1.15, kugel150:1.45,
-  zfaecher:1.05, kometen:1.15, titanraketen:1.25, kugel200:1.50, finale:1.55
+  zfaecher:1.05, kometen:1.15, titanraketen:1.25, kugel200:1.50, finale:1.55,
+  goldgeysir:0.85, feuersaeule:1.2, donnerwand:1.35, kugel300:1.6
 };
 function volaOf(t){ const v=VOLA[t]; if(v!==undefined) return v; const p=P[t]; return p&&p.cat===2?0.85:p&&p.cat===1?0.6:0.45; }
 
@@ -1299,8 +1309,8 @@ const LIZENZEN=[
    desc:'Große Böller, Kanonenschläge, Doppelschläge, Römische Lichter und Fontänen. Ab hier wird es laut.',
    items:['grossboeller','kanonen','doppelschlag','roemisch','fontaene','blanko','gravur']},
   {id:'himmel',lvl:11,cost:2600,name:'Bunte Nacht',
-   desc:'Raketensortimente, pfeifende Heulraketen, Goldraketen, Vulkane und der Sternenbrunnen, der erst als Fontäne läuft und dann oben aufblüht. Dazu Wachsgießen und Feuerzangenbowle.',
-   items:['raketen','pfeifraketen','raketengold','vulkan','wasserfall','sternenbrunnen','bleigiessen','bowle']},
+   desc:'Raketensortimente, pfeifende Heulraketen, Goldraketen, ab Level 14 der Goldgeysir mit zehn Metern Fontäne, Vulkane und der Sternenbrunnen, der erst als Fontäne läuft und dann oben aufblüht. Dazu Wachsgießen und Feuerzangenbowle.',
+   items:['raketen','pfeifraketen','raketengold','vulkan','goldgeysir','wasserfall','sternenbrunnen','bleigiessen','bowle']},
   {id:'verbund',lvl:14,cost:6000,name:'Verbund & Kugelbomben',
    desc:'Batterien, der Knattersturm, Fächer und die ersten Kugelbomben. Die gehören in die Mörserbatterie auf dem Testfeld: ein Schuss, oben mehrere Brüche nacheinander.',
    items:['batterie16','knatter','batterie49','sortiment','faecher','kugel75','kugel100']},
@@ -1311,11 +1321,11 @@ const LIZENZEN=[
    desc:'Heulende Derwische und die Furzrakete »Donnerbalken«. Verkauft sich von allein, weil jeder sie einmal gesehen haben will.',
    items:['heuler','furzrakete']},
   {id:'grossfeuer',lvl:20,cost:21000,name:'Großkaliber',
-   desc:'Die Titan-Raketen mit Dreifachbruch und die 200-mm-Kugelbombe Götterzorn: ein Schuss, zehn Brüche auf einmal.',
-   items:['titanraketen','kugel200']},
+   desc:'Die Titan-Raketen mit Dreifachbruch, die 200-mm-Kugelbombe Götterzorn mit zehn Brüchen auf einmal, die Donnerwand mit Salven aus sechs Rohren und die 15-m-Feuersäule.',
+   items:['titanraketen','kugel200','donnerwand','feuersaeule']},
   {id:'profi',lvl:22,cost:26000,name:'Profiklasse',
-   desc:'Der Götterfunken-Verbund: zweihundert Schuss, und der halbe Ort steht auf der Straße. Ab Level 24 dazu der Weltuntergang, dreihundert Schuss Finale.',
-   items:['profi','finale']}
+   desc:'Der Götterfunken-Verbund: zweihundert Schuss, und der halbe Ort steht auf der Straße. Ab Level 23 die 300-mm-Kugel Himmelsbrecher, ab Level 24 der Weltuntergang mit dreihundert Schuss.',
+   items:['profi','finale','kugel300']}
 ];
 const LIZ_VON={};
 LIZENZEN.forEach(l=>l.items.forEach(t=>{ LIZ_VON[t]=l.id; }));
@@ -1337,9 +1347,9 @@ function naechsteLizenz(){ return LIZENZEN.find(l=>!hatLizenz(l.id))||null; }
 const GRUPPE={
   boeller:['boeller','grossboeller','kanonen','doppelschlag','sprengmeister','xxlpolen','knallfrosch','knallerbsen'],
   raketen:['raketenklein','raketen','pfeifraketen','raketengold','titanraketen','furzrakete','blanko','gravur'],
-  batterien:['batterie16','knatter','batterie49','batterie100','faecher','zfaecher','kometen','sortiment','profi','finale'],
-  kugeln:['kugel75','kugel100','kugel150','kugel200'],
-  boden:['fontaene','vulkan','wasserfall','roemisch','schwaermer','sternenbrunnen','tisch','wunder','heuler'],
+  batterien:['batterie16','knatter','batterie49','batterie100','faecher','zfaecher','kometen','sortiment','profi','finale','donnerwand'],
+  kugeln:['kugel75','kugel100','kugel150','kugel200','kugel300'],
+  boden:['fontaene','goldgeysir','feuersaeule','vulkan','wasserfall','roemisch','schwaermer','sternenbrunnen','tisch','wunder','heuler'],
   zubehoer:['feuerzeug','luftschlangen','knicklichter','brille','chips','konfetti','bleigiessen','bowle'],
   sekt:['sekt','kindersekt']
 };
@@ -1802,7 +1812,7 @@ const occluders=[];
    ========================================================= */
 let postOK=false, postOn=true, rtScene=null, rtA=null, rtB=null;
 let quadScene=null, quadCam=null, quadMesh=null, matBright=null, matBlur=null, matComp=null;
-let postW=0, postH=0, postDiv=4;
+let postW=0, postH=0, postDiv=4, postHalf=false;
 const QUAD_V='varying vec2 vUv;\nvoid main(){ vUv=uv; gl_Position=vec4(position.xy,0.0,1.0); }';
 function initPost(){
   try{
@@ -1810,6 +1820,14 @@ function initPost(){
   }catch(e){}
   try{
     const opt={minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter,format:THREE.RGBAFormat,stencilBuffer:false,depthBuffer:true};
+    /* Die Szene liegt hier in linearen Farben. Mit 8 Bit reicht das im
+       Dunkeln nicht: der Nachthimmel zerfiel in harte Stufen (linear
+       1/255 wird nach der Umrechnung zu 13, 2/255 schon zu 22). Mit
+       Halbfloat ist der Verlauf glatt - sofern die Karte es kann. */
+    let half=false;
+    try{ const ex=renderer.extensions; half=!!(ex&&renderer.capabilities.isWebGL2&&(ex.get('EXT_color_buffer_float')||ex.get('EXT_color_buffer_half_float'))); }catch(e){ half=false; }
+    if(half&&THREE.HalfFloatType) opt.type=THREE.HalfFloatType;
+    postHalf=half;
     const ms=renderer.capabilities&&renderer.capabilities.isWebGL2&&THREE.WebGLMultisampleRenderTarget;
     rtScene=ms?new THREE.WebGLMultisampleRenderTarget(2,2,opt):new THREE.WebGLRenderTarget(2,2,opt);
     if(ms) rtScene.samples=COARSE?2:4;
@@ -1873,6 +1891,7 @@ function sonneNachfuehren(){
 }
 function renderFrame(dt){
   sonneNachfuehren();
+  if(skyMesh){ skyMesh.position.set(camera.position.x,0,camera.position.z); starPts.position.copy(skyMesh.position); }
   if(!postOK||!postOn){ if(renderer.setRenderTarget) renderer.setRenderTarget(null); renderer.render(scene,camera); return; }
   try{
     postT+=dt||0.016;
@@ -2173,7 +2192,8 @@ function buildKartons(){
 /* =========================================================
    Wände, Böden, Welt
    ========================================================= */
-let lapHit, padHit, doorSign, doorSignTex, starsMat, posHit, cardHit, posTex, beltTex, skyGeo, lampMats=[], houseMats=[], snowPts;
+const SKY_R=285;
+let lapHit, padHit, doorSign, doorSignTex, starsMat, posHit, cardHit, posTex, beltTex, skyGeo, skyMesh=null, starPts=null, lampMats=[], houseMats=[], snowPts;
 let grimeMats=[], windowHits=[], winWork=0;
 let uhrStd=null, uhrMin=null, uhrSek=null;
 let wallTex=null, floorTexRef=null, shopWall=null, shopUpper=null, shopLower=null, floorMat=null;
@@ -2778,11 +2798,17 @@ function buildWorld(){
   for(const x of [-11,-4,3,10]) strassenlampe(x,10.9,Math.PI);
   buildStreet();
   buildStadt();
-  skyGeo=new THREE.SphereGeometry(760,32,18); skyGeo.setAttribute('color',new THREE.BufferAttribute(new Float32Array(skyGeo.attributes.position.count*3),3));
-  scene.add(new THREE.Mesh(skyGeo,new THREE.MeshBasicMaterial({vertexColors:true,side:THREE.BackSide,fog:false,depthWrite:false})));
-  const sp=[]; for(let i=0;i<500;i++){ const a=Math.random()*Math.PI*2, e=rand(0.12,1.45), r=700; sp.push(Math.cos(a)*Math.cos(e)*r,Math.sin(e)*r,Math.sin(a)*Math.cos(e)*r); }
+  /* Himmel: die Kuppel muss innerhalb der Sichtweite der Kamera
+     (300 m) liegen, sonst wird sie weggeschnitten und man sieht nur
+     die Hintergrundfarbe. Sie wandert mit dem Spieler mit, damit sie
+     trotz des kleineren Radius nie naeher kommt. */
+  skyGeo=new THREE.SphereGeometry(SKY_R,48,64); skyGeo.setAttribute('color',new THREE.BufferAttribute(new Float32Array(skyGeo.attributes.position.count*3),3));
+  skyMesh=new THREE.Mesh(skyGeo,new THREE.MeshBasicMaterial({vertexColors:true,side:THREE.BackSide,fog:false,depthWrite:false}));
+  skyMesh.renderOrder=-10; skyMesh.frustumCulled=false; scene.add(skyMesh);
+  const sp=[]; for(let i=0;i<700;i++){ const a=Math.random()*Math.PI*2, e=rand(0.12,1.45), r=SKY_R-15; sp.push(Math.cos(a)*Math.cos(e)*r,Math.sin(e)*r,Math.sin(a)*Math.cos(e)*r); }
   const sg=new THREE.BufferGeometry(); sg.setAttribute('position',new THREE.Float32BufferAttribute(sp,3));
-  starsMat=new THREE.PointsMaterial({color:0xffffff,size:1.6,sizeAttenuation:false,transparent:true,opacity:0,fog:false}); scene.add(new THREE.Points(sg,starsMat));
+  starsMat=new THREE.PointsMaterial({color:0xffffff,size:1.6,sizeAttenuation:false,transparent:true,opacity:0,fog:false,depthWrite:false});
+  starPts=new THREE.Points(sg,starsMat); starPts.renderOrder=-9; starPts.frustumCulled=false; scene.add(starPts);
   const N=COARSE?500:1100, sp2=new Float32Array(N*3); for(let i=0;i<N;i++){ sp2[i*3]=rand(-30,30); sp2[i*3+1]=rand(0,14); sp2[i*3+2]=rand(-24,30); }
   const sg2=new THREE.BufferGeometry(); sg2.setAttribute('position',new THREE.BufferAttribute(sp2,3));
   snowPts=new THREE.Points(sg2,new THREE.PointsMaterial({color:0xffffff,size:0.09,map:dotTex,transparent:true,opacity:0.9,depthWrite:false})); snowPts.frustumCulled=false; scene.add(snowPts);
@@ -3356,10 +3382,11 @@ function raketeModell(t){
   return g;
 }
 /* Kugelbombe im Rohr mit Zuendschnur ueber den Rand */
-const KUGEL_R={kugel75:0.042,kugel100:0.058,kugel150:0.08,kugel200:0.1};
+const KUGEL_R={kugel75:0.042,kugel100:0.058,kugel150:0.08,kugel200:0.1,kugel300:0.15};
 const MOERSER_R=[0.115,0.145,0.185];
 function kugelModell(t,slot){
-  const g=new THREE.Group(), rk=KUGEL_R[t]||0.06, rr=MOERSER_R[slot%3]*0.9;
+  /* passt nicht jede Kugel in jedes Rohr - dann eben knapp unter die Innenweite */
+  const g=new THREE.Group(), rr=MOERSER_R[slot%3]*0.9, rk=Math.min(KUGEL_R[t]||0.06,rr*0.92);
   const papier=std(0xb58a55,{roughness:0.95});
   const kugel=new THREE.Mesh(new THREE.SphereGeometry(rk,HIQ?16:10,HIQ?12:8),papier);
   kugel.position.y=-0.14-rk; g.add(kugel);
@@ -3441,11 +3468,11 @@ function brennDauer(t){
   const p=P[t]; if(!p) return 3;
   if(typeof SHOWS!=='undefined'&&SHOWS[t]) return 0.8+showLength(t)+1.5;
   const fest={wunder:5,knallerbsen:2.2,knallfrosch:2.8,tisch:3,schwaermer:3.8,vulkan:14,wasserfall:23,
-    sternenbrunnen:6,fontaene:12,furzrakete:6,heuler:5};
+    sternenbrunnen:6,fontaene:12,goldgeysir:22,feuersaeule:30,furzrakete:6,heuler:5};
   if(fest[t]) return fest[t];
   if(p.rezept) return 7;
   const sh=p.shape;
-  if(sh==='shell') return {kugel150:4.5,kugel200:5}[t]||3.5;
+  if(sh==='shell') return {kugel150:4.5,kugel200:5,kugel300:6.5}[t]||3.5;
   if(sh==='tubepack') return 2.6;
   if(sh==='rocketset'){ const k=typeof RAKETEN_KL!=='undefined'&&RAKETEN_KL[t]; return k?Math.max(3,(k.n-1)*k.gap+2):3; }
   if(sh==='battery'||sh==='fan') return 9;
@@ -9931,19 +9958,47 @@ const sfx={
 /* =========================================================
    Feuerwerk: Partikelsystem
    ========================================================= */
-const dotTex=tex(64,64,(g,W,H)=>{ const gr=g.createRadialGradient(W/2,H/2,0,W/2,H/2,W/2); gr.addColorStop(0,'rgba(255,255,255,1)'); gr.addColorStop(0.35,'rgba(255,255,255,.7)'); gr.addColorStop(1,'rgba(255,255,255,0)'); g.fillStyle=gr; g.fillRect(0,0,W,H); },false);
-/* Modi: 0 ruhiger Stern · 1 Stroboskop · 2 Farbwechsel · 3 Knistern · 4 Glitzer */
+/* Stern: heller Kern, weicher Hof. Das grosse Sprite hat dazu vier
+   feine Strahlen, wie ein funkelnder Stern auf einem Foto. */
+const dotTex=tex(64,64,(g,W,H)=>{ const gr=g.createRadialGradient(W/2,H/2,0,W/2,H/2,W/2);
+  gr.addColorStop(0,'rgba(255,255,255,1)'); gr.addColorStop(0.14,'rgba(255,255,255,.95)'); gr.addColorStop(0.3,'rgba(255,255,255,.4)');
+  gr.addColorStop(0.6,'rgba(255,255,255,.1)'); gr.addColorStop(1,'rgba(255,255,255,0)'); g.fillStyle=gr; g.fillRect(0,0,W,H); },false);
+const sternTex=tex(128,128,(g,W,H)=>{ const c=W/2;
+  const gr=g.createRadialGradient(c,c,0,c,c,c); gr.addColorStop(0,'rgba(255,255,255,1)'); gr.addColorStop(0.08,'rgba(255,255,255,.95)');
+  gr.addColorStop(0.2,'rgba(255,255,255,.35)'); gr.addColorStop(0.5,'rgba(255,255,255,.06)'); gr.addColorStop(1,'rgba(255,255,255,0)');
+  g.fillStyle=gr; g.fillRect(0,0,W,H);
+  for(const [dx,dy] of [[1,0],[0,1]]){ const lg=g.createLinearGradient(c-dx*c,c-dy*c,c+dx*c,c+dy*c);
+    lg.addColorStop(0,'rgba(255,255,255,0)'); lg.addColorStop(0.5,'rgba(255,255,255,.85)'); lg.addColorStop(1,'rgba(255,255,255,0)');
+    g.fillStyle=lg; if(dx) g.fillRect(0,c-1.5,W,3); else g.fillRect(c-1.5,0,3,H); } },false);
+/* Modi: 0 ruhiger Stern · 1 Stroboskop · 2 Farbwechsel · 3 Knistern · 4 Glitzer
+   Leuchtspuren: jeder Stern zieht eine Linie hinter sich her. Die
+   Spur wird nicht gespeichert, sondern aus der Flugbahn zurueck-
+   gerechnet - Luftwiderstand und Schwerkraft sind bekannt. So
+   entstehen die Strahlen einer Chrysantheme und die haengenden
+   Faeden einer Weide ohne Verlaufsspeicher. */
+const SCHWEIF_MODUS=[0.22,0,0.25,0,0.5];
+let SCHWEIF=null;
+const ZIEH=1.1;
 class PS{
-  constructor(max,size){
+  constructor(max,size,seg,map){
     this.max=max; this.pos=new Float32Array(max*3); this.col=new Float32Array(max*3); this.vel=new Float32Array(max*3);
     this.base=new Float32Array(max*3); this.c2=new Float32Array(max*3);
     this.life=new Float32Array(max); this.maxl=new Float32Array(max); this.grav=new Float32Array(max);
-    this.md=new Uint8Array(max); this.ph=new Float32Array(max);
+    this.md=new Uint8Array(max); this.ph=new Float32Array(max); this.tl=new Float32Array(max);
     this.next=0; this.dirty=false;
     for(let i=0;i<max;i++) this.pos[i*3+1]=-999;
     const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.BufferAttribute(this.pos,3)); g.setAttribute('color',new THREE.BufferAttribute(this.col,3)); this.geo=g;
-    this.pts=new THREE.Points(g,new THREE.PointsMaterial({size,map:dotTex,vertexColors:true,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,fog:false,toneMapped:false}));
+    this.pts=new THREE.Points(g,new THREE.PointsMaterial({size,map:map||dotTex,vertexColors:true,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,fog:false,toneMapped:false}));
     this.pts.frustumCulled=false; scene.add(this.pts);
+    this.seg=seg||0;
+    if(this.seg){
+      const nv=max*this.seg*2;
+      this.lpos=new Float32Array(nv*3); this.lcol=new Float32Array(nv*3);
+      const lg=new THREE.BufferGeometry(); lg.setAttribute('position',new THREE.BufferAttribute(this.lpos,3)); lg.setAttribute('color',new THREE.BufferAttribute(this.lcol,3));
+      lg.setDrawRange(0,0); this.lgeo=lg;
+      this.lines=new THREE.LineSegments(lg,new THREE.LineBasicMaterial({vertexColors:true,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,fog:false,toneMapped:false}));
+      this.lines.frustumCulled=false; scene.add(this.lines);
+    }
   }
   emit(x,y,z,vx,vy,vz,r,g,b,life,grav,mode,r2,g2,b2){
     const i=this.next; this.next=(i+1)%this.max; const j=i*3;
@@ -9951,9 +10006,12 @@ class PS{
     this.base[j]=r; this.base[j+1]=g; this.base[j+2]=b;
     this.c2[j]=r2===undefined?r:r2; this.c2[j+1]=g2===undefined?g:g2; this.c2[j+2]=b2===undefined?b:b2;
     this.life[i]=life; this.maxl[i]=life; this.grav[i]=grav; this.md[i]=mode||0; this.ph[i]=Math.random()*9;
+    const md=mode||0;
+    this.tl[i]=(md===1||md===3)?0:(SCHWEIF!==null?SCHWEIF:SCHWEIF_MODUS[md]);
   }
   update(dt){
-    const drag=Math.max(0,1-1.1*dt); let any=false;
+    const drag=Math.max(0,1-ZIEH*dt); let any=false, nl=0;
+    const S=this.seg, lp=this.lpos, lc=this.lcol;
     for(let i=0;i<this.max;i++){
       if(this.life[i]<=0) continue; any=true; const j=i*3;
       this.life[i]-=dt;
@@ -9968,8 +10026,30 @@ class PS{
       else if(m===3){ if(Math.random()<0.26){ k=2.4; r=g=b=1; } else k*=0.06; }
       else k*=0.45+Math.random()*1.05;
       this.col[j]=r*k; this.col[j+1]=g*k; this.col[j+2]=b*k;
+      /* Leuchtspur aus der zurueckgerechneten Flugbahn */
+      if(S&&this.tl[i]>0){
+        const T=Math.min(this.tl[i],this.maxl[i]-this.life[i]);
+        if(T>0.02){
+          const x=this.pos[j], y=this.pos[j+1], z=this.pos[j+2];
+          const vx=this.vel[j], vy=this.vel[j+1]+this.grav[i]/ZIEH, vz=this.vel[j+2], gk=this.grav[i]/ZIEH;
+          const hell=f*(m===4?0.75:0.9);
+          let px=x, py=y, pz=z;
+          for(let s=1;s<=S;s++){
+            const tau=T*s/S, A=(Math.exp(ZIEH*tau)-1)/ZIEH;
+            const qx=x-vx*A, qy=y-vy*A+gk*tau, qz=z-vz*A;
+            const a0=hell*Math.pow(1-(s-1)/S,1.6), a1=hell*Math.pow(1-s/S,1.6);
+            const o=nl*6;
+            lp[o]=px; lp[o+1]=py; lp[o+2]=pz; lp[o+3]=qx; lp[o+4]=qy; lp[o+5]=qz;
+            lc[o]=r*a0; lc[o+1]=g*a0; lc[o+2]=b*a0; lc[o+3]=r*a1; lc[o+4]=g*a1; lc[o+5]=b*a1;
+            nl++; px=qx; py=qy; pz=qz;
+          }
+        }
+      }
     }
     if(any||this.dirty){ this.geo.attributes.position.needsUpdate=true; this.geo.attributes.color.needsUpdate=true; }
+    if(S){ this.lgeo.setDrawRange(0,nl*2);
+      if(nl||this.nl){ this.lgeo.attributes.position.needsUpdate=true; this.lgeo.attributes.color.needsUpdate=true; }
+      this.nl=nl; }
     this.dirty=any;
   }
 }
@@ -10425,11 +10505,65 @@ EFF.kaskade=function(p,A,B,s){
     sfx.crack(distVol(q)*0.8);
   });
 };
+
+/* =========================================================
+   Bruchbilder nach Toms Vorlagen: Schneeflocke, Spirale,
+   Ring im Ring, Strauss aus kleinen Kugeln
+   ========================================================= */
+/* Schneeflocke: sechs Arme in einer Ebene, jeder mit Seitenaesten */
+EFF.schneeflocke=function(p,A,B,s){
+  const [u,v]=basis(), sp=11*s, c=FW.silber;
+  const dir=a=>[u[0]*Math.cos(a)+v[0]*Math.sin(a),u[1]*Math.cos(a)+v[1]*Math.sin(a),u[2]*Math.cos(a)+v[2]*Math.sin(a)];
+  for(let k=0;k<6;k++){ const a=k/6*Math.PI*2, d=dir(a);
+    const n=Math.round(22*QUAL());
+    for(let i=0;i<n;i++){ const f=0.12+i/n*0.9;
+      psBig.emit(p.x,p.y,p.z,d[0]*sp*f,d[1]*sp*f,d[2]*sp*f,c[0],c[1],c[2],rand(1.8,2.3),0.9,0); }
+    /* Seitenaeste bei 35, 55 und 75 Prozent, nach aussen kuerzer */
+    for(const [f0,L] of [[0.35,0.34],[0.55,0.26],[0.75,0.18]]) for(const sg of [-1,1]){
+      const d2=dir(a+sg*Math.PI/3);
+      for(let i=1;i<=Math.round(7*QUAL());i++){ const w=L*i/7;
+        psBig.emit(p.x,p.y,p.z,(d[0]*f0+d2[0]*w)*sp,(d[1]*f0+d2[1]*w)*sp,(d[2]*f0+d2[2]*w)*sp,A[0]*0.5+0.5,A[1]*0.5+0.5,A[2]*0.5+0.5,rand(1.6,2.1),0.9,0); } }
+    psHuge.emit(p.x,p.y,p.z,d[0]*sp,d[1]*sp,d[2]*sp,1,1,1,rand(1.9,2.3),0.9,0);
+  }
+};
+/* Spirale: acht gebogene Arme, die sich im Kreis drehen */
+EFF.spirale=function(p,A,B,s){
+  const [u,v]=basis(), sp=10.5*s, arme=8;
+  for(let k=0;k<arme;k++){ const a0=k/arme*Math.PI*2;
+    const n=Math.round(26*QUAL());
+    for(let i=0;i<n;i++){ const f=0.15+i/n*0.85, a=a0+f*1.9, c=i%3?A:B;
+      const dx=u[0]*Math.cos(a)+v[0]*Math.sin(a), dy=u[1]*Math.cos(a)+v[1]*Math.sin(a), dz=u[2]*Math.cos(a)+v[2]*Math.sin(a);
+      psBig.emit(p.x,p.y,p.z,dx*sp*f,dy*sp*f,dz*sp*f,c[0],c[1],c[2],rand(1.7,2.2),1.4,i%4?0:4); } }
+};
+/* Ring im Ring: aussen ein Ring, innen ein kleinerer in der Gegenfarbe */
+EFF.ringring=function(p,A,B,s){
+  const [u,v]=basis();
+  for(const [c,sp,n] of [[A,10*s,110],[B,5.4*s,70]]) for(let i=0;i<Math.round(n*QUAL());i++){
+    const a=i/n*Math.PI*2, w=sp*rand(0.97,1.03);
+    const dx=u[0]*Math.cos(a)+v[0]*Math.sin(a), dy=u[1]*Math.cos(a)+v[1]*Math.sin(a), dz=u[2]*Math.cos(a)+v[2]*Math.sin(a);
+    psBig.emit(p.x,p.y,p.z,dx*w,dy*w,dz*w,c[0],c[1],c[2],rand(1.9,2.4),1.8,0); }
+};
+/* Strauss: sechs kleine Kugeln in sechs Farben um die Mitte */
+EFF.strauss=function(p,A,B,s){
+  const F=['rot','gold','blau','gruen','violett','orange'].map(K);
+  for(let k=0;k<6;k++){ const d=randDir(), r=rand(3.5,5.5)*s, q={x:p.x+d[0]*r,y:p.y+d[1]*r*0.7,z:p.z+d[2]*r}, c=F[k];
+    const m=Math.round(80*s*QUAL());
+    for(let i=0;i<m;i++){ const e=randDir(), w=rand(4.2,5.4)*s;
+      psBig.emit(q.x,q.y,q.z,e[0]*w,e[1]*w,e[2]*w,c[0],c[1],c[2],rand(1.5,2.0),2.4,0); }
+    kern(q,c,s*0.6); }
+};
+/* Wie lang die Leuchtspur je Bruchbild ist (Sekunden Flugbahn) */
+const EFF_SCHWEIF={kugel:0.4,chrys:0.75,wechsel:0.35,weide:1.9,palme:1.1,ring:0.3,doppelring:0.3,crossette:0.35,
+  knister:0.3,blink:0,brokat:1.3,herz:0.18,stern:0.18,kreisel:0.4,fische:0.25,doppel:0.4,dreifach:0.45,
+  dahlie:0.45,pistill:0.4,kamuro:1.8,spinne:0.5,strobe:0,zeitregen:0.9,blaetter:0,geist:0.35,salut:0.08,saturn:0.3,
+  tausend:0.25,mehrring:0.35,regenbogen:0.4,glitzerweide:2.0,komet:0.9,titan:0.8,zehnfach:0.35,kaskade:0.5,
+  schneeflocke:0.22,spirale:0.3,ringring:0.25,strauss:0.35,furz:0};
+function mitSchweif(eff,fn){ const alt=SCHWEIF; SCHWEIF=EFF_SCHWEIF[eff]!==undefined?EFF_SCHWEIF[eff]:null; try{ fn(); } finally { SCHWEIF=alt; } }
 const EFF_ALL=Object.keys(EFF);
 /* Was in welcher Groessenklasse geschossen wird */
-const EFF_KLEIN=['kugel','ring','knister','fische','kreisel','wechsel','spinne','strobe','tausend','regenbogen'];
-const EFF_GROSS=['chrys','weide','palme','brokat','doppelring','crossette','dreifach','blink','dahlie','pistill','geist','saturn','blaetter','mehrring','komet','kaskade','glitzerweide'];
-const EFF_PRO=['kamuro','brokat','pistill','zeitregen','dahlie','geist','weide','palme','saturn','chrys','mehrring','komet','glitzerweide','titan'];
+const EFF_KLEIN=['kugel','ring','knister','fische','kreisel','wechsel','spinne','strobe','tausend','regenbogen','ringring','spirale'];
+const EFF_GROSS=['chrys','weide','palme','brokat','doppelring','crossette','dreifach','blink','dahlie','pistill','geist','saturn','blaetter','mehrring','komet','kaskade','glitzerweide','schneeflocke','spirale','ringring','strauss'];
+const EFF_PRO=['kamuro','brokat','pistill','zeitregen','dahlie','geist','weide','palme','saturn','chrys','mehrring','komet','glitzerweide','titan','strauss'];
 
 /* =========================================================
    Raketen
@@ -10481,13 +10615,13 @@ function ringLage(n,r,kipp){
 }
 function kugelbombe(o,kal,opt){
   opt=opt||{};
-  const K4=Math.max(1,Math.min(4,kal|0));
+  const K4=Math.max(1,Math.min(5,kal|0));
   const [A,B]=opt.A?[opt.A,opt.B||opt.A]:scheme();
-  const groesse=[1.25,1.6,2.0,2.3][K4-1];
-  /* Bruchhoehe etwa 20, 24, 27 und 30 m: hoch genug fuer die grossen
-     Kugeln, aber vom Zuendpult aus noch im Bild */
-  const steig=[1,3,4,5][K4-1];
-  const zuend=[1.4,1.6,1.8,1.95][K4-1];
+  const groesse=[1.4,1.8,2.3,2.7,3.2][K4-1];
+  /* Bruchhoehe etwa 20, 24, 27, 30 und 36 m: hoch genug fuer die
+     grossen Kugeln, aber vom Zuendpult aus noch im Bild */
+  const steig=[1,3,4,5,8][K4-1];
+  const zuend=[1.4,1.6,1.8,1.95,2.25][K4-1];
   /* Abschussknall und Muendungsfeuer im Rohr */
   const v0=distVol(o);
   sfx.boom(Math.min(1.5,v0*(0.55+0.2*K4)));
@@ -10529,6 +10663,20 @@ function kugelbombe(o,kal,opt){
     stufen.push({t:2.36,eff:'salut',sz:1.0,streu:4,A:FW.weiss,B:FW.weiss});
     stufen.push({t:2.5,eff:'salut',sz:0.9,streu:6,A:FW.weiss,B:FW.weiss});
   }
+  if(K4===5){
+    /* 300 mm Himmelsbrecher: ein Riesenball, dann zwoelf Brueche im
+       Ring, ein zweiter Ring quer dazu, eine Crossette-Krone, zum
+       Schluss eine silberne Weide ueber den ganzen Himmel und Salut */
+    const F=[A,B,C,FW.weiss,FW.gold,FW.tuerkis];
+    ringLage(12,13).forEach((off,i)=>stufen.push({t:0.55,off,leise:i>0,
+      eff:pick(['pistill','mehrring','ringring','regenbogen','schneeflocke']),sz:groesse*0.3,A:F[i%6],B:F[(i+3)%6]}));
+    ringLage(12,9,1.3).forEach((off,i)=>stufen.push({t:1.15,off,leise:i>0,
+      eff:pick(['spirale','kugel','strauss','dahlie']),sz:groesse*0.28,A:F[(i+1)%6],B:F[(i+4)%6]}));
+    stufen.push({t:1.8,eff:'crossette',sz:groesse*0.55,streu:1,A:FW.gold,B:FW.weiss});
+    stufen.push({t:2.2,eff:'tausend',sz:groesse*0.7,streu:2,A:FW.weiss,B:FW.weiss});
+    stufen.push({t:2.8,eff:'glitzerweide',sz:groesse*0.8,streu:1,A,B});
+    for(let i=0;i<4;i++) stufen.push({t:2.9+i*0.12,eff:'salut',sz:1.0,streu:8,A:FW.weiss,B:FW.weiss});
+  }
   shot(o,{pw:steig,sz:groesse,eff:haupt,fuse:zuend,A,B,
           trail:K4>=3?FW.weiss:FW.gold,dick:Math.min(3,K4),stufen});
 }
@@ -10542,7 +10690,7 @@ function mine(o,A,B,s){
 }
 function fwBurst(r){
   const p=r.p, fn=EFF[r.eff]||EFF.kugel;
-  fn(p,r.A,r.B,r.size);
+  mitSchweif(r.eff,()=>fn(p,r.A,r.B,r.size));
   kern(p,r.A,r.size);
   /* Grosse Brueche glitzern kurz nach dem Aufgehen noch einmal nach */
   if(r.size>=1.1&&r.eff!=='salut'&&r.eff!=='furz') later(0.75,()=>nachglitzer(p,r.size));
@@ -10558,7 +10706,7 @@ function fwBurst(r){
     const q=st.off?{x:p.x+st.off[0],y:p.y+st.off[1],z:p.z+st.off[2]}
                   :{x:p.x+rand(-st.streu,st.streu),y:p.y+rand(-st.streu*0.55,st.streu*0.55),z:p.z+rand(-st.streu,st.streu)};
     later(st.t,()=>{
-      (EFF[st.eff]||EFF.kugel)(q,st.A||r.A,st.B||r.B,st.sz);
+      mitSchweif(st.eff,()=>(EFF[st.eff]||EFF.kugel)(q,st.A||r.A,st.B||r.B,st.sz));
       if(!st.leise) kern(q,st.A||r.A,st.sz);
       if(st.eff!=='salut'&&!st.leise){
         flash(q,st.A||mix,1.6+2.2*st.sz,0.5);
@@ -10607,6 +10755,28 @@ function updateFireworks(dt){
       e.fl=(e.fl||0)-dt; if(e.fl<=0){ e.fl=0.3; flash({x:o.x,y:o.y+1.4,z:o.z},A,big?1.8:1.2,0.34); }
       for(let k=0;k<n;k++){ const a=Math.random()*Math.PI*2, s=rand(0.3,wf?2.6:big?1.9:1.2), c=Math.random()<0.72?A:B;
         psMid.emit(o.x+(wf?rand(-1.6,1.6):0),o.y+0.2,o.z,Math.cos(a)*s,wf?rand(3,6):rand(4.5,big?10.5:6.8),Math.sin(a)*s,c[0],c[1],c[2],rand(0.8,wf?2.4:big?1.9:1.3),wf?7:5,4); } }
+    else if(e.k==='riesen'){
+      /* Riesenfontaene: ein Goldstrahl von zehn Metern und mehr, oben
+         eine knisternde Krone, dazwischen farbige Sterne. Die Menge je
+         Sekunde ist fest, nicht je Bild - sonst waere sie auf schnellen
+         Rechnern dichter. */
+      const H=e.h||1, A=e.A||FW.gold, B=e.B||FW.weiss;
+      e.fl=(e.fl||0)-dt; if(e.fl<=0){ e.fl=0.22; flash({x:o.x,y:o.y+4,z:o.z},A,2.6*H,0.3); }
+      e.acc=(e.acc||0)+dt*560*H*QUAL();
+      const alt=SCHWEIF; SCHWEIF=0.6;
+      for(;e.acc>=1;e.acc--){ const a=Math.random()*Math.PI*2, w=rand(0,1.5)*H, c=Math.random()<0.8?A:B;
+        psMid.emit(o.x,o.y+0.25,o.z,Math.cos(a)*w,rand(17,21)*Math.sqrt(H),Math.sin(a)*w,c[0],c[1],c[2],rand(1.6,2.6),6,4); }
+      e.acc2=(e.acc2||0)+dt*16*H;
+      SCHWEIF=0.45;
+      for(;e.acc2>=1;e.acc2--){ const a=Math.random()*Math.PI*2, w=rand(0.5,2.4)*H, c=e.C||pick(SCHEMES.map(x=>K(x[0])));
+        psBig.emit(o.x,o.y+0.25,o.z,Math.cos(a)*w,rand(19,24)*Math.sqrt(H),Math.sin(a)*w,c[0],c[1],c[2],rand(2.0,2.6),6,0); }
+      SCHWEIF=alt;
+      /* knisternde Krone auf etwa zehn Metern */
+      const kr=10.2*H;
+      for(let k=0;k<Math.round(dt*220*H);k++){ const a=Math.random()*Math.PI*2, r=rand(0,2.4)*H;
+        psSmall.emit(o.x+Math.cos(a)*r,o.y+kr+rand(-1.2,0.6),o.z+Math.sin(a)*r,rand(-.5,.5),rand(-1,0.5),rand(-.5,.5),1,.95,.8,rand(0.2,0.45),2,3); }
+      e.kn=(e.kn||0)-dt; if(e.kn<=0){ e.kn=rand(0.35,0.8); sfx.crackle(distVol(o)*0.6); }
+      e.fz=(e.fz||0)-dt; if(e.fz<=0){ e.fz=1.2; sfx.fizz(distVol(o)); } }
     else if(e.k==='furzfont'){
       /* brauner Schweif, waehrend die Rakete steigt */
       for(let k=0;k<9;k++){ const a=Math.random()*Math.PI*2, sp=rand(0.2,1.3);
@@ -10625,6 +10795,8 @@ function updateFireworks(dt){
    Choreografie: Batterien und Verbunde laufen als Show ab
    ========================================================= */
 const FANDIR=Math.PI/2;                 // Fächer quer zum Blickfeld
+/* Alle Verbunde brechen ein Fuenftel groesser als frueher */
+const SHOW_GROESSE=1.2;
 function playShow(o,phases){
   let t=0;
   phases.forEach(ph=>{
@@ -10641,7 +10813,7 @@ function playShow(o,phases){
       const eff=Array.isArray(ph.eff)?pick(ph.eff):(ph.eff||pick(EFF_GROSS));
       const sc=ph.sc==='each'?-1:fixed;
       const dir=ph.fan||ph.vfan?FANDIR:undefined;
-      const opt={eff,sz:ph.sz||1,pw:ph.pw||0,ang,dir,sc,fuse:ph.fuse,dick:ph.dick};
+      const opt={eff,sz:(ph.sz||1)*SHOW_GROESSE,pw:ph.pw||0,ang,dir,sc,fuse:ph.fuse,dick:ph.dick};
       later(tt,()=>{
         if(ph.mine) mine(o,scheme(sc)[0],scheme(sc)[1],ph.mineSz||0.8);
         /* bomb: echte Kugelbombe mit Nachbruechen statt einer Rakete */
@@ -10730,6 +10902,30 @@ const SHOWS={
     {n:14,gap:0.35,eff:['chrys','dreifach','crossette','brokat','zeitregen','mehrring'],sc:'each',sz:1.3,pw:4,pause:1.2},
     {n:12,gap:0.22,eff:['palme','weide','kamuro','chrys','pistill','glitzerweide'],sc:'each',sz:1.55,pw:7,pause:0.8},
     {n:5,gap:0.12,eff:'salut',sz:1.1,pause:4.0}
+  ],
+  /* Donnerwand, 120 Schuss in Salven: jede Salve sechs Rohre auf
+     einmal im Faecher, dazwischen kurze Luft - eine Wand aus Feuer */
+  donnerwand:()=>[
+    {n:6,gap:0.07,eff:'kugel',fan:true,ang:0.55,sz:1.05,mine:true,mineSz:1.4,pause:3.3},
+    {n:6,gap:0.07,eff:'ringring',fan:true,ang:-0.55,sz:1.05,pause:3.3},
+    {n:6,gap:0.07,eff:'palme',fan:true,ang:0.55,sz:1.1,pw:2,pause:3.7},
+    {n:6,gap:0.07,eff:['chrys','spirale'],fan:true,ang:-0.55,sz:1.1,pause:3.3},
+    {n:6,gap:0.07,eff:'spinne',fan:true,ang:0.55,sz:1.1,pause:3.3},
+    {n:6,gap:0.07,eff:'glitzerweide',fan:true,ang:-0.5,sz:1.15,pw:3,pause:4.3},
+    {n:6,gap:0.07,eff:['schneeflocke','stern'],fan:true,ang:0.55,sz:1.1,pause:3.5},
+    {n:6,gap:0.07,eff:'tausend',fan:true,ang:-0.55,sz:1.1,pause:3.3},
+    {n:6,gap:0.07,eff:['mehrring','pistill'],fan:true,ang:0.55,sz:1.2,pw:2,pause:3.7},
+    {n:6,gap:0.07,eff:'komet',fan:true,ang:-0.55,sz:1.2,pw:2,pause:3.5},
+    {n:6,gap:0.07,eff:'kamuro',fan:true,ang:0.5,sz:1.25,pw:3,pause:4.5},
+    {n:6,gap:0.07,eff:['regenbogen','strauss'],fan:true,ang:-0.55,sz:1.2,pause:3.5},
+    {n:6,gap:0.07,eff:'crossette',fan:true,ang:0.55,sz:1.2,pw:2,pause:3.5},
+    {n:6,gap:0.07,eff:'brokat',fan:true,ang:-0.55,sz:1.25,pw:3,pause:4.1},
+    {n:6,gap:0.07,eff:['dahlie','titan'],fan:true,ang:0.55,sz:1.3,pw:3,pause:3.7},
+    {n:6,gap:0.07,eff:'weide',fan:true,ang:-0.55,sz:1.3,pw:3,pause:4.5},
+    {n:6,gap:0.07,eff:'strauss',fan:true,ang:0.55,sz:1.3,pw:3,pause:3.3},
+    {n:6,gap:0.07,eff:'glitzerweide',fan:true,ang:-0.55,sz:1.35,pw:4,pause:2.7},
+    {n:6,gap:0.07,eff:['titan','mehrring'],fan:true,ang:0.55,sz:1.4,pw:4,pause:2.3},
+    {n:6,gap:0.05,eff:'salut',fan:true,ang:-0.5,sz:1.2,pause:5.0}
   ],
   /* Profi-Verbund, 200 Schuss: gut zwei Minuten, Wasserfaelle, Kugelbomben und
      ein Zehnfachbruch in der Mitte */
@@ -10843,8 +11039,21 @@ function igniteType(t,o0){
   }
   /* ----- Kugelbomben aus der Moerserbatterie ----- */
   if(sh==='shell'){
-    const kal={kugel75:1,kugel100:2,kugel150:3,kugel200:4}[t]||1;
+    const kal={kugel75:1,kugel100:2,kugel150:3,kugel200:4,kugel300:5}[t]||1;
     kugelbombe(o,kal);
+    return;
+  }
+  /* ----- Riesenfontaenen ----- */
+  if(t==='goldgeysir'||t==='feuersaeule'){
+    const gross=t==='feuersaeule', dauer=gross?28:20;
+    const e={t:dauer,k:'riesen',o,h:gross?1.35:1,A:FW.gold,B:FW.weiss};
+    emitters.push(e);
+    /* die Feuersaeule wechselt alle paar Sekunden die Farbe */
+    if(gross) for(let i=1;i<6;i++) later(i*dauer/6,()=>{ const [A,B]=scheme(); e.A=A; e.B=FW.gold; e.C=B; });
+    /* zum Schluss steigen aus der Fontaene Kometen mit Bluete auf */
+    const n=gross?7:4;
+    for(let i=0;i<n;i++) later(dauer-1.8+i*0.22,()=>shot(o,{pw:gross?3:0,sz:gross?1.35:1.05,
+      eff:pick(gross?['palme','glitzerweide','mehrring','titan']:['palme','chrys','kugel']),ang:rand(-0.25,0.25),trail:FW.gold}));
     return;
   }
   /* ----- Sternenbrunnen: Fontaene, Komet, Bluete ----- */
@@ -13078,7 +13287,7 @@ function applyTOD(){
   if(Math.abs(f-lastF)<0.002) return; lastF=f;
   mix3(SKY.top,f,_c1); mix3(SKY.hor,f,_c2);
   const pos=skyGeo.attributes.position, colA=skyGeo.attributes.color;
-  for(let i=0;i<pos.count;i++){ const y=pos.getY(i)/760, k=y<0?0:Math.pow(y,0.55); _c3.copy(_c2).lerp(_c1,k); if(y<0) _c3.multiplyScalar(0.6); colA.setXYZ(i,_c3.r,_c3.g,_c3.b); }
+  for(let i=0;i<pos.count;i++){ const y=pos.getY(i)/SKY_R, k=y<0?0:Math.pow(y,0.55); _c3.copy(_c2).lerp(_c1,k); if(y<0) _c3.multiplyScalar(0.6); colA.setXYZ(i,_c3.r,_c3.g,_c3.b); }
   colA.needsUpdate=true; scene.fog.color.copy(_c2);
   sun.intensity=1.6*(1-f)+0.05; hemi.intensity=0.72*(1-f)+0.16;
   starsMat.opacity=clamp((f-0.6)/0.4,0,1);
@@ -13491,12 +13700,12 @@ fontsReady().then(()=>{
   buildWorld();
   { const li=$('logoImg'); if(li) logoFreistellen(LOGO,u=>{ li.src=u; }); }
   initPost(); buildPDA();
-  initFlash(); psHuge=new PS(COARSE?700:1800,0.95); psBig=new PS(COARSE?3200:7000,0.45); psMid=new PS(COARSE?1600:3600,0.15); psSmall=new PS(COARSE?900:1800,0.07);
+  initFlash(); psHuge=new PS(COARSE?700:2000,0.95,COARSE?2:4,sternTex); psBig=new PS(COARSE?3600:10000,0.42,COARSE?3:5); psMid=new PS(COARSE?1800:5000,0.15,COARSE?2:3); psSmall=new PS(COARSE?900:1800,0.07);
   camera.position.set(pl.x,1.65,pl.z); camera.rotation.set(pitch,yaw,0);
   lastF=-1; applyTOD(); updateSign(); buildStart(); requestAnimationFrame(frame);
   window.__bb={get S(){return S},get phase(){return phase},set phase(v){phase=v},set clock(v){clock=v},get clock(){return clock},pickUp,floorBoxes,shelves,racks,dekos,stockOne,openShop,step,customers,queue,belt,scanBelt,buyUp,buyDeko,get DS(){return DS},endDay,pending,save,openLaptop,closeLaptop,pl,addXP,hireStaff,fireStaff,staff,dirts,addDirt,movables,toggleBuild,setWall,setFloor,
     stations,firePult,placeOnStation,igniteType,get order(){return order},get phone(){return phone},makeCall,answerPhone,haggle,acceptDeal,declineDeal,get truck(){return truck},spawnTruck,takeFromTruck,takeBox,dropBox,updateTruck,get door(){return door},get tuer(){return tuer},tuerSet,tuerNah,updateSchiebetuer,doorOpen,doorIsOpen,trailerOccupied,LR,lrFront,TOR,orderReady,orderLeft,shipOne,removeFloorBox,prioOf,setPrio,racks,updateCarry,spawnFloorBox,staff,SHELFKIND,layout,shelfCapOf,shelfAccepts,emptyLevel,dateInfo,dateStr,dateShort,seasonInfo,isSunday,dayMult,ruhetag,wageOf,setWage,friendliness,inPause,setPause,windowGrime,addGrime,cleanWindowTick,ambienteScore,bildBoost,fixedCosts,dailyWages,dispoLimit,verfuegbar,dispoZins,takeLoan,loanTier,loanDaily,EVENTS,GOALS,CUSTTYPES,UPGRADES,STAFF,stockOf,spawnInterval,pools,todayEvent,evv,rollEvent,rollMarket,newGoal,goalAdd,goalTick,ekFactor,marktText,xpFor,rollCustType,priceTol,buyChance,regCustomer,makeWishes,nachfrageFaktor,shelfStockOf,buildGravur,refillGrav,openGravInput,closeGravInput,get gravBlanks(){return gravBlanks},set gravBlanks(v){gravBlanks=v},orderBox,buyPack,cartAdd,cartAddPack,cartOrder,cartClear,cartDel,cartGoods,cartFee,cartTotal,cartBoxes,cartLines,LIEFERZEIT_SEK,VERSAND,VERSANDFREI,lieferSek,
-    scene,camera,P,EFF,EFF_ALL,EFF_KLEIN,EFF_GROSS,EFF_PRO,SHOWS,kugelbombe,shot,mine,FW,stations,stationOf,placedCount,togglePDA,openPDA,closePDA,setPost,get postOn(){return postOn},get pdaOn(){return pdaOn},showLength,psHuge,psBig,psMid,psSmall,rockets,emitters,timersLen:()=>timers.length,setView:(x,z,y,p)=>{pl.x=x;pl.z=z;yaw=y;pitch=p;aim=null;},schiebe:(x,z)=>{pl.x=x;pl.z=z;collide(pl,0.32);return{x:pl.x,z:pl.z};},PLZ_MAX,camYaw:()=>yaw,camPitch:()=>pitch,playerPos:()=>({x:pl.x,z:pl.z}),pultYaw:()=>pultHit?pultHit.parent.rotation.y:null,applyShopName,shopName,shopSlogan,signTexPx:()=>signTex&&signTex.image?signTex.image.getContext('2d').getImageData(0,0,signTex.image.width,40).data.join(''):null,ckTexPx:()=>ckNameTex&&ckNameTex.image?ckNameTex.image.getContext('2d').getImageData(0,0,ckNameTex.image.width,60).data.join(''):null,testfeldMitte,STATION_POS,aimAt,UPGRADES,upPic,PLAN,planFlaechen,uhrZeiger:()=>({std:uhrStd?+uhrStd.rotation.z.toFixed(4):0,min:uhrMin?+uhrMin.rotation.z.toFixed(4):0}),drawRackSchild,get snowPts(){return snowPts},buildStadt,updateStadt,get stadtBoxen(){return stadtBoxen},get stadtBaeume(){return stadtBaeume},buildFernbaeume,schwaerme,beacons,silhouetten,get verkehrPts(){return verkehrPts},get rauchPts(){return rauchPts},get flieger(){return flieger},stadtFrei,STADT_FREI,WALLS,FLOORS,renderOnline,onlineHint,onlineStufe,onlineZahlen,updateOnline,packLaptop,SCHILDBG,SCHILDFG,setSchild,schildBg,schildFg,repaintSchilder,updateHead,allLevels,addToLevel,putInSlot,regCustomer,ZONEN,zoneOffen,oeffneZone,applyZonen,SLOTS,RACKS,slotsOffen,colliders,LAY,LOGI,WRAMPEN,WTORE,updateSnow,unterDach,dachBereiche,get lapHit2(){return lapHit2},buildLagerTerminal,toggleTest,testLevel,buyUp,get toastLast(){return toastLast},__floorBoxen:()=>floorBoxes.length,WBAY_UP,wbays,dockPlaetze,wbayFrei,wbayOffen,spawnWTruck,updateWBays,wbaysInit,wtorSet,GANG,GANGTUER,buildLagergang,flaeche,WTOR,RACKKIND,route,NAV,navFrei,navIdx,navBuild,shelfStand,shelves,sbLanes,buildSBKasse,sbFrei,sbOffen,sbNutzbar,EING2,eingaenge,naechsterEingang,setEingang2,buildSBKasse2,get sb2G(){return sb2G},TUEREN,tuerSetD,tuerNahD,packBereit,packOne,paketWert,bestellungenProTag,pakete,PAKET_BAYS,ddlAbholung,updateVersand,createShelf,createRack,regalStellen,testKauf,regalAufbauen,orderRegal,REGALWARE,regalOf,regalKind,regalPreis,regalPlatz,regalOffen,startGame,promptFor,ERFOLGE,erfOffen,erfStufe,erfStand,erfZiel,erfFertig,erfAnteil,erfGeschafft,erfGesamt,stat,statAdd,statRekord,statVerkauf,bruchGesehen,gruppeVon,GRUPPE,TRAEGER,BRUCH,BRUCH_IDS,REZ_FARBEN,ETIKETT,traegerVon,traegerOffen,bruchOffen,bruchListe,rezeptWow,rezeptKosten,rezeptMarkt,rezeptHype,rezeptDauer,rezeptEntwicklung,rezeptGueltig,eigeneListe,eigenesEintragen,rezepteTick,rezProto,rezBauen,renderRezeptur,get entwurf(){return entwurf},set entwurf(v){entwurf=v},entwurfInit,ORDER,LIZENZEN,lizenzOf,hatLizenz,lizenzDaten,naechsteLizenz,buyLizenz,VOLA,volaOf,REGIME,marketOf,costOf,marktZiel,marktLuecke,meOf,miOf,marktDelta,marktNiveau,marktPhase,marktSchock,marktLabel,marktSchnitt,marktExtrem,marktChance,sortimentBreite,sortimentZug,bekanntheit,spawnInterval,rollMarkt,marktInit,inflOf,inflText,setPreisAufMarkt,igniteType,get packHit(){return packHit},get packTisch(){return packTisch},get packMov(){return packMov},zuendeKanal,zuendeAlle,alleKanaele,kanalItem,openZuend,closeZuend,get zuendOpen(){return zuendOpen},bereitCount,brennDauer,muendung,pultLamps,RAKETEN_LOOK,RAKETEN_KL,makePerson,KOEPFE,KLEID,UNIFORM,STAFFKOPF,faceCache,animPerson,PACKS,packPreis,packPool,packOffen,packContents,syncPakete,rotateGrab,PACK_FL,PACK_HOME,spotFree,rectOf,grab,placeGrab,updateGrab,get grabbed(){return grabbed},showPause,get target(){return target},
+    scene,camera,P,EFF,EFF_ALL,EFF_KLEIN,EFF_GROSS,EFF_PRO,SHOWS,kugelbombe,shot,mine,FW,stations,stationOf,placedCount,togglePDA,openPDA,closePDA,setPost,get postOn(){return postOn},get pdaOn(){return pdaOn},showLength,psHuge,psBig,psMid,psSmall,rockets,emitters,timersLen:()=>timers.length,setView:(x,z,y,p)=>{pl.x=x;pl.z=z;yaw=y;pitch=p;aim=null;},schiebe:(x,z)=>{pl.x=x;pl.z=z;collide(pl,0.32);return{x:pl.x,z:pl.z};},PLZ_MAX,camYaw:()=>yaw,camPitch:()=>pitch,playerPos:()=>({x:pl.x,z:pl.z}),pultYaw:()=>pultHit?pultHit.parent.rotation.y:null,applyShopName,shopName,shopSlogan,signTexPx:()=>signTex&&signTex.image?signTex.image.getContext('2d').getImageData(0,0,signTex.image.width,40).data.join(''):null,ckTexPx:()=>ckNameTex&&ckNameTex.image?ckNameTex.image.getContext('2d').getImageData(0,0,ckNameTex.image.width,60).data.join(''):null,testfeldMitte,STATION_POS,aimAt,UPGRADES,upPic,PLAN,planFlaechen,uhrZeiger:()=>({std:uhrStd?+uhrStd.rotation.z.toFixed(4):0,min:uhrMin?+uhrMin.rotation.z.toFixed(4):0}),drawRackSchild,get snowPts(){return snowPts},buildStadt,updateStadt,get stadtBoxen(){return stadtBoxen},get stadtBaeume(){return stadtBaeume},buildFernbaeume,schwaerme,beacons,silhouetten,get verkehrPts(){return verkehrPts},get rauchPts(){return rauchPts},get flieger(){return flieger},stadtFrei,STADT_FREI,WALLS,FLOORS,renderOnline,onlineHint,onlineStufe,onlineZahlen,updateOnline,packLaptop,SCHILDBG,SCHILDFG,setSchild,schildBg,schildFg,repaintSchilder,updateHead,allLevels,addToLevel,putInSlot,regCustomer,ZONEN,zoneOffen,oeffneZone,applyZonen,SLOTS,RACKS,slotsOffen,colliders,LAY,LOGI,WRAMPEN,WTORE,updateSnow,unterDach,dachBereiche,get lapHit2(){return lapHit2},buildLagerTerminal,toggleTest,testLevel,buyUp,get toastLast(){return toastLast},__floorBoxen:()=>floorBoxes.length,WBAY_UP,wbays,dockPlaetze,wbayFrei,wbayOffen,spawnWTruck,updateWBays,wbaysInit,wtorSet,GANG,GANGTUER,buildLagergang,flaeche,WTOR,RACKKIND,route,NAV,navFrei,navIdx,navBuild,shelfStand,shelves,sbLanes,buildSBKasse,sbFrei,sbOffen,sbNutzbar,EING2,eingaenge,naechsterEingang,setEingang2,buildSBKasse2,get sb2G(){return sb2G},TUEREN,tuerSetD,tuerNahD,packBereit,packOne,paketWert,bestellungenProTag,pakete,PAKET_BAYS,ddlAbholung,updateVersand,createShelf,createRack,regalStellen,testKauf,regalAufbauen,orderRegal,REGALWARE,regalOf,regalKind,regalPreis,regalPlatz,regalOffen,startGame,promptFor,ERFOLGE,erfOffen,erfStufe,erfStand,erfZiel,erfFertig,erfAnteil,erfGeschafft,erfGesamt,stat,statAdd,statRekord,statVerkauf,bruchGesehen,gruppeVon,GRUPPE,TRAEGER,BRUCH,BRUCH_IDS,REZ_FARBEN,ETIKETT,traegerVon,traegerOffen,bruchOffen,bruchListe,rezeptWow,rezeptKosten,rezeptMarkt,rezeptHype,rezeptDauer,rezeptEntwicklung,rezeptGueltig,eigeneListe,eigenesEintragen,rezepteTick,rezProto,rezBauen,renderRezeptur,get entwurf(){return entwurf},set entwurf(v){entwurf=v},entwurfInit,ORDER,LIZENZEN,lizenzOf,hatLizenz,lizenzDaten,naechsteLizenz,buyLizenz,VOLA,volaOf,REGIME,marketOf,costOf,marktZiel,marktLuecke,meOf,miOf,marktDelta,marktNiveau,marktPhase,marktSchock,marktLabel,marktSchnitt,marktExtrem,marktChance,sortimentBreite,sortimentZug,bekanntheit,spawnInterval,rollMarkt,marktInit,inflOf,inflText,setPreisAufMarkt,igniteType,get packHit(){return packHit},get packTisch(){return packTisch},get packMov(){return packMov},zuendeKanal,zuendeAlle,alleKanaele,kanalItem,openZuend,closeZuend,get zuendOpen(){return zuendOpen},bereitCount,brennDauer,muendung,pultLamps,RAKETEN_LOOK,RAKETEN_KL,makePerson,applyTOD,get postHalf(){return postHalf},EFF_SCHWEIF,mitSchweif,KOEPFE,KLEID,UNIFORM,STAFFKOPF,faceCache,animPerson,PACKS,packPreis,packPool,packOffen,packContents,syncPakete,rotateGrab,PACK_FL,PACK_HOME,spotFree,rectOf,grab,placeGrab,updateGrab,get grabbed(){return grabbed},showPause,get target(){return target},
     shot:()=>{ noLoop=true; camera.position.set(pl.x,1.65,pl.z); camera.rotation.set(pitch,yaw,0); camera.updateMatrixWorld(); updateTarget(); applyTOD(); renderFrame(0.016); return canvas.toDataURL('image/jpeg',0.85); },
     run:(sec,dt)=>{ noLoop=true; const n=Math.round(sec/(dt||0.05)); for(let i=0;i<n;i++) step(dt||0.05); }};
 });

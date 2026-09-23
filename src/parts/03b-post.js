@@ -4,7 +4,7 @@
    ========================================================= */
 let postOK=false, postOn=true, rtScene=null, rtA=null, rtB=null;
 let quadScene=null, quadCam=null, quadMesh=null, matBright=null, matBlur=null, matComp=null;
-let postW=0, postH=0, postDiv=4;
+let postW=0, postH=0, postDiv=4, postHalf=false;
 const QUAD_V='varying vec2 vUv;\nvoid main(){ vUv=uv; gl_Position=vec4(position.xy,0.0,1.0); }';
 function initPost(){
   try{
@@ -12,6 +12,14 @@ function initPost(){
   }catch(e){}
   try{
     const opt={minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter,format:THREE.RGBAFormat,stencilBuffer:false,depthBuffer:true};
+    /* Die Szene liegt hier in linearen Farben. Mit 8 Bit reicht das im
+       Dunkeln nicht: der Nachthimmel zerfiel in harte Stufen (linear
+       1/255 wird nach der Umrechnung zu 13, 2/255 schon zu 22). Mit
+       Halbfloat ist der Verlauf glatt - sofern die Karte es kann. */
+    let half=false;
+    try{ const ex=renderer.extensions; half=!!(ex&&renderer.capabilities.isWebGL2&&(ex.get('EXT_color_buffer_float')||ex.get('EXT_color_buffer_half_float'))); }catch(e){ half=false; }
+    if(half&&THREE.HalfFloatType) opt.type=THREE.HalfFloatType;
+    postHalf=half;
     const ms=renderer.capabilities&&renderer.capabilities.isWebGL2&&THREE.WebGLMultisampleRenderTarget;
     rtScene=ms?new THREE.WebGLMultisampleRenderTarget(2,2,opt):new THREE.WebGLRenderTarget(2,2,opt);
     if(ms) rtScene.samples=COARSE?2:4;
@@ -75,6 +83,7 @@ function sonneNachfuehren(){
 }
 function renderFrame(dt){
   sonneNachfuehren();
+  if(skyMesh){ skyMesh.position.set(camera.position.x,0,camera.position.z); starPts.position.copy(skyMesh.position); }
   if(!postOK||!postOn){ if(renderer.setRenderTarget) renderer.setRenderTarget(null); renderer.render(scene,camera); return; }
   try{
     postT+=dt||0.016;

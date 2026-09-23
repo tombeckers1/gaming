@@ -57,7 +57,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
      dem Ausbau. Die Leuchten sind waagerechte Scheiben unter der
      Decke, die Waende tragen ihre Grundflaeche in userData.aabb. */
   const leuchten=()=>p.evaluate(()=>{
-    const bb=window.__bb, waende=[], treffer=[];
+    const bb=window.__bb, waende=[], treffer=[], scheiben=[];
     bb.scene.traverse(o=>{ if(o.isMesh&&o.visible&&o.userData&&o.userData.aabb)
       waende.push(new THREE.Box3().setFromObject(o)); });
     bb.scene.traverse(o=>{
@@ -75,6 +75,27 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
           break; }
       }
     });
+    /* Leuchtende Scheiben unter der Decke: flach, schmal, hoch
+       oben. Eine zusammengefasste Reihe zaehlt genauso wie ein
+       einzelnes Panel - beide duerfen nicht uebereinanderliegen. */
+    bb.scene.traverse(o=>{
+      if(!o.isMesh||!o.visible||!o.geometry) return;
+      for(let q=o.parent;q;q=q.parent) if(!q.visible) return;
+      const bx=new THREE.Box3().setFromObject(o);
+      if(bx.max.y-bx.min.y>0.02||bx.min.y<2.4) return;
+      const br=bx.max.x-bx.min.x, ti=bx.max.z-bx.min.z;
+      if(Math.min(br,ti)>1.2||Math.min(br,ti)<0.05) return;
+      if(Math.max(br,ti)<0.4) return;
+      scheiben.push(bx);
+    });
+    for(let i=0;i<scheiben.length;i++) for(let j=i+1;j<scheiben.length;j++){
+      const a=scheiben[i], b=scheiben[j];
+      const ux=Math.min(a.max.x,b.max.x)-Math.max(a.min.x,b.min.x);
+      const uz=Math.min(a.max.z,b.max.z)-Math.max(a.min.z,b.min.z);
+      const uy=Math.min(a.max.y,b.max.y)-Math.max(a.min.y,b.min.y);
+      if(ux>0.1&&uz>0.1&&uy>-0.08)
+        treffer.push(`zwei Leuchten ineinander bei x[${a.min.x.toFixed(1)},${a.max.x.toFixed(1)}] z[${a.min.z.toFixed(1)},${a.max.z.toFixed(1)}]`);
+    }
     return treffer;
   });
 
@@ -121,7 +142,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
 
   const lVor=await leuchten();
   console.log('LEUCHTEN0  ',lVor.length?lVor.join(' | '):'keine steckt in einer Wand');
-  pruef('LEUCHTEN0',lVor.length===0,lVor.length+' Leuchten stecken am Anfang in einer Wand');
+  pruef('LEUCHTEN0',lVor.length===0,lVor.length+' Beanstandungen an den Deckenleuchten am Anfang');
 
   const a=await stand('START');
   pruef('START',a.lager===true,'das Lager am Rolltor ist nicht zu betreten');
@@ -159,7 +180,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
 
   const lNach=await leuchten();
   console.log('LEUCHTEN   ',lNach.length?lNach.join(' | '):'keine steckt in einer Wand');
-  pruef('LEUCHTEN',lNach.length===0,lNach.length+' Leuchten stecken in einer Wand');
+  pruef('LEUCHTEN',lNach.length===0,lNach.length+' Beanstandungen an den Deckenleuchten');
 
   /* Die Packstation steht von Anfang an da, mit Absperrband davor.
      Man soll sehen, was man sich damit kauft. */

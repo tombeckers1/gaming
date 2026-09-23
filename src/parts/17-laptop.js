@@ -252,11 +252,94 @@ function korbBtnText(){
    Katalogbilder: kleine gezeichnete Vorschauen fuer den Laptop
    ========================================================= */
 const _picCache={};
+/* =========================================================
+   Grundrisse fuer die Ausbaustufen. Der Bestand liegt grau da,
+   die neue Flaeche leuchtet gelb - man sieht auf einen Blick,
+   welcher Teil dazukommt und wo er liegt. Norden ist oben.
+   ========================================================= */
+function planFlaechen(){
+  const B=LAY.basis, L=LAY.lbasis;
+  return {
+    shopW:{x0:B.x0,x1:SHOP_HALB,z0:B.z0,z1:B.z1},
+    shopO:{x0:SHOP_HALB,x1:B.x1,z0:B.z0,z1:B.z1},
+    ost1:LAY.ost1, ost2:LAY.ost2, sued:LAY.sued, test:LAY.test,
+    lbas:{x0:L.x0,x1:L.x1,z0:L.z0,z1:L.z1},
+    lnord:LAY.lnord, ls1:LAY.ls1, ls2:LAY.ls2, ls3:LAY.ls3, lwest:LAY.lwest
+  };
+}
+const PLAN={
+  shop_halb:  {alt:['shopW','lbas'],                                          neu:['shopO']},
+  lager_nord: {alt:['shopW','shopO','lbas'],                                  neu:['lnord']},
+  testfeld:   {alt:['shopW','shopO','lbas','lnord'],                          neu:['test']},
+  shop_gross: {alt:['shopW','shopO','test','lbas','lnord'],                   neu:['ost1']},
+  lager_gross:{alt:['shopW','shopO','ost1','test','lbas','lnord'],            neu:['ls1']},
+  packstation:{alt:['shopW','shopO','ost1','test','lbas','lnord','ls1'],      neu:[],marke:{x:-15.0,z:-8.6,r:3.4}},
+  shop_ost:   {alt:['shopW','shopO','ost1','test','lbas','lnord','ls1'],      neu:['ost2']},
+  lager_sued: {alt:['shopW','shopO','ost1','ost2','test','lbas','lnord','ls1'],neu:['ls2']},
+  eingang2:   {alt:['shopW','shopO','ost1','ost2','test','lbas','lnord','ls1','ls2'],neu:[],marke:{x:29,z:5.9,r:2.6}},
+  lager_sued2:{alt:['shopW','shopO','ost1','ost2','test','lbas','lnord','ls1','ls2'],neu:['ls3']},
+  shop_sued:  {alt:['shopW','shopO','ost1','ost2','test','lbas','lnord','ls1','ls2','ls3'],neu:['sued']},
+  lager_west: {alt:['shopW','shopO','ost1','ost2','sued','test','lbas','lnord','ls1','ls2','ls3'],neu:['lwest']},
+  /* Die Tore liegen in der Reihenfolge von WRAMPEN an der Westwand:
+     Andockstation 2 ganz im Sueden, Andockstation 5 ganz im Norden. */
+  rampe2:{alt:['lbas','lnord','ls1','ls2','ls3','lwest'],neu:[],marke:{x:-66,z:-39,r:3.0}},
+  rampe3:{alt:['lbas','lnord','ls1','ls2','ls3','lwest'],neu:[],marke:{x:-66,z:-30,r:3.0}},
+  rampe4:{alt:['lbas','lnord','ls1','ls2','ls3','lwest'],neu:[],marke:{x:-66,z:-21,r:3.0}},
+  rampe5:{alt:['lbas','lnord','ls1','ls2','ls3','lwest'],neu:[],marke:{x:-66,z:-12,r:3.0}}
+};
+function planZeichnen(g,W,H,def){
+  const F=planFlaechen();
+  const alt=def.alt.map(k=>F[k]).filter(Boolean);
+  const neu=(def.neu||[]).map(k=>F[k]).filter(Boolean);
+  const alle=alt.concat(neu);
+  let x0=1e9,x1=-1e9,z0=1e9,z1=-1e9;
+  alle.forEach(r=>{ x0=Math.min(x0,r.x0); x1=Math.max(x1,r.x1); z0=Math.min(z0,r.z0); z1=Math.max(z1,r.z1); });
+  if(def.marke){ x0=Math.min(x0,def.marke.x-def.marke.r); x1=Math.max(x1,def.marke.x+def.marke.r);
+                 z0=Math.min(z0,def.marke.z-def.marke.r); z1=Math.max(z1,def.marke.z+def.marke.r); }
+  const luft=Math.max(x1-x0,z1-z0)*0.07;
+  x0-=luft; x1+=luft; z0-=luft; z1+=luft;
+  const sc=Math.min(W/(x1-x0),H/(z1-z0));
+  const ox=(W-(x1-x0)*sc)/2, oz=(H-(z1-z0)*sc)/2;
+  const PX=x=>ox+(x-x0)*sc, PY=z=>oz+(z1-z)*sc;
+  const gr=g.createLinearGradient(0,0,0,H); gr.addColorStop(0,'#1a2134'); gr.addColorStop(1,'#0c111f');
+  g.fillStyle=gr; g.fillRect(0,0,W,H);
+  const kasten=(r,fill,rand,br)=>{
+    const a=PX(r.x0), b=PX(r.x1), c=PY(r.z1), d=PY(r.z0);
+    g.fillStyle=fill; g.fillRect(a,c,Math.max(2,b-a),Math.max(2,d-c));
+    g.strokeStyle=rand; g.lineWidth=br; g.strokeRect(a,c,Math.max(2,b-a),Math.max(2,d-c));
+  };
+  alt.forEach(r=>kasten(r,'#39414d','#545c6a',1.5));
+  neu.forEach(r=>kasten(r,'#f2c230','#fff4cc',2));
+  neu.forEach(r=>{ const a=PX(r.x0), b=PX(r.x1), c=PY(r.z1), d=PY(r.z0);
+    g.strokeStyle='#6cf2a8'; g.setLineDash([7,5]); g.lineWidth=3;
+    g.strokeRect(a-3,c-3,Math.max(2,b-a)+6,Math.max(2,d-c)+6); g.setLineDash([]); });
+  if(def.marke){
+    const mx=PX(def.marke.x), my=PY(def.marke.z), rr=Math.max(9,def.marke.r*sc);
+    g.fillStyle='rgba(242,194,48,.28)'; g.beginPath(); g.arc(mx,my,rr,0,Math.PI*2); g.fill();
+    g.strokeStyle='#6cf2a8'; g.setLineDash([7,5]); g.lineWidth=3;
+    g.beginPath(); g.arc(mx,my,rr,0,Math.PI*2); g.stroke(); g.setLineDash([]);
+    g.fillStyle='#f2c230'; g.beginPath(); g.arc(mx,my,Math.max(3,rr*0.26),0,Math.PI*2); g.fill();
+  }
+  /* Nordpfeil, damit die Lage klar ist */
+  g.strokeStyle='rgba(200,210,230,.55)'; g.lineWidth=2;
+  g.beginPath(); g.moveTo(W-15,H-10); g.lineTo(W-15,H-26); g.stroke();
+  g.beginPath(); g.moveTo(W-19,H-21); g.lineTo(W-15,H-27); g.lineTo(W-11,H-21); g.stroke();
+  g.fillStyle='rgba(200,210,230,.7)'; g.font='700 11px sans-serif';
+  g.textAlign='center'; g.textBaseline='alphabetic'; g.fillText('N',W-15,H-30);
+}
 function upPic(id){
   if(_picCache[id]) return _picCache[id];
   const c=document.createElement('canvas'); c.width=224; c.height=152;
   const g=c.getContext('2d');
   const W=224,H=152;
+  /* Flaechen-Ausbauten bekommen einen echten Grundriss statt einer
+     gemalten Szene - so sieht man, welcher Teil dazukommt. */
+  if(PLAN[id]){
+    planZeichnen(g,W,H,PLAN[id]);
+    g.strokeStyle='rgba(242,245,255,.18)'; g.lineWidth=2; g.strokeRect(1,1,W-2,H-2);
+    _picCache[id]=c.toDataURL('image/png');
+    return _picCache[id];
+  }
   const bg=(a,b)=>{ const gr=g.createLinearGradient(0,0,0,H); gr.addColorStop(0,a); gr.addColorStop(1,b); g.fillStyle=gr; g.fillRect(0,0,W,H); };
   const regal=(faecher,breit,farbe)=>{
     bg('#1b2540','#0d1326');
@@ -324,74 +407,6 @@ function upPic(id){
           for(let k=0;k<(id==='rack_schwer'?4:3);k++){ g.fillStyle='#c9a978';
             g.fillRect(x0+6+k*(bw-8)/(id==='rack_schwer'?4:3),y-14,(bw-24)/(id==='rack_schwer'?4:3),14); } } }
       break;
-    case 'shop_ost': case 'shop_sued':
-      bg('#20283c','#121826');
-      g.fillStyle='#e9e4da'; g.fillRect(14,44,60,90);
-      g.fillStyle='#d9d4c6'; g.fillRect(76,34,60,100);
-      g.fillStyle='#8a4f3c'; g.fillRect(138,24,72,110);
-      for(let r=0;r<7;r++) for(let c2=0;c2<3;c2++){ g.fillStyle=r%2?'#7e4735':'#93573f'; g.fillRect(140+c2*24+(r%2?6:0),26+r*16,20,13); }
-      g.fillStyle='#ffd23f'; g.fillRect(14,34,60,10);
-      g.strokeStyle='#6cf2a8'; g.setLineDash([7,6]); g.lineWidth=4;
-      g.strokeRect(id==='shop_ost'?134:72,id==='shop_ost'?22:32,id==='shop_ost'?78:68,114); g.setLineDash([]);
-      break;
-    /* Eigenes Bild: das Lager endet an einer Trennwand, dahinter
-       stehen die freien Stellplaetze. */
-    case 'lager_nord':
-      bg('#1d2433','#0d1220');
-      g.fillStyle='#6d737c'; g.fillRect(0,110,W,42);
-      g.fillStyle='#f2c230'; g.fillRect(0,106,W,5);
-      g.fillStyle='#1f1f24'; g.fillRect(0,111,W,4);
-      for(const x of [14,52]){ g.fillStyle='#9aa0a8'; g.fillRect(x,40,30,68);
-        for(let r=0;r<3;r++){ g.fillStyle='#c6ccd4'; g.fillRect(x,54+r*18,30,5);
-          g.fillStyle='#b08046'; g.fillRect(x+4,42+r*18,10,12); g.fillRect(x+17,42+r*18,10,12); } }
-      g.fillStyle='#39414d'; g.fillRect(96,14,13,96);
-      g.fillStyle='#5a6270'; g.fillRect(96,14,13,6);
-      for(const x of [124,164,204]){ g.fillStyle='#575e68'; g.fillRect(x,44,26,64);
-        for(let r=0;r<3;r++){ g.fillStyle='#6e757f'; g.fillRect(x,58+r*18,26,4); } }
-      g.strokeStyle='#6cf2a8'; g.setLineDash([7,6]); g.lineWidth=4; g.strokeRect(112,16,102,120); g.setLineDash([]);
-      break;
-    case 'lager_gross': case 'lager_sued': case 'lager_sued2': case 'lager_west':
-      bg('#1a2030','#0e131e');
-      /* hohe Halle neben der niedrigen */
-      g.fillStyle='#a3a8b0'; g.fillRect(16,76,80,58);
-      g.fillStyle='#b9bec6'; g.fillRect(104,24,104,110);
-      for(let i=0;i<9;i++){ g.fillStyle=i%2?'#a7adb6':'#c4c9d1'; g.fillRect(106+i*11,26,7,106); }
-      g.fillStyle='#2b2f3a'; g.fillRect(100,18,112,10);
-      g.fillStyle='#e9ebee'; g.fillRect(128,86,24,46); g.fillRect(166,86,24,46);
-      g.strokeStyle='#6cf2a8'; g.setLineDash([7,6]); g.lineWidth=4; g.strokeRect(100,20,112,116); g.setLineDash([]);
-      g.fillStyle='#f2c230'; g.fillRect(16,134,192,6); break;
-    /* Eigenes Bild: der halbe Laden, rechts die zugemauerte
-       Haelfte hinter der Trennwand. */
-    case 'shop_halb':
-      bg('#20283c','#121826');
-      g.fillStyle='#e9e4da'; g.fillRect(8,20,96,116);
-      g.fillStyle='#1b2340'; g.fillRect(8,110,96,26);
-      g.fillStyle='#c0392b'; g.fillRect(8,106,96,4);
-      for(const x of [18,44,70]){ g.fillStyle='#8a9099'; g.fillRect(x,46,22,60);
-        for(let r=0;r<3;r++){ g.fillStyle='#c9ced8'; g.fillRect(x,54+r*18,22,4);
-          for(let c2=0;c2<2;c2++){ g.fillStyle=['#d8b468','#c05a4a'][c2]; g.fillRect(x+2+c2*10,44+r*18,8,10); } } }
-      g.fillStyle='#39414d'; g.fillRect(104,16,12,120);
-      g.fillStyle='#5a6270'; g.fillRect(104,16,12,6);
-      g.fillStyle='#39414d'; g.fillRect(116,20,100,116);
-      g.fillStyle='#2b3240'; g.fillRect(126,44,80,62);
-      g.strokeStyle='#6cf2a8'; g.setLineDash([7,6]); g.lineWidth=4; g.strokeRect(114,18,104,120); g.setLineDash([]);
-      break;
-    case 'shop_gross':
-      bg('#20283c','#121826');
-      g.fillStyle='#8a4f3c'; g.fillRect(112,24,96,110);
-      for(let r=0;r<7;r++) for(let c2=0;c2<4;c2++){ g.fillStyle=r%2?'#7e4735':'#93573f'; g.fillRect(114+c2*24+(r%2?6:0),26+r*16,20,13); }
-      g.fillStyle='#e9e4da'; g.fillRect(20,30,84,104);
-      g.fillStyle='#2c3646'; g.fillRect(28,44,28,34); g.fillRect(64,44,28,34);
-      g.fillStyle='#ffd23f'; g.fillRect(20,20,84,12);
-      g.strokeStyle='#6cf2a8'; g.setLineDash([7,6]); g.lineWidth=4; g.strokeRect(108,22,102,114); g.setLineDash([]);
-      break;
-    case 'packstation':
-      bg('#1a2030','#0e131e');
-      g.fillStyle='#6b5a42'; g.fillRect(30,76,164,14);
-      g.fillStyle='#8a9099'; g.fillRect(36,90,10,42); g.fillRect(178,90,10,42);
-      for(let k=0;k<3;k++){ g.fillStyle='#c9a978'; g.fillRect(44+k*50,44,40,32);
-        g.strokeStyle='#8a7350'; g.lineWidth=2; g.strokeRect(44+k*50,44,40,32); }
-      g.fillStyle='#e8b800'; g.fillRect(150,26,56,16); g.fillStyle='#c8322a'; g.fillRect(150,26,28,16); break;
     case 'plakat': case 'radio': case 'tafel':
       bg('#1c2438','#0e1424');
       g.fillStyle='#c8322a'; g.fillRect(40,26,144,88);
@@ -437,15 +452,6 @@ function upPic(id){
       g.fillStyle='#f2efe4'; g.fillRect(52,26,120,100);
       g.fillStyle='#c8322a'; g.beginPath(); g.arc(112,60,22,0,Math.PI*2); g.fill();
       g.fillStyle='#1b2340'; g.fillRect(66,94,92,6); g.fillRect(66,108,66,6); break;
-    case 'testfeld':
-      bg('#1a2238','#0b1020');
-      g.fillStyle='#4a515c'; g.fillRect(0,96,W,56);
-      g.fillStyle='#39414d'; g.fillRect(24,72,176,26);
-      for(const x of [52,112,172]){ g.fillStyle='#8a9099'; g.fillRect(x-7,52,14,22); }
-      g.fillStyle='#cc2118'; for(const y of [26,44,62]) g.fillRect(78,y,68,7);
-      g.fillStyle='#2f3644'; g.fillRect(70,18,8,56); g.fillRect(146,18,8,56);
-      g.fillStyle='#ffd23f'; g.fillRect(0,132,W,4);
-      break;
     default:
       bg('#1a2030','#0e131e');
       g.fillStyle='#39434f'; g.fillRect(62,44,100,64);

@@ -34,12 +34,11 @@ const LAY={
   sued  :{x0:8.0,  x1:37.9, z0:-21.9, z1:-5.9},  /* 478 m2 */
   /* Lager, zusammen 927 m2 */
   lager :{x0:-66.0,x1:-8.1, z0:-45.0, z1:5.9},
-  /* Das kleine Lager besteht von Anfang an aus zwei Teilen: dem
-     Raum an der Rampe und dem Anbau nach Norden. Frueher musste
-     man den Anbau kaufen - er war aber nie mehr als ein Stueck
-     Lager, und die Wand dazwischen stand nur im Weg. */
+  /* Am Anfang gehoert nur der Raum am Rolltor zum Lager. Der
+     Anbau nach Norden ist die erste Lagererweiterung; bis dahin
+     steht dort eine Wand mit Durchbruch. */
   lbasis:{x0:-19.9,x1:-8.1, z0:-5.9,  z1:1.9},   /*  92 m2, von Anfang an */
-  lnord :{x0:-19.9,x1:-8.1, z0:1.9,   z1:5.9},   /*  47 m2, von Anfang an */
+  lnord :{x0:-19.9,x1:-8.1, z0:1.9,   z1:5.9},   /*  47 m2, Lagererweiterung 1 */
   /* Die Halle Sued waechst vom Rolltor aus nach Sueden, in drei
      Abschnitten. Der erste traegt die Packstation - ab dort laeuft
      der Versand. Zwischen den Abschnitten faellt die Wand beim

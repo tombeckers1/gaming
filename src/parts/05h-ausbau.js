@@ -169,7 +169,7 @@ function halle(id,r,opt){
     if(au.w) zAdd(id,bbox(0.02,0.1,r.z1-r.z0,base,r.x0+0.01,0.05,(r.z0+r.z1)/2,null,false));
     if(au.e) zAdd(id,bbox(0.02,0.1,r.z1-r.z0,base,r.x1-0.01,0.05,(r.z0+r.z1)/2,null,false));
   }
-  leuchtenRaster(id,r,H,opt.ax||(lager?3.6:3.4),opt.az||(lager?4.2:3.6));
+  if(!opt.keinLicht) leuchtenRaster(id,r,H,opt.ax||(lager?3.6:3.4),opt.az||(lager?4.2:3.6));
   /* Der Bodenschatten gehoert nur an Kanten, an denen dauerhaft
      eine Wand steht - sonst bleibt er nach dem Kauf mitten im
      Raum stehen. */
@@ -563,7 +563,8 @@ function buildAusbau(){
      Vorher stand auch die Westwand doppelt - zwei Flaechen genau
      aufeinander, die gegeneinander flimmerten und an der
      Stossstelle eine senkrechte Naht hinterliessen. */
-  halle(null,LAY.lnord,{art:'lager',aussen:{n:true},ao:{},h:LAGER_H,keinDach:true,keinDeck:true,keinBoden:true});
+  halle(null,LAY.lnord,{art:'lager',aussen:{n:true},ao:{},h:LAGER_H,
+    keinDach:true,keinDeck:true,keinBoden:true,keinLicht:true});
   /* Die Halle Sued in drei Abschnitten. Alle drei sind gleich
      hoch, damit zwischen ihnen keine Wand stehen bleiben muss. */
   halle('lager_gross',LAY.ls1,{art:'lager',ao:{w:true,e:true},h:HALLE_H});
@@ -708,9 +709,10 @@ function buildPackstation(){
   plane(2.5,0.44,new THREE.MeshBasicMaterial({map:packSchildTex,toneMapped:false}),0,2.3,-0.455,Math.PI,g);
   drawPackSchild();
   /* Abholrampe mit Paketstellplaetzen */
-  for(let k=0;k<6;k++){
-    const px=3.9+(k%3)*0.62, pz=-0.3+Math.floor(k/3)*0.6;
-    bbox(0.52,0.02,0.52,std(0xf2c230),px,0.016,pz,g,false);
+  /* Die Stellplaetze liegen neben der beschrifteten Flaeche, nicht
+     darauf - sonst ueberdecken die gelben Felder das Wort. */
+  for(let k=0;k<6;k++){ const p=paketPose(k);
+    bbox(0.52,0.02,0.52,std(0xf2c230),p.x,0.016,p.z,g,false);
   }
   const hit=bbox(3.0,2.0,1.4,hitM,0.6,1.0,0,g,false);
   hit.userData={kind:'pack'}; packHit=hit;
@@ -784,15 +786,19 @@ function versandFlaeche(g,id,PX,PZ){
      Gang - und er ist fest, man laeuft nicht hindurch. */
   /* Das Schild steht am Kopf der Rollenbahn an der Seite, nicht
      mitten im Gang. */
+  /* Zwei Masten an den Seiten. Einer in der Mitte stand genau vor
+     der Schrift und schnitt "ABHOLUNG DDL" entzwei. */
   const dz=-1.45;
-  bbox(0.07,2.05,0.07,stahl,5.15,1.02,dz,g,false);
-  bbox(0.26,0.04,0.26,std(0x2f343e,{roughness:0.8}),5.15,0.02,dz,g,false);
+  for(const sx of [5.15-0.43,5.15+0.43]){
+    bbox(0.06,2.05,0.06,stahl,sx,1.02,dz,g,false);
+    bbox(0.22,0.035,0.22,std(0x2f343e,{roughness:0.8}),sx,0.018,dz,g,false);
+  }
   bbox(1.06,0.56,0.05,std(0x2f343d,{metalness:0.4,roughness:0.55}),5.15,1.72,dz,g,false);
   /* beidseitig bedruckt - im Lager laeuft man von beiden Seiten daran vorbei */
   for(const sg of [-1,1])
     plane(1.0,0.5,new THREE.MeshStandardMaterial({map:dt,roughness:0.6}),
       5.15,1.72,dz+sg*0.032,sg<0?Math.PI:0,g);
-  col(PX+5.02,PX+5.28,PZ+dz-0.13,PZ+dz+0.13);
+  for(const sx of [5.15-0.43,5.15+0.43]) col(PX+sx-0.13,PX+sx+0.13,PZ+dz-0.13,PZ+dz+0.13);
   /* Schild an der Westwand, dort ist die einzige freie Wandflaeche */
   const wt=tex(760,200,(c,W,H)=>{
     c.fillStyle='#1b2340'; c.fillRect(0,0,W,H);
@@ -861,7 +867,7 @@ function paketMaterial(){
   paketTex=new THREE.MeshStandardMaterial({map:t,roughness:0.86});
   return paketTex;
 }
-function paketPose(i){ return {x:3.9+(i%3)*0.62,z:-0.3+Math.floor(i/3)*0.6}; }
+function paketPose(i){ return {x:5.35+(i%3)*0.62,z:-0.3+Math.floor(i/3)*0.6}; }
 function syncPakete(){
   if(!packTisch) return;
   const soll=Math.min(PAKET_BAYS,S?(S.pakete|0):0);

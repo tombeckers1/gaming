@@ -51,10 +51,9 @@ function eingangsAchse(go,a,b,zf,ST,glas,prof){
   /* Vordach ueber dem Eingang, wie am Haupthaus */
   const vd=bbox(3.4,0.08,1.5,std(0x2f343d,{metalness:0.4,roughness:0.6}),cx,TUER.y+0.62,zf+0.85,auf,false);
   vd.rotation.x=0.05;
-  for(const s of [-1,1]){
-    const st=bbox(0.06,1.1,0.06,stahl,cx+s*1.5,TUER.y+0.15,zf+1.45,auf,false);
-    st.rotation.x=-0.5;
-  }
+  /* Zwei Zugstangen von der Wand ueber dem Dach hinab zur Vorderkante.
+     Vorher hingen sie unter dem Dach und endeten unten frei in der Luft. */
+  for(const s of [-1,1]) strebeZ(zf+0.02,TUER.y+1.3,zf+1.45,TUER.y+0.67,cx+s*1.5,stahl,auf);
   /* Schmutzfangmatte innen und aussen */
   const matte=std(0x232830,{roughness:0.98});
   bbox(2.4,0.014,1.1,matte,cx,0.02,zf-0.72,auf,false);

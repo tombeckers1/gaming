@@ -7,6 +7,22 @@ const DOCK={door:V(-20,0,-2),stand:V(-21.9,0,-2),park:V(-23.5,0,-2.2)};
    Viertelkreis ab und liegen dann waagerecht unter der Lagerdecke. */
 const TOR={x:-19.95,z:-2,w:3.26,h:3.0,ph:0.6,n:5,R:0.42};
 let door=null;
+/* Rundstab zwischen zwei Punkten in einer x-y-Ebene (z fest):
+   Mitte, Laenge und Neigung werden aus den Endpunkten gerechnet,
+   statt Winkel und Mitte von Hand zu schaetzen. */
+function strebe(x0,y0,x1,y1,z,mat,parent){
+  const dx=x1-x0, dy=y1-y0, L=Math.hypot(dx,dy);
+  const st=bbox(0.07,L,0.07,mat,(x0+x1)/2,(y0+y1)/2,z,parent,false);
+  st.rotation.z=Math.atan2(-dx,dy);
+  return st;
+}
+/* Dasselbe in einer y-z-Ebene (x fest) */
+function strebeZ(z0,y0,z1,y1,x,mat,parent){
+  const dz=z1-z0, dy=y1-y0, L=Math.hypot(dz,dy);
+  const st=bbox(0.06,L,0.06,mat,x,(y0+y1)/2,(z0+z1)/2,parent,false);
+  st.rotation.x=Math.atan2(dz,dy);
+  return st;
+}
 function panelPose(s){
   const {x,h,R}=TOR, arc=R*Math.PI/2;
   if(s<=h) return {x,y:s,rz:0};
@@ -79,7 +95,11 @@ function buildDock(){
   // Vordach über dem Tor
   const cano=bbox(1.9,0.1,4.4,std(0x3a4150,{metalness:0.5}),-20.95,3.32,-2,null,false); cano.rotation.z=0.08;
   bbox(1.95,0.09,4.45,snow,-20.95,3.42,-2,null,false).rotation.z=0.08;
-  for(const z of [-1.9,1.9]){ const st=bbox(0.07,0.9,0.07,steel,-21.8,2.95,z,null,false); st.rotation.x=0; st.rotation.z=-0.7; }
+  /* Zwei Streben von der Wand schraeg hinauf unter die Aussenkante des
+     Vordachs. Vorher standen sie bei z = +-1,9 statt um die Dachmitte
+     (-2): die rechte hing allein an der Wand. Und sie waren falsch
+     herum gekippt - oben stachen sie durchs Dach, unten schwebten sie. */
+  for(const z of [-3.9,-0.1]) strebe(-20.12,2.55,-21.55,3.2,z,steel,null);
   /* Hofbeleuchtung: zwei Wandstrahler an der Lagerwand, dazu zwei
      Mastleuchten im Hof. Vorher schwebten die Leuchten frei in der Luft. */
   for(const z of [-4.9,0.9]){

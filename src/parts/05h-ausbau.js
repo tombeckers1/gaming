@@ -1145,7 +1145,10 @@ function westTor(cz,nr){
   cano.rotation.z=-0.09;
   const sn=bbox(1.38,0.08,WTOR.w+1.24,std(0xeef2f8,{roughness:1}),-0.85,WTOR.h+0.61,0,g,false);
   sn.rotation.z=-0.09;
-  for(const s of [-1,1]){ const st=bbox(0.07,0.95,0.07,steel,-1.2,WTOR.h+0.1,s*(WTOR.w/2+0.4),g,false); st.rotation.z=-0.74; }
+  /* Streben von der Wand hinauf unter die Aussenkante des Vordachs.
+     Mit rotation.z = -0.74 kippten sie falsch herum: das untere Ende
+     schwebte vor der Wand, das obere steckte im Dach. */
+  for(const s of [-1,1]) strebe(-0.25,WTOR.h-0.25,-1.4,WTOR.h+0.47,s*(WTOR.w/2+0.4),steel,g);
   /* Torbeschlaege: Fuehrungsschienen und Antriebskasten sieht man
      von aussen nicht - dafuer Ampel, Taster und Torkennung. */
   bbox(0.14,0.44,0.14,dark,-0.3,2.0,WTOR.w/2+0.62,g,false);

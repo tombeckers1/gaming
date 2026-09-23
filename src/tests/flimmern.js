@@ -6,6 +6,7 @@
    2 Das freie Wandende bei x = 8 traegt die Wandfarbe.
    3 In der offenen Tuer des zweiten Eingangs steht nichts.
    4 Muelleimer und Poller stehen nicht ineinander.
+   5 Die Vordachstreben am Rolltor verbinden Wand und Dachkante.
    Braucht echtes three.js. */
 const { chromium } = require('/opt/node22/lib/node_modules/playwright');
 (async()=>{
@@ -79,13 +80,34 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
       const pa=q.geometry.parameters; if(!pa||!pa.openEnded||Math.abs(pa.radiusTop-0.2)>0.001) return;
       const w=new THREE.Vector3(); q.getWorldPosition(w);
       for(const px of [-5.4,5.4]) o.muellAbstand=Math.min(o.muellAbstand,Math.hypot(w.x-px,w.z-7.5)); });
+    /* 5 - Vordachstreben am Rolltor der Basisrampe: unten an der
+           Wand (x = -20,1), oben unter der Dachkante, innerhalb der
+           Dachbreite (z -4,2 bis 0,2) */
+    o.streben=[];
+    bb.scene.traverse(q=>{ if(!q.isMesh||!sicht(q)||!q.geometry||q.geometry.type!=='BoxGeometry') return;
+      const pa=q.geometry.parameters;
+      if(Math.abs(pa.width-0.07)>0.001||Math.abs(pa.depth-0.07)>0.001||pa.height<0.8||pa.height>2) return;
+      const a=new THREE.Vector3(0,-pa.height/2,0).applyMatrix4(q.matrixWorld);
+      const e=new THREE.Vector3(0,pa.height/2,0).applyMatrix4(q.matrixWorld);
+      if(Math.abs(a.x-e.x)<0.3) return;                          /* nur schraege Stangen */
+      const lo=a.y<e.y?a:e, hi=a.y<e.y?e:a;
+      if(lo.x>-19.5||lo.x<-22.6||Math.abs(lo.z+2)>3) return;
+      o.streben.push({unten:[lo.x,lo.y,lo.z].map(v=>+v.toFixed(2)),oben:[hi.x,hi.y,hi.z].map(v=>+v.toFixed(2))});
+    });
     return o;
   });
   console.log('FLIMMERN ',JSON.stringify({gangSued:r.gangSued,gangLager:r.gangLager,traufe:r.traufe}));
   console.log('WANDENDE ',JSON.stringify(r.ende));
   console.log('EINGANG2 ',JSON.stringify({x:r.tuerX,inTuer:r.inTuer}));
   console.log('MUELL    ',r.muellAbstand.toFixed(2));
+  console.log('STREBEN  ',JSON.stringify(r.streben));
   const mangel=[];
+  if(r.streben.length!==2) mangel.push('am Rolltor erwartet 2 Vordachstreben, gefunden '+r.streben.length);
+  r.streben.forEach(st=>{
+    if(st.unten[0]<-20.25||st.unten[0]>-20.0) mangel.push('Strebe steht unten nicht an der Wand: '+JSON.stringify(st.unten));
+    if(st.oben[0]>-21.2||st.oben[1]<3.1||st.oben[1]>3.3) mangel.push('Strebe endet oben nicht unter der Dachkante: '+JSON.stringify(st.oben));
+    if(st.unten[2]<-4.2||st.unten[2]>0.2) mangel.push('Strebe liegt neben dem Vordach: z='+st.unten[2]);
+  });
   if(r.gangSued>1) mangel.push('Lagergang flimmert an der Wand der Halle hinterm Laden');
   if(r.gangLager>1) mangel.push('Lagergang flimmert an der Lagerwand');
   if(r.traufe>1) mangel.push('Schildrahmen flimmert im Traufkasten');

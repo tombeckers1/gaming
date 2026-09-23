@@ -4363,6 +4363,22 @@ const DOCK={door:V(-20,0,-2),stand:V(-21.9,0,-2),park:V(-23.5,0,-2.2)};
    Viertelkreis ab und liegen dann waagerecht unter der Lagerdecke. */
 const TOR={x:-19.95,z:-2,w:3.26,h:3.0,ph:0.6,n:5,R:0.42};
 let door=null;
+/* Rundstab zwischen zwei Punkten in einer x-y-Ebene (z fest):
+   Mitte, Laenge und Neigung werden aus den Endpunkten gerechnet,
+   statt Winkel und Mitte von Hand zu schaetzen. */
+function strebe(x0,y0,x1,y1,z,mat,parent){
+  const dx=x1-x0, dy=y1-y0, L=Math.hypot(dx,dy);
+  const st=bbox(0.07,L,0.07,mat,(x0+x1)/2,(y0+y1)/2,z,parent,false);
+  st.rotation.z=Math.atan2(-dx,dy);
+  return st;
+}
+/* Dasselbe in einer y-z-Ebene (x fest) */
+function strebeZ(z0,y0,z1,y1,x,mat,parent){
+  const dz=z1-z0, dy=y1-y0, L=Math.hypot(dz,dy);
+  const st=bbox(0.06,L,0.06,mat,x,(y0+y1)/2,(z0+z1)/2,parent,false);
+  st.rotation.x=Math.atan2(dz,dy);
+  return st;
+}
 function panelPose(s){
   const {x,h,R}=TOR, arc=R*Math.PI/2;
   if(s<=h) return {x,y:s,rz:0};
@@ -4435,7 +4451,11 @@ function buildDock(){
   // Vordach über dem Tor
   const cano=bbox(1.9,0.1,4.4,std(0x3a4150,{metalness:0.5}),-20.95,3.32,-2,null,false); cano.rotation.z=0.08;
   bbox(1.95,0.09,4.45,snow,-20.95,3.42,-2,null,false).rotation.z=0.08;
-  for(const z of [-1.9,1.9]){ const st=bbox(0.07,0.9,0.07,steel,-21.8,2.95,z,null,false); st.rotation.x=0; st.rotation.z=-0.7; }
+  /* Zwei Streben von der Wand schraeg hinauf unter die Aussenkante des
+     Vordachs. Vorher standen sie bei z = +-1,9 statt um die Dachmitte
+     (-2): die rechte hing allein an der Wand. Und sie waren falsch
+     herum gekippt - oben stachen sie durchs Dach, unten schwebten sie. */
+  for(const z of [-3.9,-0.1]) strebe(-20.12,2.55,-21.55,3.2,z,steel,null);
   /* Hofbeleuchtung: zwei Wandstrahler an der Lagerwand, dazu zwei
      Mastleuchten im Hof. Vorher schwebten die Leuchten frei in der Luft. */
   for(const z of [-4.9,0.9]){
@@ -5761,7 +5781,10 @@ function westTor(cz,nr){
   cano.rotation.z=-0.09;
   const sn=bbox(1.38,0.08,WTOR.w+1.24,std(0xeef2f8,{roughness:1}),-0.85,WTOR.h+0.61,0,g,false);
   sn.rotation.z=-0.09;
-  for(const s of [-1,1]){ const st=bbox(0.07,0.95,0.07,steel,-1.2,WTOR.h+0.1,s*(WTOR.w/2+0.4),g,false); st.rotation.z=-0.74; }
+  /* Streben von der Wand hinauf unter die Aussenkante des Vordachs.
+     Mit rotation.z = -0.74 kippten sie falsch herum: das untere Ende
+     schwebte vor der Wand, das obere steckte im Dach. */
+  for(const s of [-1,1]) strebe(-0.25,WTOR.h-0.25,-1.4,WTOR.h+0.47,s*(WTOR.w/2+0.4),steel,g);
   /* Torbeschlaege: Fuehrungsschienen und Antriebskasten sieht man
      von aussen nicht - dafuer Ampel, Taster und Torkennung. */
   bbox(0.14,0.44,0.14,dark,-0.3,2.0,WTOR.w/2+0.62,g,false);
@@ -6878,10 +6901,9 @@ function eingangsAchse(go,a,b,zf,ST,glas,prof){
   /* Vordach ueber dem Eingang, wie am Haupthaus */
   const vd=bbox(3.4,0.08,1.5,std(0x2f343d,{metalness:0.4,roughness:0.6}),cx,TUER.y+0.62,zf+0.85,auf,false);
   vd.rotation.x=0.05;
-  for(const s of [-1,1]){
-    const st=bbox(0.06,1.1,0.06,stahl,cx+s*1.5,TUER.y+0.15,zf+1.45,auf,false);
-    st.rotation.x=-0.5;
-  }
+  /* Zwei Zugstangen von der Wand ueber dem Dach hinab zur Vorderkante.
+     Vorher hingen sie unter dem Dach und endeten unten frei in der Luft. */
+  for(const s of [-1,1]) strebeZ(zf+0.02,TUER.y+1.3,zf+1.45,TUER.y+0.67,cx+s*1.5,stahl,auf);
   /* Schmutzfangmatte innen und aussen */
   const matte=std(0x232830,{roughness:0.98});
   bbox(2.4,0.014,1.1,matte,cx,0.02,zf-0.72,auf,false);

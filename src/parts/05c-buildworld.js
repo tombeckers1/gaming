@@ -145,7 +145,10 @@ function buildWorld(){
   const fixM=std(0xdfe3e9,{metalness:0,roughness:0.62});
   const rev=std(0x252932,{metalness:0,roughness:0.9});
   const leuchten=[];
-  for(const x of [-5.7,-1.9,1.9,5.7]) for(const z of [-3.6,0,3.6]) leuchten.push([x,WH,z]);
+  /* Das Leuchtenraster richtet sich nach der Trennwand: drei
+     Reihen in der Starthaelfte, zwei in der zweiten. Vorher lief
+     eine Reihe genau durch die Wand hindurch. */
+  for(const x of [-6.2,-3.4,-0.6, 3.7,6.5]) for(const z of [-3.6,0,3.6]) leuchten.push([x,WH,z]);
   /* Die Lagerleuchten haengen an der Lagerdecke, nicht an der des
      Verkaufsraums - das Lager ist hoeher. Und der Anbau nach Norden
      bekommt jetzt auch welche, er gehoert zum selben Raum. */

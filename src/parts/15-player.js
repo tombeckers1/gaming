@@ -172,6 +172,7 @@ function updateTarget(){
   if(pultHit) list.push(pultHit);
   if(gravHit) list.push(gravHit);
   if(packHit&&zoneOffen('packstation')) list.push(packHit);
+  if(tfHit&&tfHit.visible) list.push(tfHit);
   if(truck&&truck.state==='docked') truck.boxes.forEach(m=>list.push(m));
   list.push(...windowHits);
   for(const o of occluders) if(!o.userData.aabb||nahBox(o.userData.aabb,6.5)) list.push(o);

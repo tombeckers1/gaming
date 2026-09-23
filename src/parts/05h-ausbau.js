@@ -239,15 +239,55 @@ function durchbruchWand(id,laengs,fest,von,bis,oeffnungen,mat,exMat,sturzY,hoehe
    das Band. Was dahinter steht, sieht man trotzdem: das ist der
    Sinn der Sache.
    ========================================================= */
+let tfHit=null;
+function sperrbandTex(){
+  const t=tex(1024,64,(g,W,H)=>{
+    g.fillStyle='#cf1f16'; g.fillRect(0,0,W,H);
+    /* dunkle Webkante oben und unten, wie bei echtem Band */
+    g.fillStyle='rgba(0,0,0,.24)'; g.fillRect(0,0,W,5); g.fillRect(0,H-5,W,5);
+    g.fillStyle='rgba(255,255,255,.10)'; g.fillRect(0,7,W,4);
+    g.fillStyle='#f7f8fc'; g.font=BUN(31); g.textAlign='center'; g.textBaseline='middle';
+    for(let i=0;i<2;i++) g.fillText('TESTFELD GESPERRT',W/4+i*W/2,H/2+2);
+  });
+  t.wrapS=t.wrapT=THREE.ClampToEdgeWrapping; t.anisotropy=8; return t;
+}
+/* Ein Band spannt zwischen zwei Pfosten und haengt in der Mitte
+   durch. Eine gerade Leiste sieht aus wie ein roter Strich. */
+function sperrband(Z,a,b,z,y,mat){
+  const L=b-a, durch=0.05;
+  const geo=new THREE.PlaneGeometry(L,0.09,16,1), pos=geo.attributes.position;
+  for(let i=0;i<pos.count;i++){
+    const t=(pos.getX(i)+L/2)/L;
+    pos.setY(i,pos.getY(i)-durch*Math.sin(Math.PI*t));
+  }
+  pos.needsUpdate=true; geo.computeVertexNormals();
+  const m=new THREE.Mesh(geo,mat);
+  m.position.set((a+b)/2,y,z); m.userData.sperrband=true;
+  scene.add(m); zWand(Z,m);
+  return m;
+}
 function testfeldSperre(){
-  const Z='testfeld', a=4.4, b=6.1, z=-6.0, hoch=[0.5,1.0,1.5];
-  const rot=std(0xcc2118,{roughness:0.6});
+  const Z='testfeld', a=4.4, b=6.1, z=-6.0;
+  const bandM=new THREE.MeshStandardMaterial({map:sperrbandTex(),roughness:0.72,side:THREE.DoubleSide});
   const halt=std(0x3d4450,{metalness:0.5,roughness:0.5});
-  for(const y of hoch){ const m=bbox(b-a-0.06,0.07,0.012,rot,(a+b)/2,y,z,null,false); m.userData.sperrband=true; zWand(Z,m); }
-  for(const x of [a+0.03,b-0.03]) zWand(Z,bbox(0.05,1.72,0.05,halt,x,0.86,z,null,false));
+  const kopf=std(0x1f242e,{metalness:0.4,roughness:0.55});
+  for(const y of [0.5,1.0,1.5]) sperrband(Z,a+0.06,b-0.06,z,y,bandM);
+  /* Zwei Pfosten in den Laibungen, an denen das Band haengt */
+  for(const x of [a+0.04,b-0.04]){
+    zWand(Z,bbox(0.05,1.76,0.05,halt,x,0.88,z,null,false));
+    zWand(Z,bbox(0.08,0.05,0.08,kopf,x,1.78,z,null,false));
+    for(const y of [0.5,1.0,1.5]) zWand(Z,bbox(0.075,0.035,0.035,kopf,x,y,z,null,false));
+  }
+  /* Schild ueber dem Durchgang, wie das Schild an der Lagertuer.
+     Es bleibt stehen, auch nachdem der Zugang gekauft ist - es
+     sagt, wohin die Tuer fuehrt, nicht dass sie zu ist. */
+  plane(1.4,0.35,new THREE.MeshStandardMaterial({map:tex(280,70,(g,W,Hh)=>{
+    g.fillStyle='#f2c230'; g.fillRect(0,0,W,Hh);
+    g.fillStyle='#16181f'; g.font=BUN(38); g.textAlign='center'; g.textBaseline='middle';
+    g.fillText('TESTFELD',W/2,Hh/2+2); })}),(a+b)/2,2.85,z+0.12,0,null);
   zWandCol(Z,col(a,b,z-0.14,z+0.14));
-  const h=bbox(b-a-0.1,2.0,0.34,hitM,(a+b)/2,1.0,z,null,false);
-  h.userData={kind:'tfsperre'}; zWand(Z,h);
+  tfHit=bbox(b-a-0.1,2.0,0.34,hitM,(a+b)/2,1.0,z,null,false);
+  tfHit.userData={kind:'tfsperre'}; zWand(Z,tfHit);
 }
 
 /* =========================================================

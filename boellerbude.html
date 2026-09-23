@@ -608,23 +608,23 @@ const UPGRADES=[
   {id:'lizenz',kat:'markt',lvl:25,name:'Großhandelslizenz',desc:'Alle Lieferanten geben dir zusätzlich zehn Prozent Nachlass.',cost:()=>6500,done:()=>S.up.lizenz},
   {id:'klima',kat:'einr',lvl:27,name:'Klima und Musikanlage XL',desc:'Deutlich bessere Stimmung, Kunden bleiben spürbar länger.',cost:()=>5400,done:()=>S.up.klima},
   {id:'meister',kat:'markt',lvl:30,name:'Meisterbrief Pyrotechnik',desc:'Die höchste Stufe. Großaufträge zahlen ein Drittel mehr.',cost:()=>12000,done:()=>S.up.meister},
-  {id:'shop_halb',kat:'flaeche',lvl:4,name:'Zweite Ladenhälfte',desc:'Die zugemauerte Hälfte deines eigenen Ladenlokals: rund 70 Quadratmeter mehr, das zweite Schaufenster und vier weitere Regalplätze. Die Trennwand fällt beim Kauf ganz weg — ein Raum, kein Pfeiler, kein Sturz. Dahinter liegt auch die Tür zum Testfeld.',cost:()=>1400,done:()=>S.up.shop_halb},
-  {id:'testfeld',kat:'flaeche',lvl:9,req:'shop_halb',name:'Zugang zum Testfeld',desc:'Der abgesperrte Hof hinter dem Laden wird dein Testfeld: Zündtisch, Abschussröhren und Mörserbatterie. Erst damit kannst du selbst zünden — und was du gezündet hast, spricht sich herum.',cost:()=>3200,done:()=>S.up.testfeld},
-  {id:'shop_gross',kat:'flaeche',lvl:12,req:'shop_halb',name:'Verkaufsfläche erweitern',desc:'Kauft das leerstehende Ladenlokal rechts nebenan. Die Ostwand wird durchbrochen, die Schaufenster werden entmauert: rund 78 Quadratmeter mehr Fläche und acht zusätzliche Regalplätze.',cost:()=>7500,done:()=>S.up.shop_gross},
-  {id:'lager_nord',kat:'flaeche',lvl:6,name:'Lager Nord',desc:'Der Nordteil des Lagers hinter der Trennwand: 47 Quadratmeter mehr, sechs zusätzliche Stellplätze für Regale. Die Wand fällt beim Kauf ganz weg — kein Sturz, kein Pfeiler, ein durchgehender Raum bis zur Nordwand.',cost:()=>1900,done:()=>S.up.lager_nord},
-  {id:'lager_gross',kat:'flaeche',lvl:15,req:'lager_nord',name:'Lagerhalle Süd I',desc:'Hinter dem Rolltor wird die Wand auf neun Metern durchbrochen: der erste Abschnitt der großen Halle, 118 Quadratmeter mit fünf Metern lichter Höhe. Hier steht die Packstation, und ab hier lohnt sich der Onlineshop. Hochregale passen erst in diese Höhe.',cost:()=>6200,done:()=>S.up.lager_gross},
-  {id:'shop_ost',kat:'flaeche',lvl:20,req:'shop_gross',name:'Zweites Ladenlokal',desc:'Das nächste leerstehende Lokal an der Ostseite: noch einmal 212 Quadratmeter, Gondelgassen, Eckregal und eine lange Wandreihe.',cost:()=>16000,done:()=>S.up.shop_ost},
-  {id:'shop_sued',kat:'flaeche',lvl:26,req:'shop_ost',name:'Rückgebäude Süd',desc:'Die große Halle hinter dem Laden, zwei breite Durchgänge: 478 Quadratmeter Verkaufsfläche mit zwei Gondelgassen. Damit ist der Laden fünfeinhalbmal so groß wie am Anfang.',cost:()=>34000,done:()=>S.up.shop_sued},
-  {id:'lager_sued',kat:'flaeche',lvl:20,req:'lager_gross',name:'Lagerhalle Süd II',desc:'Der zweite Abschnitt, noch einmal 83 Quadratmeter. Die Wand zum ersten fällt ganz weg — kein Pfeiler, kein Sturz, eine durchgehende Halle.',cost:()=>11000,done:()=>S.up.lager_sued},
-  {id:'lager_sued2',kat:'flaeche',lvl:24,req:'lager_sued',name:'Lagerhalle Süd III',desc:'Der letzte Abschnitt bis zur Südwand. Damit ist die Halle Süd komplett: 283 Quadratmeter am Stück, zwölf Stellplätze für Hoch- und Schwerlastregale.',cost:()=>15000,done:()=>S.up.lager_sued2},
-  {id:'lager_west',kat:'flaeche',lvl:28,req:'lager_sued2',name:'Lagerhalle West',desc:'Die große Halle an den drei Westrampen: 505 Quadratmeter, zwölf Stellplätze für Hochregale und ein Hof, auf dem mehrere Auflieger stehen können. Dazu wird der Lagergang hinter dem Laden geöffnet — der kurze Weg vom Rückgebäude direkt ins Lager, ohne Umweg über den Verkaufsraum.',cost:()=>38000,done:()=>S.up.lager_west},
+  {id:'shop_halb',kat:'flaeche',lvl:4,name:'Die Wand muss weg',desc:'Die zugemauerte Hälfte deines eigenen Ladenlokals: rund 70 Quadratmeter mehr, das zweite Schaufenster und vier weitere Regalplätze. Die Trennwand fällt beim Kauf ganz weg — ein Raum, kein Pfeiler, kein Sturz. Dahinter liegt auch die Tür zum Testfeld.',cost:()=>1400,done:()=>S.up.shop_halb},
+  {id:'testfeld',kat:'flaeche',lvl:9,req:'shop_halb',name:'Freies Feld zum Zünden',desc:'Der abgesperrte Hof hinter dem Laden wird dein Testfeld: Zündtisch, Abschussröhren und Mörserbatterie. Erst damit kannst du selbst zünden — und was du gezündet hast, spricht sich herum.',cost:()=>3200,done:()=>S.up.testfeld},
+  {id:'shop_gross',kat:'flaeche',lvl:12,req:'shop_halb',name:'Das Lokal nebenan',desc:'Kauft das leerstehende Ladenlokal rechts nebenan. Die Ostwand wird durchbrochen, die Schaufenster werden entmauert: rund 78 Quadratmeter mehr Fläche und acht zusätzliche Regalplätze.',cost:()=>7500,done:()=>S.up.shop_gross},
+  {id:'lager_nord',kat:'flaeche',lvl:6,name:'Platz hinter der Wand',desc:'Was hinter der Trennwand im Lager liegt: 47 Quadratmeter mehr, sechs zusätzliche Stellplätze für Regale. Die Wand fällt beim Kauf ganz weg — kein Sturz, kein Pfeiler, ein durchgehender Raum bis zur Nordwand.',cost:()=>1900,done:()=>S.up.lager_nord},
+  {id:'lager_gross',kat:'flaeche',lvl:15,req:'lager_nord',name:'Tor auf zur großen Halle',desc:'Hinter dem Rolltor wird die Wand auf neun Metern durchbrochen: der erste Abschnitt der großen Halle dahinter, 118 Quadratmeter mit fünf Metern lichter Höhe. Hier steht die Packstation, und ab hier lohnt sich der Onlineshop. Hochregale passen erst in diese Höhe.',cost:()=>6200,done:()=>S.up.lager_gross},
+  {id:'shop_ost',kat:'flaeche',lvl:20,req:'shop_gross',name:'Noch ein Lokal dazu',desc:'Das nächste leerstehende Lokal an der Ostseite: noch einmal 212 Quadratmeter, Gondelgassen, Eckregal und eine lange Wandreihe.',cost:()=>16000,done:()=>S.up.shop_ost},
+  {id:'shop_sued',kat:'flaeche',lvl:26,req:'shop_ost',name:'Die Halle hinterm Laden',desc:'Die große Halle hinter dem Laden, zwei breite Durchgänge: 478 Quadratmeter Verkaufsfläche mit zwei Gondelgassen. Damit ist der Laden fünfeinhalbmal so groß wie am Anfang.',cost:()=>34000,done:()=>S.up.shop_sued},
+  {id:'lager_sued',kat:'flaeche',lvl:20,req:'lager_gross',name:'Die Halle wächst weiter',desc:'Der zweite Abschnitt, noch einmal 83 Quadratmeter. Die Wand zum ersten fällt ganz weg — kein Pfeiler, kein Sturz, eine durchgehende Halle.',cost:()=>11000,done:()=>S.up.lager_sued},
+  {id:'lager_sued2',kat:'flaeche',lvl:24,req:'lager_sued',name:'Bis ganz nach hinten',desc:'Der letzte Abschnitt bis zur Stirnwand. Damit steht die ganze Halle: 283 Quadratmeter am Stück, zwölf Stellplätze für Hoch- und Schwerlastregale.',cost:()=>15000,done:()=>S.up.lager_sued2},
+  {id:'lager_west',kat:'flaeche',lvl:28,req:'lager_sued2',name:'Eigener Großhandel',desc:'Die große Halle an den drei Rampen: 505 Quadratmeter, zwölf Stellplätze für Hochregale und ein Hof, auf dem mehrere Auflieger stehen können. Dazu wird der Lagergang hinter dem Laden geöffnet — der kurze Weg vom Rückgebäude direkt ins Lager, ohne Umweg über den Verkaufsraum.',cost:()=>38000,done:()=>S.up.lager_west},
   /* Andockstationen. Die Basisrampe hinter dem Lager ist die erste
      und bleibt die begehbare; jede zugekaufte Westrampe nimmt eine
      Lieferung zusaetzlich an, parallel zu allen anderen. */
-  {id:'rampe2',kat:'flaeche',lvl:28,req:'lager_west',name:'Zweite Andockstation',desc:'Tor 2 der Westhalle geht in Betrieb. Ab jetzt können zwei Lieferungen gleichzeitig anrollen: während du an der Basisrampe auslädst, stapelt der Fahrer hier seine Kartons selbst in der Halle ab.',cost:()=>14000,done:()=>S.up.rampe2},
-  {id:'rampe3',kat:'flaeche',lvl:29,req:'rampe2',name:'Dritte Andockstation',desc:'Tor 3 kommt dazu. Drei Lieferungen nebeneinander — ab hier staut sich der Einkauf auch an starken Tagen nicht mehr.',cost:()=>19000,done:()=>S.up.rampe3},
-  {id:'rampe4',kat:'flaeche',lvl:30,req:'rampe3',name:'Vierte Andockstation',desc:'Das dritte Tor der Westhalle. Vier Lieferungen gleichzeitig.',cost:()=>25000,done:()=>S.up.rampe4},
-  {id:'rampe5',kat:'flaeche',lvl:30,req:'rampe4',name:'Fünfte Andockstation',desc:'Das vierte Tor der Westhalle. Zusammen mit der Basisrampe rollen dann fünf Lieferungen gleichzeitig an — mehr gibt das Grundstück nicht her.',cost:()=>31000,done:()=>S.up.rampe5},
+  {id:'rampe2',kat:'flaeche',lvl:28,req:'lager_west',name:'Zwei LKW gleichzeitig',desc:'Tor 2 der Westhalle geht in Betrieb. Ab jetzt können zwei Lieferungen gleichzeitig anrollen: während du an der Basisrampe auslädst, stapelt der Fahrer hier seine Kartons selbst in der Halle ab.',cost:()=>14000,done:()=>S.up.rampe2},
+  {id:'rampe3',kat:'flaeche',lvl:29,req:'rampe2',name:'Drei Tore in Betrieb',desc:'Tor 3 kommt dazu. Drei Lieferungen nebeneinander — ab hier staut sich der Einkauf auch an starken Tagen nicht mehr.',cost:()=>19000,done:()=>S.up.rampe3},
+  {id:'rampe4',kat:'flaeche',lvl:30,req:'rampe3',name:'Alle Tore in Betrieb',desc:'Das dritte Tor der Westhalle. Vier Lieferungen gleichzeitig.',cost:()=>25000,done:()=>S.up.rampe4},
+  {id:'rampe5',kat:'flaeche',lvl:30,req:'rampe4',name:'Die Rampe ist nie voll',desc:'Das vierte Tor der Westhalle. Zusammen mit der Basisrampe rollen dann fünf Lieferungen gleichzeitig an — mehr gibt das Grundstück nicht her.',cost:()=>31000,done:()=>S.up.rampe5},
   {id:'packstation',kat:'flaeche',lvl:16,req:'lager_gross',name:'Packstation für den Versand',desc:'Packtisch, Waage, Etikettendrucker und Abholrampe im ersten Abschnitt der Halle Süd, gleich hinter dem Rolltor. Zusammen mit dem Onlineshop kommen Bestellungen als echte Pakete herein: packen, auf die Rampe stellen, DDL holt am Abend ab.',cost:()=>6400,done:()=>S.up.packstation},
   {id:'eingang2',kat:'flaeche',lvl:24,req:'shop_ost',name:'Zweiter Eingang mit Kasse',desc:'Im Eckhaus ist die mittlere Achse bis zum Boden offen und wartet auf eine Tür. Der Ausbau setzt dieselbe Schiebetür wie am Haupteingang hinein, mit Vordach und Matte, und stellt dahinter eine eigene SB-Kassenzeile auf. Kunden nehmen ab jetzt den Eingang, der näher liegt, und die Schlange am Band wird spürbar kürzer. Die Kassenzeile lässt sich im Umbaumodus verschieben.',cost:()=>11500,done:()=>S.up.eingang2},
   {id:'kasse2',kat:'einr',lvl:16,req:'shop_gross',name:'SB-Kassen',desc:'Zwei Selbstbedienungsterminals in der neuen Verkaufsfläche. Kunden mit wenig Ware zahlen dort selbst, das entlastet deine Schlange spürbar.',cost:()=>3400,done:()=>S.up.kasse2},
@@ -878,7 +878,7 @@ function mkRacks(){
   /* Das ganze Lager ist fuenf Meter licht (LAGER_H steht erst in
      05-world und ist hier noch nicht da, darum die Zahl).
      Ab Level 1 gehoert nur der Raum am Rolltor dazu; was hinter der
-     Trennwand liegt, kommt mit Lager Nord. */
+     Trennwand liegt, kommt mit der naechsten Stufe. */
   [-9.3,-12.4,-15.5,-18.6].forEach(x=>{ add(x,-5.35,0,5.0); add(x,1.35,Math.PI,5.0); });
   [-9.7,-12.8,-15.9,-19.0].forEach(x=>add(x,5.45,Math.PI,5.0,'lager_nord'));
   [-11.0,-14.1].forEach(x=>add(x,2.75,0,5.0,'lager_nord'));
@@ -2635,7 +2635,10 @@ function buildWorld(){
   const fixM=std(0xdfe3e9,{metalness:0,roughness:0.62});
   const rev=std(0x252932,{metalness:0,roughness:0.9});
   const leuchten=[];
-  for(const x of [-5.7,-1.9,1.9,5.7]) for(const z of [-3.6,0,3.6]) leuchten.push([x,WH,z]);
+  /* Das Leuchtenraster richtet sich nach der Trennwand: drei
+     Reihen in der Starthaelfte, zwei in der zweiten. Vorher lief
+     eine Reihe genau durch die Wand hindurch. */
+  for(const x of [-6.2,-3.4,-0.6, 3.7,6.5]) for(const z of [-3.6,0,3.6]) leuchten.push([x,WH,z]);
   /* Die Lagerleuchten haengen an der Lagerdecke, nicht an der des
      Verkaufsraums - das Lager ist hoeher. Und der Anbau nach Norden
      bekommt jetzt auch welche, er gehoert zum selben Raum. */
@@ -4797,15 +4800,55 @@ function durchbruchWand(id,laengs,fest,von,bis,oeffnungen,mat,exMat,sturzY,hoehe
    das Band. Was dahinter steht, sieht man trotzdem: das ist der
    Sinn der Sache.
    ========================================================= */
+let tfHit=null;
+function sperrbandTex(){
+  const t=tex(1024,64,(g,W,H)=>{
+    g.fillStyle='#cf1f16'; g.fillRect(0,0,W,H);
+    /* dunkle Webkante oben und unten, wie bei echtem Band */
+    g.fillStyle='rgba(0,0,0,.24)'; g.fillRect(0,0,W,5); g.fillRect(0,H-5,W,5);
+    g.fillStyle='rgba(255,255,255,.10)'; g.fillRect(0,7,W,4);
+    g.fillStyle='#f7f8fc'; g.font=BUN(31); g.textAlign='center'; g.textBaseline='middle';
+    for(let i=0;i<2;i++) g.fillText('TESTFELD GESPERRT',W/4+i*W/2,H/2+2);
+  });
+  t.wrapS=t.wrapT=THREE.ClampToEdgeWrapping; t.anisotropy=8; return t;
+}
+/* Ein Band spannt zwischen zwei Pfosten und haengt in der Mitte
+   durch. Eine gerade Leiste sieht aus wie ein roter Strich. */
+function sperrband(Z,a,b,z,y,mat){
+  const L=b-a, durch=0.05;
+  const geo=new THREE.PlaneGeometry(L,0.09,16,1), pos=geo.attributes.position;
+  for(let i=0;i<pos.count;i++){
+    const t=(pos.getX(i)+L/2)/L;
+    pos.setY(i,pos.getY(i)-durch*Math.sin(Math.PI*t));
+  }
+  pos.needsUpdate=true; geo.computeVertexNormals();
+  const m=new THREE.Mesh(geo,mat);
+  m.position.set((a+b)/2,y,z); m.userData.sperrband=true;
+  scene.add(m); zWand(Z,m);
+  return m;
+}
 function testfeldSperre(){
-  const Z='testfeld', a=4.4, b=6.1, z=-6.0, hoch=[0.5,1.0,1.5];
-  const rot=std(0xcc2118,{roughness:0.6});
+  const Z='testfeld', a=4.4, b=6.1, z=-6.0;
+  const bandM=new THREE.MeshStandardMaterial({map:sperrbandTex(),roughness:0.72,side:THREE.DoubleSide});
   const halt=std(0x3d4450,{metalness:0.5,roughness:0.5});
-  for(const y of hoch){ const m=bbox(b-a-0.06,0.07,0.012,rot,(a+b)/2,y,z,null,false); m.userData.sperrband=true; zWand(Z,m); }
-  for(const x of [a+0.03,b-0.03]) zWand(Z,bbox(0.05,1.72,0.05,halt,x,0.86,z,null,false));
+  const kopf=std(0x1f242e,{metalness:0.4,roughness:0.55});
+  for(const y of [0.5,1.0,1.5]) sperrband(Z,a+0.06,b-0.06,z,y,bandM);
+  /* Zwei Pfosten in den Laibungen, an denen das Band haengt */
+  for(const x of [a+0.04,b-0.04]){
+    zWand(Z,bbox(0.05,1.76,0.05,halt,x,0.88,z,null,false));
+    zWand(Z,bbox(0.08,0.05,0.08,kopf,x,1.78,z,null,false));
+    for(const y of [0.5,1.0,1.5]) zWand(Z,bbox(0.075,0.035,0.035,kopf,x,y,z,null,false));
+  }
+  /* Schild ueber dem Durchgang, wie das Schild an der Lagertuer.
+     Es bleibt stehen, auch nachdem der Zugang gekauft ist - es
+     sagt, wohin die Tuer fuehrt, nicht dass sie zu ist. */
+  plane(1.4,0.35,new THREE.MeshStandardMaterial({map:tex(280,70,(g,W,Hh)=>{
+    g.fillStyle='#f2c230'; g.fillRect(0,0,W,Hh);
+    g.fillStyle='#16181f'; g.font=BUN(38); g.textAlign='center'; g.textBaseline='middle';
+    g.fillText('TESTFELD',W/2,Hh/2+2); })}),(a+b)/2,2.85,z+0.12,0,null);
   zWandCol(Z,col(a,b,z-0.14,z+0.14));
-  const h=bbox(b-a-0.1,2.0,0.34,hitM,(a+b)/2,1.0,z,null,false);
-  h.userData={kind:'tfsperre'}; zWand(Z,h);
+  tfHit=bbox(b-a-0.1,2.0,0.34,hitM,(a+b)/2,1.0,z,null,false);
+  tfHit.userData={kind:'tfsperre'}; zWand(Z,tfHit);
 }
 
 /* =========================================================
@@ -10432,6 +10475,7 @@ function updateTarget(){
   if(pultHit) list.push(pultHit);
   if(gravHit) list.push(gravHit);
   if(packHit&&zoneOffen('packstation')) list.push(packHit);
+  if(tfHit&&tfHit.visible) list.push(tfHit);
   if(truck&&truck.state==='docked') truck.boxes.forEach(m=>list.push(m));
   list.push(...windowHits);
   for(const o of occluders) if(!o.userData.aabb||nahBox(o.userData.aabb,6.5)) list.push(o);
@@ -11261,7 +11305,23 @@ function upPic(id){
       g.strokeStyle='#6cf2a8'; g.setLineDash([7,6]); g.lineWidth=4;
       g.strokeRect(id==='shop_ost'?134:72,id==='shop_ost'?22:32,id==='shop_ost'?78:68,114); g.setLineDash([]);
       break;
-    case 'lager_nord': case 'lager_gross': case 'lager_sued': case 'lager_sued2': case 'lager_west':
+    /* Eigenes Bild: das Lager endet an einer Trennwand, dahinter
+       stehen die freien Stellplaetze. */
+    case 'lager_nord':
+      bg('#1d2433','#0d1220');
+      g.fillStyle='#6d737c'; g.fillRect(0,110,W,42);
+      g.fillStyle='#f2c230'; g.fillRect(0,106,W,5);
+      g.fillStyle='#1f1f24'; g.fillRect(0,111,W,4);
+      for(const x of [14,52]){ g.fillStyle='#9aa0a8'; g.fillRect(x,40,30,68);
+        for(let r=0;r<3;r++){ g.fillStyle='#c6ccd4'; g.fillRect(x,54+r*18,30,5);
+          g.fillStyle='#b08046'; g.fillRect(x+4,42+r*18,10,12); g.fillRect(x+17,42+r*18,10,12); } }
+      g.fillStyle='#39414d'; g.fillRect(96,14,13,96);
+      g.fillStyle='#5a6270'; g.fillRect(96,14,13,6);
+      for(const x of [124,164,204]){ g.fillStyle='#575e68'; g.fillRect(x,44,26,64);
+        for(let r=0;r<3;r++){ g.fillStyle='#6e757f'; g.fillRect(x,58+r*18,26,4); } }
+      g.strokeStyle='#6cf2a8'; g.setLineDash([7,6]); g.lineWidth=4; g.strokeRect(112,16,102,120); g.setLineDash([]);
+      break;
+    case 'lager_gross': case 'lager_sued': case 'lager_sued2': case 'lager_west':
       bg('#1a2030','#0e131e');
       /* hohe Halle neben der niedrigen */
       g.fillStyle='#a3a8b0'; g.fillRect(16,76,80,58);
@@ -11271,7 +11331,23 @@ function upPic(id){
       g.fillStyle='#e9ebee'; g.fillRect(128,86,24,46); g.fillRect(166,86,24,46);
       g.strokeStyle='#6cf2a8'; g.setLineDash([7,6]); g.lineWidth=4; g.strokeRect(100,20,112,116); g.setLineDash([]);
       g.fillStyle='#f2c230'; g.fillRect(16,134,192,6); break;
-    case 'shop_halb': case 'shop_gross':
+    /* Eigenes Bild: der halbe Laden, rechts die zugemauerte
+       Haelfte hinter der Trennwand. */
+    case 'shop_halb':
+      bg('#20283c','#121826');
+      g.fillStyle='#e9e4da'; g.fillRect(8,20,96,116);
+      g.fillStyle='#1b2340'; g.fillRect(8,110,96,26);
+      g.fillStyle='#c0392b'; g.fillRect(8,106,96,4);
+      for(const x of [18,44,70]){ g.fillStyle='#8a9099'; g.fillRect(x,46,22,60);
+        for(let r=0;r<3;r++){ g.fillStyle='#c9ced8'; g.fillRect(x,54+r*18,22,4);
+          for(let c2=0;c2<2;c2++){ g.fillStyle=['#d8b468','#c05a4a'][c2]; g.fillRect(x+2+c2*10,44+r*18,8,10); } } }
+      g.fillStyle='#39414d'; g.fillRect(104,16,12,120);
+      g.fillStyle='#5a6270'; g.fillRect(104,16,12,6);
+      g.fillStyle='#39414d'; g.fillRect(116,20,100,116);
+      g.fillStyle='#2b3240'; g.fillRect(126,44,80,62);
+      g.strokeStyle='#6cf2a8'; g.setLineDash([7,6]); g.lineWidth=4; g.strokeRect(114,18,104,120); g.setLineDash([]);
+      break;
+    case 'shop_gross':
       bg('#20283c','#121826');
       g.fillStyle='#8a4f3c'; g.fillRect(112,24,96,110);
       for(let r=0;r<7;r++) for(let c2=0;c2<4;c2++){ g.fillStyle=r%2?'#7e4735':'#93573f'; g.fillRect(114+c2*24+(r%2?6:0),26+r*16,20,13); }
@@ -11514,8 +11590,8 @@ function renderLaptop(){
     if(news.length) h+=`<div class="row"><div class="rm"><b>Meldungen von heute</b>`+
       news.map(n=>`<small class="${n.knapp?'no':'ok'}">${P[n.t]?P[n.t].short:''}: ${n.text} · ${n.knapp?'Preis zieht an':'Preis fällt'}</small>`).join('')+
       `</div></div>`;
-    h+=`<div class="row"><div class="rm"><b>Alle Preise nachziehen</b><small>Setzt jeden Verkaufspreis auf das aktuelle Marktniveau. Praktisch nach einem Preissprung.</small></div>`+
-      `<div class="steps"><button data-a="pall" data-d="1">auf Markt</button><button data-a="pall" data-d="1.08">Markt +8 %</button><button data-a="pall" data-d="0.94">Markt −6 %</button></div></div>`;
+    h+=`<div class="row"><div class="rm"><b>Alle Preise nachziehen</b><small>Auf Marktniveau setzen, oder das ganze Sortiment in Ein-Prozent-Schritten teurer und billiger machen.</small></div>`+
+      `<div class="steps"><button data-a="pall" data-d="1">auf Markt</button><button data-a="pstep" data-d="1.01">alle +1 %</button><button data-a="pstep" data-d="0.99">alle −1 %</button></div></div>`;
     h+=ORDER.filter(t=>isUnlocked(t)&&t!=='blanko'&&!P[t].noOrder).map(t=>{
       const p=P[t], hi=priceHint(t), mp=marketOf(t), ek=r2(costOf(t)*ekFactor()), d=marktDelta(t),
             ph=marktPhase(t), sch=marktSchock(t), lab=marktLabel(t);
@@ -11701,6 +11777,15 @@ $('lbody').addEventListener('click',e=>{
   else if(a==='pall'){ const f=parseFloat(b.dataset.d)||1; let n=0;
     ORDER.forEach(t2=>{ if(isUnlocked(t2)&&!P[t2].noOrder&&t2!=='blanko'){ setPreisAufMarkt(t2,f); n++; } });
     toast(`${n} Preise ans Marktniveau angepasst.`); save(); }
+  /* Ein Prozent auf alles, ausgehend vom aktuellen Preis. Wo ein
+     Prozent unter einem Cent liegt, wird trotzdem ein Cent
+     bewegt - sonst passiert bei billiger Ware gar nichts. */
+  else if(a==='pstep'){ const f=parseFloat(b.dataset.d)||1; let n=0;
+    ORDER.forEach(t2=>{ if(!isUnlocked(t2)||P[t2].noOrder||t2==='blanko') return;
+      const alt=S.prices[t2]; let neu=r2(alt*f);
+      if(neu===alt) neu=r2(alt+(f>1?0.01:-0.01));
+      S.prices[t2]=Math.max(0.05,neu); n++; });
+    toast(`${n} Preise um ein Prozent ${f>1?'angehoben':'gesenkt'}.`); save(); }
   else if(a==='liz') buyLizenz(t);
   else if(a==='rz'){ const f=b.dataset.f, v=b.dataset.v;
     entwurfInit();

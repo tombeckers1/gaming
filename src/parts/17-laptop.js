@@ -334,7 +334,23 @@ function upPic(id){
       g.strokeStyle='#6cf2a8'; g.setLineDash([7,6]); g.lineWidth=4;
       g.strokeRect(id==='shop_ost'?134:72,id==='shop_ost'?22:32,id==='shop_ost'?78:68,114); g.setLineDash([]);
       break;
-    case 'lager_nord': case 'lager_gross': case 'lager_sued': case 'lager_sued2': case 'lager_west':
+    /* Eigenes Bild: das Lager endet an einer Trennwand, dahinter
+       stehen die freien Stellplaetze. */
+    case 'lager_nord':
+      bg('#1d2433','#0d1220');
+      g.fillStyle='#6d737c'; g.fillRect(0,110,W,42);
+      g.fillStyle='#f2c230'; g.fillRect(0,106,W,5);
+      g.fillStyle='#1f1f24'; g.fillRect(0,111,W,4);
+      for(const x of [14,52]){ g.fillStyle='#9aa0a8'; g.fillRect(x,40,30,68);
+        for(let r=0;r<3;r++){ g.fillStyle='#c6ccd4'; g.fillRect(x,54+r*18,30,5);
+          g.fillStyle='#b08046'; g.fillRect(x+4,42+r*18,10,12); g.fillRect(x+17,42+r*18,10,12); } }
+      g.fillStyle='#39414d'; g.fillRect(96,14,13,96);
+      g.fillStyle='#5a6270'; g.fillRect(96,14,13,6);
+      for(const x of [124,164,204]){ g.fillStyle='#575e68'; g.fillRect(x,44,26,64);
+        for(let r=0;r<3;r++){ g.fillStyle='#6e757f'; g.fillRect(x,58+r*18,26,4); } }
+      g.strokeStyle='#6cf2a8'; g.setLineDash([7,6]); g.lineWidth=4; g.strokeRect(112,16,102,120); g.setLineDash([]);
+      break;
+    case 'lager_gross': case 'lager_sued': case 'lager_sued2': case 'lager_west':
       bg('#1a2030','#0e131e');
       /* hohe Halle neben der niedrigen */
       g.fillStyle='#a3a8b0'; g.fillRect(16,76,80,58);
@@ -344,7 +360,23 @@ function upPic(id){
       g.fillStyle='#e9ebee'; g.fillRect(128,86,24,46); g.fillRect(166,86,24,46);
       g.strokeStyle='#6cf2a8'; g.setLineDash([7,6]); g.lineWidth=4; g.strokeRect(100,20,112,116); g.setLineDash([]);
       g.fillStyle='#f2c230'; g.fillRect(16,134,192,6); break;
-    case 'shop_halb': case 'shop_gross':
+    /* Eigenes Bild: der halbe Laden, rechts die zugemauerte
+       Haelfte hinter der Trennwand. */
+    case 'shop_halb':
+      bg('#20283c','#121826');
+      g.fillStyle='#e9e4da'; g.fillRect(8,20,96,116);
+      g.fillStyle='#1b2340'; g.fillRect(8,110,96,26);
+      g.fillStyle='#c0392b'; g.fillRect(8,106,96,4);
+      for(const x of [18,44,70]){ g.fillStyle='#8a9099'; g.fillRect(x,46,22,60);
+        for(let r=0;r<3;r++){ g.fillStyle='#c9ced8'; g.fillRect(x,54+r*18,22,4);
+          for(let c2=0;c2<2;c2++){ g.fillStyle=['#d8b468','#c05a4a'][c2]; g.fillRect(x+2+c2*10,44+r*18,8,10); } } }
+      g.fillStyle='#39414d'; g.fillRect(104,16,12,120);
+      g.fillStyle='#5a6270'; g.fillRect(104,16,12,6);
+      g.fillStyle='#39414d'; g.fillRect(116,20,100,116);
+      g.fillStyle='#2b3240'; g.fillRect(126,44,80,62);
+      g.strokeStyle='#6cf2a8'; g.setLineDash([7,6]); g.lineWidth=4; g.strokeRect(114,18,104,120); g.setLineDash([]);
+      break;
+    case 'shop_gross':
       bg('#20283c','#121826');
       g.fillStyle='#8a4f3c'; g.fillRect(112,24,96,110);
       for(let r=0;r<7;r++) for(let c2=0;c2<4;c2++){ g.fillStyle=r%2?'#7e4735':'#93573f'; g.fillRect(114+c2*24+(r%2?6:0),26+r*16,20,13); }
@@ -587,8 +619,8 @@ function renderLaptop(){
     if(news.length) h+=`<div class="row"><div class="rm"><b>Meldungen von heute</b>`+
       news.map(n=>`<small class="${n.knapp?'no':'ok'}">${P[n.t]?P[n.t].short:''}: ${n.text} · ${n.knapp?'Preis zieht an':'Preis fällt'}</small>`).join('')+
       `</div></div>`;
-    h+=`<div class="row"><div class="rm"><b>Alle Preise nachziehen</b><small>Setzt jeden Verkaufspreis auf das aktuelle Marktniveau. Praktisch nach einem Preissprung.</small></div>`+
-      `<div class="steps"><button data-a="pall" data-d="1">auf Markt</button><button data-a="pall" data-d="1.08">Markt +8 %</button><button data-a="pall" data-d="0.94">Markt −6 %</button></div></div>`;
+    h+=`<div class="row"><div class="rm"><b>Alle Preise nachziehen</b><small>Auf Marktniveau setzen, oder das ganze Sortiment in Ein-Prozent-Schritten teurer und billiger machen.</small></div>`+
+      `<div class="steps"><button data-a="pall" data-d="1">auf Markt</button><button data-a="pstep" data-d="1.01">alle +1 %</button><button data-a="pstep" data-d="0.99">alle −1 %</button></div></div>`;
     h+=ORDER.filter(t=>isUnlocked(t)&&t!=='blanko'&&!P[t].noOrder).map(t=>{
       const p=P[t], hi=priceHint(t), mp=marketOf(t), ek=r2(costOf(t)*ekFactor()), d=marktDelta(t),
             ph=marktPhase(t), sch=marktSchock(t), lab=marktLabel(t);
@@ -774,6 +806,15 @@ $('lbody').addEventListener('click',e=>{
   else if(a==='pall'){ const f=parseFloat(b.dataset.d)||1; let n=0;
     ORDER.forEach(t2=>{ if(isUnlocked(t2)&&!P[t2].noOrder&&t2!=='blanko'){ setPreisAufMarkt(t2,f); n++; } });
     toast(`${n} Preise ans Marktniveau angepasst.`); save(); }
+  /* Ein Prozent auf alles, ausgehend vom aktuellen Preis. Wo ein
+     Prozent unter einem Cent liegt, wird trotzdem ein Cent
+     bewegt - sonst passiert bei billiger Ware gar nichts. */
+  else if(a==='pstep'){ const f=parseFloat(b.dataset.d)||1; let n=0;
+    ORDER.forEach(t2=>{ if(!isUnlocked(t2)||P[t2].noOrder||t2==='blanko') return;
+      const alt=S.prices[t2]; let neu=r2(alt*f);
+      if(neu===alt) neu=r2(alt+(f>1?0.01:-0.01));
+      S.prices[t2]=Math.max(0.05,neu); n++; });
+    toast(`${n} Preise um ein Prozent ${f>1?'angehoben':'gesenkt'}.`); save(); }
   else if(a==='liz') buyLizenz(t);
   else if(a==='rz'){ const f=b.dataset.f, v=b.dataset.v;
     entwurfInit();

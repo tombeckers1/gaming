@@ -124,6 +124,45 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   pruef('AUSGEBAUT',voll.slots===10,'nach dem Kauf sind nicht zehn Regalplaetze frei, sondern '+voll.slots);
   pruef('AUSGEBAUT',voll.racks===14,'nach dem Kauf sind nicht vierzehn Stellplaetze frei, sondern '+voll.racks);
 
+  /* Keine Deckenleuchte darf in einer Wand stecken - vor und nach
+     dem Ausbau. Die Leuchten sind waagerechte Scheiben unter der
+     Decke, die Waende tragen ihre Grundflaeche in userData.aabb. */
+  const leuchten=()=>p.evaluate(()=>{
+    const bb=window.__bb, waende=[], treffer=[];
+    bb.scene.traverse(o=>{ if(o.isMesh&&o.visible&&o.userData&&o.userData.aabb)
+      waende.push(new THREE.Box3().setFromObject(o)); });
+    bb.scene.traverse(o=>{
+      if(!o.isMesh||!o.visible||!o.geometry||o.geometry.type!=='PlaneGeometry') return;
+      const bx=new THREE.Box3().setFromObject(o);
+      if(bx.max.y-bx.min.y>0.06||bx.min.y<2.4) return;
+      if(bx.max.x-bx.min.x<0.5||bx.max.z-bx.min.z<0.15) return;
+      for(const w of waende){
+        if(bx.min.x<w.max.x-0.03&&bx.max.x>w.min.x+0.03&&
+           bx.min.z<w.max.z-0.03&&bx.max.z>w.min.z+0.03&&
+           bx.min.y<w.max.y&&bx.max.y>w.min.y){
+          treffer.push(`x[${bx.min.x.toFixed(1)},${bx.max.x.toFixed(1)}] z[${bx.min.z.toFixed(1)},${bx.max.z.toFixed(1)}] y${bx.min.y.toFixed(2)}`);
+          break; }
+      }
+    });
+    return treffer;
+  });
+  const lNach=await leuchten();
+  console.log('LEUCHTEN   ',lNach.length?lNach.join(' | '):'keine steckt in einer Wand');
+  pruef('LEUCHTEN',lNach.length===0,lNach.length+' Leuchten stecken in einer Wand');
+
+  /* Das Schild ueber der Tuer bleibt auch nach dem Kauf haengen */
+  const schild=await p.evaluate(()=>{
+    const bb=window.__bb; let n=0;
+    bb.scene.traverse(o=>{
+      if(!o.isMesh||!o.visible||!o.material||!o.material.map||!o.material.map.image) return;
+      const im=o.material.map.image; if(im.width!==280||im.height!==70) return;
+      const bx=new THREE.Box3().setFromObject(o);
+      if(bx.min.x>4.0&&bx.max.x<6.5&&bx.min.z>-6.3&&bx.max.z<-5.6) n++; });
+    return n;
+  });
+  console.log('SCHILD     ',JSON.stringify({ueberDerTuer:schild}));
+  pruef('SCHILD',schild===1,'ueber der Testfeldtuer haengt kein Schild mehr');
+
   console.log('MANGEL:',mangel.length?mangel.join(' | '):'keine');
   console.log('ERRORS:',fehler.length?fehler.join('\n'):'keine');
   await b.close();

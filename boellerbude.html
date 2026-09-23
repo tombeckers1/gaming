@@ -202,6 +202,15 @@ body.compact .mkcol{min-width:74px}
 .sumhead{margin:14px 0 2px;color:var(--muted);font-size:16px;font-weight:700}
 h2{font-family:var(--display);font-weight:400;font-size:28px;margin:0 0 6px;color:var(--signal);line-height:1.1}
 #cash .card{max-width:500px}
+#pause .card{max-width:780px}
+#pause h2{text-align:center}
+.stHead{margin:10px 0 8px;font-size:14px;letter-spacing:.06em;text-transform:uppercase;opacity:.7;text-align:center}
+.steuer{columns:2 300px;column-gap:28px;font-size:15px;line-height:1.3}
+.steuer .grp{break-inside:avoid;margin-bottom:10px}
+.steuer .z{display:flex;gap:10px;align-items:center;padding:3px 0}
+.steuer .k{flex:0 0 118px;display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end}
+.steuer kbd{display:inline-block;min-width:24px;padding:2px 6px;border-radius:6px;background:rgba(255,255,255,.1);border:1px solid var(--line);border-bottom-width:3px;font:700 13px/1.2 inherit;text-align:center}
+.steuer .sub{font-size:12px;letter-spacing:.06em;text-transform:uppercase;opacity:.6;margin:2px 0 3px}
 .cashtop{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0 14px}
 .cashtop div{background:rgba(242,245,255,.07);border-radius:10px;padding:8px 12px}
 .cashtop small{display:block;color:var(--muted);font-size:15px}
@@ -432,8 +441,11 @@ body.compact .pdahead2 b{font-size:16px}
   <div id="pdaBody"></div>
 </div></div>
 
-<div class="ov" id="pause"><div class="card" style="text-align:center">
-  <h2>Pause</h2><p class="lead" style="margin:8px auto 16px">Klick, um weiterzuspielen.</p><button id="pBtn">Weiterspielen</button>
+<div class="ov" id="pause"><div class="card pausecard">
+  <h2>Pause</h2>
+  <h3 class="stHead">Steuerung</h3>
+  <div class="steuer" id="steuer"></div>
+  <div class="btns" style="justify-content:center;margin-top:16px"><button id="pBtn">Weiterspielen</button></div>
 </div></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -4569,7 +4581,9 @@ function buildTor(steel,snow){
    wird freigegeben.
    ========================================================= */
 const ZONEN={};
-function zone(id){ return ZONEN[id]||(ZONEN[id]={obj:[],cols:[],wand:[],wandCols:[],offen:false}); }
+function zone(id){ return ZONEN[id]||(ZONEN[id]={obj:[],cols:[],wand:[],wandCols:[],hooks:[],offen:false}); }
+/* Wird nach jedem Oeffnen oder Zuruecksetzen der Zone gerufen */
+function zHook(id,fn){ zone(id).hooks.push(fn); }
 /* Objekt gehoert zum noch gesperrten Bereich */
 function zAdd(id,o){ if(o&&id){ o.visible=false; zone(id).obj.push(o); } return o; }
 /* Kollision, die erst nach dem Kauf gilt */
@@ -4587,6 +4601,7 @@ function oeffneZone(id,leise){
   z.wandCols.forEach(c=>dropCol(c));
   z.obj.forEach(o=>{ o.visible=true; });
   z.cols.forEach(c=>{ if(colliders.indexOf(c)<0) colliders.push(c); });
+  z.hooks.forEach(fn=>fn());
   if(typeof navDirty==='function') navDirty();
   if(!leise) sfx.cash();
 }
@@ -4599,7 +4614,8 @@ function applyZonen(){
       z.wand.forEach(o=>{ o.visible=true; });
       z.obj.forEach(o=>{ o.visible=false; });
       z.cols.forEach(c=>dropCol(c));
-      z.wandCols.forEach(c=>{ if(colliders.indexOf(c)<0) colliders.push(c); }); }
+      z.wandCols.forEach(c=>{ if(colliders.indexOf(c)<0) colliders.push(c); });
+      z.hooks.forEach(fn=>fn()); }
   }
   if(typeof navDirty==='function') navDirty();
 }
@@ -4817,7 +4833,7 @@ function sperrbandTex(text,n){
 }
 /* Ein Band spannt zwischen zwei Pfosten und haengt in der Mitte
    durch. Eine gerade Leiste sieht aus wie ein roter Strich. */
-function sperrband(Z,a,b,z,y,mat){
+function sperrband(Z,a,b,z,y,mat,parent){
   const L=b-a, durch=0.05;
   const geo=new THREE.PlaneGeometry(L,0.09,16,1);
   /* Direkt im Array rechnen: getX/setY gibt es im Testdoppel nicht,
@@ -4833,7 +4849,7 @@ function sperrband(Z,a,b,z,y,mat){
   }
   const m=new THREE.Mesh(geo,mat);
   m.position.set((a+b)/2,y,z); m.userData.sperrband=true;
-  scene.add(m); zWand(Z,m);
+  (parent||scene).add(m); zWand(Z,m);
   return m;
 }
 function testfeldSperre(){
@@ -5209,14 +5225,22 @@ function buildAusbau(){
 /* =========================================================
    Packstation: Packtisch, Kartonlager, Waage, Paketrutsche
    ========================================================= */
-let packHit=null, packTisch=null;
+let packHit=null, packTisch=null, packMov=null;
+/* Die ganze Versandecke in Gruppenkoordinaten, Packtisch in der
+   Mitte bei 0/0. PACK_FL ist die Flaeche, die sie belegt - Boden,
+   Paketablage, Schild und Absperrband zusammen. */
+const PACK_FL={x0:-1.75,x1:5.95,z0:-1.42,z1:1.28};
+const PACK_HOME={x:-18.0,z:-8.6,ry:0};
 const pakete=[];                       /* fertige Pakete auf der Rampe */
 function buildPackstation(){
   /* Die Packstation steht jetzt im ersten Abschnitt der Halle
      Sued, gleich hinter dem Rolltor - dort, wo der LKW anfaehrt
      und die Ware hereinkommt. Vorher stand sie im Anbau Nord,
      quer durch das ganze Lager vom Wareneingang entfernt. */
-  const id='packstation', PX=-18.3, PZ=-8.6;
+  /* Die Ecke steht mit ihrer ganzen Flaeche im ersten Hallen-
+     abschnitt: Westkante an der Wand, und im Osten bleibt der
+     Stellplatz fuer das erste Lagerregal frei. */
+  const id='packstation', PX=PACK_HOME.x, PZ=PACK_HOME.z;
   /* Die Packstation steht von Anfang an da. Man soll sehen, was
      man sich damit kauft - bis dahin haengt ein Absperrband
      davor. Vorher war an dieser Stelle einfach leerer Boden. */
@@ -5271,52 +5295,61 @@ function buildPackstation(){
      nur, wenn man mit dem Ruecken zur Wand stand. */
   plane(2.5,0.44,new THREE.MeshBasicMaterial({map:packSchildTex,toneMapped:false}),0,2.3,-0.455,Math.PI,g);
   drawPackSchild();
-  /* Abholrampe mit Paketstellplaetzen */
-  /* Die Stellplaetze liegen neben der beschrifteten Flaeche, nicht
-     darauf - sonst ueberdecken die gelben Felder das Wort. */
-  for(let k=0;k<6;k++){ const p=paketPose(k);
-    bbox(0.52,0.02,0.52,std(0xf2c230),p.x,0.016,p.z,g,false);
-  }
   const hit=bbox(3.0,2.0,1.4,hitM,0.6,1.0,0,g,false);
   hit.userData={kind:'pack'}; packHit=hit;
-  /* Tisch und Rollenbahn stehen immer, also gilt ihre Kollision
-     auch immer - sonst laeuft man vor dem Kauf mitten hindurch. */
-  col(PX-1.4,PX+3.9,PZ-0.5,PZ+0.5);
-  versandFlaeche(g,id,PX,PZ);
-  packSperre(id,PX,PZ);
+  versandFlaeche(g);
+  paketAblage(g);
+  packSperre(id,g);
+  /* Die ganze Ecke ist ein Moebel: im Umbaumodus greift man sie
+     irgendwo an - Tisch, Boden, Schild - und alles wandert mit.
+     So kann man die Halle spaeter anders mit Regalen fuellen.
+     Blockiert wird nur, wo wirklich etwas steht; das Absperrband
+     nur, solange die Station noch nicht gekauft ist. */
+  packMov=addMovable({kind:'pack',name:'Versandecke',g,flaeche:PACK_FL,
+    teile:()=>{
+      const t=[{x0:-1.4,x1:3.9,z0:-0.5,z1:0.5}];               /* Tisch und Rollenbahn */
+      for(const sx of DDL_MAST) t.push({x0:sx-0.13,x1:sx+0.13,z0:DDL_Z-0.13,z1:DDL_Z+0.13});
+      if(!zoneOffen(id)) t.push({x0:PACK_FL.x0,x1:3.95,z0:1.03,z1:1.27});
+      return t;
+    }});
+  zHook(id,()=>{ if(packMov&&grabbed!==packMov) applyFootprint(packMov); });
 }
 /* Absperrband vor der Packstation, solange sie nicht gekauft ist.
    Drei Pfosten, zwei Baender dazwischen - man sieht darueber
-   hinweg, kommt aber nicht heran. */
-function packSperre(id,PX,PZ){
-  /* Man kommt vom Rolltor her, also von Norden - das Band gehoert
-     auf diese Seite, sonst steht die Station davor. Es reicht nur
-     bis zum Ende der Rollenbahn: die Oeffnung zur Halle ist neun
-     Meter breit, und der Weg nach Sueden muss frei bleiben. */
-  const zb=PZ+1.15, x0=PX-1.7, x1=PX+3.7;
+   hinweg, kommt aber nicht heran. Es haengt in der Gruppe der
+   Station und wandert beim Umbau mit. */
+function packSperre(id,g){
+  /* Die Seite zum Rolltor, dort kommt man her. Das Band reicht
+     ueber den Tisch, nicht ueber die Paketablage - der Weg nach
+     Sueden muss frei bleiben. */
+  const zb=1.15, x0=-1.7, x1=3.9;
   const bandM=new THREE.MeshStandardMaterial({map:sperrbandTex('NOCH NICHT FREIGESCHALTET'),
     roughness:0.72,side:THREE.DoubleSide});
   const halt=std(0x3d4450,{metalness:0.5,roughness:0.5});
   const kopf=std(0x1f242e,{metalness:0.4,roughness:0.55});
   const mitte=(x0+x1)/2;
   for(const [a,b] of [[x0,mitte],[mitte,x1]])
-    for(const y of [0.55,1.05]) sperrband(id,a+0.04,b-0.04,zb,y,bandM);
+    for(const y of [0.55,1.05]) sperrband(id,a+0.04,b-0.04,zb,y,bandM,g);
   for(const x of [x0,mitte,x1]){
-    zWand(id,bbox(0.055,1.2,0.055,halt,x,0.6,zb,null,false));
-    zWand(id,bbox(0.09,0.055,0.09,kopf,x,1.22,zb,null,false));
-    zWand(id,bbox(0.2,0.03,0.2,kopf,x,0.015,zb,null,false));
+    zWand(id,bbox(0.055,1.2,0.055,halt,x,0.6,zb,g,false));
+    zWand(id,bbox(0.09,0.055,0.09,kopf,x,1.22,zb,g,false));
+    zWand(id,bbox(0.2,0.03,0.2,kopf,x,0.015,zb,g,false));
   }
-  zWandCol(id,col(x0,x1,zb-0.12,zb+0.12));
 }
 /* Der Packtisch stand bisher frei im Lager herum, als haette ihn
    jemand vergessen. Er bekommt eine eigene Flaeche: markierter
    Boden mit Beschriftung, Schild an der Westwand und ein
    Abholfeld fuer DDL am Ende der Rollenbahn. */
-function versandFlaeche(g,id,PX,PZ){
-  const BW=6.6, BT=1.8, cxl=1.6;
-  const t=tex(1320,360,(c,W,H)=>{
+/* Masten des DDL-Schilds, in Gruppenkoordinaten */
+const DDL_X=4.95, DDL_Z=-1.3, DDL_MAST=[DDL_X-0.43,DDL_X+0.43];
+function versandFlaeche(g){
+  /* Die Bodenflaeche endet mit der Rollenbahn. Dahinter liegt die
+     Paketablage als eigene Markierung - vorher lagen gelbe Felder
+     mitten auf dem Schriftzug. */
+  const BW=5.6, BT=1.8, cxl=1.1;
+  const t=tex(1120,360,(c,W,H)=>{
     c.fillStyle='#57606c'; c.fillRect(0,0,W,H);
-    for(let i=0;i<9000;i++){ c.fillStyle=`rgba(255,255,255,${Math.random()*0.03})`;
+    for(let i=0;i<8000;i++){ c.fillStyle=`rgba(255,255,255,${Math.random()*0.03})`;
       c.fillRect(Math.random()*W,Math.random()*H,2,2); }
     /* Gelbe Umrandung mit Schraffur an den Schmalseiten */
     c.strokeStyle='#f2c230'; c.lineWidth=14; c.strokeRect(7,7,W-14,H-14);
@@ -5325,8 +5358,9 @@ function versandFlaeche(g,id,PX,PZ){
     for(const x0 of [0,W-62]) for(let y=-H;y<H*2;y+=34){
       c.beginPath(); c.moveTo(x0,y); c.lineTo(x0+62,y-62); c.stroke(); }
     c.restore();
-    c.fillStyle='rgba(242,194,48,.9)'; c.font=BUN(112);
+    c.fillStyle='rgba(242,194,48,.9)';
     c.textAlign='center'; c.textBaseline='middle';
+    fitFont(c,'VERSANDZENTRUM',W-190,104,BUN);
     c.fillText('VERSANDZENTRUM',W/2,H/2+6);
   });
   const bo=new THREE.Mesh(new THREE.PlaneGeometry(BW,BT),
@@ -5335,7 +5369,7 @@ function versandFlaeche(g,id,PX,PZ){
      lesbar sein. */
   bo.rotation.x=-Math.PI/2; bo.position.set(cxl,0.022,-0.05);
   g.add(bo);
-  /* Abholfeld am Ende der Rollenbahn */
+  /* Abholschild hinter der Paketablage */
   const dt=tex(520,260,(c,W,H)=>{
     c.fillStyle='#1b2340'; c.fillRect(0,0,W,H);
     c.strokeStyle='#ffd23f'; c.lineWidth=10; c.strokeRect(8,8,W-16,H-16);
@@ -5345,33 +5379,55 @@ function versandFlaeche(g,id,PX,PZ){
     c.fillStyle='#bcd0ea'; c.font=BAR(34); c.fillText('täglich ab 18:00 Uhr',W/2,212);
   });
   const stahl=std(0x8d939d,{metalness:0.6,roughness:0.4});
-  /* Der Pfosten steht neben der Rollenbahn an der Wand, nicht im
-     Gang - und er ist fest, man laeuft nicht hindurch. */
-  /* Das Schild steht am Kopf der Rollenbahn an der Seite, nicht
-     mitten im Gang. */
   /* Zwei Masten an den Seiten. Einer in der Mitte stand genau vor
      der Schrift und schnitt "ABHOLUNG DDL" entzwei. */
-  const dz=-1.45;
-  for(const sx of [5.15-0.43,5.15+0.43]){
-    bbox(0.06,2.05,0.06,stahl,sx,1.02,dz,g,false);
-    bbox(0.22,0.035,0.22,std(0x2f343e,{roughness:0.8}),sx,0.018,dz,g,false);
+  for(const sx of DDL_MAST){
+    bbox(0.06,2.05,0.06,stahl,sx,1.02,DDL_Z,g,false);
+    bbox(0.22,0.035,0.22,std(0x2f343e,{roughness:0.8}),sx,0.018,DDL_Z,g,false);
   }
-  bbox(1.06,0.56,0.05,std(0x2f343d,{metalness:0.4,roughness:0.55}),5.15,1.72,dz,g,false);
+  bbox(1.06,0.56,0.05,std(0x2f343d,{metalness:0.4,roughness:0.55}),DDL_X,1.72,DDL_Z,g,false);
   /* beidseitig bedruckt - im Lager laeuft man von beiden Seiten daran vorbei */
   for(const sg of [-1,1])
     plane(1.0,0.5,new THREE.MeshStandardMaterial({map:dt,roughness:0.6}),
-      5.15,1.72,dz+sg*0.032,sg<0?Math.PI:0,g);
-  for(const sx of [5.15-0.43,5.15+0.43]) col(PX+sx-0.13,PX+sx+0.13,PZ+dz-0.13,PZ+dz+0.13);
-  /* Schild an der Westwand, dort ist die einzige freie Wandflaeche */
-  const wt=tex(760,200,(c,W,H)=>{
-    c.fillStyle='#1b2340'; c.fillRect(0,0,W,H);
-    c.fillStyle='#ffd23f'; c.font=BUN(96); c.textAlign='center'; c.textBaseline='middle';
-    c.fillText('VERSAND',W/2,H/2+4);
-    c.strokeStyle='#2f3a5e'; c.lineWidth=8; c.strokeRect(4,4,W-8,H-8);
+      DDL_X,1.72,DDL_Z+sg*0.032,sg<0?Math.PI:0,g);
+  /* Das VERSAND-Schild an der Westwand ist weg: die Ecke laesst
+     sich jetzt verschieben, und ein Schild, das mitwandert, stuende
+     frei im Raum. Das Schild ueber dem Packtisch sagt dasselbe. */
+}
+/* Paketablage: aufgemalt statt sechs gelber Platten. Ein Rahmen,
+   sechs Stellfelder mit Eckmarken und die Beschriftung zur Seite,
+   von der man kommt. Die Pakete stehen auf den Feldern. */
+const ABLAGE={x0:4.0,x1:5.9,z0:-0.975,z1:0.875};
+function paketAblage(g){
+  const A=ABLAGE, PXM=400, W=Math.round((A.x1-A.x0)*PXM), H=Math.round((A.z1-A.z0)*PXM);
+  const cx=x=>(x-A.x0)*PXM, cy=z=>(z-A.z0)*PXM;
+  const t=tex(W,H,(c)=>{
+    c.clearRect(0,0,W,H);
+    const gelb='rgba(242,194,48,.92)';
+    c.strokeStyle=gelb; c.lineWidth=16; c.strokeRect(8,8,W-16,H-16);
+    /* Trennlinie zur Schriftzeile */
+    const ty=cy(0.36);
+    c.fillStyle=gelb; c.fillRect(8,ty-5,W-16,10);
+    /* Stellfelder: nur die Ecken, wie auf dem Hallenboden ueblich */
+    c.lineWidth=7; c.lineCap='square';
+    for(let k=0;k<PAKET_BAYS;k++){ const p=paketPose(k);
+      const a=cx(p.x-0.25), b=cx(p.x+0.25), o=cy(p.z-0.25), u=cy(p.z+0.25), L=34;
+      c.beginPath();
+      c.moveTo(a,o+L); c.lineTo(a,o); c.lineTo(a+L,o);
+      c.moveTo(b-L,o); c.lineTo(b,o); c.lineTo(b,o+L);
+      c.moveTo(b,u-L); c.lineTo(b,u); c.lineTo(b-L,u);
+      c.moveTo(a+L,u); c.lineTo(a,u); c.lineTo(a,u-L);
+      c.stroke();
+    }
+    c.fillStyle=gelb; c.textAlign='center'; c.textBaseline='middle';
+    fitFont(c,'PAKETABLAGE',W-90,96,BUN);
+    c.fillText('PAKETABLAGE',W/2,(ty+H-16)/2+4);
   });
-  const wx=LAY.ls1.x0+0.06-PX;
-  bbox(0.04,0.5,1.44,std(0x1b2340,{roughness:0.7}),wx,2.05,0,g,false);
-  plane(1.4,0.44,new THREE.MeshBasicMaterial({map:wt,toneMapped:false}),wx+0.03,2.05,0,Math.PI/2,g);
+  const m=new THREE.Mesh(new THREE.PlaneGeometry(A.x1-A.x0,A.z1-A.z0),
+    new THREE.MeshStandardMaterial({map:t,transparent:true,depthWrite:false,roughness:0.6,
+      polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2}));
+  m.rotation.x=-Math.PI/2; m.position.set((A.x0+A.x1)/2,0.02,(A.z0+A.z1)/2);
+  g.add(m);
 }
 let packSchildTex=null;
 function packBereit(){ return zoneOffen('packstation')&&S&&S.up&&S.up.onlineshop; }
@@ -5430,7 +5486,7 @@ function paketMaterial(){
   paketTex=new THREE.MeshStandardMaterial({map:t,roughness:0.86});
   return paketTex;
 }
-function paketPose(i){ return {x:5.35+(i%3)*0.62,z:-0.3+Math.floor(i/3)*0.6}; }
+function paketPose(i){ return {x:4.37+(i%3)*0.58,z:-0.55+Math.floor(i/3)*0.6}; }
 function syncPakete(){
   if(!packTisch) return;
   const soll=Math.min(PAKET_BAYS,S?(S.pakete|0):0);
@@ -6849,9 +6905,32 @@ function naechsterEingang(x){
    Verschiebbare Einrichtung
    ========================================================= */
 const movables=[];
+/* Ein Rechteck in Gruppenkoordinaten, als achsenparalleles Rechteck
+   in der Welt - fuer eine Gruppe an (x,z) mit Drehung ry. */
+function rectWelt(x,z,ry,r){
+  const s=Math.sin(ry), c=Math.cos(ry);
+  let a=1e9,b=-1e9,e=1e9,f=-1e9;
+  for(const lx of [r.x0,r.x1]) for(const lz of [r.z0,r.z1]){
+    const wx=x+lx*c+lz*s, wz=z-lx*s+lz*c;
+    a=Math.min(a,wx); b=Math.max(b,wx); e=Math.min(e,wz); f=Math.max(f,wz);
+  }
+  return {minX:a,maxX:b,minZ:e,maxZ:f};
+}
+function dropFootprint(m){
+  if(m.col){ dropCol(m.col); m.col=null; }
+  if(m.cols){ m.cols.forEach(dropCol); m.cols=null; }
+}
 function applyFootprint(m){
   if(typeof navDirty==='function') navDirty();
-  if(m.col){ dropCol(m.col); m.col=null; }
+  dropFootprint(m);
+  /* Grosse Einheiten wie die Packstation sind kein Klotz: sie
+     blockieren nur dort, wo wirklich etwas steht. Auf der
+     bemalten Flaeche dazwischen kann man laufen. */
+  if(m.teile){
+    m.cols=m.teile().map(t=>{ const w=rectWelt(m.g.position.x,m.g.position.z,m.g.rotation.y,t);
+      return col(w.minX,w.maxX,w.minZ,w.maxZ,m); });
+    return;
+  }
   if(!m.fw) return;
   const s=Math.abs(Math.sin(m.g.rotation.y))>0.5, w=(s?m.fd:m.fw)/2, d=(s?m.fw:m.fd)/2;
   m.col=col(m.g.position.x-w,m.g.position.x+w,m.g.position.z-d,m.g.position.z+d,m);
@@ -9246,6 +9325,11 @@ function updateOrder(dt){
    Personal
    ========================================================= */
 const staff={reinigung:null,auffueller:null,auffueller2:null,kassierer:null,security:null,packer:null};
+/* Platz vor dem Packtisch, in Weltkoordinaten, mit Blick zum Tisch */
+function packerPlatz(){
+  if(typeof packTisch==='undefined'||!packTisch) return {p:IDLE.packer,ry:-Math.PI/2};
+  return {p:localToWorld(packTisch,0,0.9),ry:packTisch.rotation.y+Math.PI};
+}
 const IDLE={reinigung:V(-6.6,0,4.2),auffueller:V(-7.0,0,1.0),auffueller2:V(-7.0,0,-0.4),kassierer:V(0,0,0),security:V(1.4,0,4.6),packer:V(-16.3,0,3.4)};
 const PRIO={lkw:'LKW zuerst',regal:'Regale zuerst'};
 /* Lohnstufen: mehr Geld heißt schneller, gründlicher und freundlicher */
@@ -9282,7 +9366,7 @@ class Worker{
   constructor(id){
     const look=STAFFLOOK[id];
     this.id=id; this.kind=id==='auffueller2'?'auffueller':id; this.g=makePerson({jacket:look.jacket,cap:look.cap});
-    const st=IDLE[id]; this.g.position.copy(id==='kassierer'?ck(-0.25,-0.85):st); scene.add(this.g);
+    const st=id==='packer'?packerPlatz().p:IDLE[id]; this.g.position.copy(id==='kassierer'?ck(-0.25,-0.85):st); scene.add(this.g);
     this.path=[]; this.base=id==='security'?1.9:1.45; this.speed=this.base; this.state='idle'; this.t=0; this.carry=null; this.chase=null; this.moving=false; this.applyWage();
   }
   get pos(){ return this.g.position; }
@@ -9310,9 +9394,13 @@ class Worker{
     else if(this.state==='work'){ this.t-=dt*(this.wf||1); if(this.t<=0){ if(this.target&&dirts.indexOf(this.target)>=0){ removeDirt(this.target); sfx.pop(); } this.target=null; this.state='idle'; } }
   }
   packLoop(dt){
-    const home=IDLE.packer;
-    if(this.pos.distanceTo(home)>0.45){ if(!this.path.length) this.goTo(home); this.walk(dt); return; }
-    this.g.rotation.y+=((-Math.PI/2)-this.g.rotation.y)*Math.min(1,dt*6);
+    /* Der Packer steht vor dem Packtisch, wo immer die Versandecke
+       gerade steht. Vorher lief er zu einem festen Punkt im
+       Nordanbau - dort stand die Station schon lange nicht mehr. */
+    const P=packerPlatz(), home=P.p;
+    if(this.pos.distanceTo(home)>0.45){ if(!this.path.length||this.ziel&&this.ziel.distanceTo(home)>0.3){ this.goTo(home); this.ziel=home.clone(); } this.walk(dt); return; }
+    let df=P.ry-this.g.rotation.y; while(df>Math.PI) df-=Math.PI*2; while(df<-Math.PI) df+=Math.PI*2;
+    this.g.rotation.y+=df*Math.min(1,dt*6);
     if((S.offen|0)>0){ this.moving=true; }
   }
   stockLoop(dt){
@@ -10419,44 +10507,74 @@ function updatePlayer(dt){
 }
 
 /* ---------- Umbaumodus ---------- */
-function rectOf(m,x,z,ry){ const s=Math.abs(Math.sin(ry))>0.5, w=(s?m.fd:m.fw)/2, d=(s?m.fw:m.fd)/2; return {minX:x-w,maxX:x+w,minZ:z-d,maxZ:z+d}; }
+function rectOf(m,x,z,ry){
+  if(m.flaeche) return rectWelt(x,z,ry,m.flaeche);
+  const s=Math.abs(Math.sin(ry))>0.5, w=(s?m.fd:m.fw)/2, d=(s?m.fw:m.fd)/2; return {minX:x-w,maxX:x+w,minZ:z-d,maxZ:z+d}; }
 /* Umgebaut werden darf in jedem Raum, der schon freigeschaltet ist.
    Ein Moebel muss ganz in einen Raum passen - so landet nichts in
-   einem Durchgang oder halb in der Wand. */
+   einem Durchgang oder halb in der Wand. Raeume, die durch einen
+   Kauf zusammenwachsen, stehen zusaetzlich als ein Ganzes in der
+   Liste, damit man auch ueber die alte Trennlinie stellen kann.
+   Vorher galt das ganze Ladenlokal von Anfang an - ein Regal liess
+   sich durch die Trennwand in die noch gesperrte Haelfte schieben.
+   Und der erste Hallenabschnitt zaehlte erst mit dem zweiten. */
 const UMBAU_RAUM=[
-  {r:LAY.basis},                        {r:LAY.lbasis},
+  {r:{x0:LAY.basis.x0,x1:SHOP_HALB,z0:LAY.basis.z0,z1:LAY.basis.z1}},
+  {r:LAY.basis,z:'shop_halb'},
   {r:LAY.ost1, z:'shop_gross'},         {r:LAY.ost2, z:'shop_ost'},
-  {r:LAY.sued, z:'shop_sued'},          {r:LAY.lnord,z:'lager_gross'},
-  {r:LAY.lsued,z:'lager_sued'},         {r:LAY.lwest,z:'lager_west'}
+  {r:LAY.sued, z:'shop_sued'},
+  {r:LAY.lbasis},
+  {r:{x0:LAY.lbasis.x0,x1:LAY.lbasis.x1,z0:LAY.lbasis.z0,z1:LAY.lnord.z1},z:'lager_nord'},
+  {r:LAY.ls1,  z:'lager_gross'},
+  {r:{x0:LAY.ls1.x0,x1:LAY.ls1.x1,z0:LAY.ls2.z0,z1:LAY.ls1.z1},z:'lager_sued'},
+  {r:LAY.lsued,z:'lager_sued2'},
+  {r:LAY.lwest,z:'lager_west'}
 ];
 function imRaum(minX,maxX,minZ,maxZ){
   return UMBAU_RAUM.some(b=>(!b.z||zoneOffen(b.z))&&
     minX>=b.r.x0+0.08&&maxX<=b.r.x1-0.08&&minZ>=b.r.z0+0.08&&maxZ<=b.r.z1-0.08);
 }
 function spotFree(m,x,z,ry){
-  if(!m.fw) return imRaum(x,x,z,z);
+  if(!m.fw&&!m.flaeche) return imRaum(x,x,z,z);
   const r=rectOf(m,x,z,ry);
   if(!imRaum(r.minX,r.maxX,r.minZ,r.maxZ)) return false;
   for(const c of colliders){ if(c.ref===m) continue;
     if(r.minX<c.maxX&&r.maxX>c.minX&&r.minZ<c.maxZ&&r.maxZ>c.minZ) return false; }
+  /* Die Flaeche einer grossen Einheit ist belegt, auch wo man
+     darueber laufen kann - kein Regal mitten auf der Paketablage. */
+  for(const m2 of movables){ if(m2===m||!m2.flaeche||!m2.g.visible) continue;
+    const a=rectOf(m2,m2.g.position.x,m2.g.position.z,m2.g.rotation.y);
+    if(r.minX<a.maxX&&r.maxX>a.minX&&r.minZ<a.maxZ&&r.maxZ>a.minZ) return false; }
   return true;
 }
 function toggleBuild(on){
   build=on===undefined?!build:on;
   if(!build&&grabbed) cancelGrab();
-  $('mode').textContent=build?(COARSE?'Umbau: antippen, greifen, absetzen':'Umbaumodus – E greifen, R drehen, F beenden'):'';
+  /* Nur der Zustand, keine Tastenliste - die steht im Pausenmenue */
+  $('mode').textContent=build?'Umbaumodus':'';
   $('btnMove').classList.toggle('on',build);
   S.tut.move=true;
 }
 function grab(m){
   grabbed=m; grabRy=m.g.rotation.y; grabHome={x:m.g.position.x,z:m.g.position.z,ry:grabRy};
-  if(m.col){ dropCol(m.col); m.col=null; }
+  dropFootprint(m);
   sfx.pop();
 }
 function updateGrab(){
   if(!grabbed) return;
-  const d=grabbed.fw>2?2.6:2.0;
-  let x=pl.x-Math.sin(yaw)*d, z=pl.z-Math.cos(yaw)*d;
+  let x,z;
+  if(grabbed.flaeche){
+    /* Grosse Einheit: die Mitte der Flaeche liegt vor einem, mit
+       etwas Abstand zur eigenen Kante - man steht nie mittendrin. */
+    const F=grabbed.flaeche, vx=-Math.sin(yaw), vz=-Math.cos(yaw);
+    const w=rectWelt(0,0,grabRy,F), hx=(w.maxX-w.minX)/2, hz=(w.maxZ-w.minZ)/2;
+    const d=Math.abs(vx)*hx+Math.abs(vz)*hz+1.2;
+    const mx=(w.minX+w.maxX)/2, mz=(w.minZ+w.maxZ)/2;
+    x=pl.x+vx*d-mx; z=pl.z+vz*d-mz;
+  } else {
+    const d=grabbed.fw>2?2.6:2.0;
+    x=pl.x-Math.sin(yaw)*d; z=pl.z-Math.cos(yaw)*d;
+  }
   x=Math.round(x*4)/4; z=Math.round(z*4)/4;
   grabbed.g.position.x=x; grabbed.g.position.z=z; grabbed.g.rotation.y=grabRy;
   if(grabbed.onPlace) grabbed.onPlace();
@@ -10483,7 +10601,9 @@ function toggleSpray(){ if(pdaOn){ pdaOn=false; if(pdaG) pdaG.visible=false; }
 }
 function updateTool(){
   const el=$('tool');
-  el.textContent=pdaOn?'Preisgerät in der Hand':sprayOn?'Pfefferspray bereit':(S.level>=4?(COARSE?'Spray: Knopf rechts':'Pfefferspray: G · Preisgerät: T'):(S.level>=2?'Preisgerät: T':''));
+  /* Unten rechts steht nur noch, was man gerade in der Hand hat.
+     Welche Taste was macht, zeigt das Pausenmenue (Esc). */
+  el.textContent=pdaOn?'Preisgerät in der Hand':sprayOn?'Pfefferspray bereit':'';
   el.classList.toggle('on',sprayOn||pdaOn);
   $('btnTool').classList.toggle('on',sprayOn);
   $('btnPda').classList.toggle('on',pdaOn);
@@ -12214,7 +12334,7 @@ function save(){
     const d={v:3,money:S.money,rep:S.rep,level:S.level,xp:S.xp,season:S.season,day:S.day,loan:S.loan,prices:S.prices,up:S.up,staff:S.staff,prio:S.prio||{},wage:S.wage||{},pause:S.pause||{},ev:S.ev||null,goal:S.goal||null,mkt:r2(S.mkt||1),comp:r2(S.comp||1),lic:S.lic||['start'],stat:S.stat||{},erf:S.erf||{},gesehen:S.gesehen||[],eigene:S.eigene||[],gutschrift:r2(S.gutschrift||0),mi:S.mi||{},me:S.me||{},reg:S.reg||{},mh:S.mh||{},schock:S.schock||{},news:S.news||[],infl:S.infl||1,
       wall:S.wall,floor:S.floor,schildBg:S.schildBg||'auto',schildFg:S.schildFg||'weiss',paint:S.paint,test:S.test,stamm:S.stamm,blanks:gravBlanks,grav:gravG?mpos(gravG):null,grime:r2(S.grime||0),tut:S.tut,seasonRevenue:S.seasonRevenue,carrying:S.carrying,cart:S.cart||[],offen:S.offen|0,pakete:S.pakete|0,shopName:S.shopName||SHOP_DEFAULT,slogan:S.slogan||'',
       deko:dekos.map(d2=>Object.assign({id:d2.id},mpos(d2.g))),
-      ck:mpos(ckG),desk:mpos(deskG),sb2:mpos(sb2G),
+      ck:mpos(ckG),desk:mpos(deskG),sb2:mpos(sb2G),pack:mpos(packTisch),
       shelves:shelves.map(s=>Object.assign(mpos(s.g),{kind:s.kind,levels:s.levels.map(l=>({type:l.type,count:l.count,q:l.q||1}))})),
       racks:racks.map(r=>Object.assign(mpos(r.g),{kind:r.kind,slots:r.slots.map(s=>s.box?{type:s.box.type,count:s.box.count,q:s.box.q||1}:null)})),
       /* Unterwegs bestellte Regale gehen beim Speichern nicht
@@ -12277,6 +12397,9 @@ function startGame(fresh){
   if(d&&d.ck) placeMovable(ckMov,d.ck.x,d.ck.z,d.ck.ry);
   if(d&&d.desk){ const m=movables.find(m=>m.kind==='desk'); if(m) placeMovable(m,d.desk.x,d.desk.z,d.desk.ry); }
   if(d&&d.sb2&&sb2Mov) placeMovable(sb2Mov,d.sb2.x,d.sb2.z,d.sb2.ry);
+  /* Die Versandecke steht, wo man sie hingeschoben hat. Ein neues
+     Spiel stellt sie an ihren Platz hinter dem Rolltor zurueck. */
+  if(packMov){ const q=d&&d.pack?d.pack:PACK_HOME; placeMovable(packMov,q.x,q.z,q.ry); }
   (S.shelves||F.shelves).slice(0,SLOTS.length).forEach((sd,i)=>createShelf(i,sd));
   (S.racks||F.racks).slice(0,RACKS.length).forEach((rd,i)=>createRack(i,rd));
 
@@ -12507,8 +12630,50 @@ function requestLock(){
   try{ const r=canvas.requestPointerLock(); if(r&&r.catch) r.catch(()=>{ lockFailed=true; dragHint(); }); }catch(e){ lockFailed=true; dragHint(); }
 }
 function overlayOpen(){ return startOpen||laptopOpen||summaryOpen||pauseOpen||cashOpen||levelOpen||dealOpen||gravOpen||pdaOpen; }
-function showPause(){ if(overlayOpen()) return; pauseOpen=true; paused=true; $('pause').classList.add('show'); }
-$('pBtn').addEventListener('click',()=>{ pauseOpen=false; paused=false; $('pause').classList.remove('show'); requestLock(); });
+/* Die Steuerung steht im Pausenmenue und nicht mehr dauernd im
+   Bild. Esc haelt das Spiel an und zeigt sie. */
+const STEUER_PC=[
+  ['Bewegen',[
+    [['W','A','S','D'],'Laufen (auch Pfeiltasten)'],
+    [['Shift'],'Rennen'],
+    [['Maus'],'Umsehen']]],
+  ['Handeln',[
+    [['E','Klick'],'Aktion – halten zum Putzen'],
+    [['Q','Rechts'],'Karton abstellen'],
+    [['Tab'],'Laptop'],
+    [['H'],'Handy abnehmen']]],
+  ['Werkzeuge',[
+    [['T'],'Preisgerät (ab Level 2)'],
+    [['G'],'Pfefferspray (ab Level 4)']]],
+  ['Umbau',[
+    [['F'],'Umbaumodus an / aus'],
+    [['E'],'Möbel greifen, absetzen'],
+    [['R'],'Gegriffenes drehen'],
+    [['Q'],'Greifen abbrechen']]],
+  ['Sonstiges',[
+    [['P'],'Bildeffekte an / aus'],
+    [['Esc'],'Pause, diese Übersicht']]]
+];
+const STEUER_TOUCH=[
+  ['Bewegen',[
+    [['links'],'Ziehen zum Laufen'],
+    [['rechts'],'Wischen zum Umsehen']]],
+  ['Knöpfe',[
+    [['Aktion'],'Aktion – halten zum Putzen'],
+    [['Ablegen'],'Karton abstellen, Greifen abbrechen'],
+    [['Umbau'],'Umbaumodus an / aus'],
+    [['Preis'],'Preisgerät (ab Level 2)'],
+    [['Spray'],'Pfefferspray (ab Level 4)']]]
+];
+function renderSteuer(){
+  const L=COARSE?STEUER_TOUCH:STEUER_PC;
+  $('steuer').innerHTML=L.map(([titel,zeilen])=>`<div class="grp"><div class="sub">${titel}</div>`+
+    zeilen.map(([k,t])=>`<div class="z"><div class="k">${k.map(x=>`<kbd>${x}</kbd>`).join('')}</div><div>${t}</div></div>`).join('')+
+    `</div>`).join('');
+}
+function showPause(){ if(overlayOpen()) return; renderSteuer(); pauseOpen=true; paused=true; for(const k in keys) keys[k]=false; mouseDown=false; $('pause').classList.add('show'); }
+function closePause(){ if(!pauseOpen) return; pauseOpen=false; paused=false; $('pause').classList.remove('show'); requestLock(); }
+$('pBtn').addEventListener('click',()=>closePause());
 document.addEventListener('pointerlockchange',()=>{
   locked=document.pointerLockElement===canvas;
   if(locked) lockWorked=true;
@@ -12529,6 +12694,15 @@ addEventListener('keydown',e=>{
   if(pdaOpen){ if(e.code==='Escape') closePDA(); return; }
   if(gravOpen){ if(e.code==='Escape') closeGravInput(false); if(e.code==='Enter') closeGravInput(true); return; }
   if(dealOpen){ if(e.code==='Escape') declineDeal(); return; }
+  /* Esc: Pause an und wieder aus. Mit Mauszeiger-Sperre faengt der
+     Browser das erste Esc selbst ab und gibt die Maus frei - dann
+     oeffnet der pointerlockchange-Handler die Pause. */
+  /* Zweites Esc schliesst die Pause nur ohne Mauszeiger-Sperre.
+     Mit Sperre muss man klicken: direkt nach dem Freigeben laesst
+     der Browser die Maus nicht per Taste wieder einfangen, und ein
+     Fehlschlag wuerde dauerhaft auf Ziehen-zum-Umsehen umstellen. */
+  if(e.code==='Escape'&&pauseOpen){ if(!lockWorked||lockFailed) closePause(); return; }
+  if(e.code==='Escape'&&S&&!overlayOpen()){ showPause(); return; }
   if(!S||overlayOpen()) return;
   keys[e.code]=true;
   if(e.code==='KeyE'&&!e.repeat) pressAction();
@@ -12694,7 +12868,7 @@ fontsReady().then(()=>{
   lastF=-1; applyTOD(); updateSign(); buildStart(); requestAnimationFrame(frame);
   window.__bb={get S(){return S},get phase(){return phase},set phase(v){phase=v},set clock(v){clock=v},get clock(){return clock},pickUp,floorBoxes,shelves,racks,dekos,stockOne,openShop,step,customers,queue,belt,scanBelt,buyUp,buyDeko,get DS(){return DS},endDay,pending,save,openLaptop,closeLaptop,pl,addXP,hireStaff,fireStaff,staff,dirts,addDirt,movables,toggleBuild,setWall,setFloor,
     stations,firePult,placeOnStation,igniteType,get order(){return order},get phone(){return phone},makeCall,answerPhone,haggle,acceptDeal,declineDeal,get truck(){return truck},spawnTruck,takeFromTruck,takeBox,dropBox,updateTruck,get door(){return door},get tuer(){return tuer},tuerSet,tuerNah,updateSchiebetuer,doorOpen,doorIsOpen,trailerOccupied,LR,lrFront,TOR,orderReady,orderLeft,shipOne,removeFloorBox,prioOf,setPrio,racks,updateCarry,spawnFloorBox,staff,SHELFKIND,layout,shelfCapOf,shelfAccepts,emptyLevel,dateInfo,dateStr,dateShort,seasonInfo,isSunday,dayMult,ruhetag,wageOf,setWage,friendliness,inPause,setPause,windowGrime,addGrime,cleanWindowTick,ambienteScore,bildBoost,fixedCosts,dailyWages,dispoLimit,verfuegbar,dispoZins,takeLoan,loanTier,loanDaily,EVENTS,GOALS,CUSTTYPES,UPGRADES,STAFF,stockOf,spawnInterval,pools,todayEvent,evv,rollEvent,rollMarket,newGoal,goalAdd,goalTick,ekFactor,marktText,xpFor,rollCustType,priceTol,buyChance,regCustomer,makeWishes,nachfrageFaktor,shelfStockOf,buildGravur,refillGrav,openGravInput,closeGravInput,get gravBlanks(){return gravBlanks},set gravBlanks(v){gravBlanks=v},orderBox,buyPack,cartAdd,cartAddPack,cartOrder,cartClear,cartDel,cartGoods,cartFee,cartTotal,cartBoxes,cartLines,LIEFERZEIT_SEK,VERSAND,VERSANDFREI,lieferSek,
-    scene,camera,P,EFF,EFF_ALL,EFF_KLEIN,EFF_GROSS,EFF_PRO,SHOWS,kugelbombe,shot,mine,FW,stations,stationOf,placedCount,togglePDA,openPDA,closePDA,setPost,get postOn(){return postOn},get pdaOn(){return pdaOn},showLength,psHuge,psBig,psMid,psSmall,rockets,emitters,timersLen:()=>timers.length,setView:(x,z,y,p)=>{pl.x=x;pl.z=z;yaw=y;pitch=p;aim=null;},schiebe:(x,z)=>{pl.x=x;pl.z=z;collide(pl,0.32);return{x:pl.x,z:pl.z};},PLZ_MAX,camYaw:()=>yaw,camPitch:()=>pitch,playerPos:()=>({x:pl.x,z:pl.z}),pultYaw:()=>pultHit?pultHit.parent.rotation.y:null,applyShopName,shopName,shopSlogan,signTexPx:()=>signTex&&signTex.image?signTex.image.getContext('2d').getImageData(0,0,signTex.image.width,40).data.join(''):null,ckTexPx:()=>ckNameTex&&ckNameTex.image?ckNameTex.image.getContext('2d').getImageData(0,0,ckNameTex.image.width,60).data.join(''):null,testfeldMitte,STATION_POS,aimAt,UPGRADES,upPic,PLAN,planFlaechen,uhrZeiger:()=>({std:uhrStd?+uhrStd.rotation.z.toFixed(4):0,min:uhrMin?+uhrMin.rotation.z.toFixed(4):0}),drawRackSchild,get snowPts(){return snowPts},buildStadt,updateStadt,get stadtBoxen(){return stadtBoxen},get stadtBaeume(){return stadtBaeume},buildFernbaeume,schwaerme,beacons,silhouetten,get verkehrPts(){return verkehrPts},get rauchPts(){return rauchPts},get flieger(){return flieger},stadtFrei,STADT_FREI,WALLS,FLOORS,renderOnline,onlineHint,onlineStufe,onlineZahlen,updateOnline,packLaptop,SCHILDBG,SCHILDFG,setSchild,schildBg,schildFg,repaintSchilder,updateHead,allLevels,addToLevel,putInSlot,regCustomer,ZONEN,zoneOffen,oeffneZone,applyZonen,SLOTS,RACKS,slotsOffen,colliders,LAY,LOGI,WRAMPEN,WTORE,updateSnow,unterDach,dachBereiche,get lapHit2(){return lapHit2},buildLagerTerminal,toggleTest,testLevel,buyUp,get toastLast(){return toastLast},__floorBoxen:()=>floorBoxes.length,WBAY_UP,wbays,dockPlaetze,wbayFrei,wbayOffen,spawnWTruck,updateWBays,wbaysInit,wtorSet,GANG,GANGTUER,buildLagergang,flaeche,WTOR,RACKKIND,route,NAV,navFrei,navIdx,navBuild,shelfStand,shelves,sbLanes,buildSBKasse,sbFrei,sbOffen,sbNutzbar,EING2,eingaenge,naechsterEingang,setEingang2,buildSBKasse2,get sb2G(){return sb2G},TUEREN,tuerSetD,tuerNahD,packBereit,packOne,paketWert,bestellungenProTag,pakete,PAKET_BAYS,ddlAbholung,updateVersand,createShelf,createRack,regalStellen,testKauf,regalAufbauen,orderRegal,REGALWARE,regalOf,regalKind,regalPreis,regalPlatz,regalOffen,startGame,promptFor,ERFOLGE,erfOffen,erfStufe,erfStand,erfZiel,erfFertig,erfAnteil,erfGeschafft,erfGesamt,stat,statAdd,statRekord,statVerkauf,bruchGesehen,gruppeVon,GRUPPE,TRAEGER,BRUCH,BRUCH_IDS,REZ_FARBEN,ETIKETT,traegerVon,traegerOffen,bruchOffen,bruchListe,rezeptWow,rezeptKosten,rezeptMarkt,rezeptHype,rezeptDauer,rezeptEntwicklung,rezeptGueltig,eigeneListe,eigenesEintragen,rezepteTick,rezProto,rezBauen,renderRezeptur,get entwurf(){return entwurf},set entwurf(v){entwurf=v},entwurfInit,ORDER,LIZENZEN,lizenzOf,hatLizenz,lizenzDaten,naechsteLizenz,buyLizenz,VOLA,volaOf,REGIME,marketOf,costOf,marktZiel,marktLuecke,meOf,miOf,marktDelta,marktNiveau,marktPhase,marktSchock,marktLabel,marktSchnitt,marktExtrem,marktChance,sortimentBreite,sortimentZug,bekanntheit,spawnInterval,rollMarkt,marktInit,inflOf,inflText,setPreisAufMarkt,igniteType,get packHit(){return packHit},get packTisch(){return packTisch},get target(){return target},
+    scene,camera,P,EFF,EFF_ALL,EFF_KLEIN,EFF_GROSS,EFF_PRO,SHOWS,kugelbombe,shot,mine,FW,stations,stationOf,placedCount,togglePDA,openPDA,closePDA,setPost,get postOn(){return postOn},get pdaOn(){return pdaOn},showLength,psHuge,psBig,psMid,psSmall,rockets,emitters,timersLen:()=>timers.length,setView:(x,z,y,p)=>{pl.x=x;pl.z=z;yaw=y;pitch=p;aim=null;},schiebe:(x,z)=>{pl.x=x;pl.z=z;collide(pl,0.32);return{x:pl.x,z:pl.z};},PLZ_MAX,camYaw:()=>yaw,camPitch:()=>pitch,playerPos:()=>({x:pl.x,z:pl.z}),pultYaw:()=>pultHit?pultHit.parent.rotation.y:null,applyShopName,shopName,shopSlogan,signTexPx:()=>signTex&&signTex.image?signTex.image.getContext('2d').getImageData(0,0,signTex.image.width,40).data.join(''):null,ckTexPx:()=>ckNameTex&&ckNameTex.image?ckNameTex.image.getContext('2d').getImageData(0,0,ckNameTex.image.width,60).data.join(''):null,testfeldMitte,STATION_POS,aimAt,UPGRADES,upPic,PLAN,planFlaechen,uhrZeiger:()=>({std:uhrStd?+uhrStd.rotation.z.toFixed(4):0,min:uhrMin?+uhrMin.rotation.z.toFixed(4):0}),drawRackSchild,get snowPts(){return snowPts},buildStadt,updateStadt,get stadtBoxen(){return stadtBoxen},get stadtBaeume(){return stadtBaeume},buildFernbaeume,schwaerme,beacons,silhouetten,get verkehrPts(){return verkehrPts},get rauchPts(){return rauchPts},get flieger(){return flieger},stadtFrei,STADT_FREI,WALLS,FLOORS,renderOnline,onlineHint,onlineStufe,onlineZahlen,updateOnline,packLaptop,SCHILDBG,SCHILDFG,setSchild,schildBg,schildFg,repaintSchilder,updateHead,allLevels,addToLevel,putInSlot,regCustomer,ZONEN,zoneOffen,oeffneZone,applyZonen,SLOTS,RACKS,slotsOffen,colliders,LAY,LOGI,WRAMPEN,WTORE,updateSnow,unterDach,dachBereiche,get lapHit2(){return lapHit2},buildLagerTerminal,toggleTest,testLevel,buyUp,get toastLast(){return toastLast},__floorBoxen:()=>floorBoxes.length,WBAY_UP,wbays,dockPlaetze,wbayFrei,wbayOffen,spawnWTruck,updateWBays,wbaysInit,wtorSet,GANG,GANGTUER,buildLagergang,flaeche,WTOR,RACKKIND,route,NAV,navFrei,navIdx,navBuild,shelfStand,shelves,sbLanes,buildSBKasse,sbFrei,sbOffen,sbNutzbar,EING2,eingaenge,naechsterEingang,setEingang2,buildSBKasse2,get sb2G(){return sb2G},TUEREN,tuerSetD,tuerNahD,packBereit,packOne,paketWert,bestellungenProTag,pakete,PAKET_BAYS,ddlAbholung,updateVersand,createShelf,createRack,regalStellen,testKauf,regalAufbauen,orderRegal,REGALWARE,regalOf,regalKind,regalPreis,regalPlatz,regalOffen,startGame,promptFor,ERFOLGE,erfOffen,erfStufe,erfStand,erfZiel,erfFertig,erfAnteil,erfGeschafft,erfGesamt,stat,statAdd,statRekord,statVerkauf,bruchGesehen,gruppeVon,GRUPPE,TRAEGER,BRUCH,BRUCH_IDS,REZ_FARBEN,ETIKETT,traegerVon,traegerOffen,bruchOffen,bruchListe,rezeptWow,rezeptKosten,rezeptMarkt,rezeptHype,rezeptDauer,rezeptEntwicklung,rezeptGueltig,eigeneListe,eigenesEintragen,rezepteTick,rezProto,rezBauen,renderRezeptur,get entwurf(){return entwurf},set entwurf(v){entwurf=v},entwurfInit,ORDER,LIZENZEN,lizenzOf,hatLizenz,lizenzDaten,naechsteLizenz,buyLizenz,VOLA,volaOf,REGIME,marketOf,costOf,marktZiel,marktLuecke,meOf,miOf,marktDelta,marktNiveau,marktPhase,marktSchock,marktLabel,marktSchnitt,marktExtrem,marktChance,sortimentBreite,sortimentZug,bekanntheit,spawnInterval,rollMarkt,marktInit,inflOf,inflText,setPreisAufMarkt,igniteType,get packHit(){return packHit},get packTisch(){return packTisch},get packMov(){return packMov},syncPakete,rotateGrab,PACK_FL,PACK_HOME,spotFree,rectOf,grab,placeGrab,updateGrab,get grabbed(){return grabbed},showPause,get target(){return target},
     shot:()=>{ noLoop=true; camera.position.set(pl.x,1.65,pl.z); camera.rotation.set(pitch,yaw,0); camera.updateMatrixWorld(); updateTarget(); applyTOD(); renderFrame(0.016); return canvas.toDataURL('image/jpeg',0.85); },
     run:(sec,dt)=>{ noLoop=true; const n=Math.round(sec/(dt||0.05)); for(let i=0;i<n;i++) step(dt||0.05); }};
 });

@@ -6,7 +6,9 @@
    wird freigegeben.
    ========================================================= */
 const ZONEN={};
-function zone(id){ return ZONEN[id]||(ZONEN[id]={obj:[],cols:[],wand:[],wandCols:[],offen:false}); }
+function zone(id){ return ZONEN[id]||(ZONEN[id]={obj:[],cols:[],wand:[],wandCols:[],hooks:[],offen:false}); }
+/* Wird nach jedem Oeffnen oder Zuruecksetzen der Zone gerufen */
+function zHook(id,fn){ zone(id).hooks.push(fn); }
 /* Objekt gehoert zum noch gesperrten Bereich */
 function zAdd(id,o){ if(o&&id){ o.visible=false; zone(id).obj.push(o); } return o; }
 /* Kollision, die erst nach dem Kauf gilt */
@@ -24,6 +26,7 @@ function oeffneZone(id,leise){
   z.wandCols.forEach(c=>dropCol(c));
   z.obj.forEach(o=>{ o.visible=true; });
   z.cols.forEach(c=>{ if(colliders.indexOf(c)<0) colliders.push(c); });
+  z.hooks.forEach(fn=>fn());
   if(typeof navDirty==='function') navDirty();
   if(!leise) sfx.cash();
 }
@@ -36,7 +39,8 @@ function applyZonen(){
       z.wand.forEach(o=>{ o.visible=true; });
       z.obj.forEach(o=>{ o.visible=false; });
       z.cols.forEach(c=>dropCol(c));
-      z.wandCols.forEach(c=>{ if(colliders.indexOf(c)<0) colliders.push(c); }); }
+      z.wandCols.forEach(c=>{ if(colliders.indexOf(c)<0) colliders.push(c); });
+      z.hooks.forEach(fn=>fn()); }
   }
   if(typeof navDirty==='function') navDirty();
 }
@@ -254,7 +258,7 @@ function sperrbandTex(text,n){
 }
 /* Ein Band spannt zwischen zwei Pfosten und haengt in der Mitte
    durch. Eine gerade Leiste sieht aus wie ein roter Strich. */
-function sperrband(Z,a,b,z,y,mat){
+function sperrband(Z,a,b,z,y,mat,parent){
   const L=b-a, durch=0.05;
   const geo=new THREE.PlaneGeometry(L,0.09,16,1);
   /* Direkt im Array rechnen: getX/setY gibt es im Testdoppel nicht,
@@ -270,7 +274,7 @@ function sperrband(Z,a,b,z,y,mat){
   }
   const m=new THREE.Mesh(geo,mat);
   m.position.set((a+b)/2,y,z); m.userData.sperrband=true;
-  scene.add(m); zWand(Z,m);
+  (parent||scene).add(m); zWand(Z,m);
   return m;
 }
 function testfeldSperre(){
@@ -646,14 +650,22 @@ function buildAusbau(){
 /* =========================================================
    Packstation: Packtisch, Kartonlager, Waage, Paketrutsche
    ========================================================= */
-let packHit=null, packTisch=null;
+let packHit=null, packTisch=null, packMov=null;
+/* Die ganze Versandecke in Gruppenkoordinaten, Packtisch in der
+   Mitte bei 0/0. PACK_FL ist die Flaeche, die sie belegt - Boden,
+   Paketablage, Schild und Absperrband zusammen. */
+const PACK_FL={x0:-1.75,x1:5.95,z0:-1.42,z1:1.28};
+const PACK_HOME={x:-18.0,z:-8.6,ry:0};
 const pakete=[];                       /* fertige Pakete auf der Rampe */
 function buildPackstation(){
   /* Die Packstation steht jetzt im ersten Abschnitt der Halle
      Sued, gleich hinter dem Rolltor - dort, wo der LKW anfaehrt
      und die Ware hereinkommt. Vorher stand sie im Anbau Nord,
      quer durch das ganze Lager vom Wareneingang entfernt. */
-  const id='packstation', PX=-18.3, PZ=-8.6;
+  /* Die Ecke steht mit ihrer ganzen Flaeche im ersten Hallen-
+     abschnitt: Westkante an der Wand, und im Osten bleibt der
+     Stellplatz fuer das erste Lagerregal frei. */
+  const id='packstation', PX=PACK_HOME.x, PZ=PACK_HOME.z;
   /* Die Packstation steht von Anfang an da. Man soll sehen, was
      man sich damit kauft - bis dahin haengt ein Absperrband
      davor. Vorher war an dieser Stelle einfach leerer Boden. */
@@ -708,52 +720,61 @@ function buildPackstation(){
      nur, wenn man mit dem Ruecken zur Wand stand. */
   plane(2.5,0.44,new THREE.MeshBasicMaterial({map:packSchildTex,toneMapped:false}),0,2.3,-0.455,Math.PI,g);
   drawPackSchild();
-  /* Abholrampe mit Paketstellplaetzen */
-  /* Die Stellplaetze liegen neben der beschrifteten Flaeche, nicht
-     darauf - sonst ueberdecken die gelben Felder das Wort. */
-  for(let k=0;k<6;k++){ const p=paketPose(k);
-    bbox(0.52,0.02,0.52,std(0xf2c230),p.x,0.016,p.z,g,false);
-  }
   const hit=bbox(3.0,2.0,1.4,hitM,0.6,1.0,0,g,false);
   hit.userData={kind:'pack'}; packHit=hit;
-  /* Tisch und Rollenbahn stehen immer, also gilt ihre Kollision
-     auch immer - sonst laeuft man vor dem Kauf mitten hindurch. */
-  col(PX-1.4,PX+3.9,PZ-0.5,PZ+0.5);
-  versandFlaeche(g,id,PX,PZ);
-  packSperre(id,PX,PZ);
+  versandFlaeche(g);
+  paketAblage(g);
+  packSperre(id,g);
+  /* Die ganze Ecke ist ein Moebel: im Umbaumodus greift man sie
+     irgendwo an - Tisch, Boden, Schild - und alles wandert mit.
+     So kann man die Halle spaeter anders mit Regalen fuellen.
+     Blockiert wird nur, wo wirklich etwas steht; das Absperrband
+     nur, solange die Station noch nicht gekauft ist. */
+  packMov=addMovable({kind:'pack',name:'Versandecke',g,flaeche:PACK_FL,
+    teile:()=>{
+      const t=[{x0:-1.4,x1:3.9,z0:-0.5,z1:0.5}];               /* Tisch und Rollenbahn */
+      for(const sx of DDL_MAST) t.push({x0:sx-0.13,x1:sx+0.13,z0:DDL_Z-0.13,z1:DDL_Z+0.13});
+      if(!zoneOffen(id)) t.push({x0:PACK_FL.x0,x1:3.95,z0:1.03,z1:1.27});
+      return t;
+    }});
+  zHook(id,()=>{ if(packMov&&grabbed!==packMov) applyFootprint(packMov); });
 }
 /* Absperrband vor der Packstation, solange sie nicht gekauft ist.
    Drei Pfosten, zwei Baender dazwischen - man sieht darueber
-   hinweg, kommt aber nicht heran. */
-function packSperre(id,PX,PZ){
-  /* Man kommt vom Rolltor her, also von Norden - das Band gehoert
-     auf diese Seite, sonst steht die Station davor. Es reicht nur
-     bis zum Ende der Rollenbahn: die Oeffnung zur Halle ist neun
-     Meter breit, und der Weg nach Sueden muss frei bleiben. */
-  const zb=PZ+1.15, x0=PX-1.7, x1=PX+3.7;
+   hinweg, kommt aber nicht heran. Es haengt in der Gruppe der
+   Station und wandert beim Umbau mit. */
+function packSperre(id,g){
+  /* Die Seite zum Rolltor, dort kommt man her. Das Band reicht
+     ueber den Tisch, nicht ueber die Paketablage - der Weg nach
+     Sueden muss frei bleiben. */
+  const zb=1.15, x0=-1.7, x1=3.9;
   const bandM=new THREE.MeshStandardMaterial({map:sperrbandTex('NOCH NICHT FREIGESCHALTET'),
     roughness:0.72,side:THREE.DoubleSide});
   const halt=std(0x3d4450,{metalness:0.5,roughness:0.5});
   const kopf=std(0x1f242e,{metalness:0.4,roughness:0.55});
   const mitte=(x0+x1)/2;
   for(const [a,b] of [[x0,mitte],[mitte,x1]])
-    for(const y of [0.55,1.05]) sperrband(id,a+0.04,b-0.04,zb,y,bandM);
+    for(const y of [0.55,1.05]) sperrband(id,a+0.04,b-0.04,zb,y,bandM,g);
   for(const x of [x0,mitte,x1]){
-    zWand(id,bbox(0.055,1.2,0.055,halt,x,0.6,zb,null,false));
-    zWand(id,bbox(0.09,0.055,0.09,kopf,x,1.22,zb,null,false));
-    zWand(id,bbox(0.2,0.03,0.2,kopf,x,0.015,zb,null,false));
+    zWand(id,bbox(0.055,1.2,0.055,halt,x,0.6,zb,g,false));
+    zWand(id,bbox(0.09,0.055,0.09,kopf,x,1.22,zb,g,false));
+    zWand(id,bbox(0.2,0.03,0.2,kopf,x,0.015,zb,g,false));
   }
-  zWandCol(id,col(x0,x1,zb-0.12,zb+0.12));
 }
 /* Der Packtisch stand bisher frei im Lager herum, als haette ihn
    jemand vergessen. Er bekommt eine eigene Flaeche: markierter
    Boden mit Beschriftung, Schild an der Westwand und ein
    Abholfeld fuer DDL am Ende der Rollenbahn. */
-function versandFlaeche(g,id,PX,PZ){
-  const BW=6.6, BT=1.8, cxl=1.6;
-  const t=tex(1320,360,(c,W,H)=>{
+/* Masten des DDL-Schilds, in Gruppenkoordinaten */
+const DDL_X=4.95, DDL_Z=-1.3, DDL_MAST=[DDL_X-0.43,DDL_X+0.43];
+function versandFlaeche(g){
+  /* Die Bodenflaeche endet mit der Rollenbahn. Dahinter liegt die
+     Paketablage als eigene Markierung - vorher lagen gelbe Felder
+     mitten auf dem Schriftzug. */
+  const BW=5.6, BT=1.8, cxl=1.1;
+  const t=tex(1120,360,(c,W,H)=>{
     c.fillStyle='#57606c'; c.fillRect(0,0,W,H);
-    for(let i=0;i<9000;i++){ c.fillStyle=`rgba(255,255,255,${Math.random()*0.03})`;
+    for(let i=0;i<8000;i++){ c.fillStyle=`rgba(255,255,255,${Math.random()*0.03})`;
       c.fillRect(Math.random()*W,Math.random()*H,2,2); }
     /* Gelbe Umrandung mit Schraffur an den Schmalseiten */
     c.strokeStyle='#f2c230'; c.lineWidth=14; c.strokeRect(7,7,W-14,H-14);
@@ -762,8 +783,9 @@ function versandFlaeche(g,id,PX,PZ){
     for(const x0 of [0,W-62]) for(let y=-H;y<H*2;y+=34){
       c.beginPath(); c.moveTo(x0,y); c.lineTo(x0+62,y-62); c.stroke(); }
     c.restore();
-    c.fillStyle='rgba(242,194,48,.9)'; c.font=BUN(112);
+    c.fillStyle='rgba(242,194,48,.9)';
     c.textAlign='center'; c.textBaseline='middle';
+    fitFont(c,'VERSANDZENTRUM',W-190,104,BUN);
     c.fillText('VERSANDZENTRUM',W/2,H/2+6);
   });
   const bo=new THREE.Mesh(new THREE.PlaneGeometry(BW,BT),
@@ -772,7 +794,7 @@ function versandFlaeche(g,id,PX,PZ){
      lesbar sein. */
   bo.rotation.x=-Math.PI/2; bo.position.set(cxl,0.022,-0.05);
   g.add(bo);
-  /* Abholfeld am Ende der Rollenbahn */
+  /* Abholschild hinter der Paketablage */
   const dt=tex(520,260,(c,W,H)=>{
     c.fillStyle='#1b2340'; c.fillRect(0,0,W,H);
     c.strokeStyle='#ffd23f'; c.lineWidth=10; c.strokeRect(8,8,W-16,H-16);
@@ -782,33 +804,55 @@ function versandFlaeche(g,id,PX,PZ){
     c.fillStyle='#bcd0ea'; c.font=BAR(34); c.fillText('täglich ab 18:00 Uhr',W/2,212);
   });
   const stahl=std(0x8d939d,{metalness:0.6,roughness:0.4});
-  /* Der Pfosten steht neben der Rollenbahn an der Wand, nicht im
-     Gang - und er ist fest, man laeuft nicht hindurch. */
-  /* Das Schild steht am Kopf der Rollenbahn an der Seite, nicht
-     mitten im Gang. */
   /* Zwei Masten an den Seiten. Einer in der Mitte stand genau vor
      der Schrift und schnitt "ABHOLUNG DDL" entzwei. */
-  const dz=-1.45;
-  for(const sx of [5.15-0.43,5.15+0.43]){
-    bbox(0.06,2.05,0.06,stahl,sx,1.02,dz,g,false);
-    bbox(0.22,0.035,0.22,std(0x2f343e,{roughness:0.8}),sx,0.018,dz,g,false);
+  for(const sx of DDL_MAST){
+    bbox(0.06,2.05,0.06,stahl,sx,1.02,DDL_Z,g,false);
+    bbox(0.22,0.035,0.22,std(0x2f343e,{roughness:0.8}),sx,0.018,DDL_Z,g,false);
   }
-  bbox(1.06,0.56,0.05,std(0x2f343d,{metalness:0.4,roughness:0.55}),5.15,1.72,dz,g,false);
+  bbox(1.06,0.56,0.05,std(0x2f343d,{metalness:0.4,roughness:0.55}),DDL_X,1.72,DDL_Z,g,false);
   /* beidseitig bedruckt - im Lager laeuft man von beiden Seiten daran vorbei */
   for(const sg of [-1,1])
     plane(1.0,0.5,new THREE.MeshStandardMaterial({map:dt,roughness:0.6}),
-      5.15,1.72,dz+sg*0.032,sg<0?Math.PI:0,g);
-  for(const sx of [5.15-0.43,5.15+0.43]) col(PX+sx-0.13,PX+sx+0.13,PZ+dz-0.13,PZ+dz+0.13);
-  /* Schild an der Westwand, dort ist die einzige freie Wandflaeche */
-  const wt=tex(760,200,(c,W,H)=>{
-    c.fillStyle='#1b2340'; c.fillRect(0,0,W,H);
-    c.fillStyle='#ffd23f'; c.font=BUN(96); c.textAlign='center'; c.textBaseline='middle';
-    c.fillText('VERSAND',W/2,H/2+4);
-    c.strokeStyle='#2f3a5e'; c.lineWidth=8; c.strokeRect(4,4,W-8,H-8);
+      DDL_X,1.72,DDL_Z+sg*0.032,sg<0?Math.PI:0,g);
+  /* Das VERSAND-Schild an der Westwand ist weg: die Ecke laesst
+     sich jetzt verschieben, und ein Schild, das mitwandert, stuende
+     frei im Raum. Das Schild ueber dem Packtisch sagt dasselbe. */
+}
+/* Paketablage: aufgemalt statt sechs gelber Platten. Ein Rahmen,
+   sechs Stellfelder mit Eckmarken und die Beschriftung zur Seite,
+   von der man kommt. Die Pakete stehen auf den Feldern. */
+const ABLAGE={x0:4.0,x1:5.9,z0:-0.975,z1:0.875};
+function paketAblage(g){
+  const A=ABLAGE, PXM=400, W=Math.round((A.x1-A.x0)*PXM), H=Math.round((A.z1-A.z0)*PXM);
+  const cx=x=>(x-A.x0)*PXM, cy=z=>(z-A.z0)*PXM;
+  const t=tex(W,H,(c)=>{
+    c.clearRect(0,0,W,H);
+    const gelb='rgba(242,194,48,.92)';
+    c.strokeStyle=gelb; c.lineWidth=16; c.strokeRect(8,8,W-16,H-16);
+    /* Trennlinie zur Schriftzeile */
+    const ty=cy(0.36);
+    c.fillStyle=gelb; c.fillRect(8,ty-5,W-16,10);
+    /* Stellfelder: nur die Ecken, wie auf dem Hallenboden ueblich */
+    c.lineWidth=7; c.lineCap='square';
+    for(let k=0;k<PAKET_BAYS;k++){ const p=paketPose(k);
+      const a=cx(p.x-0.25), b=cx(p.x+0.25), o=cy(p.z-0.25), u=cy(p.z+0.25), L=34;
+      c.beginPath();
+      c.moveTo(a,o+L); c.lineTo(a,o); c.lineTo(a+L,o);
+      c.moveTo(b-L,o); c.lineTo(b,o); c.lineTo(b,o+L);
+      c.moveTo(b,u-L); c.lineTo(b,u); c.lineTo(b-L,u);
+      c.moveTo(a+L,u); c.lineTo(a,u); c.lineTo(a,u-L);
+      c.stroke();
+    }
+    c.fillStyle=gelb; c.textAlign='center'; c.textBaseline='middle';
+    fitFont(c,'PAKETABLAGE',W-90,96,BUN);
+    c.fillText('PAKETABLAGE',W/2,(ty+H-16)/2+4);
   });
-  const wx=LAY.ls1.x0+0.06-PX;
-  bbox(0.04,0.5,1.44,std(0x1b2340,{roughness:0.7}),wx,2.05,0,g,false);
-  plane(1.4,0.44,new THREE.MeshBasicMaterial({map:wt,toneMapped:false}),wx+0.03,2.05,0,Math.PI/2,g);
+  const m=new THREE.Mesh(new THREE.PlaneGeometry(A.x1-A.x0,A.z1-A.z0),
+    new THREE.MeshStandardMaterial({map:t,transparent:true,depthWrite:false,roughness:0.6,
+      polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2}));
+  m.rotation.x=-Math.PI/2; m.position.set((A.x0+A.x1)/2,0.02,(A.z0+A.z1)/2);
+  g.add(m);
 }
 let packSchildTex=null;
 function packBereit(){ return zoneOffen('packstation')&&S&&S.up&&S.up.onlineshop; }
@@ -867,7 +911,7 @@ function paketMaterial(){
   paketTex=new THREE.MeshStandardMaterial({map:t,roughness:0.86});
   return paketTex;
 }
-function paketPose(i){ return {x:5.35+(i%3)*0.62,z:-0.3+Math.floor(i/3)*0.6}; }
+function paketPose(i){ return {x:4.37+(i%3)*0.58,z:-0.55+Math.floor(i/3)*0.6}; }
 function syncPakete(){
   if(!packTisch) return;
   const soll=Math.min(PAKET_BAYS,S?(S.pakete|0):0);

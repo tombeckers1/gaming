@@ -20,7 +20,7 @@ function save(){
     const d={v:3,money:S.money,rep:S.rep,level:S.level,xp:S.xp,season:S.season,day:S.day,loan:S.loan,prices:S.prices,up:S.up,staff:S.staff,prio:S.prio||{},wage:S.wage||{},pause:S.pause||{},ev:S.ev||null,goal:S.goal||null,mkt:r2(S.mkt||1),comp:r2(S.comp||1),lic:S.lic||['start'],stat:S.stat||{},erf:S.erf||{},gesehen:S.gesehen||[],eigene:S.eigene||[],gutschrift:r2(S.gutschrift||0),mi:S.mi||{},me:S.me||{},reg:S.reg||{},mh:S.mh||{},schock:S.schock||{},news:S.news||[],infl:S.infl||1,
       wall:S.wall,floor:S.floor,schildBg:S.schildBg||'auto',schildFg:S.schildFg||'weiss',paint:S.paint,test:S.test,stamm:S.stamm,blanks:gravBlanks,grav:gravG?mpos(gravG):null,grime:r2(S.grime||0),tut:S.tut,seasonRevenue:S.seasonRevenue,carrying:S.carrying,cart:S.cart||[],offen:S.offen|0,pakete:S.pakete|0,shopName:S.shopName||SHOP_DEFAULT,slogan:S.slogan||'',
       deko:dekos.map(d2=>Object.assign({id:d2.id},mpos(d2.g))),
-      ck:mpos(ckG),desk:mpos(deskG),sb2:mpos(sb2G),
+      ck:mpos(ckG),desk:mpos(deskG),sb2:mpos(sb2G),pack:mpos(packTisch),
       shelves:shelves.map(s=>Object.assign(mpos(s.g),{kind:s.kind,levels:s.levels.map(l=>({type:l.type,count:l.count,q:l.q||1}))})),
       racks:racks.map(r=>Object.assign(mpos(r.g),{kind:r.kind,slots:r.slots.map(s=>s.box?{type:s.box.type,count:s.box.count,q:s.box.q||1}:null)})),
       /* Unterwegs bestellte Regale gehen beim Speichern nicht
@@ -83,6 +83,9 @@ function startGame(fresh){
   if(d&&d.ck) placeMovable(ckMov,d.ck.x,d.ck.z,d.ck.ry);
   if(d&&d.desk){ const m=movables.find(m=>m.kind==='desk'); if(m) placeMovable(m,d.desk.x,d.desk.z,d.desk.ry); }
   if(d&&d.sb2&&sb2Mov) placeMovable(sb2Mov,d.sb2.x,d.sb2.z,d.sb2.ry);
+  /* Die Versandecke steht, wo man sie hingeschoben hat. Ein neues
+     Spiel stellt sie an ihren Platz hinter dem Rolltor zurueck. */
+  if(packMov){ const q=d&&d.pack?d.pack:PACK_HOME; placeMovable(packMov,q.x,q.z,q.ry); }
   (S.shelves||F.shelves).slice(0,SLOTS.length).forEach((sd,i)=>createShelf(i,sd));
   (S.racks||F.racks).slice(0,RACKS.length).forEach((rd,i)=>createRack(i,rd));
 

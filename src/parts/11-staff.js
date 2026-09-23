@@ -3,6 +3,11 @@
    Personal
    ========================================================= */
 const staff={reinigung:null,auffueller:null,auffueller2:null,kassierer:null,security:null,packer:null};
+/* Platz vor dem Packtisch, in Weltkoordinaten, mit Blick zum Tisch */
+function packerPlatz(){
+  if(typeof packTisch==='undefined'||!packTisch) return {p:IDLE.packer,ry:-Math.PI/2};
+  return {p:localToWorld(packTisch,0,0.9),ry:packTisch.rotation.y+Math.PI};
+}
 const IDLE={reinigung:V(-6.6,0,4.2),auffueller:V(-7.0,0,1.0),auffueller2:V(-7.0,0,-0.4),kassierer:V(0,0,0),security:V(1.4,0,4.6),packer:V(-16.3,0,3.4)};
 const PRIO={lkw:'LKW zuerst',regal:'Regale zuerst'};
 /* Lohnstufen: mehr Geld heißt schneller, gründlicher und freundlicher */
@@ -39,7 +44,7 @@ class Worker{
   constructor(id){
     const look=STAFFLOOK[id];
     this.id=id; this.kind=id==='auffueller2'?'auffueller':id; this.g=makePerson({jacket:look.jacket,cap:look.cap});
-    const st=IDLE[id]; this.g.position.copy(id==='kassierer'?ck(-0.25,-0.85):st); scene.add(this.g);
+    const st=id==='packer'?packerPlatz().p:IDLE[id]; this.g.position.copy(id==='kassierer'?ck(-0.25,-0.85):st); scene.add(this.g);
     this.path=[]; this.base=id==='security'?1.9:1.45; this.speed=this.base; this.state='idle'; this.t=0; this.carry=null; this.chase=null; this.moving=false; this.applyWage();
   }
   get pos(){ return this.g.position; }
@@ -67,9 +72,13 @@ class Worker{
     else if(this.state==='work'){ this.t-=dt*(this.wf||1); if(this.t<=0){ if(this.target&&dirts.indexOf(this.target)>=0){ removeDirt(this.target); sfx.pop(); } this.target=null; this.state='idle'; } }
   }
   packLoop(dt){
-    const home=IDLE.packer;
-    if(this.pos.distanceTo(home)>0.45){ if(!this.path.length) this.goTo(home); this.walk(dt); return; }
-    this.g.rotation.y+=((-Math.PI/2)-this.g.rotation.y)*Math.min(1,dt*6);
+    /* Der Packer steht vor dem Packtisch, wo immer die Versandecke
+       gerade steht. Vorher lief er zu einem festen Punkt im
+       Nordanbau - dort stand die Station schon lange nicht mehr. */
+    const P=packerPlatz(), home=P.p;
+    if(this.pos.distanceTo(home)>0.45){ if(!this.path.length||this.ziel&&this.ziel.distanceTo(home)>0.3){ this.goTo(home); this.ziel=home.clone(); } this.walk(dt); return; }
+    let df=P.ry-this.g.rotation.y; while(df>Math.PI) df-=Math.PI*2; while(df<-Math.PI) df+=Math.PI*2;
+    this.g.rotation.y+=df*Math.min(1,dt*6);
     if((S.offen|0)>0){ this.moving=true; }
   }
   stockLoop(dt){

@@ -9,8 +9,50 @@ function requestLock(){
   try{ const r=canvas.requestPointerLock(); if(r&&r.catch) r.catch(()=>{ lockFailed=true; dragHint(); }); }catch(e){ lockFailed=true; dragHint(); }
 }
 function overlayOpen(){ return startOpen||laptopOpen||summaryOpen||pauseOpen||cashOpen||levelOpen||dealOpen||gravOpen||pdaOpen; }
-function showPause(){ if(overlayOpen()) return; pauseOpen=true; paused=true; $('pause').classList.add('show'); }
-$('pBtn').addEventListener('click',()=>{ pauseOpen=false; paused=false; $('pause').classList.remove('show'); requestLock(); });
+/* Die Steuerung steht im Pausenmenue und nicht mehr dauernd im
+   Bild. Esc haelt das Spiel an und zeigt sie. */
+const STEUER_PC=[
+  ['Bewegen',[
+    [['W','A','S','D'],'Laufen (auch Pfeiltasten)'],
+    [['Shift'],'Rennen'],
+    [['Maus'],'Umsehen']]],
+  ['Handeln',[
+    [['E','Klick'],'Aktion – halten zum Putzen'],
+    [['Q','Rechts'],'Karton abstellen'],
+    [['Tab'],'Laptop'],
+    [['H'],'Handy abnehmen']]],
+  ['Werkzeuge',[
+    [['T'],'Preisgerät (ab Level 2)'],
+    [['G'],'Pfefferspray (ab Level 4)']]],
+  ['Umbau',[
+    [['F'],'Umbaumodus an / aus'],
+    [['E'],'Möbel greifen, absetzen'],
+    [['R'],'Gegriffenes drehen'],
+    [['Q'],'Greifen abbrechen']]],
+  ['Sonstiges',[
+    [['P'],'Bildeffekte an / aus'],
+    [['Esc'],'Pause, diese Übersicht']]]
+];
+const STEUER_TOUCH=[
+  ['Bewegen',[
+    [['links'],'Ziehen zum Laufen'],
+    [['rechts'],'Wischen zum Umsehen']]],
+  ['Knöpfe',[
+    [['Aktion'],'Aktion – halten zum Putzen'],
+    [['Ablegen'],'Karton abstellen, Greifen abbrechen'],
+    [['Umbau'],'Umbaumodus an / aus'],
+    [['Preis'],'Preisgerät (ab Level 2)'],
+    [['Spray'],'Pfefferspray (ab Level 4)']]]
+];
+function renderSteuer(){
+  const L=COARSE?STEUER_TOUCH:STEUER_PC;
+  $('steuer').innerHTML=L.map(([titel,zeilen])=>`<div class="grp"><div class="sub">${titel}</div>`+
+    zeilen.map(([k,t])=>`<div class="z"><div class="k">${k.map(x=>`<kbd>${x}</kbd>`).join('')}</div><div>${t}</div></div>`).join('')+
+    `</div>`).join('');
+}
+function showPause(){ if(overlayOpen()) return; renderSteuer(); pauseOpen=true; paused=true; for(const k in keys) keys[k]=false; mouseDown=false; $('pause').classList.add('show'); }
+function closePause(){ if(!pauseOpen) return; pauseOpen=false; paused=false; $('pause').classList.remove('show'); requestLock(); }
+$('pBtn').addEventListener('click',()=>closePause());
 document.addEventListener('pointerlockchange',()=>{
   locked=document.pointerLockElement===canvas;
   if(locked) lockWorked=true;
@@ -31,6 +73,15 @@ addEventListener('keydown',e=>{
   if(pdaOpen){ if(e.code==='Escape') closePDA(); return; }
   if(gravOpen){ if(e.code==='Escape') closeGravInput(false); if(e.code==='Enter') closeGravInput(true); return; }
   if(dealOpen){ if(e.code==='Escape') declineDeal(); return; }
+  /* Esc: Pause an und wieder aus. Mit Mauszeiger-Sperre faengt der
+     Browser das erste Esc selbst ab und gibt die Maus frei - dann
+     oeffnet der pointerlockchange-Handler die Pause. */
+  /* Zweites Esc schliesst die Pause nur ohne Mauszeiger-Sperre.
+     Mit Sperre muss man klicken: direkt nach dem Freigeben laesst
+     der Browser die Maus nicht per Taste wieder einfangen, und ein
+     Fehlschlag wuerde dauerhaft auf Ziehen-zum-Umsehen umstellen. */
+  if(e.code==='Escape'&&pauseOpen){ if(!lockWorked||lockFailed) closePause(); return; }
+  if(e.code==='Escape'&&S&&!overlayOpen()){ showPause(); return; }
   if(!S||overlayOpen()) return;
   keys[e.code]=true;
   if(e.code==='KeyE'&&!e.repeat) pressAction();

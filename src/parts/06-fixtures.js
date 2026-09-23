@@ -3,9 +3,32 @@
    Verschiebbare Einrichtung
    ========================================================= */
 const movables=[];
+/* Ein Rechteck in Gruppenkoordinaten, als achsenparalleles Rechteck
+   in der Welt - fuer eine Gruppe an (x,z) mit Drehung ry. */
+function rectWelt(x,z,ry,r){
+  const s=Math.sin(ry), c=Math.cos(ry);
+  let a=1e9,b=-1e9,e=1e9,f=-1e9;
+  for(const lx of [r.x0,r.x1]) for(const lz of [r.z0,r.z1]){
+    const wx=x+lx*c+lz*s, wz=z-lx*s+lz*c;
+    a=Math.min(a,wx); b=Math.max(b,wx); e=Math.min(e,wz); f=Math.max(f,wz);
+  }
+  return {minX:a,maxX:b,minZ:e,maxZ:f};
+}
+function dropFootprint(m){
+  if(m.col){ dropCol(m.col); m.col=null; }
+  if(m.cols){ m.cols.forEach(dropCol); m.cols=null; }
+}
 function applyFootprint(m){
   if(typeof navDirty==='function') navDirty();
-  if(m.col){ dropCol(m.col); m.col=null; }
+  dropFootprint(m);
+  /* Grosse Einheiten wie die Packstation sind kein Klotz: sie
+     blockieren nur dort, wo wirklich etwas steht. Auf der
+     bemalten Flaeche dazwischen kann man laufen. */
+  if(m.teile){
+    m.cols=m.teile().map(t=>{ const w=rectWelt(m.g.position.x,m.g.position.z,m.g.rotation.y,t);
+      return col(w.minX,w.maxX,w.minZ,w.maxZ,m); });
+    return;
+  }
   if(!m.fw) return;
   const s=Math.abs(Math.sin(m.g.rotation.y))>0.5, w=(s?m.fd:m.fw)/2, d=(s?m.fw:m.fd)/2;
   m.col=col(m.g.position.x-w,m.g.position.x+w,m.g.position.z-d,m.g.position.z+d,m);

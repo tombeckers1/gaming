@@ -60,44 +60,74 @@ function updatePlayer(dt){
 }
 
 /* ---------- Umbaumodus ---------- */
-function rectOf(m,x,z,ry){ const s=Math.abs(Math.sin(ry))>0.5, w=(s?m.fd:m.fw)/2, d=(s?m.fw:m.fd)/2; return {minX:x-w,maxX:x+w,minZ:z-d,maxZ:z+d}; }
+function rectOf(m,x,z,ry){
+  if(m.flaeche) return rectWelt(x,z,ry,m.flaeche);
+  const s=Math.abs(Math.sin(ry))>0.5, w=(s?m.fd:m.fw)/2, d=(s?m.fw:m.fd)/2; return {minX:x-w,maxX:x+w,minZ:z-d,maxZ:z+d}; }
 /* Umgebaut werden darf in jedem Raum, der schon freigeschaltet ist.
    Ein Moebel muss ganz in einen Raum passen - so landet nichts in
-   einem Durchgang oder halb in der Wand. */
+   einem Durchgang oder halb in der Wand. Raeume, die durch einen
+   Kauf zusammenwachsen, stehen zusaetzlich als ein Ganzes in der
+   Liste, damit man auch ueber die alte Trennlinie stellen kann.
+   Vorher galt das ganze Ladenlokal von Anfang an - ein Regal liess
+   sich durch die Trennwand in die noch gesperrte Haelfte schieben.
+   Und der erste Hallenabschnitt zaehlte erst mit dem zweiten. */
 const UMBAU_RAUM=[
-  {r:LAY.basis},                        {r:LAY.lbasis},
+  {r:{x0:LAY.basis.x0,x1:SHOP_HALB,z0:LAY.basis.z0,z1:LAY.basis.z1}},
+  {r:LAY.basis,z:'shop_halb'},
   {r:LAY.ost1, z:'shop_gross'},         {r:LAY.ost2, z:'shop_ost'},
-  {r:LAY.sued, z:'shop_sued'},          {r:LAY.lnord,z:'lager_gross'},
-  {r:LAY.lsued,z:'lager_sued'},         {r:LAY.lwest,z:'lager_west'}
+  {r:LAY.sued, z:'shop_sued'},
+  {r:LAY.lbasis},
+  {r:{x0:LAY.lbasis.x0,x1:LAY.lbasis.x1,z0:LAY.lbasis.z0,z1:LAY.lnord.z1},z:'lager_nord'},
+  {r:LAY.ls1,  z:'lager_gross'},
+  {r:{x0:LAY.ls1.x0,x1:LAY.ls1.x1,z0:LAY.ls2.z0,z1:LAY.ls1.z1},z:'lager_sued'},
+  {r:LAY.lsued,z:'lager_sued2'},
+  {r:LAY.lwest,z:'lager_west'}
 ];
 function imRaum(minX,maxX,minZ,maxZ){
   return UMBAU_RAUM.some(b=>(!b.z||zoneOffen(b.z))&&
     minX>=b.r.x0+0.08&&maxX<=b.r.x1-0.08&&minZ>=b.r.z0+0.08&&maxZ<=b.r.z1-0.08);
 }
 function spotFree(m,x,z,ry){
-  if(!m.fw) return imRaum(x,x,z,z);
+  if(!m.fw&&!m.flaeche) return imRaum(x,x,z,z);
   const r=rectOf(m,x,z,ry);
   if(!imRaum(r.minX,r.maxX,r.minZ,r.maxZ)) return false;
   for(const c of colliders){ if(c.ref===m) continue;
     if(r.minX<c.maxX&&r.maxX>c.minX&&r.minZ<c.maxZ&&r.maxZ>c.minZ) return false; }
+  /* Die Flaeche einer grossen Einheit ist belegt, auch wo man
+     darueber laufen kann - kein Regal mitten auf der Paketablage. */
+  for(const m2 of movables){ if(m2===m||!m2.flaeche||!m2.g.visible) continue;
+    const a=rectOf(m2,m2.g.position.x,m2.g.position.z,m2.g.rotation.y);
+    if(r.minX<a.maxX&&r.maxX>a.minX&&r.minZ<a.maxZ&&r.maxZ>a.minZ) return false; }
   return true;
 }
 function toggleBuild(on){
   build=on===undefined?!build:on;
   if(!build&&grabbed) cancelGrab();
-  $('mode').textContent=build?(COARSE?'Umbau: antippen, greifen, absetzen':'Umbaumodus – E greifen, R drehen, F beenden'):'';
+  /* Nur der Zustand, keine Tastenliste - die steht im Pausenmenue */
+  $('mode').textContent=build?'Umbaumodus':'';
   $('btnMove').classList.toggle('on',build);
   S.tut.move=true;
 }
 function grab(m){
   grabbed=m; grabRy=m.g.rotation.y; grabHome={x:m.g.position.x,z:m.g.position.z,ry:grabRy};
-  if(m.col){ dropCol(m.col); m.col=null; }
+  dropFootprint(m);
   sfx.pop();
 }
 function updateGrab(){
   if(!grabbed) return;
-  const d=grabbed.fw>2?2.6:2.0;
-  let x=pl.x-Math.sin(yaw)*d, z=pl.z-Math.cos(yaw)*d;
+  let x,z;
+  if(grabbed.flaeche){
+    /* Grosse Einheit: die Mitte der Flaeche liegt vor einem, mit
+       etwas Abstand zur eigenen Kante - man steht nie mittendrin. */
+    const F=grabbed.flaeche, vx=-Math.sin(yaw), vz=-Math.cos(yaw);
+    const w=rectWelt(0,0,grabRy,F), hx=(w.maxX-w.minX)/2, hz=(w.maxZ-w.minZ)/2;
+    const d=Math.abs(vx)*hx+Math.abs(vz)*hz+1.2;
+    const mx=(w.minX+w.maxX)/2, mz=(w.minZ+w.maxZ)/2;
+    x=pl.x+vx*d-mx; z=pl.z+vz*d-mz;
+  } else {
+    const d=grabbed.fw>2?2.6:2.0;
+    x=pl.x-Math.sin(yaw)*d; z=pl.z-Math.cos(yaw)*d;
+  }
   x=Math.round(x*4)/4; z=Math.round(z*4)/4;
   grabbed.g.position.x=x; grabbed.g.position.z=z; grabbed.g.rotation.y=grabRy;
   if(grabbed.onPlace) grabbed.onPlace();
@@ -124,7 +154,9 @@ function toggleSpray(){ if(pdaOn){ pdaOn=false; if(pdaG) pdaG.visible=false; }
 }
 function updateTool(){
   const el=$('tool');
-  el.textContent=pdaOn?'Preisgerät in der Hand':sprayOn?'Pfefferspray bereit':(S.level>=4?(COARSE?'Spray: Knopf rechts':'Pfefferspray: G · Preisgerät: T'):(S.level>=2?'Preisgerät: T':''));
+  /* Unten rechts steht nur noch, was man gerade in der Hand hat.
+     Welche Taste was macht, zeigt das Pausenmenue (Esc). */
+  el.textContent=pdaOn?'Preisgerät in der Hand':sprayOn?'Pfefferspray bereit':'';
   el.classList.toggle('on',sprayOn||pdaOn);
   $('btnTool').classList.toggle('on',sprayOn);
   $('btnPda').classList.toggle('on',pdaOn);

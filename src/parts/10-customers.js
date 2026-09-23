@@ -169,9 +169,11 @@ class Customer{
        jeder Kunde sucht sich eine der offenen Tueren aus. */
     const ein=pick(eingaenge());
     this.ein=ein;
-    this.g=makePerson(); this.g.position.set(ein+rand(-4,4),0,13.5); scene.add(this.g);
-    this.path=[V(ein,0,7.6),V(ein,0,4.9)]; this.state='enter'; this.speed=rand(1.2,1.6);
+    /* erst der Kundentyp, dann das Aussehen: Jugendliche kommen als
+       Jugendliche, Angeber schick, Profis in Arbeitskleidung */
     this.ct=rollCustType();
+    this.g=makePerson({ct:this.ct}); this.g.position.set(ein+rand(-4,4),0,13.5); scene.add(this.g);
+    this.path=[V(ein,0,7.6),V(ein,0,4.9)]; this.state='enter'; this.speed=rand(1.2,1.6);
     this.wishes=makeWishes(this.ct); this.items=[]; this.missed=false; this.total=0; this.sb=null;
     this.patience=(rand(75,110)+S.rep*0.3+(S.up.heizung?30:0)+(S.up.klima?35:0)+ambienteScore()*0.35)*(0.72+0.3*friendliness())*this.ct.pat*evv('pat');
     this.wait=0; this.bub=null; this.bubT=0; this.moving=false;

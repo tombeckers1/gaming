@@ -254,7 +254,7 @@ function oeffneLaderaum(){
     col(lrFront()-0.25,lrFront()-0.02,LR.z-LR.w/2,LR.z+LR.w/2)
   ];
   if(!truckDriver){
-    truckDriver=makePerson({jacket:0xf2a01c,cap:0xf2a01c});
+    truckDriver=makePerson({kopf:'mitte_m2',outfit:{id:'fahrer',oben:'warnweste',unten:'cargo',schuh:'boot',obenF:0xf28a1c,untenF:0x2a3048,schuhF:0x2a2420}});
     truckDriver.position.set(lrFront()-2.2,0,LR.z+2.2);
     truckDriver.rotation.y=-1.1; scene.add(truckDriver);
   }

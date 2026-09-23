@@ -42,8 +42,7 @@ function setPrio(id,v){ S.prio=S.prio||{}; S.prio[id]=v; save(); }
 function freeRackSlot(){ for(const r of racks) for(const sl of r.slots) if(!sl.box) return sl; return null; }
 class Worker{
   constructor(id){
-    const look=STAFFLOOK[id];
-    this.id=id; this.kind=id==='auffueller2'?'auffueller':id; this.g=makePerson({jacket:look.jacket,cap:look.cap});
+    this.id=id; this.kind=id==='auffueller2'?'auffueller':id; this.g=makePerson({uniform:id});
     const st=id==='packer'?packerPlatz().p:IDLE[id]; this.g.position.copy(id==='kassierer'?ck(-0.25,-0.85):st); scene.add(this.g);
     this.path=[]; this.base=id==='security'?1.9:1.45; this.speed=this.base; this.state='idle'; this.t=0; this.carry=null; this.chase=null; this.moving=false; this.applyWage();
   }

@@ -227,6 +227,13 @@ body.compact .kan span{display:none}
 #pause h2{text-align:center}
 .stHead{margin:10px 0 8px;font-size:14px;letter-spacing:.06em;text-transform:uppercase;opacity:.7;text-align:center}
 .steuer{columns:2 300px;column-gap:28px;font-size:15px;line-height:1.3}
+.musikzeile{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center;justify-content:center;font-size:14px}
+.musikzeile input[type=range]{width:140px;vertical-align:middle;accent-color:#ffd23f}
+.musikzeile small{opacity:.7;flex-basis:100%;text-align:center}
+#musikBtn{position:fixed;left:12px;top:138px;z-index:6;padding:4px 10px;border-radius:14px;border:1px solid rgba(255,255,255,.18);
+  background:rgba(14,18,38,.72);color:#eef1f8;font:600 12px/1.2 inherit;font-family:inherit;cursor:pointer;pointer-events:auto;max-width:170px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#musikBtn.aus{opacity:.55}
+@media (pointer:coarse){ #musikBtn{top:52px;left:8px;font-size:11px;padding:3px 8px} }
 .steuer .grp{break-inside:avoid;margin-bottom:10px}
 .steuer .z{display:flex;gap:10px;align-items:center;padding:3px 0}
 .steuer .k{flex:0 0 150px;display:flex;gap:4px;justify-content:flex-end}
@@ -468,10 +475,13 @@ body.compact .pdahead2 b{font-size:16px}
   <div class="zfuss"><small id="zTipp"></small><button class="ghost" id="zNach">Alle nacheinander</button><button id="zGleich">Alle gleichzeitig</button></div>
 </div>
 
+<button id="musikBtn" title="Musik an / aus (M)">♪</button>
 <div class="ov" id="pause"><div class="card pausecard">
   <h2>Pause</h2>
   <h3 class="stHead">Steuerung</h3>
   <div class="steuer" id="steuer"></div>
+  <h3 class="stHead">Musik</h3>
+  <div class="musikzeile"><button class="ghost" id="pMusikAn">Musik an</button><label>Lautstärke <input type="range" id="pMusikVol" min="0" max="100" step="5"></label><button class="ghost" id="pMusikWeiter">Nächstes Stück</button><small id="pMusikName"></small></div>
   <div class="btns" style="justify-content:center;margin-top:16px"><button id="pBtn">Weiterspielen</button></div>
 </div></div>
 

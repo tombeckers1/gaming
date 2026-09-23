@@ -77,6 +77,8 @@ const STEUER_PC=[
     [['Q'],'Greifen abbrechen']]],
   ['Sonstiges',[
     [['P'],'Bildeffekte an / aus'],
+    [['M'],'Musik an / aus'],
+    [['N'],'Nächstes Musikstück'],
     [['Esc'],'Pause, diese Übersicht']]]
 ];
 const STEUER_TOUCH=[
@@ -96,9 +98,14 @@ function renderSteuer(){
     zeilen.map(([k,t])=>`<div class="z"><div class="k">${k.map(x=>`<kbd>${x}</kbd>`).join('')}</div><div>${t}</div></div>`).join('')+
     `</div>`).join('');
 }
-function showPause(){ if(overlayOpen()) return; renderSteuer(); pauseOpen=true; paused=true; for(const k in keys) keys[k]=false; mouseDown=false; $('pause').classList.add('show'); }
+function showPause(){ if(overlayOpen()) return; renderSteuer(); musikAnzeige(); pauseOpen=true; paused=true; for(const k in keys) keys[k]=false; mouseDown=false; $('pause').classList.add('show'); }
 function closePause(){ if(!pauseOpen) return; pauseOpen=false; paused=false; $('pause').classList.remove('show'); requestLock(); }
 $('pBtn').addEventListener('click',()=>closePause());
+/* Musik: Knopf im Bild (auch am Handy) und Regler im Pausenmenue */
+$('musikBtn').addEventListener('click',e=>{ e.stopPropagation(); ac(); musikAn(); });
+$('pMusikAn').addEventListener('click',()=>{ ac(); musikAn(); });
+$('pMusikWeiter').addEventListener('click',()=>{ ac(); if(!MUSIK.an) musikAn(true); else musikWeiter(false); });
+$('pMusikVol').addEventListener('input',e=>{ ac(); musikVol(+e.target.value/100); });
 document.addEventListener('pointerlockchange',()=>{
   locked=document.pointerLockElement===canvas;
   if(locked) lockWorked=true;
@@ -149,6 +156,8 @@ addEventListener('keydown',e=>{
   if(e.code==='KeyG'&&!e.repeat) toggleSpray();
   if(e.code==='KeyT'&&!e.repeat) togglePDA();
   if(e.code==='KeyP'&&!e.repeat) setPost(!postOn);
+  if(e.code==='KeyM'&&!e.repeat) musikAn();
+  if(e.code==='KeyN'&&!e.repeat){ ac(); if(!MUSIK.an) musikAn(true); else musikWeiter(false); }
   if(e.code==='KeyH'&&!e.repeat) answerPhone();
   if(e.code==='KeyR'&&!e.repeat&&build) rotateGrab();
   if(e.code==='Tab'&&!e.repeat){ e.preventDefault(); openLaptop(); }

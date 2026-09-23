@@ -227,6 +227,13 @@ body.compact .kan span{display:none}
 #pause h2{text-align:center}
 .stHead{margin:10px 0 8px;font-size:14px;letter-spacing:.06em;text-transform:uppercase;opacity:.7;text-align:center}
 .steuer{columns:2 300px;column-gap:28px;font-size:15px;line-height:1.3}
+.musikzeile{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center;justify-content:center;font-size:14px}
+.musikzeile input[type=range]{width:140px;vertical-align:middle;accent-color:#ffd23f}
+.musikzeile small{opacity:.7;flex-basis:100%;text-align:center}
+#musikBtn{position:fixed;left:12px;top:138px;z-index:6;padding:4px 10px;border-radius:14px;border:1px solid rgba(255,255,255,.18);
+  background:rgba(14,18,38,.72);color:#eef1f8;font:600 12px/1.2 inherit;font-family:inherit;cursor:pointer;pointer-events:auto;max-width:170px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#musikBtn.aus{opacity:.55}
+@media (pointer:coarse){ #musikBtn{top:52px;left:8px;font-size:11px;padding:3px 8px} }
 .steuer .grp{break-inside:avoid;margin-bottom:10px}
 .steuer .z{display:flex;gap:10px;align-items:center;padding:3px 0}
 .steuer .k{flex:0 0 150px;display:flex;gap:4px;justify-content:flex-end}
@@ -468,10 +475,13 @@ body.compact .pdahead2 b{font-size:16px}
   <div class="zfuss"><small id="zTipp"></small><button class="ghost" id="zNach">Alle nacheinander</button><button id="zGleich">Alle gleichzeitig</button></div>
 </div>
 
+<button id="musikBtn" title="Musik an / aus (M)">♪</button>
 <div class="ov" id="pause"><div class="card pausecard">
   <h2>Pause</h2>
   <h3 class="stHead">Steuerung</h3>
   <div class="steuer" id="steuer"></div>
+  <h3 class="stHead">Musik</h3>
+  <div class="musikzeile"><button class="ghost" id="pMusikAn">Musik an</button><label>Lautstärke <input type="range" id="pMusikVol" min="0" max="100" step="5"></label><button class="ghost" id="pMusikWeiter">Nächstes Stück</button><small id="pMusikName"></small></div>
   <div class="btns" style="justify-content:center;margin-top:16px"><button id="pBtn">Weiterspielen</button></div>
 </div></div>
 
@@ -9955,6 +9965,179 @@ const sfx={
     noise(0.85,0.30*v,520); later(0.28,()=>noise(0.6,0.18*v,320)); },
   heul:v=>{ tone(340,1.5,'sawtooth',0.035*v,2100); later(0.2,()=>tone(300,1.3,'square',0.018*v,1700)); }
 };
+
+/* =========================================================
+   Musik. Selbst komponiert und live im Browser erzeugt (Web
+   Audio): keine Aufnahmen, keine fremden Rechte. Vier Stuecke
+   mit festen Akkordfolgen. Die Melodie steht als Motiv in
+   Tonstufen ueber dem jeweiligen Akkord - so passt sie auf
+   jeden Takt und kehrt wie ein Refrain wieder.
+   ========================================================= */
+const MUSIK={an:true,vol:0.5,stueck:0};
+try{ const m=JSON.parse(localStorage.getItem('bb_musik')||'null'); if(m&&typeof m==='object'){ if(typeof m.an==='boolean') MUSIK.an=m.an; if(typeof m.vol==='number') MUSIK.vol=clamp(m.vol,0,1); if(typeof m.stueck==='number') MUSIK.stueck=m.stueck|0; } }catch(e){}
+function musikSpeichern(){ try{ localStorage.setItem('bb_musik',JSON.stringify({an:MUSIK.an,vol:MUSIK.vol,stueck:MUSIK.stueck})); }catch(e){} }
+
+const mtof=n=>440*Math.pow(2,(n-69)/12);
+const SKALA={dur:[0,2,4,5,7,9,11],moll:[0,2,3,5,7,8,10]};
+/* Tonstufe (0 = Grundton, 7 = Oktave) in Halbtoene */
+function stufe(sk,d){ const o=Math.floor(d/7), i=((d%7)+7)%7; return SKALA[sk][i]+12*o; }
+
+/* Die Stuecke. prog: Akkordstufe je Takt, ein Durchgang sind acht
+   Takte. motiv: je Takt 16 Sechzehntel, Zahl = Tonstufe ueber dem
+   Akkordgrundton, null = Pause, '-' = Ton klingt weiter. */
+const STUECKE=[
+  { name:'Ladenfunk', pegel:1.0, bpm:108, ton:65, skala:'dur', prog:[0,5,3,4,0,5,3,4],
+    stil:'funk',
+    motivA:[4,null,'-',2, 4,null,5,'-', 4,null,2,null, 0,'-','-',null],
+    motivB:[7,'-',6,'-', 4,null,2,4, 5,'-','-',4, 2,null,null,null] },
+  { name:'Schneeflocken', pegel:1.0, bpm:82, ton:62, skala:'dur', prog:[0,4,5,3,0,4,3,4],
+    stil:'winter',
+    motivA:[7,'-','-',6, 4,'-','-',null, 2,'-',4,'-', 7,'-','-','-'],
+    motivB:[9,'-',7,'-', 6,'-',4,'-', 5,'-','-',4, 2,'-','-','-'] },
+  { name:'Mitternacht', pegel:0.9, bpm:124, ton:57, skala:'moll', prog:[0,5,2,6,0,5,2,6],
+    stil:'dance',
+    motivA:[7,null,7,null, 9,null,7,'-', 4,null,4,null, 2,'-',4,null],
+    motivB:[9,'-',11,'-', 9,null,7,null, 7,'-',4,'-', 2,null,4,null] },
+  { name:'Pixelparty', pegel:1.15, bpm:138, ton:55, skala:'dur', prog:[0,3,1,4,0,3,4,4],
+    stil:'chip',
+    motivA:[4,null,7,null, 9,7,4,null, 2,null,4,7, 4,null,null,null],
+    motivB:[11,null,9,null, 7,null,9,11, 12,'-','-',9, 7,null,4,null] }
+];
+let mBus=null, mHall=null, mStep=0, mNext=0, mTakte=0, mNoise=null;
+function musikBus(){
+  if(mBus||!AC) return mBus;
+  const comp=AC.createDynamicsCompressor(); comp.threshold.value=-18; comp.ratio.value=3;
+  mBus=AC.createGain(); mBus.gain.value=0; mBus.connect(comp); comp.connect(AC.destination);
+  /* Hall aus abklingendem Rauschen fuer Flaechen und Glocken */
+  try{ const L=AC.sampleRate*2.2, ir=AC.createBuffer(2,L,AC.sampleRate);
+    for(let c=0;c<2;c++){ const d=ir.getChannelData(c); for(let i=0;i<L;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/L,3); }
+    const cv=AC.createConvolver(); cv.buffer=ir; mHall=AC.createGain(); mHall.gain.value=0.35; mHall.connect(cv); cv.connect(mBus);
+  }catch(e){ mHall=null; }
+  mNoise=AC.createBuffer(1,AC.sampleRate,AC.sampleRate); const nd=mNoise.getChannelData(0); for(let i=0;i<nd.length;i++) nd[i]=Math.random()*2-1;
+  return mBus;
+}
+/* --- Klangerzeuger --- */
+function hk(){ return AC.createGain(); }
+function env(g,t,a,v,d){ g.gain.setValueAtTime(0.0001,t); g.gain.linearRampToValueAtTime(v,t+a); g.gain.exponentialRampToValueAtTime(0.0001,t+a+d); }
+function ziel(n,hall){ n.connect(mBus); if(hall&&mHall) n.connect(mHall); }
+function osz(typ,f,t,dauer){ const o=AC.createOscillator(); o.type=typ; o.frequency.setValueAtTime(f,t); o.start(t); o.stop(t+dauer+0.05); return o; }
+const KLANG={
+  kick(t,v){ const o=osz('sine',150,t,0.3), g=hk(); o.frequency.exponentialRampToValueAtTime(42,t+0.13); env(g,t,0.002,0.9*v,0.26); o.connect(g); ziel(g); },
+  snare(t,v){ const s=AC.createBufferSource(); s.buffer=mNoise; const f=AC.createBiquadFilter(); f.type='bandpass'; f.frequency.value=1900; f.Q.value=0.7;
+    const g=hk(); env(g,t,0.001,0.45*v,0.16); s.connect(f); f.connect(g); ziel(g,true); s.start(t); s.stop(t+0.25);
+    const o=osz('triangle',190,t,0.12), g2=hk(); env(g2,t,0.001,0.25*v,0.08); o.connect(g2); ziel(g2); },
+  clap(t,v){ for(let k=0;k<3;k++){ const s=AC.createBufferSource(); s.buffer=mNoise; const f=AC.createBiquadFilter(); f.type='bandpass'; f.frequency.value=1400; f.Q.value=1.2;
+    const g=hk(); env(g,t+k*0.011,0.001,0.32*v,0.09); s.connect(f); f.connect(g); ziel(g,true); s.start(t+k*0.011); s.stop(t+0.2); } },
+  hat(t,v,offen){ const s=AC.createBufferSource(); s.buffer=mNoise; const f=AC.createBiquadFilter(); f.type='highpass'; f.frequency.value=7500;
+    const g=hk(); env(g,t,0.001,0.16*v,offen?0.2:0.04); s.connect(f); f.connect(g); ziel(g); s.start(t,Math.random()*0.5); s.stop(t+0.3); },
+  bass(t,n,dauer,v,typ){ const o=osz(typ||'sawtooth',mtof(n),t,dauer), f=AC.createBiquadFilter(), g=hk();
+    f.type='lowpass'; f.frequency.setValueAtTime(900,t); f.frequency.exponentialRampToValueAtTime(260,t+dauer); f.Q.value=4;
+    env(g,t,0.005,0.42*v,dauer); o.connect(f); f.connect(g); ziel(g); },
+  flaeche(t,noten,dauer,v){ const f=AC.createBiquadFilter(), g=hk(); f.type='lowpass'; f.frequency.value=1300;
+    g.gain.setValueAtTime(0.0001,t); g.gain.linearRampToValueAtTime(0.09*v,t+0.35); g.gain.setValueAtTime(0.09*v,t+dauer-0.3); g.gain.linearRampToValueAtTime(0.0001,t+dauer+0.4);
+    for(const n of noten) for(const dt of [-6,6]){ const o=osz('sawtooth',mtof(n),t,dauer+0.5); o.detune.value=dt; o.connect(f); }
+    f.connect(g); ziel(g,true); },
+  epiano(t,noten,v){ for(const n of noten){ const o=osz('sine',mtof(n),t,0.9), o2=osz('triangle',mtof(n+12),t,0.5), g=hk(), g2=hk();
+    env(g,t,0.004,0.12*v,0.85); env(g2,t,0.002,0.04*v,0.35); o.connect(g); o2.connect(g2); ziel(g,true); ziel(g2); } },
+  zupf(t,n,dauer,v){ const o=osz('square',mtof(n),t,dauer+0.2), f=AC.createBiquadFilter(), g=hk();
+    f.type='lowpass'; f.frequency.setValueAtTime(3200,t); f.frequency.exponentialRampToValueAtTime(700,t+0.25);
+    env(g,t,0.003,0.13*v,Math.max(0.2,dauer)); o.connect(f); f.connect(g); ziel(g,true); },
+  glocke(t,n,v){ const tr=osz('sine',mtof(n),t,1.8), mo=osz('sine',mtof(n)*3.5,t,1.8), mg=hk(), g=hk();
+    mg.gain.setValueAtTime(mtof(n)*2.2,t); mg.gain.exponentialRampToValueAtTime(1,t+1.2); mo.connect(mg); mg.connect(tr.frequency);
+    env(g,t,0.002,0.16*v,1.6); tr.connect(g); ziel(g,true); },
+  saege(t,n,dauer,v){ const f=AC.createBiquadFilter(), g=hk(); f.type='lowpass'; f.frequency.value=2600;
+    for(const dt of [-9,0,9]){ const o=osz('sawtooth',mtof(n),t,dauer+0.1); o.detune.value=dt; o.connect(f); }
+    env(g,t,0.01,0.06*v,dauer+0.1); f.connect(g); ziel(g,true); },
+  chip(t,n,dauer,v){ const o=osz('square',mtof(n),t,dauer), g=hk(); env(g,t,0.002,0.07*v,dauer); o.connect(g); ziel(g); }
+};
+/* Akkord als Tonstufen ueber dem Grundton des Stuecks */
+function akkord(s,d,oktave){ return [0,2,4].map(k=>s.ton+oktave*12+stufe(s.skala,d+k)); }
+/* Wie viel gerade spielt: Einleitung, voller Teil, Refrain, Pause */
+function musikTeil(takt){ const a=Math.floor(takt/8)%4; return ['intro','a','b','bruch'][a]; }
+function spielSchritt(s,schritt,t){
+  const sec=60/s.bpm/4, takt=Math.floor(schritt/16), i=schritt%16, grad=s.prog[takt%8], tl=musikTeil(takt);
+  const voll=tl==='a'||tl==='b', mot=tl==='b'?s.motivB:s.motivA;
+  const grund=s.ton-12+stufe(s.skala,grad);
+  /* Melodie aus dem Motiv; Laenge bis zum naechsten Ton */
+  const melodie=()=>{ if(tl==='intro'&&takt%8<4) return; const m=mot[i]; if(m===null||m==='-') return;
+    let L=1; while(i+L<16&&mot[i+L]==='-') L++;
+    const n=s.ton+12+stufe(s.skala,grad+m);
+    return {n,d:L*sec}; };
+  const mel=melodie();
+  if(s.stil==='funk'){
+    if(i===0||i===10) KLANG.kick(t,1); if(voll&&i===7) KLANG.kick(t,0.6);
+    if(i===4||i===12) KLANG.snare(t,tl==='bruch'?0.4:1);
+    if(i%2===0) KLANG.hat(t,i%4===2?0.9:0.5);
+    const bm=[0,null,null,12,null,null,0,null,7,null,0,null,null,12,10,null][i];
+    if(bm!==null&&tl!=='bruch') KLANG.bass(t,grund+bm,sec*1.6,1,'sawtooth');
+    if((i===2||i===6||i===10||i===14)&&voll) KLANG.epiano(t,akkord(s,grad,0),1);
+    if(i===0) KLANG.flaeche(t,akkord(s,grad,0),sec*16,tl==='bruch'?1.2:0.7);
+    if(mel) KLANG.zupf(t,mel.n,mel.d,1);
+  } else if(s.stil==='winter'){
+    if(i===0) KLANG.kick(t,0.55); if(voll&&i===8) KLANG.kick(t,0.4);
+    if(voll&&(i===4||i===12)) KLANG.snare(t,0.35);
+    if(voll&&i%4===2) KLANG.hat(t,0.35);
+    if(i===0||i===8) KLANG.bass(t,grund,sec*7,0.8,'triangle');
+    if(i===0) KLANG.flaeche(t,akkord(s,grad,0),sec*16,1);
+    if(i%4===0&&tl!=='bruch') KLANG.glocke(t,akkord(s,grad,1)[(i/4)%3],0.45);
+    if(mel) KLANG.glocke(t,mel.n+12,1);
+  } else if(s.stil==='dance'){
+    if(i%4===0&&tl!=='bruch') KLANG.kick(t,1);
+    if(i===4||i===12) KLANG.clap(t,tl==='bruch'?0.5:1);
+    if(i%4===2) KLANG.hat(t,0.9,true); else if(voll) KLANG.hat(t,0.35);
+    if(i%4===2&&tl!=='intro') KLANG.bass(t,grund,sec*1.8,1,'sawtooth');
+    if(i===0) KLANG.flaeche(t,akkord(s,grad,0),sec*16,tl==='bruch'?1.4:0.8);
+    if(voll&&i%2===0){ const ak=akkord(s,grad,1); KLANG.zupf(t,ak[(i/2)%3],sec*1.5,0.6); }
+    if(mel) KLANG.saege(t,mel.n,mel.d,1);
+  } else {
+    if(i===0||i===8||(voll&&i===11)) KLANG.kick(t,0.8);
+    if(i===4||i===12) KLANG.snare(t,0.7);
+    if(i%2===0) KLANG.hat(t,0.5);
+    const b=[0,12,7,12][(i/2|0)%4];
+    if(i%2===0&&tl!=='bruch') KLANG.chip(t,grund+b,sec*1.6,1.3);
+    if(voll){ const ak=akkord(s,grad,1); KLANG.chip(t,ak[i%3],sec*0.9,0.5); }
+    if(mel) KLANG.chip(t,mel.n+12,mel.d*0.9,1.2);
+  }
+}
+/* Nach so vielen Takten kommt das naechste Stueck */
+const MUSIK_TAKTE=48;
+let mZiel=-1;
+function musikLautstaerke(){ if(!mBus) return; /* jedes Stueck hat seinen Pegel, damit keins lauter ist als das andere */
+  const st=STUECKE[MUSIK.stueck]||STUECKE[0], z=MUSIK.an&&!document.hidden?MUSIK.vol*0.55*(st.pegel||1):0; if(z===mZiel) return; mZiel=z; mBus.gain.setTargetAtTime(z,AC.currentTime,0.25); }
+function musikTick(){
+  if(!AC||!MUSIK.an||document.hidden||AC.state!=='running') return;
+  if(!musikBus()) return;
+  const s=STUECKE[((MUSIK.stueck%STUECKE.length)+STUECKE.length)%STUECKE.length];
+  if(mNext<AC.currentTime) mNext=AC.currentTime+0.08;
+  const sec=60/s.bpm/4;
+  while(mNext<AC.currentTime+0.3){
+    try{ spielSchritt(s,mStep,mNext); }catch(e){}
+    mNext+=sec; mStep++;
+    if(mStep%16===0){ mTakte++; if(mTakte>=MUSIK_TAKTE){ musikWeiter(true); return; } }
+  }
+}
+function musikWeiter(auto){
+  MUSIK.stueck=(MUSIK.stueck+1)%STUECKE.length; mStep=0; mTakte=0; if(AC) mNext=AC.currentTime+(auto?1.2:0.3);
+  musikSpeichern(); musikAnzeige();
+  if(!auto&&typeof toast==='function') toast('♪ '+STUECKE[MUSIK.stueck].name);
+}
+function musikAn(an){
+  MUSIK.an=an===undefined?!MUSIK.an:!!an; musikSpeichern();
+  if(MUSIK.an){ ac(); musikBus(); mStep=0; mTakte=0; if(AC) mNext=AC.currentTime+0.1; }
+  musikLautstaerke(); musikAnzeige();
+  if(typeof toast==='function') toast(MUSIK.an?'♪ Musik an: '+STUECKE[MUSIK.stueck].name:'Musik aus');
+}
+function musikVol(v){ MUSIK.vol=clamp(v,0,1); musikSpeichern(); musikLautstaerke(); musikAnzeige(); }
+function musikAnzeige(){
+  const n=STUECKE[MUSIK.stueck]?STUECKE[MUSIK.stueck].name:'';
+  const b=document.getElementById('musikBtn'); if(b){ b.textContent=MUSIK.an?'♪ '+n:'♪ aus'; b.classList.toggle('aus',!MUSIK.an); }
+  const pm=document.getElementById('pMusikAn'); if(pm) pm.textContent=MUSIK.an?'Musik an':'Musik aus';
+  const pn=document.getElementById('pMusikName'); if(pn) pn.textContent=MUSIK.an?'Läuft: '+n:'Stumm';
+  const pv=document.getElementById('pMusikVol'); if(pv&&document.activeElement!==pv) pv.value=Math.round(MUSIK.vol*100);
+}
+setInterval(()=>{ musikTick(); if(mBus) musikLautstaerke(); },40);
+document.addEventListener('visibilitychange',()=>{ if(mBus) musikLautstaerke(); });
+musikAnzeige();
 /* =========================================================
    Feuerwerk: Partikelsystem
    ========================================================= */
@@ -13476,6 +13659,8 @@ const STEUER_PC=[
     [['Q'],'Greifen abbrechen']]],
   ['Sonstiges',[
     [['P'],'Bildeffekte an / aus'],
+    [['M'],'Musik an / aus'],
+    [['N'],'Nächstes Musikstück'],
     [['Esc'],'Pause, diese Übersicht']]]
 ];
 const STEUER_TOUCH=[
@@ -13495,9 +13680,14 @@ function renderSteuer(){
     zeilen.map(([k,t])=>`<div class="z"><div class="k">${k.map(x=>`<kbd>${x}</kbd>`).join('')}</div><div>${t}</div></div>`).join('')+
     `</div>`).join('');
 }
-function showPause(){ if(overlayOpen()) return; renderSteuer(); pauseOpen=true; paused=true; for(const k in keys) keys[k]=false; mouseDown=false; $('pause').classList.add('show'); }
+function showPause(){ if(overlayOpen()) return; renderSteuer(); musikAnzeige(); pauseOpen=true; paused=true; for(const k in keys) keys[k]=false; mouseDown=false; $('pause').classList.add('show'); }
 function closePause(){ if(!pauseOpen) return; pauseOpen=false; paused=false; $('pause').classList.remove('show'); requestLock(); }
 $('pBtn').addEventListener('click',()=>closePause());
+/* Musik: Knopf im Bild (auch am Handy) und Regler im Pausenmenue */
+$('musikBtn').addEventListener('click',e=>{ e.stopPropagation(); ac(); musikAn(); });
+$('pMusikAn').addEventListener('click',()=>{ ac(); musikAn(); });
+$('pMusikWeiter').addEventListener('click',()=>{ ac(); if(!MUSIK.an) musikAn(true); else musikWeiter(false); });
+$('pMusikVol').addEventListener('input',e=>{ ac(); musikVol(+e.target.value/100); });
 document.addEventListener('pointerlockchange',()=>{
   locked=document.pointerLockElement===canvas;
   if(locked) lockWorked=true;
@@ -13548,6 +13738,8 @@ addEventListener('keydown',e=>{
   if(e.code==='KeyG'&&!e.repeat) toggleSpray();
   if(e.code==='KeyT'&&!e.repeat) togglePDA();
   if(e.code==='KeyP'&&!e.repeat) setPost(!postOn);
+  if(e.code==='KeyM'&&!e.repeat) musikAn();
+  if(e.code==='KeyN'&&!e.repeat){ ac(); if(!MUSIK.an) musikAn(true); else musikWeiter(false); }
   if(e.code==='KeyH'&&!e.repeat) answerPhone();
   if(e.code==='KeyR'&&!e.repeat&&build) rotateGrab();
   if(e.code==='Tab'&&!e.repeat){ e.preventDefault(); openLaptop(); }
@@ -13705,7 +13897,7 @@ fontsReady().then(()=>{
   lastF=-1; applyTOD(); updateSign(); buildStart(); requestAnimationFrame(frame);
   window.__bb={get S(){return S},get phase(){return phase},set phase(v){phase=v},set clock(v){clock=v},get clock(){return clock},pickUp,floorBoxes,shelves,racks,dekos,stockOne,openShop,step,customers,queue,belt,scanBelt,buyUp,buyDeko,get DS(){return DS},endDay,pending,save,openLaptop,closeLaptop,pl,addXP,hireStaff,fireStaff,staff,dirts,addDirt,movables,toggleBuild,setWall,setFloor,
     stations,firePult,placeOnStation,igniteType,get order(){return order},get phone(){return phone},makeCall,answerPhone,haggle,acceptDeal,declineDeal,get truck(){return truck},spawnTruck,takeFromTruck,takeBox,dropBox,updateTruck,get door(){return door},get tuer(){return tuer},tuerSet,tuerNah,updateSchiebetuer,doorOpen,doorIsOpen,trailerOccupied,LR,lrFront,TOR,orderReady,orderLeft,shipOne,removeFloorBox,prioOf,setPrio,racks,updateCarry,spawnFloorBox,staff,SHELFKIND,layout,shelfCapOf,shelfAccepts,emptyLevel,dateInfo,dateStr,dateShort,seasonInfo,isSunday,dayMult,ruhetag,wageOf,setWage,friendliness,inPause,setPause,windowGrime,addGrime,cleanWindowTick,ambienteScore,bildBoost,fixedCosts,dailyWages,dispoLimit,verfuegbar,dispoZins,takeLoan,loanTier,loanDaily,EVENTS,GOALS,CUSTTYPES,UPGRADES,STAFF,stockOf,spawnInterval,pools,todayEvent,evv,rollEvent,rollMarket,newGoal,goalAdd,goalTick,ekFactor,marktText,xpFor,rollCustType,priceTol,buyChance,regCustomer,makeWishes,nachfrageFaktor,shelfStockOf,buildGravur,refillGrav,openGravInput,closeGravInput,get gravBlanks(){return gravBlanks},set gravBlanks(v){gravBlanks=v},orderBox,buyPack,cartAdd,cartAddPack,cartOrder,cartClear,cartDel,cartGoods,cartFee,cartTotal,cartBoxes,cartLines,LIEFERZEIT_SEK,VERSAND,VERSANDFREI,lieferSek,
-    scene,camera,P,EFF,EFF_ALL,EFF_KLEIN,EFF_GROSS,EFF_PRO,SHOWS,kugelbombe,shot,mine,FW,stations,stationOf,placedCount,togglePDA,openPDA,closePDA,setPost,get postOn(){return postOn},get pdaOn(){return pdaOn},showLength,psHuge,psBig,psMid,psSmall,rockets,emitters,timersLen:()=>timers.length,setView:(x,z,y,p)=>{pl.x=x;pl.z=z;yaw=y;pitch=p;aim=null;},schiebe:(x,z)=>{pl.x=x;pl.z=z;collide(pl,0.32);return{x:pl.x,z:pl.z};},PLZ_MAX,camYaw:()=>yaw,camPitch:()=>pitch,playerPos:()=>({x:pl.x,z:pl.z}),pultYaw:()=>pultHit?pultHit.parent.rotation.y:null,applyShopName,shopName,shopSlogan,signTexPx:()=>signTex&&signTex.image?signTex.image.getContext('2d').getImageData(0,0,signTex.image.width,40).data.join(''):null,ckTexPx:()=>ckNameTex&&ckNameTex.image?ckNameTex.image.getContext('2d').getImageData(0,0,ckNameTex.image.width,60).data.join(''):null,testfeldMitte,STATION_POS,aimAt,UPGRADES,upPic,PLAN,planFlaechen,uhrZeiger:()=>({std:uhrStd?+uhrStd.rotation.z.toFixed(4):0,min:uhrMin?+uhrMin.rotation.z.toFixed(4):0}),drawRackSchild,get snowPts(){return snowPts},buildStadt,updateStadt,get stadtBoxen(){return stadtBoxen},get stadtBaeume(){return stadtBaeume},buildFernbaeume,schwaerme,beacons,silhouetten,get verkehrPts(){return verkehrPts},get rauchPts(){return rauchPts},get flieger(){return flieger},stadtFrei,STADT_FREI,WALLS,FLOORS,renderOnline,onlineHint,onlineStufe,onlineZahlen,updateOnline,packLaptop,SCHILDBG,SCHILDFG,setSchild,schildBg,schildFg,repaintSchilder,updateHead,allLevels,addToLevel,putInSlot,regCustomer,ZONEN,zoneOffen,oeffneZone,applyZonen,SLOTS,RACKS,slotsOffen,colliders,LAY,LOGI,WRAMPEN,WTORE,updateSnow,unterDach,dachBereiche,get lapHit2(){return lapHit2},buildLagerTerminal,toggleTest,testLevel,buyUp,get toastLast(){return toastLast},__floorBoxen:()=>floorBoxes.length,WBAY_UP,wbays,dockPlaetze,wbayFrei,wbayOffen,spawnWTruck,updateWBays,wbaysInit,wtorSet,GANG,GANGTUER,buildLagergang,flaeche,WTOR,RACKKIND,route,NAV,navFrei,navIdx,navBuild,shelfStand,shelves,sbLanes,buildSBKasse,sbFrei,sbOffen,sbNutzbar,EING2,eingaenge,naechsterEingang,setEingang2,buildSBKasse2,get sb2G(){return sb2G},TUEREN,tuerSetD,tuerNahD,packBereit,packOne,paketWert,bestellungenProTag,pakete,PAKET_BAYS,ddlAbholung,updateVersand,createShelf,createRack,regalStellen,testKauf,regalAufbauen,orderRegal,REGALWARE,regalOf,regalKind,regalPreis,regalPlatz,regalOffen,startGame,promptFor,ERFOLGE,erfOffen,erfStufe,erfStand,erfZiel,erfFertig,erfAnteil,erfGeschafft,erfGesamt,stat,statAdd,statRekord,statVerkauf,bruchGesehen,gruppeVon,GRUPPE,TRAEGER,BRUCH,BRUCH_IDS,REZ_FARBEN,ETIKETT,traegerVon,traegerOffen,bruchOffen,bruchListe,rezeptWow,rezeptKosten,rezeptMarkt,rezeptHype,rezeptDauer,rezeptEntwicklung,rezeptGueltig,eigeneListe,eigenesEintragen,rezepteTick,rezProto,rezBauen,renderRezeptur,get entwurf(){return entwurf},set entwurf(v){entwurf=v},entwurfInit,ORDER,LIZENZEN,lizenzOf,hatLizenz,lizenzDaten,naechsteLizenz,buyLizenz,VOLA,volaOf,REGIME,marketOf,costOf,marktZiel,marktLuecke,meOf,miOf,marktDelta,marktNiveau,marktPhase,marktSchock,marktLabel,marktSchnitt,marktExtrem,marktChance,sortimentBreite,sortimentZug,bekanntheit,spawnInterval,rollMarkt,marktInit,inflOf,inflText,setPreisAufMarkt,igniteType,get packHit(){return packHit},get packTisch(){return packTisch},get packMov(){return packMov},zuendeKanal,zuendeAlle,alleKanaele,kanalItem,openZuend,closeZuend,get zuendOpen(){return zuendOpen},bereitCount,brennDauer,muendung,pultLamps,RAKETEN_LOOK,RAKETEN_KL,makePerson,applyTOD,get postHalf(){return postHalf},EFF_SCHWEIF,mitSchweif,KOEPFE,KLEID,UNIFORM,STAFFKOPF,faceCache,animPerson,PACKS,packPreis,packPool,packOffen,packContents,syncPakete,rotateGrab,PACK_FL,PACK_HOME,spotFree,rectOf,grab,placeGrab,updateGrab,get grabbed(){return grabbed},showPause,get target(){return target},
+    scene,camera,P,EFF,EFF_ALL,EFF_KLEIN,EFF_GROSS,EFF_PRO,SHOWS,kugelbombe,shot,mine,FW,stations,stationOf,placedCount,togglePDA,openPDA,closePDA,setPost,get postOn(){return postOn},get pdaOn(){return pdaOn},showLength,psHuge,psBig,psMid,psSmall,rockets,emitters,timersLen:()=>timers.length,setView:(x,z,y,p)=>{pl.x=x;pl.z=z;yaw=y;pitch=p;aim=null;},schiebe:(x,z)=>{pl.x=x;pl.z=z;collide(pl,0.32);return{x:pl.x,z:pl.z};},PLZ_MAX,camYaw:()=>yaw,camPitch:()=>pitch,playerPos:()=>({x:pl.x,z:pl.z}),pultYaw:()=>pultHit?pultHit.parent.rotation.y:null,applyShopName,shopName,shopSlogan,signTexPx:()=>signTex&&signTex.image?signTex.image.getContext('2d').getImageData(0,0,signTex.image.width,40).data.join(''):null,ckTexPx:()=>ckNameTex&&ckNameTex.image?ckNameTex.image.getContext('2d').getImageData(0,0,ckNameTex.image.width,60).data.join(''):null,testfeldMitte,STATION_POS,aimAt,UPGRADES,upPic,PLAN,planFlaechen,uhrZeiger:()=>({std:uhrStd?+uhrStd.rotation.z.toFixed(4):0,min:uhrMin?+uhrMin.rotation.z.toFixed(4):0}),drawRackSchild,get snowPts(){return snowPts},buildStadt,updateStadt,get stadtBoxen(){return stadtBoxen},get stadtBaeume(){return stadtBaeume},buildFernbaeume,schwaerme,beacons,silhouetten,get verkehrPts(){return verkehrPts},get rauchPts(){return rauchPts},get flieger(){return flieger},stadtFrei,STADT_FREI,WALLS,FLOORS,renderOnline,onlineHint,onlineStufe,onlineZahlen,updateOnline,packLaptop,SCHILDBG,SCHILDFG,setSchild,schildBg,schildFg,repaintSchilder,updateHead,allLevels,addToLevel,putInSlot,regCustomer,ZONEN,zoneOffen,oeffneZone,applyZonen,SLOTS,RACKS,slotsOffen,colliders,LAY,LOGI,WRAMPEN,WTORE,updateSnow,unterDach,dachBereiche,get lapHit2(){return lapHit2},buildLagerTerminal,toggleTest,testLevel,buyUp,get toastLast(){return toastLast},__floorBoxen:()=>floorBoxes.length,WBAY_UP,wbays,dockPlaetze,wbayFrei,wbayOffen,spawnWTruck,updateWBays,wbaysInit,wtorSet,GANG,GANGTUER,buildLagergang,flaeche,WTOR,RACKKIND,route,NAV,navFrei,navIdx,navBuild,shelfStand,shelves,sbLanes,buildSBKasse,sbFrei,sbOffen,sbNutzbar,EING2,eingaenge,naechsterEingang,setEingang2,buildSBKasse2,get sb2G(){return sb2G},TUEREN,tuerSetD,tuerNahD,packBereit,packOne,paketWert,bestellungenProTag,pakete,PAKET_BAYS,ddlAbholung,updateVersand,createShelf,createRack,regalStellen,testKauf,regalAufbauen,orderRegal,REGALWARE,regalOf,regalKind,regalPreis,regalPlatz,regalOffen,startGame,promptFor,ERFOLGE,erfOffen,erfStufe,erfStand,erfZiel,erfFertig,erfAnteil,erfGeschafft,erfGesamt,stat,statAdd,statRekord,statVerkauf,bruchGesehen,gruppeVon,GRUPPE,TRAEGER,BRUCH,BRUCH_IDS,REZ_FARBEN,ETIKETT,traegerVon,traegerOffen,bruchOffen,bruchListe,rezeptWow,rezeptKosten,rezeptMarkt,rezeptHype,rezeptDauer,rezeptEntwicklung,rezeptGueltig,eigeneListe,eigenesEintragen,rezepteTick,rezProto,rezBauen,renderRezeptur,get entwurf(){return entwurf},set entwurf(v){entwurf=v},entwurfInit,ORDER,LIZENZEN,lizenzOf,hatLizenz,lizenzDaten,naechsteLizenz,buyLizenz,VOLA,volaOf,REGIME,marketOf,costOf,marktZiel,marktLuecke,meOf,miOf,marktDelta,marktNiveau,marktPhase,marktSchock,marktLabel,marktSchnitt,marktExtrem,marktChance,sortimentBreite,sortimentZug,bekanntheit,spawnInterval,rollMarkt,marktInit,inflOf,inflText,setPreisAufMarkt,igniteType,get packHit(){return packHit},get packTisch(){return packTisch},get packMov(){return packMov},zuendeKanal,zuendeAlle,alleKanaele,kanalItem,openZuend,closeZuend,get zuendOpen(){return zuendOpen},bereitCount,brennDauer,muendung,pultLamps,RAKETEN_LOOK,RAKETEN_KL,makePerson,applyTOD,MUSIK,STUECKE,musikAn,musikWeiter,musikVol,musikTick,spielSchritt,get mStep(){return mStep},set mStep(v){mStep=v;mTakte=0;},get mBus(){return mBus},get postHalf(){return postHalf},EFF_SCHWEIF,mitSchweif,KOEPFE,KLEID,UNIFORM,STAFFKOPF,faceCache,animPerson,PACKS,packPreis,packPool,packOffen,packContents,syncPakete,rotateGrab,PACK_FL,PACK_HOME,spotFree,rectOf,grab,placeGrab,updateGrab,get grabbed(){return grabbed},showPause,get target(){return target},
     shot:()=>{ noLoop=true; camera.position.set(pl.x,1.65,pl.z); camera.rotation.set(pitch,yaw,0); camera.updateMatrixWorld(); updateTarget(); applyTOD(); renderFrame(0.016); return canvas.toDataURL('image/jpeg',0.85); },
     run:(sec,dt)=>{ noLoop=true; const n=Math.round(sec/(dt||0.05)); for(let i=0;i<n;i++) step(dt||0.05); }};
 });

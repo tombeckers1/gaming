@@ -173,22 +173,21 @@ function drawFassade(g,W,H,o,lit){
   }
   // Erdgeschoss: Laden oder Haustür
   const gy=H-gfH;
+  /* Beim Laden malt die Textur nur den dunklen Grund hinter dem
+     Glas. Schild, Schrift, Sprossen und Scheiben sind echte Teile
+     davor (buildHaus). Vorher stand beides da: der Ladenname
+     einmal als Leuchtkasten und ein zweites Mal gemalt hinter der
+     Scheibe, und die gemalten Sprossen passten nicht zu den echten. */
   if(lit){
-    if(o.shop){ g.fillStyle=o.shopWarm; g.fillRect(W*0.08,gy+34,W*0.84,gfH-60);
-      g.fillStyle=o.shopSign; g.fillRect(W*0.06,gy+6,W*0.88,26); }
+    if(o.shop){ g.fillStyle=o.shopWarm; g.fillRect(W*0.12,gy+30,W*0.76,gfH-52); }
     return;
   }
   g.fillStyle='rgba(0,0,0,.18)'; g.fillRect(0,gy-6,W,6);
   if(o.shop){
-    g.fillStyle='#2a2f3a'; g.fillRect(W*0.04,gy,W*0.92,gfH);
-    g.fillStyle=o.shopSign; g.fillRect(W*0.06,gy+6,W*0.88,26);
-    g.fillStyle='#10131a'; g.font=`${Math.round(W*0.075)}px Bungee, Impact, sans-serif`; g.textAlign='center'; g.textBaseline='middle';
-    fitFont(g,o.shopName,W*0.8,Math.round(W*0.075),BUN); g.fillText(o.shopName,W/2,gy+20);
-    g.fillStyle='#1b2430'; g.fillRect(W*0.08,gy+34,W*0.84,gfH-60);
-    const sg=g.createLinearGradient(W*0.08,gy+34,W*0.92,gy+gfH-26); sg.addColorStop(0,'rgba(200,220,245,.3)'); sg.addColorStop(0.45,'rgba(200,220,245,.05)'); sg.addColorStop(1,'rgba(200,220,245,.22)');
-    g.fillStyle=sg; g.fillRect(W*0.08,gy+34,W*0.84,gfH-60);
-    g.fillStyle='#e9e4da'; g.fillRect(W*0.5-2,gy+34,4,gfH-60);
-    g.fillStyle='#3a4150'; g.fillRect(W*0.08,gy+gfH-26,W*0.84,26);
+    g.fillStyle='#232834'; g.fillRect(W*0.04,gy,W*0.92,gfH);
+    /* Ladeneinrichtung schemenhaft hinter dem Glas */
+    for(let i=0;i<5;i++){ g.fillStyle=`rgba(90,100,118,${0.25+0.1*(i%2)})`;
+      g.fillRect(W*(0.14+i*0.15),gy+gfH*0.42,W*0.1,gfH*0.45); }
   } else {
     g.fillStyle='#6b4a34'; g.fillRect(W*0.38,gy+gfH*0.25,W*0.24,gfH*0.75);
     g.fillStyle='#8a6448'; g.fillRect(W*0.39,gy+gfH*0.27,W*0.22,gfH*0.7);
@@ -295,12 +294,22 @@ function buildHaus(x,z,w,d,h,o){
     bbox(1.9,0.06,0.85,std(0xe8ecf2),bx,by+0.09,d/2+0.42,g,false);
     for(let k=0;k<7;k++) bbox(0.04,0.5,0.04,std(0x45505e,{metalness:0.4}),bx-0.85+k*0.28,by+0.31,d/2+0.83,g,false);
     bbox(1.9,0.05,0.05,std(0x45505e,{metalness:0.4}),bx,by+0.56,d/2+0.83,g,false); } }
-  // Markise über dem Laden
+  /* Markise ueber dem Schaufenster. Sie haengt unter dem Leuchtkasten
+     und faellt nach vorn ab. Vorher sass sie auf Hoehe des Schilds,
+     stieg nach vorn an und verdeckte den Ladennamen. */
   if(o.shop&&Math.random()<0.7){
+    const gfH=h*0.3, T=1.2, neig=0.24;
     const mt=tex(128,64,(c,W,H)=>{ for(let i=0;i<8;i++){ c.fillStyle=i%2?o.shopSign:'#f2efe6'; c.fillRect(i*W/8,0,W/8,H); } });
-    const aw=new THREE.Mesh(new THREE.BoxGeometry(w*0.8,0.08,1.2),new THREE.MeshStandardMaterial({map:mt,roughness:0.9}));
-    aw.position.set(0,h*0.3+0.5,d/2+0.6); aw.rotation.x=-0.22; if(HIQ) aw.castShadow=true; g.add(aw);
-    bbox(w*0.8,0.1,0.5,std(0xe8ecf2),0,h*0.3+0.62,d/2+0.35,g,false);
+    const ag=new THREE.Group();
+    /* Innenkante direkt unter dem Schild, vor Sturz und Schildkasten */
+    ag.position.set(0,gfH+0.08,zf+0.24); ag.rotation.x=neig; g.add(ag);
+    const aw=new THREE.Mesh(new THREE.BoxGeometry(w*0.8,0.06,T),new THREE.MeshStandardMaterial({map:mt,roughness:0.9}));
+    aw.position.set(0,0,T/2); if(HIQ) aw.castShadow=true; ag.add(aw);
+    /* Volant vorn und Schnee obendrauf, beide in der Neigung */
+    bbox(w*0.8,0.2,0.03,new THREE.MeshStandardMaterial({map:mt,roughness:0.9}),0,-0.1,T,ag,false);
+    bbox(w*0.8-0.06,0.035,T-0.1,std(0xe8ecf2,{roughness:1}),0,0.048,T/2,ag,false);
+    /* Halter an der Wand */
+    for(const sx of [-1,1]) bbox(0.05,0.05,0.26,std(0x3a3f48,{metalness:0.5}),sx*w*0.38,gfH+0.05,zf+0.13,g,false);
   }
   return g;
 }
@@ -801,7 +810,10 @@ function buildStreet(){
   const carCols=[0xb8bcc4,0x2a3442,0x8a2f28,0x2f5d9e,0x3c4a3a,0xd8d4cc,0x6a5f55];
   for(let i=0;i<(COARSE?4:7);i++){ const c=makeAuto(pick(carCols),pick(['kombi','limo','van','suv','klein','limo'])); c.position.set(-22+i*6.6+rand(-0.6,0.6),0,16.0+rand(-0.12,0.12)); c.rotation.y=Math.PI/2+rand(-0.035,0.035); scene.add(c); }
   buildNachbar();
-  buildMuelleimer(-3.1,7.55,0.4); buildMuelleimer(5.6,7.55,-0.3);
+  /* Die Poller vor dem Schaufenster stehen bei x = -5,4 und 5,4. Der
+     rechte Muelleimer stand 20 cm daneben und steckte mit Korb und
+     Halter im Poller. */
+  buildMuelleimer(-3.1,7.55,0.4); buildMuelleimer(6.7,7.55,-0.3);
   // Bäume und Stadtmöbel auf unserer Seite
   for(const bx of (COARSE?[-16.5,13]:[-16.5,-11,13])){ const b=makeBaum(); b.position.set(bx,0,10.4); b.scale.setScalar(rand(0.9,1.2)); scene.add(b);
     const ring=new THREE.Mesh(new THREE.TorusGeometry(0.55,0.06,6,14),std(0x3a3d44)); ring.rotation.x=Math.PI/2; ring.position.set(bx,0.06,10.4); scene.add(ring);

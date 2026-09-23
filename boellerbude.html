@@ -5289,8 +5289,10 @@ function buildPackstation(){
    hinweg, kommt aber nicht heran. */
 function packSperre(id,PX,PZ){
   /* Man kommt vom Rolltor her, also von Norden - das Band gehoert
-     auf diese Seite, sonst steht die Station davor. */
-  const zb=PZ+1.15, x0=PX-1.7, x1=PX+5.5;
+     auf diese Seite, sonst steht die Station davor. Es reicht nur
+     bis zum Ende der Rollenbahn: die Oeffnung zur Halle ist neun
+     Meter breit, und der Weg nach Sueden muss frei bleiben. */
+  const zb=PZ+1.15, x0=PX-1.7, x1=PX+3.7;
   const bandM=new THREE.MeshStandardMaterial({map:sperrbandTex('NOCH NICHT FREIGESCHALTET'),
     roughness:0.72,side:THREE.DoubleSide});
   const halt=std(0x3d4450,{metalness:0.5,roughness:0.5});

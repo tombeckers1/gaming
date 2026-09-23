@@ -50,7 +50,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
       if(x.isEmpty()) return;
       if(x.max.x-x.min.x>3||x.max.z-x.min.z>3) return;      /* Boden, Waende */
       if(x.min.x>=fl.minX-0.05&&x.max.x<=fl.maxX+0.05&&x.min.z>=fl.minZ-0.05&&x.max.z<=fl.maxZ+0.05)
-        o.fremd.push(q.geometry&&q.geometry.type);
+        o.fremd.push((q.geometry&&q.geometry.type)+'@'+((x.min.x+x.max.x)/2).toFixed(1)+','+((x.min.y+x.max.y)/2).toFixed(1)+','+((x.min.z+x.max.z)/2).toFixed(1));
     });
     let band=0, bandDrin=0;
     bb.scene.traverse(q=>{ if(q.userData&&q.userData.sperrband){ const x=new THREE.Box3().setFromObject(q);

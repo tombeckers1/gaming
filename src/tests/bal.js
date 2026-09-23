@@ -88,6 +88,8 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
           if(!bb.truck||bb.truck.state!=='docked'||!bb.truck.cargo.length) break;
           S.carrying=null; bb.takeFromTruck();
           if(S.carrying){ const c=S.carrying;
+            /* Regale kommen als Paket: sofort aufbauen */
+            if(c.regal){ bb.regalAufbauen(c.regal); S.carrying=null; bb.updateCarry(); continue; }
             for(let j=0;j<c.count;j++){ const lv=bb.emptyLevel(c.type); if(!lv) break; bb.addToLevel(lv,c.type,c.q); }
             S.carrying=null; }
         }

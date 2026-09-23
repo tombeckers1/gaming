@@ -12,9 +12,10 @@ const VOLA={
   chips:0.70, kindersekt:0.70, boeller:0.70, roemisch:0.70, raketenklein:0.70,
   bowle:0.80, vulkan:0.80, sortiment:0.80, wasserfall:0.80, grossboeller:0.85,
   raketen:0.85, kanonen:0.90, doppelschlag:0.90, batterie16:0.90, heuler:0.90,
-  raketengold:0.95, batterie25:0.95, sekt:1.00, faecher:1.00, batterie49:1.05,
+  raketengold:0.95, knatter:0.95, pfeifraketen:0.80, sekt:1.00, faecher:1.00, batterie49:1.05,
   furzrakete:1.10, batterie100:1.20, sprengmeister:1.30, profi:1.40, xxlpolen:1.60,
-  sternenbrunnen:0.75, kugel75:0.95, kugel100:1.15, kugel150:1.45
+  sternenbrunnen:0.75, kugel75:0.95, kugel100:1.15, kugel150:1.45,
+  zfaecher:1.05, kometen:1.15, titanraketen:1.25, kugel200:1.50, finale:1.55
 };
 function volaOf(t){ const v=VOLA[t]; if(v!==undefined) return v; const p=P[t]; return p&&p.cat===2?0.85:p&&p.cat===1?0.6:0.45; }
 
@@ -181,20 +182,23 @@ const LIZENZEN=[
    desc:'Große Böller, Kanonenschläge, Doppelschläge, Römische Lichter und Fontänen. Ab hier wird es laut.',
    items:['grossboeller','kanonen','doppelschlag','roemisch','fontaene','blanko','gravur']},
   {id:'himmel',lvl:11,cost:2600,name:'Bunte Nacht',
-   desc:'Raketensortimente, Goldraketen, Vulkane und der Sternenbrunnen, der erst als Fontäne läuft und dann oben aufblüht. Dazu Wachsgießen und Feuerzangenbowle.',
-   items:['raketen','raketengold','vulkan','wasserfall','sternenbrunnen','bleigiessen','bowle']},
+   desc:'Raketensortimente, pfeifende Heulraketen, Goldraketen, Vulkane und der Sternenbrunnen, der erst als Fontäne läuft und dann oben aufblüht. Dazu Wachsgießen und Feuerzangenbowle.',
+   items:['raketen','pfeifraketen','raketengold','vulkan','wasserfall','sternenbrunnen','bleigiessen','bowle']},
   {id:'verbund',lvl:14,cost:6000,name:'Verbund & Kugelbomben',
-   desc:'Batterien, Fächer und die ersten Kugelbomben. Die gehören in die Mörserbatterie auf dem Testfeld: ein Schuss, oben mehrere Brüche nacheinander.',
-   items:['batterie16','batterie25','batterie49','sortiment','faecher','kugel75','kugel100']},
+   desc:'Batterien, der Knattersturm, Fächer und die ersten Kugelbomben. Die gehören in die Mörserbatterie auf dem Testfeld: ein Schuss, oben mehrere Brüche nacheinander.',
+   items:['batterie16','knatter','batterie49','sortiment','faecher','kugel75','kugel100']},
   {id:'import',lvl:17,cost:13000,name:'Import & Sonderposten',
-   desc:'Sprengmeister, der XXL-Bomber, der 100er-Verbund und die 150-mm-Kugelbombe Weltenbrand. Teuer im Einkauf, launisch im Preis, aber die Kunden reden darüber.',
-   items:['sprengmeister','xxlpolen','batterie100','kugel150']},
+   desc:'Sprengmeister, der XXL-Bomber, der 100er-Verbund, der Z-Fächer Blitzgewitter, der Kometenregen und die 150-mm-Kugelbombe Weltenbrand. Teuer im Einkauf, launisch im Preis, aber die Kunden reden darüber.',
+   items:['sprengmeister','xxlpolen','batterie100','zfaecher','kometen','kugel150']},
   {id:'schabernack',lvl:19,cost:16000,name:'Schabernack-Edition',
    desc:'Heulende Derwische und die Furzrakete »Donnerbalken«. Verkauft sich von allein, weil jeder sie einmal gesehen haben will.',
    items:['heuler','furzrakete']},
+  {id:'grossfeuer',lvl:20,cost:21000,name:'Großkaliber',
+   desc:'Die Titan-Raketen mit Dreifachbruch und die 200-mm-Kugelbombe Götterzorn: ein Schuss, zehn Brüche auf einmal.',
+   items:['titanraketen','kugel200']},
   {id:'profi',lvl:22,cost:26000,name:'Profiklasse',
-   desc:'Der Götterfunken-Verbund. Zweihundert Schuss, neunzig Sekunden, und der halbe Ort steht auf der Straße.',
-   items:['profi']}
+   desc:'Der Götterfunken-Verbund: zweihundert Schuss, und der halbe Ort steht auf der Straße. Ab Level 24 dazu der Weltuntergang, dreihundert Schuss Finale.',
+   items:['profi','finale']}
 ];
 const LIZ_VON={};
 LIZENZEN.forEach(l=>l.items.forEach(t=>{ LIZ_VON[t]=l.id; }));

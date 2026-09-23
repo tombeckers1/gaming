@@ -102,7 +102,7 @@ function cartLines(){ return S.cart||(S.cart=[]); }
 function lineSup(l){ return supplierOf(l.sup); }
 function lineName(l){ return l.pack?(PACKS.find(x=>x.id===l.pack)||{name:'Wundertüte'}).name:P[l.t].name; }
 function lineCost(l){
-  if(l.pack){ const pk=PACKS.find(x=>x.id===l.pack); return pk?r2(pk.cost*l.n):0; }
+  if(l.pack){ const pk=PACKS.find(x=>x.id===l.pack); return pk?r2(packPreis(pk)*l.n):0; }
   const sup=lineSup(l), tier=(sup.tiers||[{n:1,d:0}]).find(x=>x.n===l.step)||{n:l.step||1,d:0};
   return r2(tierPrice(l.t,sup,tier)*(l.n/(tier.n||1)));
 }
@@ -118,7 +118,7 @@ function cartAdd(t,n,supId){
   sfx.pop(); toast(`${n}× ${P[t].name} im Warenkorb.`); save();
 }
 function cartAddPack(id){
-  const pk=PACKS.find(x=>x.id===id); if(!pk||S.level<pk.lvl) return;
+  const pk=PACKS.find(x=>x.id===id); if(!pk||!packOffen(pk)) return;
   const l=cartLines().find(x=>x.pack===id);
   if(l) l.n++; else cartLines().push({pack:id,n:1,sup:'ratzke'});
   sfx.pop(); toast(`${pk.name} im Warenkorb.`); save();
@@ -134,7 +134,7 @@ function pushLine(l,delay){
   const sup=lineSup(l);
   if(l.pack){
     const pk=PACKS.find(x=>x.id===l.pack);
-    const items=packContents(pk.n*l.n);
+    const items=packContents(pk.n*l.n,pk.gruppe);
     items.forEach(t=>pending.push({type:t,t:delay,q:supplierOf('ratzke').quality,sup:'ratzke'}));
     return items.length;
   }
@@ -185,28 +185,54 @@ function orderBox(t,n,supId){
   S.tut.order=true; sfx.pop();
   toast(`${n>1?n+' Kartons ':''}${p.name} bei ${sup.short} bestellt.`); save();
 }
-function packContents(n){
-  const pool=ORDER.filter(t=>isUnlocked(t)&&canShelf(t)&&P[t].cat!==undefined&&t!=='blanko');
+function packPool(gruppe){
+  return ORDER.filter(t=>isUnlocked(t)&&canShelf(t)&&P[t].cat!==undefined&&t!=='blanko'&&!P[t].noOrder&&!P[t].eigen
+    &&(!gruppe||(GRUPPE[gruppe]||[]).indexOf(t)>=0));
+}
+function packContents(n,gruppe){
+  const pool=packPool(gruppe);
   if(!pool.length) return [];
   const out=[];
   for(let i=0;i<n;i++){
+    /* Themenpaket: gleichverteilt aus der Gruppe. Wundertuete:
+       meist Kleinkram, selten ein teurer Karton. */
+    if(gruppe){ out.push(pick(pool)); continue; }
     const jackpot=Math.random()<0.12;
     const cand=pool.filter(t=>jackpot?costOf(t)>=6:costOf(t)<6);
     out.push(pick(cand.length?cand:pool));
   }
   return out;
 }
+/* Mittlerer Einkaufswert eines Kartons aus dem Paket - genau so
+   gerechnet, wie packContents zieht. */
+function packKartonWert(gruppe){
+  const pool=packPool(gruppe); if(!pool.length) return 0;
+  const m=l=>l.reduce((a,t)=>a+costOf(t)*P[t].box,0)/l.length;
+  if(gruppe) return m(pool);
+  const billig=pool.filter(t=>costOf(t)<6), teuer=pool.filter(t=>costOf(t)>=6);
+  return 0.88*m(billig.length?billig:pool)+0.12*m(teuer.length?teuer:pool);
+}
+/* Preis eines Pakets: im Mittel steckt mehr drin, als es kostet,
+   aber jede Tuete ist ein Wurf. Groessere Pakete sind je Karton
+   etwas guenstiger, Themenpakete (planbarer) etwas weniger. */
+const PACK_RABATT={tuete:0.94,kiste:0.88,palette:0.82};
+function packPreis(pk){
+  const f=pk.gruppe?0.8:(PACK_RABATT[pk.id]||0.9);
+  return Math.max(5,Math.round(packKartonWert(pk.gruppe)*pk.n*f/5)*5);
+}
+function packOffen(pk){ return S.level>=pk.lvl&&(!pk.gruppe||packPool(pk.gruppe).length>0); }
 function buyPack(id){
-  const pk=PACKS.find(x=>x.id===id); if(!pk||S.level<pk.lvl||verfuegbar()<pk.cost) return;
-  const items=packContents(pk.n); if(!items.length) return;
-  S.money=r2(S.money-pk.cost); DS.goods=r2(DS.goods+pk.cost);
+  const pk=PACKS.find(x=>x.id===id); if(!pk||!packOffen(pk)) return;
+  const preis=packPreis(pk); if(verfuegbar()<preis) return;
+  const items=packContents(pk.n,pk.gruppe); if(!items.length) return;
+  S.money=r2(S.money-preis); DS.goods=r2(DS.goods+preis);
   const sup=supplierOf('ratzke'), delay=lieferSek()*evv('delay');
   items.forEach(t=>pending.push({type:t,t:delay,q:sup.quality,sup:sup.id}));
   const cnt={}; items.forEach(t=>cnt[t]=(cnt[t]||0)+1);
   const keys=Object.keys(cnt), txt=keys.slice(0,4).map(t=>`${cnt[t]}× ${P[t].short}`).join(', ')+(keys.length>4?' …':'');
   const worth=r2(items.reduce((a,t)=>a+costOf(t)*P[t].box,0));
-  sfx.cash(); toast(`Wundertüte: ${txt}`,'money');
-  later(0.6,()=>toast(worth>pk.cost?`Einkaufswert ${eur(worth)}. Guter Griff.`:`Einkaufswert ${eur(worth)}. Diesmal Pech.`,worth>pk.cost?'money':'bad'));
+  sfx.cash(); toast(`${pk.name}: ${txt}`,'money');
+  later(0.6,()=>toast(worth>preis?`Einkaufswert ${eur(worth)}. Guter Griff.`:`Einkaufswert ${eur(worth)}. Diesmal Pech.`,worth>preis?'money':'bad'));
   addXP(20,'Wundertüte'); S.tut.order=true; save();
 }
 /* =========================================================
@@ -605,9 +631,10 @@ function renderLaptop(){
     hint=`Artikel in den Warenkorb legen, dann alles zusammen bestellen. Eine Lieferung braucht ${LIEFERZEIT_SEK} Sekunden, Versand ${eur(VERSAND)} und ab ${eur(VERSANDFREI)} Warenwert frei.`;
     h=`<div class="row"><div class="rm"><b>Lieferanten</b><small>${sup.desc}</small><small class="${qualityLabel(sup.quality)[0]}">${qualityLabel(sup.quality)[1]} · Lieferzeit ${LIEFERZEIT_SEK} Sekunden</small></div></div>`+knoepfe;
     if(sup.mystery){
-      h+=PACKS.map(pk=>{ const lock=S.level<pk.lvl;
-        return `<div class="row${lock?' locked':''}"><div class="rm"><b>${pk.name}</b><small>${pk.desc}</small><small>Inhalt zufällig, Restposten-Qualität</small></div>`+
-          (lock?`<small>ab Level ${pk.lvl}</small>`:`<button data-a="pack" data-t="${pk.id}">+ ${eur(pk.cost)}</button>`)+'</div>'; }).join('');
+      h+=PACKS.map(pk=>{ const lock=!packOffen(pk), preis=packPreis(pk);
+        const warum=S.level<pk.lvl?`ab Level ${pk.lvl}`:'erst Ware der Gruppe freischalten';
+        return `<div class="row${lock?' locked':''}"><div class="rm"><b>${pk.name}</b><small>${pk.desc}</small><small>Inhalt zufällig, Restposten-Qualität${pk.gruppe&&!lock?` · ${pk.n} Kartons aus ${packPool(pk.gruppe).length} Sorten`:''}</small></div>`+
+          (lock?`<small>${warum}</small>`:`<button data-a="pack" data-t="${pk.id}">+ ${eur(preis)}</button>`)+'</div>'; }).join('');
     } else {
       const tiers=sup.tiers||[{n:1,d:0}];
       /* Gesperrte Ware nur so weit zeigen, wie sie in Reichweite ist */

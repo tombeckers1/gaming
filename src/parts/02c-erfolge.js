@@ -10,9 +10,9 @@
 /* Warengruppen, damit ein Zaehler mehrere Sorten sammelt */
 const GRUPPE={
   boeller:['boeller','grossboeller','kanonen','doppelschlag','sprengmeister','xxlpolen','knallfrosch','knallerbsen'],
-  raketen:['raketenklein','raketen','raketengold','furzrakete','blanko','gravur'],
-  batterien:['batterie16','batterie25','batterie49','batterie100','faecher','sortiment','profi'],
-  kugeln:['kugel75','kugel100','kugel150'],
+  raketen:['raketenklein','raketen','pfeifraketen','raketengold','titanraketen','furzrakete','blanko','gravur'],
+  batterien:['batterie16','knatter','batterie49','batterie100','faecher','zfaecher','kometen','sortiment','profi','finale'],
+  kugeln:['kugel75','kugel100','kugel150','kugel200'],
   boden:['fontaene','vulkan','wasserfall','roemisch','schwaermer','sternenbrunnen','tisch','wunder','heuler'],
   zubehoer:['feuerzeug','luftschlangen','knicklichter','brille','chips','konfetti','bleigiessen','bowle'],
   sekt:['sekt','kindersekt']

@@ -639,9 +639,9 @@ function brennDauer(t){
   if(fest[t]) return fest[t];
   if(p.rezept) return 7;
   const sh=p.shape;
-  if(sh==='shell') return 3.5;
+  if(sh==='shell') return {kugel150:4.5,kugel200:5}[t]||3.5;
   if(sh==='tubepack') return 2.6;
-  if(sh==='rocketset') return 3;
+  if(sh==='rocketset'){ const k=typeof RAKETEN_KL!=='undefined'&&RAKETEN_KL[t]; return k?Math.max(3,(k.n-1)*k.gap+2):3; }
   if(sh==='battery'||sh==='fan') return 9;
   return 4;
 }

@@ -36,6 +36,8 @@ const P={
     art:{title:'DONNERKEIL',sub:'6 Kanonenschläge',bg1:'#2a2f3d',bg2:'#0b0d14',ac:'#ff7a3d',ac2:'#ffd23f'}},
   raketen:{name:'Sternenflug · 20 Raketen',short:'Raketen 20er',cat:2,lvl:10,shape:'rocketset',dims:[0.52,0.075,0.20],grid:[3,2,2],box:6,cost:7.50,market:17.99,weight:7,hype:20,risk:6,
     art:{title:'STERNENFLUG',sub:'20 Raketen',bg1:'#35157a',bg2:'#0c0626',ac:'#ffd23f',ac2:'#ff4fa3'}},
+  pfeifraketen:{name:'Pfeifende Teufel · 10 Heulraketen',short:'Pfeifraketen',cat:2,lvl:11,shape:'rocketset',dims:[0.44,0.06,0.13],grid:[4,2,2],box:8,cost:4.80,market:11.99,weight:7,hype:18,risk:5,
+    art:{title:'PFEIFENDE TEUFEL',sub:'10 Heulraketen',bg1:'#0d4a2a',bg2:'#021208',ac:'#5cff9e',ac2:'#ffd23f'}},
   bleigiessen:{name:'Wachsgießen-Set',short:'Wachsgießen',cat:0,lvl:11,shape:'boxA',dims:[0.105,0.04,0.095],grid:[8,2,2],box:20,cost:1.80,market:4.49,weight:5,hype:0,risk:2,
     art:{title:'ORAKEL',sub:'Wachsgießen',bg1:'#6a24c9',bg2:'#25093f',ac:'#ffd23f',ac2:'#5ce1ff'}},
   kindersekt:{name:'Kindersekt',short:'Kindersekt',cat:0,lvl:11,cold:true,shape:'bottle',dims:[0.07,0.26,0.07],grid:[12,2,1],box:12,cost:1.60,market:3.79,weight:6,hype:0,risk:3,
@@ -64,12 +66,20 @@ const P={
     art:{title:'ZWEI SCHLÄGE',sub:'6 Doppelschläge',bg1:'#1f1f26',bg2:'#000000',ac:'#ff7a3d',ac2:'#ffd23f',light:false}},
   raketengold:{name:'Goldregen · 5 Brokatraketen',short:'Goldraketen',cat:2,lvl:12,shape:'rocketset',dims:[0.48,0.065,0.145],grid:[3,2,2],box:6,cost:8.50,market:19.99,weight:6,hype:24,risk:6,
     art:{title:'GOLDFLUG',sub:'5 Brokatraketen',bg1:'#4a3308',bg2:'#150e02',ac:'#ffd23f',ac2:'#fff3c4',gold:true}},
+  titanraketen:{name:'Titan · 3 XXL-Raketen Dreifachbruch',short:'Titan',cat:2,lvl:20,shape:'rocketset',dims:[0.62,0.085,0.18],grid:[3,1,1],box:3,cost:19.00,market:44.99,weight:5,hype:44,risk:9,
+    art:{title:'TITAN',sub:'3 XXL-Raketen · Dreifachbruch',bg1:'#26292f',bg2:'#000000',ac:'#d1e5ff',ac2:'#ffd23f'}},
   sortiment:{name:'Familienfest · 18 Teile gemischt',short:'Sortiment',cat:2,lvl:13,shape:'assort',dims:[0.40,0.16,0.30],grid:[4,1,1],box:2,cost:18.00,market:42.99,weight:6,hype:34,risk:6,
     art:{title:'FAMILIENFEST',sub:'18 Teile gemischt',bg1:'#2f5d9e',bg2:'#0a1a33',ac:'#ffd23f',ac2:'#ff4fa3'}},
-  batterie25:{name:'Polarlicht · 25 Schuss',short:'Batterie 25',cat:2,lvl:14,shape:'battery',dims:[0.24,0.20,0.24],grid:[7,1,1],box:7,cost:12.00,market:28.99,weight:6,hype:32,risk:7,
-    art:{title:'POLARLICHT',sub:'25 Schuss Verbund',bg1:'#12406b',bg2:'#04121f',ac:'#5ce1ff',ac2:'#ffd23f'}},
+  /* Knattersturm: ersetzt den alten 25er. Jeder Schuss knistert,
+     dazwischen Salven aus fuenf Rohren auf einmal. */
+  knatter:{name:'Knattersturm · 30 Schuss Crackling',short:'Knatter 30',cat:2,lvl:14,shape:'battery',dims:[0.24,0.20,0.24],grid:[7,1,1],box:7,cost:13.00,market:30.99,weight:6,hype:34,risk:7,
+    art:{title:'KNATTERSTURM',sub:'30 Schuss Crackling',bg1:'#12406b',bg2:'#04121f',ac:'#5ce1ff',ac2:'#ffd23f'}},
   faecher:{name:'Weitwinkel · 36 Schuss Fächer',short:'Fächer 36',cat:2,lvl:16,shape:'fan',dims:[0.42,0.22,0.26],grid:[4,1,1],box:2,cost:24.00,market:54.99,weight:5,hype:48,risk:8,
     art:{title:'WEITWINKEL',sub:'36 Schuss im Fächer',bg1:'#5a1470',bg2:'#1a0322',ac:'#ff4fa3',ac2:'#5cff9e'}},
+  zfaecher:{name:'Blitzgewitter · 48 Schuss Z-Fächer',short:'Z-Fächer 48',cat:2,lvl:17,shape:'fan',dims:[0.46,0.22,0.28],grid:[4,1,1],box:2,cost:27.00,market:61.99,weight:5,hype:52,risk:8,
+    art:{title:'BLITZGEWITTER',sub:'48 Schuss Z-Fächer',bg1:'#0f2a4a',bg2:'#02060f',ac:'#f2f5ff',ac2:'#5ce1ff'}},
+  kometen:{name:'Kometenregen · 64 Schuss Brokat',short:'Kometen 64',cat:2,lvl:19,shape:'battery',dims:[0.34,0.26,0.32],grid:[4,1,1],box:3,cost:36.00,market:82.99,weight:4,hype:66,risk:9,
+    art:{title:'KOMETENREGEN',sub:'64 Schuss Brokat',bg1:'#4a3308',bg2:'#150e02',ac:'#ffd23f',ac2:'#ff7a3d',gold:true}},
   wasserfall:{name:'Niagara · Silberwasserfall 3 m',short:'Wasserfall',cat:2,lvl:18,shape:'cylinder',dims:[0.16,0.36,0.16],grid:[10,1,1],box:5,cost:14.00,market:32.99,weight:4,hype:38,risk:7,
     art:{title:'NIAGARA',sub:'3 m Silberfall, 60 s',bg1:'#8a9299',bg2:'#2a2f36',ac:'#f2f5ff',ac2:'#5ce1ff'}},
   bowle:{name:'Feuerzangenbowle-Set',short:'Bowle-Set',cat:0,lvl:13,shape:'boxA',dims:[0.18,0.14,0.14],grid:[8,1,1],box:8,cost:6.50,market:15.99,weight:5,hype:0,risk:3,
@@ -80,6 +90,8 @@ const P={
     art:{title:'FÜR DICH',sub:'Persönliche Gravur',bg1:'#6a24c9',bg2:'#25093f',ac:'#ffd23f',ac2:'#ff4fa3'}},
   profi:{name:'Götterfunken · 200 Schuss Profiverbund',short:'Götterfunken',cat:2,lvl:22,shape:'battery',dims:[0.55,0.36,0.42],grid:[3,1,1],box:1,cost:68.00,market:149.99,weight:3,hype:90,risk:10,
     art:{title:'GÖTTERFUNKEN',sub:'200 Schuss Profi',bg1:'#0e1226',bg2:'#000000',ac:'#ffd23f',ac2:'#e63b2e',gold:true}},
+  finale:{name:'Weltuntergang · 300 Schuss Finale',short:'Weltuntergang',cat:2,lvl:24,shape:'battery',dims:[0.58,0.34,0.42],grid:[2,1,1],box:1,cost:115.00,market:249.99,weight:2,hype:100,risk:10,
+    art:{title:'WELTUNTERGANG',sub:'300 Schuss · 3 Minuten',bg1:'#3a0507',bg2:'#000000',ac:'#ff3b2e',ac2:'#ffd23f',gold:true}},
   /* Schabernack-Edition: der Spaßkram ganz am Ende */
   heuler:{name:'Heulender Derwisch',short:'Heuler',cat:2,lvl:19,shape:'tubepack',dims:[0.14,0.065,0.065],grid:[8,2,2],box:12,cost:3.40,market:8.49,weight:8,hype:16,risk:5,
     art:{title:'DERWISCH',sub:'6 Heuler mit Knall',bg1:'#2a1f5a',bg2:'#0a0620',ac:'#ff9d2a',ac2:'#5ce1ff'}},
@@ -93,6 +105,8 @@ const P={
     art:{title:'DRACHENBLUT',sub:'Kugelbombe 100 mm · Doppelbruch',bg1:'#5a0f10',bg2:'#1a0304',ac:'#ff6a2a',ac2:'#ffd23f'}},
   kugel150:{name:'Weltenbrand · Kugelbombe 150 mm',short:'Kugel 150',cat:2,lvl:18,shape:'shell',dims:[0.165,0.20,0.165],grid:[4,1,1],box:3,cost:29.00,market:69.99,weight:5,hype:70,risk:10,
     art:{title:'WELTENBRAND',sub:'Kugelbombe 150 mm · Mehrfachbruch',bg1:'#1a0b2e',bg2:'#050109',ac:'#c8a2ff',ac2:'#ffd23f',gold:true}},
+  kugel200:{name:'Götterzorn · Kugelbombe 200 mm Zehnfachbruch',short:'Kugel 200',cat:2,lvl:21,shape:'shell',dims:[0.21,0.25,0.21],grid:[3,1,1],box:2,cost:44.00,market:104.99,weight:4,hype:95,risk:10,
+    art:{title:'GÖTTERZORN',sub:'200 mm · zehn Brüche auf einmal',bg1:'#2a0f5a',bg2:'#050109',ac:'#ff4fd8',ac2:'#ffd23f',gold:true}},
   /* Fontaene, die oben in einen Kometen uebergeht und aufblueht */
   sternenbrunnen:{name:'Sternenbrunnen · Fontäne mit Aufstieg',short:'Sternenbrunnen',cat:2,lvl:12,shape:'cylinder',dims:[0.145,0.34,0.145],grid:[7,2,1],box:6,cost:7.90,market:18.99,weight:7,hype:26,risk:6,
     art:{title:'STERNENBRUNNEN',sub:'Fontäne, Komet, Blüte',bg1:'#123a6b',bg2:'#04101f',ac:'#5ce1ff',ac2:'#ffd23f'}}
@@ -185,9 +199,17 @@ const LATE_SUP={id:'direkt',lvl:22,name:'Werksdirekt Hübner',short:'Werk',desc:
     mult:1.12,quality:1.2,delay:[12,18],tiers:[{n:5,d:0.06},{n:20,d:0.15},{n:50,d:0.24}]};
 SUPPLIERS.push(LATE_SUP);
 const PACKS=[
-  {id:'tuete',lvl:8,name:'Kleine Wundertüte',desc:'Sechs Kartons Restware, bunt gemischt.',cost:210,n:6},
-  {id:'kiste',lvl:10,name:'Große Wundertüte',desc:'Vierzehn Kartons. Manchmal ist etwas richtig Teures dabei.',cost:620,n:14},
-  {id:'palette',lvl:14,name:'Restposten-Palette',desc:'Dreißig Kartons auf einen Schlag. Platz im Lager schadet nicht.',cost:1450,n:30}
+  {id:'tuete',lvl:8,name:'Kleine Wundertüte',desc:'Sechs Kartons Restware, bunt gemischt. Meist Kleinkram, selten ein Treffer.',n:6},
+  {id:'kiste',lvl:10,name:'Große Wundertüte',desc:'Vierzehn Kartons, je Karton etwas günstiger. Manchmal ist etwas richtig Teures dabei.',n:14},
+  {id:'palette',lvl:14,name:'Restposten-Palette',desc:'Dreißig Kartons auf einen Schlag, der beste Kartonpreis. Platz im Lager schadet nicht.',n:30},
+  /* Themenpakete: nur eine Warengruppe, zufaellig gemischt aus dem,
+     was du schon fuehrst. Preis nach dem mittleren Einkaufswert der
+     Gruppe, ein Fuenftel darunter - dafuer weisst du nicht, ob
+     der teure Verbund oder der kleine dabei ist. */
+  {id:'knallkiste',lvl:8,name:'Knallkiste',desc:'Zehn Kartons Böller, gemischt aus deinem Sortiment.',gruppe:'boeller',n:10},
+  {id:'raketenpaket',lvl:11,name:'Raketen-Paket',desc:'Acht Kartons Raketen, vom Dreierset bis zu dem, was du freigeschaltet hast.',gruppe:'raketen',n:8},
+  {id:'verbundpaket',lvl:15,name:'Verbund-Paket',desc:'Fünf Kartons Batterien und Fächer. Mit Glück ist ein großer Verbund dabei.',gruppe:'batterien',n:5},
+  {id:'kugelkiste',lvl:16,name:'Kugelkiste',desc:'Vier Kartons Kugelbomben, Kaliber gemischt.',gruppe:'kugeln',n:4}
 ];
 const PYROTYPES=[
   {id:'knauser',name:'knauserig',ceil:1.03,rounds:4,open:0.78,line:'Ich sag Ihnen gleich, mein Budget ist eng.'},

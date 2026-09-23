@@ -131,12 +131,12 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   const bat=await p.evaluate(()=>{
     const bb=window.__bb,o={};
     o.laenge={};
-    ['batterie16','batterie25','faecher','batterie49','batterie100','profi'].forEach(t=>{ o.laenge[t]=bb.showLength(t); });
+    ['batterie16','knatter','faecher','zfaecher','batterie49','kometen','batterie100','profi','finale'].forEach(t=>{ o.laenge[t]=bb.showLength(t); });
     const wachsend=(a)=>a.every((v,i)=>i===0||v>=a[i-1]);
     o.laengeSteigt=wachsend(Object.values(o.laenge));
     /* Schusszahl je Drehbuch */
     o.schuesse={};
-    ['batterie16','batterie25','faecher','batterie49','batterie100','profi'].forEach(t=>{
+    ['batterie16','knatter','faecher','zfaecher','batterie49','kometen','batterie100','profi','finale'].forEach(t=>{
       o.schuesse[t]=bb.SHOWS[t]().reduce((a,ph)=>a+(ph.n||1),0); });
     o.schuesseSteigen=wachsend(Object.values(o.schuesse));
     /* Profi nutzt die Profi-Effekte und Kugelbomben */

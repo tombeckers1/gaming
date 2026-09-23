@@ -95,7 +95,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     o.zweiteStufeKostet=bb.rezeptKosten(s2)>bb.rezeptKosten(billig);
     o.zweiteStufeBringt=bb.rezeptMarkt(s2)>bb.rezeptMarkt(billig);
     /* Vergleich mit der Kaufware: die eigene Marke darf nicht absurd sein */
-    const kaufMargen=['raketenklein','raketen','batterie25','kugel75','fontaene']
+    const kaufMargen=['raketenklein','raketen','knatter','kugel75','fontaene']
       .map(t=>+(bb.P[t].market/bb.P[t].cost).toFixed(2));
     o.kaufwareMargen=kaufMargen;
     return o;

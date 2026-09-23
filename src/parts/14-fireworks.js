@@ -394,11 +394,112 @@ EFF.saturn=function(p,A,B,s){
   for(let i=0;i<n;i++){ const d=randDir(), v=rand(3,4.6)*s;
     psBig.emit(p.x,p.y,p.z,d[0]*v,d[1]*v,d[2]*v,B[0],B[1],B[2],rand(2.0,2.8),2.4,0); }
 };
+
+/* =========================================================
+   Neue Bruchbilder fuer das ueberarbeitete Sortiment
+   ========================================================= */
+/* Tausendfach-Knister: ein Ball aus Traegern, die kurz darauf
+   jeder fuer sich in einen kleinen Knall zerplatzen */
+EFF.tausend=function(p,A,B,s){
+  const n=Math.round(64*s*QUAL()), punkte=[];
+  for(let i=0;i<n;i++){ const d=randDir(), v=rand(6.5,9.5)*s;
+    punkte.push([d[0]*v,d[1]*v,d[2]*v]);
+    psBig.emit(p.x,p.y,p.z,d[0]*v,d[1]*v,d[2]*v,A[0],A[1],A[2],rand(0.55,0.75),2.6,0); }
+  for(let w=0;w<3;w++) later(0.55+w*0.14,()=>{
+    const f=1-Math.exp(-1.1*(0.6+w*0.14));
+    for(let i=w;i<punkte.length;i+=3){ const t=punkte[i];
+      const q={x:p.x+t[0]*f*0.9,y:p.y+t[1]*f*0.9-0.6,z:p.z+t[2]*f*0.9};
+      for(let k=0;k<Math.round(7*QUAL());k++){ const d=randDir(), sp=rand(1.5,3.5);
+        psMid.emit(q.x,q.y,q.z,d[0]*sp,d[1]*sp,d[2]*sp,1,.95,.8,rand(0.25,0.5),2,3); } }
+    sfx.crackle(distVol(p)*(0.8-w*0.15));
+  });
+};
+/* Mehrfachring-Peonie: drei Kugeln ineinander, drei Farben */
+EFF.mehrring=function(p,A,B,s){
+  const C=K(pick(['weiss','zitrone','tuerkis','magenta','limette','silber']));
+  const lagen=[[A,11.5,150],[B,7.8,110],[C,4.4,70]];
+  for(const [c,v0,n0] of lagen){
+    const n=Math.round(n0*s*QUAL());
+    for(let i=0;i<n;i++){ const d=randDir(), v=v0*s*rand(0.96,1.04);
+      psBig.emit(p.x,p.y,p.z,d[0]*v,d[1]*v,d[2]*v,c[0],c[1],c[2],rand(1.9,2.5),2.8,0); }
+  }
+};
+/* Regenbogen: der Ball ist in sechs Farbsegmente geteilt */
+EFF.regenbogen=function(p,A,B,s){
+  const F=['rot','orange','zitrone','gruen','himmel','violett'].map(K);
+  const [u,v]=basis(), n=Math.round(210*s*QUAL());
+  for(let i=0;i<n;i++){ const d=randDir(), sp=rand(8.5,10.5)*s;
+    const a=Math.atan2(d[0]*v[0]+d[1]*v[1]+d[2]*v[2],d[0]*u[0]+d[1]*u[1]+d[2]*u[2]);
+    const c=F[Math.floor((a+Math.PI)/(Math.PI*2)*6)%6];
+    psBig.emit(p.x,p.y,p.z,d[0]*sp,d[1]*sp,d[2]*sp,c[0],c[1],c[2],rand(1.8,2.4),2.8,0); }
+};
+/* Glitzerweide: Silberglitzer, der lange und tief herunterhaengt */
+EFF.glitzerweide=function(p,A,B,s){
+  const n=Math.round(170*s*QUAL()), g=FW.silber;
+  for(let i=0;i<n;i++){ const d=randDir(), v=rand(4.2,7.2)*s;
+    psBig.emit(p.x,p.y,p.z,d[0]*v,d[1]*v*0.8+1.8,d[2]*v,g[0],g[1],g[2],rand(4.4,6.0),4.2,4); }
+  for(let i=0;i<Math.round(34*s*QUAL());i++){ const d=randDir(), v=rand(6,8)*s;
+    psHuge.emit(p.x,p.y,p.z,d[0]*v,d[1]*v,d[2]*v,A[0],A[1],A[2],rand(1.2,1.7),2.4,0); }
+  later(1.4,()=>sfx.crackle(distVol(p)*0.5));
+};
+/* Kometen: wenige helle Koepfe mit langen Glitzerschweifen */
+EFF.komet=function(p,A,B,s){
+  const n=10+Math.floor(Math.random()*5);
+  for(let a=0;a<n;a++){
+    const d=randDir(), sp=rand(10,13)*s, c=a%3?A:B;
+    const vx=d[0]*sp, vy=d[1]*sp*0.8+2.5, vz=d[2]*sp;
+    psHuge.emit(p.x,p.y,p.z,vx,vy,vz,c[0],c[1],c[2],rand(2.2,2.8),3.2,0);
+    /* der Schweif: Funken entlang der Bahn, zeitlich versetzt */
+    for(let k=1;k<=7;k++) later(k*0.16,()=>{
+      const t=k*0.16, f=(1-Math.exp(-1.1*t))/1.1, fall=0.5*3.2*t*t*0.8;
+      const q={x:p.x+vx*f,y:p.y+vy*f-fall,z:p.z+vz*f};
+      for(let i=0;i<Math.round(6*QUAL());i++)
+        psMid.emit(q.x,q.y,q.z,rand(-.5,.5),rand(-1.2,0.2),rand(-.5,.5),1,.86,.5,rand(0.9,1.6),3.4,4);
+    });
+  }
+};
+/* Titan: riesiger Silberbrokat, dazu ein Knisterkranz und ein harter Schlag */
+EFF.titan=function(p,A,B,s){
+  const w=FW.silber, n=Math.round(260*s*QUAL());
+  for(let i=0;i<n;i++){ const d=randDir(), v=rand(9,13.5)*s;
+    psBig.emit(p.x,p.y,p.z,d[0]*v,d[1]*v,d[2]*v,w[0],w[1],w[2],rand(2.4,3.4),3.6,4); }
+  for(let i=0;i<Math.round(70*s*QUAL());i++){ const d=randDir(), v=rand(12,15)*s;
+    psHuge.emit(p.x,p.y,p.z,d[0]*v,d[1]*v,d[2]*v,A[0],A[1],A[2],rand(1.6,2.2),2.6,0); }
+  later(0.7,()=>{ for(let i=0;i<Math.round(180*s*QUAL());i++){ const d=randDir(), v=rand(3,7)*s;
+      psMid.emit(p.x+d[0]*6*s,p.y+d[1]*6*s-0.8,p.z+d[2]*6*s,d[0]*v*0.3,d[1]*v*0.3,d[2]*v*0.3,1,.95,.8,rand(0.4,0.9),2.4,3); }
+    sfx.crackle(distVol(p)); });
+  flash({x:p.x,y:p.y,z:p.z},FW.weiss,7*s,0.35);
+  const v=distVol(p); later(0.04,()=>sfx.boom(Math.min(1.6,v*1.4)));
+  shake=Math.max(shake,Math.min(1.2,0.7*v));
+};
+/* Zehnfachbruch: zehn Kugeln gleichzeitig im Kreis um die Mitte */
+EFF.zehnfach=function(p,A,B,s){
+  const [u,v]=basis(), r=6.5*s, F=[A,B,K('weiss'),K('zitrone'),K('magenta')];
+  for(let k=0;k<10;k++){
+    const a=k/10*Math.PI*2;
+    const q={x:p.x+(u[0]*Math.cos(a)+v[0]*Math.sin(a))*r,y:p.y+(u[1]*Math.cos(a)+v[1]*Math.sin(a))*r*0.7,z:p.z+(u[2]*Math.cos(a)+v[2]*Math.sin(a))*r};
+    const c=F[k%F.length];
+    const m=Math.round(70*s*QUAL());
+    for(let i=0;i<m;i++){ const d=randDir(), w=rand(4.2,5.4)*s;
+      psBig.emit(q.x,q.y,q.z,d[0]*w,d[1]*w,d[2]*w,c[0],c[1],c[2],rand(1.5,2.1),2.8,i%5?0:4); }
+  }
+  flash({x:p.x,y:p.y,z:p.z},FW.weiss,6*s,0.4);
+};
+/* Kaskade: der Bruch faellt in Stufen nach unten und zuendet jede nochmal */
+EFF.kaskade=function(p,A,B,s){
+  EFF.kugel(p,A,B,s*0.85);
+  for(let k=1;k<=4;k++) later(k*0.32,()=>{
+    const q={x:p.x+rand(-1,1),y:p.y-k*2.2*s,z:p.z+rand(-1,1)}, c=k%2?B:A;
+    for(let i=0;i<Math.round(60*s*QUAL());i++){ const d=randDir(), w=rand(4,6)*s*(1-k*0.1);
+      psBig.emit(q.x,q.y,q.z,d[0]*w,d[1]*w*0.5,d[2]*w,c[0],c[1],c[2],rand(1.2,1.7),3,4); }
+    sfx.crack(distVol(q)*0.8);
+  });
+};
 const EFF_ALL=Object.keys(EFF);
 /* Was in welcher Groessenklasse geschossen wird */
-const EFF_KLEIN=['kugel','ring','knister','fische','kreisel','wechsel','spinne','strobe'];
-const EFF_GROSS=['chrys','weide','palme','brokat','doppelring','crossette','dreifach','blink','dahlie','pistill','geist','saturn','blaetter'];
-const EFF_PRO=['kamuro','brokat','pistill','zeitregen','dahlie','geist','weide','palme','saturn','chrys'];
+const EFF_KLEIN=['kugel','ring','knister','fische','kreisel','wechsel','spinne','strobe','tausend','regenbogen'];
+const EFF_GROSS=['chrys','weide','palme','brokat','doppelring','crossette','dreifach','blink','dahlie','pistill','geist','saturn','blaetter','mehrring','komet','kaskade','glitzerweide'];
+const EFF_PRO=['kamuro','brokat','pistill','zeitregen','dahlie','geist','weide','palme','saturn','chrys','mehrring','komet','glitzerweide','titan'];
 
 /* =========================================================
    Raketen
@@ -415,60 +516,91 @@ function shot(o,opt){
   /* ab: Hoehe ueber dem Ursprung, jit: seitliche Streuung. Aus einem
      Rohr oder einer Batterie kommt der Schuss genau dort heraus. */
   const jit=o.jit!==undefined?o.jit:0.35, ab=o.ab!==undefined?o.ab:0.4;
+  const start=V(o.x+rand(-jit,jit),o.y!==undefined?o.y+ab:1,o.z+rand(-jit,jit));
+  /* Muendungsfeuer: ein kurzer Funkenstoss aus dem Rohr */
+  for(let i=0;i<Math.round((10+(opt.dick||0)*14)*QUAL());i++){
+    const a=Math.random()*Math.PI*2, w=rand(0.3,1.6);
+    psMid.emit(start.x,start.y,start.z,Math.cos(a)*w,rand(1.5,5),Math.sin(a)*w,1,.72,.3,rand(0.25,0.55),5,4); }
   rockets.push({
-    p:V(o.x+rand(-jit,jit),o.y!==undefined?o.y+ab:1,o.z+rand(-jit,jit)),
+    p:start,
     v:V(Math.sin(dir)*Math.sin(ang)*up,Math.cos(ang)*up,Math.cos(dir)*Math.sin(ang)*up),
     fuse:opt.fuse||rand(1.05,1.35),
     A:sc[0],B:sc[1],eff:opt.eff||pick(EFF_GROSS),size:opt.sz||1,
     trail:opt.trail||(Math.random()<0.25?FW.silber:FW.gold),
     /* Nachbrueche: Tochterbomben, die nach dem Hauptbruch aufgehen */
-    stufen:opt.stufen||null, dick:opt.dick||0
+    stufen:opt.stufen||null, dick:opt.dick||0,
+    /* pfeif: die Rakete zieht eine Spirale und heult beim Steigen */
+    pfeif:!!opt.pfeif, ph:Math.random()*6
   });
   sfx.thump(distVol(o)*(1+(opt.dick||0)*0.5));
-  if(Math.random()<0.45) sfx.whistle(distVol(o)*0.7);
+  if(opt.pfeif) sfx.whistle(distVol(o));
+  else if(Math.random()<0.45) sfx.whistle(distVol(o)*0.7);
 }
 /* =========================================================
    Kugelbombe: schwerer Aufstieg aus dem Moerser, oben ein
-   grosser Hauptbruch und danach mehrere Tochterbrueche.
-   kal ist der Kaliber-Faktor: 1 = 75 mm, 2 = 100 mm, 3 = 150 mm.
+   grosser Hauptbruch und danach die Tochterbrueche.
+   kal ist der Kaliber-Faktor: 1 = 75 mm, 2 = 100 mm,
+   3 = 150 mm, 4 = 200 mm (zehn Brueche auf einmal).
    ========================================================= */
+/* Punkte auf einem Ring um den Hauptbruch, leicht gekippt */
+function ringLage(n,r,kipp){
+  const [u,v]=basis(), out=[];
+  for(let k=0;k<n;k++){ const a=k/n*Math.PI*2+rand(-0.08,0.08);
+    out.push([(u[0]*Math.cos(a)+v[0]*Math.sin(a))*r,(u[1]*Math.cos(a)+v[1]*Math.sin(a))*r*(kipp||0.6),(u[2]*Math.cos(a)+v[2]*Math.sin(a))*r]); }
+  return out;
+}
 function kugelbombe(o,kal,opt){
   opt=opt||{};
-  const K3=Math.max(1,Math.min(3,kal|0));
+  const K4=Math.max(1,Math.min(4,kal|0));
   const [A,B]=opt.A?[opt.A,opt.B||opt.A]:scheme();
-  const groesse=[1.25,1.6,2.15][K3-1];
-  const steig=[4,7,10][K3-1];
-  const zuend=[1.55,1.85,2.15][K3-1];
+  const groesse=[1.25,1.6,2.0,2.3][K4-1];
+  /* Bruchhoehe etwa 20, 24, 27 und 30 m: hoch genug fuer die grossen
+     Kugeln, aber vom Zuendpult aus noch im Bild */
+  const steig=[1,3,4,5][K4-1];
+  const zuend=[1.4,1.6,1.8,1.95][K4-1];
   /* Abschussknall und Muendungsfeuer im Rohr */
   const v0=distVol(o);
-  sfx.boom(Math.min(1.3,v0*(0.55+0.2*K3)));
-  shake=Math.max(shake,Math.min(1.0,0.22*K3)*v0);
-  flash({x:o.x,y:o.y+0.4,z:o.z},FW.bernstein,2.4+K3,0.28);
-  for(let i=0;i<Math.round(60*K3*QUAL());i++){
+  sfx.boom(Math.min(1.5,v0*(0.55+0.2*K4)));
+  shake=Math.max(shake,Math.min(1.2,0.22*K4)*v0);
+  flash({x:o.x,y:o.y+0.4,z:o.z},FW.bernstein,2.4+K4,0.28);
+  for(let i=0;i<Math.round(60*K4*QUAL());i++){
     const a=Math.random()*Math.PI*2, w=rand(0.4,2.4);
     psMid.emit(o.x,o.y+(o.ab!==undefined?o.ab:0.3),o.z,Math.cos(a)*w,rand(5,13),Math.sin(a)*w,1,.78,.34,rand(0.5,1.2),7,4);
   }
-  /* Hauptbruch und die Nachbrueche als Stufen */
-  const haupt=opt.eff||pick(EFF_PRO);
+  const haupt=opt.eff||pick(K4>=3?['mehrring','pistill','dahlie','geist','kamuro','titan']:EFF_PRO);
+  const C=K(pick(['weiss','zitrone','tuerkis','magenta','limette']));
   const stufen=[];
-  if(K3>=2){
-    /* Tochterbomben: mehrere kleinere Brueche rund um den Hauptbruch */
-    const n=K3===2?3:6;
-    for(let i=0;i<n;i++) stufen.push({
-      t:0.45+i*rand(0.12,0.26),
-      eff:pick(K3===2?['kugel','pistill','knister','spinne']:['kugel','pistill','knister','spinne','strobe','fische','crossette']),
-      sz:groesse*rand(0.34,0.5),
-      streu:5+K3*2.2,
-      A:i%2?B:A, B:i%2?A:B
-    });
+  if(K4===2){
+    /* 100 mm: vier Tochterbrueche im Kreis, kurz nacheinander */
+    ringLage(4,6.5).forEach((off,i)=>stufen.push({t:0.5+i*0.16,off,
+      eff:pick(['kugel','pistill','knister','spinne','regenbogen']),sz:groesse*0.42,A:i%2?B:A,B:i%2?A:B}));
   }
-  if(K3===3){
-    /* und ganz zum Schluss noch einmal richtig gross */
-    stufen.push({t:1.55,eff:pick(['kamuro','brokat','zeitregen']),sz:groesse*0.95,streu:3,A,B});
-    stufen.push({t:1.62,eff:'salut',sz:0.9,streu:6,A:FW.weiss,B:FW.weiss});
+  if(K4===3){
+    /* 150 mm: sechs Tochterbrueche auf einmal im Ring, dann eine
+       zweite Welle, zum Schluss die grosse Glocke mit Schlag */
+    ringLage(6,8).forEach((off,i)=>stufen.push({t:0.55,off,leise:i>0,
+      eff:pick(['kugel','pistill','knister','strobe','crossette']),sz:groesse*0.4,A:i%2?B:A,B:i%2?A:B}));
+    ringLage(4,5,1).forEach((off,i)=>stufen.push({t:1.05+i*0.08,off,leise:i>0,
+      eff:pick(['tausend','fische','spinne']),sz:groesse*0.36,A:C,B:A}));
+    stufen.push({t:1.6,eff:pick(['kamuro','brokat','zeitregen','glitzerweide']),sz:groesse*0.9,streu:2,A,B});
+    stufen.push({t:1.68,eff:'salut',sz:0.9,streu:5,A:FW.weiss,B:FW.weiss});
+  }
+  if(K4===4){
+    /* 200 mm Goetterzorn: zehn Brueche gleichzeitig im Ring, dann
+       zehn weitere versetzt darueber, eine Knisterwolke und zum
+       Schluss Goldglocke und Salut */
+    const F=[A,B,C,FW.weiss,FW.gold];
+    ringLage(10,10).forEach((off,i)=>stufen.push({t:0.5,off,leise:i>0,
+      eff:pick(['kugel','pistill','wechsel','regenbogen','strobe']),sz:groesse*0.36,A:F[i%5],B:F[(i+2)%5]}));
+    ringLage(10,6,1.2).forEach((off,i)=>stufen.push({t:1.05,off,leise:i>0,
+      eff:pick(['knister','tausend','spinne','kreisel']),sz:groesse*0.32,A:F[(i+1)%5],B:F[(i+3)%5]}));
+    stufen.push({t:1.7,eff:'tausend',sz:groesse*0.8,streu:1,A:FW.weiss,B:FW.weiss});
+    stufen.push({t:2.3,eff:pick(['kamuro','glitzerweide','brokat']),sz:groesse*0.95,streu:2,A,B});
+    stufen.push({t:2.36,eff:'salut',sz:1.0,streu:4,A:FW.weiss,B:FW.weiss});
+    stufen.push({t:2.5,eff:'salut',sz:0.9,streu:6,A:FW.weiss,B:FW.weiss});
   }
   shot(o,{pw:steig,sz:groesse,eff:haupt,fuse:zuend,A,B,
-          trail:K3===3?FW.weiss:FW.gold,dick:K3,stufen});
+          trail:K4>=3?FW.weiss:FW.gold,dick:Math.min(3,K4),stufen});
 }
 /* Bodeneffekt: Mine, die beim Start eine Fontäne wirft */
 function mine(o,A,B,s){
@@ -481,6 +613,9 @@ function mine(o,A,B,s){
 function fwBurst(r){
   const p=r.p, fn=EFF[r.eff]||EFF.kugel;
   fn(p,r.A,r.B,r.size);
+  kern(p,r.A,r.size);
+  /* Grosse Brueche glitzern kurz nach dem Aufgehen noch einmal nach */
+  if(r.size>=1.1&&r.eff!=='salut'&&r.eff!=='furz') later(0.75,()=>nachglitzer(p,r.size));
   /* Wer ein Bruchbild einmal gesehen hat, darf es spaeter selbst verbauen */
   if(typeof bruchGesehen==='function') bruchGesehen(r.eff);
   const mix=[(r.A[0]+r.B[0])/2,(r.A[1]+r.B[1])/2,(r.A[2]+r.B[2])/2];
@@ -489,15 +624,30 @@ function fwBurst(r){
   if(r.eff!=='salut') shellSound(p,r.size);
   /* Nachbrueche der Kugelbombe */
   if(r.stufen) for(const st of r.stufen){
-    const q={x:p.x+rand(-st.streu,st.streu),y:p.y+rand(-st.streu*0.55,st.streu*0.55),z:p.z+rand(-st.streu,st.streu)};
+    /* off: feste Lage relativ zum Hauptbruch (Ring), sonst gestreut */
+    const q=st.off?{x:p.x+st.off[0],y:p.y+st.off[1],z:p.z+st.off[2]}
+                  :{x:p.x+rand(-st.streu,st.streu),y:p.y+rand(-st.streu*0.55,st.streu*0.55),z:p.z+rand(-st.streu,st.streu)};
     later(st.t,()=>{
       (EFF[st.eff]||EFF.kugel)(q,st.A||r.A,st.B||r.B,st.sz);
-      if(st.eff!=='salut'){
+      if(!st.leise) kern(q,st.A||r.A,st.sz);
+      if(st.eff!=='salut'&&!st.leise){
         flash(q,st.A||mix,1.6+2.2*st.sz,0.5);
         shellSound(q,st.sz);
       }
     });
   }
+}
+/* Kern: der grelle Lichtball im Moment des Zerlegens */
+function kern(p,A,s){
+  for(let i=0;i<3;i++) psHuge.emit(p.x,p.y,p.z,0,0,0,1,1,1,0.10+i*0.05,0,0);
+  for(let i=0;i<4;i++) psHuge.emit(p.x,p.y,p.z,rand(-.4,.4),rand(-.4,.4),rand(-.4,.4),
+    0.5+A[0]*0.5,0.5+A[1]*0.5,0.5+A[2]*0.5,rand(0.18,0.28),0,0);
+}
+/* Nachglitzer: feiner Glitzerschleier dort, wo die Sterne gerade stehen */
+function nachglitzer(p,s){
+  const n=Math.round(90*s*QUAL()), r=6.2*s;
+  for(let i=0;i<n;i++){ const d=randDir(), f=rand(0.55,1.05);
+    psMid.emit(p.x+d[0]*r*f,p.y+d[1]*r*f-0.9,p.z+d[2]*r*f,rand(-.2,.2),rand(-.8,0),rand(-.2,.2),1,.93,.75,rand(0.5,1.1),1.2,4); }
 }
 function smallPop(x,y,z,n,s,life,A){
   const c=A||[1,.85,.45];
@@ -513,6 +663,8 @@ function updateFireworks(dt){
   for(let i=rockets.length-1;i>=0;i--){ const r=rockets[i];
     r.v.y-=6*dt; r.p.addScaledVector(r.v,dt); r.fuse-=dt;
     const tc=r.trail, dick=r.dick||0;
+    if(r.pfeif){ r.ph+=dt*16; const sx=Math.cos(r.ph)*0.35, sz=Math.sin(r.ph)*0.35;
+      for(let k=0;k<3;k++) psMid.emit(r.p.x+sx,r.p.y,r.p.z+sz,sx*2,rand(-1.5,0),sz*2,tc[0],tc[1],tc[2],rand(0.4,0.7),1,4); }
     for(let k=0;k<2+dick*3;k++) psBig.emit(r.p.x,r.p.y,r.p.z,rand(-.5,.5)*(1+dick*0.4),rand(-2,0),rand(-.5,.5)*(1+dick*0.4),tc[0],tc[1]*rand(0.8,1),tc[2]*0.9,0.34+dick*0.16,1,4);
     /* Kugelbomben ziehen zusaetzlich glimmende Schlacke hinter sich her */
     if(dick) for(let k=0;k<dick;k++)

@@ -4801,7 +4801,7 @@ function testfeldSperre(){
   const Z='testfeld', a=4.4, b=6.1, z=-6.0, hoch=[0.5,1.0,1.5];
   const rot=std(0xcc2118,{roughness:0.6});
   const halt=std(0x3d4450,{metalness:0.5,roughness:0.5});
-  for(const y of hoch) zWand(Z,bbox(b-a-0.06,0.07,0.012,rot,(a+b)/2,y,z,null,false));
+  for(const y of hoch){ const m=bbox(b-a-0.06,0.07,0.012,rot,(a+b)/2,y,z,null,false); m.userData.sperrband=true; zWand(Z,m); }
   for(const x of [a+0.03,b-0.03]) zWand(Z,bbox(0.05,1.72,0.05,halt,x,0.86,z,null,false));
   zWandCol(Z,col(a,b,z-0.14,z+0.14));
   const h=bbox(b-a-0.1,2.0,0.34,hitM,(a+b)/2,1.0,z,null,false);

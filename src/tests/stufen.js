@@ -44,11 +44,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     /* Steht das rote Band noch? */
     window.__band=()=>{
       let n=0;
-      bb.scene.traverse(o=>{ if(!o.isMesh||!o.visible) return;
-        const m=o.material; if(!m||!m.color) return;
-        const c=m.color.getHexString();
-        const bx=new THREE.Box3().setFromObject(o);
-        if(bx.min.x>4.2&&bx.max.x<6.3&&bx.min.z>-6.3&&bx.max.z<-5.7&&/^(c|d)/.test(c)&&bx.max.y<2) n++; });
+      bb.scene.traverse(o=>{ if(o.isMesh&&o.visible&&o.userData&&o.userData.sperrband) n++; });
       return n;
     };
   });
@@ -77,8 +73,11 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   /* --- Einrichtung steht in der Starthaelfte --- */
   const moebel=await p.evaluate(()=>{
     const bb=window.__bb, o={};
-    const k=bb.ck(0,0); o.kasse=[+k.x.toFixed(2),+k.z.toFixed(2)];
-    let lap=null; bb.scene.traverse(q=>{ if(q.userData&&q.userData.kind==='laptop'){
+    let k=null, lap=null;
+    bb.scene.traverse(q=>{ if(q.userData&&q.userData.kind==='pos'){
+      const w=new THREE.Vector3(); q.getWorldPosition(w); k=[+w.x.toFixed(2),+w.z.toFixed(2)]; } });
+    o.kasse=k;
+    bb.scene.traverse(q=>{ if(q.userData&&q.userData.kind==='laptop'){
       const w=new THREE.Vector3(); q.getWorldPosition(w); lap=[+w.x.toFixed(2),+w.z.toFixed(2)]; } });
     o.laptop=lap;
     o.slotsOffen=bb.slotsOffen().length;

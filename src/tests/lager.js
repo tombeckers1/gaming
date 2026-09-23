@@ -35,13 +35,18 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   },{von,nach});
 
   const RAMPE=[-14.0,-1.0];
-  let r=await lauf(RAMPE,[-14.0,4.2]);
-  sag(`Anbau Nord ab Level 1 begehbar (bis ${r.x}/${r.z})`,r.an);
-  r=await lauf(RAMPE,[-14.0,-9.0]);
-  sag(`Halle Sued I vor dem Kauf zu (bis ${r.x}/${r.z})`,!r.an);
-
   const kauf=id=>p.evaluate(i=>{ const bb=window.__bb; bb.S.level=99; bb.S.money=5e6; bb.testKauf(i);
     return !!bb.S.up[i]; },id);
+
+  /* Der Nordteil liegt hinter einer Trennwand und wird gekauft. */
+  let r=await lauf(RAMPE,[-14.0,4.2]);
+  sag(`Lager Nord vor dem Kauf zu (bis ${r.x}/${r.z})`,!r.an);
+  sag('Lager Nord gekauft',await kauf('lager_nord'));
+  r=await lauf(RAMPE,[-14.0,4.2]);
+  sag(`Lager Nord begehbar (bis ${r.x}/${r.z})`,r.an);
+
+  r=await lauf(RAMPE,[-14.0,-9.0]);
+  sag(`Halle Sued I vor dem Kauf zu (bis ${r.x}/${r.z})`,!r.an);
   sag('Halle Sued I gekauft',await kauf('lager_gross'));
   r=await lauf(RAMPE,[-14.0,-9.0]);
   sag(`Halle Sued I begehbar (bis ${r.x}/${r.z})`,r.an);

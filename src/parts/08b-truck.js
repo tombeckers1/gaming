@@ -236,15 +236,16 @@ function makeBruecke(){
 function setFlap(){
   if(truck&&truck.bruecke) truck.bruecke.rotation.z=truck.flap*FLAP_MAX;
 }
-function dockTruck(){
+/* Aussenmodell gegen den begehbaren Laderaum tauschen. Das
+   passiert, sobald das Tor anfaengt hochzufahren - sonst schaut
+   man durch das oeffnende Tor auf die geschlossene Rueckwand des
+   Kastens, eine graue Flaeche, die auf einen zukommt. */
+function oeffneLaderaum(){
+  if(!truck||truck.raum) return;
   truck.g.position.x=LR.rear;
-  truck.state='docked';
-  statAdd('lkw',1);          /* eine Lieferung ist angekommen */
-  /* Der geschlossene Kasten des Aussenmodells steht sonst genau im Tor
-     und verdeckt den begehbaren Laderaum. */
   truck.g.visible=false;
   truck.raum=makeLaderaum(truck.name||'Lieferung',truck.col);
-  truck.flap=0; truck.bruecke=makeBruecke();
+  truck.flap=0; truck.bruecke=makeBruecke(); setFlap();
   fillCargo();
   /* Der Laderaum wird begehbar: Seitenwände und Stirnwand begrenzen */
   truck.cols=[
@@ -252,13 +253,18 @@ function dockTruck(){
     col(lrFront()-0.3,LR.rear+0.2,LR.z+LR.w/2-0.02,LR.z+LR.w/2+0.2),
     col(lrFront()-0.25,lrFront()-0.02,LR.z-LR.w/2,LR.z+LR.w/2)
   ];
-  S.tut.lkw=true;
-  toast('Tor fährt hoch. Geh in den Laderaum und hol die Kartons.',COARSE?'':'xp');
   if(!truckDriver){
     truckDriver=makePerson({jacket:0xf2a01c,cap:0xf2a01c});
     truckDriver.position.set(lrFront()-2.2,0,LR.z+2.2);
     truckDriver.rotation.y=-1.1; scene.add(truckDriver);
   }
+}
+function dockTruck(){
+  oeffneLaderaum();
+  truck.state='docked';
+  statAdd('lkw',1);          /* eine Lieferung ist angekommen */
+  S.tut.lkw=true;
+  toast('Der Laderaum ist offen. Hol die Kartons heraus.',COARSE?'':'xp');
 }
 /* Steht noch jemand im Laderaum? */
 function trailerOccupied(){
@@ -355,7 +361,8 @@ function updateTruck(dt){
     g.position.x+=sp*dt;
     if(d<=0.03){
       g.position.x=LR.rear; truck.state='torauf';
-      doorOpen(true); toast('Der Fahrer steht an der Rampe. Das Tor fährt hoch.');
+      doorOpen(true); oeffneLaderaum();
+      toast('Der Fahrer steht an der Rampe. Das Tor fährt hoch.');
     }
   } else if(truck.state==='torauf'){
     /* Der LKW steht schon; sobald das Tor oben ist, geht die
@@ -375,14 +382,17 @@ function updateTruck(dt){
     truck.flap=Math.min(1,truck.flap+dt/FLAP_T); setFlap();
     if(truck.flap>=0.6&&!truck.flapCol) truck.flapCol=col(-20.26,-20.0,LR.z-1.6,LR.z+1.6);
     if(truck.flap>=1){
-      /* Hinter der hochgeklappten Bordwand wird der begehbare Laderaum
-         gegen das Aussenmodell getauscht. Danach faehrt erst das Tor
-         zu und dann der LKW weg - nicht umgekehrt. */
-      clearRaum(); g.visible=true;
+      /* Erst faehrt das Tor zu, dann der LKW weg. Der Laderaum
+         bleibt so lange stehen: wird er schon jetzt gegen das
+         Aussenmodell getauscht, steht im zufahrenden Tor wieder
+         die graue Rueckwand des Kastens. */
       truck.state='torzu'; truck.t=0; doorOpen(false);
     }
   } else if(truck.state==='torzu'){
-    if(!door||door.t<=0.05){ truck.state='out'; truck.t=0; }
+    if(!door||door.t<=0.05){
+      clearRaum(); g.visible=true;
+      truck.state='out'; truck.t=0;
+    }
   } else if(truck.state==='out'){
     truck.t+=dt;
     g.position.x-=Math.min(7,truck.t*5)*dt;

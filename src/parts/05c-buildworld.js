@@ -106,7 +106,10 @@ function buildWorld(){
   /* Die Wand zwischen Verkauf und Lager reicht bis zur Lagerdecke -
      im Verkauf steht sie oberhalb der Decke und ist dort nicht zu
      sehen, im Lager schliesst sie sauber ab. */
-  wall(-8.1,-7.9,-6.1,-3.2,0,LAGER_H,'+x',shopWall,lagerWall); wall(-8.1,-7.9,-1.8,2,0,LAGER_H,'+x',shopWall,lagerWall); wall(-8.1,-7.9,2,6.1,0,LAGER_H,'+x',shopWall,lagerWall);
+  /* In einem Stueck von der Tueroeffnung bis zur Nordwand. Vorher
+     stiess hier bei z=2 ein zweites Wandstueck an, und an der
+     Stossstelle stand eine senkrechte Naht in der Wand. */
+  wall(-8.1,-7.9,-6.1,-3.2,0,LAGER_H,'+x',shopWall,lagerWall); wall(-8.1,-7.9,-1.8,6.1,0,LAGER_H,'+x',shopWall,lagerWall);
   wall(-8.1,-7.9,-3.2,-1.8,2.5,LAGER_H,'+x',shopWall,lagerWall);
   // Lager. Es ist hoeher als der Verkauf: LAGER_H statt H.
   wall(-20.1,-19.9,-6.1,-3.6,0,LAGER_H,'+x',lagerWall); wall(-20.1,-19.9,-0.4,5.9,0,LAGER_H,'+x',lagerWall); wall(-20.1,-19.9,-3.6,-0.4,3.0,LAGER_H,'+x',lagerWall);
@@ -235,7 +238,7 @@ function buildWorld(){
   zWandCol('shop_gross',col(7.9,20.0,-6.1,6.1));
   col(-8,-1.2,5.9,6.1); col(1.2,8,5.9,6.1); col(-8,4.4,-6.1,-5.9); col(6.1,8,-6.1,-5.9);
   col(-8.1,-7.9,-6.1,-3.2); col(-8.1,-7.9,-1.8,6.1);
-  col(-20.1,-19.9,-6.1,-3.6); col(-20.1,-19.9,-0.4,2.1);
+  col(-20.1,-19.9,-6.1,-3.6); col(-20.1,-19.9,-0.4,5.9);
 
   buildDock();
 }

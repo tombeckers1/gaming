@@ -557,10 +557,12 @@ function buildAusbau(){
      Am Anfang gehoert nur der Raum am Rolltor dazu. Der Nordteil
      liegt dahinter und wird als erste Ausbaustufe gekauft; die
      Wand faellt dann ganz, damit ein Raum entsteht. */
-  /* Der Nordteil des Lagers bekommt weder eigenen Boden noch eigene
-     Decke: beides zieht 05c in einem Stueck ueber das ganze
-     Basislager. Nur die Aussenwaende kommen von hier. */
-  halle(null,LAY.lnord,{art:'lager',aussen:{n:true,w:true},ao:{},h:LAGER_H,keinDach:true,keinDeck:true,keinBoden:true});
+  /* Boden, Decke und Westwand zieht 05c in einem Stueck ueber das
+     ganze Basislager; von hier kommt nur noch die Nordwand.
+     Vorher stand auch die Westwand doppelt - zwei Flaechen genau
+     aufeinander, die gegeneinander flimmerten und an der
+     Stossstelle eine senkrechte Naht hinterliessen. */
+  halle(null,LAY.lnord,{art:'lager',aussen:{n:true},ao:{},h:LAGER_H,keinDach:true,keinDeck:true,keinBoden:true});
   /* Die Halle Sued in drei Abschnitten. Alle drei sind gleich
      hoch, damit zwischen ihnen keine Wand stehen bleiben muss. */
   halle('lager_gross',LAY.ls1,{art:'lager',ao:{w:true,e:true},h:HALLE_H});

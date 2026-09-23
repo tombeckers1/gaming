@@ -40,7 +40,17 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     r.nachAnfahrt=bb.truck.state;
     r.stehtAnDerRampe=Math.abs(bb.truck.g.position.x-bb.LR.rear)<0.05;
     /* Phase 2: Tor hoch, dann andocken */
-    g=0; while(bb.truck&&bb.truck.state==='torauf'&&g++<2000) bb.updateTruck(0.05);
+    /* Waehrend das Tor hochfaehrt, darf die geschlossene Rueckwand
+       des Kastens nicht im Tor stehen - man soll gleich in den
+       offenen Laderaum sehen. */
+    let kastenAuf=false, raumAuf=true;
+    g=0; while(bb.truck&&bb.truck.state==='torauf'&&g++<2000){
+      bb.updateTruck(0.05);
+      if(bb.truck&&bb.truck.g.visible) kastenAuf=true;
+      if(bb.truck&&!bb.truck.raum) raumAuf=false;
+    }
+    r.kastenBeimOeffnen=kastenAuf;
+    r.raumBeimOeffnen=raumAuf;
     r.nachTorauf=bb.truck.state;
     r.torOffen=bb.doorIsOpen();
     r.laderaum=!!bb.truck.raum;
@@ -53,10 +63,16 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     /* Phase 4: Tor zu - der LKW darf sich dabei nicht bewegen */
     const xZu=bb.truck?bb.truck.g.position.x:0;
     let bewegt=false;
+    let kastenZu=false;
     g=0; while(bb.truck&&bb.truck.state==='torzu'&&g++<3000){
       bb.updateTruck(0.05);
       if(bb.truck&&Math.abs(bb.truck.g.position.x-xZu)>0.02) bewegt=true;
+      /* Solange das Tor noch offen steht, darf der Kasten nicht da
+         sein. Gemessen wird nach dem Schritt: im selben Schritt,
+         in dem das Tor unten ankommt, wird getauscht. */
+      if(bb.truck&&bb.truck.g.visible&&bb.door.t>0.05) kastenZu=true;
     }
+    r.kastenBeimSchliessen=kastenZu;
     r.stehtStillBisTorZu=!bewegt;
     r.torZuVorAbfahrt=bb.truck?bb.door.t<=0.05:null;
     r.nachTorzu=bb.truck?bb.truck.state:'weg';
@@ -73,11 +89,14 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   sag('das Tor bleibt beim Anfahren zu',o.torBliebZuBeimAnfahren===true);
   sag(`danach wartet er aufs Tor (${o.nachAnfahrt})`,o.nachAnfahrt==='torauf');
   sag('er steht an der Rampe',o.stehtAnDerRampe===true);
+  sag('kein geschlossener Kasten im auffahrenden Tor',o.kastenBeimOeffnen===false);
+  sag('der Laderaum steht schon, waehrend das Tor hochfaehrt',o.raumBeimOeffnen===true);
   sag(`Tor offen, dann angedockt (${o.nachTorauf})`,o.nachTorauf==='docked'&&o.torOffen===true);
   sag('Laderaum ist begehbar',o.laderaum===true);
   sag(`nach dem Ausladen geht die Klappe hoch (${o.nachDocked})`,o.nachDocked==='flap');
   sag(`danach faehrt erst das Tor zu (${o.nachKlappe})`,o.nachKlappe==='torzu');
   sag('der LKW steht still, bis das Tor zu ist',o.stehtStillBisTorZu===true);
+  sag('kein geschlossener Kasten im zufahrenden Tor',o.kastenBeimSchliessen===false);
   sag('das Tor ist zu, bevor er losfaehrt',o.torZuVorAbfahrt===true);
   sag(`dann faehrt er weg (${o.nachTorzu})`,o.nachTorzu==='out');
   sag('am Ende ist er weg',o.amEnde==='weg');

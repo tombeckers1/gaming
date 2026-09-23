@@ -78,6 +78,7 @@ function basis(){
   return [u,v];
 }
 const QUAL=()=>COARSE?0.55:1;
+const STEIG=0.8;
 
 /* =========================================================
    Bruchbilder
@@ -92,6 +93,10 @@ function flash(p,c,power,dur){
   let f=FLASH[0]; for(const x of FLASH){ if(x.t<=0){ f=x; break; } if(x.t<f.t) f=x; }
   f.l.position.set(p.x,p.y,p.z);
   f.l.color.setRGB(clamp(c[0]+0.15,0,1),clamp(c[1]+0.15,0,1),clamp(c[2]+0.15,0,1));
+  /* Brennen mehrere Blitze zugleich, teilen sie sich die Helligkeit.
+     Bei elf gleichzeitigen Zuendungen war der Boden sonst reinweiss. */
+  let aktiv=0; for(const x of FLASH) if(x.t>0) aktiv++;
+  power*=aktiv>=3?0.45:aktiv>=2?0.62:aktiv>=1?0.8:1;
   f.max=power; f.d=dur||0.6; f.t=f.d; f.l.visible=true; f.l.intensity=power;
 }
 function updateFlash(dt){
@@ -401,10 +406,17 @@ const EFF_PRO=['kamuro','brokat','pistill','zeitregen','dahlie','geist','weide',
 function shot(o,opt){
   opt=opt||{}; o=o||PAD;
   const ang=opt.ang||0, dir=opt.dir===undefined?rand(0,Math.PI*2):opt.dir;
-  const up=(opt.pw||0)+rand(19,23);
+  /* Spielmassstab: die Brueche liegen bei gut 15 m statt 21 m. Vom
+     Zuendpult aus - sieben bis zwoelf Meter vor den Stationen - lagen
+     sie sonst so steil ueber einem, dass man sie beim Zuenden nicht
+     im Bild hatte. */
+  const up=((opt.pw||0)+rand(19,23))*STEIG;
   const sc=opt.A?[opt.A,opt.B||opt.A]:scheme(opt.sc);
+  /* ab: Hoehe ueber dem Ursprung, jit: seitliche Streuung. Aus einem
+     Rohr oder einer Batterie kommt der Schuss genau dort heraus. */
+  const jit=o.jit!==undefined?o.jit:0.35, ab=o.ab!==undefined?o.ab:0.4;
   rockets.push({
-    p:V(o.x+rand(-.35,.35),o.y!==undefined?o.y+0.4:1,o.z+rand(-.35,.35)),
+    p:V(o.x+rand(-jit,jit),o.y!==undefined?o.y+ab:1,o.z+rand(-jit,jit)),
     v:V(Math.sin(dir)*Math.sin(ang)*up,Math.cos(ang)*up,Math.cos(dir)*Math.sin(ang)*up),
     fuse:opt.fuse||rand(1.05,1.35),
     A:sc[0],B:sc[1],eff:opt.eff||pick(EFF_GROSS),size:opt.sz||1,
@@ -434,7 +446,7 @@ function kugelbombe(o,kal,opt){
   flash({x:o.x,y:o.y+0.4,z:o.z},FW.bernstein,2.4+K3,0.28);
   for(let i=0;i<Math.round(60*K3*QUAL());i++){
     const a=Math.random()*Math.PI*2, w=rand(0.4,2.4);
-    psMid.emit(o.x,o.y+0.3,o.z,Math.cos(a)*w,rand(5,13),Math.sin(a)*w,1,.78,.34,rand(0.5,1.2),7,4);
+    psMid.emit(o.x,o.y+(o.ab!==undefined?o.ab:0.3),o.z,Math.cos(a)*w,rand(5,13),Math.sin(a)*w,1,.78,.34,rand(0.5,1.2),7,4);
   }
   /* Hauptbruch und die Nachbrueche als Stufen */
   const haupt=opt.eff||pick(EFF_PRO);
@@ -460,9 +472,9 @@ function kugelbombe(o,kal,opt){
 }
 /* Bodeneffekt: Mine, die beim Start eine Fontäne wirft */
 function mine(o,A,B,s){
-  const n=Math.round(90*(s||1)*QUAL());
+  const n=Math.round(90*(s||1)*QUAL()), y0=o.y!==undefined?o.y:0.3;
   for(let i=0;i<n;i++){ const a=Math.random()*Math.PI*2, w=rand(0.5,3.2), c=i%3?A:B;
-    psMid.emit(o.x+rand(-.2,.2),0.3,o.z+rand(-.2,.2),Math.cos(a)*w,rand(9,16),Math.sin(a)*w,c[0],c[1],c[2],rand(1.1,1.9),6.5,4); }
+    psMid.emit(o.x+rand(-.08,.08),y0,o.z+rand(-.08,.08),Math.cos(a)*w,rand(9,16),Math.sin(a)*w,c[0],c[1],c[2],rand(1.1,1.9),6.5,4); }
   flash({x:o.x,y:1.6,z:o.z},A,2.0,0.5);
   sfx.thump(distVol(o)*1.2);
 }
@@ -518,10 +530,6 @@ function updateFireworks(dt){
       for(let k=0;k<9;k++){ const a=Math.random()*Math.PI*2, sp=rand(0.2,1.3);
         const c=k%4?FW.braun:FW.sumpf;
         psMid.emit(o.x,o.y+0.25,o.z,Math.cos(a)*sp,rand(2.5,5.5),Math.sin(a)*sp,c[0],c[1],c[2],rand(1.2,2.2),-0.2); } }
-    else if(e.k==='stink'){
-      for(let k=0;k<6;k++){ const a=Math.random()*Math.PI*2, sp=rand(0.2,1.6);
-        const c=k%3?FW.sumpf:FW.braun;
-        psMid.emit(o.x+rand(-.5,.5),0.18,o.z+rand(-.5,.5),Math.cos(a)*sp,rand(0.3,1.4),Math.sin(a)*sp,c[0],c[1],c[2],rand(2.0,3.4),-0.5); } }
     else if(e.k==='spark'){
       for(let k=0;k<7;k++){ const d=randDir(), s=rand(1,2.4);
         psSmall.emit(o.x,o.y+0.3,o.z,d[0]*s,d[1]*s+0.4,d[2]*s,1,rand(0.8,1),rand(0.45,0.85),rand(0.25,0.55),4,3); } }

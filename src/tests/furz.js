@@ -18,9 +18,9 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   const r=await p.evaluate(()=>{
     const bb=window.__bb,o={};
     bb.S.level=30; bb.S.money=200000; bb.LIZENZEN.forEach(l=>bb.buyLizenz(l.id));
-    o.imSortiment=['furzrakete','heuler','stinkbombe'].map(t=>!!(bb.P[t]&&bb.hatLizenz(bb.lizenzOf(t))));
+    o.imSortiment=['furzrakete','heuler'].map(t=>!!(bb.P[t]&&bb.hatLizenz(bb.lizenzOf(t))));
     o.paket=bb.lizenzOf('furzrakete');
-    o.station=['furzrakete','heuler','stinkbombe'].map(t=>bb.P[t].shape);
+    o.station=['furzrakete','heuler'].map(t=>bb.P[t].shape);
     const leben=()=>{ let n=0; for(const ps of [bb.psHuge,bb.psBig,bb.psMid,bb.psSmall]) for(let i=0;i<ps.life.length;i++) if(ps.life[i]>0) n++; return n; };
     /* Furzrakete: Steigflug, dann die Wolke */
     bb.igniteType('furzrakete');
@@ -37,9 +37,8 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     /* Heuler */
     const v1=leben(); bb.igniteType('heuler'); bb.run(2.0,0.05); o.heulerPartikel=leben()-v1;
     bb.run(8,0.05);
-    /* Stinkbomben */
-    const v2=leben(); bb.igniteType('stinkbombe'); bb.run(2.0,0.05); o.stinkPartikel=leben()-v2;
-    bb.run(8,0.05);
+    /* Stinkbomben sind seit dem 23.09. raus aus dem Sortiment */
+    o.stinkWeg=!bb.P.stinkbombe&&!bb.LIZENZEN.some(l=>l.items.includes('stinkbombe'));
     o.keineRaketenUebrig=bb.rockets.length===0;
     o.emitterLeer=bb.emitters.length===0;
     /* Verkauf: passen sie ins Regal und werden sie gekauft? */
@@ -47,14 +46,15 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     for(let i=0;i<4;i++) bb.regalStellen('standard');
     for(let i=0;i<2;i++) bb.regalStellen('hoch');
     o.regale=bb.shelves.length;
-    o.regalPlatz=['furzrakete','heuler','stinkbombe'].map(t=>bb.shelfCapOf(t));
+    o.regalPlatz=['furzrakete','heuler'].map(t=>bb.shelfCapOf(t));
     o.vergleich={raketenklein:bb.shelfCapOf('raketenklein'),doppelschlag:bb.shelfCapOf('doppelschlag'),knallerbsen:bb.shelfCapOf('knallerbsen')};
-    o.einraeumbar=['furzrakete','heuler','stinkbombe'].map(t=>!!bb.emptyLevel(t));
-    o.marktpreise=['furzrakete','heuler','stinkbombe'].map(t=>bb.marketOf(t));
-    o.kaufchance=['furzrakete','heuler','stinkbombe'].map(t=>+bb.buyChance(t,bb.marketOf(t),1,false,null).toFixed(2));
+    o.einraeumbar=['furzrakete','heuler'].map(t=>!!bb.emptyLevel(t));
+    o.marktpreise=['furzrakete','heuler'].map(t=>bb.marketOf(t));
+    o.kaufchance=['furzrakete','heuler'].map(t=>+bb.buyChance(t,bb.marketOf(t),1,false,null).toFixed(2));
     return o;
   });
   console.log('SCHABERNACK',JSON.stringify(r));
+  if(!r.stinkWeg) errs.push('Stinkbomben stehen noch im Sortiment');
   console.log('ERRORS:',errs.length?errs.join('\n'):'keine');
   await b.close();
 })();

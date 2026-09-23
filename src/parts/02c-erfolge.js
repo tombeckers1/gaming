@@ -13,7 +13,7 @@ const GRUPPE={
   raketen:['raketenklein','raketen','raketengold','furzrakete','blanko','gravur'],
   batterien:['batterie16','batterie25','batterie49','batterie100','faecher','sortiment','profi'],
   kugeln:['kugel75','kugel100','kugel150'],
-  boden:['fontaene','vulkan','wasserfall','roemisch','schwaermer','sternenbrunnen','tisch','wunder','stinkbombe','heuler'],
+  boden:['fontaene','vulkan','wasserfall','roemisch','schwaermer','sternenbrunnen','tisch','wunder','heuler'],
   zubehoer:['feuerzeug','luftschlangen','knicklichter','brille','chips','konfetti','bleigiessen','bowle'],
   sekt:['sekt','kindersekt']
 };

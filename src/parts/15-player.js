@@ -17,7 +17,10 @@ function updateAim(dt){
   while(d<-Math.PI) d+=Math.PI*2;
   const k=Math.min(1,dt*7);
   yaw+=d*k; pitch+=(aim.pitch-pitch)*k;
-  aim.t-=dt; if(aim.t<=0||Math.abs(d)<0.004) aim=null;
+  /* Erst fertig, wenn Richtung UND Neigung stimmen. Vorher hoerte es
+     auf, sobald die Richtung passte - stand man schon richtig, kippte
+     der Blick nie nach oben. */
+  aim.t-=dt; if(aim.t<=0||(Math.abs(d)<0.004&&Math.abs(aim.pitch-pitch)<0.004)) aim=null;
 }
 /* Noerdlich vom Gehweg faengt die Strasse an - da hat der Spieler
    nichts zu suchen, deshalb bleibt diese eine Grenze enger als das
@@ -248,8 +251,8 @@ function promptFor(t){
         if(st.items.length>=st.cap) return {t:`${nm} ist voll`,a:false};
         return {t:`Aufbauen: ${P[c.type].short} (${st.items.length}/${st.cap})`,a:true}; }
       return {t:st.items.length?`${nm}: ${st.items.length} Stück bereit`:`${nm}: leer`,a:false}; }
-    case 'pult': { const n=placedCount();
-      return n?{t:`Zünden: ${n} Stück`,a:true}:{t:'Zündpult: erst Ware aufbauen',a:false}; }
+    case 'pult': { const n=bereitCount();
+      return {t:n?`Zündpult bedienen · ${n} ${n===1?'Kanal':'Kanäle'} scharf`:'Zündpult bedienen',a:true}; }
     case 'gravur': {
       if(c&&c.type==='blanko') return gravBlanks>=GRAV_MAX?{t:'Automat ist voll',a:false}:{t:`Blanko nachfüllen ${gravBlanks}/${GRAV_MAX}`,a:true};
       if(c) return {t:'Gravur-Automat',a:false};
@@ -285,7 +288,7 @@ function doAction(){
   else if(k==='laptop') openLaptop();
   else if(k==='laptop2') openLaptop('order');
   else if(k==='station'){ if(S.carrying) placeOnStation(r); }
-  else if(k==='pult') firePult();
+  else if(k==='pult') openZuend();
   else if(k==='gravur'){ if(S.carrying&&S.carrying.type==='blanko') refillGrav(); else if(!S.carrying) openGravInput(); }
   else if(k==='tbox') takeBox(r);
   else if(k==='sign'){ if(phase==='closed') openShop(); else if(phase==='after') endDay(); }

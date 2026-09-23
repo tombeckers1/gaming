@@ -7,7 +7,7 @@
    ========================================================= */
 const VOLA={
   feuerzeug:0.15, knicklichter:0.20, brille:0.25, konfetti:0.30, luftschlangen:0.30,
-  knallerbsen:0.32, wunder:0.35, bleigiessen:0.40, stinkbombe:0.40, tisch:0.45,
+  knallerbsen:0.32, wunder:0.35, bleigiessen:0.40, tisch:0.45,
   knallfrosch:0.50, blanko:0.50, gravur:0.50, schwaermer:0.55, fontaene:0.65,
   chips:0.70, kindersekt:0.70, boeller:0.70, roemisch:0.70, raketenklein:0.70,
   bowle:0.80, vulkan:0.80, sortiment:0.80, wasserfall:0.80, grossboeller:0.85,
@@ -190,8 +190,8 @@ const LIZENZEN=[
    desc:'Sprengmeister, der XXL-Bomber, der 100er-Verbund und die 150-mm-Kugelbombe Weltenbrand. Teuer im Einkauf, launisch im Preis, aber die Kunden reden darüber.',
    items:['sprengmeister','xxlpolen','batterie100','kugel150']},
   {id:'schabernack',lvl:19,cost:16000,name:'Schabernack-Edition',
-   desc:'Stinkbomben, Heulende Derwische und die Furzrakete »Donnerbalken«. Verkauft sich von allein, weil jeder sie einmal gesehen haben will.',
-   items:['stinkbombe','heuler','furzrakete']},
+   desc:'Heulende Derwische und die Furzrakete »Donnerbalken«. Verkauft sich von allein, weil jeder sie einmal gesehen haben will.',
+   items:['heuler','furzrakete']},
   {id:'profi',lvl:22,cost:26000,name:'Profiklasse',
    desc:'Der Götterfunken-Verbund. Zweihundert Schuss, neunzig Sekunden, und der halbe Ort steht auf der Straße.',
    items:['profi']}

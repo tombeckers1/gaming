@@ -81,8 +81,6 @@ const P={
   profi:{name:'Götterfunken · 200 Schuss Profiverbund',short:'Götterfunken',cat:2,lvl:22,shape:'battery',dims:[0.55,0.36,0.42],grid:[3,1,1],box:1,cost:68.00,market:149.99,weight:3,hype:90,risk:10,
     art:{title:'GÖTTERFUNKEN',sub:'200 Schuss Profi',bg1:'#0e1226',bg2:'#000000',ac:'#ffd23f',ac2:'#e63b2e',gold:true}},
   /* Schabernack-Edition: der Spaßkram ganz am Ende */
-  stinkbombe:{name:'Stinkbomben 12er',short:'Stinkbomben',cat:1,lvl:19,shape:'boxA',dims:[0.09,0.05,0.062],grid:[8,2,2],box:24,cost:0.75,market:2.29,weight:9,hype:4,risk:2,
-    art:{title:'PFUI DEIBEL',sub:'12 Stinkbomben',bg1:'#4a5a22',bg2:'#161d07',ac:'#c8e04a',ac2:'#ffffff'}},
   heuler:{name:'Heulender Derwisch',short:'Heuler',cat:2,lvl:19,shape:'tubepack',dims:[0.14,0.065,0.065],grid:[8,2,2],box:12,cost:3.40,market:8.49,weight:8,hype:16,risk:5,
     art:{title:'DERWISCH',sub:'6 Heuler mit Knall',bg1:'#2a1f5a',bg2:'#0a0620',ac:'#ff9d2a',ac2:'#5ce1ff'}},
   furzrakete:{name:'Furzrakete »Donnerbalken«',short:'Furzrakete',cat:2,lvl:19,shape:'rocketset',dims:[0.44,0.06,0.12],grid:[4,2,2],box:6,cost:6.20,market:15.99,weight:9,hype:28,risk:4,

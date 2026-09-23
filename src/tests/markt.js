@@ -104,7 +104,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   const fw=await p.evaluate(()=>{
     const bb=window.__bb,o={};
     const vor=bb.timersLen();
-    ['furzrakete','heuler','stinkbombe'].forEach(t=>bb.igniteType(t));
+    ['furzrakete','heuler'].forEach(t=>bb.igniteType(t));
     o.timers=bb.timersLen()-vor;
     bb.run(2.5,0.05);
     o.raketenUnterwegs=bb.rockets.length;

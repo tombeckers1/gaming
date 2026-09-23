@@ -126,9 +126,11 @@ function showLength(id){ const f=SHOWS[id]; if(!f) return 0; let t=0; f().forEac
 /* =========================================================
    Zünden
    ========================================================= */
-function igniteType(t){
+function igniteType(t,o0){
   const p=P[t]; if(!p||!p.cat) return;
-  const o=padOf(t), sh=p.shape;
+  /* o0: der Platz des Produkts auf der Station. Ohne Angabe (alte
+     Aufrufe, Tests) die Mitte der passenden Station. */
+  const o=o0||padOf(t), sh=p.shape;
   hype=Math.min(100,hype+p.hype); DS.burned=r2(DS.burned+costOf(t)); addXP(Math.max(1,Math.round(p.hype/3)));
   statAdd('gezuendet',1); statAdd('hype',p.hype);
   if(SHOWS[t]){ emitters.push({t:0.8,k:'fuse',o}); later(0.8,()=>playShow(o,SHOWS[t]())); return; }
@@ -207,15 +209,6 @@ function igniteType(t){
     });
     return;
   }
-  if(t==='stinkbombe'){
-    const v=distVol(o);
-    for(let i=0;i<6;i++) later(i*0.35+rand(0,0.15),()=>{
-      const x=o.x+rand(-1.3,1.3), z=o.z+rand(-1.3,1.3);
-      emitters.push({t:4.5,k:'stink',o:{x,y:0,z}});
-      sfx.pfffft(v*0.5);
-    });
-    return;
-  }
   if(sh==='sparkler'){ emitters.push({t:5,k:'spark',o}); sfx.fizz(distVol(o)); }
   else if(t==='knallerbsen'||t==='knallfrosch'){
     const n=t==='knallfrosch'?10:7;
@@ -238,15 +231,16 @@ function igniteType(t){
     emitters.push({t:1.4,k:'fuse',o});
     later(1.4,()=>{
       const v=distVol(o);
-      smallPop(o.x,0.4,o.z,Math.round(60*KL+40),6*KL+2,0.6,KL>=2?FW.weiss:undefined);
+      const yb=o.y!==undefined?o.y:0.4;
+      smallPop(o.x,yb,o.z,Math.round(60*KL+40),6*KL+2,0.6,KL>=2?FW.weiss:undefined);
       sfx.boom(Math.min(1.6,v*KL)); shake=Math.max(shake,Math.min(1.6,0.45*KL)*v);
-      flash({x:o.x,y:0.8,z:o.z},KL>=2?FW.weiss:FW.bernstein,1.2*KL,0.3);
+      flash({x:o.x,y:yb+0.4,z:o.z},KL>=2?FW.weiss:FW.bernstein,1.2*KL,0.3);
       if(KL>=2){ /* Druckwelle: Staub und Funkenkranz am Boden */
         for(let i=0;i<Math.round(90*KL);i++){ const a2=Math.random()*Math.PI*2, sp=rand(3,9)*KL;
           psMid.emit(o.x,0.14,o.z,Math.cos(a2)*sp,rand(0.2,2.2),Math.sin(a2)*sp,0.9,0.86,0.8,rand(0.5,1.3),3.5,4); }
         later(0.06,()=>sfx.boom(Math.min(1.5,v*KL*0.7)));
         later(0.35,()=>{ sfx.crack(v*0.8); }); }
-      if(t==='doppelschlag') later(0.5,()=>{ smallPop(o.x,0.4,o.z,110,9,0.6); sfx.boom(v*1.3); shake=Math.max(shake,0.7*v); flash({x:o.x,y:0.8,z:o.z},FW.bernstein,1.8,0.3); });
+      if(t==='doppelschlag') later(0.5,()=>{ smallPop(o.x,yb,o.z,110,9,0.6); sfx.boom(v*1.3); shake=Math.max(shake,0.7*v); flash({x:o.x,y:yb+0.4,z:o.z},FW.bernstein,1.8,0.3); });
     });
   }
   else if(t==='tisch'){

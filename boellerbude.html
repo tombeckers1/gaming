@@ -610,10 +610,10 @@ const UPGRADES=[
   {id:'meister',kat:'markt',lvl:30,name:'Meisterbrief Pyrotechnik',desc:'Die höchste Stufe. Großaufträge zahlen ein Drittel mehr.',cost:()=>12000,done:()=>S.up.meister},
   {id:'shop_halb',kat:'flaeche',lvl:4,name:'Die Wand muss weg',desc:'Die zugemauerte Hälfte deines eigenen Ladenlokals: rund 70 Quadratmeter mehr, das zweite Schaufenster und vier weitere Regalplätze. Die Trennwand fällt beim Kauf ganz weg — ein Raum, kein Pfeiler, kein Sturz. Dahinter liegt auch die Tür zum Testfeld.',cost:()=>1400,done:()=>S.up.shop_halb},
   {id:'testfeld',kat:'flaeche',lvl:9,req:'shop_halb',name:'Freies Feld zum Zünden',desc:'Der abgesperrte Hof hinter dem Laden wird dein Testfeld: Zündtisch, Abschussröhren und Mörserbatterie. Erst damit kannst du selbst zünden — und was du gezündet hast, spricht sich herum.',cost:()=>3200,done:()=>S.up.testfeld},
-  {id:'shop_gross',kat:'flaeche',lvl:12,req:'shop_halb',name:'Das Lokal nebenan',desc:'Kauft das leerstehende Ladenlokal rechts nebenan. Die Ostwand wird durchbrochen, die Schaufenster werden entmauert: rund 78 Quadratmeter mehr Fläche und acht zusätzliche Regalplätze.',cost:()=>7500,done:()=>S.up.shop_gross},
-  {id:'lager_nord',kat:'flaeche',lvl:6,name:'Platz hinter der Wand',desc:'Was hinter der Trennwand im Lager liegt: 47 Quadratmeter mehr, sechs zusätzliche Stellplätze für Regale. Die Wand fällt beim Kauf ganz weg — kein Sturz, kein Pfeiler, ein durchgehender Raum bis zur Nordwand.',cost:()=>1900,done:()=>S.up.lager_nord},
+  {id:'shop_gross',kat:'flaeche',lvl:12,req:'shop_halb',name:'Das Lokal nebenan',desc:'Kauft das leerstehende Ladenlokal nebenan. Die Seitenwand wird durchbrochen, die Schaufenster werden entmauert: rund 78 Quadratmeter mehr Fläche und acht zusätzliche Regalplätze.',cost:()=>7500,done:()=>S.up.shop_gross},
+  {id:'lager_nord',kat:'flaeche',lvl:6,name:'Platz hinter der Wand',desc:'Was hinter der Trennwand im Lager liegt: 47 Quadratmeter mehr, sechs zusätzliche Stellplätze für Regale. Die Wand fällt beim Kauf ganz weg — kein Sturz, kein Pfeiler, ein durchgehender Raum bis zur Stirnwand.',cost:()=>1900,done:()=>S.up.lager_nord},
   {id:'lager_gross',kat:'flaeche',lvl:15,req:'lager_nord',name:'Tor auf zur großen Halle',desc:'Hinter dem Rolltor wird die Wand auf neun Metern durchbrochen: der erste Abschnitt der großen Halle dahinter, 118 Quadratmeter mit fünf Metern lichter Höhe. Hier steht die Packstation, und ab hier lohnt sich der Onlineshop. Hochregale passen erst in diese Höhe.',cost:()=>6200,done:()=>S.up.lager_gross},
-  {id:'shop_ost',kat:'flaeche',lvl:20,req:'shop_gross',name:'Noch ein Lokal dazu',desc:'Das nächste leerstehende Lokal an der Ostseite: noch einmal 212 Quadratmeter, Gondelgassen, Eckregal und eine lange Wandreihe.',cost:()=>16000,done:()=>S.up.shop_ost},
+  {id:'shop_ost',kat:'flaeche',lvl:20,req:'shop_gross',name:'Noch ein Lokal dazu',desc:'Das nächste leerstehende Lokal in der Reihe: noch einmal 212 Quadratmeter, Gondelgassen, Eckregal und eine lange Wandreihe.',cost:()=>16000,done:()=>S.up.shop_ost},
   {id:'shop_sued',kat:'flaeche',lvl:26,req:'shop_ost',name:'Die Halle hinterm Laden',desc:'Die große Halle hinter dem Laden, zwei breite Durchgänge: 478 Quadratmeter Verkaufsfläche mit zwei Gondelgassen. Damit ist der Laden fünfeinhalbmal so groß wie am Anfang.',cost:()=>34000,done:()=>S.up.shop_sued},
   {id:'lager_sued',kat:'flaeche',lvl:20,req:'lager_gross',name:'Die Halle wächst weiter',desc:'Der zweite Abschnitt, noch einmal 83 Quadratmeter. Die Wand zum ersten fällt ganz weg — kein Pfeiler, kein Sturz, eine durchgehende Halle.',cost:()=>11000,done:()=>S.up.lager_sued},
   {id:'lager_sued2',kat:'flaeche',lvl:24,req:'lager_sued',name:'Bis ganz nach hinten',desc:'Der letzte Abschnitt bis zur Stirnwand. Damit steht die ganze Halle: 283 Quadratmeter am Stück, zwölf Stellplätze für Hoch- und Schwerlastregale.',cost:()=>15000,done:()=>S.up.lager_sued2},
@@ -625,7 +625,7 @@ const UPGRADES=[
   {id:'rampe3',kat:'flaeche',lvl:29,req:'rampe2',name:'Drei Tore in Betrieb',desc:'Tor 3 kommt dazu. Drei Lieferungen nebeneinander — ab hier staut sich der Einkauf auch an starken Tagen nicht mehr.',cost:()=>19000,done:()=>S.up.rampe3},
   {id:'rampe4',kat:'flaeche',lvl:30,req:'rampe3',name:'Alle Tore in Betrieb',desc:'Das dritte Tor der Westhalle. Vier Lieferungen gleichzeitig.',cost:()=>25000,done:()=>S.up.rampe4},
   {id:'rampe5',kat:'flaeche',lvl:30,req:'rampe4',name:'Die Rampe ist nie voll',desc:'Das vierte Tor der Westhalle. Zusammen mit der Basisrampe rollen dann fünf Lieferungen gleichzeitig an — mehr gibt das Grundstück nicht her.',cost:()=>31000,done:()=>S.up.rampe5},
-  {id:'packstation',kat:'flaeche',lvl:16,req:'lager_gross',name:'Packstation für den Versand',desc:'Packtisch, Waage, Etikettendrucker und Abholrampe im ersten Abschnitt der Halle Süd, gleich hinter dem Rolltor. Zusammen mit dem Onlineshop kommen Bestellungen als echte Pakete herein: packen, auf die Rampe stellen, DDL holt am Abend ab.',cost:()=>6400,done:()=>S.up.packstation},
+  {id:'packstation',kat:'flaeche',lvl:16,req:'lager_gross',name:'Packstation für den Versand',desc:'Packtisch, Waage, Etikettendrucker und Abholrampe im ersten Abschnitt der großen Halle, gleich hinter dem Rolltor. Zusammen mit dem Onlineshop kommen Bestellungen als echte Pakete herein: packen, auf die Rampe stellen, DDL holt am Abend ab.',cost:()=>6400,done:()=>S.up.packstation},
   {id:'eingang2',kat:'flaeche',lvl:24,req:'shop_ost',name:'Zweiter Eingang mit Kasse',desc:'Im Eckhaus ist die mittlere Achse bis zum Boden offen und wartet auf eine Tür. Der Ausbau setzt dieselbe Schiebetür wie am Haupteingang hinein, mit Vordach und Matte, und stellt dahinter eine eigene SB-Kassenzeile auf. Kunden nehmen ab jetzt den Eingang, der näher liegt, und die Schlange am Band wird spürbar kürzer. Die Kassenzeile lässt sich im Umbaumodus verschieben.',cost:()=>11500,done:()=>S.up.eingang2},
   {id:'kasse2',kat:'einr',lvl:16,req:'shop_gross',name:'SB-Kassen',desc:'Zwei Selbstbedienungsterminals in der neuen Verkaufsfläche. Kunden mit wenig Ware zahlen dort selbst, das entlastet deine Schlange spürbar.',cost:()=>3400,done:()=>S.up.kasse2},
   {id:'labor',kat:'einr',lvl:25,req:'shop_gross',name:'Entwicklungslabor',desc:'Ein Labortisch im Lager. Ab hier entwickelst du eigene Rezepturen: Träger, Bruchbild und Farben aussuchen, Prototyp auf dem Testfeld zünden, in Produktion geben. Verbauen darfst du nur Bruchbilder, die du selbst schon am Himmel gesehen hast.',cost:()=>9800,done:()=>S.up.labor},
@@ -4816,12 +4816,18 @@ function sperrbandTex(){
    durch. Eine gerade Leiste sieht aus wie ein roter Strich. */
 function sperrband(Z,a,b,z,y,mat){
   const L=b-a, durch=0.05;
-  const geo=new THREE.PlaneGeometry(L,0.09,16,1), pos=geo.attributes.position;
-  for(let i=0;i<pos.count;i++){
-    const t=(pos.getX(i)+L/2)/L;
-    pos.setY(i,pos.getY(i)-durch*Math.sin(Math.PI*t));
+  const geo=new THREE.PlaneGeometry(L,0.09,16,1);
+  /* Direkt im Array rechnen: getX/setY gibt es im Testdoppel nicht,
+     und das Band soll auch dort ohne Fehler gebaut werden. */
+  const pos=geo.attributes&&geo.attributes.position, arr=pos&&pos.array;
+  if(arr&&pos.count){
+    for(let i=0;i<pos.count;i++){
+      const t=(arr[i*3]+L/2)/L;
+      arr[i*3+1]-=durch*Math.sin(Math.PI*t);
+    }
+    pos.needsUpdate=true;
+    if(geo.computeVertexNormals) geo.computeVertexNormals();
   }
-  pos.needsUpdate=true; geo.computeVertexNormals();
   const m=new THREE.Mesh(geo,mat);
   m.position.set((a+b)/2,y,z); m.userData.sperrband=true;
   scene.add(m); zWand(Z,m);

@@ -142,6 +142,20 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     const b2=document.querySelector('#lbody button[data-a="pall"]'); b2.click();
     o.nachAlleAufMarkt=Math.abs(bb.S.prices.wunder-bb.marketOf('wunder'))<0.02;
     o.text=document.querySelector('#lbody').textContent.indexOf('Markt')>=0;
+    /* Ein Prozent auf alles, vom aktuellen Preis aus - und jeder
+       Klick muss wirklich etwas bewegen, auch bei billiger Ware. */
+    /* Nach jedem Klick baut der Laptop die Liste neu auf - die
+       Knoepfe muessen also jedes Mal frisch gesucht werden. */
+    const knopf=i=>document.querySelectorAll('#lbody button[data-a="pstep"]')[i];
+    o.zweiSchrittKnoepfe=document.querySelectorAll('#lbody button[data-a="pstep"]').length===2;
+    const vor=bb.S.prices.wunder, billigVor=bb.S.prices.knallerbsen;
+    knopf(0).click();
+    o.plusEinProzent=Math.abs(bb.S.prices.wunder-vor*1.01)<=0.011;
+    o.billigBewegtSich=bb.S.prices.knallerbsen>billigVor;
+    const mitte=bb.S.prices.wunder;
+    knopf(1).click(); knopf(1).click();
+    o.minusWirkt=bb.S.prices.wunder<mitte;
+    o.kumulativ=Math.abs(bb.S.prices.wunder-mitte*0.99*0.99)<=0.011;
     return o;
   });
   console.log('UI',JSON.stringify(ui));

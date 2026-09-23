@@ -255,12 +255,18 @@ function sperrbandTex(){
    durch. Eine gerade Leiste sieht aus wie ein roter Strich. */
 function sperrband(Z,a,b,z,y,mat){
   const L=b-a, durch=0.05;
-  const geo=new THREE.PlaneGeometry(L,0.09,16,1), pos=geo.attributes.position;
-  for(let i=0;i<pos.count;i++){
-    const t=(pos.getX(i)+L/2)/L;
-    pos.setY(i,pos.getY(i)-durch*Math.sin(Math.PI*t));
+  const geo=new THREE.PlaneGeometry(L,0.09,16,1);
+  /* Direkt im Array rechnen: getX/setY gibt es im Testdoppel nicht,
+     und das Band soll auch dort ohne Fehler gebaut werden. */
+  const pos=geo.attributes&&geo.attributes.position, arr=pos&&pos.array;
+  if(arr&&pos.count){
+    for(let i=0;i<pos.count;i++){
+      const t=(arr[i*3]+L/2)/L;
+      arr[i*3+1]-=durch*Math.sin(Math.PI*t);
+    }
+    pos.needsUpdate=true;
+    if(geo.computeVertexNormals) geo.computeVertexNormals();
   }
-  pos.needsUpdate=true; geo.computeVertexNormals();
   const m=new THREE.Mesh(geo,mat);
   m.position.set((a+b)/2,y,z); m.userData.sperrband=true;
   scene.add(m); zWand(Z,m);

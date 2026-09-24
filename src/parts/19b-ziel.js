@@ -51,17 +51,17 @@ function zielBauen(){
     g.beginPath(); g.moveTo(W*0.3,H*0.3); g.lineTo(W*0.5,H*0.6); g.lineTo(W*0.7,H*0.3); g.lineWidth=3; g.strokeStyle='rgba(255,255,255,.7)'; g.stroke();
   });
   zielSp=new THREE.Sprite(new THREE.SpriteMaterial({map:t,depthTest:false,depthWrite:false,transparent:true,toneMapped:false,sizeAttenuation:false}));
-  zielSp.scale.set(0.05,0.0625,1); zielSp.renderOrder=30; zielG.add(zielSp);
+  zielSp.scale.set(0.085,0.106,1); zielSp.renderOrder=30; zielG.add(zielSp);
   /* Entfernung darunter */
   zielTex=tex(160,56,()=>{});
   zielTxt=new THREE.Sprite(new THREE.SpriteMaterial({map:zielTex,depthTest:false,depthWrite:false,transparent:true,toneMapped:false,sizeAttenuation:false}));
-  zielTxt.scale.set(0.06,0.021,1); zielTxt.renderOrder=30; zielG.add(zielTxt);
+  zielTxt.scale.set(0.12,0.042,1); zielTxt.renderOrder=30; zielG.add(zielTxt);
 }
 function zielText(s){
   if(s===zielZuletzt) return; zielZuletzt=s;
   const c=zielTex.image, g=c.getContext('2d'); g.clearRect(0,0,c.width,c.height);
   g.fillStyle='rgba(14,18,38,.82)'; if(g.roundRect){ g.beginPath(); g.roundRect(8,6,c.width-16,c.height-12,20); g.fill(); } else g.fillRect(8,6,c.width-16,c.height-12);
-  g.fillStyle='#ffd23f'; g.font=BAR(34); g.textAlign='center'; g.textBaseline='middle'; g.fillText(s,c.width/2,c.height/2+2);
+  g.fillStyle='#ffd23f'; g.font=BAR(44); g.textAlign='center'; g.textBaseline='middle'; g.fillText(s,c.width/2,c.height/2+2);
   zielTex.needsUpdate=true;
 }
 let zielAktuell=null;
@@ -79,11 +79,12 @@ function updateZiel(dt){
   zielPh+=dt*3.2;
   zielG.visible=true;
   zielG.position.set(p.x,p.y+0.75+Math.sin(zielPh)*0.12,p.z);
-  zielSp.position.set(0,0,0); zielTxt.position.set(0,-0.34-Math.min(0.3,d*0.012),0);
+  /* Beschriftung unter dem Pfeil, auf jede Entfernung gleich weit weg */
+  zielSp.position.set(0,0,0); zielTxt.position.set(0,-0.075*d*Math.tan(camera.fov*Math.PI/360)*2,0);
   zielText(Math.round(d)+' m');
   /* ausserhalb des Bildes: Pfeil am Rand */
   if(!pf) return;
-  _zv.set(p.x,p.y+0.5,p.z).project(camera);
+  camera.updateMatrixWorld(); _zv.set(p.x,p.y+0.5,p.z).project(camera);
   const hinten=_zv.z>1, drin=!hinten&&Math.abs(_zv.x)<0.92&&Math.abs(_zv.y)<0.9;
   if(drin){ pf.style.display='none'; return; }
   let x=_zv.x, y=_zv.y; if(hinten){ x=-x; y=-y; }

@@ -51,7 +51,13 @@ const LAY={
   /* Grosshandel: eigenes Gebaeude, 40 x 38 m und zwoelf Meter licht.
      Palettenregale und ein Hubwagen brauchen die Hoehe; die alte
      Halle mit 505 m2 und 6,4 m war dafuer zu klein. */
-  lwest :{x0:-66.0,x1:-26.0,z0:-45.0, z1:-7.0},  /* 1520 m2 */
+  /* Logistikhalle in drei Stufen (seit 24.09.): klein anfangen,
+     dann groesser und hoeher. Die Tore stehen an der Suedwand
+     (z -34), der LKW-Hof liegt suedlich davor. lwest ist die
+     volle Halle der dritten Stufe. */
+  lw1   :{x0:-44.0,x1:-26.0,z0:-34.0, z1:-14.0},  /* 360 m2, 6,5 m  */
+  lw2   :{x0:-56.0,x1:-26.0,z0:-34.0, z1:-10.0},  /* 720 m2, 8,5 m  */
+  lwest :{x0:-66.0,x1:-26.0,z0:-34.0, z1:-7.0},   /* 1080 m2, 11 m  */
   /* Schleuse zwischen Lager (6,4 m) und Grosshandel (12 m). Zwei
      Gebaeude mit verschiedenen Deckenhoehen kann man nicht einfach
      aneinanderstellen - dazwischen gehoert ein Zwischenbau. */
@@ -60,7 +66,7 @@ const LAY={
   test  :{x0:-7.9, x1:8.0,  z0:-28.0, z1:-6.0},
   /* Hoefe: der kleine an der Basisrampe, der grosse an der Westrampe */
   hof   :{x0:-34.0,x1:-20.0,z0:-6.5,  z1:2.5},
-  hof2  :{x0:-92.0,x1:-66.1,z0:-45.0, z1:-7.0},
+  hof2  :{x0:-70.0,x1:-22.0,z0:-62.0, z1:-34.2},   /* LKW-Hof suedlich der Logistikhalle */
   /* Logistikzentrum, vorerst nur von aussen */
   logi  :{x0:44.0, x1:90.0, z0:-16.0, z1:14.0}
 };

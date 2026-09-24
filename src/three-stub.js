@@ -1,7 +1,7 @@
 /* Minimal THREE-Stub nur fuer den Logik-Smoketest (kein Rendering) */
 (function(){
 const T={};
-class Vector3{ lerpVectors(a,b,t){this.x=a.x+(b.x-a.x)*t;this.y=a.y+(b.y-a.y)*t;this.z=a.z+(b.z-a.z)*t;return this;} toArray(){return [this.x,this.y,this.z];}
+class Vector3{ project(){ this.x=0; this.y=0; this.z=0.5; return this; } lerpVectors(a,b,t){this.x=a.x+(b.x-a.x)*t;this.y=a.y+(b.y-a.y)*t;this.z=a.z+(b.z-a.z)*t;return this;} toArray(){return [this.x,this.y,this.z];}
 
   constructor(x,y,z){this.x=x||0;this.y=y||0;this.z=z||0;}
   set(x,y,z){this.x=x;this.y=y;this.z=z;return this;}

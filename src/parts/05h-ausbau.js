@@ -42,6 +42,7 @@ function applyZonen(){
       z.wandCols.forEach(c=>{ if(colliders.indexOf(c)<0) colliders.push(c); });
       z.hooks.forEach(fn=>fn()); }
   }
+  if(typeof logiAnwenden==='function') logiAnwenden();
   if(typeof navDirty==='function') navDirty();
 }
 
@@ -606,7 +607,7 @@ function buildAusbau(){
   /* Der Grosshandel ist ein eigenes Gebaeude: 1520 m2 und zwoelf
      Meter licht, damit Palettenregale und ein Hubwagen hineinpassen.
      Die Westwand mit den Ladetoren baut westWand(). */
-  halle('lager_west', LAY.lwest,{art:'lager',aussen:{s:true,n:true},ao:{n:true,s:true,w:true,e:true},h:GH_H,ex:blechMat(),ax:6.5,az:7.5});
+  /* Die Logistikhalle baut buildLogistikHalle() in drei Stufen. */
   /* Vom Rolltor in die Halle Sued. Das ganze Lager hat jetzt
      dieselbe Hoehe, darum faellt diese Wand beim Kauf komplett
      weg (offen=true) - kein Sturz, kein Pfeiler, ein Raum. */
@@ -632,10 +633,6 @@ function buildAusbau(){
      verschiedene Waende aneinander. Der lange Rest steht im Hof und
      bekommt dieselbe Aussenhaut wie die uebrige Halle; vorher zog
      sich die gelbe Lagerwand ueber die ganze Ostseite ins Freie. */
-  const bl=blechMat();
-  durchbruchWand('lager_west',false,LAY.lwest.x1,LAY.lwest.z0,LAY.schleuse.z0,[],lagerWall,bl,3.0,GH_H);
-  durchbruchWand('lager_west',false,LAY.lwest.x1,LAY.schleuse.z0,LAY.schleuse.z1,ST,lagerWall,lagerWall,3.0,GH_H);
-  durchbruchWand('lager_west',false,LAY.lwest.x1,LAY.schleuse.z1,LAY.lwest.z1,[],lagerWall,bl,3.0,GH_H);
   buildSchleuse();
   /* Die beiden Schleusentore und der Gang bekommen Streifenvorhaenge
      statt blanker Loecher. */
@@ -673,7 +670,7 @@ function buildAusbau(){
   lagerSperre();
   buildLagerTerminal();
   buildPackstation();
-  buildWestrampen();
+  buildLogistikHalle();
   buildLogistik();
 }
 
@@ -1004,7 +1001,9 @@ function ddlAbholung(){
    Hof dahinter. Hier passen mehrere Auflieger nebeneinander -
    der kleine Hof an der Basisrampe reicht dafuer nicht.
    ========================================================= */
-const WRAMPEN=[-39.0,-30.0,-21.0,-12.0];    /* Mitte der vier Tore in z */
+/* Mitte der vier Tore in x an der Suedwand der Logistikhalle - von
+   der Schleuse aus nach Westen: Tor 2, 3 (Stufe 1), 4 (Stufe 2), 5 (Stufe 3) */
+const WRAMPEN=[-31.0,-38.5,-47.5,-57.5];
 const WTORE=[];                             /* Torblatt und Ampel je Rampe */
 const WTOR={w:3.4,h:3.05};
 
@@ -1113,14 +1112,16 @@ function westTorInnen(g,steel,dark,kante,eintrag){
     c.fillStyle='#1b2340'; c.fillRect(0,0,W,Hh);
     c.strokeStyle='#ffd23f'; c.lineWidth=6; c.strokeRect(5,5,W-10,Hh-10);
     c.fillStyle='#ffd23f'; c.font=BUN(68); c.textAlign='center'; c.textBaseline='middle';
-    c.fillText(String(eintrag.nr),W/2,Hh/2+5); })}),0.16,H+0.95,0,Math.PI/2,g);
+    c.fillText(String(eintrag.nr+1),W/2,Hh/2+5); })}),0.16,H+0.95,0,Math.PI/2,g);
 }
-/* Ein Ladetor in der Westwand, von aussen gesehen. Das Tor bleibt zu. */
-function westTor(cz,nr){
-  const X=LAY.lwest.x0, steel=std(0x8d939d,{metalness:0.6,roughness:0.42});
+/* Ein Ladetor in der Suedwand der Logistikhalle, von aussen gesehen.
+   Gebaut ist es in eigenen Koordinaten mit innen = +x; die Gruppe
+   wird so gedreht, dass +x nach Norden in die Halle zeigt. */
+function westTor(cx,nr){
+  const Z=LHALLE.z, steel=std(0x8d939d,{metalness:0.6,roughness:0.42});
   const dark=std(0x2a2e38,{metalness:0.5,roughness:0.45});
   const rub=std(0x16181d,{roughness:0.96});
-  const g=new THREE.Group(); g.position.set(X,0,cz); scene.add(g);
+  const g=new THREE.Group(); g.position.set(cx,0,Z); g.rotation.y=-Math.PI/2; scene.add(g);
   /* Torblatt aus echten Sektionalpanelen, denselben wie an der
      Basisrampe. Vorher war hier eine Textur auf einen Kasten
      geklebt - im Spiel sah man den Unterschied sofort. */
@@ -1147,7 +1148,7 @@ function westTor(cz,nr){
      benutzt und muessen darum vor beidem stehen. */
   const lr=new THREE.MeshStandardMaterial({color:LIN(0x300808),emissive:LIN(0xff2a2a),emissiveIntensity:1.2});
   const lg=new THREE.MeshStandardMaterial({color:LIN(0x082a12),emissive:LIN(0x3dff7a),emissiveIntensity:0});
-  const eintrag={nr,z:cz,blatt:bl,zu:WTOR.h/2,auf:WTOR.h/2+WTOR.h-0.06,t:0,rot:lr,gruen:lg};
+  const eintrag={nr,x:cx,g,blatt:bl,zu:WTOR.h/2,auf:WTOR.h/2+WTOR.h-0.06,t:0,rot:lr,gruen:lg};
   /* Fuehrungsschienen links und rechts */
   for(const dz of [-1,1]) bbox(0.07,WTOR.h+0.1,0.07,kante,-0.06,WTOR.h/2,dz*(WTOR.w/2+0.05),g,false);
   /* --- Innenseite: dieselbe Ausstattung wie am Tor der Basisrampe.
@@ -1195,29 +1196,16 @@ function westTor(cz,nr){
     c.fillStyle='#1b2340'; c.fillRect(0,0,W,H);
     c.strokeStyle='#ffd23f'; c.lineWidth=6; c.strokeRect(5,5,W-10,H-10);
     c.fillStyle='#ffd23f'; c.font=BUN(78); c.textAlign='center'; c.textBaseline='middle';
-    c.fillText(String(nr),W/2,H/2+6); })}),-0.22,WTOR.h+0.95,0,-Math.PI/2,g);
-  /* Poller neben der Torlaibung */
+    c.fillText(String(nr+1),W/2,H/2+6); })}),-0.22,WTOR.h+0.95,0,-Math.PI/2,g);
+  /* Poller neben der Torlaibung, im Hof vor der Wand */
   for(const s of [-1,1]){
-    const pz=cz+s*(WTOR.w/2+1.15);
-    bbox(0.2,0.95,0.2,std(0xf2c230,{roughness:0.7}),X-0.9,0.48,pz,null,true);
-    bbox(0.22,0.14,0.22,std(0x1f1f24),X-0.9,0.86,pz,null,false);
-    col(X-1.05,X-0.75,pz-0.15,pz+0.15);
+    const lz=s*(WTOR.w/2+1.15);
+    bbox(0.2,0.95,0.2,std(0xf2c230,{roughness:0.7}),-0.9,0.48,lz,g,true);
+    bbox(0.22,0.14,0.22,std(0x1f1f24),-0.9,0.86,lz,g,false);
+    /* lokal (x,z) -> Welt (cx - z, Z + x) bei Drehung -90 Grad */
+    col(cx-lz-0.15,cx-lz+0.15,Z-1.05,Z-0.75);
   }
-}
-/* Die Westwand der Halle: massive Abschnitte, drei Tore, Sturz darueber. */
-function westWand(){
-  const x0=LAY.lwest.x0, z0=LAY.lwest.z0, z1=LAY.lwest.z1, H=GH_H, ex=blechMat();
-  let z=z0;
-  for(const cz of WRAMPEN){
-    const a=cz-WTOR.w/2, b=cz+WTOR.w/2;
-    if(a>z){ wall(x0-LW,x0,z,a,0,H,'+x',lagerWall,ex,0,lagerWall); col(x0-LW,x0,z,a); }
-    wall(x0-LW,x0,a,b,WTOR.h,H,'+x',lagerWall,ex,0,lagerWall);
-    col(x0-LW,x0,a,b);                     /* die Tore bleiben zu */
-    z=b;
-  }
-  if(z1>z){ wall(x0-LW,x0,z,z1,0,H,'+x',lagerWall,ex,0,lagerWall); col(x0-LW,x0,z,z1); }
-  /* Sockelband gegen Spritzwasser */
-  bbox(0.06,1.05,z1-z0,std(0x4a5058,{roughness:0.9}),x0-LW-0.03,0.525,(z0+z1)/2,null,false);
+  return g;
 }
 /* Flutlichtmast fuer den Hof */
 function hofMast(x,z,ry){
@@ -1316,91 +1304,6 @@ function palettenStapel(x,z,n,ry){
   col(x-0.62,x+0.62,z-0.55,z+0.55);
   return m;
 }
-function buildWestrampen(){
-  const r=LAY.hof2;
-  westWand();
-  for(let i=0;i<WRAMPEN.length;i++) westTor(WRAMPEN[i],i+1);
-  /* Hofbelag: grosse Betonplatte mit Zufahrt zum alten Hof */
-  const bt=concreteTex(); bt.repeat.set((r.x1-r.x0)/2.4,(r.z1-r.z0)/2.4);
-  flat(r.x1-r.x0,r.z1-r.z0,new THREE.MeshStandardMaterial({map:bt,roughness:0.93,color:LIN(0xaaaeb4)}),
-       (r.x0+r.x1)/2,0.013,(r.z0+r.z1)/2);
-  /* Zufahrt vom alten Hof an der Basisrampe herueber zum Hof des
-     Grosshandels. Der liegt jetzt deutlich weiter westlich, also
-     ist auch die Zufahrt entsprechend laenger. */
-  const zt=concreteTex(); zt.repeat.set(16,2);
-  flat(34,4.2,new THREE.MeshStandardMaterial({map:zt,roughness:0.93,color:LIN(0xa4a8ae)}),-51,0.012,-1.5);
-  flat(9,7.5,new THREE.MeshStandardMaterial({map:zt,roughness:0.93,color:LIN(0xa4a8ae)}),-72.5,0.012,-4.2);
-  /* Stellplatzmarkierung vor jedem Tor */
-  const gelb=std(0xf2c230);
-  for(const cz of WRAMPEN){
-    for(const s of [-1,1]) flat(14,0.14,gelb,r.x1-7.4,0.017,cz+s*1.9);
-    flat(0.14,3.8,gelb,r.x1-14.4,0.017,cz);
-    for(let k=0;k<5;k++) flat(0.5,0.1,gelb,r.x1-1.2-k*1.1,0.017,cz);
-  }
-  /* Wartespur fuer abgestellte Auflieger: laengs an der Westseite,
-     nebeneinander, damit sie nicht quer im Hof stehen. */
-  for(let i=0;i<4;i++){ const px=r.x0+2.2+i*3.6;
-    for(const s of [-1,1]) flat(0.14,14,gelb,px+s*1.5,0.017,r.z0+9.6); }
-  abstellAuflieger(r.x0+2.2, r.z0+9.6,Math.PI/2,'Kowalski',TRUCKCOL.kowalski);
-  abstellAuflieger(r.x0+5.8, r.z0+9.2,Math.PI/2,'Mertens', TRUCKCOL.mertens);
-  abstellAuflieger(r.x0+9.4, r.z0+10.0,Math.PI/2,'Ratzke', TRUCKCOL.ratzke);
-  /* Zaun: Westseite, Sueden, Norden mit Einfahrt */
-  const ZH=2.2;
-  zaunLauf(r.x0,r.z0,r.x0,r.z1,ZH);
-  zaunLauf(r.x0,r.z0,r.x1,r.z0,ZH);
-  /* Einfahrt in der Nordseite. Lage aus dem Hof abgeleitet, nicht
-     als feste Zahl - beim letzten Vergroessern sind genau solche
-     Zahlen stehengeblieben und die Halle ist ueber Masten,
-     Container und Schneehaufen hinweggewachsen. */
-  const torA=r.x0+15, torB=r.x0+23;
-  zaunLauf(r.x0,r.z1,torA,r.z1,ZH);
-  zaunLauf(torB,r.z1,r.x1,r.z1,ZH);
-  col(r.x0-0.1,r.x0+0.1,r.z0,r.z1);
-  col(r.x0,r.x1,r.z0-0.1,r.z0+0.1);
-  col(r.x0,torA,r.z1-0.1,r.z1+0.1);
-  col(torB,r.x1,r.z1-0.1,r.z1+0.1);
-  /* Schiebetor, offen an den Zaun gefahren */
-  { const g2=new THREE.Group(); g2.position.set(torA-6.4,0,r.z1); scene.add(g2);
-    const steel=std(0x8d939d,{metalness:0.6,roughness:0.42});
-    bbox(6.4,0.1,0.1,steel,3.2,ZH-0.1,0.16,g2,false);
-    bbox(6.4,0.1,0.1,steel,3.2,0.34,0.16,g2,false);
-    for(let i=0;i<21;i++) bbox(0.07,ZH-0.5,0.07,steel,0.2+i*0.31,ZH/2,0.16,g2,false);
-    for(const dx of [0.2,6.2]) bbox(0.1,ZH+0.2,0.1,steel,dx,ZH/2,0.16,g2,false);
-    col(torA-6.2,torA-0.2,r.z1+0.06,r.z1+0.26); }
-  /* Licht, Deko, Winterdienst */
-  hofMast(r.x0+1.6,r.z0+9,Math.PI/2); hofMast(r.x0+1.6,r.z1-9,Math.PI/2);
-  hofMast(r.x0+10,r.z0+1.6,0);        hofMast(r.x1-10,r.z1-1.6,Math.PI);
-  palettenStapel(r.x1-2.4,r.z0+9.0,7,0.1);
-  palettenStapel(r.x1-3.8,r.z0+9.2,5,-0.2);
-  palettenStapel(r.x1-2.6,r.z1-1.2,6,0.3);
-  /* Abrollcontainer an der Sued-Ecke */
-  { const cx=r.x0+7.5, cz=r.z0+10.0;
-    const cm=std(0x4a6f52,{metalness:0.35,roughness:0.7});
-    bbox(6.0,2.2,2.5,cm,cx,1.1,cz,null,true);
-    bbox(6.1,0.14,2.6,std(0xeef2f8,{roughness:1}),cx,2.24,cz,null,false);
-    for(let i=0;i<9;i++) bbox(0.08,2.1,2.56,std(0x3f6047,{metalness:0.3,roughness:0.75}),cx-2.8+i*0.7,1.1,cz,null,false);
-    col(cx-3.1,cx+3.1,cz-1.35,cz+1.35); }
-  /* Schneehaufen vom Raeumen, an den Zaun geschoben */
-  for(const [sx,sz,sw] of [[r.x0+3,r.z0+16,3.2],[r.x0+3,r.z0+24,2.6],[r.x0+13,r.z0+11,3.6],[r.x1-4,r.z1-2.4,2.4]]){
-    const h=new THREE.Mesh(new THREE.SphereGeometry(sw/2,HIQ?14:8,8),std(0xeef2f8,{roughness:1}));
-    h.scale.set(1,0.42,0.8); h.position.set(sx,0.1,sz); scene.add(h);
-    col(sx-sw/2,sx+sw/2,sz-sw/2.6,sz+sw/2.6); }
-  /* Hinweisschild an der Einfahrt */
-  { const px=torA+4.0, pz=r.z1+0.2;
-    bbox(0.1,2.4,0.1,std(0x59606b,{metalness:0.6}),px,1.2,pz,null,false);
-    plane(1.5,0.95,new THREE.MeshStandardMaterial({side:THREE.DoubleSide,map:tex(300,190,(g,W,H)=>{
-      g.fillStyle='#1b2340'; g.fillRect(0,0,W,H);
-      g.strokeStyle='#ffd23f'; g.lineWidth=6; g.strokeRect(7,7,W-14,H-14);
-      g.textAlign='center'; g.textBaseline='middle';
-      g.fillStyle='#ffd23f'; g.font=BUN(32); g.fillText('WESTRAMPE',W/2,44);
-      g.fillStyle='#bcd0ea'; g.font=BAR(24);
-      g.fillText('Tor 1 – 4 · Auflieger',W/2,86);
-      g.fillText('Schrittgeschwindigkeit',W/2,118);
-      g.fillStyle='#ff9d92'; g.font=BAR(22); g.fillText('Rauchen und Feuer verboten',W/2,152); })}),
-      px,1.75,pz,Math.PI/2,null);
-    col(px-0.15,px+0.15,pz-0.15,pz+0.15); }
-}
-
 /* =========================================================
    Logistikzentrum im Osten. Steht fertig hinter Zaun und
    Bauschild, betreten kann man es noch nicht.

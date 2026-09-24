@@ -61,7 +61,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
 
   /* 5. Pausenmenue: ausblenden */
   await p.evaluate(()=>window.__bb.showPause());
-  await p.click('#pTut'); await p.click('#pBtn').catch(()=>{});
+  await p.evaluate(()=>{ document.getElementById('pTut').click(); document.getElementById('pBtn').click(); });
   const s5=await zustand();
   console.log('AUS     ',JSON.stringify(s5));
   pruef('AUS',!s5.marker&&!s5.rand&&s5.tip===''&&!s5.key,'Tutorial laesst sich nicht ausblenden: '+JSON.stringify(s5));

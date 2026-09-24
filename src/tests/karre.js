@@ -69,7 +69,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   pruef('TEMPO',tempo.mit>0.5&&tempo.mit<tempo.ohne*0.95,'mit Karre nicht langsamer: '+JSON.stringify(tempo));
 
   /* Bild: Sackkarre mit Kartons */
-  await p.evaluate(()=>{ const bb=window.__bb; bb.setView(0,1,0,-0.25); bb.run(0.05,0.05); bb.renderFrame(1/60); });
+  await p.evaluate(()=>{ const bb=window.__bb; bb.setView(0,1,0,-0.75); bb.run(0.05,0.05); bb.renderFrame(1/60); });
   if(pre) await p.screenshot({path:pre+'_sack.png'});
 
   /* Wegstellen erst leer, dann Plattformwagen mit acht aus dem LKW */
@@ -86,7 +86,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   console.log('WAGEN   ',JSON.stringify(w));
   pruef('WEG',w.volleWeg.an&&!w.leerWeg,'Wegstellen: '+JSON.stringify(w));
   pruef('WAGEN',w.art==='wagen'&&w.lkw==='docked'&&w.last===8&&w.imLkw===2,'Plattformwagen aus dem LKW: '+JSON.stringify(w));
-  await p.evaluate(()=>{ const bb=window.__bb; bb.setView(-14,-3,Math.PI/2,-0.3); bb.run(0.05,0.05); bb.renderFrame(1/60); });
+  await p.evaluate(()=>{ const bb=window.__bb; bb.setView(-14,-3,Math.PI/2,-0.75); bb.run(0.05,0.05); bb.renderFrame(1/60); });
   if(pre) await p.screenshot({path:pre+'_wagen.png'});
 
   /* Neuladen: Stapel bleibt */

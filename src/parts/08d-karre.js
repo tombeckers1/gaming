@@ -48,7 +48,8 @@ function toggleKarre(){
   sfx.pop(); updateCarry();
 }
 
-/* ---------- Modelle, vor der Kamera ---------- */
+/* ---------- Modelle, auf dem Boden vor dem Spieler ---------- */
+function karreFolgen(){ if(!karreG) return; karreG.position.set(pl.x,0,pl.z); karreG.rotation.y=yaw; }
 let karreG=null, karreArtGebaut=null, karreKisten=[];
 function karreModell(art){
   const g=new THREE.Group();
@@ -81,17 +82,21 @@ function karreModell(art){
 }
 function updateKarre(){
   const an=karreAn(), art=karreArt();
-  if(karreG&&(!an||art!==karreArtGebaut)){ camera.remove(karreG); karreG=null; karreKisten=[]; }
+  if(karreG&&(!an||art!==karreArtGebaut)){ scene.remove(karreG); karreG=null; karreKisten=[]; }
   if(!an) return;
   if(!karreG){
+    /* Die Karre steht auf dem Boden vor einem und dreht nur mit der
+       Blickrichtung mit, nicht mit dem Kopf - an der Kamera haengend
+       schwebte sie beim Hochschauen mit nach oben. */
     karreG=new THREE.Group(); karreArtGebaut=art;
     const m=karreModell(art);
-    /* vor der Kamera: der Griff unten im Bild, die Karre nach vorn geneigt */
-    /* Raeder auf dem Boden (Kamera 1,65 m), Griff unten im Bild; die
-       Sackkarre lehnt zum Spieler zurueck wie beim Schieben */
-    if(art==='sackkarre'){ m.position.set(0.08,-1.586,-1.075); m.rotation.set(0.5,0,0); }
-    else { m.position.set(0,-1.65,-0.37); }
-    karreG.add(m); karreG.userData.m=m; camera.add(karreG);
+    /* Sackkarre lehnt zum Spieler zurueck wie beim Schieben, die Raeder
+       stehen auf dem Boden, der Griff ist eine Armlaenge vor einem */
+    if(art==='sackkarre'){ m.position.set(0.1,0.064,-1.1); m.rotation.set(0.5,0,0); }
+    else { m.position.set(0,0,-0.35); }
+    if(HIQ) m.traverse(o=>{ if(o.isMesh) o.castShadow=true; });
+    karreG.add(m); karreG.userData.m=m; scene.add(karreG);
+    karreFolgen();
   }
   /* Kartons auf der Karre: der Stapel plus der oberste */
   const liste=karreStapel().concat(S.carrying&&S.carrying.type&&kartonMat[S.carrying.type]?[S.carrying]:[]);

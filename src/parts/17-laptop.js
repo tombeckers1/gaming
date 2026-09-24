@@ -290,7 +290,7 @@ function planFlaechen(){
     shopO:{x0:SHOP_HALB,x1:B.x1,z0:B.z0,z1:B.z1},
     ost1:LAY.ost1, ost2:LAY.ost2, sued:LAY.sued, test:LAY.test,
     lbas:{x0:L.x0,x1:L.x1,z0:L.z0,z1:L.z1},
-    lnord:LAY.lnord, ls1:LAY.ls1, ls2:LAY.ls2, ls3:LAY.ls3, lwest:LAY.lwest
+    lnord:LAY.lnord, ls1:LAY.ls1, ls2:LAY.ls2, ls3:LAY.ls3, lw1:LAY.lw1, lw2:LAY.lw2, lwest:LAY.lwest
   };
 }
 const PLAN={
@@ -306,13 +306,16 @@ const PLAN={
   eingang2:   {alt:['shopW','shopO','ost1','ost2','test','lbas','lnord','ls1','ls2'],neu:[],marke:{x:29,z:5.9,r:2.6}},
   lager_sued2:{alt:['shopW','shopO','ost1','ost2','test','lbas','lnord','ls1','ls2'],neu:['ls3']},
   shop_sued:  {alt:['shopW','shopO','ost1','ost2','test','lbas','lnord','ls1','ls2','ls3'],neu:['sued']},
-  lager_west: {alt:['shopW','shopO','ost1','ost2','sued','test','lbas','lnord','ls1','ls2','ls3'],neu:['lwest']},
-  /* Die Tore liegen in der Reihenfolge von WRAMPEN an der Westwand:
-     Andockstation 2 ganz im Sueden, Andockstation 5 ganz im Norden. */
-  rampe2:{alt:['lbas','lnord','ls1','ls2','ls3','lwest'],neu:[],marke:{x:-66,z:-39,r:3.0}},
-  rampe3:{alt:['lbas','lnord','ls1','ls2','ls3','lwest'],neu:[],marke:{x:-66,z:-30,r:3.0}},
-  rampe4:{alt:['lbas','lnord','ls1','ls2','ls3','lwest'],neu:[],marke:{x:-66,z:-21,r:3.0}},
-  rampe5:{alt:['lbas','lnord','ls1','ls2','ls3','lwest'],neu:[],marke:{x:-66,z:-12,r:3.0}}
+  lager_west: {alt:['shopW','shopO','ost1','ost2','sued','test','lbas','lnord','ls1','ls2','ls3'],neu:['lw1']},
+  lager_west2:{alt:['lbas','lnord','ls1','ls2','ls3','lw1'],neu:['lw2']},
+  lager_west3:{alt:['lbas','lnord','ls1','ls2','ls3','lw2'],neu:['lwest']},
+  /* Die Tore liegen an der Suedwand der Logistikhalle, von der
+     Schleuse aus nach Westen: Tor 2 und 3 in Stufe 1, Tor 4 in
+     Stufe 2, Tor 5 in Stufe 3. */
+  rampe2:{alt:['lbas','lnord','ls1','ls2','ls3','lw1'],neu:[],marke:{x:-31.0,z:-34,r:3.0}},
+  rampe3:{alt:['lbas','lnord','ls1','ls2','ls3','lw1'],neu:[],marke:{x:-38.5,z:-34,r:3.0}},
+  rampe4:{alt:['lbas','lnord','ls1','ls2','ls3','lw2'],neu:[],marke:{x:-47.5,z:-34,r:3.0}},
+  rampe5:{alt:['lbas','lnord','ls1','ls2','ls3','lwest'],neu:[],marke:{x:-57.5,z:-34,r:3.0}}
 };
 function planZeichnen(g,W,H,def){
   const F=planFlaechen();
@@ -1014,6 +1017,7 @@ function buyUp(id){
     const k=id==='rack'?'standard':id.slice(5);
     createRack(racks.length,{kind:k}); toast(`${RACKKIND[k].name} steht im Lager.`); }
   else { const kapVor=kapitelNr(); S.up[id]=true;
+    if(id.indexOf('lager_west')===0&&typeof logiAnwenden==='function') logiAnwenden();
     /* Aufstieg nur, wenn sich das Kapitel wirklich aendert - bei einem
        vorgezogenen Kapitel erst, wenn das davor auch geschafft ist */
     const kapNach=kapitelNr();
@@ -1029,7 +1033,7 @@ function buyUp(id){
       else if(id==='lager_gross') toast('Der erste Abschnitt der Halle Süd steht offen: fünf Meter hoch, Platz für Hochregale und die Packstation.','money');
       else if(id==='lager_sued') toast('Der zweite Abschnitt ist offen. Die Wand dazwischen ist ganz weg.','money');
       else if(id==='lager_sued2') toast('Die Halle Süd ist komplett: 283 Quadratmeter am Stück.','money');
-      else if(id==='lager_west') toast('Die Westhalle mit den drei Rampen gehört dir. Auf dem Hof stehen die Auflieger.','money');
+      else if(id==='lager_west') toast('Die Logistikhalle gehört dir: hinter der Schleuse, die Tore rechts an der Südwand. Mit jeder Stufe wird sie größer.','money');
       else if(id==='eingang2'){ setEingang2(true); toast('Der zweite Eingang ist offen. Die Kassenzeile dahinter kannst du im Umbaumodus verschieben.','money'); }
       else if(id.indexOf('rampe')===0) toast(`${u.name.split(' ')[0]} Andockstation geht in Betrieb. Das Tor ist frei.`,'money');
       else if(id==='packstation'){ drawPackSchild(); toast(S.up.onlineshop?'Die Packstation steht. Ab jetzt kommen Onlinebestellungen als Pakete herein.':'Die Packstation steht. Für den Versand brauchst du noch den Onlineshop.','money'); }

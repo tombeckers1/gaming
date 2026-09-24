@@ -26,7 +26,7 @@ Ab Kapitel 7. Der letzte große Raum (Logistikzentrum) gehört nicht zur Demo.
 
 | Kapitel | Name | Inhalt | Stand |
 |---|---|---|---|
-| 7 | Pyro-Logistik | Logistikzentrum mit Toren, Andockstationen 2–5 | gebaut |
+| 7 | Pyro-Logistik | Logistikhalle in drei Stufen (18×20 m/6,5 m → 30×24 m/8,5 m → 40×27 m/11 m), Tore 2–5 an der Südwand, Sackkarre/Plattformwagen; Paletten mit Hubwagen geplant | gebaut |
 | 8 | Pyro-Fabrik | eigene Fabrikhalle, eigene Produkte in Serie, Rohstoffe, Qualität | geplant |
 | 9 | Pyro-Großhändler | andere Läden beliefern, eigene LKW-Flotte, Händlerverträge | geplant |
 | 10 | Pyro-Kette | Filialen in anderen Städten, Filialleiter, zentrale Preise | geplant |

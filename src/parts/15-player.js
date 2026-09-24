@@ -84,7 +84,7 @@ const UMBAU_RAUM=[
   {r:LAY.ls1,  z:'lager_gross'},
   {r:{x0:LAY.ls1.x0,x1:LAY.ls1.x1,z0:LAY.ls2.z0,z1:LAY.ls1.z1},z:'lager_sued'},
   {r:LAY.lsued,z:'lager_sued2'},
-  {r:LAY.lwest,z:'lager_west'}
+  {r:LAY.lw1,z:'lager_west'},{r:LAY.lw2,z:'lager_west2'},{r:LAY.lwest,z:'lager_west3'}
 ];
 function imRaum(minX,maxX,minZ,maxZ){
   return UMBAU_RAUM.some(b=>(!b.z||zoneOffen(b.z))&&

@@ -36,7 +36,9 @@ function dachBereiche(){
   const r=(a2,h)=>{ if(a2) _daecher.push({x0:a2.x0-0.3,x1:a2.x1+0.3,z0:a2.z0-0.3,z1:a2.z1+0.3,h:h+0.4}); };
   r(LAY.basis,WH); r(LAY.ost1,WH); r(LAY.ost2,WH); r(LAY.sued,WH);
   r(LAY.lbasis,LAGER_H); r(LAY.lnord,LAGER_H); r(LAY.ls1,LAGER_H); r(LAY.ls2,LAGER_H); r(LAY.ls3,LAGER_H);
-  r(LAY.lwest,GH_H); r(LAY.schleuse,SCHLEUSE_H);
+  r(LAY.schleuse,SCHLEUSE_H);
+  /* Logistikhalle: jede Stufe hat ihr Dach, es zaehlt die, die steht */
+  [LAY.lw1,LAY.lw2,LAY.lwest].forEach((a2,i)=>{ r(a2,[6.5,8.5,11][i]); _daecher[_daecher.length-1].stufe=i; });
   /* Die Hallen haben ihr Dach von Anfang an, auch solange sie
      gesperrt sind. Der Gang nicht: sein Dach kommt erst mit dem
      Grosshandel. Bis dahin ist der Streifen hinter dem Laden
@@ -48,7 +50,7 @@ function dachBereiche(){
 }
 function unterDach(x,y,z){
   for(const d of dachBereiche())
-    if(y<d.h&&x>d.x0&&x<d.x1&&z>d.z0&&z<d.z1&&(!d.zone||zoneOffen(d.zone))) return true;
+    if(y<d.h&&x>d.x0&&x<d.x1&&z>d.z0&&z<d.z1&&(!d.zone||zoneOffen(d.zone))&&(d.stufe===undefined||typeof logiZeige!=='function'||logiZeige()===d.stufe)) return true;
   return false;
 }
 function updateSnow(dt){
@@ -122,7 +124,7 @@ function step(dt){
     else if(!spawnWTruck(frei,ladung,sid,supplierOf(sid).name)) break;
   }
   updateSonne(pl.x,pl.z);
-  updateTruck(dt); updateWBays(dt); updateSchiebetuer(dt); updateVersand(dt); updateSchweber(dt); updateWischen(dt); updateSchoner(dt); updateZiel(dt); karreNachziehen();
+  updateTruck(dt); updateWBays(dt); updateSchiebetuer(dt); updateVersand(dt); updateSchweber(dt); updateWischen(dt); updateSchoner(dt); updateZiel(dt); karreNachziehen(); karreFolgen();
   for(let i=timers.length-1;i>=0;i--){ timers[i].t-=dt; if(timers[i].t<=0){ const fn=timers[i].fn; timers.splice(i,1); fn(); } }
   if(phase==='open') addGrime(dt*0.0016*(1+customers.length*0.05));
   hype=Math.max(0,hype-dt*1.1);

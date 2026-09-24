@@ -43,6 +43,9 @@ function startGame(fresh){
      im eingerichteten Laden. */
   /* Staende von vor den Kapiteln hatten das Lager von Anfang an */
   if(d&&d.up&&d.up.lager===undefined) S.up.lager=true;
+  /* Vor dem 24.09. gab es die Logistikhalle nur in voller Groesse. Wer
+     sie hatte, bekommt alle drei Stufen - niemand verliert Flaeche. */
+  if(d&&d.up&&d.up.lager_west&&d.up.lager_west2===undefined){ S.up.lager_west2=true; S.up.lager_west3=true; }
   if(d&&d.up&&d.up.shop_halb===undefined){
     S.up.shop_halb=true; S.up.lager_nord=true; S.up.testfeld=true;
   }

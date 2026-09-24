@@ -26,18 +26,20 @@ function dockPlaetze(){
   for(const id of WBAY_UP) if(S&&S.up&&S.up[id]) n++;
   return n;
 }
-function wbayOffen(i){ return !!(S&&S.up&&S.up[WBAY_UP[i]]&&zoneOffen('lager_west')); }
+/* Das Tor muss gekauft sein und in der stehenden Halle auch existieren */
+function wbayOffen(i){ return !!(S&&S.up&&S.up[WBAY_UP[i]]&&zoneOffen('lager_west')&&typeof logiStufe==='function'&&logiStufe()>=TOR_STUFE[i]); }
 /* Erste freie, gekaufte Rampe - oder -1 */
 function wbayFrei(){
   for(let i=0;i<wbays.length;i++) if(wbayOffen(i)&&!wbays[i]) return i;
   return -1;
 }
 /* Abstellplatz fuer den n-ten Karton dieser Rampe: drei nebeneinander,
-   drei uebereinander, dann eine Reihe weiter in die Halle hinein. */
-function wbaySlot(cz,n){
-  const X=LAY.lwest.x0+1.7;
+   drei uebereinander, dann eine Reihe weiter in die Halle hinein
+   (nach Norden, die Tore stehen in der Suedwand). */
+function wbaySlot(cx,n){
+  const Z=LHALLE.z+1.7;
   const reihe=n%3, stapel=Math.floor(n/3)%3, tief=Math.floor(n/9);
-  return {x:X+tief*1.05, y:0.2+stapel*0.41, z:cz-0.95+reihe*0.95, ry:rand(-0.08,0.08)};
+  return {x:cx-0.95+reihe*0.95, y:0.2+stapel*0.41, z:Z+tief*1.05, ry:Math.PI/2+rand(-0.08,0.08)};
 }
 /* Torblatt einer Rampe auf Stellung t (0 zu, 1 offen) */
 function wtorSet(i,t){
@@ -51,9 +53,11 @@ function wtorSet(i,t){
 function spawnWTruck(i,cargo,supId,supName){
   const T=WTORE[i]; if(!T||wbays[i]) return false;
   const farbe=TRUCKCOL[supId]||TRUCKCOL.mertens;
-  const zielX=LAY.lwest.x0-0.05-13.2/2;       /* Heck buendig an der Wand */
-  const g=abstellAuflieger(zielX-11,T.z,Math.PI,supName||'Lieferung',farbe,true);
-  wbays[i]={g,cargo:cargo.slice(),zielX,z:T.z,state:'anfahrt',t:0,n:0,name:supName};
+  /* Der Auflieger setzt von Sueden aus dem Hof an die Suedwand zurueck,
+     das Heck zeigt nach Norden */
+  const zielZ=LHALLE.z-0.05-13.2/2;           /* Heck buendig an der Wand */
+  const g=abstellAuflieger(T.x,zielZ-8,Math.PI/2,supName||'Lieferung',farbe,true);
+  wbays[i]={g,cargo:cargo.slice(),zielZ,x:T.x,state:'anfahrt',t:0,n:0,name:supName};
   toast(`${supName} setzt an Tor ${i+2}.`);
   return true;
 }
@@ -66,9 +70,9 @@ function updateWBays(dt){
   for(let i=0;i<wbays.length;i++){
     const b=wbays[i]; if(!b) continue;
     if(b.state==='anfahrt'){
-      const d=b.zielX-b.g.position.x;
-      b.g.position.x+=clamp(d*0.9,0.6,3.0)*dt;
-      if(d<=0.04){ b.g.position.x=b.zielX; b.state='toroeffnen'; b.t=0; }
+      const d=b.zielZ-b.g.position.z;
+      b.g.position.z+=clamp(d*0.9,0.6,3.0)*dt;
+      if(d<=0.04){ b.g.position.z=b.zielZ; b.state='toroeffnen'; b.t=0; }
     } else if(b.state==='toroeffnen'){
       b.t+=dt/2.2; wtorSet(i,b.t);
       if(b.t>=1){ b.state='entladen'; b.t=0;
@@ -78,16 +82,17 @@ function updateWBays(dt){
       if(b.t<=0){
         b.t=WBAY_TAKT;
         const c=b.cargo.shift();
-        if(c) spawnFloorBox(c.type,P[c.type].box,wbaySlot(b.z,b.n++),c.q||1);
+        if(c) spawnFloorBox(c.type,P[c.type].box,wbaySlot(b.x,b.n++),c.q||1);
         if(!b.cargo.length){ b.state='torzu'; b.t=1;
-          toast(`Tor ${i+2}: abgeladen. Die Kartons stehen in der Westhalle.`,'money'); }
+          toast(`Tor ${i+2}: abgeladen. Die Kartons stehen in der Logistikhalle.`,'money'); }
       }
     } else if(b.state==='torzu'){
       b.t-=dt/2.2; wtorSet(i,Math.max(0,b.t));
       if(b.t<=0){ b.state='abfahrt'; b.t=0; }
     } else if(b.state==='abfahrt'){
-      b.g.position.x-=Math.min(7,3+b.t*6)*dt; b.t+=dt;
-      if(b.g.position.x<LAY.hof2.x0-4) wbayRaeumen(i);
+      b.g.position.z-=Math.min(7,3+b.t*6)*dt; b.t+=dt;
+      /* am Suedzaun ist Schluss: dort biegt er ab und ist weg */
+      if(b.g.position.z<LAY.hof2.z0+7) wbayRaeumen(i);
     }
   }
 }

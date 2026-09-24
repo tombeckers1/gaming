@@ -192,14 +192,16 @@ const UPGRADES=[
   {id:'shop_sued',kat:'flaeche',lvl:24,req:'shop_ost',kap:6,name:'Ladenerweiterung 4 – riesig viel Platz',desc:'Die große Halle hinter dem Laden, zwei breite Durchgänge: 478 Quadratmeter Verkaufsfläche mit zwei Gondelgassen. Damit ist der Laden fünfeinhalbmal so groß wie am Anfang.',cost:()=>34000,done:()=>S.up.shop_sued},
   {id:'lager_sued',kat:'flaeche',lvl:18,req:'lager_gross',name:'Lagererweiterung 3 – noch mehr Platz',desc:'Der zweite Abschnitt, noch einmal 83 Quadratmeter. Die Wand zum ersten fällt ganz weg — kein Pfeiler, kein Sturz, eine durchgehende Halle.',cost:()=>11000,done:()=>S.up.lager_sued},
   {id:'lager_sued2',kat:'flaeche',lvl:25,req:'lager_sued',name:'Lagererweiterung 4 – die ganze Halle',desc:'Der letzte Abschnitt bis zur Stirnwand. Damit steht die ganze Halle: 283 Quadratmeter am Stück, dreizehn Stellplätze für Hoch- und Schwerlastregale.',cost:()=>15000,done:()=>S.up.lager_sued2},
-  {id:'lager_west',kat:'flaeche',lvl:28,req:'lager_sued2',kap:7,name:'Logistikzentrum freischalten – riesige Halle mit Toren',desc:'Die große Halle an den vier Toren: 1520 Quadratmeter auf 40 mal 38 Metern, zwölf Stellplätze für Hochregale und ein Hof, auf dem mehrere Auflieger stehen können. Dazu wird der Lagergang hinter dem Laden geöffnet — der kurze Weg vom Rückgebäude direkt ins Lager, ohne Umweg über den Verkaufsraum.',cost:()=>38000,done:()=>S.up.lager_west},
+  {id:'lager_west',kat:'flaeche',lvl:28,req:'lager_sued2',kap:7,name:'Logistikhalle – Stufe 1',desc:'Eine eigene Halle hinter der Schleuse: 18 mal 20 Meter, 6,5 Meter hoch, mit zwei Toren an der Südwand zum LKW-Hof. Klein fängt sie an, mit jeder Stufe wird sie größer und höher. Dazu wird der Lagergang hinter dem Laden geöffnet.',cost:()=>22000,done:()=>S.up.lager_west},
   /* Andockstationen. Die Basisrampe hinter dem Lager ist die erste
      und bleibt die begehbare; jede zugekaufte Westrampe nimmt eine
      Lieferung zusaetzlich an, parallel zu allen anderen. */
-  {id:'rampe2',kat:'flaeche',lvl:28,req:'lager_west',name:'Andockstation 2',desc:'Das erste Tor der Westhalle geht in Betrieb. Ab jetzt können zwei Lieferungen gleichzeitig anrollen: während du an der Basisrampe auslädst, stapelt der Fahrer hier seine Kartons selbst in der Halle ab.',cost:()=>14000,done:()=>S.up.rampe2},
-  {id:'rampe3',kat:'flaeche',lvl:29,req:'rampe2',name:'Andockstation 3',desc:'Das zweite Tor der Westhalle kommt dazu. Drei Lieferungen nebeneinander — ab hier staut sich der Einkauf auch an starken Tagen nicht mehr.',cost:()=>19000,done:()=>S.up.rampe3},
-  {id:'rampe4',kat:'flaeche',lvl:30,req:'rampe3',name:'Andockstation 4',desc:'Das dritte Tor der Westhalle. Vier Lieferungen gleichzeitig.',cost:()=>25000,done:()=>S.up.rampe4},
-  {id:'rampe5',kat:'flaeche',lvl:30,req:'rampe4',name:'Andockstation 5',desc:'Das vierte Tor der Westhalle. Zusammen mit der Basisrampe rollen dann fünf Lieferungen gleichzeitig an — mehr gibt das Grundstück nicht her.',cost:()=>31000,done:()=>S.up.rampe5},
+  {id:'rampe2',kat:'flaeche',lvl:28,req:'lager_west',name:'Andockstation 2',desc:'Das erste Tor der Logistikhalle geht in Betrieb. Ab jetzt können zwei Lieferungen gleichzeitig anrollen: während du an der Basisrampe auslädst, stapelt der Fahrer hier seine Kartons selbst in der Halle ab.',cost:()=>12000,done:()=>S.up.rampe2},
+  {id:'lager_west2',kat:'flaeche',lvl:29,req:'lager_west',name:'Logistikhalle – Stufe 2',desc:'Die Halle wächst: 30 mal 24 Meter und 8,5 Meter hoch, mit Platz für ein drittes Tor und acht weitere Regalplätze.',cost:()=>30000,done:()=>S.up.lager_west2},
+  {id:'rampe3',kat:'flaeche',lvl:29,req:'rampe2',name:'Andockstation 3',desc:'Das zweite Tor der Logistikhalle kommt dazu. Drei Lieferungen nebeneinander — ab hier staut sich der Einkauf auch an starken Tagen nicht mehr.',cost:()=>15000,done:()=>S.up.rampe3},
+  {id:'rampe4',kat:'flaeche',lvl:30,req:'lager_west2',name:'Andockstation 4',desc:'Das Tor in der erweiterten Halle. Vier Lieferungen gleichzeitig.',cost:()=>20000,done:()=>S.up.rampe4},
+  {id:'lager_west3',kat:'flaeche',lvl:30,req:'lager_west2',name:'Logistikhalle – Stufe 3',desc:'Die volle Halle: 40 mal 27 Meter und 11 Meter hoch, Platz für Hochregale bis unters Dach und das letzte Tor.',cost:()=>42000,done:()=>S.up.lager_west3},
+  {id:'rampe5',kat:'flaeche',lvl:31,req:'lager_west3',name:'Andockstation 5',desc:'Das letzte Tor der Logistikhalle. Zusammen mit der Basisrampe rollen dann fünf Lieferungen gleichzeitig an — mehr gibt das Grundstück nicht her.',cost:()=>26000,done:()=>S.up.rampe5},
   {id:'packstation',kat:'flaeche',lvl:16,req:'lager_gross',name:'Packstation für den Versand',desc:'Packtisch, Waage, Etikettendrucker und Abholrampe im ersten Abschnitt der großen Halle, gleich hinter dem Rolltor. Zusammen mit dem Onlineshop kommen Bestellungen als echte Pakete herein: packen, auf die Rampe stellen, DDL holt am Abend ab.',cost:()=>6400,done:()=>S.up.packstation},
   {id:'eingang2',kat:'flaeche',lvl:25,req:'shop_ost',name:'Ladenerweiterung 5 – zweite Tür mit Kasse',desc:'Im Eckhaus ist die mittlere Achse bis zum Boden offen und wartet auf eine Tür. Der Ausbau setzt dieselbe Schiebetür wie am Haupteingang hinein, mit Vordach und Matte, und stellt dahinter eine eigene SB-Kassenzeile auf. Kunden nehmen ab jetzt den Eingang, der näher liegt, und die Schlange am Band wird spürbar kürzer. Die Kassenzeile lässt sich im Umbaumodus verschieben.',cost:()=>11500,done:()=>S.up.eingang2},
   {id:'kasse2',kat:'einr',lvl:16,req:'shop_gross',name:'SB-Kassen',desc:'Zwei Selbstbedienungsterminals in der neuen Verkaufsfläche. Kunden mit wenig Ware zahlen dort selbst, das entlastet deine Schlange spürbar.',cost:()=>3400,done:()=>S.up.kasse2},
@@ -482,9 +484,12 @@ function mkRacks(){
   [-17.4,-20.6].forEach(z=>{ add(-10.4,z,0,5.0,'lager_sued'); add(-17.8,z,0,5.0,'lager_sued'); });
   /* Halle Sued III */
   [-24.4,-27.6].forEach(z=>{ add(-10.4,z,0,5.0,'lager_sued2'); add(-17.8,z,0,5.0,'lager_sued2'); });
-  /* Grosshandel: die grosse Halle an den vier Rampen */
-  [-9.5,-13.5,-17.5,-21.5,-25.5,-28.8].forEach(z=>{
-    add(-24.5,z,0,6.4,'lager_west'); add(-31.5,z,0,6.4,'lager_west'); });
+  /* Logistikhalle in drei Stufen (seit 24.09.). Die Tore liegen an
+     der Suedwand (z -34), davor bleiben vier Meter frei; der Weg von
+     der Schleuse (z -22,4 bis -18,6) laeuft zwischen den Reihen. */
+  [-18.0,-22.0,-26.0].forEach(z=>{ add(-41.5,z,0,5.0,'lager_west'); add(-35.0,z,0,5.0,'lager_west'); });
+  [-14.0,-18.0,-22.0,-26.0].forEach(z=>{ add(-52.5,z,0,6.4,'lager_west2'); add(-47.5,z,0,6.4,'lager_west2'); });
+  [-12.0,-16.0,-20.0,-24.0,-28.0].forEach(z=>{ add(-63.0,z,0,6.4,'lager_west3'); add(-59.0,z,0,6.4,'lager_west3'); });
   return A;
 }
 const RACKS=mkRacks();

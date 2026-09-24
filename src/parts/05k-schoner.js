@@ -64,9 +64,12 @@ function schonerMalen(o,dt){
   o.t.needsUpdate=true;
 }
 const _sp=new THREE.Vector3();
-let schonerTakt=0;
+/* getaktet nach echter Zeit, nicht nach Spielzeit: im Zeitraffer
+   (Tests, Tagesende) wuerde er sonst tausendfach gezeichnet */
+let schonerTakt=0, schonerZuletzt=0;
 function updateSchoner(dt){
-  schonerTakt+=dt; if(schonerTakt<1/12) return; const d=schonerTakt; schonerTakt=0;
+  schonerTakt+=dt; const jetzt=performance.now();
+  if(jetzt-schonerZuletzt<1000/12) return; schonerZuletzt=jetzt; const d=schonerTakt; schonerTakt=0;
   for(const o of SCHONER){ if(!o.mesh) continue;
     o.mesh.getWorldPosition(_sp);
     /* nur zeichnen, wenn man nah genug ist, um es zu sehen */

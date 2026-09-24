@@ -72,11 +72,13 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   pruef('PERSONAL',rk.arbeitet&&rk.abstandFleck<0.35&&rk.deckkraft<0.85,'wischt nicht auf dem Fleck: '+JSON.stringify(rk));
 
   /* 3. Bildschirmschoner */
-  const sch=await p.evaluate(()=>{ const bb=window.__bb;
+  const sch=await p.evaluate(async()=>{ const bb=window.__bb;
+    /* der Schoner zeichnet nach echter Zeit: zwischen den Schritten warten */
+    const lauf=async n=>{ for(let i=0;i<n;i++){ bb.run(0.1,0.05); await new Promise(r=>setTimeout(r,90)); } };
     const o=bb.SCHONER[0], m=o.mesh; const wp=new (bb.camera.position.constructor)(); m.getWorldPosition(wp);
     bb.setView(wp.x+0.9,wp.z+0.9,Math.atan2(0.9,0.9),-0.4);
     const px=()=>o.g.getImageData(0,0,o.w,o.h).data;
-    bb.run(2,0.05); const a=px(); bb.run(1.5,0.05); const c=px();
+    await lauf(20); const a=px(); await lauf(15); const c=px();
     let diff=0, hell=0; for(let i=0;i<a.length;i+=4){ if(Math.abs(a[i]-c[i])+Math.abs(a[i+1]-c[i+1])>30) diff++; if(c[i]+c[i+1]+c[i+2]>500) hell++; }
     bb.renderFrame(1/60);
     return {anzahl:bb.SCHONER.length,bewegt:diff,hell,karte:m.material.map===o.t}; });

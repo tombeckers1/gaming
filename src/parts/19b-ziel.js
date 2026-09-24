@@ -56,6 +56,10 @@ function zielBauen(){
   zielTex=tex(160,56,()=>{});
   zielTxt=new THREE.Sprite(new THREE.SpriteMaterial({map:zielTex,depthTest:false,depthWrite:false,transparent:true,toneMapped:false,sizeAttenuation:false}));
   zielTxt.scale.set(0.12,0.042,1); zielTxt.renderOrder=30; zielG.add(zielTxt);
+  /* Der Marker ist nur Anzeige. Ein Sprite im Raycast braucht eine
+     Kamera am Raycaster - jeder Strahl durch die ganze Szene brach
+     sonst mit "matrixWorld of null" ab. */
+  zielSp.raycast=zielTxt.raycast=()=>{};
 }
 function zielText(s){
   if(s===zielZuletzt) return; zielZuletzt=s;

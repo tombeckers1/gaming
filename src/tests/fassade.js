@@ -40,6 +40,14 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
         const z=(n[2]>0?bx.max.z:n[2]<0?bx.min.z:mi.z)+n[2]*0.2;
         const y=Math.min(1.6,(bx.min.y+bx.max.y)/2);
         if(bx.max.y<0.3) continue;                            /* flache Kanten */
+        /* Stirnseite, die ganz in einer anderen Wand steckt (Ecke):
+           5 cm davor liegt schon deren Mauerwerk - unsichtbar. */
+        const px=(n[0]>0?bx.max.x:n[0]<0?bx.min.x:mi.x)+n[0]*0.05, pz=(n[2]>0?bx.max.z:n[2]<0?bx.min.z:mi.z)+n[2]*0.05;
+        let steckt=false;
+        bb.scene.traverse(w=>{ if(steckt||w===o||!w.isMesh||!w.visible||!w.userData.aabb) return;
+          const a=w.userData.aabb, wb=new THREE.Box3().setFromObject(w);
+          if(px>a.x0&&px<a.x1&&pz>a.z0&&pz<a.z1&&wb.min.y<=bx.min.y+0.01&&wb.max.y>=bx.max.y-0.01) steckt=true; });
+        if(steckt) continue;
         if(!bb.unterDach(x,y,z))
           treffer.push(`Flaeche ${k} bei (${x.toFixed(1)}, ${y.toFixed(1)}, ${z.toFixed(1)}) `+
                        `zeigt ins Freie; Wand x[${bx.min.x.toFixed(1)},${bx.max.x.toFixed(1)}] z[${bx.min.z.toFixed(1)},${bx.max.z.toFixed(1)}]`);

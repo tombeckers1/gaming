@@ -597,7 +597,10 @@ function buildAusbau(){
      Vorher stand auch die Westwand doppelt - zwei Flaechen genau
      aufeinander, die gegeneinander flimmerten und an der
      Stossstelle eine senkrechte Naht hinterliessen. */
-  halle(null,LAY.lnord,{art:'lager',aussen:{n:true},ao:{},h:LAGER_H,
+  /* Die Nordwand baut lagerFensterWand() - mit drei echten Fenstern
+     zur Strasse, die man auch von innen sieht. */
+  lagerFensterWand();
+  halle(null,LAY.lnord,{art:'lager',aussen:{},ao:{},h:LAGER_H,
     keinDach:true,keinDeck:true,keinBoden:true,keinLicht:true});
   /* Die Halle Sued in drei Abschnitten. Alle drei sind gleich
      hoch, damit zwischen ihnen keine Wand stehen bleiben muss. */
@@ -1206,6 +1209,49 @@ function westTor(cx,nr){
     col(cx-lz-0.15,cx-lz+0.15,Z-1.05,Z-0.75);
   }
   return g;
+}
+/* =========================================================
+   Nordwand des Lagers zur Strasse, mit drei echten Fenstern
+   (Tom, 24.09.: "das sind keine Fenster, da muessen richtige hin").
+   Vorher klebten dort drei dunkle Kaesten aussen auf der Wand.
+   Jetzt hat die Wand Oeffnungen mit Laibung, Aluminiumrahmen,
+   Mittelpfosten, Glas, Fensterbank aussen und innen - von der
+   Strasse aus und aus der Lagererweiterung zu sehen.
+   ========================================================= */
+const LAGERFENSTER=[-17.6,-14.0,-10.4];
+function lagerFensterWand(){
+  const r=LAY.lnord, z0=r.z1, z1=r.z1+LW, H=LAGER_H;
+  const FB=1.7, Y0=1.35, Y1=2.6;                       /* Breite, Bruestung, Sturz */
+  const leib=std(0xdfe3e8,{roughness:0.85});          /* Laibung: heller Putz */
+  const alu=std(0x2b3040,{metalness:0.55,roughness:0.38});
+  const glas=new THREE.MeshStandardMaterial({color:LIN(0x5d7288),transparent:true,opacity:0.38,roughness:0.05,metalness:0.2,side:THREE.DoubleSide,depthWrite:false});
+  const bankA=std(0xb9bec6,{metalness:0.6,roughness:0.35}), bankI=std(0xe6e8ec,{roughness:0.6});
+  const W=(a,b,y0,y1)=>{ if(b-a>0.005&&y1-y0>0.005) wall(a,b,z0,z1,y0,y1,'-z',lagerWall,undefined,0,leib); };
+  let x=r.x0-LW;
+  for(const cx of LAGERFENSTER){
+    const a=cx-FB/2, b=cx+FB/2;
+    W(x,a,0,H);                    /* Pfeiler */
+    W(a,b,0,Y0);                   /* Bruestung */
+    W(a,b,Y1,H);                   /* Sturz */
+    /* Rahmen in der Wandmitte, zwei Fluegel mit Mittelpfosten */
+    const zm=(z0+z1)/2, fh=Y1-Y0;
+    bbox(FB,0.07,0.08,alu,cx,Y1-0.035,zm,null,false);
+    bbox(FB,0.07,0.08,alu,cx,Y0+0.035,zm,null,false);
+    for(const sx of [-1,1]) bbox(0.07,fh,0.08,alu,cx+sx*(FB/2-0.035),Y0+fh/2,zm,null,false);
+    bbox(0.06,fh-0.1,0.07,alu,cx,Y0+fh/2,zm,null,false);
+    /* Fluegelrahmen, etwas schmaler, dahinter das Glas */
+    for(const sx of [-1,1]){ const fx=cx+sx*FB/4;
+      for(const dy of [0.075,fh-0.075]) bbox(FB/2-0.12,0.04,0.05,alu,fx,Y0+dy,zm+0.01,null,false);
+      bbox(FB/2-0.14,fh-0.2,0.012,glas,fx,Y0+fh/2,zm,null,false);
+      /* Griff am Fluegel innen */
+      bbox(0.025,0.12,0.03,std(0xc9ced6,{metalness:0.8,roughness:0.25}),cx+sx*0.1,Y0+fh/2,z0-0.01,null,false); }
+    /* Fensterbank aussen (Alu, leicht vorstehend) und innen */
+    bbox(FB+0.08,0.03,0.2,bankA,cx,Y0-0.012,z1+0.06,null,false);
+    bbox(FB+0.05,0.03,0.16,bankI,cx,Y0-0.012,z0-0.05,null,false);
+    x=b;
+  }
+  W(x,r.x1+LW,0,H);
+  col(r.x0-LW,r.x1+LW,z0,z1);
 }
 /* Flutlichtmast fuer den Hof */
 function hofMast(x,z,ry){

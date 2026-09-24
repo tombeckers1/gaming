@@ -130,6 +130,83 @@ function strassenlampe(x,z,dir){
    ========================================================= */
 const LADENNAMEN=['BÄCKEREI','KIOSK','APOTHEKE','FRISEUR','PIZZERIA','BLUMEN','GETRÄNKE','REISEBÜRO','SCHREIBWAREN','METZGEREI','OPTIKER','WASCHSALON'];
 const HAUSFARBEN=[[0xb99a7e,'#c9ad93'],[0x8f9aa6,'#a3adb8'],[0xa8846a,'#bb9a82'],[0x7f8b7a,'#96a091'],[0xc2ab84,'#d2be9c'],[0x96707a,'#ab8892'],[0x6f7c8c,'#87939f'],[0xb0705c,'#c18573'],[0xa9a294,'#bcb6aa'],[0x7a6f86,'#93899c']];
+/* =========================================================
+   Haustuer der Wohnhaeuser gegenueber (Tom, 24.09.: die gemalten
+   Tueren sahen schlecht aus). Kassettentuer mit Glaseinsatz und
+   Ziergitter, Oberlicht, Messingdruecker, Briefschlitz und
+   Stossblech; daneben Klingeltableau und Hausnummer, darueber eine
+   Wandleuchte, die nachts brennt.
+   ========================================================= */
+const TUERFARBEN=['#1f4d3a','#1e3553','#6b2430','#5a3b26','#2d3035','#3f5a6b'];
+const _tuerTex={};
+function tuerTex(farbe){
+  if(_tuerTex[farbe]) return _tuerTex[farbe];
+  const t=tex(256,512,(g,W,H)=>{
+    g.fillStyle=farbe; g.fillRect(0,0,W,H);
+    /* feine Maserung im Lack */
+    for(let i=0;i<500;i++){ g.fillStyle=`rgba(${Math.random()<0.5?0:255},${Math.random()<0.5?0:255},${Math.random()<0.5?0:255},${Math.random()*0.035})`; g.fillRect(Math.random()*W,Math.random()*H,1,rand(6,30)); }
+    const kass=(x,y,w,h)=>{ /* erhabene Fuellung: Licht oben links, Schatten unten rechts */
+      g.fillStyle='rgba(255,255,255,.13)'; g.fillRect(x,y,w,5); g.fillRect(x,y,5,h);
+      g.fillStyle='rgba(0,0,0,.35)'; g.fillRect(x,y+h-5,w,5); g.fillRect(x+w-5,y,5,h);
+      g.fillStyle='rgba(0,0,0,.12)'; g.fillRect(x+14,y+14,w-28,h-28);
+      g.fillStyle='rgba(255,255,255,.08)'; g.fillRect(x+14,y+14,w-28,3); };
+    /* Glaseinsatz oben mit Ziergitter */
+    const gx=40,gy=42,gw=W-80,gh=150;
+    g.fillStyle='rgba(0,0,0,.45)'; g.fillRect(gx-6,gy-6,gw+12,gh+12);
+    const gl=g.createLinearGradient(gx,gy,gx+gw,gy+gh); gl.addColorStop(0,'#3d4c62'); gl.addColorStop(0.45,'#1b2433'); gl.addColorStop(1,'#2e3a4d');
+    g.fillStyle=gl; g.fillRect(gx,gy,gw,gh);
+    g.fillStyle='rgba(200,220,245,.22)'; g.beginPath(); g.moveTo(gx,gy+gh*0.2); g.lineTo(gx+gw*0.45,gy); g.lineTo(gx+gw*0.6,gy); g.lineTo(gx,gy+gh*0.55); g.closePath(); g.fill();
+    g.strokeStyle='#15171b'; g.lineWidth=4;
+    for(let k=1;k<4;k++){ g.beginPath(); g.moveTo(gx+gw*k/4,gy); g.lineTo(gx+gw*k/4,gy+gh); g.stroke(); }
+    g.beginPath(); g.arc(gx+gw/2,gy+gh/2,34,0,Math.PI*2); g.stroke();
+    /* zwei Kassetten unten */
+    kass(40,232,W-80,110); kass(40,356,W-80,110);
+    /* Briefschlitz und Stossblech in Messing */
+    g.fillStyle='#b8913e'; g.fillRect(W/2-44,210,88,12); g.fillStyle='#2a2216'; g.fillRect(W/2-36,214,72,4);
+    const ms=g.createLinearGradient(0,H-34,0,H); ms.addColorStop(0,'#d3b066'); ms.addColorStop(1,'#8a6a2a');
+    g.fillStyle=ms; g.fillRect(0,H-34,W,34);
+  });
+  t.anisotropy=8; _tuerTex[farbe]=t; return t;
+}
+function hausTuer(g,tb,th,zf){
+  const farbe=pick(TUERFARBEN);
+  const leaf=new THREE.MeshStandardMaterial({map:tuerTex(farbe),roughness:0.45,metalness:0.05});
+  const kante=std(parseInt(farbe.slice(1),16),{roughness:0.5});
+  const messing=std(0xc9a14e,{metalness:0.85,roughness:0.28});
+  const rahmen=std(0xd8d2c6,{roughness:0.9});
+  const y0=0.57, oh=0.34, lh=th-y0-oh-0.04, lw=tb-0.06, z=zf+0.035;
+  /* Tuerblatt: vorn die Textur, Kanten im Lack */
+  const blatt=new THREE.Mesh(new THREE.BoxGeometry(lw,lh,0.05),[kante,kante,kante,kante,leaf,kante]);
+  blatt.position.set(0,y0+lh/2,z); g.add(blatt);
+  /* Oberlicht mit Kaempfer */
+  bbox(tb+0.02,0.06,0.09,rahmen,0,y0+lh+0.03,zf+0.05,g,false);
+  const ol=new THREE.MeshStandardMaterial({color:LIN(0x2a3548),roughness:0.08,metalness:0.4});
+  bbox(lw,oh-0.06,0.02,ol,0,y0+lh+0.06+(oh-0.06)/2,zf+0.02,g,false);
+  bbox(0.03,oh-0.06,0.03,rahmen,0,y0+lh+0.06+(oh-0.06)/2,zf+0.04,g,false);
+  /* Druecker mit Rosette, rechts auf Hueft-/Handhoehe */
+  const dx=lw/2-0.1, dy=y0+1.02;
+  const ros=new THREE.Mesh(new THREE.CylinderGeometry(0.03,0.03,0.012,14),messing); ros.rotation.x=Math.PI/2; ros.position.set(dx,dy,z+0.03); g.add(ros);
+  bbox(0.13,0.022,0.022,messing,dx-0.055,dy,z+0.055,g,false);
+  const kn=new THREE.Mesh(new THREE.SphereGeometry(0.018,10,8),messing); kn.position.set(dx,dy-0.12,z+0.035); g.add(kn);
+  /* Klingeltableau und Hausnummer rechts neben der Tuer */
+  const px=tb/2+0.26;
+  bbox(0.11,0.26,0.02,std(0xc7ccd4,{metalness:0.7,roughness:0.3}),px,1.55,zf+0.02,g,false);
+  for(let k=0;k<3;k++){ const kb=new THREE.Mesh(new THREE.CylinderGeometry(0.012,0.012,0.012,10),std(0x9aa1ab,{metalness:0.8,roughness:0.25}));
+    kb.rotation.x=Math.PI/2; kb.position.set(px+0.02,1.62-k*0.07,zf+0.035); g.add(kb);
+    bbox(0.045,0.02,0.004,std(0xf2efe6),px-0.02,1.62-k*0.07,zf+0.032,g,false); }
+  const nr=String(1+Math.floor(Math.random()*48));
+  plane(0.2,0.15,new THREE.MeshStandardMaterial({map:tex(128,96,(c,W,H)=>{ c.fillStyle='#1d3f86'; c.fillRect(0,0,W,H);
+    c.strokeStyle='#f2f5ff'; c.lineWidth=5; c.strokeRect(6,6,W-12,H-12); c.fillStyle='#f2f5ff'; c.font=BUN(52); c.textAlign='center'; c.textBaseline='middle'; c.fillText(nr,W/2,H/2+3); }),roughness:0.35}),
+    px,2.05,zf+0.025,0,g);
+  /* Wandleuchte ueber der Tuer */
+  /* Milchglas: tags hell, nachts leuchtet es ueber lampMats */
+  const lm=new THREE.MeshStandardMaterial({color:LIN(0xe9e3d4),emissive:LIN(0xffd9a0),emissiveIntensity:0,roughness:0.3}); lampMats.push(lm);
+  bbox(0.07,0.07,0.1,std(0x1e2126,{metalness:0.5}),0,th+0.36,zf+0.05,g,false);
+  /* Kappe und Boden aus Metall, dazwischen der Glaskoerper */
+  bbox(0.18,0.03,0.16,std(0x1e2126,{metalness:0.5,roughness:0.4}),0,th+0.395,zf+0.14,g,false);
+  bbox(0.14,0.16,0.12,lm,0,th+0.3,zf+0.14,g,false);
+  bbox(0.16,0.025,0.14,std(0x1e2126,{metalness:0.5,roughness:0.4}),0,th+0.21,zf+0.14,g,false);
+}
 function drawFassade(g,W,H,o,lit){
   const rows=o.rows, cols=o.cols, base=o.hex;
   if(lit){ g.fillStyle='#000'; g.fillRect(0,0,W,H); } else {
@@ -189,12 +266,8 @@ function drawFassade(g,W,H,o,lit){
     for(let i=0;i<5;i++){ g.fillStyle=`rgba(90,100,118,${0.25+0.1*(i%2)})`;
       g.fillRect(W*(0.14+i*0.15),gy+gfH*0.42,W*0.1,gfH*0.45); }
   } else {
-    g.fillStyle='#6b4a34'; g.fillRect(W*0.38,gy+gfH*0.25,W*0.24,gfH*0.75);
-    g.fillStyle='#8a6448'; g.fillRect(W*0.39,gy+gfH*0.27,W*0.22,gfH*0.7);
-    g.fillStyle='#1d242f'; g.fillRect(W*0.44,gy+gfH*0.33,W*0.12,gfH*0.2);
-    g.fillStyle='#d8d2c6'; g.fillRect(W*0.355,gy+gfH*0.2,W*0.29,10);
-    g.fillStyle='#c9c2b4'; g.fillRect(W*0.34,gy+gfH*0.92,W*0.32,gfH*0.08);
-    for(let i=0;i<3;i++){ g.fillStyle='rgba(0,0,0,.2)'; g.fillRect(W*0.4+i*W*0.07,gy+gfH*0.42,W*0.04,W*0.03); }
+    /* Die Haustuer ist ein echtes Bauteil davor (hausTuer) - die
+       gemalte Tuer sah von nahem aus wie ein Aufkleber. */
   }
   // Fallrohr
   g.fillStyle='rgba(40,36,32,.7)'; g.fillRect(W-16,34,9,H-34);
@@ -243,12 +316,16 @@ function buildHaus(x,z,w,d,h,o){
      die aufgemalte Haustuer. Rahmen, Sturz und Stufen sitzen genau
      um die gemalte Tuer (Textur: 38 bis 62 % der Breite). */
   if(!o.shop){
-    const gfH=h*0.3, tb=w*0.24, th=gfH*0.75, stein2=std(0x8a857c,{roughness:0.9});
+    /* Tuer in echter Groesse: 1,20 m breit, Sturz auf 2,85 m (Blatt
+       ab der Schwelle rund 1,90 m plus Oberlicht). Vorher w*0.24 breit
+       - bei breiten Haeusern ein 2,30 m breites Scheunentor. */
+    const tb=1.2, th=2.85, stein2=std(0x8a857c,{roughness:0.9});
     const rahmen=std(0xd8d2c6,{roughness:0.9});
     for(const sx of [-1,1]) bbox(0.12,th-0.55,0.1,rahmen,sx*(tb/2+0.06),0.55+(th-0.55)/2,zf+0.05,g,false);
     bbox(tb+0.36,0.14,0.14,rahmen,0,th+0.07,zf+0.07,g,false);
     /* Stufen bis zur Schwelle ueber dem Sockel */
     for(let k=0;k<3;k++) bbox(tb+0.3,0.19,0.32*(3-k),stein2,0,0.095+k*0.19,zf+0.06+0.16*(3-k),g,false);
+    hausTuer(g,tb,th,zf);
   }
   /* Erdgeschoss als echte Schaufensterfront */
   if(o.shop){
@@ -841,7 +918,6 @@ function buildStreet(){
   for(const bx of (COARSE?[-16.5,13]:[-16.5,-11,13])){ const b=makeBaum(); b.position.set(bx,0,10.4); b.scale.setScalar(rand(0.9,1.2)); scene.add(b);
     const ring=new THREE.Mesh(new THREE.TorusGeometry(0.55,0.06,6,14),std(0x3a3d44)); ring.rotation.x=Math.PI/2; ring.position.set(bx,0.06,10.4); scene.add(ring);
     col(bx-0.3,bx+0.3,10.1,10.7); }
-  { const x2=-12.2;   // ein Mülleimer, abseits vom Eingang
-    bbox(0.42,0.75,0.42,std(0x3b4050,{roughness:0.7}),x2,0.38,10.0,null,false);
-    bbox(0.5,0.06,0.5,std(0x8a8f99),x2,0.78,10.0,null,false); col(x2-0.28,x2+0.28,9.75,10.25); }
+  /* Hier stand noch ein Kasten als Platzhalter-Muelleimer neben der
+     Laterne - die echten Muelleimer stehen am Laden. Weg damit. */
 }

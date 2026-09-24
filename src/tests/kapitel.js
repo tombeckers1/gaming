@@ -89,7 +89,8 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     bb.closeLaptop(false); return k; });
   console.log('LAPTOP  ',JSON.stringify(lap));
   pruef('LAPTOP',lap.length===11&&lap.every((x,i)=>x[0].indexOf('Kapitel '+(i+1))===0),'Kapitelueberschriften: '+JSON.stringify(lap));
-  pruef('LAPTOP',lap.slice(0,7).every(x=>x[1]>=2&&x[1]<=6),'Kapitel ungleich verteilt: '+lap.map(x=>x[1]).join('/'));
+  /* Kapitel 7 traegt die drei Hallenstufen und vier Tore (Tom, 24.09.) */
+  pruef('LAPTOP',lap.slice(0,7).every((x,i)=>x[1]>=2&&x[1]<=(i===6?8:6)),'Kapitel ungleich verteilt: '+lap.map(x=>x[1]).join('/'));
   /* Demo 1-6, Vollversion ab 7; 8-11 sind Vorschau */
   pruef('VOLL',lap.every((x,i)=>x[2]===(i>=6)&&(i<6||/Vollversion/.test(x[0]))),'Vollversion falsch markiert: '+JSON.stringify(lap.map(x=>x[2])));
   pruef('VOLL',lap.slice(7).every(x=>x[1]===1),'Vorschau der geplanten Kapitel fehlt');

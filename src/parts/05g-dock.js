@@ -89,8 +89,8 @@ function buildDock(){
      zweite Wand auf 2,90 m und ein eigenes Flachdach - das hing als
      dunkler Balken quer durch das Lager, sobald die Decke hoeher
      wurde. Nur die Fenster in der Nordwand bleiben. */
-  for(const x of [-18,-14,-10]){ bbox(0.7,0.9,0.1,std(0x2a3040,{metalness:0.4}),x,1.9,6.2,null,false);
-    bbox(0.62,0.82,0.04,new THREE.MeshStandardMaterial({color:LIN(0x9fb4cc),transparent:true,opacity:0.3,roughness:0.1}),x,1.9,6.24,null,false); }
+  /* Die Fenster in der Nordwand baut jetzt lagerFensterWand() als
+     echte Oeffnungen - hier klebten vorher dunkle Kaesten aussen drauf. */
   buildTor(steel,snow);
   // Vordach über dem Tor
   const cano=bbox(1.9,0.1,4.4,std(0x3a4150,{metalness:0.5}),-20.95,3.32,-2,null,false); cano.rotation.z=0.08;

@@ -57,8 +57,9 @@ function buildFacade(){
   // --- Schaufenster: Sohlbank, Warenauslage, Sicherheitsgitterhalter
   for(const [a,b] of [[-7.2,-2.0],[2.0,7.2]]){
     const cx=(a+b)/2, w=b-a;
-    bbox(w+0.2,0.1,0.34,std(0xbcb6a8,{roughness:0.95}),cx,0.9,zf+0.1,null,false);
-    bbox(w+0.24,0.06,0.36,snow,cx,0.96,zf+0.12,null,false);
+    /* Sohlbank in dunklem Alu wie die Fensterrahmen. Vorher hell-
+       graue Steinbank mit weisser Schneekante - Tom: das Hellgraue muss weg. */
+    bbox(w+0.2,0.05,0.3,std(0x2b3040,{metalness:0.55,roughness:0.38}),cx,0.9,zf+0.1,null,false);
   }
   // --- Eingang
   {
@@ -107,11 +108,12 @@ function buildFacade(){
     bbox(1.5,0.36,0.05,nm,0,2.75,5.86,null,false);
   }
   // --- Sockel, Poller, Gitter, Kamera
-  const plinth=tex(256,64,(g,W,Hh)=>{ g.fillStyle='#4e5560'; g.fillRect(0,0,W,Hh); for(let r=0;r<2;r++) for(let c=0;c<8;c++){ g.fillStyle=pick(['#5c646f','#545c67','#646c78']); g.fillRect(c*32+2+(r%2?16:0),r*32+2,28,28);} });
-  plinth.wrapS=THREE.RepeatWrapping; plinth.repeat.set(8,1);
-  const plinthM=new THREE.MeshStandardMaterial({map:plinth,roughness:0.9});
-  bbox(6.85,0.5,0.1,plinthM,-4.72,0.25,zf+0.06,null,false);
-  bbox(6.85,0.5,0.1,plinthM, 4.72,0.25,zf+0.06,null,false);
+  /* Sockel unter den Schaufenstern: dunkles Anthrazit wie bei der
+     Ladenzeile nebenan und im Sockel der Fassadentextur. Vorher
+     hellgraues Klinkermuster - das passte zu nichts daneben. */
+  const plinthM=std(0x3b4049,{roughness:0.9});
+  bbox(6.85,0.875,0.16,plinthM,-4.72,0.4375,zf+0.05,null,false);
+  bbox(6.85,0.875,0.16,plinthM, 4.72,0.4375,zf+0.05,null,false);
   for(const x of [-5.4,5.4]){
     bbox(0.16,0.85,0.16,std(0x2f3542,{metalness:0.5,roughness:0.5}),x,0.42,7.5,null,false);
     bbox(0.2,0.06,0.2,std(0xd9c07a,{metalness:0.7}),x,0.87,7.5,null,false);
@@ -119,8 +121,8 @@ function buildFacade(){
   }
   // Hausnummer
   plane(0.34,0.34,new THREE.MeshStandardMaterial({map:tex(96,96,(g,W,Hh)=>{ g.fillStyle='#f2f5ff'; g.fillRect(0,0,W,Hh); g.strokeStyle='#0e1226'; g.lineWidth=5; g.strokeRect(5,5,W-10,Hh-10); g.fillStyle='#0e1226'; g.font=BUN(48); g.textAlign='center'; g.textBaseline='middle'; g.fillText('13',W/2,Hh/2+3); })}),1.55,2.28,6.13,0);
-  // Schneewall an der Fassade
-  for(const x of [-7.4,-4.2,4.2,7.4]) bbox(rand(1.3,2.2),0.14,0.4,snow,x,0.07,zf+0.4,null,false);
+  /* Frueher lagen hier vier weisse Kloetze als "Schneewall" vor der
+     Fassade - Tom: sieht nicht gut aus, weg damit. */
 }
 
 /* =========================================================

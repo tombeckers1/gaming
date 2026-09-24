@@ -22,6 +22,25 @@ const sternTex=tex(128,128,(g,W,H)=>{ const c=W/2;
 const SCHWEIF_MODUS=[0.22,0,0.25,0,0.5];
 let SCHWEIF=null;
 const ZIEH=1.1;
+/* Leuchtspur im Shader: Punkt s von S liegt tau=T*s/S zurueck auf der
+   Flugbahn. Mit Luftwiderstand k und Schwerkraft g (gk=g/k):
+   p(tau) = Kopf - v'*(e^(k*tau)-1)/k + (0, gk*tau, 0), v'=v+(0,gk,0).
+   Die Helligkeit faellt zum Ende mit (1-s/S)^1.6. */
+function spurMaterial(S){
+  return new THREE.ShaderMaterial({
+    uniforms:{S:{value:S},Z:{value:ZIEH}},
+    vertexShader:'uniform float S;\nuniform float Z;\nattribute vec4 iP;\nattribute vec4 iV;\nattribute vec3 iC;\nvarying vec3 vC;\n'+
+      'void main(){\n  float s=position.x, tau=iP.w*s/S, A=(exp(Z*tau)-1.0)/Z;\n  vec3 p=iP.xyz-iV.xyz*A; p.y+=iV.w*tau;\n'+
+      '  vC=iC*pow(max(1.0-s/S,0.0),1.6);\n  gl_Position=projectionMatrix*modelViewMatrix*vec4(p,1.0);\n}',
+    fragmentShader:'varying vec3 vC;\nvoid main(){ gl_FragColor=linearToOutputTexel(vec4(vC,1.0)); }',
+    transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,fog:false,toneMapped:false});
+}
+/* Die Spur eines Sterns auf dem Prozessor nachgerechnet, genau wie im
+   Shader - fuer Tests: Kopf und Ende der Spur Nummer q. */
+function spurEnden(ps,q){
+  const P=ps.iP, W=ps.iV, o=q*4, T=P[o+3], A=(Math.exp(ZIEH*T)-1)/ZIEH;
+  return [[P[o],P[o+1],P[o+2]],[P[o]-W[o]*A,P[o+1]-W[o+1]*A+W[o+3]*T,P[o+2]-W[o+2]*A]];
+}
 class PS{
   constructor(max,size,seg,map){
     this.max=max; this.pos=new Float32Array(max*3); this.col=new Float32Array(max*3); this.vel=new Float32Array(max*3);
@@ -30,16 +49,29 @@ class PS{
     this.md=new Uint8Array(max); this.ph=new Float32Array(max); this.tl=new Float32Array(max);
     this.next=0; this.dirty=false;
     for(let i=0;i<max;i++) this.pos[i*3+1]=-999;
-    const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.BufferAttribute(this.pos,3)); g.setAttribute('color',new THREE.BufferAttribute(this.col,3)); this.geo=g;
+    /* Gezeichnet wird aus eigenen Puffern, in denen nur die lebenden
+       Sterne dicht hintereinander stehen. So geht je Bild nur das zur
+       Grafikkarte, was auch leuchtet - frueher waren es die vollen
+       Puffer, bei einem Finale 3,7 MB je Bild. */
+    this.rpos=new Float32Array(max*3); this.rcol=new Float32Array(max*3); this.n=0;
+    const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.BufferAttribute(this.rpos,3)); g.setAttribute('color',new THREE.BufferAttribute(this.rcol,3));
+    g.setDrawRange(0,0); this.geo=g;
     this.pts=new THREE.Points(g,new THREE.PointsMaterial({size,map:map||dotTex,vertexColors:true,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,fog:false,toneMapped:false}));
     this.pts.frustumCulled=false; scene.add(this.pts);
     this.seg=seg||0;
     if(this.seg){
-      const nv=max*this.seg*2;
-      this.lpos=new Float32Array(nv*3); this.lcol=new Float32Array(nv*3);
-      const lg=new THREE.BufferGeometry(); lg.setAttribute('position',new THREE.BufferAttribute(this.lpos,3)); lg.setAttribute('color',new THREE.BufferAttribute(this.lcol,3));
-      lg.setDrawRange(0,0); this.lgeo=lg;
-      this.lines=new THREE.LineSegments(lg,new THREE.LineBasicMaterial({vertexColors:true,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,fog:false,toneMapped:false}));
+      /* Die Spur rechnet die Grafikkarte: je Stern gehen nur Kopf,
+         Geschwindigkeit, Spurdauer und Farbe hin (11 Zahlen), die
+         Punkte entlang der Flugbahn entstehen im Vertex-Shader. Frueher
+         rechnete das der Prozessor und schickte bis zu 60 Zahlen je
+         Stern und Bild. */
+      const S=this.seg, sp=new Float32Array(S*2*3);
+      for(let s=1;s<=S;s++){ sp[(s-1)*6]=s-1; sp[(s-1)*6+3]=s; }
+      const lg=new THREE.InstancedBufferGeometry(); lg.setAttribute('position',new THREE.BufferAttribute(sp,3));
+      this.iP=new Float32Array(max*4); this.iV=new Float32Array(max*4); this.iC=new Float32Array(max*3);
+      lg.setAttribute('iP',new THREE.InstancedBufferAttribute(this.iP,4)); lg.setAttribute('iV',new THREE.InstancedBufferAttribute(this.iV,4)); lg.setAttribute('iC',new THREE.InstancedBufferAttribute(this.iC,3));
+      lg.instanceCount=0; this.lgeo=lg;
+      this.lines=new THREE.LineSegments(lg,spurMaterial(S));
       this.lines.frustumCulled=false; scene.add(this.lines);
     }
   }
@@ -53,10 +85,10 @@ class PS{
     this.tl[i]=(md===1||md===3)?0:(SCHWEIF!==null?SCHWEIF:SCHWEIF_MODUS[md]);
   }
   update(dt){
-    const drag=Math.max(0,1-ZIEH*dt); let any=false, nl=0;
-    const S=this.seg, lp=this.lpos, lc=this.lcol;
+    const drag=Math.max(0,1-ZIEH*dt); let nl=0, n=0;
+    const S=this.seg, rp=this.rpos, rc=this.rcol, iP=this.iP, iV=this.iV, iC=this.iC;
     for(let i=0;i<this.max;i++){
-      if(this.life[i]<=0) continue; any=true; const j=i*3;
+      if(this.life[i]<=0) continue; const j=i*3;
       this.life[i]-=dt;
       if(this.life[i]<=0){ this.pos[j+1]=-999; this.col[j]=this.col[j+1]=this.col[j+2]=0; continue; }
       this.vel[j]*=drag; this.vel[j+1]=this.vel[j+1]*drag-this.grav[i]*dt; this.vel[j+2]*=drag;
@@ -69,31 +101,27 @@ class PS{
       else if(m===3){ if(Math.random()<0.26){ k=2.4; r=g=b=1; } else k*=0.06; }
       else k*=0.45+Math.random()*1.05;
       this.col[j]=r*k; this.col[j+1]=g*k; this.col[j+2]=b*k;
+      const o3=n*3; rp[o3]=this.pos[j]; rp[o3+1]=this.pos[j+1]; rp[o3+2]=this.pos[j+2]; rc[o3]=this.col[j]; rc[o3+1]=this.col[j+1]; rc[o3+2]=this.col[j+2]; n++;
       /* Leuchtspur aus der zurueckgerechneten Flugbahn */
       if(S&&this.tl[i]>0){
         const T=Math.min(this.tl[i],this.maxl[i]-this.life[i]);
         if(T>0.02){
-          const x=this.pos[j], y=this.pos[j+1], z=this.pos[j+2];
-          const vx=this.vel[j], vy=this.vel[j+1]+this.grav[i]/ZIEH, vz=this.vel[j+2], gk=this.grav[i]/ZIEH;
-          const hell=f*(m===4?0.75:0.9);
-          let px=x, py=y, pz=z;
-          for(let s=1;s<=S;s++){
-            const tau=T*s/S, A=(Math.exp(ZIEH*tau)-1)/ZIEH;
-            const qx=x-vx*A, qy=y-vy*A+gk*tau, qz=z-vz*A;
-            const a0=hell*Math.pow(1-(s-1)/S,1.6), a1=hell*Math.pow(1-s/S,1.6);
-            const o=nl*6;
-            lp[o]=px; lp[o+1]=py; lp[o+2]=pz; lp[o+3]=qx; lp[o+4]=qy; lp[o+5]=qz;
-            lc[o]=r*a0; lc[o+1]=g*a0; lc[o+2]=b*a0; lc[o+3]=r*a1; lc[o+4]=g*a1; lc[o+5]=b*a1;
-            nl++; px=qx; py=qy; pz=qz;
-          }
+          const gk=this.grav[i]/ZIEH, hell=f*(m===4?0.75:0.9), o4=nl*4, o3=nl*3;
+          iP[o4]=this.pos[j]; iP[o4+1]=this.pos[j+1]; iP[o4+2]=this.pos[j+2]; iP[o4+3]=T;
+          iV[o4]=this.vel[j]; iV[o4+1]=this.vel[j+1]+gk; iV[o4+2]=this.vel[j+2]; iV[o4+3]=gk;
+          iC[o3]=r*hell; iC[o3+1]=g*hell; iC[o3+2]=b*hell;
+          nl++;
         }
       }
     }
-    if(any||this.dirty){ this.geo.attributes.position.needsUpdate=true; this.geo.attributes.color.needsUpdate=true; }
-    if(S){ this.lgeo.setDrawRange(0,nl*2);
-      if(nl||this.nl){ this.lgeo.attributes.position.needsUpdate=true; this.lgeo.attributes.color.needsUpdate=true; }
-      this.nl=nl; }
-    this.dirty=any;
+    /* nur den belegten Anfang der Puffer hochladen */
+    const hoch=(a,cnt)=>{ a.updateRange.offset=0; a.updateRange.count=cnt; a.needsUpdate=true; };
+    this.geo.setDrawRange(0,n);
+    if(n){ hoch(this.geo.attributes.position,n*3); hoch(this.geo.attributes.color,n*3); }
+    this.n=n;
+    if(S){ this.lgeo.instanceCount=nl;
+      if(nl){ hoch(this.lgeo.attributes.iP,nl*4); hoch(this.lgeo.attributes.iV,nl*4); hoch(this.lgeo.attributes.iC,nl*3); }
+      this.lines.visible=nl>0; this.nl=nl; }
   }
 }
 let psHuge, psBig, psMid, psSmall;
@@ -138,11 +166,42 @@ const STEIG=0.8;
    ========================================================= */
 /* Lichtblitze: jeder Bruch wirft echtes farbiges Licht auf Schnee, Haus und Hof */
 const FLASH=[];
+/* Blitzlichter: Jedes Licht mehr oder weniger in der Szene aendert die
+   Shader aller Materialien - three.js uebersetzt sie dann neu, und das
+   Spiel steht. Frueher ging jeder Blitz einzeln an und aus: bei einem
+   Finale 39 neue Shader mitten im Feuerwerk. Jetzt gehen alle Blitze
+   gemeinsam an, sobald geschossen wird, und erst 8 s nach dem letzten
+   wieder aus - es gibt nur zwei Lichtzustaende, und beide werden beim
+   Laden vorab uebersetzt. Im Laden ohne Feuerwerk kosten die Blitze so
+   auch keine Rechenzeit. */
+let flashAn=true, flashRuhe=0;
+function flashSchalten(an){ if(flashAn===an) return; flashAn=an; for(const f of FLASH) f.l.visible=an; }
 function initFlash(){
-  for(let i=0;i<(COARSE?2:4);i++){ const l=new THREE.PointLight(0xffffff,0,95,1); l.visible=false; scene.add(l); FLASH.push({l,t:0,d:0.6,max:0}); }
+  for(let i=0;i<(COARSE?2:4);i++){ const l=new THREE.PointLight(0xffffff,0,95,1); scene.add(l); FLASH.push({l,t:0,d:0.6,max:0}); }
+  flashSchalten(false);
+}
+/* beide Lichtzustaende vorab uebersetzen - in das Ziel, in das auch
+   gezeichnet wird (mit Nachbearbeitung ein anderes als der Bildschirm) */
+function shaderVorab(){
+  try{
+    const ziel=(typeof postOK!=='undefined'&&postOK&&postOn&&typeof rtScene!=='undefined')?rtScene:null;
+    if(renderer.setRenderTarget) renderer.setRenderTarget(ziel);
+    const alt=flashAn;
+    /* Uebersetzen allein reicht nicht: Browser und Treiber stellen
+       einen Shader oft erst beim ersten Zeichnen fertig. Darum wird
+       jeder Zustand einmal gezeichnet, ohne Sichtpruefung, damit auch
+       Dinge hinter der Kamera drankommen. Das Bild wird danach sofort
+       ueberzeichnet. */
+    const aus=[]; scene.traverse(o=>{ if(o.frustumCulled){ o.frustumCulled=false; aus.push(o); } });
+    for(const an of [true,false]){ flashSchalten(an); renderer.compile(scene,camera); renderer.render(scene,camera); }
+    aus.forEach(o=>{ o.frustumCulled=true; });
+    flashSchalten(alt);
+    if(renderer.setRenderTarget) renderer.setRenderTarget(null);
+  }catch(e){}
 }
 function flash(p,c,power,dur){
   if(!FLASH.length) return;
+  flashSchalten(true); flashRuhe=8;
   let f=FLASH[0]; for(const x of FLASH){ if(x.t<=0){ f=x; break; } if(x.t<f.t) f=x; }
   f.l.position.set(p.x,p.y,p.z);
   f.l.color.setRGB(clamp(c[0]+0.15,0,1),clamp(c[1]+0.15,0,1),clamp(c[2]+0.15,0,1));
@@ -150,13 +209,14 @@ function flash(p,c,power,dur){
      Bei elf gleichzeitigen Zuendungen war der Boden sonst reinweiss. */
   let aktiv=0; for(const x of FLASH) if(x.t>0) aktiv++;
   power*=aktiv>=3?0.45:aktiv>=2?0.62:aktiv>=1?0.8:1;
-  f.max=power; f.d=dur||0.6; f.t=f.d; f.l.visible=true; f.l.intensity=power;
+  f.max=power; f.d=dur||0.6; f.t=f.d; f.l.intensity=power;
 }
 function updateFlash(dt){
+  if(flashAn){ flashRuhe-=dt; if(flashRuhe<=0&&FLASH.every(f=>f.t<=0)) flashSchalten(false); }
   for(const f of FLASH){ if(f.t<=0) continue;
     f.t-=dt; const k=Math.max(0,f.t/f.d);
     f.l.intensity=f.max*k*k*(0.85+Math.random()*0.3);
-    if(f.t<=0){ f.t=0; f.l.intensity=0; f.l.visible=false; } }
+    if(f.t<=0){ f.t=0; f.l.intensity=0; } }
 }
 function shellSound(p,s){
   const v=distVol(p);

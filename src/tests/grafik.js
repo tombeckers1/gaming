@@ -36,10 +36,11 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
       /* wie im Spiel: mit der Spurlaenge des Bruchbilds */
       bb.mitSchweif(eff,fn);
       bb.run(1.2,0.05);
-      const S=ps.seg||1, n=ps.lgeo&&ps.lgeo.drawRange?ps.lgeo.drawRange.count/2:0, lp=ps.lpos||[];
+      /* Spuren rechnet der Shader; spurEnden rechnet sie genauso nach */
+      const n=ps.lines&&ps.lines.visible?ps.nl:0;
       let lang=0, zurMitte=0, zaehl=0;
-      for(let q=0;q+S<=n;q+=S){
-        const hx=lp[q*6],hy=lp[q*6+1],hz=lp[q*6+2], e=(q+S-1)*6+3, ex=lp[e],ey=lp[e+1],ez=lp[e+2];
+      for(let q=0;q<n;q++){
+        const [[hx,hy,hz],[ex,ey,ez]]=bb.spurEnden(ps,q);
         const L=Math.hypot(hx-ex,hy-ey,hz-ez); lang+=L; zaehl++;
         const dk=Math.hypot(hx-p0.x,hy-p0.y,hz-p0.z), de=Math.hypot(ex-p0.x,ey-p0.y,ez-p0.z);
         if(de<dk) zurMitte++;
@@ -78,7 +79,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   console.log('FONTAENE',JSON.stringify({geysir:r.geysir,saeule:r.saeule,fontaene:r.fontaene}));
   console.log('KUGELN  ',JSON.stringify({weiten:r.weiten,k300:r.k300,gesamt:r.k300gesamt}));
   console.log('SALVEN  ',JSON.stringify({salven:r.salven,phasen:r.phasen}));
-  pruef('SPUREN',r.kugel.segmente>100&&r.weide.segmente>100,'keine Leuchtspuren: '+r.kugel.segmente+'/'+r.weide.segmente);
+  pruef('SPUREN',r.kugel.segmente>20&&r.weide.segmente>20,'keine Leuchtspuren: '+r.kugel.segmente+'/'+r.weide.segmente);
   pruef('SPUREN',r.weide.mittel>r.kugel.mittel*2,'Weide ('+r.weide.mittel+' m) nicht deutlich laenger als Peonie ('+r.kugel.mittel+' m)');
   pruef('SPUREN',r.kugel.zurMitte>0.9&&r.weide.zurMitte>0.9,'Spuren zeigen nicht zur Bruchmitte: '+r.kugel.zurMitte+'/'+r.weide.zurMitte);
   pruef('SPUREN',r.blink.segmente===0,'Blinksterne ziehen Spuren ('+r.blink.segmente+')');

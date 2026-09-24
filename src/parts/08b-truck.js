@@ -109,6 +109,12 @@ function makeTruck(name,col){
   return g;
 }
 /* --- Begehbarer Innenraum --- */
+/* Laderaumlampen stehen fest in der Szene, nur ihre Helligkeit
+   wechselt. Kam frueher mit jedem LKW ein neues Licht dazu, musste
+   three.js alle Shader neu uebersetzen - das Bild stand beim Andocken
+   jedes Mal (15 Shader). Es gibt nur einen begehbaren Laderaum. */
+const LR_LAMPE=[new THREE.PointLight(0xffeccf,0,11,1.4),new THREE.PointLight(0xffeccf,0,9,1.4)];
+LR_LAMPE.forEach(l=>scene.add(l));
 function makeLaderaum(name,col){
   const g=new THREE.Group(); g.position.set(LR.rear,0,LR.z); scene.add(g);
   const L=LR.len, W=LR.w, HH=LR.h;
@@ -161,8 +167,8 @@ function makeLaderaum(name,col){
   dach.rotation.x=Math.PI/2; dach.position.set(-L/2,HH-0.012,0); g.add(dach);
   const led=new THREE.MeshBasicMaterial({color:0xfff6e2,toneMapped:false});
   for(const s of [-1,1]) bbox(L-0.8,0.03,0.07,led,-L/2,HH-0.07,s*(W/2-0.22),g,false);
-  const lamp=new THREE.PointLight(0xffeccf,0.85,11,1.4); lamp.position.set(-L*0.45,HH-0.3,0); g.add(lamp);
-  const lamp2=new THREE.PointLight(0xffeccf,0.6,9,1.4); lamp2.position.set(-L*0.85,HH-0.3,0); g.add(lamp2);
+  LR_LAMPE[0].position.set(g.position.x-L*0.45,HH-0.3,g.position.z); LR_LAMPE[0].intensity=0.85;
+  LR_LAMPE[1].position.set(g.position.x-L*0.85,HH-0.3,g.position.z); LR_LAMPE[1].intensity=0.6;
   /* Stirnwand mit Lieferantenschrift */
   const fm=new THREE.MeshStandardMaterial({map:liveryTex(name,col,true),roughness:0.78});
   const front=new THREE.Mesh(new THREE.PlaneGeometry(W,HH),fm);
@@ -276,7 +282,7 @@ function trailerOccupied(){
 function clearRaum(){
   if(!truck) return;
   truck.boxes.forEach(m=>scene.remove(m)); truck.boxes=[];
-  if(truck.raum){ scene.remove(truck.raum); truck.raum=null; }
+  if(truck.raum){ scene.remove(truck.raum); truck.raum=null; LR_LAMPE.forEach(l=>{ l.intensity=0; }); }
   if(truck.bruecke){ scene.remove(truck.bruecke); truck.bruecke=null; }
   if(truck.flapCol){ dropCol(truck.flapCol); truck.flapCol=null; }
   truck.cols.forEach(c=>dropCol(c)); truck.cols=[];

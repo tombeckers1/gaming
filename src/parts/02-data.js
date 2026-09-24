@@ -116,6 +116,9 @@ const P={
     art:{title:'GÖTTERZORN',sub:'200 mm · zehn Brüche auf einmal',bg1:'#2a0f5a',bg2:'#050109',ac:'#ff4fd8',ac2:'#ffd23f',gold:true}},
   kugel300:{name:'Himmelsbrecher · Kugelbombe 300 mm',short:'Kugel 300',cat:2,lvl:23,shape:'shell',dims:[0.3,0.34,0.3],grid:[2,1,1],box:1,cost:70.00,market:164.99,weight:3,hype:100,risk:10,
     art:{title:'HIMMELSBRECHER',sub:'300 mm · 24 Brüche · Silberweide',bg1:'#0e1226',bg2:'#000000',ac:'#d1e5ff',ac2:'#ffd23f',gold:true}},
+  /* Feuerbrunnen: Flammenfontaene mit Flammenregen (Tom, 24.09.) */
+  feuerbrunnen:{name:'Feuerbrunnen · Flammenfontäne 16 s',short:'Feuerbrunnen',cat:2,lvl:15,shape:'cylinder',dims:[0.18,0.32,0.18],grid:[8,1,1],box:4,cost:9.50,market:22.99,weight:5,hype:32,risk:7,
+    art:{title:'FEUERBRUNNEN',sub:'Flammenfontäne · Flammenregen',bg1:'#8a1a08',bg2:'#240502',ac:'#ff8a2a',ac2:'#ffd23f',gold:true}},
   /* Fontaene, die oben in einen Kometen uebergeht und aufblueht */
   sternenbrunnen:{name:'Sternenbrunnen · Fontäne mit Aufstieg',short:'Sternenbrunnen',cat:2,lvl:12,shape:'cylinder',dims:[0.145,0.34,0.145],grid:[7,2,1],box:6,cost:7.90,market:18.99,weight:7,hype:26,risk:6,
     art:{title:'STERNENBRUNNEN',sub:'Fontäne, Komet, Blüte',bg1:'#123a6b',bg2:'#04101f',ac:'#5ce1ff',ac2:'#ffd23f'}}

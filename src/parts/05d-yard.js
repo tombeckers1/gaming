@@ -636,7 +636,7 @@ function brennDauer(t){
   const p=P[t]; if(!p) return 3;
   if(typeof SHOWS!=='undefined'&&SHOWS[t]) return 0.8+showLength(t)+1.5;
   const fest={wunder:5,knallerbsen:2.2,knallfrosch:2.8,tisch:3,schwaermer:3.8,vulkan:14,wasserfall:23,
-    sternenbrunnen:6,fontaene:12,goldgeysir:22,feuersaeule:30,furzrakete:6,heuler:5};
+    sternenbrunnen:6,fontaene:12,goldgeysir:22,feuerbrunnen:19,feuersaeule:30,furzrakete:6,heuler:5};
   if(fest[t]) return fest[t];
   if(p.rezept) return 7;
   const sh=p.shape;

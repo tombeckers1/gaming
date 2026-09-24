@@ -63,7 +63,13 @@ const BRUCH={
   brokat    :{name:'Brokat',          klasse:4, wow:1.74, desc:'Dichtes Goldnetz mit farbigem Kern.'},
   kamuro    :{name:'Kamuro',          klasse:4, wow:1.82, desc:'Dichte Goldglocke, die am Himmel stehen bleibt.'},
   zeitregen :{name:'Zeitregen',       klasse:4, wow:1.86, desc:'Große Sterne werfen ihren Glitzer in Wellen ab.'},
-  salut     :{name:'Salut',           klasse:4, wow:1.64, desc:'Kein Bild, nur ein greller Blitz und ein harter Schlag.'}
+  salut     :{name:'Salut',           klasse:4, wow:1.64, desc:'Kein Bild, nur ein greller Blitz und ein harter Schlag.'},
+  /* neu am 24.09. */
+  feuerrad  :{name:'Feuerrad',        klasse:2, wow:1.30, desc:'Ein Ring, der sich beim Aufgehen dreht und Spiralarme zieht.'},
+  farbregen :{name:'Farbregen',       klasse:2, wow:1.28, desc:'Ein Schleier kleiner Sterne, der funkelnd herunterrieselt.'},
+  flammenregen:{name:'Flammenregen',  klasse:3, wow:1.60, desc:'Große Flammen, die glühend herunterregnen und Tropfen verlieren.'},
+  sternschnuppen:{name:'Sternschnuppen',klasse:4, wow:1.72, desc:'Wenige helle Köpfe mit langen Silberschweifen, flach nach außen.'},
+  kronleuchter:{name:'Kronleuchter',  klasse:4, wow:1.80, desc:'Goldene Arme, an deren Enden Glitzertropfen hängen.'}
 };
 const BRUCH_IDS=Object.keys(BRUCH);
 /* Erst was man selbst gesehen hat, darf man verbauen */

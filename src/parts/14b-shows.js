@@ -1,16 +1,46 @@
-
 /* =========================================================
    Choreografie: Batterien und Verbunde laufen als Show ab
+
+   Ueberarbeitet am 24.09. (Tom: "am Anfang klein, dann immer mehr,
+   und manches ist zu durcheinander"):
+   - Jedes Produkt hat eine Grundstufe (SHOW_BASIS): Steighoehe,
+     Kaliber und Farbthema. Die Stufe waechst mit dem Level, zu dem
+     es das Produkt gibt - die erste Batterie steigt tief und bricht
+     klein, der Weltuntergang steigt am hoechsten.
+   - Farben kommen aus dem Thema des Produkts (passend zur
+     Verpackung). Jede Phase hat EIN Farbpaar, die Phasen wechseln
+     durch das Thema. Kein Zufallsbunt mehr pro Schuss.
+   - Effekte laufen in der Reihenfolge, in der sie im Drehbuch
+     stehen, nicht zufaellig.
+   - Die grossen Bruchbilder (Dahlie, Pistill, Kamuro, Kronleuchter,
+     Titan ...) kommen erst in den spaeten Produkten vor.
    ========================================================= */
 const FANDIR=Math.PI/2;                 // Fächer quer zum Blickfeld
 /* Alle Verbunde brechen ein Fuenftel groesser als frueher */
 const SHOW_GROESSE=1.2;
-function playShow(o,phases){
+const SHOW_BASIS={
+  roemisch   :{pw:-9,sz:0.45,th:'bunt'},
+  sortiment  :{pw:-6,sz:0.72,th:'bunt'},
+  batterie16 :{pw:-5,sz:0.78,th:'nacht'},
+  knatter    :{pw:-4,sz:0.84,th:'eis'},
+  batterie49 :{pw:-3,sz:0.90,th:'glut'},
+  faecher    :{pw:-2,sz:0.95,th:'tropen'},
+  batterie100:{pw:-1,sz:1.00,th:'himmel'},
+  zfaecher   :{pw:-1,sz:1.00,th:'blitz'},
+  kometen    :{pw: 0,sz:1.08,th:'gold'},
+  donnerwand :{pw: 1,sz:1.14,th:'rotweiss'},
+  profi      :{pw: 2,sz:1.22,th:'koenig'},
+  finale     :{pw: 3,sz:1.30,th:'nacht'}
+};
+function playShow(o,phases,prod){
+  const BS=SHOW_BASIS[prod]||{pw:0,sz:1,th:null};
   let t=0;
-  phases.forEach(ph=>{
-    const n=ph.n||1, gap=ph.gap===undefined?0.45:ph.gap;
-    const fixed=ph.sc===undefined?Math.floor(Math.random()*SCHEMES.length):ph.sc;
-    if(ph.ground){ const st=t, A=K(ph.gA||'gold'), B=K(ph.gB||'weiss');
+  phases.forEach((ph,pi)=>{
+    const n=ph.n||1, gap=ph.gap===undefined?0.45:ph.gap, th=ph.th||BS.th;
+    const zufall=Math.floor(Math.random()*SCHEMES.length);
+    /* Farbpaar: aus dem Thema, je Phase eins; wechsel = Paare im Takt */
+    const paar=i=>th?themaPaar(th,(ph.farbe!==undefined?ph.farbe:pi)+(ph.wechsel?i:0)):scheme(ph.sc===undefined?zufall:ph.sc);
+    if(ph.ground){ const st=t, [gA,gB]=paar(0), A=ph.gA?K(ph.gA):gA, B=ph.gB?K(ph.gB):gB;
       later(st,()=>{ emitters.push({t:ph.gt||4,k:ph.ground,o,A,B}); sfx.fizz(distVol(o)); }); }
     for(let i=0;i<n;i++){
       const k=n>1?i/(n-1):0.5, tt=t+i*gap;
@@ -18,14 +48,15 @@ function playShow(o,phases){
       if(ph.fan) ang=(-1+2*k)*(ph.ang||0.3);
       else if(ph.vfan) ang=(1-Math.abs(0.5-k)*2)*(ph.ang||0.3)*(i%2?1:-1);
       else if(ph.ang) ang=rand(-ph.ang,ph.ang);
-      const eff=Array.isArray(ph.eff)?pick(ph.eff):(ph.eff||pick(EFF_GROSS));
-      const sc=ph.sc==='each'?-1:fixed;
+      /* Effekte der Reihe nach, nicht gewuerfelt */
+      const eff=Array.isArray(ph.eff)?ph.eff[i%ph.eff.length]:(ph.eff||pick(EFF_GROSS));
+      const [A,B]=paar(i);
       const dir=ph.fan||ph.vfan?FANDIR:undefined;
-      const opt={eff,sz:(ph.sz||1)*SHOW_GROESSE,pw:ph.pw||0,ang,dir,sc,fuse:ph.fuse,dick:ph.dick};
+      const opt={eff,sz:(ph.sz||1)*BS.sz*SHOW_GROESSE,pw:BS.pw+(ph.pw||0),ang,dir,A,B,fuse:ph.fuse,dick:ph.dick};
       later(tt,()=>{
-        if(ph.mine) mine(o,scheme(sc)[0],scheme(sc)[1],ph.mineSz||0.8);
+        if(ph.mine) mine(o,A,B,ph.mineSz||0.8);
         /* bomb: echte Kugelbombe mit Nachbruechen statt einer Rakete */
-        if(ph.bomb){ const [A,B]=scheme(sc); kugelbombe(o,ph.bomb,{A,B,eff}); }
+        if(ph.bomb) kugelbombe(o,ph.bomb,{A,B});
         else shot(o,opt);
       });
     }
@@ -35,180 +66,164 @@ function playShow(o,phases){
 }
 /* --- Drehbücher --- */
 const SHOWS={
-  /* Die Drehbuecher steigern sich bewusst: kleine Batterien zeigen
-     einfache Kugeln und Ringe, die grossen fahren Dahlien, Pistille,
-     Kamuro und am Ende Salut-Salven auf. Die Schusszahl im Namen
-     stimmt mit dem Drehbuch ueberein. Salven (gap unter 0.15) und
-     ruhige Pausen wechseln sich ab, damit die Spannung haelt. */
-
-  /* 16 Schuss, knapp 18 Sekunden */
-  batterie16:()=>[
-    {n:4,gap:0.9,eff:['kugel','ring','regenbogen'],sz:0.8,mine:true,mineSz:0.6,pause:1.2},
-    {n:4,gap:0.7,eff:'wechsel',fan:true,ang:0.32,sz:0.85,pause:1.6},
-    {n:5,gap:0.65,eff:['knister','fische','kreisel','tausend'],sc:'each',sz:0.85,pause:1.4},
-    {n:3,gap:0.3,eff:['chrys','palme','mehrring'],sz:1.1,pw:2,pause:3.2}
-  ],
-  /* Knattersturm, 30 Schuss: alles knistert, dazwischen Salven aus
-     fuenf Rohren auf einmal */
-  knatter:()=>[
-    {n:6,gap:0.6,eff:'knister',fan:true,ang:0.3,sz:0.85,mine:true,mineSz:0.7,pause:1.6},
-    {n:5,gap:0.08,eff:'tausend',fan:true,ang:0.42,sz:0.9,pause:2.6},
-    {n:6,gap:0.65,eff:['fische','spinne','strobe','regenbogen'],sc:'each',sz:0.9,pause:1.6},
-    {n:5,gap:0.08,eff:['knister','tausend'],fan:true,ang:-0.42,sz:0.95,pause:2.6},
-    {n:8,gap:0.32,eff:['tausend','knister','kaskade','chrys'],sc:'each',sz:1.05,pw:2,pause:3.4}
-  ],
-  /* 36 Schuss im Faecher, gut 30 Sekunden */
-  faecher:()=>[
-    {n:7,gap:0.6,eff:'kugel',fan:true,ang:0.48,sz:0.9,pause:1.4},
-    {n:7,gap:0.6,eff:['ring','wechsel','regenbogen'],fan:true,ang:-0.48,sz:0.9,pause:1.6},
-    {n:9,gap:0.55,eff:['stern','herz','saturn'],vfan:true,ang:0.52,sc:'each',sz:1.0,pause:1.8},
-    {n:7,gap:0.7,eff:['spinne','kreisel','fische','tausend'],fan:true,ang:0.44,sc:'each',sz:0.95,pause:1.6},
-    {n:6,gap:0.12,eff:['chrys','palme','mehrring','dahlie'],fan:true,ang:0.4,sz:1.25,pw:3,pause:4.0}
-  ],
-  /* Blitzgewitter, 48 Schuss Z-Faecher: links-rechts-links, dann
-     Strobo-Wand und eine breite Salve zum Schluss */
-  zfaecher:()=>[
-    {n:8,gap:0.3,eff:'kugel',fan:true,ang:0.5,sz:0.9,mine:true,pause:1.4},
-    {n:8,gap:0.3,eff:'ring',fan:true,ang:-0.5,sz:0.9,pause:1.4},
-    {n:8,gap:0.3,eff:['wechsel','regenbogen'],fan:true,ang:0.5,sz:0.95,pause:2.6},
-    {n:6,gap:0.95,eff:['spinne','strobe','blink'],vfan:true,ang:0.45,sc:'each',sz:1.0,pause:2.2},
-    {n:6,gap:0.1,eff:['palme','komet'],fan:true,ang:0.45,sz:1.1,pw:2,pause:2.8},
-    {n:12,gap:0.3,eff:['mehrring','crossette','dahlie','regenbogen'],fan:true,ang:-0.5,sc:'each',sz:1.15,pw:2,pause:4.6}
-  ],
-  /* 49 Schuss, gut 45 Sekunden */
-  batterie49:()=>[
-    {n:6,gap:0.8,eff:['kugel','ring','stern'],sz:0.9,mine:true,pause:1.4},
-    {n:7,gap:0.5,eff:'geist',fan:true,ang:0.4,sz:0.95,pause:1.6},
-    {n:6,gap:0.85,eff:['herz','doppelring','saturn','mehrring'],sc:'each',sz:1.05,pause:1.4},
-    {n:8,gap:0.45,eff:['knister','fische','spinne','tausend'],sc:'each',sz:0.9,pause:1.6},
-    {n:6,gap:0.8,eff:['strobe','weide','blaetter','kaskade'],sz:1.1,pw:2,pause:1.8},
-    {n:5,gap:0.1,eff:'komet',fan:true,ang:0.44,sz:1.05,pause:2.2},
-    {n:8,gap:0.3,eff:['chrys','brokat','palme','pistill'],sc:'each',sz:1.3,pw:4,pause:0.6},
-    {n:3,gap:0.14,eff:'salut',sz:1.0,pause:3.4}
-  ],
-  /* Kometenregen, 64 Schuss Brokat: Gold in allen Formen */
-  kometen:()=>[
-    {n:6,gap:1.0,eff:'komet',sz:1.0,mine:true,mineSz:1.0,pause:1.8},
-    {n:10,gap:0.45,eff:['brokat','glitzerweide'],fan:true,ang:0.42,sz:1.05,pause:2.0},
-    {n:8,gap:0.95,eff:['kamuro','zeitregen','weide'],sc:'each',sz:1.2,pw:2,pause:1.8},
-    {n:6,gap:0.1,eff:'komet',fan:true,ang:0.5,sz:1.1,pause:2.6},
-    {n:10,gap:0.6,eff:['kaskade','glitzerweide','palme'],vfan:true,ang:0.45,sz:1.2,pw:2,pause:2.0},
-    {n:6,gap:0.1,eff:'brokat',fan:true,ang:-0.5,sz:1.2,pause:2.8},
-    {n:14,gap:0.28,eff:['kamuro','brokat','komet','glitzerweide','zeitregen'],sc:'each',sz:1.4,pw:4,pause:0.6},
-    {n:4,gap:0.12,eff:'salut',sz:1.05,pause:4.4}
-  ],
-  /* 100 Schuss, rund 80 Sekunden mit richtigem Finale */
-  batterie100:()=>[
-    {n:8,gap:0.8,eff:['kugel','ring','regenbogen'],sz:0.95,mine:true,pause:1.6},
-    {n:10,gap:0.5,eff:'geist',fan:true,ang:0.42,sz:1.0,pause:1.8},
-    {n:8,gap:0.9,eff:['herz','stern','saturn','mehrring'],sc:'each',sz:1.1,pause:1.6},
-    {n:12,gap:0.42,eff:['knister','fische','spinne','tausend'],sc:'each',sz:0.9,pause:1.4},
-    {n:8,gap:0.85,eff:['strobe','weide','blaetter','kaskade'],sz:1.15,pw:2,pause:2.0},
-    {n:10,gap:0.5,eff:'ring',vfan:true,ang:0.48,sc:'each',sz:1.0,pause:1.6},
-    {n:10,gap:0.55,eff:['crossette','doppel','dahlie','pistill'],sc:'each',sz:1.15,pause:1.4},
-    {n:6,gap:0.1,eff:'komet',fan:true,ang:0.46,sz:1.2,pw:2,pause:2.4},
-    {n:14,gap:0.35,eff:['chrys','dreifach','crossette','brokat','zeitregen','mehrring'],sc:'each',sz:1.3,pw:4,pause:1.2},
-    {n:12,gap:0.22,eff:['palme','weide','kamuro','chrys','pistill','glitzerweide'],sc:'each',sz:1.55,pw:7,pause:0.8},
-    {n:5,gap:0.12,eff:'salut',sz:1.1,pause:4.0}
-  ],
-  /* Donnerwand, 120 Schuss in Salven: jede Salve sechs Rohre auf
-     einmal im Faecher, dazwischen kurze Luft - eine Wand aus Feuer */
-  donnerwand:()=>[
-    {n:6,gap:0.07,eff:'kugel',fan:true,ang:0.55,sz:1.05,mine:true,mineSz:1.4,pause:3.3},
-    {n:6,gap:0.07,eff:'ringring',fan:true,ang:-0.55,sz:1.05,pause:3.3},
-    {n:6,gap:0.07,eff:'palme',fan:true,ang:0.55,sz:1.1,pw:2,pause:3.7},
-    {n:6,gap:0.07,eff:['chrys','spirale'],fan:true,ang:-0.55,sz:1.1,pause:3.3},
-    {n:6,gap:0.07,eff:'spinne',fan:true,ang:0.55,sz:1.1,pause:3.3},
-    {n:6,gap:0.07,eff:'glitzerweide',fan:true,ang:-0.5,sz:1.15,pw:3,pause:4.3},
-    {n:6,gap:0.07,eff:['schneeflocke','stern'],fan:true,ang:0.55,sz:1.1,pause:3.5},
-    {n:6,gap:0.07,eff:'tausend',fan:true,ang:-0.55,sz:1.1,pause:3.3},
-    {n:6,gap:0.07,eff:['mehrring','pistill'],fan:true,ang:0.55,sz:1.2,pw:2,pause:3.7},
-    {n:6,gap:0.07,eff:'komet',fan:true,ang:-0.55,sz:1.2,pw:2,pause:3.5},
-    {n:6,gap:0.07,eff:'kamuro',fan:true,ang:0.5,sz:1.25,pw:3,pause:4.5},
-    {n:6,gap:0.07,eff:['regenbogen','strauss'],fan:true,ang:-0.55,sz:1.2,pause:3.5},
-    {n:6,gap:0.07,eff:'crossette',fan:true,ang:0.55,sz:1.2,pw:2,pause:3.5},
-    {n:6,gap:0.07,eff:'brokat',fan:true,ang:-0.55,sz:1.25,pw:3,pause:4.1},
-    {n:6,gap:0.07,eff:['dahlie','titan'],fan:true,ang:0.55,sz:1.3,pw:3,pause:3.7},
-    {n:6,gap:0.07,eff:'weide',fan:true,ang:-0.55,sz:1.3,pw:3,pause:4.5},
-    {n:6,gap:0.07,eff:'strauss',fan:true,ang:0.55,sz:1.3,pw:3,pause:3.3},
-    {n:6,gap:0.07,eff:'glitzerweide',fan:true,ang:-0.55,sz:1.35,pw:4,pause:2.7},
-    {n:6,gap:0.07,eff:['titan','mehrring'],fan:true,ang:0.55,sz:1.4,pw:4,pause:2.3},
-    {n:6,gap:0.05,eff:'salut',fan:true,ang:-0.5,sz:1.2,pause:5.0}
-  ],
-  /* Profi-Verbund, 200 Schuss: gut zwei Minuten, Wasserfaelle, Kugelbomben und
-     ein Zehnfachbruch in der Mitte */
-  profi:()=>[
-    {n:8,gap:0.9,eff:'kugel',sz:1.05,mine:true,mineSz:1.2,pause:2.0},
-    {n:16,gap:0.36,eff:['geist','ring','regenbogen'],fan:true,ang:0.44,sz:1.05,pause:2.0},
-    {n:13,gap:0.8,eff:['herz','stern','saturn','mehrring'],sc:'each',sz:1.2,pause:1.8},
-    {n:6,gap:0.8,ground:'wasserfall',gt:10,gA:'gold',gB:'zitrone',eff:'strobe',sz:1.15,pause:2.6},
-    {n:18,gap:0.35,eff:['knister','fische','spinne','kreisel','tausend'],sc:'each',sz:1.0,pause:1.6},
-    {n:12,gap:0.6,eff:['doppelring','blaetter','weide','dahlie','kaskade'],sz:1.3,pw:2,pause:1.4},
-    /* erste Kugelbombe: ein Schuss, mehrere Brueche */
-    {n:1,gap:0.5,bomb:2,pause:2.6},
-    {n:20,gap:0.32,eff:'kugel',vfan:true,ang:0.52,sc:'each',sz:1.05,pause:1.8},
-    {n:12,gap:0.5,eff:['crossette','doppel','pistill','komet'],fan:true,ang:0.4,sz:1.25,pw:2,pause:2.0},
-    {n:3,gap:1.2,eff:'zehnfach',sz:1.2,pw:3,pause:2.4},
-    {n:10,gap:0.7,eff:['brokat','palme','kamuro','zeitregen','glitzerweide'],sc:'each',sz:1.4,pw:4,pause:1.6},
-    {n:8,gap:0.55,ground:'wasserfall',gt:12,gA:'silber',gB:'tuerkis',eff:'dreifach',sz:1.35,pw:3,pause:2.0},
-    /* zweite Kugelbombe, groesseres Kaliber */
-    {n:1,gap:0.5,bomb:3,pause:3.2},
-    {n:12,gap:0.45,eff:['stern','herz','doppelring','saturn','mehrring'],sc:'each',sz:1.25,pause:1.6},
-    {n:28,gap:0.24,eff:['chrys','dreifach','crossette','knister','brokat','dahlie','titan'],sc:'each',sz:1.4,pw:4,pause:1.2},
-    {n:24,gap:0.14,eff:['palme','weide','kamuro','chrys','pistill','zeitregen','komet'],sc:'each',sz:1.7,pw:8,pause:0.9},
-    {n:8,gap:0.11,eff:'salut',sz:1.2,pause:5.0}
-  ],
-  /* Weltuntergang, 300 Schuss: drei Minuten, drei Akte, zwei grosse
-     Kugelbomben und ein Finale, bei dem der Himmel zugeht */
-  finale:()=>[
-    /* Akt 1: Aufbau */
-    {n:10,gap:0.8,eff:['kugel','regenbogen','mehrring'],sz:1.05,mine:true,mineSz:1.3,pause:1.8},
-    {n:12,gap:0.3,eff:'ring',fan:true,ang:0.5,sz:1.0,pause:0.8},
-    {n:12,gap:0.3,eff:'wechsel',fan:true,ang:-0.5,sz:1.0,pause:2.2},
-    {n:10,gap:0.9,eff:['herz','stern','saturn','geist'],sc:'each',sz:1.25,pause:1.8},
-    {n:8,gap:0.08,eff:'tausend',fan:true,ang:0.5,sz:1.05,pause:3.0},
-    {n:24,gap:0.3,eff:['knister','fische','spinne','kreisel','tausend'],sc:'each',sz:1.05,pause:1.8},
-    {n:1,gap:0.5,bomb:3,pause:3.4},
-    /* Akt 2: Gold und Kometen, Wasserfall am Boden */
-    {n:10,gap:0.8,ground:'wasserfall',gt:14,gA:'gold',gB:'zitrone',eff:['komet','brokat'],sz:1.25,pw:2,pause:2.0},
-    {n:16,gap:0.4,eff:['kamuro','glitzerweide','zeitregen','weide'],vfan:true,ang:0.5,sc:'each',sz:1.3,pw:3,pause:1.8},
-    {n:6,gap:0.1,eff:'komet',fan:true,ang:0.55,sz:1.3,pw:2,pause:2.6},
-    {n:12,gap:0.6,eff:['kaskade','palme','dahlie','pistill'],sc:'each',sz:1.35,pw:3,pause:1.8},
-    {n:20,gap:0.4,eff:['regenbogen','mehrring','saturn','geist'],vfan:true,ang:0.5,sc:'each',sz:1.3,pause:1.8},
-    {n:4,gap:1.1,eff:'zehnfach',sz:1.25,pw:3,pause:2.6},
-    {n:18,gap:0.35,eff:['crossette','doppel','dreifach','mehrring'],fan:true,ang:0.45,sc:'each',sz:1.3,pw:3,pause:2.2},
-    {n:1,gap:0.5,bomb:4,pause:4.6},
-    /* Akt 3: Steigerung bis zum Schluss */
-    {n:16,gap:0.3,eff:['strobe','blink','spinne'],vfan:true,ang:0.52,sc:'each',sz:1.2,pause:1.4},
-    {n:14,gap:0.28,eff:['titan','kamuro','brokat','mehrring'],sc:'each',sz:1.45,pw:5,pause:1.2},
-    {n:10,gap:0.08,eff:['palme','komet'],fan:true,ang:0.55,sz:1.4,pw:4,pause:2.0},
-    {n:10,gap:0.08,eff:['tausend','knister'],fan:true,ang:-0.55,sz:1.3,pw:4,pause:2.0},
-    {n:34,gap:0.18,eff:['chrys','dreifach','crossette','brokat','dahlie','titan','zeitregen'],sc:'each',sz:1.5,pw:6,pause:1.0},
-    {n:40,gap:0.1,eff:['palme','weide','kamuro','chrys','pistill','glitzerweide','komet','mehrring'],sc:'each',sz:1.7,pw:8,pause:0.8},
-    {n:12,gap:0.09,eff:'salut',sz:1.25,pause:6.0}
-  ],
-  /* Sortimentskiste: kleines Programm mit Bodeneffekt */
+  /* Familienfest, 18 Teile: bunt, klein, freundlich */
   sortiment:()=>[
-    {n:3,gap:0.9,eff:'kugel',sz:0.75,mine:true,mineSz:0.6,pause:1.2},
-    {n:2,gap:1.2,ground:'fountain',gt:6,gA:'gold',gB:'rot',eff:'ring',sz:0.85,pause:1.8},
-    {n:4,gap:0.8,eff:['knister','fische','spinne','regenbogen'],sc:'each',sz:0.85,pause:1.4},
-    {n:4,gap:0.65,eff:['wechsel','kreisel','saturn'],fan:true,ang:0.34,sz:0.9,pause:1.6},
-    {n:4,gap:0.45,eff:['chrys','palme','dahlie'],sz:1.15,pw:2,pause:3.0}
+    {n:3,gap:0.9,eff:'kugel',mine:true,mineSz:0.5,pause:1.0},
+    {n:2,gap:1.2,ground:'fountain',gt:5,eff:'ring',pause:1.4},
+    {n:4,gap:0.8,eff:['stern','regenbogen','knister','kugel'],wechsel:true,pause:1.2},
+    {n:4,gap:0.6,eff:'wechsel',fan:true,ang:0.3,pause:1.4},
+    {n:5,gap:0.5,eff:['kugel','ring','regenbogen','stern','chrys'],wechsel:true,sz:1.1,pw:1,pause:2.5}
+  ],
+  /* Nachthimmel, 16 Schuss: Blau und Gold, zum Schluss ein Regenbogen */
+  batterie16:()=>[
+    {n:4,gap:1.0,eff:'kugel',mine:true,mineSz:0.55,pause:1.2},
+    {n:4,gap:0.8,eff:'ring',fan:true,ang:0.3,pause:1.4},
+    {n:4,gap:0.75,eff:['stern','wechsel'],pause:1.4},
+    {n:2,gap:0.6,eff:'regenbogen',sz:1.05,pw:1,pause:0.8},
+    {n:2,gap:0.12,eff:'chrys',farbe:0,sz:1.1,pw:1,pause:3.0}
+  ],
+  /* Knattersturm, 30 Schuss: Eisfarben, alles knistert, dazwischen
+     kurze Dreiersalven */
+  knatter:()=>[
+    {n:6,gap:0.7,eff:'knister',mine:true,mineSz:0.6,pause:1.4},
+    {n:3,gap:0.1,eff:'tausend',fan:true,ang:0.35,pause:2.2},
+    {n:6,gap:0.65,eff:['stern','knister'],fan:true,ang:0.3,pause:1.4},
+    {n:3,gap:0.1,eff:'tausend',fan:true,ang:-0.35,pause:2.2},
+    {n:6,gap:0.55,eff:['feuerrad','knister','ring'],sz:1.05,pause:1.6},
+    {n:3,gap:0.1,eff:'kaskade',fan:true,ang:0.35,sz:1.1,pw:1,pause:1.6},
+    {n:3,gap:0.1,eff:'tausend',sz:1.15,pw:2,pause:3.0}
+  ],
+  /* Feuersturm, 49 Schuss: Rot, Orange, Gold - hier gibt es zum
+     ersten Mal den Flammenregen */
+  batterie49:()=>[
+    {n:6,gap:0.85,eff:'kugel',mine:true,pause:1.4},
+    {n:6,gap:0.55,eff:'wechsel',fan:true,ang:0.4,pause:1.4},
+    {n:6,gap:0.8,eff:['chrys','palme'],pause:1.6},
+    {n:4,gap:0.1,eff:'ring',fan:true,ang:0.4,pause:2.0},
+    {n:6,gap:0.9,eff:'flammenregen',sz:0.95,pw:1,pause:2.2},
+    {n:8,gap:0.45,eff:['knister','feuerrad','kugel','feuerrad'],wechsel:true,pause:1.6},
+    {n:4,gap:0.12,eff:'palme',fan:true,ang:-0.4,sz:1.1,pw:1,pause:2.0},
+    {n:5,gap:0.5,eff:['chrys','flammenregen','chrys','palme','flammenregen'],sz:1.15,pw:2,pause:0.6},
+    {n:4,gap:0.1,eff:'salut',sz:1.0,pause:3.4}
+  ],
+  /* Weitwinkel, 36 Schuss im Faecher: Tropenfarben, links-rechts */
+  faecher:()=>[
+    {n:7,gap:0.55,eff:'kugel',fan:true,ang:0.5,pause:1.2},
+    {n:7,gap:0.55,eff:'ring',fan:true,ang:-0.5,pause:1.4},
+    {n:7,gap:0.6,eff:['feuerrad','stern','feuerrad','saturn'],vfan:true,ang:0.5,pause:1.6},
+    {n:5,gap:0.12,eff:'farbregen',fan:true,ang:0.5,sz:1.05,pause:2.4},
+    {n:5,gap:0.5,eff:['palme','spinne','palme','fische','palme'],fan:true,ang:-0.45,wechsel:true,pause:1.4},
+    {n:5,gap:0.1,eff:['chrys','mehrring','dahlie','mehrring','chrys'],fan:true,ang:0.5,sz:1.2,pw:2,pause:4.0}
+  ],
+  /* Himmelssturm, 100 Schuss: Violett, Magenta, Gold - und der
+     Regenbogen als roter Faden: erst als Faecher, am Ende als Salve */
+  batterie100:()=>[
+    {n:8,gap:0.8,eff:'kugel',mine:true,pause:1.4},
+    {n:10,gap:0.45,eff:'regenbogen',fan:true,ang:0.5,pause:1.8},
+    {n:8,gap:0.85,eff:['herz','stern','saturn','mehrring'],pause:1.6},
+    {n:6,gap:0.1,eff:'ring',fan:true,ang:0.5,pause:2.2},
+    {n:10,gap:0.5,eff:['feuerrad','spinne','fische','feuerrad','tausend'],wechsel:true,pause:1.6},
+    {n:8,gap:0.8,eff:['kronleuchter','weide','farbregen','kronleuchter'],sz:1.1,pw:1,pause:2.0},
+    {n:10,gap:0.45,eff:'regenbogen',fan:true,ang:-0.5,sz:1.05,pause:1.8},
+    {n:10,gap:0.55,eff:['crossette','dahlie','pistill','dahlie','crossette'],sz:1.1,pw:1,pause:1.6},
+    {n:6,gap:0.1,eff:'komet',fan:true,ang:0.5,sz:1.1,pw:2,pause:2.4},
+    {n:12,gap:0.3,eff:['chrys','mehrring','regenbogen','brokat'],wechsel:true,sz:1.2,pw:3,pause:1.0},
+    {n:6,gap:0.1,eff:'regenbogen',fan:true,ang:0.55,sz:1.25,pw:3,pause:0.8},
+    {n:6,gap:0.1,eff:'salut',sz:1.0,pause:4.0}
+  ],
+  /* Blitzgewitter, 48 Schuss Z-Faecher: Silber und Eisblau,
+     Strobo und Sternschnuppen */
+  zfaecher:()=>[
+    {n:8,gap:0.3,eff:'kugel',fan:true,ang:0.5,mine:true,pause:1.4},
+    {n:8,gap:0.3,eff:'ring',fan:true,ang:-0.5,pause:1.4},
+    {n:8,gap:0.3,eff:'strobe',fan:true,ang:0.5,pause:2.2},
+    {n:6,gap:0.9,eff:['blink','sternschnuppen','blink'],vfan:true,ang:0.45,sz:1.05,pause:2.0},
+    {n:6,gap:0.1,eff:['palme','komet'],fan:true,ang:0.5,sz:1.1,pw:2,pause:2.6},
+    {n:6,gap:0.5,eff:['feuerrad','blink'],wechsel:true,pause:1.4},
+    {n:6,gap:0.1,eff:['mehrring','crossette','strobe'],fan:true,ang:-0.5,sz:1.2,pw:2,pause:4.4}
+  ],
+  /* Kometenregen, 64 Schuss: nur Gold - Kometen, Brokat, Kronleuchter */
+  kometen:()=>[
+    {n:6,gap:1.0,eff:'komet',mine:true,mineSz:1.0,pause:1.8},
+    {n:10,gap:0.45,eff:['brokat','glitzerweide'],fan:true,ang:0.45,pause:2.0},
+    {n:6,gap:1.0,eff:['kronleuchter','kamuro','zeitregen'],sz:1.1,pw:1,pause:1.8},
+    {n:7,gap:0.1,eff:'komet',fan:true,ang:0.5,sz:1.05,pause:2.6},
+    {n:8,gap:0.7,eff:['sternschnuppen','kaskade','glitzerweide','sternschnuppen'],vfan:true,ang:0.45,sz:1.1,pw:1,pause:2.0},
+    {n:7,gap:0.1,eff:'brokat',fan:true,ang:-0.5,sz:1.1,pw:1,pause:2.8},
+    {n:14,gap:0.3,eff:['kamuro','kronleuchter','brokat','komet','glitzerweide','zeitregen'],wechsel:true,sz:1.25,pw:3,pause:0.6},
+    {n:6,gap:0.12,eff:'salut',sz:1.0,pause:4.4}
+  ],
+  /* Donnerwand, 120 Schuss: zwanzig Salven aus sechs Rohren in Rot,
+     Weiss und Silber - jede Salve etwas groesser und hoeher */
+  donnerwand:()=>['kugel','ring','palme','feuerrad','spinne','glitzerweide','stern','tausend','flammenregen','komet',
+    'kamuro','regenbogen','crossette','brokat','dahlie','weide','kronleuchter','glitzerweide','titan','salut'].map((eff,i)=>({
+      n:6,gap:0.07,eff,fan:true,ang:i%2?-0.55:0.55,sz:eff==='salut'?1.0:0.9+i*0.018,pw:Math.floor(i/5),
+      mine:i===0,mineSz:1.4,pause:i===19?5.0:[3.3,3.3,3.7,3.3,3.3,4.3,3.5,3.3,3.7,3.5,4.5,3.5,3.5,4.1,3.7,4.5,3.3,0.25,2.3,5][i]})),
+  /* Salve 18 und 19 kommen Schlag auf Schlag: zwoelf Rohre in einer Sekunde */
+  /* Goetterfunken, 200 Schuss: Gold, Violett, Rot. Wasserfall,
+     Feuerbrunnen und zwei Kugelbomben */
+  profi:()=>[
+    {n:8,gap:0.9,eff:'kugel',mine:true,mineSz:1.1,pause:2.0},
+    {n:14,gap:0.36,eff:['ring','regenbogen'],fan:true,ang:0.48,pause:2.0},
+    {n:12,gap:0.8,eff:['herz','stern','saturn','mehrring'],pause:1.8},
+    {n:6,gap:0.8,ground:'wasserfall',gt:10,gA:'gold',gB:'zitrone',eff:'kronleuchter',sz:1.05,pw:1,pause:2.4},
+    {n:16,gap:0.35,eff:['feuerrad','knister','fische','spinne'],wechsel:true,pause:1.6},
+    {n:10,gap:0.6,eff:['flammenregen','dahlie','flammenregen','weide','kaskade'],th:'glut',sz:1.1,pw:1,pause:1.4},
+    {n:1,gap:0.5,bomb:2,pause:2.6},
+    {n:18,gap:0.3,eff:'kugel',vfan:true,ang:0.52,wechsel:true,pause:1.8},
+    {n:10,gap:0.1,eff:['crossette','pistill'],fan:true,ang:0.5,sz:1.15,pw:2,pause:2.0},
+    {n:3,gap:1.2,eff:'zehnfach',sz:1.15,pw:3,pause:2.4},
+    {n:10,gap:0.7,eff:['brokat','kamuro','sternschnuppen','zeitregen','glitzerweide'],th:'gold',sz:1.2,pw:3,pause:1.6},
+    {n:8,gap:0.55,ground:'feuerbrunnen',gt:8,eff:['flammenregen','titan'],th:'glut',sz:1.2,pw:3,pause:2.0},
+    {n:1,gap:0.5,bomb:3,pause:3.2},
+    {n:12,gap:0.45,eff:['stern','herz','feuerrad','saturn','mehrring','regenbogen'],pause:1.6},
+    {n:10,gap:0.1,eff:'regenbogen',fan:true,ang:0.55,sz:1.15,pw:2,pause:2.0},
+    {n:26,gap:0.22,eff:['chrys','dreifach','crossette','kronleuchter','brokat','dahlie','titan'],wechsel:true,sz:1.3,pw:4,pause:1.2},
+    {n:21,gap:0.13,eff:['palme','weide','kamuro','chrys','pistill','zeitregen','komet'],wechsel:true,sz:1.45,pw:5,pause:0.9},
+    {n:14,gap:0.07,eff:'salut',sz:1.05,pause:5.0}
+  ],
+  /* Weltuntergang, 300 Schuss in drei Akten: Nacht (Blau, Eis),
+     Gold, Glut - und zum Schluss geht der Himmel zu */
+  finale:()=>[
+    {n:10,gap:0.8,eff:['kugel','regenbogen'],mine:true,mineSz:1.3,th:'nacht',pause:1.8},
+    {n:12,gap:0.3,eff:'ring',fan:true,ang:0.5,th:'nacht',pause:0.8},
+    {n:12,gap:0.3,eff:'wechsel',fan:true,ang:-0.5,th:'nacht',pause:2.2},
+    {n:10,gap:0.9,eff:['herz','stern','saturn','feuerrad'],th:'nacht',sz:1.1,pause:1.8},
+    {n:8,gap:0.08,eff:'tausend',fan:true,ang:0.5,th:'eis',pause:3.0},
+    {n:22,gap:0.3,eff:['knister','fische','spinne','feuerrad','tausend'],th:'eis',wechsel:true,pause:1.8},
+    {n:1,gap:0.5,bomb:3,th:'nacht',pause:3.4},
+    {n:10,gap:0.8,ground:'wasserfall',gt:14,gA:'gold',gB:'zitrone',eff:['komet','kronleuchter'],th:'gold',sz:1.15,pw:1,pause:2.0},
+    {n:16,gap:0.4,eff:['kamuro','glitzerweide','zeitregen','sternschnuppen'],vfan:true,ang:0.5,th:'gold',sz:1.2,pw:2,pause:1.8},
+    {n:8,gap:0.1,eff:'komet',fan:true,ang:0.55,th:'gold',sz:1.2,pw:2,pause:2.6},
+    {n:12,gap:0.6,eff:['kaskade','palme','dahlie','pistill'],th:'koenig',wechsel:true,sz:1.2,pw:2,pause:1.8},
+    {n:20,gap:0.4,eff:'regenbogen',vfan:true,ang:0.5,sz:1.15,pw:1,pause:1.8},
+    {n:4,gap:1.1,eff:'zehnfach',th:'koenig',sz:1.2,pw:3,pause:2.6},
+    {n:16,gap:0.35,eff:['crossette','doppel','dreifach','mehrring'],fan:true,ang:0.45,th:'koenig',wechsel:true,sz:1.2,pw:3,pause:2.2},
+    {n:1,gap:0.5,bomb:4,th:'koenig',pause:4.6},
+    {n:10,gap:0.45,ground:'feuerbrunnen',gt:10,eff:'flammenregen',th:'glut',sz:1.2,pw:3,pause:1.6},
+    {n:16,gap:0.3,eff:['strobe','blink','spinne','feuerrad'],vfan:true,ang:0.52,th:'blitz',pause:1.4},
+    {n:14,gap:0.28,eff:['titan','kamuro','flammenregen','mehrring'],th:'glut',wechsel:true,sz:1.35,pw:4,pause:1.2},
+    {n:10,gap:0.08,eff:['palme','komet'],fan:true,ang:0.55,th:'gold',sz:1.3,pw:4,pause:2.0},
+    {n:10,gap:0.08,eff:'regenbogen',fan:true,ang:-0.55,sz:1.3,pw:4,pause:2.0},
+    {n:30,gap:0.18,eff:['chrys','dreifach','crossette','kronleuchter','brokat','dahlie','titan'],th:'koenig',wechsel:true,sz:1.4,pw:5,pause:1.0},
+    {n:30,gap:0.1,eff:['palme','weide','kamuro','chrys','pistill','glitzerweide','komet','mehrring','flammenregen'],th:'gold',wechsel:true,sz:1.55,pw:6,pause:0.8},
+    {n:18,gap:0.05,eff:'salut',th:'gold',sz:1.15,pause:6.0}
   ],
   roemisch:()=>[
-    {n:10,gap:1.0,eff:['kugel','knister','spinne'],sc:'each',sz:0.45,pw:-5,fuse:0.8,pause:1.5}
+    {n:10,gap:1.0,eff:['kugel','stern'],wechsel:true,fuse:0.8,pause:1.5}
   ]
 };
-/* Raketensets: Anzahl, Takt, Kaliber und die Bruchbilder je Sorte.
-   Je hochwertiger die Rakete, desto groesser und exklusiver. */
+/* Raketensets: Anzahl, Takt, Kaliber, Farbthema und Bruchbilder.
+   Von der kleinen Sternschnuppe bis zur Titan steigen alle Werte.
+   gruppe: so viele Raketen hintereinander im selben Farbpaar. */
 const RAKETEN_KL={
-  raketenklein:{n:3, gap:0.55,sz:0.9, pw:0,eff:['kugel','ring','knister','chrys','blink','regenbogen']},
-  raketen     :{n:20,gap:0.3, sz:0.95,pw:1,eff:null},
-  pfeifraketen:{n:10,gap:0.5, sz:0.8, pw:-1,pfeif:true,eff:['knister','fische','kreisel','strobe','tausend']},
-  raketengold :{n:5, gap:1.1, sz:1.35,pw:4,eff:['brokat','kamuro','weide','zeitregen','palme','glitzerweide']},
-  titanraketen:{n:3, gap:1.7, sz:1.6, pw:5,dick:1,eff:['titan']},
-  gravur      :{n:1, gap:0.45,sz:1.3, pw:4,eff:['herz']},
-  blanko      :{n:3, gap:0.45,sz:0.95,pw:0,eff:null}
+  raketenklein:{n:3, gap:0.8, sz:0.7, pw:-6,th:'bunt',eff:['kugel','ring','stern']},
+  raketen     :{n:20,gap:0.35,sz:0.85,pw:-3,th:'bunt',gruppe:5,eff:['kugel','ring','wechsel','stern','chrys','regenbogen','palme','knister']},
+  pfeifraketen:{n:10,gap:0.5, sz:0.8, pw:-3,th:'wald',gruppe:2,pfeif:true,eff:['knister','fische','kreisel','strobe','tausend']},
+  raketengold :{n:5, gap:1.1, sz:1.25,pw:1, th:'gold',eff:['brokat','kronleuchter','weide','zeitregen','glitzerweide']},
+  titanraketen:{n:3, gap:1.7, sz:1.55,pw:5, th:'eis',dick:1,eff:['titan']},
+  gravur      :{n:1, gap:0.45,sz:1.3, pw:4, eff:['herz']},
+  blanko      :{n:3, gap:0.45,sz:0.95,pw:0, eff:null}
 };
 function showLength(id){ const f=SHOWS[id]; if(!f) return 0; let t=0; f().forEach(p=>{ t+=(p.n||1)*(p.gap===undefined?0.45:p.gap)+(p.pause||0); }); return Math.round(t); }
 
@@ -222,7 +237,7 @@ function igniteType(t,o0){
   const o=o0||padOf(t), sh=p.shape;
   hype=Math.min(100,hype+p.hype); DS.burned=r2(DS.burned+costOf(t)); addXP(Math.max(1,Math.round(p.hype/3)));
   statAdd('gezuendet',1); statAdd('hype',p.hype);
-  if(SHOWS[t]){ emitters.push({t:0.8,k:'fuse',o}); later(0.8,()=>playShow(o,SHOWS[t]())); return; }
+  if(SHOWS[t]){ emitters.push({t:0.8,k:'fuse',o}); later(0.8,()=>playShow(o,SHOWS[t](),t)); return; }
   /* ----- Eigene Rezeptur: das Rezept sagt, was passiert ----- */
   if(p.rezept){
     const rz=p.rezept, tr=traegerVon(rz.traeger);
@@ -260,8 +275,17 @@ function igniteType(t,o0){
     if(gross) for(let i=1;i<6;i++) later(i*dauer/6,()=>{ const [A,B]=scheme(); e.A=A; e.B=FW.gold; e.C=B; });
     /* zum Schluss steigen aus der Fontaene Kometen mit Bluete auf */
     const n=gross?7:4;
-    for(let i=0;i<n;i++) later(dauer-1.8+i*0.22,()=>shot(o,{pw:gross?3:0,sz:gross?1.35:1.05,
-      eff:pick(gross?['palme','glitzerweide','mehrring','titan']:['palme','chrys','kugel']),ang:rand(-0.25,0.25),trail:FW.gold}));
+    for(let i=0;i<n;i++) later(dauer-1.8+i*0.22,()=>shot(o,{pw:gross?3:-2,sz:gross?1.35:1.0,
+      eff:(gross?['palme','glitzerweide','kronleuchter','mehrring','titan','kronleuchter','palme']:['palme','chrys','palme','chrys'])[i],
+      ...(([A,B])=>({A,B}))(themaPaar(gross?'glut':'gold',0)),ang:rand(-0.25,0.25),trail:FW.gold}));
+    return;
+  }
+  /* ----- Feuerbrunnen (neu, 24.09.): Flammenfontaene, die in Stoessen
+     grosse Flammenbaelle wirft; zum Schluss zwei Flammenregen darueber */
+  if(t==='feuerbrunnen'){
+    const e={t:16,k:'feuerbrunnen',o,h:1};
+    emitters.push(e); sfx.fizz(distVol(o));
+    for(let i=0;i<2;i++) later(16.2+i*0.7,()=>shot(o,{pw:-3,sz:0.95,eff:'flammenregen',A:FW.orange,B:FW.gold,fuse:1.2,trail:FW.orange}));
     return;
   }
   /* ----- Sternenbrunnen: Fontaene, Komet, Bluete ----- */
@@ -279,7 +303,8 @@ function igniteType(t,o0){
       sfx.whistle(v);
     });
     later(3.4,()=>{
-      shot(o,{pw:3,sz:1.35,eff:pick(['pistill','dahlie','geist','saturn','chrys']),A,B,fuse:1.35,dick:1,trail:FW.gold});
+      /* Level 12: eine Bluete, aber noch keine Profihoehe */
+      shot(o,{pw:-2,sz:1.0,eff:pick(['chrys','geist','saturn','wechsel']),A,B,fuse:1.35,dick:1,trail:FW.gold});
     });
     return;
   }
@@ -356,7 +381,7 @@ function igniteType(t,o0){
     sfx.fizz(distVol(o)); for(let i=1;i<6;i++) later(i*2,()=>sfx.fizz(distVol(o)));
     later(12,()=>{ mine(o,A,B,1.4); smallPop(o.x,0.6,o.z,90,8,0.7,A); sfx.boom(distVol(o));
       /* der Vulkan wirft zum Schluss einen Kometen mit Bluete aus */
-      later(0.25,()=>shot(o,{pw:1,sz:1.1,eff:pick(['pistill','dahlie','saturn']),A,B,fuse:1.2})); });
+      later(0.25,()=>shot(o,{pw:-3,sz:0.9,eff:pick(['chrys','saturn','wechsel']),A,B,fuse:1.2})); });
   }
   else if(sh==='fountainset'){
     const [A,B]=scheme();
@@ -368,7 +393,8 @@ function igniteType(t,o0){
   }
   else if(sh==='rocketset'){
     const KL=RAKETEN_KL[t]||{n:3,gap:0.45,sz:0.95,pw:0,eff:null};
-    for(let i=0;i<KL.n;i++) later(i*KL.gap,()=>shot(o,{pw:KL.pw,sz:KL.sz,eff:pick(KL.eff||EFF_GROSS),sc:'each',
+    for(let i=0;i<KL.n;i++) later(i*KL.gap,()=>shot(o,{pw:KL.pw,sz:KL.sz,eff:KL.eff?KL.eff[i%KL.eff.length]:pick(EFF_GROSS),
+      ...(KL.th?(([A,B])=>({A,B}))(themaPaar(KL.th,Math.floor(i/(KL.gruppe||1)))):{sc:-1}),
       pfeif:KL.pfeif,dick:KL.dick,trail:KL.dick?FW.weiss:undefined,
       /* Titan: jede Rakete bricht dreifach - Hauptbruch, dann zwei Nachbrueche */
       stufen:t==='titanraketen'?[{t:0.5,eff:pick(['mehrring','pistill','dahlie']),sz:1.0,streu:5},{t:1.0,eff:'salut',sz:0.8,streu:3}]:null}));

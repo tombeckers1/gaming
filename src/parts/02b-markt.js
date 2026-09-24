@@ -16,7 +16,7 @@ const VOLA={
   furzrakete:1.10, batterie100:1.20, sprengmeister:1.30, profi:1.40, xxlpolen:1.60,
   sternenbrunnen:0.75, kugel75:0.95, kugel100:1.15, kugel150:1.45,
   zfaecher:1.05, kometen:1.15, titanraketen:1.25, kugel200:1.50, finale:1.55,
-  goldgeysir:0.85, feuersaeule:1.2, donnerwand:1.35, kugel300:1.6
+  goldgeysir:0.85, feuerbrunnen:0.9, feuersaeule:1.2, donnerwand:1.35, kugel300:1.6
 };
 function volaOf(t){ const v=VOLA[t]; if(v!==undefined) return v; const p=P[t]; return p&&p.cat===2?0.85:p&&p.cat===1?0.6:0.45; }
 
@@ -186,8 +186,8 @@ const LIZENZEN=[
    desc:'Raketensortimente, pfeifende Heulraketen, Goldraketen, ab Level 14 der Goldgeysir mit zehn Metern Fontäne, Vulkane und der Sternenbrunnen, der erst als Fontäne läuft und dann oben aufblüht. Dazu Wachsgießen und Feuerzangenbowle.',
    items:['raketen','pfeifraketen','raketengold','vulkan','goldgeysir','wasserfall','sternenbrunnen','bleigiessen','bowle']},
   {id:'verbund',lvl:14,cost:6000,name:'Verbund & Kugelbomben',
-   desc:'Batterien, der Knattersturm, Fächer und die ersten Kugelbomben. Die gehören in die Mörserbatterie auf dem Testfeld: ein Schuss, oben mehrere Brüche nacheinander.',
-   items:['batterie16','knatter','batterie49','sortiment','faecher','kugel75','kugel100']},
+   desc:'Batterien, der Knattersturm, Fächer, der Feuerbrunnen mit Flammenregen und die ersten Kugelbomben. Die gehören in die Mörserbatterie auf dem Testfeld: ein Schuss, oben mehrere Brüche nacheinander.',
+   items:['batterie16','knatter','batterie49','sortiment','faecher','feuerbrunnen','kugel75','kugel100']},
   {id:'import',lvl:17,cost:13000,name:'Import & Sonderposten',
    desc:'Sprengmeister, der XXL-Bomber, der 100er-Verbund, der Z-Fächer Blitzgewitter, der Kometenregen und die 150-mm-Kugelbombe Weltenbrand. Teuer im Einkauf, launisch im Preis, aber die Kunden reden darüber.',
    items:['sprengmeister','xxlpolen','batterie100','zfaecher','kometen','kugel150']},

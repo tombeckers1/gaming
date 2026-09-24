@@ -18,23 +18,23 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   const zeig=async(t)=>console.log(t,JSON.stringify(await p.evaluate(()=>{
     const bb=window.__bb;
     return {stufe:bb.onlineStufe(),zahlen:bb.onlineZahlen(),
-            knoepfe:[...document.querySelectorAll('#lbody button')].map(b=>b.dataset.a+(b.disabled?':aus':':an'))};
+            knoepfe:[...document.querySelectorAll('#hApp button')].map(b=>b.dataset.a+(b.disabled?':aus':':an'))};
   })));
 
   /* 1. Nichts freigeschaltet */
-  await p.evaluate(()=>{ window.__bb.openLaptop(); document.querySelector('#ltabs button[data-tab="online"]').click(); });
+  await p.evaluate(()=>{ window.__bb.openHandy('online'); });
   await zeig('ZU        ');
 
   /* 2. Nur Onlineshop */
   await p.evaluate(()=>{ const bb=window.__bb; bb.S.level=40; bb.S.money=9e6; bb.S.up.onlineshop=true;
-    document.querySelector('#ltabs button[data-tab="online"]').click(); });
+    bb.openHandy('online'); });
   await zeig('PAUSCHAL  ');
 
   /* 3. Mit Packstation */
   await p.evaluate(()=>{ const bb=window.__bb;
     ['lager_gross','packstation'].forEach(id=>{ bb.S.up[id]=true; if(bb.ZONEN[id]) bb.oeffneZone(id,false); });
     bb.applyZonen(); bb.S.offen=11; bb.S.pakete=0;
-    document.querySelector('#ltabs button[data-tab="online"]').click(); });
+    bb.openHandy('online'); });
   await zeig('VERSAND   ');
   await p.screenshot({path:'/tmp/online-tab.jpg',type:'jpeg',quality:82});
 

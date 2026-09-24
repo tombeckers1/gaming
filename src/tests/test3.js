@@ -32,11 +32,11 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     o.pending=bb.pending.length; o.korbLeer=bb.cartBoxes()===0; bb.closeLaptop(false);
     bb.run(45,0.05); o.lkwDa=!!bb.truck; o.delivered=bb.floorBoxes.length;
     // Kredit
-    S.level=5; bb.openLaptop(); document.querySelector('#ltabs button[data-tab="bank"]').click();
-    const lb=document.querySelector('#lbody button[data-a="loan"]'); o.loanBtn=!!lb; if(lb) lb.click();
+    S.level=5; bb.openHandy('bank');
+    const lb=document.querySelector('#hApp button[data-a="loan"]'); o.loanBtn=!!lb; if(lb) lb.click();
     o.loan=S.loan?S.loan.remaining:null; o.moneyAfterLoan=Math.round(S.money);
     o.dailyRate=bb.S.loan?Math.round(S.loan.amount/S.loan.term+S.loan.remaining*S.loan.rate):0;
-    bb.closeLaptop(false);
+    bb.closeHandy(false);
     // Dieb + Spray
     S.level=10; bb.openShop();
     bb.run(120,0.05);

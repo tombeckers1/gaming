@@ -9,7 +9,7 @@ function requestLock(){
   try{ const r=canvas.requestPointerLock(); if(r&&r.catch) r.catch(()=>{ lockFailed=true; dragHint(); }); }catch(e){ lockFailed=true; dragHint(); }
 }
 let zuendOpen=false;
-function overlayOpen(){ return startOpen||laptopOpen||summaryOpen||pauseOpen||cashOpen||levelOpen||dealOpen||gravOpen||pdaOpen||zuendOpen; }
+function overlayOpen(){ return startOpen||laptopOpen||handyOpen||summaryOpen||pauseOpen||cashOpen||levelOpen||dealOpen||gravOpen||pdaOpen||zuendOpen; }
 /* =========================================================
    Bedienfeld am Zuendpult. Es liegt unten im Bild, das Spiel laeuft
    weiter: man zuendet und schaut dabei aufs Testfeld.
@@ -61,8 +61,8 @@ const STEUER_PC=[
   ['Handeln',[
     [['E','Klick'],'Aktion – halten zum Putzen'],
     [['Q','Rechts'],'Karton abstellen'],
-    [['Tab'],'Laptop'],
-    [['H'],'Handy abnehmen']]],
+    [['Tab','H'],'Handy: Onlineshop, Team, Bank, Bericht'],
+    [['H'],'Anruf annehmen, wenn es klingelt']]],
   ['Werkzeuge',[
     [['T'],'Preisgerät (ab Level 2)'],
     [['G'],'Pfefferspray (ab Level 4)']]],
@@ -89,6 +89,7 @@ const STEUER_TOUCH=[
     [['Aktion'],'Aktion – halten zum Putzen'],
     [['Ablegen'],'Karton abstellen, Greifen abbrechen'],
     [['Umbau'],'Umbaumodus an / aus'],
+    [['Handy'],'Onlineshop, Team, Bank, Bericht'],
     [['Preis'],'Preisgerät (ab Level 2)'],
     [['Spray'],'Pfefferspray (ab Level 4)']]]
 ];
@@ -126,6 +127,10 @@ addEventListener('mouseup',e=>{ if(e.button===0) mouseDown=false; zuendZieh=fals
 addEventListener('mousemove',e=>{ if(zuendOpen&&zuendZieh){ aim=null; look(e.movementX||0,e.movementY||0,0.004); return; } if(overlayOpen()) return; if(locked) look(e.movementX,e.movementY,0.0022); else if(mouseDown&&(lockFailed||!lockWorked)) look(e.movementX||0,e.movementY||0,0.004); });
 canvas.addEventListener('contextmenu',e=>e.preventDefault());
 addEventListener('keydown',e=>{
+  if(handyOpen){
+    if(e.code==='KeyH'&&!e.repeat&&typeof phone!=='undefined'&&phone.state==='ringing'){ closeHandy(false); answerPhone(); return; }
+    if((e.code==='Escape'||e.code==='Tab'||e.code==='KeyH')&&!e.repeat){ e.preventDefault(); closeHandy(true); }
+    return; }
   if(e.code==='Escape'&&laptopOpen){ closeLaptop(false); return; }
   if(e.code==='Escape'&&cashOpen){ closeCash(false); return; }
   if(pdaOpen){ if(e.code==='Escape') closePDA(); return; }
@@ -158,9 +163,11 @@ addEventListener('keydown',e=>{
   if(e.code==='KeyP'&&!e.repeat) setPost(!postOn);
   if(e.code==='KeyM'&&!e.repeat) musikAn();
   if(e.code==='KeyN'&&!e.repeat){ ac(); if(!MUSIK.an) musikAn(true); else musikWeiter(false); }
-  if(e.code==='KeyH'&&!e.repeat) answerPhone();
+  /* H: klingelt es, geht man ran - sonst kommt das Handy heraus */
+  if(e.code==='KeyH'&&!e.repeat){ if(typeof phone!=='undefined'&&phone.state==='ringing') answerPhone(); else openHandy(); }
   if(e.code==='KeyR'&&!e.repeat&&build) rotateGrab();
-  if(e.code==='Tab'&&!e.repeat){ e.preventDefault(); openLaptop(); }
+  /* Tab holt das Handy heraus. Der Laptop steht im Buero - dafuer geht man hin. */
+  if(e.code==='Tab'&&!e.repeat){ e.preventDefault(); openHandy(); }
   if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code)) e.preventDefault();
 });
 addEventListener('keyup',e=>{ keys[e.code]=false; });
@@ -190,6 +197,8 @@ btnAct.addEventListener('touchend',actEnd); btnAct.addEventListener('touchcancel
 btnDrop.addEventListener('touchstart',e=>{ e.preventDefault(); if(!S||overlayOpen()) return; ac(); if(build&&grabbed) cancelGrab(); else dropBox(); },{passive:false});
 btnTool.addEventListener('touchstart',e=>{ e.preventDefault(); if(!S||overlayOpen()) return; ac(); toggleSpray(); },{passive:false});
 $('btnPda').addEventListener('touchstart',e=>{ e.preventDefault(); if(!S||overlayOpen()) return; ac(); togglePDA(); },{passive:false});
+$('btnHandy').addEventListener('touchstart',e=>{ e.preventDefault(); if(!S||(overlayOpen()&&!handyOpen)) return; ac(); toggleHandy(); },{passive:false});
+$('btnHandy').addEventListener('click',e=>{ if(COARSE) return; ac(); toggleHandy(); });
 $('btnPda').addEventListener('click',e=>{ if(COARSE) return; ac(); togglePDA(); });
 $('pdaClose').addEventListener('click',()=>closePDA());
 $('pdaBody').addEventListener('click',e=>{

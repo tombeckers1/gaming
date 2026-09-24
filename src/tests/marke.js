@@ -150,12 +150,13 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   await p.evaluate(()=>window.__bb.openLaptop());
   const ui=await p.evaluate(()=>{
     const bb=window.__bb,o={};
-    const klick=t=>document.querySelector(`#ltabs button[data-tab="${t}"]`).click();
+    /* Ziele liegen seit dem 24.09. auf dem Handy, der Rest am Laptop */
+    const klick=t=>{ if(bb.HANDY_APPS.some(a=>a.id===t)) bb.openHandy(t); else { if(!bb.handyOpen&&!document.querySelector('#laptop.show')) bb.openLaptop(); if(bb.handyOpen){ bb.closeHandy(false); bb.openLaptop(); } document.querySelector(`#ltabs button[data-tab="${t}"]`).click(); } };
     o.tabs=[...document.querySelectorAll('#ltabs button')].map(x=>x.dataset.tab);
     klick('erf');
-    o.erfZeilen=document.querySelectorAll('#lbody .row').length;
-    o.erfBalken=document.querySelectorAll('#lbody .erfbar').length;
-    o.erfBilder=document.querySelectorAll('#lbody img.pic').length;
+    o.erfZeilen=document.querySelectorAll('#hApp .row').length;
+    o.erfBalken=document.querySelectorAll('#hApp .erfbar').length;
+    o.erfBilder=document.querySelectorAll('#hApp img.pic').length;
     klick('rez');
     o.rezFelder=document.querySelectorAll('#lbody .rezfeld').length;
     o.farbknoepfe=document.querySelectorAll('#lbody .farbw button').length;
@@ -169,11 +170,11 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   });
   console.log('MASKE',JSON.stringify(ui));
   await p.screenshot({path:process.argv[3]||'/tmp/claude-0/marke.png'});
-  await p.evaluate(()=>document.querySelector('#ltabs button[data-tab="erf"]').click());
+  await p.evaluate(()=>window.__bb.openHandy('erf'));
   await p.screenshot({path:(process.argv[3]||'/tmp/claude-0/marke.png').replace('.png','-erf.png')});
 
   /* --- Speichern und laden --- */
-  await p.evaluate(()=>{ window.__bb.closeLaptop(false); window.__bb.save(); });
+  await p.evaluate(()=>{ window.__bb.closeHandy(false); window.__bb.closeLaptop(false); window.__bb.save(); });
   await p.reload();
   await p.waitForFunction('window.__bb!==undefined',{timeout:30000});
   await p.waitForFunction("!!document.querySelector('#startBtns button:not([disabled])')",{timeout:30000});

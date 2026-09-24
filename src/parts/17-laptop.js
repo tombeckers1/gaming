@@ -3,7 +3,7 @@
    Laptop
    ========================================================= */
 let laptopOpen=false, startOpen=true, pauseOpen=false, ltab='order', resetArm=false, lsup='mertens', korbOpen=false;
-function openLaptop(tab){ laptopOpen=true; resetArm=false; if(tab) ltab=tab; for(const k in keys) keys[k]=false; mouseDown=false; touchAct=false; renderLaptop(); $('laptop').classList.add('show'); if(locked) document.exitPointerLock(); }
+function openLaptop(tab){ if(typeof handyOpen!=='undefined'&&handyOpen) closeHandy(false); laptopOpen=true; resetArm=false; if(tab) ltab=tab; for(const k in keys) keys[k]=false; mouseDown=false; touchAct=false; renderLaptop(); $('laptop').classList.add('show'); if(locked) document.exitPointerLock(); }
 function closeLaptop(relock){ laptopOpen=false; korbOpen=false; $('korbOv').classList.remove('show'); $('laptop').classList.remove('show'); if(relock) requestLock(); else if(lockWorked&&!COARSE&&!locked&&!summaryOpen&&!levelOpen) showPause(); }
 function priceHint(t){ const r=S.prices[t]/marketOf(t), lo=priceTol();
   if(r<=lo) return ['ok','Kunden greifen gern zu'];
@@ -520,7 +520,7 @@ function onlineZahlen(){
   };
 }
 function updateOnline(){
-  if(!laptopOpen||ltab!=='online') return;
+  if(!(laptopOpen&&ltab==='online')&&!(handyOpen&&happ==='online')) return;
   const z=onlineZahlen();
   const set=(id,v)=>{ const e=document.getElementById(id); if(e) e.textContent=v; };
   set('onOffen',z.offen); set('onPak',z.pak+' von '+PAKET_BAYS);
@@ -571,7 +571,7 @@ function renderOnline(){
     `<div class="mkcol"><small>Umsatz</small><b style="font-family:var(--display);font-size:20px" id="onHeute">${eur(z.heute)}</b></div></div>`;
   const pk=staff&&staff.packer;
   h+=`<div class="row${pk?'':' locked'}"><div class="rm"><b>Packer</b>`+
-      `<small>${pk?'Packt selbstständig, solange Bestellungen offen sind.':'Ohne Packer bleibt alles an dir hängen - einstellen kannst du ihn unter Personal.'}</small></div>`+
+      `<small>${pk?'Packt selbstständig, solange Bestellungen offen sind.':'Ohne Packer bleibt alles an dir hängen - einstellen kannst du ihn im Handy unter Team.'}</small></div>`+
     `<small class="${pk?'ok':''}">${pk?'im Dienst':'nicht eingestellt'}</small></div>`;
   return h;
 }
@@ -589,7 +589,63 @@ function packLaptop(alle){
     toast(`${n} Paket${n===1?'':'e'} gepackt: +${eur(wert)}`,'money'); }
   renderLaptop();
 }
+/* =========================================================
+   Handy (Tom, 24.09.: der Laptop war mit 14 Reitern zu voll)
+   Am Laptop bleibt, wofuer man sich hinsetzt: bestellen, Preise,
+   Sortiment, Entwicklung, Ausbau, Einrichtung, Deko, Laden. Aufs
+   Handy kommt, was man unterwegs schnell nachsieht oder steuert.
+   Tab oder H holt es heraus, klingelt es, nimmt H den Anruf an.
+   ========================================================= */
+const HANDY_APPS=[
+  {id:'online',name:'Onlineshop',ico:'📦',bg:'linear-gradient(145deg,#3a8dff,#1c56c9)'},
+  {id:'staff',name:'Team',ico:'👥',bg:'linear-gradient(145deg,#2fd08a,#138a57)'},
+  {id:'markt',name:'Werbung',ico:'📣',bg:'linear-gradient(145deg,#ff8a3d,#d9531a)'},
+  {id:'bank',name:'Bank',ico:'🏦',bg:'linear-gradient(145deg,#8f7bff,#5a3fd6)'},
+  {id:'stats',name:'Bericht',ico:'📊',bg:'linear-gradient(145deg,#ffd23f,#e0a100)'},
+  {id:'erf',name:'Ziele',ico:'🏆',bg:'linear-gradient(145deg,#ff5f8f,#c92a5c)'}
+];
+const HANDY_IDS=HANDY_APPS.map(a=>a.id);
+let handyOpen=false, happ=null;
+function openHandy(app){
+  if(!S) return;
+  if(laptopOpen) closeLaptop(false);
+  handyOpen=true; happ=app&&HANDY_IDS.indexOf(app)>=0?app:null; resetArm=false;
+  for(const k in keys) keys[k]=false; mouseDown=false; touchAct=false;
+  renderHandy(); $('handy').classList.add('show');
+  try{ if(document.pointerLockElement) document.exitPointerLock(); }catch(e){}
+  if(typeof sfx!=='undefined'&&sfx.click) sfx.click();
+}
+function closeHandy(relock){ handyOpen=false; $('handy').classList.remove('show'); if(relock) requestLock(); }
+function toggleHandy(){ if(handyOpen) closeHandy(true); else openHandy(); }
+function handyBadge(id){
+  if(id==='online') return S.up.onlineshop?(S.pakete|0):0;
+  if(id==='erf') return typeof erfFertig==='function'?ERFOLGE.filter(e=>erfOffen(e)&&erfFertig(e)).length:0;
+  return 0;
+}
+function renderHandy(){
+  if(!handyOpen) return;
+  const min=Math.floor(clock), hh=String(Math.floor(min/60)%24).padStart(2,'0'), mm=String(min%60).padStart(2,'0');
+  $('hZeit').textContent=`${hh}:${mm}`; $('hGeld').textContent=eur(S.money);
+  const box=$('hInhalt');
+  if(!happ){
+    box.innerHTML=`<div class="home"><div class="uhr">${hh}:${mm}</div><div class="datum">${dateStr(S.day)}</div>`+
+      `<div class="apps">${HANDY_APPS.map(a=>{ const n=handyBadge(a.id);
+        return `<button class="app" data-app="${a.id}"><i style="background:${a.bg}">${a.ico}</i>${a.name}${n?`<em>${n}</em>`:''}</button>`; }).join('')}</div>`+
+      `<div class="hinweis">Bestellen, Preise und Ausbau machst du am Laptop im Büro.</div>`+
+      `<button class="zu" data-zu="1">Handy wegstecken${COARSE?'':' · Tab'}</button></div>`;
+    return;
+  }
+  const A=HANDY_APPS.find(a=>a.id===happ);
+  box.innerHTML=`<div class="hkopf"><button data-app="">‹ Zurück</button><b>${A.name}</b></div><div class="happ" id="hApp"></div>`;
+  const alt=ltab; ltab=happ; try{ lapZeichnen($('hApp')); } finally { ltab=alt; }
+}
 function renderLaptop(){
+  if(handyOpen) renderHandy();
+  if(!laptopOpen&&handyOpen) return;
+  if(HANDY_IDS.indexOf(ltab)>=0) ltab='order';
+  lapZeichnen($('lbody'));
+}
+function lapZeichnen(body){
   $('lMoney').textContent=eur(S.money);
   $('lLevel').textContent=`Level ${S.level} · ${S.xp}/${xpFor(S.level)} XP`;
   document.querySelectorAll('#ltabs button').forEach(b=>b.classList.toggle('on',b.dataset.tab===ltab));
@@ -625,7 +681,7 @@ function renderLaptop(){
             `<div class="price">${eur(pr)}</div>`+
             `<div class="steps"><button data-a="rbuy" data-t="${r.id}"${platz?'':' disabled'}>bestellen</button></div></div>`;
         }).join('');
-      $('lbody').innerHTML=h;
+      body.innerHTML=h;
       if(korbOpen) renderKorb();
       return;
     }
@@ -817,7 +873,7 @@ function renderLaptop(){
         `</div><button class="${S.test?'red':''}" data-a="test">${S.test?'Testmodus aus':'Testmodus an'}</button></div>`+
       `<div class="row"><div class="rm"><b>Spielstand</b><small>Wird automatisch gespeichert.</small></div><button class="ghost" data-a="reset">${resetArm?'Wirklich löschen?':'Spielstand löschen'}</button></div>`;
   }
-  $('lbody').innerHTML=h;
+  body.innerHTML=h;
   if(korbOpen) renderKorb();
 }
 $('lKorb').addEventListener('click',()=>openKorb());
@@ -833,14 +889,28 @@ for(const id of ['korbBody','korbFoot']) $(id).addEventListener('click',e=>{
 });
 $('korbOv').addEventListener('click',e=>{ if(e.target.id==='korbOv') closeKorb(); });
 $('ltabs').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b) return; ltab=b.dataset.tab; resetArm=false; renderLaptop(); });
-$('lbody').addEventListener('click',e=>{
+$('lbody').addEventListener('click',e=>lapKlick(e,false));
+$('hInhalt').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  if(b.dataset.zu){ closeHandy(true); return; }
+  if(b.dataset.app!==undefined){ happ=b.dataset.app||null; resetArm=false; if(typeof sfx!=='undefined'&&sfx.click) sfx.click(); renderHandy(); return; }
+  lapKlick(e,true);
+});
+$('hHome').addEventListener('click',()=>{ happ=null; renderHandy(); });
+$('handy').addEventListener('click',e=>{ if(e.target.id==='handy') closeHandy(true); });
+function lapKlick(e,imHandy){
   const b=e.target.closest('button'); if(!b||b.disabled) return; const a=b.dataset.a, t=b.dataset.t;
   if(a==='order') orderBox(t,+b.dataset.n||1);
   else if(a==='cart') cartAdd(t,+b.dataset.n||1);
   else if(a==='cartdel') cartDel(+b.dataset.i);
   else if(a==='cartplus') cartStep(+b.dataset.i,1);
   else if(a==='cartminus') cartStep(+b.dataset.i,-1);
-  else if(a==='tab'){ ltab=t; }
+  else if(a==='tab'){
+    /* Verweise zwischen Laptop und Handy: was aufs Handy gehoert, oeffnet
+       das Handy; vom Handy aus bleibt der Rest am Laptop */
+    if(HANDY_IDS.indexOf(t)>=0){ if(imHandy) happ=t; else { closeLaptop(false); openHandy(t); return; } }
+    else if(imHandy){ toast('Das erledigst du am Laptop im Büro.'); return; }
+    else ltab=t; }
   else if(a==='korbclose'){ closeKorb(); return; }
   else if(a==='cartgo') cartOrder();
   else if(a==='cartclear') cartClear();
@@ -888,7 +958,7 @@ $('lbody').addEventListener('click',e=>{
   else if(a==='test'){ toggleTest(); }
   else if(a==='reset'){ if(!resetArm) resetArm=true; else { try{ localStorage.removeItem(KEY); }catch(err){} location.reload(); return; } }
   renderLaptop();
-});
+}
 $('lclose').addEventListener('click',()=>closeLaptop(true));
 /* Hoechste Stufe, die im Spiel ueberhaupt verlangt wird - Ausbauten,
    Lizenzen und Regale zusammengenommen. */

@@ -206,7 +206,7 @@ const DEKO=[
 const STAFF=[
   {id:'reinigung',lvl:6,name:'Reinigungskraft',desc:'Wischt den Dreck weg, solange der Laden offen ist.',hire:250,wage:55},
   {id:'auffueller',lvl:9,req:'lager',name:'Regalauffüller',desc:'Lädt den LKW aus, räumt ins Lager und füllt die Regale. Priorität einstellbar.',hire:450,wage:110},
-  {id:'auffueller2',lvl:12,name:'Zweiter Auffüller',desc:'Zweites Paar Hände. Andere Priorität einstellen, dann greift es ineinander.',hire:600,wage:130},
+  {id:'auffueller2',lvl:12,req:'lager',name:'Zweiter Auffüller',desc:'Zweites Paar Hände. Andere Priorität einstellen, dann greift es ineinander.',hire:600,wage:130},
   {id:'kassierer',lvl:11,name:'Kassierer',desc:'Scannt und kassiert selbstständig an der Kasse.',hire:600,wage:145},
   /* Weitere Kassierer: jeder besetzt eine SB-Kasse. Besetzt nimmt sie
      auch volle Koerbe und kassiert gut doppelt so schnell. */

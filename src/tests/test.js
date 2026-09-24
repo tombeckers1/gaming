@@ -49,10 +49,13 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   console.log('phase2',JSON.stringify(r2));
   // Laptop-Tabs rendern
   await p.evaluate(()=>window.__bb.openLaptop());
-  for(const t of ['order','price','up','deko','staff','bank','stats','shop']){
+  for(const t of ['order','price','up','deko','shop']){
     await p.click(`#ltabs button[data-tab="${t}"]`);
     await p.waitForTimeout(60);
   }
+  /* Team, Bank und Bericht liegen auf dem Handy */
+  for(const t of ['staff','bank','stats']){ await p.evaluate(t=>window.__bb.openHandy(t),t); await p.waitForTimeout(60); }
+  await p.evaluate(()=>{ window.__bb.closeHandy(false); window.__bb.openLaptop(); });
   await p.screenshot({path:process.argv[3].replace('.png','-laptop.png')});
   await p.evaluate(()=>window.__bb.closeLaptop(false));
   await p.click('#pBtn').catch(()=>{});

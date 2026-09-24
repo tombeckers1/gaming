@@ -236,7 +236,7 @@ function endDay(){
   const flau=dayMult(S.day+1)<0.95;
   const morgen=isSunday(S.day+1)&&!S.up.tag4?'Morgen ist Sonntag, Ruhetag. Gute Gelegenheit zum Auffüllen.'
     :(flau&&aktiv>0&&profit<0)
-      ? `Morgen: ${dateStr(S.day+1)}. ${seasonInfo(S.day+1)[1]}. Die Saison ist vorbei und der Tag war im Minus — schick Personal unter Personal in die Saisonpause, das kostet nur 30 Prozent Lohn.`
+      ? `Morgen: ${dateStr(S.day+1)}. ${seasonInfo(S.day+1)[1]}. Die Saison ist vorbei und der Tag war im Minus — schick dein Team im Handy (App Team) in die Saisonpause, das kostet nur 30 Prozent Lohn.`
       : `Morgen: ${dateStr(S.day+1)}. ${seasonInfo(S.day+1)[1]}.`;
   showSummary(`Tagesabschluss · ${dateStr(S.day)}`,morgen,rows,'Nächster Tag',()=>{
     statRekord('rek_tag',Math.round(DS.revenue));

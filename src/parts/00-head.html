@@ -86,6 +86,7 @@ body:has(.ov.show) #touch{display:none}
 #btnTool{right:calc(24px + env(safe-area-inset-right));bottom:calc(140px + env(safe-area-inset-bottom));width:60px;height:60px;background:#ff8f7f;font-size:14px}
 #btnMove{right:calc(112px + env(safe-area-inset-right));bottom:calc(112px + env(safe-area-inset-bottom));width:56px;height:56px;background:#9fdcff;font-size:14px}
 #btnPda{right:calc(24px + env(safe-area-inset-right));bottom:calc(214px + env(safe-area-inset-bottom));width:60px;height:60px;background:#8ef0a8;font-size:14px}
+#btnHandy{right:calc(24px + env(safe-area-inset-right));bottom:calc(284px + env(safe-area-inset-bottom));width:60px;height:60px;background:#9cc4ff;font-size:14px}
 #btnPda.on{background:var(--mint);box-shadow:0 0 0 3px rgba(142,240,168,.4)}
 .tbtn.down{transform:translateY(3px);box-shadow:none}
 #btnTool.on{background:var(--fire);color:#fff}
@@ -191,6 +192,30 @@ body.compact .mkcol{min-width:74px}
 .lfoot{padding:12px 16px;border-top:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:10px;flex-shrink:0}
 .lfoot-r{justify-content:flex-end}
 #korbOv{z-index:24}
+/* Handy: hochkant, schmaler Rahmen, Startbildschirm mit App-Symbolen */
+#handy{background:rgba(8,10,24,.35)}
+#handy .geraet{width:min(400px,94vw);height:min(760px,94vh);background:#07090f;border-radius:44px;padding:12px;box-shadow:0 30px 80px rgba(0,0,0,.6),inset 0 0 0 2px #2c3140,inset 0 0 0 5px #0d1017;display:flex;flex-direction:column;position:relative}
+#handy .schirm{flex:1;border-radius:34px;overflow:hidden;display:flex;flex-direction:column;background:linear-gradient(160deg,#241a4d 0%,#0f1a3d 45%,#0a1128 100%);position:relative}
+#handy .kerbe{position:absolute;top:18px;left:50%;transform:translateX(-50%);width:108px;height:28px;background:#07090f;border-radius:16px;z-index:3}
+#handy .hstatus{display:flex;justify-content:space-between;align-items:center;padding:14px 26px 6px;font:700 15px "Barlow Condensed",sans-serif;color:#e8eeff;min-height:44px}
+#handy .hkopf{display:flex;align-items:center;gap:10px;padding:6px 14px 8px;border-bottom:1px solid rgba(255,255,255,.08)}
+#handy .hkopf b{font:22px Bungee,Impact,sans-serif;color:#ffd23f;letter-spacing:.5px}
+#handy .hkopf button{background:rgba(255,255,255,.08);color:#e8eeff;border-radius:12px;padding:6px 12px;font-size:16px}
+#handy .happ{flex:1;overflow:auto;padding:4px 14px 14px;touch-action:pan-y}
+#handy .happ .row{flex-wrap:wrap;gap:8px;padding:10px 0}
+#handy .happ .row .pic{width:44px;height:44px}
+#handy .happ .rm{min-width:0;flex:1 1 180px}
+#handy .home{flex:1;display:flex;flex-direction:column;padding:10px 20px}
+#handy .uhr{font:64px Bungee,Impact,sans-serif;color:#fff;text-align:center;margin:18px 0 0;letter-spacing:1px}
+#handy .datum{text-align:center;color:#b9c4e6;font:700 18px "Barlow Condensed",sans-serif;margin-bottom:22px}
+#handy .apps{display:grid;grid-template-columns:repeat(3,1fr);gap:22px 10px;margin-top:6px}
+#handy .app{background:none;display:flex;flex-direction:column;align-items:center;gap:7px;color:#e8eeff;font:700 15px "Barlow Condensed",sans-serif;padding:0;position:relative}
+#handy .app i{width:64px;height:64px;border-radius:18px;display:flex;align-items:center;justify-content:center;font-style:normal;font-size:32px;box-shadow:0 6px 16px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.25)}
+#handy .app em{position:absolute;top:-6px;right:14px;background:#e63b2e;color:#fff;font-style:normal;border-radius:11px;min-width:22px;height:22px;font:700 14px sans-serif;display:flex;align-items:center;justify-content:center;padding:0 6px}
+#handy .app:disabled{opacity:.35}
+#handy .hinweis{margin-top:auto;color:#8f9cc4;font:600 14px "Barlow Condensed",sans-serif;text-align:center;padding:10px 4px}
+#handy .zu{background:rgba(255,255,255,.1);color:#e8eeff;border-radius:14px;padding:10px;font:700 16px "Barlow Condensed",sans-serif;margin-bottom:4px}
+#handy .hleiste{height:5px;width:130px;background:rgba(255,255,255,.55);border-radius:3px;margin:8px auto 2px;cursor:pointer}
 #korbOv .card{max-width:min(860px,94vw);padding:0;overflow:hidden;display:flex;flex-direction:column;background:#0f1530}
 .ksum{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:8px 0;border-top:1px solid var(--line)}
 .ksum b{font-size:17px}.ksum small{display:block;color:var(--muted);font-size:14px}
@@ -336,6 +361,7 @@ body.compact #btnAct{width:64px;height:64px;font-size:15px;right:calc(12px + env
 body.compact #btnDrop{width:50px;height:50px;font-size:11px;right:calc(84px + env(safe-area-inset-right));bottom:calc(10px + env(safe-area-inset-bottom))}
 body.compact #btnTool{width:42px;height:42px;font-size:11px;right:calc(14px + env(safe-area-inset-right));bottom:calc(84px + env(safe-area-inset-bottom))}
 body.compact #btnMove{width:42px;height:42px;font-size:11px;right:calc(80px + env(safe-area-inset-right));bottom:calc(66px + env(safe-area-inset-bottom))}
+body.compact #btnHandy{width:42px;height:42px;font-size:11px;right:calc(14px + env(safe-area-inset-right));bottom:calc(178px + env(safe-area-inset-bottom))}
 body.compact #btnPda{width:42px;height:42px;font-size:11px;right:calc(14px + env(safe-area-inset-right));bottom:calc(130px + env(safe-area-inset-bottom))}
 body.compact.coarse #carry{bottom:calc(10px + env(safe-area-inset-bottom));left:calc(50% - 60px);transform:none}
 body.compact.coarse #toasts{bottom:calc(48px + env(safe-area-inset-bottom))}
@@ -381,7 +407,7 @@ body.compact .pdahead2 b{font-size:16px}
   <div id="joy"></div>
   <div id="joyBase"><div id="joyKnob"></div></div>
   <button class="tbtn" id="btnMove" aria-label="Umbaumodus">Umbau</button>
-  <button class="tbtn" id="btnPda" aria-label="Preisgerät">Preis</button>
+  <button class="tbtn" id="btnPda" aria-label="Preisgerät">Preis</button><button class="tbtn" id="btnHandy" aria-label="Handy">Handy</button>
   <button class="tbtn" id="btnTool" aria-label="Pfefferspray">Spray</button>
   <button class="tbtn" id="btnDrop" aria-label="Karton abstellen">Ablegen</button>
   <button class="tbtn" id="btnAct" aria-label="Aktion">Aktion</button>
@@ -425,11 +451,17 @@ body.compact .pdahead2 b{font-size:16px}
 <div class="ov" id="laptop"><div class="card">
   <div class="lhead"><b>Böllerladen OS</b><em id="lLevel"></em><span id="lMoney"></span></div>
   <div class="tabs" id="ltabs">
-    <button data-tab="order">Bestellen</button><button data-tab="price">Preise &amp; Markt</button><button data-tab="liz">Sortiment</button><button data-tab="rez">Entwicklung</button><button data-tab="erf">Herausforderungen</button><button data-tab="up">Ausbau</button><button data-tab="einr">Einrichtung</button><button data-tab="markt">Marketing</button><button data-tab="online">Onlineshop</button><button data-tab="deko">Deko</button><button data-tab="staff">Personal</button><button data-tab="bank">Bank</button><button data-tab="stats">Bericht</button><button data-tab="shop">Laden</button>
+    <button data-tab="order">Bestellen</button><button data-tab="price">Preise &amp; Markt</button><button data-tab="liz">Sortiment</button><button data-tab="rez">Entwicklung</button><button data-tab="up">Ausbau</button><button data-tab="einr">Einrichtung</button><button data-tab="deko">Deko</button><button data-tab="shop">Laden</button>
   </div>
   <div class="lbody" id="lbody"></div>
   <div class="lfoot lfoot-r"><button class="ghost" id="lclose">Laptop zuklappen</button><button id="lKorb">Warenkorb anzeigen</button></div>
 </div></div>
+<div class="ov" id="handy"><div class="geraet"><div class="schirm">
+  <div class="kerbe"></div>
+  <div class="hstatus"><span id="hZeit"></span><span id="hGeld"></span></div>
+  <div id="hInhalt" style="flex:1;display:flex;flex-direction:column;min-height:0"></div>
+  <div class="hleiste" id="hHome" title="Startbildschirm"></div>
+</div></div></div>
 <div class="ov" id="korbOv"><div class="card korbcard">
   <div class="lhead"><b>Warenkorb</b><em id="korbCount"></em><span id="korbSum"></span></div>
   <div class="lbody" id="korbBody"></div>

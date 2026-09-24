@@ -375,20 +375,10 @@ function buildDesk(){
   bbox(0.12,0.004,0.06,std(0x353b47),0,0.021,0.17,lap,false);
   const lid=rbox(0.45,0.3,0.014,0.006,std(0x2b303c,{metalness:0.45,roughness:0.35}),0,0.16,-0.08,lap);
   lid.rotation.x=-0.22;
-  const scr=new THREE.Mesh(new THREE.PlaneGeometry(0.41,0.26),new THREE.MeshBasicMaterial({toneMapped:false,map:tex(960,600,(g,W,H)=>{
-    g.scale(W/320,H/200);
-    g.fillStyle='#0f1530'; g.fillRect(0,0,320,200);
-    g.fillStyle='#1b2340'; g.fillRect(0,0,320,34);
-    g.fillStyle='#ffd23f'; g.font=BUN(22); g.fillText('BÖLLERLADEN OS',12,25);
-    g.fillStyle='#8fb4e0'; g.font=BAR(17);
-    ['Bestellen','Preise','Ausbau','Deko','Personal','Bank'].forEach((t,i)=>{
-      g.fillStyle=i===0?'#ffd23f':'#2a3350'; g.fillRect(12,48+i*24,86,19);
-      g.fillStyle=i===0?'#0e1226':'#cfe0f5'; g.fillText(t,18,62+i*24); });
-    g.fillStyle='#1b2340'; g.fillRect(110,48,320-124,200-62);
-    g.fillStyle='#6cf2a8'; g.font=BAR(16);
-    for(let i=0;i<6;i++){ g.fillStyle=i%2?'#223055':'#1b2340'; g.fillRect(114,52+i*22,320-132,20);
-      g.fillStyle='#cfe0f5'; g.fillText('Artikel '+(i+1),120,67+i*22);
-      g.fillStyle='#6cf2a8'; g.fillText((2.49+i*1.5).toFixed(2).replace('.',',')+' €',320-60,67+i*22); } })}));
+  /* Bildschirmschoner statt Menueattrappe - das echte Menue oeffnet sich beim Anklicken */
+  const sch=neuerSchoner(512,320);
+  const scr=new THREE.Mesh(new THREE.PlaneGeometry(0.41,0.26),new THREE.MeshBasicMaterial({toneMapped:false,map:sch.t}));
+  sch.mesh=scr;
   scr.position.set(0,0.16,-0.072); scr.rotation.x=-0.22; lap.add(scr);
   const led=new THREE.MeshStandardMaterial({color:LIN(0x0a2a12),emissive:LIN(0x3dff7a),emissiveIntensity:1.4});
   bbox(0.012,0.006,0.004,led,0.18,0.02,0.19,lap,false);

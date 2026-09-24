@@ -84,9 +84,10 @@ class Worker{
     else if(this.kind==='security') this.guardLoop(dt);
     else if(this.kind==='packer') this.packLoop(dt);
     animPerson(this.g,this.moving,dt,this.speed);
+    if(this.kind==='reinigung') wischerPersonal(this,dt);
   }
   cleanLoop(dt){
-    if(this.state==='idle'){ const d=nearestDirt(this.pos); if(d){ this.target=d; this.goTo(V(d.m.position.x,0,d.m.position.z+0.5)); this.state='go'; } else if(this.path.length===0&&this.pos.distanceTo(IDLE.reinigung)>0.5) this.goTo(IDLE.reinigung); else this.walk(dt); }
+    if(this.state==='idle'){ const d=nearestDirt(this.pos); if(d){ this.target=d; this.goTo(V(d.m.position.x+0.25,0,d.m.position.z+0.85)); this.state='go'; } else if(this.path.length===0&&this.pos.distanceTo(IDLE.reinigung)>0.5) this.goTo(IDLE.reinigung); else this.walk(dt); }
     else if(this.state==='go'){ if(!this.target||dirts.indexOf(this.target)<0){ this.state='idle'; return; } if(this.walk(dt)){ this.state='work'; this.t=2.2; } }
     else if(this.state==='work'){ this.t-=dt*(this.wf||1); if(this.t<=0){ if(this.target&&dirts.indexOf(this.target)>=0){ removeDirt(this.target); sfx.pop(); } this.target=null; this.state='idle'; } }
   }

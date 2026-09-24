@@ -3,7 +3,7 @@
      landen vor der Ladentuer, Regale baut der Lieferant auf
    - Lager kaufen: Kapitel 2 Kleines Fachgeschaeft, Tuer frei,
      der LKW faehrt wieder an die Rampe
-   - Grosses Fachgeschaeft mit shop_gross, Pyro-Imperium mit lager_west
+   - Grosses Fachgeschaeft mit shop_gross ... Kapitel 7 Pyro-Imperium mit lager_west (seit 24.09.: sieben Kapitel, der Reihe nach)
    - alte Spielstaende behalten ihr Lager
    - Ausbau-Liste mit Kapitel-Ueberschriften
    - Kassierer 2 bis 5 besetzen die SB-Kassen, dort zahlen dann
@@ -56,6 +56,11 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     /* Kapitel 3 und 4 */
     S.level=99; S.money=9e7; bb.UPGRADES.filter(u=>u.kat==='flaeche').forEach(u=>{ try{ bb.testKauf(u.id); }catch(e){} });
     o.ende={nr:bb.kapitelNr(),name:bb.kapitel().name};
+    /* der Reihe nach: Labor vor dem Onlineshop hebt das Kapitel nicht */
+    const alt=Object.assign({},S.up);
+    Object.keys(S.up).forEach(k=>{ S.up[k]=false; }); S.up.lager=true; S.up.shop_gross=true; S.up.labor=true;
+    o.vorgezogen=bb.kapitelNr(); S.up.onlineshop=true; o.nachgeholt=bb.kapitelNr();
+    Object.assign(S.up,alt);
     return o;
   });
   console.log('START   ',JSON.stringify(k.start),'gesperrt bis x',k.lagerGesperrtBis,'Rack',k.rackOffen);
@@ -70,13 +75,18 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   pruef('LAGER',k.nach.nr===2&&k.nach.name==='Kleines Fachgeschäft'&&k.nach.lager,'Kapitel 2: '+JSON.stringify(k.nach));
   pruef('LAGER',k.lagerFreiBis<-9,'Lagertuer nach dem Kauf zu (x='+k.lagerFreiBis+')');
   pruef('LAGER',k.rackOffenNach&&k.lkwNach,'nach dem Kauf kein LKW an der Rampe / kein Lagerregal');
-  pruef('ENDE',k.ende.nr===4&&k.ende.name==='Pyro-Imperium','Ende: '+JSON.stringify(k.ende));
+  console.log('REIHE   ',JSON.stringify({vorgezogen:k.vorgezogen,nachgeholt:k.nachgeholt}));
+  pruef('ENDE',k.ende.nr===7&&k.ende.name==='Pyro-Imperium','Ende: '+JSON.stringify(k.ende));
+  pruef('REIHE',k.vorgezogen===3&&k.nachgeholt===5,'Kapitel nicht der Reihe nach: Labor vor Onlineshop gibt '+k.vorgezogen+', danach '+k.nachgeholt);
 
   /* Laptop: Ausbau mit Kapitelueberschriften */
   const lap=await p.evaluate(()=>{ const bb=window.__bb; bb.openLaptop(); const t=document.querySelector('[data-tab="up"]'); if(t) t.click();
-    const k=[...document.querySelectorAll('#lbody .kapkopf b')].map(e=>e.textContent); bb.closeLaptop(false); return k; });
+    /* je Kapitel: Ueberschrift und wie viele Ausbauten darunter stehen */
+    const k=[]; for(const e of document.querySelectorAll('#lbody .kapkopf, #lbody .row')){ if(e.classList.contains('kapkopf')) k.push([e.querySelector('b').textContent,0]); else if(k.length) k[k.length-1][1]++; }
+    bb.closeLaptop(false); return k; });
   console.log('LAPTOP  ',JSON.stringify(lap));
-  pruef('LAPTOP',lap.length===4&&/Kapitel 1/.test(lap[0])&&/Kapitel 4/.test(lap[3]),'Kapitelueberschriften: '+lap);
+  pruef('LAPTOP',lap.length===7&&lap.every((x,i)=>x[0].indexOf('Kapitel '+(i+1))===0),'Kapitelueberschriften: '+JSON.stringify(lap));
+  pruef('LAPTOP',lap.every(x=>x[1]>=2&&x[1]<=6),'Kapitel ungleich verteilt: '+lap.map(x=>x[1]).join('/'));
 
   /* Alter Spielstand ohne Lager-Schluessel behaelt sein Lager */
   const alt=await p.evaluate(()=>{ const bb=window.__bb; bb.save();

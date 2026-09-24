@@ -330,7 +330,8 @@ class Customer{
     if(this.mark){ this.g.remove(this.mark); this.mark=null; }
     { const e=naechsterEingang(this.pos.x);
       this.state='leave'; this.path=[...route(this.pos,V(e,0,4.9)),V(e,0,7.6),V(e+rand(-5,5),0,14)]; }
-    if(Math.random()<(hasDeko('muell')?0.1:0.22)) addDirt(this.pos.x+rand(-1,1),this.pos.z+rand(-1,1));
+    /* seltener als frueher (22 %): Tom fand die Flecken zu viele */
+    if(Math.random()<(hasDeko('muell')?0.04:0.08)) addDirt(this.pos.x+rand(-1,1),this.pos.z+rand(-1,1));
   }
   update(dt){
     if(this.bub){ this.bubT-=dt; if(this.bubT<=0) this.clearBub(); }

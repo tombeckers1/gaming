@@ -100,7 +100,9 @@ function step(dt){
   for(const k in staff) if(staff[k]) staff[k].update(dt);
   updateBelt(dt);
   updatePhone(dt); updateOrder(dt);
-  if(phase==='open'){ dirtT-=dt; if(dirtT<=0){ dirtT=rand(34,62)/((1+customers.length*0.09)*evv('dirt')); if(Math.random()<(hasDeko('muell')?0.2:0.42)) addDirt(rand(-6,6),rand(-4.5,5)); } }
+  /* Dreck: seit 24.09. etwa zweieinhalbmal seltener (Tom: "weniger
+     Fussabdruecke") - frueher im Schnitt alle 114 s, jetzt alle 270 s */
+  if(phase==='open'){ dirtT-=dt; if(dirtT<=0){ dirtT=rand(55,95)/((1+customers.length*0.09)*evv('dirt')); if(Math.random()<(hasDeko('muell')?0.14:0.28)) addDirt(rand(-6,6),rand(-4.5,5)); } }
   for(const pd of pending) pd.t-=dt;
   /* Frueher hing alles an der einen Basisrampe: stand dort ein LKW,
      wartete jede weitere Lieferung. Jetzt bekommt die naechste Welle
@@ -120,7 +122,7 @@ function step(dt){
     else if(!spawnWTruck(frei,ladung,sid,supplierOf(sid).name)) break;
   }
   updateSonne(pl.x,pl.z);
-  updateTruck(dt); updateWBays(dt); updateSchiebetuer(dt); updateVersand(dt); updateSchweber(dt);
+  updateTruck(dt); updateWBays(dt); updateSchiebetuer(dt); updateVersand(dt); updateSchweber(dt); updateWischen(dt); updateSchoner(dt);
   for(let i=timers.length-1;i>=0;i--){ timers[i].t-=dt; if(timers[i].t<=0){ const fn=timers[i].fn; timers.splice(i,1); fn(); } }
   if(phase==='open') addGrime(dt*0.0016*(1+customers.length*0.05));
   hype=Math.max(0,hype-dt*1.1);

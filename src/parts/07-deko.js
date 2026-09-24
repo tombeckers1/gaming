@@ -128,8 +128,9 @@ function dreckRaum(x,z){
 }
 function addDirt(x,z){
   if(dirts.length>13) return;
+  DS.dreck=(DS.dreck||0)+1;
   const r=dreckRaum(x,z);
-  const m=new THREE.Mesh(new THREE.PlaneGeometry(0.55,0.55),dirtMat); m.rotation.x=-Math.PI/2; m.rotation.z=Math.random()*3;
+  const m=new THREE.Mesh(new THREE.PlaneGeometry(0.55,0.55),dirtMat.clone()); m.rotation.x=-Math.PI/2; m.rotation.z=Math.random()*3;
   m.position.set(clamp(x,r.x0+0.5,r.x1-0.5),0.028,clamp(z,r.z0+0.5,r.z1-0.5)); m.renderOrder=3; scene.add(m);
   const hit=bbox(0.6,0.5,0.6,hitM,m.position.x,0.25,m.position.z,null,false);
   const d={m,hit,work:0}; hit.userData={kind:'dirt',ref:d}; dirts.push(d); return d;

@@ -504,7 +504,7 @@ function onlineStufe(){
 }
 function onlineHint(){
   const st=onlineStufe();
-  if(st==='zu') return 'Der Onlineshop ist noch nicht freigeschaltet. Du findest ihn unter Marketing.';
+  if(st==='zu') return 'Der Onlineshop ist noch nicht freigeschaltet. Du findest ihn unter Ausbau (Kapitel 4).';
   if(st==='pauschal') return 'Der Shop läuft, aber ohne Packstation bleibt es bei einer Tagespauschale. Mit Packstation kommen echte Bestellungen herein, die du hier packst - das bringt deutlich mehr.';
   return 'Bestellungen laufen den ganzen Verkaufstag über ein. Jedes gepackte Paket wird sofort gutgeschrieben; DDL holt am Abend alles von der Rampe ab.';
 }
@@ -689,7 +689,7 @@ function renderLaptop(){
   } else if(ltab==='up'||ltab==='einr'||ltab==='markt'){
     const kat=ltab==='up'?'flaeche':ltab;
     hint=kat==='flaeche'
-      ? 'Mehr Fläche für Verkauf und Lager. Die Bauwände im Laden zeigen, was du hier freischaltest. Teuer, aber die nachhaltigste Investition.'
+      ? 'Dein Weg vom Kiosk zum Imperium, Kapitel für Kapitel: mehr Fläche, Onlineshop, eigene Marke. Die Bauwände im Laden zeigen, was du hier freischaltest.'
       : kat==='einr'
       ? 'Regale, Kassen und Technik im Laden. Ein Karton passt meist genau in ein Regalfach.'
       : 'Alles, was dir mehr Kundschaft und bessere Konditionen bringt.';
@@ -698,6 +698,8 @@ function renderLaptop(){
        Namen, der Ausbau, der das Kapitel eroeffnet, steht zuerst */
     const kapVon=u=>{ if(u.kap) return u.kap; let n=1;
       for(const k of KAPITEL) if(k.up){ const ku=UPGRADES.find(x=>x.id===k.up); if(ku&&u.lvl>ku.lvl) n=Math.max(n,k.nr); }
+      /* ein Ausbau gehoert nie vor das Kapitel seiner Voraussetzung */
+      const v=u.req&&UPGRADES.find(x=>x.id===u.req); if(v) n=Math.max(n,kapVon(v));
       return n; };
     if(kat==='flaeche') liste.sort((a,b)=>kapVon(a)-kapVon(b)||(b.kap?1:0)-(a.kap?1:0)||a.lvl-b.lvl);
     let kapZuletzt=0;
@@ -932,8 +934,12 @@ function buyUp(id){
   else if(id==='rack'||id.indexOf('rack_')===0){
     const k=id==='rack'?'standard':id.slice(5);
     createRack(racks.length,{kind:k}); toast(`${RACKKIND[k].name} steht im Lager.`); }
-  else { S.up[id]=true;
-    if(u.kap) later(0.6,()=>kapitelAufstieg(u.kap));
+  else { const kapVor=kapitelNr(); S.up[id]=true;
+    /* Aufstieg nur, wenn sich das Kapitel wirklich aendert - bei einem
+       vorgezogenen Kapitel erst, wenn das davor auch geschafft ist */
+    const kapNach=kapitelNr();
+    if(kapNach>kapVor) later(0.6,()=>kapitelAufstieg(kapNach));
+    else if(u.kap) toast(`Kapitel ${u.kap} beginnt, sobald Kapitel ${kapNach+1} geschafft ist.`);
     if(id==='lager') toast('Das Lager gehört dir. Ab jetzt fährt der LKW an die Rampe hinterm Lager.','money');
     if(ZONEN[id]){
       oeffneZone(id,true);
@@ -1098,7 +1104,7 @@ function renderRezeptur(){
     rezHint='Noch kein Labor im Lager.';
     return `<div class="row locked"><img class="pic" src="${upPic('labor')}" alt="">`+
       `<div class="rm"><b>Entwicklungslabor</b><small>${u.desc}</small>`+
-      `<small class="warn">Ab Level ${u.lvl}, Kosten ${eur(u.cost())} — unter Einrichtung zu kaufen.</small></div></div>`;
+      `<small class="warn">Ab Level ${u.lvl}, Kosten ${eur(u.cost())} — unter Ausbau (Kapitel 5) zu kaufen.</small></div></div>`;
   }
   const r=entwurfInit();
   const bl=bruchListe();

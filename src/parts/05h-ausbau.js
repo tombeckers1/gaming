@@ -508,15 +508,8 @@ function buildLagerTerminal(){
   /* Laptop auf dem Tisch */
   bbox(0.42,0.02,0.3,dunkel,0,0.855,0.04,g,false);
   { const d=bbox(0.42,0.28,0.02,dunkel,0,1.0,-0.1,g,false); d.rotation.x=-0.28;
-    const sc=plane(0.38,0.24,new THREE.MeshBasicMaterial({toneMapped:false,map:tex(300,190,(c,W,H)=>{
-      c.fillStyle='#101a2e'; c.fillRect(0,0,W,H);
-      c.fillStyle='#ffd23f'; c.font=BUN(26); c.textAlign='center'; c.textBaseline='middle';
-      c.fillText('LAGERTERMINAL',W/2,34);
-      c.fillStyle='#8fb6e8'; c.font=BAR(20);
-      c.fillText('Bestellen · Versand · Rampen',W/2,72);
-      c.fillStyle='#1d2b48'; for(let i=0;i<4;i++) c.fillRect(24,96+i*22,W-48,14);
-      c.fillStyle='#6cf2a8'; for(let i=0;i<4;i++) c.fillRect(24,96+i*22,rand(50,W-60),14);
-    })}),0,1.0,-0.088,0,g); sc.rotation.x=-0.28; }
+    const sch=neuerSchoner(480,304,'Lagerterminal');
+    const sc=plane(0.38,0.24,new THREE.MeshBasicMaterial({toneMapped:false,map:sch.t}),0,1.0,-0.088,0,g); sc.rotation.x=-0.28; sch.mesh=sc; }
   /* Rollcontainer und Papierkorb, damit die Ecke nicht leer wirkt */
   rbox(0.4,0.56,0.5,0.014,dunkel,0.62,0.3,0.1,g);
   lapHit2=bbox(1.8,1.2,1.0,hitM,0,0.9,0,g,false);

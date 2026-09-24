@@ -25,7 +25,7 @@ class Euler{constructor(x,y,z){this.x=x||0;this.y=y||0;this.z=z||0;this.order='X
   set(x,y,z){this.x=x;this.y=y;this.z=z;return this;}
   copy(e){this.x=e.x;this.y=e.y;this.z=e.z;return this;}
   clone(){return new Euler(this.x,this.y,this.z);}}
-class Quaternion{constructor(){this.x=this.y=this.z=0;this.w=1;} setFromEuler(e){this._e=e;return this;}}
+class Quaternion{constructor(){this.x=this.y=this.z=0;this.w=1;} setFromEuler(e){this._e=e;return this;} setFromUnitVectors(a,b){this._von=a;this._nach=b.clone?b.clone():b;return this;}}
 class Matrix4{constructor(){this.elements=new Array(16).fill(0);}
   compose(p,q,s){this.p=p.clone?p.clone():p;this.s=s;return this;}
   clone(){const m=new Matrix4();m.p=this.p;m.s=this.s;return m;}
@@ -83,10 +83,14 @@ class ConeGeometry extends CylinderGeometry{}
 class TorusGeometry extends CylinderGeometry{}
 class CircleGeometry extends PlaneGeometry{}
 class Object3D{
-  constructor(){this.position=new Vector3();this.rotation=new Euler();this.scale=new Vector3(1,1,1);this.children=[];this.parent=null;this.userData={};this.visible=true;this.renderOrder=0;}
+  constructor(){this.position=new Vector3();this.rotation=new Euler();this.quaternion=new Quaternion();this.scale=new Vector3(1,1,1);this.children=[];this.parent=null;this.userData={};this.visible=true;this.renderOrder=0;}
   add(o){if(o){this.children.push(o);o.parent=this;}return this;}
   remove(o){const i=this.children.indexOf(o);if(i>=0){this.children.splice(i,1);o.parent=null;}return this;}
   updateMatrixWorld(){}
+  /* Stub: Weltlage nur aus den Positionen der Kette, ohne Drehung */
+  getWorldPosition(v){ v.set(0,0,0); let o=this; while(o){ v.x+=o.position.x; v.y+=o.position.y; v.z+=o.position.z; o=o.parent; } return v; }
+  localToWorld(v){ let o=this; while(o){ v.x+=o.position.x; v.y+=o.position.y; v.z+=o.position.z; o=o.parent; } return v; }
+  worldToLocal(v){ let o=this; while(o){ v.x-=o.position.x; v.y-=o.position.y; v.z-=o.position.z; o=o.parent; } return v; }
   traverse(cb){ cb(this); for(const c of this.children.slice()) c.traverse(cb); }
 }
 class Group extends Object3D{}
@@ -99,7 +103,7 @@ class InstancedBufferAttribute extends BufferAttribute{constructor(a,i){super(a,
 class Sprite extends Object3D{constructor(m){super();this.material=m;}}
 class InstancedMesh extends Mesh{constructor(g,m,c){super(g,m);this.count=0;this.instanceMatrix=new BufferAttribute(new Float32Array(16*c),16);}
   setMatrixAt(i,m){this._last=m;}}
-class Material{constructor(o){Object.assign(this,o||{});if(this.color===undefined)this.color=new Color(0xffffff);else if(typeof this.color==='number')this.color=new Color(this.color);}
+class Material{clone(){ const m=Object.create(Object.getPrototypeOf(this)); Object.assign(m,this); return m; } constructor(o){Object.assign(this,o||{});if(this.color===undefined)this.color=new Color(0xffffff);else if(typeof this.color==='number')this.color=new Color(this.color);}
   dispose(){}}
 class MeshStandardMaterial extends Material{}
 class MeshBasicMaterial extends Material{}

@@ -1818,6 +1818,8 @@ function rezeptGueltig(r){
   if(!traegerOffen(traegerVon(r.traeger))) return false;
   if(!bruchOffen(r.eff)) return false;
   if(r.eff2&&!bruchOffen(r.eff2)) return false;
+  /* Zweitbruch muss zum Hauptbruch passen - kein Herz mit Kugel darin */
+  if(r.eff2&&typeof effPassen==='function'&&!effPassen(r.eff,r.eff2)) return false;
   return true;
 }
 
@@ -11336,6 +11338,36 @@ function basis(){
   const v=[n[1]*u[2]-n[2]*u[1],n[2]*u[0]-n[0]*u[2],n[0]*u[1]-n[1]*u[0]];
   return [u,v];
 }
+/* Figuren (Herz, Stern, Ringe ...) liegen in einer Ebene, die zum
+   Zuschauer zeigt - hoechstens um 'kipp' geneigt. Mit zufaelliger
+   Lage sah man ein Herz von der Kante: ein flaches Oval (Tom). */
+function basisBlick(p,kipp){
+  const c=camera.position;
+  let n=[c.x-p.x,c.y-p.y,c.z-p.z]; const l0=Math.hypot(n[0],n[1],n[2])||1; n=[n[0]/l0,n[1]/l0,n[2]/l0];
+  if(kipp){ const r=randDir(), k=Math.random()*kipp; n=[n[0]+r[0]*k,n[1]+r[1]*k,n[2]+r[2]*k];
+    const l=Math.hypot(n[0],n[1],n[2])||1; n=[n[0]/l,n[1]/l,n[2]/l]; }
+  /* u waagerecht, v nach oben - so steht das Herz aufrecht */
+  let u=[-n[2],0,n[0]]; const lu=Math.hypot(u[0],u[2])||1; u=[u[0]/lu,0,u[2]/lu];
+  const v=[n[1]*u[2]-n[2]*u[1],n[2]*u[0]-n[0]*u[2],n[0]*u[1]-n[1]*u[0]];
+  if(v[1]<0){ v[0]=-v[0]; v[1]=-v[1]; v[2]=-v[2]; u=[-u[0],-u[1],-u[2]]; }
+  return [u,v];
+}
+/* Effektfamilien: was gleichzeitig am Himmel steht, muss zusammen-
+   passen. Figuren stehen immer allein - ein Herz mit einer Kugel
+   darin oder ein Stern neben einer Knisterwolke sieht nach Unfall aus. */
+const EFF_FAMILIE={};
+[['figur','ring doppelring ringring herz stern saturn schneeflocke spirale feuerrad kreisel'],
+ ['kugel','kugel chrys wechsel dahlie pistill mehrring geist regenbogen spektrum farbregen dreifach doppel zehnfach strauss'],
+ ['haenger','weide glitzerweide kamuro brokat zeitregen kronleuchter goldglitzer palme komet kaskade sternschnuppen titan'],
+ ['knister','knister tausend strobe blink fische spinne crossette blaetter'],
+ ['flamme','flammenregen'],['salut','salut'],['spass','furz']].forEach(([f,l])=>l.split(' ').forEach(e=>{ EFF_FAMILIE[e]=f; }));
+/* Welche Familien sich den Himmel teilen duerfen */
+function effPassen(a,b){
+  const fa=EFF_FAMILIE[a]||'kugel', fb=EFF_FAMILIE[b]||'kugel';
+  if(fa==='salut'||fb==='salut') return fa!=='figur'&&fb!=='figur';
+  if(fa==='figur'||fb==='figur') return a===b||(fa===fb&&fa==='figur');
+  return true;
+}
 const QUAL=()=>COARSE?0.55:1;
 const STEIG=0.8;
 
@@ -11459,7 +11491,7 @@ const EFF={
   },
   /* flacher Ring */
   ring(p,A,B,s){
-    const [u,v]=basis(), n=Math.round(96*QUAL()), sp=rand(8,10)*s;
+    const [u,v]=basisBlick(p,0.5), n=Math.round(96*QUAL()), sp=rand(8,10)*s;
     for(let i=0;i<n;i++){ const a=i/n*Math.PI*2+rand(-.02,.02), w=sp*rand(0.95,1.05);
       const dx=(u[0]*Math.cos(a)+v[0]*Math.sin(a)), dy=(u[1]*Math.cos(a)+v[1]*Math.sin(a)), dz=(u[2]*Math.cos(a)+v[2]*Math.sin(a));
       psBig.emit(p.x,p.y,p.z,dx*w,dy*w,dz*w,A[0],A[1],A[2],rand(1.8,2.3),2.6,0); }
@@ -11469,7 +11501,7 @@ const EFF={
   /* zwei Ringe über Kreuz, zwei Farben */
   doppelring(p,A,B,s){
     for(let r=0;r<2;r++){
-      const [u,v]=basis(), n=Math.round(80*QUAL()), sp=rand(7.5,9.5)*s, c=r?B:A;
+      const [u,v]=basisBlick(p,0.5), n=Math.round(80*QUAL()), sp=rand(7.5,9.5)*s, c=r?B:A;
       for(let i=0;i<n;i++){ const a=i/n*Math.PI*2;
         const dx=(u[0]*Math.cos(a)+v[0]*Math.sin(a)), dy=(u[1]*Math.cos(a)+v[1]*Math.sin(a)), dz=(u[2]*Math.cos(a)+v[2]*Math.sin(a));
         psBig.emit(p.x,p.y,p.z,dx*sp,dy*sp,dz*sp,c[0],c[1],c[2],rand(1.7,2.2),2.6,0); }
@@ -11517,7 +11549,7 @@ const EFF={
   },
   /* Herz */
   herz(p,A,B,s){
-    const [u,v]=basis(), n=Math.round(90*QUAL());
+    const [u,v]=basisBlick(p,0), n=Math.round(90*QUAL());
     for(let i=0;i<n;i++){
       const t=i/n*Math.PI*2;
       const hx=16*Math.pow(Math.sin(t),3)/16, hy=(13*Math.cos(t)-5*Math.cos(2*t)-2*Math.cos(3*t)-Math.cos(4*t))/16;
@@ -11529,7 +11561,7 @@ const EFF={
   },
   /* fünfzackiger Stern */
   stern(p,A,B,s){
-    const [u,v]=basis(), pts=[];
+    const [u,v]=basisBlick(p,0), pts=[];
     for(let i=0;i<10;i++){ const r=i%2?0.42:1, a=i/10*Math.PI*2-Math.PI/2; pts.push([Math.cos(a)*r,Math.sin(a)*r]); }
     const sp=9*s;
     for(let e=0;e<10;e++){
@@ -11543,7 +11575,7 @@ const EFF={
   },
   /* Kreisel: Ring mit Drall */
   kreisel(p,A,B,s){
-    const [u,v]=basis(), n=Math.round(84*QUAL()), sp=rand(6.5,8.5)*s;
+    const [u,v]=basisBlick(p,0.5), n=Math.round(84*QUAL()), sp=rand(6.5,8.5)*s;
     for(let i=0;i<n;i++){ const a=i/n*Math.PI*2, tg=a+Math.PI/2.4, c=i%3?A:B;
       const dx=(u[0]*Math.cos(tg)+v[0]*Math.sin(tg))*sp, dy=(u[1]*Math.cos(tg)+v[1]*Math.sin(tg))*sp, dz=(u[2]*Math.cos(tg)+v[2]*Math.sin(tg))*sp;
       psBig.emit(p.x,p.y,p.z,dx,dy,dz,c[0],c[1],c[2],rand(1.6,2.2),2.4,4); }
@@ -11733,7 +11765,7 @@ EFF.mehrring=function(p,A,B,s){
 /* Regenbogen: der Ball ist in sechs Farbsegmente geteilt */
 EFF.regenbogen=function(p,A,B,s){
   const F=['rot','orange','zitrone','gruen','himmel','violett'].map(K);
-  const [u,v]=basis(), n=Math.round(210*s*QUAL());
+  const [u,v]=basisBlick(p,0.35), n=Math.round(210*s*QUAL());
   for(let i=0;i<n;i++){ const d=randDir(), sp=rand(8.5,10.5)*s;
     const a=Math.atan2(d[0]*v[0]+d[1]*v[1]+d[2]*v[2],d[0]*u[0]+d[1]*u[1]+d[2]*u[2]);
     const c=F[Math.floor((a+Math.PI)/(Math.PI*2)*6)%6];
@@ -11776,7 +11808,7 @@ EFF.kronleuchter=function(p,A,B,s){
 /* Feuerrad: der Ring dreht sich beim Aufgehen, die Sterne ziehen
    Spiralarme - zwei Farben im Wechsel */
 EFF.feuerrad=function(p,A,B,s){
-  const [u,v]=basis(), n=Math.round(150*s*QUAL());
+  const [u,v]=basisBlick(p,0.35), n=Math.round(150*s*QUAL());
   for(let i=0;i<n;i++){ const a=i/n*Math.PI*2, ca=Math.cos(a), sa=Math.sin(a);
     const r=[u[0]*ca+v[0]*sa,u[1]*ca+v[1]*sa,u[2]*ca+v[2]*sa], t=[-u[0]*sa+v[0]*ca,-u[1]*sa+v[1]*ca,-u[2]*sa+v[2]*ca];
     const sp=rand(8.5,9.5)*s, dreh=rand(4,5)*s, c=Math.floor(i/n*8)%2?A:B;
@@ -11873,7 +11905,7 @@ EFF.titan=function(p,A,B,s){
 };
 /* Zehnfachbruch: zehn Kugeln gleichzeitig im Kreis um die Mitte */
 EFF.zehnfach=function(p,A,B,s){
-  const [u,v]=basis(), r=6.5*s, F=[A,B,K('weiss'),K('zitrone'),K('magenta')];
+  const [u,v]=basisBlick(p,0.4), r=6.5*s, F=[A,B,K('weiss'),K('zitrone'),K('magenta')];
   for(let k=0;k<10;k++){
     const a=k/10*Math.PI*2;
     const q={x:p.x+(u[0]*Math.cos(a)+v[0]*Math.sin(a))*r,y:p.y+(u[1]*Math.cos(a)+v[1]*Math.sin(a))*r*0.7,z:p.z+(u[2]*Math.cos(a)+v[2]*Math.sin(a))*r};
@@ -11901,7 +11933,7 @@ EFF.kaskade=function(p,A,B,s){
    ========================================================= */
 /* Schneeflocke: sechs Arme in einer Ebene, jeder mit Seitenaesten */
 EFF.schneeflocke=function(p,A,B,s){
-  const [u,v]=basis(), sp=11*s, c=FW.silber;
+  const [u,v]=basisBlick(p,0), sp=11*s, c=FW.silber;
   const dir=a=>[u[0]*Math.cos(a)+v[0]*Math.sin(a),u[1]*Math.cos(a)+v[1]*Math.sin(a),u[2]*Math.cos(a)+v[2]*Math.sin(a)];
   for(let k=0;k<6;k++){ const a=k/6*Math.PI*2, d=dir(a);
     const n=Math.round(22*QUAL());
@@ -11917,7 +11949,7 @@ EFF.schneeflocke=function(p,A,B,s){
 };
 /* Spirale: acht gebogene Arme, die sich im Kreis drehen */
 EFF.spirale=function(p,A,B,s){
-  const [u,v]=basis(), sp=10.5*s, arme=8;
+  const [u,v]=basisBlick(p,0.35), sp=10.5*s, arme=8;
   for(let k=0;k<arme;k++){ const a0=k/arme*Math.PI*2;
     const n=Math.round(26*QUAL());
     for(let i=0;i<n;i++){ const f=0.15+i/n*0.85, a=a0+f*1.9, c=i%3?A:B;
@@ -11926,7 +11958,7 @@ EFF.spirale=function(p,A,B,s){
 };
 /* Ring im Ring: aussen ein Ring, innen ein kleinerer in der Gegenfarbe */
 EFF.ringring=function(p,A,B,s){
-  const [u,v]=basis();
+  const [u,v]=basisBlick(p,0.4);
   for(const [c,sp,n] of [[A,10*s,110],[B,5.4*s,70]]) for(let i=0;i<Math.round(n*QUAL());i++){
     const a=i/n*Math.PI*2, w=sp*rand(0.97,1.03);
     const dx=u[0]*Math.cos(a)+v[0]*Math.sin(a), dy=u[1]*Math.cos(a)+v[1]*Math.sin(a), dz=u[2]*Math.cos(a)+v[2]*Math.sin(a);
@@ -11976,12 +12008,11 @@ function shot(o,opt){
      Rohr oder einer Batterie kommt der Schuss genau dort heraus. */
   const jit=o.jit!==undefined?o.jit:0.35, ab=o.ab!==undefined?o.ab:0.4;
   const start=V(o.x+rand(-jit,jit),o.y!==undefined?o.y+ab:1,o.z+rand(-jit,jit));
-  /* Muendungsfeuer: ein kurzer Funkenstoss aus dem Rohr */
-  for(let i=0;i<Math.round((10+(opt.dick||0)*14)*QUAL());i++){
-    const a=Math.random()*Math.PI*2, w=rand(0.3,1.6);
-    psMid.emit(start.x,start.y,start.z,Math.cos(a)*w,rand(1.5,5),Math.sin(a)*w,1,.72,.3,rand(0.25,0.55),5,4); }
+  /* Muendungsfeuer: kurzer Blitz, ein paar Funken zur Seite */
+  muendungsblitz(start,start.y,1+(opt.dick||0));
   const fuse=opt.fuse||rand(1.05,1.35);
   if(FW_LOG) FW_LOG.push({t:FW_UHR,art:opt.kugel?'kugel':'schuss',kal:opt.kugel||0,pw:opt.pw||0,sz:opt.sz||1,eff:opt.eff||'?',A:sc[0],B:sc[1],
+    stufenEff:(opt.stufen||[]).map(x=>x.eff),
     hoehe:+(start.y+Math.cos(ang)*up*fuse-3*fuse*fuse).toFixed(2),brueche:1+(opt.stufen?opt.stufen.length:0),
     groesste:Math.max(opt.sz||1,...(opt.stufen||[]).filter(x=>x.eff!=='salut').map(x=>x.sz))});
   rockets.push({
@@ -12044,8 +12075,9 @@ function kugelbombe(o,kal,opt){
   const stufen=[];
   if(K4===1){
     /* Herzschlag: das Herz schlaegt zweimal nach - bum-bum */
-    stufen.push({t:0.55,eff:'herz',sz:groesse*0.75,streu:0.3,A:C,B:A});
-    stufen.push({t:0.8,eff:'farbregen',sz:groesse*0.6,streu:0.3,A,B});
+    /* zwei kleinere Herzen im selben Mittelpunkt, zum Zuschauer gedreht */
+    stufen.push({t:0.5,eff:'herz',sz:groesse*0.62,streu:0,A:C,B:A});
+    stufen.push({t:0.8,eff:'herz',sz:groesse*0.4,streu:0,A,B:C});
   }
   if(K4===2){
     /* Drachenblut: vier Toechter im Kreis, dann regnet es Flammen */
@@ -12059,7 +12091,7 @@ function kugelbombe(o,kal,opt){
     ringLage(6,8).forEach((off,i)=>stufen.push({t:0.55,off,leise:i>0,
       eff:['kugel','pistill','knister','kugel','pistill','knister'][i],sz:groesse*0.4,A:i%2?C:A,B:i%2?D:B}));
     ringLage(4,5,1).forEach((off,i)=>stufen.push({t:1.05+i*0.08,off,leise:i>0,
-      eff:['feuerrad','tausend','feuerrad','tausend'][i],sz:groesse*0.36,A:C,B:A}));
+      eff:['tausend','knister','tausend','knister'][i],sz:groesse*0.36,A:C,B:A}));
     stufen.push({t:1.6,eff:'kronleuchter',sz:groesse*0.9,streu:2,A,B});
     stufen.push({t:1.68,eff:'salut',sz:0.9,streu:5,A:FW.weiss,B:FW.weiss});
   }
@@ -12070,7 +12102,7 @@ function kugelbombe(o,kal,opt){
     ringLage(10,10).forEach((off,i)=>stufen.push({t:0.5,off,leise:i>0,
       eff:['kugel','pistill','wechsel','kugel','strobe'][i%5],sz:groesse*0.36,A:F[i%5],B:F[(i+2)%5]}));
     ringLage(10,6,1.2).forEach((off,i)=>stufen.push({t:1.05,off,leise:i>0,
-      eff:['knister','tausend','spinne','kreisel'][i%4],sz:groesse*0.32,A:F[(i+1)%5],B:F[(i+3)%5]}));
+      eff:['knister','tausend','spinne','fische'][i%4],sz:groesse*0.32,A:F[(i+1)%5],B:F[(i+3)%5]}));
     stufen.push({t:1.7,eff:'tausend',sz:groesse*0.8,streu:1,A:FW.weiss,B:FW.weiss});
     stufen.push({t:2.3,eff:'kamuro',sz:groesse*0.95,streu:2,A,B});
     stufen.push({t:2.36,eff:'salut',sz:1.0,streu:4,A:FW.weiss,B:FW.weiss});
@@ -12082,9 +12114,9 @@ function kugelbombe(o,kal,opt){
        Himmel und vier Salutschlaege */
     const F=[A,B,C,D,FW.gold,FW.weiss];
     ringLage(12,13).forEach((off,i)=>stufen.push({t:0.55,off,leise:i>0,
-      eff:['pistill','mehrring','ringring','schneeflocke'][i%4],sz:groesse*0.3,A:F[i%6],B:F[(i+3)%6]}));
+      eff:['pistill','mehrring','dahlie','kugel'][i%4],sz:groesse*0.3,A:F[i%6],B:F[(i+3)%6]}));
     ringLage(12,9,1.3).forEach((off,i)=>stufen.push({t:1.15,off,leise:i>0,
-      eff:['spirale','kugel','strauss','dahlie'][i%4],sz:groesse*0.28,A:F[(i+1)%6],B:F[(i+4)%6]}));
+      eff:['chrys','kugel','strauss','dahlie'][i%4],sz:groesse*0.28,A:F[(i+1)%6],B:F[(i+4)%6]}));
     stufen.push({t:1.8,eff:'crossette',sz:groesse*0.55,streu:1,A:FW.gold,B:FW.weiss});
     stufen.push({t:2.2,eff:'tausend',sz:groesse*0.7,streu:2,A:FW.weiss,B:FW.weiss});
     stufen.push({t:2.8,eff:'glitzerweide',sz:groesse*0.8,streu:1,A,B});
@@ -12095,18 +12127,32 @@ function kugelbombe(o,kal,opt){
 }
 /* Bodeneffekt: Mine, die beim Start eine Fontäne wirft */
 function mine(o,A,B,s){
-  const n=Math.round(90*(s||1)*QUAL()), y0=o.y!==undefined?o.y:0.3;
-  for(let i=0;i<n;i++){ const a=Math.random()*Math.PI*2, w=rand(0.5,3.2), c=i%3?A:B;
-    psMid.emit(o.x+rand(-.08,.08),y0,o.z+rand(-.08,.08),Math.cos(a)*w,rand(9,16),Math.sin(a)*w,c[0],c[1],c[2],rand(1.1,1.9),6.5,4); }
-  flash({x:o.x,y:1.6,z:o.z},A,2.0,0.5);
+  /* Bodenmine wie beim echten Verbund: EIN Stoss aus dem Rohr, helle
+     Sterne schiessen in einem engen Kegel nach oben und verloeschen
+     nach acht bis zwoelf Metern. Vorher sprühte hier eine lange,
+     streifige Fontaene aus der Batterie (Tom: "extrem unrealistisch"). */
+  const n=Math.round(40*(s||1)*QUAL()), y0=(o.y!==undefined?o.y:0.3)+(o.ab!==undefined?o.ab:0.05);
+  const alt=SCHWEIF; SCHWEIF=0.12;
+  for(let i=0;i<n;i++){ const a=Math.random()*Math.PI*2, w=rand(0.3,1.7), c=i%3?A:B;
+    psBig.emit(o.x,y0,o.z,Math.cos(a)*w,rand(12,17),Math.sin(a)*w,c[0]*1.2,c[1]*1.2,c[2]*1.2,rand(0.65,0.95),6.5,0); }
+  SCHWEIF=alt;
+  muendungsblitz(o,y0,1.4);
+  flash({x:o.x,y:y0+0.6,z:o.z},A,1.6,0.25);
   sfx.thump(distVol(o)*1.2);
+}
+/* Kurzer, greller Blitz an der Rohrmuendung und ein paar Funken zur
+   Seite - statt eines Funkenstrahls, der wie eine Fontaene aussah */
+function muendungsblitz(o,y,k){
+  for(let i=0;i<2;i++) psHuge.emit(o.x,y+0.05,o.z,0,rand(0.5,1.5),0,1,.92,.7,0.07,0,0);
+  for(let i=0;i<Math.round(6*k*QUAL());i++){ const a=Math.random()*Math.PI*2, w=rand(1.2,3);
+    psSmall.emit(o.x,y,o.z,Math.cos(a)*w,rand(0.5,2.2),Math.sin(a)*w,1,.75,.35,rand(0.12,0.26),6,0); }
 }
 function fwBurst(r){
   const p=r.p, fn=EFF[r.eff]||EFF.kugel;
   mitSchweif(r.eff,()=>fn(p,r.A,r.B,r.size));
   kern(p,r.A,r.size);
   /* Grosse Brueche glitzern kurz nach dem Aufgehen noch einmal nach */
-  if(r.size>=1.1&&r.eff!=='salut'&&r.eff!=='furz') later(0.75,()=>nachglitzer(p,r.size));
+  if(r.size>=1.1&&r.eff!=='salut'&&r.eff!=='furz'&&EFF_FAMILIE[r.eff]!=='figur') later(0.75,()=>nachglitzer(p,r.size));
   /* Wer ein Bruchbild einmal gesehen hat, darf es spaeter selbst verbauen */
   if(typeof bruchGesehen==='function') bruchGesehen(r.eff);
   const mix=[(r.A[0]+r.B[0])/2,(r.A[1]+r.B[1])/2,(r.A[2]+r.B[2])/2];
@@ -12245,13 +12291,13 @@ const SHOW_BASIS={
   batterie16 :{pw:-5,sz:0.78,th:'nacht'},
   knatter    :{pw:-4,sz:0.84,th:'eis'},
   batterie49 :{pw:-3,sz:0.90,th:'glut'},
-  faecher    :{pw:-2,sz:0.95,th:'tropen'},
-  batterie100:{pw:-1,sz:1.00,th:'himmel'},
-  zfaecher   :{pw:-1,sz:1.00,th:'blitz'},
-  kometen    :{pw: 0,sz:1.08,th:'gold'},
-  donnerwand :{pw: 1,sz:1.14,th:'rotweiss'},
-  profi      :{pw: 2,sz:1.22,th:'koenig'},
-  finale     :{pw: 3,sz:1.30,th:'nacht'}
+  faecher    :{pw:-1.5,sz:0.95,th:'tropen'},
+  batterie100:{pw:-0.5,sz:1.00,th:'himmel'},
+  zfaecher   :{pw: 0,sz:1.00,th:'blitz'},
+  kometen    :{pw: 0.5,sz:1.08,th:'gold'},
+  donnerwand :{pw: 1.5,sz:1.14,th:'rotweiss'},
+  profi      :{pw: 2.5,sz:1.22,th:'koenig'},
+  finale     :{pw: 3.5,sz:1.30,th:'nacht'}
 };
 function playShow(o,phases,prod){
   const BS=SHOW_BASIS[prod]||{pw:0,sz:1,th:null};
@@ -12291,15 +12337,15 @@ const SHOWS={
   sortiment:()=>[
     {n:3,gap:0.9,eff:'kugel',mine:true,mineSz:0.5,pause:1.0},
     {n:2,gap:1.2,ground:'fountain',gt:5,eff:'ring',pause:1.4},
-    {n:4,gap:0.8,eff:['stern','regenbogen','knister','kugel'],wechsel:true,pause:1.2},
+    {n:4,gap:0.8,eff:['kugel','regenbogen','knister','kugel'],wechsel:true,pause:1.2},
     {n:4,gap:0.6,eff:'wechsel',fan:true,ang:0.3,pause:1.4},
-    {n:5,gap:0.5,eff:['kugel','ring','regenbogen','stern','chrys'],wechsel:true,sz:1.1,pw:1,pause:2.5}
+    {n:5,gap:0.5,eff:['kugel','chrys','regenbogen','kugel','chrys'],wechsel:true,sz:1.1,pw:1,pause:2.5}
   ],
   /* Nachthimmel, 16 Schuss: Blau und Gold, zum Schluss ein Regenbogen */
   batterie16:()=>[
     {n:4,gap:1.0,eff:'kugel',mine:true,mineSz:0.55,pause:1.2},
     {n:4,gap:0.8,eff:'ring',fan:true,ang:0.3,pause:1.4},
-    {n:4,gap:0.75,eff:['stern','wechsel'],pause:1.4},
+    {n:4,gap:0.75,eff:['stern','ring'],pause:1.4},
     {n:2,gap:0.6,eff:'regenbogen',sz:1.05,pw:1,pause:0.8},
     {n:2,gap:0.12,eff:'chrys',farbe:0,sz:1.1,pw:1,pause:3.0}
   ],
@@ -12308,9 +12354,9 @@ const SHOWS={
   knatter:()=>[
     {n:6,gap:0.7,eff:'knister',mine:true,mineSz:0.6,pause:1.4},
     {n:3,gap:0.1,eff:'tausend',fan:true,ang:0.35,pause:2.2},
-    {n:6,gap:0.65,eff:['stern','knister'],fan:true,ang:0.3,pause:1.4},
+    {n:6,gap:0.65,eff:['knister','fische'],fan:true,ang:0.3,pause:1.4},
     {n:3,gap:0.1,eff:'tausend',fan:true,ang:-0.35,pause:2.2},
-    {n:6,gap:0.55,eff:['feuerrad','knister','ring'],sz:1.05,pause:1.6},
+    {n:6,gap:0.55,eff:['feuerrad','ring','feuerrad'],sz:1.05,pause:1.6},
     {n:3,gap:0.1,eff:'kaskade',fan:true,ang:0.35,sz:1.1,pw:1,pause:1.6},
     {n:3,gap:0.1,eff:'tausend',sz:1.15,pw:2,pause:3.0}
   ],
@@ -12322,7 +12368,7 @@ const SHOWS={
     {n:6,gap:0.8,eff:['chrys','palme'],pause:1.6},
     {n:4,gap:0.1,eff:'ring',fan:true,ang:0.4,pause:2.0},
     {n:6,gap:0.9,eff:'flammenregen',sz:0.95,pw:1,pause:2.2},
-    {n:8,gap:0.45,eff:['knister','feuerrad','kugel','feuerrad'],wechsel:true,pause:1.6},
+    {n:8,gap:0.45,eff:['feuerrad','doppelring','feuerrad','ring'],wechsel:true,pause:1.6},
     {n:4,gap:0.12,eff:'palme',fan:true,ang:-0.4,sz:1.1,pw:1,pause:2.0},
     {n:5,gap:0.5,eff:['chrys','flammenregen','chrys','palme','flammenregen'],sz:1.15,pw:2,pause:0.6},
     {n:4,gap:0.1,eff:'salut',sz:1.0,pause:3.4}
@@ -12341,9 +12387,9 @@ const SHOWS={
   batterie100:()=>[
     {n:8,gap:0.8,eff:'kugel',mine:true,pause:1.4},
     {n:10,gap:0.45,eff:'regenbogen',fan:true,ang:0.5,pause:1.8},
-    {n:8,gap:0.85,eff:['herz','stern','saturn','mehrring'],pause:1.6},
+    {n:8,gap:0.85,eff:['herz','stern','saturn','ring'],pause:1.6},
     {n:6,gap:0.1,eff:'ring',fan:true,ang:0.5,pause:2.2},
-    {n:10,gap:0.5,eff:['feuerrad','spinne','fische','feuerrad','tausend'],wechsel:true,pause:1.6},
+    {n:10,gap:0.5,eff:['spinne','fische','tausend','fische','spinne'],wechsel:true,pause:1.6},
     {n:8,gap:0.8,eff:['kronleuchter','weide','farbregen','kronleuchter'],sz:1.1,pw:1,pause:2.0},
     {n:10,gap:0.45,eff:'regenbogen',fan:true,ang:-0.5,sz:1.05,pause:1.8},
     {n:10,gap:0.55,eff:['crossette','dahlie','pistill','dahlie','crossette'],sz:1.1,pw:1,pause:1.6},
@@ -12360,7 +12406,7 @@ const SHOWS={
     {n:8,gap:0.3,eff:'strobe',fan:true,ang:0.5,pause:2.2},
     {n:6,gap:0.9,eff:['blink','sternschnuppen','blink'],vfan:true,ang:0.45,sz:1.05,pause:2.0},
     {n:6,gap:0.1,eff:['palme','komet'],fan:true,ang:0.5,sz:1.1,pw:2,pause:2.6},
-    {n:6,gap:0.5,eff:['feuerrad','blink'],wechsel:true,pause:1.4},
+    {n:6,gap:0.5,eff:['feuerrad','ring'],wechsel:true,pause:1.4},
     {n:6,gap:0.1,eff:['mehrring','crossette','strobe'],fan:true,ang:-0.5,sz:1.2,pw:2,pause:4.4}
   ],
   /* Kometenregen, 64 Schuss: nur Gold - Kometen, Brokat, Kronleuchter */
@@ -12385,10 +12431,10 @@ const SHOWS={
      Feuerbrunnen und zwei Kugelbomben */
   profi:()=>[
     {n:8,gap:0.9,eff:'kugel',mine:true,mineSz:1.1,pause:2.0},
-    {n:14,gap:0.36,eff:['ring','regenbogen'],fan:true,ang:0.48,pause:2.0},
-    {n:12,gap:0.8,eff:['herz','stern','saturn','mehrring'],pause:1.8},
+    {n:14,gap:0.36,eff:'regenbogen',fan:true,ang:0.48,pause:2.0},
+    {n:12,gap:0.8,eff:['herz','stern','saturn','ring'],pause:1.8},
     {n:6,gap:0.8,ground:'wasserfall',gt:10,gA:'gold',gB:'zitrone',eff:'kronleuchter',sz:1.05,pw:1,pause:2.4},
-    {n:16,gap:0.35,eff:['feuerrad','knister','fische','spinne'],wechsel:true,pause:1.6},
+    {n:16,gap:0.35,eff:['knister','fische','spinne','tausend'],wechsel:true,pause:1.6},
     {n:10,gap:0.6,eff:['flammenregen','dahlie','flammenregen','weide','kaskade'],th:'glut',sz:1.1,pw:1,pause:1.4},
     {n:1,gap:0.5,bomb:2,pause:2.6},
     {n:18,gap:0.3,eff:'kugel',vfan:true,ang:0.52,wechsel:true,pause:1.8},
@@ -12397,7 +12443,7 @@ const SHOWS={
     {n:10,gap:0.7,eff:['brokat','kamuro','sternschnuppen','zeitregen','glitzerweide'],th:'gold',sz:1.2,pw:3,pause:1.6},
     {n:8,gap:0.55,ground:'feuerbrunnen',gt:8,eff:['flammenregen','titan'],th:'glut',sz:1.2,pw:3,pause:2.0},
     {n:1,gap:0.5,bomb:3,pause:3.2},
-    {n:12,gap:0.45,eff:['stern','herz','feuerrad','saturn','mehrring','regenbogen'],pause:1.6},
+    {n:12,gap:0.45,eff:['stern','herz','feuerrad','saturn','ring','doppelring'],pause:1.6},
     {n:10,gap:0.1,eff:'regenbogen',fan:true,ang:0.55,sz:1.15,pw:2,pause:2.0},
     {n:26,gap:0.22,eff:['chrys','dreifach','crossette','kronleuchter','brokat','dahlie','titan'],wechsel:true,sz:1.3,pw:4,pause:1.2},
     {n:21,gap:0.13,eff:['palme','weide','kamuro','chrys','pistill','zeitregen','komet'],wechsel:true,sz:1.45,pw:5,pause:0.9},
@@ -12411,7 +12457,7 @@ const SHOWS={
     {n:12,gap:0.3,eff:'wechsel',fan:true,ang:-0.5,th:'nacht',pause:2.2},
     {n:10,gap:0.9,eff:['herz','stern','saturn','feuerrad'],th:'nacht',sz:1.1,pause:1.8},
     {n:8,gap:0.08,eff:'tausend',fan:true,ang:0.5,th:'eis',pause:3.0},
-    {n:22,gap:0.3,eff:['knister','fische','spinne','feuerrad','tausend'],th:'eis',wechsel:true,pause:1.8},
+    {n:22,gap:0.3,eff:['knister','fische','spinne','tausend'],th:'eis',wechsel:true,pause:1.8},
     {n:1,gap:0.5,bomb:3,th:'nacht',pause:3.4},
     {n:10,gap:0.8,ground:'wasserfall',gt:14,gA:'gold',gB:'zitrone',eff:['komet','kronleuchter'],th:'gold',sz:1.15,pw:1,pause:2.0},
     {n:16,gap:0.4,eff:['kamuro','glitzerweide','zeitregen','sternschnuppen'],vfan:true,ang:0.5,th:'gold',sz:1.2,pw:2,pause:1.8},
@@ -12422,7 +12468,7 @@ const SHOWS={
     {n:16,gap:0.35,eff:['crossette','doppel','dreifach','mehrring'],fan:true,ang:0.45,th:'koenig',wechsel:true,sz:1.2,pw:3,pause:2.2},
     {n:1,gap:0.5,bomb:4,th:'koenig',pause:4.6},
     {n:10,gap:0.45,ground:'feuerbrunnen',gt:10,eff:'flammenregen',th:'glut',sz:1.2,pw:3,pause:1.6},
-    {n:16,gap:0.3,eff:['strobe','blink','spinne','feuerrad'],vfan:true,ang:0.52,th:'blitz',pause:1.4},
+    {n:16,gap:0.3,eff:['strobe','blink','spinne','tausend'],vfan:true,ang:0.52,th:'blitz',pause:1.4},
     {n:14,gap:0.28,eff:['titan','kamuro','flammenregen','mehrring'],th:'glut',wechsel:true,sz:1.35,pw:4,pause:1.2},
     {n:10,gap:0.08,eff:['palme','komet'],fan:true,ang:0.55,th:'gold',sz:1.3,pw:4,pause:2.0},
     {n:10,gap:0.08,eff:'regenbogen',fan:true,ang:-0.55,sz:1.3,pw:4,pause:2.0},
@@ -12431,7 +12477,7 @@ const SHOWS={
     {n:18,gap:0.05,eff:'salut',th:'gold',sz:1.15,pause:6.0}
   ],
   roemisch:()=>[
-    {n:10,gap:1.0,eff:['kugel','stern'],wechsel:true,fuse:0.8,pause:1.5}
+    {n:10,gap:1.0,eff:['kugel','knister'],wechsel:true,fuse:0.8,pause:1.5}
   ]
 };
 /* Raketensets: Anzahl, Takt, Kaliber, Farbthema und Bruchbilder.
@@ -12443,8 +12489,8 @@ const RAKETEN_KL={
      Stern laeuft durch alle Farben) und Goldglitzer (haengende
      Glitzervorhaenge). Schon die kleinste Rakete zeigt sie. */
   raketenklein:{n:3, gap:0.9, sz:0.75,pw:-6,th:'bunt',eff:['spektrum','goldglitzer','spektrum']},
-  raketen     :{n:20,gap:0.35,sz:0.85,pw:-3,th:'bunt',gruppe:5,eff:['kugel','spektrum','ring','goldglitzer','wechsel','spektrum','stern','goldglitzer','regenbogen','spektrum']},
-  pfeifraketen:{n:10,gap:0.5, sz:0.8, pw:-3,th:'wald',gruppe:2,pfeif:true,eff:['knister','spektrum','fische','kreisel','goldglitzer','strobe','tausend']},
+  raketen     :{n:20,gap:0.35,sz:0.85,pw:-3,th:'bunt',gruppe:5,eff:['kugel','spektrum','chrys','goldglitzer','wechsel','spektrum','kugel','goldglitzer','regenbogen','spektrum']},
+  pfeifraketen:{n:10,gap:0.5, sz:0.8, pw:-3,th:'wald',gruppe:2,pfeif:true,eff:['knister','spektrum','fische','goldglitzer','strobe','tausend']},
   raketengold :{n:5, gap:1.1, sz:1.25,pw:1, th:'gold',eff:['goldglitzer','kronleuchter','brokat','goldglitzer','zeitregen']},
   titanraketen:{n:3, gap:1.7, sz:1.55,pw:5, th:'eis',dick:1,eff:['titan']},
   gravur      :{n:1, gap:0.45,sz:1.3, pw:4, eff:['herz']},
@@ -14566,7 +14612,9 @@ function renderRezeptur(){
   const entw=gueltig?rezeptEntwicklung(r):0;
   const laufend=eigeneListe().filter(e=>!e.fertig);
   const fertig=eigeneListe().filter(e=>e.fertig);
-  rezHint=bl.length
+  rezHint=r.eff2&&typeof effPassen==='function'&&!effPassen(r.eff,r.eff2)
+    ? `${(BRUCH[r.eff]||{}).name||r.eff} und ${(BRUCH[r.eff2]||{}).name||r.eff2} passen nicht zusammen: eine Figur steht am Himmel allein. Wähle einen anderen Zweitbruch.`
+    : bl.length
     ? `Verbauen darfst du nur Bruchbilder, die du selbst schon am Himmel gesehen hast — ${bl.length} von ${BRUCH_IDS.length} sind es bisher. Zünde neue Ware auf dem Testfeld, dann wächst die Liste.`
     : 'Du hast noch kein Bruchbild gesehen. Zünde erst etwas auf dem Testfeld, dann kannst du hier entwickeln.';
 
@@ -15531,7 +15579,7 @@ fontsReady().then(()=>{
   setTimeout(()=>{ if(typeof shaderVorab==='function') shaderVorab(); },400);
   window.__bb={get S(){return S},get phase(){return phase},set phase(v){phase=v},set clock(v){clock=v},get clock(){return clock},pickUp,floorBoxes,shelves,racks,dekos,stockOne,openShop,step,customers,queue,belt,scanBelt,buyUp,buyDeko,get DS(){return DS},endDay,pending,save,openLaptop,closeLaptop,pl,addXP,hireStaff,fireStaff,staff,dirts,addDirt,movables,toggleBuild,setWall,setFloor,
     stations,firePult,placeOnStation,igniteType,get order(){return order},get phone(){return phone},makeCall,answerPhone,haggle,acceptDeal,declineDeal,get truck(){return truck},spawnTruck,takeFromTruck,takeBox,dropBox,updateTruck,get door(){return door},get tuer(){return tuer},tuerSet,tuerNah,updateSchiebetuer,doorOpen,doorIsOpen,trailerOccupied,LR,lrFront,TOR,orderReady,orderLeft,shipOne,removeFloorBox,prioOf,setPrio,racks,updateCarry,spawnFloorBox,staff,SHELFKIND,layout,shelfCapOf,shelfAccepts,emptyLevel,dateInfo,dateStr,dateShort,seasonInfo,isSunday,dayMult,ruhetag,wageOf,setWage,friendliness,inPause,setPause,windowGrime,addGrime,cleanWindowTick,ambienteScore,bildBoost,fixedCosts,dailyWages,dispoLimit,verfuegbar,dispoZins,takeLoan,loanTier,loanDaily,EVENTS,GOALS,CUSTTYPES,UPGRADES,STAFF,stockOf,spawnInterval,pools,todayEvent,evv,rollEvent,rollMarket,newGoal,goalAdd,goalTick,ekFactor,marktText,xpFor,rollCustType,priceTol,buyChance,regCustomer,makeWishes,nachfrageFaktor,shelfStockOf,buildGravur,refillGrav,openGravInput,closeGravInput,get gravBlanks(){return gravBlanks},set gravBlanks(v){gravBlanks=v},orderBox,buyPack,cartAdd,cartAddPack,cartOrder,cartClear,cartDel,cartGoods,cartFee,cartTotal,cartBoxes,cartLines,LIEFERZEIT_SEK,VERSAND,VERSANDFREI,lieferSek,
-    scene,camera,P,EFF,EFF_ALL,EFF_KLEIN,EFF_GROSS,EFF_PRO,SHOWS,kugelbombe,shot,mine,FW,stations,stationOf,placedCount,togglePDA,openPDA,closePDA,setPost,get postOn(){return postOn},get pdaOn(){return pdaOn},showLength,psHuge,psBig,psMid,psSmall,rockets,emitters,timersLen:()=>timers.length,setView:(x,z,y,p)=>{pl.x=x;pl.z=z;yaw=y;pitch=p;aim=null;},schiebe:(x,z)=>{pl.x=x;pl.z=z;collide(pl,0.32);return{x:pl.x,z:pl.z};},PLZ_MAX,camYaw:()=>yaw,camPitch:()=>pitch,playerPos:()=>({x:pl.x,z:pl.z}),pultYaw:()=>pultHit?pultHit.parent.rotation.y:null,applyShopName,shopName,shopSlogan,signTexPx:()=>signTex&&signTex.image?signTex.image.getContext('2d').getImageData(0,0,signTex.image.width,40).data.join(''):null,ckTexPx:()=>ckNameTex&&ckNameTex.image?ckNameTex.image.getContext('2d').getImageData(0,0,ckNameTex.image.width,60).data.join(''):null,testfeldMitte,STATION_POS,aimAt,UPGRADES,upPic,PLAN,planFlaechen,uhrZeiger:()=>({std:uhrStd?+uhrStd.rotation.z.toFixed(4):0,min:uhrMin?+uhrMin.rotation.z.toFixed(4):0}),drawRackSchild,get snowPts(){return snowPts},buildStadt,updateStadt,get stadtBoxen(){return stadtBoxen},get stadtBaeume(){return stadtBaeume},buildFernbaeume,schwaerme,beacons,silhouetten,get verkehrPts(){return verkehrPts},get rauchPts(){return rauchPts},get flieger(){return flieger},stadtFrei,STADT_FREI,WALLS,FLOORS,renderOnline,onlineHint,onlineStufe,onlineZahlen,updateOnline,packLaptop,SCHILDBG,SCHILDFG,setSchild,schildBg,schildFg,repaintSchilder,updateHead,allLevels,addToLevel,putInSlot,regCustomer,ZONEN,zoneOffen,oeffneZone,applyZonen,SLOTS,RACKS,slotsOffen,colliders,LAY,LOGI,WRAMPEN,WTORE,updateSnow,unterDach,dachBereiche,get lapHit2(){return lapHit2},buildLagerTerminal,toggleTest,testLevel,buyUp,get toastLast(){return toastLast},__floorBoxen:()=>floorBoxes.length,WBAY_UP,wbays,dockPlaetze,wbayFrei,wbayOffen,spawnWTruck,updateWBays,wbaysInit,wtorSet,GANG,GANGTUER,buildLagergang,flaeche,WTOR,RACKKIND,route,NAV,navFrei,navIdx,navBuild,shelfStand,shelves,sbLanes,buildSBKasse,sbFrei,sbOffen,sbNutzbar,EING2,eingaenge,naechsterEingang,setEingang2,buildSBKasse2,get sb2G(){return sb2G},TUEREN,tuerSetD,tuerNahD,packBereit,packOne,paketWert,bestellungenProTag,pakete,PAKET_BAYS,ddlAbholung,updateVersand,createShelf,createRack,regalStellen,testKauf,regalAufbauen,orderRegal,REGALWARE,regalOf,regalKind,regalPreis,regalPlatz,regalOffen,startGame,promptFor,ERFOLGE,erfOffen,erfStufe,erfStand,erfZiel,erfFertig,erfAnteil,erfGeschafft,erfGesamt,stat,statAdd,statRekord,statVerkauf,bruchGesehen,gruppeVon,GRUPPE,TRAEGER,BRUCH,BRUCH_IDS,REZ_FARBEN,ETIKETT,traegerVon,traegerOffen,bruchOffen,bruchListe,rezeptWow,rezeptKosten,rezeptMarkt,rezeptHype,rezeptDauer,rezeptEntwicklung,rezeptGueltig,eigeneListe,eigenesEintragen,rezepteTick,rezProto,rezBauen,renderRezeptur,get entwurf(){return entwurf},set entwurf(v){entwurf=v},entwurfInit,ORDER,LIZENZEN,lizenzOf,hatLizenz,lizenzDaten,naechsteLizenz,buyLizenz,VOLA,volaOf,REGIME,marketOf,costOf,marktZiel,marktLuecke,meOf,miOf,marktDelta,marktNiveau,marktPhase,marktSchock,marktLabel,marktSchnitt,marktExtrem,marktChance,sortimentBreite,sortimentZug,bekanntheit,spawnInterval,rollMarkt,marktInit,inflOf,inflText,setPreisAufMarkt,igniteType,get packHit(){return packHit},get packTisch(){return packTisch},get packMov(){return packMov},zuendeKanal,zuendeAlle,alleKanaele,kanalItem,openZuend,closeZuend,get zuendOpen(){return zuendOpen},bereitCount,brennDauer,muendung,pultLamps,RAKETEN_LOOK,RAKETEN_KL,makePerson,applyTOD,updateHUD,renderer,renderFrame,get DEMO(){return DEMO},LHALLE,LOGI_STUFEN,TOR_STUFE,logiStufe,logiZeige,logiAnwenden,LOGI_G,TOR_G,WTORE,tuAktion:(kind,ref)=>{ const alt=target; target={kind,ref}; try{ doAction(); } finally { target=alt; } },promptFor,KARREN,karreArt,karreAn,karreStapel,karreLast,karreNimmt,toggleKarre,updateKarre,setTutorial,tutorialAn,zielFuer,get zielAktuell(){return zielAktuell},get tipKey(){return tipKey},updateZiel,set DEMO(v){DEMO=v},kapitelVon,kapitelVoll,openHandy,closeHandy,toggleHandy,get handyOpen(){return handyOpen},get happ(){return happ},HANDY_APPS,renderHandy,shaderVorab,SCHONER,schonerMalen,updateSchoner,makeWischer,stelleWischer,get wischer(){return wischer},updateWischen,wischerPersonal,cleanTick,updateFireworks,FLASH,spurEnden,LR_LAMPE,schweber,kundenSymbol,geldSchwebt,get serie(){return serie},serieZufrieden,serieBricht,KAPITEL,kapitel,kapitelNr,kapitelAufstieg,WA,WA_SLOTS,vorDieTuer,SB_KASSIERER,sbBesetzt,sbLaneVon,sbKassiererPlatz,MUSIK,STUECKE,musikAn,musikWeiter,musikVol,musikTick,spielSchritt,get mStep(){return mStep},set mStep(v){mStep=v;mTakte=0;},get mBus(){return mBus},get postHalf(){return postHalf},EFF_SCHWEIF,mitSchweif,KOEPFE,KLEID,UNIFORM,STAFFKOPF,faceCache,animPerson,PACKS,packPreis,packPool,packOffen,packContents,syncPakete,rotateGrab,PACK_FL,PACK_HOME,spotFree,rectOf,grab,placeGrab,updateGrab,get grabbed(){return grabbed},showPause,get target(){return target},einrOf,einrAktiv,einrHoch,einrRunter,einrSchalten,AUFGABEN,einrJob,kartonMat,pools,shelfStockOf,removeFromLevel,fwLog:(a)=>{FW_LOG=a;},moerserRohr,ROHR_KALIBER,get fwUhr(){return FW_UHR},THEMEN,SHOW_BASIS,EFF,emittersListe:()=>emitters,
+    scene,camera,P,EFF,EFF_ALL,EFF_KLEIN,EFF_GROSS,EFF_PRO,SHOWS,kugelbombe,shot,mine,FW,stations,stationOf,placedCount,togglePDA,openPDA,closePDA,setPost,get postOn(){return postOn},get pdaOn(){return pdaOn},showLength,psHuge,psBig,psMid,psSmall,rockets,emitters,timersLen:()=>timers.length,setView:(x,z,y,p)=>{pl.x=x;pl.z=z;yaw=y;pitch=p;aim=null;},schiebe:(x,z)=>{pl.x=x;pl.z=z;collide(pl,0.32);return{x:pl.x,z:pl.z};},PLZ_MAX,camYaw:()=>yaw,camPitch:()=>pitch,playerPos:()=>({x:pl.x,z:pl.z}),pultYaw:()=>pultHit?pultHit.parent.rotation.y:null,applyShopName,shopName,shopSlogan,signTexPx:()=>signTex&&signTex.image?signTex.image.getContext('2d').getImageData(0,0,signTex.image.width,40).data.join(''):null,ckTexPx:()=>ckNameTex&&ckNameTex.image?ckNameTex.image.getContext('2d').getImageData(0,0,ckNameTex.image.width,60).data.join(''):null,testfeldMitte,STATION_POS,aimAt,UPGRADES,upPic,PLAN,planFlaechen,uhrZeiger:()=>({std:uhrStd?+uhrStd.rotation.z.toFixed(4):0,min:uhrMin?+uhrMin.rotation.z.toFixed(4):0}),drawRackSchild,get snowPts(){return snowPts},buildStadt,updateStadt,get stadtBoxen(){return stadtBoxen},get stadtBaeume(){return stadtBaeume},buildFernbaeume,schwaerme,beacons,silhouetten,get verkehrPts(){return verkehrPts},get rauchPts(){return rauchPts},get flieger(){return flieger},stadtFrei,STADT_FREI,WALLS,FLOORS,renderOnline,onlineHint,onlineStufe,onlineZahlen,updateOnline,packLaptop,SCHILDBG,SCHILDFG,setSchild,schildBg,schildFg,repaintSchilder,updateHead,allLevels,addToLevel,putInSlot,regCustomer,ZONEN,zoneOffen,oeffneZone,applyZonen,SLOTS,RACKS,slotsOffen,colliders,LAY,LOGI,WRAMPEN,WTORE,updateSnow,unterDach,dachBereiche,get lapHit2(){return lapHit2},buildLagerTerminal,toggleTest,testLevel,buyUp,get toastLast(){return toastLast},__floorBoxen:()=>floorBoxes.length,WBAY_UP,wbays,dockPlaetze,wbayFrei,wbayOffen,spawnWTruck,updateWBays,wbaysInit,wtorSet,GANG,GANGTUER,buildLagergang,flaeche,WTOR,RACKKIND,route,NAV,navFrei,navIdx,navBuild,shelfStand,shelves,sbLanes,buildSBKasse,sbFrei,sbOffen,sbNutzbar,EING2,eingaenge,naechsterEingang,setEingang2,buildSBKasse2,get sb2G(){return sb2G},TUEREN,tuerSetD,tuerNahD,packBereit,packOne,paketWert,bestellungenProTag,pakete,PAKET_BAYS,ddlAbholung,updateVersand,createShelf,createRack,regalStellen,testKauf,regalAufbauen,orderRegal,REGALWARE,regalOf,regalKind,regalPreis,regalPlatz,regalOffen,startGame,promptFor,ERFOLGE,erfOffen,erfStufe,erfStand,erfZiel,erfFertig,erfAnteil,erfGeschafft,erfGesamt,stat,statAdd,statRekord,statVerkauf,bruchGesehen,gruppeVon,GRUPPE,TRAEGER,BRUCH,BRUCH_IDS,REZ_FARBEN,ETIKETT,traegerVon,traegerOffen,bruchOffen,bruchListe,rezeptWow,rezeptKosten,rezeptMarkt,rezeptHype,rezeptDauer,rezeptEntwicklung,rezeptGueltig,eigeneListe,eigenesEintragen,rezepteTick,rezProto,rezBauen,renderRezeptur,get entwurf(){return entwurf},set entwurf(v){entwurf=v},entwurfInit,ORDER,LIZENZEN,lizenzOf,hatLizenz,lizenzDaten,naechsteLizenz,buyLizenz,VOLA,volaOf,REGIME,marketOf,costOf,marktZiel,marktLuecke,meOf,miOf,marktDelta,marktNiveau,marktPhase,marktSchock,marktLabel,marktSchnitt,marktExtrem,marktChance,sortimentBreite,sortimentZug,bekanntheit,spawnInterval,rollMarkt,marktInit,inflOf,inflText,setPreisAufMarkt,igniteType,get packHit(){return packHit},get packTisch(){return packTisch},get packMov(){return packMov},zuendeKanal,zuendeAlle,alleKanaele,kanalItem,openZuend,closeZuend,get zuendOpen(){return zuendOpen},bereitCount,brennDauer,muendung,pultLamps,RAKETEN_LOOK,RAKETEN_KL,makePerson,applyTOD,updateHUD,renderer,renderFrame,get DEMO(){return DEMO},LHALLE,LOGI_STUFEN,TOR_STUFE,logiStufe,logiZeige,logiAnwenden,LOGI_G,TOR_G,WTORE,tuAktion:(kind,ref)=>{ const alt=target; target={kind,ref}; try{ doAction(); } finally { target=alt; } },promptFor,KARREN,karreArt,karreAn,karreStapel,karreLast,karreNimmt,toggleKarre,updateKarre,setTutorial,tutorialAn,zielFuer,get zielAktuell(){return zielAktuell},get tipKey(){return tipKey},updateZiel,set DEMO(v){DEMO=v},kapitelVon,kapitelVoll,openHandy,closeHandy,toggleHandy,get handyOpen(){return handyOpen},get happ(){return happ},HANDY_APPS,renderHandy,shaderVorab,SCHONER,schonerMalen,updateSchoner,makeWischer,stelleWischer,get wischer(){return wischer},updateWischen,wischerPersonal,cleanTick,updateFireworks,FLASH,spurEnden,LR_LAMPE,schweber,kundenSymbol,geldSchwebt,get serie(){return serie},serieZufrieden,serieBricht,KAPITEL,kapitel,kapitelNr,kapitelAufstieg,WA,WA_SLOTS,vorDieTuer,SB_KASSIERER,sbBesetzt,sbLaneVon,sbKassiererPlatz,MUSIK,STUECKE,musikAn,musikWeiter,musikVol,musikTick,spielSchritt,get mStep(){return mStep},set mStep(v){mStep=v;mTakte=0;},get mBus(){return mBus},get postHalf(){return postHalf},EFF_SCHWEIF,mitSchweif,KOEPFE,KLEID,UNIFORM,STAFFKOPF,faceCache,animPerson,PACKS,packPreis,packPool,packOffen,packContents,syncPakete,rotateGrab,PACK_FL,PACK_HOME,spotFree,rectOf,grab,placeGrab,updateGrab,get grabbed(){return grabbed},showPause,get target(){return target},einrOf,einrAktiv,einrHoch,einrRunter,einrSchalten,AUFGABEN,einrJob,kartonMat,pools,shelfStockOf,removeFromLevel,fwLog:(a)=>{FW_LOG=a;},moerserRohr,ROHR_KALIBER,effPassen,EFF_FAMILIE,basisBlick,get fwUhr(){return FW_UHR},THEMEN,SHOW_BASIS,EFF,emittersListe:()=>emitters,
     shot:()=>{ noLoop=true; camera.position.set(pl.x,1.65,pl.z); camera.rotation.set(pitch,yaw,0); camera.updateMatrixWorld(); updateTarget(); applyTOD(); renderFrame(0.016); return canvas.toDataURL('image/jpeg',0.85); },
     run:(sec,dt)=>{ noLoop=true; const n=Math.round(sec/(dt||0.05)); for(let i=0;i<n;i++) step(dt||0.05); }};
 });

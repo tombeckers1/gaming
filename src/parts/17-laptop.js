@@ -1020,6 +1020,7 @@ function buyUp(id){
     if(kapNach>kapVor) later(0.6,()=>kapitelAufstieg(kapNach));
     else if(u.kap) toast(`Kapitel ${u.kap} beginnt, sobald Kapitel ${kapNach+1} geschafft ist.`);
     if(id==='lager') toast('Das Lager gehört dir. Ab jetzt fährt der LKW an die Rampe hinterm Lager.','money');
+    if(id==='sackkarre'||id==='wagen') toast(`${KARREN[id].name} gekauft: mit ${COARSE?'dem Knopf Karre':'K'} herausholen, ${KARREN[id].cap} Kartons auf einmal.`,'money');
     if(ZONEN[id]){
       oeffneZone(id,true);
       if(id==='shop_gross') toast('Die Wand ist durchbrochen. Deine Verkaufsfläche ist jetzt deutlich größer.','money');

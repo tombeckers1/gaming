@@ -2,9 +2,15 @@
 /* =========================================================
    HUD
    ========================================================= */
-function tipText(){
+/* tipKey: welcher Tipp gerade steht - danach richtet sich der Zielmarker */
+let tipKey=null;
+function tipText(){ const t=tipWahl(); return t; }
+function tipWahl(){
+  tipKey=null;
   if(build) return compact?'Objekt anvisieren, greifen, absetzen.':'Umbaumodus: Objekt anvisieren, greifen, drehen, absetzen.';
-  if(phase==='after') return compact?'Feierabend: Tag am Türschild beenden.':'Feierabend. Räum in Ruhe auf und beende den Tag am Türschild.';
+  if(phase==='after'){ tipKey='open'; return compact?'Feierabend: Tag am Türschild beenden.':'Feierabend. Räum in Ruhe auf und beende den Tag am Türschild.'; }
+  /* ohne Tutorial: keine Tipps, keine Marker */
+  if(S.tutAus) return '';
   for(const [k,txt,short] of TUT){
     if(S.tut[k]) continue;
     if((k==='scan'||k==='pay')&&phase==='closed') continue;
@@ -13,15 +19,16 @@ function tipText(){
     if(k==='move'&&S.level<3) continue;
     if(k==='lager'&&(S.level<3||!zoneOffen('lager'))) continue;
     /* Im Kiosk kommt die Lieferung vor die Tuer, nicht an die Rampe */
-    if(k==='lkw'&&!zoneOffen('lager')) return compact?'Kartons vor der Ladentür reinholen.':'Die Lieferung steht vor der Ladentür auf der gelben Warenannahme. Hol die Kartons rein.';
+    if(k==='lkw'&&!zoneOffen('lager')){ tipKey='lkw'; return compact?'Kartons vor der Ladentür reinholen.':'Die Lieferung steht vor der Ladentür auf der gelben Warenannahme. Hol die Kartons rein.'; }
     if(k==='pick'&&!floorBoxes.length) continue;
     if(k==='fenster'&&windowGrime()<0.35) continue;
     if((k==='launch'||k==='build')&&S.level<4) continue;
     if(k==='phone'&&!S.up.grosskunden) continue;
     if(k==='versand'&&!S.up.grosskunden) continue;
+    tipKey=k;
     return compact&&short?short:txt;
   }
-  if(phase==='closed') return compact?'Bereit? Türschild umdrehen.':'Wenn du bereit bist: Schild an der Tür umdrehen.';
+  if(phase==='closed'){ tipKey='open'; return compact?'Bereit? Türschild umdrehen.':'Wenn du bereit bist: Schild an der Tür umdrehen.'; }
   return '';
 }
 let compact=false, tipShown=null, tipT=0;
@@ -33,6 +40,7 @@ function setCompact(){
 let toastLast='', geldAnz=null, geldBlink=0;
 function toast(msg,cls){ const box_=$('toasts'); const el=document.createElement('div'); el.className='toast'+(cls?' '+cls:''); el.textContent=msg; box_.appendChild(el); while(box_.children.length>4) box_.removeChild(box_.firstChild); setTimeout(()=>el.remove(),2600); toastLast=msg; }
 function updateHUD(){
+  { const kb=$('btnKarre'); if(kb){ const d=karreArt()?'':'none'; if(kb.style.display!==d) kb.style.display=d; kb.classList.toggle('on',karreAn()); } }
   $('hDate').textContent=compact?dateShort(S.day):`${dateStr(S.day)} · Jahr ${S.season}`;
   $('hTime').textContent=fmtClock(clock);
   const st=$('hStatus');

@@ -21,7 +21,7 @@ let carryGrav=null;
 let carryRegal=null;
 function updateCarry(){
   const c=S&&S.carrying, uniq=!!(c&&c.type==='gravur'), reg=!!(c&&c.regal);
-  carryMesh.visible=!!c&&!uniq&&!reg; if(c&&!uniq&&!reg) carryMesh.material=kartonMat[c.type];
+  carryMesh.visible=!!c&&!uniq&&!reg&&!karreAn(); if(c&&!uniq&&!reg) carryMesh.material=kartonMat[c.type];
   if(carryGrav){ camera.remove(carryGrav); disposeEngraved(carryGrav); carryGrav=null; }
   if(uniq){ carryGrav=makeEngraved(c.text||''); carryGrav.position.set(0.3,-0.3,-0.65); carryGrav.rotation.set(0.1,-0.5,0.35); camera.add(carryGrav); }
   /* Das Regalpaket ist laenger als ein Karton und wird quer getragen */
@@ -35,7 +35,10 @@ function updateCarry(){
       reg?`Regalpaket: ${regalName(c.regal)}`
     : uniq?`Gravur-Rakete: „${c.text}"`
     : `${P[c.type].name}: noch ${c.count} im Karton${q&&q[0]?` <span class="${q[0]}">(${q[1]})</span>`:''}`)
-    +(COARSE?'':`<span style="color:var(--muted)">, <kbd>Q</kbd>${reg?'aufbauen':'abstellen'}</span>`):'';
+    +(COARSE?'':`<span style="color:var(--muted)">, <kbd>Q</kbd>${reg?'aufbauen':'abstellen'}</span>`)
+    +(karreAn()?` <span style="color:var(--muted)">· ${KARREN[karreArt()].name} ${karreLast()}/${KARREN[karreArt()].cap}</span>`:'')
+    :(karreAn()?`${KARREN[karreArt()].name}: leer`+(COARSE?'':` <span style="color:var(--muted)">, <kbd>K</kbd> wegstellen</span>`):'');
+  updateKarre();
 }
 function pickUp(b){ if(!removeFloorBox(b)) return; S.carrying={type:b.type,count:b.count,q:b.q||1}; S.tut.pick=true; sfx.pop(); updateCarry(); }
 function dropBox(){
@@ -59,7 +62,7 @@ function stockOne(lv,quiet){
   if(c.count<=0){ S.carrying=null; toast('Karton leer und entsorgt.'); }
   updateCarry();
 }
-function stockOf(t){ let n=0; allLevels().forEach(l=>{ if(l.type===t) n+=l.count; }); floorBoxes.forEach(b=>{ if(b.type===t) n+=b.count; }); racks.forEach(r=>r.slots.forEach(s=>{ if(s.box&&s.box.type===t) n+=s.box.count; })); if(S.carrying&&S.carrying.type===t) n+=S.carrying.count; pending.forEach(p=>{ if(p.type===t) n+=P[t].box; }); return n; }
+function stockOf(t){ let n=0; allLevels().forEach(l=>{ if(l.type===t) n+=l.count; }); floorBoxes.forEach(b=>{ if(b.type===t) n+=b.count; }); racks.forEach(r=>r.slots.forEach(s=>{ if(s.box&&s.box.type===t) n+=s.box.count; })); if(S.carrying&&S.carrying.type===t) n+=S.carrying.count; if(S.karre&&S.karre.stapel) S.karre.stapel.forEach(c=>{ if(c.type===t) n+=c.count; }); pending.forEach(p=>{ if(p.type===t) n+=P[t].box; }); return n; }
 function shelfStockOf(t){ let n=0; allLevels().forEach(l=>{ if(l.type===t) n+=l.count; }); return n; }
 
 /* =========================================================

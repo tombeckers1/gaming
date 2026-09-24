@@ -162,6 +162,8 @@ const CATNAME={0:'Zubehör',1:'F1',2:'F2'};
    Stegemann bestellt und kommen mit dem LKW (siehe REGALWARE). */
 const UPGRADES=[
   {id:'plakat',kat:'markt',lvl:4,name:'Werbeplakate in der Stadt',desc:'Dauerhaft rund 30 Prozent mehr Kunden.',cost:()=>400,done:()=>S.up.plakat},
+  {id:'sackkarre',kat:'einr',lvl:3,name:'Sackkarre',desc:'Vier Kartons auf einmal. Mit K herausholen: jeder Karton, den du aufhebst, kommt mit drauf.',cost:()=>350,done:()=>S.up.sackkarre},
+  {id:'wagen',kat:'einr',lvl:8,req:'lager',name:'Plattformwagen',desc:'Acht Kartons auf einmal - für den LKW und das Lager. Ersetzt die Sackkarre.',cost:()=>1400,done:()=>S.up.wagen},
   {id:'terminal',kat:'einr',lvl:6,name:'Kontaktlos-Terminal',desc:'Kartenzahlung geht deutlich schneller.',cost:()=>320,done:()=>S.up.terminal},
   {id:'tag4',kat:'markt',lvl:7,name:'Sonntagsgenehmigung',desc:'Du darfst auch sonntags öffnen. Sonst ist Sonntag Ruhetag.',cost:()=>900,done:()=>S.up.tag4},
   {id:'heizung',kat:'einr',lvl:7,name:'Heizstrahler',desc:'Kunden warten länger, bevor sie genervt gehen.',cost:()=>450,done:()=>S.up.heizung},

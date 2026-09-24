@@ -61,6 +61,7 @@ const STEUER_PC=[
   ['Handeln',[
     [['E','Klick'],'Aktion – halten zum Putzen'],
     [['Q','Rechts'],'Karton abstellen'],
+    [['K'],'Sackkarre holen / wegstellen'],
     [['Tab','H'],'Handy: Onlineshop, Team, Bank, Bericht'],
     [['H'],'Anruf annehmen, wenn es klingelt']]],
   ['Werkzeuge',[
@@ -90,6 +91,7 @@ const STEUER_TOUCH=[
     [['Ablegen'],'Karton abstellen, Greifen abbrechen'],
     [['Umbau'],'Umbaumodus an / aus'],
     [['Handy'],'Onlineshop, Team, Bank, Bericht'],
+    [['Karre'],'Sackkarre holen / wegstellen'],
     [['Preis'],'Preisgerät (ab Level 2)'],
     [['Spray'],'Pfefferspray (ab Level 4)']]]
 ];
@@ -99,7 +101,8 @@ function renderSteuer(){
     zeilen.map(([k,t])=>`<div class="z"><div class="k">${k.map(x=>`<kbd>${x}</kbd>`).join('')}</div><div>${t}</div></div>`).join('')+
     `</div>`).join('');
 }
-function showPause(){ if(overlayOpen()) return; renderSteuer(); musikAnzeige(); pauseOpen=true; paused=true; for(const k in keys) keys[k]=false; mouseDown=false; $('pause').classList.add('show'); }
+function tutKnopf(){ const b=$('pTut'); if(b) b.textContent=tutorialAn()?'Tutorial ausblenden':'Tutorial einblenden'; }
+function showPause(){ if(overlayOpen()) return; renderSteuer(); musikAnzeige(); tutKnopf(); pauseOpen=true; paused=true; for(const k in keys) keys[k]=false; mouseDown=false; $('pause').classList.add('show'); }
 function closePause(){ if(!pauseOpen) return; pauseOpen=false; paused=false; $('pause').classList.remove('show'); requestLock(); }
 $('pBtn').addEventListener('click',()=>closePause());
 /* Musik: Knopf im Bild (auch am Handy) und Regler im Pausenmenue */
@@ -160,6 +163,7 @@ addEventListener('keydown',e=>{
   if(e.code==='KeyF'&&!e.repeat) toggleBuild();
   if(e.code==='KeyG'&&!e.repeat) toggleSpray();
   if(e.code==='KeyT'&&!e.repeat) togglePDA();
+  if(e.code==='KeyK'&&!e.repeat) toggleKarre();
   if(e.code==='KeyP'&&!e.repeat) setPost(!postOn);
   if(e.code==='KeyM'&&!e.repeat) musikAn();
   if(e.code==='KeyN'&&!e.repeat){ ac(); if(!MUSIK.an) musikAn(true); else musikWeiter(false); }
@@ -197,6 +201,9 @@ btnAct.addEventListener('touchend',actEnd); btnAct.addEventListener('touchcancel
 btnDrop.addEventListener('touchstart',e=>{ e.preventDefault(); if(!S||overlayOpen()) return; ac(); if(build&&grabbed) cancelGrab(); else dropBox(); },{passive:false});
 btnTool.addEventListener('touchstart',e=>{ e.preventDefault(); if(!S||overlayOpen()) return; ac(); toggleSpray(); },{passive:false});
 $('btnPda').addEventListener('touchstart',e=>{ e.preventDefault(); if(!S||overlayOpen()) return; ac(); togglePDA(); },{passive:false});
+$('pTut').addEventListener('click',()=>{ setTutorial(!tutorialAn()); tutKnopf(); });
+$('btnKarre').addEventListener('touchstart',e=>{ e.preventDefault(); if(!S||overlayOpen()) return; ac(); toggleKarre(); },{passive:false});
+$('btnKarre').addEventListener('click',e=>{ if(COARSE) return; ac(); toggleKarre(); });
 $('btnHandy').addEventListener('touchstart',e=>{ e.preventDefault(); if(!S||(overlayOpen()&&!handyOpen)) return; ac(); toggleHandy(); },{passive:false});
 $('btnHandy').addEventListener('click',e=>{ if(COARSE) return; ac(); toggleHandy(); });
 $('btnPda').addEventListener('click',e=>{ if(COARSE) return; ac(); togglePDA(); });

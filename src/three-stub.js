@@ -32,7 +32,8 @@ class Quaternion{constructor(){this.x=this.y=this.z=0;this.w=1;} setFromEuler(e)
 class Matrix4{constructor(){this.elements=new Array(16).fill(0);}
   compose(p,q,s){this.p=p.clone?p.clone():p;this.s=s;return this;}
   clone(){const m=new Matrix4();m.p=this.p;m.s=this.s;return m;}
-  copy(o){this.p=o.p;this.s=o.s;return this;}}
+  copy(o){this.p=o.p;this.s=o.s;return this;}
+  decompose(p,q,s){if(this.p)p.copy(this.p);if(this.s&&s.copy)s.copy(this.s);return this;}}
 class Color{
   constructor(c){this.r=1;this.g=1;this.b=1;if(c!==undefined)this.set(c);}
   set(c){if(typeof c==='number'){this.r=((c>>16)&255)/255;this.g=((c>>8)&255)/255;this.b=(c&255)/255;}

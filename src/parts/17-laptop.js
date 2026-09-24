@@ -840,11 +840,15 @@ function lapZeichnen(body){
     hint+=` Freundlichkeit im Laden: ${Math.round(friendliness()*100)} %. Höhere Löhne machen schneller und freundlicher. Außerhalb der Saison kannst du Leute in die Saisonpause schicken: 30 % Lohn, keine Arbeit, Rückkehr jederzeit ohne neue Einstellungskosten.`;
     h=STAFF.map(s=>{ const fehlt=s.req&&!S.up[s.req], lock=S.level<s.lvl||fehlt, has=!!S.staff[s.id];
       const isStock=s.id.indexOf('auffueller')===0;
-      const prio=isStock&&has?`<small>Priorität: ${Object.keys(PRIO).map(k=>`<button data-a="prio" data-t="${s.id}" data-v="${k}" style="padding:4px 9px;font-size:14px;margin-right:4px;${prioOf(s.id)===k?'background:var(--signal);color:var(--ink)':'background:rgba(242,245,255,.12);color:var(--snow)'}">${PRIO[k]}</button>`).join('')}</small>`:'';
+      /* Einraeumer: Aufgaben in Reihenfolge, jede an/aus (Tom, 24.09.) */
+      const prio=isStock&&has?(()=>{ const e=einrOf(s.id), btn=(a,v,txt,on,dis)=>`<button data-a="einr" data-t="${s.id}" data-v="${v}:${a}" ${dis?'disabled':''} style="padding:3px 9px;font-size:14px;margin-left:4px;${on?'background:var(--signal);color:var(--ink)':'background:rgba(242,245,255,.12);color:var(--snow)'}">${txt}</button>`;
+        return `<div class="einr"><small><b>Was zuerst?</b> Von oben nach unten.</small>`+e.reihe.map((a,i)=>{ const an=!e.aus[a];
+          return `<div class="einrZ${an?'':' aus'}"><span class="nr">${an?e.reihe.filter(x=>!e.aus[x]).indexOf(a)+1:'–'}</span><span class="tx"><b>${AUFGABEN[a].name}</b><small>${AUFGABEN[a].desc}</small></span>`+
+            btn(a,'hoch','▲',false,i===0)+btn(a,'runter','▼',false,i===e.reihe.length-1)+btn(a,'an',an?'An':'Aus',an)+`</div>`; }).join('')+`</div>`; })():'';
       const lohn=has?`<small>Lohn: ${WAGES.map(w=>`<button data-a="wage" data-t="${s.id}" data-v="${w.f}" title="${w.desc}" style="padding:4px 8px;font-size:14px;margin-right:4px;${wageOf(s.id)===w.f?'background:var(--mint);color:var(--ink)':'background:rgba(242,245,255,.12);color:var(--snow)'}">${w.name} ${eur(r2(s.wage*w.f))}</button>`).join('')}</small>`:'';
       const pause=has?`<small>${inPause(s.id)?`In Saisonpause · ${eur(r2(s.wage*wageOf(s.id)*0.3))} pro Tag`:'Im Dienst'} <button data-a="pause" data-t="${s.id}" style="padding:4px 9px;font-size:14px;margin-left:6px;${inPause(s.id)?'background:var(--mint);color:var(--ink)':'background:rgba(242,245,255,.12);color:var(--snow)'}">${inPause(s.id)?'Zurück in den Dienst':'In Saisonpause schicken'}</button></small>`:'';
-      return `<div class="row${lock?' locked':''}"><div class="rm"><b>${s.name}</b><small>${s.desc}</small><small>Einstellung ${eur(s.hire)} · Grundlohn ${eur(s.wage)} pro Tag</small>${lohn}${pause}${prio}</div>`+
-        (fehlt?`<small>braucht: ${(UPGRADES.find(u=>u.id===s.req)||{name:s.req}).name}</small>`:lock?`<small>ab Level ${s.lvl}</small>`:has?`<button class="red" data-a="fire" data-t="${s.id}">Kündigen</button>`:`<button data-a="hire" data-t="${s.id}" ${S.money<s.hire?'disabled':''}>Einstellen</button>`)+'</div>'; }).join('');
+      return `<div class="row${lock?' locked':''}${prio?' mitEinr':''}"><div class="rm"><b>${s.name}</b><small>${s.desc}</small><small>Einstellung ${eur(s.hire)} · Grundlohn ${eur(s.wage)} pro Tag</small>${lohn}${pause}</div>`+
+        (fehlt?`<small>braucht: ${(UPGRADES.find(u=>u.id===s.req)||{name:s.req}).name}</small>`:lock?`<small>ab Level ${s.lvl}</small>`:has?`<button class="red" data-a="fire" data-t="${s.id}">Kündigen</button>`:`<button data-a="hire" data-t="${s.id}" ${S.money<s.hire?'disabled':''}>Einstellen</button>`)+prio+'</div>'; }).join('');
   } else if(ltab==='bank'){
     const t=loanTier(), L=S.loan;
     hint=t?`Dein Kreditrahmen: ${eur(t.amount)}.`:'Kredite gibt es ab Level 5.';
@@ -953,6 +957,9 @@ function lapKlick(e,imHandy){
   else if(a==='pause'){ setPause(t,!inPause(t)); toast(inPause(t)?`${STAFF.find(x=>x.id===t).name}: Saisonpause.`:`${STAFF.find(x=>x.id===t).name} ist zurück im Dienst.`); }
   else if(a==='wage'){ setWage(t,+b.dataset.v); toast(`${STAFF.find(x=>x.id===t).name}: ${wageName(t)}.`); }
   else if(a==='prio'){ setPrio(t,b.dataset.v); toast(`${STAFF.find(x=>x.id===t).name}: ${PRIO[b.dataset.v]}.`); }
+  else if(a==='einr'){ const [v,g]=b.dataset.v.split(':'), n=STAFF.find(x=>x.id===t).name;
+    if(v==='hoch') einrHoch(t,g); else if(v==='runter') einrRunter(t,g); else einrSchalten(t,g);
+    const r=einrAktiv(t); toast(r.length?`${n}: zuerst ${AUFGABEN[r[0]].name}.`:`${n}: alle Aufgaben aus - steht nur herum.`); }
   else if(a==='loan') takeLoan(+b.dataset.v);
   else if(a==='repay') repayLoan(+b.dataset.v);
   else if(a==='open'){ openShop(); closeLaptop(true); return; }

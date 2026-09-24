@@ -313,6 +313,13 @@ body.compact .pic{width:78px;height:54px}
 .sw:disabled{opacity:.28}
 /* Preis sichtbar auf der Kachel - am Handy gibt es keinen Tooltip */
 .sw.dk{position:relative;overflow:hidden}
+.row.mitEinr{flex-wrap:wrap}
+.einr{margin-top:6px;display:flex;flex-direction:column;gap:4px;flex-basis:100%}
+.einrZ{display:flex;align-items:center;gap:4px;background:rgba(242,245,255,.06);border-radius:8px;padding:5px 6px}
+.einrZ.aus{opacity:.5}
+.einrZ .nr{font-family:var(--display);font-size:15px;width:20px;text-align:center;color:var(--signal)}
+.einrZ .tx{flex:1;display:flex;flex-direction:column;min-width:0}
+.einrZ .tx b{font-size:14px}.einrZ .tx small{font-size:12px;color:var(--muted)}
 .sw.dk .pz{position:absolute;left:0;right:0;bottom:0;font:700 9.5px/13px system-ui,sans-serif;color:#fff;background:rgba(10,14,28,.78);letter-spacing:.2px;white-space:nowrap}
 .sw.dk .pz.ok{background:rgba(47,158,87,.88)}
 .sw.dk.arm .pz{color:#ffb4a8}

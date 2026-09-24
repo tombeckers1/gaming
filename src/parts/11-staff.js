@@ -56,8 +56,34 @@ function friendliness(){
   STAFF.forEach(st=>{ if(S&&S.staff&&S.staff[st.id]){ n++; sum+=wageOf(st.id); } });
   return n?sum/n:1;
 }
-function prioOf(id){ const p=(S&&S.prio)||{}; return p[id]||(id==='auffueller'?'lkw':'regal'); }
-function setPrio(id,v){ S.prio=S.prio||{}; S.prio[id]=v; save(); }
+/* =========================================================
+   Einraeumer einstellen (Tom, 24.09.): jeder Einraeumer bekommt
+   seine eigene Reihenfolge aus drei Aufgaben, jede einzeln an/aus.
+     regal  - Verkaufsregale aus dem Lager nachfuellen
+     direkt - vom LKW direkt ins Verkaufsregal, wenn dort fuer das
+              Produkt Platz ist; der Rest geht ins Lagerregal
+     lager  - LKW ins Lagerregal entladen
+   ========================================================= */
+const AUFGABEN={regal:{name:'Verkaufsregale auffüllen',kurz:'Regale',desc:'aus dem Lager in die Verkaufsregale'},
+  direkt:{name:'LKW direkt ins Regal',kurz:'Direkt',desc:'vom LKW direkt ins Verkaufsregal, wo Platz ist'},
+  lager:{name:'LKW ins Lager',kurz:'Lager',desc:'Kartons vom LKW ins Lagerregal'}};
+const AUFG_IDS=Object.keys(AUFGABEN);
+function einrStd(id,alt){ return (alt||(id==='auffueller'?'lkw':'regal'))==='lkw'?['direkt','lager','regal']:['regal','direkt','lager']; }
+function einrOf(id){
+  S.einr=S.einr||{};
+  let e=S.einr[id];
+  if(!e||!Array.isArray(e.reihe)){ e={reihe:einrStd(id,S.prio&&S.prio[id]),aus:{}}; S.einr[id]=e; }
+  e.reihe=e.reihe.filter(a=>AUFGABEN[a]); AUFG_IDS.forEach(a=>{ if(e.reihe.indexOf(a)<0) e.reihe.push(a); });
+  e.aus=e.aus||{}; return e;
+}
+function einrAktiv(id){ const e=einrOf(id); return e.reihe.filter(a=>!e.aus[a]); }
+function einrHoch(id,a){ const e=einrOf(id), i=e.reihe.indexOf(a); if(i>0){ e.reihe.splice(i,1); e.reihe.splice(i-1,0,a); save(); } }
+function einrRunter(id,a){ const e=einrOf(id), i=e.reihe.indexOf(a); if(i>=0&&i<e.reihe.length-1){ e.reihe.splice(i,1); e.reihe.splice(i+1,0,a); save(); } }
+function einrSchalten(id,a){ const e=einrOf(id); e.aus[a]=!e.aus[a]; save(); }
+/* alte Schnittstelle: 'lkw', wenn der LKW vor den Regalen kommt */
+function prioOf(id){ const r=einrAktiv(id); const i=r.indexOf('regal'), j=Math.min(...['direkt','lager'].map(a=>r.indexOf(a)<0?99:r.indexOf(a)));
+  return (i<0||j<i)?'lkw':'regal'; }
+function setPrio(id,v){ S.prio=S.prio||{}; S.prio[id]=v; S.einr=S.einr||{}; S.einr[id]={reihe:einrStd(id,v),aus:{}}; save(); }
 function freeRackSlot(){ for(const r of racks) for(const sl of r.slots) if(!sl.box) return sl; return null; }
 class Worker{
   constructor(id){
@@ -85,6 +111,7 @@ class Worker{
     else if(this.kind==='packer') this.packLoop(dt);
     animPerson(this.g,this.moving,dt,this.speed);
     if(this.kind==='reinigung') wischerPersonal(this,dt);
+    if(this.kind==='auffueller') einrPose(this,dt);
   }
   cleanLoop(dt){
     if(this.state==='idle'){ const d=nearestDirt(this.pos); if(d){ this.target=d; this.goTo(V(d.m.position.x+0.25,0,d.m.position.z+0.85)); this.state='go'; } else if(this.path.length===0&&this.pos.distanceTo(IDLE.reinigung)>0.5) this.goTo(IDLE.reinigung); else this.walk(dt); }
@@ -103,26 +130,23 @@ class Worker{
   }
   stockLoop(dt){
     if(this.state==='idle'){
-      const truckJob=()=>(typeof truck!=='undefined'&&truck&&truck.state==='docked'&&truck.cargo.length)?{kind:'truck'}:null;
-      const res=t=>typeof reservedType==='function'&&reservedType(t);
-      const shelfJob=()=>{
-        for(const b of floorBoxes){ if(!res(b.type)&&emptyLevel(b.type)) return {box:b,kind:'floor'}; }
-        for(const r of racks) for(const s of r.slots){ if(s.box&&!res(s.box.type)&&emptyLevel(s.box.type)) return {slot:s,kind:'rack'}; }
-        return null;
-      };
-      const pr=prioOf(this.id);
-      const src=pr==='lkw'?(truckJob()||shelfJob()):(shelfJob()||truckJob());
-      if(src&&src.kind==='truck'){ this.src=src; this.goTo(DOCK.stand.clone()); this.state='atTruck'; }
-      else if(src){ this.src=src; const p=src.kind==='floor'?src.box.mesh.position:localToWorld(src.slot.rk.g,src.slot.x,0.8);
+      /* Reihenfolge und an/aus stellt der Spieler je Einraeumer ein */
+      const src=einrJob(this);
+      this.src=src;
+      if(src&&src.kind==='truck'){ this.goTo(DOCK.stand.clone()); this.state='atTruck'; }
+      else if(src){ const p=src.kind==='floor'?src.box.mesh.position:localToWorld(src.slot.rk.g,src.slot.x,0.8);
         this.goTo(V(p.x,0,p.z+(src.kind==='floor'?0.7:0.8))); this.state='fetch'; }
       else { const home=IDLE[this.id]||IDLE.auffueller;
         if(this.path.length===0&&this.pos.distanceTo(home)>0.6) this.goTo(home); else this.walk(dt); }
     }
     else if(this.state==='atTruck'){
       if(this.walk(dt)){
-        const c=pullFromTruck();
-        if(!c){ this.state='idle'; return; }
-        this.carry=c; this.pickStore();
+        const c=this.src&&this.src.direkt?pullFromTruckTyp(this.src.typ):pullFromTruck();
+        if(!c){ this.state='idle'; this.src=null; return; }
+        this.carry=c; this.src=null;
+        /* direkt ins Verkaufsregal, wenn dort fuer das Produkt Platz ist */
+        const direkt=einrAktiv(this.id).indexOf('direkt')>=0&&emptyLevel(c.type);
+        if(direkt) this.pickShelf(); else this.pickStore();
       }
     }
     else if(this.state==='toStore'){ if(this.walk(dt)){ this.state='store'; this.t=0.45; } }
@@ -139,35 +163,30 @@ class Worker{
     else if(this.state==='fetch'){
       if(this.walk(dt)){
         const s=this.src;
-        if(s.kind==='floor'&&floorBoxes.indexOf(s.box)>=0){ this.carry={type:s.box.type,count:s.box.count}; removeFloorBox(s.box); }
-        else if(s.kind==='rack'&&s.slot.box){ this.carry={type:s.slot.box.type,count:s.slot.box.count}; s.slot.rk.g.remove(s.slot.box.mesh); s.slot.box=null; drawRackSchild(s.slot.rk); }
+        if(s.kind==='floor'&&floorBoxes.indexOf(s.box)>=0){ this.carry={type:s.box.type,count:s.box.count,q:s.box.q||1}; removeFloorBox(s.box); }
+        else if(s.kind==='rack'&&s.slot.box){ this.carry={type:s.slot.box.type,count:s.slot.box.count,q:s.slot.box.q||1}; s.slot.rk.g.remove(s.slot.box.mesh); s.slot.box=null; drawRackSchild(s.slot.rk); }
+        this.src=null;
         this.state=this.carry?'toShelf':'idle'; if(this.carry) this.pickShelf();
       }
     }
-    else if(this.state==='toShelf'){ if(this.walk(dt)){ this.state='fill'; this.t=0.3/(this.wf||1); } }
-    else if(this.state==='fill'){
-      this.t-=dt;
-      if(this.t<=0){
-        this.t=0.32/(this.wf||1);
-        const lv=this.lv;
-        if(!this.carry){ this.state='idle'; return; }
-        if(!lv||(lv.type&&lv.type!==this.carry.type)||lv.count>=capOf(lv,this.carry.type)){ this.pickShelf(); return; }
-        if(addToLevel(lv,this.carry.type,this.carry.q||1)){ this.carry.count--; if(this.carry.count<=0){ this.carry=null; this.state='idle'; } }
-        else this.pickShelf();
-      }
-    }
+    else if(this.state==='toShelf'){ if(this.walk(dt)){ this.state='fill'; this.offen=0; } }
+    else if(this.state==='fill') einrFill(this,dt);
+    else if(this.state==='falten') einrFalten(this,dt);
   }
   pickStore(){
     const sl=freeRackSlot();
-    this.slot=sl;
+    this.slot=sl; this.offen=0; einrAufraeumen(this);
     const p=sl?localToWorld(sl.rk.g,sl.x,0.9):V(DSLOTS[0].x,0,DSLOTS[0].z+0.7);
     this.goTo(V(p.x,0,p.z)); this.state='toStore';
   }
   pickShelf(){
+    einrAufraeumen(this);
     if(!this.carry){ this.state='idle'; return; }
     const lv=emptyLevel(this.carry.type);
-    if(!lv){ if(this.carry.count>0) spawnFloorBox(this.carry.type,this.carry.count,null,this.carry.q||1); this.carry=null; this.state='idle'; return; }
-    this.lv=lv; this.goTo(shelfStand(lv.sh)); this.state='toShelf';
+    /* Regal voll: der Rest kommt ins Lagerregal, nicht auf den Boden */
+    if(!lv){ if(this.carry.count>0) this.pickStore(); else { this.carry=null; this.state='idle'; } return; }
+    if(this.state==='fill'&&this.lv&&this.lv.sh===lv.sh){ this.lv=lv; return; }
+    this.lv=lv; this.offen=0; this.goTo(shelfStand(lv.sh)); this.state='toShelf';
   }
   cashLoop(dt){
     const home=ck(-0.25,-0.85);
@@ -193,7 +212,7 @@ class Worker{
     if(this.path.length===0){ if(Math.random()<0.5) this.goTo(V(rand(-5,5),0,rand(-4,4))); else this.goTo(IDLE.security); }
     this.walk(dt);
   }
-  remove(){ scene.remove(this.g); if(this.carry&&this.carry.count>0) spawnFloorBox(this.carry.type,this.carry.count,null,this.carry.q||1); }
+  remove(){ einrAufraeumen(this); scene.remove(this.g); if(this.carry&&this.carry.count>0) spawnFloorBox(this.carry.type,this.carry.count,null,this.carry.q||1); }
 }
 function hireStaff(id){ if(staff[id]) return; staff[id]=new Worker(id); }
 function fireStaff(id){ if(!staff[id]) return; staff[id].remove(); staff[id]=null; }

@@ -3,7 +3,7 @@
      landen vor der Ladentuer, Regale baut der Lieferant auf
    - Lager kaufen: Kapitel 2 Kleines Fachgeschaeft, Tuer frei,
      der LKW faehrt wieder an die Rampe
-   - Grosses Fachgeschaeft mit shop_gross ... Kapitel 7 Pyro-Imperium mit lager_west (seit 24.09.: sieben Kapitel, der Reihe nach)
+   - Grosses Fachgeschaeft mit shop_gross ... Kapitel 7 Pyro-Logistik mit lager_west, Finale Kapitel 11 Pyro-Imperium (seit 24.09., der Reihe nach)
    - alte Spielstaende behalten ihr Lager
    - Ausbau-Liste mit Kapitel-Ueberschriften
    - Kassierer 2 bis 5 besetzen die SB-Kassen, dort zahlen dann
@@ -55,7 +55,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     o.lkwNach=lkw;
     /* Kapitel 3 und 4 */
     S.level=99; S.money=9e7; bb.UPGRADES.filter(u=>u.kat==='flaeche').forEach(u=>{ try{ bb.testKauf(u.id); }catch(e){} });
-    o.ende={nr:bb.kapitelNr(),name:bb.kapitel().name};
+    o.ende={nr:bb.kapitelNr(),name:bb.kapitel().name}; o.finale=bb.KAPITEL[bb.KAPITEL.length-1].name;
     /* der Reihe nach: Labor vor dem Onlineshop hebt das Kapitel nicht */
     const alt=Object.assign({},S.up);
     Object.keys(S.up).forEach(k=>{ S.up[k]=false; }); S.up.lager=true; S.up.shop_gross=true; S.up.labor=true;
@@ -79,7 +79,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   pruef('LAGER',k.lagerFreiBis<-9,'Lagertuer nach dem Kauf zu (x='+k.lagerFreiBis+')');
   pruef('LAGER',k.rackOffenNach&&k.lkwNach,'nach dem Kauf kein LKW an der Rampe / kein Lagerregal');
   console.log('REIHE   ',JSON.stringify({vorgezogen:k.vorgezogen,nachgeholt:k.nachgeholt}));
-  pruef('ENDE',k.ende.nr===7&&k.ende.name==='Pyro-Imperium','Ende: '+JSON.stringify(k.ende));
+  pruef('ENDE',k.ende.nr===7&&k.ende.name==='Pyro-Logistik'&&k.finale==='Pyro-Imperium','Ende: '+JSON.stringify(k.ende)+' Finale '+k.finale);
   pruef('REIHE',k.vorgezogen===3&&k.nachgeholt===5,'Kapitel nicht der Reihe nach: Labor vor Onlineshop gibt '+k.vorgezogen+', danach '+k.nachgeholt);
 
   /* Laptop: Ausbau mit Kapitelueberschriften */

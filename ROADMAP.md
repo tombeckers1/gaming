@@ -21,11 +21,11 @@ Ab Kapitel 7. Der letzte große Raum (Logistikzentrum) gehört nicht zur Demo.
 
 | Kapitel | Name | Inhalt | Stand |
 |---|---|---|---|
-| 7 | Pyro-Imperium | Logistikzentrum mit Toren, Andockstationen 2–5 | gebaut |
+| 7 | Pyro-Logistik | Logistikzentrum mit Toren, Andockstationen 2–5 | gebaut |
 | 8 | Pyro-Fabrik | eigene Fabrikhalle, eigene Produkte in Serie, Rohstoffe, Qualität | geplant |
 | 9 | Pyro-Großhändler | andere Läden beliefern, eigene LKW-Flotte, Händlerverträge | geplant |
 | 10 | Pyro-Kette | Filialen in anderen Städten, Filialleiter, zentrale Preise | geplant |
-| 11 | Pyro-Legende | offizielles Silvester-Stadtfeuerwerk mit Musik | geplant |
+| 11 | Pyro-Imperium | Finale: offizielles Silvester-Stadtfeuerwerk mit Musik, am Ende leuchtet die ganze Stadt | geplant |
 
 ## Technik
 

@@ -86,6 +86,7 @@ body:has(.ov.show) #touch{display:none}
 #btnTool{right:calc(24px + env(safe-area-inset-right));bottom:calc(140px + env(safe-area-inset-bottom));width:60px;height:60px;background:#ff8f7f;font-size:14px}
 #btnMove{right:calc(112px + env(safe-area-inset-right));bottom:calc(112px + env(safe-area-inset-bottom));width:56px;height:56px;background:#9fdcff;font-size:14px}
 #btnPda{right:calc(24px + env(safe-area-inset-right));bottom:calc(214px + env(safe-area-inset-bottom));width:60px;height:60px;background:#8ef0a8;font-size:14px}
+#btnHandy{right:calc(24px + env(safe-area-inset-right));bottom:calc(284px + env(safe-area-inset-bottom));width:60px;height:60px;background:#9cc4ff;font-size:14px}
 #btnPda.on{background:var(--mint);box-shadow:0 0 0 3px rgba(142,240,168,.4)}
 .tbtn.down{transform:translateY(3px);box-shadow:none}
 #btnTool.on{background:var(--fire);color:#fff}
@@ -191,6 +192,30 @@ body.compact .mkcol{min-width:74px}
 .lfoot{padding:12px 16px;border-top:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:10px;flex-shrink:0}
 .lfoot-r{justify-content:flex-end}
 #korbOv{z-index:24}
+/* Handy: hochkant, schmaler Rahmen, Startbildschirm mit App-Symbolen */
+#handy{background:rgba(8,10,24,.35)}
+#handy .geraet{width:min(400px,94vw);height:min(760px,94vh);background:#07090f;border-radius:44px;padding:12px;box-shadow:0 30px 80px rgba(0,0,0,.6),inset 0 0 0 2px #2c3140,inset 0 0 0 5px #0d1017;display:flex;flex-direction:column;position:relative}
+#handy .schirm{flex:1;border-radius:34px;overflow:hidden;display:flex;flex-direction:column;background:linear-gradient(160deg,#241a4d 0%,#0f1a3d 45%,#0a1128 100%);position:relative}
+#handy .kerbe{position:absolute;top:18px;left:50%;transform:translateX(-50%);width:108px;height:28px;background:#07090f;border-radius:16px;z-index:3}
+#handy .hstatus{display:flex;justify-content:space-between;align-items:center;padding:14px 26px 6px;font:700 15px "Barlow Condensed",sans-serif;color:#e8eeff;min-height:44px}
+#handy .hkopf{display:flex;align-items:center;gap:10px;padding:6px 14px 8px;border-bottom:1px solid rgba(255,255,255,.08)}
+#handy .hkopf b{font:22px Bungee,Impact,sans-serif;color:#ffd23f;letter-spacing:.5px}
+#handy .hkopf button{background:rgba(255,255,255,.08);color:#e8eeff;border-radius:12px;padding:6px 12px;font-size:16px}
+#handy .happ{flex:1;overflow:auto;padding:4px 14px 14px;touch-action:pan-y}
+#handy .happ .row{flex-wrap:wrap;gap:8px;padding:10px 0}
+#handy .happ .row .pic{width:44px;height:44px}
+#handy .happ .rm{min-width:0;flex:1 1 180px}
+#handy .home{flex:1;display:flex;flex-direction:column;padding:10px 20px}
+#handy .uhr{font:64px Bungee,Impact,sans-serif;color:#fff;text-align:center;margin:18px 0 0;letter-spacing:1px}
+#handy .datum{text-align:center;color:#b9c4e6;font:700 18px "Barlow Condensed",sans-serif;margin-bottom:22px}
+#handy .apps{display:grid;grid-template-columns:repeat(3,1fr);gap:22px 10px;margin-top:6px}
+#handy .app{background:none;display:flex;flex-direction:column;align-items:center;gap:7px;color:#e8eeff;font:700 15px "Barlow Condensed",sans-serif;padding:0;position:relative}
+#handy .app i{width:64px;height:64px;border-radius:18px;display:flex;align-items:center;justify-content:center;font-style:normal;font-size:32px;box-shadow:0 6px 16px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.25)}
+#handy .app em{position:absolute;top:-6px;right:14px;background:#e63b2e;color:#fff;font-style:normal;border-radius:11px;min-width:22px;height:22px;font:700 14px sans-serif;display:flex;align-items:center;justify-content:center;padding:0 6px}
+#handy .app:disabled{opacity:.35}
+#handy .hinweis{margin-top:auto;color:#8f9cc4;font:600 14px "Barlow Condensed",sans-serif;text-align:center;padding:10px 4px}
+#handy .zu{background:rgba(255,255,255,.1);color:#e8eeff;border-radius:14px;padding:10px;font:700 16px "Barlow Condensed",sans-serif;margin-bottom:4px}
+#handy .hleiste{height:5px;width:130px;background:rgba(255,255,255,.55);border-radius:3px;margin:8px auto 2px;cursor:pointer}
 #korbOv .card{max-width:min(860px,94vw);padding:0;overflow:hidden;display:flex;flex-direction:column;background:#0f1530}
 .ksum{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:8px 0;border-top:1px solid var(--line)}
 .ksum b{font-size:17px}.ksum small{display:block;color:var(--muted);font-size:14px}
@@ -240,6 +265,11 @@ body.compact .kan span{display:none}
 .kapkopf b{font-family:var(--display);font-size:17px;color:var(--signal);letter-spacing:.02em}
 .kapkopf small{opacity:.72}
 .kapkopf:not(.da) b{color:rgba(242,245,255,.6)}
+.kapkopf.voll{border-top-color:rgba(176,132,255,.55)}
+.kapkopf b i{font-style:normal;font-family:"Barlow Condensed",sans-serif;font-size:13px;letter-spacing:.04em;text-transform:uppercase;background:#7c5cff;color:#fff;border-radius:6px;padding:1px 7px;margin-left:8px;vertical-align:2px}
+.row.vorschau{opacity:.85;border-left:3px solid rgba(176,132,255,.5);padding-left:10px}
+.row.vorschau small{display:block}
+small.vollv{color:#b99cff;font-weight:700}
 #hKap{display:block;font-size:12px;font-weight:700;color:var(--signal);letter-spacing:.02em;margin-top:2px}
 body.compact #hKap{display:none}
 #kapBanner{position:fixed;left:50%;top:22%;transform:translate(-50%,-50%) scale(.9);z-index:40;pointer-events:none;opacity:0;
@@ -336,6 +366,7 @@ body.compact #btnAct{width:64px;height:64px;font-size:15px;right:calc(12px + env
 body.compact #btnDrop{width:50px;height:50px;font-size:11px;right:calc(84px + env(safe-area-inset-right));bottom:calc(10px + env(safe-area-inset-bottom))}
 body.compact #btnTool{width:42px;height:42px;font-size:11px;right:calc(14px + env(safe-area-inset-right));bottom:calc(84px + env(safe-area-inset-bottom))}
 body.compact #btnMove{width:42px;height:42px;font-size:11px;right:calc(80px + env(safe-area-inset-right));bottom:calc(66px + env(safe-area-inset-bottom))}
+body.compact #btnHandy{width:42px;height:42px;font-size:11px;right:calc(14px + env(safe-area-inset-right));bottom:calc(178px + env(safe-area-inset-bottom))}
 body.compact #btnPda{width:42px;height:42px;font-size:11px;right:calc(14px + env(safe-area-inset-right));bottom:calc(130px + env(safe-area-inset-bottom))}
 body.compact.coarse #carry{bottom:calc(10px + env(safe-area-inset-bottom));left:calc(50% - 60px);transform:none}
 body.compact.coarse #toasts{bottom:calc(48px + env(safe-area-inset-bottom))}
@@ -381,7 +412,7 @@ body.compact .pdahead2 b{font-size:16px}
   <div id="joy"></div>
   <div id="joyBase"><div id="joyKnob"></div></div>
   <button class="tbtn" id="btnMove" aria-label="Umbaumodus">Umbau</button>
-  <button class="tbtn" id="btnPda" aria-label="Preisgerät">Preis</button>
+  <button class="tbtn" id="btnPda" aria-label="Preisgerät">Preis</button><button class="tbtn" id="btnHandy" aria-label="Handy">Handy</button>
   <button class="tbtn" id="btnTool" aria-label="Pfefferspray">Spray</button>
   <button class="tbtn" id="btnDrop" aria-label="Karton abstellen">Ablegen</button>
   <button class="tbtn" id="btnAct" aria-label="Aktion">Aktion</button>
@@ -425,11 +456,17 @@ body.compact .pdahead2 b{font-size:16px}
 <div class="ov" id="laptop"><div class="card">
   <div class="lhead"><b>Böllerladen OS</b><em id="lLevel"></em><span id="lMoney"></span></div>
   <div class="tabs" id="ltabs">
-    <button data-tab="order">Bestellen</button><button data-tab="price">Preise &amp; Markt</button><button data-tab="liz">Sortiment</button><button data-tab="rez">Entwicklung</button><button data-tab="erf">Herausforderungen</button><button data-tab="up">Ausbau</button><button data-tab="einr">Einrichtung</button><button data-tab="markt">Marketing</button><button data-tab="online">Onlineshop</button><button data-tab="deko">Deko</button><button data-tab="staff">Personal</button><button data-tab="bank">Bank</button><button data-tab="stats">Bericht</button><button data-tab="shop">Laden</button>
+    <button data-tab="order">Bestellen</button><button data-tab="price">Preise &amp; Markt</button><button data-tab="liz">Sortiment</button><button data-tab="rez">Entwicklung</button><button data-tab="up">Ausbau</button><button data-tab="einr">Einrichtung</button><button data-tab="deko">Deko</button><button data-tab="shop">Laden</button>
   </div>
   <div class="lbody" id="lbody"></div>
   <div class="lfoot lfoot-r"><button class="ghost" id="lclose">Laptop zuklappen</button><button id="lKorb">Warenkorb anzeigen</button></div>
 </div></div>
+<div class="ov" id="handy"><div class="geraet"><div class="schirm">
+  <div class="kerbe"></div>
+  <div class="hstatus"><span id="hZeit"></span><span id="hGeld"></span></div>
+  <div id="hInhalt" style="flex:1;display:flex;flex-direction:column;min-height:0"></div>
+  <div class="hleiste" id="hHome" title="Startbildschirm"></div>
+</div></div></div>
 <div class="ov" id="korbOv"><div class="card korbcard">
   <div class="lhead"><b>Warenkorb</b><em id="korbCount"></em><span id="korbSum"></span></div>
   <div class="lbody" id="korbBody"></div>
@@ -674,13 +711,37 @@ const P={
 const ORDER=Object.keys(P);
 /* Kapitel: die grossen Stufen des Ladens. Jedes beginnt mit einem
    bestimmten Ausbau. */
+/* Demo und Vollversion (Tom, 24.09.): Kapitel 1-6 bilden die Demo,
+   die im Dezember erscheinen soll. Ab dem Logistikzentrum (Kapitel 7)
+   ist alles Vollversion - dort kommen auch die eigene Fabrik und die
+   eigenen Produkte. Kapitel 8-11 sind geplant, aber noch nicht gebaut;
+   im Ausbau stehen sie als Vorschau. Pyro-Imperium ist das Finale
+   (Kapitel 11): das Silvester-Stadtfeuerwerk, am Ende leuchtet die
+   ganze Stadt. */
 const KAPITEL=[
   {nr:1,name:'Pyro-Kiosk',up:null,txt:'Ein kleiner Laden, die Lieferungen kommen vor die Tür.'},
   {nr:2,name:'Kleines Fachgeschäft',up:'lager',txt:'Eigenes Lager mit Rampe: der LKW liefert direkt ans Rolltor.'},
   {nr:3,name:'Großes Fachgeschäft',up:'shop_gross',txt:'Das Ladenlokal nebenan gehört dir. Jetzt wird es richtig groß.'},
-  {nr:4,name:'Pyro-Imperium',up:'lager_west',txt:'Logistikzentrum mit Toren und Hof. Größer geht es nicht.'}
+  {nr:4,name:'Pyro-Versand',up:'onlineshop',txt:'Onlineshop und Packstation: du verkaufst ins ganze Land.'},
+  {nr:5,name:'Eigene Marke',up:'labor',txt:'Im Labor mischst du eigene Effekte und verkaufst sie unter deinem Namen.'},
+  {nr:6,name:'Pyro-Kaufhaus',up:'shop_sued',txt:'Riesige Verkaufsfläche und ein zweiter Eingang mit eigener Kasse.'},
+  {nr:7,name:'Pyro-Logistik',up:'lager_west',voll:true,txt:'Logistikzentrum mit Toren und Hof – der Grundstein für dein Imperium.'},
+  {nr:8,name:'Pyro-Fabrik',up:'fabrik',voll:true,geplant:true,txt:'Eigene Fabrikhalle: du produzierst deine Feuerwerke selbst.',
+    vorschau:['Fabrikhalle mit Mischraum und Fertigungsstraße','Eigene Produkte in Serie statt Einzelstücke aus dem Labor','Rohstoffe einkaufen, Qualität steuern']},
+  {nr:9,name:'Pyro-Großhändler',up:'grosshandel',voll:true,geplant:true,txt:'Du belieferst andere Läden mit deinen eigenen Marken.',
+    vorschau:['Händlerverträge und Lieferfristen','Eigene LKW-Flotte vom Logistikzentrum aus','Deine Marke in den Regalen der Konkurrenz']},
+  {nr:10,name:'Pyro-Kette',up:'filialen',voll:true,geplant:true,txt:'Filialen in anderen Städten, geführt von deinem Team.',
+    vorschau:['Filialen eröffnen und Filialleiter einstellen','Sortiment und Preise zentral steuern','Wettbewerb mit Ketten der Konkurrenz']},
+  {nr:11,name:'Pyro-Imperium',up:'stadtfeuerwerk',voll:true,geplant:true,txt:'Das Finale: du zündest das offizielle Silvesterfeuerwerk der Stadt.',
+    vorschau:['Offizielles Stadtfeuerwerk an Silvester, von dir geplant','Große Show mit Musik über der ganzen Stadt','Am Ende leuchtet die ganze Stadt – dein Imperium ist komplett']}
 ];
-function kapitelNr(){ let n=1; for(const k of KAPITEL) if(k.up&&S&&S.up&&S.up[k.up]) n=Math.max(n,k.nr); return n; }
+/* Demo-Schalter: an, sobald die Demo gebaut wird. Dann lassen sich die
+   Vollversions-Kapitel ansehen, aber nicht kaufen. */
+let DEMO=false;
+const kapitelVoll=nr=>!!(KAPITEL[nr-1]&&KAPITEL[nr-1].voll);
+/* Die Kapitel kommen der Reihe nach: wer ein spaeteres Kapitel schon
+   eroeffnet hat, steigt erst auf, wenn die davor auch geschafft sind. */
+function kapitelNr(){ let n=1; for(const k of KAPITEL){ if(!k.up) continue; if(S&&S.up&&S.up[k.up]) n=k.nr; else break; } return n; }
 function kapitel(){ return KAPITEL[kapitelNr()-1]; }
 const CATNAME={0:'Zubehör',1:'F1',2:'F2'};
 
@@ -698,26 +759,26 @@ const UPGRADES=[
   {id:'regallicht',kat:'einr',lvl:11,name:'Regalbeleuchtung',desc:'Ware wirkt hochwertiger, bessere Stimmung.',cost:()=>700,done:()=>S.up.regallicht},
   {id:'alarm',kat:'einr',lvl:14,name:'Warensicherung',desc:'Diebe werden am Ausgang meistens gestoppt.',cost:()=>2200,done:()=>S.up.alarm},
   {id:'grosskunden',kat:'markt',lvl:7,req:'lager',name:'Eintrag im Branchenbuch',desc:'Pyrotechniker und Veranstalter rufen dich für Großbestellungen an.',cost:()=>500,done:()=>S.up.grosskunden},
-  {id:'onlineshop',kat:'markt',lvl:18,name:'Onlineshop',desc:'Bringt jeden Tag Umsatz nebenbei, abhängig von deinem Ruf. Mit Packstation kommen die Bestellungen als echte Pakete ins Lager und bringen deutlich mehr.',cost:()=>3200,done:()=>S.up.onlineshop},
+  {id:'onlineshop',kat:'flaeche',lvl:15,kap:4,name:'Onlineshop',desc:'Bringt jeden Tag Umsatz nebenbei, abhängig von deinem Ruf. Mit Packstation kommen die Bestellungen als echte Pakete ins Lager und bringen deutlich mehr.',cost:()=>3200,done:()=>S.up.onlineshop},
   {id:'kundenkarte',kat:'markt',lvl:21,name:'Stammkundenkarte',desc:'Stammkunden kommen öfter wieder und zahlen bereitwilliger.',cost:()=>2600,done:()=>S.up.kundenkarte},
   {id:'tafel',kat:'markt',lvl:23,name:'Digitale Werbetafel',desc:'Große Tafel an der Fassade. Noch einmal deutlich mehr Kundschaft.',cost:()=>4200,done:()=>S.up.tafel},
   {id:'lizenz',kat:'markt',lvl:25,name:'Großhandelslizenz',desc:'Alle Lieferanten geben dir zusätzlich zehn Prozent Nachlass.',cost:()=>6500,done:()=>S.up.lizenz},
   {id:'klima',kat:'einr',lvl:27,name:'Klima und Musikanlage XL',desc:'Deutlich bessere Stimmung, Kunden bleiben spürbar länger.',cost:()=>5400,done:()=>S.up.klima},
   {id:'meister',kat:'markt',lvl:30,name:'Meisterbrief Pyrotechnik',desc:'Die höchste Stufe. Großaufträge zahlen ein Drittel mehr.',cost:()=>12000,done:()=>S.up.meister},
-  {id:'shop_halb',kat:'flaeche',lvl:4,name:'Ladenerweiterung 1 – etwas mehr Platz',desc:'Die zugemauerte Hälfte deines eigenen Ladenlokals: rund 70 Quadratmeter mehr, das zweite Schaufenster und zwei weitere Regalplätze. Die Trennwand fällt beim Kauf ganz weg — ein Raum, kein Pfeiler, kein Sturz. Dahinter liegt auch die Tür zum Testfeld.',cost:()=>1400,done:()=>S.up.shop_halb},
-  {id:'testfeld',kat:'flaeche',lvl:9,req:'shop_halb',name:'Testfeld freischalten',desc:'Der abgesperrte Hof hinter dem Laden wird dein Testfeld: Zündtisch, Abschussröhren und Mörserbatterie. Erst damit kannst du selbst zünden — und was du gezündet hast, spricht sich herum.',cost:()=>3200,done:()=>S.up.testfeld},
-  {id:'shop_gross',kat:'flaeche',lvl:12,req:'shop_halb',kap:3,name:'Ladenerweiterung 2 – deutlich mehr Platz',desc:'Kauft das leerstehende Ladenlokal nebenan. Die Seitenwand wird durchbrochen, die Schaufenster werden entmauert: rund 142 Quadratmeter mehr Fläche und zehn zusätzliche Regalplätze.',cost:()=>7500,done:()=>S.up.shop_gross},
+  {id:'shop_halb',kat:'flaeche',lvl:3,name:'Ladenerweiterung 1 – etwas mehr Platz',desc:'Die zugemauerte Hälfte deines eigenen Ladenlokals: rund 70 Quadratmeter mehr, das zweite Schaufenster und zwei weitere Regalplätze. Die Trennwand fällt beim Kauf ganz weg — ein Raum, kein Pfeiler, kein Sturz. Dahinter liegt auch die Tür zum Testfeld.',cost:()=>1400,done:()=>S.up.shop_halb},
+  {id:'testfeld',kat:'flaeche',lvl:5,req:'shop_halb',name:'Testfeld freischalten',desc:'Der abgesperrte Hof hinter dem Laden wird dein Testfeld: Zündtisch, Abschussröhren und Mörserbatterie. Erst damit kannst du selbst zünden — und was du gezündet hast, spricht sich herum.',cost:()=>3200,done:()=>S.up.testfeld},
+  {id:'shop_gross',kat:'flaeche',lvl:11,req:'shop_halb',kap:3,name:'Ladenerweiterung 2 – deutlich mehr Platz',desc:'Kauft das leerstehende Ladenlokal nebenan. Die Seitenwand wird durchbrochen, die Schaufenster werden entmauert: rund 142 Quadratmeter mehr Fläche und zehn zusätzliche Regalplätze.',cost:()=>7500,done:()=>S.up.shop_gross},
   /* Kapitel 2: das Lager. Bis dahin ist der Laden ein Kiosk: der
      Lieferant stellt die Kartons vor die Ladentuer, das Lager hinter
      dem Verkauf ist abgesperrt. */
   {id:'lager',kat:'flaeche',lvl:6,kap:2,name:'Lager mit Warenannahme',desc:'Das Lager hinter dem Laden wird deins: Rolltor mit Andockstation, der LKW fährt direkt an die Rampe, und du kannst Lagerregale aufstellen. Aus dem Pyro-Kiosk wird ein kleines Fachgeschäft.',cost:()=>1200,done:()=>S.up.lager},
   {id:'lager_nord',kat:'flaeche',lvl:8,req:'lager',name:'Lagererweiterung 1 – etwas mehr Platz',desc:'Was hinter der Trennwand im Lager liegt: 47 Quadratmeter mehr, sechs zusätzliche Stellplätze für Regale. Die Wand fällt beim Kauf ganz weg — kein Sturz, kein Pfeiler, ein durchgehender Raum bis zur Stirnwand.',cost:()=>1900,done:()=>S.up.lager_nord},
-  {id:'lager_gross',kat:'flaeche',lvl:15,req:'lager_nord',name:'Lagererweiterung 2 – deutlich mehr Platz',desc:'Hinter dem Rolltor wird die Wand auf neun Metern durchbrochen: der erste Abschnitt der großen Halle dahinter, 118 Quadratmeter mit fünf Metern lichter Höhe. Hier steht die Packstation, und ab hier lohnt sich der Onlineshop. Hochregale passen erst in diese Höhe.',cost:()=>6200,done:()=>S.up.lager_gross},
-  {id:'shop_ost',kat:'flaeche',lvl:20,req:'shop_gross',name:'Ladenerweiterung 3 – viel mehr Platz',desc:'Das nächste leerstehende Lokal in der Reihe: noch einmal 212 Quadratmeter, Gondelgassen, Eckregal und eine lange Wandreihe.',cost:()=>16000,done:()=>S.up.shop_ost},
-  {id:'shop_sued',kat:'flaeche',lvl:26,req:'shop_ost',name:'Ladenerweiterung 4 – riesig viel Platz',desc:'Die große Halle hinter dem Laden, zwei breite Durchgänge: 478 Quadratmeter Verkaufsfläche mit zwei Gondelgassen. Damit ist der Laden fünfeinhalbmal so groß wie am Anfang.',cost:()=>34000,done:()=>S.up.shop_sued},
-  {id:'lager_sued',kat:'flaeche',lvl:20,req:'lager_gross',name:'Lagererweiterung 3 – noch mehr Platz',desc:'Der zweite Abschnitt, noch einmal 83 Quadratmeter. Die Wand zum ersten fällt ganz weg — kein Pfeiler, kein Sturz, eine durchgehende Halle.',cost:()=>11000,done:()=>S.up.lager_sued},
-  {id:'lager_sued2',kat:'flaeche',lvl:24,req:'lager_sued',name:'Lagererweiterung 4 – die ganze Halle',desc:'Der letzte Abschnitt bis zur Stirnwand. Damit steht die ganze Halle: 283 Quadratmeter am Stück, dreizehn Stellplätze für Hoch- und Schwerlastregale.',cost:()=>15000,done:()=>S.up.lager_sued2},
-  {id:'lager_west',kat:'flaeche',lvl:28,req:'lager_sued2',kap:4,name:'Logistikzentrum freischalten – riesige Halle mit Toren',desc:'Die große Halle an den vier Toren: 1520 Quadratmeter auf 40 mal 38 Metern, zwölf Stellplätze für Hochregale und ein Hof, auf dem mehrere Auflieger stehen können. Dazu wird der Lagergang hinter dem Laden geöffnet — der kurze Weg vom Rückgebäude direkt ins Lager, ohne Umweg über den Verkaufsraum.',cost:()=>38000,done:()=>S.up.lager_west},
+  {id:'lager_gross',kat:'flaeche',lvl:13,req:'lager_nord',name:'Lagererweiterung 2 – deutlich mehr Platz',desc:'Hinter dem Rolltor wird die Wand auf neun Metern durchbrochen: der erste Abschnitt der großen Halle dahinter, 118 Quadratmeter mit fünf Metern lichter Höhe. Hier steht die Packstation, und ab hier lohnt sich der Onlineshop. Hochregale passen erst in diese Höhe.',cost:()=>6200,done:()=>S.up.lager_gross},
+  {id:'shop_ost',kat:'flaeche',lvl:21,req:'shop_gross',name:'Ladenerweiterung 3 – viel mehr Platz',desc:'Das nächste leerstehende Lokal in der Reihe: noch einmal 212 Quadratmeter, Gondelgassen, Eckregal und eine lange Wandreihe.',cost:()=>16000,done:()=>S.up.shop_ost},
+  {id:'shop_sued',kat:'flaeche',lvl:24,req:'shop_ost',kap:6,name:'Ladenerweiterung 4 – riesig viel Platz',desc:'Die große Halle hinter dem Laden, zwei breite Durchgänge: 478 Quadratmeter Verkaufsfläche mit zwei Gondelgassen. Damit ist der Laden fünfeinhalbmal so groß wie am Anfang.',cost:()=>34000,done:()=>S.up.shop_sued},
+  {id:'lager_sued',kat:'flaeche',lvl:18,req:'lager_gross',name:'Lagererweiterung 3 – noch mehr Platz',desc:'Der zweite Abschnitt, noch einmal 83 Quadratmeter. Die Wand zum ersten fällt ganz weg — kein Pfeiler, kein Sturz, eine durchgehende Halle.',cost:()=>11000,done:()=>S.up.lager_sued},
+  {id:'lager_sued2',kat:'flaeche',lvl:25,req:'lager_sued',name:'Lagererweiterung 4 – die ganze Halle',desc:'Der letzte Abschnitt bis zur Stirnwand. Damit steht die ganze Halle: 283 Quadratmeter am Stück, dreizehn Stellplätze für Hoch- und Schwerlastregale.',cost:()=>15000,done:()=>S.up.lager_sued2},
+  {id:'lager_west',kat:'flaeche',lvl:28,req:'lager_sued2',kap:7,name:'Logistikzentrum freischalten – riesige Halle mit Toren',desc:'Die große Halle an den vier Toren: 1520 Quadratmeter auf 40 mal 38 Metern, zwölf Stellplätze für Hochregale und ein Hof, auf dem mehrere Auflieger stehen können. Dazu wird der Lagergang hinter dem Laden geöffnet — der kurze Weg vom Rückgebäude direkt ins Lager, ohne Umweg über den Verkaufsraum.',cost:()=>38000,done:()=>S.up.lager_west},
   /* Andockstationen. Die Basisrampe hinter dem Lager ist die erste
      und bleibt die begehbare; jede zugekaufte Westrampe nimmt eine
      Lieferung zusaetzlich an, parallel zu allen anderen. */
@@ -726,9 +787,9 @@ const UPGRADES=[
   {id:'rampe4',kat:'flaeche',lvl:30,req:'rampe3',name:'Andockstation 4',desc:'Das dritte Tor der Westhalle. Vier Lieferungen gleichzeitig.',cost:()=>25000,done:()=>S.up.rampe4},
   {id:'rampe5',kat:'flaeche',lvl:30,req:'rampe4',name:'Andockstation 5',desc:'Das vierte Tor der Westhalle. Zusammen mit der Basisrampe rollen dann fünf Lieferungen gleichzeitig an — mehr gibt das Grundstück nicht her.',cost:()=>31000,done:()=>S.up.rampe5},
   {id:'packstation',kat:'flaeche',lvl:16,req:'lager_gross',name:'Packstation für den Versand',desc:'Packtisch, Waage, Etikettendrucker und Abholrampe im ersten Abschnitt der großen Halle, gleich hinter dem Rolltor. Zusammen mit dem Onlineshop kommen Bestellungen als echte Pakete herein: packen, auf die Rampe stellen, DDL holt am Abend ab.',cost:()=>6400,done:()=>S.up.packstation},
-  {id:'eingang2',kat:'flaeche',lvl:24,req:'shop_ost',name:'Ladenerweiterung 5 – zweite Tür mit Kasse',desc:'Im Eckhaus ist die mittlere Achse bis zum Boden offen und wartet auf eine Tür. Der Ausbau setzt dieselbe Schiebetür wie am Haupteingang hinein, mit Vordach und Matte, und stellt dahinter eine eigene SB-Kassenzeile auf. Kunden nehmen ab jetzt den Eingang, der näher liegt, und die Schlange am Band wird spürbar kürzer. Die Kassenzeile lässt sich im Umbaumodus verschieben.',cost:()=>11500,done:()=>S.up.eingang2},
+  {id:'eingang2',kat:'flaeche',lvl:25,req:'shop_ost',name:'Ladenerweiterung 5 – zweite Tür mit Kasse',desc:'Im Eckhaus ist die mittlere Achse bis zum Boden offen und wartet auf eine Tür. Der Ausbau setzt dieselbe Schiebetür wie am Haupteingang hinein, mit Vordach und Matte, und stellt dahinter eine eigene SB-Kassenzeile auf. Kunden nehmen ab jetzt den Eingang, der näher liegt, und die Schlange am Band wird spürbar kürzer. Die Kassenzeile lässt sich im Umbaumodus verschieben.',cost:()=>11500,done:()=>S.up.eingang2},
   {id:'kasse2',kat:'einr',lvl:16,req:'shop_gross',name:'SB-Kassen',desc:'Zwei Selbstbedienungsterminals in der neuen Verkaufsfläche. Kunden mit wenig Ware zahlen dort selbst, das entlastet deine Schlange spürbar.',cost:()=>3400,done:()=>S.up.kasse2},
-  {id:'labor',kat:'einr',lvl:25,req:'shop_gross',name:'Entwicklungslabor',desc:'Ein Labortisch im Lager. Ab hier entwickelst du eigene Rezepturen: Träger, Bruchbild und Farben aussuchen, Prototyp auf dem Testfeld zünden, in Produktion geben. Verbauen darfst du nur Bruchbilder, die du selbst schon am Himmel gesehen hast.',cost:()=>9800,done:()=>S.up.labor},
+  {id:'labor',kat:'flaeche',lvl:20,req:'shop_gross',kap:5,name:'Entwicklungslabor',desc:'Ein Labortisch im Lager. Ab hier entwickelst du eigene Rezepturen: Träger, Bruchbild und Farben aussuchen, Prototyp auf dem Testfeld zünden, in Produktion geben. Verbauen darfst du nur Bruchbilder, die du selbst schon am Himmel gesehen hast.',cost:()=>9800,done:()=>S.up.labor},
   {id:'labor2',kat:'einr',lvl:28,req:'labor',name:'Zweite Zündstufe',desc:'Erweitert das Labor um eine zweite Stufe im Rezept: Nach dem Hauptbruch geht ein zweites Bruchbild auf. Der größte einzelne Sprung im Wert einer Rezeptur.',cost:()=>16500,done:()=>S.up.labor2},
   {id:'gravur',kat:'einr',lvl:9,name:'Gravur-Automat',desc:'Kunden beschriften ihre eigene Rakete. Hohe Marge, du musst nur Blanko-Ware nachfüllen.',cost:()=>1200,done:()=>S.up.gravur}
 ];
@@ -752,7 +813,7 @@ const DEKO=[
 const STAFF=[
   {id:'reinigung',lvl:6,name:'Reinigungskraft',desc:'Wischt den Dreck weg, solange der Laden offen ist.',hire:250,wage:55},
   {id:'auffueller',lvl:9,req:'lager',name:'Regalauffüller',desc:'Lädt den LKW aus, räumt ins Lager und füllt die Regale. Priorität einstellbar.',hire:450,wage:110},
-  {id:'auffueller2',lvl:12,name:'Zweiter Auffüller',desc:'Zweites Paar Hände. Andere Priorität einstellen, dann greift es ineinander.',hire:600,wage:130},
+  {id:'auffueller2',lvl:12,req:'lager',name:'Zweiter Auffüller',desc:'Zweites Paar Hände. Andere Priorität einstellen, dann greift es ineinander.',hire:600,wage:130},
   {id:'kassierer',lvl:11,name:'Kassierer',desc:'Scannt und kassiert selbstständig an der Kasse.',hire:600,wage:145},
   /* Weitere Kassierer: jeder besetzt eine SB-Kasse. Besetzt nimmt sie
      auch volle Koerbe und kassiert gut doppelt so schnell. */
@@ -5489,15 +5550,8 @@ function buildLagerTerminal(){
   /* Laptop auf dem Tisch */
   bbox(0.42,0.02,0.3,dunkel,0,0.855,0.04,g,false);
   { const d=bbox(0.42,0.28,0.02,dunkel,0,1.0,-0.1,g,false); d.rotation.x=-0.28;
-    const sc=plane(0.38,0.24,new THREE.MeshBasicMaterial({toneMapped:false,map:tex(300,190,(c,W,H)=>{
-      c.fillStyle='#101a2e'; c.fillRect(0,0,W,H);
-      c.fillStyle='#ffd23f'; c.font=BUN(26); c.textAlign='center'; c.textBaseline='middle';
-      c.fillText('LAGERTERMINAL',W/2,34);
-      c.fillStyle='#8fb6e8'; c.font=BAR(20);
-      c.fillText('Bestellen · Versand · Rampen',W/2,72);
-      c.fillStyle='#1d2b48'; for(let i=0;i<4;i++) c.fillRect(24,96+i*22,W-48,14);
-      c.fillStyle='#6cf2a8'; for(let i=0;i<4;i++) c.fillRect(24,96+i*22,rand(50,W-60),14);
-    })}),0,1.0,-0.088,0,g); sc.rotation.x=-0.28; }
+    const sch=neuerSchoner(480,304,'Lagerterminal');
+    const sc=plane(0.38,0.24,new THREE.MeshBasicMaterial({toneMapped:false,map:sch.t}),0,1.0,-0.088,0,g); sc.rotation.x=-0.28; sch.mesh=sc; }
   /* Rollcontainer und Papierkorb, damit die Ecke nicht leer wirkt */
   rbox(0.4,0.56,0.5,0.014,dunkel,0.62,0.3,0.1,g);
   lapHit2=bbox(1.8,1.2,1.0,hitM,0,0.9,0,g,false);
@@ -7224,6 +7278,84 @@ function updateStadt(dt){
   }
 }
 /* =========================================================
+   Bildschirmschoner auf den Laptops (Tom, 24.09.: statt der Menue-
+   attrappe "Bestellen, Preise, Ausbau" etwas, das besser aussieht)
+   Nachthimmel mit kleinem Feuerwerk ueber einer Stadtsilhouette,
+   unten der Ladenname und die Uhrzeit im Spiel.
+   Gezeichnet wird nur, wenn man in der Naehe steht, und dann mit
+   12 Bildern je Sekunde - der Schoner kostet sonst nichts.
+   ========================================================= */
+const SCHONER=[];
+function neuerSchoner(w,h,titel){
+  const t=tex(w,h,()=>{}), c=t.image, g=c.getContext('2d');
+  const o={t,c,g,w,h,titel,funken:[],raketen:[],sterne:[],haus:[],uhr:0,naechste:0.3,mesh:null,gezeichnet:-1};
+  for(let i=0;i<70;i++) o.sterne.push({x:Math.random()*w,y:Math.random()*h*0.62,r:Math.random()*1.3+0.3,ph:Math.random()*6});
+  /* Stadtsilhouette mit ein paar erleuchteten Fenstern */
+  let x=0; while(x<w){ const bw=18+Math.random()*44, bh=h*(0.1+Math.random()*0.22), fe=[];
+    for(let fy=h-bh+8;fy<h-10;fy+=9) for(let fx=x+5;fx<x+bw-6;fx+=8) if(Math.random()<0.22) fe.push([fx,fy]);
+    o.haus.push({x,bw,bh,fe}); x+=bw+2; }
+  schonerMalen(o,0);
+  SCHONER.push(o); return o;
+}
+function schonerRakete(o){
+  const w=o.w,h=o.h;
+  o.raketen.push({x:w*(0.15+Math.random()*0.7),y:h*0.86,vx:(Math.random()-0.5)*18,vy:-(h*0.62+Math.random()*h*0.25),
+    zuend:0.75+Math.random()*0.45,f:pick(SCHEMES)});
+}
+function schonerBruch(o,r){
+  const A=FW[r.f[0]], B=FW[r.f[1]], n=46+Math.floor(Math.random()*30), v=o.h*(0.22+Math.random()*0.12), art=Math.floor(Math.random()*3);
+  for(let i=0;i<n;i++){ const a=i/n*Math.PI*2+Math.random()*0.1, s=v*(art===1?(i%2?1:0.55):0.85+Math.random()*0.3), c=i%3?A:B;
+    o.funken.push({x:r.x,y:r.y,px:r.x,py:r.y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,l:1.4+Math.random()*0.8,m:1.4+Math.random()*0.8,c,weide:art===2}); }
+}
+function schonerMalen(o,dt){
+  const g=o.g,w=o.w,h=o.h;
+  o.uhr+=dt; o.naechste-=dt; if(o.naechste<=0){ schonerRakete(o); o.naechste=0.5+Math.random()*1.1; }
+  /* Himmel */
+  const gr=g.createLinearGradient(0,0,0,h); gr.addColorStop(0,'#070b1f'); gr.addColorStop(0.6,'#1a1540'); gr.addColorStop(1,'#35204d');
+  g.globalCompositeOperation='source-over'; g.fillStyle=gr; g.fillRect(0,0,w,h);
+  for(const s of o.sterne){ g.globalAlpha=0.45+0.4*Math.sin(o.uhr*1.7+s.ph); g.fillStyle='#e8eeff'; g.fillRect(s.x,s.y,s.r,s.r); }
+  g.globalAlpha=1;
+  /* Raketen und Funken, additiv */
+  g.globalCompositeOperation='lighter';
+  for(let i=o.raketen.length-1;i>=0;i--){ const r=o.raketen[i];
+    const px=r.x, py=r.y; r.vy+=h*0.35*dt; r.x+=r.vx*dt; r.y+=r.vy*dt; r.zuend-=dt;
+    g.strokeStyle='rgba(255,210,140,.85)'; g.lineWidth=2; g.beginPath(); g.moveTo(px,py+6); g.lineTo(r.x,r.y); g.stroke();
+    if(r.zuend<=0){ schonerBruch(o,r); o.raketen.splice(i,1); } }
+  for(let i=o.funken.length-1;i>=0;i--){ const f=o.funken[i];
+    f.px=f.x; f.py=f.y; const zieh=Math.max(0,1-1.6*dt);
+    f.vx*=zieh; f.vy=f.vy*zieh+h*(f.weide?0.22:0.12)*dt; f.x+=f.vx*dt; f.y+=f.vy*dt; f.l-=dt;
+    if(f.l<=0){ o.funken.splice(i,1); continue; }
+    const k=f.l/f.m, c=f.c, rgb=`${Math.round(c[0]*255)},${Math.round(c[1]*255)},${Math.round(c[2]*255)}`;
+    g.strokeStyle=`rgba(${rgb},${(k*0.9).toFixed(3)})`; g.lineWidth=f.weide?1.6:2.2;
+    g.beginPath(); g.moveTo(f.px-(f.x-f.px)*(f.weide?5:2.5),f.py-(f.y-f.py)*(f.weide?5:2.5)); g.lineTo(f.x,f.y); g.stroke();
+    g.fillStyle=`rgba(255,255,255,${(k*0.8).toFixed(3)})`; g.fillRect(f.x-1,f.y-1,2,2); }
+  g.globalCompositeOperation='source-over';
+  /* Stadt */
+  for(const b of o.haus){ g.fillStyle='#0b0d1a'; g.fillRect(b.x,h-b.bh,b.bw,b.bh);
+    g.fillStyle='rgba(255,214,120,.75)'; for(const [fx,fy] of b.fe) g.fillRect(fx,fy,3,4); }
+  /* Leiste unten: Ladenname links, Uhrzeit rechts */
+  g.fillStyle='rgba(8,10,24,.72)'; g.fillRect(0,h-30,w,30);
+  g.fillStyle='#ffd23f'; g.font=BUN(15); g.textAlign='left'; g.textBaseline='middle';
+  g.fillText((o.titel||shopName()).toUpperCase().slice(0,26),12,h-15);
+  const min=Math.floor(typeof clock==='number'?clock:0), hh=Math.floor(min/60)%24, mm=min%60;
+  g.fillStyle='#e8eeff'; g.font=BAR(20); g.textAlign='right';
+  g.fillText(`${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}`,w-12,h-15);
+  o.t.needsUpdate=true;
+}
+const _sp=new THREE.Vector3();
+/* getaktet nach echter Zeit, nicht nach Spielzeit: im Zeitraffer
+   (Tests, Tagesende) wuerde er sonst tausendfach gezeichnet */
+let schonerTakt=0, schonerZuletzt=0;
+function updateSchoner(dt){
+  schonerTakt+=dt; const jetzt=performance.now();
+  if(jetzt-schonerZuletzt<1000/12) return; schonerZuletzt=jetzt; const d=schonerTakt; schonerTakt=0;
+  for(const o of SCHONER){ if(!o.mesh) continue;
+    o.mesh.getWorldPosition(_sp);
+    /* nur zeichnen, wenn man nah genug ist, um es zu sehen */
+    if(Math.abs(_sp.x-pl.x)>14||Math.abs(_sp.z-pl.z)>14) continue;
+    schonerMalen(o,Math.min(d,0.2)); o.gezeichnet=performance.now(); }
+}
+/* =========================================================
    Zweiter Eingang mit eigener Kasse.
 
    Das Eckhaus hat eine Achse, die bis zum Boden offen ist.
@@ -7722,20 +7854,10 @@ function buildDesk(){
   bbox(0.12,0.004,0.06,std(0x353b47),0,0.021,0.17,lap,false);
   const lid=rbox(0.45,0.3,0.014,0.006,std(0x2b303c,{metalness:0.45,roughness:0.35}),0,0.16,-0.08,lap);
   lid.rotation.x=-0.22;
-  const scr=new THREE.Mesh(new THREE.PlaneGeometry(0.41,0.26),new THREE.MeshBasicMaterial({toneMapped:false,map:tex(960,600,(g,W,H)=>{
-    g.scale(W/320,H/200);
-    g.fillStyle='#0f1530'; g.fillRect(0,0,320,200);
-    g.fillStyle='#1b2340'; g.fillRect(0,0,320,34);
-    g.fillStyle='#ffd23f'; g.font=BUN(22); g.fillText('BÖLLERLADEN OS',12,25);
-    g.fillStyle='#8fb4e0'; g.font=BAR(17);
-    ['Bestellen','Preise','Ausbau','Deko','Personal','Bank'].forEach((t,i)=>{
-      g.fillStyle=i===0?'#ffd23f':'#2a3350'; g.fillRect(12,48+i*24,86,19);
-      g.fillStyle=i===0?'#0e1226':'#cfe0f5'; g.fillText(t,18,62+i*24); });
-    g.fillStyle='#1b2340'; g.fillRect(110,48,320-124,200-62);
-    g.fillStyle='#6cf2a8'; g.font=BAR(16);
-    for(let i=0;i<6;i++){ g.fillStyle=i%2?'#223055':'#1b2340'; g.fillRect(114,52+i*22,320-132,20);
-      g.fillStyle='#cfe0f5'; g.fillText('Artikel '+(i+1),120,67+i*22);
-      g.fillStyle='#6cf2a8'; g.fillText((2.49+i*1.5).toFixed(2).replace('.',',')+' €',320-60,67+i*22); } })}));
+  /* Bildschirmschoner statt Menueattrappe - das echte Menue oeffnet sich beim Anklicken */
+  const sch=neuerSchoner(512,320);
+  const scr=new THREE.Mesh(new THREE.PlaneGeometry(0.41,0.26),new THREE.MeshBasicMaterial({toneMapped:false,map:sch.t}));
+  sch.mesh=scr;
   scr.position.set(0,0.16,-0.072); scr.rotation.x=-0.22; lap.add(scr);
   const led=new THREE.MeshStandardMaterial({color:LIN(0x0a2a12),emissive:LIN(0x3dff7a),emissiveIntensity:1.4});
   bbox(0.012,0.006,0.004,led,0.18,0.02,0.19,lap,false);
@@ -8332,14 +8454,128 @@ function dreckRaum(x,z){
 }
 function addDirt(x,z){
   if(dirts.length>13) return;
+  DS.dreck=(DS.dreck||0)+1;
   const r=dreckRaum(x,z);
-  const m=new THREE.Mesh(new THREE.PlaneGeometry(0.55,0.55),dirtMat); m.rotation.x=-Math.PI/2; m.rotation.z=Math.random()*3;
+  const m=new THREE.Mesh(new THREE.PlaneGeometry(0.55,0.55),dirtMat.clone()); m.rotation.x=-Math.PI/2; m.rotation.z=Math.random()*3;
   m.position.set(clamp(x,r.x0+0.5,r.x1-0.5),0.028,clamp(z,r.z0+0.5,r.z1-0.5)); m.renderOrder=3; scene.add(m);
   const hit=bbox(0.6,0.5,0.6,hitM,m.position.x,0.25,m.position.z,null,false);
   const d={m,hit,work:0}; hit.userData={kind:'dirt',ref:d}; dirts.push(d); return d;
 }
 function removeDirt(d){ const i=dirts.indexOf(d); if(i<0) return; dirts.splice(i,1); scene.remove(d.m); scene.remove(d.hit); }
 function nearestDirt(p,maxD){ let b=null,bd=maxD||99; for(const d of dirts){ const dist=Math.hypot(d.m.position.x-p.x,d.m.position.z-p.z); if(dist<bd){ bd=dist; b=d; } } return b; }
+/* =========================================================
+   Bodenwischer (Tom, 24.09.: "ein grafisch schoen gemachter Putz-
+   lappen, damit wischt man den Dreck weg, und die Reinigungskraft hat
+   ihn auch in der Hand - wie im Supermarkt-Simulator")
+   Ein Mikrofaserlappen auf einer Wischplatte am Teleskopstiel: im
+   Stehen kommt man mit einem Handlappen nicht an den Boden.
+   Der Wischer wird im Koordinatensystem seines Elternteils gestellt:
+   Kopf auf den Boden, Stiel zur Hand. Der Stiel ist ausziehbar, damit
+   er auch bei Flecken etwas weiter weg bis in die Hand reicht.
+   ========================================================= */
+const mikrofaserTex=tex(256,96,(g,W,H)=>{
+  /* Grundton petrolblau, darauf feine Faserschlingen */
+  const gr=g.createLinearGradient(0,0,0,H); gr.addColorStop(0,'#3f8fb0'); gr.addColorStop(0.5,'#4aa3c4'); gr.addColorStop(1,'#3a86a6');
+  g.fillStyle=gr; g.fillRect(0,0,W,H);
+  for(let i=0;i<2600;i++){ const x=Math.random()*W, y=Math.random()*H, l=1+Math.random()*3;
+    g.strokeStyle=Math.random()<0.5?'rgba(255,255,255,.16)':'rgba(10,40,60,.22)'; g.lineWidth=0.8;
+    g.beginPath(); g.moveTo(x,y); g.quadraticCurveTo(x+l*0.5,y-l,x+l,y); g.stroke(); }
+  /* Steppnaht rundum und aufgenaehtes Etikett */
+  g.strokeStyle='rgba(20,60,85,.7)'; g.setLineDash([5,4]); g.lineWidth=2; g.strokeRect(7,7,W-14,H-14); g.setLineDash([]);
+  g.fillStyle='#f2c230'; g.fillRect(W-46,H/2-9,34,18); g.fillStyle='#1c2430'; g.font='bold 11px sans-serif'; g.textAlign='center'; g.textBaseline='middle'; g.fillText('PRO',W-29,H/2+1);
+},false);
+const fransenTex=tex(128,32,(g,W,H)=>{ g.clearRect(0,0,W,H);
+  for(let x=0;x<W;x+=2){ const l=H*(0.55+Math.random()*0.45); g.strokeStyle=Math.random()<0.5?'#5cb3d2':'#3b88a8'; g.lineWidth=1.6;
+    g.beginPath(); g.moveTo(x+1,0); g.lineTo(x+1+(Math.random()-0.5)*3,l); g.stroke(); } },false);
+function makeWischer(){
+  const g=new THREE.Group();
+  const alu=std(0xc9ced6,{metalness:0.85,roughness:0.28}), alu2=std(0xaeb4bd,{metalness:0.85,roughness:0.34});
+  const blau=std(0x1f5fa8,{roughness:0.55}), grau=std(0x3a3f48,{roughness:0.6}), gelb=std(0xf2c230,{roughness:0.5});
+  /* Kopf: Kunststoffplatte, darunter der Lappen, an den Enden Fransen */
+  const kopf=new THREE.Group(); g.add(kopf);
+  const tuch=new THREE.MeshStandardMaterial({map:mikrofaserTex,roughness:0.95});
+  rbox(0.44,0.022,0.14,0.008,tuch,0,0.011,0,kopf);
+  rbox(0.4,0.016,0.11,0.006,grau,0,0.03,0,kopf);
+  rbox(0.36,0.006,0.05,0.003,blau,0,0.041,0,kopf);
+  const fr=new THREE.MeshBasicMaterial({map:fransenTex,transparent:true,side:THREE.DoubleSide,alphaTest:0.3});
+  for(const sx of [-1,1]){ const f=new THREE.Mesh(new THREE.PlaneGeometry(0.14,0.03),fr); f.rotation.set(-1.3,sx>0?Math.PI/2:-Math.PI/2,0); f.position.set(sx*0.226,0.008,0); kopf.add(f); }
+  /* Gelenk mit Kugelkopf */
+  bbox(0.05,0.026,0.04,grau,0,0.052,0,kopf,false);
+  const kugel=new THREE.Mesh(new THREE.SphereGeometry(0.02,12,8),grau); kugel.position.y=0.07; kopf.add(kugel);
+  /* Stiel: dreht sich um das Gelenk. Unten das duenne Innenrohr, oben
+     das dicke Aussenrohr mit Klemme, Griff und Aufhaengeoese */
+  const stiel=new THREE.Group(); g.add(stiel);
+  const innen=new THREE.Mesh(new THREE.CylinderGeometry(0.0105,0.0105,1,10),alu2); stiel.add(innen);
+  const aussen=new THREE.Group(); stiel.add(aussen);
+  { const r=new THREE.Mesh(new THREE.CylinderGeometry(0.0135,0.0135,0.82,10),alu); r.position.y=-0.41; aussen.add(r);
+    const kl=new THREE.Mesh(new THREE.CylinderGeometry(0.019,0.019,0.05,12),gelb); kl.position.y=-0.8; aussen.add(kl);
+    const gr=new THREE.Mesh(new THREE.CylinderGeometry(0.018,0.018,0.2,12),blau); gr.position.y=-0.1; aussen.add(gr);
+    for(let i=0;i<4;i++){ const rl=new THREE.Mesh(new THREE.TorusGeometry(0.0185,0.0035,6,14),grau); rl.rotation.x=Math.PI/2; rl.position.y=-0.03-i*0.045; aussen.add(rl); }
+    const oese=new THREE.Mesh(new THREE.TorusGeometry(0.014,0.004,6,12),grau); oese.position.y=0.01; aussen.add(oese); }
+  g.userData={kopf,stiel,innen,aussen,ph:Math.random()*6};
+  return g;
+}
+/* Kopf auf k (Boden, y wird 0), Blickrichtung ry, Stielende bei h -
+   beides im Koordinatensystem des Elternteils */
+const _wd=new THREE.Vector3(), _wy=new THREE.Vector3(0,1,0);
+function stelleWischer(w,k,ry,h){
+  const u=w.userData;
+  u.kopf.position.set(k.x,0,k.z); u.kopf.rotation.set(0,ry,0);
+  u.stiel.position.set(k.x,0.07,k.z);
+  _wd.set(h.x-k.x,h.y-0.07,h.z-k.z); const L=clamp(_wd.length(),0.9,2.3); _wd.normalize();
+  u.stiel.quaternion.setFromUnitVectors(_wy,_wd);
+  /* Innenrohr vom Gelenk bis ins Aussenrohr, Aussenrohr endet in der Hand */
+  u.innen.scale.y=Math.max(0.1,L-0.7); u.innen.position.y=u.innen.scale.y/2;
+  u.aussen.position.y=L;
+}
+/* Dreck verblasst beim Wischen */
+function dreckAnteil(d,rest){ if(d&&d.m&&d.m.material) d.m.material.opacity=0.85*clamp(rest,0.15,1); }
+
+/* ---------- Spieler: der Wischer erscheint, solange man wischt ---------- */
+let wischer=null, wischT=0, wischZiel=null, wischPh=0;
+function wischerBauen(){ if(wischer) return; wischer=makeWischer(); wischer.visible=false; scene.add(wischer); }
+function wischeSpieler(d){ wischerBauen(); wischZiel=d; wischT=0.4; }
+function updateWischen(dt){
+  if(!wischer) return;
+  if(wischT<=0||!wischZiel||dirts.indexOf(wischZiel)<0){ wischer.visible=false; wischT=0; return; }
+  wischT-=dt; wischPh+=dt*9.5; wischer.visible=true;
+  const fx=-Math.sin(yaw), fz=-Math.cos(yaw), rx=Math.cos(yaw), rz=-Math.sin(yaw), q=wischZiel.m.position;
+  /* Achterschleife ueber dem Fleck */
+  const a=Math.sin(wischPh)*0.17, b=Math.sin(wischPh*2)*0.05;
+  const k={x:q.x+rx*a+fx*b,z:q.z+rz*a+fz*b};
+  const c=camera.position;
+  const h={x:c.x+rx*0.3+fx*0.16,y:c.y-0.5,z:c.z+rz*0.3+fz*0.16};
+  stelleWischer(wischer,k,yaw+Math.sin(wischPh)*0.25,h);
+}
+
+/* ---------- Reinigungskraft: traegt den Wischer immer bei sich ---------- */
+/* Der Stiel endet dort, wo die rechte Hand des Modells gerade ist -
+   aus Schulter, Unterarm und Handkasten ausgerechnet, nicht geraten */
+const _wl=new THREE.Vector3(), _wh=new THREE.Vector3();
+function handVon(w,arm){
+  const fa=arm.children.find(c=>c.isGroup)||arm;
+  _wh.set(0,-0.33,0.02); w.g.updateMatrixWorld(); fa.localToWorld(_wh); w.g.worldToLocal(_wh);
+  return {x:_wh.x,y:_wh.y,z:_wh.z};
+}
+function wischerPersonal(w,dt){
+  if(!w.wischer){ w.wischer=makeWischer(); w.g.add(w.wischer); }
+  const W=w.wischer, u=W.userData, arm=w.g.userData.arms[0];
+  if(w.state==='work'&&w.target&&dirts.indexOf(w.target)>=0){
+    /* zum Fleck drehen, dann in Schleifen wischen */
+    const q=w.target.m.position, ty=Math.atan2(q.x-w.pos.x,q.z-w.pos.z);
+    let df=ty-w.g.rotation.y; while(df>Math.PI) df-=Math.PI*2; while(df<-Math.PI) df+=Math.PI*2; w.g.rotation.y+=df*Math.min(1,dt*8);
+    u.ph+=dt*8*(w.wf||1);
+    arm.rotation.x=-0.5+Math.sin(u.ph)*0.12; arm.rotation.z=-0.05+Math.sin(u.ph)*0.08;
+    w.g.updateMatrixWorld(); _wl.copy(q); w.g.worldToLocal(_wl);
+    const k={x:_wl.x+Math.sin(u.ph)*0.16,z:_wl.z+Math.sin(u.ph*2)*0.05};
+    stelleWischer(W,k,Math.sin(u.ph)*0.25,handVon(w,arm));
+    dreckAnteil(w.target,w.t/2.2);
+  } else {
+    /* beim Gehen: Stiel in der Hand, der Kopf gleitet vorn neben dem rechten Fuss */
+    arm.rotation.x=-0.22; arm.rotation.z=-0.05;
+    stelleWischer(W,{x:-0.3,z:0.62},0.3,handVon(w,arm));
+  }
+}
 
 /* =========================================================
    Kartons am Boden & Tragen
@@ -8553,6 +8789,12 @@ function makeTruck(name,col){
   return g;
 }
 /* --- Begehbarer Innenraum --- */
+/* Laderaumlampen stehen fest in der Szene, nur ihre Helligkeit
+   wechselt. Kam frueher mit jedem LKW ein neues Licht dazu, musste
+   three.js alle Shader neu uebersetzen - das Bild stand beim Andocken
+   jedes Mal (15 Shader). Es gibt nur einen begehbaren Laderaum. */
+const LR_LAMPE=[new THREE.PointLight(0xffeccf,0,11,1.4),new THREE.PointLight(0xffeccf,0,9,1.4)];
+LR_LAMPE.forEach(l=>scene.add(l));
 function makeLaderaum(name,col){
   const g=new THREE.Group(); g.position.set(LR.rear,0,LR.z); scene.add(g);
   const L=LR.len, W=LR.w, HH=LR.h;
@@ -8605,8 +8847,8 @@ function makeLaderaum(name,col){
   dach.rotation.x=Math.PI/2; dach.position.set(-L/2,HH-0.012,0); g.add(dach);
   const led=new THREE.MeshBasicMaterial({color:0xfff6e2,toneMapped:false});
   for(const s of [-1,1]) bbox(L-0.8,0.03,0.07,led,-L/2,HH-0.07,s*(W/2-0.22),g,false);
-  const lamp=new THREE.PointLight(0xffeccf,0.85,11,1.4); lamp.position.set(-L*0.45,HH-0.3,0); g.add(lamp);
-  const lamp2=new THREE.PointLight(0xffeccf,0.6,9,1.4); lamp2.position.set(-L*0.85,HH-0.3,0); g.add(lamp2);
+  LR_LAMPE[0].position.set(g.position.x-L*0.45,HH-0.3,g.position.z); LR_LAMPE[0].intensity=0.85;
+  LR_LAMPE[1].position.set(g.position.x-L*0.85,HH-0.3,g.position.z); LR_LAMPE[1].intensity=0.6;
   /* Stirnwand mit Lieferantenschrift */
   const fm=new THREE.MeshStandardMaterial({map:liveryTex(name,col,true),roughness:0.78});
   const front=new THREE.Mesh(new THREE.PlaneGeometry(W,HH),fm);
@@ -8720,7 +8962,7 @@ function trailerOccupied(){
 function clearRaum(){
   if(!truck) return;
   truck.boxes.forEach(m=>scene.remove(m)); truck.boxes=[];
-  if(truck.raum){ scene.remove(truck.raum); truck.raum=null; }
+  if(truck.raum){ scene.remove(truck.raum); truck.raum=null; LR_LAMPE.forEach(l=>{ l.intensity=0; }); }
   if(truck.bruecke){ scene.remove(truck.bruecke); truck.bruecke=null; }
   if(truck.flapCol){ dropCol(truck.flapCol); truck.flapCol=null; }
   truck.cols.forEach(c=>dropCol(c)); truck.cols=[];
@@ -9539,7 +9781,8 @@ class Customer{
     if(this.mark){ this.g.remove(this.mark); this.mark=null; }
     { const e=naechsterEingang(this.pos.x);
       this.state='leave'; this.path=[...route(this.pos,V(e,0,4.9)),V(e,0,7.6),V(e+rand(-5,5),0,14)]; }
-    if(Math.random()<(hasDeko('muell')?0.1:0.22)) addDirt(this.pos.x+rand(-1,1),this.pos.z+rand(-1,1));
+    /* seltener als frueher (22 %): Tom fand die Flecken zu viele */
+    if(Math.random()<(hasDeko('muell')?0.04:0.08)) addDirt(this.pos.x+rand(-1,1),this.pos.z+rand(-1,1));
   }
   update(dt){
     if(this.bub){ this.bubT-=dt; if(this.bubT<=0) this.clearBub(); }
@@ -9853,9 +10096,10 @@ class Worker{
     else if(this.kind==='security') this.guardLoop(dt);
     else if(this.kind==='packer') this.packLoop(dt);
     animPerson(this.g,this.moving,dt,this.speed);
+    if(this.kind==='reinigung') wischerPersonal(this,dt);
   }
   cleanLoop(dt){
-    if(this.state==='idle'){ const d=nearestDirt(this.pos); if(d){ this.target=d; this.goTo(V(d.m.position.x,0,d.m.position.z+0.5)); this.state='go'; } else if(this.path.length===0&&this.pos.distanceTo(IDLE.reinigung)>0.5) this.goTo(IDLE.reinigung); else this.walk(dt); }
+    if(this.state==='idle'){ const d=nearestDirt(this.pos); if(d){ this.target=d; this.goTo(V(d.m.position.x+0.25,0,d.m.position.z+0.85)); this.state='go'; } else if(this.path.length===0&&this.pos.distanceTo(IDLE.reinigung)>0.5) this.goTo(IDLE.reinigung); else this.walk(dt); }
     else if(this.state==='go'){ if(!this.target||dirts.indexOf(this.target)<0){ this.state='idle'; return; } if(this.walk(dt)){ this.state='work'; this.t=2.2; } }
     else if(this.state==='work'){ this.t-=dt*(this.wf||1); if(this.t<=0){ if(this.target&&dirts.indexOf(this.target)>=0){ removeDirt(this.target); sfx.pop(); } this.target=null; this.state='idle'; } }
   }
@@ -10373,6 +10617,25 @@ const sternTex=tex(128,128,(g,W,H)=>{ const c=W/2;
 const SCHWEIF_MODUS=[0.22,0,0.25,0,0.5];
 let SCHWEIF=null;
 const ZIEH=1.1;
+/* Leuchtspur im Shader: Punkt s von S liegt tau=T*s/S zurueck auf der
+   Flugbahn. Mit Luftwiderstand k und Schwerkraft g (gk=g/k):
+   p(tau) = Kopf - v'*(e^(k*tau)-1)/k + (0, gk*tau, 0), v'=v+(0,gk,0).
+   Die Helligkeit faellt zum Ende mit (1-s/S)^1.6. */
+function spurMaterial(S){
+  return new THREE.ShaderMaterial({
+    uniforms:{S:{value:S},Z:{value:ZIEH}},
+    vertexShader:'uniform float S;\nuniform float Z;\nattribute vec4 iP;\nattribute vec4 iV;\nattribute vec3 iC;\nvarying vec3 vC;\n'+
+      'void main(){\n  float s=position.x, tau=iP.w*s/S, A=(exp(Z*tau)-1.0)/Z;\n  vec3 p=iP.xyz-iV.xyz*A; p.y+=iV.w*tau;\n'+
+      '  vC=iC*pow(max(1.0-s/S,0.0),1.6);\n  gl_Position=projectionMatrix*modelViewMatrix*vec4(p,1.0);\n}',
+    fragmentShader:'varying vec3 vC;\nvoid main(){ gl_FragColor=linearToOutputTexel(vec4(vC,1.0)); }',
+    transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,fog:false,toneMapped:false});
+}
+/* Die Spur eines Sterns auf dem Prozessor nachgerechnet, genau wie im
+   Shader - fuer Tests: Kopf und Ende der Spur Nummer q. */
+function spurEnden(ps,q){
+  const P=ps.iP, W=ps.iV, o=q*4, T=P[o+3], A=(Math.exp(ZIEH*T)-1)/ZIEH;
+  return [[P[o],P[o+1],P[o+2]],[P[o]-W[o]*A,P[o+1]-W[o+1]*A+W[o+3]*T,P[o+2]-W[o+2]*A]];
+}
 class PS{
   constructor(max,size,seg,map){
     this.max=max; this.pos=new Float32Array(max*3); this.col=new Float32Array(max*3); this.vel=new Float32Array(max*3);
@@ -10381,16 +10644,29 @@ class PS{
     this.md=new Uint8Array(max); this.ph=new Float32Array(max); this.tl=new Float32Array(max);
     this.next=0; this.dirty=false;
     for(let i=0;i<max;i++) this.pos[i*3+1]=-999;
-    const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.BufferAttribute(this.pos,3)); g.setAttribute('color',new THREE.BufferAttribute(this.col,3)); this.geo=g;
+    /* Gezeichnet wird aus eigenen Puffern, in denen nur die lebenden
+       Sterne dicht hintereinander stehen. So geht je Bild nur das zur
+       Grafikkarte, was auch leuchtet - frueher waren es die vollen
+       Puffer, bei einem Finale 3,7 MB je Bild. */
+    this.rpos=new Float32Array(max*3); this.rcol=new Float32Array(max*3); this.n=0;
+    const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.BufferAttribute(this.rpos,3)); g.setAttribute('color',new THREE.BufferAttribute(this.rcol,3));
+    g.setDrawRange(0,0); this.geo=g;
     this.pts=new THREE.Points(g,new THREE.PointsMaterial({size,map:map||dotTex,vertexColors:true,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,fog:false,toneMapped:false}));
     this.pts.frustumCulled=false; scene.add(this.pts);
     this.seg=seg||0;
     if(this.seg){
-      const nv=max*this.seg*2;
-      this.lpos=new Float32Array(nv*3); this.lcol=new Float32Array(nv*3);
-      const lg=new THREE.BufferGeometry(); lg.setAttribute('position',new THREE.BufferAttribute(this.lpos,3)); lg.setAttribute('color',new THREE.BufferAttribute(this.lcol,3));
-      lg.setDrawRange(0,0); this.lgeo=lg;
-      this.lines=new THREE.LineSegments(lg,new THREE.LineBasicMaterial({vertexColors:true,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,fog:false,toneMapped:false}));
+      /* Die Spur rechnet die Grafikkarte: je Stern gehen nur Kopf,
+         Geschwindigkeit, Spurdauer und Farbe hin (11 Zahlen), die
+         Punkte entlang der Flugbahn entstehen im Vertex-Shader. Frueher
+         rechnete das der Prozessor und schickte bis zu 60 Zahlen je
+         Stern und Bild. */
+      const S=this.seg, sp=new Float32Array(S*2*3);
+      for(let s=1;s<=S;s++){ sp[(s-1)*6]=s-1; sp[(s-1)*6+3]=s; }
+      const lg=new THREE.InstancedBufferGeometry(); lg.setAttribute('position',new THREE.BufferAttribute(sp,3));
+      this.iP=new Float32Array(max*4); this.iV=new Float32Array(max*4); this.iC=new Float32Array(max*3);
+      lg.setAttribute('iP',new THREE.InstancedBufferAttribute(this.iP,4)); lg.setAttribute('iV',new THREE.InstancedBufferAttribute(this.iV,4)); lg.setAttribute('iC',new THREE.InstancedBufferAttribute(this.iC,3));
+      lg.instanceCount=0; this.lgeo=lg;
+      this.lines=new THREE.LineSegments(lg,spurMaterial(S));
       this.lines.frustumCulled=false; scene.add(this.lines);
     }
   }
@@ -10404,10 +10680,10 @@ class PS{
     this.tl[i]=(md===1||md===3)?0:(SCHWEIF!==null?SCHWEIF:SCHWEIF_MODUS[md]);
   }
   update(dt){
-    const drag=Math.max(0,1-ZIEH*dt); let any=false, nl=0;
-    const S=this.seg, lp=this.lpos, lc=this.lcol;
+    const drag=Math.max(0,1-ZIEH*dt); let nl=0, n=0;
+    const S=this.seg, rp=this.rpos, rc=this.rcol, iP=this.iP, iV=this.iV, iC=this.iC;
     for(let i=0;i<this.max;i++){
-      if(this.life[i]<=0) continue; any=true; const j=i*3;
+      if(this.life[i]<=0) continue; const j=i*3;
       this.life[i]-=dt;
       if(this.life[i]<=0){ this.pos[j+1]=-999; this.col[j]=this.col[j+1]=this.col[j+2]=0; continue; }
       this.vel[j]*=drag; this.vel[j+1]=this.vel[j+1]*drag-this.grav[i]*dt; this.vel[j+2]*=drag;
@@ -10420,31 +10696,27 @@ class PS{
       else if(m===3){ if(Math.random()<0.26){ k=2.4; r=g=b=1; } else k*=0.06; }
       else k*=0.45+Math.random()*1.05;
       this.col[j]=r*k; this.col[j+1]=g*k; this.col[j+2]=b*k;
+      const o3=n*3; rp[o3]=this.pos[j]; rp[o3+1]=this.pos[j+1]; rp[o3+2]=this.pos[j+2]; rc[o3]=this.col[j]; rc[o3+1]=this.col[j+1]; rc[o3+2]=this.col[j+2]; n++;
       /* Leuchtspur aus der zurueckgerechneten Flugbahn */
       if(S&&this.tl[i]>0){
         const T=Math.min(this.tl[i],this.maxl[i]-this.life[i]);
         if(T>0.02){
-          const x=this.pos[j], y=this.pos[j+1], z=this.pos[j+2];
-          const vx=this.vel[j], vy=this.vel[j+1]+this.grav[i]/ZIEH, vz=this.vel[j+2], gk=this.grav[i]/ZIEH;
-          const hell=f*(m===4?0.75:0.9);
-          let px=x, py=y, pz=z;
-          for(let s=1;s<=S;s++){
-            const tau=T*s/S, A=(Math.exp(ZIEH*tau)-1)/ZIEH;
-            const qx=x-vx*A, qy=y-vy*A+gk*tau, qz=z-vz*A;
-            const a0=hell*Math.pow(1-(s-1)/S,1.6), a1=hell*Math.pow(1-s/S,1.6);
-            const o=nl*6;
-            lp[o]=px; lp[o+1]=py; lp[o+2]=pz; lp[o+3]=qx; lp[o+4]=qy; lp[o+5]=qz;
-            lc[o]=r*a0; lc[o+1]=g*a0; lc[o+2]=b*a0; lc[o+3]=r*a1; lc[o+4]=g*a1; lc[o+5]=b*a1;
-            nl++; px=qx; py=qy; pz=qz;
-          }
+          const gk=this.grav[i]/ZIEH, hell=f*(m===4?0.75:0.9), o4=nl*4, o3=nl*3;
+          iP[o4]=this.pos[j]; iP[o4+1]=this.pos[j+1]; iP[o4+2]=this.pos[j+2]; iP[o4+3]=T;
+          iV[o4]=this.vel[j]; iV[o4+1]=this.vel[j+1]+gk; iV[o4+2]=this.vel[j+2]; iV[o4+3]=gk;
+          iC[o3]=r*hell; iC[o3+1]=g*hell; iC[o3+2]=b*hell;
+          nl++;
         }
       }
     }
-    if(any||this.dirty){ this.geo.attributes.position.needsUpdate=true; this.geo.attributes.color.needsUpdate=true; }
-    if(S){ this.lgeo.setDrawRange(0,nl*2);
-      if(nl||this.nl){ this.lgeo.attributes.position.needsUpdate=true; this.lgeo.attributes.color.needsUpdate=true; }
-      this.nl=nl; }
-    this.dirty=any;
+    /* nur den belegten Anfang der Puffer hochladen */
+    const hoch=(a,cnt)=>{ a.updateRange.offset=0; a.updateRange.count=cnt; a.needsUpdate=true; };
+    this.geo.setDrawRange(0,n);
+    if(n){ hoch(this.geo.attributes.position,n*3); hoch(this.geo.attributes.color,n*3); }
+    this.n=n;
+    if(S){ this.lgeo.instanceCount=nl;
+      if(nl){ hoch(this.lgeo.attributes.iP,nl*4); hoch(this.lgeo.attributes.iV,nl*4); hoch(this.lgeo.attributes.iC,nl*3); }
+      this.lines.visible=nl>0; this.nl=nl; }
   }
 }
 let psHuge, psBig, psMid, psSmall;
@@ -10489,11 +10761,57 @@ const STEIG=0.8;
    ========================================================= */
 /* Lichtblitze: jeder Bruch wirft echtes farbiges Licht auf Schnee, Haus und Hof */
 const FLASH=[];
+/* Blitzlichter: Jedes Licht mehr oder weniger in der Szene aendert die
+   Shader aller Materialien - three.js uebersetzt sie dann neu, und das
+   Spiel steht. Frueher ging jeder Blitz einzeln an und aus: bei einem
+   Finale 39 neue Shader mitten im Feuerwerk. Jetzt gehen alle Blitze
+   gemeinsam an, sobald geschossen wird, und erst 8 s nach dem letzten
+   wieder aus - es gibt nur zwei Lichtzustaende, und beide werden beim
+   Laden vorab uebersetzt. Im Laden ohne Feuerwerk kosten die Blitze so
+   auch keine Rechenzeit. */
+let flashAn=true, flashRuhe=0;
+function flashSchalten(an){ if(flashAn===an) return; flashAn=an; for(const f of FLASH) f.l.visible=an; }
 function initFlash(){
-  for(let i=0;i<(COARSE?2:4);i++){ const l=new THREE.PointLight(0xffffff,0,95,1); l.visible=false; scene.add(l); FLASH.push({l,t:0,d:0.6,max:0}); }
+  for(let i=0;i<(COARSE?2:4);i++){ const l=new THREE.PointLight(0xffffff,0,95,1); scene.add(l); FLASH.push({l,t:0,d:0.6,max:0}); }
+  flashSchalten(false);
+}
+/* beide Lichtzustaende vorab uebersetzen - in das Ziel, in das auch
+   gezeichnet wird (mit Nachbearbeitung ein anderes als der Bildschirm) */
+let vorabZiel=null;
+function shaderVorab(){
+  try{
+    const t0=performance.now();
+    /* Gezeichnet wird in ein winziges Bild mit demselben Farbformat wie
+       das echte Ziel - der Shader haengt am Format, nicht an der Groesse.
+       In voller Aufloesung dauerte das Vorzeichnen auf schwachen
+       Rechnern viele Sekunden. */
+    const post=(typeof postOK!=='undefined'&&postOK&&postOn&&typeof rtScene!=='undefined'&&rtScene);
+    /* auch Kantenglaettung wie beim echten Ziel: Treiber stellen den
+       Shader je Bildformat und Abtastzahl fertig */
+    if(!vorabZiel&&THREE.WebGLRenderTarget){
+      const opt={type:post?rtScene.texture.type:THREE.UnsignedByteType};
+      const ms=post&&rtScene.isWebGLMultisampleRenderTarget&&THREE.WebGLMultisampleRenderTarget;
+      vorabZiel=ms?new THREE.WebGLMultisampleRenderTarget(4,4,opt):new THREE.WebGLRenderTarget(4,4,opt);
+      if(ms) vorabZiel.samples=rtScene.samples;
+      vorabZiel.texture.encoding=post?rtScene.texture.encoding:renderer.outputEncoding;
+    }
+    if(renderer.setRenderTarget) renderer.setRenderTarget(vorabZiel);
+    const alt=flashAn;
+    /* Uebersetzen allein reicht nicht: Browser und Treiber stellen
+       einen Shader oft erst beim ersten Zeichnen fertig. Darum wird
+       jeder Zustand einmal gezeichnet, ohne Sichtpruefung, damit auch
+       Dinge hinter der Kamera drankommen. */
+    const aus=[]; scene.traverse(o=>{ if(o.frustumCulled){ o.frustumCulled=false; aus.push(o); } });
+    for(const an of [true,false]){ flashSchalten(an); renderer.compile(scene,camera); renderer.render(scene,camera); }
+    aus.forEach(o=>{ o.frustumCulled=true; });
+    flashSchalten(alt);
+    if(renderer.setRenderTarget) renderer.setRenderTarget(null);
+    shaderVorab.ms=Math.round(performance.now()-t0);
+  }catch(e){ try{ if(renderer.setRenderTarget) renderer.setRenderTarget(null); }catch(e2){} }
 }
 function flash(p,c,power,dur){
   if(!FLASH.length) return;
+  flashSchalten(true); flashRuhe=8;
   let f=FLASH[0]; for(const x of FLASH){ if(x.t<=0){ f=x; break; } if(x.t<f.t) f=x; }
   f.l.position.set(p.x,p.y,p.z);
   f.l.color.setRGB(clamp(c[0]+0.15,0,1),clamp(c[1]+0.15,0,1),clamp(c[2]+0.15,0,1));
@@ -10501,13 +10819,14 @@ function flash(p,c,power,dur){
      Bei elf gleichzeitigen Zuendungen war der Boden sonst reinweiss. */
   let aktiv=0; for(const x of FLASH) if(x.t>0) aktiv++;
   power*=aktiv>=3?0.45:aktiv>=2?0.62:aktiv>=1?0.8:1;
-  f.max=power; f.d=dur||0.6; f.t=f.d; f.l.visible=true; f.l.intensity=power;
+  f.max=power; f.d=dur||0.6; f.t=f.d; f.l.intensity=power;
 }
 function updateFlash(dt){
+  if(flashAn){ flashRuhe-=dt; if(flashRuhe<=0&&FLASH.every(f=>f.t<=0)) flashSchalten(false); }
   for(const f of FLASH){ if(f.t<=0) continue;
     f.t-=dt; const k=Math.max(0,f.t/f.d);
     f.l.intensity=f.max*k*k*(0.85+Math.random()*0.3);
-    if(f.t<=0){ f.t=0; f.l.intensity=0; f.l.visible=false; } }
+    if(f.t<=0){ f.t=0; f.l.intensity=0; } }
 }
 function shellSound(p,s){
   const v=distVol(p);
@@ -11880,6 +12199,7 @@ function doAction(){
 function cleanTick(d,first){
   if(dirts.indexOf(d)<0) return;
   d.work+=first?0.12:0.16;
+  wischeSpieler(d); dreckAnteil(d,1-d.work);
   if(d.work>=1){ removeDirt(d); sfx.pop(); addXP(3); S.tut.clean=true; }
 }
 function pressAction(){ ac(); doAction(); repeatT=0.3; }
@@ -12263,7 +12583,7 @@ function endDay(){
   const flau=dayMult(S.day+1)<0.95;
   const morgen=isSunday(S.day+1)&&!S.up.tag4?'Morgen ist Sonntag, Ruhetag. Gute Gelegenheit zum Auffüllen.'
     :(flau&&aktiv>0&&profit<0)
-      ? `Morgen: ${dateStr(S.day+1)}. ${seasonInfo(S.day+1)[1]}. Die Saison ist vorbei und der Tag war im Minus — schick Personal unter Personal in die Saisonpause, das kostet nur 30 Prozent Lohn.`
+      ? `Morgen: ${dateStr(S.day+1)}. ${seasonInfo(S.day+1)[1]}. Die Saison ist vorbei und der Tag war im Minus — schick dein Team im Handy (App Team) in die Saisonpause, das kostet nur 30 Prozent Lohn.`
       : `Morgen: ${dateStr(S.day+1)}. ${seasonInfo(S.day+1)[1]}.`;
   showSummary(`Tagesabschluss · ${dateStr(S.day)}`,morgen,rows,'Nächster Tag',()=>{
     statRekord('rek_tag',Math.round(DS.revenue));
@@ -12290,7 +12610,7 @@ function closeSummary(){
    Laptop
    ========================================================= */
 let laptopOpen=false, startOpen=true, pauseOpen=false, ltab='order', resetArm=false, lsup='mertens', korbOpen=false;
-function openLaptop(tab){ laptopOpen=true; resetArm=false; if(tab) ltab=tab; for(const k in keys) keys[k]=false; mouseDown=false; touchAct=false; renderLaptop(); $('laptop').classList.add('show'); if(locked) document.exitPointerLock(); }
+function openLaptop(tab){ if(typeof handyOpen!=='undefined'&&handyOpen) closeHandy(false); laptopOpen=true; resetArm=false; if(tab) ltab=tab; for(const k in keys) keys[k]=false; mouseDown=false; touchAct=false; renderLaptop(); $('laptop').classList.add('show'); if(locked) document.exitPointerLock(); }
 function closeLaptop(relock){ laptopOpen=false; korbOpen=false; $('korbOv').classList.remove('show'); $('laptop').classList.remove('show'); if(relock) requestLock(); else if(lockWorked&&!COARSE&&!locked&&!summaryOpen&&!levelOpen) showPause(); }
 function priceHint(t){ const r=S.prices[t]/marketOf(t), lo=priceTol();
   if(r<=lo) return ['ok','Kunden greifen gern zu'];
@@ -12791,7 +13111,7 @@ function onlineStufe(){
 }
 function onlineHint(){
   const st=onlineStufe();
-  if(st==='zu') return 'Der Onlineshop ist noch nicht freigeschaltet. Du findest ihn unter Marketing.';
+  if(st==='zu') return 'Der Onlineshop ist noch nicht freigeschaltet. Du findest ihn unter Ausbau (Kapitel 4).';
   if(st==='pauschal') return 'Der Shop läuft, aber ohne Packstation bleibt es bei einer Tagespauschale. Mit Packstation kommen echte Bestellungen herein, die du hier packst - das bringt deutlich mehr.';
   return 'Bestellungen laufen den ganzen Verkaufstag über ein. Jedes gepackte Paket wird sofort gutgeschrieben; DDL holt am Abend alles von der Rampe ab.';
 }
@@ -12807,7 +13127,7 @@ function onlineZahlen(){
   };
 }
 function updateOnline(){
-  if(!laptopOpen||ltab!=='online') return;
+  if(!(laptopOpen&&ltab==='online')&&!(handyOpen&&happ==='online')) return;
   const z=onlineZahlen();
   const set=(id,v)=>{ const e=document.getElementById(id); if(e) e.textContent=v; };
   set('onOffen',z.offen); set('onPak',z.pak+' von '+PAKET_BAYS);
@@ -12858,7 +13178,7 @@ function renderOnline(){
     `<div class="mkcol"><small>Umsatz</small><b style="font-family:var(--display);font-size:20px" id="onHeute">${eur(z.heute)}</b></div></div>`;
   const pk=staff&&staff.packer;
   h+=`<div class="row${pk?'':' locked'}"><div class="rm"><b>Packer</b>`+
-      `<small>${pk?'Packt selbstständig, solange Bestellungen offen sind.':'Ohne Packer bleibt alles an dir hängen - einstellen kannst du ihn unter Personal.'}</small></div>`+
+      `<small>${pk?'Packt selbstständig, solange Bestellungen offen sind.':'Ohne Packer bleibt alles an dir hängen - einstellen kannst du ihn im Handy unter Team.'}</small></div>`+
     `<small class="${pk?'ok':''}">${pk?'im Dienst':'nicht eingestellt'}</small></div>`;
   return h;
 }
@@ -12876,7 +13196,63 @@ function packLaptop(alle){
     toast(`${n} Paket${n===1?'':'e'} gepackt: +${eur(wert)}`,'money'); }
   renderLaptop();
 }
+/* =========================================================
+   Handy (Tom, 24.09.: der Laptop war mit 14 Reitern zu voll)
+   Am Laptop bleibt, wofuer man sich hinsetzt: bestellen, Preise,
+   Sortiment, Entwicklung, Ausbau, Einrichtung, Deko, Laden. Aufs
+   Handy kommt, was man unterwegs schnell nachsieht oder steuert.
+   Tab oder H holt es heraus, klingelt es, nimmt H den Anruf an.
+   ========================================================= */
+const HANDY_APPS=[
+  {id:'online',name:'Onlineshop',ico:'📦',bg:'linear-gradient(145deg,#3a8dff,#1c56c9)'},
+  {id:'staff',name:'Team',ico:'👥',bg:'linear-gradient(145deg,#2fd08a,#138a57)'},
+  {id:'markt',name:'Werbung',ico:'📣',bg:'linear-gradient(145deg,#ff8a3d,#d9531a)'},
+  {id:'bank',name:'Bank',ico:'🏦',bg:'linear-gradient(145deg,#8f7bff,#5a3fd6)'},
+  {id:'stats',name:'Bericht',ico:'📊',bg:'linear-gradient(145deg,#ffd23f,#e0a100)'},
+  {id:'erf',name:'Ziele',ico:'🏆',bg:'linear-gradient(145deg,#ff5f8f,#c92a5c)'}
+];
+const HANDY_IDS=HANDY_APPS.map(a=>a.id);
+let handyOpen=false, happ=null;
+function openHandy(app){
+  if(!S) return;
+  if(laptopOpen) closeLaptop(false);
+  handyOpen=true; happ=app&&HANDY_IDS.indexOf(app)>=0?app:null; resetArm=false;
+  for(const k in keys) keys[k]=false; mouseDown=false; touchAct=false;
+  renderHandy(); $('handy').classList.add('show');
+  try{ if(document.pointerLockElement) document.exitPointerLock(); }catch(e){}
+  if(typeof sfx!=='undefined'&&sfx.click) sfx.click();
+}
+function closeHandy(relock){ handyOpen=false; $('handy').classList.remove('show'); if(relock) requestLock(); }
+function toggleHandy(){ if(handyOpen) closeHandy(true); else openHandy(); }
+function handyBadge(id){
+  if(id==='online') return S.up.onlineshop?(S.pakete|0):0;
+  if(id==='erf') return typeof erfFertig==='function'?ERFOLGE.filter(e=>erfOffen(e)&&erfFertig(e)).length:0;
+  return 0;
+}
+function renderHandy(){
+  if(!handyOpen) return;
+  const min=Math.floor(clock), hh=String(Math.floor(min/60)%24).padStart(2,'0'), mm=String(min%60).padStart(2,'0');
+  $('hZeit').textContent=`${hh}:${mm}`; $('hGeld').textContent=eur(S.money);
+  const box=$('hInhalt');
+  if(!happ){
+    box.innerHTML=`<div class="home"><div class="uhr">${hh}:${mm}</div><div class="datum">${dateStr(S.day)}</div>`+
+      `<div class="apps">${HANDY_APPS.map(a=>{ const n=handyBadge(a.id);
+        return `<button class="app" data-app="${a.id}"><i style="background:${a.bg}">${a.ico}</i>${a.name}${n?`<em>${n}</em>`:''}</button>`; }).join('')}</div>`+
+      `<div class="hinweis">Bestellen, Preise und Ausbau machst du am Laptop im Büro.</div>`+
+      `<button class="zu" data-zu="1">Handy wegstecken${COARSE?'':' · Tab'}</button></div>`;
+    return;
+  }
+  const A=HANDY_APPS.find(a=>a.id===happ);
+  box.innerHTML=`<div class="hkopf"><button data-app="">‹ Zurück</button><b>${A.name}</b></div><div class="happ" id="hApp"></div>`;
+  const alt=ltab; ltab=happ; try{ lapZeichnen($('hApp')); } finally { ltab=alt; }
+}
 function renderLaptop(){
+  if(handyOpen) renderHandy();
+  if(!laptopOpen&&handyOpen) return;
+  if(HANDY_IDS.indexOf(ltab)>=0) ltab='order';
+  lapZeichnen($('lbody'));
+}
+function lapZeichnen(body){
   $('lMoney').textContent=eur(S.money);
   $('lLevel').textContent=`Level ${S.level} · ${S.xp}/${xpFor(S.level)} XP`;
   document.querySelectorAll('#ltabs button').forEach(b=>b.classList.toggle('on',b.dataset.tab===ltab));
@@ -12912,7 +13288,7 @@ function renderLaptop(){
             `<div class="price">${eur(pr)}</div>`+
             `<div class="steps"><button data-a="rbuy" data-t="${r.id}"${platz?'':' disabled'}>bestellen</button></div></div>`;
         }).join('');
-      $('lbody').innerHTML=h;
+      body.innerHTML=h;
       if(korbOpen) renderKorb();
       return;
     }
@@ -12976,22 +13352,20 @@ function renderLaptop(){
   } else if(ltab==='up'||ltab==='einr'||ltab==='markt'){
     const kat=ltab==='up'?'flaeche':ltab;
     hint=kat==='flaeche'
-      ? 'Mehr Fläche für Verkauf und Lager. Die Bauwände im Laden zeigen, was du hier freischaltest. Teuer, aber die nachhaltigste Investition.'
+      ? 'Dein Weg vom Kiosk zum Imperium, Kapitel für Kapitel: mehr Fläche, Onlineshop, eigene Marke. Die Bauwände im Laden zeigen, was du hier freischaltest.'
       : kat==='einr'
       ? 'Regale, Kassen und Technik im Laden. Ein Karton passt meist genau in ein Regalfach.'
       : 'Alles, was dir mehr Kundschaft und bessere Konditionen bringt.';
     const liste=UPGRADES.filter(u=>(u.kat||'einr')===kat).sort((a,b)=>a.lvl-b.lvl);
     /* Flaechen nach Kapiteln: ueber jedem Abschnitt eine Zeile mit dem
        Namen, der Ausbau, der das Kapitel eroeffnet, steht zuerst */
-    const kapVon=u=>{ if(u.kap) return u.kap; let n=1;
-      for(const k of KAPITEL) if(k.up){ const ku=UPGRADES.find(x=>x.id===k.up); if(ku&&u.lvl>ku.lvl) n=Math.max(n,k.nr); }
-      return n; };
+    const kapVon=kapitelVon;
     if(kat==='flaeche') liste.sort((a,b)=>kapVon(a)-kapVon(b)||(b.kap?1:0)-(a.kap?1:0)||a.lvl-b.lvl);
     let kapZuletzt=0;
     h=liste.map(u=>{ const done=u.done(), cost=u.cost();
       let kopf='';
       if(kat==='flaeche'){ const kn=kapVon(u); if(kn!==kapZuletzt){ kapZuletzt=kn; const K=KAPITEL[kn-1], jetzt=kapitelNr();
-        kopf=`<div class="kapkopf${kn<=jetzt?' da':''}"><b>Kapitel ${kn} · ${K.name}</b><small>${kn<jetzt?'geschafft':kn===jetzt?'hier bist du':K.txt}</small></div>`; } }
+        kopf=kapKopf(K,jetzt); } }
       const fehlt=u.req&&!S.up[u.req]?UPGRADES.find(x=>x.id===u.req):null;
       const lock=S.level<u.lvl||!!fehlt;
       return kopf+`<div class="row${lock&&!done?' locked':''}">`+
@@ -13001,10 +13375,13 @@ function renderLaptop(){
              :S.level<u.lvl?`<small class="warn">Ab Level ${u.lvl}</small>`:`<small>Kosten ${eur(cost)}</small>`)+
         `</div>`+
         (done?'<small class="ok">Erledigt</small>'
+            :(DEMO&&kapitelVoll(kat==='flaeche'?kapVon(u):0))?'<small class="vollv">Vollversion</small>'
             :fehlt?'<small>gesperrt</small>'
             :S.level<u.lvl?`<small>Level ${u.lvl}</small>`
             :`<button data-a="up" data-t="${u.id}" ${S.money<cost?'disabled':''}>${eur(cost)}</button>`)+
         '</div>'; }).join('');
+    if(kat==='flaeche') h+=KAPITEL.filter(K=>K.geplant).map(K=>kapKopf(K,kapitelNr())+
+      `<div class="row locked vorschau"><div class="rm"><b>Geplant für die Vollversion</b>${K.vorschau.map(v=>`<small>· ${v}</small>`).join('')}</div></div>`).join('');
   } else if(ltab==='online'){
     h=renderOnline(); hint=onlineHint();
   } else if(ltab==='erf'){
@@ -13102,7 +13479,7 @@ function renderLaptop(){
         `</div><button class="${S.test?'red':''}" data-a="test">${S.test?'Testmodus aus':'Testmodus an'}</button></div>`+
       `<div class="row"><div class="rm"><b>Spielstand</b><small>Wird automatisch gespeichert.</small></div><button class="ghost" data-a="reset">${resetArm?'Wirklich löschen?':'Spielstand löschen'}</button></div>`;
   }
-  $('lbody').innerHTML=h;
+  body.innerHTML=h;
   if(korbOpen) renderKorb();
 }
 $('lKorb').addEventListener('click',()=>openKorb());
@@ -13118,14 +13495,28 @@ for(const id of ['korbBody','korbFoot']) $(id).addEventListener('click',e=>{
 });
 $('korbOv').addEventListener('click',e=>{ if(e.target.id==='korbOv') closeKorb(); });
 $('ltabs').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b) return; ltab=b.dataset.tab; resetArm=false; renderLaptop(); });
-$('lbody').addEventListener('click',e=>{
+$('lbody').addEventListener('click',e=>lapKlick(e,false));
+$('hInhalt').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  if(b.dataset.zu){ closeHandy(true); return; }
+  if(b.dataset.app!==undefined){ happ=b.dataset.app||null; resetArm=false; if(typeof sfx!=='undefined'&&sfx.click) sfx.click(); renderHandy(); return; }
+  lapKlick(e,true);
+});
+$('hHome').addEventListener('click',()=>{ happ=null; renderHandy(); });
+$('handy').addEventListener('click',e=>{ if(e.target.id==='handy') closeHandy(true); });
+function lapKlick(e,imHandy){
   const b=e.target.closest('button'); if(!b||b.disabled) return; const a=b.dataset.a, t=b.dataset.t;
   if(a==='order') orderBox(t,+b.dataset.n||1);
   else if(a==='cart') cartAdd(t,+b.dataset.n||1);
   else if(a==='cartdel') cartDel(+b.dataset.i);
   else if(a==='cartplus') cartStep(+b.dataset.i,1);
   else if(a==='cartminus') cartStep(+b.dataset.i,-1);
-  else if(a==='tab'){ ltab=t; }
+  else if(a==='tab'){
+    /* Verweise zwischen Laptop und Handy: was aufs Handy gehoert, oeffnet
+       das Handy; vom Handy aus bleibt der Rest am Laptop */
+    if(HANDY_IDS.indexOf(t)>=0){ if(imHandy) happ=t; else { closeLaptop(false); openHandy(t); return; } }
+    else if(imHandy){ toast('Das erledigst du am Laptop im Büro.'); return; }
+    else ltab=t; }
   else if(a==='korbclose'){ closeKorb(); return; }
   else if(a==='cartgo') cartOrder();
   else if(a==='cartclear') cartClear();
@@ -13173,7 +13564,7 @@ $('lbody').addEventListener('click',e=>{
   else if(a==='test'){ toggleTest(); }
   else if(a==='reset'){ if(!resetArm) resetArm=true; else { try{ localStorage.removeItem(KEY); }catch(err){} location.reload(); return; } }
   renderLaptop();
-});
+}
 $('lclose').addEventListener('click',()=>closeLaptop(true));
 /* Hoechste Stufe, die im Spiel ueberhaupt verlangt wird - Ausbauten,
    Lizenzen und Regale zusammengenommen. */
@@ -13205,8 +13596,18 @@ function toggleTest(){
 /* Frueher brach der Kauf bei jedem Hindernis wortlos ab - der Knopf
    tat schlicht nichts und man stand ratlos davor. Jetzt sagt das
    Spiel, was fehlt. */
+/* Kapitel eines Ausbaus: eigenes Kapitel, sonst nach Level - aber nie
+   vor dem Kapitel seiner Voraussetzung */
+function kapitelVon(u){ if(u.kap) return u.kap; let n=1;
+  for(const k of KAPITEL) if(k.up){ const ku=UPGRADES.find(x=>x.id===k.up); if(ku&&u.lvl>ku.lvl) n=Math.max(n,k.nr); }
+  const v=u.req&&UPGRADES.find(x=>x.id===u.req); if(v) n=Math.max(n,kapitelVon(v));
+  return n; }
+function kapKopf(K,jetzt){
+  const kn=K.nr, stand=K.geplant?'geplant':kn<jetzt?'geschafft':kn===jetzt?'hier bist du':K.txt;
+  return `<div class="kapkopf${kn<=jetzt?' da':''}${K.voll?' voll':''}"><b>Kapitel ${kn} · ${K.name}${K.voll?' <i>Vollversion</i>':''}</b><small>${K.geplant?K.txt:stand}</small></div>`; }
 function buyUp(id){
   const u=UPGRADES.find(x=>x.id===id); if(!u) return;
+  if(DEMO&&(u.kat||'einr')==='flaeche'&&kapitelVoll(kapitelVon(u))){ toast(`${u.name} gibt es in der Vollversion.`,'bad'); return; }
   if(u.done()){ toast(`${u.name} hast du schon.`); return; }
   if(S.level<u.lvl){ toast(`${u.name} gibt es erst ab Level ${u.lvl} — du bist auf ${S.level}.`,'bad'); return; }
   if(u.req&&!S.up[u.req]){
@@ -13219,8 +13620,12 @@ function buyUp(id){
   else if(id==='rack'||id.indexOf('rack_')===0){
     const k=id==='rack'?'standard':id.slice(5);
     createRack(racks.length,{kind:k}); toast(`${RACKKIND[k].name} steht im Lager.`); }
-  else { S.up[id]=true;
-    if(u.kap) later(0.6,()=>kapitelAufstieg(u.kap));
+  else { const kapVor=kapitelNr(); S.up[id]=true;
+    /* Aufstieg nur, wenn sich das Kapitel wirklich aendert - bei einem
+       vorgezogenen Kapitel erst, wenn das davor auch geschafft ist */
+    const kapNach=kapitelNr();
+    if(kapNach>kapVor) later(0.6,()=>kapitelAufstieg(kapNach));
+    else if(u.kap) toast(`Kapitel ${u.kap} beginnt, sobald Kapitel ${kapNach+1} geschafft ist.`);
     if(id==='lager') toast('Das Lager gehört dir. Ab jetzt fährt der LKW an die Rampe hinterm Lager.','money');
     if(ZONEN[id]){
       oeffneZone(id,true);
@@ -13385,7 +13790,7 @@ function renderRezeptur(){
     rezHint='Noch kein Labor im Lager.';
     return `<div class="row locked"><img class="pic" src="${upPic('labor')}" alt="">`+
       `<div class="rm"><b>Entwicklungslabor</b><small>${u.desc}</small>`+
-      `<small class="warn">Ab Level ${u.lvl}, Kosten ${eur(u.cost())} — unter Einrichtung zu kaufen.</small></div></div>`;
+      `<small class="warn">Ab Level ${u.lvl}, Kosten ${eur(u.cost())} — unter Ausbau (Kapitel 5) zu kaufen.</small></div></div>`;
   }
   const r=entwurfInit();
   const bl=bruchListe();
@@ -13595,6 +14000,8 @@ function startGame(fresh){
   if(S.up.regallicht){ shelfLight.intensity=0.8; shelfStrips.forEach(m=>m.emissiveIntensity=1.5); }
   if(!S.goal) newGoal();
   phase='closed'; clock=OPEN_T; newDayStats(); updateSign(); updateCarry(); updateTool(); paused=false;
+  /* Shader fuer Laden und Feuerwerk jetzt uebersetzen, nicht beim ersten Schuss */
+  if(typeof shaderVorab==="function") shaderVorab();
 }
 
 /* =========================================================
@@ -13865,7 +14272,9 @@ function step(dt){
   for(const k in staff) if(staff[k]) staff[k].update(dt);
   updateBelt(dt);
   updatePhone(dt); updateOrder(dt);
-  if(phase==='open'){ dirtT-=dt; if(dirtT<=0){ dirtT=rand(34,62)/((1+customers.length*0.09)*evv('dirt')); if(Math.random()<(hasDeko('muell')?0.2:0.42)) addDirt(rand(-6,6),rand(-4.5,5)); } }
+  /* Dreck: seit 24.09. etwa zweieinhalbmal seltener (Tom: "weniger
+     Fussabdruecke") - frueher im Schnitt alle 114 s, jetzt alle 270 s */
+  if(phase==='open'){ dirtT-=dt; if(dirtT<=0){ dirtT=rand(55,95)/((1+customers.length*0.09)*evv('dirt')); if(Math.random()<(hasDeko('muell')?0.14:0.28)) addDirt(rand(-6,6),rand(-4.5,5)); } }
   for(const pd of pending) pd.t-=dt;
   /* Frueher hing alles an der einen Basisrampe: stand dort ein LKW,
      wartete jede weitere Lieferung. Jetzt bekommt die naechste Welle
@@ -13885,13 +14294,13 @@ function step(dt){
     else if(!spawnWTruck(frei,ladung,sid,supplierOf(sid).name)) break;
   }
   updateSonne(pl.x,pl.z);
-  updateTruck(dt); updateWBays(dt); updateSchiebetuer(dt); updateVersand(dt); updateSchweber(dt);
+  updateTruck(dt); updateWBays(dt); updateSchiebetuer(dt); updateVersand(dt); updateSchweber(dt); updateWischen(dt); updateSchoner(dt);
   for(let i=timers.length-1;i>=0;i--){ timers[i].t-=dt; if(timers[i].t<=0){ const fn=timers[i].fn; timers.splice(i,1); fn(); } }
   if(phase==='open') addGrime(dt*0.0016*(1+customers.length*0.05));
   hype=Math.max(0,hype-dt*1.1);
   updateFireworks(dt); updateSnow(dt); updateDeko(dt); updateStadt(dt);
   updateTarget(); holdRepeat(dt); applyTOD(); updateUhr();
-  hudT-=dt; if(hudT<=0){ hudT=0.1; updateHUD(); updatePrompt(); if(pdaOn) drawPDA(); if(laptopOpen) updateOnline(); }
+  hudT-=dt; if(hudT<=0){ hudT=0.1; updateHUD(); updatePrompt(); if(pdaOn) drawPDA(); if(laptopOpen||handyOpen) updateOnline(); }
   saveT+=dt; if(saveT>25){ saveT=0; save(); }
 }
 let noLoop=location.hash.indexOf('test')>=0;
@@ -13913,7 +14322,7 @@ function requestLock(){
   try{ const r=canvas.requestPointerLock(); if(r&&r.catch) r.catch(()=>{ lockFailed=true; dragHint(); }); }catch(e){ lockFailed=true; dragHint(); }
 }
 let zuendOpen=false;
-function overlayOpen(){ return startOpen||laptopOpen||summaryOpen||pauseOpen||cashOpen||levelOpen||dealOpen||gravOpen||pdaOpen||zuendOpen; }
+function overlayOpen(){ return startOpen||laptopOpen||handyOpen||summaryOpen||pauseOpen||cashOpen||levelOpen||dealOpen||gravOpen||pdaOpen||zuendOpen; }
 /* =========================================================
    Bedienfeld am Zuendpult. Es liegt unten im Bild, das Spiel laeuft
    weiter: man zuendet und schaut dabei aufs Testfeld.
@@ -13965,8 +14374,8 @@ const STEUER_PC=[
   ['Handeln',[
     [['E','Klick'],'Aktion – halten zum Putzen'],
     [['Q','Rechts'],'Karton abstellen'],
-    [['Tab'],'Laptop'],
-    [['H'],'Handy abnehmen']]],
+    [['Tab','H'],'Handy: Onlineshop, Team, Bank, Bericht'],
+    [['H'],'Anruf annehmen, wenn es klingelt']]],
   ['Werkzeuge',[
     [['T'],'Preisgerät (ab Level 2)'],
     [['G'],'Pfefferspray (ab Level 4)']]],
@@ -13993,6 +14402,7 @@ const STEUER_TOUCH=[
     [['Aktion'],'Aktion – halten zum Putzen'],
     [['Ablegen'],'Karton abstellen, Greifen abbrechen'],
     [['Umbau'],'Umbaumodus an / aus'],
+    [['Handy'],'Onlineshop, Team, Bank, Bericht'],
     [['Preis'],'Preisgerät (ab Level 2)'],
     [['Spray'],'Pfefferspray (ab Level 4)']]]
 ];
@@ -14030,6 +14440,10 @@ addEventListener('mouseup',e=>{ if(e.button===0) mouseDown=false; zuendZieh=fals
 addEventListener('mousemove',e=>{ if(zuendOpen&&zuendZieh){ aim=null; look(e.movementX||0,e.movementY||0,0.004); return; } if(overlayOpen()) return; if(locked) look(e.movementX,e.movementY,0.0022); else if(mouseDown&&(lockFailed||!lockWorked)) look(e.movementX||0,e.movementY||0,0.004); });
 canvas.addEventListener('contextmenu',e=>e.preventDefault());
 addEventListener('keydown',e=>{
+  if(handyOpen){
+    if(e.code==='KeyH'&&!e.repeat&&typeof phone!=='undefined'&&phone.state==='ringing'){ closeHandy(false); answerPhone(); return; }
+    if((e.code==='Escape'||e.code==='Tab'||e.code==='KeyH')&&!e.repeat){ e.preventDefault(); closeHandy(true); }
+    return; }
   if(e.code==='Escape'&&laptopOpen){ closeLaptop(false); return; }
   if(e.code==='Escape'&&cashOpen){ closeCash(false); return; }
   if(pdaOpen){ if(e.code==='Escape') closePDA(); return; }
@@ -14062,9 +14476,11 @@ addEventListener('keydown',e=>{
   if(e.code==='KeyP'&&!e.repeat) setPost(!postOn);
   if(e.code==='KeyM'&&!e.repeat) musikAn();
   if(e.code==='KeyN'&&!e.repeat){ ac(); if(!MUSIK.an) musikAn(true); else musikWeiter(false); }
-  if(e.code==='KeyH'&&!e.repeat) answerPhone();
+  /* H: klingelt es, geht man ran - sonst kommt das Handy heraus */
+  if(e.code==='KeyH'&&!e.repeat){ if(typeof phone!=='undefined'&&phone.state==='ringing') answerPhone(); else openHandy(); }
   if(e.code==='KeyR'&&!e.repeat&&build) rotateGrab();
-  if(e.code==='Tab'&&!e.repeat){ e.preventDefault(); openLaptop(); }
+  /* Tab holt das Handy heraus. Der Laptop steht im Buero - dafuer geht man hin. */
+  if(e.code==='Tab'&&!e.repeat){ e.preventDefault(); openHandy(); }
   if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code)) e.preventDefault();
 });
 addEventListener('keyup',e=>{ keys[e.code]=false; });
@@ -14094,6 +14510,8 @@ btnAct.addEventListener('touchend',actEnd); btnAct.addEventListener('touchcancel
 btnDrop.addEventListener('touchstart',e=>{ e.preventDefault(); if(!S||overlayOpen()) return; ac(); if(build&&grabbed) cancelGrab(); else dropBox(); },{passive:false});
 btnTool.addEventListener('touchstart',e=>{ e.preventDefault(); if(!S||overlayOpen()) return; ac(); toggleSpray(); },{passive:false});
 $('btnPda').addEventListener('touchstart',e=>{ e.preventDefault(); if(!S||overlayOpen()) return; ac(); togglePDA(); },{passive:false});
+$('btnHandy').addEventListener('touchstart',e=>{ e.preventDefault(); if(!S||(overlayOpen()&&!handyOpen)) return; ac(); toggleHandy(); },{passive:false});
+$('btnHandy').addEventListener('click',e=>{ if(COARSE) return; ac(); toggleHandy(); });
 $('btnPda').addEventListener('click',e=>{ if(COARSE) return; ac(); togglePDA(); });
 $('pdaClose').addEventListener('click',()=>closePDA());
 $('pdaBody').addEventListener('click',e=>{
@@ -14217,9 +14635,12 @@ fontsReady().then(()=>{
   initFlash(); psHuge=new PS(COARSE?700:2000,0.95,COARSE?2:4,sternTex); psBig=new PS(COARSE?3600:10000,0.42,COARSE?3:5); psMid=new PS(COARSE?1800:5000,0.15,COARSE?2:3); psSmall=new PS(COARSE?900:1800,0.07);
   camera.position.set(pl.x,1.65,pl.z); camera.rotation.set(pitch,yaw,0);
   lastF=-1; applyTOD(); updateSign(); buildStart(); requestAnimationFrame(frame);
+  /* Shader fuers Feuerwerk vorab uebersetzen, solange das Startmenue
+     steht - dann steht beim Losspielen und beim ersten Schuss nichts */
+  setTimeout(()=>{ if(typeof shaderVorab==='function') shaderVorab(); },400);
   window.__bb={get S(){return S},get phase(){return phase},set phase(v){phase=v},set clock(v){clock=v},get clock(){return clock},pickUp,floorBoxes,shelves,racks,dekos,stockOne,openShop,step,customers,queue,belt,scanBelt,buyUp,buyDeko,get DS(){return DS},endDay,pending,save,openLaptop,closeLaptop,pl,addXP,hireStaff,fireStaff,staff,dirts,addDirt,movables,toggleBuild,setWall,setFloor,
     stations,firePult,placeOnStation,igniteType,get order(){return order},get phone(){return phone},makeCall,answerPhone,haggle,acceptDeal,declineDeal,get truck(){return truck},spawnTruck,takeFromTruck,takeBox,dropBox,updateTruck,get door(){return door},get tuer(){return tuer},tuerSet,tuerNah,updateSchiebetuer,doorOpen,doorIsOpen,trailerOccupied,LR,lrFront,TOR,orderReady,orderLeft,shipOne,removeFloorBox,prioOf,setPrio,racks,updateCarry,spawnFloorBox,staff,SHELFKIND,layout,shelfCapOf,shelfAccepts,emptyLevel,dateInfo,dateStr,dateShort,seasonInfo,isSunday,dayMult,ruhetag,wageOf,setWage,friendliness,inPause,setPause,windowGrime,addGrime,cleanWindowTick,ambienteScore,bildBoost,fixedCosts,dailyWages,dispoLimit,verfuegbar,dispoZins,takeLoan,loanTier,loanDaily,EVENTS,GOALS,CUSTTYPES,UPGRADES,STAFF,stockOf,spawnInterval,pools,todayEvent,evv,rollEvent,rollMarket,newGoal,goalAdd,goalTick,ekFactor,marktText,xpFor,rollCustType,priceTol,buyChance,regCustomer,makeWishes,nachfrageFaktor,shelfStockOf,buildGravur,refillGrav,openGravInput,closeGravInput,get gravBlanks(){return gravBlanks},set gravBlanks(v){gravBlanks=v},orderBox,buyPack,cartAdd,cartAddPack,cartOrder,cartClear,cartDel,cartGoods,cartFee,cartTotal,cartBoxes,cartLines,LIEFERZEIT_SEK,VERSAND,VERSANDFREI,lieferSek,
-    scene,camera,P,EFF,EFF_ALL,EFF_KLEIN,EFF_GROSS,EFF_PRO,SHOWS,kugelbombe,shot,mine,FW,stations,stationOf,placedCount,togglePDA,openPDA,closePDA,setPost,get postOn(){return postOn},get pdaOn(){return pdaOn},showLength,psHuge,psBig,psMid,psSmall,rockets,emitters,timersLen:()=>timers.length,setView:(x,z,y,p)=>{pl.x=x;pl.z=z;yaw=y;pitch=p;aim=null;},schiebe:(x,z)=>{pl.x=x;pl.z=z;collide(pl,0.32);return{x:pl.x,z:pl.z};},PLZ_MAX,camYaw:()=>yaw,camPitch:()=>pitch,playerPos:()=>({x:pl.x,z:pl.z}),pultYaw:()=>pultHit?pultHit.parent.rotation.y:null,applyShopName,shopName,shopSlogan,signTexPx:()=>signTex&&signTex.image?signTex.image.getContext('2d').getImageData(0,0,signTex.image.width,40).data.join(''):null,ckTexPx:()=>ckNameTex&&ckNameTex.image?ckNameTex.image.getContext('2d').getImageData(0,0,ckNameTex.image.width,60).data.join(''):null,testfeldMitte,STATION_POS,aimAt,UPGRADES,upPic,PLAN,planFlaechen,uhrZeiger:()=>({std:uhrStd?+uhrStd.rotation.z.toFixed(4):0,min:uhrMin?+uhrMin.rotation.z.toFixed(4):0}),drawRackSchild,get snowPts(){return snowPts},buildStadt,updateStadt,get stadtBoxen(){return stadtBoxen},get stadtBaeume(){return stadtBaeume},buildFernbaeume,schwaerme,beacons,silhouetten,get verkehrPts(){return verkehrPts},get rauchPts(){return rauchPts},get flieger(){return flieger},stadtFrei,STADT_FREI,WALLS,FLOORS,renderOnline,onlineHint,onlineStufe,onlineZahlen,updateOnline,packLaptop,SCHILDBG,SCHILDFG,setSchild,schildBg,schildFg,repaintSchilder,updateHead,allLevels,addToLevel,putInSlot,regCustomer,ZONEN,zoneOffen,oeffneZone,applyZonen,SLOTS,RACKS,slotsOffen,colliders,LAY,LOGI,WRAMPEN,WTORE,updateSnow,unterDach,dachBereiche,get lapHit2(){return lapHit2},buildLagerTerminal,toggleTest,testLevel,buyUp,get toastLast(){return toastLast},__floorBoxen:()=>floorBoxes.length,WBAY_UP,wbays,dockPlaetze,wbayFrei,wbayOffen,spawnWTruck,updateWBays,wbaysInit,wtorSet,GANG,GANGTUER,buildLagergang,flaeche,WTOR,RACKKIND,route,NAV,navFrei,navIdx,navBuild,shelfStand,shelves,sbLanes,buildSBKasse,sbFrei,sbOffen,sbNutzbar,EING2,eingaenge,naechsterEingang,setEingang2,buildSBKasse2,get sb2G(){return sb2G},TUEREN,tuerSetD,tuerNahD,packBereit,packOne,paketWert,bestellungenProTag,pakete,PAKET_BAYS,ddlAbholung,updateVersand,createShelf,createRack,regalStellen,testKauf,regalAufbauen,orderRegal,REGALWARE,regalOf,regalKind,regalPreis,regalPlatz,regalOffen,startGame,promptFor,ERFOLGE,erfOffen,erfStufe,erfStand,erfZiel,erfFertig,erfAnteil,erfGeschafft,erfGesamt,stat,statAdd,statRekord,statVerkauf,bruchGesehen,gruppeVon,GRUPPE,TRAEGER,BRUCH,BRUCH_IDS,REZ_FARBEN,ETIKETT,traegerVon,traegerOffen,bruchOffen,bruchListe,rezeptWow,rezeptKosten,rezeptMarkt,rezeptHype,rezeptDauer,rezeptEntwicklung,rezeptGueltig,eigeneListe,eigenesEintragen,rezepteTick,rezProto,rezBauen,renderRezeptur,get entwurf(){return entwurf},set entwurf(v){entwurf=v},entwurfInit,ORDER,LIZENZEN,lizenzOf,hatLizenz,lizenzDaten,naechsteLizenz,buyLizenz,VOLA,volaOf,REGIME,marketOf,costOf,marktZiel,marktLuecke,meOf,miOf,marktDelta,marktNiveau,marktPhase,marktSchock,marktLabel,marktSchnitt,marktExtrem,marktChance,sortimentBreite,sortimentZug,bekanntheit,spawnInterval,rollMarkt,marktInit,inflOf,inflText,setPreisAufMarkt,igniteType,get packHit(){return packHit},get packTisch(){return packTisch},get packMov(){return packMov},zuendeKanal,zuendeAlle,alleKanaele,kanalItem,openZuend,closeZuend,get zuendOpen(){return zuendOpen},bereitCount,brennDauer,muendung,pultLamps,RAKETEN_LOOK,RAKETEN_KL,makePerson,applyTOD,updateHUD,schweber,kundenSymbol,geldSchwebt,get serie(){return serie},serieZufrieden,serieBricht,KAPITEL,kapitel,kapitelNr,kapitelAufstieg,WA,WA_SLOTS,vorDieTuer,SB_KASSIERER,sbBesetzt,sbLaneVon,sbKassiererPlatz,MUSIK,STUECKE,musikAn,musikWeiter,musikVol,musikTick,spielSchritt,get mStep(){return mStep},set mStep(v){mStep=v;mTakte=0;},get mBus(){return mBus},get postHalf(){return postHalf},EFF_SCHWEIF,mitSchweif,KOEPFE,KLEID,UNIFORM,STAFFKOPF,faceCache,animPerson,PACKS,packPreis,packPool,packOffen,packContents,syncPakete,rotateGrab,PACK_FL,PACK_HOME,spotFree,rectOf,grab,placeGrab,updateGrab,get grabbed(){return grabbed},showPause,get target(){return target},
+    scene,camera,P,EFF,EFF_ALL,EFF_KLEIN,EFF_GROSS,EFF_PRO,SHOWS,kugelbombe,shot,mine,FW,stations,stationOf,placedCount,togglePDA,openPDA,closePDA,setPost,get postOn(){return postOn},get pdaOn(){return pdaOn},showLength,psHuge,psBig,psMid,psSmall,rockets,emitters,timersLen:()=>timers.length,setView:(x,z,y,p)=>{pl.x=x;pl.z=z;yaw=y;pitch=p;aim=null;},schiebe:(x,z)=>{pl.x=x;pl.z=z;collide(pl,0.32);return{x:pl.x,z:pl.z};},PLZ_MAX,camYaw:()=>yaw,camPitch:()=>pitch,playerPos:()=>({x:pl.x,z:pl.z}),pultYaw:()=>pultHit?pultHit.parent.rotation.y:null,applyShopName,shopName,shopSlogan,signTexPx:()=>signTex&&signTex.image?signTex.image.getContext('2d').getImageData(0,0,signTex.image.width,40).data.join(''):null,ckTexPx:()=>ckNameTex&&ckNameTex.image?ckNameTex.image.getContext('2d').getImageData(0,0,ckNameTex.image.width,60).data.join(''):null,testfeldMitte,STATION_POS,aimAt,UPGRADES,upPic,PLAN,planFlaechen,uhrZeiger:()=>({std:uhrStd?+uhrStd.rotation.z.toFixed(4):0,min:uhrMin?+uhrMin.rotation.z.toFixed(4):0}),drawRackSchild,get snowPts(){return snowPts},buildStadt,updateStadt,get stadtBoxen(){return stadtBoxen},get stadtBaeume(){return stadtBaeume},buildFernbaeume,schwaerme,beacons,silhouetten,get verkehrPts(){return verkehrPts},get rauchPts(){return rauchPts},get flieger(){return flieger},stadtFrei,STADT_FREI,WALLS,FLOORS,renderOnline,onlineHint,onlineStufe,onlineZahlen,updateOnline,packLaptop,SCHILDBG,SCHILDFG,setSchild,schildBg,schildFg,repaintSchilder,updateHead,allLevels,addToLevel,putInSlot,regCustomer,ZONEN,zoneOffen,oeffneZone,applyZonen,SLOTS,RACKS,slotsOffen,colliders,LAY,LOGI,WRAMPEN,WTORE,updateSnow,unterDach,dachBereiche,get lapHit2(){return lapHit2},buildLagerTerminal,toggleTest,testLevel,buyUp,get toastLast(){return toastLast},__floorBoxen:()=>floorBoxes.length,WBAY_UP,wbays,dockPlaetze,wbayFrei,wbayOffen,spawnWTruck,updateWBays,wbaysInit,wtorSet,GANG,GANGTUER,buildLagergang,flaeche,WTOR,RACKKIND,route,NAV,navFrei,navIdx,navBuild,shelfStand,shelves,sbLanes,buildSBKasse,sbFrei,sbOffen,sbNutzbar,EING2,eingaenge,naechsterEingang,setEingang2,buildSBKasse2,get sb2G(){return sb2G},TUEREN,tuerSetD,tuerNahD,packBereit,packOne,paketWert,bestellungenProTag,pakete,PAKET_BAYS,ddlAbholung,updateVersand,createShelf,createRack,regalStellen,testKauf,regalAufbauen,orderRegal,REGALWARE,regalOf,regalKind,regalPreis,regalPlatz,regalOffen,startGame,promptFor,ERFOLGE,erfOffen,erfStufe,erfStand,erfZiel,erfFertig,erfAnteil,erfGeschafft,erfGesamt,stat,statAdd,statRekord,statVerkauf,bruchGesehen,gruppeVon,GRUPPE,TRAEGER,BRUCH,BRUCH_IDS,REZ_FARBEN,ETIKETT,traegerVon,traegerOffen,bruchOffen,bruchListe,rezeptWow,rezeptKosten,rezeptMarkt,rezeptHype,rezeptDauer,rezeptEntwicklung,rezeptGueltig,eigeneListe,eigenesEintragen,rezepteTick,rezProto,rezBauen,renderRezeptur,get entwurf(){return entwurf},set entwurf(v){entwurf=v},entwurfInit,ORDER,LIZENZEN,lizenzOf,hatLizenz,lizenzDaten,naechsteLizenz,buyLizenz,VOLA,volaOf,REGIME,marketOf,costOf,marktZiel,marktLuecke,meOf,miOf,marktDelta,marktNiveau,marktPhase,marktSchock,marktLabel,marktSchnitt,marktExtrem,marktChance,sortimentBreite,sortimentZug,bekanntheit,spawnInterval,rollMarkt,marktInit,inflOf,inflText,setPreisAufMarkt,igniteType,get packHit(){return packHit},get packTisch(){return packTisch},get packMov(){return packMov},zuendeKanal,zuendeAlle,alleKanaele,kanalItem,openZuend,closeZuend,get zuendOpen(){return zuendOpen},bereitCount,brennDauer,muendung,pultLamps,RAKETEN_LOOK,RAKETEN_KL,makePerson,applyTOD,updateHUD,renderer,renderFrame,get DEMO(){return DEMO},set DEMO(v){DEMO=v},kapitelVon,kapitelVoll,openHandy,closeHandy,toggleHandy,get handyOpen(){return handyOpen},get happ(){return happ},HANDY_APPS,renderHandy,shaderVorab,SCHONER,schonerMalen,updateSchoner,makeWischer,stelleWischer,get wischer(){return wischer},updateWischen,wischerPersonal,cleanTick,updateFireworks,FLASH,spurEnden,LR_LAMPE,schweber,kundenSymbol,geldSchwebt,get serie(){return serie},serieZufrieden,serieBricht,KAPITEL,kapitel,kapitelNr,kapitelAufstieg,WA,WA_SLOTS,vorDieTuer,SB_KASSIERER,sbBesetzt,sbLaneVon,sbKassiererPlatz,MUSIK,STUECKE,musikAn,musikWeiter,musikVol,musikTick,spielSchritt,get mStep(){return mStep},set mStep(v){mStep=v;mTakte=0;},get mBus(){return mBus},get postHalf(){return postHalf},EFF_SCHWEIF,mitSchweif,KOEPFE,KLEID,UNIFORM,STAFFKOPF,faceCache,animPerson,PACKS,packPreis,packPool,packOffen,packContents,syncPakete,rotateGrab,PACK_FL,PACK_HOME,spotFree,rectOf,grab,placeGrab,updateGrab,get grabbed(){return grabbed},showPause,get target(){return target},
     shot:()=>{ noLoop=true; camera.position.set(pl.x,1.65,pl.z); camera.rotation.set(pitch,yaw,0); camera.updateMatrixWorld(); updateTarget(); applyTOD(); renderFrame(0.016); return canvas.toDataURL('image/jpeg',0.85); },
     run:(sec,dt)=>{ noLoop=true; const n=Math.round(sec/(dt||0.05)); for(let i=0;i<n;i++) step(dt||0.05); }};
 });

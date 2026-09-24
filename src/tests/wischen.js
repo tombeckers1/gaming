@@ -60,8 +60,10 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     let arbeit=false; for(let i=0;i<200&&!arbeit;i++){ bb.run(0.05,0.05); if(w.state==='work') arbeit=true; }
     bb.run(0.5,0.05);
     o.arbeitet=arbeit;
-    if(arbeit){ const k=new (w.pos.constructor)(); w.wischer.userData.kopf.getWorldPosition(k);
-      o.abstandFleck=+Math.hypot(k.x-d.m.position.x,k.z-d.m.position.z).toFixed(2); o.deckkraft=+d.m.material.opacity.toFixed(2);
+    /* gemessen am Fleck, den sie gerade wischt - im offenen Laden kann
+       nebenbei ein zweiter entstehen, der naeher liegt */
+    if(arbeit){ const k=new (w.pos.constructor)(); w.wischer.userData.kopf.getWorldPosition(k); const z=w.target||d;
+      o.abstandFleck=+Math.hypot(k.x-z.m.position.x,k.z-z.m.position.z).toFixed(2); o.deckkraft=+z.m.material.opacity.toFixed(2);
       bb.setView(w.pos.x+2.2,w.pos.z+2.2,Math.atan2(2.2,2.2),-0.35); bb.run(0.05,0.05); bb.renderFrame(1/60); }
     return o; });
   await bild('personal');

@@ -2,7 +2,12 @@
 
 Stand 24.09.2026, festgelegt von Tom.
 
-## Demo (Release geplant: Dezember 2026)
+> **Offen (Stand 24.09.2026):** Tom entscheidet noch, ob und wann es eine Demo gibt.
+> Priorität: Kein Spieler darf nach der Demo neu anfangen müssen. Eher wird das Spiel
+> komplett fertig gebaut, als dass eine Demo mit unsicherer Spielstand-Übernahme erscheint.
+> Der Dezember-Termin ist kein Muss.
+
+## Demo (Entwurf, nicht beschlossen)
 
 Kapitel 1–6, alles vor dem Logistikzentrum:
 

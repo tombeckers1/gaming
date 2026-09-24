@@ -182,22 +182,32 @@ function initFlash(){
 }
 /* beide Lichtzustaende vorab uebersetzen - in das Ziel, in das auch
    gezeichnet wird (mit Nachbearbeitung ein anderes als der Bildschirm) */
+let vorabZiel=null;
 function shaderVorab(){
   try{
-    const ziel=(typeof postOK!=='undefined'&&postOK&&postOn&&typeof rtScene!=='undefined')?rtScene:null;
-    if(renderer.setRenderTarget) renderer.setRenderTarget(ziel);
+    const t0=performance.now();
+    /* Gezeichnet wird in ein winziges Bild mit demselben Farbformat wie
+       das echte Ziel - der Shader haengt am Format, nicht an der Groesse.
+       In voller Aufloesung dauerte das Vorzeichnen auf schwachen
+       Rechnern viele Sekunden. */
+    const post=(typeof postOK!=='undefined'&&postOK&&postOn&&typeof rtScene!=='undefined'&&rtScene);
+    if(!vorabZiel&&THREE.WebGLRenderTarget){
+      vorabZiel=new THREE.WebGLRenderTarget(4,4,{type:post?rtScene.texture.type:THREE.UnsignedByteType});
+      vorabZiel.texture.encoding=post?rtScene.texture.encoding:renderer.outputEncoding;
+    }
+    if(renderer.setRenderTarget) renderer.setRenderTarget(vorabZiel);
     const alt=flashAn;
     /* Uebersetzen allein reicht nicht: Browser und Treiber stellen
        einen Shader oft erst beim ersten Zeichnen fertig. Darum wird
        jeder Zustand einmal gezeichnet, ohne Sichtpruefung, damit auch
-       Dinge hinter der Kamera drankommen. Das Bild wird danach sofort
-       ueberzeichnet. */
+       Dinge hinter der Kamera drankommen. */
     const aus=[]; scene.traverse(o=>{ if(o.frustumCulled){ o.frustumCulled=false; aus.push(o); } });
     for(const an of [true,false]){ flashSchalten(an); renderer.compile(scene,camera); renderer.render(scene,camera); }
     aus.forEach(o=>{ o.frustumCulled=true; });
     flashSchalten(alt);
     if(renderer.setRenderTarget) renderer.setRenderTarget(null);
-  }catch(e){}
+    shaderVorab.ms=Math.round(performance.now()-t0);
+  }catch(e){ try{ if(renderer.setRenderTarget) renderer.setRenderTarget(null); }catch(e2){} }
 }
 function flash(p,c,power,dur){
   if(!FLASH.length) return;

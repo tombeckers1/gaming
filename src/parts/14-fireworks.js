@@ -178,6 +178,36 @@ function basis(){
   const v=[n[1]*u[2]-n[2]*u[1],n[2]*u[0]-n[0]*u[2],n[0]*u[1]-n[1]*u[0]];
   return [u,v];
 }
+/* Figuren (Herz, Stern, Ringe ...) liegen in einer Ebene, die zum
+   Zuschauer zeigt - hoechstens um 'kipp' geneigt. Mit zufaelliger
+   Lage sah man ein Herz von der Kante: ein flaches Oval (Tom). */
+function basisBlick(p,kipp){
+  const c=camera.position;
+  let n=[c.x-p.x,c.y-p.y,c.z-p.z]; const l0=Math.hypot(n[0],n[1],n[2])||1; n=[n[0]/l0,n[1]/l0,n[2]/l0];
+  if(kipp){ const r=randDir(), k=Math.random()*kipp; n=[n[0]+r[0]*k,n[1]+r[1]*k,n[2]+r[2]*k];
+    const l=Math.hypot(n[0],n[1],n[2])||1; n=[n[0]/l,n[1]/l,n[2]/l]; }
+  /* u waagerecht, v nach oben - so steht das Herz aufrecht */
+  let u=[-n[2],0,n[0]]; const lu=Math.hypot(u[0],u[2])||1; u=[u[0]/lu,0,u[2]/lu];
+  const v=[n[1]*u[2]-n[2]*u[1],n[2]*u[0]-n[0]*u[2],n[0]*u[1]-n[1]*u[0]];
+  if(v[1]<0){ v[0]=-v[0]; v[1]=-v[1]; v[2]=-v[2]; u=[-u[0],-u[1],-u[2]]; }
+  return [u,v];
+}
+/* Effektfamilien: was gleichzeitig am Himmel steht, muss zusammen-
+   passen. Figuren stehen immer allein - ein Herz mit einer Kugel
+   darin oder ein Stern neben einer Knisterwolke sieht nach Unfall aus. */
+const EFF_FAMILIE={};
+[['figur','ring doppelring ringring herz stern saturn schneeflocke spirale feuerrad kreisel'],
+ ['kugel','kugel chrys wechsel dahlie pistill mehrring geist regenbogen spektrum farbregen dreifach doppel zehnfach strauss'],
+ ['haenger','weide glitzerweide kamuro brokat zeitregen kronleuchter goldglitzer palme komet kaskade sternschnuppen titan'],
+ ['knister','knister tausend strobe blink fische spinne crossette blaetter'],
+ ['flamme','flammenregen'],['salut','salut'],['spass','furz']].forEach(([f,l])=>l.split(' ').forEach(e=>{ EFF_FAMILIE[e]=f; }));
+/* Welche Familien sich den Himmel teilen duerfen */
+function effPassen(a,b){
+  const fa=EFF_FAMILIE[a]||'kugel', fb=EFF_FAMILIE[b]||'kugel';
+  if(fa==='salut'||fb==='salut') return fa!=='figur'&&fb!=='figur';
+  if(fa==='figur'||fb==='figur') return a===b||(fa===fb&&fa==='figur');
+  return true;
+}
 const QUAL=()=>COARSE?0.55:1;
 const STEIG=0.8;
 
@@ -301,7 +331,7 @@ const EFF={
   },
   /* flacher Ring */
   ring(p,A,B,s){
-    const [u,v]=basis(), n=Math.round(96*QUAL()), sp=rand(8,10)*s;
+    const [u,v]=basisBlick(p,0.5), n=Math.round(96*QUAL()), sp=rand(8,10)*s;
     for(let i=0;i<n;i++){ const a=i/n*Math.PI*2+rand(-.02,.02), w=sp*rand(0.95,1.05);
       const dx=(u[0]*Math.cos(a)+v[0]*Math.sin(a)), dy=(u[1]*Math.cos(a)+v[1]*Math.sin(a)), dz=(u[2]*Math.cos(a)+v[2]*Math.sin(a));
       psBig.emit(p.x,p.y,p.z,dx*w,dy*w,dz*w,A[0],A[1],A[2],rand(1.8,2.3),2.6,0); }
@@ -311,7 +341,7 @@ const EFF={
   /* zwei Ringe über Kreuz, zwei Farben */
   doppelring(p,A,B,s){
     for(let r=0;r<2;r++){
-      const [u,v]=basis(), n=Math.round(80*QUAL()), sp=rand(7.5,9.5)*s, c=r?B:A;
+      const [u,v]=basisBlick(p,0.5), n=Math.round(80*QUAL()), sp=rand(7.5,9.5)*s, c=r?B:A;
       for(let i=0;i<n;i++){ const a=i/n*Math.PI*2;
         const dx=(u[0]*Math.cos(a)+v[0]*Math.sin(a)), dy=(u[1]*Math.cos(a)+v[1]*Math.sin(a)), dz=(u[2]*Math.cos(a)+v[2]*Math.sin(a));
         psBig.emit(p.x,p.y,p.z,dx*sp,dy*sp,dz*sp,c[0],c[1],c[2],rand(1.7,2.2),2.6,0); }
@@ -359,7 +389,7 @@ const EFF={
   },
   /* Herz */
   herz(p,A,B,s){
-    const [u,v]=basis(), n=Math.round(90*QUAL());
+    const [u,v]=basisBlick(p,0), n=Math.round(90*QUAL());
     for(let i=0;i<n;i++){
       const t=i/n*Math.PI*2;
       const hx=16*Math.pow(Math.sin(t),3)/16, hy=(13*Math.cos(t)-5*Math.cos(2*t)-2*Math.cos(3*t)-Math.cos(4*t))/16;
@@ -371,7 +401,7 @@ const EFF={
   },
   /* fünfzackiger Stern */
   stern(p,A,B,s){
-    const [u,v]=basis(), pts=[];
+    const [u,v]=basisBlick(p,0), pts=[];
     for(let i=0;i<10;i++){ const r=i%2?0.42:1, a=i/10*Math.PI*2-Math.PI/2; pts.push([Math.cos(a)*r,Math.sin(a)*r]); }
     const sp=9*s;
     for(let e=0;e<10;e++){
@@ -385,7 +415,7 @@ const EFF={
   },
   /* Kreisel: Ring mit Drall */
   kreisel(p,A,B,s){
-    const [u,v]=basis(), n=Math.round(84*QUAL()), sp=rand(6.5,8.5)*s;
+    const [u,v]=basisBlick(p,0.5), n=Math.round(84*QUAL()), sp=rand(6.5,8.5)*s;
     for(let i=0;i<n;i++){ const a=i/n*Math.PI*2, tg=a+Math.PI/2.4, c=i%3?A:B;
       const dx=(u[0]*Math.cos(tg)+v[0]*Math.sin(tg))*sp, dy=(u[1]*Math.cos(tg)+v[1]*Math.sin(tg))*sp, dz=(u[2]*Math.cos(tg)+v[2]*Math.sin(tg))*sp;
       psBig.emit(p.x,p.y,p.z,dx,dy,dz,c[0],c[1],c[2],rand(1.6,2.2),2.4,4); }
@@ -575,7 +605,7 @@ EFF.mehrring=function(p,A,B,s){
 /* Regenbogen: der Ball ist in sechs Farbsegmente geteilt */
 EFF.regenbogen=function(p,A,B,s){
   const F=['rot','orange','zitrone','gruen','himmel','violett'].map(K);
-  const [u,v]=basis(), n=Math.round(210*s*QUAL());
+  const [u,v]=basisBlick(p,0.35), n=Math.round(210*s*QUAL());
   for(let i=0;i<n;i++){ const d=randDir(), sp=rand(8.5,10.5)*s;
     const a=Math.atan2(d[0]*v[0]+d[1]*v[1]+d[2]*v[2],d[0]*u[0]+d[1]*u[1]+d[2]*u[2]);
     const c=F[Math.floor((a+Math.PI)/(Math.PI*2)*6)%6];
@@ -618,7 +648,7 @@ EFF.kronleuchter=function(p,A,B,s){
 /* Feuerrad: der Ring dreht sich beim Aufgehen, die Sterne ziehen
    Spiralarme - zwei Farben im Wechsel */
 EFF.feuerrad=function(p,A,B,s){
-  const [u,v]=basis(), n=Math.round(150*s*QUAL());
+  const [u,v]=basisBlick(p,0.35), n=Math.round(150*s*QUAL());
   for(let i=0;i<n;i++){ const a=i/n*Math.PI*2, ca=Math.cos(a), sa=Math.sin(a);
     const r=[u[0]*ca+v[0]*sa,u[1]*ca+v[1]*sa,u[2]*ca+v[2]*sa], t=[-u[0]*sa+v[0]*ca,-u[1]*sa+v[1]*ca,-u[2]*sa+v[2]*ca];
     const sp=rand(8.5,9.5)*s, dreh=rand(4,5)*s, c=Math.floor(i/n*8)%2?A:B;
@@ -715,7 +745,7 @@ EFF.titan=function(p,A,B,s){
 };
 /* Zehnfachbruch: zehn Kugeln gleichzeitig im Kreis um die Mitte */
 EFF.zehnfach=function(p,A,B,s){
-  const [u,v]=basis(), r=6.5*s, F=[A,B,K('weiss'),K('zitrone'),K('magenta')];
+  const [u,v]=basisBlick(p,0.4), r=6.5*s, F=[A,B,K('weiss'),K('zitrone'),K('magenta')];
   for(let k=0;k<10;k++){
     const a=k/10*Math.PI*2;
     const q={x:p.x+(u[0]*Math.cos(a)+v[0]*Math.sin(a))*r,y:p.y+(u[1]*Math.cos(a)+v[1]*Math.sin(a))*r*0.7,z:p.z+(u[2]*Math.cos(a)+v[2]*Math.sin(a))*r};
@@ -743,7 +773,7 @@ EFF.kaskade=function(p,A,B,s){
    ========================================================= */
 /* Schneeflocke: sechs Arme in einer Ebene, jeder mit Seitenaesten */
 EFF.schneeflocke=function(p,A,B,s){
-  const [u,v]=basis(), sp=11*s, c=FW.silber;
+  const [u,v]=basisBlick(p,0), sp=11*s, c=FW.silber;
   const dir=a=>[u[0]*Math.cos(a)+v[0]*Math.sin(a),u[1]*Math.cos(a)+v[1]*Math.sin(a),u[2]*Math.cos(a)+v[2]*Math.sin(a)];
   for(let k=0;k<6;k++){ const a=k/6*Math.PI*2, d=dir(a);
     const n=Math.round(22*QUAL());
@@ -759,7 +789,7 @@ EFF.schneeflocke=function(p,A,B,s){
 };
 /* Spirale: acht gebogene Arme, die sich im Kreis drehen */
 EFF.spirale=function(p,A,B,s){
-  const [u,v]=basis(), sp=10.5*s, arme=8;
+  const [u,v]=basisBlick(p,0.35), sp=10.5*s, arme=8;
   for(let k=0;k<arme;k++){ const a0=k/arme*Math.PI*2;
     const n=Math.round(26*QUAL());
     for(let i=0;i<n;i++){ const f=0.15+i/n*0.85, a=a0+f*1.9, c=i%3?A:B;
@@ -768,7 +798,7 @@ EFF.spirale=function(p,A,B,s){
 };
 /* Ring im Ring: aussen ein Ring, innen ein kleinerer in der Gegenfarbe */
 EFF.ringring=function(p,A,B,s){
-  const [u,v]=basis();
+  const [u,v]=basisBlick(p,0.4);
   for(const [c,sp,n] of [[A,10*s,110],[B,5.4*s,70]]) for(let i=0;i<Math.round(n*QUAL());i++){
     const a=i/n*Math.PI*2, w=sp*rand(0.97,1.03);
     const dx=u[0]*Math.cos(a)+v[0]*Math.sin(a), dy=u[1]*Math.cos(a)+v[1]*Math.sin(a), dz=u[2]*Math.cos(a)+v[2]*Math.sin(a);
@@ -818,12 +848,11 @@ function shot(o,opt){
      Rohr oder einer Batterie kommt der Schuss genau dort heraus. */
   const jit=o.jit!==undefined?o.jit:0.35, ab=o.ab!==undefined?o.ab:0.4;
   const start=V(o.x+rand(-jit,jit),o.y!==undefined?o.y+ab:1,o.z+rand(-jit,jit));
-  /* Muendungsfeuer: ein kurzer Funkenstoss aus dem Rohr */
-  for(let i=0;i<Math.round((10+(opt.dick||0)*14)*QUAL());i++){
-    const a=Math.random()*Math.PI*2, w=rand(0.3,1.6);
-    psMid.emit(start.x,start.y,start.z,Math.cos(a)*w,rand(1.5,5),Math.sin(a)*w,1,.72,.3,rand(0.25,0.55),5,4); }
+  /* Muendungsfeuer: kurzer Blitz, ein paar Funken zur Seite */
+  muendungsblitz(start,start.y,1+(opt.dick||0));
   const fuse=opt.fuse||rand(1.05,1.35);
   if(FW_LOG) FW_LOG.push({t:FW_UHR,art:opt.kugel?'kugel':'schuss',kal:opt.kugel||0,pw:opt.pw||0,sz:opt.sz||1,eff:opt.eff||'?',A:sc[0],B:sc[1],
+    stufenEff:(opt.stufen||[]).map(x=>x.eff),
     hoehe:+(start.y+Math.cos(ang)*up*fuse-3*fuse*fuse).toFixed(2),brueche:1+(opt.stufen?opt.stufen.length:0),
     groesste:Math.max(opt.sz||1,...(opt.stufen||[]).filter(x=>x.eff!=='salut').map(x=>x.sz))});
   rockets.push({
@@ -886,8 +915,9 @@ function kugelbombe(o,kal,opt){
   const stufen=[];
   if(K4===1){
     /* Herzschlag: das Herz schlaegt zweimal nach - bum-bum */
-    stufen.push({t:0.55,eff:'herz',sz:groesse*0.75,streu:0.3,A:C,B:A});
-    stufen.push({t:0.8,eff:'farbregen',sz:groesse*0.6,streu:0.3,A,B});
+    /* zwei kleinere Herzen im selben Mittelpunkt, zum Zuschauer gedreht */
+    stufen.push({t:0.5,eff:'herz',sz:groesse*0.62,streu:0,A:C,B:A});
+    stufen.push({t:0.8,eff:'herz',sz:groesse*0.4,streu:0,A,B:C});
   }
   if(K4===2){
     /* Drachenblut: vier Toechter im Kreis, dann regnet es Flammen */
@@ -901,7 +931,7 @@ function kugelbombe(o,kal,opt){
     ringLage(6,8).forEach((off,i)=>stufen.push({t:0.55,off,leise:i>0,
       eff:['kugel','pistill','knister','kugel','pistill','knister'][i],sz:groesse*0.4,A:i%2?C:A,B:i%2?D:B}));
     ringLage(4,5,1).forEach((off,i)=>stufen.push({t:1.05+i*0.08,off,leise:i>0,
-      eff:['feuerrad','tausend','feuerrad','tausend'][i],sz:groesse*0.36,A:C,B:A}));
+      eff:['tausend','knister','tausend','knister'][i],sz:groesse*0.36,A:C,B:A}));
     stufen.push({t:1.6,eff:'kronleuchter',sz:groesse*0.9,streu:2,A,B});
     stufen.push({t:1.68,eff:'salut',sz:0.9,streu:5,A:FW.weiss,B:FW.weiss});
   }
@@ -912,7 +942,7 @@ function kugelbombe(o,kal,opt){
     ringLage(10,10).forEach((off,i)=>stufen.push({t:0.5,off,leise:i>0,
       eff:['kugel','pistill','wechsel','kugel','strobe'][i%5],sz:groesse*0.36,A:F[i%5],B:F[(i+2)%5]}));
     ringLage(10,6,1.2).forEach((off,i)=>stufen.push({t:1.05,off,leise:i>0,
-      eff:['knister','tausend','spinne','kreisel'][i%4],sz:groesse*0.32,A:F[(i+1)%5],B:F[(i+3)%5]}));
+      eff:['knister','tausend','spinne','fische'][i%4],sz:groesse*0.32,A:F[(i+1)%5],B:F[(i+3)%5]}));
     stufen.push({t:1.7,eff:'tausend',sz:groesse*0.8,streu:1,A:FW.weiss,B:FW.weiss});
     stufen.push({t:2.3,eff:'kamuro',sz:groesse*0.95,streu:2,A,B});
     stufen.push({t:2.36,eff:'salut',sz:1.0,streu:4,A:FW.weiss,B:FW.weiss});
@@ -924,9 +954,9 @@ function kugelbombe(o,kal,opt){
        Himmel und vier Salutschlaege */
     const F=[A,B,C,D,FW.gold,FW.weiss];
     ringLage(12,13).forEach((off,i)=>stufen.push({t:0.55,off,leise:i>0,
-      eff:['pistill','mehrring','ringring','schneeflocke'][i%4],sz:groesse*0.3,A:F[i%6],B:F[(i+3)%6]}));
+      eff:['pistill','mehrring','dahlie','kugel'][i%4],sz:groesse*0.3,A:F[i%6],B:F[(i+3)%6]}));
     ringLage(12,9,1.3).forEach((off,i)=>stufen.push({t:1.15,off,leise:i>0,
-      eff:['spirale','kugel','strauss','dahlie'][i%4],sz:groesse*0.28,A:F[(i+1)%6],B:F[(i+4)%6]}));
+      eff:['chrys','kugel','strauss','dahlie'][i%4],sz:groesse*0.28,A:F[(i+1)%6],B:F[(i+4)%6]}));
     stufen.push({t:1.8,eff:'crossette',sz:groesse*0.55,streu:1,A:FW.gold,B:FW.weiss});
     stufen.push({t:2.2,eff:'tausend',sz:groesse*0.7,streu:2,A:FW.weiss,B:FW.weiss});
     stufen.push({t:2.8,eff:'glitzerweide',sz:groesse*0.8,streu:1,A,B});
@@ -937,18 +967,32 @@ function kugelbombe(o,kal,opt){
 }
 /* Bodeneffekt: Mine, die beim Start eine Fontäne wirft */
 function mine(o,A,B,s){
-  const n=Math.round(90*(s||1)*QUAL()), y0=o.y!==undefined?o.y:0.3;
-  for(let i=0;i<n;i++){ const a=Math.random()*Math.PI*2, w=rand(0.5,3.2), c=i%3?A:B;
-    psMid.emit(o.x+rand(-.08,.08),y0,o.z+rand(-.08,.08),Math.cos(a)*w,rand(9,16),Math.sin(a)*w,c[0],c[1],c[2],rand(1.1,1.9),6.5,4); }
-  flash({x:o.x,y:1.6,z:o.z},A,2.0,0.5);
+  /* Bodenmine wie beim echten Verbund: EIN Stoss aus dem Rohr, helle
+     Sterne schiessen in einem engen Kegel nach oben und verloeschen
+     nach acht bis zwoelf Metern. Vorher sprühte hier eine lange,
+     streifige Fontaene aus der Batterie (Tom: "extrem unrealistisch"). */
+  const n=Math.round(40*(s||1)*QUAL()), y0=(o.y!==undefined?o.y:0.3)+(o.ab!==undefined?o.ab:0.05);
+  const alt=SCHWEIF; SCHWEIF=0.12;
+  for(let i=0;i<n;i++){ const a=Math.random()*Math.PI*2, w=rand(0.3,1.7), c=i%3?A:B;
+    psBig.emit(o.x,y0,o.z,Math.cos(a)*w,rand(12,17),Math.sin(a)*w,c[0]*1.2,c[1]*1.2,c[2]*1.2,rand(0.65,0.95),6.5,0); }
+  SCHWEIF=alt;
+  muendungsblitz(o,y0,1.4);
+  flash({x:o.x,y:y0+0.6,z:o.z},A,1.6,0.25);
   sfx.thump(distVol(o)*1.2);
+}
+/* Kurzer, greller Blitz an der Rohrmuendung und ein paar Funken zur
+   Seite - statt eines Funkenstrahls, der wie eine Fontaene aussah */
+function muendungsblitz(o,y,k){
+  for(let i=0;i<2;i++) psHuge.emit(o.x,y+0.05,o.z,0,rand(0.5,1.5),0,1,.92,.7,0.07,0,0);
+  for(let i=0;i<Math.round(6*k*QUAL());i++){ const a=Math.random()*Math.PI*2, w=rand(1.2,3);
+    psSmall.emit(o.x,y,o.z,Math.cos(a)*w,rand(0.5,2.2),Math.sin(a)*w,1,.75,.35,rand(0.12,0.26),6,0); }
 }
 function fwBurst(r){
   const p=r.p, fn=EFF[r.eff]||EFF.kugel;
   mitSchweif(r.eff,()=>fn(p,r.A,r.B,r.size));
   kern(p,r.A,r.size);
   /* Grosse Brueche glitzern kurz nach dem Aufgehen noch einmal nach */
-  if(r.size>=1.1&&r.eff!=='salut'&&r.eff!=='furz') later(0.75,()=>nachglitzer(p,r.size));
+  if(r.size>=1.1&&r.eff!=='salut'&&r.eff!=='furz'&&EFF_FAMILIE[r.eff]!=='figur') later(0.75,()=>nachglitzer(p,r.size));
   /* Wer ein Bruchbild einmal gesehen hat, darf es spaeter selbst verbauen */
   if(typeof bruchGesehen==='function') bruchGesehen(r.eff);
   const mix=[(r.A[0]+r.B[0])/2,(r.A[1]+r.B[1])/2,(r.A[2]+r.B[2])/2];

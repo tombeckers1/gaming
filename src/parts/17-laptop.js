@@ -1211,7 +1211,9 @@ function renderRezeptur(){
   const entw=gueltig?rezeptEntwicklung(r):0;
   const laufend=eigeneListe().filter(e=>!e.fertig);
   const fertig=eigeneListe().filter(e=>e.fertig);
-  rezHint=bl.length
+  rezHint=r.eff2&&typeof effPassen==='function'&&!effPassen(r.eff,r.eff2)
+    ? `${(BRUCH[r.eff]||{}).name||r.eff} und ${(BRUCH[r.eff2]||{}).name||r.eff2} passen nicht zusammen: eine Figur steht am Himmel allein. Wähle einen anderen Zweitbruch.`
+    : bl.length
     ? `Verbauen darfst du nur Bruchbilder, die du selbst schon am Himmel gesehen hast — ${bl.length} von ${BRUCH_IDS.length} sind es bisher. Zünde neue Ware auf dem Testfeld, dann wächst die Liste.`
     : 'Du hast noch kein Bruchbild gesehen. Zünde erst etwas auf dem Testfeld, dann kannst du hier entwickeln.';
 

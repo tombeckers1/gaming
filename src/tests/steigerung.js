@@ -39,7 +39,15 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
       const fremd=[...farben].filter(f=>!erlaubt.has(f)).length;
       const m=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:0;
       const alle=log.filter(e=>e.art==='schuss'||e.art==='kugel');
-      return {maxSz:+Math.max(0,...alle.map(e=>e.groesste||e.sz)).toFixed(3),maxHoehe:+Math.max(0,...alle.map(e=>e.hoehe)).toFixed(2),
+      /* Passt zusammen? In einem Bruch (Haupt + Nachbrueche) und
+         zwischen Schuessen, die gleichzeitig am Himmel stehen (1 s) */
+      const unpass=[];
+      for(const e of alle){ const st=(e.stufenEff||[]);
+        for(const x of st) if(!bb.effPassen(e.eff,x)) unpass.push(e.eff+'+'+x);
+        for(let i=0;i<st.length;i++) for(let j=i+1;j<st.length;j++) if(!bb.effPassen(st[i],st[j])) unpass.push(st[i]+'+'+st[j]); }
+      for(let i=0;i<alle.length;i++) for(let j=i+1;j<alle.length&&alle[j].t-alle[i].t<1.0;j++)
+        if(!bb.effPassen(alle[i].eff,alle[j].eff)) unpass.push(alle[i].eff+'/'+alle[j].eff);
+      return {unpass:[...new Set(unpass)],maxSz:+Math.max(0,...alle.map(e=>e.groesste||e.sz)).toFixed(3),maxHoehe:+Math.max(0,...alle.map(e=>e.hoehe)).toFixed(2),
         brueche:Math.max(0,...alle.map(e=>e.brueche||1)),fremd,n:sch.length,hoehe:+m(hoehen).toFixed(2),sz:+m(sz).toFixed(3),dichte,farben:farben.size,
         dauer:sch.length?+(sch[sch.length-1].t-sch[0].t).toFixed(1):0,eff:[...new Set(log.map(e=>e.eff).filter(Boolean))]}; };
     for(const t of ['batterie16','knatter','batterie49','faecher','batterie100','zfaecher','kometen','donnerwand','profi','finale','sortiment',
@@ -52,6 +60,10 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     /* neue Effekte einzeln */
     out.neu={}; for(const e of ['flammenregen','kronleuchter','feuerrad','sternschnuppen','farbregen','spektrum','goldglitzer']){
       out.neu[e]=typeof bb.EFF[e]==='function'; try{ bb.shot(pos,{eff:e,sz:1}); bb.run(4,0.1); }catch(x){ out.neu[e]='Fehler '+x.message; } }
+    /* Figuren zeigen zum Zuschauer: Ebene senkrecht zur Blickrichtung, aufrecht */
+    { const c=bb.camera.position, q={x:c.x+3,y:c.y+18,z:c.z-28}; const [u,v]=bb.basisBlick(q,0);
+      const n=[u[1]*v[2]-u[2]*v[1],u[2]*v[0]-u[0]*v[2],u[0]*v[1]-u[1]*v[0]], d=[c.x-q.x,c.y-q.y,c.z-q.z], l=Math.hypot(...d);
+      out.blick={dot:+Math.abs((n[0]*d[0]+n[1]*d[1]+n[2]*d[2])/l).toFixed(3),auf:+v[1].toFixed(3)}; }
     out.lvl={}; Object.keys(out).forEach(t=>{ if(bb.P[t]) out.lvl[t]=bb.P[t].lvl; });
     return out; });
   const L=['batterie16','knatter','batterie49','faecher','batterie100','zfaecher','kometen','donnerwand','profi','finale'];
@@ -82,6 +94,8 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   const EXKL=['spektrum','goldglitzer'];
   ['raketenklein','raketen','pfeifraketen','raketengold'].forEach(t=>pruef('RAKETE',r[t].eff.some(e=>EXKL.indexOf(e)>=0),`${t} ohne eigenes Raketen-Bruchbild: ${r[t].eff}`));
   L.concat(['sortiment']).forEach(t=>pruef('EXKLUSIV',!r[t].eff.some(e=>EXKL.indexOf(e)>=0),`${t} nutzt Raketen-Bruchbild`));
+  Object.keys(r).forEach(t=>{ if(r[t]&&r[t].unpass) pruef('PASST',!r[t].unpass.length,`${t}: ${r[t].unpass.slice(0,6).join(', ')}`); });
+  pruef('BLICK',r.blick.dot>0.99&&r.blick.auf>0.5,'Figur zeigt nicht zum Zuschauer: '+JSON.stringify(r.blick));
   pruef('BRUNNEN',r.brunnenEmitter&&r.feuerbrunnen.eff.indexOf('flammenregen')>=0,'Feuerbrunnen ohne Flammen: '+JSON.stringify(r.feuerbrunnen));
   Object.keys(r.neu).forEach(e=>pruef('NEU',r.neu[e]===true,e+': '+r.neu[e]));
   console.log('MANGEL:',mangel.length?mangel.join(' | '):'keine');

@@ -24,13 +24,13 @@ const SHOW_BASIS={
   batterie16 :{pw:-5,sz:0.78,th:'nacht'},
   knatter    :{pw:-4,sz:0.84,th:'eis'},
   batterie49 :{pw:-3,sz:0.90,th:'glut'},
-  faecher    :{pw:-2,sz:0.95,th:'tropen'},
-  batterie100:{pw:-1,sz:1.00,th:'himmel'},
-  zfaecher   :{pw:-1,sz:1.00,th:'blitz'},
-  kometen    :{pw: 0,sz:1.08,th:'gold'},
-  donnerwand :{pw: 1,sz:1.14,th:'rotweiss'},
-  profi      :{pw: 2,sz:1.22,th:'koenig'},
-  finale     :{pw: 3,sz:1.30,th:'nacht'}
+  faecher    :{pw:-1.5,sz:0.95,th:'tropen'},
+  batterie100:{pw:-0.5,sz:1.00,th:'himmel'},
+  zfaecher   :{pw: 0,sz:1.00,th:'blitz'},
+  kometen    :{pw: 0.5,sz:1.08,th:'gold'},
+  donnerwand :{pw: 1.5,sz:1.14,th:'rotweiss'},
+  profi      :{pw: 2.5,sz:1.22,th:'koenig'},
+  finale     :{pw: 3.5,sz:1.30,th:'nacht'}
 };
 function playShow(o,phases,prod){
   const BS=SHOW_BASIS[prod]||{pw:0,sz:1,th:null};
@@ -70,15 +70,15 @@ const SHOWS={
   sortiment:()=>[
     {n:3,gap:0.9,eff:'kugel',mine:true,mineSz:0.5,pause:1.0},
     {n:2,gap:1.2,ground:'fountain',gt:5,eff:'ring',pause:1.4},
-    {n:4,gap:0.8,eff:['stern','regenbogen','knister','kugel'],wechsel:true,pause:1.2},
+    {n:4,gap:0.8,eff:['kugel','regenbogen','knister','kugel'],wechsel:true,pause:1.2},
     {n:4,gap:0.6,eff:'wechsel',fan:true,ang:0.3,pause:1.4},
-    {n:5,gap:0.5,eff:['kugel','ring','regenbogen','stern','chrys'],wechsel:true,sz:1.1,pw:1,pause:2.5}
+    {n:5,gap:0.5,eff:['kugel','chrys','regenbogen','kugel','chrys'],wechsel:true,sz:1.1,pw:1,pause:2.5}
   ],
   /* Nachthimmel, 16 Schuss: Blau und Gold, zum Schluss ein Regenbogen */
   batterie16:()=>[
     {n:4,gap:1.0,eff:'kugel',mine:true,mineSz:0.55,pause:1.2},
     {n:4,gap:0.8,eff:'ring',fan:true,ang:0.3,pause:1.4},
-    {n:4,gap:0.75,eff:['stern','wechsel'],pause:1.4},
+    {n:4,gap:0.75,eff:['stern','ring'],pause:1.4},
     {n:2,gap:0.6,eff:'regenbogen',sz:1.05,pw:1,pause:0.8},
     {n:2,gap:0.12,eff:'chrys',farbe:0,sz:1.1,pw:1,pause:3.0}
   ],
@@ -87,9 +87,9 @@ const SHOWS={
   knatter:()=>[
     {n:6,gap:0.7,eff:'knister',mine:true,mineSz:0.6,pause:1.4},
     {n:3,gap:0.1,eff:'tausend',fan:true,ang:0.35,pause:2.2},
-    {n:6,gap:0.65,eff:['stern','knister'],fan:true,ang:0.3,pause:1.4},
+    {n:6,gap:0.65,eff:['knister','fische'],fan:true,ang:0.3,pause:1.4},
     {n:3,gap:0.1,eff:'tausend',fan:true,ang:-0.35,pause:2.2},
-    {n:6,gap:0.55,eff:['feuerrad','knister','ring'],sz:1.05,pause:1.6},
+    {n:6,gap:0.55,eff:['feuerrad','ring','feuerrad'],sz:1.05,pause:1.6},
     {n:3,gap:0.1,eff:'kaskade',fan:true,ang:0.35,sz:1.1,pw:1,pause:1.6},
     {n:3,gap:0.1,eff:'tausend',sz:1.15,pw:2,pause:3.0}
   ],
@@ -101,7 +101,7 @@ const SHOWS={
     {n:6,gap:0.8,eff:['chrys','palme'],pause:1.6},
     {n:4,gap:0.1,eff:'ring',fan:true,ang:0.4,pause:2.0},
     {n:6,gap:0.9,eff:'flammenregen',sz:0.95,pw:1,pause:2.2},
-    {n:8,gap:0.45,eff:['knister','feuerrad','kugel','feuerrad'],wechsel:true,pause:1.6},
+    {n:8,gap:0.45,eff:['feuerrad','doppelring','feuerrad','ring'],wechsel:true,pause:1.6},
     {n:4,gap:0.12,eff:'palme',fan:true,ang:-0.4,sz:1.1,pw:1,pause:2.0},
     {n:5,gap:0.5,eff:['chrys','flammenregen','chrys','palme','flammenregen'],sz:1.15,pw:2,pause:0.6},
     {n:4,gap:0.1,eff:'salut',sz:1.0,pause:3.4}
@@ -120,9 +120,9 @@ const SHOWS={
   batterie100:()=>[
     {n:8,gap:0.8,eff:'kugel',mine:true,pause:1.4},
     {n:10,gap:0.45,eff:'regenbogen',fan:true,ang:0.5,pause:1.8},
-    {n:8,gap:0.85,eff:['herz','stern','saturn','mehrring'],pause:1.6},
+    {n:8,gap:0.85,eff:['herz','stern','saturn','ring'],pause:1.6},
     {n:6,gap:0.1,eff:'ring',fan:true,ang:0.5,pause:2.2},
-    {n:10,gap:0.5,eff:['feuerrad','spinne','fische','feuerrad','tausend'],wechsel:true,pause:1.6},
+    {n:10,gap:0.5,eff:['spinne','fische','tausend','fische','spinne'],wechsel:true,pause:1.6},
     {n:8,gap:0.8,eff:['kronleuchter','weide','farbregen','kronleuchter'],sz:1.1,pw:1,pause:2.0},
     {n:10,gap:0.45,eff:'regenbogen',fan:true,ang:-0.5,sz:1.05,pause:1.8},
     {n:10,gap:0.55,eff:['crossette','dahlie','pistill','dahlie','crossette'],sz:1.1,pw:1,pause:1.6},
@@ -139,7 +139,7 @@ const SHOWS={
     {n:8,gap:0.3,eff:'strobe',fan:true,ang:0.5,pause:2.2},
     {n:6,gap:0.9,eff:['blink','sternschnuppen','blink'],vfan:true,ang:0.45,sz:1.05,pause:2.0},
     {n:6,gap:0.1,eff:['palme','komet'],fan:true,ang:0.5,sz:1.1,pw:2,pause:2.6},
-    {n:6,gap:0.5,eff:['feuerrad','blink'],wechsel:true,pause:1.4},
+    {n:6,gap:0.5,eff:['feuerrad','ring'],wechsel:true,pause:1.4},
     {n:6,gap:0.1,eff:['mehrring','crossette','strobe'],fan:true,ang:-0.5,sz:1.2,pw:2,pause:4.4}
   ],
   /* Kometenregen, 64 Schuss: nur Gold - Kometen, Brokat, Kronleuchter */
@@ -164,10 +164,10 @@ const SHOWS={
      Feuerbrunnen und zwei Kugelbomben */
   profi:()=>[
     {n:8,gap:0.9,eff:'kugel',mine:true,mineSz:1.1,pause:2.0},
-    {n:14,gap:0.36,eff:['ring','regenbogen'],fan:true,ang:0.48,pause:2.0},
-    {n:12,gap:0.8,eff:['herz','stern','saturn','mehrring'],pause:1.8},
+    {n:14,gap:0.36,eff:'regenbogen',fan:true,ang:0.48,pause:2.0},
+    {n:12,gap:0.8,eff:['herz','stern','saturn','ring'],pause:1.8},
     {n:6,gap:0.8,ground:'wasserfall',gt:10,gA:'gold',gB:'zitrone',eff:'kronleuchter',sz:1.05,pw:1,pause:2.4},
-    {n:16,gap:0.35,eff:['feuerrad','knister','fische','spinne'],wechsel:true,pause:1.6},
+    {n:16,gap:0.35,eff:['knister','fische','spinne','tausend'],wechsel:true,pause:1.6},
     {n:10,gap:0.6,eff:['flammenregen','dahlie','flammenregen','weide','kaskade'],th:'glut',sz:1.1,pw:1,pause:1.4},
     {n:1,gap:0.5,bomb:2,pause:2.6},
     {n:18,gap:0.3,eff:'kugel',vfan:true,ang:0.52,wechsel:true,pause:1.8},
@@ -176,7 +176,7 @@ const SHOWS={
     {n:10,gap:0.7,eff:['brokat','kamuro','sternschnuppen','zeitregen','glitzerweide'],th:'gold',sz:1.2,pw:3,pause:1.6},
     {n:8,gap:0.55,ground:'feuerbrunnen',gt:8,eff:['flammenregen','titan'],th:'glut',sz:1.2,pw:3,pause:2.0},
     {n:1,gap:0.5,bomb:3,pause:3.2},
-    {n:12,gap:0.45,eff:['stern','herz','feuerrad','saturn','mehrring','regenbogen'],pause:1.6},
+    {n:12,gap:0.45,eff:['stern','herz','feuerrad','saturn','ring','doppelring'],pause:1.6},
     {n:10,gap:0.1,eff:'regenbogen',fan:true,ang:0.55,sz:1.15,pw:2,pause:2.0},
     {n:26,gap:0.22,eff:['chrys','dreifach','crossette','kronleuchter','brokat','dahlie','titan'],wechsel:true,sz:1.3,pw:4,pause:1.2},
     {n:21,gap:0.13,eff:['palme','weide','kamuro','chrys','pistill','zeitregen','komet'],wechsel:true,sz:1.45,pw:5,pause:0.9},
@@ -190,7 +190,7 @@ const SHOWS={
     {n:12,gap:0.3,eff:'wechsel',fan:true,ang:-0.5,th:'nacht',pause:2.2},
     {n:10,gap:0.9,eff:['herz','stern','saturn','feuerrad'],th:'nacht',sz:1.1,pause:1.8},
     {n:8,gap:0.08,eff:'tausend',fan:true,ang:0.5,th:'eis',pause:3.0},
-    {n:22,gap:0.3,eff:['knister','fische','spinne','feuerrad','tausend'],th:'eis',wechsel:true,pause:1.8},
+    {n:22,gap:0.3,eff:['knister','fische','spinne','tausend'],th:'eis',wechsel:true,pause:1.8},
     {n:1,gap:0.5,bomb:3,th:'nacht',pause:3.4},
     {n:10,gap:0.8,ground:'wasserfall',gt:14,gA:'gold',gB:'zitrone',eff:['komet','kronleuchter'],th:'gold',sz:1.15,pw:1,pause:2.0},
     {n:16,gap:0.4,eff:['kamuro','glitzerweide','zeitregen','sternschnuppen'],vfan:true,ang:0.5,th:'gold',sz:1.2,pw:2,pause:1.8},
@@ -201,7 +201,7 @@ const SHOWS={
     {n:16,gap:0.35,eff:['crossette','doppel','dreifach','mehrring'],fan:true,ang:0.45,th:'koenig',wechsel:true,sz:1.2,pw:3,pause:2.2},
     {n:1,gap:0.5,bomb:4,th:'koenig',pause:4.6},
     {n:10,gap:0.45,ground:'feuerbrunnen',gt:10,eff:'flammenregen',th:'glut',sz:1.2,pw:3,pause:1.6},
-    {n:16,gap:0.3,eff:['strobe','blink','spinne','feuerrad'],vfan:true,ang:0.52,th:'blitz',pause:1.4},
+    {n:16,gap:0.3,eff:['strobe','blink','spinne','tausend'],vfan:true,ang:0.52,th:'blitz',pause:1.4},
     {n:14,gap:0.28,eff:['titan','kamuro','flammenregen','mehrring'],th:'glut',wechsel:true,sz:1.35,pw:4,pause:1.2},
     {n:10,gap:0.08,eff:['palme','komet'],fan:true,ang:0.55,th:'gold',sz:1.3,pw:4,pause:2.0},
     {n:10,gap:0.08,eff:'regenbogen',fan:true,ang:-0.55,sz:1.3,pw:4,pause:2.0},
@@ -210,7 +210,7 @@ const SHOWS={
     {n:18,gap:0.05,eff:'salut',th:'gold',sz:1.15,pause:6.0}
   ],
   roemisch:()=>[
-    {n:10,gap:1.0,eff:['kugel','stern'],wechsel:true,fuse:0.8,pause:1.5}
+    {n:10,gap:1.0,eff:['kugel','knister'],wechsel:true,fuse:0.8,pause:1.5}
   ]
 };
 /* Raketensets: Anzahl, Takt, Kaliber, Farbthema und Bruchbilder.
@@ -222,8 +222,8 @@ const RAKETEN_KL={
      Stern laeuft durch alle Farben) und Goldglitzer (haengende
      Glitzervorhaenge). Schon die kleinste Rakete zeigt sie. */
   raketenklein:{n:3, gap:0.9, sz:0.75,pw:-6,th:'bunt',eff:['spektrum','goldglitzer','spektrum']},
-  raketen     :{n:20,gap:0.35,sz:0.85,pw:-3,th:'bunt',gruppe:5,eff:['kugel','spektrum','ring','goldglitzer','wechsel','spektrum','stern','goldglitzer','regenbogen','spektrum']},
-  pfeifraketen:{n:10,gap:0.5, sz:0.8, pw:-3,th:'wald',gruppe:2,pfeif:true,eff:['knister','spektrum','fische','kreisel','goldglitzer','strobe','tausend']},
+  raketen     :{n:20,gap:0.35,sz:0.85,pw:-3,th:'bunt',gruppe:5,eff:['kugel','spektrum','chrys','goldglitzer','wechsel','spektrum','kugel','goldglitzer','regenbogen','spektrum']},
+  pfeifraketen:{n:10,gap:0.5, sz:0.8, pw:-3,th:'wald',gruppe:2,pfeif:true,eff:['knister','spektrum','fische','goldglitzer','strobe','tausend']},
   raketengold :{n:5, gap:1.1, sz:1.25,pw:1, th:'gold',eff:['goldglitzer','kronleuchter','brokat','goldglitzer','zeitregen']},
   titanraketen:{n:3, gap:1.7, sz:1.55,pw:5, th:'eis',dick:1,eff:['titan']},
   gravur      :{n:1, gap:0.45,sz:1.3, pw:4, eff:['herz']},

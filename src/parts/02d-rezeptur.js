@@ -144,6 +144,8 @@ function rezeptGueltig(r){
   if(!traegerOffen(traegerVon(r.traeger))) return false;
   if(!bruchOffen(r.eff)) return false;
   if(r.eff2&&!bruchOffen(r.eff2)) return false;
+  /* Zweitbruch muss zum Hauptbruch passen - kein Herz mit Kugel darin */
+  if(r.eff2&&typeof effPassen==='function'&&!effPassen(r.eff,r.eff2)) return false;
   return true;
 }
 

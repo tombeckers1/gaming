@@ -18,6 +18,9 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   await p.waitForSelector('#nameBox.show',{state:'visible',timeout:20000});
   await p.click('#nameGo');
   await p.waitForFunction("!document.getElementById('start').classList.contains('show')",{timeout:20000});
+  /* Seit den Kapiteln ist das Lager am Anfang gesperrt; dieser Test
+     braucht den LKW an der Rampe */
+  await p.evaluate(()=>{ const bb=window.__bb; if(bb&&bb.S&&!bb.S.up.lager){ bb.S.up.lager=true; bb.oeffneZone('lager',true); } });
   await p.waitForTimeout(400);
 
   const mangel=[];
@@ -40,7 +43,9 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     return o;
   });
   console.log('SORTIMENT ',JSON.stringify(sort));
-  pruef('SORTIMENT',sort.klein===true&&sort.rack===true,'die kleinen Regale sind nicht von Anfang an zu haben');
+  /* Seit den Kapiteln: das kleine Regal von Anfang an, das
+     Lagerregal erst mit dem Lager ab Level 6 */
+  pruef('SORTIMENT',sort.klein===true&&sort.rack===false,'kleines Regal nicht ab Start oder Lagerregal schon auf Level 1: '+JSON.stringify(sort));
   pruef('SORTIMENT',['standard','kuehl','hoch','gondel','eck','rhoch','rschwer'].every(k=>sort[k]===false),
         'ein grosses Regal ist auf Stufe 1 schon kaufbar');
 
@@ -134,6 +139,6 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   pruef('SPIELSTAND',nachLaden.unterwegs===1,'die offene Regallieferung geht beim Laden verloren');
 
   console.log('MANGEL:',mangel.length?mangel.join(' | '):'keine');
-  console.log('ERRORS:',fehler.length?fehler.join('\n'):'keine');
+  console.log('ERRORS:',fehler.length||mangel.length?fehler.concat(mangel).join('\n'):'keine');
   await b.close();
 })();

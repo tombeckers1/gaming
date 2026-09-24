@@ -78,6 +78,20 @@ function updateDeko(dt){
    Hauptschleife
    ========================================================= */
 let last=performance.now(), hudT=0, saveT=0, dirtT=0;
+function vorDieTuer(){
+  const da=pending.filter(pd=>pd.t<=0); if(!da.length) return;
+  let n=0, regale=0;
+  da.forEach(pd=>{ pending.splice(pending.indexOf(pd),1);
+    if(pd.regal){
+      /* Regale baut der Lieferant gleich im Laden auf */
+      if(regalAufbauen(pd.regal)) regale++;
+      else { S.money=r2(S.money+regalPreis(pd.regal)); toast(`${regalName(pd.regal)}: kein Stellplatz frei, der Fahrer nimmt es wieder mit.`,'bad'); }
+    } else { spawnFloorBox(pd.type,P[pd.type].box,null,pd.q||1); n++; } });
+  statAdd('lkw',1); S.tut.lkw=true;
+  sfx.thump(0.8);
+  if(n) toast(`Lieferung: ${n} Karton${n>1?'s':''} vor der Ladentür abgestellt.`,'xp');
+  if(regale) toast(`Der Lieferant hat ${regale} Regal${regale>1?'e':''} im Laden aufgestellt.`,'money');
+}
 function step(dt){
   updatePlayer(dt);
   if(build) updateGrab();
@@ -92,7 +106,9 @@ function step(dt){
      wartete jede weitere Lieferung. Jetzt bekommt die naechste Welle
      die Basisrampe, wenn sie frei ist, sonst eine zugekaufte
      Andockstation in der Westhalle. */
-  while(pending.some(pd=>pd.t<=0)){
+  /* Kiosk ohne Lager: der Lieferant stellt alles vor die Ladentuer */
+  if(!zoneOffen('lager')&&pending.some(pd=>pd.t<=0)) vorDieTuer();
+  while(zoneOffen('lager')&&pending.some(pd=>pd.t<=0)){
     const frei=!truck?-1:wbayFrei();
     if(truck&&frei<0) break;
     const wave=[];
@@ -104,7 +120,7 @@ function step(dt){
     else if(!spawnWTruck(frei,ladung,sid,supplierOf(sid).name)) break;
   }
   updateSonne(pl.x,pl.z);
-  updateTruck(dt); updateWBays(dt); updateSchiebetuer(dt); updateVersand(dt);
+  updateTruck(dt); updateWBays(dt); updateSchiebetuer(dt); updateVersand(dt); updateSchweber(dt);
   for(let i=timers.length-1;i>=0;i--){ timers[i].t-=dt; if(timers[i].t<=0){ const fn=timers[i].fn; timers.splice(i,1); fn(); } }
   if(phase==='open') addGrime(dt*0.0016*(1+customers.length*0.05));
   hype=Math.max(0,hype-dt*1.1);

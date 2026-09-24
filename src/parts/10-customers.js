@@ -198,17 +198,17 @@ class Customer{
     while(this.wishes.length){
       const w=this.wishes.shift(), lv=findLevel(w.type,this.pos);
       if(lv){ this.cur=w; this.lv=lv; this.path=route(this.pos,shelfStand(lv.sh).add(V(rand(-0.4,0.4),0,0))); this.state='toShelf'; return; }
-      this.say(`Keine ${P[w.type].short}?`,true); this.missed=true; DS.missed+=w.qty; rep(-0.4);
+      this.say(`Keine ${P[w.type].short}?`,true); this.missed=true; DS.missed+=w.qty; rep(-0.4); kundenSymbol(this.g,'fehlt');
     }
     if(this.items.length){ if(this.thief) this.startSteal(); else this.joinQueue(); }
-    else { rep(-0.3); this.leave(); }
+    else { rep(-0.3); serieBricht(); this.leave(); }
   }
   take(){
     const w=this.cur, lv=this.lv;
     if(!(lv.type===w.type&&lv.count>0)){
       const alt=findLevel(w.type,this.pos);
       if(alt){ this.lv=alt; this.path=route(this.pos,shelfStand(alt.sh)); this.state='toShelf'; return; }
-      this.say(`Keine ${P[w.type].short} mehr?`,true); this.missed=true; DS.missed+=w.qty; rep(-0.4); this.nextWish(); return;
+      this.say(`Keine ${P[w.type].short} mehr?`,true); this.missed=true; DS.missed+=w.qty; rep(-0.4); kundenSymbol(this.g,'fehlt'); this.nextWish(); return;
     }
     let got=0, pricey=false;
     for(let k=0;k<w.qty;k++){
@@ -216,8 +216,10 @@ class Customer{
       const price=S.prices[w.type];
       if(this.thief||Math.random()<buyChance(w.type,price,lv.q,kindOf(lv.sh).cold,this.ct)){ removeFromLevel(lv); this.items.push({type:w.type,price}); got++; } else pricey=true;
     }
-    if(got===0){ this.missed=true; if(pricey){ this.say('Viel zu teuer!',true); rep(-0.5); } else DS.missed+=w.qty; }
+    if(got===0){ this.missed=true; if(pricey){ this.say('Viel zu teuer!',true); rep(-0.5); kundenSymbol(this.g,'teuer'); } else DS.missed+=w.qty; }
     else if(pricey) this.say('Hm, ganz schön teuer.');
+    /* Wunsch gefunden und gekauft: ein Herz, nicht bei jedem Griff */
+    else if(Math.random()<0.45){ kundenSymbol(this.g,'herz'); if(Math.random()<0.4) this.say(pick(['Genau das hab ich gesucht!','Endlich!','Perfekt.','Die nehm ich!'])); }
     this.nextWish();
   }
   startSteal(){
@@ -248,6 +250,14 @@ class Customer{
     if(staff.security&&staff.security.chase===this) staff.security.chase=null;
   }
   joinQueue(){
+    /* Eine besetzte Kasse nimmt jeden Korb. Der Kunde geht dorthin,
+       wenn an der Hauptkasse schon jemand steht oder dort niemand
+       bedient - sonst bleibt die Hauptkasse die erste Wahl. */
+    if(sbOffen()&&(queue.length>=1||regCustomer()||!staff.kassierer)){
+      for(let i=0;i<sbLanes.length;i++) if(sbBesetzt(i)&&!sbLanes[i].busy&&sbNutzbar(i)){
+        this.sb=i; sbLanes[i].busy=this; sbLampe(sbLanes[i],false);
+        this.state='sbGo'; this.path=[...route(this.pos,sbPos(i))]; DS.sb=(DS.sb||0)+1; return; }
+    }
     /* Wenig Ware und die Hauptschlange steht? Dann lieber SB-Kasse. */
     if(sbOffen()&&this.items.length<=3&&(queue.length>=1||Math.random()<0.45)){
       const i=sbFrei();
@@ -259,6 +269,14 @@ class Customer{
   sbStart(){
     this.state='sbPay';
     this.total=r2(this.items.reduce((a,it)=>a+it.price,0));
+    if(sbBesetzt(this.sb)){
+      /* bedient: der Kassierer scannt, gut doppelt so schnell */
+      const w=sbBesetzt(this.sb);
+      this.sbT=(0.9+this.items.length*0.5)/((w&&w.wf)||1);
+      this.method=Math.random()<0.6?'card':'cash';
+      this.say(pick(['Hallo!','Einmal alles, bitte.','Mit Karte.','Guten Abend!']));
+      return;
+    }
     this.sbT=1.1+this.items.length*1.25;
     this.method='card';
     this.say(pick(['Geht auch selbst.','Schnell durch hier.','Piep.']));
@@ -288,6 +306,8 @@ class Customer{
     let gain=Math.round(this.total*0.5)+4; if(over<=0.001&&this.method==='cash') gain+=3;
     addXP(gain);
     rep(this.missed?0.2:0.8); sfx.cash(); toast('+'+eur(this.total),'money');
+    geldSchwebt(this.pos,this.total);
+    if(this.missed) serieBricht(); else { serieZufrieden(); if(this.total>=60) kundenSymbol(this.g,'stern'); }
     if(over>0) toast(`${eur(over)} zu viel Rückgeld gegeben.`,'bad');
     this.say(this.missed?'Wenigstens etwas.':pick(['Guten Rutsch!','Danke!','Frohes Neues!','Bis nächstes Jahr!']));
     S.tut.pay=true; this.cleanupRegister(); this.leave();
@@ -300,7 +320,7 @@ class Customer{
     if(cashCust===this) closeCash(false);
   }
   giveUp(){
-    this.say('Dauert mir zu lange!',true); rep(-2); DS.angry++;
+    this.say('Dauert mir zu lange!',true); rep(-2); DS.angry++; kundenSymbol(this.g,'sauer'); serieBricht();
     if(['unload','scan','pay','sbPay'].includes(this.state)) this.cleanupRegister();
     this.items=[]; this.leave();
   }

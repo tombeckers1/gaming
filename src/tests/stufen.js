@@ -145,7 +145,12 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   pruef('LEUCHTEN0',lVor.length===0,lVor.length+' Beanstandungen an den Deckenleuchten am Anfang');
 
   const a=await stand('START');
-  pruef('START',a.lager===true,'das Lager am Rolltor ist nicht zu betreten');
+  /* Seit den Kapiteln ist der Start ein Kiosk: das Lager ist gesperrt,
+     bis es gekauft wird */
+  pruef('START',a.lager===false,'im Kiosk ist das Lager schon zu betreten');
+  await p.evaluate(()=>window.__kauf('lager'));
+  const a2=await stand('LAGER');
+  pruef('LAGER',a2.lager===true,'nach dem Kauf ist das Lager am Rolltor nicht zu betreten');
   pruef('START',a.ost===false,'die zweite Ladenhaelfte ist schon offen');
   pruef('START',a.lnord===false,'das Lager Nord ist schon offen');
   pruef('START',a.testfeld===false,'das Testfeld ist schon offen');
@@ -158,7 +163,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   pruef('SHOP_HALB',b2.band>0,'das Absperrband ist zu frueh weg');
   pruef('SHOP_HALB',b2.lnord===false,'das Lager Nord geht mit der Ladenhaelfte auf');
 
-  await p.evaluate(()=>window.__kauf('lager_nord'));
+  await p.evaluate(()=>{ window.__kauf('lager'); window.__kauf('lager_nord'); });
   const c=await stand('LAGER_NORD');
   pruef('LAGER_NORD',c.lnord===true,'das Lager Nord bleibt zu');
   pruef('LAGER_NORD',c.testfeld===false,'das Testfeld geht mit dem Lager auf');
@@ -196,7 +201,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     bb.S.up.packstation=false; bb.applyZonen();
     o.tischVorKauf=tisch(); o.bandVorKauf=sicht();
     bb.S.level=99; bb.S.money=9e6;
-    ['lager_nord','lager_gross','packstation'].forEach(id=>bb.testKauf(id));
+    ['lager','lager_nord','lager_gross','packstation'].forEach(id=>bb.testKauf(id));
     o.gekauft=!!bb.S.up.packstation;
     o.tischNachKauf=tisch(); o.bandNachKauf=sicht();
     return o;
@@ -222,6 +227,6 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   pruef('SCHILD',schild===1,'ueber der Testfeldtuer haengt kein Schild mehr');
 
   console.log('MANGEL:',mangel.length?mangel.join(' | '):'keine');
-  console.log('ERRORS:',fehler.length?fehler.join('\n'):'keine');
+  console.log('ERRORS:',fehler.length||mangel.length?fehler.concat(mangel).join('\n'):'keine');
   await b.close();
 })();

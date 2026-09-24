@@ -52,13 +52,13 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   console.log('START     ',vorher.length?vorher.join('\n           '):'keine gelbe Wand im Freien');
 
   await p.evaluate(()=>{ const bb=window.__bb; bb.S.level=99; bb.S.money=9e6;
-    ['shop_halb','shop_gross','shop_ost','shop_sued','lager_nord','lager_gross','lager_sued','lager_sued2',
+    ['shop_halb','shop_gross','shop_ost','shop_sued','lager','lager_nord','lager_gross','lager_sued','lager_sued2',
      'lager_west','rampe2','rampe3','rampe4','packstation','kasse2'].forEach(id=>bb.testKauf(id)); });
   await p.waitForTimeout(300);
   const nachher=await suche();
   console.log('AUSGEBAUT ',nachher.length?nachher.join('\n           '):'keine gelbe Wand im Freien');
 
   console.log('MANGEL:',(vorher.length+nachher.length)?(vorher.length+nachher.length)+' Flaechen':'keine');
-  console.log('ERRORS:',fehler.length?fehler.join('\n'):'keine');
+  console.log('ERRORS:',fehler.length||mangel.length?fehler.concat(mangel).join('\n'):'keine');
   await b.close();
 })();

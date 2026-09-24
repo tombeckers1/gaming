@@ -16,6 +16,9 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   await p.waitForSelector('#nameBox.show',{state:'visible',timeout:20000});
   await p.click('#nameGo');
   await p.waitForFunction("!document.getElementById('start').classList.contains('show')",{timeout:20000});
+  /* Seit den Kapiteln ist das Lager am Anfang gesperrt; dieser Test
+     braucht den LKW an der Rampe */
+  await p.evaluate(()=>{ const bb=window.__bb; if(bb&&bb.S&&!bb.S.up.lager){ bb.S.up.lager=true; bb.oeffneZone('lager',true); } });
 
   let bad=0;
   const sag=(t,ok,n)=>{ console.log(`${t}: ${ok?'ok':'FEHLER'}${n!==undefined?' ('+n+')':''}`); if(!ok) bad++; };

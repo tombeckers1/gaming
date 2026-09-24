@@ -280,6 +280,35 @@ function sperrband(Z,a,b,z,y,mat,parent){
   (parent||scene).add(m); zWand(Z,m);
   return m;
 }
+/* Kapitel 1, Pyro-Kiosk: die Tuer vom Verkauf ins Lager ist mit
+   Absperrband zu, wie die Hintertuer zum Testfeld. Man sieht ins
+   Lager hinein, kommt aber nicht hin. Die Lieferungen landen solange
+   auf der markierten Warenannahme vor der Ladentuer. */
+function lagerSperre(){
+  const Z='lager';
+  const g=new THREE.Group(); g.position.set(-8.0,0,-2.5); g.rotation.y=Math.PI/2; scene.add(g);
+  const bandM=new THREE.MeshStandardMaterial({map:sperrbandTex('LAGER · KAPITEL 2'),roughness:0.72,side:THREE.DoubleSide});
+  const halt=std(0x3d4450,{metalness:0.5,roughness:0.5});
+  const kopf=std(0x1f242e,{metalness:0.4,roughness:0.55});
+  const a=-0.66, b=0.66;
+  for(const y of [0.5,1.0,1.5]) sperrband(Z,a+0.06,b-0.06,0,y,bandM,g);
+  for(const x of [a+0.04,b-0.04]){
+    zWand(Z,bbox(0.05,1.76,0.05,halt,x,0.88,0,g,false));
+    zWand(Z,bbox(0.08,0.05,0.08,kopf,x,1.78,0,g,false));
+  }
+  zWandCol(Z,col(-8.3,-7.7,-3.25,-1.75));
+  /* Warenannahme auf dem Gehweg: gelbe Markierung mit Schrift */
+  const m=new THREE.Mesh(new THREE.PlaneGeometry(2.7,1.75),new THREE.MeshBasicMaterial({transparent:true,depthWrite:false,
+    map:tex(540,350,(c,W,H)=>{ c.clearRect(0,0,W,H);
+      c.strokeStyle='#ffd23f'; c.lineWidth=12; c.setLineDash([30,16]); c.strokeRect(10,10,W-20,H-20); c.setLineDash([]);
+      c.fillStyle='rgba(255,210,63,.95)'; c.font=BUN(46); c.textAlign='center'; c.textBaseline='middle';
+      c.fillText('WARENANNAHME',W/2,H-52); })}));
+  m.rotation.x=-Math.PI/2; m.position.set(WA.x,0.021,WA.z); m.renderOrder=2; scene.add(m);
+  zWand(Z,m);
+}
+/* Warenannahme vor der Tuer: sechs Stellplaetze, gestapelt */
+const WA={x:3.5,z:7.75};
+const WA_SLOTS=[]; for(let r=0;r<2;r++) for(let c=0;c<3;c++) WA_SLOTS.push({x:WA.x-0.75+c*0.75,z:WA.z-0.42+r*0.84});
 function testfeldSperre(){
   const Z='testfeld', a=4.4, b=6.1, z=-6.0;
   const bandM=new THREE.MeshStandardMaterial({map:sperrbandTex('TESTFELD GESPERRT'),roughness:0.72,side:THREE.DoubleSide});
@@ -648,6 +677,7 @@ function buildAusbau(){
   streifenvorhang('lager_west',false,-8.0,GT[0][0],GT[0][1],2.5);
   buildLagergang();
   testfeldSperre();
+  lagerSperre();
   buildLagerTerminal();
   buildPackstation();
   buildWestrampen();

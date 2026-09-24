@@ -4,7 +4,7 @@
    ========================================================= */
 function freshState(){ const prices={}; ORDER.forEach(t=>prices[t]=P[t].market);
   return {v:3,money:500,rep:50,level:1,xp:0,season:1,day:0,loan:null,prices,grime:0,
-    up:{plakat:false,terminal:false,tag4:false,heizung:false,musik:false,radio:false,cams:false,regallicht:false,alarm:false,shop_halb:false,testfeld:false,shop_gross:false,lager_nord:false,lager_gross:false,packstation:false,kasse2:false,labor:false,labor2:false},
+    up:{lager:false,plakat:false,terminal:false,tag4:false,heizung:false,musik:false,radio:false,cams:false,regallicht:false,alarm:false,shop_halb:false,testfeld:false,shop_gross:false,lager_nord:false,lager_gross:false,packstation:false,kasse2:false,labor:false,labor2:false},
     staff:{},prio:{},wage:{},pause:{},ev:null,goal:null,mkt:1,comp:1,deko:[],wall:'creme',floor:'grau',schildBg:'auto',schildFg:'weiss',paint:[],test:null,stamm:{},
     /* Der Laden startet leer: kein Verkaufsregal, kein Lagerregal.
        Beides bestellt man bei Regalbau Stegemann, und der LKW
@@ -41,6 +41,8 @@ function startGame(fresh){
      Ladenlokal, das ganze Basislager und den Zugang zum Testfeld -
      das wird nachgetragen, sonst stuenden ploetzlich Waende mitten
      im eingerichteten Laden. */
+  /* Staende von vor den Kapiteln hatten das Lager von Anfang an */
+  if(d&&d.up&&d.up.lager===undefined) S.up.lager=true;
   if(d&&d.up&&d.up.shop_halb===undefined){
     S.up.shop_halb=true; S.up.lager_nord=true; S.up.testfeld=true;
   }

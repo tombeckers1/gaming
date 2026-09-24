@@ -2,7 +2,26 @@
 /* =========================================================
    Personal
    ========================================================= */
-const staff={reinigung:null,auffueller:null,auffueller2:null,kassierer:null,security:null,packer:null};
+const staff={reinigung:null,auffueller:null,auffueller2:null,kassierer:null,kassierer2:null,kassierer3:null,kassierer4:null,kassierer5:null,security:null,packer:null};
+/* Welche SB-Kasse ein Kassierer besetzt: kassierer2 die erste, ... */
+const SB_KASSIERER=['kassierer2','kassierer3','kassierer4','kassierer5'];
+/* Die Terminals entstehen in der Reihenfolge, in der die Ausbauten
+   gekauft werden. Deshalb nicht nach Index zuordnen, sondern nach
+   Standort: 2 und 3 an den SB-Kassen der Erweiterung, 4 und 5 am
+   zweiten Eingang. */
+function sbLaneVon(id){
+  const k=SB_KASSIERER.indexOf(id); if(k<0) return -1;
+  const liste=[]; sbLanes.forEach((l,i)=>{ if((k<2)===!l.up) liste.push(i); });
+  return liste[k%2]!==undefined?liste[k%2]:-1;
+}
+function sbBesetzt(i){ for(const id of SB_KASSIERER){ const w=staff[id]; if(w&&sbLaneVon(id)===i) return w; } return null; }
+/* Platz hinter dem Terminal, mit Blick zum Kunden */
+function sbKassiererPlatz(i){
+  const l=sbLanes[i]; if(!l) return {p:V(0,0,0),ry:0};
+  const g=l.g, p=g.parent;
+  const w=(p&&p!==scene)?localToWorld(p,g.position.x,g.position.z-0.62):V(g.position.x,0,g.position.z-0.62);
+  return {p:w,ry:(p&&p!==scene?p.rotation.y:0)};
+}
 /* Platz vor dem Packtisch, in Weltkoordinaten, mit Blick zum Tisch */
 function packerPlatz(){
   if(typeof packTisch==='undefined'||!packTisch) return {p:IDLE.packer,ry:-Math.PI/2};
@@ -42,8 +61,8 @@ function setPrio(id,v){ S.prio=S.prio||{}; S.prio[id]=v; save(); }
 function freeRackSlot(){ for(const r of racks) for(const sl of r.slots) if(!sl.box) return sl; return null; }
 class Worker{
   constructor(id){
-    this.id=id; this.kind=id==='auffueller2'?'auffueller':id; this.g=makePerson({uniform:id});
-    const st=id==='packer'?packerPlatz().p:IDLE[id]; this.g.position.copy(id==='kassierer'?ck(-0.25,-0.85):st); scene.add(this.g);
+    this.id=id; this.kind=id==='auffueller2'?'auffueller':SB_KASSIERER.indexOf(id)>=0?'sbkasse':id; this.g=makePerson({uniform:id});
+    const st=id==='packer'?packerPlatz().p:this.kind==='sbkasse'?sbKassiererPlatz(sbLaneVon(id)).p:IDLE[id]; this.g.position.copy(id==='kassierer'?ck(-0.25,-0.85):st); scene.add(this.g);
     this.path=[]; this.base=id==='security'?1.9:1.45; this.speed=this.base; this.state='idle'; this.t=0; this.carry=null; this.chase=null; this.moving=false; this.applyWage();
   }
   get pos(){ return this.g.position; }
@@ -61,6 +80,7 @@ class Worker{
     if(this.kind==='reinigung') this.cleanLoop(dt);
     else if(this.kind==='auffueller') this.stockLoop(dt);
     else if(this.kind==='kassierer') this.cashLoop(dt);
+    else if(this.kind==='sbkasse') this.sbLoop(dt);
     else if(this.kind==='security') this.guardLoop(dt);
     else if(this.kind==='packer') this.packLoop(dt);
     animPerson(this.g,this.moving,dt,this.speed);
@@ -154,6 +174,13 @@ class Worker{
     else this.g.rotation.y+=((ckYaw()+Math.PI/2)-this.g.rotation.y)*Math.min(1,dt*6);
     this.t-=dt;
     if(this.t<=0&&belt.length&&regCustomer()){ scanBelt(belt[0]); this.t=0.5/(this.wf||1); }
+  }
+  sbLoop(dt){
+    /* steht hinter seinem Terminal und schaut zum Kunden */
+    const P=sbKassiererPlatz(sbLaneVon(this.id));
+    if(this.pos.distanceTo(P.p)>0.12){ this.path=[P.p]; this.walk(dt); return; }
+    let df=P.ry-this.g.rotation.y; while(df>Math.PI) df-=Math.PI*2; while(df<-Math.PI) df+=Math.PI*2;
+    this.g.rotation.y+=df*Math.min(1,dt*6);
   }
   guardLoop(dt){
     if(this.chase&&customers.indexOf(this.chase)>=0&&!this.chase.caught){

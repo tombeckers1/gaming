@@ -16,7 +16,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   const r=await p.evaluate(()=>{
     const bb=window.__bb;
     bb.S.level=40; bb.S.money=9e6;
-    ['shop_halb','shop_gross','shop_ost','shop_sued','lager_nord','lager_gross','lager_sued','lager_west','packstation','onlineshop','kasse2','labor']
+    ['shop_halb','shop_gross','shop_ost','shop_sued','lager','lager_nord','lager_gross','lager_sued','lager_west','packstation','onlineshop','kasse2','labor']
       .forEach(id=>{ bb.S.up[id]=true; if(bb.ZONEN[id]) bb.oeffneZone(id,false); });
     bb.applyZonen(); bb.navBuild();
     /* Laufweg: Spieler schrittweise zum Ziel schieben, Kollision wirkt */

@@ -69,7 +69,8 @@ const MUETZE=[0xe63b2e,0xffd23f,0x2f7fd0,0xf2f5ff,0x2f9e57,0x222634,0x8a5ab8];
    Hose, schwarze Schuhe. Jeder Posten hat seinen festen Kopf, damit
    man die Leute wiedererkennt. */
 const UNIFORM={oben:'polo',unten:'stoff',schuh:'halb',obenF:0xb3261e,untenF:0x1d1f24,schuhF:0x1b1b1f,logo:1,id:'uniform'};
-const STAFFKOPF={kassierer:'jung_w',auffueller:'jung_m',auffueller2:'mitte_m2',reinigung:'mitte_w',security:'mitte_m3',packer:'jung_m2'};
+const STAFFKOPF={kassierer:'jung_w',auffueller:'jung_m',auffueller2:'mitte_m2',reinigung:'mitte_w',security:'mitte_m3',packer:'jung_m2',
+  kassierer2:'jung_w2',kassierer3:'mitte_m',kassierer4:'alt_w',kassierer5:'teen_w'};
 const kopfVon=id=>KOEPFE.find(k=>k.id===id)||KOEPFE[2];
 function kopfFuer(ct){
   const teen=KOEPFE.filter(k=>k.alter==='teen'), rest=KOEPFE.filter(k=>k.alter!=='teen');

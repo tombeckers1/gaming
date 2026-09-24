@@ -33,7 +33,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     out.tag1_gang_ost_zu  = !lauf(HINTEN.concat([[0,-7.5],[9.5,-7.5]]));
     /* Nach dem Kauf der Lagerhalle West muessen beide Enden offen sein */
     bb.S.level=40; bb.S.money=9e6;
-    ['shop_halb','shop_gross','shop_ost','shop_sued','lager_nord','lager_gross','lager_sued','lager_west']
+    ['shop_halb','shop_gross','shop_ost','shop_sued','lager','lager_nord','lager_gross','lager_sued','lager_west']
       .forEach(id=>{ bb.S.up[id]=true; if(bb.ZONEN[id]) bb.oeffneZone(id,false); });
     bb.applyZonen(); bb.navBuild();
     /* Nach dem Kauf fuehrt der Gang ins Lager. Zum Rueckgebaeude

@@ -19,22 +19,46 @@ function stufe(sk,d){ const o=Math.floor(d/7), i=((d%7)+7)%7; return SKALA[sk][i
    Takte. motiv: je Takt 16 Sechzehntel, Zahl = Tonstufe ueber dem
    Akkordgrundton, null = Pause, '-' = Ton klingt weiter. */
 const STUECKE=[
-  { name:'Ladenfunk', pegel:1.0, bpm:108, ton:65, skala:'dur', prog:[0,5,3,4,0,5,3,4],
+  { name:'Ladenfunk', pegel:0.91, bpm:108, ton:65, skala:'dur', prog:[0,5,3,4,0,5,3,4],
     stil:'funk',
     motivA:[4,null,'-',2, 4,null,5,'-', 4,null,2,null, 0,'-','-',null],
     motivB:[7,'-',6,'-', 4,null,2,4, 5,'-','-',4, 2,null,null,null] },
-  { name:'Schneeflocken', pegel:1.0, bpm:82, ton:62, skala:'dur', prog:[0,4,5,3,0,4,3,4],
+  { name:'Schneeflocken', pegel:0.97, bpm:82, ton:62, skala:'dur', prog:[0,4,5,3,0,4,3,4],
     stil:'winter',
     motivA:[7,'-','-',6, 4,'-','-',null, 2,'-',4,'-', 7,'-','-','-'],
     motivB:[9,'-',7,'-', 6,'-',4,'-', 5,'-','-',4, 2,'-','-','-'] },
-  { name:'Mitternacht', pegel:0.9, bpm:124, ton:57, skala:'moll', prog:[0,5,2,6,0,5,2,6],
+  { name:'Mitternacht', pegel:0.85, bpm:124, ton:57, skala:'moll', prog:[0,5,2,6,0,5,2,6],
     stil:'dance',
     motivA:[7,null,7,null, 9,null,7,'-', 4,null,4,null, 2,'-',4,null],
     motivB:[9,'-',11,'-', 9,null,7,null, 7,'-',4,'-', 2,null,4,null] },
-  { name:'Pixelparty', pegel:1.15, bpm:138, ton:55, skala:'dur', prog:[0,3,1,4,0,3,4,4],
+  { name:'Pixelparty', pegel:1.55, bpm:138, ton:55, skala:'dur', prog:[0,3,1,4,0,3,4,4],
     stil:'chip',
     motivA:[4,null,7,null, 9,7,4,null, 2,null,4,7, 4,null,null,null],
-    motivB:[11,null,9,null, 7,null,9,11, 12,'-','-',9, 7,null,4,null] }
+    motivB:[11,null,9,null, 7,null,9,11, 12,'-','-',9, 7,null,4,null] },
+  { name:'Glühweinpolka', pegel:2.09, bpm:120, ton:55, skala:'dur', prog:[0,4,4,0,0,4,4,0],
+    stil:'polka',
+    motivA:[4,null,4,null, 5,null,4,null, 2,'-',0,null, 2,null,4,null],
+    motivB:[7,'-',7,null, 9,null,7,null, 5,null,4,null, 2,'-','-',null] },
+  { name:'Lagerhallen-Groove', pegel:1.08, bpm:88, ton:62, skala:'moll', prog:[0,5,3,4,0,5,3,6],
+    stil:'hiphop',
+    motivA:[7,'-',null,null, null,null,4,'-', 5,null,4,null, 2,'-','-',null],
+    motivB:[9,'-',7,null, null,4,'-',null, 5,'-',4,'-', 2,null,0,null] },
+  { name:'Kassensturz', pegel:0.88, bpm:148, ton:52, skala:'moll', prog:[0,5,2,6,0,5,2,6],
+    stil:'rock',
+    motivA:[7,'-',7,'-', 9,'-',7,'-', 4,'-','-','-', 2,'-',4,'-'],
+    motivB:[11,'-',9,'-', 7,'-',9,'-', 11,'-','-','-', 12,'-','-','-'] },
+  { name:'Sternenstaub', pegel:0.79, bpm:72, ton:60, skala:'dur', prog:[0,5,3,4,0,5,3,4],
+    stil:'ambient',
+    motivA:[9,'-','-','-', '-','-',7,'-', '-','-',4,'-', '-','-','-','-'],
+    motivB:[11,'-','-','-', 9,'-','-','-', 7,'-','-','-', 4,'-','-','-'] },
+  { name:'Countdown', pegel:0.74, bpm:134, ton:53, skala:'moll', prog:[0,5,2,6,0,5,2,6],
+    stil:'trance',
+    motivA:[7,null,4,null, 7,null,9,null, 7,null,4,null, 2,null,4,null],
+    motivB:[9,'-',11,'-', 12,'-',11,'-', 9,'-',7,'-', 4,'-',7,'-'] },
+  { name:'Lo-Fi Ladenschluss', pegel:1.85, bpm:76, ton:60, skala:'moll', prog:[0,5,3,6,0,5,3,4],
+    stil:'lofi',
+    motivA:[4,'-',null,2, null,null,4,'-', null,null,null,null, 7,'-',4,null],
+    motivB:[9,'-','-',7, null,null,4,'-', 5,'-',4,null, 2,'-','-',null] }
 ];
 let mBus=null, mHall=null, mStep=0, mNext=0, mTakte=0, mNoise=null;
 function musikBus(){
@@ -81,8 +105,29 @@ const KLANG={
   saege(t,n,dauer,v){ const f=AC.createBiquadFilter(), g=hk(); f.type='lowpass'; f.frequency.value=2600;
     for(const dt of [-9,0,9]){ const o=osz('sawtooth',mtof(n),t,dauer+0.1); o.detune.value=dt; o.connect(f); }
     env(g,t,0.01,0.06*v,dauer+0.1); f.connect(g); ziel(g,true); },
+  /* Blech: zwei verstimmte Saegezaehne, der Filter oeffnet sich kurz */
+  blech(t,n,dauer,v){ const f=AC.createBiquadFilter(), g=hk(); f.type='lowpass';
+    f.frequency.setValueAtTime(900,t); f.frequency.linearRampToValueAtTime(2600,t+0.05); f.frequency.exponentialRampToValueAtTime(1200,t+dauer);
+    for(const dt of [-7,7]){ const o=osz('sawtooth',mtof(n),t,dauer+0.1); o.detune.value=dt; o.connect(f); }
+    env(g,t,0.02,0.07*v,dauer); f.connect(g); ziel(g,true); },
+  /* verzerrte Gitarre: Grundton und Quinte durch einen Waveshaper */
+  gitarre(t,n,dauer,v){ const ws=AC.createWaveShaper(); ws.curve=verzerrung(); const f=AC.createBiquadFilter(), g=hk();
+    f.type='lowpass'; f.frequency.value=2800;
+    for(const k of [0,7,12]){ const o=osz('sawtooth',mtof(n+k),t,dauer+0.05); o.connect(ws); }
+    ws.connect(f); env(g,t,0.004,0.05*v,dauer); f.connect(g); ziel(g); },
+  sub(t,n,dauer,v){ const o=osz('sine',mtof(n),t,dauer), g=hk(); env(g,t,0.008,0.5*v,dauer); o.connect(g); ziel(g); },
+  knistern(t,v){ const s2=AC.createBufferSource(); s2.buffer=mNoise; const f=AC.createBiquadFilter(); f.type='highpass'; f.frequency.value=3000;
+    const g=hk(); env(g,t,0.001,0.05*v,0.012); s2.connect(f); f.connect(g); ziel(g); s2.start(t,Math.random()*0.8); s2.stop(t+0.05); },
+  /* Rauschen, das nach oben zieht: kuendigt den naechsten Teil an */
+  riser(t,dauer,v){ const s2=AC.createBufferSource(); s2.buffer=mNoise; s2.loop=true; const f=AC.createBiquadFilter(); f.type='bandpass'; f.Q.value=2;
+    f.frequency.setValueAtTime(400,t); f.frequency.exponentialRampToValueAtTime(7000,t+dauer);
+    const g=hk(); g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(0.12*v,t+dauer); g.gain.linearRampToValueAtTime(0.0001,t+dauer+0.05);
+    s2.connect(f); f.connect(g); ziel(g,true); s2.start(t); s2.stop(t+dauer+0.1); },
   chip(t,n,dauer,v){ const o=osz('square',mtof(n),t,dauer), g=hk(); env(g,t,0.002,0.07*v,dauer); o.connect(g); ziel(g); }
 };
+let _verz=null;
+function verzerrung(){ if(_verz) return _verz; const n=512; _verz=new Float32Array(n);
+  for(let i=0;i<n;i++){ const x=i/(n-1)*2-1; _verz[i]=Math.tanh(x*4); } return _verz; }
 /* Akkord als Tonstufen ueber dem Grundton des Stuecks */
 function akkord(s,d,oktave){ return [0,2,4].map(k=>s.ton+oktave*12+stufe(s.skala,d+k)); }
 /* Wie viel gerade spielt: Einleitung, voller Teil, Refrain, Pause */
@@ -122,6 +167,57 @@ function spielSchritt(s,schritt,t){
     if(i===0) KLANG.flaeche(t,akkord(s,grad,0),sec*16,tl==='bruch'?1.4:0.8);
     if(voll&&i%2===0){ const ak=akkord(s,grad,1); KLANG.zupf(t,ak[(i/2)%3],sec*1.5,0.6); }
     if(mel) KLANG.saege(t,mel.n,mel.d,1);
+  } else if(s.stil==='polka'){
+    /* Humpta: Bass auf eins und drei, Akkord auf zwei und vier */
+    if(i===0||i===8) KLANG.bass(t,grund+(i===8?7:0),sec*3,1,'triangle');
+    if((i===4||i===12)&&tl!=='intro') KLANG.epiano(t,akkord(s,grad,0),0.9);
+    if(i===4||i===12) KLANG.hat(t,0.7);
+    if(voll&&(i===0||i===8)) KLANG.kick(t,0.5);
+    if(voll&&i===14) KLANG.snare(t,0.35);
+    if(mel) KLANG.blech(t,mel.n,mel.d,1);
+    if(mel&&voll) KLANG.glocke(t,mel.n+12,0.35);
+  } else if(s.stil==='hiphop'){
+    /* Boom-Bap mit Swing: jede zweite Sechzehntel kommt etwas spaeter */
+    const sw=i%2?sec*0.18:0, tt=t+sw;
+    if(i===0||i===7||i===10) KLANG.kick(tt,1);
+    if(i===4||i===12) KLANG.snare(tt,0.9);
+    if(i%2===0||voll) KLANG.hat(tt,i%4===0?0.6:0.35);
+    if(i===0||i===10) KLANG.sub(tt,grund,sec*5,1);
+    if(i===0) KLANG.epiano(t,akkord(s,grad,0),1.1);
+    if(i===8&&voll) KLANG.epiano(tt,akkord(s,grad,0),0.7);
+    if(mel&&tl!=='bruch') KLANG.zupf(tt,mel.n,mel.d,0.8);
+  } else if(s.stil==='rock'){
+    if(i===0||i===8||(voll&&(i===10||i===3))) KLANG.kick(t,1);
+    if(i===4||i===12) KLANG.snare(t,1);
+    if(i%2===0) KLANG.hat(t,i===0?0.9:0.5,i===0&&takt%4===0);
+    if(i%2===0&&tl!=='bruch') KLANG.gitarre(t,grund,sec*1.8,1);
+    if(i%4===0) KLANG.bass(t,grund,sec*3.5,1,'sawtooth');
+    if(mel&&voll) KLANG.saege(t,mel.n,mel.d,1.1);
+  } else if(s.stil==='ambient'){
+    if(i===0) KLANG.flaeche(t,akkord(s,grad,0).concat([s.ton+stufe(s.skala,grad+6)]),sec*16,1.3);
+    if(i===0) KLANG.sub(t,grund,sec*14,0.6);
+    if(i%3===0) KLANG.glocke(t,akkord(s,grad,1)[(i/3)%3]+(i%6?12:0),0.35);
+    if(voll&&i===0) KLANG.kick(t,0.35);
+    if(mel) KLANG.glocke(t,mel.n+12,0.8);
+  } else if(s.stil==='trance'){
+    if(i%4===0&&tl!=='bruch') KLANG.kick(t,1);
+    if(i%4===2) KLANG.hat(t,0.9,true);
+    if(voll&&(i===4||i===12)) KLANG.clap(t,0.8);
+    /* rollender Bass: jede Sechzehntel ausser auf dem Schlag */
+    if(i%4!==0&&tl!=='intro') KLANG.bass(t,grund,sec*0.9,0.8,'sawtooth');
+    if(voll){ const ak=akkord(s,grad,1); KLANG.zupf(t,ak[i%3]+(i%8>3?12:0),sec*0.9,0.45); }
+    if(i===0) KLANG.flaeche(t,akkord(s,grad,0),sec*16,0.7);
+    if(takt%8===7&&i===0) KLANG.riser(t,sec*16,1);
+    if(mel&&tl!=='intro') KLANG.saege(t,mel.n+12,mel.d,1);
+  } else if(s.stil==='lofi'){
+    const sw=i%2?sec*0.2:0, tt=t+sw;
+    if(i===0||i===9) KLANG.kick(tt,0.7);
+    if(i===4||i===12) KLANG.snare(tt,0.45);
+    if(i%2===0) KLANG.hat(tt,0.25);
+    if(Math.random()<0.5) KLANG.knistern(t+Math.random()*sec,1);
+    if(i===0) KLANG.epiano(t,akkord(s,grad,0).concat([s.ton+stufe(s.skala,grad+6)]),1.2);
+    if(i===0||i===10) KLANG.sub(tt,grund,sec*6,0.8);
+    if(mel) KLANG.epiano(tt,[mel.n],0.9);
   } else {
     if(i===0||i===8||(voll&&i===11)) KLANG.kick(t,0.8);
     if(i===4||i===12) KLANG.snare(t,0.7);

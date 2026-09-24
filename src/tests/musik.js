@@ -26,14 +26,15 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   await p.waitForTimeout(1500);
   const lauf=await p.evaluate(()=>({an:window.__bb.MUSIK.an,schritt:window.__bb.mStep,bus:!!window.__bb.mBus,btn:document.getElementById('musikBtn').textContent}));
   const pegel=[];
-  for(let k=0;k<4;k++){
+  const anzahl=await p.evaluate(()=>window.__bb.STUECKE.length);
+  for(let k=0;k<anzahl;k++){
     const r=await p.evaluate(async k=>{ const bb=window.__bb;
       const ac=bb.mBus.context, an=ac.createAnalyser(); an.fftSize=2048; bb.mBus.connect(an);
       /* Stueck k ab dem vollen Teil (Takt 8), hinter dem Regler gemessen */
       bb.MUSIK.stueck=k; bb.mStep=8*16;
       await new Promise(r=>setTimeout(r,700));
       const d=new Float32Array(2048); let summe=0, n=0, spitze=0, nan=false;
-      for(let w=0;w<30;w++){ await new Promise(r=>setTimeout(r,120)); an.getFloatTimeDomainData(d);
+      for(let w=0;w<50;w++){ await new Promise(r=>setTimeout(r,120)); an.getFloatTimeDomainData(d);
         let s=0; for(const x of d){ if(!isFinite(x)) nan=true; s+=x*x; spitze=Math.max(spitze,Math.abs(x)); } summe+=s/d.length; n++; }
       bb.mBus.disconnect(an);
       return {name:bb.STUECKE[k].name,rms:+Math.sqrt(summe/n).toFixed(4),spitze:+spitze.toFixed(3),nan}; },k);
@@ -41,6 +42,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   }
   console.log('LAUF    ',JSON.stringify(lauf));
   console.log('PEGEL   ',JSON.stringify(pegel));
+  pruef('PEGEL',anzahl>=10,'nur '+anzahl+' Stuecke');
   pruef('LAUF',lauf.an&&lauf.bus&&lauf.schritt>8&&/♪ \w/.test(lauf.btn),'Musik laeuft nach dem Start nicht: '+JSON.stringify(lauf));
   pegel.forEach(x=>pruef('PEGEL',x.rms>0.005&&!x.nan&&x.spitze<1,x.name+' stumm, uebersteuert oder kaputt ('+x.rms+' / '+x.spitze+')'));
   const rs=pegel.map(x=>x.rms), lautLeise=Math.max(...rs)/Math.min(...rs);
@@ -69,7 +71,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     r.value=20; r.dispatchEvent(new Event('input')); return {sicht,vol:window.__bb.MUSIK.vol,name:document.getElementById('pMusikName').textContent}; });
   console.log('BEDIENUNG',JSON.stringify({wieder,s0,s1,regler}));
   pruef('BEDIENUNG',wieder===true,'Knopf schaltet nicht an');
-  pruef('BEDIENUNG',s1===(s0+1)%4,'N springt nicht weiter: '+s0+' -> '+s1);
+  pruef('BEDIENUNG',s1===(s0+1)%anzahl,'N springt nicht weiter: '+s0+' -> '+s1);
   pruef('BEDIENUNG',regler.sicht&&Math.abs(regler.vol-0.2)<0.001&&regler.name.length>3,'Regler im Pausenmenue: '+JSON.stringify(regler));
 
   console.log('MANGEL:',mangel.length?mangel.join(' | '):'keine');

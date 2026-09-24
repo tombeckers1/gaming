@@ -34,7 +34,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     window.__cols=()=>bb.colliders.filter(c=>c.ref===bb.packMov).map(c=>({x0:+c.minX.toFixed(2),x1:+c.maxX.toFixed(2),z0:+c.minZ.toFixed(2),z1:+c.maxZ.toFixed(2)}));
     window.__inG=o=>{ for(let q=o;q;q=q.parent) if(q===bb.packTisch) return true; return false; };
     bb.S.level=99; bb.S.money=9e6;
-    ['shop_halb','lager_nord','lager_gross'].forEach(id=>bb.testKauf(id));
+    ['shop_halb','lager','lager_nord','lager_gross'].forEach(id=>bb.testKauf(id));
   });
 
   /* 1 - alles in einer Gruppe */

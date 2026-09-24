@@ -121,6 +121,16 @@ const P={
     art:{title:'STERNENBRUNNEN',sub:'Fontäne, Komet, Blüte',bg1:'#123a6b',bg2:'#04101f',ac:'#5ce1ff',ac2:'#ffd23f'}}
 };
 const ORDER=Object.keys(P);
+/* Kapitel: die grossen Stufen des Ladens. Jedes beginnt mit einem
+   bestimmten Ausbau. */
+const KAPITEL=[
+  {nr:1,name:'Pyro-Kiosk',up:null,txt:'Ein kleiner Laden, die Lieferungen kommen vor die Tür.'},
+  {nr:2,name:'Kleines Fachgeschäft',up:'lager',txt:'Eigenes Lager mit Rampe: der LKW liefert direkt ans Rolltor.'},
+  {nr:3,name:'Großes Fachgeschäft',up:'shop_gross',txt:'Das Ladenlokal nebenan gehört dir. Jetzt wird es richtig groß.'},
+  {nr:4,name:'Pyro-Imperium',up:'lager_west',txt:'Logistikzentrum mit Toren und Hof. Größer geht es nicht.'}
+];
+function kapitelNr(){ let n=1; for(const k of KAPITEL) if(k.up&&S&&S.up&&S.up[k.up]) n=Math.max(n,k.nr); return n; }
+function kapitel(){ return KAPITEL[kapitelNr()-1]; }
 const CATNAME={0:'Zubehör',1:'F1',2:'F2'};
 
 /* Ausbau, Deko, Personal ---------------------------------- */
@@ -136,7 +146,7 @@ const UPGRADES=[
   {id:'cams',kat:'einr',lvl:10,name:'Überwachungskameras',desc:'Halbiert die Zahl der Diebstahlversuche.',cost:()=>900,done:()=>S.up.cams},
   {id:'regallicht',kat:'einr',lvl:11,name:'Regalbeleuchtung',desc:'Ware wirkt hochwertiger, bessere Stimmung.',cost:()=>700,done:()=>S.up.regallicht},
   {id:'alarm',kat:'einr',lvl:14,name:'Warensicherung',desc:'Diebe werden am Ausgang meistens gestoppt.',cost:()=>2200,done:()=>S.up.alarm},
-  {id:'grosskunden',kat:'markt',lvl:6,name:'Eintrag im Branchenbuch',desc:'Pyrotechniker und Veranstalter rufen dich für Großbestellungen an.',cost:()=>500,done:()=>S.up.grosskunden},
+  {id:'grosskunden',kat:'markt',lvl:7,req:'lager',name:'Eintrag im Branchenbuch',desc:'Pyrotechniker und Veranstalter rufen dich für Großbestellungen an.',cost:()=>500,done:()=>S.up.grosskunden},
   {id:'onlineshop',kat:'markt',lvl:18,name:'Onlineshop',desc:'Bringt jeden Tag Umsatz nebenbei, abhängig von deinem Ruf. Mit Packstation kommen die Bestellungen als echte Pakete ins Lager und bringen deutlich mehr.',cost:()=>3200,done:()=>S.up.onlineshop},
   {id:'kundenkarte',kat:'markt',lvl:21,name:'Stammkundenkarte',desc:'Stammkunden kommen öfter wieder und zahlen bereitwilliger.',cost:()=>2600,done:()=>S.up.kundenkarte},
   {id:'tafel',kat:'markt',lvl:23,name:'Digitale Werbetafel',desc:'Große Tafel an der Fassade. Noch einmal deutlich mehr Kundschaft.',cost:()=>4200,done:()=>S.up.tafel},
@@ -145,14 +155,18 @@ const UPGRADES=[
   {id:'meister',kat:'markt',lvl:30,name:'Meisterbrief Pyrotechnik',desc:'Die höchste Stufe. Großaufträge zahlen ein Drittel mehr.',cost:()=>12000,done:()=>S.up.meister},
   {id:'shop_halb',kat:'flaeche',lvl:4,name:'Ladenerweiterung 1 – etwas mehr Platz',desc:'Die zugemauerte Hälfte deines eigenen Ladenlokals: rund 70 Quadratmeter mehr, das zweite Schaufenster und zwei weitere Regalplätze. Die Trennwand fällt beim Kauf ganz weg — ein Raum, kein Pfeiler, kein Sturz. Dahinter liegt auch die Tür zum Testfeld.',cost:()=>1400,done:()=>S.up.shop_halb},
   {id:'testfeld',kat:'flaeche',lvl:9,req:'shop_halb',name:'Testfeld freischalten',desc:'Der abgesperrte Hof hinter dem Laden wird dein Testfeld: Zündtisch, Abschussröhren und Mörserbatterie. Erst damit kannst du selbst zünden — und was du gezündet hast, spricht sich herum.',cost:()=>3200,done:()=>S.up.testfeld},
-  {id:'shop_gross',kat:'flaeche',lvl:12,req:'shop_halb',name:'Ladenerweiterung 2 – deutlich mehr Platz',desc:'Kauft das leerstehende Ladenlokal nebenan. Die Seitenwand wird durchbrochen, die Schaufenster werden entmauert: rund 142 Quadratmeter mehr Fläche und zehn zusätzliche Regalplätze.',cost:()=>7500,done:()=>S.up.shop_gross},
-  {id:'lager_nord',kat:'flaeche',lvl:6,name:'Lagererweiterung 1 – etwas mehr Platz',desc:'Was hinter der Trennwand im Lager liegt: 47 Quadratmeter mehr, sechs zusätzliche Stellplätze für Regale. Die Wand fällt beim Kauf ganz weg — kein Sturz, kein Pfeiler, ein durchgehender Raum bis zur Stirnwand.',cost:()=>1900,done:()=>S.up.lager_nord},
+  {id:'shop_gross',kat:'flaeche',lvl:12,req:'shop_halb',kap:3,name:'Ladenerweiterung 2 – deutlich mehr Platz',desc:'Kauft das leerstehende Ladenlokal nebenan. Die Seitenwand wird durchbrochen, die Schaufenster werden entmauert: rund 142 Quadratmeter mehr Fläche und zehn zusätzliche Regalplätze.',cost:()=>7500,done:()=>S.up.shop_gross},
+  /* Kapitel 2: das Lager. Bis dahin ist der Laden ein Kiosk: der
+     Lieferant stellt die Kartons vor die Ladentuer, das Lager hinter
+     dem Verkauf ist abgesperrt. */
+  {id:'lager',kat:'flaeche',lvl:6,kap:2,name:'Lager mit Warenannahme',desc:'Das Lager hinter dem Laden wird deins: Rolltor mit Andockstation, der LKW fährt direkt an die Rampe, und du kannst Lagerregale aufstellen. Aus dem Pyro-Kiosk wird ein kleines Fachgeschäft.',cost:()=>1200,done:()=>S.up.lager},
+  {id:'lager_nord',kat:'flaeche',lvl:8,req:'lager',name:'Lagererweiterung 1 – etwas mehr Platz',desc:'Was hinter der Trennwand im Lager liegt: 47 Quadratmeter mehr, sechs zusätzliche Stellplätze für Regale. Die Wand fällt beim Kauf ganz weg — kein Sturz, kein Pfeiler, ein durchgehender Raum bis zur Stirnwand.',cost:()=>1900,done:()=>S.up.lager_nord},
   {id:'lager_gross',kat:'flaeche',lvl:15,req:'lager_nord',name:'Lagererweiterung 2 – deutlich mehr Platz',desc:'Hinter dem Rolltor wird die Wand auf neun Metern durchbrochen: der erste Abschnitt der großen Halle dahinter, 118 Quadratmeter mit fünf Metern lichter Höhe. Hier steht die Packstation, und ab hier lohnt sich der Onlineshop. Hochregale passen erst in diese Höhe.',cost:()=>6200,done:()=>S.up.lager_gross},
   {id:'shop_ost',kat:'flaeche',lvl:20,req:'shop_gross',name:'Ladenerweiterung 3 – viel mehr Platz',desc:'Das nächste leerstehende Lokal in der Reihe: noch einmal 212 Quadratmeter, Gondelgassen, Eckregal und eine lange Wandreihe.',cost:()=>16000,done:()=>S.up.shop_ost},
   {id:'shop_sued',kat:'flaeche',lvl:26,req:'shop_ost',name:'Ladenerweiterung 4 – riesig viel Platz',desc:'Die große Halle hinter dem Laden, zwei breite Durchgänge: 478 Quadratmeter Verkaufsfläche mit zwei Gondelgassen. Damit ist der Laden fünfeinhalbmal so groß wie am Anfang.',cost:()=>34000,done:()=>S.up.shop_sued},
   {id:'lager_sued',kat:'flaeche',lvl:20,req:'lager_gross',name:'Lagererweiterung 3 – noch mehr Platz',desc:'Der zweite Abschnitt, noch einmal 83 Quadratmeter. Die Wand zum ersten fällt ganz weg — kein Pfeiler, kein Sturz, eine durchgehende Halle.',cost:()=>11000,done:()=>S.up.lager_sued},
   {id:'lager_sued2',kat:'flaeche',lvl:24,req:'lager_sued',name:'Lagererweiterung 4 – die ganze Halle',desc:'Der letzte Abschnitt bis zur Stirnwand. Damit steht die ganze Halle: 283 Quadratmeter am Stück, dreizehn Stellplätze für Hoch- und Schwerlastregale.',cost:()=>15000,done:()=>S.up.lager_sued2},
-  {id:'lager_west',kat:'flaeche',lvl:28,req:'lager_sued2',name:'Logistikzentrum freischalten – riesige Halle mit Toren',desc:'Die große Halle an den vier Toren: 1520 Quadratmeter auf 40 mal 38 Metern, zwölf Stellplätze für Hochregale und ein Hof, auf dem mehrere Auflieger stehen können. Dazu wird der Lagergang hinter dem Laden geöffnet — der kurze Weg vom Rückgebäude direkt ins Lager, ohne Umweg über den Verkaufsraum.',cost:()=>38000,done:()=>S.up.lager_west},
+  {id:'lager_west',kat:'flaeche',lvl:28,req:'lager_sued2',kap:4,name:'Logistikzentrum freischalten – riesige Halle mit Toren',desc:'Die große Halle an den vier Toren: 1520 Quadratmeter auf 40 mal 38 Metern, zwölf Stellplätze für Hochregale und ein Hof, auf dem mehrere Auflieger stehen können. Dazu wird der Lagergang hinter dem Laden geöffnet — der kurze Weg vom Rückgebäude direkt ins Lager, ohne Umweg über den Verkaufsraum.',cost:()=>38000,done:()=>S.up.lager_west},
   /* Andockstationen. Die Basisrampe hinter dem Lager ist die erste
      und bleibt die begehbare; jede zugekaufte Westrampe nimmt eine
      Lieferung zusaetzlich an, parallel zu allen anderen. */
@@ -186,9 +200,15 @@ const DEKO=[
 ];
 const STAFF=[
   {id:'reinigung',lvl:6,name:'Reinigungskraft',desc:'Wischt den Dreck weg, solange der Laden offen ist.',hire:250,wage:55},
-  {id:'auffueller',lvl:9,name:'Regalauffüller',desc:'Lädt den LKW aus, räumt ins Lager und füllt die Regale. Priorität einstellbar.',hire:450,wage:110},
+  {id:'auffueller',lvl:9,req:'lager',name:'Regalauffüller',desc:'Lädt den LKW aus, räumt ins Lager und füllt die Regale. Priorität einstellbar.',hire:450,wage:110},
   {id:'auffueller2',lvl:12,name:'Zweiter Auffüller',desc:'Zweites Paar Hände. Andere Priorität einstellen, dann greift es ineinander.',hire:600,wage:130},
   {id:'kassierer',lvl:11,name:'Kassierer',desc:'Scannt und kassiert selbstständig an der Kasse.',hire:600,wage:145},
+  /* Weitere Kassierer: jeder besetzt eine SB-Kasse. Besetzt nimmt sie
+     auch volle Koerbe und kassiert gut doppelt so schnell. */
+  {id:'kassierer2',kurz:'Kasse 2',lvl:16,req:'kasse2',name:'Kassierer an SB-Kasse 1',desc:'Besetzt die erste SB-Kasse in der Erweiterung. Dort zahlen dann auch Kunden mit vollem Korb, und es geht gut doppelt so schnell.',hire:600,wage:140},
+  {id:'kassierer3',kurz:'Kasse 3',lvl:17,req:'kasse2',name:'Kassierer an SB-Kasse 2',desc:'Besetzt die zweite SB-Kasse in der Erweiterung.',hire:600,wage:140},
+  {id:'kassierer4',kurz:'Kasse 4',lvl:24,req:'eingang2',name:'Kassierer am zweiten Eingang 1',desc:'Besetzt die erste Kasse am zweiten Eingang.',hire:650,wage:145},
+  {id:'kassierer5',kurz:'Kasse 5',lvl:25,req:'eingang2',name:'Kassierer am zweiten Eingang 2',desc:'Besetzt die zweite Kasse am zweiten Eingang. Damit sind alle fünf Kassen besetzt.',hire:650,wage:145},
   {id:'security',lvl:13,name:'Sicherheitsdienst',desc:'Hält Diebe im Laden auf, bevor sie rauskommen.',hire:800,wage:190},
   {id:'packer',lvl:18,req:'packstation',name:'Versandmitarbeiter',desc:'Steht an der Packstation und packt die Onlinebestellungen, während du vorne im Laden bist.',hire:700,wage:165}
 ];
@@ -338,7 +358,7 @@ const SHELFORDER=['klein','standard','hoch','kuehl','gondel','eck'];
    ========================================================= */
 const REGALWARE=[
   {id:'klein',   art:'shelf',kind:'klein',   lvl:1},
-  {id:'rack',    art:'rack', kind:'standard',lvl:1},
+  {id:'rack',    art:'rack', kind:'standard',lvl:6,req:'lager'},
   {id:'standard',art:'shelf',kind:'standard',lvl:4},
   {id:'kuehl',   art:'shelf',kind:'kuehl',   lvl:6},
   {id:'hoch',    art:'shelf',kind:'hoch',    lvl:10},

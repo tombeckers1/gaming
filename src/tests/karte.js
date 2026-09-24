@@ -90,7 +90,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   const voll=await p.evaluate(()=>{
     const bb=window.__bb, o={};
     bb.S.level=40; bb.S.money=5e6;
-    ['shop_halb','shop_gross','shop_ost','shop_sued','lager_nord','lager_gross','lager_sued','lager_west','packstation','onlineshop','kasse2']
+    ['shop_halb','shop_gross','shop_ost','shop_sued','lager','lager_nord','lager_gross','lager_sued','lager_west','packstation','onlineshop','kasse2']
       .forEach(id=>bb.testKauf(id));
     o.zonen=['shop_gross','shop_ost','shop_sued','lager_gross','lager_sued','lager_west'].map(z=>z+':'+bb.zoneOffen(z));
     /* alles vollstellen */

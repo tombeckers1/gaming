@@ -38,6 +38,8 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   const kauf=id=>p.evaluate(i=>{ const bb=window.__bb; bb.S.level=99; bb.S.money=5e6; bb.testKauf(i);
     return !!bb.S.up[i]; },id);
 
+  /* Seit den Kapiteln muss erst das Lager selbst gekauft werden */
+  sag('Lager gekauft',await kauf('lager'));
   /* Der Nordteil liegt hinter einer Trennwand und wird gekauft. */
   let r=await lauf(RAMPE,[-14.0,4.2]);
   sag(`Lager Nord vor dem Kauf zu (bis ${r.x}/${r.z})`,!r.an);

@@ -14,12 +14,15 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   await p.waitForSelector('#nameBox.show',{state:'visible',timeout:20000});
   await p.click('#nameGo');
   await p.waitForFunction("!document.getElementById('start').classList.contains('show')",{timeout:20000});
+  /* Seit den Kapiteln ist das Lager am Anfang gesperrt; dieser Test
+     braucht den LKW an der Rampe */
+  await p.evaluate(()=>{ const bb=window.__bb; if(bb&&bb.S&&!bb.S.up.lager){ bb.S.up.lager=true; bb.oeffneZone('lager',true); } });
 
   console.log('PLAETZE   ',JSON.stringify(await p.evaluate(()=>{
     const bb=window.__bb, r={};
     r.ohne=bb.dockPlaetze();
     bb.S.level=40; bb.S.money=9e6;
-    ['shop_halb','shop_gross','shop_ost','shop_sued','lager_nord','lager_gross','lager_sued','lager_west']
+    ['shop_halb','shop_gross','shop_ost','shop_sued','lager','lager_nord','lager_gross','lager_sued','lager_west']
       .forEach(id=>{ bb.S.up[id]=true; if(bb.ZONEN[id]) bb.oeffneZone(id,false); });
     bb.applyZonen(); bb.wbaysInit();
     r.halleOffen=bb.dockPlaetze();

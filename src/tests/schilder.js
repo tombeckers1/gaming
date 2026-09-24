@@ -85,7 +85,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
 
   /* Auch nach dem Kauf aller Flaechen darf nichts auftauchen */
   await p.evaluate(()=>{ const bb=window.__bb; bb.S.level=99; bb.S.money=5e6;
-    ['shop_halb','shop_gross','shop_ost','shop_sued','testfeld','lager_nord','lager_gross',
+    ['shop_halb','shop_gross','shop_ost','shop_sued','testfeld','lager','lager_nord','lager_gross',
      'lager_sued','lager_sued2','lager_west','rampe2','rampe3','rampe4','rampe5',
      'packstation','eingang2'].forEach(id=>bb.testKauf(id)); });
   const nach=await p.evaluate(()=>{

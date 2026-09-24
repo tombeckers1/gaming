@@ -36,7 +36,10 @@ html,body{margin:0;height:100%;overflow:hidden;background:var(--night);color:var
 .bar.clean i{background:linear-gradient(90deg,#8ad6ff,#cdeaff)}
 .tag{position:relative;background:var(--signal);color:var(--ink);border-radius:6px 18px 18px 6px;padding:8px 16px 8px 28px;transform:rotate(-2.5deg);box-shadow:0 3px 0 rgba(0,0,0,.35)}
 .tag::before{content:"";position:absolute;left:10px;top:50%;width:9px;height:9px;margin-top:-4.5px;border-radius:50%;background:var(--night)}
-#hMoney{font-family:var(--display);font-size:24px;line-height:1.05}
+#hMoney{font-family:var(--display);font-size:24px;line-height:1.05;transition:color .25s}
+#hMoney.plus{color:#0f7a3c}
+#hMoney.minus{color:#a3241c}
+.chip.serie{background:rgba(108,242,168,.22);color:#6cf2a8}
 #hXpWrap{margin-top:3px}
 .xpbar{height:7px;border-radius:4px;background:rgba(14,18,38,.28);overflow:hidden}
 .xpbar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#1b2340,#3f5aa8);transition:width .3s}
@@ -233,6 +236,18 @@ body.compact .kan span{display:none}
 #musikBtn{position:fixed;left:12px;top:138px;z-index:6;padding:4px 10px;border-radius:14px;border:1px solid rgba(255,255,255,.18);
   background:rgba(14,18,38,.72);color:#eef1f8;font:600 12px/1.2 inherit;font-family:inherit;cursor:pointer;pointer-events:auto;max-width:170px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #musikBtn.aus{opacity:.55}
+.kapkopf{display:flex;flex-direction:column;gap:2px;padding:10px 12px 6px;margin-top:6px;border-top:2px solid rgba(255,210,63,.35)}
+.kapkopf b{font-family:var(--display);font-size:17px;color:var(--signal);letter-spacing:.02em}
+.kapkopf small{opacity:.72}
+.kapkopf:not(.da) b{color:rgba(242,245,255,.6)}
+#hKap{display:block;font-size:12px;font-weight:700;color:var(--signal);letter-spacing:.02em;margin-top:2px}
+body.compact #hKap{display:none}
+#kapBanner{position:fixed;left:50%;top:22%;transform:translate(-50%,-50%) scale(.9);z-index:40;pointer-events:none;opacity:0;
+  transition:opacity .5s,transform .5s;text-align:center;padding:22px 42px;border-radius:18px;background:rgba(14,18,38,.86);border:2px solid var(--signal);box-shadow:0 12px 50px rgba(0,0,0,.5)}
+#kapBanner.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
+#kapBanner small{display:block;color:var(--signal);font-weight:800;letter-spacing:.14em;font-size:14px}
+#kapBanner b{display:block;font-family:var(--display);font-size:40px;color:#fff;margin:4px 0}
+#kapBanner span{display:block;opacity:.8;font-size:15px;max-width:440px}
 @media (pointer:coarse){ #musikBtn{top:52px;left:8px;font-size:11px;padding:3px 8px} }
 .steuer .grp{break-inside:avoid;margin-bottom:10px}
 .steuer .z{display:flex;gap:10px;align-items:center;padding:3px 0}
@@ -375,7 +390,7 @@ body.compact .pdahead2 b{font-size:16px}
 <div id="hud">
   <div class="tl">
     <div class="tlcol">
-      <div id="clock"><div id="hTime"></div><div id="hDate"></div><div id="hStatus"></div></div>
+      <div id="clock"><div id="hTime"></div><div id="hDate"></div><div id="hStatus"></div><div id="hKap"></div></div>
       <div class="meter" id="mHype"><span><i>Hype</i></span><div class="bar"><i id="hHype"></i></div></div>
     </div>
     <div class="tag"><div id="hLevel"></div><div id="hMoney"></div><div id="hXpWrap"><div class="xpbar"><i id="hXp"></i></div><small id="hXpTxt"></small></div><div id="hLoan"></div></div>
@@ -476,6 +491,7 @@ body.compact .pdahead2 b{font-size:16px}
 </div>
 
 <button id="musikBtn" title="Musik an / aus (M)">♪</button>
+<div id="kapBanner"><small id="kapNr"></small><b id="kapName"></b><span id="kapTxt"></span></div>
 <div class="ov" id="pause"><div class="card pausecard">
   <h2>Pause</h2>
   <h3 class="stHead">Steuerung</h3>

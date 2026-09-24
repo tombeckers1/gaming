@@ -170,7 +170,7 @@ function orderRegal(id){
   S.money=r2(S.money-preis); DS.upgrades=r2(DS.upgrades+preis);
   pending.push({regal:id,t:lieferSek()*evv('delay'),sup:'mertens'});
   sfx.cash(); S.tut.order=true;
-  toast(`${K.name} bestellt. Kommt mit dem nächsten LKW an die Rampe.`,'money');
+  toast(zoneOffen('lager')?`${K.name} bestellt. Kommt mit dem nächsten LKW an die Rampe.`:`${K.name} bestellt. Der Lieferant baut es gleich im Laden auf.`,'money');
   save();
 }
 /* Direktbestellung eines einzelnen Postens (eigene Lieferung, eigener Versand) */
@@ -294,7 +294,8 @@ function planFlaechen(){
   };
 }
 const PLAN={
-  shop_halb:  {alt:['shopW','lbas'],                                          neu:['shopO']},
+  shop_halb:  {alt:['shopW'],                                                 neu:['shopO']},
+  lager:      {alt:['shopW','shopO'],                                         neu:['lbas']},
   lager_nord: {alt:['shopW','shopO','lbas'],                                  neu:['lnord']},
   testfeld:   {alt:['shopW','shopO','lbas','lnord'],                          neu:['test']},
   shop_gross: {alt:['shopW','shopO','test','lbas','lnord'],                   neu:['ost1']},
@@ -608,7 +609,7 @@ function renderLaptop(){
       `<button data-a="sup" data-t="regal" style="${istRegal?'background:var(--signal);color:var(--ink)':'opacity:.8'}">Regalbau</button>`+
       `</div></div>`;
     if(istRegal){
-      h=`<div class="row"><div class="rm"><b>Regalbau Stegemann</b><small>Ladenbau und Lagertechnik, seit 1974. Liefert an die Rampe — aufbauen musst du selbst.</small>`+
+      h=`<div class="row"><div class="rm"><b>Regalbau Stegemann</b><small>Ladenbau und Lagertechnik, seit 1974. ${zoneOffen('lager')?'Liefert an die Rampe — aufbauen musst du selbst.':'Solange du kein Lager hast, baut der Lieferant das Regal gleich im Laden auf.'}</small>`+
         `<small>Paket aus dem Laderaum nehmen, an die Stelle tragen, an der es stehen soll, und mit „Ablegen“ aufbauen.</small>`+
         `<small>Lieferzeit ${LIEFERZEIT_SEK} Sekunden · kein Versandzuschlag</small></div></div>`+knoepfe+
         REGALWARE.map(r=>{
@@ -693,12 +694,22 @@ function renderLaptop(){
       ? 'Regale, Kassen und Technik im Laden. Ein Karton passt meist genau in ein Regalfach.'
       : 'Alles, was dir mehr Kundschaft und bessere Konditionen bringt.';
     const liste=UPGRADES.filter(u=>(u.kat||'einr')===kat).sort((a,b)=>a.lvl-b.lvl);
+    /* Flaechen nach Kapiteln: ueber jedem Abschnitt eine Zeile mit dem
+       Namen, der Ausbau, der das Kapitel eroeffnet, steht zuerst */
+    const kapVon=u=>{ if(u.kap) return u.kap; let n=1;
+      for(const k of KAPITEL) if(k.up){ const ku=UPGRADES.find(x=>x.id===k.up); if(ku&&u.lvl>ku.lvl) n=Math.max(n,k.nr); }
+      return n; };
+    if(kat==='flaeche') liste.sort((a,b)=>kapVon(a)-kapVon(b)||(b.kap?1:0)-(a.kap?1:0)||a.lvl-b.lvl);
+    let kapZuletzt=0;
     h=liste.map(u=>{ const done=u.done(), cost=u.cost();
+      let kopf='';
+      if(kat==='flaeche'){ const kn=kapVon(u); if(kn!==kapZuletzt){ kapZuletzt=kn; const K=KAPITEL[kn-1], jetzt=kapitelNr();
+        kopf=`<div class="kapkopf${kn<=jetzt?' da':''}"><b>Kapitel ${kn} · ${K.name}</b><small>${kn<jetzt?'geschafft':kn===jetzt?'hier bist du':K.txt}</small></div>`; } }
       const fehlt=u.req&&!S.up[u.req]?UPGRADES.find(x=>x.id===u.req):null;
       const lock=S.level<u.lvl||!!fehlt;
-      return `<div class="row${lock&&!done?' locked':''}">`+
+      return kopf+`<div class="row${lock&&!done?' locked':''}">`+
         `<img class="pic" src="${upPic(u.id)}" alt="">`+
-        `<div class="rm"><b>${u.name}</b><small>${u.desc}</small>`+
+        `<div class="rm"><b>${u.kap?`Kapitel ${u.kap}: ${KAPITEL[u.kap-1].name} – `:''}${u.name}</b><small>${u.desc}</small>`+
         (done?'':fehlt?`<small class="warn">Setzt „${fehlt.name}“ voraus</small>`
              :S.level<u.lvl?`<small class="warn">Ab Level ${u.lvl}</small>`:`<small>Kosten ${eur(cost)}</small>`)+
         `</div>`+
@@ -769,7 +780,7 @@ function renderLaptop(){
       const lohn=has?`<small>Lohn: ${WAGES.map(w=>`<button data-a="wage" data-t="${s.id}" data-v="${w.f}" title="${w.desc}" style="padding:4px 8px;font-size:14px;margin-right:4px;${wageOf(s.id)===w.f?'background:var(--mint);color:var(--ink)':'background:rgba(242,245,255,.12);color:var(--snow)'}">${w.name} ${eur(r2(s.wage*w.f))}</button>`).join('')}</small>`:'';
       const pause=has?`<small>${inPause(s.id)?`In Saisonpause · ${eur(r2(s.wage*wageOf(s.id)*0.3))} pro Tag`:'Im Dienst'} <button data-a="pause" data-t="${s.id}" style="padding:4px 9px;font-size:14px;margin-left:6px;${inPause(s.id)?'background:var(--mint);color:var(--ink)':'background:rgba(242,245,255,.12);color:var(--snow)'}">${inPause(s.id)?'Zurück in den Dienst':'In Saisonpause schicken'}</button></small>`:'';
       return `<div class="row${lock?' locked':''}"><div class="rm"><b>${s.name}</b><small>${s.desc}</small><small>Einstellung ${eur(s.hire)} · Grundlohn ${eur(s.wage)} pro Tag</small>${lohn}${pause}${prio}</div>`+
-        (fehlt?'<small>braucht die Packstation</small>':lock?`<small>ab Level ${s.lvl}</small>`:has?`<button class="red" data-a="fire" data-t="${s.id}">Kündigen</button>`:`<button data-a="hire" data-t="${s.id}" ${S.money<s.hire?'disabled':''}>Einstellen</button>`)+'</div>'; }).join('');
+        (fehlt?`<small>braucht: ${(UPGRADES.find(u=>u.id===s.req)||{name:s.req}).name}</small>`:lock?`<small>ab Level ${s.lvl}</small>`:has?`<button class="red" data-a="fire" data-t="${s.id}">Kündigen</button>`:`<button data-a="hire" data-t="${s.id}" ${S.money<s.hire?'disabled':''}>Einstellen</button>`)+'</div>'; }).join('');
   } else if(ltab==='bank'){
     const t=loanTier(), L=S.loan;
     hint=t?`Dein Kreditrahmen: ${eur(t.amount)}.`:'Kredite gibt es ab Level 5.';
@@ -922,6 +933,8 @@ function buyUp(id){
     const k=id==='rack'?'standard':id.slice(5);
     createRack(racks.length,{kind:k}); toast(`${RACKKIND[k].name} steht im Lager.`); }
   else { S.up[id]=true;
+    if(u.kap) later(0.6,()=>kapitelAufstieg(u.kap));
+    if(id==='lager') toast('Das Lager gehört dir. Ab jetzt fährt der LKW an die Rampe hinterm Lager.','money');
     if(ZONEN[id]){
       oeffneZone(id,true);
       if(id==='shop_gross') toast('Die Wand ist durchbrochen. Deine Verkaufsfläche ist jetzt deutlich größer.','money');

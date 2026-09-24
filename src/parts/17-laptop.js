@@ -881,6 +881,8 @@ function lapZeichnen(body){
           ? `<small class="warn">Aktiv: Level 25, alle Lizenzpakete und Ausbauten offen.</small><small>Beim Ausschalten kommen dein altes Level (${S.test.lvl}), deine XP, dein Kontostand und dein altes Sortiment zurück. Gekaufte Regale, Deko und Personal bleiben im Laden.</small>`
           : `<small>Schaltet vorübergehend alles frei: Level 25, jedes Lizenzpaket und ein volles Konto zum Ausprobieren.</small><small>Dein jetziger Stand wird gemerkt und beim Ausschalten wiederhergestellt.</small>`)+
         `</div><button class="${S.test?'red':''}" data-a="test">${S.test?'Testmodus aus':'Testmodus an'}</button></div>`+
+      (FW_DEV?`<div class="row"><div class="rm"><b>Feuerwerk-Teststation <span class="warn">(nur Entwicklung)</span></b><small>Macht Nacht und stellt von jedem Feuerwerk einen Karton neben das Zündpult. Du stehst direkt davor.</small>${fwTestAn?'<small class="warn">Aktiv. Kartons neu stapeln füllt alles wieder auf.</small>':''}</div>`+
+        (fwTestAn?`<div class="steps"><button data-a="fwtestneu">Neu stapeln</button><button class="red" data-a="fwtest">Aus</button></div>`:`<button data-a="fwtest">Einschalten</button>`)+'</div>':'')+
       `<div class="row"><div class="rm"><b>Spielstand</b><small>Wird automatisch gespeichert.</small></div><button class="ghost" data-a="reset">${resetArm?'Wirklich löschen?':'Spielstand löschen'}</button></div>`;
   }
   body.innerHTML=h;
@@ -969,6 +971,8 @@ function lapKlick(e,imHandy){
   else if(a==='vpack')   { packLaptop(false); return; }
   else if(a==='vpackall'){ packLaptop(true);  return; }
   else if(a==='test'){ toggleTest(); }
+  else if(a==='fwtest'){ fwTestSchalten(); return; }
+  else if(a==='fwtestneu'){ const n=fwTestStapeln(); toast(`${n} Kartons neu gestapelt.`); }
   else if(a==='reset'){ if(!resetArm) resetArm=true; else { try{ localStorage.removeItem(KEY); }catch(err){} location.reload(); return; } }
   renderLaptop();
 }

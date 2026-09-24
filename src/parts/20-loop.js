@@ -7,7 +7,7 @@ const _c1=new THREE.Color(), _c2=new THREE.Color(), _c3=new THREE.Color();
 let lastF=-1;
 function mix3(arr,f,out){ if(f<0.5) return out.copy(arr[0]).lerp(arr[1],f*2); return out.copy(arr[1]).lerp(arr[2],(f-0.5)*2); }
 function applyTOD(){
-  const f=clamp((clock-960)/100,0,1);
+  const f=clamp((todUhr()-960)/100,0,1);
   if(Math.abs(f-lastF)<0.002) return; lastF=f;
   mix3(SKY.top,f,_c1); mix3(SKY.hor,f,_c2);
   const pos=skyGeo.attributes.position, colA=skyGeo.attributes.color;

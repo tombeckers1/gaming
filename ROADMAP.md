@@ -38,3 +38,10 @@ Ab Kapitel 7. Der letzte große Raum (Logistikzentrum) gehört nicht zur Demo.
 - `DEMO` in derselben Datei: auf `true` setzen, um die Demo zu bauen. Dann lassen sich die
   Vollversions-Kapitel im Laptop ansehen, aber nicht kaufen.
 - Test: `src/tests/kapitel.js` prüft Kapitelreihenfolge, Markierung und Demo-Sperre.
+
+
+## Vor der Veröffentlichung entfernen
+
+- **Feuerwerk-Teststation** (Laptop › Laden, nur Entwicklung): `FW_DEV` in
+  `src/parts/17b-fwtest.js` auf `false` setzen oder die Datei samt Aufrufen
+  entfernen. Tom gibt Bescheid, wann – wenn alle Effekte abgenommen sind.

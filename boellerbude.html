@@ -36,7 +36,10 @@ html,body{margin:0;height:100%;overflow:hidden;background:var(--night);color:var
 .bar.clean i{background:linear-gradient(90deg,#8ad6ff,#cdeaff)}
 .tag{position:relative;background:var(--signal);color:var(--ink);border-radius:6px 18px 18px 6px;padding:8px 16px 8px 28px;transform:rotate(-2.5deg);box-shadow:0 3px 0 rgba(0,0,0,.35)}
 .tag::before{content:"";position:absolute;left:10px;top:50%;width:9px;height:9px;margin-top:-4.5px;border-radius:50%;background:var(--night)}
-#hMoney{font-family:var(--display);font-size:24px;line-height:1.05}
+#hMoney{font-family:var(--display);font-size:24px;line-height:1.05;transition:color .25s}
+#hMoney.plus{color:#0f7a3c}
+#hMoney.minus{color:#a3241c}
+.chip.serie{background:rgba(108,242,168,.22);color:#6cf2a8}
 #hXpWrap{margin-top:3px}
 .xpbar{height:7px;border-radius:4px;background:rgba(14,18,38,.28);overflow:hidden}
 .xpbar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#1b2340,#3f5aa8);transition:width .3s}
@@ -233,6 +236,18 @@ body.compact .kan span{display:none}
 #musikBtn{position:fixed;left:12px;top:138px;z-index:6;padding:4px 10px;border-radius:14px;border:1px solid rgba(255,255,255,.18);
   background:rgba(14,18,38,.72);color:#eef1f8;font:600 12px/1.2 inherit;font-family:inherit;cursor:pointer;pointer-events:auto;max-width:170px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #musikBtn.aus{opacity:.55}
+.kapkopf{display:flex;flex-direction:column;gap:2px;padding:10px 12px 6px;margin-top:6px;border-top:2px solid rgba(255,210,63,.35)}
+.kapkopf b{font-family:var(--display);font-size:17px;color:var(--signal);letter-spacing:.02em}
+.kapkopf small{opacity:.72}
+.kapkopf:not(.da) b{color:rgba(242,245,255,.6)}
+#hKap{display:block;font-size:12px;font-weight:700;color:var(--signal);letter-spacing:.02em;margin-top:2px}
+body.compact #hKap{display:none}
+#kapBanner{position:fixed;left:50%;top:22%;transform:translate(-50%,-50%) scale(.9);z-index:40;pointer-events:none;opacity:0;
+  transition:opacity .5s,transform .5s;text-align:center;padding:22px 42px;border-radius:18px;background:rgba(14,18,38,.86);border:2px solid var(--signal);box-shadow:0 12px 50px rgba(0,0,0,.5)}
+#kapBanner.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
+#kapBanner small{display:block;color:var(--signal);font-weight:800;letter-spacing:.14em;font-size:14px}
+#kapBanner b{display:block;font-family:var(--display);font-size:40px;color:#fff;margin:4px 0}
+#kapBanner span{display:block;opacity:.8;font-size:15px;max-width:440px}
 @media (pointer:coarse){ #musikBtn{top:52px;left:8px;font-size:11px;padding:3px 8px} }
 .steuer .grp{break-inside:avoid;margin-bottom:10px}
 .steuer .z{display:flex;gap:10px;align-items:center;padding:3px 0}
@@ -375,7 +390,7 @@ body.compact .pdahead2 b{font-size:16px}
 <div id="hud">
   <div class="tl">
     <div class="tlcol">
-      <div id="clock"><div id="hTime"></div><div id="hDate"></div><div id="hStatus"></div></div>
+      <div id="clock"><div id="hTime"></div><div id="hDate"></div><div id="hStatus"></div><div id="hKap"></div></div>
       <div class="meter" id="mHype"><span><i>Hype</i></span><div class="bar"><i id="hHype"></i></div></div>
     </div>
     <div class="tag"><div id="hLevel"></div><div id="hMoney"></div><div id="hXpWrap"><div class="xpbar"><i id="hXp"></i></div><small id="hXpTxt"></small></div><div id="hLoan"></div></div>
@@ -476,6 +491,7 @@ body.compact .pdahead2 b{font-size:16px}
 </div>
 
 <button id="musikBtn" title="Musik an / aus (M)">♪</button>
+<div id="kapBanner"><small id="kapNr"></small><b id="kapName"></b><span id="kapTxt"></span></div>
 <div class="ov" id="pause"><div class="card pausecard">
   <h2>Pause</h2>
   <h3 class="stHead">Steuerung</h3>
@@ -656,6 +672,16 @@ const P={
     art:{title:'STERNENBRUNNEN',sub:'Fontäne, Komet, Blüte',bg1:'#123a6b',bg2:'#04101f',ac:'#5ce1ff',ac2:'#ffd23f'}}
 };
 const ORDER=Object.keys(P);
+/* Kapitel: die grossen Stufen des Ladens. Jedes beginnt mit einem
+   bestimmten Ausbau. */
+const KAPITEL=[
+  {nr:1,name:'Pyro-Kiosk',up:null,txt:'Ein kleiner Laden, die Lieferungen kommen vor die Tür.'},
+  {nr:2,name:'Kleines Fachgeschäft',up:'lager',txt:'Eigenes Lager mit Rampe: der LKW liefert direkt ans Rolltor.'},
+  {nr:3,name:'Großes Fachgeschäft',up:'shop_gross',txt:'Das Ladenlokal nebenan gehört dir. Jetzt wird es richtig groß.'},
+  {nr:4,name:'Pyro-Imperium',up:'lager_west',txt:'Logistikzentrum mit Toren und Hof. Größer geht es nicht.'}
+];
+function kapitelNr(){ let n=1; for(const k of KAPITEL) if(k.up&&S&&S.up&&S.up[k.up]) n=Math.max(n,k.nr); return n; }
+function kapitel(){ return KAPITEL[kapitelNr()-1]; }
 const CATNAME={0:'Zubehör',1:'F1',2:'F2'};
 
 /* Ausbau, Deko, Personal ---------------------------------- */
@@ -671,7 +697,7 @@ const UPGRADES=[
   {id:'cams',kat:'einr',lvl:10,name:'Überwachungskameras',desc:'Halbiert die Zahl der Diebstahlversuche.',cost:()=>900,done:()=>S.up.cams},
   {id:'regallicht',kat:'einr',lvl:11,name:'Regalbeleuchtung',desc:'Ware wirkt hochwertiger, bessere Stimmung.',cost:()=>700,done:()=>S.up.regallicht},
   {id:'alarm',kat:'einr',lvl:14,name:'Warensicherung',desc:'Diebe werden am Ausgang meistens gestoppt.',cost:()=>2200,done:()=>S.up.alarm},
-  {id:'grosskunden',kat:'markt',lvl:6,name:'Eintrag im Branchenbuch',desc:'Pyrotechniker und Veranstalter rufen dich für Großbestellungen an.',cost:()=>500,done:()=>S.up.grosskunden},
+  {id:'grosskunden',kat:'markt',lvl:7,req:'lager',name:'Eintrag im Branchenbuch',desc:'Pyrotechniker und Veranstalter rufen dich für Großbestellungen an.',cost:()=>500,done:()=>S.up.grosskunden},
   {id:'onlineshop',kat:'markt',lvl:18,name:'Onlineshop',desc:'Bringt jeden Tag Umsatz nebenbei, abhängig von deinem Ruf. Mit Packstation kommen die Bestellungen als echte Pakete ins Lager und bringen deutlich mehr.',cost:()=>3200,done:()=>S.up.onlineshop},
   {id:'kundenkarte',kat:'markt',lvl:21,name:'Stammkundenkarte',desc:'Stammkunden kommen öfter wieder und zahlen bereitwilliger.',cost:()=>2600,done:()=>S.up.kundenkarte},
   {id:'tafel',kat:'markt',lvl:23,name:'Digitale Werbetafel',desc:'Große Tafel an der Fassade. Noch einmal deutlich mehr Kundschaft.',cost:()=>4200,done:()=>S.up.tafel},
@@ -680,14 +706,18 @@ const UPGRADES=[
   {id:'meister',kat:'markt',lvl:30,name:'Meisterbrief Pyrotechnik',desc:'Die höchste Stufe. Großaufträge zahlen ein Drittel mehr.',cost:()=>12000,done:()=>S.up.meister},
   {id:'shop_halb',kat:'flaeche',lvl:4,name:'Ladenerweiterung 1 – etwas mehr Platz',desc:'Die zugemauerte Hälfte deines eigenen Ladenlokals: rund 70 Quadratmeter mehr, das zweite Schaufenster und zwei weitere Regalplätze. Die Trennwand fällt beim Kauf ganz weg — ein Raum, kein Pfeiler, kein Sturz. Dahinter liegt auch die Tür zum Testfeld.',cost:()=>1400,done:()=>S.up.shop_halb},
   {id:'testfeld',kat:'flaeche',lvl:9,req:'shop_halb',name:'Testfeld freischalten',desc:'Der abgesperrte Hof hinter dem Laden wird dein Testfeld: Zündtisch, Abschussröhren und Mörserbatterie. Erst damit kannst du selbst zünden — und was du gezündet hast, spricht sich herum.',cost:()=>3200,done:()=>S.up.testfeld},
-  {id:'shop_gross',kat:'flaeche',lvl:12,req:'shop_halb',name:'Ladenerweiterung 2 – deutlich mehr Platz',desc:'Kauft das leerstehende Ladenlokal nebenan. Die Seitenwand wird durchbrochen, die Schaufenster werden entmauert: rund 142 Quadratmeter mehr Fläche und zehn zusätzliche Regalplätze.',cost:()=>7500,done:()=>S.up.shop_gross},
-  {id:'lager_nord',kat:'flaeche',lvl:6,name:'Lagererweiterung 1 – etwas mehr Platz',desc:'Was hinter der Trennwand im Lager liegt: 47 Quadratmeter mehr, sechs zusätzliche Stellplätze für Regale. Die Wand fällt beim Kauf ganz weg — kein Sturz, kein Pfeiler, ein durchgehender Raum bis zur Stirnwand.',cost:()=>1900,done:()=>S.up.lager_nord},
+  {id:'shop_gross',kat:'flaeche',lvl:12,req:'shop_halb',kap:3,name:'Ladenerweiterung 2 – deutlich mehr Platz',desc:'Kauft das leerstehende Ladenlokal nebenan. Die Seitenwand wird durchbrochen, die Schaufenster werden entmauert: rund 142 Quadratmeter mehr Fläche und zehn zusätzliche Regalplätze.',cost:()=>7500,done:()=>S.up.shop_gross},
+  /* Kapitel 2: das Lager. Bis dahin ist der Laden ein Kiosk: der
+     Lieferant stellt die Kartons vor die Ladentuer, das Lager hinter
+     dem Verkauf ist abgesperrt. */
+  {id:'lager',kat:'flaeche',lvl:6,kap:2,name:'Lager mit Warenannahme',desc:'Das Lager hinter dem Laden wird deins: Rolltor mit Andockstation, der LKW fährt direkt an die Rampe, und du kannst Lagerregale aufstellen. Aus dem Pyro-Kiosk wird ein kleines Fachgeschäft.',cost:()=>1200,done:()=>S.up.lager},
+  {id:'lager_nord',kat:'flaeche',lvl:8,req:'lager',name:'Lagererweiterung 1 – etwas mehr Platz',desc:'Was hinter der Trennwand im Lager liegt: 47 Quadratmeter mehr, sechs zusätzliche Stellplätze für Regale. Die Wand fällt beim Kauf ganz weg — kein Sturz, kein Pfeiler, ein durchgehender Raum bis zur Stirnwand.',cost:()=>1900,done:()=>S.up.lager_nord},
   {id:'lager_gross',kat:'flaeche',lvl:15,req:'lager_nord',name:'Lagererweiterung 2 – deutlich mehr Platz',desc:'Hinter dem Rolltor wird die Wand auf neun Metern durchbrochen: der erste Abschnitt der großen Halle dahinter, 118 Quadratmeter mit fünf Metern lichter Höhe. Hier steht die Packstation, und ab hier lohnt sich der Onlineshop. Hochregale passen erst in diese Höhe.',cost:()=>6200,done:()=>S.up.lager_gross},
   {id:'shop_ost',kat:'flaeche',lvl:20,req:'shop_gross',name:'Ladenerweiterung 3 – viel mehr Platz',desc:'Das nächste leerstehende Lokal in der Reihe: noch einmal 212 Quadratmeter, Gondelgassen, Eckregal und eine lange Wandreihe.',cost:()=>16000,done:()=>S.up.shop_ost},
   {id:'shop_sued',kat:'flaeche',lvl:26,req:'shop_ost',name:'Ladenerweiterung 4 – riesig viel Platz',desc:'Die große Halle hinter dem Laden, zwei breite Durchgänge: 478 Quadratmeter Verkaufsfläche mit zwei Gondelgassen. Damit ist der Laden fünfeinhalbmal so groß wie am Anfang.',cost:()=>34000,done:()=>S.up.shop_sued},
   {id:'lager_sued',kat:'flaeche',lvl:20,req:'lager_gross',name:'Lagererweiterung 3 – noch mehr Platz',desc:'Der zweite Abschnitt, noch einmal 83 Quadratmeter. Die Wand zum ersten fällt ganz weg — kein Pfeiler, kein Sturz, eine durchgehende Halle.',cost:()=>11000,done:()=>S.up.lager_sued},
   {id:'lager_sued2',kat:'flaeche',lvl:24,req:'lager_sued',name:'Lagererweiterung 4 – die ganze Halle',desc:'Der letzte Abschnitt bis zur Stirnwand. Damit steht die ganze Halle: 283 Quadratmeter am Stück, dreizehn Stellplätze für Hoch- und Schwerlastregale.',cost:()=>15000,done:()=>S.up.lager_sued2},
-  {id:'lager_west',kat:'flaeche',lvl:28,req:'lager_sued2',name:'Logistikzentrum freischalten – riesige Halle mit Toren',desc:'Die große Halle an den vier Toren: 1520 Quadratmeter auf 40 mal 38 Metern, zwölf Stellplätze für Hochregale und ein Hof, auf dem mehrere Auflieger stehen können. Dazu wird der Lagergang hinter dem Laden geöffnet — der kurze Weg vom Rückgebäude direkt ins Lager, ohne Umweg über den Verkaufsraum.',cost:()=>38000,done:()=>S.up.lager_west},
+  {id:'lager_west',kat:'flaeche',lvl:28,req:'lager_sued2',kap:4,name:'Logistikzentrum freischalten – riesige Halle mit Toren',desc:'Die große Halle an den vier Toren: 1520 Quadratmeter auf 40 mal 38 Metern, zwölf Stellplätze für Hochregale und ein Hof, auf dem mehrere Auflieger stehen können. Dazu wird der Lagergang hinter dem Laden geöffnet — der kurze Weg vom Rückgebäude direkt ins Lager, ohne Umweg über den Verkaufsraum.',cost:()=>38000,done:()=>S.up.lager_west},
   /* Andockstationen. Die Basisrampe hinter dem Lager ist die erste
      und bleibt die begehbare; jede zugekaufte Westrampe nimmt eine
      Lieferung zusaetzlich an, parallel zu allen anderen. */
@@ -721,9 +751,15 @@ const DEKO=[
 ];
 const STAFF=[
   {id:'reinigung',lvl:6,name:'Reinigungskraft',desc:'Wischt den Dreck weg, solange der Laden offen ist.',hire:250,wage:55},
-  {id:'auffueller',lvl:9,name:'Regalauffüller',desc:'Lädt den LKW aus, räumt ins Lager und füllt die Regale. Priorität einstellbar.',hire:450,wage:110},
+  {id:'auffueller',lvl:9,req:'lager',name:'Regalauffüller',desc:'Lädt den LKW aus, räumt ins Lager und füllt die Regale. Priorität einstellbar.',hire:450,wage:110},
   {id:'auffueller2',lvl:12,name:'Zweiter Auffüller',desc:'Zweites Paar Hände. Andere Priorität einstellen, dann greift es ineinander.',hire:600,wage:130},
   {id:'kassierer',lvl:11,name:'Kassierer',desc:'Scannt und kassiert selbstständig an der Kasse.',hire:600,wage:145},
+  /* Weitere Kassierer: jeder besetzt eine SB-Kasse. Besetzt nimmt sie
+     auch volle Koerbe und kassiert gut doppelt so schnell. */
+  {id:'kassierer2',kurz:'Kasse 2',lvl:16,req:'kasse2',name:'Kassierer an SB-Kasse 1',desc:'Besetzt die erste SB-Kasse in der Erweiterung. Dort zahlen dann auch Kunden mit vollem Korb, und es geht gut doppelt so schnell.',hire:600,wage:140},
+  {id:'kassierer3',kurz:'Kasse 3',lvl:17,req:'kasse2',name:'Kassierer an SB-Kasse 2',desc:'Besetzt die zweite SB-Kasse in der Erweiterung.',hire:600,wage:140},
+  {id:'kassierer4',kurz:'Kasse 4',lvl:24,req:'eingang2',name:'Kassierer am zweiten Eingang 1',desc:'Besetzt die erste Kasse am zweiten Eingang.',hire:650,wage:145},
+  {id:'kassierer5',kurz:'Kasse 5',lvl:25,req:'eingang2',name:'Kassierer am zweiten Eingang 2',desc:'Besetzt die zweite Kasse am zweiten Eingang. Damit sind alle fünf Kassen besetzt.',hire:650,wage:145},
   {id:'security',lvl:13,name:'Sicherheitsdienst',desc:'Hält Diebe im Laden auf, bevor sie rauskommen.',hire:800,wage:190},
   {id:'packer',lvl:18,req:'packstation',name:'Versandmitarbeiter',desc:'Steht an der Packstation und packt die Onlinebestellungen, während du vorne im Laden bist.',hire:700,wage:165}
 ];
@@ -873,7 +909,7 @@ const SHELFORDER=['klein','standard','hoch','kuehl','gondel','eck'];
    ========================================================= */
 const REGALWARE=[
   {id:'klein',   art:'shelf',kind:'klein',   lvl:1},
-  {id:'rack',    art:'rack', kind:'standard',lvl:1},
+  {id:'rack',    art:'rack', kind:'standard',lvl:6,req:'lager'},
   {id:'standard',art:'shelf',kind:'standard',lvl:4},
   {id:'kuehl',   art:'shelf',kind:'kuehl',   lvl:6},
   {id:'hoch',    art:'shelf',kind:'hoch',    lvl:10},
@@ -5225,6 +5261,35 @@ function sperrband(Z,a,b,z,y,mat,parent){
   (parent||scene).add(m); zWand(Z,m);
   return m;
 }
+/* Kapitel 1, Pyro-Kiosk: die Tuer vom Verkauf ins Lager ist mit
+   Absperrband zu, wie die Hintertuer zum Testfeld. Man sieht ins
+   Lager hinein, kommt aber nicht hin. Die Lieferungen landen solange
+   auf der markierten Warenannahme vor der Ladentuer. */
+function lagerSperre(){
+  const Z='lager';
+  const g=new THREE.Group(); g.position.set(-8.0,0,-2.5); g.rotation.y=Math.PI/2; scene.add(g);
+  const bandM=new THREE.MeshStandardMaterial({map:sperrbandTex('LAGER · KAPITEL 2'),roughness:0.72,side:THREE.DoubleSide});
+  const halt=std(0x3d4450,{metalness:0.5,roughness:0.5});
+  const kopf=std(0x1f242e,{metalness:0.4,roughness:0.55});
+  const a=-0.66, b=0.66;
+  for(const y of [0.5,1.0,1.5]) sperrband(Z,a+0.06,b-0.06,0,y,bandM,g);
+  for(const x of [a+0.04,b-0.04]){
+    zWand(Z,bbox(0.05,1.76,0.05,halt,x,0.88,0,g,false));
+    zWand(Z,bbox(0.08,0.05,0.08,kopf,x,1.78,0,g,false));
+  }
+  zWandCol(Z,col(-8.3,-7.7,-3.25,-1.75));
+  /* Warenannahme auf dem Gehweg: gelbe Markierung mit Schrift */
+  const m=new THREE.Mesh(new THREE.PlaneGeometry(2.7,1.75),new THREE.MeshBasicMaterial({transparent:true,depthWrite:false,
+    map:tex(540,350,(c,W,H)=>{ c.clearRect(0,0,W,H);
+      c.strokeStyle='#ffd23f'; c.lineWidth=12; c.setLineDash([30,16]); c.strokeRect(10,10,W-20,H-20); c.setLineDash([]);
+      c.fillStyle='rgba(255,210,63,.95)'; c.font=BUN(46); c.textAlign='center'; c.textBaseline='middle';
+      c.fillText('WARENANNAHME',W/2,H-52); })}));
+  m.rotation.x=-Math.PI/2; m.position.set(WA.x,0.021,WA.z); m.renderOrder=2; scene.add(m);
+  zWand(Z,m);
+}
+/* Warenannahme vor der Tuer: sechs Stellplaetze, gestapelt */
+const WA={x:3.5,z:7.75};
+const WA_SLOTS=[]; for(let r=0;r<2;r++) for(let c=0;c<3;c++) WA_SLOTS.push({x:WA.x-0.75+c*0.75,z:WA.z-0.42+r*0.84});
 function testfeldSperre(){
   const Z='testfeld', a=4.4, b=6.1, z=-6.0;
   const bandM=new THREE.MeshStandardMaterial({map:sperrbandTex('TESTFELD GESPERRT'),roughness:0.72,side:THREE.DoubleSide});
@@ -5593,6 +5658,7 @@ function buildAusbau(){
   streifenvorhang('lager_west',false,-8.0,GT[0][0],GT[0][1],2.5);
   buildLagergang();
   testfeldSperre();
+  lagerSperre();
   buildLagerTerminal();
   buildPackstation();
   buildWestrampen();
@@ -8280,7 +8346,8 @@ function nearestDirt(p,maxD){ let b=null,bd=maxD||99; for(const d of dirts){ con
    ========================================================= */
 const floorBoxes=[], pending=[];
 const DSLOTS=[]; for(let r=0;r<2;r++) for(let c=0;c<4;c++) DSLOTS.push({x:-19.3+c*0.95,z:-3.5+r*0.9});
-function freeSlot(){ let best=DSLOTS[0],bn=99; for(const s of DSLOTS){ const n=floorBoxes.filter(b=>Math.abs(b.mesh.position.x-s.x)<0.25&&Math.abs(b.mesh.position.z-s.z)<0.25).length; if(n<bn){ bn=n; best=s; } } return {x:best.x,y:0.2+bn*0.41,z:best.z,ry:rand(-0.08,0.08)}; }
+/* Ohne Lager kommen die Kartons auf die Warenannahme vor der Tuer */
+function freeSlot(){ const L=(typeof zoneOffen==='function'&&!zoneOffen('lager')&&typeof WA_SLOTS!=='undefined')?WA_SLOTS:DSLOTS; let best=L[0],bn=99; for(const s of L){ const n=floorBoxes.filter(b=>Math.abs(b.mesh.position.x-s.x)<0.25&&Math.abs(b.mesh.position.z-s.z)<0.25).length; if(n<bn){ bn=n; best=s; } } return {x:best.x,y:0.2+bn*0.41,z:best.z,ry:rand(-0.08,0.08)}; }
 function spawnFloorBox(type,count,pos,q){
   pos=pos||freeSlot();
   const m=new THREE.Mesh(kartonGeo,kartonMat[type]); m.position.set(pos.x,pos.y,pos.z); m.rotation.y=pos.ry||0; if(HIQ){ m.castShadow=true; m.receiveShadow=true; } scene.add(m);
@@ -8942,7 +9009,8 @@ const MUETZE=[0xe63b2e,0xffd23f,0x2f7fd0,0xf2f5ff,0x2f9e57,0x222634,0x8a5ab8];
    Hose, schwarze Schuhe. Jeder Posten hat seinen festen Kopf, damit
    man die Leute wiedererkennt. */
 const UNIFORM={oben:'polo',unten:'stoff',schuh:'halb',obenF:0xb3261e,untenF:0x1d1f24,schuhF:0x1b1b1f,logo:1,id:'uniform'};
-const STAFFKOPF={kassierer:'jung_w',auffueller:'jung_m',auffueller2:'mitte_m2',reinigung:'mitte_w',security:'mitte_m3',packer:'jung_m2'};
+const STAFFKOPF={kassierer:'jung_w',auffueller:'jung_m',auffueller2:'mitte_m2',reinigung:'mitte_w',security:'mitte_m3',packer:'jung_m2',
+  kassierer2:'jung_w2',kassierer3:'mitte_m',kassierer4:'alt_w',kassierer5:'teen_w'};
 const kopfVon=id=>KOEPFE.find(k=>k.id===id)||KOEPFE[2];
 function kopfFuer(ct){
   const teen=KOEPFE.filter(k=>k.alter==='teen'), rest=KOEPFE.filter(k=>k.alter!=='teen');
@@ -9339,17 +9407,17 @@ class Customer{
     while(this.wishes.length){
       const w=this.wishes.shift(), lv=findLevel(w.type,this.pos);
       if(lv){ this.cur=w; this.lv=lv; this.path=route(this.pos,shelfStand(lv.sh).add(V(rand(-0.4,0.4),0,0))); this.state='toShelf'; return; }
-      this.say(`Keine ${P[w.type].short}?`,true); this.missed=true; DS.missed+=w.qty; rep(-0.4);
+      this.say(`Keine ${P[w.type].short}?`,true); this.missed=true; DS.missed+=w.qty; rep(-0.4); kundenSymbol(this.g,'fehlt');
     }
     if(this.items.length){ if(this.thief) this.startSteal(); else this.joinQueue(); }
-    else { rep(-0.3); this.leave(); }
+    else { rep(-0.3); serieBricht(); this.leave(); }
   }
   take(){
     const w=this.cur, lv=this.lv;
     if(!(lv.type===w.type&&lv.count>0)){
       const alt=findLevel(w.type,this.pos);
       if(alt){ this.lv=alt; this.path=route(this.pos,shelfStand(alt.sh)); this.state='toShelf'; return; }
-      this.say(`Keine ${P[w.type].short} mehr?`,true); this.missed=true; DS.missed+=w.qty; rep(-0.4); this.nextWish(); return;
+      this.say(`Keine ${P[w.type].short} mehr?`,true); this.missed=true; DS.missed+=w.qty; rep(-0.4); kundenSymbol(this.g,'fehlt'); this.nextWish(); return;
     }
     let got=0, pricey=false;
     for(let k=0;k<w.qty;k++){
@@ -9357,8 +9425,10 @@ class Customer{
       const price=S.prices[w.type];
       if(this.thief||Math.random()<buyChance(w.type,price,lv.q,kindOf(lv.sh).cold,this.ct)){ removeFromLevel(lv); this.items.push({type:w.type,price}); got++; } else pricey=true;
     }
-    if(got===0){ this.missed=true; if(pricey){ this.say('Viel zu teuer!',true); rep(-0.5); } else DS.missed+=w.qty; }
+    if(got===0){ this.missed=true; if(pricey){ this.say('Viel zu teuer!',true); rep(-0.5); kundenSymbol(this.g,'teuer'); } else DS.missed+=w.qty; }
     else if(pricey) this.say('Hm, ganz schön teuer.');
+    /* Wunsch gefunden und gekauft: ein Herz, nicht bei jedem Griff */
+    else if(Math.random()<0.45){ kundenSymbol(this.g,'herz'); if(Math.random()<0.4) this.say(pick(['Genau das hab ich gesucht!','Endlich!','Perfekt.','Die nehm ich!'])); }
     this.nextWish();
   }
   startSteal(){
@@ -9389,6 +9459,14 @@ class Customer{
     if(staff.security&&staff.security.chase===this) staff.security.chase=null;
   }
   joinQueue(){
+    /* Eine besetzte Kasse nimmt jeden Korb. Der Kunde geht dorthin,
+       wenn an der Hauptkasse schon jemand steht oder dort niemand
+       bedient - sonst bleibt die Hauptkasse die erste Wahl. */
+    if(sbOffen()&&(queue.length>=1||regCustomer()||!staff.kassierer)){
+      for(let i=0;i<sbLanes.length;i++) if(sbBesetzt(i)&&!sbLanes[i].busy&&sbNutzbar(i)){
+        this.sb=i; sbLanes[i].busy=this; sbLampe(sbLanes[i],false);
+        this.state='sbGo'; this.path=[...route(this.pos,sbPos(i))]; DS.sb=(DS.sb||0)+1; return; }
+    }
     /* Wenig Ware und die Hauptschlange steht? Dann lieber SB-Kasse. */
     if(sbOffen()&&this.items.length<=3&&(queue.length>=1||Math.random()<0.45)){
       const i=sbFrei();
@@ -9400,6 +9478,14 @@ class Customer{
   sbStart(){
     this.state='sbPay';
     this.total=r2(this.items.reduce((a,it)=>a+it.price,0));
+    if(sbBesetzt(this.sb)){
+      /* bedient: der Kassierer scannt, gut doppelt so schnell */
+      const w=sbBesetzt(this.sb);
+      this.sbT=(0.9+this.items.length*0.5)/((w&&w.wf)||1);
+      this.method=Math.random()<0.6?'card':'cash';
+      this.say(pick(['Hallo!','Einmal alles, bitte.','Mit Karte.','Guten Abend!']));
+      return;
+    }
     this.sbT=1.1+this.items.length*1.25;
     this.method='card';
     this.say(pick(['Geht auch selbst.','Schnell durch hier.','Piep.']));
@@ -9429,6 +9515,8 @@ class Customer{
     let gain=Math.round(this.total*0.5)+4; if(over<=0.001&&this.method==='cash') gain+=3;
     addXP(gain);
     rep(this.missed?0.2:0.8); sfx.cash(); toast('+'+eur(this.total),'money');
+    geldSchwebt(this.pos,this.total);
+    if(this.missed) serieBricht(); else { serieZufrieden(); if(this.total>=60) kundenSymbol(this.g,'stern'); }
     if(over>0) toast(`${eur(over)} zu viel Rückgeld gegeben.`,'bad');
     this.say(this.missed?'Wenigstens etwas.':pick(['Guten Rutsch!','Danke!','Frohes Neues!','Bis nächstes Jahr!']));
     S.tut.pay=true; this.cleanupRegister(); this.leave();
@@ -9441,7 +9529,7 @@ class Customer{
     if(cashCust===this) closeCash(false);
   }
   giveUp(){
-    this.say('Dauert mir zu lange!',true); rep(-2); DS.angry++;
+    this.say('Dauert mir zu lange!',true); rep(-2); DS.angry++; kundenSymbol(this.g,'sauer'); serieBricht();
     if(['unload','scan','pay','sbPay'].includes(this.state)) this.cleanupRegister();
     this.items=[]; this.leave();
   }
@@ -9683,7 +9771,26 @@ function updateOrder(dt){
 /* =========================================================
    Personal
    ========================================================= */
-const staff={reinigung:null,auffueller:null,auffueller2:null,kassierer:null,security:null,packer:null};
+const staff={reinigung:null,auffueller:null,auffueller2:null,kassierer:null,kassierer2:null,kassierer3:null,kassierer4:null,kassierer5:null,security:null,packer:null};
+/* Welche SB-Kasse ein Kassierer besetzt: kassierer2 die erste, ... */
+const SB_KASSIERER=['kassierer2','kassierer3','kassierer4','kassierer5'];
+/* Die Terminals entstehen in der Reihenfolge, in der die Ausbauten
+   gekauft werden. Deshalb nicht nach Index zuordnen, sondern nach
+   Standort: 2 und 3 an den SB-Kassen der Erweiterung, 4 und 5 am
+   zweiten Eingang. */
+function sbLaneVon(id){
+  const k=SB_KASSIERER.indexOf(id); if(k<0) return -1;
+  const liste=[]; sbLanes.forEach((l,i)=>{ if((k<2)===!l.up) liste.push(i); });
+  return liste[k%2]!==undefined?liste[k%2]:-1;
+}
+function sbBesetzt(i){ for(const id of SB_KASSIERER){ const w=staff[id]; if(w&&sbLaneVon(id)===i) return w; } return null; }
+/* Platz hinter dem Terminal, mit Blick zum Kunden */
+function sbKassiererPlatz(i){
+  const l=sbLanes[i]; if(!l) return {p:V(0,0,0),ry:0};
+  const g=l.g, p=g.parent;
+  const w=(p&&p!==scene)?localToWorld(p,g.position.x,g.position.z-0.62):V(g.position.x,0,g.position.z-0.62);
+  return {p:w,ry:(p&&p!==scene?p.rotation.y:0)};
+}
 /* Platz vor dem Packtisch, in Weltkoordinaten, mit Blick zum Tisch */
 function packerPlatz(){
   if(typeof packTisch==='undefined'||!packTisch) return {p:IDLE.packer,ry:-Math.PI/2};
@@ -9723,8 +9830,8 @@ function setPrio(id,v){ S.prio=S.prio||{}; S.prio[id]=v; save(); }
 function freeRackSlot(){ for(const r of racks) for(const sl of r.slots) if(!sl.box) return sl; return null; }
 class Worker{
   constructor(id){
-    this.id=id; this.kind=id==='auffueller2'?'auffueller':id; this.g=makePerson({uniform:id});
-    const st=id==='packer'?packerPlatz().p:IDLE[id]; this.g.position.copy(id==='kassierer'?ck(-0.25,-0.85):st); scene.add(this.g);
+    this.id=id; this.kind=id==='auffueller2'?'auffueller':SB_KASSIERER.indexOf(id)>=0?'sbkasse':id; this.g=makePerson({uniform:id});
+    const st=id==='packer'?packerPlatz().p:this.kind==='sbkasse'?sbKassiererPlatz(sbLaneVon(id)).p:IDLE[id]; this.g.position.copy(id==='kassierer'?ck(-0.25,-0.85):st); scene.add(this.g);
     this.path=[]; this.base=id==='security'?1.9:1.45; this.speed=this.base; this.state='idle'; this.t=0; this.carry=null; this.chase=null; this.moving=false; this.applyWage();
   }
   get pos(){ return this.g.position; }
@@ -9742,6 +9849,7 @@ class Worker{
     if(this.kind==='reinigung') this.cleanLoop(dt);
     else if(this.kind==='auffueller') this.stockLoop(dt);
     else if(this.kind==='kassierer') this.cashLoop(dt);
+    else if(this.kind==='sbkasse') this.sbLoop(dt);
     else if(this.kind==='security') this.guardLoop(dt);
     else if(this.kind==='packer') this.packLoop(dt);
     animPerson(this.g,this.moving,dt,this.speed);
@@ -9835,6 +9943,13 @@ class Worker{
     else this.g.rotation.y+=((ckYaw()+Math.PI/2)-this.g.rotation.y)*Math.min(1,dt*6);
     this.t-=dt;
     if(this.t<=0&&belt.length&&regCustomer()){ scanBelt(belt[0]); this.t=0.5/(this.wf||1); }
+  }
+  sbLoop(dt){
+    /* steht hinter seinem Terminal und schaut zum Kunden */
+    const P=sbKassiererPlatz(sbLaneVon(this.id));
+    if(this.pos.distanceTo(P.p)>0.12){ this.path=[P.p]; this.walk(dt); return; }
+    let df=P.ry-this.g.rotation.y; while(df>Math.PI) df-=Math.PI*2; while(df<-Math.PI) df+=Math.PI*2;
+    this.g.rotation.y+=df*Math.min(1,dt*6);
   }
   guardLoop(dt){
     if(this.chase&&customers.indexOf(this.chase)>=0&&!this.chase.caught){
@@ -9986,22 +10101,46 @@ function stufe(sk,d){ const o=Math.floor(d/7), i=((d%7)+7)%7; return SKALA[sk][i
    Takte. motiv: je Takt 16 Sechzehntel, Zahl = Tonstufe ueber dem
    Akkordgrundton, null = Pause, '-' = Ton klingt weiter. */
 const STUECKE=[
-  { name:'Ladenfunk', pegel:1.0, bpm:108, ton:65, skala:'dur', prog:[0,5,3,4,0,5,3,4],
+  { name:'Ladenfunk', pegel:0.91, bpm:108, ton:65, skala:'dur', prog:[0,5,3,4,0,5,3,4],
     stil:'funk',
     motivA:[4,null,'-',2, 4,null,5,'-', 4,null,2,null, 0,'-','-',null],
     motivB:[7,'-',6,'-', 4,null,2,4, 5,'-','-',4, 2,null,null,null] },
-  { name:'Schneeflocken', pegel:1.0, bpm:82, ton:62, skala:'dur', prog:[0,4,5,3,0,4,3,4],
+  { name:'Schneeflocken', pegel:0.97, bpm:82, ton:62, skala:'dur', prog:[0,4,5,3,0,4,3,4],
     stil:'winter',
     motivA:[7,'-','-',6, 4,'-','-',null, 2,'-',4,'-', 7,'-','-','-'],
     motivB:[9,'-',7,'-', 6,'-',4,'-', 5,'-','-',4, 2,'-','-','-'] },
-  { name:'Mitternacht', pegel:0.9, bpm:124, ton:57, skala:'moll', prog:[0,5,2,6,0,5,2,6],
+  { name:'Mitternacht', pegel:0.85, bpm:124, ton:57, skala:'moll', prog:[0,5,2,6,0,5,2,6],
     stil:'dance',
     motivA:[7,null,7,null, 9,null,7,'-', 4,null,4,null, 2,'-',4,null],
     motivB:[9,'-',11,'-', 9,null,7,null, 7,'-',4,'-', 2,null,4,null] },
-  { name:'Pixelparty', pegel:1.15, bpm:138, ton:55, skala:'dur', prog:[0,3,1,4,0,3,4,4],
+  { name:'Pixelparty', pegel:1.55, bpm:138, ton:55, skala:'dur', prog:[0,3,1,4,0,3,4,4],
     stil:'chip',
     motivA:[4,null,7,null, 9,7,4,null, 2,null,4,7, 4,null,null,null],
-    motivB:[11,null,9,null, 7,null,9,11, 12,'-','-',9, 7,null,4,null] }
+    motivB:[11,null,9,null, 7,null,9,11, 12,'-','-',9, 7,null,4,null] },
+  { name:'Glühweinpolka', pegel:2.09, bpm:120, ton:55, skala:'dur', prog:[0,4,4,0,0,4,4,0],
+    stil:'polka',
+    motivA:[4,null,4,null, 5,null,4,null, 2,'-',0,null, 2,null,4,null],
+    motivB:[7,'-',7,null, 9,null,7,null, 5,null,4,null, 2,'-','-',null] },
+  { name:'Lagerhallen-Groove', pegel:1.08, bpm:88, ton:62, skala:'moll', prog:[0,5,3,4,0,5,3,6],
+    stil:'hiphop',
+    motivA:[7,'-',null,null, null,null,4,'-', 5,null,4,null, 2,'-','-',null],
+    motivB:[9,'-',7,null, null,4,'-',null, 5,'-',4,'-', 2,null,0,null] },
+  { name:'Kassensturz', pegel:0.88, bpm:148, ton:52, skala:'moll', prog:[0,5,2,6,0,5,2,6],
+    stil:'rock',
+    motivA:[7,'-',7,'-', 9,'-',7,'-', 4,'-','-','-', 2,'-',4,'-'],
+    motivB:[11,'-',9,'-', 7,'-',9,'-', 11,'-','-','-', 12,'-','-','-'] },
+  { name:'Sternenstaub', pegel:0.79, bpm:72, ton:60, skala:'dur', prog:[0,5,3,4,0,5,3,4],
+    stil:'ambient',
+    motivA:[9,'-','-','-', '-','-',7,'-', '-','-',4,'-', '-','-','-','-'],
+    motivB:[11,'-','-','-', 9,'-','-','-', 7,'-','-','-', 4,'-','-','-'] },
+  { name:'Countdown', pegel:0.74, bpm:134, ton:53, skala:'moll', prog:[0,5,2,6,0,5,2,6],
+    stil:'trance',
+    motivA:[7,null,4,null, 7,null,9,null, 7,null,4,null, 2,null,4,null],
+    motivB:[9,'-',11,'-', 12,'-',11,'-', 9,'-',7,'-', 4,'-',7,'-'] },
+  { name:'Lo-Fi Ladenschluss', pegel:1.85, bpm:76, ton:60, skala:'moll', prog:[0,5,3,6,0,5,3,4],
+    stil:'lofi',
+    motivA:[4,'-',null,2, null,null,4,'-', null,null,null,null, 7,'-',4,null],
+    motivB:[9,'-','-',7, null,null,4,'-', 5,'-',4,null, 2,'-','-',null] }
 ];
 let mBus=null, mHall=null, mStep=0, mNext=0, mTakte=0, mNoise=null;
 function musikBus(){
@@ -10048,8 +10187,29 @@ const KLANG={
   saege(t,n,dauer,v){ const f=AC.createBiquadFilter(), g=hk(); f.type='lowpass'; f.frequency.value=2600;
     for(const dt of [-9,0,9]){ const o=osz('sawtooth',mtof(n),t,dauer+0.1); o.detune.value=dt; o.connect(f); }
     env(g,t,0.01,0.06*v,dauer+0.1); f.connect(g); ziel(g,true); },
+  /* Blech: zwei verstimmte Saegezaehne, der Filter oeffnet sich kurz */
+  blech(t,n,dauer,v){ const f=AC.createBiquadFilter(), g=hk(); f.type='lowpass';
+    f.frequency.setValueAtTime(900,t); f.frequency.linearRampToValueAtTime(2600,t+0.05); f.frequency.exponentialRampToValueAtTime(1200,t+dauer);
+    for(const dt of [-7,7]){ const o=osz('sawtooth',mtof(n),t,dauer+0.1); o.detune.value=dt; o.connect(f); }
+    env(g,t,0.02,0.07*v,dauer); f.connect(g); ziel(g,true); },
+  /* verzerrte Gitarre: Grundton und Quinte durch einen Waveshaper */
+  gitarre(t,n,dauer,v){ const ws=AC.createWaveShaper(); ws.curve=verzerrung(); const f=AC.createBiquadFilter(), g=hk();
+    f.type='lowpass'; f.frequency.value=2800;
+    for(const k of [0,7,12]){ const o=osz('sawtooth',mtof(n+k),t,dauer+0.05); o.connect(ws); }
+    ws.connect(f); env(g,t,0.004,0.05*v,dauer); f.connect(g); ziel(g); },
+  sub(t,n,dauer,v){ const o=osz('sine',mtof(n),t,dauer), g=hk(); env(g,t,0.008,0.5*v,dauer); o.connect(g); ziel(g); },
+  knistern(t,v){ const s2=AC.createBufferSource(); s2.buffer=mNoise; const f=AC.createBiquadFilter(); f.type='highpass'; f.frequency.value=3000;
+    const g=hk(); env(g,t,0.001,0.05*v,0.012); s2.connect(f); f.connect(g); ziel(g); s2.start(t,Math.random()*0.8); s2.stop(t+0.05); },
+  /* Rauschen, das nach oben zieht: kuendigt den naechsten Teil an */
+  riser(t,dauer,v){ const s2=AC.createBufferSource(); s2.buffer=mNoise; s2.loop=true; const f=AC.createBiquadFilter(); f.type='bandpass'; f.Q.value=2;
+    f.frequency.setValueAtTime(400,t); f.frequency.exponentialRampToValueAtTime(7000,t+dauer);
+    const g=hk(); g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(0.12*v,t+dauer); g.gain.linearRampToValueAtTime(0.0001,t+dauer+0.05);
+    s2.connect(f); f.connect(g); ziel(g,true); s2.start(t); s2.stop(t+dauer+0.1); },
   chip(t,n,dauer,v){ const o=osz('square',mtof(n),t,dauer), g=hk(); env(g,t,0.002,0.07*v,dauer); o.connect(g); ziel(g); }
 };
+let _verz=null;
+function verzerrung(){ if(_verz) return _verz; const n=512; _verz=new Float32Array(n);
+  for(let i=0;i<n;i++){ const x=i/(n-1)*2-1; _verz[i]=Math.tanh(x*4); } return _verz; }
 /* Akkord als Tonstufen ueber dem Grundton des Stuecks */
 function akkord(s,d,oktave){ return [0,2,4].map(k=>s.ton+oktave*12+stufe(s.skala,d+k)); }
 /* Wie viel gerade spielt: Einleitung, voller Teil, Refrain, Pause */
@@ -10089,6 +10249,57 @@ function spielSchritt(s,schritt,t){
     if(i===0) KLANG.flaeche(t,akkord(s,grad,0),sec*16,tl==='bruch'?1.4:0.8);
     if(voll&&i%2===0){ const ak=akkord(s,grad,1); KLANG.zupf(t,ak[(i/2)%3],sec*1.5,0.6); }
     if(mel) KLANG.saege(t,mel.n,mel.d,1);
+  } else if(s.stil==='polka'){
+    /* Humpta: Bass auf eins und drei, Akkord auf zwei und vier */
+    if(i===0||i===8) KLANG.bass(t,grund+(i===8?7:0),sec*3,1,'triangle');
+    if((i===4||i===12)&&tl!=='intro') KLANG.epiano(t,akkord(s,grad,0),0.9);
+    if(i===4||i===12) KLANG.hat(t,0.7);
+    if(voll&&(i===0||i===8)) KLANG.kick(t,0.5);
+    if(voll&&i===14) KLANG.snare(t,0.35);
+    if(mel) KLANG.blech(t,mel.n,mel.d,1);
+    if(mel&&voll) KLANG.glocke(t,mel.n+12,0.35);
+  } else if(s.stil==='hiphop'){
+    /* Boom-Bap mit Swing: jede zweite Sechzehntel kommt etwas spaeter */
+    const sw=i%2?sec*0.18:0, tt=t+sw;
+    if(i===0||i===7||i===10) KLANG.kick(tt,1);
+    if(i===4||i===12) KLANG.snare(tt,0.9);
+    if(i%2===0||voll) KLANG.hat(tt,i%4===0?0.6:0.35);
+    if(i===0||i===10) KLANG.sub(tt,grund,sec*5,1);
+    if(i===0) KLANG.epiano(t,akkord(s,grad,0),1.1);
+    if(i===8&&voll) KLANG.epiano(tt,akkord(s,grad,0),0.7);
+    if(mel&&tl!=='bruch') KLANG.zupf(tt,mel.n,mel.d,0.8);
+  } else if(s.stil==='rock'){
+    if(i===0||i===8||(voll&&(i===10||i===3))) KLANG.kick(t,1);
+    if(i===4||i===12) KLANG.snare(t,1);
+    if(i%2===0) KLANG.hat(t,i===0?0.9:0.5,i===0&&takt%4===0);
+    if(i%2===0&&tl!=='bruch') KLANG.gitarre(t,grund,sec*1.8,1);
+    if(i%4===0) KLANG.bass(t,grund,sec*3.5,1,'sawtooth');
+    if(mel&&voll) KLANG.saege(t,mel.n,mel.d,1.1);
+  } else if(s.stil==='ambient'){
+    if(i===0) KLANG.flaeche(t,akkord(s,grad,0).concat([s.ton+stufe(s.skala,grad+6)]),sec*16,1.3);
+    if(i===0) KLANG.sub(t,grund,sec*14,0.6);
+    if(i%3===0) KLANG.glocke(t,akkord(s,grad,1)[(i/3)%3]+(i%6?12:0),0.35);
+    if(voll&&i===0) KLANG.kick(t,0.35);
+    if(mel) KLANG.glocke(t,mel.n+12,0.8);
+  } else if(s.stil==='trance'){
+    if(i%4===0&&tl!=='bruch') KLANG.kick(t,1);
+    if(i%4===2) KLANG.hat(t,0.9,true);
+    if(voll&&(i===4||i===12)) KLANG.clap(t,0.8);
+    /* rollender Bass: jede Sechzehntel ausser auf dem Schlag */
+    if(i%4!==0&&tl!=='intro') KLANG.bass(t,grund,sec*0.9,0.8,'sawtooth');
+    if(voll){ const ak=akkord(s,grad,1); KLANG.zupf(t,ak[i%3]+(i%8>3?12:0),sec*0.9,0.45); }
+    if(i===0) KLANG.flaeche(t,akkord(s,grad,0),sec*16,0.7);
+    if(takt%8===7&&i===0) KLANG.riser(t,sec*16,1);
+    if(mel&&tl!=='intro') KLANG.saege(t,mel.n+12,mel.d,1);
+  } else if(s.stil==='lofi'){
+    const sw=i%2?sec*0.2:0, tt=t+sw;
+    if(i===0||i===9) KLANG.kick(tt,0.7);
+    if(i===4||i===12) KLANG.snare(tt,0.45);
+    if(i%2===0) KLANG.hat(tt,0.25);
+    if(Math.random()<0.5) KLANG.knistern(t+Math.random()*sec,1);
+    if(i===0) KLANG.epiano(t,akkord(s,grad,0).concat([s.ton+stufe(s.skala,grad+6)]),1.2);
+    if(i===0||i===10) KLANG.sub(tt,grund,sec*6,0.8);
+    if(mel) KLANG.epiano(tt,[mel.n],0.9);
   } else {
     if(i===0||i===8||(voll&&i===11)) KLANG.kick(t,0.8);
     if(i===4||i===12) KLANG.snare(t,0.7);
@@ -12246,7 +12457,7 @@ function orderRegal(id){
   S.money=r2(S.money-preis); DS.upgrades=r2(DS.upgrades+preis);
   pending.push({regal:id,t:lieferSek()*evv('delay'),sup:'mertens'});
   sfx.cash(); S.tut.order=true;
-  toast(`${K.name} bestellt. Kommt mit dem nächsten LKW an die Rampe.`,'money');
+  toast(zoneOffen('lager')?`${K.name} bestellt. Kommt mit dem nächsten LKW an die Rampe.`:`${K.name} bestellt. Der Lieferant baut es gleich im Laden auf.`,'money');
   save();
 }
 /* Direktbestellung eines einzelnen Postens (eigene Lieferung, eigener Versand) */
@@ -12370,7 +12581,8 @@ function planFlaechen(){
   };
 }
 const PLAN={
-  shop_halb:  {alt:['shopW','lbas'],                                          neu:['shopO']},
+  shop_halb:  {alt:['shopW'],                                                 neu:['shopO']},
+  lager:      {alt:['shopW','shopO'],                                         neu:['lbas']},
   lager_nord: {alt:['shopW','shopO','lbas'],                                  neu:['lnord']},
   testfeld:   {alt:['shopW','shopO','lbas','lnord'],                          neu:['test']},
   shop_gross: {alt:['shopW','shopO','test','lbas','lnord'],                   neu:['ost1']},
@@ -12684,7 +12896,7 @@ function renderLaptop(){
       `<button data-a="sup" data-t="regal" style="${istRegal?'background:var(--signal);color:var(--ink)':'opacity:.8'}">Regalbau</button>`+
       `</div></div>`;
     if(istRegal){
-      h=`<div class="row"><div class="rm"><b>Regalbau Stegemann</b><small>Ladenbau und Lagertechnik, seit 1974. Liefert an die Rampe — aufbauen musst du selbst.</small>`+
+      h=`<div class="row"><div class="rm"><b>Regalbau Stegemann</b><small>Ladenbau und Lagertechnik, seit 1974. ${zoneOffen('lager')?'Liefert an die Rampe — aufbauen musst du selbst.':'Solange du kein Lager hast, baut der Lieferant das Regal gleich im Laden auf.'}</small>`+
         `<small>Paket aus dem Laderaum nehmen, an die Stelle tragen, an der es stehen soll, und mit „Ablegen“ aufbauen.</small>`+
         `<small>Lieferzeit ${LIEFERZEIT_SEK} Sekunden · kein Versandzuschlag</small></div></div>`+knoepfe+
         REGALWARE.map(r=>{
@@ -12769,12 +12981,22 @@ function renderLaptop(){
       ? 'Regale, Kassen und Technik im Laden. Ein Karton passt meist genau in ein Regalfach.'
       : 'Alles, was dir mehr Kundschaft und bessere Konditionen bringt.';
     const liste=UPGRADES.filter(u=>(u.kat||'einr')===kat).sort((a,b)=>a.lvl-b.lvl);
+    /* Flaechen nach Kapiteln: ueber jedem Abschnitt eine Zeile mit dem
+       Namen, der Ausbau, der das Kapitel eroeffnet, steht zuerst */
+    const kapVon=u=>{ if(u.kap) return u.kap; let n=1;
+      for(const k of KAPITEL) if(k.up){ const ku=UPGRADES.find(x=>x.id===k.up); if(ku&&u.lvl>ku.lvl) n=Math.max(n,k.nr); }
+      return n; };
+    if(kat==='flaeche') liste.sort((a,b)=>kapVon(a)-kapVon(b)||(b.kap?1:0)-(a.kap?1:0)||a.lvl-b.lvl);
+    let kapZuletzt=0;
     h=liste.map(u=>{ const done=u.done(), cost=u.cost();
+      let kopf='';
+      if(kat==='flaeche'){ const kn=kapVon(u); if(kn!==kapZuletzt){ kapZuletzt=kn; const K=KAPITEL[kn-1], jetzt=kapitelNr();
+        kopf=`<div class="kapkopf${kn<=jetzt?' da':''}"><b>Kapitel ${kn} · ${K.name}</b><small>${kn<jetzt?'geschafft':kn===jetzt?'hier bist du':K.txt}</small></div>`; } }
       const fehlt=u.req&&!S.up[u.req]?UPGRADES.find(x=>x.id===u.req):null;
       const lock=S.level<u.lvl||!!fehlt;
-      return `<div class="row${lock&&!done?' locked':''}">`+
+      return kopf+`<div class="row${lock&&!done?' locked':''}">`+
         `<img class="pic" src="${upPic(u.id)}" alt="">`+
-        `<div class="rm"><b>${u.name}</b><small>${u.desc}</small>`+
+        `<div class="rm"><b>${u.kap?`Kapitel ${u.kap}: ${KAPITEL[u.kap-1].name} – `:''}${u.name}</b><small>${u.desc}</small>`+
         (done?'':fehlt?`<small class="warn">Setzt „${fehlt.name}“ voraus</small>`
              :S.level<u.lvl?`<small class="warn">Ab Level ${u.lvl}</small>`:`<small>Kosten ${eur(cost)}</small>`)+
         `</div>`+
@@ -12845,7 +13067,7 @@ function renderLaptop(){
       const lohn=has?`<small>Lohn: ${WAGES.map(w=>`<button data-a="wage" data-t="${s.id}" data-v="${w.f}" title="${w.desc}" style="padding:4px 8px;font-size:14px;margin-right:4px;${wageOf(s.id)===w.f?'background:var(--mint);color:var(--ink)':'background:rgba(242,245,255,.12);color:var(--snow)'}">${w.name} ${eur(r2(s.wage*w.f))}</button>`).join('')}</small>`:'';
       const pause=has?`<small>${inPause(s.id)?`In Saisonpause · ${eur(r2(s.wage*wageOf(s.id)*0.3))} pro Tag`:'Im Dienst'} <button data-a="pause" data-t="${s.id}" style="padding:4px 9px;font-size:14px;margin-left:6px;${inPause(s.id)?'background:var(--mint);color:var(--ink)':'background:rgba(242,245,255,.12);color:var(--snow)'}">${inPause(s.id)?'Zurück in den Dienst':'In Saisonpause schicken'}</button></small>`:'';
       return `<div class="row${lock?' locked':''}"><div class="rm"><b>${s.name}</b><small>${s.desc}</small><small>Einstellung ${eur(s.hire)} · Grundlohn ${eur(s.wage)} pro Tag</small>${lohn}${pause}${prio}</div>`+
-        (fehlt?'<small>braucht die Packstation</small>':lock?`<small>ab Level ${s.lvl}</small>`:has?`<button class="red" data-a="fire" data-t="${s.id}">Kündigen</button>`:`<button data-a="hire" data-t="${s.id}" ${S.money<s.hire?'disabled':''}>Einstellen</button>`)+'</div>'; }).join('');
+        (fehlt?`<small>braucht: ${(UPGRADES.find(u=>u.id===s.req)||{name:s.req}).name}</small>`:lock?`<small>ab Level ${s.lvl}</small>`:has?`<button class="red" data-a="fire" data-t="${s.id}">Kündigen</button>`:`<button data-a="hire" data-t="${s.id}" ${S.money<s.hire?'disabled':''}>Einstellen</button>`)+'</div>'; }).join('');
   } else if(ltab==='bank'){
     const t=loanTier(), L=S.loan;
     hint=t?`Dein Kreditrahmen: ${eur(t.amount)}.`:'Kredite gibt es ab Level 5.';
@@ -12998,6 +13220,8 @@ function buyUp(id){
     const k=id==='rack'?'standard':id.slice(5);
     createRack(racks.length,{kind:k}); toast(`${RACKKIND[k].name} steht im Lager.`); }
   else { S.up[id]=true;
+    if(u.kap) later(0.6,()=>kapitelAufstieg(u.kap));
+    if(id==='lager') toast('Das Lager gehört dir. Ab jetzt fährt der LKW an die Rampe hinterm Lager.','money');
     if(ZONEN[id]){
       oeffneZone(id,true);
       if(id==='shop_gross') toast('Die Wand ist durchbrochen. Deine Verkaufsfläche ist jetzt deutlich größer.','money');
@@ -13274,7 +13498,7 @@ function rezBauen(){
    ========================================================= */
 function freshState(){ const prices={}; ORDER.forEach(t=>prices[t]=P[t].market);
   return {v:3,money:500,rep:50,level:1,xp:0,season:1,day:0,loan:null,prices,grime:0,
-    up:{plakat:false,terminal:false,tag4:false,heizung:false,musik:false,radio:false,cams:false,regallicht:false,alarm:false,shop_halb:false,testfeld:false,shop_gross:false,lager_nord:false,lager_gross:false,packstation:false,kasse2:false,labor:false,labor2:false},
+    up:{lager:false,plakat:false,terminal:false,tag4:false,heizung:false,musik:false,radio:false,cams:false,regallicht:false,alarm:false,shop_halb:false,testfeld:false,shop_gross:false,lager_nord:false,lager_gross:false,packstation:false,kasse2:false,labor:false,labor2:false},
     staff:{},prio:{},wage:{},pause:{},ev:null,goal:null,mkt:1,comp:1,deko:[],wall:'creme',floor:'grau',schildBg:'auto',schildFg:'weiss',paint:[],test:null,stamm:{},
     /* Der Laden startet leer: kein Verkaufsregal, kein Lagerregal.
        Beides bestellt man bei Regalbau Stegemann, und der LKW
@@ -13311,6 +13535,8 @@ function startGame(fresh){
      Ladenlokal, das ganze Basislager und den Zugang zum Testfeld -
      das wird nachgetragen, sonst stuenden ploetzlich Waende mitten
      im eingerichteten Laden. */
+  /* Staende von vor den Kapiteln hatten das Lager von Anfang an */
+  if(d&&d.up&&d.up.lager===undefined) S.up.lager=true;
   if(d&&d.up&&d.up.shop_halb===undefined){
     S.up.shop_halb=true; S.up.lager_nord=true; S.up.testfeld=true;
   }
@@ -13383,7 +13609,9 @@ function tipText(){
     if(k==='pay'&&!regCustomer()) continue;
     if(k==='clean'&&!dirts.length) continue;
     if(k==='move'&&S.level<3) continue;
-    if(k==='lager'&&S.level<3) continue;
+    if(k==='lager'&&(S.level<3||!zoneOffen('lager'))) continue;
+    /* Im Kiosk kommt die Lieferung vor die Tuer, nicht an die Rampe */
+    if(k==='lkw'&&!zoneOffen('lager')) return compact?'Kartons vor der Ladentür reinholen.':'Die Lieferung steht vor der Ladentür auf der gelben Warenannahme. Hol die Kartons rein.';
     if(k==='pick'&&!floorBoxes.length) continue;
     if(k==='fenster'&&windowGrime()<0.35) continue;
     if((k==='launch'||k==='build')&&S.level<4) continue;
@@ -13400,7 +13628,7 @@ function setCompact(){
   if(c===compact) return; compact=c; document.body.classList.toggle('compact',c); tipShown=null;
 }
 
-let toastLast='';
+let toastLast='', geldAnz=null, geldBlink=0;
 function toast(msg,cls){ const box_=$('toasts'); const el=document.createElement('div'); el.className='toast'+(cls?' '+cls:''); el.textContent=msg; box_.appendChild(el); while(box_.children.length>4) box_.removeChild(box_.firstChild); setTimeout(()=>el.remove(),2600); toastLast=msg; }
 function updateHUD(){
   $('hDate').textContent=compact?dateShort(S.day):`${dateStr(S.day)} · Jahr ${S.season}`;
@@ -13411,7 +13639,14 @@ function updateHUD(){
     :(phase==='closed'?(ruhetag()?'Sonntag, Ruhetag':'Geschlossen'):phase==='open'?'Geöffnet bis 22 Uhr':phase==='closing'?'Letzte Kunden':'Feierabend');
   st.classList.toggle('on',phase==='open');
   $('hLevel').textContent=(S.test?'TEST · ':'')+'Level '+S.level;
-  $('hMoney').textContent=eur(S.money);
+  { const K=kapitel(), t=`Kapitel ${K.nr} · ${K.name}`; if($('hKap').textContent!==t) $('hKap').textContent=t; }
+  /* Geld zaehlt hoch statt zu springen; gruen bei Einnahmen, rot bei Ausgaben */
+  if(geldAnz===null||Math.abs(S.money-geldAnz)>50000) geldAnz=S.money;
+  const dG=S.money-geldAnz;
+  if(Math.abs(dG)>0.004){ geldAnz=Math.abs(dG)<0.02?S.money:geldAnz+dG*0.35;
+    const mEl=$('hMoney'); mEl.classList.toggle('plus',dG>0); mEl.classList.toggle('minus',dG<0); geldBlink=0.6; }
+  else if(geldBlink>0){ geldBlink-=0.1; if(geldBlink<=0){ $('hMoney').classList.remove('plus','minus'); } }
+  $('hMoney').textContent=eur(r2(geldAnz));
   /* Im Dispo soll man es sofort sehen */
   const dispo=S.money<0;
   $('hLoan').textContent=dispo
@@ -13428,7 +13663,8 @@ function updateHUD(){
   const ev=todayEvent(), gl=S.goal;
   if(ev) chips+=`<div class="chip" style="background:rgba(255,210,63,.2);color:var(--signal)">${ev.name}</div>`;
   if(gl&&!gl.done&&!compact) chips+=`<div class="chip">${gl.name} ${Math.round(gl.have)}/${gl.need}</div>`;
-  STAFF.forEach(s=>{ if(S.staff[s.id]) chips+=`<div class="chip">${s.name}</div>`; });
+  if(serie>=3&&!compact) chips+=`<div class="chip serie">Serie ×${serie}</div>`;
+  STAFF.forEach(s=>{ if(S.staff[s.id]) chips+=`<div class="chip">${s.kurz||s.name}</div>`; });
   const el=$('staff'); if(el.innerHTML!==chips) el.innerHTML=chips;
   const ph=$('phone');
   const pt=(typeof phone!=='undefined'&&phone.state==='ringing')?(compact?'Anruf':'Anruf annehmen'+(COARSE?'':' · H')):'';
@@ -13457,6 +13693,76 @@ function updatePrompt(){
   if(el.innerHTML!==html) el.innerHTML=html;
   const cr=$('cross'); cr.classList.toggle('hot',!!(p&&p.a)); cr.classList.toggle('move',build);
 }
+
+/* Neues Kapitel: grosses Banner, Fanfare, Toast */
+let kapT=null;
+function kapitelAufstieg(nr){
+  const K=KAPITEL[nr-1]; if(!K) return;
+  $('kapNr').textContent=`KAPITEL ${K.nr}`; $('kapName').textContent=K.name; $('kapTxt').textContent=K.txt;
+  $('kapBanner').classList.add('show');
+  sfx.level(); later(0.35,()=>sfx.level());
+  clearTimeout(kapT); kapT=setTimeout(()=>$('kapBanner').classList.remove('show'),4200);
+  addXP(40,'Neues Kapitel');
+}
+
+/* =========================================================
+   Rueckmeldung im Laden: schwebende Betraege, Symbole ueber den
+   Kunden und eine Serie zufriedener Kunden
+   ========================================================= */
+const schweber=[];
+const _symTex={};
+function symbolTex(art){
+  if(_symTex[art]) return _symTex[art];
+  _symTex[art]=tex(128,128,(g,W,H)=>{ g.clearRect(0,0,W,H);
+    const kreis=(c)=>{ g.fillStyle=c; g.beginPath(); g.arc(64,64,54,0,Math.PI*2); g.fill(); g.lineWidth=6; g.strokeStyle='rgba(14,18,38,.85)'; g.stroke(); };
+    if(art==='herz'){ kreis('#fff4f6'); g.fillStyle='#e0304a'; g.beginPath(); g.moveTo(64,96);
+      g.bezierCurveTo(20,70,26,34,48,36); g.bezierCurveTo(58,37,64,46,64,52); g.bezierCurveTo(64,46,70,37,80,36); g.bezierCurveTo(102,34,108,70,64,96); g.fill(); }
+    else if(art==='fehlt'){ kreis('#eef3ff'); g.fillStyle='#2f5d9e'; g.font=BUN(78); g.textAlign='center'; g.textBaseline='middle'; g.fillText('?',64,70); }
+    else if(art==='teuer'){ kreis('#fff6e6'); g.fillStyle='#d0622a'; g.font=BUN(62); g.textAlign='center'; g.textBaseline='middle'; g.fillText('€!',64,68); }
+    else if(art==='sauer'){ kreis('#ffeceb'); g.fillStyle='#c8322a'; g.font=BUN(80); g.textAlign='center'; g.textBaseline='middle'; g.fillText('!',64,70); }
+    else if(art==='stern'){ kreis('#fffbe6'); g.fillStyle='#e8b418'; g.beginPath();
+      for(let i=0;i<10;i++){ const r=i%2?18:40, a=-Math.PI/2+i*Math.PI/5; g.lineTo(64+Math.cos(a)*r,66+Math.sin(a)*r); } g.closePath(); g.fill(); }
+  });
+  return _symTex[art];
+}
+function schwebe(sprite,pos,dauer){
+  sprite.position.set(pos.x,pos.y,pos.z); sprite.renderOrder=12; scene.add(sprite);
+  schweber.push({s:sprite,t:0,d:dauer||1.4,y0:pos.y});
+}
+/* Symbol ueber dem Kopf einer Figur */
+function kundenSymbol(g,art){
+  if(!g) return;
+  const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:symbolTex(art),depthTest:false,transparent:true,toneMapped:false}));
+  sp.scale.set(0.42,0.42,1);
+  schwebe(sp,{x:g.position.x,y:2.15,z:g.position.z},1.3);
+}
+/* Betrag, der ueber der Kasse aufsteigt */
+function geldSchwebt(pos,betrag,schlecht){
+  const t=tex(256,72,(g,W,H)=>{ g.clearRect(0,0,W,H); g.font=BUN(46); g.textAlign='center'; g.textBaseline='middle';
+    g.lineWidth=8; g.strokeStyle='rgba(14,18,38,.9)'; const txt=(schlecht?'−':'+')+eur(betrag);
+    g.strokeText(txt,W/2,H/2+2); g.fillStyle=schlecht?'#ff7a6a':'#6cf2a8'; g.fillText(txt,W/2,H/2+2); });
+  const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:t,depthTest:false,transparent:true,toneMapped:false}));
+  sp.scale.set(1.1,0.31,1); sp.userData.eigeneTex=true;
+  schwebe(sp,{x:pos.x,y:(pos.y||0)+2.35,z:pos.z},1.6);
+}
+function updateSchweber(dt){
+  for(let i=schweber.length-1;i>=0;i--){ const w=schweber[i]; w.t+=dt; const k=w.t/w.d;
+    w.s.position.y=w.y0+k*0.9;
+    w.s.material.opacity=k<0.7?1:Math.max(0,1-(k-0.7)/0.3);
+    if(k>=1){ scene.remove(w.s); if(w.s.userData.eigeneTex&&w.s.material.map) w.s.material.map.dispose(); w.s.material.dispose(); schweber.splice(i,1); } }
+}
+/* Serie: zufriedene Kunden am Stueck. Wer ohne Wunsch geht oder
+   die Geduld verliert, beendet sie. */
+let serie=0;
+const SERIE_STUFEN=[5,10,20,35,50,75,100];
+function serieZufrieden(){
+  serie++;
+  if(SERIE_STUFEN.indexOf(serie)>=0){
+    const bonus=serie*6; addXP(bonus,'Serie');
+    toast(`Serie: ${serie} zufriedene Kunden am Stück! +${bonus} XP`,'money'); sfx.level();
+  }
+}
+function serieBricht(){ if(serie>=5) toast(`Serie gerissen nach ${serie} zufriedenen Kunden.`,'bad'); serie=0; }
 
 /* =========================================================
    Tageszeit, Himmel, Schnee
@@ -13537,6 +13843,20 @@ function updateDeko(dt){
    Hauptschleife
    ========================================================= */
 let last=performance.now(), hudT=0, saveT=0, dirtT=0;
+function vorDieTuer(){
+  const da=pending.filter(pd=>pd.t<=0); if(!da.length) return;
+  let n=0, regale=0;
+  da.forEach(pd=>{ pending.splice(pending.indexOf(pd),1);
+    if(pd.regal){
+      /* Regale baut der Lieferant gleich im Laden auf */
+      if(regalAufbauen(pd.regal)) regale++;
+      else { S.money=r2(S.money+regalPreis(pd.regal)); toast(`${regalName(pd.regal)}: kein Stellplatz frei, der Fahrer nimmt es wieder mit.`,'bad'); }
+    } else { spawnFloorBox(pd.type,P[pd.type].box,null,pd.q||1); n++; } });
+  statAdd('lkw',1); S.tut.lkw=true;
+  sfx.thump(0.8);
+  if(n) toast(`Lieferung: ${n} Karton${n>1?'s':''} vor der Ladentür abgestellt.`,'xp');
+  if(regale) toast(`Der Lieferant hat ${regale} Regal${regale>1?'e':''} im Laden aufgestellt.`,'money');
+}
 function step(dt){
   updatePlayer(dt);
   if(build) updateGrab();
@@ -13551,7 +13871,9 @@ function step(dt){
      wartete jede weitere Lieferung. Jetzt bekommt die naechste Welle
      die Basisrampe, wenn sie frei ist, sonst eine zugekaufte
      Andockstation in der Westhalle. */
-  while(pending.some(pd=>pd.t<=0)){
+  /* Kiosk ohne Lager: der Lieferant stellt alles vor die Ladentuer */
+  if(!zoneOffen('lager')&&pending.some(pd=>pd.t<=0)) vorDieTuer();
+  while(zoneOffen('lager')&&pending.some(pd=>pd.t<=0)){
     const frei=!truck?-1:wbayFrei();
     if(truck&&frei<0) break;
     const wave=[];
@@ -13563,7 +13885,7 @@ function step(dt){
     else if(!spawnWTruck(frei,ladung,sid,supplierOf(sid).name)) break;
   }
   updateSonne(pl.x,pl.z);
-  updateTruck(dt); updateWBays(dt); updateSchiebetuer(dt); updateVersand(dt);
+  updateTruck(dt); updateWBays(dt); updateSchiebetuer(dt); updateVersand(dt); updateSchweber(dt);
   for(let i=timers.length-1;i>=0;i--){ timers[i].t-=dt; if(timers[i].t<=0){ const fn=timers[i].fn; timers.splice(i,1); fn(); } }
   if(phase==='open') addGrime(dt*0.0016*(1+customers.length*0.05));
   hype=Math.max(0,hype-dt*1.1);
@@ -13897,7 +14219,7 @@ fontsReady().then(()=>{
   lastF=-1; applyTOD(); updateSign(); buildStart(); requestAnimationFrame(frame);
   window.__bb={get S(){return S},get phase(){return phase},set phase(v){phase=v},set clock(v){clock=v},get clock(){return clock},pickUp,floorBoxes,shelves,racks,dekos,stockOne,openShop,step,customers,queue,belt,scanBelt,buyUp,buyDeko,get DS(){return DS},endDay,pending,save,openLaptop,closeLaptop,pl,addXP,hireStaff,fireStaff,staff,dirts,addDirt,movables,toggleBuild,setWall,setFloor,
     stations,firePult,placeOnStation,igniteType,get order(){return order},get phone(){return phone},makeCall,answerPhone,haggle,acceptDeal,declineDeal,get truck(){return truck},spawnTruck,takeFromTruck,takeBox,dropBox,updateTruck,get door(){return door},get tuer(){return tuer},tuerSet,tuerNah,updateSchiebetuer,doorOpen,doorIsOpen,trailerOccupied,LR,lrFront,TOR,orderReady,orderLeft,shipOne,removeFloorBox,prioOf,setPrio,racks,updateCarry,spawnFloorBox,staff,SHELFKIND,layout,shelfCapOf,shelfAccepts,emptyLevel,dateInfo,dateStr,dateShort,seasonInfo,isSunday,dayMult,ruhetag,wageOf,setWage,friendliness,inPause,setPause,windowGrime,addGrime,cleanWindowTick,ambienteScore,bildBoost,fixedCosts,dailyWages,dispoLimit,verfuegbar,dispoZins,takeLoan,loanTier,loanDaily,EVENTS,GOALS,CUSTTYPES,UPGRADES,STAFF,stockOf,spawnInterval,pools,todayEvent,evv,rollEvent,rollMarket,newGoal,goalAdd,goalTick,ekFactor,marktText,xpFor,rollCustType,priceTol,buyChance,regCustomer,makeWishes,nachfrageFaktor,shelfStockOf,buildGravur,refillGrav,openGravInput,closeGravInput,get gravBlanks(){return gravBlanks},set gravBlanks(v){gravBlanks=v},orderBox,buyPack,cartAdd,cartAddPack,cartOrder,cartClear,cartDel,cartGoods,cartFee,cartTotal,cartBoxes,cartLines,LIEFERZEIT_SEK,VERSAND,VERSANDFREI,lieferSek,
-    scene,camera,P,EFF,EFF_ALL,EFF_KLEIN,EFF_GROSS,EFF_PRO,SHOWS,kugelbombe,shot,mine,FW,stations,stationOf,placedCount,togglePDA,openPDA,closePDA,setPost,get postOn(){return postOn},get pdaOn(){return pdaOn},showLength,psHuge,psBig,psMid,psSmall,rockets,emitters,timersLen:()=>timers.length,setView:(x,z,y,p)=>{pl.x=x;pl.z=z;yaw=y;pitch=p;aim=null;},schiebe:(x,z)=>{pl.x=x;pl.z=z;collide(pl,0.32);return{x:pl.x,z:pl.z};},PLZ_MAX,camYaw:()=>yaw,camPitch:()=>pitch,playerPos:()=>({x:pl.x,z:pl.z}),pultYaw:()=>pultHit?pultHit.parent.rotation.y:null,applyShopName,shopName,shopSlogan,signTexPx:()=>signTex&&signTex.image?signTex.image.getContext('2d').getImageData(0,0,signTex.image.width,40).data.join(''):null,ckTexPx:()=>ckNameTex&&ckNameTex.image?ckNameTex.image.getContext('2d').getImageData(0,0,ckNameTex.image.width,60).data.join(''):null,testfeldMitte,STATION_POS,aimAt,UPGRADES,upPic,PLAN,planFlaechen,uhrZeiger:()=>({std:uhrStd?+uhrStd.rotation.z.toFixed(4):0,min:uhrMin?+uhrMin.rotation.z.toFixed(4):0}),drawRackSchild,get snowPts(){return snowPts},buildStadt,updateStadt,get stadtBoxen(){return stadtBoxen},get stadtBaeume(){return stadtBaeume},buildFernbaeume,schwaerme,beacons,silhouetten,get verkehrPts(){return verkehrPts},get rauchPts(){return rauchPts},get flieger(){return flieger},stadtFrei,STADT_FREI,WALLS,FLOORS,renderOnline,onlineHint,onlineStufe,onlineZahlen,updateOnline,packLaptop,SCHILDBG,SCHILDFG,setSchild,schildBg,schildFg,repaintSchilder,updateHead,allLevels,addToLevel,putInSlot,regCustomer,ZONEN,zoneOffen,oeffneZone,applyZonen,SLOTS,RACKS,slotsOffen,colliders,LAY,LOGI,WRAMPEN,WTORE,updateSnow,unterDach,dachBereiche,get lapHit2(){return lapHit2},buildLagerTerminal,toggleTest,testLevel,buyUp,get toastLast(){return toastLast},__floorBoxen:()=>floorBoxes.length,WBAY_UP,wbays,dockPlaetze,wbayFrei,wbayOffen,spawnWTruck,updateWBays,wbaysInit,wtorSet,GANG,GANGTUER,buildLagergang,flaeche,WTOR,RACKKIND,route,NAV,navFrei,navIdx,navBuild,shelfStand,shelves,sbLanes,buildSBKasse,sbFrei,sbOffen,sbNutzbar,EING2,eingaenge,naechsterEingang,setEingang2,buildSBKasse2,get sb2G(){return sb2G},TUEREN,tuerSetD,tuerNahD,packBereit,packOne,paketWert,bestellungenProTag,pakete,PAKET_BAYS,ddlAbholung,updateVersand,createShelf,createRack,regalStellen,testKauf,regalAufbauen,orderRegal,REGALWARE,regalOf,regalKind,regalPreis,regalPlatz,regalOffen,startGame,promptFor,ERFOLGE,erfOffen,erfStufe,erfStand,erfZiel,erfFertig,erfAnteil,erfGeschafft,erfGesamt,stat,statAdd,statRekord,statVerkauf,bruchGesehen,gruppeVon,GRUPPE,TRAEGER,BRUCH,BRUCH_IDS,REZ_FARBEN,ETIKETT,traegerVon,traegerOffen,bruchOffen,bruchListe,rezeptWow,rezeptKosten,rezeptMarkt,rezeptHype,rezeptDauer,rezeptEntwicklung,rezeptGueltig,eigeneListe,eigenesEintragen,rezepteTick,rezProto,rezBauen,renderRezeptur,get entwurf(){return entwurf},set entwurf(v){entwurf=v},entwurfInit,ORDER,LIZENZEN,lizenzOf,hatLizenz,lizenzDaten,naechsteLizenz,buyLizenz,VOLA,volaOf,REGIME,marketOf,costOf,marktZiel,marktLuecke,meOf,miOf,marktDelta,marktNiveau,marktPhase,marktSchock,marktLabel,marktSchnitt,marktExtrem,marktChance,sortimentBreite,sortimentZug,bekanntheit,spawnInterval,rollMarkt,marktInit,inflOf,inflText,setPreisAufMarkt,igniteType,get packHit(){return packHit},get packTisch(){return packTisch},get packMov(){return packMov},zuendeKanal,zuendeAlle,alleKanaele,kanalItem,openZuend,closeZuend,get zuendOpen(){return zuendOpen},bereitCount,brennDauer,muendung,pultLamps,RAKETEN_LOOK,RAKETEN_KL,makePerson,applyTOD,MUSIK,STUECKE,musikAn,musikWeiter,musikVol,musikTick,spielSchritt,get mStep(){return mStep},set mStep(v){mStep=v;mTakte=0;},get mBus(){return mBus},get postHalf(){return postHalf},EFF_SCHWEIF,mitSchweif,KOEPFE,KLEID,UNIFORM,STAFFKOPF,faceCache,animPerson,PACKS,packPreis,packPool,packOffen,packContents,syncPakete,rotateGrab,PACK_FL,PACK_HOME,spotFree,rectOf,grab,placeGrab,updateGrab,get grabbed(){return grabbed},showPause,get target(){return target},
+    scene,camera,P,EFF,EFF_ALL,EFF_KLEIN,EFF_GROSS,EFF_PRO,SHOWS,kugelbombe,shot,mine,FW,stations,stationOf,placedCount,togglePDA,openPDA,closePDA,setPost,get postOn(){return postOn},get pdaOn(){return pdaOn},showLength,psHuge,psBig,psMid,psSmall,rockets,emitters,timersLen:()=>timers.length,setView:(x,z,y,p)=>{pl.x=x;pl.z=z;yaw=y;pitch=p;aim=null;},schiebe:(x,z)=>{pl.x=x;pl.z=z;collide(pl,0.32);return{x:pl.x,z:pl.z};},PLZ_MAX,camYaw:()=>yaw,camPitch:()=>pitch,playerPos:()=>({x:pl.x,z:pl.z}),pultYaw:()=>pultHit?pultHit.parent.rotation.y:null,applyShopName,shopName,shopSlogan,signTexPx:()=>signTex&&signTex.image?signTex.image.getContext('2d').getImageData(0,0,signTex.image.width,40).data.join(''):null,ckTexPx:()=>ckNameTex&&ckNameTex.image?ckNameTex.image.getContext('2d').getImageData(0,0,ckNameTex.image.width,60).data.join(''):null,testfeldMitte,STATION_POS,aimAt,UPGRADES,upPic,PLAN,planFlaechen,uhrZeiger:()=>({std:uhrStd?+uhrStd.rotation.z.toFixed(4):0,min:uhrMin?+uhrMin.rotation.z.toFixed(4):0}),drawRackSchild,get snowPts(){return snowPts},buildStadt,updateStadt,get stadtBoxen(){return stadtBoxen},get stadtBaeume(){return stadtBaeume},buildFernbaeume,schwaerme,beacons,silhouetten,get verkehrPts(){return verkehrPts},get rauchPts(){return rauchPts},get flieger(){return flieger},stadtFrei,STADT_FREI,WALLS,FLOORS,renderOnline,onlineHint,onlineStufe,onlineZahlen,updateOnline,packLaptop,SCHILDBG,SCHILDFG,setSchild,schildBg,schildFg,repaintSchilder,updateHead,allLevels,addToLevel,putInSlot,regCustomer,ZONEN,zoneOffen,oeffneZone,applyZonen,SLOTS,RACKS,slotsOffen,colliders,LAY,LOGI,WRAMPEN,WTORE,updateSnow,unterDach,dachBereiche,get lapHit2(){return lapHit2},buildLagerTerminal,toggleTest,testLevel,buyUp,get toastLast(){return toastLast},__floorBoxen:()=>floorBoxes.length,WBAY_UP,wbays,dockPlaetze,wbayFrei,wbayOffen,spawnWTruck,updateWBays,wbaysInit,wtorSet,GANG,GANGTUER,buildLagergang,flaeche,WTOR,RACKKIND,route,NAV,navFrei,navIdx,navBuild,shelfStand,shelves,sbLanes,buildSBKasse,sbFrei,sbOffen,sbNutzbar,EING2,eingaenge,naechsterEingang,setEingang2,buildSBKasse2,get sb2G(){return sb2G},TUEREN,tuerSetD,tuerNahD,packBereit,packOne,paketWert,bestellungenProTag,pakete,PAKET_BAYS,ddlAbholung,updateVersand,createShelf,createRack,regalStellen,testKauf,regalAufbauen,orderRegal,REGALWARE,regalOf,regalKind,regalPreis,regalPlatz,regalOffen,startGame,promptFor,ERFOLGE,erfOffen,erfStufe,erfStand,erfZiel,erfFertig,erfAnteil,erfGeschafft,erfGesamt,stat,statAdd,statRekord,statVerkauf,bruchGesehen,gruppeVon,GRUPPE,TRAEGER,BRUCH,BRUCH_IDS,REZ_FARBEN,ETIKETT,traegerVon,traegerOffen,bruchOffen,bruchListe,rezeptWow,rezeptKosten,rezeptMarkt,rezeptHype,rezeptDauer,rezeptEntwicklung,rezeptGueltig,eigeneListe,eigenesEintragen,rezepteTick,rezProto,rezBauen,renderRezeptur,get entwurf(){return entwurf},set entwurf(v){entwurf=v},entwurfInit,ORDER,LIZENZEN,lizenzOf,hatLizenz,lizenzDaten,naechsteLizenz,buyLizenz,VOLA,volaOf,REGIME,marketOf,costOf,marktZiel,marktLuecke,meOf,miOf,marktDelta,marktNiveau,marktPhase,marktSchock,marktLabel,marktSchnitt,marktExtrem,marktChance,sortimentBreite,sortimentZug,bekanntheit,spawnInterval,rollMarkt,marktInit,inflOf,inflText,setPreisAufMarkt,igniteType,get packHit(){return packHit},get packTisch(){return packTisch},get packMov(){return packMov},zuendeKanal,zuendeAlle,alleKanaele,kanalItem,openZuend,closeZuend,get zuendOpen(){return zuendOpen},bereitCount,brennDauer,muendung,pultLamps,RAKETEN_LOOK,RAKETEN_KL,makePerson,applyTOD,updateHUD,schweber,kundenSymbol,geldSchwebt,get serie(){return serie},serieZufrieden,serieBricht,KAPITEL,kapitel,kapitelNr,kapitelAufstieg,WA,WA_SLOTS,vorDieTuer,SB_KASSIERER,sbBesetzt,sbLaneVon,sbKassiererPlatz,MUSIK,STUECKE,musikAn,musikWeiter,musikVol,musikTick,spielSchritt,get mStep(){return mStep},set mStep(v){mStep=v;mTakte=0;},get mBus(){return mBus},get postHalf(){return postHalf},EFF_SCHWEIF,mitSchweif,KOEPFE,KLEID,UNIFORM,STAFFKOPF,faceCache,animPerson,PACKS,packPreis,packPool,packOffen,packContents,syncPakete,rotateGrab,PACK_FL,PACK_HOME,spotFree,rectOf,grab,placeGrab,updateGrab,get grabbed(){return grabbed},showPause,get target(){return target},
     shot:()=>{ noLoop=true; camera.position.set(pl.x,1.65,pl.z); camera.rotation.set(pitch,yaw,0); camera.updateMatrixWorld(); updateTarget(); applyTOD(); renderFrame(0.016); return canvas.toDataURL('image/jpeg',0.85); },
     run:(sec,dt)=>{ noLoop=true; const n=Math.round(sec/(dt||0.05)); for(let i=0;i<n;i++) step(dt||0.05); }};
 });

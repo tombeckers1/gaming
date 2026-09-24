@@ -59,6 +59,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   console.log('AUSGEBAUT ',nachher.length?nachher.join('\n           '):'keine gelbe Wand im Freien');
 
   console.log('MANGEL:',(vorher.length+nachher.length)?(vorher.length+nachher.length)+' Flaechen':'keine');
+  const mangel=(vorher.length+nachher.length)?[(vorher.length+nachher.length)+' Flaechen gelb im Freien']:[];
   console.log('ERRORS:',fehler.length||mangel.length?fehler.concat(mangel).join('\n'):'keine');
   await b.close();
 })();

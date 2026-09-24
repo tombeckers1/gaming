@@ -69,7 +69,9 @@ const BRUCH={
   farbregen :{name:'Farbregen',       klasse:2, wow:1.28, desc:'Ein Schleier kleiner Sterne, der funkelnd herunterrieselt.'},
   flammenregen:{name:'Flammenregen',  klasse:3, wow:1.60, desc:'Große Flammen, die glühend herunterregnen und Tropfen verlieren.'},
   sternschnuppen:{name:'Sternschnuppen',klasse:4, wow:1.72, desc:'Wenige helle Köpfe mit langen Silberschweifen, flach nach außen.'},
-  kronleuchter:{name:'Kronleuchter',  klasse:4, wow:1.80, desc:'Goldene Arme, an deren Enden Glitzertropfen hängen.'}
+  kronleuchter:{name:'Kronleuchter',  klasse:4, wow:1.80, desc:'Goldene Arme, an deren Enden Glitzertropfen hängen.'},
+  spektrum  :{name:'Spektrum',        klasse:3, wow:1.62, desc:'Jeder Stern läuft einmal durch alle Farben des Regenbogens.'},
+  goldglitzer:{name:'Goldglitzer',    klasse:3, wow:1.58, desc:'Goldsterne lassen blinkende Glitzervorhänge zurück.'}
 };
 const BRUCH_IDS=Object.keys(BRUCH);
 /* Erst was man selbst gesehen hat, darf man verbauen */

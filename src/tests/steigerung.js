@@ -38,16 +38,19 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
       const erlaubt=new Set(); Object.values(bb.THEMEN).forEach(T=>T.forEach(([a,c])=>erlaubt.add(key(bb.FW[a])+'|'+key(bb.FW[c]))));
       const fremd=[...farben].filter(f=>!erlaubt.has(f)).length;
       const m=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:0;
-      return {fremd,n:sch.length,hoehe:+m(hoehen).toFixed(2),sz:+m(sz).toFixed(3),dichte,farben:farben.size,
+      const alle=log.filter(e=>e.art==='schuss'||e.art==='kugel');
+      return {maxSz:+Math.max(0,...alle.map(e=>e.groesste||e.sz)).toFixed(3),maxHoehe:+Math.max(0,...alle.map(e=>e.hoehe)).toFixed(2),
+        brueche:Math.max(0,...alle.map(e=>e.brueche||1)),fremd,n:sch.length,hoehe:+m(hoehen).toFixed(2),sz:+m(sz).toFixed(3),dichte,farben:farben.size,
         dauer:sch.length?+(sch[sch.length-1].t-sch[0].t).toFixed(1):0,eff:[...new Set(log.map(e=>e.eff).filter(Boolean))]}; };
     for(const t of ['batterie16','knatter','batterie49','faecher','batterie100','zfaecher','kometen','donnerwand','profi','finale','sortiment',
-      'raketenklein','raketen','pfeifraketen','raketengold','titanraketen','sternenbrunnen','vulkan','goldgeysir','feuersaeule','feuerbrunnen'])
+      'raketenklein','raketen','pfeifraketen','raketengold','titanraketen','sternenbrunnen','vulkan','goldgeysir','feuersaeule','feuerbrunnen',
+      'kugel75','kugel100','kugel150','kugel200','kugel300'])
       out[t]=messe(t);
     /* Feuerbrunnen: eigener Bodeneffekt */
     const pos={x:0,y:0.4,z:-20}; bb.igniteType('feuerbrunnen',pos); bb.run(0.3,0.1);
     out.brunnenEmitter=bb.emittersListe().some(e=>e.k==='feuerbrunnen');
     /* neue Effekte einzeln */
-    out.neu={}; for(const e of ['flammenregen','kronleuchter','feuerrad','sternschnuppen','farbregen']){
+    out.neu={}; for(const e of ['flammenregen','kronleuchter','feuerrad','sternschnuppen','farbregen','spektrum','goldglitzer']){
       out.neu[e]=typeof bb.EFF[e]==='function'; try{ bb.shot(pos,{eff:e,sz:1}); bb.run(4,0.1); }catch(x){ out.neu[e]='Fehler '+x.message; } }
     out.lvl={}; Object.keys(out).forEach(t=>{ if(bb.P[t]) out.lvl[t]=bb.P[t].lvl; });
     return out; });
@@ -67,6 +70,18 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   Object.keys(r.lvl).forEach(t=>{ if(r.lvl[t]<=15&&t!=='raketengold'){ const f=r[t].eff.filter(e=>PROFI.indexOf(e)>=0); pruef('FRUEH',!f.length,`${t} (Level ${r.lvl[t]}) zeigt schon ${f.join(',')}`); } });
   L.concat(['sortiment','raketenklein','raketen','raketengold']).forEach(t=>{ const max=t==='finale'?18:t==='profi'?12:4;
     pruef('FARBEN',r[t].farben<=max&&r[t].fremd===0,`${t}: ${r[t].farben} Farbpaare, ${r[t].fremd} ausserhalb der Themen - zu bunt`); });
+  /* Kugelbomben: jede Stufe groesser, hoeher, mit mehr Bruechen - und
+     groesser und hoeher als jeder Batterieschuss bis zu ihrem Level */
+  const KG=['kugel75','kugel100','kugel150','kugel200','kugel300'];
+  for(let i=0;i<KG.length;i++){ const k=r[KG[i]];
+    console.log(KG[i].padEnd(10),'lvl',r.lvl[KG[i]],'groesste',k.maxSz,'hoehe',k.maxHoehe,'brueche',k.brueche);
+    if(i){ const v=r[KG[i-1]]; pruef('KUGELLEITER',k.maxSz>v.maxSz&&k.maxHoehe>v.maxHoehe&&k.brueche>v.brueche,`${KG[i]} nicht ueber ${KG[i-1]}: ${JSON.stringify([k.maxSz,k.maxHoehe,k.brueche])} / ${JSON.stringify([v.maxSz,v.maxHoehe,v.brueche])}`); }
+    for(const t of L){ if(r.lvl[t]>r.lvl[KG[i]]+1) continue;
+      pruef('KUGEL',k.maxSz>r[t].maxSz&&k.maxHoehe>r[t].maxHoehe,`${KG[i]} (Lvl ${r.lvl[KG[i]]}) nicht ueber ${t} (Lvl ${r.lvl[t]}): Groesse ${k.maxSz}/${r[t].maxSz}, Hoehe ${k.maxHoehe}/${r[t].maxHoehe}`); } }
+  /* Raketen haben eigene Bruchbilder, die es in Batterien nicht gibt */
+  const EXKL=['spektrum','goldglitzer'];
+  ['raketenklein','raketen','pfeifraketen','raketengold'].forEach(t=>pruef('RAKETE',r[t].eff.some(e=>EXKL.indexOf(e)>=0),`${t} ohne eigenes Raketen-Bruchbild: ${r[t].eff}`));
+  L.concat(['sortiment']).forEach(t=>pruef('EXKLUSIV',!r[t].eff.some(e=>EXKL.indexOf(e)>=0),`${t} nutzt Raketen-Bruchbild`));
   pruef('BRUNNEN',r.brunnenEmitter&&r.feuerbrunnen.eff.indexOf('flammenregen')>=0,'Feuerbrunnen ohne Flammen: '+JSON.stringify(r.feuerbrunnen));
   Object.keys(r.neu).forEach(e=>pruef('NEU',r.neu[e]===true,e+': '+r.neu[e]));
   console.log('MANGEL:',mangel.length?mangel.join(' | '):'keine');

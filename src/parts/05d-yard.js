@@ -57,7 +57,7 @@ function kanalMat(n,sub){
     c.strokeStyle='#0e1226'; c.lineWidth=5; c.strokeRect(3,3,W-6,H-6);
     c.fillStyle='#0e1226'; c.textBaseline='middle';
     if(sub){ c.textAlign='left'; c.font=BUN(54); c.fillText(String(n),14,H/2+3);
-      c.textAlign='right'; c.font=BAR(30); c.fillText(sub,W-12,H/2+2); }
+      c.textAlign='right'; fitFont(c,sub,W-86,30,BAR); c.fillText(sub,W-12,H/2+2); }
     else { c.textAlign='center'; c.font=BUN(60); c.fillText(String(n),W/2,H/2+3); } })});
   return _kanalMat[k];
 }
@@ -243,7 +243,7 @@ function buildYard(){
          Striche sahen aus wie vergessene Faeden. */
       /* Kaliberschild */
       /* Kanalnummer und Kaliber des Rohrs */
-      plane(0.22,0.09,kanalMat(KANAL_START.moerser+i,[75,100,150][i]+' mm'),x,0.62,0.5,0,g);
+      plane(0.22,0.09,kanalMat(KANAL_START.moerser+i,ROHR_KALIBER[i]),x,0.62,0.5,0,g);
     });
     const hit=bbox(2.4,1.8,1.1,hitM,0,0.9,0,g,false);
     stations.moerser={id:'moerser',g,items:[],cap:s.cap,hit};
@@ -552,6 +552,12 @@ function raketeModell(t){
 /* Kugelbombe im Rohr mit Zuendschnur ueber den Rand */
 const KUGEL_R={kugel75:0.042,kugel100:0.058,kugel150:0.08,kugel200:0.1,kugel300:0.15};
 const MOERSER_R=[0.115,0.145,0.185];
+/* Jede Kugel hat ihr Rohr (Tom, 24.09.): klein 75-100 mm, mittel
+   150 mm, gross 200-300 mm. Vorher kam jede Kugel ins erste freie
+   Rohr - die grosse Kugel steckte mit Zuendschnur im kleinsten. */
+const ROHR_KALIBER=['75–100 mm','150 mm','200–300 mm'], ROHR_NAME=['kleine Rohr','mittlere Rohr','große Rohr'];
+function moerserRohr(t){ const p=P[t]; const k=p&&p.rezept?p.rezept.traeger:t;
+  return {kugel75:0,kugel100:0,kugel150:1,kugel200:2,kugel300:2}[k]||0; }
 function kugelModell(t,slot){
   /* passt nicht jede Kugel in jedes Rohr - dann eben knapp unter die Innenweite */
   const g=new THREE.Group(), rr=MOERSER_R[slot%3]*0.9, rk=Math.min(KUGEL_R[t]||0.06,rr*0.92);
@@ -600,7 +606,10 @@ function placeOnStation(st){
   const want=stationOf(c.type);
   if(!want){ toast('Damit kann man nichts zünden.','bad'); return; }
   if(want!==st.id){ toast(`${P[c.type].short} gehört auf: ${STATION_POS[want].name}.`,'bad'); return; }
-  const slot=freierPlatz(st);
+  let slot;
+  if(st.id==='moerser'){ slot=moerserRohr(c.type);
+    if(itemAufPlatz(st,slot)){ toast(`${P[c.type].short} gehört ins ${ROHR_NAME[slot]} (${ROHR_KALIBER[slot]}) - das ist belegt. Erst zünden.`,'bad'); return; } }
+  else slot=freierPlatz(st);
   if(slot<0){ toast('Die Station ist voll. Erst zünden.','bad'); return; }
   const sl=stationSlot(st,slot);
   const it={type:c.type,q:c.q||1,slot,kanal:kanalVon(st,slot),state:'bereit'};

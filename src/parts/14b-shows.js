@@ -217,10 +217,14 @@ const SHOWS={
    Von der kleinen Sternschnuppe bis zur Titan steigen alle Werte.
    gruppe: so viele Raketen hintereinander im selben Farbpaar. */
 const RAKETEN_KL={
-  raketenklein:{n:3, gap:0.8, sz:0.7, pw:-6,th:'bunt',eff:['kugel','ring','stern']},
-  raketen     :{n:20,gap:0.35,sz:0.85,pw:-3,th:'bunt',gruppe:5,eff:['kugel','ring','wechsel','stern','chrys','regenbogen','palme','knister']},
-  pfeifraketen:{n:10,gap:0.5, sz:0.8, pw:-3,th:'wald',gruppe:2,pfeif:true,eff:['knister','fische','kreisel','strobe','tausend']},
-  raketengold :{n:5, gap:1.1, sz:1.25,pw:1, th:'gold',eff:['brokat','kronleuchter','weide','zeitregen','glitzerweide']},
+  /* Raketen gehen gegen die grossen Batterien unter - deshalb haben sie
+     eigene Bruchbilder, die es sonst nirgends gibt: Spektrum (jeder
+     Stern laeuft durch alle Farben) und Goldglitzer (haengende
+     Glitzervorhaenge). Schon die kleinste Rakete zeigt sie. */
+  raketenklein:{n:3, gap:0.9, sz:0.75,pw:-6,th:'bunt',eff:['spektrum','goldglitzer','spektrum']},
+  raketen     :{n:20,gap:0.35,sz:0.85,pw:-3,th:'bunt',gruppe:5,eff:['kugel','spektrum','ring','goldglitzer','wechsel','spektrum','stern','goldglitzer','regenbogen','spektrum']},
+  pfeifraketen:{n:10,gap:0.5, sz:0.8, pw:-3,th:'wald',gruppe:2,pfeif:true,eff:['knister','spektrum','fische','kreisel','goldglitzer','strobe','tausend']},
+  raketengold :{n:5, gap:1.1, sz:1.25,pw:1, th:'gold',eff:['goldglitzer','kronleuchter','brokat','goldglitzer','zeitregen']},
   titanraketen:{n:3, gap:1.7, sz:1.55,pw:5, th:'eis',dick:1,eff:['titan']},
   gravur      :{n:1, gap:0.45,sz:1.3, pw:4, eff:['herz']},
   blanko      :{n:3, gap:0.45,sz:0.95,pw:0, eff:null}

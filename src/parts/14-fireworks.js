@@ -163,7 +163,10 @@ const THEMEN={
   rotweiss:[['rot','weiss'],['silber','rot'],['scharlach','silber']],
   koenig:[['gold','violett'],['zitrone','indigo'],['gold','rot']],
   wald:[['gruen','gold'],['limette','weiss'],['mint','zitrone']],
-  bunt:[['rot','gold'],['gruen','zitrone'],['blau','weiss'],['magenta','tuerkis']]
+  bunt:[['rot','gold'],['gruen','zitrone'],['blau','weiss'],['magenta','tuerkis']],
+  herz:[['rose','gold'],['rot','weiss']],
+  zorn:[['magenta','gold'],['violett','zitrone']],
+  silber:[['silber','gold'],['weiss','tuerkis']]
 };
 function themaPaar(th,i){ const T=THEMEN[th]||THEMEN.bunt, s=T[((i|0)%T.length+T.length)%T.length]; return [K(s[0]),K(s[1])]; }
 function scheme(i){ const s=(typeof i==='number'&&i>=0)?SCHEMES[i%SCHEMES.length]:pick(SCHEMES); return [K(s[0]),K(s[1])]; }
@@ -641,6 +644,36 @@ EFF.farbregen=function(p,A,B,s){
   for(let i=0;i<n;i++){ const d=randDir(), v=rand(2.5,6.5)*s, c=i%2?A:B;
     psMid.emit(p.x,p.y,p.z,d[0]*v,d[1]*v*0.7+1.0,d[2]*v,c[0],c[1],c[2],rand(3.0,4.2),2.2,4); }
 };
+/* ---------- Nur fuer Raketen (Tom, 24.09.: "bei den Raketen was
+   Eigenes, damit man sie sich ueberhaupt ansehen will") ---------- */
+/* Spektrum: jeder Stern laeuft einmal durch alle Farben des
+   Regenbogens - rot, orange, gelb, gruen, blau, violett. Die Sterne
+   werden in sechs Etappen entlang ihrer Bahn neu gesetzt, jede Etappe
+   in der naechsten Farbe und mit Uebergang zur uebernaechsten. */
+EFF.spektrum=function(p,A,B,s){
+  const F=['rot','orange','zitrone','gruen','himmel','violett','magenta'].map(K);
+  const n=Math.round(130*s*QUAL()), dirs=[];
+  for(let i=0;i<n;i++){ const d=randDir(); dirs.push([d,rand(8.5,10)*s]); }
+  const ET=6, dt=0.34;
+  for(let k=0;k<ET;k++) later(k*dt,()=>{
+    const t=k*dt, f=(1-Math.exp(-1.1*t))/1.1, fall=0.5*2.6*t*t;
+    for(const [d,v] of dirs){ const a=F[k], b=F[k+1], w=Math.exp(-1.1*t);
+      psBig.emit(p.x+d[0]*v*f,p.y+d[1]*v*f-fall,p.z+d[2]*v*f,d[0]*v*w,d[1]*v*w-2.6*t,d[2]*v*w,a[0]*1.3,a[1]*1.3,a[2]*1.3,dt*1.25,2.6,2,b[0]*1.3,b[1]*1.3,b[2]*1.3); }
+  });
+  later(ET*dt,()=>{ for(const [d,v] of dirs){ if(Math.random()<0.5) continue; const t=ET*dt, f=(1-Math.exp(-1.1*t))/1.1;
+    psMid.emit(p.x+d[0]*v*f,p.y+d[1]*v*f-0.5*2.6*t*t,p.z+d[2]*v*f,rand(-.3,.3),rand(-1,0),rand(-.3,.3),1,1,1,rand(0.4,0.8),2,3); } });
+};
+/* Goldglitzer: Goldsterne, die hinter sich blinkende Vorhaenge aus
+   Glitzer zurücklassen - der hängt noch, wenn die Sterne verloschen sind */
+EFF.goldglitzer=function(p,A,B,s){
+  const g=FW.gold, n=Math.round(60*s*QUAL()), dirs=[];
+  for(let i=0;i<n;i++){ const d=randDir(), v=rand(6.5,9)*s; dirs.push([d,v]);
+    psBig.emit(p.x,p.y,p.z,d[0]*v,d[1]*v,d[2]*v,g[0]*1.3,g[1]*1.3,g[2]*1.2,rand(1.8,2.3),2.8,4); }
+  for(let k=1;k<=12;k++) later(k*0.15,()=>{ const t=k*0.15, f=(1-Math.exp(-1.1*t))/1.1, fall=0.5*2.8*t*t*0.8;
+    for(const [d,v] of dirs){ const q={x:p.x+d[0]*v*f,y:p.y+d[1]*v*f-fall,z:p.z+d[2]*v*f};
+      for(let i=0;i<Math.round(3*QUAL());i++) psMid.emit(q.x,q.y,q.z,rand(-.2,.2),rand(-.6,0),rand(-.2,.2),1.2,1.05,.6,rand(1.4,2.4),0.9,3); } });
+  later(0.9,()=>sfx.crackle(distVol(p)*0.45));
+};
 /* Glitzerweide: Silberglitzer, der lange und tief herunterhaengt */
 EFF.glitzerweide=function(p,A,B,s){
   const n=Math.round(170*s*QUAL()), g=FW.silber;
@@ -756,7 +789,7 @@ const EFF_SCHWEIF={kugel:0.4,chrys:0.75,wechsel:0.35,weide:1.9,palme:1.1,ring:0.
   dahlie:0.45,pistill:0.4,kamuro:1.8,spinne:0.5,strobe:0,zeitregen:0.9,blaetter:0,geist:0.35,salut:0.08,saturn:0.3,
   tausend:0.25,mehrring:0.35,regenbogen:0.4,glitzerweide:2.0,komet:0.9,titan:0.8,zehnfach:0.35,kaskade:0.5,
   schneeflocke:0.22,spirale:0.3,ringring:0.25,strauss:0.35,furz:0,
-  flammenregen:0.7,kronleuchter:1.4,feuerrad:0.55,sternschnuppen:0.9,farbregen:0.5};
+  flammenregen:0.7,kronleuchter:1.4,feuerrad:0.55,sternschnuppen:0.9,farbregen:0.5,spektrum:0.2,goldglitzer:0.9};
 function mitSchweif(eff,fn){ const alt=SCHWEIF; SCHWEIF=EFF_SCHWEIF[eff]!==undefined?EFF_SCHWEIF[eff]:null; try{ fn(); } finally { SCHWEIF=alt; } }
 const EFF_ALL=Object.keys(EFF);
 /* Was in welcher Groessenklasse geschossen wird */
@@ -777,7 +810,9 @@ function shot(o,opt){
      Zuendpult aus - sieben bis zwoelf Meter vor den Stationen - lagen
      sie sonst so steil ueber einem, dass man sie beim Zuenden nicht
      im Bild hatte. */
-  const up=((opt.pw||0)+rand(19,23))*STEIG;
+  /* Kugelbomben steigen ohne Zufall: jedes Kaliber hat seine feste
+     Bruchhoehe, damit die groessere Kugel immer hoeher aufgeht */
+  const up=((opt.pw||0)+(opt.kugel?21:rand(19,23)))*STEIG;
   const sc=opt.A?[opt.A,opt.B||opt.A]:scheme(opt.sc);
   /* ab: Hoehe ueber dem Ursprung, jit: seitliche Streuung. Aus einem
      Rohr oder einer Batterie kommt der Schuss genau dort heraus. */
@@ -787,11 +822,14 @@ function shot(o,opt){
   for(let i=0;i<Math.round((10+(opt.dick||0)*14)*QUAL());i++){
     const a=Math.random()*Math.PI*2, w=rand(0.3,1.6);
     psMid.emit(start.x,start.y,start.z,Math.cos(a)*w,rand(1.5,5),Math.sin(a)*w,1,.72,.3,rand(0.25,0.55),5,4); }
-  if(FW_LOG) FW_LOG.push({t:FW_UHR,art:'schuss',pw:opt.pw||0,sz:opt.sz||1,eff:opt.eff||'?',A:sc[0],B:sc[1],hoehe:+(up*1.2-4.3).toFixed(2)});
+  const fuse=opt.fuse||rand(1.05,1.35);
+  if(FW_LOG) FW_LOG.push({t:FW_UHR,art:opt.kugel?'kugel':'schuss',kal:opt.kugel||0,pw:opt.pw||0,sz:opt.sz||1,eff:opt.eff||'?',A:sc[0],B:sc[1],
+    hoehe:+(start.y+Math.cos(ang)*up*fuse-3*fuse*fuse).toFixed(2),brueche:1+(opt.stufen?opt.stufen.length:0),
+    groesste:Math.max(opt.sz||1,...(opt.stufen||[]).filter(x=>x.eff!=='salut').map(x=>x.sz))});
   rockets.push({
     p:start,
     v:V(Math.sin(dir)*Math.sin(ang)*up,Math.cos(ang)*up,Math.cos(dir)*Math.sin(ang)*up),
-    fuse:opt.fuse||rand(1.05,1.35),
+    fuse,
     A:sc[0],B:sc[1],eff:opt.eff||pick(EFF_GROSS),size:opt.sz||1,
     trail:opt.trail||(Math.random()<0.25?FW.silber:FW.gold),
     /* Nachbrueche: Tochterbomben, die nach dem Hauptbruch aufgehen */
@@ -817,70 +855,84 @@ function ringLage(n,r,kipp){
   return out;
 }
 function kugelbombe(o,kal,opt){
+  /* Ueberarbeitet am 24.09. (Tom: "die Kugelbomben deutlich abheben").
+     Jede Kaliberstufe ist das groesste Einzelereignis, das es zu ihrem
+     Level gibt: groesser und hoeher als jeder Batterieschuss bis
+     dahin, und jede Stufe hat mehr Brueche als die davor.
+       75 mm Herzschlag   : Herz, dann zwei Herzschlaege nach   (3 Brueche)
+       100 mm Drachenblut : Ball, vier Toechter, Flammenregen    (6)
+       150 mm Weltenbrand : Ring aus 6, Welle aus 4, Glocke      (13)
+       200 mm Goetterzorn : zehn + zehn, Knisterwolke, Glocke     (25)
+       300 mm Himmelsbrecher: 12 + 12, Krone, Silberweide, Salut (32) */
   opt=opt||{};
   const K4=Math.max(1,Math.min(5,kal|0));
-  const [A,B]=opt.A?[opt.A,opt.B||opt.A]:scheme();
-  const groesse=[1.4,1.8,2.3,2.7,3.2][K4-1];
-  /* Bruchhoehe etwa 20, 24, 27, 30 und 36 m: hoch genug fuer die
-     grossen Kugeln, aber vom Zuendpult aus noch im Bild */
-  const steig=[1,3,4,5,8][K4-1];
-  const zuend=[1.4,1.6,1.8,1.95,2.25][K4-1];
+  const TH=['herz','glut','himmel','zorn','silber'][K4-1];
+  const [A,B]=opt.A?[opt.A,opt.B||opt.A]:themaPaar(TH,0);
+  const groesse=[1.6,2.0,2.45,2.85,3.4][K4-1];
+  /* Bruchhoehe etwa 26, 29, 32, 35 und 40 m - ueber jeder Batterie */
+  const steig=[2,4,5,6,9][K4-1];
+  const zuend=[1.7,1.8,1.9,2.0,2.25][K4-1];
   /* Abschussknall und Muendungsfeuer im Rohr */
   const v0=distVol(o);
-  sfx.boom(Math.min(1.5,v0*(0.55+0.2*K4)));
-  shake=Math.max(shake,Math.min(1.2,0.22*K4)*v0);
-  flash({x:o.x,y:o.y+0.4,z:o.z},FW.bernstein,2.4+K4,0.28);
-  for(let i=0;i<Math.round(60*K4*QUAL());i++){
+  sfx.boom(Math.min(1.5,v0*(0.6+0.2*K4)));
+  shake=Math.max(shake,Math.min(1.2,0.25*K4)*v0);
+  flash({x:o.x,y:o.y+0.4,z:o.z},FW.bernstein,2.8+K4,0.3);
+  for(let i=0;i<Math.round(70*K4*QUAL());i++){
     const a=Math.random()*Math.PI*2, w=rand(0.4,2.4);
     psMid.emit(o.x,o.y+(o.ab!==undefined?o.ab:0.3),o.z,Math.cos(a)*w,rand(5,13),Math.sin(a)*w,1,.78,.34,rand(0.5,1.2),7,4);
   }
-  const haupt=opt.eff||pick(K4>=3?['mehrring','pistill','dahlie','geist','kamuro','titan']:EFF_PRO);
-  const C=K(pick(['weiss','zitrone','tuerkis','magenta','limette']));
+  const haupt=opt.eff||['herz','wechsel','mehrring','pistill','titan'][K4-1];
+  const [C,D]=themaPaar(TH,1);
   const stufen=[];
+  if(K4===1){
+    /* Herzschlag: das Herz schlaegt zweimal nach - bum-bum */
+    stufen.push({t:0.55,eff:'herz',sz:groesse*0.75,streu:0.3,A:C,B:A});
+    stufen.push({t:0.8,eff:'farbregen',sz:groesse*0.6,streu:0.3,A,B});
+  }
   if(K4===2){
-    /* 100 mm: vier Tochterbrueche im Kreis, kurz nacheinander */
+    /* Drachenblut: vier Toechter im Kreis, dann regnet es Flammen */
     ringLage(4,6.5).forEach((off,i)=>stufen.push({t:0.5+i*0.16,off,
-      eff:pick(['kugel','pistill','knister','spinne','regenbogen']),sz:groesse*0.42,A:i%2?B:A,B:i%2?A:B}));
+      eff:['kugel','knister','kugel','knister'][i],sz:groesse*0.42,A:i%2?B:A,B:i%2?A:B}));
+    stufen.push({t:1.3,eff:'flammenregen',sz:groesse*0.7,streu:1,A,B});
   }
   if(K4===3){
-    /* 150 mm: sechs Tochterbrueche auf einmal im Ring, dann eine
-       zweite Welle, zum Schluss die grosse Glocke mit Schlag */
+    /* Weltenbrand: sechs Toechter auf einmal im Ring, eine zweite
+       Welle, zum Schluss die grosse Goldglocke mit Schlag */
     ringLage(6,8).forEach((off,i)=>stufen.push({t:0.55,off,leise:i>0,
-      eff:pick(['kugel','pistill','knister','strobe','crossette']),sz:groesse*0.4,A:i%2?B:A,B:i%2?A:B}));
+      eff:['kugel','pistill','knister','kugel','pistill','knister'][i],sz:groesse*0.4,A:i%2?C:A,B:i%2?D:B}));
     ringLage(4,5,1).forEach((off,i)=>stufen.push({t:1.05+i*0.08,off,leise:i>0,
-      eff:pick(['tausend','fische','spinne']),sz:groesse*0.36,A:C,B:A}));
-    stufen.push({t:1.6,eff:pick(['kamuro','brokat','zeitregen','glitzerweide']),sz:groesse*0.9,streu:2,A,B});
+      eff:['feuerrad','tausend','feuerrad','tausend'][i],sz:groesse*0.36,A:C,B:A}));
+    stufen.push({t:1.6,eff:'kronleuchter',sz:groesse*0.9,streu:2,A,B});
     stufen.push({t:1.68,eff:'salut',sz:0.9,streu:5,A:FW.weiss,B:FW.weiss});
   }
   if(K4===4){
-    /* 200 mm Goetterzorn: zehn Brueche gleichzeitig im Ring, dann
-       zehn weitere versetzt darueber, eine Knisterwolke und zum
-       Schluss Goldglocke und Salut */
-    const F=[A,B,C,FW.weiss,FW.gold];
+    /* Goetterzorn: zehn Brueche gleichzeitig im Ring, zehn weitere
+       versetzt darueber, eine Knisterwolke und Goldglocke mit Salut */
+    const F=[A,B,C,D,FW.weiss];
     ringLage(10,10).forEach((off,i)=>stufen.push({t:0.5,off,leise:i>0,
-      eff:pick(['kugel','pistill','wechsel','regenbogen','strobe']),sz:groesse*0.36,A:F[i%5],B:F[(i+2)%5]}));
+      eff:['kugel','pistill','wechsel','kugel','strobe'][i%5],sz:groesse*0.36,A:F[i%5],B:F[(i+2)%5]}));
     ringLage(10,6,1.2).forEach((off,i)=>stufen.push({t:1.05,off,leise:i>0,
-      eff:pick(['knister','tausend','spinne','kreisel']),sz:groesse*0.32,A:F[(i+1)%5],B:F[(i+3)%5]}));
+      eff:['knister','tausend','spinne','kreisel'][i%4],sz:groesse*0.32,A:F[(i+1)%5],B:F[(i+3)%5]}));
     stufen.push({t:1.7,eff:'tausend',sz:groesse*0.8,streu:1,A:FW.weiss,B:FW.weiss});
-    stufen.push({t:2.3,eff:pick(['kamuro','glitzerweide','brokat']),sz:groesse*0.95,streu:2,A,B});
+    stufen.push({t:2.3,eff:'kamuro',sz:groesse*0.95,streu:2,A,B});
     stufen.push({t:2.36,eff:'salut',sz:1.0,streu:4,A:FW.weiss,B:FW.weiss});
     stufen.push({t:2.5,eff:'salut',sz:0.9,streu:6,A:FW.weiss,B:FW.weiss});
   }
   if(K4===5){
-    /* 300 mm Himmelsbrecher: ein Riesenball, dann zwoelf Brueche im
-       Ring, ein zweiter Ring quer dazu, eine Crossette-Krone, zum
-       Schluss eine silberne Weide ueber den ganzen Himmel und Salut */
-    const F=[A,B,C,FW.weiss,FW.gold,FW.tuerkis];
+    /* Himmelsbrecher: Riesenball, zwoelf Brueche im Ring, ein zweiter
+       Ring quer dazu, Crossette-Krone, Silberweide ueber den ganzen
+       Himmel und vier Salutschlaege */
+    const F=[A,B,C,D,FW.gold,FW.weiss];
     ringLage(12,13).forEach((off,i)=>stufen.push({t:0.55,off,leise:i>0,
-      eff:pick(['pistill','mehrring','ringring','regenbogen','schneeflocke']),sz:groesse*0.3,A:F[i%6],B:F[(i+3)%6]}));
+      eff:['pistill','mehrring','ringring','schneeflocke'][i%4],sz:groesse*0.3,A:F[i%6],B:F[(i+3)%6]}));
     ringLage(12,9,1.3).forEach((off,i)=>stufen.push({t:1.15,off,leise:i>0,
-      eff:pick(['spirale','kugel','strauss','dahlie']),sz:groesse*0.28,A:F[(i+1)%6],B:F[(i+4)%6]}));
+      eff:['spirale','kugel','strauss','dahlie'][i%4],sz:groesse*0.28,A:F[(i+1)%6],B:F[(i+4)%6]}));
     stufen.push({t:1.8,eff:'crossette',sz:groesse*0.55,streu:1,A:FW.gold,B:FW.weiss});
     stufen.push({t:2.2,eff:'tausend',sz:groesse*0.7,streu:2,A:FW.weiss,B:FW.weiss});
     stufen.push({t:2.8,eff:'glitzerweide',sz:groesse*0.8,streu:1,A,B});
     for(let i=0;i<4;i++) stufen.push({t:2.9+i*0.12,eff:'salut',sz:1.0,streu:8,A:FW.weiss,B:FW.weiss});
   }
-  shot(o,{pw:steig,sz:groesse,eff:haupt,fuse:zuend,A,B,
+  shot(o,{pw:steig,sz:groesse,eff:haupt,fuse:zuend,A,B,kugel:K4,
           trail:K4>=3?FW.weiss:FW.gold,dick:Math.min(3,K4),stufen});
 }
 /* Bodeneffekt: Mine, die beim Start eine Fontäne wirft */

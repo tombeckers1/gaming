@@ -123,6 +123,11 @@ const P={
 const ORDER=Object.keys(P);
 /* Kapitel: die grossen Stufen des Ladens. Jedes beginnt mit einem
    bestimmten Ausbau. */
+/* Demo und Vollversion (Tom, 24.09.): Kapitel 1-6 bilden die Demo,
+   die im Dezember erscheinen soll. Ab dem Logistikzentrum (Kapitel 7)
+   ist alles Vollversion - dort kommen auch die eigene Fabrik und die
+   eigenen Produkte. Kapitel 8-11 sind geplant, aber noch nicht gebaut;
+   im Ausbau stehen sie als Vorschau. */
 const KAPITEL=[
   {nr:1,name:'Pyro-Kiosk',up:null,txt:'Ein kleiner Laden, die Lieferungen kommen vor die Tür.'},
   {nr:2,name:'Kleines Fachgeschäft',up:'lager',txt:'Eigenes Lager mit Rampe: der LKW liefert direkt ans Rolltor.'},
@@ -130,8 +135,20 @@ const KAPITEL=[
   {nr:4,name:'Pyro-Versand',up:'onlineshop',txt:'Onlineshop und Packstation: du verkaufst ins ganze Land.'},
   {nr:5,name:'Eigene Marke',up:'labor',txt:'Im Labor mischst du eigene Effekte und verkaufst sie unter deinem Namen.'},
   {nr:6,name:'Pyro-Kaufhaus',up:'shop_sued',txt:'Riesige Verkaufsfläche und ein zweiter Eingang mit eigener Kasse.'},
-  {nr:7,name:'Pyro-Imperium',up:'lager_west',txt:'Logistikzentrum mit Toren und Hof. Größer geht es nicht.'}
+  {nr:7,name:'Pyro-Imperium',up:'lager_west',voll:true,txt:'Logistikzentrum mit Toren und Hof – hier beginnt dein Imperium.'},
+  {nr:8,name:'Pyro-Fabrik',up:'fabrik',voll:true,geplant:true,txt:'Eigene Fabrikhalle: du produzierst deine Feuerwerke selbst.',
+    vorschau:['Fabrikhalle mit Mischraum und Fertigungsstraße','Eigene Produkte in Serie statt Einzelstücke aus dem Labor','Rohstoffe einkaufen, Qualität steuern']},
+  {nr:9,name:'Pyro-Großhändler',up:'grosshandel',voll:true,geplant:true,txt:'Du belieferst andere Läden mit deinen eigenen Marken.',
+    vorschau:['Händlerverträge und Lieferfristen','Eigene LKW-Flotte vom Logistikzentrum aus','Deine Marke in den Regalen der Konkurrenz']},
+  {nr:10,name:'Pyro-Kette',up:'filialen',voll:true,geplant:true,txt:'Filialen in anderen Städten, geführt von deinem Team.',
+    vorschau:['Filialen eröffnen und Filialleiter einstellen','Sortiment und Preise zentral steuern','Wettbewerb mit Ketten der Konkurrenz']},
+  {nr:11,name:'Pyro-Legende',up:'stadtfeuerwerk',voll:true,geplant:true,txt:'Das große Silvesterfeuerwerk der Stadt trägt deinen Namen.',
+    vorschau:['Offizielles Stadtfeuerwerk an Silvester','Große Show mit Musik am Fluss','Deine Marke wird zur Legende']}
 ];
+/* Demo-Schalter: an, sobald die Demo gebaut wird. Dann lassen sich die
+   Vollversions-Kapitel ansehen, aber nicht kaufen. */
+let DEMO=false;
+const kapitelVoll=nr=>!!(KAPITEL[nr-1]&&KAPITEL[nr-1].voll);
 /* Die Kapitel kommen der Reihe nach: wer ein spaeteres Kapitel schon
    eroeffnet hat, steigt erst auf, wenn die davor auch geschafft sind. */
 function kapitelNr(){ let n=1; for(const k of KAPITEL){ if(!k.up) continue; if(S&&S.up&&S.up[k.up]) n=k.nr; else break; } return n; }

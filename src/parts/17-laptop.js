@@ -752,17 +752,13 @@ function lapZeichnen(body){
     const liste=UPGRADES.filter(u=>(u.kat||'einr')===kat).sort((a,b)=>a.lvl-b.lvl);
     /* Flaechen nach Kapiteln: ueber jedem Abschnitt eine Zeile mit dem
        Namen, der Ausbau, der das Kapitel eroeffnet, steht zuerst */
-    const kapVon=u=>{ if(u.kap) return u.kap; let n=1;
-      for(const k of KAPITEL) if(k.up){ const ku=UPGRADES.find(x=>x.id===k.up); if(ku&&u.lvl>ku.lvl) n=Math.max(n,k.nr); }
-      /* ein Ausbau gehoert nie vor das Kapitel seiner Voraussetzung */
-      const v=u.req&&UPGRADES.find(x=>x.id===u.req); if(v) n=Math.max(n,kapVon(v));
-      return n; };
+    const kapVon=kapitelVon;
     if(kat==='flaeche') liste.sort((a,b)=>kapVon(a)-kapVon(b)||(b.kap?1:0)-(a.kap?1:0)||a.lvl-b.lvl);
     let kapZuletzt=0;
     h=liste.map(u=>{ const done=u.done(), cost=u.cost();
       let kopf='';
       if(kat==='flaeche'){ const kn=kapVon(u); if(kn!==kapZuletzt){ kapZuletzt=kn; const K=KAPITEL[kn-1], jetzt=kapitelNr();
-        kopf=`<div class="kapkopf${kn<=jetzt?' da':''}"><b>Kapitel ${kn} · ${K.name}</b><small>${kn<jetzt?'geschafft':kn===jetzt?'hier bist du':K.txt}</small></div>`; } }
+        kopf=kapKopf(K,jetzt); } }
       const fehlt=u.req&&!S.up[u.req]?UPGRADES.find(x=>x.id===u.req):null;
       const lock=S.level<u.lvl||!!fehlt;
       return kopf+`<div class="row${lock&&!done?' locked':''}">`+
@@ -772,10 +768,13 @@ function lapZeichnen(body){
              :S.level<u.lvl?`<small class="warn">Ab Level ${u.lvl}</small>`:`<small>Kosten ${eur(cost)}</small>`)+
         `</div>`+
         (done?'<small class="ok">Erledigt</small>'
+            :(DEMO&&kapitelVoll(kat==='flaeche'?kapVon(u):0))?'<small class="vollv">Vollversion</small>'
             :fehlt?'<small>gesperrt</small>'
             :S.level<u.lvl?`<small>Level ${u.lvl}</small>`
             :`<button data-a="up" data-t="${u.id}" ${S.money<cost?'disabled':''}>${eur(cost)}</button>`)+
         '</div>'; }).join('');
+    if(kat==='flaeche') h+=KAPITEL.filter(K=>K.geplant).map(K=>kapKopf(K,kapitelNr())+
+      `<div class="row locked vorschau"><div class="rm"><b>Geplant für die Vollversion</b>${K.vorschau.map(v=>`<small>· ${v}</small>`).join('')}</div></div>`).join('');
   } else if(ltab==='online'){
     h=renderOnline(); hint=onlineHint();
   } else if(ltab==='erf'){
@@ -990,8 +989,18 @@ function toggleTest(){
 /* Frueher brach der Kauf bei jedem Hindernis wortlos ab - der Knopf
    tat schlicht nichts und man stand ratlos davor. Jetzt sagt das
    Spiel, was fehlt. */
+/* Kapitel eines Ausbaus: eigenes Kapitel, sonst nach Level - aber nie
+   vor dem Kapitel seiner Voraussetzung */
+function kapitelVon(u){ if(u.kap) return u.kap; let n=1;
+  for(const k of KAPITEL) if(k.up){ const ku=UPGRADES.find(x=>x.id===k.up); if(ku&&u.lvl>ku.lvl) n=Math.max(n,k.nr); }
+  const v=u.req&&UPGRADES.find(x=>x.id===u.req); if(v) n=Math.max(n,kapitelVon(v));
+  return n; }
+function kapKopf(K,jetzt){
+  const kn=K.nr, stand=K.geplant?'geplant':kn<jetzt?'geschafft':kn===jetzt?'hier bist du':K.txt;
+  return `<div class="kapkopf${kn<=jetzt?' da':''}${K.voll?' voll':''}"><b>Kapitel ${kn} · ${K.name}${K.voll?' <i>Vollversion</i>':''}</b><small>${K.geplant?K.txt:stand}</small></div>`; }
 function buyUp(id){
   const u=UPGRADES.find(x=>x.id===id); if(!u) return;
+  if(DEMO&&(u.kat||'einr')==='flaeche'&&kapitelVoll(kapitelVon(u))){ toast(`${u.name} gibt es in der Vollversion.`,'bad'); return; }
   if(u.done()){ toast(`${u.name} hast du schon.`); return; }
   if(S.level<u.lvl){ toast(`${u.name} gibt es erst ab Level ${u.lvl} — du bist auf ${S.level}.`,'bad'); return; }
   if(u.req&&!S.up[u.req]){

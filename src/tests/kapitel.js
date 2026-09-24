@@ -61,6 +61,9 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     Object.keys(S.up).forEach(k=>{ S.up[k]=false; }); S.up.lager=true; S.up.shop_gross=true; S.up.labor=true;
     o.vorgezogen=bb.kapitelNr(); S.up.onlineshop=true; o.nachgeholt=bb.kapitelNr();
     Object.assign(S.up,alt);
+    /* Demo: das Logistikzentrum laesst sich nicht kaufen */
+    S.up.lager_west=false; bb.DEMO=true; bb.buyUp('lager_west'); o.demoGesperrt=!S.up.lager_west; o.demoToast=bb.toastLast;
+    bb.DEMO=false; bb.buyUp('lager_west'); o.vollOffen=!!S.up.lager_west;
     return o;
   });
   console.log('START   ',JSON.stringify(k.start),'gesperrt bis x',k.lagerGesperrtBis,'Rack',k.rackOffen);
@@ -82,11 +85,16 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   /* Laptop: Ausbau mit Kapitelueberschriften */
   const lap=await p.evaluate(()=>{ const bb=window.__bb; bb.openLaptop(); const t=document.querySelector('[data-tab="up"]'); if(t) t.click();
     /* je Kapitel: Ueberschrift und wie viele Ausbauten darunter stehen */
-    const k=[]; for(const e of document.querySelectorAll('#lbody .kapkopf, #lbody .row')){ if(e.classList.contains('kapkopf')) k.push([e.querySelector('b').textContent,0]); else if(k.length) k[k.length-1][1]++; }
+    const k=[]; for(const e of document.querySelectorAll('#lbody .kapkopf, #lbody .row')){ if(e.classList.contains('kapkopf')) k.push([e.querySelector('b').textContent,0,e.classList.contains('voll')]); else if(k.length) k[k.length-1][1]++; }
     bb.closeLaptop(false); return k; });
   console.log('LAPTOP  ',JSON.stringify(lap));
-  pruef('LAPTOP',lap.length===7&&lap.every((x,i)=>x[0].indexOf('Kapitel '+(i+1))===0),'Kapitelueberschriften: '+JSON.stringify(lap));
-  pruef('LAPTOP',lap.every(x=>x[1]>=2&&x[1]<=6),'Kapitel ungleich verteilt: '+lap.map(x=>x[1]).join('/'));
+  pruef('LAPTOP',lap.length===11&&lap.every((x,i)=>x[0].indexOf('Kapitel '+(i+1))===0),'Kapitelueberschriften: '+JSON.stringify(lap));
+  pruef('LAPTOP',lap.slice(0,7).every(x=>x[1]>=2&&x[1]<=6),'Kapitel ungleich verteilt: '+lap.map(x=>x[1]).join('/'));
+  /* Demo 1-6, Vollversion ab 7; 8-11 sind Vorschau */
+  pruef('VOLL',lap.every((x,i)=>x[2]===(i>=6)&&(i<6||/Vollversion/.test(x[0]))),'Vollversion falsch markiert: '+JSON.stringify(lap.map(x=>x[2])));
+  pruef('VOLL',lap.slice(7).every(x=>x[1]===1),'Vorschau der geplanten Kapitel fehlt');
+  console.log('DEMO    ',JSON.stringify({gesperrt:k.demoGesperrt,toast:k.demoToast,voll:k.vollOffen}));
+  pruef('DEMO',k.demoGesperrt&&/Vollversion/.test(k.demoToast||'')&&k.vollOffen,'Demo-Sperre: '+JSON.stringify({g:k.demoGesperrt,t:k.demoToast,v:k.vollOffen}));
 
   /* Alter Spielstand ohne Lager-Schluessel behaelt sein Lager */
   const alt=await p.evaluate(()=>{ const bb=window.__bb; bb.save();

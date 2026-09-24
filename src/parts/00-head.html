@@ -66,7 +66,7 @@ kbd{font-family:var(--display);font-size:13px;background:var(--signal);color:var
 #tool:empty{display:none}
 #mode{position:absolute;left:50%;top:calc(max(12px,env(safe-area-inset-top)) + 92px);transform:translateX(-50%);background:var(--spark);color:var(--ink);border-radius:8px;padding:6px 14px;font-weight:700;font-size:17px;box-shadow:0 3px 0 rgba(0,0,0,.3)}
 #mode:empty{display:none}
-#toasts{position:absolute;left:50%;bottom:78px;transform:translateX(-50%);display:flex;flex-direction:column;gap:6px;align-items:center;width:max-content;max-width:92vw}
+#toasts{position:fixed;z-index:45;pointer-events:none;left:50%;bottom:78px;transform:translateX(-50%);display:flex;flex-direction:column;gap:6px;align-items:center;width:max-content;max-width:92vw}
 .toast{background:var(--panel-strong);border-radius:8px;padding:6px 12px;font-weight:600;font-size:17px;animation:tin .25s ease-out;text-align:center}
 .toast.money{color:var(--signal);font-family:var(--display);font-size:18px}
 .toast.bad{color:#ffab9f}
@@ -311,6 +311,12 @@ body.compact .pic{width:78px;height:54px}
 .sw{width:42px;height:42px;border-radius:8px;border:2px solid transparent;cursor:pointer;padding:0}
 .sw.on{border-color:var(--signal);box-shadow:0 0 0 2px rgba(255,210,63,.35)}
 .sw:disabled{opacity:.28}
+/* Preis sichtbar auf der Kachel - am Handy gibt es keinen Tooltip */
+.sw.dk{position:relative;overflow:hidden}
+.sw.dk .pz{position:absolute;left:0;right:0;bottom:0;font:700 9.5px/13px system-ui,sans-serif;color:#fff;background:rgba(10,14,28,.78);letter-spacing:.2px;white-space:nowrap}
+.sw.dk .pz.ok{background:rgba(47,158,87,.88)}
+.sw.dk.arm .pz{color:#ffb4a8}
+.sw.dk.arm{filter:saturate(.55) brightness(.8)}
 #levelup .card{max-width:460px;text-align:center}
 #deal .card{max-width:520px}
 #dLine{font-size:19px;line-height:1.3;margin:6px 0 12px;color:var(--spark);min-height:24px}
@@ -444,8 +450,10 @@ body.compact .pdahead2 b{font-size:16px}
   <div id="tool"></div>
   <div id="phone"></div>
   <div id="order"></div>
-  <div id="toasts"></div>
 </div>
+<!-- eigene Ebene ueber Laptop und Handy: Meldungen wie "zu wenig Geld"
+     lagen sonst unsichtbar hinter dem offenen Laptop -->
+<div id="toasts"></div>
 
 <div class="ov show" id="start">
   <canvas id="startFx"></canvas>

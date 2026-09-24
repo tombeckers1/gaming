@@ -16,6 +16,8 @@ class Vector3{ project(){ this.x=0; this.y=0; this.z=0.5; return this; } lerpVec
   distanceTo(v){return Math.hypot(this.x-v.x,this.y-v.y,this.z-v.z);}
   setScalar(s){this.x=this.y=this.z=s;return this;}
   multiplyScalar(s){this.x*=s;this.y*=s;this.z*=s;return this;}
+  applyQuaternion(){return this;}
+  lerp(v,t){this.x+=(v.x-this.x)*t;this.y+=(v.y-this.y)*t;this.z+=(v.z-this.z)*t;return this;}
 }
 class Vector2{constructor(x,y){this.x=x||0;this.y=y||0;}
   set(x,y){this.x=x;this.y=y;return this;}
@@ -25,7 +27,8 @@ class Euler{constructor(x,y,z){this.x=x||0;this.y=y||0;this.z=z||0;this.order='X
   set(x,y,z){this.x=x;this.y=y;this.z=z;return this;}
   copy(e){this.x=e.x;this.y=e.y;this.z=e.z;return this;}
   clone(){return new Euler(this.x,this.y,this.z);}}
-class Quaternion{constructor(){this.x=this.y=this.z=0;this.w=1;} setFromEuler(e){this._e=e;return this;} setFromUnitVectors(a,b){this._von=a;this._nach=b.clone?b.clone():b;return this;}}
+class Quaternion{constructor(){this.x=this.y=this.z=0;this.w=1;} setFromEuler(e){this._e=e;return this;} setFromUnitVectors(a,b){this._von=a;this._nach=b.clone?b.clone():b;return this;}
+  clone(){const q=new Quaternion();Object.assign(q,this);return q;} multiply(){return this;} premultiply(){return this;} slerp(){return this;}}
 class Matrix4{constructor(){this.elements=new Array(16).fill(0);}
   compose(p,q,s){this.p=p.clone?p.clone():p;this.s=s;return this;}
   clone(){const m=new Matrix4();m.p=this.p;m.s=this.s;return m;}

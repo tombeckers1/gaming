@@ -28,9 +28,18 @@ function buildFacade(){
   const snow=std(0xeef2f8,{roughness:1});
   // --- Traufkasten über der Front
   bbox(16.5,0.36,0.34,std(0x2a3042,{roughness:0.8}),0,H+0.32,6.22,null,false);
-  bbox(16.6,0.1,0.4,snow,0,H+0.54,6.22,null,false);
+  /* Abdeckung in Alu statt weisser Schneekante - die lief bisher genau
+     unter dem Schild entlang und verschmolz mit dessen Rahmen. */
+  bbox(16.6,0.05,0.42,steel,0,H+0.525,6.22,null,false);
   // --- Leuchtschild
-  const sg=new THREE.Group(); sg.position.set(0,H+1.35,6.16); scene.add(sg);
+  /* Das Schild steht jetzt auf eigenen Stuetzen 25 cm ueber dem
+     Gesims. Vorher lag die untere Rahmenleiste im Gesims, Rahmen,
+     Gesims und Schneekante liefen zu einem Band zusammen (Tom). */
+  const SY=H+1.92;
+  const sg=new THREE.Group(); sg.position.set(0,SY,6.16); scene.add(sg);
+  for(const x of [-3.6,-1.2,1.2,3.6]){
+    bbox(0.12,SY-1.12-(H+0.55)+0.02,0.12,dark,x,(SY-1.12+H+0.55)/2,6.12,null,false);
+    bbox(0.26,0.03,0.26,steel,x,H+0.565,6.12,null,false); }
   bbox(8.4,2.1,0.3,dark,0,0,0,sg);
   /* Rahmen 1 cm vor dem Traufkasten: mit 0,42 m Tiefe lag die untere
      Leiste genau in dessen Vorderflaeche und flimmerte als Balken. */
@@ -49,10 +58,10 @@ function buildFacade(){
     const br=bbox(0.08,1.2,0.08,steel,x,0.05,-0.14,sg,false); br.rotation.x=-0.62; }
   // Strahler über dem Schild
   for(const x of [-2.4,2.4]){
-    bbox(0.06,0.5,0.06,steel,x,H+2.7,6.2,null,false);
-    bbox(0.06,0.06,0.38,steel,x,H+2.93,6.36,null,false);
+    bbox(0.06,0.34,0.06,steel,x,SY+1.3,6.2,null,false);
+    bbox(0.06,0.06,0.38,steel,x,SY+1.45,6.36,null,false);
     const sm=new THREE.MeshStandardMaterial({color:LIN(0x23262e),emissive:LIN(0xfff0cc),emissiveIntensity:0}); lampMats.push(sm);
-    const sh=new THREE.Mesh(new THREE.CylinderGeometry(0.15,0.09,0.2,10),sm); sh.position.set(x,H+2.84,6.53); sh.rotation.x=2.5; scene.add(sh);
+    const sh=new THREE.Mesh(new THREE.CylinderGeometry(0.15,0.09,0.2,10),sm); sh.position.set(x,SY+1.36,6.53); sh.rotation.x=2.5; scene.add(sh);
   }
   // --- Schaufenster: Sohlbank, Warenauslage, Sicherheitsgitterhalter
   for(const [a,b] of [[-7.2,-2.0],[2.0,7.2]]){

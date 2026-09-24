@@ -604,97 +604,120 @@ function makeAuto(col,form){
   g.add(m1); g.add(m2);
   return g;
 }
+/* =========================================================
+   Strassenbaum im Winter (Tom, 24.09.: "sieht immer noch nicht gut
+   aus"). Vorher gestapelte Zylinder mit wechselnder Farbe - jeder
+   Abschnitt ein sichtbarer Ring, die Aeste gerade Stangen mit
+   weissen Kloetzen als Schnee.
+
+   Jetzt nach dem Prinzip von EZ-Tree (Dan Greenheck): jeder Ast ist
+   EIN durchgehendes Rohr aus vielen Ringen, das sich verjuengt und
+   leicht krumm waechst. Kinderaeste setzen entlang des Elternastes
+   an, nicht nur am Ende. Rinde als Textur mit Laengsrissen, der
+   Stamm laeuft unten in Wurzelanlaeufe aus. Schnee liegt per Shader
+   auf den nach oben zeigenden Flaechen - keine Extrateile.
+   ========================================================= */
+let _baumMat=null;
+function baumMat(){
+  if(_baumMat) return _baumMat;
+  const t=tex(256,512,(g,W,H)=>{
+    g.fillStyle='#6b5c4c'; g.fillRect(0,0,W,H);
+    /* Borke: breite helle Platten, dazwischen tiefe Laengsrisse */
+    for(let i=0;i<60;i++){ const x=Math.random()*W, w=rand(3,9); let xx=x;
+      g.strokeStyle=`rgba(22,16,11,${rand(0.45,0.8)})`; g.lineWidth=w; g.beginPath(); g.moveTo(xx,-10);
+      for(let y=0;y<=H+20;y+=24){ xx+=rand(-5,5); g.lineTo(xx,y); } g.stroke();
+      /* Kante neben dem Riss faengt Licht */
+      g.strokeStyle=`rgba(150,132,112,${rand(0.08,0.2)})`; g.lineWidth=2; g.beginPath(); g.moveTo(x+w*0.7,-10);
+      xx=x+w*0.7; for(let y=0;y<=H+20;y+=24){ xx+=rand(-5,5); g.lineTo(xx,y); } g.stroke(); }
+    /* Querrisse, Flechten und Koernung */
+    for(let i=0;i<140;i++){ g.fillStyle=`rgba(20,14,10,${rand(0.2,0.5)})`; g.fillRect(Math.random()*W,Math.random()*H,rand(6,22),rand(1,3)); }
+    for(let i=0;i<40;i++){ g.fillStyle=`rgba(${120+Math.random()*30|0},${130+Math.random()*30|0},${100+Math.random()*20|0},${rand(0.08,0.18)})`;
+      g.beginPath(); g.ellipse(Math.random()*W,Math.random()*H,rand(4,14),rand(3,10),0,0,Math.PI*2); g.fill(); }
+    for(let i=0;i<9000;i++){ const v=Math.random()<0.5?0:255; g.fillStyle=`rgba(${v},${v},${v},${Math.random()*0.07})`; g.fillRect(Math.random()*W,Math.random()*H,1,2); }
+  });
+  t.wrapS=t.wrapT=THREE.RepeatWrapping; t.anisotropy=8;
+  _baumMat=new THREE.MeshStandardMaterial({map:t,roughness:0.95,metalness:0});
+  _baumMat.onBeforeCompile=sh=>{
+    sh.vertexShader='attribute float schnee;\nvarying float vSchnee;\n'+sh.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\n  vSchnee=schnee;');
+    sh.fragmentShader='varying float vSchnee;\n'+sh.fragmentShader.replace('#include <map_fragment>','#include <map_fragment>\n  diffuseColor.rgb=mix(diffuseColor.rgb,vec3(0.80,0.84,0.90),vSchnee);');
+  };
+  return _baumMat;
+}
 function makeBaum(){
-  /* Echter Winterbaum: Wurzelanlauf, sich verjuengender Stamm mit
-     Neigung, drei Astordnungen mit abnehmendem Radius und Laenge,
-     feine Zweige an den Enden, Schnee auf den Oberseiten. */
-  const parts=[];
-  const RINDE=[0x4a3a2c,0x53422f,0x5c4a35,0x463728], SCHNEE=0xe8ecf2;
-  const tiefe=HIQ?4:2, SEG=HIQ?8:5;
-  let aeste=0;
-  /* Ein Segment von p in Richtung (dir) mit Laenge l und Radien r0/r1 */
-  const seg=(p,dir,l,r0,r1,col,knoten)=>{
-    const e={x:p.x+dir.x*l,y:p.y+dir.y*l,z:p.z+dir.z*l};
-    const m={x:(p.x+e.x)/2,y:(p.y+e.y)/2,z:(p.z+e.z)/2};
-    const len=Math.hypot(dir.x,dir.y,dir.z)*l;
-    /* Ausrichtung: der Zylinder zeigt in +y und wird um x und z
-       gekippt. Bei der Eulerfolge XYZ gilt R = Rz*Rx, angewandt auf
-       (0,1,0) ergibt das (-cos(rx)*sin(rz), cos(rx)*cos(rz), sin(rx)).
-       Beide Winkel hatten hier das falsche Vorzeichen: die Segmente
-       zeigten spiegelverkehrt, waehrend die Kinderaeste am richtig
-       gerechneten Endpunkt ansetzten - daher die Aeste, die frei im
-       Himmel hingen. */
-    const rz=-Math.atan2(dir.x,dir.y), rx=Math.atan2(dir.z,Math.hypot(dir.x,dir.y));
-    /* Dicke Teile runder aufloesen als duenne Zweige */
-    const rs=r0>0.12?(HIQ?12:7):r0>0.05?SEG:Math.max(4,SEG-3);
-    parts.push({geo:new THREE.CylinderGeometry(r1,r0,len,rs),
-      m:tm(m.x,m.y,m.z,rx,0,rz),color:col});
-    /* Knoten an der Gabelung. Der sass frueher auf r1*1,12 und war
-       damit breiter als der Ast - an jedem Gelenk ein Wulst, der
-       Stamm sah aus wie gestapelte Dosen. Jetzt schliesst er
-       buendig ab und kommt nur an echten Gabelungen. */
-    if(knoten&&r1>0.045) parts.push({geo:new THREE.SphereGeometry(r1*0.98,7,5),m:tm(e.x,e.y,e.z),color:col});
-    return e;
+  const V3=THREE.Vector3, Q=THREE.Quaternion, UP=new V3(0,1,0);
+  /* Parameter je Astordnung: 0 Stamm, 1 Hauptaeste, 2 Seitenaeste,
+     3 Zweige, 4 Feinreisig (nur HIQ) */
+  const L=HIQ?4:3;
+  const P={
+    kinder:[7,4,4,3], winkel:[52,42,38,34], start:[0.40,0.25,0.2,0.25],
+    laenge:[4.2,3.0,1.4,0.62,0.3], radius:[0.25,0.5,0.5,0.52,0.55],
+    ringe:[12,8,5,3,2], seg:[HIQ?14:9,HIQ?9:6,6,4,3], verj:[0.72,0.8,0.82,0.88,0.92],
+    krumm:[0.035,0.13,0.2,0.26,0.3], auf:[0,0.018,0.014,0.01,0.006]
   };
-  const norm=v=>{ const n=Math.hypot(v.x,v.y,v.z)||1; return {x:v.x/n,y:v.y/n,z:v.z/n}; };
-  const ast=(p,dir,l,r,d)=>{
-    aeste++;
-    const col=pick(RINDE);
-    /* Leichter Bogen: der Ast wird in zwei Teilen gesetzt */
-    const d1=norm({x:dir.x,y:dir.y,z:dir.z});
-    const e1=seg(p,d1,l*0.55,r,r*0.74,col);
-    const droop=d>0?-0.12:-0.03;
-    const d2=norm({x:d1.x*1.12+rand(-0.12,0.12),y:d1.y+droop,z:d1.z*1.12+rand(-0.12,0.12)});
-    const e2=seg(e1,d2,l*0.45,r*0.74,r*0.5,col,true);
-    /* Schneeauflage auf der Oberseite des Astes */
-    if(r>0.035) parts.push({geo:new THREE.CylinderGeometry(r*0.42,r*0.62,l*0.5,4),
-      m:tm((p.x+e1.x)/2,(p.y+e1.y)/2+r*0.7,(p.z+e1.z)/2,
-           Math.atan2(d1.z,Math.hypot(d1.x,d1.y)),0,-Math.atan2(d1.x,d1.y)),color:SCHNEE});
-    if(d<=0){
-      /* Feine Endzweige */
-      for(let k=0;k<5;k++){
-        const dz=norm({x:d2.x+rand(-0.6,0.6),y:d2.y+rand(-0.08,0.4),z:d2.z+rand(-0.6,0.6)});
-        const e3=seg(e2,dz,l*rand(0.24,0.42),r*0.5,r*0.14,col);
-        if(Math.random()<0.6){ const d4=norm({x:dz.x+rand(-0.5,0.5),y:dz.y+rand(-0.05,0.3),z:dz.z+rand(-0.5,0.5)});
-          seg(e3,d4,l*rand(0.14,0.24),r*0.14,r*0.05,col); }
+  const pos=[], nor=[], uv=[], sch=[], idx=[];
+  const ast=(o,q,len,r0,lv)=>{
+    const R=P.ringe[lv], S=P.seg[lv], verj=P.verj[lv];
+    const p=o.clone(), qq=q.clone(), rahmen=[];
+    const basis=pos.length/3; let v=0;
+    const umfang=Math.max(1,Math.round(2*Math.PI*r0/0.45));
+    for(let i=0;i<=R;i++){
+      const f=i/R;
+      let r=r0*(1-verj*f);
+      /* Wurzelanlauf: unten breiter, mit fuenf Rippen */
+      const flare=lv===0?Math.exp(-p.y*5.5):0;
+      for(let j=0;j<=S;j++){
+        const a=j/S*Math.PI*2;
+        const rr=r*(1+flare*(0.55+0.35*Math.sin(a*5+1.3)));
+        const d=new V3(Math.cos(a),0,Math.sin(a)).applyQuaternion(qq);
+        pos.push(p.x+d.x*rr,p.y+d.y*rr,p.z+d.z*rr); nor.push(d.x,d.y,d.z);
+        uv.push(j/S*umfang,v);
+        /* Schnee auf Oberseiten, nicht am Stamm unten */
+        const oben=Math.max(0,(d.y-0.35)/0.5);
+        sch.push(lv===0?0:Math.min(0.92,oben*oben*(lv>=3?0.6:0.95)*(p.y>1.8?1:0)));
       }
-      return;
+      rahmen.push({p:p.clone(),q:qq.clone(),r});
+      if(i<R){
+        const seglen=len/R;
+        p.add(new V3(0,seglen,0).applyQuaternion(qq)); v+=seglen/(2*Math.PI*Math.max(r0,0.04)*1.3);
+        /* krumm wachsen, etwas nach oben ziehen */
+        const k=P.krumm[lv]/Math.sqrt(Math.max(r,0.02)/0.2);
+        qq.multiply(new Q().setFromEuler(new THREE.Euler(rand(-k,k),rand(-k,k),rand(-k,k))));
+        const dir=new V3(0,1,0).applyQuaternion(qq);
+        const zu=new Q().setFromUnitVectors(dir,dir.clone().lerp(UP,P.auf[lv]).normalize());
+        qq.premultiply(zu);
+      }
     }
-    const n=2+(Math.random()<0.45?1:0);
+    for(let i=0;i<R;i++) for(let j=0;j<S;j++){
+      const a=basis+i*(S+1)+j, b=a+S+1;
+      idx.push(a,b,a+1, b,b+1,a+1);
+    }
+    if(lv>=L) return;
+    const n=P.kinder[lv]+(lv>0&&Math.random()<0.4?1:0);
+    const off=Math.random()*Math.PI*2;
     for(let k=0;k<n;k++){
-      const dz=norm({x:d2.x+rand(-0.75,0.75),y:d2.y+rand(0.05,0.45),z:d2.z+rand(-0.75,0.75)});
-      ast(e2,dz,l*rand(0.52,0.68),r*rand(0.46,0.6),d-1);
+      const t=P.start[lv]+(1-P.start[lv])*(n===1?0.5:k/(n-1))*rand(0.85,1);
+      const fi=Math.min(R-1,Math.floor(t*R)), fr=t*R-fi, A=rahmen[fi], B=rahmen[fi+1];
+      const o2=A.p.clone().lerp(B.p,fr), r2=A.r+(B.r-A.r)*fr;
+      const qp=A.q.clone().slerp(B.q,fr);
+      const um=off+k*2.39996+rand(-0.3,0.3);      /* goldener Winkel */
+      const w=(P.winkel[lv]+rand(-8,8))*Math.PI/180;
+      const qc=qp.clone().multiply(new Q().setFromEuler(new THREE.Euler(0,um,0))).multiply(new Q().setFromEuler(new THREE.Euler(0,0,w)));
+      const lk=P.laenge[lv+1]*(lv===0?(1.15-0.55*t):(1.2-0.6*t))*rand(0.85,1.15);
+      ast(o2,qc,lk,Math.min(r2*0.92,r2*P.radius[lv+1]*rand(0.9,1.1)),lv+1);
     }
+    /* Stamm und Hauptaeste laufen oben in einen Leittrieb aus */
+    if(lv<=1){ const E=rahmen[R]; ast(E.p.clone().sub(new V3(0,1,0).applyQuaternion(E.q).multiplyScalar(0.02)),E.q.clone(),P.laenge[lv+1]*0.8,E.r*1.05,lv+1); }
   };
-  /* Wurzelanlauf */
-  /* Wurzelanlauf: mehr und flachere Rippen, die im Stamm verlaufen -
-     vorher sassen sieben dicke Kegel wie ein Kragen aussen herum. */
-  for(let i=0;i<11;i++){ const a=i/11*Math.PI*2+rand(-0.12,0.12), hh=rand(0.34,0.52);
-    parts.push({geo:new THREE.CylinderGeometry(0.02,0.085,hh,5),
-      m:tm(Math.cos(a)*0.13,hh*0.42,Math.sin(a)*0.13,0.5*Math.sin(a+Math.PI/2),0,-0.5*Math.cos(a+Math.PI/2)),color:RINDE[3]}); }
-  /* Stamm. Vorher vier Abschnitte, die je ein Fuenftel duenner
-     wurden - bei so grossen Spruengen sieht man jede Schulter.
-     Jetzt sieben kurze Abschnitte, die sich nur wenig verjuengen
-     und kaum versetzt sind: ein durchgehender Kegel. */
-  let p={x:0,y:0,z:0}, r=0.23;
-  const gabeln=[];
-  for(let i=0;i<7;i++){
-    const h=rand(0.44,0.56), nr=r*rand(0.89,0.94);
-    const d=norm({x:rand(-0.05,0.05),y:1,z:rand(-0.05,0.05)});
-    p=seg(p,d,h,r,nr,RINDE[i%2]);
-    r=nr;
-    if(i>=3) gabeln.push({p:{x:p.x,y:p.y,z:p.z},r});
-  }
-  /* Krone: Hauptaeste aus den oberen Gabelungen */
-  const n=HIQ?6:4;
-  for(let i=0;i<n;i++){
-    const gsel=gabeln[Math.min(gabeln.length-1,Math.floor(i/n*gabeln.length))];
-    const a=i/n*Math.PI*2+rand(-0.4,0.4), auf=rand(0.55,1.05);
-    ast(gsel.p,norm({x:Math.cos(a),y:auf,z:Math.sin(a)}),rand(1.0,1.5),gsel.r*rand(0.5,0.68),tiefe-1);
-  }
-  /* Spitze */
-  ast(p,norm({x:rand(-0.15,0.15),y:1,z:rand(-0.15,0.15)}),rand(0.8,1.1),r*0.8,tiefe-1);
-  const m=new THREE.Mesh(merge(parts),vcMat); if(HIQ) m.castShadow=true; return m;
+  ast(new V3(0,-0.05,0),new Q().setFromEuler(new THREE.Euler(rand(-0.03,0.03),0,rand(-0.03,0.03))),P.laenge[0],P.radius[0],0);
+  const geo=new THREE.BufferGeometry();
+  geo.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));
+  geo.setAttribute('normal',new THREE.Float32BufferAttribute(nor,3));
+  geo.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));
+  geo.setAttribute('schnee',new THREE.Float32BufferAttribute(sch,1));
+  geo.setIndex(idx);
+  const m=new THREE.Mesh(geo,baumMat()); if(HIQ){ m.castShadow=true; m.receiveShadow=true; }
+  m.userData.dreiecke=idx.length/3;
+  return m;
 }
 /* =========================================================
    Nachbargrundstueck rechts vom Laden: gleiche Fassade wie der
@@ -915,9 +938,11 @@ function buildStreet(){
      Halter im Poller. */
   buildMuelleimer(-3.1,7.55,0.4); buildMuelleimer(6.7,7.55,-0.3);
   // Bäume und Stadtmöbel auf unserer Seite
-  for(const bx of (COARSE?[-16.5,13]:[-16.5,-11,13])){ const b=makeBaum(); b.position.set(bx,0,10.4); b.scale.setScalar(rand(0.9,1.2)); scene.add(b);
-    const ring=new THREE.Mesh(new THREE.TorusGeometry(0.55,0.06,6,14),std(0x3a3d44)); ring.rotation.x=Math.PI/2; ring.position.set(bx,0.06,10.4); scene.add(ring);
-    col(bx-0.3,bx+0.3,10.1,10.7); }
+  /* Der mittlere Baum stand bei x -11 genau in der Laterne - der
+     Mast lief durch die Krone. Jetzt zwischen zwei Laternen. */
+  for(const bx of (COARSE?[-16.5,13]:[-16.5,-7.5,13])){ const b=makeBaum(); b.position.set(bx,0,10.4); b.scale.setScalar(rand(0.9,1.2)); scene.add(b);
+    const ring=new THREE.Mesh(new THREE.TorusGeometry(0.75,0.06,6,18),std(0x3a3d44)); ring.rotation.x=Math.PI/2; ring.position.set(bx,0.06,10.4); scene.add(ring);
+    col(bx-0.42,bx+0.42,9.98,10.82); b.userData.baum=true; }
   /* Hier stand noch ein Kasten als Platzhalter-Muelleimer neben der
      Laterne - die echten Muelleimer stehen am Laden. Weg damit. */
 }

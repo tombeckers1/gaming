@@ -814,7 +814,11 @@ function lapZeichnen(body){
       if(kind==='wall'&&w.pat) bg=`repeating-linear-gradient(${w.pat==='raute'?'45deg':w.pat==='holz'?'90deg':'0deg'},${w.pat2} 0 3px,${w.up} 3px 8px)`;
       if(kind==='floor'&&w.check) bg=`repeating-conic-gradient(${w.a} 0 25%,${w.b} 0 50%) 0 0/16px 16px`;
       if(kind==='floor'&&w.wood) bg=`repeating-linear-gradient(90deg,${w.a} 0 6px,${w.b} 6px 12px)`;
-      return `<button class="sw${own?' on':''}" title="${w.name}${w.cost?' · '+eur(w.cost):' · frei'}${S.level<w.lvl?' (ab Lvl '+w.lvl+')':''}" data-a="${kind}" data-t="${w.id}" style="background:${bg}" ${lock?'disabled':''}></button>`; }).join('');
+      /* Preis steht auf der Kachel: vorher nur im Tooltip, am Handy
+         also unsichtbar - und der Klick ohne genug Geld tat nichts. */
+      const hat=!w.cost||(S.paint||[]).indexOf(w.id)>=0, arm=!hat&&S.money<w.cost;
+      const pz=lock?`ab Lvl ${w.lvl}`:hat?'✓':Math.round(w.cost)+' €';
+      return `<button class="sw dk${own?' on':''}${arm?' arm':''}" title="${w.name}${w.cost?' · '+eur(w.cost):' · frei'}${S.level<w.lvl?' (ab Lvl '+w.lvl+')':''}" data-a="${kind}" data-t="${w.id}" style="background:${bg}" ${lock?'disabled':''}><span class="pz${hat?' ok':''}">${pz}</span></button>`; }).join('');
     const wNow=WALLS.find(w=>w.id===S.wall)||WALLS[0], fNow=FLOORS.find(f=>f.id===S.floor)||FLOORS[0];
     /* Regalschilder: die Muster zeigen immer die Kombination aus
        Hintergrund und Schrift, damit man sieht, was man bekommt. */
@@ -1057,7 +1061,7 @@ function buyDeko(id){
 }
 function setWall(id){ const w=WALLS.find(x=>x.id===id); if(!w||S.level<w.lvl||S.wall===id) return;
   const paid=(S.paint||[]).indexOf(id)>=0;
-  if(!paid&&w.cost){ if(S.money<w.cost) return; S.money=r2(S.money-w.cost); DS.upgrades=r2(DS.upgrades+w.cost); S.paint=(S.paint||[]).concat(id); }
+  if(!paid&&w.cost){ if(S.money<w.cost){ toast(`Zu wenig Geld: ${w.name} kostet ${eur(w.cost)}, du hast ${eur(S.money)}.`); return; } S.money=r2(S.money-w.cost); DS.upgrades=r2(DS.upgrades+w.cost); S.paint=(S.paint||[]).concat(id); }
   S.wall=id; repaint(); sfx.pop(); toast(`Wände neu gestrichen: ${w.name}.`); save(); }
 function setSchild(kind,id){
   const liste=kind==='schildbg'?SCHILDBG:SCHILDFG;
@@ -1070,7 +1074,7 @@ function setSchild(kind,id){
 }
 function setFloor(id){ const f=FLOORS.find(x=>x.id===id); if(!f||S.level<f.lvl||S.floor===id) return;
   const paid=(S.paint||[]).indexOf(id)>=0;
-  if(!paid&&f.cost){ if(S.money<f.cost) return; S.money=r2(S.money-f.cost); DS.upgrades=r2(DS.upgrades+f.cost); S.paint=(S.paint||[]).concat(id); }
+  if(!paid&&f.cost){ if(S.money<f.cost){ toast(`Zu wenig Geld: ${f.name} kostet ${eur(f.cost)}, du hast ${eur(S.money)}.`); return; } S.money=r2(S.money-f.cost); DS.upgrades=r2(DS.upgrades+f.cost); S.paint=(S.paint||[]).concat(id); }
   S.floor=id; repaint(); sfx.pop(); toast(`Neuer Boden: ${f.name}.`); save(); }
 /* =========================================================
    Maske fuer die eigene Rezeptur

@@ -42,11 +42,14 @@ function localToWorld(g,x,z){ const s=Math.sin(g.rotation.y), c=Math.cos(g.rotat
    ========================================================= */
 const BELT_A=1.45, BELT_B=0.12, BELT_Y=0.972;
 let ckG=null, ckMov=null, ckNameTex=null;
+const CK_BLENDE='#d3d6da';
 function drawCkName(g,W,H){
-  g.fillStyle='#27365c'; g.fillRect(0,0,W,H);
-  g.fillStyle='#ffd23f'; g.textAlign='center'; g.textBaseline='middle';
-  fitFont(g,shopName().toUpperCase(),W-60,85,BUN);
-  g.fillText(shopName().toUpperCase(),W/2,H/2+4);
+  /* Neutral wie im Supermarkt (Tom, 24.09.): Schrift in Anthrazit auf
+     der hellen Blende, passt zu jeder Wandfarbe. Vorher gelb auf Blau. */
+  g.fillStyle=CK_BLENDE; g.fillRect(0,0,W,H);
+  g.fillStyle='#2b2f36'; g.textAlign='center'; g.textBaseline='middle';
+  fitFont(g,shopName().toUpperCase(),W-160,72,BUN);
+  g.fillText(shopName().toUpperCase(),W/2,H/2+3);
 }
 /* Nach einer Umbenennung Schild und Kassenblende neu zeichnen */
 function applyShopName(){
@@ -59,13 +62,15 @@ function buildCheckout(){
   /* Die Kasse steht in der Starthaelfte, nah an der Lagertuer -
      der kurze Weg vom Regal zum Nachfuellen und zurueck. */
   ckG=new THREE.Group(); ckG.position.set(-5,0,3.2); scene.add(ckG);
-  const corpus=std(0x1e2a4a,{roughness:0.62}),
-        panel=std(0x27365c,{roughness:0.55}),
+  /* Aussen neutral: Korpus Anthrazit, Blende hellgrau, Zierleiste
+     Edelstahl. Vorher Marineblau mit roter Leiste und gelber Schrift. */
+  const corpus=std(0x2b2e34,{roughness:0.48,metalness:0.12}),
+        panel=std(parseInt(CK_BLENDE.slice(1),16),{roughness:0.34,metalness:0.03}),
         laminat=std(0xd6dae2,{roughness:0.38,metalness:0.05}),
         steel=std(0xb8bec8,{metalness:0.72,roughness:0.28}),
         dark=std(0x14171f,{roughness:0.5}),
         rubber=std(0x1c1d22,{roughness:0.95}),
-        accent=std(0xc8322a,{roughness:0.5});
+        accent=std(0xc9ced6,{metalness:0.85,roughness:0.22});
   /* Korpus mit Sockelrücksprung */
   const c=rbox(3.2,0.74,0.8,0.02,corpus,0,0.5,0,ckG); occluders.push(c);
   bbox(3.08,0.14,0.68,dark,0,0.07,0,ckG);
@@ -74,7 +79,7 @@ function buildCheckout(){
   bbox(3.12,0.5,0.03,panel,0,0.56,0.405,ckG,false);
   bbox(3.14,0.045,0.035,accent,0,0.82,0.408,ckG,false);
   ckNameTex=tex(1000,136,(g,W,H)=>drawCkName(g,W,H));
-  plane(1.5,0.2,new THREE.MeshStandardMaterial({roughness:0.5,map:ckNameTex}),0.55,0.55,0.423,0,ckG);
+  plane(1.5,0.2,new THREE.MeshStandardMaterial({roughness:0.34,metalness:0.03,map:ckNameTex}),0.55,0.6,0.423,0,ckG);
   /* Arbeitsplatte mit gerundeter Vorderkante */
   bbox(3.34,0.05,0.86,laminat,0,0.925,0,ckG);
   const edge=new THREE.Mesh(new THREE.CylinderGeometry(0.026,0.026,3.34,12),laminat);
@@ -217,11 +222,11 @@ function sbScreenTex(){
   });
 }
 function sbTerminal(parent,x,z){
-  const korpus=std(0x20283c,{roughness:0.58}),
+  const korpus=std(0x2b2e34,{roughness:0.48,metalness:0.12}),
         blende=std(0xe4e8ef,{roughness:0.42,metalness:0.06}),
         stahl=std(0xb4bac4,{metalness:0.7,roughness:0.3}),
         dunkel=std(0x14171f,{roughness:0.5}),
-        akzent=std(0xc8322a,{roughness:0.5});
+        akzent=std(0xc9ced6,{metalness:0.85,roughness:0.22});
   const g=new THREE.Group(); g.position.set(x,0,z); parent.add(g);
   /* Sockel und Korpus */
   bbox(0.72,0.1,0.62,dunkel,0,0.05,0,g,false);

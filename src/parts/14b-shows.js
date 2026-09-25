@@ -226,18 +226,15 @@ const RAKETEN_KL={
   pfeifraketen:{n:10,gap:0.5, sz:0.8, pw:-3,th:'wald',gruppe:2,pfeif:true,eff:['knister','spektrum','fische','goldglitzer','strobe','tausend']},
   raketengold :{n:5, gap:1.1, sz:1.25,pw:1, th:'gold',eff:['goldglitzer','kronleuchter','brokat','goldglitzer','zeitregen']},
   titanraketen:{n:3, gap:1.7, sz:1.55,pw:5, th:'eis',dick:1,eff:['titan']},
+  /* Einzelraketen (Toms PDF vom 25.09.): ein Schuss, ein Bruch, keine
+     Nachladung. Die Krone knisterte vorher 1,7 s spaeter noch einmal,
+     die Himmelsleiter schoss Kometen in drei Stufen weiter hoch. */
   /* Jumbo »Goldene Krone«: eine dicke Goldrakete, die Palme endet in
-     farbigen Juwelen, zum Schluss knistert es */
-  jumbogold  :{n:1, gap:0, sz:2.0, pw:8, fuse:1.35, th:'koenig',dick:2,trail:'gold',eff:['sternpalme'],
-    stufen:(A,B)=>[{t:1.7,eff:'tausend',sz:1.0,streu:1.2,A:FW.weiss,B:FW.gold}]},
-  /* Jumbo »Himmelsleiter«: drei Brueche uebereinander, ein Komet
-     traegt die Rakete jeweils eine Stufe hoeher - jede groesser */
-  jumboleiter:{n:1, gap:0, sz:0.9, pw:0, th:'nacht',dick:2,trail:'weiss',eff:['pistill'],
-    stufen:(A,B)=>[{t:0.02,eff:'steigkomet',sz:1,off:[0,0,0],leise:true},
-      {t:LEITER_T+0.02,eff:'dahlie',sz:1.25,off:[0,LEITER_STUFE,0],A:B,B:A},
-      {t:LEITER_T+0.04,eff:'steigkomet',sz:1,off:[0,LEITER_STUFE,0],leise:true},
-      {t:2*LEITER_T+0.04,eff:'glitzerweide',sz:2.0,off:[0,2*LEITER_STUFE,0],A:FW.gold,B:FW.weiss},
-      {t:2*LEITER_T+0.9,eff:'tausend',sz:1.1,off:[0,2*LEITER_STUFE-3,0],A:FW.weiss,B:FW.weiss}]},
+     farbigen Juwelen */
+  jumbogold  :{n:1, gap:0, sz:2.2, pw:8, fuse:1.35, th:'koenig',dick:2,trail:'gold',eff:['sternpalme']},
+  /* Jumbo »Polarstern«: noch hoeher, eine riesige Kugel mit einem
+     achtzackigen Stern darin (Schluessel bleibt fuer alte Staende) */
+  jumboleiter:{n:1, gap:0, sz:2.3, pw:10, fuse:1.4, th:'nacht',dick:2,trail:'weiss',eff:['polarstern']},
   gravur      :{n:1, gap:0.45,sz:1.3, pw:4, eff:['herz']},
   blanko      :{n:3, gap:0.45,sz:0.95,pw:0, eff:null}
 };
@@ -282,46 +279,37 @@ function igniteType(t,o0){
     kugelbombe(o,kal);
     return;
   }
-  /* ----- Riesenfontaenen ----- */
+  /* ----- Riesenfontaenen -----
+     Fontaene ist Fontaene (Toms PDF vom 25.09.): aus keiner Fontaene
+     steigt mehr eine Ladung, ein Komet oder eine Rakete. Vorher warfen
+     Geysir, Feuersaeule, Feuerbrunnen, Vulkan, Sternenbrunnen und das
+     Fontaenen-Set zum Schluss noch Kometen mit Bluete aus. */
   if(t==='goldgeysir'||t==='feuersaeule'){
     const gross=t==='feuersaeule', dauer=gross?28:20;
     const e={t:dauer,k:'riesen',o,h:gross?1.35:1,A:FW.gold,B:FW.weiss};
     emitters.push(e);
     /* die Feuersaeule wechselt alle paar Sekunden die Farbe */
     if(gross) for(let i=1;i<6;i++) later(i*dauer/6,()=>{ const [A,B]=scheme(); e.A=A; e.B=FW.gold; e.C=B; });
-    /* zum Schluss steigen aus der Fontaene Kometen mit Bluete auf */
-    const n=gross?7:4;
-    for(let i=0;i<n;i++) later(dauer-1.8+i*0.22,()=>shot(o,{pw:gross?3:-2,sz:gross?1.35:1.0,
-      eff:(gross?['palme','glitzerweide','kronleuchter','mehrring','titan','kronleuchter','palme']:['palme','chrys','palme','chrys'])[i],
-      ...(([A,B])=>({A,B}))(themaPaar(gross?'glut':'gold',0)),ang:rand(-0.25,0.25),trail:FW.gold}));
     return;
   }
-  /* ----- Feuerbrunnen (neu, 24.09.): Flammenfontaene, die in Stoessen
-     grosse Flammenbaelle wirft; zum Schluss zwei Flammenregen darueber */
+  /* Monsterfontaenen: 30 m mit fuenf Farben, 50 m im vollen Regenbogen
+     mit Farbwechsel - kurz und gewaltig statt lang */
+  if(t==='fontaene30'){ monsterFontaene(o,30,12,['rot','gold','gruen','tuerkis','violett']); return; }
+  if(t==='fontaene50'){ monsterFontaene(o,50,14,['rot','orange','zitrone','gruen','tuerkis','blau','violett','magenta'],true); return; }
+  /* ----- Feuerbrunnen: Flammenfontaene, die in Stoessen grosse
+     Flammenbaelle wirft ----- */
   if(t==='feuerbrunnen'){
-    const e={t:16,k:'feuerbrunnen',o,h:1};
-    emitters.push(e); sfx.fizz(distVol(o));
-    for(let i=0;i<2;i++) later(16.2+i*0.7,()=>shot(o,{pw:-3,sz:0.95,eff:'flammenregen',A:FW.orange,B:FW.gold,fuse:1.2,trail:FW.orange}));
+    emitters.push({t:16,k:'feuerbrunnen',o,h:1}); sfx.fizz(distVol(o));
     return;
   }
-  /* ----- Sternenbrunnen: Fontaene, Komet, Bluete ----- */
+  /* ----- Sternenbrunnen: Goldfontaene, in der farbige Sterne steigen ----- */
   if(t==='sternenbrunnen'){
     const [A,B]=scheme(), v=distVol(o);
-    /* erst die Fontaene, die den Blick nach oben zieht */
-    emitters.push({t:3.4,k:'fountain',o,A:FW.gold,B:A});
-    sfx.fizz(v); later(1.6,()=>sfx.fizz(v));
-    /* dann schnuert sie sich zu einem Kometen zusammen */
-    later(3.0,()=>{
-      for(let i=0;i<Math.round(120*QUAL());i++){
-        const a=Math.random()*Math.PI*2, w=rand(0.1,0.7);
-        psMid.emit(o.x,o.y+0.3,o.z,Math.cos(a)*w,rand(11,17),Math.sin(a)*w,1,.86,.4,rand(0.6,1.1),5,4);
-      }
-      sfx.whistle(v);
-    });
-    later(3.4,()=>{
-      /* Level 12: eine Bluete, aber noch keine Profihoehe */
-      shot(o,{pw:-2,sz:1.0,eff:pick(['chrys','geist','saturn','wechsel']),A,B,fuse:1.35,dick:1,trail:FW.gold});
-    });
+    emitters.push({t:5,k:'fountain',o,A:FW.gold,B:A});
+    for(let i=0;i<5;i++) later(0.4+i*0.9,()=>{ const c=i%2?B:A;
+      for(let k=0;k<Math.round(26*QUAL());k++){ const a=Math.random()*Math.PI*2, w=rand(0.2,1.1);
+        psBig.emit(o.x,o.y+0.3,o.z,Math.cos(a)*w,rand(8,11),Math.sin(a)*w,c[0],c[1],c[2],rand(1.2,1.7),6,0); } });
+    sfx.fizz(v); later(1.6,()=>sfx.fizz(v)); later(3.2,()=>sfx.fizz(v));
     return;
   }
   /* ----- Schabernack-Edition ----- */
@@ -336,19 +324,6 @@ function igniteType(t,o0){
         shot(o,{pw:-4,sz:1.5,eff:'furz',A:FW.braun,B:FW.sumpf,fuse:1.55,trail:FW.braun});
         later(2.0,()=>{ sfx.furz(Math.min(1.5,v*1.3)); shake=Math.max(shake,0.5*v); });
       });
-    });
-    return;
-  }
-  if(t==='heuler'){
-    const v=distVol(o);
-    for(let i=0;i<4;i++) later(i*0.9,()=>{
-      sfx.heul(v);
-      const x=o.x+rand(-1.2,1.2), z=o.z+rand(-1.2,1.2);
-      const c=K(pick(['tuerkis','magenta','zitrone','limette']));
-      /* aufsteigende Spirale */
-      for(let k=0;k<70;k++){ const a=k*0.4, r=0.2+k*0.02;
-        psMid.emit(x+Math.cos(a)*r,0.2+k*0.05,z+Math.sin(a)*r,Math.cos(a)*1.4,rand(2,4),Math.sin(a)*1.4,c[0],c[1],c[2],rand(0.7,1.4),3.2); }
-      later(1.4,()=>{ smallPop(x,3.4,z,90,7,0.6,c); sfx.crack(v); });
     });
     return;
   }
@@ -369,22 +344,36 @@ function igniteType(t,o0){
     emitters.push({t:22,k:'wasserfall',o,A:FW.gold,B:FW.zitrone});
     sfx.fizz(distVol(o)); for(let i=1;i<8;i++) later(i*3,()=>sfx.fizz(distVol(o)));
   }
+  /* Boeller (Toms PDF vom 25.09.): Furz, Monster, Atombombe */
+  else if(t==='boeller'){
+    emitters.push({t:1.2,k:'fuse',o});
+    later(1.2,()=>{ const v=distVol(o), yb=o.y!==undefined?o.y:0.4;
+      smallPop(o.x,yb,o.z,36,4,0.5,FW.senf);
+      flash({x:o.x,y:yb+0.4,z:o.z},FW.sumpf,1.1,0.3);
+      /* braune Spritzer, die kurz hochfliegen und zurueckfallen */
+      for(let i=0;i<Math.round(60*QUAL());i++){ const a=Math.random()*Math.PI*2, w=rand(0.5,2.2), c=i%3?FW.braun:FW.sumpf;
+        psMid.emit(o.x,yb+0.1,o.z,Math.cos(a)*w,rand(2,5),Math.sin(a)*w,c[0],c[1],c[2],rand(0.9,1.6),7,0); }
+      sfx.pups(v); furzwolke({x:o.x,y:yb,z:o.z});
+      shake=Math.max(shake,0.25*v); });
+  }
+  else if(t==='monsterboeller'){
+    emitters.push({t:1.5,k:'fuse',o});
+    later(1.5,()=>monsterknall({x:o.x,y:o.y!==undefined?o.y:0.4,z:o.z}));
+  }
+  else if(t==='atomboeller'){
+    /* Die Zuendschnur brennt etwas laenger, dann steigt die Bombe mit
+       dicker Glutspur auf und geht auf rund 25 m als Pilz auf. Sie
+       steigt leicht schraeg vom Pult weg: der Pilz wird ueber 40 m
+       breit und hoch, und erst aus gut 20 m Abstand passt er ganz
+       ins Bild. */
+    emitters.push({t:1.8,k:'fuse',o});
+    later(1.8,()=>shot(o,{pw:2,sz:1,eff:'atom',fuse:2.2,dick:2,trail:FW.orange,A:FW.orange,B:FW.gold,ang:0.36,dir:Math.PI}));
+  }
   else if(sh==='tubepack'){
-    const KL={boeller:1,knallfrosch:0.8,kanonen:1.5,doppelschlag:1.5,grossboeller:1.3,sprengmeister:2.1,xxlpolen:3.0}[t]||1;
     emitters.push({t:1.4,k:'fuse',o});
-    later(1.4,()=>{
-      const v=distVol(o);
-      const yb=o.y!==undefined?o.y:0.4;
-      smallPop(o.x,yb,o.z,Math.round(60*KL+40),6*KL+2,0.6,KL>=2?FW.weiss:undefined);
-      sfx.boom(Math.min(1.6,v*KL)); shake=Math.max(shake,Math.min(1.6,0.45*KL)*v);
-      flash({x:o.x,y:yb+0.4,z:o.z},KL>=2?FW.weiss:FW.bernstein,1.2*KL,0.3);
-      if(KL>=2){ /* Druckwelle: Staub und Funkenkranz am Boden */
-        for(let i=0;i<Math.round(90*KL);i++){ const a2=Math.random()*Math.PI*2, sp=rand(3,9)*KL;
-          psMid.emit(o.x,0.14,o.z,Math.cos(a2)*sp,rand(0.2,2.2),Math.sin(a2)*sp,0.9,0.86,0.8,rand(0.5,1.3),3.5,4); }
-        later(0.06,()=>sfx.boom(Math.min(1.5,v*KL*0.7)));
-        later(0.35,()=>{ sfx.crack(v*0.8); }); }
-      if(t==='doppelschlag') later(0.5,()=>{ smallPop(o.x,yb,o.z,110,9,0.6); sfx.boom(v*1.3); shake=Math.max(shake,0.7*v); flash({x:o.x,y:yb+0.4,z:o.z},FW.bernstein,1.8,0.3); });
-    });
+    later(1.4,()=>{ const v=distVol(o), yb=o.y!==undefined?o.y:0.4;
+      smallPop(o.x,yb,o.z,100,8,0.6); sfx.boom(v); shake=Math.max(shake,0.45*v);
+      flash({x:o.x,y:yb+0.4,z:o.z},FW.bernstein,1.2,0.3); });
   }
   else if(t==='tisch'){
     sfx.crack(distVol(o));
@@ -395,17 +384,14 @@ function igniteType(t,o0){
     const [A,B]=scheme();
     emitters.push({t:12,k:'volcano',o,A:FW.gold,B});
     sfx.fizz(distVol(o)); for(let i=1;i<6;i++) later(i*2,()=>sfx.fizz(distVol(o)));
-    later(12,()=>{ mine(o,A,B,1.4); smallPop(o.x,0.6,o.z,90,8,0.7,A); sfx.boom(distVol(o));
-      /* der Vulkan wirft zum Schluss einen Kometen mit Bluete aus */
-      later(0.25,()=>shot(o,{pw:-3,sz:0.9,eff:pick(['chrys','saturn','wechsel']),A,B,fuse:1.2})); });
+    /* zum Schluss bricht er noch einmal auf - ohne Ladung */
+    later(9,()=>emitters.push({t:3,k:'volcano',o,A:B,B:FW.weiss}));
   }
   else if(sh==='fountainset'){
     const [A,B]=scheme();
     emitters.push({t:8,k:'fountain',o,A:FW.gold,B:A});
     sfx.fizz(distVol(o)); later(2.5,()=>sfx.fizz(distVol(o)));
     later(5,()=>{ emitters.push({t:5,k:'fountain',o,A:B,B:FW.weiss}); sfx.fizz(distVol(o)); });
-    /* zum Abschluss steigt aus jeder Fontaene noch ein Komet auf */
-    for(let i=0;i<3;i++) later(9.6+i*0.4,()=>shot(o,{pw:-6,sz:0.7,eff:pick(['kugel','knister','strobe']),fuse:0.95}));
   }
   else if(sh==='rocketset'){
     const KL=RAKETEN_KL[t]||{n:3,gap:0.45,sz:0.95,pw:0,eff:null};
@@ -414,9 +400,8 @@ function igniteType(t,o0){
       shot(o,{pw:KL.pw,sz:KL.sz,eff:KL.eff?KL.eff[i%KL.eff.length]:pick(EFF_GROSS),
         ...(AB?{A:AB[0],B:AB[1]}:{sc:-1}),
         pfeif:KL.pfeif,dick:KL.dick,trail:KL.trail?FW[KL.trail]:KL.dick?FW.weiss:undefined,fuse:KL.fuse,
-        /* Jumbos: eigene Nachbrueche; Titan: jede Rakete bricht dreifach */
-        stufen:KL.stufen?KL.stufen(AB?AB[0]:FW.gold,AB?AB[1]:FW.weiss,i)
-          :t==='titanraketen'?[{t:0.5,eff:pick(['mehrring','pistill','dahlie']),sz:1.0,streu:5},{t:1.0,eff:'salut',sz:0.8,streu:3}]:null}); });
+        /* ein Schuss, ein Bruch - keine Nachbrueche mehr (Toms PDF vom 25.09.) */
+        stufen:null}); });
   }
   else if(sh==='battery'||sh==='fan'){
     /* Verbundfeuerwerk: Kaliber, Takt und Effektauswahl wachsen mit

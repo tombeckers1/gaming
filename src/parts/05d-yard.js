@@ -217,7 +217,7 @@ function buildYard(){
     }
     for(const sz of [-0.5,0.5]) bbox(2.24,0.07,0.07,stahl,0,0.68,sz,g,false);
     /* Rohrschellen: je zwei Halbschalen mit Schraube */
-    const kalX=[-0.72,0,0.78], kalR=[0.115,0.145,0.185];
+    const kalX=[-0.72,0,0.78], kalR=MOERSER_R;
     kalX.forEach((x,i)=>{ for(const y of [0.42,0.66]){
       const sch=new THREE.Mesh(new THREE.TorusGeometry(kalR[i]+0.03,0.026,6,18),stahl);
       sch.rotation.x=Math.PI/2; sch.position.set(x,y,0); g.add(sch);
@@ -230,7 +230,7 @@ function buildYard(){
         bbox(0.2,0.04,0.2,stahl,sx,0.02,sz,g,false); }
     }
     /* drei Rohre in aufsteigendem Kaliber */
-    const kal=[[-0.72,0.115,1.30],[0,0.145,1.55],[0.78,0.185,1.85]];
+    const kal=[[-0.72,MOERSER_R[0],1.30],[0,MOERSER_R[1],1.55],[0.78,MOERSER_R[2],1.85]];
     kal.forEach(([x,r,hh],i)=>{
       const t=new THREE.Mesh(new THREE.CylinderGeometry(r,r,hh,22,1,true),rohrM);
       t.material.side=THREE.DoubleSide; t.position.set(x,0.18+hh/2,0);
@@ -570,17 +570,25 @@ function raketeModell(t){
   return g;
 }
 /* Kugelbombe im Rohr mit Zuendschnur ueber den Rand */
-const KUGEL_R={kugel75:0.042,kugel100:0.058,kugel150:0.08,kugel200:0.1,kugel300:0.15};
-const MOERSER_R=[0.115,0.145,0.185];
-/* Jede Kugel hat ihr Rohr (Tom, 24.09.): klein 75-100 mm, mittel
-   150 mm, gross 200-300 mm. Vorher kam jede Kugel ins erste freie
-   Rohr - die grosse Kugel steckte mit Zuendschnur im kleinsten. */
-const ROHR_KALIBER=['75–100 mm','150 mm','200–300 mm'], ROHR_NAME=['kleine Rohr','mittlere Rohr','große Rohr'];
+/* Kugeln in echter Groesse: Kaliber plus Papierhuelle (Radius in m) */
+const KUGEL_R={kugel75:0.041,kugel100:0.053,kugel150:0.078,kugel200:0.103,kugel300:0.153};
+/* Rohre passend zur groessten Kugel, die hineingehoert, mit einem
+   halben Zentimeter Luft (Toms PDF vom 25.09.: "Kugelbomben groesse
+   muss zu den rohren passen"). Vorher waren die Rohre innen 21, 26
+   und 33 cm weit - die 75er-Kugel lag im kleinen Rohr wie eine Murmel
+   im Eimer. ROHR_INNEN ist die lichte Weite, MOERSER_R der Aussen-
+   radius (Wand 10 %). */
+const ROHR_INNEN=[0.056,0.106,0.158];
+const MOERSER_R=ROHR_INNEN.map(r=>+(r/0.9).toFixed(4));
+/* Jede Kugel hat ihr Rohr: klein 75-100 mm, mittel 150-200 mm, gross
+   300 mm. Vorher lag die 200er im grossen Rohr und hatte dort 5 cm
+   Luft zu jeder Seite. */
+const ROHR_KALIBER=['75–100 mm','150–200 mm','300 mm'], ROHR_NAME=['kleine Rohr','mittlere Rohr','große Rohr'];
 function moerserRohr(t){ const p=P[t]; const k=p&&p.rezept?p.rezept.traeger:t;
-  return {kugel75:0,kugel100:0,kugel150:1,kugel200:2,kugel300:2}[k]||0; }
+  return {kugel75:0,kugel100:0,kugel150:1,kugel200:1,kugel300:2}[k]||0; }
 function kugelModell(t,slot){
   /* passt nicht jede Kugel in jedes Rohr - dann eben knapp unter die Innenweite */
-  const g=new THREE.Group(), rr=MOERSER_R[slot%3]*0.9, rk=Math.min(KUGEL_R[t]||0.06,rr*0.92);
+  const g=new THREE.Group(), rr=ROHR_INNEN[slot%3], rk=Math.min(KUGEL_R[t]||0.06,rr*0.97);
   const papier=std(0xb58a55,{roughness:0.95});
   const kugel=new THREE.Mesh(new THREE.SphereGeometry(rk,HIQ?16:10,HIQ?12:8),papier);
   kugel.position.y=-0.14-rk; g.add(kugel);
@@ -665,7 +673,7 @@ function brennDauer(t){
   const p=P[t]; if(!p) return 3;
   if(typeof SHOWS!=='undefined'&&SHOWS[t]) return 0.8+showLength(t)+1.5;
   const fest={wunder:5,knallerbsen:2.2,knallfrosch:2.8,tisch:3,schwaermer:3.8,vulkan:14,wasserfall:23,
-    sternenbrunnen:6,fontaene:12,goldgeysir:22,feuerbrunnen:19,feuersaeule:30,furzrakete:6,heuler:5};
+    sternenbrunnen:6,fontaene:12,goldgeysir:22,feuerbrunnen:19,feuersaeule:30,fontaene30:13,fontaene50:15,furzrakete:6,boeller:5,monsterboeller:4,atomboeller:6};
   if(fest[t]) return fest[t];
   if(p.rezept) return 7;
   const sh=p.shape;

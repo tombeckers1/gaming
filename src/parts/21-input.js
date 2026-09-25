@@ -121,8 +121,8 @@ function tutKnopf(){ const b=$('pTut'); if(b) b.textContent=tutorialAn()?'Tutori
 function showPause(){ if(overlayOpen()) return; renderSteuer(); musikAnzeige(); tutKnopf(); pauseOpen=true; paused=true; for(const k in keys) keys[k]=false; mouseDown=false; $('pause').classList.add('show'); }
 function closePause(){ if(!pauseOpen) return; pauseOpen=false; paused=false; $('pause').classList.remove('show'); requestLock(); }
 $('pBtn').addEventListener('click',()=>closePause());
-/* Musik: Knopf im Bild (auch am Handy) und Regler im Pausenmenue */
-$('musikBtn').addEventListener('click',e=>{ e.stopPropagation(); ac(); musikAn(); });
+/* Musik: Taste M und Regler im Pausenmenue. Der Knopf oben links
+   ist raus (Tom, 25.09.). */
 $('pMusikAn').addEventListener('click',()=>{ ac(); musikAn(); });
 $('pMusikWeiter').addEventListener('click',()=>{ ac(); if(!MUSIK.an) musikAn(true); else musikWeiter(false); });
 $('pMusikVol').addEventListener('input',e=>{ ac(); musikVol(+e.target.value/100); });

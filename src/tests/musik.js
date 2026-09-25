@@ -24,7 +24,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
 
   /* laeuft von allein; jedes Stueck ist hoerbar */
   await p.waitForTimeout(1500);
-  const lauf=await p.evaluate(()=>({an:window.__bb.MUSIK.an,schritt:window.__bb.mStep,bus:!!window.__bb.mBus,btn:document.getElementById('musikBtn').textContent}));
+  const lauf=await p.evaluate(()=>({an:window.__bb.MUSIK.an,schritt:window.__bb.mStep,bus:!!window.__bb.mBus,knopf:!!document.getElementById('musikBtn'),anz:document.getElementById('pMusikAn').textContent}));
   const pegel=[];
   const anzahl=await p.evaluate(()=>window.__bb.STUECKE.length);
   for(let k=0;k<anzahl;k++){
@@ -43,7 +43,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   console.log('LAUF    ',JSON.stringify(lauf));
   console.log('PEGEL   ',JSON.stringify(pegel));
   pruef('PEGEL',anzahl>=10,'nur '+anzahl+' Stuecke');
-  pruef('LAUF',lauf.an&&lauf.bus&&lauf.schritt>8&&/♪ \w/.test(lauf.btn),'Musik laeuft nach dem Start nicht: '+JSON.stringify(lauf));
+  pruef('LAUF',lauf.an&&lauf.bus&&lauf.schritt>8&&!lauf.knopf&&/an/.test(lauf.anz),'Musik laeuft nach dem Start nicht: '+JSON.stringify(lauf));
   pegel.forEach(x=>pruef('PEGEL',x.rms>0.005&&!x.nan&&x.spitze<1,x.name+' stumm, uebersteuert oder kaputt ('+x.rms+' / '+x.spitze+')'));
   const rs=pegel.map(x=>x.rms), lautLeise=Math.max(...rs)/Math.min(...rs);
   pruef('PEGEL',lautLeise<2,'Stuecke unterschiedlich laut: Faktor '+lautLeise.toFixed(2));
@@ -51,16 +51,16 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   /* M: aus, der Takt steht, Einstellung bleibt nach dem Neuladen */
   await p.keyboard.press('KeyM');
   const aus=await p.evaluate(async()=>{ const bb=window.__bb, s0=bb.mStep; await new Promise(r=>setTimeout(r,800));
-    return {an:bb.MUSIK.an,weiter:bb.mStep-s0,btn:document.getElementById('musikBtn').textContent,gespeichert:(JSON.parse(localStorage.getItem('bb_musik')||'{}')).an}; });
+    return {an:bb.MUSIK.an,weiter:bb.mStep-s0,btn:document.getElementById('pMusikAn').textContent,gespeichert:(JSON.parse(localStorage.getItem('bb_musik')||'{}')).an}; });
   await p.reload(); await p.waitForFunction('window.__bb!==undefined',{timeout:30000});
   const nachLaden=await p.evaluate(()=>window.__bb.MUSIK.an);
   console.log('AUS     ',JSON.stringify({aus,nachLaden}));
   pruef('AUS',aus.an===false&&aus.weiter===0&&aus.gespeichert===false&&/aus/.test(aus.btn),'M schaltet nicht aus: '+JSON.stringify(aus));
   pruef('AUS',nachLaden===false,'nach dem Neuladen wieder an');
 
-  /* Knopf im Bild schaltet wieder an; N springt zum naechsten Stueck */
+  /* Knopf im Pausenmenue schaltet wieder an; N springt zum naechsten Stueck */
   await neuesSpiel(p);
-  await p.evaluate(()=>document.getElementById('musikBtn').click());
+  await p.evaluate(()=>document.getElementById('pMusikAn').click());
   const wieder=await p.evaluate(()=>window.__bb.MUSIK.an);
   const s0=await p.evaluate(()=>window.__bb.MUSIK.stueck);
   await p.keyboard.press('KeyN');
@@ -74,6 +74,11 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   pruef('BEDIENUNG',s1===(s0+1)%anzahl,'N springt nicht weiter: '+s0+' -> '+s1);
   pruef('BEDIENUNG',regler.sicht&&Math.abs(regler.vol-0.2)<0.001&&regler.name.length>3,'Regler im Pausenmenue: '+JSON.stringify(regler));
 
+  /* Oben rechts steht kein Wochenziel mehr (Tom, 25.09.) */
+  const ziel=await p.evaluate(()=>{ const bb=window.__bb; bb.closePause&&bb.closePause(); bb.updateHUD();
+    return {ziel:bb.S.goal&&bb.S.goal.name,hud:document.getElementById('staff').textContent}; });
+  console.log('ZIEL    ',JSON.stringify(ziel));
+  pruef('ZIEL',!!ziel.ziel&&ziel.hud.indexOf(ziel.ziel)<0,'Wochenziel steht noch im Bild: '+JSON.stringify(ziel));
   console.log('MANGEL:',mangel.length?mangel.join(' | '):'keine');
   console.log('ERRORS:',errs.length||mangel.length?errs.concat(mangel).join('\n'):'keine');
   await b.close();

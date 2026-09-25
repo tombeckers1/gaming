@@ -57,7 +57,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     o.bandbreite={
       feuerzeug:band('feuerzeug'), knicklichter:band('knicklichter'), wunder:band('wunder'),
       sekt:band('sekt'), boeller:band('boeller'), batterie100:band('batterie100'),
-      xxlpolen:band('xxlpolen'), profi:band('profi'), furzrakete:band('furzrakete')
+      atomboeller:band('atomboeller'), profi:band('profi'), furzrakete:band('furzrakete')
     };
     o.schnitt=+bb.marktSchnitt().toFixed(3);
     o.histLen=bb.S.mh.sekt.length;
@@ -104,7 +104,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   const fw=await p.evaluate(()=>{
     const bb=window.__bb,o={};
     const vor=bb.timersLen();
-    ['furzrakete','heuler'].forEach(t=>bb.igniteType(t));
+    ['furzrakete','boeller'].forEach(t=>bb.igniteType(t));
     o.timers=bb.timersLen()-vor;
     bb.run(2.5,0.05);
     o.raketenUnterwegs=bb.rockets.length;

@@ -259,7 +259,6 @@ function musikAn(an){
 function musikVol(v){ MUSIK.vol=clamp(v,0,1); musikSpeichern(); musikLautstaerke(); musikAnzeige(); }
 function musikAnzeige(){
   const n=STUECKE[MUSIK.stueck]?STUECKE[MUSIK.stueck].name:'';
-  const b=document.getElementById('musikBtn'); if(b){ b.textContent=MUSIK.an?'♪ '+n:'♪ aus'; b.classList.toggle('aus',!MUSIK.an); }
   const pm=document.getElementById('pMusikAn'); if(pm) pm.textContent=MUSIK.an?'Musik an':'Musik aus';
   const pn=document.getElementById('pMusikName'); if(pn) pn.textContent=MUSIK.an?'Läuft: '+n:'Stumm';
   const pv=document.getElementById('pMusikVol'); if(pv&&document.activeElement!==pv) pv.value=Math.round(MUSIK.vol*100);

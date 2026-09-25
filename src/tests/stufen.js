@@ -104,10 +104,12 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   const pruef=(name,ok,was)=>{ if(!ok) mangel.push(name+': '+was); };
 
   /* --- Wegpunkte --- */
-  const OST   =[[1.0,3.0],[4.0,3.0],[6.0,0.0]];                 /* zweite Ladenhaelfte */
+  const OST   =[[0.0,0.0],[4.0,0.0],[6.0,0.0]];                 /* zweite Ladenhaelfte */
   const LAGER =[[-6.5,-2.5],[-9.5,-2.5],[-14.0,-2.0]];          /* Lager am Rolltor    */
   const LNORD =LAGER.concat([[-14.0,0.5],[-14.0,4.0]]);         /* Lager Nord          */
-  const TFELD =[[1.0,3.0],[5.2,0.0],[5.2,-4.6],[5.2,-7.5],[5.2,-12.0]];
+  /* Seit dem 25.09. steht die Kasse links vom Eingang (x 0,2 bis 1,2,
+     z 0,5 bis 3,9) - der Weg zum Testfeld geht an ihr vorbei. */
+  const TFELD =[[0.0,0.0],[5.2,0.0],[5.2,-4.6],[5.2,-7.5],[5.2,-12.0]];
 
   const stand=async(titel)=>{
     const o=await p.evaluate(a=>{

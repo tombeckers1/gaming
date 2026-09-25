@@ -70,9 +70,8 @@ function updateHUD(){
   $('hHype').style.width=hype+'%';
   $('mHype').hidden=compact&&hype<1;
   let chips='';
-  const ev=todayEvent(), gl=S.goal;
+  const ev=todayEvent();
   if(ev) chips+=`<div class="chip" style="background:rgba(255,210,63,.2);color:var(--signal)">${ev.name}</div>`;
-  if(gl&&!gl.done&&!compact) chips+=`<div class="chip">${gl.name} ${Math.round(gl.have)}/${gl.need}</div>`;
   if(serie>=3&&!compact) chips+=`<div class="chip serie">Serie ×${serie}</div>`;
   STAFF.forEach(s=>{ if(S.staff[s.id]) chips+=`<div class="chip">${s.kurz||s.name}</div>`; });
   const el=$('staff'); if(el.innerHTML!==chips) el.innerHTML=chips;

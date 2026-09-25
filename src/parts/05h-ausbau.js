@@ -388,6 +388,19 @@ function buildLagergang(){
   zAdd(Z,wall(GANGTUER.a,GANGTUER.b,zs-LW,zs,2.5,G.h,'+z',lagerWall,null,0,lb));
   zCol(Z,col(G.x0-LW,GANGTUER.a,zs-LW,zs));
   zCol(Z,col(GANGTUER.b,G.x1+LW,zs-LW,zs));
+  /* Innen ueberall dieselbe Wand wie gegenueber: hell mit gelb-
+     schwarzem Sockel (Tom, 25.09.). Die Rueckwand des Ladens und die
+     beiden Kopfwaende zeigen aussen Fassade, solange der Gang nicht
+     steht; mit dem Gang bekommen sie innen eine Verkleidung. */
+  const vk=(x0,x1,z0,z1,y0,y1,f)=>zAdd(Z,wall(x0,x1,z0,z1,y0,y1,f,lagerWall,lagerWall,0,lagerWall));
+  const zn=G.z1, d=0.02;
+  vk(G.x0,HINTERTUER.x0,zn-d,zn,0,G.h,'-z');
+  vk(HINTERTUER.x1,G.x1,zn-d,zn,0,G.h,'-z');
+  vk(HINTERTUER.x0,HINTERTUER.x1,zn-d,zn,2.5,G.h,'-z');
+  vk(G.x1-d,G.x1,G.z0,G.z1,0,G.h,'-x');
+  vk(G.x0,G.x0+d,G.z0,G.z0+0.25,0,G.h,'+x');
+  vk(G.x0,G.x0+d,G.z1-0.25,G.z1,0,G.h,'+x');
+  vk(G.x0,G.x0+d,G.z0+0.25,G.z1-0.25,2.5,G.h,'+x');
   leuchtenRaster(Z,{x0:G.x0,x1:G.x1,z0:G.z0,z1:G.z1},G.h,3.4,2.6);
   roomAO(G.x0+0.02,G.x1-0.02,G.z0+0.02,G.z1-0.02);
   /* Hinweisschild ueber dem Durchgang zum Lager */

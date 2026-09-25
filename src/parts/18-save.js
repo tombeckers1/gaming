@@ -12,6 +12,25 @@ function freshState(){ const prices={}; ORDER.forEach(t=>prices[t]=P[t].market);
     shelves:[],racks:[],
     boxes:[],regale:[],
     carrying:null,tut:{},seasonRevenue:0,cart:[],offen:0,pakete:0,bestellungen:[],paketGr:[],bestNr:0,lic:['start'],stat:{},erf:{},gesehen:[],eigene:[],gutschrift:0,mi:{},me:{},reg:{},mh:{},schock:{},news:[],infl:1,shopName:SHOP_DEFAULT,slogan:SLOGAN_DEFAULT}; }
+/* Sorten, die es nicht mehr gibt (Toms PDF vom 25.09.): die alten
+   Boeller werden beim Laden zu den neuen, der Heuler zum Furzboeller.
+   Preise und Marktdaten der alten Sorten fallen weg - die neuen
+   starten mit ihren eigenen. Alles andere, was eine Sorte nennt
+   (Regale, Kartons, Warenkorb, Bestellungen, in der Hand), zieht mit. */
+const SORTE_NEU={kanonen:'monsterboeller',grossboeller:'monsterboeller',doppelschlag:'monsterboeller',
+  sprengmeister:'atomboeller',xxlpolen:'atomboeller',heuler:'boeller'};
+function sortenUmstellen(d){
+  for(const m of ['prices','mi','me','reg','mh','schock']) if(d[m]&&typeof d[m]==='object') for(const k in SORTE_NEU) delete d[m][k];
+  const geh=(o,tiefe)=>{ if(!o||typeof o!=='object'||tiefe>10) return;
+    if(Array.isArray(o)){ o.forEach(x=>geh(x,tiefe+1)); return; }
+    for(const k of Object.keys(o)){ const v=o[k];
+      if((k==='type'||k==='t')&&typeof v==='string'&&SORTE_NEU[v]) o[k]=SORTE_NEU[v];
+      else if(SORTE_NEU[k]){ const n=SORTE_NEU[k];
+        if(o[n]===undefined) o[n]=v; else if(typeof v==='number'&&typeof o[n]==='number') o[n]+=v;
+        delete o[k]; }
+      else geh(v,tiefe+1); } };
+  geh(d,0);
+}
 function loadSave(){ try{ const r=localStorage.getItem(KEY); if(!r) return null; const d=JSON.parse(r); return d&&d.v===3?d:null; }catch(e){ return null; } }
 function mpos(g){ return g?{x:+g.position.x.toFixed(2),z:+g.position.z.toFixed(2),ry:+g.rotation.y.toFixed(3)}:null; }
 function save(){
@@ -35,6 +54,7 @@ function save(){
 function startGame(fresh){
   if(fresh){ try{ localStorage.removeItem(KEY); }catch(e){} }
   const d=fresh?null:loadSave();
+  if(d) sortenUmstellen(d);
   S=Object.assign(freshState(),d||{});
   /* Spielstaende von vor den kleinen Anfangsstufen kennen deren
      Schluessel nicht. Wer damals gespielt hat, hatte das ganze
@@ -85,7 +105,10 @@ function startGame(fresh){
   setSB(!!S.up.kasse2);
   setEingang2(!!S.up.eingang2);
   vsLaden(); drawPackSchild(); syncPakete();
-  if(d&&d.ck) placeMovable(ckMov,d.ck.x,d.ck.z,d.ck.ry);
+  /* Eine nie verschobene Kasse steht in alten Staenden noch am alten
+     Platz rechts vom Eingang - sie zieht an den neuen mit um. */
+  { const c=d&&d.ck, alt=c&&Math.abs(c.x-CK_ALT.x)<0.01&&Math.abs(c.z-CK_ALT.z)<0.01&&Math.abs(c.ry-CK_ALT.ry)<0.01;
+    const q=c&&!alt?c:CK_HOME; placeMovable(ckMov,q.x,q.z,q.ry); }
   if(d&&d.desk){ const m=movables.find(m=>m.kind==='desk'); if(m) placeMovable(m,d.desk.x,d.desk.z,d.desk.ry); }
   if(d&&d.sb2&&sb2Mov) placeMovable(sb2Mov,d.sb2.x,d.sb2.z,d.sb2.ry);
   /* Die Versandecke steht, wo man sie hingeschoben hat. Ein neues

@@ -1,4 +1,4 @@
-/* Schabernack-Edition: Furzrakete, Heuler, Stinkbomben */
+/* Schabernack-Edition: Furzrakete und Furzboeller; Heuler und Stinkbomben sind raus */
 async function neuesSpiel(p){
   await p.waitForFunction("!!document.querySelector('#startBtns button:not([disabled])')",{timeout:30000});
   await p.click('#startBtns button:last-child');
@@ -18,9 +18,9 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   const r=await p.evaluate(()=>{
     const bb=window.__bb,o={};
     bb.S.level=30; bb.S.money=200000; bb.LIZENZEN.forEach(l=>bb.buyLizenz(l.id));
-    o.imSortiment=['furzrakete','heuler'].map(t=>!!(bb.P[t]&&bb.hatLizenz(bb.lizenzOf(t))));
+    o.imSortiment=['furzrakete','boeller'].map(t=>!!(bb.P[t]&&bb.hatLizenz(bb.lizenzOf(t))));
     o.paket=bb.lizenzOf('furzrakete');
-    o.station=['furzrakete','heuler'].map(t=>bb.P[t].shape);
+    o.station=['furzrakete','boeller'].map(t=>bb.P[t].shape);
     const leben=()=>{ let n=0; for(const ps of [bb.psHuge,bb.psBig,bb.psMid,bb.psSmall]) for(let i=0;i<ps.life.length;i++) if(ps.life[i]>0) n++; return n; };
     /* Furzrakete: Steigflug, dann die Wolke */
     bb.igniteType('furzrakete');
@@ -34,8 +34,10 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
       if(b3[i*3]>b3[i*3+2]*1.6&&b3[i*3]<0.75) braun++; }
     o.brauneQuote=gesamt?Math.round(braun/gesamt*100):0;
     bb.run(10,0.05);
-    /* Heuler */
-    const v1=leben(); bb.igniteType('heuler'); bb.run(2.0,0.05); o.heulerPartikel=leben()-v1;
+    /* Furzboeller: Pups und gruenbraune Wolke */
+    const w0=bb.WOLKEN.length; bb.igniteType('boeller'); bb.run(1.6,0.05); o.furzWolke=bb.WOLKEN.length-w0;
+    /* Heuler ist seit dem 25.09. raus */
+    o.heulerWeg=!bb.P.heuler&&!bb.LIZENZEN.some(l=>l.items.includes('heuler'));
     bb.run(8,0.05);
     /* Stinkbomben sind seit dem 23.09. raus aus dem Sortiment */
     o.stinkWeg=!bb.P.stinkbombe&&!bb.LIZENZEN.some(l=>l.items.includes('stinkbombe'));
@@ -46,15 +48,18 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     for(let i=0;i<4;i++) bb.regalStellen('standard');
     for(let i=0;i<2;i++) bb.regalStellen('hoch');
     o.regale=bb.shelves.length;
-    o.regalPlatz=['furzrakete','heuler'].map(t=>bb.shelfCapOf(t));
-    o.vergleich={raketenklein:bb.shelfCapOf('raketenklein'),doppelschlag:bb.shelfCapOf('doppelschlag'),knallerbsen:bb.shelfCapOf('knallerbsen')};
-    o.einraeumbar=['furzrakete','heuler'].map(t=>!!bb.emptyLevel(t));
-    o.marktpreise=['furzrakete','heuler'].map(t=>bb.marketOf(t));
-    o.kaufchance=['furzrakete','heuler'].map(t=>+bb.buyChance(t,bb.marketOf(t),1,false,null).toFixed(2));
+    o.regalPlatz=['furzrakete','boeller'].map(t=>bb.shelfCapOf(t));
+    o.vergleich={raketenklein:bb.shelfCapOf('raketenklein'),monsterboeller:bb.shelfCapOf('monsterboeller'),knallerbsen:bb.shelfCapOf('knallerbsen')};
+    o.einraeumbar=['furzrakete','boeller'].map(t=>!!bb.emptyLevel(t));
+    o.marktpreise=['furzrakete','boeller'].map(t=>bb.marketOf(t));
+    o.kaufchance=['furzrakete','boeller'].map(t=>+bb.buyChance(t,bb.marketOf(t),1,false,null).toFixed(2));
     return o;
   });
   console.log('SCHABERNACK',JSON.stringify(r));
   if(!r.stinkWeg) errs.push('Stinkbomben stehen noch im Sortiment');
+  if(!r.heulerWeg) errs.push('Heuler steht noch im Sortiment');
+  if(r.furzWolke<1) errs.push('Furzboeller macht keine Wolke');
+  if(r.einraeumbar.some(x=>!x)) errs.push('nicht einraeumbar: '+JSON.stringify(r.einraeumbar));
   console.log('ERRORS:',errs.length?errs.join('\n'):'keine');
   await b.close();
 })();

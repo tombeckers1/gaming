@@ -7,7 +7,8 @@
    - jedes Bruchbild, das irgendwo verwendet wird, existiert
    - Goetterzorn: zehn Brueche gleichzeitig
    - jedes Produkt steht, bis sein letzter Schuss raus ist
-   - Pfeifraketen ziehen eine Spirale, Titan bricht dreifach */
+   - Pfeifraketen ziehen eine Spirale, Titan bricht je Rakete genau einmal
+     (seit dem 25.09.: ein Schuss, ein Bruch) */
 async function neuesSpiel(p){
   await p.waitForFunction("!!document.querySelector('#startBtns button:not([disabled])')",{timeout:30000});
   await p.click('#startBtns button:last-child');
@@ -32,7 +33,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     const bb=window.__bb,P=bb.P,o={};
     bb.S.level=30; bb.S.money=9e6; bb.LIZENZEN.forEach(l=>bb.buyLizenz(l.id));
     o.weg=['batterie25','stinkbombe'].filter(t=>P[t]||bb.LIZENZEN.some(l=>l.items.includes(t)));
-    const NEU=['knatter','zfaecher','kometen','finale','pfeifraketen','titanraketen','kugel200','goldgeysir','feuersaeule','donnerwand','kugel300','jumbogold','jumboleiter'];
+    const NEU=['knatter','zfaecher','kometen','finale','pfeifraketen','titanraketen','kugel200','goldgeysir','feuersaeule','donnerwand','kugel300','jumbogold','jumboleiter','monsterboeller','atomboeller','fontaene30','fontaene50'];
     o.neu={};
     for(let i=0;i<4;i++) bb.regalStellen('hoch');
     NEU.forEach(t=>{ const q=P[t];
@@ -123,7 +124,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   pruef('LAUF',!lauf.zuSpaet.length,lauf.zuSpaet.join(' | '));
   pruef('LAUF',!lauf.still.length,'ohne sichtbaren Effekt: '+lauf.still.join(', '));
 
-  /* Pfeifraketen: Spirale im Schweif; Titan: drei Brueche je Rakete */
+  /* Pfeifraketen: Spirale im Schweif; Titan: ein Bruch je Rakete */
   const rk=await p.evaluate(()=>{
     const bb=window.__bb,o={};
     bb.run(10,0.1);
@@ -141,7 +142,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   });
   console.log('RAKETEN ',JSON.stringify(rk));
   pruef('RAKETEN',rk.pfeif,'Pfeifrakete ohne Spirale');
-  pruef('RAKETEN',rk.titanBrueche>=9,'Titan: '+rk.titanBrueche+' Brueche statt 3 x 3');
+  pruef('RAKETEN',rk.titanBrueche===3,'Titan: '+rk.titanBrueche+' Brueche statt einem je Rakete');
 
   /* Pakete: Themenpakete nur mit Ware der Gruppe, Preis unter dem
      mittleren Einkaufswert; gesperrt, solange die Gruppe fehlt */

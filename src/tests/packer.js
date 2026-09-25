@@ -153,8 +153,8 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   /* Bild: Mitarbeiter greift ins Regal, Karton offen auf dem Wagen */
   if(pre){
     await p.evaluate(()=>{ const bb=window.__bb, S=bb.S, w=bb.staff.packer;
-      const s=bb.racks.flatMap(r=>r.slots).find(s=>!s.box); bb.putInSlot(s,'kanonen',20,1);
-      window.__auf([['kanonen',4]]); window.__auf([['kanonen',3]]); window.__auf([['batterie100',1]]);
+      const s=bb.racks.flatMap(r=>r.slots).find(s=>!s.box); bb.putInSlot(s,'monsterboeller',20,1);
+      window.__auf([['monsterboeller',4]]); window.__auf([['monsterboeller',3]]); window.__auf([['batterie100',1]]);
       for(let i=0;i<6000&&!(w.vs==='greifen'&&w.flug&&w.flug.t>0.5);i++) bb.step(0.05);
       document.querySelectorAll('#hud,.tip,#tip,#zielPfeil').forEach(e=>e.style.display='none');
       const V=w.pos, ry=w.g.rotation.y, cx=V.x+Math.sin(ry+2.0)*2.3, cz=V.z+Math.cos(ry+2.0)*2.3;
@@ -229,10 +229,10 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
 
   /* 5b. Was auf dem Wagen verplant ist, packt der Spieler nicht weg */
   const res=await p.evaluate(()=>{ const bb=window.__bb, S=bb.S, o={};
-    bb.racks.forEach(r=>r.slots.forEach(s=>{ if(s.box&&s.box.type==='kanonen'){ r.g.remove(s.box.mesh); s.box=null; } }));
-    bb.allLevels().forEach(l=>{ if(l.type==='kanonen') while(l.count>0) bb.removeFromLevel(l); });
-    const s=bb.racks.flatMap(r=>r.slots).find(s=>!s.box); bb.putInSlot(s,'kanonen',5,1);
-    S.bestellungen=[]; const A=window.__auf([['kanonen',5]]); const B=window.__auf([['kanonen',3]]);
+    bb.racks.forEach(r=>r.slots.forEach(s=>{ if(s.box&&s.box.type==='monsterboeller'){ r.g.remove(s.box.mesh); s.box=null; } }));
+    bb.allLevels().forEach(l=>{ if(l.type==='monsterboeller') while(l.count>0) bb.removeFromLevel(l); });
+    const s=bb.racks.flatMap(r=>r.slots).find(s=>!s.box); bb.putInSlot(s,'monsterboeller',5,1);
+    S.bestellungen=[]; const A=window.__auf([['monsterboeller',5]]); const B=window.__auf([['monsterboeller',3]]);
     A.st='wagen';
     o.spieler=bb.vsSpielerBestellung(); o.spieler=o.spieler?o.spieler.id:null;
     o.packOne=bb.packOne(true);

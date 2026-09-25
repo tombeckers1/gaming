@@ -34,7 +34,10 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
       geschwebt=Math.max(geschwebt,bb.schweber.filter(w=>w.s.scale.x>1).length);
       symbole=Math.max(symbole,bb.schweber.filter(w=>w.s.scale.x<0.5).length); }
     o.bezahlt=bezahlt; o.geschwebt=geschwebt; o.symbole=symbole;
-    bb.run(3,0.05); o.nachher=bb.schweber.length;
+    /* Der Laden laeuft weiter und erzeugt neue Symbole - gezaehlt wird,
+       ob die zum Schluss vorhandenen nach drei Sekunden weg sind */
+    const alt=new Set(bb.schweber.map(w=>w.s)); o.vorher=alt.size;
+    bb.run(3,0.05); o.nachher=bb.schweber.filter(w=>alt.has(w.s)).length;
     /* Geldanzeige zaehlt hoch */
     const el=document.getElementById('hMoney');
     bb.S.money=Math.round(bb.S.money)+500; const werte=[];

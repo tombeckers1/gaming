@@ -6,7 +6,7 @@
 <title>Böllerladen Simulator</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Barlow+Condensed:wght@500;600;700&family=Cinzel:wght@700&display=swap" rel="stylesheet">
 <style>
 :root{
   --night:#121a33; --ink:#0e1226; --signal:#ffd23f; --fire:#e63b2e; --snow:#f2f5ff; --spark:#7fd1ff; --mint:#8ef0a8;
@@ -287,9 +287,6 @@ body.compact .kan span{display:none}
 .musikzeile{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center;justify-content:center;font-size:14px}
 .musikzeile input[type=range]{width:140px;vertical-align:middle;accent-color:#ffd23f}
 .musikzeile small{opacity:.7;flex-basis:100%;text-align:center}
-#musikBtn{position:fixed;left:12px;top:138px;z-index:6;padding:4px 10px;border-radius:14px;border:1px solid rgba(255,255,255,.18);
-  background:rgba(14,18,38,.72);color:#eef1f8;font:600 12px/1.2 inherit;font-family:inherit;cursor:pointer;pointer-events:auto;max-width:170px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#musikBtn.aus{opacity:.55}
 .kapkopf{display:flex;flex-direction:column;gap:2px;padding:10px 12px 6px;margin-top:6px;border-top:2px solid rgba(255,210,63,.35)}
 .kapkopf b{font-family:var(--display);font-size:17px;color:var(--signal);letter-spacing:.02em}
 .kapkopf small{opacity:.72}
@@ -307,7 +304,6 @@ body.compact #hKap{display:none}
 #kapBanner small{display:block;color:var(--signal);font-weight:800;letter-spacing:.14em;font-size:14px}
 #kapBanner b{display:block;font-family:var(--display);font-size:40px;color:#fff;margin:4px 0}
 #kapBanner span{display:block;opacity:.8;font-size:15px;max-width:440px}
-@media (pointer:coarse){ #musikBtn{top:52px;left:8px;font-size:11px;padding:3px 8px} }
 .steuer .grp{break-inside:avoid;margin-bottom:10px}
 .steuer .z{display:flex;gap:10px;align-items:center;padding:3px 0}
 .steuer .k{flex:0 0 150px;display:flex;gap:4px;justify-content:flex-end}
@@ -574,7 +570,6 @@ body.compact .pdahead2 b{font-size:16px}
   <div class="zfuss"><small id="zTipp"></small><div id="zAlle"></div></div>
 </div>
 
-<button id="musikBtn" title="Musik an / aus (M)">♪</button>
 <div id="kapBanner"><small id="kapNr"></small><b id="kapName"></b><span id="kapTxt"></span></div>
 <div class="ov" id="pause"><div class="card pausecard">
   <h2>Pause</h2>
@@ -655,8 +650,18 @@ const P={
     art:{title:'STURM',sub:'Windfest',bg1:'#c01c20',bg2:'#3a0507',ac:'#ffd23f',ac2:'#f2f5ff'}},
   luftschlangen:{name:'Partyset Luftschlangen',short:'Partyset',cat:0,lvl:3,shape:'boxA',dims:[0.115,0.16,0.05],grid:[10,2,1],box:20,cost:1.20,market:3.29,weight:7,hype:0,risk:1,
     art:{title:'PARTY',sub:'Schlangen & Tröten',bg1:'#ff4fa3',bg2:'#8a1f6a',ac:'#ffe45c',ac2:'#5ce1ff'}},
-  boeller:{name:'Roter Donner · 9 Böller',short:'Böller',cat:2,lvl:4,shape:'tubepack',dims:[0.15,0.057,0.057],grid:[8,2,2],box:16,cost:1.90,market:4.49,weight:9,hype:8,risk:4,
-    art:{title:'ROTER DONNER',sub:'9 Böller',bg1:'#f7ecd2',bg2:'#ead7ab',ac:'#c8201c',ac2:'#1b1b1b',light:true}},
+  /* Boeller seit dem 25.09. (Toms PDF): nur noch drei, jeder mit
+     eigenem Auftritt. Der Furzboeller behaelt den Schluessel 'boeller',
+     damit alte Spielstaende und Pakete ihn weiter finden. */
+  boeller:{name:'Pupsalarm · 10 Furzböller',short:'Furzböller',cat:2,lvl:4,shape:'tubepack',dims:[0.15,0.057,0.057],grid:[8,2,2],box:16,cost:1.90,market:4.49,weight:9,hype:8,risk:4,
+    desc:'Kleiner Knall, dann ein langer, flatternder Pups und eine grünbraune Wolke.',
+    art:{title:'FURZBÖLLER',sub:'10 Stück · mit Geräusch',bg1:'#8fb03a',bg2:'#4d3a14',ac:'#fff3a0',ac2:'#5a3a10'}},
+  monsterboeller:{name:'Monster Böller · 4 Stück',short:'Monster Böller',cat:2,lvl:9,shape:'tubepack',dims:[0.17,0.075,0.075],grid:[7,2,2],box:12,cost:5.40,market:12.99,weight:7,hype:18,risk:7,
+    desc:'Der lauteste Böller im Laden: Feuerball am Boden, Druckring, zwei Echos von den Häusern.',
+    art:{title:'MONSTER',sub:'4 Böller · extrem laut',bg1:'#1a1d22',bg2:'#000000',ac:'#9cff3a',ac2:'#ff3b2e'}},
+  atomboeller:{name:'Atombomben-Böller »Großer Pilz«',short:'Atom-Böller',cat:2,lvl:17,shape:'tubepack',dims:[0.21,0.11,0.11],grid:[5,1,1],box:5,cost:15.50,market:36.99,weight:5,hype:52,risk:10,
+    desc:'Steigt auf und geht als riesiger Atompilz auf: Weißblitz, Feuerball, Kappe, Stiel und Druckwelle.',
+    art:{title:'ATOMBOMBE',sub:'1 Stück · Großer Pilz',bg1:'#f2d21b',bg2:'#1b1b1b',ac:'#1b1b1b',ac2:'#ff7a1c',light:true}},
   sekt:{name:'Sekt Halbtrocken',short:'Sekt',cat:0,lvl:5,cold:true,shape:'bottle',dims:[0.078,0.30,0.078],grid:[12,2,1],box:12,cost:2.40,market:5.99,weight:10,hype:0,risk:5,
     art:{title:'MITTERNACHT',sub:'Sekt 0,75 l',bg1:'#1b3a2e',bg2:'#08160f',ac:'#e8c35a',ac2:'#f2f5ff'}},
   brille:{name:'Partybrillen 2027',short:'Partybrillen',cat:0,lvl:5,shape:'boxA',dims:[0.13,0.055,0.085],grid:[9,2,1],box:18,cost:1.10,market:2.99,weight:6,hype:0,risk:2,
@@ -669,8 +674,6 @@ const P={
     art:{title:'KNABBERBOX',sub:'Salzig & scharf',bg1:'#f28a1c',bg2:'#8a3d06',ac:'#ffffff',ac2:'#e63b2e'}},
   fontaene:{name:'Feuerquelle · 3er Fontänen-Set',short:'Fontänen',cat:2,lvl:8,shape:'fountainset',dims:[0.22,0.145,0.09],grid:[7,2,1],box:7,cost:3.20,market:7.99,weight:7,hype:12,risk:4,
     art:{title:'FEUERQUELLE',sub:'3er Fontänen-Set',bg1:'#12735a',bg2:'#063328',ac:'#ffd23f',ac2:'#ff7a3d'}},
-  kanonen:{name:'Donnerkeil · 6 Kanonenschläge',short:'Kanonen',cat:2,lvl:9,shape:'tubepack',dims:[0.125,0.062,0.062],grid:[8,2,2],box:20,cost:3.40,market:7.99,weight:7,hype:14,risk:5,
-    art:{title:'DONNERKEIL',sub:'6 Kanonenschläge',bg1:'#2a2f3d',bg2:'#0b0d14',ac:'#ff7a3d',ac2:'#ffd23f'}},
   raketen:{name:'Sternenflug · 20 Raketen',short:'Raketen 20er',cat:2,lvl:10,shape:'rocketset',dims:[0.52,0.075,0.20],grid:[3,2,2],box:6,cost:7.50,market:17.99,weight:7,hype:20,risk:6,
     art:{title:'STERNENFLUG',sub:'20 Raketen',bg1:'#35157a',bg2:'#0c0626',ac:'#ffd23f',ac2:'#ff4fa3'}},
   pfeifraketen:{name:'Pfeifende Teufel · 10 Heulraketen',short:'Pfeifraketen',cat:2,lvl:11,shape:'rocketset',dims:[0.44,0.06,0.13],grid:[4,2,2],box:8,cost:4.80,market:11.99,weight:7,hype:18,risk:5,
@@ -679,38 +682,30 @@ const P={
     art:{title:'ORAKEL',sub:'Wachsgießen',bg1:'#6a24c9',bg2:'#25093f',ac:'#ffd23f',ac2:'#5ce1ff'}},
   kindersekt:{name:'Kindersekt',short:'Kindersekt',cat:0,lvl:11,cold:true,shape:'bottle',dims:[0.07,0.26,0.07],grid:[12,2,1],box:12,cost:1.60,market:3.79,weight:6,hype:0,risk:3,
     art:{title:'KLEINER RUTSCH',sub:'Alkoholfrei 0,5 l',bg1:'#e58c85',bg2:'#8a2f2a',ac:'#ffe45c',ac2:'#f2f5ff'}},
-  vulkan:{name:'Vulkan XXL · 90 Sekunden Fontäne',short:'Vulkan',cat:2,lvl:12,shape:'cylinder',dims:[0.13,0.30,0.13],grid:[8,2,1],box:8,cost:6.50,market:14.99,weight:6,hype:22,risk:6,
-    art:{title:'VULKAN',sub:'XXL Fontäne 90 s',bg1:'#c01c20',bg2:'#3a0507',ac:'#ffd23f',ac2:'#ff8a2a'}},
+  vulkan:{name:'Vulkan XXL · Fontäne',short:'Vulkan',cat:2,lvl:12,shape:'cylinder',dims:[0.13,0.30,0.13],grid:[8,2,1],box:8,cost:6.50,market:14.99,weight:6,hype:22,risk:6,
+    art:{title:'VULKAN',sub:'XXL Fontäne 12 s',bg1:'#c01c20',bg2:'#3a0507',ac:'#ffd23f',ac2:'#ff8a2a'}},
   batterie16:{name:'Funkenflug · 16 Schuss',short:'Batterie 16',cat:2,lvl:13,shape:'battery',dims:[0.20,0.17,0.20],grid:[8,2,1],box:8,cost:9.00,market:21.99,weight:6,hype:26,risk:7,
     art:{title:'NACHTHIMMEL',sub:'16 Schuss Verbund',bg1:'#1f3f8a',bg2:'#070e22',ac:'#ffd23f',ac2:'#5ce1ff'}},
   batterie49:{name:'Feuersturm · 49 Schuss',short:'Batterie 49',cat:2,lvl:15,shape:'battery',dims:[0.30,0.24,0.30],grid:[5,1,1],box:5,cost:16.00,market:39.99,weight:5,hype:40,risk:8,
     art:{title:'FEUERSTURM',sub:'49 Schuss Verbund',bg1:'#c01c20',bg2:'#3a0507',ac:'#ffd23f',ac2:'#ff8a2a'}},
   batterie100:{name:'Himmelssturm · 100 Schuss',short:'Verbund 100',cat:2,lvl:17,shape:'battery',dims:[0.38,0.30,0.36],grid:[4,1,1],box:2,cost:32.00,market:74.99,weight:4,hype:60,risk:9,
     art:{title:'HIMMELSSTURM',sub:'100 Schuss, 90 s',bg1:'#2a0f5a',bg2:'#0a0318',ac:'#ff4fa3',ac2:'#ffd23f'}},
-  grossboeller:{name:'Großer Knall · 8 große Böller',short:'Große Böller',cat:2,lvl:7,shape:'tubepack',dims:[0.16,0.07,0.07],grid:[7,2,2],box:14,cost:3.10,market:7.49,weight:8,hype:12,risk:6,
-    art:{title:'GROSSER KNALL',sub:'8 große Böller',bg1:'#f2ecd8',bg2:'#d8c49a',ac:'#b81a16',ac2:'#1b1b1b',light:true}},
-  sprengmeister:{name:'Sprengmeister · 6 Stück Profiklasse',short:'Sprengmeister',cat:2,lvl:15,shape:'tubepack',dims:[0.19,0.085,0.085],grid:[6,2,1],box:6,cost:7.80,market:18.99,weight:6,hype:30,risk:9,
-    art:{title:'SPRENGMEISTER',sub:'6 Stück, Profiklasse',bg1:'#26292f',bg2:'#000000',ac:'#ff7a1c',ac2:'#ffd23f'}},
-  xxlpolen:{name:'XXL »Ich bomb dich weg Junge«',short:'XXL Bomber',cat:2,lvl:19,shape:'tubepack',dims:[0.22,0.105,0.105],grid:[5,1,1],box:5,cost:16.00,market:39.99,weight:5,hype:55,risk:10,
-    art:{title:'ICH BOMB DICH WEG',sub:'XXL Import · 5 Stück',bg1:'#d8151c',bg2:'#6a0409',ac:'#ffffff',ac2:'#ffd23f'}},
   knicklichter:{name:'Knicklichter 50er',short:'Knicklichter',cat:0,lvl:4,shape:'boxA',dims:[0.10,0.14,0.05],grid:[10,2,1],box:20,cost:0.80,market:2.29,weight:7,hype:0,risk:2,
     art:{title:'GLOW',sub:'50 Knicklichter',bg1:'#1b1b2e',bg2:'#070712',ac:'#5cff9e',ac2:'#ff4fd8'}},
   schwaermer:{name:'Wirbelwind · 12 Bodenwirbel',short:'Schwärmer',cat:2,lvl:5,shape:'boxA',dims:[0.115,0.06,0.075],grid:[8,2,2],box:16,cost:1.40,market:3.49,weight:8,hype:6,risk:3,
     art:{title:'WIRBELWIND',sub:'12 Bodenwirbel',bg1:'#f2a01c',bg2:'#8a3d06',ac:'#ffffff',ac2:'#c8201c'}},
   roemisch:{name:'Roma · Römische Lichter 5er',short:'Röm. Lichter',cat:2,lvl:8,shape:'candle',dims:[0.10,0.34,0.10],grid:[8,2,1],box:8,cost:3.60,market:8.99,weight:7,hype:15,risk:5,
     art:{title:'ROMA',sub:'5 Lichter, 10 Schuss',bg1:'#7a1f3d',bg2:'#2a0714',ac:'#ffd23f',ac2:'#5ce1ff'}},
-  doppelschlag:{name:'Zwei Schläge · 6 Doppelschläge',short:'Doppelschlag',cat:2,lvl:10,shape:'tubepack',dims:[0.135,0.06,0.06],grid:[8,2,2],box:16,cost:4.20,market:9.99,weight:6,hype:17,risk:6,
-    art:{title:'ZWEI SCHLÄGE',sub:'6 Doppelschläge',bg1:'#1f1f26',bg2:'#000000',ac:'#ff7a3d',ac2:'#ffd23f',light:false}},
   raketengold:{name:'Goldregen · 5 Brokatraketen',short:'Goldraketen',cat:2,lvl:12,shape:'rocketset',dims:[0.48,0.065,0.145],grid:[3,2,2],box:6,cost:8.50,market:19.99,weight:6,hype:24,risk:6,
     art:{title:'GOLDFLUG',sub:'5 Brokatraketen',bg1:'#4a3308',bg2:'#150e02',ac:'#ffd23f',ac2:'#fff3c4',gold:true}},
-  titanraketen:{name:'Titan · 3 XXL-Raketen Dreifachbruch',short:'Titan',cat:2,lvl:20,shape:'rocketset',dims:[0.62,0.085,0.18],grid:[3,1,1],box:3,cost:19.00,market:44.99,weight:5,hype:44,risk:9,
-    art:{title:'TITAN',sub:'3 XXL-Raketen · Dreifachbruch',bg1:'#26292f',bg2:'#000000',ac:'#d1e5ff',ac2:'#ffd23f'}},
+  titanraketen:{name:'Titan · 3 XXL-Raketen Silberbruch',short:'Titan',cat:2,lvl:20,shape:'rocketset',dims:[0.62,0.085,0.18],grid:[3,1,1],box:3,cost:19.00,market:44.99,weight:5,hype:44,risk:9,
+    art:{title:'TITAN',sub:'3 XXL-Raketen · Silberbruch',bg1:'#26292f',bg2:'#000000',ac:'#d1e5ff',ac2:'#ffd23f'}},
   /* Jumbo-Raketen (Tom, 25.09.): je eine grosse Einzelrakete mit einem
      Effekt, den es sonst nirgends gibt. stueck: eine Rakete je Packung */
   jumbogold:{name:'Jumbo-Rakete »Goldene Krone«',short:'Jumbo Krone',cat:2,lvl:21,shape:'rocketset',stueck:1,dims:[0.84,0.10,0.15],grid:[2,1,1],box:4,cost:13.50,market:32.99,weight:4,hype:40,risk:9,
     art:{title:'JUMBO',sub:'Goldene Krone · Einzelrakete',bg1:'#4a3308',bg2:'#150e02',ac:'#ffd23f',ac2:'#fff3c4',gold:true}},
-  jumboleiter:{name:'Jumbo-Rakete »Himmelsleiter«',short:'Jumbo Leiter',cat:2,lvl:22,shape:'rocketset',stueck:1,dims:[0.84,0.12,0.17],grid:[2,1,1],box:2,cost:22.00,market:52.99,weight:3,hype:58,risk:10,
-    art:{title:'JUMBO',sub:'Himmelsleiter · drei Brüche',bg1:'#12204a',bg2:'#04081a',ac:'#8fd0ff',ac2:'#ffd23f'}},
+  jumboleiter:{name:'Jumbo-Rakete »Polarstern«',short:'Jumbo Stern',cat:2,lvl:22,shape:'rocketset',stueck:1,dims:[0.84,0.12,0.17],grid:[2,1,1],box:2,cost:22.00,market:52.99,weight:3,hype:58,risk:10,
+    art:{title:'JUMBO',sub:'Polarstern · Sternbruch',bg1:'#12204a',bg2:'#04081a',ac:'#8fd0ff',ac2:'#ffd23f'}},
   sortiment:{name:'Familienfest · 18 Teile gemischt',short:'Sortiment',cat:2,lvl:13,shape:'assort',dims:[0.40,0.16,0.30],grid:[4,1,1],box:2,cost:18.00,market:42.99,weight:6,hype:34,risk:6,
     art:{title:'FAMILIENFEST',sub:'18 Teile gemischt',bg1:'#2f5d9e',bg2:'#0a1a33',ac:'#ffd23f',ac2:'#ff4fa3'}},
   /* Knattersturm: ersetzt den alten 25er. Jeder Schuss knistert,
@@ -728,6 +723,12 @@ const P={
     art:{title:'GOLDGEYSIR',sub:'10 m Riesenfontäne · 20 s',bg1:'#6b4a0c',bg2:'#1f1402',ac:'#ffd23f',ac2:'#fff3c4',gold:true}},
   feuersaeule:{name:'Feuersäule · 15-m-Farbfontäne',short:'Feuersäule',cat:2,lvl:20,shape:'cylinder',dims:[0.24,0.4,0.24],grid:[6,1,1],box:3,cost:24.00,market:57.99,weight:4,hype:62,risk:9,
     art:{title:'FEUERSÄULE',sub:'15 m · Farbwechsel · 28 s',bg1:'#7a1010',bg2:'#1a0202',ac:'#ff7a1c',ac2:'#ffd23f',gold:true}},
+  /* Monsterfontaenen (Toms PDF vom 25.09.): 30 und 50 m hoch, kurz,
+     je hoeher, desto bunter. Nur Fontaene, keine Ladung. */
+  fontaene30:{name:'Himmelsstürmer · 30-m-Monsterfontäne',short:'Monster 30 m',cat:2,lvl:23,shape:'cylinder',dims:[0.3,0.46,0.3],grid:[4,1,1],box:2,cost:33.00,market:79.99,weight:3,hype:74,risk:10,
+    art:{title:'HIMMELSSTÜRMER',sub:'30 m · fünf Farben · 12 s',bg1:'#0c3d7a',bg2:'#020a1c',ac:'#ffd23f',ac2:'#3fe07a',gold:true}},
+  fontaene50:{name:'Regenbogen-Titan · 50-m-Monsterfontäne',short:'Monster 50 m',cat:2,lvl:26,shape:'cylinder',dims:[0.36,0.52,0.36],grid:[3,1,1],box:1,cost:49.00,market:119.99,weight:2,hype:90,risk:10,
+    art:{title:'REGENBOGEN-TITAN',sub:'50 m · Regenbogen · 14 s',bg1:'#4a1070',bg2:'#06020f',ac:'#5ce1ff',ac2:'#ff4fa3',gold:true}},
   wasserfall:{name:'Niagara · Silberwasserfall 3 m',short:'Wasserfall',cat:2,lvl:18,shape:'cylinder',dims:[0.16,0.36,0.16],grid:[10,1,1],box:5,cost:14.00,market:32.99,weight:4,hype:38,risk:7,
     art:{title:'NIAGARA',sub:'3 m Silberfall, 60 s',bg1:'#8a9299',bg2:'#2a2f36',ac:'#f2f5ff',ac2:'#5ce1ff'}},
   bowle:{name:'Feuerzangenbowle-Set',short:'Bowle-Set',cat:0,lvl:13,shape:'boxA',dims:[0.18,0.14,0.14],grid:[8,1,1],box:8,cost:6.50,market:15.99,weight:5,hype:0,risk:3,
@@ -743,8 +744,6 @@ const P={
   finale:{name:'Weltuntergang · 300 Schuss Finale',short:'Weltuntergang',cat:2,lvl:24,shape:'battery',dims:[0.58,0.34,0.42],grid:[2,1,1],box:1,cost:115.00,market:249.99,weight:2,hype:100,risk:10,
     art:{title:'WELTUNTERGANG',sub:'300 Schuss · 3 Minuten',bg1:'#3a0507',bg2:'#000000',ac:'#ff3b2e',ac2:'#ffd23f',gold:true}},
   /* Schabernack-Edition: der Spaßkram ganz am Ende */
-  heuler:{name:'Heulender Derwisch',short:'Heuler',cat:2,lvl:19,shape:'tubepack',dims:[0.14,0.065,0.065],grid:[8,2,2],box:12,cost:3.40,market:8.49,weight:8,hype:16,risk:5,
-    art:{title:'DERWISCH',sub:'6 Heuler mit Knall',bg1:'#2a1f5a',bg2:'#0a0620',ac:'#ff9d2a',ac2:'#5ce1ff'}},
   furzrakete:{name:'Furzrakete »Donnerbalken«',short:'Furzrakete',cat:2,lvl:19,shape:'rocketset',dims:[0.44,0.06,0.12],grid:[4,2,2],box:6,cost:6.20,market:15.99,weight:9,hype:28,risk:4,
     art:{title:'DONNERBALKEN',sub:'3 Furzraketen',bg1:'#6b4a1c',bg2:'#241504',ac:'#c8e04a',ac2:'#ffd23f'}},
   /* Kugelbomben: gehoeren in die Moerserbatterie, nicht auf den Tisch.
@@ -763,8 +762,8 @@ const P={
   feuerbrunnen:{name:'Feuerbrunnen · Flammenfontäne 16 s',short:'Feuerbrunnen',cat:2,lvl:15,shape:'cylinder',dims:[0.18,0.32,0.18],grid:[8,1,1],box:4,cost:9.50,market:22.99,weight:5,hype:32,risk:7,
     art:{title:'FEUERBRUNNEN',sub:'Flammenfontäne · Flammenregen',bg1:'#8a1a08',bg2:'#240502',ac:'#ff8a2a',ac2:'#ffd23f',gold:true}},
   /* Fontaene, die oben in einen Kometen uebergeht und aufblueht */
-  sternenbrunnen:{name:'Sternenbrunnen · Fontäne mit Aufstieg',short:'Sternenbrunnen',cat:2,lvl:12,shape:'cylinder',dims:[0.145,0.34,0.145],grid:[7,2,1],box:6,cost:7.90,market:18.99,weight:7,hype:26,risk:6,
-    art:{title:'STERNENBRUNNEN',sub:'Fontäne, Komet, Blüte',bg1:'#123a6b',bg2:'#04101f',ac:'#5ce1ff',ac2:'#ffd23f'}}
+  sternenbrunnen:{name:'Sternenbrunnen · Fontäne mit Farbsternen',short:'Sternenbrunnen',cat:2,lvl:12,shape:'cylinder',dims:[0.145,0.34,0.145],grid:[7,2,1],box:6,cost:7.90,market:18.99,weight:7,hype:26,risk:6,
+    art:{title:'STERNENBRUNNEN',sub:'Goldfontäne mit Farbsternen',bg1:'#123a6b',bg2:'#04101f',ac:'#5ce1ff',ac2:'#ffd23f'}}
 };
 const ORDER=Object.keys(P);
 /* Kapitel: die grossen Stufen des Ladens. Jedes beginnt mit einem
@@ -1308,13 +1307,13 @@ const VOLA={
   knallerbsen:0.32, wunder:0.35, bleigiessen:0.40, tisch:0.45,
   knallfrosch:0.50, blanko:0.50, gravur:0.50, schwaermer:0.55, fontaene:0.65,
   chips:0.70, kindersekt:0.70, boeller:0.70, roemisch:0.70, raketenklein:0.70,
-  bowle:0.80, vulkan:0.80, sortiment:0.80, wasserfall:0.80, grossboeller:0.85,
-  raketen:0.85, kanonen:0.90, doppelschlag:0.90, batterie16:0.90, heuler:0.90,
+  bowle:0.80, vulkan:0.80, sortiment:0.80, wasserfall:0.80,
+  raketen:0.85, monsterboeller:0.90, batterie16:0.90,
   raketengold:0.95, knatter:0.95, pfeifraketen:0.80, sekt:1.00, faecher:1.00, batterie49:1.05,
-  furzrakete:1.10, batterie100:1.20, sprengmeister:1.30, profi:1.40, xxlpolen:1.60,
+  furzrakete:1.10, batterie100:1.20, atomboeller:1.40, profi:1.40,
   sternenbrunnen:0.75, kugel75:0.95, kugel100:1.15, kugel150:1.45,
   zfaecher:1.05, kometen:1.15, titanraketen:1.25, kugel200:1.50, finale:1.55, jumbogold:1.30, jumboleiter:1.45,
-  goldgeysir:0.85, feuerbrunnen:0.9, feuersaeule:1.2, donnerwand:1.35, kugel300:1.6
+  goldgeysir:0.85, feuerbrunnen:0.9, feuersaeule:1.2, fontaene30:1.35, fontaene50:1.5, donnerwand:1.35, kugel300:1.6
 };
 function volaOf(t){ const v=VOLA[t]; if(v!==undefined) return v; const p=P[t]; return p&&p.cat===2?0.85:p&&p.cat===1?0.6:0.45; }
 
@@ -1475,29 +1474,29 @@ const LIZENZEN=[
    desc:'Alles um das Feuerwerk herum. Kleine Margen, aber fast jeder Kunde nimmt etwas davon mit.',
    items:['feuerzeug','luftschlangen','knicklichter','brille','chips','konfetti']},
   {id:'klassiker',lvl:5,cost:380,name:'Silvester-Klassiker',
-   desc:'Die Ware, wegen der die Leute überhaupt kommen: erste Böller, Schwärmer, kleine Raketen und der Sekt für Mitternacht.',
+   desc:'Die Ware, wegen der die Leute überhaupt kommen: der Furzböller, Schwärmer, kleine Raketen und der Sekt für Mitternacht.',
    items:['boeller','schwaermer','raketenklein','sekt','kindersekt']},
   {id:'krach',lvl:8,cost:1100,name:'Abteilung Krach',
-   desc:'Große Böller, Kanonenschläge, Doppelschläge, Römische Lichter und Fontänen. Ab hier wird es laut.',
-   items:['grossboeller','kanonen','doppelschlag','roemisch','fontaene','blanko','gravur']},
+   desc:'Der Monster Böller, Römische Lichter und Fontänen. Ab hier wird es laut.',
+   items:['monsterboeller','roemisch','fontaene','blanko','gravur']},
   {id:'himmel',lvl:11,cost:2600,name:'Bunte Nacht',
-   desc:'Raketensortimente, pfeifende Heulraketen, Goldraketen, ab Level 14 der Goldgeysir mit zehn Metern Fontäne, Vulkane und der Sternenbrunnen, der erst als Fontäne läuft und dann oben aufblüht. Dazu Wachsgießen und Feuerzangenbowle.',
+   desc:'Raketensortimente, pfeifende Heulraketen, Goldraketen, ab Level 14 der Goldgeysir mit zehn Metern Fontäne, Vulkane und der Sternenbrunnen, eine Goldfontäne mit Farbsternen. Dazu Wachsgießen und Feuerzangenbowle.',
    items:['raketen','pfeifraketen','raketengold','vulkan','goldgeysir','wasserfall','sternenbrunnen','bleigiessen','bowle']},
   {id:'verbund',lvl:14,cost:6000,name:'Verbund & Kugelbomben',
    desc:'Batterien, der Knattersturm, Fächer, der Feuerbrunnen mit Flammenregen und die ersten Kugelbomben. Die gehören in die Mörserbatterie auf dem Testfeld: ein Schuss, oben mehrere Brüche nacheinander.',
    items:['batterie16','knatter','batterie49','sortiment','faecher','feuerbrunnen','kugel75','kugel100']},
   {id:'import',lvl:17,cost:13000,name:'Import & Sonderposten',
-   desc:'Sprengmeister, der XXL-Bomber, der 100er-Verbund, der Z-Fächer Blitzgewitter, der Kometenregen und die 150-mm-Kugelbombe Weltenbrand. Teuer im Einkauf, launisch im Preis, aber die Kunden reden darüber.',
-   items:['sprengmeister','xxlpolen','batterie100','zfaecher','kometen','kugel150']},
+   desc:'Der Atombomben-Böller mit dem großen Pilz, der 100er-Verbund, der Z-Fächer Blitzgewitter, der Kometenregen und die 150-mm-Kugelbombe Weltenbrand. Teuer im Einkauf, launisch im Preis, aber die Kunden reden darüber.',
+   items:['atomboeller','batterie100','zfaecher','kometen','kugel150']},
   {id:'schabernack',lvl:19,cost:16000,name:'Schabernack-Edition',
-   desc:'Heulende Derwische und die Furzrakete »Donnerbalken«. Verkauft sich von allein, weil jeder sie einmal gesehen haben will.',
-   items:['heuler','furzrakete']},
+   desc:'Die Furzrakete »Donnerbalken«. Verkauft sich von allein, weil jeder sie einmal gesehen haben will.',
+   items:['furzrakete']},
   {id:'grossfeuer',lvl:20,cost:21000,name:'Großkaliber',
-   desc:'Die Titan-Raketen mit Dreifachbruch, die Jumbo-Rakete »Goldene Krone«, die 200-mm-Kugelbombe Götterzorn mit zehn Brüchen auf einmal, die Donnerwand mit Salven aus sechs Rohren und die 15-m-Feuersäule.',
-   items:['titanraketen','jumbogold','kugel200','donnerwand','feuersaeule']},
+   desc:'Die Titan-Raketen mit ihrem riesigen Silberbruch, die Jumbo-Rakete »Goldene Krone«, die 200-mm-Kugelbombe Götterzorn mit zehn Brüchen auf einmal, die Donnerwand mit Salven aus sechs Rohren, die 15-m-Feuersäule und ab Level 23 der Himmelsstürmer, eine 30-m-Monsterfontäne in fünf Farben.',
+   items:['titanraketen','jumbogold','kugel200','donnerwand','feuersaeule','fontaene30']},
   {id:'profi',lvl:22,cost:26000,name:'Profiklasse',
-   desc:'Der Götterfunken-Verbund: zweihundert Schuss, und der halbe Ort steht auf der Straße. Dazu die Jumbo-Rakete »Himmelsleiter« mit drei Brüchen übereinander. Ab Level 23 die 300-mm-Kugel Himmelsbrecher, ab Level 24 der Weltuntergang mit dreihundert Schuss.',
-   items:['profi','finale','kugel300','jumboleiter']}
+   desc:'Der Götterfunken-Verbund: zweihundert Schuss, und der halbe Ort steht auf der Straße. Dazu die Jumbo-Rakete »Polarstern«: eine riesige Kugel mit einem achtzackigen Stern darin. Ab Level 23 die 300-mm-Kugel Himmelsbrecher, ab Level 24 der Weltuntergang mit dreihundert Schuss und ab Level 26 der Regenbogen-Titan: 50 m Fontäne im vollen Regenbogen.',
+   items:['profi','finale','kugel300','jumboleiter','fontaene50']}
 ];
 const LIZ_VON={};
 LIZENZEN.forEach(l=>l.items.forEach(t=>{ LIZ_VON[t]=l.id; }));
@@ -1517,11 +1516,11 @@ function naechsteLizenz(){ return LIZENZEN.find(l=>!hatLizenz(l.id))||null; }
 
 /* Warengruppen, damit ein Zaehler mehrere Sorten sammelt */
 const GRUPPE={
-  boeller:['boeller','grossboeller','kanonen','doppelschlag','sprengmeister','xxlpolen','knallfrosch','knallerbsen'],
+  boeller:['boeller','monsterboeller','atomboeller','knallfrosch','knallerbsen'],
   raketen:['raketenklein','raketen','pfeifraketen','raketengold','titanraketen','jumbogold','jumboleiter','furzrakete','blanko','gravur'],
   batterien:['batterie16','knatter','batterie49','batterie100','faecher','zfaecher','kometen','sortiment','profi','finale','donnerwand'],
   kugeln:['kugel75','kugel100','kugel150','kugel200','kugel300'],
-  boden:['fontaene','goldgeysir','feuerbrunnen','feuersaeule','vulkan','wasserfall','roemisch','schwaermer','sternenbrunnen','tisch','wunder','heuler'],
+  boden:['fontaene','goldgeysir','feuerbrunnen','feuersaeule','fontaene30','fontaene50','vulkan','wasserfall','roemisch','schwaermer','sternenbrunnen','tisch','wunder'],
   zubehoer:['feuerzeug','luftschlangen','knicklichter','brille','chips','konfetti','bleigiessen','bowle'],
   sekt:['sekt','kindersekt']
 };
@@ -3238,7 +3237,7 @@ function buildYard(){
     }
     for(const sz of [-0.5,0.5]) bbox(2.24,0.07,0.07,stahl,0,0.68,sz,g,false);
     /* Rohrschellen: je zwei Halbschalen mit Schraube */
-    const kalX=[-0.72,0,0.78], kalR=[0.115,0.145,0.185];
+    const kalX=[-0.72,0,0.78], kalR=MOERSER_R;
     kalX.forEach((x,i)=>{ for(const y of [0.42,0.66]){
       const sch=new THREE.Mesh(new THREE.TorusGeometry(kalR[i]+0.03,0.026,6,18),stahl);
       sch.rotation.x=Math.PI/2; sch.position.set(x,y,0); g.add(sch);
@@ -3251,7 +3250,7 @@ function buildYard(){
         bbox(0.2,0.04,0.2,stahl,sx,0.02,sz,g,false); }
     }
     /* drei Rohre in aufsteigendem Kaliber */
-    const kal=[[-0.72,0.115,1.30],[0,0.145,1.55],[0.78,0.185,1.85]];
+    const kal=[[-0.72,MOERSER_R[0],1.30],[0,MOERSER_R[1],1.55],[0.78,MOERSER_R[2],1.85]];
     kal.forEach(([x,r,hh],i)=>{
       const t=new THREE.Mesh(new THREE.CylinderGeometry(r,r,hh,22,1,true),rohrM);
       t.material.side=THREE.DoubleSide; t.position.set(x,0.18+hh/2,0);
@@ -3591,17 +3590,25 @@ function raketeModell(t){
   return g;
 }
 /* Kugelbombe im Rohr mit Zuendschnur ueber den Rand */
-const KUGEL_R={kugel75:0.042,kugel100:0.058,kugel150:0.08,kugel200:0.1,kugel300:0.15};
-const MOERSER_R=[0.115,0.145,0.185];
-/* Jede Kugel hat ihr Rohr (Tom, 24.09.): klein 75-100 mm, mittel
-   150 mm, gross 200-300 mm. Vorher kam jede Kugel ins erste freie
-   Rohr - die grosse Kugel steckte mit Zuendschnur im kleinsten. */
-const ROHR_KALIBER=['75–100 mm','150 mm','200–300 mm'], ROHR_NAME=['kleine Rohr','mittlere Rohr','große Rohr'];
+/* Kugeln in echter Groesse: Kaliber plus Papierhuelle (Radius in m) */
+const KUGEL_R={kugel75:0.041,kugel100:0.053,kugel150:0.078,kugel200:0.103,kugel300:0.153};
+/* Rohre passend zur groessten Kugel, die hineingehoert, mit einem
+   halben Zentimeter Luft (Toms PDF vom 25.09.: "Kugelbomben groesse
+   muss zu den rohren passen"). Vorher waren die Rohre innen 21, 26
+   und 33 cm weit - die 75er-Kugel lag im kleinen Rohr wie eine Murmel
+   im Eimer. ROHR_INNEN ist die lichte Weite, MOERSER_R der Aussen-
+   radius (Wand 10 %). */
+const ROHR_INNEN=[0.056,0.106,0.158];
+const MOERSER_R=ROHR_INNEN.map(r=>+(r/0.9).toFixed(4));
+/* Jede Kugel hat ihr Rohr: klein 75-100 mm, mittel 150-200 mm, gross
+   300 mm. Vorher lag die 200er im grossen Rohr und hatte dort 5 cm
+   Luft zu jeder Seite. */
+const ROHR_KALIBER=['75–100 mm','150–200 mm','300 mm'], ROHR_NAME=['kleine Rohr','mittlere Rohr','große Rohr'];
 function moerserRohr(t){ const p=P[t]; const k=p&&p.rezept?p.rezept.traeger:t;
-  return {kugel75:0,kugel100:0,kugel150:1,kugel200:2,kugel300:2}[k]||0; }
+  return {kugel75:0,kugel100:0,kugel150:1,kugel200:1,kugel300:2}[k]||0; }
 function kugelModell(t,slot){
   /* passt nicht jede Kugel in jedes Rohr - dann eben knapp unter die Innenweite */
-  const g=new THREE.Group(), rr=MOERSER_R[slot%3]*0.9, rk=Math.min(KUGEL_R[t]||0.06,rr*0.92);
+  const g=new THREE.Group(), rr=ROHR_INNEN[slot%3], rk=Math.min(KUGEL_R[t]||0.06,rr*0.97);
   const papier=std(0xb58a55,{roughness:0.95});
   const kugel=new THREE.Mesh(new THREE.SphereGeometry(rk,HIQ?16:10,HIQ?12:8),papier);
   kugel.position.y=-0.14-rk; g.add(kugel);
@@ -3686,7 +3693,7 @@ function brennDauer(t){
   const p=P[t]; if(!p) return 3;
   if(typeof SHOWS!=='undefined'&&SHOWS[t]) return 0.8+showLength(t)+1.5;
   const fest={wunder:5,knallerbsen:2.2,knallfrosch:2.8,tisch:3,schwaermer:3.8,vulkan:14,wasserfall:23,
-    sternenbrunnen:6,fontaene:12,goldgeysir:22,feuerbrunnen:19,feuersaeule:30,furzrakete:6,heuler:5};
+    sternenbrunnen:6,fontaene:12,goldgeysir:22,feuerbrunnen:19,feuersaeule:30,fontaene30:13,fontaene50:15,furzrakete:6,boeller:5,monsterboeller:4,atomboeller:6};
   if(fest[t]) return fest[t];
   if(p.rezept) return 7;
   const sh=p.shape;
@@ -5661,6 +5668,19 @@ function buildLagergang(){
   zAdd(Z,wall(GANGTUER.a,GANGTUER.b,zs-LW,zs,2.5,G.h,'+z',lagerWall,null,0,lb));
   zCol(Z,col(G.x0-LW,GANGTUER.a,zs-LW,zs));
   zCol(Z,col(GANGTUER.b,G.x1+LW,zs-LW,zs));
+  /* Innen ueberall dieselbe Wand wie gegenueber: hell mit gelb-
+     schwarzem Sockel (Tom, 25.09.). Die Rueckwand des Ladens und die
+     beiden Kopfwaende zeigen aussen Fassade, solange der Gang nicht
+     steht; mit dem Gang bekommen sie innen eine Verkleidung. */
+  const vk=(x0,x1,z0,z1,y0,y1,f)=>zAdd(Z,wall(x0,x1,z0,z1,y0,y1,f,lagerWall,lagerWall,0,lagerWall));
+  const zn=G.z1, d=0.02;
+  vk(G.x0,HINTERTUER.x0,zn-d,zn,0,G.h,'-z');
+  vk(HINTERTUER.x1,G.x1,zn-d,zn,0,G.h,'-z');
+  vk(HINTERTUER.x0,HINTERTUER.x1,zn-d,zn,2.5,G.h,'-z');
+  vk(G.x1-d,G.x1,G.z0,G.z1,0,G.h,'-x');
+  vk(G.x0,G.x0+d,G.z0,G.z0+0.25,0,G.h,'+x');
+  vk(G.x0,G.x0+d,G.z1-0.25,G.z1,0,G.h,'+x');
+  vk(G.x0,G.x0+d,G.z0+0.25,G.z1-0.25,2.5,G.h,'+x');
   leuchtenRaster(Z,{x0:G.x0,x1:G.x1,z0:G.z0,z1:G.z1},G.h,3.4,2.6);
   roomAO(G.x0+0.02,G.x1-0.02,G.z0+0.02,G.z1-0.02);
   /* Hinweisschild ueber dem Durchgang zum Lager */
@@ -7798,27 +7818,38 @@ function localToWorld(g,x,z){ const s=Math.sin(g.rotation.y), c=Math.cos(g.rotat
    ========================================================= */
 const BELT_A=1.45, BELT_B=0.12, BELT_Y=0.972;
 let ckG=null, ckMov=null, ckNameTex=null;
-const CK_BLENDE='#d3d6da';
+/* Die Blende hat dieselbe Farbe wie der Korpus, die Schrift ist hell
+   und steht rechts (Tom, 25.09.). Vorher hellgraue Blende mit
+   Anthrazit-Schrift in Bungee, mittig. */
+const CK_BLENDE='#2b2e34';
+const CK_SCHRIFT=s=>`700 ${s}px Cinzel, Georgia, "Times New Roman", serif`;
 function drawCkName(g,W,H){
-  /* Neutral wie im Supermarkt (Tom, 24.09.): Schrift in Anthrazit auf
-     der hellen Blende, passt zu jeder Wandfarbe. Vorher gelb auf Blau. */
   g.fillStyle=CK_BLENDE; g.fillRect(0,0,W,H);
-  g.fillStyle='#2b2f36'; g.textAlign='center'; g.textBaseline='middle';
-  fitFont(g,shopName().toUpperCase(),W-160,72,BUN);
-  g.fillText(shopName().toUpperCase(),W/2,H/2+3);
+  const t=shopName().toUpperCase(), rechts=W-34;
+  g.textAlign='right'; g.textBaseline='middle';
+  if('letterSpacing' in g) g.letterSpacing='6px';
+  fitFont(g,t,W-150,74,CK_SCHRIFT);
+  const bw=g.measureText(t).width;
+  g.fillStyle='#eef0f4'; g.fillText(t,rechts,H/2+4);
+  /* feine Edelstahllinie links vom Namen */
+  g.fillStyle='#9aa1ac'; g.fillRect(Math.max(20,rechts-bw-120),H/2+2,90,3);
+  if('letterSpacing' in g) g.letterSpacing='0px';
 }
 /* Nach einer Umbenennung Schild und Kassenblende neu zeichnen */
 function applyShopName(){
   if(ckNameTex) redraw(ckNameTex,(g,W,H)=>drawCkName(g,W,H));
   if(signTex) redraw(signTex,(g,W,H)=>drawSignFace(g,W,H));
 }
+/* Die Kasse steht links vom Eingang, laengs an der Trennwand (Tom,
+   25.09.): die Kundenseite zeigt in den Raum, die Schlange laeuft
+   von hinten auf die Tuer zu, bezahlt wird vorn am Eingang. Vorher
+   stand sie rechts vom Eingang unter dem Schaufenster. */
+const CK_HOME={x:0.7,z:2.2,ry:-Math.PI/2}, CK_ALT={x:-5,z:3.2,ry:0};
 function ck(x,z){ return localToWorld(ckG,x,z); }
 function ckYaw(){ return ckG.rotation.y; }
 function buildCheckout(){
-  /* Die Kasse steht in der Starthaelfte, nah an der Lagertuer -
-     der kurze Weg vom Regal zum Nachfuellen und zurueck. */
-  ckG=new THREE.Group(); ckG.position.set(-5,0,3.2); scene.add(ckG);
-  /* Aussen neutral: Korpus Anthrazit, Blende hellgrau, Zierleiste
+  ckG=new THREE.Group(); ckG.position.set(CK_HOME.x,0,CK_HOME.z); ckG.rotation.y=CK_HOME.ry; scene.add(ckG);
+  /* Aussen neutral: Korpus und Blende Anthrazit, Zierleiste
      Edelstahl. Vorher Marineblau mit roter Leiste und gelber Schrift. */
   const corpus=std(0x2b2e34,{roughness:0.48,metalness:0.12}),
         panel=std(parseInt(CK_BLENDE.slice(1),16),{roughness:0.34,metalness:0.03}),
@@ -7835,7 +7866,7 @@ function buildCheckout(){
   bbox(3.12,0.5,0.03,panel,0,0.56,0.405,ckG,false);
   bbox(3.14,0.045,0.035,accent,0,0.82,0.408,ckG,false);
   ckNameTex=tex(1000,136,(g,W,H)=>drawCkName(g,W,H));
-  plane(1.5,0.2,new THREE.MeshStandardMaterial({roughness:0.34,metalness:0.03,map:ckNameTex}),0.55,0.6,0.423,0,ckG);
+  plane(1.5,0.2,new THREE.MeshStandardMaterial({roughness:0.34,metalness:0.03,map:ckNameTex}),0.74,0.6,0.423,0,ckG);
   /* Arbeitsplatte mit gerundeter Vorderkante */
   bbox(3.34,0.05,0.86,laminat,0,0.925,0,ckG);
   const edge=new THREE.Mesh(new THREE.CylinderGeometry(0.026,0.026,3.34,12),laminat);
@@ -11728,6 +11759,22 @@ let AC=null, master=null, noiseBuf=null;
 function ac(){ if(!AC){ try{ AC=new (window.AudioContext||window.webkitAudioContext)(); master=AC.createGain(); master.gain.value=0.7; master.connect(AC.destination); }catch(e){ AC=null; } } if(AC&&AC.state==='suspended') AC.resume(); return AC; }
 function tone(f,dur,type,vol,f2){ if(!AC) return; const o=AC.createOscillator(), g=AC.createGain(), t=AC.currentTime; o.type=type||'square'; o.frequency.setValueAtTime(f,t); if(f2) o.frequency.exponentialRampToValueAtTime(f2,t+dur); g.gain.setValueAtTime(vol,t); g.gain.exponentialRampToValueAtTime(0.0001,t+dur); o.connect(g); g.connect(master); o.start(t); o.stop(t+dur+0.03); }
 function noise(dur,vol,freq){ if(!AC||vol<0.005) return; if(!noiseBuf){ noiseBuf=AC.createBuffer(1,AC.sampleRate*1.5,AC.sampleRate); const d=noiseBuf.getChannelData(0); for(let i=0;i<d.length;i++) d[i]=Math.random()*2-1; } const s=AC.createBufferSource(), f=AC.createBiquadFilter(), g=AC.createGain(), t=AC.currentTime; s.buffer=noiseBuf; f.type='lowpass'; f.frequency.value=freq; g.gain.setValueAtTime(vol,t); g.gain.exponentialRampToValueAtTime(0.0001,t+dur); s.connect(f); f.connect(g); g.connect(master); s.start(t,Math.random()*0.5); s.stop(t+dur+0.05); }
+/* Langes Grollen: Rauschen in Schleife, schwillt an und klingt langsam ab */
+function grollen(dur,vol,freq,an){ if(!AC||vol<0.005) return; if(!noiseBuf) noise(0.01,0.006,100);
+  const s=AC.createBufferSource(), f=AC.createBiquadFilter(), g=AC.createGain(), t=AC.currentTime;
+  s.buffer=noiseBuf; s.loop=true; f.type='lowpass'; f.frequency.setValueAtTime(freq*2.2,t); f.frequency.exponentialRampToValueAtTime(freq,t+dur*0.6);
+  g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(vol,t+(an||0.3)); g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+  s.connect(f); f.connect(g); g.connect(master); s.start(t,Math.random()*0.5); s.stop(t+dur+0.05); }
+/* Flatternder Ton: Saegezahn, dessen Lautstaerke schnell auf und zu geht -
+   so klingt ein Furz und nicht ein Brummen */
+function flattern(f0,f1,dur,vol,rate){ if(!AC) return;
+  const o=AC.createOscillator(), lp=AC.createBiquadFilter(), g=AC.createGain(), am=AC.createGain(), lfo=AC.createOscillator(), tiefe=AC.createGain(), t=AC.currentTime;
+  o.type='sawtooth'; o.frequency.setValueAtTime(f0,t); o.frequency.exponentialRampToValueAtTime(f1,t+dur);
+  lp.type='lowpass'; lp.frequency.setValueAtTime(900,t); lp.frequency.exponentialRampToValueAtTime(380,t+dur); lp.Q.value=4;
+  lfo.type='square'; lfo.frequency.setValueAtTime(rate,t); lfo.frequency.linearRampToValueAtTime(rate*0.6,t+dur);
+  am.gain.value=0.5; tiefe.gain.value=0.5; lfo.connect(tiefe); tiefe.connect(am.gain);
+  g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(vol,t+0.03); g.gain.setValueAtTime(vol,t+dur*0.7); g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+  o.connect(lp); lp.connect(am); am.connect(g); g.connect(master); o.start(t); lfo.start(t); o.stop(t+dur+0.03); lfo.stop(t+dur+0.03); }
 const distVol=p=>clamp(1-camera.position.distanceTo(p)/70,0.08,1);
 const sfx={
   beep:()=>tone(1500,0.07,'square',0.045),
@@ -11756,7 +11803,21 @@ const sfx={
     later(0.03,()=>tone(61,0.6,'square',0.055*v,29));
     for(let i=0;i<14;i++) later(0.04+i*0.035,()=>tone(rand(52,128),0.09,'sawtooth',0.040*v,rand(30,70)));
     noise(0.85,0.30*v,520); later(0.28,()=>noise(0.6,0.18*v,320)); },
-  heul:v=>{ tone(340,1.5,'sawtooth',0.035*v,2100); later(0.2,()=>tone(300,1.3,'square',0.018*v,1700)); }
+  /* Furzboeller: ein kurzer Knall, dann der lange, flatternde Pups */
+  pups:v=>{ if(!AC) return; noise(0.06,0.28*v,2600);
+    later(0.04,()=>flattern(rand(135,160),rand(58,70),0.95,0.16*v,rand(26,34)));
+    later(0.1,()=>flattern(rand(88,100),rand(40,48),0.8,0.09*v,rand(19,24)));
+    later(0.05,()=>noise(0.7,0.12*v,450)); },
+  /* Monsterboeller: Peitschenknall, Schlag in den Magen, zwei Echos */
+  monster:v=>{ noise(0.16,1.1*v,7200); noise(1.7,1.25*v,340); tone(52,1.3,'sine',0.32*v,22);
+    later(0.02,()=>noise(0.5,0.8*v,1400));
+    later(0.42,()=>noise(1.1,0.45*v,260)); later(1.15,()=>noise(1.0,0.22*v,200)); },
+  /* Atombombe: Knall, dann acht Sekunden Grollen mit tiefem Druck. Sie
+     geht hoch am Himmel auf - hoeren soll man sie trotzdem voll. */
+  atom:v=>{ v=Math.max(v,0.8); noise(0.24,1.1*v,6500); noise(1.8,1.35*v,300); tone(40,3.6,'sine',0.42*v,16);
+    tone(63,2.4,'sawtooth',0.07*v,30);
+    later(0.05,()=>grollen(8,1.5*v,170,0.45)); later(0.3,()=>grollen(5.5,0.8*v,440,0.7));
+    later(1.6,()=>noise(1.4,0.5*v,220)); later(3.2,()=>noise(1.3,0.3*v,180)); },
 };
 
 /* =========================================================
@@ -12019,7 +12080,6 @@ function musikAn(an){
 function musikVol(v){ MUSIK.vol=clamp(v,0,1); musikSpeichern(); musikLautstaerke(); musikAnzeige(); }
 function musikAnzeige(){
   const n=STUECKE[MUSIK.stueck]?STUECKE[MUSIK.stueck].name:'';
-  const b=document.getElementById('musikBtn'); if(b){ b.textContent=MUSIK.an?'♪ '+n:'♪ aus'; b.classList.toggle('aus',!MUSIK.an); }
   const pm=document.getElementById('pMusikAn'); if(pm) pm.textContent=MUSIK.an?'Musik an':'Musik aus';
   const pn=document.getElementById('pMusikName'); if(pn) pn.textContent=MUSIK.an?'Läuft: '+n:'Stumm';
   const pv=document.getElementById('pMusikVol'); if(pv&&document.activeElement!==pv) pv.value=Math.round(MUSIK.vol*100);
@@ -12226,8 +12286,8 @@ function basisBlick(p,kipp){
    darin oder ein Stern neben einer Knisterwolke sieht nach Unfall aus. */
 const EFF_FAMILIE={};
 [['figur','ring doppelring ringring herz stern saturn schneeflocke spirale feuerrad kreisel'],
- ['kugel','kugel chrys wechsel dahlie pistill mehrring geist regenbogen spektrum farbregen dreifach doppel zehnfach strauss'],
- ['haenger','weide glitzerweide kamuro brokat zeitregen kronleuchter goldglitzer palme komet kaskade sternschnuppen titan sternpalme steigkomet'],
+ ['kugel','kugel chrys wechsel dahlie pistill mehrring geist regenbogen spektrum farbregen dreifach doppel zehnfach strauss polarstern'],
+ ['haenger','weide glitzerweide kamuro brokat zeitregen kronleuchter goldglitzer palme komet kaskade sternschnuppen titan sternpalme'],
  ['knister','knister tausend strobe blink fische spinne crossette blaetter'],
  ['flamme','flammenregen'],['salut','salut'],['spass','furz']].forEach(([f,l])=>l.split(' ').forEach(e=>{ EFF_FAMILIE[e]=f; }));
 /* Welche Familien sich den Himmel teilen duerfen */
@@ -12874,20 +12934,41 @@ EFF.sternpalme=function(p,A,B,s){
   for(let i=0;i<Math.round(30*QUAL());i++){ const d=randDir(), v=rand(1,3);
     psMid.emit(p.x,p.y,p.z,d[0]*v,d[1]*v,d[2]*v,1,.9,.6,rand(1,1.6),2.5,4); }
 };
-/* Himmelsleiter: ein heller Komet steigt vom Bruch 8 m hoeher, dort
-   geht der naechste Bruch auf - die Rakete steigt in Stufen. Mit
-   5,5 m lagen die Brueche uebereinander und man sah keine Treppe. */
-const LEITER_STUFE=8, LEITER_T=0.7;
-EFF.steigkomet=function(p,A,B,s){
-  /* ohne Schwerkraft: v0 so, dass er nach LEITER_T oben ist */
-  const T=LEITER_T, e=(1-Math.exp(-ZIEH*T))/ZIEH, v0=LEITER_STUFE/e;
-  psBig.emit(p.x,p.y,p.z,0,v0,0,1,.95,.8,T,0,0);
-  for(let i=0;i<12;i++){ const a=Math.random()*Math.PI*2, w=rand(0.6,1.6);
-    psSmall.emit(p.x,p.y,p.z,Math.cos(a)*w,rand(1,3),Math.sin(a)*w,1,.8,.4,rand(0.3,0.6),4,0); }
-  /* Funken, die unterwegs vom Kometen abfallen */
-  for(let k=1;k<6;k++){ const t=k*T/6, q=sternNach(p,0,v0,0,0,t);
-    later(t,()=>{ for(let i=0;i<Math.round(5*QUAL());i++){ const a=Math.random()*Math.PI*2, w=rand(0.3,0.9);
-      psSmall.emit(q.x,q.y,q.z,Math.cos(a)*w,rand(-0.5,0.4),Math.sin(a)*w,1,.78,.35,rand(0.5,0.9),3,4); } }); }
+/* Polarstern (Toms PDF vom 25.09.: Einzelraketen haben genau einen
+   Schuss, der dafuer richtig besonders ist). Alles geht im selben
+   Augenblick auf: eine riesige Kugel, deren Sterne von tiefblau nach
+   silberweiss wechseln, darin ein vierstrahliger Stern, der zum
+   Zuschauer zeigt, ein goldener Glitzerguertel und ein flackernder
+   weisser Kern. Vorher stieg die Himmelsleiter mit Kometen in drei
+   Stufen hoeher - das sah nach mehreren Ladungen aus. */
+EFF.polarstern=function(p,A,B,s){
+  /* bei gleichem Kaliber so gross wie die Goldene Krone */
+  s*=0.6;
+  const q=QUAL(), [u,v]=basisBlick(p,0), blau=A||K('blau'), silber=FW.silber;
+  /* Kugel mit Farbwechsel */
+  for(let i=0;i<Math.round(340*s*q);i++){ const d=randDir(), w=rand(10.5,12)*s;
+    psBig.emit(p.x,p.y,p.z,d[0]*w,d[1]*w,d[2]*w,blau[0],blau[1],blau[2],rand(2.8,3.4),2.2,2,silber[0],silber[1],silber[2]); }
+  /* vier Strahlen in der Bildebene, je Strahl eine dichte Sternkette */
+  for(let a=0;a<4;a++){ const ang=a*Math.PI/2, c=Math.cos(ang), sn=Math.sin(ang);
+    const dx=u[0]*c+v[0]*sn, dy=u[1]*c+v[1]*sn, dz=u[2]*c+v[2]*sn;
+    for(let i=0;i<Math.round(34*q);i++){ const f=0.15+i/34*1.25, w=15*s*f;
+      psHuge.emit(p.x,p.y,p.z,dx*w,dy*w,dz*w,1,1,1,rand(2.2,2.8),1.2,0); } }
+  /* kurze Diagonalen: der Stern hat acht Zacken, vier lange, vier kurze */
+  for(let a=0;a<4;a++){ const ang=a*Math.PI/2+Math.PI/4, c=Math.cos(ang), sn=Math.sin(ang);
+    const dx=u[0]*c+v[0]*sn, dy=u[1]*c+v[1]*sn, dz=u[2]*c+v[2]*sn;
+    for(let i=0;i<Math.round(14*q);i++){ const w=6.5*s*(0.2+i/14*0.8);
+      psBig.emit(p.x,p.y,p.z,dx*w,dy*w,dz*w,B[0],B[1],B[2],rand(1.8,2.3),1.2,0); } }
+  /* goldener Glitzerguertel */
+  for(let i=0;i<Math.round(90*q);i++){ const a=i/90*Math.PI*2, w=rand(8.2,9)*s;
+    const n=[Math.cos(a),0,Math.sin(a)];
+    psMid.emit(p.x,p.y,p.z,n[0]*w,rand(-0.3,0.3),n[2]*w,1,.82,.3,rand(2.6,3.4),1.6,4); }
+  /* flackernder Kern */
+  for(let i=0;i<Math.round(60*q);i++){ const d=randDir(), w=rand(0.5,2.5);
+    psMid.emit(p.x,p.y,p.z,d[0]*w,d[1]*w,d[2]*w,1,1,1,rand(1.6,2.4),0.8,1); }
+  flash(p,silber,9*s,0.6);
+  const vol=distVol(p); later(0.04,()=>sfx.boom(Math.min(1.6,vol*1.4)));
+  later(0.9,()=>sfx.crackle(vol*0.6));
+  shake=Math.max(shake,Math.min(1.2,0.6*vol));
 };
 /* Wie lang die Leuchtspur je Bruchbild ist (Sekunden Flugbahn) */
 const EFF_SCHWEIF={kugel:0.4,chrys:0.75,wechsel:0.35,weide:1.9,palme:1.1,ring:0.3,doppelring:0.3,crossette:0.35,
@@ -12896,7 +12977,7 @@ const EFF_SCHWEIF={kugel:0.4,chrys:0.75,wechsel:0.35,weide:1.9,palme:1.1,ring:0.
   tausend:0.25,mehrring:0.35,regenbogen:0.4,glitzerweide:2.0,komet:0.9,titan:0.8,zehnfach:0.35,kaskade:0.5,
   schneeflocke:0.22,spirale:0.3,ringring:0.25,strauss:0.35,furz:0,
   flammenregen:0.7,kronleuchter:1.4,feuerrad:0.55,sternschnuppen:0.9,farbregen:0.5,spektrum:0.2,goldglitzer:0.9,
-  sternpalme:1.1,steigkomet:0.45};
+  sternpalme:1.1,polarstern:0.35};
 function mitSchweif(eff,fn){ const alt=SCHWEIF; SCHWEIF=EFF_SCHWEIF[eff]!==undefined?EFF_SCHWEIF[eff]:null; try{ fn(); } finally { SCHWEIF=alt; } }
 const EFF_ALL=Object.keys(EFF);
 /* Was in welcher Groessenklasse geschossen wird */
@@ -12961,23 +13042,32 @@ function ringLage(n,r,kipp){
   return out;
 }
 function kugelbombe(o,kal,opt){
-  /* Ueberarbeitet am 24.09. (Tom: "die Kugelbomben deutlich abheben").
-     Jede Kaliberstufe ist das groesste Einzelereignis, das es zu ihrem
-     Level gibt: groesser und hoeher als jeder Batterieschuss bis
-     dahin, und jede Stufe hat mehr Brueche als die davor.
-       75 mm Herzschlag   : Herz, dann zwei Herzschlaege nach   (3 Brueche)
-       100 mm Drachenblut : Ball, vier Toechter, Flammenregen    (6)
-       150 mm Weltenbrand : Ring aus 6, Welle aus 4, Glocke      (13)
-       200 mm Goetterzorn : zehn + zehn, Knisterwolke, Glocke     (25)
-       300 mm Himmelsbrecher: 12 + 12, Krone, Silberweide, Salut (32) */
+  /* Neu am 25.09. (Toms PDF: "viel groessere Explosionen, von klein
+     nach gross, die Effektladungen sollen zueinander passen").
+     Jede Kugel ist ein Bild aus einem Guss: ein grosser Hauptbruch,
+     dazu Ladungen aus derselben Familie und in den Farben desselben
+     Themas - keine Knisterwolke neben einer Blume, kein Salut quer
+     durchs Bild. Von Kaliber zu Kaliber waechst alles stetig: Groesse,
+     Hoehe, Zahl der Ladungen.
+       75 mm Herzschlag     : Herz, zwei Herzen darin schlagen nach   (3)
+       100 mm Drachenblut   : Dahlie mit Kern und Aussenschale,
+                              danach regnet sie als Flammen ab        (4)
+       150 mm Weltenbrand   : Farbwechsel-Kugel mit Kern, vier gleiche
+                              Toechter im Kranz                       (6)
+       200 mm Goetterzorn   : Ringkugel, zehn gleiche Pistillen im
+                              Kranz - der Zehnfachbruch               (11)
+       300 mm Himmelsbrecher: riesiger Silberbruch mit goldener
+                              Hangeweide, zwoelf Dahlien im Kranz     (14) */
   opt=opt||{};
   const K4=Math.max(1,Math.min(5,kal|0));
   const TH=['herz','glut','himmel','zorn','silber'][K4-1];
   const [A,B]=opt.A?[opt.A,opt.B||opt.A]:themaPaar(TH,0);
-  const groesse=[1.6,2.0,2.45,2.85,3.4][K4-1];
-  /* Bruchhoehe etwa 26, 29, 32, 35 und 40 m - ueber jeder Batterie */
-  const steig=[2,4,5,6,9][K4-1];
-  const zuend=[1.7,1.8,1.9,2.0,2.25][K4-1];
+  /* vorher 1,6 bis 3,4 - jetzt deutlich groesser */
+  const groesse=[2.1,2.7,3.3,4.0,4.8][K4-1];
+  /* Bruchhoehe etwa 26, 30, 34, 38 und 45 m - ueber jeder Batterie,
+     und hoch genug, dass der groessere Bruch nicht den Boden streift */
+  const steig=[2,4,6,8,11][K4-1];
+  const zuend=[1.7,1.85,2.0,2.15,2.3][K4-1];
   /* Abschussknall und Muendungsfeuer im Rohr */
   const v0=distVol(o);
   sfx.boom(Math.min(1.5,v0*(0.6+0.2*K4)));
@@ -12987,57 +13077,35 @@ function kugelbombe(o,kal,opt){
     const a=Math.random()*Math.PI*2, w=rand(0.4,2.4);
     psMid.emit(o.x,o.y+(o.ab!==undefined?o.ab:0.3),o.z,Math.cos(a)*w,rand(5,13),Math.sin(a)*w,1,.78,.34,rand(0.5,1.2),7,4);
   }
-  const haupt=opt.eff||['herz','wechsel','mehrring','pistill','titan'][K4-1];
+  const haupt=opt.eff||['herz','dahlie','wechsel','mehrring','titan'][K4-1];
   const [C,D]=themaPaar(TH,1);
   const stufen=[];
   if(K4===1){
-    /* Herzschlag: das Herz schlaegt zweimal nach - bum-bum */
-    /* zwei kleinere Herzen im selben Mittelpunkt, zum Zuschauer gedreht */
+    /* zwei kleinere Herzen im selben Mittelpunkt - bum-bum */
     stufen.push({t:0.5,eff:'herz',sz:groesse*0.62,streu:0,A:C,B:A});
     stufen.push({t:0.8,eff:'herz',sz:groesse*0.4,streu:0,A,B:C});
   }
   if(K4===2){
-    /* Drachenblut: vier Toechter im Kreis, dann regnet es Flammen */
-    ringLage(4,6.5).forEach((off,i)=>stufen.push({t:0.5+i*0.16,off,
-      eff:['kugel','knister','kugel','knister'][i],sz:groesse*0.42,A:i%2?B:A,B:i%2?A:B}));
-    stufen.push({t:1.3,eff:'flammenregen',sz:groesse*0.7,streu:1,A,B});
+    /* Kern und Aussenschale gehen mit dem Hauptbruch auf, dann faellt
+       die ganze Blume als Flammenregen in denselben Farben */
+    stufen.push({t:0.04,eff:'pistill',sz:groesse*0.45,streu:0,A:B,B:A,leise:true});
+    stufen.push({t:0.08,eff:'kugel',sz:groesse*1.12,streu:0,A:C,B:A,leise:true});
+    stufen.push({t:1.3,eff:'flammenregen',sz:groesse*0.75,streu:1,A,B});
   }
   if(K4===3){
-    /* Weltenbrand: sechs Toechter auf einmal im Ring, eine zweite
-       Welle, zum Schluss die grosse Goldglocke mit Schlag */
-    ringLage(6,8).forEach((off,i)=>stufen.push({t:0.55,off,leise:i>0,
-      eff:['kugel','pistill','knister','kugel','pistill','knister'][i],sz:groesse*0.4,A:i%2?C:A,B:i%2?D:B}));
-    ringLage(4,5,1).forEach((off,i)=>stufen.push({t:1.05+i*0.08,off,leise:i>0,
-      eff:['tausend','knister','tausend','knister'][i],sz:groesse*0.36,A:C,B:A}));
-    stufen.push({t:1.6,eff:'kronleuchter',sz:groesse*0.9,streu:2,A,B});
-    stufen.push({t:1.68,eff:'salut',sz:0.9,streu:5,A:FW.weiss,B:FW.weiss});
+    /* Kern im Hauptbruch, dann vier gleiche Toechter im Kranz */
+    stufen.push({t:0.04,eff:'pistill',sz:groesse*0.42,streu:0,A:C,B:D,leise:true});
+    ringLage(4,9).forEach((off,i)=>stufen.push({t:0.55,off,leise:i>0,eff:'kugel',sz:groesse*0.36,A:C,B:D}));
   }
   if(K4===4){
-    /* Goetterzorn: zehn Brueche gleichzeitig im Ring, zehn weitere
-       versetzt darueber, eine Knisterwolke und Goldglocke mit Salut */
-    const F=[A,B,C,D,FW.weiss];
-    ringLage(10,10).forEach((off,i)=>stufen.push({t:0.5,off,leise:i>0,
-      eff:['kugel','pistill','wechsel','kugel','strobe'][i%5],sz:groesse*0.36,A:F[i%5],B:F[(i+2)%5]}));
-    ringLage(10,6,1.2).forEach((off,i)=>stufen.push({t:1.05,off,leise:i>0,
-      eff:['knister','tausend','spinne','fische'][i%4],sz:groesse*0.32,A:F[(i+1)%5],B:F[(i+3)%5]}));
-    stufen.push({t:1.7,eff:'tausend',sz:groesse*0.8,streu:1,A:FW.weiss,B:FW.weiss});
-    stufen.push({t:2.3,eff:'kamuro',sz:groesse*0.95,streu:2,A,B});
-    stufen.push({t:2.36,eff:'salut',sz:1.0,streu:4,A:FW.weiss,B:FW.weiss});
-    stufen.push({t:2.5,eff:'salut',sz:0.9,streu:6,A:FW.weiss,B:FW.weiss});
+    /* der Zehnfachbruch: zehn gleiche Pistillen im Kranz um die Ringkugel */
+    ringLage(10,11).forEach((off,i)=>stufen.push({t:0.5,off,leise:i>0,eff:'pistill',sz:groesse*0.3,A:i%2?C:A,B:i%2?D:B}));
   }
   if(K4===5){
-    /* Himmelsbrecher: Riesenball, zwoelf Brueche im Ring, ein zweiter
-       Ring quer dazu, Crossette-Krone, Silberweide ueber den ganzen
-       Himmel und vier Salutschlaege */
-    const F=[A,B,C,D,FW.gold,FW.weiss];
-    ringLage(12,13).forEach((off,i)=>stufen.push({t:0.55,off,leise:i>0,
-      eff:['pistill','mehrring','dahlie','kugel'][i%4],sz:groesse*0.3,A:F[i%6],B:F[(i+3)%6]}));
-    ringLage(12,9,1.3).forEach((off,i)=>stufen.push({t:1.15,off,leise:i>0,
-      eff:['chrys','kugel','strauss','dahlie'][i%4],sz:groesse*0.28,A:F[(i+1)%6],B:F[(i+4)%6]}));
-    stufen.push({t:1.8,eff:'crossette',sz:groesse*0.55,streu:1,A:FW.gold,B:FW.weiss});
-    stufen.push({t:2.2,eff:'tausend',sz:groesse*0.7,streu:2,A:FW.weiss,B:FW.weiss});
-    stufen.push({t:2.8,eff:'glitzerweide',sz:groesse*0.8,streu:1,A,B});
-    for(let i=0;i<4;i++) stufen.push({t:2.9+i*0.12,eff:'salut',sz:1.0,streu:8,A:FW.weiss,B:FW.weiss});
+    /* Silberbruch mit goldener Haengeweide im selben Punkt, dann zwoelf
+       Dahlien im Kranz. Alles Silber, Weiss und Gold. */
+    stufen.push({t:0.06,eff:'kamuro',sz:groesse*0.8,streu:0,A:FW.gold,B:FW.silber,leise:true});
+    ringLage(12,14).forEach((off,i)=>stufen.push({t:0.6,off,leise:i>0,eff:'dahlie',sz:groesse*0.28,A:i%2?C:A,B:i%2?D:B}));
   }
   shot(o,{pw:steig,sz:groesse,eff:haupt,fuse:zuend,A,B,kugel:K4,
           trail:K4>=3?FW.weiss:FW.gold,dick:Math.min(3,K4),stufen});
@@ -13065,6 +13133,7 @@ function muendungsblitz(o,y,k){
     psSmall.emit(o.x,y,o.z,Math.cos(a)*w,rand(0.5,2.2),Math.sin(a)*w,1,.75,.35,rand(0.12,0.26),6,0); }
 }
 function fwBurst(r){
+  if(r.eff==='atom'){ atompilz(r.p); return; }
   const p=r.p, fn=EFF[r.eff]||EFF.kugel;
   mitSchweif(r.eff,()=>fn(p,r.A,r.B,r.size));
   kern(p,r.A,r.size);
@@ -13113,6 +13182,169 @@ function padOf(t){
   return st==='rampe'?V(STATION_POS.rampe.x,1.3,STATION_POS.rampe.z)
                      :V(STATION_POS.tisch.x,0.95,STATION_POS.tisch.z);
 }
+/* =========================================================
+   Wolken aus Sprites: Atompilz, Monsterknall, Furzwolke
+   (Toms PDF vom 25.09.). Die Sterne leuchten additiv und koennen
+   darum keinen Rauch zeigen - ein Pilz braucht Ballen, die das
+   Licht dahinter verdecken. Jede Wolke ist ein Satz Sprites mit
+   einer Funktion, die sie je Bild in Lage, Groesse und Farbe setzt.
+   ========================================================= */
+let _ballenTex=null;
+function ballenTex(){
+  if(_ballenTex) return _ballenTex;
+  /* weicher Ballen aus vielen kleinen Beulen, fester Zufall */
+  let sd=7; const rnd=()=>{ sd=(sd*16807)%2147483647; return sd/2147483647; };
+  _ballenTex=tex(128,128,(g,W,H)=>{
+    for(let i=0;i<22;i++){ const a=rnd()*Math.PI*2, d=rnd()*26, x=W/2+Math.cos(a)*d, y=H/2+Math.sin(a)*d, r=18+rnd()*22;
+      const gr=g.createRadialGradient(x,y,0,x,y,r);
+      gr.addColorStop(0,'rgba(255,255,255,.42)'); gr.addColorStop(0.55,'rgba(255,255,255,.2)'); gr.addColorStop(1,'rgba(255,255,255,0)');
+      g.fillStyle=gr; g.beginPath(); g.arc(x,y,r,0,Math.PI*2); g.fill(); }
+  },false);
+  return _ballenTex;
+}
+const WOLKEN=[];
+function wolkenSprite(add){
+  const m=new THREE.SpriteMaterial({map:ballenTex(),transparent:true,opacity:0,depthWrite:false,fog:false,toneMapped:false,
+    blending:add?THREE.AdditiveBlending:THREE.NormalBlending});
+  const sp=new THREE.Sprite(m); sp.visible=false; scene.add(sp); return sp;
+}
+/* setzt einen Sprite: Lage, Groesse, Farbe (0..1), Deckkraft */
+function wSetz(sp,x,y,z,gr,c,a){
+  sp.position.set(x,y,z); sp.scale.set(gr,gr,1);
+  sp.material.color.setRGB(c[0],c[1],c[2]); sp.material.opacity=clamp(a,0,1); sp.visible=a>0.004;
+}
+function wolke(dauer,teile,upd){ const w={t:0,dauer,teile,upd}; WOLKEN.push(w); upd(w,0); return w; }
+function wolkenUpdate(dt){
+  for(let i=WOLKEN.length-1;i>=0;i--){ const w=WOLKEN[i]; w.t+=dt;
+    if(w.t>=w.dauer){ for(const sp of w.teile){ scene.remove(sp); sp.material.dispose(); } WOLKEN.splice(i,1); continue; }
+    w.upd(w,w.t); }
+}
+const mischF=(a,b,u)=>[a[0]+(b[0]-a[0])*u,a[1]+(b[1]-a[1])*u,a[2]+(b[2]-a[2])*u];
+const glatt=(a,b,x)=>{ const u=clamp((x-a)/(b-a),0,1); return u*u*(3-2*u); };
+/* Farbverlauf ueber Stuetzstellen [[t,[r,g,b]],...] */
+function verlauf(st,t){
+  if(t<=st[0][0]) return st[0][1];
+  for(let i=1;i<st.length;i++) if(t<=st[i][0]) return mischF(st[i-1][1],st[i][1],(t-st[i-1][0])/(st[i][0]-st[i-1][0]));
+  return st[st.length-1][1];
+}
+/* Weissblitz ueber dem ganzen Bild */
+let _blitzEl=null;
+function bildBlitz(staerke,dauer){
+  if(typeof document==='undefined') return;
+  if(!_blitzEl){ _blitzEl=document.createElement('div');
+    _blitzEl.style.cssText='position:fixed;inset:0;background:#fff8e8;pointer-events:none;z-index:4;opacity:0;transition:opacity 0s';
+    document.body.appendChild(_blitzEl); }
+  const el=_blitzEl; el.style.transition='opacity 0s'; el.style.opacity=String(clamp(staerke,0,1));
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{ el.style.transition=`opacity ${dauer}s ease-out`; el.style.opacity='0'; }));
+}
+/* ---------- Atompilz ----------
+   Feuerball, der zur Kappe aufrollt, darunter der Stiel aus
+   hochgesaugtem Staub, ein Kondensring und eine Druckwelle am Boden.
+   Der Pilz steigt weiter, waehrend er waechst; nach zwoelf Sekunden
+   ist er verweht. */
+const PILZ={dauer:13};
+function atompilz(p){
+  const v=distVol(p), H0=p.y, q=QUAL();
+  const nB=Math.round(22*q)+6, nK=Math.round(54*q)+14, nD=Math.round(14*q)+4, nS=Math.round(22*q)+6, nR=Math.round(64*q)+16, nG=Math.round(36*q)+8;
+  const teile=[], ball=[], kappe=[], glut=[], dom=[], stiel=[], ring=[], boden=[];
+  for(let i=0;i<nB;i++){ const sp=wolkenSprite(true); teile.push(sp); const d=randDir(); ball.push({sp,d,f:rand(0.35,1)}); }
+  for(let i=0;i<nK;i++){ const sp=wolkenSprite(false); teile.push(sp); kappe.push({sp,th:i/nK*Math.PI*2+rand(-0.1,0.1),ph:rand(0,Math.PI*2),gr:rand(0.85,1.2)}); }
+  for(let i=0;i<Math.round(nK*0.5);i++){ const sp=wolkenSprite(true); teile.push(sp); glut.push({sp,th:rand(0,Math.PI*2),ph:rand(0,Math.PI*2),gr:rand(0.7,1.1)}); }
+  for(let i=0;i<nD;i++){ const sp=wolkenSprite(false); teile.push(sp); const a=rand(0,Math.PI*2); dom.push({sp,a,r:Math.sqrt(Math.random()),gr:rand(0.9,1.25)}); }
+  for(let i=0;i<nS;i++){ const sp=wolkenSprite(false); teile.push(sp); stiel.push({sp,u:i/(nS-1),a:rand(0,Math.PI*2),r:rand(0,1),gr:rand(0.8,1.2)}); }
+  for(let i=0;i<nR;i++){ const sp=wolkenSprite(false); teile.push(sp); ring.push({sp,a:i/nR*Math.PI*2+rand(-0.06,0.06),gr:rand(0.8,1.2)}); }
+  for(let i=0;i<nG;i++){ const sp=wolkenSprite(false); teile.push(sp); boden.push({sp,a:i/nG*Math.PI*2+rand(-0.05,0.05),gr:rand(0.8,1.3)}); }
+  const FB=[[0,[1,1,1]],[0.25,[1,.97,.75]],[0.9,[1,.72,.28]],[2.2,[1,.38,.1]],[4,[.7,.16,.04]]];
+  const RAUCH=[[0,[1,.78,.42]],[1.2,[.95,.46,.16]],[3,[.62,.26,.11]],[6,[.42,.2,.13]],[10,[.3,.22,.2]]];
+  const STAUB=[[0,[.9,.6,.3]],[2,[.55,.34,.18]],[6,[.36,.27,.21]]];
+  const w=wolke(PILZ.dauer,teile,(w,t)=>{
+    const aus=1-glatt(9.5,PILZ.dauer,t);                 /* langsames Verwehen am Ende */
+    const cy=H0+11*(1-Math.exp(-t/3.2));                  /* der Pilz steigt weiter */
+    const Rk=2.5+10.5*(1-Math.exp(-t/2.1));               /* Kappe: Ringradius */
+    const rk=1.6+3.4*(1-Math.exp(-t/2.4));                /* Kappe: Wulstdicke */
+    /* Feuerball: in einer halben Sekunde auf sechs Meter, dann erlischt er in die Kappe */
+    const Rb=6.5*(1-Math.exp(-t*5));
+    for(const b of ball){ const a=(1-glatt(1.2,3.6,t))*(t<0.05?t/0.05:1);
+      wSetz(b.sp,p.x+b.d[0]*Rb*b.f*0.7,cy+b.d[1]*Rb*b.f*0.55,p.z+b.d[2]*Rb*b.f*0.7,3+Rb*1.1*b.f,verlauf(FB,t),a); }
+    /* Kappe: Wulst, der von aussen nach unten und innen nach oben rollt */
+    const roll=t*0.9, ein=glatt(0.25,1.1,t);
+    for(const k of kappe){ const ph=k.ph+roll, rr=Rk+rk*Math.cos(ph);
+      const x=p.x+Math.cos(k.th)*rr, z=p.z+Math.sin(k.th)*rr, y=cy+rk*0.75*Math.sin(ph);
+      const unten=Math.sin(ph)<0?0.82:1;                  /* Unterseite etwas dunkler */
+      const c=verlauf(RAUCH,t+(Math.sin(ph)<0?0.6:0)).map(x2=>x2*unten);
+      wSetz(k.sp,x,y,z,rk*2.4*k.gr,c,0.92*ein*aus); }
+    /* Glut im Wulst: leuchtet, solange der Feuerball noch brennt */
+    for(const g2 of glut){ const ph=g2.ph+roll, rr=Rk+rk*0.55*Math.cos(ph);
+      wSetz(g2.sp,p.x+Math.cos(g2.th)*rr,cy+rk*0.45*Math.sin(ph),p.z+Math.sin(g2.th)*rr,rk*1.9*g2.gr,verlauf(FB,t*0.7+0.5),0.8*ein*(1-glatt(2.5,7.5,t))); }
+    /* Kuppel ueber dem Ring, damit oben kein Loch bleibt */
+    for(const d of dom){ const rr=Rk*0.85*d.r;
+      wSetz(d.sp,p.x+Math.cos(d.a)*rr,cy+rk*(0.95-0.35*d.r*d.r),p.z+Math.sin(d.a)*rr,rk*2.5*d.gr,verlauf(RAUCH,t+0.4),0.9*ein*aus); }
+    /* Stiel: von unten nach oben hochgesaugt, oben duenner Hals */
+    const rs=0.9+2.0*(1-Math.exp(-t/2.5)), top=cy-rk*0.6;
+    for(const s2 of stiel){ const y=0.6+s2.u*(top-0.6), da=glatt(0.6+(1-s2.u)*0.2+s2.u*1.6,1.4+s2.u*1.8,t);
+      const hals=1-0.45*glatt(0.55,1,s2.u), r=rs*hals;
+      const x=p.x+Math.cos(s2.a+t*0.6)*r*s2.r*0.6, z=p.z+Math.sin(s2.a+t*0.6)*r*s2.r*0.6;
+      const c=mischF(verlauf(STAUB,t),verlauf(RAUCH,t),s2.u*0.8);
+      wSetz(s2.sp,x,y,z,r*2.6*s2.gr,c,0.85*da*aus); }
+    /* Kondensring: weisser Kragen um den Stiel, kurz nach der Druckwelle */
+    const rR=4+15*(1-Math.exp(-(t-0.4)/1.1)), aR=t<0.4?0:0.3*(1-glatt(1.2,4.2,t));
+    for(const r of ring) wSetz(r.sp,p.x+Math.cos(r.a)*rR,cy-6.5+Math.sin(r.a*3)*0.4,p.z+Math.sin(r.a)*rR,(3.6+rR*0.28)*r.gr,[.86,.84,.82],aR);
+    /* Druckwelle am Boden: ein Staubring, der nach aussen laeuft */
+    /* nur bis 16 m: weiter aussen rollte der Ring am Pult vorbei und
+       stand dort als einzelne Ballen in der Luft */
+    const rG=16*(1-Math.exp(-t/0.7)), aG=0.8*glatt(0.05,0.3,t)*(1-glatt(1.5,4,t));
+    for(const b of boden) wSetz(b.sp,p.x+Math.cos(b.a)*rG,0.9+b.gr*0.5,p.z+Math.sin(b.a)*rG,(2.2+rG*0.12)*b.gr,verlauf(STAUB,t),aG);
+  });
+  /* Licht, Funken, Knall */
+  bildBlitz(0.85*v+0.1,1.6);
+  flash(p,FW.weiss,16,1.6);
+  for(let i=0;i<5;i++) later(0.5+i*0.55,()=>flash({x:p.x,y:p.y+3,z:p.z},FW.orange,9-i*1.5,0.7));
+  for(let i=0;i<Math.round(700*q);i++){ const d=randDir(), sp2=rand(8,26), c=Math.random()<0.5?FW.orange:FW.gold;
+    psBig.emit(p.x,p.y,p.z,d[0]*sp2,d[1]*sp2,d[2]*sp2,c[0],c[1],c[2],rand(0.8,1.8),3,4); }
+  for(let i=0;i<8;i++) psHuge.emit(p.x,p.y,p.z,rand(-1,1),rand(-1,1),rand(-1,1),1,1,1,0.3+i*0.08,0,0);
+  sfx.atom(v);
+  shake=Math.max(shake,1.2*v+0.3);
+  later(0.35,()=>{ shake=Math.max(shake,2.2*v+0.4); });
+  return w;
+}
+/* ---------- Monsterknall: Feuerball am Boden, Druckring ---------- */
+function monsterknall(o){
+  const v=distVol(o), y=o.y!==undefined?o.y:0.4, q=QUAL();
+  const nF=Math.round(14*q)+6, nR=Math.round(26*q)+8, teile=[], fb=[], ring=[];
+  for(let i=0;i<nF;i++){ const sp=wolkenSprite(true); teile.push(sp); fb.push({sp,d:randDir(),f:rand(0.3,1)}); }
+  for(let i=0;i<nR;i++){ const sp=wolkenSprite(false); teile.push(sp); ring.push({sp,a:i/nR*Math.PI*2,gr:rand(0.8,1.25)}); }
+  const FB=[[0,[1,1,1]],[0.08,[1,.9,.6]],[0.3,[1,.55,.15]],[0.8,[.6,.18,.05]]];
+  wolke(3.2,teile,(w,t)=>{
+    const R=2.6*(1-Math.exp(-t*14));
+    for(const b of fb) wSetz(b.sp,o.x+b.d[0]*R*b.f,y+0.8+Math.abs(b.d[1])*R*b.f*0.8+t*1.2,o.z+b.d[2]*R*b.f,1.6+R*1.3*b.f,verlauf(FB,t),1-glatt(0.25,1.1,t));
+    const rr=11*(1-Math.exp(-t/0.35)), a=0.75*(1-glatt(0.5,3,t));
+    for(const r of ring) wSetz(r.sp,o.x+Math.cos(r.a)*rr,0.5,o.z+Math.sin(r.a)*rr,(1+rr*0.18)*r.gr,[.62,.55,.48],a);
+  });
+  bildBlitz(0.45*v,0.5);
+  flash({x:o.x,y:y+0.6,z:o.z},FW.weiss,11,0.45);
+  for(let i=0;i<6;i++) psHuge.emit(o.x,y+0.5,o.z,rand(-.6,.6),rand(0,.6),rand(-.6,.6),1,1,1,0.18+i*0.05,0,0);
+  for(let i=0;i<Math.round(420*q);i++){ const a2=Math.random()*Math.PI*2, sp=rand(4,16), c=Math.random()<0.6?FW.bernstein:FW.weiss;
+    psBig.emit(o.x,y+0.3,o.z,Math.cos(a2)*sp,rand(1,11),Math.sin(a2)*sp,c[0],c[1],c[2],rand(0.4,1.2),6,4); }
+  sfx.monster(v);
+  shake=Math.max(shake,Math.min(2.4,1.9*v+0.2));
+}
+/* ---------- Furzwolke: gruenbraun, zieht langsam davon ---------- */
+function furzwolke(o){
+  const y=o.y!==undefined?o.y:0.4, teile=[], b=[], wind=[rand(-.25,.25),rand(-.25,.25)];
+  for(let i=0;i<12;i++){ const sp=wolkenSprite(false); teile.push(sp); b.push({sp,d:randDir(),gr:rand(0.8,1.3),c:Math.random()<0.5?[.3,.34,.12]:[.3,.21,.1]}); }
+  wolke(4.5,teile,(w,t)=>{ const R=0.4+1.3*(1-Math.exp(-t*2.2));
+    for(const k of b) wSetz(k.sp,o.x+k.d[0]*R+wind[0]*t,y+0.5+Math.abs(k.d[1])*R*0.7+t*0.35,o.z+k.d[2]*R+wind[1]*t,(0.6+R*0.9)*k.gr,k.c,0.75*glatt(0,0.15,t)*(1-glatt(2,4.5,t))); });
+}
+/* Startgeschwindigkeit, mit der ein Stern (Schwerkraft g, Luftwider-
+   stand ZIEH) genau h Meter hoch steigt - Gipfel der Flugbahn:
+   h(v) = v/k - g/k^2 * ln(1 + k*v/g). Halbierung reicht. */
+function vFuerHoehe(h,g){ g=g||6; const k=ZIEH; let a=0, b=200;
+  for(let i=0;i<50;i++){ const m=(a+b)/2, hm=m/k-g/(k*k)*Math.log(1+k*m/g); if(hm<h) a=m; else b=m; }
+  return (a+b)/2; }
+function monsterFontaene(o,hm,dauer,farben,wechsel){
+  emitters.push({t:dauer,k:'monsterfont',o,hm,v0:vFuerHoehe(hm),farben:farben.map(K),wechsel:!!wechsel});
+  const v=distVol(o); sfx.fizz(v); sfx.thump(v*1.2);
+}
 function updateFireworks(dt){
   FW_UHR+=dt;
   for(let i=rockets.length-1;i>=0;i--){ const r=rockets[i];
@@ -13154,6 +13386,35 @@ function updateFireworks(dt){
         psSmall.emit(o.x+Math.cos(a)*r,o.y+kr+rand(-1.2,0.6),o.z+Math.sin(a)*r,rand(-.5,.5),rand(-1,0.5),rand(-.5,.5),1,.95,.8,rand(0.2,0.45),2,3); }
       e.kn=(e.kn||0)-dt; if(e.kn<=0){ e.kn=rand(0.35,0.8); sfx.crackle(distVol(o)*0.6); }
       e.fz=(e.fz||0)-dt; if(e.fz<=0){ e.fz=1.2; sfx.fizz(distVol(o)); } }
+    else if(e.k==='monsterfont'){
+      /* Monsterfontaene (Toms PDF vom 25.09.): 30 oder 50 m hoch, je
+         groesser, desto bunter. Die Startgeschwindigkeit kommt aus der
+         Flugbahn mit Luftwiderstand, damit die Spitze wirklich auf der
+         angegebenen Hoehe liegt. Farben laufen als Baender durch den
+         Strahl; die 50-m-Fontaene wechselt zusaetzlich jeden Stern im
+         Steigen die Farbe. Keine Ladungen, keine Kometen - nur Fontaene. */
+      const F=e.farben, hm=e.hm, v0=e.v0, q=QUAL();
+      e.alter=(e.alter||0)+dt;
+      const an=Math.min(1,e.alter/0.8), ab=Math.min(1,e.t/1.2), kraft=an*ab;
+      e.fl=(e.fl||0)-dt; if(e.fl<=0){ e.fl=0.25; flash({x:o.x,y:o.y+hm*0.35,z:o.z},F[Math.floor(e.alter*3)%F.length],(3+hm*0.08)*kraft,0.3); }
+      /* Ein Kegel, kein Strahl: die Sterne gehen bis zu 8 Grad zur
+         Seite und fallen im Bogen zurueck. Zu dicht und zu eng stehend
+         addierten sich die Farben zu einem weissen Laserstrahl. */
+      e.acc=(e.acc||0)+dt*(hm>40?560:430)*q*kraft;
+      const band=Math.floor(e.alter/0.3), alt=SCHWEIF; SCHWEIF=0.3;
+      for(;e.acc>=1;e.acc--){
+        const c=F[(band+Math.floor(Math.random()*2))%F.length], a=Math.random()*Math.PI*2, w=v0*rand(0.01,0.14);
+        const vy=v0*rand(0.88,1.02)*(0.75+0.25*an), hl=0.8;
+        if(e.wechsel){ const c2=F[(band+3)%F.length];
+          psMid.emit(o.x,o.y+0.3,o.z,Math.cos(a)*w,vy,Math.sin(a)*w,c[0]*hl,c[1]*hl,c[2]*hl,rand(3.0,3.8),6,2,c2[0]*hl,c2[1]*hl,c2[2]*hl); }
+        else psMid.emit(o.x,o.y+0.3,o.z,Math.cos(a)*w,vy,Math.sin(a)*w,c[0]*hl,c[1]*hl,c[2]*hl,rand(2.8,3.6),6,0);
+      }
+      SCHWEIF=alt;
+      /* Glitzerkrone an der Spitze */
+      for(let k=0;k<Math.round(dt*(hm>40?320:220)*kraft);k++){ const a=Math.random()*Math.PI*2, r=rand(0,hm/9), c=F[k%F.length];
+        psSmall.emit(o.x+Math.cos(a)*r,o.y+hm+rand(-hm*0.08,hm*0.03),o.z+Math.sin(a)*r,rand(-.6,.6),rand(-1.2,0.4),rand(-.6,.6),0.5+c[0]*0.5,0.5+c[1]*0.5,0.5+c[2]*0.5,rand(0.25,0.55),2,3); }
+      e.kn=(e.kn||0)-dt; if(e.kn<=0){ e.kn=rand(0.3,0.6); sfx.crackle(distVol(o)*0.7*kraft); }
+      e.fz=(e.fz||0)-dt; if(e.fz<=0){ e.fz=0.9; sfx.fizz(distVol(o)*1.3*kraft); noise(1.0,0.12*distVol(o)*kraft,900); } }
     else if(e.k==='feuerbrunnen'){
       /* Feuerbrunnen: in Stoessen steigen grosse Flammenbaelle sechs
          bis acht Meter hoch und regnen als brennende Tropfen herunter */
@@ -13180,7 +13441,7 @@ function updateFireworks(dt){
     else { for(let k=0;k<2;k++){ const d=randDir();
         psSmall.emit(o.x,o.y+0.05,o.z,d[0],d[1]+0.4,d[2],1,0.9,0.5,rand(0.2,0.4),4,0); } }
     if(e.t<=0) emitters.splice(i,1); }
-  psHuge.update(dt); psBig.update(dt); psMid.update(dt); psSmall.update(dt); updateFlash(dt);
+  psHuge.update(dt); psBig.update(dt); psMid.update(dt); psSmall.update(dt); updateFlash(dt); wolkenUpdate(dt);
 }
 /* =========================================================
    Choreografie: Batterien und Verbunde laufen als Show ab
@@ -13410,18 +13671,15 @@ const RAKETEN_KL={
   pfeifraketen:{n:10,gap:0.5, sz:0.8, pw:-3,th:'wald',gruppe:2,pfeif:true,eff:['knister','spektrum','fische','goldglitzer','strobe','tausend']},
   raketengold :{n:5, gap:1.1, sz:1.25,pw:1, th:'gold',eff:['goldglitzer','kronleuchter','brokat','goldglitzer','zeitregen']},
   titanraketen:{n:3, gap:1.7, sz:1.55,pw:5, th:'eis',dick:1,eff:['titan']},
+  /* Einzelraketen (Toms PDF vom 25.09.): ein Schuss, ein Bruch, keine
+     Nachladung. Die Krone knisterte vorher 1,7 s spaeter noch einmal,
+     die Himmelsleiter schoss Kometen in drei Stufen weiter hoch. */
   /* Jumbo »Goldene Krone«: eine dicke Goldrakete, die Palme endet in
-     farbigen Juwelen, zum Schluss knistert es */
-  jumbogold  :{n:1, gap:0, sz:2.0, pw:8, fuse:1.35, th:'koenig',dick:2,trail:'gold',eff:['sternpalme'],
-    stufen:(A,B)=>[{t:1.7,eff:'tausend',sz:1.0,streu:1.2,A:FW.weiss,B:FW.gold}]},
-  /* Jumbo »Himmelsleiter«: drei Brueche uebereinander, ein Komet
-     traegt die Rakete jeweils eine Stufe hoeher - jede groesser */
-  jumboleiter:{n:1, gap:0, sz:0.9, pw:0, th:'nacht',dick:2,trail:'weiss',eff:['pistill'],
-    stufen:(A,B)=>[{t:0.02,eff:'steigkomet',sz:1,off:[0,0,0],leise:true},
-      {t:LEITER_T+0.02,eff:'dahlie',sz:1.25,off:[0,LEITER_STUFE,0],A:B,B:A},
-      {t:LEITER_T+0.04,eff:'steigkomet',sz:1,off:[0,LEITER_STUFE,0],leise:true},
-      {t:2*LEITER_T+0.04,eff:'glitzerweide',sz:2.0,off:[0,2*LEITER_STUFE,0],A:FW.gold,B:FW.weiss},
-      {t:2*LEITER_T+0.9,eff:'tausend',sz:1.1,off:[0,2*LEITER_STUFE-3,0],A:FW.weiss,B:FW.weiss}]},
+     farbigen Juwelen */
+  jumbogold  :{n:1, gap:0, sz:2.2, pw:8, fuse:1.35, th:'koenig',dick:2,trail:'gold',eff:['sternpalme']},
+  /* Jumbo »Polarstern«: noch hoeher, eine riesige Kugel mit einem
+     achtzackigen Stern darin (Schluessel bleibt fuer alte Staende) */
+  jumboleiter:{n:1, gap:0, sz:2.3, pw:10, fuse:1.4, th:'nacht',dick:2,trail:'weiss',eff:['polarstern']},
   gravur      :{n:1, gap:0.45,sz:1.3, pw:4, eff:['herz']},
   blanko      :{n:3, gap:0.45,sz:0.95,pw:0, eff:null}
 };
@@ -13466,46 +13724,37 @@ function igniteType(t,o0){
     kugelbombe(o,kal);
     return;
   }
-  /* ----- Riesenfontaenen ----- */
+  /* ----- Riesenfontaenen -----
+     Fontaene ist Fontaene (Toms PDF vom 25.09.): aus keiner Fontaene
+     steigt mehr eine Ladung, ein Komet oder eine Rakete. Vorher warfen
+     Geysir, Feuersaeule, Feuerbrunnen, Vulkan, Sternenbrunnen und das
+     Fontaenen-Set zum Schluss noch Kometen mit Bluete aus. */
   if(t==='goldgeysir'||t==='feuersaeule'){
     const gross=t==='feuersaeule', dauer=gross?28:20;
     const e={t:dauer,k:'riesen',o,h:gross?1.35:1,A:FW.gold,B:FW.weiss};
     emitters.push(e);
     /* die Feuersaeule wechselt alle paar Sekunden die Farbe */
     if(gross) for(let i=1;i<6;i++) later(i*dauer/6,()=>{ const [A,B]=scheme(); e.A=A; e.B=FW.gold; e.C=B; });
-    /* zum Schluss steigen aus der Fontaene Kometen mit Bluete auf */
-    const n=gross?7:4;
-    for(let i=0;i<n;i++) later(dauer-1.8+i*0.22,()=>shot(o,{pw:gross?3:-2,sz:gross?1.35:1.0,
-      eff:(gross?['palme','glitzerweide','kronleuchter','mehrring','titan','kronleuchter','palme']:['palme','chrys','palme','chrys'])[i],
-      ...(([A,B])=>({A,B}))(themaPaar(gross?'glut':'gold',0)),ang:rand(-0.25,0.25),trail:FW.gold}));
     return;
   }
-  /* ----- Feuerbrunnen (neu, 24.09.): Flammenfontaene, die in Stoessen
-     grosse Flammenbaelle wirft; zum Schluss zwei Flammenregen darueber */
+  /* Monsterfontaenen: 30 m mit fuenf Farben, 50 m im vollen Regenbogen
+     mit Farbwechsel - kurz und gewaltig statt lang */
+  if(t==='fontaene30'){ monsterFontaene(o,30,12,['rot','gold','gruen','tuerkis','violett']); return; }
+  if(t==='fontaene50'){ monsterFontaene(o,50,14,['rot','orange','zitrone','gruen','tuerkis','blau','violett','magenta'],true); return; }
+  /* ----- Feuerbrunnen: Flammenfontaene, die in Stoessen grosse
+     Flammenbaelle wirft ----- */
   if(t==='feuerbrunnen'){
-    const e={t:16,k:'feuerbrunnen',o,h:1};
-    emitters.push(e); sfx.fizz(distVol(o));
-    for(let i=0;i<2;i++) later(16.2+i*0.7,()=>shot(o,{pw:-3,sz:0.95,eff:'flammenregen',A:FW.orange,B:FW.gold,fuse:1.2,trail:FW.orange}));
+    emitters.push({t:16,k:'feuerbrunnen',o,h:1}); sfx.fizz(distVol(o));
     return;
   }
-  /* ----- Sternenbrunnen: Fontaene, Komet, Bluete ----- */
+  /* ----- Sternenbrunnen: Goldfontaene, in der farbige Sterne steigen ----- */
   if(t==='sternenbrunnen'){
     const [A,B]=scheme(), v=distVol(o);
-    /* erst die Fontaene, die den Blick nach oben zieht */
-    emitters.push({t:3.4,k:'fountain',o,A:FW.gold,B:A});
-    sfx.fizz(v); later(1.6,()=>sfx.fizz(v));
-    /* dann schnuert sie sich zu einem Kometen zusammen */
-    later(3.0,()=>{
-      for(let i=0;i<Math.round(120*QUAL());i++){
-        const a=Math.random()*Math.PI*2, w=rand(0.1,0.7);
-        psMid.emit(o.x,o.y+0.3,o.z,Math.cos(a)*w,rand(11,17),Math.sin(a)*w,1,.86,.4,rand(0.6,1.1),5,4);
-      }
-      sfx.whistle(v);
-    });
-    later(3.4,()=>{
-      /* Level 12: eine Bluete, aber noch keine Profihoehe */
-      shot(o,{pw:-2,sz:1.0,eff:pick(['chrys','geist','saturn','wechsel']),A,B,fuse:1.35,dick:1,trail:FW.gold});
-    });
+    emitters.push({t:5,k:'fountain',o,A:FW.gold,B:A});
+    for(let i=0;i<5;i++) later(0.4+i*0.9,()=>{ const c=i%2?B:A;
+      for(let k=0;k<Math.round(26*QUAL());k++){ const a=Math.random()*Math.PI*2, w=rand(0.2,1.1);
+        psBig.emit(o.x,o.y+0.3,o.z,Math.cos(a)*w,rand(8,11),Math.sin(a)*w,c[0],c[1],c[2],rand(1.2,1.7),6,0); } });
+    sfx.fizz(v); later(1.6,()=>sfx.fizz(v)); later(3.2,()=>sfx.fizz(v));
     return;
   }
   /* ----- Schabernack-Edition ----- */
@@ -13520,19 +13769,6 @@ function igniteType(t,o0){
         shot(o,{pw:-4,sz:1.5,eff:'furz',A:FW.braun,B:FW.sumpf,fuse:1.55,trail:FW.braun});
         later(2.0,()=>{ sfx.furz(Math.min(1.5,v*1.3)); shake=Math.max(shake,0.5*v); });
       });
-    });
-    return;
-  }
-  if(t==='heuler'){
-    const v=distVol(o);
-    for(let i=0;i<4;i++) later(i*0.9,()=>{
-      sfx.heul(v);
-      const x=o.x+rand(-1.2,1.2), z=o.z+rand(-1.2,1.2);
-      const c=K(pick(['tuerkis','magenta','zitrone','limette']));
-      /* aufsteigende Spirale */
-      for(let k=0;k<70;k++){ const a=k*0.4, r=0.2+k*0.02;
-        psMid.emit(x+Math.cos(a)*r,0.2+k*0.05,z+Math.sin(a)*r,Math.cos(a)*1.4,rand(2,4),Math.sin(a)*1.4,c[0],c[1],c[2],rand(0.7,1.4),3.2); }
-      later(1.4,()=>{ smallPop(x,3.4,z,90,7,0.6,c); sfx.crack(v); });
     });
     return;
   }
@@ -13553,22 +13789,36 @@ function igniteType(t,o0){
     emitters.push({t:22,k:'wasserfall',o,A:FW.gold,B:FW.zitrone});
     sfx.fizz(distVol(o)); for(let i=1;i<8;i++) later(i*3,()=>sfx.fizz(distVol(o)));
   }
+  /* Boeller (Toms PDF vom 25.09.): Furz, Monster, Atombombe */
+  else if(t==='boeller'){
+    emitters.push({t:1.2,k:'fuse',o});
+    later(1.2,()=>{ const v=distVol(o), yb=o.y!==undefined?o.y:0.4;
+      smallPop(o.x,yb,o.z,36,4,0.5,FW.senf);
+      flash({x:o.x,y:yb+0.4,z:o.z},FW.sumpf,1.1,0.3);
+      /* braune Spritzer, die kurz hochfliegen und zurueckfallen */
+      for(let i=0;i<Math.round(60*QUAL());i++){ const a=Math.random()*Math.PI*2, w=rand(0.5,2.2), c=i%3?FW.braun:FW.sumpf;
+        psMid.emit(o.x,yb+0.1,o.z,Math.cos(a)*w,rand(2,5),Math.sin(a)*w,c[0],c[1],c[2],rand(0.9,1.6),7,0); }
+      sfx.pups(v); furzwolke({x:o.x,y:yb,z:o.z});
+      shake=Math.max(shake,0.25*v); });
+  }
+  else if(t==='monsterboeller'){
+    emitters.push({t:1.5,k:'fuse',o});
+    later(1.5,()=>monsterknall({x:o.x,y:o.y!==undefined?o.y:0.4,z:o.z}));
+  }
+  else if(t==='atomboeller'){
+    /* Die Zuendschnur brennt etwas laenger, dann steigt die Bombe mit
+       dicker Glutspur auf und geht auf rund 25 m als Pilz auf. Sie
+       steigt leicht schraeg vom Pult weg: der Pilz wird ueber 40 m
+       breit und hoch, und erst aus gut 20 m Abstand passt er ganz
+       ins Bild. */
+    emitters.push({t:1.8,k:'fuse',o});
+    later(1.8,()=>shot(o,{pw:2,sz:1,eff:'atom',fuse:2.2,dick:2,trail:FW.orange,A:FW.orange,B:FW.gold,ang:0.36,dir:Math.PI}));
+  }
   else if(sh==='tubepack'){
-    const KL={boeller:1,knallfrosch:0.8,kanonen:1.5,doppelschlag:1.5,grossboeller:1.3,sprengmeister:2.1,xxlpolen:3.0}[t]||1;
     emitters.push({t:1.4,k:'fuse',o});
-    later(1.4,()=>{
-      const v=distVol(o);
-      const yb=o.y!==undefined?o.y:0.4;
-      smallPop(o.x,yb,o.z,Math.round(60*KL+40),6*KL+2,0.6,KL>=2?FW.weiss:undefined);
-      sfx.boom(Math.min(1.6,v*KL)); shake=Math.max(shake,Math.min(1.6,0.45*KL)*v);
-      flash({x:o.x,y:yb+0.4,z:o.z},KL>=2?FW.weiss:FW.bernstein,1.2*KL,0.3);
-      if(KL>=2){ /* Druckwelle: Staub und Funkenkranz am Boden */
-        for(let i=0;i<Math.round(90*KL);i++){ const a2=Math.random()*Math.PI*2, sp=rand(3,9)*KL;
-          psMid.emit(o.x,0.14,o.z,Math.cos(a2)*sp,rand(0.2,2.2),Math.sin(a2)*sp,0.9,0.86,0.8,rand(0.5,1.3),3.5,4); }
-        later(0.06,()=>sfx.boom(Math.min(1.5,v*KL*0.7)));
-        later(0.35,()=>{ sfx.crack(v*0.8); }); }
-      if(t==='doppelschlag') later(0.5,()=>{ smallPop(o.x,yb,o.z,110,9,0.6); sfx.boom(v*1.3); shake=Math.max(shake,0.7*v); flash({x:o.x,y:yb+0.4,z:o.z},FW.bernstein,1.8,0.3); });
-    });
+    later(1.4,()=>{ const v=distVol(o), yb=o.y!==undefined?o.y:0.4;
+      smallPop(o.x,yb,o.z,100,8,0.6); sfx.boom(v); shake=Math.max(shake,0.45*v);
+      flash({x:o.x,y:yb+0.4,z:o.z},FW.bernstein,1.2,0.3); });
   }
   else if(t==='tisch'){
     sfx.crack(distVol(o));
@@ -13579,17 +13829,14 @@ function igniteType(t,o0){
     const [A,B]=scheme();
     emitters.push({t:12,k:'volcano',o,A:FW.gold,B});
     sfx.fizz(distVol(o)); for(let i=1;i<6;i++) later(i*2,()=>sfx.fizz(distVol(o)));
-    later(12,()=>{ mine(o,A,B,1.4); smallPop(o.x,0.6,o.z,90,8,0.7,A); sfx.boom(distVol(o));
-      /* der Vulkan wirft zum Schluss einen Kometen mit Bluete aus */
-      later(0.25,()=>shot(o,{pw:-3,sz:0.9,eff:pick(['chrys','saturn','wechsel']),A,B,fuse:1.2})); });
+    /* zum Schluss bricht er noch einmal auf - ohne Ladung */
+    later(9,()=>emitters.push({t:3,k:'volcano',o,A:B,B:FW.weiss}));
   }
   else if(sh==='fountainset'){
     const [A,B]=scheme();
     emitters.push({t:8,k:'fountain',o,A:FW.gold,B:A});
     sfx.fizz(distVol(o)); later(2.5,()=>sfx.fizz(distVol(o)));
     later(5,()=>{ emitters.push({t:5,k:'fountain',o,A:B,B:FW.weiss}); sfx.fizz(distVol(o)); });
-    /* zum Abschluss steigt aus jeder Fontaene noch ein Komet auf */
-    for(let i=0;i<3;i++) later(9.6+i*0.4,()=>shot(o,{pw:-6,sz:0.7,eff:pick(['kugel','knister','strobe']),fuse:0.95}));
   }
   else if(sh==='rocketset'){
     const KL=RAKETEN_KL[t]||{n:3,gap:0.45,sz:0.95,pw:0,eff:null};
@@ -13598,9 +13845,8 @@ function igniteType(t,o0){
       shot(o,{pw:KL.pw,sz:KL.sz,eff:KL.eff?KL.eff[i%KL.eff.length]:pick(EFF_GROSS),
         ...(AB?{A:AB[0],B:AB[1]}:{sc:-1}),
         pfeif:KL.pfeif,dick:KL.dick,trail:KL.trail?FW[KL.trail]:KL.dick?FW.weiss:undefined,fuse:KL.fuse,
-        /* Jumbos: eigene Nachbrueche; Titan: jede Rakete bricht dreifach */
-        stufen:KL.stufen?KL.stufen(AB?AB[0]:FW.gold,AB?AB[1]:FW.weiss,i)
-          :t==='titanraketen'?[{t:0.5,eff:pick(['mehrring','pistill','dahlie']),sz:1.0,streu:5},{t:1.0,eff:'salut',sz:0.8,streu:3}]:null}); });
+        /* ein Schuss, ein Bruch - keine Nachbrueche mehr (Toms PDF vom 25.09.) */
+        stufen:null}); });
   }
   else if(sh==='battery'||sh==='fan'){
     /* Verbundfeuerwerk: Kaliber, Takt und Effektauswahl wachsen mit
@@ -15703,6 +15949,25 @@ function freshState(){ const prices={}; ORDER.forEach(t=>prices[t]=P[t].market);
     shelves:[],racks:[],
     boxes:[],regale:[],
     carrying:null,tut:{},seasonRevenue:0,cart:[],offen:0,pakete:0,bestellungen:[],paketGr:[],bestNr:0,lic:['start'],stat:{},erf:{},gesehen:[],eigene:[],gutschrift:0,mi:{},me:{},reg:{},mh:{},schock:{},news:[],infl:1,shopName:SHOP_DEFAULT,slogan:SLOGAN_DEFAULT}; }
+/* Sorten, die es nicht mehr gibt (Toms PDF vom 25.09.): die alten
+   Boeller werden beim Laden zu den neuen, der Heuler zum Furzboeller.
+   Preise und Marktdaten der alten Sorten fallen weg - die neuen
+   starten mit ihren eigenen. Alles andere, was eine Sorte nennt
+   (Regale, Kartons, Warenkorb, Bestellungen, in der Hand), zieht mit. */
+const SORTE_NEU={kanonen:'monsterboeller',grossboeller:'monsterboeller',doppelschlag:'monsterboeller',
+  sprengmeister:'atomboeller',xxlpolen:'atomboeller',heuler:'boeller'};
+function sortenUmstellen(d){
+  for(const m of ['prices','mi','me','reg','mh','schock']) if(d[m]&&typeof d[m]==='object') for(const k in SORTE_NEU) delete d[m][k];
+  const geh=(o,tiefe)=>{ if(!o||typeof o!=='object'||tiefe>10) return;
+    if(Array.isArray(o)){ o.forEach(x=>geh(x,tiefe+1)); return; }
+    for(const k of Object.keys(o)){ const v=o[k];
+      if((k==='type'||k==='t')&&typeof v==='string'&&SORTE_NEU[v]) o[k]=SORTE_NEU[v];
+      else if(SORTE_NEU[k]){ const n=SORTE_NEU[k];
+        if(o[n]===undefined) o[n]=v; else if(typeof v==='number'&&typeof o[n]==='number') o[n]+=v;
+        delete o[k]; }
+      else geh(v,tiefe+1); } };
+  geh(d,0);
+}
 function loadSave(){ try{ const r=localStorage.getItem(KEY); if(!r) return null; const d=JSON.parse(r); return d&&d.v===3?d:null; }catch(e){ return null; } }
 function mpos(g){ return g?{x:+g.position.x.toFixed(2),z:+g.position.z.toFixed(2),ry:+g.rotation.y.toFixed(3)}:null; }
 function save(){
@@ -15726,6 +15991,7 @@ function save(){
 function startGame(fresh){
   if(fresh){ try{ localStorage.removeItem(KEY); }catch(e){} }
   const d=fresh?null:loadSave();
+  if(d) sortenUmstellen(d);
   S=Object.assign(freshState(),d||{});
   /* Spielstaende von vor den kleinen Anfangsstufen kennen deren
      Schluessel nicht. Wer damals gespielt hat, hatte das ganze
@@ -15776,7 +16042,10 @@ function startGame(fresh){
   setSB(!!S.up.kasse2);
   setEingang2(!!S.up.eingang2);
   vsLaden(); drawPackSchild(); syncPakete();
-  if(d&&d.ck) placeMovable(ckMov,d.ck.x,d.ck.z,d.ck.ry);
+  /* Eine nie verschobene Kasse steht in alten Staenden noch am alten
+     Platz rechts vom Eingang - sie zieht an den neuen mit um. */
+  { const c=d&&d.ck, alt=c&&Math.abs(c.x-CK_ALT.x)<0.01&&Math.abs(c.z-CK_ALT.z)<0.01&&Math.abs(c.ry-CK_ALT.ry)<0.01;
+    const q=c&&!alt?c:CK_HOME; placeMovable(ckMov,q.x,q.z,q.ry); }
   if(d&&d.desk){ const m=movables.find(m=>m.kind==='desk'); if(m) placeMovable(m,d.desk.x,d.desk.z,d.desk.ry); }
   if(d&&d.sb2&&sb2Mov) placeMovable(sb2Mov,d.sb2.x,d.sb2.z,d.sb2.ry);
   /* Die Versandecke steht, wo man sie hingeschoben hat. Ein neues
@@ -15870,9 +16139,8 @@ function updateHUD(){
   $('hHype').style.width=hype+'%';
   $('mHype').hidden=compact&&hype<1;
   let chips='';
-  const ev=todayEvent(), gl=S.goal;
+  const ev=todayEvent();
   if(ev) chips+=`<div class="chip" style="background:rgba(255,210,63,.2);color:var(--signal)">${ev.name}</div>`;
-  if(gl&&!gl.done&&!compact) chips+=`<div class="chip">${gl.name} ${Math.round(gl.have)}/${gl.need}</div>`;
   if(serie>=3&&!compact) chips+=`<div class="chip serie">Serie ×${serie}</div>`;
   STAFF.forEach(s=>{ if(S.staff[s.id]) chips+=`<div class="chip">${s.kurz||s.name}</div>`; });
   const el=$('staff'); if(el.innerHTML!==chips) el.innerHTML=chips;
@@ -16339,8 +16607,8 @@ function tutKnopf(){ const b=$('pTut'); if(b) b.textContent=tutorialAn()?'Tutori
 function showPause(){ if(overlayOpen()) return; renderSteuer(); musikAnzeige(); tutKnopf(); pauseOpen=true; paused=true; for(const k in keys) keys[k]=false; mouseDown=false; $('pause').classList.add('show'); }
 function closePause(){ if(!pauseOpen) return; pauseOpen=false; paused=false; $('pause').classList.remove('show'); requestLock(); }
 $('pBtn').addEventListener('click',()=>closePause());
-/* Musik: Knopf im Bild (auch am Handy) und Regler im Pausenmenue */
-$('musikBtn').addEventListener('click',e=>{ e.stopPropagation(); ac(); musikAn(); });
+/* Musik: Taste M und Regler im Pausenmenue. Der Knopf oben links
+   ist raus (Tom, 25.09.). */
 $('pMusikAn').addEventListener('click',()=>{ ac(); musikAn(); });
 $('pMusikWeiter').addEventListener('click',()=>{ ac(); if(!MUSIK.an) musikAn(true); else musikWeiter(false); });
 $('pMusikVol').addEventListener('input',e=>{ ac(); musikVol(+e.target.value/100); });
@@ -16552,7 +16820,7 @@ function buildStart(){
 }
 function fontsReady(){
   if(!document.fonts||!document.fonts.load) return Promise.resolve();
-  return Promise.race([Promise.all([document.fonts.load('112px Bungee'),document.fonts.load('700 30px "Barlow Condensed"')]),new Promise(r=>setTimeout(r,2500))]).catch(()=>{});
+  return Promise.race([Promise.all([document.fonts.load('112px Bungee'),document.fonts.load('700 30px "Barlow Condensed"'),document.fonts.load('700 60px Cinzel')]),new Promise(r=>setTimeout(r,2500))]).catch(()=>{});
 }
 setCompact();
 fontsReady().then(()=>{
@@ -16574,7 +16842,7 @@ fontsReady().then(()=>{
   setTimeout(()=>{ if(typeof shaderVorab==='function') shaderVorab(); },400);
   window.__bb={get S(){return S},get phase(){return phase},set phase(v){phase=v},set clock(v){clock=v},get clock(){return clock},pickUp,floorBoxes,shelves,racks,dekos,stockOne,openShop,step,customers,queue,belt,scanBelt,buyUp,buyDeko,get DS(){return DS},endDay,pending,save,openLaptop,closeLaptop,pl,addXP,hireStaff,fireStaff,staff,dirts,addDirt,movables,toggleBuild,setWall,setFloor,
     stations,firePult,placeOnStation,igniteType,get order(){return order},get phone(){return phone},makeCall,answerPhone,haggle,acceptDeal,declineDeal,get truck(){return truck},spawnTruck,takeFromTruck,takeBox,dropBox,updateTruck,get door(){return door},get tuer(){return tuer},tuerSet,tuerNah,updateSchiebetuer,doorOpen,doorIsOpen,trailerOccupied,LR,lrFront,TOR,orderReady,orderLeft,shipOne,removeFloorBox,prioOf,setPrio,racks,updateCarry,spawnFloorBox,staff,SHELFKIND,layout,shelfCapOf,shelfAccepts,emptyLevel,dateInfo,dateStr,dateShort,seasonInfo,isSunday,dayMult,ruhetag,wageOf,setWage,friendliness,inPause,setPause,windowGrime,addGrime,cleanWindowTick,ambienteScore,bildBoost,fixedCosts,dailyWages,dispoLimit,verfuegbar,dispoZins,takeLoan,loanTier,loanDaily,EVENTS,GOALS,CUSTTYPES,UPGRADES,STAFF,stockOf,spawnInterval,pools,todayEvent,evv,rollEvent,rollMarket,newGoal,goalAdd,goalTick,ekFactor,marktText,xpFor,rollCustType,priceTol,buyChance,regCustomer,makeWishes,nachfrageFaktor,shelfStockOf,buildGravur,refillGrav,openGravInput,closeGravInput,get gravBlanks(){return gravBlanks},set gravBlanks(v){gravBlanks=v},orderBox,buyPack,cartAdd,cartAddPack,cartOrder,cartClear,cartDel,cartGoods,cartFee,cartTotal,cartBoxes,cartLines,LIEFERZEIT_SEK,VERSAND,VERSANDFREI,lieferSek,
-    scene,camera,P,EFF,EFF_ALL,EFF_KLEIN,EFF_GROSS,EFF_PRO,SHOWS,kugelbombe,shot,mine,FW,stations,stationOf,placedCount,togglePDA,openPDA,closePDA,setPost,get postOn(){return postOn},get pdaOn(){return pdaOn},showLength,psHuge,psBig,psMid,psSmall,rockets,emitters,timersLen:()=>timers.length,setView:(x,z,y,p)=>{pl.x=x;pl.z=z;yaw=y;pitch=p;aim=null;},schiebe:(x,z)=>{pl.x=x;pl.z=z;collide(pl,0.32);return{x:pl.x,z:pl.z};},PLZ_MAX,camYaw:()=>yaw,camPitch:()=>pitch,playerPos:()=>({x:pl.x,z:pl.z}),pultYaw:()=>pultHit?pultHit.parent.rotation.y:null,applyShopName,shopName,shopSlogan,signTexPx:()=>signTex&&signTex.image?signTex.image.getContext('2d').getImageData(0,0,signTex.image.width,40).data.join(''):null,ckTexPx:()=>ckNameTex&&ckNameTex.image?ckNameTex.image.getContext('2d').getImageData(0,0,ckNameTex.image.width,60).data.join(''):null,testfeldMitte,STATION_POS,aimAt,UPGRADES,upPic,PLAN,planFlaechen,uhrZeiger:()=>({std:uhrStd?+uhrStd.rotation.z.toFixed(4):0,min:uhrMin?+uhrMin.rotation.z.toFixed(4):0}),drawRackSchild,get snowPts(){return snowPts},buildStadt,updateStadt,get stadtBoxen(){return stadtBoxen},get stadtBaeume(){return stadtBaeume},buildFernbaeume,schwaerme,beacons,silhouetten,get verkehrPts(){return verkehrPts},get rauchPts(){return rauchPts},get flieger(){return flieger},stadtFrei,STADT_FREI,WALLS,FLOORS,renderOnline,onlineHint,onlineStufe,onlineZahlen,onlineListe,updateOnline,SCHILDBG,SCHILDFG,setSchild,schildBg,schildFg,repaintSchilder,updateHead,allLevels,addToLevel,putInSlot,regCustomer,ZONEN,zoneOffen,oeffneZone,applyZonen,SLOTS,RACKS,slotsOffen,colliders,LAY,LOGI,WRAMPEN,WTORE,updateSnow,unterDach,dachBereiche,get lapHit2(){return lapHit2},buildLagerTerminal,toggleTest,testLevel,buyUp,get toastLast(){return toastLast},__floorBoxen:()=>floorBoxes.length,WBAY_UP,wbays,dockPlaetze,wbayFrei,wbayOffen,spawnWTruck,updateWBays,wbaysInit,wtorSet,GANG,GANGTUER,buildLagergang,flaeche,WTOR,RACKKIND,route,NAV,navFrei,navIdx,navBuild,shelfStand,shelves,sbLanes,buildSBKasse,sbFrei,sbOffen,sbNutzbar,EING2,eingaenge,naechsterEingang,setEingang2,buildSBKasse2,get sb2G(){return sb2G},TUEREN,tuerSetD,tuerNahD,packBereit,packOne,paketWert,bestellungenProTag,pakete,ddlAbholung,updateVersand,VS_GR,VS_FELD,WG_PARK,vsNeueBestellung,vsAbgleich,vsKlasse,vsQuellen,vsBestand,vsErfuellbar,vsPlan,vsStapel,vsSpielerPacken,vsSpielerBestellung,vsTischFrei,vsStatus,vsAufraeumen,vsLaden,vsBahn,vsPaketOffen,vsKlappen,vsFuellung,vsPaketZu,get vsTisch(){return vsTisch},get vsWagen(){return vsWagen},createShelf,createRack,regalStellen,testKauf,regalAufbauen,orderRegal,REGALWARE,regalOf,regalKind,regalPreis,regalPlatz,regalOffen,startGame,promptFor,ERFOLGE,erfOffen,erfStufe,erfStand,erfZiel,erfFertig,erfAnteil,erfGeschafft,erfGesamt,stat,statAdd,statRekord,statVerkauf,bruchGesehen,gruppeVon,GRUPPE,TRAEGER,BRUCH,BRUCH_IDS,REZ_FARBEN,ETIKETT,traegerVon,traegerOffen,bruchOffen,bruchListe,rezeptWow,rezeptKosten,rezeptMarkt,rezeptHype,rezeptDauer,rezeptEntwicklung,rezeptGueltig,eigeneListe,eigenesEintragen,rezepteTick,rezProto,rezBauen,renderRezeptur,get entwurf(){return entwurf},set entwurf(v){entwurf=v},entwurfInit,ORDER,LIZENZEN,lizenzOf,hatLizenz,lizenzDaten,naechsteLizenz,buyLizenz,VOLA,volaOf,REGIME,marketOf,costOf,marktZiel,marktLuecke,meOf,miOf,marktDelta,marktNiveau,marktPhase,marktSchock,marktLabel,marktSchnitt,marktExtrem,marktChance,sortimentBreite,sortimentZug,bekanntheit,spawnInterval,rollMarkt,marktInit,inflOf,inflText,setPreisAufMarkt,igniteType,get packHit(){return packHit},get packTisch(){return packTisch},get packMov(){return packMov},zuendeKanal,zuendeAlle,alleKanaele,kanalItem,openZuend,closeZuend,get zuendOpen(){return zuendOpen},overlayOpen,pultTaster,zuendTick,TISCH_X,RAMPE_X,KANAL_START,bereitCount,brennDauer,muendung,pultLamps,RAKETEN_LOOK,RAKETEN_KL,makePerson,applyTOD,updateHUD,renderer,renderFrame,get DEMO(){return DEMO},LHALLE,LOGI_STUFEN,TOR_STUFE,logiStufe,logiZeige,logiAnwenden,LOGI_G,TOR_G,WTORE,tuAktion:(kind,ref)=>{ const alt=target; target={kind,ref}; try{ doAction(); } finally { target=alt; } },promptFor,KARREN,karreArt,karreAn,karreStapel,karreLast,karreNimmt,toggleKarre,updateKarre,setTutorial,tutorialAn,zielFuer,get zielAktuell(){return zielAktuell},get tipKey(){return tipKey},updateZiel,set DEMO(v){DEMO=v},kapitelVon,kapitelVoll,openHandy,closeHandy,toggleHandy,get handyOpen(){return handyOpen},get happ(){return happ},HANDY_APPS,renderHandy,shaderVorab,SCHONER,schonerMalen,updateSchoner,makeWischer,stelleWischer,get wischer(){return wischer},updateWischen,wischerPersonal,cleanTick,updateFireworks,FLASH,spurEnden,LR_LAMPE,schweber,kundenSymbol,geldSchwebt,get serie(){return serie},serieZufrieden,serieBricht,KAPITEL,kapitel,kapitelNr,kapitelAufstieg,WA,WA_SLOTS,vorDieTuer,SB_KASSIERER,sbBesetzt,sbLaneVon,sbKassiererPlatz,MUSIK,STUECKE,musikAn,musikWeiter,musikVol,musikTick,spielSchritt,get mStep(){return mStep},set mStep(v){mStep=v;mTakte=0;},get mBus(){return mBus},get postHalf(){return postHalf},EFF_SCHWEIF,mitSchweif,KOEPFE,KLEID,UNIFORM,STAFFKOPF,faceCache,animPerson,PACKS,packPreis,packPool,packOffen,packContents,syncPakete,rotateGrab,PACK_FL,PACK_HOME,spotFree,rectOf,grab,placeGrab,updateGrab,get grabbed(){return grabbed},showPause,get target(){return target},einrOf,einrAktiv,einrHoch,einrRunter,einrSchalten,AUFGABEN,einrJob,kartonMat,pools,shelfStockOf,removeFromLevel,fwLog:(a)=>{FW_LOG=a;},moerserRohr,ROHR_KALIBER,effPassen,EFF_FAMILIE,basisBlick,fwTestSchalten,fwTestProdukte,fwTestStapeln,get fwTestAn(){return fwTestAn},get fwTestBoxen(){return fwTestBoxen},sonne:()=>sun.intensity,get fwUhr(){return FW_UHR},THEMEN,SHOW_BASIS,EFF,emittersListe:()=>emitters,
+    scene,camera,P,EFF,EFF_ALL,EFF_KLEIN,EFF_GROSS,EFF_PRO,SHOWS,kugelbombe,shot,mine,FW,stations,stationOf,placedCount,togglePDA,openPDA,closePDA,setPost,get postOn(){return postOn},get pdaOn(){return pdaOn},showLength,psHuge,psBig,psMid,psSmall,rockets,emitters,timersLen:()=>timers.length,setView:(x,z,y,p)=>{pl.x=x;pl.z=z;yaw=y;pitch=p;aim=null;},schiebe:(x,z)=>{pl.x=x;pl.z=z;collide(pl,0.32);return{x:pl.x,z:pl.z};},PLZ_MAX,camYaw:()=>yaw,camPitch:()=>pitch,playerPos:()=>({x:pl.x,z:pl.z}),pultYaw:()=>pultHit?pultHit.parent.rotation.y:null,applyShopName,shopName,shopSlogan,signTexPx:()=>signTex&&signTex.image?signTex.image.getContext('2d').getImageData(0,0,signTex.image.width,40).data.join(''):null,lagerWall,KUGEL_R,ROHR_INNEN,MOERSER_R,moerserRohr,sfx,WOLKEN,get master(){return master},ac,SORTE_NEU,sortenUmstellen,get shakeWert(){return shake},get ckG(){return ckG},get ckNameTex(){return ckNameTex},get ckMovable(){return ckMov},CK_HOME,CK_ALT,spotPos,queueApproach,ckTexPx:()=>ckNameTex&&ckNameTex.image?ckNameTex.image.getContext('2d').getImageData(0,0,ckNameTex.image.width,60).data.join(''):null,testfeldMitte,STATION_POS,aimAt,UPGRADES,upPic,PLAN,planFlaechen,uhrZeiger:()=>({std:uhrStd?+uhrStd.rotation.z.toFixed(4):0,min:uhrMin?+uhrMin.rotation.z.toFixed(4):0}),drawRackSchild,get snowPts(){return snowPts},buildStadt,updateStadt,get stadtBoxen(){return stadtBoxen},get stadtBaeume(){return stadtBaeume},buildFernbaeume,schwaerme,beacons,silhouetten,get verkehrPts(){return verkehrPts},get rauchPts(){return rauchPts},get flieger(){return flieger},stadtFrei,STADT_FREI,WALLS,FLOORS,renderOnline,onlineHint,onlineStufe,onlineZahlen,onlineListe,updateOnline,SCHILDBG,SCHILDFG,setSchild,schildBg,schildFg,repaintSchilder,updateHead,allLevels,addToLevel,putInSlot,regCustomer,ZONEN,zoneOffen,oeffneZone,applyZonen,SLOTS,RACKS,slotsOffen,colliders,LAY,LOGI,WRAMPEN,WTORE,updateSnow,unterDach,dachBereiche,get lapHit2(){return lapHit2},buildLagerTerminal,toggleTest,testLevel,buyUp,get toastLast(){return toastLast},__floorBoxen:()=>floorBoxes.length,WBAY_UP,wbays,dockPlaetze,wbayFrei,wbayOffen,spawnWTruck,updateWBays,wbaysInit,wtorSet,GANG,GANGTUER,buildLagergang,flaeche,WTOR,RACKKIND,route,NAV,navFrei,navIdx,navBuild,shelfStand,shelves,sbLanes,buildSBKasse,sbFrei,sbOffen,sbNutzbar,EING2,eingaenge,naechsterEingang,setEingang2,buildSBKasse2,get sb2G(){return sb2G},TUEREN,tuerSetD,tuerNahD,packBereit,packOne,paketWert,bestellungenProTag,pakete,ddlAbholung,updateVersand,VS_GR,VS_FELD,WG_PARK,vsNeueBestellung,vsAbgleich,vsKlasse,vsQuellen,vsBestand,vsErfuellbar,vsPlan,vsStapel,vsSpielerPacken,vsSpielerBestellung,vsTischFrei,vsStatus,vsAufraeumen,vsLaden,vsBahn,vsPaketOffen,vsKlappen,vsFuellung,vsPaketZu,get vsTisch(){return vsTisch},get vsWagen(){return vsWagen},createShelf,createRack,regalStellen,testKauf,regalAufbauen,orderRegal,REGALWARE,regalOf,regalKind,regalPreis,regalPlatz,regalOffen,startGame,promptFor,ERFOLGE,erfOffen,erfStufe,erfStand,erfZiel,erfFertig,erfAnteil,erfGeschafft,erfGesamt,stat,statAdd,statRekord,statVerkauf,bruchGesehen,gruppeVon,GRUPPE,TRAEGER,BRUCH,BRUCH_IDS,REZ_FARBEN,ETIKETT,traegerVon,traegerOffen,bruchOffen,bruchListe,rezeptWow,rezeptKosten,rezeptMarkt,rezeptHype,rezeptDauer,rezeptEntwicklung,rezeptGueltig,eigeneListe,eigenesEintragen,rezepteTick,rezProto,rezBauen,renderRezeptur,get entwurf(){return entwurf},set entwurf(v){entwurf=v},entwurfInit,ORDER,LIZENZEN,lizenzOf,hatLizenz,lizenzDaten,naechsteLizenz,buyLizenz,VOLA,volaOf,REGIME,marketOf,costOf,marktZiel,marktLuecke,meOf,miOf,marktDelta,marktNiveau,marktPhase,marktSchock,marktLabel,marktSchnitt,marktExtrem,marktChance,sortimentBreite,sortimentZug,bekanntheit,spawnInterval,rollMarkt,marktInit,inflOf,inflText,setPreisAufMarkt,igniteType,get packHit(){return packHit},get packTisch(){return packTisch},get packMov(){return packMov},zuendeKanal,zuendeAlle,alleKanaele,kanalItem,openZuend,closeZuend,get zuendOpen(){return zuendOpen},overlayOpen,pultTaster,zuendTick,TISCH_X,RAMPE_X,KANAL_START,bereitCount,brennDauer,muendung,pultLamps,RAKETEN_LOOK,RAKETEN_KL,makePerson,applyTOD,updateHUD,renderer,renderFrame,get DEMO(){return DEMO},LHALLE,LOGI_STUFEN,TOR_STUFE,logiStufe,logiZeige,logiAnwenden,LOGI_G,TOR_G,WTORE,tuAktion:(kind,ref)=>{ const alt=target; target={kind,ref}; try{ doAction(); } finally { target=alt; } },promptFor,KARREN,karreArt,karreAn,karreStapel,karreLast,karreNimmt,toggleKarre,updateKarre,setTutorial,tutorialAn,zielFuer,get zielAktuell(){return zielAktuell},get tipKey(){return tipKey},updateZiel,set DEMO(v){DEMO=v},kapitelVon,kapitelVoll,openHandy,closeHandy,toggleHandy,get handyOpen(){return handyOpen},get happ(){return happ},HANDY_APPS,renderHandy,shaderVorab,SCHONER,schonerMalen,updateSchoner,makeWischer,stelleWischer,get wischer(){return wischer},updateWischen,wischerPersonal,cleanTick,updateFireworks,FLASH,spurEnden,LR_LAMPE,schweber,kundenSymbol,geldSchwebt,get serie(){return serie},serieZufrieden,serieBricht,KAPITEL,kapitel,kapitelNr,kapitelAufstieg,WA,WA_SLOTS,vorDieTuer,SB_KASSIERER,sbBesetzt,sbLaneVon,sbKassiererPlatz,MUSIK,STUECKE,musikAn,musikWeiter,musikVol,musikTick,spielSchritt,get mStep(){return mStep},set mStep(v){mStep=v;mTakte=0;},get mBus(){return mBus},get postHalf(){return postHalf},EFF_SCHWEIF,mitSchweif,KOEPFE,KLEID,UNIFORM,STAFFKOPF,faceCache,animPerson,PACKS,packPreis,packPool,packOffen,packContents,syncPakete,rotateGrab,PACK_FL,PACK_HOME,spotFree,rectOf,grab,placeGrab,updateGrab,get grabbed(){return grabbed},showPause,get target(){return target},einrOf,einrAktiv,einrHoch,einrRunter,einrSchalten,AUFGABEN,einrJob,kartonMat,pools,shelfStockOf,removeFromLevel,fwLog:(a)=>{FW_LOG=a;},moerserRohr,ROHR_KALIBER,effPassen,EFF_FAMILIE,basisBlick,fwTestSchalten,fwTestProdukte,fwTestStapeln,get fwTestAn(){return fwTestAn},get fwTestBoxen(){return fwTestBoxen},sonne:()=>sun.intensity,get fwUhr(){return FW_UHR},THEMEN,SHOW_BASIS,EFF,emittersListe:()=>emitters,
     shot:()=>{ noLoop=true; camera.position.set(pl.x,1.65,pl.z); camera.rotation.set(pitch,yaw,0); camera.updateMatrixWorld(); updateTarget(); applyTOD(); renderFrame(0.016); return canvas.toDataURL('image/jpeg',0.85); },
     run:(sec,dt)=>{ noLoop=true; const n=Math.round(sec/(dt||0.05)); for(let i=0;i<n;i++) step(dt||0.05); }};
 });

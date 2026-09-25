@@ -42,27 +42,38 @@ function localToWorld(g,x,z){ const s=Math.sin(g.rotation.y), c=Math.cos(g.rotat
    ========================================================= */
 const BELT_A=1.45, BELT_B=0.12, BELT_Y=0.972;
 let ckG=null, ckMov=null, ckNameTex=null;
-const CK_BLENDE='#d3d6da';
+/* Die Blende hat dieselbe Farbe wie der Korpus, die Schrift ist hell
+   und steht rechts (Tom, 25.09.). Vorher hellgraue Blende mit
+   Anthrazit-Schrift in Bungee, mittig. */
+const CK_BLENDE='#2b2e34';
+const CK_SCHRIFT=s=>`700 ${s}px Cinzel, Georgia, "Times New Roman", serif`;
 function drawCkName(g,W,H){
-  /* Neutral wie im Supermarkt (Tom, 24.09.): Schrift in Anthrazit auf
-     der hellen Blende, passt zu jeder Wandfarbe. Vorher gelb auf Blau. */
   g.fillStyle=CK_BLENDE; g.fillRect(0,0,W,H);
-  g.fillStyle='#2b2f36'; g.textAlign='center'; g.textBaseline='middle';
-  fitFont(g,shopName().toUpperCase(),W-160,72,BUN);
-  g.fillText(shopName().toUpperCase(),W/2,H/2+3);
+  const t=shopName().toUpperCase(), rechts=W-34;
+  g.textAlign='right'; g.textBaseline='middle';
+  if('letterSpacing' in g) g.letterSpacing='6px';
+  fitFont(g,t,W-150,74,CK_SCHRIFT);
+  const bw=g.measureText(t).width;
+  g.fillStyle='#eef0f4'; g.fillText(t,rechts,H/2+4);
+  /* feine Edelstahllinie links vom Namen */
+  g.fillStyle='#9aa1ac'; g.fillRect(Math.max(20,rechts-bw-120),H/2+2,90,3);
+  if('letterSpacing' in g) g.letterSpacing='0px';
 }
 /* Nach einer Umbenennung Schild und Kassenblende neu zeichnen */
 function applyShopName(){
   if(ckNameTex) redraw(ckNameTex,(g,W,H)=>drawCkName(g,W,H));
   if(signTex) redraw(signTex,(g,W,H)=>drawSignFace(g,W,H));
 }
+/* Die Kasse steht links vom Eingang, laengs an der Trennwand (Tom,
+   25.09.): die Kundenseite zeigt in den Raum, die Schlange laeuft
+   von hinten auf die Tuer zu, bezahlt wird vorn am Eingang. Vorher
+   stand sie rechts vom Eingang unter dem Schaufenster. */
+const CK_HOME={x:0.7,z:2.2,ry:-Math.PI/2}, CK_ALT={x:-5,z:3.2,ry:0};
 function ck(x,z){ return localToWorld(ckG,x,z); }
 function ckYaw(){ return ckG.rotation.y; }
 function buildCheckout(){
-  /* Die Kasse steht in der Starthaelfte, nah an der Lagertuer -
-     der kurze Weg vom Regal zum Nachfuellen und zurueck. */
-  ckG=new THREE.Group(); ckG.position.set(-5,0,3.2); scene.add(ckG);
-  /* Aussen neutral: Korpus Anthrazit, Blende hellgrau, Zierleiste
+  ckG=new THREE.Group(); ckG.position.set(CK_HOME.x,0,CK_HOME.z); ckG.rotation.y=CK_HOME.ry; scene.add(ckG);
+  /* Aussen neutral: Korpus und Blende Anthrazit, Zierleiste
      Edelstahl. Vorher Marineblau mit roter Leiste und gelber Schrift. */
   const corpus=std(0x2b2e34,{roughness:0.48,metalness:0.12}),
         panel=std(parseInt(CK_BLENDE.slice(1),16),{roughness:0.34,metalness:0.03}),
@@ -79,7 +90,7 @@ function buildCheckout(){
   bbox(3.12,0.5,0.03,panel,0,0.56,0.405,ckG,false);
   bbox(3.14,0.045,0.035,accent,0,0.82,0.408,ckG,false);
   ckNameTex=tex(1000,136,(g,W,H)=>drawCkName(g,W,H));
-  plane(1.5,0.2,new THREE.MeshStandardMaterial({roughness:0.34,metalness:0.03,map:ckNameTex}),0.55,0.6,0.423,0,ckG);
+  plane(1.5,0.2,new THREE.MeshStandardMaterial({roughness:0.34,metalness:0.03,map:ckNameTex}),0.74,0.6,0.423,0,ckG);
   /* Arbeitsplatte mit gerundeter Vorderkante */
   bbox(3.34,0.05,0.86,laminat,0,0.925,0,ckG);
   const edge=new THREE.Mesh(new THREE.CylinderGeometry(0.026,0.026,3.34,12),laminat);

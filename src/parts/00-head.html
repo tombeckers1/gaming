@@ -6,7 +6,7 @@
 <title>Böllerladen Simulator</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Barlow+Condensed:wght@500;600;700&family=Cinzel:wght@700&display=swap" rel="stylesheet">
 <style>
 :root{
   --night:#121a33; --ink:#0e1226; --signal:#ffd23f; --fire:#e63b2e; --snow:#f2f5ff; --spark:#7fd1ff; --mint:#8ef0a8;
@@ -287,9 +287,6 @@ body.compact .kan span{display:none}
 .musikzeile{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center;justify-content:center;font-size:14px}
 .musikzeile input[type=range]{width:140px;vertical-align:middle;accent-color:#ffd23f}
 .musikzeile small{opacity:.7;flex-basis:100%;text-align:center}
-#musikBtn{position:fixed;left:12px;top:138px;z-index:6;padding:4px 10px;border-radius:14px;border:1px solid rgba(255,255,255,.18);
-  background:rgba(14,18,38,.72);color:#eef1f8;font:600 12px/1.2 inherit;font-family:inherit;cursor:pointer;pointer-events:auto;max-width:170px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#musikBtn.aus{opacity:.55}
 .kapkopf{display:flex;flex-direction:column;gap:2px;padding:10px 12px 6px;margin-top:6px;border-top:2px solid rgba(255,210,63,.35)}
 .kapkopf b{font-family:var(--display);font-size:17px;color:var(--signal);letter-spacing:.02em}
 .kapkopf small{opacity:.72}
@@ -307,7 +304,6 @@ body.compact #hKap{display:none}
 #kapBanner small{display:block;color:var(--signal);font-weight:800;letter-spacing:.14em;font-size:14px}
 #kapBanner b{display:block;font-family:var(--display);font-size:40px;color:#fff;margin:4px 0}
 #kapBanner span{display:block;opacity:.8;font-size:15px;max-width:440px}
-@media (pointer:coarse){ #musikBtn{top:52px;left:8px;font-size:11px;padding:3px 8px} }
 .steuer .grp{break-inside:avoid;margin-bottom:10px}
 .steuer .z{display:flex;gap:10px;align-items:center;padding:3px 0}
 .steuer .k{flex:0 0 150px;display:flex;gap:4px;justify-content:flex-end}
@@ -574,7 +570,6 @@ body.compact .pdahead2 b{font-size:16px}
   <div class="zfuss"><small id="zTipp"></small><div id="zAlle"></div></div>
 </div>
 
-<button id="musikBtn" title="Musik an / aus (M)">♪</button>
 <div id="kapBanner"><small id="kapNr"></small><b id="kapName"></b><span id="kapTxt"></span></div>
 <div class="ov" id="pause"><div class="card pausecard">
   <h2>Pause</h2>

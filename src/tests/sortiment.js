@@ -7,8 +7,8 @@
    - jedes Bruchbild, das irgendwo verwendet wird, existiert
    - Goetterzorn: zehn Brueche gleichzeitig
    - jedes Produkt steht, bis sein letzter Schuss raus ist
-   - Pfeifraketen ziehen eine Spirale, Titan bricht je Rakete genau einmal
-     (seit dem 25.09.: ein Schuss, ein Bruch) */
+   - Pfeifraketen ziehen eine Spirale, Titan: eine Rakete je Zuendung,
+     ein Bruch (seit dem 25.09.) */
 async function neuesSpiel(p){
   await p.waitForFunction("!!document.querySelector('#startBtns button:not([disabled])')",{timeout:30000});
   await p.click('#startBtns button:last-child');
@@ -142,7 +142,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   });
   console.log('RAKETEN ',JSON.stringify(rk));
   pruef('RAKETEN',rk.pfeif,'Pfeifrakete ohne Spirale');
-  pruef('RAKETEN',rk.titanBrueche===3,'Titan: '+rk.titanBrueche+' Brueche statt einem je Rakete');
+  pruef('RAKETEN',rk.titanBrueche===1,'Titan: '+rk.titanBrueche+' Brueche statt einer Rakete mit einem Bruch');
 
   /* Pakete: Themenpakete nur mit Ware der Gruppe, Preis unter dem
      mittleren Einkaufswert; gesperrt, solange die Gruppe fehlt */

@@ -47,24 +47,38 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
         for(let i=0;i<st.length;i++) for(let j=i+1;j<st.length;j++) if(!bb.effPassen(st[i],st[j])) unpass.push(st[i]+'+'+st[j]); }
       for(let i=0;i<alle.length;i++) for(let j=i+1;j<alle.length&&alle[j].t-alle[i].t<1.0;j++)
         if(!bb.effPassen(alle[i].eff,alle[j].eff)) unpass.push(alle[i].eff+'/'+alle[j].eff);
-      return {unpass:[...new Set(unpass)],maxSz:+Math.max(0,...alle.map(e=>e.groesste||e.sz)).toFixed(3),maxHoehe:+Math.max(0,...alle.map(e=>e.hoehe)).toFixed(2),
+      /* Steigerung innerhalb der Show: erstes gegen letztes Drittel */
+      const sh=log.filter(e=>e.art==='schuss'&&e.eff!=='salut');
+      const drittel=(a,b)=>{ if(sh.length<6) return null; const t0=sh[0].t, t1=sh[sh.length-1].t, x=sh.filter(e=>e.t>=t0+(t1-t0)*a&&e.t<=t0+(t1-t0)*b);
+        return {sz:+m(x.map(e=>e.sz)).toFixed(3),h:+m(x.map(e=>e.hoehe)).toFixed(2),hell:+m(x.map(e=>e.hell||1)).toFixed(3)}; };
+      const steig={an:drittel(0,1/3),ende:drittel(2/3,1)};
+      return {steig,unpass:[...new Set(unpass)],maxSz:+Math.max(0,...alle.map(e=>e.groesste||e.sz)).toFixed(3),maxHoehe:+Math.max(0,...alle.map(e=>e.hoehe)).toFixed(2),
         brueche:Math.max(0,...alle.map(e=>e.brueche||1)),fremd,n:sch.length,hoehe:+m(hoehen).toFixed(2),sz:+m(sz).toFixed(3),dichte,farben:farben.size,
         dauer:sch.length?+(sch[sch.length-1].t-sch[0].t).toFixed(1):0,eff:[...new Set(log.map(e=>e.eff).filter(Boolean))]}; };
     for(const t of ['batterie16','knatter','batterie49','faecher','batterie100','zfaecher','kometen','donnerwand','profi','finale','sortiment',
-      'raketenklein','raketen','pfeifraketen','raketengold','titanraketen','jumbogold','jumboleiter','furzrakete','sternenbrunnen','vulkan','goldgeysir','feuersaeule','feuerbrunnen',
+      'raketenklein','raketen','pfeifraketen','raketengold','titanraketen','jumbogold','jumboleiter','furzrakete','roemisch','sternenbrunnen','vulkan','goldgeysir','feuersaeule','feuerbrunnen',
       'kugel75','kugel100','kugel150','kugel200','kugel300'])
       out[t]=messe(t);
     /* Feuerbrunnen: eigener Bodeneffekt */
     const pos={x:0,y:0.4,z:-20}; bb.igniteType('feuerbrunnen',pos); bb.run(0.3,0.1);
     out.brunnenEmitter=bb.emittersListe().some(e=>e.k==='feuerbrunnen');
     /* neue Effekte einzeln */
-    out.neu={}; for(const e of ['flammenregen','kronleuchter','feuerrad','sternschnuppen','farbregen','spektrum','goldglitzer','sternpalme','polarstern']){
-      out.neu[e]=typeof bb.EFF[e]==='function'; try{ bb.shot(pos,{eff:e,sz:1}); bb.run(4,0.1); }catch(x){ out.neu[e]='Fehler '+x.message; } }
+    /* jedes Bruchbild einzeln zuenden und zaehlen, wie viele Sterne es
+       erzeugt (bb.fwShot - bb.shot ist das Bildschirmfoto) */
+    const leben=()=>{ let n=0; for(const ps of [bb.psHuge,bb.psBig,bb.psMid,bb.psSmall]) for(let i=0;i<ps.life.length;i++) if(ps.life[i]>0) n++; return n; };
+    out.neu={}; for(const e of ['flammenregen','kronleuchter','feuerrad','sternschnuppen','farbregen','spektrum','goldglitzer','sternpalme','polarstern',
+      'smiley','bienen','drachenei','kokosnuss','schmetterling','blumenkranz','strobeweide','rossschweif','diadem','goldvorhang','krone','regenbogenring',
+      'pfeifsterne','nishiki','drachenblut','weltenbrand','himmelsbrecher']){
+      if(typeof bb.EFF[e]!=='function'){ out.neu[e]=-1; continue; }
+      try{ bb.run(6,0.1); const r0=bb.rockets.length; bb.fwShot(pos,{eff:e,sz:1.2,fuse:1.2,fest:true}); const flug=bb.rockets.length-r0;
+        bb.run(1.25,0.05); const vor=leben(); bb.run(0.6,0.05); out.neu[e]=flug===1?leben():0; }catch(x){ out.neu[e]='Fehler '+x.message; } }
     /* Figuren zeigen zum Zuschauer: Ebene senkrecht zur Blickrichtung, aufrecht */
     { const c=bb.camera.position, q={x:c.x+3,y:c.y+18,z:c.z-28}; const [u,v]=bb.basisBlick(q,0);
       const n=[u[1]*v[2]-u[2]*v[1],u[2]*v[0]-u[0]*v[2],u[0]*v[1]-u[1]*v[0]], d=[c.x-q.x,c.y-q.y,c.z-q.z], l=Math.hypot(...d);
       out.blick={dot:+Math.abs((n[0]*d[0]+n[1]*d[1]+n[2]*d[2])/l).toFixed(3),auf:+v[1].toFixed(3)}; }
     out.lvl={}; Object.keys(out).forEach(t=>{ if(bb.P[t]) out.lvl[t]=bb.P[t].lvl; });
+    /* Auftakt: beginnt die Show mit einer Fontaene, bevor geschossen wird? */
+    out.auftakt={}; for(const t of ['sortiment','batterie100','kometen','donnerwand','profi','finale']){ const ph=bb.SHOWS[t]()[0]; out.auftakt[t]=!!(ph.ground&&!ph.n); }
     return out; });
   const L=['batterie16','knatter','batterie49','faecher','batterie100','zfaecher','kometen','donnerwand','profi','finale'];
   const SOLL={batterie16:16,knatter:30,batterie49:49,faecher:36,batterie100:100,zfaecher:48,kometen:64,donnerwand:120,profi:200,finale:300};
@@ -76,6 +90,20 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
       pruef(name,r[c][feld]+tol>=r[v][feld],`${c} (${r[c][feld]}) ${feld} unter ${v} (${r[v][feld]})`); } };
   leiter(L,'HOEHE','hoehe',0.25); leiter(L,'KALIBER','sz',0.01); leiter(L,'DICHTE','dichte',0);
   L.forEach(t=>pruef('ANZAHL',r[t].n===SOLL[t],`${t}: ${r[t].n} statt ${SOLL[t]} Schuss`));
+  /* Jede Show wird intensiver: am Ende groessere, hoehere, hellere Brueche
+     (Tom, 25.09.) */
+  L.concat(['sortiment']).forEach(t=>{ const g=r[t].steig; if(!g||!g.an){ pruef('STEIGERUNG',false,t+' zu wenig Schuesse'); return; }
+    pruef('STEIGERUNG',g.ende.sz>g.an.sz*1.3&&g.ende.h>g.an.h+2&&g.ende.hell>g.an.hell+0.2,`${t}: Anfang ${JSON.stringify(g.an)} Ende ${JSON.stringify(g.ende)}`); });
+  /* Jedes Feuerwerk ist einzigartig: mindestens ein Bruchbild, das kein
+     anderes Produkt zeigt */
+  const EINZ=L.concat(['sortiment','roemisch','raketenklein','raketen','pfeifraketen','raketengold','titanraketen','jumbogold','jumboleiter','furzrakete','kugel75','kugel100','kugel150','kugel200','kugel300']);
+  EINZ.forEach(t=>{ const eigene=r[t].eff.filter(e=>!EINZ.some(x=>x!==t&&r[x].eff.includes(e)));
+    pruef('EINZIGARTIG',eigene.length>0,`${t} hat kein eigenes Bruchbild: ${r[t].eff.join(',')}`); });
+  /* Grosse Verbunde beginnen mit einer Fontaene */
+  Object.keys(r.auftakt).forEach(t=>pruef('AUFTAKT',r.auftakt[t],t+' beginnt ohne Fontaene'));
+  /* Eine Zuendung, eine Rakete */
+  ['raketenklein','raketen','pfeifraketen','raketengold','titanraketen','jumbogold','jumboleiter','furzrakete'].forEach(t=>
+    pruef('EINE RAKETE',r[t].n===1,`${t}: ${r[t].n} Raketen je Zuendung`));
   /* Raketen steigen bis zum Polarstern stetig an */
   const R=['raketenklein','raketen','raketengold','titanraketen','jumbogold','jumboleiter'];
   /* Einzelraketen und Raketensets: jede Rakete ein Schuss, ein Bruch -
@@ -96,13 +124,14 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     for(const t of L){ if(r.lvl[t]>r.lvl[KG[i]]+1) continue;
       pruef('KUGEL',k.maxSz>r[t].maxSz&&k.maxHoehe>r[t].maxHoehe,`${KG[i]} (Lvl ${r.lvl[KG[i]]}) nicht ueber ${t} (Lvl ${r.lvl[t]}): Groesse ${k.maxSz}/${r[t].maxSz}, Hoehe ${k.maxHoehe}/${r[t].maxHoehe}`); } }
   /* Raketen haben eigene Bruchbilder, die es in Batterien nicht gibt */
-  const EXKL=['spektrum','goldglitzer'];
+  const EXKL=['spektrum','goldglitzer','regenbogenring','pfeifsterne','nishiki'];
   ['raketenklein','raketen','pfeifraketen','raketengold'].forEach(t=>pruef('RAKETE',r[t].eff.some(e=>EXKL.indexOf(e)>=0),`${t} ohne eigenes Raketen-Bruchbild: ${r[t].eff}`));
   L.concat(['sortiment']).forEach(t=>pruef('EXKLUSIV',!r[t].eff.some(e=>EXKL.indexOf(e)>=0),`${t} nutzt Raketen-Bruchbild`));
   Object.keys(r).forEach(t=>{ if(r[t]&&r[t].unpass) pruef('PASST',!r[t].unpass.length,`${t}: ${r[t].unpass.slice(0,6).join(', ')}`); });
+  Object.keys(r.neu).forEach(e=>pruef('BRUCHBILD',typeof r.neu[e]==='number'&&r.neu[e]>=60,`${e}: ${r.neu[e]} Sterne`));
+  console.log('BRUCHBILDER',JSON.stringify(r.neu));
   pruef('BLICK',r.blick.dot>0.99&&r.blick.auf>0.5,'Figur zeigt nicht zum Zuschauer: '+JSON.stringify(r.blick));
   pruef('BRUNNEN',r.brunnenEmitter&&r.feuerbrunnen.n===0,'Feuerbrunnen ohne Flammen oder mit Ladung: '+JSON.stringify(r.feuerbrunnen));
-  Object.keys(r.neu).forEach(e=>pruef('NEU',r.neu[e]===true,e+': '+r.neu[e]));
   console.log('MANGEL:',mangel.length?mangel.join(' | '):'keine');
   console.log('ERRORS:',errs.length||mangel.length?errs.concat(mangel).join('\n'):'keine');
   await b.close();

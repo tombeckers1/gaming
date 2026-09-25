@@ -72,7 +72,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     bb.run(10,0.1);
     /* Donnerwand: Salven von sechs */
     const sh=bb.SHOWS.donnerwand();
-    o.salven=sh.filter(ph=>ph.n>=6&&ph.gap<=0.1).length; o.phasen=sh.length;
+    o.salven=sh.filter(ph=>ph.n>=6&&ph.gap<=0.1).length; o.phasen=sh.filter(ph=>ph.n).length; o.auftakt=!!(sh[0].ground&&!sh[0].n);
     return o;
   });
   console.log('SPUREN  ',JSON.stringify({kugel:r.kugel,weide:r.weide,blink:r.blink}));

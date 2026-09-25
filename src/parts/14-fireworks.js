@@ -95,11 +95,15 @@ class PS{
       this.pos[j]+=this.vel[j]*dt; this.pos[j+1]+=this.vel[j+1]*dt; this.pos[j+2]+=this.vel[j+2]*dt;
       const f=this.life[i]/this.maxl[i], m=this.md[i];
       let k=f, r=this.base[j], g=this.base[j+1], b=this.base[j+2];
-      if(m===0) k*=0.86+Math.random()*0.14;
+      if(m===0) k*=f<0.18?0.3+Math.random()*0.9:0.86+Math.random()*0.14;
       else if(m===1){ k*=((this.life[i]*11+this.ph[i])%1)<0.42?1.9:0.05; }
       else if(m===2){ const u=1-f; r+=(this.c2[j]-r)*u; g+=(this.c2[j+1]-g)*u; b+=(this.c2[j+2]-b)*u; k*=0.9+Math.random()*0.1; }
       else if(m===3){ if(Math.random()<0.26){ k=2.4; r=g=b=1; } else k*=0.06; }
       else k*=0.45+Math.random()*1.05;
+      /* Die ersten Zehntel seines Lebens glueht ein Stern weiss auf,
+         dann setzt die Farbe ein - wie beim echten Zerlegerschlag.
+         Strobo und Knister bleiben, wie sie sind. */
+      if(f>0.93&&m!==1&&m!==3){ const w=(f-0.93)/0.07; r+=(1-r)*w; g+=(1-g)*w; b+=(1-b)*w; }
       this.col[j]=r*k; this.col[j+1]=g*k; this.col[j+2]=b*k;
       const o3=n*3; rp[o3]=this.pos[j]; rp[o3+1]=this.pos[j+1]; rp[o3+2]=this.pos[j+2]; rc[o3]=this.col[j]; rc[o3+1]=this.col[j+1]; rc[o3+2]=this.col[j+2]; n++;
       /* Leuchtspur aus der zurueckgerechneten Flugbahn */
@@ -196,10 +200,10 @@ function basisBlick(p,kipp){
    passen. Figuren stehen immer allein - ein Herz mit einer Kugel
    darin oder ein Stern neben einer Knisterwolke sieht nach Unfall aus. */
 const EFF_FAMILIE={};
-[['figur','ring doppelring ringring herz stern saturn schneeflocke spirale feuerrad kreisel'],
- ['kugel','kugel chrys wechsel dahlie pistill mehrring geist regenbogen spektrum farbregen dreifach doppel zehnfach strauss polarstern'],
- ['haenger','weide glitzerweide kamuro brokat zeitregen kronleuchter goldglitzer palme komet kaskade sternschnuppen titan sternpalme'],
- ['knister','knister tausend strobe blink fische spinne crossette blaetter'],
+[['figur','ring doppelring ringring herz stern saturn schneeflocke spirale feuerrad kreisel smiley krone regenbogenring'],
+ ['kugel','kugel chrys wechsel dahlie pistill mehrring geist regenbogen spektrum farbregen dreifach doppel zehnfach strauss polarstern diadem blumenkranz schmetterling drachenblut weltenbrand himmelsbrecher pfeifsterne'],
+ ['haenger','weide glitzerweide kamuro brokat zeitregen kronleuchter goldglitzer palme komet kaskade sternschnuppen titan sternpalme kokosnuss strobeweide rossschweif goldvorhang nishiki'],
+ ['knister','knister tausend strobe blink fische spinne crossette blaetter bienen drachenei'],
  ['flamme','flammenregen'],['salut','salut'],['spass','furz']].forEach(([f,l])=>l.split(' ').forEach(e=>{ EFF_FAMILIE[e]=f; }));
 /* Welche Familien sich den Himmel teilen duerfen */
 function effPassen(a,b){
@@ -285,8 +289,11 @@ function updateFlash(dt){
 }
 function shellSound(p,s){
   const v=distVol(p);
-  sfx.boom(v*Math.min(1.3,0.55+s*0.45));
-  later(0.12,()=>sfx.crack(v*0.9)); later(0.26,()=>sfx.crack(v*0.55));
+  /* Schall braucht fuer 40 m gut eine Zehntelsekunde: erst der Blitz,
+     dann der Knall */
+  const d=camera.position.distanceTo(p)/343;
+  later(d,()=>sfx.boom(v*Math.min(1.3,0.55+s*0.45)));
+  later(d+0.12,()=>sfx.crack(v*0.9)); later(d+0.26,()=>sfx.crack(v*0.55));
 }
 const EFF={
   /* runde Farbkugel, sauber und satt */
@@ -881,6 +888,196 @@ EFF.polarstern=function(p,A,B,s){
   later(0.9,()=>sfx.crackle(vol*0.6));
   shake=Math.max(shake,Math.min(1.2,0.6*vol));
 };
+/* =========================================================
+   Neue Bruchbilder (Tom, 25.09.: "noch viel mehr verschiedene
+   Effekt-Explosions-Arten, farblich passend"). Vorbilder aus den
+   Glossaren von Phantom Fireworks, der American Pyrotechnics
+   Association und Dynamic Fireworks: Diadem, Rossschweif (Horsetail),
+   Drachenei (Dragon's eggs), Bienen, Schmetterling (Farfalle),
+   Kokosnuss-Palme, Nishiki-Kamuro, Blumenkranz, Strobe-Weide,
+   Musterbrueche (Smiley, Krone, Regenbogenring).
+   Jedes Bild gehoert zu genau einem Produkt - daran erkennt man es.
+   ========================================================= */
+/* Stern in der Bildebene: x nach rechts, y nach oben, Geschwindigkeit sp */
+function ebeneEmit(ps,p,u,v,x,y,sp,c,life,g,mode){
+  ps.emit(p.x,p.y,p.z,(u[0]*x+v[0]*y)*sp,(u[1]*x+v[1]*y)*sp,(u[2]*x+v[2]*y)*sp,c[0],c[1],c[2],life,g,mode||0);
+}
+/* Smiley: Gesicht, zwei Augen, ein Laecheln */
+EFF.smiley=function(p,A,B,s){
+  const [u,v]=basisBlick(p,0.05), q=QUAL(), sp=8*s;
+  for(let i=0;i<Math.round(70*q);i++){ const a=i/70*Math.PI*2; ebeneEmit(psBig,p,u,v,Math.cos(a),Math.sin(a),sp,A,rand(2.0,2.4),2.0); }
+  for(const ex of [-0.36,0.36]) for(let i=0;i<Math.round(10*q);i++){ const a=i/10*Math.PI*2;
+    ebeneEmit(psBig,p,u,v,ex+Math.cos(a)*0.1,0.3+Math.sin(a)*0.12,sp,B,rand(2.0,2.4),2.0); }
+  for(let i=0;i<Math.round(26*q);i++){ const a=Math.PI*(1.15+i/25*0.7); ebeneEmit(psBig,p,u,v,Math.cos(a)*0.58,Math.sin(a)*0.58+0.05,sp,B,rand(2.0,2.4),2.0); }
+};
+/* Bienen: ein Schwarm kleiner Lichter, die im Zickzack davonsummen */
+EFF.bienen=function(p,A,B,s){
+  const n=Math.round(46*s*QUAL());
+  for(let b=0;b<n;b++){ const d=randDir(), q={x:p.x,y:p.y,z:p.z}, c=b%2?A:B; let dir=d;
+    for(let k=0;k<8;k++) later(k*0.14,()=>{ const r=randDir(); dir=[dir[0]+r[0]*0.9,dir[1]+r[1]*0.9-0.1,dir[2]+r[2]*0.9];
+      const l=Math.hypot(...dir)||1; dir=[dir[0]/l,dir[1]/l,dir[2]/l];
+      q.x+=dir[0]*1.2*s; q.y+=dir[1]*1.2*s; q.z+=dir[2]*1.2*s;
+      psMid.emit(q.x,q.y,q.z,dir[0]*7*s,dir[1]*7*s,dir[2]*7*s,c[0]*1.2,c[1]*1.2,c[2]*1.2,0.35,0,4);
+      psSmall.emit(q.x,q.y,q.z,dir[0]*2,dir[1]*2,dir[2]*2,1,.95,.7,0.3,0,0); }); }
+  for(let i=0;i<4;i++) later(i*0.25,()=>sfx.crackle(distVol(p)*0.3));
+};
+/* Drachenei: Goldsterne fliegen aus und zerplatzen nach einer Sekunde knisternd */
+EFF.drachenei=function(p,A,B,s){
+  const n=Math.round(70*s*QUAL()), g=FW.gold, T=1.1, G=2.6, eier=[];
+  for(let i=0;i<n;i++){ const d=randDir(), w=rand(6.5,8.5)*s;
+    psBig.emit(p.x,p.y,p.z,d[0]*w,d[1]*w,d[2]*w,g[0],g[1],g[2],T,G,4); eier.push(sternNach(p,d[0]*w,d[1]*w,d[2]*w,G,T)); }
+  later(T,()=>{ for(const e of eier){ const c=Math.random()<0.5?A:FW.weiss;
+      for(let k=0;k<Math.round(6*QUAL());k++){ const d=randDir(), w=rand(1,2.4);
+        psSmall.emit(e.x,e.y,e.z,d[0]*w,d[1]*w,d[2]*w,c[0],c[1],c[2],rand(0.3,0.6),2,3); } }
+    sfx.crackle(distVol(p)); later(0.12,()=>sfx.crackle(distVol(p)*0.8)); });
+};
+/* Kokosnuss-Palme: wenige schwere Aeste, die tief nach unten biegen,
+   in der Mitte eine kleine Farbbluete - die Kokosnuesse */
+EFF.kokosnuss=function(p,A,B,s){
+  const g=FW.gold, aeste=8+Math.floor(Math.random()*3);
+  for(let a=0;a<aeste;a++){ const ang=a/aeste*Math.PI*2+rand(-.1,.1), tilt=rand(0.25,0.7), sp=rand(8.5,10)*s;
+    const vx=Math.cos(ang)*Math.cos(tilt)*sp, vy=Math.sin(tilt)*sp, vz=Math.sin(ang)*Math.cos(tilt)*sp;
+    for(let i=0;i<Math.round(22*QUAL());i++){ const f=0.3+i/22*0.8;
+      psBig.emit(p.x,p.y,p.z,vx*f,vy*f,vz*f,g[0],g[1]*0.9,g[2]*0.8,rand(2.8,3.6),5.6,4); } }
+  for(let i=0;i<Math.round(40*QUAL());i++){ const d=randDir(), w=rand(2.2,3)*s, c=i%2?A:B;
+    psBig.emit(p.x,p.y,p.z,d[0]*w,d[1]*w,d[2]*w,c[0],c[1],c[2],rand(1.2,1.6),2,0); }
+};
+/* Schmetterlinge: kleine Achten aus zwei Farben, die nach aussen flattern */
+EFF.schmetterling=function(p,A,B,s){
+  const [u,v]=basisBlick(p,0.3), n=7;
+  for(let k=0;k<n;k++){ const a=k/n*Math.PI*2+rand(-.2,.2), cx=Math.cos(a), cy=Math.sin(a), w=6.5*s;
+    for(let i=0;i<Math.round(22*QUAL());i++){ const t=i/22*Math.PI*2, lx=Math.sin(t)*0.5, ly=Math.sin(t)*Math.cos(t)*0.45, c=lx<0?A:B;
+      psBig.emit(p.x,p.y,p.z,(u[0]*(cx+lx*0.6)+v[0]*(cy+ly*0.6))*w,(u[1]*(cx+lx*0.6)+v[1]*(cy+ly*0.6))*w,(u[2]*(cx+lx*0.6)+v[2]*(cy+ly*0.6))*w,
+        c[0],c[1],c[2],rand(1.7,2.2),2.2,0); } }
+};
+/* Blumenkranz: acht kleine Blueten auf einem Kranz um eine Mitte */
+EFF.blumenkranz=function(p,A,B,s){
+  const [u,v]=basisBlick(p,0.35), R=6.2*s, T=0.28;
+  for(let k=0;k<8;k++){ const a=k/8*Math.PI*2, x=Math.cos(a), y=Math.sin(a), c=k%2?A:B;
+    const q={x:p.x+(u[0]*x+v[0]*y)*R,y:p.y+(u[1]*x+v[1]*y)*R,z:p.z+(u[2]*x+v[2]*y)*R};
+    psMid.emit(p.x,p.y,p.z,(q.x-p.x)/T,(q.y-p.y)/T,(q.z-p.z)/T,1,.9,.6,T,0,0);
+    later(T,()=>{ for(let i=0;i<Math.round(34*QUAL());i++){ const d=randDir(), w=rand(2.6,3.2)*s;
+        psBig.emit(q.x,q.y,q.z,d[0]*w,d[1]*w,d[2]*w,c[0],c[1],c[2],rand(1.4,1.9),2.2,0); }
+      psHuge.emit(q.x,q.y,q.z,0,0,0,1,1,1,0.18,0,0); }); }
+  later(T,()=>sfx.crackle(distVol(p)*0.6));
+};
+/* Strobe-Weide: Silberweide, deren Spitzen blitzen */
+EFF.strobeweide=function(p,A,B,s){
+  const n=Math.round(120*s*QUAL()), g=FW.silber;
+  for(let i=0;i<n;i++){ const d=randDir(), w=rand(4.5,7)*s;
+    psBig.emit(p.x,p.y,p.z,d[0]*w,d[1]*w*0.8+1.5,d[2]*w,g[0],g[1],g[2],rand(3.4,4.4),4.6,4);
+    if(i%2===0) psMid.emit(p.x,p.y,p.z,d[0]*w*1.02,d[1]*w*0.82+1.5,d[2]*w*1.02,A[0]*0.6+0.4,A[1]*0.6+0.4,A[2]*0.6+0.4,rand(3.0,3.8),4.6,1); }
+};
+/* Rossschweif: kurze Wurf nach oben, dann faellt alles als Saeule herab */
+EFF.rossschweif=function(p,A,B,s){
+  const n=Math.round(140*s*QUAL());
+  for(let i=0;i<n;i++){ let d=randDir(); if(d[1]<0.35) d=[d[0]*0.6,0.35+Math.random()*0.65,d[2]*0.6];
+    const w=rand(3,6)*s, c=i%5?FW.gold:A;
+    psBig.emit(p.x,p.y,p.z,d[0]*w,d[1]*w,d[2]*w,c[0],c[1],c[2],rand(3.2,4.2),6.5,4); }
+};
+/* Diadem: Pfingstrose mit stehendem Kern und goldenem Glitzerreif */
+EFF.diadem=function(p,A,B,s){
+  const q=QUAL();
+  for(let i=0;i<Math.round(160*s*q);i++){ const d=randDir(), w=rand(9,10.5)*s;
+    psBig.emit(p.x,p.y,p.z,d[0]*w,d[1]*w,d[2]*w,A[0],A[1],A[2],rand(1.8,2.3),2.8,0); }
+  for(let i=0;i<Math.round(50*q);i++){ const d=randDir(), w=rand(0.2,0.8)*s;
+    psHuge.emit(p.x,p.y,p.z,d[0]*w,d[1]*w,d[2]*w,B[0],B[1],B[2],rand(2.2,2.8),0.6,0); }
+  const [u,v]=basisBlick(p,0.8);
+  for(let i=0;i<Math.round(70*q);i++){ const a=i/70*Math.PI*2; ebeneEmit(psMid,p,u,v,Math.cos(a),Math.sin(a)*0.3,9.8*s,FW.gold,rand(2.2,2.8),2.4,4); }
+};
+/* Goldvorhang: eine waagerechte Linie Goldglitzer, die als Vorhang faellt */
+EFF.goldvorhang=function(p,A,B,s){
+  const [u]=basisBlick(p,0), g=FW.gold, q=QUAL();
+  for(let i=0;i<Math.round(110*s*q);i++){ const x=rand(-1,1), w=10*s;
+    psBig.emit(p.x,p.y,p.z,u[0]*x*w,rand(0.5,2.5),u[2]*x*w,g[0],g[1],g[2]*0.9,rand(3.4,4.4),3.4,4); }
+  for(let i=0;i<Math.round(30*s*q);i++){ const x=rand(-1,1), w=10*s;
+    psHuge.emit(p.x,p.y,p.z,u[0]*x*w,rand(1,3),u[2]*x*w,A[0],A[1],A[2],rand(1.4,1.9),2.6,0); }
+};
+/* Krone: Goldbogen mit Zacken, auf jeder Zacke ein Juwel */
+EFF.krone=function(p,A,B,s){
+  const [u,v]=basisBlick(p,0), g=FW.gold, sp=8.5*s, q=QUAL();
+  for(let i=0;i<Math.round(60*q);i++){ const x=-1+2*i/59; ebeneEmit(psBig,p,u,v,x,-0.25-0.12*Math.cos(x*Math.PI/2),sp,g,rand(2.2,2.8),1.6,4); }
+  for(let z=0;z<7;z++){ const x=-1+z/3, hoch=z%2?0.55:0.95;
+    for(let i=0;i<Math.round(12*q);i++){ const f=i/11; ebeneEmit(psBig,p,u,v,x*(1-f*0.08),-0.25+f*hoch,sp,g,rand(2.2,2.8),1.6,4); }
+    ebeneEmit(psHuge,p,u,v,x*0.92,-0.25+hoch,sp,z%2?B:A,rand(2.4,2.9),1.6,0); }
+};
+/* Regenbogenring: ein Ring, dessen Farbe einmal durch das Spektrum laeuft */
+EFF.regenbogenring=function(p,A,B,s){
+  const [u,v]=basisBlick(p,0.3), F=['rot','orange','zitrone','gruen','tuerkis','blau','violett','magenta'].map(K), n=Math.round(96*QUAL());
+  for(let i=0;i<n;i++){ const a=i/n*Math.PI*2, c=F[Math.floor(i/n*F.length)];
+    ebeneEmit(psBig,p,u,v,Math.cos(a),Math.sin(a),9.2*s,c,rand(2.0,2.5),2.2,0); }
+  for(let i=0;i<Math.round(30*QUAL());i++){ const d=randDir(), w=rand(1.5,2.5)*s;
+    psBig.emit(p.x,p.y,p.z,d[0]*w,d[1]*w,d[2]*w,1,1,1,rand(1.2,1.6),2,1); }
+};
+/* Pfeifsterne: helle Kometen, die pfeifend davonziehen */
+EFF.pfeifsterne=function(p,A,B,s){
+  const n=22;
+  /* farbiger Kern, aus dem die Pfeifer herausschiessen */
+  for(let i=0;i<Math.round(80*s*QUAL());i++){ const d=randDir(), w=rand(4.5,6)*s, c=i%3?B:A;
+    psBig.emit(p.x,p.y,p.z,d[0]*w,d[1]*w,d[2]*w,c[0],c[1],c[2],rand(1.5,2),2.4,0); }
+  for(let i=0;i<n;i++){ const d=randDir(), w=rand(10,12.5)*s, c=i%2?A:B;
+    psBig.emit(p.x,p.y,p.z,d[0]*w,d[1]*w,d[2]*w,c[0],c[1],c[2],rand(1.6,2.1),2.2,0);
+    for(let k=0;k<Math.round(6*QUAL());k++){ const f=0.5+k*0.08;
+      psMid.emit(p.x,p.y,p.z,d[0]*w*f,d[1]*w*f,d[2]*w*f,1,.9,.7,rand(0.9,1.4),2.2,4); } }
+  const v=distVol(p); for(let i=0;i<3;i++) later(i*0.12,()=>sfx.whistle(v*0.9));
+};
+/* Nishiki-Kamuro: Brokatgold, an jeder Spitze ein farbiger Stern */
+EFF.nishiki=function(p,A,B,s){
+  const n=Math.round(130*s*QUAL()), g=FW.gold;
+  for(let i=0;i<n;i++){ const d=randDir(), w=rand(7.5,9)*s, c=i%2?A:B;
+    psBig.emit(p.x,p.y,p.z,d[0]*w,d[1]*w,d[2]*w,g[0],g[1]*0.85,g[2]*0.6,rand(2.8,3.4),2.8,4);
+    psHuge.emit(p.x,p.y,p.z,d[0]*w*1.04,d[1]*w*1.04,d[2]*w*1.04,c[0],c[1],c[2],rand(1.8,2.2),2.8,0); }
+  later(1.2,()=>sfx.crackle(distVol(p)*0.5));
+};
+/* Roemische Kerze: kein Bruch, sondern eine leuchtende Kugel, die aus
+   dem Rohr steigt und verglueht */
+function perleSchuss(o,A,s){
+  const y0=(o.y!==undefined?o.y:0.4)+0.3, alt=SCHWEIF; SCHWEIF=0.35;
+  const vy=rand(15,18)*Math.sqrt(s||1), vx=rand(-0.6,0.6), vz=rand(-0.6,0.6);
+  const L=rand(1.6,2.0);
+  for(let k=0;k<3;k++) psHuge.emit(o.x,y0,o.z,vx,vy,vz,A[0]*1.3,A[1]*1.3,A[2]*1.3,L,6,0);
+  psBig.emit(o.x,y0,o.z,vx,vy,vz,1,1,1,L*0.4,6,0);
+  /* Funkenschweif hinter der Kugel und ein kurzer Muendungsblitz */
+  for(let i=0;i<Math.round(40*QUAL());i++) psMid.emit(o.x,y0,o.z,vx*0.9+rand(-.3,.3),vy*rand(0.45,0.98),vz*0.9+rand(-.3,.3),1,.8,.4,rand(0.8,1.5),6,4);
+  muendungsblitz(o,y0,1.2);
+  SCHWEIF=alt;
+  if(FW_LOG) FW_LOG.push({t:FW_UHR,art:'perle',kal:0,pw:0,sz:s||1,eff:'perle',A,B:A,stufenEff:[],hoehe:0,brueche:1,groesste:s||1});
+  if(typeof bruchGesehen==='function') bruchGesehen('perle');
+  sfx.thump(distVol(o)*0.8);
+}
+/* Drachenblut: rote Dahlie, deren Sterne als Blutstropfen abtropfen */
+EFF.drachenblut=function(p,A,B,s){
+  const n=Math.round(70*s*QUAL());
+  for(let i=0;i<n;i++){ const d=randDir(), w=rand(9.5,11)*s;
+    psBig.emit(p.x,p.y,p.z,d[0]*w,d[1]*w,d[2]*w,A[0],A[1],A[2],rand(1.9,2.3),3,0);
+    for(let k=0;k<3;k++){ const f=0.35+k*0.18;
+      psMid.emit(p.x,p.y,p.z,d[0]*w*f,d[1]*w*f,d[2]*w*f,A[0],A[1]*0.6,A[2]*0.4,rand(2.4,3.0),5,2,0.45,0.05,0.02); } }
+  for(let i=0;i<Math.round(40*QUAL());i++){ const d=randDir(), w=rand(2,3.2)*s;
+    psBig.emit(p.x,p.y,p.z,d[0]*w,d[1]*w,d[2]*w,B[0],B[1],B[2],rand(1.3,1.7),2,0); }
+};
+/* Weltenbrand: Chrysantheme mit Farbwechsel, Glutkern und Feuerreif */
+EFF.weltenbrand=function(p,A,B,s){
+  const q=QUAL();
+  for(let i=0;i<Math.round(170*s*q);i++){ const d=randDir(), w=rand(8.5,10.5)*s;
+    psBig.emit(p.x,p.y,p.z,d[0]*w,d[1]*w,d[2]*w,A[0],A[1],A[2],rand(2.2,2.8),3.2,2,B[0],B[1],B[2]); }
+  for(let i=0;i<Math.round(60*q);i++){ const d=randDir(), w=rand(2.5,4)*s;
+    psMid.emit(p.x,p.y,p.z,d[0]*w,d[1]*w,d[2]*w,1,.7,.25,rand(1.6,2.2),2.4,4); }
+  const [u,v]=basisBlick(p,0.9);
+  for(let i=0;i<Math.round(60*q);i++){ const a=i/60*Math.PI*2; ebeneEmit(psBig,p,u,v,Math.cos(a),Math.sin(a)*0.25,11.5*s,FW.orange,rand(1.8,2.3),2.6,0); }
+};
+/* Himmelsbrecher: riesige Silberkugel in zwei Schalen, die Spitzen
+   zerplatzen am Ende knisternd */
+EFF.himmelsbrecher=function(p,A,B,s){
+  const q=QUAL(), w0=FW.silber, T=1.35, G=2.6, spitzen=[];
+  for(let i=0;i<Math.round(230*s*q);i++){ const d=randDir(), w=rand(9.5,11)*s;
+    psBig.emit(p.x,p.y,p.z,d[0]*w,d[1]*w,d[2]*w,w0[0],w0[1],w0[2],T,G,4);
+    if(i%6===0) spitzen.push(sternNach(p,d[0]*w,d[1]*w,d[2]*w,G,T)); }
+  for(let i=0;i<Math.round(90*s*q);i++){ const d=randDir(), w=rand(5,6)*s;
+    psBig.emit(p.x,p.y,p.z,d[0]*w,d[1]*w,d[2]*w,B[0],B[1],B[2],rand(1.8,2.2),2.4,0); }
+  later(T,()=>{ for(const e of spitzen) for(let k=0;k<Math.round(4*q);k++){ const d=randDir(), w=rand(1,2.2);
+      psSmall.emit(e.x,e.y,e.z,d[0]*w,d[1]*w,d[2]*w,1,1,.9,rand(0.3,0.6),2,3); }
+    sfx.crackle(distVol(p)); later(0.1,()=>sfx.crackle(distVol(p))); });
+};
 /* Wie lang die Leuchtspur je Bruchbild ist (Sekunden Flugbahn) */
 const EFF_SCHWEIF={kugel:0.4,chrys:0.75,wechsel:0.35,weide:1.9,palme:1.1,ring:0.3,doppelring:0.3,crossette:0.35,
   knister:0.3,blink:0,brokat:1.3,herz:0.18,stern:0.18,kreisel:0.4,fische:0.25,doppel:0.4,dreifach:0.45,
@@ -888,7 +1085,9 @@ const EFF_SCHWEIF={kugel:0.4,chrys:0.75,wechsel:0.35,weide:1.9,palme:1.1,ring:0.
   tausend:0.25,mehrring:0.35,regenbogen:0.4,glitzerweide:2.0,komet:0.9,titan:0.8,zehnfach:0.35,kaskade:0.5,
   schneeflocke:0.22,spirale:0.3,ringring:0.25,strauss:0.35,furz:0,
   flammenregen:0.7,kronleuchter:1.4,feuerrad:0.55,sternschnuppen:0.9,farbregen:0.5,spektrum:0.2,goldglitzer:0.9,
-  sternpalme:1.1,polarstern:0.35};
+  sternpalme:1.1,polarstern:0.35,
+  smiley:0.15,bienen:0.3,drachenei:0.6,kokosnuss:1.3,schmetterling:0.2,blumenkranz:0.25,strobeweide:1.2,rossschweif:1.4,
+  diadem:0.3,goldvorhang:1.3,krone:0.6,regenbogenring:0.2,pfeifsterne:0.9,nishiki:1.1,drachenblut:0.5,weltenbrand:0.6,himmelsbrecher:0.5};
 function mitSchweif(eff,fn){ const alt=SCHWEIF; SCHWEIF=EFF_SCHWEIF[eff]!==undefined?EFF_SCHWEIF[eff]:null; try{ fn(); } finally { SCHWEIF=alt; } }
 const EFF_ALL=Object.keys(EFF);
 /* Was in welcher Groessenklasse geschossen wird */
@@ -911,7 +1110,8 @@ function shot(o,opt){
      im Bild hatte. */
   /* Kugelbomben steigen ohne Zufall: jedes Kaliber hat seine feste
      Bruchhoehe, damit die groessere Kugel immer hoeher aufgeht */
-  const up=((opt.pw||0)+(opt.kugel?21:rand(19,23)))*STEIG;
+  /* fest: ohne Zufall in der Hoehe (Kugeln, Einzelraketen) */
+  const up=((opt.pw||0)+(opt.kugel||opt.fest?21:rand(19,23)))*STEIG;
   const sc=opt.A?[opt.A,opt.B||opt.A]:scheme(opt.sc);
   /* ab: Hoehe ueber dem Ursprung, jit: seitliche Streuung. Aus einem
      Rohr oder einer Batterie kommt der Schuss genau dort heraus. */
@@ -923,7 +1123,7 @@ function shot(o,opt){
   if(FW_LOG) FW_LOG.push({t:FW_UHR,art:opt.kugel?'kugel':'schuss',kal:opt.kugel||0,pw:opt.pw||0,sz:opt.sz||1,eff:opt.eff||'?',A:sc[0],B:sc[1],
     stufenEff:(opt.stufen||[]).map(x=>x.eff),
     hoehe:+(start.y+Math.cos(ang)*up*fuse-3*fuse*fuse).toFixed(2),brueche:1+(opt.stufen?opt.stufen.length:0),
-    groesste:Math.max(opt.sz||1,...(opt.stufen||[]).filter(x=>x.eff!=='salut').map(x=>x.sz))});
+    groesste:Math.max(opt.sz||1,...(opt.stufen||[]).filter(x=>x.eff!=='salut').map(x=>x.sz)),hell:opt.hell||1});
   rockets.push({
     p:start,
     v:V(Math.sin(dir)*Math.sin(ang)*up,Math.cos(ang)*up,Math.cos(dir)*Math.sin(ang)*up),
@@ -933,7 +1133,9 @@ function shot(o,opt){
     /* Nachbrueche: Tochterbomben, die nach dem Hauptbruch aufgehen */
     stufen:opt.stufen||null, dick:opt.dick||0,
     /* pfeif: die Rakete zieht eine Spirale und heult beim Steigen */
-    pfeif:!!opt.pfeif, ph:Math.random()*6
+    pfeif:!!opt.pfeif, ph:Math.random()*6,
+    /* hell: Helligkeit aus der Steigerung einer Show */
+    hell:opt.hell||1
   });
   sfx.thump(distVol(o)*(1+(opt.dick||0)*0.5));
   if(opt.pfeif) sfx.whistle(distVol(o));
@@ -960,6 +1162,8 @@ function kugelbombe(o,kal,opt){
      Themas - keine Knisterwolke neben einer Blume, kein Salut quer
      durchs Bild. Von Kaliber zu Kaliber waechst alles stetig: Groesse,
      Hoehe, Zahl der Ladungen.
+       Hauptbilder seit dem 25.09. je Kaliber einzigartig: Herz,
+       Drachenblut, Weltenbrand, Zehnfachbruch, Himmelsbrecher.
        75 mm Herzschlag     : Herz, zwei Herzen darin schlagen nach   (3)
        100 mm Drachenblut   : Dahlie mit Kern und Aussenschale,
                               danach regnet sie als Flammen ab        (4)
@@ -988,7 +1192,8 @@ function kugelbombe(o,kal,opt){
     const a=Math.random()*Math.PI*2, w=rand(0.4,2.4);
     psMid.emit(o.x,o.y+(o.ab!==undefined?o.ab:0.3),o.z,Math.cos(a)*w,rand(5,13),Math.sin(a)*w,1,.78,.34,rand(0.5,1.2),7,4);
   }
-  const haupt=opt.eff||['herz','dahlie','wechsel','mehrring','titan'][K4-1];
+  /* jede Kugel hat ein Hauptbild, das es sonst nirgends gibt */
+  const haupt=opt.eff||['herz','drachenblut','weltenbrand','zehnfach','himmelsbrecher'][K4-1];
   const [C,D]=themaPaar(TH,1);
   const stufen=[];
   if(K4===1){
@@ -1043,18 +1248,29 @@ function muendungsblitz(o,y,k){
   for(let i=0;i<Math.round(6*k*QUAL());i++){ const a=Math.random()*Math.PI*2, w=rand(1.2,3);
     psSmall.emit(o.x,y,o.z,Math.cos(a)*w,rand(0.5,2.2),Math.sin(a)*w,1,.75,.35,rand(0.12,0.26),6,0); }
 }
+/* Leuchthof: der Bruch strahlt die Luft um sich herum kurz in seiner
+   Farbe an - zwei weiche, additive Ballen, die aufgehen und verblassen */
+function leuchthof(p,c,s,hell){
+  if(typeof wolke!=='function') return;
+  const sp=[wolkenSprite(true),wolkenSprite(true)], R=5.5*s;
+  wolke(1.0,sp,(w,t)=>{ const a=(t<0.08?t/0.08:1)*(1-glatt(0.1,1.0,t))*0.11*hell, r=R*(0.45+0.35*(1-Math.exp(-t*5)));
+    wSetz(sp[0],p.x,p.y,p.z,r*2.2,c,a); wSetz(sp[1],p.x,p.y,p.z,r*1.1,[1,1,1],a*0.6); });
+}
 function fwBurst(r){
   if(r.eff==='atom'){ atompilz(r.p); return; }
-  const p=r.p, fn=EFF[r.eff]||EFF.kugel;
+  const p=r.p, fn=EFF[r.eff]||EFF.kugel, h=r.hell||1;
+  /* Helligkeit: die Farben werden kraeftiger, ohne den Farbton zu aendern */
+  if(h!==1){ const k=c=>[c[0]*h,c[1]*h,c[2]*h]; r.A=k(r.A); r.B=k(r.B); }
   mitSchweif(r.eff,()=>fn(p,r.A,r.B,r.size));
   kern(p,r.A,r.size);
+  if(r.size>=1.15&&r.eff!=='salut') leuchthof(p,[(r.A[0]+r.B[0])/2,(r.A[1]+r.B[1])/2,(r.A[2]+r.B[2])/2],r.size,h);
   /* Grosse Brueche glitzern kurz nach dem Aufgehen noch einmal nach */
   if(r.size>=1.1&&r.eff!=='salut'&&r.eff!=='furz'&&EFF_FAMILIE[r.eff]!=='figur') later(0.75,()=>nachglitzer(p,r.size));
   /* Wer ein Bruchbild einmal gesehen hat, darf es spaeter selbst verbauen */
   if(typeof bruchGesehen==='function') bruchGesehen(r.eff);
   const mix=[(r.A[0]+r.B[0])/2,(r.A[1]+r.B[1])/2,(r.A[2]+r.B[2])/2];
   const lang=r.eff==='weide'||r.eff==='brokat'||r.eff==='kamuro'||r.eff==='zeitregen';
-  flash(p,mix,2.2+3.4*r.size,lang?1.2:0.6);
+  flash(p,mix,(2.2+3.4*r.size)*h,lang?1.2:0.6);
   if(r.eff!=='salut') shellSound(p,r.size);
   /* Nachbrueche der Kugelbombe */
   if(r.stufen) for(const st of r.stufen){
@@ -1253,7 +1469,7 @@ function vFuerHoehe(h,g){ g=g||6; const k=ZIEH; let a=0, b=200;
   for(let i=0;i<50;i++){ const m=(a+b)/2, hm=m/k-g/(k*k)*Math.log(1+k*m/g); if(hm<h) a=m; else b=m; }
   return (a+b)/2; }
 function monsterFontaene(o,hm,dauer,farben,wechsel){
-  emitters.push({t:dauer,k:'monsterfont',o,hm,v0:vFuerHoehe(hm),farben:farben.map(K),wechsel:!!wechsel});
+  emitters.push({t:dauer,k:'monsterfont',o,hm,v0:vFuerHoehe(hm),farben:farben.map(c=>typeof c==='string'?K(c):c),wechsel:!!wechsel});
   const v=distVol(o); sfx.fizz(v); sfx.thump(v*1.2);
 }
 function updateFireworks(dt){

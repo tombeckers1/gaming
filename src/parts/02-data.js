@@ -52,11 +52,11 @@ const P={
     art:{title:'KLEINER RUTSCH',sub:'Alkoholfrei 0,5 l',bg1:'#e58c85',bg2:'#8a2f2a',ac:'#ffe45c',ac2:'#f2f5ff'}},
   vulkan:{name:'Vulkan XXL · Fontäne',short:'Vulkan',cat:2,lvl:12,shape:'cylinder',dims:[0.13,0.30,0.13],grid:[8,2,1],box:8,cost:6.50,market:14.99,weight:6,hype:22,risk:6,
     art:{title:'VULKAN',sub:'XXL Fontäne 12 s',bg1:'#c01c20',bg2:'#3a0507',ac:'#ffd23f',ac2:'#ff8a2a'}},
-  batterie16:{name:'Funkenflug · 16 Schuss',short:'Batterie 16',cat:2,lvl:13,shape:'battery',dims:[0.20,0.17,0.20],grid:[8,2,1],box:8,cost:9.00,market:21.99,weight:6,hype:26,risk:7,
+  batterie16:{name:'Funkenflug · 16 Schuss',short:'Batterie 16',cat:2,lvl:13,shape:'battery',dims:[0.26,0.22,0.26],grid:[8,2,1],box:8,cost:9.00,market:21.99,weight:6,hype:26,risk:7,
     art:{title:'NACHTHIMMEL',sub:'16 Schuss Verbund',bg1:'#1f3f8a',bg2:'#070e22',ac:'#ffd23f',ac2:'#5ce1ff'}},
-  batterie49:{name:'Feuersturm · 49 Schuss',short:'Batterie 49',cat:2,lvl:15,shape:'battery',dims:[0.34,0.27,0.32],grid:[5,1,1],box:5,cost:16.00,market:39.99,weight:5,hype:40,risk:8,
+  batterie49:{name:'Feuersturm · 49 Schuss',short:'Batterie 49',cat:2,lvl:15,shape:'battery',dims:[0.4,0.32,0.36],grid:[5,1,1],box:5,cost:16.00,market:39.99,weight:5,hype:40,risk:8,
     art:{title:'FEUERSTURM',sub:'49 Schuss Verbund',bg1:'#c01c20',bg2:'#3a0507',ac:'#ffd23f',ac2:'#ff8a2a'}},
-  batterie100:{name:'Himmelssturm · 100 Schuss',short:'Verbund 100',cat:2,lvl:17,shape:'battery',dims:[0.52,0.38,0.44],grid:[4,1,1],box:2,cost:32.00,market:74.99,weight:4,hype:60,risk:9,
+  batterie100:{name:'Himmelssturm · 100 Schuss',short:'Verbund 100',cat:2,lvl:17,shape:'battery',dims:[0.6,0.44,0.48],grid:[4,1,1],box:2,cost:32.00,market:74.99,weight:4,hype:60,risk:9,
     art:{title:'HIMMELSSTURM',sub:'100 Schuss, 90 s',bg1:'#2a0f5a',bg2:'#0a0318',ac:'#ff4fa3',ac2:'#ffd23f'}},
   knicklichter:{name:'Knicklichter 50er',short:'Knicklichter',cat:0,lvl:4,shape:'boxA',dims:[0.10,0.14,0.05],grid:[10,2,1],box:20,cost:0.80,market:2.29,weight:7,hype:0,risk:2,
     art:{title:'GLOW',sub:'50 Knicklichter',bg1:'#1b1b2e',bg2:'#070712',ac:'#5cff9e',ac2:'#ff4fd8'}},
@@ -78,13 +78,13 @@ const P={
     art:{title:'FAMILIENFEST',sub:'18 Teile gemischt',bg1:'#2f5d9e',bg2:'#0a1a33',ac:'#ffd23f',ac2:'#ff4fa3'}},
   /* Knattersturm: ersetzt den alten 25er. Jeder Schuss knistert,
      dazwischen Salven aus fuenf Rohren auf einmal. */
-  knatter:{name:'Knattersturm · 30 Schuss Crackling',short:'Knatter 30',cat:2,lvl:14,shape:'battery',dims:[0.27,0.22,0.26],grid:[7,1,1],box:7,cost:13.00,market:30.99,weight:6,hype:34,risk:7,
+  knatter:{name:'Knattersturm · 30 Schuss Crackling',short:'Knatter 30',cat:2,lvl:14,shape:'battery',dims:[0.32,0.27,0.3],grid:[7,1,1],box:7,cost:13.00,market:30.99,weight:6,hype:34,risk:7,
     art:{title:'KNATTERSTURM',sub:'30 Schuss Crackling',bg1:'#12406b',bg2:'#04121f',ac:'#5ce1ff',ac2:'#ffd23f'}},
-  faecher:{name:'Weitwinkel · 36 Schuss Fächer',short:'Fächer 36',cat:2,lvl:16,shape:'fan',dims:[0.56,0.26,0.32],grid:[4,1,1],box:2,cost:24.00,market:54.99,weight:5,hype:48,risk:8,
+  faecher:{name:'Weitwinkel · 36 Schuss Fächer',short:'Fächer 36',cat:2,lvl:16,shape:'fan',dims:[0.64,0.3,0.36],grid:[4,1,1],box:2,cost:24.00,market:54.99,weight:5,hype:48,risk:8,
     art:{title:'WEITWINKEL',sub:'36 Schuss im Fächer',bg1:'#5a1470',bg2:'#1a0322',ac:'#ff4fa3',ac2:'#5cff9e'}},
-  zfaecher:{name:'Blitzgewitter · 48 Schuss Z-Fächer',short:'Z-Fächer 48',cat:2,lvl:17,shape:'fan',dims:[0.62,0.27,0.34],grid:[4,1,1],box:2,cost:27.00,market:61.99,weight:5,hype:52,risk:8,
+  zfaecher:{name:'Blitzgewitter · 48 Schuss Z-Fächer',short:'Z-Fächer 48',cat:2,lvl:17,shape:'fan',dims:[0.7,0.32,0.38],grid:[4,1,1],box:2,cost:27.00,market:61.99,weight:5,hype:52,risk:8,
     art:{title:'BLITZGEWITTER',sub:'48 Schuss Z-Fächer',bg1:'#0f2a4a',bg2:'#02060f',ac:'#f2f5ff',ac2:'#5ce1ff'}},
-  kometen:{name:'Kometenregen · 64 Schuss Brokat',short:'Kometen 64',cat:2,lvl:19,shape:'battery',dims:[0.46,0.34,0.4],grid:[4,1,1],box:3,cost:36.00,market:82.99,weight:4,hype:66,risk:9,
+  kometen:{name:'Kometenregen · 64 Schuss Brokat',short:'Kometen 64',cat:2,lvl:19,shape:'battery',dims:[0.52,0.4,0.44],grid:[4,1,1],box:3,cost:36.00,market:82.99,weight:4,hype:66,risk:9,
     art:{title:'KOMETENREGEN',sub:'64 Schuss Brokat',bg1:'#4a3308',bg2:'#150e02',ac:'#ffd23f',ac2:'#ff7a3d',gold:true}},
   /* Riesenfontaenen: zehn bzw. fuenfzehn Meter Feuer vom Boden */
   goldgeysir:{name:'Goldgeysir · 10-m-Riesenfontäne',short:'Goldgeysir',cat:2,lvl:14,shape:'cylinder',dims:[0.2,0.34,0.2],grid:[8,1,1],box:4,cost:11.00,market:26.99,weight:5,hype:36,risk:7,
@@ -140,11 +140,11 @@ const P={
     art:{title:'BLANKO',sub:'Für Gravur',bg1:'#4a4f5e',bg2:'#1b1e28',ac:'#f2f5ff',ac2:'#ffd23f'}},
   gravur:{name:'Gravur-Rakete',short:'Gravur',cat:2,lvl:9,shape:'rocketset',dims:[0.42,0.055,0.11],grid:[1,1,1],box:1,cost:3.20,market:24.99,weight:0,hype:16,risk:7,noShelf:true,noWish:true,noOrder:true,
     art:{title:'FÜR DICH',sub:'Persönliche Gravur',bg1:'#6a24c9',bg2:'#25093f',ac:'#ffd23f',ac2:'#ff4fa3'}},
-  donnerwand:{name:'Donnerwand · 120 Schuss Salvenwand',short:'Donnerwand',cat:2,lvl:20,shape:'battery',dims:[0.7,0.46,0.46],grid:[3,1,1],box:2,cost:47.00,market:109.99,weight:3,hype:78,risk:10,
+  donnerwand:{name:'Donnerwand · 120 Schuss Salvenwand',short:'Donnerwand',cat:2,lvl:20,shape:'battery',dims:[0.8,0.7,0.52],grid:[3,1,1],box:2,cost:47.00,market:109.99,weight:3,hype:78,risk:10,
     art:{title:'DONNERWAND',sub:'120 Schuss · 20 Salven',bg1:'#1c1c24',bg2:'#000000',ac:'#ff3b2e',ac2:'#f2f5ff'}},
-  profi:{name:'Götterfunken · 200 Schuss Profiverbund',short:'Götterfunken',cat:2,lvl:22,shape:'battery',dims:[0.8,0.52,0.48],grid:[3,1,1],box:1,cost:68.00,market:149.99,weight:3,hype:90,risk:10,
+  profi:{name:'Götterfunken · 200 Schuss Profiverbund',short:'Götterfunken',cat:2,lvl:22,shape:'battery',dims:[0.92,0.8,0.56],grid:[3,1,1],box:1,cost:68.00,market:149.99,weight:3,hype:90,risk:10,
     art:{title:'GÖTTERFUNKEN',sub:'200 Schuss Profi',bg1:'#0e1226',bg2:'#000000',ac:'#ffd23f',ac2:'#e63b2e',gold:true}},
-  finale:{name:'Weltuntergang · 300 Schuss Finale',short:'Weltuntergang',cat:2,lvl:24,shape:'battery',dims:[0.88,0.56,0.5],grid:[2,1,1],box:1,cost:115.00,market:249.99,weight:2,hype:100,risk:10,
+  finale:{name:'Weltuntergang · 300 Schuss Finale',short:'Weltuntergang',cat:2,lvl:24,shape:'battery',dims:[1.0,0.9,0.6],grid:[2,1,1],box:1,cost:115.00,market:249.99,weight:2,hype:100,risk:10,
     art:{title:'WELTUNTERGANG',sub:'300 Schuss · 3 Minuten',bg1:'#3a0507',bg2:'#000000',ac:'#ff3b2e',ac2:'#ffd23f',gold:true}},
   /* Schabernack-Edition: der Spaßkram ganz am Ende */
   furzrakete:{name:'Furzrakete »Donnerbalken«',short:'Furzrakete',cat:2,lvl:19,shape:'rocketset',dims:[0.44,0.06,0.12],grid:[4,2,2],box:6,cost:6.20,market:15.99,weight:9,hype:28,risk:4,
@@ -168,6 +168,13 @@ const P={
   sternenbrunnen:{name:'Sternenbrunnen · Fontäne mit Farbsternen',short:'Sternenbrunnen',cat:2,lvl:12,shape:'cylinder',dims:[0.145,0.34,0.145],grid:[7,2,1],box:6,cost:7.90,market:18.99,weight:7,hype:26,risk:6,
     art:{title:'STERNENBRUNNEN',sub:'Goldfontäne mit Farbsternen',bg1:'#123a6b',bg2:'#04101f',ac:'#5ce1ff',ac2:'#ffd23f'}}
 };
+/* Alle Produkte wesentlich groesser (Tom, 25.09.): ein Viertel in jede
+   Richtung. Ausgenommen die Kugelbomben - die muessen in ihre
+   Moerserrohre passen - und die Batterien und Faecher, die oben ihre
+   eigenen, noch groesseren Masse haben. */
+const GROESSER=1.25;
+for(const t in P){ const q=P[t]; if(!q.dims||q.shape==='shell'||q.shape==='battery'||q.shape==='fan') continue;
+  q.dims=q.dims.map(x=>Math.round(x*GROESSER*1000)/1000); }
 const ORDER=Object.keys(P);
 /* Kapitel: die grossen Stufen des Ladens. Jedes beginnt mit einem
    bestimmten Ausbau. */
@@ -288,40 +295,29 @@ const STAFF=[
   {id:'security',lvl:13,name:'Sicherheitsdienst',desc:'Hält Diebe im Laden auf, bevor sie rauskommen.',hire:800,wage:190},
   {id:'packer',lvl:18,req:'packstation',name:'Versandmitarbeiter',desc:'Schiebt einen Kommissionierwagen mit sechs Fächern durchs Lager – fehlt dort etwas, durch den Laden –, legt jede Onlinebestellung Stück für Stück in ihren Karton, klebt am Packtisch zu und stapelt die Pakete für DDL.',hire:700,wage:165}
 ];
-/* Lieferanten (Tom, 25.09.): jeder fuehrt sein eigenes Sortiment, alle zu
-   denselben Konditionen - der Unterschied ist die Ware, nicht der
-   Rabatt. Nur Ratzke ist anders: gemischte Restposten mit sehr
-   starken Rabatten, dafuer weiss man nie genau, was kommt.
-   ware(t): fuehrt dieser Lieferant das Produkt? */
-const STAFFEL=[{n:1,d:0},{n:5,d:0.05},{n:20,d:0.12}];
-const SUP_SHOW=['titanraketen','jumbogold','jumboleiter','donnerwand','profi','finale','feuersaeule','fontaene30','fontaene50'];
-const SUP_BODEN=['fontaene','vulkan','sternenbrunnen','wasserfall','goldgeysir','feuerbrunnen'];
-const SUP_BATT=['batterie16','knatter','batterie49','faecher','batterie100','zfaecher','kometen','sortiment'];
+/* Einkauf (Tom, 25.09., zweite Runde): keine Lieferanten mit eigenem
+   Sortiment mehr. Es gibt drei Stufen, und ueberall dieselbe Ware:
+   - Fachhandel: von Anfang an, jeder Karton einzeln zum Listenpreis.
+   - Grosshandel: sobald du selbst Fachgeschaeft bist (Kapitel 2, eigenes
+     Lager) - mehrere Kartons auf einmal mit Staffelrabatt.
+   - Restposten: gemischte oder sortenreine Posten mit sehr starken
+     Rabatten, dafuer weiss man nie genau, was kommt.
+   Alte Spielstaende und Tests nennen noch die frueheren Lieferanten;
+   SUP_ALT leitet sie auf die neue Stufe um. */
 const SUPPLIERS=[
-  {id:'mertens',lvl:1,name:'Pyro Mertens',short:'Mertens',desc:'Dein Stammlieferant für Kleinfeuerwerk und Böller: Wunderkerzen, Knallerbsen, Tischfeuerwerk, Böller, Schwärmer und Römische Lichter.',
-    mult:1.00,quality:1.00,delay:[4,8],tiers:STAFFEL,
-    ware:t=>P[t].cat===1||['boeller','monsterboeller','atomboeller','schwaermer','roemisch','blanko'].includes(t)||!!P[t].eigen},
-  {id:'party',lvl:1,name:'Partyhandel Sommer',short:'Sommer',desc:'Alles rund um die Party, aber kein Feuerwerk: Deko, Geschirr, Sekt und Getränke, Knabberzeug, Fondue und Raclette.',
-    mult:1.00,quality:1.00,delay:[4,8],tiers:STAFFEL,
-    ware:t=>P[t].cat===0},
-  {id:'kowalski',lvl:5,name:'Feuerwerk Kowalski',short:'Kowalski',desc:'Raketen und Fontänen: vom Dreierset bis zu den Goldraketen, dazu Vulkane, Geysire und Brunnen.',
-    mult:1.00,quality:1.00,delay:[6,10],tiers:STAFFEL,
-    ware:t=>(P[t].shape==='rocketset'&&!SUP_SHOW.includes(t)&&t!=='blanko')||SUP_BODEN.includes(t)},
-  {id:'ratzke',lvl:8,name:'Restposten-Ratzke',short:'Ratzke',desc:'Restposten: gemischte Kartons aus Lagerräumungen zu sehr starken Rabatten. Was genau drin ist, siehst du erst beim Auspacken.',
-    mult:0.60,quality:0.86,delay:[6,12],mystery:true,ware:t=>false},
-  {id:'import',lvl:12,name:'Import Direkt',short:'Import',desc:'Batterien, Fächer und Verbunde: vom 16-Schuss bis zum Kometenregen, dazu das Familienfest-Sortiment.',
-    mult:1.00,quality:1.00,delay:[8,14],tiers:STAFFEL,
-    ware:t=>SUP_BATT.includes(t)},
-  {id:'premium',lvl:14,name:'Kugelmanufaktur Premium',short:'Kugeln',desc:'Kugelbomben für die Mörserbatterie, von 75 bis 300 mm.',
-    mult:1.00,quality:1.00,delay:[6,10],tiers:STAFFEL,
-    ware:t=>P[t].shape==='shell'}
+  {id:'fachhandel',lvl:1,name:'Pyro-Fachhandel Brandt',short:'Fachhandel',desc:'Dein Fachhändler um die Ecke: alles aus deinem Sortiment, jeder Karton einzeln zum Listenpreis.',
+    mult:1.00,quality:1.00,delay:[4,8],tiers:[{n:1,d:0}]},
+  {id:'grosshandel',lvl:1,kap:2,name:'Feuerwerk-Großhandel Kowalski',short:'Großhandel',desc:'Seit du selbst Fachgeschäft bist, kaufst du beim Großhandel: dieselbe Ware, aber mehrere Kartons auf einmal und dafür deutlich günstiger.',
+    mult:1.00,quality:1.00,delay:[6,10],tiers:[{n:1,d:0},{n:5,d:0.08},{n:20,d:0.15}]},
+  {id:'ratzke',lvl:8,name:'Restposten-Ratzke',short:'Restposten',desc:'Restposten aus Lagerräumungen zu sehr starken Rabatten: bunt gemischt, halb sortiert oder ein ganzer Posten einer Sorte. Was genau drin ist, siehst du erst beim Auspacken.',
+    mult:0.60,quality:0.86,delay:[6,12],mystery:true}
 ];
-const LATE_SUP={id:'direkt',lvl:20,name:'Werksdirekt Hübner',short:'Hübner',desc:'Profi- und Showfeuerwerk direkt ab Werk: Titan- und Jumboraketen, Donnerwand, Götterfunken, Weltuntergang, Feuersäule und die Monsterfontänen.',
-    mult:1.00,quality:1.00,delay:[10,16],tiers:STAFFEL,
-    ware:t=>SUP_SHOW.includes(t)};
-SUPPLIERS.push(LATE_SUP);
-/* Wer fuehrt dieses Produkt? Was keiner ausdruecklich hat, gibt es bei Mertens. */
-function supplierFor(t){ return SUPPLIERS.find(x=>!x.mystery&&x.ware(t))||SUPPLIERS[0]; }
+const SUP_ALT={mertens:'fachhandel',party:'fachhandel',kowalski:'grosshandel',import:'grosshandel',premium:'grosshandel',direkt:'grosshandel'};
+/* Grosshandel erst ab Kapitel 2 ("Kleines Fachgeschaeft") */
+function grossOffen(){ return typeof kapitelNr==='function'&&kapitelNr()>=2; }
+function supOffen(x){ return S.level>=x.lvl&&(!x.kap||kapitelNr()>=x.kap); }
+/* Wer beliefert gerade? Alle fuehren alles - es zaehlt nur die Stufe. */
+function supplierFor(t){ return grossOffen()?SUPPLIERS[1]:SUPPLIERS[0]; }
 const PACKS=[
   {id:'tuete',lvl:8,name:'Kleine Wundertüte',desc:'Sechs Kartons Restware, bunt gemischt. Meist Kleinkram, selten ein Treffer.',n:6},
   {id:'kiste',lvl:10,name:'Große Wundertüte',desc:'Vierzehn Kartons, je Karton etwas günstiger. Manchmal ist etwas richtig Teures dabei.',n:14},
@@ -334,7 +330,11 @@ const PACKS=[
   {id:'raketenpaket',lvl:11,name:'Raketen-Paket',desc:'Acht Kartons Raketen, vom Dreierset bis zu dem, was du freigeschaltet hast.',gruppe:'raketen',n:8},
   {id:'verbundpaket',lvl:15,name:'Verbund-Paket',desc:'Fünf Kartons Batterien und Fächer. Mit Glück ist ein großer Verbund dabei.',gruppe:'batterien',n:5},
   {id:'partykiste',lvl:9,name:'Partykiste',desc:'Acht Kartons Partyzubehör, gemischt aus dem, was du führst: Deko, Geschirr, Hüte und Co.',gruppe:'zubehoer',n:8},
-  {id:'kugelkiste',lvl:16,name:'Kugelkiste',desc:'Vier Kartons Kugelbomben, Kaliber gemischt.',gruppe:'kugeln',n:4}
+  {id:'kugelkiste',lvl:16,name:'Kugelkiste',desc:'Vier Kartons Kugelbomben, Kaliber gemischt.',gruppe:'kugeln',n:4},
+  /* sortenrein und halb sortiert (Tom, 25.09.): mal ein ganzer Posten
+     einer einzigen Sorte, mal nur zwei, drei Sorten */
+  {id:'sortenposten',lvl:9,name:'Sortenreiner Posten',desc:'Acht Kartons, alle von einer Sorte aus deinem Sortiment. Welche, entscheidet die Lagerräumung.',sorten:1,n:8},
+  {id:'mischposten',lvl:12,name:'Halb sortierter Posten',desc:'Zwölf Kartons aus nur drei Sorten - weniger bunt als die Wundertüte, dafür gleich mehrere Kartons derselben Ware.',sorten:3,n:12}
 ];
 const PYROTYPES=[
   {id:'knauser',name:'knauserig',ceil:1.03,rounds:4,open:0.78,line:'Ich sag Ihnen gleich, mein Budget ist eng.'},
@@ -433,18 +433,21 @@ const LIEFERZEIT_SEK=5, VERSAND=5.9, VERSANDFREI=150;
 function lieferSek(){ return LIEFERZEIT_SEK; }
 /* Regaltypen. Klein ist der Einstieg, der Kühlschrank nimmt nur Sekt & Co. */
 const SHELFKIND={
-  klein:{id:'klein',name:'Kleines Regal',w:1.0,d:0.42,lv:[0.12,0.52,0.92],lvl:1,cost:45,step:28,amb:0},
-  standard:{id:'standard',name:'Verkaufsregal',w:2.0,d:0.52,lv:[0.115,0.565,1.015,1.465],lvl:4,cost:130,step:70,amb:1},
-  hoch:{id:'hoch',name:'Hochregal',w:2.0,d:0.52,lv:[0.11,0.47,0.83,1.19,1.55],lvl:10,cost:260,step:95,amb:2},
+  klein:{id:'klein',name:'Kleines Regal',w:1.0,d:0.42,lv:[0.12,0.6,1.08],lvl:1,cost:45,step:28,amb:0},
+  standard:{id:'standard',name:'Verkaufsregal',w:2.0,d:0.52,lv:[0.115,0.62,1.125,1.63],lvl:4,cost:130,step:70,amb:1},
+  hoch:{id:'hoch',name:'Hochregal',w:2.0,d:0.52,lv:[0.11,0.53,0.95,1.37,1.79],lvl:10,cost:260,step:95,amb:2},
   kuehl:{id:'kuehl',name:'Sekt-Kühlschrank',w:1.1,d:0.58,lv:[0.2,0.64,1.08,1.52],lvl:6,cost:430,step:155,amb:5,cold:true},
   /* Mittelgondel: steht frei im Raum, Ware auf beiden Seiten. */
-  gondel:{id:'gondel',name:'Mittelgondel',w:2.0,d:0.46,fw:2.1,fd:1.0,lv:[0.12,0.5,0.88,1.26],lvl:12,cost:560,step:190,amb:3,art:'insel',
+  gondel:{id:'gondel',name:'Mittelgondel',w:2.0,d:0.46,fw:2.1,fd:1.0,lv:[0.12,0.58,1.04,1.5],lvl:12,cost:560,step:190,amb:3,art:'insel',
     seiten:[{ry:0,ox:0,oz:0.24},{ry:Math.PI,ox:0,oz:-0.24}]},
   /* Eckregal: zwei Schenkel ueber Eck, wie im Supermarkt. */
-  eck:{id:'eck',name:'Eckregal',w:1.2,d:0.5,fw:1.74,fd:1.74,lv:[0.115,0.565,1.015,1.465],lvl:14,cost:480,step:165,amb:2,art:'ecke',
-    seiten:[{ry:0,ox:0.25,oz:-0.60},{ry:Math.PI/2,ox:-0.60,oz:0.25}]}
+  eck:{id:'eck',name:'Eckregal',w:1.2,d:0.5,fw:1.74,fd:1.74,lv:[0.115,0.62,1.125,1.63],lvl:14,cost:480,step:165,amb:2,art:'ecke',
+    seiten:[{ry:0,ox:0.25,oz:-0.60},{ry:Math.PI/2,ox:-0.60,oz:0.25}]},
+  /* Grossverbund-Regal (Tom, 25.09.): die ganz grossen Verbunde gehen
+     ueber mehrere Etagen - unten ein Fach fast einen Meter hoch */
+  gross:{id:'gross',name:'Großverbund-Regal',w:2.0,d:0.6,lv:[0.12,1.12],lvl:18,cost:640,step:210,amb:2}
 };
-const SHELFORDER=['klein','standard','hoch','kuehl','gondel','eck'];
+const SHELFORDER=['klein','standard','hoch','kuehl','gondel','eck','gross'];
 /* =========================================================
    Regalbau Stegemann. Regale stehen nicht mehr auf Knopfdruck im
    Laden - man bestellt sie wie Ware, der LKW bringt sie als
@@ -460,6 +463,7 @@ const REGALWARE=[
   {id:'hoch',    art:'shelf',kind:'hoch',    lvl:10},
   {id:'gondel',  art:'shelf',kind:'gondel',  lvl:12,req:'shop_gross'},
   {id:'eck',     art:'shelf',kind:'eck',     lvl:14,req:'shop_gross'},
+  {id:'gross',   art:'shelf',kind:'gross',   lvl:18},
   {id:'rhoch',   art:'rack', kind:'hoch',    lvl:16,req:'lager_gross'},
   {id:'rschwer', art:'rack', kind:'schwer',  lvl:18,req:'lager_gross'}
 ];
@@ -706,7 +710,7 @@ const cleanliness=()=>clamp(100-dirts.length*7,0,100);
 const canShelf=t=>!P[t].noShelf;
 const canOrder=t=>!P[t].noOrder;
 const canWish=t=>!P[t].noWish;
-function supplierOf(id){ return SUPPLIERS.find(x=>x.id===id)||SUPPLIERS[0]; }
+function supplierOf(id){ id=SUP_ALT[id]||id; return SUPPLIERS.find(x=>x.id===id)||SUPPLIERS[0]; }
 function qualityLabel(q){ return q>=1.12?['ok','Markenware']:q>=0.98?['','Normale Ware']:q>=0.8?['warn','Restposten']:['no','Billigimport']; }
 function bildBoost(){ let b=0; (dekos||[]).forEach(d=>{ const D=DEKO.find(x=>x.id===d.id); if(D&&D.buy) b+=D.buy; }); return b; }
 function ambienteScore(){

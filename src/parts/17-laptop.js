@@ -2,7 +2,7 @@
 /* =========================================================
    Laptop
    ========================================================= */
-let laptopOpen=false, startOpen=true, pauseOpen=false, ltab='order', resetArm=false, lsup='mertens', korbOpen=false;
+let laptopOpen=false, startOpen=true, pauseOpen=false, ltab='order', resetArm=false, lsup='ware', korbOpen=false;
 function openLaptop(tab){ if(typeof handyOpen!=='undefined'&&handyOpen) closeHandy(false); laptopOpen=true; resetArm=false; if(tab) ltab=tab; for(const k in keys) keys[k]=false; mouseDown=false; touchAct=false; renderLaptop(); $('laptop').classList.add('show'); if(locked) document.exitPointerLock(); }
 function closeLaptop(relock){ laptopOpen=false; korbOpen=false; $('korbOv').classList.remove('show'); $('laptop').classList.remove('show'); if(relock) requestLock(); else if(lockWorked&&!COARSE&&!locked&&!summaryOpen&&!levelOpen) showPause(); }
 function priceHint(t){ const r=S.prices[t]/marketOf(t), lo=priceTol();
@@ -191,7 +191,7 @@ function pushLine(l,delay){
   const sup=lineSup(l);
   if(l.pack){
     const pk=PACKS.find(x=>x.id===l.pack);
-    const items=packContents(pk.n*l.n,pk.gruppe);
+    const items=[]; for(let k=0;k<l.n;k++) items.push(...packContents(pk.n,pk.gruppe,pk.sorten));
     items.forEach(t=>pending.push({type:t,t:delay,q:supplierOf('ratzke').quality,sup:'ratzke'}));
     return items.length;
   }
@@ -225,7 +225,7 @@ function orderRegal(id){
   const preis=regalPreis(id);
   if(verfuegbar()<preis){ toast(`${K.name} kostet ${eur(preis)} — dir fehlen ${eur(r2(preis-verfuegbar()))}.`,'bad'); return; }
   S.money=r2(S.money-preis); DS.upgrades=r2(DS.upgrades+preis);
-  pending.push({regal:id,t:lieferSek()*evv('delay'),sup:'mertens'});
+  pending.push({regal:id,t:lieferSek()*evv('delay'),sup:'fachhandel'});
   sfx.cash(); S.tut.order=true;
   toast(zoneOffen('lager')?`${K.name} bestellt. Kommt mit dem nächsten LKW an die Rampe.`:`${K.name} bestellt. Der Lieferant baut es gleich im Laden auf.`,'money');
   save();
@@ -246,9 +246,11 @@ function packPool(gruppe){
   return ORDER.filter(t=>isUnlocked(t)&&canShelf(t)&&P[t].cat!==undefined&&t!=='blanko'&&!P[t].noOrder&&!P[t].eigen
     &&(!gruppe||(GRUPPE[gruppe]||[]).indexOf(t)>=0));
 }
-function packContents(n,gruppe){
-  const pool=packPool(gruppe);
+function packContents(n,gruppe,sorten){
+  let pool=packPool(gruppe);
   if(!pool.length) return [];
+  /* sortenreiner oder halb sortierter Posten: wenige Sorten, reihum */
+  if(sorten){ const w=pool.slice().sort(()=>Math.random()-0.5).slice(0,sorten); return Array.from({length:n},(_,i)=>w[i%w.length]); }
   const out=[];
   for(let i=0;i<n;i++){
     /* Themenpaket: gleichverteilt aus der Gruppe. Wundertuete:
@@ -262,10 +264,10 @@ function packContents(n,gruppe){
 }
 /* Mittlerer Einkaufswert eines Kartons aus dem Paket - genau so
    gerechnet, wie packContents zieht. */
-function packKartonWert(gruppe){
+function packKartonWert(gruppe,sorten){
   const pool=packPool(gruppe); if(!pool.length) return 0;
   const m=l=>l.reduce((a,t)=>a+costOf(t)*P[t].box,0)/l.length;
-  if(gruppe) return m(pool);
+  if(gruppe||sorten) return m(pool);
   const billig=pool.filter(t=>costOf(t)<6), teuer=pool.filter(t=>costOf(t)>=6);
   return 0.88*m(billig.length?billig:pool)+0.12*m(teuer.length?teuer:pool);
 }
@@ -276,14 +278,14 @@ function packKartonWert(gruppe){
    bis fast die Haelfte unter dem Einkaufswert */
 const PACK_RABATT={tuete:0.62,kiste:0.58,palette:0.52};
 function packPreis(pk){
-  const f=pk.gruppe?0.6:(PACK_RABATT[pk.id]||0.7);
-  return Math.max(5,Math.round(packKartonWert(pk.gruppe)*pk.n*f/5)*5);
+  const f=pk.sorten?0.56:pk.gruppe?0.6:(PACK_RABATT[pk.id]||0.7);
+  return Math.max(5,Math.round(packKartonWert(pk.gruppe,pk.sorten)*pk.n*f/5)*5);
 }
 function packOffen(pk){ return S.level>=pk.lvl&&(!pk.gruppe||packPool(pk.gruppe).length>0); }
 function buyPack(id){
   const pk=PACKS.find(x=>x.id===id); if(!pk||!packOffen(pk)) return;
   const preis=packPreis(pk); if(verfuegbar()<preis) return;
-  const items=packContents(pk.n,pk.gruppe); if(!items.length) return;
+  const items=packContents(pk.n,pk.gruppe,pk.sorten); if(!items.length) return;
   S.money=r2(S.money-preis); DS.goods=r2(DS.goods+preis);
   const sup=supplierOf('ratzke'), delay=lieferSek()*evv('delay');
   items.forEach(t=>pending.push({type:t,t:delay,q:sup.quality,sup:sup.id}));
@@ -480,6 +482,7 @@ function upPic(id){
         for(let k=0;k<3;k++){ g.fillStyle=['#d8b468','#c05a4a','#6fa8d8'][k];
           g.fillRect(48+k*24,y-13,18,13); g.fillRect(110+k*24,y-13,18,13); } }
       g.fillStyle='#1b2340'; g.fillRect(44,18,136,10); break;
+    case 'shelf_gross': regal(2,128,'#5a6170'); break;
     case 'shelf_eck':
       bg('#1b2540','#0d1326');
       /* Eckregal von oben: zwei Schenkel ueber Eck */
@@ -704,6 +707,8 @@ function renderLaptop(){
   if(handyOpen) renderHandy();
   if(!laptopOpen&&handyOpen) return;
   if(HANDY_IDS.indexOf(ltab)>=0) ltab='order';
+  /* Einrichtung steht jetzt unter Bestellen (Regale & Einrichtung) */
+  if(ltab==='einr'){ ltab='order'; lsup='regal'; }
   lapZeichnen($('lbody'));
 }
 function lapZeichnen(body){
@@ -713,24 +718,24 @@ function lapZeichnen(body){
   const kb=$('lKorb'); if(kb) kb.textContent=korbBtnText();
   let h='', hint='';
   if(ltab==='order'){
-    /* Regalbau Stegemann steht in derselben Reihe wie die
-       Warenlieferanten - er liefert nur eben Regale statt Ware. */
-    const istRegal=lsup==='regal';
-    const avail=supAvail();
-    if(!istRegal&&!avail.some(x=>x.id===lsup)) lsup='mertens';
-    const sup=istRegal?null:supplierOf(lsup);
-    /* Regalbau steht ganz links (Tom, 25.09.), danach die Lieferanten */
+    /* Eine Bestellseite in drei Bereichen (Tom, 25.09.): ganz links
+       Regale & Einrichtung, dann die Ware - alles auf einer Seite,
+       sortiert nach Freischaltung und Level -, dann die Restposten.
+       Welcher Haendler liefert, haengt nur vom Stand des Ladens ab:
+       Fachhandel, ab Kapitel 2 Grosshandel. */
+    if(['regal','ware','rest'].indexOf(lsup)<0) lsup='ware';
+    const rest=supplierOf('ratzke'), restOffen=supOffen(rest), sup=supplierFor(), gross=grossOffen();
+    if(lsup==='rest'&&!restOffen) lsup='ware';
+    const knopf=(id,txt,an)=>an
+      ? `<button data-a="sup" data-t="${id}" style="${id===lsup?'background:var(--signal);color:var(--ink)':'opacity:.8'}">${txt}</button>`
+      : `<button disabled>${txt}</button>`;
     const knoepfe=`<div class="row" style="padding-top:6px"><div class="steps" style="justify-content:flex-start">`+
-      `<button data-a="sup" data-t="regal" style="${istRegal?'background:var(--signal);color:var(--ink)':'opacity:.8'}">Regalbau</button>`+
-      SUPPLIERS.map(x=>S.level>=x.lvl
-        ? `<button data-a="sup" data-t="${x.id}" style="${x.id===lsup?'background:var(--signal);color:var(--ink)':'opacity:.8'}">${x.short}</button>`
-        : `<button disabled>${x.short} · Lvl ${x.lvl}</button>`).join('')+
-      `</div></div>`;
-    if(istRegal){
-      h=`<div class="row"><div class="rm"><b>Regalbau Stegemann</b><small>Ladenbau und Lagertechnik, seit 1974. ${zoneOffen('lager')?'Liefert an die Rampe — aufbauen musst du selbst.':'Solange du kein Lager hast, baut der Lieferant das Regal gleich im Laden auf.'}</small>`+
-        `<small>Paket aus dem Laderaum nehmen, an die Stelle tragen, an der es stehen soll, und mit „Ablegen“ aufbauen.</small>`+
-        `<small>Lieferzeit ${LIEFERZEIT_SEK} Sekunden · kein Versandzuschlag</small></div></div>`+knoepfe+
-        `<div class="karten">`+REGALWARE.map(r=>{
+      knopf('regal','Regale &amp; Einrichtung',true)+knopf('ware',`Ware · ${sup.short}`,true)+
+      knopf('rest',restOffen?'Restposten':`Restposten · Lvl ${rest.lvl}`,restOffen)+`</div></div>`;
+    if(lsup==='regal'){
+      h=`<div class="row"><div class="rm"><b>Regale &amp; Einrichtung</b><small>Regale, Kühlschränke, Kassen und Technik für den Laden. Nichts davon muss man freikaufen – manches gibt es erst ab einem bestimmten Level.</small>`+
+        `<small>Regale kommen als Paket mit dem LKW (${zoneOffen('lager')?'an die Rampe, aufbauen musst du selbst':'ohne Lager baut der Lieferant sie gleich im Laden auf'}). Einrichtung wird sofort eingebaut.</small></div></div>`+knoepfe;
+      h+=`<div class="kgruppe">Regale</div><div class="karten">`+REGALWARE.map(r=>{
           const K=regalKind(r), offen=regalOffen(r.id), platz=regalPlatz(r.id), pr=regalPreis(r.id);
           const wo=r.art==='rack'?'Lager':'Verkaufsfläche';
           if(!offen){
@@ -743,27 +748,43 @@ function lapZeichnen(body){
             `<div class="kpreis">${eur(pr)}</div>`+
             `<div class="steps"><button data-a="rbuy" data-t="${r.id}"${platz?'':' disabled'}>bestellen</button></div></div>`;
         }).join('')+`</div>`;
+      h+=`<div class="kgruppe">Kassen, Technik und Einrichtung</div><div class="karten">`+
+        UPGRADES.filter(u=>(u.kat||'einr')==='einr').sort((x,y)=>x.lvl-y.lvl).map(u=>{
+          const done=u.done(), cost=u.cost(), fehlt=u.req&&!S.up[u.req]?UPGRADES.find(x=>x.id===u.req):null, lock=S.level<u.lvl||!!fehlt;
+          return `<div class="karte${lock&&!done?' locked':''}"><img class="kbild" src="${upPic(u.id)}" alt=""><b>${u.name}</b><small>${u.desc}</small>`+
+            (done?'<small class="ok">Vorhanden</small>'
+              :S.level<u.lvl?`<small>ab Level ${u.lvl}</small>`
+              :fehlt?`<small class="warn">braucht „${fehlt.name}“</small>`
+              :`<div class="kpreis">${eur(cost)}</div><div class="steps"><button data-a="up" data-t="${u.id}" ${S.money<cost?'disabled':''}>kaufen</button></div>`)+'</div>';
+        }).join('')+`</div>`;
       body.innerHTML=h;
       if(korbOpen) renderKorb();
       return;
     }
     hint=`Artikel in den Warenkorb legen, dann alles zusammen bestellen. Eine Lieferung braucht ${LIEFERZEIT_SEK} Sekunden, Versand ${eur(VERSAND)} und ab ${eur(VERSANDFREI)} Warenwert frei.`;
-    h=`<div class="row"><div class="rm"><b>${sup.name}</b><small>${sup.desc}</small><small class="${qualityLabel(sup.quality)[0]}">${qualityLabel(sup.quality)[1]} · Lieferzeit ${LIEFERZEIT_SEK} Sekunden</small></div></div>`+knoepfe;
-    if(sup.mystery){
-      h+=`<div class="karten">`+PACKS.map(pk=>{ const lock=!packOffen(pk), preis=packPreis(pk), wert=packKartonWert(pk.gruppe)*pk.n;
+    if(lsup==='rest'){
+      h=`<div class="row"><div class="rm"><b>${rest.name}</b><small>${rest.desc}</small><small class="${qualityLabel(rest.quality)[0]}">${qualityLabel(rest.quality)[1]} · Lieferzeit ${LIEFERZEIT_SEK} Sekunden</small></div></div>`+knoepfe;
+      h+=`<div class="karten">`+PACKS.map(pk=>{ const lock=!packOffen(pk), preis=packPreis(pk), wert=packKartonWert(pk.gruppe,pk.sorten)*pk.n;
         const warum=S.level<pk.lvl?`ab Level ${pk.lvl}`:'erst Ware der Gruppe freischalten';
         return `<div class="karte${lock?' locked':''}"><img class="kbild" src="${packPic(pk)}" alt=""><b>${pk.name}</b><small>${pk.desc}</small>`+
           `<small>${pk.n} Kartons${pk.gruppe&&!lock?` aus ${packPool(pk.gruppe).length} Sorten`:''}${!lock&&wert>0?` · im Mittel ${Math.round((1-preis/wert)*100)} % unter Einkauf`:''}</small>`+
           (lock?`<small>${warum}</small>`:`<div class="steps"><button data-a="pack" data-t="${pk.id}">+ ${eur(preis)}</button></div>`)+'</div>'; }).join('')+`</div>`;
     } else {
       const tiers=sup.tiers||[{n:1,d:0}];
-      /* Nur die Ware dieses Lieferanten; gesperrte nur so weit, wie sie in Reichweite ist */
-      h+=`<div class="karten">`+ORDER.filter(t=>canOrder(t)&&supplierFor(t)===sup&&(isUnlocked(t)||lizLevel(t)<=S.level+5)).map(t=>{ const p=P[t], un=isUnlocked(t), cap=shelfCapOf(t);
-        if(!un){ const l=lizenzDaten(lizenzOf(t));
-          return `<div class="karte locked"><img class="kbild" src="${prodPic(t)}" alt=""><b>${p.name} ${catPill(p)}</b><small>${l?`Lizenz „${l.name}“ ab Level ${l.lvl}. Unter Sortiment freischalten.`:`Ab Level ${p.lvl}.`}</small></div>`; }
+      h=`<div class="row"><div class="rm"><b>${sup.name}</b><small>${sup.desc}</small>`+
+        `<small>${gross?'Staffel: 5 Kartons −8 %, 20 Kartons −15 %.':'Ab Kapitel 2 „Kleines Fachgeschäft“ (eigenes Lager) kaufst du beim Großhandel: 5 Kartons −8 %, 20 Kartons −15 %.'}</small></div></div>`+knoepfe;
+      /* Gruppen nach Freischaltung: Grundsortiment, dann die Lizenz-
+         pakete in der Reihenfolge ihres Levels; darin nach Level */
+      const ware=ORDER.filter(t=>canOrder(t)).sort((x,y)=>lizLevel(x)-lizLevel(y)||P[x].lvl-P[y].lvl||P[x].name.localeCompare(P[y].name));
+      let gruppe=null;
+      h+=`<div class="karten">`+ware.map(t=>{ const p=P[t], un=isUnlocked(t), cap=shelfCapOf(t), lz=lizenzOf(t), l=lz?lizenzDaten(lz):null;
+        let kopf='';
+        const g=l?l.id:'grund';
+        if(g!==gruppe){ gruppe=g; kopf=`<div class="kgruppe">${l?`${l.name} · Lizenz ab Level ${l.lvl}${hatLizenz(l.id)?' · freigeschaltet':''}`:'Grundsortiment'}</div>`; }
+        if(!un) return kopf+`<div class="karte locked"><img class="kbild" src="${prodPic(t)}" alt=""><b>${p.name} ${catPill(p)}</b><small>${l?`Lizenz „${l.name}“ ab Level ${l.lvl}. Unter Sortiment freischalten.`:`Ab Level ${p.lvl}.`}</small></div>`;
         const btns=tiers.map(tr=>{ const c=tierPrice(t,sup,tr);
           return `<button data-a="cart" data-t="${t}" data-n="${tr.n}">+ ${tr.n}× ${eur(c)}${tr.d?` <span style="opacity:.7">−${Math.round(tr.d*100)}%</span>`:''}</button>`; }).join('');
-        return `<div class="karte"><img class="kbild" src="${prodPic(t)}" alt=""><b>${p.name} ${catPill(p)}</b><small>Karton mit ${p.box} Stück${canShelf(t)?(cap?` · Fach fasst ${cap}`:' · kein passendes Regal'):' · nur für den Automaten'}</small><small>Im Laden: ${shelfStockOf(t)} im Regal, ${stockOf(t)} insgesamt</small>`+
+        return kopf+`<div class="karte"><img class="kbild" src="${prodPic(t)}" alt=""><b>${p.name} ${catPill(p)}</b><small>Karton mit ${p.box} Stück${canShelf(t)?(cap?` · Fach fasst ${cap}`:' · kein passendes Regal'):' · nur für den Automaten'}</small><small>Im Laden: ${shelfStockOf(t)} im Regal, ${stockOf(t)} insgesamt</small>`+
           `<div class="steps">${btns}</div></div>`; }).join('')+`</div>`;
     }
   } else if(ltab==='price'){

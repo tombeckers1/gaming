@@ -206,9 +206,9 @@ const SHOWS={
     {n:14,gap:0.07,eff:'salut',sz:1.05,pause:5.0}
   ],
   /* Weltuntergang, 300 Schuss in drei Akten: Nacht (Blau, Eis),
-     Gold, Glut - und zum Schluss geht der Himmel zu */
+     Gold, Glut - und zum Schluss geht der Himmel zu. Nur Schuesse,
+     keine Fontaenen (Tom, 25.09.: "lass es bei den Schuessen") */
   finale:()=>[
-    {n:0,ground:'monsterfont',gh:30,gt:9,farben:['rot','gold','gruen','tuerkis','violett'],pause:8.4},
     {n:10,gap:0.8,eff:['kugel','regenbogen'],mine:true,mineSz:1.3,th:'nacht',pause:1.8},
     {n:12,gap:0.3,eff:'ring',fan:true,ang:0.5,th:'nacht',pause:0.8},
     {n:12,gap:0.3,eff:'wechsel',fan:true,ang:-0.5,th:'nacht',pause:2.2},
@@ -216,7 +216,7 @@ const SHOWS={
     {n:8,gap:0.08,eff:'tausend',fan:true,ang:0.5,th:'eis',pause:3.0},
     {n:22,gap:0.3,eff:['knister','fische','spinne','tausend'],th:'eis',wechsel:true,pause:1.8},
     {n:1,gap:0.5,bomb:3,th:'nacht',pause:3.4},
-    {n:10,gap:0.8,ground:'wasserfall',gt:14,gA:'gold',gB:'zitrone',eff:['komet','kronleuchter'],th:'gold',sz:1.15,pw:1,pause:2.0},
+    {n:10,gap:0.8,eff:['komet','kronleuchter'],th:'gold',sz:1.15,pw:1,pause:2.0},
     {n:16,gap:0.4,eff:['kamuro','glitzerweide','zeitregen','sternschnuppen'],vfan:true,ang:0.5,th:'gold',sz:1.2,pw:2,pause:1.8},
     {n:8,gap:0.1,eff:'komet',fan:true,ang:0.55,th:'gold',sz:1.2,pw:2,pause:2.6},
     {n:12,gap:0.6,eff:['kaskade','palme','dahlie','pistill'],th:'koenig',wechsel:true,sz:1.2,pw:2,pause:1.8},
@@ -224,11 +224,11 @@ const SHOWS={
     {n:4,gap:1.1,eff:'krone',th:'koenig',sz:1.2,pw:3,pause:2.6},
     {n:16,gap:0.35,eff:['crossette','doppel','dreifach','mehrring'],fan:true,ang:0.45,th:'koenig',wechsel:true,sz:1.2,pw:3,pause:2.2},
     {n:1,gap:0.5,bomb:4,th:'koenig',pause:4.6},
-    {n:10,gap:0.45,ground:'feuerbrunnen',gt:10,eff:'flammenregen',th:'glut',sz:1.2,pw:3,pause:1.6},
+    {n:10,gap:0.45,eff:'flammenregen',th:'glut',sz:1.2,pw:3,pause:1.6},
     {n:16,gap:0.3,eff:['strobe','blink','spinne','tausend'],vfan:true,ang:0.52,th:'blitz',pause:1.4},
     {n:14,gap:0.28,eff:['kamuro','flammenregen','mehrring','kronleuchter'],th:'glut',wechsel:true,sz:1.35,pw:4,pause:1.2},
     {n:10,gap:0.08,eff:['palme','komet'],fan:true,ang:0.55,th:'gold',sz:1.3,pw:4,pause:2.0},
-    {n:10,gap:0.08,eff:'regenbogen',fan:true,ang:-0.55,sz:1.3,pw:4,pause:2.0},
+    {n:10,gap:0.08,eff:['brokat','chrys'],fan:true,ang:-0.55,th:'gold',sz:1.3,pw:4,pause:2.0},
     {n:30,gap:0.18,eff:['chrys','dreifach','crossette','kronleuchter','brokat','dahlie','kamuro'],th:'koenig',wechsel:true,sz:1.4,pw:5,pause:1.0},
     {n:30,gap:0.1,eff:['palme','weide','kamuro','chrys','pistill','glitzerweide','komet','mehrring','flammenregen'],th:'gold',wechsel:true,sz:1.55,pw:6,pause:0.8},
     {n:18,gap:0.05,eff:'salut',th:'gold',sz:1.15,pause:6.0}

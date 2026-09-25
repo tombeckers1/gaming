@@ -36,7 +36,7 @@ function karreNachziehen(){
 function toggleKarre(){
   if(!S) return;
   const art=karreArt();
-  if(!art){ toast('Eine Sackkarre gibt es am Laptop unter Einrichtung.'); return; }
+  if(!art){ toast('Eine Sackkarre gibt es am Laptop unter Bestellen › Regale & Einrichtung.'); return; }
   karreStapel();
   if(S.karre.an){
     if(S.karre.stapel.length){ toast('Erst die Kartons von der Karre abladen.','bad'); return; }

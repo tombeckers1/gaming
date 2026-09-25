@@ -321,6 +321,7 @@ body.compact #hKap{display:none}
 .c2,.c1{background:#e3cf8a;border-radius:999px}.c50,.c20,.c10{background:#e8c65a;border-radius:999px}.c5,.c2c,.c1c{background:#d08a5a;border-radius:999px}
 .swatches{display:flex;gap:8px;flex-wrap:wrap;max-width:420px;justify-content:flex-end}
 /* Katalogzeile mit Bild */
+.kgruppe{grid-column:1/-1;margin:14px 0 2px;font-weight:700;font-size:13px;letter-spacing:.04em;text-transform:uppercase;color:var(--signal);border-bottom:1px solid rgba(255,255,255,.12);padding-bottom:4px}
 .karten{display:grid;grid-template-columns:repeat(auto-fill,minmax(178px,1fr));gap:12px;padding:12px 0}
 .karte{display:flex;flex-direction:column;gap:6px;background:rgba(242,245,255,.05);border:1px solid var(--line);border-radius:12px;padding:10px}
 .karte.locked{opacity:.5}
@@ -509,7 +510,7 @@ body.compact .pdahead2 b{font-size:16px}
 <div class="ov" id="laptop"><div class="card">
   <div class="lhead"><b>Böllerladen OS</b><em id="lLevel"></em><span id="lMoney"></span></div>
   <div class="tabs" id="ltabs">
-    <button data-tab="order">Bestellen</button><button data-tab="price">Preise &amp; Markt</button><button data-tab="liz">Sortiment</button><button data-tab="rez">Entwicklung</button><button data-tab="up">Ausbau</button><button data-tab="einr">Einrichtung</button><button data-tab="deko">Deko</button><button data-tab="shop">Laden</button>
+    <button data-tab="order">Bestellen</button><button data-tab="price">Preise &amp; Markt</button><button data-tab="liz">Sortiment</button><button data-tab="rez">Entwicklung</button><button data-tab="up">Ausbau</button><button data-tab="deko">Deko</button><button data-tab="shop">Laden</button>
   </div>
   <div class="lbody" id="lbody"></div>
   <div class="lfoot lfoot-r"><button class="ghost" id="lclose">Laptop zuklappen</button><button id="lKorb">Warenkorb anzeigen</button></div>
@@ -694,11 +695,11 @@ const P={
     art:{title:'KLEINER RUTSCH',sub:'Alkoholfrei 0,5 l',bg1:'#e58c85',bg2:'#8a2f2a',ac:'#ffe45c',ac2:'#f2f5ff'}},
   vulkan:{name:'Vulkan XXL · Fontäne',short:'Vulkan',cat:2,lvl:12,shape:'cylinder',dims:[0.13,0.30,0.13],grid:[8,2,1],box:8,cost:6.50,market:14.99,weight:6,hype:22,risk:6,
     art:{title:'VULKAN',sub:'XXL Fontäne 12 s',bg1:'#c01c20',bg2:'#3a0507',ac:'#ffd23f',ac2:'#ff8a2a'}},
-  batterie16:{name:'Funkenflug · 16 Schuss',short:'Batterie 16',cat:2,lvl:13,shape:'battery',dims:[0.20,0.17,0.20],grid:[8,2,1],box:8,cost:9.00,market:21.99,weight:6,hype:26,risk:7,
+  batterie16:{name:'Funkenflug · 16 Schuss',short:'Batterie 16',cat:2,lvl:13,shape:'battery',dims:[0.26,0.22,0.26],grid:[8,2,1],box:8,cost:9.00,market:21.99,weight:6,hype:26,risk:7,
     art:{title:'NACHTHIMMEL',sub:'16 Schuss Verbund',bg1:'#1f3f8a',bg2:'#070e22',ac:'#ffd23f',ac2:'#5ce1ff'}},
-  batterie49:{name:'Feuersturm · 49 Schuss',short:'Batterie 49',cat:2,lvl:15,shape:'battery',dims:[0.34,0.27,0.32],grid:[5,1,1],box:5,cost:16.00,market:39.99,weight:5,hype:40,risk:8,
+  batterie49:{name:'Feuersturm · 49 Schuss',short:'Batterie 49',cat:2,lvl:15,shape:'battery',dims:[0.4,0.32,0.36],grid:[5,1,1],box:5,cost:16.00,market:39.99,weight:5,hype:40,risk:8,
     art:{title:'FEUERSTURM',sub:'49 Schuss Verbund',bg1:'#c01c20',bg2:'#3a0507',ac:'#ffd23f',ac2:'#ff8a2a'}},
-  batterie100:{name:'Himmelssturm · 100 Schuss',short:'Verbund 100',cat:2,lvl:17,shape:'battery',dims:[0.52,0.38,0.44],grid:[4,1,1],box:2,cost:32.00,market:74.99,weight:4,hype:60,risk:9,
+  batterie100:{name:'Himmelssturm · 100 Schuss',short:'Verbund 100',cat:2,lvl:17,shape:'battery',dims:[0.6,0.44,0.48],grid:[4,1,1],box:2,cost:32.00,market:74.99,weight:4,hype:60,risk:9,
     art:{title:'HIMMELSSTURM',sub:'100 Schuss, 90 s',bg1:'#2a0f5a',bg2:'#0a0318',ac:'#ff4fa3',ac2:'#ffd23f'}},
   knicklichter:{name:'Knicklichter 50er',short:'Knicklichter',cat:0,lvl:4,shape:'boxA',dims:[0.10,0.14,0.05],grid:[10,2,1],box:20,cost:0.80,market:2.29,weight:7,hype:0,risk:2,
     art:{title:'GLOW',sub:'50 Knicklichter',bg1:'#1b1b2e',bg2:'#070712',ac:'#5cff9e',ac2:'#ff4fd8'}},
@@ -720,13 +721,13 @@ const P={
     art:{title:'FAMILIENFEST',sub:'18 Teile gemischt',bg1:'#2f5d9e',bg2:'#0a1a33',ac:'#ffd23f',ac2:'#ff4fa3'}},
   /* Knattersturm: ersetzt den alten 25er. Jeder Schuss knistert,
      dazwischen Salven aus fuenf Rohren auf einmal. */
-  knatter:{name:'Knattersturm · 30 Schuss Crackling',short:'Knatter 30',cat:2,lvl:14,shape:'battery',dims:[0.27,0.22,0.26],grid:[7,1,1],box:7,cost:13.00,market:30.99,weight:6,hype:34,risk:7,
+  knatter:{name:'Knattersturm · 30 Schuss Crackling',short:'Knatter 30',cat:2,lvl:14,shape:'battery',dims:[0.32,0.27,0.3],grid:[7,1,1],box:7,cost:13.00,market:30.99,weight:6,hype:34,risk:7,
     art:{title:'KNATTERSTURM',sub:'30 Schuss Crackling',bg1:'#12406b',bg2:'#04121f',ac:'#5ce1ff',ac2:'#ffd23f'}},
-  faecher:{name:'Weitwinkel · 36 Schuss Fächer',short:'Fächer 36',cat:2,lvl:16,shape:'fan',dims:[0.56,0.26,0.32],grid:[4,1,1],box:2,cost:24.00,market:54.99,weight:5,hype:48,risk:8,
+  faecher:{name:'Weitwinkel · 36 Schuss Fächer',short:'Fächer 36',cat:2,lvl:16,shape:'fan',dims:[0.64,0.3,0.36],grid:[4,1,1],box:2,cost:24.00,market:54.99,weight:5,hype:48,risk:8,
     art:{title:'WEITWINKEL',sub:'36 Schuss im Fächer',bg1:'#5a1470',bg2:'#1a0322',ac:'#ff4fa3',ac2:'#5cff9e'}},
-  zfaecher:{name:'Blitzgewitter · 48 Schuss Z-Fächer',short:'Z-Fächer 48',cat:2,lvl:17,shape:'fan',dims:[0.62,0.27,0.34],grid:[4,1,1],box:2,cost:27.00,market:61.99,weight:5,hype:52,risk:8,
+  zfaecher:{name:'Blitzgewitter · 48 Schuss Z-Fächer',short:'Z-Fächer 48',cat:2,lvl:17,shape:'fan',dims:[0.7,0.32,0.38],grid:[4,1,1],box:2,cost:27.00,market:61.99,weight:5,hype:52,risk:8,
     art:{title:'BLITZGEWITTER',sub:'48 Schuss Z-Fächer',bg1:'#0f2a4a',bg2:'#02060f',ac:'#f2f5ff',ac2:'#5ce1ff'}},
-  kometen:{name:'Kometenregen · 64 Schuss Brokat',short:'Kometen 64',cat:2,lvl:19,shape:'battery',dims:[0.46,0.34,0.4],grid:[4,1,1],box:3,cost:36.00,market:82.99,weight:4,hype:66,risk:9,
+  kometen:{name:'Kometenregen · 64 Schuss Brokat',short:'Kometen 64',cat:2,lvl:19,shape:'battery',dims:[0.52,0.4,0.44],grid:[4,1,1],box:3,cost:36.00,market:82.99,weight:4,hype:66,risk:9,
     art:{title:'KOMETENREGEN',sub:'64 Schuss Brokat',bg1:'#4a3308',bg2:'#150e02',ac:'#ffd23f',ac2:'#ff7a3d',gold:true}},
   /* Riesenfontaenen: zehn bzw. fuenfzehn Meter Feuer vom Boden */
   goldgeysir:{name:'Goldgeysir · 10-m-Riesenfontäne',short:'Goldgeysir',cat:2,lvl:14,shape:'cylinder',dims:[0.2,0.34,0.2],grid:[8,1,1],box:4,cost:11.00,market:26.99,weight:5,hype:36,risk:7,
@@ -782,11 +783,11 @@ const P={
     art:{title:'BLANKO',sub:'Für Gravur',bg1:'#4a4f5e',bg2:'#1b1e28',ac:'#f2f5ff',ac2:'#ffd23f'}},
   gravur:{name:'Gravur-Rakete',short:'Gravur',cat:2,lvl:9,shape:'rocketset',dims:[0.42,0.055,0.11],grid:[1,1,1],box:1,cost:3.20,market:24.99,weight:0,hype:16,risk:7,noShelf:true,noWish:true,noOrder:true,
     art:{title:'FÜR DICH',sub:'Persönliche Gravur',bg1:'#6a24c9',bg2:'#25093f',ac:'#ffd23f',ac2:'#ff4fa3'}},
-  donnerwand:{name:'Donnerwand · 120 Schuss Salvenwand',short:'Donnerwand',cat:2,lvl:20,shape:'battery',dims:[0.7,0.46,0.46],grid:[3,1,1],box:2,cost:47.00,market:109.99,weight:3,hype:78,risk:10,
+  donnerwand:{name:'Donnerwand · 120 Schuss Salvenwand',short:'Donnerwand',cat:2,lvl:20,shape:'battery',dims:[0.8,0.7,0.52],grid:[3,1,1],box:2,cost:47.00,market:109.99,weight:3,hype:78,risk:10,
     art:{title:'DONNERWAND',sub:'120 Schuss · 20 Salven',bg1:'#1c1c24',bg2:'#000000',ac:'#ff3b2e',ac2:'#f2f5ff'}},
-  profi:{name:'Götterfunken · 200 Schuss Profiverbund',short:'Götterfunken',cat:2,lvl:22,shape:'battery',dims:[0.8,0.52,0.48],grid:[3,1,1],box:1,cost:68.00,market:149.99,weight:3,hype:90,risk:10,
+  profi:{name:'Götterfunken · 200 Schuss Profiverbund',short:'Götterfunken',cat:2,lvl:22,shape:'battery',dims:[0.92,0.8,0.56],grid:[3,1,1],box:1,cost:68.00,market:149.99,weight:3,hype:90,risk:10,
     art:{title:'GÖTTERFUNKEN',sub:'200 Schuss Profi',bg1:'#0e1226',bg2:'#000000',ac:'#ffd23f',ac2:'#e63b2e',gold:true}},
-  finale:{name:'Weltuntergang · 300 Schuss Finale',short:'Weltuntergang',cat:2,lvl:24,shape:'battery',dims:[0.88,0.56,0.5],grid:[2,1,1],box:1,cost:115.00,market:249.99,weight:2,hype:100,risk:10,
+  finale:{name:'Weltuntergang · 300 Schuss Finale',short:'Weltuntergang',cat:2,lvl:24,shape:'battery',dims:[1.0,0.9,0.6],grid:[2,1,1],box:1,cost:115.00,market:249.99,weight:2,hype:100,risk:10,
     art:{title:'WELTUNTERGANG',sub:'300 Schuss · 3 Minuten',bg1:'#3a0507',bg2:'#000000',ac:'#ff3b2e',ac2:'#ffd23f',gold:true}},
   /* Schabernack-Edition: der Spaßkram ganz am Ende */
   furzrakete:{name:'Furzrakete »Donnerbalken«',short:'Furzrakete',cat:2,lvl:19,shape:'rocketset',dims:[0.44,0.06,0.12],grid:[4,2,2],box:6,cost:6.20,market:15.99,weight:9,hype:28,risk:4,
@@ -810,6 +811,13 @@ const P={
   sternenbrunnen:{name:'Sternenbrunnen · Fontäne mit Farbsternen',short:'Sternenbrunnen',cat:2,lvl:12,shape:'cylinder',dims:[0.145,0.34,0.145],grid:[7,2,1],box:6,cost:7.90,market:18.99,weight:7,hype:26,risk:6,
     art:{title:'STERNENBRUNNEN',sub:'Goldfontäne mit Farbsternen',bg1:'#123a6b',bg2:'#04101f',ac:'#5ce1ff',ac2:'#ffd23f'}}
 };
+/* Alle Produkte wesentlich groesser (Tom, 25.09.): ein Viertel in jede
+   Richtung. Ausgenommen die Kugelbomben - die muessen in ihre
+   Moerserrohre passen - und die Batterien und Faecher, die oben ihre
+   eigenen, noch groesseren Masse haben. */
+const GROESSER=1.25;
+for(const t in P){ const q=P[t]; if(!q.dims||q.shape==='shell'||q.shape==='battery'||q.shape==='fan') continue;
+  q.dims=q.dims.map(x=>Math.round(x*GROESSER*1000)/1000); }
 const ORDER=Object.keys(P);
 /* Kapitel: die grossen Stufen des Ladens. Jedes beginnt mit einem
    bestimmten Ausbau. */
@@ -930,40 +938,29 @@ const STAFF=[
   {id:'security',lvl:13,name:'Sicherheitsdienst',desc:'Hält Diebe im Laden auf, bevor sie rauskommen.',hire:800,wage:190},
   {id:'packer',lvl:18,req:'packstation',name:'Versandmitarbeiter',desc:'Schiebt einen Kommissionierwagen mit sechs Fächern durchs Lager – fehlt dort etwas, durch den Laden –, legt jede Onlinebestellung Stück für Stück in ihren Karton, klebt am Packtisch zu und stapelt die Pakete für DDL.',hire:700,wage:165}
 ];
-/* Lieferanten (Tom, 25.09.): jeder fuehrt sein eigenes Sortiment, alle zu
-   denselben Konditionen - der Unterschied ist die Ware, nicht der
-   Rabatt. Nur Ratzke ist anders: gemischte Restposten mit sehr
-   starken Rabatten, dafuer weiss man nie genau, was kommt.
-   ware(t): fuehrt dieser Lieferant das Produkt? */
-const STAFFEL=[{n:1,d:0},{n:5,d:0.05},{n:20,d:0.12}];
-const SUP_SHOW=['titanraketen','jumbogold','jumboleiter','donnerwand','profi','finale','feuersaeule','fontaene30','fontaene50'];
-const SUP_BODEN=['fontaene','vulkan','sternenbrunnen','wasserfall','goldgeysir','feuerbrunnen'];
-const SUP_BATT=['batterie16','knatter','batterie49','faecher','batterie100','zfaecher','kometen','sortiment'];
+/* Einkauf (Tom, 25.09., zweite Runde): keine Lieferanten mit eigenem
+   Sortiment mehr. Es gibt drei Stufen, und ueberall dieselbe Ware:
+   - Fachhandel: von Anfang an, jeder Karton einzeln zum Listenpreis.
+   - Grosshandel: sobald du selbst Fachgeschaeft bist (Kapitel 2, eigenes
+     Lager) - mehrere Kartons auf einmal mit Staffelrabatt.
+   - Restposten: gemischte oder sortenreine Posten mit sehr starken
+     Rabatten, dafuer weiss man nie genau, was kommt.
+   Alte Spielstaende und Tests nennen noch die frueheren Lieferanten;
+   SUP_ALT leitet sie auf die neue Stufe um. */
 const SUPPLIERS=[
-  {id:'mertens',lvl:1,name:'Pyro Mertens',short:'Mertens',desc:'Dein Stammlieferant für Kleinfeuerwerk und Böller: Wunderkerzen, Knallerbsen, Tischfeuerwerk, Böller, Schwärmer und Römische Lichter.',
-    mult:1.00,quality:1.00,delay:[4,8],tiers:STAFFEL,
-    ware:t=>P[t].cat===1||['boeller','monsterboeller','atomboeller','schwaermer','roemisch','blanko'].includes(t)||!!P[t].eigen},
-  {id:'party',lvl:1,name:'Partyhandel Sommer',short:'Sommer',desc:'Alles rund um die Party, aber kein Feuerwerk: Deko, Geschirr, Sekt und Getränke, Knabberzeug, Fondue und Raclette.',
-    mult:1.00,quality:1.00,delay:[4,8],tiers:STAFFEL,
-    ware:t=>P[t].cat===0},
-  {id:'kowalski',lvl:5,name:'Feuerwerk Kowalski',short:'Kowalski',desc:'Raketen und Fontänen: vom Dreierset bis zu den Goldraketen, dazu Vulkane, Geysire und Brunnen.',
-    mult:1.00,quality:1.00,delay:[6,10],tiers:STAFFEL,
-    ware:t=>(P[t].shape==='rocketset'&&!SUP_SHOW.includes(t)&&t!=='blanko')||SUP_BODEN.includes(t)},
-  {id:'ratzke',lvl:8,name:'Restposten-Ratzke',short:'Ratzke',desc:'Restposten: gemischte Kartons aus Lagerräumungen zu sehr starken Rabatten. Was genau drin ist, siehst du erst beim Auspacken.',
-    mult:0.60,quality:0.86,delay:[6,12],mystery:true,ware:t=>false},
-  {id:'import',lvl:12,name:'Import Direkt',short:'Import',desc:'Batterien, Fächer und Verbunde: vom 16-Schuss bis zum Kometenregen, dazu das Familienfest-Sortiment.',
-    mult:1.00,quality:1.00,delay:[8,14],tiers:STAFFEL,
-    ware:t=>SUP_BATT.includes(t)},
-  {id:'premium',lvl:14,name:'Kugelmanufaktur Premium',short:'Kugeln',desc:'Kugelbomben für die Mörserbatterie, von 75 bis 300 mm.',
-    mult:1.00,quality:1.00,delay:[6,10],tiers:STAFFEL,
-    ware:t=>P[t].shape==='shell'}
+  {id:'fachhandel',lvl:1,name:'Pyro-Fachhandel Brandt',short:'Fachhandel',desc:'Dein Fachhändler um die Ecke: alles aus deinem Sortiment, jeder Karton einzeln zum Listenpreis.',
+    mult:1.00,quality:1.00,delay:[4,8],tiers:[{n:1,d:0}]},
+  {id:'grosshandel',lvl:1,kap:2,name:'Feuerwerk-Großhandel Kowalski',short:'Großhandel',desc:'Seit du selbst Fachgeschäft bist, kaufst du beim Großhandel: dieselbe Ware, aber mehrere Kartons auf einmal und dafür deutlich günstiger.',
+    mult:1.00,quality:1.00,delay:[6,10],tiers:[{n:1,d:0},{n:5,d:0.08},{n:20,d:0.15}]},
+  {id:'ratzke',lvl:8,name:'Restposten-Ratzke',short:'Restposten',desc:'Restposten aus Lagerräumungen zu sehr starken Rabatten: bunt gemischt, halb sortiert oder ein ganzer Posten einer Sorte. Was genau drin ist, siehst du erst beim Auspacken.',
+    mult:0.60,quality:0.86,delay:[6,12],mystery:true}
 ];
-const LATE_SUP={id:'direkt',lvl:20,name:'Werksdirekt Hübner',short:'Hübner',desc:'Profi- und Showfeuerwerk direkt ab Werk: Titan- und Jumboraketen, Donnerwand, Götterfunken, Weltuntergang, Feuersäule und die Monsterfontänen.',
-    mult:1.00,quality:1.00,delay:[10,16],tiers:STAFFEL,
-    ware:t=>SUP_SHOW.includes(t)};
-SUPPLIERS.push(LATE_SUP);
-/* Wer fuehrt dieses Produkt? Was keiner ausdruecklich hat, gibt es bei Mertens. */
-function supplierFor(t){ return SUPPLIERS.find(x=>!x.mystery&&x.ware(t))||SUPPLIERS[0]; }
+const SUP_ALT={mertens:'fachhandel',party:'fachhandel',kowalski:'grosshandel',import:'grosshandel',premium:'grosshandel',direkt:'grosshandel'};
+/* Grosshandel erst ab Kapitel 2 ("Kleines Fachgeschaeft") */
+function grossOffen(){ return typeof kapitelNr==='function'&&kapitelNr()>=2; }
+function supOffen(x){ return S.level>=x.lvl&&(!x.kap||kapitelNr()>=x.kap); }
+/* Wer beliefert gerade? Alle fuehren alles - es zaehlt nur die Stufe. */
+function supplierFor(t){ return grossOffen()?SUPPLIERS[1]:SUPPLIERS[0]; }
 const PACKS=[
   {id:'tuete',lvl:8,name:'Kleine Wundertüte',desc:'Sechs Kartons Restware, bunt gemischt. Meist Kleinkram, selten ein Treffer.',n:6},
   {id:'kiste',lvl:10,name:'Große Wundertüte',desc:'Vierzehn Kartons, je Karton etwas günstiger. Manchmal ist etwas richtig Teures dabei.',n:14},
@@ -976,7 +973,11 @@ const PACKS=[
   {id:'raketenpaket',lvl:11,name:'Raketen-Paket',desc:'Acht Kartons Raketen, vom Dreierset bis zu dem, was du freigeschaltet hast.',gruppe:'raketen',n:8},
   {id:'verbundpaket',lvl:15,name:'Verbund-Paket',desc:'Fünf Kartons Batterien und Fächer. Mit Glück ist ein großer Verbund dabei.',gruppe:'batterien',n:5},
   {id:'partykiste',lvl:9,name:'Partykiste',desc:'Acht Kartons Partyzubehör, gemischt aus dem, was du führst: Deko, Geschirr, Hüte und Co.',gruppe:'zubehoer',n:8},
-  {id:'kugelkiste',lvl:16,name:'Kugelkiste',desc:'Vier Kartons Kugelbomben, Kaliber gemischt.',gruppe:'kugeln',n:4}
+  {id:'kugelkiste',lvl:16,name:'Kugelkiste',desc:'Vier Kartons Kugelbomben, Kaliber gemischt.',gruppe:'kugeln',n:4},
+  /* sortenrein und halb sortiert (Tom, 25.09.): mal ein ganzer Posten
+     einer einzigen Sorte, mal nur zwei, drei Sorten */
+  {id:'sortenposten',lvl:9,name:'Sortenreiner Posten',desc:'Acht Kartons, alle von einer Sorte aus deinem Sortiment. Welche, entscheidet die Lagerräumung.',sorten:1,n:8},
+  {id:'mischposten',lvl:12,name:'Halb sortierter Posten',desc:'Zwölf Kartons aus nur drei Sorten - weniger bunt als die Wundertüte, dafür gleich mehrere Kartons derselben Ware.',sorten:3,n:12}
 ];
 const PYROTYPES=[
   {id:'knauser',name:'knauserig',ceil:1.03,rounds:4,open:0.78,line:'Ich sag Ihnen gleich, mein Budget ist eng.'},
@@ -1075,18 +1076,21 @@ const LIEFERZEIT_SEK=5, VERSAND=5.9, VERSANDFREI=150;
 function lieferSek(){ return LIEFERZEIT_SEK; }
 /* Regaltypen. Klein ist der Einstieg, der Kühlschrank nimmt nur Sekt & Co. */
 const SHELFKIND={
-  klein:{id:'klein',name:'Kleines Regal',w:1.0,d:0.42,lv:[0.12,0.52,0.92],lvl:1,cost:45,step:28,amb:0},
-  standard:{id:'standard',name:'Verkaufsregal',w:2.0,d:0.52,lv:[0.115,0.565,1.015,1.465],lvl:4,cost:130,step:70,amb:1},
-  hoch:{id:'hoch',name:'Hochregal',w:2.0,d:0.52,lv:[0.11,0.47,0.83,1.19,1.55],lvl:10,cost:260,step:95,amb:2},
+  klein:{id:'klein',name:'Kleines Regal',w:1.0,d:0.42,lv:[0.12,0.6,1.08],lvl:1,cost:45,step:28,amb:0},
+  standard:{id:'standard',name:'Verkaufsregal',w:2.0,d:0.52,lv:[0.115,0.62,1.125,1.63],lvl:4,cost:130,step:70,amb:1},
+  hoch:{id:'hoch',name:'Hochregal',w:2.0,d:0.52,lv:[0.11,0.53,0.95,1.37,1.79],lvl:10,cost:260,step:95,amb:2},
   kuehl:{id:'kuehl',name:'Sekt-Kühlschrank',w:1.1,d:0.58,lv:[0.2,0.64,1.08,1.52],lvl:6,cost:430,step:155,amb:5,cold:true},
   /* Mittelgondel: steht frei im Raum, Ware auf beiden Seiten. */
-  gondel:{id:'gondel',name:'Mittelgondel',w:2.0,d:0.46,fw:2.1,fd:1.0,lv:[0.12,0.5,0.88,1.26],lvl:12,cost:560,step:190,amb:3,art:'insel',
+  gondel:{id:'gondel',name:'Mittelgondel',w:2.0,d:0.46,fw:2.1,fd:1.0,lv:[0.12,0.58,1.04,1.5],lvl:12,cost:560,step:190,amb:3,art:'insel',
     seiten:[{ry:0,ox:0,oz:0.24},{ry:Math.PI,ox:0,oz:-0.24}]},
   /* Eckregal: zwei Schenkel ueber Eck, wie im Supermarkt. */
-  eck:{id:'eck',name:'Eckregal',w:1.2,d:0.5,fw:1.74,fd:1.74,lv:[0.115,0.565,1.015,1.465],lvl:14,cost:480,step:165,amb:2,art:'ecke',
-    seiten:[{ry:0,ox:0.25,oz:-0.60},{ry:Math.PI/2,ox:-0.60,oz:0.25}]}
+  eck:{id:'eck',name:'Eckregal',w:1.2,d:0.5,fw:1.74,fd:1.74,lv:[0.115,0.62,1.125,1.63],lvl:14,cost:480,step:165,amb:2,art:'ecke',
+    seiten:[{ry:0,ox:0.25,oz:-0.60},{ry:Math.PI/2,ox:-0.60,oz:0.25}]},
+  /* Grossverbund-Regal (Tom, 25.09.): die ganz grossen Verbunde gehen
+     ueber mehrere Etagen - unten ein Fach fast einen Meter hoch */
+  gross:{id:'gross',name:'Großverbund-Regal',w:2.0,d:0.6,lv:[0.12,1.12],lvl:18,cost:640,step:210,amb:2}
 };
-const SHELFORDER=['klein','standard','hoch','kuehl','gondel','eck'];
+const SHELFORDER=['klein','standard','hoch','kuehl','gondel','eck','gross'];
 /* =========================================================
    Regalbau Stegemann. Regale stehen nicht mehr auf Knopfdruck im
    Laden - man bestellt sie wie Ware, der LKW bringt sie als
@@ -1102,6 +1106,7 @@ const REGALWARE=[
   {id:'hoch',    art:'shelf',kind:'hoch',    lvl:10},
   {id:'gondel',  art:'shelf',kind:'gondel',  lvl:12,req:'shop_gross'},
   {id:'eck',     art:'shelf',kind:'eck',     lvl:14,req:'shop_gross'},
+  {id:'gross',   art:'shelf',kind:'gross',   lvl:18},
   {id:'rhoch',   art:'rack', kind:'hoch',    lvl:16,req:'lager_gross'},
   {id:'rschwer', art:'rack', kind:'schwer',  lvl:18,req:'lager_gross'}
 ];
@@ -1348,7 +1353,7 @@ const cleanliness=()=>clamp(100-dirts.length*7,0,100);
 const canShelf=t=>!P[t].noShelf;
 const canOrder=t=>!P[t].noOrder;
 const canWish=t=>!P[t].noWish;
-function supplierOf(id){ return SUPPLIERS.find(x=>x.id===id)||SUPPLIERS[0]; }
+function supplierOf(id){ id=SUP_ALT[id]||id; return SUPPLIERS.find(x=>x.id===id)||SUPPLIERS[0]; }
 function qualityLabel(q){ return q>=1.12?['ok','Markenware']:q>=0.98?['','Normale Ware']:q>=0.8?['warn','Restposten']:['no','Billigimport']; }
 function bildBoost(){ let b=0; (dekos||[]).forEach(d=>{ const D=DEKO.find(x=>x.id===d.id); if(D&&D.buy) b+=D.buy; }); return b; }
 function ambienteScore(){
@@ -9688,7 +9693,7 @@ function karreNachziehen(){
 function toggleKarre(){
   if(!S) return;
   const art=karreArt();
-  if(!art){ toast('Eine Sackkarre gibt es am Laptop unter Einrichtung.'); return; }
+  if(!art){ toast('Eine Sackkarre gibt es am Laptop unter Bestellen › Regale & Einrichtung.'); return; }
   karreStapel();
   if(S.karre.an){
     if(S.karre.stapel.length){ toast('Erst die Kartons von der Karre abladen.','bad'); return; }
@@ -12745,16 +12750,20 @@ EFF.kamuro=function(p,A,B,s){
 };
 /* Spinne: harte, flache Strahlen wie Speichen */
 EFF.spinne=function(p,A,B,s){
-  const [u,v]=basis(), beine=Math.round(26*QUAL()), sp=rand(15,18)*s;
-  for(let b=0;b<beine;b++){
-    const a=b/beine*Math.PI*2+rand(-.04,.04), w=sp*rand(0.9,1.1), c=b%4?A:B;
-    const dx=(u[0]*Math.cos(a)+v[0]*Math.sin(a)), dy=(u[1]*Math.cos(a)+v[1]*Math.sin(a)), dz=(u[2]*Math.cos(a)+v[2]*Math.sin(a));
-    for(let i=0;i<Math.round(9*QUAL());i++){ const f=0.42+i/9*0.62;
-      psBig.emit(p.x,p.y,p.z,dx*w*f,dy*w*f,dz*w*f,c[0],c[1],c[2],rand(0.85,1.25),0.7,0); }
-  }
-  flash({x:p.x,y:p.y,z:p.z},A,3.4,0.3);
+  /* Spinne wie in echt (Tom, 25.09.: "sieht nicht natuerlich aus"):
+     schwere Brokatsterne schiessen schnell nach aussen, ziehen dicke
+     goldene Spuren und haengen dann durch. Vorher waren die Beine
+     gerade Linien aus gleich verteilten Punkten in einer Ebene. */
+  const n=Math.round(40*s*QUAL()), g=FW.gold, alt=SCHWEIF;
+  SCHWEIF=0.55;
+  for(let i=0;i<n;i++){ const d=randDir(), v=rand(14,18)*s, c=i%4?g:A;
+    psBig.emit(p.x,p.y,p.z,d[0]*v,d[1]*v,d[2]*v,c[0],c[1],c[2],rand(1.4,1.9),3.2,4); }
+  SCHWEIF=0.25;
+  for(let i=0;i<Math.round(70*s*QUAL());i++){ const d=randDir(), v=rand(9,15)*s;
+    psMid.emit(p.x,p.y,p.z,d[0]*v,d[1]*v,d[2]*v,g[0],g[1]*0.9,g[2]*0.7,rand(0.9,1.5),2.6,4); }
+  SCHWEIF=alt;
+  flash({x:p.x,y:p.y,z:p.z},g,3.4,0.3);
 };
-/* Stroboskop: Sterne, die minutenlang blinkend haengen */
 EFF.strobe=function(p,A,B,s){
   const n=Math.round(120*s*QUAL());
   for(let i=0;i<n;i++){ const d=randDir(), v=rand(5.5,8)*s, c=i%2?A:B;
@@ -12847,14 +12856,13 @@ EFF.mehrring=function(p,A,B,s){
       psBig.emit(p.x,p.y,p.z,d[0]*v,d[1]*v,d[2]*v,c[0],c[1],c[2],rand(1.9,2.5),2.8,0); }
   }
 };
-/* Regenbogen: der Ball ist in sechs Farbsegmente geteilt */
+/* Regenbogen: bunte Paeonie - Sterne in fuenf Farben, zufaellig
+   durchmischt wie bei echten Multicolor-Bomben. Vorher war der Ball in
+   sechs harte Farbsektoren geteilt; das sah gemalt aus (Tom, 25.09.). */
 EFF.regenbogen=function(p,A,B,s){
-  const F=['rot','orange','zitrone','gruen','himmel','violett'].map(K);
-  const [u,v]=basisBlick(p,0.35), n=Math.round(210*s*QUAL());
-  for(let i=0;i<n;i++){ const d=randDir(), sp=rand(8.5,10.5)*s;
-    const a=Math.atan2(d[0]*v[0]+d[1]*v[1]+d[2]*v[2],d[0]*u[0]+d[1]*u[1]+d[2]*u[2]);
-    const c=F[Math.floor((a+Math.PI)/(Math.PI*2)*6)%6];
-    psBig.emit(p.x,p.y,p.z,d[0]*sp,d[1]*sp,d[2]*sp,c[0],c[1],c[2],rand(1.8,2.4),2.8,0); }
+  const F=['rot','zitrone','gruen','himmel','violett'].map(K), n=Math.round(200*s*QUAL());
+  for(let i=0;i<n;i++){ const d=randDir(), sp=rand(8.2,10.6)*s, c=F[Math.floor(Math.random()*F.length)];
+    psBig.emit(p.x,p.y,p.z,d[0]*sp,d[1]*sp,d[2]*sp,c[0],c[1],c[2],rand(1.8,2.5),3.0,0); }
 };
 /* ---------- Neue Bruchbilder (Tom, 24.09.: "sei kreativ") ---------- */
 /* Flammenregen: grosse, langsame Flammen, die flackernd von Orange
@@ -14056,9 +14064,9 @@ const SHOWS={
     {n:14,gap:0.07,eff:'salut',sz:1.05,pause:5.0}
   ],
   /* Weltuntergang, 300 Schuss in drei Akten: Nacht (Blau, Eis),
-     Gold, Glut - und zum Schluss geht der Himmel zu */
+     Gold, Glut - und zum Schluss geht der Himmel zu. Nur Schuesse,
+     keine Fontaenen (Tom, 25.09.: "lass es bei den Schuessen") */
   finale:()=>[
-    {n:0,ground:'monsterfont',gh:30,gt:9,farben:['rot','gold','gruen','tuerkis','violett'],pause:8.4},
     {n:10,gap:0.8,eff:['kugel','regenbogen'],mine:true,mineSz:1.3,th:'nacht',pause:1.8},
     {n:12,gap:0.3,eff:'ring',fan:true,ang:0.5,th:'nacht',pause:0.8},
     {n:12,gap:0.3,eff:'wechsel',fan:true,ang:-0.5,th:'nacht',pause:2.2},
@@ -14066,7 +14074,7 @@ const SHOWS={
     {n:8,gap:0.08,eff:'tausend',fan:true,ang:0.5,th:'eis',pause:3.0},
     {n:22,gap:0.3,eff:['knister','fische','spinne','tausend'],th:'eis',wechsel:true,pause:1.8},
     {n:1,gap:0.5,bomb:3,th:'nacht',pause:3.4},
-    {n:10,gap:0.8,ground:'wasserfall',gt:14,gA:'gold',gB:'zitrone',eff:['komet','kronleuchter'],th:'gold',sz:1.15,pw:1,pause:2.0},
+    {n:10,gap:0.8,eff:['komet','kronleuchter'],th:'gold',sz:1.15,pw:1,pause:2.0},
     {n:16,gap:0.4,eff:['kamuro','glitzerweide','zeitregen','sternschnuppen'],vfan:true,ang:0.5,th:'gold',sz:1.2,pw:2,pause:1.8},
     {n:8,gap:0.1,eff:'komet',fan:true,ang:0.55,th:'gold',sz:1.2,pw:2,pause:2.6},
     {n:12,gap:0.6,eff:['kaskade','palme','dahlie','pistill'],th:'koenig',wechsel:true,sz:1.2,pw:2,pause:1.8},
@@ -14074,11 +14082,11 @@ const SHOWS={
     {n:4,gap:1.1,eff:'krone',th:'koenig',sz:1.2,pw:3,pause:2.6},
     {n:16,gap:0.35,eff:['crossette','doppel','dreifach','mehrring'],fan:true,ang:0.45,th:'koenig',wechsel:true,sz:1.2,pw:3,pause:2.2},
     {n:1,gap:0.5,bomb:4,th:'koenig',pause:4.6},
-    {n:10,gap:0.45,ground:'feuerbrunnen',gt:10,eff:'flammenregen',th:'glut',sz:1.2,pw:3,pause:1.6},
+    {n:10,gap:0.45,eff:'flammenregen',th:'glut',sz:1.2,pw:3,pause:1.6},
     {n:16,gap:0.3,eff:['strobe','blink','spinne','tausend'],vfan:true,ang:0.52,th:'blitz',pause:1.4},
     {n:14,gap:0.28,eff:['kamuro','flammenregen','mehrring','kronleuchter'],th:'glut',wechsel:true,sz:1.35,pw:4,pause:1.2},
     {n:10,gap:0.08,eff:['palme','komet'],fan:true,ang:0.55,th:'gold',sz:1.3,pw:4,pause:2.0},
-    {n:10,gap:0.08,eff:'regenbogen',fan:true,ang:-0.55,sz:1.3,pw:4,pause:2.0},
+    {n:10,gap:0.08,eff:['brokat','chrys'],fan:true,ang:-0.55,th:'gold',sz:1.3,pw:4,pause:2.0},
     {n:30,gap:0.18,eff:['chrys','dreifach','crossette','kronleuchter','brokat','dahlie','kamuro'],th:'koenig',wechsel:true,sz:1.4,pw:5,pause:1.0},
     {n:30,gap:0.1,eff:['palme','weide','kamuro','chrys','pistill','glitzerweide','komet','mehrring','flammenregen'],th:'gold',wechsel:true,sz:1.55,pw:6,pause:0.8},
     {n:18,gap:0.05,eff:'salut',th:'gold',sz:1.15,pause:6.0}
@@ -15020,7 +15028,7 @@ function closeSummary(){
 /* =========================================================
    Laptop
    ========================================================= */
-let laptopOpen=false, startOpen=true, pauseOpen=false, ltab='order', resetArm=false, lsup='mertens', korbOpen=false;
+let laptopOpen=false, startOpen=true, pauseOpen=false, ltab='order', resetArm=false, lsup='ware', korbOpen=false;
 function openLaptop(tab){ if(typeof handyOpen!=='undefined'&&handyOpen) closeHandy(false); laptopOpen=true; resetArm=false; if(tab) ltab=tab; for(const k in keys) keys[k]=false; mouseDown=false; touchAct=false; renderLaptop(); $('laptop').classList.add('show'); if(locked) document.exitPointerLock(); }
 function closeLaptop(relock){ laptopOpen=false; korbOpen=false; $('korbOv').classList.remove('show'); $('laptop').classList.remove('show'); if(relock) requestLock(); else if(lockWorked&&!COARSE&&!locked&&!summaryOpen&&!levelOpen) showPause(); }
 function priceHint(t){ const r=S.prices[t]/marketOf(t), lo=priceTol();
@@ -15209,7 +15217,7 @@ function pushLine(l,delay){
   const sup=lineSup(l);
   if(l.pack){
     const pk=PACKS.find(x=>x.id===l.pack);
-    const items=packContents(pk.n*l.n,pk.gruppe);
+    const items=[]; for(let k=0;k<l.n;k++) items.push(...packContents(pk.n,pk.gruppe,pk.sorten));
     items.forEach(t=>pending.push({type:t,t:delay,q:supplierOf('ratzke').quality,sup:'ratzke'}));
     return items.length;
   }
@@ -15243,7 +15251,7 @@ function orderRegal(id){
   const preis=regalPreis(id);
   if(verfuegbar()<preis){ toast(`${K.name} kostet ${eur(preis)} — dir fehlen ${eur(r2(preis-verfuegbar()))}.`,'bad'); return; }
   S.money=r2(S.money-preis); DS.upgrades=r2(DS.upgrades+preis);
-  pending.push({regal:id,t:lieferSek()*evv('delay'),sup:'mertens'});
+  pending.push({regal:id,t:lieferSek()*evv('delay'),sup:'fachhandel'});
   sfx.cash(); S.tut.order=true;
   toast(zoneOffen('lager')?`${K.name} bestellt. Kommt mit dem nächsten LKW an die Rampe.`:`${K.name} bestellt. Der Lieferant baut es gleich im Laden auf.`,'money');
   save();
@@ -15264,9 +15272,11 @@ function packPool(gruppe){
   return ORDER.filter(t=>isUnlocked(t)&&canShelf(t)&&P[t].cat!==undefined&&t!=='blanko'&&!P[t].noOrder&&!P[t].eigen
     &&(!gruppe||(GRUPPE[gruppe]||[]).indexOf(t)>=0));
 }
-function packContents(n,gruppe){
-  const pool=packPool(gruppe);
+function packContents(n,gruppe,sorten){
+  let pool=packPool(gruppe);
   if(!pool.length) return [];
+  /* sortenreiner oder halb sortierter Posten: wenige Sorten, reihum */
+  if(sorten){ const w=pool.slice().sort(()=>Math.random()-0.5).slice(0,sorten); return Array.from({length:n},(_,i)=>w[i%w.length]); }
   const out=[];
   for(let i=0;i<n;i++){
     /* Themenpaket: gleichverteilt aus der Gruppe. Wundertuete:
@@ -15280,10 +15290,10 @@ function packContents(n,gruppe){
 }
 /* Mittlerer Einkaufswert eines Kartons aus dem Paket - genau so
    gerechnet, wie packContents zieht. */
-function packKartonWert(gruppe){
+function packKartonWert(gruppe,sorten){
   const pool=packPool(gruppe); if(!pool.length) return 0;
   const m=l=>l.reduce((a,t)=>a+costOf(t)*P[t].box,0)/l.length;
-  if(gruppe) return m(pool);
+  if(gruppe||sorten) return m(pool);
   const billig=pool.filter(t=>costOf(t)<6), teuer=pool.filter(t=>costOf(t)>=6);
   return 0.88*m(billig.length?billig:pool)+0.12*m(teuer.length?teuer:pool);
 }
@@ -15294,14 +15304,14 @@ function packKartonWert(gruppe){
    bis fast die Haelfte unter dem Einkaufswert */
 const PACK_RABATT={tuete:0.62,kiste:0.58,palette:0.52};
 function packPreis(pk){
-  const f=pk.gruppe?0.6:(PACK_RABATT[pk.id]||0.7);
-  return Math.max(5,Math.round(packKartonWert(pk.gruppe)*pk.n*f/5)*5);
+  const f=pk.sorten?0.56:pk.gruppe?0.6:(PACK_RABATT[pk.id]||0.7);
+  return Math.max(5,Math.round(packKartonWert(pk.gruppe,pk.sorten)*pk.n*f/5)*5);
 }
 function packOffen(pk){ return S.level>=pk.lvl&&(!pk.gruppe||packPool(pk.gruppe).length>0); }
 function buyPack(id){
   const pk=PACKS.find(x=>x.id===id); if(!pk||!packOffen(pk)) return;
   const preis=packPreis(pk); if(verfuegbar()<preis) return;
-  const items=packContents(pk.n,pk.gruppe); if(!items.length) return;
+  const items=packContents(pk.n,pk.gruppe,pk.sorten); if(!items.length) return;
   S.money=r2(S.money-preis); DS.goods=r2(DS.goods+preis);
   const sup=supplierOf('ratzke'), delay=lieferSek()*evv('delay');
   items.forEach(t=>pending.push({type:t,t:delay,q:sup.quality,sup:sup.id}));
@@ -15498,6 +15508,7 @@ function upPic(id){
         for(let k=0;k<3;k++){ g.fillStyle=['#d8b468','#c05a4a','#6fa8d8'][k];
           g.fillRect(48+k*24,y-13,18,13); g.fillRect(110+k*24,y-13,18,13); } }
       g.fillStyle='#1b2340'; g.fillRect(44,18,136,10); break;
+    case 'shelf_gross': regal(2,128,'#5a6170'); break;
     case 'shelf_eck':
       bg('#1b2540','#0d1326');
       /* Eckregal von oben: zwei Schenkel ueber Eck */
@@ -15722,6 +15733,8 @@ function renderLaptop(){
   if(handyOpen) renderHandy();
   if(!laptopOpen&&handyOpen) return;
   if(HANDY_IDS.indexOf(ltab)>=0) ltab='order';
+  /* Einrichtung steht jetzt unter Bestellen (Regale & Einrichtung) */
+  if(ltab==='einr'){ ltab='order'; lsup='regal'; }
   lapZeichnen($('lbody'));
 }
 function lapZeichnen(body){
@@ -15731,24 +15744,24 @@ function lapZeichnen(body){
   const kb=$('lKorb'); if(kb) kb.textContent=korbBtnText();
   let h='', hint='';
   if(ltab==='order'){
-    /* Regalbau Stegemann steht in derselben Reihe wie die
-       Warenlieferanten - er liefert nur eben Regale statt Ware. */
-    const istRegal=lsup==='regal';
-    const avail=supAvail();
-    if(!istRegal&&!avail.some(x=>x.id===lsup)) lsup='mertens';
-    const sup=istRegal?null:supplierOf(lsup);
-    /* Regalbau steht ganz links (Tom, 25.09.), danach die Lieferanten */
+    /* Eine Bestellseite in drei Bereichen (Tom, 25.09.): ganz links
+       Regale & Einrichtung, dann die Ware - alles auf einer Seite,
+       sortiert nach Freischaltung und Level -, dann die Restposten.
+       Welcher Haendler liefert, haengt nur vom Stand des Ladens ab:
+       Fachhandel, ab Kapitel 2 Grosshandel. */
+    if(['regal','ware','rest'].indexOf(lsup)<0) lsup='ware';
+    const rest=supplierOf('ratzke'), restOffen=supOffen(rest), sup=supplierFor(), gross=grossOffen();
+    if(lsup==='rest'&&!restOffen) lsup='ware';
+    const knopf=(id,txt,an)=>an
+      ? `<button data-a="sup" data-t="${id}" style="${id===lsup?'background:var(--signal);color:var(--ink)':'opacity:.8'}">${txt}</button>`
+      : `<button disabled>${txt}</button>`;
     const knoepfe=`<div class="row" style="padding-top:6px"><div class="steps" style="justify-content:flex-start">`+
-      `<button data-a="sup" data-t="regal" style="${istRegal?'background:var(--signal);color:var(--ink)':'opacity:.8'}">Regalbau</button>`+
-      SUPPLIERS.map(x=>S.level>=x.lvl
-        ? `<button data-a="sup" data-t="${x.id}" style="${x.id===lsup?'background:var(--signal);color:var(--ink)':'opacity:.8'}">${x.short}</button>`
-        : `<button disabled>${x.short} · Lvl ${x.lvl}</button>`).join('')+
-      `</div></div>`;
-    if(istRegal){
-      h=`<div class="row"><div class="rm"><b>Regalbau Stegemann</b><small>Ladenbau und Lagertechnik, seit 1974. ${zoneOffen('lager')?'Liefert an die Rampe — aufbauen musst du selbst.':'Solange du kein Lager hast, baut der Lieferant das Regal gleich im Laden auf.'}</small>`+
-        `<small>Paket aus dem Laderaum nehmen, an die Stelle tragen, an der es stehen soll, und mit „Ablegen“ aufbauen.</small>`+
-        `<small>Lieferzeit ${LIEFERZEIT_SEK} Sekunden · kein Versandzuschlag</small></div></div>`+knoepfe+
-        `<div class="karten">`+REGALWARE.map(r=>{
+      knopf('regal','Regale &amp; Einrichtung',true)+knopf('ware',`Ware · ${sup.short}`,true)+
+      knopf('rest',restOffen?'Restposten':`Restposten · Lvl ${rest.lvl}`,restOffen)+`</div></div>`;
+    if(lsup==='regal'){
+      h=`<div class="row"><div class="rm"><b>Regale &amp; Einrichtung</b><small>Regale, Kühlschränke, Kassen und Technik für den Laden. Nichts davon muss man freikaufen – manches gibt es erst ab einem bestimmten Level.</small>`+
+        `<small>Regale kommen als Paket mit dem LKW (${zoneOffen('lager')?'an die Rampe, aufbauen musst du selbst':'ohne Lager baut der Lieferant sie gleich im Laden auf'}). Einrichtung wird sofort eingebaut.</small></div></div>`+knoepfe;
+      h+=`<div class="kgruppe">Regale</div><div class="karten">`+REGALWARE.map(r=>{
           const K=regalKind(r), offen=regalOffen(r.id), platz=regalPlatz(r.id), pr=regalPreis(r.id);
           const wo=r.art==='rack'?'Lager':'Verkaufsfläche';
           if(!offen){
@@ -15761,27 +15774,43 @@ function lapZeichnen(body){
             `<div class="kpreis">${eur(pr)}</div>`+
             `<div class="steps"><button data-a="rbuy" data-t="${r.id}"${platz?'':' disabled'}>bestellen</button></div></div>`;
         }).join('')+`</div>`;
+      h+=`<div class="kgruppe">Kassen, Technik und Einrichtung</div><div class="karten">`+
+        UPGRADES.filter(u=>(u.kat||'einr')==='einr').sort((x,y)=>x.lvl-y.lvl).map(u=>{
+          const done=u.done(), cost=u.cost(), fehlt=u.req&&!S.up[u.req]?UPGRADES.find(x=>x.id===u.req):null, lock=S.level<u.lvl||!!fehlt;
+          return `<div class="karte${lock&&!done?' locked':''}"><img class="kbild" src="${upPic(u.id)}" alt=""><b>${u.name}</b><small>${u.desc}</small>`+
+            (done?'<small class="ok">Vorhanden</small>'
+              :S.level<u.lvl?`<small>ab Level ${u.lvl}</small>`
+              :fehlt?`<small class="warn">braucht „${fehlt.name}“</small>`
+              :`<div class="kpreis">${eur(cost)}</div><div class="steps"><button data-a="up" data-t="${u.id}" ${S.money<cost?'disabled':''}>kaufen</button></div>`)+'</div>';
+        }).join('')+`</div>`;
       body.innerHTML=h;
       if(korbOpen) renderKorb();
       return;
     }
     hint=`Artikel in den Warenkorb legen, dann alles zusammen bestellen. Eine Lieferung braucht ${LIEFERZEIT_SEK} Sekunden, Versand ${eur(VERSAND)} und ab ${eur(VERSANDFREI)} Warenwert frei.`;
-    h=`<div class="row"><div class="rm"><b>${sup.name}</b><small>${sup.desc}</small><small class="${qualityLabel(sup.quality)[0]}">${qualityLabel(sup.quality)[1]} · Lieferzeit ${LIEFERZEIT_SEK} Sekunden</small></div></div>`+knoepfe;
-    if(sup.mystery){
-      h+=`<div class="karten">`+PACKS.map(pk=>{ const lock=!packOffen(pk), preis=packPreis(pk), wert=packKartonWert(pk.gruppe)*pk.n;
+    if(lsup==='rest'){
+      h=`<div class="row"><div class="rm"><b>${rest.name}</b><small>${rest.desc}</small><small class="${qualityLabel(rest.quality)[0]}">${qualityLabel(rest.quality)[1]} · Lieferzeit ${LIEFERZEIT_SEK} Sekunden</small></div></div>`+knoepfe;
+      h+=`<div class="karten">`+PACKS.map(pk=>{ const lock=!packOffen(pk), preis=packPreis(pk), wert=packKartonWert(pk.gruppe,pk.sorten)*pk.n;
         const warum=S.level<pk.lvl?`ab Level ${pk.lvl}`:'erst Ware der Gruppe freischalten';
         return `<div class="karte${lock?' locked':''}"><img class="kbild" src="${packPic(pk)}" alt=""><b>${pk.name}</b><small>${pk.desc}</small>`+
           `<small>${pk.n} Kartons${pk.gruppe&&!lock?` aus ${packPool(pk.gruppe).length} Sorten`:''}${!lock&&wert>0?` · im Mittel ${Math.round((1-preis/wert)*100)} % unter Einkauf`:''}</small>`+
           (lock?`<small>${warum}</small>`:`<div class="steps"><button data-a="pack" data-t="${pk.id}">+ ${eur(preis)}</button></div>`)+'</div>'; }).join('')+`</div>`;
     } else {
       const tiers=sup.tiers||[{n:1,d:0}];
-      /* Nur die Ware dieses Lieferanten; gesperrte nur so weit, wie sie in Reichweite ist */
-      h+=`<div class="karten">`+ORDER.filter(t=>canOrder(t)&&supplierFor(t)===sup&&(isUnlocked(t)||lizLevel(t)<=S.level+5)).map(t=>{ const p=P[t], un=isUnlocked(t), cap=shelfCapOf(t);
-        if(!un){ const l=lizenzDaten(lizenzOf(t));
-          return `<div class="karte locked"><img class="kbild" src="${prodPic(t)}" alt=""><b>${p.name} ${catPill(p)}</b><small>${l?`Lizenz „${l.name}“ ab Level ${l.lvl}. Unter Sortiment freischalten.`:`Ab Level ${p.lvl}.`}</small></div>`; }
+      h=`<div class="row"><div class="rm"><b>${sup.name}</b><small>${sup.desc}</small>`+
+        `<small>${gross?'Staffel: 5 Kartons −8 %, 20 Kartons −15 %.':'Ab Kapitel 2 „Kleines Fachgeschäft“ (eigenes Lager) kaufst du beim Großhandel: 5 Kartons −8 %, 20 Kartons −15 %.'}</small></div></div>`+knoepfe;
+      /* Gruppen nach Freischaltung: Grundsortiment, dann die Lizenz-
+         pakete in der Reihenfolge ihres Levels; darin nach Level */
+      const ware=ORDER.filter(t=>canOrder(t)).sort((x,y)=>lizLevel(x)-lizLevel(y)||P[x].lvl-P[y].lvl||P[x].name.localeCompare(P[y].name));
+      let gruppe=null;
+      h+=`<div class="karten">`+ware.map(t=>{ const p=P[t], un=isUnlocked(t), cap=shelfCapOf(t), lz=lizenzOf(t), l=lz?lizenzDaten(lz):null;
+        let kopf='';
+        const g=l?l.id:'grund';
+        if(g!==gruppe){ gruppe=g; kopf=`<div class="kgruppe">${l?`${l.name} · Lizenz ab Level ${l.lvl}${hatLizenz(l.id)?' · freigeschaltet':''}`:'Grundsortiment'}</div>`; }
+        if(!un) return kopf+`<div class="karte locked"><img class="kbild" src="${prodPic(t)}" alt=""><b>${p.name} ${catPill(p)}</b><small>${l?`Lizenz „${l.name}“ ab Level ${l.lvl}. Unter Sortiment freischalten.`:`Ab Level ${p.lvl}.`}</small></div>`;
         const btns=tiers.map(tr=>{ const c=tierPrice(t,sup,tr);
           return `<button data-a="cart" data-t="${t}" data-n="${tr.n}">+ ${tr.n}× ${eur(c)}${tr.d?` <span style="opacity:.7">−${Math.round(tr.d*100)}%</span>`:''}</button>`; }).join('');
-        return `<div class="karte"><img class="kbild" src="${prodPic(t)}" alt=""><b>${p.name} ${catPill(p)}</b><small>Karton mit ${p.box} Stück${canShelf(t)?(cap?` · Fach fasst ${cap}`:' · kein passendes Regal'):' · nur für den Automaten'}</small><small>Im Laden: ${shelfStockOf(t)} im Regal, ${stockOf(t)} insgesamt</small>`+
+        return kopf+`<div class="karte"><img class="kbild" src="${prodPic(t)}" alt=""><b>${p.name} ${catPill(p)}</b><small>Karton mit ${p.box} Stück${canShelf(t)?(cap?` · Fach fasst ${cap}`:' · kein passendes Regal'):' · nur für den Automaten'}</small><small>Im Laden: ${shelfStockOf(t)} im Regal, ${stockOf(t)} insgesamt</small>`+
           `<div class="steps">${btns}</div></div>`; }).join('')+`</div>`;
     }
   } else if(ltab==='price'){

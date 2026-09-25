@@ -78,7 +78,9 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
       out.blick={dot:+Math.abs((n[0]*d[0]+n[1]*d[1]+n[2]*d[2])/l).toFixed(3),auf:+v[1].toFixed(3)}; }
     out.lvl={}; Object.keys(out).forEach(t=>{ if(bb.P[t]) out.lvl[t]=bb.P[t].lvl; });
     /* Auftakt: beginnt die Show mit einer Fontaene, bevor geschossen wird? */
-    out.auftakt={}; for(const t of ['sortiment','batterie100','kometen','donnerwand','profi','finale']){ const ph=bb.SHOWS[t]()[0]; out.auftakt[t]=!!(ph.ground&&!ph.n); }
+    out.auftakt={}; for(const t of ['sortiment','batterie100','kometen','donnerwand','profi']){ const ph=bb.SHOWS[t]()[0]; out.auftakt[t]=!!(ph.ground&&!ph.n); }
+    /* Weltuntergang nur mit Schuessen (Tom, 25.09.) */
+    out.finaleBoden=bb.SHOWS.finale().filter(ph=>ph.ground).length;
     return out; });
   const L=['batterie16','knatter','batterie49','faecher','batterie100','zfaecher','kometen','donnerwand','profi','finale'];
   const SOLL={batterie16:16,knatter:30,batterie49:49,faecher:36,batterie100:100,zfaecher:48,kometen:64,donnerwand:120,profi:200,finale:300};
@@ -101,6 +103,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     pruef('EINZIGARTIG',eigene.length>0,`${t} hat kein eigenes Bruchbild: ${r[t].eff.join(',')}`); });
   /* Grosse Verbunde beginnen mit einer Fontaene */
   Object.keys(r.auftakt).forEach(t=>pruef('AUFTAKT',r.auftakt[t],t+' beginnt ohne Fontaene'));
+  pruef('NUR_SCHUESSE',r.finaleBoden===0,'Weltuntergang hat noch '+r.finaleBoden+' Fontaenen');
   /* Eine Zuendung, eine Rakete */
   ['raketenklein','raketen','pfeifraketen','raketengold','titanraketen','jumbogold','jumboleiter','furzrakete'].forEach(t=>
     pruef('EINE RAKETE',r[t].n===1,`${t}: ${r[t].n} Raketen je Zuendung`));

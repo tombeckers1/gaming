@@ -507,16 +507,20 @@ EFF.kamuro=function(p,A,B,s){
 };
 /* Spinne: harte, flache Strahlen wie Speichen */
 EFF.spinne=function(p,A,B,s){
-  const [u,v]=basis(), beine=Math.round(26*QUAL()), sp=rand(15,18)*s;
-  for(let b=0;b<beine;b++){
-    const a=b/beine*Math.PI*2+rand(-.04,.04), w=sp*rand(0.9,1.1), c=b%4?A:B;
-    const dx=(u[0]*Math.cos(a)+v[0]*Math.sin(a)), dy=(u[1]*Math.cos(a)+v[1]*Math.sin(a)), dz=(u[2]*Math.cos(a)+v[2]*Math.sin(a));
-    for(let i=0;i<Math.round(9*QUAL());i++){ const f=0.42+i/9*0.62;
-      psBig.emit(p.x,p.y,p.z,dx*w*f,dy*w*f,dz*w*f,c[0],c[1],c[2],rand(0.85,1.25),0.7,0); }
-  }
-  flash({x:p.x,y:p.y,z:p.z},A,3.4,0.3);
+  /* Spinne wie in echt (Tom, 25.09.: "sieht nicht natuerlich aus"):
+     schwere Brokatsterne schiessen schnell nach aussen, ziehen dicke
+     goldene Spuren und haengen dann durch. Vorher waren die Beine
+     gerade Linien aus gleich verteilten Punkten in einer Ebene. */
+  const n=Math.round(40*s*QUAL()), g=FW.gold, alt=SCHWEIF;
+  SCHWEIF=0.55;
+  for(let i=0;i<n;i++){ const d=randDir(), v=rand(14,18)*s, c=i%4?g:A;
+    psBig.emit(p.x,p.y,p.z,d[0]*v,d[1]*v,d[2]*v,c[0],c[1],c[2],rand(1.4,1.9),3.2,4); }
+  SCHWEIF=0.25;
+  for(let i=0;i<Math.round(70*s*QUAL());i++){ const d=randDir(), v=rand(9,15)*s;
+    psMid.emit(p.x,p.y,p.z,d[0]*v,d[1]*v,d[2]*v,g[0],g[1]*0.9,g[2]*0.7,rand(0.9,1.5),2.6,4); }
+  SCHWEIF=alt;
+  flash({x:p.x,y:p.y,z:p.z},g,3.4,0.3);
 };
-/* Stroboskop: Sterne, die minutenlang blinkend haengen */
 EFF.strobe=function(p,A,B,s){
   const n=Math.round(120*s*QUAL());
   for(let i=0;i<n;i++){ const d=randDir(), v=rand(5.5,8)*s, c=i%2?A:B;
@@ -609,14 +613,13 @@ EFF.mehrring=function(p,A,B,s){
       psBig.emit(p.x,p.y,p.z,d[0]*v,d[1]*v,d[2]*v,c[0],c[1],c[2],rand(1.9,2.5),2.8,0); }
   }
 };
-/* Regenbogen: der Ball ist in sechs Farbsegmente geteilt */
+/* Regenbogen: bunte Paeonie - Sterne in fuenf Farben, zufaellig
+   durchmischt wie bei echten Multicolor-Bomben. Vorher war der Ball in
+   sechs harte Farbsektoren geteilt; das sah gemalt aus (Tom, 25.09.). */
 EFF.regenbogen=function(p,A,B,s){
-  const F=['rot','orange','zitrone','gruen','himmel','violett'].map(K);
-  const [u,v]=basisBlick(p,0.35), n=Math.round(210*s*QUAL());
-  for(let i=0;i<n;i++){ const d=randDir(), sp=rand(8.5,10.5)*s;
-    const a=Math.atan2(d[0]*v[0]+d[1]*v[1]+d[2]*v[2],d[0]*u[0]+d[1]*u[1]+d[2]*u[2]);
-    const c=F[Math.floor((a+Math.PI)/(Math.PI*2)*6)%6];
-    psBig.emit(p.x,p.y,p.z,d[0]*sp,d[1]*sp,d[2]*sp,c[0],c[1],c[2],rand(1.8,2.4),2.8,0); }
+  const F=['rot','zitrone','gruen','himmel','violett'].map(K), n=Math.round(200*s*QUAL());
+  for(let i=0;i<n;i++){ const d=randDir(), sp=rand(8.2,10.6)*s, c=F[Math.floor(Math.random()*F.length)];
+    psBig.emit(p.x,p.y,p.z,d[0]*sp,d[1]*sp,d[2]*sp,c[0],c[1],c[2],rand(1.8,2.5),3.0,0); }
 };
 /* ---------- Neue Bruchbilder (Tom, 24.09.: "sei kreativ") ---------- */
 /* Flammenregen: grosse, langsame Flammen, die flackernd von Orange

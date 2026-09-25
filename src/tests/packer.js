@@ -66,7 +66,9 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     o.ohneWare=plan([[[['kugel300',1]],6]]);
     return o; });
   console.log('KAPAZITAET',JSON.stringify(kap));
-  pruef('GROESSE',kap.klassen==='1,3,3,6,6','Paketgroessen falsch: '+kap.klassen);
+  /* seit 25.09. sind die Batterien viel groesser - der 49er braucht
+     jetzt das riesige Paket */
+  pruef('GROESSE',kap.klassen==='1,3,6,6,6','Paketgroessen falsch: '+kap.klassen);
   pruef('WAGEN',kap.klein===6&&kap.gross===2&&kap.riesig===1&&kap.misch===4,'Wagen fasst nicht 6 klein / 2 gross / 1 riesig: '+JSON.stringify(kap));
   pruef('WAGEN',kap.ohneWare===0,'Bestellung ohne Ware wurde auf den Wagen geplant');
 

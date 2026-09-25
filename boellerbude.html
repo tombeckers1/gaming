@@ -321,6 +321,16 @@ body.compact #hKap{display:none}
 .c2,.c1{background:#e3cf8a;border-radius:999px}.c50,.c20,.c10{background:#e8c65a;border-radius:999px}.c5,.c2c,.c1c{background:#d08a5a;border-radius:999px}
 .swatches{display:flex;gap:8px;flex-wrap:wrap;max-width:420px;justify-content:flex-end}
 /* Katalogzeile mit Bild */
+.karten{display:grid;grid-template-columns:repeat(auto-fill,minmax(178px,1fr));gap:12px;padding:12px 0}
+.karte{display:flex;flex-direction:column;gap:6px;background:rgba(242,245,255,.05);border:1px solid var(--line);border-radius:12px;padding:10px}
+.karte.locked{opacity:.5}
+.karte .kbild{width:100%;aspect-ratio:4/3;border-radius:9px;background:#0b1020;display:block;object-fit:cover}
+.karte b{font-size:15px;line-height:1.2}
+.karte small{opacity:.78;font-size:12.5px;line-height:1.3}
+.karte .steps{justify-content:flex-start;margin-top:auto}
+.karte .steps button{padding:6px 8px;font-size:14px}
+.karte .kpreis{font-family:var(--display);font-size:18px}
+body.compact .karten{grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px}
 .pic{width:112px;height:76px;border-radius:9px;flex-shrink:0;border:1px solid var(--line);background:#0b1020;display:block}
 .row .pic{margin-right:4px}
 body.compact .pic{width:78px;height:54px}
@@ -920,21 +930,40 @@ const STAFF=[
   {id:'security',lvl:13,name:'Sicherheitsdienst',desc:'Hält Diebe im Laden auf, bevor sie rauskommen.',hire:800,wage:190},
   {id:'packer',lvl:18,req:'packstation',name:'Versandmitarbeiter',desc:'Schiebt einen Kommissionierwagen mit sechs Fächern durchs Lager – fehlt dort etwas, durch den Laden –, legt jede Onlinebestellung Stück für Stück in ihren Karton, klebt am Packtisch zu und stapelt die Pakete für DDL.',hire:700,wage:165}
 ];
+/* Lieferanten (Tom, 25.09.): jeder fuehrt sein eigenes Sortiment, alle zu
+   denselben Konditionen - der Unterschied ist die Ware, nicht der
+   Rabatt. Nur Ratzke ist anders: gemischte Restposten mit sehr
+   starken Rabatten, dafuer weiss man nie genau, was kommt.
+   ware(t): fuehrt dieser Lieferant das Produkt? */
+const STAFFEL=[{n:1,d:0},{n:5,d:0.05},{n:20,d:0.12}];
+const SUP_SHOW=['titanraketen','jumbogold','jumboleiter','donnerwand','profi','finale','feuersaeule','fontaene30','fontaene50'];
+const SUP_BODEN=['fontaene','vulkan','sternenbrunnen','wasserfall','goldgeysir','feuerbrunnen'];
+const SUP_BATT=['batterie16','knatter','batterie49','faecher','batterie100','zfaecher','kometen','sortiment'];
 const SUPPLIERS=[
-  {id:'mertens',lvl:1,name:'Pyro Mertens',short:'Mertens',desc:'Dein Stammlieferant seit Jahren. Faire Preise, pünktlich, keine Überraschungen.',
-    mult:1.00,quality:1.00,delay:[4,8],tiers:[{n:1,d:0},{n:5,d:0.04}]},
-  {id:'kowalski',lvl:5,name:'Feuerwerk Kowalski',short:'Kowalski',desc:'Echter Großhandel. Ab Palette wird es richtig günstig, dafür dauert die Lieferung.',
-    mult:0.93,quality:1.00,delay:[10,16],tiers:[{n:5,d:0.05},{n:20,d:0.13}]},
-  {id:'ratzke',lvl:8,name:'Restposten-Ratzke',short:'Ratzke',desc:'Verkauft Wundertüten aus Restbeständen. Du weißt vorher nie, was drin ist.',
-    mult:0.60,quality:0.86,delay:[6,12],mystery:true},
-  {id:'import',lvl:12,name:'Import Direkt',short:'Import',desc:'Containerware aus Übersee. Spottbillig, aber nicht jeder Böller zündet.',
-    mult:0.66,quality:0.72,delay:[18,26],tiers:[{n:20,d:0.10},{n:50,d:0.18}]},
-  {id:'premium',lvl:15,name:'Pyro Premium',short:'Premium',desc:'Markenware mit Prüfsiegel. Teurer im Einkauf, aber die Kunden zahlen deutlich mehr.',
-    mult:1.28,quality:1.15,delay:[5,9],tiers:[{n:1,d:0},{n:5,d:0.06},{n:20,d:0.12}]}
+  {id:'mertens',lvl:1,name:'Pyro Mertens',short:'Mertens',desc:'Dein Stammlieferant für Kleinfeuerwerk und Böller: Wunderkerzen, Knallerbsen, Tischfeuerwerk, Böller, Schwärmer und Römische Lichter.',
+    mult:1.00,quality:1.00,delay:[4,8],tiers:STAFFEL,
+    ware:t=>P[t].cat===1||['boeller','monsterboeller','atomboeller','schwaermer','roemisch','blanko'].includes(t)||!!P[t].eigen},
+  {id:'party',lvl:1,name:'Partyhandel Sommer',short:'Sommer',desc:'Alles rund um die Party, aber kein Feuerwerk: Deko, Geschirr, Sekt und Getränke, Knabberzeug, Fondue und Raclette.',
+    mult:1.00,quality:1.00,delay:[4,8],tiers:STAFFEL,
+    ware:t=>P[t].cat===0},
+  {id:'kowalski',lvl:5,name:'Feuerwerk Kowalski',short:'Kowalski',desc:'Raketen und Fontänen: vom Dreierset bis zu den Goldraketen, dazu Vulkane, Geysire und Brunnen.',
+    mult:1.00,quality:1.00,delay:[6,10],tiers:STAFFEL,
+    ware:t=>(P[t].shape==='rocketset'&&!SUP_SHOW.includes(t)&&t!=='blanko')||SUP_BODEN.includes(t)},
+  {id:'ratzke',lvl:8,name:'Restposten-Ratzke',short:'Ratzke',desc:'Restposten: gemischte Kartons aus Lagerräumungen zu sehr starken Rabatten. Was genau drin ist, siehst du erst beim Auspacken.',
+    mult:0.60,quality:0.86,delay:[6,12],mystery:true,ware:t=>false},
+  {id:'import',lvl:12,name:'Import Direkt',short:'Import',desc:'Batterien, Fächer und Verbunde: vom 16-Schuss bis zum Kometenregen, dazu das Familienfest-Sortiment.',
+    mult:1.00,quality:1.00,delay:[8,14],tiers:STAFFEL,
+    ware:t=>SUP_BATT.includes(t)},
+  {id:'premium',lvl:14,name:'Kugelmanufaktur Premium',short:'Kugeln',desc:'Kugelbomben für die Mörserbatterie, von 75 bis 300 mm.',
+    mult:1.00,quality:1.00,delay:[6,10],tiers:STAFFEL,
+    ware:t=>P[t].shape==='shell'}
 ];
-const LATE_SUP={id:'direkt',lvl:22,name:'Werksdirekt Hübner',short:'Werk',desc:'Direkt ab Werk. Große Mengen, feste Konditionen, beste Ware.',
-    mult:1.12,quality:1.2,delay:[12,18],tiers:[{n:5,d:0.06},{n:20,d:0.15},{n:50,d:0.24}]};
+const LATE_SUP={id:'direkt',lvl:20,name:'Werksdirekt Hübner',short:'Hübner',desc:'Profi- und Showfeuerwerk direkt ab Werk: Titan- und Jumboraketen, Donnerwand, Götterfunken, Weltuntergang, Feuersäule und die Monsterfontänen.',
+    mult:1.00,quality:1.00,delay:[10,16],tiers:STAFFEL,
+    ware:t=>SUP_SHOW.includes(t)};
 SUPPLIERS.push(LATE_SUP);
+/* Wer fuehrt dieses Produkt? Was keiner ausdruecklich hat, gibt es bei Mertens. */
+function supplierFor(t){ return SUPPLIERS.find(x=>!x.mystery&&x.ware(t))||SUPPLIERS[0]; }
 const PACKS=[
   {id:'tuete',lvl:8,name:'Kleine Wundertüte',desc:'Sechs Kartons Restware, bunt gemischt. Meist Kleinkram, selten ein Treffer.',n:6},
   {id:'kiste',lvl:10,name:'Große Wundertüte',desc:'Vierzehn Kartons, je Karton etwas günstiger. Manchmal ist etwas richtig Teures dabei.',n:14},
@@ -14520,7 +14549,7 @@ function holdRepeat(dt){
 /* =========================================================
    Preisgerät: Preise ändern und nachbestellen direkt am Regal
    ========================================================= */
-let pdaOn=false, pdaG=null, pdaTex=null, pdaOpen=false, pdaItem=null, pdaSup='mertens', pdaLast='';
+let pdaOn=false, pdaG=null, pdaTex=null, pdaOpen=false, pdaItem=null, pdaLast='';
 function buildPDA(){
   if(pdaG) return;
   const g=new THREE.Group();
@@ -14620,7 +14649,7 @@ function closePDA(){ $('pda').classList.remove('show'); pdaOpen=false; pdaItem=n
 function renderPDA(){
   const t=pdaItem; if(!t) return;
   const p=P[t], mp=marketOf(t), ek=costOf(t), price=S.prices[t], marge=r2(price-ek), r=price/mp;
-  const sup=supplierOf(pdaSup), tiers=sup.tiers||[{n:1,d:0}];
+  const sup=supplierFor(t), tiers=sup.tiers||[{n:1,d:0}], supZu=S.level<sup.lvl;
   const tol=priceTol(), ch=Math.round(buyChance(t,price,1)*100);
   $('pdaTitle').textContent=p.name;
   $('pdaBody').innerHTML=
@@ -14636,11 +14665,10 @@ function renderPDA(){
     `<div class="pdarow"><span>Bestand</span><span>${shelfStockOf(t)} im Regal · ${stockOf(t)} gesamt</span></div>`+
     (canOrder(t)?
       `<div class="pdahead">Nachbestellen</div>`+
-      `<div class="pdasteps">${SUPPLIERS.filter(x=>S.level>=x.lvl).map(x=>`<button data-a="ps" data-t="${x.id}" ${pdaSup===x.id?'style="background:var(--signal);color:var(--ink)"':''}>${x.short}</button>`).join('')}</div>`+
-      `<div class="pdarow"><span>${sup.name}</span><span>Lieferung in ${LIEFERZEIT_SEK} Sekunden</span></div>`+
+      `<div class="pdarow"><span>${sup.name}</span><span>${supZu?`ab Level ${sup.lvl}`:`Lieferung in ${LIEFERZEIT_SEK} Sekunden`}</span></div>`+
       `<div class="pdarow"><span>Warenkorb</span><span>${cartBoxes()} Kartons · ${eur(cartTotal())}</span></div>`+
-      `<div class="pdasteps">${tiers.map(tr=>{ const c=tierPrice(t,sup,tr);
-        return `<button data-a="po" data-n="${tr.n}">+ ${tr.n}× Karton · ${eur(c)}${tr.d?` −${Math.round(tr.d*100)} %`:''}</button>`; }).join('')}</div>`+
+      (supZu?'':`<div class="pdasteps">${tiers.map(tr=>{ const c=tierPrice(t,sup,tr);
+        return `<button data-a="po" data-n="${tr.n}">+ ${tr.n}× Karton · ${eur(c)}${tr.d?` −${Math.round(tr.d*100)} %`:''}</button>`; }).join('')}</div>`)+
       `<div class="pdahead">Am Laptop bestellst du den ganzen Warenkorb.</div>`
       :`<div class="pdahead">Diese Ware kann man nicht bestellen.</div>`);
 }
@@ -14950,6 +14978,62 @@ function sparkPic(t){
   _sparkCache[t]={k:key,u};
   return u;
 }
+/* Produktbild: die echte Packung als kleines 3D-Bild, einmal gerendert
+   und zwischengespeichert. Wo kein WebGL da ist (Tests), zeichnet es
+   die Vorderseite der Packung. */
+const _prodCache={};
+let _thumb=null;
+function thumbRenderer(){
+  if(_thumb!==null) return _thumb;
+  try{ const c=document.createElement('canvas'); c.width=256; c.height=192;
+    const r=new THREE.WebGLRenderer({canvas:c,antialias:true,alpha:false,preserveDrawingBuffer:true});
+    r.outputEncoding=THREE.sRGBEncoding; r.toneMapping=THREE.ACESFilmicToneMapping; r.toneMappingExposure=1.1;
+    const sc=new THREE.Scene(); sc.background=new THREE.Color(0x141a30);
+    sc.add(new THREE.HemisphereLight(0xffffff,0x303848,0.9));
+    const d=new THREE.DirectionalLight(0xffffff,1.1); d.position.set(1.2,2,2.2); sc.add(d);
+    const cam=new THREE.PerspectiveCamera(30,256/192,0.01,20);
+    if(!r.getContext||!r.getContext()) throw new Error('kein WebGL');
+    _thumb={r,sc,cam,c};
+  }catch(e){ _thumb=false; }
+  return _thumb;
+}
+function prodPic(t){
+  if(_prodCache[t]) return _prodCache[t];
+  const p=P[t]; let u=null;
+  const T=thumbRenderer();
+  if(T&&pools[t]){
+    try{
+      const g=new THREE.Group(); pools[t].meshes.forEach(m=>g.add(new THREE.Mesh(m.geometry,m.material)));
+      /* Packung leicht gedreht, Kamera auf die groesste Ausdehnung */
+      g.rotation.y=-0.5; T.sc.add(g);
+      const bx=new THREE.Box3().setFromObject(g), c=bx.getCenter(new THREE.Vector3()), sz=bx.getSize(new THREE.Vector3());
+      const R=Math.max(sz.x,sz.y,sz.z)*0.62+0.01;
+      T.cam.position.set(c.x+R*0.9,c.y+R*0.75,c.z+R*2.6); T.cam.lookAt(c);
+      T.r.render(T.sc,T.cam); u=T.c.toDataURL('image/png');
+      T.sc.remove(g);
+    }catch(e){ u=null; }
+  }
+  if(!u){ const c=document.createElement('canvas'); c.width=224; c.height=168; const g=c.getContext('2d');
+    g.fillStyle='#141a30'; g.fillRect(0,0,224,168);
+    if(p&&p.art){ g.save(); g.translate(42,18); drawFront(g,140,132,p.art,p.cat||0); g.restore(); }
+    u=c.toDataURL('image/png'); }
+  _prodCache[t]=u; return u;
+}
+/* Regalbild aus den Ausbau-Bildern */
+function regalPic(r){ return upPic(r.art==='rack'?(r.kind==='standard'?'rack':'rack_'+r.kind):'shelf_'+r.kind); }
+/* Restposten-Kiste: Karton mit Fragezeichen */
+const _packCache={};
+function packPic(pk){
+  if(_packCache[pk.id]) return _packCache[pk.id];
+  const W=224,H=168,c=document.createElement('canvas'); c.width=W; c.height=H; const g=c.getContext('2d');
+  g.fillStyle='#141a30'; g.fillRect(0,0,W,H);
+  const n=Math.min(6,Math.max(1,Math.round(pk.n/5)));
+  for(let i=0;i<n;i++){ const x=30+(i%3)*58, y=96-Math.floor(i/3)*44;
+    g.fillStyle='#c89b5c'; g.fillRect(x,y,52,40); g.fillStyle='#a87c42'; g.fillRect(x,y,52,6);
+    g.fillStyle='#6b4a1c'; g.font='700 26px sans-serif'; g.textAlign='center'; g.textBaseline='middle'; g.fillText('?',x+26,y+24); }
+  g.fillStyle='#ffd23f'; g.font=BUN(18); g.textAlign='center'; g.fillText('RESTPOSTEN',W/2,24);
+  return _packCache[pk.id]=c.toDataURL('image/png');
+}
 /* Paketbild: die Farben der enthaltenen Produkte als Regalreihe */
 const _lizCache={};
 function lizPic(id){
@@ -15019,8 +15103,9 @@ function cartGoods(){ return r2(cartLines().reduce((a,l)=>a+lineCost(l),0)); }
 function cartBoxes(){ return cartLines().reduce((a,l)=>a+lineBoxes(l),0); }
 function cartFee(){ return cartLines().length?(cartGoods()>=VERSANDFREI?0:VERSAND):0; }
 function cartTotal(){ return r2(cartGoods()+cartFee()); }
-function cartAdd(t,n,supId){
-  const sup=supplierOf(supId||lsup);
+function cartAdd(t,n){
+  /* jede Ware hat genau einen Lieferanten - der bekommt die Bestellung */
+  const sup=supplierFor(t);
   const l=cartLines().find(x=>!x.pack&&x.t===t&&x.sup===sup.id&&x.step===n);
   if(l) l.n+=n; else cartLines().push({t,n,step:n,sup:sup.id});
   sfx.pop(); toast(`${n}× ${P[t].name} im Warenkorb.`); save();
@@ -15083,7 +15168,7 @@ function orderRegal(id){
 }
 /* Direktbestellung eines einzelnen Postens (eigene Lieferung, eigener Versand) */
 function orderBox(t,n,supId){
-  const sup=supplierOf(supId||lsup), p=P[t];
+  const sup=supplierFor(t), p=P[t];
   const tier=(sup.tiers||[{n:1,d:0}]).find(x=>x.n===n)||{n,d:0};
   const goods=tierPrice(t,sup,tier), fee=goods>=VERSANDFREI?0:VERSAND, cost=r2(goods+fee);
   if(verfuegbar()<cost) return;
@@ -15123,9 +15208,11 @@ function packKartonWert(gruppe){
 /* Preis eines Pakets: im Mittel steckt mehr drin, als es kostet,
    aber jede Tuete ist ein Wurf. Groessere Pakete sind je Karton
    etwas guenstiger, Themenpakete (planbarer) etwas weniger. */
-const PACK_RABATT={tuete:0.94,kiste:0.88,palette:0.82};
+/* Restposten sind richtig billig (Tom, 25.09.): im Mittel ein Drittel
+   bis fast die Haelfte unter dem Einkaufswert */
+const PACK_RABATT={tuete:0.62,kiste:0.58,palette:0.52};
 function packPreis(pk){
-  const f=pk.gruppe?0.8:(PACK_RABATT[pk.id]||0.9);
+  const f=pk.gruppe?0.6:(PACK_RABATT[pk.id]||0.7);
   return Math.max(5,Math.round(packKartonWert(pk.gruppe)*pk.n*f/5)*5);
 }
 function packOffen(pk){ return S.level>=pk.lvl&&(!pk.gruppe||packPool(pk.gruppe).length>0); }
@@ -15568,50 +15655,52 @@ function lapZeichnen(body){
     const avail=supAvail();
     if(!istRegal&&!avail.some(x=>x.id===lsup)) lsup='mertens';
     const sup=istRegal?null:supplierOf(lsup);
+    /* Regalbau steht ganz links (Tom, 25.09.), danach die Lieferanten */
     const knoepfe=`<div class="row" style="padding-top:6px"><div class="steps" style="justify-content:flex-start">`+
+      `<button data-a="sup" data-t="regal" style="${istRegal?'background:var(--signal);color:var(--ink)':'opacity:.8'}">Regalbau</button>`+
       SUPPLIERS.map(x=>S.level>=x.lvl
         ? `<button data-a="sup" data-t="${x.id}" style="${x.id===lsup?'background:var(--signal);color:var(--ink)':'opacity:.8'}">${x.short}</button>`
         : `<button disabled>${x.short} · Lvl ${x.lvl}</button>`).join('')+
-      `<button data-a="sup" data-t="regal" style="${istRegal?'background:var(--signal);color:var(--ink)':'opacity:.8'}">Regalbau</button>`+
       `</div></div>`;
     if(istRegal){
       h=`<div class="row"><div class="rm"><b>Regalbau Stegemann</b><small>Ladenbau und Lagertechnik, seit 1974. ${zoneOffen('lager')?'Liefert an die Rampe — aufbauen musst du selbst.':'Solange du kein Lager hast, baut der Lieferant das Regal gleich im Laden auf.'}</small>`+
         `<small>Paket aus dem Laderaum nehmen, an die Stelle tragen, an der es stehen soll, und mit „Ablegen“ aufbauen.</small>`+
         `<small>Lieferzeit ${LIEFERZEIT_SEK} Sekunden · kein Versandzuschlag</small></div></div>`+knoepfe+
-        REGALWARE.map(r=>{
+        `<div class="karten">`+REGALWARE.map(r=>{
           const K=regalKind(r), offen=regalOffen(r.id), platz=regalPlatz(r.id), pr=regalPreis(r.id);
           const wo=r.art==='rack'?'Lager':'Verkaufsfläche';
           if(!offen){
             const v=r.req?UPGRADES.find(u=>u.id===r.req):null;
-            return `<div class="row locked"><div class="rm"><b>${K.name}</b><small>${wo}</small></div>`+
+            return `<div class="karte locked"><img class="kbild" src="${regalPic(r)}" alt=""><b>${K.name}</b><small>${wo}</small>`+
               `<small>${S.level<r.lvl?`ab Level ${r.lvl}`:`braucht „${v?v.name:r.req}“`}</small></div>`;
           }
-          return `<div class="row"><div class="rm"><b>${K.name}</b><small>${wo} · ${r.art==='rack'?`${K.lv.length} Ebenen, ${K.sp.length} Plätze je Ebene`:`${K.lv.length} Fächer`}</small>`+
-            `<small class="${platz?'ok':'no'}">${platz?'Ein Stellplatz ist frei':'Alle Stellplätze belegt'}</small></div>`+
-            `<div class="price">${eur(pr)}</div>`+
+          return `<div class="karte"><img class="kbild" src="${regalPic(r)}" alt=""><b>${K.name}</b><small>${wo} · ${r.art==='rack'?`${K.lv.length} Ebenen, ${K.sp.length} Plätze je Ebene`:`${K.lv.length} Fächer`}</small>`+
+            `<small class="${platz?'ok':'no'}">${platz?'Ein Stellplatz ist frei':'Alle Stellplätze belegt'}</small>`+
+            `<div class="kpreis">${eur(pr)}</div>`+
             `<div class="steps"><button data-a="rbuy" data-t="${r.id}"${platz?'':' disabled'}>bestellen</button></div></div>`;
-        }).join('');
+        }).join('')+`</div>`;
       body.innerHTML=h;
       if(korbOpen) renderKorb();
       return;
     }
     hint=`Artikel in den Warenkorb legen, dann alles zusammen bestellen. Eine Lieferung braucht ${LIEFERZEIT_SEK} Sekunden, Versand ${eur(VERSAND)} und ab ${eur(VERSANDFREI)} Warenwert frei.`;
-    h=`<div class="row"><div class="rm"><b>Lieferanten</b><small>${sup.desc}</small><small class="${qualityLabel(sup.quality)[0]}">${qualityLabel(sup.quality)[1]} · Lieferzeit ${LIEFERZEIT_SEK} Sekunden</small></div></div>`+knoepfe;
+    h=`<div class="row"><div class="rm"><b>${sup.name}</b><small>${sup.desc}</small><small class="${qualityLabel(sup.quality)[0]}">${qualityLabel(sup.quality)[1]} · Lieferzeit ${LIEFERZEIT_SEK} Sekunden</small></div></div>`+knoepfe;
     if(sup.mystery){
-      h+=PACKS.map(pk=>{ const lock=!packOffen(pk), preis=packPreis(pk);
+      h+=`<div class="karten">`+PACKS.map(pk=>{ const lock=!packOffen(pk), preis=packPreis(pk), wert=packKartonWert(pk.gruppe)*pk.n;
         const warum=S.level<pk.lvl?`ab Level ${pk.lvl}`:'erst Ware der Gruppe freischalten';
-        return `<div class="row${lock?' locked':''}"><div class="rm"><b>${pk.name}</b><small>${pk.desc}</small><small>Inhalt zufällig, Restposten-Qualität${pk.gruppe&&!lock?` · ${pk.n} Kartons aus ${packPool(pk.gruppe).length} Sorten`:''}</small></div>`+
-          (lock?`<small>${warum}</small>`:`<button data-a="pack" data-t="${pk.id}">+ ${eur(preis)}</button>`)+'</div>'; }).join('');
+        return `<div class="karte${lock?' locked':''}"><img class="kbild" src="${packPic(pk)}" alt=""><b>${pk.name}</b><small>${pk.desc}</small>`+
+          `<small>${pk.n} Kartons${pk.gruppe&&!lock?` aus ${packPool(pk.gruppe).length} Sorten`:''}${!lock&&wert>0?` · im Mittel ${Math.round((1-preis/wert)*100)} % unter Einkauf`:''}</small>`+
+          (lock?`<small>${warum}</small>`:`<div class="steps"><button data-a="pack" data-t="${pk.id}">+ ${eur(preis)}</button></div>`)+'</div>'; }).join('')+`</div>`;
     } else {
       const tiers=sup.tiers||[{n:1,d:0}];
-      /* Gesperrte Ware nur so weit zeigen, wie sie in Reichweite ist */
-      h+=ORDER.filter(t=>canOrder(t)&&(isUnlocked(t)||lizLevel(t)<=S.level+5)).map(t=>{ const p=P[t], un=isUnlocked(t), cap=shelfCapOf(t);
+      /* Nur die Ware dieses Lieferanten; gesperrte nur so weit, wie sie in Reichweite ist */
+      h+=`<div class="karten">`+ORDER.filter(t=>canOrder(t)&&supplierFor(t)===sup&&(isUnlocked(t)||lizLevel(t)<=S.level+5)).map(t=>{ const p=P[t], un=isUnlocked(t), cap=shelfCapOf(t);
         if(!un){ const l=lizenzDaten(lizenzOf(t));
-          return `<div class="row locked"><div class="rm"><b>${p.name} ${catPill(p)}</b><small>${l?`Gehört zum Lizenzpaket „${l.name}“ (ab Level ${l.lvl}). Unter Sortiment freischalten.`:`Wird ab Level ${p.lvl} freigeschaltet.`}</small></div><small>${l?'Lizenz':'Level '+p.lvl}</small></div>`; }
+          return `<div class="karte locked"><img class="kbild" src="${prodPic(t)}" alt=""><b>${p.name} ${catPill(p)}</b><small>${l?`Lizenz „${l.name}“ ab Level ${l.lvl}. Unter Sortiment freischalten.`:`Ab Level ${p.lvl}.`}</small></div>`; }
         const btns=tiers.map(tr=>{ const c=tierPrice(t,sup,tr);
           return `<button data-a="cart" data-t="${t}" data-n="${tr.n}">+ ${tr.n}× ${eur(c)}${tr.d?` <span style="opacity:.7">−${Math.round(tr.d*100)}%</span>`:''}</button>`; }).join('');
-        return `<div class="row"><div class="rm"><b>${p.name} ${catPill(p)}</b><small>Karton mit ${p.box} Stück${canShelf(t)?(cap?` · größtes Fach fasst ${cap}`:' · kein passendes Regal'):' · nur für den Automaten'}</small><small>Im Laden: ${shelfStockOf(t)} im Regal, ${stockOf(t)} insgesamt</small></div>`+
-          `<div class="steps">${btns}</div></div>`; }).join('');
+        return `<div class="karte"><img class="kbild" src="${prodPic(t)}" alt=""><b>${p.name} ${catPill(p)}</b><small>Karton mit ${p.box} Stück${canShelf(t)?(cap?` · Fach fasst ${cap}`:' · kein passendes Regal'):' · nur für den Automaten'}</small><small>Im Laden: ${shelfStockOf(t)} im Regal, ${stockOf(t)} insgesamt</small>`+
+          `<div class="steps">${btns}</div></div>`; }).join('')+`</div>`;
     }
   } else if(ltab==='price'){
     hint=`Der Markt bewegt sich jeden Tag. Marktpreis ist, was die Kunden gerade erwarten; der Einkauf reagiert schneller als sie. Fällt der Einkauf, kaufst du günstig ein und verkaufst noch zum alten Preis. Marktlage: ${marktText()} · Inflation seit Beginn ${inflText()}.`;
@@ -17036,8 +17125,7 @@ $('pdaBody').addEventListener('click',e=>{
   const b=e.target.closest('button'); if(!b||b.disabled||!pdaItem) return; const a=b.dataset.a, t=pdaItem;
   if(a==='pp'){ S.prices[t]=Math.max(0.1,r2(S.prices[t]+parseFloat(b.dataset.d))); allLevels().forEach(l=>{ if(l.type===t) updateLabel(l); }); sfx.beep(); }
   else if(a==='pm'){ S.prices[t]=P[t].market; allLevels().forEach(l=>{ if(l.type===t) updateLabel(l); }); sfx.beep(); }
-  else if(a==='ps'){ pdaSup=b.dataset.t; }
-  else if(a==='po'){ cartAdd(t,+b.dataset.n,pdaSup); }
+  else if(a==='po'){ cartAdd(t,+b.dataset.n); }
   renderPDA(); drawPDA(true); save();
 });
 btnMove.addEventListener('touchstart',e=>{ e.preventDefault(); if(!S||overlayOpen()) return; ac(); if(build&&grabbed) rotateGrab(); else toggleBuild(); },{passive:false});
@@ -17165,7 +17253,7 @@ fontsReady().then(()=>{
   setTimeout(()=>{ if(typeof shaderVorab==='function') shaderVorab(); },400);
   window.__bb={get S(){return S},get phase(){return phase},set phase(v){phase=v},set clock(v){clock=v},get clock(){return clock},pickUp,floorBoxes,shelves,racks,dekos,stockOne,openShop,step,customers,queue,belt,scanBelt,buyUp,buyDeko,get DS(){return DS},endDay,pending,save,openLaptop,closeLaptop,pl,addXP,hireStaff,fireStaff,staff,dirts,addDirt,movables,toggleBuild,setWall,setFloor,
     stations,firePult,placeOnStation,igniteType,get order(){return order},get phone(){return phone},makeCall,answerPhone,haggle,acceptDeal,declineDeal,get truck(){return truck},spawnTruck,takeFromTruck,takeBox,dropBox,updateTruck,get door(){return door},get tuer(){return tuer},tuerSet,tuerNah,updateSchiebetuer,doorOpen,doorIsOpen,trailerOccupied,LR,lrFront,TOR,orderReady,orderLeft,shipOne,removeFloorBox,prioOf,setPrio,racks,updateCarry,spawnFloorBox,staff,SHELFKIND,layout,shelfCapOf,shelfAccepts,emptyLevel,dateInfo,dateStr,dateShort,seasonInfo,isSunday,dayMult,ruhetag,wageOf,setWage,friendliness,inPause,setPause,windowGrime,addGrime,cleanWindowTick,ambienteScore,bildBoost,fixedCosts,dailyWages,dispoLimit,verfuegbar,dispoZins,takeLoan,loanTier,loanDaily,EVENTS,GOALS,CUSTTYPES,UPGRADES,STAFF,stockOf,spawnInterval,pools,todayEvent,evv,rollEvent,rollMarket,newGoal,goalAdd,goalTick,ekFactor,marktText,xpFor,rollCustType,priceTol,buyChance,regCustomer,makeWishes,nachfrageFaktor,shelfStockOf,buildGravur,refillGrav,openGravInput,closeGravInput,get gravBlanks(){return gravBlanks},set gravBlanks(v){gravBlanks=v},orderBox,buyPack,cartAdd,cartAddPack,cartOrder,cartClear,cartDel,cartGoods,cartFee,cartTotal,cartBoxes,cartLines,LIEFERZEIT_SEK,VERSAND,VERSANDFREI,lieferSek,
-    scene,camera,P,EFF,EFF_ALL,EFF_KLEIN,EFF_GROSS,EFF_PRO,SHOWS,kugelbombe,shot,mine,FW,stations,stationOf,placedCount,togglePDA,openPDA,closePDA,setPost,get postOn(){return postOn},get pdaOn(){return pdaOn},showLength,psHuge,psBig,psMid,psSmall,rockets,emitters,timersLen:()=>timers.length,setView:(x,z,y,p)=>{pl.x=x;pl.z=z;yaw=y;pitch=p;aim=null;},schiebe:(x,z)=>{pl.x=x;pl.z=z;collide(pl,0.32);return{x:pl.x,z:pl.z};},PLZ_MAX,camYaw:()=>yaw,camPitch:()=>pitch,playerPos:()=>({x:pl.x,z:pl.z}),pultYaw:()=>pultHit?pultHit.parent.rotation.y:null,applyShopName,shopName,shopSlogan,signTexPx:()=>signTex&&signTex.image?signTex.image.getContext('2d').getImageData(0,0,signTex.image.width,40).data.join(''):null,lagerWall,fwShot:shot,KUGEL_R,ROHR_INNEN,MOERSER_R,moerserRohr,sfx,WOLKEN,get master(){return master},ac,SORTE_NEU,sortenUmstellen,get shakeWert(){return shake},get ckG(){return ckG},get ckNameTex(){return ckNameTex},get ckMovable(){return ckMov},CK_HOME,CK_ALT,spotPos,queueApproach,ckTexPx:()=>ckNameTex&&ckNameTex.image?ckNameTex.image.getContext('2d').getImageData(0,0,ckNameTex.image.width,60).data.join(''):null,testfeldMitte,STATION_POS,aimAt,UPGRADES,upPic,PLAN,planFlaechen,uhrZeiger:()=>({std:uhrStd?+uhrStd.rotation.z.toFixed(4):0,min:uhrMin?+uhrMin.rotation.z.toFixed(4):0}),drawRackSchild,get snowPts(){return snowPts},buildStadt,updateStadt,get stadtBoxen(){return stadtBoxen},get stadtBaeume(){return stadtBaeume},buildFernbaeume,schwaerme,beacons,silhouetten,get verkehrPts(){return verkehrPts},get rauchPts(){return rauchPts},get flieger(){return flieger},stadtFrei,STADT_FREI,WALLS,FLOORS,renderOnline,onlineHint,onlineStufe,onlineZahlen,onlineListe,updateOnline,SCHILDBG,SCHILDFG,setSchild,schildBg,schildFg,repaintSchilder,updateHead,allLevels,addToLevel,putInSlot,regCustomer,ZONEN,zoneOffen,oeffneZone,applyZonen,SLOTS,RACKS,slotsOffen,colliders,LAY,LOGI,WRAMPEN,WTORE,updateSnow,unterDach,dachBereiche,get lapHit2(){return lapHit2},buildLagerTerminal,toggleTest,testLevel,buyUp,get toastLast(){return toastLast},__floorBoxen:()=>floorBoxes.length,WBAY_UP,wbays,dockPlaetze,wbayFrei,wbayOffen,spawnWTruck,updateWBays,wbaysInit,wtorSet,GANG,GANGTUER,buildLagergang,flaeche,WTOR,RACKKIND,route,NAV,navFrei,navIdx,navBuild,shelfStand,shelves,sbLanes,buildSBKasse,sbFrei,sbOffen,sbNutzbar,EING2,eingaenge,naechsterEingang,setEingang2,buildSBKasse2,get sb2G(){return sb2G},TUEREN,tuerSetD,tuerNahD,packBereit,packOne,paketWert,bestellungenProTag,pakete,ddlAbholung,updateVersand,VS_GR,VS_FELD,WG_PARK,vsNeueBestellung,vsAbgleich,vsKlasse,vsQuellen,vsBestand,vsErfuellbar,vsPlan,vsStapel,vsSpielerPacken,vsSpielerBestellung,vsTischFrei,vsStatus,vsAufraeumen,vsLaden,vsBahn,vsPaketOffen,vsKlappen,vsFuellung,vsPaketZu,get vsTisch(){return vsTisch},get vsWagen(){return vsWagen},createShelf,createRack,regalStellen,testKauf,regalAufbauen,orderRegal,REGALWARE,regalOf,regalKind,regalPreis,regalPlatz,regalOffen,startGame,promptFor,ERFOLGE,erfOffen,erfStufe,erfStand,erfZiel,erfFertig,erfAnteil,erfGeschafft,erfGesamt,stat,statAdd,statRekord,statVerkauf,bruchGesehen,gruppeVon,GRUPPE,TRAEGER,BRUCH,BRUCH_IDS,REZ_FARBEN,ETIKETT,traegerVon,traegerOffen,bruchOffen,bruchListe,rezeptWow,rezeptKosten,rezeptMarkt,rezeptHype,rezeptDauer,rezeptEntwicklung,rezeptGueltig,eigeneListe,eigenesEintragen,rezepteTick,rezProto,rezBauen,renderRezeptur,get entwurf(){return entwurf},set entwurf(v){entwurf=v},entwurfInit,ORDER,LIZENZEN,lizenzOf,hatLizenz,lizenzDaten,naechsteLizenz,buyLizenz,VOLA,volaOf,REGIME,marketOf,costOf,marktZiel,marktLuecke,meOf,miOf,marktDelta,marktNiveau,marktPhase,marktSchock,marktLabel,marktSchnitt,marktExtrem,marktChance,sortimentBreite,sortimentZug,bekanntheit,spawnInterval,rollMarkt,marktInit,inflOf,inflText,setPreisAufMarkt,igniteType,get packHit(){return packHit},get packTisch(){return packTisch},get packMov(){return packMov},zuendeKanal,zuendeAlle,alleKanaele,kanalItem,openZuend,closeZuend,get zuendOpen(){return zuendOpen},overlayOpen,pultTaster,zuendTick,TISCH_X,RAMPE_X,KANAL_START,bereitCount,brennDauer,muendung,pultLamps,RAKETEN_LOOK,RAKETEN_KL,makePerson,applyTOD,updateHUD,renderer,renderFrame,get DEMO(){return DEMO},LHALLE,LOGI_STUFEN,TOR_STUFE,logiStufe,logiZeige,logiAnwenden,LOGI_G,TOR_G,WTORE,tuAktion:(kind,ref)=>{ const alt=target; target={kind,ref}; try{ doAction(); } finally { target=alt; } },promptFor,KARREN,karreArt,karreAn,karreStapel,karreLast,karreNimmt,toggleKarre,updateKarre,setTutorial,tutorialAn,zielFuer,get zielAktuell(){return zielAktuell},get tipKey(){return tipKey},updateZiel,set DEMO(v){DEMO=v},kapitelVon,kapitelVoll,openHandy,closeHandy,toggleHandy,get handyOpen(){return handyOpen},get happ(){return happ},HANDY_APPS,renderHandy,shaderVorab,SCHONER,schonerMalen,updateSchoner,makeWischer,stelleWischer,get wischer(){return wischer},updateWischen,wischerPersonal,cleanTick,updateFireworks,FLASH,spurEnden,LR_LAMPE,schweber,kundenSymbol,geldSchwebt,get serie(){return serie},serieZufrieden,serieBricht,KAPITEL,kapitel,kapitelNr,kapitelAufstieg,WA,WA_SLOTS,vorDieTuer,SB_KASSIERER,sbBesetzt,sbLaneVon,sbKassiererPlatz,MUSIK,STUECKE,musikAn,musikWeiter,musikVol,musikTick,spielSchritt,get mStep(){return mStep},set mStep(v){mStep=v;mTakte=0;},get mBus(){return mBus},get postHalf(){return postHalf},EFF_SCHWEIF,mitSchweif,KOEPFE,KLEID,UNIFORM,STAFFKOPF,faceCache,animPerson,PACKS,packPreis,packPool,packOffen,packContents,syncPakete,rotateGrab,PACK_FL,PACK_HOME,spotFree,rectOf,grab,placeGrab,updateGrab,get grabbed(){return grabbed},showPause,get target(){return target},einrOf,einrAktiv,einrHoch,einrRunter,einrSchalten,AUFGABEN,einrJob,kartonMat,pools,shelfStockOf,removeFromLevel,fwLog:(a)=>{FW_LOG=a;},moerserRohr,ROHR_KALIBER,effPassen,EFF_FAMILIE,basisBlick,fwTestSchalten,fwTestProdukte,fwTestStapeln,get fwTestAn(){return fwTestAn},get fwTestBoxen(){return fwTestBoxen},sonne:()=>sun.intensity,get fwUhr(){return FW_UHR},THEMEN,SHOW_BASIS,EFF,emittersListe:()=>emitters,
+    scene,camera,P,packKartonWert,SUPPLIERS,supplierFor,supplierOf,tierPrice,isUnlocked,lizLevel,renderLaptop,get lsup(){return lsup},set lsup(v){lsup=v},get ltab(){return ltab},set ltab(v){ltab=v},EFF,EFF_ALL,EFF_KLEIN,EFF_GROSS,EFF_PRO,SHOWS,kugelbombe,shot,mine,FW,stations,stationOf,placedCount,togglePDA,openPDA,closePDA,setPost,get postOn(){return postOn},get pdaOn(){return pdaOn},showLength,psHuge,psBig,psMid,psSmall,rockets,emitters,timersLen:()=>timers.length,setView:(x,z,y,p)=>{pl.x=x;pl.z=z;yaw=y;pitch=p;aim=null;},schiebe:(x,z)=>{pl.x=x;pl.z=z;collide(pl,0.32);return{x:pl.x,z:pl.z};},PLZ_MAX,camYaw:()=>yaw,camPitch:()=>pitch,playerPos:()=>({x:pl.x,z:pl.z}),pultYaw:()=>pultHit?pultHit.parent.rotation.y:null,applyShopName,shopName,shopSlogan,signTexPx:()=>signTex&&signTex.image?signTex.image.getContext('2d').getImageData(0,0,signTex.image.width,40).data.join(''):null,lagerWall,fwShot:shot,KUGEL_R,ROHR_INNEN,MOERSER_R,moerserRohr,sfx,WOLKEN,get master(){return master},ac,SORTE_NEU,sortenUmstellen,get shakeWert(){return shake},get ckG(){return ckG},get ckNameTex(){return ckNameTex},get ckMovable(){return ckMov},CK_HOME,CK_ALT,spotPos,queueApproach,ckTexPx:()=>ckNameTex&&ckNameTex.image?ckNameTex.image.getContext('2d').getImageData(0,0,ckNameTex.image.width,60).data.join(''):null,testfeldMitte,STATION_POS,aimAt,UPGRADES,upPic,PLAN,planFlaechen,uhrZeiger:()=>({std:uhrStd?+uhrStd.rotation.z.toFixed(4):0,min:uhrMin?+uhrMin.rotation.z.toFixed(4):0}),drawRackSchild,get snowPts(){return snowPts},buildStadt,updateStadt,get stadtBoxen(){return stadtBoxen},get stadtBaeume(){return stadtBaeume},buildFernbaeume,schwaerme,beacons,silhouetten,get verkehrPts(){return verkehrPts},get rauchPts(){return rauchPts},get flieger(){return flieger},stadtFrei,STADT_FREI,WALLS,FLOORS,renderOnline,onlineHint,onlineStufe,onlineZahlen,onlineListe,updateOnline,SCHILDBG,SCHILDFG,setSchild,schildBg,schildFg,repaintSchilder,updateHead,allLevels,addToLevel,putInSlot,regCustomer,ZONEN,zoneOffen,oeffneZone,applyZonen,SLOTS,RACKS,slotsOffen,colliders,LAY,LOGI,WRAMPEN,WTORE,updateSnow,unterDach,dachBereiche,get lapHit2(){return lapHit2},buildLagerTerminal,toggleTest,testLevel,buyUp,get toastLast(){return toastLast},__floorBoxen:()=>floorBoxes.length,WBAY_UP,wbays,dockPlaetze,wbayFrei,wbayOffen,spawnWTruck,updateWBays,wbaysInit,wtorSet,GANG,GANGTUER,buildLagergang,flaeche,WTOR,RACKKIND,route,NAV,navFrei,navIdx,navBuild,shelfStand,shelves,sbLanes,buildSBKasse,sbFrei,sbOffen,sbNutzbar,EING2,eingaenge,naechsterEingang,setEingang2,buildSBKasse2,get sb2G(){return sb2G},TUEREN,tuerSetD,tuerNahD,packBereit,packOne,paketWert,bestellungenProTag,pakete,ddlAbholung,updateVersand,VS_GR,VS_FELD,WG_PARK,vsNeueBestellung,vsAbgleich,vsKlasse,vsQuellen,vsBestand,vsErfuellbar,vsPlan,vsStapel,vsSpielerPacken,vsSpielerBestellung,vsTischFrei,vsStatus,vsAufraeumen,vsLaden,vsBahn,vsPaketOffen,vsKlappen,vsFuellung,vsPaketZu,get vsTisch(){return vsTisch},get vsWagen(){return vsWagen},createShelf,createRack,regalStellen,testKauf,regalAufbauen,orderRegal,REGALWARE,regalOf,regalKind,regalPreis,regalPlatz,regalOffen,startGame,promptFor,ERFOLGE,erfOffen,erfStufe,erfStand,erfZiel,erfFertig,erfAnteil,erfGeschafft,erfGesamt,stat,statAdd,statRekord,statVerkauf,bruchGesehen,gruppeVon,GRUPPE,TRAEGER,BRUCH,BRUCH_IDS,REZ_FARBEN,ETIKETT,traegerVon,traegerOffen,bruchOffen,bruchListe,rezeptWow,rezeptKosten,rezeptMarkt,rezeptHype,rezeptDauer,rezeptEntwicklung,rezeptGueltig,eigeneListe,eigenesEintragen,rezepteTick,rezProto,rezBauen,renderRezeptur,get entwurf(){return entwurf},set entwurf(v){entwurf=v},entwurfInit,ORDER,LIZENZEN,lizenzOf,hatLizenz,lizenzDaten,naechsteLizenz,buyLizenz,VOLA,volaOf,REGIME,marketOf,costOf,marktZiel,marktLuecke,meOf,miOf,marktDelta,marktNiveau,marktPhase,marktSchock,marktLabel,marktSchnitt,marktExtrem,marktChance,sortimentBreite,sortimentZug,bekanntheit,spawnInterval,rollMarkt,marktInit,inflOf,inflText,setPreisAufMarkt,igniteType,get packHit(){return packHit},get packTisch(){return packTisch},get packMov(){return packMov},zuendeKanal,zuendeAlle,alleKanaele,kanalItem,openZuend,closeZuend,get zuendOpen(){return zuendOpen},overlayOpen,pultTaster,zuendTick,TISCH_X,RAMPE_X,KANAL_START,bereitCount,brennDauer,muendung,pultLamps,RAKETEN_LOOK,RAKETEN_KL,makePerson,applyTOD,updateHUD,renderer,renderFrame,get DEMO(){return DEMO},LHALLE,LOGI_STUFEN,TOR_STUFE,logiStufe,logiZeige,logiAnwenden,LOGI_G,TOR_G,WTORE,tuAktion:(kind,ref)=>{ const alt=target; target={kind,ref}; try{ doAction(); } finally { target=alt; } },promptFor,KARREN,karreArt,karreAn,karreStapel,karreLast,karreNimmt,toggleKarre,updateKarre,setTutorial,tutorialAn,zielFuer,get zielAktuell(){return zielAktuell},get tipKey(){return tipKey},updateZiel,set DEMO(v){DEMO=v},kapitelVon,kapitelVoll,openHandy,closeHandy,toggleHandy,get handyOpen(){return handyOpen},get happ(){return happ},HANDY_APPS,renderHandy,shaderVorab,SCHONER,schonerMalen,updateSchoner,makeWischer,stelleWischer,get wischer(){return wischer},updateWischen,wischerPersonal,cleanTick,updateFireworks,FLASH,spurEnden,LR_LAMPE,schweber,kundenSymbol,geldSchwebt,get serie(){return serie},serieZufrieden,serieBricht,KAPITEL,kapitel,kapitelNr,kapitelAufstieg,WA,WA_SLOTS,vorDieTuer,SB_KASSIERER,sbBesetzt,sbLaneVon,sbKassiererPlatz,MUSIK,STUECKE,musikAn,musikWeiter,musikVol,musikTick,spielSchritt,get mStep(){return mStep},set mStep(v){mStep=v;mTakte=0;},get mBus(){return mBus},get postHalf(){return postHalf},EFF_SCHWEIF,mitSchweif,KOEPFE,KLEID,UNIFORM,STAFFKOPF,faceCache,animPerson,PACKS,packPreis,packPool,packOffen,packContents,syncPakete,rotateGrab,PACK_FL,PACK_HOME,spotFree,rectOf,grab,placeGrab,updateGrab,get grabbed(){return grabbed},showPause,get target(){return target},einrOf,einrAktiv,einrHoch,einrRunter,einrSchalten,AUFGABEN,einrJob,kartonMat,pools,shelfStockOf,removeFromLevel,fwLog:(a)=>{FW_LOG=a;},moerserRohr,ROHR_KALIBER,effPassen,EFF_FAMILIE,basisBlick,fwTestSchalten,fwTestProdukte,fwTestStapeln,get fwTestAn(){return fwTestAn},get fwTestBoxen(){return fwTestBoxen},sonne:()=>sun.intensity,get fwUhr(){return FW_UHR},THEMEN,SHOW_BASIS,EFF,emittersListe:()=>emitters,
     shot:()=>{ noLoop=true; camera.position.set(pl.x,1.65,pl.z); camera.rotation.set(pitch,yaw,0); camera.updateMatrixWorld(); updateTarget(); applyTOD(); renderFrame(0.016); return canvas.toDataURL('image/jpeg',0.85); },
     run:(sec,dt)=>{ noLoop=true; const n=Math.round(sec/(dt||0.05)); for(let i=0;i<n;i++) step(dt||0.05); }};
 });

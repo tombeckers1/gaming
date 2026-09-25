@@ -321,6 +321,16 @@ body.compact #hKap{display:none}
 .c2,.c1{background:#e3cf8a;border-radius:999px}.c50,.c20,.c10{background:#e8c65a;border-radius:999px}.c5,.c2c,.c1c{background:#d08a5a;border-radius:999px}
 .swatches{display:flex;gap:8px;flex-wrap:wrap;max-width:420px;justify-content:flex-end}
 /* Katalogzeile mit Bild */
+.karten{display:grid;grid-template-columns:repeat(auto-fill,minmax(178px,1fr));gap:12px;padding:12px 0}
+.karte{display:flex;flex-direction:column;gap:6px;background:rgba(242,245,255,.05);border:1px solid var(--line);border-radius:12px;padding:10px}
+.karte.locked{opacity:.5}
+.karte .kbild{width:100%;aspect-ratio:4/3;border-radius:9px;background:#0b1020;display:block;object-fit:cover}
+.karte b{font-size:15px;line-height:1.2}
+.karte small{opacity:.78;font-size:12.5px;line-height:1.3}
+.karte .steps{justify-content:flex-start;margin-top:auto}
+.karte .steps button{padding:6px 8px;font-size:14px}
+.karte .kpreis{font-family:var(--display);font-size:18px}
+body.compact .karten{grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px}
 .pic{width:112px;height:76px;border-radius:9px;flex-shrink:0;border:1px solid var(--line);background:#0b1020;display:block}
 .row .pic{margin-right:4px}
 body.compact .pic{width:78px;height:54px}

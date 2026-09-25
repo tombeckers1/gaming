@@ -227,8 +227,7 @@ $('pdaBody').addEventListener('click',e=>{
   const b=e.target.closest('button'); if(!b||b.disabled||!pdaItem) return; const a=b.dataset.a, t=pdaItem;
   if(a==='pp'){ S.prices[t]=Math.max(0.1,r2(S.prices[t]+parseFloat(b.dataset.d))); allLevels().forEach(l=>{ if(l.type===t) updateLabel(l); }); sfx.beep(); }
   else if(a==='pm'){ S.prices[t]=P[t].market; allLevels().forEach(l=>{ if(l.type===t) updateLabel(l); }); sfx.beep(); }
-  else if(a==='ps'){ pdaSup=b.dataset.t; }
-  else if(a==='po'){ cartAdd(t,+b.dataset.n,pdaSup); }
+  else if(a==='po'){ cartAdd(t,+b.dataset.n); }
   renderPDA(); drawPDA(true); save();
 });
 btnMove.addEventListener('touchstart',e=>{ e.preventDefault(); if(!S||overlayOpen()) return; ac(); if(build&&grabbed) rotateGrab(); else toggleBuild(); },{passive:false});

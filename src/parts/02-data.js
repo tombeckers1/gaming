@@ -288,21 +288,40 @@ const STAFF=[
   {id:'security',lvl:13,name:'Sicherheitsdienst',desc:'Hält Diebe im Laden auf, bevor sie rauskommen.',hire:800,wage:190},
   {id:'packer',lvl:18,req:'packstation',name:'Versandmitarbeiter',desc:'Schiebt einen Kommissionierwagen mit sechs Fächern durchs Lager – fehlt dort etwas, durch den Laden –, legt jede Onlinebestellung Stück für Stück in ihren Karton, klebt am Packtisch zu und stapelt die Pakete für DDL.',hire:700,wage:165}
 ];
+/* Lieferanten (Tom, 25.09.): jeder fuehrt sein eigenes Sortiment, alle zu
+   denselben Konditionen - der Unterschied ist die Ware, nicht der
+   Rabatt. Nur Ratzke ist anders: gemischte Restposten mit sehr
+   starken Rabatten, dafuer weiss man nie genau, was kommt.
+   ware(t): fuehrt dieser Lieferant das Produkt? */
+const STAFFEL=[{n:1,d:0},{n:5,d:0.05},{n:20,d:0.12}];
+const SUP_SHOW=['titanraketen','jumbogold','jumboleiter','donnerwand','profi','finale','feuersaeule','fontaene30','fontaene50'];
+const SUP_BODEN=['fontaene','vulkan','sternenbrunnen','wasserfall','goldgeysir','feuerbrunnen'];
+const SUP_BATT=['batterie16','knatter','batterie49','faecher','batterie100','zfaecher','kometen','sortiment'];
 const SUPPLIERS=[
-  {id:'mertens',lvl:1,name:'Pyro Mertens',short:'Mertens',desc:'Dein Stammlieferant seit Jahren. Faire Preise, pünktlich, keine Überraschungen.',
-    mult:1.00,quality:1.00,delay:[4,8],tiers:[{n:1,d:0},{n:5,d:0.04}]},
-  {id:'kowalski',lvl:5,name:'Feuerwerk Kowalski',short:'Kowalski',desc:'Echter Großhandel. Ab Palette wird es richtig günstig, dafür dauert die Lieferung.',
-    mult:0.93,quality:1.00,delay:[10,16],tiers:[{n:5,d:0.05},{n:20,d:0.13}]},
-  {id:'ratzke',lvl:8,name:'Restposten-Ratzke',short:'Ratzke',desc:'Verkauft Wundertüten aus Restbeständen. Du weißt vorher nie, was drin ist.',
-    mult:0.60,quality:0.86,delay:[6,12],mystery:true},
-  {id:'import',lvl:12,name:'Import Direkt',short:'Import',desc:'Containerware aus Übersee. Spottbillig, aber nicht jeder Böller zündet.',
-    mult:0.66,quality:0.72,delay:[18,26],tiers:[{n:20,d:0.10},{n:50,d:0.18}]},
-  {id:'premium',lvl:15,name:'Pyro Premium',short:'Premium',desc:'Markenware mit Prüfsiegel. Teurer im Einkauf, aber die Kunden zahlen deutlich mehr.',
-    mult:1.28,quality:1.15,delay:[5,9],tiers:[{n:1,d:0},{n:5,d:0.06},{n:20,d:0.12}]}
+  {id:'mertens',lvl:1,name:'Pyro Mertens',short:'Mertens',desc:'Dein Stammlieferant für Kleinfeuerwerk und Böller: Wunderkerzen, Knallerbsen, Tischfeuerwerk, Böller, Schwärmer und Römische Lichter.',
+    mult:1.00,quality:1.00,delay:[4,8],tiers:STAFFEL,
+    ware:t=>P[t].cat===1||['boeller','monsterboeller','atomboeller','schwaermer','roemisch','blanko'].includes(t)||!!P[t].eigen},
+  {id:'party',lvl:1,name:'Partyhandel Sommer',short:'Sommer',desc:'Alles rund um die Party, aber kein Feuerwerk: Deko, Geschirr, Sekt und Getränke, Knabberzeug, Fondue und Raclette.',
+    mult:1.00,quality:1.00,delay:[4,8],tiers:STAFFEL,
+    ware:t=>P[t].cat===0},
+  {id:'kowalski',lvl:5,name:'Feuerwerk Kowalski',short:'Kowalski',desc:'Raketen und Fontänen: vom Dreierset bis zu den Goldraketen, dazu Vulkane, Geysire und Brunnen.',
+    mult:1.00,quality:1.00,delay:[6,10],tiers:STAFFEL,
+    ware:t=>(P[t].shape==='rocketset'&&!SUP_SHOW.includes(t)&&t!=='blanko')||SUP_BODEN.includes(t)},
+  {id:'ratzke',lvl:8,name:'Restposten-Ratzke',short:'Ratzke',desc:'Restposten: gemischte Kartons aus Lagerräumungen zu sehr starken Rabatten. Was genau drin ist, siehst du erst beim Auspacken.',
+    mult:0.60,quality:0.86,delay:[6,12],mystery:true,ware:t=>false},
+  {id:'import',lvl:12,name:'Import Direkt',short:'Import',desc:'Batterien, Fächer und Verbunde: vom 16-Schuss bis zum Kometenregen, dazu das Familienfest-Sortiment.',
+    mult:1.00,quality:1.00,delay:[8,14],tiers:STAFFEL,
+    ware:t=>SUP_BATT.includes(t)},
+  {id:'premium',lvl:14,name:'Kugelmanufaktur Premium',short:'Kugeln',desc:'Kugelbomben für die Mörserbatterie, von 75 bis 300 mm.',
+    mult:1.00,quality:1.00,delay:[6,10],tiers:STAFFEL,
+    ware:t=>P[t].shape==='shell'}
 ];
-const LATE_SUP={id:'direkt',lvl:22,name:'Werksdirekt Hübner',short:'Werk',desc:'Direkt ab Werk. Große Mengen, feste Konditionen, beste Ware.',
-    mult:1.12,quality:1.2,delay:[12,18],tiers:[{n:5,d:0.06},{n:20,d:0.15},{n:50,d:0.24}]};
+const LATE_SUP={id:'direkt',lvl:20,name:'Werksdirekt Hübner',short:'Hübner',desc:'Profi- und Showfeuerwerk direkt ab Werk: Titan- und Jumboraketen, Donnerwand, Götterfunken, Weltuntergang, Feuersäule und die Monsterfontänen.',
+    mult:1.00,quality:1.00,delay:[10,16],tiers:STAFFEL,
+    ware:t=>SUP_SHOW.includes(t)};
 SUPPLIERS.push(LATE_SUP);
+/* Wer fuehrt dieses Produkt? Was keiner ausdruecklich hat, gibt es bei Mertens. */
+function supplierFor(t){ return SUPPLIERS.find(x=>!x.mystery&&x.ware(t))||SUPPLIERS[0]; }
 const PACKS=[
   {id:'tuete',lvl:8,name:'Kleine Wundertüte',desc:'Sechs Kartons Restware, bunt gemischt. Meist Kleinkram, selten ein Treffer.',n:6},
   {id:'kiste',lvl:10,name:'Große Wundertüte',desc:'Vierzehn Kartons, je Karton etwas günstiger. Manchmal ist etwas richtig Teures dabei.',n:14},

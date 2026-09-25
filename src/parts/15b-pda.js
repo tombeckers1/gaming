@@ -2,7 +2,7 @@
 /* =========================================================
    Preisgerät: Preise ändern und nachbestellen direkt am Regal
    ========================================================= */
-let pdaOn=false, pdaG=null, pdaTex=null, pdaOpen=false, pdaItem=null, pdaSup='mertens', pdaLast='';
+let pdaOn=false, pdaG=null, pdaTex=null, pdaOpen=false, pdaItem=null, pdaLast='';
 function buildPDA(){
   if(pdaG) return;
   const g=new THREE.Group();
@@ -102,7 +102,7 @@ function closePDA(){ $('pda').classList.remove('show'); pdaOpen=false; pdaItem=n
 function renderPDA(){
   const t=pdaItem; if(!t) return;
   const p=P[t], mp=marketOf(t), ek=costOf(t), price=S.prices[t], marge=r2(price-ek), r=price/mp;
-  const sup=supplierOf(pdaSup), tiers=sup.tiers||[{n:1,d:0}];
+  const sup=supplierFor(t), tiers=sup.tiers||[{n:1,d:0}], supZu=S.level<sup.lvl;
   const tol=priceTol(), ch=Math.round(buyChance(t,price,1)*100);
   $('pdaTitle').textContent=p.name;
   $('pdaBody').innerHTML=
@@ -118,11 +118,10 @@ function renderPDA(){
     `<div class="pdarow"><span>Bestand</span><span>${shelfStockOf(t)} im Regal · ${stockOf(t)} gesamt</span></div>`+
     (canOrder(t)?
       `<div class="pdahead">Nachbestellen</div>`+
-      `<div class="pdasteps">${SUPPLIERS.filter(x=>S.level>=x.lvl).map(x=>`<button data-a="ps" data-t="${x.id}" ${pdaSup===x.id?'style="background:var(--signal);color:var(--ink)"':''}>${x.short}</button>`).join('')}</div>`+
-      `<div class="pdarow"><span>${sup.name}</span><span>Lieferung in ${LIEFERZEIT_SEK} Sekunden</span></div>`+
+      `<div class="pdarow"><span>${sup.name}</span><span>${supZu?`ab Level ${sup.lvl}`:`Lieferung in ${LIEFERZEIT_SEK} Sekunden`}</span></div>`+
       `<div class="pdarow"><span>Warenkorb</span><span>${cartBoxes()} Kartons · ${eur(cartTotal())}</span></div>`+
-      `<div class="pdasteps">${tiers.map(tr=>{ const c=tierPrice(t,sup,tr);
-        return `<button data-a="po" data-n="${tr.n}">+ ${tr.n}× Karton · ${eur(c)}${tr.d?` −${Math.round(tr.d*100)} %`:''}</button>`; }).join('')}</div>`+
+      (supZu?'':`<div class="pdasteps">${tiers.map(tr=>{ const c=tierPrice(t,sup,tr);
+        return `<button data-a="po" data-n="${tr.n}">+ ${tr.n}× Karton · ${eur(c)}${tr.d?` −${Math.round(tr.d*100)} %`:''}</button>`; }).join('')}</div>`)+
       `<div class="pdahead">Am Laptop bestellst du den ganzen Warenkorb.</div>`
       :`<div class="pdahead">Diese Ware kann man nicht bestellen.</div>`);
 }

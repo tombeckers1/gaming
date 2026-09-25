@@ -171,7 +171,8 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   for(const [id,v] of Object.entries(pk.pakete)){
     pruef('PAKETE',v.offen&&v.preis>0,id+' nicht kaufbar');
     pruef('PAKETE',!v.fremd,id+' enthaelt '+v.fremd+' Kartons aus anderen Gruppen');
-    pruef('PAKETE',v.wertZuPreis>1.0&&v.wertZuPreis<1.4,id+' Wert/Preis '+v.wertZuPreis+' (unter 1 lohnt es nie, ueber 1.4 ist es geschenkt)');
+    /* Restposten mit sehr starkem Rabatt (Tom, 25.09.), aber nicht verschenkt */
+    pruef('PAKETE',v.wertZuPreis>1.3&&v.wertZuPreis<2.2,id+' Wert/Preis '+v.wertZuPreis+' (unter 1.3 kein starker Rabatt, ueber 2.2 ist es geschenkt)');
   }
   pruef('PAKETE',pk.pakete.tuete.wertZuPreis<pk.pakete.kiste.wertZuPreis&&pk.pakete.kiste.wertZuPreis<pk.pakete.palette.wertZuPreis,'groessere Wundertueten sind je Karton nicht guenstiger');
   pruef('PAKETE',Math.abs(pk.kauf.bezahlt-pk.kauf.preis)<0.01&&pk.kauf.kartons===5,'Kauf stimmt nicht: '+JSON.stringify(pk.kauf));

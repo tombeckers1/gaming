@@ -731,6 +731,41 @@ const P={
     art:{title:'REGENBOGEN-TITAN',sub:'50 m · Regenbogen · 14 s',bg1:'#4a1070',bg2:'#06020f',ac:'#5ce1ff',ac2:'#ff4fa3',gold:true}},
   wasserfall:{name:'Niagara · Silberwasserfall 3 m',short:'Wasserfall',cat:2,lvl:18,shape:'cylinder',dims:[0.16,0.36,0.16],grid:[10,1,1],box:5,cost:14.00,market:32.99,weight:4,hype:38,risk:7,
     art:{title:'NIAGARA',sub:'3 m Silberfall, 60 s',bg1:'#8a9299',bg2:'#2a2f36',ac:'#f2f5ff',ac2:'#5ce1ff'}},
+  /* Partyzubehoer, Getraenke und Fondue/Raclette (Tom, 25.09.). Alles
+     Zubehoer (cat 0): kommt nie aufs Testfeld. Die Packungen sind so
+     gross wie im echten Laden, nicht winzig. */
+  stabfeuerzeug:{name:'Stabfeuerzeug & Anzündlunte',short:'Stabfeuerzeug',cat:0,lvl:3,shape:'boxA',dims:[0.09,0.3,0.035],grid:[14,2,1],box:24,cost:1.30,market:3.49,weight:8,hype:0,risk:3,
+    art:{title:'STABFEUERZEUG',sub:'mit Anzündlunte',bg1:'#2a2f3d',bg2:'#0b0d14',ac:'#ff7a3d',ac2:'#ffd23f'}},
+  ballons:{name:'Luftballon-Set »Frohes Neues« mit Zahlen 2027',short:'Luftballons',cat:0,lvl:6,shape:'boxA',dims:[0.22,0.28,0.06],grid:[8,2,1],box:16,cost:1.90,market:4.99,weight:7,hype:0,risk:1,
+    art:{title:'FROHES NEUES',sub:'30 Ballons + Zahlen 2027',bg1:'#1d1d6b',bg2:'#07072a',ac:'#ffd23f',ac2:'#ff4fa3'}},
+  partyhuete:{name:'Partyhüte & Tröten 10er',short:'Partyhüte',cat:0,lvl:6,shape:'boxA',dims:[0.26,0.3,0.12],grid:[6,2,1],box:10,cost:2.30,market:5.99,weight:7,hype:0,risk:1,
+    art:{title:'PARTYHÜTE',sub:'10 Hüte + 10 Tröten',bg1:'#c01c6a',bg2:'#4a0626',ac:'#ffd23f',ac2:'#5ce1ff'}},
+  luftruessel:{name:'Luftrüssel 12er',short:'Luftrüssel',cat:0,lvl:6,shape:'boxA',dims:[0.16,0.24,0.045],grid:[10,2,1],box:24,cost:1.10,market:2.99,weight:6,hype:0,risk:1,
+    art:{title:'LUFTRÜSSEL',sub:'12 Stück, bunt',bg1:'#0f7a6b',bg2:'#03302a',ac:'#fff3a0',ac2:'#ff7a3d'}},
+  girlanden:{name:'Girlanden & Wimpelketten Gold-Silber',short:'Girlanden',cat:0,lvl:6,shape:'boxA',dims:[0.2,0.26,0.05],grid:[10,2,1],box:20,cost:1.50,market:3.99,weight:6,hype:0,risk:1,
+    art:{title:'GIRLANDEN',sub:'Gold & Silber, 10 m',bg1:'#3a2c08',bg2:'#120d02',ac:'#ffd23f',ac2:'#d1e5ff'}},
+  folienvorhang:{name:'Folienvorhang Gold & Silber 2 m',short:'Folienvorhang',cat:0,lvl:6,shape:'boxA',dims:[0.2,0.3,0.04],grid:[10,2,1],box:20,cost:1.70,market:4.49,weight:5,hype:0,risk:1,
+    art:{title:'GLITZERVORHANG',sub:'Gold & Silber · 2 m',bg1:'#8a8f99',bg2:'#2a2e36',ac:'#ffd23f',ac2:'#f2f5ff'}},
+  tischdeko:{name:'Tischdeko-Set Silvester',short:'Tischdeko',cat:0,lvl:6,shape:'boxA',dims:[0.3,0.22,0.08],grid:[6,2,1],box:12,cost:2.70,market:6.99,weight:5,hype:0,risk:1,
+    art:{title:'TISCHDEKO',sub:'Streukonfetti · Servietten · Kerzen',bg1:'#0c3d2a',bg2:'#021a10',ac:'#ffd23f',ac2:'#ff4a4a'}},
+  geschirr:{name:'Partygeschirr 60-teilig: Becher, Teller, Besteck',short:'Partygeschirr',cat:0,lvl:6,shape:'boxA',dims:[0.28,0.2,0.2],grid:[6,2,2],box:10,cost:2.10,market:5.49,weight:6,hype:0,risk:1,
+    art:{title:'PARTYGESCHIRR',sub:'60 Teile für 20 Gäste',bg1:'#f2ecd8',bg2:'#d8c49a',ac:'#1b5fa8',ac2:'#1b5fa8',light:true}},
+  partyspiel:{name:'Silvester-Partyspiel »Countdown«',short:'Partyspiel',cat:0,lvl:9,shape:'boxA',dims:[0.3,0.3,0.07],grid:[6,2,2],box:8,cost:5.20,market:12.99,weight:5,hype:0,risk:2,
+    art:{title:'COUNTDOWN',sub:'Das Silvester-Partyspiel',bg1:'#6a1a8a',bg2:'#1a0626',ac:'#ffd23f',ac2:'#5ce1ff'}},
+  secco:{name:'Secco alkoholfrei',short:'Secco',cat:0,lvl:9,cold:true,shape:'bottle',dims:[0.08,0.3,0.08],grid:[12,2,1],box:12,cost:1.60,market:3.99,weight:7,hype:0,risk:3,
+    art:{title:'SECCO',sub:'alkoholfrei',bg1:'#f4f0e0',bg2:'#d8cfa8',ac:'#c8a23a',ac2:'#c8a23a'}},
+  partyfass:{name:'Partyfass Pils 5 l',short:'Partyfass',cat:0,lvl:9,cold:true,shape:'fass',dims:[0.24,0.34,0.24],grid:[6,1,1],box:4,cost:6.20,market:14.99,weight:6,hype:0,risk:4,
+    art:{title:'PARTYFASS',sub:'Pils · 5 Liter',bg1:'#1b5a2a',bg2:'#062a10',ac:'#ffd23f',ac2:'#e8e2c8'}},
+  gluehwein:{name:'Glühwein 1 l',short:'Glühwein',cat:0,lvl:9,shape:'boxA',dims:[0.1,0.25,0.07],grid:[14,2,1],box:12,cost:1.40,market:3.49,weight:6,hype:0,risk:2,
+    art:{title:'GLÜHWEIN',sub:'rot · 1 Liter',bg1:'#7a0f1e',bg2:'#2a0308',ac:'#ffd23f',ac2:'#e8b418'}},
+  fonduegeraet:{name:'Fondue-Set elektrisch für 8 Personen',short:'Fondue-Gerät',cat:0,lvl:12,shape:'boxA',dims:[0.36,0.3,0.3],grid:[5,1,1],box:3,cost:16.00,market:39.99,weight:3,hype:0,risk:6,
+    art:{title:'FONDUE',sub:'elektrisch · 8 Gabeln',bg1:'#1a1d22',bg2:'#000000',ac:'#ff7a1c',ac2:'#d1e5ff'}},
+  raclettegeraet:{name:'Raclette-Grill für 8 Personen',short:'Raclette-Gerät',cat:0,lvl:12,shape:'boxA',dims:[0.48,0.2,0.3],grid:[4,1,2],box:3,cost:18.00,market:44.99,weight:3,hype:0,risk:6,
+    art:{title:'RACLETTE',sub:'Grill für 8 Personen',bg1:'#26292f',bg2:'#0b0d14',ac:'#ffd23f',ac2:'#ff4a4a'}},
+  fondueessen:{name:'Fondue-Platte für 4: Fleisch, Soßen, Beilagen',short:'Fondue-Platte',cat:0,lvl:12,cold:true,kuehlpflicht:true,shape:'boxA',dims:[0.3,0.09,0.22],grid:[3,2,3],box:6,cost:10.00,market:24.99,weight:4,hype:0,risk:5,
+    art:{title:'FONDUE-PLATTE',sub:'für 4 · gekühlt',bg1:'#8a1a1a',bg2:'#3a0606',ac:'#fff3c4',ac2:'#ffd23f'}},
+  racletteessen:{name:'Raclette-Paket für 4: Käse, Kartoffeln, Beilagen',short:'Raclette-Paket',cat:0,lvl:12,cold:true,kuehlpflicht:true,shape:'boxA',dims:[0.3,0.1,0.22],grid:[3,2,3],box:6,cost:8.00,market:19.99,weight:4,hype:0,risk:5,
+    art:{title:'RACLETTE-PAKET',sub:'für 4 · gekühlt',bg1:'#e8b418',bg2:'#8a5a08',ac:'#1b1b1b',ac2:'#c8322a',light:true}},
   bowle:{name:'Feuerzangenbowle-Set',short:'Bowle-Set',cat:0,lvl:13,shape:'boxA',dims:[0.18,0.14,0.14],grid:[8,1,1],box:8,cost:6.50,market:15.99,weight:5,hype:0,risk:3,
     art:{title:'FEUERZANGE',sub:'Zange, Zucker, Rum',bg1:'#6b2410',bg2:'#1f0a04',ac:'#ffb03a',ac2:'#f2e6c4'}},
   blanko:{name:'Blanko-Raketen',short:'Blanko',cat:2,lvl:9,shape:'rocketset',dims:[0.42,0.055,0.11],grid:[4,2,2],box:12,cost:3.20,market:6.99,weight:0,hype:9,risk:3,noShelf:true,noWish:true,
@@ -911,6 +946,7 @@ const PACKS=[
   {id:'knallkiste',lvl:8,name:'Knallkiste',desc:'Zehn Kartons Böller, gemischt aus deinem Sortiment.',gruppe:'boeller',n:10},
   {id:'raketenpaket',lvl:11,name:'Raketen-Paket',desc:'Acht Kartons Raketen, vom Dreierset bis zu dem, was du freigeschaltet hast.',gruppe:'raketen',n:8},
   {id:'verbundpaket',lvl:15,name:'Verbund-Paket',desc:'Fünf Kartons Batterien und Fächer. Mit Glück ist ein großer Verbund dabei.',gruppe:'batterien',n:5},
+  {id:'partykiste',lvl:9,name:'Partykiste',desc:'Acht Kartons Partyzubehör, gemischt aus dem, was du führst: Deko, Geschirr, Hüte und Co.',gruppe:'zubehoer',n:8},
   {id:'kugelkiste',lvl:16,name:'Kugelkiste',desc:'Vier Kartons Kugelbomben, Kaliber gemischt.',gruppe:'kugeln',n:4}
 ];
 const PYROTYPES=[
@@ -1303,7 +1339,8 @@ function ambienteScore(){
    Dazu eine langsame Inflation, die alles teurer macht.
    ========================================================= */
 const VOLA={
-  feuerzeug:0.15, knicklichter:0.20, brille:0.25, konfetti:0.30, luftschlangen:0.30,
+  feuerzeug:0.15, knicklichter:0.20, stabfeuerzeug:0.2, ballons:0.3, partyhuete:0.3, luftruessel:0.25, girlanden:0.25, folienvorhang:0.3, tischdeko:0.3, geschirr:0.25,
+  partyspiel:0.35, secco:0.55, partyfass:0.75, gluehwein:0.6, fonduegeraet:0.4, raclettegeraet:0.4, fondueessen:0.85, racletteessen:0.8, brille:0.25, konfetti:0.30, luftschlangen:0.30,
   knallerbsen:0.32, wunder:0.35, bleigiessen:0.40, tisch:0.45,
   knallfrosch:0.50, blanko:0.50, gravur:0.50, schwaermer:0.55, fontaene:0.65,
   chips:0.70, kindersekt:0.70, boeller:0.70, roemisch:0.70, raketenklein:0.70,
@@ -1472,16 +1509,25 @@ const LIZENZEN=[
    items:['wunder','knallerbsen','tisch','knallfrosch']},
   {id:'zubehoer',lvl:3,cost:120,name:'Silvesterzubehör',
    desc:'Alles um das Feuerwerk herum. Kleine Margen, aber fast jeder Kunde nimmt etwas davon mit.',
-   items:['feuerzeug','luftschlangen','knicklichter','brille','chips','konfetti']},
+   items:['feuerzeug','luftschlangen','knicklichter','brille','chips','konfetti','stabfeuerzeug']},
+  {id:'partydeko',lvl:6,cost:520,name:'Partydeko',
+   desc:'Luftballons mit Zahlen fürs neue Jahr, Partyhüte und Tröten, Luftrüssel, Girlanden, Glitzervorhang, Tischdeko und Partygeschirr. Kein Feuerwerk, aber fast jede Silvesterparty braucht es.',
+   items:['ballons','partyhuete','luftruessel','girlanden','folienvorhang','tischdeko','geschirr']},
   {id:'klassiker',lvl:5,cost:380,name:'Silvester-Klassiker',
    desc:'Die Ware, wegen der die Leute überhaupt kommen: der Furzböller, Schwärmer, kleine Raketen und der Sekt für Mitternacht.',
    items:['boeller','schwaermer','raketenklein','sekt','kindersekt']},
   {id:'krach',lvl:8,cost:1100,name:'Abteilung Krach',
    desc:'Der Monster Böller, Römische Lichter und Fontänen. Ab hier wird es laut.',
    items:['monsterboeller','roemisch','fontaene','blanko','gravur']},
+  {id:'partynacht',lvl:9,cost:1500,name:'Partynacht',
+   desc:'Getränke und Spiel für den Abend: alkoholfreier Secco und das Partyfass kommen in den Kühlschrank, dazu Glühwein und das Partyspiel »Countdown«.',
+   items:['partyspiel','secco','partyfass','gluehwein']},
   {id:'himmel',lvl:11,cost:2600,name:'Bunte Nacht',
    desc:'Raketensortimente, pfeifende Heulraketen, Goldraketen, ab Level 14 der Goldgeysir mit zehn Metern Fontäne, Vulkane und der Sternenbrunnen, eine Goldfontäne mit Farbsternen. Dazu Wachsgießen und Feuerzangenbowle.',
    items:['raketen','pfeifraketen','raketengold','vulkan','goldgeysir','wasserfall','sternenbrunnen','bleigiessen','bowle']},
+  {id:'genuss',lvl:12,cost:3400,name:'Fondue & Raclette',
+   desc:'Fondue-Set und Raclette-Grill für acht Personen, dazu fertige Platten für vier: Fleisch mit Soßen fürs Fondue, Käse und Beilagen fürs Raclette. Die Platten sind frisch und gehören in den Kühlschrank.',
+   items:['fonduegeraet','raclettegeraet','fondueessen','racletteessen']},
   {id:'verbund',lvl:14,cost:6000,name:'Verbund & Kugelbomben',
    desc:'Batterien, der Knattersturm, Fächer, der Feuerbrunnen mit Flammenregen und die ersten Kugelbomben. Die gehören in die Mörserbatterie auf dem Testfeld: ein Schuss, oben mehrere Brüche nacheinander.',
    items:['batterie16','knatter','batterie49','sortiment','faecher','feuerbrunnen','kugel75','kugel100']},
@@ -1521,8 +1567,8 @@ const GRUPPE={
   batterien:['batterie16','knatter','batterie49','batterie100','faecher','zfaecher','kometen','sortiment','profi','finale','donnerwand'],
   kugeln:['kugel75','kugel100','kugel150','kugel200','kugel300'],
   boden:['fontaene','goldgeysir','feuerbrunnen','feuersaeule','fontaene30','fontaene50','vulkan','wasserfall','roemisch','schwaermer','sternenbrunnen','tisch','wunder'],
-  zubehoer:['feuerzeug','luftschlangen','knicklichter','brille','chips','konfetti','bleigiessen','bowle'],
-  sekt:['sekt','kindersekt']
+  zubehoer:['feuerzeug','luftschlangen','knicklichter','brille','chips','konfetti','bleigiessen','bowle','stabfeuerzeug','ballons','partyhuete','luftruessel','girlanden','folienvorhang','tischdeko','geschirr','partyspiel','fonduegeraet','raclettegeraet','fondueessen','racletteessen'],
+  sekt:['sekt','kindersekt','secco','partyfass','gluehwein']
 };
 function gruppeVon(t){
   for(const g in GRUPPE) if(GRUPPE[g].indexOf(t)>=0) return g;
@@ -2108,14 +2154,20 @@ function drawFront(g,W,H,a,cat){
   if(!a.light){ g.fillStyle='rgba(255,255,255,.75)'; for(let i=0;i<40;i++){ g.beginPath(); g.arc(Math.random()*W,Math.random()*H*0.7,Math.random()*S0*0.012+0.6,0,Math.PI*2); g.fill(); } }
   const tall=H>W*1.6;
   if(tall){
-    burst(g,W*0.5,H*0.14,W*0.42,a.ac,16); burst(g,W*0.3,H*0.3,W*0.26,a.ac2,12);
+    if(cat){ burst(g,W*0.5,H*0.14,W*0.42,a.ac,16); burst(g,W*0.3,H*0.3,W*0.26,a.ac2,12); }
+    else for(let i=0;i<30;i++){ g.save(); g.translate(Math.random()*W,Math.random()*H*0.36); g.rotate(Math.random()*3);
+      g.fillStyle=pick([a.ac,a.ac2,'#ffffff']); g.fillRect(-W*0.05,-W*0.016,W*0.1,W*0.032); g.restore(); }
     g.save(); g.translate(W*0.5,H*0.66); g.rotate(-Math.PI/2);
     fitFont(g,a.title,H*0.6,Math.round(W*0.5),BUN); g.textAlign='center'; g.textBaseline='middle';
     g.lineJoin='round'; g.lineWidth=Math.max(3,W*0.05); g.strokeStyle='rgba(0,0,0,.6)'; g.strokeText(a.title,0,0); g.fillStyle=a.ac; g.fillText(a.title,0,0); g.restore();
     g.fillStyle=a.ac2; g.fillRect(0,H*0.93,W,H*0.07);
-    g.fillStyle='#fff'; fitFont(g,'XXL',W*0.8,Math.round(W*0.3),BUN); g.textAlign='center'; g.textBaseline='middle'; g.fillText('XXL',W*0.5,H*0.89);
+    if(cat){ g.fillStyle='#fff'; fitFont(g,'XXL',W*0.8,Math.round(W*0.3),BUN); g.textAlign='center'; g.textBaseline='middle'; g.fillText('XXL',W*0.5,H*0.89); }
+    else { g.fillStyle='#fff'; fitFont(g,a.sub,W*0.85,Math.round(W*0.16),BAR); g.textAlign='center'; g.textBaseline='middle'; g.fillText(a.sub,W*0.5,H*0.89); }
   } else {
     if(a.peas){ for(let i=0;i<26;i++){ g.fillStyle=pick(['#f3e3c0','#e8d1a3','#fff2d6']); g.beginPath(); g.arc(W*0.55+Math.random()*W*0.4,H*0.12+Math.random()*H*0.3,S0*0.045,0,Math.PI*2); g.fill(); } }
+    /* Zubehoer (kein Feuerwerk): Konfetti statt Feuerwerksbursts */
+    else if(cat===0){ for(let i=0;i<46;i++){ g.save(); g.translate(Math.random()*W,Math.random()*H*0.46); g.rotate(Math.random()*3);
+        g.fillStyle=pick([a.ac,a.ac2,'#ffffff','#ff5a8a','#5ce1ff','#ffd23f']); g.fillRect(-S0*0.025,-S0*0.008,S0*0.05,S0*0.016); g.restore(); } }
     else if(!a.light){ burst(g,W*0.25,H*0.3,S0*0.34,a.ac,18); burst(g,W*0.76,H*0.24,S0*0.26,a.ac2,14); }
     else { g.fillStyle=a.ac; for(let i=0;i<5;i++){ g.fillRect(W*(0.08+i*0.19),H*0.1,W*0.1,H*0.28); } g.fillStyle='#2e8b3a'; for(let i=0;i<5;i++) g.fillRect(W*(0.12+i*0.19),H*0.04,W*0.02,H*0.07); }
     g.textAlign='center'; g.textBaseline='middle'; g.lineJoin='round';
@@ -2124,9 +2176,10 @@ function drawFront(g,W,H,a,cat){
     fitFont(g,a.sub,W*0.8,Math.round(H*0.14),BAR); g.fillStyle=a.light?'#1b1b1b':'#fff'; g.fillText(a.sub,W/2,H*0.79);
     g.fillStyle=a.ac2; g.fillRect(0,H*0.9,W,H*0.1);
   }
-  const br=S0*0.1, bx=W-br*1.3, by=br*1.3;
-  g.fillStyle='#fff'; g.beginPath(); g.arc(bx,by,br,0,Math.PI*2); g.fill();
-  g.fillStyle='#0e1226'; g.font=BUN(Math.round(br*0.9)); g.textAlign='center'; g.textBaseline='middle'; g.fillText('F'+cat,bx,by+br*0.06);
+  /* Kategorie-Siegel nur auf Feuerwerk (F1/F2) - Zubehoer hat keins */
+  if(cat){ const br=S0*0.1, bx=W-br*1.3, by=br*1.3;
+    g.fillStyle='#fff'; g.beginPath(); g.arc(bx,by,br,0,Math.PI*2); g.fill();
+    g.fillStyle='#0e1226'; g.font=BUN(Math.round(br*0.9)); g.textAlign='center'; g.textBaseline='middle'; g.fillText('F'+cat,bx,by+br*0.06); }
 }
 function drawSide(g,W,H,a){
   g.fillStyle=a.bg2; g.fillRect(0,0,W,H); g.fillStyle=a.ac2; g.fillRect(0,H*0.84,W,H*0.16);
@@ -2184,6 +2237,23 @@ function buildProduct(t){
     vc.push({geo:new THREE.CylinderGeometry(R,R,0.004,26),m:tm(0,0.002,0),color:0x2a2a30});
     vc.push({geo:new THREE.CylinderGeometry(R*0.3,R*1.02,h*0.13,26),m:tm(0,HH+h*0.065,0),color:0xe8c35a});
     vc.push({geo:new THREE.CylinderGeometry(0.0022,0.0022,h*0.1,5),m:tm(0,HH+h*0.16,0),color:0x2e8b3a});
+  }
+  else if(sh==='fass'){
+    /* Partyfass: Blechfass mit Etikett, Rand oben und unten, Zapfhahn vorn */
+    const R=w/2, C=2*Math.PI*R*1.004, lh=h*0.5;
+    vc.push({geo:new THREE.CylinderGeometry(R,R,h*0.94,26),m:tm(0,h*0.47,0),color:0xc3c9d2});
+    for(const y of [0.02,0.92]) vc.push({geo:new THREE.CylinderGeometry(R*1.03,R*1.03,h*0.05,26),m:tm(0,h*y+h*0.025,0),color:0x9aa1ab});
+    vc.push({geo:new THREE.CylinderGeometry(R*0.5,R*0.5,h*0.03,20),m:tm(0,h*0.955,0),color:0x6e757f});
+    vc.push({geo:new THREE.BoxGeometry(w*0.12,h*0.05,w*0.12),m:tm(0,h*0.2,R*1.02),color:0x2a2e36});
+    vc.push({geo:new THREE.CylinderGeometry(w*0.03,w*0.03,h*0.12,8),m:tm(0,h*0.14,R*1.1),color:0xd8322a});
+    const lt=wrapTex(C,lh,a,(g,W,Hh)=>{
+      const gr=g.createLinearGradient(0,0,0,Hh); gr.addColorStop(0,a.bg1); gr.addColorStop(1,a.bg2); g.fillStyle=gr; g.fillRect(0,0,W,Hh);
+      g.fillStyle=a.ac2; g.fillRect(0,0,W,Hh*0.08); g.fillRect(0,Hh*0.92,W,Hh*0.08);
+      for(let k=0;k<2;k++){ const cx=W*(0.25+k*0.5); g.textAlign='center'; g.textBaseline='middle';
+        fitFont(g,a.title,W*0.42,Math.round(Hh*0.28),BUN); g.fillStyle=a.ac; g.fillText(a.title,cx,Hh*0.42);
+        fitFont(g,a.sub,W*0.4,Math.round(Hh*0.15),BAR); g.fillStyle='#f2f5ff'; g.fillText(a.sub,cx,Hh*0.72); }
+    });
+    parts.push({geo:merge([{geo:new THREE.CylinderGeometry(R*1.004,R*1.004,lh,26,1,true),m:tm(0,h*0.47,0)}]),mat:new THREE.MeshStandardMaterial({map:lt,roughness:0.5,side:THREE.DoubleSide})});
   }
   else if(sh==='tubepack'){
     const r=Math.min(h,d)/6.3, L=w*0.86, reds=[0xd21f1b,0xc41a17,0xe0261f];
@@ -2346,7 +2416,12 @@ const pools={};
 const _q=new THREE.Quaternion(), _e=new THREE.Euler(), _one=V(1,1,1);
 function mx(x,y,z,ry){ _e.set(0,ry||0,0); _q.setFromEuler(_e); return new THREE.Matrix4().compose(V(x,y,z),_q,_one); }
 
-function poolCap(t){ const g=P[t].grid; return Math.min(900,g[0]*g[1]*g[2]*SLOTS.length+60); }
+/* So viele Stueck, wie ein volles Fach im breitesten Regal fasst - je
+   Stellplatz einmal. Seit die Ware das Fach ganz fuellt, rechnet das
+   mit der vollen Regalbreite statt mit dem Gitter im Produkt. */
+function poolCap(t){ const p=P[t], g=p.grid, gap=0.012;
+  const cols=Math.max(1,Math.floor((2.0-0.1+gap)/(p.dims[0]+gap)));
+  return Math.min(1600,cols*g[1]*g[2]*SLOTS.length+60); }
 
 /* Kartons */
 const kartonGeo=new THREE.BoxGeometry(0.6,0.4,0.45);
@@ -8205,10 +8280,11 @@ function shelfCount(k){ return shelves.filter(s=>s.kind===k).length; }
 /* Fassungsvermögen richtet sich nach Regalbreite und -tiefe */
 function layout(t,sh){
   const p=P[t], G=p.grid, K=kindOf(sh), g=0.012;
-  /* Das Gitter im Produkt gilt für ein zwei Meter breites Regal.
-     Schmalere Regale bekommen anteilig weniger Spalten. */
-  const anteil=Math.max(1,Math.round(G[0]*K.w/2.0));
-  const cols=Math.max(1,Math.min(G[0],anteil,Math.floor((K.w-0.1+g)/(p.dims[0]+g))));
+  /* Die Ware fuellt das Fach von links bis rechts (Tom, 25.09.: "nur in
+     der Mitte was und links und rechts frei"). Vorher begrenzte das
+     Gitter im Produkt die Spalten - acht kleine Packungen standen dann
+     mitten in einem zwei Meter breiten Regal. */
+  const cols=Math.max(1,Math.floor((K.w-0.1+g)/(p.dims[0]+g)));
   const rows=Math.max(1,Math.min(G[1],Math.floor((K.d-0.06+g)/(p.dims[2]+g))));
   const lvH=(K.lv.length>1?K.lv[1]-K.lv[0]:0.45)-0.04;
   const st=Math.max(1,Math.min(G[2],Math.floor(lvH/p.dims[1])));
@@ -8368,7 +8444,9 @@ function allLevels(){ const a=[]; shelves.forEach(s=>s.levels.forEach(l=>a.push(
 function findLevel(t,from){ let best=null,bd=1e9; for(const l of allLevels()){ if(l.type===t&&l.count>0){ const d=from?from.distanceTo(shelfStand(l.sh,l)):0; if(d<bd){ bd=d; best=l; } } } return best; }
 /* Größtes Fach, das dieses Produkt überhaupt aufnehmen kann */
 function shelfCapOf(t){ let m=0; shelves.forEach(sh=>{ if(shelfAccepts(sh,t)) m=Math.max(m,layout(t,sh).cap); }); return m; }
-function shelfAccepts(sh,t){ const K=kindOf(sh); return K.cold?!!P[t].cold:true; }
+/* Ins Kuehlregal kommt nur Gekuehltes; frische Lebensmittel (Fondue-
+   und Raclette-Platten) nur ins Kuehlregal */
+function shelfAccepts(sh,t){ const K=kindOf(sh); return K.cold?!!P[t].cold:!P[t].kuehlpflicht; }
 function emptyLevel(t){ if(!canShelf(t)) return null;
   const pool=allLevels().filter(l=>shelfAccepts(l.sh,t));
   /* Kühlware kommt bevorzugt in den Kühlschrank */

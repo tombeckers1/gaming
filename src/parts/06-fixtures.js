@@ -429,10 +429,11 @@ function shelfCount(k){ return shelves.filter(s=>s.kind===k).length; }
 /* Fassungsvermögen richtet sich nach Regalbreite und -tiefe */
 function layout(t,sh){
   const p=P[t], G=p.grid, K=kindOf(sh), g=0.012;
-  /* Das Gitter im Produkt gilt für ein zwei Meter breites Regal.
-     Schmalere Regale bekommen anteilig weniger Spalten. */
-  const anteil=Math.max(1,Math.round(G[0]*K.w/2.0));
-  const cols=Math.max(1,Math.min(G[0],anteil,Math.floor((K.w-0.1+g)/(p.dims[0]+g))));
+  /* Die Ware fuellt das Fach von links bis rechts (Tom, 25.09.: "nur in
+     der Mitte was und links und rechts frei"). Vorher begrenzte das
+     Gitter im Produkt die Spalten - acht kleine Packungen standen dann
+     mitten in einem zwei Meter breiten Regal. */
+  const cols=Math.max(1,Math.floor((K.w-0.1+g)/(p.dims[0]+g)));
   const rows=Math.max(1,Math.min(G[1],Math.floor((K.d-0.06+g)/(p.dims[2]+g))));
   const lvH=(K.lv.length>1?K.lv[1]-K.lv[0]:0.45)-0.04;
   const st=Math.max(1,Math.min(G[2],Math.floor(lvH/p.dims[1])));
@@ -592,7 +593,9 @@ function allLevels(){ const a=[]; shelves.forEach(s=>s.levels.forEach(l=>a.push(
 function findLevel(t,from){ let best=null,bd=1e9; for(const l of allLevels()){ if(l.type===t&&l.count>0){ const d=from?from.distanceTo(shelfStand(l.sh,l)):0; if(d<bd){ bd=d; best=l; } } } return best; }
 /* Größtes Fach, das dieses Produkt überhaupt aufnehmen kann */
 function shelfCapOf(t){ let m=0; shelves.forEach(sh=>{ if(shelfAccepts(sh,t)) m=Math.max(m,layout(t,sh).cap); }); return m; }
-function shelfAccepts(sh,t){ const K=kindOf(sh); return K.cold?!!P[t].cold:true; }
+/* Ins Kuehlregal kommt nur Gekuehltes; frische Lebensmittel (Fondue-
+   und Raclette-Platten) nur ins Kuehlregal */
+function shelfAccepts(sh,t){ const K=kindOf(sh); return K.cold?!!P[t].cold:!P[t].kuehlpflicht; }
 function emptyLevel(t){ if(!canShelf(t)) return null;
   const pool=allLevels().filter(l=>shelfAccepts(l.sh,t));
   /* Kühlware kommt bevorzugt in den Kühlschrank */

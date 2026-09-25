@@ -14,14 +14,20 @@ function drawFront(g,W,H,a,cat){
   if(!a.light){ g.fillStyle='rgba(255,255,255,.75)'; for(let i=0;i<40;i++){ g.beginPath(); g.arc(Math.random()*W,Math.random()*H*0.7,Math.random()*S0*0.012+0.6,0,Math.PI*2); g.fill(); } }
   const tall=H>W*1.6;
   if(tall){
-    burst(g,W*0.5,H*0.14,W*0.42,a.ac,16); burst(g,W*0.3,H*0.3,W*0.26,a.ac2,12);
+    if(cat){ burst(g,W*0.5,H*0.14,W*0.42,a.ac,16); burst(g,W*0.3,H*0.3,W*0.26,a.ac2,12); }
+    else for(let i=0;i<30;i++){ g.save(); g.translate(Math.random()*W,Math.random()*H*0.36); g.rotate(Math.random()*3);
+      g.fillStyle=pick([a.ac,a.ac2,'#ffffff']); g.fillRect(-W*0.05,-W*0.016,W*0.1,W*0.032); g.restore(); }
     g.save(); g.translate(W*0.5,H*0.66); g.rotate(-Math.PI/2);
     fitFont(g,a.title,H*0.6,Math.round(W*0.5),BUN); g.textAlign='center'; g.textBaseline='middle';
     g.lineJoin='round'; g.lineWidth=Math.max(3,W*0.05); g.strokeStyle='rgba(0,0,0,.6)'; g.strokeText(a.title,0,0); g.fillStyle=a.ac; g.fillText(a.title,0,0); g.restore();
     g.fillStyle=a.ac2; g.fillRect(0,H*0.93,W,H*0.07);
-    g.fillStyle='#fff'; fitFont(g,'XXL',W*0.8,Math.round(W*0.3),BUN); g.textAlign='center'; g.textBaseline='middle'; g.fillText('XXL',W*0.5,H*0.89);
+    if(cat){ g.fillStyle='#fff'; fitFont(g,'XXL',W*0.8,Math.round(W*0.3),BUN); g.textAlign='center'; g.textBaseline='middle'; g.fillText('XXL',W*0.5,H*0.89); }
+    else { g.fillStyle='#fff'; fitFont(g,a.sub,W*0.85,Math.round(W*0.16),BAR); g.textAlign='center'; g.textBaseline='middle'; g.fillText(a.sub,W*0.5,H*0.89); }
   } else {
     if(a.peas){ for(let i=0;i<26;i++){ g.fillStyle=pick(['#f3e3c0','#e8d1a3','#fff2d6']); g.beginPath(); g.arc(W*0.55+Math.random()*W*0.4,H*0.12+Math.random()*H*0.3,S0*0.045,0,Math.PI*2); g.fill(); } }
+    /* Zubehoer (kein Feuerwerk): Konfetti statt Feuerwerksbursts */
+    else if(cat===0){ for(let i=0;i<46;i++){ g.save(); g.translate(Math.random()*W,Math.random()*H*0.46); g.rotate(Math.random()*3);
+        g.fillStyle=pick([a.ac,a.ac2,'#ffffff','#ff5a8a','#5ce1ff','#ffd23f']); g.fillRect(-S0*0.025,-S0*0.008,S0*0.05,S0*0.016); g.restore(); } }
     else if(!a.light){ burst(g,W*0.25,H*0.3,S0*0.34,a.ac,18); burst(g,W*0.76,H*0.24,S0*0.26,a.ac2,14); }
     else { g.fillStyle=a.ac; for(let i=0;i<5;i++){ g.fillRect(W*(0.08+i*0.19),H*0.1,W*0.1,H*0.28); } g.fillStyle='#2e8b3a'; for(let i=0;i<5;i++) g.fillRect(W*(0.12+i*0.19),H*0.04,W*0.02,H*0.07); }
     g.textAlign='center'; g.textBaseline='middle'; g.lineJoin='round';
@@ -30,9 +36,10 @@ function drawFront(g,W,H,a,cat){
     fitFont(g,a.sub,W*0.8,Math.round(H*0.14),BAR); g.fillStyle=a.light?'#1b1b1b':'#fff'; g.fillText(a.sub,W/2,H*0.79);
     g.fillStyle=a.ac2; g.fillRect(0,H*0.9,W,H*0.1);
   }
-  const br=S0*0.1, bx=W-br*1.3, by=br*1.3;
-  g.fillStyle='#fff'; g.beginPath(); g.arc(bx,by,br,0,Math.PI*2); g.fill();
-  g.fillStyle='#0e1226'; g.font=BUN(Math.round(br*0.9)); g.textAlign='center'; g.textBaseline='middle'; g.fillText('F'+cat,bx,by+br*0.06);
+  /* Kategorie-Siegel nur auf Feuerwerk (F1/F2) - Zubehoer hat keins */
+  if(cat){ const br=S0*0.1, bx=W-br*1.3, by=br*1.3;
+    g.fillStyle='#fff'; g.beginPath(); g.arc(bx,by,br,0,Math.PI*2); g.fill();
+    g.fillStyle='#0e1226'; g.font=BUN(Math.round(br*0.9)); g.textAlign='center'; g.textBaseline='middle'; g.fillText('F'+cat,bx,by+br*0.06); }
 }
 function drawSide(g,W,H,a){
   g.fillStyle=a.bg2; g.fillRect(0,0,W,H); g.fillStyle=a.ac2; g.fillRect(0,H*0.84,W,H*0.16);

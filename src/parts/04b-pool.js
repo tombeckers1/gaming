@@ -12,7 +12,12 @@ const pools={};
 const _q=new THREE.Quaternion(), _e=new THREE.Euler(), _one=V(1,1,1);
 function mx(x,y,z,ry){ _e.set(0,ry||0,0); _q.setFromEuler(_e); return new THREE.Matrix4().compose(V(x,y,z),_q,_one); }
 
-function poolCap(t){ const g=P[t].grid; return Math.min(900,g[0]*g[1]*g[2]*SLOTS.length+60); }
+/* So viele Stueck, wie ein volles Fach im breitesten Regal fasst - je
+   Stellplatz einmal. Seit die Ware das Fach ganz fuellt, rechnet das
+   mit der vollen Regalbreite statt mit dem Gitter im Produkt. */
+function poolCap(t){ const p=P[t], g=p.grid, gap=0.012;
+  const cols=Math.max(1,Math.floor((2.0-0.1+gap)/(p.dims[0]+gap)));
+  return Math.min(1600,cols*g[1]*g[2]*SLOTS.length+60); }
 
 /* Kartons */
 const kartonGeo=new THREE.BoxGeometry(0.6,0.4,0.45);

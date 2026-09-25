@@ -14,8 +14,8 @@ const GRUPPE={
   batterien:['batterie16','knatter','batterie49','batterie100','faecher','zfaecher','kometen','sortiment','profi','finale','donnerwand'],
   kugeln:['kugel75','kugel100','kugel150','kugel200','kugel300'],
   boden:['fontaene','goldgeysir','feuerbrunnen','feuersaeule','fontaene30','fontaene50','vulkan','wasserfall','roemisch','schwaermer','sternenbrunnen','tisch','wunder'],
-  zubehoer:['feuerzeug','luftschlangen','knicklichter','brille','chips','konfetti','bleigiessen','bowle'],
-  sekt:['sekt','kindersekt']
+  zubehoer:['feuerzeug','luftschlangen','knicklichter','brille','chips','konfetti','bleigiessen','bowle','stabfeuerzeug','ballons','partyhuete','luftruessel','girlanden','folienvorhang','tischdeko','geschirr','partyspiel','fonduegeraet','raclettegeraet','fondueessen','racletteessen'],
+  sekt:['sekt','kindersekt','secco','partyfass','gluehwein']
 };
 function gruppeVon(t){
   for(const g in GRUPPE) if(GRUPPE[g].indexOf(t)>=0) return g;

@@ -37,6 +37,23 @@ function buildProduct(t){
     vc.push({geo:new THREE.CylinderGeometry(R*0.3,R*1.02,h*0.13,26),m:tm(0,HH+h*0.065,0),color:0xe8c35a});
     vc.push({geo:new THREE.CylinderGeometry(0.0022,0.0022,h*0.1,5),m:tm(0,HH+h*0.16,0),color:0x2e8b3a});
   }
+  else if(sh==='fass'){
+    /* Partyfass: Blechfass mit Etikett, Rand oben und unten, Zapfhahn vorn */
+    const R=w/2, C=2*Math.PI*R*1.004, lh=h*0.5;
+    vc.push({geo:new THREE.CylinderGeometry(R,R,h*0.94,26),m:tm(0,h*0.47,0),color:0xc3c9d2});
+    for(const y of [0.02,0.92]) vc.push({geo:new THREE.CylinderGeometry(R*1.03,R*1.03,h*0.05,26),m:tm(0,h*y+h*0.025,0),color:0x9aa1ab});
+    vc.push({geo:new THREE.CylinderGeometry(R*0.5,R*0.5,h*0.03,20),m:tm(0,h*0.955,0),color:0x6e757f});
+    vc.push({geo:new THREE.BoxGeometry(w*0.12,h*0.05,w*0.12),m:tm(0,h*0.2,R*1.02),color:0x2a2e36});
+    vc.push({geo:new THREE.CylinderGeometry(w*0.03,w*0.03,h*0.12,8),m:tm(0,h*0.14,R*1.1),color:0xd8322a});
+    const lt=wrapTex(C,lh,a,(g,W,Hh)=>{
+      const gr=g.createLinearGradient(0,0,0,Hh); gr.addColorStop(0,a.bg1); gr.addColorStop(1,a.bg2); g.fillStyle=gr; g.fillRect(0,0,W,Hh);
+      g.fillStyle=a.ac2; g.fillRect(0,0,W,Hh*0.08); g.fillRect(0,Hh*0.92,W,Hh*0.08);
+      for(let k=0;k<2;k++){ const cx=W*(0.25+k*0.5); g.textAlign='center'; g.textBaseline='middle';
+        fitFont(g,a.title,W*0.42,Math.round(Hh*0.28),BUN); g.fillStyle=a.ac; g.fillText(a.title,cx,Hh*0.42);
+        fitFont(g,a.sub,W*0.4,Math.round(Hh*0.15),BAR); g.fillStyle='#f2f5ff'; g.fillText(a.sub,cx,Hh*0.72); }
+    });
+    parts.push({geo:merge([{geo:new THREE.CylinderGeometry(R*1.004,R*1.004,lh,26,1,true),m:tm(0,h*0.47,0)}]),mat:new THREE.MeshStandardMaterial({map:lt,roughness:0.5,side:THREE.DoubleSide})});
+  }
   else if(sh==='tubepack'){
     const r=Math.min(h,d)/6.3, L=w*0.86, reds=[0xd21f1b,0xc41a17,0xe0261f];
     for(let ly=0;ly<3;ly++) for(let iz=-1;iz<=1;iz++){

@@ -29,6 +29,14 @@ function packerPlatz(){
 }
 const IDLE={reinigung:V(-6.6,0,4.2),auffueller:V(-7.0,0,1.0),auffueller2:V(-7.0,0,-0.4),kassierer:V(0,0,0),security:V(1.4,0,4.6),packer:V(-16.3,0,3.4)};
 const PRIO={lkw:'LKW zuerst',regal:'Regale zuerst'};
+/* Feste Ruheplaetze koennen unter verschiebbaren Moebeln liegen - der
+   des Einraeumers lag mitten im Buerotisch. Dann die naechste freie Stelle. */
+function freiePos(v){
+  if(typeof NAV==='undefined') return v.clone();
+  if(NAV.dirty) navBuild();
+  if(navFrei(navIdx(v.x,v.z))) return v.clone();
+  const n=navNah(v.x,v.z); return n>=0?navPos(n):v.clone();
+}
 /* Lohnstufen: mehr Geld heißt schneller, gründlicher und freundlicher */
 const WAGES=[
   {f:0.75,name:'Mindestlohn',desc:'billig, aber lustlos'},
@@ -88,7 +96,7 @@ function freeRackSlot(){ for(const r of racks) for(const sl of r.slots) if(!sl.b
 class Worker{
   constructor(id){
     this.id=id; this.kind=id==='auffueller2'?'auffueller':SB_KASSIERER.indexOf(id)>=0?'sbkasse':id; this.g=makePerson({uniform:id});
-    const st=id==='packer'?packerPlatz().p:this.kind==='sbkasse'?sbKassiererPlatz(sbLaneVon(id)).p:IDLE[id]; this.g.position.copy(id==='kassierer'?ck(-0.25,-0.85):st); scene.add(this.g);
+    const st=id==='packer'?packerPlatz().p:this.kind==='sbkasse'?sbKassiererPlatz(sbLaneVon(id)).p:freiePos(IDLE[id]); this.g.position.copy(id==='kassierer'?ck(-0.25,-0.85):st); scene.add(this.g);
     this.path=[]; this.base=id==='security'?1.9:1.45; this.speed=this.base; this.state='idle'; this.t=0; this.carry=null; this.chase=null; this.moving=false; this.applyWage();
   }
   get pos(){ return this.g.position; }
@@ -112,22 +120,16 @@ class Worker{
     animPerson(this.g,this.moving,dt,this.speed);
     if(this.kind==='reinigung') wischerPersonal(this,dt);
     if(this.kind==='auffueller') einrPose(this,dt);
+    if(this.kind==='packer') vsPose(this,dt);
   }
   cleanLoop(dt){
     if(this.state==='idle'){ const d=nearestDirt(this.pos); if(d){ this.target=d; this.goTo(V(d.m.position.x+0.25,0,d.m.position.z+0.85)); this.state='go'; } else if(this.path.length===0&&this.pos.distanceTo(IDLE.reinigung)>0.5) this.goTo(IDLE.reinigung); else this.walk(dt); }
     else if(this.state==='go'){ if(!this.target||dirts.indexOf(this.target)<0){ this.state='idle'; return; } if(this.walk(dt)){ this.state='work'; this.t=2.2; } }
     else if(this.state==='work'){ this.t-=dt*(this.wf||1); if(this.t<=0){ if(this.target&&dirts.indexOf(this.target)>=0){ removeDirt(this.target); sfx.pop(); } this.target=null; this.state='idle'; } }
   }
-  packLoop(dt){
-    /* Der Packer steht vor dem Packtisch, wo immer die Versandecke
-       gerade steht. Vorher lief er zu einem festen Punkt im
-       Nordanbau - dort stand die Station schon lange nicht mehr. */
-    const P=packerPlatz(), home=P.p;
-    if(this.pos.distanceTo(home)>0.45){ if(!this.path.length||this.ziel&&this.ziel.distanceTo(home)>0.3){ this.goTo(home); this.ziel=home.clone(); } this.walk(dt); return; }
-    let df=P.ry-this.g.rotation.y; while(df>Math.PI) df-=Math.PI*2; while(df<-Math.PI) df+=Math.PI*2;
-    this.g.rotation.y+=df*Math.min(1,dt*6);
-    if((S.offen|0)>0){ this.moving=true; }
-  }
+  /* Versandmitarbeiter: Kommissionierwagen, Picken, Packtisch -
+     der ganze Ablauf steht in 11c-versand.js */
+  packLoop(dt){ vsLoop(this,dt); }
   stockLoop(dt){
     if(this.state==='idle'){
       /* Reihenfolge und an/aus stellt der Spieler je Einraeumer ein */
@@ -136,7 +138,7 @@ class Worker{
       if(src&&src.kind==='truck'){ this.goTo(DOCK.stand.clone()); this.state='atTruck'; }
       else if(src){ const p=src.kind==='floor'?src.box.mesh.position:localToWorld(src.slot.rk.g,src.slot.x,0.8);
         this.goTo(V(p.x,0,p.z+(src.kind==='floor'?0.7:0.8))); this.state='fetch'; }
-      else { const home=IDLE[this.id]||IDLE.auffueller;
+      else { const home=freiePos(IDLE[this.id]||IDLE.auffueller);
         if(this.path.length===0&&this.pos.distanceTo(home)>0.6) this.goTo(home); else this.walk(dt); }
     }
     else if(this.state==='atTruck'){
@@ -212,7 +214,7 @@ class Worker{
     if(this.path.length===0){ if(Math.random()<0.5) this.goTo(V(rand(-5,5),0,rand(-4,4))); else this.goTo(IDLE.security); }
     this.walk(dt);
   }
-  remove(){ einrAufraeumen(this); scene.remove(this.g); if(this.carry&&this.carry.count>0) spawnFloorBox(this.carry.type,this.carry.count,null,this.carry.q||1); }
+  remove(){ einrAufraeumen(this); if(this.kind==='packer') vsAufraeumen(this); scene.remove(this.g); if(this.carry&&this.carry.count>0) spawnFloorBox(this.carry.type,this.carry.count,null,this.carry.q||1); }
 }
 function hireStaff(id){ if(staff[id]) return; staff[id]=new Worker(id); }
 function fireStaff(id){ if(!staff[id]) return; staff[id].remove(); staff[id]=null; }

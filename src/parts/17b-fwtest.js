@@ -24,7 +24,7 @@ function fwTestStapeln(){
   const L=fwTestProdukte(), SP=5, DX=0.8, DZ=0.78;
   L.forEach((t,i)=>{ const platz=Math.floor(i/2), lage=i%2;
     const x=-4.95+(platz%SP)*DX, z=-12.6-Math.floor(platz/SP)*DZ;
-    fwTestBoxen.push(spawnFloorBox(t,P[t].box,{x,y:0.2+lage*0.41,z,ry:0},1)); });
+    const b=spawnFloorBox(t,P[t].box,{x,y:0.2+lage*0.41,z,ry:0},1); b.test=true; fwTestBoxen.push(b); });
   return L.length;
 }
 function fwTestSchalten(){

@@ -38,25 +38,22 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   await zeig('VERSAND   ');
   await p.screenshot({path:'/tmp/online-tab.jpg',type:'jpeg',quality:82});
 
-  /* 4. Ein Paket packen */
-  const vor=await p.evaluate(()=>({geld:window.__bb.S.money,offen:window.__bb.S.offen,pak:window.__bb.S.pakete}));
-  await p.click('#onPack');
-  const nach=await p.evaluate(()=>({geld:window.__bb.S.money,offen:window.__bb.S.offen,pak:window.__bb.S.pakete}));
-  console.log('EINZELN    vorher',JSON.stringify(vor),'nachher',JSON.stringify(nach));
+  /* 4. Die Liste zeigt jede Bestellung mit Inhalt, Groesse und Wert.
+        Gepackt wird am Packtisch, nicht per Knopf - es gibt keinen
+        Pack-Knopf mehr im Handy (Tom, 25.09.). */
+  const liste=await p.evaluate(()=>{ const bb=window.__bb, li=document.getElementById('onListe');
+    return {eintraege:li?li.querySelectorAll('.best').length:-1,text:li?li.textContent.slice(0,160):'',
+      bestellungen:bb.S.bestellungen.length,mitInhalt:bb.S.bestellungen.every(x=>x.pos.length>0&&x.wert>0),
+      knopf:!!document.getElementById('onPack')}; });
+  console.log('LISTE      ',JSON.stringify(liste));
+  if(liste.eintraege<1||liste.bestellungen!==11||!liste.mitInhalt||liste.knopf) fehler.push('LISTE: Bestellungen ohne Inhalt oder alter Pack-Knopf '+JSON.stringify(liste));
 
-  /* 5. Alles packen - Rampe muss zwischendurch geleert werden */
-  await p.click('#onPackAll');
-  const alle=await p.evaluate(()=>({offen:window.__bb.S.offen,pak:window.__bb.S.pakete,
-     ddl:window.__bb.stat?window.__bb.stat('ddl'):null}));
-  console.log('ALLE       ',JSON.stringify(alle));
-
-  /* 6. Leere Liste: Knoepfe aus */
-  await zeig('LEER      ');
-
-  /* 7. Live-Tick schreibt die Zahlen nach, ohne neu aufzubauen */
+  /* 5. Live-Tick schreibt Zahlen und Liste nach, ohne neu aufzubauen */
   await p.evaluate(()=>{ window.__bb.S.offen=4; window.__bb.updateOnline(); });
-  console.log('TICK       ',await p.evaluate(()=>document.getElementById('onOffen').textContent+' / Knopf '+
-    (document.getElementById('onPack').disabled?'aus':'an')));
+  const tick=await p.evaluate(()=>({offen:document.getElementById('onOffen').textContent,
+    eintraege:document.querySelectorAll('#onListe .best').length,S:window.__bb.S.bestellungen.length}));
+  console.log('TICK       ',JSON.stringify(tick));
+  if(tick.offen!=='4'||tick.eintraege!==4||tick.S!==4) fehler.push('TICK: '+JSON.stringify(tick));
 
   console.log(fehler.length?fehler.slice(0,5).join('\n'):'ERRORS: keine');
   await b.close();

@@ -159,7 +159,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   });
   console.log('KAUF      ',JSON.stringify(k));
   pruef('KAUF',k.gekauft===true,'die Packstation laesst sich nicht kaufen');
-  pruef('KAUF',k.cols===3,'nach dem Kauf erwartet: Tisch und zwei Masten - gefunden '+k.cols);
+  pruef('KAUF',k.cols===4,'nach dem Kauf erwartet: Tisch, zwei Masten und der geparkte Kommissionierwagen - gefunden '+k.cols);
   pruef('KAUF',k.bandSichtbar===0,'das Band haengt nach dem Kauf noch');
 
   /* 6 - Speichern und Laden: die Ecke bleibt, wo sie steht */
@@ -174,7 +174,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
       cols:bb.colliders.filter(c=>c.ref===bb.packMov).length}; });
   console.log('LADEN     ',JSON.stringify({vorher,nach}));
   pruef('LADEN',Math.abs(nach.x-vorher.x)<0.02&&Math.abs(nach.z-vorher.z)<0.02&&Math.abs(nach.ry-vorher.ry)<0.01,'nach dem Laden steht die Ecke woanders');
-  pruef('LADEN',nach.cols===3,'nach dem Laden stimmt die Kollision nicht ('+nach.cols+')');
+  pruef('LADEN',nach.cols===4,'nach dem Laden stimmt die Kollision nicht ('+nach.cols+')');
 
   /* 7 - Pause: Esc haelt an und zeigt die Steuerung */
   const tool0=await p.evaluate(()=>document.getElementById('tool').textContent);

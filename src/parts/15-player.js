@@ -241,10 +241,13 @@ function promptFor(t){
     case 'pack': {
       if(!zoneOffen('packstation')) return {t:'Packstation — im Laptop unter Ausbau freischalten',a:false};
       if(!S.up.onlineshop) return {t:'Onlineshop muss noch freigeschaltet werden',a:false};
+      vsAbgleich();
       const o=S.offen|0;
-      if(o<=0) return {t:`Packstation: keine offenen Bestellungen · ${S.pakete|0} Pakete auf der Rampe`,a:false};
-      if((S.pakete|0)>=PAKET_BAYS) return {t:'Rampe ist voll. DDL holt am Tagesende ab.',a:false};
-      return {t:`Paket packen (${o} offen) · +${eur(paketWert())}`,a:true}; }
+      if(o<=0) return {t:`Packstation: keine offenen Bestellungen · ${S.pakete|0} Pakete auf der Ablage`,a:false};
+      if(!vsTischFrei()) return {t:'Am Packtisch wird gerade verpackt',a:false};
+      const b=vsSpielerBestellung();
+      if(!b) return {t:(S.bestellungen||[]).some(x=>x.st==='offen')?`${o} Bestellung${o===1?'':'en'} offen · die Ware fehlt im Lager und im Laden`:'Alle offenen Bestellungen sind beim Versandmitarbeiter',a:false};
+      return {t:`Paket packen #${b.id} (${VS_GR[b.gr].name}): ${vsText(b)} · +${eur(b.wert)}`,a:true}; }
     case 'station': { const st=t.ref, nm=STATION_POS[st.id].name;
       if(c){ const want=stationOf(c.type);
         if(!want) return {t:`${nm}: damit kann man nichts zünden`,a:false};
@@ -286,7 +289,7 @@ function doAction(){
   else if(k==='belt') scanBelt(r);
   else if(k==='card'){ if(reg&&reg.state==='pay'){ if(reg.method==='card') reg.finishCard(); else toast('Der Kunde zahlt bar. Klick die Kasse an.'); } }
   else if(k==='pos'){ if(reg&&reg.state==='pay'){ if(reg.method==='cash') openCash(reg); else reg.finishCard(); } }
-  else if(k==='pack'){ if((S.pakete|0)<PAKET_BAYS) packOne(false); }
+  else if(k==='pack') vsSpielerPacken();
   else if(k==='laptop') openLaptop();
   else if(k==='laptop2') openLaptop('order');
   else if(k==='station'){ if(S.carrying) placeOnStation(r); }

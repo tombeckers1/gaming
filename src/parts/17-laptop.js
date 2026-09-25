@@ -513,24 +513,37 @@ function onlineHint(){
 }
 /* Nur Zahlen, kein Neuaufbau: so springt die Liste beim Tippen nicht. */
 function onlineZahlen(){
-  const offen=S.offen|0, pak=S.pakete|0;
+  vsAbgleich();
+  const L=S.bestellungen||[];
   return {
-    offen, pak,
+    offen : S.offen|0,
+    wagen : L.filter(b=>b.st==='wagen'||b.st==='tisch').length,
+    fehlt : (()=>{ const wb=vsWagenBedarf(); return L.filter(b=>b.st==='offen'&&!vsErfuellbar(b,wb)).length; })(),
+    pak   : S.pakete|0,
     wert  : paketWert(),
     proTag: bestellungenProTag(),
     heute : r2(DS.versand||0),
-    frei  : Math.max(0,PAKET_BAYS-pak)
+    status: vsStatus()
   };
+}
+/* Bestellungen mit Inhalt, Groesse, Wert und Stand */
+function onlineListe(){
+  const L=(S.bestellungen||[]).slice(0,10);
+  if(!L.length) return '<small>Gerade liegt keine Bestellung an.</small>';
+  const wb=vsWagenBedarf();
+  const stand=b=>b.st==='wagen'?'<span class="ok">auf dem Wagen</span>':b.st==='tisch'?'<span class="ok">wird verpackt</span>'
+    :!vsErfuellbar(b,wb)?'<span class="warn">Ware fehlt</span>':b.pos.some(l=>l.g>0)?`angefangen ${b.pos.reduce((a,l)=>a+l.g,0)}/${vsStueck(b)}`:'offen';
+  return L.map(b=>`<div class="best"><b>#${b.id} · ${VS_GR[b.gr].name}</b> <em>${eur(b.wert)}</em><small>${vsText(b)}</small><small>${stand(b)}</small></div>`).join('')+
+    ((S.bestellungen||[]).length>10?`<small>und ${(S.bestellungen||[]).length-10} weitere</small>`:'');
 }
 function updateOnline(){
   if(!(laptopOpen&&ltab==='online')&&!(handyOpen&&happ==='online')) return;
   const z=onlineZahlen();
   const set=(id,v)=>{ const e=document.getElementById(id); if(e) e.textContent=v; };
-  set('onOffen',z.offen); set('onPak',z.pak+' von '+PAKET_BAYS);
+  set('onOffen',z.offen); set('onPak',z.pak);
   set('onHeute',eur(z.heute)); set('onWert',eur(z.wert));
-  const b1=document.getElementById('onPack'), b2=document.getElementById('onPackAll');
-  if(b1) b1.disabled=z.offen<=0;
-  if(b2) b2.disabled=z.offen<=0;
+  set('onStatus',z.status||'nicht eingestellt');
+  const li=document.getElementById('onListe'); if(li){ const h=onlineListe(); if(li.dataset.h!==h){ li.innerHTML=h; li.dataset.h=h; } }
   const w=document.getElementById('onWarn');
   if(w) w.textContent=z.offen>8?`${z.offen} offene Bestellungen - über acht kostet dich das heute Abend Ruf.`:'';
 }
@@ -559,38 +572,24 @@ function renderOnline(){
       `</div>`;
     return h;
   }
+  /* Gepackt wird am Packtisch, nicht per Knopf: die Ware muss erst
+     aus dem Lager oder dem Laden in den Karton */
   h+=`<div class="row"><div class="rm"><b>Offene Bestellungen</b>`+
-      `<small>Warten darauf, gepackt zu werden. Jedes Paket bringt <span id="onWert">${eur(z.wert)}</span>.</small>`+
+      `<small>Jede Bestellung verlangt echte Ware aus dem Lager, sonst aus dem Laden. Im Schnitt <span id="onWert">${eur(z.wert)}</span> je Paket.</small>`+
       `<small class="warn" id="onWarn">${z.offen>8?`${z.offen} offene Bestellungen - über acht kostet dich das heute Abend Ruf.`:''}</small></div>`+
-    `<div class="mkcol"><small>offen</small><b style="font-family:var(--display);font-size:24px" id="onOffen">${z.offen}</b></div>`+
-    `<button id="onPack" data-a="vpack" ${z.offen<=0?'disabled':''}>Paket packen</button>`+
-    `<button class="ghost" id="onPackAll" data-a="vpackall" ${z.offen<=0?'disabled':''}>Alle packen</button>`+
-    `</div>`;
-  h+=`<div class="row"><div class="rm"><b>Pakete auf der Abholrampe</b>`+
-      `<small>Ist die Rampe voll, fährt DDL zwischendurch vor. Am Abend wird ohnehin alles abgeholt.</small></div>`+
-    `<div class="mkcol"><small>Rampe</small><b style="font-family:var(--display);font-size:20px" id="onPak">${z.pak} von ${PAKET_BAYS}</b></div></div>`;
+    `<div class="mkcol"><small>offen</small><b style="font-family:var(--display);font-size:24px" id="onOffen">${z.offen}</b></div></div>`;
+  h+=`<div class="row"><div class="rm onListe" id="onListe">${onlineListe()}</div></div>`;
+  h+=`<div class="row"><div class="rm"><b>Pakete auf der Ablage</b>`+
+      `<small>Sie stapeln sich neben der Rollenbahn. Ist die Ablage voll, fährt DDL zwischendurch vor, am Abend wird ohnehin alles abgeholt.</small></div>`+
+    `<div class="mkcol"><small>Ablage</small><b style="font-family:var(--display);font-size:20px" id="onPak">${z.pak}</b></div></div>`;
   h+=`<div class="row"><div class="rm"><b>Versand heute</b>`+
       `<small>Was der Onlineshop heute schon eingebracht hat. Der Betrag steckt bereits im Tagesumsatz.</small></div>`+
     `<div class="mkcol"><small>Umsatz</small><b style="font-family:var(--display);font-size:20px" id="onHeute">${eur(z.heute)}</b></div></div>`;
   const pk=staff&&staff.packer;
-  h+=`<div class="row${pk?'':' locked'}"><div class="rm"><b>Packer</b>`+
-      `<small>${pk?'Packt selbstständig, solange Bestellungen offen sind.':'Ohne Packer bleibt alles an dir hängen - einstellen kannst du ihn im Handy unter Team.'}</small></div>`+
-    `<small class="${pk?'ok':''}">${pk?'im Dienst':'nicht eingestellt'}</small></div>`;
+  h+=`<div class="row${pk?'':' locked'}"><div class="rm"><b>Versandmitarbeiter</b>`+
+      `<small>${pk?'Holt die Ware mit dem Kommissionierwagen und packt selbstständig.':'Ohne ihn packst du selbst am Packtisch (E) - einstellen kannst du ihn im Handy unter Team.'}</small>`+
+      `<small class="${pk?'ok':''}" id="onStatus">${pk?z.status:'nicht eingestellt'}</small></div></div>`;
   return h;
-}
-/* Packen aus dem Laptop heraus: derselbe Vorgang wie am Packtisch. */
-function packLaptop(alle){
-  if(!packBereit()) return;
-  if((S.offen|0)<=0){ toast('Gerade sind keine Bestellungen offen.'); return; }
-  /* packOne(true) unterdrueckt Ton, Erfahrung und Einzelmeldung -
-     sonst prasselt beim Sammelpacken ein Dutzend Toasts herunter.
-     Beides kommt danach einmal fuer den ganzen Stapel. */
-  const max=alle?PAKET_BAYS*8:1;
-  let n=0, wert=0;
-  while(n<max&&(S.offen|0)>0){ const w=paketWert(); if(!packOne(true)) break; n++; wert=r2(wert+w); }
-  if(n>0){ addXP(3*n); sfx.beep(); save();
-    toast(`${n} Paket${n===1?'':'e'} gepackt: +${eur(wert)}`,'money'); }
-  renderLaptop();
 }
 /* =========================================================
    Handy (Tom, 24.09.: der Laptop war mit 14 Reitern zu voll)
@@ -966,10 +965,6 @@ function lapKlick(e,imHandy){
   else if(a==='repay') repayLoan(+b.dataset.v);
   else if(a==='open'){ openShop(); closeLaptop(true); return; }
   else if(a==='end'){ endDay(); return; }
-  /* 'pack' ist schon vergeben - das legt ein Lieferantenpaket in den
-     Warenkorb. Der Versand heisst deshalb 'vpack'. */
-  else if(a==='vpack')   { packLaptop(false); return; }
-  else if(a==='vpackall'){ packLaptop(true);  return; }
   else if(a==='test'){ toggleTest(); }
   else if(a==='fwtest'){ fwTestSchalten(); return; }
   else if(a==='fwtestneu'){ const n=fwTestStapeln(); toast(`${n} Kartons neu gestapelt.`); }

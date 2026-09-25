@@ -241,7 +241,7 @@ const STAFF=[
   {id:'kassierer4',kurz:'Kasse 4',lvl:24,req:'eingang2',name:'Kassierer am zweiten Eingang 1',desc:'Besetzt die erste Kasse am zweiten Eingang.',hire:650,wage:145},
   {id:'kassierer5',kurz:'Kasse 5',lvl:25,req:'eingang2',name:'Kassierer am zweiten Eingang 2',desc:'Besetzt die zweite Kasse am zweiten Eingang. Damit sind alle fünf Kassen besetzt.',hire:650,wage:145},
   {id:'security',lvl:13,name:'Sicherheitsdienst',desc:'Hält Diebe im Laden auf, bevor sie rauskommen.',hire:800,wage:190},
-  {id:'packer',lvl:18,req:'packstation',name:'Versandmitarbeiter',desc:'Steht an der Packstation und packt die Onlinebestellungen, während du vorne im Laden bist.',hire:700,wage:165}
+  {id:'packer',lvl:18,req:'packstation',name:'Versandmitarbeiter',desc:'Schiebt einen Kommissionierwagen mit sechs Fächern durchs Lager – fehlt dort etwas, durch den Laden –, legt jede Onlinebestellung Stück für Stück in ihren Karton, klebt am Packtisch zu und stapelt die Pakete für DDL.',hire:700,wage:165}
 ];
 const SUPPLIERS=[
   {id:'mertens',lvl:1,name:'Pyro Mertens',short:'Mertens',desc:'Dein Stammlieferant seit Jahren. Faire Preise, pünktlich, keine Überraschungen.',

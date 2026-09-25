@@ -62,7 +62,11 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     const regal0=bb.shelfStockOf(T);
     let lagerMax=0; const imLagerT=()=>{ let n=0; bb.racks.forEach(r=>r.slots.forEach(s=>{ if(s.box&&s.box.type===T) n+=s.box.count; })); return n; };
     let sprung=0, sichtbar=false, aufdruck=false, klappeAuf=0, flug=false, vorher=regal0, n=0;
-    for(let i=0;i<2400;i++){ bb.run(0.05,0.05);
+    /* 160 s: seit dem 25.09. geht er durch die Tuer statt quer durch
+       die Wand - der echte Weg ist ein paar Sekunden laenger */
+    const wand=(x,z)=>bb.colliders.some(c=>x>c.minX+0.05&&x<c.maxX-0.05&&z>c.minZ+0.05&&z<c.maxZ-0.05);
+    let inWand=0;
+    for(let i=0;i<3200;i++){ bb.run(0.05,0.05); if(wand(w.pos.x,w.pos.z)) inWand++;
       const k=w.kiste;
       if(k&&k.visible&&w.carry&&w.state==='toShelf'){ sichtbar=true; aufdruck=k.userData.koerper.material[0]===bb.kartonMat[T]; }
       if(k&&w.state==='fill') klappeAuf=Math.max(klappeAuf,Math.abs(k.userData.klappen[0].pv.rotation.x));
@@ -74,10 +78,11 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     }
     o.imRegal=bb.shelfStockOf(T)-regal0; o.sprung=sprung; o.sichtbar=sichtbar; o.aufdruck=aufdruck; o.klappe=+klappeAuf.toFixed(2); o.flug=flug;
     let lager=0; bb.racks.forEach(r=>r.slots.forEach(s=>{ if(s.box&&s.box.type===T) lager+=s.box.count; }));
-    o.imLager=lager; o.lagerMax=lagerMax; o.boden=bb.floorBoxes.length-boden0; o.gesamt=o.imRegal+lager; o.soll=3*bb.P[T].box; o.lkwWeg=!bb.truck; o.sek=n*0.05;
+    o.imLager=lager; o.lagerMax=lagerMax; o.boden=bb.floorBoxes.length-boden0; o.gesamt=o.imRegal+lager; o.soll=3*bb.P[T].box; o.lkwWeg=!bb.truck; o.sek=n*0.05; o.inWand=inWand;
     return o; });
   console.log('DIREKT  ',JSON.stringify(d));
   pruef('DIREKT',d.lkw==='docked'&&d.imRegal>0&&d.gesamt===d.soll&&d.boden===0&&d.lagerMax===0,'direkt ins Regal / Rest ins Lager: '+JSON.stringify(d));
+  pruef('WAND',d.inWand===0,'der Einraeumer laeuft durch Waende oder Regale ('+d.inWand+' Bilder)');
   pruef('KARTON',d.sichtbar&&d.aufdruck,'Karton nicht sichtbar in der Hand: '+JSON.stringify(d));
   pruef('AUF',d.klappe>1.5,'Karton klappt nicht auf: '+d.klappe);
   pruef('STUECK',d.flug&&d.sprung===1,'nicht Stueck fuer Stueck (Sprung '+d.sprung+', Flug '+d.flug+')');

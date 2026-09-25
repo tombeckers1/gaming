@@ -686,7 +686,6 @@ let packHit=null, packTisch=null, packMov=null;
    Paketablage, Schild und Absperrband zusammen. */
 const PACK_FL={x0:-1.75,x1:5.95,z0:-1.42,z1:1.28};
 const PACK_HOME={x:-18.0,z:-8.6,ry:0};
-const pakete=[];                       /* fertige Pakete auf der Rampe */
 function buildPackstation(){
   /* Die Packstation steht jetzt im ersten Abschnitt der Halle
      Sued, gleich hinter dem Rolltor - dort, wo der LKW anfaehrt
@@ -737,10 +736,12 @@ function buildPackstation(){
     c.fillStyle='#6cf2a8'; c.font=BUN(38); c.textAlign='right'; c.textBaseline='middle';
     c.fillText('1,24 kg',W-12,H/2); })}),-0.95,1.04,-0.14,0,g);
   disp.rotation.x=-1.1;
-  rbox(0.36,0.22,0.3,0.02,dunkel,0.55,1.05,-0.2,g);
-  bbox(0.3,0.02,0.16,std(0xf2f0e8),0.55,0.95,-0.02,g,false);
+  /* Drucker, Etiketten und Klebeband an der Hinterkante: vorne
+     laeuft das Paket vom Zukleben zur Rollenbahn durch */
+  rbox(0.36,0.22,0.22,0.02,dunkel,0.55,1.06,-0.33,g);
+  bbox(0.3,0.012,0.16,std(0xf2f0e8),-0.95,0.956,-0.3,g,false);
   const roll=new THREE.Mesh(new THREE.CylinderGeometry(0.075,0.075,0.09,14),std(0xd8b46a,{roughness:0.7}));
-  roll.rotation.z=Math.PI/2; roll.position.set(1.05,1.0,0.22); g.add(roll);
+  roll.rotation.z=Math.PI/2; roll.position.set(1.05,1.03,-0.33); g.add(roll);
   /* Hinweisschild ueber dem Tisch */
   for(const sx of [-1.2,1.2]) bbox(0.06,1.5,0.06,stahl,sx,1.72,-0.42,g,false);
   bbox(2.6,0.5,0.05,std(0x1b2340,{roughness:0.7}),0,2.3,-0.42,g,false);
@@ -755,6 +756,7 @@ function buildPackstation(){
   versandFlaeche(g);
   paketAblage(g);
   packSperre(id,g);
+  vsWagenBauen(g);
   /* Die ganze Ecke ist ein Moebel: im Umbaumodus greift man sie
      irgendwo an - Tisch, Boden, Schild - und alles wandert mit.
      So kann man die Halle spaeter anders mit Regalen fuellen.
@@ -765,6 +767,8 @@ function buildPackstation(){
       const t=[{x0:-1.4,x1:3.9,z0:-0.5,z1:0.5}];               /* Tisch und Rollenbahn */
       for(const sx of DDL_MAST) t.push({x0:sx-0.13,x1:sx+0.13,z0:DDL_Z-0.13,z1:DDL_Z+0.13});
       if(!zoneOffen(id)) t.push({x0:PACK_FL.x0,x1:3.95,z0:1.03,z1:1.27});
+      /* der geparkte Kommissionierwagen (ab dem Kauf, solange er nicht unterwegs ist) */
+      else if(vsWagen&&vsWagen.parent===g) t.push({x0:0.75,x1:1.77,z0:0.58,z1:1.28});
       return t;
     }});
   zHook(id,()=>{ if(packMov&&grabbed!==packMov) applyFootprint(packMov); });
@@ -850,8 +854,8 @@ function versandFlaeche(g){
      frei im Raum. Das Schild ueber dem Packtisch sagt dasselbe. */
 }
 /* Paketablage: aufgemalt statt sechs gelber Platten. Ein Rahmen,
-   sechs Stellfelder mit Eckmarken und die Beschriftung zur Seite,
-   von der man kommt. Die Pakete stehen auf den Feldern. */
+   vier Stapelfelder mit Eckmarken und die Beschriftung zur Seite,
+   von der man kommt. Die Pakete stapeln sich auf den Feldern. */
 const ABLAGE={x0:4.0,x1:5.9,z0:-0.975,z1:0.875};
 function paketAblage(g){
   const A=ABLAGE, PXM=400, W=Math.round((A.x1-A.x0)*PXM), H=Math.round((A.z1-A.z0)*PXM);
@@ -861,12 +865,12 @@ function paketAblage(g){
     const gelb='rgba(242,194,48,.92)';
     c.strokeStyle=gelb; c.lineWidth=16; c.strokeRect(8,8,W-16,H-16);
     /* Trennlinie zur Schriftzeile */
-    const ty=cy(0.36);
+    const ty=cy(0.5);
     c.fillStyle=gelb; c.fillRect(8,ty-5,W-16,10);
-    /* Stellfelder: nur die Ecken, wie auf dem Hallenboden ueblich */
+    /* vier Stapelfelder: nur die Ecken, wie auf dem Hallenboden ueblich */
     c.lineWidth=7; c.lineCap='square';
-    for(let k=0;k<PAKET_BAYS;k++){ const p=paketPose(k);
-      const a=cx(p.x-0.25), b=cx(p.x+0.25), o=cy(p.z-0.25), u=cy(p.z+0.25), L=34;
+    for(const p of VS_FELD){
+      const a=cx(p.x-0.45), b=cx(p.x+0.45), o=cy(p.z-0.32), u=cy(p.z+0.32), L=40;
       c.beginPath();
       c.moveTo(a,o+L); c.lineTo(a,o); c.lineTo(a+L,o);
       c.moveTo(b-L,o); c.lineTo(b,o); c.lineTo(b,o+L);
@@ -893,7 +897,7 @@ function drawPackSchild(){
     g.textAlign='center'; g.textBaseline='middle';
     if(packBereit()){
       g.fillStyle='#6cf2a8'; g.font=BUN(58); g.fillText('VERSAND · BEREIT',W/2,H/2-14);
-      g.fillStyle='#bcd0ea'; g.font=BAR(34); g.fillText((S.pakete|0)+' Pakete warten auf Abholung',W/2,H-38);
+      g.fillStyle='#bcd0ea'; g.font=BAR(34); g.fillText(`${S.offen|0} Bestellung${(S.offen|0)===1?'':'en'} offen · ${S.pakete|0} Paket${(S.pakete|0)===1?'':'e'} zur Abholung`,W/2,H-38);
     } else {
       g.fillStyle='#ffd23f'; g.font=BUN(52); g.fillText('VERSAND',W/2,H/2-16);
       g.fillStyle='#ff9d92'; g.font=BAR(32); g.fillText('Onlineshop noch nicht freigeschaltet',W/2,H-38);
@@ -902,102 +906,10 @@ function drawPackSchild(){
   });
 }
 
-/* =========================================================
-   Versand: Onlinebestellungen kommen herein, werden am
-   Packtisch zu Paketen und warten auf der Rampe auf DDL.
-   ========================================================= */
-const PAKET_BAYS=6;
-let versandT=0, paketTex=null;
-/* Kartonoberflaeche mit Klebeband, Aufdruck und Adressaufkleber */
-function paketMaterial(){
-  if(paketTex) return paketTex;
-  const t=tex(512,512,(g,W,H)=>{
-    const gr=g.createLinearGradient(0,0,0,H); gr.addColorStop(0,'#c8a271'); gr.addColorStop(1,'#a98454');
-    g.fillStyle=gr; g.fillRect(0,0,W,H);
-    /* Wellpappe-Struktur */
-    for(let y=0;y<H;y+=6){ g.fillStyle=`rgba(120,92,58,${rand(0.05,0.13)})`; g.fillRect(0,y,W,2); }
-    for(let i=0;i<5200;i++){ g.fillStyle=`rgba(255,240,215,${Math.random()*0.07})`; g.fillRect(Math.random()*W,Math.random()*H,2,2); }
-    /* Klebeband ueber der Mitte */
-    g.fillStyle='rgba(216,180,106,.85)'; g.fillRect(0,H/2-26,W,52);
-    g.fillStyle='rgba(255,255,255,.14)'; g.fillRect(0,H/2-26,W,8);
-    g.strokeStyle='rgba(150,118,64,.6)'; g.lineWidth=2;
-    g.beginPath(); g.moveTo(0,H/2-26); g.lineTo(W,H/2-26); g.moveTo(0,H/2+26); g.lineTo(W,H/2+26); g.stroke();
-    /* Adressaufkleber */
-    g.fillStyle='#f6f4ec'; g.fillRect(46,64,236,150);
-    g.strokeStyle='#c6c1b2'; g.lineWidth=3; g.strokeRect(46,64,236,150);
-    g.fillStyle='#22262e'; g.font=BUN(26); g.textAlign='left'; g.textBaseline='top';
-    g.fillText('DDL EXPRESS',60,76);
-    g.fillStyle='#5b6270'; g.font=BAR(18);
-    g.fillText('Paketmarke bezahlt',60,110);
-    g.fillText('Empfänger siehe Barcode',60,134);
-    for(let i=0,x=60;i<40&&x<268;i++){ const w=rand(2,7); g.fillStyle='#1c2028'; g.fillRect(x,162,w,40); x+=w+rand(2,6); }
-    /* Zerbrechlich-Aufdruck */
-    g.strokeStyle='rgba(60,50,38,.5)'; g.lineWidth=4;
-    g.strokeRect(330,300,132,132);
-    g.fillStyle='rgba(60,50,38,.5)'; g.font=BUN(22); g.textAlign='center';
-    g.fillText('ZERBRECHLICH',396,444);
-    g.beginPath(); g.moveTo(370,410); g.lineTo(370,336); g.lineTo(422,336); g.lineTo(422,410); g.stroke();
-  });
-  paketTex=new THREE.MeshStandardMaterial({map:t,roughness:0.86});
-  return paketTex;
-}
-function paketPose(i){ return {x:4.37+(i%3)*0.58,z:-0.55+Math.floor(i/3)*0.6}; }
-function syncPakete(){
-  if(!packTisch) return;
-  const soll=Math.min(PAKET_BAYS,S?(S.pakete|0):0);
-  while(pakete.length<soll){
-    const i=pakete.length, p=paketPose(i), h=rand(0.3,0.42);
-    const m=rbox(0.46,h,0.46,0.012,paketMaterial(),p.x,h/2+0.02,p.z,packTisch);
-    m.rotation.y=rand(-0.16,0.16);
-    pakete.push(m);
-  }
-  while(pakete.length>soll){ const m=pakete.pop(); if(m.parent) m.parent.remove(m); }
-}
-/* Ein Paket packen: eine offene Bestellung wird zur Ware auf der Rampe */
-function paketWert(){ return r2(5+S.rep*0.06+S.level*0.25); }
-function bestellungenProTag(){
-  if(!packBereit()) return 0;
-  return Math.max(4,Math.min(20,Math.round((40+S.rep*1.6+S.level*4)/Math.max(6,paketWert()))));
-}
-/* Sechs Stellplaetze auf der Rampe waren die Obergrenze fuer einen
-   ganzen Tag - bei zwanzig Bestellungen taeglich staute sich der
-   Versand endlos auf und kostete jeden Abend Ruf. Ist die Rampe voll,
-   faehrt DDL eben zwischendurch vor. */
-function packOne(auto){
-  if(!packBereit()||(S.offen|0)<=0) return false;
-  if((S.pakete|0)>=PAKET_BAYS){
-    ddlAbholung();
-    if(!auto) toast('Die Rampe war voll - DDL hat zwischendurch abgeholt.');
-  }
-  S.offen--; S.pakete=(S.pakete|0)+1;
-  const w=paketWert();
-  S.money=r2(S.money+w); DS.revenue=r2(DS.revenue+w); DS.versand=r2((DS.versand||0)+w);
-  goalAdd('rev',w);
-  syncPakete(); drawPackSchild();
-  statAdd('pakete',1);
-  if(!auto){ addXP(3); sfx.beep(); toast('Paket fertig: +'+eur(w),'money'); }
-  return true;
-}
-function updateVersand(dt){
-  if(!packBereit()){ versandT=0; return; }
-  if(phase==='open'){
-    const n=bestellungenProTag(); if(n>0){
-      versandT-=dt;
-      if(versandT<=0){ versandT=330/n; S.offen=(S.offen|0)+1; drawPackSchild(); }
-    }
-  }
-  if(staff.packer&&(S.offen|0)>0){
-    S.packT=(S.packT||0)-dt;
-    if(S.packT<=0){ S.packT=3.4/(staff.packer.wf||1); packOne(true); }
-  }
-}
-/* Tagesende: DDL holt ab, offene Bestellungen bleiben liegen */
-function ddlAbholung(){
-  const n=S.pakete|0; if(n<=0) return 0;
-  statAdd('ddl',n);
-  S.pakete=0; syncPakete(); drawPackSchild();
-  return n;
-}
+/* Versand: Bestellungen, Kommissionierwagen, Pakete und Stapel
+   stehen seit dem 25.09. in 11c-versand.js. Die fertigen Pakete
+   auf der Ablage (Meshes, Tischkoordinaten): */
+const pakete=[];
 
 /* =========================================================
    Westrampen: drei Ladetore in der Westhalle und der grosse

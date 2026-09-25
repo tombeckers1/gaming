@@ -31,7 +31,47 @@ function navBuild(){
     const k0=Math.max(0,Math.floor((c.minZ-R-NAV.z0)/NAV.s)), k1=Math.min(NAV.h-1,Math.floor((c.maxZ+R-NAV.z0)/NAV.s));
     for(let i=i0;i<=i1;i++) for(let k=k0;k<=k1;k++) NAV.g[k*NAV.w+i]=1;
   }
+  navTueren(R);
   NAV.dirty=false;
+}
+/* Tueroeffnungen wieder aufmachen. Das Raster sperrt jede Zelle, die
+   eine gepolsterte Wand auch nur streift - in einer Tuer von 1,4 m
+   blieb so keine einzige Zelle frei, und alle Wege vom Lager in den
+   Laden liefen ueber den Notbehelf quer durch die Mauer (gemessen
+   am 25.09. an der Tuer bei x -8). Gesucht werden zwei duenne
+   Wandstuecke auf einer Linie mit 0,9 bis 4 m Luecke; frei wird
+   nur, was in der Luecke liegt und keinem anderen Hindernis zu
+   nahe kommt. */
+function navTueren(R){
+  const DUENN=0.4, EIN=0.15;
+  const quer=colliders.filter(c=>c.maxX-c.minX<=DUENN&&c.maxZ-c.minZ>DUENN);   /* Wand in z-Richtung */
+  const laengs=colliders.filter(c=>c.maxZ-c.minZ<=DUENN&&c.maxX-c.minX>DUENN); /* Wand in x-Richtung */
+  const frei=(x,z,a,b)=>{ for(const c of colliders){ if(c===a||c===b) continue;
+      if(x>c.minX-R&&x<c.maxX+R&&z>c.minZ-R&&z<c.maxZ+R) return false; } return true; };
+  const oeffne=(x0,x1,z0,z1,a,b)=>{
+    const i0=Math.max(0,Math.floor((x0-NAV.x0)/NAV.s)), i1=Math.min(NAV.w-1,Math.floor((x1-NAV.x0)/NAV.s));
+    const k0=Math.max(0,Math.floor((z0-NAV.z0)/NAV.s)), k1=Math.min(NAV.h-1,Math.floor((z1-NAV.z0)/NAV.s));
+    for(let i=i0;i<=i1;i++) for(let k=k0;k<=k1;k++){
+      const cx=NAV.x0+(i+0.5)*NAV.s, cz=NAV.z0+(k+0.5)*NAV.s;
+      if(cx<x0||cx>x1||cz<z0||cz>z1) continue;
+      if(frei(cx,cz,a,b)) NAV.g[k*NAV.w+i]=0;
+    }
+  };
+  const paare=(L,ax)=>{
+    for(const a of L){
+      const am=ax?(a.minX+a.maxX)/2:(a.minZ+a.maxZ)/2, aEnd=ax?a.maxZ:a.maxX;
+      let b=null, bAnf=1e9;
+      for(const c of L){ if(c===a) continue;
+        const cm=ax?(c.minX+c.maxX)/2:(c.minZ+c.maxZ)/2, cAnf=ax?c.minZ:c.minX;
+        if(Math.abs(cm-am)>0.15||cAnf<=aEnd||cAnf>=bAnf) continue;
+        b=c; bAnf=cAnf; }
+      if(!b) continue;
+      const luecke=bAnf-aEnd; if(luecke<0.9||luecke>4) continue;
+      if(ax) oeffne(Math.min(a.minX,b.minX)-R,Math.max(a.maxX,b.maxX)+R,aEnd+EIN,bAnf-EIN,a,b);
+      else   oeffne(aEnd+EIN,bAnf-EIN,Math.min(a.minZ,b.minZ)-R,Math.max(a.maxZ,b.maxZ)+R,a,b);
+    }
+  };
+  paare(quer,true); paare(laengs,false);
 }
 function navIdx(x,z){
   const i=Math.floor((x-NAV.x0)/NAV.s), k=Math.floor((z-NAV.z0)/NAV.s);

@@ -23,6 +23,8 @@ const sfx={
   alarm:()=>{ tone(880,0.12,'square',0.05); later(0.16,()=>tone(660,0.16,'square',0.05)); },
   ring:()=>{ for(let i=0;i<2;i++) later(i*0.42,()=>{ tone(1318,0.1,'sine',0.05); later(0.12,()=>tone(1046,0.12,'sine',0.05)); }); },
   spray:()=>noise(0.5,0.25,4200),
+  /* Klebeband vom Abroller: kurzes Ratschen, dann das Abreissen */
+  klebe:v=>{ v=v||1; noise(0.34,0.11*v,2300); later(0.36,()=>noise(0.05,0.2*v,5200)); },
   level:()=>{ tone(784,0.1,'square',0.05); later(0.1,()=>tone(1046,0.1,'square',0.05)); later(0.2,()=>tone(1318,0.28,'square',0.055)); },
   /* Furzrakete: flatternder Aufstieg und eine breite, tiefe Entladung */
   pfffft:v=>{ if(!AC) return;

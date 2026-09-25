@@ -41,13 +41,15 @@ const _ep=new THREE.Vector3(), _eq=new THREE.Quaternion(), _es=new THREE.Vector3
 function einrZiel(lv,t){ const m=itemMatrix(lv.sh,{li:lv.li,type:t},lv.count,0); const p=new THREE.Vector3(), q=new THREE.Quaternion(), s=new THREE.Vector3(); m.decompose(p,q,s); return {p,q,s}; }
 /* Auftrag suchen - in der Reihenfolge, die der Spieler eingestellt hat */
 function einrJob(w){
-  const andere=[staff.auffueller,staff.auffueller2].filter(o=>o&&o!==w);
+  /* auch der Versandmitarbeiter: den Karton, zu dem er gerade
+     mit dem Wagen faehrt, raeumt ihm keiner unter der Nase weg */
+  const andere=[staff.auffueller,staff.auffueller2,staff.packer].filter(o=>o&&o!==w);
   const belegt=x=>andere.some(o=>o.src&&(o.src.box===x||o.src.slot===x));
   const res=t=>typeof reservedType==='function'&&reservedType(t);
   const lkwDa=typeof truck!=='undefined'&&truck&&truck.state==='docked'&&truck.cargo.some(c=>!c.regal);
   for(const a of einrAktiv(w.id)){
     if(a==='regal'){
-      for(const b of floorBoxes){ if(!belegt(b)&&!res(b.type)&&emptyLevel(b.type)) return {box:b,kind:'floor'}; }
+      for(const b of floorBoxes){ if(!b.test&&!belegt(b)&&!res(b.type)&&emptyLevel(b.type)) return {box:b,kind:'floor'}; }
       for(const r of racks) for(const s of r.slots){ if(s.box&&!belegt(s)&&!res(s.box.type)&&emptyLevel(s.box.type)) return {slot:s,kind:'rack'}; }
     } else if(a==='direkt'&&lkwDa){
       const c=truck.cargo.find(c=>!c.regal&&emptyLevel(c.type));

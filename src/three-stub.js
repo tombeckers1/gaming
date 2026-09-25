@@ -28,7 +28,9 @@ class Euler{constructor(x,y,z){this.x=x||0;this.y=y||0;this.z=z||0;this.order='X
   copy(e){this.x=e.x;this.y=e.y;this.z=e.z;return this;}
   clone(){return new Euler(this.x,this.y,this.z);}}
 class Quaternion{constructor(){this.x=this.y=this.z=0;this.w=1;} setFromEuler(e){this._e=e;return this;} setFromUnitVectors(a,b){this._von=a;this._nach=b.clone?b.clone():b;return this;}
-  clone(){const q=new Quaternion();Object.assign(q,this);return q;} multiply(){return this;} premultiply(){return this;} slerp(){return this;}}
+  clone(){const q=new Quaternion();Object.assign(q,this);return q;} multiply(){return this;} premultiply(){return this;} slerp(){return this;}
+  copy(q){this.x=q.x;this.y=q.y;this.z=q.z;this.w=q.w;return this;}
+  setFromAxisAngle(a,t){const s=Math.sin(t/2);this.x=a.x*s;this.y=a.y*s;this.z=a.z*s;this.w=Math.cos(t/2);return this;}}
 class Matrix4{constructor(){this.elements=new Array(16).fill(0);}
   compose(p,q,s){this.p=p.clone?p.clone():p;this.s=s;return this;}
   clone(){const m=new Matrix4();m.p=this.p;m.s=this.s;return m;}
@@ -87,11 +89,12 @@ class ConeGeometry extends CylinderGeometry{}
 class TorusGeometry extends CylinderGeometry{}
 class CircleGeometry extends PlaneGeometry{}
 class Object3D{
-  constructor(){this.position=new Vector3();this.rotation=new Euler();this.quaternion=new Quaternion();this.scale=new Vector3(1,1,1);this.children=[];this.parent=null;this.userData={};this.visible=true;this.renderOrder=0;}
+  constructor(){this.position=new Vector3();this.rotation=new Euler();this.quaternion=new Quaternion();this.scale=new Vector3(1,1,1);this.children=[];this.parent=null;this.userData={};this.visible=true;this.renderOrder=0;this.matrix=new Matrix4();this.matrixWorld=new Matrix4();}
   add(o){if(o){this.children.push(o);o.parent=this;}return this;}
   remove(o){const i=this.children.indexOf(o);if(i>=0){this.children.splice(i,1);o.parent=null;}return this;}
   updateMatrixWorld(){}
   /* Stub: Weltlage nur aus den Positionen der Kette, ohne Drehung */
+  getWorldQuaternion(q){ let a=0,o=this; while(o){ if(o.rotation) a+=o.rotation.y||0; o=o.parent; } q.x=0;q.y=Math.sin(a/2);q.z=0;q.w=Math.cos(a/2); return q; }
   getWorldPosition(v){ v.set(0,0,0); let o=this; while(o){ v.x+=o.position.x; v.y+=o.position.y; v.z+=o.position.z; o=o.parent; } return v; }
   localToWorld(v){ let o=this; while(o){ v.x+=o.position.x; v.y+=o.position.y; v.z+=o.position.z; o=o.parent; } return v; }
   worldToLocal(v){ let o=this; while(o){ v.x-=o.position.x; v.y-=o.position.y; v.z-=o.position.z; o=o.parent; } return v; }

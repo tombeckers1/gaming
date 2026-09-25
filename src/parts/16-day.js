@@ -14,7 +14,9 @@ function addXP(n,label){
     if(phase==='closed'||phase==='after') showLevelUp(); }
 }
 function showLevelUp(){
-  if(!pendingLevels.length||overlayOpen()) return;
+  /* am Zuendpult unterbricht der Aufstieg die Show nicht - er kommt,
+     wenn man das Pult verlaesst */
+  if(!pendingLevels.length||overlayOpen()||(typeof zuendOpen!=='undefined'&&zuendOpen)) return;
   const lv=pendingLevels.shift(), list=levelUnlocks(lv);
   $('luTitle').textContent=`Level ${lv}`;
   $('luText').textContent=list.length?'Das ist ab jetzt im Laptop freigeschaltet:':'Weiter so. Die nächste Freischaltung kommt bald.';

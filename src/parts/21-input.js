@@ -9,47 +9,63 @@ function requestLock(){
   try{ const r=canvas.requestPointerLock(); if(r&&r.catch) r.catch(()=>{ lockFailed=true; dragHint(); }); }catch(e){ lockFailed=true; dragHint(); }
 }
 let zuendOpen=false;
-function overlayOpen(){ return startOpen||laptopOpen||handyOpen||summaryOpen||pauseOpen||cashOpen||levelOpen||dealOpen||gravOpen||pdaOpen||zuendOpen; }
+function overlayOpen(){ return startOpen||laptopOpen||handyOpen||summaryOpen||pauseOpen||cashOpen||levelOpen||dealOpen||gravOpen||pdaOpen; }
 /* =========================================================
-   Bedienfeld am Zuendpult. Es liegt unten im Bild, das Spiel laeuft
-   weiter: man zuendet und schaut dabei aufs Testfeld.
+   Zuendmodus am Pult (Tom, 25.09.): E am Pult schaltet ihn ein.
+   Kein Fenster, keine Kamerafahrt - man schaut sich weiter frei um
+   und zuendet mit den Zifferntasten: 1-3 Moerser klein, mittel,
+   gross, 4-6 Raketen, 7-9 Zuendtisch. Unten steht eine Leiste, was
+   auf welcher Taste liegt. Wer sich vom Pult entfernt, beendet ihn.
    ========================================================= */
+/* So weit, wie man das Pult noch anvisieren kann (Strahl 3,3 m plus
+   halbe Pultdiagonale) - sonst ging der Modus aus 3,5 m an und im
+   selben Augenblick wieder aus */
+const ZUEND_REICHWEITE=4.0;
+const ZUEND_NAME={moerser:'Mörser',rampe:'Raketen',tisch:'Tisch'};
+const ZUEND_ROHR=['klein','mittel','groß'];
 function openZuend(){
   if(zuendOpen) return;
-  zuendOpen=true; for(const k in keys) keys[k]=false; mouseDown=false; touchAct=false;
-  if(locked) document.exitPointerLock();
-  /* Blick so, dass unten die Stationen und darueber der Himmel mit
-     den Bruechen im Bild sind */
-  /* etwas nach rechts versetzt: der Moerser steht rechts und laege
-     sonst hinter dem Panel am rechten Rand */
-  const m=testfeldMitte(); aimAt(m.x+2.4,m.z,0.42);
-  $('zuend').classList.add('show'); renderZuend();
+  if(!zuendAmPult()){ toast('Näher ans Pult.'); return; }
+  zuendOpen=true; document.body.classList.add('zuendan'); renderZuend(); zuendTick();
+  toast(COARSE?'Zündpult an: Kanal antippen zündet.':'Zündpult an: Zifferntaste 1–9 zündet den Kanal. E am Pult beendet.');
 }
-function closeZuend(){ if(!zuendOpen) return; zuendOpen=false; $('zuend').classList.remove('show'); requestLock(); }
+function closeZuend(){ if(!zuendOpen) return; zuendOpen=false; $('zuend').classList.remove('show'); document.body.classList.remove('zuendan');
+  /* ein Levelaufstieg waehrend der Show wartet bis hierher */
+  if(typeof pendingLevels!=='undefined'&&pendingLevels.length&&(phase==='closed'||phase==='after')) showLevelUp(); }
+function zuendAmPult(){ return Math.hypot(pl.x-PULT_POS.x,pl.z-PULT_POS.z)<=ZUEND_REICHWEITE; }
+/* jeden Schritt: Leiste nur, solange nichts anderes offen ist; wer
+   weggeht, verlaesst das Pult */
+function zuendTick(){
+  if(!zuendOpen) return;
+  if(!zuendAmPult()){ closeZuend(); return; }
+  $('zuend').classList.toggle('show',!overlayOpen());
+}
 function renderZuend(){
   if(!zuendOpen) return;
-  const ks=alleKanaele(), namen={tisch:'Zündtisch',rampe:'Abschussröhren',moerser:'Mörser'};
+  const ks=alleKanaele();
   let html='';
   for(const id of KANAL_REIHE){
     const reihe=ks.filter(e=>e.st.id===id); if(!reihe.length) continue;
-    html+=`<div class="zgruppe"><h4>${namen[id]}</h4><div class="zreihe">`+reihe.map(e=>{
+    html+=`<div class="zgruppe"><h4>${ZUEND_NAME[id]}</h4><div class="zreihe">`+reihe.map(e=>{
       const it=e.it, zu=it?it.state:'leer';
-      const txt=it?P[it.type].short:'leer';
-      return `<button class="kan ${zu}" data-k="${e.kanal}" ${zu==='bereit'?'':'aria-disabled="true"'} title="${txt}"><i>${e.kanal}</i><span>${zu==='brennt'?'brennt …':txt}</span></button>`;
+      const txt=it?P[it.type].short:(id==='moerser'?'Rohr '+ZUEND_ROHR[e.slot]:'leer');
+      return `<div class="kan ${zu}" data-k="${e.kanal}" title="${txt}"><kbd>${e.kanal}</kbd><span>${zu==='brennt'?'brennt …':txt}</span></div>`;
     }).join('')+`</div></div>`;
   }
   $('zGruppen').innerHTML=html;
   const n=bereitCount(), br=placedCount()-n;
-  $('zInfo').textContent=n?`${n} ${n===1?'Kanal':'Kanäle'} scharf`+(br?` · ${br} brennt`:''):br?`${br} brennt …`:'Nichts aufgebaut. Ware auf Tisch, Röhren oder Mörser stellen.';
-  $('zTipp').textContent=COARSE?'Kanal antippen zündet genau diesen Platz.':'Tasten 1–9 zünden den Kanal, Enter alle nacheinander, Leertaste alle gleichzeitig. Ins Bild klicken und ziehen, um dich umzusehen.';
-  $('zNach').disabled=!n; $('zGleich').disabled=!n;
+  $('zInfo').textContent=n?`${n} ${n===1?'Kanal':'Kanäle'} scharf`+(br?` · ${br} brennt`:''):br?`${br} brennt …`:'Nichts aufgebaut';
+  $('zTipp').innerHTML=COARSE?'Kanal antippen zündet genau diesen Platz.'
+    :'<kbd>1</kbd>–<kbd>9</kbd> zünden · <kbd>Enter</kbd> alle nacheinander · <kbd>Leertaste</kbd> alle gleichzeitig · <kbd>E</kbd> am Pult: beenden';
+  /* Touch hat keine Enter- und Leertaste: dort zwei Knoepfe */
+  $('zAlle').innerHTML=COARSE&&n?'<button class="ghost" data-all="0">Alle nacheinander</button><button data-all="1">Alle gleichzeitig</button>':'';
 }
+/* Am Touchgeraet gibt es keine Zifferntasten: dort zuendet Antippen */
 $('zuend').addEventListener('click',e=>{
-  const b=e.target.closest('button'); if(!b) return; ac();
-  if(b.id==='zClose'){ closeZuend(); return; }
-  if(b.id==='zNach'){ zuendeAlle(false); return; }
-  if(b.id==='zGleich'){ zuendeAlle(true); return; }
-  if(b.dataset.k&&b.classList.contains('bereit')) zuendeKanal(+b.dataset.k);
+  if(!COARSE) return;
+  const a=e.target.closest('[data-all]'); if(a){ ac(); zuendeAlle(a.dataset.all==='1'); return; }
+  const b=e.target.closest('[data-k]'); if(!b) return; ac();
+  if(b.classList.contains('bereit')) zuendeKanal(+b.dataset.k);
 });
 /* Die Steuerung steht im Pausenmenue und nicht mehr dauernd im
    Bild. Esc haelt das Spiel an und zeigt sie. */
@@ -68,9 +84,9 @@ const STEUER_PC=[
     [['T'],'Preisgerät (ab Level 2)'],
     [['G'],'Pfefferspray (ab Level 4)']]],
   ['Zündpult',[
+    [['E'],'Zündmodus am Pult'],
     [['1…9'],'Kanal zünden'],
-    [['Enter'],'Alle nacheinander'],
-    [['Leertaste'],'Alle gleichzeitig']]],
+    [['Enter'],'Alle nacheinander']]],
   ['Umbau',[
     [['F'],'Umbaumodus an / aus'],
     [['E'],'Möbel greifen, absetzen'],
@@ -116,18 +132,16 @@ document.addEventListener('pointerlockchange',()=>{
   else if(lockWorked&&!COARSE&&!overlayOpen()){ mouseDown=false; showPause(); }
 });
 document.addEventListener('pointerlockerror',()=>{ lockFailed=true; dragHint(); });
-/* Bei offenem Zuendpult ist der Mauszeiger frei zum Klicken. Wer
-   ins Bild klickt und zieht, schaut sich trotzdem um - nach oben zu
-   den Bruechen, nach unten zu den Stationen. */
-let zuendZieh=false;
 canvas.addEventListener('mousedown',e=>{
-  if(zuendOpen){ zuendZieh=true; ac(); return; }
   if(!S||overlayOpen()) return; ac();
   if(!locked&&!lockFailed) requestLock();
-  if(e.button===0){ mouseDown=true; pressAction(); } else if(e.button===2){ if(build&&grabbed) cancelGrab(); else dropBox(); }
+  /* Ohne Mauszeiger-Sperre schaut man per Klicken und Ziehen: der
+     Klick aufs Pult darf den Zuendmodus dann nicht wieder beenden -
+     das macht nur E */
+  if(e.button===0){ mouseDown=true; if(!(zuendOpen&&target&&target.kind==='pult')) pressAction(); } else if(e.button===2){ if(build&&grabbed) cancelGrab(); else dropBox(); }
 });
-addEventListener('mouseup',e=>{ if(e.button===0) mouseDown=false; zuendZieh=false; });
-addEventListener('mousemove',e=>{ if(zuendOpen&&zuendZieh){ aim=null; look(e.movementX||0,e.movementY||0,0.004); return; } if(overlayOpen()) return; if(locked) look(e.movementX,e.movementY,0.0022); else if(mouseDown&&(lockFailed||!lockWorked)) look(e.movementX||0,e.movementY||0,0.004); });
+addEventListener('mouseup',e=>{ if(e.button===0) mouseDown=false; });
+addEventListener('mousemove',e=>{ if(overlayOpen()) return; if(locked) look(e.movementX,e.movementY,0.0022); else if(mouseDown&&(lockFailed||!lockWorked)) look(e.movementX||0,e.movementY||0,0.004); });
 canvas.addEventListener('contextmenu',e=>e.preventDefault());
 addEventListener('keydown',e=>{
   if(handyOpen){
@@ -139,13 +153,14 @@ addEventListener('keydown',e=>{
   if(pdaOpen){ if(e.code==='Escape') closePDA(); return; }
   if(gravOpen){ if(e.code==='Escape') closeGravInput(false); if(e.code==='Enter') closeGravInput(true); return; }
   if(dealOpen){ if(e.code==='Escape') declineDeal(); return; }
-  if(zuendOpen){
-    if(e.code==='Escape'||e.code==='KeyE'||e.code==='Tab'){ e.preventDefault(); closeZuend(); return; }
-    const m=/^(Digit|Numpad)(\d)$/.exec(e.code);
-    if(m&&!e.repeat){ const n=+m[2]; zuendeKanal(n===0?10:n); return; }
-    if(e.code==='Enter'&&!e.repeat){ zuendeAlle(false); return; }
+  /* Zuendmodus: Ziffern zuenden, alles andere geht normal weiter -
+     laufen, umsehen, E. Esc ohne Mauszeiger-Sperre beendet ihn. */
+  if(zuendOpen&&S&&!overlayOpen()){
+    const m=/^(Digit|Numpad)([1-9])$/.exec(e.code);
+    if(m){ e.preventDefault(); if(!e.repeat) zuendeKanal(+m[2]); return; }
+    if(e.code==='Enter'){ e.preventDefault(); if(!e.repeat) zuendeAlle(false); return; }
     if(e.code==='Space'){ e.preventDefault(); if(!e.repeat) zuendeAlle(true); return; }
-    return;
+    if(e.code==='Escape'&&!locked){ closeZuend(); return; }
   }
   /* Esc: Pause an und wieder aus. Mit Mauszeiger-Sperre faengt der
      Browser das erste Esc selbst ab und gibt die Maus frei - dann

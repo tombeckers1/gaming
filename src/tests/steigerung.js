@@ -51,14 +51,14 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
         brueche:Math.max(0,...alle.map(e=>e.brueche||1)),fremd,n:sch.length,hoehe:+m(hoehen).toFixed(2),sz:+m(sz).toFixed(3),dichte,farben:farben.size,
         dauer:sch.length?+(sch[sch.length-1].t-sch[0].t).toFixed(1):0,eff:[...new Set(log.map(e=>e.eff).filter(Boolean))]}; };
     for(const t of ['batterie16','knatter','batterie49','faecher','batterie100','zfaecher','kometen','donnerwand','profi','finale','sortiment',
-      'raketenklein','raketen','pfeifraketen','raketengold','titanraketen','sternenbrunnen','vulkan','goldgeysir','feuersaeule','feuerbrunnen',
+      'raketenklein','raketen','pfeifraketen','raketengold','titanraketen','jumbogold','jumboleiter','sternenbrunnen','vulkan','goldgeysir','feuersaeule','feuerbrunnen',
       'kugel75','kugel100','kugel150','kugel200','kugel300'])
       out[t]=messe(t);
     /* Feuerbrunnen: eigener Bodeneffekt */
     const pos={x:0,y:0.4,z:-20}; bb.igniteType('feuerbrunnen',pos); bb.run(0.3,0.1);
     out.brunnenEmitter=bb.emittersListe().some(e=>e.k==='feuerbrunnen');
     /* neue Effekte einzeln */
-    out.neu={}; for(const e of ['flammenregen','kronleuchter','feuerrad','sternschnuppen','farbregen','spektrum','goldglitzer']){
+    out.neu={}; for(const e of ['flammenregen','kronleuchter','feuerrad','sternschnuppen','farbregen','spektrum','goldglitzer','sternpalme','steigkomet']){
       out.neu[e]=typeof bb.EFF[e]==='function'; try{ bb.shot(pos,{eff:e,sz:1}); bb.run(4,0.1); }catch(x){ out.neu[e]='Fehler '+x.message; } }
     /* Figuren zeigen zum Zuschauer: Ebene senkrecht zur Blickrichtung, aufrecht */
     { const c=bb.camera.position, q={x:c.x+3,y:c.y+18,z:c.z-28}; const [u,v]=bb.basisBlick(q,0);
@@ -76,7 +76,9 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
       pruef(name,r[c][feld]+tol>=r[v][feld],`${c} (${r[c][feld]}) ${feld} unter ${v} (${r[v][feld]})`); } };
   leiter(L,'HOEHE','hoehe',0.25); leiter(L,'KALIBER','sz',0.01); leiter(L,'DICHTE','dichte',0);
   L.forEach(t=>pruef('ANZAHL',r[t].n===SOLL[t],`${t}: ${r[t].n} statt ${SOLL[t]} Schuss`));
-  const R=['raketenklein','raketen','raketengold','titanraketen'];
+  /* Jumbo »Goldene Krone« steht ueber Titan. Die Himmelsleiter nicht:
+     ihr erster Bruch liegt tiefer, sie steigt erst in Stufen hoeher. */
+  const R=['raketenklein','raketen','raketengold','titanraketen','jumbogold'];
   leiter(R,'RAKETEN','hoehe',0.25); leiter(R,'RAKETEN','sz',0.01);
   const PROFI=['dahlie','pistill','kamuro','kronleuchter','titan','zehnfach','zeitregen','brokat','sternschnuppen','glitzerweide'];
   Object.keys(r.lvl).forEach(t=>{ if(r.lvl[t]<=15&&t!=='raketengold'){ const f=r[t].eff.filter(e=>PROFI.indexOf(e)>=0); pruef('FRUEH',!f.length,`${t} (Level ${r.lvl[t]}) zeigt schon ${f.join(',')}`); } });

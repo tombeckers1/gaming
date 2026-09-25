@@ -15,7 +15,7 @@ const VOLA={
   raketengold:0.95, knatter:0.95, pfeifraketen:0.80, sekt:1.00, faecher:1.00, batterie49:1.05,
   furzrakete:1.10, batterie100:1.20, sprengmeister:1.30, profi:1.40, xxlpolen:1.60,
   sternenbrunnen:0.75, kugel75:0.95, kugel100:1.15, kugel150:1.45,
-  zfaecher:1.05, kometen:1.15, titanraketen:1.25, kugel200:1.50, finale:1.55,
+  zfaecher:1.05, kometen:1.15, titanraketen:1.25, kugel200:1.50, finale:1.55, jumbogold:1.30, jumboleiter:1.45,
   goldgeysir:0.85, feuerbrunnen:0.9, feuersaeule:1.2, donnerwand:1.35, kugel300:1.6
 };
 function volaOf(t){ const v=VOLA[t]; if(v!==undefined) return v; const p=P[t]; return p&&p.cat===2?0.85:p&&p.cat===1?0.6:0.45; }
@@ -195,11 +195,11 @@ const LIZENZEN=[
    desc:'Heulende Derwische und die Furzrakete »Donnerbalken«. Verkauft sich von allein, weil jeder sie einmal gesehen haben will.',
    items:['heuler','furzrakete']},
   {id:'grossfeuer',lvl:20,cost:21000,name:'Großkaliber',
-   desc:'Die Titan-Raketen mit Dreifachbruch, die 200-mm-Kugelbombe Götterzorn mit zehn Brüchen auf einmal, die Donnerwand mit Salven aus sechs Rohren und die 15-m-Feuersäule.',
-   items:['titanraketen','kugel200','donnerwand','feuersaeule']},
+   desc:'Die Titan-Raketen mit Dreifachbruch, die Jumbo-Rakete »Goldene Krone«, die 200-mm-Kugelbombe Götterzorn mit zehn Brüchen auf einmal, die Donnerwand mit Salven aus sechs Rohren und die 15-m-Feuersäule.',
+   items:['titanraketen','jumbogold','kugel200','donnerwand','feuersaeule']},
   {id:'profi',lvl:22,cost:26000,name:'Profiklasse',
-   desc:'Der Götterfunken-Verbund: zweihundert Schuss, und der halbe Ort steht auf der Straße. Ab Level 23 die 300-mm-Kugel Himmelsbrecher, ab Level 24 der Weltuntergang mit dreihundert Schuss.',
-   items:['profi','finale','kugel300']}
+   desc:'Der Götterfunken-Verbund: zweihundert Schuss, und der halbe Ort steht auf der Straße. Dazu die Jumbo-Rakete »Himmelsleiter« mit drei Brüchen übereinander. Ab Level 23 die 300-mm-Kugel Himmelsbrecher, ab Level 24 der Weltuntergang mit dreihundert Schuss.',
+   items:['profi','finale','kugel300','jumboleiter']}
 ];
 const LIZ_VON={};
 LIZENZEN.forEach(l=>l.items.forEach(t=>{ LIZ_VON[t]=l.id; }));

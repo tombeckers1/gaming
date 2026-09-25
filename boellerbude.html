@@ -238,26 +238,43 @@ body.compact .mkcol{min-width:74px}
 h2{font-family:var(--display);font-weight:400;font-size:28px;margin:0 0 6px;color:var(--signal);line-height:1.1}
 #cash .card{max-width:500px}
 #pause .card{max-width:780px}
-#zuend{position:fixed;right:max(12px,env(safe-area-inset-right));bottom:max(12px,env(safe-area-inset-bottom));z-index:15;display:none;background:rgba(12,16,34,.9);border:1px solid var(--line);border-radius:14px;padding:10px 12px 12px;width:min(410px,96vw);box-shadow:0 10px 34px rgba(0,0,0,.5)}
-body.compact #zuend{left:50%;right:auto;transform:translateX(-50%);width:min(620px,98vw)}
+/* Zuendpult: Leiste unten in der Mitte, kein Fenster - die Maus
+   bleibt beim Umsehen, gezuendet wird mit den Zifferntasten */
+#zuend{position:fixed;left:50%;bottom:max(12px,env(safe-area-inset-bottom));transform:translateX(-50%);z-index:15;display:none;pointer-events:none;background:rgba(12,16,34,.86);border:1px solid var(--line);border-radius:14px;padding:7px 12px 8px;box-shadow:0 10px 34px rgba(0,0,0,.45);width:max-content;max-width:98vw}
 #zuend.show{display:block}
-.zkopf{display:flex;align-items:center;gap:12px;margin-bottom:8px}
-.zkopf b{font-size:18px;color:var(--signal)}
-.zkopf span{flex:1;font-size:14px;opacity:.78}
-.zgr{display:flex;flex-direction:column;gap:8px}
-.zgruppe h4{margin:0 0 5px;font-size:12px;letter-spacing:.07em;text-transform:uppercase;opacity:.65}
-.zreihe{display:flex;gap:6px;flex-wrap:wrap}
-.kan{width:56px;min-height:58px;border-radius:10px;border:2px solid #39405a;background:#1b2238;color:#8a93a8;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:4px;cursor:pointer;font:inherit;box-shadow:none}
-.kan i{font-style:normal;font-weight:800;font-size:19px;line-height:1}
-.kan span{font-size:9.5px;line-height:1.1;text-align:center;max-width:52px;overflow:hidden;max-height:22px}
+body:has(.ov.show) #zuend{display:none}
+/* Touch: nur die Kanaele und Knoepfe nehmen Beruehrung an, der Rest
+   der Leiste laesst Wischen und Joystick durch; links von der
+   Knopfspalte, damit Kanal 9 nicht auf dem Umbau-Knopf liegt */
+.coarse #zuend{bottom:calc(12px + env(safe-area-inset-bottom));left:calc(50% - 70px);max-width:calc(100vw - 190px)}
+.coarse #zuend .kan,.coarse #zuend button{pointer-events:auto}
+.coarse #zuend .kan{width:52px;height:50px}
+.coarse #zuend .kan span{display:none}
+#zAlle{display:flex;gap:8px;justify-content:center;margin-top:6px}
+#zAlle:empty{display:none}
+body.zuendan #carry{bottom:calc(142px + env(safe-area-inset-bottom))}
+body.zuendan #toasts{bottom:196px}
+body.coarse.zuendan #carry{bottom:calc(210px + env(safe-area-inset-bottom))}
+body.coarse.zuendan #toasts{bottom:258px}
+.zkopf{display:flex;align-items:baseline;gap:12px;margin-bottom:6px}
+.zkopf b{font-family:var(--display);font-weight:400;font-size:16px;letter-spacing:.04em;color:var(--signal)}
+.zkopf span{flex:1;font-size:13px;opacity:.8;text-align:right}
+.zgr{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;row-gap:6px}
+.zgruppe h4{margin:0 0 4px;font-size:11px;letter-spacing:.09em;text-transform:uppercase;opacity:.65;text-align:center}
+.zreihe{display:flex;gap:6px}
+.kan{width:76px;height:62px;border-radius:10px;border:2px solid #39405a;background:#1b2238;color:#8a93a8;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:3px}
+.kan kbd{display:block;min-width:28px;font:800 18px/1 var(--ui,inherit);text-align:center;background:#39405a;color:#c5cbd8;border-radius:6px;padding:4px 0 3px;box-shadow:0 2px 0 rgba(0,0,0,.45)}
+.kan span{font-size:10px;line-height:1.1;text-align:center;max-width:72px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
 .kan.bereit{border-color:#39ff7a;color:#eaffef;background:#143a23}
-.kan.bereit:hover{background:#1d5232}
+.kan.bereit kbd{background:#eaffef;color:#0e1226}
 .kan.brennt{border-color:#ff6a3d;color:#fff;background:#4a1a10;animation:zbl .45s infinite alternate}
-.kan.leer{cursor:default;opacity:.5}
+.kan.brennt kbd{background:#ffb49a;color:#3a0e04}
+.kan.leer{opacity:.55}
 @keyframes zbl{from{background:#4a1a10}to{background:#86301a}}
-.zfuss{display:flex;gap:8px;justify-content:flex-end;align-items:center;margin-top:10px;flex-wrap:wrap}
-.zfuss small{flex:1;opacity:.62;font-size:12.5px;min-width:180px}
-body.compact .kan{width:50px;min-height:52px}
+.zfuss{margin-top:6px;text-align:center}
+.zfuss small{opacity:.7;font-size:12px}
+.zfuss kbd{font-size:11px;padding:1px 5px;border-radius:4px;background:rgba(242,245,255,.14)}
+body.compact .kan{width:52px;height:50px}
 body.compact .kan span{display:none}
 #pause h2{text-align:center}
 .stHead{margin:10px 0 8px;font-size:14px;letter-spacing:.06em;text-transform:uppercase;opacity:.7;text-align:center}
@@ -551,10 +568,10 @@ body.compact .pdahead2 b{font-size:16px}
   <div id="pdaBody"></div>
 </div></div>
 
-<div id="zuend" role="dialog" aria-label="Zündpult">
-  <div class="zkopf"><b>Zündpult</b><span id="zInfo"></span><button class="ghost" id="zClose">Schließen</button></div>
+<div id="zuend" aria-label="Zündpult">
+  <div class="zkopf"><b>ZÜNDPULT</b><span id="zInfo"></span></div>
   <div class="zgr" id="zGruppen"></div>
-  <div class="zfuss"><small id="zTipp"></small><button class="ghost" id="zNach">Alle nacheinander</button><button id="zGleich">Alle gleichzeitig</button></div>
+  <div class="zfuss"><small id="zTipp"></small><div id="zAlle"></div></div>
 </div>
 
 <button id="musikBtn" title="Musik an / aus (M)">♪</button>
@@ -688,6 +705,12 @@ const P={
     art:{title:'GOLDFLUG',sub:'5 Brokatraketen',bg1:'#4a3308',bg2:'#150e02',ac:'#ffd23f',ac2:'#fff3c4',gold:true}},
   titanraketen:{name:'Titan · 3 XXL-Raketen Dreifachbruch',short:'Titan',cat:2,lvl:20,shape:'rocketset',dims:[0.62,0.085,0.18],grid:[3,1,1],box:3,cost:19.00,market:44.99,weight:5,hype:44,risk:9,
     art:{title:'TITAN',sub:'3 XXL-Raketen · Dreifachbruch',bg1:'#26292f',bg2:'#000000',ac:'#d1e5ff',ac2:'#ffd23f'}},
+  /* Jumbo-Raketen (Tom, 25.09.): je eine grosse Einzelrakete mit einem
+     Effekt, den es sonst nirgends gibt. stueck: eine Rakete je Packung */
+  jumbogold:{name:'Jumbo-Rakete »Goldene Krone«',short:'Jumbo Krone',cat:2,lvl:21,shape:'rocketset',stueck:1,dims:[0.84,0.10,0.15],grid:[2,1,1],box:4,cost:13.50,market:32.99,weight:4,hype:40,risk:9,
+    art:{title:'JUMBO',sub:'Goldene Krone · Einzelrakete',bg1:'#4a3308',bg2:'#150e02',ac:'#ffd23f',ac2:'#fff3c4',gold:true}},
+  jumboleiter:{name:'Jumbo-Rakete »Himmelsleiter«',short:'Jumbo Leiter',cat:2,lvl:22,shape:'rocketset',stueck:1,dims:[0.84,0.12,0.17],grid:[2,1,1],box:2,cost:22.00,market:52.99,weight:3,hype:58,risk:10,
+    art:{title:'JUMBO',sub:'Himmelsleiter · drei Brüche',bg1:'#12204a',bg2:'#04081a',ac:'#8fd0ff',ac2:'#ffd23f'}},
   sortiment:{name:'Familienfest · 18 Teile gemischt',short:'Sortiment',cat:2,lvl:13,shape:'assort',dims:[0.40,0.16,0.30],grid:[4,1,1],box:2,cost:18.00,market:42.99,weight:6,hype:34,risk:6,
     art:{title:'FAMILIENFEST',sub:'18 Teile gemischt',bg1:'#2f5d9e',bg2:'#0a1a33',ac:'#ffd23f',ac2:'#ff4fa3'}},
   /* Knattersturm: ersetzt den alten 25er. Jeder Schuss knistert,
@@ -1247,7 +1270,7 @@ const TUT=[
   ['fenster','Die Schaufenster werden mit der Zeit blind. Von innen anvisieren und putzen.','Schaufenster von innen putzen.'],
   ['move','Im Umbaumodus verschiebst du Regale, Kasse und Deko.','Umbau: Möbel verschieben.'],
   ['launch','Im Hof hinten kannst du Feuerwerk zünden. Das lockt Kunden an.','Im Hof zünden bringt Hype.'],
-  ['build','Stell die Ware im Hof auf die passende Station und zünde am Pult.','Ware aufbauen, dann am Zündpult zünden.'],
+  ['build','Stell die Ware im Hof auf die passende Station. Am Pult schaltet E den Zündmodus ein, dann zündet die Kanalnummer: 1–3 Mörser, 4–6 Raketen, 7–9 Tisch.','Ware aufbauen, am Pult E, dann Taste 1–9.'],
   ['phone','Dein Handy klingelt. Mit H rangehen.','Handy klingelt: H drücken.'],
   ['versand','Großaufträge gehen automatisch aus dem Lager raus. Volle Kartons müssen dort stehen.','Volle Kartons ins Lager stellen.']
 ];
@@ -1290,7 +1313,7 @@ const VOLA={
   raketengold:0.95, knatter:0.95, pfeifraketen:0.80, sekt:1.00, faecher:1.00, batterie49:1.05,
   furzrakete:1.10, batterie100:1.20, sprengmeister:1.30, profi:1.40, xxlpolen:1.60,
   sternenbrunnen:0.75, kugel75:0.95, kugel100:1.15, kugel150:1.45,
-  zfaecher:1.05, kometen:1.15, titanraketen:1.25, kugel200:1.50, finale:1.55,
+  zfaecher:1.05, kometen:1.15, titanraketen:1.25, kugel200:1.50, finale:1.55, jumbogold:1.30, jumboleiter:1.45,
   goldgeysir:0.85, feuerbrunnen:0.9, feuersaeule:1.2, donnerwand:1.35, kugel300:1.6
 };
 function volaOf(t){ const v=VOLA[t]; if(v!==undefined) return v; const p=P[t]; return p&&p.cat===2?0.85:p&&p.cat===1?0.6:0.45; }
@@ -1470,11 +1493,11 @@ const LIZENZEN=[
    desc:'Heulende Derwische und die Furzrakete »Donnerbalken«. Verkauft sich von allein, weil jeder sie einmal gesehen haben will.',
    items:['heuler','furzrakete']},
   {id:'grossfeuer',lvl:20,cost:21000,name:'Großkaliber',
-   desc:'Die Titan-Raketen mit Dreifachbruch, die 200-mm-Kugelbombe Götterzorn mit zehn Brüchen auf einmal, die Donnerwand mit Salven aus sechs Rohren und die 15-m-Feuersäule.',
-   items:['titanraketen','kugel200','donnerwand','feuersaeule']},
+   desc:'Die Titan-Raketen mit Dreifachbruch, die Jumbo-Rakete »Goldene Krone«, die 200-mm-Kugelbombe Götterzorn mit zehn Brüchen auf einmal, die Donnerwand mit Salven aus sechs Rohren und die 15-m-Feuersäule.',
+   items:['titanraketen','jumbogold','kugel200','donnerwand','feuersaeule']},
   {id:'profi',lvl:22,cost:26000,name:'Profiklasse',
-   desc:'Der Götterfunken-Verbund: zweihundert Schuss, und der halbe Ort steht auf der Straße. Ab Level 23 die 300-mm-Kugel Himmelsbrecher, ab Level 24 der Weltuntergang mit dreihundert Schuss.',
-   items:['profi','finale','kugel300']}
+   desc:'Der Götterfunken-Verbund: zweihundert Schuss, und der halbe Ort steht auf der Straße. Dazu die Jumbo-Rakete »Himmelsleiter« mit drei Brüchen übereinander. Ab Level 23 die 300-mm-Kugel Himmelsbrecher, ab Level 24 der Weltuntergang mit dreihundert Schuss.',
+   items:['profi','finale','kugel300','jumboleiter']}
 ];
 const LIZ_VON={};
 LIZENZEN.forEach(l=>l.items.forEach(t=>{ LIZ_VON[t]=l.id; }));
@@ -1495,7 +1518,7 @@ function naechsteLizenz(){ return LIZENZEN.find(l=>!hatLizenz(l.id))||null; }
 /* Warengruppen, damit ein Zaehler mehrere Sorten sammelt */
 const GRUPPE={
   boeller:['boeller','grossboeller','kanonen','doppelschlag','sprengmeister','xxlpolen','knallfrosch','knallerbsen'],
-  raketen:['raketenklein','raketen','pfeifraketen','raketengold','titanraketen','furzrakete','blanko','gravur'],
+  raketen:['raketenklein','raketen','pfeifraketen','raketengold','titanraketen','jumbogold','jumboleiter','furzrakete','blanko','gravur'],
   batterien:['batterie16','knatter','batterie49','batterie100','faecher','zfaecher','kometen','sortiment','profi','finale','donnerwand'],
   kugeln:['kugel75','kugel100','kugel150','kugel200','kugel300'],
   boden:['fontaene','goldgeysir','feuerbrunnen','feuersaeule','vulkan','wasserfall','roemisch','schwaermer','sternenbrunnen','tisch','wunder','heuler'],
@@ -2191,9 +2214,10 @@ function buildProduct(t){
     parts.push({geo:merge([{geo:new THREE.CylinderGeometry(R*1.005,R*1.005,lh,20,1,true),m:tm(0,body*0.45,0)}]),mat:new THREE.MeshStandardMaterial({map:lt,roughness:0.6,side:THREE.DoubleSide})});
   }
   else if(sh==='rocketset'){
-    const th=h*0.36, n=clamp(Math.round(d/0.026),3,9), cols=[0xd8352a,0x2f7fd0,0xffc93a,0x2f9e57,0x9b3bd6,0xf2f5ff,0xff7a3d,0x39c4d8,0xe35aa8];
+    /* stueck: Einzelraketen (Jumbo) - eine dicke statt vieler duenner */
+    const th=h*0.36, n=p.stueck||clamp(Math.round(d/0.026),3,9), cols=[0xd8352a,0x2f7fd0,0xffc93a,0x2f9e57,0x9b3bd6,0xf2f5ff,0xff7a3d,0x39c4d8,0xe35aa8];
     addAtlasBox(w,th,d,tm(0,th/2,0));
-    const step=d*0.86/n, rr=Math.min(0.0115,step*0.44);
+    const step=d*0.86/n, rr=p.stueck?Math.min(h*0.26,step*0.4):Math.min(0.0115,step*0.44);
     for(let i=0;i<n;i++){ const z=-d*0.43+step*(i+0.5), y=th+rr, c=cols[i%cols.length];
       vc.push({geo:new THREE.CylinderGeometry(rr,rr,w*0.27,10),m:tm(w*0.19,y,z,0,0,Math.PI/2),color:c});
       vc.push({geo:new THREE.ConeGeometry(rr,w*0.07,10),m:tm(w*0.19+w*0.17,y,z,0,0,-Math.PI/2),color:c});
@@ -3008,9 +3032,14 @@ const PULT_RY=0;
    sperrte als unsichtbare Wand den Lagergang. */
 const PULT_POS={x:1.0,z:-11.5};
 const stations={}; let pultHit=null, pultTex=null, pultLamp=null;
-const pultLamps=[];
-/* x der Kanal-Leuchte i auf der Pultplatte: drei Gruppen mit Luecke */
-const PULT_LAMP_X=i=>-0.357+i*0.046+(i<6?0:i<12?1:2)*0.035;
+const pultLamps=[], pultTaster=[];
+/* x der Kanal-Leuchte i auf der Pultplatte: neun Kanaele in drei
+   Gruppen zu drei - Moerser, Raketen, Tisch (Tom, 25.09.) */
+const PULT_LAMP_X=i=>-0.35+i*0.075+Math.floor(i/3)*0.05;
+/* Plaetze auf Tisch und Rampe: je drei. Der Tisch behaelt seine
+   Breite, die Plaetze stehen weiter auseinander - grosse Batterien
+   brauchen den Platz. Die Rampe hat nur noch drei Rohre. */
+const TISCH_X=[-0.8,0,0.8], RAMPE_X=[-0.4,0,0.4];
 /* Hinweisschild auf zwei Rohrpfosten, damit es nicht in der Luft haengt */
 function schild(x,y,z,w,h,mat,steelM){
   const g=new THREE.Group(); g.position.set(x,0,z); scene.add(g);
@@ -3035,8 +3064,8 @@ function schild(x,y,z,w,h,mat,steelM){
    des Ladens quer ueber das Testfeld laeuft. Platz ist genug: das
    Testfeld reicht bis z -28. */
 const STATION_POS={
-  tisch :{x:-1.5,z:-19.0,ry:0,name:'Zündtisch',cap:6},
-  rampe :{x:-1.5,z:-23.0,ry:0,name:'Abschussröhren',cap:6},
+  tisch :{x:-1.5,z:-19.0,ry:0,name:'Zündtisch',cap:3},
+  rampe :{x:-1.5,z:-23.0,ry:0,name:'Abschussröhren',cap:3},
   moerser:{x:5.0,z:-23.0,ry:0,name:'Mörserbatterie',cap:3}
 };
 function stationOf(t){
@@ -3129,7 +3158,7 @@ function buildYard(){
     bbox(0.06,0.06,0.9,steelDark,1.1,0.3,0,g,false);
     bbox(0.06,0.06,0.9,steelDark,-1.1,0.3,0,g,false);
     /* Kanalnummern an der Vorderkante, je Platz eine */
-    for(let i=0;i<s.cap;i++) plane(0.1,0.064,kanalMat(KANAL_START.tisch+i),-0.95+i*0.38,0.915,0.549,0,g);
+    for(let i=0;i<s.cap;i++) plane(0.1,0.064,kanalMat(KANAL_START.tisch+i),TISCH_X[i],0.915,0.549,0,g);
     const hit=bbox(2.6,0.95,1.15,hitM,0,0.62,0,g,false);
     stations.tisch={id:'tisch',g,items:[],cap:s.cap,hit};
     hit.userData={kind:'station',ref:stations.tisch};
@@ -3143,17 +3172,18 @@ function buildYard(){
   /* --- Abschussröhren --- */
   {
     const s=STATION_POS.rampe, g=new THREE.Group(); g.position.set(s.x,0,s.z); scene.add(g);
-    bbox(2.5,0.09,0.75,steelDark,0,0.045,0,g);
-    for(const x of [-1.15,1.15]){ bbox(0.08,0.06,0.8,steelDark,x,0.1,0,g,false); }
-    bbox(2.4,0.06,0.06,steelDark,0,1.05,-0.26,g,false);
-    bbox(2.4,0.06,0.06,steelDark,0,0.62,0.26,g,false);
-    for(const x of [-1.2,1.2]){
+    /* drei Rohre - das Gestell ist entsprechend schmaler */
+    bbox(1.3,0.09,0.75,steelDark,0,0.045,0,g);
+    for(const x of [-0.58,0.58]){ bbox(0.08,0.06,0.8,steelDark,x,0.1,0,g,false); }
+    bbox(1.24,0.06,0.06,steelDark,0,1.05,-0.26,g,false);
+    bbox(1.24,0.06,0.06,steelDark,0,0.62,0.26,g,false);
+    for(const x of [-0.62,0.62]){
       bbox(0.07,1.1,0.07,steelDark,x,0.6,-0.26,g);
       const d=bbox(0.06,0.78,0.06,steelDark,x,0.42,0.02,g,false); d.rotation.x=-0.62;
     }
     const tubeM=std(0x3e4652,{metalness:0.72,roughness:0.34});
-    for(let i=0;i<6;i++){
-      const x=-1.0+i*0.4;
+    for(let i=0;i<s.cap;i++){
+      const x=RAMPE_X[i];
       const t=new THREE.Mesh(new THREE.CylinderGeometry(0.062,0.062,1.25,20,1,true),tubeM);
       t.material.side=THREE.DoubleSide; t.position.set(x,0.72,-0.02); t.rotation.x=-0.1;
       if(HIQ) t.castShadow=true; g.add(t);
@@ -3165,11 +3195,11 @@ function buildYard(){
       ring2.rotation.x=Math.PI/2-0.1; ring2.position.set(x,0.86,0.01); g.add(ring2);
       bbox(0.17,0.025,0.17,steelDark,x,0.105,0.04,g,false);
     }
-    for(let i=0;i<s.cap;i++) plane(0.1,0.064,kanalMat(KANAL_START.rampe+i),-1.0+i*0.4,0.62,0.292,0,g);
-    const hit=bbox(2.6,1.5,0.95,hitM,0,0.78,0,g,false);
+    for(let i=0;i<s.cap;i++) plane(0.1,0.064,kanalMat(KANAL_START.rampe+i),RAMPE_X[i],0.62,0.292,0,g);
+    const hit=bbox(1.4,1.5,0.95,hitM,0,0.78,0,g,false);
     stations.rampe={id:'rampe',g,items:[],cap:s.cap,hit};
     hit.userData={kind:'station',ref:stations.rampe};
-    col(s.x-1.3,s.x+1.3,s.z-0.46,s.z+0.46);
+    col(s.x-0.68,s.x+0.68,s.z-0.46,s.z+0.46);
     schild(s.x,1.62,s.z-0.62,1.15,0.2,new THREE.MeshStandardMaterial({map:tex(690,120,(g2,W,H)=>{
       g2.fillStyle='#e63b2e'; g2.fillRect(0,0,W,H);
       g2.lineWidth=6; g2.strokeStyle='#ffffff'; g2.strokeRect(4,4,W-8,H-8);
@@ -3331,16 +3361,16 @@ function buildYard(){
       feld(40,250,196,270,'SCHLÜSSEL · SCHARF');
       feld(276,250,290,270,'ANZEIGE');
       feld(606,250,378,270,'ZÜNDUNG','#e0574a');
-      /* Kanalreihe oben: 15 Leuchten in drei Gruppen, darunter die
-         Kanalnummer und der Name der Station */
+      /* Kanalreihe oben: neun Leuchten mit je einem Taster darunter,
+         in drei Gruppen - wie die Tasten 1 bis 9 */
       c.fillStyle='rgba(12,15,22,.5)'; c.fillRect(40,44,944,176);
       c.strokeStyle='#6f7684'; c.lineWidth=3; c.strokeRect(40,44,944,176);
       const tx=x=>(x+0.45)/0.9*W;
-      for(let i=0;i<15;i++){
-        c.fillStyle='#e2e7ef'; c.font=BUN(26); c.textAlign='center'; c.textBaseline='middle';
-        c.fillText(String(i+1),tx(PULT_LAMP_X(i)),150);
+      for(let i=0;i<9;i++){
+        c.fillStyle='#e2e7ef'; c.font=BUN(28); c.textAlign='center'; c.textBaseline='middle';
+        c.fillText(String(i+1),tx(PULT_LAMP_X(i)),160);
       }
-      [['TISCH',0,5],['RÖHREN',6,11],['MÖRSER',12,14]].forEach(([n,a,b2])=>{
+      [['MÖRSER',0,2],['RAKETEN',3,5],['TISCH',6,8]].forEach(([n,a,b2])=>{
         const x0=tx(PULT_LAMP_X(a))-24, x1=tx(PULT_LAMP_X(b2))+24;
         c.strokeStyle='#8f97a6'; c.lineWidth=2; c.beginPath(); c.moveTo(x0,176); c.lineTo(x1,176); c.stroke();
         c.fillStyle='#aab2c0'; c.font=BAR(24); c.textAlign='center'; c.textBaseline='middle';
@@ -3348,7 +3378,7 @@ function buildYard(){
       /* Warnzeile unten */
       c.fillStyle='#f2c230'; c.fillRect(40,524,944,22);
       c.fillStyle='#1b1e26'; c.font=BUN(20); c.textAlign='center'; c.textBaseline='middle';
-      c.fillText('ZÜNDANLAGE ZA-15 · NUR MIT SCHLÜSSEL SCHARFSCHALTEN · SICHERHEITSABSTAND BEACHTEN',W/2,536);
+      c.fillText('ZÜNDANLAGE ZA-9 · NUR MIT SCHLÜSSEL SCHARFSCHALTEN · SICHERHEITSABSTAND BEACHTEN',W/2,536);
     });
     const platte=new THREE.Mesh(new THREE.BoxGeometry(0.90,0.022,0.50),
       [kante,kante,new THREE.MeshStandardMaterial({map:platteTex,roughness:0.45,metalness:0.18}),kante,kante,kante]);
@@ -3359,8 +3389,10 @@ function buildYard(){
 
     /* Anzeige im Rahmen, mittig auf der Platte */
     pultTex=tex(960,480,()=>{});
-    rbox(0.32,0.02,0.19,0.008,std(0x11141b,{roughness:0.5}),-0.030,0.02,-0.042,pult);
-    const scr=plane(0.285,0.155,new THREE.MeshBasicMaterial({map:pultTex,toneMapped:false}),-0.030,0.031,-0.042,0,pult);
+    /* im Feld ANZEIGE, unter der Kanalreihe - weiter oben verdeckte
+       das Display die Kanalnummern 4 bis 6 */
+    rbox(0.32,0.02,0.19,0.008,std(0x11141b,{roughness:0.5}),-0.030,0.02,0.052,pult);
+    const scr=plane(0.285,0.155,new THREE.MeshBasicMaterial({map:pultTex,toneMapped:false}),-0.030,0.031,0.052,0,pult);
     scr.rotation.x=-Math.PI/2;
 
     /* Schlagtaster rechts. Keine Textur auf der Kuppel: eine
@@ -3369,7 +3401,7 @@ function buildYard(){
        am Pol. Der Taster ist darum aus Volumen gebaut -
        Einbauring, Raendelmutter, Schaft, Teller, Kuppel - und die
        Beschriftung steht auf der Pultplatte daneben. */
-    const TX=0.295, TZ=-0.02;
+    const TX=0.295, TZ=0.065;
     const rotDunkel=std(0x8e1a11,{roughness:0.42,metalness:0.02});
     const rotKorpus=std(0xbe2418,{roughness:0.3,metalness:0.03});
     const rotHell=std(0xd93b2c,{roughness:0.24,metalness:0.03});
@@ -3397,19 +3429,25 @@ function buildYard(){
 
     /* Schluesselschalter links mit Stellungsmarke */
     const zylR=new THREE.Mesh(new THREE.CylinderGeometry(0.030,0.030,0.020,HIQ?18:10),kante);
-    zylR.position.set(-0.328,0.022,-0.018); pult.add(zylR);
+    zylR.position.set(-0.328,0.022,0.067); pult.add(zylR);
     const key=new THREE.Mesh(new THREE.BoxGeometry(0.009,0.014,0.055),std(0xb9a05a,{metalness:0.8,roughness:0.3}));
-    key.position.set(-0.328,0.036,0.009); key.rotation.x=-0.5; pult.add(key);
+    key.position.set(-0.328,0.036,0.094); key.rotation.x=-0.5; pult.add(key);
     /* Meldeleuchten: eine je Kanal. Aus = leer, gruen = scharf,
        rot = brennt (pultLampen) */
-    for(let i=0;i<15;i++){
+    const tastM=std(0x2a2f38,{roughness:0.5,metalness:0.2}), tastKopf=std(0xd9dde3,{roughness:0.45});
+    for(let i=0;i<9;i++){
       const lx=PULT_LAMP_X(i);
       const lm=new THREE.MeshStandardMaterial({color:LIN(0x1e232e),roughness:0.4,emissive:LIN(0x39ff7a),emissiveIntensity:0});
       pultLamps.push(lm);
       const l=new THREE.Mesh(new THREE.CylinderGeometry(0.015,0.015,0.012,HIQ?14:8),lm);
-      l.position.set(lx,0.019,-0.193); pult.add(l);
+      l.position.set(lx,0.019,-0.205); pult.add(l);
       const r2=new THREE.Mesh(new THREE.TorusGeometry(0.019,0.004,6,HIQ?14:8),kante);
-      r2.position.set(lx,0.021,-0.193); r2.rotation.x=Math.PI/2; pult.add(r2);
+      r2.position.set(lx,0.021,-0.205); r2.rotation.x=Math.PI/2; pult.add(r2);
+      /* Kanaltaster: Einbaurahmen und Tastkappe, die beim Zuenden
+         eingedrueckt wird */
+      bbox(0.042,0.01,0.036,tastM,lx,0.016,-0.152,pult,false);
+      const kap=bbox(0.032,0.014,0.026,tastKopf,lx,0.026,-0.152,pult,false);
+      kap.userData.y0=kap.position.y; pultTaster.push(kap);
     }
     /* Seitengriffe am Korpus */
     for(const sx of [-0.48,0.48]){
@@ -3421,7 +3459,7 @@ function buildYard(){
       g2.fillStyle='#161a22'; g2.fillRect(0,0,W,H);
       g2.strokeStyle='#6f7684'; g2.lineWidth=4; g2.strokeRect(5,5,W-10,H-10);
       g2.fillStyle='#c9cfd8'; g2.font=BAR(42); g2.textAlign='center'; g2.textBaseline='middle';
-      g2.fillText('ZÜNDANLAGE ZA-15',W/2,H/2+2); })}),-0.26,1.00,0.282,0,g);
+      g2.fillText('ZÜNDANLAGE ZA-9',W/2,H/2+2); })}),-0.26,1.00,0.282,0,g);
     for(const sx of [-0.33,0.33]) bbox(0.16,0.04,0.006,pulver,sx,0.93,0.282,g,false);
 
     const hit=bbox(0.98,1.35,0.66,hitM,0,0.75,0,g,false); hit.userData={kind:'pult'};
@@ -3439,14 +3477,16 @@ function buildYard(){
   }
 }
 /* =========================================================
-   Kanaele. Jeder Platz auf den Stationen hat eine feste Nummer:
-   Zuendtisch 1 bis 6, Abschussroehren 7 bis 12, Moerser 13 bis 15.
-   Am Pult zuendet man einen Kanal einzeln oder alle zusammen. Die
-   Ware bleibt stehen, bis sie abgebrannt ist, und jeder Effekt
-   startet genau dort, wo sein Produkt steht.
+   Kanaele (Tom, 25.09.): neun, wie die Zifferntasten.
+     1-3  Moerser: kleines, mittleres, grosses Rohr
+     4-6  Abschussroehren fuer Raketen
+     7-9  Zuendtisch fuer Batterien, Fontaenen und Co.
+   Am Pult zuendet die Zifferntaste genau diesen Platz. Die Ware
+   bleibt stehen, bis sie abgebrannt ist, und jeder Effekt startet
+   genau dort, wo sein Produkt steht.
    ========================================================= */
-const KANAL_START={tisch:1,rampe:7,moerser:13};
-const KANAL_REIHE=['tisch','rampe','moerser'];
+const KANAL_START={moerser:1,rampe:4,tisch:7};
+const KANAL_REIHE=['moerser','rampe','tisch'];
 function kanalVon(st,slot){ return KANAL_START[st.id]+slot; }
 function kanalAnzahl(){ let n=0; for(const id of KANAL_REIHE) if(stations[id]) n+=stations[id].cap; return n; }
 function itemAufPlatz(st,slot){ return st.items.find(x=>x.slot===slot)||null; }
@@ -3467,9 +3507,9 @@ const MOERSER_MUND=[1.48,1.73,2.03];
 function muendung(st,slot,t){
   const p=STATION_POS[st.id];
   if(st.id==='tisch'){ const h=P[t]&&P[t].dims?P[t].dims[1]:0.2;
-    return {x:p.x-0.95+slot*0.38,y:0.93+h,z:p.z,ab:0.08,jit:0.06}; }
+    return {x:p.x+TISCH_X[slot%3],y:0.93+h,z:p.z,ab:0.08,jit:0.06}; }
   if(st.id==='moerser') return {x:p.x+[-0.72,0,0.78][slot%3],y:MOERSER_MUND[slot%3],z:p.z,ab:0.05,jit:0.02};
-  return {x:p.x-1.0+slot*0.4,y:1.34,z:p.z-0.08,ab:0.05,jit:0.02};
+  return {x:p.x+RAMPE_X[slot%3],y:1.34,z:p.z-0.08,ab:0.05,jit:0.02};
 }
 function placedCount(){ let n=0; for(const k in stations) n+=stations[k].items.length; return n; }
 function bereitCount(){ let n=0; for(const k in stations) n+=stations[k].items.filter(it=>it.state==='bereit').length; return n; }
@@ -3502,9 +3542,9 @@ function pultLampen(){
 }
 function stationSlot(st,i){
   const p=STATION_POS[st.id];
-  if(st.id==='tisch'){ const x=-0.95+i*0.38; return {x:p.x+x,y:0.93,z:p.z,ry:Math.PI}; }
+  if(st.id==='tisch') return {x:p.x+TISCH_X[i%3],y:0.93,z:p.z,ry:Math.PI};
   if(st.id==='moerser'){ const x=[-0.72,0,0.78][i%3]; return {x:p.x+x,y:[1.36,1.62,1.92][i%3],z:p.z,ry:rand(0,Math.PI*2)}; }
-  const x=-1.0+i*0.4; return {x:p.x+x,y:1.18,z:p.z-0.08,ry:0};
+  return {x:p.x+RAMPE_X[i%3],y:1.18,z:p.z-0.08,ry:0};
 }
 /* =========================================================
    Was auf der Station sichtbar steht. Raketen stecken mit dem Stab
@@ -3519,7 +3559,11 @@ const RAKETEN_LOOK={
   furzrakete:  {r:0.046,L:0.19,body:'#6b4a1c',kopf:'#c8e04a',band:'#ffd23f'},
   blanko:      {r:0.022,L:0.16,body:'#7a808c',kopf:'#f2f5ff',band:'#ffd23f'},
   pfeifraketen:{r:0.026,L:0.2,body:'#c8201c',kopf:'#f2f5ff',band:'#1b1b1b',rillen:true},
-  titanraketen:{r:0.05,L:0.34,body:'#15181f',kopf:'#e63b2e',band:'#ffd23f',metall:true,flossen:true,gross:true}
+  titanraketen:{r:0.05,L:0.34,body:'#15181f',kopf:'#e63b2e',band:'#ffd23f',metall:true,flossen:true,gross:true},
+  /* Jumbos: so dick, wie das Rohr es zulaesst, dafuer laenger, mit
+     kraeftigem Stab und zwei Baendern */
+  jumbogold:  {r:0.05,L:0.52,body:'#c9a23a',kopf:'#fff3c4',band:'#4a3308',metall:true,flossen:true,gross:true,jumbo:true},
+  jumboleiter:{r:0.05,L:0.56,body:'#1a2f6a',kopf:'#8fd0ff',band:'#ffd23f',flossen:true,gross:true,jumbo:true}
 };
 function raketeModell(t){
   const p=P[t]||{}, a=p.art||{};
@@ -3527,12 +3571,12 @@ function raketeModell(t){
   const g=new THREE.Group();
   const mat=h=>std(parseInt(h.slice(1),16),L0.metall?{metalness:0.55,roughness:0.3}:{roughness:0.5});
   /* Stab steckt im Rohr */
-  const stab=new THREE.Mesh(new THREE.CylinderGeometry(0.006,0.006,0.95,6),std(0xc9a46a,{roughness:0.8}));
+  const stab=new THREE.Mesh(new THREE.CylinderGeometry(L0.jumbo?0.011:0.006,L0.jumbo?0.011:0.006,0.95,6),std(0xc9a46a,{roughness:0.8}));
   stab.position.y=-0.46; g.add(stab);
   /* Treibsatz, Band, Kopf */
   const body=new THREE.Mesh(new THREE.CylinderGeometry(L0.r,L0.r,L0.L,HIQ?16:10),mat(L0.body));
   body.position.y=L0.L/2; g.add(body);
-  for(const f of (L0.rillen?[0.25,0.5,0.75]:[0.62])){
+  for(const f of (L0.rillen?[0.25,0.5,0.75]:L0.jumbo?[0.3,0.72]:[0.62])){
     const b=new THREE.Mesh(new THREE.CylinderGeometry(L0.r*1.04,L0.r*1.04,L0.L*0.09,HIQ?16:10),mat(L0.band));
     b.position.y=L0.L*f; g.add(b); }
   const kopf=new THREE.Mesh(new THREE.ConeGeometry(L0.r*1.12,L0.r*(L0.gross?3.4:2.6),HIQ?16:10),mat(L0.kopf));
@@ -3687,7 +3731,15 @@ function zuendeItem(st,it,leise){
   drawPult();
   return dud?'dud':true;
 }
+/* Die Tastkappe am Pult geht kurz herunter - man sieht, welcher
+   Kanal gedrueckt wurde */
+function pultDruck(k){
+  const m=pultTaster[k-1]; if(!m) return;
+  m.position.y=m.userData.y0-0.007; m.userData.druck=(m.userData.druck||0)+1;
+  const n=m.userData.druck; later(0.22,()=>{ if(m.userData.druck===n) m.position.y=m.userData.y0; });
+}
 function zuendeKanal(k){
+  pultDruck(k);
   const e=alleKanaele().find(x=>x.kanal===k);
   if(!e||!e.it){ toast(`Kanal ${k} ist leer.`); return false; }
   if(e.it.state!=='bereit'){ toast(`Kanal ${k} brennt schon.`); return false; }
@@ -3700,7 +3752,7 @@ function zuendeKanal(k){
 function zuendeAlle(gleichzeitig){
   const ks=alleKanaele().filter(e=>e.it&&e.it.state==='bereit');
   if(!ks.length){ toast('Erst Ware auf Tisch, Röhren oder Mörser stellen.'); return false; }
-  const m=testfeldMitte(); aimAt(m.x,m.z,0.24);
+  /* die Kamera bleibt, wo der Spieler hinschaut (Tom, 25.09.) */
   if(!gleichzeitig) ks.sort((a,b)=>P[a.it.type].hype-P[b.it.type].hype);
   let t=0, duds=0;
   ks.forEach(e=>{
@@ -12175,7 +12227,7 @@ function basisBlick(p,kipp){
 const EFF_FAMILIE={};
 [['figur','ring doppelring ringring herz stern saturn schneeflocke spirale feuerrad kreisel'],
  ['kugel','kugel chrys wechsel dahlie pistill mehrring geist regenbogen spektrum farbregen dreifach doppel zehnfach strauss'],
- ['haenger','weide glitzerweide kamuro brokat zeitregen kronleuchter goldglitzer palme komet kaskade sternschnuppen titan'],
+ ['haenger','weide glitzerweide kamuro brokat zeitregen kronleuchter goldglitzer palme komet kaskade sternschnuppen titan sternpalme steigkomet'],
  ['knister','knister tausend strobe blink fische spinne crossette blaetter'],
  ['flamme','flammenregen'],['salut','salut'],['spass','furz']].forEach(([f,l])=>l.split(' ').forEach(e=>{ EFF_FAMILIE[e]=f; }));
 /* Welche Familien sich den Himmel teilen duerfen */
@@ -12790,13 +12842,61 @@ EFF.strauss=function(p,A,B,s){
       psBig.emit(q.x,q.y,q.z,e[0]*w,e[1]*w,e[2]*w,c[0],c[1],c[2],rand(1.5,2.0),2.4,0); }
     kern(q,c,s*0.6); }
 };
+/* =========================================================
+   Jumbo-Raketen (Tom, 25.09.): zwei Effekte, die es nur dort gibt.
+   ========================================================= */
+/* Position eines Sterns nach T Sekunden - dieselbe Rechnung wie in
+   PS.update: Luftwiderstand ZIEH, Schwerkraft g */
+function sternNach(p,vx,vy,vz,g,T){
+  const e=(1-Math.exp(-ZIEH*T))/ZIEH;
+  return {x:p.x+vx*e,y:p.y+(vy+g/ZIEH)*e-g/ZIEH*T,z:p.z+vz*e};
+}
+/* Goldene Krone: dicke Goldpalme, jeder Finger endet nach einer
+   Sekunde in einem farbigen Sternbuendel - Juwelen auf der Krone */
+EFF.sternpalme=function(p,A,B,s){
+  const arms=10+Math.floor(Math.random()*3), g=FW.gold, G=4.4, T=1.05;
+  const juwel=[B,K('rot'),K('tuerkis'),B,K('magenta')];
+  for(let a=0;a<arms;a++){
+    const ang=a/arms*Math.PI*2+rand(-.12,.12), tilt=rand(0.35,1.0), sp=rand(8.5,10.5)*s;
+    const vx=Math.cos(ang)*Math.cos(tilt)*sp, vy=Math.sin(tilt)*sp+2, vz=Math.sin(ang)*Math.cos(tilt)*sp;
+    const n=Math.round(18*QUAL());
+    for(let i=0;i<n;i++){ const f=0.35+i/n*0.75;
+      psBig.emit(p.x,p.y,p.z,vx*f+rand(-.4,.4),vy*f+rand(-.4,.4),vz*f+rand(-.4,.4),g[0],g[1],g[2],rand(2.4,3.2),G,4); }
+    /* die Spitze: dort, wo der schnellste Stern des Fingers gerade ist */
+    const q=sternNach(p,vx*1.1,vy*1.1,vz*1.1,G,T), c=juwel[a%juwel.length];
+    later(T,()=>{
+      for(let i=0;i<Math.round(22*QUAL());i++){ const d=randDir(), w=rand(2.2,3.6)*s;
+        psBig.emit(q.x,q.y,q.z,d[0]*w,d[1]*w,d[2]*w,c[0],c[1],c[2],rand(1.1,1.6),2.6,0); }
+      psHuge.emit(q.x,q.y,q.z,0,0,0,1,1,1,0.12,0,0);
+    });
+  }
+  later(T,()=>{ sfx.crack(distVol(p)*0.9); flash(p,B,2.6,0.4); });
+  for(let i=0;i<Math.round(30*QUAL());i++){ const d=randDir(), v=rand(1,3);
+    psMid.emit(p.x,p.y,p.z,d[0]*v,d[1]*v,d[2]*v,1,.9,.6,rand(1,1.6),2.5,4); }
+};
+/* Himmelsleiter: ein heller Komet steigt vom Bruch 8 m hoeher, dort
+   geht der naechste Bruch auf - die Rakete steigt in Stufen. Mit
+   5,5 m lagen die Brueche uebereinander und man sah keine Treppe. */
+const LEITER_STUFE=8, LEITER_T=0.7;
+EFF.steigkomet=function(p,A,B,s){
+  /* ohne Schwerkraft: v0 so, dass er nach LEITER_T oben ist */
+  const T=LEITER_T, e=(1-Math.exp(-ZIEH*T))/ZIEH, v0=LEITER_STUFE/e;
+  psBig.emit(p.x,p.y,p.z,0,v0,0,1,.95,.8,T,0,0);
+  for(let i=0;i<12;i++){ const a=Math.random()*Math.PI*2, w=rand(0.6,1.6);
+    psSmall.emit(p.x,p.y,p.z,Math.cos(a)*w,rand(1,3),Math.sin(a)*w,1,.8,.4,rand(0.3,0.6),4,0); }
+  /* Funken, die unterwegs vom Kometen abfallen */
+  for(let k=1;k<6;k++){ const t=k*T/6, q=sternNach(p,0,v0,0,0,t);
+    later(t,()=>{ for(let i=0;i<Math.round(5*QUAL());i++){ const a=Math.random()*Math.PI*2, w=rand(0.3,0.9);
+      psSmall.emit(q.x,q.y,q.z,Math.cos(a)*w,rand(-0.5,0.4),Math.sin(a)*w,1,.78,.35,rand(0.5,0.9),3,4); } }); }
+};
 /* Wie lang die Leuchtspur je Bruchbild ist (Sekunden Flugbahn) */
 const EFF_SCHWEIF={kugel:0.4,chrys:0.75,wechsel:0.35,weide:1.9,palme:1.1,ring:0.3,doppelring:0.3,crossette:0.35,
   knister:0.3,blink:0,brokat:1.3,herz:0.18,stern:0.18,kreisel:0.4,fische:0.25,doppel:0.4,dreifach:0.45,
   dahlie:0.45,pistill:0.4,kamuro:1.8,spinne:0.5,strobe:0,zeitregen:0.9,blaetter:0,geist:0.35,salut:0.08,saturn:0.3,
   tausend:0.25,mehrring:0.35,regenbogen:0.4,glitzerweide:2.0,komet:0.9,titan:0.8,zehnfach:0.35,kaskade:0.5,
   schneeflocke:0.22,spirale:0.3,ringring:0.25,strauss:0.35,furz:0,
-  flammenregen:0.7,kronleuchter:1.4,feuerrad:0.55,sternschnuppen:0.9,farbregen:0.5,spektrum:0.2,goldglitzer:0.9};
+  flammenregen:0.7,kronleuchter:1.4,feuerrad:0.55,sternschnuppen:0.9,farbregen:0.5,spektrum:0.2,goldglitzer:0.9,
+  sternpalme:1.1,steigkomet:0.45};
 function mitSchweif(eff,fn){ const alt=SCHWEIF; SCHWEIF=EFF_SCHWEIF[eff]!==undefined?EFF_SCHWEIF[eff]:null; try{ fn(); } finally { SCHWEIF=alt; } }
 const EFF_ALL=Object.keys(EFF);
 /* Was in welcher Groessenklasse geschossen wird */
@@ -13310,6 +13410,18 @@ const RAKETEN_KL={
   pfeifraketen:{n:10,gap:0.5, sz:0.8, pw:-3,th:'wald',gruppe:2,pfeif:true,eff:['knister','spektrum','fische','goldglitzer','strobe','tausend']},
   raketengold :{n:5, gap:1.1, sz:1.25,pw:1, th:'gold',eff:['goldglitzer','kronleuchter','brokat','goldglitzer','zeitregen']},
   titanraketen:{n:3, gap:1.7, sz:1.55,pw:5, th:'eis',dick:1,eff:['titan']},
+  /* Jumbo »Goldene Krone«: eine dicke Goldrakete, die Palme endet in
+     farbigen Juwelen, zum Schluss knistert es */
+  jumbogold  :{n:1, gap:0, sz:2.0, pw:8, fuse:1.35, th:'koenig',dick:2,trail:'gold',eff:['sternpalme'],
+    stufen:(A,B)=>[{t:1.7,eff:'tausend',sz:1.0,streu:1.2,A:FW.weiss,B:FW.gold}]},
+  /* Jumbo »Himmelsleiter«: drei Brueche uebereinander, ein Komet
+     traegt die Rakete jeweils eine Stufe hoeher - jede groesser */
+  jumboleiter:{n:1, gap:0, sz:0.9, pw:0, th:'nacht',dick:2,trail:'weiss',eff:['pistill'],
+    stufen:(A,B)=>[{t:0.02,eff:'steigkomet',sz:1,off:[0,0,0],leise:true},
+      {t:LEITER_T+0.02,eff:'dahlie',sz:1.25,off:[0,LEITER_STUFE,0],A:B,B:A},
+      {t:LEITER_T+0.04,eff:'steigkomet',sz:1,off:[0,LEITER_STUFE,0],leise:true},
+      {t:2*LEITER_T+0.04,eff:'glitzerweide',sz:2.0,off:[0,2*LEITER_STUFE,0],A:FW.gold,B:FW.weiss},
+      {t:2*LEITER_T+0.9,eff:'tausend',sz:1.1,off:[0,2*LEITER_STUFE-3,0],A:FW.weiss,B:FW.weiss}]},
   gravur      :{n:1, gap:0.45,sz:1.3, pw:4, eff:['herz']},
   blanko      :{n:3, gap:0.45,sz:0.95,pw:0, eff:null}
 };
@@ -13481,11 +13593,14 @@ function igniteType(t,o0){
   }
   else if(sh==='rocketset'){
     const KL=RAKETEN_KL[t]||{n:3,gap:0.45,sz:0.95,pw:0,eff:null};
-    for(let i=0;i<KL.n;i++) later(i*KL.gap,()=>shot(o,{pw:KL.pw,sz:KL.sz,eff:KL.eff?KL.eff[i%KL.eff.length]:pick(EFF_GROSS),
-      ...(KL.th?(([A,B])=>({A,B}))(themaPaar(KL.th,Math.floor(i/(KL.gruppe||1)))):{sc:-1}),
-      pfeif:KL.pfeif,dick:KL.dick,trail:KL.dick?FW.weiss:undefined,
-      /* Titan: jede Rakete bricht dreifach - Hauptbruch, dann zwei Nachbrueche */
-      stufen:t==='titanraketen'?[{t:0.5,eff:pick(['mehrring','pistill','dahlie']),sz:1.0,streu:5},{t:1.0,eff:'salut',sz:0.8,streu:3}]:null}));
+    for(let i=0;i<KL.n;i++) later(i*KL.gap,()=>{
+      const AB=KL.th?themaPaar(KL.th,Math.floor(i/(KL.gruppe||1))):null;
+      shot(o,{pw:KL.pw,sz:KL.sz,eff:KL.eff?KL.eff[i%KL.eff.length]:pick(EFF_GROSS),
+        ...(AB?{A:AB[0],B:AB[1]}:{sc:-1}),
+        pfeif:KL.pfeif,dick:KL.dick,trail:KL.trail?FW[KL.trail]:KL.dick?FW.weiss:undefined,fuse:KL.fuse,
+        /* Jumbos: eigene Nachbrueche; Titan: jede Rakete bricht dreifach */
+        stufen:KL.stufen?KL.stufen(AB?AB[0]:FW.gold,AB?AB[1]:FW.weiss,i)
+          :t==='titanraketen'?[{t:0.5,eff:pick(['mehrring','pistill','dahlie']),sz:1.0,streu:5},{t:1.0,eff:'salut',sz:0.8,streu:3}]:null}); });
   }
   else if(sh==='battery'||sh==='fan'){
     /* Verbundfeuerwerk: Kaliber, Takt und Effektauswahl wachsen mit
@@ -13768,6 +13883,7 @@ function promptFor(t){
         return {t:`Aufbauen: ${P[c.type].short} (${st.items.length}/${st.cap})`,a:true}; }
       return {t:st.items.length?`${nm}: ${st.items.length} Stück bereit`:`${nm}: leer`,a:false}; }
     case 'pult': { const n=bereitCount();
+      if(zuendOpen) return {t:'Zündpult verlassen',a:true};
       return {t:n?`Zündpult bedienen · ${n} ${n===1?'Kanal':'Kanäle'} scharf`:'Zündpult bedienen',a:true}; }
     case 'gravur': {
       if(c&&c.type==='blanko') return gravBlanks>=GRAV_MAX?{t:'Automat ist voll',a:false}:{t:`Blanko nachfüllen ${gravBlanks}/${GRAV_MAX}`,a:true};
@@ -13805,7 +13921,7 @@ function doAction(){
   else if(k==='laptop') openLaptop();
   else if(k==='laptop2') openLaptop('order');
   else if(k==='station'){ if(S.carrying) placeOnStation(r); }
-  else if(k==='pult') openZuend();
+  else if(k==='pult'){ if(zuendOpen) closeZuend(); else openZuend(); }
   else if(k==='gravur'){ if(S.carrying&&S.carrying.type==='blanko') refillGrav(); else if(!S.carrying) openGravInput(); }
   else if(k==='tbox') takeBox(r);
   else if(k==='sign'){ if(phase==='closed') openShop(); else if(phase==='after') endDay(); }
@@ -13975,7 +14091,9 @@ function addXP(n,label){
     if(phase==='closed'||phase==='after') showLevelUp(); }
 }
 function showLevelUp(){
-  if(!pendingLevels.length||overlayOpen()) return;
+  /* am Zuendpult unterbricht der Aufstieg die Show nicht - er kommt,
+     wenn man das Pult verlaesst */
+  if(!pendingLevels.length||overlayOpen()||(typeof zuendOpen!=='undefined'&&zuendOpen)) return;
   const lv=pendingLevels.shift(), list=levelUnlocks(lv);
   $('luTitle').textContent=`Level ${lv}`;
   $('luText').textContent=list.length?'Das ist ab jetzt im Laptop freigeschaltet:':'Weiter so. Die nächste Freischaltung kommt bald.';
@@ -15543,7 +15661,7 @@ let fwTestAn=false, fwTestBoxen=[];
 /* Welche Uhrzeit das Licht sieht: im Testmodus immer 22 Uhr */
 function todUhr(){ return FW_DEV&&fwTestAn?Math.max(clock,1320):clock; }
 function fwTestProdukte(){
-  const reihe={tisch:0,rampe:1,moerser:2};
+  const reihe={moerser:0,rampe:1,tisch:2};
   return ORDER.filter(t=>{ const p=P[t]; return p&&p.cat&&!p.rezept&&!p.noOrder&&stationOf(t); })
     .sort((a,b)=>(reihe[stationOf(a)]-reihe[stationOf(b)])||(P[a].lvl-P[b].lvl));
 }
@@ -16087,7 +16205,7 @@ function step(dt){
   hype=Math.max(0,hype-dt*1.1);
   updateFireworks(dt); updateSnow(dt); updateDeko(dt); updateStadt(dt);
   updateTarget(); holdRepeat(dt); applyTOD(); updateUhr();
-  hudT-=dt; if(hudT<=0){ hudT=0.1; updateHUD(); updatePrompt(); if(pdaOn) drawPDA(); if(laptopOpen||handyOpen) updateOnline(); }
+  hudT-=dt; if(hudT<=0){ hudT=0.1; updateHUD(); updatePrompt(); zuendTick(); if(pdaOn) drawPDA(); if(laptopOpen||handyOpen) updateOnline(); }
   saveT+=dt; if(saveT>25){ saveT=0; save(); }
 }
 let noLoop=location.hash.indexOf('test')>=0;
@@ -16109,47 +16227,63 @@ function requestLock(){
   try{ const r=canvas.requestPointerLock(); if(r&&r.catch) r.catch(()=>{ lockFailed=true; dragHint(); }); }catch(e){ lockFailed=true; dragHint(); }
 }
 let zuendOpen=false;
-function overlayOpen(){ return startOpen||laptopOpen||handyOpen||summaryOpen||pauseOpen||cashOpen||levelOpen||dealOpen||gravOpen||pdaOpen||zuendOpen; }
+function overlayOpen(){ return startOpen||laptopOpen||handyOpen||summaryOpen||pauseOpen||cashOpen||levelOpen||dealOpen||gravOpen||pdaOpen; }
 /* =========================================================
-   Bedienfeld am Zuendpult. Es liegt unten im Bild, das Spiel laeuft
-   weiter: man zuendet und schaut dabei aufs Testfeld.
+   Zuendmodus am Pult (Tom, 25.09.): E am Pult schaltet ihn ein.
+   Kein Fenster, keine Kamerafahrt - man schaut sich weiter frei um
+   und zuendet mit den Zifferntasten: 1-3 Moerser klein, mittel,
+   gross, 4-6 Raketen, 7-9 Zuendtisch. Unten steht eine Leiste, was
+   auf welcher Taste liegt. Wer sich vom Pult entfernt, beendet ihn.
    ========================================================= */
+/* So weit, wie man das Pult noch anvisieren kann (Strahl 3,3 m plus
+   halbe Pultdiagonale) - sonst ging der Modus aus 3,5 m an und im
+   selben Augenblick wieder aus */
+const ZUEND_REICHWEITE=4.0;
+const ZUEND_NAME={moerser:'Mörser',rampe:'Raketen',tisch:'Tisch'};
+const ZUEND_ROHR=['klein','mittel','groß'];
 function openZuend(){
   if(zuendOpen) return;
-  zuendOpen=true; for(const k in keys) keys[k]=false; mouseDown=false; touchAct=false;
-  if(locked) document.exitPointerLock();
-  /* Blick so, dass unten die Stationen und darueber der Himmel mit
-     den Bruechen im Bild sind */
-  /* etwas nach rechts versetzt: der Moerser steht rechts und laege
-     sonst hinter dem Panel am rechten Rand */
-  const m=testfeldMitte(); aimAt(m.x+2.4,m.z,0.42);
-  $('zuend').classList.add('show'); renderZuend();
+  if(!zuendAmPult()){ toast('Näher ans Pult.'); return; }
+  zuendOpen=true; document.body.classList.add('zuendan'); renderZuend(); zuendTick();
+  toast(COARSE?'Zündpult an: Kanal antippen zündet.':'Zündpult an: Zifferntaste 1–9 zündet den Kanal. E am Pult beendet.');
 }
-function closeZuend(){ if(!zuendOpen) return; zuendOpen=false; $('zuend').classList.remove('show'); requestLock(); }
+function closeZuend(){ if(!zuendOpen) return; zuendOpen=false; $('zuend').classList.remove('show'); document.body.classList.remove('zuendan');
+  /* ein Levelaufstieg waehrend der Show wartet bis hierher */
+  if(typeof pendingLevels!=='undefined'&&pendingLevels.length&&(phase==='closed'||phase==='after')) showLevelUp(); }
+function zuendAmPult(){ return Math.hypot(pl.x-PULT_POS.x,pl.z-PULT_POS.z)<=ZUEND_REICHWEITE; }
+/* jeden Schritt: Leiste nur, solange nichts anderes offen ist; wer
+   weggeht, verlaesst das Pult */
+function zuendTick(){
+  if(!zuendOpen) return;
+  if(!zuendAmPult()){ closeZuend(); return; }
+  $('zuend').classList.toggle('show',!overlayOpen());
+}
 function renderZuend(){
   if(!zuendOpen) return;
-  const ks=alleKanaele(), namen={tisch:'Zündtisch',rampe:'Abschussröhren',moerser:'Mörser'};
+  const ks=alleKanaele();
   let html='';
   for(const id of KANAL_REIHE){
     const reihe=ks.filter(e=>e.st.id===id); if(!reihe.length) continue;
-    html+=`<div class="zgruppe"><h4>${namen[id]}</h4><div class="zreihe">`+reihe.map(e=>{
+    html+=`<div class="zgruppe"><h4>${ZUEND_NAME[id]}</h4><div class="zreihe">`+reihe.map(e=>{
       const it=e.it, zu=it?it.state:'leer';
-      const txt=it?P[it.type].short:'leer';
-      return `<button class="kan ${zu}" data-k="${e.kanal}" ${zu==='bereit'?'':'aria-disabled="true"'} title="${txt}"><i>${e.kanal}</i><span>${zu==='brennt'?'brennt …':txt}</span></button>`;
+      const txt=it?P[it.type].short:(id==='moerser'?'Rohr '+ZUEND_ROHR[e.slot]:'leer');
+      return `<div class="kan ${zu}" data-k="${e.kanal}" title="${txt}"><kbd>${e.kanal}</kbd><span>${zu==='brennt'?'brennt …':txt}</span></div>`;
     }).join('')+`</div></div>`;
   }
   $('zGruppen').innerHTML=html;
   const n=bereitCount(), br=placedCount()-n;
-  $('zInfo').textContent=n?`${n} ${n===1?'Kanal':'Kanäle'} scharf`+(br?` · ${br} brennt`:''):br?`${br} brennt …`:'Nichts aufgebaut. Ware auf Tisch, Röhren oder Mörser stellen.';
-  $('zTipp').textContent=COARSE?'Kanal antippen zündet genau diesen Platz.':'Tasten 1–9 zünden den Kanal, Enter alle nacheinander, Leertaste alle gleichzeitig. Ins Bild klicken und ziehen, um dich umzusehen.';
-  $('zNach').disabled=!n; $('zGleich').disabled=!n;
+  $('zInfo').textContent=n?`${n} ${n===1?'Kanal':'Kanäle'} scharf`+(br?` · ${br} brennt`:''):br?`${br} brennt …`:'Nichts aufgebaut';
+  $('zTipp').innerHTML=COARSE?'Kanal antippen zündet genau diesen Platz.'
+    :'<kbd>1</kbd>–<kbd>9</kbd> zünden · <kbd>Enter</kbd> alle nacheinander · <kbd>Leertaste</kbd> alle gleichzeitig · <kbd>E</kbd> am Pult: beenden';
+  /* Touch hat keine Enter- und Leertaste: dort zwei Knoepfe */
+  $('zAlle').innerHTML=COARSE&&n?'<button class="ghost" data-all="0">Alle nacheinander</button><button data-all="1">Alle gleichzeitig</button>':'';
 }
+/* Am Touchgeraet gibt es keine Zifferntasten: dort zuendet Antippen */
 $('zuend').addEventListener('click',e=>{
-  const b=e.target.closest('button'); if(!b) return; ac();
-  if(b.id==='zClose'){ closeZuend(); return; }
-  if(b.id==='zNach'){ zuendeAlle(false); return; }
-  if(b.id==='zGleich'){ zuendeAlle(true); return; }
-  if(b.dataset.k&&b.classList.contains('bereit')) zuendeKanal(+b.dataset.k);
+  if(!COARSE) return;
+  const a=e.target.closest('[data-all]'); if(a){ ac(); zuendeAlle(a.dataset.all==='1'); return; }
+  const b=e.target.closest('[data-k]'); if(!b) return; ac();
+  if(b.classList.contains('bereit')) zuendeKanal(+b.dataset.k);
 });
 /* Die Steuerung steht im Pausenmenue und nicht mehr dauernd im
    Bild. Esc haelt das Spiel an und zeigt sie. */
@@ -16168,9 +16302,9 @@ const STEUER_PC=[
     [['T'],'Preisgerät (ab Level 2)'],
     [['G'],'Pfefferspray (ab Level 4)']]],
   ['Zündpult',[
+    [['E'],'Zündmodus am Pult'],
     [['1…9'],'Kanal zünden'],
-    [['Enter'],'Alle nacheinander'],
-    [['Leertaste'],'Alle gleichzeitig']]],
+    [['Enter'],'Alle nacheinander']]],
   ['Umbau',[
     [['F'],'Umbaumodus an / aus'],
     [['E'],'Möbel greifen, absetzen'],
@@ -16216,18 +16350,16 @@ document.addEventListener('pointerlockchange',()=>{
   else if(lockWorked&&!COARSE&&!overlayOpen()){ mouseDown=false; showPause(); }
 });
 document.addEventListener('pointerlockerror',()=>{ lockFailed=true; dragHint(); });
-/* Bei offenem Zuendpult ist der Mauszeiger frei zum Klicken. Wer
-   ins Bild klickt und zieht, schaut sich trotzdem um - nach oben zu
-   den Bruechen, nach unten zu den Stationen. */
-let zuendZieh=false;
 canvas.addEventListener('mousedown',e=>{
-  if(zuendOpen){ zuendZieh=true; ac(); return; }
   if(!S||overlayOpen()) return; ac();
   if(!locked&&!lockFailed) requestLock();
-  if(e.button===0){ mouseDown=true; pressAction(); } else if(e.button===2){ if(build&&grabbed) cancelGrab(); else dropBox(); }
+  /* Ohne Mauszeiger-Sperre schaut man per Klicken und Ziehen: der
+     Klick aufs Pult darf den Zuendmodus dann nicht wieder beenden -
+     das macht nur E */
+  if(e.button===0){ mouseDown=true; if(!(zuendOpen&&target&&target.kind==='pult')) pressAction(); } else if(e.button===2){ if(build&&grabbed) cancelGrab(); else dropBox(); }
 });
-addEventListener('mouseup',e=>{ if(e.button===0) mouseDown=false; zuendZieh=false; });
-addEventListener('mousemove',e=>{ if(zuendOpen&&zuendZieh){ aim=null; look(e.movementX||0,e.movementY||0,0.004); return; } if(overlayOpen()) return; if(locked) look(e.movementX,e.movementY,0.0022); else if(mouseDown&&(lockFailed||!lockWorked)) look(e.movementX||0,e.movementY||0,0.004); });
+addEventListener('mouseup',e=>{ if(e.button===0) mouseDown=false; });
+addEventListener('mousemove',e=>{ if(overlayOpen()) return; if(locked) look(e.movementX,e.movementY,0.0022); else if(mouseDown&&(lockFailed||!lockWorked)) look(e.movementX||0,e.movementY||0,0.004); });
 canvas.addEventListener('contextmenu',e=>e.preventDefault());
 addEventListener('keydown',e=>{
   if(handyOpen){
@@ -16239,13 +16371,14 @@ addEventListener('keydown',e=>{
   if(pdaOpen){ if(e.code==='Escape') closePDA(); return; }
   if(gravOpen){ if(e.code==='Escape') closeGravInput(false); if(e.code==='Enter') closeGravInput(true); return; }
   if(dealOpen){ if(e.code==='Escape') declineDeal(); return; }
-  if(zuendOpen){
-    if(e.code==='Escape'||e.code==='KeyE'||e.code==='Tab'){ e.preventDefault(); closeZuend(); return; }
-    const m=/^(Digit|Numpad)(\d)$/.exec(e.code);
-    if(m&&!e.repeat){ const n=+m[2]; zuendeKanal(n===0?10:n); return; }
-    if(e.code==='Enter'&&!e.repeat){ zuendeAlle(false); return; }
+  /* Zuendmodus: Ziffern zuenden, alles andere geht normal weiter -
+     laufen, umsehen, E. Esc ohne Mauszeiger-Sperre beendet ihn. */
+  if(zuendOpen&&S&&!overlayOpen()){
+    const m=/^(Digit|Numpad)([1-9])$/.exec(e.code);
+    if(m){ e.preventDefault(); if(!e.repeat) zuendeKanal(+m[2]); return; }
+    if(e.code==='Enter'){ e.preventDefault(); if(!e.repeat) zuendeAlle(false); return; }
     if(e.code==='Space'){ e.preventDefault(); if(!e.repeat) zuendeAlle(true); return; }
-    return;
+    if(e.code==='Escape'&&!locked){ closeZuend(); return; }
   }
   /* Esc: Pause an und wieder aus. Mit Mauszeiger-Sperre faengt der
      Browser das erste Esc selbst ab und gibt die Maus frei - dann
@@ -16441,7 +16574,7 @@ fontsReady().then(()=>{
   setTimeout(()=>{ if(typeof shaderVorab==='function') shaderVorab(); },400);
   window.__bb={get S(){return S},get phase(){return phase},set phase(v){phase=v},set clock(v){clock=v},get clock(){return clock},pickUp,floorBoxes,shelves,racks,dekos,stockOne,openShop,step,customers,queue,belt,scanBelt,buyUp,buyDeko,get DS(){return DS},endDay,pending,save,openLaptop,closeLaptop,pl,addXP,hireStaff,fireStaff,staff,dirts,addDirt,movables,toggleBuild,setWall,setFloor,
     stations,firePult,placeOnStation,igniteType,get order(){return order},get phone(){return phone},makeCall,answerPhone,haggle,acceptDeal,declineDeal,get truck(){return truck},spawnTruck,takeFromTruck,takeBox,dropBox,updateTruck,get door(){return door},get tuer(){return tuer},tuerSet,tuerNah,updateSchiebetuer,doorOpen,doorIsOpen,trailerOccupied,LR,lrFront,TOR,orderReady,orderLeft,shipOne,removeFloorBox,prioOf,setPrio,racks,updateCarry,spawnFloorBox,staff,SHELFKIND,layout,shelfCapOf,shelfAccepts,emptyLevel,dateInfo,dateStr,dateShort,seasonInfo,isSunday,dayMult,ruhetag,wageOf,setWage,friendliness,inPause,setPause,windowGrime,addGrime,cleanWindowTick,ambienteScore,bildBoost,fixedCosts,dailyWages,dispoLimit,verfuegbar,dispoZins,takeLoan,loanTier,loanDaily,EVENTS,GOALS,CUSTTYPES,UPGRADES,STAFF,stockOf,spawnInterval,pools,todayEvent,evv,rollEvent,rollMarket,newGoal,goalAdd,goalTick,ekFactor,marktText,xpFor,rollCustType,priceTol,buyChance,regCustomer,makeWishes,nachfrageFaktor,shelfStockOf,buildGravur,refillGrav,openGravInput,closeGravInput,get gravBlanks(){return gravBlanks},set gravBlanks(v){gravBlanks=v},orderBox,buyPack,cartAdd,cartAddPack,cartOrder,cartClear,cartDel,cartGoods,cartFee,cartTotal,cartBoxes,cartLines,LIEFERZEIT_SEK,VERSAND,VERSANDFREI,lieferSek,
-    scene,camera,P,EFF,EFF_ALL,EFF_KLEIN,EFF_GROSS,EFF_PRO,SHOWS,kugelbombe,shot,mine,FW,stations,stationOf,placedCount,togglePDA,openPDA,closePDA,setPost,get postOn(){return postOn},get pdaOn(){return pdaOn},showLength,psHuge,psBig,psMid,psSmall,rockets,emitters,timersLen:()=>timers.length,setView:(x,z,y,p)=>{pl.x=x;pl.z=z;yaw=y;pitch=p;aim=null;},schiebe:(x,z)=>{pl.x=x;pl.z=z;collide(pl,0.32);return{x:pl.x,z:pl.z};},PLZ_MAX,camYaw:()=>yaw,camPitch:()=>pitch,playerPos:()=>({x:pl.x,z:pl.z}),pultYaw:()=>pultHit?pultHit.parent.rotation.y:null,applyShopName,shopName,shopSlogan,signTexPx:()=>signTex&&signTex.image?signTex.image.getContext('2d').getImageData(0,0,signTex.image.width,40).data.join(''):null,ckTexPx:()=>ckNameTex&&ckNameTex.image?ckNameTex.image.getContext('2d').getImageData(0,0,ckNameTex.image.width,60).data.join(''):null,testfeldMitte,STATION_POS,aimAt,UPGRADES,upPic,PLAN,planFlaechen,uhrZeiger:()=>({std:uhrStd?+uhrStd.rotation.z.toFixed(4):0,min:uhrMin?+uhrMin.rotation.z.toFixed(4):0}),drawRackSchild,get snowPts(){return snowPts},buildStadt,updateStadt,get stadtBoxen(){return stadtBoxen},get stadtBaeume(){return stadtBaeume},buildFernbaeume,schwaerme,beacons,silhouetten,get verkehrPts(){return verkehrPts},get rauchPts(){return rauchPts},get flieger(){return flieger},stadtFrei,STADT_FREI,WALLS,FLOORS,renderOnline,onlineHint,onlineStufe,onlineZahlen,onlineListe,updateOnline,SCHILDBG,SCHILDFG,setSchild,schildBg,schildFg,repaintSchilder,updateHead,allLevels,addToLevel,putInSlot,regCustomer,ZONEN,zoneOffen,oeffneZone,applyZonen,SLOTS,RACKS,slotsOffen,colliders,LAY,LOGI,WRAMPEN,WTORE,updateSnow,unterDach,dachBereiche,get lapHit2(){return lapHit2},buildLagerTerminal,toggleTest,testLevel,buyUp,get toastLast(){return toastLast},__floorBoxen:()=>floorBoxes.length,WBAY_UP,wbays,dockPlaetze,wbayFrei,wbayOffen,spawnWTruck,updateWBays,wbaysInit,wtorSet,GANG,GANGTUER,buildLagergang,flaeche,WTOR,RACKKIND,route,NAV,navFrei,navIdx,navBuild,shelfStand,shelves,sbLanes,buildSBKasse,sbFrei,sbOffen,sbNutzbar,EING2,eingaenge,naechsterEingang,setEingang2,buildSBKasse2,get sb2G(){return sb2G},TUEREN,tuerSetD,tuerNahD,packBereit,packOne,paketWert,bestellungenProTag,pakete,ddlAbholung,updateVersand,VS_GR,VS_FELD,WG_PARK,vsNeueBestellung,vsAbgleich,vsKlasse,vsQuellen,vsBestand,vsErfuellbar,vsPlan,vsStapel,vsSpielerPacken,vsSpielerBestellung,vsTischFrei,vsStatus,vsAufraeumen,vsLaden,vsBahn,vsPaketOffen,vsKlappen,vsFuellung,vsPaketZu,get vsTisch(){return vsTisch},get vsWagen(){return vsWagen},createShelf,createRack,regalStellen,testKauf,regalAufbauen,orderRegal,REGALWARE,regalOf,regalKind,regalPreis,regalPlatz,regalOffen,startGame,promptFor,ERFOLGE,erfOffen,erfStufe,erfStand,erfZiel,erfFertig,erfAnteil,erfGeschafft,erfGesamt,stat,statAdd,statRekord,statVerkauf,bruchGesehen,gruppeVon,GRUPPE,TRAEGER,BRUCH,BRUCH_IDS,REZ_FARBEN,ETIKETT,traegerVon,traegerOffen,bruchOffen,bruchListe,rezeptWow,rezeptKosten,rezeptMarkt,rezeptHype,rezeptDauer,rezeptEntwicklung,rezeptGueltig,eigeneListe,eigenesEintragen,rezepteTick,rezProto,rezBauen,renderRezeptur,get entwurf(){return entwurf},set entwurf(v){entwurf=v},entwurfInit,ORDER,LIZENZEN,lizenzOf,hatLizenz,lizenzDaten,naechsteLizenz,buyLizenz,VOLA,volaOf,REGIME,marketOf,costOf,marktZiel,marktLuecke,meOf,miOf,marktDelta,marktNiveau,marktPhase,marktSchock,marktLabel,marktSchnitt,marktExtrem,marktChance,sortimentBreite,sortimentZug,bekanntheit,spawnInterval,rollMarkt,marktInit,inflOf,inflText,setPreisAufMarkt,igniteType,get packHit(){return packHit},get packTisch(){return packTisch},get packMov(){return packMov},zuendeKanal,zuendeAlle,alleKanaele,kanalItem,openZuend,closeZuend,get zuendOpen(){return zuendOpen},bereitCount,brennDauer,muendung,pultLamps,RAKETEN_LOOK,RAKETEN_KL,makePerson,applyTOD,updateHUD,renderer,renderFrame,get DEMO(){return DEMO},LHALLE,LOGI_STUFEN,TOR_STUFE,logiStufe,logiZeige,logiAnwenden,LOGI_G,TOR_G,WTORE,tuAktion:(kind,ref)=>{ const alt=target; target={kind,ref}; try{ doAction(); } finally { target=alt; } },promptFor,KARREN,karreArt,karreAn,karreStapel,karreLast,karreNimmt,toggleKarre,updateKarre,setTutorial,tutorialAn,zielFuer,get zielAktuell(){return zielAktuell},get tipKey(){return tipKey},updateZiel,set DEMO(v){DEMO=v},kapitelVon,kapitelVoll,openHandy,closeHandy,toggleHandy,get handyOpen(){return handyOpen},get happ(){return happ},HANDY_APPS,renderHandy,shaderVorab,SCHONER,schonerMalen,updateSchoner,makeWischer,stelleWischer,get wischer(){return wischer},updateWischen,wischerPersonal,cleanTick,updateFireworks,FLASH,spurEnden,LR_LAMPE,schweber,kundenSymbol,geldSchwebt,get serie(){return serie},serieZufrieden,serieBricht,KAPITEL,kapitel,kapitelNr,kapitelAufstieg,WA,WA_SLOTS,vorDieTuer,SB_KASSIERER,sbBesetzt,sbLaneVon,sbKassiererPlatz,MUSIK,STUECKE,musikAn,musikWeiter,musikVol,musikTick,spielSchritt,get mStep(){return mStep},set mStep(v){mStep=v;mTakte=0;},get mBus(){return mBus},get postHalf(){return postHalf},EFF_SCHWEIF,mitSchweif,KOEPFE,KLEID,UNIFORM,STAFFKOPF,faceCache,animPerson,PACKS,packPreis,packPool,packOffen,packContents,syncPakete,rotateGrab,PACK_FL,PACK_HOME,spotFree,rectOf,grab,placeGrab,updateGrab,get grabbed(){return grabbed},showPause,get target(){return target},einrOf,einrAktiv,einrHoch,einrRunter,einrSchalten,AUFGABEN,einrJob,kartonMat,pools,shelfStockOf,removeFromLevel,fwLog:(a)=>{FW_LOG=a;},moerserRohr,ROHR_KALIBER,effPassen,EFF_FAMILIE,basisBlick,fwTestSchalten,fwTestProdukte,fwTestStapeln,get fwTestAn(){return fwTestAn},get fwTestBoxen(){return fwTestBoxen},sonne:()=>sun.intensity,get fwUhr(){return FW_UHR},THEMEN,SHOW_BASIS,EFF,emittersListe:()=>emitters,
+    scene,camera,P,EFF,EFF_ALL,EFF_KLEIN,EFF_GROSS,EFF_PRO,SHOWS,kugelbombe,shot,mine,FW,stations,stationOf,placedCount,togglePDA,openPDA,closePDA,setPost,get postOn(){return postOn},get pdaOn(){return pdaOn},showLength,psHuge,psBig,psMid,psSmall,rockets,emitters,timersLen:()=>timers.length,setView:(x,z,y,p)=>{pl.x=x;pl.z=z;yaw=y;pitch=p;aim=null;},schiebe:(x,z)=>{pl.x=x;pl.z=z;collide(pl,0.32);return{x:pl.x,z:pl.z};},PLZ_MAX,camYaw:()=>yaw,camPitch:()=>pitch,playerPos:()=>({x:pl.x,z:pl.z}),pultYaw:()=>pultHit?pultHit.parent.rotation.y:null,applyShopName,shopName,shopSlogan,signTexPx:()=>signTex&&signTex.image?signTex.image.getContext('2d').getImageData(0,0,signTex.image.width,40).data.join(''):null,ckTexPx:()=>ckNameTex&&ckNameTex.image?ckNameTex.image.getContext('2d').getImageData(0,0,ckNameTex.image.width,60).data.join(''):null,testfeldMitte,STATION_POS,aimAt,UPGRADES,upPic,PLAN,planFlaechen,uhrZeiger:()=>({std:uhrStd?+uhrStd.rotation.z.toFixed(4):0,min:uhrMin?+uhrMin.rotation.z.toFixed(4):0}),drawRackSchild,get snowPts(){return snowPts},buildStadt,updateStadt,get stadtBoxen(){return stadtBoxen},get stadtBaeume(){return stadtBaeume},buildFernbaeume,schwaerme,beacons,silhouetten,get verkehrPts(){return verkehrPts},get rauchPts(){return rauchPts},get flieger(){return flieger},stadtFrei,STADT_FREI,WALLS,FLOORS,renderOnline,onlineHint,onlineStufe,onlineZahlen,onlineListe,updateOnline,SCHILDBG,SCHILDFG,setSchild,schildBg,schildFg,repaintSchilder,updateHead,allLevels,addToLevel,putInSlot,regCustomer,ZONEN,zoneOffen,oeffneZone,applyZonen,SLOTS,RACKS,slotsOffen,colliders,LAY,LOGI,WRAMPEN,WTORE,updateSnow,unterDach,dachBereiche,get lapHit2(){return lapHit2},buildLagerTerminal,toggleTest,testLevel,buyUp,get toastLast(){return toastLast},__floorBoxen:()=>floorBoxes.length,WBAY_UP,wbays,dockPlaetze,wbayFrei,wbayOffen,spawnWTruck,updateWBays,wbaysInit,wtorSet,GANG,GANGTUER,buildLagergang,flaeche,WTOR,RACKKIND,route,NAV,navFrei,navIdx,navBuild,shelfStand,shelves,sbLanes,buildSBKasse,sbFrei,sbOffen,sbNutzbar,EING2,eingaenge,naechsterEingang,setEingang2,buildSBKasse2,get sb2G(){return sb2G},TUEREN,tuerSetD,tuerNahD,packBereit,packOne,paketWert,bestellungenProTag,pakete,ddlAbholung,updateVersand,VS_GR,VS_FELD,WG_PARK,vsNeueBestellung,vsAbgleich,vsKlasse,vsQuellen,vsBestand,vsErfuellbar,vsPlan,vsStapel,vsSpielerPacken,vsSpielerBestellung,vsTischFrei,vsStatus,vsAufraeumen,vsLaden,vsBahn,vsPaketOffen,vsKlappen,vsFuellung,vsPaketZu,get vsTisch(){return vsTisch},get vsWagen(){return vsWagen},createShelf,createRack,regalStellen,testKauf,regalAufbauen,orderRegal,REGALWARE,regalOf,regalKind,regalPreis,regalPlatz,regalOffen,startGame,promptFor,ERFOLGE,erfOffen,erfStufe,erfStand,erfZiel,erfFertig,erfAnteil,erfGeschafft,erfGesamt,stat,statAdd,statRekord,statVerkauf,bruchGesehen,gruppeVon,GRUPPE,TRAEGER,BRUCH,BRUCH_IDS,REZ_FARBEN,ETIKETT,traegerVon,traegerOffen,bruchOffen,bruchListe,rezeptWow,rezeptKosten,rezeptMarkt,rezeptHype,rezeptDauer,rezeptEntwicklung,rezeptGueltig,eigeneListe,eigenesEintragen,rezepteTick,rezProto,rezBauen,renderRezeptur,get entwurf(){return entwurf},set entwurf(v){entwurf=v},entwurfInit,ORDER,LIZENZEN,lizenzOf,hatLizenz,lizenzDaten,naechsteLizenz,buyLizenz,VOLA,volaOf,REGIME,marketOf,costOf,marktZiel,marktLuecke,meOf,miOf,marktDelta,marktNiveau,marktPhase,marktSchock,marktLabel,marktSchnitt,marktExtrem,marktChance,sortimentBreite,sortimentZug,bekanntheit,spawnInterval,rollMarkt,marktInit,inflOf,inflText,setPreisAufMarkt,igniteType,get packHit(){return packHit},get packTisch(){return packTisch},get packMov(){return packMov},zuendeKanal,zuendeAlle,alleKanaele,kanalItem,openZuend,closeZuend,get zuendOpen(){return zuendOpen},overlayOpen,pultTaster,zuendTick,TISCH_X,RAMPE_X,KANAL_START,bereitCount,brennDauer,muendung,pultLamps,RAKETEN_LOOK,RAKETEN_KL,makePerson,applyTOD,updateHUD,renderer,renderFrame,get DEMO(){return DEMO},LHALLE,LOGI_STUFEN,TOR_STUFE,logiStufe,logiZeige,logiAnwenden,LOGI_G,TOR_G,WTORE,tuAktion:(kind,ref)=>{ const alt=target; target={kind,ref}; try{ doAction(); } finally { target=alt; } },promptFor,KARREN,karreArt,karreAn,karreStapel,karreLast,karreNimmt,toggleKarre,updateKarre,setTutorial,tutorialAn,zielFuer,get zielAktuell(){return zielAktuell},get tipKey(){return tipKey},updateZiel,set DEMO(v){DEMO=v},kapitelVon,kapitelVoll,openHandy,closeHandy,toggleHandy,get handyOpen(){return handyOpen},get happ(){return happ},HANDY_APPS,renderHandy,shaderVorab,SCHONER,schonerMalen,updateSchoner,makeWischer,stelleWischer,get wischer(){return wischer},updateWischen,wischerPersonal,cleanTick,updateFireworks,FLASH,spurEnden,LR_LAMPE,schweber,kundenSymbol,geldSchwebt,get serie(){return serie},serieZufrieden,serieBricht,KAPITEL,kapitel,kapitelNr,kapitelAufstieg,WA,WA_SLOTS,vorDieTuer,SB_KASSIERER,sbBesetzt,sbLaneVon,sbKassiererPlatz,MUSIK,STUECKE,musikAn,musikWeiter,musikVol,musikTick,spielSchritt,get mStep(){return mStep},set mStep(v){mStep=v;mTakte=0;},get mBus(){return mBus},get postHalf(){return postHalf},EFF_SCHWEIF,mitSchweif,KOEPFE,KLEID,UNIFORM,STAFFKOPF,faceCache,animPerson,PACKS,packPreis,packPool,packOffen,packContents,syncPakete,rotateGrab,PACK_FL,PACK_HOME,spotFree,rectOf,grab,placeGrab,updateGrab,get grabbed(){return grabbed},showPause,get target(){return target},einrOf,einrAktiv,einrHoch,einrRunter,einrSchalten,AUFGABEN,einrJob,kartonMat,pools,shelfStockOf,removeFromLevel,fwLog:(a)=>{FW_LOG=a;},moerserRohr,ROHR_KALIBER,effPassen,EFF_FAMILIE,basisBlick,fwTestSchalten,fwTestProdukte,fwTestStapeln,get fwTestAn(){return fwTestAn},get fwTestBoxen(){return fwTestBoxen},sonne:()=>sun.intensity,get fwUhr(){return FW_UHR},THEMEN,SHOW_BASIS,EFF,emittersListe:()=>emitters,
     shot:()=>{ noLoop=true; camera.position.set(pl.x,1.65,pl.z); camera.rotation.set(pitch,yaw,0); camera.updateMatrixWorld(); updateTarget(); applyTOD(); renderFrame(0.016); return canvas.toDataURL('image/jpeg',0.85); },
     run:(sec,dt)=>{ noLoop=true; const n=Math.round(sec/(dt||0.05)); for(let i=0;i<n;i++) step(dt||0.05); }};
 });

@@ -32,7 +32,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     const bb=window.__bb,P=bb.P,o={};
     bb.S.level=30; bb.S.money=9e6; bb.LIZENZEN.forEach(l=>bb.buyLizenz(l.id));
     o.weg=['batterie25','stinkbombe'].filter(t=>P[t]||bb.LIZENZEN.some(l=>l.items.includes(t)));
-    const NEU=['knatter','zfaecher','kometen','finale','pfeifraketen','titanraketen','kugel200','goldgeysir','feuersaeule','donnerwand','kugel300'];
+    const NEU=['knatter','zfaecher','kometen','finale','pfeifraketen','titanraketen','kugel200','goldgeysir','feuersaeule','donnerwand','kugel300','jumbogold','jumboleiter'];
     o.neu={};
     for(let i=0;i<4;i++) bb.regalStellen('hoch');
     NEU.forEach(t=>{ const q=P[t];
@@ -64,7 +64,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     pruef('NEU',v.gruppe!=='sonstiges',t+' in keiner Warengruppe');
   }
   pruef('NEU',r.neu.kugel200&&r.neu.kugel200.st==='moerser','Kugel 200 gehoert in den Moerser');
-  pruef('NEU',r.neu.titanraketen&&r.neu.titanraketen.st==='rampe'&&r.neu.pfeifraketen.st==='rampe','Raketen gehoeren in die Roehren');
+  pruef('NEU',r.neu.titanraketen&&r.neu.titanraketen.st==='rampe'&&r.neu.pfeifraketen.st==='rampe'&&r.neu.jumbogold.st==='rampe'&&r.neu.jumboleiter.st==='rampe','Raketen gehoeren in die Roehren');
   for(const [t,[soll,ist]] of Object.entries(r.schuss))
     pruef('SCHUSS',Math.abs(ist-soll)<=Math.max(2,soll*0.05),t+': Name sagt '+soll+', Drehbuch hat '+ist);
   r.leiter.forEach((e,i)=>{ if(!i) return; const v=r.leiter[i-1];

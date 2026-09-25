@@ -11,9 +11,14 @@ const PULT_RY=0;
    sperrte als unsichtbare Wand den Lagergang. */
 const PULT_POS={x:1.0,z:-11.5};
 const stations={}; let pultHit=null, pultTex=null, pultLamp=null;
-const pultLamps=[];
-/* x der Kanal-Leuchte i auf der Pultplatte: drei Gruppen mit Luecke */
-const PULT_LAMP_X=i=>-0.357+i*0.046+(i<6?0:i<12?1:2)*0.035;
+const pultLamps=[], pultTaster=[];
+/* x der Kanal-Leuchte i auf der Pultplatte: neun Kanaele in drei
+   Gruppen zu drei - Moerser, Raketen, Tisch (Tom, 25.09.) */
+const PULT_LAMP_X=i=>-0.35+i*0.075+Math.floor(i/3)*0.05;
+/* Plaetze auf Tisch und Rampe: je drei. Der Tisch behaelt seine
+   Breite, die Plaetze stehen weiter auseinander - grosse Batterien
+   brauchen den Platz. Die Rampe hat nur noch drei Rohre. */
+const TISCH_X=[-0.8,0,0.8], RAMPE_X=[-0.4,0,0.4];
 /* Hinweisschild auf zwei Rohrpfosten, damit es nicht in der Luft haengt */
 function schild(x,y,z,w,h,mat,steelM){
   const g=new THREE.Group(); g.position.set(x,0,z); scene.add(g);
@@ -38,8 +43,8 @@ function schild(x,y,z,w,h,mat,steelM){
    des Ladens quer ueber das Testfeld laeuft. Platz ist genug: das
    Testfeld reicht bis z -28. */
 const STATION_POS={
-  tisch :{x:-1.5,z:-19.0,ry:0,name:'Zündtisch',cap:6},
-  rampe :{x:-1.5,z:-23.0,ry:0,name:'Abschussröhren',cap:6},
+  tisch :{x:-1.5,z:-19.0,ry:0,name:'Zündtisch',cap:3},
+  rampe :{x:-1.5,z:-23.0,ry:0,name:'Abschussröhren',cap:3},
   moerser:{x:5.0,z:-23.0,ry:0,name:'Mörserbatterie',cap:3}
 };
 function stationOf(t){
@@ -132,7 +137,7 @@ function buildYard(){
     bbox(0.06,0.06,0.9,steelDark,1.1,0.3,0,g,false);
     bbox(0.06,0.06,0.9,steelDark,-1.1,0.3,0,g,false);
     /* Kanalnummern an der Vorderkante, je Platz eine */
-    for(let i=0;i<s.cap;i++) plane(0.1,0.064,kanalMat(KANAL_START.tisch+i),-0.95+i*0.38,0.915,0.549,0,g);
+    for(let i=0;i<s.cap;i++) plane(0.1,0.064,kanalMat(KANAL_START.tisch+i),TISCH_X[i],0.915,0.549,0,g);
     const hit=bbox(2.6,0.95,1.15,hitM,0,0.62,0,g,false);
     stations.tisch={id:'tisch',g,items:[],cap:s.cap,hit};
     hit.userData={kind:'station',ref:stations.tisch};
@@ -146,17 +151,18 @@ function buildYard(){
   /* --- Abschussröhren --- */
   {
     const s=STATION_POS.rampe, g=new THREE.Group(); g.position.set(s.x,0,s.z); scene.add(g);
-    bbox(2.5,0.09,0.75,steelDark,0,0.045,0,g);
-    for(const x of [-1.15,1.15]){ bbox(0.08,0.06,0.8,steelDark,x,0.1,0,g,false); }
-    bbox(2.4,0.06,0.06,steelDark,0,1.05,-0.26,g,false);
-    bbox(2.4,0.06,0.06,steelDark,0,0.62,0.26,g,false);
-    for(const x of [-1.2,1.2]){
+    /* drei Rohre - das Gestell ist entsprechend schmaler */
+    bbox(1.3,0.09,0.75,steelDark,0,0.045,0,g);
+    for(const x of [-0.58,0.58]){ bbox(0.08,0.06,0.8,steelDark,x,0.1,0,g,false); }
+    bbox(1.24,0.06,0.06,steelDark,0,1.05,-0.26,g,false);
+    bbox(1.24,0.06,0.06,steelDark,0,0.62,0.26,g,false);
+    for(const x of [-0.62,0.62]){
       bbox(0.07,1.1,0.07,steelDark,x,0.6,-0.26,g);
       const d=bbox(0.06,0.78,0.06,steelDark,x,0.42,0.02,g,false); d.rotation.x=-0.62;
     }
     const tubeM=std(0x3e4652,{metalness:0.72,roughness:0.34});
-    for(let i=0;i<6;i++){
-      const x=-1.0+i*0.4;
+    for(let i=0;i<s.cap;i++){
+      const x=RAMPE_X[i];
       const t=new THREE.Mesh(new THREE.CylinderGeometry(0.062,0.062,1.25,20,1,true),tubeM);
       t.material.side=THREE.DoubleSide; t.position.set(x,0.72,-0.02); t.rotation.x=-0.1;
       if(HIQ) t.castShadow=true; g.add(t);
@@ -168,11 +174,11 @@ function buildYard(){
       ring2.rotation.x=Math.PI/2-0.1; ring2.position.set(x,0.86,0.01); g.add(ring2);
       bbox(0.17,0.025,0.17,steelDark,x,0.105,0.04,g,false);
     }
-    for(let i=0;i<s.cap;i++) plane(0.1,0.064,kanalMat(KANAL_START.rampe+i),-1.0+i*0.4,0.62,0.292,0,g);
-    const hit=bbox(2.6,1.5,0.95,hitM,0,0.78,0,g,false);
+    for(let i=0;i<s.cap;i++) plane(0.1,0.064,kanalMat(KANAL_START.rampe+i),RAMPE_X[i],0.62,0.292,0,g);
+    const hit=bbox(1.4,1.5,0.95,hitM,0,0.78,0,g,false);
     stations.rampe={id:'rampe',g,items:[],cap:s.cap,hit};
     hit.userData={kind:'station',ref:stations.rampe};
-    col(s.x-1.3,s.x+1.3,s.z-0.46,s.z+0.46);
+    col(s.x-0.68,s.x+0.68,s.z-0.46,s.z+0.46);
     schild(s.x,1.62,s.z-0.62,1.15,0.2,new THREE.MeshStandardMaterial({map:tex(690,120,(g2,W,H)=>{
       g2.fillStyle='#e63b2e'; g2.fillRect(0,0,W,H);
       g2.lineWidth=6; g2.strokeStyle='#ffffff'; g2.strokeRect(4,4,W-8,H-8);
@@ -334,16 +340,16 @@ function buildYard(){
       feld(40,250,196,270,'SCHLÜSSEL · SCHARF');
       feld(276,250,290,270,'ANZEIGE');
       feld(606,250,378,270,'ZÜNDUNG','#e0574a');
-      /* Kanalreihe oben: 15 Leuchten in drei Gruppen, darunter die
-         Kanalnummer und der Name der Station */
+      /* Kanalreihe oben: neun Leuchten mit je einem Taster darunter,
+         in drei Gruppen - wie die Tasten 1 bis 9 */
       c.fillStyle='rgba(12,15,22,.5)'; c.fillRect(40,44,944,176);
       c.strokeStyle='#6f7684'; c.lineWidth=3; c.strokeRect(40,44,944,176);
       const tx=x=>(x+0.45)/0.9*W;
-      for(let i=0;i<15;i++){
-        c.fillStyle='#e2e7ef'; c.font=BUN(26); c.textAlign='center'; c.textBaseline='middle';
-        c.fillText(String(i+1),tx(PULT_LAMP_X(i)),150);
+      for(let i=0;i<9;i++){
+        c.fillStyle='#e2e7ef'; c.font=BUN(28); c.textAlign='center'; c.textBaseline='middle';
+        c.fillText(String(i+1),tx(PULT_LAMP_X(i)),160);
       }
-      [['TISCH',0,5],['RÖHREN',6,11],['MÖRSER',12,14]].forEach(([n,a,b2])=>{
+      [['MÖRSER',0,2],['RAKETEN',3,5],['TISCH',6,8]].forEach(([n,a,b2])=>{
         const x0=tx(PULT_LAMP_X(a))-24, x1=tx(PULT_LAMP_X(b2))+24;
         c.strokeStyle='#8f97a6'; c.lineWidth=2; c.beginPath(); c.moveTo(x0,176); c.lineTo(x1,176); c.stroke();
         c.fillStyle='#aab2c0'; c.font=BAR(24); c.textAlign='center'; c.textBaseline='middle';
@@ -351,7 +357,7 @@ function buildYard(){
       /* Warnzeile unten */
       c.fillStyle='#f2c230'; c.fillRect(40,524,944,22);
       c.fillStyle='#1b1e26'; c.font=BUN(20); c.textAlign='center'; c.textBaseline='middle';
-      c.fillText('ZÜNDANLAGE ZA-15 · NUR MIT SCHLÜSSEL SCHARFSCHALTEN · SICHERHEITSABSTAND BEACHTEN',W/2,536);
+      c.fillText('ZÜNDANLAGE ZA-9 · NUR MIT SCHLÜSSEL SCHARFSCHALTEN · SICHERHEITSABSTAND BEACHTEN',W/2,536);
     });
     const platte=new THREE.Mesh(new THREE.BoxGeometry(0.90,0.022,0.50),
       [kante,kante,new THREE.MeshStandardMaterial({map:platteTex,roughness:0.45,metalness:0.18}),kante,kante,kante]);
@@ -362,8 +368,10 @@ function buildYard(){
 
     /* Anzeige im Rahmen, mittig auf der Platte */
     pultTex=tex(960,480,()=>{});
-    rbox(0.32,0.02,0.19,0.008,std(0x11141b,{roughness:0.5}),-0.030,0.02,-0.042,pult);
-    const scr=plane(0.285,0.155,new THREE.MeshBasicMaterial({map:pultTex,toneMapped:false}),-0.030,0.031,-0.042,0,pult);
+    /* im Feld ANZEIGE, unter der Kanalreihe - weiter oben verdeckte
+       das Display die Kanalnummern 4 bis 6 */
+    rbox(0.32,0.02,0.19,0.008,std(0x11141b,{roughness:0.5}),-0.030,0.02,0.052,pult);
+    const scr=plane(0.285,0.155,new THREE.MeshBasicMaterial({map:pultTex,toneMapped:false}),-0.030,0.031,0.052,0,pult);
     scr.rotation.x=-Math.PI/2;
 
     /* Schlagtaster rechts. Keine Textur auf der Kuppel: eine
@@ -372,7 +380,7 @@ function buildYard(){
        am Pol. Der Taster ist darum aus Volumen gebaut -
        Einbauring, Raendelmutter, Schaft, Teller, Kuppel - und die
        Beschriftung steht auf der Pultplatte daneben. */
-    const TX=0.295, TZ=-0.02;
+    const TX=0.295, TZ=0.065;
     const rotDunkel=std(0x8e1a11,{roughness:0.42,metalness:0.02});
     const rotKorpus=std(0xbe2418,{roughness:0.3,metalness:0.03});
     const rotHell=std(0xd93b2c,{roughness:0.24,metalness:0.03});
@@ -400,19 +408,25 @@ function buildYard(){
 
     /* Schluesselschalter links mit Stellungsmarke */
     const zylR=new THREE.Mesh(new THREE.CylinderGeometry(0.030,0.030,0.020,HIQ?18:10),kante);
-    zylR.position.set(-0.328,0.022,-0.018); pult.add(zylR);
+    zylR.position.set(-0.328,0.022,0.067); pult.add(zylR);
     const key=new THREE.Mesh(new THREE.BoxGeometry(0.009,0.014,0.055),std(0xb9a05a,{metalness:0.8,roughness:0.3}));
-    key.position.set(-0.328,0.036,0.009); key.rotation.x=-0.5; pult.add(key);
+    key.position.set(-0.328,0.036,0.094); key.rotation.x=-0.5; pult.add(key);
     /* Meldeleuchten: eine je Kanal. Aus = leer, gruen = scharf,
        rot = brennt (pultLampen) */
-    for(let i=0;i<15;i++){
+    const tastM=std(0x2a2f38,{roughness:0.5,metalness:0.2}), tastKopf=std(0xd9dde3,{roughness:0.45});
+    for(let i=0;i<9;i++){
       const lx=PULT_LAMP_X(i);
       const lm=new THREE.MeshStandardMaterial({color:LIN(0x1e232e),roughness:0.4,emissive:LIN(0x39ff7a),emissiveIntensity:0});
       pultLamps.push(lm);
       const l=new THREE.Mesh(new THREE.CylinderGeometry(0.015,0.015,0.012,HIQ?14:8),lm);
-      l.position.set(lx,0.019,-0.193); pult.add(l);
+      l.position.set(lx,0.019,-0.205); pult.add(l);
       const r2=new THREE.Mesh(new THREE.TorusGeometry(0.019,0.004,6,HIQ?14:8),kante);
-      r2.position.set(lx,0.021,-0.193); r2.rotation.x=Math.PI/2; pult.add(r2);
+      r2.position.set(lx,0.021,-0.205); r2.rotation.x=Math.PI/2; pult.add(r2);
+      /* Kanaltaster: Einbaurahmen und Tastkappe, die beim Zuenden
+         eingedrueckt wird */
+      bbox(0.042,0.01,0.036,tastM,lx,0.016,-0.152,pult,false);
+      const kap=bbox(0.032,0.014,0.026,tastKopf,lx,0.026,-0.152,pult,false);
+      kap.userData.y0=kap.position.y; pultTaster.push(kap);
     }
     /* Seitengriffe am Korpus */
     for(const sx of [-0.48,0.48]){
@@ -424,7 +438,7 @@ function buildYard(){
       g2.fillStyle='#161a22'; g2.fillRect(0,0,W,H);
       g2.strokeStyle='#6f7684'; g2.lineWidth=4; g2.strokeRect(5,5,W-10,H-10);
       g2.fillStyle='#c9cfd8'; g2.font=BAR(42); g2.textAlign='center'; g2.textBaseline='middle';
-      g2.fillText('ZÜNDANLAGE ZA-15',W/2,H/2+2); })}),-0.26,1.00,0.282,0,g);
+      g2.fillText('ZÜNDANLAGE ZA-9',W/2,H/2+2); })}),-0.26,1.00,0.282,0,g);
     for(const sx of [-0.33,0.33]) bbox(0.16,0.04,0.006,pulver,sx,0.93,0.282,g,false);
 
     const hit=bbox(0.98,1.35,0.66,hitM,0,0.75,0,g,false); hit.userData={kind:'pult'};
@@ -442,14 +456,16 @@ function buildYard(){
   }
 }
 /* =========================================================
-   Kanaele. Jeder Platz auf den Stationen hat eine feste Nummer:
-   Zuendtisch 1 bis 6, Abschussroehren 7 bis 12, Moerser 13 bis 15.
-   Am Pult zuendet man einen Kanal einzeln oder alle zusammen. Die
-   Ware bleibt stehen, bis sie abgebrannt ist, und jeder Effekt
-   startet genau dort, wo sein Produkt steht.
+   Kanaele (Tom, 25.09.): neun, wie die Zifferntasten.
+     1-3  Moerser: kleines, mittleres, grosses Rohr
+     4-6  Abschussroehren fuer Raketen
+     7-9  Zuendtisch fuer Batterien, Fontaenen und Co.
+   Am Pult zuendet die Zifferntaste genau diesen Platz. Die Ware
+   bleibt stehen, bis sie abgebrannt ist, und jeder Effekt startet
+   genau dort, wo sein Produkt steht.
    ========================================================= */
-const KANAL_START={tisch:1,rampe:7,moerser:13};
-const KANAL_REIHE=['tisch','rampe','moerser'];
+const KANAL_START={moerser:1,rampe:4,tisch:7};
+const KANAL_REIHE=['moerser','rampe','tisch'];
 function kanalVon(st,slot){ return KANAL_START[st.id]+slot; }
 function kanalAnzahl(){ let n=0; for(const id of KANAL_REIHE) if(stations[id]) n+=stations[id].cap; return n; }
 function itemAufPlatz(st,slot){ return st.items.find(x=>x.slot===slot)||null; }
@@ -470,9 +486,9 @@ const MOERSER_MUND=[1.48,1.73,2.03];
 function muendung(st,slot,t){
   const p=STATION_POS[st.id];
   if(st.id==='tisch'){ const h=P[t]&&P[t].dims?P[t].dims[1]:0.2;
-    return {x:p.x-0.95+slot*0.38,y:0.93+h,z:p.z,ab:0.08,jit:0.06}; }
+    return {x:p.x+TISCH_X[slot%3],y:0.93+h,z:p.z,ab:0.08,jit:0.06}; }
   if(st.id==='moerser') return {x:p.x+[-0.72,0,0.78][slot%3],y:MOERSER_MUND[slot%3],z:p.z,ab:0.05,jit:0.02};
-  return {x:p.x-1.0+slot*0.4,y:1.34,z:p.z-0.08,ab:0.05,jit:0.02};
+  return {x:p.x+RAMPE_X[slot%3],y:1.34,z:p.z-0.08,ab:0.05,jit:0.02};
 }
 function placedCount(){ let n=0; for(const k in stations) n+=stations[k].items.length; return n; }
 function bereitCount(){ let n=0; for(const k in stations) n+=stations[k].items.filter(it=>it.state==='bereit').length; return n; }
@@ -505,9 +521,9 @@ function pultLampen(){
 }
 function stationSlot(st,i){
   const p=STATION_POS[st.id];
-  if(st.id==='tisch'){ const x=-0.95+i*0.38; return {x:p.x+x,y:0.93,z:p.z,ry:Math.PI}; }
+  if(st.id==='tisch') return {x:p.x+TISCH_X[i%3],y:0.93,z:p.z,ry:Math.PI};
   if(st.id==='moerser'){ const x=[-0.72,0,0.78][i%3]; return {x:p.x+x,y:[1.36,1.62,1.92][i%3],z:p.z,ry:rand(0,Math.PI*2)}; }
-  const x=-1.0+i*0.4; return {x:p.x+x,y:1.18,z:p.z-0.08,ry:0};
+  return {x:p.x+RAMPE_X[i%3],y:1.18,z:p.z-0.08,ry:0};
 }
 /* =========================================================
    Was auf der Station sichtbar steht. Raketen stecken mit dem Stab
@@ -522,7 +538,11 @@ const RAKETEN_LOOK={
   furzrakete:  {r:0.046,L:0.19,body:'#6b4a1c',kopf:'#c8e04a',band:'#ffd23f'},
   blanko:      {r:0.022,L:0.16,body:'#7a808c',kopf:'#f2f5ff',band:'#ffd23f'},
   pfeifraketen:{r:0.026,L:0.2,body:'#c8201c',kopf:'#f2f5ff',band:'#1b1b1b',rillen:true},
-  titanraketen:{r:0.05,L:0.34,body:'#15181f',kopf:'#e63b2e',band:'#ffd23f',metall:true,flossen:true,gross:true}
+  titanraketen:{r:0.05,L:0.34,body:'#15181f',kopf:'#e63b2e',band:'#ffd23f',metall:true,flossen:true,gross:true},
+  /* Jumbos: so dick, wie das Rohr es zulaesst, dafuer laenger, mit
+     kraeftigem Stab und zwei Baendern */
+  jumbogold:  {r:0.05,L:0.52,body:'#c9a23a',kopf:'#fff3c4',band:'#4a3308',metall:true,flossen:true,gross:true,jumbo:true},
+  jumboleiter:{r:0.05,L:0.56,body:'#1a2f6a',kopf:'#8fd0ff',band:'#ffd23f',flossen:true,gross:true,jumbo:true}
 };
 function raketeModell(t){
   const p=P[t]||{}, a=p.art||{};
@@ -530,12 +550,12 @@ function raketeModell(t){
   const g=new THREE.Group();
   const mat=h=>std(parseInt(h.slice(1),16),L0.metall?{metalness:0.55,roughness:0.3}:{roughness:0.5});
   /* Stab steckt im Rohr */
-  const stab=new THREE.Mesh(new THREE.CylinderGeometry(0.006,0.006,0.95,6),std(0xc9a46a,{roughness:0.8}));
+  const stab=new THREE.Mesh(new THREE.CylinderGeometry(L0.jumbo?0.011:0.006,L0.jumbo?0.011:0.006,0.95,6),std(0xc9a46a,{roughness:0.8}));
   stab.position.y=-0.46; g.add(stab);
   /* Treibsatz, Band, Kopf */
   const body=new THREE.Mesh(new THREE.CylinderGeometry(L0.r,L0.r,L0.L,HIQ?16:10),mat(L0.body));
   body.position.y=L0.L/2; g.add(body);
-  for(const f of (L0.rillen?[0.25,0.5,0.75]:[0.62])){
+  for(const f of (L0.rillen?[0.25,0.5,0.75]:L0.jumbo?[0.3,0.72]:[0.62])){
     const b=new THREE.Mesh(new THREE.CylinderGeometry(L0.r*1.04,L0.r*1.04,L0.L*0.09,HIQ?16:10),mat(L0.band));
     b.position.y=L0.L*f; g.add(b); }
   const kopf=new THREE.Mesh(new THREE.ConeGeometry(L0.r*1.12,L0.r*(L0.gross?3.4:2.6),HIQ?16:10),mat(L0.kopf));
@@ -690,7 +710,15 @@ function zuendeItem(st,it,leise){
   drawPult();
   return dud?'dud':true;
 }
+/* Die Tastkappe am Pult geht kurz herunter - man sieht, welcher
+   Kanal gedrueckt wurde */
+function pultDruck(k){
+  const m=pultTaster[k-1]; if(!m) return;
+  m.position.y=m.userData.y0-0.007; m.userData.druck=(m.userData.druck||0)+1;
+  const n=m.userData.druck; later(0.22,()=>{ if(m.userData.druck===n) m.position.y=m.userData.y0; });
+}
 function zuendeKanal(k){
+  pultDruck(k);
   const e=alleKanaele().find(x=>x.kanal===k);
   if(!e||!e.it){ toast(`Kanal ${k} ist leer.`); return false; }
   if(e.it.state!=='bereit'){ toast(`Kanal ${k} brennt schon.`); return false; }
@@ -703,7 +731,7 @@ function zuendeKanal(k){
 function zuendeAlle(gleichzeitig){
   const ks=alleKanaele().filter(e=>e.it&&e.it.state==='bereit');
   if(!ks.length){ toast('Erst Ware auf Tisch, Röhren oder Mörser stellen.'); return false; }
-  const m=testfeldMitte(); aimAt(m.x,m.z,0.24);
+  /* die Kamera bleibt, wo der Spieler hinschaut (Tom, 25.09.) */
   if(!gleichzeitig) ks.sort((a,b)=>P[a.it.type].hype-P[b.it.type].hype);
   let t=0, duds=0;
   ks.forEach(e=>{

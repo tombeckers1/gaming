@@ -68,6 +68,12 @@ const P={
     art:{title:'GOLDFLUG',sub:'5 Brokatraketen',bg1:'#4a3308',bg2:'#150e02',ac:'#ffd23f',ac2:'#fff3c4',gold:true}},
   titanraketen:{name:'Titan · 3 XXL-Raketen Dreifachbruch',short:'Titan',cat:2,lvl:20,shape:'rocketset',dims:[0.62,0.085,0.18],grid:[3,1,1],box:3,cost:19.00,market:44.99,weight:5,hype:44,risk:9,
     art:{title:'TITAN',sub:'3 XXL-Raketen · Dreifachbruch',bg1:'#26292f',bg2:'#000000',ac:'#d1e5ff',ac2:'#ffd23f'}},
+  /* Jumbo-Raketen (Tom, 25.09.): je eine grosse Einzelrakete mit einem
+     Effekt, den es sonst nirgends gibt. stueck: eine Rakete je Packung */
+  jumbogold:{name:'Jumbo-Rakete »Goldene Krone«',short:'Jumbo Krone',cat:2,lvl:21,shape:'rocketset',stueck:1,dims:[0.84,0.10,0.15],grid:[2,1,1],box:4,cost:13.50,market:32.99,weight:4,hype:40,risk:9,
+    art:{title:'JUMBO',sub:'Goldene Krone · Einzelrakete',bg1:'#4a3308',bg2:'#150e02',ac:'#ffd23f',ac2:'#fff3c4',gold:true}},
+  jumboleiter:{name:'Jumbo-Rakete »Himmelsleiter«',short:'Jumbo Leiter',cat:2,lvl:22,shape:'rocketset',stueck:1,dims:[0.84,0.12,0.17],grid:[2,1,1],box:2,cost:22.00,market:52.99,weight:3,hype:58,risk:10,
+    art:{title:'JUMBO',sub:'Himmelsleiter · drei Brüche',bg1:'#12204a',bg2:'#04081a',ac:'#8fd0ff',ac2:'#ffd23f'}},
   sortiment:{name:'Familienfest · 18 Teile gemischt',short:'Sortiment',cat:2,lvl:13,shape:'assort',dims:[0.40,0.16,0.30],grid:[4,1,1],box:2,cost:18.00,market:42.99,weight:6,hype:34,risk:6,
     art:{title:'FAMILIENFEST',sub:'18 Teile gemischt',bg1:'#2f5d9e',bg2:'#0a1a33',ac:'#ffd23f',ac2:'#ff4fa3'}},
   /* Knattersturm: ersetzt den alten 25er. Jeder Schuss knistert,
@@ -627,7 +633,7 @@ const TUT=[
   ['fenster','Die Schaufenster werden mit der Zeit blind. Von innen anvisieren und putzen.','Schaufenster von innen putzen.'],
   ['move','Im Umbaumodus verschiebst du Regale, Kasse und Deko.','Umbau: Möbel verschieben.'],
   ['launch','Im Hof hinten kannst du Feuerwerk zünden. Das lockt Kunden an.','Im Hof zünden bringt Hype.'],
-  ['build','Stell die Ware im Hof auf die passende Station und zünde am Pult.','Ware aufbauen, dann am Zündpult zünden.'],
+  ['build','Stell die Ware im Hof auf die passende Station. Am Pult schaltet E den Zündmodus ein, dann zündet die Kanalnummer: 1–3 Mörser, 4–6 Raketen, 7–9 Tisch.','Ware aufbauen, am Pult E, dann Taste 1–9.'],
   ['phone','Dein Handy klingelt. Mit H rangehen.','Handy klingelt: H drücken.'],
   ['versand','Großaufträge gehen automatisch aus dem Lager raus. Volle Kartons müssen dort stehen.','Volle Kartons ins Lager stellen.']
 ];

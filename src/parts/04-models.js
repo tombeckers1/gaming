@@ -65,9 +65,10 @@ function buildProduct(t){
     parts.push({geo:merge([{geo:new THREE.CylinderGeometry(R*1.005,R*1.005,lh,20,1,true),m:tm(0,body*0.45,0)}]),mat:new THREE.MeshStandardMaterial({map:lt,roughness:0.6,side:THREE.DoubleSide})});
   }
   else if(sh==='rocketset'){
-    const th=h*0.36, n=clamp(Math.round(d/0.026),3,9), cols=[0xd8352a,0x2f7fd0,0xffc93a,0x2f9e57,0x9b3bd6,0xf2f5ff,0xff7a3d,0x39c4d8,0xe35aa8];
+    /* stueck: Einzelraketen (Jumbo) - eine dicke statt vieler duenner */
+    const th=h*0.36, n=p.stueck||clamp(Math.round(d/0.026),3,9), cols=[0xd8352a,0x2f7fd0,0xffc93a,0x2f9e57,0x9b3bd6,0xf2f5ff,0xff7a3d,0x39c4d8,0xe35aa8];
     addAtlasBox(w,th,d,tm(0,th/2,0));
-    const step=d*0.86/n, rr=Math.min(0.0115,step*0.44);
+    const step=d*0.86/n, rr=p.stueck?Math.min(h*0.26,step*0.4):Math.min(0.0115,step*0.44);
     for(let i=0;i<n;i++){ const z=-d*0.43+step*(i+0.5), y=th+rr, c=cols[i%cols.length];
       vc.push({geo:new THREE.CylinderGeometry(rr,rr,w*0.27,10),m:tm(w*0.19,y,z,0,0,Math.PI/2),color:c});
       vc.push({geo:new THREE.ConeGeometry(rr,w*0.07,10),m:tm(w*0.19+w*0.17,y,z,0,0,-Math.PI/2),color:c});

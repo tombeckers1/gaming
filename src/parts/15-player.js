@@ -256,6 +256,7 @@ function promptFor(t){
         return {t:`Aufbauen: ${P[c.type].short} (${st.items.length}/${st.cap})`,a:true}; }
       return {t:st.items.length?`${nm}: ${st.items.length} Stück bereit`:`${nm}: leer`,a:false}; }
     case 'pult': { const n=bereitCount();
+      if(zuendOpen) return {t:'Zündpult verlassen',a:true};
       return {t:n?`Zündpult bedienen · ${n} ${n===1?'Kanal':'Kanäle'} scharf`:'Zündpult bedienen',a:true}; }
     case 'gravur': {
       if(c&&c.type==='blanko') return gravBlanks>=GRAV_MAX?{t:'Automat ist voll',a:false}:{t:`Blanko nachfüllen ${gravBlanks}/${GRAV_MAX}`,a:true};
@@ -293,7 +294,7 @@ function doAction(){
   else if(k==='laptop') openLaptop();
   else if(k==='laptop2') openLaptop('order');
   else if(k==='station'){ if(S.carrying) placeOnStation(r); }
-  else if(k==='pult') openZuend();
+  else if(k==='pult'){ if(zuendOpen) closeZuend(); else openZuend(); }
   else if(k==='gravur'){ if(S.carrying&&S.carrying.type==='blanko') refillGrav(); else if(!S.carrying) openGravInput(); }
   else if(k==='tbox') takeBox(r);
   else if(k==='sign'){ if(phase==='closed') openShop(); else if(phase==='after') endDay(); }

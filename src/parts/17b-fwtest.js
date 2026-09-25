@@ -13,7 +13,7 @@ let fwTestAn=false, fwTestBoxen=[];
 /* Welche Uhrzeit das Licht sieht: im Testmodus immer 22 Uhr */
 function todUhr(){ return FW_DEV&&fwTestAn?Math.max(clock,1320):clock; }
 function fwTestProdukte(){
-  const reihe={tisch:0,rampe:1,moerser:2};
+  const reihe={moerser:0,rampe:1,tisch:2};
   return ORDER.filter(t=>{ const p=P[t]; return p&&p.cat&&!p.rezept&&!p.noOrder&&stationOf(t); })
     .sort((a,b)=>(reihe[stationOf(a)]-reihe[stationOf(b)])||(P[a].lvl-P[b].lvl));
 }

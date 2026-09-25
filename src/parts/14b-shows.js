@@ -226,6 +226,18 @@ const RAKETEN_KL={
   pfeifraketen:{n:10,gap:0.5, sz:0.8, pw:-3,th:'wald',gruppe:2,pfeif:true,eff:['knister','spektrum','fische','goldglitzer','strobe','tausend']},
   raketengold :{n:5, gap:1.1, sz:1.25,pw:1, th:'gold',eff:['goldglitzer','kronleuchter','brokat','goldglitzer','zeitregen']},
   titanraketen:{n:3, gap:1.7, sz:1.55,pw:5, th:'eis',dick:1,eff:['titan']},
+  /* Jumbo »Goldene Krone«: eine dicke Goldrakete, die Palme endet in
+     farbigen Juwelen, zum Schluss knistert es */
+  jumbogold  :{n:1, gap:0, sz:2.0, pw:8, fuse:1.35, th:'koenig',dick:2,trail:'gold',eff:['sternpalme'],
+    stufen:(A,B)=>[{t:1.7,eff:'tausend',sz:1.0,streu:1.2,A:FW.weiss,B:FW.gold}]},
+  /* Jumbo »Himmelsleiter«: drei Brueche uebereinander, ein Komet
+     traegt die Rakete jeweils eine Stufe hoeher - jede groesser */
+  jumboleiter:{n:1, gap:0, sz:0.9, pw:0, th:'nacht',dick:2,trail:'weiss',eff:['pistill'],
+    stufen:(A,B)=>[{t:0.02,eff:'steigkomet',sz:1,off:[0,0,0],leise:true},
+      {t:LEITER_T+0.02,eff:'dahlie',sz:1.25,off:[0,LEITER_STUFE,0],A:B,B:A},
+      {t:LEITER_T+0.04,eff:'steigkomet',sz:1,off:[0,LEITER_STUFE,0],leise:true},
+      {t:2*LEITER_T+0.04,eff:'glitzerweide',sz:2.0,off:[0,2*LEITER_STUFE,0],A:FW.gold,B:FW.weiss},
+      {t:2*LEITER_T+0.9,eff:'tausend',sz:1.1,off:[0,2*LEITER_STUFE-3,0],A:FW.weiss,B:FW.weiss}]},
   gravur      :{n:1, gap:0.45,sz:1.3, pw:4, eff:['herz']},
   blanko      :{n:3, gap:0.45,sz:0.95,pw:0, eff:null}
 };
@@ -397,11 +409,14 @@ function igniteType(t,o0){
   }
   else if(sh==='rocketset'){
     const KL=RAKETEN_KL[t]||{n:3,gap:0.45,sz:0.95,pw:0,eff:null};
-    for(let i=0;i<KL.n;i++) later(i*KL.gap,()=>shot(o,{pw:KL.pw,sz:KL.sz,eff:KL.eff?KL.eff[i%KL.eff.length]:pick(EFF_GROSS),
-      ...(KL.th?(([A,B])=>({A,B}))(themaPaar(KL.th,Math.floor(i/(KL.gruppe||1)))):{sc:-1}),
-      pfeif:KL.pfeif,dick:KL.dick,trail:KL.dick?FW.weiss:undefined,
-      /* Titan: jede Rakete bricht dreifach - Hauptbruch, dann zwei Nachbrueche */
-      stufen:t==='titanraketen'?[{t:0.5,eff:pick(['mehrring','pistill','dahlie']),sz:1.0,streu:5},{t:1.0,eff:'salut',sz:0.8,streu:3}]:null}));
+    for(let i=0;i<KL.n;i++) later(i*KL.gap,()=>{
+      const AB=KL.th?themaPaar(KL.th,Math.floor(i/(KL.gruppe||1))):null;
+      shot(o,{pw:KL.pw,sz:KL.sz,eff:KL.eff?KL.eff[i%KL.eff.length]:pick(EFF_GROSS),
+        ...(AB?{A:AB[0],B:AB[1]}:{sc:-1}),
+        pfeif:KL.pfeif,dick:KL.dick,trail:KL.trail?FW[KL.trail]:KL.dick?FW.weiss:undefined,fuse:KL.fuse,
+        /* Jumbos: eigene Nachbrueche; Titan: jede Rakete bricht dreifach */
+        stufen:KL.stufen?KL.stufen(AB?AB[0]:FW.gold,AB?AB[1]:FW.weiss,i)
+          :t==='titanraketen'?[{t:0.5,eff:pick(['mehrring','pistill','dahlie']),sz:1.0,streu:5},{t:1.0,eff:'salut',sz:0.8,streu:3}]:null}); });
   }
   else if(sh==='battery'||sh==='fan'){
     /* Verbundfeuerwerk: Kaliber, Takt und Effektauswahl wachsen mit

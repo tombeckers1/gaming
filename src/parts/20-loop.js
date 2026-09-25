@@ -130,7 +130,7 @@ function step(dt){
   hype=Math.max(0,hype-dt*1.1);
   updateFireworks(dt); updateSnow(dt); updateDeko(dt); updateStadt(dt);
   updateTarget(); holdRepeat(dt); applyTOD(); updateUhr();
-  hudT-=dt; if(hudT<=0){ hudT=0.1; updateHUD(); updatePrompt(); if(pdaOn) drawPDA(); if(laptopOpen||handyOpen) updateOnline(); }
+  hudT-=dt; if(hudT<=0){ hudT=0.1; updateHUD(); updatePrompt(); zuendTick(); if(pdaOn) drawPDA(); if(laptopOpen||handyOpen) updateOnline(); }
   saveT+=dt; if(saveT>25){ saveT=0; save(); }
 }
 let noLoop=location.hash.indexOf('test')>=0;

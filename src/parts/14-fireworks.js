@@ -198,7 +198,7 @@ function basisBlick(p,kipp){
 const EFF_FAMILIE={};
 [['figur','ring doppelring ringring herz stern saturn schneeflocke spirale feuerrad kreisel'],
  ['kugel','kugel chrys wechsel dahlie pistill mehrring geist regenbogen spektrum farbregen dreifach doppel zehnfach strauss'],
- ['haenger','weide glitzerweide kamuro brokat zeitregen kronleuchter goldglitzer palme komet kaskade sternschnuppen titan'],
+ ['haenger','weide glitzerweide kamuro brokat zeitregen kronleuchter goldglitzer palme komet kaskade sternschnuppen titan sternpalme steigkomet'],
  ['knister','knister tausend strobe blink fische spinne crossette blaetter'],
  ['flamme','flammenregen'],['salut','salut'],['spass','furz']].forEach(([f,l])=>l.split(' ').forEach(e=>{ EFF_FAMILIE[e]=f; }));
 /* Welche Familien sich den Himmel teilen duerfen */
@@ -813,13 +813,61 @@ EFF.strauss=function(p,A,B,s){
       psBig.emit(q.x,q.y,q.z,e[0]*w,e[1]*w,e[2]*w,c[0],c[1],c[2],rand(1.5,2.0),2.4,0); }
     kern(q,c,s*0.6); }
 };
+/* =========================================================
+   Jumbo-Raketen (Tom, 25.09.): zwei Effekte, die es nur dort gibt.
+   ========================================================= */
+/* Position eines Sterns nach T Sekunden - dieselbe Rechnung wie in
+   PS.update: Luftwiderstand ZIEH, Schwerkraft g */
+function sternNach(p,vx,vy,vz,g,T){
+  const e=(1-Math.exp(-ZIEH*T))/ZIEH;
+  return {x:p.x+vx*e,y:p.y+(vy+g/ZIEH)*e-g/ZIEH*T,z:p.z+vz*e};
+}
+/* Goldene Krone: dicke Goldpalme, jeder Finger endet nach einer
+   Sekunde in einem farbigen Sternbuendel - Juwelen auf der Krone */
+EFF.sternpalme=function(p,A,B,s){
+  const arms=10+Math.floor(Math.random()*3), g=FW.gold, G=4.4, T=1.05;
+  const juwel=[B,K('rot'),K('tuerkis'),B,K('magenta')];
+  for(let a=0;a<arms;a++){
+    const ang=a/arms*Math.PI*2+rand(-.12,.12), tilt=rand(0.35,1.0), sp=rand(8.5,10.5)*s;
+    const vx=Math.cos(ang)*Math.cos(tilt)*sp, vy=Math.sin(tilt)*sp+2, vz=Math.sin(ang)*Math.cos(tilt)*sp;
+    const n=Math.round(18*QUAL());
+    for(let i=0;i<n;i++){ const f=0.35+i/n*0.75;
+      psBig.emit(p.x,p.y,p.z,vx*f+rand(-.4,.4),vy*f+rand(-.4,.4),vz*f+rand(-.4,.4),g[0],g[1],g[2],rand(2.4,3.2),G,4); }
+    /* die Spitze: dort, wo der schnellste Stern des Fingers gerade ist */
+    const q=sternNach(p,vx*1.1,vy*1.1,vz*1.1,G,T), c=juwel[a%juwel.length];
+    later(T,()=>{
+      for(let i=0;i<Math.round(22*QUAL());i++){ const d=randDir(), w=rand(2.2,3.6)*s;
+        psBig.emit(q.x,q.y,q.z,d[0]*w,d[1]*w,d[2]*w,c[0],c[1],c[2],rand(1.1,1.6),2.6,0); }
+      psHuge.emit(q.x,q.y,q.z,0,0,0,1,1,1,0.12,0,0);
+    });
+  }
+  later(T,()=>{ sfx.crack(distVol(p)*0.9); flash(p,B,2.6,0.4); });
+  for(let i=0;i<Math.round(30*QUAL());i++){ const d=randDir(), v=rand(1,3);
+    psMid.emit(p.x,p.y,p.z,d[0]*v,d[1]*v,d[2]*v,1,.9,.6,rand(1,1.6),2.5,4); }
+};
+/* Himmelsleiter: ein heller Komet steigt vom Bruch 8 m hoeher, dort
+   geht der naechste Bruch auf - die Rakete steigt in Stufen. Mit
+   5,5 m lagen die Brueche uebereinander und man sah keine Treppe. */
+const LEITER_STUFE=8, LEITER_T=0.7;
+EFF.steigkomet=function(p,A,B,s){
+  /* ohne Schwerkraft: v0 so, dass er nach LEITER_T oben ist */
+  const T=LEITER_T, e=(1-Math.exp(-ZIEH*T))/ZIEH, v0=LEITER_STUFE/e;
+  psBig.emit(p.x,p.y,p.z,0,v0,0,1,.95,.8,T,0,0);
+  for(let i=0;i<12;i++){ const a=Math.random()*Math.PI*2, w=rand(0.6,1.6);
+    psSmall.emit(p.x,p.y,p.z,Math.cos(a)*w,rand(1,3),Math.sin(a)*w,1,.8,.4,rand(0.3,0.6),4,0); }
+  /* Funken, die unterwegs vom Kometen abfallen */
+  for(let k=1;k<6;k++){ const t=k*T/6, q=sternNach(p,0,v0,0,0,t);
+    later(t,()=>{ for(let i=0;i<Math.round(5*QUAL());i++){ const a=Math.random()*Math.PI*2, w=rand(0.3,0.9);
+      psSmall.emit(q.x,q.y,q.z,Math.cos(a)*w,rand(-0.5,0.4),Math.sin(a)*w,1,.78,.35,rand(0.5,0.9),3,4); } }); }
+};
 /* Wie lang die Leuchtspur je Bruchbild ist (Sekunden Flugbahn) */
 const EFF_SCHWEIF={kugel:0.4,chrys:0.75,wechsel:0.35,weide:1.9,palme:1.1,ring:0.3,doppelring:0.3,crossette:0.35,
   knister:0.3,blink:0,brokat:1.3,herz:0.18,stern:0.18,kreisel:0.4,fische:0.25,doppel:0.4,dreifach:0.45,
   dahlie:0.45,pistill:0.4,kamuro:1.8,spinne:0.5,strobe:0,zeitregen:0.9,blaetter:0,geist:0.35,salut:0.08,saturn:0.3,
   tausend:0.25,mehrring:0.35,regenbogen:0.4,glitzerweide:2.0,komet:0.9,titan:0.8,zehnfach:0.35,kaskade:0.5,
   schneeflocke:0.22,spirale:0.3,ringring:0.25,strauss:0.35,furz:0,
-  flammenregen:0.7,kronleuchter:1.4,feuerrad:0.55,sternschnuppen:0.9,farbregen:0.5,spektrum:0.2,goldglitzer:0.9};
+  flammenregen:0.7,kronleuchter:1.4,feuerrad:0.55,sternschnuppen:0.9,farbregen:0.5,spektrum:0.2,goldglitzer:0.9,
+  sternpalme:1.1,steigkomet:0.45};
 function mitSchweif(eff,fn){ const alt=SCHWEIF; SCHWEIF=EFF_SCHWEIF[eff]!==undefined?EFF_SCHWEIF[eff]:null; try{ fn(); } finally { SCHWEIF=alt; } }
 const EFF_ALL=Object.keys(EFF);
 /* Was in welcher Groessenklasse geschossen wird */

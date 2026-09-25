@@ -238,26 +238,43 @@ body.compact .mkcol{min-width:74px}
 h2{font-family:var(--display);font-weight:400;font-size:28px;margin:0 0 6px;color:var(--signal);line-height:1.1}
 #cash .card{max-width:500px}
 #pause .card{max-width:780px}
-#zuend{position:fixed;right:max(12px,env(safe-area-inset-right));bottom:max(12px,env(safe-area-inset-bottom));z-index:15;display:none;background:rgba(12,16,34,.9);border:1px solid var(--line);border-radius:14px;padding:10px 12px 12px;width:min(410px,96vw);box-shadow:0 10px 34px rgba(0,0,0,.5)}
-body.compact #zuend{left:50%;right:auto;transform:translateX(-50%);width:min(620px,98vw)}
+/* Zuendpult: Leiste unten in der Mitte, kein Fenster - die Maus
+   bleibt beim Umsehen, gezuendet wird mit den Zifferntasten */
+#zuend{position:fixed;left:50%;bottom:max(12px,env(safe-area-inset-bottom));transform:translateX(-50%);z-index:15;display:none;pointer-events:none;background:rgba(12,16,34,.86);border:1px solid var(--line);border-radius:14px;padding:7px 12px 8px;box-shadow:0 10px 34px rgba(0,0,0,.45);width:max-content;max-width:98vw}
 #zuend.show{display:block}
-.zkopf{display:flex;align-items:center;gap:12px;margin-bottom:8px}
-.zkopf b{font-size:18px;color:var(--signal)}
-.zkopf span{flex:1;font-size:14px;opacity:.78}
-.zgr{display:flex;flex-direction:column;gap:8px}
-.zgruppe h4{margin:0 0 5px;font-size:12px;letter-spacing:.07em;text-transform:uppercase;opacity:.65}
-.zreihe{display:flex;gap:6px;flex-wrap:wrap}
-.kan{width:56px;min-height:58px;border-radius:10px;border:2px solid #39405a;background:#1b2238;color:#8a93a8;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:4px;cursor:pointer;font:inherit;box-shadow:none}
-.kan i{font-style:normal;font-weight:800;font-size:19px;line-height:1}
-.kan span{font-size:9.5px;line-height:1.1;text-align:center;max-width:52px;overflow:hidden;max-height:22px}
+body:has(.ov.show) #zuend{display:none}
+/* Touch: nur die Kanaele und Knoepfe nehmen Beruehrung an, der Rest
+   der Leiste laesst Wischen und Joystick durch; links von der
+   Knopfspalte, damit Kanal 9 nicht auf dem Umbau-Knopf liegt */
+.coarse #zuend{bottom:calc(12px + env(safe-area-inset-bottom));left:calc(50% - 70px);max-width:calc(100vw - 190px)}
+.coarse #zuend .kan,.coarse #zuend button{pointer-events:auto}
+.coarse #zuend .kan{width:52px;height:50px}
+.coarse #zuend .kan span{display:none}
+#zAlle{display:flex;gap:8px;justify-content:center;margin-top:6px}
+#zAlle:empty{display:none}
+body.zuendan #carry{bottom:calc(142px + env(safe-area-inset-bottom))}
+body.zuendan #toasts{bottom:196px}
+body.coarse.zuendan #carry{bottom:calc(210px + env(safe-area-inset-bottom))}
+body.coarse.zuendan #toasts{bottom:258px}
+.zkopf{display:flex;align-items:baseline;gap:12px;margin-bottom:6px}
+.zkopf b{font-family:var(--display);font-weight:400;font-size:16px;letter-spacing:.04em;color:var(--signal)}
+.zkopf span{flex:1;font-size:13px;opacity:.8;text-align:right}
+.zgr{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;row-gap:6px}
+.zgruppe h4{margin:0 0 4px;font-size:11px;letter-spacing:.09em;text-transform:uppercase;opacity:.65;text-align:center}
+.zreihe{display:flex;gap:6px}
+.kan{width:76px;height:62px;border-radius:10px;border:2px solid #39405a;background:#1b2238;color:#8a93a8;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:3px}
+.kan kbd{display:block;min-width:28px;font:800 18px/1 var(--ui,inherit);text-align:center;background:#39405a;color:#c5cbd8;border-radius:6px;padding:4px 0 3px;box-shadow:0 2px 0 rgba(0,0,0,.45)}
+.kan span{font-size:10px;line-height:1.1;text-align:center;max-width:72px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
 .kan.bereit{border-color:#39ff7a;color:#eaffef;background:#143a23}
-.kan.bereit:hover{background:#1d5232}
+.kan.bereit kbd{background:#eaffef;color:#0e1226}
 .kan.brennt{border-color:#ff6a3d;color:#fff;background:#4a1a10;animation:zbl .45s infinite alternate}
-.kan.leer{cursor:default;opacity:.5}
+.kan.brennt kbd{background:#ffb49a;color:#3a0e04}
+.kan.leer{opacity:.55}
 @keyframes zbl{from{background:#4a1a10}to{background:#86301a}}
-.zfuss{display:flex;gap:8px;justify-content:flex-end;align-items:center;margin-top:10px;flex-wrap:wrap}
-.zfuss small{flex:1;opacity:.62;font-size:12.5px;min-width:180px}
-body.compact .kan{width:50px;min-height:52px}
+.zfuss{margin-top:6px;text-align:center}
+.zfuss small{opacity:.7;font-size:12px}
+.zfuss kbd{font-size:11px;padding:1px 5px;border-radius:4px;background:rgba(242,245,255,.14)}
+body.compact .kan{width:52px;height:50px}
 body.compact .kan span{display:none}
 #pause h2{text-align:center}
 .stHead{margin:10px 0 8px;font-size:14px;letter-spacing:.06em;text-transform:uppercase;opacity:.7;text-align:center}
@@ -551,10 +568,10 @@ body.compact .pdahead2 b{font-size:16px}
   <div id="pdaBody"></div>
 </div></div>
 
-<div id="zuend" role="dialog" aria-label="Zündpult">
-  <div class="zkopf"><b>Zündpult</b><span id="zInfo"></span><button class="ghost" id="zClose">Schließen</button></div>
+<div id="zuend" aria-label="Zündpult">
+  <div class="zkopf"><b>ZÜNDPULT</b><span id="zInfo"></span></div>
   <div class="zgr" id="zGruppen"></div>
-  <div class="zfuss"><small id="zTipp"></small><button class="ghost" id="zNach">Alle nacheinander</button><button id="zGleich">Alle gleichzeitig</button></div>
+  <div class="zfuss"><small id="zTipp"></small><div id="zAlle"></div></div>
 </div>
 
 <button id="musikBtn" title="Musik an / aus (M)">♪</button>

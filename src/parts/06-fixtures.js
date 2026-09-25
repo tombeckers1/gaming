@@ -427,7 +427,12 @@ const pegMat=new THREE.MeshStandardMaterial({roughness:0.8,map:(()=>{ const t=te
 function kindOf(sh){ return SHELFKIND[sh&&sh.kind]||SHELFKIND.standard; }
 function shelfCount(k){ return shelves.filter(s=>s.kind===k).length; }
 /* Fassungsvermögen richtet sich nach Regalbreite und -tiefe */
-function layout(t,sh){
+/* Freie Hoehe ueber einem Fach: bis zum naechsten Boden; das oberste
+   Fach hat mehr Luft bis zur Deckplatte - dort stehen die grossen Verbundbatterien
+   (Tom, 25.09.: "die wirklich krassen viel, viel groesser"). Vorher
+   stand hohe Ware einfach im Boden darueber. */
+function fachHoehe(K,li){ return li<K.lv.length-1?K.lv[li+1]-K.lv[li]-0.04:(K.cold?0.44:0.58); }
+function layout(t,sh,lv){
   const p=P[t], G=p.grid, K=kindOf(sh), g=0.012;
   /* Die Ware fuellt das Fach von links bis rechts (Tom, 25.09.: "nur in
      der Mitte was und links und rechts frei"). Vorher begrenzte das
@@ -435,12 +440,13 @@ function layout(t,sh){
      mitten in einem zwei Meter breiten Regal. */
   const cols=Math.max(1,Math.floor((K.w-0.1+g)/(p.dims[0]+g)));
   const rows=Math.max(1,Math.min(G[1],Math.floor((K.d-0.06+g)/(p.dims[2]+g))));
-  const lvH=(K.lv.length>1?K.lv[1]-K.lv[0]:0.45)-0.04;
-  const st=Math.max(1,Math.min(G[2],Math.floor(lvH/p.dims[1])));
+  /* ohne Fach: das hoechste, das dieses Regal hat */
+  const lvH=lv?fachHoehe(K,lv.li):Math.max(...K.lv.map((_,i)=>fachHoehe(K,i)));
+  const st=p.dims[1]>lvH+0.001?0:Math.max(1,Math.min(G[2],Math.floor(lvH/p.dims[1])));
   return {cols,rows,st,cap:cols*rows*st,w:p.dims[0],h:p.dims[1],d:p.dims[2],g,K};
 }
-function slotLocal(t,idx,sh){
-  const L=layout(t,sh), c=idx%L.cols, rest=Math.floor(idx/L.cols), layer=rest%L.st, row=Math.floor(rest/L.st);
+function slotLocal(t,idx,sh,lv){
+  const L=layout(t,sh,lv), c=idx%L.cols, rest=Math.floor(idx/L.cols), layer=rest%L.st, row=Math.floor(rest/L.st);
   const tw=L.cols*(L.w+L.g)-L.g;
   return {x:-tw/2+L.w/2+c*(L.w+L.g), y:layer*L.h, z:L.K.d/2-0.03-L.d/2-row*(L.d+L.g)};
 }
@@ -480,7 +486,7 @@ function createShelf(i,data){
   const g=new THREE.Group(); const frei=slotsOffen().filter(sl=>slotPasst(K,sl));
   const s=data&&data.x!==undefined?data:(frei[0]||slotsOffen()[0]||SLOTS[0]);
   g.position.set(s.x,0,s.z); g.rotation.y=s.ry||0; scene.add(g);
-  const W=K.w, D=K.d, top=K.lv[K.lv.length-1]+0.48, hw=W/2, iw=W-0.1;
+  const W=K.w, D=K.d, top=K.lv[K.lv.length-1]+(K.cold?0.48:0.62), hw=W/2, iw=W-0.1;
   const sh={i,g,kind,levels:[],W,D};
   /* Das Gestell ist reine Kulisse und wird je Warenseite zu einem
      Mesh verschmolzen - bei fuenfzig Regalen im Endausbau zaehlt das. */
@@ -544,12 +550,12 @@ function createShelf(i,data){
   sh.headY=top+(K.cold?0.34:0.18);
   sh.mov=addMovable({kind:'shelf',name:K.name,g,fw:(K.fw||W)+0.06,fd:(K.fd||D)+0.04,ref:sh,onPlace:()=>syncShelf(sh)});
   shelves.push(sh);
-  if(data&&data.levels) data.levels.forEach((ld,li)=>{ if(ld&&ld.type&&P[ld.type]&&sh.levels[li]){ const n=Math.min(ld.count|0,layout(ld.type,sh).cap); for(let k=0;k<n;k++) addToLevel(sh.levels[li],ld.type,ld.q||1); } });
+  if(data&&data.levels) data.levels.forEach((ld,li)=>{ if(ld&&ld.type&&P[ld.type]&&sh.levels[li]){ const n=Math.min(ld.count|0,layout(ld.type,sh,sh.levels[li]).cap); for(let k=0;k<n;k++) addToLevel(sh.levels[li],ld.type,ld.q||1); } });
   sh.levels.forEach(updateLabel); updateHead(sh);
   return sh;
 }
 function shelfStand(sh,lv){ const K=kindOf(sh); return faceWorld(sh,lv?faceOf(sh,lv):seitenVon(K)[0],0,K.d/2+0.65); }
-function itemMatrix(sh,lv,idx,jit){ const f=faceOf(sh,lv), p=slotLocal(lv.type,idx,sh), w=faceWorld(sh,f,p.x,p.z);
+function itemMatrix(sh,lv,idx,jit){ const f=faceOf(sh,lv), p=slotLocal(lv.type,idx,sh,lv), w=faceWorld(sh,f,p.x,p.z);
   return mx(w.x,kindOf(sh).lv[lv.li]+p.y,w.z,sh.g.rotation.y+f.ry+jit); }
 function syncShelf(sh){ sh.levels.forEach(lv=>{ lv.items.forEach((h,k)=>{ if(lv.type) h.pool.set(h,itemMatrix(sh,lv,k,h.jit||0)); }); }); }
 const HEADNAME={0:['SILVESTER-ZUBEHÖR','#2f7fd0'],1:['KLEINFEUERWERK F1','#2f9e57'],2:['FEUERWERK F2 · AB 18','#c8322a']};
@@ -576,12 +582,12 @@ function updateLabel(lv){
     if(lv.type){ g.fillStyle='#0e1226'; g.font=BAR(26); g.textAlign='left'; g.fillText(P[lv.type].short,8,H/2+1); g.font=BUN(22); g.textAlign='right'; g.fillText(S.prices[lv.type].toFixed(2).replace('.',',')+' €',W-8,H/2+2); }
     else { g.fillStyle='rgba(242,245,255,.75)'; g.font=BAR(24); g.textAlign='center'; g.fillText('leer',W/2,H/2+1); } });
 }
-function capOf(lv,t){ return layout(t||lv.type,lv.sh).cap; }
+function capOf(lv,t){ return layout(t||lv.type,lv.sh,lv).cap; }
 function addToLevel(lv,t,q){
   /* jedes eingeraeumte Stueck zaehlt fuer die Herausforderung */
   if(lv.type&&lv.type!==t) return false;
   if(!shelfAccepts(lv.sh,t)) return false;
-  const L=layout(t,lv.sh); if(lv.count>=L.cap) return false; if(pools[t].full()) return false;
+  const L=layout(t,lv.sh,lv); if(lv.count>=L.cap) return false; if(pools[t].full()) return false;
   if(q===undefined) q=1;
   lv.q=lv.count?((lv.q||1)*lv.count+q)/(lv.count+1):q;
   lv.type=t; const jit=rand(-0.04,0.04);

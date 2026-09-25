@@ -1468,8 +1468,10 @@ function furzwolke(o){
 function vFuerHoehe(h,g){ g=g||6; const k=ZIEH; let a=0, b=200;
   for(let i=0;i<50;i++){ const m=(a+b)/2, hm=m/k-g/(k*k)*Math.log(1+k*m/g); if(hm<h) a=m; else b=m; }
   return (a+b)/2; }
-function monsterFontaene(o,hm,dauer,farben,wechsel){
-  emitters.push({t:dauer,k:'monsterfont',o,hm,v0:vFuerHoehe(hm),farben:farben.map(c=>typeof c==='string'?K(c):c),wechsel:!!wechsel});
+function monsterFontaene(o,hm,dauer,farben,stil){
+  /* tA: Steigzeit bis zum Gipfel, t = ln(1+k*v/g)/k */
+  const v0=vFuerHoehe(hm);
+  emitters.push({t:dauer,k:'monsterfont',o,hm,v0,tA:Math.log(1+ZIEH*v0/6)/ZIEH,farben:farben.map(c=>typeof c==='string'?K(c):c),stil:stil||'puls'});
   const v=distVol(o); sfx.fizz(v); sfx.thump(v*1.2);
 }
 function updateFireworks(dt){
@@ -1499,11 +1501,13 @@ function updateFireworks(dt){
       const H=e.h||1, A=e.A||FW.gold, B=e.B||FW.weiss;
       e.fl=(e.fl||0)-dt; if(e.fl<=0){ e.fl=0.22; flash({x:o.x,y:o.y+4,z:o.z},A,2.6*H,0.3); }
       e.acc=(e.acc||0)+dt*560*H*QUAL();
-      const alt=SCHWEIF; SCHWEIF=0.6;
-      for(;e.acc>=1;e.acc--){ const a=Math.random()*Math.PI*2, w=rand(0,1.5)*H, c=Math.random()<0.8?A:B;
+      /* kurze Spuren und ein Kegel statt Strahl (Tom, 25.09.: "sieht
+         aus wie Laserstrahlen") - vorher 0,6 s Spur, 6-8 m lange Striche */
+      const alt=SCHWEIF; SCHWEIF=0.1;
+      for(;e.acc>=1;e.acc--){ const a=Math.random()*Math.PI*2, w=rand(0.2,2.6)*H, c=Math.random()<0.8?A:B;
         psMid.emit(o.x,o.y+0.25,o.z,Math.cos(a)*w,rand(17,21)*Math.sqrt(H),Math.sin(a)*w,c[0],c[1],c[2],rand(1.6,2.6),6,4); }
       e.acc2=(e.acc2||0)+dt*16*H;
-      SCHWEIF=0.45;
+      SCHWEIF=0.12;
       for(;e.acc2>=1;e.acc2--){ const a=Math.random()*Math.PI*2, w=rand(0.5,2.4)*H, c=e.C||pick(SCHEMES.map(x=>K(x[0])));
         psBig.emit(o.x,o.y+0.25,o.z,Math.cos(a)*w,rand(19,24)*Math.sqrt(H),Math.sin(a)*w,c[0],c[1],c[2],rand(2.0,2.6),6,0); }
       SCHWEIF=alt;
@@ -1514,32 +1518,68 @@ function updateFireworks(dt){
       e.kn=(e.kn||0)-dt; if(e.kn<=0){ e.kn=rand(0.35,0.8); sfx.crackle(distVol(o)*0.6); }
       e.fz=(e.fz||0)-dt; if(e.fz<=0){ e.fz=1.2; sfx.fizz(distVol(o)); } }
     else if(e.k==='monsterfont'){
-      /* Monsterfontaene (Toms PDF vom 25.09.): 30 oder 50 m hoch, je
-         groesser, desto bunter. Die Startgeschwindigkeit kommt aus der
-         Flugbahn mit Luftwiderstand, damit die Spitze wirklich auf der
-         angegebenen Hoehe liegt. Farben laufen als Baender durch den
-         Strahl; die 50-m-Fontaene wechselt zusaetzlich jeden Stern im
-         Steigen die Farbe. Keine Ladungen, keine Kometen - nur Fontaene. */
-      const F=e.farben, hm=e.hm, v0=e.v0, q=QUAL();
+      /* Monsterfontaenen (Tom, 25.09.): keine Laserstrahlen und zwei
+         ganz verschiedene Bilder. Vorher stiegen alle Sterne eng
+         gebuendelt mit langen Spuren - das addierte sich zu einem bunten
+         Strahl, und 30 m sah aus wie 50 m. Jetzt: kurze Spuren, weiter
+         Kegel, und jede Fontaene hat ihre eigene Bewegung.
+         Die Startgeschwindigkeit kommt aus der Flugbahn mit Luftwider-
+         stand, damit die Spitze auf der angegebenen Hoehe liegt. */
+      const F=e.farben, hm=e.hm, v0=e.v0, q=QUAL(), alt=SCHWEIF;
       e.alter=(e.alter||0)+dt;
       const an=Math.min(1,e.alter/0.8), ab=Math.min(1,e.t/1.2), kraft=an*ab;
-      e.fl=(e.fl||0)-dt; if(e.fl<=0){ e.fl=0.25; flash({x:o.x,y:o.y+hm*0.35,z:o.z},F[Math.floor(e.alter*3)%F.length],(3+hm*0.08)*kraft,0.3); }
-      /* Ein Kegel, kein Strahl: die Sterne gehen bis zu 8 Grad zur
-         Seite und fallen im Bogen zurueck. Zu dicht und zu eng stehend
-         addierten sich die Farben zu einem weissen Laserstrahl. */
-      e.acc=(e.acc||0)+dt*(hm>40?560:430)*q*kraft;
-      const band=Math.floor(e.alter/0.3), alt=SCHWEIF; SCHWEIF=0.3;
-      for(;e.acc>=1;e.acc--){
-        const c=F[(band+Math.floor(Math.random()*2))%F.length], a=Math.random()*Math.PI*2, w=v0*rand(0.01,0.14);
-        const vy=v0*rand(0.88,1.02)*(0.75+0.25*an), hl=0.8;
-        if(e.wechsel){ const c2=F[(band+3)%F.length];
-          psMid.emit(o.x,o.y+0.3,o.z,Math.cos(a)*w,vy,Math.sin(a)*w,c[0]*hl,c[1]*hl,c[2]*hl,rand(3.0,3.8),6,2,c2[0]*hl,c2[1]*hl,c2[2]*hl); }
-        else psMid.emit(o.x,o.y+0.3,o.z,Math.cos(a)*w,vy,Math.sin(a)*w,c[0]*hl,c[1]*hl,c[2]*hl,rand(2.8,3.6),6,0);
+      if(e.stil==='puls'){
+        /* 30 m »Himmelsstuermer«: pulsierende Palme. Alle 0,4 s steigt
+           eine Salve dicker Glitzersterne im weiten Kegel, zweifarbig
+           und jede Salve in den naechsten Farben. Oben zerfallen sie
+           knisternd und haengen als goldene Weide herunter. Unten ein
+           niedriger Goldsockel. */
+        e.ps=(e.ps||0)-dt;
+        if(e.ps<=0&&kraft>0.15){ e.ps=0.3; e.nr=(e.nr||0)+1;
+          const c1=F[e.nr%F.length], c2=F[(e.nr+2)%F.length], n=Math.round(44*q*kraft);
+          SCHWEIF=0.05;
+          for(let k=0;k<n;k++){ const a=Math.random()*Math.PI*2, tl=Math.sqrt(Math.random())*0.24, sp=v0*rand(0.9,1.0), c=k%2?c1:c2;
+            psBig.emit(o.x,o.y+0.3,o.z,Math.cos(a)*Math.sin(tl)*sp,Math.cos(tl)*sp,Math.sin(a)*Math.sin(tl)*sp,c[0],c[1],c[2],e.tA*rand(1.0,1.2),6,4); }
+          SCHWEIF=alt;
+          flash({x:o.x,y:o.y+2.5,z:o.z},c1,3.5*kraft,0.25);
+          const oben={x:o.x,y:o.y+hm*0.94,z:o.z}, r0=hm*0.16;
+          later(e.tA*0.92,()=>{
+            for(let k=0;k<Math.round(70*q);k++){ const a=Math.random()*Math.PI*2, r=rand(0,r0);
+              psSmall.emit(oben.x+Math.cos(a)*r,oben.y+rand(-2,1.5),oben.z+Math.sin(a)*r,rand(-1,1),rand(-1,0.5),rand(-1,1),1,.95,.8,rand(0.3,0.7),2,3); }
+            const s2=SCHWEIF; SCHWEIF=1.2;
+            for(let k=0;k<Math.round(26*q);k++){ const a=Math.random()*Math.PI*2, r=rand(0,r0*0.8), w=rand(1,3.5);
+              psMid.emit(oben.x+Math.cos(a)*r,oben.y,oben.z+Math.sin(a)*r,Math.cos(a)*w,rand(-0.5,1.5),Math.sin(a)*w,1,.66,.22,rand(3.0,4.2),1.6,0); }
+            SCHWEIF=s2;
+            sfx.crackle(distVol(o)*0.6); });
+        }
+        e.acc=(e.acc||0)+dt*150*q*kraft; SCHWEIF=0.1;
+        for(;e.acc>=1;e.acc--){ const a=Math.random()*Math.PI*2, w=rand(0.6,3.4), c=Math.random()<0.8?FW.gold:FW.weiss;
+          psMid.emit(o.x,o.y+0.25,o.z,Math.cos(a)*w,rand(9,13),Math.sin(a)*w,c[0],c[1],c[2],rand(1.3,1.9),6,4); }
+        /* zwischen den Salven ein lockerer Glitzerschleier im selben Kegel */
+        e.acc3=(e.acc3||0)+dt*110*q*kraft; SCHWEIF=0.03;
+        for(;e.acc3>=1;e.acc3--){ const a=Math.random()*Math.PI*2, tl=Math.sqrt(Math.random())*0.26, sp=v0*rand(0.75,0.98), c=F[(e.nr||0)%F.length];
+          psMid.emit(o.x,o.y+0.3,o.z,Math.cos(a)*Math.sin(tl)*sp,Math.cos(tl)*sp,Math.sin(a)*Math.sin(tl)*sp,c[0]*0.8,c[1]*0.8,c[2]*0.8,e.tA*rand(0.9,1.1),6,4); }
+        SCHWEIF=alt;
+      } else {
+        /* 50 m »Regenbogen-Titan«: drehender Regenbogenfaecher. Je Farbe
+           ein eigener Strahl, schraeg nach aussen, alle Strahlen drehen
+           sich um die Mitte und oeffnen und schliessen sich langsam - eine
+           Tulpe aus Regenbogenfarben. In der Mitte blitzt ein silberner
+           Stroboskopkern, oben ein Stroboskopkranz. */
+        const J=F.length; e.rot=(e.rot||0)+dt*1.25;
+        const kipp=0.2+0.08*Math.sin(e.alter*0.8);
+        e.acc=(e.acc||0)+dt*520*q*kraft; SCHWEIF=0.03;
+        for(;e.acc>=1;e.acc--){ const j=Math.floor(Math.random()*J), a=e.rot+j/J*Math.PI*2+rand(-0.12,0.12), tl=kipp+rand(-0.05,0.05), sp=v0*rand(0.93,1.0), c=F[j];
+          psMid.emit(o.x,o.y+0.3,o.z,Math.cos(a)*Math.sin(tl)*sp,Math.cos(tl)*sp,Math.sin(a)*Math.sin(tl)*sp,c[0]*0.9,c[1]*0.9,c[2]*0.9,e.tA*rand(0.95,1.3),6,4); }
+        SCHWEIF=alt;
+        e.acc2=(e.acc2||0)+dt*80*q*kraft;
+        for(;e.acc2>=1;e.acc2--){ const a=Math.random()*Math.PI*2, w=rand(0,2.2);
+          psMid.emit(o.x,o.y+0.3,o.z,Math.cos(a)*w,v0*rand(0.55,0.75),Math.sin(a)*w,1,1,1,rand(1.4,1.9),6,1); }
+        e.kr=(e.kr||0)-dt;
+        if(e.kr<=0&&kraft>0.3){ e.kr=0.6; const y=o.y+hm*0.93, R=hm*0.2;
+          for(let k=0;k<Math.round(48*q);k++){ const a=e.rot+k/48*Math.PI*2, c=F[Math.floor(k/48*J)%J];
+            psSmall.emit(o.x+Math.cos(a)*R,y+rand(-1,1),o.z+Math.sin(a)*R,Math.cos(a)*2.5,rand(-2,0),Math.sin(a)*2.5,c[0],c[1],c[2],rand(1.0,1.5),2,1); } }
       }
-      SCHWEIF=alt;
-      /* Glitzerkrone an der Spitze */
-      for(let k=0;k<Math.round(dt*(hm>40?320:220)*kraft);k++){ const a=Math.random()*Math.PI*2, r=rand(0,hm/9), c=F[k%F.length];
-        psSmall.emit(o.x+Math.cos(a)*r,o.y+hm+rand(-hm*0.08,hm*0.03),o.z+Math.sin(a)*r,rand(-.6,.6),rand(-1.2,0.4),rand(-.6,.6),0.5+c[0]*0.5,0.5+c[1]*0.5,0.5+c[2]*0.5,rand(0.25,0.55),2,3); }
       e.kn=(e.kn||0)-dt; if(e.kn<=0){ e.kn=rand(0.3,0.6); sfx.crackle(distVol(o)*0.7*kraft); }
       e.fz=(e.fz||0)-dt; if(e.fz<=0){ e.fz=0.9; sfx.fizz(distVol(o)*1.3*kraft); noise(1.0,0.12*distVol(o)*kraft,900); } }
     else if(e.k==='feuerbrunnen'){

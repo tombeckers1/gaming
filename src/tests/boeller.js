@@ -29,11 +29,12 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     const NEU=['boeller','monsterboeller','atomboeller'];
     const tubes=Object.keys(P).filter(t=>P[t].shape==='tubepack');
     return {alt:ALT.filter(t=>P[t]||bb.LIZENZEN.some(l=>l.items.includes(t))||bb.VOLA[t]!==undefined||Object.values(bb.GRUPPE).some(g=>g.includes(t))),
-      tubes, namen:NEU.map(t=>P[t]&&P[t].name), lvl:NEU.map(t=>P[t]&&P[t].lvl), preis:NEU.map(t=>P[t]&&P[t].market),
+      tubes, atomForm:P.atomboeller&&P.atomboeller.shape, namen:NEU.map(t=>P[t]&&P[t].name), lvl:NEU.map(t=>P[t]&&P[t].lvl), preis:NEU.map(t=>P[t]&&P[t].market),
       lizenz:NEU.map(t=>bb.lizenzOf(t)), gruppe:NEU.every(t=>bb.GRUPPE.boeller.includes(t)), vola:NEU.every(t=>bb.VOLA[t]>0)}; });
   console.log('SORTIMENT',JSON.stringify(sort));
   pruef('SORTIMENT',!sort.alt.length,'alte Sorten noch da: '+sort.alt);
-  pruef('SORTIMENT',JSON.stringify(sort.tubes.sort())===JSON.stringify(['atomboeller','boeller','monsterboeller']),'Boeller sind nicht genau die drei neuen: '+sort.tubes);
+  /* der Atom-Boeller ist seit 25.09. eine eigene Bombe unter der Haube */
+  pruef('SORTIMENT',JSON.stringify(sort.tubes.sort())===JSON.stringify(['boeller','monsterboeller'])&&sort.atomForm==='atombombe','Boeller sind nicht genau die drei neuen: '+sort.tubes+' / '+sort.atomForm);
   pruef('SORTIMENT',/Furz/.test(sort.namen[0])&&/Monster/.test(sort.namen[1])&&/Atom/.test(sort.namen[2]),'Namen: '+sort.namen);
   pruef('SORTIMENT',sort.lvl[0]<sort.lvl[1]&&sort.lvl[1]<sort.lvl[2]&&sort.preis[0]<sort.preis[1]&&sort.preis[1]<sort.preis[2],'keine Steigerung: '+sort.lvl+' / '+sort.preis);
   pruef('SORTIMENT',sort.lizenz.every(Boolean)&&sort.gruppe&&sort.vola,'Lizenz, Gruppe oder Markt fehlt');

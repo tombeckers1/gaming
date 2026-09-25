@@ -64,6 +64,40 @@ function buildProduct(t){
     }
     const bh=r*6.1+0.004; addAtlasBox(w*0.38,bh,bh,tm(-w*0.07,bh/2-0.002,0),{side:(g,W,Hh)=>{g.fillStyle=a.bg1;g.fillRect(0,0,W,Hh);g.fillStyle=a.ac;g.fillRect(0,Hh*0.4,W,Hh*0.2);},top:(g,W,Hh)=>{g.fillStyle=a.bg1;g.fillRect(0,0,W,Hh);g.fillStyle=a.ac;g.fillRect(0,Hh*0.4,W,Hh*0.2);}});
   }
+  else if(sh==='atombombe'){
+    /* Atombomben-Boeller (Tom, 25.09.: "vom Produktdesign passt das
+       nicht"): eine dicke gelbe Bombe mit schwarzem Kastenleitwerk und
+       Warnband, stehend auf einem Sockel unter einer Acrylhaube - ein
+       einzelnes Sammlerstueck statt eines Boellerbuendels. */
+    const ph=h*0.16, R=w*0.33, by=ph+h*0.2+R*1.25;
+    addAtlasBox(w,ph,d,tm(0,ph/2,0));
+    vc.push({geo:new THREE.BoxGeometry(w*1.02,h*0.015,d*1.02),m:tm(0,ph+h*0.0075,0),color:0x1b1b1b});
+    /* Leitwerk: Rohr, vier Flossen und der Kastenring der Fat Man */
+    vc.push({geo:new THREE.CylinderGeometry(R*0.42,R*0.28,h*0.2,16),m:tm(0,ph+h*0.1+0.004,0),color:0x1b1b1b});
+    for(let i=0;i<4;i++){ const a=i*Math.PI/2+Math.PI/4;
+      vc.push({geo:new THREE.BoxGeometry(R*0.9,h*0.17,0.004),m:tm(Math.cos(a)*R*0.5,ph+h*0.1+0.004,Math.sin(a)*R*0.5,0,-a,0),color:0x1b1b1b}); }
+    for(const [sx,sz,rw,rd] of [[0,1,1,0],[0,-1,1,0],[1,0,0,1],[-1,0,0,1]])
+      vc.push({geo:new THREE.BoxGeometry(rw?R*1.9:0.005,h*0.07,rd?R*1.9:0.005),m:tm(sx*R*0.95,ph+h*0.05+0.004,sz*R*0.95),color:0x2a2a2a});
+    /* Bombenkoerper: gestrecktes Ei, gelb */
+    vc.push({geo:new THREE.SphereGeometry(R,26,18),m:tm(0,by,0,0,0,0,1,1.25,1),color:0xf2d21b});
+    /* Nasenkappe und Zuendschnur */
+    vc.push({geo:new THREE.SphereGeometry(R*0.32,14,10),m:tm(0,by+R*1.2,0,0,0,0,1,0.6,1),color:0x1b1b1b});
+    vc.push({geo:new THREE.CylinderGeometry(0.0025,0.0025,h*0.08,5),m:tm(0,by+R*1.25+h*0.04,0),color:0x2e8b3a});
+    /* Warnband mit Strahlenzeichen rund um den Bauch */
+    const bH=R*0.9, C=2*Math.PI*R*1.02;
+    const bt=wrapTex(C,bH,a,(g,W,Hh)=>{
+      g.fillStyle='#f2d21b'; g.fillRect(0,0,W,Hh);
+      g.fillStyle='#1b1b1b'; g.fillRect(0,0,W,Hh*0.1); g.fillRect(0,Hh*0.9,W,Hh*0.1);
+      for(let k=0;k<3;k++){ const cx=W*(k+0.5)/3, cy=Hh/2, r1=Hh*0.34, r0=Hh*0.09;
+        if(k===1){ g.textAlign='center'; g.textBaseline='middle'; fitFont(g,'ATOM',W*0.26,Math.round(Hh*0.42),BUN); g.fillText('ATOM',cx,cy+Hh*0.03); continue; }
+        for(let j=0;j<3;j++){ const a0=-Math.PI/2+j*2*Math.PI/3-Math.PI/6;
+          g.beginPath(); g.arc(cx,cy,r1,a0,a0+Math.PI/3); g.arc(cx,cy,r0*1.5,a0+Math.PI/3,a0,true); g.closePath(); g.fill(); }
+        g.beginPath(); g.arc(cx,cy,r0,0,Math.PI*2); g.fill(); }
+    });
+    parts.push({geo:merge([{geo:new THREE.CylinderGeometry(R*1.02,R*1.02,bH,26,1,true),m:tm(0,by,0)}]),mat:new THREE.MeshStandardMaterial({map:bt,roughness:0.45,side:THREE.DoubleSide})});
+    /* Acrylhaube */
+    parts.push({geo:merge([{geo:new THREE.BoxGeometry(w*0.96,h-ph-0.004,d*0.96),m:tm(0,ph+(h-ph)/2,0)}]),mat:glassMat});
+  }
   else if(sh==='bottle'){
     const R=w/2, body=h*0.56, sho=h*0.18, neck=h*0.18;
     vc.push({geo:new THREE.CylinderGeometry(R,R*0.96,body,20),m:tm(0,body/2,0),color:0x1f4a35});
@@ -104,7 +138,7 @@ function buildProduct(t){
       vc.push({geo:new THREE.CylinderGeometry(0.004,0.009,h*0.08,10),m:tm(x,th+h*0.78,0),color:0x3b3b3b}); }
   }
   else if(sh==='battery'){
-    const n=w>0.5?12:w>0.35?10:w>0.25?7:4;
+    const n=w>0.75?16:w>0.5?12:w>0.35?10:w>0.25?7:4;
     addAtlasBox(w,h,d,tm(0,h/2,0),{top:(g,W,Hh)=>{ g.fillStyle=a.gold?'#231a08':'#2a1a12'; g.fillRect(0,0,W,Hh); const cw=W/n, ch=Hh/n;
       for(let i=0;i<n;i++) for(let j=0;j<n;j++){ g.fillStyle=a.gold?'#e8c35a':'#d9c7a0'; g.beginPath(); g.arc(cw*(i+0.5),ch*(j+0.5),Math.min(cw,ch)*0.42,0,Math.PI*2); g.fill(); g.fillStyle='#1a120c'; g.beginPath(); g.arc(cw*(i+0.5),ch*(j+0.5),Math.min(cw,ch)*0.3,0,Math.PI*2); g.fill(); } }});
     /* Sockelkragen, Deckelrand, Eckband und Zündschnur mit Kappe */
@@ -114,7 +148,8 @@ function buildProduct(t){
       vc.push({geo:new THREE.BoxGeometry(w*0.035,h*0.86,d*0.035),m:tm(sx*w*0.495,h*0.5,sz*d*0.495),color:0xc9b088});
     vc.push({geo:new THREE.CylinderGeometry(0.0035,0.0035,0.075,6),m:tm(w*0.36,h*0.2,d/2+0.03,Math.PI/2.4),color:0x2e8b3a});
     vc.push({geo:new THREE.CylinderGeometry(0.008,0.008,0.014,8),m:tm(w*0.36,h*0.2,d/2+0.008),color:0xd8352a});
-    vc.push({geo:new THREE.BoxGeometry(w*0.34,h*0.1,0.004),m:tm(-w*0.24,h*0.3,d/2+0.003),color:0xf2f0e6});
+    /* Warnetikett an der Seite - vorn verdeckte es den Namen */
+    vc.push({geo:new THREE.BoxGeometry(0.004,h*0.1,d*0.34),m:tm(w/2+0.003,h*0.3,0),color:0xf2f0e6});
   }
   else if(sh==='candle'){
     /* Römische Lichter: fünf Rohre im Bündel, unten eine Banderole */

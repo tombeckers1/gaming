@@ -669,7 +669,7 @@ const P={
   monsterboeller:{name:'Monster Böller · 4 Stück',short:'Monster Böller',cat:2,lvl:9,shape:'tubepack',dims:[0.17,0.075,0.075],grid:[7,2,2],box:12,cost:5.40,market:12.99,weight:7,hype:18,risk:7,
     desc:'Der lauteste Böller im Laden: Feuerball am Boden, Druckring, zwei Echos von den Häusern.',
     art:{title:'MONSTER',sub:'4 Böller · extrem laut',bg1:'#1a1d22',bg2:'#000000',ac:'#9cff3a',ac2:'#ff3b2e'}},
-  atomboeller:{name:'Atombomben-Böller »Großer Pilz«',short:'Atom-Böller',cat:2,lvl:17,shape:'tubepack',dims:[0.21,0.11,0.11],grid:[5,1,1],box:5,cost:15.50,market:36.99,weight:5,hype:52,risk:10,
+  atomboeller:{name:'Atombomben-Böller »Großer Pilz«',short:'Atom-Böller',cat:2,lvl:17,shape:'atombombe',dims:[0.15,0.3,0.15],grid:[5,1,1],box:5,cost:15.50,market:36.99,weight:5,hype:52,risk:10,
     desc:'Steigt auf und geht als riesiger Atompilz auf: Weißblitz, Feuerball, Kappe, Stiel und Druckwelle.',
     art:{title:'ATOMBOMBE',sub:'1 Stück · Großer Pilz',bg1:'#f2d21b',bg2:'#1b1b1b',ac:'#1b1b1b',ac2:'#ff7a1c',light:true}},
   sekt:{name:'Sekt Halbtrocken',short:'Sekt',cat:0,lvl:5,cold:true,shape:'bottle',dims:[0.078,0.30,0.078],grid:[12,2,1],box:12,cost:2.40,market:5.99,weight:10,hype:0,risk:5,
@@ -696,9 +696,9 @@ const P={
     art:{title:'VULKAN',sub:'XXL Fontäne 12 s',bg1:'#c01c20',bg2:'#3a0507',ac:'#ffd23f',ac2:'#ff8a2a'}},
   batterie16:{name:'Funkenflug · 16 Schuss',short:'Batterie 16',cat:2,lvl:13,shape:'battery',dims:[0.20,0.17,0.20],grid:[8,2,1],box:8,cost:9.00,market:21.99,weight:6,hype:26,risk:7,
     art:{title:'NACHTHIMMEL',sub:'16 Schuss Verbund',bg1:'#1f3f8a',bg2:'#070e22',ac:'#ffd23f',ac2:'#5ce1ff'}},
-  batterie49:{name:'Feuersturm · 49 Schuss',short:'Batterie 49',cat:2,lvl:15,shape:'battery',dims:[0.30,0.24,0.30],grid:[5,1,1],box:5,cost:16.00,market:39.99,weight:5,hype:40,risk:8,
+  batterie49:{name:'Feuersturm · 49 Schuss',short:'Batterie 49',cat:2,lvl:15,shape:'battery',dims:[0.34,0.27,0.32],grid:[5,1,1],box:5,cost:16.00,market:39.99,weight:5,hype:40,risk:8,
     art:{title:'FEUERSTURM',sub:'49 Schuss Verbund',bg1:'#c01c20',bg2:'#3a0507',ac:'#ffd23f',ac2:'#ff8a2a'}},
-  batterie100:{name:'Himmelssturm · 100 Schuss',short:'Verbund 100',cat:2,lvl:17,shape:'battery',dims:[0.38,0.30,0.36],grid:[4,1,1],box:2,cost:32.00,market:74.99,weight:4,hype:60,risk:9,
+  batterie100:{name:'Himmelssturm · 100 Schuss',short:'Verbund 100',cat:2,lvl:17,shape:'battery',dims:[0.52,0.38,0.44],grid:[4,1,1],box:2,cost:32.00,market:74.99,weight:4,hype:60,risk:9,
     art:{title:'HIMMELSSTURM',sub:'100 Schuss, 90 s',bg1:'#2a0f5a',bg2:'#0a0318',ac:'#ff4fa3',ac2:'#ffd23f'}},
   knicklichter:{name:'Knicklichter 50er',short:'Knicklichter',cat:0,lvl:4,shape:'boxA',dims:[0.10,0.14,0.05],grid:[10,2,1],box:20,cost:0.80,market:2.29,weight:7,hype:0,risk:2,
     art:{title:'GLOW',sub:'50 Knicklichter',bg1:'#1b1b2e',bg2:'#070712',ac:'#5cff9e',ac2:'#ff4fd8'}},
@@ -720,13 +720,13 @@ const P={
     art:{title:'FAMILIENFEST',sub:'18 Teile gemischt',bg1:'#2f5d9e',bg2:'#0a1a33',ac:'#ffd23f',ac2:'#ff4fa3'}},
   /* Knattersturm: ersetzt den alten 25er. Jeder Schuss knistert,
      dazwischen Salven aus fuenf Rohren auf einmal. */
-  knatter:{name:'Knattersturm · 30 Schuss Crackling',short:'Knatter 30',cat:2,lvl:14,shape:'battery',dims:[0.24,0.20,0.24],grid:[7,1,1],box:7,cost:13.00,market:30.99,weight:6,hype:34,risk:7,
+  knatter:{name:'Knattersturm · 30 Schuss Crackling',short:'Knatter 30',cat:2,lvl:14,shape:'battery',dims:[0.27,0.22,0.26],grid:[7,1,1],box:7,cost:13.00,market:30.99,weight:6,hype:34,risk:7,
     art:{title:'KNATTERSTURM',sub:'30 Schuss Crackling',bg1:'#12406b',bg2:'#04121f',ac:'#5ce1ff',ac2:'#ffd23f'}},
-  faecher:{name:'Weitwinkel · 36 Schuss Fächer',short:'Fächer 36',cat:2,lvl:16,shape:'fan',dims:[0.42,0.22,0.26],grid:[4,1,1],box:2,cost:24.00,market:54.99,weight:5,hype:48,risk:8,
+  faecher:{name:'Weitwinkel · 36 Schuss Fächer',short:'Fächer 36',cat:2,lvl:16,shape:'fan',dims:[0.56,0.26,0.32],grid:[4,1,1],box:2,cost:24.00,market:54.99,weight:5,hype:48,risk:8,
     art:{title:'WEITWINKEL',sub:'36 Schuss im Fächer',bg1:'#5a1470',bg2:'#1a0322',ac:'#ff4fa3',ac2:'#5cff9e'}},
-  zfaecher:{name:'Blitzgewitter · 48 Schuss Z-Fächer',short:'Z-Fächer 48',cat:2,lvl:17,shape:'fan',dims:[0.46,0.22,0.28],grid:[4,1,1],box:2,cost:27.00,market:61.99,weight:5,hype:52,risk:8,
+  zfaecher:{name:'Blitzgewitter · 48 Schuss Z-Fächer',short:'Z-Fächer 48',cat:2,lvl:17,shape:'fan',dims:[0.62,0.27,0.34],grid:[4,1,1],box:2,cost:27.00,market:61.99,weight:5,hype:52,risk:8,
     art:{title:'BLITZGEWITTER',sub:'48 Schuss Z-Fächer',bg1:'#0f2a4a',bg2:'#02060f',ac:'#f2f5ff',ac2:'#5ce1ff'}},
-  kometen:{name:'Kometenregen · 64 Schuss Brokat',short:'Kometen 64',cat:2,lvl:19,shape:'battery',dims:[0.34,0.26,0.32],grid:[4,1,1],box:3,cost:36.00,market:82.99,weight:4,hype:66,risk:9,
+  kometen:{name:'Kometenregen · 64 Schuss Brokat',short:'Kometen 64',cat:2,lvl:19,shape:'battery',dims:[0.46,0.34,0.4],grid:[4,1,1],box:3,cost:36.00,market:82.99,weight:4,hype:66,risk:9,
     art:{title:'KOMETENREGEN',sub:'64 Schuss Brokat',bg1:'#4a3308',bg2:'#150e02',ac:'#ffd23f',ac2:'#ff7a3d',gold:true}},
   /* Riesenfontaenen: zehn bzw. fuenfzehn Meter Feuer vom Boden */
   goldgeysir:{name:'Goldgeysir · 10-m-Riesenfontäne',short:'Goldgeysir',cat:2,lvl:14,shape:'cylinder',dims:[0.2,0.34,0.2],grid:[8,1,1],box:4,cost:11.00,market:26.99,weight:5,hype:36,risk:7,
@@ -782,11 +782,11 @@ const P={
     art:{title:'BLANKO',sub:'Für Gravur',bg1:'#4a4f5e',bg2:'#1b1e28',ac:'#f2f5ff',ac2:'#ffd23f'}},
   gravur:{name:'Gravur-Rakete',short:'Gravur',cat:2,lvl:9,shape:'rocketset',dims:[0.42,0.055,0.11],grid:[1,1,1],box:1,cost:3.20,market:24.99,weight:0,hype:16,risk:7,noShelf:true,noWish:true,noOrder:true,
     art:{title:'FÜR DICH',sub:'Persönliche Gravur',bg1:'#6a24c9',bg2:'#25093f',ac:'#ffd23f',ac2:'#ff4fa3'}},
-  donnerwand:{name:'Donnerwand · 120 Schuss Salvenwand',short:'Donnerwand',cat:2,lvl:20,shape:'battery',dims:[0.5,0.3,0.4],grid:[3,1,1],box:2,cost:47.00,market:109.99,weight:3,hype:78,risk:10,
+  donnerwand:{name:'Donnerwand · 120 Schuss Salvenwand',short:'Donnerwand',cat:2,lvl:20,shape:'battery',dims:[0.7,0.46,0.46],grid:[3,1,1],box:2,cost:47.00,market:109.99,weight:3,hype:78,risk:10,
     art:{title:'DONNERWAND',sub:'120 Schuss · 20 Salven',bg1:'#1c1c24',bg2:'#000000',ac:'#ff3b2e',ac2:'#f2f5ff'}},
-  profi:{name:'Götterfunken · 200 Schuss Profiverbund',short:'Götterfunken',cat:2,lvl:22,shape:'battery',dims:[0.55,0.36,0.42],grid:[3,1,1],box:1,cost:68.00,market:149.99,weight:3,hype:90,risk:10,
+  profi:{name:'Götterfunken · 200 Schuss Profiverbund',short:'Götterfunken',cat:2,lvl:22,shape:'battery',dims:[0.8,0.52,0.48],grid:[3,1,1],box:1,cost:68.00,market:149.99,weight:3,hype:90,risk:10,
     art:{title:'GÖTTERFUNKEN',sub:'200 Schuss Profi',bg1:'#0e1226',bg2:'#000000',ac:'#ffd23f',ac2:'#e63b2e',gold:true}},
-  finale:{name:'Weltuntergang · 300 Schuss Finale',short:'Weltuntergang',cat:2,lvl:24,shape:'battery',dims:[0.58,0.34,0.42],grid:[2,1,1],box:1,cost:115.00,market:249.99,weight:2,hype:100,risk:10,
+  finale:{name:'Weltuntergang · 300 Schuss Finale',short:'Weltuntergang',cat:2,lvl:24,shape:'battery',dims:[0.88,0.56,0.5],grid:[2,1,1],box:1,cost:115.00,market:249.99,weight:2,hype:100,risk:10,
     art:{title:'WELTUNTERGANG',sub:'300 Schuss · 3 Minuten',bg1:'#3a0507',bg2:'#000000',ac:'#ff3b2e',ac2:'#ffd23f',gold:true}},
   /* Schabernack-Edition: der Spaßkram ganz am Ende */
   furzrakete:{name:'Furzrakete »Donnerbalken«',short:'Furzrakete',cat:2,lvl:19,shape:'rocketset',dims:[0.44,0.06,0.12],grid:[4,2,2],box:6,cost:6.20,market:15.99,weight:9,hype:28,risk:4,
@@ -2294,6 +2294,40 @@ function buildProduct(t){
     }
     const bh=r*6.1+0.004; addAtlasBox(w*0.38,bh,bh,tm(-w*0.07,bh/2-0.002,0),{side:(g,W,Hh)=>{g.fillStyle=a.bg1;g.fillRect(0,0,W,Hh);g.fillStyle=a.ac;g.fillRect(0,Hh*0.4,W,Hh*0.2);},top:(g,W,Hh)=>{g.fillStyle=a.bg1;g.fillRect(0,0,W,Hh);g.fillStyle=a.ac;g.fillRect(0,Hh*0.4,W,Hh*0.2);}});
   }
+  else if(sh==='atombombe'){
+    /* Atombomben-Boeller (Tom, 25.09.: "vom Produktdesign passt das
+       nicht"): eine dicke gelbe Bombe mit schwarzem Kastenleitwerk und
+       Warnband, stehend auf einem Sockel unter einer Acrylhaube - ein
+       einzelnes Sammlerstueck statt eines Boellerbuendels. */
+    const ph=h*0.16, R=w*0.33, by=ph+h*0.2+R*1.25;
+    addAtlasBox(w,ph,d,tm(0,ph/2,0));
+    vc.push({geo:new THREE.BoxGeometry(w*1.02,h*0.015,d*1.02),m:tm(0,ph+h*0.0075,0),color:0x1b1b1b});
+    /* Leitwerk: Rohr, vier Flossen und der Kastenring der Fat Man */
+    vc.push({geo:new THREE.CylinderGeometry(R*0.42,R*0.28,h*0.2,16),m:tm(0,ph+h*0.1+0.004,0),color:0x1b1b1b});
+    for(let i=0;i<4;i++){ const a=i*Math.PI/2+Math.PI/4;
+      vc.push({geo:new THREE.BoxGeometry(R*0.9,h*0.17,0.004),m:tm(Math.cos(a)*R*0.5,ph+h*0.1+0.004,Math.sin(a)*R*0.5,0,-a,0),color:0x1b1b1b}); }
+    for(const [sx,sz,rw,rd] of [[0,1,1,0],[0,-1,1,0],[1,0,0,1],[-1,0,0,1]])
+      vc.push({geo:new THREE.BoxGeometry(rw?R*1.9:0.005,h*0.07,rd?R*1.9:0.005),m:tm(sx*R*0.95,ph+h*0.05+0.004,sz*R*0.95),color:0x2a2a2a});
+    /* Bombenkoerper: gestrecktes Ei, gelb */
+    vc.push({geo:new THREE.SphereGeometry(R,26,18),m:tm(0,by,0,0,0,0,1,1.25,1),color:0xf2d21b});
+    /* Nasenkappe und Zuendschnur */
+    vc.push({geo:new THREE.SphereGeometry(R*0.32,14,10),m:tm(0,by+R*1.2,0,0,0,0,1,0.6,1),color:0x1b1b1b});
+    vc.push({geo:new THREE.CylinderGeometry(0.0025,0.0025,h*0.08,5),m:tm(0,by+R*1.25+h*0.04,0),color:0x2e8b3a});
+    /* Warnband mit Strahlenzeichen rund um den Bauch */
+    const bH=R*0.9, C=2*Math.PI*R*1.02;
+    const bt=wrapTex(C,bH,a,(g,W,Hh)=>{
+      g.fillStyle='#f2d21b'; g.fillRect(0,0,W,Hh);
+      g.fillStyle='#1b1b1b'; g.fillRect(0,0,W,Hh*0.1); g.fillRect(0,Hh*0.9,W,Hh*0.1);
+      for(let k=0;k<3;k++){ const cx=W*(k+0.5)/3, cy=Hh/2, r1=Hh*0.34, r0=Hh*0.09;
+        if(k===1){ g.textAlign='center'; g.textBaseline='middle'; fitFont(g,'ATOM',W*0.26,Math.round(Hh*0.42),BUN); g.fillText('ATOM',cx,cy+Hh*0.03); continue; }
+        for(let j=0;j<3;j++){ const a0=-Math.PI/2+j*2*Math.PI/3-Math.PI/6;
+          g.beginPath(); g.arc(cx,cy,r1,a0,a0+Math.PI/3); g.arc(cx,cy,r0*1.5,a0+Math.PI/3,a0,true); g.closePath(); g.fill(); }
+        g.beginPath(); g.arc(cx,cy,r0,0,Math.PI*2); g.fill(); }
+    });
+    parts.push({geo:merge([{geo:new THREE.CylinderGeometry(R*1.02,R*1.02,bH,26,1,true),m:tm(0,by,0)}]),mat:new THREE.MeshStandardMaterial({map:bt,roughness:0.45,side:THREE.DoubleSide})});
+    /* Acrylhaube */
+    parts.push({geo:merge([{geo:new THREE.BoxGeometry(w*0.96,h-ph-0.004,d*0.96),m:tm(0,ph+(h-ph)/2,0)}]),mat:glassMat});
+  }
   else if(sh==='bottle'){
     const R=w/2, body=h*0.56, sho=h*0.18, neck=h*0.18;
     vc.push({geo:new THREE.CylinderGeometry(R,R*0.96,body,20),m:tm(0,body/2,0),color:0x1f4a35});
@@ -2334,7 +2368,7 @@ function buildProduct(t){
       vc.push({geo:new THREE.CylinderGeometry(0.004,0.009,h*0.08,10),m:tm(x,th+h*0.78,0),color:0x3b3b3b}); }
   }
   else if(sh==='battery'){
-    const n=w>0.5?12:w>0.35?10:w>0.25?7:4;
+    const n=w>0.75?16:w>0.5?12:w>0.35?10:w>0.25?7:4;
     addAtlasBox(w,h,d,tm(0,h/2,0),{top:(g,W,Hh)=>{ g.fillStyle=a.gold?'#231a08':'#2a1a12'; g.fillRect(0,0,W,Hh); const cw=W/n, ch=Hh/n;
       for(let i=0;i<n;i++) for(let j=0;j<n;j++){ g.fillStyle=a.gold?'#e8c35a':'#d9c7a0'; g.beginPath(); g.arc(cw*(i+0.5),ch*(j+0.5),Math.min(cw,ch)*0.42,0,Math.PI*2); g.fill(); g.fillStyle='#1a120c'; g.beginPath(); g.arc(cw*(i+0.5),ch*(j+0.5),Math.min(cw,ch)*0.3,0,Math.PI*2); g.fill(); } }});
     /* Sockelkragen, Deckelrand, Eckband und Zündschnur mit Kappe */
@@ -2344,7 +2378,8 @@ function buildProduct(t){
       vc.push({geo:new THREE.BoxGeometry(w*0.035,h*0.86,d*0.035),m:tm(sx*w*0.495,h*0.5,sz*d*0.495),color:0xc9b088});
     vc.push({geo:new THREE.CylinderGeometry(0.0035,0.0035,0.075,6),m:tm(w*0.36,h*0.2,d/2+0.03,Math.PI/2.4),color:0x2e8b3a});
     vc.push({geo:new THREE.CylinderGeometry(0.008,0.008,0.014,8),m:tm(w*0.36,h*0.2,d/2+0.008),color:0xd8352a});
-    vc.push({geo:new THREE.BoxGeometry(w*0.34,h*0.1,0.004),m:tm(-w*0.24,h*0.3,d/2+0.003),color:0xf2f0e6});
+    /* Warnetikett an der Seite - vorn verdeckte es den Namen */
+    vc.push({geo:new THREE.BoxGeometry(0.004,h*0.1,d*0.34),m:tm(w/2+0.003,h*0.3,0),color:0xf2f0e6});
   }
   else if(sh==='candle'){
     /* Römische Lichter: fünf Rohre im Bündel, unten eine Banderole */
@@ -3771,7 +3806,8 @@ function placeOnStation(st){
     const m=makeEngraved(c.text||''); m.position.set(sl.x,sl.y+0.06,sl.z); m.rotation.y=sl.ry; scene.add(m);
     it.mesh=m; it.text=c.text;
   } else {
-    it.h=pools[c.type].add(mx(sl.x,sl.y,sl.z,sl.ry));
+    /* breite Verbunde stehen quer, sonst ragen sie in den Nachbarplatz */
+    it.h=pools[c.type].add(mx(sl.x,sl.y,sl.z,sl.ry+(st.id==='tisch'&&P[c.type].dims[0]>0.76?Math.PI/2:0)));
   }
   st.items.push(it);
   c.count--; S.tut.build=true; sfx.pop();
@@ -8307,7 +8343,12 @@ const pegMat=new THREE.MeshStandardMaterial({roughness:0.8,map:(()=>{ const t=te
 function kindOf(sh){ return SHELFKIND[sh&&sh.kind]||SHELFKIND.standard; }
 function shelfCount(k){ return shelves.filter(s=>s.kind===k).length; }
 /* Fassungsvermögen richtet sich nach Regalbreite und -tiefe */
-function layout(t,sh){
+/* Freie Hoehe ueber einem Fach: bis zum naechsten Boden; das oberste
+   Fach hat mehr Luft bis zur Deckplatte - dort stehen die grossen Verbundbatterien
+   (Tom, 25.09.: "die wirklich krassen viel, viel groesser"). Vorher
+   stand hohe Ware einfach im Boden darueber. */
+function fachHoehe(K,li){ return li<K.lv.length-1?K.lv[li+1]-K.lv[li]-0.04:(K.cold?0.44:0.58); }
+function layout(t,sh,lv){
   const p=P[t], G=p.grid, K=kindOf(sh), g=0.012;
   /* Die Ware fuellt das Fach von links bis rechts (Tom, 25.09.: "nur in
      der Mitte was und links und rechts frei"). Vorher begrenzte das
@@ -8315,12 +8356,13 @@ function layout(t,sh){
      mitten in einem zwei Meter breiten Regal. */
   const cols=Math.max(1,Math.floor((K.w-0.1+g)/(p.dims[0]+g)));
   const rows=Math.max(1,Math.min(G[1],Math.floor((K.d-0.06+g)/(p.dims[2]+g))));
-  const lvH=(K.lv.length>1?K.lv[1]-K.lv[0]:0.45)-0.04;
-  const st=Math.max(1,Math.min(G[2],Math.floor(lvH/p.dims[1])));
+  /* ohne Fach: das hoechste, das dieses Regal hat */
+  const lvH=lv?fachHoehe(K,lv.li):Math.max(...K.lv.map((_,i)=>fachHoehe(K,i)));
+  const st=p.dims[1]>lvH+0.001?0:Math.max(1,Math.min(G[2],Math.floor(lvH/p.dims[1])));
   return {cols,rows,st,cap:cols*rows*st,w:p.dims[0],h:p.dims[1],d:p.dims[2],g,K};
 }
-function slotLocal(t,idx,sh){
-  const L=layout(t,sh), c=idx%L.cols, rest=Math.floor(idx/L.cols), layer=rest%L.st, row=Math.floor(rest/L.st);
+function slotLocal(t,idx,sh,lv){
+  const L=layout(t,sh,lv), c=idx%L.cols, rest=Math.floor(idx/L.cols), layer=rest%L.st, row=Math.floor(rest/L.st);
   const tw=L.cols*(L.w+L.g)-L.g;
   return {x:-tw/2+L.w/2+c*(L.w+L.g), y:layer*L.h, z:L.K.d/2-0.03-L.d/2-row*(L.d+L.g)};
 }
@@ -8360,7 +8402,7 @@ function createShelf(i,data){
   const g=new THREE.Group(); const frei=slotsOffen().filter(sl=>slotPasst(K,sl));
   const s=data&&data.x!==undefined?data:(frei[0]||slotsOffen()[0]||SLOTS[0]);
   g.position.set(s.x,0,s.z); g.rotation.y=s.ry||0; scene.add(g);
-  const W=K.w, D=K.d, top=K.lv[K.lv.length-1]+0.48, hw=W/2, iw=W-0.1;
+  const W=K.w, D=K.d, top=K.lv[K.lv.length-1]+(K.cold?0.48:0.62), hw=W/2, iw=W-0.1;
   const sh={i,g,kind,levels:[],W,D};
   /* Das Gestell ist reine Kulisse und wird je Warenseite zu einem
      Mesh verschmolzen - bei fuenfzig Regalen im Endausbau zaehlt das. */
@@ -8424,12 +8466,12 @@ function createShelf(i,data){
   sh.headY=top+(K.cold?0.34:0.18);
   sh.mov=addMovable({kind:'shelf',name:K.name,g,fw:(K.fw||W)+0.06,fd:(K.fd||D)+0.04,ref:sh,onPlace:()=>syncShelf(sh)});
   shelves.push(sh);
-  if(data&&data.levels) data.levels.forEach((ld,li)=>{ if(ld&&ld.type&&P[ld.type]&&sh.levels[li]){ const n=Math.min(ld.count|0,layout(ld.type,sh).cap); for(let k=0;k<n;k++) addToLevel(sh.levels[li],ld.type,ld.q||1); } });
+  if(data&&data.levels) data.levels.forEach((ld,li)=>{ if(ld&&ld.type&&P[ld.type]&&sh.levels[li]){ const n=Math.min(ld.count|0,layout(ld.type,sh,sh.levels[li]).cap); for(let k=0;k<n;k++) addToLevel(sh.levels[li],ld.type,ld.q||1); } });
   sh.levels.forEach(updateLabel); updateHead(sh);
   return sh;
 }
 function shelfStand(sh,lv){ const K=kindOf(sh); return faceWorld(sh,lv?faceOf(sh,lv):seitenVon(K)[0],0,K.d/2+0.65); }
-function itemMatrix(sh,lv,idx,jit){ const f=faceOf(sh,lv), p=slotLocal(lv.type,idx,sh), w=faceWorld(sh,f,p.x,p.z);
+function itemMatrix(sh,lv,idx,jit){ const f=faceOf(sh,lv), p=slotLocal(lv.type,idx,sh,lv), w=faceWorld(sh,f,p.x,p.z);
   return mx(w.x,kindOf(sh).lv[lv.li]+p.y,w.z,sh.g.rotation.y+f.ry+jit); }
 function syncShelf(sh){ sh.levels.forEach(lv=>{ lv.items.forEach((h,k)=>{ if(lv.type) h.pool.set(h,itemMatrix(sh,lv,k,h.jit||0)); }); }); }
 const HEADNAME={0:['SILVESTER-ZUBEHÖR','#2f7fd0'],1:['KLEINFEUERWERK F1','#2f9e57'],2:['FEUERWERK F2 · AB 18','#c8322a']};
@@ -8456,12 +8498,12 @@ function updateLabel(lv){
     if(lv.type){ g.fillStyle='#0e1226'; g.font=BAR(26); g.textAlign='left'; g.fillText(P[lv.type].short,8,H/2+1); g.font=BUN(22); g.textAlign='right'; g.fillText(S.prices[lv.type].toFixed(2).replace('.',',')+' €',W-8,H/2+2); }
     else { g.fillStyle='rgba(242,245,255,.75)'; g.font=BAR(24); g.textAlign='center'; g.fillText('leer',W/2,H/2+1); } });
 }
-function capOf(lv,t){ return layout(t||lv.type,lv.sh).cap; }
+function capOf(lv,t){ return layout(t||lv.type,lv.sh,lv).cap; }
 function addToLevel(lv,t,q){
   /* jedes eingeraeumte Stueck zaehlt fuer die Herausforderung */
   if(lv.type&&lv.type!==t) return false;
   if(!shelfAccepts(lv.sh,t)) return false;
-  const L=layout(t,lv.sh); if(lv.count>=L.cap) return false; if(pools[t].full()) return false;
+  const L=layout(t,lv.sh,lv); if(lv.count>=L.cap) return false; if(pools[t].full()) return false;
   if(q===undefined) q=1;
   lv.q=lv.count?((lv.q||1)*lv.count+q)/(lv.count+1):q;
   lv.type=t; const jit=rand(-0.04,0.04);
@@ -13664,8 +13706,10 @@ function furzwolke(o){
 function vFuerHoehe(h,g){ g=g||6; const k=ZIEH; let a=0, b=200;
   for(let i=0;i<50;i++){ const m=(a+b)/2, hm=m/k-g/(k*k)*Math.log(1+k*m/g); if(hm<h) a=m; else b=m; }
   return (a+b)/2; }
-function monsterFontaene(o,hm,dauer,farben,wechsel){
-  emitters.push({t:dauer,k:'monsterfont',o,hm,v0:vFuerHoehe(hm),farben:farben.map(c=>typeof c==='string'?K(c):c),wechsel:!!wechsel});
+function monsterFontaene(o,hm,dauer,farben,stil){
+  /* tA: Steigzeit bis zum Gipfel, t = ln(1+k*v/g)/k */
+  const v0=vFuerHoehe(hm);
+  emitters.push({t:dauer,k:'monsterfont',o,hm,v0,tA:Math.log(1+ZIEH*v0/6)/ZIEH,farben:farben.map(c=>typeof c==='string'?K(c):c),stil:stil||'puls'});
   const v=distVol(o); sfx.fizz(v); sfx.thump(v*1.2);
 }
 function updateFireworks(dt){
@@ -13695,11 +13739,13 @@ function updateFireworks(dt){
       const H=e.h||1, A=e.A||FW.gold, B=e.B||FW.weiss;
       e.fl=(e.fl||0)-dt; if(e.fl<=0){ e.fl=0.22; flash({x:o.x,y:o.y+4,z:o.z},A,2.6*H,0.3); }
       e.acc=(e.acc||0)+dt*560*H*QUAL();
-      const alt=SCHWEIF; SCHWEIF=0.6;
-      for(;e.acc>=1;e.acc--){ const a=Math.random()*Math.PI*2, w=rand(0,1.5)*H, c=Math.random()<0.8?A:B;
+      /* kurze Spuren und ein Kegel statt Strahl (Tom, 25.09.: "sieht
+         aus wie Laserstrahlen") - vorher 0,6 s Spur, 6-8 m lange Striche */
+      const alt=SCHWEIF; SCHWEIF=0.1;
+      for(;e.acc>=1;e.acc--){ const a=Math.random()*Math.PI*2, w=rand(0.2,2.6)*H, c=Math.random()<0.8?A:B;
         psMid.emit(o.x,o.y+0.25,o.z,Math.cos(a)*w,rand(17,21)*Math.sqrt(H),Math.sin(a)*w,c[0],c[1],c[2],rand(1.6,2.6),6,4); }
       e.acc2=(e.acc2||0)+dt*16*H;
-      SCHWEIF=0.45;
+      SCHWEIF=0.12;
       for(;e.acc2>=1;e.acc2--){ const a=Math.random()*Math.PI*2, w=rand(0.5,2.4)*H, c=e.C||pick(SCHEMES.map(x=>K(x[0])));
         psBig.emit(o.x,o.y+0.25,o.z,Math.cos(a)*w,rand(19,24)*Math.sqrt(H),Math.sin(a)*w,c[0],c[1],c[2],rand(2.0,2.6),6,0); }
       SCHWEIF=alt;
@@ -13710,32 +13756,68 @@ function updateFireworks(dt){
       e.kn=(e.kn||0)-dt; if(e.kn<=0){ e.kn=rand(0.35,0.8); sfx.crackle(distVol(o)*0.6); }
       e.fz=(e.fz||0)-dt; if(e.fz<=0){ e.fz=1.2; sfx.fizz(distVol(o)); } }
     else if(e.k==='monsterfont'){
-      /* Monsterfontaene (Toms PDF vom 25.09.): 30 oder 50 m hoch, je
-         groesser, desto bunter. Die Startgeschwindigkeit kommt aus der
-         Flugbahn mit Luftwiderstand, damit die Spitze wirklich auf der
-         angegebenen Hoehe liegt. Farben laufen als Baender durch den
-         Strahl; die 50-m-Fontaene wechselt zusaetzlich jeden Stern im
-         Steigen die Farbe. Keine Ladungen, keine Kometen - nur Fontaene. */
-      const F=e.farben, hm=e.hm, v0=e.v0, q=QUAL();
+      /* Monsterfontaenen (Tom, 25.09.): keine Laserstrahlen und zwei
+         ganz verschiedene Bilder. Vorher stiegen alle Sterne eng
+         gebuendelt mit langen Spuren - das addierte sich zu einem bunten
+         Strahl, und 30 m sah aus wie 50 m. Jetzt: kurze Spuren, weiter
+         Kegel, und jede Fontaene hat ihre eigene Bewegung.
+         Die Startgeschwindigkeit kommt aus der Flugbahn mit Luftwider-
+         stand, damit die Spitze auf der angegebenen Hoehe liegt. */
+      const F=e.farben, hm=e.hm, v0=e.v0, q=QUAL(), alt=SCHWEIF;
       e.alter=(e.alter||0)+dt;
       const an=Math.min(1,e.alter/0.8), ab=Math.min(1,e.t/1.2), kraft=an*ab;
-      e.fl=(e.fl||0)-dt; if(e.fl<=0){ e.fl=0.25; flash({x:o.x,y:o.y+hm*0.35,z:o.z},F[Math.floor(e.alter*3)%F.length],(3+hm*0.08)*kraft,0.3); }
-      /* Ein Kegel, kein Strahl: die Sterne gehen bis zu 8 Grad zur
-         Seite und fallen im Bogen zurueck. Zu dicht und zu eng stehend
-         addierten sich die Farben zu einem weissen Laserstrahl. */
-      e.acc=(e.acc||0)+dt*(hm>40?560:430)*q*kraft;
-      const band=Math.floor(e.alter/0.3), alt=SCHWEIF; SCHWEIF=0.3;
-      for(;e.acc>=1;e.acc--){
-        const c=F[(band+Math.floor(Math.random()*2))%F.length], a=Math.random()*Math.PI*2, w=v0*rand(0.01,0.14);
-        const vy=v0*rand(0.88,1.02)*(0.75+0.25*an), hl=0.8;
-        if(e.wechsel){ const c2=F[(band+3)%F.length];
-          psMid.emit(o.x,o.y+0.3,o.z,Math.cos(a)*w,vy,Math.sin(a)*w,c[0]*hl,c[1]*hl,c[2]*hl,rand(3.0,3.8),6,2,c2[0]*hl,c2[1]*hl,c2[2]*hl); }
-        else psMid.emit(o.x,o.y+0.3,o.z,Math.cos(a)*w,vy,Math.sin(a)*w,c[0]*hl,c[1]*hl,c[2]*hl,rand(2.8,3.6),6,0);
+      if(e.stil==='puls'){
+        /* 30 m »Himmelsstuermer«: pulsierende Palme. Alle 0,4 s steigt
+           eine Salve dicker Glitzersterne im weiten Kegel, zweifarbig
+           und jede Salve in den naechsten Farben. Oben zerfallen sie
+           knisternd und haengen als goldene Weide herunter. Unten ein
+           niedriger Goldsockel. */
+        e.ps=(e.ps||0)-dt;
+        if(e.ps<=0&&kraft>0.15){ e.ps=0.3; e.nr=(e.nr||0)+1;
+          const c1=F[e.nr%F.length], c2=F[(e.nr+2)%F.length], n=Math.round(44*q*kraft);
+          SCHWEIF=0.05;
+          for(let k=0;k<n;k++){ const a=Math.random()*Math.PI*2, tl=Math.sqrt(Math.random())*0.24, sp=v0*rand(0.9,1.0), c=k%2?c1:c2;
+            psBig.emit(o.x,o.y+0.3,o.z,Math.cos(a)*Math.sin(tl)*sp,Math.cos(tl)*sp,Math.sin(a)*Math.sin(tl)*sp,c[0],c[1],c[2],e.tA*rand(1.0,1.2),6,4); }
+          SCHWEIF=alt;
+          flash({x:o.x,y:o.y+2.5,z:o.z},c1,3.5*kraft,0.25);
+          const oben={x:o.x,y:o.y+hm*0.94,z:o.z}, r0=hm*0.16;
+          later(e.tA*0.92,()=>{
+            for(let k=0;k<Math.round(70*q);k++){ const a=Math.random()*Math.PI*2, r=rand(0,r0);
+              psSmall.emit(oben.x+Math.cos(a)*r,oben.y+rand(-2,1.5),oben.z+Math.sin(a)*r,rand(-1,1),rand(-1,0.5),rand(-1,1),1,.95,.8,rand(0.3,0.7),2,3); }
+            const s2=SCHWEIF; SCHWEIF=1.2;
+            for(let k=0;k<Math.round(26*q);k++){ const a=Math.random()*Math.PI*2, r=rand(0,r0*0.8), w=rand(1,3.5);
+              psMid.emit(oben.x+Math.cos(a)*r,oben.y,oben.z+Math.sin(a)*r,Math.cos(a)*w,rand(-0.5,1.5),Math.sin(a)*w,1,.66,.22,rand(3.0,4.2),1.6,0); }
+            SCHWEIF=s2;
+            sfx.crackle(distVol(o)*0.6); });
+        }
+        e.acc=(e.acc||0)+dt*150*q*kraft; SCHWEIF=0.1;
+        for(;e.acc>=1;e.acc--){ const a=Math.random()*Math.PI*2, w=rand(0.6,3.4), c=Math.random()<0.8?FW.gold:FW.weiss;
+          psMid.emit(o.x,o.y+0.25,o.z,Math.cos(a)*w,rand(9,13),Math.sin(a)*w,c[0],c[1],c[2],rand(1.3,1.9),6,4); }
+        /* zwischen den Salven ein lockerer Glitzerschleier im selben Kegel */
+        e.acc3=(e.acc3||0)+dt*110*q*kraft; SCHWEIF=0.03;
+        for(;e.acc3>=1;e.acc3--){ const a=Math.random()*Math.PI*2, tl=Math.sqrt(Math.random())*0.26, sp=v0*rand(0.75,0.98), c=F[(e.nr||0)%F.length];
+          psMid.emit(o.x,o.y+0.3,o.z,Math.cos(a)*Math.sin(tl)*sp,Math.cos(tl)*sp,Math.sin(a)*Math.sin(tl)*sp,c[0]*0.8,c[1]*0.8,c[2]*0.8,e.tA*rand(0.9,1.1),6,4); }
+        SCHWEIF=alt;
+      } else {
+        /* 50 m »Regenbogen-Titan«: drehender Regenbogenfaecher. Je Farbe
+           ein eigener Strahl, schraeg nach aussen, alle Strahlen drehen
+           sich um die Mitte und oeffnen und schliessen sich langsam - eine
+           Tulpe aus Regenbogenfarben. In der Mitte blitzt ein silberner
+           Stroboskopkern, oben ein Stroboskopkranz. */
+        const J=F.length; e.rot=(e.rot||0)+dt*1.25;
+        const kipp=0.2+0.08*Math.sin(e.alter*0.8);
+        e.acc=(e.acc||0)+dt*520*q*kraft; SCHWEIF=0.03;
+        for(;e.acc>=1;e.acc--){ const j=Math.floor(Math.random()*J), a=e.rot+j/J*Math.PI*2+rand(-0.12,0.12), tl=kipp+rand(-0.05,0.05), sp=v0*rand(0.93,1.0), c=F[j];
+          psMid.emit(o.x,o.y+0.3,o.z,Math.cos(a)*Math.sin(tl)*sp,Math.cos(tl)*sp,Math.sin(a)*Math.sin(tl)*sp,c[0]*0.9,c[1]*0.9,c[2]*0.9,e.tA*rand(0.95,1.3),6,4); }
+        SCHWEIF=alt;
+        e.acc2=(e.acc2||0)+dt*80*q*kraft;
+        for(;e.acc2>=1;e.acc2--){ const a=Math.random()*Math.PI*2, w=rand(0,2.2);
+          psMid.emit(o.x,o.y+0.3,o.z,Math.cos(a)*w,v0*rand(0.55,0.75),Math.sin(a)*w,1,1,1,rand(1.4,1.9),6,1); }
+        e.kr=(e.kr||0)-dt;
+        if(e.kr<=0&&kraft>0.3){ e.kr=0.6; const y=o.y+hm*0.93, R=hm*0.2;
+          for(let k=0;k<Math.round(48*q);k++){ const a=e.rot+k/48*Math.PI*2, c=F[Math.floor(k/48*J)%J];
+            psSmall.emit(o.x+Math.cos(a)*R,y+rand(-1,1),o.z+Math.sin(a)*R,Math.cos(a)*2.5,rand(-2,0),Math.sin(a)*2.5,c[0],c[1],c[2],rand(1.0,1.5),2,1); } }
       }
-      SCHWEIF=alt;
-      /* Glitzerkrone an der Spitze */
-      for(let k=0;k<Math.round(dt*(hm>40?320:220)*kraft);k++){ const a=Math.random()*Math.PI*2, r=rand(0,hm/9), c=F[k%F.length];
-        psSmall.emit(o.x+Math.cos(a)*r,o.y+hm+rand(-hm*0.08,hm*0.03),o.z+Math.sin(a)*r,rand(-.6,.6),rand(-1.2,0.4),rand(-.6,.6),0.5+c[0]*0.5,0.5+c[1]*0.5,0.5+c[2]*0.5,rand(0.25,0.55),2,3); }
       e.kn=(e.kn||0)-dt; if(e.kn<=0){ e.kn=rand(0.3,0.6); sfx.crackle(distVol(o)*0.7*kraft); }
       e.fz=(e.fz||0)-dt; if(e.fz<=0){ e.fz=0.9; sfx.fizz(distVol(o)*1.3*kraft); noise(1.0,0.12*distVol(o)*kraft,900); } }
     else if(e.k==='feuerbrunnen'){
@@ -14088,10 +14170,10 @@ function igniteType(t,o0){
     if(gross) for(let i=1;i<6;i++) later(i*dauer/6,()=>{ const [A,B]=scheme(); e.A=A; e.B=FW.gold; e.C=B; });
     return;
   }
-  /* Monsterfontaenen: 30 m mit fuenf Farben, 50 m im vollen Regenbogen
-     mit Farbwechsel - kurz und gewaltig statt lang */
-  if(t==='fontaene30'){ monsterFontaene(o,30,12,['rot','gold','gruen','tuerkis','violett']); return; }
-  if(t==='fontaene50'){ monsterFontaene(o,50,14,['rot','orange','zitrone','gruen','tuerkis','blau','violett','magenta'],true); return; }
+  /* Monsterfontaenen: 30 m als pulsierende Palme mit fuenf Farben,
+     50 m als drehender Regenbogenfaecher - kurz und gewaltig statt lang */
+  if(t==='fontaene30'){ monsterFontaene(o,30,12,['rot','gold','gruen','tuerkis','violett'],'puls'); return; }
+  if(t==='fontaene50'){ monsterFontaene(o,50,14,['rot','orange','zitrone','gruen','tuerkis','blau','violett','magenta'],'dreh'); return; }
   /* ----- Feuerbrunnen: Flammenfontaene, die in Stoessen grosse
      Flammenbaelle wirft ----- */
   if(t==='feuerbrunnen'){
@@ -17253,7 +17335,7 @@ fontsReady().then(()=>{
   setTimeout(()=>{ if(typeof shaderVorab==='function') shaderVorab(); },400);
   window.__bb={get S(){return S},get phase(){return phase},set phase(v){phase=v},set clock(v){clock=v},get clock(){return clock},pickUp,floorBoxes,shelves,racks,dekos,stockOne,openShop,step,customers,queue,belt,scanBelt,buyUp,buyDeko,get DS(){return DS},endDay,pending,save,openLaptop,closeLaptop,pl,addXP,hireStaff,fireStaff,staff,dirts,addDirt,movables,toggleBuild,setWall,setFloor,
     stations,firePult,placeOnStation,igniteType,get order(){return order},get phone(){return phone},makeCall,answerPhone,haggle,acceptDeal,declineDeal,get truck(){return truck},spawnTruck,takeFromTruck,takeBox,dropBox,updateTruck,get door(){return door},get tuer(){return tuer},tuerSet,tuerNah,updateSchiebetuer,doorOpen,doorIsOpen,trailerOccupied,LR,lrFront,TOR,orderReady,orderLeft,shipOne,removeFloorBox,prioOf,setPrio,racks,updateCarry,spawnFloorBox,staff,SHELFKIND,layout,shelfCapOf,shelfAccepts,emptyLevel,dateInfo,dateStr,dateShort,seasonInfo,isSunday,dayMult,ruhetag,wageOf,setWage,friendliness,inPause,setPause,windowGrime,addGrime,cleanWindowTick,ambienteScore,bildBoost,fixedCosts,dailyWages,dispoLimit,verfuegbar,dispoZins,takeLoan,loanTier,loanDaily,EVENTS,GOALS,CUSTTYPES,UPGRADES,STAFF,stockOf,spawnInterval,pools,todayEvent,evv,rollEvent,rollMarket,newGoal,goalAdd,goalTick,ekFactor,marktText,xpFor,rollCustType,priceTol,buyChance,regCustomer,makeWishes,nachfrageFaktor,shelfStockOf,buildGravur,refillGrav,openGravInput,closeGravInput,get gravBlanks(){return gravBlanks},set gravBlanks(v){gravBlanks=v},orderBox,buyPack,cartAdd,cartAddPack,cartOrder,cartClear,cartDel,cartGoods,cartFee,cartTotal,cartBoxes,cartLines,LIEFERZEIT_SEK,VERSAND,VERSANDFREI,lieferSek,
-    scene,camera,P,packKartonWert,SUPPLIERS,supplierFor,supplierOf,tierPrice,isUnlocked,lizLevel,renderLaptop,get lsup(){return lsup},set lsup(v){lsup=v},get ltab(){return ltab},set ltab(v){ltab=v},EFF,EFF_ALL,EFF_KLEIN,EFF_GROSS,EFF_PRO,SHOWS,kugelbombe,shot,mine,FW,stations,stationOf,placedCount,togglePDA,openPDA,closePDA,setPost,get postOn(){return postOn},get pdaOn(){return pdaOn},showLength,psHuge,psBig,psMid,psSmall,rockets,emitters,timersLen:()=>timers.length,setView:(x,z,y,p)=>{pl.x=x;pl.z=z;yaw=y;pitch=p;aim=null;},schiebe:(x,z)=>{pl.x=x;pl.z=z;collide(pl,0.32);return{x:pl.x,z:pl.z};},PLZ_MAX,camYaw:()=>yaw,camPitch:()=>pitch,playerPos:()=>({x:pl.x,z:pl.z}),pultYaw:()=>pultHit?pultHit.parent.rotation.y:null,applyShopName,shopName,shopSlogan,signTexPx:()=>signTex&&signTex.image?signTex.image.getContext('2d').getImageData(0,0,signTex.image.width,40).data.join(''):null,lagerWall,fwShot:shot,KUGEL_R,ROHR_INNEN,MOERSER_R,moerserRohr,sfx,WOLKEN,get master(){return master},ac,SORTE_NEU,sortenUmstellen,get shakeWert(){return shake},get ckG(){return ckG},get ckNameTex(){return ckNameTex},get ckMovable(){return ckMov},CK_HOME,CK_ALT,spotPos,queueApproach,ckTexPx:()=>ckNameTex&&ckNameTex.image?ckNameTex.image.getContext('2d').getImageData(0,0,ckNameTex.image.width,60).data.join(''):null,testfeldMitte,STATION_POS,aimAt,UPGRADES,upPic,PLAN,planFlaechen,uhrZeiger:()=>({std:uhrStd?+uhrStd.rotation.z.toFixed(4):0,min:uhrMin?+uhrMin.rotation.z.toFixed(4):0}),drawRackSchild,get snowPts(){return snowPts},buildStadt,updateStadt,get stadtBoxen(){return stadtBoxen},get stadtBaeume(){return stadtBaeume},buildFernbaeume,schwaerme,beacons,silhouetten,get verkehrPts(){return verkehrPts},get rauchPts(){return rauchPts},get flieger(){return flieger},stadtFrei,STADT_FREI,WALLS,FLOORS,renderOnline,onlineHint,onlineStufe,onlineZahlen,onlineListe,updateOnline,SCHILDBG,SCHILDFG,setSchild,schildBg,schildFg,repaintSchilder,updateHead,allLevels,addToLevel,putInSlot,regCustomer,ZONEN,zoneOffen,oeffneZone,applyZonen,SLOTS,RACKS,slotsOffen,colliders,LAY,LOGI,WRAMPEN,WTORE,updateSnow,unterDach,dachBereiche,get lapHit2(){return lapHit2},buildLagerTerminal,toggleTest,testLevel,buyUp,get toastLast(){return toastLast},__floorBoxen:()=>floorBoxes.length,WBAY_UP,wbays,dockPlaetze,wbayFrei,wbayOffen,spawnWTruck,updateWBays,wbaysInit,wtorSet,GANG,GANGTUER,buildLagergang,flaeche,WTOR,RACKKIND,route,NAV,navFrei,navIdx,navBuild,shelfStand,shelves,sbLanes,buildSBKasse,sbFrei,sbOffen,sbNutzbar,EING2,eingaenge,naechsterEingang,setEingang2,buildSBKasse2,get sb2G(){return sb2G},TUEREN,tuerSetD,tuerNahD,packBereit,packOne,paketWert,bestellungenProTag,pakete,ddlAbholung,updateVersand,VS_GR,VS_FELD,WG_PARK,vsNeueBestellung,vsAbgleich,vsKlasse,vsQuellen,vsBestand,vsErfuellbar,vsPlan,vsStapel,vsSpielerPacken,vsSpielerBestellung,vsTischFrei,vsStatus,vsAufraeumen,vsLaden,vsBahn,vsPaketOffen,vsKlappen,vsFuellung,vsPaketZu,get vsTisch(){return vsTisch},get vsWagen(){return vsWagen},createShelf,createRack,regalStellen,testKauf,regalAufbauen,orderRegal,REGALWARE,regalOf,regalKind,regalPreis,regalPlatz,regalOffen,startGame,promptFor,ERFOLGE,erfOffen,erfStufe,erfStand,erfZiel,erfFertig,erfAnteil,erfGeschafft,erfGesamt,stat,statAdd,statRekord,statVerkauf,bruchGesehen,gruppeVon,GRUPPE,TRAEGER,BRUCH,BRUCH_IDS,REZ_FARBEN,ETIKETT,traegerVon,traegerOffen,bruchOffen,bruchListe,rezeptWow,rezeptKosten,rezeptMarkt,rezeptHype,rezeptDauer,rezeptEntwicklung,rezeptGueltig,eigeneListe,eigenesEintragen,rezepteTick,rezProto,rezBauen,renderRezeptur,get entwurf(){return entwurf},set entwurf(v){entwurf=v},entwurfInit,ORDER,LIZENZEN,lizenzOf,hatLizenz,lizenzDaten,naechsteLizenz,buyLizenz,VOLA,volaOf,REGIME,marketOf,costOf,marktZiel,marktLuecke,meOf,miOf,marktDelta,marktNiveau,marktPhase,marktSchock,marktLabel,marktSchnitt,marktExtrem,marktChance,sortimentBreite,sortimentZug,bekanntheit,spawnInterval,rollMarkt,marktInit,inflOf,inflText,setPreisAufMarkt,igniteType,get packHit(){return packHit},get packTisch(){return packTisch},get packMov(){return packMov},zuendeKanal,zuendeAlle,alleKanaele,kanalItem,openZuend,closeZuend,get zuendOpen(){return zuendOpen},overlayOpen,pultTaster,zuendTick,TISCH_X,RAMPE_X,KANAL_START,bereitCount,brennDauer,muendung,pultLamps,RAKETEN_LOOK,RAKETEN_KL,makePerson,applyTOD,updateHUD,renderer,renderFrame,get DEMO(){return DEMO},LHALLE,LOGI_STUFEN,TOR_STUFE,logiStufe,logiZeige,logiAnwenden,LOGI_G,TOR_G,WTORE,tuAktion:(kind,ref)=>{ const alt=target; target={kind,ref}; try{ doAction(); } finally { target=alt; } },promptFor,KARREN,karreArt,karreAn,karreStapel,karreLast,karreNimmt,toggleKarre,updateKarre,setTutorial,tutorialAn,zielFuer,get zielAktuell(){return zielAktuell},get tipKey(){return tipKey},updateZiel,set DEMO(v){DEMO=v},kapitelVon,kapitelVoll,openHandy,closeHandy,toggleHandy,get handyOpen(){return handyOpen},get happ(){return happ},HANDY_APPS,renderHandy,shaderVorab,SCHONER,schonerMalen,updateSchoner,makeWischer,stelleWischer,get wischer(){return wischer},updateWischen,wischerPersonal,cleanTick,updateFireworks,FLASH,spurEnden,LR_LAMPE,schweber,kundenSymbol,geldSchwebt,get serie(){return serie},serieZufrieden,serieBricht,KAPITEL,kapitel,kapitelNr,kapitelAufstieg,WA,WA_SLOTS,vorDieTuer,SB_KASSIERER,sbBesetzt,sbLaneVon,sbKassiererPlatz,MUSIK,STUECKE,musikAn,musikWeiter,musikVol,musikTick,spielSchritt,get mStep(){return mStep},set mStep(v){mStep=v;mTakte=0;},get mBus(){return mBus},get postHalf(){return postHalf},EFF_SCHWEIF,mitSchweif,KOEPFE,KLEID,UNIFORM,STAFFKOPF,faceCache,animPerson,PACKS,packPreis,packPool,packOffen,packContents,syncPakete,rotateGrab,PACK_FL,PACK_HOME,spotFree,rectOf,grab,placeGrab,updateGrab,get grabbed(){return grabbed},showPause,get target(){return target},einrOf,einrAktiv,einrHoch,einrRunter,einrSchalten,AUFGABEN,einrJob,kartonMat,pools,shelfStockOf,removeFromLevel,fwLog:(a)=>{FW_LOG=a;},moerserRohr,ROHR_KALIBER,effPassen,EFF_FAMILIE,basisBlick,fwTestSchalten,fwTestProdukte,fwTestStapeln,get fwTestAn(){return fwTestAn},get fwTestBoxen(){return fwTestBoxen},sonne:()=>sun.intensity,get fwUhr(){return FW_UHR},THEMEN,SHOW_BASIS,EFF,emittersListe:()=>emitters,
+    scene,camera,P,clearStations,fachHoehe,kindOf,packKartonWert,SUPPLIERS,supplierFor,supplierOf,tierPrice,isUnlocked,lizLevel,renderLaptop,get lsup(){return lsup},set lsup(v){lsup=v},get ltab(){return ltab},set ltab(v){ltab=v},EFF,EFF_ALL,EFF_KLEIN,EFF_GROSS,EFF_PRO,SHOWS,kugelbombe,shot,mine,FW,stations,stationOf,placedCount,togglePDA,openPDA,closePDA,setPost,get postOn(){return postOn},get pdaOn(){return pdaOn},showLength,psHuge,psBig,psMid,psSmall,rockets,emitters,timersLen:()=>timers.length,setView:(x,z,y,p)=>{pl.x=x;pl.z=z;yaw=y;pitch=p;aim=null;},schiebe:(x,z)=>{pl.x=x;pl.z=z;collide(pl,0.32);return{x:pl.x,z:pl.z};},PLZ_MAX,camYaw:()=>yaw,camPitch:()=>pitch,playerPos:()=>({x:pl.x,z:pl.z}),pultYaw:()=>pultHit?pultHit.parent.rotation.y:null,applyShopName,shopName,shopSlogan,signTexPx:()=>signTex&&signTex.image?signTex.image.getContext('2d').getImageData(0,0,signTex.image.width,40).data.join(''):null,lagerWall,fwShot:shot,KUGEL_R,ROHR_INNEN,MOERSER_R,moerserRohr,sfx,WOLKEN,get master(){return master},ac,SORTE_NEU,sortenUmstellen,get shakeWert(){return shake},get ckG(){return ckG},get ckNameTex(){return ckNameTex},get ckMovable(){return ckMov},CK_HOME,CK_ALT,spotPos,queueApproach,ckTexPx:()=>ckNameTex&&ckNameTex.image?ckNameTex.image.getContext('2d').getImageData(0,0,ckNameTex.image.width,60).data.join(''):null,testfeldMitte,STATION_POS,aimAt,UPGRADES,upPic,PLAN,planFlaechen,uhrZeiger:()=>({std:uhrStd?+uhrStd.rotation.z.toFixed(4):0,min:uhrMin?+uhrMin.rotation.z.toFixed(4):0}),drawRackSchild,get snowPts(){return snowPts},buildStadt,updateStadt,get stadtBoxen(){return stadtBoxen},get stadtBaeume(){return stadtBaeume},buildFernbaeume,schwaerme,beacons,silhouetten,get verkehrPts(){return verkehrPts},get rauchPts(){return rauchPts},get flieger(){return flieger},stadtFrei,STADT_FREI,WALLS,FLOORS,renderOnline,onlineHint,onlineStufe,onlineZahlen,onlineListe,updateOnline,SCHILDBG,SCHILDFG,setSchild,schildBg,schildFg,repaintSchilder,updateHead,allLevels,addToLevel,putInSlot,regCustomer,ZONEN,zoneOffen,oeffneZone,applyZonen,SLOTS,RACKS,slotsOffen,colliders,LAY,LOGI,WRAMPEN,WTORE,updateSnow,unterDach,dachBereiche,get lapHit2(){return lapHit2},buildLagerTerminal,toggleTest,testLevel,buyUp,get toastLast(){return toastLast},__floorBoxen:()=>floorBoxes.length,WBAY_UP,wbays,dockPlaetze,wbayFrei,wbayOffen,spawnWTruck,updateWBays,wbaysInit,wtorSet,GANG,GANGTUER,buildLagergang,flaeche,WTOR,RACKKIND,route,NAV,navFrei,navIdx,navBuild,shelfStand,shelves,sbLanes,buildSBKasse,sbFrei,sbOffen,sbNutzbar,EING2,eingaenge,naechsterEingang,setEingang2,buildSBKasse2,get sb2G(){return sb2G},TUEREN,tuerSetD,tuerNahD,packBereit,packOne,paketWert,bestellungenProTag,pakete,ddlAbholung,updateVersand,VS_GR,VS_FELD,WG_PARK,vsNeueBestellung,vsAbgleich,vsKlasse,vsQuellen,vsBestand,vsErfuellbar,vsPlan,vsStapel,vsSpielerPacken,vsSpielerBestellung,vsTischFrei,vsStatus,vsAufraeumen,vsLaden,vsBahn,vsPaketOffen,vsKlappen,vsFuellung,vsPaketZu,get vsTisch(){return vsTisch},get vsWagen(){return vsWagen},createShelf,createRack,regalStellen,testKauf,regalAufbauen,orderRegal,REGALWARE,regalOf,regalKind,regalPreis,regalPlatz,regalOffen,startGame,promptFor,ERFOLGE,erfOffen,erfStufe,erfStand,erfZiel,erfFertig,erfAnteil,erfGeschafft,erfGesamt,stat,statAdd,statRekord,statVerkauf,bruchGesehen,gruppeVon,GRUPPE,TRAEGER,BRUCH,BRUCH_IDS,REZ_FARBEN,ETIKETT,traegerVon,traegerOffen,bruchOffen,bruchListe,rezeptWow,rezeptKosten,rezeptMarkt,rezeptHype,rezeptDauer,rezeptEntwicklung,rezeptGueltig,eigeneListe,eigenesEintragen,rezepteTick,rezProto,rezBauen,renderRezeptur,get entwurf(){return entwurf},set entwurf(v){entwurf=v},entwurfInit,ORDER,LIZENZEN,lizenzOf,hatLizenz,lizenzDaten,naechsteLizenz,buyLizenz,VOLA,volaOf,REGIME,marketOf,costOf,marktZiel,marktLuecke,meOf,miOf,marktDelta,marktNiveau,marktPhase,marktSchock,marktLabel,marktSchnitt,marktExtrem,marktChance,sortimentBreite,sortimentZug,bekanntheit,spawnInterval,rollMarkt,marktInit,inflOf,inflText,setPreisAufMarkt,igniteType,get packHit(){return packHit},get packTisch(){return packTisch},get packMov(){return packMov},zuendeKanal,zuendeAlle,alleKanaele,kanalItem,openZuend,closeZuend,get zuendOpen(){return zuendOpen},overlayOpen,pultTaster,zuendTick,TISCH_X,RAMPE_X,KANAL_START,bereitCount,brennDauer,muendung,pultLamps,RAKETEN_LOOK,RAKETEN_KL,makePerson,applyTOD,updateHUD,renderer,renderFrame,get DEMO(){return DEMO},LHALLE,LOGI_STUFEN,TOR_STUFE,logiStufe,logiZeige,logiAnwenden,LOGI_G,TOR_G,WTORE,tuAktion:(kind,ref)=>{ const alt=target; target={kind,ref}; try{ doAction(); } finally { target=alt; } },promptFor,KARREN,karreArt,karreAn,karreStapel,karreLast,karreNimmt,toggleKarre,updateKarre,setTutorial,tutorialAn,zielFuer,get zielAktuell(){return zielAktuell},get tipKey(){return tipKey},updateZiel,set DEMO(v){DEMO=v},kapitelVon,kapitelVoll,openHandy,closeHandy,toggleHandy,get handyOpen(){return handyOpen},get happ(){return happ},HANDY_APPS,renderHandy,shaderVorab,SCHONER,schonerMalen,updateSchoner,makeWischer,stelleWischer,get wischer(){return wischer},updateWischen,wischerPersonal,cleanTick,updateFireworks,FLASH,spurEnden,LR_LAMPE,schweber,kundenSymbol,geldSchwebt,get serie(){return serie},serieZufrieden,serieBricht,KAPITEL,kapitel,kapitelNr,kapitelAufstieg,WA,WA_SLOTS,vorDieTuer,SB_KASSIERER,sbBesetzt,sbLaneVon,sbKassiererPlatz,MUSIK,STUECKE,musikAn,musikWeiter,musikVol,musikTick,spielSchritt,get mStep(){return mStep},set mStep(v){mStep=v;mTakte=0;},get mBus(){return mBus},get postHalf(){return postHalf},EFF_SCHWEIF,mitSchweif,KOEPFE,KLEID,UNIFORM,STAFFKOPF,faceCache,animPerson,PACKS,packPreis,packPool,packOffen,packContents,syncPakete,rotateGrab,PACK_FL,PACK_HOME,spotFree,rectOf,grab,placeGrab,updateGrab,get grabbed(){return grabbed},showPause,get target(){return target},einrOf,einrAktiv,einrHoch,einrRunter,einrSchalten,AUFGABEN,einrJob,kartonMat,pools,shelfStockOf,removeFromLevel,fwLog:(a)=>{FW_LOG=a;},moerserRohr,ROHR_KALIBER,effPassen,EFF_FAMILIE,basisBlick,fwTestSchalten,fwTestProdukte,fwTestStapeln,get fwTestAn(){return fwTestAn},get fwTestBoxen(){return fwTestBoxen},sonne:()=>sun.intensity,get fwUhr(){return FW_UHR},THEMEN,SHOW_BASIS,EFF,emittersListe:()=>emitters,
     shot:()=>{ noLoop=true; camera.position.set(pl.x,1.65,pl.z); camera.rotation.set(pitch,yaw,0); camera.updateMatrixWorld(); updateTarget(); applyTOD(); renderFrame(0.016); return canvas.toDataURL('image/jpeg',0.85); },
     run:(sec,dt)=>{ noLoop=true; const n=Math.round(sec/(dt||0.05)); for(let i=0;i<n;i++) step(dt||0.05); }};
 });

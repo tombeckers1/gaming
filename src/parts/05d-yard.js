@@ -647,7 +647,8 @@ function placeOnStation(st){
     const m=makeEngraved(c.text||''); m.position.set(sl.x,sl.y+0.06,sl.z); m.rotation.y=sl.ry; scene.add(m);
     it.mesh=m; it.text=c.text;
   } else {
-    it.h=pools[c.type].add(mx(sl.x,sl.y,sl.z,sl.ry));
+    /* breite Verbunde stehen quer, sonst ragen sie in den Nachbarplatz */
+    it.h=pools[c.type].add(mx(sl.x,sl.y,sl.z,sl.ry+(st.id==='tisch'&&P[c.type].dims[0]>0.76?Math.PI/2:0)));
   }
   st.items.push(it);
   c.count--; S.tut.build=true; sfx.pop();

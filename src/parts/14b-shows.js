@@ -320,10 +320,10 @@ function igniteType(t,o0){
     if(gross) for(let i=1;i<6;i++) later(i*dauer/6,()=>{ const [A,B]=scheme(); e.A=A; e.B=FW.gold; e.C=B; });
     return;
   }
-  /* Monsterfontaenen: 30 m mit fuenf Farben, 50 m im vollen Regenbogen
-     mit Farbwechsel - kurz und gewaltig statt lang */
-  if(t==='fontaene30'){ monsterFontaene(o,30,12,['rot','gold','gruen','tuerkis','violett']); return; }
-  if(t==='fontaene50'){ monsterFontaene(o,50,14,['rot','orange','zitrone','gruen','tuerkis','blau','violett','magenta'],true); return; }
+  /* Monsterfontaenen: 30 m als pulsierende Palme mit fuenf Farben,
+     50 m als drehender Regenbogenfaecher - kurz und gewaltig statt lang */
+  if(t==='fontaene30'){ monsterFontaene(o,30,12,['rot','gold','gruen','tuerkis','violett'],'puls'); return; }
+  if(t==='fontaene50'){ monsterFontaene(o,50,14,['rot','orange','zitrone','gruen','tuerkis','blau','violett','magenta'],'dreh'); return; }
   /* ----- Feuerbrunnen: Flammenfontaene, die in Stoessen grosse
      Flammenbaelle wirft ----- */
   if(t==='feuerbrunnen'){

@@ -59,13 +59,18 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   const st=await p.evaluate(()=>{ const hb=document.getElementById('handbuch');
     return {seite:window.__bb.pauseSeiteAktiv(),tasten:document.querySelectorAll('#steuer kbd').length,
       abschnitte:[...hb.querySelectorAll('h4')].map(h=>h.textContent),text:(document.getElementById('steuer').textContent+' '+hb.textContent).replace(/\s+/g,' '),
-      sichtbar:document.getElementById('steuer').getBoundingClientRect().height>0,hauptWeg:document.getElementById('pHaupt').getBoundingClientRect().height===0}; });
-  console.log('STEUER  ',JSON.stringify({seite:st.seite,tasten:st.tasten,abschnitte:st.abschnitte,zeichen:st.text.length}));
+      sichtbar:document.getElementById('steuer').getBoundingClientRect().height>0,hauptWeg:document.getElementById('pHaupt').getBoundingClientRect().height===0,
+      /* Tasten lesbar: helle Schrift auf dem dunklen Menue (26.09.: im
+         Handbuch erbten sie die dunkle Schrift - leere Kaestchen) */
+      dunkel:[...document.querySelectorAll('#steuer kbd, #handbuch kbd')].filter(k=>{ const m=getComputedStyle(k).color.match(/[\d.]+/g).map(Number); return (0.2126*m[0]+0.7152*m[1]+0.0722*m[2])/255<0.6; }).length,
+      kbdGesamt:document.querySelectorAll('#steuer kbd, #handbuch kbd').length}; });
+  console.log('STEUER  ',JSON.stringify({seite:st.seite,tasten:st.tasten,dunkel:st.dunkel,kbd:st.kbdGesamt,abschnitte:st.abschnitte,zeichen:st.text.length}));
   const muss=['Sackkarre','Plattformwagen','Preisgerät','Pfefferspray','Umbau','Zündpult','Kasse','Regal','Handy','Laptop','Putz','Musik','Versand','Karton'];
   const fehlt=muss.filter(w=>st.text.indexOf(w)<0);
   pruef('STEUERUNG',st.seite==='pSteuer'&&st.sichtbar&&st.hauptWeg,'eigene Maske fehlt: '+JSON.stringify({seite:st.seite,sichtbar:st.sichtbar,hauptWeg:st.hauptWeg}));
   pruef('STEUERUNG',st.tasten>=20&&st.abschnitte.length>=10&&!fehlt.length,'unvollstaendig: '+st.tasten+' Tasten, '+st.abschnitte.length+' Abschnitte, fehlt '+fehlt.join(','));
   pruef('STEUERUNG',/Sackkarre[^.]*K\b|K[^.]{0,40}Sackkarre/.test(st.text),'Sackkarre ohne Taste K');
+  pruef('STEUERUNG',st.kbdGesamt>=30&&st.dunkel===0,'unlesbare Tasten: '+st.dunkel+' von '+st.kbdGesamt);
   await p.keyboard.press('Escape');
   const nachEsc={seite:await seite(),auf:await p.evaluate(()=>document.getElementById('pause').classList.contains('show'))};
   pruef('STEUERUNG',nachEsc.auf&&nachEsc.seite==='pHaupt','Esc auf der Steuerung: '+JSON.stringify(nachEsc));

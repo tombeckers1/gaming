@@ -10,7 +10,10 @@
    - TUTORIAL: ein Knopf, der ein- und ausblendet
    - START: zum Startbildschirm mit Weiterspielen / Neues Spiel;
      Weiterspielen setzt ohne Neuladen fort, Neues Spiel startet frisch
-   - WEITER: Weiterspielen schliesst die Pause */
+   - WEITER: Weiterspielen schliesst die Pause
+   - SPERRE: kommt die Mauszeiger-Sperre an (Spielstart, Weiterspielen),
+     darf sich die Pause nicht von selbst oeffnen (26.09.: ein
+     zerrissenes else oeffnete sie bei jeder Sperre) */
 async function neuesSpiel(p){
   await p.waitForFunction("!!document.querySelector('#startBtns button:not([disabled])')",{timeout:120000});
   await p.click('#startBtns button:last-child');
@@ -32,6 +35,14 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   const pruef=(n,ok,was)=>{ if(!ok) mangel.push(n+': '+was); };
   const sicht=id=>p.evaluate(id=>{ const e=document.getElementById(id); if(!e) return false; const r=e.getBoundingClientRect(); return r.width>0&&r.height>0; },id);
   const seite=()=>p.evaluate(()=>window.__bb.pauseSeiteAktiv());
+  const sperre=()=>p.evaluate(()=>({gesperrt:!!document.pointerLockElement,pause:document.getElementById('pause').classList.contains('show')}));
+
+  /* Sperre beim Spielstart: die Pause bleibt zu */
+  await p.mouse.click(640,400); await p.waitForTimeout(800);
+  const sp0=await sperre();
+  console.log('SPERRE  ',JSON.stringify(sp0));
+  pruef('SPERRE',sp0.gesperrt,'Mauszeiger-Sperre kam im Test nicht an - Pruefung nicht moeglich');
+  pruef('SPERRE',!sp0.pause,'Pause oeffnet sich, sobald die Maus gefangen wird');
 
   /* Hauptmaske */
   await p.keyboard.press('Escape');
@@ -84,8 +95,9 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   pruef('TUTORIAL',t0.an!==t1.an&&t2.an===t0.an&&t0.txt!==t1.txt&&/einblenden|ausblenden/.test(t1.txt),'Knopf: '+JSON.stringify([t0,t1,t2]));
 
   /* Weiterspielen */
-  await p.click('#pBtn');
-  pruef('WEITER',!(await p.evaluate(()=>document.getElementById('pause').classList.contains('show'))),'Pause bleibt offen');
+  await p.click('#pBtn'); await p.waitForTimeout(800);
+  const sp1=await sperre();
+  pruef('WEITER',!sp1.pause,'Pause bleibt offen oder oeffnet sich mit der Sperre wieder: '+JSON.stringify(sp1));
 
   /* Startbildschirm und zurueck, ohne neu zu laden */
   await p.evaluate(()=>{ window.__marke=1; window.__bb.S.money=4321.5; });

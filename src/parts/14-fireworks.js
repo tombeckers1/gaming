@@ -712,8 +712,12 @@ EFF.sternschnuppen=function(p,A,B,s){
        Kalibern lagen alle Schnuppen in einer waagrechten Scheibe */
     const el=rand(-0.45,0.6), vx=Math.cos(w)*Math.cos(el)*sp, vy=Math.sin(el)*sp, vz=Math.sin(w)*Math.cos(el)*sp;
     psHuge.emit(p.x,p.y,p.z,vx,vy,vz,c[0]*1.5,c[1]*1.5,c[2]*1.5,rand(2.4,3.0),2.8,0);
-    for(let k=1;k<=22;k++){ const t=Math.max(0.03,k*0.075+rand(-0.035,0.035)); later(t,()=>{ const q=bahnOrt(p,[vx,vy,vz],2.8,t-Math.random()*0.05);
-      for(let i=0;i<Math.round(9*QUAL());i++) psBig.emit(q.x+rand(-.1,.1),q.y+rand(-.1,.1),q.z+rand(-.1,.1),rand(-.25,.25),rand(-.7,.1),rand(-.25,.25),1.1,1.15,1.3,rand(0.7,1.3),2.6,4); }); }
+    /* Schweif: jeder Funke an seinem eigenen Bahnpunkt - vorher sassen
+       je neun Funken auf einem Punkt, 22 Klumpen hintereinander, am
+       Himmel eine Perlenkette (26.09.) */
+    for(let k=1;k<=22;k++){ const t=k*0.075; later(t,()=>{
+      for(let i=0;i<Math.round(9*QUAL());i++){ const q=bahnOrt(p,[vx,vy,vz],2.8,Math.max(0.02,t-Math.random()*0.075));
+        psBig.emit(q.x+rand(-.06,.06),q.y+rand(-.06,.06),q.z+rand(-.06,.06),rand(-.25,.25),rand(-.7,.1),rand(-.25,.25),1.1,1.15,1.3,rand(0.7,1.3),2.6,4); } }); }
   }
 };
 /* Farbregen: ein Schleier aus kleinen Sternen in beiden Farben, der
@@ -1528,14 +1532,20 @@ function monsterFontaene(o,hm,dauer,farben,stil){
 function updateFireworks(dt){
   FW_UHR+=dt;
   for(let i=rockets.length-1;i>=0;i--){ const r=rockets[i];
+    const x0=r.p.x, y0=r.p.y, z0=r.p.z;
     r.v.y-=6*dt; r.p.addScaledVector(r.v,dt); r.fuse-=dt;
     const tc=r.trail, dick=r.dick||0;
+    /* Der Schweif entsteht auf der ganzen Strecke dieses Bildes, nicht
+       nur am Endpunkt - sonst reiht er sich bei 30 Bildern je Sekunde
+       als Perlenkette auf (26.09.). Menge je Sekunde, nicht je Bild. */
+    const dx=r.p.x-x0, dy=r.p.y-y0, dz=r.p.z-z0, ort=()=>{ const f=Math.random(); return [x0+dx*f,y0+dy*f,z0+dz*f]; };
+    r.acc=(r.acc||0)+dt*60*(2+dick*3); r.acc2=(r.acc2||0)+dt*60*dick;
     if(r.pfeif){ r.ph+=dt*16; const sx=Math.cos(r.ph)*0.35, sz=Math.sin(r.ph)*0.35;
       for(let k=0;k<3;k++) psMid.emit(r.p.x+sx,r.p.y,r.p.z+sz,sx*2,rand(-1.5,0),sz*2,tc[0],tc[1],tc[2],rand(0.4,0.7),1,4); }
-    for(let k=0;k<2+dick*3;k++) psBig.emit(r.p.x,r.p.y,r.p.z,rand(-.5,.5)*(1+dick*0.4),rand(-2,0),rand(-.5,.5)*(1+dick*0.4),tc[0],tc[1]*rand(0.8,1),tc[2]*0.9,0.34+dick*0.16,1,4);
+    for(;r.acc>=1;r.acc--){ const q=ort(); psBig.emit(q[0],q[1],q[2],rand(-.5,.5)*(1+dick*0.4),rand(-2,0),rand(-.5,.5)*(1+dick*0.4),tc[0],tc[1]*rand(0.8,1),tc[2]*0.9,0.34+dick*0.16,1,4); }
     /* Kugelbomben ziehen zusaetzlich glimmende Schlacke hinter sich her */
-    if(dick) for(let k=0;k<dick;k++)
-      psMid.emit(r.p.x,r.p.y,r.p.z,rand(-1.2,1.2),rand(-3.5,-0.5),rand(-1.2,1.2),1,.62,.2,rand(0.5,1.1),3.2,4);
+    for(;r.acc2>=1;r.acc2--){ const q=ort();
+      psMid.emit(q[0],q[1],q[2],rand(-1.2,1.2),rand(-3.5,-0.5),rand(-1.2,1.2),1,.62,.2,rand(0.5,1.1),3.2,4); }
     if(r.fuse<=0){ fwBurst(r); rockets.splice(i,1); } }
   for(let i=emitters.length-1;i>=0;i--){ const e=emitters[i]; e.t-=dt; const o=e.o||PAD;
     if(e.k==='fountain'||e.k==='volcano'||e.k==='wasserfall'){

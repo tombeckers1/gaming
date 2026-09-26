@@ -153,8 +153,8 @@ document.addEventListener('pointerlockchange',()=>{
   /* Kommt die Sperre erst an, wenn schon wieder ein Fenster offen ist
      (Weiterspielen und gleich wieder Esc), sofort freigeben - sonst
      gehen die Klicks auf die Spielflaeche statt ins Menue */
-  if(locked&&overlayOpen()){ document.exitPointerLock(); return; }
-  else if(lockWorked&&!COARSE&&!overlayOpen()){ mouseDown=false; showPause(); }
+  if(locked){ if(overlayOpen()) document.exitPointerLock(); return; }
+  if(lockWorked&&!COARSE&&!overlayOpen()){ mouseDown=false; showPause(); }
 });
 document.addEventListener('pointerlockerror',()=>{ lockFailed=true; dragHint(); });
 canvas.addEventListener('mousedown',e=>{

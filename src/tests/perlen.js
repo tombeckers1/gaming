@@ -10,7 +10,12 @@
      Crossette, Palme, Sternschnuppen, Komet), liegen nicht in einer
      Ebene - kleinster Eigenwert der Richtungsverteilung
    - KRONE: die Krone ist keine Figur zum Zuschauer mehr (kein
-     basisBlick), hat keine gleichmaessigen Punktspalten */
+     basisBlick), hat keine gleichmaessigen Punktspalten
+   - SCHWEIF: Schweife sind durchgehend, keine Perlen: der Steigschweif
+     einer Kugel entsteht auf der Strecke eines Bildes (vorher alle
+     Funken eines Bildes auf einem Punkt - bei 30 Bildern/s eine Kette
+     aus Leuchtperlen), die Sternschnuppen ziehen gleichmaessige
+     Schweife statt 22 Klumpen */
 async function neuesSpiel(p){
   await p.waitForFunction("!!document.querySelector('#startBtns button:not([disabled])')",{timeout:120000});
   await p.click('#startBtns button:last-child');
@@ -56,6 +61,21 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
        einer Ebene zum Zuschauer liegt */
     { const x=schuss('krone',1.4), R=richtungen(x.L), c=bb.camera.position, n=[c.x-P0.x,c.y-P0.y,c.z-P0.z], l=Math.hypot(...n);
       o.kroneEben=+(R.filter(d=>Math.abs((d[0]*n[0]+d[1]*n[1]+d[2]*n[2])/l)<0.03).length/R.length).toFixed(3); }
+    /* Sternschnuppen-Schweif: Funken je Arm entlang des Abstands von
+       der Mitte, Anteil belegter 0,3-m-Abschnitte */
+    { bb.run(14,0.1); /* die Brueche von oben ausbrennen lassen */ log=[]; bb.EFF.sternschnuppen(P0,A,B,1.4); const L0=log; log=null;
+      const koepfe=L0.filter(q=>Math.hypot(q[0]-P0.x,q[1]-P0.y,q[2]-P0.z)<0.05).map(q=>{ const l=Math.hypot(q[3],q[4],q[5]); return [q[3]/l,q[4]/l,q[5]/l]; });
+      const arme=koepfe.map(()=>[]); log=[]; bb.run(0.45,1/30); /* nur die schnelle erste Flugphase - danach liegen auch Klumpen dicht */ const L1=log; log=null;
+      L1.forEach(q=>{ const d=[q[0]-P0.x,q[1]-P0.y,q[2]-P0.z], r=Math.hypot(...d); if(r<1) return; let bi=-1,bs=0.97; koepfe.forEach((k,i)=>{ const c=(k[0]*d[0]+k[1]*d[1]+k[2]*d[2])/r; if(c>bs){ bs=c; bi=i; } }); if(bi>=0) arme[bi].push(r); });
+      /* Klumpung: Anteil der Schweiflaenge, der in Luecken ueber 35 cm
+         liegt (alt: Klumpen mit ~1 m Luecke, Anteil ~0,8) */
+      const kl=arme.filter(a=>a.length>25).map(a=>{ a.sort((x,y)=>x-y); let lu=0; for(let i=1;i<a.length;i++){ const g=a[i]-a[i-1]; if(g>0.35) lu+=g; } return lu/Math.max(0.1,a[a.length-1]-a[0]); });
+      o.schnuppeArme=kl.length; o.schnuppeKlumpen=kl.length?+(kl.reduce((x,y)=>x+y,0)/kl.length).toFixed(3):null; }
+    /* Steigschweif: verschiedene Ausstosspunkte je Funke, bei 30 Bildern/s */
+    { bb.run(12,0.1); const n0=bb.rockets.length; bb.igniteType('kugel150'); const pk=[]; let flog=[];
+      for(let i=0;i<150;i++){ log=[]; bb.run(1/30,1/30); const L=log; log=null; if(bb.rockets.length>n0) flog.push(L); else if(flog.length) break; }
+      flog.slice(2,-1).forEach(L=>L.forEach(q=>pk.push(q[0].toFixed(4)+','+q[1].toFixed(4)+','+q[2].toFixed(4))));
+      o.steigBilder=flog.length; o.steigFunken=pk.length; o.steigPunkte=pk.length?+(new Set(pk).size/pk.length).toFixed(3):null; }
     PSL.forEach((ps,k)=>{ ps.emit=alt[k]; });
     return o; });
   const kett=Object.entries(r.ketten).filter(([e,v])=>v.n>=8);
@@ -68,6 +88,9 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   pruef('PERLEN',kett.length>=40&&!Object.keys(r.fehler).length,'zu wenige Brueche geprueft oder Fehler: '+kett.length+' '+JSON.stringify(r.fehler));
   pruef('RAUM',Object.values(r.raum).every(v=>v!==null&&v>0.05),'flache Scheibe: '+JSON.stringify(r.raum));
   pruef('KRONE',r.kroneEben<0.2,'Krone liegt noch in der Bildebene: '+r.kroneEben);
+  console.log('SCHWEIF ',JSON.stringify({arme:r.schnuppeArme,klumpen:r.schnuppeKlumpen,steigBilder:r.steigBilder,funken:r.steigFunken,punkte:r.steigPunkte}));
+  pruef('SCHWEIF',r.schnuppeArme>=5&&r.schnuppeKlumpen<0.3,'Sternschnuppen-Schweif in Klumpen: '+JSON.stringify([r.schnuppeArme,r.schnuppeKlumpen]));
+  pruef('SCHWEIF',r.steigBilder>=10&&r.steigFunken>100&&r.steigPunkte>0.9,'Steigschweif als Perlenkette: '+JSON.stringify([r.steigBilder,r.steigFunken,r.steigPunkte]));
   console.log('MANGEL:',mangel.length?mangel.join(' | '):'keine');
   console.log('ERRORS:',errs.length||mangel.length?errs.concat(mangel).join(' | '):'keine');
   await b.close();

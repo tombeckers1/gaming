@@ -29,6 +29,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   const r=await p.evaluate(()=>{ const bb=window.__bb, S=bb.S, o={};
     /* Menue-Knopf am Touchgeraet */
     const m=document.getElementById('btnMenu'); o.menuImTouch=!!m&&!!m.closest('#touch');
+    bb.closePause&&bb.closePause(); o.pauseVorher=document.getElementById('pause').classList.contains('show');
     if(m){ m.dispatchEvent(new TouchEvent('touchstart',{bubbles:true,cancelable:true})); }
     o.pauseAuf=document.getElementById('pause').classList.contains('show');
     bb.closePause&&bb.closePause();
@@ -65,7 +66,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   pruef('RUHETAG',r.uhr22.phase==='after','um 22 Uhr kein Feierabend: '+JSON.stringify(r.uhr22));
   pruef('ROHR',!r.rohrFalsch.length,'falsches Rohr: '+r.rohrFalsch.join(', '));
   pruef('QUALITAET',r.lagerDa&&r.imRegal===0.86&&r.zurueck===0.86,'Restposten-Qualitaet: '+JSON.stringify([r.lagerDa,r.imRegal,r.zurueck]));
-  pruef('MENUE',r.menuImTouch&&r.pauseAuf,'Menue-Knopf: '+JSON.stringify([r.menuImTouch,r.pauseAuf]));
+  pruef('MENUE',r.menuImTouch&&!r.pauseVorher&&r.pauseAuf,'Menue-Knopf: '+JSON.stringify([r.menuImTouch,r.pauseVorher,r.pauseAuf]));
   console.log('MANGEL:',mangel.length?mangel.join(' | '):'keine');
   console.log('ERRORS:',errs.length||mangel.length?errs.concat(mangel).join(' | '):'keine');
   await b.close();

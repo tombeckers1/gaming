@@ -4,7 +4,7 @@
    gestuftem Tempo - am Himmel eine gerade Punktkette mit Leuchtspur
    zur Mitte - und flache Scheiben aus solchen Ketten.
    - PERLEN: kein Bruch schiesst vier oder mehr Sterne in dieselbe
-     Richtung (auf 0,3 Grad genau). Ausgenommen sind nur Motive, bei
+     Richtung (auf 0,05 Grad genau - echte Ketten liegen exakt auf einem Strahl, bei 0,3 Grad fielen zufaellig zwei Paare in dieselbe Zelle). Ausgenommen sind nur Motive, bei
      denen die Linie gewollt ist, und dort nur mit Streuung.
    - RAUM: Brueche, die raeumlich sein sollen (Krone, Kronleuchter,
      Crossette, Palme, Sternschnuppen, Komet), liegen nicht in einer
@@ -38,7 +38,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     const schuss=(e,s)=>{ log=[]; try{ bb.EFF[e](P0,A,B,s||1.4); }catch(err){ log=null; return {fehler:err.message}; } const L=log; log=null; return {L}; };
     /* Richtung je Stern, nur Sterne, die in der Bruchmitte starten */
     const richtungen=L=>L.filter(q=>Math.hypot(q[0]-P0.x,q[1]-P0.y,q[2]-P0.z)<0.05).map(q=>{ const l=Math.hypot(q[3],q[4],q[5]); return l>0.5?[q[3]/l,q[4]/l,q[5]/l]:null; }).filter(Boolean);
-    const kette=R=>{ const m={}; let mx=0; R.forEach(d=>{ const k=[Math.atan2(d[2],d[0]),Math.asin(Math.max(-1,Math.min(1,d[1])))].map(a=>Math.round(a/(0.3*Math.PI/180))).join(','); m[k]=(m[k]||0)+1; mx=Math.max(mx,m[k]); }); return mx; };
+    const kette=R=>{ const m={}; let mx=0; R.forEach(d=>{ const k=[Math.atan2(d[2],d[0]),Math.asin(Math.max(-1,Math.min(1,d[1])))].map(a=>Math.round(a/(0.05*Math.PI/180))).join(','); m[k]=(m[k]||0)+1; mx=Math.max(mx,m[k]); }); return mx; };
     const eigenMin=R=>{ if(R.length<6) return null; const C=[[0,0,0],[0,0,0],[0,0,0]]; R.forEach(d=>{ for(let i=0;i<3;i++) for(let j=0;j<3;j++) C[i][j]+=d[i]*d[j]/R.length; });
       /* kleinster Eigenwert einer symmetrischen 3x3-Matrix */
       const a=C, p1=a[0][1]**2+a[0][2]**2+a[1][2]**2, q=(a[0][0]+a[1][1]+a[2][2])/3, p2=(a[0][0]-q)**2+(a[1][1]-q)**2+(a[2][2]-q)**2+2*p1, pp=Math.sqrt(p2/6)||1e-9;
@@ -49,7 +49,9 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     o.ketten={}; o.fehler={};
     Object.keys(bb.EFF).forEach(e=>{ const x=schuss(e); if(x.fehler){ o.fehler[e]=x.fehler; return; } const R=richtungen(x.L); o.ketten[e]={n:R.length,max:kette(R),motiv:MOTIV.includes(e)}; });
     o.raum={};
-    for(const e of ['krone','kronleuchter','crossette','palme','sternschnuppen','komet']){ const x=schuss(e,1.8); o.raum[e]=eigenMin(richtungen(x.L)); }
+    /* ueber fuenf Schuesse gesammelt: bei wenigen Armen (Sternschnuppen:
+       6-8) schwankt ein einzelner Schuss zu stark */
+    for(const e of ['krone','kronleuchter','crossette','palme','sternschnuppen','komet']){ let R=[]; for(let k=0;k<5;k++) R=R.concat(richtungen(schuss(e,1.8).L)); o.raum[e]=eigenMin(R); }
     /* Krone: keine Punktspalten - Anteil der Sterne, deren Richtung in
        einer Ebene zum Zuschauer liegt */
     { const x=schuss('krone',1.4), R=richtungen(x.L), c=bb.camera.position, n=[c.x-P0.x,c.y-P0.y,c.z-P0.z], l=Math.hypot(...n);

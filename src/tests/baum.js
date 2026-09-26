@@ -38,7 +38,9 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   pruef('ANZAHL',r.baeume.length>=2,'keine Strassenbaeume gefunden');
   for(const t of r.baeume){
     pruef('BAU',t.rinde&&t.schnee&&t.schneeMax>0.3,'Baum ohne Rinde/Schnee: '+JSON.stringify(t));
-    pruef('FORM',t.h>6&&t.h<11&&t.breit>4,'Baum zu klein/schmal: '+JSON.stringify(t));
+    /* Strassenbaeume streuen gewollt 0,9-1,2 (05e-street): bei 0,9 ist
+       ein Baum rund 3,9 m breit - die Schwelle 4 war zu knapp */
+    pruef('FORM',t.h>6&&t.h<11&&t.breit>3.6,'Baum zu klein/schmal: '+JSON.stringify(t));
     pruef('DETAIL',t.dreiecke>3000&&t.dreiecke<40000,'Dreiecke: '+t.dreiecke);
     const nah=Math.min(...r.masten.map(m=>Math.hypot(m.x-t.x,m.z-t.z)));
     pruef('LATERNE',nah>2,'Laterne steht im Baum bei x '+t.x+' (Abstand '+nah.toFixed(2)+')');

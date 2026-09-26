@@ -560,11 +560,16 @@ function shelfStand(sh,lv){ const K=kindOf(sh); return faceWorld(sh,lv?faceOf(sh
 function itemMatrix(sh,lv,idx,jit){ const f=faceOf(sh,lv), p=slotLocal(lv.type,idx,sh,lv), w=faceWorld(sh,f,p.x,p.z);
   return mx(w.x,kindOf(sh).lv[lv.li]+p.y,w.z,sh.g.rotation.y+f.ry+jit); }
 function syncShelf(sh){ sh.levels.forEach(lv=>{ lv.items.forEach((h,k)=>{ if(lv.type) h.pool.set(h,itemMatrix(sh,lv,k,h.jit||0)); }); }); }
-const HEADNAME={0:['SILVESTER-ZUBEHÖR','#2f7fd0'],1:['KLEINFEUERWERK F1','#2f9e57'],2:['FEUERWERK F2 · AB 18','#c8322a']};
+/* nach Sparte: Essen und Getraenke haben seit 26.09. ihr eigenes Schild */
+const HEADNAME={zubehoer:['SILVESTER-ZUBEHÖR','#2f7fd0'],f1:['KLEINFEUERWERK F1','#2f9e57'],f2:['FEUERWERK F2 · AB 18','#c8322a'],essen:['ESSEN & SNACKS','#d0782f'],getraenke:['GETRÄNKE','#1f8fb8']};
+/* Welche Sparte ueberwiegt im Regal - daraus das Kopfschild */
+function headArt(sh){
+  const cnt={}; sh.levels.forEach(l=>{ if(l.type){ const c=sparteVon(l.type); cnt[c]=(cnt[c]||0)+l.count; } });
+  let best=null,bn=0; for(const k in cnt) if(cnt[k]>bn){ bn=cnt[k]; best=k; }
+  return best; }
 function updateHead(sh){
   if(!sh.headTex) return;
-  const cnt={}; sh.levels.forEach(l=>{ if(l.type){ const c=P[l.type].cat; cnt[c]=(cnt[c]||0)+l.count; } });
-  let best=null,bn=0; for(const k in cnt) if(cnt[k]>bn){ bn=cnt[k]; best=k; }
+  const best=headArt(sh);
   const H=best!==null?HEADNAME[best]:['REGAL FREI','#39405a'];
   const bg=schildBg().c||H[1], fg=schildFg().c;
   redraw(sh.headTex,(g,W,Hh)=>{

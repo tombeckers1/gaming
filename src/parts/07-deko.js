@@ -63,7 +63,7 @@ function makeDekoMesh(id,g){
         c.fillStyle='#c8322a'; c.fillRect(0,0,W,H*0.14);
         c.fillStyle='#fff'; c.font=BUN(Math.round(W*0.11)); c.textAlign='center'; c.textBaseline='middle';
         c.fillText('SORTIMENT',W/2,H*0.07);
-        const rows=['Raketen','Batterien','Böller','Fontänen','Zubehör','Sekt'];
+        const rows=['Raketen','Batterien','Böller','Fontänen','Essen & Getränke','Zubehör'];
         rows.forEach((t,i)=>{ const y=H*0.2+i*H*0.125;
           c.fillStyle=i%2?'#e8e2d2':'#f4efe2'; c.fillRect(0,y,W,H*0.12);
           c.fillStyle='#1b2340'; c.font=BAR(Math.round(W*0.085)); c.textAlign='left'; c.fillText(t,W*0.08,y+H*0.062);

@@ -41,11 +41,11 @@ function buildKartons(){
       g.fillStyle=p.art.bg1; g.fillRect(W*0.08,H*0.14,W*0.84,H*0.07);
       g.fillStyle='#16181f'; g.textAlign='center'; g.textBaseline='middle';
       fitFont(g,p.name,W*0.78,34,BAR); g.fillText(p.name,W/2,H*0.3);
-      g.font=BAR(20); g.fillText(`${p.box} Stück, ${p.cat?'Kategorie F'+p.cat:'Zubehör'}`,W/2,H*0.42);
+      g.font=BAR(20); g.fillText(`${p.box} Stück, ${p.cat?'Kategorie F'+p.cat:SPARTE_NAME[p.sparte||'zubehoer']}`,W/2,H*0.42);
       if(p.cat){ g.save(); g.translate(W*0.24,H*0.72); g.rotate(Math.PI/4); g.fillStyle='#f28a1c'; g.fillRect(-26,-26,52,52); g.strokeStyle='#16181f'; g.lineWidth=3; g.strokeRect(-22,-22,44,44); g.restore();
         g.fillStyle='#16181f'; g.font=BUN(16); g.fillText('1.4G',W*0.24,H*0.73);
         g.font=BAR(20); g.textAlign='left'; g.fillText('Vorsicht,',W*0.42,H*0.68); g.fillText('explosiv',W*0.42,H*0.77); }
-      else { g.fillStyle='#16181f'; g.font=BAR(22); g.textAlign='left'; g.fillText('Bitte trocken lagern',W*0.16,H*0.73); }
+      else { g.fillStyle='#16181f'; g.font=BAR(22); g.textAlign='left'; g.fillText(p.cold?'Kühl lagern':p.sparte==='essen'?'Lebensmittel · trocken lagern':'Bitte trocken lagern',W*0.16,H*0.73); }
     })});
   });
 }

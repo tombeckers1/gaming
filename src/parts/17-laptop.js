@@ -2,7 +2,7 @@
 /* =========================================================
    Laptop
    ========================================================= */
-let laptopOpen=false, startOpen=true, pauseOpen=false, ltab='order', resetArm=false, lsup='ware', korbOpen=false;
+let laptopOpen=false, startOpen=true, pauseOpen=false, ltab='order', resetArm=false, lsup='ware', korbOpen=false, lkat='alle';
 function openLaptop(tab){ if(typeof handyOpen!=='undefined'&&handyOpen) closeHandy(false); laptopOpen=true; resetArm=false; if(tab) ltab=tab; for(const k in keys) keys[k]=false; mouseDown=false; touchAct=false; renderLaptop(); $('laptop').classList.add('show'); if(locked) document.exitPointerLock(); }
 function closeLaptop(relock){ laptopOpen=false; korbOpen=false; $('korbOv').classList.remove('show'); $('laptop').classList.remove('show'); if(relock) requestLock(); else if(lockWorked&&!COARSE&&!locked&&!summaryOpen&&!levelOpen) showPause(); }
 function priceHint(t){ const r=S.prices[t]/marketOf(t), lo=priceTol();
@@ -175,9 +175,14 @@ function buyLizenz(id){
   toast(`${l.name} freigeschaltet: ${l.items.filter(t=>P[t]).map(t=>P[t].short).join(', ')}.`,'money');
   save();
 }
-function catPill(p){ return p.cat?`<span class="pill f${p.cat}">F${p.cat}</span>`:'<span class="pill zub">Zubehör</span>'; }
+/* Etikett der Sparte: F1, F2, Zubehör, Essen oder Getränke (Tom, 26.09.) */
+function catPill(p){ const sp=p.cat===1?'f1':p.cat===2?'f2':(p.sparte||'zubehoer');
+  return `<span class="pill ${{f1:'f1',f2:'f2',zubehoer:'zub',essen:'essen',getraenke:'getr'}[sp]}">${SPARTE_NAME[sp]}</span>`; }
 function supAvail(){ return SUPPLIERS.filter(x=>S.level>=x.lvl); }
-function tierPrice(t,sup,tier){ return r2(costOf(t)*ekFactor()*P[t].box*tier.n*sup.mult*(1-tier.d)); }
+function tierPrice(t,sup,tier){ return r2(ekRoh(t)*ekFactor()*P[t].box*tier.n*sup.mult*(1-tier.d)); }
+/* Trend des Einkaufs gegen gestern, als kleines Etikett */
+function ekPill(t){ const d=ekDelta(t); if(Math.abs(d)<0.5) return '';
+  return d>0?`<span class="pill up" title="Einkauf gegenüber gestern">EK +${d.toFixed(1).replace('.',',')} %</span>`:`<span class="pill dn" title="Einkauf gegenüber gestern">EK ${d.toFixed(1).replace('.',',')} %</span>`; }
 /* =========================================================
    Warenkorb: Artikel sammeln, am Ende in einem Rutsch bestellen.
    Jede Bestellung ist genau eine Lieferung und kostet einmal Versand.
@@ -872,7 +877,11 @@ function lapZeichnen(body){
         `<small>${lsup==='gross'?`Staffel: ${stf}.`:gross?`Mengenrabatt gibt es im Reiter Großhandel: ${stf}.`:`Ab Level ${gh.lvl} mit eigenem Lager kaufst du auch beim Großhandel: ${stf}.`}</small></div></div>`+knoepfe;
       /* Gruppen nach Freischaltung: Grundsortiment, dann die Lizenz-
          pakete in der Reihenfolge ihres Levels; darin nach Level */
-      const ware=ORDER.filter(t=>canOrder(t)).sort((x,y)=>lizLevel(x)-lizLevel(y)||P[x].lvl-P[y].lvl||P[x].name.localeCompare(P[y].name));
+      /* Filter nach Sparte (Tom, 26.09.): F1, F2, Zubehoer, Essen, Getraenke */
+      const KF=['alle','f1','f2','zubehoer','essen','getraenke'];
+      if(KF.indexOf(lkat)<0) lkat='alle';
+      h+=`<div class="kfilter">`+KF.map(k=>`<button data-a="lkat" data-t="${k}" class="${k===lkat?'on':''}">${k==='alle'?'Alle':SPARTE_NAME[k]} <span style="opacity:.65">${ORDER.filter(t=>canOrder(t)&&(k==='alle'||sparteVon(t)===k)).length}</span></button>`).join('')+`</div>`;
+      const ware=ORDER.filter(t=>canOrder(t)&&(lkat==='alle'||sparteVon(t)===lkat)).sort((x,y)=>lizLevel(x)-lizLevel(y)||P[x].lvl-P[y].lvl||P[x].name.localeCompare(P[y].name));
       let gruppe=null;
       h+=`<div class="karten">`+ware.map(t=>{ const p=P[t], un=isUnlocked(t), cap=shelfCapOf(t), lz=lizenzOf(t), l=lz?lizenzDaten(lz):null;
         let kopf='';
@@ -881,7 +890,7 @@ function lapZeichnen(body){
         if(!un) return kopf+`<div class="karte locked"><img class="kbild" ${prodPicTag(t)} alt=""><b>${p.name} ${catPill(p)}</b><small>${l?`Lizenz „${l.name}“ ab Level ${l.lvl}. Unter Sortiment freischalten.`:`Ab Level ${p.lvl}.`}</small></div>`;
         const btns=tiers.map(tr=>{ const c=tierPrice(t,sup,tr);
           return `<button data-a="cart" data-t="${t}" data-n="${tr.n}" data-s="${sup.id}">+ ${tr.n}× ${eur(c)}${tr.d?` <span style="opacity:.7">−${Math.round(tr.d*100)}%</span>`:''}</button>`; }).join('');
-        return kopf+`<div class="karte"><img class="kbild" ${prodPicTag(t)} alt=""><b>${p.name} ${catPill(p)}</b><small>Karton mit ${p.box} Stück${canShelf(t)?(cap?` · Fach fasst ${cap}`:' · kein passendes Regal'):' · nur für den Automaten'}</small><small>Im Laden: ${shelfStockOf(t)} im Regal, ${stockOf(t)} insgesamt</small>`+
+        return kopf+`<div class="karte"><img class="kbild" ${prodPicTag(t)} alt=""><b>${p.name} ${catPill(p)} ${ekPill(t)}</b><small>Karton mit ${p.box} Stück${canShelf(t)?(cap?` · Fach fasst ${cap}`:' · kein passendes Regal'):' · nur für den Automaten'}</small><small>Im Laden: ${shelfStockOf(t)} im Regal, ${stockOf(t)} insgesamt</small>`+
           `<div class="steps">${btns}</div></div>`; }).join('')+`</div>`;
     }
   } else if(ltab==='price'){
@@ -897,7 +906,7 @@ function lapZeichnen(body){
             ph=marktPhase(t), sch=marktSchock(t), lab=marktLabel(t);
       const pill=d>0.4?`<span class="pill up">+${d.toFixed(1)} %</span>`:d<-0.4?`<span class="pill dn">${d.toFixed(1)} %</span>`:`<span class="pill fl">±0</span>`;
       return `<div class="row"><div class="rm"><b>${p.name} ${pill}</b>`+
-        `<small>Markt ${eur(mp)} · Einkauf ${eur(ek)} · Gewinn je Stück ${eur(r2(S.prices[t]-ek))}</small>`+
+        `<small>Markt ${eur(mp)} · Einkauf ${eur(ek)} ${ekPill(t)} · Gewinn je Stück ${eur(r2(S.prices[t]-ek))}</small>`+
         `<small class="${lab[0]}">${lab[1]} · Markt ${ph.name}${sch?(sch.k==='knapp'?' · Ware knapp':' · Ware im Überfluss'):''}</small>`+
         (marktLuecke(t)>=7?`<small class="ok">Günstige Gelegenheit: Einkauf liegt ${marktLuecke(t)} % unter dem, was die Kunden zahlen</small>`
          :marktLuecke(t)<=-7?`<small class="no">Schlechter Moment: Einkauf liegt ${-marktLuecke(t)} % über dem Kundenpreis</small>`:'')+
@@ -1105,6 +1114,7 @@ function lapKlick(e,imHandy){
   else if(a==='cartgo') cartOrder();
   else if(a==='cartclear') cartClear();
   else if(a==='sup'){ lsup=t; }
+  else if(a==='lkat'){ lkat=t; }
   else if(a==='rbuy') orderRegal(t);
   else if(a==='pack') cartAddPack(t);
   else if(a==='rkauf') buyAngebot(+t);
@@ -1313,6 +1323,9 @@ function erfPic(e){
   else if(k==='sekt'){ mitte(()=>{ g.fillStyle='#1b3a2e'; g.fillRect(-11,-30,22,62);
       g.fillStyle='#1b3a2e'; g.fillRect(-5,-58,10,30); g.fillStyle='#e8c35a'; g.fillRect(-6,-62,12,8);
       g.fillStyle='#f2f5ff'; g.fillRect(-11,-14,22,20); }); }
+  else if(k==='essen'){ mitte(()=>{ g.fillStyle='#f2ecd8'; g.beginPath(); g.ellipse(0,14,46,14,0,0,Math.PI*2); g.fill();
+      g.fillStyle='#c8822a'; g.beginPath(); g.arc(-14,0,15,Math.PI,0); g.fill(); g.fillStyle='#e8b418'; g.beginPath(); g.arc(14,2,13,Math.PI,0); g.fill();
+      g.fillStyle='#c8322a'; g.beginPath(); g.arc(0,-6,9,0,Math.PI*2); g.fill(); }); }
   else if(k==='zubehoer'){ mitte(()=>{ const cc=['#ff4fa3','#5ce1ff','#ffe45c','#8ef0a8'];
       for(let i=0;i<4;i++){ g.fillStyle=cc[i]; g.save(); g.translate(-36+i*24,0); g.rotate(i*0.5); g.fillRect(-9,-26,18,52); g.restore(); } }); }
   else if(k==='kunde'){ mitte(()=>{ g.fillStyle='#e8b894'; g.beginPath(); g.arc(0,-24,16,0,Math.PI*2); g.fill();

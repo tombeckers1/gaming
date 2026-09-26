@@ -228,6 +228,14 @@ function endDay(){
   /* Marktlage des Tages */
   if(DS.praemien) rows.push(['Prämien aus Herausforderungen',eur(DS.praemien)]);
   rows.push({head:'Markt'},['Preisniveau',marktText()],['Inflation seit Beginn',inflText()]);
+  /* Einkauf beim Lieferanten (Tom, 26.09.: "die Preise beim Lieferanten
+     werden auch teurer") - Schnitt ueber die eigene Ware und die groessten
+     Spruenge nach oben und unten */
+  { const e=ekTag(), f=x=>(x>0?'+':'')+x.toFixed(1).replace('.',',')+' %';
+    if(e.schnitt||e.hoch||e.runter){
+      rows.push(['Einkauf beim Lieferanten',`im Schnitt ${f(e.schnitt)} gegenüber gestern`]);
+      if(e.hoch&&e.hoch.d>=1) rows.push(['Teurer eingekauft',`${P[e.hoch.t].short} ${f(e.hoch.d)}`]);
+      if(e.runter&&e.runter.d<=-1) rows.push(['Günstiger eingekauft',`${P[e.runter.t].short} ${f(e.runter.d)}`]); } }
   (S.news||[]).forEach(n=>{ if(P[n.t]) rows.push([P[n.t].short,`${n.text} · ${n.knapp?'Preis zieht an':'Preis fällt'}`]); });
   { const chance=marktChance();
     if(chance) rows.push(['Einkaufschance',`${P[chance].short} · Einkauf ${marktLuecke(chance)} % unter dem Kundenpreis`]); }
@@ -249,6 +257,10 @@ function endDay(){
     statRekord('rek_kunden',DS.customers);
     statAdd('tage',1);
     S.day++; goalTick(); rollMarket(); rollEvent(); rezepteTick();
+    /* Neue Einkaufspreise des Tages: spuerbare Aenderung gleich melden */
+    { const e=ekTag(), f=x=>(x>0?'+':'')+x.toFixed(1).replace('.',',')+' %';
+      if(Math.abs(e.schnitt)>=0.5) toast(`Lieferanten: Einkauf heute im Schnitt ${f(e.schnitt)}${e.hoch&&e.hoch.d>=5?` · ${P[e.hoch.t].short} ${f(e.hoch.d)}`:''}`,e.schnitt>0?'bad':'money');
+      else if(e.hoch&&e.hoch.d>=5) later(0.8,()=>toast(`Lieferant: ${P[e.hoch.t].short} heute ${f(e.hoch.d)} teurer im Einkauf.`,'bad')); }
     if(jahresende){
       const n=S.season; S.season++;
       const jahr=S.seasonRevenue; S.seasonRevenue=0; addXP(200,'Ein Jahr geschafft');

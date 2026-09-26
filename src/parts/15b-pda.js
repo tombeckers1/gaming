@@ -78,7 +78,8 @@ function drawPDA(force){
       g.fillText('Umsatz heute '+eur(DS.revenue),10,H-26);
       return;
     }
-    const p=P[t], mp=marketOf(t), ek=costOf(t), price=S.prices[t], marge=price-ek, r=price/mp;
+    /* Einkauf mit Tagesfaktor (Engpass, Schnaeppchen) wie im Laptop */
+    const p=P[t], mp=marketOf(t), ek=r2(costOf(t)*ekFactor()), price=S.prices[t], marge=price-ek, r=price/mp;
     g.fillStyle='#e8fff2'; g.font=BAR(23); g.textAlign='left';
     fitFont(g,p.name,W-20,23,BAR); g.fillText(p.name,10,52);
     g.fillStyle='#3dff7a'; g.font=BUN(44); g.fillText(price.toFixed(2).replace('.',',')+' €',10,96);
@@ -101,7 +102,7 @@ function openPDA(t){
 function closePDA(){ $('pda').classList.remove('show'); pdaOpen=false; pdaItem=null; paused=false; requestLock(); }
 function renderPDA(){
   const t=pdaItem; if(!t) return;
-  const p=P[t], mp=marketOf(t), ek=costOf(t), price=S.prices[t], marge=r2(price-ek), r=price/mp;
+  const p=P[t], mp=marketOf(t), ek=r2(costOf(t)*ekFactor()), price=S.prices[t], marge=r2(price-ek), r=price/mp;
   /* Nachbestellen: ein Karton beim Fachhandel, wenn offen dazu die
      Grosshandels-Staffel */
   const sup=supplierFor(t), knoepfe=[SUPPLIERS[0]].concat(grossOffen()?[SUPPLIERS[1]]:[]).flatMap(s2=>(s2.tiers||[{n:1,d:0}]).map(tr=>({s2,tr}))), supZu=false;

@@ -376,6 +376,64 @@ const NEUWARE={
     art:{title:'GOLDSEKT',sub:'mit echtem Blattgold',bg1:'#4a3308',bg2:'#000000',ac:'#ffd23f',ac2:'#fff3c4',gold:true}},
   jahrgang:{name:'Jahrgangs-Champagner 2017',short:'Jahrgang',cat:0,lvl:26,cold:true,shape:'bottle',dims:[0.085,0.32,0.085],grid:[12,2,1],box:3,cost:46.00,market:114.99,weight:2,hype:0,risk:7,
     art:{title:'MILLÉSIME',sub:'Champagner 2017',bg1:'#0e1226',bg2:'#000000',ac:'#e8c35a',ac2:'#d1e5ff',gold:true}},
+  /* ---------- 26.09., zweite Runde (Tom: "mehr F1, Essen und Getränke
+     als eigene Kategorie") ---------- */
+  partypopper:{name:'Party-Popper mit Zugband 10er',short:'Party-Popper',cat:1,lvl:1,shape:'boxA',dims:[0.16,0.22,0.05],grid:[10,2,1],box:24,cost:0.90,market:2.19,weight:8,hype:3,risk:1,
+    art:{title:'PARTY-POPPER',sub:'10 Stück · mit Zugband',bg1:'#ffd23f',bg2:'#f28a1c',ac:'#c01c6a',ac2:'#1557a8',light:true}},
+  tortenfontaene:{name:'Tortenfontänen »Eissterne« 4er',short:'Tortenfontänen',cat:1,lvl:3,shape:'boxA',dims:[0.12,0.2,0.04],grid:[12,3,1],box:24,cost:1.30,market:3.19,weight:7,hype:4,risk:1,
+    art:{title:'EISSTERNE',sub:'4 Tortenfontänen · silber',bg1:'#8a9299',bg2:'#2a2f36',ac:'#f2f5ff',ac2:'#ff4fa3'}},
+  luftschlangentisch:{name:'Tischfeuerwerk »Luftschlangen-Regen«',short:'Tisch Schlangen',cat:1,lvl:4,shape:'cylinder',dims:[0.1,0.2,0.1],grid:[8,2,1],box:16,cost:1.40,market:3.49,weight:7,hype:5,risk:1,
+    art:{title:'SCHLANGENREGEN',sub:'Tischfeuerwerk · Luftschlangen',bg1:'#1557a8',bg2:'#061a3a',ac:'#ff4fa3',ac2:'#ffe45c'}},
+  stroboblinker:{name:'Stroboskop-Blinker 4er',short:'Blinker',cat:1,lvl:5,shape:'boxA',dims:[0.12,0.16,0.06],grid:[10,2,1],box:16,cost:1.80,market:4.29,weight:6,hype:6,risk:2,
+    art:{title:'BLINKFEUER',sub:'4 Stroboskop-Blinker',bg1:'#0f2a4a',bg2:'#02060f',ac:'#f2f5ff',ac2:'#ff4a4a'}},
+  knallbonbonxxl:{name:'Riesen-Knallbonbon 50 cm',short:'Riesenbonbon',cat:1,lvl:6,shape:'boxA',dims:[0.4,0.1,0.1],grid:[4,2,2],box:8,cost:2.60,market:6.29,weight:6,hype:6,risk:1,
+    art:{title:'RIESENBONBON',sub:'50 cm · mit Überraschungen',bg1:'#c01c20',bg2:'#5a0608',ac:'#ffd23f',ac2:'#5ce1ff',gold:true}},
+  bengalflamme:{name:'Bengalische Flammen Blau-Violett 3er',short:'Bengalflammen',cat:1,lvl:8,shape:'boxA',dims:[0.18,0.1,0.06],grid:[8,2,2],box:16,cost:1.60,market:3.89,weight:6,hype:5,risk:1,
+    art:{title:'BENGALFLAMME',sub:'3 Töpfchen · blau & violett',bg1:'#2a0f5a',bg2:'#0a0318',ac:'#5ce1ff',ac2:'#ff4fd8'}},
+  zauberwald:{name:'Zauberwald · 10 Schuss Jugendbatterie',short:'Jugend 10',cat:1,lvl:10,shape:'battery',dims:[0.2,0.14,0.2],grid:[11,2,1],box:12,cost:3.00,market:6.99,weight:6,hype:9,risk:2,
+    art:{title:'ZAUBERWALD',sub:'10 Schuss · Jugendfeuerwerk',bg1:'#1f5d2a',bg2:'#06200c',ac:'#ffd23f',ac2:'#c8ff5c'}},
+  jugendbox:{name:'Ganzjahres-Box · 30 Teile Jugendfeuerwerk',short:'Jugendbox',cat:1,lvl:12,shape:'assort',dims:[0.4,0.14,0.28],grid:[4,1,1],box:3,cost:11.00,market:25.99,weight:5,hype:12,risk:2,
+    art:{title:'GANZJAHRES-BOX',sub:'30 Teile Jugendfeuerwerk',bg1:'#0f7a6b',bg2:'#03302a',ac:'#ffe45c',ac2:'#ff4fa3'}},
+  neujahrsbrezel:{name:'Neujahrsbrezel aus Hefeteig',short:'Neujahrsbrezel',cat:0,lvl:5,shape:'boxA',dims:[0.28,0.05,0.22],grid:[5,2,3],box:8,cost:1.60,market:3.99,weight:7,hype:0,risk:4,
+    art:{title:'NEUJAHRSBREZEL',sub:'Hefeteig · süß',bg1:'#c8822a',bg2:'#5a3208',ac:'#fff3c4',ac2:'#ffd23f'}},
+  gefuellteeier:{name:'Gefüllte Eier 12 Hälften',short:'Gefüllte Eier',cat:0,lvl:8,cold:true,kuehlpflicht:true,shape:'boxA',dims:[0.24,0.06,0.16],grid:[4,2,3],box:8,cost:2.20,market:5.49,weight:6,hype:0,risk:5,
+    art:{title:'GEFÜLLTE EIER',sub:'12 Hälften · fürs Buffet',bg1:'#f2d21b',bg2:'#8a7208',ac:'#1b5a2a',ac2:'#ffffff',light:true}},
+  nudelsalat:{name:'Nudelsalat 1 kg',short:'Nudelsalat',cat:0,lvl:9,cold:true,kuehlpflicht:true,shape:'boxA',dims:[0.18,0.12,0.14],grid:[6,2,2],box:8,cost:2.10,market:5.29,weight:7,hype:0,risk:5,
+    art:{title:'NUDELSALAT',sub:'1 kg · Erbsen & Schinken',bg1:'#e8a21b',bg2:'#8a4a08',ac:'#ffffff',ac2:'#1b5a2a'}},
+  gulaschsuppe:{name:'Mitternachts-Gulaschsuppe 800 ml',short:'Gulaschsuppe',cat:0,lvl:10,shape:'cylinder',dims:[0.11,0.17,0.11],grid:[12,2,1],box:12,cost:1.90,market:4.79,weight:6,hype:0,risk:3,
+    art:{title:'GULASCHSUPPE',sub:'Mitternachtssuppe · 800 ml',bg1:'#8a2a0a',bg2:'#2a0a02',ac:'#ffd23f',ac2:'#f2ecd8'}},
+  fingerfood:{name:'Party-Fingerfood-Platte 30 Teile',short:'Fingerfood',cat:0,lvl:11,cold:true,kuehlpflicht:true,shape:'boxA',dims:[0.3,0.07,0.22],grid:[3,2,3],box:6,cost:4.00,market:9.99,weight:5,hype:0,risk:5,
+    art:{title:'FINGERFOOD',sub:'30 Teile · gekühlt · Mini-Quiche & Co.',bg1:'#1b3a6b',bg2:'#061a3a',ac:'#ffd23f',ac2:'#f2f5ff'}},
+  schokofondue:{name:'Schokofondue-Set für 4 mit Obstspießen',short:'Schokofondue',cat:0,lvl:13,cold:true,kuehlpflicht:true,shape:'boxA',dims:[0.26,0.1,0.18],grid:[4,2,2],box:6,cost:5.60,market:13.99,weight:4,hype:0,risk:5,
+    art:{title:'SCHOKOFONDUE',sub:'für 4 · mit Obstspießen',bg1:'#4a2a14',bg2:'#140a04',ac:'#ff4a6a',ac2:'#f2e6c4'}},
+  karpfen:{name:'Silvesterkarpfen küchenfertig 1,5 kg',short:'Karpfen',cat:0,lvl:15,cold:true,kuehlpflicht:true,shape:'boxA',dims:[0.34,0.08,0.18],grid:[3,2,3],box:4,cost:6.00,market:14.99,weight:3,hype:0,risk:6,
+    art:{title:'SILVESTERKARPFEN',sub:'küchenfertig · 1,5 kg',bg1:'#2a6a9a',bg2:'#0a2236',ac:'#f2f5ff',ac2:'#ffd23f'}},
+  tiramisu:{name:'Tiramisu 1 kg Familienschale',short:'Tiramisu',cat:0,lvl:16,cold:true,kuehlpflicht:true,shape:'boxA',dims:[0.24,0.08,0.18],grid:[4,2,3],box:6,cost:3.80,market:9.49,weight:4,hype:0,risk:5,
+    art:{title:'TIRAMISU',sub:'1 kg · Familienschale',bg1:'#6b4a2c',bg2:'#241204',ac:'#f2ecd8',ac2:'#e8c35a'}},
+  neujahrstorte:{name:'Sahnetorte »Prosit Neujahr«',short:'Neujahrstorte',cat:0,lvl:17,cold:true,kuehlpflicht:true,shape:'boxA',dims:[0.26,0.1,0.26],grid:[3,2,2],box:4,cost:4.80,market:11.99,weight:4,hype:0,risk:5,
+    art:{title:'NEUJAHRSTORTE',sub:'Sahnetorte · 12 Stücke',bg1:'#f2ecd8',bg2:'#8a5a18',ac:'#c8322a',ac2:'#e8c35a',light:true}},
+  sushi:{name:'Sushi-Platte 32 Stück',short:'Sushi',cat:0,lvl:19,cold:true,kuehlpflicht:true,shape:'boxA',dims:[0.3,0.06,0.22],grid:[3,2,4],box:4,cost:9.60,market:23.99,weight:3,hype:0,risk:6,
+    art:{title:'SUSHI',sub:'32 Stück · mit Wasabi',bg1:'#1b1b1b',bg2:'#000000',ac:'#ff4a4a',ac2:'#f2f5ff'}},
+  austern:{name:'Frische Austern 12er',short:'Austern',cat:0,lvl:21,cold:true,kuehlpflicht:true,shape:'boxA',dims:[0.28,0.1,0.2],grid:[3,2,2],box:3,cost:14.00,market:34.99,weight:2,hype:0,risk:7,
+    art:{title:'AUSTERN',sub:'12 Stück · frisch',bg1:'#2a4a5a',bg2:'#0a161c',ac:'#f2f5ff',ac2:'#e8c35a',gold:true}},
+  hummer:{name:'Hummer gekocht ca. 500 g',short:'Hummer',cat:0,lvl:24,cold:true,kuehlpflicht:true,shape:'boxA',dims:[0.36,0.1,0.2],grid:[3,2,2],box:2,cost:12.00,market:29.99,weight:2,hype:0,risk:7,
+    art:{title:'HUMMER',sub:'gekocht · ca. 500 g',bg1:'#c8322a',bg2:'#3a0507',ac:'#f2ecd8',ac2:'#e8c35a',gold:true}},
+  prosecco:{name:'Prosecco Frizzante 0,75 l',short:'Prosecco',cat:0,lvl:5,cold:true,shape:'bottle',dims:[0.078,0.3,0.078],grid:[12,2,1],box:12,cost:2.60,market:6.49,weight:8,hype:0,risk:4,
+    art:{title:'PROSECCO',sub:'Frizzante · 0,75 l',bg1:'#c8d86a',bg2:'#4a5a14',ac:'#1b3a2e',ac2:'#ffffff',light:true}},
+  radler:{name:'Radler 6 × 0,5 l',short:'Radler',cat:0,lvl:9,cold:true,shape:'boxA',dims:[0.2,0.24,0.14],grid:[6,1,2],box:4,cost:2.30,market:5.79,weight:7,hype:0,risk:3,
+    art:{title:'RADLER',sub:'Bier & Zitrone · 6 × 0,5 l',bg1:'#f2d21b',bg2:'#1b5a2a',ac:'#1b5a2a',ac2:'#ffffff'}},
+  bierfrei:{name:'Pils alkoholfrei 6 × 0,5 l',short:'Pils 0,0',cat:0,lvl:10,cold:true,shape:'boxA',dims:[0.2,0.24,0.14],grid:[6,1,2],box:4,cost:2.40,market:5.99,weight:6,hype:0,risk:3,
+    art:{title:'PILS 0,0 %',sub:'alkoholfrei · 6 × 0,5 l',bg1:'#1557a8',bg2:'#061a3a',ac:'#ffd23f',ac2:'#e8e2c8'}},
+  limonade:{name:'Zitronenlimonade 6 × 1 l',short:'Limonade',cat:0,lvl:11,cold:true,shape:'boxA',dims:[0.24,0.3,0.16],grid:[6,1,1],box:4,cost:2.40,market:5.99,weight:6,hype:0,risk:2,
+    art:{title:'LIMONADE',sub:'Zitrone · 6 × 1 Liter',bg1:'#ffe45c',bg2:'#8a7208',ac:'#1b5a2a',ac2:'#ffffff',light:true}},
+  kurze:{name:'Party-Kurze Feige 20 × 2 cl',short:'Party-Kurze',cat:0,lvl:12,shape:'boxA',dims:[0.2,0.1,0.16],grid:[6,2,2],box:10,cost:4.40,market:10.99,weight:6,hype:0,risk:4,
+    art:{title:'KURZE',sub:'Feige · 20 × 2 cl',bg1:'#6a1a4a',bg2:'#1a0614',ac:'#ffd23f',ac2:'#f2e6c4'}},
+  hugo:{name:'Hugo-Set: Prosecco, Holunderblüte & Minze',short:'Hugo-Set',cat:0,lvl:14,cold:true,shape:'boxA',dims:[0.24,0.32,0.1],grid:[6,1,1],box:6,cost:4.60,market:11.49,weight:5,hype:0,risk:4,
+    art:{title:'HUGO',sub:'Prosecco · Holunder · Minze',bg1:'#dff2c8',bg2:'#5a8a3a',ac:'#1b3a2e',ac2:'#ffffff',light:true}},
+  gintonic:{name:'Gin 0,7 l mit 4 Tonic Water',short:'Gin & Tonic',cat:0,lvl:15,shape:'boxA',dims:[0.22,0.32,0.1],grid:[6,1,1],box:4,cost:8.80,market:21.99,weight:4,hype:0,risk:5,
+    art:{title:'GIN & TONIC',sub:'Gin 0,7 l · 4 Tonic',bg1:'#12406b',bg2:'#04121f',ac:'#c8e6ff',ac2:'#e8c35a'}},
+  whisky:{name:'Single Malt Whisky 12 Jahre 0,7 l',short:'Whisky',cat:0,lvl:20,shape:'boxA',dims:[0.1,0.32,0.1],grid:[12,2,1],box:6,cost:16.00,market:39.99,weight:3,hype:0,risk:6,
+    art:{title:'SINGLE MALT',sub:'12 Jahre · 0,7 l',bg1:'#6b3a14',bg2:'#1f0a04',ac:'#e8c35a',ac2:'#f2e6c4',gold:true}},
   eiswuerfel:{name:'Eiswürfel 2 kg',short:'Eiswürfel',cat:0,lvl:12,cold:true,kuehlpflicht:true,shape:'boxA',dims:[0.24,0.3,0.08],grid:[6,1,2],box:8,cost:0.90,market:2.29,weight:5,hype:0,risk:3,
     art:{title:'EISWÜRFEL',sub:'2 kg',bg1:'#5ce1ff',bg2:'#1557a8',ac:'#ffffff',ac2:'#0e1226',light:true}}
 };
@@ -383,14 +441,14 @@ const NEUWARE={
    die Luecken. Die Levelreihenfolge bleibt: jedes Produkt kommt erst mit
    seinem Paket und nicht vor seinem Level. */
 const NEU_LIZ_DAZU={
-  start:['wunderfarbe','wunderherz'],
+  start:['wunderfarbe','wunderherz','partypopper'],
   zubehoer:['streichhoelzer','gehoerschutz','schutzbrille','feuerloescher','luftschlangenspray'],
-  klassiker:['blitzknaller','bodenkreisel','rosesekt','berliner','glueckrakete','leuchtstaebe'],
+  klassiker:['blitzknaller','bodenkreisel','rosesekt','berliner','glueckrakete','leuchtstaebe','neujahrsbrezel','prosecco'],
   partydeko:['kalender','sektglaeser','kerzen','servietten','haarreifen','fotobox','streukonfetti','lichterkette'],
-  krach:['knallteppich','farbfontaenen','bodenfeuer','goldperlen','bengalfackel','glitzerregen12','miniverbund','glitzerraketen','wunderbox'],
-  partynacht:['bier','cola','kinderpunsch','energy','orangensaft','wasser','karaoke','discokugel','eiswuerfel'],
+  krach:['knallteppich','farbfontaenen','bodenfeuer','goldperlen','bengalfackel','glitzerregen12','miniverbund','glitzerraketen','wunderbox','bengalflamme'],
+  partynacht:['bier','cola','kinderpunsch','energy','orangensaft','wasser','karaoke','discokugel','eiswuerfel','radler','bierfrei','limonade','kurze'],
   himmel:['nachtfalter','goldstaubboeller','kometenraketen','farbenrausch','feuerberg','vulkanfeld','glueckssymbole','glueckskekse','gluecksklee'],
-  genuss:['raclettekaese','raclettezubehoer','fonduesossen','kaeseplatte','lachs','cracker','kaesefondue','fondueoel','luxusfondue'],
+  genuss:['raclettekaese','raclettezubehoer','fonduesossen','kaeseplatte','lachs','cracker','kaesefondue','fondueoel','luxusfondue','schokofondue'],
   verbund:['feuerperlen','farbrauchboeller','feuerrad','knisterfaecher','palmenkugel75','sternenmeer42','dreiklang','smaragd','kristallkugel100'],
   import:['regenbogenfaecher','goldweide100','silberregen','glitzerkaskade','familienmix'],
   grossfeuer:['feuerpfau','goldvulkan','nordlicht','blitzgewitter60','feuerwand','sternkugel150','hochzeitsfaecher','raketen50'],
@@ -399,22 +457,22 @@ const NEU_LIZ_DAZU={
 const NEU_LIZENZEN=[
   {id:'jugend',lvl:2,cost:60,name:'Jugendfeuerwerk',
    desc:'Feuerwerk, das auch Kinder zünden dürfen: Knallbonbons, Tischbomben, Bengalische Hölzer, Zahlen-Wunderkerzen, Pharaoschlangen, Leuchtfontänen, der Feuerteufel, eine kleine Jugendbatterie und das Kinderparty-Sortiment.',
-   items:['knallbonbon','tischbombe','bengalholz','wunderzahl','pharao','leuchtfontaene','feuerteufel','kinderbatterie','kinderparty','wunderkerzeXXL','tischfeuerwerk2']},
+   items:['knallbonbon','tischbombe','bengalholz','wunderzahl','pharao','leuchtfontaene','feuerteufel','kinderbatterie','kinderparty','wunderkerzeXXL','tischfeuerwerk2','tortenfontaene','luftschlangentisch','stroboblinker','knallbonbonxxl']},
   {id:'snacks',lvl:7,cost:260,name:'Snacks & Süßes',
    desc:'Popcorn, Salzgebäck, Erdnüsse, Fruchtgummi, Berliner-Nachschub und die Glücksbringer zum Naschen: Marzipanschweinchen und Schoko-Glückstaler.',
    items:['popcorn','salzstangen','erdnuesse','gummibaerchen','marzipanschwein','schokotaler']},
   {id:'buffet',lvl:8,cost:700,name:'Silvester-Buffet',
-   desc:'Heringssalat, Kartoffelsalat, Würstchen, Mini-Frikadellen, Baguette, Mett-Igel, Partypizza, Dips und das Katerfrühstück. Vieles davon gehört in den Kühlschrank.',
-   items:['heringssalat','kartoffelsalat','wuerstchen','frikadellen','baguette','mettigel','partypizza','dips','rollmops']},
+   desc:'Heringssalat, Kartoffel- und Nudelsalat, gefüllte Eier, Würstchen, Mini-Frikadellen, Fingerfood, Baguette, Mett-Igel, Partypizza, Dips, die Mitternachts-Gulaschsuppe und das Katerfrühstück. Vieles davon gehört in den Kühlschrank.',
+   items:['heringssalat','kartoffelsalat','wuerstchen','frikadellen','baguette','mettigel','partypizza','dips','rollmops','gefuellteeier','nudelsalat','gulaschsuppe','fingerfood']},
   {id:'kleinfeuer',lvl:10,cost:1800,name:'Kleinfeuerwerk',
    desc:'Die ersten richtigen Batterien für den kleinen Geldbeutel: Sternenstaub mit 20 Schuss, Schneeball in Weiß, die Heulboje mit Pfeifschüssen, das Pfauenrad als erster Fächer. Dazu Silberpfeil-Raketen, Konfetti-Böller und der Zauberbrunnen.',
-   items:['sternstaub20','schneeballschlacht','heulbatterie','pfauenrad','silberpfeil','konfettiknaller','zauberbrunnen']},
+   items:['sternstaub20','schneeballschlacht','heulbatterie','pfauenrad','silberpfeil','konfettiknaller','zauberbrunnen','zauberwald','jugendbox']},
   {id:'feuerzauber',lvl:13,cost:4200,name:'Feuerzauber',
    desc:'Goldpalmen, Mondschein, der Funkenturm mit sechs Metern, Knisterstern-Raketen und das Bengal-Duo.',
    items:['goldpalmen','mondschein','funkenturm','knisterstern','bengalduo']},
   {id:'getraenke',lvl:14,cost:5000,name:'Feine Getränke',
-   desc:'Champagner, Rot- und Weißwein, Eierlikör, Sahnelikör, das Cocktail-Set, Kindersekt Erdbeere und die Magnumflasche für den großen Moment.',
-   items:['champagner','cocktailset','rotwein','weisswein','eierlikoer','likoer','kindersekt2','magnum','kaviar','champagnerturm','goldsekt','jahrgang']},
+   desc:'Champagner, Rot- und Weißwein, Eierlikör, Sahnelikör, Hugo-Set, Gin & Tonic, Whisky, das Cocktail-Set, Kindersekt Erdbeere, die Magnumflasche, Goldsekt, Jahrgangs-Champagner, der Sektturm und Kaviar für den großen Moment.',
+   items:['champagner','cocktailset','rotwein','weisswein','eierlikoer','likoer','kindersekt2','magnum','kaviar','champagnerturm','goldsekt','jahrgang','hugo','gintonic','whisky']},
   {id:'nachthimmel',lvl:16,cost:9000,name:'Nachthimmel',
    desc:'Silbermeer mit 80 Schuss, der Silberwirbel-Fächer, die Salutbatterie mit zehn Schlägen, die 75-mm-Farbwechselkugel, Blinkstern-Raketen und das Wasserspiel.',
    items:['sternenmeer80','silberwirbel','salutbatterie','farbenmeer75','blinkstern','wasserspiel']},
@@ -424,6 +482,12 @@ const NEU_LIZENZEN=[
   {id:'sternklasse',lvl:19,cost:18000,name:'Sternklasse',
    desc:'Goldener Regen mit 70 Schuss, die Jumbo-Rakete »Regenbogenkrone«, 24 Kugeln Römisches Licht, die Eisblume mit zwölf Metern und der Donnerschlag mit 20 Salutschlägen.',
    items:['goldenerregen','regenbogenkrone','lichterkugeln','eisblume','donnerschlag']},
+  {id:'festtafel',lvl:15,cost:6500,name:'Festtafel',
+   desc:'Silvesterkarpfen, Tiramisu, die Neujahrstorte und die Sushi-Platte. Alles gehört in den Kühlschrank.',
+   items:['karpfen','tiramisu','neujahrstorte','sushi']},
+  {id:'feinkost',lvl:21,cost:12000,name:'Feinkost',
+   desc:'Frische Austern und gekochter Hummer für das große Silvesterdinner. Nur aus dem Kühlschrank.',
+   items:['austern','hummer']},
   {id:'meister',lvl:25,cost:34000,name:'Meisterklasse',
    desc:'Das Ende der Leiter: der Himmelsfächer mit 180 Schuss, die Jumbo-Rakete »Supernova«, das Silvesternacht-Sortiment, die 300-mm-Kaiserkrone, das Kugel-Finale und die Feuerkaskade aus drei Riesenfontänen.',
    items:['himmelsfaecher','supernova','silvesternacht','kaiserkrone','kugelfinale','feuerkaskade']}
@@ -432,12 +496,29 @@ const NEU_LIZENZEN=[
 const NEU_GRUPPE={
   boeller:['blitzknaller','knallteppich','konfettiknaller','goldstaubboeller','farbrauchboeller'],
   raketen:['glueckrakete','glitzerraketen','silberpfeil','kometenraketen','farbenrausch','knisterstern','smaragd','blinkstern','silberregen','kristall','regenbogenkrone','silbermond','feuerdrache','supernova','raketen50'],
-  batterien:['kinderbatterie','miniverbund','glitzerregen12','sternstaub20','schneeballschlacht','heulbatterie','pfauenrad','nachtfalter','goldpalmen','mondschein','knisterfaecher','sternenmeer42','sternenmeer80','salutbatterie','silberwirbel','regenbogenfaecher','kreuzfeuer','kometenfaecher','goldenerregen','donnerschlag','feuerpfau','hochzeitsfaecher','nordlicht','blitzgewitter60','pfeifkonzert','sternenkaiser','kometenwand','himmelsfaecher','kinderparty','familienmix','silvesternacht','kugelfinale'],
+  batterien:['zauberwald','jugendbox','kinderbatterie','miniverbund','glitzerregen12','sternstaub20','schneeballschlacht','heulbatterie','pfauenrad','nachtfalter','goldpalmen','mondschein','knisterfaecher','sternenmeer42','sternenmeer80','salutbatterie','silberwirbel','regenbogenfaecher','kreuzfeuer','kometenfaecher','goldenerregen','donnerschlag','feuerpfau','hochzeitsfaecher','nordlicht','blitzgewitter60','pfeifkonzert','sternenkaiser','kometenwand','himmelsfaecher','kinderparty','familienmix','silvesternacht','kugelfinale'],
   kugeln:['palmenkugel75','farbenmeer75','kristallkugel100','goldweide100','sternenstaub150','sternkugel150','goldkrone200','kaiserkrone'],
-  boden:['knallbonbon','tischbombe','pharao','wunderfarbe','bengalholz','wunderherz','wunderzahl','leuchtfontaene','feuerteufel','leuchtstaebe','wunderkerzeXXL','tischfeuerwerk2','wunderbox','bodenkreisel','farbfontaenen','bodenfeuer','goldperlen','bengalfackel','zauberbrunnen','feuerberg','vulkanfeld','funkenturm','bengalduo','feuerperlen','feuerrad','dreiklang','wasserspiel','glitzerkaskade','sternfontaene','lichterkugeln','eisblume','goldvulkan','feuerwand','silberkaskade','goldregen22','feuerkaskade'],
+  boden:['partypopper','tortenfontaene','luftschlangentisch','stroboblinker','knallbonbonxxl','bengalflamme','knallbonbon','tischbombe','pharao','wunderfarbe','bengalholz','wunderherz','wunderzahl','leuchtfontaene','feuerteufel','leuchtstaebe','wunderkerzeXXL','tischfeuerwerk2','wunderbox','bodenkreisel','farbfontaenen','bodenfeuer','goldperlen','bengalfackel','zauberbrunnen','feuerberg','vulkanfeld','funkenturm','bengalduo','feuerperlen','feuerrad','dreiklang','wasserspiel','glitzerkaskade','sternfontaene','lichterkugeln','eisblume','goldvulkan','feuerwand','silberkaskade','goldregen22','feuerkaskade'],
   zubehoer:['streichhoelzer','gehoerschutz','schutzbrille','feuerloescher','luftschlangenspray','berliner','kalender','sektglaeser','kerzen','servietten','haarreifen','fotobox','streukonfetti','lichterkette','popcorn','salzstangen','erdnuesse','gummibaerchen','marzipanschwein','schokotaler','heringssalat','kartoffelsalat','wuerstchen','frikadellen','baguette','mettigel','partypizza','dips','rollmops','glueckssymbole','glueckskekse','gluecksklee','raclettekaese','raclettezubehoer','fonduesossen','kaeseplatte','lachs','cracker','kaesefondue','fondueoel','karaoke','discokugel','cocktailset','kaviar','champagnerturm','luxusfondue'],
   sekt:['rosesekt','bier','cola','kinderpunsch','energy','orangensaft','wasser','eiswuerfel','champagner','rotwein','weisswein','eierlikoer','likoer','kindersekt2','magnum','goldsekt','jahrgang']
 };
+/* Sparten fuer die Anzeige (Tom, 26.09.: "Essen und Getraenke als eigene
+   Kategorie"). Intern bleibt alles cat:0 - sonst kaeme Essen aufs
+   Testfeld und an den Zuendtisch. Die Sparte steuert nur, was der
+   Spieler sieht: Etikett, Regalschild, Kartondruck, Filter im Laptop -
+   und die Warengruppe (Essen und Getraenke zaehlen nicht mehr als
+   Zubehoer). */
+const SPARTE={
+  essen:['chips','fondueessen','racletteessen','berliner','popcorn','salzstangen','erdnuesse','gummibaerchen','marzipanschwein','schokotaler',
+    'heringssalat','kartoffelsalat','wuerstchen','frikadellen','mettigel','partypizza','dips','baguette','rollmops','glueckskekse',
+    'raclettekaese','kaeseplatte','lachs','kaesefondue','luxusfondue','fonduesossen','cracker','kaviar','fondueoel',
+    'neujahrsbrezel','gefuellteeier','nudelsalat','gulaschsuppe','fingerfood','schokofondue','karpfen','tiramisu','neujahrstorte','sushi','austern','hummer'],
+  getraenke:['sekt','kindersekt','secco','partyfass','gluehwein','rosesekt','bier','cola','kinderpunsch','energy','orangensaft','wasser','eiswuerfel',
+    'champagner','rotwein','weisswein','eierlikoer','likoer','magnum','kindersekt2','goldsekt','jahrgang','bowle','cocktailset',
+    'prosecco','radler','bierfrei','limonade','kurze','hugo','gintonic','whisky']
+};
+const SPARTE_NAME={f1:'F1',f2:'F2',zubehoer:'Zubehör',essen:'Essen',getraenke:'Getränke'};
+function sparteVon(t){ const p=P[t]; if(!p) return 'zubehoer'; return p.cat===1?'f1':p.cat===2?'f2':(p.sparte||'zubehoer'); }
 /* Wie stark der Marktpreis schwankt: Grundnahrung ruhig, grosses
    Feuerwerk launisch */
 function neuVola(q){
@@ -460,4 +541,10 @@ function neuVola(q){
   /* nach Level sortiert, damit Laptop und Freischaltungen die Reihe kennen */
   LIZENZEN.sort((a,b)=>a.lvl-b.lvl);
   for(const g in NEU_GRUPPE){ GRUPPE[g]=GRUPPE[g]||[]; NEU_GRUPPE[g].forEach(t=>{ if(GRUPPE[g].indexOf(t)<0) GRUPPE[g].push(t); }); }
+  /* Sparten setzen; Essen bekommt eine eigene Warengruppe, Getraenke
+     sind die bisherige Gruppe 'sekt' - beides raus aus 'zubehoer' */
+  const umhaengen=(t,ziel)=>{ for(const g in GRUPPE){ const i=GRUPPE[g].indexOf(t); if(i>=0&&g!==ziel) GRUPPE[g].splice(i,1); }
+    GRUPPE[ziel]=GRUPPE[ziel]||[]; if(GRUPPE[ziel].indexOf(t)<0) GRUPPE[ziel].push(t); };
+  SPARTE.essen.forEach(t=>{ if(P[t]&&P[t].cat===0){ P[t].sparte='essen'; umhaengen(t,'essen'); } });
+  SPARTE.getraenke.forEach(t=>{ if(P[t]&&P[t].cat===0){ P[t].sparte='getraenke'; umhaengen(t,'sekt'); } });
 })();

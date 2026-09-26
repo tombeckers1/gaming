@@ -89,7 +89,26 @@ function marketOf(t){ return r2(P[t].market*meOf(t)*inflOf()); }
 function marktZiel(t){ return r2(P[t].market*miOf(t)*inflOf()); }
 /* Positiv heisst: Einkauf ist gerade guenstiger als die Erwartung der Kunden */
 function marktLuecke(t){ const e=meOf(t), m=miOf(t); return Math.round((e/m-1)*100); }
-function costOf(t){ return r2(P[t].cost*miOf(t)*inflOf()); }
+function costOf(t){ return r2(ekRoh(t)); }
+/* Einkaufspreis ungerundet (Tom, 26.09.: "die Preise beim Lieferanten
+   werden auch teurer"). Der Einkauf folgte dem Marktindex und der
+   Inflation schon immer - aber je Stueck auf den Cent gerundet und
+   dann mal Kartongroesse: billige Ware blieb tagelang gleich und sprang
+   dann um 30 Cent. Gerundet wird jetzt erst der Kartonpreis. */
+function ekRoh(t){ return P[t].cost*miOf(t)*inflOf(); }
+/* Einkauf gegenueber gestern, in Prozent (Stand vor dem letzten
+   Markttag) */
+function ekDelta(t){ const v=S&&S.ekVor?S.ekVor[t]:null; if(!(v>0)) return 0; return Math.round((miOf(t)*inflOf()/v-1)*1000)/10; }
+/* Einkauf gegenueber dem Listenpreis zu Spielbeginn */
+function ekNiveau(t){ return Math.round((miOf(t)*inflOf()-1)*100); }
+/* Durchschnitt ueber die freigeschaltete Ware und der groesste Sprung */
+function ekTag(){
+  const L=ORDER.filter(t=>!P[t].noOrder&&(typeof isUnlocked!=='function'||isUnlocked(t)));
+  if(!L.length) return {schnitt:0,hoch:null,runter:null};
+  const d=L.map(t=>({t,d:ekDelta(t)})), s=d.reduce((a,x)=>a+x.d,0)/d.length;
+  d.sort((a,b)=>b.d-a.d);
+  return {schnitt:Math.round(s*10)/10,hoch:d[0].d>0?d[0]:null,runter:d[d.length-1].d<0?d[d.length-1]:null};
+}
 /* Veraenderung zum Vortag in Prozent */
 function marktDelta(t){
   const h=(S&&S.mh&&S.mh[t])||[]; if(h.length<2) return 0;
@@ -132,6 +151,8 @@ function marktSchnitt(){
 /* Ein Tag Marktbewegung. Gibt die Meldungen des Tages zurueck. */
 function rollMarkt(){
   marktInit();
+  /* Einkaufsstand von gestern merken, fuer den Vergleich */
+  S.ekVor={}; ORDER.forEach(t=>{ S.ekVor[t]=r3(miOf(t)*inflOf()); });
   const news=[];
   /* Inflation: meistens ein kleiner Schritt, selten ein groesserer */
   let inf=rand(0.0008,0.0028);

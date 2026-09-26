@@ -67,6 +67,8 @@ function showAus(spec){
    als einziges zeigt (Bienen, Smiley, Schmetterling ...), bleiben bei
    ihm. */
 const NEU_SHOWS={
+  zauberwald:{lvl:10,th:'wald',n:10,akte:[{e:['kreisel'],w:3,mine:true,mineSz:0.35},{e:['stern'],w:3},{e:['ring','kugel'],s:'salve',w:4}]},
+  jugendbox:{lvl:12,th:'eis',n:30,akte:[{e:['kugel'],w:6,mine:true,mineSz:0.45},{e:['fische','kreisel'],w:8},{e:['regenbogen'],s:'fan',w:8},{e:['ringring','wechsel'],s:'salve',w:8}],auftakt:{ground:'fountain',gt:4}},
   kinderbatterie:{lvl:4,th:'bunt',n:6,akte:[{e:['kugel'],w:2},{e:['kreisel','ring'],w:2},{e:['kugel'],s:'salve',w:2}]},
   kinderparty:{lvl:6,th:'tropen',n:12,akte:[{e:['kugel'],w:3,mine:true,mineSz:0.4},{e:['kreisel','ring'],w:3},{e:['wechsel'],s:'fan',w:3},{e:['ringring'],s:'salve',w:3}]},
   miniverbund:{lvl:8,th:'glut',n:9,akte:[{e:['kugel'],w:3},{e:['ring','kugel'],w:3},{e:['chrys'],s:'salve',w:3}]},
@@ -149,6 +151,9 @@ function neuKugel(t,o){
 /* Fontaenen: Art, Dauer, Hoehe, Farben. set: mehrere nacheinander
    (versetzt), reihe: nebeneinander auf einmal. Keine Ladung. */
 const NEU_FONT={
+  tortenfontaene:{k:'torte',t:8,reihe:['silber','weiss','silber','weiss']},
+  stroboblinker :{k:'blinker',t:12,reihe:['weiss','rot','gruen','zitrone']},
+  bengalflamme  :{k:'bengal',t:6,set:['blau','violett','magenta']},
   feuerteufel   :{k:'knisterbrunnen',t:8,A:'gold',B:'orange',h:0.6},
   leuchtfontaene:{k:'fountain',t:4.5,set:['limette','zitrone','rose','tuerkis']},
   farbfontaenen :{k:'fountain',t:6,set:['magenta','gruen','blau']},
@@ -188,6 +193,16 @@ function neuFontaene(t,o){
 
 /* Eigene Bodenbilder der neuen Ware */
 const NEU_EMIT={
+  /* Tortenfontaene: kleine, dichte Silberfontaene, 30 bis 70 cm hoch */
+  torte(e,dt,o){ const A=e.A||FW.silber; e.acc=(e.acc||0)+dt*260;
+    for(;e.acc>=1;e.acc--){ const a=Math.random()*Math.PI*2, s=rand(0.05,0.35);
+      psSmall.emit(o.x,o.y+0.12,o.z,Math.cos(a)*s,rand(1.8,3.0),Math.sin(a)*s,A[0],A[1],A[2],rand(0.35,0.7),5,4); } },
+  /* Stroboskop-Blinker: glimmt und blitzt in unregelmaessigem Takt */
+  blinker(e,dt,o){ const A=e.A||FW.weiss; e.acc=(e.acc||0)+dt*70;
+    for(;e.acc>=1;e.acc--){ const a=Math.random()*Math.PI*2, s=rand(0.05,0.3);
+      psMid.emit(o.x,o.y+0.25,o.z,Math.cos(a)*s,rand(0.3,0.9),Math.sin(a)*s,A[0]*0.35,A[1]*0.35,A[2]*0.35,rand(0.5,0.9),-0.2,0); }
+    e.bl=(e.bl||0)-dt; if(e.bl<=0){ e.bl=rand(0.1,0.25); flash({x:o.x,y:o.y+0.4,z:o.z},A,2.2,0.05);
+      for(let k=0;k<10;k++){ const d=randDir(); psSmall.emit(o.x,o.y+0.35,o.z,d[0]*0.6,d[1]*0.6,d[2]*0.6,A[0],A[1],A[2],0.07,0,0); } } },
   /* Fontaene mit knisternder Krone */
   knisterbrunnen(e,dt,o){ const H=e.h||1, A=e.A, B=e.B;
     for(let k=0;k<Math.round(9*H);k++){ const a=Math.random()*Math.PI*2, s=rand(0.3,1.2)*H, c=Math.random()<0.7?A:B;
@@ -258,6 +273,15 @@ function neuKnall(t,o){
     lunte(1.3,()=>{ smallPop(o.x,yb,o.z,70,7,0.5); sfx.boom(v*0.9); shake=Math.max(shake,0.35*v); flash({x:o.x,y:yb+0.4,z:o.z},c,1.4,0.25);
       for(let i=0;i<Math.round(90*QUAL());i++){ const a=Math.random()*Math.PI*2, w=rand(0.2,1.4);
         psHuge.emit(o.x+rand(-0.3,0.3),yb+0.3,o.z+rand(-0.3,0.3),Math.cos(a)*w,rand(0.5,2.2),Math.sin(a)*w,c[0]*0.22,c[1]*0.22,c[2]*0.22,rand(3.5,5.5),-0.12,0); } }); return true; }
+  if(t==='partypopper'){ for(let i=0;i<3;i++) later(0.3+i*0.6,()=>{ const q={x:o.x+(i-1)*0.3,y:yb,z:o.z}; sfx.crack(v*0.5); smallPop(q.x,q.y+0.1,q.z,12,2,0.25,FW.gold); konfetti(q,110,8); }); return true; }
+  if(t==='luftschlangentisch'){ lunte(0.8,()=>{ sfx.crack(v); smallPop(o.x,yb+0.1,o.z,24,3,0.3,FW.gold);
+      /* Luftschlangen: je Schlange eine Richtung, die Blaettchen liegen
+         auf einer Linie statt zu streuen */
+      const C=['rot','gold','gruen','blau','magenta','tuerkis'].map(K), alt=SCHWEIF; SCHWEIF=0;
+      for(let s2=0;s2<14;s2++){ const a=Math.random()*Math.PI*2, w=rand(0.4,1.4), vy=rand(5,6.5), c=C[s2%C.length];
+        for(let j=0;j<12;j++){ const f=0.55+j*0.05; psMid.emit(o.x,yb+0.2,o.z,Math.cos(a)*w*f,vy*f,Math.sin(a)*w*f,c[0]*0.8,c[1]*0.8,c[2]*0.8,rand(2.5,3.2),1.4,1); } }
+      SCHWEIF=alt; }); return true; }
+  if(t==='knallbonbonxxl'){ later(0.5,()=>{ flash({x:o.x,y:yb+0.3,z:o.z},FW.gold,1.2,0.12); smallPop(o.x,yb,o.z,40,3.5,0.4,FW.gold); sfx.boom(v*0.45); konfetti(p0,320,6); }); return true; }
   if(t==='knallbonbon'){ for(let i=0;i<4;i++) later(i*0.7,()=>{ const q={x:o.x+rand(-0.5,0.5),y:yb,z:o.z+rand(-0.4,0.4)}; smallPop(q.x,q.y,q.z,14,2.5,0.3); sfx.crack(v*0.5); konfetti(q,40,3); }); return true; }
   if(t==='tischbombe'){ lunte(1.0,()=>{ sfx.crack(v); konfetti(p0,260,5.5); smallPop(o.x,yb+0.1,o.z,30,3,0.35,FW.gold); }); return true; }
   if(t==='tischfeuerwerk2'){ for(let j=0;j<3;j++) later(j*1.1,()=>{ sfx.crack(v); for(let i=0;i<110;i++){ const d=randDir(), c=i%3?FW.gold:FW.zitrone;
@@ -283,6 +307,6 @@ function neuDauer(t){
   const f=NEU_FONT[t];
   if(f) return (f.set?f.set.length*f.t*0.92:f.t)+(f.reihe?f.reihe.length*0.35:0)+1.5;
   if(NEU_KUGEL[t]) return [3.5,3.5,4.5,5,6.5][NEU_KUGEL[t].kal-1];
-  return {blitzknaller:3,knallteppich:6,konfettiknaller:4,goldstaubboeller:5,farbrauchboeller:7,knallbonbon:4,tischbombe:4,tischfeuerwerk2:5,
+  return {partypopper:4,luftschlangentisch:5,knallbonbonxxl:4,blitzknaller:3,knallteppich:6,konfettiknaller:4,goldstaubboeller:5,farbrauchboeller:7,knallbonbon:4,tischbombe:4,tischfeuerwerk2:5,
     pharao:10,bodenkreisel:7,wunderfarbe:8,wunderherz:6,wunderzahl:8,leuchtstaebe:8,wunderkerzeXXL:13,wunderbox:7}[t]||0;
 }

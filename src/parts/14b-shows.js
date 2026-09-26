@@ -38,50 +38,155 @@ const SHOW_BASIS={
    Schuss) bis 1 (letzter): Kaliber und damit Breite wachsen von 70 auf
    130 Prozent, die Steighoehe um sechs Meter, die Helligkeit von 80
    auf 130 Prozent. Im Mittel bleibt alles, wie es war. */
-function showRampe(u){ return {sz:0.7+0.6*u, pw:-3+6*u, hell:0.8+0.5*u}; }
-function showDauer(phases){ let t=0; phases.forEach(ph=>{ t+=(ph.n||0)*(ph.gap===undefined?0.45:ph.gap)+(ph.pause||0); }); return t; }
+/* Engine v2 (26.09. nachts, Tom: "immer von links nach rechts und
+   von rechts nach links ... jede Batterie eine Anomalie"). Neu:
+   - eigene Steigerungskurve je Produkt (rampe), nicht mehr fuer alle gleich
+   - Muster: mitte, aussen, v, w, z, x, wischer, welle, spirale, kreis,
+     paar, schlag, treppe, zufall (fan/rfan bleiben, sparsam)
+   - Ebenen gleichzeitig: mit:true (mit der vorigen Phase) oder at:s
+   - Tempo: gapEnde (schneller/langsamer werdend), takt:[...] (Rhythmus)
+   - Abschuss ueber die Breite der Batterie (rohre:'breit'), Hoehenmuster,
+     Farbverteilung links/rechts oder Mitte/aussen, fester Aufstieg (steig)
+   - Boden-Ebene waehrend der Phase (boden), Feuertopf mit eigenem Bruch
+     (mineEff), Kugelbombe mit eigenem Bild (bombEff), Bruch ohne die
+     Standard-Zutaten (bruchOpt)
+   Ein Drehbuch bleibt ein Array von Phasen; rampe/basis haengen als
+   Eigenschaften daran: show({rampe:{...}}, [phasen]). */
+function show(kopf,phasen){ return Object.assign(phasen,kopf||{}); }
+/* Signatur je Produkt: der eine Effekt / die eine Idee, die nur es hat */
+const SIGNATUR={};
+const KAL={mini:0.45,klein:0.7,mittel:1,gross:1.3,riesig:1.6};
+function rampeKurve(u,k){
+  switch(k){ case 'frueh': return Math.sqrt(u); case 'spaet': return u*u*u;
+    case 'welle': return clamp(u+0.2*Math.sin(u*Math.PI*4),0,1); case 'flach': return 0.5; default: return u; } }
+/* Steigerung ueber die ganze Show (Tom, 25.09.: "am Anfang kleinere
+   Schuesse, am Ende heller, groesser und hoeher"). u laeuft von 0 (erster
+   Schuss) bis 1 (letzter). Ohne eigene rampe: Kaliber 70 -> 130 %,
+   Steighoehe -3 -> +3, Helligkeit 80 -> 130 %. */
+function showRampe(u,R){
+  const v=rampeKurve(u,R&&R.kurve), L=(a,d0,d1)=>a?a[0]+(a[1]-a[0])*v:d0+(d1-d0)*v;
+  return {sz:L(R&&R.sz,0.7,1.3), pw:L(R&&R.pw,-3,3), hell:L(R&&R.hell,0.8,1.3)};
+}
+/* Abstand vor Schuss i+1 */
+function phGap(ph,i,n){
+  if(ph.takt&&ph.takt.length) return ph.takt[i%ph.takt.length];
+  const g=ph.gap===undefined?0.45:ph.gap;
+  if(ph.gapEnde!==undefined&&n>1) return g+(ph.gapEnde-g)*i/(n-1);
+  return g;
+}
+/* Zahl der Takte: bei Paar-Mustern gehen zwei Schuss auf einen Takt */
+const PAAR_MUSTER={v:1,x:1,paar:1};
+function phTakte(ph){ const n=ph.n===undefined?1:ph.n; return ph.muster&&PAAR_MUSTER[ph.muster]?Math.ceil(n/2):(ph.muster==='schlag'?1:n); }
+function phDauer(ph){ const k=phTakte(ph); let d=0; for(let i=0;i<k;i++) d+=phGap(ph,i,k); return d; }
+/* Startzeit jeder Phase. Ohne Angabe: nach dem Ende der vorigen Gruppe
+   (inkl. Pause). mit:true gehoert zur Gruppe der vorigen Phase und
+   startet mit ihr; die Gruppe endet mit ihrem laengsten Mitglied.
+   at:s startet absolut und haelt niemanden auf. */
+function showZeiten(phases){
+  const out=[]; let gStart=0, gEnde=0, weiter=0;
+  phases.forEach(ph=>{
+    const d=phDauer(ph)+(ph.pause||0); let t0;
+    if(ph.at!==undefined){ t0=ph.at; out.push(t0); return; }
+    if(ph.mit&&out.length){ t0=gStart; gEnde=Math.max(gEnde,t0+d); }
+    else { t0=Math.max(weiter,gEnde); gStart=t0; gEnde=t0+d; }
+    weiter=gEnde; out.push(t0);
+  });
+  return out;
+}
+function showDauer(phases){ const z=showZeiten(phases); let e=0; phases.forEach((ph,i)=>{ e=Math.max(e,z[i]+phDauer(ph)+(ph.pause||0)); }); return e; }
+/* Winkel eines Schusses im Muster. k: 0..1 ueber die Phase, i: Nummer,
+   A: Grundwinkel. Liefert [ang, dir-Versatz, seite(-1..1 fuer Rohrlage)] */
+function musterWinkel(m,i,n,k,A,ph){
+  const T=x=>{ const f=x-Math.floor(x); return f<0.5?f*2:2-f*2; };   // Dreieck 0..1..0
+  switch(m){
+    case 'fan': return [(-1+2*k)*A,0];
+    case 'rfan': return [(1-2*k)*A,0];
+    case 'mitte': { const st=A/Math.max(1,Math.ceil((n-1)/2)), j=Math.ceil(i/2); return [(i%2?1:-1)*j*st,0]; }
+    case 'aussen': { const ii=n-1-i, st=A/Math.max(1,Math.ceil((n-1)/2)), j=Math.ceil(ii/2); return [(ii%2?1:-1)*j*st,0]; }
+    case 'w': return [[-A,A/3,-A/3,A][i%4],0];
+    case 'z': return [A*(2*T(k*(ph.seg||2)/2)-1),0];
+    case 'wischer': return [A*(2*T(k*(ph.seg||3))-1),0];
+    case 'welle': return [A*Math.sin(2*Math.PI*k*(ph.wellen||1.5)),0];
+    case 'spirale': return [A,2*Math.PI*k*(ph.seg||2)];
+    case 'kreis': return [A,2*Math.PI*i/Math.max(1,n)];
+    case 'schlag': return [(-1+2*k)*A,0];
+    case 'zufall': return [rand(-A,A),ph.azi==='zufall'?rand(0,Math.PI*2):0];
+    default: return [0,0];
+  }
+}
 function playShow(o,phases,prod){
-  const BS=SHOW_BASIS[prod]||{pw:0,sz:1,th:null};
+  const BS=phases.basis||SHOW_BASIS[prod]||{pw:0,sz:1,th:null};
+  const R=phases.rampe||null, zeiten=showZeiten(phases);
   /* Zeit des ersten und letzten Schusses fuer die Rampe */
-  let t0=null, t1=0; { let t=0; phases.forEach(ph=>{ const n=ph.n||0, g=ph.gap===undefined?0.45:ph.gap;
-    if(n){ if(t0===null) t0=t; t1=t+(n-1)*g; } t+=n*g+(ph.pause||0); }); }
-  const rampe=tt=>showRampe(t1>t0?clamp((tt-t0)/(t1-t0),0,1):0.5);
-  let t=0;
+  let t0=null, t1=0;
+  phases.forEach((ph,pi)=>{ if(!(ph.n===undefined?1:ph.n)) return; const s=zeiten[pi], e=s+phDauer(ph)-phGap(ph,phTakte(ph)-1,phTakte(ph));
+    t0=t0===null?s:Math.min(t0,s); t1=Math.max(t1,e); });
+  const rampe=tt=>showRampe(t1>t0?clamp((tt-t0)/(t1-t0),0,1):0.5,R);
+  /* Breite der Batterie fuer den Abschuss ueber mehrere Rohre */
+  const dims=P[prod]&&P[prod].dims, breite=clamp(dims?dims[0]*1.1:0.6,0.3,1.5);
   phases.forEach((ph,pi)=>{
-    const n=ph.n===undefined?1:ph.n, gap=ph.gap===undefined?0.45:ph.gap, th=ph.th||BS.th;
+    const t=zeiten[pi], n=ph.n===undefined?1:ph.n, th=ph.th||BS.th, m=ph.muster||(ph.fan?'fan':ph.vfan?'vfan':null);
     const zufall=Math.floor(Math.random()*SCHEMES.length);
     /* Farbpaar: aus dem Thema, je Phase eins; wechsel = Paare im Takt */
-    const paar=i=>th?themaPaar(th,(ph.farbe!==undefined?ph.farbe:pi)+(ph.wechsel?i:0)):scheme(ph.sc===undefined?zufall:ph.sc);
-    if(ph.ground){ const st=t, [gA,gB]=paar(0), A=ph.gA?K(ph.gA):gA, B=ph.gB?K(ph.gB):gB;
-      /* grosse Fontaene als Auftakt: danach erst die Batterie */
-      if(ph.ground==='monsterfont') later(st,()=>monsterFontaene(o,ph.gh||20,ph.gt||8,ph.farben||[A,B,FW.gold]));
-      else later(st,()=>{ emitters.push({t:ph.gt||4,k:ph.ground,o,A,B,h:ph.gh||1}); sfx.fizz(distVol(o)); }); }
-    for(let i=0;i<n;i++){
-      const k=n>1?i/(n-1):0.5, tt=t+i*gap;
-      let ang=0;
-      if(ph.fan) ang=(-1+2*k)*(ph.ang||0.3);
-      else if(ph.vfan) ang=(1-Math.abs(0.5-k)*2)*(ph.ang||0.3)*(i%2?1:-1);
-      else if(ph.ang) ang=rand(-ph.ang,ph.ang);
-      /* Effekte der Reihe nach, nicht gewuerfelt */
-      const eff=Array.isArray(ph.eff)?ph.eff[i%ph.eff.length]:(ph.eff||pick(EFF_GROSS));
-      const [A,B]=paar(i);
-      const dir=ph.fan||ph.vfan?FANDIR:undefined;
-      const R=rampe(tt);
-      const opt={eff,sz:(ph.sz||1)*BS.sz*SHOW_GROESSE*R.sz,pw:BS.pw+(ph.pw||0)+R.pw,ang,dir,A,B,fuse:ph.fuse,dick:ph.dick,hell:R.hell,pfeif:ph.pfeif};
-      later(tt,()=>{
-        if(ph.mine) mine(o,A,B,(ph.mineSz||0.8)*R.sz);
-        /* bomb: echte Kugelbombe mit Nachbruechen statt einer Rakete */
-        /* in einer Show mit einem eigenen Hauptbild - die Hauptbilder der
-           Kugelbomben gibt es nur, wenn man die Kugel selbst zuendet */
-        if(ph.bomb) kugelbombe(o,ph.bomb,{A,B,eff:['dahlie','dahlie','chrys','mehrring','kamuro'][ph.bomb-1]});
-        /* perle: Roemisches Licht - eine Leuchtkugel direkt aus dem Rohr */
-        else if(ph.perle) perleSchuss(o,A,opt.sz);
-        else shot(o,opt);
-      });
+    const paar=i=>th?themaPaar(th,(ph.farbe!==undefined?ph.farbe:pi)+(ph.wechsel||ph.farbVert==='wechsel'?i:0)):scheme(ph.sc===undefined?zufall:ph.sc);
+    const bodenAn=(b,st)=>{ const [gA,gB]=paar(0), A=b.A?K(b.A):b.gA?K(b.gA):gA, B=b.B?K(b.B):b.gB?K(b.gB):gB;
+      const ob=b.x?V(o.x+b.x,o.y,o.z):o; if(b.x){ ob.jit=o.jit; ob.ab=o.ab; }
+      if(b.k==='monsterfont') later(st,()=>monsterFontaene(ob,b.gh||20,b.gt||8,b.farben||[A,B,FW.gold]));
+      else later(st,()=>{ emitters.push({t:b.gt||4,k:b.k,o:ob,A,B,h:b.gh||1}); sfx.fizz(distVol(ob)); }); };
+    if(ph.ground) bodenAn({k:ph.ground,gt:ph.gt,gh:ph.gh,gA:ph.gA,gB:ph.gB,farben:ph.farben},t);
+    if(ph.boden) (Array.isArray(ph.boden)?ph.boden:[ph.boden]).forEach(b=>bodenAn(b,t+(b.t||0)));
+    const A0=ph.ang===undefined?(ph.fan||ph.vfan?0.3:m&&m!=='gerade'&&m!=='treppe'?0.45:0):Math.abs(ph.ang);
+    /* altes fan mit negativem ang = rechts nach links */
+    const mm=m==='fan'&&ph.ang<0?'rfan':m;
+    const takte=phTakte(ph), paarig=mm&&PAAR_MUSTER[mm];
+    let tt=t;
+    for(let j=0;j<takte;j++){
+      const schuesse=mm==='schlag'?n:paarig?Math.min(2,n-j*2):1;
+      for(let q=0;q<schuesse;q++){
+        const i=mm==='schlag'?q:paarig?j*2+q:j, k=n>1?i/(n-1):0.5, kt=takte>1?j/(takte-1):0.5;
+        let ang=0, dOff=0, seite=0;
+        if(mm==='vfan') ang=(1-Math.abs(0.5-k)*2)*A0*(i%2?1:-1);
+        else if(mm==='v') ang=(q?1:-1)*A0;
+        else if(mm==='x') { ang=(q?-1:1)*A0*(0.55+0.45*kt); seite=q?1:-1; }
+        else if(mm==='paar') ang=(q?1:-1)*A0*(0.25+0.75*kt);
+        else if(mm) [ang,dOff]=musterWinkel(mm,i,n,k,A0,ph);
+        else if(ph.ang) ang=rand(-ph.ang,ph.ang);
+        if(!seite) seite=A0>0?clamp(ang/A0,-1,1):0;
+        /* Effekte der Reihe nach, nicht gewuerfelt */
+        const eff=Array.isArray(ph.eff)?ph.eff[i%ph.eff.length]:(ph.eff||pick(EFF_GROSS));
+        let [A,B]=paar(i);
+        if(ph.farbVert==='seite'&&seite>0) [A,B]=[B,A];
+        if(ph.farbVert==='mitte'&&Math.abs(seite)<0.34) [A,B]=[B,A];
+        const baseDir=ph.azi!==undefined&&ph.azi!=='zufall'?ph.azi:FANDIR;
+        const dir=mm&&mm!=='gerade'&&mm!=='treppe'?baseDir+dOff:(ph.ang?undefined:FANDIR);
+        const Rz=rampe(tt);
+        const hS=ph.hSpanne!==undefined?ph.hSpanne:(mm==='treppe'?8:4), hm=ph.hoehe||(mm==='treppe'?'steigend':null);
+        const hAdd=hm==='steigend'?(k-0.5)*hS:hm==='fallend'?(0.5-k)*hS:hm==='wechsel'?(i%2?0.5:-0.5)*hS:hm==='zufall'?rand(-0.5,0.5)*hS:0;
+        const szK=(ph.kal&&KAL[ph.kal])||1;
+        const opt={eff,sz:(ph.sz||1)*szK*BS.sz*SHOW_GROESSE*Rz.sz,pw:BS.pw+(ph.pw||0)+Rz.pw+hAdd,ang,dir,A,B,fuse:ph.fuse,dick:ph.dick,hell:Rz.hell,pfeif:ph.pfeif||ph.steig==='pfeif',steig:ph.steig,bruchOpt:ph.bruchOpt};
+        /* Abschuss ueber die Breite: das Rohr sitzt auf seiner Seite */
+        let os=o;
+        if(ph.rohre==='breit'){ const off=seite*breite/2; os=V(o.x+Math.sin(FANDIR)*off,o.y,o.z+Math.cos(FANDIR)*off); os.jit=0.06; os.ab=o.ab; }
+        const [mA,mB]=[A,B];
+        later(tt,()=>{
+          if(ph.mine) mine(os,mA,mB,(ph.mineSz||0.8)*Rz.sz);
+          if(ph.mineEff) feuertopf(os,ph.mineEff,mA,mB,(ph.mineSz||0.8)*Rz.sz);
+          /* bomb: echte Kugelbombe mit Nachbruechen statt einer Rakete */
+          if(ph.bomb) kugelbombe(os,ph.bomb,{A:mA,B:mB,eff:ph.bombEff||['dahlie','dahlie','chrys','mehrring','kamuro'][ph.bomb-1],stufen:ph.bombStufen});
+          /* perle: Roemisches Licht - eine Leuchtkugel direkt aus dem Rohr */
+          else if(ph.perle) perleSchuss(os,mA,opt.sz);
+          else if(!ph.nurBoden) shot(os,opt);
+        });
+      }
+      tt+=phGap(ph,j,takte);
     }
-    t+=n*gap+(ph.pause||0);
   });
-  return t;
+  return showDauer(phases);
+}
+/* Feuertopf: ein niedriger Bruch direkt ueber der Batterie (3-6 m),
+   ohne Steigschweif - die untere Ebene eines Doppeldeckers */
+function feuertopf(o,eff,A,B,s){
+  shot(o,{eff,A,B,sz:0.55*(s||1),pw:-12,fuse:0.42,ang:rand(-0.08,0.08),steig:'keiner',bruchOpt:{nachglitzer:false,kern:false}});
 }
 /* --- Drehbücher --- */
 const SHOWS={
@@ -266,7 +371,7 @@ const RAKETEN_KL={
   gravur      :{n:1, gap:0, sz:1.3, pw:4, fuse:1.25, eff:['herz']},
   blanko      :{n:1, gap:0, sz:0.95,pw:0, fuse:1.2, eff:['goldglitzer']}
 };
-function showLength(id){ const f=SHOWS[id]; if(!f) return 0; let t=0; f().forEach(p=>{ t+=(p.n===undefined?1:p.n)*(p.gap===undefined?0.45:p.gap)+(p.pause||0); }); return Math.round(t); }
+function showLength(id){ const f=SHOWS[id]; if(!f) return 0; return Math.round(showDauer(f())); }
 
 /* =========================================================
    Zünden

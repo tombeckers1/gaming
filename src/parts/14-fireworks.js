@@ -1174,7 +1174,8 @@ function shot(o,opt){
   /* Muendungsfeuer: kurzer Blitz, ein paar Funken zur Seite */
   muendungsblitz(start,start.y,1+(opt.dick||0));
   const fuse=opt.fuse||rand(1.05,1.35);
-  if(FW_LOG) FW_LOG.push({t:FW_UHR,art:opt.kugel?'kugel':'schuss',kal:opt.kugel||0,pw:opt.pw||0,sz:opt.sz||1,eff:opt.eff||'?',A:sc[0],B:sc[1],
+  if(opt.steig==='knister') later(0.25,()=>sfx.crackle(distVol(o)*0.5));
+  if(FW_LOG) FW_LOG.push({t:FW_UHR,art:opt.kugel?'kugel':'schuss',ang:+ang.toFixed(3),dir:+dir.toFixed(3),x:+start.x.toFixed(2),steig:opt.steig||null,kal:opt.kugel||0,pw:opt.pw||0,sz:opt.sz||1,eff:opt.eff||'?',A:sc[0],B:sc[1],
     stufenEff:(opt.stufen||[]).map(x=>x.eff),
     hoehe:+(start.y+Math.cos(ang)*up*fuse-3*fuse*fuse).toFixed(2),brueche:1+(opt.stufen?opt.stufen.length:0),
     groesste:Math.max(opt.sz||1,...(opt.stufen||[]).filter(x=>x.eff!=='salut').map(x=>x.sz)),hell:opt.hell||1});
@@ -1183,7 +1184,10 @@ function shot(o,opt){
     v:V(Math.sin(dir)*Math.sin(ang)*up,Math.cos(ang)*up,Math.cos(dir)*Math.sin(ang)*up),
     fuse,
     A:sc[0],B:sc[1],eff:opt.eff||pick(EFF_GROSS),size:opt.sz||1,
-    trail:opt.trail||(Math.random()<0.25?FW.silber:FW.gold),
+    trail:opt.trail||STEIG_FARBE[opt.steig]||(Math.random()<0.25?FW.silber:FW.gold),
+    /* Aufstieg je Phase festgelegt (Engine v2): knister, blink, wirbel,
+       komet, keiner - vorher gewuerfelt Gold/Silber */
+    steig:opt.steig||null, bruchOpt:opt.bruchOpt||null,
     /* Nachbrueche: Tochterbomben, die nach dem Hauptbruch aufgehen */
     stufen:opt.stufen||null, dick:opt.dick||0,
     /* pfeif: die Rakete zieht eine Spirale und heult beim Steigen */
@@ -1193,8 +1197,9 @@ function shot(o,opt){
   });
   sfx.thump(distVol(o)*(1+(opt.dick||0)*0.5));
   if(opt.pfeif) sfx.whistle(distVol(o));
-  else if(Math.random()<0.45) sfx.whistle(distVol(o)*0.7);
+  else if(!opt.steig&&Math.random()<0.45) sfx.whistle(distVol(o)*0.7);
 }
+const STEIG_FARBE={gold:[1,.72,.3],silber:[.85,.88,.95],glut:[1,.42,.12],knister:[1,.8,.45],blink:[.95,.97,1],wirbel:[1,.75,.35],komet:[1,.8,.4]};
 /* =========================================================
    Kugelbombe: schwerer Aufstieg aus dem Moerser, oben ein
    grosser Hauptbruch und danach die Tochterbrueche.
@@ -1317,10 +1322,13 @@ function fwBurst(r){
   /* Helligkeit: die Farben werden kraeftiger, ohne den Farbton zu aendern */
   if(h!==1){ const k=c=>[c[0]*h,c[1]*h,c[2]*h]; r.A=k(r.A); r.B=k(r.B); }
   mitSchweif(r.eff,()=>fn(p,r.A,r.B,r.size));
-  kern(p,r.A,r.size);
-  if(r.size>=1.15&&r.eff!=='salut') leuchthof(p,[(r.A[0]+r.B[0])/2,(r.A[1]+r.B[1])/2,(r.A[2]+r.B[2])/2],r.size,h);
+  /* bruchOpt: die Standard-Zutaten abschaltbar, damit nicht jeder
+     Bruch gleich wirkt (Engine v2) */
+  const bo=r.bruchOpt||{};
+  if(bo.kern!==false) kern(p,r.A,r.size);
+  if(bo.kern!==false&&r.size>=1.15&&r.eff!=='salut') leuchthof(p,[(r.A[0]+r.B[0])/2,(r.A[1]+r.B[1])/2,(r.A[2]+r.B[2])/2],r.size,h);
   /* Grosse Brueche glitzern kurz nach dem Aufgehen noch einmal nach */
-  if(r.size>=1.1&&r.eff!=='salut'&&r.eff!=='furz'&&EFF_FAMILIE[r.eff]!=='figur') later(0.75,()=>nachglitzer(p,r.size));
+  if(bo.nachglitzer!==false&&r.size>=1.1&&r.eff!=='salut'&&r.eff!=='furz'&&EFF_FAMILIE[r.eff]!=='figur') later(0.75,()=>nachglitzer(p,r.size));
   /* Wer ein Bruchbild einmal gesehen hat, darf es spaeter selbst verbauen */
   if(typeof bruchGesehen==='function') bruchGesehen(r.eff);
   const mix=[(r.A[0]+r.B[0])/2,(r.A[1]+r.B[1])/2,(r.A[2]+r.B[2])/2];
@@ -1540,7 +1548,14 @@ function updateFireworks(dt){
        als Perlenkette auf (26.09.). Menge je Sekunde, nicht je Bild. */
     const dx=r.p.x-x0, dy=r.p.y-y0, dz=r.p.z-z0, ort=()=>{ const f=Math.random(); return [x0+dx*f,y0+dy*f,z0+dz*f]; };
     r.acc=(r.acc||0)+dt*60*(2+dick*3); r.acc2=(r.acc2||0)+dt*60*dick;
-    if(r.pfeif){ r.ph+=dt*16; const sx=Math.cos(r.ph)*0.35, sz=Math.sin(r.ph)*0.35;
+    const sg=r.steig;
+    if(sg==='keiner'){ r.acc=0; r.acc2=0; }
+    if(sg==='komet') r.acc+=dt*60*3;
+    /* Knisterschweif: kleine weisse Knacker, die hinter der Kugel aufblitzen */
+    if(sg==='knister'){ r.kn=(r.kn||0)+dt; if(r.kn>0.05){ r.kn=0; const q=ort(); for(let k=0;k<3;k++) psSmall.emit(q[0]+rand(-.3,.3),q[1]+rand(-.3,.3),q[2]+rand(-.3,.3),rand(-1,1),rand(-1,1),rand(-1,1),1.3,1.3,1.2,rand(0.06,0.14),1,0); } }
+    /* Blinkschweif: der Schweif setzt im Takt aus */
+    if(sg==='blink'){ r.bt=(r.bt||0)+dt; if((r.bt*7)%1>0.45) r.acc=0; }
+    if(r.pfeif||sg==='wirbel'){ r.ph+=dt*16; const sx=Math.cos(r.ph)*0.35, sz=Math.sin(r.ph)*0.35;
       for(let k=0;k<3;k++) psMid.emit(r.p.x+sx,r.p.y,r.p.z+sz,sx*2,rand(-1.5,0),sz*2,tc[0],tc[1],tc[2],rand(0.4,0.7),1,4); }
     for(;r.acc>=1;r.acc--){ const q=ort(); psBig.emit(q[0],q[1],q[2],rand(-.5,.5)*(1+dick*0.4),rand(-2,0),rand(-.5,.5)*(1+dick*0.4),tc[0],tc[1]*rand(0.8,1),tc[2]*0.9,0.34+dick*0.16,1,4); }
     /* Kugelbomben ziehen zusaetzlich glimmende Schlacke hinter sich her */

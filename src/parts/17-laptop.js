@@ -227,7 +227,7 @@ function orderRegal(id){
   S.money=r2(S.money-preis); DS.upgrades=r2(DS.upgrades+preis);
   pending.push({regal:id,t:lieferSek()*evv('delay'),sup:'fachhandel'});
   sfx.cash(); S.tut.order=true;
-  toast(zoneOffen('lager')?`${K.name} bestellt. Kommt mit dem nächsten LKW an die Rampe.`:`${K.name} bestellt. Der Lieferant baut es gleich im Laden auf.`,'money');
+  toast(zoneOffen('lager')?`${K.name} bestellt. Das Paket kommt mit dem nächsten LKW an die Rampe.`:`${K.name} bestellt. Das Paket kommt vor die Ladentür.`,'money');
   save();
 }
 /* Direktbestellung eines einzelnen Postens (eigene Lieferung, eigener Versand) */
@@ -458,7 +458,7 @@ function upPic(id){
       for(let i=0;i<3;i++){ const y=44+i*34; g.fillStyle='#e06a1f'; g.fillRect(28,y,168,7);
         for(let k=0;k<3;k++){ g.fillStyle='#c9a978'; g.fillRect(40+k*54,y-20,44,20); } }
       break;
-    case 'kasse2':
+    case 'kasse2': case 'kasse3':
       bg('#16203a','#0b1222');
       /* zwei SB-Terminals nebeneinander */
       for(const bx of [26,120]){
@@ -734,7 +734,7 @@ function lapZeichnen(body){
       knopf('rest',restOffen?'Restposten':`Restposten · Lvl ${rest.lvl}`,restOffen)+`</div></div>`;
     if(lsup==='regal'){
       h=`<div class="row"><div class="rm"><b>Regale &amp; Einrichtung</b><small>Regale, Kühlschränke, Kassen und Technik für den Laden. Nichts davon muss man freikaufen – manches gibt es erst ab einem bestimmten Level.</small>`+
-        `<small>Regale kommen als Paket mit dem LKW (${zoneOffen('lager')?'an die Rampe, aufbauen musst du selbst':'ohne Lager baut der Lieferant sie gleich im Laden auf'}). Einrichtung wird sofort eingebaut.</small></div></div>`+knoepfe;
+        `<small>Regale, Kühlschränke und Kassen kommen als Paket mit dem LKW – ${zoneOffen('lager')?'an die Rampe':'ohne Lager vor die Ladentür'}. Paket dorthin tragen, wo es stehen soll, und mit „Ablegen“ auspacken. Wo kein Platz ist, bleibt es als Paket stehen und lässt sich lagern. Technik wie Kameras oder Heizstrahler wird sofort eingebaut.</small></div></div>`+knoepfe;
       h+=`<div class="kgruppe">Regale</div><div class="karten">`+REGALWARE.map(r=>{
           const K=regalKind(r), offen=regalOffen(r.id), platz=regalPlatz(r.id), pr=regalPreis(r.id);
           const wo=r.art==='rack'?'Lager':'Verkaufsfläche';
@@ -751,8 +751,10 @@ function lapZeichnen(body){
       h+=`<div class="kgruppe">Kassen, Technik und Einrichtung</div><div class="karten">`+
         UPGRADES.filter(u=>(u.kat||'einr')==='einr').sort((x,y)=>x.lvl-y.lvl).map(u=>{
           const done=u.done(), cost=u.cost(), fehlt=u.req&&!S.up[u.req]?UPGRADES.find(x=>x.id===u.req):null, lock=S.level<u.lvl||!!fehlt;
+          const unterwegs=!done&&S.einbauBestellt&&S.einbauBestellt[u.id];
           return `<div class="karte${lock&&!done?' locked':''}"><img class="kbild" src="${upPic(u.id)}" alt=""><b>${u.name}</b><small>${u.desc}</small>`+
             (done?'<small class="ok">Vorhanden</small>'
+              :unterwegs?'<small class="warn">Bestellt – Paket auspacken, wo es stehen soll</small>'
               :S.level<u.lvl?`<small>ab Level ${u.lvl}</small>`
               :fehlt?`<small class="warn">braucht „${fehlt.name}“</small>`
               :`<div class="kpreis">${eur(cost)}</div><div class="steps"><button data-a="up" data-t="${u.id}" ${S.money<cost?'disabled':''}>kaufen</button></div>`)+'</div>';
@@ -1103,7 +1105,17 @@ function buyUp(id){
     toast(`${u.name} setzt „${v?v.name:u.req}“ voraus.`,'bad'); return; }
   const cost=u.cost();
   if(S.money<cost){ toast(`${u.name} kostet ${eur(cost)} — dir fehlen ${eur(r2(cost-S.money))}.`,'bad'); return; }
+  if(S.einbauBestellt&&S.einbauBestellt[id]){ toast(`${u.name} ist schon bestellt und kommt mit der nächsten Lieferung.`); return; }
   S.money=r2(S.money-cost); DS.upgrades=r2(DS.upgrades+cost);
+  /* Kassen kommen wie Regale als Paket: erst wenn man sie aufstellt,
+     sind sie da (Tom, 26.09.) */
+  if(EINBAU[id]){
+    (S.einbauBestellt||(S.einbauBestellt={}))[id]=true;
+    pending.push({einbau:id,t:lieferSek()*evv('delay'),sup:'fachhandel'});
+    sfx.cash(); S.tut.order=true;
+    toast(zoneOffen('lager')?`${u.name} bestellt. Das Paket kommt mit dem nächsten LKW an die Rampe.`:`${u.name} bestellt. Das Paket kommt vor die Ladentür.`,'money');
+    save(); return;
+  }
   if(id.indexOf('shelf_')===0){ const k=id.slice(6); createShelf(shelves.length,{kind:k}); S.tut.shelf=true; toast(`${SHELFKIND[k].name} steht im Laden.`); }
   else if(id==='rack'||id.indexOf('rack_')===0){
     const k=id==='rack'?'standard':id.slice(5);
@@ -1132,7 +1144,7 @@ function buyUp(id){
       addXP(Math.round(cost/12),'Ausbau'); sfx.cash(); save(); return;
     }
     if(id==='onlineshop'){ drawPackSchild(); }
-    if(id==='kasse2'){ setSB(true); toast('Die SB-Kassen stehen. Kunden mit wenig Ware bedienen sich jetzt selbst.','money'); }
+
     if(id==='gravur'){ buildGravur(null); toast('Der Gravur-Automat steht. Blanko-Raketen bei Mertens bestellen.'); }
     else if(id==='grosskunden') toast('Eintrag ist online. Veranstalter rufen jetzt an.');
     else if(id==='plakat') toast('Plakate hängen. Mehr Kunden ab sofort.');

@@ -260,6 +260,9 @@ const UPGRADES=[
   {id:'packstation',kat:'flaeche',lvl:16,req:'lager_gross',name:'Packstation für den Versand',desc:'Packtisch, Waage, Etikettendrucker und Abholrampe im ersten Abschnitt der großen Halle, gleich hinter dem Rolltor. Zusammen mit dem Onlineshop kommen Bestellungen als echte Pakete herein: packen, auf die Rampe stellen, DDL holt am Abend ab.',cost:()=>6400,done:()=>S.up.packstation},
   {id:'eingang2',kat:'flaeche',lvl:25,req:'shop_ost',name:'Ladenerweiterung 5 – zweite Tür mit Kasse',desc:'Im Eckhaus ist die mittlere Achse bis zum Boden offen und wartet auf eine Tür. Der Ausbau setzt dieselbe Schiebetür wie am Haupteingang hinein, mit Vordach und Matte, und stellt dahinter eine eigene SB-Kassenzeile auf. Kunden nehmen ab jetzt den Eingang, der näher liegt, und die Schlange am Band wird spürbar kürzer. Die Kassenzeile lässt sich im Umbaumodus verschieben.',cost:()=>11500,done:()=>S.up.eingang2},
   {id:'kasse2',kat:'einr',lvl:16,req:'shop_gross',name:'SB-Kassen',desc:'Zwei Selbstbedienungsterminals in der neuen Verkaufsfläche. Kunden mit wenig Ware zahlen dort selbst, das entlastet deine Schlange spürbar.',cost:()=>3400,done:()=>S.up.kasse2},
+  /* Die Kassenzeile am zweiten Eingang kam frueher mit der Tuer mit.
+     Jetzt ist sie ein eigener Kauf ab Level 25 und kommt als Paket. */
+  {id:'kasse3',kat:'einr',lvl:25,req:'eingang2',name:'SB-Kassen Eingang 2',desc:'Zwei Selbstbedienungsterminals mit Kassenzeile direkt am zweiten Eingang. Kommt als Paket - an den Eingang tragen und auspacken.',cost:()=>3800,done:()=>S.up.kasse3},
   {id:'labor',kat:'flaeche',lvl:20,req:'shop_gross',kap:5,name:'Entwicklungslabor',desc:'Ein Labortisch im Lager. Ab hier entwickelst du eigene Rezepturen: Träger, Bruchbild und Farben aussuchen, Prototyp auf dem Testfeld zünden, in Produktion geben. Verbauen darfst du nur Bruchbilder, die du selbst schon am Himmel gesehen hast.',cost:()=>9800,done:()=>S.up.labor},
   {id:'labor2',kat:'einr',lvl:28,req:'labor',name:'Zweite Zündstufe',desc:'Erweitert das Labor um eine zweite Stufe im Rezept: Nach dem Hauptbruch geht ein zweites Bruchbild auf. Der größte einzelne Sprung im Wert einer Rezeptur.',cost:()=>16500,done:()=>S.up.labor2},
   {id:'gravur',kat:'einr',lvl:9,name:'Gravur-Automat',desc:'Kunden beschriften ihre eigene Rakete. Hohe Marge, du musst nur Blanko-Ware nachfüllen.',cost:()=>1200,done:()=>S.up.gravur}
@@ -290,8 +293,8 @@ const STAFF=[
      auch volle Koerbe und kassiert gut doppelt so schnell. */
   {id:'kassierer2',kurz:'Kasse 2',lvl:16,req:'kasse2',name:'Kassierer an SB-Kasse 1',desc:'Besetzt die erste SB-Kasse in der Erweiterung. Dort zahlen dann auch Kunden mit vollem Korb, und es geht gut doppelt so schnell.',hire:600,wage:140},
   {id:'kassierer3',kurz:'Kasse 3',lvl:17,req:'kasse2',name:'Kassierer an SB-Kasse 2',desc:'Besetzt die zweite SB-Kasse in der Erweiterung.',hire:600,wage:140},
-  {id:'kassierer4',kurz:'Kasse 4',lvl:24,req:'eingang2',name:'Kassierer am zweiten Eingang 1',desc:'Besetzt die erste Kasse am zweiten Eingang.',hire:650,wage:145},
-  {id:'kassierer5',kurz:'Kasse 5',lvl:25,req:'eingang2',name:'Kassierer am zweiten Eingang 2',desc:'Besetzt die zweite Kasse am zweiten Eingang. Damit sind alle fünf Kassen besetzt.',hire:650,wage:145},
+  {id:'kassierer4',kurz:'Kasse 4',lvl:25,req:'kasse3',name:'Kassierer am zweiten Eingang 1',desc:'Besetzt die erste Kasse am zweiten Eingang.',hire:650,wage:145},
+  {id:'kassierer5',kurz:'Kasse 5',lvl:25,req:'kasse3',name:'Kassierer am zweiten Eingang 2',desc:'Besetzt die zweite Kasse am zweiten Eingang. Damit sind alle fünf Kassen besetzt.',hire:650,wage:145},
   {id:'security',lvl:13,name:'Sicherheitsdienst',desc:'Hält Diebe im Laden auf, bevor sie rauskommen.',hire:800,wage:190},
   {id:'packer',lvl:18,req:'packstation',name:'Versandmitarbeiter',desc:'Schiebt einen Kommissionierwagen mit sechs Fächern durchs Lager – fehlt dort etwas, durch den Laden –, legt jede Onlinebestellung Stück für Stück in ihren Karton, klebt am Packtisch zu und stapelt die Pakete für DDL.',hire:700,wage:165}
 ];

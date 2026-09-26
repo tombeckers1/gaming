@@ -82,7 +82,8 @@ function updateWBays(dt){
       if(b.t<=0){
         b.t=WBAY_TAKT;
         const c=b.cargo.shift();
-        if(c) spawnFloorBox(c.type,P[c.type].box,wbaySlot(b.x,b.n++),c.q||1);
+        if(c&&(c.regal||c.einbau)){ const s=wbaySlot(b.x,b.n++); spawnPaket(c,{x:s.x,z:s.z,ry:0}); }
+        else if(c) spawnFloorBox(c.type,P[c.type].box,wbaySlot(b.x,b.n++),c.q||1);
         if(!b.cargo.length){ b.state='torzu'; b.t=1;
           toast(`Tor ${i+2}: abgeladen. Die Kartons stehen in der Logistikhalle.`,'money'); }
       }

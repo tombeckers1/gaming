@@ -197,6 +197,7 @@ function updateTarget(){
   const R=5.5;
   const list=[];
   floorBoxes.forEach(b=>{ if(nahDran(b.mesh.position,R)) list.push(b.mesh); });
+  einbauPakete.forEach(b=>{ if(nahDran(b.mesh.position,R)) list.push(b.mesh); });
   shelves.forEach(sh=>{ if(nahDran(sh.g.position,R)) sh.levels.forEach(l=>list.push(l.hit)); });
   dirts.forEach(d=>{ if(nahDran(d.m.position,R)) list.push(d.hit); });
   racks.forEach(r=>{ if(nahDran(r.g.position,R)) r.slots.forEach(s=>list.push(s.hit)); });
@@ -220,17 +221,20 @@ function promptFor(t){
   switch(t.kind){
     case 'placing': return {t:spotFree(grabbed,grabbed.g.position.x,grabbed.g.position.z,grabRy)?'Absetzen':'Hier ist kein Platz',a:true};
     case 'movable': return {t:`Verschieben: ${t.ref.name}`,a:true};
-    case 'box': if(c&&karreAn()&&!c.regal) return karreVoll()?{t:'Die Karre ist voll',a:false}:{t:`Auf die Karre: ${P[t.ref.type].name} (${karreLast()}/${KARREN[karreArt()].cap})`,a:true};
+    case 'box': if(c&&karreAn()&&!c.regal&&!c.einbau) return karreVoll()?{t:'Die Karre ist voll',a:false}:{t:`Auf die Karre: ${P[t.ref.type].name} (${karreLast()}/${KARREN[karreArt()].cap})`,a:true};
       return c?{t:'Du trägst schon einen Karton',a:false}:{t:`Aufheben: ${P[t.ref.type].name} (${t.ref.count} Stück)`,a:true};
+    case 'paket': return c?{t:'Du trägst schon etwas',a:false}:{t:`Paket aufheben: ${paketName(t.ref)}`,a:true};
     case 'dirt': return {t:'Sauber machen (halten)',a:true};
     case 'window': { const v=Math.round(windowGrime()*100); return v<3?{t:'Schaufenster ist sauber',a:false}:{t:`Scheiben putzen (halten) · ${v} % blind`,a:true}; }
     case 'level': { const lv=t.ref;
+      if(c&&(c.regal||c.einbau)) return {t:'Paket: am Boden abstellen oder am Stellplatz auspacken',a:false};
       if(c){ if(lv.type&&lv.type!==c.type) return {t:`Fach mit ${P[lv.type].short}`,a:false};
         const cp=capOf(lv,c.type); if(lv.count>=cp) return {t:'Fach ist voll',a:false};
         return {t:`Einräumen: ${P[c.type].short} ${lv.count}/${cp}`,a:true}; }
       return {t:lv.type?`${P[lv.type].short}: ${lv.count}/${capOf(lv)} für ${eur(S.prices[lv.type])}`:'Leeres Fach',a:false}; }
     case 'rslot': { const sl=t.ref;
-      if(c) return sl.box?(karreAn()&&!c.regal&&!karreVoll()?{t:'Auf die Karre laden',a:true}:{t:'Platz ist belegt',a:false}):{t:'Karton einlagern',a:true};
+      if(c&&(c.regal||c.einbau)) return {t:'Paket: am Boden abstellen',a:false};
+      if(c) return sl.box?(karreAn()&&!c.regal&&!c.einbau&&!karreVoll()?{t:'Auf die Karre laden',a:true}:{t:'Platz ist belegt',a:false}):{t:'Karton einlagern',a:true};
       return sl.box?{t:`Karton nehmen: ${P[sl.box.type].name} (${sl.box.count})`,a:true}:{t:'Freier Lagerplatz',a:false}; }
     case 'belt': return {t:`Scannen: ${P[t.ref.type].short} ${eur(t.ref.price)}`,a:true};
     case 'card': return reg&&reg.state==='pay'&&reg.method==='card'?{t:'Kartenzahlung abschließen',a:true}:{t:'Kartenterminal',a:false};
@@ -264,9 +268,10 @@ function promptFor(t){
       return gravBlanks>0?{t:'Eigene Rakete beschriften',a:true}:{t:'Automat leer: Blanko nachfüllen',a:false}; }
     case 'tbox': {
       const it=t.ref, n=truckLeft();
-      if(c&&karreAn()&&!c.regal&&!it.regal) return karreVoll()?{t:'Die Karre ist voll',a:false}:{t:`Auf die Karre: ${P[it.type].name} (${karreLast()}/${KARREN[karreArt()].cap})`,a:true};
+      const pk=it.regal||it.einbau;
+      if(c&&karreAn()&&!c.regal&&!c.einbau&&!pk) return karreVoll()?{t:'Die Karre ist voll',a:false}:{t:`Auf die Karre: ${P[it.type].name} (${karreLast()}/${KARREN[karreArt()].cap})`,a:true};
       if(c) return {t:`Noch ${n} Karton${n>1?'e':''} im Laderaum`,a:false};
-      return {t:`Aufheben: ${P[it.type].name} (${P[it.type].box} Stück)`,a:true}; }
+      return pk?{t:`Paket aufheben: ${paketName(it)}`,a:true}:{t:`Aufheben: ${P[it.type].name} (${P[it.type].box} Stück)`,a:true}; }
     case 'sign': return phase==='closed'?{t:'Schild umdrehen: Laden öffnen',a:true}:phase==='after'?{t:'Tag beenden',a:true}:{t:phase==='open'?'Geöffnet bis 22 Uhr':'Letzte Kunden im Laden',a:false};
   }
   return null;
@@ -279,6 +284,8 @@ function doAction(){
   const k=target.kind, r=target.ref, reg=regCustomer();
   if(k==='placing') placeGrab();
   else if(k==='movable') grab(r);
+  else if(k==='paket') paketAufheben(r);
+  else if(S.carrying&&(S.carrying.regal||S.carrying.einbau)&&(k==='level'||k==='rslot'||k==='box')){ toast('Ein Paket stellt man auf den Boden: mit „Ablegen“ abstellen oder am Stellplatz auspacken.','bad'); }
   else if(k==='box'){ if(S.carrying&&!karreNimmt()){ toast(karreVoll()?'Die Karre ist voll. Erst etwas abladen.':'Du trägst schon einen Karton. Erst abstellen.','bad'); return; } pickUp(r); }
   else if(k==='level'){ if(S.carrying) stockOne(r); }
   else if(k==='dirt') cleanTick(r,true);

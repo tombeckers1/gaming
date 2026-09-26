@@ -83,17 +83,24 @@ function buildSBKasse2(){
   /* Die beiden Terminals gehoeren zur Gruppe und wandern beim
      Verschieben mit; sbPos() fragt spaeter die Weltposition ab. */
   for(const x of [-0.9,0.9]){
-    const l=sbTerminal(sb2G,x,0.0); l.up='eingang2'; sbLanes.push(l);
+    const l=sbTerminal(sb2G,x,0.0); l.up='kasse3'; sbLanes.push(l);
   }
   /* Die Kollision der ganzen Zeile setzt addMovable selbst und
      zieht sie beim Verschieben nach. */
   sb2Mov=addMovable({kind:'sb2',name:'Kasse Eingang 2',g:sb2G,fw:3.8,fd:1.7,ref:null});
   return sb2G;
 }
-function setEingang2(an){
+/* Die SB-Kassen am zweiten Eingang kommen nicht mehr mit der Tuer:
+   sie werden eigens gekauft, als Paket geliefert und aufgestellt
+   (Tom, 26.09.) */
+function setSB2(an){
   if(an){ buildSBKasse2(); if(sb2G) sb2G.visible=true; if(sb2Mov) applyFootprint(sb2Mov); }
   else if(sb2G){ sb2G.visible=false; if(sb2Mov&&sb2Mov.col){ dropCol(sb2Mov.col); sb2Mov.col=null; } }
-  sbLanes.forEach(l=>{ if(l.up==='eingang2'){ l.busy=null; sbLampe(l,true); } });
+  sbLanes.forEach(l=>{ if(l.up==='kasse3'){ l.busy=null; sbLampe(l,true); } });
+  if(typeof navDirty==='function') navDirty();
+}
+function setEingang2(an){
+  setSB2(!!(an&&S&&S.up&&S.up.kasse3));
   if(typeof navDirty==='function') navDirty();
 }
 /* Wie viele SB-Terminals stehen dem Kunden gerade offen? */

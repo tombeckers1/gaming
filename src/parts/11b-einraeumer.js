@@ -46,13 +46,13 @@ function einrJob(w){
   const andere=[staff.auffueller,staff.auffueller2,staff.packer].filter(o=>o&&o!==w);
   const belegt=x=>andere.some(o=>o.src&&(o.src.box===x||o.src.slot===x));
   const res=t=>typeof reservedType==='function'&&reservedType(t);
-  const lkwDa=typeof truck!=='undefined'&&truck&&truck.state==='docked'&&truck.cargo.some(c=>!c.regal);
+  const lkwDa=typeof truck!=='undefined'&&truck&&truck.state==='docked'&&truck.cargo.some(c=>!c.regal&&!c.einbau);
   for(const a of einrAktiv(w.id)){
     if(a==='regal'){
       for(const b of floorBoxes){ if(!b.test&&!belegt(b)&&!res(b.type)&&emptyLevel(b.type)) return {box:b,kind:'floor'}; }
       for(const r of racks) for(const s of r.slots){ if(s.box&&!belegt(s)&&!res(s.box.type)&&emptyLevel(s.box.type)) return {slot:s,kind:'rack'}; }
     } else if(a==='direkt'&&lkwDa){
-      const c=truck.cargo.find(c=>!c.regal&&emptyLevel(c.type));
+      const c=truck.cargo.find(c=>!c.regal&&!c.einbau&&emptyLevel(c.type));
       if(c) return {kind:'truck',direkt:true,typ:c.type};
     } else if(a==='lager'&&lkwDa) return {kind:'truck'};
   }
@@ -60,7 +60,7 @@ function einrJob(w){
 }
 function pullFromTruckTyp(t){
   if(!truck||truck.state!=='docked') return null;
-  const i=truck.cargo.findIndex(c=>!c.regal&&c.type===t); if(i<0) return pullFromTruck();
+  const i=truck.cargo.findIndex(c=>!c.regal&&!c.einbau&&c.type===t); if(i<0) return pullFromTruck();
   const c=truck.cargo.splice(i,1)[0]; fillCargo();
   return {type:c.type,count:P[c.type].box,q:c.q||1};
 }

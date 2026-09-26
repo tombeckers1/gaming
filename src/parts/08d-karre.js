@@ -22,7 +22,7 @@ function karreTempo(){ return karreAn()?KARREN[karreArt()].tempo:1; }
    Stapel. Regalpakete passen nicht auf die Karre. */
 function karreNimmt(neuRegal){
   if(!karreAn()||!S.carrying) return false;
-  if(neuRegal||S.carrying.regal||S.carrying.type==='gravur') return false;
+  if(neuRegal||S.carrying.regal||S.carrying.einbau||S.carrying.type==='gravur') return false;
   if(karreLast()>=KARREN[karreArt()].cap) return false;
   karreStapel().push(S.carrying); S.carrying=null; return true;
 }
@@ -42,7 +42,7 @@ function toggleKarre(){
     if(S.karre.stapel.length){ toast('Erst die Kartons von der Karre abladen.','bad'); return; }
     S.karre.an=false; toast(`${KARREN[art].name} weggestellt.`);
   } else {
-    if(S.carrying&&(S.carrying.regal||S.carrying.type==='gravur')){ toast('Das passt nicht auf die Karre.','bad'); return; }
+    if(S.carrying&&(S.carrying.regal||S.carrying.einbau||S.carrying.type==='gravur')){ toast('Das passt nicht auf die Karre.','bad'); return; }
     S.karre.an=true; toast(`${KARREN[art].name}: ${KARREN[art].cap} Kartons auf einmal. K stellt sie weg.`);
   }
   sfx.pop(); updateCarry();

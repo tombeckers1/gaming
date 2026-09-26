@@ -903,6 +903,9 @@ const UPGRADES=[
   {id:'packstation',kat:'flaeche',lvl:16,req:'lager_gross',name:'Packstation für den Versand',desc:'Packtisch, Waage, Etikettendrucker und Abholrampe im ersten Abschnitt der großen Halle, gleich hinter dem Rolltor. Zusammen mit dem Onlineshop kommen Bestellungen als echte Pakete herein: packen, auf die Rampe stellen, DDL holt am Abend ab.',cost:()=>6400,done:()=>S.up.packstation},
   {id:'eingang2',kat:'flaeche',lvl:25,req:'shop_ost',name:'Ladenerweiterung 5 – zweite Tür mit Kasse',desc:'Im Eckhaus ist die mittlere Achse bis zum Boden offen und wartet auf eine Tür. Der Ausbau setzt dieselbe Schiebetür wie am Haupteingang hinein, mit Vordach und Matte, und stellt dahinter eine eigene SB-Kassenzeile auf. Kunden nehmen ab jetzt den Eingang, der näher liegt, und die Schlange am Band wird spürbar kürzer. Die Kassenzeile lässt sich im Umbaumodus verschieben.',cost:()=>11500,done:()=>S.up.eingang2},
   {id:'kasse2',kat:'einr',lvl:16,req:'shop_gross',name:'SB-Kassen',desc:'Zwei Selbstbedienungsterminals in der neuen Verkaufsfläche. Kunden mit wenig Ware zahlen dort selbst, das entlastet deine Schlange spürbar.',cost:()=>3400,done:()=>S.up.kasse2},
+  /* Die Kassenzeile am zweiten Eingang kam frueher mit der Tuer mit.
+     Jetzt ist sie ein eigener Kauf ab Level 25 und kommt als Paket. */
+  {id:'kasse3',kat:'einr',lvl:25,req:'eingang2',name:'SB-Kassen Eingang 2',desc:'Zwei Selbstbedienungsterminals mit Kassenzeile direkt am zweiten Eingang. Kommt als Paket - an den Eingang tragen und auspacken.',cost:()=>3800,done:()=>S.up.kasse3},
   {id:'labor',kat:'flaeche',lvl:20,req:'shop_gross',kap:5,name:'Entwicklungslabor',desc:'Ein Labortisch im Lager. Ab hier entwickelst du eigene Rezepturen: Träger, Bruchbild und Farben aussuchen, Prototyp auf dem Testfeld zünden, in Produktion geben. Verbauen darfst du nur Bruchbilder, die du selbst schon am Himmel gesehen hast.',cost:()=>9800,done:()=>S.up.labor},
   {id:'labor2',kat:'einr',lvl:28,req:'labor',name:'Zweite Zündstufe',desc:'Erweitert das Labor um eine zweite Stufe im Rezept: Nach dem Hauptbruch geht ein zweites Bruchbild auf. Der größte einzelne Sprung im Wert einer Rezeptur.',cost:()=>16500,done:()=>S.up.labor2},
   {id:'gravur',kat:'einr',lvl:9,name:'Gravur-Automat',desc:'Kunden beschriften ihre eigene Rakete. Hohe Marge, du musst nur Blanko-Ware nachfüllen.',cost:()=>1200,done:()=>S.up.gravur}
@@ -933,8 +936,8 @@ const STAFF=[
      auch volle Koerbe und kassiert gut doppelt so schnell. */
   {id:'kassierer2',kurz:'Kasse 2',lvl:16,req:'kasse2',name:'Kassierer an SB-Kasse 1',desc:'Besetzt die erste SB-Kasse in der Erweiterung. Dort zahlen dann auch Kunden mit vollem Korb, und es geht gut doppelt so schnell.',hire:600,wage:140},
   {id:'kassierer3',kurz:'Kasse 3',lvl:17,req:'kasse2',name:'Kassierer an SB-Kasse 2',desc:'Besetzt die zweite SB-Kasse in der Erweiterung.',hire:600,wage:140},
-  {id:'kassierer4',kurz:'Kasse 4',lvl:24,req:'eingang2',name:'Kassierer am zweiten Eingang 1',desc:'Besetzt die erste Kasse am zweiten Eingang.',hire:650,wage:145},
-  {id:'kassierer5',kurz:'Kasse 5',lvl:25,req:'eingang2',name:'Kassierer am zweiten Eingang 2',desc:'Besetzt die zweite Kasse am zweiten Eingang. Damit sind alle fünf Kassen besetzt.',hire:650,wage:145},
+  {id:'kassierer4',kurz:'Kasse 4',lvl:25,req:'kasse3',name:'Kassierer am zweiten Eingang 1',desc:'Besetzt die erste Kasse am zweiten Eingang.',hire:650,wage:145},
+  {id:'kassierer5',kurz:'Kasse 5',lvl:25,req:'kasse3',name:'Kassierer am zweiten Eingang 2',desc:'Besetzt die zweite Kasse am zweiten Eingang. Damit sind alle fünf Kassen besetzt.',hire:650,wage:145},
   {id:'security',lvl:13,name:'Sicherheitsdienst',desc:'Hält Diebe im Laden auf, bevor sie rauskommen.',hire:800,wage:190},
   {id:'packer',lvl:18,req:'packstation',name:'Versandmitarbeiter',desc:'Schiebt einen Kommissionierwagen mit sechs Fächern durchs Lager – fehlt dort etwas, durch den Laden –, legt jede Onlinebestellung Stück für Stück in ihren Karton, klebt am Packtisch zu und stapelt die Pakete für DDL.',hire:700,wage:165}
 ];
@@ -7944,17 +7947,24 @@ function buildSBKasse2(){
   /* Die beiden Terminals gehoeren zur Gruppe und wandern beim
      Verschieben mit; sbPos() fragt spaeter die Weltposition ab. */
   for(const x of [-0.9,0.9]){
-    const l=sbTerminal(sb2G,x,0.0); l.up='eingang2'; sbLanes.push(l);
+    const l=sbTerminal(sb2G,x,0.0); l.up='kasse3'; sbLanes.push(l);
   }
   /* Die Kollision der ganzen Zeile setzt addMovable selbst und
      zieht sie beim Verschieben nach. */
   sb2Mov=addMovable({kind:'sb2',name:'Kasse Eingang 2',g:sb2G,fw:3.8,fd:1.7,ref:null});
   return sb2G;
 }
-function setEingang2(an){
+/* Die SB-Kassen am zweiten Eingang kommen nicht mehr mit der Tuer:
+   sie werden eigens gekauft, als Paket geliefert und aufgestellt
+   (Tom, 26.09.) */
+function setSB2(an){
   if(an){ buildSBKasse2(); if(sb2G) sb2G.visible=true; if(sb2Mov) applyFootprint(sb2Mov); }
   else if(sb2G){ sb2G.visible=false; if(sb2Mov&&sb2Mov.col){ dropCol(sb2Mov.col); sb2Mov.col=null; } }
-  sbLanes.forEach(l=>{ if(l.up==='eingang2'){ l.busy=null; sbLampe(l,true); } });
+  sbLanes.forEach(l=>{ if(l.up==='kasse3'){ l.busy=null; sbLampe(l,true); } });
+  if(typeof navDirty==='function') navDirty();
+}
+function setEingang2(an){
+  setSB2(!!(an&&S&&S.up&&S.up.kasse3));
   if(typeof navDirty==='function') navDirty();
 }
 /* Wie viele SB-Terminals stehen dem Kunden gerade offen? */
@@ -8463,6 +8473,8 @@ function setSB(an){
   else if(sbG){ sbG.visible=false; sbCols.forEach(c=>dropCol(c)); }
   sbLanes.forEach(l=>{ if(!l.up){ l.busy=null; sbLampe(l,true); } });
 }
+/* Wohin das SB-Kassenpaket getragen wird: vor die Kassenzeile */
+function sbZiel(){ return {x:10.6,z:2.8}; }
 /* Anlaufpunkt vor einem SB-Terminal. Die Zeile am zweiten Eingang
    haengt in einer verschobenen und drehbaren Gruppe - die lokale
    Position des Terminals ist dort nicht die Weltposition. */
@@ -9289,7 +9301,7 @@ function wischerPersonal(w,dt){
 const floorBoxes=[], pending=[];
 const DSLOTS=[]; for(let r=0;r<2;r++) for(let c=0;c<4;c++) DSLOTS.push({x:-19.3+c*0.95,z:-3.5+r*0.9});
 /* Ohne Lager kommen die Kartons auf die Warenannahme vor der Tuer */
-function freeSlot(){ const L=(typeof zoneOffen==='function'&&!zoneOffen('lager')&&typeof WA_SLOTS!=='undefined')?WA_SLOTS:DSLOTS; let best=L[0],bn=99; for(const s of L){ const n=floorBoxes.filter(b=>Math.abs(b.mesh.position.x-s.x)<0.25&&Math.abs(b.mesh.position.z-s.z)<0.25).length; if(n<bn){ bn=n; best=s; } } return {x:best.x,y:0.2+bn*0.41,z:best.z,ry:rand(-0.08,0.08)}; }
+function freeSlot(){ const L=(typeof zoneOffen==='function'&&!zoneOffen('lager')&&typeof WA_SLOTS!=='undefined')?WA_SLOTS:DSLOTS; let best=L[0],bn=99; for(const s of L){ const n=floorBoxes.concat(einbauPakete).filter(b=>Math.abs(b.mesh.position.x-s.x)<0.25&&Math.abs(b.mesh.position.z-s.z)<0.25).length; if(n<bn){ bn=n; best=s; } } return {x:best.x,y:0.2+bn*0.41,z:best.z,ry:rand(-0.08,0.08)}; }
 function spawnFloorBox(type,count,pos,q){
   pos=pos||freeSlot();
   const m=new THREE.Mesh(kartonGeo,kartonMat[type]); m.position.set(pos.x,pos.y,pos.z); m.rotation.y=pos.ry||0; if(HIQ){ m.castShadow=true; m.receiveShadow=true; } scene.add(m);
@@ -9304,19 +9316,24 @@ carryMesh.position.set(0.34,-0.4,-0.82); carryMesh.rotation.set(0.12,-0.28,0); c
 let carryGrav=null;
 let carryRegal=null;
 function updateCarry(){
-  const c=S&&S.carrying, uniq=!!(c&&c.type==='gravur'), reg=!!(c&&c.regal);
+  const c=S&&S.carrying, uniq=!!(c&&c.type==='gravur'), reg=!!(c&&(c.regal||c.einbau));
   carryMesh.visible=!!c&&!uniq&&!reg&&!karreAn(); if(c&&!uniq&&!reg) carryMesh.material=kartonMat[c.type];
   if(carryGrav){ camera.remove(carryGrav); disposeEngraved(carryGrav); carryGrav=null; }
   if(uniq){ carryGrav=makeEngraved(c.text||''); carryGrav.position.set(0.3,-0.3,-0.65); carryGrav.rotation.set(0.1,-0.5,0.35); camera.add(carryGrav); }
   /* Das Regalpaket ist laenger als ein Karton und wird quer getragen */
+  /* Das Paket traegt man vor sich wie einen Umzugskarton - in seiner
+     echten Groesse, nicht quer durchs ganze Bild */
+  if(carryRegal&&(!reg||carryRegal.userData.von!==paketName(c))){ camera.remove(carryRegal); carryRegal=null; }
   if(reg&&!carryRegal){
-    carryRegal=new THREE.Mesh(regalPaketGeo(),regalPaketMat());
-    carryRegal.position.set(0.3,-0.42,-0.86); carryRegal.rotation.set(0.1,-1.25,0.06);
-    carryRegal.scale.setScalar(0.8); camera.add(carryRegal);
-  } else if(!reg&&carryRegal){ camera.remove(carryRegal); carryRegal=null; }
+    const M=paketMass(c);
+    carryRegal=new THREE.Mesh(new THREE.BoxGeometry(M[0],M[1],M[2]),regalPaketMat());
+    carryRegal.userData.von=paketName(c);
+    carryRegal.position.set(0.28,-0.3-M[1]*0.3,-0.75-M[2]*0.35); carryRegal.rotation.set(0.1,-0.3,0.04);
+    carryRegal.scale.setScalar(0.62); camera.add(carryRegal);
+  }
   const q=c?qualityLabel(c.q||1):null;
   $('carry').innerHTML=c?(
-      reg?`Regalpaket: ${regalName(c.regal)}`
+      reg?`Paket: ${paketName(c)} · ${COARSE?'Ablegen':'<kbd>Q</kbd>'} am Stellplatz auspacken, sonst abstellen`
     : uniq?`Gravur-Rakete: „${c.text}"`
     : `${P[c.type].name}: noch ${c.count} im Karton${q&&q[0]?` <span class="${q[0]}">(${q[1]})</span>`:''}`)
     +(COARSE?'':`<span style="color:var(--muted)">, <kbd>Q</kbd>${reg?'aufbauen':'abstellen'}</span>`)
@@ -9330,7 +9347,7 @@ function dropBox(){
   const p={x:pl.x-Math.sin(yaw)*0.9,z:pl.z-Math.cos(yaw)*0.9}; collide(p,0.36);
   /* Ein Regalpaket wird nicht abgestellt, sondern aufgebaut - auf
      dem Stellplatz, der von hier aus am naechsten frei ist. */
-  if(c.regal){ if(regalAufbauen(c.regal,p.x,p.z)){ S.carrying=null; updateCarry(); } return; }
+  if(c.regal||c.einbau){ paketAblegen(c,p); return; }
   if(c.type==='gravur'){ S.carrying=null; updateCarry(); toast('Die Gravur-Rakete gehört auf die Abschussrampe.'); return; }
   spawnFloorBox(c.type,c.count,{x:p.x,y:0.2,z:p.z,ry:yaw},c.q);
   S.carrying=null; updateCarry(); sfx.pop();
@@ -9374,6 +9391,62 @@ function regalAufbauen(id,x,z){
   toast(`${K.name} steht.`,'money'); save();
   return true;
 }
+/* =========================================================
+   Einbau-Pakete (Tom, 26.09.): Regale, Kuehlschraenke und Kassen
+   werden geliefert - ohne Lager vor die Ladentuer, mit Lager an die
+   Rampe. Man traegt das Paket dorthin, wo es stehen soll, und packt
+   es mit "Ablegen" aus. Ist dort kein passender Platz, bleibt es als
+   Paket stehen: Pakete lassen sich lagern und spaeter aufbauen.
+   Die Pakete sind so gross wie der Inhalt - Umzugskarton bis
+   Kuehlschrankkarton, keine Riesenkisten.
+   ========================================================= */
+const einbauPakete=[];
+const PAKET_MASS={klein:[0.95,0.2,0.45],standard:[1.2,0.22,0.55],hoch:[1.2,0.26,0.55],kuehl:[0.75,1.2,0.7],
+  gondel:[1.2,0.26,0.6],eck:[1.1,0.24,0.6],gross:[1.25,0.3,0.65],rack:[1.2,0.24,0.5],rhoch:[1.25,0.3,0.55],rschwer:[1.25,0.34,0.6],
+  kasse2:[0.8,0.95,0.6],kasse3:[0.8,0.95,0.6]};
+const EINBAU={
+  kasse2:{name:'SB-Kassen',ziel:()=>typeof sbZiel==='function'?sbZiel():null,weit:5},
+  kasse3:{name:'SB-Kassen Eingang 2',ziel:()=>EING2.x!==null?{x:EING2.x,z:3.5}:null,weit:5}
+};
+function paketName(p){ return p.einbau?EINBAU[p.einbau].name:regalName(p.regal); }
+function paketMass(p){ return PAKET_MASS[p.einbau||p.regal]||[1.2,0.25,0.55]; }
+function spawnPaket(p,pos){
+  const M=paketMass(p), m=new THREE.Mesh(new THREE.BoxGeometry(M[0],M[1],M[2]),regalPaketMat());
+  m.position.set(pos.x,M[1]/2+0.005,pos.z); m.rotation.y=pos.ry||0;
+  if(HIQ){ m.castShadow=true; m.receiveShadow=true; } scene.add(m);
+  const b={regal:p.regal||null,einbau:p.einbau||null,mesh:m}; m.userData={kind:'paket',ref:b};
+  einbauPakete.push(b); return b;
+}
+function removePaket(b){ const i=einbauPakete.indexOf(b); if(i<0) return false; einbauPakete.splice(i,1); scene.remove(b.mesh); return true; }
+function paketAufheben(b){
+  if(S.carrying){ toast('Du trägst schon etwas. Erst abstellen.','bad'); return; }
+  if(!removePaket(b)) return;
+  S.carrying=b.einbau?{einbau:b.einbau}:{regal:b.regal}; sfx.pop(); updateCarry();
+}
+/* Ablegen: nah genug am passenden Platz wird ausgepackt und aufgebaut,
+   sonst steht das Paket einfach da */
+function paketAblegen(c,p){
+  if(c.regal){
+    const r=regalOf(c.regal), K=r&&regalKind(r);
+    const liste=r?(r.art==='rack'?rackPlatzFrei(K):slotsOffen().filter(sl=>slotPasst(K,sl))):[];
+    let bd=1e9; for(const sl of liste) bd=Math.min(bd,Math.hypot(sl.x-p.x,sl.z-p.z));
+    if(bd<=3.2&&regalAufbauen(c.regal,p.x,p.z)){ S.carrying=null; updateCarry(); return; }
+  } else if(c.einbau){
+    const z=EINBAU[c.einbau].ziel();
+    if(z&&Math.hypot(z.x-p.x,z.z-p.z)<=EINBAU[c.einbau].weit){ einbauAufstellen(c.einbau); S.carrying=null; updateCarry(); return; }
+  }
+  spawnPaket(c,{x:p.x,z:p.z,ry:yaw});
+  S.carrying=null; updateCarry(); sfx.pop();
+  toast(c.einbau?`${paketName(c)}: Paket abgestellt. Zum Aufbauen an den Kassenplatz tragen.`
+                :`${paketName(c)}: Paket abgestellt. Zum Aufbauen an einen freien Stellplatz tragen.`);
+}
+/* Kassen aufstellen: jetzt erst wird der Kauf wirksam */
+function einbauAufstellen(id){
+  S.up[id]=true; if(S.einbauBestellt) delete S.einbauBestellt[id];
+  if(id==='kasse2'){ setSB(true); toast('Die SB-Kassen stehen. Kunden mit wenig Ware bedienen sich jetzt selbst.','money'); }
+  if(id==='kasse3'){ setSB2(true); toast('Die SB-Kassen am zweiten Eingang stehen.','money'); }
+  sfx.cash(); addXP(20,'Einbau'); save();
+}
 /* Ein Regal ohne Lieferung aufstellen. Diesen Weg nimmt das Spiel
    selbst nie - er steht fuer die Tests, damit sie einen
    eingerichteten Laden herstellen koennen, ohne jedes Mal den
@@ -9385,6 +9458,9 @@ function regalStellen(id){ return regalAufbauen(id); }
    bleiben. */
 function testKauf(id){
   if(typeof id==='string'&&id.indexOf('REGAL:')===0) return regalStellen(id.slice(6));
+  /* Kassen: wie Regale ohne Lieferweg gleich aufstellen */
+  if(EINBAU[id]){ const vor=pending.length; buyUp(id);
+    if(pending.length>vor&&pending[pending.length-1].einbau===id){ pending.pop(); einbauAufstellen(id); } return; }
   return buyUp(id);
 }
 
@@ -9586,10 +9662,11 @@ function fillCargo(){
     const s=cargoSlot(i);
     /* Ein Regal kommt flach verpackt: ein langes schmales Paket,
        kein Karton. So sieht man im Laderaum sofort, was drin ist. */
-    const m=c.regal
-      ? new THREE.Mesh(regalPaketGeo(),regalPaketMat())
+    const pk=c.regal||c.einbau, M=pk?paketMass(c):null;
+    const m=pk
+      ? new THREE.Mesh(new THREE.BoxGeometry(M[0],M[1],M[2]),regalPaketMat())
       : new THREE.Mesh(kartonGeo,kartonMat[c.type]);
-    m.position.set(s.x,c.regal?0.12+Math.floor(i/16)*0.42:s.y,s.z);
+    m.position.set(s.x,pk?M[1]/2+0.02+Math.floor(i/16)*0.42:s.y,s.z);
     m.rotation.y=rand(-0.07,0.07);
     if(HIQ){ m.castShadow=true; m.receiveShadow=true; }
     m.userData={kind:'tbox',ref:c};
@@ -9715,10 +9792,10 @@ function regalPaketMat(){
 function takeBox(item){ statAdd('kartons',1);
 
   if(!truck||truck.state!=='docked') return;
-  if(S.carrying&&!karreNimmt(!!item.regal)){ toast(karreVoll()?'Die Karre ist voll. Erst abladen.':'Du hast schon etwas auf dem Arm.'); return; }
+  if(S.carrying&&!karreNimmt(!!(item.regal||item.einbau))){ toast(karreVoll()?'Die Karre ist voll. Erst abladen.':'Du hast schon etwas auf dem Arm.'); return; }
   const i=truck.cargo.indexOf(item); if(i<0) return;
   truck.cargo.splice(i,1);
-  S.carrying=item.regal?{regal:item.regal}:{type:item.type,count:P[item.type].box,q:item.q||1};
+  S.carrying=item.regal?{regal:item.regal}:item.einbau?{einbau:item.einbau}:{type:item.type,count:P[item.type].box,q:item.q||1};
   S.tut.pick=true; sfx.pop(); fillCargo(); updateCarry();
   if(!truck.cargo.length) toast('Laderaum leer. Geh raus, dann fährt er los.');
 }
@@ -9727,13 +9804,13 @@ function takeFromTruck(){ if(truck&&truck.cargo.length) takeBox(truck.cargo[0]);
    an der Rampe auf. Ist kein Stellplatz frei, geht es zurueck an den
    Lieferanten - sonst stuende der LKW bis in alle Ewigkeit da. */
 function regalAusladen(c){
-  if(regalAufbauen(c.regal,DOCK.stand.x,DOCK.stand.z)) return;
-  S.money=r2(S.money+regalPreis(c.regal));
-  toast(`${regalName(c.regal)}: kein Stellplatz frei, der Fahrer nimmt es wieder mit.`,'bad');
+  /* Pakete werden an der Rampe abgestellt, nicht aufgebaut - das macht
+     man selbst dort, wo das Regal stehen soll (Tom, 26.09.) */
+  spawnPaket(c,{x:DOCK.stand.x+rand(-0.8,0.8),z:DOCK.stand.z+rand(-0.8,0.8),ry:rand(-0.4,0.4)});
 }
 function pullFromTruck(){
   if(!truck||truck.state!=='docked'||!truck.cargo.length) return null;
-  while(truck.cargo.length&&truck.cargo[0].regal){ regalAusladen(truck.cargo.shift()); fillCargo(); }
+  while(truck.cargo.length&&(truck.cargo[0].regal||truck.cargo[0].einbau)){ regalAusladen(truck.cargo.shift()); fillCargo(); }
   if(!truck.cargo.length) return null;
   const c=truck.cargo.shift(); fillCargo();
   return {type:c.type,count:P[c.type].box,q:c.q||1};
@@ -9741,7 +9818,7 @@ function pullFromTruck(){
 function dumpTruck(){
   if(!truck) return;
   const n=truck.cargo.length;
-  truck.cargo.forEach(c=>{ if(c.regal) regalAusladen(c); else spawnFloorBox(c.type,P[c.type].box,null,c.q||1); });
+  truck.cargo.forEach(c=>{ if(c.regal||c.einbau) regalAusladen(c); else spawnFloorBox(c.type,P[c.type].box,null,c.q||1); });
   truck.cargo.length=0;
   if(n) toast(`Der Fahrer hat ${n} Karton${n>1?'s':''} im Lager abgestellt.`);
   if(truck.state==='docked') leaveTruck(); else removeTruck();
@@ -9878,7 +9955,8 @@ function updateWBays(dt){
       if(b.t<=0){
         b.t=WBAY_TAKT;
         const c=b.cargo.shift();
-        if(c) spawnFloorBox(c.type,P[c.type].box,wbaySlot(b.x,b.n++),c.q||1);
+        if(c&&(c.regal||c.einbau)){ const s=wbaySlot(b.x,b.n++); spawnPaket(c,{x:s.x,z:s.z,ry:0}); }
+        else if(c) spawnFloorBox(c.type,P[c.type].box,wbaySlot(b.x,b.n++),c.q||1);
         if(!b.cargo.length){ b.state='torzu'; b.t=1;
           toast(`Tor ${i+2}: abgeladen. Die Kartons stehen in der Logistikhalle.`,'money'); }
       }
@@ -9918,7 +9996,7 @@ function karreTempo(){ return karreAn()?KARREN[karreArt()].tempo:1; }
    Stapel. Regalpakete passen nicht auf die Karre. */
 function karreNimmt(neuRegal){
   if(!karreAn()||!S.carrying) return false;
-  if(neuRegal||S.carrying.regal||S.carrying.type==='gravur') return false;
+  if(neuRegal||S.carrying.regal||S.carrying.einbau||S.carrying.type==='gravur') return false;
   if(karreLast()>=KARREN[karreArt()].cap) return false;
   karreStapel().push(S.carrying); S.carrying=null; return true;
 }
@@ -9938,7 +10016,7 @@ function toggleKarre(){
     if(S.karre.stapel.length){ toast('Erst die Kartons von der Karre abladen.','bad'); return; }
     S.karre.an=false; toast(`${KARREN[art].name} weggestellt.`);
   } else {
-    if(S.carrying&&(S.carrying.regal||S.carrying.type==='gravur')){ toast('Das passt nicht auf die Karre.','bad'); return; }
+    if(S.carrying&&(S.carrying.regal||S.carrying.einbau||S.carrying.type==='gravur')){ toast('Das passt nicht auf die Karre.','bad'); return; }
     S.karre.an=true; toast(`${KARREN[art].name}: ${KARREN[art].cap} Kartons auf einmal. K stellt sie weg.`);
   }
   sfx.pop(); updateCarry();
@@ -11156,13 +11234,13 @@ function einrJob(w){
   const andere=[staff.auffueller,staff.auffueller2,staff.packer].filter(o=>o&&o!==w);
   const belegt=x=>andere.some(o=>o.src&&(o.src.box===x||o.src.slot===x));
   const res=t=>typeof reservedType==='function'&&reservedType(t);
-  const lkwDa=typeof truck!=='undefined'&&truck&&truck.state==='docked'&&truck.cargo.some(c=>!c.regal);
+  const lkwDa=typeof truck!=='undefined'&&truck&&truck.state==='docked'&&truck.cargo.some(c=>!c.regal&&!c.einbau);
   for(const a of einrAktiv(w.id)){
     if(a==='regal'){
       for(const b of floorBoxes){ if(!b.test&&!belegt(b)&&!res(b.type)&&emptyLevel(b.type)) return {box:b,kind:'floor'}; }
       for(const r of racks) for(const s of r.slots){ if(s.box&&!belegt(s)&&!res(s.box.type)&&emptyLevel(s.box.type)) return {slot:s,kind:'rack'}; }
     } else if(a==='direkt'&&lkwDa){
-      const c=truck.cargo.find(c=>!c.regal&&emptyLevel(c.type));
+      const c=truck.cargo.find(c=>!c.regal&&!c.einbau&&emptyLevel(c.type));
       if(c) return {kind:'truck',direkt:true,typ:c.type};
     } else if(a==='lager'&&lkwDa) return {kind:'truck'};
   }
@@ -11170,7 +11248,7 @@ function einrJob(w){
 }
 function pullFromTruckTyp(t){
   if(!truck||truck.state!=='docked') return null;
-  const i=truck.cargo.findIndex(c=>!c.regal&&c.type===t); if(i<0) return pullFromTruck();
+  const i=truck.cargo.findIndex(c=>!c.regal&&!c.einbau&&c.type===t); if(i<0) return pullFromTruck();
   const c=truck.cargo.splice(i,1)[0]; fillCargo();
   return {type:c.type,count:P[c.type].box,q:c.q||1};
 }
@@ -14751,6 +14829,7 @@ function updateTarget(){
   const R=5.5;
   const list=[];
   floorBoxes.forEach(b=>{ if(nahDran(b.mesh.position,R)) list.push(b.mesh); });
+  einbauPakete.forEach(b=>{ if(nahDran(b.mesh.position,R)) list.push(b.mesh); });
   shelves.forEach(sh=>{ if(nahDran(sh.g.position,R)) sh.levels.forEach(l=>list.push(l.hit)); });
   dirts.forEach(d=>{ if(nahDran(d.m.position,R)) list.push(d.hit); });
   racks.forEach(r=>{ if(nahDran(r.g.position,R)) r.slots.forEach(s=>list.push(s.hit)); });
@@ -14774,17 +14853,20 @@ function promptFor(t){
   switch(t.kind){
     case 'placing': return {t:spotFree(grabbed,grabbed.g.position.x,grabbed.g.position.z,grabRy)?'Absetzen':'Hier ist kein Platz',a:true};
     case 'movable': return {t:`Verschieben: ${t.ref.name}`,a:true};
-    case 'box': if(c&&karreAn()&&!c.regal) return karreVoll()?{t:'Die Karre ist voll',a:false}:{t:`Auf die Karre: ${P[t.ref.type].name} (${karreLast()}/${KARREN[karreArt()].cap})`,a:true};
+    case 'box': if(c&&karreAn()&&!c.regal&&!c.einbau) return karreVoll()?{t:'Die Karre ist voll',a:false}:{t:`Auf die Karre: ${P[t.ref.type].name} (${karreLast()}/${KARREN[karreArt()].cap})`,a:true};
       return c?{t:'Du trägst schon einen Karton',a:false}:{t:`Aufheben: ${P[t.ref.type].name} (${t.ref.count} Stück)`,a:true};
+    case 'paket': return c?{t:'Du trägst schon etwas',a:false}:{t:`Paket aufheben: ${paketName(t.ref)}`,a:true};
     case 'dirt': return {t:'Sauber machen (halten)',a:true};
     case 'window': { const v=Math.round(windowGrime()*100); return v<3?{t:'Schaufenster ist sauber',a:false}:{t:`Scheiben putzen (halten) · ${v} % blind`,a:true}; }
     case 'level': { const lv=t.ref;
+      if(c&&(c.regal||c.einbau)) return {t:'Paket: am Boden abstellen oder am Stellplatz auspacken',a:false};
       if(c){ if(lv.type&&lv.type!==c.type) return {t:`Fach mit ${P[lv.type].short}`,a:false};
         const cp=capOf(lv,c.type); if(lv.count>=cp) return {t:'Fach ist voll',a:false};
         return {t:`Einräumen: ${P[c.type].short} ${lv.count}/${cp}`,a:true}; }
       return {t:lv.type?`${P[lv.type].short}: ${lv.count}/${capOf(lv)} für ${eur(S.prices[lv.type])}`:'Leeres Fach',a:false}; }
     case 'rslot': { const sl=t.ref;
-      if(c) return sl.box?(karreAn()&&!c.regal&&!karreVoll()?{t:'Auf die Karre laden',a:true}:{t:'Platz ist belegt',a:false}):{t:'Karton einlagern',a:true};
+      if(c&&(c.regal||c.einbau)) return {t:'Paket: am Boden abstellen',a:false};
+      if(c) return sl.box?(karreAn()&&!c.regal&&!c.einbau&&!karreVoll()?{t:'Auf die Karre laden',a:true}:{t:'Platz ist belegt',a:false}):{t:'Karton einlagern',a:true};
       return sl.box?{t:`Karton nehmen: ${P[sl.box.type].name} (${sl.box.count})`,a:true}:{t:'Freier Lagerplatz',a:false}; }
     case 'belt': return {t:`Scannen: ${P[t.ref.type].short} ${eur(t.ref.price)}`,a:true};
     case 'card': return reg&&reg.state==='pay'&&reg.method==='card'?{t:'Kartenzahlung abschließen',a:true}:{t:'Kartenterminal',a:false};
@@ -14818,9 +14900,10 @@ function promptFor(t){
       return gravBlanks>0?{t:'Eigene Rakete beschriften',a:true}:{t:'Automat leer: Blanko nachfüllen',a:false}; }
     case 'tbox': {
       const it=t.ref, n=truckLeft();
-      if(c&&karreAn()&&!c.regal&&!it.regal) return karreVoll()?{t:'Die Karre ist voll',a:false}:{t:`Auf die Karre: ${P[it.type].name} (${karreLast()}/${KARREN[karreArt()].cap})`,a:true};
+      const pk=it.regal||it.einbau;
+      if(c&&karreAn()&&!c.regal&&!c.einbau&&!pk) return karreVoll()?{t:'Die Karre ist voll',a:false}:{t:`Auf die Karre: ${P[it.type].name} (${karreLast()}/${KARREN[karreArt()].cap})`,a:true};
       if(c) return {t:`Noch ${n} Karton${n>1?'e':''} im Laderaum`,a:false};
-      return {t:`Aufheben: ${P[it.type].name} (${P[it.type].box} Stück)`,a:true}; }
+      return pk?{t:`Paket aufheben: ${paketName(it)}`,a:true}:{t:`Aufheben: ${P[it.type].name} (${P[it.type].box} Stück)`,a:true}; }
     case 'sign': return phase==='closed'?{t:'Schild umdrehen: Laden öffnen',a:true}:phase==='after'?{t:'Tag beenden',a:true}:{t:phase==='open'?'Geöffnet bis 22 Uhr':'Letzte Kunden im Laden',a:false};
   }
   return null;
@@ -14833,6 +14916,8 @@ function doAction(){
   const k=target.kind, r=target.ref, reg=regCustomer();
   if(k==='placing') placeGrab();
   else if(k==='movable') grab(r);
+  else if(k==='paket') paketAufheben(r);
+  else if(S.carrying&&(S.carrying.regal||S.carrying.einbau)&&(k==='level'||k==='rslot'||k==='box')){ toast('Ein Paket stellt man auf den Boden: mit „Ablegen“ abstellen oder am Stellplatz auspacken.','bad'); }
   else if(k==='box'){ if(S.carrying&&!karreNimmt()){ toast(karreVoll()?'Die Karre ist voll. Erst etwas abladen.':'Du trägst schon einen Karton. Erst abstellen.','bad'); return; } pickUp(r); }
   else if(k==='level'){ if(S.carrying) stockOne(r); }
   else if(k==='dirt') cleanTick(r,true);
@@ -15492,7 +15577,7 @@ function orderRegal(id){
   S.money=r2(S.money-preis); DS.upgrades=r2(DS.upgrades+preis);
   pending.push({regal:id,t:lieferSek()*evv('delay'),sup:'fachhandel'});
   sfx.cash(); S.tut.order=true;
-  toast(zoneOffen('lager')?`${K.name} bestellt. Kommt mit dem nächsten LKW an die Rampe.`:`${K.name} bestellt. Der Lieferant baut es gleich im Laden auf.`,'money');
+  toast(zoneOffen('lager')?`${K.name} bestellt. Das Paket kommt mit dem nächsten LKW an die Rampe.`:`${K.name} bestellt. Das Paket kommt vor die Ladentür.`,'money');
   save();
 }
 /* Direktbestellung eines einzelnen Postens (eigene Lieferung, eigener Versand) */
@@ -15723,7 +15808,7 @@ function upPic(id){
       for(let i=0;i<3;i++){ const y=44+i*34; g.fillStyle='#e06a1f'; g.fillRect(28,y,168,7);
         for(let k=0;k<3;k++){ g.fillStyle='#c9a978'; g.fillRect(40+k*54,y-20,44,20); } }
       break;
-    case 'kasse2':
+    case 'kasse2': case 'kasse3':
       bg('#16203a','#0b1222');
       /* zwei SB-Terminals nebeneinander */
       for(const bx of [26,120]){
@@ -15999,7 +16084,7 @@ function lapZeichnen(body){
       knopf('rest',restOffen?'Restposten':`Restposten · Lvl ${rest.lvl}`,restOffen)+`</div></div>`;
     if(lsup==='regal'){
       h=`<div class="row"><div class="rm"><b>Regale &amp; Einrichtung</b><small>Regale, Kühlschränke, Kassen und Technik für den Laden. Nichts davon muss man freikaufen – manches gibt es erst ab einem bestimmten Level.</small>`+
-        `<small>Regale kommen als Paket mit dem LKW (${zoneOffen('lager')?'an die Rampe, aufbauen musst du selbst':'ohne Lager baut der Lieferant sie gleich im Laden auf'}). Einrichtung wird sofort eingebaut.</small></div></div>`+knoepfe;
+        `<small>Regale, Kühlschränke und Kassen kommen als Paket mit dem LKW – ${zoneOffen('lager')?'an die Rampe':'ohne Lager vor die Ladentür'}. Paket dorthin tragen, wo es stehen soll, und mit „Ablegen“ auspacken. Wo kein Platz ist, bleibt es als Paket stehen und lässt sich lagern. Technik wie Kameras oder Heizstrahler wird sofort eingebaut.</small></div></div>`+knoepfe;
       h+=`<div class="kgruppe">Regale</div><div class="karten">`+REGALWARE.map(r=>{
           const K=regalKind(r), offen=regalOffen(r.id), platz=regalPlatz(r.id), pr=regalPreis(r.id);
           const wo=r.art==='rack'?'Lager':'Verkaufsfläche';
@@ -16016,8 +16101,10 @@ function lapZeichnen(body){
       h+=`<div class="kgruppe">Kassen, Technik und Einrichtung</div><div class="karten">`+
         UPGRADES.filter(u=>(u.kat||'einr')==='einr').sort((x,y)=>x.lvl-y.lvl).map(u=>{
           const done=u.done(), cost=u.cost(), fehlt=u.req&&!S.up[u.req]?UPGRADES.find(x=>x.id===u.req):null, lock=S.level<u.lvl||!!fehlt;
+          const unterwegs=!done&&S.einbauBestellt&&S.einbauBestellt[u.id];
           return `<div class="karte${lock&&!done?' locked':''}"><img class="kbild" src="${upPic(u.id)}" alt=""><b>${u.name}</b><small>${u.desc}</small>`+
             (done?'<small class="ok">Vorhanden</small>'
+              :unterwegs?'<small class="warn">Bestellt – Paket auspacken, wo es stehen soll</small>'
               :S.level<u.lvl?`<small>ab Level ${u.lvl}</small>`
               :fehlt?`<small class="warn">braucht „${fehlt.name}“</small>`
               :`<div class="kpreis">${eur(cost)}</div><div class="steps"><button data-a="up" data-t="${u.id}" ${S.money<cost?'disabled':''}>kaufen</button></div>`)+'</div>';
@@ -16368,7 +16455,17 @@ function buyUp(id){
     toast(`${u.name} setzt „${v?v.name:u.req}“ voraus.`,'bad'); return; }
   const cost=u.cost();
   if(S.money<cost){ toast(`${u.name} kostet ${eur(cost)} — dir fehlen ${eur(r2(cost-S.money))}.`,'bad'); return; }
+  if(S.einbauBestellt&&S.einbauBestellt[id]){ toast(`${u.name} ist schon bestellt und kommt mit der nächsten Lieferung.`); return; }
   S.money=r2(S.money-cost); DS.upgrades=r2(DS.upgrades+cost);
+  /* Kassen kommen wie Regale als Paket: erst wenn man sie aufstellt,
+     sind sie da (Tom, 26.09.) */
+  if(EINBAU[id]){
+    (S.einbauBestellt||(S.einbauBestellt={}))[id]=true;
+    pending.push({einbau:id,t:lieferSek()*evv('delay'),sup:'fachhandel'});
+    sfx.cash(); S.tut.order=true;
+    toast(zoneOffen('lager')?`${u.name} bestellt. Das Paket kommt mit dem nächsten LKW an die Rampe.`:`${u.name} bestellt. Das Paket kommt vor die Ladentür.`,'money');
+    save(); return;
+  }
   if(id.indexOf('shelf_')===0){ const k=id.slice(6); createShelf(shelves.length,{kind:k}); S.tut.shelf=true; toast(`${SHELFKIND[k].name} steht im Laden.`); }
   else if(id==='rack'||id.indexOf('rack_')===0){
     const k=id==='rack'?'standard':id.slice(5);
@@ -16397,7 +16494,7 @@ function buyUp(id){
       addXP(Math.round(cost/12),'Ausbau'); sfx.cash(); save(); return;
     }
     if(id==='onlineshop'){ drawPackSchild(); }
-    if(id==='kasse2'){ setSB(true); toast('Die SB-Kassen stehen. Kunden mit wenig Ware bedienen sich jetzt selbst.','money'); }
+
     if(id==='gravur'){ buildGravur(null); toast('Der Gravur-Automat steht. Blanko-Raketen bei Mertens bestellen.'); }
     else if(id==='grosskunden') toast('Eintrag ist online. Veranstalter rufen jetzt an.');
     else if(id==='plakat') toast('Plakate hängen. Mehr Kunden ab sofort.');
@@ -16703,7 +16800,7 @@ function fwTestSchalten(){
    ========================================================= */
 function freshState(){ const prices={}; ORDER.forEach(t=>prices[t]=P[t].market);
   return {v:3,money:500,rep:50,level:1,xp:0,season:1,day:0,loan:null,prices,grime:0,
-    up:{lager:false,plakat:false,terminal:false,tag4:false,heizung:false,musik:false,radio:false,cams:false,regallicht:false,alarm:false,shop_halb:false,testfeld:false,shop_gross:false,lager_nord:false,lager_gross:false,packstation:false,kasse2:false,labor:false,labor2:false},
+    up:{lager:false,plakat:false,terminal:false,tag4:false,heizung:false,musik:false,radio:false,cams:false,regallicht:false,alarm:false,shop_halb:false,testfeld:false,shop_gross:false,lager_nord:false,lager_gross:false,packstation:false,kasse2:false,kasse3:false,labor:false,labor2:false},
     staff:{},prio:{},wage:{},pause:{},ev:null,goal:null,mkt:1,comp:1,deko:[],wall:'creme',floor:'grau',schildBg:'auto',schildFg:'weiss',paint:[],test:null,stamm:{},
     /* Der Laden startet leer: kein Verkaufsregal, kein Lagerregal.
        Beides bestellt man bei Regalbau Stegemann, und der LKW
@@ -16746,6 +16843,12 @@ function save(){
       regale:pending.filter(p=>p.regal).map(p=>p.regal)
         .concat((typeof truck!=='undefined'&&truck?truck.cargo:[]).filter(c=>c.regal).map(c=>c.regal))
         .concat(S.carrying&&S.carrying.regal?[S.carrying.regal]:[]),
+      /* Kassenpakete unterwegs, abgestellte Pakete mit Platz */
+      einbauUnterwegs:pending.filter(p=>p.einbau).map(p=>p.einbau)
+        .concat((typeof truck!=='undefined'&&truck?truck.cargo:[]).filter(c=>c.einbau).map(c=>c.einbau))
+        .concat(S.carrying&&S.carrying.einbau?[S.carrying.einbau]:[]),
+      paketeBoden:einbauPakete.map(b=>Object.assign({regal:b.regal,einbau:b.einbau},mpos(b.mesh))),
+      einbauBestellt:S.einbauBestellt||{},
       boxes:floorBoxes.filter(b=>!b.test).map(b=>({type:b.type,count:b.count,q:b.q||1,x:+b.mesh.position.x.toFixed(2),y:+b.mesh.position.y.toFixed(2),z:+b.mesh.position.z.toFixed(2),ry:+b.mesh.rotation.y.toFixed(2)})).concat(pending.filter(p=>!p.regal).map(p=>({type:p.type,count:P[p.type].box,q:p.q||1}))).concat((typeof truck!=='undefined'&&truck?truck.cargo:[]).filter(c=>!c.regal).map(c=>({type:c.type,count:P[c.type].box,q:c.q||1})))};
     localStorage.setItem(KEY,JSON.stringify(d));
   }catch(e){}
@@ -16760,6 +16863,9 @@ function startGame(fresh){
      Ladenlokal, das ganze Basislager und den Zugang zum Testfeld -
      das wird nachgetragen, sonst stuenden ploetzlich Waende mitten
      im eingerichteten Laden. */
+  /* Bis 26.09. kam die Kassenzeile am zweiten Eingang mit der Tuer -
+     wer sie hatte, behaelt sie */
+  if(d&&d.up&&d.up.eingang2&&d.up.kasse3===undefined) S.up.kasse3=true;
   /* Staende von vor den Kapiteln hatten das Lager von Anfang an */
   if(d&&d.up&&d.up.lager===undefined) S.up.lager=true;
   /* Vor dem 24.09. gab es die Logistikhalle nur in voller Groesse. Wer
@@ -16820,7 +16926,9 @@ function startGame(fresh){
   (S.boxes||F.boxes).forEach(fb=>{ if(P[fb.type]&&fb.count>0) spawnFloorBox(fb.type,fb.count,fb.x!==undefined?{x:fb.x,y:fb.y,z:fb.z,ry:fb.ry}:null,fb.q||1); });
   /* Bestellte, aber noch nicht aufgebaute Regale wieder auf den Weg
      bringen - sie kommen mit der naechsten Lieferung. */
-  (S.regale||[]).forEach(id=>{ if(regalOf(id)) pending.push({regal:id,t:lieferSek(),sup:'mertens'}); });
+  (S.regale||[]).forEach(id=>{ if(regalOf(id)) pending.push({regal:id,t:lieferSek(),sup:'fachhandel'}); });
+  (S.einbauUnterwegs||[]).forEach(id=>{ if(EINBAU[id]&&!S.up[id]) pending.push({einbau:id,t:lieferSek(),sup:'fachhandel'}); });
+  (S.paketeBoden||[]).forEach(b=>{ if((b.regal&&regalOf(b.regal))||(b.einbau&&EINBAU[b.einbau]&&!S.up[b.einbau])) spawnPaket(b,{x:b.x,z:b.z,ry:b.ry}); });
   if(S.up.gravur){ buildGravur(d&&d.grav?d.grav:null); gravBlanks=Math.max(0,Math.min(GRAV_MAX,(d&&d.blanks)|0)); drawGrav(); }
   STAFF.forEach(s=>{ if(S.staff[s.id]&&!inPause(s.id)) hireStaff(s.id); });
   if(S.up.regallicht){ shelfLight.intensity=0.8; shelfStrips.forEach(m=>m.emissiveIntensity=1.5); }
@@ -17189,15 +17297,15 @@ function vorDieTuer(){
   const da=pending.filter(pd=>pd.t<=0); if(!da.length) return;
   let n=0, regale=0;
   da.forEach(pd=>{ pending.splice(pending.indexOf(pd),1);
-    if(pd.regal){
-      /* Regale baut der Lieferant gleich im Laden auf */
-      if(regalAufbauen(pd.regal)) regale++;
-      else { S.money=r2(S.money+regalPreis(pd.regal)); toast(`${regalName(pd.regal)}: kein Stellplatz frei, der Fahrer nimmt es wieder mit.`,'bad'); }
+    if(pd.regal||pd.einbau){
+      /* Regale und Kassen kommen als Paket vor die Tuer - aufbauen
+         muss man selbst (Tom, 26.09.) */
+      const s=freeSlot(); spawnPaket(pd,{x:s.x,z:s.z,ry:Math.PI/2+rand(-0.1,0.1)}); regale++;
     } else { spawnFloorBox(pd.type,P[pd.type].box,null,pd.q||1); n++; } });
   statAdd('lkw',1); S.tut.lkw=true;
   sfx.thump(0.8);
   if(n) toast(`Lieferung: ${n} Karton${n>1?'s':''} vor der Ladentür abgestellt.`,'xp');
-  if(regale) toast(`Der Lieferant hat ${regale} Regal${regale>1?'e':''} im Laden aufgestellt.`,'money');
+  if(regale) toast(`${regale} Paket${regale>1?'e':''} mit Einrichtung vor der Ladentür. Hinbringen, wo es stehen soll, und auspacken.`,'money');
 }
 function step(dt){
   updatePlayer(dt);
@@ -17224,7 +17332,7 @@ function step(dt){
     for(let i=0;i<pending.length&&wave.length<32;i++) if(pending[i].t<=16) wave.push(pending[i]);
     if(!wave.length) break;
     wave.forEach(w=>pending.splice(pending.indexOf(w),1));
-    const sid=wave[0].sup||'mertens', ladung=wave.map(w=>w.regal?{regal:w.regal}:{type:w.type,q:w.q||1});
+    const sid=wave[0].sup||'mertens', ladung=wave.map(w=>w.regal?{regal:w.regal}:w.einbau?{einbau:w.einbau}:{type:w.type,q:w.q||1});
     if(frei<0) spawnTruck(ladung,sid,supplierOf(sid).name);
     else if(!spawnWTruck(frei,ladung,sid,supplierOf(sid).name)) break;
   }
@@ -17603,7 +17711,7 @@ fontsReady().then(()=>{
   setTimeout(()=>{ if(typeof shaderVorab==='function') shaderVorab(); },400);
   window.__bb={get S(){return S},get phase(){return phase},set phase(v){phase=v},set clock(v){clock=v},get clock(){return clock},pickUp,floorBoxes,shelves,racks,dekos,stockOne,openShop,step,customers,queue,belt,scanBelt,buyUp,buyDeko,get DS(){return DS},endDay,pending,save,openLaptop,closeLaptop,pl,addXP,hireStaff,fireStaff,staff,dirts,addDirt,movables,toggleBuild,setWall,setFloor,
     stations,firePult,placeOnStation,igniteType,get order(){return order},get phone(){return phone},makeCall,answerPhone,haggle,acceptDeal,declineDeal,get truck(){return truck},spawnTruck,takeFromTruck,takeBox,dropBox,updateTruck,get door(){return door},get tuer(){return tuer},tuerSet,tuerNah,updateSchiebetuer,doorOpen,doorIsOpen,trailerOccupied,LR,lrFront,TOR,orderReady,orderLeft,shipOne,removeFloorBox,prioOf,setPrio,racks,updateCarry,spawnFloorBox,staff,SHELFKIND,layout,shelfCapOf,shelfAccepts,emptyLevel,dateInfo,dateStr,dateShort,seasonInfo,isSunday,dayMult,ruhetag,wageOf,setWage,friendliness,inPause,setPause,windowGrime,addGrime,cleanWindowTick,ambienteScore,bildBoost,fixedCosts,dailyWages,dispoLimit,verfuegbar,dispoZins,takeLoan,loanTier,loanDaily,EVENTS,GOALS,CUSTTYPES,UPGRADES,STAFF,stockOf,spawnInterval,pools,todayEvent,evv,rollEvent,rollMarket,newGoal,goalAdd,goalTick,ekFactor,marktText,xpFor,rollCustType,priceTol,buyChance,regCustomer,makeWishes,nachfrageFaktor,shelfStockOf,buildGravur,refillGrav,openGravInput,closeGravInput,get gravBlanks(){return gravBlanks},set gravBlanks(v){gravBlanks=v},orderBox,buyPack,cartAdd,cartAddPack,cartOrder,cartClear,cartDel,cartGoods,cartFee,cartTotal,cartBoxes,cartLines,LIEFERZEIT_SEK,VERSAND,VERSANDFREI,lieferSek,
-    scene,camera,P,makeAuto,AUTOFORM,stadtInfo:()=>({warn:beacons.length,kronen:KRONEN.length,stufen:SKYLINE_INFO.stufen,skyStile:SKYLINE_INFO.stile.size,stile:Object.keys(STADT_MATS).length}),clearStations,fachHoehe,kindOf,packKartonWert,SUPPLIERS,supplierFor,supplierOf,tierPrice,isUnlocked,lizLevel,renderLaptop,get lsup(){return lsup},set lsup(v){lsup=v},get ltab(){return ltab},set ltab(v){ltab=v},EFF,EFF_ALL,EFF_KLEIN,EFF_GROSS,EFF_PRO,SHOWS,kugelbombe,shot,mine,FW,stations,stationOf,placedCount,togglePDA,openPDA,closePDA,setPost,get postOn(){return postOn},get pdaOn(){return pdaOn},showLength,psHuge,psBig,psMid,psSmall,rockets,emitters,timersLen:()=>timers.length,setView:(x,z,y,p)=>{pl.x=x;pl.z=z;yaw=y;pitch=p;aim=null;},schiebe:(x,z)=>{pl.x=x;pl.z=z;collide(pl,0.32);return{x:pl.x,z:pl.z};},PLZ_MAX,camYaw:()=>yaw,camPitch:()=>pitch,playerPos:()=>({x:pl.x,z:pl.z}),pultYaw:()=>pultHit?pultHit.parent.rotation.y:null,applyShopName,shopName,shopSlogan,signTexPx:()=>signTex&&signTex.image?signTex.image.getContext('2d').getImageData(0,0,signTex.image.width,40).data.join(''):null,lagerWall,fwShot:shot,KUGEL_R,ROHR_INNEN,MOERSER_R,moerserRohr,sfx,WOLKEN,get master(){return master},ac,SORTE_NEU,sortenUmstellen,get shakeWert(){return shake},get ckG(){return ckG},get ckNameTex(){return ckNameTex},get ckMovable(){return ckMov},CK_HOME,CK_ALT,spotPos,queueApproach,ckTexPx:()=>ckNameTex&&ckNameTex.image?ckNameTex.image.getContext('2d').getImageData(0,0,ckNameTex.image.width,60).data.join(''):null,testfeldMitte,STATION_POS,aimAt,UPGRADES,upPic,PLAN,planFlaechen,uhrZeiger:()=>({std:uhrStd?+uhrStd.rotation.z.toFixed(4):0,min:uhrMin?+uhrMin.rotation.z.toFixed(4):0}),drawRackSchild,get snowPts(){return snowPts},buildStadt,updateStadt,get stadtBoxen(){return stadtBoxen},get stadtBaeume(){return stadtBaeume},buildFernbaeume,schwaerme,beacons,silhouetten,get verkehrPts(){return verkehrPts},get rauchPts(){return rauchPts},get flieger(){return flieger},stadtFrei,STADT_FREI,WALLS,FLOORS,renderOnline,onlineHint,onlineStufe,onlineZahlen,onlineListe,updateOnline,SCHILDBG,SCHILDFG,setSchild,schildBg,schildFg,repaintSchilder,updateHead,allLevels,addToLevel,putInSlot,regCustomer,ZONEN,zoneOffen,oeffneZone,applyZonen,SLOTS,RACKS,slotsOffen,colliders,LAY,LOGI,WRAMPEN,WTORE,updateSnow,unterDach,dachBereiche,get lapHit2(){return lapHit2},buildLagerTerminal,toggleTest,testLevel,buyUp,get toastLast(){return toastLast},__floorBoxen:()=>floorBoxes.length,WBAY_UP,wbays,dockPlaetze,wbayFrei,wbayOffen,spawnWTruck,updateWBays,wbaysInit,wtorSet,GANG,GANGTUER,buildLagergang,flaeche,WTOR,RACKKIND,route,NAV,navFrei,navIdx,navBuild,shelfStand,shelves,sbLanes,buildSBKasse,sbFrei,sbOffen,sbNutzbar,EING2,eingaenge,naechsterEingang,setEingang2,buildSBKasse2,get sb2G(){return sb2G},TUEREN,tuerSetD,tuerNahD,packBereit,packOne,paketWert,bestellungenProTag,pakete,ddlAbholung,updateVersand,VS_GR,VS_FELD,WG_PARK,vsNeueBestellung,vsAbgleich,vsKlasse,vsQuellen,vsBestand,vsErfuellbar,vsPlan,vsStapel,vsSpielerPacken,vsSpielerBestellung,vsTischFrei,vsStatus,vsAufraeumen,vsLaden,vsBahn,vsPaketOffen,vsKlappen,vsFuellung,vsPaketZu,get vsTisch(){return vsTisch},get vsWagen(){return vsWagen},createShelf,createRack,regalStellen,testKauf,regalAufbauen,orderRegal,REGALWARE,regalOf,regalKind,regalPreis,regalPlatz,regalOffen,startGame,promptFor,ERFOLGE,erfOffen,erfStufe,erfStand,erfZiel,erfFertig,erfAnteil,erfGeschafft,erfGesamt,stat,statAdd,statRekord,statVerkauf,bruchGesehen,gruppeVon,GRUPPE,TRAEGER,BRUCH,BRUCH_IDS,REZ_FARBEN,ETIKETT,traegerVon,traegerOffen,bruchOffen,bruchListe,rezeptWow,rezeptKosten,rezeptMarkt,rezeptHype,rezeptDauer,rezeptEntwicklung,rezeptGueltig,eigeneListe,eigenesEintragen,rezepteTick,rezProto,rezBauen,renderRezeptur,get entwurf(){return entwurf},set entwurf(v){entwurf=v},entwurfInit,ORDER,LIZENZEN,lizenzOf,hatLizenz,lizenzDaten,naechsteLizenz,buyLizenz,VOLA,volaOf,REGIME,marketOf,costOf,marktZiel,marktLuecke,meOf,miOf,marktDelta,marktNiveau,marktPhase,marktSchock,marktLabel,marktSchnitt,marktExtrem,marktChance,sortimentBreite,sortimentZug,bekanntheit,spawnInterval,rollMarkt,marktInit,inflOf,inflText,setPreisAufMarkt,igniteType,get packHit(){return packHit},get packTisch(){return packTisch},get packMov(){return packMov},zuendeKanal,zuendeAlle,alleKanaele,kanalItem,openZuend,closeZuend,get zuendOpen(){return zuendOpen},overlayOpen,pultTaster,zuendTick,TISCH_X,RAMPE_X,KANAL_START,bereitCount,brennDauer,muendung,pultLamps,RAKETEN_LOOK,RAKETEN_KL,makePerson,applyTOD,updateHUD,renderer,renderFrame,get DEMO(){return DEMO},LHALLE,LOGI_STUFEN,TOR_STUFE,logiStufe,logiZeige,logiAnwenden,LOGI_G,TOR_G,WTORE,tuAktion:(kind,ref)=>{ const alt=target; target={kind,ref}; try{ doAction(); } finally { target=alt; } },promptFor,KARREN,karreArt,karreAn,karreStapel,karreLast,karreNimmt,toggleKarre,updateKarre,setTutorial,tutorialAn,zielFuer,get zielAktuell(){return zielAktuell},get tipKey(){return tipKey},updateZiel,set DEMO(v){DEMO=v},kapitelVon,kapitelVoll,openHandy,closeHandy,toggleHandy,get handyOpen(){return handyOpen},get happ(){return happ},HANDY_APPS,renderHandy,shaderVorab,SCHONER,schonerMalen,updateSchoner,makeWischer,stelleWischer,get wischer(){return wischer},updateWischen,wischerPersonal,cleanTick,updateFireworks,FLASH,spurEnden,LR_LAMPE,schweber,kundenSymbol,geldSchwebt,get serie(){return serie},serieZufrieden,serieBricht,KAPITEL,kapitel,kapitelNr,kapitelAufstieg,WA,WA_SLOTS,vorDieTuer,SB_KASSIERER,sbBesetzt,sbLaneVon,sbKassiererPlatz,MUSIK,STUECKE,musikAn,musikWeiter,musikVol,musikTick,spielSchritt,get mStep(){return mStep},set mStep(v){mStep=v;mTakte=0;},get mBus(){return mBus},get postHalf(){return postHalf},EFF_SCHWEIF,mitSchweif,KOEPFE,KLEID,UNIFORM,STAFFKOPF,faceCache,animPerson,PACKS,packPreis,packPool,packOffen,packContents,syncPakete,rotateGrab,PACK_FL,PACK_HOME,spotFree,rectOf,grab,placeGrab,updateGrab,get grabbed(){return grabbed},showPause,get target(){return target},einrOf,einrAktiv,einrHoch,einrRunter,einrSchalten,AUFGABEN,einrJob,kartonMat,pools,shelfStockOf,removeFromLevel,fwLog:(a)=>{FW_LOG=a;},moerserRohr,ROHR_KALIBER,effPassen,EFF_FAMILIE,basisBlick,fwTestSchalten,fwTestProdukte,fwTestStapeln,get fwTestAn(){return fwTestAn},get fwTestBoxen(){return fwTestBoxen},sonne:()=>sun.intensity,get fwUhr(){return FW_UHR},THEMEN,SHOW_BASIS,EFF,emittersListe:()=>emitters,
+    scene,camera,P,pendingListe:()=>pending,einbauPakete,spawnPaket,paketAblegen,paketAufheben,EINBAU,PAKET_MASS,vorDieTuer,setSB2,sbZiel,makeAuto,AUTOFORM,stadtInfo:()=>({warn:beacons.length,kronen:KRONEN.length,stufen:SKYLINE_INFO.stufen,skyStile:SKYLINE_INFO.stile.size,stile:Object.keys(STADT_MATS).length}),clearStations,fachHoehe,kindOf,packKartonWert,SUPPLIERS,supplierFor,supplierOf,tierPrice,isUnlocked,lizLevel,renderLaptop,get lsup(){return lsup},set lsup(v){lsup=v},get ltab(){return ltab},set ltab(v){ltab=v},EFF,EFF_ALL,EFF_KLEIN,EFF_GROSS,EFF_PRO,SHOWS,kugelbombe,shot,mine,FW,stations,stationOf,placedCount,togglePDA,openPDA,closePDA,setPost,get postOn(){return postOn},get pdaOn(){return pdaOn},showLength,psHuge,psBig,psMid,psSmall,rockets,emitters,timersLen:()=>timers.length,setView:(x,z,y,p)=>{pl.x=x;pl.z=z;yaw=y;pitch=p;aim=null;},schiebe:(x,z)=>{pl.x=x;pl.z=z;collide(pl,0.32);return{x:pl.x,z:pl.z};},PLZ_MAX,camYaw:()=>yaw,camPitch:()=>pitch,playerPos:()=>({x:pl.x,z:pl.z}),pultYaw:()=>pultHit?pultHit.parent.rotation.y:null,applyShopName,shopName,shopSlogan,signTexPx:()=>signTex&&signTex.image?signTex.image.getContext('2d').getImageData(0,0,signTex.image.width,40).data.join(''):null,lagerWall,fwShot:shot,KUGEL_R,ROHR_INNEN,MOERSER_R,moerserRohr,sfx,WOLKEN,get master(){return master},ac,SORTE_NEU,sortenUmstellen,get shakeWert(){return shake},get ckG(){return ckG},get ckNameTex(){return ckNameTex},get ckMovable(){return ckMov},CK_HOME,CK_ALT,spotPos,queueApproach,ckTexPx:()=>ckNameTex&&ckNameTex.image?ckNameTex.image.getContext('2d').getImageData(0,0,ckNameTex.image.width,60).data.join(''):null,testfeldMitte,STATION_POS,aimAt,UPGRADES,upPic,PLAN,planFlaechen,uhrZeiger:()=>({std:uhrStd?+uhrStd.rotation.z.toFixed(4):0,min:uhrMin?+uhrMin.rotation.z.toFixed(4):0}),drawRackSchild,get snowPts(){return snowPts},buildStadt,updateStadt,get stadtBoxen(){return stadtBoxen},get stadtBaeume(){return stadtBaeume},buildFernbaeume,schwaerme,beacons,silhouetten,get verkehrPts(){return verkehrPts},get rauchPts(){return rauchPts},get flieger(){return flieger},stadtFrei,STADT_FREI,WALLS,FLOORS,renderOnline,onlineHint,onlineStufe,onlineZahlen,onlineListe,updateOnline,SCHILDBG,SCHILDFG,setSchild,schildBg,schildFg,repaintSchilder,updateHead,allLevels,addToLevel,putInSlot,regCustomer,ZONEN,zoneOffen,oeffneZone,applyZonen,SLOTS,RACKS,slotsOffen,colliders,LAY,LOGI,WRAMPEN,WTORE,updateSnow,unterDach,dachBereiche,get lapHit2(){return lapHit2},buildLagerTerminal,toggleTest,testLevel,buyUp,get toastLast(){return toastLast},__floorBoxen:()=>floorBoxes.length,WBAY_UP,wbays,dockPlaetze,wbayFrei,wbayOffen,spawnWTruck,updateWBays,wbaysInit,wtorSet,GANG,GANGTUER,buildLagergang,flaeche,WTOR,RACKKIND,route,NAV,navFrei,navIdx,navBuild,shelfStand,shelves,sbLanes,buildSBKasse,sbFrei,sbOffen,sbNutzbar,EING2,eingaenge,naechsterEingang,setEingang2,buildSBKasse2,get sb2G(){return sb2G},TUEREN,tuerSetD,tuerNahD,packBereit,packOne,paketWert,bestellungenProTag,pakete,ddlAbholung,updateVersand,VS_GR,VS_FELD,WG_PARK,vsNeueBestellung,vsAbgleich,vsKlasse,vsQuellen,vsBestand,vsErfuellbar,vsPlan,vsStapel,vsSpielerPacken,vsSpielerBestellung,vsTischFrei,vsStatus,vsAufraeumen,vsLaden,vsBahn,vsPaketOffen,vsKlappen,vsFuellung,vsPaketZu,get vsTisch(){return vsTisch},get vsWagen(){return vsWagen},createShelf,createRack,regalStellen,testKauf,regalAufbauen,orderRegal,REGALWARE,regalOf,regalKind,regalPreis,regalPlatz,regalOffen,startGame,promptFor,ERFOLGE,erfOffen,erfStufe,erfStand,erfZiel,erfFertig,erfAnteil,erfGeschafft,erfGesamt,stat,statAdd,statRekord,statVerkauf,bruchGesehen,gruppeVon,GRUPPE,TRAEGER,BRUCH,BRUCH_IDS,REZ_FARBEN,ETIKETT,traegerVon,traegerOffen,bruchOffen,bruchListe,rezeptWow,rezeptKosten,rezeptMarkt,rezeptHype,rezeptDauer,rezeptEntwicklung,rezeptGueltig,eigeneListe,eigenesEintragen,rezepteTick,rezProto,rezBauen,renderRezeptur,get entwurf(){return entwurf},set entwurf(v){entwurf=v},entwurfInit,ORDER,LIZENZEN,lizenzOf,hatLizenz,lizenzDaten,naechsteLizenz,buyLizenz,VOLA,volaOf,REGIME,marketOf,costOf,marktZiel,marktLuecke,meOf,miOf,marktDelta,marktNiveau,marktPhase,marktSchock,marktLabel,marktSchnitt,marktExtrem,marktChance,sortimentBreite,sortimentZug,bekanntheit,spawnInterval,rollMarkt,marktInit,inflOf,inflText,setPreisAufMarkt,igniteType,get packHit(){return packHit},get packTisch(){return packTisch},get packMov(){return packMov},zuendeKanal,zuendeAlle,alleKanaele,kanalItem,openZuend,closeZuend,get zuendOpen(){return zuendOpen},overlayOpen,pultTaster,zuendTick,TISCH_X,RAMPE_X,KANAL_START,bereitCount,brennDauer,muendung,pultLamps,RAKETEN_LOOK,RAKETEN_KL,makePerson,applyTOD,updateHUD,renderer,renderFrame,get DEMO(){return DEMO},LHALLE,LOGI_STUFEN,TOR_STUFE,logiStufe,logiZeige,logiAnwenden,LOGI_G,TOR_G,WTORE,tuAktion:(kind,ref)=>{ const alt=target; target={kind,ref}; try{ doAction(); } finally { target=alt; } },promptFor,KARREN,karreArt,karreAn,karreStapel,karreLast,karreNimmt,toggleKarre,updateKarre,setTutorial,tutorialAn,zielFuer,get zielAktuell(){return zielAktuell},get tipKey(){return tipKey},updateZiel,set DEMO(v){DEMO=v},kapitelVon,kapitelVoll,openHandy,closeHandy,toggleHandy,get handyOpen(){return handyOpen},get happ(){return happ},HANDY_APPS,renderHandy,shaderVorab,SCHONER,schonerMalen,updateSchoner,makeWischer,stelleWischer,get wischer(){return wischer},updateWischen,wischerPersonal,cleanTick,updateFireworks,FLASH,spurEnden,LR_LAMPE,schweber,kundenSymbol,geldSchwebt,get serie(){return serie},serieZufrieden,serieBricht,KAPITEL,kapitel,kapitelNr,kapitelAufstieg,WA,WA_SLOTS,vorDieTuer,SB_KASSIERER,sbBesetzt,sbLaneVon,sbKassiererPlatz,MUSIK,STUECKE,musikAn,musikWeiter,musikVol,musikTick,spielSchritt,get mStep(){return mStep},set mStep(v){mStep=v;mTakte=0;},get mBus(){return mBus},get postHalf(){return postHalf},EFF_SCHWEIF,mitSchweif,KOEPFE,KLEID,UNIFORM,STAFFKOPF,faceCache,animPerson,PACKS,packPreis,packPool,packOffen,packContents,syncPakete,rotateGrab,PACK_FL,PACK_HOME,spotFree,rectOf,grab,placeGrab,updateGrab,get grabbed(){return grabbed},showPause,get target(){return target},einrOf,einrAktiv,einrHoch,einrRunter,einrSchalten,AUFGABEN,einrJob,kartonMat,pools,shelfStockOf,removeFromLevel,fwLog:(a)=>{FW_LOG=a;},moerserRohr,ROHR_KALIBER,effPassen,EFF_FAMILIE,basisBlick,fwTestSchalten,fwTestProdukte,fwTestStapeln,get fwTestAn(){return fwTestAn},get fwTestBoxen(){return fwTestBoxen},sonne:()=>sun.intensity,get fwUhr(){return FW_UHR},THEMEN,SHOW_BASIS,EFF,emittersListe:()=>emitters,
     shot:()=>{ noLoop=true; camera.position.set(pl.x,1.65,pl.z); camera.rotation.set(pitch,yaw,0); camera.updateMatrixWorld(); updateTarget(); applyTOD(); renderFrame(0.016); return canvas.toDataURL('image/jpeg',0.85); },
     run:(sec,dt)=>{ noLoop=true; const n=Math.round(sec/(dt||0.05)); for(let i=0;i<n;i++) step(dt||0.05); }};
 });

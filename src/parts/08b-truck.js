@@ -197,10 +197,11 @@ function fillCargo(){
     const s=cargoSlot(i);
     /* Ein Regal kommt flach verpackt: ein langes schmales Paket,
        kein Karton. So sieht man im Laderaum sofort, was drin ist. */
-    const m=c.regal
-      ? new THREE.Mesh(regalPaketGeo(),regalPaketMat())
+    const pk=c.regal||c.einbau, M=pk?paketMass(c):null;
+    const m=pk
+      ? new THREE.Mesh(new THREE.BoxGeometry(M[0],M[1],M[2]),regalPaketMat())
       : new THREE.Mesh(kartonGeo,kartonMat[c.type]);
-    m.position.set(s.x,c.regal?0.12+Math.floor(i/16)*0.42:s.y,s.z);
+    m.position.set(s.x,pk?M[1]/2+0.02+Math.floor(i/16)*0.42:s.y,s.z);
     m.rotation.y=rand(-0.07,0.07);
     if(HIQ){ m.castShadow=true; m.receiveShadow=true; }
     m.userData={kind:'tbox',ref:c};
@@ -326,10 +327,10 @@ function regalPaketMat(){
 function takeBox(item){ statAdd('kartons',1);
 
   if(!truck||truck.state!=='docked') return;
-  if(S.carrying&&!karreNimmt(!!item.regal)){ toast(karreVoll()?'Die Karre ist voll. Erst abladen.':'Du hast schon etwas auf dem Arm.'); return; }
+  if(S.carrying&&!karreNimmt(!!(item.regal||item.einbau))){ toast(karreVoll()?'Die Karre ist voll. Erst abladen.':'Du hast schon etwas auf dem Arm.'); return; }
   const i=truck.cargo.indexOf(item); if(i<0) return;
   truck.cargo.splice(i,1);
-  S.carrying=item.regal?{regal:item.regal}:{type:item.type,count:P[item.type].box,q:item.q||1};
+  S.carrying=item.regal?{regal:item.regal}:item.einbau?{einbau:item.einbau}:{type:item.type,count:P[item.type].box,q:item.q||1};
   S.tut.pick=true; sfx.pop(); fillCargo(); updateCarry();
   if(!truck.cargo.length) toast('Laderaum leer. Geh raus, dann fährt er los.');
 }
@@ -338,13 +339,13 @@ function takeFromTruck(){ if(truck&&truck.cargo.length) takeBox(truck.cargo[0]);
    an der Rampe auf. Ist kein Stellplatz frei, geht es zurueck an den
    Lieferanten - sonst stuende der LKW bis in alle Ewigkeit da. */
 function regalAusladen(c){
-  if(regalAufbauen(c.regal,DOCK.stand.x,DOCK.stand.z)) return;
-  S.money=r2(S.money+regalPreis(c.regal));
-  toast(`${regalName(c.regal)}: kein Stellplatz frei, der Fahrer nimmt es wieder mit.`,'bad');
+  /* Pakete werden an der Rampe abgestellt, nicht aufgebaut - das macht
+     man selbst dort, wo das Regal stehen soll (Tom, 26.09.) */
+  spawnPaket(c,{x:DOCK.stand.x+rand(-0.8,0.8),z:DOCK.stand.z+rand(-0.8,0.8),ry:rand(-0.4,0.4)});
 }
 function pullFromTruck(){
   if(!truck||truck.state!=='docked'||!truck.cargo.length) return null;
-  while(truck.cargo.length&&truck.cargo[0].regal){ regalAusladen(truck.cargo.shift()); fillCargo(); }
+  while(truck.cargo.length&&(truck.cargo[0].regal||truck.cargo[0].einbau)){ regalAusladen(truck.cargo.shift()); fillCargo(); }
   if(!truck.cargo.length) return null;
   const c=truck.cargo.shift(); fillCargo();
   return {type:c.type,count:P[c.type].box,q:c.q||1};
@@ -352,7 +353,7 @@ function pullFromTruck(){
 function dumpTruck(){
   if(!truck) return;
   const n=truck.cargo.length;
-  truck.cargo.forEach(c=>{ if(c.regal) regalAusladen(c); else spawnFloorBox(c.type,P[c.type].box,null,c.q||1); });
+  truck.cargo.forEach(c=>{ if(c.regal||c.einbau) regalAusladen(c); else spawnFloorBox(c.type,P[c.type].box,null,c.q||1); });
   truck.cargo.length=0;
   if(n) toast(`Der Fahrer hat ${n} Karton${n>1?'s':''} im Lager abgestellt.`);
   if(truck.state==='docked') leaveTruck(); else removeTruck();

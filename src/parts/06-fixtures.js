@@ -303,6 +303,8 @@ function setSB(an){
   else if(sbG){ sbG.visible=false; sbCols.forEach(c=>dropCol(c)); }
   sbLanes.forEach(l=>{ if(!l.up){ l.busy=null; sbLampe(l,true); } });
 }
+/* Wohin das SB-Kassenpaket getragen wird: vor die Kassenzeile */
+function sbZiel(){ return {x:10.6,z:2.8}; }
 /* Anlaufpunkt vor einem SB-Terminal. Die Zeile am zweiten Eingang
    haengt in einer verschobenen und drehbaren Gruppe - die lokale
    Position des Terminals ist dort nicht die Weltposition. */

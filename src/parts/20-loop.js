@@ -84,15 +84,15 @@ function vorDieTuer(){
   const da=pending.filter(pd=>pd.t<=0); if(!da.length) return;
   let n=0, regale=0;
   da.forEach(pd=>{ pending.splice(pending.indexOf(pd),1);
-    if(pd.regal){
-      /* Regale baut der Lieferant gleich im Laden auf */
-      if(regalAufbauen(pd.regal)) regale++;
-      else { S.money=r2(S.money+regalPreis(pd.regal)); toast(`${regalName(pd.regal)}: kein Stellplatz frei, der Fahrer nimmt es wieder mit.`,'bad'); }
+    if(pd.regal||pd.einbau){
+      /* Regale und Kassen kommen als Paket vor die Tuer - aufbauen
+         muss man selbst (Tom, 26.09.) */
+      const s=freeSlot(); spawnPaket(pd,{x:s.x,z:s.z,ry:Math.PI/2+rand(-0.1,0.1)}); regale++;
     } else { spawnFloorBox(pd.type,P[pd.type].box,null,pd.q||1); n++; } });
   statAdd('lkw',1); S.tut.lkw=true;
   sfx.thump(0.8);
   if(n) toast(`Lieferung: ${n} Karton${n>1?'s':''} vor der Ladentür abgestellt.`,'xp');
-  if(regale) toast(`Der Lieferant hat ${regale} Regal${regale>1?'e':''} im Laden aufgestellt.`,'money');
+  if(regale) toast(`${regale} Paket${regale>1?'e':''} mit Einrichtung vor der Ladentür. Hinbringen, wo es stehen soll, und auspacken.`,'money');
 }
 function step(dt){
   updatePlayer(dt);
@@ -119,7 +119,7 @@ function step(dt){
     for(let i=0;i<pending.length&&wave.length<32;i++) if(pending[i].t<=16) wave.push(pending[i]);
     if(!wave.length) break;
     wave.forEach(w=>pending.splice(pending.indexOf(w),1));
-    const sid=wave[0].sup||'mertens', ladung=wave.map(w=>w.regal?{regal:w.regal}:{type:w.type,q:w.q||1});
+    const sid=wave[0].sup||'mertens', ladung=wave.map(w=>w.regal?{regal:w.regal}:w.einbau?{einbau:w.einbau}:{type:w.type,q:w.q||1});
     if(frei<0) spawnTruck(ladung,sid,supplierOf(sid).name);
     else if(!spawnWTruck(frei,ladung,sid,supplierOf(sid).name)) break;
   }

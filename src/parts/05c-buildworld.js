@@ -226,6 +226,7 @@ function buildWorld(){
   for(const x of [-11,-4,3,10]) strassenlampe(x,10.9,Math.PI);
   buildStreet();
   buildStadt();
+  buildPark();
   /* Himmel: die Kuppel muss innerhalb der Sichtweite der Kamera
      (300 m) liegen, sonst wird sie weggeschnitten und man sieht nur
      die Hintergrundfarbe. Sie wandert mit dem Spieler mit, damit sie

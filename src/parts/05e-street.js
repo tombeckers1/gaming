@@ -559,7 +559,7 @@ function autoMats(){
   }
 }
 /* nachts spiegelt der Himmel nicht mehr hell */
-function autoNacht(f){ if(!_lackM) return; const k=1-0.85*f; _lackM.envMapIntensity=k; _glasM.envMapIntensity=1.2*k; _chromM.envMapIntensity=1.1*k; }
+function autoNacht(f){ const k=1-0.85*f; if(typeof _wasserM!=='undefined'&&_wasserM) _wasserM.envMapIntensity=0.9*k; if(!_lackM) return; _lackM.envMapIntensity=k; _glasM.envMapIntensity=1.2*k; _chromM.envMapIntensity=1.1*k; }
 /* Seitenprofil als Form, ueber die Breite extrudiert und gerundet.
    Profilkoordinaten: x = Laenge (vorn positiv), y = Hoehe. */
 function autoExtrude(shape,breite,bev,form){

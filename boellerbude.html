@@ -3133,6 +3133,7 @@ function buildWorld(){
   for(const x of [-11,-4,3,10]) strassenlampe(x,10.9,Math.PI);
   buildStreet();
   buildStadt();
+  buildPark();
   /* Himmel: die Kuppel muss innerhalb der Sichtweite der Kamera
      (300 m) liegen, sonst wird sie weggeschnitten und man sieht nur
      die Hintergrundfarbe. Sie wandert mit dem Spieler mit, damit sie
@@ -4486,7 +4487,7 @@ function autoMats(){
   }
 }
 /* nachts spiegelt der Himmel nicht mehr hell */
-function autoNacht(f){ if(!_lackM) return; const k=1-0.85*f; _lackM.envMapIntensity=k; _glasM.envMapIntensity=1.2*k; _chromM.envMapIntensity=1.1*k; }
+function autoNacht(f){ const k=1-0.85*f; if(typeof _wasserM!=='undefined'&&_wasserM) _wasserM.envMapIntensity=0.9*k; if(!_lackM) return; _lackM.envMapIntensity=k; _glasM.envMapIntensity=1.2*k; _chromM.envMapIntensity=1.1*k; }
 /* Seitenprofil als Form, ueber die Breite extrudiert und gerundet.
    Profilkoordinaten: x = Laenge (vorn positiv), y = Hoehe. */
 function autoExtrude(shape,breite,bev,form){
@@ -17341,7 +17342,7 @@ function step(dt){
   for(let i=timers.length-1;i>=0;i--){ timers[i].t-=dt; if(timers[i].t<=0){ const fn=timers[i].fn; timers.splice(i,1); fn(); } }
   if(phase==='open') addGrime(dt*0.0016*(1+customers.length*0.05));
   hype=Math.max(0,hype-dt*1.1);
-  updateFireworks(dt); updateSnow(dt); updateDeko(dt); updateStadt(dt);
+  updateFireworks(dt); updateSnow(dt); updateDeko(dt); updateStadt(dt); updatePark(dt);
   updateTarget(); holdRepeat(dt); applyTOD(); updateUhr();
   hudT-=dt; if(hudT<=0){ hudT=0.1; updateHUD(); updatePrompt(); zuendTick(); if(pdaOn) drawPDA(); if(laptopOpen||handyOpen) updateOnline(); }
   saveT+=dt; if(saveT>25){ saveT=0; save(); }

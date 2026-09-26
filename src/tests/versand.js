@@ -179,11 +179,15 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   /* 7 - Pause: Esc haelt an und zeigt die Steuerung */
   const tool0=await p.evaluate(()=>document.getElementById('tool').textContent);
   await p.keyboard.press('Escape');
+  /* seit 26.09.: Hauptmaske, die Tasten stehen auf der Maske Steuerung */
+  const aufHaupt=await p.evaluate(()=>window.__bb.pauseSeiteAktiv());
+  await p.evaluate(()=>document.querySelector('#pHaupt [data-pseite="pSteuer"]').click());
   const pa=await p.evaluate(()=>({auf:document.getElementById('pause').classList.contains('show'),
     zeilen:document.querySelectorAll('#steuer kbd').length,
     text:document.getElementById('steuer').textContent}));
   /* Der Knopf muss ohne Scrollen zu sehen sein - vorher lag er bei
      820 Pixel Fensterhoehe unter der Kante der Karte. */
+  await p.evaluate(()=>window.__bb.pauseSeite('pHaupt'));
   const knopf=await p.evaluate(()=>{ const b=document.getElementById('pBtn'), r=b.getBoundingClientRect();
     return document.elementFromPoint(r.x+r.width/2,r.y+r.height/2)===b; });
   pruef('PAUSE',knopf===true,'Weiterspielen liegt ausserhalb des sichtbaren Bereichs');
@@ -194,6 +198,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   const pz=await p.evaluate(()=>document.getElementById('pause').classList.contains('show'));
   console.log('PAUSE     ',JSON.stringify({auf:pa.auf,tasten:pa.zeilen,zu:!pz,tool:tool0}));
   pruef('PAUSE',pa.auf===true,'Esc oeffnet die Pause nicht');
+  pruef('PAUSE',aufHaupt==='pHaupt','Esc zeigt nicht die Hauptmaske: '+aufHaupt);
   pruef('PAUSE',pa.zeilen>=15,'in der Pause stehen nur '+pa.zeilen+' Tasten');
   pruef('PAUSE',/Preisgerät/.test(pa.text)&&/Pfefferspray/.test(pa.text)&&/Umbaumodus/.test(pa.text),'Steuerung unvollstaendig');
   pruef('PAUSE',!pz,'Weiterspielen schliesst die Pause nicht');

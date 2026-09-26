@@ -27,6 +27,11 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   const mangel=[];
   const pruef=(n,ok,was)=>{ if(!ok) mangel.push(n+': '+was); };
   const r=await p.evaluate(()=>{ const bb=window.__bb, S=bb.S, o={};
+    /* Menue-Knopf am Touchgeraet */
+    const m=document.getElementById('btnMenu'); o.menuImTouch=!!m&&!!m.closest('#touch');
+    if(m){ m.dispatchEvent(new TouchEvent('touchstart',{bubbles:true,cancelable:true})); }
+    o.pauseAuf=document.getElementById('pause').classList.contains('show');
+    bb.closePause&&bb.closePause();
     /* Ruhetag: Sonntag suchen */
     let d=S.day; while(!bb.isSunday(d)) d++;
     S.day=d; S.up.tag4=false; bb.phase='closed'; bb.clock=8*60;
@@ -51,11 +56,6 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     if(slot){ S.carrying={type:'wunder',count:12,q:0.86};
       const alt=bb.target; bb.tuAktion('rslot',slot); o.imRegal=slot.box?slot.box.q:null;
       S.carrying=null; bb.tuAktion('rslot',slot); o.zurueck=S.carrying?S.carrying.q:null; S.carrying=null; }
-    /* Menue-Knopf am Touchgeraet */
-    const m=document.getElementById('btnMenu'); o.menuImTouch=!!m&&!!m.closest('#touch');
-    if(m){ m.dispatchEvent(new TouchEvent('touchstart',{bubbles:true,cancelable:true})); }
-    o.pauseAuf=document.getElementById('pause').classList.contains('show');
-    bb.closePause&&bb.closePause();
     return o; });
   console.log('RUHETAG ',JSON.stringify({sonntag:r.sonntag,hinweis:r.hinweis,nachSchild:r.nachSchild,weiter:r.weiter,uhr22:r.uhr22}));
   console.log('ROHR    ',JSON.stringify(r.rohr),'falsch',JSON.stringify(r.rohrFalsch));

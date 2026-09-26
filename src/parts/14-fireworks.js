@@ -427,10 +427,10 @@ const EFF={
     for(let i=0;i<n;i++){
       const t=i/n*Math.PI*2;
       const hx=16*Math.pow(Math.sin(t),3)/16, hy=(13*Math.cos(t)-5*Math.cos(2*t)-2*Math.cos(3*t)-Math.cos(4*t))/16;
-      const sp=8.5*s;
-      const dx=(u[0]*hx+v[0]*hy)*sp, dy=(u[1]*hx+v[1]*hy)*sp, dz=(u[2]*hx+v[2]*hy)*sp;
+      const sp=8.5*s*rand(0.975,1.025), hx2=hx+rand(-.02,.02), hy2=hy+rand(-.02,.02);
+      const dx=(u[0]*hx2+v[0]*hy2)*sp, dy=(u[1]*hx2+v[1]*hy2)*sp, dz=(u[2]*hx2+v[2]*hy2)*sp, k=rand(0.84,0.88);
       psBig.emit(p.x,p.y,p.z,dx,dy,dz,A[0],A[1],A[2],rand(1.9,2.4),2.4,0);
-      psBig.emit(p.x,p.y,p.z,dx*0.86,dy*0.86,dz*0.86,B[0],B[1],B[2],rand(1.7,2.1),2.4,0);
+      psBig.emit(p.x,p.y,p.z,dx*k,dy*k,dz*k,B[0],B[1],B[2],rand(1.7,2.1),2.4,0);
     }
   },
   /* fünfzackiger Stern */
@@ -710,7 +710,7 @@ EFF.sternschnuppen=function(p,A,B,s){
     const w=a/n*Math.PI*2+rand(-0.2,0.2), sp=rand(11,13)*s, c=a%2?A:FW.weiss;
     /* Neigung mit dem Kaliber: vorher blieb vy klein, bei grossen
        Kalibern lagen alle Schnuppen in einer waagrechten Scheibe */
-    const el=rand(-0.3,0.4), vx=Math.cos(w)*Math.cos(el)*sp, vy=Math.sin(el)*sp, vz=Math.sin(w)*Math.cos(el)*sp;
+    const el=rand(-0.45,0.6), vx=Math.cos(w)*Math.cos(el)*sp, vy=Math.sin(el)*sp, vz=Math.sin(w)*Math.cos(el)*sp;
     psHuge.emit(p.x,p.y,p.z,vx,vy,vz,c[0]*1.5,c[1]*1.5,c[2]*1.5,rand(2.4,3.0),2.8,0);
     for(let k=1;k<=22;k++){ const t=Math.max(0.03,k*0.075+rand(-0.035,0.035)); later(t,()=>{ const q=bahnOrt(p,[vx,vy,vz],2.8,t-Math.random()*0.05);
       for(let i=0;i<Math.round(9*QUAL());i++) psBig.emit(q.x+rand(-.1,.1),q.y+rand(-.1,.1),q.z+rand(-.1,.1),rand(-.25,.25),rand(-.7,.1),rand(-.25,.25),1.1,1.15,1.3,rand(0.7,1.3),2.6,4); }); }
@@ -906,13 +906,13 @@ EFF.polarstern=function(p,A,B,s){
   /* vier Strahlen in der Bildebene, je Strahl eine dichte Sternkette */
   for(let a=0;a<4;a++){ const ang=a*Math.PI/2, c=Math.cos(ang), sn=Math.sin(ang);
     const dx=u[0]*c+v[0]*sn, dy=u[1]*c+v[1]*sn, dz=u[2]*c+v[2]*sn;
-    for(let i=0;i<Math.round(34*q);i++){ const f=0.15+i/34*1.25, w=15*s*f;
-      psHuge.emit(p.x,p.y,p.z,dx*w,dy*w,dz*w,1,1,1,rand(2.2,2.8),1.2,0); } }
+    for(let i=0;i<Math.round(34*q);i++){ const f=(0.15+i/34*1.25)*rand(0.97,1.03), w=15*s*f, e=streu([dx,dy,dz],0.018);
+      psHuge.emit(p.x,p.y,p.z,e[0]*w,e[1]*w,e[2]*w,1,1,1,rand(2.2,2.8),1.2,0); } }
   /* kurze Diagonalen: der Stern hat acht Zacken, vier lange, vier kurze */
   for(let a=0;a<4;a++){ const ang=a*Math.PI/2+Math.PI/4, c=Math.cos(ang), sn=Math.sin(ang);
     const dx=u[0]*c+v[0]*sn, dy=u[1]*c+v[1]*sn, dz=u[2]*c+v[2]*sn;
-    for(let i=0;i<Math.round(14*q);i++){ const w=6.5*s*(0.2+i/14*0.8);
-      psBig.emit(p.x,p.y,p.z,dx*w,dy*w,dz*w,B[0],B[1],B[2],rand(1.8,2.3),1.2,0); } }
+    for(let i=0;i<Math.round(14*q);i++){ const w=6.5*s*(0.2+i/14*0.8)*rand(0.96,1.04), e=streu([dx,dy,dz],0.025);
+      psBig.emit(p.x,p.y,p.z,e[0]*w,e[1]*w,e[2]*w,B[0],B[1],B[2],rand(1.8,2.3),1.2,0); } }
   /* goldener Glitzerguertel */
   for(let i=0;i<Math.round(90*q);i++){ const a=i/90*Math.PI*2, w=rand(8.2,9)*s;
     const n=[Math.cos(a),0,Math.sin(a)];
@@ -974,8 +974,13 @@ EFF.kokosnuss=function(p,A,B,s){
   const g=FW.gold, aeste=8+Math.floor(Math.random()*3);
   for(let a=0;a<aeste;a++){ const ang=a/aeste*Math.PI*2+rand(-.1,.1), tilt=rand(0.25,0.7), sp=rand(8.5,10)*s;
     const vx=Math.cos(ang)*Math.cos(tilt)*sp, vy=Math.sin(tilt)*sp, vz=Math.sin(ang)*Math.cos(tilt)*sp;
-    for(let i=0;i<Math.round(22*QUAL());i++){ const f=0.3+i/22*0.8;
-      psBig.emit(p.x,p.y,p.z,vx*f,vy*f,vz*f,g[0],g[1]*0.9,g[2]*0.8,rand(2.8,3.6),5.6,4); } }
+    /* ein schwerer Wedel: Kopf, enges Buendel, fallende Funken - vorher
+       22 Sterne auf genau einer Linie (Perlenkette) */
+    const vl=Math.hypot(vx,vy,vz), dn=[vx/vl,vy/vl,vz/vl];
+    psHuge.emit(p.x,p.y,p.z,vx,vy,vz,g[0],g[1]*0.9,g[2]*0.8,rand(3.0,3.6),5.6,4);
+    for(let i=0;i<Math.round(8*QUAL());i++){ const e=streu(dn,0.06), w=vl*rand(0.84,1.0);
+      psBig.emit(p.x,p.y,p.z,e[0]*w,e[1]*w,e[2]*w,g[0],g[1]*0.9,g[2]*0.8,rand(2.6,3.4),5.6,4); }
+    funkenSchweif(p,[vx,vy,vz],5.6,1.8,3,[g[0],g[1]*0.9,g[2]*0.8]); }
   for(let i=0;i<Math.round(40*QUAL());i++){ const d=randDir(), w=rand(2.2,3)*s, c=i%2?A:B;
     psBig.emit(p.x,p.y,p.z,d[0]*w,d[1]*w,d[2]*w,c[0],c[1],c[2],rand(1.2,1.6),2,0); }
 };
@@ -1024,11 +1029,13 @@ EFF.diadem=function(p,A,B,s){
 };
 /* Goldvorhang: eine waagerechte Linie Goldglitzer, die als Vorhang faellt */
 EFF.goldvorhang=function(p,A,B,s){
-  const [u]=basisBlick(p,0), g=FW.gold, q=QUAL();
-  for(let i=0;i<Math.round(110*s*q);i++){ const x=rand(-1,1), w=10*s;
-    psBig.emit(p.x,p.y,p.z,u[0]*x*w,rand(0.5,2.5),u[2]*x*w,g[0],g[1],g[2]*0.9,rand(3.4,4.4),3.4,4); }
-  for(let i=0;i<Math.round(30*s*q);i++){ const x=rand(-1,1), w=10*s;
-    psHuge.emit(p.x,p.y,p.z,u[0]*x*w,rand(1,3),u[2]*x*w,A[0],A[1],A[2],rand(1.4,1.9),2.6,0); }
+  const [u]=basisBlick(p,0), g=FW.gold, q=QUAL(), t=[-u[2],0,u[0]];
+  /* etwas Tiefe (t): vorher lag der ganze Vorhang in einer Ebene zum
+     Zuschauer - ein flacher Faecher aus Linien */
+  for(let i=0;i<Math.round(110*s*q);i++){ const x=rand(-1,1), z=rand(-0.3,0.3), w=10*s;
+    psBig.emit(p.x,p.y,p.z,(u[0]*x+t[0]*z)*w,rand(0.5,2.5),(u[2]*x+t[2]*z)*w,g[0],g[1],g[2]*0.9,rand(3.4,4.4),3.4,4); }
+  for(let i=0;i<Math.round(30*s*q);i++){ const x=rand(-1,1), z=rand(-0.3,0.3), w=10*s;
+    psHuge.emit(p.x,p.y,p.z,(u[0]*x+t[0]*z)*w,rand(1,3),(u[2]*x+t[2]*z)*w,A[0],A[1],A[2],rand(1.4,1.9),2.6,0); }
 };
 /* Krone: Goldbogen mit Zacken, auf jeder Zacke ein Juwel */
 /* Krone: Brokatkrone - dichter Goldbrokat, der nach oben aufgeht und
@@ -1060,8 +1067,8 @@ EFF.pfeifsterne=function(p,A,B,s){
     psBig.emit(p.x,p.y,p.z,d[0]*w,d[1]*w,d[2]*w,c[0],c[1],c[2],rand(1.5,2),2.4,0); }
   for(let i=0;i<n;i++){ const d=randDir(), w=rand(10,12.5)*s, c=i%2?A:B;
     psBig.emit(p.x,p.y,p.z,d[0]*w,d[1]*w,d[2]*w,c[0],c[1],c[2],rand(1.6,2.1),2.2,0);
-    for(let k=0;k<Math.round(6*QUAL());k++){ const f=0.5+k*0.08;
-      psMid.emit(p.x,p.y,p.z,d[0]*w*f,d[1]*w*f,d[2]*w*f,1,.9,.7,rand(0.9,1.4),2.2,4); } }
+    for(let k=0;k<Math.round(6*QUAL());k++){ const f=rand(0.5,0.95), e=streu(d,0.05);
+      psMid.emit(p.x,p.y,p.z,e[0]*w*f,e[1]*w*f,e[2]*w*f,1,.9,.7,rand(0.9,1.4),2.2,4); } }
   const v=distVol(p); for(let i=0;i<3;i++) later(i*0.12,()=>sfx.whistle(v*0.9));
 };
 /* Nishiki-Kamuro: Brokatgold, an jeder Spitze ein farbiger Stern */
@@ -1093,8 +1100,8 @@ EFF.drachenblut=function(p,A,B,s){
   const n=Math.round(70*s*QUAL());
   for(let i=0;i<n;i++){ const d=randDir(), w=rand(9.5,11)*s;
     psBig.emit(p.x,p.y,p.z,d[0]*w,d[1]*w,d[2]*w,A[0],A[1],A[2],rand(1.9,2.3),3,0);
-    for(let k=0;k<3;k++){ const f=0.35+k*0.18;
-      psMid.emit(p.x,p.y,p.z,d[0]*w*f,d[1]*w*f,d[2]*w*f,A[0],A[1]*0.6,A[2]*0.4,rand(2.4,3.0),5,2,0.45,0.05,0.02); } }
+    for(let k=0;k<3;k++){ const f=(0.35+k*0.18)*rand(0.9,1.1), e=streu(d,0.07);
+      psMid.emit(p.x,p.y,p.z,e[0]*w*f,e[1]*w*f,e[2]*w*f,A[0],A[1]*0.6,A[2]*0.4,rand(2.4,3.0),5,2,0.45,0.05,0.02); } }
   for(let i=0;i<Math.round(40*QUAL());i++){ const d=randDir(), w=rand(2,3.2)*s;
     psBig.emit(p.x,p.y,p.z,d[0]*w,d[1]*w,d[2]*w,B[0],B[1],B[2],rand(1.3,1.7),2,0); }
 };

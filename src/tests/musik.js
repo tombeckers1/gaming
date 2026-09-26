@@ -66,7 +66,8 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   await p.keyboard.press('KeyN');
   const s1=await p.evaluate(()=>window.__bb.MUSIK.stueck);
   /* Pausenmenue: Regler */
-  await p.evaluate(()=>window.__bb.showPause());
+  /* seit 26.09. eigene Musik-Maske im Pausenmenue */
+  await p.evaluate(()=>{ window.__bb.showPause(); window.__bb.pauseSeite('pMusikSeite'); });
   const regler=await p.evaluate(()=>{ const r=document.getElementById('pMusikVol'); const sicht=!!r&&r.getBoundingClientRect().width>0;
     r.value=20; r.dispatchEvent(new Event('input')); return {sicht,vol:window.__bb.MUSIK.vol,name:document.getElementById('pMusikName').textContent}; });
   console.log('BEDIENUNG',JSON.stringify({wieder,s0,s1,regler}));

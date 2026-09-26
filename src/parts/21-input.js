@@ -131,7 +131,9 @@ function pauseSeite(id){
   if(id==='pHaupt') tutKnopf();
 }
 function pauseSeiteAktiv(){ const el=document.querySelector('#pause .pseite.on'); return el?el.id:'pHaupt'; }
-function showPause(){ if(overlayOpen()) return; pauseSeite('pHaupt'); musikAnzeige(); pauseOpen=true; paused=true; for(const k in keys) keys[k]=false; mouseDown=false; $('pause').classList.add('show'); }
+function showPause(){ if(overlayOpen()) return; pauseSeite('pHaupt'); musikAnzeige(); pauseOpen=true; paused=true;
+  /* Maus freigeben - sonst gehen Klicks auf die Spielflaeche statt ins Menue */
+  if(locked) document.exitPointerLock(); for(const k in keys) keys[k]=false; mouseDown=false; $('pause').classList.add('show'); }
 function closePause(){ if(!pauseOpen) return; pauseOpen=false; paused=false; $('pause').classList.remove('show'); requestLock(); }
 $('pBtn').addEventListener('click',()=>closePause());
 $('pause').addEventListener('click',e=>{
@@ -148,6 +150,10 @@ $('pMusikVol').addEventListener('input',e=>{ ac(); musikVol(+e.target.value/100)
 document.addEventListener('pointerlockchange',()=>{
   locked=document.pointerLockElement===canvas;
   if(locked) lockWorked=true;
+  /* Kommt die Sperre erst an, wenn schon wieder ein Fenster offen ist
+     (Weiterspielen und gleich wieder Esc), sofort freigeben - sonst
+     gehen die Klicks auf die Spielflaeche statt ins Menue */
+  if(locked&&overlayOpen()){ document.exitPointerLock(); return; }
   else if(lockWorked&&!COARSE&&!overlayOpen()){ mouseDown=false; showPause(); }
 });
 document.addEventListener('pointerlockerror',()=>{ lockFailed=true; dragHint(); });

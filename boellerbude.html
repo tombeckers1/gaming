@@ -89,6 +89,7 @@ body:has(.ov.show) #touch{display:none}
 #btnHandy{right:calc(24px + env(safe-area-inset-right));bottom:calc(284px + env(safe-area-inset-bottom));width:60px;height:60px;background:#9cc4ff;font-size:14px}
 #btnKarre{right:calc(24px + env(safe-area-inset-right));bottom:calc(354px + env(safe-area-inset-bottom));width:60px;height:60px;background:#ffb48a;font-size:14px}
 #btnKarre.on{box-shadow:0 0 0 3px rgba(255,180,138,.5)}
+#btnMenu{left:max(12px,env(safe-area-inset-left));top:calc(max(12px,env(safe-area-inset-top)) + 82px);width:52px;height:52px;background:rgba(242,245,255,.88);font-size:13px}
 #btnPda.on{background:var(--mint);box-shadow:0 0 0 3px rgba(142,240,168,.4)}
 .tbtn.down{transform:translateY(3px);box-shadow:none}
 #btnTool.on{background:var(--fire);color:#fff}
@@ -282,6 +283,25 @@ body.coarse.zuendan #toasts{bottom:258px}
 body.compact .kan{width:52px;height:50px}
 body.compact .kan span{display:none}
 #pause h2{text-align:center}
+.pseite{display:none}
+.pseite.on{display:block}
+.pmenu{display:flex;flex-direction:column;gap:10px;max-width:340px;margin:18px auto 10px}
+.pmenu button{font-size:20px;padding:13px 18px}
+.phint{display:block;text-align:center;opacity:.6;font-size:13px}
+.pkopf{display:grid;grid-template-columns:110px 1fr 110px;align-items:center;margin-bottom:10px}
+.pkopf h2{margin:0}
+.pkopf .pzur{font-size:15px;padding:7px 10px;justify-self:start}
+.pscroll{max-height:min(66vh,620px);overflow:auto;padding-right:6px}
+.handbuch{margin-top:14px;font-size:15px;line-height:1.4}
+.handbuch h4{margin:14px 0 4px;font-size:14px;letter-spacing:.05em;text-transform:uppercase;color:var(--signal)}
+.handbuch p{margin:3px 0 6px;opacity:.92}
+.handbuch ol{margin:3px 0 8px;padding-left:22px}
+.handbuch li{margin:2px 0}
+.handbuch kbd{display:inline-block;min-width:20px;padding:0 5px;border-radius:5px;background:rgba(255,255,255,.12);border:1px solid var(--line);border-bottom-width:2px;font-family:inherit;font-weight:700;font-size:12.5px;line-height:1.35;text-align:center}
+.titel{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px;margin-top:14px}
+.titel button{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;font-size:16px;padding:9px 12px}
+.titel button small{font-weight:500;font-size:12.5px;opacity:.7}
+.titel button.laeuft{border-color:var(--signal);box-shadow:0 0 0 2px rgba(255,210,63,.3)}
 .stHead{margin:10px 0 8px;font-size:14px;letter-spacing:.06em;text-transform:uppercase;opacity:.7;text-align:center}
 .steuer{columns:2 300px;column-gap:28px;font-size:15px;line-height:1.3}
 /* Zielpfeil am Bildrand (Tutorial) */
@@ -472,6 +492,7 @@ body.compact .pdahead2 b{font-size:16px}
   <button class="tbtn" id="btnTool" aria-label="Pfefferspray">Spray</button>
   <button class="tbtn" id="btnDrop" aria-label="Karton abstellen">Ablegen</button>
   <button class="tbtn" id="btnAct" aria-label="Aktion">Aktion</button>
+  <button class="tbtn" id="btnMenu" aria-label="Pausenmenü">Menü</button>
 </div>
 
 <div id="hud">
@@ -589,14 +610,27 @@ body.compact .pdahead2 b{font-size:16px}
 
 <div id="kapBanner"><small id="kapNr"></small><b id="kapName"></b><span id="kapTxt"></span></div>
 <div class="ov" id="pause"><div class="card pausecard">
-  <h2>Pause</h2>
-  <h3 class="stHead">Steuerung</h3>
-  <div class="steuer" id="steuer"></div>
-  <h3 class="stHead">Musik</h3>
-  <div class="musikzeile"><button class="ghost" id="pMusikAn">Musik an</button><label>Lautstärke <input type="range" id="pMusikVol" min="0" max="100" step="5"></label><button class="ghost" id="pMusikWeiter">Nächstes Stück</button><small id="pMusikName"></small></div>
-  <h3 class="stHead">Tutorial</h3>
-  <div class="musikzeile"><button class="ghost" id="pTut">Tutorial ausblenden</button><small id="pTutTxt">Tipps oben rechts und Pfeile zum nächsten Ziel.</small></div>
-  <div class="btns" style="justify-content:center;margin-top:16px"><button id="pBtn">Weiterspielen</button></div>
+  <!-- Hauptmaske (Tom, 26.09.): fuenf Punkte, jede Unterseite eine eigene Maske -->
+  <div class="pseite on" id="pHaupt">
+    <h2>Pause</h2>
+    <div class="pmenu">
+      <button id="pBtn">Weiterspielen</button>
+      <button class="ghost" data-pseite="pSteuer">Steuerung</button>
+      <button class="ghost" data-pseite="pMusikSeite">Musik</button>
+      <button class="ghost" id="pTut">Tutorial ausblenden</button>
+      <button class="ghost" id="pHome">Zum Startbildschirm</button>
+    </div>
+    <small class="phint" id="pHint">Dein Spielstand wird laufend gespeichert.</small>
+  </div>
+  <div class="pseite" id="pSteuer">
+    <div class="pkopf"><button class="ghost pzur">‹ Zurück</button><h2>Steuerung</h2><span></span></div>
+    <div class="pscroll"><div class="steuer" id="steuer"></div><div class="handbuch" id="handbuch"></div></div>
+  </div>
+  <div class="pseite" id="pMusikSeite">
+    <div class="pkopf"><button class="ghost pzur">‹ Zurück</button><h2>Musik</h2><span></span></div>
+    <div class="musikzeile"><button class="ghost" id="pMusikAn">Musik an</button><label>Lautstärke <input type="range" id="pMusikVol" min="0" max="100" step="5"></label><button class="ghost" id="pMusikWeiter">Nächstes Stück</button><small id="pMusikName"></small></div>
+    <div class="titel" id="pTitel"></div>
+  </div>
 </div></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -4309,11 +4343,18 @@ const MOERSER_R=ROHR_INNEN.map(r=>+(r/0.9).toFixed(4));
    300 mm. Vorher lag die 200er im grossen Rohr und hatte dort 5 cm
    Luft zu jeder Seite. */
 const ROHR_KALIBER=['75–100 mm','150–200 mm','300 mm'], ROHR_NAME=['kleine Rohr','mittlere Rohr','große Rohr'];
-function moerserRohr(t){ const p=P[t]; const k=p&&p.rezept?p.rezept.traeger:t;
-  return {kugel75:0,kugel100:0,kugel150:1,kugel200:1,kugel300:2}[k]||0; }
+/* Kaliber einer Kugelbombe: die Stammkugeln per Schluessel, alle
+   anderen Sorten ueber ihren Durchmesser. Vorher landeten Sternenstaub
+   und Sternkranz (150), Goldkrone (200) und Kaiserkrone (300) im
+   kleinen Rohr, weil nur die fuenf Stammkugeln bekannt waren. */
+function kugelTyp(t){ const p=P[t]; const k=p&&p.rezept?p.rezept.traeger:t; if(KUGEL_R[k]) return k;
+  const d=p&&p.dims?p.dims[0]:0.09; let best='kugel75', bd=9;
+  for(const [n,v] of [['kugel75',0.09],['kugel100',0.12],['kugel150',0.165],['kugel200',0.21],['kugel300',0.3]]){ const dd=Math.abs(v-d); if(dd<bd){ bd=dd; best=n; } }
+  return best; }
+function moerserRohr(t){ return {kugel75:0,kugel100:0,kugel150:1,kugel200:1,kugel300:2}[kugelTyp(t)]||0; }
 function kugelModell(t,slot){
   /* passt nicht jede Kugel in jedes Rohr - dann eben knapp unter die Innenweite */
-  const g=new THREE.Group(), rr=ROHR_INNEN[slot%3], rk=Math.min(KUGEL_R[t]||0.06,rr*0.97);
+  const g=new THREE.Group(), rr=ROHR_INNEN[slot%3], rk=Math.min(KUGEL_R[kugelTyp(t)]||0.06,rr*0.97);
   const papier=std(0xb58a55,{roughness:0.95});
   const kugel=new THREE.Mesh(new THREE.SphereGeometry(rk,HIQ?16:10,HIQ?12:8),papier);
   kugel.position.y=-0.14-rk; g.add(kugel);
@@ -4404,7 +4445,7 @@ function brennDauer(t){
   if(fest[t]) return fest[t];
   if(p.rezept) return 7;
   const sh=p.shape;
-  if(sh==='shell') return {kugel150:4.5,kugel200:5,kugel300:6.5}[t]||3.5;
+  if(sh==='shell') return {kugel150:4.5,kugel200:5,kugel300:6.5}[kugelTyp(t)]||3.5;
   if(sh==='tubepack') return 2.6;
   if(sh==='rocketset'){ const k=typeof RAKETEN_KL!=='undefined'&&RAKETEN_KL[t]; return k?Math.max(3,(k.n-1)*k.gap+2):3; }
   if(sh==='battery'||sh==='fan') return 9;
@@ -13767,9 +13808,24 @@ function musikAn(an){
   if(typeof toast==='function') toast(MUSIK.an?'♪ Musik an: '+STUECKE[MUSIK.stueck].name:'Musik aus');
 }
 function musikVol(v){ MUSIK.vol=clamp(v,0,1); musikSpeichern(); musikLautstaerke(); musikAnzeige(); }
+/* Titelwahl im Pausenmenue: jedes Stueck zum Anklicken */
+const MUSIK_STIL={funk:'Funk',winter:'Winterlich',dance:'Dance',chip:'8-Bit',polka:'Polka',hiphop:'Hip-Hop',rock:'Rock',ambient:'Ambient',trance:'Trance',lofi:'Lo-Fi'};
+function musikTitel(){
+  const el=document.getElementById('pTitel'); if(!el) return;
+  el.innerHTML=STUECKE.map((s,i)=>{ const an=MUSIK.an&&MUSIK.stueck===i;
+    return `<button class="ghost${an?' laeuft':''}" data-stueck="${i}">${an?'▶ ':''}${s.name}<small>${MUSIK_STIL[s.stil]||''} · ${s.bpm} BPM${an?' · läuft':''}</small></button>`; }).join('');
+}
+function musikWahl(i){
+  MUSIK.stueck=((i%STUECKE.length)+STUECKE.length)%STUECKE.length; mStep=0; mTakte=0;
+  if(!MUSIK.an){ musikAn(true); return; }
+  if(AC) mNext=AC.currentTime+0.3;
+  musikSpeichern(); musikLautstaerke(); musikAnzeige();
+  if(typeof toast==='function') toast('♪ '+STUECKE[MUSIK.stueck].name);
+}
 function musikAnzeige(){
   const n=STUECKE[MUSIK.stueck]?STUECKE[MUSIK.stueck].name:'';
-  const pm=document.getElementById('pMusikAn'); if(pm) pm.textContent=MUSIK.an?'Musik an':'Musik aus';
+  const pm=document.getElementById('pMusikAn'); if(pm) pm.textContent=MUSIK.an?'Musik: an':'Musik: aus';
+  musikTitel();
   const pn=document.getElementById('pMusikName'); if(pn) pn.textContent=MUSIK.an?'Läuft: '+n:'Stumm';
   const pv=document.getElementById('pMusikVol'); if(pv&&document.activeElement!==pv) pv.value=Math.round(MUSIK.vol*100);
 }
@@ -13952,6 +14008,25 @@ const THEMEN={
 };
 function themaPaar(th,i){ const T=THEMEN[th]||THEMEN.bunt, s=T[((i|0)%T.length+T.length)%T.length]; return [K(s[0]),K(s[1])]; }
 function scheme(i){ const s=(typeof i==='number'&&i>=0)?SCHEMES[i%SCHEMES.length]:pick(SCHEMES); return [K(s[0]),K(s[1])]; }
+/* Ort eines Sterns nach t Sekunden - dieselbe Physik wie PS.update:
+   Luftwiderstand ZIEH, Schwerkraft g */
+function bahnOrt(p,v,g,t){ const f=(1-Math.exp(-ZIEH*t))/ZIEH, gk=g/ZIEH; return {x:p.x+v[0]*f,y:p.y+v[1]*f-gk*(t-f),z:p.z+v[2]*f}; }
+function bahnTempo(v,g,t){ const e=Math.exp(-ZIEH*t), gk=g/ZIEH; return [v[0]*e,(v[1]+gk)*e-gk,v[2]*e]; }
+/* Richtung d um bis zu st (Bogenmass) gestreut */
+function streu(d,st){ const e=randDir(), x=d[0]+e[0]*st, y=d[1]+e[1]*st, z=d[2]+e[2]*st, l=Math.hypot(x,y,z)||1; return [x/l,y/l,z/l]; }
+/* zwei Einheitsvektoren quer zu d */
+function quer(d){ const a=Math.abs(d[1])<0.9?[0,1,0]:[1,0,0];
+  let u=[d[1]*a[2]-d[2]*a[1],d[2]*a[0]-d[0]*a[2],d[0]*a[1]-d[1]*a[0]]; const l=Math.hypot(u[0],u[1],u[2])||1; u=[u[0]/l,u[1]/l,u[2]/l];
+  return [u,[d[1]*u[2]-d[2]*u[1],d[2]*u[0]-d[0]*u[2],d[0]*u[1]-d[1]*u[0]]]; }
+/* Funkenschweif eines Kometen: Funken loesen sich zu zufaelligen Zeiten
+   aus der Bahn und fallen. Vorher kamen sie im festen Takt an denselben
+   Punkten heraus - am Himmel standen Perlenketten (Tom, 26.09.). */
+function funkenSchweif(p,v,g,dauer,dichte,c){
+  const takte=Math.max(3,Math.round(dauer/0.12));
+  for(let k=0;k<takte;k++){ const t0=(k+Math.random())*dauer/takte;
+    later(t0,()=>{ for(let i=0;i<Math.round(dichte*QUAL());i++){ const t=Math.max(0.02,t0-Math.random()*0.1), q=bahnOrt(p,v,g,t);
+      psMid.emit(q.x+rand(-.12,.12),q.y+rand(-.12,.12),q.z+rand(-.12,.12),rand(-.45,.45),rand(-1.4,0.1),rand(-.45,.45),c[0],c[1],c[2],rand(0.5,1.2),3.4,4); } }); }
+}
 function randDir(){ let x,y,z,d; do{ x=rand(-1,1); y=rand(-1,1); z=rand(-1,1); d=x*x+y*y+z*z; }while(d>1||d<0.01); d=Math.sqrt(d); return [x/d,y/d,z/d]; }
 function basis(){
   const n=randDir(), a=Math.abs(n[1])<0.86?[0,1,0]:[1,0,0];
@@ -14085,7 +14160,7 @@ const EFF={
     const n=Math.round(150*s*QUAL());
     for(let i=0;i<n;i++){ const d=randDir(), v=rand(7,11.5)*s, c=i%3?A:B;
       psBig.emit(p.x,p.y,p.z,d[0]*v,d[1]*v,d[2]*v,c[0],c[1],c[2],rand(2.0,2.9),4.0,4);
-      if(i%2===0) psMid.emit(p.x,p.y,p.z,d[0]*v*0.55,d[1]*v*0.55,d[2]*v*0.55,c[0],c[1],c[2],rand(1.2,1.9),3.4,4); }
+      if(i%2===0){ const e=streu(d,0.12), w=v*rand(0.45,0.65); psMid.emit(p.x,p.y,p.z,e[0]*w,e[1]*w,e[2]*w,c[0],c[1],c[2],rand(1.2,1.9),3.4,4); } }
   },
   /* Farbwechsler: startet in A, endet in B */
   wechsel(p,A,B,s){
@@ -14101,15 +14176,19 @@ const EFF={
     for(let i=0;i<Math.round(26*s*QUAL());i++){ const d=randDir(), v=rand(2,4)*s;
       psBig.emit(p.x,p.y,p.z,d[0]*v,d[1]*v,d[2]*v,A[0],A[1],A[2],rand(1.2,1.8),3,0); }
   },
-  /* Palme: wenige dicke Finger nach oben */
+  /* Palme: wenige dicke Wedel nach oben, die sich unter der Last
+     neigen. Jeder Wedel ist ein grosser Kopf mit einem engen Buendel
+     dicht dahinter und fallenden Funken - vorher 15 Sterne auf genau
+     einer Linie mit gleichen Abstaenden. */
   palme(p,A,B,s){
-    const arms=9+Math.floor(Math.random()*4);
+    const arms=7+Math.floor(Math.random()*4), dreh=Math.random()*Math.PI*2;
     for(let a=0;a<arms;a++){
-      const ang=a/arms*Math.PI*2+rand(-.15,.15), tilt=rand(0.55,1.15), sp=rand(8,11)*s;
-      const vx=Math.cos(ang)*Math.cos(tilt)*sp, vy=Math.sin(tilt)*sp+2, vz=Math.sin(ang)*Math.cos(tilt)*sp;
-      const n=Math.round(15*QUAL());
-      for(let i=0;i<n;i++){ const f=0.35+i/n*0.75, c=i<3?B:A;
-        psBig.emit(p.x,p.y,p.z,vx*f+rand(-.5,.5),vy*f+rand(-.5,.5),vz*f+rand(-.5,.5),c[0],c[1],c[2],rand(2.2,3.4),4.4,4); }
+      const ang=dreh+a/arms*Math.PI*2+rand(-.35,.35), tilt=rand(0.45,1.2), sp=rand(8.5,11)*s;
+      const v=[Math.cos(ang)*Math.cos(tilt)*sp,Math.sin(tilt)*sp+2,Math.sin(ang)*Math.cos(tilt)*sp], vl=Math.hypot(v[0],v[1],v[2]), dn=[v[0]/vl,v[1]/vl,v[2]/vl];
+      psHuge.emit(p.x,p.y,p.z,v[0],v[1],v[2],A[0],A[1],A[2],rand(2.6,3.2),4.4,4);
+      for(let i=0;i<Math.round(7*QUAL());i++){ const e=streu(dn,0.05), w=vl*rand(0.86,1.0), c=i<2?B:A;
+        psBig.emit(p.x,p.y,p.z,e[0]*w,e[1]*w,e[2]*w,c[0],c[1],c[2],rand(2.2,3.2),4.4,4); }
+      funkenSchweif(p,v,4.4,1.8,3,A);
     }
     for(let i=0;i<Math.round(26*QUAL());i++){ const d=randDir(), v=rand(1,3);
       psMid.emit(p.x,p.y,p.z,d[0]*v,d[1]*v,d[2]*v,B[0],B[1],B[2],rand(0.9,1.5),3,0); }
@@ -14132,19 +14211,23 @@ const EFF={
         psBig.emit(p.x,p.y,p.z,dx*sp,dy*sp,dz*sp,c[0],c[1],c[2],rand(1.7,2.2),2.6,0); }
     }
   },
-  /* Crossette: Kometen, die nochmal vierfach aufplatzen */
+  /* Crossette: Kometen, die nochmal vierfach aufplatzen. Jeder Arm ist
+     ein Kopf mit kurzem Schweif; er platzt quer zu seiner Flugrichtung
+     im Kreuz auf. Vorher: neun Sterne in genau derselben Richtung mit
+     gleichen Abstaenden - eine Perlenkette mit Draht zur Mitte. */
   crossette(p,A,B,s){
-    const arms=8;
+    const arms=8+Math.floor(Math.random()*5);
     for(let a=0;a<arms;a++){
-      const d=randDir(), sp=rand(7,9)*s;
-      const vx=d[0]*sp, vy=d[1]*sp, vz=d[2]*sp;
-      for(let i=0;i<Math.round(9*QUAL());i++){ const f=0.4+i/9*0.7;
-        psBig.emit(p.x,p.y,p.z,vx*f,vy*f,vz*f,A[0],A[1],A[2],0.62,2.4,4); }
-      later(0.58,()=>{
-        const q={x:p.x+vx*0.42,y:p.y+vy*0.42-0.5,z:p.z+vz*0.42};
-        for(let k=0;k<4;k++){ const e=k/4*Math.PI*2;
-          for(let i=0;i<Math.round(11*QUAL());i++){ const w=rand(2.5,4.2);
-            psBig.emit(q.x,q.y,q.z,Math.cos(e)*w+rand(-.6,.6),rand(-1.4,1.4),Math.sin(e)*w+rand(-.6,.6),B[0],B[1],B[2],rand(0.9,1.4),3.2,0); } }
+      const d=randDir(), sp=rand(7.5,9)*s, v=[d[0]*sp,d[1]*sp,d[2]*sp], tz=rand(0.5,0.66);
+      psHuge.emit(p.x,p.y,p.z,v[0],v[1],v[2],A[0],A[1],A[2],tz,2.4,4);
+      for(let i=0;i<Math.round(3*QUAL());i++){ const e=streu(d,0.03), w=sp*rand(0.94,1.0);
+        psBig.emit(p.x,p.y,p.z,e[0]*w,e[1]*w,e[2]*w,A[0],A[1],A[2],tz,2.4,4); }
+      later(tz,()=>{
+        const q=bahnOrt(p,v,2.4,tz), vr=bahnTempo(v,2.4,tz), [u1,u2]=quer(d), roll=Math.random()*Math.PI*2;
+        for(let k=0;k<4;k++){ const e=roll+k*Math.PI/2, ce=Math.cos(e), se=Math.sin(e);
+          const r=[u1[0]*ce+u2[0]*se,u1[1]*ce+u2[1]*se,u1[2]*ce+u2[2]*se];
+          for(let i=0;i<Math.round(6*QUAL());i++){ const st=streu(r,0.14), w=rand(3.2,4.4)*s;
+            psBig.emit(q.x,q.y,q.z,vr[0]*0.3+st[0]*w,vr[1]*0.3+st[1]*w,vr[2]*0.3+st[2]*w,B[0],B[1],B[2],rand(0.9,1.4),3.2,0); } }
       });
     }
     later(0.58,()=>sfx.crack(distVol(p)*0.7));
@@ -14178,10 +14261,10 @@ const EFF={
     for(let i=0;i<n;i++){
       const t=i/n*Math.PI*2;
       const hx=16*Math.pow(Math.sin(t),3)/16, hy=(13*Math.cos(t)-5*Math.cos(2*t)-2*Math.cos(3*t)-Math.cos(4*t))/16;
-      const sp=8.5*s;
-      const dx=(u[0]*hx+v[0]*hy)*sp, dy=(u[1]*hx+v[1]*hy)*sp, dz=(u[2]*hx+v[2]*hy)*sp;
+      const sp=8.5*s*rand(0.975,1.025), hx2=hx+rand(-.02,.02), hy2=hy+rand(-.02,.02);
+      const dx=(u[0]*hx2+v[0]*hy2)*sp, dy=(u[1]*hx2+v[1]*hy2)*sp, dz=(u[2]*hx2+v[2]*hy2)*sp, k=rand(0.84,0.88);
       psBig.emit(p.x,p.y,p.z,dx,dy,dz,A[0],A[1],A[2],rand(1.9,2.4),2.4,0);
-      psBig.emit(p.x,p.y,p.z,dx*0.86,dy*0.86,dz*0.86,B[0],B[1],B[2],rand(1.7,2.1),2.4,0);
+      psBig.emit(p.x,p.y,p.z,dx*k,dy*k,dz*k,B[0],B[1],B[2],rand(1.7,2.1),2.4,0);
     }
   },
   /* fünfzackiger Stern */
@@ -14192,7 +14275,10 @@ const EFF={
     for(let e=0;e<10;e++){
       const a=pts[e], b=pts[(e+1)%10], n=Math.round(11*QUAL());
       for(let i=0;i<n;i++){ const f=i/n, hx=a[0]+(b[0]-a[0])*f, hy=a[1]+(b[1]-a[1])*f;
-        const dx=(u[0]*hx+v[0]*hy)*sp, dy=(u[1]*hx+v[1]*hy)*sp, dz=(u[2]*hx+v[2]*hy)*sp;
+        /* etwas Streuung wie bei echten Motivbomben - vorher lagen
+           alle Punkte einer Kante exakt auf einer Linie */
+        const j=sp*rand(0.97,1.03), hx2=hx+rand(-.025,.025), hy2=hy+rand(-.025,.025);
+        const dx=(u[0]*hx2+v[0]*hy2)*j, dy=(u[1]*hx2+v[1]*hy2)*j, dz=(u[2]*hx2+v[2]*hy2)*j;
         psBig.emit(p.x,p.y,p.z,dx,dy,dz,A[0],A[1],A[2],rand(1.9,2.4),2.3,0); }
     }
     for(let i=0;i<Math.round(34*QUAL());i++){ const d=randDir(), w=rand(1,2.6);
@@ -14262,7 +14348,7 @@ EFF.dahlie=function(p,A,B,s){
   for(let i=0;i<n;i++){ const d=randDir(), v=rand(12,15.5)*s, c=i%5?A:B;
     psHuge.emit(p.x,p.y,p.z,d[0]*v,d[1]*v,d[2]*v,c[0],c[1],c[2],rand(2.6,3.6),2.6,0);
     /* jeder Stern zieht einen kurzen Kopf mit */
-    psMid.emit(p.x,p.y,p.z,d[0]*v*0.82,d[1]*v*0.82,d[2]*v*0.82,c[0],c[1],c[2],rand(1.0,1.6),2.8,0); }
+    { const e=streu(d,0.05), w=v*rand(0.76,0.88); psMid.emit(p.x,p.y,p.z,e[0]*w,e[1]*w,e[2]*w,c[0],c[1],c[2],rand(1.0,1.6),2.8,0); } }
 };
 /* Pistill: aussen ein Ball, innen ein zweiter in der Gegenfarbe */
 EFF.pistill=function(p,A,B,s){
@@ -14315,10 +14401,11 @@ EFF.zeitregen=function(p,A,B,s){
     psHuge.emit(p.x,p.y,p.z,d[0]*v,d[1]*v,d[2]*v,A[0],A[1],A[2],rand(4.0,5.4),2.4,4); }
   /* der Glitzer faellt in Wellen nach, nicht auf einmal */
   for(let w=1;w<=5;w++) later(w*0.42,()=>{
-    const f=1-Math.exp(-1.1*w*0.42), fall=0.5*2.4*Math.pow(w*0.42,2);
     for(const t of traeger){
       if(Math.random()>0.75) continue;
-      const q={x:p.x+t[0]*f*0.9,y:p.y+t[1]*f*0.9-fall,z:p.z+t[2]*f*0.9};
+      /* jeder Traeger zu seiner eigenen Zeit - vorher alle im selben
+         Takt, das gab Zwiebelschalen aus Punkten */
+      const q=bahnOrt(p,t,2.4,Math.max(0.1,w*0.42+rand(-0.2,0.2)));
       for(let i=0;i<Math.round(5*QUAL());i++){ const d=randDir(), sp=rand(0.4,1.8);
         psMid.emit(q.x,q.y,q.z,d[0]*sp,d[1]*sp,d[2]*sp,1,.92,.62,rand(0.9,1.6),3.2,4); }
     }
@@ -14419,17 +14506,24 @@ EFF.flammenregen=function(p,A,B,s){
   });
   flash(p,FW.orange,8*s,2.0);
 };
-/* Kronleuchter: goldene Arme, an deren Enden Glitzertropfen haengen */
+/* Kronleuchter: goldene Arme, an deren Enden Glitzertropfen haengen.
+   Die Arme stehen rundum mit eigener Neigung, jeder ist ein Glitzerkopf
+   mit Buendel und fallenden Funken; die Tropfen haengen dort, wo der
+   Kopf nach 1,6 s wirklich ist. Vorher: bis zu 20 Arme im gleichen
+   Winkelabstand in einer flachen Scheibe, je 16 Sterne auf genau
+   einer Linie - von unten ein Drahtrad (Tom, 26.09.). */
 EFF.kronleuchter=function(p,A,B,s){
-  const g=FW.gold, arme=Math.round(14*Math.min(1.4,s));
+  const g=FW.gold, arme=10+Math.floor(Math.random()*4), dreh=Math.random()*Math.PI*2;
   for(let a=0;a<arme;a++){
-    const w=a/arme*Math.PI*2, hoch=rand(0.15,0.55), d=[Math.cos(w)*(1-hoch*0.5),hoch,Math.sin(w)*(1-hoch*0.5)];
-    const v0=rand(6.5,8)*s;
-    for(let i=0;i<Math.round(16*QUAL());i++){ const v=v0*rand(0.55,1);
-      psBig.emit(p.x,p.y,p.z,d[0]*v,d[1]*v,d[2]*v,g[0],g[1],g[2],rand(3.0,3.8),4.6,4); }
-    later(1.6,()=>{ const q={x:p.x+d[0]*v0*0.85,y:p.y+d[1]*v0*0.85-3.2,z:p.z+d[2]*v0*0.85};
-      for(let i=0;i<Math.round(14*QUAL());i++){ const e=randDir(), sp=rand(0.5,1.8);
-        psMid.emit(q.x,q.y,q.z,e[0]*sp,e[1]*sp-0.8,e[2]*sp,A[0],A[1],A[2],rand(1.0,1.6),2.6,1); } });
+    const w=dreh+a/arme*Math.PI*2+rand(-0.25,0.25), hoch=rand(0.25,0.8), ch=Math.cos(hoch);
+    const d=[Math.cos(w)*ch,Math.sin(hoch),Math.sin(w)*ch], v0=rand(7,8.8)*s, v=[d[0]*v0,d[1]*v0,d[2]*v0];
+    psHuge.emit(p.x,p.y,p.z,v[0],v[1],v[2],g[0],g[1],g[2],rand(2.8,3.4),4.6,4);
+    for(let i=0;i<Math.round(8*QUAL());i++){ const e=streu(d,0.06), u=v0*rand(0.84,1.0);
+      psBig.emit(p.x,p.y,p.z,e[0]*u,e[1]*u,e[2]*u,g[0],g[1],g[2],rand(2.2,3.2),4.6,4); }
+    funkenSchweif(p,v,4.6,1.5,3,g);
+    later(1.6,()=>{ const q=bahnOrt(p,v,4.6,1.6), vr=bahnTempo(v,4.6,1.6);
+      for(let i=0;i<Math.round(12*QUAL());i++){ const e=randDir(), sp=rand(0.4,1.4);
+        psMid.emit(q.x,q.y,q.z,vr[0]*0.3+e[0]*sp,vr[1]*0.3+e[1]*sp-0.6,vr[2]*0.3+e[2]*sp,A[0],A[1],A[2],rand(1.0,1.6),2.6,1); } });
   }
   later(1.7,()=>sfx.crackle(distVol(p)*0.5));
 };
@@ -14448,11 +14542,12 @@ EFF.sternschnuppen=function(p,A,B,s){
   const n=6+Math.floor(Math.random()*3);
   for(let a=0;a<n;a++){
     const w=a/n*Math.PI*2+rand(-0.2,0.2), sp=rand(11,13)*s, c=a%2?A:FW.weiss;
-    const vx=Math.cos(w)*sp, vy=rand(-1,2), vz=Math.sin(w)*sp;
+    /* Neigung mit dem Kaliber: vorher blieb vy klein, bei grossen
+       Kalibern lagen alle Schnuppen in einer waagrechten Scheibe */
+    const el=rand(-0.45,0.6), vx=Math.cos(w)*Math.cos(el)*sp, vy=Math.sin(el)*sp, vz=Math.sin(w)*Math.cos(el)*sp;
     psHuge.emit(p.x,p.y,p.z,vx,vy,vz,c[0]*1.5,c[1]*1.5,c[2]*1.5,rand(2.4,3.0),2.8,0);
-    for(let k=1;k<=22;k++) later(k*0.075,()=>{ const t=k*0.075, f=(1-Math.exp(-1.1*t))/1.1, fall=0.5*2.8*t*t*0.8;
-      const q={x:p.x+vx*f,y:p.y+vy*f-fall,z:p.z+vz*f};
-      for(let i=0;i<Math.round(9*QUAL());i++) psBig.emit(q.x,q.y,q.z,rand(-.25,.25),rand(-.7,.1),rand(-.25,.25),1.1,1.15,1.3,rand(0.7,1.3),2.6,4); });
+    for(let k=1;k<=22;k++){ const t=Math.max(0.03,k*0.075+rand(-0.035,0.035)); later(t,()=>{ const q=bahnOrt(p,[vx,vy,vz],2.8,t-Math.random()*0.05);
+      for(let i=0;i<Math.round(9*QUAL());i++) psBig.emit(q.x+rand(-.1,.1),q.y+rand(-.1,.1),q.z+rand(-.1,.1),rand(-.25,.25),rand(-.7,.1),rand(-.25,.25),1.1,1.15,1.3,rand(0.7,1.3),2.6,4); }); }
   }
 };
 /* Farbregen: ein Schleier aus kleinen Sternen in beiden Farben, der
@@ -14508,13 +14603,8 @@ EFF.komet=function(p,A,B,s){
     const d=randDir(), sp=rand(10,13)*s, c=a%3?A:B;
     const vx=d[0]*sp, vy=d[1]*sp*0.8+2.5, vz=d[2]*sp;
     psHuge.emit(p.x,p.y,p.z,vx,vy,vz,c[0],c[1],c[2],rand(2.2,2.8),3.2,0);
-    /* der Schweif: Funken entlang der Bahn, zeitlich versetzt */
-    for(let k=1;k<=7;k++) later(k*0.16,()=>{
-      const t=k*0.16, f=(1-Math.exp(-1.1*t))/1.1, fall=0.5*3.2*t*t*0.8;
-      const q={x:p.x+vx*f,y:p.y+vy*f-fall,z:p.z+vz*f};
-      for(let i=0;i<Math.round(6*QUAL());i++)
-        psMid.emit(q.x,q.y,q.z,rand(-.5,.5),rand(-1.2,0.2),rand(-.5,.5),1,.86,.5,rand(0.9,1.6),3.4,4);
-    });
+    /* der Schweif: Funken loesen sich zufaellig aus der Bahn */
+    funkenSchweif(p,[vx,vy,vz],3.2,1.15,4,[1,.86,.5]);
   }
 };
 /* Titan: riesiger Silberbrokat, dazu ein Knisterkranz und ein harter Schlag */
@@ -14548,7 +14638,7 @@ EFF.zehnfach=function(p,A,B,s){
 EFF.kaskade=function(p,A,B,s){
   EFF.kugel(p,A,B,s*0.85);
   for(let k=1;k<=4;k++) later(k*0.32,()=>{
-    const q={x:p.x+rand(-1,1),y:p.y-k*2.2*s,z:p.z+rand(-1,1)}, c=k%2?B:A;
+    const q={x:p.x+rand(-1.6,1.6)*s,y:p.y-k*2.2*s*rand(0.8,1.2),z:p.z+rand(-1.6,1.6)*s}, c=k%2?B:A;
     for(let i=0;i<Math.round(60*s*QUAL());i++){ const d=randDir(), w=rand(4,6)*s*(1-k*0.1);
       psBig.emit(q.x,q.y,q.z,d[0]*w,d[1]*w*0.5,d[2]*w,c[0],c[1],c[2],rand(1.2,1.7),3,4); }
     sfx.crack(distVol(q)*0.8);
@@ -14565,8 +14655,8 @@ EFF.schneeflocke=function(p,A,B,s){
   const dir=a=>[u[0]*Math.cos(a)+v[0]*Math.sin(a),u[1]*Math.cos(a)+v[1]*Math.sin(a),u[2]*Math.cos(a)+v[2]*Math.sin(a)];
   for(let k=0;k<6;k++){ const a=k/6*Math.PI*2, d=dir(a);
     const n=Math.round(22*QUAL());
-    for(let i=0;i<n;i++){ const f=0.12+i/n*0.9;
-      psBig.emit(p.x,p.y,p.z,d[0]*sp*f,d[1]*sp*f,d[2]*sp*f,c[0],c[1],c[2],rand(1.8,2.3),0.9,0); }
+    for(let i=0;i<n;i++){ const f=(0.12+i/n*0.9)*rand(0.97,1.03), e=streu(d,0.02);
+      psBig.emit(p.x,p.y,p.z,e[0]*sp*f,e[1]*sp*f,e[2]*sp*f,c[0],c[1],c[2],rand(1.8,2.3),0.9,0); }
     /* Seitenaeste bei 35, 55 und 75 Prozent, nach aussen kuerzer */
     for(const [f0,L] of [[0.35,0.34],[0.55,0.26],[0.75,0.18]]) for(const sg of [-1,1]){
       const d2=dir(a+sg*Math.PI/3);
@@ -14650,13 +14740,13 @@ EFF.polarstern=function(p,A,B,s){
   /* vier Strahlen in der Bildebene, je Strahl eine dichte Sternkette */
   for(let a=0;a<4;a++){ const ang=a*Math.PI/2, c=Math.cos(ang), sn=Math.sin(ang);
     const dx=u[0]*c+v[0]*sn, dy=u[1]*c+v[1]*sn, dz=u[2]*c+v[2]*sn;
-    for(let i=0;i<Math.round(34*q);i++){ const f=0.15+i/34*1.25, w=15*s*f;
-      psHuge.emit(p.x,p.y,p.z,dx*w,dy*w,dz*w,1,1,1,rand(2.2,2.8),1.2,0); } }
+    for(let i=0;i<Math.round(34*q);i++){ const f=(0.15+i/34*1.25)*rand(0.97,1.03), w=15*s*f, e=streu([dx,dy,dz],0.018);
+      psHuge.emit(p.x,p.y,p.z,e[0]*w,e[1]*w,e[2]*w,1,1,1,rand(2.2,2.8),1.2,0); } }
   /* kurze Diagonalen: der Stern hat acht Zacken, vier lange, vier kurze */
   for(let a=0;a<4;a++){ const ang=a*Math.PI/2+Math.PI/4, c=Math.cos(ang), sn=Math.sin(ang);
     const dx=u[0]*c+v[0]*sn, dy=u[1]*c+v[1]*sn, dz=u[2]*c+v[2]*sn;
-    for(let i=0;i<Math.round(14*q);i++){ const w=6.5*s*(0.2+i/14*0.8);
-      psBig.emit(p.x,p.y,p.z,dx*w,dy*w,dz*w,B[0],B[1],B[2],rand(1.8,2.3),1.2,0); } }
+    for(let i=0;i<Math.round(14*q);i++){ const w=6.5*s*(0.2+i/14*0.8)*rand(0.96,1.04), e=streu([dx,dy,dz],0.025);
+      psBig.emit(p.x,p.y,p.z,e[0]*w,e[1]*w,e[2]*w,B[0],B[1],B[2],rand(1.8,2.3),1.2,0); } }
   /* goldener Glitzerguertel */
   for(let i=0;i<Math.round(90*q);i++){ const a=i/90*Math.PI*2, w=rand(8.2,9)*s;
     const n=[Math.cos(a),0,Math.sin(a)];
@@ -14718,8 +14808,13 @@ EFF.kokosnuss=function(p,A,B,s){
   const g=FW.gold, aeste=8+Math.floor(Math.random()*3);
   for(let a=0;a<aeste;a++){ const ang=a/aeste*Math.PI*2+rand(-.1,.1), tilt=rand(0.25,0.7), sp=rand(8.5,10)*s;
     const vx=Math.cos(ang)*Math.cos(tilt)*sp, vy=Math.sin(tilt)*sp, vz=Math.sin(ang)*Math.cos(tilt)*sp;
-    for(let i=0;i<Math.round(22*QUAL());i++){ const f=0.3+i/22*0.8;
-      psBig.emit(p.x,p.y,p.z,vx*f,vy*f,vz*f,g[0],g[1]*0.9,g[2]*0.8,rand(2.8,3.6),5.6,4); } }
+    /* ein schwerer Wedel: Kopf, enges Buendel, fallende Funken - vorher
+       22 Sterne auf genau einer Linie (Perlenkette) */
+    const vl=Math.hypot(vx,vy,vz), dn=[vx/vl,vy/vl,vz/vl];
+    psHuge.emit(p.x,p.y,p.z,vx,vy,vz,g[0],g[1]*0.9,g[2]*0.8,rand(3.0,3.6),5.6,4);
+    for(let i=0;i<Math.round(8*QUAL());i++){ const e=streu(dn,0.06), w=vl*rand(0.84,1.0);
+      psBig.emit(p.x,p.y,p.z,e[0]*w,e[1]*w,e[2]*w,g[0],g[1]*0.9,g[2]*0.8,rand(2.6,3.4),5.6,4); }
+    funkenSchweif(p,[vx,vy,vz],5.6,1.8,3,[g[0],g[1]*0.9,g[2]*0.8]); }
   for(let i=0;i<Math.round(40*QUAL());i++){ const d=randDir(), w=rand(2.2,3)*s, c=i%2?A:B;
     psBig.emit(p.x,p.y,p.z,d[0]*w,d[1]*w,d[2]*w,c[0],c[1],c[2],rand(1.2,1.6),2,0); }
 };
@@ -14768,19 +14863,27 @@ EFF.diadem=function(p,A,B,s){
 };
 /* Goldvorhang: eine waagerechte Linie Goldglitzer, die als Vorhang faellt */
 EFF.goldvorhang=function(p,A,B,s){
-  const [u]=basisBlick(p,0), g=FW.gold, q=QUAL();
-  for(let i=0;i<Math.round(110*s*q);i++){ const x=rand(-1,1), w=10*s;
-    psBig.emit(p.x,p.y,p.z,u[0]*x*w,rand(0.5,2.5),u[2]*x*w,g[0],g[1],g[2]*0.9,rand(3.4,4.4),3.4,4); }
-  for(let i=0;i<Math.round(30*s*q);i++){ const x=rand(-1,1), w=10*s;
-    psHuge.emit(p.x,p.y,p.z,u[0]*x*w,rand(1,3),u[2]*x*w,A[0],A[1],A[2],rand(1.4,1.9),2.6,0); }
+  const [u]=basisBlick(p,0), g=FW.gold, q=QUAL(), t=[-u[2],0,u[0]];
+  /* etwas Tiefe (t): vorher lag der ganze Vorhang in einer Ebene zum
+     Zuschauer - ein flacher Faecher aus Linien */
+  for(let i=0;i<Math.round(110*s*q);i++){ const x=rand(-1,1), z=rand(-0.3,0.3), w=10*s;
+    psBig.emit(p.x,p.y,p.z,(u[0]*x+t[0]*z)*w,rand(0.5,2.5),(u[2]*x+t[2]*z)*w,g[0],g[1],g[2]*0.9,rand(3.4,4.4),3.4,4); }
+  for(let i=0;i<Math.round(30*s*q);i++){ const x=rand(-1,1), z=rand(-0.3,0.3), w=10*s;
+    psHuge.emit(p.x,p.y,p.z,(u[0]*x+t[0]*z)*w,rand(1,3),(u[2]*x+t[2]*z)*w,A[0],A[1],A[2],rand(1.4,1.9),2.6,0); }
 };
 /* Krone: Goldbogen mit Zacken, auf jeder Zacke ein Juwel */
+/* Krone: Brokatkrone - dichter Goldbrokat, der nach oben aufgeht und
+   wie eine Krone nach aussen und unten faellt, in der Mitte ein
+   farbiges Herz. Vorher eine flache Drahtfigur zum Zuschauer: 60
+   Punkte als gerade Grundlinie, sieben senkrechte Punktspalten, jeder
+   Punkt mit Leuchtspur zur Mitte (Tom, 26.09., Weltuntergang: "sieht
+   total unecht aus ... irgendein Fehler im Code"). */
 EFF.krone=function(p,A,B,s){
-  const [u,v]=basisBlick(p,0), g=FW.gold, sp=8.5*s, q=QUAL();
-  for(let i=0;i<Math.round(60*q);i++){ const x=-1+2*i/59; ebeneEmit(psBig,p,u,v,x,-0.25-0.12*Math.cos(x*Math.PI/2),sp,g,rand(2.2,2.8),1.6,4); }
-  for(let z=0;z<7;z++){ const x=-1+z/3, hoch=z%2?0.55:0.95;
-    for(let i=0;i<Math.round(12*q);i++){ const f=i/11; ebeneEmit(psBig,p,u,v,x*(1-f*0.08),-0.25+f*hoch,sp,g,rand(2.2,2.8),1.6,4); }
-    ebeneEmit(psHuge,p,u,v,x*0.92,-0.25+hoch,sp,z%2?B:A,rand(2.4,2.9),1.6,0); }
+  const g=FW.gold, n=Math.round(150*s*QUAL());
+  for(let i=0;i<n;i++){ const d=randDir(), v=rand(7.2,9.4)*s;
+    psBig.emit(p.x,p.y,p.z,d[0]*v,d[1]*v*0.85+1.6*s,d[2]*v,g[0],g[1],g[2],rand(3.0,3.8),4.8,4); }
+  for(let i=0;i<Math.round(46*s*QUAL());i++){ const d=randDir(), v=rand(3.0,4.4)*s, c=i%2?A:B;
+    psBig.emit(p.x,p.y,p.z,d[0]*v,d[1]*v,d[2]*v,c[0],c[1],c[2],rand(1.4,1.9),2.6,0); }
 };
 /* Regenbogenring: ein Ring, dessen Farbe einmal durch das Spektrum laeuft */
 EFF.regenbogenring=function(p,A,B,s){
@@ -14798,8 +14901,8 @@ EFF.pfeifsterne=function(p,A,B,s){
     psBig.emit(p.x,p.y,p.z,d[0]*w,d[1]*w,d[2]*w,c[0],c[1],c[2],rand(1.5,2),2.4,0); }
   for(let i=0;i<n;i++){ const d=randDir(), w=rand(10,12.5)*s, c=i%2?A:B;
     psBig.emit(p.x,p.y,p.z,d[0]*w,d[1]*w,d[2]*w,c[0],c[1],c[2],rand(1.6,2.1),2.2,0);
-    for(let k=0;k<Math.round(6*QUAL());k++){ const f=0.5+k*0.08;
-      psMid.emit(p.x,p.y,p.z,d[0]*w*f,d[1]*w*f,d[2]*w*f,1,.9,.7,rand(0.9,1.4),2.2,4); } }
+    for(let k=0;k<Math.round(6*QUAL());k++){ const f=rand(0.5,0.95), e=streu(d,0.05);
+      psMid.emit(p.x,p.y,p.z,e[0]*w*f,e[1]*w*f,e[2]*w*f,1,.9,.7,rand(0.9,1.4),2.2,4); } }
   const v=distVol(p); for(let i=0;i<3;i++) later(i*0.12,()=>sfx.whistle(v*0.9));
 };
 /* Nishiki-Kamuro: Brokatgold, an jeder Spitze ein farbiger Stern */
@@ -14831,8 +14934,8 @@ EFF.drachenblut=function(p,A,B,s){
   const n=Math.round(70*s*QUAL());
   for(let i=0;i<n;i++){ const d=randDir(), w=rand(9.5,11)*s;
     psBig.emit(p.x,p.y,p.z,d[0]*w,d[1]*w,d[2]*w,A[0],A[1],A[2],rand(1.9,2.3),3,0);
-    for(let k=0;k<3;k++){ const f=0.35+k*0.18;
-      psMid.emit(p.x,p.y,p.z,d[0]*w*f,d[1]*w*f,d[2]*w*f,A[0],A[1]*0.6,A[2]*0.4,rand(2.4,3.0),5,2,0.45,0.05,0.02); } }
+    for(let k=0;k<3;k++){ const f=(0.35+k*0.18)*rand(0.9,1.1), e=streu(d,0.07);
+      psMid.emit(p.x,p.y,p.z,e[0]*w*f,e[1]*w*f,e[2]*w*f,A[0],A[1]*0.6,A[2]*0.4,rand(2.4,3.0),5,2,0.45,0.05,0.02); } }
   for(let i=0;i<Math.round(40*QUAL());i++){ const d=randDir(), w=rand(2,3.2)*s;
     psBig.emit(p.x,p.y,p.z,d[0]*w,d[1]*w,d[2]*w,B[0],B[1],B[2],rand(1.3,1.7),2,0); }
 };
@@ -14865,10 +14968,10 @@ const EFF_SCHWEIF={kugel:0.4,chrys:0.75,wechsel:0.35,weide:1.9,palme:1.1,ring:0.
   dahlie:0.45,pistill:0.4,kamuro:1.8,spinne:0.5,strobe:0,zeitregen:0.9,blaetter:0,geist:0.35,salut:0.08,saturn:0.3,
   tausend:0.25,mehrring:0.35,regenbogen:0.4,glitzerweide:2.0,komet:0.9,titan:0.8,zehnfach:0.35,kaskade:0.5,
   schneeflocke:0.22,spirale:0.3,ringring:0.25,strauss:0.35,furz:0,
-  flammenregen:0.7,kronleuchter:1.4,feuerrad:0.55,sternschnuppen:0.9,farbregen:0.5,spektrum:0.2,goldglitzer:0.9,
+  flammenregen:0.7,kronleuchter:0.9,feuerrad:0.55,sternschnuppen:0.9,farbregen:0.5,spektrum:0.2,goldglitzer:0.9,
   sternpalme:1.1,polarstern:0.35,
   smiley:0.15,bienen:0.3,drachenei:0.6,kokosnuss:1.3,schmetterling:0.2,blumenkranz:0.25,strobeweide:1.2,rossschweif:1.4,
-  diadem:0.3,goldvorhang:1.3,krone:0.6,regenbogenring:0.2,pfeifsterne:0.9,nishiki:1.1,drachenblut:0.5,weltenbrand:0.6,himmelsbrecher:0.5};
+  diadem:0.3,goldvorhang:1.3,krone:1.1,regenbogenring:0.2,pfeifsterne:0.9,nishiki:1.1,drachenblut:0.5,weltenbrand:0.6,himmelsbrecher:0.5};
 function mitSchweif(eff,fn){ const alt=SCHWEIF; SCHWEIF=EFF_SCHWEIF[eff]!==undefined?EFF_SCHWEIF[eff]:null; try{ fn(); } finally { SCHWEIF=alt; } }
 const EFF_ALL=Object.keys(EFF);
 /* Was in welcher Groessenklasse geschossen wird */
@@ -15700,7 +15803,7 @@ function igniteType(t,o0){
   }
   /* ----- Kugelbomben aus der Moerserbatterie ----- */
   if(sh==='shell'){
-    const kal={kugel75:1,kugel100:2,kugel150:3,kugel200:4,kugel300:5}[t]||1;
+    const kal={kugel75:1,kugel100:2,kugel150:3,kugel200:4,kugel300:5}[kugelTyp(t)]||1;
     kugelbombe(o,kal);
     return;
   }
@@ -16438,7 +16541,7 @@ function promptFor(t){
       if(c&&karreAn()&&!c.regal&&!c.einbau&&!pk) return karreVoll()?{t:'Die Karre ist voll',a:false}:{t:`Auf die Karre: ${P[it.type].name} (${karreLast()}/${KARREN[karreArt()].cap})`,a:true};
       if(c) return {t:`Noch ${n} Karton${n>1?'e':''} im Laderaum`,a:false};
       return pk?{t:`Paket aufheben: ${paketName(it)}`,a:true}:{t:`Aufheben: ${P[it.type].name} (${P[it.type].box} Stück)`,a:true}; }
-    case 'sign': return phase==='closed'?{t:'Schild umdrehen: Laden öffnen',a:true}:phase==='after'?{t:'Tag beenden',a:true}:{t:phase==='open'?'Geöffnet bis 22 Uhr':'Letzte Kunden im Laden',a:false};
+    case 'sign': return phase==='closed'&&ruhetag()?{t:'Ruhetag: Tag beenden',a:true}:phase==='closed'?{t:'Schild umdrehen: Laden öffnen',a:true}:phase==='after'?{t:'Tag beenden',a:true}:{t:phase==='open'?'Geöffnet bis 22 Uhr':'Letzte Kunden im Laden',a:false};
   }
   return null;
 }
@@ -16457,8 +16560,10 @@ function doAction(){
   else if(k==='dirt') cleanTick(r,true);
   else if(k==='window') cleanWindowTick(true);
   else if(k==='rslot'){
-    if(S.carrying&&!r.box){ putInSlot(r,S.carrying.type,S.carrying.count); S.carrying=null; S.tut.lager=true; sfx.pop(); updateCarry(); }
-    else if(r.box&&(!S.carrying||karreNimmt())){ S.carrying={type:r.box.type,count:r.box.count}; r.rk.g.remove(r.box.mesh); r.box=null; drawRackSchild(r.rk); sfx.pop(); updateCarry(); }
+    /* Qualitaet (Restposten 86 %) geht mit ins Regal und wieder heraus -
+       vorher kam jeder Karton als 100 %-Ware zurueck */
+    if(S.carrying&&!r.box){ putInSlot(r,S.carrying.type,S.carrying.count,S.carrying.q); S.carrying=null; S.tut.lager=true; sfx.pop(); updateCarry(); }
+    else if(r.box&&(!S.carrying||karreNimmt())){ S.carrying={type:r.box.type,count:r.box.count,q:r.box.q||1}; r.rk.g.remove(r.box.mesh); r.box=null; drawRackSchild(r.rk); sfx.pop(); updateCarry(); }
   }
   else if(k==='belt') scanBelt(r);
   else if(k==='card'){ if(reg&&reg.state==='pay'){ if(reg.method==='card') reg.finishCard(); else toast('Der Kunde zahlt bar. Klick die Kasse an.'); } }
@@ -16470,7 +16575,7 @@ function doAction(){
   else if(k==='pult'){ if(zuendOpen) closeZuend(); else openZuend(); }
   else if(k==='gravur'){ if(S.carrying&&S.carrying.type==='blanko') refillGrav(); else if(!S.carrying) openGravInput(); }
   else if(k==='tbox') takeBox(r);
-  else if(k==='sign'){ if(phase==='closed') openShop(); else if(phase==='after') endDay(); }
+  else if(k==='sign'){ if(phase==='closed'&&ruhetag()) ruhetagBeenden(); else if(phase==='closed') openShop(); else if(phase==='after') endDay(); }
 }
 function cleanTick(d,first){
   if(dirts.indexOf(d)<0) return;
@@ -16652,6 +16757,8 @@ let levelOpen=false;
 $('luBtn').addEventListener('click',()=>{
   $('levelup').classList.remove('show'); levelOpen=false;
   if(pendingLevels.length){ showLevelUp(); return; }
+  /* liegt noch der Tagesabschluss offen, bleibt es dabei (Befund 26.09.) */
+  if(summaryOpen) return;
   paused=false; requestLock();
 });
 
@@ -16752,6 +16859,10 @@ function spawnInterval(){
   return Math.max(0.55,9.2/m);
 }
 function ruhetag(){ return isSunday(S.day)&&!S.up.tag4; }
+/* Ruhetag beenden. Vorher blieb der Sonntag ohne Sonntagsgenehmigung
+   fuer immer stehen: der Laden liess sich nicht oeffnen, und den Tag
+   beenden ging nur nach Feierabend - der kam nie (Befund 26.09.). */
+function ruhetagBeenden(){ if(phase!=='closed'||!ruhetag()) return; phase='after'; updateSign(); endDay(); }
 function openShop(){
   if(phase!=='closed') return;
   if(ruhetag()){ toast('Sonntag ist Ruhetag. Nutz den Tag zum Nachfüllen oder zum Testen im Hof.','bad'); return; }
@@ -16759,7 +16870,8 @@ function openShop(){
   toast(S.day<7?'Der Laden ist offen. Die Neueröffnung spricht sich noch herum.':`Der Laden ist offen. ${seasonInfo(S.day)[1]}.`);
 }
 function updateDay(dt){
-  if(phase==='closed'&&ruhetag()&&clock<CLOSE_T) clock=Math.min(CLOSE_T,clock+dt*MIN_PER_SEC*0.6);
+  if(phase==='closed'&&ruhetag()&&clock<CLOSE_T){ clock=Math.min(CLOSE_T,clock+dt*MIN_PER_SEC*0.6);
+    if(clock>=CLOSE_T){ phase='after'; updateSign(); toast('Der Ruhetag ist vorbei. Beende den Tag am Türschild.'); save(); } }
   if(phase==='open'){
     clock+=dt*MIN_PER_SEC;
     if(clock>=CLOSE_T){ clock=CLOSE_T; phase='closing'; updateSign(); toast('22 Uhr: Es kommen keine neuen Kunden mehr.'); }
@@ -16795,7 +16907,8 @@ function fixedCosts(){
 function eroeffnung(){ return S.day<7?1.75-S.day*0.11:1; }
 function endDay(){
   if(phase!=='after') return;
-  if(laptopOpen) closeLaptop(false);
+  /* ohne Pausenmenue ueber dem Tagesabschluss (Befund 26.09.) */
+  if(laptopOpen){ laptopOpen=false; korbOpen=false; $('korbOv').classList.remove('show'); $('laptop').classList.remove('show'); }
   if(order) failOrder();
   clearStations();
   addGrime(0.06); staffMorale();
@@ -17430,11 +17543,211 @@ function planZeichnen(g,W,H,def){
   g.fillStyle='rgba(200,210,230,.7)'; g.font='700 11px sans-serif';
   g.textAlign='center'; g.textBaseline='alphabetic'; g.fillText('N',W-15,H-30);
 }
+/* Eigene Motive fuer Ausbauten, die kein Grundriss sind (Tom, 26.09.:
+   "Packstation fuer den Versand passt nicht"). Vorher: ein Punkt im
+   Grundriss, ein Fragezeichen oder dasselbe Bild fuer Soundanlage und
+   Heizung. Jedes Motiv zeigt das Ding selbst. */
+function upHelfer(g,W,H){
+  const h={
+    grund(a,b){ const gr=g.createLinearGradient(0,0,0,H); gr.addColorStop(0,a||'#1b2540'); gr.addColorStop(1,b||'#0c1222'); g.fillStyle=gr; g.fillRect(0,0,W,H); },
+    boden(y,c){ g.fillStyle=c||'rgba(0,0,0,.32)'; g.fillRect(0,y,W,H-y); },
+    schatten(x,y,rx,ry){ g.fillStyle='rgba(0,0,0,.35)'; g.beginPath(); g.ellipse(x,y,rx,ry,0,0,Math.PI*2); g.fill(); },
+    rund(x,y,w,hh,r){ g.beginPath(); g.moveTo(x+r,y); g.arcTo(x+w,y,x+w,y+hh,r); g.arcTo(x+w,y+hh,x,y+hh,r); g.arcTo(x,y+hh,x,y,r); g.arcTo(x,y,x+w,y,r); g.closePath(); },
+    /* Karton schraeg von vorn: Front, Deckel, Seite, Klebeband */
+    karton(x,y,w,hh,t){ t=t===undefined?w*0.28:t;
+      g.fillStyle='#c79a5e'; g.fillRect(x,y,w,hh);
+      g.fillStyle='#e0b877'; g.beginPath(); g.moveTo(x,y); g.lineTo(x+t,y-t*0.55); g.lineTo(x+w+t,y-t*0.55); g.lineTo(x+w,y); g.closePath(); g.fill();
+      g.fillStyle='#9c7440'; g.beginPath(); g.moveTo(x+w,y); g.lineTo(x+w+t,y-t*0.55); g.lineTo(x+w+t,y+hh-t*0.55); g.lineTo(x+w,y+hh); g.closePath(); g.fill();
+      g.fillStyle='rgba(235,225,200,.55)'; g.fillRect(x+w*0.42,y,w*0.16,hh*0.34);
+      g.beginPath(); g.moveTo(x+w*0.42,y); g.lineTo(x+w*0.42+t,y-t*0.55); g.lineTo(x+w*0.58+t,y-t*0.55); g.lineTo(x+w*0.58,y); g.closePath(); g.fill();
+      g.strokeStyle='rgba(60,40,20,.35)'; g.lineWidth=1; g.strokeRect(x+0.5,y+0.5,w-1,hh-1); },
+    rad(x,y,r){ g.fillStyle='#15171c'; g.beginPath(); g.arc(x,y,r,0,Math.PI*2); g.fill(); g.fillStyle='#8a9099'; g.beginPath(); g.arc(x,y,r*0.42,0,Math.PI*2); g.fill(); },
+    schild(txt,x,y,c){ g.font='700 13px sans-serif'; const w=g.measureText(txt).width+14; g.fillStyle=c||'#f2c230'; h.rund(x-w/2,y-11,w,20,6); g.fill();
+      g.fillStyle='#10152a'; g.textAlign='center'; g.textBaseline='middle'; g.fillText(txt,x,y); g.textBaseline='alphabetic'; },
+    nummer(n){ g.fillStyle='#f2c230'; g.beginPath(); g.arc(W-24,24,15,0,Math.PI*2); g.fill(); g.fillStyle='#10152a'; g.font='800 18px sans-serif'; g.textAlign='center'; g.textBaseline='middle'; g.fillText(String(n),W-24,25); g.textBaseline='alphabetic'; },
+    welle(x,y,r0,n,c,a0,a1){ g.strokeStyle=c; g.lineWidth=2.5; for(let k=0;k<n;k++){ g.globalAlpha=1-k/(n+0.5); g.beginPath(); g.arc(x,y,r0+k*9,a0,a1); g.stroke(); } g.globalAlpha=1; },
+    note(x,y,c){ g.fillStyle=c; g.beginPath(); g.ellipse(x,y,5,3.6,-0.4,0,Math.PI*2); g.fill(); g.fillRect(x+3.4,y-18,2,18); g.beginPath(); g.moveTo(x+5,y-18); g.quadraticCurveTo(x+13,y-14,x+11,y-6); g.lineTo(x+10,y-7); g.quadraticCurveTo(x+11,y-12,x+5,y-14); g.fill(); }
+  };
+  return h;
+}
+const UP_MOTIV={
+  sackkarre(g,W,H,h){ h.grund(); h.boden(128); h.schatten(112,130,46,6);
+    /* Karre leicht nach hinten gekippt: Holme, Schaufel, zwei Raeder, vier Kartons */
+    g.save(); g.translate(112,128); g.rotate(-0.16);
+    for(let i=0;i<4;i++) h.karton(-26,-24-i*23,46,22,9);
+    g.strokeStyle='#d0d4dc'; g.lineWidth=5; g.lineCap='round';
+    g.beginPath(); g.moveTo(-30,-2); g.lineTo(-30,-112); g.quadraticCurveTo(-30,-122,-20,-122); g.stroke();
+    g.beginPath(); g.moveTo(28,-2); g.lineTo(28,-112); g.quadraticCurveTo(28,-122,18,-122); g.stroke();
+    g.fillStyle='#c8322a'; g.fillRect(-34,-4,66,6);
+    g.restore(); h.rad(84,126,11); h.rad(142,118,11); },
+  wagen(g,W,H,h){ h.grund(); h.boden(126); h.schatten(112,130,82,7);
+    /* Plattformwagen von der Seite: Ladeflaeche, Buegel, vier Rollen, acht Kartons in zwei Lagen */
+    g.fillStyle='#2f5d9e'; g.fillRect(28,106,160,10); g.fillStyle='#244a80'; g.fillRect(28,114,160,4);
+    g.strokeStyle='#d0d4dc'; g.lineWidth=5; g.lineCap='round'; g.beginPath(); g.moveTo(186,108); g.lineTo(186,40); g.quadraticCurveTo(186,32,178,32); g.stroke();
+    for(let r=0;r<2;r++) for(let k=0;k<4;k++) h.karton(34+k*36,82-r*26,32,24,8);
+    for(const x of [42,74,142,174]) h.rad(x,124,7); },
+  packstation(g,W,H,h){ h.grund('#1b2540','#0c1222'); h.boden(118);
+    /* Packtisch mit Waage, offenem Paket, Etikettendrucker und Klebebandrolle */
+    g.fillStyle='#8a6a44'; g.fillRect(16,82,192,10); g.fillStyle='#6d5134'; g.fillRect(16,92,192,4);
+    g.fillStyle='#4a515c'; g.fillRect(24,96,8,36); g.fillRect(192,96,8,36);
+    /* Waage */
+    g.fillStyle='#39414d'; g.fillRect(28,72,56,10); g.fillStyle='#c9ced8'; g.fillRect(24,68,64,5);
+    g.fillStyle='#0e1226'; g.fillRect(40,74,30,7); g.fillStyle='#6cf2a8'; g.font='700 7px sans-serif'; g.textAlign='center'; g.fillText('2,4 kg',55,80);
+    h.karton(32,42,46,26,10);
+    /* offenes Paket mit Klappen */
+    g.fillStyle='#c79a5e'; g.fillRect(96,50,56,32); g.fillStyle='#5a4228'; g.fillRect(100,50,48,6);
+    g.fillStyle='#e0b877'; g.beginPath(); g.moveTo(96,50); g.lineTo(86,34); g.lineTo(112,34); g.lineTo(118,50); g.closePath(); g.fill();
+    g.beginPath(); g.moveTo(152,50); g.lineTo(164,36); g.lineTo(140,34); g.lineTo(132,50); g.closePath(); g.fill();
+    g.fillStyle='#f2efe4'; g.fillRect(106,62,30,14); g.fillStyle='#1b2340'; for(let i=0;i<9;i++) g.fillRect(109+i*3,65,1.5,7);
+    /* Etikettendrucker mit Etikett */
+    g.fillStyle='#2b3140'; h.rund(160,58,40,24,4); g.fill(); g.fillStyle='#f2efe4'; g.fillRect(168,50,24,12); g.fillStyle='#c8322a'; g.fillRect(170,53,20,3);
+    /* Klebebandrolle */
+    g.strokeStyle='#d9c08a'; g.lineWidth=5; g.beginPath(); g.arc(196,76,5,0,Math.PI*2); g.stroke();
+    h.schild('VERSAND',112,24,'#6cf2a8'); },
+  eingang2(g,W,H,h){ h.grund('#18223c','#0b1120'); h.boden(124);
+    /* zweite Glastuer mit Rahmen und daneben die eigene Kasse */
+    g.fillStyle='#2b3140'; g.fillRect(24,20,96,108); g.fillStyle='#39414d'; g.fillRect(30,26,84,100);
+    for(const x of [34,74]){ const gr=g.createLinearGradient(x,30,x+36,120); gr.addColorStop(0,'rgba(170,215,255,.55)'); gr.addColorStop(1,'rgba(90,130,190,.35)'); g.fillStyle=gr; g.fillRect(x,30,36,94); g.fillStyle='#c9ced8'; g.fillRect(x+(x<60?30:3),66,3,18); }
+    g.fillStyle='#f2c230'; g.fillRect(24,14,96,8); g.fillStyle='#10152a'; g.font='700 8px sans-serif'; g.textAlign='center'; g.fillText('EINGANG 2',72,21);
+    /* Kasse */
+    g.fillStyle='#1b2340'; g.fillRect(134,86,76,40); g.fillStyle='#d6dae2'; g.fillRect(130,80,84,8);
+    g.fillStyle='#2b3140'; g.fillRect(166,52,6,30); g.fillStyle='#10152a'; g.fillRect(150,40,40,26); g.fillStyle='#2f6bb8'; g.fillRect(153,43,34,20);
+    g.fillStyle='#6cf2a8'; g.fillRect(156,55,16,4); g.fillStyle='#c8322a'; g.fillRect(134,100,76,4);
+    h.nummer(2); },
+  rampe(g,W,H,h,n){ h.grund('#16203a','#0a1020'); h.boden(118,'rgba(20,22,28,.7)');
+    /* Hallenwand mit Rolltor, davor ein LKW-Auflieger rueckwaerts angedockt */
+    g.fillStyle='#4a515c'; g.fillRect(0,14,W,106); g.fillStyle='#59606b'; for(let x=0;x<W;x+=16) g.fillRect(x,14,2,106);
+    g.fillStyle='#2b3140'; g.fillRect(52,24,120,94);
+    g.fillStyle='#8a9099'; for(let y=28;y<116;y+=7){ g.fillRect(56,y,112,5); }
+    g.fillStyle='#15171c'; g.fillRect(46,98,8,20); g.fillRect(170,98,8,20);
+    /* Auflieger von hinten */
+    g.fillStyle='#e9edf5'; g.fillRect(66,44,92,70); g.fillStyle='#c9ced8'; g.fillRect(110,44,4,70);
+    g.fillStyle='#39414d'; g.fillRect(66,112,92,8); g.fillStyle='#c8322a'; g.fillRect(70,104,10,6); g.fillRect(144,104,10,6);
+    g.fillStyle='#f2c230'; for(let x=66;x<158;x+=12){ g.fillRect(x,120,6,4); }
+    h.rad(78,128,8); h.rad(146,128,8);
+    h.nummer(n); },
+  rampe2(g,W,H,h){ UP_MOTIV.rampe(g,W,H,h,2); }, rampe3(g,W,H,h){ UP_MOTIV.rampe(g,W,H,h,3); },
+  rampe4(g,W,H,h){ UP_MOTIV.rampe(g,W,H,h,4); }, rampe5(g,W,H,h){ UP_MOTIV.rampe(g,W,H,h,5); },
+  labor(g,W,H,h){ h.grund('#141c30','#0a0f1c'); h.boden(110);
+    /* Labortisch: Kolben, Reagenzglaeser, Pulverschalen, ein Kugelbomben-Rohling */
+    g.fillStyle='#e9edf5'; g.fillRect(12,96,200,8); g.fillStyle='#39414d'; g.fillRect(20,104,8,30); g.fillRect(196,104,8,30);
+    const kolben=(x,c)=>{ g.fillStyle='rgba(220,235,255,.35)'; g.beginPath(); g.moveTo(x-4,50); g.lineTo(x+4,50); g.lineTo(x+4,66); g.lineTo(x+18,94); g.lineTo(x-18,94); g.lineTo(x-4,66); g.closePath(); g.fill();
+      g.fillStyle=c; g.beginPath(); g.moveTo(x-11,80); g.lineTo(x+11,80); g.lineTo(x+18,94); g.lineTo(x-18,94); g.closePath(); g.fill(); g.strokeStyle='rgba(255,255,255,.5)'; g.lineWidth=1; g.stroke(); };
+    kolben(44,'#c8322a'); kolben(88,'#2f9e57');
+    g.fillStyle='#8a9099'; g.fillRect(112,62,44,4);
+    ['#f2c230','#6fa8d8','#e06ad8','#6cf2a8'].forEach((c,i)=>{ const x=116+i*10; g.fillStyle='rgba(220,235,255,.35)'; g.fillRect(x,52,6,42); g.fillStyle=c; g.fillRect(x,72+i*3,6,22-i*3); });
+    for(const [x,c] of [[172,'#d8b468'],[196,'#9aa0a8']]){ g.fillStyle='#c9ced8'; g.beginPath(); g.ellipse(x,94,12,4,0,0,Math.PI*2); g.fill(); g.fillStyle=c; g.beginPath(); g.ellipse(x,91,9,3,0,0,Math.PI*2); g.fill(); }
+    /* Rohling: Halbkugel mit Sternen */
+    g.fillStyle='#b88d5e'; g.beginPath(); g.arc(184,70,16,Math.PI,0); g.fill(); g.fillStyle='#3a2a1a'; g.fillRect(168,70,32,3);
+    ['#c8322a','#f2c230','#2f6bb8','#6cf2a8','#e06ad8'].forEach((c,i)=>{ g.fillStyle=c; g.beginPath(); g.arc(174+i*5,64-(i%2)*5,2.6,0,Math.PI*2); g.fill(); });
+    h.schild('LABOR',112,26,'#6cf2a8'); },
+  labor2(g,W,H,h){ const gr=g.createRadialGradient(112,70,4,112,70,150); gr.addColorStop(0,'#1d1a38'); gr.addColorStop(1,'#060814'); g.fillStyle=gr; g.fillRect(0,0,W,H);
+    /* Zweite Zuendstufe: der erste Bruch, an jedem Arm zuendet ein zweiter */
+    const cx=112, cy=66;
+    for(let a=0;a<10;a++){ const w=a/10*Math.PI*2+0.2, ex=cx+Math.cos(w)*40, ey=cy+Math.sin(w)*34;
+      const lg=g.createLinearGradient(cx,cy,ex,ey); lg.addColorStop(0,'rgba(255,214,120,0)'); lg.addColorStop(1,'rgba(255,214,120,.95)');
+      g.strokeStyle=lg; g.lineWidth=2; g.beginPath(); g.moveTo(cx,cy); g.lineTo(ex,ey); g.stroke();
+      const c=a%2?'#6fd0ff':'#ff5fa0';
+      for(let k=0;k<7;k++){ const v=k/7*Math.PI*2, fx=ex+Math.cos(v)*11, fy=ey+Math.sin(v)*11;
+        g.strokeStyle=c; g.globalAlpha=0.85; g.lineWidth=1.4; g.beginPath(); g.moveTo(ex,ey); g.lineTo(fx,fy); g.stroke(); g.globalAlpha=1;
+        g.fillStyle='#fff'; g.beginPath(); g.arc(fx,fy,1.3,0,Math.PI*2); g.fill(); } }
+    g.fillStyle='#fff6d8'; g.beginPath(); g.arc(cx,cy,4,0,Math.PI*2); g.fill();
+    g.strokeStyle='rgba(255,214,120,.6)'; g.lineWidth=2; g.setLineDash([3,4]); g.beginPath(); g.moveTo(cx,H); g.lineTo(cx,cy+8); g.stroke(); g.setLineDash([]);
+    h.nummer(2); },
+  heizung(g,W,H,h){ h.grund('#20222c','#10121a'); h.boden(124);
+    /* Heizstrahler an der Decke: Gehaeuse, gluehende Staebe, Waermewellen */
+    g.fillStyle='#4a515c'; g.fillRect(40,20,144,26); g.fillStyle='#2b3140'; g.fillRect(40,42,144,6);
+    for(let i=0;i<5;i++){ const gr=g.createLinearGradient(0,46,0,58); gr.addColorStop(0,'#ffd27a'); gr.addColorStop(1,'#e0562a'); g.fillStyle=gr; g.fillRect(52+i*26,46,18,10); }
+    g.strokeStyle='rgba(255,150,80,.55)'; g.lineWidth=2.5;
+    for(let i=0;i<5;i++){ const x=61+i*26; g.beginPath(); for(let y=66;y<118;y+=2){ const xx=x+Math.sin(y*0.22+i)*4; y===66?g.moveTo(xx,y):g.lineTo(xx,y); } g.stroke(); } },
+  musik(g,W,H,h){ h.grund('#1c1a30','#0c0c1a'); h.boden(124);
+    /* zwei Lautsprecher und Noten */
+    for(const x of [30,146]){ g.fillStyle='#22252e'; h.rund(x,34,48,90,6); g.fill(); g.fillStyle='#0e1016'; g.beginPath(); g.arc(x+24,94,17,0,Math.PI*2); g.fill();
+      g.fillStyle='#3a3f4c'; g.beginPath(); g.arc(x+24,94,7,0,Math.PI*2); g.fill(); g.fillStyle='#0e1016'; g.beginPath(); g.arc(x+24,54,9,0,Math.PI*2); g.fill(); g.fillStyle='#4a515c'; g.beginPath(); g.arc(x+24,54,3,0,Math.PI*2); g.fill(); }
+    h.note(98,70,'#ffd23f'); h.note(122,52,'#6cf2a8'); h.note(110,100,'#ff8fc8'); },
+  klima(g,W,H,h){ h.grund('#16233a','#0a1222'); h.boden(124);
+    /* Klimageraet an der Wand mit kuehlem Luftstrom, darunter ein Lautsprecher */
+    g.fillStyle='#e9edf5'; h.rund(34,24,156,40,10); g.fill(); g.fillStyle='#c9ced8'; g.fillRect(44,52,136,6); g.fillStyle='#6cf2a8'; g.fillRect(164,32,10,4);
+    g.strokeStyle='rgba(140,210,255,.7)'; g.lineWidth=2.5;
+    for(let i=0;i<5;i++){ const x=58+i*26; g.beginPath(); g.moveTo(x,62); g.bezierCurveTo(x-6,80,x+10,92,x+2,110); g.stroke(); }
+    g.fillStyle='#22252e'; h.rund(170,82,34,44,4); g.fill(); g.fillStyle='#0e1016'; g.beginPath(); g.arc(187,110,10,0,Math.PI*2); g.fill(); h.note(150,104,'#ffd23f'); },
+  radio(g,W,H,h){ h.grund('#1c2438','#0e1424'); h.boden(124);
+    /* Radio mit Skala und Lautsprecher, davor Sendewellen */
+    g.fillStyle='#8a4a2a'; h.rund(54,52,116,70,10); g.fill(); g.fillStyle='#f2e6c8'; g.fillRect(64,62,56,22); g.fillStyle='#c8322a'; g.fillRect(88,62,3,22);
+    g.fillStyle='#3a2416'; g.beginPath(); g.arc(142,92,20,0,Math.PI*2); g.fill(); g.fillStyle='#5a3a24'; for(let i=0;i<5;i++) g.fillRect(126,80+i*5,32,2);
+    g.fillStyle='#d8b468'; g.beginPath(); g.arc(76,104,6,0,Math.PI*2); g.fill(); g.beginPath(); g.arc(102,104,6,0,Math.PI*2); g.fill();
+    g.strokeStyle='#c9ced8'; g.lineWidth=2; g.beginPath(); g.moveTo(150,52); g.lineTo(176,18); g.stroke();
+    h.welle(176,18,6,3,'#6cf2a8',-Math.PI*0.9,Math.PI*0.1); h.schild('ON AIR',70,34,'#c8322a'); },
+  plakat(g,W,H,h){ h.grund('#1c2438','#0e1424'); h.boden(126);
+    /* Litfasssaeule mit Feuerwerksplakat */
+    g.fillStyle='#2f5d4a'; g.fillRect(70,10,84,10); g.beginPath(); g.ellipse(112,10,46,8,0,0,Math.PI*2); g.fill();
+    const gr=g.createLinearGradient(74,0,150,0); gr.addColorStop(0,'#8a8f99'); gr.addColorStop(0.5,'#e9edf5'); gr.addColorStop(1,'#8a8f99'); g.fillStyle=gr; g.fillRect(74,20,76,104);
+    g.fillStyle='#10152a'; g.fillRect(84,28,56,74);
+    [['#ffd23f',112,52],['#ff5fa0',96,70],['#6fd0ff',128,66]].forEach(([c,x,y])=>{ g.strokeStyle=c; g.lineWidth=1.5; for(let k=0;k<10;k++){ const v=k/10*Math.PI*2; g.beginPath(); g.moveTo(x,y); g.lineTo(x+Math.cos(v)*11,y+Math.sin(v)*11); g.stroke(); } });
+    g.fillStyle='#c8322a'; g.fillRect(84,88,56,14); g.fillStyle='#fff'; g.font='700 9px sans-serif'; g.textAlign='center'; g.fillText('SILVESTER!',112,98);
+    g.fillStyle='#2f5d4a'; g.fillRect(70,120,84,8); },
+  tafel(g,W,H,h){ h.grund('#141a2c','#0a0e1a'); h.boden(128);
+    /* Digitale Werbetafel an der Fassade: Pixelbild mit Leuchten */
+    g.fillStyle='#4a515c'; g.fillRect(0,0,W,128); g.fillStyle='#59606b'; for(let y=8;y<128;y+=14) g.fillRect(0,y,W,2);
+    g.fillStyle='#15171c'; g.fillRect(28,18,168,96);
+    const gr=g.createLinearGradient(0,22,0,110); gr.addColorStop(0,'#1b1f5a'); gr.addColorStop(1,'#3a1848'); g.fillStyle=gr; g.fillRect(32,22,160,88);
+    for(let i=0;i<60;i++){ const a=i/60*Math.PI*2, r=18+(i%3)*9; g.fillStyle=['#ffd23f','#ff5fa0','#6fd0ff'][i%3]; g.fillRect(90+Math.cos(a)*r,56+Math.sin(a)*r*0.8,3,3); }
+    g.fillStyle='#fff'; g.font='800 15px sans-serif'; g.textAlign='center'; g.fillText('-30 %',150,102);
+    g.fillStyle='rgba(0,0,0,.25)'; for(let x=32;x<192;x+=4) g.fillRect(x,22,1,88); for(let y=22;y<110;y+=4) g.fillRect(32,y,160,1); },
+  tag4(g,W,H,h){ h.grund('#1c2438','#0e1424');
+    /* Kalenderblatt Sonntag mit Haken */
+    g.fillStyle='#f2efe4'; h.rund(58,22,108,108,8); g.fill(); g.fillStyle='#c8322a'; g.fillRect(58,22,108,28);
+    g.fillStyle='#fff'; g.font='700 15px sans-serif'; g.textAlign='center'; g.fillText('SONNTAG',112,42);
+    g.fillStyle='#1b2340'; g.font='800 46px sans-serif'; g.fillText('7',112,100);
+    g.fillStyle='#2f9e57'; g.beginPath(); g.arc(154,114,17,0,Math.PI*2); g.fill(); g.strokeStyle='#fff'; g.lineWidth=4; g.lineCap='round';
+    g.beginPath(); g.moveTo(146,114); g.lineTo(152,120); g.lineTo(163,107); g.stroke();
+    g.fillStyle='#4a515c'; g.fillRect(78,16,6,14); g.fillRect(140,16,6,14); },
+  lizenz(g,W,H,h){ h.grund('#1c2438','#0e1424');
+    /* Lizenzkarte fuer den Grosshandel */
+    const gr=g.createLinearGradient(30,30,194,122); gr.addColorStop(0,'#2f5d9e'); gr.addColorStop(1,'#1b3566'); g.fillStyle=gr; h.rund(30,30,164,96,10); g.fill();
+    g.fillStyle='#d8b468'; h.rund(44,56,26,20,3); g.fill();
+    g.fillStyle='#fff'; g.font='700 11px sans-serif'; g.textAlign='left'; g.fillText('GROSSHANDEL',44,48); g.font='600 9px sans-serif'; g.fillText('LIZENZ · Nr. 0815-PYRO',80,70);
+    g.fillStyle='#e9edf5'; for(let i=0;i<22;i++) g.fillRect(44+i*5,96,i%3?2:3,16);
+    h.schild('-10 %',160,106,'#f2c230'); },
+  meister(g,W,H,h){ h.grund('#1c2438','#0e1424');
+    /* Meisterbrief mit Siegel und Band */
+    g.fillStyle='#f4ecd6'; g.fillRect(44,16,136,120); g.strokeStyle='#b8954f'; g.lineWidth=3; g.strokeRect(50,22,124,108);
+    g.fillStyle='#3a2a1a'; g.font='700 14px serif'; g.textAlign='center'; g.fillText('Meisterbrief',112,44);
+    g.fillStyle='#7a6a54'; g.font='9px serif'; g.fillText('Pyrotechnik',112,58);
+    g.fillStyle='rgba(58,42,26,.4)'; for(let i=0;i<3;i++) g.fillRect(64,70+i*8,96-i*14,2);
+    g.fillStyle='#c8322a'; g.beginPath(); g.moveTo(132,104); g.lineTo(124,134); g.lineTo(134,128); g.lineTo(140,136); g.closePath(); g.fill();
+    g.beginPath(); g.moveTo(144,104); g.lineTo(156,134); g.lineTo(146,128); g.lineTo(140,136); g.closePath(); g.fill();
+    g.fillStyle='#d8b468'; g.beginPath(); for(let i=0;i<24;i++){ const a=i/24*Math.PI*2, r=i%2?15:12; g.lineTo(138+Math.cos(a)*r,104+Math.sin(a)*r); } g.closePath(); g.fill();
+    g.fillStyle='#b8954f'; g.beginPath(); g.arc(138,104,8,0,Math.PI*2); g.fill(); },
+  grosskunden(g,W,H,h){ h.grund('#1c2438','#0e1424'); h.boden(126);
+    /* Branchenbuch mit Eintrag und Telefonhoerer */
+    g.fillStyle='#f2c230'; g.fillRect(44,30,96,96); g.fillStyle='#d9a91f'; g.fillRect(136,30,6,96);
+    g.fillStyle='#1b2340'; g.font='800 12px sans-serif'; g.textAlign='center'; g.fillText('BRANCHEN',92,54); g.fillText('BUCH',92,68);
+    g.fillStyle='#c8322a'; g.fillRect(54,84,76,26); g.fillStyle='#fff'; g.font='700 8px sans-serif'; g.fillText('PYRO · Großbestellung',92,100);
+    g.fillStyle='#2b3140'; g.save(); g.translate(170,86); g.rotate(-0.5); h.rund(-8,-34,16,68,8); g.fill(); g.fillRect(-14,-40,28,14); g.fillRect(-14,26,28,14); g.restore();
+    h.welle(176,40,6,3,'#6cf2a8',-Math.PI*0.4,Math.PI*0.4); },
+  kundenkarte(g,W,H,h){ h.grund('#1c2438','#0e1424');
+    /* Stammkundenkarte mit Stempeln */
+    const gr=g.createLinearGradient(28,28,196,124); gr.addColorStop(0,'#c8322a'); gr.addColorStop(1,'#7a1a24'); g.fillStyle=gr; h.rund(28,28,168,96,12); g.fill();
+    g.fillStyle='#fff'; g.font='700 12px sans-serif'; g.textAlign='left'; g.fillText('STAMMKUNDE',42,50);
+    for(let i=0;i<8;i++){ const x=48+(i%4)*38, y=74+Math.floor(i/4)*30; g.strokeStyle='rgba(255,255,255,.6)'; g.lineWidth=1.5; g.beginPath(); g.arc(x,y,11,0,Math.PI*2); g.stroke();
+      if(i<5){ g.fillStyle='#ffd23f'; g.beginPath(); for(let k=0;k<10;k++){ const a=k/10*Math.PI*2-Math.PI/2, r=k%2?4:9; g.lineTo(x+Math.cos(a)*r,y+Math.sin(a)*r); } g.closePath(); g.fill(); } } },
+  alarm(g,W,H,h){ h.grund('#1a2030','#0e131e'); h.boden(126);
+    /* Warensicherung: zwei Antennen am Ausgang mit Signal */
+    for(const x of [60,148]){ g.fillStyle='#c9ced8'; h.rund(x,26,16,98,6); g.fill(); g.fillStyle='rgba(120,200,255,.35)'; h.rund(x+3,30,10,88,4); g.fill(); g.fillStyle='#4a515c'; g.fillRect(x-4,120,24,6); }
+    g.strokeStyle='#e63b2e'; g.lineWidth=2.5; for(let k=0;k<3;k++){ g.globalAlpha=1-k*0.28; g.beginPath(); g.arc(112,74,12+k*10,-Math.PI*0.35,Math.PI*0.35); g.stroke(); g.beginPath(); g.arc(112,74,12+k*10,Math.PI*0.65,Math.PI*1.35); g.stroke(); } g.globalAlpha=1;
+    g.fillStyle='#e63b2e'; g.beginPath(); g.arc(112,74,5,0,Math.PI*2); g.fill(); }
+};
 function upPic(id){
   if(_picCache[id]) return _picCache[id];
   const c=document.createElement('canvas'); c.width=224; c.height=152;
   const g=c.getContext('2d');
   const W=224,H=152;
+  if(UP_MOTIV[id]){
+    UP_MOTIV[id](g,W,H,upHelfer(g,W,H));
+    g.strokeStyle='rgba(242,245,255,.18)'; g.lineWidth=2; g.strokeRect(1,1,W-2,H-2);
+    return _picCache[id]=c.toDataURL('image/png');
+  }
   /* Flaechen-Ausbauten bekommen einen echten Grundriss statt einer
      gemalten Szene - so sieht man, welcher Teil dazukommt. */
   if(PLAN[id]){
@@ -17511,12 +17824,7 @@ function upPic(id){
           for(let k=0;k<(id==='rack_schwer'?4:3);k++){ g.fillStyle='#c9a978';
             g.fillRect(x0+6+k*(bw-8)/(id==='rack_schwer'?4:3),y-14,(bw-24)/(id==='rack_schwer'?4:3),14); } } }
       break;
-    case 'plakat': case 'radio': case 'tafel':
-      bg('#1c2438','#0e1424');
-      g.fillStyle='#c8322a'; g.fillRect(40,26,144,88);
-      g.fillStyle='#ffd23f'; g.font='700 30px sans-serif'; g.textAlign='center'; g.fillText('SALE',112,78);
-      g.fillStyle='#59606b'; g.fillRect(104,114,16,24); break;
-    case 'cams': case 'alarm':
+    case 'cams':
       bg('#1a2030','#0e131e');
       g.fillStyle='#4a515c'; g.fillRect(70,54,84,30);
       g.fillStyle='#1b1e25'; g.beginPath(); g.arc(158,69,17,0,Math.PI*2); g.fill();
@@ -17534,11 +17842,6 @@ function upPic(id){
       g.fillStyle='#0e1226'; g.fillRect(84,42,56,34);
       g.fillStyle='#6cf2a8'; g.fillRect(90,86,44,8); g.fillRect(90,100,44,8);
       g.fillStyle='#ffd23f'; g.fillRect(96,20,40,16); break;
-    case 'heizung': case 'klima': case 'musik':
-      bg('#20222c','#12141c');
-      g.fillStyle='#4a515c'; g.fillRect(56,34,112,22);
-      for(let i=0;i<5;i++){ g.fillStyle='#e8894a'; g.fillRect(62+i*22,58,14,44); }
-      g.fillStyle='#59606b'; g.fillRect(104,102,16,30); break;
     case 'regallicht':
       bg('#141a2c','#0a0f1c');
       g.fillStyle='#f6f2e2'; g.fillRect(34,38,156,10);
@@ -17551,11 +17854,6 @@ function upPic(id){
       g.fillStyle='#2f5d9e'; g.fillRect(34,30,156,18);
       g.fillStyle='#c9ced8'; g.fillRect(44,58,60,44); g.fillRect(114,58,62,14); g.fillRect(114,80,40,10);
       g.fillStyle='#6cf2a8'; g.fillRect(114,98,52,16); break;
-    case 'tag4': case 'lizenz': case 'meister': case 'grosskunden': case 'kundenkarte':
-      bg('#1c2438','#0e1424');
-      g.fillStyle='#f2efe4'; g.fillRect(52,26,120,100);
-      g.fillStyle='#c8322a'; g.beginPath(); g.arc(112,60,22,0,Math.PI*2); g.fill();
-      g.fillStyle='#1b2340'; g.fillRect(66,94,92,6); g.fillRect(66,108,66,6); break;
     default:
       bg('#1a2030','#0e131e');
       g.fillStyle='#39434f'; g.fillRect(62,44,100,64);
@@ -17978,11 +18276,11 @@ function lapZeichnen(body){
   } else {
     hint='Der Spielstand liegt in diesem Browser.';
     const st=phase==='closed'?(ruhetag()?`Sonntag, Ruhetag. ${dateStr(S.day)}.`:`Geschlossen. Heute ist ${dateStr(S.day)}. ${seasonInfo(S.day)[1]}.`):phase==='open'?'Geöffnet bis 22 Uhr.':phase==='closing'?'22 Uhr, die letzten Kunden sind noch da.':'Feierabend. Du kannst den Tag beenden.';
-    h=`<div class="row"><div class="rm"><b>${st}</b><small>Heute: ${eur(DS.revenue)} Umsatz, ${DS.customers} Kunden</small></div>${phase==='closed'?'<button data-a="open">Laden öffnen</button>':phase==='after'?'<button data-a="end">Tag beenden</button>':''}</div>`+
+    h=`<div class="row"><div class="rm"><b>${st}</b><small>Heute: ${eur(DS.revenue)} Umsatz, ${DS.customers} Kunden</small></div>${phase==='closed'&&ruhetag()?'<button data-a="ruhe">Ruhetag beenden</button>':phase==='closed'?'<button data-a="open">Laden öffnen</button>':phase==='after'?'<button data-a="end">Tag beenden</button>':''}</div>`+
       `<div class="row"><div class="rm"><b>Testmodus</b>`+
         (S.test
-          ? `<small class="warn">Aktiv: Level 25, alle Lizenzpakete und Ausbauten offen.</small><small>Beim Ausschalten kommen dein altes Level (${S.test.lvl}), deine XP, dein Kontostand und dein altes Sortiment zurück. Gekaufte Regale, Deko und Personal bleiben im Laden.</small>`
-          : `<small>Schaltet vorübergehend alles frei: Level 25, jedes Lizenzpaket und ein volles Konto zum Ausprobieren.</small><small>Dein jetziger Stand wird gemerkt und beim Ausschalten wiederhergestellt.</small>`)+
+          ? `<small class="warn">Aktiv: Level ${testLevel()}, alle Lizenzpakete und Ausbauten offen.</small><small>Beim Ausschalten kommen dein altes Level (${S.test.lvl}), deine XP, dein Kontostand und dein altes Sortiment zurück. Gekaufte Regale, Deko und Personal bleiben im Laden.</small>`
+          : `<small>Schaltet vorübergehend alles frei: Level ${testLevel()}, jedes Lizenzpaket und ein volles Konto zum Ausprobieren.</small><small>Dein jetziger Stand wird gemerkt und beim Ausschalten wiederhergestellt.</small>`)+
         `</div><button class="${S.test?'red':''}" data-a="test">${S.test?'Testmodus aus':'Testmodus an'}</button></div>`+
       (FW_DEV?`<div class="row"><div class="rm"><b>Feuerwerk-Teststation <span class="warn">(nur Entwicklung)</span></b><small>Macht Nacht und stellt von jedem Feuerwerk einen Karton neben das Zündpult. Du stehst direkt davor.</small>${fwTestAn?'<small class="warn">Aktiv. Kartons neu stapeln füllt alles wieder auf.</small>':''}</div>`+
         (fwTestAn?`<div class="steps"><button data-a="fwtestneu">Neu stapeln</button><button class="red" data-a="fwtest">Aus</button></div>`:`<button data-a="fwtest">Einschalten</button>`)+'</div>':'')+
@@ -18071,6 +18369,7 @@ function lapKlick(e,imHandy){
   else if(a==='repay') repayLoan(+b.dataset.v);
   else if(a==='open'){ openShop(); closeLaptop(true); return; }
   else if(a==='end'){ endDay(); return; }
+  else if(a==='ruhe'){ ruhetagBeenden(); return; }
   else if(a==='test'){ toggleTest(); }
   else if(a==='fwtest'){ fwTestSchalten(); return; }
   else if(a==='fwtestneu'){ const n=fwTestStapeln(); toast(`${n} Kartons neu gestapelt.`); }
@@ -18167,7 +18466,7 @@ function buyUp(id){
     }
     if(id==='onlineshop'){ drawPackSchild(); }
 
-    if(id==='gravur'){ buildGravur(null); toast('Der Gravur-Automat steht. Blanko-Raketen bei Mertens bestellen.'); }
+    if(id==='gravur'){ buildGravur(null); toast('Der Gravur-Automat steht. Blanko-Raketen im Laptop unter Bestellen (Fachhandel) ordern.'); }
     else if(id==='grosskunden') toast('Eintrag ist online. Veranstalter rufen jetzt an.');
     else if(id==='plakat') toast('Plakate hängen. Mehr Kunden ab sofort.');
     else if(id==='tag4') toast('Ab jetzt darfst du auch sonntags öffnen.');
@@ -19109,10 +19408,10 @@ const STEUER_PC=[
     [['Shift'],'Rennen'],
     [['Maus'],'Umsehen']]],
   ['Handeln',[
-    [['E','Klick'],'Aktion – halten zum Putzen'],
-    [['Q','Rechts'],'Karton abstellen'],
-    [['K'],'Sackkarre holen / wegstellen'],
-    [['Tab','H'],'Handy: Onlineshop, Team, Bank, Bericht'],
+    [['E','Klick'],'Aktion – halten wiederholt (einräumen, scannen, putzen)'],
+    [['Q','Rechts'],'Karton abstellen, Paket auspacken'],
+    [['K'],'Sackkarre / Wagen holen, wegstellen (nach Kauf)'],
+    [['Tab'],'Handy: Onlineshop, Team, Werbung, Bank, Bericht, Ziele'],
     [['H'],'Anruf annehmen, wenn es klingelt']]],
   ['Werkzeuge',[
     [['T'],'Preisgerät (ab Level 2)'],
@@ -19120,17 +19419,18 @@ const STEUER_PC=[
   ['Zündpult',[
     [['E'],'Zündmodus am Pult'],
     [['1…9'],'Kanal zünden'],
-    [['Enter'],'Alle nacheinander']]],
+    [['Enter'],'Alle nacheinander'],
+    [['Leer'],'Alle gleichzeitig']]],
   ['Umbau',[
     [['F'],'Umbaumodus an / aus'],
     [['E'],'Möbel greifen, absetzen'],
     [['R'],'Gegriffenes drehen'],
-    [['Q'],'Greifen abbrechen']]],
+    [['Q','Rechts'],'Greifen abbrechen']]],
   ['Sonstiges',[
     [['P'],'Bildeffekte an / aus'],
     [['M'],'Musik an / aus'],
     [['N'],'Nächstes Musikstück'],
-    [['Esc'],'Pause, diese Übersicht']]]
+    [['Esc'],'Pausenmenü']]]
 ];
 const STEUER_TOUCH=[
   ['Bewegen',[
@@ -19140,21 +19440,41 @@ const STEUER_TOUCH=[
     [['Aktion'],'Aktion – halten zum Putzen'],
     [['Ablegen'],'Karton abstellen, Greifen abbrechen'],
     [['Umbau'],'Umbaumodus an / aus'],
-    [['Handy'],'Onlineshop, Team, Bank, Bericht'],
-    [['Karre'],'Sackkarre holen / wegstellen'],
+    [['Handy'],'Onlineshop, Team, Werbung, Bank, Bericht, Ziele'],
+    [['Karre'],'Sackkarre / Wagen (erscheint nach dem Kauf)'],
+    [['Menü'],'Pausenmenü: Steuerung, Musik, Tutorial, Startbildschirm'],
     [['Preis'],'Preisgerät (ab Level 2)'],
     [['Spray'],'Pfefferspray (ab Level 4)']]]
 ];
 function renderSteuer(){
+  const hb=$('handbuch'); if(hb) hb.innerHTML=handbuchHTML();
   const L=COARSE?STEUER_TOUCH:STEUER_PC;
   $('steuer').innerHTML=L.map(([titel,zeilen])=>`<div class="grp"><div class="sub">${titel}</div>`+
     zeilen.map(([k,t])=>`<div class="z"><div class="k">${k.map(x=>`<kbd>${x}</kbd>`).join('')}</div><div>${t}</div></div>`).join('')+
     `</div>`).join('');
 }
 function tutKnopf(){ const b=$('pTut'); if(b) b.textContent=tutorialAn()?'Tutorial ausblenden':'Tutorial einblenden'; }
-function showPause(){ if(overlayOpen()) return; renderSteuer(); musikAnzeige(); tutKnopf(); pauseOpen=true; paused=true; for(const k in keys) keys[k]=false; mouseDown=false; $('pause').classList.add('show'); }
+/* Pausenmenue (Tom, 26.09.): Hauptmaske mit Weiterspielen, Steuerung,
+   Musik, Tutorial und Startbildschirm - Steuerung und Musik sind
+   eigene Masken. Esc auf einer Unterseite fuehrt zurueck. */
+function pauseSeite(id){
+  document.querySelectorAll('#pause .pseite').forEach(el=>el.classList.toggle('on',el.id===id));
+  if(id==='pSteuer'){ renderSteuer(); const sc=document.querySelector('#pSteuer .pscroll'); if(sc) sc.scrollTop=0; }
+  if(id==='pMusikSeite'){ musikAnzeige(); musikTitel(); }
+  if(id==='pHaupt') tutKnopf();
+}
+function pauseSeiteAktiv(){ const el=document.querySelector('#pause .pseite.on'); return el?el.id:'pHaupt'; }
+function showPause(){ if(overlayOpen()) return; pauseSeite('pHaupt'); musikAnzeige(); pauseOpen=true; paused=true;
+  /* Maus freigeben - sonst gehen Klicks auf die Spielflaeche statt ins Menue */
+  if(locked) document.exitPointerLock(); for(const k in keys) keys[k]=false; mouseDown=false; $('pause').classList.add('show'); }
 function closePause(){ if(!pauseOpen) return; pauseOpen=false; paused=false; $('pause').classList.remove('show'); requestLock(); }
 $('pBtn').addEventListener('click',()=>closePause());
+$('pause').addEventListener('click',e=>{
+  const b=e.target.closest('[data-pseite]'); if(b){ pauseSeite(b.dataset.pseite); return; }
+  if(e.target.closest('.pzur')) pauseSeite('pHaupt');
+});
+$('pHome').addEventListener('click',()=>zumStartbildschirm());
+$('pTitel').addEventListener('click',e=>{ const b=e.target.closest('[data-stueck]'); if(b) musikWahl(+b.dataset.stueck); });
 /* Musik: Taste M und Regler im Pausenmenue. Der Knopf oben links
    ist raus (Tom, 25.09.). */
 $('pMusikAn').addEventListener('click',()=>{ ac(); musikAn(); });
@@ -19163,6 +19483,10 @@ $('pMusikVol').addEventListener('input',e=>{ ac(); musikVol(+e.target.value/100)
 document.addEventListener('pointerlockchange',()=>{
   locked=document.pointerLockElement===canvas;
   if(locked) lockWorked=true;
+  /* Kommt die Sperre erst an, wenn schon wieder ein Fenster offen ist
+     (Weiterspielen und gleich wieder Esc), sofort freigeben - sonst
+     gehen die Klicks auf die Spielflaeche statt ins Menue */
+  if(locked&&overlayOpen()){ document.exitPointerLock(); return; }
   else if(lockWorked&&!COARSE&&!overlayOpen()){ mouseDown=false; showPause(); }
 });
 document.addEventListener('pointerlockerror',()=>{ lockFailed=true; dragHint(); });
@@ -19203,7 +19527,7 @@ addEventListener('keydown',e=>{
      Mit Sperre muss man klicken: direkt nach dem Freigeben laesst
      der Browser die Maus nicht per Taste wieder einfangen, und ein
      Fehlschlag wuerde dauerhaft auf Ziehen-zum-Umsehen umstellen. */
-  if(e.code==='Escape'&&pauseOpen){ if(!lockWorked||lockFailed) closePause(); return; }
+  if(e.code==='Escape'&&pauseOpen){ if(pauseSeiteAktiv()!=='pHaupt'){ pauseSeite('pHaupt'); return; } if(!lockWorked||lockFailed) closePause(); return; }
   if(e.code==='Escape'&&S&&!overlayOpen()){ showPause(); return; }
   if(!S||overlayOpen()) return;
   keys[e.code]=true;
@@ -19255,6 +19579,8 @@ $('btnKarre').addEventListener('touchstart',e=>{ e.preventDefault(); if(!S||over
 $('btnKarre').addEventListener('click',e=>{ if(COARSE) return; ac(); toggleKarre(); });
 $('btnHandy').addEventListener('touchstart',e=>{ e.preventDefault(); if(!S||(overlayOpen()&&!handyOpen)) return; ac(); toggleHandy(); },{passive:false});
 $('btnHandy').addEventListener('click',e=>{ if(COARSE) return; ac(); toggleHandy(); });
+/* Am Touchgeraet gab es keinen Weg ins Pausenmenue (kein Esc) */
+$('btnMenu').addEventListener('touchstart',e=>{ e.preventDefault(); if(!S||overlayOpen()) return; ac(); showPause(); },{passive:false});
 $('btnPda').addEventListener('click',e=>{ if(COARSE) return; ac(); togglePDA(); });
 $('pdaClose').addEventListener('click',()=>closePDA());
 $('pdaBody').addEventListener('click',e=>{
@@ -19265,6 +19591,100 @@ $('pdaBody').addEventListener('click',e=>{
   renderPDA(); drawPDA(true); save();
 });
 btnMove.addEventListener('touchstart',e=>{ e.preventDefault(); if(!S||overlayOpen()) return; ac(); if(build&&grabbed) rotateGrab(); else toggleBuild(); },{passive:false});
+/* =========================================================
+   Handbuch im Pausenmenue (Tom, 26.09.: "bei Steuerung bitte alles
+   reinschreiben: Werkzeuge, wie setze ich die Sackkarre ein, wie
+   mache ich dies ... alles runterschreiben").
+   Der Inhalt ist aus dem Code zusammengetragen und Eintrag fuer
+   Eintrag gegen den Code geprueft (26.09.). Aendert sich eine Taste,
+   ein Level oder ein Preis, muss es hier mit.
+   Am Touchgeraet stehen statt der Tasten die Knopfnamen.
+   ========================================================= */
+function hbTaste(pc,touch){ const t=COARSE?(touch||''):pc; return t?`<kbd>${t}</kbd>`:''; }
+function handbuchHTML(){
+  const E=hbTaste('E','Aktion'), EH=COARSE?'<kbd>Aktion</kbd> halten':'<kbd>E</kbd> halten', Q=hbTaste('Q','Ablegen'),
+    K=hbTaste('K','Karre'), T=hbTaste('T','Preis'), G=hbTaste('G','Spray'), F=hbTaste('F','Umbau'),
+    R=COARSE?'<kbd>Umbau</kbd> (solange du etwas hältst)':'<kbd>R</kbd>', HANDY=hbTaste('Tab','Handy'),
+    H=COARSE?'die Anzeige „Anruf annehmen“':'<kbd>H</kbd>', PAUSE=COARSE?'<kbd>Menü</kbd>':'<kbd>Esc</kbd>';
+  const ab=(t)=>`<p>${t}</p>`, schritte=(L)=>`<ol>${L.map(x=>`<li>${x}</li>`).join('')}</ol>`;
+  const A=[
+    ['So funktioniert es',
+      ab(`Schau mit dem Fadenkreuz auf etwas. Unten steht, was passiert, und ${E} führt es aus (bis 3,3 m weit). ${EH} wiederholt die Aktion von selbst: Stück für Stück einräumen, Waren scannen, Dreck wischen, Schaufenster putzen, Feuerwerk aufbauen.`)+
+      ab(`Der Laden öffnet am Türschild neben der Eingangstür (oder im Laptop unter Laden) und hat von 8 bis 22 Uhr offen – etwa 5½ Minuten echte Zeit. Vor dem Öffnen steht die Uhr: Einräumen und Bestellen kosten dann keine Zeit. Sind abends alle Kunden weg, beendest du am Türschild den Tag und bekommst den Tagesabschluss.`)+
+      ab(`Sonntag ist Ruhetag, außer du hast die Sonntagsgenehmigung (Handy › Werbung, ab Level 7). Das Spiel speichert von selbst, alle 25 Sekunden und bei jedem wichtigen Schritt.`)],
+    ['Ware bestellen',
+      schritte([`Zum Laptop auf dem Schreibtisch neben der Lagertür gehen und ${E} drücken.`,
+        `Reiter <b>Bestellen</b> › <b>Ware · Fachhandel</b>. Oben filterst du nach Sparte (F1, F2, Zubehör, Essen, Getränke).`,
+        `Bei der Ware „+ 1× Preis“ drücken – ein Karton landet im Warenkorb.`,
+        `„Warenkorb anzeigen“ › „Jetzt bestellen“. Die Lieferung kommt nach etwa 5 Sekunden. Versand 5,90 €, ab 150 € Warenwert frei.`])+
+      ab(`<b>Großhandel</b> (ab Level 8 mit eigenem Lager): dieselbe Ware im 10er-Pack (−10 %) oder 20er-Pack (−18 %). <b>Restposten</b> (ab Level 14): wechselnde Angebote, sofort gekauft, ohne Versand – dafür nur 86 % Qualität, es kann Blindgänger geben. Neue Ware schaltest du unter <b>Sortiment</b> mit Lizenzpaketen frei.`)],
+    ['Lieferung annehmen',
+      ab(`Ohne Lager stellt der Lieferant alles vor die Ladentür auf die gelbe WARENANNAHME. Hinlaufen, mit ${E} aufheben, in den Laden tragen.`)+
+      ab(`Mit Lager (ab Level 6) setzt der LKW hinten an die Rampe: Warte auf „Der Laderaum ist offen“, geh über die Brücke hinein und nimm jeden Karton mit ${E}. Ist der Laderaum leer und du bist draußen, fährt er los. Um 22 Uhr lädt der Fahrer den Rest selbst ins Lager. An gekauften Andockstationen der Logistikhalle lädt der Fahrer immer selbst ab.`)],
+    ['Einräumen',
+      schritte([`Karton mit ${E} aufheben – du trägst immer einen Karton (mit Karre mehr, siehe unten).`,
+        `Ein Regalfach anschauen: unten steht „Einräumen: Name belegt/Platz“.`,
+        `${EH}: Stück für Stück kommt ins Fach. Ist der Karton leer, wird er von selbst entsorgt.`])+
+      ab(`Jedes Fach nimmt nur eine Sorte. Kühlware (Sekt, Bier, Salate …) kommt in den Sekt-Kühlschrank, Kühlpflichtiges nur dorthin. Einen Karton stellst du mit ${Q} vor dir auf den Boden. Aus dem Regal zurücknehmen geht nicht.`)],
+    ['Sackkarre und Plattformwagen',
+      ab(`Kaufen im Laptop unter Bestellen › Regale & Einrichtung: <b>Sackkarre</b> ab Level 3 für 350 € (4 Kartons), <b>Plattformwagen</b> ab Level 8 mit Lager für 1.400 € (8 Kartons, ersetzt die Sackkarre). Beide sind sofort da.`)+
+      schritte([`${K} holt die Karre heraus. Trägst du gerade einen Karton, kommt er gleich mit drauf.`,
+        `Jeden weiteren Karton mit ${E} aufheben – vom Boden, aus dem LKW oder aus dem Lagerregal. Er kommt oben drauf, bis „Die Karre ist voll“ erscheint.`,
+        `Abladen nimmt immer den obersten Karton: am Regalfach ${EH} räumt ihn ein, am freien Lagerplatz lagert ${E} ihn ein, ${Q} stellt ihn auf den Boden. Danach rückt der nächste von selbst nach.`,
+        `${K} stellt die Karre weg – das geht, sobald höchstens noch ein Karton drauf ist. Den trägst du dann in der Hand.`])+
+      ab(`Mit Karre läufst du etwas langsamer (Sackkarre 90 %, Wagen 85 %). Regal- und Kassenpakete und die Gravur-Rakete passen nicht drauf. Unten im Bild steht, wie voll sie ist.`)],
+    ['Lager',
+      ab(`Lagerregale bekommst du mit dem Lager (ab Level 6) kostenlos. Mit Karton einen freien Platz anschauen („Karton einlagern“) und ${E} – ein ganzer Karton je Platz. Ohne Karton auf einen belegten Platz: „Karton nehmen“. Lagerregal 9 Plätze, Hochregal 15, Schwerlastregal 16. Das Schild am Regal zeigt die häufigsten Sorten.`)],
+    ['Regale und Kassen aufbauen',
+      schritte([`Im Laptop unter Bestellen › Regale & Einrichtung „bestellen“ – das geht nur, wenn für diese Art ein Stellplatz frei ist.`,
+        `Das Regal kommt als flaches Paket (vor die Tür oder mit dem LKW). Mit leeren Händen ${E}: Paket aufheben.`,
+        `Zum gewünschten Platz tragen und ${Q}: Liegt ein freier, passender Stellplatz höchstens 3,2 m entfernt, steht das Regal sofort. Sonst bleibt das Paket stehen.`])+
+      ab(`SB-Kassen-Pakete legst du höchstens 5 m vor dem Kassenplatz ab. Technik wie Kameras, Heizstrahler, Soundanlage, Kartenterminal, Gravur-Automat und die Karren ist sofort nach dem Kauf eingebaut. Stehende Regale verschiebst du im Umbaumodus.`)],
+    ['Kasse',
+      schritte([`Ein Kunde legt seine Ware aufs Band. Jeden Artikel anschauen und ${E} (halten scannt am Stück).`,
+        `Zahlt er mit Karte: Kasse oder Kartenterminal anschauen und ${E}.`,
+        `Zahlt er bar: Kasse anschauen und ${E}. Im Fenster Scheine und Münzen antippen, bis das Rückgeld stimmt, dann „Rückgeld geben“. Genau passend gibt es 3 XP extra, zu viel zahlst du drauf.`])+
+      ab(`Wer zu lange wartet, geht verärgert, und dein Ruf sinkt. Ein Kassierer (ab Level 11, Handy › Team) und SB-Kassen (ab Level 16) kassieren selbst.`)],
+    ['Preise und Preisgerät',
+      ab(`${T} nimmt das Preisgerät in die Hand (ab Level 2). Schaust du auf ein Fach mit Ware, einen Lagerplatz oder einen Karton, zeigt es Verkaufspreis, Marktpreis, Einkauf, Marge und Bestand. ${E} öffnet das Preismenü: −0,50 bis +0,50 €, „Markt“, und Nachbestellen in den Warenkorb (bestellt wird am Laptop).`)+
+      ab(`Wichtig: Solange das Preisgerät in der Hand ist, hebst du Kartons mit Ware nicht auf – erst mit ${T} wegstecken. Alle Preise auf einmal änderst du im Laptop unter Preise & Markt.`)],
+    ['Pfefferspray und Diebe',
+      ab(`Ab Level 4 kommen Diebe. Du erkennst sie an der Meldung „Da klaut jemand!“, einem Alarmton und einer Markierung über dem Kopf. ${G} macht das Spray bereit, zielen und ${E} sprüht (bis 4,2 m). Ein Treffer bringt die Ware zurück und 25 XP.`)+
+      ab(`Solange das Spray bereit ist, sprüht ${E} nur – danach mit ${G} wegstecken. Hilfe: Überwachungskameras (ab Level 10), Sicherheitsdienst (ab Level 13, Handy › Team), Warensicherung (ab Level 14).`)],
+    ['Putzen',
+      ab(`Dreckflecken am Boden anschauen („Sauber machen“) und ${EH}, bis er weg ist. Die beiden Schaufenster links und rechts der Tür werden mit der Zeit blind: anschauen und ${EH}. Dreck kostet Kunden und Ruf. Ein Mülleimer (Deko, ab Level 6) halbiert neuen Dreck, die Reinigungskraft (ab Level 6, Handy › Team) wischt selbst – Fenster putzt sie nicht.`)],
+    ['Umbau',
+      schritte([`${F} schaltet den Umbaumodus an. Jetzt greift ${E} nur Möbel (bis 6 m).`,
+        `Möbel anschauen („Verschieben: Name“) und ${E}: es schwebt vor dir und rastet im 25-cm-Raster.`,
+        `${R} dreht es um 90 Grad. ${E} setzt es ab – bei „Hier ist kein Platz“ überlappt es oder steht nicht ganz im Raum. ${Q} bricht ab.`,
+        `${F} schaltet den Modus wieder aus.`])+
+      ab(`Verschieben kannst du Verkaufsregale und Kühlschränke samt Ware, Lagerregale samt Kartons, die Kasse, den Schreibtisch mit Laptop, die Versandecke, den Gravur-Automaten und Deko.`)],
+    ['Testfeld und Zündpult',
+      ab(`Das Testfeld hinter dem Laden schaltest du im Laptop unter Ausbau frei (ab Level 5, nach Ladenerweiterung 1).`)+
+      schritte([`Karton mit Feuerwerk tragen und die passende Station anschauen: Kugelbomben in den Mörser (Kanal 1–3, jedes Kaliber sein Rohr), Raketen und Römische Lichter auf die Abschussröhren (4–6), alles andere auf den Zündtisch (7–9).`,
+        `${E} stellt ein Stück auf die Station, ${EH} baut weiter auf.`,
+        `Ans Zündpult (höchstens 4 m) und ${E}: der Zündmodus beginnt, unten steht die Kanalleiste.`,
+        COARSE?`Einen scharfen Kanal antippen zündet ihn, dazu „Alle nacheinander“ und „Alle gleichzeitig“.`:`<kbd>1</kbd>–<kbd>9</kbd> zündet den Kanal, <kbd>Enter</kbd> alle nacheinander, <kbd>Leertaste</kbd> alle gleichzeitig. <kbd>E</kbd> am Pult beendet den Zündmodus.`])+
+      ab(`Jede Zündung bringt Hype (bis zu dreimal so viele Kunden, solange der Laden offen ist) und XP. Restposten-Ware kann ein Blindgänger sein. Am Tagesende werden die Stationen geleert – was nicht gezündet ist, ist weg.`)],
+    ['Gravur-Automat',
+      ab(`Ab Level 9 (Bestellen › Regale & Einrichtung). Blanko-Raketen-Karton tragen und ${EH}: der Automat füllt sich (bis 12). Kunden gravieren dann selbst. Mit leeren Händen ${E}: „Eigene Rakete beschriften“, Text eingeben, „Aufdrucken“. Die Rakete gehört auf die Abschussröhren – ${Q} würde sie wegwerfen.`)],
+    ['Handy',
+      ab(`${HANDY} holt das Handy heraus${COARSE?'':' (<kbd>Tab</kbd>, <kbd>H</kbd> oder <kbd>Esc</kbd> steckt es weg)'}. Apps: <b>Onlineshop</b>, <b>Team</b> (Personal, Lohn, Saisonpause, Reihenfolge der Einräumer), <b>Werbung</b> (Plakate, Radio, Sonntagsgenehmigung, Branchenbuch …), <b>Bank</b> (Kredit ab Level 5), <b>Bericht</b> (Zahlen, Ruf, Sauberkeit, Markt) und <b>Ziele</b>.`)+
+      ab(`Mit dem Eintrag im Branchenbuch (ab Level 7, mit Lager) rufen Großkunden an. ${H} nimmt an (26 Sekunden Zeit). Dann verhandelst du (5, 10 oder 20 % mehr fordern) und schließt ab. Eine Spedition holt volle Kartons aus dem Lager. Achtung: ${COARSE?'„Ablehnen“':'<kbd>Esc</kbd> im Verhandlungsfenster'} lehnt den Auftrag ab.`)],
+    ['Laptop',
+      ab(`${E} am Schreibtisch öffnet den Laptop (in der Logistikhalle zusätzlich das Lagerterminal). Reiter: <b>Bestellen</b>, <b>Preise &amp; Markt</b>, <b>Sortiment</b> (Lizenzpakete), <b>Entwicklung</b> (Labor), <b>Ausbau</b> (neue Flächen nach Kapiteln), <b>Deko</b> (Wände, Böden, Schilder, Deko-Stücke) und <b>Laden</b> (öffnen, Tag beenden). „Laptop zuklappen“ bringt dich zurück ins Spiel.`)],
+    ['Personal',
+      ab(`Im Handy unter Team stellst du ein: Reinigungskraft (ab Level 6), Einräumer (ab Level 9 und 12, mit Lager – die Reihenfolge seiner Aufgaben legst du mit ▲ ▼ fest), Kassierer (ab Level 11, weitere an den SB-Kassen), Sicherheitsdienst (ab Level 13) und Versand (ab Level 18, mit Packstation).`)+
+      ab(`Der Lohn entscheidet über Tempo und Freundlichkeit: Mindestlohn (×0,75, sie kündigen öfter), Normal, Gut (×1,3) oder Top (×1,65). In der Saisonpause bekommen sie 30 % und arbeiten nicht.`)],
+    ['Versand',
+      ab(`Der Onlineshop (ab Level 15) bringt eine Tagespauschale. Mit der Packstation (ab Level 16, nach Lagererweiterung 2) kommen echte Bestellungen: Packtisch anschauen und ${E} packt die älteste Bestellung, deren Ware da ist. Die Pakete landen auf der PAKETABLAGE, DDL holt sie beim Tagesabschluss ab. Mehr als 8 offene Bestellungen am Abend kosten Ruf.`)],
+    ['Entwicklungslabor',
+      ab(`Ab Level 20 (Kapitel 5) im Laptop unter Entwicklung: Träger, Bruchbild, zwei Farben, Etikett und Name wählen. Du kannst nur Bruchbilder verbauen, die du schon am Himmel gesehen hast. „Prototyp zünden“ ist kostenlos, „In Produktion“ bringt dein Produkt nach ein paar Tagen in den Katalog. Die zweite Zündstufe gibt es ab Level 28.`)],
+    ['Musik, Bild und Pause',
+      ab(`${PAUSE} öffnet dieses Menü und hält das Spiel an. ${COARSE?'':'<kbd>M</kbd> schaltet die Musik an oder aus, <kbd>N</kbd> spielt das nächste Stück, <kbd>P</kbd> schaltet die Bildeffekte um. '}Unter <b>Musik</b> wählst du jeden Titel und die Lautstärke. „Tutorial einblenden“ zeigt wieder Tipps und Zielpfeile. „Zum Startbildschirm“ speichert und zeigt Weiterspielen und Neues Spiel.`)]
+  ];
+  return A.map(([t,h])=>`<h4>${t}</h4>${h}`).join('');
+}
 
 /* =========================================================
    Start
@@ -19348,6 +19768,17 @@ function begin(fresh,name,slogan,tut){
   stopFx();
   $('start').classList.remove('show'); startOpen=false; requestLock(); updateHUD();
 }
+function fortsetzen(){ stopFx(); $('start').classList.remove('show'); startOpen=false; paused=false; requestLock(); updateHUD(); }
+/* Pausenmenue -> Startbildschirm: speichern und die gewohnte Auswahl
+   zeigen (Weiterspielen / Neues Spiel) */
+function zumStartbildschirm(){
+  if(!S) return;
+  save();
+  pauseOpen=false; $('pause').classList.remove('show');
+  if(locked) document.exitPointerLock();
+  for(const k in keys) keys[k]=false; mouseDown=false;
+  paused=true; startOpen=true; zeigeNamen(false); buildStart(); $('start').classList.add('show');
+}
 function zeigeNamen(an){
   $('nameBox').classList.toggle('show',an);
   $('start').classList.toggle('naming',an);
@@ -19357,9 +19788,16 @@ function zeigeNamen(an){
 function buildStart(){
   const b_=$('startBtns'); b_.innerHTML='';
   const mk=(txt,cls,fn)=>{ const b=document.createElement('button'); b.textContent=txt; if(cls) b.className=cls; b.onclick=fn; b_.appendChild(b); };
-  if(loadSave()) mk('Weiterspielen','',()=>begin(false));
+  /* Aus dem Spiel zurueck (Pausenmenue): Weiterspielen setzt das
+     laufende Spiel fort, ohne neu zu laden */
+  if(S) mk('Weiterspielen','',()=>fortsetzen());
+  else if(loadSave()) mk('Weiterspielen','',()=>begin(false));
   mk('Neues Spiel',loadSave()?'ghost':'',()=>zeigeNamen(true));
-  $('nameGo').onclick=()=>begin(true,$('shopInput').value,$('sloganInput').value,$('tutInput').checked);
+  /* Ein neues Spiel mitten im laufenden braucht eine frische Welt:
+     die Angaben merken, neu laden, dann startet es von selbst */
+  $('nameGo').onclick=()=>{ const n=$('shopInput').value, sl=$('sloganInput').value, tu=$('tutInput').checked;
+    if(S){ try{ sessionStorage.setItem('bb_neustart',JSON.stringify({n,sl,tu})); }catch(e){} location.reload(); return; }
+    begin(true,n,sl,tu); };
   $('nameBack').onclick=()=>zeigeNamen(false);
   $('sloganInput').onkeydown=e=>{ if(e.key==='Enter') $('nameGo').click(); };
   $('shopInput').onkeydown=e=>{ if(e.key==='Enter') $('sloganInput').focus(); };
@@ -19384,12 +19822,15 @@ fontsReady().then(()=>{
      Boden bis zur Decke (gemessen 156 Helligkeitsstufen, jetzt 0). */
   scene.traverse(o=>{ if(o.isMesh&&o.castShadow) (Array.isArray(o.material)?o.material:[o.material]).forEach(m=>{ if(m) m.shadowSide=THREE.FrontSide; }); });
   lastF=-1; applyTOD(); updateSign(); buildStart(); requestAnimationFrame(frame);
+  /* Neues Spiel aus dem laufenden heraus: nach dem Neuladen gleich los */
+  { let ns=null; try{ ns=JSON.parse(sessionStorage.getItem('bb_neustart')||'null'); sessionStorage.removeItem('bb_neustart'); }catch(e){}
+    if(ns) setTimeout(()=>begin(true,ns.n,ns.sl,ns.tu),0); }
   /* Shader fuers Feuerwerk vorab uebersetzen, solange das Startmenue
      steht - dann steht beim Losspielen und beim ersten Schuss nichts */
   setTimeout(()=>{ if(typeof shaderVorab==='function') shaderVorab(); },400);
   window.__bb={get S(){return S},get phase(){return phase},set phase(v){phase=v},set clock(v){clock=v},get clock(){return clock},pickUp,floorBoxes,shelves,racks,dekos,stockOne,openShop,step,customers,queue,belt,scanBelt,buyUp,buyDeko,get DS(){return DS},endDay,pending,save,openLaptop,closeLaptop,pl,addXP,hireStaff,fireStaff,staff,dirts,addDirt,movables,toggleBuild,setWall,setFloor,
     stations,firePult,placeOnStation,igniteType,get order(){return order},get phone(){return phone},makeCall,answerPhone,haggle,acceptDeal,declineDeal,get truck(){return truck},spawnTruck,takeFromTruck,takeBox,dropBox,updateTruck,get door(){return door},get tuer(){return tuer},tuerSet,tuerNah,updateSchiebetuer,doorOpen,doorIsOpen,trailerOccupied,LR,lrFront,TOR,orderReady,orderLeft,shipOne,removeFloorBox,prioOf,setPrio,racks,updateCarry,spawnFloorBox,staff,SHELFKIND,layout,shelfCapOf,shelfAccepts,emptyLevel,dateInfo,dateStr,dateShort,seasonInfo,isSunday,dayMult,ruhetag,wageOf,setWage,friendliness,inPause,setPause,windowGrime,addGrime,cleanWindowTick,ambienteScore,bildBoost,fixedCosts,dailyWages,dispoLimit,verfuegbar,dispoZins,takeLoan,loanTier,loanDaily,EVENTS,GOALS,CUSTTYPES,UPGRADES,STAFF,stockOf,spawnInterval,pools,todayEvent,evv,rollEvent,rollMarket,newGoal,goalAdd,goalTick,ekFactor,marktText,xpFor,rollCustType,priceTol,buyChance,regCustomer,makeWishes,nachfrageFaktor,shelfStockOf,buildGravur,refillGrav,openGravInput,closeGravInput,get gravBlanks(){return gravBlanks},set gravBlanks(v){gravBlanks=v},orderBox,buyPack,cartAdd,cartAddPack,cartOrder,cartClear,cartDel,cartGoods,cartFee,cartTotal,cartBoxes,cartLines,LIEFERZEIT_SEK,VERSAND,VERSANDFREI,lieferSek,
-    scene,camera,P,NEUWARE,NEU_SHOWS,NEU_FONT,NEU_KUGEL,neuZuenden,PARK,restWelle,restTick,restDruck,restDaten,buyAngebot,grossOffen,updatePark,parkWasser:()=>_wasserM,parkTannen:()=>PARK_TANNEN,parkLeben:()=>parkEnten.concat(parkLeute).map(e=>({x:e.g.position.x,z:e.g.position.z})),pendingListe:()=>pending,einbauPakete,spawnPaket,paketAblegen,paketAufheben,EINBAU,PAKET_MASS,vorDieTuer,setSB2,sbZiel,makeAuto,AUTOFORM,stadtInfo:()=>({warn:beacons.length,kronen:KRONEN.length,stufen:SKYLINE_INFO.stufen,skyStile:SKYLINE_INFO.stile.size,stile:Object.keys(STADT_MATS).length}),clearStations,fachHoehe,kindOf,packKartonWert,SUPPLIERS,supplierFor,supplierOf,tierPrice,isUnlocked,lizLevel,renderLaptop,get lsup(){return lsup},set lsup(v){lsup=v},get lkat(){return lkat},set lkat(v){lkat=v},SPARTE,SPARTE_NAME,sparteVon,HEADNAME,headArt,catPill,ekRoh,ekDelta,ekTag,ekNiveau,ekPill,get ltab(){return ltab},set ltab(v){ltab=v},EFF,EFF_ALL,EFF_KLEIN,EFF_GROSS,EFF_PRO,SHOWS,kugelbombe,shot,mine,FW,stations,stationOf,placedCount,togglePDA,openPDA,closePDA,setPost,get postOn(){return postOn},get pdaOn(){return pdaOn},showLength,psHuge,psBig,psMid,psSmall,rockets,emitters,timersLen:()=>timers.length,setView:(x,z,y,p)=>{pl.x=x;pl.z=z;yaw=y;pitch=p;aim=null;},schiebe:(x,z)=>{pl.x=x;pl.z=z;collide(pl,0.32);return{x:pl.x,z:pl.z};},PLZ_MAX,camYaw:()=>yaw,camPitch:()=>pitch,playerPos:()=>({x:pl.x,z:pl.z}),pultYaw:()=>pultHit?pultHit.parent.rotation.y:null,applyShopName,shopName,shopSlogan,signTexPx:()=>signTex&&signTex.image?signTex.image.getContext('2d').getImageData(0,0,signTex.image.width,40).data.join(''):null,lagerWall,fwShot:shot,KUGEL_R,ROHR_INNEN,MOERSER_R,moerserRohr,sfx,WOLKEN,get master(){return master},ac,SORTE_NEU,sortenUmstellen,get shakeWert(){return shake},get ckG(){return ckG},get ckNameTex(){return ckNameTex},get ckMovable(){return ckMov},CK_HOME,CK_ALT,spotPos,queueApproach,ckTexPx:()=>ckNameTex&&ckNameTex.image?ckNameTex.image.getContext('2d').getImageData(0,0,ckNameTex.image.width,60).data.join(''):null,testfeldMitte,STATION_POS,aimAt,UPGRADES,upPic,PLAN,planFlaechen,uhrZeiger:()=>({std:uhrStd?+uhrStd.rotation.z.toFixed(4):0,min:uhrMin?+uhrMin.rotation.z.toFixed(4):0}),drawRackSchild,get snowPts(){return snowPts},buildStadt,updateStadt,get stadtBoxen(){return stadtBoxen},get stadtBaeume(){return stadtBaeume},buildFernbaeume,schwaerme,beacons,silhouetten,get verkehrPts(){return verkehrPts},get rauchPts(){return rauchPts},get flieger(){return flieger},stadtFrei,STADT_FREI,WALLS,FLOORS,bodenMalen,wandMalen,oberflaechenMuster,oberflaechenAnwenden,BODEN_KACHEL,WAND_B,WAND_H,bodenPx,wandPx,innenUmgebung,sockelM,get wallTex(){return wallTex},get floorTexRef(){return floorTexRef},get floorMat(){return floorMat},get shopWall(){return shopWall},renderOnline,onlineHint,onlineStufe,onlineZahlen,onlineListe,updateOnline,SCHILDBG,SCHILDFG,setSchild,schildBg,schildFg,repaintSchilder,updateHead,allLevels,addToLevel,putInSlot,regCustomer,ZONEN,zoneOffen,oeffneZone,applyZonen,SLOTS,RACKS,slotsOffen,colliders,LAY,LOGI,WRAMPEN,WTORE,updateSnow,unterDach,dachBereiche,get lapHit2(){return lapHit2},buildLagerTerminal,toggleTest,testLevel,buyUp,get toastLast(){return toastLast},__floorBoxen:()=>floorBoxes.length,WBAY_UP,wbays,dockPlaetze,wbayFrei,wbayOffen,spawnWTruck,updateWBays,wbaysInit,wtorSet,GANG,GANGTUER,buildLagergang,flaeche,WTOR,RACKKIND,route,NAV,navFrei,navIdx,navBuild,shelfStand,shelves,sbLanes,buildSBKasse,sbFrei,sbOffen,sbNutzbar,EING2,eingaenge,naechsterEingang,setEingang2,buildSBKasse2,get sb2G(){return sb2G},TUEREN,tuerSetD,tuerNahD,packBereit,packOne,paketWert,bestellungenProTag,pakete,ddlAbholung,updateVersand,VS_GR,VS_FELD,WG_PARK,vsNeueBestellung,vsAbgleich,vsKlasse,vsQuellen,vsBestand,vsErfuellbar,vsPlan,vsStapel,vsSpielerPacken,vsSpielerBestellung,vsTischFrei,vsStatus,vsAufraeumen,vsLaden,vsBahn,vsPaketOffen,vsKlappen,vsFuellung,vsPaketZu,get vsTisch(){return vsTisch},get vsWagen(){return vsWagen},createShelf,createRack,regalStellen,testKauf,regalAufbauen,orderRegal,REGALWARE,regalOf,regalKind,regalPreis,regalPlatz,regalOffen,startGame,promptFor,ERFOLGE,erfOffen,erfStufe,erfStand,erfZiel,erfFertig,erfAnteil,erfGeschafft,erfGesamt,stat,statAdd,statRekord,statVerkauf,bruchGesehen,gruppeVon,GRUPPE,TRAEGER,BRUCH,BRUCH_IDS,REZ_FARBEN,ETIKETT,traegerVon,traegerOffen,bruchOffen,bruchListe,rezeptWow,rezeptKosten,rezeptMarkt,rezeptHype,rezeptDauer,rezeptEntwicklung,rezeptGueltig,eigeneListe,eigenesEintragen,rezepteTick,rezProto,rezBauen,renderRezeptur,get entwurf(){return entwurf},set entwurf(v){entwurf=v},entwurfInit,ORDER,LIZENZEN,lizenzOf,hatLizenz,lizenzDaten,naechsteLizenz,buyLizenz,VOLA,volaOf,REGIME,marketOf,costOf,marktZiel,marktLuecke,meOf,miOf,marktDelta,marktNiveau,marktPhase,marktSchock,marktLabel,marktSchnitt,marktExtrem,marktChance,sortimentBreite,sortimentZug,bekanntheit,spawnInterval,rollMarkt,marktInit,inflOf,inflText,setPreisAufMarkt,igniteType,get packHit(){return packHit},get packTisch(){return packTisch},get packMov(){return packMov},zuendeKanal,zuendeAlle,alleKanaele,kanalItem,openZuend,closeZuend,get zuendOpen(){return zuendOpen},overlayOpen,pultTaster,zuendTick,TISCH_X,RAMPE_X,KANAL_START,bereitCount,brennDauer,muendung,pultLamps,RAKETEN_LOOK,RAKETEN_KL,makePerson,applyTOD,updateHUD,renderer,renderFrame,get DEMO(){return DEMO},LHALLE,LOGI_STUFEN,TOR_STUFE,logiStufe,logiZeige,logiAnwenden,LOGI_G,TOR_G,WTORE,tuAktion:(kind,ref)=>{ const alt=target; target={kind,ref}; try{ doAction(); } finally { target=alt; } },promptFor,KARREN,karreArt,karreAn,karreStapel,karreLast,karreNimmt,toggleKarre,updateKarre,setTutorial,tutorialAn,zielFuer,get zielAktuell(){return zielAktuell},get tipKey(){return tipKey},updateZiel,set DEMO(v){DEMO=v},kapitelVon,kapitelVoll,openHandy,closeHandy,toggleHandy,get handyOpen(){return handyOpen},get happ(){return happ},HANDY_APPS,renderHandy,shaderVorab,SCHONER,schonerMalen,updateSchoner,makeWischer,stelleWischer,get wischer(){return wischer},updateWischen,wischerPersonal,cleanTick,updateFireworks,FLASH,spurEnden,LR_LAMPE,schweber,kundenSymbol,geldSchwebt,get serie(){return serie},serieZufrieden,serieBricht,KAPITEL,kapitel,kapitelNr,kapitelAufstieg,WA,WA_SLOTS,vorDieTuer,SB_KASSIERER,sbBesetzt,sbLaneVon,sbKassiererPlatz,MUSIK,STUECKE,musikAn,musikWeiter,musikVol,musikTick,spielSchritt,get mStep(){return mStep},set mStep(v){mStep=v;mTakte=0;},get mBus(){return mBus},get postHalf(){return postHalf},EFF_SCHWEIF,mitSchweif,KOEPFE,KLEID,UNIFORM,STAFFKOPF,faceCache,animPerson,PACKS,packPreis,packPool,packOffen,packContents,syncPakete,rotateGrab,PACK_FL,PACK_HOME,spotFree,rectOf,grab,placeGrab,updateGrab,get grabbed(){return grabbed},showPause,get target(){return target},einrOf,einrAktiv,einrHoch,einrRunter,einrSchalten,AUFGABEN,einrJob,kartonMat,pools,shelfStockOf,removeFromLevel,fwLog:(a)=>{FW_LOG=a;},moerserRohr,ROHR_KALIBER,effPassen,EFF_FAMILIE,basisBlick,fwTestSchalten,fwTestProdukte,fwTestStapeln,get fwTestAn(){return fwTestAn},get fwTestBoxen(){return fwTestBoxen},sonne:()=>sun.intensity,get fwUhr(){return FW_UHR},THEMEN,SHOW_BASIS,EFF,emittersListe:()=>emitters,
+    scene,camera,P,NEUWARE,NEU_SHOWS,NEU_FONT,NEU_KUGEL,neuZuenden,PARK,restWelle,restTick,restDruck,restDaten,buyAngebot,grossOffen,updatePark,parkWasser:()=>_wasserM,parkTannen:()=>PARK_TANNEN,parkLeben:()=>parkEnten.concat(parkLeute).map(e=>({x:e.g.position.x,z:e.g.position.z})),pendingListe:()=>pending,einbauPakete,spawnPaket,paketAblegen,paketAufheben,EINBAU,PAKET_MASS,vorDieTuer,setSB2,sbZiel,makeAuto,AUTOFORM,stadtInfo:()=>({warn:beacons.length,kronen:KRONEN.length,stufen:SKYLINE_INFO.stufen,skyStile:SKYLINE_INFO.stile.size,stile:Object.keys(STADT_MATS).length}),clearStations,fachHoehe,kindOf,packKartonWert,SUPPLIERS,supplierFor,supplierOf,tierPrice,isUnlocked,lizLevel,renderLaptop,get lsup(){return lsup},set lsup(v){lsup=v},get lkat(){return lkat},set lkat(v){lkat=v},SPARTE,SPARTE_NAME,sparteVon,HEADNAME,headArt,catPill,ekRoh,ekDelta,ekTag,ekNiveau,ekPill,get ltab(){return ltab},set ltab(v){ltab=v},EFF,EFF_ALL,EFF_KLEIN,EFF_GROSS,EFF_PRO,SHOWS,kugelbombe,shot,mine,FW,stations,stationOf,placedCount,togglePDA,openPDA,closePDA,setPost,get postOn(){return postOn},get pdaOn(){return pdaOn},showLength,psHuge,psBig,psMid,psSmall,rockets,emitters,timersLen:()=>timers.length,setView:(x,z,y,p)=>{pl.x=x;pl.z=z;yaw=y;pitch=p;aim=null;},schiebe:(x,z)=>{pl.x=x;pl.z=z;collide(pl,0.32);return{x:pl.x,z:pl.z};},PLZ_MAX,camYaw:()=>yaw,camPitch:()=>pitch,playerPos:()=>({x:pl.x,z:pl.z}),pultYaw:()=>pultHit?pultHit.parent.rotation.y:null,applyShopName,shopName,shopSlogan,signTexPx:()=>signTex&&signTex.image?signTex.image.getContext('2d').getImageData(0,0,signTex.image.width,40).data.join(''):null,lagerWall,fwShot:shot,KUGEL_R,ROHR_INNEN,MOERSER_R,moerserRohr,sfx,WOLKEN,get master(){return master},ac,SORTE_NEU,sortenUmstellen,get shakeWert(){return shake},get ckG(){return ckG},get ckNameTex(){return ckNameTex},get ckMovable(){return ckMov},CK_HOME,CK_ALT,spotPos,queueApproach,ckTexPx:()=>ckNameTex&&ckNameTex.image?ckNameTex.image.getContext('2d').getImageData(0,0,ckNameTex.image.width,60).data.join(''):null,testfeldMitte,STATION_POS,aimAt,UPGRADES,upPic,PLAN,planFlaechen,uhrZeiger:()=>({std:uhrStd?+uhrStd.rotation.z.toFixed(4):0,min:uhrMin?+uhrMin.rotation.z.toFixed(4):0}),drawRackSchild,get snowPts(){return snowPts},buildStadt,updateStadt,get stadtBoxen(){return stadtBoxen},get stadtBaeume(){return stadtBaeume},buildFernbaeume,schwaerme,beacons,silhouetten,get verkehrPts(){return verkehrPts},get rauchPts(){return rauchPts},get flieger(){return flieger},stadtFrei,STADT_FREI,WALLS,FLOORS,bodenMalen,wandMalen,oberflaechenMuster,oberflaechenAnwenden,BODEN_KACHEL,WAND_B,WAND_H,bodenPx,wandPx,innenUmgebung,sockelM,get wallTex(){return wallTex},get floorTexRef(){return floorTexRef},get floorMat(){return floorMat},get shopWall(){return shopWall},renderOnline,onlineHint,onlineStufe,onlineZahlen,onlineListe,updateOnline,SCHILDBG,SCHILDFG,setSchild,schildBg,schildFg,repaintSchilder,updateHead,allLevels,addToLevel,putInSlot,regCustomer,ZONEN,zoneOffen,oeffneZone,applyZonen,SLOTS,RACKS,slotsOffen,colliders,LAY,LOGI,WRAMPEN,WTORE,updateSnow,unterDach,dachBereiche,get lapHit2(){return lapHit2},buildLagerTerminal,toggleTest,testLevel,buyUp,get toastLast(){return toastLast},__floorBoxen:()=>floorBoxes.length,WBAY_UP,wbays,dockPlaetze,wbayFrei,wbayOffen,spawnWTruck,updateWBays,wbaysInit,wtorSet,GANG,GANGTUER,buildLagergang,flaeche,WTOR,RACKKIND,route,NAV,navFrei,navIdx,navBuild,shelfStand,shelves,sbLanes,buildSBKasse,sbFrei,sbOffen,sbNutzbar,EING2,eingaenge,naechsterEingang,setEingang2,buildSBKasse2,get sb2G(){return sb2G},TUEREN,tuerSetD,tuerNahD,packBereit,packOne,paketWert,bestellungenProTag,pakete,ddlAbholung,updateVersand,VS_GR,VS_FELD,WG_PARK,vsNeueBestellung,vsAbgleich,vsKlasse,vsQuellen,vsBestand,vsErfuellbar,vsPlan,vsStapel,vsSpielerPacken,vsSpielerBestellung,vsTischFrei,vsStatus,vsAufraeumen,vsLaden,vsBahn,vsPaketOffen,vsKlappen,vsFuellung,vsPaketZu,get vsTisch(){return vsTisch},get vsWagen(){return vsWagen},createShelf,createRack,regalStellen,testKauf,regalAufbauen,orderRegal,REGALWARE,regalOf,regalKind,regalPreis,regalPlatz,regalOffen,startGame,promptFor,ERFOLGE,erfOffen,erfStufe,erfStand,erfZiel,erfFertig,erfAnteil,erfGeschafft,erfGesamt,stat,statAdd,statRekord,statVerkauf,bruchGesehen,gruppeVon,GRUPPE,TRAEGER,BRUCH,BRUCH_IDS,REZ_FARBEN,ETIKETT,traegerVon,traegerOffen,bruchOffen,bruchListe,rezeptWow,rezeptKosten,rezeptMarkt,rezeptHype,rezeptDauer,rezeptEntwicklung,rezeptGueltig,eigeneListe,eigenesEintragen,rezepteTick,rezProto,rezBauen,renderRezeptur,get entwurf(){return entwurf},set entwurf(v){entwurf=v},entwurfInit,ORDER,LIZENZEN,lizenzOf,hatLizenz,lizenzDaten,naechsteLizenz,buyLizenz,VOLA,volaOf,REGIME,marketOf,costOf,marktZiel,marktLuecke,meOf,miOf,marktDelta,marktNiveau,marktPhase,marktSchock,marktLabel,marktSchnitt,marktExtrem,marktChance,sortimentBreite,sortimentZug,bekanntheit,spawnInterval,rollMarkt,marktInit,inflOf,inflText,setPreisAufMarkt,igniteType,get packHit(){return packHit},get packTisch(){return packTisch},get packMov(){return packMov},zuendeKanal,zuendeAlle,alleKanaele,kanalItem,openZuend,closeZuend,get zuendOpen(){return zuendOpen},overlayOpen,pultTaster,zuendTick,TISCH_X,RAMPE_X,KANAL_START,bereitCount,brennDauer,muendung,pultLamps,RAKETEN_LOOK,RAKETEN_KL,makePerson,applyTOD,updateHUD,renderer,renderFrame,get DEMO(){return DEMO},LHALLE,LOGI_STUFEN,TOR_STUFE,logiStufe,logiZeige,logiAnwenden,LOGI_G,TOR_G,WTORE,tuAktion:(kind,ref)=>{ const alt=target; target={kind,ref}; try{ doAction(); } finally { target=alt; } },promptFor,KARREN,karreArt,karreAn,karreStapel,karreLast,karreNimmt,toggleKarre,updateKarre,setTutorial,tutorialAn,zielFuer,get zielAktuell(){return zielAktuell},get tipKey(){return tipKey},updateZiel,set DEMO(v){DEMO=v},kapitelVon,kapitelVoll,openHandy,closeHandy,toggleHandy,get handyOpen(){return handyOpen},get happ(){return happ},HANDY_APPS,renderHandy,shaderVorab,SCHONER,schonerMalen,updateSchoner,makeWischer,stelleWischer,get wischer(){return wischer},updateWischen,wischerPersonal,cleanTick,updateFireworks,FLASH,spurEnden,LR_LAMPE,schweber,kundenSymbol,geldSchwebt,get serie(){return serie},serieZufrieden,serieBricht,KAPITEL,kapitel,kapitelNr,kapitelAufstieg,WA,WA_SLOTS,vorDieTuer,SB_KASSIERER,sbBesetzt,sbLaneVon,sbKassiererPlatz,MUSIK,STUECKE,musikAn,musikWeiter,musikVol,musikTick,spielSchritt,get mStep(){return mStep},set mStep(v){mStep=v;mTakte=0;},get mBus(){return mBus},get postHalf(){return postHalf},EFF_SCHWEIF,mitSchweif,KOEPFE,KLEID,UNIFORM,STAFFKOPF,faceCache,animPerson,PACKS,packPreis,packPool,packOffen,packContents,syncPakete,rotateGrab,PACK_FL,PACK_HOME,spotFree,rectOf,grab,placeGrab,updateGrab,get grabbed(){return grabbed},showPause,closePause,pauseSeite,pauseSeiteAktiv,zumStartbildschirm,fortsetzen,musikWahl,musikTitel,get startOpen(){return startOpen},get pauseOpen(){return pauseOpen},get target(){return target},einrOf,einrAktiv,einrHoch,einrRunter,einrSchalten,AUFGABEN,einrJob,kartonMat,pools,shelfStockOf,removeFromLevel,fwLog:(a)=>{FW_LOG=a;},moerserRohr,ROHR_KALIBER,effPassen,EFF_FAMILIE,basisBlick,fwTestSchalten,fwTestProdukte,fwTestStapeln,get fwTestAn(){return fwTestAn},get fwTestBoxen(){return fwTestBoxen},sonne:()=>sun.intensity,get fwUhr(){return FW_UHR},THEMEN,SHOW_BASIS,EFF,emittersListe:()=>emitters,
     shot:()=>{ noLoop=true; camera.position.set(pl.x,1.65,pl.z); camera.rotation.set(pitch,yaw,0); camera.updateMatrixWorld(); updateTarget(); applyTOD(); renderFrame(0.016); return canvas.toDataURL('image/jpeg',0.85); },
     run:(sec,dt)=>{ noLoop=true; const n=Math.round(sec/(dt||0.05)); for(let i=0;i<n;i++) step(dt||0.05); }};
 });

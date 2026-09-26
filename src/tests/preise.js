@@ -4,6 +4,8 @@
    - WECHSEL: der Kartonpreis aendert sich fast jeden Tag - auch bei
      billiger Ware (vorher auf den Cent je Stueck gerundet: Wunderkerzen
      nur an jedem fuenften Tag, dann Spruenge von 36 Cent)
+   - SCHWANKT: der Marktwert geht auch mal runter, nicht nur die
+     Inflation nach oben
    - FOLGT: der Kartonpreis folgt genau Marktindex und Inflation
    - TEURER: ueber eine lange Saison wird der Einkauf teurer
    - DELTA: die Anzeige "gegenueber gestern" rechnet richtig
@@ -32,9 +34,9 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   const r=await p.evaluate(()=>{ const bb=window.__bb, S=bb.S, P=bb.P, o={};
     S.level=40; S.money=1e7; bb.LIZENZEN.forEach(l=>bb.buyLizenz(l.id));
     const FH=bb.SUPPLIERS[0], T1={n:1,d:0}, W=['wunder','knallerbsen','tisch','feuerzeug','batterie16','sekt','popcorn'];
-    const p0={}, i0={}, last={}; o.wechsel={};
-    W.forEach(t=>{ p0[t]=bb.tierPrice(t,FH,T1); i0[t]=bb.ekRoh(t); last[t]=p0[t]; o.wechsel[t]=0; });
-    for(let d=0;d<60;d++){ bb.rollMarkt(); W.forEach(t=>{ const q=bb.tierPrice(t,FH,T1); if(q!==last[t]) o.wechsel[t]++; last[t]=q; }); }
+    const p0={}, i0={}, last={}; o.wechsel={}; o.runter={};
+    W.forEach(t=>{ p0[t]=bb.tierPrice(t,FH,T1); i0[t]=bb.ekRoh(t); last[t]=p0[t]; o.wechsel[t]=0; o.runter[t]=0; });
+    for(let d=0;d<60;d++){ bb.rollMarkt(); W.forEach(t=>{ const q=bb.tierPrice(t,FH,T1); if(q!==last[t]) o.wechsel[t]++; if(q<last[t]) o.runter[t]++; last[t]=q; }); }
     o.folgt={}; W.forEach(t=>{ o.folgt[t]=+Math.abs(bb.tierPrice(t,FH,T1)/p0[t]-bb.ekRoh(t)/i0[t]).toFixed(4); });
     /* Delta gegen gestern */
     const t='batterie16', vor=S.ekVor[t];
@@ -62,12 +64,15 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     bb.save(); const d=JSON.parse(localStorage.getItem(Object.keys(localStorage).find(k=>/boellerbude/.test(k))));
     o.gespeichert=!!(d.ekVor&&Math.abs(d.ekVor.wunder-S.ekVor.wunder)<1e-6);
     return o; });
-  console.log('WECHSEL ',JSON.stringify(r.wechsel),'(von 60 Tagen)');
+  console.log('WECHSEL ',JSON.stringify(r.wechsel),'(von 60 Tagen) davon billiger',JSON.stringify(r.runter));
   console.log('FOLGT   ',JSON.stringify(r.folgt));
   console.log('DELTA   ',JSON.stringify(r.delta),'SCHNITT',JSON.stringify(r.schnitt));
   console.log('TEURER  inflation',r.infl,'EK-Index',r.ekIndex);
   console.log('ANZEIGE karte:',r.karte,'| preisliste',r.preisliste,'| PDA',JSON.stringify(r.pda),'| gespeichert',r.gespeichert);
   pruef('WECHSEL',Object.values(r.wechsel).every(n=>n>=48),'Kartonpreis bleibt zu oft gleich: '+JSON.stringify(r.wechsel));
+  /* Feuerzeuge sind absichtlich preisstabil (Volatilitaet 0,15), da
+     ueberwiegt die Inflation */
+  pruef('SCHWANKT',Object.keys(r.runter).every(t=>t==='feuerzeug'||r.runter[t]>=2),'Einkauf wird nie billiger, nur Inflation: '+JSON.stringify(r.runter));
   pruef('FOLGT',Object.values(r.folgt).every(x=>x<0.005),'Kartonpreis folgt dem Index nicht: '+JSON.stringify(r.folgt));
   pruef('TEURER',r.infl>1.15&&r.ekIndex>1.1,'Einkauf wird nicht teurer: Inflation '+r.infl+', Index '+r.ekIndex);
   pruef('DELTA',Math.abs(r.delta.soll-r.delta.ist)<0.11&&Math.abs(r.schnitt.soll-r.schnitt.ist)<0.11,JSON.stringify([r.delta,r.schnitt]));

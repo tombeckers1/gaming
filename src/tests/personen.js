@@ -58,7 +58,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     o.personal={};
     for(const id of Object.keys(bb.STAFFKOPF)){ const g=bb.makePerson({uniform:id}); o.personal[id]={kleid:g.userData.kleid,oben:g.userData.oben,kopf:g.userData.kopf}; }
     /* Laufen: Beine schwingen gegenlaeufig */
-    const g=leute[0].g; let mx=0, gegen=true;
+    const g=(leute.find(l=>!(l.g.userData.gang<1))||leute[0]).g; let mx=0, gegen=true; /* Rock/Mantel: absichtlich kleinere Schritte */
     for(let i=0;i<40;i++){ bb.animPerson(g,true,0.05,1.4); const a=g.userData.legs[0].rotation.x, b2=g.userData.legs[1].rotation.x;
       mx=Math.max(mx,Math.abs(a)); if(a*b2>1e-6) gegen=false; }
     o.beine=[+mx.toFixed(2),gegen];

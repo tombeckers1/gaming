@@ -143,7 +143,7 @@ function halle(id,r,opt){
   if(!opt.keinBoden){
     const bo=new THREE.Mesh(new THREE.PlaneGeometry(r.x1-r.x0,r.z1-r.z0),bodenMat);
     bo.rotation.x=-Math.PI/2; bo.position.set((r.x0+r.x1)/2,0.015,(r.z0+r.z1)/2); scene.add(bo);
-    if(!lager) bodenUV(bo,2);
+    if(!lager) bodenUV(bo,BODEN_KACHEL);
     zAdd(id,bo);
   }
   /* Decke und Dach */
@@ -168,7 +168,7 @@ function halle(id,r,opt){
   if(au.s) col(r.x0-LW,r.x1+LW,r.z0-LW,r.z0);
   /* Sockelleisten nur im Laden */
   if(!lager){
-    const base=std(0x1a2038);
+    const base=sockelM();
     if(au.n) zAdd(id,bbox(r.x1-r.x0,0.1,0.02,base,(r.x0+r.x1)/2,0.05,r.z1-0.01,null,false));
     if(au.s) zAdd(id,bbox(r.x1-r.x0,0.1,0.02,base,(r.x0+r.x1)/2,0.05,r.z0+0.01,null,false));
     if(au.w) zAdd(id,bbox(0.02,0.1,r.z1-r.z0,base,r.x0+0.01,0.05,(r.z0+r.z1)/2,null,false));
@@ -565,8 +565,8 @@ function fugenfueller(){
      Rueckgebaeude haengt darunter. Die zweite Platte liegt einen
      Millimeter tiefer, damit sich die beiden im Ueberlappungs-
      streifen nicht gegenseitig zerflimmern. */
-  fugenPlatte({x0:-7.9,x1:37.9,z0:-5.9,z1:5.9},floorMat,0.012,false,2);
-  fugenPlatte({x0: 8.0,x1:37.9,z0:-21.9,z1:-5.9},floorMat,0.011,false,2);
+  fugenPlatte({x0:-7.9,x1:37.9,z0:-5.9,z1:5.9},floorMat,0.012,false,BODEN_KACHEL);
+  fugenPlatte({x0: 8.0,x1:37.9,z0:-21.9,z1:-5.9},floorMat,0.011,false,BODEN_KACHEL);
   fugenPlatte({x0:-7.9,x1:37.9,z0:-5.9,z1:5.9},ceil,WH-0.006,true);
   fugenPlatte({x0: 8.0,x1:37.9,z0:-21.9,z1:-5.9},ceil,WH-0.0065,true);
   /* Lager: Basislager mit Anbau Nord, dazu die Halle Sued */

@@ -358,34 +358,54 @@ const LOANS=[
   {lvl:20,amount:25000,term:20,rate:0.016},
   {lvl:26,amount:60000,term:24,rate:0.017}
 ];
+/* Waende und Boeden (26.09. neu): art waehlt den Maler in
+   05o-oberflaechen, a/b/c sind die Farben, der Rest sind Masse und
+   Glanz. Alle sofort frei (Tom: "da ist direkt alles freigeschaltet"),
+   der Anreiz ist die Optik - und die Stimmung, die mit dem Preis steigt.
+   Die alten ids bleiben, damit Spielstaende ihren Belag behalten. */
 const WALLS=[
-  {id:'creme',lvl:1,name:'Creme',cost:0,up:'#efe9dd',low:'#223055',rail:'#c8322a'},
-  {id:'weiss',lvl:1,name:'Reinweiß',cost:50,up:'#f6f6f4',low:'#3a3f4a',rail:'#8a8f99'},
-  {id:'salbei',lvl:1,name:'Salbeigrün',cost:140,up:'#dfe7dc',low:'#2f4a3c',rail:'#e0b64a'},
-  {id:'sand',lvl:1,name:'Sandbeige',cost:250,up:'#ece0cb',low:'#6b5334',rail:'#b8863a'},
-  {id:'streifen',lvl:1,name:'Tapete Streifen',cost:370,up:'#efe7d8',low:'#3b4262',rail:'#c8322a',pat:'streifen',pat2:'#d8cbb0'},
-  {id:'anthrazit',lvl:1,name:'Anthrazit',cost:520,up:'#d5d8df',low:'#232733',rail:'#7fd1ff'},
-  {id:'raute',lvl:1,name:'Tapete Raute',cost:670,up:'#e6e9f2',low:'#2b3550',rail:'#ffd23f',pat:'raute',pat2:'#cbd2e4'},
-  {id:'ziegel',lvl:1,name:'Ziegeltapete',cost:840,up:'#c4816a',low:'#3a2a22',rail:'#e0b64a',pat:'ziegel',pat2:'#a86450'},
-  {id:'beere',lvl:1,name:'Beere',cost:1020,up:'#f0e2e6',low:'#5a1f36',rail:'#ffd23f'},
-  {id:'blume',lvl:1,name:'Tapete Blumen',cost:1210,up:'#f2ece0',low:'#4a3a52',rail:'#c86a8a',pat:'blume',pat2:'#c9a2b4'},
-  {id:'holzvert',lvl:1,name:'Holzvertäfelung',cost:1410,up:'#c69a68',low:'#5a3c22',rail:'#8a6034',pat:'holz',pat2:'#b08454'},
-  {id:'mitternacht',lvl:1,name:'Mitternachtsblau',cost:1620,up:'#cfd9ef',low:'#16224a',rail:'#ffd23f'},
-  {id:'petrol',lvl:1,name:'Petrol',cost:1840,up:'#cfe4e6',low:'#123c44',rail:'#e0b64a'},
-  {id:'gold',lvl:1,name:'Goldornament',cost:2060,up:'#1c1b22',low:'#0e0d12',rail:'#e0b64a',pat:'ornament',pat2:'#8a6f2a'}
+  {id:'creme',lvl:1,name:'Creme',cost:0,art:'farbe',a:'#e9e1d1'},
+  {id:'weiss',lvl:1,name:'Reinweiß',cost:50,art:'farbe',a:'#f3f2ee',sockel:'#d9d7d1'},
+  {id:'salbei',lvl:1,name:'Salbeigrün',cost:140,art:'farbe',a:'#b3bfa6'},
+  {id:'sand',lvl:1,name:'Kalkputz Sand',cost:250,art:'putz',a:'#d6c3a4'},
+  {id:'streifen',lvl:1,name:'Tapete Streifen',cost:370,art:'streifen',a:'#ece4d3',b:'#b4c3c4'},
+  {id:'anthrazit',lvl:1,name:'Anthrazit matt',cost:520,art:'farbe',a:'#3b3e44',sockel:'#26282c'},
+  {id:'raute',lvl:1,name:'Tapete Harlekin',cost:670,art:'harlekin',a:'#e7e1d4',b:'#d3cab8',c:'#b0924f'},
+  {id:'terrakotta',lvl:1,name:'Kalkputz Terrakotta',cost:780,art:'putz',a:'#bf7250'},
+  {id:'ziegel',lvl:1,name:'Sichtziegel',cost:840,art:'ziegel',a:'#a2553b',relief:3,sockel:'#4a3a32'},
+  {id:'metro',lvl:1,name:'Metrofliese weiß',cost:960,art:'fliesen',a:'#efeee9',fw:0.15,fh:0.075,versatz:0.5,fuge:0.82,rau:0.35,glanz:0.35,relief:2.6,sockel:'#bfbdb6'},
+  {id:'beere',lvl:1,name:'Tadelakt Beere',cost:1020,art:'putz',a:'#7e3446',rau:0.55,glanz:0.2},
+  {id:'blume',lvl:1,name:'Tapete Ranken',cost:1210,art:'blumen',a:'#e8e0cd',b:'#5d7658',c:'#c47a5a'},
+  {id:'holzvert',lvl:1,name:'Eiche Rippenpaneel',cost:1410,art:'rippen',a:'#b88d5e',relief:3.2,sockel:'#2a2420'},
+  {id:'mitternacht',lvl:1,name:'Mitternachtsblau',cost:1620,art:'farbe',a:'#223153',sockel:'#b7954f'},
+  {id:'petrol',lvl:1,name:'Zellige Petrol',cost:1840,art:'fliesen',a:'#1d5c63',fw:0.1,fh:0.1,streu:true,fuge:0.8,rau:0.25,glanz:0.5,relief:3,sockel:'#163f44'},
+  {id:'gold',lvl:1,name:'Art déco Gold',cost:2060,art:'artdeco',a:'#17171b',b:'#c9a24a',sockel:'#b7954f'},
+  {id:'gras',lvl:1,name:'Grastapete',cost:2400,art:'gras',a:'#b8a483',relief:2.6},
+  {id:'damast',lvl:1,name:'Damast Salbei',cost:2900,art:'damast',a:'#56684f'},
+  {id:'moire',lvl:1,name:'Moiré Rosé',cost:3400,art:'moire',a:'#e0b7b1',glanz:0.15},
+  {id:'nussbaum',lvl:1,name:'Nussbaum Rippenpaneel',cost:4200,art:'rippen',a:'#6e4c34',relief:3.2,sockel:'#1e1814'},
+  {id:'samt',lvl:1,name:'Samt Bordeaux',cost:5600,art:'samt',a:'#6d2130',rau:1,relief:1.6,sockel:'#3a1119'},
+  {id:'marmorwand',lvl:1,name:'Calacatta-Marmor',cost:7800,art:'marmorwand',a:'#eeeae2',rau:0.22,glanz:0.55,relief:1.2,sockel:'#8d8a86'}
 ];
 const FLOORS=[
-  {id:'grau',lvl:1,name:'Grauer Estrich',cost:0,a:'#b9b6b0',b:'#9a9690'},
-  {id:'vinyl',lvl:1,name:'Vinyl Hellgrau',cost:70,a:'#cfd0cd',b:'#b9bab7'},
-  {id:'holz',lvl:1,name:'Dielenboden',cost:190,a:'#a97b4c',b:'#8a6038',wood:true},
-  {id:'schach',lvl:1,name:'Schachbrett',cost:340,a:'#e8e6e2',b:'#2a2e38',check:true},
-  {id:'eiche',lvl:1,name:'Eiche dunkel',cost:520,a:'#6b4a2c',b:'#553a22',wood:true},
-  {id:'fliese',lvl:1,name:'Großformatfliese',cost:720,a:'#dad6cd',b:'#c9c4ba',big:true},
-  {id:'beton',lvl:1,name:'Polierter Beton',cost:940,a:'#8f949c',b:'#7d828a'},
-  {id:'industrie',lvl:1,name:'Riffelblech',cost:1180,a:'#9aa0a8',b:'#848a92',plate:true},
-  {id:'teppich',lvl:1,name:'Nadelfilz Rot',cost:1430,a:'#8a2f2a',b:'#7a2824',carpet:true},
-  {id:'terrazzo',lvl:1,name:'Terrazzo',cost:1690,a:'#e3ded2',b:'#c9b9a0',terra:true},
-  {id:'marmor',lvl:1,name:'Marmor',cost:1970,a:'#efeee9',b:'#dcd9d0',marble:true}
+  {id:'grau',lvl:1,name:'Estrich grau',cost:0,art:'estrich',a:'#a7a39c',rau:0.8},
+  {id:'vinyl',lvl:1,name:'Vinyl Steinoptik',cost:70,art:'mikrozement',a:'#cdc9c1',rau:0.6,glanz:0.12,hell:0.82},
+  {id:'holz',lvl:1,name:'Kieferndielen',cost:190,art:'dielen',a:'#b98b59',breite:0.14,lmin:0.8,lmax:1.7,aeste:0.3,rau:0.6},
+  {id:'schach',lvl:1,name:'Schachbrett Marmor',cost:340,art:'schach',a:'#ebe8e1',b:'#1d1c1f',rau:0.3,glanz:0.35,hell:0.84},
+  {id:'eiche',lvl:1,name:'Landhausdiele Eiche',cost:520,art:'dielen',a:'#a47a4f',breite:0.22,lmin:1.3,lmax:2.4,aeste:0.16,rau:0.5,glanz:0.12},
+  {id:'fliese',lvl:1,name:'Feinsteinzeug 60 × 120',cost:720,art:'fliese',a:'#d3cec4',rau:0.4,glanz:0.2,hell:0.82},
+  {id:'beton',lvl:1,name:'Geschliffener Beton',cost:940,art:'beton',a:'#9c9590',rau:0.3,glanz:0.35,hell:0.78},
+  {id:'industrie',lvl:1,name:'Kautschuk Granit',cost:1180,art:'kautschuk',a:'#3d4147',rau:0.75},
+  {id:'teppich',lvl:1,name:'Velours Altrosa',cost:1430,art:'velours',a:'#c29492',rau:1,relief:1.2},
+  {id:'terrazzo',lvl:1,name:'Terrazzo',cost:1690,art:'terrazzo',a:'#e4ded2',rau:0.3,glanz:0.3,hell:0.8},
+  {id:'marmor',lvl:1,name:'Carrara-Marmor',cost:1970,art:'marmor',a:'#e9e8e1',rau:0.18,glanz:0.5,hell:0.76},
+  {id:'fischgraet',lvl:1,name:'Fischgrät Eiche',cost:2600,art:'fischgraet',a:'#b88c5d',rau:0.45,glanz:0.15},
+  {id:'chevron',lvl:1,name:'Chevron Eiche hell',cost:3200,art:'chevron',a:'#c9a77d',rau:0.45,glanz:0.15},
+  {id:'travertin',lvl:1,name:'Travertin',cost:3900,art:'travertin',a:'#d6c1a3',rau:0.4,glanz:0.2,hell:0.8},
+  {id:'nussfisch',lvl:1,name:'Fischgrät Nussbaum',cost:4600,art:'fischgraet',a:'#6c4b34',rau:0.4,glanz:0.18},
+  {id:'veneziano',lvl:1,name:'Terrazzo Veneziano',cost:5400,art:'terrazzo',a:'#e7cfc4',gross:2.2,koerner:['#f4f1ea','#d8d4cc','#9a948e','#c9776a','#e9b9a6','#2f2f33'],rau:0.25,glanz:0.35,hell:0.82},
+  {id:'marmorband',lvl:1,name:'Marmorbänder',cost:6200,art:'marmorband',rau:0.2,glanz:0.45,hell:0.8},
+  {id:'versailles',lvl:1,name:'Versailles-Parkett',cost:8500,art:'versailles',a:'#a97b4d',rau:0.4,glanz:0.2}
 ];
 
 /* Fortschritt ---------------------------------------------- */
@@ -725,6 +745,7 @@ function ambienteScore(){
   shelves.forEach(sh=>{ a+=(SHELFKIND[sh.kind]||SHELFKIND.standard).amb; });
   a-=Math.round(windowGrime()*12);
   const w=WALLS.findIndex(x=>x.id===S.wall), f=FLOORS.findIndex(x=>x.id===S.floor);
-  a+=Math.max(0,w)*2+Math.max(0,f)*2;
+  /* anteilig nach Rang: der teuerste Belag bringt so viel wie vorher */
+  a+=Math.round(Math.max(0,w)*26/(WALLS.length-1))+Math.round(Math.max(0,f)*20/(FLOORS.length-1));
   return clamp(a,0,100);
 }

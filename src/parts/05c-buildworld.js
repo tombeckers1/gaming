@@ -15,11 +15,12 @@ function deckenDiffuse(){ if(_deckenT) return _deckenT; _deckenT=tex(512,256,(g,
     for(let x=0;x<W;x+=7){ g.fillStyle='rgba(228,232,240,.22)'; g.fillRect(x,0,3,Hh); }
   }); return _deckenT; }
 function buildWorld(){
-  const w0=WALLS[0], f0=FLOORS[0];
-  wallTex=tex(256,512,(g,W,H)=>paintWall(g,W,H,w0)); wallTex.wrapS=THREE.RepeatWrapping; wallTex.wrapT=THREE.ClampToEdgeWrapping; wallTex.repeat.set(1/2.6,1/WH);
+  /* Wand und Boden: Leinwand im echten Massstab (2,6 × 3,6 m und
+     4 × 4 m), bemalt wird sie in repaint - nach dem Laden, mit dem
+     Belag aus dem Spielstand */
+  const [wpx,wpy]=wandPx(), bpx=bodenPx(), leer=(g,W,H)=>{ g.fillStyle='#d8d2c6'; g.fillRect(0,0,W,H); };
+  wallTex=tex(wpx,wpy,leer); wallTex.wrapS=THREE.RepeatWrapping; wallTex.wrapT=THREE.ClampToEdgeWrapping; wallTex.repeat.set(1/WAND_B,1/WAND_H);
   shopWall=new THREE.MeshStandardMaterial({map:wallTex,roughness:0.92});
-  shopUpper=std(parseInt(w0.up.slice(1),16),{roughness:0.92});
-  shopLower=std(parseInt(w0.low.slice(1),16),{roughness:0.9});
   // Boden draußen
   const asph=tex(256,256,(g,W,H)=>{
     g.fillStyle='#3a3d45'; g.fillRect(0,0,W,H);
@@ -53,9 +54,9 @@ function buildWorld(){
   bbox(48,0.14,0.2,std(0x9a9ea6),-2,0.07,11,null,false);
   for(let i=-8;i<=8;i++) flat(2,0.15,std(0xe8e2c8),i*4,0.013,15.5);
   // Innenböden
-  floorTexRef=tex(HIQ?640:256,HIQ?640:256,(g,W,H)=>paintFloor(g,W,H,f0)); floorTexRef.wrapS=floorTexRef.wrapT=THREE.RepeatWrapping; floorTexRef.repeat.set(1,1); floorTexRef.anisotropy=8;
+  floorTexRef=tex(bpx,bpx,leer); floorTexRef.wrapS=floorTexRef.wrapT=THREE.RepeatWrapping; floorTexRef.repeat.set(1,1); floorTexRef.anisotropy=8;
   floorMat=new THREE.MeshStandardMaterial({map:floorTexRef,roughness:0.5});
-  bodenUV(flat(16,12,floorMat,0,0.015,0),2);
+  bodenUV(flat(16,12,floorMat,0,0.015,0),BODEN_KACHEL);
   /* Ein Boden fuer das ganze Basislager, in einem Stueck und in
      einem Massstab. Vorher lagen hier zwei Platten mit
      unterschiedlicher Kachelgroesse uebereinander - an ihrer Kante
@@ -123,7 +124,8 @@ function buildWorld(){
      sind gleich hoch und bilden einen Raum. Frueher war der Anbau
      eine zugemauerte Ausbaustufe mit niedrigerer Decke, und
      dazwischen blieb ein Sturz quer im Lager stehen. */
-  const base=std(0x1a2038);
+  /* Sockelleiste im Ton der Wand (sockelM, 05h) */
+  const base=sockelM();
   /* Sockelleisten enden an den Tueroeffnungen, statt durchzulaufen */
   for(const [a,b] of [[-7.9,4.4],[6.1,7.9]]) bbox(b-a,0.1,0.02,base,(a+b)/2,0.05,-5.89,null,false);
   for(const [a,b] of [[-7.9,-1.2],[1.2,7.9]]) bbox(b-a,0.1,0.02,base,(a+b)/2,0.05,5.89,null,false);
@@ -215,7 +217,7 @@ function buildWorld(){
     const glasM=new THREE.MeshStandardMaterial({color:LIN(0xdfe8f4),transparent:true,opacity:0.14,roughness:0.06,metalness:0.3});
     const gl=new THREE.Mesh(new THREE.CircleGeometry(0.225,HIQ?32:16),glasM); gl.position.z=0.062; zg.add(gl);
   }
-  buildCheckout(); buildDesk(); buildDetails();
+  buildCheckout(); buildDesk();
   // Türschild
   doorSignTex=tex(360,150,()=>{});
   doorSign=plane(0.62,0.26,new THREE.MeshBasicMaterial({map:doorSignTex,side:THREE.DoubleSide,toneMapped:false}),1.6,1.55,5.875,Math.PI);

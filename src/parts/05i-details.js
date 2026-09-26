@@ -19,33 +19,4 @@ function normalMapFrom(w,h,draw,strength){
   g.putImageData(out,0,0);
   const t=new THREE.CanvasTexture(c); t.anisotropy=4; return t;
 }
-function noiseHeight(scale,lines){
-  return (g,W,H)=>{
-    g.fillStyle='#808080'; g.fillRect(0,0,W,H);
-    for(let i=0;i<W*H*0.5;i++){ const v=128+(Math.random()-0.5)*scale;
-      g.fillStyle=`rgb(${v|0},${v|0},${v|0})`; g.fillRect(Math.random()*W,Math.random()*H,2,2); }
-    for(let i=0;i<24;i++){ g.strokeStyle=`rgba(${Math.random()<0.5?90:180},${Math.random()<0.5?90:180},${Math.random()<0.5?90:180},.5)`;
-      g.lineWidth=rand(1,3); let x=Math.random()*W, y=Math.random()*H;
-      g.beginPath(); g.moveTo(x,y);
-      for(let k=0;k<5;k++){ x+=rand(-40,40); y+=rand(-40,40); g.lineTo(x,y); } g.stroke(); }
-    if(lines){ for(let y=0;y<H;y+=H/lines){ g.fillStyle='#5a5a5a'; g.fillRect(0,y,W,2); g.fillStyle='#a0a0a0'; g.fillRect(0,y+2,W,1); } }
-  };
-}
-let floorNormal=null, wallNormal=null;
-function applyReliefs(){
-  if(S&&floorMat){
-    floorNormal=normalMapFrom(256,256,(g,W,H)=>paintFloor(g,W,H,floorSet()),1.6);
-    if(floorNormal){ floorNormal.wrapS=floorNormal.wrapT=THREE.RepeatWrapping;
-      floorNormal.repeat.copy(floorTexRef.repeat);
-      floorMat.normalMap=floorNormal; floorMat.normalScale=new THREE.Vector2(0.55,0.55); floorMat.needsUpdate=true; }
-  }
-  if(shopWall&&!wallNormal){
-    wallNormal=normalMapFrom(256,256,noiseHeight(26),1.1);
-    if(wallNormal){ wallNormal.wrapS=wallNormal.wrapT=THREE.RepeatWrapping; wallNormal.repeat.set(1.25,1.25);
-      shopWall.normalMap=wallNormal; shopWall.normalScale=new THREE.Vector2(0.4,0.4); shopWall.needsUpdate=true;
-      if(shopUpper){ shopUpper.normalMap=wallNormal; shopUpper.normalScale=new THREE.Vector2(0.35,0.35); shopUpper.needsUpdate=true; }
-      if(shopLower){ shopLower.normalMap=wallNormal; shopLower.normalScale=new THREE.Vector2(0.35,0.35); shopLower.needsUpdate=true; } }
-  }
-}
 
-function buildDetails(){ applyReliefs(); }

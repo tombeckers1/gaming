@@ -149,6 +149,11 @@ button:focus-visible{outline:3px solid var(--spark);outline-offset:2px}
 .pill.f2{background:rgba(230,59,46,.2);color:#ff9d92}
 .pill.f1{background:rgba(142,240,168,.16);color:var(--mint)}
 .pill.zub{background:rgba(255,210,63,.18);color:var(--signal)}
+.pill.essen{background:rgba(242,138,28,.2);color:#ffb870}
+.pill.getr{background:rgba(92,225,255,.16);color:#8fe8ff}
+.kfilter{display:flex;flex-wrap:wrap;gap:6px;padding:4px 0 8px}
+.kfilter button{padding:5px 12px;font-size:15px;border-radius:999px;background:rgba(242,245,255,.1);color:var(--snow)}
+.kfilter button.on{background:var(--signal);color:var(--ink)}
 .pill.up{background:rgba(255,120,100,.2);color:#ff9d92}
 .pill.dn{background:rgba(108,242,168,.16);color:var(--mint)}
 .pill.fl{background:rgba(242,245,255,.12);color:var(--muted)}
@@ -342,6 +347,7 @@ body.compact .pic{width:78px;height:54px}
 .sw:disabled{opacity:.28}
 /* Preis sichtbar auf der Kachel - am Handy gibt es keinen Tooltip */
 .sw.dk{position:relative;overflow:hidden}
+.sw.mat{width:66px;height:50px}
 .row.mitEinr{flex-wrap:wrap}
 .einr{margin-top:6px;display:flex;flex-direction:column;gap:4px;flex-basis:100%}
 .einrZ{display:flex;align-items:center;gap:4px;background:rgba(242,245,255,.06);border-radius:8px;padding:5px 6px}
@@ -1001,34 +1007,54 @@ const LOANS=[
   {lvl:20,amount:25000,term:20,rate:0.016},
   {lvl:26,amount:60000,term:24,rate:0.017}
 ];
+/* Waende und Boeden (26.09. neu): art waehlt den Maler in
+   05o-oberflaechen, a/b/c sind die Farben, der Rest sind Masse und
+   Glanz. Alle sofort frei (Tom: "da ist direkt alles freigeschaltet"),
+   der Anreiz ist die Optik - und die Stimmung, die mit dem Preis steigt.
+   Die alten ids bleiben, damit Spielstaende ihren Belag behalten. */
 const WALLS=[
-  {id:'creme',lvl:1,name:'Creme',cost:0,up:'#efe9dd',low:'#223055',rail:'#c8322a'},
-  {id:'weiss',lvl:1,name:'Reinweiß',cost:50,up:'#f6f6f4',low:'#3a3f4a',rail:'#8a8f99'},
-  {id:'salbei',lvl:1,name:'Salbeigrün',cost:140,up:'#dfe7dc',low:'#2f4a3c',rail:'#e0b64a'},
-  {id:'sand',lvl:1,name:'Sandbeige',cost:250,up:'#ece0cb',low:'#6b5334',rail:'#b8863a'},
-  {id:'streifen',lvl:1,name:'Tapete Streifen',cost:370,up:'#efe7d8',low:'#3b4262',rail:'#c8322a',pat:'streifen',pat2:'#d8cbb0'},
-  {id:'anthrazit',lvl:1,name:'Anthrazit',cost:520,up:'#d5d8df',low:'#232733',rail:'#7fd1ff'},
-  {id:'raute',lvl:1,name:'Tapete Raute',cost:670,up:'#e6e9f2',low:'#2b3550',rail:'#ffd23f',pat:'raute',pat2:'#cbd2e4'},
-  {id:'ziegel',lvl:1,name:'Ziegeltapete',cost:840,up:'#c4816a',low:'#3a2a22',rail:'#e0b64a',pat:'ziegel',pat2:'#a86450'},
-  {id:'beere',lvl:1,name:'Beere',cost:1020,up:'#f0e2e6',low:'#5a1f36',rail:'#ffd23f'},
-  {id:'blume',lvl:1,name:'Tapete Blumen',cost:1210,up:'#f2ece0',low:'#4a3a52',rail:'#c86a8a',pat:'blume',pat2:'#c9a2b4'},
-  {id:'holzvert',lvl:1,name:'Holzvertäfelung',cost:1410,up:'#c69a68',low:'#5a3c22',rail:'#8a6034',pat:'holz',pat2:'#b08454'},
-  {id:'mitternacht',lvl:1,name:'Mitternachtsblau',cost:1620,up:'#cfd9ef',low:'#16224a',rail:'#ffd23f'},
-  {id:'petrol',lvl:1,name:'Petrol',cost:1840,up:'#cfe4e6',low:'#123c44',rail:'#e0b64a'},
-  {id:'gold',lvl:1,name:'Goldornament',cost:2060,up:'#1c1b22',low:'#0e0d12',rail:'#e0b64a',pat:'ornament',pat2:'#8a6f2a'}
+  {id:'creme',lvl:1,name:'Creme',cost:0,art:'farbe',a:'#e9e1d1'},
+  {id:'weiss',lvl:1,name:'Reinweiß',cost:50,art:'farbe',a:'#f3f2ee',sockel:'#d9d7d1'},
+  {id:'salbei',lvl:1,name:'Salbeigrün',cost:140,art:'farbe',a:'#b3bfa6'},
+  {id:'sand',lvl:1,name:'Kalkputz Sand',cost:250,art:'putz',a:'#d6c3a4'},
+  {id:'streifen',lvl:1,name:'Tapete Streifen',cost:370,art:'streifen',a:'#ece4d3',b:'#b4c3c4'},
+  {id:'anthrazit',lvl:1,name:'Anthrazit matt',cost:520,art:'farbe',a:'#3b3e44',sockel:'#26282c'},
+  {id:'raute',lvl:1,name:'Tapete Harlekin',cost:670,art:'harlekin',a:'#e7e1d4',b:'#d3cab8',c:'#b0924f'},
+  {id:'terrakotta',lvl:1,name:'Kalkputz Terrakotta',cost:780,art:'putz',a:'#bf7250'},
+  {id:'ziegel',lvl:1,name:'Sichtziegel',cost:840,art:'ziegel',a:'#a2553b',relief:3,sockel:'#4a3a32'},
+  {id:'metro',lvl:1,name:'Metrofliese weiß',cost:960,art:'fliesen',a:'#efeee9',fw:0.15,fh:0.075,versatz:0.5,fuge:0.82,rau:0.35,glanz:0.35,relief:2.6,sockel:'#bfbdb6'},
+  {id:'beere',lvl:1,name:'Tadelakt Beere',cost:1020,art:'putz',a:'#7e3446',rau:0.55,glanz:0.2},
+  {id:'blume',lvl:1,name:'Tapete Ranken',cost:1210,art:'blumen',a:'#e8e0cd',b:'#5d7658',c:'#c47a5a'},
+  {id:'holzvert',lvl:1,name:'Eiche Rippenpaneel',cost:1410,art:'rippen',a:'#b88d5e',relief:3.2,sockel:'#2a2420'},
+  {id:'mitternacht',lvl:1,name:'Mitternachtsblau',cost:1620,art:'farbe',a:'#223153',sockel:'#b7954f'},
+  {id:'petrol',lvl:1,name:'Zellige Petrol',cost:1840,art:'fliesen',a:'#1d5c63',fw:0.1,fh:0.1,streu:true,fuge:0.8,rau:0.25,glanz:0.5,relief:3,sockel:'#163f44'},
+  {id:'gold',lvl:1,name:'Art déco Gold',cost:2060,art:'artdeco',a:'#17171b',b:'#c9a24a',sockel:'#b7954f'},
+  {id:'gras',lvl:1,name:'Grastapete',cost:2400,art:'gras',a:'#b8a483',relief:2.6},
+  {id:'damast',lvl:1,name:'Damast Salbei',cost:2900,art:'damast',a:'#56684f'},
+  {id:'moire',lvl:1,name:'Moiré Rosé',cost:3400,art:'moire',a:'#e0b7b1',glanz:0.15},
+  {id:'nussbaum',lvl:1,name:'Nussbaum Rippenpaneel',cost:4200,art:'rippen',a:'#6e4c34',relief:3.2,sockel:'#1e1814'},
+  {id:'samt',lvl:1,name:'Samt Bordeaux',cost:5600,art:'samt',a:'#6d2130',rau:1,relief:1.6,sockel:'#3a1119'},
+  {id:'marmorwand',lvl:1,name:'Calacatta-Marmor',cost:7800,art:'marmorwand',a:'#eeeae2',rau:0.22,glanz:0.55,relief:1.2,sockel:'#8d8a86'}
 ];
 const FLOORS=[
-  {id:'grau',lvl:1,name:'Grauer Estrich',cost:0,a:'#b9b6b0',b:'#9a9690'},
-  {id:'vinyl',lvl:1,name:'Vinyl Hellgrau',cost:70,a:'#cfd0cd',b:'#b9bab7'},
-  {id:'holz',lvl:1,name:'Dielenboden',cost:190,a:'#a97b4c',b:'#8a6038',wood:true},
-  {id:'schach',lvl:1,name:'Schachbrett',cost:340,a:'#e8e6e2',b:'#2a2e38',check:true},
-  {id:'eiche',lvl:1,name:'Eiche dunkel',cost:520,a:'#6b4a2c',b:'#553a22',wood:true},
-  {id:'fliese',lvl:1,name:'Großformatfliese',cost:720,a:'#dad6cd',b:'#c9c4ba',big:true},
-  {id:'beton',lvl:1,name:'Polierter Beton',cost:940,a:'#8f949c',b:'#7d828a'},
-  {id:'industrie',lvl:1,name:'Riffelblech',cost:1180,a:'#9aa0a8',b:'#848a92',plate:true},
-  {id:'teppich',lvl:1,name:'Nadelfilz Rot',cost:1430,a:'#8a2f2a',b:'#7a2824',carpet:true},
-  {id:'terrazzo',lvl:1,name:'Terrazzo',cost:1690,a:'#e3ded2',b:'#c9b9a0',terra:true},
-  {id:'marmor',lvl:1,name:'Marmor',cost:1970,a:'#efeee9',b:'#dcd9d0',marble:true}
+  {id:'grau',lvl:1,name:'Estrich grau',cost:0,art:'estrich',a:'#a7a39c',rau:0.8},
+  {id:'vinyl',lvl:1,name:'Vinyl Steinoptik',cost:70,art:'mikrozement',a:'#cdc9c1',rau:0.6,glanz:0.12,hell:0.82},
+  {id:'holz',lvl:1,name:'Kieferndielen',cost:190,art:'dielen',a:'#b98b59',breite:0.14,lmin:0.8,lmax:1.7,aeste:0.3,rau:0.6},
+  {id:'schach',lvl:1,name:'Schachbrett Marmor',cost:340,art:'schach',a:'#ebe8e1',b:'#1d1c1f',rau:0.3,glanz:0.35,hell:0.84},
+  {id:'eiche',lvl:1,name:'Landhausdiele Eiche',cost:520,art:'dielen',a:'#a47a4f',breite:0.22,lmin:1.3,lmax:2.4,aeste:0.16,rau:0.5,glanz:0.12},
+  {id:'fliese',lvl:1,name:'Feinsteinzeug 60 × 120',cost:720,art:'fliese',a:'#d3cec4',rau:0.4,glanz:0.2,hell:0.82},
+  {id:'beton',lvl:1,name:'Geschliffener Beton',cost:940,art:'beton',a:'#9c9590',rau:0.3,glanz:0.35,hell:0.78},
+  {id:'industrie',lvl:1,name:'Kautschuk Granit',cost:1180,art:'kautschuk',a:'#3d4147',rau:0.75},
+  {id:'teppich',lvl:1,name:'Velours Altrosa',cost:1430,art:'velours',a:'#c29492',rau:1,relief:1.2},
+  {id:'terrazzo',lvl:1,name:'Terrazzo',cost:1690,art:'terrazzo',a:'#e4ded2',rau:0.3,glanz:0.3,hell:0.8},
+  {id:'marmor',lvl:1,name:'Carrara-Marmor',cost:1970,art:'marmor',a:'#e9e8e1',rau:0.18,glanz:0.5,hell:0.76},
+  {id:'fischgraet',lvl:1,name:'Fischgrät Eiche',cost:2600,art:'fischgraet',a:'#b88c5d',rau:0.45,glanz:0.15},
+  {id:'chevron',lvl:1,name:'Chevron Eiche hell',cost:3200,art:'chevron',a:'#c9a77d',rau:0.45,glanz:0.15},
+  {id:'travertin',lvl:1,name:'Travertin',cost:3900,art:'travertin',a:'#d6c1a3',rau:0.4,glanz:0.2,hell:0.8},
+  {id:'nussfisch',lvl:1,name:'Fischgrät Nussbaum',cost:4600,art:'fischgraet',a:'#6c4b34',rau:0.4,glanz:0.18},
+  {id:'veneziano',lvl:1,name:'Terrazzo Veneziano',cost:5400,art:'terrazzo',a:'#e7cfc4',gross:2.2,koerner:['#f4f1ea','#d8d4cc','#9a948e','#c9776a','#e9b9a6','#2f2f33'],rau:0.25,glanz:0.35,hell:0.82},
+  {id:'marmorband',lvl:1,name:'Marmorbänder',cost:6200,art:'marmorband',rau:0.2,glanz:0.45,hell:0.8},
+  {id:'versailles',lvl:1,name:'Versailles-Parkett',cost:8500,art:'versailles',a:'#a97b4d',rau:0.4,glanz:0.2}
 ];
 
 /* Fortschritt ---------------------------------------------- */
@@ -1368,7 +1394,8 @@ function ambienteScore(){
   shelves.forEach(sh=>{ a+=(SHELFKIND[sh.kind]||SHELFKIND.standard).amb; });
   a-=Math.round(windowGrime()*12);
   const w=WALLS.findIndex(x=>x.id===S.wall), f=FLOORS.findIndex(x=>x.id===S.floor);
-  a+=Math.max(0,w)*2+Math.max(0,f)*2;
+  /* anteilig nach Rang: der teuerste Belag bringt so viel wie vorher */
+  a+=Math.round(Math.max(0,w)*26/(WALLS.length-1))+Math.round(Math.max(0,f)*20/(FLOORS.length-1));
   return clamp(a,0,100);
 }
 /* =========================================================
@@ -1462,7 +1489,26 @@ function marketOf(t){ return r2(P[t].market*meOf(t)*inflOf()); }
 function marktZiel(t){ return r2(P[t].market*miOf(t)*inflOf()); }
 /* Positiv heisst: Einkauf ist gerade guenstiger als die Erwartung der Kunden */
 function marktLuecke(t){ const e=meOf(t), m=miOf(t); return Math.round((e/m-1)*100); }
-function costOf(t){ return r2(P[t].cost*miOf(t)*inflOf()); }
+function costOf(t){ return r2(ekRoh(t)); }
+/* Einkaufspreis ungerundet (Tom, 26.09.: "die Preise beim Lieferanten
+   werden auch teurer"). Der Einkauf folgte dem Marktindex und der
+   Inflation schon immer - aber je Stueck auf den Cent gerundet und
+   dann mal Kartongroesse: billige Ware blieb tagelang gleich und sprang
+   dann um 30 Cent. Gerundet wird jetzt erst der Kartonpreis. */
+function ekRoh(t){ return P[t].cost*miOf(t)*inflOf(); }
+/* Einkauf gegenueber gestern, in Prozent (Stand vor dem letzten
+   Markttag) */
+function ekDelta(t){ const v=S&&S.ekVor?S.ekVor[t]:null; if(!(v>0)) return 0; return Math.round((miOf(t)*inflOf()/v-1)*1000)/10; }
+/* Einkauf gegenueber dem Listenpreis zu Spielbeginn */
+function ekNiveau(t){ return Math.round((miOf(t)*inflOf()-1)*100); }
+/* Durchschnitt ueber die freigeschaltete Ware und der groesste Sprung */
+function ekTag(){
+  const L=ORDER.filter(t=>!P[t].noOrder&&(typeof isUnlocked!=='function'||isUnlocked(t)));
+  if(!L.length) return {schnitt:0,hoch:null,runter:null};
+  const d=L.map(t=>({t,d:ekDelta(t)})), s=d.reduce((a,x)=>a+x.d,0)/d.length;
+  d.sort((a,b)=>b.d-a.d);
+  return {schnitt:Math.round(s*10)/10,hoch:d[0].d>0?d[0]:null,runter:d[d.length-1].d<0?d[d.length-1]:null};
+}
 /* Veraenderung zum Vortag in Prozent */
 function marktDelta(t){
   const h=(S&&S.mh&&S.mh[t])||[]; if(h.length<2) return 0;
@@ -1505,6 +1551,8 @@ function marktSchnitt(){
 /* Ein Tag Marktbewegung. Gibt die Meldungen des Tages zurueck. */
 function rollMarkt(){
   marktInit();
+  /* Einkaufsstand von gestern merken, fuer den Vergleich */
+  S.ekVor={}; ORDER.forEach(t=>{ S.ekVor[t]=r3(miOf(t)*inflOf()); });
   const news=[];
   /* Inflation: meistens ein kleiner Schritt, selten ein groesserer */
   let inf=rand(0.0008,0.0028);
@@ -1635,8 +1683,11 @@ const ERFOLGE=[
    desc:'Kugelbomben verkauft',req:{liz:'verbund'},
    stufen:[10,80,400,1500],lohn:[300,1600,5500,16000]},
   {id:'v_sekt',kat:'Verkauf',name:'Auf Mitternacht',ikon:'sekt',
-   desc:'Flaschen Sekt und Kindersekt verkauft',req:{liz:'klassiker'},
+   desc:'Getränke verkauft: Sekt, Bier, Wein, Säfte',req:{liz:'klassiker'},
    stufen:[50,400,2000,8000],lohn:[70,350,1500,5500]},
+  {id:'v_essen',kat:'Verkauf',name:'Buffet-König',ikon:'essen',
+   desc:'Essen verkauft: Snacks, Buffet, Feinkost',req:{liz:'snacks'},
+   stufen:[60,500,2500,10000],lohn:[60,300,1300,5000]},
   {id:'v_zubehoer',kat:'Verkauf',name:'Alles für die Party',ikon:'zubehoer',
    desc:'Zubehör verkauft',req:{liz:'zubehoer'},
    stufen:[80,600,3000,12000],lohn:[60,300,1300,5000]},
@@ -2360,6 +2411,64 @@ const NEUWARE={
     art:{title:'GOLDSEKT',sub:'mit echtem Blattgold',bg1:'#4a3308',bg2:'#000000',ac:'#ffd23f',ac2:'#fff3c4',gold:true}},
   jahrgang:{name:'Jahrgangs-Champagner 2017',short:'Jahrgang',cat:0,lvl:26,cold:true,shape:'bottle',dims:[0.085,0.32,0.085],grid:[12,2,1],box:3,cost:46.00,market:114.99,weight:2,hype:0,risk:7,
     art:{title:'MILLÉSIME',sub:'Champagner 2017',bg1:'#0e1226',bg2:'#000000',ac:'#e8c35a',ac2:'#d1e5ff',gold:true}},
+  /* ---------- 26.09., zweite Runde (Tom: "mehr F1, Essen und Getränke
+     als eigene Kategorie") ---------- */
+  partypopper:{name:'Party-Popper mit Zugband 10er',short:'Party-Popper',cat:1,lvl:1,shape:'boxA',dims:[0.16,0.22,0.05],grid:[10,2,1],box:24,cost:0.90,market:2.19,weight:8,hype:3,risk:1,
+    art:{title:'PARTY-POPPER',sub:'10 Stück · mit Zugband',bg1:'#ffd23f',bg2:'#f28a1c',ac:'#c01c6a',ac2:'#1557a8',light:true}},
+  tortenfontaene:{name:'Tortenfontänen »Eissterne« 4er',short:'Tortenfontänen',cat:1,lvl:3,shape:'boxA',dims:[0.12,0.2,0.04],grid:[12,3,1],box:24,cost:1.30,market:3.19,weight:7,hype:4,risk:1,
+    art:{title:'EISSTERNE',sub:'4 Tortenfontänen · silber',bg1:'#8a9299',bg2:'#2a2f36',ac:'#f2f5ff',ac2:'#ff4fa3'}},
+  luftschlangentisch:{name:'Tischfeuerwerk »Luftschlangen-Regen«',short:'Tisch Schlangen',cat:1,lvl:4,shape:'cylinder',dims:[0.1,0.2,0.1],grid:[8,2,1],box:16,cost:1.40,market:3.49,weight:7,hype:5,risk:1,
+    art:{title:'SCHLANGENREGEN',sub:'Tischfeuerwerk · Luftschlangen',bg1:'#1557a8',bg2:'#061a3a',ac:'#ff4fa3',ac2:'#ffe45c'}},
+  stroboblinker:{name:'Stroboskop-Blinker 4er',short:'Blinker',cat:1,lvl:5,shape:'boxA',dims:[0.12,0.16,0.06],grid:[10,2,1],box:16,cost:1.80,market:4.29,weight:6,hype:6,risk:2,
+    art:{title:'BLINKFEUER',sub:'4 Stroboskop-Blinker',bg1:'#0f2a4a',bg2:'#02060f',ac:'#f2f5ff',ac2:'#ff4a4a'}},
+  knallbonbonxxl:{name:'Riesen-Knallbonbon 50 cm',short:'Riesenbonbon',cat:1,lvl:6,shape:'boxA',dims:[0.4,0.1,0.1],grid:[4,2,2],box:8,cost:2.60,market:6.29,weight:6,hype:6,risk:1,
+    art:{title:'RIESENBONBON',sub:'50 cm · mit Überraschungen',bg1:'#c01c20',bg2:'#5a0608',ac:'#ffd23f',ac2:'#5ce1ff',gold:true}},
+  bengalflamme:{name:'Bengalische Flammen Blau-Violett 3er',short:'Bengalflammen',cat:1,lvl:8,shape:'boxA',dims:[0.18,0.1,0.06],grid:[8,2,2],box:16,cost:1.60,market:3.89,weight:6,hype:5,risk:1,
+    art:{title:'BENGALFLAMME',sub:'3 Töpfchen · blau & violett',bg1:'#2a0f5a',bg2:'#0a0318',ac:'#5ce1ff',ac2:'#ff4fd8'}},
+  zauberwald:{name:'Zauberwald · 10 Schuss Jugendbatterie',short:'Jugend 10',cat:1,lvl:10,shape:'battery',dims:[0.2,0.14,0.2],grid:[11,2,1],box:12,cost:3.00,market:6.99,weight:6,hype:9,risk:2,
+    art:{title:'ZAUBERWALD',sub:'10 Schuss · Jugendfeuerwerk',bg1:'#1f5d2a',bg2:'#06200c',ac:'#ffd23f',ac2:'#c8ff5c'}},
+  jugendbox:{name:'Ganzjahres-Box · 30 Teile Jugendfeuerwerk',short:'Jugendbox',cat:1,lvl:12,shape:'assort',dims:[0.4,0.14,0.28],grid:[4,1,1],box:3,cost:11.00,market:25.99,weight:5,hype:12,risk:2,
+    art:{title:'GANZJAHRES-BOX',sub:'30 Teile Jugendfeuerwerk',bg1:'#0f7a6b',bg2:'#03302a',ac:'#ffe45c',ac2:'#ff4fa3'}},
+  neujahrsbrezel:{name:'Neujahrsbrezel aus Hefeteig',short:'Neujahrsbrezel',cat:0,lvl:5,shape:'boxA',dims:[0.28,0.05,0.22],grid:[5,2,3],box:8,cost:1.60,market:3.99,weight:7,hype:0,risk:4,
+    art:{title:'NEUJAHRSBREZEL',sub:'Hefeteig · süß',bg1:'#c8822a',bg2:'#5a3208',ac:'#fff3c4',ac2:'#ffd23f'}},
+  gefuellteeier:{name:'Gefüllte Eier 12 Hälften',short:'Gefüllte Eier',cat:0,lvl:8,cold:true,kuehlpflicht:true,shape:'boxA',dims:[0.24,0.06,0.16],grid:[4,2,3],box:8,cost:2.20,market:5.49,weight:6,hype:0,risk:5,
+    art:{title:'GEFÜLLTE EIER',sub:'12 Hälften · fürs Buffet',bg1:'#f2d21b',bg2:'#8a7208',ac:'#1b5a2a',ac2:'#ffffff',light:true}},
+  nudelsalat:{name:'Nudelsalat 1 kg',short:'Nudelsalat',cat:0,lvl:9,cold:true,kuehlpflicht:true,shape:'boxA',dims:[0.18,0.12,0.14],grid:[6,2,2],box:8,cost:2.10,market:5.29,weight:7,hype:0,risk:5,
+    art:{title:'NUDELSALAT',sub:'1 kg · Erbsen & Schinken',bg1:'#e8a21b',bg2:'#8a4a08',ac:'#ffffff',ac2:'#1b5a2a'}},
+  gulaschsuppe:{name:'Mitternachts-Gulaschsuppe 800 ml',short:'Gulaschsuppe',cat:0,lvl:10,shape:'cylinder',dims:[0.11,0.17,0.11],grid:[12,2,1],box:12,cost:1.90,market:4.79,weight:6,hype:0,risk:3,
+    art:{title:'GULASCHSUPPE',sub:'Mitternachtssuppe · 800 ml',bg1:'#8a2a0a',bg2:'#2a0a02',ac:'#ffd23f',ac2:'#f2ecd8'}},
+  fingerfood:{name:'Party-Fingerfood-Platte 30 Teile',short:'Fingerfood',cat:0,lvl:11,cold:true,kuehlpflicht:true,shape:'boxA',dims:[0.3,0.07,0.22],grid:[3,2,3],box:6,cost:4.00,market:9.99,weight:5,hype:0,risk:5,
+    art:{title:'FINGERFOOD',sub:'30 Teile · gekühlt · Mini-Quiche & Co.',bg1:'#1b3a6b',bg2:'#061a3a',ac:'#ffd23f',ac2:'#f2f5ff'}},
+  schokofondue:{name:'Schokofondue-Set für 4 mit Obstspießen',short:'Schokofondue',cat:0,lvl:13,cold:true,kuehlpflicht:true,shape:'boxA',dims:[0.26,0.1,0.18],grid:[4,2,2],box:6,cost:5.60,market:13.99,weight:4,hype:0,risk:5,
+    art:{title:'SCHOKOFONDUE',sub:'für 4 · mit Obstspießen',bg1:'#4a2a14',bg2:'#140a04',ac:'#ff4a6a',ac2:'#f2e6c4'}},
+  karpfen:{name:'Silvesterkarpfen küchenfertig 1,5 kg',short:'Karpfen',cat:0,lvl:15,cold:true,kuehlpflicht:true,shape:'boxA',dims:[0.34,0.08,0.18],grid:[3,2,3],box:4,cost:6.00,market:14.99,weight:3,hype:0,risk:6,
+    art:{title:'SILVESTERKARPFEN',sub:'küchenfertig · 1,5 kg',bg1:'#2a6a9a',bg2:'#0a2236',ac:'#f2f5ff',ac2:'#ffd23f'}},
+  tiramisu:{name:'Tiramisu 1 kg Familienschale',short:'Tiramisu',cat:0,lvl:16,cold:true,kuehlpflicht:true,shape:'boxA',dims:[0.24,0.08,0.18],grid:[4,2,3],box:6,cost:3.80,market:9.49,weight:4,hype:0,risk:5,
+    art:{title:'TIRAMISU',sub:'1 kg · Familienschale',bg1:'#6b4a2c',bg2:'#241204',ac:'#f2ecd8',ac2:'#e8c35a'}},
+  neujahrstorte:{name:'Sahnetorte »Prosit Neujahr«',short:'Neujahrstorte',cat:0,lvl:17,cold:true,kuehlpflicht:true,shape:'boxA',dims:[0.26,0.1,0.26],grid:[3,2,2],box:4,cost:4.80,market:11.99,weight:4,hype:0,risk:5,
+    art:{title:'NEUJAHRSTORTE',sub:'Sahnetorte · 12 Stücke',bg1:'#f2ecd8',bg2:'#8a5a18',ac:'#c8322a',ac2:'#e8c35a',light:true}},
+  sushi:{name:'Sushi-Platte 32 Stück',short:'Sushi',cat:0,lvl:19,cold:true,kuehlpflicht:true,shape:'boxA',dims:[0.3,0.06,0.22],grid:[3,2,4],box:4,cost:9.60,market:23.99,weight:3,hype:0,risk:6,
+    art:{title:'SUSHI',sub:'32 Stück · mit Wasabi',bg1:'#1b1b1b',bg2:'#000000',ac:'#ff4a4a',ac2:'#f2f5ff'}},
+  austern:{name:'Frische Austern 12er',short:'Austern',cat:0,lvl:21,cold:true,kuehlpflicht:true,shape:'boxA',dims:[0.28,0.1,0.2],grid:[3,2,2],box:3,cost:14.00,market:34.99,weight:2,hype:0,risk:7,
+    art:{title:'AUSTERN',sub:'12 Stück · frisch',bg1:'#2a4a5a',bg2:'#0a161c',ac:'#f2f5ff',ac2:'#e8c35a',gold:true}},
+  hummer:{name:'Hummer gekocht ca. 500 g',short:'Hummer',cat:0,lvl:24,cold:true,kuehlpflicht:true,shape:'boxA',dims:[0.36,0.1,0.2],grid:[3,2,2],box:2,cost:12.00,market:29.99,weight:2,hype:0,risk:7,
+    art:{title:'HUMMER',sub:'gekocht · ca. 500 g',bg1:'#c8322a',bg2:'#3a0507',ac:'#f2ecd8',ac2:'#e8c35a',gold:true}},
+  prosecco:{name:'Prosecco Frizzante 0,75 l',short:'Prosecco',cat:0,lvl:5,cold:true,shape:'bottle',dims:[0.078,0.3,0.078],grid:[12,2,1],box:12,cost:2.60,market:6.49,weight:8,hype:0,risk:4,
+    art:{title:'PROSECCO',sub:'Frizzante · 0,75 l',bg1:'#c8d86a',bg2:'#4a5a14',ac:'#1b3a2e',ac2:'#ffffff',light:true}},
+  radler:{name:'Radler 6 × 0,5 l',short:'Radler',cat:0,lvl:9,cold:true,shape:'boxA',dims:[0.2,0.24,0.14],grid:[6,1,2],box:4,cost:2.30,market:5.79,weight:7,hype:0,risk:3,
+    art:{title:'RADLER',sub:'Bier & Zitrone · 6 × 0,5 l',bg1:'#f2d21b',bg2:'#1b5a2a',ac:'#1b5a2a',ac2:'#ffffff'}},
+  bierfrei:{name:'Pils alkoholfrei 6 × 0,5 l',short:'Pils 0,0',cat:0,lvl:10,cold:true,shape:'boxA',dims:[0.2,0.24,0.14],grid:[6,1,2],box:4,cost:2.40,market:5.99,weight:6,hype:0,risk:3,
+    art:{title:'PILS 0,0 %',sub:'alkoholfrei · 6 × 0,5 l',bg1:'#1557a8',bg2:'#061a3a',ac:'#ffd23f',ac2:'#e8e2c8'}},
+  limonade:{name:'Zitronenlimonade 6 × 1 l',short:'Limonade',cat:0,lvl:11,cold:true,shape:'boxA',dims:[0.24,0.3,0.16],grid:[6,1,1],box:4,cost:2.40,market:5.99,weight:6,hype:0,risk:2,
+    art:{title:'LIMONADE',sub:'Zitrone · 6 × 1 Liter',bg1:'#ffe45c',bg2:'#8a7208',ac:'#1b5a2a',ac2:'#ffffff',light:true}},
+  kurze:{name:'Party-Kurze Feige 20 × 2 cl',short:'Party-Kurze',cat:0,lvl:12,shape:'boxA',dims:[0.2,0.1,0.16],grid:[6,2,2],box:10,cost:4.40,market:10.99,weight:6,hype:0,risk:4,
+    art:{title:'KURZE',sub:'Feige · 20 × 2 cl',bg1:'#6a1a4a',bg2:'#1a0614',ac:'#ffd23f',ac2:'#f2e6c4'}},
+  hugo:{name:'Hugo-Set: Prosecco, Holunderblüte & Minze',short:'Hugo-Set',cat:0,lvl:14,cold:true,shape:'boxA',dims:[0.24,0.32,0.1],grid:[6,1,1],box:6,cost:4.60,market:11.49,weight:5,hype:0,risk:4,
+    art:{title:'HUGO',sub:'Prosecco · Holunder · Minze',bg1:'#dff2c8',bg2:'#5a8a3a',ac:'#1b3a2e',ac2:'#ffffff',light:true}},
+  gintonic:{name:'Gin 0,7 l mit 4 Tonic Water',short:'Gin & Tonic',cat:0,lvl:15,shape:'boxA',dims:[0.22,0.32,0.1],grid:[6,1,1],box:4,cost:8.80,market:21.99,weight:4,hype:0,risk:5,
+    art:{title:'GIN & TONIC',sub:'Gin 0,7 l · 4 Tonic',bg1:'#12406b',bg2:'#04121f',ac:'#c8e6ff',ac2:'#e8c35a'}},
+  whisky:{name:'Single Malt Whisky 12 Jahre 0,7 l',short:'Whisky',cat:0,lvl:20,shape:'boxA',dims:[0.1,0.32,0.1],grid:[12,2,1],box:6,cost:16.00,market:39.99,weight:3,hype:0,risk:6,
+    art:{title:'SINGLE MALT',sub:'12 Jahre · 0,7 l',bg1:'#6b3a14',bg2:'#1f0a04',ac:'#e8c35a',ac2:'#f2e6c4',gold:true}},
   eiswuerfel:{name:'Eiswürfel 2 kg',short:'Eiswürfel',cat:0,lvl:12,cold:true,kuehlpflicht:true,shape:'boxA',dims:[0.24,0.3,0.08],grid:[6,1,2],box:8,cost:0.90,market:2.29,weight:5,hype:0,risk:3,
     art:{title:'EISWÜRFEL',sub:'2 kg',bg1:'#5ce1ff',bg2:'#1557a8',ac:'#ffffff',ac2:'#0e1226',light:true}}
 };
@@ -2367,14 +2476,14 @@ const NEUWARE={
    die Luecken. Die Levelreihenfolge bleibt: jedes Produkt kommt erst mit
    seinem Paket und nicht vor seinem Level. */
 const NEU_LIZ_DAZU={
-  start:['wunderfarbe','wunderherz'],
+  start:['wunderfarbe','wunderherz','partypopper'],
   zubehoer:['streichhoelzer','gehoerschutz','schutzbrille','feuerloescher','luftschlangenspray'],
-  klassiker:['blitzknaller','bodenkreisel','rosesekt','berliner','glueckrakete','leuchtstaebe'],
+  klassiker:['blitzknaller','bodenkreisel','rosesekt','berliner','glueckrakete','leuchtstaebe','neujahrsbrezel','prosecco'],
   partydeko:['kalender','sektglaeser','kerzen','servietten','haarreifen','fotobox','streukonfetti','lichterkette'],
-  krach:['knallteppich','farbfontaenen','bodenfeuer','goldperlen','bengalfackel','glitzerregen12','miniverbund','glitzerraketen','wunderbox'],
-  partynacht:['bier','cola','kinderpunsch','energy','orangensaft','wasser','karaoke','discokugel','eiswuerfel'],
+  krach:['knallteppich','farbfontaenen','bodenfeuer','goldperlen','bengalfackel','glitzerregen12','miniverbund','glitzerraketen','wunderbox','bengalflamme'],
+  partynacht:['bier','cola','kinderpunsch','energy','orangensaft','wasser','karaoke','discokugel','eiswuerfel','radler','bierfrei','limonade','kurze'],
   himmel:['nachtfalter','goldstaubboeller','kometenraketen','farbenrausch','feuerberg','vulkanfeld','glueckssymbole','glueckskekse','gluecksklee'],
-  genuss:['raclettekaese','raclettezubehoer','fonduesossen','kaeseplatte','lachs','cracker','kaesefondue','fondueoel','luxusfondue'],
+  genuss:['raclettekaese','raclettezubehoer','fonduesossen','kaeseplatte','lachs','cracker','kaesefondue','fondueoel','luxusfondue','schokofondue'],
   verbund:['feuerperlen','farbrauchboeller','feuerrad','knisterfaecher','palmenkugel75','sternenmeer42','dreiklang','smaragd','kristallkugel100'],
   import:['regenbogenfaecher','goldweide100','silberregen','glitzerkaskade','familienmix'],
   grossfeuer:['feuerpfau','goldvulkan','nordlicht','blitzgewitter60','feuerwand','sternkugel150','hochzeitsfaecher','raketen50'],
@@ -2383,22 +2492,22 @@ const NEU_LIZ_DAZU={
 const NEU_LIZENZEN=[
   {id:'jugend',lvl:2,cost:60,name:'Jugendfeuerwerk',
    desc:'Feuerwerk, das auch Kinder zünden dürfen: Knallbonbons, Tischbomben, Bengalische Hölzer, Zahlen-Wunderkerzen, Pharaoschlangen, Leuchtfontänen, der Feuerteufel, eine kleine Jugendbatterie und das Kinderparty-Sortiment.',
-   items:['knallbonbon','tischbombe','bengalholz','wunderzahl','pharao','leuchtfontaene','feuerteufel','kinderbatterie','kinderparty','wunderkerzeXXL','tischfeuerwerk2']},
+   items:['knallbonbon','tischbombe','bengalholz','wunderzahl','pharao','leuchtfontaene','feuerteufel','kinderbatterie','kinderparty','wunderkerzeXXL','tischfeuerwerk2','tortenfontaene','luftschlangentisch','stroboblinker','knallbonbonxxl']},
   {id:'snacks',lvl:7,cost:260,name:'Snacks & Süßes',
    desc:'Popcorn, Salzgebäck, Erdnüsse, Fruchtgummi, Berliner-Nachschub und die Glücksbringer zum Naschen: Marzipanschweinchen und Schoko-Glückstaler.',
    items:['popcorn','salzstangen','erdnuesse','gummibaerchen','marzipanschwein','schokotaler']},
   {id:'buffet',lvl:8,cost:700,name:'Silvester-Buffet',
-   desc:'Heringssalat, Kartoffelsalat, Würstchen, Mini-Frikadellen, Baguette, Mett-Igel, Partypizza, Dips und das Katerfrühstück. Vieles davon gehört in den Kühlschrank.',
-   items:['heringssalat','kartoffelsalat','wuerstchen','frikadellen','baguette','mettigel','partypizza','dips','rollmops']},
+   desc:'Heringssalat, Kartoffel- und Nudelsalat, gefüllte Eier, Würstchen, Mini-Frikadellen, Fingerfood, Baguette, Mett-Igel, Partypizza, Dips, die Mitternachts-Gulaschsuppe und das Katerfrühstück. Vieles davon gehört in den Kühlschrank.',
+   items:['heringssalat','kartoffelsalat','wuerstchen','frikadellen','baguette','mettigel','partypizza','dips','rollmops','gefuellteeier','nudelsalat','gulaschsuppe','fingerfood']},
   {id:'kleinfeuer',lvl:10,cost:1800,name:'Kleinfeuerwerk',
    desc:'Die ersten richtigen Batterien für den kleinen Geldbeutel: Sternenstaub mit 20 Schuss, Schneeball in Weiß, die Heulboje mit Pfeifschüssen, das Pfauenrad als erster Fächer. Dazu Silberpfeil-Raketen, Konfetti-Böller und der Zauberbrunnen.',
-   items:['sternstaub20','schneeballschlacht','heulbatterie','pfauenrad','silberpfeil','konfettiknaller','zauberbrunnen']},
+   items:['sternstaub20','schneeballschlacht','heulbatterie','pfauenrad','silberpfeil','konfettiknaller','zauberbrunnen','zauberwald','jugendbox']},
   {id:'feuerzauber',lvl:13,cost:4200,name:'Feuerzauber',
    desc:'Goldpalmen, Mondschein, der Funkenturm mit sechs Metern, Knisterstern-Raketen und das Bengal-Duo.',
    items:['goldpalmen','mondschein','funkenturm','knisterstern','bengalduo']},
   {id:'getraenke',lvl:14,cost:5000,name:'Feine Getränke',
-   desc:'Champagner, Rot- und Weißwein, Eierlikör, Sahnelikör, das Cocktail-Set, Kindersekt Erdbeere und die Magnumflasche für den großen Moment.',
-   items:['champagner','cocktailset','rotwein','weisswein','eierlikoer','likoer','kindersekt2','magnum','kaviar','champagnerturm','goldsekt','jahrgang']},
+   desc:'Champagner, Rot- und Weißwein, Eierlikör, Sahnelikör, Hugo-Set, Gin & Tonic, Whisky, das Cocktail-Set, Kindersekt Erdbeere, die Magnumflasche, Goldsekt, Jahrgangs-Champagner, der Sektturm und Kaviar für den großen Moment.',
+   items:['champagner','cocktailset','rotwein','weisswein','eierlikoer','likoer','kindersekt2','magnum','kaviar','champagnerturm','goldsekt','jahrgang','hugo','gintonic','whisky']},
   {id:'nachthimmel',lvl:16,cost:9000,name:'Nachthimmel',
    desc:'Silbermeer mit 80 Schuss, der Silberwirbel-Fächer, die Salutbatterie mit zehn Schlägen, die 75-mm-Farbwechselkugel, Blinkstern-Raketen und das Wasserspiel.',
    items:['sternenmeer80','silberwirbel','salutbatterie','farbenmeer75','blinkstern','wasserspiel']},
@@ -2408,6 +2517,12 @@ const NEU_LIZENZEN=[
   {id:'sternklasse',lvl:19,cost:18000,name:'Sternklasse',
    desc:'Goldener Regen mit 70 Schuss, die Jumbo-Rakete »Regenbogenkrone«, 24 Kugeln Römisches Licht, die Eisblume mit zwölf Metern und der Donnerschlag mit 20 Salutschlägen.',
    items:['goldenerregen','regenbogenkrone','lichterkugeln','eisblume','donnerschlag']},
+  {id:'festtafel',lvl:15,cost:6500,name:'Festtafel',
+   desc:'Silvesterkarpfen, Tiramisu, die Neujahrstorte und die Sushi-Platte. Alles gehört in den Kühlschrank.',
+   items:['karpfen','tiramisu','neujahrstorte','sushi']},
+  {id:'feinkost',lvl:21,cost:12000,name:'Feinkost',
+   desc:'Frische Austern und gekochter Hummer für das große Silvesterdinner. Nur aus dem Kühlschrank.',
+   items:['austern','hummer']},
   {id:'meister',lvl:25,cost:34000,name:'Meisterklasse',
    desc:'Das Ende der Leiter: der Himmelsfächer mit 180 Schuss, die Jumbo-Rakete »Supernova«, das Silvesternacht-Sortiment, die 300-mm-Kaiserkrone, das Kugel-Finale und die Feuerkaskade aus drei Riesenfontänen.',
    items:['himmelsfaecher','supernova','silvesternacht','kaiserkrone','kugelfinale','feuerkaskade']}
@@ -2416,12 +2531,29 @@ const NEU_LIZENZEN=[
 const NEU_GRUPPE={
   boeller:['blitzknaller','knallteppich','konfettiknaller','goldstaubboeller','farbrauchboeller'],
   raketen:['glueckrakete','glitzerraketen','silberpfeil','kometenraketen','farbenrausch','knisterstern','smaragd','blinkstern','silberregen','kristall','regenbogenkrone','silbermond','feuerdrache','supernova','raketen50'],
-  batterien:['kinderbatterie','miniverbund','glitzerregen12','sternstaub20','schneeballschlacht','heulbatterie','pfauenrad','nachtfalter','goldpalmen','mondschein','knisterfaecher','sternenmeer42','sternenmeer80','salutbatterie','silberwirbel','regenbogenfaecher','kreuzfeuer','kometenfaecher','goldenerregen','donnerschlag','feuerpfau','hochzeitsfaecher','nordlicht','blitzgewitter60','pfeifkonzert','sternenkaiser','kometenwand','himmelsfaecher','kinderparty','familienmix','silvesternacht','kugelfinale'],
+  batterien:['zauberwald','jugendbox','kinderbatterie','miniverbund','glitzerregen12','sternstaub20','schneeballschlacht','heulbatterie','pfauenrad','nachtfalter','goldpalmen','mondschein','knisterfaecher','sternenmeer42','sternenmeer80','salutbatterie','silberwirbel','regenbogenfaecher','kreuzfeuer','kometenfaecher','goldenerregen','donnerschlag','feuerpfau','hochzeitsfaecher','nordlicht','blitzgewitter60','pfeifkonzert','sternenkaiser','kometenwand','himmelsfaecher','kinderparty','familienmix','silvesternacht','kugelfinale'],
   kugeln:['palmenkugel75','farbenmeer75','kristallkugel100','goldweide100','sternenstaub150','sternkugel150','goldkrone200','kaiserkrone'],
-  boden:['knallbonbon','tischbombe','pharao','wunderfarbe','bengalholz','wunderherz','wunderzahl','leuchtfontaene','feuerteufel','leuchtstaebe','wunderkerzeXXL','tischfeuerwerk2','wunderbox','bodenkreisel','farbfontaenen','bodenfeuer','goldperlen','bengalfackel','zauberbrunnen','feuerberg','vulkanfeld','funkenturm','bengalduo','feuerperlen','feuerrad','dreiklang','wasserspiel','glitzerkaskade','sternfontaene','lichterkugeln','eisblume','goldvulkan','feuerwand','silberkaskade','goldregen22','feuerkaskade'],
+  boden:['partypopper','tortenfontaene','luftschlangentisch','stroboblinker','knallbonbonxxl','bengalflamme','knallbonbon','tischbombe','pharao','wunderfarbe','bengalholz','wunderherz','wunderzahl','leuchtfontaene','feuerteufel','leuchtstaebe','wunderkerzeXXL','tischfeuerwerk2','wunderbox','bodenkreisel','farbfontaenen','bodenfeuer','goldperlen','bengalfackel','zauberbrunnen','feuerberg','vulkanfeld','funkenturm','bengalduo','feuerperlen','feuerrad','dreiklang','wasserspiel','glitzerkaskade','sternfontaene','lichterkugeln','eisblume','goldvulkan','feuerwand','silberkaskade','goldregen22','feuerkaskade'],
   zubehoer:['streichhoelzer','gehoerschutz','schutzbrille','feuerloescher','luftschlangenspray','berliner','kalender','sektglaeser','kerzen','servietten','haarreifen','fotobox','streukonfetti','lichterkette','popcorn','salzstangen','erdnuesse','gummibaerchen','marzipanschwein','schokotaler','heringssalat','kartoffelsalat','wuerstchen','frikadellen','baguette','mettigel','partypizza','dips','rollmops','glueckssymbole','glueckskekse','gluecksklee','raclettekaese','raclettezubehoer','fonduesossen','kaeseplatte','lachs','cracker','kaesefondue','fondueoel','karaoke','discokugel','cocktailset','kaviar','champagnerturm','luxusfondue'],
   sekt:['rosesekt','bier','cola','kinderpunsch','energy','orangensaft','wasser','eiswuerfel','champagner','rotwein','weisswein','eierlikoer','likoer','kindersekt2','magnum','goldsekt','jahrgang']
 };
+/* Sparten fuer die Anzeige (Tom, 26.09.: "Essen und Getraenke als eigene
+   Kategorie"). Intern bleibt alles cat:0 - sonst kaeme Essen aufs
+   Testfeld und an den Zuendtisch. Die Sparte steuert nur, was der
+   Spieler sieht: Etikett, Regalschild, Kartondruck, Filter im Laptop -
+   und die Warengruppe (Essen und Getraenke zaehlen nicht mehr als
+   Zubehoer). */
+const SPARTE={
+  essen:['chips','fondueessen','racletteessen','berliner','popcorn','salzstangen','erdnuesse','gummibaerchen','marzipanschwein','schokotaler',
+    'heringssalat','kartoffelsalat','wuerstchen','frikadellen','mettigel','partypizza','dips','baguette','rollmops','glueckskekse',
+    'raclettekaese','kaeseplatte','lachs','kaesefondue','luxusfondue','fonduesossen','cracker','kaviar','fondueoel',
+    'neujahrsbrezel','gefuellteeier','nudelsalat','gulaschsuppe','fingerfood','schokofondue','karpfen','tiramisu','neujahrstorte','sushi','austern','hummer'],
+  getraenke:['sekt','kindersekt','secco','partyfass','gluehwein','rosesekt','bier','cola','kinderpunsch','energy','orangensaft','wasser','eiswuerfel',
+    'champagner','rotwein','weisswein','eierlikoer','likoer','magnum','kindersekt2','goldsekt','jahrgang','bowle','cocktailset',
+    'prosecco','radler','bierfrei','limonade','kurze','hugo','gintonic','whisky']
+};
+const SPARTE_NAME={f1:'F1',f2:'F2',zubehoer:'Zubehör',essen:'Essen',getraenke:'Getränke'};
+function sparteVon(t){ const p=P[t]; if(!p) return 'zubehoer'; return p.cat===1?'f1':p.cat===2?'f2':(p.sparte||'zubehoer'); }
 /* Wie stark der Marktpreis schwankt: Grundnahrung ruhig, grosses
    Feuerwerk launisch */
 function neuVola(q){
@@ -2444,6 +2576,12 @@ function neuVola(q){
   /* nach Level sortiert, damit Laptop und Freischaltungen die Reihe kennen */
   LIZENZEN.sort((a,b)=>a.lvl-b.lvl);
   for(const g in NEU_GRUPPE){ GRUPPE[g]=GRUPPE[g]||[]; NEU_GRUPPE[g].forEach(t=>{ if(GRUPPE[g].indexOf(t)<0) GRUPPE[g].push(t); }); }
+  /* Sparten setzen; Essen bekommt eine eigene Warengruppe, Getraenke
+     sind die bisherige Gruppe 'sekt' - beides raus aus 'zubehoer' */
+  const umhaengen=(t,ziel)=>{ for(const g in GRUPPE){ const i=GRUPPE[g].indexOf(t); if(i>=0&&g!==ziel) GRUPPE[g].splice(i,1); }
+    GRUPPE[ziel]=GRUPPE[ziel]||[]; if(GRUPPE[ziel].indexOf(t)<0) GRUPPE[ziel].push(t); };
+  SPARTE.essen.forEach(t=>{ if(P[t]&&P[t].cat===0){ P[t].sparte='essen'; umhaengen(t,'essen'); } });
+  SPARTE.getraenke.forEach(t=>{ if(P[t]&&P[t].cat===0){ P[t].sparte='getraenke'; umhaengen(t,'sekt'); } });
 })();
 
 /* =========================================================
@@ -2985,11 +3123,11 @@ function buildKartons(){
       g.fillStyle=p.art.bg1; g.fillRect(W*0.08,H*0.14,W*0.84,H*0.07);
       g.fillStyle='#16181f'; g.textAlign='center'; g.textBaseline='middle';
       fitFont(g,p.name,W*0.78,34,BAR); g.fillText(p.name,W/2,H*0.3);
-      g.font=BAR(20); g.fillText(`${p.box} Stück, ${p.cat?'Kategorie F'+p.cat:'Zubehör'}`,W/2,H*0.42);
+      g.font=BAR(20); g.fillText(`${p.box} Stück, ${p.cat?'Kategorie F'+p.cat:SPARTE_NAME[p.sparte||'zubehoer']}`,W/2,H*0.42);
       if(p.cat){ g.save(); g.translate(W*0.24,H*0.72); g.rotate(Math.PI/4); g.fillStyle='#f28a1c'; g.fillRect(-26,-26,52,52); g.strokeStyle='#16181f'; g.lineWidth=3; g.strokeRect(-22,-22,44,44); g.restore();
         g.fillStyle='#16181f'; g.font=BUN(16); g.fillText('1.4G',W*0.24,H*0.73);
         g.font=BAR(20); g.textAlign='left'; g.fillText('Vorsicht,',W*0.42,H*0.68); g.fillText('explosiv',W*0.42,H*0.77); }
-      else { g.fillStyle='#16181f'; g.font=BAR(22); g.textAlign='left'; g.fillText('Bitte trocken lagern',W*0.16,H*0.73); }
+      else { g.fillStyle='#16181f'; g.font=BAR(22); g.textAlign='left'; g.fillText(p.cold?'Kühl lagern':p.sparte==='essen'?'Lebensmittel · trocken lagern':'Bitte trocken lagern',W*0.16,H*0.73); }
     })});
   });
 }
@@ -3001,7 +3139,7 @@ const SKY_R=285;
 let lapHit, padHit, doorSign, doorSignTex, starsMat, posHit, cardHit, posTex, beltTex, skyGeo, skyMesh=null, starPts=null, lampMats=[], houseMats=[], snowPts;
 let grimeMats=[], windowHits=[], winWork=0;
 let uhrStd=null, uhrMin=null, uhrSek=null;
-let wallTex=null, floorTexRef=null, shopWall=null, shopUpper=null, shopLower=null, floorMat=null;
+let wallTex=null, floorTexRef=null, shopWall=null, floorMat=null;
 const WH=3.6;
 /* =========================================================
    Grundriss. Die ganze Flaeche steht von Anfang an, aber nur
@@ -3092,69 +3230,10 @@ const LAGER_H=HALLE_H;
 const GH_H=12.0;
 /* Lichte Hoehe der Schleuse */
 const SCHLEUSE_H=3.4;
-function paintWall(g,W,H,c){
-  g.fillStyle=c.up; g.fillRect(0,0,W,H);
-  const band=Math.round(H*(1-1.1/WH));
-  if(c.pat==='streifen'){ g.fillStyle=c.pat2; for(let x=0;x<W;x+=W/6) g.fillRect(x,0,W/14,band);
-    g.fillStyle='rgba(0,0,0,.05)'; for(let x=W/12;x<W;x+=W/6) g.fillRect(x,0,W/40,band); }
-  else if(c.pat==='raute'){ g.strokeStyle=c.pat2; g.lineWidth=Math.max(1.5,W/90);
-    const s2=W/5; for(let y=-s2;y<band+s2;y+=s2){ for(let x=-s2;x<W+s2;x+=s2){
-      g.beginPath(); g.moveTo(x,y+s2/2); g.lineTo(x+s2/2,y); g.lineTo(x+s2,y+s2/2); g.lineTo(x+s2/2,y+s2); g.closePath(); g.stroke(); } } }
-  else if(c.pat==='ziegel'){ const bh=band/14;
-    for(let r=0;r<14;r++){ const off=(r%2)*(W/6);
-      for(let x=-W/6;x<W;x+=W/3){ g.fillStyle=c.pat2; g.fillRect(x+off+2,r*bh+2,W/3-4,bh-4); } }
-    g.fillStyle='rgba(255,255,255,.08)'; for(let r=0;r<14;r++) g.fillRect(0,r*bh,W,1.5); }
-  else if(c.pat==='blume'){ const s2=W/4;
-    for(let y=s2/2;y<band;y+=s2) for(let x=((y/s2)%2)*s2/2;x<W;x+=s2){
-      g.fillStyle=c.pat2; for(let k=0;k<5;k++){ const a2=k/5*Math.PI*2;
-        g.beginPath(); g.ellipse(x+Math.cos(a2)*s2*0.13,y+Math.sin(a2)*s2*0.13,s2*0.09,s2*0.05,a2,0,Math.PI*2); g.fill(); }
-      g.fillStyle='rgba(255,255,255,.5)'; g.beginPath(); g.arc(x,y,s2*0.045,0,Math.PI*2); g.fill(); } }
-  else if(c.pat==='holz'){ const pw=W/5;
-    for(let x=0;x<W;x+=pw){ g.fillStyle=c.pat2; g.fillRect(x+2,0,pw-4,band);
-      g.fillStyle='rgba(0,0,0,.22)'; g.fillRect(x,0,2,band);
-      g.strokeStyle='rgba(60,40,20,.18)'; g.lineWidth=1;
-      for(let k=0;k<5;k++){ g.beginPath(); g.moveTo(x+4+k*(pw/6),0); g.bezierCurveTo(x+8+k*(pw/6),band*0.3,x+2+k*(pw/6),band*0.7,x+6+k*(pw/6),band); g.stroke(); } } }
-  else if(c.pat==='ornament'){ const s2=W/4;
-    for(let y=s2/2;y<band;y+=s2) for(let x=((y/s2)%2)*s2/2;x<W;x+=s2){
-      g.strokeStyle=c.pat2; g.lineWidth=Math.max(1.5,W/120);
-      g.beginPath(); g.arc(x,y,s2*0.22,0,Math.PI*2); g.stroke();
-      g.beginPath(); g.moveTo(x-s2*0.3,y); g.quadraticCurveTo(x,y-s2*0.32,x+s2*0.3,y); g.stroke();
-      g.beginPath(); g.moveTo(x-s2*0.3,y); g.quadraticCurveTo(x,y+s2*0.32,x+s2*0.3,y); g.stroke(); } }
-  g.fillStyle=c.low; g.fillRect(0,band,W,H-band);
-  g.fillStyle=c.rail; g.fillRect(0,band-6,W,8); g.fillStyle='rgba(255,255,255,.25)'; g.fillRect(0,band-6,W,2);
-}
-function paintFloor(g,W,H,f){
-  g.setTransform(1,0,0,1,0,0); g.scale(W/256,H/256); W=256; H=256;
-  g.fillStyle=f.b; g.fillRect(0,0,W,H);
-  if(f.big){ for(let i=0;i<2;i++) for(let j=0;j<2;j++){ g.fillStyle=(i+j)%2?f.a:f.b; g.fillRect(i*128+2,j*128+2,124,124);
-      for(let k=0;k<40;k++){ g.fillStyle=`rgba(0,0,0,${Math.random()*0.03})`; g.fillRect(i*128+Math.random()*124,j*128+Math.random()*124,6,4); } } }
-  else if(f.plate){ g.fillStyle=f.a; g.fillRect(0,0,W,H);
-    for(let y=0;y<H;y+=32) for(let x=0;x<W;x+=32){ g.fillStyle=f.b; g.save(); g.translate(x+16,y+16); g.rotate((x/32+y/32)%2?0.7:-0.7);
-      g.fillRect(-11,-3,22,6); g.restore(); }
-    g.fillStyle='rgba(255,255,255,.08)'; for(let y=0;y<H;y+=32) g.fillRect(0,y,W,1); }
-  else if(f.carpet){ g.fillStyle=f.a; g.fillRect(0,0,W,H);
-    for(let i=0;i<9000;i++){ const v=Math.random(); g.fillStyle=`rgba(${v<0.5?0:255},${v<0.5?0:255},${v<0.5?0:255},${Math.random()*0.10})`; g.fillRect(Math.random()*W,Math.random()*H,2,2); } }
-  else if(f.marble){ g.fillStyle=f.a; g.fillRect(0,0,W,H);
-    for(let i=0;i<26;i++){ g.strokeStyle=`rgba(120,120,130,${rand(0.06,0.24)})`; g.lineWidth=rand(1,4);
-      let x=Math.random()*W, y=Math.random()*H; g.beginPath(); g.moveTo(x,y);
-      for(let k=0;k<7;k++){ x+=rand(-50,50); y+=rand(-40,40); g.lineTo(x,y); } g.stroke(); }
-    g.strokeStyle='rgba(0,0,0,.14)'; g.lineWidth=2; g.strokeRect(0,0,128,128); g.strokeRect(128,0,128,128); g.strokeRect(0,128,128,128); g.strokeRect(128,128,128,128); }
-  else if(f.check){ for(let i=0;i<2;i++) for(let j=0;j<2;j++){ g.fillStyle=(i+j)%2?f.a:f.b; g.fillRect(i*128,j*128,128,128); } }
-  else if(f.wood){ for(let r=0;r<8;r++){ const off=(r%2)*40; for(let x=-80;x<W;x+=120){ g.fillStyle=r%2?f.a:f.b; g.fillRect(x+off,r*32,116,30); g.fillStyle='rgba(0,0,0,.14)'; g.fillRect(x+off,r*32+29,116,2); } } }
-  else if(f.terra){ g.fillStyle=f.a; g.fillRect(0,0,W,H); for(let i=0;i<420;i++){ g.fillStyle=pick(['#8a8175','#c2452f','#3d5a6c','#d9cdb4','#6b7a52']); g.globalAlpha=0.75; g.save(); g.translate(Math.random()*W,Math.random()*H); g.rotate(Math.random()*3); g.fillRect(-4,-3,8+Math.random()*6,5); g.restore(); } g.globalAlpha=1; }
-  else { for(let i=0;i<2;i++) for(let j=0;j<2;j++){ g.fillStyle=f.a; g.fillRect(i*128+1,j*128+1,126,126); for(let k=0;k<70;k++){ g.fillStyle=`rgba(0,0,0,${Math.random()*0.045})`; g.fillRect(i*128+Math.random()*124,j*128+Math.random()*124,3,3); } } }
-  g.strokeStyle='rgba(0,0,0,.2)'; g.lineWidth=2; g.strokeRect(0,0,128,128); g.strokeRect(128,0,128,128); g.strokeRect(0,128,128,128); g.strokeRect(128,128,128,128);
-}
 function wallSet(){ return WALLS.find(w=>w.id===S.wall)||WALLS[0]; }
 function floorSet(){ return FLOORS.find(f=>f.id===S.floor)||FLOORS[0]; }
-function repaint(){
-  const w=wallSet(), f=floorSet();
-  if(wallTex) redraw(wallTex,(g,W,H)=>paintWall(g,W,H,w));
-  if(shopUpper) shopUpper.color=LIN(parseInt(w.up.slice(1),16));
-  if(shopLower) shopLower.color=LIN(parseInt(w.low.slice(1),16));
-  if(floorTexRef) redraw(floorTexRef,(g,W,H)=>paintFloor(g,W,H,f));
-  if(typeof applyReliefs==='function') applyReliefs();
-}
+/* Streichen und verlegen: die Maler stehen in 05o-oberflaechen */
+function repaint(){ oberflaechenAnwenden(); }
 /* =========================================================
    Aussenhaut der Gebaeude.
 
@@ -3398,11 +3477,12 @@ function deckenDiffuse(){ if(_deckenT) return _deckenT; _deckenT=tex(512,256,(g,
     for(let x=0;x<W;x+=7){ g.fillStyle='rgba(228,232,240,.22)'; g.fillRect(x,0,3,Hh); }
   }); return _deckenT; }
 function buildWorld(){
-  const w0=WALLS[0], f0=FLOORS[0];
-  wallTex=tex(256,512,(g,W,H)=>paintWall(g,W,H,w0)); wallTex.wrapS=THREE.RepeatWrapping; wallTex.wrapT=THREE.ClampToEdgeWrapping; wallTex.repeat.set(1/2.6,1/WH);
+  /* Wand und Boden: Leinwand im echten Massstab (2,6 × 3,6 m und
+     4 × 4 m), bemalt wird sie in repaint - nach dem Laden, mit dem
+     Belag aus dem Spielstand */
+  const [wpx,wpy]=wandPx(), bpx=bodenPx(), leer=(g,W,H)=>{ g.fillStyle='#d8d2c6'; g.fillRect(0,0,W,H); };
+  wallTex=tex(wpx,wpy,leer); wallTex.wrapS=THREE.RepeatWrapping; wallTex.wrapT=THREE.ClampToEdgeWrapping; wallTex.repeat.set(1/WAND_B,1/WAND_H);
   shopWall=new THREE.MeshStandardMaterial({map:wallTex,roughness:0.92});
-  shopUpper=std(parseInt(w0.up.slice(1),16),{roughness:0.92});
-  shopLower=std(parseInt(w0.low.slice(1),16),{roughness:0.9});
   // Boden draußen
   const asph=tex(256,256,(g,W,H)=>{
     g.fillStyle='#3a3d45'; g.fillRect(0,0,W,H);
@@ -3436,9 +3516,9 @@ function buildWorld(){
   bbox(48,0.14,0.2,std(0x9a9ea6),-2,0.07,11,null,false);
   for(let i=-8;i<=8;i++) flat(2,0.15,std(0xe8e2c8),i*4,0.013,15.5);
   // Innenböden
-  floorTexRef=tex(HIQ?640:256,HIQ?640:256,(g,W,H)=>paintFloor(g,W,H,f0)); floorTexRef.wrapS=floorTexRef.wrapT=THREE.RepeatWrapping; floorTexRef.repeat.set(1,1); floorTexRef.anisotropy=8;
+  floorTexRef=tex(bpx,bpx,leer); floorTexRef.wrapS=floorTexRef.wrapT=THREE.RepeatWrapping; floorTexRef.repeat.set(1,1); floorTexRef.anisotropy=8;
   floorMat=new THREE.MeshStandardMaterial({map:floorTexRef,roughness:0.5});
-  bodenUV(flat(16,12,floorMat,0,0.015,0),2);
+  bodenUV(flat(16,12,floorMat,0,0.015,0),BODEN_KACHEL);
   /* Ein Boden fuer das ganze Basislager, in einem Stueck und in
      einem Massstab. Vorher lagen hier zwei Platten mit
      unterschiedlicher Kachelgroesse uebereinander - an ihrer Kante
@@ -3506,7 +3586,8 @@ function buildWorld(){
      sind gleich hoch und bilden einen Raum. Frueher war der Anbau
      eine zugemauerte Ausbaustufe mit niedrigerer Decke, und
      dazwischen blieb ein Sturz quer im Lager stehen. */
-  const base=std(0x1a2038);
+  /* Sockelleiste im Ton der Wand (sockelM, 05h) */
+  const base=sockelM();
   /* Sockelleisten enden an den Tueroeffnungen, statt durchzulaufen */
   for(const [a,b] of [[-7.9,4.4],[6.1,7.9]]) bbox(b-a,0.1,0.02,base,(a+b)/2,0.05,-5.89,null,false);
   for(const [a,b] of [[-7.9,-1.2],[1.2,7.9]]) bbox(b-a,0.1,0.02,base,(a+b)/2,0.05,5.89,null,false);
@@ -3598,7 +3679,7 @@ function buildWorld(){
     const glasM=new THREE.MeshStandardMaterial({color:LIN(0xdfe8f4),transparent:true,opacity:0.14,roughness:0.06,metalness:0.3});
     const gl=new THREE.Mesh(new THREE.CircleGeometry(0.225,HIQ?32:16),glasM); gl.position.z=0.062; zg.add(gl);
   }
-  buildCheckout(); buildDesk(); buildDetails();
+  buildCheckout(); buildDesk();
   // Türschild
   doorSignTex=tex(360,150,()=>{});
   doorSign=plane(0.62,0.26,new THREE.MeshBasicMaterial({map:doorSignTex,side:THREE.DoubleSide,toneMapped:false}),1.6,1.55,5.875,Math.PI);
@@ -6199,7 +6280,7 @@ function halle(id,r,opt){
   if(!opt.keinBoden){
     const bo=new THREE.Mesh(new THREE.PlaneGeometry(r.x1-r.x0,r.z1-r.z0),bodenMat);
     bo.rotation.x=-Math.PI/2; bo.position.set((r.x0+r.x1)/2,0.015,(r.z0+r.z1)/2); scene.add(bo);
-    if(!lager) bodenUV(bo,2);
+    if(!lager) bodenUV(bo,BODEN_KACHEL);
     zAdd(id,bo);
   }
   /* Decke und Dach */
@@ -6224,7 +6305,7 @@ function halle(id,r,opt){
   if(au.s) col(r.x0-LW,r.x1+LW,r.z0-LW,r.z0);
   /* Sockelleisten nur im Laden */
   if(!lager){
-    const base=std(0x1a2038);
+    const base=sockelM();
     if(au.n) zAdd(id,bbox(r.x1-r.x0,0.1,0.02,base,(r.x0+r.x1)/2,0.05,r.z1-0.01,null,false));
     if(au.s) zAdd(id,bbox(r.x1-r.x0,0.1,0.02,base,(r.x0+r.x1)/2,0.05,r.z0+0.01,null,false));
     if(au.w) zAdd(id,bbox(0.02,0.1,r.z1-r.z0,base,r.x0+0.01,0.05,(r.z0+r.z1)/2,null,false));
@@ -6621,8 +6702,8 @@ function fugenfueller(){
      Rueckgebaeude haengt darunter. Die zweite Platte liegt einen
      Millimeter tiefer, damit sich die beiden im Ueberlappungs-
      streifen nicht gegenseitig zerflimmern. */
-  fugenPlatte({x0:-7.9,x1:37.9,z0:-5.9,z1:5.9},floorMat,0.012,false,2);
-  fugenPlatte({x0: 8.0,x1:37.9,z0:-21.9,z1:-5.9},floorMat,0.011,false,2);
+  fugenPlatte({x0:-7.9,x1:37.9,z0:-5.9,z1:5.9},floorMat,0.012,false,BODEN_KACHEL);
+  fugenPlatte({x0: 8.0,x1:37.9,z0:-21.9,z1:-5.9},floorMat,0.011,false,BODEN_KACHEL);
   fugenPlatte({x0:-7.9,x1:37.9,z0:-5.9,z1:5.9},ceil,WH-0.006,true);
   fugenPlatte({x0: 8.0,x1:37.9,z0:-21.9,z1:-5.9},ceil,WH-0.0065,true);
   /* Lager: Basislager mit Anbau Nord, dazu die Halle Sued */
@@ -7483,36 +7564,7 @@ function normalMapFrom(w,h,draw,strength){
   g.putImageData(out,0,0);
   const t=new THREE.CanvasTexture(c); t.anisotropy=4; return t;
 }
-function noiseHeight(scale,lines){
-  return (g,W,H)=>{
-    g.fillStyle='#808080'; g.fillRect(0,0,W,H);
-    for(let i=0;i<W*H*0.5;i++){ const v=128+(Math.random()-0.5)*scale;
-      g.fillStyle=`rgb(${v|0},${v|0},${v|0})`; g.fillRect(Math.random()*W,Math.random()*H,2,2); }
-    for(let i=0;i<24;i++){ g.strokeStyle=`rgba(${Math.random()<0.5?90:180},${Math.random()<0.5?90:180},${Math.random()<0.5?90:180},.5)`;
-      g.lineWidth=rand(1,3); let x=Math.random()*W, y=Math.random()*H;
-      g.beginPath(); g.moveTo(x,y);
-      for(let k=0;k<5;k++){ x+=rand(-40,40); y+=rand(-40,40); g.lineTo(x,y); } g.stroke(); }
-    if(lines){ for(let y=0;y<H;y+=H/lines){ g.fillStyle='#5a5a5a'; g.fillRect(0,y,W,2); g.fillStyle='#a0a0a0'; g.fillRect(0,y+2,W,1); } }
-  };
-}
-let floorNormal=null, wallNormal=null;
-function applyReliefs(){
-  if(S&&floorMat){
-    floorNormal=normalMapFrom(256,256,(g,W,H)=>paintFloor(g,W,H,floorSet()),1.6);
-    if(floorNormal){ floorNormal.wrapS=floorNormal.wrapT=THREE.RepeatWrapping;
-      floorNormal.repeat.copy(floorTexRef.repeat);
-      floorMat.normalMap=floorNormal; floorMat.normalScale=new THREE.Vector2(0.55,0.55); floorMat.needsUpdate=true; }
-  }
-  if(shopWall&&!wallNormal){
-    wallNormal=normalMapFrom(256,256,noiseHeight(26),1.1);
-    if(wallNormal){ wallNormal.wrapS=wallNormal.wrapT=THREE.RepeatWrapping; wallNormal.repeat.set(1.25,1.25);
-      shopWall.normalMap=wallNormal; shopWall.normalScale=new THREE.Vector2(0.4,0.4); shopWall.needsUpdate=true;
-      if(shopUpper){ shopUpper.normalMap=wallNormal; shopUpper.normalScale=new THREE.Vector2(0.35,0.35); shopUpper.needsUpdate=true; }
-      if(shopLower){ shopLower.normalMap=wallNormal; shopLower.normalScale=new THREE.Vector2(0.35,0.35); shopLower.needsUpdate=true; } }
-  }
-}
 
-function buildDetails(){ applyReliefs(); }
 /* Jedes Stadtmesh wird markiert: so laesst sich im Test pruefen, dass
    nichts davon in den begehbaren Bereich ragt. */
 function stadtAdd(m){ m.userData.stadt=true; scene.add(m); return m; }
@@ -8810,6 +8862,525 @@ function updatePark(dt){
     p.g.position.set(x,0.03,z); p.g.rotation.y=Math.atan2(vx,vz);
     if(dt&&typeof animPerson==='function') animPerson(p.g,true,dt,1.0); }
 }
+/* =========================================================
+   Wände und Böden (Tom, 26.09.: "das sieht teilweise echt kacke aus
+   ... ich habe gar keinen Anreiz, das zu verbessern ... geile
+   Parkettböden, richtig gute Tapeten ... guck dir an, wie hochmoderne
+   Kaufhäuser aussehen").
+
+   Vorbilder (recherchiert und gegengeprüft, 26.09.): Breuninger
+   Hamburg und Apple Battersea (Terrazzo), KaDeWe (Nussbaumfurnier,
+   Marmorbänder, rosa Teppich), Hackett London und Boygar's Tiflis
+   (Versailles-Parkett), Printemps New York (Moiré-Tapete), Harrods
+   (Samtwände, Marmor), Jacquemus London (Kalkputz, Travertin), Globus
+   Basel (Beton), Kith Paris (Fischgrät, Nussbaum, Venezianer Putz).
+
+   Was vorher billig wirkte (Analyse vom 26.09.):
+   - zehn der vierzehn Wandfarben waren fast dasselbe Weiß, immer mit
+     demselben dunklen 1,1-m-Band und einer Zierleiste
+   - alle Muster um ein Drittel gestaucht (Leinwand nicht im Wandmass)
+   - jeder Boden, auch Holz und Teppich, bekam ein 1-m-Kachelraster
+   - Holz ohne Maserung, Dielen in strengem Streifenwechsel
+   - alle Böden gleich matt, nichts spiegelt
+   - die Reliefkarte passte nicht zum Bild (zweiter Zufallswurf)
+
+   Jetzt:
+   - Leinwand im echten Massstab: Wand 2,6 × 3,6 m, Boden 4 × 4 m, jede
+     Kachel nahtlos, die Masse der Muster nach echten Vorlagen
+     (Fischgrät 67 × 471 mm, Rippenpaneel 27/13 mm, Metro 15 × 7,5 cm,
+     Zellige 10 × 10 cm, Ziegel 24 × 7 cm, Tapetenrapport 65 cm)
+   - jedes Brett, jede Fliese, jeder Stein hat seinen eigenen Ton,
+     Holz seine eigene Maserung
+   - Relief aus demselben Zufall wie das Bild: Fugen sind Fugen
+   - Glanz je Material: Marmor und geschliffener Beton spiegeln,
+     Teppich und Putz sind matt
+   - die Sockelleiste nimmt den Ton der Wand auf
+   ========================================================= */
+
+/* ---------- Werkzeug ---------- */
+/* Zufall mit Saat: Bild und Relief muessen dieselben Bretter sehen */
+function saat(s){ let a=s>>>0||1; return ()=>{ a|=0; a=a+0x6D2B79F5|0; let t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
+const hx=s=>{ const n=parseInt(s.slice(1),16); return [n>>16&255,n>>8&255,n&255]; };
+const rgbS=(c,a)=>a===undefined?`rgb(${c[0]|0},${c[1]|0},${c[2]|0})`:`rgba(${c[0]|0},${c[1]|0},${c[2]|0},${a})`;
+/* Farbe heller/dunkler (f>1 heller) und leicht verschoben */
+function ton(c,f,dr,dg,db){ return [clamp(c[0]*f+(dr||0),0,255),clamp(c[1]*f+(dg||0),0,255),clamp(c[2]*f+(db||0),0,255)]; }
+function mischen(a,b,t){ return [a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t,a[2]+(b[2]-a[2])*t]; }
+/* Zeichnen mit Umlauf: was ueber den Rand ragt, kommt auf der anderen
+   Seite wieder herein - so wird jede Kachel nahtlos */
+function umlauf(W,H,x,y,r,fn){
+  const xs=[0], ys=[0];
+  if(x-r<0) xs.push(W); if(x+r>W) xs.push(-W);
+  if(y-r<0) ys.push(H); if(y+r>H) ys.push(-H);
+  for(const dx of xs) for(const dy of ys) fn(x+dx,y+dy);
+}
+/* Maler-Kontext: im Farbmodus die Farbe, im Hoehenmodus ein Grauwert.
+   Beide Durchgaenge laufen mit derselben Saat, deshalb liegen die
+   Fugen im Relief genau auf den Fugen im Bild. */
+function malKontext(g,W,H,hoehe,seed,pxm){
+  /* R: Anordnung (Bretter, Fliesen, Toene) - in beiden Durchgaengen
+     gleich viele Zuege. Z: Zierwerk (Maserung, Koernung, Wolken) - darf
+     im Farb- und im Reliefdurchgang verschieden oft gezogen werden. */
+  const R=saat(seed), Z=saat(seed^0x5bd1e995);
+  return {g,W,H,hoehe,R,Z,pxm,m2:(W/pxm)*(H/pxm),
+    r:(a,b)=>a+(b-a)*R(), z:(a,b)=>a+(b-a)*Z(),
+    fill(c,hv,a){ g.fillStyle=hoehe?rgbS([hv,hv,hv],a):rgbS(c,a); },
+    stroke(c,hv,a){ g.strokeStyle=hoehe?rgbS([hv,hv,hv],a):rgbS(c,a); }};
+}
+/* Ortsfester Zufall: ein Brett oder eine Fliese, die ueber die
+   Kachelkante ragt, wird zweimal gezeichnet (links und rechts) - beide
+   Male muss derselbe Ton, dieselbe Maserung herauskommen. Vorher zog
+   jede Kopie neu, und an der Kante sprang die Farbe mitten im Brett. */
+function mitSaat(M,seed,fn){
+  const alt=[M.R,M.Z,M.r,M.z], R=saat(seed), Z=saat(seed^0x2c1b3c6d);
+  M.R=R; M.Z=Z; M.r=(a,b)=>a+(b-a)*R(); M.z=(a,b)=>a+(b-a)*Z();
+  try{ fn(); } finally { [M.R,M.Z,M.r,M.z]=alt; }
+}
+/* Saat aus der Lage auf der Kachel (Weltlage modulo Kachel) */
+function ortSaat(M,x,y,extra){
+  const X=((Math.round(x*2)%Math.round(M.W*2))+Math.round(M.W*2))%Math.round(M.W*2), Y=((Math.round(y*2)%Math.round(M.H*2))+Math.round(M.H*2))%Math.round(M.H*2);
+  return (Math.imul(X+1,73856093)^Math.imul(Y+1,19349663)^Math.imul((extra|0)+1,83492791))>>>0;
+}
+/* Ausschnitt (eine Fliese, ein Brett) mit eigener Flaeche */
+function ausschnitt(M,A,B){ return Object.assign({},M,{W:A,H:B,m2:A*B/(M.pxm*M.pxm)}); }
+/* Weiche Wolken in einem Ton: Grundlage fuer Putz, Beton, Stein */
+function wolken(M,c,n,rmin,rmax,amin,amax,hv){
+  const {g,W,H}=M;
+  for(let i=0;i<n;i++){ const x=M.Z()*W, y=M.Z()*H, r=M.z(rmin,rmax), a=M.z(amin,amax), hell=M.Z()<0.5;
+    const col=hell?ton(c,1.12):ton(c,0.86), h=hv===undefined?128:(hell?hv+8:hv-8);
+    umlauf(W,H,x,y,r,(xx,yy)=>{ const gr=g.createRadialGradient(xx,yy,0,xx,yy,r);
+      gr.addColorStop(0,M.hoehe?rgbS([h,h,h],a):rgbS(col,a)); gr.addColorStop(1,M.hoehe?rgbS([h,h,h],0):rgbS(col,0));
+      g.fillStyle=gr; g.fillRect(xx-r,yy-r,r*2,r*2); }); }
+}
+/* Feine Koernung: Staub, Pigment, Zuschlag - dichte je Quadratmeter,
+   Korngroesse in Pixeln bei 512 px/m */
+function koernung(M,cols,dichte,s0,s1,alpha,hv){
+  const {g,W,H}=M, n=Math.round(dichte*M.m2), f=M.pxm/512;
+  for(let i=0;i<n;i++){ const c=cols[(M.Z()*cols.length)|0], s=Math.max(0.5,M.z(s0,s1)*f);
+    M.fill(c,hv===undefined?128:hv+(M.Z()-0.5)*20,alpha); g.fillRect(M.Z()*W,M.Z()*H,s,s); }
+}
+
+/* ---------- Holz ---------- */
+/* Ein Brett im eigenen Koordinatensystem (x laengs, y quer), px.
+   Eigener Ton, eigene Maserung, gelegentlich ein Ast, dunkle Fuge. */
+function brett(M,l,w,base,o){
+  const T=M.g.getTransform?M.g.getTransform():null;
+  if(T&&!M._imBrett){ const cx=T.a*l/2+T.c*w/2+T.e, cy=T.b*l/2+T.d*w/2+T.f;
+    M._imBrett=true; try{ mitSaat(M,ortSaat(M,cx,cy,Math.round(l)*7+Math.round(w)),()=>brett(M,l,w,base,o)); } finally { M._imBrett=false; } return; }
+  const {g,R}=M; o=o||{};
+  const f=0.84+R()*0.3, c=ton(base,f,M.r(-6,6),M.r(-4,4),M.r(-5,5));
+  M.fill(c,120+R()*18); g.fillRect(0,0,l,w);
+  if(!M.hoehe){
+    /* Maserung: feine Linien laengs, leicht gewellt */
+    const Z=M.Z, n=Math.max(3,Math.round(w/(o.fein||2.2))), ph=Z()*6, amp=w*M.z(0.02,0.08);
+    for(let k=0;k<n;k++){ const y0=(k+Z()*0.8)/n*w, d=Z()<0.5;
+      g.strokeStyle=rgbS(d?ton(c,0.7):ton(c,1.15),M.z(0.05,0.2)); g.lineWidth=M.z(0.5,1.4);
+      g.beginPath(); for(let s=0;s<=10;s++){ const x=s/10*l, y=y0+Math.sin(ph+s*0.9+k)*amp+Math.sin(s*2.7+k*1.3)*amp*0.4;
+        s?g.lineTo(x,y):g.moveTo(x,y); } g.stroke(); }
+    /* Fladerung: ein paar gestreckte Boegen */
+    if(o.fladern!==false&&Z()<0.6){ const cx=M.z(0.2,0.8)*l, cy=w*M.z(0.3,0.7);
+      for(let k=1;k<5;k++){ g.strokeStyle=rgbS(ton(c,0.72),0.12); g.lineWidth=0.8;
+        g.beginPath(); g.ellipse(cx,cy,l*0.08*k,w*0.12*k,0,0,Math.PI*2); g.stroke(); } }
+    /* Ast */
+    if(Z()<(o.aeste||0.12)){ const ax=M.z(0.1,0.9)*l, ay=M.z(0.3,0.7)*w, ar=Math.min(w*0.22,M.z(2,5));
+      g.fillStyle=rgbS(ton(c,0.45),0.8); g.beginPath(); g.ellipse(ax,ay,ar*1.4,ar,0,0,Math.PI*2); g.fill();
+      g.strokeStyle=rgbS(ton(c,0.6),0.35); g.lineWidth=0.8; for(let k=1;k<4;k++){ g.beginPath(); g.ellipse(ax,ay,ar*1.4+k*2.5,ar+k*1.6,0,0,Math.PI*2); g.stroke(); } }
+    /* Licht und Schatten an den Kanten: Mikrofase */
+    g.fillStyle=rgbS(ton(c,1.2),0.25); g.fillRect(0,0,l,Math.max(0.6,w*0.03));
+    g.fillStyle=rgbS(ton(c,0.5),0.35); g.fillRect(0,w-Math.max(0.6,w*0.03),l,Math.max(0.6,w*0.03));
+  }
+  /* Fuge */
+  M.stroke(ton(base,0.32),40,M.hoehe?1:0.55); g.lineWidth=Math.max(0.8,(o.fuge||1)); g.strokeRect(0,0,l,w);
+}
+/* Dielenboden: Reihen quer, Laengen gemischt, nahtlos */
+function dielen(M,pxm,breite,lmin,lmax,base,o){
+  const {g,W,H,R}=M, pw=breite*pxm, reihen=Math.round(H/pw), ph=H/reihen;
+  for(let r=0;r<reihen;r++){
+    let x=R()*W; const start=x; let rest=W;
+    while(rest>0.01){ let l=M.r(lmin,lmax)*pxm; if(rest-l<lmin*pxm*0.6) l=rest; rest-=l;
+      const x0=x; umlauf(W,H,x0+l/2,r*ph+ph/2,l/2+2,(xx,yy)=>{ g.save(); g.translate(xx-l/2,yy-ph/2); brett(M,l,ph,base,o); g.restore(); });
+      x+=l; if(x>start+W) break; }
+  }
+}
+/* Fischgrät, 45° zu den Waenden: Bloecke k:1, Rapport 2L auf der
+   Bretteinheit, auf der Kachel 2·L·√2. L=0,4714 m ergibt genau drei
+   Rapporte auf vier Metern - nahtlos. */
+function fischgraet(M,pxm,L,k,base,o){
+  const {g,W,H}=M, Lp=L*pxm, Wp=Lp/k, D=Math.hypot(W,H)/2+Lp*2;
+  g.save(); g.translate(W/2,H/2); g.rotate(Math.PI/4);
+  /* Bandversatz: Nachrechnung vom 26.09. - fuer jedes ganzzahlige k:1
+     schliessen die Baender mit (-2L, 0) lueckenlos an */
+  const t2=[-2*Lp,0];
+  const n=Math.ceil(D/Wp)+2, m=Math.ceil(D/Math.abs(t2[0]))+3;
+  for(let b=-m;b<=m;b++) for(let i=-n;i<=n;i++){
+    const x=i*Wp+b*t2[0], y=i*Wp+b*t2[1];
+    if(Math.abs(x)>D+Lp||Math.abs(y)>D+Lp) continue;
+    /* waagrechter und senkrechter Block; die Nachbarn leicht verschieden
+       hell, so wie echtes Fischgrät das Licht je Richtung anders nimmt */
+    g.save(); g.translate(x,y); brett(M,Lp,Wp,ton(base,1.04),o); g.restore();
+    g.save(); g.translate(x+Wp,y+Wp); g.rotate(Math.PI/2); brett(M,Lp,Wp,ton(base,0.95),o); g.restore();
+  }
+  g.restore();
+}
+/* Chevron: Spalten mit V-Stoss in der Mitte, 45° geschnitten */
+function chevron(M,pxm,halb,pitch,base,o){
+  const {g,W,H,R}=M, hc=halb*pxm, p=pitch*pxm, sp=Math.round(W/(2*hc)), zeilen=Math.round(H/p);
+  for(let s=0;s<sp;s++) for(let z=-2;z<zeilen+2;z++) for(const seite of [0,1]){
+    const x0=s*2*hc+seite*hc, y=z*p;
+    const zr=((z%zeilen)+zeilen)%zeilen, q=saat(ortSaat(M,s*97,zr*31,seite+3)), c=ton(base,0.84+q()*0.3,q()*10-5,q()*8-4,q()*10-5), hv0=120+q()*16;
+    const pts=seite?[[x0,y],[x0+hc,y+hc],[x0+hc,y+hc+p],[x0,y+p]]:[[x0,y+hc],[x0+hc,y],[x0+hc,y+p],[x0,y+hc+p]];
+    for(const dy of [0,H,-H]){ g.beginPath(); pts.forEach(([x,yy],i)=>i?g.lineTo(x,yy+dy):g.moveTo(x,yy+dy)); g.closePath();
+      M.fill(c,hv0); g.fill();
+      if(!M.hoehe){ g.save(); g.clip(); g.strokeStyle=rgbS(ton(c,0.72),0.14); g.lineWidth=0.9;
+        for(let k=0;k<7;k++){ const off=(k+M.Z())/7*p; g.beginPath(); g.moveTo(x0,(seite?y:y+hc)+off+dy); g.lineTo(x0+hc,(seite?y+hc:y)+off+dy+M.z(-1,1)); g.stroke(); }
+        g.restore(); }
+      M.stroke(ton(base,0.3),40,M.hoehe?1:0.5); g.lineWidth=1; g.stroke(); }
+  }
+}
+/* Versailles: Tafeln mit Rahmen und diagonalem Flechtwerk */
+function versailles(M,pxm,s,base,o){
+  const {g,W,H}=M, S=s*pxm, n=Math.round(W/S), b=S*0.09;
+  for(let i=0;i<n;i++) for(let j=0;j<n;j++){ const x=i*S, y=j*S;
+    g.save(); g.translate(x,y);
+    /* Innenfeld: kleine Quadrate im 45°-Gitter */
+    g.save(); g.beginPath(); g.rect(b,b,S-2*b,S-2*b); g.clip();
+    g.translate(S/2,S/2); g.rotate(Math.PI/4); const q=(S-2*b)/4;
+    for(let a=-4;a<4;a++) for(let c=-4;c<4;c++){ g.save(); g.translate(a*q,c*q); if((a+c)&1){ g.rotate(Math.PI/2); g.translate(0,-q); } brett(M,q,q,ton(base,0.97),{fein:1.6,aeste:0,fladern:false}); g.restore(); }
+    /* Flechtbaender */
+    const bb=q*0.18;
+    for(let a=-4;a<=4;a++){ g.save(); g.translate(-3*q*1.5,a*q-bb/2); brett(M,q*9,bb,ton(base,1.08),{fein:1.4,aeste:0,fladern:false}); g.restore();
+      g.save(); g.translate(a*q-bb/2,3*q*1.5); g.rotate(-Math.PI/2); brett(M,q*9,bb,ton(base,1.08),{fein:1.4,aeste:0,fladern:false}); g.restore(); }
+    g.restore();
+    /* Rahmen: vier Friese */
+    brett(M,S,b,ton(base,0.92),o); g.save(); g.translate(0,S-b); brett(M,S,b,ton(base,0.92),o); g.restore();
+    g.save(); g.translate(b,b); g.rotate(Math.PI/2); brett(M,S-2*b,b,ton(base,0.9),o); g.restore();
+    g.save(); g.translate(S,b); g.rotate(Math.PI/2); brett(M,S-2*b,b,ton(base,0.9),o); g.restore();
+    g.restore(); }
+}
+
+/* ---------- Stein ---------- */
+/* Adern: lange, ruhig geschwungene Linien mit weichem Hof (Marmor).
+   ri: Hauptrichtung (Carrara laeuft fast parallel), sonst frei.
+   Vorher knickten sie bei jedem Schritt um bis zu 30 Grad und sahen
+   aus wie Haare. */
+function adern(M,c,n,breite,alpha,laenge,ri,zitter){
+  /* breite in Pixeln bei 256 px/m - so bleibt die Ader in jeder
+     Aufloesung gleich breit (vorher bei 2048 px nur ein Haar) */
+  const {g,W,H,R}=M, fk=M.pxm/256;
+  for(let i=0;i<n;i++){ let x=R()*W, y=R()*H, a=ri===undefined?R()*Math.PI*2:ri+M.r(-0.3,0.3); const w0=M.r(0.45,1)*breite*fk, seg=Math.round(M.r(12,18));
+    const pts=[[x,y]]; const zt=zitter||0.32; for(let s=0;s<seg;s++){ a+=M.r(-zt,zt); const st=M.r(0.6,1)*laenge/seg; x+=Math.cos(a)*st; y+=Math.sin(a)*st; pts.push([x,y]); }
+    /* ein Nebenarm, der sich sanft abspaltet */
+    let arm=null; if(R()<0.45){ const k0=1+((R()*(pts.length-2))|0); let bx=pts[k0][0], by=pts[k0][1], ba=a+(R()<0.5?-1:1)*M.r(0.35,0.8); arm=[[bx,by]];
+      for(let s=0;s<6;s++){ ba+=M.r(-0.15,0.15); bx+=Math.cos(ba)*laenge/16; by+=Math.sin(ba)*laenge/16; arm.push([bx,by]); } }
+    const zug=(P,dx,dy)=>{ g.beginPath(); g.moveTo(P[0][0]+dx,P[0][1]+dy);
+      for(let k=1;k<P.length-1;k++){ const mx=(P[k][0]+P[k+1][0])/2, my=(P[k][1]+P[k+1][1])/2; g.quadraticCurveTo(P[k][0]+dx,P[k][1]+dy,mx+dx,my+dy); }
+      g.lineTo(P[P.length-1][0]+dx,P[P.length-1][1]+dy); };
+    /* nur die Kopien zeichnen, die die Kachel beruehren */
+    let x0=1e9,x1=-1e9,y0=1e9,y1=-1e9; for(const [px,py] of arm?pts.concat(arm):pts){ x0=Math.min(x0,px); x1=Math.max(x1,px); y0=Math.min(y0,py); y1=Math.max(y1,py); }
+    const rr=w0*3;
+    for(const [dx,dy] of [[0,0],[W,0],[-W,0],[0,H],[0,-H],[W,H],[-W,-H],[W,-H],[-W,H]]){
+      if(x1+dx<-rr||x0+dx>W+rr||y1+dy<-rr||y0+dy>H+rr) continue;
+      g.lineCap='round'; g.lineJoin='round';
+      /* weicher Hof aus drei breiten, blassen Strichen, dann der Kern */
+      for(const [bw,al] of [[6,0.16],[3.6,0.24],[2,0.34]]){ M.stroke(c,114,alpha*al); g.lineWidth=w0*bw; zug(pts,dx,dy); g.stroke(); if(arm){ g.lineWidth=w0*bw*0.6; zug(arm,dx,dy); g.stroke(); } }
+      M.stroke(c,118,alpha*0.8); g.lineWidth=w0*0.55; zug(pts,dx,dy); g.stroke();
+      if(arm){ g.lineWidth=w0*0.4; zug(arm,dx,dy); g.stroke(); } } }
+}
+/* Platten mit Fuge in einem Raster (Fliesen, Stein) */
+function platten(M,pxm,pw,ph,versatz,fuge,fugenFarbe,fn){
+  const {g,W,H}=M, a=pw*pxm, b=ph*pxm, nx=Math.round(W/a), ny=Math.round(H/b), A=W/nx, B=H/ny, fu=Math.max(1,fuge*pxm);
+  for(let j=0;j<ny;j++){ const off=((j*versatz)%1)*A;
+    for(let i=-1;i<nx;i++){ const x=i*A+off;
+      g.save(); g.beginPath(); g.rect(x,j*B,A,B); g.rect(x+W,j*B,A,B); g.clip();
+      const sd=ortSaat(M,x+A/2,j*B+B/2,7);
+      for(const dx of [0,W]){ g.save(); g.translate(x+dx,j*B); mitSaat(M,sd,()=>fn(A,B,i,j)); g.restore(); }
+      g.restore();
+      M.fill(fugenFarbe,70); for(const dx of [0,W]){ g.fillRect(x+dx,j*B,fu,B); g.fillRect(x+dx,j*B,A,fu); } } }
+}
+
+/* ---------- Die Böden ---------- */
+const BODEN_MALER={
+  estrich(M,f){ const c=hx(f.a); M.fill(c,128); M.g.fillRect(0,0,M.W,M.H);
+    wolken(M,c,90,M.W*0.05,M.W*0.2,0.05,0.14); koernung(M,[ton(c,0.8),ton(c,1.15)],1900,1,2,0.12);
+    /* Kellenbogen */
+    if(!M.hoehe) for(let i=0;i<Math.round(4*M.m2);i++){ const x=M.Z()*M.W, y=M.Z()*M.H, r=M.z(0.08,0.3)*M.pxm; M.g.strokeStyle=rgbS(ton(c,M.Z()<0.5?0.9:1.1),0.06); M.g.lineWidth=M.z(0.012,0.035)*M.pxm;
+      M.g.beginPath(); M.g.arc(x,y,r,M.z(0,6),M.z(0,6)+M.z(0.6,1.6)); M.g.stroke(); } },
+  beton(M,f,pxm){ const c=hx(f.a); M.fill(c,128); M.g.fillRect(0,0,M.W,M.H);
+    wolken(M,c,120,M.W*0.03,M.W*0.16,0.06,0.16);
+    /* Salz und Pfeffer: angeschliffener feiner Zuschlag */
+    koernung(M,[[235,232,226],[60,58,56],[150,140,128],[110,104,98]],3800,0.8,2.6,0.55,134);
+    /* Schnittfugen alle zwei Meter */
+    M.fill(ton(c,0.55),60,0.6); for(let k=0;k<M.W;k+=2*pxm){ M.g.fillRect(k,0,1.2,M.H); M.g.fillRect(0,k,M.W,1.2); } },
+  mikrozement(M,f){ const c=hx(f.a); M.fill(c,128); M.g.fillRect(0,0,M.W,M.H);
+    wolken(M,c,160,M.W*0.02,M.W*0.12,0.05,0.13);
+    if(!M.hoehe) for(let i=0;i<Math.round(14*M.m2);i++){ const x=M.Z()*M.W, y=M.Z()*M.H, r=M.z(0.06,0.24)*M.pxm; M.g.strokeStyle=rgbS(ton(c,M.Z()<0.5?0.93:1.07),0.08); M.g.lineWidth=M.z(0.015,0.05)*M.pxm;
+      M.g.beginPath(); M.g.arc(x,y,r,M.z(0,6),M.z(0,6)+M.z(0.4,1.2)); M.g.stroke(); } },
+  dielen(M,f,pxm){ dielen(M,pxm,f.breite||0.2,f.lmin||0.9,f.lmax||2.1,hx(f.a),{aeste:f.aeste,fein:f.fein}); },
+  fischgraet(M,f,pxm){ const c=hx(f.a); M.fill(ton(c,0.4),40); M.g.fillRect(0,0,M.W,M.H); fischgraet(M,pxm,0.4714,7,c,{aeste:f.aeste||0.06}); },
+  chevron(M,f,pxm){ const c=hx(f.a); M.fill(ton(c,0.4),40); M.g.fillRect(0,0,M.W,M.H); chevron(M,pxm,0.4,0.125,c,{}); },
+  versailles(M,f,pxm){ const c=hx(f.a); M.fill(ton(c,0.4),40); M.g.fillRect(0,0,M.W,M.H); versailles(M,pxm,0.8,c,{aeste:0.02}); },
+  fliese(M,f,pxm){ const c=hx(f.a);
+    platten(M,pxm,4/3,2/3,1/3,0.003,ton(c,0.82),(A,B)=>{ const k=ton(c,M.r(0.95,1.05)); M.fill(k,128); M.g.fillRect(0,0,A,B);
+      const sub=ausschnitt(M,A,B); wolken(sub,k,10,A*0.08,A*0.4,0.04,0.1); koernung(sub,[ton(k,0.9),ton(k,1.08)],1000,1,2,0.2); }); },
+  schach(M,f,pxm){ const hell=hx(f.a), dunkel=hx(f.b);
+    platten(M,pxm,0.5,0.5,0,0.002,[200,198,194],(A,B,i,j)=>{ const d=(i+j)&1, k=d?dunkel:hell; M.fill(k,128); M.g.fillRect(0,0,A,B);
+      const sub=ausschnitt(M,A,B); wolken(sub,k,6,A*0.1,A*0.5,0.04,0.1);
+      adern(sub,d?[200,196,190]:[160,160,166],d?2:3,d?1.8:1.6,d?0.3:0.28,A*1.3,M.r(0,Math.PI)); }); },
+  marmor(M,f,pxm){ const c=hx(f.a);
+    platten(M,pxm,1,1,0,0.0015,ton(c,0.9),(A,B)=>{ M.fill(c,128); M.g.fillRect(0,0,A,B);
+      const sub=ausschnitt(M,A,B); wolken(sub,c,14,A*0.08,A*0.4,0.03,0.08);
+      const ri=M.r(-0.5,0.5)+0.6;
+      adern(sub,[146,148,156],5,2.2,0.3,A*1.4,ri); adern(sub,[118,120,128],2,3,0.34,A*1.6,ri); }); },
+  travertin(M,f,pxm){ const c=hx(f.a);
+    platten(M,pxm,1,0.5,1/3,0.002,ton(c,0.88),(A,B)=>{ const k=ton(c,M.r(0.93,1.06),M.r(-6,6),0,M.r(-6,4)); M.fill(k,128); M.g.fillRect(0,0,A,B);
+      /* Schnitt entlang der Ader: feine Baender laengs */
+      for(let y=0;y<B;y+=M.z(0.003,0.01)*M.pxm){ M.fill(ton(k,M.z(0.88,1.1)),128+M.z(-6,6),M.z(0.15,0.4)); M.g.fillRect(0,y,A,Math.max(0.5,M.z(0.0015,0.006)*M.pxm)); }
+      /* Poren */
+      wolken(ausschnitt(M,A,B),k,6,A*0.1,A*0.4,0.05,0.12);
+      for(let p=0;p<Math.round(140*A*B/(M.pxm*M.pxm));p++){ M.fill(ton(k,0.7),92,0.5); M.g.beginPath(); M.g.ellipse(M.R()*A,M.R()*B,Math.max(0.6,M.r(0.002,0.012)*M.pxm),Math.max(0.4,M.r(0.0008,0.0025)*M.pxm),0,0,Math.PI*2); M.g.fill(); } }); },
+  terrazzo(M,f,pxm){ const c=hx(f.a); M.fill(c,128); M.g.fillRect(0,0,M.W,M.H);
+    wolken(M,c,60,M.W*0.02,M.W*0.08,0.03,0.08);
+    const K=(f.koerner||['#f4f1ea','#c9c3b8','#8d8a86','#d9a38f','#b7865a','#2f2f33','#7e8f7a']).map(hx);
+    /* Venezianer Koernung: viele kleine, einige grosse Steine */
+    const gr=f.gross||1;
+    for(let i=0;i<Math.round(1870*M.m2/(gr*gr*0.8));i++){ const g0=M.R()<0.08*gr, s=(g0?M.r(0.012,0.028):M.r(0.003,0.011))*gr*pxm, col=K[(M.R()*K.length)|0];
+      const x=M.R()*M.W, y=M.R()*M.H, n=5+((M.R()*3)|0), rot=M.R()*6, rr=[]; for(let q=0;q<n;q++) rr.push(s*M.r(0.6,1));
+      const tc=ton(col,M.r(0.9,1.08)), th=150+M.r(-10,10);
+      umlauf(M.W,M.H,x,y,s,(xx,yy)=>{ M.g.beginPath(); for(let q=0;q<n;q++){ const a=rot+q/n*Math.PI*2, r=rr[q]; q?M.g.lineTo(xx+Math.cos(a)*r,yy+Math.sin(a)*r):M.g.moveTo(xx+Math.cos(a)*r,yy+Math.sin(a)*r); }
+        M.g.closePath(); M.fill(tc,th); M.g.fill(); }); }
+    /* Messingschienen alle zwei Meter */
+    for(let k=0;k<M.W;k+=2*pxm){ M.fill([196,160,86],160); M.g.fillRect(k,0,2.4,M.H); M.g.fillRect(0,k,M.W,2.4);
+      if(!M.hoehe){ M.g.fillStyle='rgba(255,236,180,.6)'; M.g.fillRect(k,0,0.8,M.H); M.g.fillRect(0,k,M.W,0.8); } } },
+  marmorband(M,f,pxm){ const B=(f.baender||['#ede7dc','#b7a48e','#ede7dc','#3a4a41']).map(hx); let x=0, i=0;
+    /* Baender quer zur Laufrichtung, Breiten 12-40 cm, genau auf 4 m */
+    const roh=[0.4,0.12,0.3,0.12,0.4,0.2,0.3,0.12,0.4,0.12,0.3,0.2,0.4,0.12,0.4,0.18], sum=roh.reduce((a,b)=>a+b,0);
+    /* genau auf die Kachel: vorher 3,4 von 4 m, der Rest zeigte den alten Boden */
+    const breiten=roh.map(b=>b/sum*BODEN_KACHEL);
+    breiten.forEach((b,k)=>{ const w=b*pxm, c=B[k%4]; M.fill(c,128); M.g.fillRect(x,0,w+1,M.H);
+      const sub=ausschnitt(M,w,M.H); M.g.save(); M.g.translate(x,0); M.g.beginPath(); M.g.rect(0,0,w,M.H); M.g.clip();
+      wolken(sub,c,8,w*0.2,w*0.8,0.05,0.12); koernung(sub,[ton(c,0.88),ton(c,1.1)],3000,0.8,2,0.3);
+      adern(sub,ton(c,c[0]>150?0.72:1.5),2,1.2,0.3,M.H*0.4,Math.PI/2+M.r(-0.2,0.2)); M.g.restore();
+      M.fill([60,60,60],70,0.6); M.g.fillRect(x,0,1,M.H); x+=w; }); },
+  kautschuk(M,f){ const c=hx(f.a); M.fill(c,128); M.g.fillRect(0,0,M.W,M.H);
+    wolken(M,c,50,M.W*0.03,M.W*0.12,0.03,0.07);
+    /* Granulat ohne Richtung, wie noraplan stone */
+    koernung(M,[[210,208,202],[150,148,144],[96,98,102],[62,64,68]],5200,1.2,3.4,0.8,132);
+    koernung(M,[[228,226,220]],900,2,4,0.9,140); },
+  velours(M,f){ const c=hx(f.a); M.fill(c,128); M.g.fillRect(0,0,M.W,M.H);
+    /* Flor: weiche, grosse Strichflecken - wo er anders liegt, ist er heller */
+    wolken(M,c,70,M.W*0.04,M.W*0.14,0.08,0.18,128);
+    koernung(M,[ton(c,0.82),ton(c,1.14)],7500,1,1.6,0.3); }
+};
+/* ---------- Die Wände ---------- */
+const WAND_MALER={
+  farbe(M,w){ const c=hx(w.a); M.fill(c,128); M.g.fillRect(0,0,M.W,M.H);
+    /* Rollenstruktur: kaum sichtbar, bricht aber die Plastikflaeche */
+    koernung(M,[ton(c,0.94),ton(c,1.05)],5300,1,2,0.35); wolken(M,c,40,M.W*0.05,M.W*0.2,0.02,0.05); },
+  putz(M,w){ const c=hx(w.a); M.fill(c,128); M.g.fillRect(0,0,M.W,M.H);
+    wolken(M,c,160,M.W*0.02,M.W*0.12,0.06,0.16);
+    if(!M.hoehe) for(let i=0;i<Math.round(28*M.m2);i++){ const x=M.Z()*M.W, y=M.Z()*M.H, r=M.z(0.05,0.23)*M.pxm; M.g.strokeStyle=rgbS(ton(c,M.Z()<0.5?0.94:1.05),0.05); M.g.lineWidth=M.z(0.03,0.08)*M.pxm;
+      M.g.beginPath(); M.g.arc(x,y,r,M.z(0,6),M.z(0,6)+M.z(0.3,0.9)); M.g.stroke(); }
+    koernung(M,[ton(c,0.85),ton(c,1.1)],3200,1,2,0.25); },
+  streifen(M,w,pxm){ const a=hx(w.a), b=hx(w.b), br=2.6/8*pxm; M.fill(a,128); M.g.fillRect(0,0,M.W,M.H);
+    for(let x=0;x<M.W;x+=br){ M.fill(b,132); M.g.fillRect(x,0,br*0.42,M.H); M.fill(ton(b,0.9),126,0.8); M.g.fillRect(x+br*0.5,0,br*0.04,M.H); M.g.fillRect(x+br*0.58,0,br*0.04,M.H); }
+    koernung(M,[ton(a,0.95),ton(a,1.05)],3200,1,2,0.3); },
+  harlekin(M,w,pxm){ const a=hx(w.a), b=hx(w.b), g=hx(w.c||'#c9a24a'), s=2.6/6*pxm, h=s*1.5;
+    M.fill(a,128); M.g.fillRect(0,0,M.W,M.H);
+    for(let y=-h;y<M.H+h;y+=h/2) for(let x=((Math.round(y/(h/2))&1)?s/2:0)-s;x<M.W+s;x+=s){
+      M.g.beginPath(); M.g.moveTo(x,y+h/2); M.g.lineTo(x+s/2,y); M.g.lineTo(x+s,y+h/2); M.g.lineTo(x+s/2,y+h); M.g.closePath();
+      /* floor statt round: bei x/s = k+0,5 kippte die Faerbung je nach Rundungsfehler */
+      if((Math.floor(x/s+0.25)+Math.round(y/(h/2)))&1){ M.fill(b,130); M.g.fill(); } M.stroke(g,140,0.9); M.g.lineWidth=1.4; M.g.stroke(); }
+    koernung(M,[ton(a,0.95),ton(a,1.05)],2700,1,2,0.25); },
+  ziegel(M,w,pxm){ const c=hx(w.a), bw=2.6/11*pxm, bh=0.075*pxm, fu=0.011*pxm;
+    M.fill(hx('#b9b0a2'),70); M.g.fillRect(0,0,M.W,M.H);
+    for(let r=0;r*bh<M.H;r++){ const off=(r&1)*bw/2; for(let x=-bw;x<M.W+bw;x+=bw){ const k=ton(c,M.r(0.72,1.12),M.r(-10,10),M.r(-6,6),0);
+      const xx=((x+off)%M.W+M.W)%M.W;
+      for(const dx of [0,-M.W]){ M.fill(k,140+M.r(-8,8)); M.g.fillRect(xx+dx+fu/2,r*bh+fu/2,bw-fu,bh-fu);
+        if(!M.hoehe){ for(let q=0;q<12;q++){ M.g.fillStyle=rgbS(ton(k,M.z(0.7,1.2)),0.3); M.g.fillRect(xx+dx+fu/2+M.Z()*(bw-fu),r*bh+fu/2+M.Z()*(bh-fu),M.z(1,3),M.z(1,2)); } } } } } },
+  rippen(M,w,pxm){ const c=hx(w.a), rib=(w.rib||0.027)*pxm, gap=(w.gap||0.013)*pxm, P=2.6/Math.round(2.6/((w.rib||0.027)+(w.gap||0.013)))*pxm;
+    M.fill([22,20,18],40); M.g.fillRect(0,0,M.W,M.H);
+    for(let x=0;x<M.W-1;x+=P){ M.g.save(); M.g.translate(x+gap/2+rib,0); M.g.rotate(Math.PI/2);
+      brett(M,M.H,rib,c,{fein:1.8,aeste:0.03,fuge:0.6}); M.g.restore();
+      if(!M.hoehe){ M.g.fillStyle='rgba(255,240,215,.16)'; M.g.fillRect(x+gap/2,0,rib*0.14,M.H); M.g.fillStyle='rgba(0,0,0,.28)'; M.g.fillRect(x+gap/2+rib*0.84,0,rib*0.16,M.H); } } },
+  fliesen(M,w,pxm){ const c=hx(w.a), glanz=w.glanz!==false;
+    platten(M,pxm,w.fw||0.1,w.fh||0.1,w.versatz||0,0.002,ton(c,w.fuge||0.85),(A,B)=>{ const st=w.streu?[0.78,1.15]:[0.975,1.02], k=ton(c,M.r(st[0],st[1]),M.r(-4,4)*(w.streu?1.5:0.3),M.r(-3,3)*(w.streu?1.5:0.3),M.r(-4,4)*(w.streu?1.5:0.3));
+      /* leicht gewoelbte Glasur: zur Mitte hoeher, am Rand abfallend */
+      const gr=M.g.createRadialGradient(A*0.45,B*0.4,0,A*0.5,B*0.5,Math.max(A,B)*0.75);
+      gr.addColorStop(0,M.hoehe?rgbS([150,150,150]):rgbS(ton(k,1.03))); gr.addColorStop(1,M.hoehe?rgbS([118,118,118]):rgbS(ton(k,0.95)));
+      M.g.fillStyle=gr; M.g.fillRect(0,0,A,B);
+      if(w.streu&&!M.hoehe){ wolken(ausschnitt(M,A,B),k,4,A*0.2,A*0.6,0.06,0.16); }
+      if(glanz&&!M.hoehe){ const e=Math.max(0.8,A*0.04); M.g.fillStyle='rgba(255,255,255,.28)'; M.g.fillRect(0,0,A,e); M.g.fillRect(0,0,e,B);
+        M.g.fillStyle='rgba(0,0,0,.12)'; M.g.fillRect(0,B-e,A,e); M.g.fillRect(A-e,0,e,B); } }); },
+  moire(M,w){ const a=hx(w.a), {g,W,H}=M; M.fill(a,128); g.fillRect(0,0,W,H);
+    /* Moiré (gewaessertes Seidenpapier): fliessende Konturbaender eines
+       ruhigen Feldes, wie Jahresringe - pro Pixel, damit sie auch aus
+       der Entfernung als helle und dunkle Wellen stehen bleiben.
+       Feinere Linienscharen mittelten sich im Raum zu glattem Rosa. */
+    if(!M.hoehe){ let id; try{ id=g.getImageData(0,0,W,H); }catch(e){ return; } const d=id.data, lam=0.055*M.pxm;
+      for(let y=0;y<H;y++){ const v=y/H*Math.PI*2;
+        for(let x=0;x<W;x++){ const u=x/W*Math.PI*2;
+          const F=Math.sin(u*2+v+1.3)*0.9+Math.sin(u-v*2+0.4)*0.7+Math.sin(u*3+v*2+2.2)*0.35+Math.sin(u+v*3+4.1)*0.3;
+          const k=1+0.075*Math.sin((y/lam+F*9)*Math.PI*2)*(0.6+0.4*Math.sin(u*2-v+0.7)), i=(y*W+x)*4;
+          d[i]=Math.min(255,a[0]*k); d[i+1]=Math.min(255,a[1]*k); d[i+2]=Math.min(255,a[2]*k); } }
+      g.putImageData(id,0,0); }
+    koernung(M,[ton(a,0.96),ton(a,1.04)],1600,1,2,0.25); },
+  blumen(M,w,pxm){ const a=hx(w.a), b=hx(w.b), c=hx(w.c), rp=2.6/4*pxm, g=M.g;
+    M.fill(a,128); g.fillRect(0,0,M.W,M.H);
+    /* Blatt: spitz, mit Mittelrippe, zwei Gruentoene */
+    const blatt=(x,y,an,s,t)=>{ g.save(); g.translate(x,y); g.rotate(an);
+      M.fill(ton(b,t),132); g.beginPath(); g.moveTo(0,0); g.bezierCurveTo(s*0.3,-s*0.34,s*0.75,-s*0.26,s,0); g.bezierCurveTo(s*0.75,s*0.24,s*0.3,s*0.3,0,0); g.fill();
+      M.stroke(ton(b,t*0.72),124,0.7); g.lineWidth=Math.max(0.6,s*0.035); g.beginPath(); g.moveTo(s*0.05,0); g.quadraticCurveTo(s*0.5,-s*0.04,s*0.92,0); g.stroke(); g.restore(); };
+    const bluete=(x,y,r,t)=>{ for(let p=0;p<5;p++){ const an=p/5*Math.PI*2-0.3; M.fill(ton(c,t*(p&1?1:0.9)),142);
+        g.beginPath(); g.ellipse(x+Math.cos(an)*r*0.55,y+Math.sin(an)*r*0.55,r*0.62,r*0.42,an,0,Math.PI*2); g.fill(); }
+      M.fill(ton(c,0.62),150); g.beginPath(); g.arc(x,y,r*0.26,0,Math.PI*2); g.fill();
+      M.fill([236,206,120],152,0.9); for(let q=0;q<6;q++){ const an=q/6*Math.PI*2; g.beginPath(); g.arc(x+Math.cos(an)*r*0.16,y+Math.sin(an)*r*0.16,r*0.05,0,Math.PI*2); g.fill(); } };
+    /* ein Zweig: geschwungener Stiel, Blaetter beidseits, Bluete am Ende */
+    const zweig=(sk)=>{ const P=[[-0.46,0.44],[-0.2,0.2],[0.05,0.1],[0.22,-0.18],[0.42,-0.4]].map(([x,y])=>[x*rp*sk,y*rp*sk]);
+      M.stroke(ton(b,0.8),126,0.95); g.lineWidth=rp*0.014*sk; g.lineCap='round';
+      g.beginPath(); g.moveTo(P[0][0],P[0][1]); g.bezierCurveTo(P[1][0],P[1][1],P[2][0],P[2][1],P[3][0],P[3][1]); g.quadraticCurveTo(P[4][0]*0.9,P[4][1]*1.05,P[4][0],P[4][1]); g.stroke();
+      for(let k=0;k<9;k++){ const t=(k+0.5)/9, x=P[0][0]+(P[4][0]-P[0][0])*t+Math.sin(t*3.1)*rp*0.05*sk, y=P[0][1]+(P[4][1]-P[0][1])*t, s=rp*sk*(0.2-0.07*t);
+        blatt(x,y,(k&1?-1:1)*1.05-0.75+Math.sin(k*1.7)*0.2,s,k&1?1.06:0.94); }
+      bluete(P[4][0],P[4][1],rp*0.075*sk,1); bluete(P[1][0]+rp*0.12*sk,P[1][1]-rp*0.02*sk,rp*0.045*sk,0.92); };
+    for(let y=-rp;y<M.H+rp;y+=rp) for(let x=0;x<M.W;x+=rp){ const ox=x+((Math.round(y/rp)&1)?rp/2:0);
+      const sp=(Math.round(y/rp)&1)?-1:1;
+      umlauf(M.W,M.H,ox+rp/2,y+rp/2,rp*0.7,(X,Y)=>{ g.save(); g.translate(X,Y); g.scale(sp,1); zweig(1); g.restore(); });
+      /* Gegenzweig, gedreht und kleiner, fuellt die Luecke */
+      umlauf(M.W,M.H,ox,y,rp*0.5,(X,Y)=>{ g.save(); g.translate(X,Y); g.scale(sp,1); g.rotate(Math.PI*0.9); zweig(0.62); g.restore(); }); }
+    koernung(M,[ton(a,0.94),ton(a,1.04)],2100,1,2,0.3); },
+  artdeco(M,w,pxm){ const a=hx(w.a), g1=hx(w.b), s=2.6/8*pxm, h=s*0.5;
+    M.fill(a,120); M.g.fillRect(0,0,M.W,M.H);
+    /* Faecher/Schuppen in feinen Goldlinien */
+    for(let r=-1;r*h<M.H+s;r++) for(let x=-s;x<M.W+s;x+=s){ const cx=x+((r&1)?s/2:0), cy=r*h;
+      for(let k=1;k<=5;k++){ M.stroke(ton(g1,k===5?1:0.85),150,k===5?0.95:0.55); M.g.lineWidth=k===5?1.8:0.9;
+        M.g.beginPath(); M.g.arc(cx,cy+s*0.5,s*0.5*k/5,Math.PI,0); M.g.stroke(); }
+      M.stroke(g1,150,0.5); M.g.lineWidth=0.8; for(let q=-3;q<=3;q++){ M.g.beginPath(); M.g.moveTo(cx,cy+s*0.5); M.g.lineTo(cx+Math.sin(q*0.4)*s*0.5,cy+s*0.5-Math.cos(q*0.4)*s*0.5); M.g.stroke(); } } },
+  damast(M,w,pxm){ const a=hx(w.a), m=ton(a,1.13), g=M.g, rp=2.6/4*pxm, h=rp*0.92;
+    M.fill(a,120); g.fillRect(0,0,M.W,M.H);
+    koernung(M,[ton(a,0.93),ton(a,1.05)],3200,1,2,0.35);
+    /* Umriss aus Buckeln: Spitze, Knospe, Taille, grosser Bauch, Fuss */
+    const bu=(t,c0,s0)=>Math.exp(-((t-c0)/s0)*((t-c0)/s0));
+    const breite=t=>rp*(0.035*bu(t,0.04,0.05)+0.13*bu(t,0.2,0.08)+0.05*bu(t,0.34,0.05)+0.27*bu(t,0.6,0.15)+0.07*bu(t,0.86,0.06)+0.006);
+    const medaillon=()=>{ M.fill(m,146,0.9); g.beginPath();
+        for(let i=0;i<=60;i++){ const t=i/60; g.lineTo(breite(t),(t-0.5)*h); }
+        for(let i=60;i>=0;i--){ const t=i/60; g.lineTo(-breite(t),(t-0.5)*h); } g.closePath(); g.fill();
+      /* Aussparungen: Blattformen im Grundton, gespiegelt */
+      M.fill(a,122); for(const sx of [1,-1]){
+        g.beginPath(); g.ellipse(sx*rp*0.1,h*0.1,rp*0.035,rp*0.12,sx*0.5,0,Math.PI*2); g.fill();
+        g.beginPath(); g.ellipse(sx*rp*0.16,h*0.3,rp*0.03,rp*0.08,-sx*0.7,0,Math.PI*2); g.fill();
+        g.beginPath(); g.ellipse(sx*rp*0.045,-h*0.3,rp*0.02,rp*0.05,sx*0.3,0,Math.PI*2); g.fill(); }
+      g.beginPath(); g.ellipse(0,h*0.14,rp*0.022,rp*0.1,0,0,Math.PI*2); g.fill();
+      /* Voluten links und rechts am Bauch */
+      M.stroke(m,146,0.85); g.lineWidth=Math.max(1,rp*0.012);
+      for(const sx of [1,-1]){ g.beginPath(); for(let q=0;q<=40;q++){ const an=q/40*Math.PI*3.2, r=rp*0.07*(1-q/48);
+          const x=sx*(rp*0.34+Math.cos(an)*r), y=h*0.08+Math.sin(an)*r; q?g.lineTo(x,y):g.moveTo(x,y); } g.stroke(); } };
+    const rosette=()=>{ M.fill(m,140,0.8); for(let p=0;p<4;p++){ g.save(); g.rotate(p*Math.PI/2); g.beginPath(); g.ellipse(0,-rp*0.05,rp*0.018,rp*0.05,0,0,Math.PI*2); g.fill(); g.restore(); }
+      g.beginPath(); g.arc(0,0,rp*0.018,0,Math.PI*2); g.fill(); };
+    const dy=rp*1.05;
+    for(let y=-dy;y<M.H+dy;y+=dy) for(let x=0;x<M.W;x+=rp){ const ox=x+((Math.round(y/dy)&1)?rp/2:0);
+      umlauf(M.W,M.H,ox,y,rp*0.6,(X,Y)=>{ g.save(); g.translate(X,Y); medaillon(); g.restore(); });
+      umlauf(M.W,M.H,ox+rp/2,y,rp*0.1,(X,Y)=>{ g.save(); g.translate(X,Y); rosette(); g.restore(); }); } },
+  samt(M,w,pxm){ const a=hx(w.a), P=2.6/Math.round(2.6/0.16)*pxm;
+    /* gewellter Samt: in den Falten dunkel, auf den Kaemmen hell */
+    for(let x=0;x<M.W;x+=1){ const t=Math.sin(x/P*Math.PI*2), f=0.72+0.36*(t*0.5+0.5), hv=128+t*40;
+      M.fill(ton(a,f),hv); M.g.fillRect(x,0,1.2,M.H); }
+    koernung(M,[ton(a,0.8),ton(a,1.2)],6400,1,1.5,0.25); },
+  marmorwand(M,w,pxm){ const c=hx(w.a);
+    platten(M,pxm,1.3,1.2,0,0.0015,ton(c,0.9),(A,B)=>{ M.fill(c,128); M.g.fillRect(0,0,A,B);
+      const sub=ausschnitt(M,A,B); wolken(sub,c,14,A*0.08,A*0.4,0.03,0.08);
+      /* Calacatta: wenige, kraeftige Adern in Grau und Gold, weit auseinander */
+      const ri=M.r(0.7,1.2);
+      adern(sub,[128,126,132],2,6,0.36,A*1.7,ri,0.12); adern(sub,[172,142,94],1,4,0.42,A*1.5,ri,0.12); }); },
+  gras(M,w,pxm){ const a=hx(w.a), bahn=2.6/3*pxm;
+    for(let b=0;b<3;b++){ const k=ton(a,M.r(0.93,1.07),M.r(-4,4),0,M.r(-4,4)); M.fill(k,128); M.g.fillRect(b*bahn,0,bahn,M.H);
+      /* waagrechte Fasern */
+      for(let y=0;y<M.H;y+=M.z(0.0025,0.0075)*M.pxm){ M.fill(ton(k,M.z(0.8,1.18)),128+M.z(-14,14),M.z(0.25,0.6)); M.g.fillRect(b*bahn+M.z(-4,0),y,bahn*M.z(0.2,1)+4,Math.max(0.6,M.z(0.002,0.005)*M.pxm)); }
+      M.fill(ton(k,0.7),100,0.7); M.g.fillRect(b*bahn,0,1.2,M.H); } }
+};
+
+/* ---------- Leinwände, Relief, Glanz ---------- */
+const BODEN_KACHEL=4;                 /* Meter je Bodenkachel */
+const WAND_B=2.6, WAND_H=3.6;         /* Meter je Wandkachel (Hoehe = Raumhoehe) */
+function bodenPx(){ return HIQ?2048:1024; }
+function wandPx(){ return HIQ?[1024,1418]:[512,709]; }
+function bodenMalen(g,W,H,f,hoehe){
+  g.setTransform(1,0,0,1,0,0); g.clearRect(0,0,W,H); g.fillStyle='#808080'; g.fillRect(0,0,W,H);
+  const pxm=W/BODEN_KACHEL, M=malKontext(g,W,H,hoehe,f.saat||(f.id.length*977+f.id.charCodeAt(0)*31),pxm);
+  (BODEN_MALER[f.art]||BODEN_MALER.estrich)(M,f,pxm);
+}
+function wandMalen(g,W,H,w,hoehe){
+  g.setTransform(1,0,0,1,0,0); g.clearRect(0,0,W,H); g.fillStyle='#808080'; g.fillRect(0,0,W,H);
+  const pxm=W/WAND_B, M=malKontext(g,W,H,hoehe,w.saat||(w.id.length*733+w.id.charCodeAt(0)*17),pxm);
+  (WAND_MALER[w.art]||WAND_MALER.farbe)(M,w,pxm);
+}
+/* Relief: Hoehenzeichnung aus demselben Maler, halbe Aufloesung,
+   Sobel aus 05i (normalMapFrom) */
+function reliefAus(w,h,zeichnen,staerke){
+  const t=normalMapFrom(w,h,zeichnen,staerke); if(t){ t.anisotropy=8; t.wrapS=t.wrapT=THREE.RepeatWrapping; } return t;
+}
+/* Innenraum zum Spiegeln: helle Decke mit Leuchtenreihen, Waende im
+   Wandton, dunkler Boden. Ohne sie spiegeln Marmor und Beton nichts. */
+let _innenEnv=null, _innenTon='';
+function innenUmgebung(wand){
+  const key=wand||'';
+  if(_innenEnv!==null&&_innenTon===key) return _innenEnv||null;
+  try{
+    if(!THREE.PMREMGenerator||typeof renderer==='undefined') return null;
+    const c=wand?hx(wand):[220,214,204];
+    const t=tex(512,256,(g,W,H)=>{
+      const gr=g.createLinearGradient(0,0,0,H);
+      gr.addColorStop(0,'#aeaba5'); gr.addColorStop(0.36,'#9d9a94'); gr.addColorStop(0.42,rgbS(ton(c,0.72)));
+      gr.addColorStop(0.5,rgbS(ton(c,0.55))); gr.addColorStop(0.53,'#34312d'); gr.addColorStop(1,'#1a1815');
+      g.fillStyle=gr; g.fillRect(0,0,W,H);
+      /* Leuchten an der Decke */
+      g.fillStyle='rgba(255,252,240,.95)'; for(let r=0;r<3;r++) for(let x=0;x<W;x+=W/12) g.fillRect(x+(r&1)*W/24,H*(0.06+r*0.1),W/34,H*0.018);
+      /* Regale und Schaufenster am Horizont */
+      for(let x=0;x<W;){ const w=10+(x*7%23), h=H*(0.04+(x*13%9)/100); g.fillStyle=`rgba(40,38,34,${0.25+(x%5)/20})`; g.fillRect(x,H*0.5-h,w,h); x+=w+6; }
+    });
+    t.mapping=THREE.EquirectangularReflectionMapping;
+    const pm=new THREE.PMREMGenerator(renderer);
+    if(_innenEnv) _innenEnv.dispose();
+    _innenEnv=pm.fromEquirectangular(t).texture; pm.dispose(); t.dispose(); _innenTon=key;
+  }catch(e){ _innenEnv=false; _innenTon=key; }
+  return _innenEnv||null;
+}
+let _bodenRelief=null, _wandRelief=null;
+/* Neu streichen und neu verlegen */
+function oberflaechenAnwenden(){
+  const w=wallSet(), f=floorSet();
+  if(wallTex){ redraw(wallTex,(g,W,H)=>wandMalen(g,W,H,w,false)); wallTex.anisotropy=8; }
+  if(floorTexRef){ redraw(floorTexRef,(g,W,H)=>bodenMalen(g,W,H,f,false)); floorTexRef.anisotropy=8; }
+  if(shopWall){
+    const [pw,ph]=wandPx(), n=reliefAus(pw>>1,ph>>1,(g,W,H)=>wandMalen(g,W,H,w,true),w.relief||2.2);
+    if(_wandRelief) _wandRelief.dispose(); _wandRelief=n;
+    if(n){ n.wrapT=THREE.ClampToEdgeWrapping; shopWall.normalMap=n; shopWall.normalScale=new THREE.Vector2(0.7,0.7); }
+    shopWall.roughness=w.rau!==undefined?w.rau:0.9; shopWall.metalness=w.metall||0;
+    const env=w.glanz?innenUmgebung(w.a):null;
+    shopWall.envMap=env; shopWall.envMapIntensity=(w.glanz||0)*0.6; shopWall.needsUpdate=true; }
+  if(floorMat){
+    const P0=bodenPx(), n=reliefAus(P0>>1,P0>>1,(g,W,H)=>bodenMalen(g,W,H,f,true),f.relief||2.4);
+    if(_bodenRelief) _bodenRelief.dispose(); _bodenRelief=n;
+    if(n){ floorMat.normalMap=n; floorMat.normalScale=new THREE.Vector2(0.6,0.6); }
+    floorMat.roughness=f.rau!==undefined?f.rau:0.6; floorMat.metalness=0;
+    /* Die Deckenleuchten heben helle Boeden bis an Weiss (Marmor: Textur
+       213, im Bild 235 von 255) - dann verschwindet die Zeichnung. Die
+       Albedo daempfen, je heller der Belag, desto mehr. */
+    const hl=f.hell||0.86; floorMat.color.setRGB(hl,hl,hl);
+    const env=f.glanz?innenUmgebung(w.a):null;
+    floorMat.envMap=env; floorMat.envMapIntensity=(f.glanz||0)*0.6; floorMat.needsUpdate=true; }
+  /* Sockelleiste im dunklen Ton der Wand */
+  if(typeof sockelM==='function'){ const c=hx(w.sockel||w.a), s=w.sockel?c:ton(c,0.7); sockelM().color.setRGB(s[0]/255,s[1]/255,s[2]/255).convertSRGBToLinear(); }
+}
+/* Musterkarte fuer den Laptop: das echte Material im Kleinen */
+const _musterCache={};
+function oberflaechenMuster(kind,o,nurCache){
+  const key=kind+':'+o.id; if(_musterCache[key]||nurCache) return _musterCache[key]||null;
+  const c=document.createElement('canvas'); c.width=160; c.height=120; const g=c.getContext('2d');
+  /* ein Ausschnitt in echtem Massstab: Boden 1,3 m, Wand 1,2 m breit */
+  const s=kind==='wall'?160/1.2*WAND_B:160/1.3*BODEN_KACHEL, big=document.createElement('canvas');
+  big.width=Math.round(s); big.height=Math.round(kind==='wall'?s*WAND_H/WAND_B:s); const bg=big.getContext('2d');
+  if(kind==='wall') wandMalen(bg,big.width,big.height,o,false); else bodenMalen(bg,big.width,big.height,o,false);
+  g.drawImage(big,0,kind==='wall'?Math.round(big.height*0.3):0,160,120,0,0,160,120);
+  return _musterCache[key]=c.toDataURL('image/jpeg',0.85);
+}
 
 /* =========================================================
    Verschiebbare Einrichtung
@@ -9372,11 +9943,16 @@ function shelfStand(sh,lv){ const K=kindOf(sh); return faceWorld(sh,lv?faceOf(sh
 function itemMatrix(sh,lv,idx,jit){ const f=faceOf(sh,lv), p=slotLocal(lv.type,idx,sh,lv), w=faceWorld(sh,f,p.x,p.z);
   return mx(w.x,kindOf(sh).lv[lv.li]+p.y,w.z,sh.g.rotation.y+f.ry+jit); }
 function syncShelf(sh){ sh.levels.forEach(lv=>{ lv.items.forEach((h,k)=>{ if(lv.type) h.pool.set(h,itemMatrix(sh,lv,k,h.jit||0)); }); }); }
-const HEADNAME={0:['SILVESTER-ZUBEHÖR','#2f7fd0'],1:['KLEINFEUERWERK F1','#2f9e57'],2:['FEUERWERK F2 · AB 18','#c8322a']};
+/* nach Sparte: Essen und Getraenke haben seit 26.09. ihr eigenes Schild */
+const HEADNAME={zubehoer:['SILVESTER-ZUBEHÖR','#2f7fd0'],f1:['KLEINFEUERWERK F1','#2f9e57'],f2:['FEUERWERK F2 · AB 18','#c8322a'],essen:['ESSEN & SNACKS','#d0782f'],getraenke:['GETRÄNKE','#1f8fb8']};
+/* Welche Sparte ueberwiegt im Regal - daraus das Kopfschild */
+function headArt(sh){
+  const cnt={}; sh.levels.forEach(l=>{ if(l.type){ const c=sparteVon(l.type); cnt[c]=(cnt[c]||0)+l.count; } });
+  let best=null,bn=0; for(const k in cnt) if(cnt[k]>bn){ bn=cnt[k]; best=k; }
+  return best; }
 function updateHead(sh){
   if(!sh.headTex) return;
-  const cnt={}; sh.levels.forEach(l=>{ if(l.type){ const c=P[l.type].cat; cnt[c]=(cnt[c]||0)+l.count; } });
-  let best=null,bn=0; for(const k in cnt) if(cnt[k]>bn){ bn=cnt[k]; best=k; }
+  const best=headArt(sh);
   const H=best!==null?HEADNAME[best]:['REGAL FREI','#39405a'];
   const bg=schildBg().c||H[1], fg=schildFg().c;
   redraw(sh.headTex,(g,W,Hh)=>{
@@ -9749,7 +10325,7 @@ function makeDekoMesh(id,g){
         c.fillStyle='#c8322a'; c.fillRect(0,0,W,H*0.14);
         c.fillStyle='#fff'; c.font=BUN(Math.round(W*0.11)); c.textAlign='center'; c.textBaseline='middle';
         c.fillText('SORTIMENT',W/2,H*0.07);
-        const rows=['Raketen','Batterien','Böller','Fontänen','Zubehör','Sekt'];
+        const rows=['Raketen','Batterien','Böller','Fontänen','Essen & Getränke','Zubehör'];
         rows.forEach((t,i)=>{ const y=H*0.2+i*H*0.125;
           c.fillStyle=i%2?'#e8e2d2':'#f4efe2'; c.fillRect(0,y,W,H*0.12);
           c.fillStyle='#1b2340'; c.font=BAR(Math.round(W*0.085)); c.textAlign='left'; c.fillText(t,W*0.08,y+H*0.062);
@@ -15345,6 +15921,8 @@ function showAus(spec){
    als einziges zeigt (Bienen, Smiley, Schmetterling ...), bleiben bei
    ihm. */
 const NEU_SHOWS={
+  zauberwald:{lvl:10,th:'wald',n:10,akte:[{e:['kreisel'],w:3,mine:true,mineSz:0.35},{e:['stern'],w:3},{e:['ring','kugel'],s:'salve',w:4}]},
+  jugendbox:{lvl:12,th:'eis',n:30,akte:[{e:['kugel'],w:6,mine:true,mineSz:0.45},{e:['fische','kreisel'],w:8},{e:['regenbogen'],s:'fan',w:8},{e:['ringring','wechsel'],s:'salve',w:8}],auftakt:{ground:'fountain',gt:4}},
   kinderbatterie:{lvl:4,th:'bunt',n:6,akte:[{e:['kugel'],w:2},{e:['kreisel','ring'],w:2},{e:['kugel'],s:'salve',w:2}]},
   kinderparty:{lvl:6,th:'tropen',n:12,akte:[{e:['kugel'],w:3,mine:true,mineSz:0.4},{e:['kreisel','ring'],w:3},{e:['wechsel'],s:'fan',w:3},{e:['ringring'],s:'salve',w:3}]},
   miniverbund:{lvl:8,th:'glut',n:9,akte:[{e:['kugel'],w:3},{e:['ring','kugel'],w:3},{e:['chrys'],s:'salve',w:3}]},
@@ -15427,6 +16005,9 @@ function neuKugel(t,o){
 /* Fontaenen: Art, Dauer, Hoehe, Farben. set: mehrere nacheinander
    (versetzt), reihe: nebeneinander auf einmal. Keine Ladung. */
 const NEU_FONT={
+  tortenfontaene:{k:'torte',t:8,reihe:['silber','weiss','silber','weiss']},
+  stroboblinker :{k:'blinker',t:12,reihe:['weiss','rot','gruen','zitrone']},
+  bengalflamme  :{k:'bengal',t:6,set:['blau','violett','magenta']},
   feuerteufel   :{k:'knisterbrunnen',t:8,A:'gold',B:'orange',h:0.6},
   leuchtfontaene:{k:'fountain',t:4.5,set:['limette','zitrone','rose','tuerkis']},
   farbfontaenen :{k:'fountain',t:6,set:['magenta','gruen','blau']},
@@ -15466,6 +16047,16 @@ function neuFontaene(t,o){
 
 /* Eigene Bodenbilder der neuen Ware */
 const NEU_EMIT={
+  /* Tortenfontaene: kleine, dichte Silberfontaene, 30 bis 70 cm hoch */
+  torte(e,dt,o){ const A=e.A||FW.silber; e.acc=(e.acc||0)+dt*260;
+    for(;e.acc>=1;e.acc--){ const a=Math.random()*Math.PI*2, s=rand(0.05,0.35);
+      psSmall.emit(o.x,o.y+0.12,o.z,Math.cos(a)*s,rand(1.8,3.0),Math.sin(a)*s,A[0],A[1],A[2],rand(0.35,0.7),5,4); } },
+  /* Stroboskop-Blinker: glimmt und blitzt in unregelmaessigem Takt */
+  blinker(e,dt,o){ const A=e.A||FW.weiss; e.acc=(e.acc||0)+dt*70;
+    for(;e.acc>=1;e.acc--){ const a=Math.random()*Math.PI*2, s=rand(0.05,0.3);
+      psMid.emit(o.x,o.y+0.25,o.z,Math.cos(a)*s,rand(0.3,0.9),Math.sin(a)*s,A[0]*0.35,A[1]*0.35,A[2]*0.35,rand(0.5,0.9),-0.2,0); }
+    e.bl=(e.bl||0)-dt; if(e.bl<=0){ e.bl=rand(0.1,0.25); flash({x:o.x,y:o.y+0.4,z:o.z},A,2.2,0.05);
+      for(let k=0;k<10;k++){ const d=randDir(); psSmall.emit(o.x,o.y+0.35,o.z,d[0]*0.6,d[1]*0.6,d[2]*0.6,A[0],A[1],A[2],0.07,0,0); } } },
   /* Fontaene mit knisternder Krone */
   knisterbrunnen(e,dt,o){ const H=e.h||1, A=e.A, B=e.B;
     for(let k=0;k<Math.round(9*H);k++){ const a=Math.random()*Math.PI*2, s=rand(0.3,1.2)*H, c=Math.random()<0.7?A:B;
@@ -15536,6 +16127,15 @@ function neuKnall(t,o){
     lunte(1.3,()=>{ smallPop(o.x,yb,o.z,70,7,0.5); sfx.boom(v*0.9); shake=Math.max(shake,0.35*v); flash({x:o.x,y:yb+0.4,z:o.z},c,1.4,0.25);
       for(let i=0;i<Math.round(90*QUAL());i++){ const a=Math.random()*Math.PI*2, w=rand(0.2,1.4);
         psHuge.emit(o.x+rand(-0.3,0.3),yb+0.3,o.z+rand(-0.3,0.3),Math.cos(a)*w,rand(0.5,2.2),Math.sin(a)*w,c[0]*0.22,c[1]*0.22,c[2]*0.22,rand(3.5,5.5),-0.12,0); } }); return true; }
+  if(t==='partypopper'){ for(let i=0;i<3;i++) later(0.3+i*0.6,()=>{ const q={x:o.x+(i-1)*0.3,y:yb,z:o.z}; sfx.crack(v*0.5); smallPop(q.x,q.y+0.1,q.z,12,2,0.25,FW.gold); konfetti(q,110,8); }); return true; }
+  if(t==='luftschlangentisch'){ lunte(0.8,()=>{ sfx.crack(v); smallPop(o.x,yb+0.1,o.z,24,3,0.3,FW.gold);
+      /* Luftschlangen: je Schlange eine Richtung, die Blaettchen liegen
+         auf einer Linie statt zu streuen */
+      const C=['rot','gold','gruen','blau','magenta','tuerkis'].map(K), alt=SCHWEIF; SCHWEIF=0;
+      for(let s2=0;s2<14;s2++){ const a=Math.random()*Math.PI*2, w=rand(0.4,1.4), vy=rand(5,6.5), c=C[s2%C.length];
+        for(let j=0;j<12;j++){ const f=0.55+j*0.05; psMid.emit(o.x,yb+0.2,o.z,Math.cos(a)*w*f,vy*f,Math.sin(a)*w*f,c[0]*0.8,c[1]*0.8,c[2]*0.8,rand(2.5,3.2),1.4,1); } }
+      SCHWEIF=alt; }); return true; }
+  if(t==='knallbonbonxxl'){ later(0.5,()=>{ flash({x:o.x,y:yb+0.3,z:o.z},FW.gold,1.2,0.12); smallPop(o.x,yb,o.z,40,3.5,0.4,FW.gold); sfx.boom(v*0.45); konfetti(p0,320,6); }); return true; }
   if(t==='knallbonbon'){ for(let i=0;i<4;i++) later(i*0.7,()=>{ const q={x:o.x+rand(-0.5,0.5),y:yb,z:o.z+rand(-0.4,0.4)}; smallPop(q.x,q.y,q.z,14,2.5,0.3); sfx.crack(v*0.5); konfetti(q,40,3); }); return true; }
   if(t==='tischbombe'){ lunte(1.0,()=>{ sfx.crack(v); konfetti(p0,260,5.5); smallPop(o.x,yb+0.1,o.z,30,3,0.35,FW.gold); }); return true; }
   if(t==='tischfeuerwerk2'){ for(let j=0;j<3;j++) later(j*1.1,()=>{ sfx.crack(v); for(let i=0;i<110;i++){ const d=randDir(), c=i%3?FW.gold:FW.zitrone;
@@ -15561,7 +16161,7 @@ function neuDauer(t){
   const f=NEU_FONT[t];
   if(f) return (f.set?f.set.length*f.t*0.92:f.t)+(f.reihe?f.reihe.length*0.35:0)+1.5;
   if(NEU_KUGEL[t]) return [3.5,3.5,4.5,5,6.5][NEU_KUGEL[t].kal-1];
-  return {blitzknaller:3,knallteppich:6,konfettiknaller:4,goldstaubboeller:5,farbrauchboeller:7,knallbonbon:4,tischbombe:4,tischfeuerwerk2:5,
+  return {partypopper:4,luftschlangentisch:5,knallbonbonxxl:4,blitzknaller:3,knallteppich:6,konfettiknaller:4,goldstaubboeller:5,farbrauchboeller:7,knallbonbon:4,tischbombe:4,tischfeuerwerk2:5,
     pharao:10,bodenkreisel:7,wunderfarbe:8,wunderherz:6,wunderzahl:8,leuchtstaebe:8,wunderkerzeXXL:13,wunderbox:7}[t]||0;
 }
 
@@ -15973,7 +16573,8 @@ function drawPDA(force){
       g.fillText('Umsatz heute '+eur(DS.revenue),10,H-26);
       return;
     }
-    const p=P[t], mp=marketOf(t), ek=costOf(t), price=S.prices[t], marge=price-ek, r=price/mp;
+    /* Einkauf mit Tagesfaktor (Engpass, Schnaeppchen) wie im Laptop */
+    const p=P[t], mp=marketOf(t), ek=r2(costOf(t)*ekFactor()), price=S.prices[t], marge=price-ek, r=price/mp;
     g.fillStyle='#e8fff2'; g.font=BAR(23); g.textAlign='left';
     fitFont(g,p.name,W-20,23,BAR); g.fillText(p.name,10,52);
     g.fillStyle='#3dff7a'; g.font=BUN(44); g.fillText(price.toFixed(2).replace('.',',')+' €',10,96);
@@ -15996,7 +16597,7 @@ function openPDA(t){
 function closePDA(){ $('pda').classList.remove('show'); pdaOpen=false; pdaItem=null; paused=false; requestLock(); }
 function renderPDA(){
   const t=pdaItem; if(!t) return;
-  const p=P[t], mp=marketOf(t), ek=costOf(t), price=S.prices[t], marge=r2(price-ek), r=price/mp;
+  const p=P[t], mp=marketOf(t), ek=r2(costOf(t)*ekFactor()), price=S.prices[t], marge=r2(price-ek), r=price/mp;
   /* Nachbestellen: ein Karton beim Fachhandel, wenn offen dazu die
      Grosshandels-Staffel */
   const sup=supplierFor(t), knoepfe=[SUPPLIERS[0]].concat(grossOffen()?[SUPPLIERS[1]]:[]).flatMap(s2=>(s2.tiers||[{n:1,d:0}]).map(tr=>({s2,tr}))), supZu=false;
@@ -16252,6 +16853,14 @@ function endDay(){
   /* Marktlage des Tages */
   if(DS.praemien) rows.push(['Prämien aus Herausforderungen',eur(DS.praemien)]);
   rows.push({head:'Markt'},['Preisniveau',marktText()],['Inflation seit Beginn',inflText()]);
+  /* Einkauf beim Lieferanten (Tom, 26.09.: "die Preise beim Lieferanten
+     werden auch teurer") - Schnitt ueber die eigene Ware und die groessten
+     Spruenge nach oben und unten */
+  { const e=ekTag(), f=x=>(x>0?'+':'')+x.toFixed(1).replace('.',',')+' %';
+    if(e.schnitt||e.hoch||e.runter){
+      rows.push(['Einkauf beim Lieferanten',`im Schnitt ${f(e.schnitt)} gegenüber gestern`]);
+      if(e.hoch&&e.hoch.d>=1) rows.push(['Teurer eingekauft',`${P[e.hoch.t].short} ${f(e.hoch.d)}`]);
+      if(e.runter&&e.runter.d<=-1) rows.push(['Günstiger eingekauft',`${P[e.runter.t].short} ${f(e.runter.d)}`]); } }
   (S.news||[]).forEach(n=>{ if(P[n.t]) rows.push([P[n.t].short,`${n.text} · ${n.knapp?'Preis zieht an':'Preis fällt'}`]); });
   { const chance=marktChance();
     if(chance) rows.push(['Einkaufschance',`${P[chance].short} · Einkauf ${marktLuecke(chance)} % unter dem Kundenpreis`]); }
@@ -16273,6 +16882,10 @@ function endDay(){
     statRekord('rek_kunden',DS.customers);
     statAdd('tage',1);
     S.day++; goalTick(); rollMarket(); rollEvent(); rezepteTick();
+    /* Neue Einkaufspreise des Tages: spuerbare Aenderung gleich melden */
+    { const e=ekTag(), f=x=>(x>0?'+':'')+x.toFixed(1).replace('.',',')+' %';
+      if(Math.abs(e.schnitt)>=0.5) toast(`Lieferanten: Einkauf heute im Schnitt ${f(e.schnitt)}${e.hoch&&e.hoch.d>=5?` · ${P[e.hoch.t].short} ${f(e.hoch.d)}`:''}`,e.schnitt>0?'bad':'money');
+      else if(e.hoch&&e.hoch.d>=5) later(0.8,()=>toast(`Lieferant: ${P[e.hoch.t].short} heute ${f(e.hoch.d)} teurer im Einkauf.`,'bad')); }
     if(jahresende){
       const n=S.season; S.season++;
       const jahr=S.seasonRevenue; S.seasonRevenue=0; addXP(200,'Ein Jahr geschafft');
@@ -16292,7 +16905,7 @@ function closeSummary(){
 /* =========================================================
    Laptop
    ========================================================= */
-let laptopOpen=false, startOpen=true, pauseOpen=false, ltab='order', resetArm=false, lsup='ware', korbOpen=false;
+let laptopOpen=false, startOpen=true, pauseOpen=false, ltab='order', resetArm=false, lsup='ware', korbOpen=false, lkat='alle';
 function openLaptop(tab){ if(typeof handyOpen!=='undefined'&&handyOpen) closeHandy(false); laptopOpen=true; resetArm=false; if(tab) ltab=tab; for(const k in keys) keys[k]=false; mouseDown=false; touchAct=false; renderLaptop(); $('laptop').classList.add('show'); if(locked) document.exitPointerLock(); }
 function closeLaptop(relock){ laptopOpen=false; korbOpen=false; $('korbOv').classList.remove('show'); $('laptop').classList.remove('show'); if(relock) requestLock(); else if(lockWorked&&!COARSE&&!locked&&!summaryOpen&&!levelOpen) showPause(); }
 function priceHint(t){ const r=S.prices[t]/marketOf(t), lo=priceTol();
@@ -16395,6 +17008,20 @@ function prodPicTag(t){
   if(!_picLaeuft){ _picLaeuft=true; setTimeout(prodPicSchritt,30); }
   return `src="${prodFlach(t)}" data-pic="${t}"`;
 }
+/* Muster fuer Wand und Boden nachmalen, ein paar pro Bild */
+const _musterWarte=[]; let _musterLaeuft=false;
+function musterFertig(kind,o){
+  const u=oberflaechenMuster(kind,o,true); if(u) return u;
+  if(!_musterWarte.some(x=>x[0]===kind&&x[1]===o)) _musterWarte.push([kind,o]);
+  if(!_musterLaeuft){ _musterLaeuft=true; setTimeout(musterSchritt,30); }
+  return null;
+}
+function musterSchritt(){
+  const t0=performance.now();
+  while(_musterWarte.length&&performance.now()-t0<14){ const [kind,o]=_musterWarte.shift(), u=oberflaechenMuster(kind,o);
+    document.querySelectorAll(`[data-muster="${kind}:${o.id}"]`).forEach(el=>{ el.style.background=`url(${u}) center/cover`; el.removeAttribute('data-muster'); }); }
+  if(_musterWarte.length) setTimeout(musterSchritt,16); else _musterLaeuft=false;
+}
 function prodPicSchritt(){
   const t0=performance.now();
   while(_picWarte.length&&performance.now()-t0<12){ const t=_picWarte.shift(), u=prodPic(t);
@@ -16465,9 +17092,14 @@ function buyLizenz(id){
   toast(`${l.name} freigeschaltet: ${l.items.filter(t=>P[t]).map(t=>P[t].short).join(', ')}.`,'money');
   save();
 }
-function catPill(p){ return p.cat?`<span class="pill f${p.cat}">F${p.cat}</span>`:'<span class="pill zub">Zubehör</span>'; }
+/* Etikett der Sparte: F1, F2, Zubehör, Essen oder Getränke (Tom, 26.09.) */
+function catPill(p){ const sp=p.cat===1?'f1':p.cat===2?'f2':(p.sparte||'zubehoer');
+  return `<span class="pill ${{f1:'f1',f2:'f2',zubehoer:'zub',essen:'essen',getraenke:'getr'}[sp]}">${SPARTE_NAME[sp]}</span>`; }
 function supAvail(){ return SUPPLIERS.filter(x=>S.level>=x.lvl); }
-function tierPrice(t,sup,tier){ return r2(costOf(t)*ekFactor()*P[t].box*tier.n*sup.mult*(1-tier.d)); }
+function tierPrice(t,sup,tier){ return r2(ekRoh(t)*ekFactor()*P[t].box*tier.n*sup.mult*(1-tier.d)); }
+/* Trend des Einkaufs gegen gestern, als kleines Etikett */
+function ekPill(t){ const d=ekDelta(t); if(Math.abs(d)<0.5) return '';
+  return d>0?`<span class="pill up" title="Einkauf gegenüber gestern">EK +${d.toFixed(1).replace('.',',')} %</span>`:`<span class="pill dn" title="Einkauf gegenüber gestern">EK ${d.toFixed(1).replace('.',',')} %</span>`; }
 /* =========================================================
    Warenkorb: Artikel sammeln, am Ende in einem Rutsch bestellen.
    Jede Bestellung ist genau eine Lieferung und kostet einmal Versand.
@@ -17162,7 +17794,11 @@ function lapZeichnen(body){
         `<small>${lsup==='gross'?`Staffel: ${stf}.`:gross?`Mengenrabatt gibt es im Reiter Großhandel: ${stf}.`:`Ab Level ${gh.lvl} mit eigenem Lager kaufst du auch beim Großhandel: ${stf}.`}</small></div></div>`+knoepfe;
       /* Gruppen nach Freischaltung: Grundsortiment, dann die Lizenz-
          pakete in der Reihenfolge ihres Levels; darin nach Level */
-      const ware=ORDER.filter(t=>canOrder(t)).sort((x,y)=>lizLevel(x)-lizLevel(y)||P[x].lvl-P[y].lvl||P[x].name.localeCompare(P[y].name));
+      /* Filter nach Sparte (Tom, 26.09.): F1, F2, Zubehoer, Essen, Getraenke */
+      const KF=['alle','f1','f2','zubehoer','essen','getraenke'];
+      if(KF.indexOf(lkat)<0) lkat='alle';
+      h+=`<div class="kfilter">`+KF.map(k=>`<button data-a="lkat" data-t="${k}" class="${k===lkat?'on':''}">${k==='alle'?'Alle':SPARTE_NAME[k]} <span style="opacity:.65">${ORDER.filter(t=>canOrder(t)&&(k==='alle'||sparteVon(t)===k)).length}</span></button>`).join('')+`</div>`;
+      const ware=ORDER.filter(t=>canOrder(t)&&(lkat==='alle'||sparteVon(t)===lkat)).sort((x,y)=>lizLevel(x)-lizLevel(y)||P[x].lvl-P[y].lvl||P[x].name.localeCompare(P[y].name));
       let gruppe=null;
       h+=`<div class="karten">`+ware.map(t=>{ const p=P[t], un=isUnlocked(t), cap=shelfCapOf(t), lz=lizenzOf(t), l=lz?lizenzDaten(lz):null;
         let kopf='';
@@ -17171,7 +17807,7 @@ function lapZeichnen(body){
         if(!un) return kopf+`<div class="karte locked"><img class="kbild" ${prodPicTag(t)} alt=""><b>${p.name} ${catPill(p)}</b><small>${l?`Lizenz „${l.name}“ ab Level ${l.lvl}. Unter Sortiment freischalten.`:`Ab Level ${p.lvl}.`}</small></div>`;
         const btns=tiers.map(tr=>{ const c=tierPrice(t,sup,tr);
           return `<button data-a="cart" data-t="${t}" data-n="${tr.n}" data-s="${sup.id}">+ ${tr.n}× ${eur(c)}${tr.d?` <span style="opacity:.7">−${Math.round(tr.d*100)}%</span>`:''}</button>`; }).join('');
-        return kopf+`<div class="karte"><img class="kbild" ${prodPicTag(t)} alt=""><b>${p.name} ${catPill(p)}</b><small>Karton mit ${p.box} Stück${canShelf(t)?(cap?` · Fach fasst ${cap}`:' · kein passendes Regal'):' · nur für den Automaten'}</small><small>Im Laden: ${shelfStockOf(t)} im Regal, ${stockOf(t)} insgesamt</small>`+
+        return kopf+`<div class="karte"><img class="kbild" ${prodPicTag(t)} alt=""><b>${p.name} ${catPill(p)} ${ekPill(t)}</b><small>Karton mit ${p.box} Stück${canShelf(t)?(cap?` · Fach fasst ${cap}`:' · kein passendes Regal'):' · nur für den Automaten'}</small><small>Im Laden: ${shelfStockOf(t)} im Regal, ${stockOf(t)} insgesamt</small>`+
           `<div class="steps">${btns}</div></div>`; }).join('')+`</div>`;
     }
   } else if(ltab==='price'){
@@ -17187,7 +17823,7 @@ function lapZeichnen(body){
             ph=marktPhase(t), sch=marktSchock(t), lab=marktLabel(t);
       const pill=d>0.4?`<span class="pill up">+${d.toFixed(1)} %</span>`:d<-0.4?`<span class="pill dn">${d.toFixed(1)} %</span>`:`<span class="pill fl">±0</span>`;
       return `<div class="row"><div class="rm"><b>${p.name} ${pill}</b>`+
-        `<small>Markt ${eur(mp)} · Einkauf ${eur(ek)} · Gewinn je Stück ${eur(r2(S.prices[t]-ek))}</small>`+
+        `<small>Markt ${eur(mp)} · Einkauf ${eur(ek)} ${ekPill(t)} · Gewinn je Stück ${eur(r2(S.prices[t]-ek))}</small>`+
         `<small class="${lab[0]}">${lab[1]} · Markt ${ph.name}${sch?(sch.k==='knapp'?' · Ware knapp':' · Ware im Überfluss'):''}</small>`+
         (marktLuecke(t)>=7?`<small class="ok">Günstige Gelegenheit: Einkauf liegt ${marktLuecke(t)} % unter dem, was die Kunden zahlen</small>`
          :marktLuecke(t)<=-7?`<small class="no">Schlechter Moment: Einkauf liegt ${-marktLuecke(t)} % über dem Kundenpreis</small>`:'')+
@@ -17277,16 +17913,15 @@ function lapZeichnen(body){
   } else if(ltab==='deko'){
     hint=`Stimmung im Laden: ${ambienteScore()} von 100. Verschieben geht im Umbaumodus.`;
     const sw=(arr,cur,kind)=>arr.map(w=>{ const lock=S.level<w.lvl, own=cur===w.id;
-      let bg=kind==='wall'?`linear-gradient(160deg,${w.up} 55%,${w.low} 55%)`:`linear-gradient(160deg,${w.a} 55%,${w.b} 55%)`;
-      if(kind==='wall'&&w.pat==='streifen') bg=`linear-gradient(160deg,${w.up} 55%,${w.low} 55%),repeating-linear-gradient(90deg,${w.pat2} 0 4px,transparent 4px 9px)`;
-      if(kind==='wall'&&w.pat) bg=`repeating-linear-gradient(${w.pat==='raute'?'45deg':w.pat==='holz'?'90deg':'0deg'},${w.pat2} 0 3px,${w.up} 3px 8px)`;
-      if(kind==='floor'&&w.check) bg=`repeating-conic-gradient(${w.a} 0 25%,${w.b} 0 50%) 0 0/16px 16px`;
-      if(kind==='floor'&&w.wood) bg=`repeating-linear-gradient(90deg,${w.a} 0 6px,${w.b} 6px 12px)`;
+      /* echtes Material im Kleinen, im Massstab (05o) - erst die
+         Grundfarbe, das Muster malt musterSchritt nach (alle auf
+         einmal kosteten beim ersten Oeffnen ueber zwei Sekunden) */
+      const url=musterFertig(kind,w), bg=url?`url(${url}) center/cover`:(w.a||'#ccc');
       /* Preis steht auf der Kachel: vorher nur im Tooltip, am Handy
          also unsichtbar - und der Klick ohne genug Geld tat nichts. */
       const hat=!w.cost||(S.paint||[]).indexOf(w.id)>=0, arm=!hat&&S.money<w.cost;
       const pz=lock?`ab Lvl ${w.lvl}`:hat?'✓':Math.round(w.cost)+' €';
-      return `<button class="sw dk${own?' on':''}${arm?' arm':''}" title="${w.name}${w.cost?' · '+eur(w.cost):' · frei'}${S.level<w.lvl?' (ab Lvl '+w.lvl+')':''}" data-a="${kind}" data-t="${w.id}" style="background:${bg}" ${lock?'disabled':''}><span class="pz${hat?' ok':''}">${pz}</span></button>`; }).join('');
+      return `<button class="sw dk mat${own?' on':''}${arm?' arm':''}" title="${w.name}${w.cost?' · '+eur(w.cost):' · frei'}${S.level<w.lvl?' (ab Lvl '+w.lvl+')':''}" data-a="${kind}" data-t="${w.id}"${url?'':` data-muster="${kind}:${w.id}"`} style="background:${bg}" ${lock?'disabled':''}><span class="pz${hat?' ok':''}">${pz}</span></button>`; }).join('');
     const wNow=WALLS.find(w=>w.id===S.wall)||WALLS[0], fNow=FLOORS.find(f=>f.id===S.floor)||FLOORS[0];
     /* Regalschilder: die Muster zeigen immer die Kombination aus
        Hintergrund und Schrift, damit man sieht, was man bekommt. */
@@ -17395,6 +18030,7 @@ function lapKlick(e,imHandy){
   else if(a==='cartgo') cartOrder();
   else if(a==='cartclear') cartClear();
   else if(a==='sup'){ lsup=t; }
+  else if(a==='lkat'){ lkat=t; }
   else if(a==='rbuy') orderRegal(t);
   else if(a==='pack') cartAddPack(t);
   else if(a==='rkauf') buyAngebot(+t);
@@ -17603,6 +18239,9 @@ function erfPic(e){
   else if(k==='sekt'){ mitte(()=>{ g.fillStyle='#1b3a2e'; g.fillRect(-11,-30,22,62);
       g.fillStyle='#1b3a2e'; g.fillRect(-5,-58,10,30); g.fillStyle='#e8c35a'; g.fillRect(-6,-62,12,8);
       g.fillStyle='#f2f5ff'; g.fillRect(-11,-14,22,20); }); }
+  else if(k==='essen'){ mitte(()=>{ g.fillStyle='#f2ecd8'; g.beginPath(); g.ellipse(0,14,46,14,0,0,Math.PI*2); g.fill();
+      g.fillStyle='#c8822a'; g.beginPath(); g.arc(-14,0,15,Math.PI,0); g.fill(); g.fillStyle='#e8b418'; g.beginPath(); g.arc(14,2,13,Math.PI,0); g.fill();
+      g.fillStyle='#c8322a'; g.beginPath(); g.arc(0,-6,9,0,Math.PI*2); g.fill(); }); }
   else if(k==='zubehoer'){ mitte(()=>{ const cc=['#ff4fa3','#5ce1ff','#ffe45c','#8ef0a8'];
       for(let i=0;i<4;i++){ g.fillStyle=cc[i]; g.save(); g.translate(-36+i*24,0); g.rotate(i*0.5); g.fillRect(-9,-26,18,52); g.restore(); } }); }
   else if(k==='kunde'){ mitte(()=>{ g.fillStyle='#e8b894'; g.beginPath(); g.arc(0,-24,16,0,Math.PI*2); g.fill();
@@ -17869,7 +18508,7 @@ function save(){
   if(!S) return;
   try{
     const d={v:3,money:S.money,rep:S.rep,level:S.level,xp:S.xp,season:S.season,day:S.day,loan:S.loan,prices:S.prices,up:S.up,staff:S.staff,prio:S.prio||{},einr:S.einr||{},wage:S.wage||{},pause:S.pause||{},ev:S.ev||null,goal:S.goal||null,mkt:r2(S.mkt||1),comp:r2(S.comp||1),lic:S.lic||['start'],stat:S.stat||{},erf:S.erf||{},gesehen:S.gesehen||[],eigene:S.eigene||[],gutschrift:r2(S.gutschrift||0),mi:S.mi||{},me:S.me||{},reg:S.reg||{},mh:S.mh||{},schock:S.schock||{},news:S.news||[],infl:S.infl||1,
-      wall:S.wall,floor:S.floor,schildBg:S.schildBg||'auto',schildFg:S.schildFg||'weiss',paint:S.paint,test:S.test,stamm:S.stamm,blanks:gravBlanks,grav:gravG?mpos(gravG):null,grime:r2(S.grime||0),tut:S.tut,tutAus:!!S.tutAus,karre:S.karre||null,seasonRevenue:S.seasonRevenue,carrying:S.carrying,cart:S.cart||[],rest:S.rest||null,offen:S.offen|0,pakete:S.pakete|0,bestellungen:(S.bestellungen||[]).map(b=>({id:b.id,pos:b.pos.map(l=>({t:l.t,n:l.n,g:l.g})),gr:b.gr,wert:b.wert,st:b.st,tag:b.tag})),paketGr:(S.paketGr||[]).slice(),bestNr:S.bestNr|0,shopName:S.shopName||SHOP_DEFAULT,slogan:S.slogan||'',
+      wall:S.wall,floor:S.floor,schildBg:S.schildBg||'auto',schildFg:S.schildFg||'weiss',paint:S.paint,test:S.test,stamm:S.stamm,blanks:gravBlanks,grav:gravG?mpos(gravG):null,grime:r2(S.grime||0),tut:S.tut,tutAus:!!S.tutAus,karre:S.karre||null,seasonRevenue:S.seasonRevenue,carrying:S.carrying,cart:S.cart||[],rest:S.rest||null,ekVor:S.ekVor||{},offen:S.offen|0,pakete:S.pakete|0,bestellungen:(S.bestellungen||[]).map(b=>({id:b.id,pos:b.pos.map(l=>({t:l.t,n:l.n,g:l.g})),gr:b.gr,wert:b.wert,st:b.st,tag:b.tag})),paketGr:(S.paketGr||[]).slice(),bestNr:S.bestNr|0,shopName:S.shopName||SHOP_DEFAULT,slogan:S.slogan||'',
       deko:dekos.map(d2=>Object.assign({id:d2.id},mpos(d2.g))),
       ck:mpos(ckG),desk:mpos(deskG),sb2:mpos(sb2G),pack:mpos(packTisch),
       shelves:shelves.map(s=>Object.assign(mpos(s.g),{kind:s.kind,levels:s.levels.map(l=>({type:l.type,count:l.count,q:l.q||1}))})),
@@ -18750,7 +19389,7 @@ fontsReady().then(()=>{
   setTimeout(()=>{ if(typeof shaderVorab==='function') shaderVorab(); },400);
   window.__bb={get S(){return S},get phase(){return phase},set phase(v){phase=v},set clock(v){clock=v},get clock(){return clock},pickUp,floorBoxes,shelves,racks,dekos,stockOne,openShop,step,customers,queue,belt,scanBelt,buyUp,buyDeko,get DS(){return DS},endDay,pending,save,openLaptop,closeLaptop,pl,addXP,hireStaff,fireStaff,staff,dirts,addDirt,movables,toggleBuild,setWall,setFloor,
     stations,firePult,placeOnStation,igniteType,get order(){return order},get phone(){return phone},makeCall,answerPhone,haggle,acceptDeal,declineDeal,get truck(){return truck},spawnTruck,takeFromTruck,takeBox,dropBox,updateTruck,get door(){return door},get tuer(){return tuer},tuerSet,tuerNah,updateSchiebetuer,doorOpen,doorIsOpen,trailerOccupied,LR,lrFront,TOR,orderReady,orderLeft,shipOne,removeFloorBox,prioOf,setPrio,racks,updateCarry,spawnFloorBox,staff,SHELFKIND,layout,shelfCapOf,shelfAccepts,emptyLevel,dateInfo,dateStr,dateShort,seasonInfo,isSunday,dayMult,ruhetag,wageOf,setWage,friendliness,inPause,setPause,windowGrime,addGrime,cleanWindowTick,ambienteScore,bildBoost,fixedCosts,dailyWages,dispoLimit,verfuegbar,dispoZins,takeLoan,loanTier,loanDaily,EVENTS,GOALS,CUSTTYPES,UPGRADES,STAFF,stockOf,spawnInterval,pools,todayEvent,evv,rollEvent,rollMarket,newGoal,goalAdd,goalTick,ekFactor,marktText,xpFor,rollCustType,priceTol,buyChance,regCustomer,makeWishes,nachfrageFaktor,shelfStockOf,buildGravur,refillGrav,openGravInput,closeGravInput,get gravBlanks(){return gravBlanks},set gravBlanks(v){gravBlanks=v},orderBox,buyPack,cartAdd,cartAddPack,cartOrder,cartClear,cartDel,cartGoods,cartFee,cartTotal,cartBoxes,cartLines,LIEFERZEIT_SEK,VERSAND,VERSANDFREI,lieferSek,
-    scene,camera,P,NEUWARE,NEU_SHOWS,NEU_FONT,NEU_KUGEL,neuZuenden,PARK,restWelle,restTick,restDruck,restDaten,buyAngebot,grossOffen,updatePark,parkWasser:()=>_wasserM,parkTannen:()=>PARK_TANNEN,parkLeben:()=>parkEnten.concat(parkLeute).map(e=>({x:e.g.position.x,z:e.g.position.z})),pendingListe:()=>pending,einbauPakete,spawnPaket,paketAblegen,paketAufheben,EINBAU,PAKET_MASS,vorDieTuer,setSB2,sbZiel,makeAuto,AUTOFORM,stadtInfo:()=>({warn:beacons.length,kronen:KRONEN.length,stufen:SKYLINE_INFO.stufen,skyStile:SKYLINE_INFO.stile.size,stile:Object.keys(STADT_MATS).length}),clearStations,fachHoehe,kindOf,packKartonWert,SUPPLIERS,supplierFor,supplierOf,tierPrice,isUnlocked,lizLevel,renderLaptop,get lsup(){return lsup},set lsup(v){lsup=v},get ltab(){return ltab},set ltab(v){ltab=v},EFF,EFF_ALL,EFF_KLEIN,EFF_GROSS,EFF_PRO,SHOWS,kugelbombe,shot,mine,FW,stations,stationOf,placedCount,togglePDA,openPDA,closePDA,setPost,get postOn(){return postOn},get pdaOn(){return pdaOn},showLength,psHuge,psBig,psMid,psSmall,rockets,emitters,timersLen:()=>timers.length,setView:(x,z,y,p)=>{pl.x=x;pl.z=z;yaw=y;pitch=p;aim=null;},schiebe:(x,z)=>{pl.x=x;pl.z=z;collide(pl,0.32);return{x:pl.x,z:pl.z};},PLZ_MAX,camYaw:()=>yaw,camPitch:()=>pitch,playerPos:()=>({x:pl.x,z:pl.z}),pultYaw:()=>pultHit?pultHit.parent.rotation.y:null,applyShopName,shopName,shopSlogan,signTexPx:()=>signTex&&signTex.image?signTex.image.getContext('2d').getImageData(0,0,signTex.image.width,40).data.join(''):null,lagerWall,fwShot:shot,KUGEL_R,ROHR_INNEN,MOERSER_R,moerserRohr,sfx,WOLKEN,get master(){return master},ac,SORTE_NEU,sortenUmstellen,get shakeWert(){return shake},get ckG(){return ckG},get ckNameTex(){return ckNameTex},get ckMovable(){return ckMov},CK_HOME,CK_ALT,spotPos,queueApproach,ckTexPx:()=>ckNameTex&&ckNameTex.image?ckNameTex.image.getContext('2d').getImageData(0,0,ckNameTex.image.width,60).data.join(''):null,testfeldMitte,STATION_POS,aimAt,UPGRADES,upPic,PLAN,planFlaechen,uhrZeiger:()=>({std:uhrStd?+uhrStd.rotation.z.toFixed(4):0,min:uhrMin?+uhrMin.rotation.z.toFixed(4):0}),drawRackSchild,get snowPts(){return snowPts},buildStadt,updateStadt,get stadtBoxen(){return stadtBoxen},get stadtBaeume(){return stadtBaeume},buildFernbaeume,schwaerme,beacons,silhouetten,get verkehrPts(){return verkehrPts},get rauchPts(){return rauchPts},get flieger(){return flieger},stadtFrei,STADT_FREI,WALLS,FLOORS,renderOnline,onlineHint,onlineStufe,onlineZahlen,onlineListe,updateOnline,SCHILDBG,SCHILDFG,setSchild,schildBg,schildFg,repaintSchilder,updateHead,allLevels,addToLevel,putInSlot,regCustomer,ZONEN,zoneOffen,oeffneZone,applyZonen,SLOTS,RACKS,slotsOffen,colliders,LAY,LOGI,WRAMPEN,WTORE,updateSnow,unterDach,dachBereiche,get lapHit2(){return lapHit2},buildLagerTerminal,toggleTest,testLevel,buyUp,get toastLast(){return toastLast},__floorBoxen:()=>floorBoxes.length,WBAY_UP,wbays,dockPlaetze,wbayFrei,wbayOffen,spawnWTruck,updateWBays,wbaysInit,wtorSet,GANG,GANGTUER,buildLagergang,flaeche,WTOR,RACKKIND,route,NAV,navFrei,navIdx,navBuild,shelfStand,shelves,sbLanes,buildSBKasse,sbFrei,sbOffen,sbNutzbar,EING2,eingaenge,naechsterEingang,setEingang2,buildSBKasse2,get sb2G(){return sb2G},TUEREN,tuerSetD,tuerNahD,packBereit,packOne,paketWert,bestellungenProTag,pakete,ddlAbholung,updateVersand,VS_GR,VS_FELD,WG_PARK,vsNeueBestellung,vsAbgleich,vsKlasse,vsQuellen,vsBestand,vsErfuellbar,vsPlan,vsStapel,vsSpielerPacken,vsSpielerBestellung,vsTischFrei,vsStatus,vsAufraeumen,vsLaden,vsBahn,vsPaketOffen,vsKlappen,vsFuellung,vsPaketZu,get vsTisch(){return vsTisch},get vsWagen(){return vsWagen},createShelf,createRack,regalStellen,testKauf,regalAufbauen,orderRegal,REGALWARE,regalOf,regalKind,regalPreis,regalPlatz,regalOffen,startGame,promptFor,ERFOLGE,erfOffen,erfStufe,erfStand,erfZiel,erfFertig,erfAnteil,erfGeschafft,erfGesamt,stat,statAdd,statRekord,statVerkauf,bruchGesehen,gruppeVon,GRUPPE,TRAEGER,BRUCH,BRUCH_IDS,REZ_FARBEN,ETIKETT,traegerVon,traegerOffen,bruchOffen,bruchListe,rezeptWow,rezeptKosten,rezeptMarkt,rezeptHype,rezeptDauer,rezeptEntwicklung,rezeptGueltig,eigeneListe,eigenesEintragen,rezepteTick,rezProto,rezBauen,renderRezeptur,get entwurf(){return entwurf},set entwurf(v){entwurf=v},entwurfInit,ORDER,LIZENZEN,lizenzOf,hatLizenz,lizenzDaten,naechsteLizenz,buyLizenz,VOLA,volaOf,REGIME,marketOf,costOf,marktZiel,marktLuecke,meOf,miOf,marktDelta,marktNiveau,marktPhase,marktSchock,marktLabel,marktSchnitt,marktExtrem,marktChance,sortimentBreite,sortimentZug,bekanntheit,spawnInterval,rollMarkt,marktInit,inflOf,inflText,setPreisAufMarkt,igniteType,get packHit(){return packHit},get packTisch(){return packTisch},get packMov(){return packMov},zuendeKanal,zuendeAlle,alleKanaele,kanalItem,openZuend,closeZuend,get zuendOpen(){return zuendOpen},overlayOpen,pultTaster,zuendTick,TISCH_X,RAMPE_X,KANAL_START,bereitCount,brennDauer,muendung,pultLamps,RAKETEN_LOOK,RAKETEN_KL,makePerson,applyTOD,updateHUD,renderer,renderFrame,get DEMO(){return DEMO},LHALLE,LOGI_STUFEN,TOR_STUFE,logiStufe,logiZeige,logiAnwenden,LOGI_G,TOR_G,WTORE,tuAktion:(kind,ref)=>{ const alt=target; target={kind,ref}; try{ doAction(); } finally { target=alt; } },promptFor,KARREN,karreArt,karreAn,karreStapel,karreLast,karreNimmt,toggleKarre,updateKarre,setTutorial,tutorialAn,zielFuer,get zielAktuell(){return zielAktuell},get tipKey(){return tipKey},updateZiel,set DEMO(v){DEMO=v},kapitelVon,kapitelVoll,openHandy,closeHandy,toggleHandy,get handyOpen(){return handyOpen},get happ(){return happ},HANDY_APPS,renderHandy,shaderVorab,SCHONER,schonerMalen,updateSchoner,makeWischer,stelleWischer,get wischer(){return wischer},updateWischen,wischerPersonal,cleanTick,updateFireworks,FLASH,spurEnden,LR_LAMPE,schweber,kundenSymbol,geldSchwebt,get serie(){return serie},serieZufrieden,serieBricht,KAPITEL,kapitel,kapitelNr,kapitelAufstieg,WA,WA_SLOTS,vorDieTuer,SB_KASSIERER,sbBesetzt,sbLaneVon,sbKassiererPlatz,MUSIK,STUECKE,musikAn,musikWeiter,musikVol,musikTick,spielSchritt,get mStep(){return mStep},set mStep(v){mStep=v;mTakte=0;},get mBus(){return mBus},get postHalf(){return postHalf},EFF_SCHWEIF,mitSchweif,KOEPFE,KLEID,UNIFORM,STAFFKOPF,faceCache,animPerson,PACKS,packPreis,packPool,packOffen,packContents,syncPakete,rotateGrab,PACK_FL,PACK_HOME,spotFree,rectOf,grab,placeGrab,updateGrab,get grabbed(){return grabbed},showPause,get target(){return target},einrOf,einrAktiv,einrHoch,einrRunter,einrSchalten,AUFGABEN,einrJob,kartonMat,pools,shelfStockOf,removeFromLevel,fwLog:(a)=>{FW_LOG=a;},moerserRohr,ROHR_KALIBER,effPassen,EFF_FAMILIE,basisBlick,fwTestSchalten,fwTestProdukte,fwTestStapeln,get fwTestAn(){return fwTestAn},get fwTestBoxen(){return fwTestBoxen},sonne:()=>sun.intensity,get fwUhr(){return FW_UHR},THEMEN,SHOW_BASIS,EFF,emittersListe:()=>emitters,
+    scene,camera,P,NEUWARE,NEU_SHOWS,NEU_FONT,NEU_KUGEL,neuZuenden,PARK,restWelle,restTick,restDruck,restDaten,buyAngebot,grossOffen,updatePark,parkWasser:()=>_wasserM,parkTannen:()=>PARK_TANNEN,parkLeben:()=>parkEnten.concat(parkLeute).map(e=>({x:e.g.position.x,z:e.g.position.z})),pendingListe:()=>pending,einbauPakete,spawnPaket,paketAblegen,paketAufheben,EINBAU,PAKET_MASS,vorDieTuer,setSB2,sbZiel,makeAuto,AUTOFORM,stadtInfo:()=>({warn:beacons.length,kronen:KRONEN.length,stufen:SKYLINE_INFO.stufen,skyStile:SKYLINE_INFO.stile.size,stile:Object.keys(STADT_MATS).length}),clearStations,fachHoehe,kindOf,packKartonWert,SUPPLIERS,supplierFor,supplierOf,tierPrice,isUnlocked,lizLevel,renderLaptop,get lsup(){return lsup},set lsup(v){lsup=v},get lkat(){return lkat},set lkat(v){lkat=v},SPARTE,SPARTE_NAME,sparteVon,HEADNAME,headArt,catPill,ekRoh,ekDelta,ekTag,ekNiveau,ekPill,get ltab(){return ltab},set ltab(v){ltab=v},EFF,EFF_ALL,EFF_KLEIN,EFF_GROSS,EFF_PRO,SHOWS,kugelbombe,shot,mine,FW,stations,stationOf,placedCount,togglePDA,openPDA,closePDA,setPost,get postOn(){return postOn},get pdaOn(){return pdaOn},showLength,psHuge,psBig,psMid,psSmall,rockets,emitters,timersLen:()=>timers.length,setView:(x,z,y,p)=>{pl.x=x;pl.z=z;yaw=y;pitch=p;aim=null;},schiebe:(x,z)=>{pl.x=x;pl.z=z;collide(pl,0.32);return{x:pl.x,z:pl.z};},PLZ_MAX,camYaw:()=>yaw,camPitch:()=>pitch,playerPos:()=>({x:pl.x,z:pl.z}),pultYaw:()=>pultHit?pultHit.parent.rotation.y:null,applyShopName,shopName,shopSlogan,signTexPx:()=>signTex&&signTex.image?signTex.image.getContext('2d').getImageData(0,0,signTex.image.width,40).data.join(''):null,lagerWall,fwShot:shot,KUGEL_R,ROHR_INNEN,MOERSER_R,moerserRohr,sfx,WOLKEN,get master(){return master},ac,SORTE_NEU,sortenUmstellen,get shakeWert(){return shake},get ckG(){return ckG},get ckNameTex(){return ckNameTex},get ckMovable(){return ckMov},CK_HOME,CK_ALT,spotPos,queueApproach,ckTexPx:()=>ckNameTex&&ckNameTex.image?ckNameTex.image.getContext('2d').getImageData(0,0,ckNameTex.image.width,60).data.join(''):null,testfeldMitte,STATION_POS,aimAt,UPGRADES,upPic,PLAN,planFlaechen,uhrZeiger:()=>({std:uhrStd?+uhrStd.rotation.z.toFixed(4):0,min:uhrMin?+uhrMin.rotation.z.toFixed(4):0}),drawRackSchild,get snowPts(){return snowPts},buildStadt,updateStadt,get stadtBoxen(){return stadtBoxen},get stadtBaeume(){return stadtBaeume},buildFernbaeume,schwaerme,beacons,silhouetten,get verkehrPts(){return verkehrPts},get rauchPts(){return rauchPts},get flieger(){return flieger},stadtFrei,STADT_FREI,WALLS,FLOORS,bodenMalen,wandMalen,oberflaechenMuster,oberflaechenAnwenden,BODEN_KACHEL,WAND_B,WAND_H,bodenPx,wandPx,innenUmgebung,sockelM,get wallTex(){return wallTex},get floorTexRef(){return floorTexRef},get floorMat(){return floorMat},get shopWall(){return shopWall},renderOnline,onlineHint,onlineStufe,onlineZahlen,onlineListe,updateOnline,SCHILDBG,SCHILDFG,setSchild,schildBg,schildFg,repaintSchilder,updateHead,allLevels,addToLevel,putInSlot,regCustomer,ZONEN,zoneOffen,oeffneZone,applyZonen,SLOTS,RACKS,slotsOffen,colliders,LAY,LOGI,WRAMPEN,WTORE,updateSnow,unterDach,dachBereiche,get lapHit2(){return lapHit2},buildLagerTerminal,toggleTest,testLevel,buyUp,get toastLast(){return toastLast},__floorBoxen:()=>floorBoxes.length,WBAY_UP,wbays,dockPlaetze,wbayFrei,wbayOffen,spawnWTruck,updateWBays,wbaysInit,wtorSet,GANG,GANGTUER,buildLagergang,flaeche,WTOR,RACKKIND,route,NAV,navFrei,navIdx,navBuild,shelfStand,shelves,sbLanes,buildSBKasse,sbFrei,sbOffen,sbNutzbar,EING2,eingaenge,naechsterEingang,setEingang2,buildSBKasse2,get sb2G(){return sb2G},TUEREN,tuerSetD,tuerNahD,packBereit,packOne,paketWert,bestellungenProTag,pakete,ddlAbholung,updateVersand,VS_GR,VS_FELD,WG_PARK,vsNeueBestellung,vsAbgleich,vsKlasse,vsQuellen,vsBestand,vsErfuellbar,vsPlan,vsStapel,vsSpielerPacken,vsSpielerBestellung,vsTischFrei,vsStatus,vsAufraeumen,vsLaden,vsBahn,vsPaketOffen,vsKlappen,vsFuellung,vsPaketZu,get vsTisch(){return vsTisch},get vsWagen(){return vsWagen},createShelf,createRack,regalStellen,testKauf,regalAufbauen,orderRegal,REGALWARE,regalOf,regalKind,regalPreis,regalPlatz,regalOffen,startGame,promptFor,ERFOLGE,erfOffen,erfStufe,erfStand,erfZiel,erfFertig,erfAnteil,erfGeschafft,erfGesamt,stat,statAdd,statRekord,statVerkauf,bruchGesehen,gruppeVon,GRUPPE,TRAEGER,BRUCH,BRUCH_IDS,REZ_FARBEN,ETIKETT,traegerVon,traegerOffen,bruchOffen,bruchListe,rezeptWow,rezeptKosten,rezeptMarkt,rezeptHype,rezeptDauer,rezeptEntwicklung,rezeptGueltig,eigeneListe,eigenesEintragen,rezepteTick,rezProto,rezBauen,renderRezeptur,get entwurf(){return entwurf},set entwurf(v){entwurf=v},entwurfInit,ORDER,LIZENZEN,lizenzOf,hatLizenz,lizenzDaten,naechsteLizenz,buyLizenz,VOLA,volaOf,REGIME,marketOf,costOf,marktZiel,marktLuecke,meOf,miOf,marktDelta,marktNiveau,marktPhase,marktSchock,marktLabel,marktSchnitt,marktExtrem,marktChance,sortimentBreite,sortimentZug,bekanntheit,spawnInterval,rollMarkt,marktInit,inflOf,inflText,setPreisAufMarkt,igniteType,get packHit(){return packHit},get packTisch(){return packTisch},get packMov(){return packMov},zuendeKanal,zuendeAlle,alleKanaele,kanalItem,openZuend,closeZuend,get zuendOpen(){return zuendOpen},overlayOpen,pultTaster,zuendTick,TISCH_X,RAMPE_X,KANAL_START,bereitCount,brennDauer,muendung,pultLamps,RAKETEN_LOOK,RAKETEN_KL,makePerson,applyTOD,updateHUD,renderer,renderFrame,get DEMO(){return DEMO},LHALLE,LOGI_STUFEN,TOR_STUFE,logiStufe,logiZeige,logiAnwenden,LOGI_G,TOR_G,WTORE,tuAktion:(kind,ref)=>{ const alt=target; target={kind,ref}; try{ doAction(); } finally { target=alt; } },promptFor,KARREN,karreArt,karreAn,karreStapel,karreLast,karreNimmt,toggleKarre,updateKarre,setTutorial,tutorialAn,zielFuer,get zielAktuell(){return zielAktuell},get tipKey(){return tipKey},updateZiel,set DEMO(v){DEMO=v},kapitelVon,kapitelVoll,openHandy,closeHandy,toggleHandy,get handyOpen(){return handyOpen},get happ(){return happ},HANDY_APPS,renderHandy,shaderVorab,SCHONER,schonerMalen,updateSchoner,makeWischer,stelleWischer,get wischer(){return wischer},updateWischen,wischerPersonal,cleanTick,updateFireworks,FLASH,spurEnden,LR_LAMPE,schweber,kundenSymbol,geldSchwebt,get serie(){return serie},serieZufrieden,serieBricht,KAPITEL,kapitel,kapitelNr,kapitelAufstieg,WA,WA_SLOTS,vorDieTuer,SB_KASSIERER,sbBesetzt,sbLaneVon,sbKassiererPlatz,MUSIK,STUECKE,musikAn,musikWeiter,musikVol,musikTick,spielSchritt,get mStep(){return mStep},set mStep(v){mStep=v;mTakte=0;},get mBus(){return mBus},get postHalf(){return postHalf},EFF_SCHWEIF,mitSchweif,KOEPFE,KLEID,UNIFORM,STAFFKOPF,faceCache,animPerson,PACKS,packPreis,packPool,packOffen,packContents,syncPakete,rotateGrab,PACK_FL,PACK_HOME,spotFree,rectOf,grab,placeGrab,updateGrab,get grabbed(){return grabbed},showPause,get target(){return target},einrOf,einrAktiv,einrHoch,einrRunter,einrSchalten,AUFGABEN,einrJob,kartonMat,pools,shelfStockOf,removeFromLevel,fwLog:(a)=>{FW_LOG=a;},moerserRohr,ROHR_KALIBER,effPassen,EFF_FAMILIE,basisBlick,fwTestSchalten,fwTestProdukte,fwTestStapeln,get fwTestAn(){return fwTestAn},get fwTestBoxen(){return fwTestBoxen},sonne:()=>sun.intensity,get fwUhr(){return FW_UHR},THEMEN,SHOW_BASIS,EFF,emittersListe:()=>emitters,
     shot:()=>{ noLoop=true; camera.position.set(pl.x,1.65,pl.z); camera.rotation.set(pitch,yaw,0); camera.updateMatrixWorld(); updateTarget(); applyTOD(); renderFrame(0.016); return canvas.toDataURL('image/jpeg',0.85); },
     run:(sec,dt)=>{ noLoop=true; const n=Math.round(sec/(dt||0.05)); for(let i=0;i<n;i++) step(dt||0.05); }};
 });

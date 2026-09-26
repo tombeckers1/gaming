@@ -105,6 +105,20 @@ function prodPicTag(t){
   if(!_picLaeuft){ _picLaeuft=true; setTimeout(prodPicSchritt,30); }
   return `src="${prodFlach(t)}" data-pic="${t}"`;
 }
+/* Muster fuer Wand und Boden nachmalen, ein paar pro Bild */
+const _musterWarte=[]; let _musterLaeuft=false;
+function musterFertig(kind,o){
+  const u=oberflaechenMuster(kind,o,true); if(u) return u;
+  if(!_musterWarte.some(x=>x[0]===kind&&x[1]===o)) _musterWarte.push([kind,o]);
+  if(!_musterLaeuft){ _musterLaeuft=true; setTimeout(musterSchritt,30); }
+  return null;
+}
+function musterSchritt(){
+  const t0=performance.now();
+  while(_musterWarte.length&&performance.now()-t0<14){ const [kind,o]=_musterWarte.shift(), u=oberflaechenMuster(kind,o);
+    document.querySelectorAll(`[data-muster="${kind}:${o.id}"]`).forEach(el=>{ el.style.background=`url(${u}) center/cover`; el.removeAttribute('data-muster'); }); }
+  if(_musterWarte.length) setTimeout(musterSchritt,16); else _musterLaeuft=false;
+}
 function prodPicSchritt(){
   const t0=performance.now();
   while(_picWarte.length&&performance.now()-t0<12){ const t=_picWarte.shift(), u=prodPic(t);
@@ -996,16 +1010,15 @@ function lapZeichnen(body){
   } else if(ltab==='deko'){
     hint=`Stimmung im Laden: ${ambienteScore()} von 100. Verschieben geht im Umbaumodus.`;
     const sw=(arr,cur,kind)=>arr.map(w=>{ const lock=S.level<w.lvl, own=cur===w.id;
-      let bg=kind==='wall'?`linear-gradient(160deg,${w.up} 55%,${w.low} 55%)`:`linear-gradient(160deg,${w.a} 55%,${w.b} 55%)`;
-      if(kind==='wall'&&w.pat==='streifen') bg=`linear-gradient(160deg,${w.up} 55%,${w.low} 55%),repeating-linear-gradient(90deg,${w.pat2} 0 4px,transparent 4px 9px)`;
-      if(kind==='wall'&&w.pat) bg=`repeating-linear-gradient(${w.pat==='raute'?'45deg':w.pat==='holz'?'90deg':'0deg'},${w.pat2} 0 3px,${w.up} 3px 8px)`;
-      if(kind==='floor'&&w.check) bg=`repeating-conic-gradient(${w.a} 0 25%,${w.b} 0 50%) 0 0/16px 16px`;
-      if(kind==='floor'&&w.wood) bg=`repeating-linear-gradient(90deg,${w.a} 0 6px,${w.b} 6px 12px)`;
+      /* echtes Material im Kleinen, im Massstab (05o) - erst die
+         Grundfarbe, das Muster malt musterSchritt nach (alle auf
+         einmal kosteten beim ersten Oeffnen ueber zwei Sekunden) */
+      const url=musterFertig(kind,w), bg=url?`url(${url}) center/cover`:(w.a||'#ccc');
       /* Preis steht auf der Kachel: vorher nur im Tooltip, am Handy
          also unsichtbar - und der Klick ohne genug Geld tat nichts. */
       const hat=!w.cost||(S.paint||[]).indexOf(w.id)>=0, arm=!hat&&S.money<w.cost;
       const pz=lock?`ab Lvl ${w.lvl}`:hat?'✓':Math.round(w.cost)+' €';
-      return `<button class="sw dk${own?' on':''}${arm?' arm':''}" title="${w.name}${w.cost?' · '+eur(w.cost):' · frei'}${S.level<w.lvl?' (ab Lvl '+w.lvl+')':''}" data-a="${kind}" data-t="${w.id}" style="background:${bg}" ${lock?'disabled':''}><span class="pz${hat?' ok':''}">${pz}</span></button>`; }).join('');
+      return `<button class="sw dk mat${own?' on':''}${arm?' arm':''}" title="${w.name}${w.cost?' · '+eur(w.cost):' · frei'}${S.level<w.lvl?' (ab Lvl '+w.lvl+')':''}" data-a="${kind}" data-t="${w.id}"${url?'':` data-muster="${kind}:${w.id}"`} style="background:${bg}" ${lock?'disabled':''}><span class="pz${hat?' ok':''}">${pz}</span></button>`; }).join('');
     const wNow=WALLS.find(w=>w.id===S.wall)||WALLS[0], fNow=FLOORS.find(f=>f.id===S.floor)||FLOORS[0];
     /* Regalschilder: die Muster zeigen immer die Kombination aus
        Hintergrund und Schrift, damit man sieht, was man bekommt. */

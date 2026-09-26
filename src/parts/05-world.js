@@ -6,7 +6,7 @@ const SKY_R=285;
 let lapHit, padHit, doorSign, doorSignTex, starsMat, posHit, cardHit, posTex, beltTex, skyGeo, skyMesh=null, starPts=null, lampMats=[], houseMats=[], snowPts;
 let grimeMats=[], windowHits=[], winWork=0;
 let uhrStd=null, uhrMin=null, uhrSek=null;
-let wallTex=null, floorTexRef=null, shopWall=null, shopUpper=null, shopLower=null, floorMat=null;
+let wallTex=null, floorTexRef=null, shopWall=null, floorMat=null;
 const WH=3.6;
 /* =========================================================
    Grundriss. Die ganze Flaeche steht von Anfang an, aber nur
@@ -97,69 +97,10 @@ const LAGER_H=HALLE_H;
 const GH_H=12.0;
 /* Lichte Hoehe der Schleuse */
 const SCHLEUSE_H=3.4;
-function paintWall(g,W,H,c){
-  g.fillStyle=c.up; g.fillRect(0,0,W,H);
-  const band=Math.round(H*(1-1.1/WH));
-  if(c.pat==='streifen'){ g.fillStyle=c.pat2; for(let x=0;x<W;x+=W/6) g.fillRect(x,0,W/14,band);
-    g.fillStyle='rgba(0,0,0,.05)'; for(let x=W/12;x<W;x+=W/6) g.fillRect(x,0,W/40,band); }
-  else if(c.pat==='raute'){ g.strokeStyle=c.pat2; g.lineWidth=Math.max(1.5,W/90);
-    const s2=W/5; for(let y=-s2;y<band+s2;y+=s2){ for(let x=-s2;x<W+s2;x+=s2){
-      g.beginPath(); g.moveTo(x,y+s2/2); g.lineTo(x+s2/2,y); g.lineTo(x+s2,y+s2/2); g.lineTo(x+s2/2,y+s2); g.closePath(); g.stroke(); } } }
-  else if(c.pat==='ziegel'){ const bh=band/14;
-    for(let r=0;r<14;r++){ const off=(r%2)*(W/6);
-      for(let x=-W/6;x<W;x+=W/3){ g.fillStyle=c.pat2; g.fillRect(x+off+2,r*bh+2,W/3-4,bh-4); } }
-    g.fillStyle='rgba(255,255,255,.08)'; for(let r=0;r<14;r++) g.fillRect(0,r*bh,W,1.5); }
-  else if(c.pat==='blume'){ const s2=W/4;
-    for(let y=s2/2;y<band;y+=s2) for(let x=((y/s2)%2)*s2/2;x<W;x+=s2){
-      g.fillStyle=c.pat2; for(let k=0;k<5;k++){ const a2=k/5*Math.PI*2;
-        g.beginPath(); g.ellipse(x+Math.cos(a2)*s2*0.13,y+Math.sin(a2)*s2*0.13,s2*0.09,s2*0.05,a2,0,Math.PI*2); g.fill(); }
-      g.fillStyle='rgba(255,255,255,.5)'; g.beginPath(); g.arc(x,y,s2*0.045,0,Math.PI*2); g.fill(); } }
-  else if(c.pat==='holz'){ const pw=W/5;
-    for(let x=0;x<W;x+=pw){ g.fillStyle=c.pat2; g.fillRect(x+2,0,pw-4,band);
-      g.fillStyle='rgba(0,0,0,.22)'; g.fillRect(x,0,2,band);
-      g.strokeStyle='rgba(60,40,20,.18)'; g.lineWidth=1;
-      for(let k=0;k<5;k++){ g.beginPath(); g.moveTo(x+4+k*(pw/6),0); g.bezierCurveTo(x+8+k*(pw/6),band*0.3,x+2+k*(pw/6),band*0.7,x+6+k*(pw/6),band); g.stroke(); } } }
-  else if(c.pat==='ornament'){ const s2=W/4;
-    for(let y=s2/2;y<band;y+=s2) for(let x=((y/s2)%2)*s2/2;x<W;x+=s2){
-      g.strokeStyle=c.pat2; g.lineWidth=Math.max(1.5,W/120);
-      g.beginPath(); g.arc(x,y,s2*0.22,0,Math.PI*2); g.stroke();
-      g.beginPath(); g.moveTo(x-s2*0.3,y); g.quadraticCurveTo(x,y-s2*0.32,x+s2*0.3,y); g.stroke();
-      g.beginPath(); g.moveTo(x-s2*0.3,y); g.quadraticCurveTo(x,y+s2*0.32,x+s2*0.3,y); g.stroke(); } }
-  g.fillStyle=c.low; g.fillRect(0,band,W,H-band);
-  g.fillStyle=c.rail; g.fillRect(0,band-6,W,8); g.fillStyle='rgba(255,255,255,.25)'; g.fillRect(0,band-6,W,2);
-}
-function paintFloor(g,W,H,f){
-  g.setTransform(1,0,0,1,0,0); g.scale(W/256,H/256); W=256; H=256;
-  g.fillStyle=f.b; g.fillRect(0,0,W,H);
-  if(f.big){ for(let i=0;i<2;i++) for(let j=0;j<2;j++){ g.fillStyle=(i+j)%2?f.a:f.b; g.fillRect(i*128+2,j*128+2,124,124);
-      for(let k=0;k<40;k++){ g.fillStyle=`rgba(0,0,0,${Math.random()*0.03})`; g.fillRect(i*128+Math.random()*124,j*128+Math.random()*124,6,4); } } }
-  else if(f.plate){ g.fillStyle=f.a; g.fillRect(0,0,W,H);
-    for(let y=0;y<H;y+=32) for(let x=0;x<W;x+=32){ g.fillStyle=f.b; g.save(); g.translate(x+16,y+16); g.rotate((x/32+y/32)%2?0.7:-0.7);
-      g.fillRect(-11,-3,22,6); g.restore(); }
-    g.fillStyle='rgba(255,255,255,.08)'; for(let y=0;y<H;y+=32) g.fillRect(0,y,W,1); }
-  else if(f.carpet){ g.fillStyle=f.a; g.fillRect(0,0,W,H);
-    for(let i=0;i<9000;i++){ const v=Math.random(); g.fillStyle=`rgba(${v<0.5?0:255},${v<0.5?0:255},${v<0.5?0:255},${Math.random()*0.10})`; g.fillRect(Math.random()*W,Math.random()*H,2,2); } }
-  else if(f.marble){ g.fillStyle=f.a; g.fillRect(0,0,W,H);
-    for(let i=0;i<26;i++){ g.strokeStyle=`rgba(120,120,130,${rand(0.06,0.24)})`; g.lineWidth=rand(1,4);
-      let x=Math.random()*W, y=Math.random()*H; g.beginPath(); g.moveTo(x,y);
-      for(let k=0;k<7;k++){ x+=rand(-50,50); y+=rand(-40,40); g.lineTo(x,y); } g.stroke(); }
-    g.strokeStyle='rgba(0,0,0,.14)'; g.lineWidth=2; g.strokeRect(0,0,128,128); g.strokeRect(128,0,128,128); g.strokeRect(0,128,128,128); g.strokeRect(128,128,128,128); }
-  else if(f.check){ for(let i=0;i<2;i++) for(let j=0;j<2;j++){ g.fillStyle=(i+j)%2?f.a:f.b; g.fillRect(i*128,j*128,128,128); } }
-  else if(f.wood){ for(let r=0;r<8;r++){ const off=(r%2)*40; for(let x=-80;x<W;x+=120){ g.fillStyle=r%2?f.a:f.b; g.fillRect(x+off,r*32,116,30); g.fillStyle='rgba(0,0,0,.14)'; g.fillRect(x+off,r*32+29,116,2); } } }
-  else if(f.terra){ g.fillStyle=f.a; g.fillRect(0,0,W,H); for(let i=0;i<420;i++){ g.fillStyle=pick(['#8a8175','#c2452f','#3d5a6c','#d9cdb4','#6b7a52']); g.globalAlpha=0.75; g.save(); g.translate(Math.random()*W,Math.random()*H); g.rotate(Math.random()*3); g.fillRect(-4,-3,8+Math.random()*6,5); g.restore(); } g.globalAlpha=1; }
-  else { for(let i=0;i<2;i++) for(let j=0;j<2;j++){ g.fillStyle=f.a; g.fillRect(i*128+1,j*128+1,126,126); for(let k=0;k<70;k++){ g.fillStyle=`rgba(0,0,0,${Math.random()*0.045})`; g.fillRect(i*128+Math.random()*124,j*128+Math.random()*124,3,3); } } }
-  g.strokeStyle='rgba(0,0,0,.2)'; g.lineWidth=2; g.strokeRect(0,0,128,128); g.strokeRect(128,0,128,128); g.strokeRect(0,128,128,128); g.strokeRect(128,128,128,128);
-}
 function wallSet(){ return WALLS.find(w=>w.id===S.wall)||WALLS[0]; }
 function floorSet(){ return FLOORS.find(f=>f.id===S.floor)||FLOORS[0]; }
-function repaint(){
-  const w=wallSet(), f=floorSet();
-  if(wallTex) redraw(wallTex,(g,W,H)=>paintWall(g,W,H,w));
-  if(shopUpper) shopUpper.color=LIN(parseInt(w.up.slice(1),16));
-  if(shopLower) shopLower.color=LIN(parseInt(w.low.slice(1),16));
-  if(floorTexRef) redraw(floorTexRef,(g,W,H)=>paintFloor(g,W,H,f));
-  if(typeof applyReliefs==='function') applyReliefs();
-}
+/* Streichen und verlegen: die Maler stehen in 05o-oberflaechen */
+function repaint(){ oberflaechenAnwenden(); }
 /* =========================================================
    Aussenhaut der Gebaeude.
 

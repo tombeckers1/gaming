@@ -9,7 +9,12 @@
    Betreten kann man den Park nicht - er liegt hinter dem Zaun und ist
    Kulisse fuer das Testfeld.
    ========================================================= */
-const PARK={x0:-19, x1:40, z0:-53, z1:-30.5};
+/* Vom Testfeldzaun (z -28) bis an die Stadt: die faengt bei z -54
+   und x 42 an (STADT_FREI in 05j). Oestlich des Testfelds reicht die
+   Wiese bis an die Suedhallenwand (z -22.2). Ausgespart bleiben das
+   Testfeld selbst und die Ecke, in der das Lager steht (PARK_LOCH). */
+const PARK={x0:-19, x1:41.5, z0:-53.6, z1:-22.3};
+const PARK_LOCH=[{x0:-19, x1:-7.7, z0:-30.4, z1:-22.3},{x0:-7.7, x1:8.15, z0:-28.1, z1:-22.3}];
 const SEE={x:13, z:-42, rx:8.5, rz:4.6};
 /* Rundweg: Ellipse um den See */
 const RUNDWEG={x:13, z:-42, rx:13.5, rz:8.2};
@@ -23,7 +28,7 @@ function buildPark(){
   /* --- Boden: Winterwiese, Kieswege, Schneereste --- */
   const t=tex(W,H,(g)=>{
     g.fillStyle='#56663f'; g.fillRect(0,0,W,H);
-    for(let i=0;i<26000;i++){ const v=Math.random();
+    for(let i=0;i<34000;i++){ const v=Math.random();
       g.fillStyle=v<0.5?`rgba(40,52,28,${Math.random()*0.35})`:`rgba(150,160,110,${Math.random()*0.18})`;
       g.fillRect(Math.random()*W,Math.random()*H,rand(1,3),rand(2,5)); }
     /* Kiesweg rund um den See und ein Querweg */
@@ -32,20 +37,32 @@ function buildPark(){
     g.beginPath(); g.moveTo(X(P0.x0),Z(-33)); g.quadraticCurveTo(X(-4),Z(-36),X(RUNDWEG.x-RUNDWEG.rx),Z(RUNDWEG.z)); g.stroke();
     g.beginPath(); g.moveTo(X(RUNDWEG.x+RUNDWEG.rx),Z(RUNDWEG.z)); g.quadraticCurveTo(X(34),Z(-47),X(P0.x1),Z(-51)); g.stroke();
     for(let i=0;i<9000;i++){ const a=Math.random()*Math.PI*2, rr=1+rand(-0.07,0.07);
-      g.fillStyle=`rgba(${Math.random()<0.5?90:230},${Math.random()<0.5?80:220},${Math.random()<0.5?60:200},.35)`;
+      const v=Math.random()<0.5?95:215; g.fillStyle=`rgba(${v},${v-8},${v-22},.35)`;
       g.fillRect(X(RUNDWEG.x)+Math.cos(a)*RUNDWEG.rx*M*rr,Z(RUNDWEG.z)+Math.sin(a)*RUNDWEG.rz*M*rr,2,2); }
     /* Schneereste im Schatten und am Wegrand */
-    for(let i=0;i<60;i++){ const x=Math.random()*W, y=Math.random()*H, r=rand(0.6,2.8)*M;
-      const gr=g.createRadialGradient(x,y,0,x,y,r); gr.addColorStop(0,'rgba(236,240,246,.75)'); gr.addColorStop(1,'rgba(236,240,246,0)');
+    for(let i=0;i<70;i++){ const x=Math.random()*W, y=Math.random()*H, r=rand(0.5,2.0)*M;
+      const gr=g.createRadialGradient(x,y,0,x,y,r); gr.addColorStop(0,'rgba(236,240,246,.42)'); gr.addColorStop(1,'rgba(236,240,246,0)');
       g.fillStyle=gr; g.beginPath(); g.ellipse(x,y,r,r*rand(0.5,0.9),Math.random()*3,0,Math.PI*2); g.fill(); }
     /* Uferstreifen: feuchte dunkle Erde */
     g.fillStyle='#3a3a2a'; g.beginPath();
     for(let k=0;k<=64;k++){ const a=k/64*Math.PI*2, f=seeRand(a)*1.12;
       const x=X(SEE.x+Math.cos(a)*SEE.rx*f), y=Z(SEE.z+Math.sin(a)*SEE.rz*f); k?g.lineTo(x,y):g.moveTo(x,y); } g.fill();
+    /* Die Lagerecke: dort steht ein Gebaeude, kein Rasen */
+    for(const L of PARK_LOCH) g.clearRect(X(L.x0)-2,Z(L.z0),X(L.x1)-X(L.x0)+2,Z(L.z1)-Z(L.z0)+2);
   });
   t.anisotropy=8;
-  const boden=flat(P0.x1-P0.x0,P0.z1-P0.z0,new THREE.MeshStandardMaterial({map:t,roughness:0.95}),(P0.x0+P0.x1)/2,0.03,(P0.z0+P0.z1)/2);
-  boden.receiveShadow=true;
+  /* Boden als Flaeche mit Aussparungen - nur transparent malen reicht
+     nicht: Strahlen, Schatten und Kollision sehen die Geometrie. */
+  const umriss=[[P0.x0,P0.z0],[P0.x1,P0.z0],[P0.x1,P0.z1]];
+  { const [A,B]=PARK_LOCH; umriss.push([B.x1,P0.z1],[B.x1,B.z0],[B.x0,B.z0],[A.x1,A.z0],[A.x0,A.z0]); }
+  const bsh=new THREE.Shape(umriss.map(([x,z])=>new THREE.Vector2(x,-z)));
+  const bgeo=new THREE.ShapeGeometry(bsh), bp=bgeo.attributes.position, buv=bgeo.attributes.uv;
+  for(let i=0;i<bp.count;i++){ const x=bp.getX(i), z=-bp.getY(i);
+    buv.setXY(i,(x-P0.x0)/(P0.x1-P0.x0),1-(z-P0.z0)/(P0.z1-P0.z0)); }
+  bgeo.rotateX(-Math.PI/2); bgeo.computeVertexNormals();
+  const boden=new THREE.Mesh(bgeo,new THREE.MeshStandardMaterial({map:t,roughness:0.95,alphaTest:0.5}));
+  boden.position.y=0.03; scene.add(boden);
+  boden.receiveShadow=true; boden.userData.park=true;
   /* --- See: unregelmaessige Wasserflaeche, spiegelt den Himmel --- */
   { const sh=new THREE.Shape();
     for(let k=0;k<=72;k++){ const a=k/72*Math.PI*2, f=seeRand(a), x=Math.cos(a)*SEE.rx*f, z=Math.sin(a)*SEE.rz*f;
@@ -53,7 +70,7 @@ function buildPark(){
     const env=typeof autoUmgebung==='function'?autoUmgebung():null;
     _wasserM=new THREE.MeshStandardMaterial({color:LIN(0x2c4650),roughness:0.06,metalness:0.55,envMap:env,envMapIntensity:0.9});
     const w=new THREE.Mesh(new THREE.ShapeGeometry(sh,48),_wasserM);
-    w.rotation.x=-Math.PI/2; w.position.set(SEE.x,0.06,SEE.z); scene.add(w);
+    w.rotation.x=-Math.PI/2; w.position.set(SEE.x,0.06,SEE.z); w.userData.park=true; scene.add(w);
     /* Ufersteine, Schilf, Steg */
     const T=[];
     for(let k=0;k<70;k++){ const a=k/70*Math.PI*2+rand(-0.03,0.03), f=seeRand(a)*rand(1.0,1.06), r=rand(0.12,0.3);
@@ -73,11 +90,19 @@ function buildPark(){
   const laub=[[-14,-34],[-9,-49],[1,-33],[4,-51],[27,-33],[31,-50],[37,-38],[-3,-44],[22,-52]];
   laub.forEach(([x,z],i)=>{ if(typeof makeBaum!=='function') return; const b=makeBaum(); b.position.set(x,0,z); b.scale.setScalar(1.1+parkRauschen(i)*0.5); b.rotation.y=parkRauschen(i+7)*6; b.userData.baum=true; b.userData.park=true; scene.add(b); });
   const T=[];
-  const tanne=(x,z,h)=>{ T.push({geo:new THREE.CylinderGeometry(0.12,0.18,h*0.25,6),m:tm(x,h*0.125,z),color:0x4a3624});
-    for(let k=0;k<4;k++){ const r=h*(0.36-k*0.075), y=h*(0.2+k*0.19), hh=h*0.34;
-      T.push({geo:new THREE.ConeGeometry(r,hh,9),m:tm(x,y+hh/2,z),color:k%2?0x2c4a33:0x264230});
-      T.push({geo:new THREE.ConeGeometry(r*0.82,hh*0.3,9),m:tm(x,y+hh*0.82,z),color:0xe6ebf2}); } };
-  [[-17,-40],[-16,-51],[-11,-38],[-6,-52],[6,-36],[19,-31.5],[33,-44],[38,-52],[39,-32],[-1,-50],[25,-49],[-18,-46]]
+  /* Tanne: sechs leicht versetzte, schraege Etagen statt vier sauberer
+     Kegel, Schnee nur als duenne Haube auf der Oberseite */
+  let tn=0;
+  const tanne=(x,z,h)=>{ const q=()=>parkRauschen(tn++*1.7+x*3.1+z);
+    T.push({geo:new THREE.CylinderGeometry(0.1,0.17,h*0.3,6),m:tm(x,h*0.15,z),color:0x4a3624});
+    for(let k=0;k<6;k++){ const f=k/5, r=h*(0.34-f*0.25)*(0.9+q()*0.2), y=h*(0.14+f*0.66), hh=h*(0.3-f*0.1);
+      const ox=(q()-0.5)*0.12*h*0.1, oz=(q()-0.5)*0.12*h*0.1, kip=(q()-0.5)*0.08;
+      T.push({geo:new THREE.ConeGeometry(r,hh,11),m:tm(x+ox,y+hh/2,z+oz,kip,q()*6,kip),color:[0x223f2c,0x2a4a33,0x1f3a29][k%3]});
+      /* Haube = obere 45 % desselben Kegels, einen Hauch groesser: liegt
+         auf, statt als Ring abzustehen */
+      T.push({geo:new THREE.ConeGeometry(r*0.45*1.06,hh*0.45,11),m:tm(x+ox,y+hh*(0.55+0.225)+0.015,z+oz,kip,q()*6,kip),color:0xd9e1ea}); }
+    T.push({geo:new THREE.ConeGeometry(h*0.05,h*0.14,7),m:tm(x,h*0.86,z),color:0x2a4a33}); };
+  [[13,-24.8],[22,-25.4],[31,-24.9],[39,-25.6],[-17,-40],[-16,-51],[-11,-38],[-6,-52],[6,-36],[19,-31.5],[33,-44],[38,-52],[39,-32],[-1,-50],[25,-49],[-18,-46]]
     .forEach(([x,z],i)=>{ tanne(x,z,4+parkRauschen(i+3)*3.5); PARK_TANNEN++; });
   /* Buesche mit Schneehauben */
   [[-8,-40],[0,-39],[26,-44],[29,-36],[5,-47],[20,-49],[-13,-45],[35,-47]].forEach(([x,z],i)=>{

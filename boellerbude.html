@@ -8169,6 +8169,170 @@ function logiAnwenden(){
   TOR_G.forEach((g,k)=>{ const an=TOR_STUFE[k]<=z; g.visible=an; logiColSetzen(TOR_COLS[k],an); });
   if(typeof navDirty==='function') navDirty();
 }
+/* =========================================================
+   Park hinter dem Testfeld (Tom, 26.09.: "diese graue Flaeche - ein
+   paar Baeume, ein kleiner See, dass da ein bisschen Natur und Leben
+   reinkommt. Dann sieht das Feuerwerk auch noch mal geiler aus").
+   Zwischen Testfeldzaun und Stadt lag nur Asphalt. Jetzt: Winterwiese
+   mit Kieswegen, ein See mit Steg, Schilf und Enten, kahle Laubbaeume
+   und verschneite Tannen, Bueschen, Baenke, Laternen und ein paar
+   Spaziergaenger auf dem Rundweg.
+   Betreten kann man den Park nicht - er liegt hinter dem Zaun und ist
+   Kulisse fuer das Testfeld.
+   ========================================================= */
+/* Vom Testfeldzaun (z -28) bis an die Stadt: die faengt bei z -54
+   und x 42 an (STADT_FREI in 05j). Oestlich des Testfelds reicht die
+   Wiese bis an die Suedhallenwand (z -22.2). Ausgespart bleiben das
+   Testfeld selbst und die Ecke, in der das Lager steht (PARK_LOCH). */
+const PARK={x0:-19, x1:41.5, z0:-53.6, z1:-22.3};
+const PARK_LOCH=[{x0:-19, x1:-7.7, z0:-30.4, z1:-22.3},{x0:-7.7, x1:8.15, z0:-28.1, z1:-22.3}];
+const SEE={x:13, z:-42, rx:8.5, rz:4.6};
+/* Rundweg: Ellipse um den See */
+const RUNDWEG={x:13, z:-42, rx:13.5, rz:8.2};
+let _wasserM=null, PARK_TANNEN=0;
+const parkEnten=[], parkLeute=[];
+function parkRauschen(i){ const x=Math.sin(i*12.9898)*43758.5453; return x-Math.floor(x); }
+function seeRand(a){ return 1+0.1*Math.sin(a*3+0.7)+0.06*Math.sin(a*5+2.1); }
+function buildPark(){
+  const P0=PARK, W=2048, H=Math.round(2048*(P0.z1-P0.z0)/(P0.x1-P0.x0));
+  const X=x=>(x-P0.x0)/(P0.x1-P0.x0)*W, Z=z=>(z-P0.z0)/(P0.z1-P0.z0)*H, M=W/(P0.x1-P0.x0);
+  /* --- Boden: Winterwiese, Kieswege, Schneereste --- */
+  const t=tex(W,H,(g)=>{
+    g.fillStyle='#56663f'; g.fillRect(0,0,W,H);
+    for(let i=0;i<34000;i++){ const v=Math.random();
+      g.fillStyle=v<0.5?`rgba(40,52,28,${Math.random()*0.35})`:`rgba(150,160,110,${Math.random()*0.18})`;
+      g.fillRect(Math.random()*W,Math.random()*H,rand(1,3),rand(2,5)); }
+    /* Kiesweg rund um den See und ein Querweg */
+    g.lineCap='round'; g.strokeStyle='#b8ab92'; g.lineWidth=2.2*M;
+    g.beginPath(); g.ellipse(X(RUNDWEG.x),Z(RUNDWEG.z),RUNDWEG.rx*M,RUNDWEG.rz*M,0,0,Math.PI*2); g.stroke();
+    g.beginPath(); g.moveTo(X(P0.x0),Z(-33)); g.quadraticCurveTo(X(-4),Z(-36),X(RUNDWEG.x-RUNDWEG.rx),Z(RUNDWEG.z)); g.stroke();
+    g.beginPath(); g.moveTo(X(RUNDWEG.x+RUNDWEG.rx),Z(RUNDWEG.z)); g.quadraticCurveTo(X(34),Z(-47),X(P0.x1),Z(-51)); g.stroke();
+    for(let i=0;i<9000;i++){ const a=Math.random()*Math.PI*2, rr=1+rand(-0.07,0.07);
+      const v=Math.random()<0.5?95:215; g.fillStyle=`rgba(${v},${v-8},${v-22},.35)`;
+      g.fillRect(X(RUNDWEG.x)+Math.cos(a)*RUNDWEG.rx*M*rr,Z(RUNDWEG.z)+Math.sin(a)*RUNDWEG.rz*M*rr,2,2); }
+    /* Schneereste im Schatten und am Wegrand */
+    for(let i=0;i<70;i++){ const x=Math.random()*W, y=Math.random()*H, r=rand(0.5,2.0)*M;
+      const gr=g.createRadialGradient(x,y,0,x,y,r); gr.addColorStop(0,'rgba(236,240,246,.42)'); gr.addColorStop(1,'rgba(236,240,246,0)');
+      g.fillStyle=gr; g.beginPath(); g.ellipse(x,y,r,r*rand(0.5,0.9),Math.random()*3,0,Math.PI*2); g.fill(); }
+    /* Uferstreifen: feuchte dunkle Erde */
+    g.fillStyle='#3a3a2a'; g.beginPath();
+    for(let k=0;k<=64;k++){ const a=k/64*Math.PI*2, f=seeRand(a)*1.12;
+      const x=X(SEE.x+Math.cos(a)*SEE.rx*f), y=Z(SEE.z+Math.sin(a)*SEE.rz*f); k?g.lineTo(x,y):g.moveTo(x,y); } g.fill();
+    /* Die Lagerecke: dort steht ein Gebaeude, kein Rasen */
+    for(const L of PARK_LOCH) g.clearRect(X(L.x0)-2,Z(L.z0),X(L.x1)-X(L.x0)+2,Z(L.z1)-Z(L.z0)+2);
+  });
+  t.anisotropy=8;
+  /* Boden als Flaeche mit Aussparungen - nur transparent malen reicht
+     nicht: Strahlen, Schatten und Kollision sehen die Geometrie. */
+  const umriss=[[P0.x0,P0.z0],[P0.x1,P0.z0],[P0.x1,P0.z1]];
+  { const [A,B]=PARK_LOCH; umriss.push([B.x1,P0.z1],[B.x1,B.z0],[B.x0,B.z0],[A.x1,A.z0],[A.x0,A.z0]); }
+  const bsh=new THREE.Shape(umriss.map(([x,z])=>new THREE.Vector2(x,-z)));
+  const bgeo=new THREE.ShapeGeometry(bsh), bp=bgeo.attributes.position, buv=bgeo.attributes.uv;
+  for(let i=0;i<bp.count;i++){ const x=bp.getX(i), z=-bp.getY(i);
+    buv.setXY(i,(x-P0.x0)/(P0.x1-P0.x0),1-(z-P0.z0)/(P0.z1-P0.z0)); }
+  bgeo.rotateX(-Math.PI/2); bgeo.computeVertexNormals();
+  const boden=new THREE.Mesh(bgeo,new THREE.MeshStandardMaterial({map:t,roughness:0.95,alphaTest:0.5}));
+  boden.position.y=0.03; scene.add(boden);
+  boden.receiveShadow=true; boden.userData.park=true;
+  /* --- See: unregelmaessige Wasserflaeche, spiegelt den Himmel --- */
+  { const sh=new THREE.Shape();
+    for(let k=0;k<=72;k++){ const a=k/72*Math.PI*2, f=seeRand(a), x=Math.cos(a)*SEE.rx*f, z=Math.sin(a)*SEE.rz*f;
+      k?sh.lineTo(x,-z):sh.moveTo(x,-z); }
+    const env=typeof autoUmgebung==='function'?autoUmgebung():null;
+    _wasserM=new THREE.MeshStandardMaterial({color:LIN(0x2c4650),roughness:0.06,metalness:0.55,envMap:env,envMapIntensity:0.9});
+    const w=new THREE.Mesh(new THREE.ShapeGeometry(sh,48),_wasserM);
+    w.rotation.x=-Math.PI/2; w.position.set(SEE.x,0.06,SEE.z); w.userData.park=true; scene.add(w);
+    /* Ufersteine, Schilf, Steg */
+    const T=[];
+    for(let k=0;k<70;k++){ const a=k/70*Math.PI*2+rand(-0.03,0.03), f=seeRand(a)*rand(1.0,1.06), r=rand(0.12,0.3);
+      T.push({geo:new THREE.DodecahedronGeometry(r,0),m:tm(SEE.x+Math.cos(a)*SEE.rx*f,0.05,SEE.z+Math.sin(a)*SEE.rz*f,rand(0,3),rand(0,3),0,1,0.6,1),color:pick([0x6b6a66,0x7d7a72,0x57585a])}); }
+    for(const a0 of [0.4,2.2,3.6,5.1]) for(let k=0;k<26;k++){ const a=a0+rand(-0.25,0.25), f=seeRand(a)*rand(0.94,1.02);
+      const h=rand(0.7,1.5), x=SEE.x+Math.cos(a)*SEE.rx*f, z=SEE.z+Math.sin(a)*SEE.rz*f;
+      T.push({geo:new THREE.CylinderGeometry(0.008,0.014,h,4),m:tm(x,h/2,z,rand(-0.15,0.15),0,rand(-0.15,0.15)),color:pick([0x8a7a52,0x9c8a5c,0x6e6a40])});
+      if(k%4===0) T.push({geo:new THREE.CylinderGeometry(0.03,0.03,0.14,6),m:tm(x,h,z),color:0x4a3624}); }
+    /* Steg aus Holz am Nordufer */
+    const sx=SEE.x-2, sz=SEE.z-SEE.rz*0.95;
+    for(let k=0;k<9;k++) T.push({geo:new THREE.BoxGeometry(1.4,0.06,0.28),m:tm(sx,0.32,sz+0.5-k*0.32),color:k%2?0x7a5c3e:0x6e5236});
+    for(const dx of [-0.62,0.62]) for(const dz of [0.4,-1.2,-2.2]) T.push({geo:new THREE.CylinderGeometry(0.06,0.06,0.6,6),m:tm(sx+dx,0.1,sz+dz),color:0x4a3a2a});
+    for(let k=0;k<9;k++) T.push({geo:new THREE.BoxGeometry(1.4,0.03,0.28),m:tm(sx,0.36,sz+0.5-k*0.32),color:0xe8ecf2});
+    stadtAddPark(new THREE.Mesh(merge(T),new THREE.MeshStandardMaterial({vertexColors:true,roughness:0.9})));
+  }
+  /* --- Baeume: kahle Laubbaeume und verschneite Tannen --- */
+  const laub=[[-14,-34],[-9,-49],[1,-33],[4,-51],[27,-33],[31,-50],[37,-38],[-3,-44],[22,-52]];
+  laub.forEach(([x,z],i)=>{ if(typeof makeBaum!=='function') return; const b=makeBaum(); b.position.set(x,0,z); b.scale.setScalar(1.1+parkRauschen(i)*0.5); b.rotation.y=parkRauschen(i+7)*6; b.userData.baum=true; b.userData.park=true; scene.add(b); });
+  const T=[];
+  /* Tanne: sechs leicht versetzte, schraege Etagen statt vier sauberer
+     Kegel, Schnee nur als duenne Haube auf der Oberseite */
+  let tn=0;
+  const tanne=(x,z,h)=>{ const q=()=>parkRauschen(tn++*1.7+x*3.1+z);
+    T.push({geo:new THREE.CylinderGeometry(0.1,0.17,h*0.3,6),m:tm(x,h*0.15,z),color:0x4a3624});
+    for(let k=0;k<6;k++){ const f=k/5, r=h*(0.34-f*0.25)*(0.9+q()*0.2), y=h*(0.14+f*0.66), hh=h*(0.3-f*0.1);
+      const ox=(q()-0.5)*0.12*h*0.1, oz=(q()-0.5)*0.12*h*0.1, kip=(q()-0.5)*0.08;
+      T.push({geo:new THREE.ConeGeometry(r,hh,11),m:tm(x+ox,y+hh/2,z+oz,kip,q()*6,kip),color:[0x223f2c,0x2a4a33,0x1f3a29][k%3]});
+      /* Haube = obere 45 % desselben Kegels, einen Hauch groesser: liegt
+         auf, statt als Ring abzustehen */
+      T.push({geo:new THREE.ConeGeometry(r*0.45*1.06,hh*0.45,11),m:tm(x+ox,y+hh*(0.55+0.225)+0.015,z+oz,kip,q()*6,kip),color:0xd9e1ea}); }
+    T.push({geo:new THREE.ConeGeometry(h*0.05,h*0.14,7),m:tm(x,h*0.86,z),color:0x2a4a33}); };
+  [[13,-24.8],[22,-25.4],[31,-24.9],[39,-25.6],[-17,-40],[-16,-51],[-11,-38],[-6,-52],[6,-36],[19,-31.5],[33,-44],[38,-52],[39,-32],[-1,-50],[25,-49],[-18,-46]]
+    .forEach(([x,z],i)=>{ tanne(x,z,4+parkRauschen(i+3)*3.5); PARK_TANNEN++; });
+  /* Buesche mit Schneehauben */
+  [[-8,-40],[0,-39],[26,-44],[29,-36],[5,-47],[20,-49],[-13,-45],[35,-47]].forEach(([x,z],i)=>{
+    for(let k=0;k<3;k++){ const r=rand(0.5,0.8), dx=rand(-0.6,0.6), dz=rand(-0.5,0.5);
+      T.push({geo:new THREE.SphereGeometry(r,9,7),m:tm(x+dx,r*0.7,z+dz,0,0,0,1,0.8,1),color:pick([0x33502f,0x3c5a36])});
+      T.push({geo:new THREE.SphereGeometry(r*0.8,9,5,0,Math.PI*2,0,Math.PI*0.35),m:tm(x+dx,r*0.9,z+dz),color:0xe8edf3}); } });
+  /* Baenke am Weg, mit Blick auf den See */
+  [[0.6,1],[2.3,1],[4.1,1]].forEach(([a])=>{ const x=RUNDWEG.x+Math.cos(a)*(RUNDWEG.rx-1.6), z=RUNDWEG.z+Math.sin(a)*(RUNDWEG.rz-1.6), ry=Math.atan2(SEE.x-x,SEE.z-z);
+    const B=(w,h,d,lx,ly,lz,c)=>{ const m=new THREE.Matrix4().makeRotationY(ry); m.setPosition(x,0,z); const o=tm(lx,ly,lz); T.push({geo:new THREE.BoxGeometry(w,h,d),m:m.multiply(o),color:c}); };
+    for(let k=0;k<3;k++) B(1.6,0.05,0.12,0,0.45,-0.15+k*0.15,0x7a5a3a);
+    for(let k=0;k<2;k++) B(1.6,0.1,0.04,0,0.62+k*0.14,-0.24,0x7a5a3a);
+    for(const s of [-0.7,0.7]){ B(0.06,0.45,0.5,s,0.22,-0.05,0x2a2e36); B(0.06,0.4,0.06,s,0.62,-0.25,0x2a2e36); }
+    B(1.55,0.03,0.4,0,0.49,-0.02,0xe8ecf2); });
+  /* Schneemann */
+  { const x=-4, z=-38;
+    for(const [r,y] of [[0.5,0.45],[0.36,1.1],[0.25,1.55]]) T.push({geo:new THREE.SphereGeometry(r,12,9),m:tm(x,y,z),color:0xf2f5f8});
+    T.push({geo:new THREE.ConeGeometry(0.05,0.25,8),m:tm(x,1.55,z+0.3,Math.PI/2,0,0),color:0xe07a2a});
+    T.push({geo:new THREE.CylinderGeometry(0.2,0.2,0.28,12),m:tm(x,1.9,z),color:0x1e2228});
+    T.push({geo:new THREE.CylinderGeometry(0.3,0.3,0.03,12),m:tm(x,1.77,z),color:0x1e2228});
+    T.push({geo:new THREE.TorusGeometry(0.27,0.05,6,14),m:tm(x,1.33,z,Math.PI/2,0,0),color:0xc8322a}); }
+  stadtAddPark(new THREE.Mesh(merge(T),new THREE.MeshStandardMaterial({vertexColors:true,roughness:0.85})));
+  /* --- Laternen: warmes Licht am Abend --- */
+  { const L=[], G=[];
+    for(let k=0;k<6;k++){ const a=k/6*Math.PI*2+0.3, x=RUNDWEG.x+Math.cos(a)*(RUNDWEG.rx+1.4), z=RUNDWEG.z+Math.sin(a)*(RUNDWEG.rz+1.4);
+      G.push({geo:new THREE.CylinderGeometry(0.05,0.08,3.2,8),m:tm(x,1.6,z),color:0x23272e});
+      G.push({geo:new THREE.CylinderGeometry(0.2,0.14,0.08,8),m:tm(x,3.62,z),color:0x23272e});
+      G.push({geo:new THREE.CylinderGeometry(0.03,0.2,0.2,8),m:tm(x,3.74,z),color:0x23272e});
+      L.push({geo:new THREE.CylinderGeometry(0.15,0.11,0.36,8),m:tm(x,3.4,z)}); }
+    stadtAddPark(new THREE.Mesh(merge(G),new THREE.MeshStandardMaterial({vertexColors:true,roughness:0.5,metalness:0.5})));
+    const lm=new THREE.MeshStandardMaterial({color:LIN(0xf2e6c8),emissive:LIN(0xffcf8a),emissiveIntensity:0,roughness:0.3}); lampMats.push(lm);
+    stadtAddPark(new THREE.Mesh(merge(L.map(l=>Object.assign(l,{color:0xffffff}))),lm)); }
+  /* --- Leben: Enten auf dem See, Spaziergaenger auf dem Rundweg --- */
+  for(let i=0;i<6;i++){ const g=new THREE.Group(), erpel=i%2===0;
+    const E=[];
+    E.push({geo:new THREE.SphereGeometry(0.16,10,8),m:tm(0,0.1,0,0,0,0,1,0.7,1.5),color:erpel?0x8a8680:0x7a5a3a});
+    E.push({geo:new THREE.SphereGeometry(0.08,10,8),m:tm(0,0.26,0.2),color:erpel?0x1f6b3a:0x6a4a2a});
+    E.push({geo:new THREE.ConeGeometry(0.03,0.1,6),m:tm(0,0.25,0.3,Math.PI/2,0,0),color:0xe0a030});
+    E.push({geo:new THREE.SphereGeometry(0.1,8,6),m:tm(0,0.14,-0.18,0,0,0,1,0.6,1),color:erpel?0x3a3a3a:0x5a4230});
+    g.add(new THREE.Mesh(merge(E),new THREE.MeshStandardMaterial({vertexColors:true,roughness:0.7})));
+    g.position.set(SEE.x,0.06,SEE.z); scene.add(g);
+    parkEnten.push({g,a:rand(0,Math.PI*2),r:rand(0.25,0.8),sp:rand(0.05,0.12)*(i%3?1:-1),ph:rand(0,6)}); }
+  if(typeof makePerson==='function') for(let i=0;i<(COARSE?2:4);i++){
+    const g=makePerson({}); scene.add(g);
+    parkLeute.push({g,a:i/4*Math.PI*2+rand(-0.3,0.3),sp:rand(0.08,0.12)*(i%2?1:-1)}); }
+  updatePark(0);
+}
+/* Parkteile sind Kulisse, keine Stadt: eigener Marker */
+function stadtAddPark(m){ m.userData.park=true; if(HIQ){ m.castShadow=true; m.receiveShadow=true; } scene.add(m); return m; }
+function updatePark(dt){
+  for(const e of parkEnten){ e.a+=e.sp*dt; e.ph+=dt;
+    const f=seeRand(e.a)*e.r, x=SEE.x+Math.cos(e.a)*SEE.rx*f, z=SEE.z+Math.sin(e.a)*SEE.rz*f;
+    e.g.position.set(x,0.06+Math.sin(e.ph*2)*0.01,z);
+    e.g.rotation.y=Math.atan2(-Math.sin(e.a)*Math.sign(e.sp)*SEE.rx,Math.cos(e.a)*Math.sign(e.sp)*SEE.rz); }
+  for(const p of parkLeute){ p.a+=p.sp*dt;
+    const x=RUNDWEG.x+Math.cos(p.a)*RUNDWEG.rx, z=RUNDWEG.z+Math.sin(p.a)*RUNDWEG.rz;
+    const vx=-Math.sin(p.a)*RUNDWEG.rx*p.sp, vz=Math.cos(p.a)*RUNDWEG.rz*p.sp;
+    p.g.position.set(x,0.03,z); p.g.rotation.y=Math.atan2(vx,vz);
+    if(dt&&typeof animPerson==='function') animPerson(p.g,true,dt,1.0); }
+}
 
 /* =========================================================
    Verschiebbare Einrichtung
@@ -17712,7 +17876,7 @@ fontsReady().then(()=>{
   setTimeout(()=>{ if(typeof shaderVorab==='function') shaderVorab(); },400);
   window.__bb={get S(){return S},get phase(){return phase},set phase(v){phase=v},set clock(v){clock=v},get clock(){return clock},pickUp,floorBoxes,shelves,racks,dekos,stockOne,openShop,step,customers,queue,belt,scanBelt,buyUp,buyDeko,get DS(){return DS},endDay,pending,save,openLaptop,closeLaptop,pl,addXP,hireStaff,fireStaff,staff,dirts,addDirt,movables,toggleBuild,setWall,setFloor,
     stations,firePult,placeOnStation,igniteType,get order(){return order},get phone(){return phone},makeCall,answerPhone,haggle,acceptDeal,declineDeal,get truck(){return truck},spawnTruck,takeFromTruck,takeBox,dropBox,updateTruck,get door(){return door},get tuer(){return tuer},tuerSet,tuerNah,updateSchiebetuer,doorOpen,doorIsOpen,trailerOccupied,LR,lrFront,TOR,orderReady,orderLeft,shipOne,removeFloorBox,prioOf,setPrio,racks,updateCarry,spawnFloorBox,staff,SHELFKIND,layout,shelfCapOf,shelfAccepts,emptyLevel,dateInfo,dateStr,dateShort,seasonInfo,isSunday,dayMult,ruhetag,wageOf,setWage,friendliness,inPause,setPause,windowGrime,addGrime,cleanWindowTick,ambienteScore,bildBoost,fixedCosts,dailyWages,dispoLimit,verfuegbar,dispoZins,takeLoan,loanTier,loanDaily,EVENTS,GOALS,CUSTTYPES,UPGRADES,STAFF,stockOf,spawnInterval,pools,todayEvent,evv,rollEvent,rollMarket,newGoal,goalAdd,goalTick,ekFactor,marktText,xpFor,rollCustType,priceTol,buyChance,regCustomer,makeWishes,nachfrageFaktor,shelfStockOf,buildGravur,refillGrav,openGravInput,closeGravInput,get gravBlanks(){return gravBlanks},set gravBlanks(v){gravBlanks=v},orderBox,buyPack,cartAdd,cartAddPack,cartOrder,cartClear,cartDel,cartGoods,cartFee,cartTotal,cartBoxes,cartLines,LIEFERZEIT_SEK,VERSAND,VERSANDFREI,lieferSek,
-    scene,camera,P,pendingListe:()=>pending,einbauPakete,spawnPaket,paketAblegen,paketAufheben,EINBAU,PAKET_MASS,vorDieTuer,setSB2,sbZiel,makeAuto,AUTOFORM,stadtInfo:()=>({warn:beacons.length,kronen:KRONEN.length,stufen:SKYLINE_INFO.stufen,skyStile:SKYLINE_INFO.stile.size,stile:Object.keys(STADT_MATS).length}),clearStations,fachHoehe,kindOf,packKartonWert,SUPPLIERS,supplierFor,supplierOf,tierPrice,isUnlocked,lizLevel,renderLaptop,get lsup(){return lsup},set lsup(v){lsup=v},get ltab(){return ltab},set ltab(v){ltab=v},EFF,EFF_ALL,EFF_KLEIN,EFF_GROSS,EFF_PRO,SHOWS,kugelbombe,shot,mine,FW,stations,stationOf,placedCount,togglePDA,openPDA,closePDA,setPost,get postOn(){return postOn},get pdaOn(){return pdaOn},showLength,psHuge,psBig,psMid,psSmall,rockets,emitters,timersLen:()=>timers.length,setView:(x,z,y,p)=>{pl.x=x;pl.z=z;yaw=y;pitch=p;aim=null;},schiebe:(x,z)=>{pl.x=x;pl.z=z;collide(pl,0.32);return{x:pl.x,z:pl.z};},PLZ_MAX,camYaw:()=>yaw,camPitch:()=>pitch,playerPos:()=>({x:pl.x,z:pl.z}),pultYaw:()=>pultHit?pultHit.parent.rotation.y:null,applyShopName,shopName,shopSlogan,signTexPx:()=>signTex&&signTex.image?signTex.image.getContext('2d').getImageData(0,0,signTex.image.width,40).data.join(''):null,lagerWall,fwShot:shot,KUGEL_R,ROHR_INNEN,MOERSER_R,moerserRohr,sfx,WOLKEN,get master(){return master},ac,SORTE_NEU,sortenUmstellen,get shakeWert(){return shake},get ckG(){return ckG},get ckNameTex(){return ckNameTex},get ckMovable(){return ckMov},CK_HOME,CK_ALT,spotPos,queueApproach,ckTexPx:()=>ckNameTex&&ckNameTex.image?ckNameTex.image.getContext('2d').getImageData(0,0,ckNameTex.image.width,60).data.join(''):null,testfeldMitte,STATION_POS,aimAt,UPGRADES,upPic,PLAN,planFlaechen,uhrZeiger:()=>({std:uhrStd?+uhrStd.rotation.z.toFixed(4):0,min:uhrMin?+uhrMin.rotation.z.toFixed(4):0}),drawRackSchild,get snowPts(){return snowPts},buildStadt,updateStadt,get stadtBoxen(){return stadtBoxen},get stadtBaeume(){return stadtBaeume},buildFernbaeume,schwaerme,beacons,silhouetten,get verkehrPts(){return verkehrPts},get rauchPts(){return rauchPts},get flieger(){return flieger},stadtFrei,STADT_FREI,WALLS,FLOORS,renderOnline,onlineHint,onlineStufe,onlineZahlen,onlineListe,updateOnline,SCHILDBG,SCHILDFG,setSchild,schildBg,schildFg,repaintSchilder,updateHead,allLevels,addToLevel,putInSlot,regCustomer,ZONEN,zoneOffen,oeffneZone,applyZonen,SLOTS,RACKS,slotsOffen,colliders,LAY,LOGI,WRAMPEN,WTORE,updateSnow,unterDach,dachBereiche,get lapHit2(){return lapHit2},buildLagerTerminal,toggleTest,testLevel,buyUp,get toastLast(){return toastLast},__floorBoxen:()=>floorBoxes.length,WBAY_UP,wbays,dockPlaetze,wbayFrei,wbayOffen,spawnWTruck,updateWBays,wbaysInit,wtorSet,GANG,GANGTUER,buildLagergang,flaeche,WTOR,RACKKIND,route,NAV,navFrei,navIdx,navBuild,shelfStand,shelves,sbLanes,buildSBKasse,sbFrei,sbOffen,sbNutzbar,EING2,eingaenge,naechsterEingang,setEingang2,buildSBKasse2,get sb2G(){return sb2G},TUEREN,tuerSetD,tuerNahD,packBereit,packOne,paketWert,bestellungenProTag,pakete,ddlAbholung,updateVersand,VS_GR,VS_FELD,WG_PARK,vsNeueBestellung,vsAbgleich,vsKlasse,vsQuellen,vsBestand,vsErfuellbar,vsPlan,vsStapel,vsSpielerPacken,vsSpielerBestellung,vsTischFrei,vsStatus,vsAufraeumen,vsLaden,vsBahn,vsPaketOffen,vsKlappen,vsFuellung,vsPaketZu,get vsTisch(){return vsTisch},get vsWagen(){return vsWagen},createShelf,createRack,regalStellen,testKauf,regalAufbauen,orderRegal,REGALWARE,regalOf,regalKind,regalPreis,regalPlatz,regalOffen,startGame,promptFor,ERFOLGE,erfOffen,erfStufe,erfStand,erfZiel,erfFertig,erfAnteil,erfGeschafft,erfGesamt,stat,statAdd,statRekord,statVerkauf,bruchGesehen,gruppeVon,GRUPPE,TRAEGER,BRUCH,BRUCH_IDS,REZ_FARBEN,ETIKETT,traegerVon,traegerOffen,bruchOffen,bruchListe,rezeptWow,rezeptKosten,rezeptMarkt,rezeptHype,rezeptDauer,rezeptEntwicklung,rezeptGueltig,eigeneListe,eigenesEintragen,rezepteTick,rezProto,rezBauen,renderRezeptur,get entwurf(){return entwurf},set entwurf(v){entwurf=v},entwurfInit,ORDER,LIZENZEN,lizenzOf,hatLizenz,lizenzDaten,naechsteLizenz,buyLizenz,VOLA,volaOf,REGIME,marketOf,costOf,marktZiel,marktLuecke,meOf,miOf,marktDelta,marktNiveau,marktPhase,marktSchock,marktLabel,marktSchnitt,marktExtrem,marktChance,sortimentBreite,sortimentZug,bekanntheit,spawnInterval,rollMarkt,marktInit,inflOf,inflText,setPreisAufMarkt,igniteType,get packHit(){return packHit},get packTisch(){return packTisch},get packMov(){return packMov},zuendeKanal,zuendeAlle,alleKanaele,kanalItem,openZuend,closeZuend,get zuendOpen(){return zuendOpen},overlayOpen,pultTaster,zuendTick,TISCH_X,RAMPE_X,KANAL_START,bereitCount,brennDauer,muendung,pultLamps,RAKETEN_LOOK,RAKETEN_KL,makePerson,applyTOD,updateHUD,renderer,renderFrame,get DEMO(){return DEMO},LHALLE,LOGI_STUFEN,TOR_STUFE,logiStufe,logiZeige,logiAnwenden,LOGI_G,TOR_G,WTORE,tuAktion:(kind,ref)=>{ const alt=target; target={kind,ref}; try{ doAction(); } finally { target=alt; } },promptFor,KARREN,karreArt,karreAn,karreStapel,karreLast,karreNimmt,toggleKarre,updateKarre,setTutorial,tutorialAn,zielFuer,get zielAktuell(){return zielAktuell},get tipKey(){return tipKey},updateZiel,set DEMO(v){DEMO=v},kapitelVon,kapitelVoll,openHandy,closeHandy,toggleHandy,get handyOpen(){return handyOpen},get happ(){return happ},HANDY_APPS,renderHandy,shaderVorab,SCHONER,schonerMalen,updateSchoner,makeWischer,stelleWischer,get wischer(){return wischer},updateWischen,wischerPersonal,cleanTick,updateFireworks,FLASH,spurEnden,LR_LAMPE,schweber,kundenSymbol,geldSchwebt,get serie(){return serie},serieZufrieden,serieBricht,KAPITEL,kapitel,kapitelNr,kapitelAufstieg,WA,WA_SLOTS,vorDieTuer,SB_KASSIERER,sbBesetzt,sbLaneVon,sbKassiererPlatz,MUSIK,STUECKE,musikAn,musikWeiter,musikVol,musikTick,spielSchritt,get mStep(){return mStep},set mStep(v){mStep=v;mTakte=0;},get mBus(){return mBus},get postHalf(){return postHalf},EFF_SCHWEIF,mitSchweif,KOEPFE,KLEID,UNIFORM,STAFFKOPF,faceCache,animPerson,PACKS,packPreis,packPool,packOffen,packContents,syncPakete,rotateGrab,PACK_FL,PACK_HOME,spotFree,rectOf,grab,placeGrab,updateGrab,get grabbed(){return grabbed},showPause,get target(){return target},einrOf,einrAktiv,einrHoch,einrRunter,einrSchalten,AUFGABEN,einrJob,kartonMat,pools,shelfStockOf,removeFromLevel,fwLog:(a)=>{FW_LOG=a;},moerserRohr,ROHR_KALIBER,effPassen,EFF_FAMILIE,basisBlick,fwTestSchalten,fwTestProdukte,fwTestStapeln,get fwTestAn(){return fwTestAn},get fwTestBoxen(){return fwTestBoxen},sonne:()=>sun.intensity,get fwUhr(){return FW_UHR},THEMEN,SHOW_BASIS,EFF,emittersListe:()=>emitters,
+    scene,camera,P,PARK,updatePark,parkWasser:()=>_wasserM,parkTannen:()=>PARK_TANNEN,parkLeben:()=>parkEnten.concat(parkLeute).map(e=>({x:e.g.position.x,z:e.g.position.z})),pendingListe:()=>pending,einbauPakete,spawnPaket,paketAblegen,paketAufheben,EINBAU,PAKET_MASS,vorDieTuer,setSB2,sbZiel,makeAuto,AUTOFORM,stadtInfo:()=>({warn:beacons.length,kronen:KRONEN.length,stufen:SKYLINE_INFO.stufen,skyStile:SKYLINE_INFO.stile.size,stile:Object.keys(STADT_MATS).length}),clearStations,fachHoehe,kindOf,packKartonWert,SUPPLIERS,supplierFor,supplierOf,tierPrice,isUnlocked,lizLevel,renderLaptop,get lsup(){return lsup},set lsup(v){lsup=v},get ltab(){return ltab},set ltab(v){ltab=v},EFF,EFF_ALL,EFF_KLEIN,EFF_GROSS,EFF_PRO,SHOWS,kugelbombe,shot,mine,FW,stations,stationOf,placedCount,togglePDA,openPDA,closePDA,setPost,get postOn(){return postOn},get pdaOn(){return pdaOn},showLength,psHuge,psBig,psMid,psSmall,rockets,emitters,timersLen:()=>timers.length,setView:(x,z,y,p)=>{pl.x=x;pl.z=z;yaw=y;pitch=p;aim=null;},schiebe:(x,z)=>{pl.x=x;pl.z=z;collide(pl,0.32);return{x:pl.x,z:pl.z};},PLZ_MAX,camYaw:()=>yaw,camPitch:()=>pitch,playerPos:()=>({x:pl.x,z:pl.z}),pultYaw:()=>pultHit?pultHit.parent.rotation.y:null,applyShopName,shopName,shopSlogan,signTexPx:()=>signTex&&signTex.image?signTex.image.getContext('2d').getImageData(0,0,signTex.image.width,40).data.join(''):null,lagerWall,fwShot:shot,KUGEL_R,ROHR_INNEN,MOERSER_R,moerserRohr,sfx,WOLKEN,get master(){return master},ac,SORTE_NEU,sortenUmstellen,get shakeWert(){return shake},get ckG(){return ckG},get ckNameTex(){return ckNameTex},get ckMovable(){return ckMov},CK_HOME,CK_ALT,spotPos,queueApproach,ckTexPx:()=>ckNameTex&&ckNameTex.image?ckNameTex.image.getContext('2d').getImageData(0,0,ckNameTex.image.width,60).data.join(''):null,testfeldMitte,STATION_POS,aimAt,UPGRADES,upPic,PLAN,planFlaechen,uhrZeiger:()=>({std:uhrStd?+uhrStd.rotation.z.toFixed(4):0,min:uhrMin?+uhrMin.rotation.z.toFixed(4):0}),drawRackSchild,get snowPts(){return snowPts},buildStadt,updateStadt,get stadtBoxen(){return stadtBoxen},get stadtBaeume(){return stadtBaeume},buildFernbaeume,schwaerme,beacons,silhouetten,get verkehrPts(){return verkehrPts},get rauchPts(){return rauchPts},get flieger(){return flieger},stadtFrei,STADT_FREI,WALLS,FLOORS,renderOnline,onlineHint,onlineStufe,onlineZahlen,onlineListe,updateOnline,SCHILDBG,SCHILDFG,setSchild,schildBg,schildFg,repaintSchilder,updateHead,allLevels,addToLevel,putInSlot,regCustomer,ZONEN,zoneOffen,oeffneZone,applyZonen,SLOTS,RACKS,slotsOffen,colliders,LAY,LOGI,WRAMPEN,WTORE,updateSnow,unterDach,dachBereiche,get lapHit2(){return lapHit2},buildLagerTerminal,toggleTest,testLevel,buyUp,get toastLast(){return toastLast},__floorBoxen:()=>floorBoxes.length,WBAY_UP,wbays,dockPlaetze,wbayFrei,wbayOffen,spawnWTruck,updateWBays,wbaysInit,wtorSet,GANG,GANGTUER,buildLagergang,flaeche,WTOR,RACKKIND,route,NAV,navFrei,navIdx,navBuild,shelfStand,shelves,sbLanes,buildSBKasse,sbFrei,sbOffen,sbNutzbar,EING2,eingaenge,naechsterEingang,setEingang2,buildSBKasse2,get sb2G(){return sb2G},TUEREN,tuerSetD,tuerNahD,packBereit,packOne,paketWert,bestellungenProTag,pakete,ddlAbholung,updateVersand,VS_GR,VS_FELD,WG_PARK,vsNeueBestellung,vsAbgleich,vsKlasse,vsQuellen,vsBestand,vsErfuellbar,vsPlan,vsStapel,vsSpielerPacken,vsSpielerBestellung,vsTischFrei,vsStatus,vsAufraeumen,vsLaden,vsBahn,vsPaketOffen,vsKlappen,vsFuellung,vsPaketZu,get vsTisch(){return vsTisch},get vsWagen(){return vsWagen},createShelf,createRack,regalStellen,testKauf,regalAufbauen,orderRegal,REGALWARE,regalOf,regalKind,regalPreis,regalPlatz,regalOffen,startGame,promptFor,ERFOLGE,erfOffen,erfStufe,erfStand,erfZiel,erfFertig,erfAnteil,erfGeschafft,erfGesamt,stat,statAdd,statRekord,statVerkauf,bruchGesehen,gruppeVon,GRUPPE,TRAEGER,BRUCH,BRUCH_IDS,REZ_FARBEN,ETIKETT,traegerVon,traegerOffen,bruchOffen,bruchListe,rezeptWow,rezeptKosten,rezeptMarkt,rezeptHype,rezeptDauer,rezeptEntwicklung,rezeptGueltig,eigeneListe,eigenesEintragen,rezepteTick,rezProto,rezBauen,renderRezeptur,get entwurf(){return entwurf},set entwurf(v){entwurf=v},entwurfInit,ORDER,LIZENZEN,lizenzOf,hatLizenz,lizenzDaten,naechsteLizenz,buyLizenz,VOLA,volaOf,REGIME,marketOf,costOf,marktZiel,marktLuecke,meOf,miOf,marktDelta,marktNiveau,marktPhase,marktSchock,marktLabel,marktSchnitt,marktExtrem,marktChance,sortimentBreite,sortimentZug,bekanntheit,spawnInterval,rollMarkt,marktInit,inflOf,inflText,setPreisAufMarkt,igniteType,get packHit(){return packHit},get packTisch(){return packTisch},get packMov(){return packMov},zuendeKanal,zuendeAlle,alleKanaele,kanalItem,openZuend,closeZuend,get zuendOpen(){return zuendOpen},overlayOpen,pultTaster,zuendTick,TISCH_X,RAMPE_X,KANAL_START,bereitCount,brennDauer,muendung,pultLamps,RAKETEN_LOOK,RAKETEN_KL,makePerson,applyTOD,updateHUD,renderer,renderFrame,get DEMO(){return DEMO},LHALLE,LOGI_STUFEN,TOR_STUFE,logiStufe,logiZeige,logiAnwenden,LOGI_G,TOR_G,WTORE,tuAktion:(kind,ref)=>{ const alt=target; target={kind,ref}; try{ doAction(); } finally { target=alt; } },promptFor,KARREN,karreArt,karreAn,karreStapel,karreLast,karreNimmt,toggleKarre,updateKarre,setTutorial,tutorialAn,zielFuer,get zielAktuell(){return zielAktuell},get tipKey(){return tipKey},updateZiel,set DEMO(v){DEMO=v},kapitelVon,kapitelVoll,openHandy,closeHandy,toggleHandy,get handyOpen(){return handyOpen},get happ(){return happ},HANDY_APPS,renderHandy,shaderVorab,SCHONER,schonerMalen,updateSchoner,makeWischer,stelleWischer,get wischer(){return wischer},updateWischen,wischerPersonal,cleanTick,updateFireworks,FLASH,spurEnden,LR_LAMPE,schweber,kundenSymbol,geldSchwebt,get serie(){return serie},serieZufrieden,serieBricht,KAPITEL,kapitel,kapitelNr,kapitelAufstieg,WA,WA_SLOTS,vorDieTuer,SB_KASSIERER,sbBesetzt,sbLaneVon,sbKassiererPlatz,MUSIK,STUECKE,musikAn,musikWeiter,musikVol,musikTick,spielSchritt,get mStep(){return mStep},set mStep(v){mStep=v;mTakte=0;},get mBus(){return mBus},get postHalf(){return postHalf},EFF_SCHWEIF,mitSchweif,KOEPFE,KLEID,UNIFORM,STAFFKOPF,faceCache,animPerson,PACKS,packPreis,packPool,packOffen,packContents,syncPakete,rotateGrab,PACK_FL,PACK_HOME,spotFree,rectOf,grab,placeGrab,updateGrab,get grabbed(){return grabbed},showPause,get target(){return target},einrOf,einrAktiv,einrHoch,einrRunter,einrSchalten,AUFGABEN,einrJob,kartonMat,pools,shelfStockOf,removeFromLevel,fwLog:(a)=>{FW_LOG=a;},moerserRohr,ROHR_KALIBER,effPassen,EFF_FAMILIE,basisBlick,fwTestSchalten,fwTestProdukte,fwTestStapeln,get fwTestAn(){return fwTestAn},get fwTestBoxen(){return fwTestBoxen},sonne:()=>sun.intensity,get fwUhr(){return FW_UHR},THEMEN,SHOW_BASIS,EFF,emittersListe:()=>emitters,
     shot:()=>{ noLoop=true; camera.position.set(pl.x,1.65,pl.z); camera.rotation.set(pitch,yaw,0); camera.updateMatrixWorld(); updateTarget(); applyTOD(); renderFrame(0.016); return canvas.toDataURL('image/jpeg',0.85); },
     run:(sec,dt)=>{ noLoop=true; const n=Math.round(sec/(dt||0.05)); for(let i=0;i<n;i++) step(dt||0.05); }};
 });

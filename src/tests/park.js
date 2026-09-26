@@ -5,7 +5,8 @@
    - SEE: eine Wasserflaeche von mindestens 80 m2
    - BAEUME: mindestens 15 Baeume/Tannen im Park
    - LEBEN: Enten und Spaziergaenger bewegen sich
-   - FREI: nichts vom Park ragt ins Testfeld oder auf den LKW-Hof */
+   - FREI: nichts vom Park ragt ins Testfeld oder auf den LKW-Hof
+   - STADT: kein Stadthaus steht im Park */
 async function neuesSpiel(p){
   await p.waitForFunction("!!document.querySelector('#startBtns button:not([disabled])')",{timeout:60000});
   await p.click('#startBtns button:last-child');
@@ -36,6 +37,14 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
       let a=h[0].object, park=false; for(;a;a=a.parent) if(a.userData&&a.userData.park) park=true;
       if(park||h[0].object.material===bb.parkWasser()) gruen++; }
     o.gruen=n?gruen/n:0; o.n=n;
+    /* Steht ein Stadthaus im Park? Von hoch oben senkrecht runter: der
+       erste Treffer darf kein Stadtteil sein. */
+    o.haus=[]; const P=bb.PARK;
+    for(let x=P.x0+0.5;x<P.x1;x+=2) for(let z=P.z0+0.5;z<P.z1;z+=2){
+      rc.set(new THREE.Vector3(x,120,z),down); rc.far=125;
+      const h=rc.intersectObjects(bb.scene.children,true).find(i=>i.object.visible&&!(i.object.isPoints));
+      if(!h) continue; let st=false; for(let a=h.object;a;a=a.parent) if(a.userData&&a.userData.stadt) st=true;
+      if(st&&h.point.y>1) o.haus.push(x.toFixed(0)+'/'+z.toFixed(0)); }
     /* Seeflaeche aus der Geometrie */
     let see=0; bb.scene.traverse(m=>{ if(m.isMesh&&m.material===bb.parkWasser()){
       const pa=m.geometry.attributes.position, ix=m.geometry.index;
@@ -43,15 +52,21 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
         see+=Math.abs((pa.getX(B)-pa.getX(A))*(pa.getY(C)-pa.getY(A))-(pa.getX(C)-pa.getX(A))*(pa.getY(B)-pa.getY(A)))/2; } } });
     o.see=+see.toFixed(1);
     /* Baeume: Laubbaeume (Gruppen) plus Tannenstaemme im Park */
-    const P=bb.PARK; o.baeume=0;
+    o.baeume=0;
     bb.scene.children.forEach(c=>{ if(c.userData&&c.userData.baum&&c.position.x>P.x0&&c.position.x<P.x1&&c.position.z>P.z0&&c.position.z<P.z1) o.baeume++; });
     o.baeume+=bb.parkTannen();
     /* Frei: Parkteile duerfen nicht ins Testfeld oder auf den Hof */
     const T=L.test, H=L.hof2, bx=new THREE.Box3(); o.frei=[];
     bb.scene.traverse(m=>{ if(!m.isMesh) return; let park=false; for(let a=m;a;a=a.parent) if(a.userData&&a.userData.park) park=true;
       if(!park) return; bx.setFromObject(m);
-      if(bx.max.z>T.z0-0.5&&bx.max.x>T.x0&&bx.min.x<T.x1) o.frei.push('testfeld '+bx.max.z.toFixed(2));
       if(bx.min.x<H.x1&&bx.max.z>H.z0) o.frei.push('hof '+bx.min.x.toFixed(2)); });
+    /* Park im Testfeld? Die Parkteile sind zu wenigen grossen Meshes
+       zusammengefasst, ihre Boxen sagen nichts - also von oben in das
+       Testfeld schiessen, jeder Parktreffer zaehlt. */
+    for(let x=T.x0+0.3;x<T.x1;x+=1.5) for(let z=T.z0+0.2;z<T.z1;z+=1.5){
+      rc.set(new THREE.Vector3(x,40,z),down); rc.far=41;
+      const h=rc.intersectObjects(bb.scene.children,true).find(i=>{ if(!i.object.visible) return false; for(let a=i.object;a;a=a.parent) if(a.userData&&a.userData.park) return true; return false; });
+      if(h){ o.frei.push('park im testfeld '+x.toFixed(1)+'/'+z.toFixed(1)+' y'+h.point.y.toFixed(1)); break; } }
     return o; });
   const vor=await p.evaluate(()=>window.__bb.parkLeben().map(g=>[g.x,g.z]));
   await p.evaluate(()=>{ for(let i=0;i<60;i++) window.__bb.updatePark(1/30); });
@@ -64,6 +79,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   pruef('BAEUME',r.baeume>=15,r.baeume+' Baeume');
   pruef('LEBEN',r.leben>=6&&r.beweg===r.leben,`${r.beweg} von ${r.leben} bewegen sich`);
   pruef('FREI',!r.frei.length,r.frei.slice(0,4).join(', '));
+  pruef('STADT',!r.haus.length,'Stadthaus im Park bei '+r.haus.slice(0,5).join(' '));
   console.log('MANGEL:',mangel.length?mangel.join(' | '):'keine');
   console.log('ERRORS:',errs.length||mangel.length?errs.concat(mangel).join(' | '):'keine');
   await b.close();

@@ -282,6 +282,25 @@ body.coarse.zuendan #toasts{bottom:258px}
 body.compact .kan{width:52px;height:50px}
 body.compact .kan span{display:none}
 #pause h2{text-align:center}
+.pseite{display:none}
+.pseite.on{display:block}
+.pmenu{display:flex;flex-direction:column;gap:10px;max-width:340px;margin:18px auto 10px}
+.pmenu button{font-size:20px;padding:13px 18px}
+.phint{display:block;text-align:center;opacity:.6;font-size:13px}
+.pkopf{display:grid;grid-template-columns:110px 1fr 110px;align-items:center;margin-bottom:10px}
+.pkopf h2{margin:0}
+.pkopf .pzur{font-size:15px;padding:7px 10px;justify-self:start}
+.pscroll{max-height:min(66vh,620px);overflow:auto;padding-right:6px}
+.handbuch{margin-top:14px;font-size:15px;line-height:1.4}
+.handbuch h4{margin:14px 0 4px;font-size:14px;letter-spacing:.05em;text-transform:uppercase;color:var(--signal)}
+.handbuch p{margin:3px 0 6px;opacity:.92}
+.handbuch ol{margin:3px 0 8px;padding-left:22px}
+.handbuch li{margin:2px 0}
+.handbuch kbd{display:inline-block;min-width:20px;padding:0 5px;border-radius:5px;background:rgba(255,255,255,.12);border:1px solid var(--line);border-bottom-width:2px;font-family:inherit;font-weight:700;font-size:12.5px;line-height:1.35;text-align:center}
+.titel{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px;margin-top:14px}
+.titel button{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;font-size:16px;padding:9px 12px}
+.titel button small{font-weight:500;font-size:12.5px;opacity:.7}
+.titel button.laeuft{border-color:var(--signal);box-shadow:0 0 0 2px rgba(255,210,63,.3)}
 .stHead{margin:10px 0 8px;font-size:14px;letter-spacing:.06em;text-transform:uppercase;opacity:.7;text-align:center}
 .steuer{columns:2 300px;column-gap:28px;font-size:15px;line-height:1.3}
 /* Zielpfeil am Bildrand (Tutorial) */
@@ -589,14 +608,27 @@ body.compact .pdahead2 b{font-size:16px}
 
 <div id="kapBanner"><small id="kapNr"></small><b id="kapName"></b><span id="kapTxt"></span></div>
 <div class="ov" id="pause"><div class="card pausecard">
-  <h2>Pause</h2>
-  <h3 class="stHead">Steuerung</h3>
-  <div class="steuer" id="steuer"></div>
-  <h3 class="stHead">Musik</h3>
-  <div class="musikzeile"><button class="ghost" id="pMusikAn">Musik an</button><label>Lautstärke <input type="range" id="pMusikVol" min="0" max="100" step="5"></label><button class="ghost" id="pMusikWeiter">Nächstes Stück</button><small id="pMusikName"></small></div>
-  <h3 class="stHead">Tutorial</h3>
-  <div class="musikzeile"><button class="ghost" id="pTut">Tutorial ausblenden</button><small id="pTutTxt">Tipps oben rechts und Pfeile zum nächsten Ziel.</small></div>
-  <div class="btns" style="justify-content:center;margin-top:16px"><button id="pBtn">Weiterspielen</button></div>
+  <!-- Hauptmaske (Tom, 26.09.): fuenf Punkte, jede Unterseite eine eigene Maske -->
+  <div class="pseite on" id="pHaupt">
+    <h2>Pause</h2>
+    <div class="pmenu">
+      <button id="pBtn">Weiterspielen</button>
+      <button class="ghost" data-pseite="pSteuer">Steuerung</button>
+      <button class="ghost" data-pseite="pMusikSeite">Musik</button>
+      <button class="ghost" id="pTut">Tutorial ausblenden</button>
+      <button class="ghost" id="pHome">Zum Startbildschirm</button>
+    </div>
+    <small class="phint" id="pHint">Dein Spielstand wird laufend gespeichert.</small>
+  </div>
+  <div class="pseite" id="pSteuer">
+    <div class="pkopf"><button class="ghost pzur">‹ Zurück</button><h2>Steuerung</h2><span></span></div>
+    <div class="pscroll"><div class="steuer" id="steuer"></div><div class="handbuch" id="handbuch"></div></div>
+  </div>
+  <div class="pseite" id="pMusikSeite">
+    <div class="pkopf"><button class="ghost pzur">‹ Zurück</button><h2>Musik</h2><span></span></div>
+    <div class="musikzeile"><button class="ghost" id="pMusikAn">Musik an</button><label>Lautstärke <input type="range" id="pMusikVol" min="0" max="100" step="5"></label><button class="ghost" id="pMusikWeiter">Nächstes Stück</button><small id="pMusikName"></small></div>
+    <div class="titel" id="pTitel"></div>
+  </div>
 </div></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>

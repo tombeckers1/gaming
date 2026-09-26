@@ -527,11 +527,211 @@ function planZeichnen(g,W,H,def){
   g.fillStyle='rgba(200,210,230,.7)'; g.font='700 11px sans-serif';
   g.textAlign='center'; g.textBaseline='alphabetic'; g.fillText('N',W-15,H-30);
 }
+/* Eigene Motive fuer Ausbauten, die kein Grundriss sind (Tom, 26.09.:
+   "Packstation fuer den Versand passt nicht"). Vorher: ein Punkt im
+   Grundriss, ein Fragezeichen oder dasselbe Bild fuer Soundanlage und
+   Heizung. Jedes Motiv zeigt das Ding selbst. */
+function upHelfer(g,W,H){
+  const h={
+    grund(a,b){ const gr=g.createLinearGradient(0,0,0,H); gr.addColorStop(0,a||'#1b2540'); gr.addColorStop(1,b||'#0c1222'); g.fillStyle=gr; g.fillRect(0,0,W,H); },
+    boden(y,c){ g.fillStyle=c||'rgba(0,0,0,.32)'; g.fillRect(0,y,W,H-y); },
+    schatten(x,y,rx,ry){ g.fillStyle='rgba(0,0,0,.35)'; g.beginPath(); g.ellipse(x,y,rx,ry,0,0,Math.PI*2); g.fill(); },
+    rund(x,y,w,hh,r){ g.beginPath(); g.moveTo(x+r,y); g.arcTo(x+w,y,x+w,y+hh,r); g.arcTo(x+w,y+hh,x,y+hh,r); g.arcTo(x,y+hh,x,y,r); g.arcTo(x,y,x+w,y,r); g.closePath(); },
+    /* Karton schraeg von vorn: Front, Deckel, Seite, Klebeband */
+    karton(x,y,w,hh,t){ t=t===undefined?w*0.28:t;
+      g.fillStyle='#c79a5e'; g.fillRect(x,y,w,hh);
+      g.fillStyle='#e0b877'; g.beginPath(); g.moveTo(x,y); g.lineTo(x+t,y-t*0.55); g.lineTo(x+w+t,y-t*0.55); g.lineTo(x+w,y); g.closePath(); g.fill();
+      g.fillStyle='#9c7440'; g.beginPath(); g.moveTo(x+w,y); g.lineTo(x+w+t,y-t*0.55); g.lineTo(x+w+t,y+hh-t*0.55); g.lineTo(x+w,y+hh); g.closePath(); g.fill();
+      g.fillStyle='rgba(235,225,200,.55)'; g.fillRect(x+w*0.42,y,w*0.16,hh*0.34);
+      g.beginPath(); g.moveTo(x+w*0.42,y); g.lineTo(x+w*0.42+t,y-t*0.55); g.lineTo(x+w*0.58+t,y-t*0.55); g.lineTo(x+w*0.58,y); g.closePath(); g.fill();
+      g.strokeStyle='rgba(60,40,20,.35)'; g.lineWidth=1; g.strokeRect(x+0.5,y+0.5,w-1,hh-1); },
+    rad(x,y,r){ g.fillStyle='#15171c'; g.beginPath(); g.arc(x,y,r,0,Math.PI*2); g.fill(); g.fillStyle='#8a9099'; g.beginPath(); g.arc(x,y,r*0.42,0,Math.PI*2); g.fill(); },
+    schild(txt,x,y,c){ g.font='700 13px sans-serif'; const w=g.measureText(txt).width+14; g.fillStyle=c||'#f2c230'; h.rund(x-w/2,y-11,w,20,6); g.fill();
+      g.fillStyle='#10152a'; g.textAlign='center'; g.textBaseline='middle'; g.fillText(txt,x,y); g.textBaseline='alphabetic'; },
+    nummer(n){ g.fillStyle='#f2c230'; g.beginPath(); g.arc(W-24,24,15,0,Math.PI*2); g.fill(); g.fillStyle='#10152a'; g.font='800 18px sans-serif'; g.textAlign='center'; g.textBaseline='middle'; g.fillText(String(n),W-24,25); g.textBaseline='alphabetic'; },
+    welle(x,y,r0,n,c,a0,a1){ g.strokeStyle=c; g.lineWidth=2.5; for(let k=0;k<n;k++){ g.globalAlpha=1-k/(n+0.5); g.beginPath(); g.arc(x,y,r0+k*9,a0,a1); g.stroke(); } g.globalAlpha=1; },
+    note(x,y,c){ g.fillStyle=c; g.beginPath(); g.ellipse(x,y,5,3.6,-0.4,0,Math.PI*2); g.fill(); g.fillRect(x+3.4,y-18,2,18); g.beginPath(); g.moveTo(x+5,y-18); g.quadraticCurveTo(x+13,y-14,x+11,y-6); g.lineTo(x+10,y-7); g.quadraticCurveTo(x+11,y-12,x+5,y-14); g.fill(); }
+  };
+  return h;
+}
+const UP_MOTIV={
+  sackkarre(g,W,H,h){ h.grund(); h.boden(128); h.schatten(112,130,46,6);
+    /* Karre leicht nach hinten gekippt: Holme, Schaufel, zwei Raeder, vier Kartons */
+    g.save(); g.translate(112,128); g.rotate(-0.16);
+    for(let i=0;i<4;i++) h.karton(-26,-24-i*23,46,22,9);
+    g.strokeStyle='#d0d4dc'; g.lineWidth=5; g.lineCap='round';
+    g.beginPath(); g.moveTo(-30,-2); g.lineTo(-30,-112); g.quadraticCurveTo(-30,-122,-20,-122); g.stroke();
+    g.beginPath(); g.moveTo(28,-2); g.lineTo(28,-112); g.quadraticCurveTo(28,-122,18,-122); g.stroke();
+    g.fillStyle='#c8322a'; g.fillRect(-34,-4,66,6);
+    g.restore(); h.rad(84,126,11); h.rad(142,118,11); },
+  wagen(g,W,H,h){ h.grund(); h.boden(126); h.schatten(112,130,82,7);
+    /* Plattformwagen von der Seite: Ladeflaeche, Buegel, vier Rollen, acht Kartons in zwei Lagen */
+    g.fillStyle='#2f5d9e'; g.fillRect(28,106,160,10); g.fillStyle='#244a80'; g.fillRect(28,114,160,4);
+    g.strokeStyle='#d0d4dc'; g.lineWidth=5; g.lineCap='round'; g.beginPath(); g.moveTo(186,108); g.lineTo(186,40); g.quadraticCurveTo(186,32,178,32); g.stroke();
+    for(let r=0;r<2;r++) for(let k=0;k<4;k++) h.karton(34+k*36,82-r*26,32,24,8);
+    for(const x of [42,74,142,174]) h.rad(x,124,7); },
+  packstation(g,W,H,h){ h.grund('#1b2540','#0c1222'); h.boden(118);
+    /* Packtisch mit Waage, offenem Paket, Etikettendrucker und Klebebandrolle */
+    g.fillStyle='#8a6a44'; g.fillRect(16,82,192,10); g.fillStyle='#6d5134'; g.fillRect(16,92,192,4);
+    g.fillStyle='#4a515c'; g.fillRect(24,96,8,36); g.fillRect(192,96,8,36);
+    /* Waage */
+    g.fillStyle='#39414d'; g.fillRect(28,72,56,10); g.fillStyle='#c9ced8'; g.fillRect(24,68,64,5);
+    g.fillStyle='#0e1226'; g.fillRect(40,74,30,7); g.fillStyle='#6cf2a8'; g.font='700 7px sans-serif'; g.textAlign='center'; g.fillText('2,4 kg',55,80);
+    h.karton(32,42,46,26,10);
+    /* offenes Paket mit Klappen */
+    g.fillStyle='#c79a5e'; g.fillRect(96,50,56,32); g.fillStyle='#5a4228'; g.fillRect(100,50,48,6);
+    g.fillStyle='#e0b877'; g.beginPath(); g.moveTo(96,50); g.lineTo(86,34); g.lineTo(112,34); g.lineTo(118,50); g.closePath(); g.fill();
+    g.beginPath(); g.moveTo(152,50); g.lineTo(164,36); g.lineTo(140,34); g.lineTo(132,50); g.closePath(); g.fill();
+    g.fillStyle='#f2efe4'; g.fillRect(106,62,30,14); g.fillStyle='#1b2340'; for(let i=0;i<9;i++) g.fillRect(109+i*3,65,1.5,7);
+    /* Etikettendrucker mit Etikett */
+    g.fillStyle='#2b3140'; h.rund(160,58,40,24,4); g.fill(); g.fillStyle='#f2efe4'; g.fillRect(168,50,24,12); g.fillStyle='#c8322a'; g.fillRect(170,53,20,3);
+    /* Klebebandrolle */
+    g.strokeStyle='#d9c08a'; g.lineWidth=5; g.beginPath(); g.arc(196,76,5,0,Math.PI*2); g.stroke();
+    h.schild('VERSAND',112,24,'#6cf2a8'); },
+  eingang2(g,W,H,h){ h.grund('#18223c','#0b1120'); h.boden(124);
+    /* zweite Glastuer mit Rahmen und daneben die eigene Kasse */
+    g.fillStyle='#2b3140'; g.fillRect(24,20,96,108); g.fillStyle='#39414d'; g.fillRect(30,26,84,100);
+    for(const x of [34,74]){ const gr=g.createLinearGradient(x,30,x+36,120); gr.addColorStop(0,'rgba(170,215,255,.55)'); gr.addColorStop(1,'rgba(90,130,190,.35)'); g.fillStyle=gr; g.fillRect(x,30,36,94); g.fillStyle='#c9ced8'; g.fillRect(x+(x<60?30:3),66,3,18); }
+    g.fillStyle='#f2c230'; g.fillRect(24,14,96,8); g.fillStyle='#10152a'; g.font='700 8px sans-serif'; g.textAlign='center'; g.fillText('EINGANG 2',72,21);
+    /* Kasse */
+    g.fillStyle='#1b2340'; g.fillRect(134,86,76,40); g.fillStyle='#d6dae2'; g.fillRect(130,80,84,8);
+    g.fillStyle='#2b3140'; g.fillRect(166,52,6,30); g.fillStyle='#10152a'; g.fillRect(150,40,40,26); g.fillStyle='#2f6bb8'; g.fillRect(153,43,34,20);
+    g.fillStyle='#6cf2a8'; g.fillRect(156,55,16,4); g.fillStyle='#c8322a'; g.fillRect(134,100,76,4);
+    h.nummer(2); },
+  rampe(g,W,H,h,n){ h.grund('#16203a','#0a1020'); h.boden(118,'rgba(20,22,28,.7)');
+    /* Hallenwand mit Rolltor, davor ein LKW-Auflieger rueckwaerts angedockt */
+    g.fillStyle='#4a515c'; g.fillRect(0,14,W,106); g.fillStyle='#59606b'; for(let x=0;x<W;x+=16) g.fillRect(x,14,2,106);
+    g.fillStyle='#2b3140'; g.fillRect(52,24,120,94);
+    g.fillStyle='#8a9099'; for(let y=28;y<116;y+=7){ g.fillRect(56,y,112,5); }
+    g.fillStyle='#15171c'; g.fillRect(46,98,8,20); g.fillRect(170,98,8,20);
+    /* Auflieger von hinten */
+    g.fillStyle='#e9edf5'; g.fillRect(66,44,92,70); g.fillStyle='#c9ced8'; g.fillRect(110,44,4,70);
+    g.fillStyle='#39414d'; g.fillRect(66,112,92,8); g.fillStyle='#c8322a'; g.fillRect(70,104,10,6); g.fillRect(144,104,10,6);
+    g.fillStyle='#f2c230'; for(let x=66;x<158;x+=12){ g.fillRect(x,120,6,4); }
+    h.rad(78,128,8); h.rad(146,128,8);
+    h.nummer(n); },
+  rampe2(g,W,H,h){ UP_MOTIV.rampe(g,W,H,h,2); }, rampe3(g,W,H,h){ UP_MOTIV.rampe(g,W,H,h,3); },
+  rampe4(g,W,H,h){ UP_MOTIV.rampe(g,W,H,h,4); }, rampe5(g,W,H,h){ UP_MOTIV.rampe(g,W,H,h,5); },
+  labor(g,W,H,h){ h.grund('#141c30','#0a0f1c'); h.boden(110);
+    /* Labortisch: Kolben, Reagenzglaeser, Pulverschalen, ein Kugelbomben-Rohling */
+    g.fillStyle='#e9edf5'; g.fillRect(12,96,200,8); g.fillStyle='#39414d'; g.fillRect(20,104,8,30); g.fillRect(196,104,8,30);
+    const kolben=(x,c)=>{ g.fillStyle='rgba(220,235,255,.35)'; g.beginPath(); g.moveTo(x-4,50); g.lineTo(x+4,50); g.lineTo(x+4,66); g.lineTo(x+18,94); g.lineTo(x-18,94); g.lineTo(x-4,66); g.closePath(); g.fill();
+      g.fillStyle=c; g.beginPath(); g.moveTo(x-11,80); g.lineTo(x+11,80); g.lineTo(x+18,94); g.lineTo(x-18,94); g.closePath(); g.fill(); g.strokeStyle='rgba(255,255,255,.5)'; g.lineWidth=1; g.stroke(); };
+    kolben(44,'#c8322a'); kolben(88,'#2f9e57');
+    g.fillStyle='#8a9099'; g.fillRect(112,62,44,4);
+    ['#f2c230','#6fa8d8','#e06ad8','#6cf2a8'].forEach((c,i)=>{ const x=116+i*10; g.fillStyle='rgba(220,235,255,.35)'; g.fillRect(x,52,6,42); g.fillStyle=c; g.fillRect(x,72+i*3,6,22-i*3); });
+    for(const [x,c] of [[172,'#d8b468'],[196,'#9aa0a8']]){ g.fillStyle='#c9ced8'; g.beginPath(); g.ellipse(x,94,12,4,0,0,Math.PI*2); g.fill(); g.fillStyle=c; g.beginPath(); g.ellipse(x,91,9,3,0,0,Math.PI*2); g.fill(); }
+    /* Rohling: Halbkugel mit Sternen */
+    g.fillStyle='#b88d5e'; g.beginPath(); g.arc(184,70,16,Math.PI,0); g.fill(); g.fillStyle='#3a2a1a'; g.fillRect(168,70,32,3);
+    ['#c8322a','#f2c230','#2f6bb8','#6cf2a8','#e06ad8'].forEach((c,i)=>{ g.fillStyle=c; g.beginPath(); g.arc(174+i*5,64-(i%2)*5,2.6,0,Math.PI*2); g.fill(); });
+    h.schild('LABOR',112,26,'#6cf2a8'); },
+  labor2(g,W,H,h){ const gr=g.createRadialGradient(112,70,4,112,70,150); gr.addColorStop(0,'#1d1a38'); gr.addColorStop(1,'#060814'); g.fillStyle=gr; g.fillRect(0,0,W,H);
+    /* Zweite Zuendstufe: der erste Bruch, an jedem Arm zuendet ein zweiter */
+    const cx=112, cy=66;
+    for(let a=0;a<10;a++){ const w=a/10*Math.PI*2+0.2, ex=cx+Math.cos(w)*40, ey=cy+Math.sin(w)*34;
+      const lg=g.createLinearGradient(cx,cy,ex,ey); lg.addColorStop(0,'rgba(255,214,120,0)'); lg.addColorStop(1,'rgba(255,214,120,.95)');
+      g.strokeStyle=lg; g.lineWidth=2; g.beginPath(); g.moveTo(cx,cy); g.lineTo(ex,ey); g.stroke();
+      const c=a%2?'#6fd0ff':'#ff5fa0';
+      for(let k=0;k<7;k++){ const v=k/7*Math.PI*2, fx=ex+Math.cos(v)*11, fy=ey+Math.sin(v)*11;
+        g.strokeStyle=c; g.globalAlpha=0.85; g.lineWidth=1.4; g.beginPath(); g.moveTo(ex,ey); g.lineTo(fx,fy); g.stroke(); g.globalAlpha=1;
+        g.fillStyle='#fff'; g.beginPath(); g.arc(fx,fy,1.3,0,Math.PI*2); g.fill(); } }
+    g.fillStyle='#fff6d8'; g.beginPath(); g.arc(cx,cy,4,0,Math.PI*2); g.fill();
+    g.strokeStyle='rgba(255,214,120,.6)'; g.lineWidth=2; g.setLineDash([3,4]); g.beginPath(); g.moveTo(cx,H); g.lineTo(cx,cy+8); g.stroke(); g.setLineDash([]);
+    h.nummer(2); },
+  heizung(g,W,H,h){ h.grund('#20222c','#10121a'); h.boden(124);
+    /* Heizstrahler an der Decke: Gehaeuse, gluehende Staebe, Waermewellen */
+    g.fillStyle='#4a515c'; g.fillRect(40,20,144,26); g.fillStyle='#2b3140'; g.fillRect(40,42,144,6);
+    for(let i=0;i<5;i++){ const gr=g.createLinearGradient(0,46,0,58); gr.addColorStop(0,'#ffd27a'); gr.addColorStop(1,'#e0562a'); g.fillStyle=gr; g.fillRect(52+i*26,46,18,10); }
+    g.strokeStyle='rgba(255,150,80,.55)'; g.lineWidth=2.5;
+    for(let i=0;i<5;i++){ const x=61+i*26; g.beginPath(); for(let y=66;y<118;y+=2){ const xx=x+Math.sin(y*0.22+i)*4; y===66?g.moveTo(xx,y):g.lineTo(xx,y); } g.stroke(); } },
+  musik(g,W,H,h){ h.grund('#1c1a30','#0c0c1a'); h.boden(124);
+    /* zwei Lautsprecher und Noten */
+    for(const x of [30,146]){ g.fillStyle='#22252e'; h.rund(x,34,48,90,6); g.fill(); g.fillStyle='#0e1016'; g.beginPath(); g.arc(x+24,94,17,0,Math.PI*2); g.fill();
+      g.fillStyle='#3a3f4c'; g.beginPath(); g.arc(x+24,94,7,0,Math.PI*2); g.fill(); g.fillStyle='#0e1016'; g.beginPath(); g.arc(x+24,54,9,0,Math.PI*2); g.fill(); g.fillStyle='#4a515c'; g.beginPath(); g.arc(x+24,54,3,0,Math.PI*2); g.fill(); }
+    h.note(98,70,'#ffd23f'); h.note(122,52,'#6cf2a8'); h.note(110,100,'#ff8fc8'); },
+  klima(g,W,H,h){ h.grund('#16233a','#0a1222'); h.boden(124);
+    /* Klimageraet an der Wand mit kuehlem Luftstrom, darunter ein Lautsprecher */
+    g.fillStyle='#e9edf5'; h.rund(34,24,156,40,10); g.fill(); g.fillStyle='#c9ced8'; g.fillRect(44,52,136,6); g.fillStyle='#6cf2a8'; g.fillRect(164,32,10,4);
+    g.strokeStyle='rgba(140,210,255,.7)'; g.lineWidth=2.5;
+    for(let i=0;i<5;i++){ const x=58+i*26; g.beginPath(); g.moveTo(x,62); g.bezierCurveTo(x-6,80,x+10,92,x+2,110); g.stroke(); }
+    g.fillStyle='#22252e'; h.rund(170,82,34,44,4); g.fill(); g.fillStyle='#0e1016'; g.beginPath(); g.arc(187,110,10,0,Math.PI*2); g.fill(); h.note(150,104,'#ffd23f'); },
+  radio(g,W,H,h){ h.grund('#1c2438','#0e1424'); h.boden(124);
+    /* Radio mit Skala und Lautsprecher, davor Sendewellen */
+    g.fillStyle='#8a4a2a'; h.rund(54,52,116,70,10); g.fill(); g.fillStyle='#f2e6c8'; g.fillRect(64,62,56,22); g.fillStyle='#c8322a'; g.fillRect(88,62,3,22);
+    g.fillStyle='#3a2416'; g.beginPath(); g.arc(142,92,20,0,Math.PI*2); g.fill(); g.fillStyle='#5a3a24'; for(let i=0;i<5;i++) g.fillRect(126,80+i*5,32,2);
+    g.fillStyle='#d8b468'; g.beginPath(); g.arc(76,104,6,0,Math.PI*2); g.fill(); g.beginPath(); g.arc(102,104,6,0,Math.PI*2); g.fill();
+    g.strokeStyle='#c9ced8'; g.lineWidth=2; g.beginPath(); g.moveTo(150,52); g.lineTo(176,18); g.stroke();
+    h.welle(176,18,6,3,'#6cf2a8',-Math.PI*0.9,Math.PI*0.1); h.schild('ON AIR',70,34,'#c8322a'); },
+  plakat(g,W,H,h){ h.grund('#1c2438','#0e1424'); h.boden(126);
+    /* Litfasssaeule mit Feuerwerksplakat */
+    g.fillStyle='#2f5d4a'; g.fillRect(70,10,84,10); g.beginPath(); g.ellipse(112,10,46,8,0,0,Math.PI*2); g.fill();
+    const gr=g.createLinearGradient(74,0,150,0); gr.addColorStop(0,'#8a8f99'); gr.addColorStop(0.5,'#e9edf5'); gr.addColorStop(1,'#8a8f99'); g.fillStyle=gr; g.fillRect(74,20,76,104);
+    g.fillStyle='#10152a'; g.fillRect(84,28,56,74);
+    [['#ffd23f',112,52],['#ff5fa0',96,70],['#6fd0ff',128,66]].forEach(([c,x,y])=>{ g.strokeStyle=c; g.lineWidth=1.5; for(let k=0;k<10;k++){ const v=k/10*Math.PI*2; g.beginPath(); g.moveTo(x,y); g.lineTo(x+Math.cos(v)*11,y+Math.sin(v)*11); g.stroke(); } });
+    g.fillStyle='#c8322a'; g.fillRect(84,88,56,14); g.fillStyle='#fff'; g.font='700 9px sans-serif'; g.textAlign='center'; g.fillText('SILVESTER!',112,98);
+    g.fillStyle='#2f5d4a'; g.fillRect(70,120,84,8); },
+  tafel(g,W,H,h){ h.grund('#141a2c','#0a0e1a'); h.boden(128);
+    /* Digitale Werbetafel an der Fassade: Pixelbild mit Leuchten */
+    g.fillStyle='#4a515c'; g.fillRect(0,0,W,128); g.fillStyle='#59606b'; for(let y=8;y<128;y+=14) g.fillRect(0,y,W,2);
+    g.fillStyle='#15171c'; g.fillRect(28,18,168,96);
+    const gr=g.createLinearGradient(0,22,0,110); gr.addColorStop(0,'#1b1f5a'); gr.addColorStop(1,'#3a1848'); g.fillStyle=gr; g.fillRect(32,22,160,88);
+    for(let i=0;i<60;i++){ const a=i/60*Math.PI*2, r=18+(i%3)*9; g.fillStyle=['#ffd23f','#ff5fa0','#6fd0ff'][i%3]; g.fillRect(90+Math.cos(a)*r,56+Math.sin(a)*r*0.8,3,3); }
+    g.fillStyle='#fff'; g.font='800 15px sans-serif'; g.textAlign='center'; g.fillText('-30 %',150,102);
+    g.fillStyle='rgba(0,0,0,.25)'; for(let x=32;x<192;x+=4) g.fillRect(x,22,1,88); for(let y=22;y<110;y+=4) g.fillRect(32,y,160,1); },
+  tag4(g,W,H,h){ h.grund('#1c2438','#0e1424');
+    /* Kalenderblatt Sonntag mit Haken */
+    g.fillStyle='#f2efe4'; h.rund(58,22,108,108,8); g.fill(); g.fillStyle='#c8322a'; g.fillRect(58,22,108,28);
+    g.fillStyle='#fff'; g.font='700 15px sans-serif'; g.textAlign='center'; g.fillText('SONNTAG',112,42);
+    g.fillStyle='#1b2340'; g.font='800 46px sans-serif'; g.fillText('7',112,100);
+    g.fillStyle='#2f9e57'; g.beginPath(); g.arc(154,114,17,0,Math.PI*2); g.fill(); g.strokeStyle='#fff'; g.lineWidth=4; g.lineCap='round';
+    g.beginPath(); g.moveTo(146,114); g.lineTo(152,120); g.lineTo(163,107); g.stroke();
+    g.fillStyle='#4a515c'; g.fillRect(78,16,6,14); g.fillRect(140,16,6,14); },
+  lizenz(g,W,H,h){ h.grund('#1c2438','#0e1424');
+    /* Lizenzkarte fuer den Grosshandel */
+    const gr=g.createLinearGradient(30,30,194,122); gr.addColorStop(0,'#2f5d9e'); gr.addColorStop(1,'#1b3566'); g.fillStyle=gr; h.rund(30,30,164,96,10); g.fill();
+    g.fillStyle='#d8b468'; h.rund(44,56,26,20,3); g.fill();
+    g.fillStyle='#fff'; g.font='700 11px sans-serif'; g.textAlign='left'; g.fillText('GROSSHANDEL',44,48); g.font='600 9px sans-serif'; g.fillText('LIZENZ · Nr. 0815-PYRO',80,70);
+    g.fillStyle='#e9edf5'; for(let i=0;i<22;i++) g.fillRect(44+i*5,96,i%3?2:3,16);
+    h.schild('-10 %',160,106,'#f2c230'); },
+  meister(g,W,H,h){ h.grund('#1c2438','#0e1424');
+    /* Meisterbrief mit Siegel und Band */
+    g.fillStyle='#f4ecd6'; g.fillRect(44,16,136,120); g.strokeStyle='#b8954f'; g.lineWidth=3; g.strokeRect(50,22,124,108);
+    g.fillStyle='#3a2a1a'; g.font='700 14px serif'; g.textAlign='center'; g.fillText('Meisterbrief',112,44);
+    g.fillStyle='#7a6a54'; g.font='9px serif'; g.fillText('Pyrotechnik',112,58);
+    g.fillStyle='rgba(58,42,26,.4)'; for(let i=0;i<3;i++) g.fillRect(64,70+i*8,96-i*14,2);
+    g.fillStyle='#c8322a'; g.beginPath(); g.moveTo(132,104); g.lineTo(124,134); g.lineTo(134,128); g.lineTo(140,136); g.closePath(); g.fill();
+    g.beginPath(); g.moveTo(144,104); g.lineTo(156,134); g.lineTo(146,128); g.lineTo(140,136); g.closePath(); g.fill();
+    g.fillStyle='#d8b468'; g.beginPath(); for(let i=0;i<24;i++){ const a=i/24*Math.PI*2, r=i%2?15:12; g.lineTo(138+Math.cos(a)*r,104+Math.sin(a)*r); } g.closePath(); g.fill();
+    g.fillStyle='#b8954f'; g.beginPath(); g.arc(138,104,8,0,Math.PI*2); g.fill(); },
+  grosskunden(g,W,H,h){ h.grund('#1c2438','#0e1424'); h.boden(126);
+    /* Branchenbuch mit Eintrag und Telefonhoerer */
+    g.fillStyle='#f2c230'; g.fillRect(44,30,96,96); g.fillStyle='#d9a91f'; g.fillRect(136,30,6,96);
+    g.fillStyle='#1b2340'; g.font='800 12px sans-serif'; g.textAlign='center'; g.fillText('BRANCHEN',92,54); g.fillText('BUCH',92,68);
+    g.fillStyle='#c8322a'; g.fillRect(54,84,76,26); g.fillStyle='#fff'; g.font='700 8px sans-serif'; g.fillText('PYRO · Großbestellung',92,100);
+    g.fillStyle='#2b3140'; g.save(); g.translate(170,86); g.rotate(-0.5); h.rund(-8,-34,16,68,8); g.fill(); g.fillRect(-14,-40,28,14); g.fillRect(-14,26,28,14); g.restore();
+    h.welle(176,40,6,3,'#6cf2a8',-Math.PI*0.4,Math.PI*0.4); },
+  kundenkarte(g,W,H,h){ h.grund('#1c2438','#0e1424');
+    /* Stammkundenkarte mit Stempeln */
+    const gr=g.createLinearGradient(28,28,196,124); gr.addColorStop(0,'#c8322a'); gr.addColorStop(1,'#7a1a24'); g.fillStyle=gr; h.rund(28,28,168,96,12); g.fill();
+    g.fillStyle='#fff'; g.font='700 12px sans-serif'; g.textAlign='left'; g.fillText('STAMMKUNDE',42,50);
+    for(let i=0;i<8;i++){ const x=48+(i%4)*38, y=74+Math.floor(i/4)*30; g.strokeStyle='rgba(255,255,255,.6)'; g.lineWidth=1.5; g.beginPath(); g.arc(x,y,11,0,Math.PI*2); g.stroke();
+      if(i<5){ g.fillStyle='#ffd23f'; g.beginPath(); for(let k=0;k<10;k++){ const a=k/10*Math.PI*2-Math.PI/2, r=k%2?4:9; g.lineTo(x+Math.cos(a)*r,y+Math.sin(a)*r); } g.closePath(); g.fill(); } } },
+  alarm(g,W,H,h){ h.grund('#1a2030','#0e131e'); h.boden(126);
+    /* Warensicherung: zwei Antennen am Ausgang mit Signal */
+    for(const x of [60,148]){ g.fillStyle='#c9ced8'; h.rund(x,26,16,98,6); g.fill(); g.fillStyle='rgba(120,200,255,.35)'; h.rund(x+3,30,10,88,4); g.fill(); g.fillStyle='#4a515c'; g.fillRect(x-4,120,24,6); }
+    g.strokeStyle='#e63b2e'; g.lineWidth=2.5; for(let k=0;k<3;k++){ g.globalAlpha=1-k*0.28; g.beginPath(); g.arc(112,74,12+k*10,-Math.PI*0.35,Math.PI*0.35); g.stroke(); g.beginPath(); g.arc(112,74,12+k*10,Math.PI*0.65,Math.PI*1.35); g.stroke(); } g.globalAlpha=1;
+    g.fillStyle='#e63b2e'; g.beginPath(); g.arc(112,74,5,0,Math.PI*2); g.fill(); }
+};
 function upPic(id){
   if(_picCache[id]) return _picCache[id];
   const c=document.createElement('canvas'); c.width=224; c.height=152;
   const g=c.getContext('2d');
   const W=224,H=152;
+  if(UP_MOTIV[id]){
+    UP_MOTIV[id](g,W,H,upHelfer(g,W,H));
+    g.strokeStyle='rgba(242,245,255,.18)'; g.lineWidth=2; g.strokeRect(1,1,W-2,H-2);
+    return _picCache[id]=c.toDataURL('image/png');
+  }
   /* Flaechen-Ausbauten bekommen einen echten Grundriss statt einer
      gemalten Szene - so sieht man, welcher Teil dazukommt. */
   if(PLAN[id]){
@@ -608,12 +808,7 @@ function upPic(id){
           for(let k=0;k<(id==='rack_schwer'?4:3);k++){ g.fillStyle='#c9a978';
             g.fillRect(x0+6+k*(bw-8)/(id==='rack_schwer'?4:3),y-14,(bw-24)/(id==='rack_schwer'?4:3),14); } } }
       break;
-    case 'plakat': case 'radio': case 'tafel':
-      bg('#1c2438','#0e1424');
-      g.fillStyle='#c8322a'; g.fillRect(40,26,144,88);
-      g.fillStyle='#ffd23f'; g.font='700 30px sans-serif'; g.textAlign='center'; g.fillText('SALE',112,78);
-      g.fillStyle='#59606b'; g.fillRect(104,114,16,24); break;
-    case 'cams': case 'alarm':
+    case 'cams':
       bg('#1a2030','#0e131e');
       g.fillStyle='#4a515c'; g.fillRect(70,54,84,30);
       g.fillStyle='#1b1e25'; g.beginPath(); g.arc(158,69,17,0,Math.PI*2); g.fill();
@@ -631,11 +826,6 @@ function upPic(id){
       g.fillStyle='#0e1226'; g.fillRect(84,42,56,34);
       g.fillStyle='#6cf2a8'; g.fillRect(90,86,44,8); g.fillRect(90,100,44,8);
       g.fillStyle='#ffd23f'; g.fillRect(96,20,40,16); break;
-    case 'heizung': case 'klima': case 'musik':
-      bg('#20222c','#12141c');
-      g.fillStyle='#4a515c'; g.fillRect(56,34,112,22);
-      for(let i=0;i<5;i++){ g.fillStyle='#e8894a'; g.fillRect(62+i*22,58,14,44); }
-      g.fillStyle='#59606b'; g.fillRect(104,102,16,30); break;
     case 'regallicht':
       bg('#141a2c','#0a0f1c');
       g.fillStyle='#f6f2e2'; g.fillRect(34,38,156,10);
@@ -648,11 +838,6 @@ function upPic(id){
       g.fillStyle='#2f5d9e'; g.fillRect(34,30,156,18);
       g.fillStyle='#c9ced8'; g.fillRect(44,58,60,44); g.fillRect(114,58,62,14); g.fillRect(114,80,40,10);
       g.fillStyle='#6cf2a8'; g.fillRect(114,98,52,16); break;
-    case 'tag4': case 'lizenz': case 'meister': case 'grosskunden': case 'kundenkarte':
-      bg('#1c2438','#0e1424');
-      g.fillStyle='#f2efe4'; g.fillRect(52,26,120,100);
-      g.fillStyle='#c8322a'; g.beginPath(); g.arc(112,60,22,0,Math.PI*2); g.fill();
-      g.fillStyle='#1b2340'; g.fillRect(66,94,92,6); g.fillRect(66,108,66,6); break;
     default:
       bg('#1a2030','#0e131e');
       g.fillStyle='#39434f'; g.fillRect(62,44,100,64);

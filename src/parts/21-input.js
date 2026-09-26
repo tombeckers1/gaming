@@ -118,9 +118,25 @@ function renderSteuer(){
     `</div>`).join('');
 }
 function tutKnopf(){ const b=$('pTut'); if(b) b.textContent=tutorialAn()?'Tutorial ausblenden':'Tutorial einblenden'; }
-function showPause(){ if(overlayOpen()) return; renderSteuer(); musikAnzeige(); tutKnopf(); pauseOpen=true; paused=true; for(const k in keys) keys[k]=false; mouseDown=false; $('pause').classList.add('show'); }
+/* Pausenmenue (Tom, 26.09.): Hauptmaske mit Weiterspielen, Steuerung,
+   Musik, Tutorial und Startbildschirm - Steuerung und Musik sind
+   eigene Masken. Esc auf einer Unterseite fuehrt zurueck. */
+function pauseSeite(id){
+  document.querySelectorAll('#pause .pseite').forEach(el=>el.classList.toggle('on',el.id===id));
+  if(id==='pSteuer'){ renderSteuer(); const sc=document.querySelector('#pSteuer .pscroll'); if(sc) sc.scrollTop=0; }
+  if(id==='pMusikSeite'){ musikAnzeige(); musikTitel(); }
+  if(id==='pHaupt') tutKnopf();
+}
+function pauseSeiteAktiv(){ const el=document.querySelector('#pause .pseite.on'); return el?el.id:'pHaupt'; }
+function showPause(){ if(overlayOpen()) return; pauseSeite('pHaupt'); musikAnzeige(); pauseOpen=true; paused=true; for(const k in keys) keys[k]=false; mouseDown=false; $('pause').classList.add('show'); }
 function closePause(){ if(!pauseOpen) return; pauseOpen=false; paused=false; $('pause').classList.remove('show'); requestLock(); }
 $('pBtn').addEventListener('click',()=>closePause());
+$('pause').addEventListener('click',e=>{
+  const b=e.target.closest('[data-pseite]'); if(b){ pauseSeite(b.dataset.pseite); return; }
+  if(e.target.closest('.pzur')) pauseSeite('pHaupt');
+});
+$('pHome').addEventListener('click',()=>zumStartbildschirm());
+$('pTitel').addEventListener('click',e=>{ const b=e.target.closest('[data-stueck]'); if(b) musikWahl(+b.dataset.stueck); });
 /* Musik: Taste M und Regler im Pausenmenue. Der Knopf oben links
    ist raus (Tom, 25.09.). */
 $('pMusikAn').addEventListener('click',()=>{ ac(); musikAn(); });
@@ -169,7 +185,7 @@ addEventListener('keydown',e=>{
      Mit Sperre muss man klicken: direkt nach dem Freigeben laesst
      der Browser die Maus nicht per Taste wieder einfangen, und ein
      Fehlschlag wuerde dauerhaft auf Ziehen-zum-Umsehen umstellen. */
-  if(e.code==='Escape'&&pauseOpen){ if(!lockWorked||lockFailed) closePause(); return; }
+  if(e.code==='Escape'&&pauseOpen){ if(pauseSeiteAktiv()!=='pHaupt'){ pauseSeite('pHaupt'); return; } if(!lockWorked||lockFailed) closePause(); return; }
   if(e.code==='Escape'&&S&&!overlayOpen()){ showPause(); return; }
   if(!S||overlayOpen()) return;
   keys[e.code]=true;

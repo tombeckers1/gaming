@@ -257,9 +257,24 @@ function musikAn(an){
   if(typeof toast==='function') toast(MUSIK.an?'♪ Musik an: '+STUECKE[MUSIK.stueck].name:'Musik aus');
 }
 function musikVol(v){ MUSIK.vol=clamp(v,0,1); musikSpeichern(); musikLautstaerke(); musikAnzeige(); }
+/* Titelwahl im Pausenmenue: jedes Stueck zum Anklicken */
+const MUSIK_STIL={funk:'Funk',winter:'Winterlich',dance:'Dance',chip:'8-Bit',polka:'Polka',hiphop:'Hip-Hop',rock:'Rock',ambient:'Ambient',trance:'Trance',lofi:'Lo-Fi'};
+function musikTitel(){
+  const el=document.getElementById('pTitel'); if(!el) return;
+  el.innerHTML=STUECKE.map((s,i)=>{ const an=MUSIK.an&&MUSIK.stueck===i;
+    return `<button class="ghost${an?' laeuft':''}" data-stueck="${i}">${an?'▶ ':''}${s.name}<small>${MUSIK_STIL[s.stil]||''} · ${s.bpm} BPM${an?' · läuft':''}</small></button>`; }).join('');
+}
+function musikWahl(i){
+  MUSIK.stueck=((i%STUECKE.length)+STUECKE.length)%STUECKE.length; mStep=0; mTakte=0;
+  if(!MUSIK.an){ musikAn(true); return; }
+  if(AC) mNext=AC.currentTime+0.3;
+  musikSpeichern(); musikLautstaerke(); musikAnzeige();
+  if(typeof toast==='function') toast('♪ '+STUECKE[MUSIK.stueck].name);
+}
 function musikAnzeige(){
   const n=STUECKE[MUSIK.stueck]?STUECKE[MUSIK.stueck].name:'';
-  const pm=document.getElementById('pMusikAn'); if(pm) pm.textContent=MUSIK.an?'Musik an':'Musik aus';
+  const pm=document.getElementById('pMusikAn'); if(pm) pm.textContent=MUSIK.an?'Musik: an':'Musik: aus';
+  musikTitel();
   const pn=document.getElementById('pMusikName'); if(pn) pn.textContent=MUSIK.an?'Läuft: '+n:'Stumm';
   const pv=document.getElementById('pMusikVol'); if(pv&&document.activeElement!==pv) pv.value=Math.round(MUSIK.vol*100);
 }

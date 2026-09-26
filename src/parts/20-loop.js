@@ -101,7 +101,7 @@ function step(dt){
   for(const c of customers.slice()) c.update(dt);
   for(const k in staff) if(staff[k]) staff[k].update(dt);
   updateBelt(dt);
-  updatePhone(dt); updateOrder(dt);
+  updatePhone(dt); updateOrder(dt); restTick(dt);
   /* Dreck: seit 24.09. etwa zweieinhalbmal seltener (Tom: "weniger
      Fussabdruecke") - frueher im Schnitt alle 114 s, jetzt alle 270 s */
   if(phase==='open'){ dirtT-=dt; if(dirtT<=0){ dirtT=rand(55,95)/((1+customers.length*0.09)*evv('dirt')); if(Math.random()<(hasDeko('muell')?0.14:0.28)) addDirt(rand(-6,6),rand(-4.5,5)); } }

@@ -298,46 +298,49 @@ const STAFF=[
   {id:'security',lvl:13,name:'Sicherheitsdienst',desc:'Hält Diebe im Laden auf, bevor sie rauskommen.',hire:800,wage:190},
   {id:'packer',lvl:18,req:'packstation',name:'Versandmitarbeiter',desc:'Schiebt einen Kommissionierwagen mit sechs Fächern durchs Lager – fehlt dort etwas, durch den Laden –, legt jede Onlinebestellung Stück für Stück in ihren Karton, klebt am Packtisch zu und stapelt die Pakete für DDL.',hire:700,wage:165}
 ];
-/* Einkauf (Tom, 25.09., zweite Runde): keine Lieferanten mit eigenem
-   Sortiment mehr. Es gibt drei Stufen, und ueberall dieselbe Ware:
-   - Fachhandel: von Anfang an, jeder Karton einzeln zum Listenpreis.
-   - Grosshandel: sobald du selbst Fachgeschaeft bist (Kapitel 2, eigenes
-     Lager) - mehrere Kartons auf einmal mit Staffelrabatt.
-   - Restposten: gemischte oder sortenreine Posten mit sehr starken
-     Rabatten, dafuer weiss man nie genau, was kommt.
+/* Einkauf (Tom, 25.09., zweite Runde; 26.09. nachgeschaerft): keine
+   Lieferanten mit eigenem Sortiment mehr. Drei Stufen, jede mit eigenem
+   Reiter, ueberall dieselbe Ware:
+   - Fachhandel: immer offen, jeder Karton einzeln zum Listenpreis.
+   - Grosshandel: ab Level 8 mit eigenem Lager (Kapitel 2) - nur im
+     Zehner- oder Zwanzigerpack, dafuer mit Rabatt.
+   - Restposten: deutlich spaeter (Level 14). Das Angebot wechselt nach
+     Zufall - mal viel, mal wenig, mal gar nichts - und haengt daran,
+     wie gut es gerade laeuft (siehe RESTPOSTEN).
    Alte Spielstaende und Tests nennen noch die frueheren Lieferanten;
    SUP_ALT leitet sie auf die neue Stufe um. */
 const SUPPLIERS=[
   {id:'fachhandel',lvl:1,name:'Pyro-Fachhandel Brandt',short:'Fachhandel',desc:'Dein Fachhändler um die Ecke: alles aus deinem Sortiment, jeder Karton einzeln zum Listenpreis.',
     mult:1.00,quality:1.00,delay:[4,8],tiers:[{n:1,d:0}]},
-  {id:'grosshandel',lvl:1,kap:2,name:'Feuerwerk-Großhandel Kowalski',short:'Großhandel',desc:'Seit du selbst Fachgeschäft bist, kaufst du beim Großhandel: dieselbe Ware, aber mehrere Kartons auf einmal und dafür deutlich günstiger.',
-    mult:1.00,quality:1.00,delay:[6,10],tiers:[{n:1,d:0},{n:5,d:0.08},{n:20,d:0.15}]},
-  {id:'ratzke',lvl:8,name:'Restposten-Ratzke',short:'Restposten',desc:'Restposten aus Lagerräumungen zu sehr starken Rabatten: bunt gemischt, halb sortiert oder ein ganzer Posten einer Sorte. Was genau drin ist, siehst du erst beim Auspacken.',
+  {id:'grosshandel',lvl:8,kap:2,name:'Feuerwerk-Großhandel Kowalski',short:'Großhandel',desc:'Dieselbe Ware wie beim Fachhandel, aber nur im Zehner- oder Zwanzigerpack – und dafür günstiger.',
+    mult:1.00,quality:1.00,delay:[6,10],tiers:[{n:10,d:0.10},{n:20,d:0.18}]},
+  {id:'ratzke',lvl:14,name:'Restposten-Ratzke',short:'Restposten',desc:'Lagerräumungen zu Spottpreisen: bunt gemischt, halb sortiert oder ein ganzer Posten einer Sorte. Was reinkommt, entscheidet der Zufall – mal viel, mal gar nichts. Wer zuerst zugreift, hat es.',
     mult:0.60,quality:0.86,delay:[6,12],mystery:true}
 ];
 const SUP_ALT={mertens:'fachhandel',party:'fachhandel',kowalski:'grosshandel',import:'grosshandel',premium:'grosshandel',direkt:'grosshandel'};
-/* Grosshandel erst ab Kapitel 2 ("Kleines Fachgeschaeft") */
-function grossOffen(){ return typeof kapitelNr==='function'&&kapitelNr()>=2; }
-function supOffen(x){ return S.level>=x.lvl&&(!x.kap||kapitelNr()>=x.kap); }
-/* Wer beliefert gerade? Alle fuehren alles - es zaehlt nur die Stufe. */
-function supplierFor(t){ return grossOffen()?SUPPLIERS[1]:SUPPLIERS[0]; }
+/* Grosshandel ab Level 8 und mit eigenem Lager (Kapitel 2) */
+function grossOffen(){ return supOffen(SUPPLIERS[1]); }
+function supOffen(x){ return !!S&&S.level>=x.lvl&&(!x.kap||(typeof kapitelNr==='function'&&kapitelNr()>=x.kap)); }
+/* Fachhandel ist immer der Standard; den Grosshandel waehlt man selbst
+   in seinem eigenen Reiter. */
+function supplierFor(t){ return SUPPLIERS[0]; }
 const PACKS=[
-  {id:'tuete',lvl:8,name:'Kleine Wundertüte',desc:'Sechs Kartons Restware, bunt gemischt. Meist Kleinkram, selten ein Treffer.',n:6},
-  {id:'kiste',lvl:10,name:'Große Wundertüte',desc:'Vierzehn Kartons, je Karton etwas günstiger. Manchmal ist etwas richtig Teures dabei.',n:14},
-  {id:'palette',lvl:14,name:'Restposten-Palette',desc:'Dreißig Kartons auf einen Schlag, der beste Kartonpreis. Platz im Lager schadet nicht.',n:30},
+  {id:'tuete',lvl:14,name:'Kleine Wundertüte',desc:'Sechs Kartons Restware, bunt gemischt. Meist Kleinkram, selten ein Treffer.',n:6},
+  {id:'kiste',lvl:15,name:'Große Wundertüte',desc:'Vierzehn Kartons, je Karton etwas günstiger. Manchmal ist etwas richtig Teures dabei.',n:14},
+  {id:'palette',lvl:17,name:'Restposten-Palette',desc:'Dreißig Kartons auf einen Schlag, der beste Kartonpreis. Platz im Lager schadet nicht.',n:30},
   /* Themenpakete: nur eine Warengruppe, zufaellig gemischt aus dem,
      was du schon fuehrst. Preis nach dem mittleren Einkaufswert der
      Gruppe, ein Fuenftel darunter - dafuer weisst du nicht, ob
      der teure Verbund oder der kleine dabei ist. */
-  {id:'knallkiste',lvl:8,name:'Knallkiste',desc:'Zehn Kartons Böller, gemischt aus deinem Sortiment.',gruppe:'boeller',n:10},
-  {id:'raketenpaket',lvl:11,name:'Raketen-Paket',desc:'Acht Kartons Raketen, vom Dreierset bis zu dem, was du freigeschaltet hast.',gruppe:'raketen',n:8},
-  {id:'verbundpaket',lvl:15,name:'Verbund-Paket',desc:'Fünf Kartons Batterien und Fächer. Mit Glück ist ein großer Verbund dabei.',gruppe:'batterien',n:5},
-  {id:'partykiste',lvl:9,name:'Partykiste',desc:'Acht Kartons Partyzubehör, gemischt aus dem, was du führst: Deko, Geschirr, Hüte und Co.',gruppe:'zubehoer',n:8},
-  {id:'kugelkiste',lvl:16,name:'Kugelkiste',desc:'Vier Kartons Kugelbomben, Kaliber gemischt.',gruppe:'kugeln',n:4},
+  {id:'knallkiste',lvl:14,name:'Knallkiste',desc:'Zehn Kartons Böller, gemischt aus deinem Sortiment.',gruppe:'boeller',n:10},
+  {id:'raketenpaket',lvl:15,name:'Raketen-Paket',desc:'Acht Kartons Raketen, vom Dreierset bis zu dem, was du freigeschaltet hast.',gruppe:'raketen',n:8},
+  {id:'verbundpaket',lvl:17,name:'Verbund-Paket',desc:'Fünf Kartons Batterien und Fächer. Mit Glück ist ein großer Verbund dabei.',gruppe:'batterien',n:5},
+  {id:'partykiste',lvl:14,name:'Partykiste',desc:'Acht Kartons Partyzubehör, gemischt aus dem, was du führst: Deko, Geschirr, Hüte und Co.',gruppe:'zubehoer',n:8},
+  {id:'kugelkiste',lvl:18,name:'Kugelkiste',desc:'Vier Kartons Kugelbomben, Kaliber gemischt.',gruppe:'kugeln',n:4},
   /* sortenrein und halb sortiert (Tom, 25.09.): mal ein ganzer Posten
      einer einzigen Sorte, mal nur zwei, drei Sorten */
-  {id:'sortenposten',lvl:9,name:'Sortenreiner Posten',desc:'Acht Kartons, alle von einer Sorte aus deinem Sortiment. Welche, entscheidet die Lagerräumung.',sorten:1,n:8},
-  {id:'mischposten',lvl:12,name:'Halb sortierter Posten',desc:'Zwölf Kartons aus nur drei Sorten - weniger bunt als die Wundertüte, dafür gleich mehrere Kartons derselben Ware.',sorten:3,n:12}
+  {id:'sortenposten',lvl:14,name:'Sortenreiner Posten',desc:'Acht Kartons, alle von einer Sorte aus deinem Sortiment. Welche, entscheidet die Lagerräumung.',sorten:1,n:8},
+  {id:'mischposten',lvl:16,name:'Halb sortierter Posten',desc:'Zwölf Kartons aus nur drei Sorten - weniger bunt als die Wundertüte, dafür gleich mehrere Kartons derselben Ware.',sorten:3,n:12}
 ];
 const PYROTYPES=[
   {id:'knauser',name:'knauserig',ceil:1.03,rounds:4,open:0.78,line:'Ich sag Ihnen gleich, mein Budget ist eng.'},

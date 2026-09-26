@@ -102,7 +102,9 @@ function closePDA(){ $('pda').classList.remove('show'); pdaOpen=false; pdaItem=n
 function renderPDA(){
   const t=pdaItem; if(!t) return;
   const p=P[t], mp=marketOf(t), ek=costOf(t), price=S.prices[t], marge=r2(price-ek), r=price/mp;
-  const sup=supplierFor(t), tiers=sup.tiers||[{n:1,d:0}], supZu=S.level<sup.lvl;
+  /* Nachbestellen: ein Karton beim Fachhandel, wenn offen dazu die
+     Grosshandels-Staffel */
+  const sup=supplierFor(t), knoepfe=[SUPPLIERS[0]].concat(grossOffen()?[SUPPLIERS[1]]:[]).flatMap(s2=>(s2.tiers||[{n:1,d:0}]).map(tr=>({s2,tr}))), supZu=false;
   const tol=priceTol(), ch=Math.round(buyChance(t,price,1)*100);
   $('pdaTitle').textContent=p.name;
   $('pdaBody').innerHTML=
@@ -118,10 +120,10 @@ function renderPDA(){
     `<div class="pdarow"><span>Bestand</span><span>${shelfStockOf(t)} im Regal · ${stockOf(t)} gesamt</span></div>`+
     (canOrder(t)?
       `<div class="pdahead">Nachbestellen</div>`+
-      `<div class="pdarow"><span>${sup.name}</span><span>${supZu?`ab Level ${sup.lvl}`:`Lieferung in ${LIEFERZEIT_SEK} Sekunden`}</span></div>`+
+      `<div class="pdarow"><span>${grossOffen()?'Fachhandel · Großhandel':sup.name}</span><span>${supZu?`ab Level ${sup.lvl}`:`Lieferung in ${LIEFERZEIT_SEK} Sekunden`}</span></div>`+
       `<div class="pdarow"><span>Warenkorb</span><span>${cartBoxes()} Kartons · ${eur(cartTotal())}</span></div>`+
-      (supZu?'':`<div class="pdasteps">${tiers.map(tr=>{ const c=tierPrice(t,sup,tr);
-        return `<button data-a="po" data-n="${tr.n}">+ ${tr.n}× Karton · ${eur(c)}${tr.d?` −${Math.round(tr.d*100)} %`:''}</button>`; }).join('')}</div>`)+
+      (supZu?'':`<div class="pdasteps">${knoepfe.map(({s2,tr})=>{ const c=tierPrice(t,s2,tr);
+        return `<button data-a="po" data-n="${tr.n}" data-s="${s2.id}">+ ${tr.n}× Karton · ${eur(c)}${tr.d?` −${Math.round(tr.d*100)} %`:''}</button>`; }).join('')}</div>`)+
       `<div class="pdahead">Am Laptop bestellst du den ganzen Warenkorb.</div>`
       :`<div class="pdahead">Diese Ware kann man nicht bestellen.</div>`);
 }

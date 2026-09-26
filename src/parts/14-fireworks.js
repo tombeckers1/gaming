@@ -1198,29 +1198,30 @@ function kugelbombe(o,kal,opt){
   /* jede Kugel hat ein Hauptbild, das es sonst nirgends gibt */
   const haupt=opt.eff||['herz','drachenblut','weltenbrand','zehnfach','himmelsbrecher'][K4-1];
   const [C,D]=themaPaar(TH,1);
-  const stufen=[];
-  if(K4===1){
+  /* opt.stufen: eigene Nachbrueche fuer Sorten mit anderem Hauptbild */
+  const stufen=opt.stufen?opt.stufen.slice():[];
+  if(!opt.stufen&&K4===1){
     /* zwei kleinere Herzen im selben Mittelpunkt - bum-bum */
     stufen.push({t:0.5,eff:'herz',sz:groesse*0.62,streu:0,A:C,B:A});
     stufen.push({t:0.8,eff:'herz',sz:groesse*0.4,streu:0,A,B:C});
   }
-  if(K4===2){
+  if(!opt.stufen&&K4===2){
     /* Kern und Aussenschale gehen mit dem Hauptbruch auf, dann faellt
        die ganze Blume als Flammenregen in denselben Farben */
     stufen.push({t:0.04,eff:'pistill',sz:groesse*0.45,streu:0,A:B,B:A,leise:true});
     stufen.push({t:0.08,eff:'kugel',sz:groesse*1.12,streu:0,A:C,B:A,leise:true});
     stufen.push({t:1.3,eff:'flammenregen',sz:groesse*0.75,streu:1,A,B});
   }
-  if(K4===3){
+  if(!opt.stufen&&K4===3){
     /* Kern im Hauptbruch, dann vier gleiche Toechter im Kranz */
     stufen.push({t:0.04,eff:'pistill',sz:groesse*0.42,streu:0,A:C,B:D,leise:true});
     ringLage(4,9).forEach((off,i)=>stufen.push({t:0.55,off,leise:i>0,eff:'kugel',sz:groesse*0.36,A:C,B:D}));
   }
-  if(K4===4){
+  if(!opt.stufen&&K4===4){
     /* der Zehnfachbruch: zehn gleiche Pistillen im Kranz um die Ringkugel */
     ringLage(10,11).forEach((off,i)=>stufen.push({t:0.5,off,leise:i>0,eff:'pistill',sz:groesse*0.3,A:i%2?C:A,B:i%2?D:B}));
   }
-  if(K4===5){
+  if(!opt.stufen&&K4===5){
     /* Silberbruch mit goldener Haengeweide im selben Punkt, dann zwoelf
        Dahlien im Kranz. Alles Silber, Weiss und Gold. */
     stufen.push({t:0.06,eff:'kamuro',sz:groesse*0.8,streu:0,A:FW.gold,B:FW.silber,leise:true});
@@ -1605,6 +1606,7 @@ function updateFireworks(dt){
       for(let k=0;k<9;k++){ const a=Math.random()*Math.PI*2, sp=rand(0.2,1.3);
         const c=k%4?FW.braun:FW.sumpf;
         psMid.emit(o.x,o.y+0.25,o.z,Math.cos(a)*sp,rand(2.5,5.5),Math.sin(a)*sp,c[0],c[1],c[2],rand(1.2,2.2),-0.2); } }
+    else if(typeof NEU_EMIT!=='undefined'&&NEU_EMIT[e.k]) NEU_EMIT[e.k](e,dt,o);
     else if(e.k==='spark'){
       for(let k=0;k<7;k++){ const d=randDir(), s=rand(1,2.4);
         psSmall.emit(o.x,o.y+0.3,o.z,d[0]*s,d[1]*s+0.4,d[2]*s,1,rand(0.8,1),rand(0.45,0.85),rand(0.25,0.55),4,3); } }

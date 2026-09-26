@@ -36,14 +36,17 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     o.lagerGesperrtBis=+cur.x.toFixed(2);
     o.rackOffen=bb.regalOffen('rack');
     /* Ware bestellen: kommt vor die Tuer */
-    S.money=5000; bb.cartAdd('boeller',2,'mertens'); bb.cartOrder();
+    S.money=5000; bb.cartAdd('boeller',1,'fachhandel'); bb.cartAdd('boeller',1,'fachhandel'); bb.cartOrder();
     bb.orderRegal('klein');
     const regaleVor=bb.shelves.length;
     for(let i=0;i<80&&bb.pending.length;i++) bb.run(1,0.1);
     o.lkw=!!bb.truck;
     o.kartons=bb.floorBoxes.map(f=>[+f.mesh.position.x.toFixed(2),+f.mesh.position.z.toFixed(2)]);
     o.vorDerTuer=bb.floorBoxes.length>0&&bb.floorBoxes.every(f=>f.mesh.position.z>6.5&&Math.abs(f.mesh.position.x-bb.WA.x)<1.3);
+    /* seit 26.09. kommt das Regal als Paket vor die Tuer, aufgebaut
+       wird es vom Spieler */
     o.regalAufgebaut=bb.shelves.length-regaleVor;
+    o.regalPaket=bb.einbauPakete.filter(q=>q.mesh.position.z>6.5).length;
     /* Lager kaufen */
     S.level=6; S.money=9000; bb.testKauf('lager');
     o.nach={nr:bb.kapitelNr(),name:bb.kapitel().name,lager:bb.zoneOffen('lager')};
@@ -74,7 +77,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   pruef('START',k.lagerGesperrtBis>-8.4,'man kommt ins gesperrte Lager (x='+k.lagerGesperrtBis+')');
   pruef('START',!k.rackOffen,'Lagerregal vor dem Lager bestellbar');
   pruef('KIOSK',!k.lkw&&k.vorDerTuer&&k.kartons.length===2,'Lieferung nicht vor der Tuer: '+JSON.stringify(k.kartons)+' LKW '+k.lkw);
-  pruef('KIOSK',k.regalAufgebaut===1,'Regal nicht aufgebaut');
+  pruef('KIOSK',k.regalAufgebaut===0&&k.regalPaket===1,'Regal nicht als Paket vor der Tuer: aufgebaut '+k.regalAufgebaut+', Pakete '+k.regalPaket);
   pruef('LAGER',k.nach.nr===2&&k.nach.name==='Kleines Fachgeschäft'&&k.nach.lager,'Kapitel 2: '+JSON.stringify(k.nach));
   pruef('LAGER',k.lagerFreiBis<-9,'Lagertuer nach dem Kauf zu (x='+k.lagerFreiBis+')');
   pruef('LAGER',k.rackOffenNach&&k.lkwNach,'nach dem Kauf kein LKW an der Rampe / kein Lagerregal');

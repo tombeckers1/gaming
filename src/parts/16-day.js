@@ -105,7 +105,11 @@ function sortimentBreite(){
   let n=0; ORDER.forEach(t=>{ if(!P[t].noOrder&&!P[t].noShelf&&isUnlocked(t)) n++; });
   return n;
 }
-function sortimentZug(){ return 0.78+Math.min(1,sortimentBreite()/34)*0.52; }
+/* Voll zieht das Sortiment bei knapp der Haelfte aller Waren - frueher
+   34 von 69. Seit es dreimal so viele gibt (26.09.), zaehlt der Anteil,
+   sonst waere der Laden schon auf Level 6 "voll sortiert". */
+const SORT_VOLL=Math.round(ORDER.filter(t=>!P[t].noOrder&&!P[t].noShelf).length*34/68);
+function sortimentZug(){ return 0.78+Math.min(1,sortimentBreite()/SORT_VOLL)*0.52; }
 /* Der Ruf eines eingesessenen Ladens spricht sich herum */
 function bekanntheit(){ return 1+Math.min(20,Math.max(0,S.level-1))*0.019; }
 /* Wie gross ist der Laden? Ein Markt mit Gondelgassen spricht sich

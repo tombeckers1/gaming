@@ -48,7 +48,9 @@ function drawSide(g,W,H,a){
 function drawTop(g,W,H,a){ const gr=g.createLinearGradient(0,0,W,H); gr.addColorStop(0,a.bg1); gr.addColorStop(1,a.bg2); g.fillStyle=gr; g.fillRect(0,0,W,H); if(!a.light) burst(g,W*0.5,H*0.5,Math.min(W,H)*0.4,a.ac,14); }
 function atlas(w,h,d,a,cat,o){
   o=o||{};
-  const CAP=HIQ?1120:640;
+  /* Aufloesung nach Groesse der Packung: eine 8-cm-Schachtel braucht
+     keine 1120 Pixel. Rund 2000 Pixel je Meter, hoechstens 1120. */
+  const CAP=Math.min(HIQ?1120:640,Math.max(256,Math.round(Math.max(w+d,h+d)*2000)));
   const s=Math.min(CAP/(w+d),CAP/(h+d)), Wf=Math.max(8,Math.round(w*s)), Hf=Math.max(8,Math.round(h*s)), Ds=Math.max(8,Math.round(d*s)), W=Wf+Ds, H=Hf+Ds;
   const t=tex(W,H,(g)=>{
     const reg=(x,y,w2,h2,fn)=>{ g.save(); g.beginPath(); g.rect(x,y,w2,h2); g.clip(); g.translate(x,y); fn(g,w2,h2); g.restore(); };

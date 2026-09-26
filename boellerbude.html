@@ -1982,6 +1982,469 @@ function rezepteTick(){
   });
   return neu;
 }
+/* =========================================================
+   Sortiment mal drei (Tom, 26.09.: "noch mal ein paar mehr Produkte,
+   Sachen, die man an Silvester braucht ... das, was da ist, mal drei
+   ... und auch in den Leveln reinpacken, bei manchen ist einfach zu
+   wenig ... bunt gemischt, aber auch Batterien, Böller, Fontänen ...
+   und beachte die Steigerung").
+
+   Vorher 70 Produkte, auf Level 2, 7, 8, 10 und ab 15 je nur ein oder
+   zwei. Jetzt gut 200, auf jedem Level von 1 bis 26 mindestens fünf.
+   Feuerwerk steigt mit dem Level wie bisher: groesser, hoeher, mehr
+   Schuss, spaeter die grossen Bruchbilder (erst ab Level 16).
+   Wie die neuen Feuerwerke abbrennen, steht in 14c-neuware.js.
+
+   Hier nur die Daten. Sie werden in die bestehenden Tabellen
+   eingehaengt (P, ORDER, LIZENZEN, GRUPPE, VOLA) - dieselbe Groessen-
+   regel wie in 02-data (ein Viertel groesser, ausser Batterien,
+   Faecher und Kugeln).
+   ========================================================= */
+const NEUWARE={
+  /* ---------- Level 1-4: Jugendfeuerwerk (F1) ---------- */
+  wunderfarbe:{name:'Farbige Wunderkerzen 10er',short:'Farb-Wunderk.',cat:1,lvl:1,shape:'sparkler',dims:[0.105,0.30,0.032],grid:[12,3,1],box:30,cost:0.70,market:1.79,weight:8,hype:3,risk:1,
+    art:{title:'FARBZAUBER',sub:'10 Wunderkerzen bunt',bg1:'#8a1f6a',bg2:'#2a0620',ac:'#5cff9e',ac2:'#ffd23f'}},
+  knallbonbon:{name:'Knallbonbons 10er',short:'Knallbonbons',cat:1,lvl:2,shape:'boxA',dims:[0.22,0.07,0.1],grid:[6,2,2],box:12,cost:1.30,market:3.29,weight:7,hype:3,risk:1,
+    art:{title:'KNALLBONBONS',sub:'10 Stück mit Überraschung',bg1:'#c01c20',bg2:'#5a0608',ac:'#ffd23f',ac2:'#f2f5ff'}},
+  tischbombe:{name:'Tischbombe »Überraschung«',short:'Tischbombe',cat:1,lvl:2,shape:'cylinder',dims:[0.12,0.16,0.12],grid:[8,2,1],box:12,cost:1.60,market:3.99,weight:7,hype:5,risk:1,
+    art:{title:'TISCHBOMBE',sub:'Konfetti & Überraschungen',bg1:'#1557a8',bg2:'#061a3a',ac:'#ffd23f',ac2:'#ff4fa3'}},
+  bengalholz:{name:'Bengalische Hölzer 12er',short:'Bengalhölzer',cat:1,lvl:2,shape:'sparkler',dims:[0.09,0.22,0.03],grid:[12,3,1],box:30,cost:0.65,market:1.59,weight:7,hype:3,risk:1,
+    art:{title:'BENGALO',sub:'12 Hölzer · rot & grün',bg1:'#0d4a2a',bg2:'#021208',ac:'#ff4a4a',ac2:'#5cff9e'}},
+  wunderherz:{name:'Herz-Wunderkerzen 6er',short:'Herz-Wunderk.',cat:1,lvl:1,shape:'sparkler',dims:[0.12,0.28,0.03],grid:[12,3,1],box:24,cost:0.90,market:2.29,weight:6,hype:3,risk:1,
+    art:{title:'HERZFUNKEN',sub:'6 Herz-Wunderkerzen',bg1:'#c01c6a',bg2:'#4a0626',ac:'#ffd23f',ac2:'#fff3c4'}},
+  wunderzahl:{name:'Zahlen-Wunderkerzen »2027«',short:'2027-Wunderk.',cat:1,lvl:3,shape:'sparkler',dims:[0.14,0.3,0.03],grid:[12,3,1],box:20,cost:1.20,market:2.99,weight:6,hype:4,risk:1,
+    art:{title:'2027',sub:'Zahlen-Wunderkerzen',bg1:'#0e1226',bg2:'#000000',ac:'#ffd23f',ac2:'#f2f5ff',gold:true}},
+  pharao:{name:'Pharaoschlangen 12er',short:'Pharaoschlangen',cat:1,lvl:2,shape:'boxA',dims:[0.12,0.05,0.08],grid:[8,2,2],box:24,cost:0.50,market:1.29,weight:5,hype:2,risk:1,
+    art:{title:'PHARAO',sub:'12 Schlangen aus Asche',bg1:'#4a3a14',bg2:'#140e02',ac:'#ffd23f',ac2:'#c8e04a'}},
+  leuchtfontaene:{name:'Glühwürmchen · 4 Leuchtfontänen',short:'Leuchtfontänen',cat:1,lvl:4,shape:'fountainset',dims:[0.18,0.12,0.07],grid:[7,2,1],box:12,cost:1.50,market:3.79,weight:6,hype:6,risk:2,
+    art:{title:'GLÜHWÜRMCHEN',sub:'4 Leuchtfontänen',bg1:'#1f5d2a',bg2:'#06200c',ac:'#c8ff5c',ac2:'#ffd23f'}},
+  feuerteufel:{name:'Feuerteufel · Knisterfontäne',short:'Feuerteufel',cat:1,lvl:4,shape:'cylinder',dims:[0.08,0.2,0.08],grid:[12,2,1],box:16,cost:0.90,market:2.29,weight:6,hype:5,risk:2,
+    art:{title:'FEUERTEUFEL',sub:'Knisterfontäne',bg1:'#8a1a08',bg2:'#240502',ac:'#ffd23f',ac2:'#ff7a1c'}},
+
+  /* ---------- Zubehoer: Sicherheit und Anzuenden ---------- */
+  streichhoelzer:{name:'Sturm-Streichhölzer 10 Schachteln',short:'Streichhölzer',cat:0,lvl:3,shape:'boxA',dims:[0.16,0.06,0.11],grid:[8,2,2],box:20,cost:0.90,market:2.29,weight:7,hype:0,risk:2,
+    art:{title:'STURMHOLZ',sub:'windfest · 10 Schachteln',bg1:'#c8322a',bg2:'#4a0a06',ac:'#fff3c4',ac2:'#ffd23f'}},
+  gehoerschutz:{name:'Gehörschutz-Stöpsel 10 Paar',short:'Gehörschutz',cat:0,lvl:3,shape:'boxA',dims:[0.12,0.2,0.05],grid:[10,2,1],box:20,cost:1.00,market:2.49,weight:6,hype:0,risk:1,
+    art:{title:'LEISE',sub:'Gehörschutz 10 Paar',bg1:'#f28a1c',bg2:'#8a3d06',ac:'#0e1226',ac2:'#ffffff',light:true}},
+  schutzbrille:{name:'Schutzbrille klar',short:'Schutzbrille',cat:0,lvl:4,shape:'boxA',dims:[0.18,0.08,0.1],grid:[8,2,2],box:12,cost:1.60,market:3.99,weight:5,hype:0,risk:1,
+    art:{title:'KLARSICHT',sub:'Schutzbrille',bg1:'#2a6a9a',bg2:'#0a2236',ac:'#f2f5ff',ac2:'#ffd23f'}},
+  feuerloescher:{name:'Feuerlöschspray 400 ml',short:'Löschspray',cat:0,lvl:4,shape:'bottle',dims:[0.07,0.24,0.07],grid:[12,2,1],box:12,cost:4.20,market:10.99,weight:4,hype:0,risk:2,
+    art:{title:'LÖSCHSPRAY',sub:'400 ml · für Haushalt',bg1:'#c01c20',bg2:'#3a0507',ac:'#ffffff',ac2:'#ffd23f'}},
+  luftschlangenspray:{name:'Luftschlangen-Spray 3er',short:'Schlangenspray',cat:0,lvl:4,shape:'boxA',dims:[0.14,0.22,0.06],grid:[10,2,1],box:12,cost:1.70,market:4.29,weight:6,hype:0,risk:1,
+    art:{title:'SPRAYPARTY',sub:'3 Dosen · bunt',bg1:'#5ce1ff',bg2:'#1557a8',ac:'#ff4fa3',ac2:'#ffe45c'}},
+
+  /* ---------- Level 5-6: Klassiker ---------- */
+  blitzknaller:{name:'Blitzknaller · 20 Stück',short:'Blitzknaller',cat:2,lvl:5,shape:'tubepack',dims:[0.13,0.05,0.05],grid:[8,2,2],box:16,cost:1.60,market:3.79,weight:8,hype:7,risk:3,
+    desc:'Heller Blitz, trockener Knall - der kleine Bruder vom Furzböller, ohne Pups.',
+    art:{title:'BLITZKNALLER',sub:'20 Stück · Blitz & Knall',bg1:'#f2f5ff',bg2:'#8a92a8',ac:'#1b1b2e',ac2:'#ff3b2e',light:true}},
+  bodenkreisel:{name:'Tanzende Kreisel 6er',short:'Kreisel',cat:2,lvl:5,shape:'boxA',dims:[0.12,0.06,0.08],grid:[8,2,2],box:16,cost:1.30,market:3.19,weight:7,hype:5,risk:2,
+    art:{title:'TANZKREISEL',sub:'6 Bodenkreisel',bg1:'#5a1470',bg2:'#1a0322',ac:'#5cff9e',ac2:'#ffd23f'}},
+  rosesekt:{name:'Rosé-Sekt',short:'Rosé-Sekt',cat:0,lvl:5,cold:true,shape:'bottle',dims:[0.078,0.3,0.078],grid:[12,2,1],box:12,cost:2.80,market:6.99,weight:8,hype:0,risk:5,
+    art:{title:'ROSÉ',sub:'Sekt 0,75 l',bg1:'#e58ca5',bg2:'#7a2a44',ac:'#f2e6c4',ac2:'#ffffff'}},
+  berliner:{name:'Berliner mit Marmelade 4er',short:'Berliner',cat:0,lvl:5,shape:'boxA',dims:[0.24,0.08,0.16],grid:[6,2,2],box:10,cost:1.40,market:3.49,weight:8,hype:0,risk:4,
+    art:{title:'BERLINER',sub:'4 Stück · Marmelade',bg1:'#e8b418',bg2:'#8a5a08',ac:'#7a1030',ac2:'#fff3c4',light:true}},
+  glueckrakete:{name:'Glühwürmchen · 5 Leuchtraketen',short:'Leuchtraketen',cat:2,lvl:6,shape:'rocketset',dims:[0.38,0.05,0.1],grid:[4,2,2],box:8,cost:2.20,market:5.49,weight:7,hype:8,risk:3,
+    art:{title:'LEUCHTFLUG',sub:'5 Leuchtraketen',bg1:'#1f5d2a',bg2:'#06200c',ac:'#c8ff5c',ac2:'#ffd23f'}},
+  kalender:{name:'Wandkalender 2027',short:'Kalender',cat:0,lvl:6,shape:'boxA',dims:[0.3,0.32,0.02],grid:[6,1,1],box:10,cost:2.40,market:5.99,weight:4,hype:0,risk:1,
+    art:{title:'2027',sub:'Wandkalender',bg1:'#f2ecd8',bg2:'#d8c49a',ac:'#1b5fa8',ac2:'#c8322a',light:true}},
+  sektglaeser:{name:'Sektgläser 12er Kunststoff',short:'Sektgläser',cat:0,lvl:6,shape:'boxA',dims:[0.26,0.24,0.18],grid:[6,1,1],box:8,cost:2.20,market:5.49,weight:6,hype:0,risk:1,
+    art:{title:'PROSIT',sub:'12 Sektgläser',bg1:'#1b3a2e',bg2:'#08160f',ac:'#e8c35a',ac2:'#f2f5ff'}},
+  kerzen:{name:'Tischkerzen Gold 10er',short:'Kerzen',cat:0,lvl:6,shape:'boxA',dims:[0.24,0.28,0.06],grid:[8,2,1],box:12,cost:1.80,market:4.49,weight:5,hype:0,risk:1,
+    art:{title:'KERZENGLANZ',sub:'10 Stabkerzen Gold',bg1:'#4a3308',bg2:'#150e02',ac:'#ffd23f',ac2:'#fff3c4',gold:true}},
+  servietten:{name:'Servietten »Prosit Neujahr« 60er',short:'Servietten',cat:0,lvl:6,shape:'boxA',dims:[0.2,0.08,0.2],grid:[6,2,2],box:20,cost:0.90,market:2.29,weight:6,hype:0,risk:1,
+    art:{title:'PROSIT NEUJAHR',sub:'60 Servietten',bg1:'#0c3d2a',bg2:'#021a10',ac:'#ffd23f',ac2:'#ff4a4a'}},
+
+  /* ---------- Level 7: Party und Snacks ---------- */
+  haarreifen:{name:'Haarreifen & Krönchen 2027',short:'Haarreifen',cat:0,lvl:7,shape:'boxA',dims:[0.22,0.26,0.07],grid:[8,2,1],box:12,cost:1.60,market:3.99,weight:6,hype:0,risk:1,
+    art:{title:'KRÖNCHEN',sub:'Haarreifen 2027',bg1:'#6a24c9',bg2:'#25093f',ac:'#ffd23f',ac2:'#f2f5ff',gold:true}},
+  fotobox:{name:'Fotobox-Requisiten 20 Teile',short:'Fotobox',cat:0,lvl:7,shape:'boxA',dims:[0.3,0.3,0.05],grid:[6,1,1],box:10,cost:2.60,market:6.49,weight:5,hype:0,risk:1,
+    art:{title:'FOTOBOX',sub:'20 Requisiten am Stab',bg1:'#ff4fa3',bg2:'#6a24c9',ac:'#ffe45c',ac2:'#5ce1ff'}},
+  streukonfetti:{name:'Streukonfetti Gold »2027«',short:'Streukonfetti',cat:0,lvl:7,shape:'boxA',dims:[0.1,0.16,0.04],grid:[12,2,1],box:24,cost:0.70,market:1.79,weight:6,hype:0,risk:1,
+    art:{title:'2027',sub:'Streukonfetti Gold',bg1:'#3a2c08',bg2:'#120d02',ac:'#ffd23f',ac2:'#f2f5ff',gold:true}},
+  lichterkette:{name:'LED-Lichterkette 10 m warmweiß',short:'Lichterkette',cat:0,lvl:7,shape:'boxA',dims:[0.2,0.2,0.1],grid:[6,2,2],box:10,cost:3.60,market:8.99,weight:4,hype:0,risk:2,
+    art:{title:'LICHTERGLANZ',sub:'LED · 10 m · warmweiß',bg1:'#1b1b2e',bg2:'#070712',ac:'#ffcf8a',ac2:'#ffd23f'}},
+  popcorn:{name:'Popcorn XXL süß',short:'Popcorn',cat:0,lvl:7,shape:'boxA',dims:[0.2,0.3,0.1],grid:[6,1,2],box:12,cost:1.10,market:2.79,weight:7,hype:0,risk:3,
+    art:{title:'POPCORN',sub:'XXL · süß',bg1:'#c01c20',bg2:'#f2ecd8',ac:'#ffffff',ac2:'#ffd23f'}},
+  salzstangen:{name:'Salzstangen & Brezeln',short:'Salzgebäck',cat:0,lvl:7,shape:'boxA',dims:[0.14,0.24,0.06],grid:[10,2,1],box:20,cost:0.80,market:1.99,weight:7,hype:0,risk:3,
+    art:{title:'SALZGEBÄCK',sub:'Stangen & Brezeln',bg1:'#1b5fa8',bg2:'#061a3a',ac:'#f2ecd8',ac2:'#ffd23f'}},
+  erdnuesse:{name:'Erdnüsse geröstet & gesalzen',short:'Erdnüsse',cat:0,lvl:7,shape:'bottle',dims:[0.09,0.16,0.09],grid:[12,2,1],box:12,cost:1.00,market:2.49,weight:6,hype:0,risk:3,
+    art:{title:'ERDNÜSSE',sub:'geröstet & gesalzen',bg1:'#8a3d06',bg2:'#2a1202',ac:'#ffd23f',ac2:'#f2ecd8'}},
+  miniverbund:{name:'Feuerspatz · 9 Schuss Minibatterie',short:'Mini 9',cat:2,lvl:8,shape:'battery',dims:[0.18,0.14,0.18],grid:[10,2,1],box:12,cost:3.20,market:7.49,weight:8,hype:12,risk:4,
+    art:{title:'FEUERSPATZ',sub:'9 Schuss Minibatterie',bg1:'#f28a1c',bg2:'#5a1a02',ac:'#ffffff',ac2:'#ffd23f'}},
+
+  /* ---------- Level 8: Krach und Buffet ---------- */
+  knallteppich:{name:'Knallteppich · 500er Böllerkette',short:'Knallteppich',cat:2,lvl:8,shape:'boxA',dims:[0.24,0.08,0.16],grid:[6,2,2],box:10,cost:3.80,market:8.99,weight:7,hype:14,risk:5,
+    desc:'Fünfhundert kleine Kracher in einer Kette, die knattert vier Sekunden am Stück über den Boden.',
+    art:{title:'KNALLTEPPICH',sub:'500er Kette',bg1:'#c8201c',bg2:'#3a0507',ac:'#ffd23f',ac2:'#f2f5ff'}},
+  farbfontaenen:{name:'Farbenspiel · 3er Farbfontänen',short:'Farbfontänen',cat:2,lvl:8,shape:'fountainset',dims:[0.22,0.145,0.09],grid:[7,2,1],box:7,cost:3.60,market:8.49,weight:7,hype:12,risk:4,
+    art:{title:'FARBENSPIEL',sub:'3 Farbfontänen',bg1:'#5a1470',bg2:'#1a0322',ac:'#5cff9e',ac2:'#ff4fa3'}},
+  bodenfeuer:{name:'Feuerkreis · Bodenfontäne mit Knistern',short:'Feuerkreis',cat:2,lvl:8,shape:'cylinder',dims:[0.14,0.14,0.14],grid:[8,2,1],box:10,cost:2.40,market:5.79,weight:7,hype:10,risk:4,
+    art:{title:'FEUERKREIS',sub:'Bodenfontäne · Knistern',bg1:'#4a1a02',bg2:'#140600',ac:'#ff8a2a',ac2:'#ffd23f'}},
+  heringssalat:{name:'Heringssalat 1 kg',short:'Heringssalat',cat:0,lvl:8,cold:true,kuehlpflicht:true,shape:'boxA',dims:[0.18,0.12,0.14],grid:[6,2,2],box:8,cost:2.60,market:6.49,weight:6,hype:0,risk:5,
+    art:{title:'HERINGSSALAT',sub:'1 kg · rote Bete',bg1:'#8a1a44',bg2:'#2a0614',ac:'#f2f5ff',ac2:'#ffd23f'}},
+  kartoffelsalat:{name:'Kartoffelsalat 1 kg',short:'Kartoffelsalat',cat:0,lvl:8,cold:true,kuehlpflicht:true,shape:'boxA',dims:[0.18,0.12,0.14],grid:[6,2,2],box:8,cost:2.00,market:4.99,weight:7,hype:0,risk:5,
+    art:{title:'KARTOFFELSALAT',sub:'1 kg · mit Gurke',bg1:'#e8c35a',bg2:'#8a6a18',ac:'#1b5a2a',ac2:'#ffffff',light:true}},
+
+  /* ---------- Level 9 ---------- */
+  goldperlen:{name:'Goldene Perlen · Römisches Licht 8 Kugeln',short:'Goldperlen',cat:2,lvl:9,shape:'candle',dims:[0.09,0.34,0.09],grid:[8,2,1],box:8,cost:3.20,market:7.79,weight:7,hype:13,risk:5,
+    art:{title:'GOLDPERLEN',sub:'8 Kugeln · Gold',bg1:'#4a3308',bg2:'#150e02',ac:'#ffd23f',ac2:'#fff3c4',gold:true}},
+  bengalfackel:{name:'Bengalfackel rot · 60 Sekunden',short:'Bengalfackel',cat:2,lvl:9,shape:'cylinder',dims:[0.06,0.34,0.06],grid:[14,2,1],box:12,cost:1.80,market:4.29,weight:7,hype:9,risk:4,
+    art:{title:'BENGALFEUER',sub:'rot · 60 s',bg1:'#c01c20',bg2:'#3a0507',ac:'#ffffff',ac2:'#ffd23f'}},
+  glitzerregen12:{name:'Glitzerregen · 12 Schuss',short:'Batterie 12',cat:2,lvl:9,shape:'battery',dims:[0.2,0.16,0.2],grid:[9,2,1],box:10,cost:4.40,market:10.49,weight:7,hype:14,risk:5,
+    art:{title:'GLITZERREGEN',sub:'12 Schuss Verbund',bg1:'#12406b',bg2:'#04121f',ac:'#f2f5ff',ac2:'#ffd23f'}},
+  wuerstchen:{name:'Wiener Würstchen 10er',short:'Würstchen',cat:0,lvl:9,cold:true,kuehlpflicht:true,shape:'boxA',dims:[0.26,0.06,0.12],grid:[4,2,3],box:10,cost:2.20,market:5.49,weight:7,hype:0,risk:5,
+    art:{title:'WIENER',sub:'10 Würstchen',bg1:'#c8322a',bg2:'#4a0a06',ac:'#fff3c4',ac2:'#ffd23f'}},
+  frikadellen:{name:'Mini-Frikadellen 20er',short:'Frikadellen',cat:0,lvl:9,cold:true,kuehlpflicht:true,shape:'boxA',dims:[0.22,0.07,0.16],grid:[4,2,3],box:8,cost:2.60,market:6.49,weight:6,hype:0,risk:5,
+    art:{title:'FRIKADELLEN',sub:'20 Mini · fürs Buffet',bg1:'#6b3a14',bg2:'#241204',ac:'#ffd23f',ac2:'#f2ecd8'}},
+  baguette:{name:'Aufback-Baguette 4er',short:'Baguette',cat:0,lvl:9,shape:'boxA',dims:[0.4,0.08,0.12],grid:[4,2,2],box:10,cost:1.20,market:2.99,weight:7,hype:0,risk:3,
+    art:{title:'BAGUETTE',sub:'4 Stück zum Aufbacken',bg1:'#e8c35a',bg2:'#8a5a18',ac:'#1b3a6b',ac2:'#c8322a',light:true}},
+  bier:{name:'Pils 6er-Pack',short:'Pils 6er',cat:0,lvl:9,cold:true,shape:'boxA',dims:[0.2,0.24,0.14],grid:[6,1,2],box:4,cost:2.40,market:5.99,weight:8,hype:0,risk:4,
+    art:{title:'PILS',sub:'6 × 0,5 l',bg1:'#1b5a2a',bg2:'#062a10',ac:'#ffd23f',ac2:'#e8e2c8'}},
+  cola:{name:'Cola 6 × 1 l',short:'Cola',cat:0,lvl:9,cold:true,shape:'boxA',dims:[0.24,0.3,0.16],grid:[6,1,1],box:4,cost:2.60,market:6.49,weight:8,hype:0,risk:3,
+    art:{title:'COLA',sub:'6 × 1 Liter',bg1:'#8a0a0a',bg2:'#2a0202',ac:'#ffffff',ac2:'#ffd23f'}},
+  kinderpunsch:{name:'Kinderpunsch 1 l',short:'Kinderpunsch',cat:0,lvl:9,shape:'boxA',dims:[0.1,0.25,0.07],grid:[14,2,1],box:12,cost:1.20,market:2.99,weight:6,hype:0,risk:2,
+    art:{title:'KINDERPUNSCH',sub:'alkoholfrei · 1 l',bg1:'#c8322a',bg2:'#4a0a06',ac:'#ffd23f',ac2:'#ffe45c'}},
+  gummibaerchen:{name:'Fruchtgummi-Mix XXL',short:'Fruchtgummi',cat:0,lvl:9,shape:'boxA',dims:[0.18,0.26,0.07],grid:[8,2,1],box:14,cost:1.10,market:2.79,weight:7,hype:0,risk:3,
+    art:{title:'FRUCHTGUMMI',sub:'XXL-Mix',bg1:'#ff4fa3',bg2:'#8a1f6a',ac:'#ffe45c',ac2:'#5cff9e'}},
+
+  /* ---------- Level 10: Kleinfeuerwerk ---------- */
+  sternstaub20:{name:'Sternenstaub · 20 Schuss',short:'Batterie 20',cat:2,lvl:10,shape:'battery',dims:[0.22,0.18,0.22],grid:[8,2,1],box:8,cost:6.00,market:14.49,weight:7,hype:18,risk:5,
+    art:{title:'STERNENSTAUB',sub:'20 Schuss Verbund',bg1:'#1f3f8a',bg2:'#070e22',ac:'#f2f5ff',ac2:'#5ce1ff'}},
+  silberpfeil:{name:'Silberpfeil · 10 Raketen',short:'Silberpfeil',cat:2,lvl:10,shape:'rocketset',dims:[0.44,0.06,0.13],grid:[4,2,2],box:8,cost:4.20,market:9.99,weight:7,hype:14,risk:4,
+    art:{title:'SILBERPFEIL',sub:'10 Raketen',bg1:'#26292f',bg2:'#000000',ac:'#d1e5ff',ac2:'#5ce1ff'}},
+  konfettiknaller:{name:'Partyknall · Konfetti-Böller 6er',short:'Konfettiböller',cat:2,lvl:10,shape:'tubepack',dims:[0.15,0.06,0.06],grid:[8,2,2],box:12,cost:2.60,market:6.19,weight:7,hype:10,risk:4,
+    desc:'Knall, und dann regnet es bunt: jeder Böller wirft eine Wolke Konfetti in die Luft.',
+    art:{title:'PARTYKNALL',sub:'6 Konfetti-Böller',bg1:'#ff4fa3',bg2:'#6a24c9',ac:'#ffe45c',ac2:'#5ce1ff'}},
+  zauberbrunnen:{name:'Zauberbrunnen · Knisterfontäne 20 s',short:'Zauberbrunnen',cat:2,lvl:10,shape:'cylinder',dims:[0.12,0.26,0.12],grid:[8,2,1],box:8,cost:4.00,market:9.49,weight:7,hype:14,risk:5,
+    art:{title:'ZAUBERBRUNNEN',sub:'Knisterfontäne · 20 s',bg1:'#0f7a6b',bg2:'#03302a',ac:'#fff3a0',ac2:'#f2f5ff'}},
+  mettigel:{name:'Mett-Igel für 8',short:'Mett-Igel',cat:0,lvl:10,cold:true,kuehlpflicht:true,shape:'boxA',dims:[0.26,0.1,0.2],grid:[4,2,2],box:4,cost:4.40,market:10.99,weight:5,hype:0,risk:6,
+    art:{title:'METT-IGEL',sub:'für 8 · mit Zwiebel',bg1:'#c8322a',bg2:'#4a0a06',ac:'#f2ecd8',ac2:'#ffd23f'}},
+  partypizza:{name:'Partypizza 4er tiefgekühlt',short:'Partypizza',cat:0,lvl:10,cold:true,kuehlpflicht:true,shape:'boxA',dims:[0.3,0.08,0.3],grid:[3,2,2],box:6,cost:3.60,market:8.99,weight:6,hype:0,risk:5,
+    art:{title:'PARTYPIZZA',sub:'4 Stück · TK',bg1:'#1b5a2a',bg2:'#c8322a',ac:'#ffffff',ac2:'#ffd23f'}},
+  energy:{name:'Energydrink 4er',short:'Energydrink',cat:0,lvl:10,cold:true,shape:'boxA',dims:[0.14,0.16,0.07],grid:[10,2,1],box:12,cost:2.00,market:4.99,weight:6,hype:0,risk:3,
+    art:{title:'VOLTAGE',sub:'Energydrink 4 × 0,25 l',bg1:'#1b1b2e',bg2:'#000000',ac:'#9cff3a',ac2:'#5ce1ff'}},
+  orangensaft:{name:'Orangensaft 1 l',short:'O-Saft',cat:0,lvl:10,cold:true,shape:'boxA',dims:[0.1,0.25,0.07],grid:[14,2,1],box:12,cost:0.90,market:2.29,weight:6,hype:0,risk:3,
+    art:{title:'ORANGE',sub:'Saft · 1 Liter',bg1:'#f28a1c',bg2:'#8a3d06',ac:'#ffffff',ac2:'#1b5a2a'}},
+  dips:{name:'Dip-Trio: Kräuter, Knoblauch, Curry',short:'Dips',cat:0,lvl:10,cold:true,kuehlpflicht:true,shape:'boxA',dims:[0.22,0.06,0.1],grid:[6,2,3],box:10,cost:1.80,market:4.49,weight:6,hype:0,risk:4,
+    art:{title:'DIP-TRIO',sub:'Kräuter · Knoblauch · Curry',bg1:'#1b5a2a',bg2:'#062a10',ac:'#f2ecd8',ac2:'#e8b418'}},
+
+  /* ---------- Level 11 ---------- */
+  goldstaubboeller:{name:'Goldstaub · Glitzerböller 8er',short:'Glitzerböller',cat:2,lvl:11,shape:'tubepack',dims:[0.15,0.06,0.06],grid:[8,2,2],box:12,cost:3.00,market:7.19,weight:7,hype:12,risk:5,
+    desc:'Ein satter Knall, danach hängt eine Wolke aus Goldglitzer über dem Tisch und rieselt herunter.',
+    art:{title:'GOLDSTAUB',sub:'8 Glitzerböller',bg1:'#4a3308',bg2:'#150e02',ac:'#ffd23f',ac2:'#fff3c4',gold:true}},
+  kometenraketen:{name:'Kometenschweif · 5 Raketen',short:'Kometenraketen',cat:2,lvl:11,shape:'rocketset',dims:[0.46,0.065,0.14],grid:[3,2,2],box:6,cost:5.60,market:13.49,weight:7,hype:18,risk:5,
+    art:{title:'KOMETENSCHWEIF',sub:'5 Raketen',bg1:'#0c3d7a',bg2:'#020a1c',ac:'#ffd23f',ac2:'#5ce1ff'}},
+  pfauenrad:{name:'Pfauenrad · 19 Schuss Fächer',short:'Fächer 19',cat:2,lvl:11,shape:'fan',dims:[0.4,0.2,0.26],grid:[5,1,1],box:4,cost:8.00,market:18.99,weight:6,hype:22,risk:6,
+    art:{title:'PFAUENRAD',sub:'19 Schuss Fächer',bg1:'#0f5a6b',bg2:'#032028',ac:'#5cff9e',ac2:'#ff4fa3'}},
+  glueckssymbole:{name:'Glücksbringer-Set: Schornsteinfeger, Kleeblatt, Schwein',short:'Glücksbringer',cat:0,lvl:11,shape:'boxA',dims:[0.2,0.22,0.08],grid:[8,2,1],box:12,cost:1.80,market:4.49,weight:7,hype:0,risk:1,
+    art:{title:'VIEL GLÜCK',sub:'Glücksbringer-Set',bg1:'#1b5a2a',bg2:'#062a10',ac:'#ffd23f',ac2:'#ff4a4a'}},
+  glueckskekse:{name:'Glückskekse »Neujahr« 20er',short:'Glückskekse',cat:0,lvl:11,shape:'boxA',dims:[0.2,0.1,0.14],grid:[6,2,2],box:12,cost:1.40,market:3.49,weight:6,hype:0,risk:2,
+    art:{title:'GLÜCKSKEKSE',sub:'20 Stück · Neujahr',bg1:'#c8322a',bg2:'#4a0a06',ac:'#ffd23f',ac2:'#fff3c4'}},
+  gluecksklee:{name:'Glücksklee im Topf',short:'Glücksklee',cat:0,lvl:11,shape:'cylinder',dims:[0.1,0.14,0.1],grid:[10,2,1],box:12,cost:1.00,market:2.49,weight:7,hype:0,risk:3,
+    art:{title:'GLÜCKSKLEE',sub:'im Topf',bg1:'#2f9e57',bg2:'#0d3a20',ac:'#ffd23f',ac2:'#ff4a4a'}},
+  marzipanschwein:{name:'Glücksschweinchen aus Marzipan 6er',short:'Marzipanschwein',cat:0,lvl:11,shape:'boxA',dims:[0.18,0.06,0.12],grid:[8,2,2],box:16,cost:1.60,market:3.99,weight:6,hype:0,risk:3,
+    art:{title:'GLÜCKSSCHWEIN',sub:'Marzipan · 6 Stück',bg1:'#e58ca5',bg2:'#7a2a44',ac:'#fff3c4',ac2:'#1b5a2a'}},
+  schokotaler:{name:'Schoko-Glückstaler 30er',short:'Glückstaler',cat:0,lvl:11,shape:'boxA',dims:[0.16,0.18,0.05],grid:[10,2,1],box:16,cost:1.20,market:2.99,weight:6,hype:0,risk:3,
+    art:{title:'GLÜCKSTALER',sub:'Schokolade · 30 Stück',bg1:'#4a3308',bg2:'#150e02',ac:'#ffd23f',ac2:'#f2ecd8',gold:true}},
+
+  /* ---------- Level 12 ---------- */
+  farbenrausch:{name:'Farbenrausch · 7 Raketen',short:'Farbenrausch',cat:2,lvl:12,shape:'rocketset',dims:[0.46,0.065,0.14],grid:[3,2,2],box:6,cost:6.40,market:14.99,weight:7,hype:20,risk:5,
+    art:{title:'FARBENRAUSCH',sub:'7 Raketen',bg1:'#6a24c9',bg2:'#25093f',ac:'#5cff9e',ac2:'#ff4fa3'}},
+  nachtfalter:{name:'Nachtfalter · 36 Schuss',short:'Batterie 36',cat:2,lvl:12,shape:'battery',dims:[0.3,0.24,0.3],grid:[7,1,1],box:6,cost:11.00,market:25.99,weight:6,hype:26,risk:6,
+    art:{title:'NACHTFALTER',sub:'36 Schuss Verbund',bg1:'#2a0f5a',bg2:'#0a0318',ac:'#ffd23f',ac2:'#c8a2ff'}},
+  feuerberg:{name:'Feuerberg · Vulkan rot-gold 15 s',short:'Feuerberg',cat:2,lvl:12,shape:'cylinder',dims:[0.14,0.3,0.14],grid:[8,2,1],box:8,cost:6.80,market:15.99,weight:6,hype:22,risk:6,
+    art:{title:'FEUERBERG',sub:'Vulkan · rot & gold',bg1:'#7a1010',bg2:'#1a0202',ac:'#ffd23f',ac2:'#ff7a1c'}},
+  raclettekaese:{name:'Raclettekäse in Scheiben 1 kg',short:'Raclettekäse',cat:0,lvl:12,cold:true,kuehlpflicht:true,shape:'boxA',dims:[0.26,0.06,0.18],grid:[4,2,3],box:8,cost:5.20,market:12.99,weight:6,hype:0,risk:5,
+    art:{title:'RACLETTEKÄSE',sub:'1 kg · in Scheiben',bg1:'#e8b418',bg2:'#8a5a08',ac:'#1b1b1b',ac2:'#c8322a',light:true}},
+  raclettezubehoer:{name:'Raclette-Pfännchen & Schieber 8er',short:'Pfännchen',cat:0,lvl:12,shape:'boxA',dims:[0.26,0.08,0.18],grid:[6,2,2],box:8,cost:3.40,market:8.49,weight:4,hype:0,risk:2,
+    art:{title:'PFÄNNCHEN',sub:'8 Stück + Schieber',bg1:'#26292f',bg2:'#0b0d14',ac:'#ffd23f',ac2:'#ff4a4a'}},
+  fonduesossen:{name:'Fondue-Soßen 5er-Set',short:'Fonduesoßen',cat:0,lvl:12,cold:true,shape:'boxA',dims:[0.26,0.1,0.14],grid:[6,2,2],box:8,cost:2.80,market:6.99,weight:5,hype:0,risk:4,
+    art:{title:'FONDUE-SOSSEN',sub:'5 Sorten',bg1:'#8a1a1a',bg2:'#3a0606',ac:'#fff3c4',ac2:'#ffd23f'}},
+  karaoke:{name:'Karaoke-Mikrofon Bluetooth',short:'Karaoke',cat:0,lvl:12,shape:'boxA',dims:[0.12,0.3,0.08],grid:[8,2,1],box:6,cost:9.00,market:22.99,weight:3,hype:0,risk:3,
+    art:{title:'KARAOKE',sub:'Mikrofon · Bluetooth',bg1:'#6a1a8a',bg2:'#1a0626',ac:'#5ce1ff',ac2:'#ff4fa3'}},
+  discokugel:{name:'Discokugel mit LED',short:'Discokugel',cat:0,lvl:12,shape:'boxA',dims:[0.2,0.2,0.2],grid:[5,1,1],box:6,cost:6.40,market:15.99,weight:3,hype:0,risk:3,
+    art:{title:'DISCO',sub:'Kugel mit LED',bg1:'#1b1b2e',bg2:'#000000',ac:'#f2f5ff',ac2:'#ff4fd8'}},
+
+  /* ---------- Level 13: Feuerzauber ---------- */
+  goldpalmen:{name:'Goldpalmen · 25 Schuss',short:'Batterie 25',cat:2,lvl:13,shape:'battery',dims:[0.28,0.22,0.28],grid:[7,2,1],box:6,cost:9.80,market:22.99,weight:6,hype:24,risk:6,
+    art:{title:'GOLDPALMEN',sub:'25 Schuss Verbund',bg1:'#4a3308',bg2:'#150e02',ac:'#ffd23f',ac2:'#1b5a2a',gold:true}},
+  funkenturm:{name:'Funkenturm · 6-m-Fontäne',short:'Funkenturm',cat:2,lvl:13,shape:'cylinder',dims:[0.15,0.32,0.15],grid:[8,1,1],box:6,cost:7.60,market:17.99,weight:6,hype:24,risk:6,
+    art:{title:'FUNKENTURM',sub:'6 m Fontäne · 15 s',bg1:'#12735a',bg2:'#063328',ac:'#f2f5ff',ac2:'#ffd23f'}},
+  knisterstern:{name:'Knisterstern · 10 Knisterraketen',short:'Knisterraketen',cat:2,lvl:13,shape:'rocketset',dims:[0.46,0.065,0.14],grid:[3,2,2],box:6,cost:6.80,market:15.99,weight:6,hype:22,risk:6,
+    art:{title:'KNISTERSTERN',sub:'10 Knisterraketen',bg1:'#12406b',bg2:'#04121f',ac:'#5ce1ff',ac2:'#ffd23f'}},
+  mondschein:{name:'Mondschein · 30 Schuss Silber',short:'Batterie 30',cat:2,lvl:13,shape:'battery',dims:[0.3,0.24,0.3],grid:[7,1,1],box:6,cost:11.50,market:26.99,weight:6,hype:26,risk:6,
+    art:{title:'MONDSCHEIN',sub:'30 Schuss · Silber',bg1:'#8a9299',bg2:'#2a2f36',ac:'#f2f5ff',ac2:'#5ce1ff'}},
+  kaeseplatte:{name:'Käseplatte für 6',short:'Käseplatte',cat:0,lvl:13,cold:true,kuehlpflicht:true,shape:'boxA',dims:[0.3,0.07,0.22],grid:[3,2,3],box:6,cost:6.40,market:15.99,weight:5,hype:0,risk:5,
+    art:{title:'KÄSEPLATTE',sub:'für 6 · gekühlt',bg1:'#e8b418',bg2:'#8a5a08',ac:'#1b3a6b',ac2:'#c8322a',light:true}},
+  lachs:{name:'Räucherlachs-Platte 400 g',short:'Räucherlachs',cat:0,lvl:13,cold:true,kuehlpflicht:true,shape:'boxA',dims:[0.26,0.04,0.18],grid:[4,2,4],box:8,cost:5.20,market:12.99,weight:5,hype:0,risk:5,
+    art:{title:'RÄUCHERLACHS',sub:'400 g · geschnitten',bg1:'#f28a5a',bg2:'#8a3d1a',ac:'#0e1226',ac2:'#ffffff',light:true}},
+  rollmops:{name:'Katerfrühstück: Rollmops & Gewürzgurken',short:'Rollmops',cat:0,lvl:13,cold:true,shape:'bottle',dims:[0.1,0.18,0.1],grid:[12,2,1],box:12,cost:1.80,market:4.49,weight:6,hype:0,risk:4,
+    art:{title:'KATERFRÜHSTÜCK',sub:'Rollmops & Gurken',bg1:'#1b5a2a',bg2:'#062a10',ac:'#f2ecd8',ac2:'#ffd23f'}},
+  cracker:{name:'Cracker-Mix für Käse',short:'Cracker',cat:0,lvl:13,shape:'boxA',dims:[0.2,0.14,0.08],grid:[8,2,1],box:12,cost:1.30,market:3.29,weight:5,hype:0,risk:3,
+    art:{title:'CRACKER',sub:'Mix für Käse',bg1:'#8a5a18',bg2:'#2a1a04',ac:'#f2ecd8',ac2:'#ffd23f'}},
+
+  /* ---------- Level 14 ---------- */
+  feuerperlen:{name:'Feuerperlen · 16 Kugeln Römisches Licht',short:'Feuerperlen',cat:2,lvl:14,shape:'candle',dims:[0.11,0.38,0.11],grid:[8,2,1],box:6,cost:6.40,market:14.99,weight:6,hype:22,risk:6,
+    art:{title:'FEUERPERLEN',sub:'16 Kugeln · bunt',bg1:'#7a1f3d',bg2:'#2a0714',ac:'#ffd23f',ac2:'#5cff9e'}},
+  farbrauchboeller:{name:'Farbrauch-Böller 6er',short:'Farbrauchböller',cat:2,lvl:14,shape:'tubepack',dims:[0.16,0.065,0.065],grid:[7,2,2],box:12,cost:3.60,market:8.49,weight:6,hype:14,risk:5,
+    desc:'Kräftiger Schlag, danach steht eine dicke Rauchwolke in Rot, Blau oder Grün über dem Platz.',
+    art:{title:'FARBRAUCH',sub:'6 Böller · Rauchwolke',bg1:'#1557a8',bg2:'#8a1f6a',ac:'#5cff9e',ac2:'#ffe45c'}},
+  feuerrad:{name:'Drehsonne · Feuerrad 12 s',short:'Feuerrad',cat:2,lvl:14,shape:'cylinder',dims:[0.2,0.2,0.08],grid:[6,2,1],box:6,cost:5.20,market:12.49,weight:6,hype:18,risk:5,
+    art:{title:'DREHSONNE',sub:'Feuerrad · 12 s',bg1:'#f2a01c',bg2:'#8a3d06',ac:'#ffffff',ac2:'#c8201c'}},
+  knisterfaecher:{name:'Knisterfächer · 24 Schuss',short:'Fächer 24',cat:2,lvl:14,shape:'fan',dims:[0.48,0.24,0.3],grid:[4,1,1],box:3,cost:12.00,market:27.99,weight:6,hype:30,risk:7,
+    art:{title:'KNISTERFÄCHER',sub:'24 Schuss Fächer',bg1:'#12406b',bg2:'#04121f',ac:'#fff3a0',ac2:'#5ce1ff'}},
+  palmenkugel75:{name:'Palmenstrand · Kugelbombe 75 mm',short:'Kugel 75 Palme',cat:2,lvl:14,shape:'shell',dims:[0.09,0.115,0.09],grid:[8,2,1],box:8,cost:5.80,market:13.99,weight:6,hype:24,risk:7,
+    art:{title:'PALMENSTRAND',sub:'Kugelbombe 75 mm · Palme',bg1:'#1b5a2a',bg2:'#062a10',ac:'#ffd23f',ac2:'#5cff9e'}},
+
+  /* ---------- Level 15: feine Getraenke, mehr Farbe ---------- */
+  champagner:{name:'Champagner Brut',short:'Champagner',cat:0,lvl:15,cold:true,shape:'bottle',dims:[0.08,0.31,0.08],grid:[12,2,1],box:6,cost:12.00,market:29.99,weight:5,hype:0,risk:6,
+    art:{title:'CHAMPAGNE',sub:'Brut · 0,75 l',bg1:'#0e1226',bg2:'#000000',ac:'#e8c35a',ac2:'#f2f5ff',gold:true}},
+  cocktailset:{name:'Cocktail-Set »Mitternacht«',short:'Cocktailset',cat:0,lvl:15,shape:'boxA',dims:[0.28,0.3,0.12],grid:[5,1,1],box:4,cost:8.40,market:19.99,weight:4,hype:0,risk:4,
+    art:{title:'MITTERNACHT',sub:'Cocktail-Set',bg1:'#2a0f5a',bg2:'#0a0318',ac:'#ff4fd8',ac2:'#5ce1ff'}},
+  rotwein:{name:'Rotwein Spätburgunder',short:'Rotwein',cat:0,lvl:15,shape:'bottle',dims:[0.078,0.31,0.078],grid:[12,2,1],box:6,cost:3.60,market:8.99,weight:6,hype:0,risk:4,
+    art:{title:'SPÄTBURGUNDER',sub:'Rotwein · trocken',bg1:'#5a0a1e',bg2:'#1a0206',ac:'#e8c35a',ac2:'#f2f5ff'}},
+  smaragd:{name:'Smaragd · 7 Raketen Grünstern',short:'Smaragd',cat:2,lvl:15,shape:'rocketset',dims:[0.48,0.065,0.145],grid:[3,2,2],box:6,cost:8.20,market:18.99,weight:6,hype:24,risk:6,
+    art:{title:'SMARAGD',sub:'7 Raketen · Grünstern',bg1:'#0d4a2a',bg2:'#021208',ac:'#5cff9e',ac2:'#ffd23f'}},
+  dreiklang:{name:'Dreiklang · 3 Fontänen nacheinander',short:'Dreiklang',cat:2,lvl:15,shape:'fountainset',dims:[0.26,0.17,0.1],grid:[6,2,1],box:5,cost:7.40,market:17.49,weight:6,hype:24,risk:6,
+    art:{title:'DREIKLANG',sub:'3 Fontänen in Folge',bg1:'#123a6b',bg2:'#04101f',ac:'#ffd23f',ac2:'#ff4fa3'}},
+  sternenmeer42:{name:'Sternenmeer · 42 Schuss',short:'Batterie 42',cat:2,lvl:15,shape:'battery',dims:[0.36,0.28,0.34],grid:[6,1,1],box:5,cost:15.00,market:34.99,weight:5,hype:34,risk:7,
+    art:{title:'STERNENMEER',sub:'42 Schuss Verbund',bg1:'#0c3d7a',bg2:'#020a1c',ac:'#f2f5ff',ac2:'#ffd23f'}},
+
+  /* ---------- Level 16: Nachthimmel ---------- */
+  sternenmeer80:{name:'Silbermeer · 80 Schuss',short:'Batterie 80',cat:2,lvl:16,shape:'battery',dims:[0.52,0.38,0.42],grid:[4,1,1],box:3,cost:26.00,market:59.99,weight:5,hype:48,risk:8,
+    art:{title:'SILBERMEER',sub:'80 Schuss Verbund',bg1:'#26292f',bg2:'#000000',ac:'#d1e5ff',ac2:'#ffd23f'}},
+  salutbatterie:{name:'Salutschüsse · 10 Schlag Böllerbatterie',short:'Salut 10',cat:2,lvl:16,shape:'battery',dims:[0.26,0.24,0.26],grid:[7,2,1],box:6,cost:9.40,market:21.99,weight:6,hype:30,risk:7,
+    art:{title:'SALUT',sub:'10 Schlag · Böllerbatterie',bg1:'#1c1c24',bg2:'#000000',ac:'#ff3b2e',ac2:'#f2f5ff'}},
+  silberwirbel:{name:'Silberwirbel · 30 Schuss Fächer',short:'Fächer 30',cat:2,lvl:16,shape:'fan',dims:[0.56,0.26,0.32],grid:[4,1,1],box:3,cost:17.00,market:39.99,weight:5,hype:40,risk:8,
+    art:{title:'SILBERWIRBEL',sub:'30 Schuss Fächer',bg1:'#8a9299',bg2:'#2a2f36',ac:'#f2f5ff',ac2:'#5ce1ff'}},
+  farbenmeer75:{name:'Farbenmeer · Kugelbombe 75 mm Farbwechsel',short:'Kugel 75 Farbe',cat:2,lvl:16,shape:'shell',dims:[0.09,0.115,0.09],grid:[8,2,1],box:8,cost:6.20,market:14.99,weight:6,hype:28,risk:7,
+    art:{title:'FARBENMEER',sub:'75 mm · Farbwechsel',bg1:'#5a1470',bg2:'#1a0322',ac:'#5ce1ff',ac2:'#ff4fa3'}},
+  blinkstern:{name:'Blinkstern · 5 Strobe-Raketen',short:'Blinkstern',cat:2,lvl:16,shape:'rocketset',dims:[0.48,0.065,0.145],grid:[3,2,2],box:6,cost:9.00,market:20.99,weight:6,hype:28,risk:6,
+    art:{title:'BLINKSTERN',sub:'5 Strobe-Raketen',bg1:'#0f2a4a',bg2:'#02060f',ac:'#f2f5ff',ac2:'#5ce1ff'}},
+  wasserspiel:{name:'Wasserspiel · Fontänenkette 4er',short:'Wasserspiel',cat:2,lvl:16,shape:'fountainset',dims:[0.3,0.17,0.1],grid:[6,2,1],box:5,cost:8.80,market:20.49,weight:6,hype:28,risk:6,
+    art:{title:'WASSERSPIEL',sub:'4 Fontänen in Kette',bg1:'#0f5a6b',bg2:'#032028',ac:'#5ce1ff',ac2:'#f2f5ff'}},
+  weisswein:{name:'Weißwein Riesling',short:'Weißwein',cat:0,lvl:16,cold:true,shape:'bottle',dims:[0.078,0.31,0.078],grid:[12,2,1],box:6,cost:3.40,market:8.49,weight:6,hype:0,risk:4,
+    art:{title:'RIESLING',sub:'Weißwein · halbtrocken',bg1:'#e8e2a8',bg2:'#8a8448',ac:'#1b3a2e',ac2:'#c8a23a',light:true}},
+  eierlikoer:{name:'Eierlikör 0,7 l',short:'Eierlikör',cat:0,lvl:16,shape:'bottle',dims:[0.08,0.28,0.08],grid:[12,2,1],box:6,cost:3.20,market:7.99,weight:5,hype:0,risk:4,
+    art:{title:'EIERLIKÖR',sub:'0,7 Liter',bg1:'#f2d21b',bg2:'#8a7208',ac:'#1b1b1b',ac2:'#ffffff',light:true}},
+
+  /* ---------- Level 17 ---------- */
+  regenbogenfaecher:{name:'Regenbogen · 49 Schuss Fächer',short:'Fächer 49',cat:2,lvl:17,shape:'fan',dims:[0.64,0.3,0.36],grid:[4,1,1],box:2,cost:25.00,market:57.99,weight:5,hype:50,risk:8,
+    art:{title:'REGENBOGEN',sub:'49 Schuss Fächer',bg1:'#6a24c9',bg2:'#25093f',ac:'#ffd23f',ac2:'#5cff9e'}},
+  goldweide100:{name:'Goldweide · Kugelbombe 100 mm',short:'Kugel 100 Weide',cat:2,lvl:17,shape:'shell',dims:[0.12,0.15,0.12],grid:[6,2,1],box:6,cost:12.00,market:28.99,weight:5,hype:40,risk:8,
+    art:{title:'GOLDWEIDE',sub:'Kugelbombe 100 mm',bg1:'#4a3308',bg2:'#150e02',ac:'#ffd23f',ac2:'#fff3c4',gold:true}},
+  silberregen:{name:'Silberregen · 5 Raketen Silberweide',short:'Silberregen',cat:2,lvl:17,shape:'rocketset',dims:[0.5,0.07,0.15],grid:[3,2,2],box:6,cost:10.00,market:23.49,weight:5,hype:32,risk:7,
+    art:{title:'SILBERREGEN',sub:'5 Raketen · Silberweide',bg1:'#26292f',bg2:'#000000',ac:'#f2f5ff',ac2:'#d1e5ff'}},
+  glitzerkaskade:{name:'Glitzerkaskade · 8-m-Glitzerfontäne',short:'Glitzerkaskade',cat:2,lvl:17,shape:'cylinder',dims:[0.18,0.36,0.18],grid:[7,1,1],box:4,cost:12.00,market:27.99,weight:5,hype:34,risk:7,
+    art:{title:'GLITZERKASKADE',sub:'8 m · Glitzer · 20 s',bg1:'#12204a',bg2:'#04081a',ac:'#f2f5ff',ac2:'#ffd23f'}},
+  kaesefondue:{name:'Käsefondue-Set für 4',short:'Käsefondue',cat:0,lvl:17,cold:true,kuehlpflicht:true,shape:'boxA',dims:[0.26,0.1,0.18],grid:[4,2,2],box:6,cost:6.80,market:16.99,weight:4,hype:0,risk:5,
+    art:{title:'KÄSEFONDUE',sub:'für 4 · mit Brot',bg1:'#e8b418',bg2:'#8a5a08',ac:'#7a1010',ac2:'#ffffff',light:true}},
+  likoer:{name:'Sahnelikör 0,7 l',short:'Sahnelikör',cat:0,lvl:17,cold:true,shape:'bottle',dims:[0.08,0.28,0.08],grid:[12,2,1],box:6,cost:4.60,market:11.49,weight:4,hype:0,risk:4,
+    art:{title:'SAHNELIKÖR',sub:'0,7 Liter',bg1:'#4a2a14',bg2:'#140a04',ac:'#f2e6c4',ac2:'#e8c35a'}},
+
+  /* ---------- Level 18: Goldklasse ---------- */
+  kreuzfeuer:{name:'Kreuzfeuer · 42 Schuss Crossette',short:'Crossette 42',cat:2,lvl:18,shape:'battery',dims:[0.42,0.34,0.38],grid:[5,1,1],box:4,cost:21.00,market:48.99,weight:5,hype:44,risk:8,
+    art:{title:'KREUZFEUER',sub:'42 Schuss Crossette',bg1:'#7a1010',bg2:'#1a0202',ac:'#ffd23f',ac2:'#f2f5ff'}},
+  kometenfaecher:{name:'Schweifstern · 50 Schuss Kometenfächer',short:'Kometenfächer',cat:2,lvl:18,shape:'fan',dims:[0.66,0.3,0.36],grid:[4,1,1],box:2,cost:28.00,market:64.99,weight:5,hype:54,risk:8,
+    art:{title:'SCHWEIFSTERN',sub:'50 Schuss Kometenfächer',bg1:'#4a3308',bg2:'#150e02',ac:'#ffd23f',ac2:'#ff7a3d',gold:true}},
+  kristall:{name:'Kristall · 5 Raketen Blinkweide',short:'Kristall',cat:2,lvl:18,shape:'rocketset',dims:[0.52,0.075,0.16],grid:[3,2,2],box:6,cost:11.40,market:26.49,weight:5,hype:36,risk:7,
+    art:{title:'KRISTALL',sub:'5 Raketen · Blinkweide',bg1:'#0f2a4a',bg2:'#02060f',ac:'#d1e5ff',ac2:'#f2f5ff'}},
+  sternenstaub150:{name:'Sternenstaub · Kugelbombe 150 mm Blinker',short:'Kugel 150 Blink',cat:2,lvl:18,shape:'shell',dims:[0.165,0.2,0.165],grid:[4,1,1],box:3,cost:30.00,market:71.99,weight:4,hype:66,risk:10,
+    art:{title:'STERNENSTAUB',sub:'150 mm · Blinksterne',bg1:'#12204a',bg2:'#04081a',ac:'#f2f5ff',ac2:'#ffd23f'}},
+  magnum:{name:'Champagner Magnum 1,5 l',short:'Magnum',cat:0,lvl:18,cold:true,shape:'bottle',dims:[0.11,0.4,0.11],grid:[8,1,1],box:3,cost:28.00,market:69.99,weight:3,hype:0,risk:7,
+    art:{title:'MAGNUM',sub:'Champagner 1,5 l',bg1:'#0e1226',bg2:'#000000',ac:'#e8c35a',ac2:'#f2f5ff',gold:true}},
+
+  /* ---------- Level 19: Sternklasse ---------- */
+  goldenerregen:{name:'Goldener Regen · 70 Schuss',short:'Batterie 70',cat:2,lvl:19,shape:'battery',dims:[0.5,0.4,0.44],grid:[4,1,1],box:3,cost:34.00,market:78.99,weight:4,hype:62,risk:9,
+    art:{title:'GOLDENER REGEN',sub:'70 Schuss Brokat',bg1:'#4a3308',bg2:'#150e02',ac:'#ffd23f',ac2:'#fff3c4',gold:true}},
+  regenbogenkrone:{name:'Jumbo-Rakete »Regenbogenkrone«',short:'Jumbo Regenbogen',cat:2,lvl:19,shape:'rocketset',stueck:1,dims:[0.8,0.1,0.15],grid:[2,1,1],box:4,cost:12.50,market:29.99,weight:4,hype:40,risk:9,
+    art:{title:'JUMBO',sub:'Regenbogenkrone · Einzelrakete',bg1:'#6a24c9',bg2:'#25093f',ac:'#ffd23f',ac2:'#5cff9e'}},
+  lichterkugeln:{name:'Lichterkette · 24 Kugeln Römisches Licht',short:'Lichterkugeln',cat:2,lvl:19,shape:'candle',dims:[0.13,0.42,0.13],grid:[7,2,1],box:4,cost:10.50,market:24.49,weight:5,hype:34,risk:7,
+    art:{title:'LICHTERKETTE',sub:'24 Kugeln · Farbwechsel',bg1:'#0c3d7a',bg2:'#020a1c',ac:'#ffd23f',ac2:'#ff4fa3'}},
+  eisblume:{name:'Eisblume · 12-m-Silberfontäne',short:'Eisblume',cat:2,lvl:19,shape:'cylinder',dims:[0.22,0.38,0.22],grid:[6,1,1],box:3,cost:18.00,market:42.99,weight:4,hype:50,risk:8,
+    art:{title:'EISBLUME',sub:'12 m Silberfontäne · 22 s',bg1:'#8a9299',bg2:'#2a2f36',ac:'#f2f5ff',ac2:'#5ce1ff'}},
+  donnerschlag:{name:'Donnerschlag · 20 Schlag Salutbatterie',short:'Salut 20',cat:2,lvl:19,shape:'battery',dims:[0.34,0.3,0.34],grid:[6,1,1],box:4,cost:17.00,market:38.99,weight:5,hype:46,risk:9,
+    art:{title:'DONNERSCHLAG',sub:'20 Schlag Salut',bg1:'#1c1c24',bg2:'#000000',ac:'#f2f5ff',ac2:'#ff3b2e'}},
+
+  /* ---------- Level 20-21 ---------- */
+  feuerpfau:{name:'Feuerpfau · 100 Schuss Fächerverbund',short:'Fächer 100',cat:2,lvl:20,shape:'fan',dims:[0.76,0.34,0.42],grid:[3,1,1],box:2,cost:44.00,market:99.99,weight:4,hype:72,risk:9,
+    art:{title:'FEUERPFAU',sub:'100 Schuss Fächer',bg1:'#0f5a6b',bg2:'#032028',ac:'#ffd23f',ac2:'#ff4fa3',gold:true}},
+  goldvulkan:{name:'Goldvulkan XXL · 30 Sekunden',short:'Goldvulkan',cat:2,lvl:20,shape:'cylinder',dims:[0.24,0.36,0.24],grid:[6,1,1],box:3,cost:16.00,market:37.99,weight:4,hype:46,risk:8,
+    art:{title:'GOLDVULKAN',sub:'XXL · 30 s',bg1:'#6b4a0c',bg2:'#1f1402',ac:'#ffd23f',ac2:'#ff7a1c',gold:true}},
+  nordlicht:{name:'Nordlicht · 150 Schuss Verbund',short:'Verbund 150',cat:2,lvl:21,shape:'battery',dims:[0.76,0.6,0.5],grid:[3,1,1],box:2,cost:58.00,market:129.99,weight:3,hype:80,risk:10,
+    art:{title:'NORDLICHT',sub:'150 Schuss Verbund',bg1:'#0d4a2a',bg2:'#021208',ac:'#5cff9e',ac2:'#c8a2ff'}},
+  blitzgewitter60:{name:'Blitzlicht · 60 Schuss Strobe',short:'Strobe 60',cat:2,lvl:21,shape:'battery',dims:[0.48,0.38,0.42],grid:[4,1,1],box:3,cost:30.00,market:69.99,weight:4,hype:58,risk:9,
+    art:{title:'BLITZLICHT',sub:'60 Schuss Strobe',bg1:'#0f2a4a',bg2:'#02060f',ac:'#f2f5ff',ac2:'#5ce1ff'}},
+  feuerwand:{name:'Feuerwand · 5 Fontänen in Reihe',short:'Feuerwand',cat:2,lvl:21,shape:'fountainset',dims:[0.4,0.2,0.12],grid:[5,1,1],box:3,cost:19.00,market:44.99,weight:4,hype:52,risk:8,
+    art:{title:'FEUERWAND',sub:'5 Fontänen in Reihe',bg1:'#8a1a08',bg2:'#240502',ac:'#ff8a2a',ac2:'#ffd23f',gold:true}},
+  sternkugel150:{name:'Sternkranz · Kugelbombe 150 mm Crossette',short:'Kugel 150 Kreuz',cat:2,lvl:21,shape:'shell',dims:[0.165,0.2,0.165],grid:[4,1,1],box:3,cost:31.00,market:73.99,weight:4,hype:70,risk:10,
+    art:{title:'STERNKRANZ',sub:'150 mm · Crossette',bg1:'#7a1010',bg2:'#1a0202',ac:'#ffd23f',ac2:'#f2f5ff'}},
+
+  /* ---------- Level 22-26: die ganz grossen ---------- */
+  silbermond:{name:'Jumbo-Rakete »Silbermond«',short:'Jumbo Silbermond',cat:2,lvl:22,shape:'rocketset',stueck:1,dims:[0.84,0.11,0.16],grid:[2,1,1],box:3,cost:19.00,market:44.99,weight:3,hype:54,risk:10,
+    art:{title:'JUMBO',sub:'Silbermond · Einzelrakete',bg1:'#26292f',bg2:'#000000',ac:'#f2f5ff',ac2:'#d1e5ff'}},
+  pfeifkonzert:{name:'Pfeifkonzert · 80 Schuss Pfeiffächer',short:'Pfeiffächer 80',cat:2,lvl:22,shape:'fan',dims:[0.72,0.32,0.4],grid:[3,1,1],box:2,cost:36.00,market:82.99,weight:4,hype:62,risk:9,
+    art:{title:'PFEIFKONZERT',sub:'80 Schuss · Pfeifer',bg1:'#0d4a2a',bg2:'#021208',ac:'#5cff9e',ac2:'#ffd23f'}},
+  sternenkaiser:{name:'Sternenkaiser · 250 Schuss',short:'Verbund 250',cat:2,lvl:23,shape:'battery',dims:[0.96,0.84,0.58],grid:[2,1,1],box:1,cost:92.00,market:199.99,weight:2,hype:96,risk:10,
+    art:{title:'STERNENKAISER',sub:'250 Schuss · 2½ Minuten',bg1:'#12204a',bg2:'#000000',ac:'#ffd23f',ac2:'#d1e5ff',gold:true}},
+  kometenwand:{name:'Kometenwand · 90 Schuss Fächer',short:'Kometenwand',cat:2,lvl:23,shape:'fan',dims:[0.76,0.34,0.42],grid:[3,1,1],box:2,cost:42.00,market:94.99,weight:3,hype:70,risk:9,
+    art:{title:'KOMETENWAND',sub:'90 Schuss Kometen',bg1:'#6b2410',bg2:'#1f0a04',ac:'#ffd23f',ac2:'#ff7a1c',gold:true}},
+  goldkrone200:{name:'Goldkrone · Kugelbombe 200 mm Kamuro',short:'Kugel 200 Kamuro',cat:2,lvl:24,shape:'shell',dims:[0.21,0.25,0.21],grid:[3,1,1],box:2,cost:46.00,market:109.99,weight:3,hype:92,risk:10,
+    art:{title:'GOLDKRONE',sub:'200 mm · Kamuro',bg1:'#4a3308',bg2:'#000000',ac:'#ffd23f',ac2:'#fff3c4',gold:true}},
+  silberkaskade:{name:'Silberkaskade · 20-m-Fontäne',short:'Silberkaskade',cat:2,lvl:24,shape:'cylinder',dims:[0.28,0.44,0.28],grid:[4,1,1],box:2,cost:28.00,market:66.99,weight:3,hype:66,risk:10,
+    art:{title:'SILBERKASKADE',sub:'20 m · Silber · 22 s',bg1:'#8a9299',bg2:'#1a1e24',ac:'#f2f5ff',ac2:'#5ce1ff'}},
+  feuerdrache:{name:'Jumbo-Rakete »Feuerdrache«',short:'Jumbo Drache',cat:2,lvl:24,shape:'rocketset',stueck:1,dims:[0.86,0.12,0.17],grid:[2,1,1],box:2,cost:24.00,market:56.99,weight:3,hype:62,risk:10,
+    art:{title:'JUMBO',sub:'Feuerdrache · Einzelrakete',bg1:'#7a1010',bg2:'#1a0202',ac:'#ff7a1c',ac2:'#ffd23f'}},
+  himmelsfaecher:{name:'Himmelsfächer · 180 Schuss Fächer',short:'Fächer 180',cat:2,lvl:25,shape:'fan',dims:[0.9,0.4,0.5],grid:[2,1,1],box:1,cost:78.00,market:169.99,weight:2,hype:94,risk:10,
+    art:{title:'HIMMELSFÄCHER',sub:'180 Schuss Fächer',bg1:'#2a0f5a',bg2:'#000000',ac:'#ffd23f',ac2:'#ff4fd8',gold:true}},
+  supernova:{name:'Jumbo-Rakete »Supernova«',short:'Jumbo Supernova',cat:2,lvl:25,shape:'rocketset',stueck:1,dims:[0.9,0.13,0.18],grid:[2,1,1],box:2,cost:28.00,market:64.99,weight:3,hype:70,risk:10,
+    art:{title:'JUMBO',sub:'Supernova · Einzelrakete',bg1:'#12204a',bg2:'#000000',ac:'#f2f5ff',ac2:'#ff4fd8'}},
+  silvesternacht:{name:'Silvesternacht · 40 Teile Sortiment',short:'Sortiment 40',cat:2,lvl:25,shape:'assort',dims:[0.56,0.22,0.4],grid:[3,1,1],box:1,cost:52.00,market:119.99,weight:3,hype:78,risk:9,
+    art:{title:'SILVESTERNACHT',sub:'40 Teile gemischt',bg1:'#0c3d7a',bg2:'#020a1c',ac:'#ffd23f',ac2:'#ff4fa3',gold:true}},
+  kaiserkrone:{name:'Kaiserkrone · Kugelbombe 300 mm Gold',short:'Kugel 300 Gold',cat:2,lvl:26,shape:'shell',dims:[0.3,0.34,0.3],grid:[2,1,1],box:1,cost:74.00,market:174.99,weight:2,hype:100,risk:10,
+    art:{title:'KAISERKRONE',sub:'300 mm · Goldvorhang',bg1:'#4a3308',bg2:'#000000',ac:'#ffd23f',ac2:'#fff3c4',gold:true}},
+  kugelfinale:{name:'Finale Grande · 5 Kugelbomben',short:'Kugel-Finale',cat:2,lvl:26,shape:'assort',dims:[0.5,0.3,0.36],grid:[3,1,1],box:1,cost:96.00,market:214.99,weight:2,hype:100,risk:10,
+    art:{title:'FINALE GRANDE',sub:'5 Kugelbomben in Folge',bg1:'#3a0507',bg2:'#000000',ac:'#ffd23f',ac2:'#ff3b2e',gold:true}},
+  feuerkaskade:{name:'Feuerkaskade · 3 Riesenfontänen',short:'Feuerkaskade',cat:2,lvl:26,shape:'fountainset',dims:[0.44,0.24,0.16],grid:[4,1,1],box:2,cost:40.00,market:92.99,weight:3,hype:84,risk:10,
+    art:{title:'FEUERKASKADE',sub:'3 Riesenfontänen · 30 s',bg1:'#7a1010',bg2:'#000000',ac:'#ffd23f',ac2:'#ff7a1c',gold:true}},
+
+  /* ---------- noch mehr Kleinkram fuer den Laden ---------- */
+  kindersekt2:{name:'Kindersekt Erdbeere',short:'Kindersekt Erdb.',cat:0,lvl:14,cold:true,shape:'bottle',dims:[0.07,0.26,0.07],grid:[12,2,1],box:12,cost:1.70,market:4.19,weight:5,hype:0,risk:3,
+    art:{title:'ERDBEERSPRITZ',sub:'Kindersekt · 0,75 l',bg1:'#c8325a',bg2:'#5a0a1e',ac:'#ffe45c',ac2:'#f2f5ff'}},
+  wunderkerzeXXL:{name:'Riesen-Wunderkerzen 1 m 5er',short:'Riesen-Wunderk.',cat:1,lvl:6,shape:'sparkler',dims:[0.12,0.46,0.04],grid:[10,2,1],box:10,cost:2.20,market:5.49,weight:6,hype:6,risk:2,
+    art:{title:'RIESENFUNKEN',sub:'5 Wunderkerzen · 1 m',bg1:'#26307a',bg2:'#0b0f2e',ac:'#ffd23f',ac2:'#fff3c4',gold:true}},
+  leuchtstaebe:{name:'Magische Leuchtstäbe 6er',short:'Leuchtstäbe',cat:1,lvl:5,shape:'sparkler',dims:[0.1,0.3,0.03],grid:[12,3,1],box:24,cost:1.10,market:2.79,weight:6,hype:4,risk:1,
+    art:{title:'MAGIC LIGHT',sub:'6 Farbleuchtstäbe',bg1:'#1b1b2e',bg2:'#070712',ac:'#ff4fd8',ac2:'#5cff9e'}},
+  kinderbatterie:{name:'Sternchen · 6 Schuss Jugendbatterie',short:'Jugend 6',cat:1,lvl:4,shape:'battery',dims:[0.14,0.1,0.14],grid:[12,2,1],box:16,cost:2.00,market:4.79,weight:6,hype:6,risk:2,
+    art:{title:'STERNCHEN',sub:'6 Schuss · Jugendfeuerwerk',bg1:'#2f9e57',bg2:'#0d3a20',ac:'#ffd23f',ac2:'#ff4fa3'}},
+  kinderparty:{name:'Kinderparty · 12 Teile Sortiment',short:'Kindersortiment',cat:1,lvl:6,shape:'assort',dims:[0.34,0.12,0.24],grid:[5,1,1],box:3,cost:6.40,market:14.99,weight:6,hype:8,risk:2,
+    art:{title:'KINDERPARTY',sub:'12 Teile Jugendfeuerwerk',bg1:'#ff4fa3',bg2:'#6a24c9',ac:'#ffe45c',ac2:'#5ce1ff'}},
+  glitzerraketen:{name:'Glitzerflug · 12 Raketen',short:'Glitzerraketen',cat:2,lvl:8,shape:'rocketset',dims:[0.42,0.06,0.12],grid:[4,2,2],box:8,cost:3.40,market:7.99,weight:7,hype:11,risk:4,
+    art:{title:'GLITZERFLUG',sub:'12 Raketen',bg1:'#12406b',bg2:'#04121f',ac:'#ffd23f',ac2:'#f2f5ff'}},
+  heulbatterie:{name:'Heulboje · 12 Pfeifschuss Batterie',short:'Pfeif 12',cat:2,lvl:11,shape:'battery',dims:[0.24,0.2,0.24],grid:[8,2,1],box:8,cost:5.60,market:13.29,weight:6,hype:18,risk:5,
+    art:{title:'HEULBOJE',sub:'12 Pfeifschuss',bg1:'#0d4a2a',bg2:'#021208',ac:'#5cff9e',ac2:'#ffd23f'}},
+  familienmix:{name:'Familienmix · 24 Teile Sortiment',short:'Sortiment 24',cat:2,lvl:17,shape:'assort',dims:[0.46,0.18,0.34],grid:[4,1,1],box:2,cost:26.00,market:59.99,weight:5,hype:46,risk:7,
+    art:{title:'FAMILIENMIX',sub:'24 Teile gemischt',bg1:'#2f5d9e',bg2:'#0a1a33',ac:'#ffd23f',ac2:'#5cff9e'}},
+  wunderbox:{name:'Wunderkerzen-Box 50 Stück',short:'Wunderkerzen-Box',cat:1,lvl:8,shape:'boxA',dims:[0.34,0.1,0.14],grid:[6,2,2],box:8,cost:4.40,market:10.49,weight:6,hype:5,risk:1,
+    art:{title:'WUNDERBOX',sub:'50 Wunderkerzen',bg1:'#26307a',bg2:'#0b0f2e',ac:'#ffd23f',ac2:'#ff6a3d'}},
+  schneeballschlacht:{name:'Schneeball · 12 Schuss Weißstern',short:'Batterie 12 weiß',cat:2,lvl:10,shape:'battery',dims:[0.2,0.16,0.2],grid:[9,2,1],box:10,cost:4.80,market:11.49,weight:6,hype:15,risk:5,
+    art:{title:'SCHNEEBALL',sub:'12 Schuss · Weißstern',bg1:'#8a9299',bg2:'#2a2f36',ac:'#f2f5ff',ac2:'#5ce1ff'}},
+  vulkanfeld:{name:'Vulkanfeld · 3 Mini-Vulkane',short:'Vulkanfeld',cat:2,lvl:12,shape:'fountainset',dims:[0.24,0.15,0.1],grid:[6,2,1],box:6,cost:5.40,market:12.79,weight:6,hype:18,risk:5,
+    art:{title:'VULKANFELD',sub:'3 Mini-Vulkane',bg1:'#8a1a08',bg2:'#240502',ac:'#ff8a2a',ac2:'#ffd23f'}},
+  kristallkugel100:{name:'Eiskristall · Kugelbombe 100 mm Ring',short:'Kugel 100 Ring',cat:2,lvl:15,shape:'shell',dims:[0.12,0.15,0.12],grid:[6,2,1],box:6,cost:11.00,market:25.99,weight:5,hype:34,risk:8,
+    art:{title:'EISKRISTALL',sub:'100 mm · Doppelring',bg1:'#12406b',bg2:'#04121f',ac:'#f2f5ff',ac2:'#5ce1ff'}},
+  sternfontaene:{name:'Sternregen · Fontäne 25 s',short:'Sternregen',cat:2,lvl:18,shape:'cylinder',dims:[0.18,0.36,0.18],grid:[7,1,1],box:4,cost:13.00,market:30.49,weight:5,hype:38,risk:7,
+    art:{title:'STERNREGEN',sub:'Fontäne · 25 s',bg1:'#2a0f5a',bg2:'#0a0318',ac:'#ffd23f',ac2:'#c8a2ff'}},
+  hochzeitsfaecher:{name:'Herzfächer · 36 Schuss Rosé',short:'Herzfächer',cat:2,lvl:20,shape:'fan',dims:[0.62,0.28,0.34],grid:[4,1,1],box:2,cost:26.00,market:59.99,weight:4,hype:50,risk:8,
+    art:{title:'HERZFÄCHER',sub:'36 Schuss · Rosé & Gold',bg1:'#c01c6a',bg2:'#4a0626',ac:'#ffd23f',ac2:'#fff3c4'}},
+  raketen50:{name:'Raketenregen · 50 Raketen Mix',short:'Raketen 50',cat:2,lvl:20,shape:'rocketset',dims:[0.6,0.1,0.26],grid:[2,2,1],box:3,cost:18.00,market:41.99,weight:4,hype:42,risk:8,
+    art:{title:'RAKETENREGEN',sub:'50 Raketen gemischt',bg1:'#35157a',bg2:'#0c0626',ac:'#ffd23f',ac2:'#5cff9e'}},
+  goldregen22:{name:'Goldregen · 22 Kugeln Römisches Licht',short:'Goldregen 22',cat:2,lvl:22,shape:'candle',dims:[0.14,0.44,0.14],grid:[6,2,1],box:4,cost:14.00,market:32.99,weight:4,hype:44,risk:8,
+    art:{title:'GOLDREGEN',sub:'22 Kugeln · Brokat',bg1:'#4a3308',bg2:'#000000',ac:'#ffd23f',ac2:'#fff3c4',gold:true}},
+  tischfeuerwerk2:{name:'Tischfeuerwerk »Goldregen« 3er',short:'Tisch Gold',cat:1,lvl:7,shape:'cylinder',dims:[0.1,0.2,0.1],grid:[8,2,1],box:12,cost:2.00,market:4.99,weight:6,hype:5,risk:1,
+    art:{title:'GOLDREGEN',sub:'Tischfeuerwerk 3er',bg1:'#4a3308',bg2:'#150e02',ac:'#ffd23f',ac2:'#fff3c4',gold:true}},
+  bengalduo:{name:'Bengal-Duo · Rot & Grün 30 s',short:'Bengal-Duo',cat:2,lvl:13,shape:'fountainset',dims:[0.18,0.2,0.08],grid:[7,2,1],box:8,cost:3.80,market:8.99,weight:6,hype:14,risk:4,
+    art:{title:'BENGAL-DUO',sub:'Rot & Grün · 30 s',bg1:'#0d4a2a',bg2:'#5a0608',ac:'#ffffff',ac2:'#ffd23f'}},
+  fondueoel:{name:'Fondue-Brühe & Brennpaste',short:'Fonduebrühe',cat:0,lvl:14,shape:'boxA',dims:[0.12,0.22,0.08],grid:[10,2,1],box:12,cost:2.20,market:5.49,weight:5,hype:0,risk:3,
+    art:{title:'FONDUE-BRÜHE',sub:'mit Brennpaste',bg1:'#8a3d06',bg2:'#2a1202',ac:'#fff3c4',ac2:'#ffd23f'}},
+  wasser:{name:'Mineralwasser 6 × 1,5 l',short:'Wasser',cat:0,lvl:10,shape:'boxA',dims:[0.26,0.32,0.18],grid:[5,1,1],box:4,cost:1.60,market:3.99,weight:6,hype:0,risk:2,
+    art:{title:'QUELLWASSER',sub:'6 × 1,5 Liter',bg1:'#2a6a9a',bg2:'#0a2236',ac:'#f2f5ff',ac2:'#5ce1ff'}},
+  /* Feinkost fuer die spaeten Level: die Getraenke-Lizenz waechst mit */
+  kaviar:{name:'Kaviar-Set Deluxe mit Blinis',short:'Kaviar',cat:0,lvl:23,cold:true,kuehlpflicht:true,shape:'boxA',dims:[0.22,0.08,0.16],grid:[4,2,3],box:4,cost:34.00,market:84.99,weight:2,hype:0,risk:7,
+    art:{title:'CAVIAR',sub:'Deluxe · mit Blinis',bg1:'#0e1226',bg2:'#000000',ac:'#e8c35a',ac2:'#f2f5ff',gold:true}},
+  champagnerturm:{name:'Champagner-Turm-Set 24 Gläser',short:'Sektturm',cat:0,lvl:24,shape:'boxA',dims:[0.4,0.32,0.3],grid:[3,1,1],box:2,cost:22.00,market:54.99,weight:2,hype:0,risk:4,
+    art:{title:'SEKTTURM',sub:'24 Gläser + Ständer',bg1:'#1b3a2e',bg2:'#08160f',ac:'#e8c35a',ac2:'#f2f5ff',gold:true}},
+  luxusfondue:{name:'Fondue Chinoise Luxus für 8',short:'Luxusfondue',cat:0,lvl:25,cold:true,kuehlpflicht:true,shape:'boxA',dims:[0.34,0.1,0.24],grid:[3,2,2],box:3,cost:26.00,market:64.99,weight:2,hype:0,risk:6,
+    art:{title:'CHINOISE',sub:'Luxus · für 8',bg1:'#7a1010',bg2:'#1a0202',ac:'#ffd23f',ac2:'#f2e6c4',gold:true}},
+  goldsekt:{name:'Sekt mit Blattgold',short:'Goldsekt',cat:0,lvl:25,cold:true,shape:'bottle',dims:[0.08,0.31,0.08],grid:[12,2,1],box:6,cost:9.00,market:22.49,weight:3,hype:0,risk:5,
+    art:{title:'GOLDSEKT',sub:'mit echtem Blattgold',bg1:'#4a3308',bg2:'#000000',ac:'#ffd23f',ac2:'#fff3c4',gold:true}},
+  jahrgang:{name:'Jahrgangs-Champagner 2017',short:'Jahrgang',cat:0,lvl:26,cold:true,shape:'bottle',dims:[0.085,0.32,0.085],grid:[12,2,1],box:3,cost:46.00,market:114.99,weight:2,hype:0,risk:7,
+    art:{title:'MILLÉSIME',sub:'Champagner 2017',bg1:'#0e1226',bg2:'#000000',ac:'#e8c35a',ac2:'#d1e5ff',gold:true}},
+  eiswuerfel:{name:'Eiswürfel 2 kg',short:'Eiswürfel',cat:0,lvl:12,cold:true,kuehlpflicht:true,shape:'boxA',dims:[0.24,0.3,0.08],grid:[6,1,2],box:8,cost:0.90,market:2.29,weight:5,hype:0,risk:3,
+    art:{title:'EISWÜRFEL',sub:'2 kg',bg1:'#5ce1ff',bg2:'#1557a8',ac:'#ffffff',ac2:'#0e1226',light:true}}
+};
+/* Lizenzen: bestehende Pakete bekommen Ware dazu, neue Pakete fuellen
+   die Luecken. Die Levelreihenfolge bleibt: jedes Produkt kommt erst mit
+   seinem Paket und nicht vor seinem Level. */
+const NEU_LIZ_DAZU={
+  start:['wunderfarbe','wunderherz'],
+  zubehoer:['streichhoelzer','gehoerschutz','schutzbrille','feuerloescher','luftschlangenspray'],
+  klassiker:['blitzknaller','bodenkreisel','rosesekt','berliner','glueckrakete','leuchtstaebe'],
+  partydeko:['kalender','sektglaeser','kerzen','servietten','haarreifen','fotobox','streukonfetti','lichterkette'],
+  krach:['knallteppich','farbfontaenen','bodenfeuer','goldperlen','bengalfackel','glitzerregen12','miniverbund','glitzerraketen','wunderbox'],
+  partynacht:['bier','cola','kinderpunsch','energy','orangensaft','wasser','karaoke','discokugel','eiswuerfel'],
+  himmel:['nachtfalter','goldstaubboeller','kometenraketen','farbenrausch','feuerberg','vulkanfeld','glueckssymbole','glueckskekse','gluecksklee'],
+  genuss:['raclettekaese','raclettezubehoer','fonduesossen','kaeseplatte','lachs','cracker','kaesefondue','fondueoel','luxusfondue'],
+  verbund:['feuerperlen','farbrauchboeller','feuerrad','knisterfaecher','palmenkugel75','sternenmeer42','dreiklang','smaragd','kristallkugel100'],
+  import:['regenbogenfaecher','goldweide100','silberregen','glitzerkaskade','familienmix'],
+  grossfeuer:['feuerpfau','goldvulkan','nordlicht','blitzgewitter60','feuerwand','sternkugel150','hochzeitsfaecher','raketen50'],
+  profi:['silbermond','pfeifkonzert','sternenkaiser','kometenwand','goldkrone200','silberkaskade','feuerdrache','goldregen22']
+};
+const NEU_LIZENZEN=[
+  {id:'jugend',lvl:2,cost:60,name:'Jugendfeuerwerk',
+   desc:'Feuerwerk, das auch Kinder zünden dürfen: Knallbonbons, Tischbomben, Bengalische Hölzer, Zahlen-Wunderkerzen, Pharaoschlangen, Leuchtfontänen, der Feuerteufel, eine kleine Jugendbatterie und das Kinderparty-Sortiment.',
+   items:['knallbonbon','tischbombe','bengalholz','wunderzahl','pharao','leuchtfontaene','feuerteufel','kinderbatterie','kinderparty','wunderkerzeXXL','tischfeuerwerk2']},
+  {id:'snacks',lvl:7,cost:260,name:'Snacks & Süßes',
+   desc:'Popcorn, Salzgebäck, Erdnüsse, Fruchtgummi, Berliner-Nachschub und die Glücksbringer zum Naschen: Marzipanschweinchen und Schoko-Glückstaler.',
+   items:['popcorn','salzstangen','erdnuesse','gummibaerchen','marzipanschwein','schokotaler']},
+  {id:'buffet',lvl:8,cost:700,name:'Silvester-Buffet',
+   desc:'Heringssalat, Kartoffelsalat, Würstchen, Mini-Frikadellen, Baguette, Mett-Igel, Partypizza, Dips und das Katerfrühstück. Vieles davon gehört in den Kühlschrank.',
+   items:['heringssalat','kartoffelsalat','wuerstchen','frikadellen','baguette','mettigel','partypizza','dips','rollmops']},
+  {id:'kleinfeuer',lvl:10,cost:1800,name:'Kleinfeuerwerk',
+   desc:'Die ersten richtigen Batterien für den kleinen Geldbeutel: Sternenstaub mit 20 Schuss, Schneeball in Weiß, die Heulboje mit Pfeifschüssen, das Pfauenrad als erster Fächer. Dazu Silberpfeil-Raketen, Konfetti-Böller und der Zauberbrunnen.',
+   items:['sternstaub20','schneeballschlacht','heulbatterie','pfauenrad','silberpfeil','konfettiknaller','zauberbrunnen']},
+  {id:'feuerzauber',lvl:13,cost:4200,name:'Feuerzauber',
+   desc:'Goldpalmen, Mondschein, der Funkenturm mit sechs Metern, Knisterstern-Raketen und das Bengal-Duo.',
+   items:['goldpalmen','mondschein','funkenturm','knisterstern','bengalduo']},
+  {id:'getraenke',lvl:14,cost:5000,name:'Feine Getränke',
+   desc:'Champagner, Rot- und Weißwein, Eierlikör, Sahnelikör, das Cocktail-Set, Kindersekt Erdbeere und die Magnumflasche für den großen Moment.',
+   items:['champagner','cocktailset','rotwein','weisswein','eierlikoer','likoer','kindersekt2','magnum','kaviar','champagnerturm','goldsekt','jahrgang']},
+  {id:'nachthimmel',lvl:16,cost:9000,name:'Nachthimmel',
+   desc:'Silbermeer mit 80 Schuss, der Silberwirbel-Fächer, die Salutbatterie mit zehn Schlägen, die 75-mm-Farbwechselkugel, Blinkstern-Raketen und das Wasserspiel.',
+   items:['sternenmeer80','silberwirbel','salutbatterie','farbenmeer75','blinkstern','wasserspiel']},
+  {id:'goldklasse',lvl:18,cost:15000,name:'Goldklasse',
+   desc:'Kreuzfeuer mit Crossette, der Kometenfächer, Kristall-Raketen, die 150-mm-Blinkkugel und die Sternregen-Fontäne.',
+   items:['kreuzfeuer','kometenfaecher','kristall','sternenstaub150','sternfontaene']},
+  {id:'sternklasse',lvl:19,cost:18000,name:'Sternklasse',
+   desc:'Goldener Regen mit 70 Schuss, die Jumbo-Rakete »Regenbogenkrone«, 24 Kugeln Römisches Licht, die Eisblume mit zwölf Metern und der Donnerschlag mit 20 Salutschlägen.',
+   items:['goldenerregen','regenbogenkrone','lichterkugeln','eisblume','donnerschlag']},
+  {id:'meister',lvl:25,cost:34000,name:'Meisterklasse',
+   desc:'Das Ende der Leiter: der Himmelsfächer mit 180 Schuss, die Jumbo-Rakete »Supernova«, das Silvesternacht-Sortiment, die 300-mm-Kaiserkrone, das Kugel-Finale und die Feuerkaskade aus drei Riesenfontänen.',
+   items:['himmelsfaecher','supernova','silvesternacht','kaiserkrone','kugelfinale','feuerkaskade']}
+];
+/* Warengruppen fuer Herausforderungen und Restposten */
+const NEU_GRUPPE={
+  boeller:['blitzknaller','knallteppich','konfettiknaller','goldstaubboeller','farbrauchboeller'],
+  raketen:['glueckrakete','glitzerraketen','silberpfeil','kometenraketen','farbenrausch','knisterstern','smaragd','blinkstern','silberregen','kristall','regenbogenkrone','silbermond','feuerdrache','supernova','raketen50'],
+  batterien:['kinderbatterie','miniverbund','glitzerregen12','sternstaub20','schneeballschlacht','heulbatterie','pfauenrad','nachtfalter','goldpalmen','mondschein','knisterfaecher','sternenmeer42','sternenmeer80','salutbatterie','silberwirbel','regenbogenfaecher','kreuzfeuer','kometenfaecher','goldenerregen','donnerschlag','feuerpfau','hochzeitsfaecher','nordlicht','blitzgewitter60','pfeifkonzert','sternenkaiser','kometenwand','himmelsfaecher','kinderparty','familienmix','silvesternacht','kugelfinale'],
+  kugeln:['palmenkugel75','farbenmeer75','kristallkugel100','goldweide100','sternenstaub150','sternkugel150','goldkrone200','kaiserkrone'],
+  boden:['knallbonbon','tischbombe','pharao','wunderfarbe','bengalholz','wunderherz','wunderzahl','leuchtfontaene','feuerteufel','leuchtstaebe','wunderkerzeXXL','tischfeuerwerk2','wunderbox','bodenkreisel','farbfontaenen','bodenfeuer','goldperlen','bengalfackel','zauberbrunnen','feuerberg','vulkanfeld','funkenturm','bengalduo','feuerperlen','feuerrad','dreiklang','wasserspiel','glitzerkaskade','sternfontaene','lichterkugeln','eisblume','goldvulkan','feuerwand','silberkaskade','goldregen22','feuerkaskade'],
+  zubehoer:['streichhoelzer','gehoerschutz','schutzbrille','feuerloescher','luftschlangenspray','berliner','kalender','sektglaeser','kerzen','servietten','haarreifen','fotobox','streukonfetti','lichterkette','popcorn','salzstangen','erdnuesse','gummibaerchen','marzipanschwein','schokotaler','heringssalat','kartoffelsalat','wuerstchen','frikadellen','baguette','mettigel','partypizza','dips','rollmops','glueckssymbole','glueckskekse','gluecksklee','raclettekaese','raclettezubehoer','fonduesossen','kaeseplatte','lachs','cracker','kaesefondue','fondueoel','karaoke','discokugel','cocktailset','kaviar','champagnerturm','luxusfondue'],
+  sekt:['rosesekt','bier','cola','kinderpunsch','energy','orangensaft','wasser','eiswuerfel','champagner','rotwein','weisswein','eierlikoer','likoer','kindersekt2','magnum','goldsekt','jahrgang']
+};
+/* Wie stark der Marktpreis schwankt: Grundnahrung ruhig, grosses
+   Feuerwerk launisch */
+function neuVola(q){
+  if(q.cat===0) return q.kuehlpflicht?0.8:q.cold?0.6:0.3;
+  if(q.cat===1) return 0.4;
+  return Math.round((0.6+q.lvl*0.035)*100)/100;
+}
+/* Einhaengen */
+(function(){
+  for(const t in NEUWARE){
+    if(P[t]) continue;
+    const q=NEUWARE[t];
+    if(q.dims&&q.shape!=='shell'&&q.shape!=='battery'&&q.shape!=='fan') q.dims=q.dims.map(x=>Math.round(x*GROESSER*1000)/1000);
+    P[t]=q; ORDER.push(t);
+    if(VOLA[t]===undefined) VOLA[t]=neuVola(q);
+  }
+  for(const id in NEU_LIZ_DAZU){ const l=LIZENZEN.find(x=>x.id===id); if(!l) continue;
+    NEU_LIZ_DAZU[id].forEach(t=>{ if(l.items.indexOf(t)<0) l.items.push(t); LIZ_VON[t]=id; }); }
+  NEU_LIZENZEN.forEach(l=>{ if(LIZENZEN.some(x=>x.id===l.id)) return; LIZENZEN.push(l); l.items.forEach(t=>{ LIZ_VON[t]=l.id; }); });
+  /* nach Level sortiert, damit Laptop und Freischaltungen die Reihe kennen */
+  LIZENZEN.sort((a,b)=>a.lvl-b.lvl);
+  for(const g in NEU_GRUPPE){ GRUPPE[g]=GRUPPE[g]||[]; NEU_GRUPPE[g].forEach(t=>{ if(GRUPPE[g].indexOf(t)<0) GRUPPE[g].push(t); }); }
+})();
 
 /* =========================================================
    Renderer & Szene
@@ -2228,7 +2691,9 @@ function drawSide(g,W,H,a){
 function drawTop(g,W,H,a){ const gr=g.createLinearGradient(0,0,W,H); gr.addColorStop(0,a.bg1); gr.addColorStop(1,a.bg2); g.fillStyle=gr; g.fillRect(0,0,W,H); if(!a.light) burst(g,W*0.5,H*0.5,Math.min(W,H)*0.4,a.ac,14); }
 function atlas(w,h,d,a,cat,o){
   o=o||{};
-  const CAP=HIQ?1120:640;
+  /* Aufloesung nach Groesse der Packung: eine 8-cm-Schachtel braucht
+     keine 1120 Pixel. Rund 2000 Pixel je Meter, hoechstens 1120. */
+  const CAP=Math.min(HIQ?1120:640,Math.max(256,Math.round(Math.max(w+d,h+d)*2000)));
   const s=Math.min(CAP/(w+d),CAP/(h+d)), Wf=Math.max(8,Math.round(w*s)), Hf=Math.max(8,Math.round(h*s)), Ds=Math.max(8,Math.round(d*s)), W=Wf+Ds, H=Hf+Ds;
   const t=tex(W,H,(g)=>{
     const reg=(x,y,w2,h2,fn)=>{ g.save(); g.beginPath(); g.rect(x,y,w2,h2); g.clip(); g.translate(x,y); fn(g,w2,h2); g.restore(); };
@@ -2487,7 +2952,15 @@ class ItemPool{
   remove(h){ if(!h||this.h[h.i]!==h) return; const last=this.h.pop(); if(last!==h){ this.h[h.i]=last; last.i=h.i; for(const me of this.meshes) me.setMatrixAt(h.i,last.m); } for(const me of this.meshes){ me.count=this.h.length; me.instanceMatrix.needsUpdate=true; } }
   set(h,mx){ if(this.h[h.i]!==h) return; h.m.copy(mx); for(const me of this.meshes){ me.setMatrixAt(h.i,mx); me.instanceMatrix.needsUpdate=true; } }
 }
-const pools={};
+/* Pools entstehen erst, wenn die Ware zum ersten Mal gebraucht wird
+   (Tom, 26.09.: Sortiment mal drei). Vorher baute der Start fuer jedes
+   Produkt Modell und Verpackung - bei 228 Produkten ueber 200 Megapixel
+   Texturen, auch fuer Ware, die erst zwanzig Level spaeter kommt. */
+const _pools={};
+const pools=new Proxy(_pools,{get(o,k){
+  if(typeof k==='string'&&!(k in o)&&typeof P!=='undefined'&&P[k]&&P[k].dims) o[k]=new ItemPool(buildProduct(k),poolCap(k));
+  return o[k]; }});
+function poolDa(t){ return t in _pools; }
 const _q=new THREE.Quaternion(), _e=new THREE.Euler(), _one=V(1,1,1);
 function mx(x,y,z,ry){ _e.set(0,ry||0,0); _q.setFromEuler(_e); return new THREE.Matrix4().compose(V(x,y,z),_q,_one); }
 
@@ -3844,6 +4317,7 @@ function testfeldMitte(){
 function brennDauer(t){
   const p=P[t]; if(!p) return 3;
   if(typeof SHOWS!=='undefined'&&SHOWS[t]) return 0.8+showLength(t)+1.5;
+  if(typeof neuDauer==='function'){ const d=neuDauer(t); if(d) return d; }
   const fest={wunder:5,knallerbsen:2.2,knallfrosch:2.8,tisch:3,schwaermer:3.8,vulkan:14,wasserfall:23,
     sternenbrunnen:6,fontaene:12,goldgeysir:22,feuerbrunnen:19,feuersaeule:30,fontaene30:13,fontaene50:15,furzrakete:6,boeller:5,monsterboeller:4,atomboeller:6};
   if(fest[t]) return fest[t];
@@ -13926,29 +14400,30 @@ function kugelbombe(o,kal,opt){
   /* jede Kugel hat ein Hauptbild, das es sonst nirgends gibt */
   const haupt=opt.eff||['herz','drachenblut','weltenbrand','zehnfach','himmelsbrecher'][K4-1];
   const [C,D]=themaPaar(TH,1);
-  const stufen=[];
-  if(K4===1){
+  /* opt.stufen: eigene Nachbrueche fuer Sorten mit anderem Hauptbild */
+  const stufen=opt.stufen?opt.stufen.slice():[];
+  if(!opt.stufen&&K4===1){
     /* zwei kleinere Herzen im selben Mittelpunkt - bum-bum */
     stufen.push({t:0.5,eff:'herz',sz:groesse*0.62,streu:0,A:C,B:A});
     stufen.push({t:0.8,eff:'herz',sz:groesse*0.4,streu:0,A,B:C});
   }
-  if(K4===2){
+  if(!opt.stufen&&K4===2){
     /* Kern und Aussenschale gehen mit dem Hauptbruch auf, dann faellt
        die ganze Blume als Flammenregen in denselben Farben */
     stufen.push({t:0.04,eff:'pistill',sz:groesse*0.45,streu:0,A:B,B:A,leise:true});
     stufen.push({t:0.08,eff:'kugel',sz:groesse*1.12,streu:0,A:C,B:A,leise:true});
     stufen.push({t:1.3,eff:'flammenregen',sz:groesse*0.75,streu:1,A,B});
   }
-  if(K4===3){
+  if(!opt.stufen&&K4===3){
     /* Kern im Hauptbruch, dann vier gleiche Toechter im Kranz */
     stufen.push({t:0.04,eff:'pistill',sz:groesse*0.42,streu:0,A:C,B:D,leise:true});
     ringLage(4,9).forEach((off,i)=>stufen.push({t:0.55,off,leise:i>0,eff:'kugel',sz:groesse*0.36,A:C,B:D}));
   }
-  if(K4===4){
+  if(!opt.stufen&&K4===4){
     /* der Zehnfachbruch: zehn gleiche Pistillen im Kranz um die Ringkugel */
     ringLage(10,11).forEach((off,i)=>stufen.push({t:0.5,off,leise:i>0,eff:'pistill',sz:groesse*0.3,A:i%2?C:A,B:i%2?D:B}));
   }
-  if(K4===5){
+  if(!opt.stufen&&K4===5){
     /* Silberbruch mit goldener Haengeweide im selben Punkt, dann zwoelf
        Dahlien im Kranz. Alles Silber, Weiss und Gold. */
     stufen.push({t:0.06,eff:'kamuro',sz:groesse*0.8,streu:0,A:FW.gold,B:FW.silber,leise:true});
@@ -14333,6 +14808,7 @@ function updateFireworks(dt){
       for(let k=0;k<9;k++){ const a=Math.random()*Math.PI*2, sp=rand(0.2,1.3);
         const c=k%4?FW.braun:FW.sumpf;
         psMid.emit(o.x,o.y+0.25,o.z,Math.cos(a)*sp,rand(2.5,5.5),Math.sin(a)*sp,c[0],c[1],c[2],rand(1.2,2.2),-0.2); } }
+    else if(typeof NEU_EMIT!=='undefined'&&NEU_EMIT[e.k]) NEU_EMIT[e.k](e,dt,o);
     else if(e.k==='spark'){
       for(let k=0;k<7;k++){ const d=randDir(), s=rand(1,2.4);
         psSmall.emit(o.x,o.y+0.3,o.z,d[0]*s,d[1]*s+0.4,d[2]*s,1,rand(0.8,1),rand(0.45,0.85),rand(0.25,0.55),4,3); } }
@@ -14410,7 +14886,7 @@ function playShow(o,phases,prod){
       const [A,B]=paar(i);
       const dir=ph.fan||ph.vfan?FANDIR:undefined;
       const R=rampe(tt);
-      const opt={eff,sz:(ph.sz||1)*BS.sz*SHOW_GROESSE*R.sz,pw:BS.pw+(ph.pw||0)+R.pw,ang,dir,A,B,fuse:ph.fuse,dick:ph.dick,hell:R.hell};
+      const opt={eff,sz:(ph.sz||1)*BS.sz*SHOW_GROESSE*R.sz,pw:BS.pw+(ph.pw||0)+R.pw,ang,dir,A,B,fuse:ph.fuse,dick:ph.dick,hell:R.hell,pfeif:ph.pfeif};
       later(tt,()=>{
         if(ph.mine) mine(o,A,B,(ph.mineSz||0.8)*R.sz);
         /* bomb: echte Kugelbombe mit Nachbruechen statt einer Rakete */
@@ -14622,6 +15098,8 @@ function igniteType(t,o0){
   hype=Math.min(100,hype+p.hype); DS.burned=r2(DS.burned+costOf(t)); addXP(Math.max(1,Math.round(p.hype/3)));
   statAdd('gezuendet',1); statAdd('hype',p.hype);
   if(SHOWS[t]){ emitters.push({t:0.8,k:'fuse',o}); later(0.8,()=>playShow(o,SHOWS[t](),t)); return; }
+  /* neue Ware (Sortiment mal drei): Fontaenen, Boeller, Kleinfeuerwerk, Kugelsorten */
+  if(typeof neuZuenden==='function'&&neuZuenden(t,o)) return;
   /* ----- Eigene Rezeptur: das Rezept sagt, was passiert ----- */
   if(p.rezept){
     const rz=p.rezept, tr=traegerVon(rz.traeger);
@@ -14797,6 +15275,294 @@ function igniteType(t,o0){
         shot(o,{sz:KL.sz*1.25,eff:pick(k%3===0?['salut']:EFF_PRO),ang:rand(-0.22,0.22),sc:sc}));
     });
   }
+}
+/* =========================================================
+   Wie die neue Ware abbrennt (Sortiment mal drei, Tom 26.09.).
+   Die Daten stehen in 02e-neuware.js.
+
+   Grundsaetze wie beim bisherigen Sortiment:
+   - Batterien, Faecher, Roemische Lichter und Sortimente laufen als
+     Show (SHOWS). Die Grundstufe (Steighoehe, Kaliber) kommt aus dem
+     Level: je spaeter, desto hoeher und groesser. Innerhalb der Show
+     steigert sich jeder Schuss (showRampe).
+   - Bis Level 15 keine Profi-Bruchbilder (Dahlie, Kamuro, Brokat ...).
+   - Jede Show hat ihr eigenes Drehbuch: eigene Folge von Bruchbildern
+     in eigenem Farbthema - kein Produkt ist die Kopie eines anderen.
+   - Raketen: eine Rakete je Zuendung, ein Bruch.
+   - Fontaenen werfen keine Ladung.
+   ========================================================= */
+
+/* Grundstufe aus dem Level, angelehnt an die bisherigen Batterien
+   (Level 13: pw -5, sz 0,78 - Level 24: pw 3,5, sz 1,30) */
+/* Eingeklemmt zwischen die bisherigen Produkte: nie kleiner als eins
+   mit niedrigerem Level, nie groesser als eins mit hoeherem - sonst
+   waere eine neue Level-21-Batterie kleiner als die Donnerwand (20). */
+const ALT_BASIS=Object.keys(SHOW_BASIS).filter(t=>P[t]).map(t=>({lvl:P[t].lvl,pw:SHOW_BASIS[t].pw,sz:SHOW_BASIS[t].sz}));
+function neuBasis(lvl,th){
+  const f={pw:-5+(lvl-13)*0.77, sz:0.78+(lvl-13)*0.047};
+  for(const k of ['pw','sz']){
+    const unter=ALT_BASIS.filter(b=>b.lvl<lvl).map(b=>b[k]), ueber=ALT_BASIS.filter(b=>b.lvl>lvl).map(b=>b[k]);
+    if(unter.length) f[k]=Math.max(f[k],Math.max(...unter));
+    if(ueber.length) f[k]=Math.min(f[k],Math.min(...ueber)); }
+  return {pw:Math.round(f.pw*100)/100, sz:Math.round(f.sz*100)/100, th};
+}
+
+/* Drehbuch aus einer knappen Beschreibung. n Schuss werden auf die
+   Akte verteilt (Gewicht w), frueh ruhiger, spaeter dichter.
+   s: 'einzel' | 'fan' | 'vfan' | 'salve' | 'perle' | 'bomb'
+   Der erste Akt kann mit einer Bodenmine beginnen (mine:true). */
+function showAus(spec){
+  const A=spec.akte, k=A.length, N=spec.n;
+  const W=A.reduce((a,x)=>a+(x.w||1),0);
+  const cnt=A.map(x=>x.s==='bomb'?(x.n||1):Math.max(1,Math.floor(N*(x.w||1)/W)));
+  /* Rest auf die Akte verteilen, bis die Summe genau stimmt */
+  let rest=N-cnt.reduce((a,b)=>a+b,0), i=k-1;
+  if(!A.some(x=>x.s!=='bomb')) rest=0;
+  while(rest!==0){ if(A[i].s!=='bomb'){ const d=rest>0?1:-1; if(cnt[i]+d>=1){ cnt[i]+=d; rest-=d; } } i=(i-1+k)%k; }
+  const basis=clamp(1.15-N/320,0.32,1.0);
+  const phasen=[];
+  if(spec.auftakt) phasen.push(Object.assign({n:0,pause:spec.auftakt.gt-0.6},spec.auftakt));
+  A.forEach((a,j)=>{
+    const u=k>1?j/(k-1):1, gap=a.s==='salve'?0.09:a.s==='bomb'?0.5:a.s==='perle'?(a.gap||0.8):basis*(1.25-0.55*u);
+    const ph={n:cnt[j],gap:Math.round(gap*100)/100,pause:j===k-1?(spec.schluss||3.2):(a.s==='salve'?2.2:1.2+0.6*(1-u))};
+    if(a.s==='bomb'){ ph.bomb=a.kal||1; }
+    else if(a.s==='perle'){ ph.perle=true; ph.wechsel=true; }
+    else ph.eff=a.e;
+    if(a.s==='fan'||a.s==='salve'&&a.fan){ ph.fan=true; ph.ang=a.ang||0.45*(j%2?-1:1); }
+    if(a.s==='vfan'){ ph.vfan=true; ph.ang=a.ang||0.45; }
+    if(a.mine){ ph.mine=true; ph.mineSz=a.mineSz||0.6; }
+    if(a.wechsel) ph.wechsel=true;
+    if(a.pfeif) ph.pfeif=true;
+    if(a.th) ph.th=a.th;
+    if(a.sz) ph.sz=a.sz;
+    if(a.pw) ph.pw=a.pw;
+    phasen.push(ph);
+  });
+  return phasen;
+}
+/* Die Drehbuecher. Bruchbilder bis Level 15 nur aus dem Grundvorrat,
+   danach auch die grossen. Die Bruchbilder, die ein bisheriges Produkt
+   als einziges zeigt (Bienen, Smiley, Schmetterling ...), bleiben bei
+   ihm. */
+const NEU_SHOWS={
+  kinderbatterie:{lvl:4,th:'bunt',n:6,akte:[{e:['kugel'],w:2},{e:['kreisel','ring'],w:2},{e:['kugel'],s:'salve',w:2}]},
+  kinderparty:{lvl:6,th:'tropen',n:12,akte:[{e:['kugel'],w:3,mine:true,mineSz:0.4},{e:['kreisel','ring'],w:3},{e:['wechsel'],s:'fan',w:3},{e:['ringring'],s:'salve',w:3}]},
+  miniverbund:{lvl:8,th:'glut',n:9,akte:[{e:['kugel'],w:3},{e:['ring','kugel'],w:3},{e:['chrys'],s:'salve',w:3}]},
+  glitzerregen12:{lvl:9,th:'gold',n:12,akte:[{e:['kugel'],w:3,mine:true,mineSz:0.45},{e:['farbregen'],w:4},{e:['spirale'],s:'salve',w:5}]},
+  sternstaub20:{lvl:10,th:'nacht',n:20,akte:[{e:['kugel'],w:4},{e:['stern','ring'],w:6},{e:['schneeflocke'],s:'fan',w:5},{e:['stern'],s:'salve',w:5}]},
+  schneeballschlacht:{lvl:10,th:'silber',n:12,akte:[{e:['kugel'],w:3},{e:['schneeflocke','ringring'],w:5},{e:['tausend'],s:'salve',w:4}]},
+  heulbatterie:{lvl:11,th:'wald',n:12,akte:[{e:['ring'],w:3,pfeif:true},{e:['kugel','ring'],w:5,pfeif:true},{e:['tausend'],s:'salve',w:4,pfeif:true}]},
+  pfauenrad:{lvl:11,th:'tropen',n:19,akte:[{e:['kugel'],s:'fan',w:5},{e:['palme','kreisel'],s:'vfan',w:7},{e:['doppelring'],s:'salve',fan:true,w:7}]},
+  nachtfalter:{lvl:13,th:'himmel',n:36,akte:[{e:['kugel'],w:5,mine:true},{e:['geist'],w:7},{e:['spinne','fische'],s:'vfan',w:8},{e:['mehrring'],s:'salve',w:6},{e:['geist','chrys'],w:10}]},
+  goldpalmen:{lvl:13,th:'gold',n:25,akte:[{e:['palme'],w:6},{e:['palme','kokosnuss'],s:'fan',w:7},{e:['strauss'],w:6},{e:['palme'],s:'salve',w:6}]},
+  mondschein:{lvl:13,th:'eis',n:30,akte:[{e:['kugel'],w:5},{e:['blaetter'],w:7},{e:['saturn','ring'],w:8},{e:['blaetter'],s:'salve',w:10}]},
+  knisterfaecher:{lvl:14,th:'blitz',n:24,akte:[{e:['knister'],s:'fan',w:6},{e:['kaskade'],s:'vfan',w:6},{e:['knister','ringring'],s:'fan',w:6},{e:['tausend'],s:'salve',fan:true,w:6}]},
+  sternenmeer42:{lvl:15,th:'nacht',n:42,akte:[{e:['kugel'],w:6,mine:true},{e:['stern','saturn'],w:9},{e:['strauss','dreifach'],w:9},{e:['diadem'],s:'fan',w:8},{e:['stern','mehrring'],s:'salve',w:10}]},
+  sternenmeer80:{lvl:16,th:'silber',n:80,akte:[{e:['kugel'],w:8,mine:true},{e:['schneeflocke','stern'],w:12},{e:['glitzerweide'],s:'vfan',w:12},{e:['strobe','ringring'],w:14},{e:['kronleuchter','glitzerweide'],w:16},{e:['salut','glitzerweide'],s:'salve',w:18}]},
+  salutbatterie:{lvl:16,th:'rotweiss',n:10,akte:[{e:['salut'],w:4},{e:['salut'],s:'salve',w:6}]},
+  silberwirbel:{lvl:16,th:'silber',n:30,akte:[{e:['spirale'],s:'fan',w:7},{e:['ringring'],s:'vfan',w:7},{e:['spirale','sternschnuppen'],s:'fan',w:8},{e:['ringring','spirale'],s:'salve',fan:true,w:8}]},
+  regenbogenfaecher:{lvl:17,th:'bunt',n:49,akte:[{e:['regenbogen'],s:'fan',w:9},{e:['wechsel','geist'],s:'vfan',w:10},{e:['regenbogen'],s:'fan',w:10},{e:['dahlie','regenbogen'],w:10},{e:['regenbogen'],s:'salve',fan:true,w:10}]},
+  familienmix:{lvl:17,th:'bunt',n:24,akte:[{e:['kugel'],w:5,mine:true,mineSz:0.7},{e:['kreisel','fische'],w:5},{e:['dahlie','ring'],w:6},{e:['palme','strauss'],s:'fan',w:8}],auftakt:{ground:'fountain',gt:5}},
+  kreuzfeuer:{lvl:18,th:'rotweiss',n:42,akte:[{e:['kugel'],w:6,mine:true},{e:['crossette'],w:10},{e:['crossette','pistill'],s:'fan',w:10},{e:['crossette'],s:'salve',w:16}]},
+  kometenfaecher:{lvl:18,th:'gold',n:50,akte:[{e:['komet'],s:'fan',w:10},{e:['komet','sternschnuppen'],s:'vfan',w:12},{e:['zeitregen'],w:12},{e:['komet'],s:'salve',fan:true,w:16}]},
+  goldenerregen:{lvl:19,th:'gold',n:70,akte:[{e:['kugel'],w:8,mine:true},{e:['brokat'],w:12},{e:['goldvorhang','brokat'],s:'vfan',w:14},{e:['zeitregen','kamuro'],w:16},{e:['brokat'],s:'salve',w:20}],auftakt:{ground:'riesen',gt:6,gA:'gold',gB:'zitrone'}},
+  donnerschlag:{lvl:19,th:'rotweiss',n:20,akte:[{e:['salut'],w:6},{e:['salut','tausend'],s:'fan',w:6},{e:['salut'],s:'salve',w:8}]},
+  lichterkugeln:{lvl:19,th:'bunt',n:24,akte:[{s:'perle',w:8,gap:0.7},{s:'perle',w:8,gap:0.5},{s:'perle',w:8,gap:0.35}]},
+  feuerpfau:{lvl:20,th:'tropen',n:100,akte:[{e:['kugel'],s:'fan',w:12,mine:true},{e:['palme','strauss'],s:'vfan',w:16},{e:['pistill','dahlie'],s:'fan',w:18},{e:['glitzerweide'],s:'vfan',w:18},{e:['strauss','pistill','dahlie'],w:18},{e:['palme'],s:'salve',fan:true,w:18}],auftakt:{ground:'fountain',gt:5}},
+  hochzeitsfaecher:{lvl:20,th:'herz',n:36,akte:[{e:['kugel'],s:'fan',w:8},{e:['doppelring','geist'],s:'vfan',w:9},{e:['dahlie'],s:'fan',w:9},{e:['goldvorhang'],s:'salve',fan:true,w:10}]},
+  nordlicht:{lvl:21,th:'wald',n:150,akte:[{e:['kugel'],w:14,mine:true},{e:['geist','schneeflocke'],w:20},{e:['strauss'],s:'vfan',w:22},{e:['pistill','dahlie'],w:24},{e:['kamuro','geist'],s:'fan',w:24},{e:['zeitregen','pistill'],w:22},{e:['geist'],s:'salve',w:24}],auftakt:{ground:'riesen',gt:6,gA:'gruen',gB:'weiss'}},
+  blitzgewitter60:{lvl:21,th:'blitz',n:60,akte:[{e:['strobe'],w:10,mine:true},{e:['strobe','spirale'],s:'fan',w:12},{e:['sternschnuppen','strobe'],s:'vfan',w:14},{e:['strobe'],s:'salve',fan:true,w:24}]},
+  pfeifkonzert:{lvl:22,th:'wald',n:80,akte:[{e:['ring'],s:'fan',w:14,pfeif:true},{e:['palme','spirale'],s:'vfan',w:18,pfeif:true},{e:['dahlie'],s:'fan',w:18,pfeif:true},{e:['tausend'],s:'salve',fan:true,w:30,pfeif:true}]},
+  goldregen22:{lvl:22,th:'gold',n:22,akte:[{s:'perle',w:10,gap:0.6},{s:'perle',w:12,gap:0.35}]},
+  sternenkaiser:{lvl:23,th:'koenig',n:250,akte:[{e:['kugel','regenbogen'],w:16,mine:true,mineSz:1.2},{e:['stern','strauss'],w:24},{e:['kronleuchter','zeitregen'],s:'vfan',w:26},{e:['pistill','dahlie','mehrring'],w:30},{e:['geist','kamuro'],s:'fan',w:30},{s:'bomb',kal:3},{e:['brokat','goldvorhang'],w:34},{e:['crossette','dreifach'],s:'fan',w:36},{e:['strauss','kamuro','dahlie','brokat'],w:30},{e:['salut'],s:'salve',w:23}]},
+  kometenwand:{lvl:23,th:'glut',n:90,akte:[{e:['komet'],s:'fan',w:16},{e:['flammenregen','komet'],s:'vfan',w:18},{e:['kaskade','zeitregen'],s:'fan',w:20},{e:['komet'],s:'salve',fan:true,w:36}]},
+  himmelsfaecher:{lvl:25,th:'himmel',n:180,akte:[{e:['kugel'],s:'fan',w:18,mine:true,mineSz:1.2},{e:['strauss','geist'],s:'vfan',w:24},{e:['dahlie','pistill'],s:'fan',w:28},{e:['kronleuchter','glitzerweide'],s:'vfan',w:30},{e:['kamuro','zeitregen','strauss'],s:'fan',w:36},{e:['dreifach','dahlie'],s:'salve',fan:true,w:44}],auftakt:{ground:'riesen',gt:6}},
+  silvesternacht:{lvl:25,th:'bunt',n:40,akte:[{e:['kugel'],w:6,mine:true,mineSz:1.0},{e:['stern','fische'],w:6},{s:'bomb',kal:2},{e:['dahlie','strauss'],s:'fan',w:9},{e:['kronleuchter','geist'],w:9},{e:['regenbogen'],s:'salve',fan:true,w:9}],auftakt:{ground:'fountain',gt:5}},
+  kugelfinale:{lvl:26,th:'koenig',n:5,akte:[{s:'bomb',kal:3},{s:'bomb',kal:3},{s:'bomb',kal:4},{s:'bomb',kal:4},{s:'bomb',kal:5}]},
+  feuerperlen:{lvl:14,th:'bunt',n:16,akte:[{s:'perle',w:8,gap:0.85},{s:'perle',w:8,gap:0.55}]},
+  goldperlen:{lvl:9,th:'gold',n:8,akte:[{s:'perle',w:8,gap:0.95}]}
+};
+Object.keys(NEU_SHOWS).forEach(t=>{ const s=NEU_SHOWS[t];
+  if(!SHOW_BASIS[t]) SHOW_BASIS[t]=neuBasis(P[t]?P[t].lvl:s.lvl,s.th);
+  if(!SHOWS[t]) SHOWS[t]=()=>showAus(s); });
+
+/* Raketen: eine Rakete je Zuendung, groesser und hoeher mit dem Level */
+Object.assign(RAKETEN_KL,{
+  glueckrakete  :{n:1,gap:0,sz:0.85,pw:-6,th:'wald',  fuse:1.2, eff:['kreisel']},
+  glitzerraketen:{n:1,gap:0,sz:0.92,pw:-4,th:'gold',  fuse:1.2, eff:['farbregen']},
+  silberpfeil   :{n:1,gap:0,sz:1.0, pw:-3,th:'blitz', fuse:1.2, eff:['ringring']},
+  kometenraketen:{n:1,gap:0,sz:1.05,pw:-2,th:'nacht', fuse:1.25,trail:'gold',eff:['komet']},
+  farbenrausch  :{n:1,gap:0,sz:1.1, pw:-1,th:'tropen',fuse:1.25,eff:['wechsel']},
+  knisterstern  :{n:1,gap:0,sz:1.36,pw:1.2,th:'eis',   fuse:1.25,eff:['spirale']},
+  smaragd       :{n:1,gap:0,sz:1.38,pw:1.6,th:'wald',  fuse:1.3, eff:['stern']},
+  blinkstern    :{n:1,gap:0,sz:1.42,pw:2.2,th:'blitz', fuse:1.3, eff:['strobe']},
+  silberregen   :{n:1,gap:0,sz:1.46,pw:3, th:'silber',fuse:1.3, dick:1,trail:'weiss',eff:['glitzerweide']},
+  kristall      :{n:1,gap:0,sz:1.5, pw:3.5,th:'eis',  fuse:1.3, dick:1,eff:['geist']},
+  regenbogenkrone:{n:1,gap:0,sz:1.65,pw:4.6,th:'bunt',  fuse:1.35,dick:2,trail:'gold',eff:['regenbogen']},
+  raketen50     :{n:1,gap:0,sz:1.7, pw:5, th:'bunt',  fuse:1.3, dick:1,eff:['mehrring']},
+  silbermond    :{n:1,gap:0,sz:2.25,pw:9, th:'silber',fuse:1.4, dick:2,trail:'weiss',eff:['strauss']},
+  feuerdrache   :{n:1,gap:0,sz:2.4, pw:11,th:'glut',  fuse:1.4, dick:2,trail:'orange',eff:['flammenregen']},
+  supernova     :{n:1,gap:0,sz:2.5, pw:12,th:'himmel',fuse:1.45,dick:2,trail:'weiss',eff:['dreifach']}
+});
+
+/* Kugelbomben-Sorten: Kaliber wie die bekannten, aber ein eigenes
+   Hauptbild und eigene Farben - ohne die Nachbrueche der Stammkugel */
+const NEU_KUGEL={
+  palmenkugel75   :{kal:1,eff:'palme',th:'wald'},
+  farbenmeer75    :{kal:1,eff:'wechsel',th:'tropen'},
+  kristallkugel100:{kal:2,eff:'doppelring',th:'eis',nach:[{t:0.6,eff:'ringring',sz:0.5,streu:0}]},
+  goldweide100    :{kal:2,eff:'weide',th:'gold'},
+  sternenstaub150 :{kal:3,eff:'strobe',th:'silber',nach:[{t:0.5,eff:'schneeflocke',sz:0.45,streu:1}]},
+  sternkugel150   :{kal:3,eff:'crossette',th:'rotweiss',nach:[{t:0.9,eff:'crossette',sz:0.4,streu:4}]},
+  goldkrone200    :{kal:4,eff:'kamuro',th:'gold',nach:[{t:0.08,eff:'brokat',sz:0.5,streu:0,leise:true}]},
+  kaiserkrone     :{kal:5,eff:'goldvorhang',th:'koenig',nach:[{t:0.06,eff:'kamuro',sz:0.7,streu:0,leise:true},{t:1.1,eff:'glitzerweide',sz:0.5,streu:3}]}
+};
+function neuKugel(t,o){
+  const k=NEU_KUGEL[t]; if(!k) return false;
+  const [A,B]=themaPaar(k.th,0), gr=[2.1,2.7,3.3,4.0,4.8][k.kal-1];
+  kugelbombe(o,k.kal,{A,B,eff:k.eff,stufen:(k.nach||[]).map(x=>Object.assign({},x,{sz:x.sz*gr,A,B}))});
+  return true;
+}
+
+/* Fontaenen: Art, Dauer, Hoehe, Farben. set: mehrere nacheinander
+   (versetzt), reihe: nebeneinander auf einmal. Keine Ladung. */
+const NEU_FONT={
+  feuerteufel   :{k:'knisterbrunnen',t:8,A:'gold',B:'orange',h:0.6},
+  leuchtfontaene:{k:'fountain',t:4.5,set:['limette','zitrone','rose','tuerkis']},
+  farbfontaenen :{k:'fountain',t:6,set:['magenta','gruen','blau']},
+  bodenfeuer    :{k:'knisterbrunnen',t:10,A:'orange',B:'gold',h:0.45},
+  zauberbrunnen :{k:'knisterbrunnen',t:20,A:'silber',B:'tuerkis',h:1},
+  feuerberg     :{k:'volcano',t:15,A:'gold',B:'rot'},
+  vulkanfeld    :{k:'volcano',t:8,reihe:['rot','orange','gold']},
+  funkenturm    :{k:'riesen',t:15,A:'weiss',B:'gold',h:0.6},
+  dreiklang     :{k:'volcano',t:7,set:['gold','magenta','tuerkis']},
+  wasserspiel   :{k:'wasserfall',t:6,set:['silber','himmel','silber','tuerkis']},
+  glitzerkaskade:{k:'riesen',t:20,A:'silber',B:'gold',h:0.8},
+  sternfontaene :{k:'sternregen',t:25,A:'gold',B:'violett'},
+  eisblume      :{k:'riesen',t:22,A:'silber',B:'weiss',h:1.2},
+  goldvulkan    :{k:'volcano',t:30,A:'gold',B:'zitrone'},
+  feuerwand     :{k:'volcano',t:14,reihe:['rot','orange','gold','orange','rot']},
+  silberkaskade :{k:'riesen',t:22,A:'silber',B:'weiss',h:1.9},
+  feuerkaskade  :{k:'riesen',t:10,set:['gold','orange','gold'],h:1.4},
+  bengalfackel  :{k:'bengal',t:12,A:'rot'},
+  bengalduo     :{k:'bengal',t:15,set:['rot','gruen']},
+  bengalholz    :{k:'bengal',t:5,set:['rot','gruen'],klein:true},
+  feuerrad      :{k:'rad',t:12,A:'gold',B:'rot'}
+};
+function neuFontaene(t,o){
+  const f=NEU_FONT[t]; if(!f) return false;
+  const v=distVol(o), H=f.h||1;
+  const eins=(dt,col,dx)=>later(dt,()=>{ const o2=dx?{x:o.x+dx,y:o.y,z:o.z}:o;
+    const A=K(col||f.A||'gold'), B=K(f.B||'weiss');
+    emitters.push({t:f.t,k:f.k,o:o2,A,B,h:H,klein:f.klein}); sfx.fizz(v); });
+  if(f.set) f.set.forEach((c,i)=>eins(i*f.t*0.92,c,0));
+  else if(f.reihe) f.reihe.forEach((c,i)=>eins(i*0.35,c,(i-(f.reihe.length-1)/2)*0.28));
+  else eins(0,null,0);
+  /* Zischen, solange es brennt */
+  const ges=(f.set?f.set.length*f.t*0.92:f.t);
+  for(let s=1.6;s<ges;s+=2.2) later(s,()=>sfx.fizz(v*0.8));
+  return true;
+}
+
+/* Eigene Bodenbilder der neuen Ware */
+const NEU_EMIT={
+  /* Fontaene mit knisternder Krone */
+  knisterbrunnen(e,dt,o){ const H=e.h||1, A=e.A, B=e.B;
+    for(let k=0;k<Math.round(9*H);k++){ const a=Math.random()*Math.PI*2, s=rand(0.3,1.2)*H, c=Math.random()<0.7?A:B;
+      psMid.emit(o.x,o.y+0.2,o.z,Math.cos(a)*s,rand(4,6.5)*Math.sqrt(H),Math.sin(a)*s,c[0],c[1],c[2],rand(0.8,1.3),5,4); }
+    const kr=2.2*H+0.4;
+    for(let k=0;k<Math.round(dt*160*H);k++){ const a=Math.random()*Math.PI*2, r=rand(0,0.8)*H;
+      psSmall.emit(o.x+Math.cos(a)*r,o.y+kr+rand(-0.4,0.3),o.z+Math.sin(a)*r,rand(-.4,.4),rand(-.6,.4),rand(-.4,.4),1,.95,.8,rand(0.15,0.35),2,3); }
+    e.kn=(e.kn||0)-dt; if(e.kn<=0){ e.kn=rand(0.3,0.7); sfx.crackle(distVol(o)*0.4); } },
+  /* Bengalfeuer: tiefes, farbiges Leuchten mit Glut und Rauch */
+  bengal(e,dt,o){ const A=e.A, kl=e.klein?0.5:1;
+    e.fl=(e.fl||0)-dt; if(e.fl<=0){ e.fl=0.12; flash({x:o.x,y:o.y+0.6*kl,z:o.z},A,2.4*kl,0.2); }
+    for(let k=0;k<Math.round(6*kl);k++){ const a=Math.random()*Math.PI*2, s=rand(0.1,0.6);
+      psMid.emit(o.x,o.y+0.35*kl,o.z,Math.cos(a)*s,rand(0.6,1.8),Math.sin(a)*s,A[0]*1.2,A[1]*1.2,A[2]*1.2,rand(0.4,0.8),-0.3,0); }
+    if(Math.random()<dt*14*kl){ const a=Math.random()*Math.PI*2;
+      psBig.emit(o.x,o.y+0.5*kl,o.z,Math.cos(a)*0.2,rand(0.4,0.9),Math.sin(a)*0.2,0.25,0.24,0.26,rand(2.5,3.5),-0.15,0); } },
+  /* Feuerrad: Funken wirbeln tangential von einem drehenden Rad */
+  rad(e,dt,o){ e.w=(e.w||0)+dt*9; const R=0.32, y=o.y+0.8;
+    for(let k=0;k<3;k++){ const a=e.w+k*Math.PI*2/3, cx=Math.cos(a)*R, cy=Math.sin(a)*R, c=k%2?e.A:e.B;
+      for(let q=0;q<4;q++){ const s=rand(2.5,4.5);
+        psMid.emit(o.x+cx,y+cy,o.z,-Math.sin(a)*s,Math.cos(a)*s,rand(-0.3,0.3),c[0],c[1],c[2],rand(0.4,0.8),4,4); } }
+    e.fz=(e.fz||0)-dt; if(e.fz<=0){ e.fz=0.8; sfx.fizz(distVol(o)*0.6); } },
+  /* Sternregen: Goldfontaene, in der farbige Sterne langsam steigen */
+  sternregen(e,dt,o){ const A=e.A, B=e.B;
+    for(let k=0;k<10;k++){ const a=Math.random()*Math.PI*2, s=rand(0.3,1.4);
+      psMid.emit(o.x,o.y+0.2,o.z,Math.cos(a)*s,rand(5,8),Math.sin(a)*s,A[0],A[1],A[2],rand(0.9,1.4),5,4); }
+    e.st=(e.st||0)-dt; if(e.st<=0){ e.st=0.35; const c=Math.random()<0.5?B:FW.weiss;
+      for(let k=0;k<Math.round(8*QUAL());k++){ const a=Math.random()*Math.PI*2, w=rand(0.3,1.2);
+        psBig.emit(o.x,o.y+0.3,o.z,Math.cos(a)*w,rand(9,12),Math.sin(a)*w,c[0],c[1],c[2],rand(1.3,1.8),6,0); } } },
+  /* Farbige Wunderkerze: e.A die Funkenfarbe */
+  funken(e,dt,o){ const A=e.A||FW.gold;
+    /* je Sekunde, nicht je Bild - sonst waeren es bei 30 Bildern halb so viele */
+    e.acc=(e.acc||0)+dt*(e.n||7)*60;
+    for(;e.acc>=1;e.acc--){ const d=randDir(), s=rand(1,2.4), dx=e.reihe?(Math.floor(Math.random()*e.reihe)-(e.reihe-1)/2)*0.12:0;
+      psSmall.emit(o.x+dx,o.y+0.3,o.z,d[0]*s,d[1]*s+0.4,d[2]*s,A[0],A[1],A[2],rand(0.25,0.55),4,3); } },
+  /* Pharaoschlange: graue Asche waechst langsam in die Hoehe */
+  asche(e,dt,o){ e.h=(e.h||0)+dt*0.07;
+    for(let k=0;k<3;k++){ const a=Math.random()*Math.PI*2, r=0.05;
+      psMid.emit(o.x+Math.cos(a)*r+(e.dx||0),o.y+0.05+e.h,o.z+Math.sin(a)*r,0,rand(0.02,0.05),0,0.18,0.17,0.16,rand(3,5),0,0); }
+    if(Math.random()<dt*6) psSmall.emit(o.x+(e.dx||0),o.y+0.1+e.h,o.z,0,0.1,0,1,0.55,0.2,0.3,0,0); },
+  /* Bodenkreisel: tanzt im Kreis und spruehet bunte Funken */
+  kreisel(e,dt,o){ e.w=(e.w||0)+dt*(2+e.i*0.4); e.r=(e.r||0.2)+dt*0.12;
+    const x=o.x+Math.cos(e.w+e.i*2)*e.r*(1+e.i*0.3), z=o.z+Math.sin(e.w+e.i*2)*e.r*(1+e.i*0.3), c=e.A;
+    for(let k=0;k<6;k++){ const a=Math.random()*Math.PI*2, s=rand(1.5,3.2);
+      psMid.emit(x,o.y+0.08,z,Math.cos(a)*s,rand(0.3,1.2),Math.sin(a)*s,c[0],c[1],c[2],rand(0.3,0.6),5,4); } }
+};
+
+/* Ein Schwall Konfetti: bunte Blaettchen, die langsam fallen */
+function konfetti(o,n,h){
+  const C=['rot','gold','gruen','blau','magenta','tuerkis','zitrone'].map(K);
+  /* ohne Leuchtspur: Blaettchen, keine Funken */
+  const alt=SCHWEIF; SCHWEIF=0;
+  for(let i=0;i<Math.round(n*QUAL());i++){ const a=Math.random()*Math.PI*2, w=rand(0.3,2.2), c=C[i%C.length];
+    psMid.emit(o.x,o.y+0.2,o.z,Math.cos(a)*w,rand(2.5,h||6),Math.sin(a)*w,c[0]*0.8,c[1]*0.8,c[2]*0.8,rand(2.5,4.0),1.2,1); }
+  SCHWEIF=alt;
+}
+/* Boeller und Kleinfeuerwerk der neuen Ware */
+function neuKnall(t,o){
+  const v=distVol(o), yb=o.y!==undefined?o.y:0.4, p0={x:o.x,y:yb,z:o.z};
+  const lunte=(s,fn)=>{ emitters.push({t:s,k:'fuse',o}); later(s,fn); };
+  if(t==='blitzknaller'){ lunte(1.0,()=>{ flash({x:o.x,y:yb+0.5,z:o.z},FW.weiss,3.2,0.12); smallPop(o.x,yb,o.z,50,6,0.3,FW.weiss); sfx.crack(v*1.3); shake=Math.max(shake,0.2*v); }); return true; }
+  if(t==='knallteppich'){ lunte(1.2,()=>{ for(let i=0;i<48;i++) later(i*0.085,()=>{ const x=o.x-1.2+i*0.05+rand(-0.15,0.15), z=o.z+rand(-0.25,0.25);
+      smallPop(x,yb,z,22,3.5,0.45); flash({x,y:yb+0.2,z},FW.bernstein,0.6,0.08); sfx.crack(v*0.55); }); }); return true; }
+  if(t==='konfettiknaller'){ lunte(1.2,()=>{ smallPop(o.x,yb,o.z,40,5,0.4); sfx.boom(v*0.6); konfetti(p0,220,7); }); return true; }
+  if(t==='goldstaubboeller'){ lunte(1.3,()=>{ smallPop(o.x,yb,o.z,60,6,0.5,FW.gold); sfx.boom(v*0.8); shake=Math.max(shake,0.3*v);
+      for(let i=0;i<Math.round(260*QUAL());i++){ const d=randDir(), s=rand(0.5,3.5);
+        psSmall.emit(o.x,yb+0.8,o.z,d[0]*s,Math.abs(d[1])*s+1,d[2]*s,1,.85,.35,rand(2.0,3.4),0.6,3); } }); return true; }
+  if(t==='farbrauchboeller'){ const c=K(pick(['rot','blau','gruen','violett']));
+    lunte(1.3,()=>{ smallPop(o.x,yb,o.z,70,7,0.5); sfx.boom(v*0.9); shake=Math.max(shake,0.35*v); flash({x:o.x,y:yb+0.4,z:o.z},c,1.4,0.25);
+      for(let i=0;i<Math.round(90*QUAL());i++){ const a=Math.random()*Math.PI*2, w=rand(0.2,1.4);
+        psHuge.emit(o.x+rand(-0.3,0.3),yb+0.3,o.z+rand(-0.3,0.3),Math.cos(a)*w,rand(0.5,2.2),Math.sin(a)*w,c[0]*0.22,c[1]*0.22,c[2]*0.22,rand(3.5,5.5),-0.12,0); } }); return true; }
+  if(t==='knallbonbon'){ for(let i=0;i<4;i++) later(i*0.7,()=>{ const q={x:o.x+rand(-0.5,0.5),y:yb,z:o.z+rand(-0.4,0.4)}; smallPop(q.x,q.y,q.z,14,2.5,0.3); sfx.crack(v*0.5); konfetti(q,40,3); }); return true; }
+  if(t==='tischbombe'){ lunte(1.0,()=>{ sfx.crack(v); konfetti(p0,260,5.5); smallPop(o.x,yb+0.1,o.z,30,3,0.35,FW.gold); }); return true; }
+  if(t==='tischfeuerwerk2'){ for(let j=0;j<3;j++) later(j*1.1,()=>{ sfx.crack(v); for(let i=0;i<110;i++){ const d=randDir(), c=i%3?FW.gold:FW.zitrone;
+      psMid.emit(o.x+(j-1)*0.25,o.y+0.15,o.z,d[0]*2.2,Math.abs(d[1])*5+2,d[2]*2.2,c[0],c[1],c[2],rand(1.8,2.8),2.2,4); } }); return true; }
+  if(t==='pharao'){ for(let i=0;i<4;i++) emitters.push({t:9,k:'asche',o,dx:(i-1.5)*0.14}); return true; }
+  if(t==='bodenkreisel'){ const C=['limette','magenta','zitrone','tuerkis','gold','rose'];
+    for(let i=0;i<6;i++) later(i*0.25,()=>emitters.push({t:5,k:'kreisel',o,i,A:K(C[i])}));
+    for(let s=0;s<6;s+=0.6) later(s,()=>sfx.whistle(v*0.25)); return true; }
+  /* Wunderkerzen und Leuchtstaebe: farbige Funken */
+  const FUNKEN={wunderfarbe:{c:['rot','gruen','blau','magenta'],t:6},wunderherz:{c:['rose','gold'],t:5},wunderzahl:{c:['gold'],t:7,reihe:4},
+    leuchtstaebe:{c:['magenta','limette','tuerkis'],t:6},wunderkerzeXXL:{c:['gold'],t:12,n:12},wunderbox:{c:['gold'],t:6,reihe:5,n:12}};
+  const F=FUNKEN[t];
+  if(F){ F.c.forEach((col,i)=>later(i*F.t*0.2,()=>emitters.push({t:F.t,k:'funken',o,A:K(col),reihe:F.reihe,n:F.n}))); sfx.fizz(v); return true; }
+  return false;
+}
+/* Einstieg aus igniteType: true, wenn die Ware hier abgebrannt wurde */
+function neuZuenden(t,o){
+  if(!NEUWARE[t]) return false;
+  return neuKugel(t,o)||neuFontaene(t,o)||neuKnall(t,o);
+}
+/* Brenndauer fuer die Station: so lange bleibt die Ware stehen */
+function neuDauer(t){
+  const f=NEU_FONT[t];
+  if(f) return (f.set?f.set.length*f.t*0.92:f.t)+(f.reihe?f.reihe.length*0.35:0)+1.5;
+  if(NEU_KUGEL[t]) return [3.5,3.5,4.5,5,6.5][NEU_KUGEL[t].kal-1];
+  return {blitzknaller:3,knallteppich:6,konfettiknaller:4,goldstaubboeller:5,farbrauchboeller:7,knallbonbon:4,tischbombe:4,tischfeuerwerk2:5,
+    pharao:10,bodenkreisel:7,wunderfarbe:8,wunderherz:6,wunderzahl:8,leuchtstaebe:8,wunderkerzeXXL:13,wunderbox:7}[t]||0;
 }
 
 /* =========================================================
@@ -15363,7 +16129,11 @@ function sortimentBreite(){
   let n=0; ORDER.forEach(t=>{ if(!P[t].noOrder&&!P[t].noShelf&&isUnlocked(t)) n++; });
   return n;
 }
-function sortimentZug(){ return 0.78+Math.min(1,sortimentBreite()/34)*0.52; }
+/* Voll zieht das Sortiment bei knapp der Haelfte aller Waren - frueher
+   34 von 69. Seit es dreimal so viele gibt (26.09.), zaehlt der Anteil,
+   sonst waere der Laden schon auf Level 6 "voll sortiert". */
+const SORT_VOLL=Math.round(ORDER.filter(t=>!P[t].noOrder&&!P[t].noShelf).length*34/68);
+function sortimentZug(){ return 0.78+Math.min(1,sortimentBreite()/SORT_VOLL)*0.52; }
 /* Der Ruf eines eingesessenen Ladens spricht sich herum */
 function bekanntheit(){ return 1+Math.min(20,Math.max(0,S.level-1))*0.019; }
 /* Wie gross ist der Laden? Ein Markt mit Gondelgassen spricht sich
@@ -15585,9 +16355,13 @@ function prodPic(t){
   if(_prodCache[t]) return _prodCache[t];
   const p=P[t]; let u=null;
   const T=thumbRenderer();
-  if(T&&pools[t]){
+  if(T&&p&&p.dims){
     try{
-      const g=new THREE.Group(); pools[t].meshes.forEach(m=>g.add(new THREE.Mesh(m.geometry,m.material)));
+      /* Ware, die noch nirgends steht, bekommt fuer das Bild ein Modell
+         auf Zeit - danach wird es wieder freigegeben, statt fuer jedes
+         Produkt im Katalog dauerhaft Texturen zu halten */
+      const da=poolDa(t), teile=da?pools[t].meshes.map(m=>({geo:m.geometry,mat:m.material})):buildProduct(t);
+      const g=new THREE.Group(); teile.forEach(m=>g.add(new THREE.Mesh(m.geo,m.mat)));
       /* Packung leicht gedreht, Kamera auf die groesste Ausdehnung */
       g.rotation.y=-0.5; T.sc.add(g);
       const bx=new THREE.Box3().setFromObject(g), c=bx.getCenter(new THREE.Vector3()), sz=bx.getSize(new THREE.Vector3());
@@ -15595,13 +16369,37 @@ function prodPic(t){
       T.cam.position.set(c.x+R*0.9,c.y+R*0.75,c.z+R*2.6); T.cam.lookAt(c);
       T.r.render(T.sc,T.cam); u=T.c.toDataURL('image/png');
       T.sc.remove(g);
+      if(!da) teile.forEach(m=>{ m.geo.dispose(); if(m.mat.map) m.mat.map.dispose(); m.mat.dispose(); });
     }catch(e){ u=null; }
   }
-  if(!u){ const c=document.createElement('canvas'); c.width=224; c.height=168; const g=c.getContext('2d');
-    g.fillStyle='#141a30'; g.fillRect(0,0,224,168);
-    if(p&&p.art){ g.save(); g.translate(42,18); drawFront(g,140,132,p.art,p.cat||0); g.restore(); }
-    u=c.toDataURL('image/png'); }
+  if(!u) u=prodFlach(t);
   _prodCache[t]=u; return u;
+}
+/* Schnelles Ersatzbild: nur die Vorderseite der Packung, flach */
+const _flachCache={};
+function prodFlach(t){
+  if(_flachCache[t]) return _flachCache[t];
+  const p=P[t], c=document.createElement('canvas'); c.width=224; c.height=168; const g=c.getContext('2d');
+  g.fillStyle='#141a30'; g.fillRect(0,0,224,168);
+  if(p&&p.art){ g.save(); g.translate(42,18); drawFront(g,140,132,p.art,p.cat||0); g.restore(); }
+  return _flachCache[t]=c.toDataURL('image/png');
+}
+/* Bild fuer eine Bestellkarte. Ist das 3D-Bild noch nicht da, kommt
+   erst die flache Packung, und das 3D-Bild wird im Hintergrund in
+   kleinen Portionen nachgereicht - sonst stand der Laptop beim ersten
+   Oeffnen mit 228 Produkten viele Sekunden (Tom, 26.09.). */
+const _picWarte=[]; let _picLaeuft=false;
+function prodPicTag(t){
+  if(_prodCache[t]) return `src="${_prodCache[t]}"`;
+  if(_picWarte.indexOf(t)<0) _picWarte.push(t);
+  if(!_picLaeuft){ _picLaeuft=true; setTimeout(prodPicSchritt,30); }
+  return `src="${prodFlach(t)}" data-pic="${t}"`;
+}
+function prodPicSchritt(){
+  const t0=performance.now();
+  while(_picWarte.length&&performance.now()-t0<12){ const t=_picWarte.shift(), u=prodPic(t);
+    document.querySelectorAll(`img[data-pic="${t}"]`).forEach(im=>{ im.src=u; im.removeAttribute('data-pic'); }); }
+  if(_picWarte.length) setTimeout(prodPicSchritt,16); else _picLaeuft=false;
 }
 /* Regalbild aus den Ausbau-Bildern */
 function regalPic(r){ return upPic(r.art==='rack'?(r.kind==='standard'?'rack':'rack_'+r.kind):'shelf_'+r.kind); }
@@ -16370,10 +17168,10 @@ function lapZeichnen(body){
         let kopf='';
         const g=l?l.id:'grund';
         if(g!==gruppe){ gruppe=g; kopf=`<div class="kgruppe">${l?`${l.name} · Lizenz ab Level ${l.lvl}${hatLizenz(l.id)?' · freigeschaltet':''}`:'Grundsortiment'}</div>`; }
-        if(!un) return kopf+`<div class="karte locked"><img class="kbild" src="${prodPic(t)}" alt=""><b>${p.name} ${catPill(p)}</b><small>${l?`Lizenz „${l.name}“ ab Level ${l.lvl}. Unter Sortiment freischalten.`:`Ab Level ${p.lvl}.`}</small></div>`;
+        if(!un) return kopf+`<div class="karte locked"><img class="kbild" ${prodPicTag(t)} alt=""><b>${p.name} ${catPill(p)}</b><small>${l?`Lizenz „${l.name}“ ab Level ${l.lvl}. Unter Sortiment freischalten.`:`Ab Level ${p.lvl}.`}</small></div>`;
         const btns=tiers.map(tr=>{ const c=tierPrice(t,sup,tr);
           return `<button data-a="cart" data-t="${t}" data-n="${tr.n}" data-s="${sup.id}">+ ${tr.n}× ${eur(c)}${tr.d?` <span style="opacity:.7">−${Math.round(tr.d*100)}%</span>`:''}</button>`; }).join('');
-        return kopf+`<div class="karte"><img class="kbild" src="${prodPic(t)}" alt=""><b>${p.name} ${catPill(p)}</b><small>Karton mit ${p.box} Stück${canShelf(t)?(cap?` · Fach fasst ${cap}`:' · kein passendes Regal'):' · nur für den Automaten'}</small><small>Im Laden: ${shelfStockOf(t)} im Regal, ${stockOf(t)} insgesamt</small>`+
+        return kopf+`<div class="karte"><img class="kbild" ${prodPicTag(t)} alt=""><b>${p.name} ${catPill(p)}</b><small>Karton mit ${p.box} Stück${canShelf(t)?(cap?` · Fach fasst ${cap}`:' · kein passendes Regal'):' · nur für den Automaten'}</small><small>Im Laden: ${shelfStockOf(t)} im Regal, ${stockOf(t)} insgesamt</small>`+
           `<div class="steps">${btns}</div></div>`; }).join('')+`</div>`;
     }
   } else if(ltab==='price'){
@@ -17934,7 +18732,7 @@ function fontsReady(){
 }
 setCompact();
 fontsReady().then(()=>{
-  buildKartons(); ORDER.forEach(t=>{ pools[t]=new ItemPool(buildProduct(t),poolCap(t)); });
+  buildKartons();
   buildWorld();
   { const li=$('logoImg'); if(li) logoFreistellen(LOGO,u=>{ li.src=u; }); }
   initPost(); buildPDA();
@@ -17952,7 +18750,7 @@ fontsReady().then(()=>{
   setTimeout(()=>{ if(typeof shaderVorab==='function') shaderVorab(); },400);
   window.__bb={get S(){return S},get phase(){return phase},set phase(v){phase=v},set clock(v){clock=v},get clock(){return clock},pickUp,floorBoxes,shelves,racks,dekos,stockOne,openShop,step,customers,queue,belt,scanBelt,buyUp,buyDeko,get DS(){return DS},endDay,pending,save,openLaptop,closeLaptop,pl,addXP,hireStaff,fireStaff,staff,dirts,addDirt,movables,toggleBuild,setWall,setFloor,
     stations,firePult,placeOnStation,igniteType,get order(){return order},get phone(){return phone},makeCall,answerPhone,haggle,acceptDeal,declineDeal,get truck(){return truck},spawnTruck,takeFromTruck,takeBox,dropBox,updateTruck,get door(){return door},get tuer(){return tuer},tuerSet,tuerNah,updateSchiebetuer,doorOpen,doorIsOpen,trailerOccupied,LR,lrFront,TOR,orderReady,orderLeft,shipOne,removeFloorBox,prioOf,setPrio,racks,updateCarry,spawnFloorBox,staff,SHELFKIND,layout,shelfCapOf,shelfAccepts,emptyLevel,dateInfo,dateStr,dateShort,seasonInfo,isSunday,dayMult,ruhetag,wageOf,setWage,friendliness,inPause,setPause,windowGrime,addGrime,cleanWindowTick,ambienteScore,bildBoost,fixedCosts,dailyWages,dispoLimit,verfuegbar,dispoZins,takeLoan,loanTier,loanDaily,EVENTS,GOALS,CUSTTYPES,UPGRADES,STAFF,stockOf,spawnInterval,pools,todayEvent,evv,rollEvent,rollMarket,newGoal,goalAdd,goalTick,ekFactor,marktText,xpFor,rollCustType,priceTol,buyChance,regCustomer,makeWishes,nachfrageFaktor,shelfStockOf,buildGravur,refillGrav,openGravInput,closeGravInput,get gravBlanks(){return gravBlanks},set gravBlanks(v){gravBlanks=v},orderBox,buyPack,cartAdd,cartAddPack,cartOrder,cartClear,cartDel,cartGoods,cartFee,cartTotal,cartBoxes,cartLines,LIEFERZEIT_SEK,VERSAND,VERSANDFREI,lieferSek,
-    scene,camera,P,PARK,restWelle,restTick,restDruck,restDaten,buyAngebot,grossOffen,updatePark,parkWasser:()=>_wasserM,parkTannen:()=>PARK_TANNEN,parkLeben:()=>parkEnten.concat(parkLeute).map(e=>({x:e.g.position.x,z:e.g.position.z})),pendingListe:()=>pending,einbauPakete,spawnPaket,paketAblegen,paketAufheben,EINBAU,PAKET_MASS,vorDieTuer,setSB2,sbZiel,makeAuto,AUTOFORM,stadtInfo:()=>({warn:beacons.length,kronen:KRONEN.length,stufen:SKYLINE_INFO.stufen,skyStile:SKYLINE_INFO.stile.size,stile:Object.keys(STADT_MATS).length}),clearStations,fachHoehe,kindOf,packKartonWert,SUPPLIERS,supplierFor,supplierOf,tierPrice,isUnlocked,lizLevel,renderLaptop,get lsup(){return lsup},set lsup(v){lsup=v},get ltab(){return ltab},set ltab(v){ltab=v},EFF,EFF_ALL,EFF_KLEIN,EFF_GROSS,EFF_PRO,SHOWS,kugelbombe,shot,mine,FW,stations,stationOf,placedCount,togglePDA,openPDA,closePDA,setPost,get postOn(){return postOn},get pdaOn(){return pdaOn},showLength,psHuge,psBig,psMid,psSmall,rockets,emitters,timersLen:()=>timers.length,setView:(x,z,y,p)=>{pl.x=x;pl.z=z;yaw=y;pitch=p;aim=null;},schiebe:(x,z)=>{pl.x=x;pl.z=z;collide(pl,0.32);return{x:pl.x,z:pl.z};},PLZ_MAX,camYaw:()=>yaw,camPitch:()=>pitch,playerPos:()=>({x:pl.x,z:pl.z}),pultYaw:()=>pultHit?pultHit.parent.rotation.y:null,applyShopName,shopName,shopSlogan,signTexPx:()=>signTex&&signTex.image?signTex.image.getContext('2d').getImageData(0,0,signTex.image.width,40).data.join(''):null,lagerWall,fwShot:shot,KUGEL_R,ROHR_INNEN,MOERSER_R,moerserRohr,sfx,WOLKEN,get master(){return master},ac,SORTE_NEU,sortenUmstellen,get shakeWert(){return shake},get ckG(){return ckG},get ckNameTex(){return ckNameTex},get ckMovable(){return ckMov},CK_HOME,CK_ALT,spotPos,queueApproach,ckTexPx:()=>ckNameTex&&ckNameTex.image?ckNameTex.image.getContext('2d').getImageData(0,0,ckNameTex.image.width,60).data.join(''):null,testfeldMitte,STATION_POS,aimAt,UPGRADES,upPic,PLAN,planFlaechen,uhrZeiger:()=>({std:uhrStd?+uhrStd.rotation.z.toFixed(4):0,min:uhrMin?+uhrMin.rotation.z.toFixed(4):0}),drawRackSchild,get snowPts(){return snowPts},buildStadt,updateStadt,get stadtBoxen(){return stadtBoxen},get stadtBaeume(){return stadtBaeume},buildFernbaeume,schwaerme,beacons,silhouetten,get verkehrPts(){return verkehrPts},get rauchPts(){return rauchPts},get flieger(){return flieger},stadtFrei,STADT_FREI,WALLS,FLOORS,renderOnline,onlineHint,onlineStufe,onlineZahlen,onlineListe,updateOnline,SCHILDBG,SCHILDFG,setSchild,schildBg,schildFg,repaintSchilder,updateHead,allLevels,addToLevel,putInSlot,regCustomer,ZONEN,zoneOffen,oeffneZone,applyZonen,SLOTS,RACKS,slotsOffen,colliders,LAY,LOGI,WRAMPEN,WTORE,updateSnow,unterDach,dachBereiche,get lapHit2(){return lapHit2},buildLagerTerminal,toggleTest,testLevel,buyUp,get toastLast(){return toastLast},__floorBoxen:()=>floorBoxes.length,WBAY_UP,wbays,dockPlaetze,wbayFrei,wbayOffen,spawnWTruck,updateWBays,wbaysInit,wtorSet,GANG,GANGTUER,buildLagergang,flaeche,WTOR,RACKKIND,route,NAV,navFrei,navIdx,navBuild,shelfStand,shelves,sbLanes,buildSBKasse,sbFrei,sbOffen,sbNutzbar,EING2,eingaenge,naechsterEingang,setEingang2,buildSBKasse2,get sb2G(){return sb2G},TUEREN,tuerSetD,tuerNahD,packBereit,packOne,paketWert,bestellungenProTag,pakete,ddlAbholung,updateVersand,VS_GR,VS_FELD,WG_PARK,vsNeueBestellung,vsAbgleich,vsKlasse,vsQuellen,vsBestand,vsErfuellbar,vsPlan,vsStapel,vsSpielerPacken,vsSpielerBestellung,vsTischFrei,vsStatus,vsAufraeumen,vsLaden,vsBahn,vsPaketOffen,vsKlappen,vsFuellung,vsPaketZu,get vsTisch(){return vsTisch},get vsWagen(){return vsWagen},createShelf,createRack,regalStellen,testKauf,regalAufbauen,orderRegal,REGALWARE,regalOf,regalKind,regalPreis,regalPlatz,regalOffen,startGame,promptFor,ERFOLGE,erfOffen,erfStufe,erfStand,erfZiel,erfFertig,erfAnteil,erfGeschafft,erfGesamt,stat,statAdd,statRekord,statVerkauf,bruchGesehen,gruppeVon,GRUPPE,TRAEGER,BRUCH,BRUCH_IDS,REZ_FARBEN,ETIKETT,traegerVon,traegerOffen,bruchOffen,bruchListe,rezeptWow,rezeptKosten,rezeptMarkt,rezeptHype,rezeptDauer,rezeptEntwicklung,rezeptGueltig,eigeneListe,eigenesEintragen,rezepteTick,rezProto,rezBauen,renderRezeptur,get entwurf(){return entwurf},set entwurf(v){entwurf=v},entwurfInit,ORDER,LIZENZEN,lizenzOf,hatLizenz,lizenzDaten,naechsteLizenz,buyLizenz,VOLA,volaOf,REGIME,marketOf,costOf,marktZiel,marktLuecke,meOf,miOf,marktDelta,marktNiveau,marktPhase,marktSchock,marktLabel,marktSchnitt,marktExtrem,marktChance,sortimentBreite,sortimentZug,bekanntheit,spawnInterval,rollMarkt,marktInit,inflOf,inflText,setPreisAufMarkt,igniteType,get packHit(){return packHit},get packTisch(){return packTisch},get packMov(){return packMov},zuendeKanal,zuendeAlle,alleKanaele,kanalItem,openZuend,closeZuend,get zuendOpen(){return zuendOpen},overlayOpen,pultTaster,zuendTick,TISCH_X,RAMPE_X,KANAL_START,bereitCount,brennDauer,muendung,pultLamps,RAKETEN_LOOK,RAKETEN_KL,makePerson,applyTOD,updateHUD,renderer,renderFrame,get DEMO(){return DEMO},LHALLE,LOGI_STUFEN,TOR_STUFE,logiStufe,logiZeige,logiAnwenden,LOGI_G,TOR_G,WTORE,tuAktion:(kind,ref)=>{ const alt=target; target={kind,ref}; try{ doAction(); } finally { target=alt; } },promptFor,KARREN,karreArt,karreAn,karreStapel,karreLast,karreNimmt,toggleKarre,updateKarre,setTutorial,tutorialAn,zielFuer,get zielAktuell(){return zielAktuell},get tipKey(){return tipKey},updateZiel,set DEMO(v){DEMO=v},kapitelVon,kapitelVoll,openHandy,closeHandy,toggleHandy,get handyOpen(){return handyOpen},get happ(){return happ},HANDY_APPS,renderHandy,shaderVorab,SCHONER,schonerMalen,updateSchoner,makeWischer,stelleWischer,get wischer(){return wischer},updateWischen,wischerPersonal,cleanTick,updateFireworks,FLASH,spurEnden,LR_LAMPE,schweber,kundenSymbol,geldSchwebt,get serie(){return serie},serieZufrieden,serieBricht,KAPITEL,kapitel,kapitelNr,kapitelAufstieg,WA,WA_SLOTS,vorDieTuer,SB_KASSIERER,sbBesetzt,sbLaneVon,sbKassiererPlatz,MUSIK,STUECKE,musikAn,musikWeiter,musikVol,musikTick,spielSchritt,get mStep(){return mStep},set mStep(v){mStep=v;mTakte=0;},get mBus(){return mBus},get postHalf(){return postHalf},EFF_SCHWEIF,mitSchweif,KOEPFE,KLEID,UNIFORM,STAFFKOPF,faceCache,animPerson,PACKS,packPreis,packPool,packOffen,packContents,syncPakete,rotateGrab,PACK_FL,PACK_HOME,spotFree,rectOf,grab,placeGrab,updateGrab,get grabbed(){return grabbed},showPause,get target(){return target},einrOf,einrAktiv,einrHoch,einrRunter,einrSchalten,AUFGABEN,einrJob,kartonMat,pools,shelfStockOf,removeFromLevel,fwLog:(a)=>{FW_LOG=a;},moerserRohr,ROHR_KALIBER,effPassen,EFF_FAMILIE,basisBlick,fwTestSchalten,fwTestProdukte,fwTestStapeln,get fwTestAn(){return fwTestAn},get fwTestBoxen(){return fwTestBoxen},sonne:()=>sun.intensity,get fwUhr(){return FW_UHR},THEMEN,SHOW_BASIS,EFF,emittersListe:()=>emitters,
+    scene,camera,P,NEUWARE,NEU_SHOWS,NEU_FONT,NEU_KUGEL,neuZuenden,PARK,restWelle,restTick,restDruck,restDaten,buyAngebot,grossOffen,updatePark,parkWasser:()=>_wasserM,parkTannen:()=>PARK_TANNEN,parkLeben:()=>parkEnten.concat(parkLeute).map(e=>({x:e.g.position.x,z:e.g.position.z})),pendingListe:()=>pending,einbauPakete,spawnPaket,paketAblegen,paketAufheben,EINBAU,PAKET_MASS,vorDieTuer,setSB2,sbZiel,makeAuto,AUTOFORM,stadtInfo:()=>({warn:beacons.length,kronen:KRONEN.length,stufen:SKYLINE_INFO.stufen,skyStile:SKYLINE_INFO.stile.size,stile:Object.keys(STADT_MATS).length}),clearStations,fachHoehe,kindOf,packKartonWert,SUPPLIERS,supplierFor,supplierOf,tierPrice,isUnlocked,lizLevel,renderLaptop,get lsup(){return lsup},set lsup(v){lsup=v},get ltab(){return ltab},set ltab(v){ltab=v},EFF,EFF_ALL,EFF_KLEIN,EFF_GROSS,EFF_PRO,SHOWS,kugelbombe,shot,mine,FW,stations,stationOf,placedCount,togglePDA,openPDA,closePDA,setPost,get postOn(){return postOn},get pdaOn(){return pdaOn},showLength,psHuge,psBig,psMid,psSmall,rockets,emitters,timersLen:()=>timers.length,setView:(x,z,y,p)=>{pl.x=x;pl.z=z;yaw=y;pitch=p;aim=null;},schiebe:(x,z)=>{pl.x=x;pl.z=z;collide(pl,0.32);return{x:pl.x,z:pl.z};},PLZ_MAX,camYaw:()=>yaw,camPitch:()=>pitch,playerPos:()=>({x:pl.x,z:pl.z}),pultYaw:()=>pultHit?pultHit.parent.rotation.y:null,applyShopName,shopName,shopSlogan,signTexPx:()=>signTex&&signTex.image?signTex.image.getContext('2d').getImageData(0,0,signTex.image.width,40).data.join(''):null,lagerWall,fwShot:shot,KUGEL_R,ROHR_INNEN,MOERSER_R,moerserRohr,sfx,WOLKEN,get master(){return master},ac,SORTE_NEU,sortenUmstellen,get shakeWert(){return shake},get ckG(){return ckG},get ckNameTex(){return ckNameTex},get ckMovable(){return ckMov},CK_HOME,CK_ALT,spotPos,queueApproach,ckTexPx:()=>ckNameTex&&ckNameTex.image?ckNameTex.image.getContext('2d').getImageData(0,0,ckNameTex.image.width,60).data.join(''):null,testfeldMitte,STATION_POS,aimAt,UPGRADES,upPic,PLAN,planFlaechen,uhrZeiger:()=>({std:uhrStd?+uhrStd.rotation.z.toFixed(4):0,min:uhrMin?+uhrMin.rotation.z.toFixed(4):0}),drawRackSchild,get snowPts(){return snowPts},buildStadt,updateStadt,get stadtBoxen(){return stadtBoxen},get stadtBaeume(){return stadtBaeume},buildFernbaeume,schwaerme,beacons,silhouetten,get verkehrPts(){return verkehrPts},get rauchPts(){return rauchPts},get flieger(){return flieger},stadtFrei,STADT_FREI,WALLS,FLOORS,renderOnline,onlineHint,onlineStufe,onlineZahlen,onlineListe,updateOnline,SCHILDBG,SCHILDFG,setSchild,schildBg,schildFg,repaintSchilder,updateHead,allLevels,addToLevel,putInSlot,regCustomer,ZONEN,zoneOffen,oeffneZone,applyZonen,SLOTS,RACKS,slotsOffen,colliders,LAY,LOGI,WRAMPEN,WTORE,updateSnow,unterDach,dachBereiche,get lapHit2(){return lapHit2},buildLagerTerminal,toggleTest,testLevel,buyUp,get toastLast(){return toastLast},__floorBoxen:()=>floorBoxes.length,WBAY_UP,wbays,dockPlaetze,wbayFrei,wbayOffen,spawnWTruck,updateWBays,wbaysInit,wtorSet,GANG,GANGTUER,buildLagergang,flaeche,WTOR,RACKKIND,route,NAV,navFrei,navIdx,navBuild,shelfStand,shelves,sbLanes,buildSBKasse,sbFrei,sbOffen,sbNutzbar,EING2,eingaenge,naechsterEingang,setEingang2,buildSBKasse2,get sb2G(){return sb2G},TUEREN,tuerSetD,tuerNahD,packBereit,packOne,paketWert,bestellungenProTag,pakete,ddlAbholung,updateVersand,VS_GR,VS_FELD,WG_PARK,vsNeueBestellung,vsAbgleich,vsKlasse,vsQuellen,vsBestand,vsErfuellbar,vsPlan,vsStapel,vsSpielerPacken,vsSpielerBestellung,vsTischFrei,vsStatus,vsAufraeumen,vsLaden,vsBahn,vsPaketOffen,vsKlappen,vsFuellung,vsPaketZu,get vsTisch(){return vsTisch},get vsWagen(){return vsWagen},createShelf,createRack,regalStellen,testKauf,regalAufbauen,orderRegal,REGALWARE,regalOf,regalKind,regalPreis,regalPlatz,regalOffen,startGame,promptFor,ERFOLGE,erfOffen,erfStufe,erfStand,erfZiel,erfFertig,erfAnteil,erfGeschafft,erfGesamt,stat,statAdd,statRekord,statVerkauf,bruchGesehen,gruppeVon,GRUPPE,TRAEGER,BRUCH,BRUCH_IDS,REZ_FARBEN,ETIKETT,traegerVon,traegerOffen,bruchOffen,bruchListe,rezeptWow,rezeptKosten,rezeptMarkt,rezeptHype,rezeptDauer,rezeptEntwicklung,rezeptGueltig,eigeneListe,eigenesEintragen,rezepteTick,rezProto,rezBauen,renderRezeptur,get entwurf(){return entwurf},set entwurf(v){entwurf=v},entwurfInit,ORDER,LIZENZEN,lizenzOf,hatLizenz,lizenzDaten,naechsteLizenz,buyLizenz,VOLA,volaOf,REGIME,marketOf,costOf,marktZiel,marktLuecke,meOf,miOf,marktDelta,marktNiveau,marktPhase,marktSchock,marktLabel,marktSchnitt,marktExtrem,marktChance,sortimentBreite,sortimentZug,bekanntheit,spawnInterval,rollMarkt,marktInit,inflOf,inflText,setPreisAufMarkt,igniteType,get packHit(){return packHit},get packTisch(){return packTisch},get packMov(){return packMov},zuendeKanal,zuendeAlle,alleKanaele,kanalItem,openZuend,closeZuend,get zuendOpen(){return zuendOpen},overlayOpen,pultTaster,zuendTick,TISCH_X,RAMPE_X,KANAL_START,bereitCount,brennDauer,muendung,pultLamps,RAKETEN_LOOK,RAKETEN_KL,makePerson,applyTOD,updateHUD,renderer,renderFrame,get DEMO(){return DEMO},LHALLE,LOGI_STUFEN,TOR_STUFE,logiStufe,logiZeige,logiAnwenden,LOGI_G,TOR_G,WTORE,tuAktion:(kind,ref)=>{ const alt=target; target={kind,ref}; try{ doAction(); } finally { target=alt; } },promptFor,KARREN,karreArt,karreAn,karreStapel,karreLast,karreNimmt,toggleKarre,updateKarre,setTutorial,tutorialAn,zielFuer,get zielAktuell(){return zielAktuell},get tipKey(){return tipKey},updateZiel,set DEMO(v){DEMO=v},kapitelVon,kapitelVoll,openHandy,closeHandy,toggleHandy,get handyOpen(){return handyOpen},get happ(){return happ},HANDY_APPS,renderHandy,shaderVorab,SCHONER,schonerMalen,updateSchoner,makeWischer,stelleWischer,get wischer(){return wischer},updateWischen,wischerPersonal,cleanTick,updateFireworks,FLASH,spurEnden,LR_LAMPE,schweber,kundenSymbol,geldSchwebt,get serie(){return serie},serieZufrieden,serieBricht,KAPITEL,kapitel,kapitelNr,kapitelAufstieg,WA,WA_SLOTS,vorDieTuer,SB_KASSIERER,sbBesetzt,sbLaneVon,sbKassiererPlatz,MUSIK,STUECKE,musikAn,musikWeiter,musikVol,musikTick,spielSchritt,get mStep(){return mStep},set mStep(v){mStep=v;mTakte=0;},get mBus(){return mBus},get postHalf(){return postHalf},EFF_SCHWEIF,mitSchweif,KOEPFE,KLEID,UNIFORM,STAFFKOPF,faceCache,animPerson,PACKS,packPreis,packPool,packOffen,packContents,syncPakete,rotateGrab,PACK_FL,PACK_HOME,spotFree,rectOf,grab,placeGrab,updateGrab,get grabbed(){return grabbed},showPause,get target(){return target},einrOf,einrAktiv,einrHoch,einrRunter,einrSchalten,AUFGABEN,einrJob,kartonMat,pools,shelfStockOf,removeFromLevel,fwLog:(a)=>{FW_LOG=a;},moerserRohr,ROHR_KALIBER,effPassen,EFF_FAMILIE,basisBlick,fwTestSchalten,fwTestProdukte,fwTestStapeln,get fwTestAn(){return fwTestAn},get fwTestBoxen(){return fwTestBoxen},sonne:()=>sun.intensity,get fwUhr(){return FW_UHR},THEMEN,SHOW_BASIS,EFF,emittersListe:()=>emitters,
     shot:()=>{ noLoop=true; camera.position.set(pl.x,1.65,pl.z); camera.rotation.set(pitch,yaw,0); camera.updateMatrixWorld(); updateTarget(); applyTOD(); renderFrame(0.016); return canvas.toDataURL('image/jpeg',0.85); },
     run:(sec,dt)=>{ noLoop=true; const n=Math.round(sec/(dt||0.05)); for(let i=0;i<n;i++) step(dt||0.05); }};
 });

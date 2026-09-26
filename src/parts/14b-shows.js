@@ -67,7 +67,7 @@ function playShow(o,phases,prod){
       const [A,B]=paar(i);
       const dir=ph.fan||ph.vfan?FANDIR:undefined;
       const R=rampe(tt);
-      const opt={eff,sz:(ph.sz||1)*BS.sz*SHOW_GROESSE*R.sz,pw:BS.pw+(ph.pw||0)+R.pw,ang,dir,A,B,fuse:ph.fuse,dick:ph.dick,hell:R.hell};
+      const opt={eff,sz:(ph.sz||1)*BS.sz*SHOW_GROESSE*R.sz,pw:BS.pw+(ph.pw||0)+R.pw,ang,dir,A,B,fuse:ph.fuse,dick:ph.dick,hell:R.hell,pfeif:ph.pfeif};
       later(tt,()=>{
         if(ph.mine) mine(o,A,B,(ph.mineSz||0.8)*R.sz);
         /* bomb: echte Kugelbombe mit Nachbruechen statt einer Rakete */
@@ -279,6 +279,8 @@ function igniteType(t,o0){
   hype=Math.min(100,hype+p.hype); DS.burned=r2(DS.burned+costOf(t)); addXP(Math.max(1,Math.round(p.hype/3)));
   statAdd('gezuendet',1); statAdd('hype',p.hype);
   if(SHOWS[t]){ emitters.push({t:0.8,k:'fuse',o}); later(0.8,()=>playShow(o,SHOWS[t](),t)); return; }
+  /* neue Ware (Sortiment mal drei): Fontaenen, Boeller, Kleinfeuerwerk, Kugelsorten */
+  if(typeof neuZuenden==='function'&&neuZuenden(t,o)) return;
   /* ----- Eigene Rezeptur: das Rezept sagt, was passiert ----- */
   if(p.rezept){
     const rz=p.rezept, tr=traegerVon(rz.traeger);

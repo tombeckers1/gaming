@@ -27,7 +27,9 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   const sort=await p.evaluate(()=>{ const bb=window.__bb, P=bb.P;
     const ALT=['kanonen','grossboeller','sprengmeister','xxlpolen','doppelschlag','heuler'];
     const NEU=['boeller','monsterboeller','atomboeller'];
-    const tubes=Object.keys(P).filter(t=>P[t].shape==='tubepack');
+    /* seit 26.09. (Sortiment mal drei) gibt es wieder mehr Boeller - aber
+       nur neue Sorten, die rausgeworfenen bleiben draussen */
+    const tubes=Object.keys(P).filter(t=>P[t].shape==='tubepack'&&!(bb.NEUWARE&&bb.NEUWARE[t]));
     return {alt:ALT.filter(t=>P[t]||bb.LIZENZEN.some(l=>l.items.includes(t))||bb.VOLA[t]!==undefined||Object.values(bb.GRUPPE).some(g=>g.includes(t))),
       tubes, atomForm:P.atomboeller&&P.atomboeller.shape, namen:NEU.map(t=>P[t]&&P[t].name), lvl:NEU.map(t=>P[t]&&P[t].lvl), preis:NEU.map(t=>P[t]&&P[t].market),
       lizenz:NEU.map(t=>bb.lizenzOf(t)), gruppe:NEU.every(t=>bb.GRUPPE.boeller.includes(t)), vola:NEU.every(t=>bb.VOLA[t]>0)}; });

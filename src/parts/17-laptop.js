@@ -65,9 +65,13 @@ function prodPic(t){
   if(_prodCache[t]) return _prodCache[t];
   const p=P[t]; let u=null;
   const T=thumbRenderer();
-  if(T&&pools[t]){
+  if(T&&p&&p.dims){
     try{
-      const g=new THREE.Group(); pools[t].meshes.forEach(m=>g.add(new THREE.Mesh(m.geometry,m.material)));
+      /* Ware, die noch nirgends steht, bekommt fuer das Bild ein Modell
+         auf Zeit - danach wird es wieder freigegeben, statt fuer jedes
+         Produkt im Katalog dauerhaft Texturen zu halten */
+      const da=poolDa(t), teile=da?pools[t].meshes.map(m=>({geo:m.geometry,mat:m.material})):buildProduct(t);
+      const g=new THREE.Group(); teile.forEach(m=>g.add(new THREE.Mesh(m.geo,m.mat)));
       /* Packung leicht gedreht, Kamera auf die groesste Ausdehnung */
       g.rotation.y=-0.5; T.sc.add(g);
       const bx=new THREE.Box3().setFromObject(g), c=bx.getCenter(new THREE.Vector3()), sz=bx.getSize(new THREE.Vector3());
@@ -75,13 +79,37 @@ function prodPic(t){
       T.cam.position.set(c.x+R*0.9,c.y+R*0.75,c.z+R*2.6); T.cam.lookAt(c);
       T.r.render(T.sc,T.cam); u=T.c.toDataURL('image/png');
       T.sc.remove(g);
+      if(!da) teile.forEach(m=>{ m.geo.dispose(); if(m.mat.map) m.mat.map.dispose(); m.mat.dispose(); });
     }catch(e){ u=null; }
   }
-  if(!u){ const c=document.createElement('canvas'); c.width=224; c.height=168; const g=c.getContext('2d');
-    g.fillStyle='#141a30'; g.fillRect(0,0,224,168);
-    if(p&&p.art){ g.save(); g.translate(42,18); drawFront(g,140,132,p.art,p.cat||0); g.restore(); }
-    u=c.toDataURL('image/png'); }
+  if(!u) u=prodFlach(t);
   _prodCache[t]=u; return u;
+}
+/* Schnelles Ersatzbild: nur die Vorderseite der Packung, flach */
+const _flachCache={};
+function prodFlach(t){
+  if(_flachCache[t]) return _flachCache[t];
+  const p=P[t], c=document.createElement('canvas'); c.width=224; c.height=168; const g=c.getContext('2d');
+  g.fillStyle='#141a30'; g.fillRect(0,0,224,168);
+  if(p&&p.art){ g.save(); g.translate(42,18); drawFront(g,140,132,p.art,p.cat||0); g.restore(); }
+  return _flachCache[t]=c.toDataURL('image/png');
+}
+/* Bild fuer eine Bestellkarte. Ist das 3D-Bild noch nicht da, kommt
+   erst die flache Packung, und das 3D-Bild wird im Hintergrund in
+   kleinen Portionen nachgereicht - sonst stand der Laptop beim ersten
+   Oeffnen mit 228 Produkten viele Sekunden (Tom, 26.09.). */
+const _picWarte=[]; let _picLaeuft=false;
+function prodPicTag(t){
+  if(_prodCache[t]) return `src="${_prodCache[t]}"`;
+  if(_picWarte.indexOf(t)<0) _picWarte.push(t);
+  if(!_picLaeuft){ _picLaeuft=true; setTimeout(prodPicSchritt,30); }
+  return `src="${prodFlach(t)}" data-pic="${t}"`;
+}
+function prodPicSchritt(){
+  const t0=performance.now();
+  while(_picWarte.length&&performance.now()-t0<12){ const t=_picWarte.shift(), u=prodPic(t);
+    document.querySelectorAll(`img[data-pic="${t}"]`).forEach(im=>{ im.src=u; im.removeAttribute('data-pic'); }); }
+  if(_picWarte.length) setTimeout(prodPicSchritt,16); else _picLaeuft=false;
 }
 /* Regalbild aus den Ausbau-Bildern */
 function regalPic(r){ return upPic(r.art==='rack'?(r.kind==='standard'?'rack':'rack_'+r.kind):'shelf_'+r.kind); }
@@ -850,10 +878,10 @@ function lapZeichnen(body){
         let kopf='';
         const g=l?l.id:'grund';
         if(g!==gruppe){ gruppe=g; kopf=`<div class="kgruppe">${l?`${l.name} · Lizenz ab Level ${l.lvl}${hatLizenz(l.id)?' · freigeschaltet':''}`:'Grundsortiment'}</div>`; }
-        if(!un) return kopf+`<div class="karte locked"><img class="kbild" src="${prodPic(t)}" alt=""><b>${p.name} ${catPill(p)}</b><small>${l?`Lizenz „${l.name}“ ab Level ${l.lvl}. Unter Sortiment freischalten.`:`Ab Level ${p.lvl}.`}</small></div>`;
+        if(!un) return kopf+`<div class="karte locked"><img class="kbild" ${prodPicTag(t)} alt=""><b>${p.name} ${catPill(p)}</b><small>${l?`Lizenz „${l.name}“ ab Level ${l.lvl}. Unter Sortiment freischalten.`:`Ab Level ${p.lvl}.`}</small></div>`;
         const btns=tiers.map(tr=>{ const c=tierPrice(t,sup,tr);
           return `<button data-a="cart" data-t="${t}" data-n="${tr.n}" data-s="${sup.id}">+ ${tr.n}× ${eur(c)}${tr.d?` <span style="opacity:.7">−${Math.round(tr.d*100)}%</span>`:''}</button>`; }).join('');
-        return kopf+`<div class="karte"><img class="kbild" src="${prodPic(t)}" alt=""><b>${p.name} ${catPill(p)}</b><small>Karton mit ${p.box} Stück${canShelf(t)?(cap?` · Fach fasst ${cap}`:' · kein passendes Regal'):' · nur für den Automaten'}</small><small>Im Laden: ${shelfStockOf(t)} im Regal, ${stockOf(t)} insgesamt</small>`+
+        return kopf+`<div class="karte"><img class="kbild" ${prodPicTag(t)} alt=""><b>${p.name} ${catPill(p)}</b><small>Karton mit ${p.box} Stück${canShelf(t)?(cap?` · Fach fasst ${cap}`:' · kein passendes Regal'):' · nur für den Automaten'}</small><small>Im Laden: ${shelfStockOf(t)} im Regal, ${stockOf(t)} insgesamt</small>`+
           `<div class="steps">${btns}</div></div>`; }).join('')+`</div>`;
     }
   } else if(ltab==='price'){

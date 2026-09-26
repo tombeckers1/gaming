@@ -673,6 +673,7 @@ function testfeldMitte(){
 function brennDauer(t){
   const p=P[t]; if(!p) return 3;
   if(typeof SHOWS!=='undefined'&&SHOWS[t]) return 0.8+showLength(t)+1.5;
+  if(typeof neuDauer==='function'){ const d=neuDauer(t); if(d) return d; }
   const fest={wunder:5,knallerbsen:2.2,knallfrosch:2.8,tisch:3,schwaermer:3.8,vulkan:14,wasserfall:23,
     sternenbrunnen:6,fontaene:12,goldgeysir:22,feuerbrunnen:19,feuersaeule:30,fontaene30:13,fontaene50:15,furzrakete:6,boeller:5,monsterboeller:4,atomboeller:6};
   if(fest[t]) return fest[t];

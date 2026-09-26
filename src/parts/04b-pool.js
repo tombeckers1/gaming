@@ -8,7 +8,15 @@ class ItemPool{
   remove(h){ if(!h||this.h[h.i]!==h) return; const last=this.h.pop(); if(last!==h){ this.h[h.i]=last; last.i=h.i; for(const me of this.meshes) me.setMatrixAt(h.i,last.m); } for(const me of this.meshes){ me.count=this.h.length; me.instanceMatrix.needsUpdate=true; } }
   set(h,mx){ if(this.h[h.i]!==h) return; h.m.copy(mx); for(const me of this.meshes){ me.setMatrixAt(h.i,mx); me.instanceMatrix.needsUpdate=true; } }
 }
-const pools={};
+/* Pools entstehen erst, wenn die Ware zum ersten Mal gebraucht wird
+   (Tom, 26.09.: Sortiment mal drei). Vorher baute der Start fuer jedes
+   Produkt Modell und Verpackung - bei 228 Produkten ueber 200 Megapixel
+   Texturen, auch fuer Ware, die erst zwanzig Level spaeter kommt. */
+const _pools={};
+const pools=new Proxy(_pools,{get(o,k){
+  if(typeof k==='string'&&!(k in o)&&typeof P!=='undefined'&&P[k]&&P[k].dims) o[k]=new ItemPool(buildProduct(k),poolCap(k));
+  return o[k]; }});
+function poolDa(t){ return t in _pools; }
 const _q=new THREE.Quaternion(), _e=new THREE.Euler(), _one=V(1,1,1);
 function mx(x,y,z,ry){ _e.set(0,ry||0,0); _q.setFromEuler(_e); return new THREE.Matrix4().compose(V(x,y,z),_q,_one); }
 

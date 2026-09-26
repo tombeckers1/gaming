@@ -154,7 +154,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     o.pakete={};
     bb.PACKS.forEach(pk=>{
       let summe=0, fremd=0; const N=1000;
-      for(let i=0;i<N;i++){ const l=bb.packContents(pk.n,pk.gruppe); summe+=wert(l);
+      for(let i=0;i<N;i++){ const l=bb.packContents(pk.n,pk.gruppe,pk.sorten); summe+=wert(l);
         if(pk.gruppe) fremd+=l.filter(t=>bb.GRUPPE[pk.gruppe].indexOf(t)<0).length; }
       const preis=bb.packPreis(pk);
       o.pakete[pk.id]={preis,offen:bb.packOffen(pk),wertZuPreis:+(summe/N/preis).toFixed(2),fremd};

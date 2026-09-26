@@ -272,7 +272,7 @@ function promptFor(t){
       if(c&&karreAn()&&!c.regal&&!c.einbau&&!pk) return karreVoll()?{t:'Die Karre ist voll',a:false}:{t:`Auf die Karre: ${P[it.type].name} (${karreLast()}/${KARREN[karreArt()].cap})`,a:true};
       if(c) return {t:`Noch ${n} Karton${n>1?'e':''} im Laderaum`,a:false};
       return pk?{t:`Paket aufheben: ${paketName(it)}`,a:true}:{t:`Aufheben: ${P[it.type].name} (${P[it.type].box} Stück)`,a:true}; }
-    case 'sign': return phase==='closed'?{t:'Schild umdrehen: Laden öffnen',a:true}:phase==='after'?{t:'Tag beenden',a:true}:{t:phase==='open'?'Geöffnet bis 22 Uhr':'Letzte Kunden im Laden',a:false};
+    case 'sign': return phase==='closed'&&ruhetag()?{t:'Ruhetag: Tag beenden',a:true}:phase==='closed'?{t:'Schild umdrehen: Laden öffnen',a:true}:phase==='after'?{t:'Tag beenden',a:true}:{t:phase==='open'?'Geöffnet bis 22 Uhr':'Letzte Kunden im Laden',a:false};
   }
   return null;
 }
@@ -291,8 +291,10 @@ function doAction(){
   else if(k==='dirt') cleanTick(r,true);
   else if(k==='window') cleanWindowTick(true);
   else if(k==='rslot'){
-    if(S.carrying&&!r.box){ putInSlot(r,S.carrying.type,S.carrying.count); S.carrying=null; S.tut.lager=true; sfx.pop(); updateCarry(); }
-    else if(r.box&&(!S.carrying||karreNimmt())){ S.carrying={type:r.box.type,count:r.box.count}; r.rk.g.remove(r.box.mesh); r.box=null; drawRackSchild(r.rk); sfx.pop(); updateCarry(); }
+    /* Qualitaet (Restposten 86 %) geht mit ins Regal und wieder heraus -
+       vorher kam jeder Karton als 100 %-Ware zurueck */
+    if(S.carrying&&!r.box){ putInSlot(r,S.carrying.type,S.carrying.count,S.carrying.q); S.carrying=null; S.tut.lager=true; sfx.pop(); updateCarry(); }
+    else if(r.box&&(!S.carrying||karreNimmt())){ S.carrying={type:r.box.type,count:r.box.count,q:r.box.q||1}; r.rk.g.remove(r.box.mesh); r.box=null; drawRackSchild(r.rk); sfx.pop(); updateCarry(); }
   }
   else if(k==='belt') scanBelt(r);
   else if(k==='card'){ if(reg&&reg.state==='pay'){ if(reg.method==='card') reg.finishCard(); else toast('Der Kunde zahlt bar. Klick die Kasse an.'); } }
@@ -304,7 +306,7 @@ function doAction(){
   else if(k==='pult'){ if(zuendOpen) closeZuend(); else openZuend(); }
   else if(k==='gravur'){ if(S.carrying&&S.carrying.type==='blanko') refillGrav(); else if(!S.carrying) openGravInput(); }
   else if(k==='tbox') takeBox(r);
-  else if(k==='sign'){ if(phase==='closed') openShop(); else if(phase==='after') endDay(); }
+  else if(k==='sign'){ if(phase==='closed'&&ruhetag()) ruhetagBeenden(); else if(phase==='closed') openShop(); else if(phase==='after') endDay(); }
 }
 function cleanTick(d,first){
   if(dirts.indexOf(d)<0) return;

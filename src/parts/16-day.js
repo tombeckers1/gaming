@@ -27,6 +27,8 @@ let levelOpen=false;
 $('luBtn').addEventListener('click',()=>{
   $('levelup').classList.remove('show'); levelOpen=false;
   if(pendingLevels.length){ showLevelUp(); return; }
+  /* liegt noch der Tagesabschluss offen, bleibt es dabei (Befund 26.09.) */
+  if(summaryOpen) return;
   paused=false; requestLock();
 });
 
@@ -127,6 +129,10 @@ function spawnInterval(){
   return Math.max(0.55,9.2/m);
 }
 function ruhetag(){ return isSunday(S.day)&&!S.up.tag4; }
+/* Ruhetag beenden. Vorher blieb der Sonntag ohne Sonntagsgenehmigung
+   fuer immer stehen: der Laden liess sich nicht oeffnen, und den Tag
+   beenden ging nur nach Feierabend - der kam nie (Befund 26.09.). */
+function ruhetagBeenden(){ if(phase!=='closed'||!ruhetag()) return; phase='after'; updateSign(); endDay(); }
 function openShop(){
   if(phase!=='closed') return;
   if(ruhetag()){ toast('Sonntag ist Ruhetag. Nutz den Tag zum Nachfüllen oder zum Testen im Hof.','bad'); return; }
@@ -134,7 +140,8 @@ function openShop(){
   toast(S.day<7?'Der Laden ist offen. Die Neueröffnung spricht sich noch herum.':`Der Laden ist offen. ${seasonInfo(S.day)[1]}.`);
 }
 function updateDay(dt){
-  if(phase==='closed'&&ruhetag()&&clock<CLOSE_T) clock=Math.min(CLOSE_T,clock+dt*MIN_PER_SEC*0.6);
+  if(phase==='closed'&&ruhetag()&&clock<CLOSE_T){ clock=Math.min(CLOSE_T,clock+dt*MIN_PER_SEC*0.6);
+    if(clock>=CLOSE_T){ phase='after'; updateSign(); toast('Der Ruhetag ist vorbei. Beende den Tag am Türschild.'); save(); } }
   if(phase==='open'){
     clock+=dt*MIN_PER_SEC;
     if(clock>=CLOSE_T){ clock=CLOSE_T; phase='closing'; updateSign(); toast('22 Uhr: Es kommen keine neuen Kunden mehr.'); }
@@ -170,7 +177,8 @@ function fixedCosts(){
 function eroeffnung(){ return S.day<7?1.75-S.day*0.11:1; }
 function endDay(){
   if(phase!=='after') return;
-  if(laptopOpen) closeLaptop(false);
+  /* ohne Pausenmenue ueber dem Tagesabschluss (Befund 26.09.) */
+  if(laptopOpen){ laptopOpen=false; korbOpen=false; $('korbOv').classList.remove('show'); $('laptop').classList.remove('show'); }
   if(order) failOrder();
   clearStations();
   addGrime(0.06); staffMorale();

@@ -75,10 +75,10 @@ const STEUER_PC=[
     [['Shift'],'Rennen'],
     [['Maus'],'Umsehen']]],
   ['Handeln',[
-    [['E','Klick'],'Aktion – halten zum Putzen'],
-    [['Q','Rechts'],'Karton abstellen'],
-    [['K'],'Sackkarre holen / wegstellen'],
-    [['Tab','H'],'Handy: Onlineshop, Team, Bank, Bericht'],
+    [['E','Klick'],'Aktion – halten wiederholt (einräumen, scannen, putzen)'],
+    [['Q','Rechts'],'Karton abstellen, Paket auspacken'],
+    [['K'],'Sackkarre / Wagen holen, wegstellen (nach Kauf)'],
+    [['Tab'],'Handy: Onlineshop, Team, Werbung, Bank, Bericht, Ziele'],
     [['H'],'Anruf annehmen, wenn es klingelt']]],
   ['Werkzeuge',[
     [['T'],'Preisgerät (ab Level 2)'],
@@ -86,17 +86,18 @@ const STEUER_PC=[
   ['Zündpult',[
     [['E'],'Zündmodus am Pult'],
     [['1…9'],'Kanal zünden'],
-    [['Enter'],'Alle nacheinander']]],
+    [['Enter'],'Alle nacheinander'],
+    [['Leer'],'Alle gleichzeitig']]],
   ['Umbau',[
     [['F'],'Umbaumodus an / aus'],
     [['E'],'Möbel greifen, absetzen'],
     [['R'],'Gegriffenes drehen'],
-    [['Q'],'Greifen abbrechen']]],
+    [['Q','Rechts'],'Greifen abbrechen']]],
   ['Sonstiges',[
     [['P'],'Bildeffekte an / aus'],
     [['M'],'Musik an / aus'],
     [['N'],'Nächstes Musikstück'],
-    [['Esc'],'Pause, diese Übersicht']]]
+    [['Esc'],'Pausenmenü']]]
 ];
 const STEUER_TOUCH=[
   ['Bewegen',[
@@ -106,12 +107,14 @@ const STEUER_TOUCH=[
     [['Aktion'],'Aktion – halten zum Putzen'],
     [['Ablegen'],'Karton abstellen, Greifen abbrechen'],
     [['Umbau'],'Umbaumodus an / aus'],
-    [['Handy'],'Onlineshop, Team, Bank, Bericht'],
-    [['Karre'],'Sackkarre holen / wegstellen'],
+    [['Handy'],'Onlineshop, Team, Werbung, Bank, Bericht, Ziele'],
+    [['Karre'],'Sackkarre / Wagen (erscheint nach dem Kauf)'],
+    [['Menü'],'Pausenmenü: Steuerung, Musik, Tutorial, Startbildschirm'],
     [['Preis'],'Preisgerät (ab Level 2)'],
     [['Spray'],'Pfefferspray (ab Level 4)']]]
 ];
 function renderSteuer(){
+  const hb=$('handbuch'); if(hb) hb.innerHTML=handbuchHTML();
   const L=COARSE?STEUER_TOUCH:STEUER_PC;
   $('steuer').innerHTML=L.map(([titel,zeilen])=>`<div class="grp"><div class="sub">${titel}</div>`+
     zeilen.map(([k,t])=>`<div class="z"><div class="k">${k.map(x=>`<kbd>${x}</kbd>`).join('')}</div><div>${t}</div></div>`).join('')+
@@ -237,6 +240,8 @@ $('btnKarre').addEventListener('touchstart',e=>{ e.preventDefault(); if(!S||over
 $('btnKarre').addEventListener('click',e=>{ if(COARSE) return; ac(); toggleKarre(); });
 $('btnHandy').addEventListener('touchstart',e=>{ e.preventDefault(); if(!S||(overlayOpen()&&!handyOpen)) return; ac(); toggleHandy(); },{passive:false});
 $('btnHandy').addEventListener('click',e=>{ if(COARSE) return; ac(); toggleHandy(); });
+/* Am Touchgeraet gab es keinen Weg ins Pausenmenue (kein Esc) */
+$('btnMenu').addEventListener('touchstart',e=>{ e.preventDefault(); if(!S||overlayOpen()) return; ac(); showPause(); },{passive:false});
 $('btnPda').addEventListener('click',e=>{ if(COARSE) return; ac(); togglePDA(); });
 $('pdaClose').addEventListener('click',()=>closePDA());
 $('pdaBody').addEventListener('click',e=>{

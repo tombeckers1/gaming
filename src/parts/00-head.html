@@ -89,6 +89,7 @@ body:has(.ov.show) #touch{display:none}
 #btnHandy{right:calc(24px + env(safe-area-inset-right));bottom:calc(284px + env(safe-area-inset-bottom));width:60px;height:60px;background:#9cc4ff;font-size:14px}
 #btnKarre{right:calc(24px + env(safe-area-inset-right));bottom:calc(354px + env(safe-area-inset-bottom));width:60px;height:60px;background:#ffb48a;font-size:14px}
 #btnKarre.on{box-shadow:0 0 0 3px rgba(255,180,138,.5)}
+#btnMenu{left:max(12px,env(safe-area-inset-left));top:calc(max(12px,env(safe-area-inset-top)) + 82px);width:52px;height:52px;background:rgba(242,245,255,.88);font-size:13px}
 #btnPda.on{background:var(--mint);box-shadow:0 0 0 3px rgba(142,240,168,.4)}
 .tbtn.down{transform:translateY(3px);box-shadow:none}
 #btnTool.on{background:var(--fire);color:#fff}
@@ -491,6 +492,7 @@ body.compact .pdahead2 b{font-size:16px}
   <button class="tbtn" id="btnTool" aria-label="Pfefferspray">Spray</button>
   <button class="tbtn" id="btnDrop" aria-label="Karton abstellen">Ablegen</button>
   <button class="tbtn" id="btnAct" aria-label="Aktion">Aktion</button>
+  <button class="tbtn" id="btnMenu" aria-label="Pausenmenü">Menü</button>
 </div>
 
 <div id="hud">

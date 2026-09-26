@@ -1260,11 +1260,11 @@ function lapZeichnen(body){
   } else {
     hint='Der Spielstand liegt in diesem Browser.';
     const st=phase==='closed'?(ruhetag()?`Sonntag, Ruhetag. ${dateStr(S.day)}.`:`Geschlossen. Heute ist ${dateStr(S.day)}. ${seasonInfo(S.day)[1]}.`):phase==='open'?'Geöffnet bis 22 Uhr.':phase==='closing'?'22 Uhr, die letzten Kunden sind noch da.':'Feierabend. Du kannst den Tag beenden.';
-    h=`<div class="row"><div class="rm"><b>${st}</b><small>Heute: ${eur(DS.revenue)} Umsatz, ${DS.customers} Kunden</small></div>${phase==='closed'?'<button data-a="open">Laden öffnen</button>':phase==='after'?'<button data-a="end">Tag beenden</button>':''}</div>`+
+    h=`<div class="row"><div class="rm"><b>${st}</b><small>Heute: ${eur(DS.revenue)} Umsatz, ${DS.customers} Kunden</small></div>${phase==='closed'&&ruhetag()?'<button data-a="ruhe">Ruhetag beenden</button>':phase==='closed'?'<button data-a="open">Laden öffnen</button>':phase==='after'?'<button data-a="end">Tag beenden</button>':''}</div>`+
       `<div class="row"><div class="rm"><b>Testmodus</b>`+
         (S.test
-          ? `<small class="warn">Aktiv: Level 25, alle Lizenzpakete und Ausbauten offen.</small><small>Beim Ausschalten kommen dein altes Level (${S.test.lvl}), deine XP, dein Kontostand und dein altes Sortiment zurück. Gekaufte Regale, Deko und Personal bleiben im Laden.</small>`
-          : `<small>Schaltet vorübergehend alles frei: Level 25, jedes Lizenzpaket und ein volles Konto zum Ausprobieren.</small><small>Dein jetziger Stand wird gemerkt und beim Ausschalten wiederhergestellt.</small>`)+
+          ? `<small class="warn">Aktiv: Level ${testLevel()}, alle Lizenzpakete und Ausbauten offen.</small><small>Beim Ausschalten kommen dein altes Level (${S.test.lvl}), deine XP, dein Kontostand und dein altes Sortiment zurück. Gekaufte Regale, Deko und Personal bleiben im Laden.</small>`
+          : `<small>Schaltet vorübergehend alles frei: Level ${testLevel()}, jedes Lizenzpaket und ein volles Konto zum Ausprobieren.</small><small>Dein jetziger Stand wird gemerkt und beim Ausschalten wiederhergestellt.</small>`)+
         `</div><button class="${S.test?'red':''}" data-a="test">${S.test?'Testmodus aus':'Testmodus an'}</button></div>`+
       (FW_DEV?`<div class="row"><div class="rm"><b>Feuerwerk-Teststation <span class="warn">(nur Entwicklung)</span></b><small>Macht Nacht und stellt von jedem Feuerwerk einen Karton neben das Zündpult. Du stehst direkt davor.</small>${fwTestAn?'<small class="warn">Aktiv. Kartons neu stapeln füllt alles wieder auf.</small>':''}</div>`+
         (fwTestAn?`<div class="steps"><button data-a="fwtestneu">Neu stapeln</button><button class="red" data-a="fwtest">Aus</button></div>`:`<button data-a="fwtest">Einschalten</button>`)+'</div>':'')+
@@ -1353,6 +1353,7 @@ function lapKlick(e,imHandy){
   else if(a==='repay') repayLoan(+b.dataset.v);
   else if(a==='open'){ openShop(); closeLaptop(true); return; }
   else if(a==='end'){ endDay(); return; }
+  else if(a==='ruhe'){ ruhetagBeenden(); return; }
   else if(a==='test'){ toggleTest(); }
   else if(a==='fwtest'){ fwTestSchalten(); return; }
   else if(a==='fwtestneu'){ const n=fwTestStapeln(); toast(`${n} Kartons neu gestapelt.`); }
@@ -1449,7 +1450,7 @@ function buyUp(id){
     }
     if(id==='onlineshop'){ drawPackSchild(); }
 
-    if(id==='gravur'){ buildGravur(null); toast('Der Gravur-Automat steht. Blanko-Raketen bei Mertens bestellen.'); }
+    if(id==='gravur'){ buildGravur(null); toast('Der Gravur-Automat steht. Blanko-Raketen im Laptop unter Bestellen (Fachhandel) ordern.'); }
     else if(id==='grosskunden') toast('Eintrag ist online. Veranstalter rufen jetzt an.');
     else if(id==='plakat') toast('Plakate hängen. Mehr Kunden ab sofort.');
     else if(id==='tag4') toast('Ab jetzt darfst du auch sonntags öffnen.');

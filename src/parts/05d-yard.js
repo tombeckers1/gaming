@@ -584,11 +584,18 @@ const MOERSER_R=ROHR_INNEN.map(r=>+(r/0.9).toFixed(4));
    300 mm. Vorher lag die 200er im grossen Rohr und hatte dort 5 cm
    Luft zu jeder Seite. */
 const ROHR_KALIBER=['75–100 mm','150–200 mm','300 mm'], ROHR_NAME=['kleine Rohr','mittlere Rohr','große Rohr'];
-function moerserRohr(t){ const p=P[t]; const k=p&&p.rezept?p.rezept.traeger:t;
-  return {kugel75:0,kugel100:0,kugel150:1,kugel200:1,kugel300:2}[k]||0; }
+/* Kaliber einer Kugelbombe: die Stammkugeln per Schluessel, alle
+   anderen Sorten ueber ihren Durchmesser. Vorher landeten Sternenstaub
+   und Sternkranz (150), Goldkrone (200) und Kaiserkrone (300) im
+   kleinen Rohr, weil nur die fuenf Stammkugeln bekannt waren. */
+function kugelTyp(t){ const p=P[t]; const k=p&&p.rezept?p.rezept.traeger:t; if(KUGEL_R[k]) return k;
+  const d=p&&p.dims?p.dims[0]:0.09; let best='kugel75', bd=9;
+  for(const [n,v] of [['kugel75',0.09],['kugel100',0.12],['kugel150',0.165],['kugel200',0.21],['kugel300',0.3]]){ const dd=Math.abs(v-d); if(dd<bd){ bd=dd; best=n; } }
+  return best; }
+function moerserRohr(t){ return {kugel75:0,kugel100:0,kugel150:1,kugel200:1,kugel300:2}[kugelTyp(t)]||0; }
 function kugelModell(t,slot){
   /* passt nicht jede Kugel in jedes Rohr - dann eben knapp unter die Innenweite */
-  const g=new THREE.Group(), rr=ROHR_INNEN[slot%3], rk=Math.min(KUGEL_R[t]||0.06,rr*0.97);
+  const g=new THREE.Group(), rr=ROHR_INNEN[slot%3], rk=Math.min(KUGEL_R[kugelTyp(t)]||0.06,rr*0.97);
   const papier=std(0xb58a55,{roughness:0.95});
   const kugel=new THREE.Mesh(new THREE.SphereGeometry(rk,HIQ?16:10,HIQ?12:8),papier);
   kugel.position.y=-0.14-rk; g.add(kugel);
@@ -679,7 +686,7 @@ function brennDauer(t){
   if(fest[t]) return fest[t];
   if(p.rezept) return 7;
   const sh=p.shape;
-  if(sh==='shell') return {kugel150:4.5,kugel200:5,kugel300:6.5}[t]||3.5;
+  if(sh==='shell') return {kugel150:4.5,kugel200:5,kugel300:6.5}[kugelTyp(t)]||3.5;
   if(sh==='tubepack') return 2.6;
   if(sh==='rocketset'){ const k=typeof RAKETEN_KL!=='undefined'&&RAKETEN_KL[t]; return k?Math.max(3,(k.n-1)*k.gap+2):3; }
   if(sh==='battery'||sh==='fan') return 9;

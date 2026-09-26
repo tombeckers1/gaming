@@ -305,7 +305,7 @@ function igniteType(t,o0){
   }
   /* ----- Kugelbomben aus der Moerserbatterie ----- */
   if(sh==='shell'){
-    const kal={kugel75:1,kugel100:2,kugel150:3,kugel200:4,kugel300:5}[t]||1;
+    const kal={kugel75:1,kugel100:2,kugel150:3,kugel200:4,kugel300:5}[kugelTyp(t)]||1;
     kugelbombe(o,kal);
     return;
   }

@@ -422,19 +422,85 @@ const AUTOFORM={
   van  : {L:4.55,B:1.83,H:1.70,rad:0.330,kabL:2.70,kabZ:-0.22,vu:0.87,hu:0.96,stufe:false},
   klein: {L:4.05,B:1.74,H:1.46,rad:0.305,kabL:2.06,kabZ:-0.34,vu:0.72,hu:0.78,stufe:false}
 };
-let _lackM=null,_gummiM=null;
+let _lackM=null,_gummiM=null,_glasM=null,_chromM=null,_autoEnv=null;
+/* Umgebung zum Spiegeln (Tom, 26.09.: "Autos deutlich schoener und
+   echter"). Ohne Umgebung spiegelt Lack nichts, und Lack und Scheiben
+   verschwimmen zu einer dunklen Masse. Ein kleines Panorama - Himmel,
+   helle Horizontkante, Haeuserzeile, Strasse - reicht, damit Lack,
+   Glas und Chrom lesbar werden. Nachts wird die Spiegelung gedimmt. */
+function autoUmgebung(){
+  if(_autoEnv!==null) return _autoEnv||null;
+  _autoEnv=false;
+  try{
+    if(!THREE.PMREMGenerator) return null;
+    const t=tex(512,256,(g,W,H)=>{
+      const gr=g.createLinearGradient(0,0,0,H); gr.addColorStop(0,'#7f9cbc'); gr.addColorStop(0.44,'#dfe8f1'); gr.addColorStop(0.5,'#f6f8fa');
+      gr.addColorStop(0.52,'#4a4e55'); gr.addColorStop(1,'#1c1e22'); g.fillStyle=gr; g.fillRect(0,0,W,H);
+      /* Haeuserkante am Horizont bricht die Spiegelung wie in einer Strasse */
+      for(let x=0;x<W;){ const w=8+Math.random()*30, h=10+Math.random()*48; g.fillStyle=`rgb(${60+Math.random()*50|0},${64+Math.random()*50|0},${72+Math.random()*50|0})`;
+        g.fillRect(x,H*0.5-h,w,h); x+=w+Math.random()*6; }
+      g.fillStyle='rgba(255,255,255,.9)'; for(let i=0;i<5;i++) g.fillRect(Math.random()*W,H*0.08+Math.random()*H*0.2,40,6);
+    });
+    t.mapping=THREE.EquirectangularReflectionMapping;
+    const pm=new THREE.PMREMGenerator(renderer);
+    _autoEnv=pm.fromEquirectangular(t).texture; pm.dispose();
+  }catch(e){ _autoEnv=false; }
+  return _autoEnv||null;
+}
 function autoMats(){
   if(!_lackM){
-    /* Lack spiegelt, Gummi nicht - in einem Mesh ginge das nicht */
-    _lackM=new THREE.MeshStandardMaterial({vertexColors:true,roughness:0.34,metalness:0.22});
+    const env=autoUmgebung();
+    const Phys=THREE.MeshPhysicalMaterial||THREE.MeshStandardMaterial;
+    /* Metalliclack mit Klarlack, Glas spiegelt stark, Chrom ganz */
+    _lackM=new Phys({vertexColors:true,roughness:0.42,metalness:0.45,envMap:env,envMapIntensity:1});
+    if('clearcoat' in _lackM){ _lackM.clearcoat=1; _lackM.clearcoatRoughness=0.07; }
+    _glasM=new Phys({vertexColors:true,roughness:0.04,metalness:0.35,envMap:env,envMapIntensity:1.2});
+    if('clearcoat' in _glasM){ _glasM.clearcoat=1; _glasM.clearcoatRoughness=0.02; }
+    _chromM=new THREE.MeshStandardMaterial({vertexColors:true,roughness:0.16,metalness:1,envMap:env,envMapIntensity:1.1});
     _gummiM=new THREE.MeshStandardMaterial({vertexColors:true,roughness:0.92,metalness:0.02});
   }
 }
+/* nachts spiegelt der Himmel nicht mehr hell */
+function autoNacht(f){ if(!_lackM) return; const k=1-0.85*f; _lackM.envMapIntensity=k; _glasM.envMapIntensity=1.2*k; _chromM.envMapIntensity=1.1*k; }
+/* Seitenprofil als Form, ueber die Breite extrudiert und gerundet.
+   Profilkoordinaten: x = Laenge (vorn positiv), y = Hoehe. */
+function autoExtrude(shape,breite,bev,form){
+  /* genug Querschnitte, damit sich die Breite verformen laesst */
+  const geo=new THREE.ExtrudeGeometry(shape,{depth:Math.max(0.02,breite-2*bev),bevelEnabled:true,bevelThickness:bev,bevelSize:bev,bevelSegments:HIQ?4:2,curveSegments:HIQ?16:8,steps:HIQ?6:3});
+  geo.rotateY(-Math.PI/2);
+  geo.computeBoundingBox(); const bb=geo.boundingBox; geo.translate(-(bb.min.x+bb.max.x)/2,0,0);
+  /* form(x,y,z) -> Faktor auf die Breite: runde Ecken im Grundriss,
+     eingezogene Flanke, schraege Kanzel */
+  if(form){ const pa=geo.attributes.position; for(let i=0;i<pa.count;i++) pa.setX(i,pa.getX(i)*form(pa.getY(i),pa.getZ(i))); }
+  glatteNormalen(geo,50);
+  return geo;
+}
+/* Weiche Normalen fuer nicht indizierte Geometrie: Ecken an derselben
+   Stelle mitteln ihre Flaechennormalen, solange der Knick unter der
+   Grenze bleibt - runde Flaechen werden glatt, Kanten bleiben Kanten.
+   Ohne das sah die Karosserie facettiert aus wie ein Low-Poly-Modell. */
+function glatteNormalen(geo,grad){
+  const pa=geo.attributes.position, n=pa.count, fn=new Float32Array(n*3), cg=Math.cos(grad*Math.PI/180);
+  const a=new THREE.Vector3(), b=new THREE.Vector3(), c=new THREE.Vector3();
+  for(let i=0;i+2<n;i+=3){ a.fromBufferAttribute(pa,i); b.fromBufferAttribute(pa,i+1); c.fromBufferAttribute(pa,i+2);
+    b.sub(a); c.sub(a); b.cross(c); const l=b.length()||1; b.divideScalar(l);
+    for(let k=0;k<3;k++){ fn[(i+k)*3]=b.x; fn[(i+k)*3+1]=b.y; fn[(i+k)*3+2]=b.z; } }
+  const gruppen=new Map();
+  for(let i=0;i<n;i++){ const key=Math.round(pa.getX(i)*2000)+'|'+Math.round(pa.getY(i)*2000)+'|'+Math.round(pa.getZ(i)*2000);
+    let g=gruppen.get(key); if(!g) gruppen.set(key,g=[]); g.push(i); }
+  const out=new Float32Array(n*3);
+  for(const g of gruppen.values()) for(const i of g){ let x=0,y=0,z=0;
+    for(const j of g){ const d=fn[i*3]*fn[j*3]+fn[i*3+1]*fn[j*3+1]+fn[i*3+2]*fn[j*3+2]; if(d>=cg){ x+=fn[j*3]; y+=fn[j*3+1]; z+=fn[j*3+2]; } }
+    const l=Math.hypot(x,y,z)||1; out[i*3]=x/l; out[i*3+1]=y/l; out[i*3+2]=z/l; }
+  geo.setAttribute('normal',new THREE.BufferAttribute(out,3));
+}
+const glatt01=(a,b,x)=>{ const t=Math.min(1,Math.max(0,(x-a)/(b-a))); return t*t*(3-2*t); };
 function makeAuto(col,form){
   form=AUTOFORM[form]?form:pick(['limo','kombi','suv','van','klein']);
   autoMats();
   const F=AUTOFORM[form];
-  const L=F.L, B=F.B, rad=F.rad, kabL=F.kabL, kabZ=F.kabZ;
+  const L=F.L, B=F.B, rad=F.rad, kabL=F.kabL;
+  let kabZ=F.kabZ;
   const schwelle=rad*0.92;                  /* Unterkante Tuer        */
   const gurt=F.H*(F.stufe?0.655:0.640);     /* Unterkante Seitenfenster */
   const dach=F.H;                           /* Dachhaut               */
@@ -442,93 +508,80 @@ function makeAuto(col,form){
   const vA= L/2-F.vu, hA=-(L/2-F.hu);       /* Radmitten */
   const RX=B/2-0.125;                       /* Rad buendig unter der Flanke */
 
-  const lack=[], gummi=[];
-  const dunkel=0x15171d, glas=0x1a2431, chrome=0xb9bec8, alu=0xa8aeb8;
+  const lack=[], gummi=[], glasT=[], chromT=[];
+  const dunkel=0x15171d, glas=0x10161e, chrome=0xd6dae0, alu=0xb4bac4;
   const SEG=HIQ?4:2;
   const RB=(w,h,d,r)=>roundedBoxGeo(w,h,d,r,SEG);
   const CY=(r1,r2,h,sg)=>new THREE.CylinderGeometry(r1,r2,h,sg||(HIQ?18:10));
   const P=(a,geo,x,y,z,rx,ry,rz,c)=>a.push({geo,m:tm(x,y,z,rx||0,ry||0,rz||0),color:c});
-  const K=(geo,x,y,z,rx,ry,rz,c)=>P(lack,geo,x,y,z,rx,ry,rz,c);
+  /* Farbe entscheidet, welches Material ein Teil bekommt */
+  const K=(geo,x,y,z,rx,ry,rz,c)=>P(c===glas||c===0xcfdae8?glasT:(c===chrome||c===alu||c===0xf6f4ea)?chromT:lack,geo,x,y,z,rx,ry,rz,c);
   const G=(geo,x,y,z,rx,ry,rz,c)=>P(gummi,geo,x,y,z,rx,ry,rz,c);
 
   /* ---------- Karosserie ----------
-     Drei uebereinanderliegende Volumen geben die Flanke: unten schmal
-     (Schweller), in der Mitte am breitesten, zur Guertellinie wieder
-     eingezogen. Das ist die Form, die ein Auto von vorn rund macht. */
-  const kh=gurt-schwelle;                   /* Hoehe der Flanke */
-  const mY2=schwelle+kh/2;
-  /* Die Karosserie ist zwischen den Achsen am breitesten und laeuft
-     davor und dahinter schmaler zu. Genau dort, vor der Vorderachse
-     und hinter der Hinterachse, verjuengt sich auch ein echtes Auto -
-     eine durchgehend gleich breite Box bleibt immer eine Kiste. */
-  const mz0=hA-0.30, mz1=vA+0.30;
-  K(RB(B,kh,mz1-mz0,0.30), 0, mY2, (mz0+mz1)/2, 0,0,0, col);
-  /* Vorderwagen und Nase */
-  { const z0=mz1-0.12, z1=L/2-0.02;
-    K(RB(B-0.08,kh,z1-z0,0.26), 0, mY2, (z0+z1)/2, 0,0,0, col);
-    K(RB(B-0.22,kh*0.90,0.30,0.20), 0, mY2-kh*0.03, z1-0.13, 0,0,0, col); }
-  /* Hinterwagen und Heckabschluss */
-  { const z1=mz0+0.12, z0=-(L/2-0.02);
-    K(RB(B-0.07,kh,z1-z0,0.26), 0, mY2, (z0+z1)/2, 0,0,0, col);
-    K(RB(B-0.19,kh*0.92,0.26,0.20), 0, mY2-kh*0.02, z0+0.11, 0,0,0, col); }
-  /* flache Sicke unter den Fenstern, nur ein Zentimeter tief */
-  K(RB(B+0.012,kh*0.16,L-0.90,0.03), 0, gurt-kh*0.30, 0, 0,0,0, col);
-  /* Fuge zwischen Seitenteil und Klappe */
-  K(RB(B-0.13,0.012,0.016,0.004), 0, gurt-0.035, mz0+0.10, 0,0,0, 0x0d0f14);
-  /* Schweller bleibt matt und ist kaum schmaler als die Flanke */
-  G(RB(B-0.015,0.11,L-1.45,0.04), 0, schwelle+0.02, 0, 0,0,0, 0x1b1e24);
-
-  /* Motorhaube: vom Fuss der Frontscheibe bis zur Nase, leicht fallend */
-  const hz0=kabZ+kabL/2, hz1=L/2-0.06, hL=hz1-hz0;
-  K(RB(B-0.12,0.17,hL,0.13), 0, gurt-0.03, (hz0+hz1)/2, -0.055,0,0, col);
-  /* Haubenfuge statt zweiter Platte: die lag ueber der Guertellinie
-     und stand als heller Wulst ueber der Nase. */
-  for(const s of [-1,1])
-    K(RB(0.012,0.02,hL-0.18,0.005), s*(B/2-0.20), gurt+0.015-0.055*0, (hz0+hz1)/2+0.04, -0.055,0,0, 0x0d0f14);
-  /* Heck: Kofferraumdeckel oder steile Klappe */
-  const kz0=-(L/2-0.10), kz1=kabZ-kabL/2;
-  if(F.stufe) K(RB(B-0.16,0.15,kz1-kz0,0.12), 0, gurt-0.03, (kz0+kz1)/2, 0.035,0,0, col);
-  else        K(RB(B-0.16,gh*0.86,0.34,0.14), 0, gurt+gh*0.43, kz1-0.06, 0,0,0, col);
-
-  /* ---------- Fahrgastzelle ----------
-     Aufgebaut wie am echten Auto: rundum Glas, davor die Saeulen,
-     darauf die Dachhaut. Vorher waren Front- und Heckscheibe schraege
-     Platten, die vor der Zelle in der Luft standen - von der Seite ein
-     schwarzer Keil ueber der Motorhaube. Jetzt schliessen sie die
-     Zelle vorn und hinten bündig ab, und das Dach dazwischen ist
-     genau so lang, wie die beiden Neigungen uebrig lassen. */
-  const aF=0.60, aH=F.stufe?0.52:0.20;        /* Neigung Front / Heck */
+     Ein Seitenprofil statt gestapelter Kaesten: Nase, fallende Haube,
+     Guertellinie, Heck und echte Radausschnitte, rundum gerundet. */
+  const y0=schwelle-0.08, lampY0=gurt-(gurt-schwelle)*0.30, nase=L/2, heck=-L/2;
+  const aF=0.60, aH=F.stufe?0.52:0.20;
   const wsZ=gh*Math.tan(aF), rwZ=gh*Math.tan(aH);
-  const zF=kabZ+kabL/2, zH=kabZ-kabL/2;       /* Fuss der Scheiben */
-  const dachL=Math.max(0.42,kabL-wsZ-rwZ);
-  const dachZ=zF-wsZ-dachL/2;
+  /* Kombi, SUV, Van, Kleinwagen: die Kabine reicht bis ans Heck */
+  let zF=kabZ+kabL/2, zH=kabZ-kabL/2;
+  if(!F.stufe){ zH=heck+0.10+rwZ*0.35; }
+  /* Die Rundungskante legt bv rundum auf das Profil - deshalb liegt
+     die Kontur um bv innen, sonst verschwinden Scheinwerfer in der Nase
+     und die Radlaeufe werden zu eng */
+  const bv=0.09, nI=nase-bv, hI=heck+bv, yb=y0+bv;
+  const unten=new THREE.Shape();
+  const bogen=(z)=>{ const r=rad+0.075+bv; unten.lineTo(z-r,yb); unten.absarc(z,rad+0.01,r,Math.PI,0,true); };
+  unten.moveTo(hI+0.12,yb);
+  bogen(hA); bogen(vA);
+  unten.lineTo(nI-0.12,yb);
+  unten.quadraticCurveTo(nI,yb,nI,yb+0.12);
+  unten.lineTo(nI,lampY0+0.04);
+  const nasenH=gurt-bv-(form==='van'?0.06:0.13);
+  unten.quadraticCurveTo(nI,nasenH-0.02,nI-0.16,nasenH);
+  unten.quadraticCurveTo(zF+0.35,gurt+0.02-bv,zF,gurt+0.02-bv);
+  unten.lineTo(zH,gurt+0.02-bv);
+  if(F.stufe){ unten.quadraticCurveTo(hI+0.3,gurt+0.02-bv,hI+0.06,gurt-0.03-bv); }
+  else unten.lineTo(hI+0.06,gurt+0.02-bv);
+  unten.quadraticCurveTo(hI,gurt-0.05-bv,hI,lampY0);
+  unten.lineTo(hI,yb+0.12);
+  unten.quadraticCurveTo(hI,yb,hI+0.12,yb);
+  /* im Grundriss runde Front und Heck, oberhalb der Schulter eingezogen */
+  const rundZ=(z,r)=>1-r*Math.pow(glatt01(L/2-0.55,L/2,Math.abs(z)),2);
+  const flanke=(y,z)=>rundZ(z,0.07)*(1-0.05*glatt01(gurt-0.22,gurt+0.02,y))*(1-0.03*glatt01(schwelle+0.1,y0,y));
+  P(lack,autoExtrude(unten,B,0.09,flanke),0,0,0,0,0,0,col);
+  /* Glaskanzel: schmaler als die Flanke (Tumblehome), Dach gewoelbt */
+  const kz=new THREE.Shape(), dy=dach-0.035;
+  kz.moveTo(zF,gurt);
+  kz.lineTo(zF-wsZ,dy-0.03);
+  kz.quadraticCurveTo((zF-wsZ+zH+rwZ)/2,dy+0.05,zH+rwZ,dy-0.03);
+  kz.lineTo(zH,gurt);
+  kz.lineTo(zF,gurt);
+  /* Kanzel neigt sich nach innen (Tumblehome) */
+  const kanzel=(y,z)=>1-0.14*glatt01(gurt,dach,y);
+  P(glasT,autoExtrude(kz,B-0.2,0.07,kanzel),0,0,0,0,0,0,glas);
+  /* Dachhaut: die obere Kante der Kanzel, etwas breiter, in Wagenfarbe */
+  { const d0=new THREE.Shape(), a0=zF-wsZ-0.05, a1=zH+rwZ+0.05, m=(a0+a1)/2;
+    d0.moveTo(a0+0.02,dy-0.05); d0.quadraticCurveTo(m,dy+0.03,a1-0.02,dy-0.05);
+    d0.lineTo(a1,dy); d0.quadraticCurveTo(m,dy+0.09,a0,dy); d0.lineTo(a0+0.02,dy-0.05);
+    P(lack,autoExtrude(d0,(B-0.2)*0.87+0.05,0.05),0,0,0,0,0,0,col); }
+  const dachL=Math.max(0.42,(zF-wsZ)-(zH+rwZ)), dachZ=(zF-wsZ+zH+rwZ)/2;
   const mY=(gurt+dach)/2;
-  /* Seitenfenster als durchgehendes Glasband */
-  { const gl0=zH+rwZ*0.30, gl1=zF-wsZ*0.72;
-    for(const s of [-1,1])
-      K(RB(0.035,gh*0.92,gl1-gl0,0.03), s*(B/2-0.085), gurt+gh*0.50, (gl0+gl1)/2, 0,0,0, glas); }
-  /* Frontscheibe: Fuss auf der Guertellinie, Kopf an der Dachkante */
-  K(RB(B-0.26,gh/Math.cos(aF),0.05,0.02), 0, mY, zF-wsZ/2, -aF,0,0, glas);
-  /* Heckscheibe */
-  K(RB(B-0.30,gh/Math.cos(aH),0.05,0.02), 0, mY, zH+rwZ/2,  aH,0,0, glas);
-  /* A- und C-Saeule liegen auf den Scheibenkanten */
+  /* A-, B- und C-Saeulen auf der Kanzel */
   for(const s of [-1,1]){
-    K(RB(0.075,gh/Math.cos(aF),0.075,0.03), s*(B/2-0.095), mY, zF-wsZ/2, -aF,0,0, col);
-    K(RB(0.075,gh/Math.cos(aH),0.075,0.03), s*(B/2-0.105), mY, zH+rwZ/2,  aH,0,0, col);
-    /* B-Saeule und Dachkante */
-    K(RB(0.055,gh*0.94,0.085,0.02), s*(B/2-0.08), gurt+gh*0.50, kabZ+kabL*0.02, 0,0,0, 0x1e222a);
-    K(RB(0.05,0.07,dachL,0.02), s*(B/2-0.10), dach-0.05, dachZ, 0,0,0, col);
-    K(RB(0.028,0.03,dachL,0.01), s*(B/2-0.115), dach-0.015, dachZ, 0,0,0, chrome);
-    /* Fensterbruestung in Chrom */
-    K(RB(0.03,0.035,kabL-rwZ*0.5-wsZ*0.8,0.012), s*(B/2-0.07), gurt+0.02,
-      kabZ+(rwZ*0.25-wsZ*0.4), 0,0,0, chrome);
+    const xs=(B/2-0.12)*0.93, neig=-s*0.14;
+    K(RB(0.07,gh/Math.cos(aF)+0.02,0.07,0.03), s*xs, mY, zF-wsZ/2, -aF,0,neig, col);
+    K(RB(0.07,gh/Math.cos(aH)+0.02,0.12,0.03), s*xs, mY, zH+rwZ/2,  aH,0,neig, col);
+    K(RB(0.05,gh*0.94,0.09,0.02), s*(xs+0.01), gurt+gh*0.49, kabZ+kabL*0.02, 0,0,neig, 0x15181e);
+    if(!F.stufe) K(RB(0.05,gh*0.9,0.09,0.02), s*(xs+0.01), gurt+gh*0.47, (zH+rwZ*0.5+kabZ-kabL*0.3)/2, 0,0,neig, 0x15181e);
+    /* Fensterbruestung und Dachreling in Chrom */
+    K(RB(0.03,0.028,(zF-wsZ*0.3)-(zH+rwZ*0.3),0.01), s*(B/2-0.095), gurt+0.03, (zF-wsZ*0.3+zH+rwZ*0.3)/2, 0,0,0, chrome);
+    if(form==='kombi'||form==='suv') K(RB(0.035,0.035,dachL*0.9,0.012), s*(B/2-0.2), dach+0.05, dachZ, 0,0,0, alu);
   }
-  /* Dachhaut in drei Laengsbahnen: die mittlere sitzt zwei Zentimeter
-     hoeher. Ein Autodach ist quer gewoelbt, nicht plan. */
-  K(RB(B-0.19,0.075,dachL+0.06,0.03), 0, dach-0.050, dachZ, 0,0,0, col);
-  K(RB(B-0.30,0.075,dachL+0.05,0.03), 0, dach-0.038, dachZ, 0,0,0, col);
-  K(RB(B-0.46,0.075,dachL+0.04,0.03), 0, dach-0.030, dachZ, 0,0,0, col);
-  K(RB(B-0.33,0.022,dachL-0.16,0.01), 0, dach+0.001, dachZ, 0,0,0, 0xe8ecf2);
+  const kh=gurt-schwelle;
+  /* Schweller matt */
+  G(RB(B-0.02,0.08,Math.abs(vA-hA)-2*rad-0.15,0.03), 0, y0+0.03, (vA+hA)/2, 0,0,0, 0x1b1e24);
 
   /* ---------- Raeder ----------
      Reifen mit Flanke, Felge innen dunkel und offen, davor Speichen
@@ -537,10 +590,8 @@ function makeAuto(col,form){
     const x=sx*RX;
     /* Radlauf: der Bogen selbst und eine schmale, leicht ausgestellte
        Kante davor - ohne die sitzt das Rad wie in einem Loch. */
-    K(new THREE.TorusGeometry(rad+0.055,0.07,HIQ?8:5,HIQ?18:10,Math.PI),
-      x-sx*0.035, rad+0.01, z, 0,Math.PI/2,0, col);
-    K(new THREE.TorusGeometry(rad+0.085,0.028,HIQ?6:4,HIQ?18:10,Math.PI),
-      x+sx*0.012, rad+0.01, z, 0,Math.PI/2,0, col);
+    /* dunkler Radkasten hinter dem Rad */
+    G(CY(rad+0.07,rad+0.07,0.05,HIQ?20:10), x-sx*0.2, rad+0.01, z, 0,0,Math.PI/2, 0x0c0d10);
     G(CY(rad,rad,0.205),                 x, rad, z, 0,0,Math.PI/2, 0x16181c);
     G(CY(rad*0.995,rad*0.995,0.215,HIQ?24:12), x, rad, z, 0,0,Math.PI/2, 0x1d2027);
     /* dunkle Felgenschuessel - das Loch, durch das man die Bremse sieht */
@@ -559,20 +610,19 @@ function makeAuto(col,form){
   /* Stossfaenger sind lackiert und schliessen buendig ab; dunkel
      bleibt nur die Schuerze darunter. Vorher standen vorn und hinten
      zwei schwarze Kloetze ueber die Karosserie hinaus. */
-  K(RB(B-0.01,0.26,0.18,0.08), 0, schwelle+0.17,  L/2-0.10, 0,0,0, col);
-  K(RB(B-0.01,0.26,0.18,0.08), 0, schwelle+0.17, -L/2+0.10, 0,0,0, col);
-  G(RB(B-0.14,0.13,0.14,0.05), 0, schwelle+0.02,  L/2-0.08, 0,0,0, 0x24282f);
-  G(RB(B-0.14,0.13,0.14,0.05), 0, schwelle+0.02, -L/2+0.08, 0,0,0, 0x24282f);
+  /* Stossfaenger sind Teil des Profils; darunter nur die dunkle Schuerze */
+  G(RB(B*0.82,0.11,0.12,0.05), 0, y0+0.05,  L/2-0.07, 0,0,0, 0x24282f);
+  G(RB(B*0.82,0.11,0.12,0.05), 0, y0+0.05, -L/2+0.07, 0,0,0, 0x24282f);
   G(RB(B-0.42,0.06,0.10,0.02), 0, schwelle-0.03,  L/2-0.06, 0,0,0, 0x6f757e);
   /* Kuehlergrill */
   K(RB(B*0.52,0.17,0.08,0.03), 0, lampY+0.02, L/2-0.02, 0,0,0, 0x101319);
   for(let k=0;k<3;k++) K(RB(B*0.50,0.018,0.05,0.008), 0, lampY-0.04+k*0.05, L/2+0.005, 0,0,0, chrome);
   for(const s of [-1,1]){
     /* Scheinwerfer: dunkles Gehaeuse, Glas, zwei Reflektoren */
-    K(RB(0.42,0.15,0.13,0.05), s*(B/2-0.29), lampY+0.02, L/2-0.06, 0,0,0, 0x191c22);
-    K(RB(0.39,0.12,0.06,0.03), s*(B/2-0.29), lampY+0.02, L/2-0.01, 0,0,0, 0xcfdae8);
+    K(RB(0.42,0.15,0.13,0.05), s*(B/2-0.33), lampY+0.02, L/2-0.07, 0,0,0, 0x191c22);
+    K(RB(0.39,0.12,0.06,0.03), s*(B/2-0.33), lampY+0.02, L/2-0.015, 0,0,0, 0xcfdae8);
     for(const dx of [-0.085,0.085])
-      K(CY(0.048,0.048,0.05,10), s*(B/2-0.29)+dx, lampY+0.02, L/2+0.01, Math.PI/2,0,0, 0xf6f4ea);
+      K(CY(0.048,0.048,0.05,10), s*(B/2-0.33)+dx, lampY+0.02, L/2+0.0, Math.PI/2,0,0, 0xf6f4ea);
     /* Rueckleuchten */
     K(RB(0.36,0.20,0.11,0.04), s*(B/2-0.27), lampY+0.06, -L/2+0.05, 0,0,0, 0x2a1214);
     K(RB(0.32,0.16,0.05,0.02), s*(B/2-0.27), lampY+0.06, -L/2+0.005,0,0,0, 0x9a2a24);
@@ -600,8 +650,10 @@ function makeAuto(col,form){
   const g=new THREE.Group();
   const m1=new THREE.Mesh(merge(lack),_lackM);
   const m2=new THREE.Mesh(merge(gummi),_gummiM);
-  if(HIQ){ m1.castShadow=true; m1.receiveShadow=true; m2.castShadow=true; }
-  g.add(m1); g.add(m2);
+  const m3=new THREE.Mesh(merge(glasT),_glasM);
+  const m4=new THREE.Mesh(merge(chromT),_chromM);
+  if(HIQ){ m1.castShadow=true; m1.receiveShadow=true; m2.castShadow=true; m3.castShadow=true; }
+  g.add(m1); g.add(m2); g.add(m3); g.add(m4);
   return g;
 }
 /* =========================================================
@@ -930,7 +982,8 @@ function buildStreet(){
   for(let i=0;i<(COARSE?8:16);i++){ const w=rand(7,12), h=rand(13,22);
     bbox(w,h,8,std(pick([0x5a5f6b,0x6b6258,0x4f5560,0x6a5f55]),{roughness:1}),-72+i*(COARSE?19:9.6),h/2,40,null,false); }
   // Autos am gegenüberliegenden Bordstein
-  const carCols=[0xb8bcc4,0x2a3442,0x8a2f28,0x2f5d9e,0x3c4a3a,0xd8d4cc,0x6a5f55];
+  /* echte Lackfarben: viel Silber, Weiss, Schwarz und Grau, dazu Blau, Rot, Gruen */
+  const carCols=[0xc9ccd2,0xeeeeec,0x17191d,0x5b6068,0x1f4a8a,0x9c1e1e,0x2c4a3c,0xa9a39a,0x7d8794];
   for(let i=0;i<(COARSE?4:7);i++){ const c=makeAuto(pick(carCols),pick(['kombi','limo','van','suv','klein','limo'])); c.position.set(-22+i*6.6+rand(-0.6,0.6),0,16.0+rand(-0.12,0.12)); c.rotation.y=Math.PI/2+rand(-0.035,0.035); scene.add(c); }
   buildNachbar();
   /* Die Poller vor dem Schaufenster stehen bei x = -5,4 und 5,4. Der

@@ -15,7 +15,7 @@ function applyTOD(){
   colA.needsUpdate=true; scene.fog.color.copy(_c2);
   sun.intensity=1.6*(1-f)+0.05; hemi.intensity=0.72*(1-f)+0.16;
   starsMat.opacity=clamp((f-0.6)/0.4,0,1);
-  houseMats.forEach(m=>m.emissiveIntensity=f*0.9); lampMats.forEach(m=>m.emissiveIntensity=f*3); yardLight.intensity=f*1.4;
+  houseMats.forEach(m=>m.emissiveIntensity=f*0.9); if(typeof autoNacht==='function') autoNacht(f); lampMats.forEach(m=>m.emissiveIntensity=f*3); yardLight.intensity=f*1.4;
 }
 /* Wanduhr laeuft nach der Spielzeit: clock sind Minuten seit Mitternacht */
 function updateUhr(){

@@ -4188,10 +4188,12 @@ function drawFassade(g,W,H,o,lit){
   }
   g.fillStyle='rgba(0,0,0,.18)'; g.fillRect(0,gy-6,W,6);
   if(o.shop){
-    g.fillStyle='#232834'; g.fillRect(W*0.04,gy,W*0.92,gfH);
-    /* Ladeneinrichtung schemenhaft hinter dem Glas */
-    for(let i=0;i<5;i++){ g.fillStyle=`rgba(90,100,118,${0.25+0.1*(i%2)})`;
-      g.fillRect(W*(0.14+i*0.15),gy+gfH*0.42,W*0.1,gfH*0.45); }
+    /* Schaufenster und Ladentuer sind ausgespart: dahinter steht ein
+       echter Laden in 3D (ladenInnen). Vorher war hier eine dunkle,
+       gemalte Flaeche hinter getoenter Scheibe (Tom, 26.09.). */
+    const hh=o.h, ww=o.w, U=x=>(x/ww+0.5)*W, Vy=y=>H*(1-y/hh), bw=ww*0.78, gf=hh*0.3;
+    g.clearRect(U(-bw/2),Vy(gf-0.06),U(bw/2)-U(-bw/2),Vy(0.7)-Vy(gf-0.06));
+    g.clearRect(U(ww*0.34-0.4),Vy(gf-0.2),U(ww*0.34+0.4)-U(ww*0.34-0.4),Vy(0.12)-Vy(gf-0.2));
   } else {
     /* Die Haustuer ist ein echtes Bauteil davor (hausTuer) - die
        gemalte Tuer sah von nahem aus wie ein Aufkleber. */
@@ -4202,13 +4204,99 @@ function drawFassade(g,W,H,o,lit){
   // Sockel
   g.fillStyle='rgba(60,56,50,.55)'; g.fillRect(0,H-16,W,16);
 }
+/* =========================================================
+   Laeden gegenueber mit echtem Innenraum (Tom, 26.09.: "es soll
+   wirklich so aussehen, als sind da Laeden drin, gerne 3D").
+   Hinter dem ausgesparten Schaufenster: Boden, Decke mit Leuchten,
+   Waende und je Ladenart eine eigene Einrichtung. Alles zu zwei
+   Meshes verschmolzen (Einrichtung und Leuchten), damit die Zeile
+   nicht zu vielen Zeichenaufrufen wird.
+   ========================================================= */
+let _innenM=null,_lichtM=null;
+function ladenInnen(g,typ,w,gfH,zf,farbe){
+  if(!_innenM){ _innenM=new THREE.MeshStandardMaterial({vertexColors:true,roughness:0.7,emissive:LIN(0x40362a),emissiveIntensity:0});
+    houseMats.push(_innenM);
+    _lichtM=new THREE.MeshBasicMaterial({color:0xfff6e2,toneMapped:false}); }
+  const T=[], L=[], D=2.6, x0=-w/2+0.2, x1=w/2-0.2, iw=x1-x0, z1=zf-0.08, z0=z1-D, yb=0.62, yt=gfH-0.02;
+  const B=(bw,bh,bd,x,y,z,c)=>T.push({geo:new THREE.BoxGeometry(bw,bh,bd),m:tm(x,y,z),color:c});
+  const C=(r1,r2,h,x,y,z,c,seg)=>T.push({geo:new THREE.CylinderGeometry(r1,r2,h,seg||10),m:tm(x,y,z),color:c});
+  const K=(r,x,y,z,c,sy)=>T.push({geo:new THREE.SphereGeometry(r,8,6),m:tm(x,y,z,0,0,0,1,sy||1,1),color:c});
+  const wand=parseInt(farbe.slice(1),16), hell=new THREE.Color(wand).lerp(new THREE.Color(0xffffff),0.72).getHex();
+  /* Raum */
+  B(iw,0.04,D,0,yb-0.02,(z0+z1)/2,0xd9d6cf);
+  B(iw,0.04,D,0,yt,(z0+z1)/2,0xf2f0ea);
+  B(iw,yt-yb,0.05,0,(yb+yt)/2,z0,hell);
+  for(const sx of [-1,1]) B(0.05,yt-yb,D,sx*iw/2,(yb+yt)/2,(z0+z1)/2,0xe6e2da);
+  /* Deckenleuchten */
+  for(let i=0;i<Math.max(2,Math.round(iw/2));i++) L.push({geo:new THREE.BoxGeometry(0.9,0.03,0.25),m:tm(x0+iw*(i+0.5)/Math.max(2,Math.round(iw/2)),yt-0.03,(z0+z1)/2)});
+  const regal=(x,bw,faecher,fill)=>{ const hR=yt-yb-0.35;
+    B(bw,hR,0.4,x,yb+hR/2,z0+0.22,0xf4f2ee);
+    for(let k=0;k<faecher;k++){ const y=yb+0.25+k*(hR-0.3)/Math.max(1,faecher-1);
+      B(bw-0.04,0.03,0.38,x,y,z0+0.25,0xdad6ce);
+      if(fill) for(let j=0;j<Math.floor(bw/0.16);j++) fill(x-bw/2+0.1+j*0.16,y+0.015,z0+0.3,j+k*7); } };
+  const R=[0xc8322a,0x2f5d9e,0xd9a52f,0x3f8a4a,0x8a3a7a,0xe8e4d8,0x2a2e36];
+  const theke=(x,bw,c)=>{ B(bw,0.95,0.6,x,yb+0.475,z0+1.35,c); B(bw+0.06,0.04,0.66,x,yb+0.97,z0+1.35,0x3a3f48); };
+  const t=typ.toUpperCase();
+  if(t.startsWith('BÄCK')){
+    regal(x0+iw*0.35,iw*0.6,4,(x,y,z,j)=>K(0.07,x,y+0.05,z,j%3?0xb07a3e:0xd9a45a,0.6));
+    theke(x0+iw*0.35,iw*0.6,0xe8e2d4);
+    for(let j=0;j<Math.floor(iw*0.55/0.2);j++) K(0.07,x0+iw*0.08+j*0.2,yb+1.02,z0+1.35,j%2?0xc98a45:0x9a5a2a,0.55);
+  } else if(t.startsWith('APOTH')){
+    regal(x0+iw*0.3,iw*0.5,5,(x,y,z,j)=>B(0.1,0.12,0.12,x,y+0.06,z,j%4?0xf2f2ee:0x3f8a4a));
+    regal(x0+iw*0.78,iw*0.35,5,(x,y,z,j)=>B(0.1,0.1,0.1,x,y+0.05,z,j%3?0xe8ecf2:0x2f5d9e));
+    theke(x0+iw*0.5,iw*0.5,0xf4f2ee);
+    L.push({geo:new THREE.BoxGeometry(0.1,0.34,0.02),m:tm(0,yt-0.35,z0+0.04)}); L.push({geo:new THREE.BoxGeometry(0.34,0.1,0.02),m:tm(0,yt-0.35,z0+0.04)});
+  } else if(t.startsWith('BLUM')){
+    for(let r=0;r<2;r++) for(let j=0;j<Math.floor(iw/0.5);j++){ const x=x0+0.3+j*0.5, z=z1-0.45-r*0.6;
+      C(0.16,0.12,0.36,x,yb+0.18,z,0x5a6068); for(let k=0;k<5;k++) K(0.07,x+rand(-0.1,0.1),yb+0.5+rand(0,0.2),z+rand(-0.1,0.1),R[(j+k+r)%5]); }
+    for(let j=0;j<3;j++){ C(0.2,0.16,0.4,x0+0.5+j*iw*0.35,yb+0.2,z0+0.4,0x7a5a3a); K(0.38,x0+0.5+j*iw*0.35,yb+0.8,z0+0.4,0x3f7a3a,1.3); }
+  } else if(t.startsWith('WASCH')){
+    for(let j=0;j<Math.floor(iw/0.72);j++){ const x=x0+0.4+j*0.72;
+      B(0.62,0.88,0.62,x,yb+0.44,z0+0.4,0xf2f2ee); C(0.2,0.2,0.04,x,yb+0.5,z0+0.72,0x2a3a4a,16);
+      T[T.length-1].m=tm(x,yb+0.5,z0+0.72,Math.PI/2,0,0); B(0.5,0.08,0.02,x,yb+0.8,z0+0.72,0xb8bec8); }
+    B(iw*0.5,0.45,0.4,0,yb+0.22,z1-0.6,0x3a4a6a);
+  } else if(t.startsWith('GETR')){
+    for(let j=0;j<Math.floor(iw/0.5);j++) for(let k=0;k<4;k++){ const c=R[(j*3+k)%5];
+      B(0.4,0.28,0.32,x0+0.3+j*0.5,yb+0.14+k*0.29,z0+0.35,c); B(0.36,0.02,0.28,x0+0.3+j*0.5,yb+0.29+k*0.29,z0+0.35,0x2a2e36); }
+    for(let j=0;j<Math.floor(iw/0.7);j++) for(let k=0;k<2;k++) B(0.4,0.28,0.32,x0+0.4+j*0.7,yb+0.14+k*0.29,z0+1.3,R[(j+k)%4]);
+  } else if(t.startsWith('PIZZ')){
+    theke(x0+iw*0.3,iw*0.45,0x7a3a2a);
+    B(0.9,0.9,0.7,x0+iw*0.75,yb+0.7,z0+0.4,0x3a3a3a); L.push({geo:new THREE.BoxGeometry(0.5,0.2,0.02),m:tm(x0+iw*0.75,yb+0.7,z0+0.76)});
+    for(let j=0;j<2;j++){ const x=x0+iw*(0.3+j*0.4), z=z1-0.7; C(0.35,0.35,0.04,x,yb+0.74,z,0xe8e2d4,14); C(0.04,0.04,0.72,x,yb+0.36,z,0x3a3f48);
+      for(const sx of [-1,1]){ B(0.36,0.04,0.36,x+sx*0.55,yb+0.45,z,0x6a4a2a); B(0.36,0.4,0.04,x+sx*0.55,yb+0.66,z+sx*0,0x6a4a2a); } }
+  } else if(t.startsWith('METZ')){
+    B(iw*0.8,0.85,0.7,0,yb+0.425,z0+1.4,0xf2f2ee);
+    for(let j=0;j<Math.floor(iw*0.75/0.22);j++) K(0.08,-iw*0.37+j*0.22,yb+0.9,z0+1.4,j%3?0xb8403a:0xd88a80,0.5);
+    regal(0,iw*0.7,3,(x,y,z,j)=>C(0.04,0.04,0.2,x,y+0.1,z,j%2?0x9a3a2a:0xc9a07a));
+  } else if(t.startsWith('FRIS')){
+    for(let j=0;j<Math.floor(iw/1.1);j++){ const x=x0+0.6+j*1.1;
+      B(0.5,0.12,0.5,x,yb+0.5,z0+0.7,0x1e2228); B(0.5,0.5,0.1,x,yb+0.8,z0+0.47,0x1e2228); C(0.05,0.05,0.4,x,yb+0.22,z0+0.7,0x9aa1ac);
+      B(0.7,0.9,0.03,x,yb+1.2,z0+0.05,0xcfe2f2); L.push({geo:new THREE.BoxGeometry(0.7,0.04,0.02),m:tm(x,yb+1.68,z0+0.07)}); }
+  } else if(t.startsWith('OPTIK')){
+    regal(x0+iw*0.5,iw*0.8,5,(x,y,z,j)=>B(0.12,0.03,0.05,x,y+0.03,z+0.1,j%3?0x2a2e36:0x8a5a3a));
+    theke(x0+iw*0.5,iw*0.35,0xf4f2ee); C(0.3,0.3,0.02,x1-0.3,yb+1.3,z0+0.06,0xcfe2f2,20); T[T.length-1].m=tm(x1-0.3,yb+1.3,z0+0.06,Math.PI/2,0,0);
+  } else if(t.startsWith('REISE')){
+    for(let j=0;j<Math.floor(iw/1.4);j++){ const x=x0+0.8+j*1.4;
+      B(1.1,0.05,0.6,x,yb+0.74,z0+1.0,0xe8e2d4); B(0.05,0.72,0.5,x-0.5,yb+0.36,z0+1.0,0x3a3f48); B(0.05,0.72,0.5,x+0.5,yb+0.36,z0+1.0,0x3a3f48);
+      B(0.45,0.3,0.03,x,yb+0.95,z0+0.85,0x1e2228); }
+    for(let j=0;j<Math.floor(iw/0.9);j++) B(0.7,0.5,0.02,x0+0.5+j*0.9,yb+1.35,z0+0.04,R[j%5]);
+  } else {
+    /* Kiosk und Schreibwaren: Zeitschriftenstaender und volle Regale */
+    regal(x0+iw*0.3,iw*0.5,5,(x,y,z,j)=>B(0.12,0.16,0.08,x,y+0.08,z,R[j%7]));
+    for(let k=0;k<4;k++) for(let j=0;j<Math.floor(iw*0.4/0.22);j++){ const pa={geo:new THREE.BoxGeometry(0.2,0.28,0.01),m:tm(x0+iw*0.62+j*0.22,yb+0.4+k*0.32,z0+0.35+k*0.06,-0.3,0,0),color:R[(j+k)%7]}; T.push(pa); }
+    theke(x0+iw*0.7,iw*0.4,0x3a4a6a);
+  }
+  const mm=new THREE.Mesh(merge(T),_innenM); g.add(mm);
+  if(L.length) g.add(new THREE.Mesh(merge(L.map(l=>Object.assign(l,{color:0xffffff}))),_lichtM));
+}
 function buildHaus(x,z,w,d,h,o){
   const g=new THREE.Group(); g.position.set(x,0,z);
   /* Die texturierte Front liegt auf +z. Die Zeile steht aber jenseits der
      Strasse, also muss sie sich zum Laden drehen. */
   g.rotation.y=Math.PI; scene.add(g);
   const q=COARSE?0.5:1, px=Math.round(clamp(w*46,192,512)*q), py=Math.round(clamp(h*46,256,640)*q);
-  const m=new THREE.MeshStandardMaterial({color:LIN(0xffffff),roughness:0.94,
+  o.w=w; o.h=h;
+  const m=new THREE.MeshStandardMaterial({color:LIN(0xffffff),roughness:0.94,alphaTest:o.shop?0.5:0,
     map:tex(px,py,(c,W,H)=>drawFassade(c,W,H,o,false)),
     emissive:LIN(0xffffff),emissiveMap:tex(px,py,(c,W,H)=>drawFassade(c,W,H,o,true)),emissiveIntensity:0});
   houseMats.push(m);
@@ -4257,7 +4345,8 @@ function buildHaus(x,z,w,d,h,o){
   /* Erdgeschoss als echte Schaufensterfront */
   if(o.shop){
     const gfH=h*0.3, rahmen=std(0x2f3540,{metalness:0.3,roughness:0.5});
-    const scheibe=new THREE.MeshStandardMaterial({color:LIN(0x2a3646),roughness:0.12,metalness:0.25,transparent:true,opacity:0.72});
+    const scheibe=new THREE.MeshStandardMaterial({color:LIN(0xcfe2f2),roughness:0.05,metalness:0.3,transparent:true,opacity:0.18,depthWrite:false});
+    ladenInnen(g,o.shopName||'LADEN',w,gfH,zf,o.shopSign||'#2b3a5e');
     const bw=w*0.78;
     bbox(bw+0.16,0.22,0.22,rahmen,0,gfH+0.05,zf+0.1,g,false);          // Sturz
     bbox(bw+0.16,0.16,0.22,rahmen,0,0.62,zf+0.1,g,false);              // Brueste
@@ -4265,8 +4354,14 @@ function buildHaus(x,z,w,d,h,o){
     for(let i=0;i<=np;i++) bbox(0.1,gfH-0.5,0.2,rahmen,-bw/2+i*(bw/np),0.68+(gfH-0.5)/2,zf+0.1,g,false);
     const sc=bbox(bw,gfH-0.56,0.05,scheibe,0,0.7+(gfH-0.56)/2,zf+0.06,g,false);
     /* Eingangstuer seitlich */
-    bbox(0.95,gfH-0.1,0.12,rahmen,w*0.34,(gfH-0.1)/2,zf+0.12,g,false);
-    bbox(0.72,gfH-0.34,0.06,scheibe,w*0.34,(gfH-0.34)/2+0.1,zf+0.16,g,false);
+    /* Glastuer: Rahmen aus Profilen statt eines massiven Blocks - man
+       sieht durch die Tuer in den Laden */
+    { const tx=w*0.34, th2=gfH-0.1;
+      for(const sx of [-1,1]) bbox(0.08,th2,0.1,rahmen,tx+sx*0.435,th2/2,zf+0.12,g,false);
+      bbox(0.95,0.08,0.1,rahmen,tx,th2-0.04,zf+0.12,g,false);
+      bbox(0.95,0.14,0.1,rahmen,tx,0.07,zf+0.12,g,false);
+      bbox(0.8,th2-0.22,0.02,scheibe,tx,(th2-0.22)/2+0.14,zf+0.12,g,false);
+      bbox(0.03,0.5,0.05,std(0xb8bec8,{metalness:0.8,roughness:0.3}),tx-0.3,1.1,zf+0.18,g,false); }
     /* Leuchtkasten mit Ladenname */
     if(o.shop){
       const sm=new THREE.MeshStandardMaterial({color:LIN(0xf2efe6),roughness:0.7,

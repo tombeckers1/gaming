@@ -24,79 +24,167 @@ function stadtFrei(x,z,r){
 }
 
 /* --------------------------------------------------------
-   Fassadentexturen fuer die Ferne: einmal am Tag, einmal die
-   Fensterlichter fuer die Nacht. Die Fenster sitzen in einem
-   Raster, ein Teil davon brennt.
+   Fassaden der Stadt (Tom, 25.09.: "zu wenig Pixel, die Haeuser
+   sollen richtig schoen werden - vor allem, wenn man am Testfeld
+   das Feuerwerk beobachtet").
+   Frueher bekam jedes Haus EINE Textur (128 bis 512 Pixel) ueber die
+   ganze Flaeche gezogen: ein Stockwerk eines Turms hatte zwanzig Pixel.
+   Jetzt gibt es je Baustil ein hochaufgeloestes, kachelbares Modul aus
+   8 Fensterachsen mal 8 Geschossen (128 Pixel je Achse und Geschoss).
+   Jedes Haus wiederholt das Modul genau so oft, wie es Achsen und
+   Geschosse hat - die Fenster sind an jedem Haus gleich scharf, und ein
+   zufaelliger Versatz sorgt dafuer, dass die Nachtlichter nicht an
+   jedem Haus gleich stehen.
    -------------------------------------------------------- */
-function fernFassade(cols,rows,px,py,nacht,stil){
-  return tex(px,py,(g,W,H)=>{
-    const dunkel=stil==='glas';
-    if(nacht){ g.fillStyle='#000000'; g.fillRect(0,0,W,H); }
-    else {
-      const gr=g.createLinearGradient(0,0,0,H);
-      if(dunkel){ gr.addColorStop(0,'#5d6a7c'); gr.addColorStop(1,'#3e4a5a'); }
-      else { gr.addColorStop(0,'#b6b0a4'); gr.addColorStop(1,'#8e887c'); }
-      g.fillStyle=gr; g.fillRect(0,0,W,H);
-      /* Betonstruktur und Verschmutzung */
-      for(let i=0;i<220;i++){ g.fillStyle=`rgba(0,0,0,${Math.random()*0.05})`;
-        g.fillRect(Math.random()*W,Math.random()*H,rand(2,9),rand(2,9)); }
-      for(let i=0;i<14;i++){ const x=Math.random()*W;
-        const s=g.createLinearGradient(x,0,x,H); s.addColorStop(0,'rgba(40,40,46,.16)'); s.addColorStop(1,'rgba(40,40,46,0)');
-        g.fillStyle=s; g.fillRect(x,rand(0,H*0.5),rand(4,16),H); }
-    }
-    const cw=W/cols, ch=H/rows;
-    const fw=cw*(dunkel?0.82:0.56), fh=ch*(dunkel?0.7:0.6);
-    for(let r=0;r<rows;r++) for(let c=0;c<cols;c++){
-      const x=c*cw+(cw-fw)/2, y=r*ch+(ch-fh)/2;
-      /* Erdgeschoss ist breiter verglast */
-      const eg=r===rows-1;
-      const ww=eg?cw*0.86:fw, wx=eg?c*cw+(cw-cw*0.86)/2:x;
-      const an=((r*7+c*13+((r*c)%5))%10)<(nacht?5:10);
-      if(nacht){
+const FMOD=8;
+const FASSADE={
+  putz:   {achse:3.4,geschoss:3.0},
+  klinker:{achse:3.2,geschoss:3.0},
+  band:   {achse:3.0,geschoss:3.6},
+  glas:   {achse:2.6,geschoss:3.4}
+};
+function fZufall(seed){ let x=seed*9301+49297; return ()=>{ x=(x*233280+49297)%2147483647; return (x%100000)/100000; }; }
+function fassadeZeichnen(g,W,H,stil,nacht){
+  const R=fZufall({putz:11,klinker:23,band:37,glas:53}[stil]), cw=W/FMOD, ch=H/FMOD;
+  const rr=(a,b)=>a+R()*(b-a);
+  if(nacht){
+    g.fillStyle='#000'; g.fillRect(0,0,W,H);
+    const WARM=['#ffd79a','#ffc478','#f7e6c4','#ffb96b','#ffe3b0'], KALT=['#dfe8ff','#cfe0ff','#eef3ff'];
+    for(let r=0;r<FMOD;r++){
+      /* Bueros: ganze Etagen brennen oder sind aus */
+      const etageAn=R()<0.55;
+      for(let c=0;c<FMOD;c++){
+        let x,y,w,h;
+        if(stil==='glas'){ x=c*cw+cw*0.06; y=r*ch+ch*0.2; w=cw*0.88; h=ch*0.72; }
+        else if(stil==='band'){ x=c*cw+cw*0.04; y=r*ch+ch*0.38; w=cw*0.92; h=ch*0.46; }
+        else { x=c*cw+cw*0.27; y=r*ch+ch*0.2; w=cw*0.46; h=ch*0.58; }
+        const an=(stil==='glas'||stil==='band')?(etageAn?R()<0.62:R()<0.06):R()<0.42;
         if(!an) continue;
-        const warm=['#ffd79a','#ffc478','#f4e3c0','#ffb96b','#cfe0ff','#e8d7ff'][(r*3+c*5)%6];
-        g.fillStyle=warm; g.globalAlpha=rand(0.55,1);
-        g.fillRect(wx,y,ww,fh);
-        /* etwas Streulicht um das Fenster */
-        g.globalAlpha=0.16; g.fillRect(wx-ww*0.12,y-fh*0.12,ww*1.24,fh*1.24);
+        const buero=stil==='glas'||stil==='band';
+        const tv=!buero&&R()<0.12;
+        const f=tv?'#8fb4ff':buero?KALT[Math.floor(R()*3)]:WARM[Math.floor(R()*5)];
+        const hell=buero?rr(0.3,0.62):rr(0.55,1);
+        const gr=g.createLinearGradient(0,y,0,y+h);
+        gr.addColorStop(0,f); gr.addColorStop(1,f);
+        g.globalAlpha=hell; g.fillStyle=f; g.fillRect(x,y,w,h);
+        /* Vorhang oder Jalousie: ein Teil des Fensters ist dunkler */
+        if(!buero&&R()<0.45){ g.globalAlpha=0.55; g.fillStyle='#000'; const k=rr(0.2,0.5); g.fillRect(x,y,w*k,h); }
+        if(buero){ g.globalAlpha=0.35; g.fillStyle='#000'; for(let k=1;k<4;k++) g.fillRect(x,y+h*k/4,w,Math.max(1,h*0.03)); }
+        /* Streulicht */
+        g.globalAlpha=0.12; g.fillStyle=f; g.fillRect(x-w*0.1,y-h*0.1,w*1.2,h*1.2);
         g.globalAlpha=1;
-      } else {
-        g.fillStyle=dunkel?'#2b3442':'#3a4250';
-        g.fillRect(wx,y,ww,fh);
-        /* Glasreflex */
-        g.fillStyle='rgba(180,205,230,.20)';
-        g.fillRect(wx,y,ww,fh*0.32);
-        /* Fensterbank */
-        if(!dunkel){ g.fillStyle='rgba(235,232,222,.55)'; g.fillRect(wx-1,y+fh,ww+2,Math.max(1,ch*0.05)); }
+        /* Sprossen bleiben dunkel */
+        g.fillStyle='rgba(0,0,0,.8)';
+        if(stil==='putz'||stil==='klinker'){ g.fillRect(x+w/2-2,y,4,h); g.fillRect(x,y+h*0.38,w,3); }
       }
     }
-    if(!nacht){
-      /* Gesimse zwischen den Geschossen */
-      g.fillStyle='rgba(0,0,0,.10)';
-      for(let r=1;r<rows;r++) g.fillRect(0,r*ch-1,W,2);
-      /* Dachkante */
-      g.fillStyle='rgba(0,0,0,.22)'; g.fillRect(0,0,W,Math.max(2,H*0.012));
+    return;
+  }
+  const rauschen=(n,a)=>{ for(let i=0;i<n;i++){ g.fillStyle=`rgba(0,0,0,${R()*a})`; g.fillRect(R()*W,R()*H,rr(1,4),rr(1,4)); } };
+  if(stil==='glas'){
+    /* Vorhangfassade: Scheiben mit Himmelsspiegelung, Pfosten und
+       Bruestungsbaender an jeder Geschossdecke */
+    for(let r=0;r<FMOD;r++) for(let c=0;c<FMOD;c++){
+      const x=c*cw, y=r*ch, t=rr(-0.06,0.06);
+      const gr=g.createLinearGradient(x,y,x+cw*0.6,y+ch);
+      gr.addColorStop(0,`rgb(${Math.round(150+t*300)},${Math.round(172+t*300)},${Math.round(196+t*300)})`);
+      gr.addColorStop(0.55,'rgb(70,88,112)'); gr.addColorStop(1,'rgb(44,58,78)');
+      g.fillStyle=gr; g.fillRect(x,y,cw,ch);
     }
-  },false);
+    g.fillStyle='rgba(255,255,255,.05)';
+    for(let i=0;i<6;i++){ g.beginPath(); const x0=R()*W; g.moveTo(x0,0); g.lineTo(x0+W*0.08,0); g.lineTo(x0-W*0.1,H); g.lineTo(x0-W*0.18,H); g.fill(); }
+    for(let r=0;r<FMOD;r++){ g.fillStyle='#39414c'; g.fillRect(0,r*ch,W,ch*0.14); g.fillStyle='#b8c2ce'; g.fillRect(0,r*ch+ch*0.14,W,2); }
+    for(let c=0;c<=FMOD;c++){ g.fillStyle='#aeb8c4'; g.fillRect(c*cw-2,0,4,H); g.fillStyle='rgba(0,0,0,.25)'; g.fillRect(c*cw+2,0,2,H); }
+    return;
+  }
+  if(stil==='band'){
+    /* Bandfassade: durchlaufende Fensterbaender, dazwischen Beton */
+    g.fillStyle='#e4e1da'; g.fillRect(0,0,W,H); rauschen(900,0.05);
+    for(let r=0;r<FMOD;r++){ const y=r*ch+ch*0.36, h=ch*0.5;
+      const gr=g.createLinearGradient(0,y,0,y+h); gr.addColorStop(0,'#5f7288'); gr.addColorStop(0.4,'#34414f'); gr.addColorStop(1,'#26303b');
+      g.fillStyle=gr; g.fillRect(0,y,W,h);
+      g.fillStyle='rgba(200,215,230,.18)'; g.fillRect(0,y,W,h*0.22);
+      for(let k=0;k<=FMOD*2;k++){ g.fillStyle='#c9ccd0'; g.fillRect(k*cw/2-2,y,4,h); }
+      g.fillStyle='rgba(0,0,0,.18)'; g.fillRect(0,y+h,W,3);
+      g.fillStyle='rgba(255,255,255,.35)'; g.fillRect(0,y-3,W,2); }
+    return;
+  }
+  if(stil==='klinker'){
+    /* Klinker: Steine im Verband, weisse Fenster mit Sturz */
+    g.fillStyle='#b9b0a4'; g.fillRect(0,0,W,H);
+    const sh=Math.max(4,Math.round(ch/14)), sw=sh*2.6;
+    for(let y=0;y<H;y+=sh){ const off=(y/sh)%2?sw/2:0;
+      for(let x=-sw;x<W;x+=sw){ const t=rr(-18,18); g.fillStyle=`rgb(${Math.round(168+t)},${Math.round(84+t*0.6)},${Math.round(62+t*0.5)})`; g.fillRect(x+off+1,y+1,sw-2,sh-2); } }
+  } else {
+    /* Putz: helle Wand mit Struktur und Regenspuren */
+    g.fillStyle='#ebe6dc'; g.fillRect(0,0,W,H); rauschen(1400,0.05);
+  }
+  for(let r=0;r<FMOD;r++) for(let c=0;c<FMOD;c++){
+    const x=c*cw+cw*0.27, y=r*ch+ch*0.2, w=cw*0.46, h=ch*0.58;
+    /* Regenspur unter der Fensterbank */
+    if(stil==='putz'){ const s=g.createLinearGradient(0,y+h,0,y+h+ch*0.5); s.addColorStop(0,'rgba(60,60,64,.14)'); s.addColorStop(1,'rgba(60,60,64,0)'); g.fillStyle=s; g.fillRect(x+w*0.1,y+h,w*0.8,ch*0.45); }
+    /* Sturz, Rahmen, Glas mit Spiegelung, Sprossen, Fensterbank */
+    g.fillStyle=stil==='klinker'?'#8e4a34':'#d9d3c7'; g.fillRect(x-4,y-7,w+8,6);
+    g.fillStyle='#f3f1ec'; g.fillRect(x-3,y-3,w+6,h+6);
+    const gr=g.createLinearGradient(x,y,x+w,y+h); gr.addColorStop(0,'#7d93ab'); gr.addColorStop(0.45,'#3a4656'); gr.addColorStop(1,'#232b36');
+    g.fillStyle=gr; g.fillRect(x,y,w,h);
+    if(R()<0.35){ g.fillStyle='rgba(235,230,215,.55)'; g.fillRect(x,y,w,h*rr(0.2,0.6)); }
+    g.fillStyle='#f3f1ec'; g.fillRect(x+w/2-2,y,4,h); g.fillRect(x,y+h*0.38,w,3);
+    g.fillStyle='#cfc9bd'; g.fillRect(x-6,y+h+2,w+12,5); g.fillStyle='rgba(0,0,0,.22)'; g.fillRect(x-6,y+h+7,w+12,2);
+  }
+  /* Geschossdecken */
+  for(let r=0;r<FMOD;r++){ g.fillStyle='rgba(0,0,0,.07)'; g.fillRect(0,r*ch,W,3); }
 }
-/* Ein Materialsatz je Rasterdichte, damit wenige Zeichenaufrufe reichen */
-const STADT_MATS=[];
-function fernMaterial(cols,rows,stil,fern){
-  const key=cols+'x'+rows+stil+(fern?'f':'n');
-  let m=STADT_MATS[key];
-  if(m) return m;
-  const q=COARSE?0.55:1;
-  const px=Math.round(clamp(cols*22,128,512)*q), py=Math.round(clamp(rows*20,128,512)*q);
-  m=new THREE.MeshStandardMaterial({
-    vertexColors:true, roughness:fern?1:0.9, metalness:stil==='glas'?0.18:0,
-    map:fernFassade(cols,rows,px,py,false,stil),
-    emissive:LIN(0xffffff),
-    emissiveMap:fernFassade(cols,rows,px,py,true,stil),
-    emissiveIntensity:0
+const STADT_MATS={}, FASSADE_TEX={};
+function fassadenMaterial(stil,fern){
+  const key=stil+(fern?'f':'n');
+  if(STADT_MATS[key]) return STADT_MATS[key];
+  const px=COARSE?512:1024;
+  /* Nah und fern teilen sich die Texturen - spart die Haelfte Grafikspeicher */
+  const mk=nacht=>{ const k=stil+(nacht?'N':'T'); if(FASSADE_TEX[k]) return FASSADE_TEX[k];
+    const t=tex(px,px,(g,W,H)=>fassadeZeichnen(g,W,H,stil,nacht),false);
+    t.wrapS=t.wrapT=THREE.RepeatWrapping; t.anisotropy=8; return FASSADE_TEX[k]=t; };
+  const m=new THREE.MeshStandardMaterial({
+    vertexColors:true, roughness:fern?1:(stil==='glas'?0.35:0.9), metalness:stil==='glas'?0.25:0,
+    map:mk(false), emissive:LIN(0xffffff), emissiveMap:mk(true), emissiveIntensity:0
   });
   houseMats.push(m);
   STADT_MATS[key]=m;
   return m;
+}
+/* Box mit Fassade im richtigen Massstab: je Seite so viele Achsen und
+   Geschosse, wie hineinpassen, das Dach bekommt Wandfarbe. */
+function fassadenBox(w,h,d,stil){
+  const S=FASSADE[stil], geo=new THREE.BoxGeometry(w,h,d), uv=geo.attributes.uv;
+  const rows=Math.max(3,Math.round(h/S.geschoss)), oV=Math.floor(Math.random()*FMOD)/FMOD;
+  const breite=[d,d,w,w,w,w];
+  for(let f=0;f<6;f++){
+    const oben=f===2||f===3, cols=Math.max(2,Math.round(breite[f]/S.achse)), oU=Math.floor(Math.random()*FMOD)/FMOD;
+    for(let k=0;k<4;k++){ const i=f*4+k;
+      if(oben){ uv.setXY(i,0.004,0.996); continue; }
+      uv.setXY(i,oU+uv.getX(i)*cols/FMOD,oV+uv.getY(i)*rows/FMOD); } }
+  uv.needsUpdate=true;
+  return geo;
+}
+/* Flugwarnlichter auf den hohen Tuermen - bei Nacht und Feuerwerk
+   geben sie der Skyline Tiefe */
+const WARNLICHT=[];
+/* fuer den Test: abgesetzte Dachgeschosse und Stile in der Skyline */
+const SKYLINE_INFO={stufen:0,stile:new Set()};
+/* Kronenlicht: ein leuchtendes Band unter der Dachkante der Tuerme */
+const KRONEN=[];
+function hex0(opt,r){ const t=clamp((r-40)/300,0,1); return new THREE.Color(opt.farben[0]).lerp(new THREE.Color(0xb9cbdd),t*0.62).getHex(); }
+function baueKronen(){
+  if(!KRONEN.length) return;
+  const teile=[];
+  for(const k of KRONEN){ const t=0.5;
+    teile.push({geo:new THREE.BoxGeometry(k.w+0.16,t,0.1),m:tm(k.cx,k.y,k.cz+k.d/2+0.05)});
+    teile.push({geo:new THREE.BoxGeometry(k.w+0.16,t,0.1),m:tm(k.cx,k.y,k.cz-k.d/2-0.05)});
+    teile.push({geo:new THREE.BoxGeometry(0.1,t,k.d+0.16),m:tm(k.cx+k.w/2+0.05,k.y,k.cz)});
+    teile.push({geo:new THREE.BoxGeometry(0.1,t,k.d+0.16),m:tm(k.cx-k.w/2-0.05,k.y,k.cz)}); }
+  const m=new THREE.MeshStandardMaterial({color:LIN(0x9aa4b0),roughness:0.6,emissive:LIN(0xcfe0ff),emissiveIntensity:0});
+  houseMats.push(m);
+  stadtAdd(new THREE.Mesh(merge(teile),m));
 }
 
 /* --------------------------------------------------------
@@ -122,14 +210,22 @@ function stadtRing(opt){
     const zentral=1-clamp((r-opt.r0)/(opt.r1-opt.r0),0,1);
     let h=rand(opt.hoehe[0],opt.hoehe[1])*(0.72+zentral*0.55);
     if(Math.random()<(opt.turmChance||0)) h*=rand(1.5,2.3);
-    const stil=Math.random()<(opt.glas||0)?'glas':'putz';
-    const cols=Math.max(2,Math.round(w/(stil==='glas'?2.6:3.4)));
-    const rows=Math.max(3,Math.round(h/(stil==='glas'?3.4:3.0)));
-    /* Rasterdichten auf wenige Stufen runden */
-    const cg=[2,3,4,6,8,10][Math.min(5,Math.max(0,Math.round(Math.log2(cols))))]||4;
-    const rg=[4,6,9,14,20,28][Math.min(5,Math.max(0,Math.round(Math.log2(rows/1.4))))]||9;
-    const key=cg+'|'+rg+'|'+stil;
-    (eimer[key]||(eimer[key]=[])).push({cx,cz,w,d,h,stil});
+    const z=Math.random(), gl=opt.glas||0;
+    const stil=z<gl?'glas':z<gl+(1-gl)*0.3?'band':z<gl+(1-gl)*0.5?'klinker':'putz';
+    const key=stil;
+    (eimer[key]||(eimer[key]=[])).push({cx,cz,w,d,h,stil,y0:0});
+    SKYLINE_INFO.stile.add(stil);
+    let spitze=h;
+    /* Tuerme bekommen ein abgesetztes Dachgeschoss und eine beleuchtete
+       Krone - glatte Kloetze sahen aus wie Bauklotz-Stadt */
+    if(h>40&&Math.random()<0.75){
+      const w2=w*rand(0.55,0.75), d2=d*rand(0.55,0.75), h2=Math.max(6,h*rand(0.08,0.16));
+      eimer[key].push({cx,cz,w:w2,d:d2,h:h2,stil,y0:h});
+      kanten.push({geo:new THREE.BoxGeometry(w2+0.6,0.8,d2+0.6),m:tm(cx,h+h2+0.2,cz),color:hex0(opt,r)});
+      KRONEN.push({cx,cz,w:w2,d:d2,y:h+h2-0.6}); SKYLINE_INFO.stufen++;
+      spitze=h+h2;
+    } else if(h>40) KRONEN.push({cx,cz,w,d,y:h-0.6});
+    if(h>44){ deko.push({geo:new THREE.CylinderGeometry(0.12,0.25,rand(5,9),6),m:tm(cx,spitze+3,cz),color:0x5a606a}); WARNLICHT.push([cx,spitze+7.6,cz]); }
     /* atmosphaerische Perspektive: je ferner, desto heller und blauer */
     const t=clamp((r-40)/300,0,1);
     const basis=opt.farben[Math.floor(Math.random()*opt.farben.length)];
@@ -147,16 +243,17 @@ function stadtRing(opt){
       else deko.push({geo:new THREE.CylinderGeometry(0.08,0.12,rand(4,8),5),m:tm(cx+rand(-w*0.3,w*0.3),h+rand(2,4),cz),color:0x4a505a});
     }
     /* die Box selbst bekommt ihre Farbe ueber die Vertexfarbe */
-    eimer[key][eimer[key].length-1].hex=hex;
+    eimer[key].forEach(b=>{ if(b.hex===undefined&&Math.abs(b.cx-cx)<0.01&&Math.abs(b.cz-cz)<0.01) b.hex=hex; });
   }
   /* pro Rasterdichte ein Mesh */
   let boxen=0;
   for(const key in eimer){
-    const [cg,rg,stil]=key.split('|');
-    const parts=eimer[key].map(b=>{ boxen++;
-      return {geo:new THREE.BoxGeometry(b.w,b.h,b.d),m:tm(b.cx,b.h/2,b.cz),color:b.hex}; });
+    const stil=key;
+    let hexZuletzt=0xffffff;
+    const parts=eimer[key].map(b=>{ boxen++; if(b.hex!==undefined) hexZuletzt=b.hex;
+      return {geo:fassadenBox(b.w,b.h,b.d,stil),m:tm(b.cx,b.y0+b.h/2,b.cz),color:b.hex!==undefined?b.hex:hexZuletzt}; });
     if(!parts.length) continue;
-    const mesh=new THREE.Mesh(merge(parts),fernMaterial(+cg,+rg,stil,opt.r0>150));
+    const mesh=new THREE.Mesh(merge(parts),fassadenMaterial(stil,opt.r0>150));
     mesh.frustumCulled=true; stadtAdd(mesh);
   }
   if(kanten.length) stadtAdd(new THREE.Mesh(merge(kanten),new THREE.MeshStandardMaterial({vertexColors:true,roughness:1})));
@@ -176,15 +273,12 @@ function stadtZeile(x0,x1,z,tiefe,hoehe,farben,frontZ){
     const w=rand(7,13), h=rand(hoehe[0],hoehe[1]), d=tiefe*rand(0.85,1.15);
     const cx=x+w/2, cz=z+(frontZ>0?d/2:-d/2);
     if(stadtFrei(cx,cz,Math.max(w,d)/2)){
-      const stil=Math.random()<0.18?'glas':'putz';
-      const cols=Math.max(2,Math.round(w/3.2)), rows=Math.max(3,Math.round(h/3.0));
-      const cg=[2,3,4,6,8,10][Math.min(5,Math.max(0,Math.round(Math.log2(cols))))]||4;
-      const rg=[4,6,9,14,20,28][Math.min(5,Math.max(0,Math.round(Math.log2(rows/1.4))))]||9;
+      const z=Math.random(), stil=z<0.14?'glas':z<0.3?'band':z<0.55?'klinker':'putz';
       const t=clamp((Math.hypot(cx,cz)-40)/300,0,1);
       const c=new THREE.Color(farben[Math.floor(Math.random()*farben.length)]).lerp(new THREE.Color(0xb9cbdd),t*0.5);
       const hex=c.getHex();
-      const key=cg+'|'+rg+'|'+stil;
-      (eimer[key]||(eimer[key]=[])).push({geo:new THREE.BoxGeometry(w,h,d),m:tm(cx,h/2,cz),color:hex});
+      const key=stil;
+      (eimer[key]||(eimer[key]=[])).push({geo:fassadenBox(w,h,d,stil),m:tm(cx,h/2,cz),color:hex});
       kanten.push({geo:new THREE.BoxGeometry(w+0.6,0.7,d+0.6),m:tm(cx,h+0.2,cz),color:hex});
       /* Schornstein und Antenne, damit die Dachlinie nicht kahl ist */
       if(Math.random()<0.7) deko.push({geo:new THREE.BoxGeometry(0.6,rand(0.8,1.6),0.6),m:tm(cx+rand(-w*0.3,w*0.3),h+1,cz+rand(-d*0.2,d*0.2)),color:0x7a4a3c});
@@ -192,10 +286,7 @@ function stadtZeile(x0,x1,z,tiefe,hoehe,farben,frontZ){
     }
     x+=w+rand(0.3,1.1);
   }
-  for(const key in eimer){
-    const [cg,rg,stil]=key.split('|');
-    stadtAdd(new THREE.Mesh(merge(eimer[key]),fernMaterial(+cg,+rg,stil,false)));
-  }
+  for(const key in eimer) stadtAdd(new THREE.Mesh(merge(eimer[key]),fassadenMaterial(key,false)));
   if(kanten.length) stadtAdd(new THREE.Mesh(merge(kanten),new THREE.MeshStandardMaterial({vertexColors:true,roughness:1})));
   if(deko.length) stadtAdd(new THREE.Mesh(merge(deko),new THREE.MeshStandardMaterial({vertexColors:true,roughness:0.95})));
 }
@@ -221,8 +312,10 @@ function buildFernsehturm(x,z){
   schaft.position.y=H*0.36; schaft.material.side=THREE.DoubleSide; g.add(schaft);
   /* Kanzel mit Fensterband */
   const kanzel=new THREE.Mesh(new THREE.CylinderGeometry(9.5,9.5,9,20),
-    fernMaterial(20,2,'glas',true));
+    fassadenMaterial('glas',true));
   kanzel.position.y=H*0.72; g.add(kanzel);
+  /* Fensterband im Massstab: 24 Achsen rundum, drei Geschosse */
+  { const uv=kanzel.geometry.attributes.uv; for(let i=0;i<uv.count;i++) uv.setXY(i,uv.getX(i)*24/FMOD,uv.getY(i)*3/FMOD); uv.needsUpdate=true; }
   /* die Kanzel braucht Vertexfarben, weil das Material sie erwartet */
   { const gm=kanzel.geometry, n=gm.attributes.position.count, col=new Float32Array(n*3);
     const c=LIN(0xcdd8e4); for(let i=0;i<n;i++){ col[i*3]=c.r; col[i*3+1]=c.g; col[i*3+2]=c.b; }
@@ -556,6 +649,9 @@ function buildStadt(){
     breite:[14,30], hoehe:[34,86], dach:false, glas:0.55, turmChance:0.22,
     farben:[0x9fb0c2,0x93a4b6,0xa7b4c0,0x8fa2b4,0xb0bcc8]
   });
+  baueKronen();
+  /* Flugwarnlichter: die hoechsten Tuerme, hoechstens zwei Dutzend */
+  WARNLICHT.sort((a,b)=>b[1]-a[1]).slice(0,COARSE?10:24).forEach(([x,y,z])=>baueBeacon(x,y,z,false));
   /* Wahrzeichen */
   buildFernsehturm(-118,206);
   buildKran(96,148,44,0.7);

@@ -1,6 +1,6 @@
 /* Handy (Tom, 24.09.: "der Laptop ist mit ganz vielen Kategorien
    ueberlaufen - der Spieler soll ein Handy haben, per Taste"):
-   - Laptop nur noch mit den Schreibtisch-Sachen (8 Reiter)
+   - Laptop nur noch mit den Schreibtisch-Sachen (7 Reiter)
    - Tab holt das Handy heraus, nicht mehr den Laptop
    - sechs Apps; Team einstellen geht vom Handy aus
    - Zurueck fuehrt zum Startbildschirm, Tab steckt es weg
@@ -32,7 +32,8 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   /* Laptop: nur noch Schreibtisch-Reiter */
   const tabs=await p.evaluate(()=>[...document.querySelectorAll('#ltabs button')].map(b=>b.dataset.tab));
   console.log('LAPTOP  ',JSON.stringify(tabs));
-  pruef('LAPTOP',tabs.length===8&&!tabs.some(t=>['online','staff','markt','bank','stats','erf'].indexOf(t)>=0),'Reiter: '+tabs);
+  /* seit 25.09. steht die Einrichtung unter Bestellen: 7 Reiter */
+  pruef('LAPTOP',tabs.length===7&&tabs.indexOf('einr')<0&&!tabs.some(t=>['online','staff','markt','bank','stats','erf'].indexOf(t)>=0),'Reiter: '+tabs);
 
   /* Tab: Handy statt Laptop */
   await p.evaluate(()=>{ window.__bb.S.level=12; window.__bb.S.money=5000; });

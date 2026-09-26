@@ -36,6 +36,8 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     const NEU=['knatter','zfaecher','kometen','finale','pfeifraketen','titanraketen','kugel200','goldgeysir','feuersaeule','donnerwand','kugel300','jumbogold','jumboleiter','monsterboeller','atomboeller','fontaene30','fontaene50'];
     o.neu={};
     for(let i=0;i<4;i++) bb.regalStellen('hoch');
+    /* die Riesenverbunde brauchen seit 25.09. das Grossverbund-Regal */
+    bb.regalStellen('gross');
     NEU.forEach(t=>{ const q=P[t];
       o.neu[t]=q?{liz:bb.lizenzOf(t),st:bb.stationOf(t),regal:bb.shelfCapOf(t),markt:bb.marketOf(t)>q.cost,
         marge:+(q.market/q.cost).toFixed(2),gruppe:bb.gruppeVon(t)}:null; });

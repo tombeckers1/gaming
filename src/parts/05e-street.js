@@ -39,7 +39,7 @@ function zaunLauf(x0,z0,x1,z1,h){
   const n=Math.max(2,Math.round(len/2.5));
   for(let i=0;i<=n;i++){
     const t2=i/n, x=x0+dx*t2, z=z0+dz*t2;
-    const p2=bbox(0.07,h+0.06,0.07,post,x,(h+0.06)/2,z,null,false); p2.rotation.y=ry;
+    const p2=bbox(0.07,h+0.06,0.07,post,x,(h+0.06)/2,z,null,false); p2.rotation.y=ry; p2.userData.zaunPfosten=true;
     bbox(0.1,0.025,0.1,kappe,x,h+0.09,z,null,false);
     for(const y of [0.42,h-0.3]){
       const sch=bbox(0.1,0.05,0.05,kappe,x,y,z,null,false); sch.rotation.y=ry;
@@ -74,7 +74,10 @@ function warnSchild(x,z,ry){
 function buildZaun(){
   const H=2.0, T=LAY.test;
   zaunLauf(T.x0,T.z0,T.x1,T.z0,H);            /* Sueden        */
-  zaunLauf(T.x1,T.z0,T.x1,LAY.sued.z0,H);     /* Osten, unten  */
+  /* endet an der Aussenseite der Suedhallenwand - bei LAY.sued.z0
+     stand der letzte Pfosten genau in der Innenecke der Verkaufsflaeche
+     und ragte dort als dunkler Strich in den Laden (Tom, 26.09.) */
+  zaunLauf(T.x1,T.z0,T.x1,LAY.sued.z0-0.2,H);     /* Osten, unten  */
   col(T.x0,T.x1,T.z0-0.1,T.z0+0.1);
   col(T.x1-0.1,T.x1+0.1,T.z0,LAY.sued.z0);
   /* Warnschilder laengs der Zaunlaeufe */
@@ -877,16 +880,13 @@ function nachbarFassade(x0,x1,zid,unterzeile,eingang){
     if(i===eingang){ eingangsAchse(go,a,b,zf,ST,glas,prof); return; }
     const y0=BR, y1=ST;
     const bw=b-a, bh=y1-y0, bxc=(a+b)/2, byc=(y0+y1)/2;
-    bbox(bw-0.12,bh-0.12,0.04,glas,bxc,byc,zf-0.1,go,false);
-    /* umlaufendes Profil aussen und innen */
-    for(const zz of [zf-0.01,zf-0.19]){
-      bbox(bw,0.1,0.06,prof,bxc,y1-0.05,zz,go,false);
-      bbox(bw,0.1,0.06,prof,bxc,y0+0.05,zz,go,false);
-      bbox(0.1,bh,0.06,prof,a+0.05,byc,zz,go,false);
-      bbox(0.1,bh,0.06,prof,b-0.05,byc,zz,go,false);
-    }
-    /* Mittelsprosse */
-    bbox(0.07,bh-0.1,0.05,prof,bxc,byc,zf-0.1,go,false);
+    /* Wie das Schaufenster im Basisladen (Tom, 26.09.): Glas buendig in
+       der Laibung, nur eine schmale Leiste oben und unten und eine
+       Mittelsprosse - kein umlaufender schwarzer Rahmen innen und aussen */
+    bbox(bw,bh,0.03,glas,bxc,byc,zf-0.1,go,false);
+    bbox(bw,0.06,0.12,prof,bxc,y0+0.03,zf-0.1,go,false);
+    bbox(bw,0.06,0.12,prof,bxc,y1-0.03,zf-0.1,go,false);
+    bbox(0.06,bh,0.1,prof,bxc,byc,zf-0.1,go,false);
     /* Fensterbank nur aussen. Sie ragte 13 cm in den Laden hinein und
        warf dort einen dunklen Schatten unter die ganze Fensterfront -
        im Basisladen sitzt unter dem Fenster direkt die Sockelfarbe. */

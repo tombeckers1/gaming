@@ -120,9 +120,11 @@ function buildFacade(){
   /* Sockel unter den Schaufenstern: dunkles Anthrazit wie bei der
      Ladenzeile nebenan und im Sockel der Fassadentextur. Vorher
      hellgraues Klinkermuster - das passte zu nichts daneben. */
+  /* gleich hoch und gleich tief wie an den Erweiterungen (Tom, 26.09.:
+     der 87-cm-Block war zu hoch und wirkte billig) */
   const plinthM=std(0x3b4049,{roughness:0.9});
-  bbox(6.85,0.875,0.16,plinthM,-4.72,0.4375,zf+0.05,null,false);
-  bbox(6.85,0.875,0.16,plinthM, 4.72,0.4375,zf+0.05,null,false);
+  bbox(6.85,0.62,0.26,plinthM,-4.72,0.31,zf+0.06,null,false);
+  bbox(6.85,0.62,0.26,plinthM, 4.72,0.31,zf+0.06,null,false);
   for(const x of [-5.4,5.4]){
     bbox(0.16,0.85,0.16,std(0x2f3542,{metalness:0.5,roughness:0.5}),x,0.42,7.5,null,false);
     bbox(0.2,0.06,0.2,std(0xd9c07a,{metalness:0.7}),x,0.87,7.5,null,false);

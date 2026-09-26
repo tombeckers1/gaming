@@ -17,13 +17,10 @@ function eingangsAchse(go,a,b,zf,ST,glas,prof){
   for(const [fa,fb] of [[a,cx-1.34],[cx+1.34,b]]){
     const bw=fb-fa; if(bw<0.12) continue;
     const bxc=(fa+fb)/2;
-    bbox(bw-0.1,ST-0.12,0.04,glas,bxc,ST/2,zf-0.1,go,false);
-    for(const zz of [zf-0.01,zf-0.19]){
-      bbox(bw,0.1,0.06,prof,bxc,ST-0.05,zz,go,false);
-      bbox(bw,0.1,0.06,prof,bxc,0.05,zz,go,false);
-      bbox(0.1,ST,0.06,prof,fa+0.05,ST/2,zz,go,false);
-      bbox(0.1,ST,0.06,prof,fb-0.05,ST/2,zz,go,false);
-    }
+    /* wie die Schaufenster: nur schmale Leisten oben und unten */
+    bbox(bw,ST,0.03,glas,bxc,ST/2,zf-0.1,go,false);
+    bbox(bw,0.06,0.12,prof,bxc,ST-0.03,zf-0.1,go,false);
+    bbox(bw,0.06,0.12,prof,bxc,0.03,zf-0.1,go,false);
   }
   /* Sturzfeld ueber der Tuer bis zum Schaufenstersturz */
   bbox(2.72,ST-TUER.y-0.3,0.06,prof,cx,(ST+TUER.y+0.3)/2,zf-0.1,go,false);
@@ -33,14 +30,10 @@ function eingangsAchse(go,a,b,zf,ST,glas,prof){
      aussehen und nicht wie eine Baustelle. Dass hier eine Tuer
      hinkommen kann, steht im Laptop. --- */
   const zu=new THREE.Group(); go.add(zu); zWand('eingang2',zu);
-  bbox(2.6,ST-0.1,0.04,glas,cx,ST/2,zf-0.1,zu,false);
-  for(const zz of [zf-0.01,zf-0.19]){
-    bbox(2.72,0.1,0.06,prof,cx,ST-0.05,zz,zu,false);
-    bbox(2.72,0.1,0.06,prof,cx,0.05,zz,zu,false);
-    bbox(0.1,ST,0.06,prof,cx-1.34,ST/2,zz,zu,false);
-    bbox(0.1,ST,0.06,prof,cx+1.34,ST/2,zz,zu,false);
-  }
-  bbox(0.09,ST-0.1,0.05,prof,cx,ST/2,zf-0.1,zu,false);
+  bbox(2.68,ST,0.03,glas,cx,ST/2,zf-0.1,zu,false);
+  bbox(2.72,0.06,0.12,prof,cx,ST-0.03,zf-0.1,zu,false);
+  bbox(2.72,0.06,0.12,prof,cx,0.03,zf-0.1,zu,false);
+  bbox(0.06,ST,0.1,prof,cx,ST/2,zf-0.1,zu,false);
 
   /* --- Zustand „gekauft“: Tuer, Vordach, Matte --- */
   const auf=new THREE.Group(); go.add(auf); zAdd('eingang2',auf);

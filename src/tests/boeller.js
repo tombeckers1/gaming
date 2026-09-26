@@ -13,7 +13,7 @@ async function neuesSpiel(p){
 const { chromium } = require('/opt/node22/lib/node_modules/playwright');
 (async()=>{
   const b=await chromium.launch({args:['--use-gl=swiftshader','--enable-unsafe-swiftshader','--no-sandbox','--autoplay-policy=no-user-gesture-required']});
-  const p=await b.newPage({viewport:{width:1100,height:700}});
+  const p=await b.newPage({viewport:{width:1100,height:700}}); p.setDefaultTimeout(120000);  /* Spielstand laden dauert im Software-Renderer >30 s */
   const errs=[]; p.on('pageerror',e=>errs.push('PAGEERROR: '+e.message));
   await p.goto('file://'+process.argv[2]);
   await p.waitForFunction('window.__bb!==undefined',{timeout:30000});

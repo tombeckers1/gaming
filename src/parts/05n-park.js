@@ -88,7 +88,7 @@ function buildPark(){
   }
   /* --- Baeume: kahle Laubbaeume und verschneite Tannen --- */
   const laub=[[-14,-34],[-9,-49],[1,-33],[4,-51],[27,-33],[31,-50],[37,-38],[-3,-44],[22,-52]];
-  laub.forEach(([x,z],i)=>{ if(typeof makeBaum!=='function') return; const b=makeBaum(); b.position.set(x,0,z); b.scale.setScalar(1.1+parkRauschen(i)*0.5); b.rotation.y=parkRauschen(i+7)*6; b.userData.baum=true; b.userData.park=true; scene.add(b); });
+  laub.forEach(([x,z],i)=>{ if(typeof makeBaum!=='function') return; const b=makeBaum(); b.position.set(x,0,z); b.scale.setScalar(0.95+parkRauschen(i)*0.3); b.rotation.y=parkRauschen(i+7)*6; b.userData.baum=true; b.userData.park=true; scene.add(b); });
   const T=[];
   /* Tanne: sechs leicht versetzte, schraege Etagen statt vier sauberer
      Kegel, Schnee nur als duenne Haube auf der Oberseite */

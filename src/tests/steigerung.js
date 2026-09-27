@@ -78,7 +78,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
       out.blick={dot:+Math.abs((n[0]*d[0]+n[1]*d[1]+n[2]*d[2])/l).toFixed(3),auf:+v[1].toFixed(3)}; }
     out.lvl={}; Object.keys(out).forEach(t=>{ if(bb.P[t]) out.lvl[t]=bb.P[t].lvl; });
     /* Auftakt: beginnt die Show mit einer Fontaene, bevor geschossen wird? */
-    out.auftakt={}; for(const t of ['sortiment','batterie100','kometen','donnerwand','profi']){ const ph=bb.SHOWS[t]()[0]; out.auftakt[t]=!!(ph.ground&&!ph.n); }
+    out.auftakt={}; for(const t of ['sortiment','batterie100','kometen','donnerwand','profi']){ const ph=bb.SHOWS[t]()[0]; out.auftakt[t]=!!((ph.ground||ph.boden)&&!ph.n); }  // 27.09.: Drehbuch v2 schreibt die Bodenphase als boden:{...} (Familienfest: Vulkan + Lauffeuer)
     /* Weltuntergang nur mit Schuessen (Tom, 25.09.) */
     out.finaleBoden=bb.SHOWS.finale().filter(ph=>ph.ground).length;
     return out; });

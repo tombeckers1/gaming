@@ -50,10 +50,10 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
       const dauer=bb.SHOWS[t]?bb.showLength(t)+3:(bb.brennDauer?Math.min(45,bb.brennDauer(t)+3):15);
       for(let s=0;s<dauer;s+=0.25){ bb.run(0.25,0.125); for(const e of bb.emittersListe()){ if(!gesehen.has(e)){ gesehen.add(e); emi.push([+(bb.fwUhr-t0).toFixed(1),e.k]); } } }
       bb.fwLog(null);
-      const sh=log.filter(x=>x.art==='schuss'||x.art==='kugel').map(x=>({t:+(x.t-t0).toFixed(2),eff:x.eff,ang:x.ang||0,steig:x.steig||null,stufen:x.stufenEff||[],x:x.x}));
+      const sh=log.filter(x=>x.art==='schuss'||x.art==='kugel'||x.art==='perle')  /* 27.09.: Leuchtkugeln der Roemischen Lichter (perleSchuss) sind auch Schuesse - sonst 'zeigt nichts' */.map(x=>({t:+(x.t-t0).toFixed(2),eff:x.eff,ang:x.ang||0,steig:x.steig||null,stufen:x.stufenEff||[],x:x.x}));
       const out={prod:{k:klasse(t),lvl:P[t].lvl,name:P[t].name,sh,emi:emi.filter(e=>e[1]!=='fuse'),sig:bb.SIGNATUR&&bb.SIGNATUR[t]?JSON.stringify(bb.SIGNATUR[t]):null}};
       if(bb.SHOWS[t]){ const ph=bb.SHOWS[t]();
-        out.show={lvl:P[t].lvl,basis:ph.basis||null,ph:ph.map(x=>({n:x.n===undefined?1:x.n,m:x.muster||(x.fan?(x.ang<0?'rfan':'fan'):x.vfan?'vfan':(x.perle?'perle':'gerade')),mit:!!x.mit||x.at!==undefined,boden:!!(x.boden||x.ground),gap:x.takt?Math.min(...x.takt):(x.gap===undefined?0.45:x.gap),eff:Array.isArray(x.eff)?x.eff:[x.eff||x.bombEff||x.perleEff||(x.perle?'perle':'?')]}))}; }
+        out.show={lvl:P[t].lvl,basis:ph.basis||null,ph:ph.map(x=>({n:x.n===undefined?1:x.n,m:x.muster||(x.fan?(x.ang<0?'rfan':'fan'):x.vfan?'vfan':(x.perle?'perle':'gerade')),mit:!!x.mit||x.at!==undefined,boden:!!(x.boden||x.ground),gap:x.takt?Math.min(...x.takt):(x.gap===undefined?0.45:x.gap),takt:x.takt||null,eff:Array.isArray(x.eff)?x.eff:[x.eff||x.bombEff||x.perleEff||(x.perle?'perle':'?')]}))}; }
       return out; },t);
     if(x.fehler){ r.fehler[t]=x.fehler; continue; }
     r.prod[t]=x.prod; if(x.show) r.shows[t]=x.show;
@@ -96,7 +96,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     if(ph.length){ const a=ph[0].eff[0]+'/'+ph[0].m; (anf[a]=anf[a]||[]).push(t); const l=ph[ph.length-1]; const e=(l.gap<0.15?'salve:':'')+l.eff.join('+'); (ende[e]=ende[e]||[]).push(t); }
     if(s.lvl>=12&&ph.length>2) pruef('REGELN',s.ph.some(x=>x.mit||x.boden),t+' (L'+s.lvl+'): keine zweite Ebene');
     if(s.lvl>=16&&ph.length>2) pruef('REGELN',s.ph.some(x=>x.boden)||PR[t]&&PR[t].emi.length>0,t+' (L'+s.lvl+'): kein Boden/Fontaene in der Show');
-    const kl=new Set(ph.map(x=>x.gap<0.15?0:x.gap<0.4?1:x.gap<0.9?2:3)); if(ph.length>2) pruef('REGELN',kl.size>=(s.lvl>=14?3:2),t+': nur '+kl.size+' Tempoklassen');
+    const kl=new Set([].concat(...ph.map(x=>x.takt||[x.gap])).map(g=>g<0.15?0:g<0.4?1:g<0.9?2:3));  // engine-zusatz G3: takt-Werte einzeln zaehlen (27.09.) if(ph.length>2) pruef('REGELN',kl.size>=(s.lvl>=14?3:2),t+': nur '+kl.size+' Tempoklassen');
   });
   pruef('SCHWENK',!alle||fanPh/alle<0.15,'Schwenk-Anteil '+(100*fanPh/Math.max(1,alle)).toFixed(0)+' %');
   Object.entries(anf).filter(([a,l])=>l.length>3).forEach(([a,l])=>pruef('REGELN',false,'gleicher Anfang '+a+': '+l.join(',')));

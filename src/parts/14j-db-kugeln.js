@@ -141,7 +141,7 @@ EFF.haengeweide=function(p,A,B,s,r){
   const koepfe=[];
   for(let i=0;i<n;i++){ const d0=randDir(), d=[d0[0],d0[1]<0?d0[1]*0.55:d0[1],d0[2]], w=rand(5,6.5)*s;
     const L=bisBoden(d[1]*w,rand(9.5,10.5)), v=kgMal(d,w);
-    koepfe.push({h:kgStern(psBig,p,v,[A[0]*0.75,A[1]*0.7,A[2]*0.6],L,g,0,2.8,L*1.18),L});
+    koepfe.push({h:kgStern(psBig,p,v,[A[0]*0.8,A[1]*0.72,A[2]*0.6],L,g,0,2.8),L});   // maxl = life: sonst rechnet die Spur ab dem ersten Bild 2,8 s zurueck
     /* zwei Begleiter dicht dahinter machen den Ast dicker */
     SCHWEIF=2.6;
     for(const f of [0.95,0.9]){ const e=streu(d,0.02), ww=w*f;
@@ -172,10 +172,12 @@ EFF.galaxie=function(p,A,B,s,r){
   const [u,v]=quer(nn), R=6.2*s, TW=1.25*Math.PI*2, R0=R/Math.exp(0.3*TW), om=0.12*Math.PI*2, alt=SCHWEIF;
   /* Kern */
   SCHWEIF=0.05;
-  for(let i=0;i<Math.round(40*q);i++){ const d=randDir(), w=rand(0.6,2)*s;
-    psBig.emit(p.x,p.y,p.z,d[0]*w,d[1]*w,d[2]*w,0.5+C[0]*0.5,0.5+C[1]*0.5,0.5+C[2]*0.5,rand(3.3,3.7),0.1,0); }
+  /* heller, dichter Kern: in der Scheibe flachgedrueckt, dazu drei Leuchtsterne */
+  for(let i=0;i<Math.round(60*q);i++){ const d=randDir(), w=rand(0.3,1.3)*s, k=d[0]*nn[0]+d[1]*nn[1]+d[2]*nn[2], e=[d[0]-nn[0]*k*0.7,d[1]-nn[1]*k*0.7,d[2]-nn[2]*k*0.7];
+    psBig.emit(p.x,p.y,p.z,e[0]*w,e[1]*w,e[2]*w,(0.5+C[0]*0.5)*1.8,(0.5+C[1]*0.5)*1.8,(0.5+C[2]*0.5)*1.8,rand(3.3,3.7),0.1,0); }
+  for(let i=0;i<3;i++) psHuge.emit(p.x,p.y,p.z,rand(-.2,.2),rand(-.2,.2),rand(-.2,.2),0.9,0.85,0.7,3.6,0.05,0);
   SCHWEIF=alt;
-  leuchthof(p,C,s*0.7,1.2);
+  leuchthof(p,C,s*0.4,1.0);
   const punkt=(rr,th,col,ps,hz,dunkel,td)=>{ const ph=rand(0,6.28);
     fuehre(ps,p.x,p.y,p.z,0,0,0,col,td+0.5,(st,dt)=>{ const t=st.alter;
       let rad, ang;
@@ -185,13 +187,13 @@ EFF.galaxie=function(p,A,B,s,r){
       const np=[p.x+u[0]*x+v[0]*y,p.y+u[1]*x+v[1]*y,p.z+u[2]*x+v[2]*y];
       st.v=dt>0?[(np[0]-st.p[0])/dt,(np[1]-st.p[1])/dt,(np[2]-st.p[2])/dt]:[0,0,0]; st.p=np;
       st.hell=dunkel*(0.4+0.6*(0.5+0.5*Math.sin(t*hz*6.283+ph)))*(t>td?Math.max(0,1-(t-td)/0.5):1); },{spur:0.12}); };
-  const a0=rand(0,Math.PI*2), m=Math.round(120*q);
+  const a0=rand(0,Math.PI*2), m=Math.round(140*q);
   for(let arm=0;arm<2;arm++) for(let i=0;i<m;i++){
     const f=i/m, phi=f*TW, rr=R0*Math.exp(0.3*phi)*rand(0.94,1.06), th=a0+arm*Math.PI+phi+rand(-0.09,0.09);
-    punkt(rr,th,f>0.8?B:A,psBig,rand(12,20),0.9,2.6+(1-rr/R)*1.0); }
+    punkt(rr,th,f>0.8?B:A,psBig,rand(12,20),1.5-0.4*f,2.6+(1-rr/R)*1.0); }
   /* Sternenstaub zwischen den Armen: der Nebel der Scheibe */
-  for(let i=0;i<Math.round(90*q);i++){ const f=Math.sqrt(Math.random()), rr=R*f*0.95, th=a0+rand(0,Math.PI*2);
-    punkt(rr,th,A,psMid,rand(6,12),0.55,2.5+(1-f)*1.0); }
+  for(let i=0;i<Math.round(90*q);i++){ const f=Math.pow(Math.random(),0.8), rr=R*f*0.9, th=a0+rand(0,Math.PI*2);
+    punkt(rr,th,A,psMid,rand(6,12),0.8*(1.2-f),2.5+(1-f)*1.0); }
   schall(p,v=>sfx.rieseln(v*0.8,2));
 };
 
@@ -202,15 +204,18 @@ EFF.kreuzkranz=function(p,A,B,s,r){
   const [u,v]=basisBlick(p,0.5), a0=rand(0,Math.PI*2), g=1.5, alt=SCHWEIF, S=FW.silber, TE=0.78+0.9;
   for(let k=0;k<16;k++){
     const a=a0+k/16*Math.PI*2, ca=Math.cos(a), sa=Math.sin(a), d=[u[0]*ca+v[0]*sa,u[1]*ca+v[1]*sa,u[2]*ca+v[2]*sa], tg=[-u[0]*sa+v[0]*ca,-u[1]*sa+v[1]*ca,-u[2]*sa+v[2]*ca];
-    const w=11*s, vel=kgMal(d,w), ts=0.75+rand(-0.03,0.03);
-    SCHWEIF=0; psHuge.emit(p.x,p.y,p.z,vel[0],vel[1],vel[2],A[0],A[1],A[2],ts,g,0);
-    SCHWEIF=0.35; psBig.emit(p.x,p.y,p.z,vel[0],vel[1],vel[2],S[0]*0.7,S[1]*0.7,S[2]*0.7,ts,g,0);
-    SCHWEIF=alt;
+    /* Tempo 8 statt 11 m/s*s: mit 11 lag der Kranz vom Zuendpult aus am Bildrand */
+    const w=8*s, vel=kgMal(d,w), ts=0.75+rand(-0.03,0.03);
+    SCHWEIF=0; psHuge.emit(p.x,p.y,p.z,vel[0],vel[1],vel[2],A[0]*1.3,A[1]*1.3,A[2]*1.3,ts,g,0);
+    for(let i=0;i<3;i++){ const e=streu(d,0.012), ww=w*rand(0.97,1); psBig.emit(p.x,p.y,p.z,e[0]*ww,e[1]*ww,e[2]*ww,A[0]*1.6,A[1]*1.6,A[2]*1.6,ts,g,0); }
+    SCHWEIF=0.4; psBig.emit(p.x,p.y,p.z,vel[0],vel[1],vel[2],S[0]*0.9,S[1]*0.9,S[2]*0.9,ts,g,4);
+    SCHWEIF=alt; funkenSchweif(p,vel,g,ts,2,S);
     kgSpaeter(ts,()=>{ const o=bahnOrt(p,vel,g,ts), w2=bahnTempo(vel,g,ts), a2=SCHWEIF;
       SCHWEIF=0; psBig.emit(o.x,o.y,o.z,w2[0],w2[1],w2[2],2,2,2,0.034,g,0);
-      SCHWEIF=0.2;
-      for(const [e,f] of [[tg,1],[tg,-1],[d,1],[d,-1]]){ const x=6*f;
-        psBig.emit(o.x,o.y,o.z,w2[0]+e[0]*x,w2[1]+e[1]*x,w2[2]+e[2]*x,B[0],B[1],B[2],TE-ts,g,0); }
+      SCHWEIF=0.08;
+      for(const [e,f] of [[tg,1],[tg,-1],[d,1],[d,-1]]){ const x=7*f;
+        psBig.emit(o.x,o.y,o.z,w2[0]+e[0]*x,w2[1]+e[1]*x,w2[2]+e[2]*x,B[0]*1.6,B[1]*1.6,B[2]*1.6,TE-ts,g,0);
+        psBig.emit(o.x,o.y,o.z,w2[0]+e[0]*x*0.6,w2[1]+e[1]*x*0.6,w2[2]+e[2]*x*0.6,B[0],B[1],B[2],TE-ts,g,0); }
       SCHWEIF=a2; });
   }
   kgSpaeter(0.75,()=>{ flash(p,[1,1,1],2.5+s,0.3);

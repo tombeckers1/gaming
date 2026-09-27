@@ -211,7 +211,7 @@ const LIZENZEN=[
    desc:'Getränke und Spiel für den Abend: alkoholfreier Secco und das Partyfass kommen in den Kühlschrank, dazu Glühwein und das Partyspiel »Countdown«.',
    items:['partyspiel','secco','partyfass','gluehwein']},
   {id:'himmel',lvl:11,cost:2600,name:'Bunte Nacht',
-   desc:'Raketensortimente, pfeifende Heulraketen, Goldraketen, ab Level 14 der Goldgeysir mit zehn Metern Fontäne, Vulkane und der Sternenbrunnen, eine Goldfontäne mit Farbsternen. Dazu Wachsgießen und Feuerzangenbowle.',
+   desc:'Die Hasenjagd, Korkenzieher-Pfeifraketen, Goldbrokat-Raketen, ab Level 14 der Goldgeysir mit zehn Metern Fontäne, Vulkane und der Sternenbrunnen, eine Goldfontäne mit Farbsternen. Dazu Wachsgießen und Feuerzangenbowle.',
    items:['raketen','pfeifraketen','raketengold','vulkan','goldgeysir','wasserfall','sternenbrunnen','bleigiessen','bowle']},
   {id:'genuss',lvl:12,cost:3400,name:'Fondue & Raclette',
    desc:'Fondue-Set und Raclette-Grill für acht Personen, dazu fertige Platten für vier: Fleisch mit Soßen fürs Fondue, Käse und Beilagen fürs Raclette. Die Platten sind frisch und gehören in den Kühlschrank.',
@@ -226,10 +226,10 @@ const LIZENZEN=[
    desc:'Die Furzrakete »Donnerbalken«. Verkauft sich von allein, weil jeder sie einmal gesehen haben will.',
    items:['furzrakete']},
   {id:'grossfeuer',lvl:20,cost:21000,name:'Großkaliber',
-   desc:'Die Titan-Raketen mit ihrem riesigen Silberbruch, die Jumbo-Rakete »Goldene Krone«, die 200-mm-Kugelbombe Götterzorn mit zehn Brüchen auf einmal, das Trommelfeuer mit zwanzig Salven aus sechs Rohren, die 15-m-Feuersäule und ab Level 23 der Himmelsstürmer, eine 30-m-Monsterfontäne in fünf Farben.',
+   desc:'Die Titan-Ratterraketen mit ihrem riesigen Silberschlag, die Jumbo-Rakete »Juwelenpalme«, die 200-mm-Kugelbombe Götterzorn mit zehn Brüchen auf einmal, das Trommelfeuer mit zwanzig Salven aus sechs Rohren, die 15-m-Feuersäule und ab Level 23 der Himmelsstürmer, eine 30-m-Monsterfontäne in fünf Farben.',
    items:['titanraketen','jumbogold','kugel200','donnerwand','feuersaeule','fontaene30']},
   {id:'profi',lvl:22,cost:26000,name:'Profiklasse',
-   desc:'Der Götterfunken-Verbund: zweihundert Schuss, und der halbe Ort steht auf der Straße. Dazu die Jumbo-Rakete »Polarstern«: eine riesige Kugel mit einem achtzackigen Stern darin. Ab Level 23 die 300-mm-Kugel Himmelsbrecher, ab Level 24 der Weltuntergang mit dreihundert Schuss und ab Level 26 der Regenbogen-Titan: 50 m Fontäne im vollen Regenbogen.',
+   desc:'Der Götterfunken-Verbund: zweihundert Schuss, und der halbe Ort steht auf der Straße. Dazu die Jumbo-Rakete »Polarstern«: eine Leiter aus Lichtperlen, oben kreisen die Sterne um den Polarstern. Ab Level 23 die 300-mm-Kugel Himmelsbrecher, ab Level 24 der Weltuntergang mit dreihundert Schuss und ab Level 26 der Regenbogen-Titan: 50 m Fontäne im vollen Regenbogen.',
    items:['profi','finale','kugel300','jumboleiter','fontaene50']}
 ];
 const LIZ_VON={};

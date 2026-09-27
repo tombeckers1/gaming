@@ -90,24 +90,7 @@ Object.keys(NEU_SHOWS).forEach(t=>{ const s=NEU_SHOWS[t];
   if(!SHOW_BASIS[t]) SHOW_BASIS[t]=neuBasis(P[t]?P[t].lvl:s.lvl,s.th);
   if(!SHOWS[t]) SHOWS[t]=()=>showAus(s); });
 
-/* Raketen: eine Rakete je Zuendung, groesser und hoeher mit dem Level */
-Object.assign(RAKETEN_KL,{
-  glueckrakete  :{n:1,gap:0,sz:0.85,pw:-6,th:'wald',  fuse:1.2, eff:['kreisel']},
-  glitzerraketen:{n:1,gap:0,sz:0.92,pw:-4,th:'gold',  fuse:1.2, eff:['farbregen']},
-  silberpfeil   :{n:1,gap:0,sz:1.0, pw:-3,th:'blitz', fuse:1.2, eff:['ringring']},
-  kometenraketen:{n:1,gap:0,sz:1.05,pw:-2,th:'nacht', fuse:1.25,trail:'gold',eff:['komet']},
-  farbenrausch  :{n:1,gap:0,sz:1.1, pw:-1,th:'tropen',fuse:1.25,eff:['wechsel']},
-  knisterstern  :{n:1,gap:0,sz:1.36,pw:1.2,th:'eis',   fuse:1.25,eff:['spirale']},
-  smaragd       :{n:1,gap:0,sz:1.38,pw:1.6,th:'wald',  fuse:1.3, eff:['stern']},
-  blinkstern    :{n:1,gap:0,sz:1.42,pw:2.2,th:'blitz', fuse:1.3, eff:['strobe']},
-  silberregen   :{n:1,gap:0,sz:1.46,pw:3, th:'silber',fuse:1.3, dick:1,trail:'weiss',eff:['glitzerweide']},
-  kristall      :{n:1,gap:0,sz:1.5, pw:3.5,th:'eis',  fuse:1.3, dick:1,eff:['geist']},
-  regenbogenkrone:{n:1,gap:0,sz:1.65,pw:4.6,th:'bunt',  fuse:1.35,dick:2,trail:'gold',eff:['regenbogen']},
-  raketen50     :{n:1,gap:0,sz:1.7, pw:5, th:'bunt',  fuse:1.3, dick:1,eff:['mehrring']},
-  silbermond    :{n:1,gap:0,sz:2.25,pw:9, th:'silber',fuse:1.4, dick:2,trail:'weiss',eff:['strauss']},
-  feuerdrache   :{n:1,gap:0,sz:2.4, pw:11,th:'glut',  fuse:1.4, dick:2,trail:'orange',eff:['flammenregen']},
-  supernova     :{n:1,gap:0,sz:2.5, pw:12,th:'himmel',fuse:1.45,dick:2,trail:'weiss',eff:['dreifach']}
-});
+/* Raketen: die Eintraege stehen seit dem 26.09. in 14i-db-raketen.js */
 
 /* Kugelbomben-Sorten: Kaliber wie die bekannten, aber ein eigenes
    Hauptbild und eigene Farben - ohne die Nachbrueche der Stammkugel */

@@ -1,7 +1,7 @@
 /* Feuerwerk mit Steigerung und passenden Farben (Tom, 24.09.):
    - Batterien: je hoeher das Level, desto hoeher, groesser und
      dichter (Schuesse je Sekunde); Schusszahl wie auf der Packung
-   - Raketen: Sternschnuppe < Sternenflug < Goldflug < Titan
+   - Raketen: Sternschnuppe < Hasenjagd < Goldbrokat < Titan < Juwelenpalme < Polarstern
    - fruehe Produkte (bis Level 15) zeigen keine Profi-Bruchbilder
    - Farben: jedes Produkt bleibt in seinem Thema, kein Zufallsbunt
    - neue Effekte (Flammenregen, Kronleuchter, Feuerrad,
@@ -36,6 +36,9 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
       const farben=new Set(log.filter(e=>e.art==='schuss'&&e.eff!=='regenbogen').map(e=>key(e.A)+'|'+key(e.B)));
       /* Farbpaare, die in keinem Thema stehen = Zufallsbunt */
       const erlaubt=new Set(); Object.values(bb.THEMEN).forEach(T=>T.forEach(([a,c])=>erlaubt.add(key(bb.FW[a])+'|'+key(bb.FW[c]))));
+      /* 26.09. (Tom: Anomalie): Raketen haben feste Farben A/B aus dem Katalog
+         (engine-zusatz B) - ein festgelegtes Paar ist kein Zufallsbunt */
+      Object.values(bb.RAKETEN_KL).forEach(k=>{ if(k.A&&bb.FW[k.A]) erlaubt.add(key(bb.FW[k.A])+'|'+key(bb.FW[k.B||k.A])); });
       const fremd=[...farben].filter(f=>!erlaubt.has(f)).length;
       const m=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:0;
       const alle=log.filter(e=>e.art==='schuss'||e.art==='kugel');
@@ -127,7 +130,11 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     for(const t of L){ if(r.lvl[t]>r.lvl[KG[i]]+1) continue;
       pruef('KUGEL',k.maxSz>r[t].maxSz&&k.maxHoehe>r[t].maxHoehe,`${KG[i]} (Lvl ${r.lvl[KG[i]]}) nicht ueber ${t} (Lvl ${r.lvl[t]}): Groesse ${k.maxSz}/${r[t].maxSz}, Hoehe ${k.maxHoehe}/${r[t].maxHoehe}`); } }
   /* Raketen haben eigene Bruchbilder, die es in Batterien nicht gibt */
-  const EXKL=['spektrum','goldglitzer','regenbogenring','pfeifsterne','nishiki'];
+  /* 26.09. (Tom: Anomalie): jede Rakete hat ihren eigenen Bruch - die Liste
+     sind jetzt die Raketenbrueche aus katalog-raketen.md (spektrum und
+     regenbogenring zeigt keine Rakete mehr) */
+  const EXKL=['fallschirm','schnuppe','garbe','goldglitzer','initiale','hakenschlag','laserstern','kometenkette','pfeifsterne','halbhalb','nishiki','spaetzuender',
+    'achtblatt','leuchtturm','regenring','glasbruch','furz','spektralkrone','titan','sternpalme','mondfinsternis','sternspuren','drachenschwinge','supernova'];
   ['raketenklein','raketen','pfeifraketen','raketengold'].forEach(t=>pruef('RAKETE',r[t].eff.some(e=>EXKL.indexOf(e)>=0),`${t} ohne eigenes Raketen-Bruchbild: ${r[t].eff}`));
   L.concat(['sortiment']).forEach(t=>pruef('EXKLUSIV',!r[t].eff.some(e=>EXKL.indexOf(e)>=0),`${t} nutzt Raketen-Bruchbild`));
   Object.keys(r).forEach(t=>{ if(r[t]&&r[t].unpass) pruef('PASST',!r[t].unpass.length,`${t}: ${r[t].unpass.slice(0,6).join(', ')}`); });

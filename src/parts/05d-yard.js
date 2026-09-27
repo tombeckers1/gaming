@@ -688,7 +688,7 @@ function brennDauer(t){
   const sh=p.shape;
   if(sh==='shell') return {kugel150:4.5,kugel200:5,kugel300:6.5}[kugelTyp(t)]||3.5;
   if(sh==='tubepack') return 2.6;
-  if(sh==='rocketset'){ const k=typeof RAKETEN_KL!=='undefined'&&RAKETEN_KL[t]; return k?Math.max(3,(k.n-1)*k.gap+2):3; }
+  if(sh==='rocketset'){ const k=typeof RAKETEN_KL!=='undefined'&&RAKETEN_KL[t]; return k?(k.dauer||Math.max(3,(k.n-1)*k.gap+2)):3; }
   if(sh==='battery'||sh==='fan') return 9;
   return 4;
 }

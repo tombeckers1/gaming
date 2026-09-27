@@ -144,13 +144,16 @@ EFF.blitzast=function(p,A,B,s,r){
       const f0=clamp((t0-sg.t0)/(sg.t1-sg.t0),0,1), f1=clamp((t1-sg.t0)/(sg.t1-sg.t0),0,1);
       punkte(sg,f0,f1,0.45/last,(x,y,z)=>psMid.emit(x,y,z,0,0,0,kopf[0]*0.7,kopf[1]*0.7,kopf[2]*0.75,rand(0.12,0.2),0,0)); } });
     return t1<D; });
-  /* Hauptentladung: der ganze Kanal auf einmal, dann violettes Nachbild */
-  later(D,()=>{ const alt=FW_TAG; FW_TAG=tag;
-    grSpur(0,()=>{ for(const sg of segs){ punkte(sg,0,1,0.26/last,(x,y,z)=>psMid.emit(x,y,z,0,0,0,1.9,1.95,2.1,rand(0.07,0.1),0,0));
-      punkte(sg,0,1,0.3/last,(x,y,z)=>psMid.emit(x,y,z,0,0,0,nach[0]*1.3,nach[1]*1.3,nach[2]*1.4,0.35,0,2,nach[0]*0.3,nach[1]*0.2,nach[2]*0.5));
-      punkte(sg,0,1,1.1/last,(x,y,z)=>psBig.emit(x,y,z,0,0,0,kopf[0]*0.5,kopf[1]*0.55,kopf[2]*0.7,0.12,0,0)); } });
-    flash(p,[.7,.78,1],(4+5*s),0.2); if(typeof bildBlitz==='function') bildBlitz(0.18*distVol(p),0.18);
-    schall(p,v2=>sfx.donner(v2*0.9)); FW_TAG=alt; });
+  /* Hauptentladung: der ganze Kanal auf einmal, dann violettes Nachbild.
+     27.09.: wie ein echter Blitz flackert der Kanal zweimal nach
+     (Folgeentladungen nach 0,13 und 0,28 s) - vorher war er nach 0,1 s
+     weg und vom Zuendpult kaum zu sehen; Nachbild 0,6 s statt 0,35 s */
+  [[0,1],[0.13,0.75],[0.28,0.55]].forEach(([dt0,h],j)=>later(D+dt0,()=>{ const alt=FW_TAG; FW_TAG=tag;
+    grSpur(0,()=>{ for(const sg of segs){ punkte(sg,0,1,0.24/last,(x,y,z)=>psMid.emit(x,y,z,0,0,0,1.9*h,1.95*h,2.1*h,rand(0.08,0.12),0,0));
+      if(j===0) punkte(sg,0,1,0.28/last,(x,y,z)=>psMid.emit(x,y,z,0,0,0,nach[0]*1.5,nach[1]*1.5,nach[2]*1.6,0.6,0,2,nach[0]*0.3,nach[1]*0.2,nach[2]*0.5));
+      punkte(sg,0,1,1.1/last,(x,y,z)=>psBig.emit(x,y,z,0,0,0,kopf[0]*0.6*h,kopf[1]*0.65*h,kopf[2]*0.8*h,0.14,0,0)); } });
+    flash(p,[.7,.78,1],(4+5*s)*h,0.2); if(typeof bildBlitz==='function') bildBlitz(0.18*h*distVol(p),0.16);
+    if(j===0) schall(p,v2=>sfx.donner(v2*0.9)); FW_TAG=alt; }));
 };
 
 /* Kreuzkomet (Kreuzfeuer): kein Bombettenbruch - ein Komet aus dem Rohr
@@ -205,7 +208,10 @@ EFF.knallring=function(p,A,B,s,r){
     psBig.emit(p.x,p.y,p.z,d[0]*vz,d[1]*vz,d[2]*vz,1,.55,.2,T0+k*0.07,0,0); } });
   orte.forEach((o,k)=>later(T0+k*0.07,()=>{ const alt=FW_TAG; FW_TAG=tag;
     grSpur(0.07,()=>{ psHuge.emit(o.x,o.y,o.z,0,0,0,1.8,1.8,1.8,0.05,0,0);
-      for(let i=0;i<Math.round(15*q);i++){ const d=randDir(), w=rand(6,9), c=i%3?[.92,.95,1]:A; psMid.emit(o.x,o.y,o.z,d[0]*w,d[1]*w,d[2]*w,c[0]*1.2,c[1]*1.2,c[2]*1.2,rand(0.2,0.4),2,0); } });
+      for(let i=0;i<Math.round(15*q);i++){ const d=randDir(), w=rand(6,9), c=i%3?[.92,.95,1]:A; psMid.emit(o.x,o.y,o.z,d[0]*w,d[1]*w,d[2]*w,c[0]*1.2,c[1]*1.2,c[2]*1.2,rand(0.2,0.4),2,0); }
+      /* 27.09.: an jeder Stelle bleibt ein Silberwoelkchen 0,8 s stehen - der Ring
+         fuellt sich sichtbar Schlag fuer Schlag und steht, wenn die Mitte knallt */
+      for(let i=0;i<Math.round(6*q);i++){ const d=randDir(), w=rand(0.6,1.6); psBig.emit(o.x,o.y,o.z,d[0]*w,d[1]*w,d[2]*w,.95,.97,1.05,rand(0.7,1.0),0.6,0); } });
     if(k%2===0) flash(o,[1,1,1],2.4,0.07);
     schall(o,v2=>{ sfx.crack(v2*1.25); tone(rand(140,180),0.05,'sine',0.1*v2,60); });
     FW_TAG=alt; }));
@@ -427,11 +433,13 @@ EFF.glockenschlag=function(p,A,B,s,r){
    Knall. Billig genug fuer 10 Schuss je Sekunde. */
 EFF.hagel=function(p,A,B,s,r){
   grOhneZutaten(r,false); if(r) r.knall='still';
-  const n=Math.round(rand(6,10)*Math.max(0.6,QUAL())), g=3;
-  for(let i=0;i<n;i++){ const d=randDir(), w=rand(4,6), v=[d[0]*w,d[1]*w,d[2]*w], t=rand(0.25,0.4), c=i%2?[1,1,1]:[.72,.88,1];
-    grSpur(0.05,()=>psMid.emit(p.x,p.y,p.z,v[0],v[1],v[2],c[0]*1.3,c[1]*1.3,c[2]*1.3,t,g,0));
-    imBild(t,()=>{ const o=bahnOrt(p,v,g,t); grSpur(0,()=>{ psBig.emit(o.x,o.y,o.z,0,0,0,1.7,1.75,1.8,0.034,0,0);
-      for(let k=0;k<3;k++){ const e=randDir(); psSmall.emit(o.x,o.y,o.z,e[0]*2.5,e[1]*2.5,e[2]*2.5,1,1,1,rand(0.06,0.1),1,0); } });
+  /* 27.09.: Koerner groesser und schneller, Tick mit 5 Funken statt 3 -
+     vom Zuendpult aus war ein Schuss vorher nur ein Pixel */
+  const n=Math.round(rand(8,12)*Math.max(0.6,QUAL())), g=3;
+  for(let i=0;i<n;i++){ const d=randDir(), w=rand(5.5,8), v=[d[0]*w,d[1]*w,d[2]*w], t=rand(0.25,0.4), c=i%2?[1,1,1]:[.72,.88,1];
+    grSpur(0.14,()=>psBig.emit(p.x,p.y,p.z,v[0],v[1],v[2],c[0]*1.2,c[1]*1.2,c[2]*1.25,t,g,0));
+    imBild(t,()=>{ const o=bahnOrt(p,v,g,t); grSpur(0,()=>{ psHuge.emit(o.x,o.y,o.z,0,0,0,1.5,1.6,1.7,0.04,0,0);
+      for(let k=0;k<5;k++){ const e=randDir(); psMid.emit(o.x,o.y,o.z,e[0]*3,e[1]*3,e[2]*3,1,1,1,rand(0.07,0.12),1,0); } });
       if(i%2===0) schall(o,v2=>sfx.tick(v2*1.2)); }); }
 };
 
@@ -572,16 +580,17 @@ SIGNATUR.familienmix={muster:'spirale',text:'Karussell aus Zuckerwatte-Farben'};
 /* Level 17: Hagelsturm (neu) */
 SHOWS.hagelsturm=()=>show({basis:{pw:0.55,sz:1.045,th:'eis'},rampe:{sz:[0.90,1.20],pw:[0,2],hell:[0.90,1.30],kurve:'frueh'}},[
   /* Aufzug der Wolke: lockeres Prasseln, zwei Knisterfontaenen laufen die ganze Show */
-  {n:40,gap:0.25,muster:'zufall',ang:0.30,kal:'mini',pw:-10,eff:'hagel',steig:'keiner',
+  /* 27.09.: pw -10 brach bei 7-8 m (hinter der Mauer), Katalog will 15-20 m */
+  {n:40,gap:0.25,muster:'zufall',ang:0.30,kal:'mini',pw:-2,eff:'hagel',steig:'keiner',
    boden:[{k:'knisterbrunnen',gt:38,A:'silber',B:'weiss',x:-2},{k:'knisterbrunnen',gt:38,A:'silber',B:'weiss',x:2}]},
   {mit:true,n:2,gap:5,muster:'gerade',kal:'gross',pw:2,eff:'spinne',th:'silber'},
   /* Prasseln: dicht, als Welle ueber die Breite; oben grosse Schlaege */
-  {n:100,gap:0.10,muster:'welle',ang:0.40,wellen:3,kal:'mini',pw:-10,eff:'hagel',steig:'keiner'},
+  {n:100,gap:0.10,muster:'welle',ang:0.40,wellen:3,kal:'mini',pw:-1,eff:'hagel'},
   {mit:true,n:4,takt:[2.5],muster:'v',ang:0.30,kal:'gross',eff:['spinne','glitzerweide'],th:'silber'},
   /* Auge des Sturms: drei ruhige grosse Silberweiden */
   {n:3,gap:1.2,muster:'gerade',kal:'gross',pw:3,eff:'glitzerweide',pause:0.5},
   /* Hagelschlag: 16 je Sekunde im Zickzack, oben Kreuzschlaege, dazwischen Silber-Feuertoepfe */
-  {n:145,gap:0.06,muster:'z',seg:4,ang:0.45,kal:'mini',pw:-9,eff:'hagel',steig:'keiner'},
+  {n:145,gap:0.06,muster:'z',seg:4,ang:0.45,kal:'mini',pw:0,eff:'hagel'},
   {mit:true,n:6,takt:[1.6],muster:'x',ang:0.40,kal:'riesig',eff:'spinne',th:'silber'},
   {mit:true,n:12,gap:0.8,nurMine:true,mineEff:'silber',muster:'zufall',ang:0.30},
   /* FINALE: der Hagel hoert schlagartig auf, acht Silberweiden haengen nach */
@@ -725,7 +734,10 @@ SHOWS.hochzeitsfaecher=()=>show({basis:{pw:2.00,sz:1.160,th:'herz'},rampe:{sz:[0
   /* Rosenblaetter schweben */
   {n:6,gap:1.2,muster:'mitte',ang:0.40,eff:'blaetter',farbe:0,pause:1.0},
   /* DAS HERZ: 7 Paare auf der Herzkontur, von der Spitze aufwaerts, alle stehen am Ende zugleich */
-  {n:14,je:2,takt:[0.5],muster:'bild',form:'herz',eff:'dahlie',kal:'mittel',bruchOpt:{nachglitzer:false},boden:{k:'fountain',gt:9,A:'rose',B:'gold'},pause:3.0},
+  /* 27.09.: kal klein und Takt 0,25 s statt mittel/0,5 s - vorher verliefen die
+     grossen Dahlien ineinander und die Spitze war erloschen, bevor oben die
+     Boegen standen: kein Herz zu erkennen */
+  {n:14,je:2,takt:[0.25],muster:'bild',form:'herz',eff:'dahlie',kal:'klein',bruchOpt:{nachglitzer:false},boden:{k:'fountain',gt:9,A:'rose',B:'gold'},pause:3.0},
   /* FINALE Ringtausch: zwei goldene Doppelringe, darunter weisser "Reis" */
   {n:2,gap:0,muster:'v',ang:0.20,eff:'doppelring',kal:'gross',th:'gold'},
   {mit:true,n:6,gap:0.15,muster:'zufall',ang:0.40,kal:'klein',pw:-3,eff:'farbregen',th:'silber',pause:4.5}

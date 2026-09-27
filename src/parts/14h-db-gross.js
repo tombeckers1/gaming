@@ -935,8 +935,11 @@ SHOWS.geysirfeld=()=>show({basis:{pw:3.60,sz:1.290,th:'eis'},rampe:{sz:[0.90,1.2
   {n:60,je:5,gap:0.08,takt:[0.45],orte:[6,-12,0,12,-6,6,-12,0,12,-6,0,6],muster:'treppe',hoehe:'steigend',hSpanne:25,eff:GEYSIR_SAEULE,kal:GEYSIR_KAL,
    boden:{k:'geysir',je:true,gt:1.4,A:'weiss',B:'tuerkis'}},
   {mit:true,n:24,gap:0.2,muster:'x',ang:0.50,rohre:'breit',kal:'klein',eff:'spinne',farbe:1},
-  /* FINALE Grosser Ausbruch: alle fuenf Saeulen gleichzeitig, fuenf Geysire */
-  {n:25,je:5,gap:0.08,takt:[0],orte:[-12,-6,0,6,12],muster:'treppe',hoehe:'steigend',hSpanne:30,eff:GEYSIR_SAEULE,kal:GEYSIR_KAL,
+  /* FINALE Grosser Ausbruch: alle fuenf Saeulen gleichzeitig, fuenf Geysire.
+     Muster 'mitte' mit kleinem Winkel statt 'treppe' (Katalog): die Saeulen
+     oeffnen sich zum Schluss wie Kelche, und die Kettenreaktion davor ist
+     schon 'treppe' - kein Muster zweimal hintereinander */
+  {n:25,je:5,gap:0.08,takt:[0],orte:[-12,-6,0,6,12],muster:'mitte',ang:0.12,hoehe:'steigend',hSpanne:30,eff:GEYSIR_SAEULE,kal:GEYSIR_KAL,
    boden:{k:'geysir',je:true,gt:3,gh:1.4,A:'weiss',B:'aqua'},pause:5}
 ]);
 SIGNATUR.geysirfeld={idee:'geysir',text:'Ausbruch am Boden, darüber eine Säule aus fünf Schüssen'};

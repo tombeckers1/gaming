@@ -50,7 +50,10 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
       const dauer=bb.SHOWS[t]?bb.showLength(t)+3:(bb.brennDauer?Math.min(45,bb.brennDauer(t)+3):15);
       for(let s=0;s<dauer;s+=0.25){ bb.run(0.25,0.125); for(const e of bb.emittersListe()){ if(!gesehen.has(e)){ gesehen.add(e); emi.push([+(bb.fwUhr-t0).toFixed(1),e.k]); } } }
       bb.fwLog(null);
-      const sh=log.filter(x=>x.art==='schuss'||x.art==='kugel').map(x=>({t:+(x.t-t0).toFixed(2),eff:x.eff,ang:x.ang||0,steig:x.steig||null,stufen:x.stufenEff||[],x:x.x}));
+      /* 27.09.: auch Perlen (Roemische Lichter, perleSchuss loggt art:'perle') - sonst
+         sah der Test bei Lichterkette/Zwillingen nur die Fontaene und hielt zwei
+         verschiedene Kugelarten fuer gleich (Aehnlichkeit 1,00) */
+      const sh=log.filter(x=>x.art==='schuss'||x.art==='kugel'||x.art==='perle').map(x=>({t:+(x.t-t0).toFixed(2),eff:x.eff,ang:x.ang||0,steig:x.steig||null,stufen:x.stufenEff||[],x:x.x}));
       const out={prod:{k:klasse(t),lvl:P[t].lvl,name:P[t].name,sh,emi:emi.filter(e=>e[1]!=='fuse'),sig:bb.SIGNATUR&&bb.SIGNATUR[t]?JSON.stringify(bb.SIGNATUR[t]):null}};
       if(bb.SHOWS[t]){ const ph=bb.SHOWS[t]();
         out.show={lvl:P[t].lvl,basis:ph.basis||null,ph:ph.map(x=>({n:x.n===undefined?1:x.n,m:x.muster||(x.fan?(x.ang<0?'rfan':'fan'):x.vfan?'vfan':(x.perle?'perle':'gerade')),mit:!!x.mit||x.at!==undefined,boden:!!(x.boden||x.ground),gap:x.takt?Math.min(...x.takt):(x.gap===undefined?0.45:x.gap),eff:Array.isArray(x.eff)?x.eff:[x.eff||x.bombEff||x.perleEff||(x.perle?'perle':'?')]}))}; }

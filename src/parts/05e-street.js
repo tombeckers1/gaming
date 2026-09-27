@@ -1388,7 +1388,11 @@ function lichtKarte(){
   /* 1,7 war zu zaghaft: nachts lag die Strasse gleichmaessig dunkel, die
      Lichtpfuetzen waren kaum zu sehen (26.09., Tom: "nachts ist die
      Strasse dunkel") */
-  lampMats.push({set emissiveIntensity(v){ const k=v/3*3.8; for(const m of LICHT_MATS) m.lightMapIntensity=k; }});
+  /* 3,8 war zu viel: lightMap wird noch mit PI multipliziert, auch der
+     Rand der Pfuetzen lief ueber, und unser Gehweg lag nachts so hell
+     und gleichmaessig wie am Tag (27.09.). Jetzt 2,6 und ein steilerer
+     Abfall - zwischen den Leuchten wird es wieder dunkler. */
+  lampMats.push({set emissiveIntensity(v){ const k=v/3*2.6; for(const m of LICHT_MATS) m.lightMapIntensity=k; }});
   return _lichtK;
 }
 const imLicht=p=>p.x>LK.x0+9&&p.x<LK.x0+LK.w-9&&p.z>LK.z0+6&&p.z<LK.z0+LK.d-6;
@@ -1401,9 +1405,9 @@ function lichtKarteMalen(){
       /* enger als zuerst (8 m): bei 7 m Abstand flossen die Pfuetzen zu
          einer gleichmaessig grauen Flaeche zusammen */
       g.save(); g.translate((p.x-LK.x0)*LK.px,(p.z+p.s*0.6-LK.z0)*LK.px); g.scale(1,0.7);
-      const r=6.5*LK.px, gr=g.createRadialGradient(0,0,0,0,0,r);
-      gr.addColorStop(0,'rgba(255,224,182,1)'); gr.addColorStop(0.12,'rgba(255,221,177,.9)'); gr.addColorStop(0.35,'rgba(255,215,168,.45)');
-      gr.addColorStop(0.65,'rgba(255,209,160,.12)'); gr.addColorStop(1,'rgba(255,205,155,0)');
+      const r=7*LK.px, gr=g.createRadialGradient(0,0,0,0,0,r);
+      gr.addColorStop(0,'rgba(255,224,182,1)'); gr.addColorStop(0.1,'rgba(255,222,179,.93)'); gr.addColorStop(0.28,'rgba(255,216,170,.55)');
+      gr.addColorStop(0.48,'rgba(255,211,163,.2)'); gr.addColorStop(0.72,'rgba(255,207,158,.05)'); gr.addColorStop(1,'rgba(255,205,155,0)');
       g.fillStyle=gr; g.fillRect(-r,-r,r*2,r*2); g.restore(); }
     g.globalCompositeOperation='source-over';
     /* Rand schwarz: ausserhalb liest ClampToEdge den Rand */
@@ -1483,12 +1487,20 @@ const uvWelt=(x,z)=>[0.5+x/200,0.5-z/200];      /* wie die grosse Bodenflaeche *
 function bordHoch(x,abs){ let k=1; for(const [a,b] of abs){ if(x>a-1&&x<b+1) k=Math.min(k,x<a?a-x:x>b?x-b:0); } return k; }
 /* Profil quer zur Kante: Ansicht, Fase, 15 cm Oberseite, dann steil
    hinunter auf den Gehweg. Die Rueckseite lief erst 25 cm flach aus -
-   von oben sah der Bord wie ein 45 cm breites helles Band aus. */
+   von oben sah der Bord wie ein 45 cm breites helles Band aus. Auch
+   10 cm Schraege lagen noch als dunkle Fuge im Eigenschatten zwischen
+   Pflaster und Bord (27.09., Tom: "alles drum herum deutlich schoener"):
+   jetzt faellt der Ruecken auf 2 cm, das Pflaster laeuft bis heran. */
+const BORD_B=0.2;
 function bordProfil(k){ const h=0.02+0.1*k;
-  return [[0,0],[0,h-0.02],[0.025,h+0.01],[0.17,h+0.01],[0.2,h-0.005],[0.3,0.012]]; }
+  return [[0,0],[0,h-0.02],[0.025,h+0.01],[0.175,h+0.008],[0.19,h-0.012],[BORD_B,0.012]]; }
 /* Bordstein von x0 bis x1, Fahrbahnkante bei zR, Gehweg in Richtung s */
 function bordstein(B,x0,x1,zR,s,abs){
-  const R=saat(Math.round(zR*10)), hint=[0,1,-s];
+  /* Die Richtung je Profilabschnitt ist seine Aussennormale. Vorher
+     galt fuer alle [0,1,-s] - der Ruecken zum Gehweg wurde dadurch zur
+     Fahrbahn gewendet und stand von der Strasse aus als dunkle Fuge
+     zwischen Pflaster und Bord (27.09.). */
+  const R=saat(Math.round(zR*10));
   const xs=[x0]; for(let x=Math.floor(x0)+1;x<x1;x++) xs.push(x); xs.push(x1);
   for(let i=0;i<xs.length-1;i++){
     const xa=xs[i], xb=xs[i+1], pa=bordProfil(bordHoch(xa,abs)), pb=bordProfil(bordHoch(xb,abs));
@@ -1497,7 +1509,8 @@ function bordstein(B,x0,x1,zR,s,abs){
     for(let j=0;j<pa.length-1;j++){
       const l=Math.hypot(pa[j+1][0]-pa[j][0],pa[j+1][1]-pa[j][1]), v0=1-L/0.6*0.5, v1=1-(L+l)/0.6*0.5; L+=l;
       B.quad(ecke(xa,pa[j][1],zR+s*pa[j][0],ua,v0,c),ecke(xb,pb[j][1],zR+s*pb[j][0],ub,v0,c),
-             ecke(xb,pb[j+1][1],zR+s*pb[j+1][0],ub,v1,c),ecke(xa,pa[j+1][1],zR+s*pa[j+1][0],ua,v1,c),hint);
+             ecke(xb,pb[j+1][1],zR+s*pb[j+1][0],ub,v1,c),ecke(xa,pa[j+1][1],zR+s*pa[j+1][0],ua,v1,c),
+             [0,pa[j+1][0]-pa[j][0],-s*(pa[j+1][1]-pa[j][1])]);
     }
     /* Rinne: drei Reihen Grosspflaster vor dem Bord */
     const g=0.9+R()*0.12, cr=[g*0.92,g*0.92,g*0.95];
@@ -1506,7 +1519,7 @@ function bordstein(B,x0,x1,zR,s,abs){
   /* Stirnseiten */
   for(const [x,sx] of [[x0,-1],[x1,1]]){ const p=bordProfil(bordHoch(x,abs));
     for(let j=1;j<p.length-1;j++) B.tri(ecke(x,p[0][1],zR,0,0.6),ecke(x,p[j][1],zR+s*p[j][0],0.2,0.7),ecke(x,p[j+1][1],zR+s*p[j+1][0],0.3,0.8),[sx,0,0]);
-    B.tri(ecke(x,0,zR,0,0.6),ecke(x,p[p.length-1][1],zR+s*p[p.length-1][0],0.3,0.8),ecke(x,0,zR+s*0.3,0.1,0.9),[sx,0,0]); }
+    B.tri(ecke(x,0,zR,0,0.6),ecke(x,p[p.length-1][1],zR+s*p[p.length-1][0],0.3,0.8),ecke(x,0,zR+s*BORD_B,0.1,0.9),[sx,0,0]); }
 }
 /* Flaeche in Weltkoordinaten (Gehweg, Pflaster): UV nach Kachelgroesse */
 function bodenRechteck(B,x0,x1,z0,z1,y,kachel,c){
@@ -1572,9 +1585,13 @@ function buildFahrbahn(){
       pf(x,gegen?zS-0.4-R()*0.15:zN+0.4+R()*0.15,1.0+R()*1.8,0.45+R()*0.35,R()*8|0);
       if(R()<0.2&&frei(x+3)) pf(x+3+R()*2,R()<0.5?zN+1.35:STR.mitte+0.95,0.8+R()*1.0,0.35+R()*0.25,R()*8|0); }
     const env=autoUmgebung();
-    const pm=lichtMat(new THREE.MeshStandardMaterial({color:LIN(0x141618),roughness:0.14,metalness:0.1,envMap:env||null,envMapIntensity:0.5,
+    const pm=lichtMat(new THREE.MeshStandardMaterial({color:LIN(0x141618),roughness:0.14,metalness:0.1,envMap:env||null,envMapIntensity:2.2,
       alphaMap:pfuetzenTex(),transparent:true,depthWrite:false}));
-    lampMats.push({set emissiveIntensity(v){ pm.envMapIntensity=0.5*(1-0.28*v); }});
+    /* 0,5 war zu wenig: bei Tag lagen die Pfuetzen als dunkle, gruenliche
+       Flecken wie Oel auf der Decke statt den Himmel zu spiegeln. Der
+       echte Himmel ist vielfach heller als der Asphalt - das holt die
+       Staerke nach (27.09.). */
+    lampMats.push({set emissiveIntensity(v){ pm.envMapIntensity=2.2*(1-0.3*v); }});
     const po=new THREE.Mesh(lichtUV2(Pf.geo()),pm); po.renderOrder=1; if(HIQ) po.receiveShadow=true; scene.add(po); }
 
   /* --- Markierungen nach StVO: Leitlinie 3 m Strich, 6 m Luecke, 12 cm
@@ -1620,7 +1637,7 @@ function buildFahrbahn(){
   /* Gehwegplatten, zur Bordseite ein Streifen Kleinpflaster (Baum- und
      Laternenstreifen). Unsere Seite laesst die Hofzufahrt frei - dort
      liegt der Beton der Zufahrt. */
-  const Gp=bauer(), Kp=bauer(), zNg=zN-0.29, zSg=zS+0.29;
+  const Gp=bauer(), Kp=bauer(), zNg=zN-BORD_B, zSg=zS+BORD_B;
   for(const [a,b] of [[-X,-30.2],[-19.8,38]]){
     bodenRechteck(Gp,a,b,6.0,9.7,0.012,2.4); bodenRechteck(Kp,a,b,9.7,zNg,0.012,1.6); }
   bodenRechteck(Kp,-X,X,zSg,18.3,0.012,1.6); bodenRechteck(Gp,-X,X,18.3,23.4,0.012,2.4);

@@ -631,37 +631,9 @@ const SHOWS={
     {n:10,gap:1.0,perle:true,wechsel:true,pause:1.5}
   ]
 };
-/* Raketensets: Anzahl, Takt, Kaliber, Farbthema und Bruchbilder.
-   Von der kleinen Sternschnuppe bis zur Titan steigen alle Werte.
-   gruppe: so viele Raketen hintereinander im selben Farbpaar. */
-const RAKETEN_KL={
-  /* Eine Zuendung, eine Rakete (Tom, 25.09.: "alle Raketen duerfen nur
-     einen Schuss nach oben haben"). Auf dem Testfeld geht aus dem Set
-     eine Rakete als Probeschuss hoch - dafuer hat jede Sorte ihren
-     eigenen, schoenen Bruch, und von der kleinen Sternschnuppe bis zum
-     Polarstern wird es mit jedem Level groesser, hoeher und heller.
-     Spektrum, Regenbogenring, Pfeifsterne und Nishiki gibt es nur in
-     Raketen, nie in Batterien. */
-  raketenklein:{n:1, gap:0, sz:0.9, pw:-5,th:'bunt',  fuse:1.2, eff:['spektrum']},
-  raketen     :{n:1, gap:0, sz:1.05,pw:-2,th:'tropen',fuse:1.25,eff:['regenbogenring']},
-  pfeifraketen:{n:1, gap:0, sz:1.0, pw:-2,th:'wald',  fuse:1.25,pfeif:true,eff:['pfeifsterne']},
-  raketengold :{n:1, gap:0, sz:1.35,pw:1, th:'gold',  fuse:1.3, dick:1,trail:'gold',eff:['nishiki']},
-  titanraketen:{n:1, gap:0, sz:1.7, pw:5, th:'eis',   fuse:1.3, dick:1,eff:['titan']},
-  /* Einzelraketen (Toms PDF vom 25.09.): ein Schuss, ein Bruch, keine
-     Nachladung. Die Krone knisterte vorher 1,7 s spaeter noch einmal,
-     die Himmelsleiter schoss Kometen in drei Stufen weiter hoch. */
-  /* Jumbo »Goldene Krone«: eine dicke Goldrakete, die Palme endet in
-     farbigen Juwelen */
-  jumbogold  :{n:1, gap:0, sz:2.2, pw:8, fuse:1.35, th:'koenig',dick:2,trail:'gold',eff:['sternpalme']},
-  /* Jumbo »Polarstern«: noch hoeher, eine riesige Kugel mit einem
-     achtzackigen Stern darin (Schluessel bleibt fuer alte Staende) */
-  jumboleiter:{n:1, gap:0, sz:2.3, pw:10, fuse:1.4, th:'nacht',dick:2,trail:'weiss',eff:['polarstern']},
-  gravur      :{n:1, gap:0, sz:1.3, pw:4, fuse:1.25, eff:['herz']},
-  /* Furzrakete »Donnerbalken« (Katalog 26.09.): normaler Raketenweg,
-     Aufstieg stotter - sie setzt dreimal aus und pupst sich weiter */
-  furzrakete  :{n:1, gap:0, sz:1.55,pw:4.2,fuse:1.6, steig:'stotter', A:'braun', B:'sumpf', eff:['furz'], knall:'furz', bruchOpt:{kern:false, nachglitzer:false}},
-  blanko      :{n:1, gap:0, sz:0.95,pw:0, fuse:1.2, eff:['goldglitzer']}
-};
+/* Raketensets: die Eintraege stehen seit dem 26.09. in 14i-db-raketen.js
+   (Tom: "jede Rakete eine Anomalie" - eigener Aufstieg, eigener Bruch). */
+const RAKETEN_KL={};
 function showLength(id){ const f=SHOWS[id]; if(!f) return 0; return Math.round(showDauer(f())); }
 
 /* =========================================================

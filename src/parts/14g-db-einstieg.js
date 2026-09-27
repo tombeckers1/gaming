@@ -305,6 +305,17 @@ EFF.mondsichel=function(p,A,B,s,r){
   hof(stand+0.4,t=>[hm[0],hm[1]-0.15*t,hm[2]],[0.55,0.6,0.78],()=>R*2.9,t=>0.2*Math.min(1,t/0.15)*(1-glatt(0.6,stand+0.4,t)));
 };
 
+/* Mondregen (Begleiter im Mondschein): leise Silberweide ohne Glitzer -
+   lange, ruhige Silberfaeden, die langsam sinken. Die Glitzerweide ist
+   ein Profi-Bruchbild (erst ab Level 16), darum hier diese stille Form. */
+EFF.mondregen=function(p,A,B,s,r){
+  zutaten(r,{flash:0.5});
+  const q=QUAL(), n=Math.round(85*s*q), alt=SCHWEIF, c=mischF(FW.silber,A,0.15); SCHWEIF=1.1;
+  for(let i=0;i<n;i++){ const d=randDir(), w=rand(4.5,6)*s;
+    psBig.emit(p.x,p.y,p.z,d[0]*w,d[1]*w*0.7+1.2,d[2]*w,c[0],c[1],c[2],rand(2.6,3.3),3.2,0); }
+  SCHWEIF=alt;
+};
+
 /* Fischschwarm (knisterfaecher): Silberfische schwimmen nach dem Bruch
    gemeinsam in eine Richtung, wenden zusammen und stieben auseinander.
    Vereinfacht (neue-effekte.md 9): ein gemeinsamer Schwarmvektor. */
@@ -376,7 +387,7 @@ EFF.tausendblueten=function(p,A,B,s,r){
 /* Leuchtspuren je Bruchbild (mitSchweif): die Brueche setzen ihre Spur
    selbst, hier nur die Vorgabe fuer alles, was sie nicht setzen */
 Object.assign(EFF_SCHWEIF,{pusteblume:0,brausepulver:0,glitterspur:0.3,pulverschnee:0,zeitsterne:0,irrlicht:0,klangperle:0,pfauenauge:0.1,
-  falterlicht:0,flitterstern:0.22,mondsichel:0,fischschwarm:0.14,lampare:0.12,tausendblueten:0.12});
+  falterlicht:0,flitterstern:0.22,mondsichel:0,fischschwarm:0.14,lampare:0.12,tausendblueten:0.12,mondregen:1.1});
 /* Figuren stehen allein (effPassen) */
 EFF_FAMILIE.pfauenauge='figur'; EFF_FAMILIE.mondsichel='figur';
 
@@ -406,7 +417,7 @@ const DB={
     {n:3,muster:'treppe',hSpanne:12,takt:[0.4,1.5],eff:['wechsel','chrys','palme'],kal:'mittel',steig:'gold',boden:{k:'fountain',gt:3,t:1.9,A:'gold',B:'orange'},pause:3.0}
   ]),
   /* Farbkanon, L8: fuenf Lichter, die Farbe wandert als Welle */
-  roemisch:()=>show({basis:{pw:-9,sz:0.50,th:'bunt'}, rampe:{sz:[0.9,1.2],pw:[0,0],hell:[0.9,1.25],kurve:'linear'}}, [
+  roemisch:()=>show({basis:{pw:-9,sz:0.50,th:'spektrum'}, rampe:{sz:[0.9,1.2],pw:[0,0],hell:[0.9,1.25],kurve:'linear'}}, [
     {n:5,perle:true,gap:0.6,muster:'gerade',rohrFolge:[-1,-0.5,0,0.5,1],farbFolge:['violett'],pause:0.7},
     {n:5,perle:true,gap:0.6,muster:'aussen',ang:0.08,rohrFolge:[-1,1,-0.5,0.5,0],farbFolge:['zitrone'],pause:1.0},
     {n:5,perle:true,gap:0,muster:'schlag',ang:0.1,rohrFolge:[-1,-0.5,0,0.5,1],farbFolge:['blau','gruen','rot','gruen','blau'],pause:2.5}
@@ -487,7 +498,7 @@ const DB={
     {n:4,gap:2.0,muster:'gerade',eff:'mondsichel',kal:'klein',steig:'silber',pause:1.0},
     {n:8,gap:0.6,muster:'welle',ang:0.3,wellen:1,eff:['farbregen','farbregen','farbregen','mondsichel'],steig:'keiner',pause:1.2},
     {n:0,nurBoden:true,boden:{k:'wasserfall',gt:9,A:'silber',B:'weiss'}},
-    {n:10,mit:true,takt:[0.3,0.3,1.2],muster:'aussen',ang:0.35,eff:['glitzerweide','glitzerweide','mondsichel'],steig:'silber',pause:1.0},
+    {n:10,mit:true,takt:[0.3,0.3,1.2],muster:'aussen',ang:0.35,eff:['mondregen','mondregen','mondsichel'],steig:'silber',pause:1.0},
     {n:8,gap:0.2,muster:'zufall',ang:0.25,eff:['farbregen','mondsichel'],kal:'mittel',hoehe:'zufall',hSpanne:8,steig:'keiner',pause:4.0}
   ]),
   /* Familienfest, L13: ein Funke laeuft von Teil zu Teil (Staffel).

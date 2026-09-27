@@ -21,6 +21,10 @@ const sternTex=tex(128,128,(g,W,H)=>{ const c=W/2;
    Faeden einer Weide ohne Verlaufsspeicher. */
 const SCHWEIF_MODUS=[0.22,0,0.25,0,0.5];
 let SCHWEIF=null;
+/* Engine v2 (26.09.): FW_TAG markiert jeden Stern mit der Show, aus der
+   er kommt (weltenblitz loescht alle Sterne einer Show). FW_ERBE ist eine
+   Geschwindigkeit, die jeder neue Stern erbt (drehende Bluetenringe). */
+let FW_TAG=0, FW_ERBE=null;
 const ZIEH=1.1;
 /* Leuchtspur im Shader: Punkt s von S liegt tau=T*s/S zurueck auf der
    Flugbahn. Mit Luftwiderstand k und Schwerkraft g (gk=g/k):
@@ -47,6 +51,7 @@ class PS{
     this.base=new Float32Array(max*3); this.c2=new Float32Array(max*3);
     this.life=new Float32Array(max); this.maxl=new Float32Array(max); this.grav=new Float32Array(max);
     this.md=new Uint8Array(max); this.ph=new Float32Array(max); this.tl=new Float32Array(max);
+    this.tag=new Uint16Array(max);
     this.next=0; this.dirty=false;
     for(let i=0;i<max;i++) this.pos[i*3+1]=-999;
     /* Gezeichnet wird aus eigenen Puffern, in denen nur die lebenden
@@ -77,6 +82,8 @@ class PS{
   }
   emit(x,y,z,vx,vy,vz,r,g,b,life,grav,mode,r2,g2,b2){
     const i=this.next; this.next=(i+1)%this.max; const j=i*3;
+    if(FW_ERBE){ vx+=FW_ERBE[0]; vy+=FW_ERBE[1]; vz+=FW_ERBE[2]; }
+    this.tag[i]=FW_TAG;
     this.pos[j]=x; this.pos[j+1]=y; this.pos[j+2]=z; this.vel[j]=vx; this.vel[j+1]=vy; this.vel[j+2]=vz;
     this.base[j]=r; this.base[j+1]=g; this.base[j+2]=b;
     this.c2[j]=r2===undefined?r:r2; this.c2[j+1]=g2===undefined?g:g2; this.c2[j+2]=b2===undefined?b:b2;
@@ -213,8 +220,12 @@ function basisBlick(p,kipp){
   let u=[-n[2],0,n[0]]; const lu=Math.hypot(u[0],u[2])||1; u=[u[0]/lu,0,u[2]/lu];
   const v=[n[1]*u[2]-n[2]*u[1],n[2]*u[0]-n[0]*u[2],n[0]*u[1]-n[1]*u[0]];
   if(v[1]<0){ v[0]=-v[0]; v[1]=-v[1]; v[2]=-v[2]; u=[-u[0],-u[1],-u[2]]; }
+  BASIS_LETZT=[u,v];
   return [u,v];
 }
+/* die zuletzt benutzte Blickebene - Nachbrueche auf dem Feuerreif
+   (kranz:'reif') liegen in derselben Ebene wie der Reif */
+let BASIS_LETZT=null;
 /* Effektfamilien: was gleichzeitig am Himmel steht, muss zusammen-
    passen. Figuren stehen immer allein - ein Herz mit einer Kugel
    darin oder ein Stern neben einer Knisterwolke sieht nach Unfall aus. */
@@ -233,6 +244,7 @@ function effPassen(a,b){
 }
 const QUAL=()=>COARSE?0.55:1;
 const STEIG=0.8;
+const NULL3=[0,0,0];
 
 /* =========================================================
    Bruchbilder
@@ -1084,19 +1096,69 @@ EFF.nishiki=function(p,A,B,s){
   later(1.2,()=>sfx.crackle(distVol(p)*0.5));
 };
 /* Roemische Kerze: kein Bruch, sondern eine leuchtende Kugel, die aus
-   dem Rohr steigt und verglueht */
-function perleSchuss(o,A,s){
+   dem Rohr steigt und verglueht.
+   Engine v2 (26.09.): opt.ang/opt.dir - die Kugel folgt dem Muster
+   (v, kreis, schlag ...); opt.eff = Kugelart:
+     wandelperle  - hart A (0-0,6 s), B (bis 1,2 s), 0,3 s weiss, im
+                    Scheitel Knall und 12-16 Silbersterne
+     schwebeperle - groessere Kugel, schwebt nach dem Scheitel 3-4 s und
+                    sinkt 0,4 m/s; Girlande zur vorigen Kugel der Phase
+                    (opt.kette), verloeschen in Zuendreihenfolge
+     zwilling     - teilt sich im Scheitel in zwei Perlen, waagrecht
+                    entgegengesetzt (Richtung je Schuss um splitDreh
+                    weiter), links A, rechts B */
+function perleSchuss(o,A,s,opt){
+  opt=opt||{};
   const y0=(o.y!==undefined?o.y:0.4)+0.3, alt=SCHWEIF; SCHWEIF=0.35;
-  const vy=rand(15,18)*Math.sqrt(s||1), vx=rand(-0.6,0.6), vz=rand(-0.6,0.6);
-  const L=rand(1.6,2.0);
-  for(let k=0;k<3;k++) psHuge.emit(o.x,y0,o.z,vx,vy,vz,A[0]*1.3,A[1]*1.3,A[2]*1.3,L,6,0);
-  psBig.emit(o.x,y0,o.z,vx,vy,vz,1,1,1,L*0.4,6,0);
+  const sp=rand(15,18)*Math.sqrt(s||1), ang=opt.ang||0, dir=opt.dir===undefined?Math.PI/2:opt.dir;
+  const gerichtet=opt.ang!==undefined||opt.eff;
+  const vx=gerichtet?Math.sin(dir)*Math.sin(ang)*sp+rand(-0.25,0.25):rand(-0.6,0.6),
+        vy=gerichtet?Math.cos(ang)*sp:sp,
+        vz=gerichtet?Math.cos(dir)*Math.sin(ang)*sp+rand(-0.25,0.25):rand(-0.6,0.6);
+  const B=opt.B||A, art=opt.eff||null, p0={x:o.x,y:y0,z:o.z}, v0=[vx,vy,vz], G=6;
+  /* Scheitel der Kugel (Luftwiderstand ZIEH wie im Partikelsystem) */
+  const tS=Math.log(1+ZIEH*Math.max(0.1,vy)/G)/ZIEH;
+  const L=art?tS:rand(1.6,2.0);
+  const kugelFarbe=art==='wandelperle'?A:A;
+  for(let k=0;k<(art==='schwebeperle'?4:3);k++) psHuge.emit(o.x,y0,o.z,vx,vy,vz,kugelFarbe[0]*1.3,kugelFarbe[1]*1.3,kugelFarbe[2]*1.3,art==='wandelperle'?Math.min(0.6,L):L,G,0);
+  psBig.emit(o.x,y0,o.z,vx,vy,vz,1,1,1,L*0.4,G,0);
   /* Funkenschweif hinter der Kugel und ein kurzer Muendungsblitz */
-  for(let i=0;i<Math.round(40*QUAL());i++) psMid.emit(o.x,y0,o.z,vx*0.9+rand(-.3,.3),vy*rand(0.45,0.98),vz*0.9+rand(-.3,.3),1,.8,.4,rand(0.8,1.5),6,4);
+  const schweif=art==='wandelperle'?0.55:1;
+  for(let i=0;i<Math.round(40*schweif*QUAL());i++) psMid.emit(o.x,y0,o.z,vx*0.9+rand(-.3,.3),vy*rand(0.45,0.98),vz*0.9+rand(-.3,.3),1,.8,.4,rand(0.8,1.5)*schweif,6,4);
   muendungsblitz(o,y0,1.2);
   SCHWEIF=alt;
-  if(FW_LOG) FW_LOG.push({t:FW_UHR,art:'perle',kal:0,pw:0,sz:s||1,eff:'perle',A,B:A,stufenEff:[],hoehe:0,brueche:1,groesste:s||1});
-  if(typeof bruchGesehen==='function') bruchGesehen('perle');
+  const tag=FW_TAG;
+  const bei=(t,fn)=>later(t,()=>{ const a=FW_TAG; FW_TAG=tag; const q=bahnOrt(p0,v0,G,t), w=bahnTempo(v0,G,t); fn(q,w); FW_TAG=a; });
+  if(art==='wandelperle'){
+    const t1=Math.min(0.6,tS*0.45), t2=Math.max(t1+0.2,Math.min(1.2,tS-0.15));
+    bei(t1,(q,w)=>{ for(let k=0;k<3;k++) psHuge.emit(q.x,q.y,q.z,w[0],w[1],w[2],B[0]*1.3,B[1]*1.3,B[2]*1.3,t2-t1,G,0); });
+    bei(t2,(q,w)=>{ for(let k=0;k<3;k++) psHuge.emit(q.x,q.y,q.z,w[0],w[1],w[2],1.3,1.3,1.3,tS+0.05-t2,G,0); });
+    bei(tS+0.05,q=>{ for(let i=0;i<Math.round(rand(12,16)*QUAL());i++){ const d=randDir(); psMid.emit(q.x,q.y,q.z,d[0]*7,d[1]*7,d[2]*7,.85,.9,1,0.3,2,0); }
+      psHuge.emit(q.x,q.y,q.z,0,0,0,1,1,1,0.08,0,0); later(camera.position.distanceTo(q)/343,()=>sfx.crack(distVol(q)*1.1)); });
+  }
+  else if(art==='schwebeperle'){
+    /* Standzeit: Grundwert plus 0,25 s je Kugel - sie verloeschen in Zuendreihenfolge */
+    const K=opt.kette||{}, stand=3.0+(K.n||0)*0.25, gS=0.44, ende=FW_UHR+tS+stand;
+    K.n=(K.n||0)+1;
+    bei(tS,q=>{ for(let k=0;k<3;k++) psHuge.emit(q.x,q.y,q.z,0,0,0,A[0]*1.25,A[1]*1.25,A[2]*1.25,stand,gS,0);
+      /* Girlande: Kettenlinie aus Glitzerpunkten zur vorigen Kugel, sinkt mit */
+      const vor=K.letzte;
+      if(vor&&vor.ende>FW_UHR){ const dt2=FW_UHR-vor.tS, pv=bahnOrt(vor.q,[0,0,0],gS,dt2), m=Math.round(rand(12,16)), rest=vor.ende-FW_UHR;
+        const d=Math.hypot(q.x-pv.x,q.z-pv.z)+Math.abs(q.y-pv.y);
+        for(let i=1;i<m;i++){ const u=i/m, x=pv.x+(q.x-pv.x)*u, y=pv.y+(q.y-pv.y)*u-0.18*d*Math.sin(Math.PI*u), z=pv.z+(q.z-pv.z)*u;
+          psMid.emit(x,y,z,0,0,0,B[0]*0.5,B[1]*0.5,B[2]*0.5,rest,gS,4); } }
+      K.letzte={q,tS:FW_UHR,ende}; });
+  }
+  else if(art==='zwilling'){
+    const az=(opt.dir===undefined?Math.PI/2:opt.dir)+(opt.i||0)*(opt.splitDreh||0);
+    bei(tS,q=>{ const alt2=SCHWEIF; SCHWEIF=0.3;
+      for(const [sg,c] of [[-1,A],[1,B]]){ const w=rand(8,10)*sg;
+        for(let k=0;k<2;k++) psHuge.emit(q.x,q.y,q.z,Math.sin(az)*w,0.5,Math.cos(az)*w,c[0]*1.3,c[1]*1.3,c[2]*1.3,1.2,G,0);
+        for(let k=0;k<Math.round(10*QUAL());k++) psMid.emit(q.x,q.y,q.z,Math.sin(az)*w*rand(0.3,0.9),rand(-1,0.5),Math.cos(az)*w*rand(0.3,0.9),1,.75,.35,rand(0.4,0.8),3,4); }
+      SCHWEIF=alt2; psHuge.emit(q.x,q.y,q.z,0,0,0,1,1,1,0.07,0,0); later(camera.position.distanceTo(q)/343,()=>sfx.crack(distVol(q)*0.9)); });
+  }
+  if(FW_LOG) FW_LOG.push({t:FW_UHR,art:'perle',kal:0,pw:0,sz:s||1,eff:art||'perle',A,B,stufenEff:[],hoehe:0,brueche:1,groesste:s||1,ang:+ang.toFixed(3),dir:+dir.toFixed(3),x:+o.x.toFixed(2),v:[+vx.toFixed(2),+vy.toFixed(2),+vz.toFixed(2)],tag});
+  if(typeof bruchGesehen==='function') bruchGesehen(art||'perle');
   sfx.thump(distVol(o)*0.8);
 }
 /* Drachenblut: rote Dahlie, deren Sterne als Blutstropfen abtropfen */
@@ -1155,9 +1217,29 @@ const EFF_PRO=['kamuro','brokat','pistill','zeitregen','dahlie','geist','weide',
 /* Mitschnitt fuer Tests: wer FW_LOG auf ein Array setzt, bekommt
    jeden Schuss mit Zeit, Kaliber, Effekt, Farben und Steighoehe */
 let FW_LOG=null, FW_UHR=0;
+/* Engine v2, Stufe 1 (26.09. nachts, Tom: "jedes Produkt eine Anomalie"):
+   - SCHUSS_EFF[eff](r): Schuss ohne Bruch (rohrkomet) - statt einer
+     Rakete mit Bruch bekommt der Effekt Start, Geschwindigkeit und
+     Zuendzeit und zeichnet den Flug selbst
+   - STEIG_KLANG[steig](r,v): Klang des Aufstiegs beim Start (Vorgabe
+     hier aus den vorhandenen Klaengen, die Klangbauer duerfen ersetzen)
+   - opt.ziel {x,y,z}: der Bruch liegt genau dort (zielSchuss)
+   - opt.par: Zusatzfelder fuer den Bruch (art, split, modus, sync,
+     splitDreh, schlaege, gleit, text, dreh, kerne, drall ...), der Bruch
+     bekommt die ganze Rakete als 5. Argument: EFF[x](p,A,B,s,r) */
+const SCHUSS_EFF={}, STEIG_KLANG={};
+/* Steigzeit fuer einen Zielschuss: hoeher = laenger unterwegs */
+function zielZeit(dy){ return clamp(0.95+dy/32,1.0,2.6); }
+/* Bruchhoehe ueber dem Rohr fuer pw und Zuendzeit (Raketen fliegen ohne
+   Luftwiderstand, Schwerkraft 6) */
+function steigHoehe(pw,fuse){ fuse=fuse||1.2; return (pw+21)*STEIG*fuse-3*fuse*fuse; }
+function pwFuerHoehe(h,fuse){ fuse=fuse||1.2; return (h+3*fuse*fuse)/(STEIG*fuse)-21; }
+/* Anfangstempo, mit dem ein Schuss nach T Sekunden genau bei ziel ist */
+function zielTempo(p,ziel,T){ return V((ziel.x-p.x)/T,(ziel.y-p.y)/T+3*T,(ziel.z-p.z)/T); }
+function zielSchuss(o,ziel,tBruch,opt){ return shot(o,Object.assign({},opt||{},{ziel,fuse:tBruch||undefined})); }
 function shot(o,opt){
   opt=opt||{}; o=o||PAD;
-  const ang=opt.ang||0, dir=opt.dir===undefined?rand(0,Math.PI*2):opt.dir;
+  let ang=opt.ang||0, dir=opt.dir===undefined?rand(0,Math.PI*2):opt.dir;
   /* Spielmassstab: die Brueche liegen bei gut 15 m statt 21 m. Vom
      Zuendpult aus - sieben bis zwoelf Meter vor den Stationen - lagen
      sie sonst so steil ueber einem, dass man sie beim Zuenden nicht
@@ -1169,37 +1251,221 @@ function shot(o,opt){
   const sc=opt.A?[opt.A,opt.B||opt.A]:scheme(opt.sc);
   /* ab: Hoehe ueber dem Ursprung, jit: seitliche Streuung. Aus einem
      Rohr oder einer Batterie kommt der Schuss genau dort heraus. */
-  const jit=o.jit!==undefined?o.jit:0.35, ab=o.ab!==undefined?o.ab:0.4;
+  const jit=opt.ziel?0:(o.jit!==undefined?o.jit:0.35), ab=o.ab!==undefined?o.ab:0.4;
   const start=V(o.x+rand(-jit,jit),o.y!==undefined?o.y+ab:1,o.z+rand(-jit,jit));
   /* Muendungsfeuer: kurzer Blitz, ein paar Funken zur Seite */
   muendungsblitz(start,start.y,1+(opt.dick||0));
-  const fuse=opt.fuse||rand(1.05,1.35);
-  if(opt.steig==='knister') later(0.25,()=>sfx.crackle(distVol(o)*0.5));
-  if(FW_LOG) FW_LOG.push({t:FW_UHR,art:opt.kugel?'kugel':'schuss',ang:+ang.toFixed(3),dir:+dir.toFixed(3),x:+start.x.toFixed(2),steig:opt.steig||null,kal:opt.kugel||0,pw:opt.pw||0,sz:opt.sz||1,eff:opt.eff||'?',A:sc[0],B:sc[1],
+  let fuse=opt.fuse||rand(1.05,1.35), v;
+  if(opt.ziel){
+    /* zielSchuss: Winkel und Tempo aus einer Parabel, keine Suche */
+    fuse=opt.fuse||zielZeit(opt.ziel.y-start.y); v=zielTempo(start,opt.ziel,fuse);
+    const l=v.length()||1; ang=Math.acos(clamp(v.y/l,-1,1)); dir=Math.atan2(v.x,v.z);
+  } else v=V(Math.sin(dir)*Math.sin(ang)*up,Math.cos(ang)*up,Math.cos(dir)*Math.sin(ang)*up);
+  const sg=opt.steig||null;
+  /* pfeil: 1,6-mal so schnell, gleiche Bruchhoehe - also kuerzer unterwegs */
+  if(sg==='pfeil'&&!opt.ziel){ const H=v.y*fuse-3*fuse*fuse, vy=v.y*1.6, D=vy*vy-12*H;
+    if(D>0){ v.multiplyScalar(1.6); fuse=(vy-Math.sqrt(D))/6; } }
+  /* zweistufe: nach der halben Steigzeit 1,3-mal schneller, Bruch gleich hoch */
+  let stufeT=0;
+  if(sg==='zweistufe'){ const T1=fuse/2, H=v.y*fuse-3*fuse*fuse, y1=v.y*T1-3*T1*T1, v1=(v.y-6*T1)*1.3, D=v1*v1-12*(H-y1);
+    stufeT=T1; if(v1>0&&D>0) fuse=T1+(v1-Math.sqrt(D))/6; }
+  const hZiel=start.y+v.y*fuse-3*fuse*fuse;
+  /* stotter: drei Aussetzer zu je 0,3 s, die Rakete sackt jedes Mal 0,9 m ab */
+  if(sg==='stotter') fuse+=0.9;
+  if(sg==='knister') later(0.25,()=>sfx.crackle(distVol(o)*0.5));
+  if(FW_LOG) FW_LOG.push({t:FW_UHR,art:opt.kugel?'kugel':'schuss',ang:+ang.toFixed(3),dir:+dir.toFixed(3),x:+start.x.toFixed(2),z:+start.z.toFixed(2),steig:sg,kal:opt.kugel||0,pw:opt.pw||0,sz:opt.sz||1,eff:opt.eff||'?',A:sc[0],B:sc[1],
     stufenEff:(opt.stufen||[]).map(x=>x.eff),
-    hoehe:+(start.y+Math.cos(ang)*up*fuse-3*fuse*fuse).toFixed(2),brueche:1+(opt.stufen?opt.stufen.length:0),
-    groesste:Math.max(opt.sz||1,...(opt.stufen||[]).filter(x=>x.eff!=='salut').map(x=>x.sz)),hell:opt.hell||1});
-  rockets.push({
-    p:start,
-    v:V(Math.sin(dir)*Math.sin(ang)*up,Math.cos(ang)*up,Math.cos(dir)*Math.sin(ang)*up),
-    fuse,
+    hoehe:+(hZiel-(sg==='stotter'?2.7:0)).toFixed(2),brueche:1+(opt.stufen?opt.stufen.length:0),fuse:+fuse.toFixed(3),tag:opt.tag||FW_TAG,ton:opt.ton,
+    groesste:Math.max(opt.sz||1,...(opt.stufen||[]).filter(x=>x.eff!=='salut').map(x=>x.sz||0)),hell:opt.hell||1});
+  /* Schweiffarbe: fest je Aufstieg; manche Aufstiege ziehen die Farbe A oder B */
+  const spurAB=STEIG_SPUR_AB[sg];
+  const r={
+    p:start, v, fuse, fuse0:fuse, alter:0, y0:start.y, hZiel, stufeT,
     A:sc[0],B:sc[1],eff:opt.eff||pick(EFF_GROSS),size:opt.sz||1,
-    trail:opt.trail||STEIG_FARBE[opt.steig]||(Math.random()<0.25?FW.silber:FW.gold),
-    /* Aufstieg je Phase festgelegt (Engine v2): knister, blink, wirbel,
-       komet, keiner - vorher gewuerfelt Gold/Silber */
-    steig:opt.steig||null, bruchOpt:opt.bruchOpt||null,
+    trail:opt.trail||(spurAB?sc[spurAB]:STEIG_FARBE[sg])||(Math.random()<0.25?FW.silber:FW.gold),
+    /* Aufstieg je Phase festgelegt (Engine v2) - vorher gewuerfelt */
+    steig:sg, bruchOpt:opt.bruchOpt||null,
     /* Nachbrueche: Tochterbomben, die nach dem Hauptbruch aufgehen */
-    stufen:opt.stufen||null, dick:opt.dick||0,
+    stufen:opt.stufen||null, dick:opt.dick||(sg==='stamm'?2:0),
     /* pfeif: die Rakete zieht eine Spirale und heult beim Steigen */
     pfeif:!!opt.pfeif, ph:Math.random()*6,
     /* hell: Helligkeit aus der Steigerung einer Show */
-    hell:opt.hell||1
-  });
+    hell:opt.hell||1,
+    /* Zusatz fuer Bruch und Aufstieg */
+    par:opt.par||null, ton:opt.ton, knall:opt.knall||null, text:opt.text||(opt.par&&opt.par.text)||null,
+    C:opt.C||null, kerne:opt.kerne||null, kobana:opt.kobana|0, stehen:opt.stehen||0, kugel:opt.kugel||0,
+    tag:opt.tag||FW_TAG, off:null
+  };
   sfx.thump(distVol(o)*(1+(opt.dick||0)*0.5));
-  if(opt.pfeif) sfx.whistle(distVol(o));
-  else if(!opt.steig&&Math.random()<0.45) sfx.whistle(distVol(o)*0.7);
+  const kl=STEIG_KLANG[sg];
+  if(kl) kl(r,distVol(o));
+  else if(opt.pfeif) sfx.whistle(distVol(o));
+  else if(!sg&&Math.random()<0.45) sfx.whistle(distVol(o)*0.7);
+  if(SCHUSS_EFF[r.eff]){ SCHUSS_EFF[r.eff](r); return r; }
+  rockets.push(r);
+  return r;
 }
-const STEIG_FARBE={gold:[1,.72,.3],silber:[.85,.88,.95],glut:[1,.42,.12],knister:[1,.8,.45],blink:[.95,.97,1],wirbel:[1,.75,.35],komet:[1,.8,.4]};
+/* Schweiffarbe je Aufstieg. Neu am 26.09. (neue-effekte.md Abschnitt 2):
+   jeder Aufstieg sieht anders aus, damit man die Rakete schon am
+   Steigen erkennt. */
+const STEIG_FARBE={gold:[1,.72,.3],silber:[.85,.88,.95],glut:[1,.42,.12],knister:[1,.8,.45],blink:[.95,.97,1],wirbel:[1,.75,.35],komet:[1,.8,.4],
+  pfeif:[1,.8,.45],stamm:[1,.7,.26],tonleiter:[.86,.92,1],dreiklang:[.8,.9,1],tremolant:[.69,.44,.12],pfeil:[1,1,1],brokat:[1,.82,.48],
+  rieselschweif:[.88,.93,1],stotter:[.62,.36,.14],spektralschweif:[1,.13,.1],ratter:[1,1,1],titanspur:[1,1,1],perlenschnur:[.8,.86,.95],
+  drachenschweif:[1,.35,.08],zweistufe:[1,.72,.3],blasen:[.55,.75,1],silberdrache:[.86,.9,1],ticktack:[1,.74,.28]};
+/* Diese Aufstiege ziehen eine Farbe der Rakete statt einer festen (0 = A, 1 = B) */
+const STEIG_SPUR_AB={farbspur:0,zickzack:0,glasklang:1,schleife:0,wirbel:0};
+/* =========================================================
+   Aufstiege (steig), neu am 26.09. nachts (Tom: "jedes Produkt eine
+   Anomalie"). Jeder Aufstieg hat ein eigenes Bild:
+     vor(r,dt)       - Flug aendern, bevor sich die Rakete bewegt
+                       (Knick, Aussetzer, Stufe)
+     spur(r,dt,ort)  - Schweif; ort() liefert einen Zufallspunkt auf
+                       der Strecke dieses Bildes (keine Perlenketten)
+   r.off ist ein sichtbarer Versatz (Schlangenlinie, Schraube, Zittern):
+   der Schweif und der Bruch sitzen dort, die Flugbahn bleibt.
+   Mengen je Sekunde (nie je Bild) und mal QUAL().
+   ========================================================= */
+/* wie viele Teilchen in diesem Bild faellig sind (Rate je Sekunde) */
+function jeSek(r,k,rate,dt){ r[k]=(r[k]||0)+dt*rate*QUAL(); const n=Math.floor(r[k]); r[k]-=n; return n; }
+/* einfacher Klick-/Pfeifton fuer die Vorgaben der Aufstiegsklaenge */
+function steigTon(f,dur,vol,f2,typ){ if(typeof tone==='function') tone(f,dur,typ||'sine',vol,f2); }
+const SPEKTRUM=['rot','orange','zitrone','gruen','tuerkis','blau','violett'];
+function spektrumFarbe(u){ const x=clamp(u,0,1)*(SPEKTRUM.length-1), i=Math.min(SPEKTRUM.length-2,Math.floor(x)); return mischF(K(SPEKTRUM[i]),K(SPEKTRUM[i+1]),x-i); }
+/* Einheitsvektor quer zur Flugrichtung (fuer Knicke und Funkenstoesse) */
+function querZu(v){ const l=Math.hypot(v.x,v.z); return l>0.3?[v.z/l,0,-v.x/l]:[1,0,0]; }
+const STEIG_ART={
+  /* Wirbel: weite, langsame Farbspirale (Farbe A), Glitzer ohne geraden Schweif */
+  wirbel:{spur(r,dt){ r.ph+=dt*11; const sx=Math.cos(r.ph)*0.5, sz=Math.sin(r.ph)*0.5, c=r.trail, p=r.p;
+    for(let n=jeSek(r,'a',200,dt);n>0;n--) psMid.emit(p.x+sx+rand(-.05,.05),p.y+rand(-.1,.1),p.z+sz+rand(-.05,.05),sx*1.6,rand(-1,0),sz*1.6,c[0],c[1],c[2],rand(0.5,0.8),1,4); }},
+  /* Pfeif: enge, schnelle Schraube aus weissen Funken, duenner Goldfaden */
+  pfeif:{spur(r,dt,ort){ r.ph+=dt*28; const sx=Math.cos(r.ph)*0.16, sz=Math.sin(r.ph)*0.16, p=r.p;
+    for(let n=jeSek(r,'a',200,dt);n>0;n--) psMid.emit(p.x+sx,p.y,p.z+sz,sx*4,rand(-1.5,-0.5),sz*4,1.3,1.3,1.25,rand(0.2,0.35),1,0);
+    const c=r.trail; for(let n=jeSek(r,'b',60,dt);n>0;n--){ const q=ort(); psMid.emit(q[0],q[1],q[2],rand(-.2,.2),rand(-1,0),rand(-.2,.2),c[0],c[1],c[2],0.3,1,0); } }},
+  /* Palmenstamm: dicker Goldschweif, dessen Funken stehen bleiben */
+  stamm:{spur(r,dt,ort){ const c=r.trail;
+    for(let n=jeSek(r,'a',240,dt);n>0;n--){ const q=ort(); psBig.emit(q[0]+rand(-.12,.12),q[1],q[2]+rand(-.12,.12),rand(-.15,.15),rand(-.35,0),rand(-.15,.15),c[0],c[1]*rand(.85,1),c[2],rand(1.0,1.4),0.3,0); }
+    for(let n=jeSek(r,'b',50,dt);n>0;n--){ const q=ort(); psMid.emit(q[0],q[1],q[2],rand(-.8,.8),rand(-2,-.5),rand(-.8,.8),1,.62,.2,rand(0.6,1.1),3,4); } }},
+  /* Tonleiter: Pfeifspirale in Silber, gleichmaessig */
+  tonleiter:{spur(r,dt,ort){ r.ph+=dt*16; const sx=Math.cos(r.ph)*0.35, sz=Math.sin(r.ph)*0.35, c=r.trail, p=r.p, o=r.off||[0,0,0];
+    for(let n=jeSek(r,'a',180,dt);n>0;n--) psMid.emit(p.x+o[0]+sx,p.y+o[1],p.z+o[2]+sz,sx*2,rand(-1.5,0),sz*2,c[0],c[1],c[2],rand(0.45,0.75),1,0);
+    for(let n=jeSek(r,'b',70,dt);n>0;n--){ const q=ort(); psBig.emit(q[0],q[1],q[2],rand(-.3,.3),rand(-1,0),rand(-.3,.3),.9,.95,1,0.3,1,4); } }},
+  /* Dreiklang: Pfeifspirale, deren Weite zweimal springt (Grundton, Terz,
+     Quinte) - an jedem Sprung ein kleiner Funkenring */
+  dreiklang:{spur(r,dt,ort){ const st=Math.min(2,Math.floor(r.alter/r.fuse0*3));
+    if(st!==r.st){ if(r.st!==undefined){ const p=r.p; for(let k=0;k<Math.round(14*QUAL());k++){ const a=k/14*Math.PI*2; psSmall.emit(p.x,p.y,p.z,Math.cos(a)*3,rand(-.5,.5),Math.sin(a)*3,1,1,1,0.3,1,0); } } r.st=st; }
+    const rad=[0.18,0.42,0.72][st]; r.ph+=dt*(16-st*3); const sx=Math.cos(r.ph)*rad, sz=Math.sin(r.ph)*rad, c=r.trail, p=r.p;
+    for(let n=jeSek(r,'a',200,dt);n>0;n--) psMid.emit(p.x+sx,p.y,p.z+sz,sx*2,rand(-1.5,0),sz*2,c[0],c[1],c[2],rand(0.45,0.75),1,0); }},
+  /* Farbspur: farbige Flamme direkt hinter dem Kopf, flackert 12 Hz,
+     kaum Nachleuchten, faerbt die Umgebung */
+  farbspur:{spur(r,dt,ort){ const c=r.trail, k=0.75*(1+0.2*Math.sin(r.alter*Math.PI*24)), v=r.v;
+    /* wenige grosse Flammen - zu viele uebereinander werden weiss statt farbig */
+    for(let n=jeSek(r,'a',45,dt);n>0;n--){ const q=ort(); psHuge.emit(q[0]+rand(-.1,.1),q[1],q[2]+rand(-.1,.1),-v.x*0.06+rand(-.3,.3),-v.y*0.06,-v.z*0.06+rand(-.3,.3),c[0]*k,c[1]*k,c[2]*k,rand(0.12,0.2),0,0); }
+    /* Flammenkoerper: dichte Farbfunken, 1-1,5 m lang, kaum Nachleuchten */
+    for(let n=jeSek(r,'b',200,dt);n>0;n--){ const q=ort(); psBig.emit(q[0]+rand(-.15,.15),q[1]-rand(0,1.2),q[2]+rand(-.15,.15),rand(-.4,.4),rand(-1,0),rand(-.4,.4),c[0]*k,c[1]*k,c[2]*k,rand(0.1,0.15),0,0); }
+    if(FW_UHR-(STEIG_ART.farbspur.licht||-9)>0.3){ STEIG_ART.farbspur.licht=FW_UHR; flash(r.p,c,0.9,0.35); } }},
+  /* Tremolant: dunkler Kohleschweif, jeder Funke blitzt einmal weiss auf */
+  tremolant:{spur(r,dt,ort){ const c=r.trail;
+    for(let n=jeSek(r,'a',90,dt);n>0;n--){ const q=ort(), w=[rand(-.4,.4),rand(-1.2,0),rand(-.4,.4)], d=rand(0.3,0.6), g=2;
+      psMid.emit(q[0],q[1],q[2],w[0],w[1],w[2],c[0],c[1],c[2],d,g,0);
+      later(d,()=>{ const e=bahnOrt({x:q[0],y:q[1],z:q[2]},w,g,d); psSmall.emit(e.x,e.y,e.z,0,0,0,1.8,1.8,1.7,rand(0.03,0.05),0,0); psMid.emit(e.x,e.y,e.z,0,0,0,1.6,1.6,1.5,0.05,0,0); }); } }},
+  /* Schleife: zwei parallele Baender A und B, 0,3 m auseinander, zum
+     Schluss verschnuert */
+  schleife:{spur(r,dt,ort){ const w=0.15*Math.min(1,r.fuse/0.3);
+    for(let n=jeSek(r,'a',90,dt);n>0;n--){ const q=ort(); psMid.emit(q[0]-w,q[1],q[2],rand(-.1,.1),rand(-.8,0),rand(-.1,.1),r.A[0],r.A[1],r.A[2],0.8,3,0); }
+    for(let n=jeSek(r,'b',90,dt);n>0;n--){ const q=ort(); psMid.emit(q[0]+w,q[1],q[2],rand(-.1,.1),rand(-.8,0),rand(-.1,.1),r.B[0],r.B[1],r.B[2],0.8,3,0); } }},
+  /* Zickzack: zwei harte Knicke bei 35 und 65 Prozent, Funkenstoss zur Gegenseite */
+  zickzack:{vor(r){ const k=r.kn||0; if(k>=2||r.alter<r.fuse0*[0.35,0.65][k]) return;
+      /* Knick 1 kippt die Bahn um 12-18 Grad zur einen Seite, Knick 2 ebenso weit zur anderen */
+      r.kn=k+1; if(!r.qv){ r.qv=querZu(r.v); r.zs=Math.random()<0.5?-1:1; }
+      const qv=r.qv, s=k?-r.zs:r.zs, lat=r.v.x*qv[0]+r.v.z*qv[2], neu=r.v.y*Math.tan(rand(0.21,0.31))*s;
+      r.v.x+=qv[0]*(neu-lat); r.v.z+=qv[2]*(neu-lat); const p=r.p;
+      for(let i=0;i<Math.round(22*QUAL());i++) psMid.emit(p.x,p.y,p.z,-qv[0]*s*rand(3,7)+rand(-1,1),rand(-2,1),-qv[2]*s*rand(3,7)+rand(-1,1),1,.85,.5,rand(0.2,0.4),3,0);
+      sfx.crack(distVol(p)*0.35); },
+    spur(r,dt,ort){ const c=r.trail; for(let n=jeSek(r,'a',170,dt);n>0;n--){ const q=ort(); psBig.emit(q[0],q[1],q[2],rand(-.4,.4),rand(-2,0),rand(-.4,.4),c[0],c[1],c[2],0.35,1,4); } }},
+  /* Pfeil: duenner, grellweisser Strich ohne Funken, leuchtet 0,4 s nach */
+  pfeil:{spur(r,dt,ort){ for(let n=jeSek(r,'a',260,dt);n>0;n--){ const q=ort(); psSmall.emit(q[0],q[1],q[2],0,0,0,1.7,1.7,1.7,0.4,0,0); } }},
+  /* Brokat: dichter heller Goldschweif, flimmert, Funken fallen normal */
+  brokat:{spur(r,dt,ort){ const c=r.trail; for(let n=jeSek(r,'a',220,dt);n>0;n--){ const q=ort(); psBig.emit(q[0],q[1],q[2],rand(-.6,.6),rand(-2,0),rand(-.6,.6),c[0],c[1],c[2],0.8,3,4); } }},
+  /* Rieselschweif: Titanfunken tropfen senkrecht ab - Vorhang unter der Bahn */
+  rieselschweif:{spur(r,dt,ort){ const c=r.trail; for(let n=jeSek(r,'a',190,dt);n>0;n--){ const q=ort(); psMid.emit(q[0],q[1],q[2],rand(-.08,.08),rand(-4,-2),rand(-.08,.08),c[0],c[1],c[2],1.5,3,0); } }},
+  /* Glasklang: duenner, ruhiger, eisblauer Schweif */
+  glasklang:{spur(r,dt,ort){ const c=r.trail; for(let n=jeSek(r,'a',100,dt);n>0;n--){ const q=ort(); psMid.emit(q[0],q[1],q[2],0,rand(-.3,0),0,c[0],c[1],c[2],0.5,0.5,0); } }},
+  /* Stotter: dreimal geht der Antrieb aus, die Rakete sackt ab und pupst sich weiter */
+  stotter:{vor(r,dt){ const T0=r.fuse0-0.9;
+      if(!r.stall&&(r.stn||0)<3&&r.alter>=T0*((r.stn||0)+1)/4+0.3*(r.stn||0)){ r.stall={bis:r.alter+0.3,v:r.v.clone()}; r.v.set(r.v.x*0.15,-3,r.v.z*0.15); r.stn=(r.stn||0)+1; }
+      if(r.stall){ if(r.alter>=r.stall.bis){ r.v.copy(r.stall.v); r.stall=null; const p=r.p;
+          for(let i=0;i<Math.round(30*QUAL());i++){ const d=randDir(), c=i%2?FW.braun:FW.kot; psMid.emit(p.x,p.y-0.2,p.z,d[0]*3,d[1]*2-1.5,d[2]*3,c[0]*1.6,c[1]*1.6,c[2]*1.6,rand(0.5,1.0),2,0); }
+          for(let i=0;i<Math.round(8*QUAL());i++) psBig.emit(p.x+rand(-.3,.3),p.y-0.3,p.z+rand(-.3,.3),rand(-.3,.3),rand(0,.4),rand(-.3,.3),.3,.26,.2,rand(1,1.6),-0.2,0);
+          if(sfx.pfffft) sfx.pfffft(distVol(p)*[0.6,0.8,1][Math.min(2,r.stn-1)]); }
+        else r.v.y+=6*dt; } },
+    spur(r,dt,ort){ if(r.stall) return; for(let n=jeSek(r,'a',70,dt);n>0;n--){ const q=ort(), c=mischF(FW.braun,FW.orange,Math.random()); psMid.emit(q[0],q[1],q[2],rand(-.3,.3),rand(-1,0),rand(-.3,.3),c[0]*1.4,c[1]*1.4,c[2]*1.4,0.5,2,0); } }},
+  /* Spektralschweif: die Farbe laeuft mit der Hoehe von Rot bis Violett,
+     die Funken stehen 1,5 s - ein senkrechter Regenbogenstrich */
+  spektralschweif:{spur(r,dt,ort){ const H=Math.max(1,r.hZiel-r.y0);
+    for(let n=jeSek(r,'a',260,dt);n>0;n--){ const q=ort(), c=spektrumFarbe((q[1]-r.y0)/H); psBig.emit(q[0]+rand(-.1,.1),q[1],q[2]+rand(-.1,.1),rand(-.1,.1),rand(-.2,0),rand(-.1,.1),c[0],c[1],c[2],1.5,0.25,0); } }},
+  /* Ratter: weisser Schweif, 13,5-mal je Sekunde an und aus, die Rakete zittert */
+  ratter:{spur(r,dt,ort){ r.off=[rand(-.05,.05),0,rand(-.05,.05)]; const an=(r.alter*13.5)%1<0.5;
+    for(let n=jeSek(r,'a',340,dt);n>0;n--){ if(!an) continue; const q=ort(); psBig.emit(q[0],q[1],q[2],rand(-.2,.2),rand(-.6,0),rand(-.2,.2),1.2,1.2,1.2,0.28,0.5,0); } }},
+  /* Titanspur: dicker, grellweisser Titanschweif, kurze harte Funken zur
+     Seite; stehen:s = die Linie bleibt als Funkenvorhang */
+  titanspur:{spur(r,dt,ort){ const l=r.v.length()||1, d=[-r.v.x/l,-r.v.y/l,-r.v.z/l];
+    for(let n=jeSek(r,'a',320,dt);n>0;n--){ const q=ort(), e=streu(d,0.44), w=rand(6,10), c=Math.random()<0.5?[1,1,1]:[.87,.91,1]; psMid.emit(q[0],q[1],q[2],e[0]*w,e[1]*w,e[2]*w,c[0]*1.3,c[1]*1.3,c[2]*1.3,rand(0.5,1.0),4,0); }
+    if(r.stehen) for(let n=jeSek(r,'b',140,dt);n>0;n--){ const q=ort(); psSmall.emit(q[0],q[1],q[2],rand(-.1,.1),0,rand(-.1,.1),1,1,1,r.stehen*rand(0.8,1.2),0.3,4); } }},
+  /* Perlenschnur: alle 3 m bleibt eine weisse Perle stehen - eine Leiter aus Licht */
+  perlenschnur:{spur(r,dt,ort){ const c=r.trail; for(let n=jeSek(r,'a',70,dt);n>0;n--){ const q=ort(); psBig.emit(q[0],q[1],q[2],rand(-.3,.3),rand(-1,0),rand(-.3,.3),c[0],c[1],c[2],0.3,1,4); }
+    if(r.perleY===undefined) r.perleY=r.y0; if(r.p.y-r.perleY>=3){ r.perleY+=3; const p=r.p;
+      for(let k=0;k<2;k++) psHuge.emit(p.x,r.perleY,p.z,0,0,0,1.2,1.2,1.25,2.5,0,0);
+      steigTon(2400,0.12,0.02*distVol(p),2500); } }},
+  /* Drachenschweif: dicker Flammenschweif, Schlangenlinie, Glutfetzen */
+  drachenschweif:{spur(r,dt,ort){ const qv=querZu(r.v), s=0.6*Math.sin(r.alter*Math.PI*3); r.off=[qv[0]*s,0,qv[2]*s];
+    const c=r.trail, v=r.v; for(let n=jeSek(r,'a',100,dt);n>0;n--){ const q=ort(); psHuge.emit(q[0],q[1],q[2],-v.x*0.15+rand(-.4,.4),-v.y*0.15,-v.z*0.15+rand(-.4,.4),c[0]*1.4,c[1]*1.4,c[2]*1.4,rand(0.2,0.3),-0.5,0); }
+    for(let n=jeSek(r,'b',15,dt);n>0;n--){ const q=ort(), b=FW.bernstein; psBig.emit(q[0],q[1],q[2],rand(-1,1),rand(-1,0.5),rand(-1,1),b[0],b[1],b[2],1.2,3,4); } }},
+  /* Zweistufe: Goldschweif, bei der Haelfte Stufentrennung mit Blitz, dann
+     1,3-mal schneller mit blauweissem Schweif, die leere Stufe faellt zurueck */
+  zweistufe:{vor(r){ if(!r.stufe2&&r.alter>=r.stufeT){ r.stufe2=true; r.v.multiplyScalar(1.3); const p=r.p;
+      flash(p,[1,1,1],3,0.25); sfx.thump(distVol(p)*1.2);
+      for(let i=0;i<Math.round(20*QUAL());i++){ const a=Math.random()*Math.PI*2; psMid.emit(p.x,p.y,p.z,Math.cos(a)*5,rand(-1,1),Math.sin(a)*5,1,.9,.7,rand(0.3,0.5),3,0); }
+      psHuge.emit(p.x,p.y,p.z,r.v.x*0.1,r.v.y*0.1,r.v.z*0.1,1,.45,.1,1.6,6,0); } },
+    spur(r,dt,ort){ const c=r.stufe2?[.7,.85,1]:r.trail; for(let n=jeSek(r,'a',r.stufe2?220:160,dt);n>0;n--){ const q=ort(); psBig.emit(q[0],q[1],q[2],rand(-.4,.4),rand(-2,0),rand(-.4,.4),c[0],c[1],c[2],0.35,1,r.stufe2?0:4); } }},
+  /* Blasen: statt Schweif steigen blassblaue Ringe auf und wackeln */
+  blasen:{spur(r,dt,ort){ const c=r.trail;
+    for(let n=jeSek(r,'a',16,dt);n>0;n--){ const q=ort(), R=rand(0.3,0.55), w=[rand(-.25,.25),rand(0.5,1),rand(-.25,.25)], L=rand(0.8,1.2);
+      for(let k=0;k<12;k++){ const a=k/12*Math.PI*2; psMid.emit(q[0]+Math.cos(a)*R,q[1]+Math.sin(a)*R,q[2],w[0],w[1],w[2],c[0]*1.3,c[1]*1.3,c[2]*1.3,L,0,0); } }
+    if(jeSek(r,'b',5,dt)) steigTon(260,0.06,0.03*distVol(r.p),420); }},
+  /* Silberdrache: dicker Silberschweif, der Kopf fliegt eine enge Schraube,
+     die Spur bleibt 1,2 s stehen und glitzert */
+  silberdrache:{spur(r,dt,ort){ const a=r.alter*Math.PI*4; r.off=[Math.cos(a)*0.6,0,Math.sin(a)*0.6]; const c=r.trail;
+    for(let n=jeSek(r,'a',260,dt);n>0;n--){ const q=ort(); psBig.emit(q[0],q[1],q[2],rand(-.15,.15),rand(-.3,0),rand(-.15,.15),c[0],c[1],c[2],1.2,0.4,4); } }},
+  /* Ticktack: Goldspur pulst genau 4-mal je Sekunde (0,12 s an, 0,13 s aus) */
+  ticktack:{spur(r,dt,ort){ const an=(r.alter%0.25)<0.12;
+    if(an&&!r.tk){ r.tn=(r.tn||0)+1; steigTon(r.tn%2?2000:1500,0.015,0.04*distVol(r.p),null,'square'); } r.tk=an;
+    const c=r.trail; for(let n=jeSek(r,'a',280,dt);n>0;n--){ if(!an) continue; const q=ort(); psBig.emit(q[0],q[1],q[2],rand(-.3,.3),rand(-1,0),rand(-.3,.3),c[0],c[1],c[2],0.3,1,0); } }}
+};
+/* Kobana: bei 1/3, 1/2 und 2/3 der Steigzeit geht seitlich eine kleine
+   Bluete auf (abwechselnd links und rechts, 3 m neben der Bahn) */
+function kobanaSchritt(r){
+  const f=[1/3,1/2,2/3], k=r.kob||0; if(k>=Math.min(3,r.kobana)||r.alter<r.fuse0*f[k]) return;
+  r.kob=k+1; const qv=querZu(r.v), s=k%2?-3:3, p={x:r.p.x+qv[0]*s,y:r.p.y,z:r.p.z+qv[2]*s}, c=r.kerne&&r.kerne[3]||r.C||r.B;
+  for(let i=0;i<Math.round(12*QUAL());i++){ const d=randDir(), w=rand(2.6,3); psBig.emit(p.x,p.y,p.z,d[0]*w,d[1]*w,d[2]*w,c[0],c[1],c[2],0.8,1,0); }
+  psHuge.emit(p.x,p.y,p.z,0,0,0,1,1,1,0.1,0,0); sfx.thump(distVol(p)*0.5);
+}
+/* Vorgaben fuer die Aufstiegsklaenge (Stufe 1: aus tone/noise gebaut,
+   die Klangbauer duerfen jeden Eintrag durch tonGen ersetzen).
+   r.ton: Halbtoene relativ 1,6 kHz oder 'fallend'; par.gleit: tief, fallend */
+Object.assign(STEIG_KLANG,{
+  pfeif(r,v){ if(r.ton==='fallend') steigTon(2600,r.fuse,0.035*v,900); else if(typeof r.ton==='number'){ const f=1600*Math.pow(2,r.ton/12); steigTon(f*0.6,r.fuse,0.035*v,f); } else sfx.whistle(v); },
+  tonleiter(r,v){ const f=1600*Math.pow(2,(typeof r.ton==='number'?r.ton:0)/12);
+    if(r.par&&r.par.gleit) steigTon(f*0.7,2.5,0.035*v,f*0.7*Math.pow(2,-5/12)); else steigTon(f,r.fuse,0.035*v,f*Math.pow(2,2/12)); },
+  dreiklang(r,v){ const f=1600*Math.pow(2,(typeof r.ton==='number'?r.ton:0)/12), T=r.fuse/3;
+    [0,4,7].forEach((h,i)=>later(i*T,()=>steigTon(f*Math.pow(2,h/12),T,0.03*v,f*Math.pow(2,h/12)*1.001))); },
+  pfeil(r,v){ sfx.crack(v*1.3); muendungsblitz(r.p,r.p.y,2.5); steigTon(3200,0.3,0.02*v,3600); },
+  glasklang(r,v){ steigTon(1750,r.fuse,0.02*v,1750); steigTon(1753,r.fuse,0.02*v,1753); },
+  ratter(r,v){ if(typeof flattern==='function') flattern(1250,1150,r.fuse,0.05*v,14); },
+  drachenschweif(r,v){ if(typeof grollen==='function') grollen(r.fuse+0.2,0.3*v,300,r.fuse*0.8); },
+  zweistufe(r,v){ sfx.fizz(v*0.8); },
+  silberdrache(r,v){ if(typeof grollen==='function') grollen(r.fuse,0.18*v,500,0.3); },
+  brokat(r,v){ sfx.fizz(v); }, titanspur(r,v){ sfx.fizz(v); later(0.3,()=>sfx.crackle(v*0.3)); }
+});
 /* =========================================================
    Kugelbombe: schwerer Aufstieg aus dem Moerser, oben ein
    grosser Hauptbruch und danach die Tochterbrueche.
@@ -1236,12 +1502,14 @@ function kugelbombe(o,kal,opt){
   const K4=Math.max(1,Math.min(5,kal|0));
   const TH=['herz','glut','himmel','zorn','silber'][K4-1];
   const [A,B]=opt.A?[opt.A,opt.B||opt.A]:themaPaar(TH,0);
-  /* vorher 1,6 bis 3,4 - jetzt deutlich groesser */
-  const groesse=[2.1,2.7,3.3,4.0,4.8][K4-1];
+  /* vorher 1,6 bis 3,4 - jetzt deutlich groesser. Sorten aus KUGEL
+     geben Groesse, Steigen und Zuendzeit selbst vor (26.09.) - das
+     Kaliber bestimmt dann nur Moerser, Knall und Wackeln. */
+  const groesse=opt.sz||[2.1,2.7,3.3,4.0,4.8][K4-1];
   /* Bruchhoehe etwa 26, 30, 34, 38 und 45 m - ueber jeder Batterie,
      und hoch genug, dass der groessere Bruch nicht den Boden streift */
-  const steig=[2,4,6,8,11][K4-1];
-  const zuend=[1.7,1.85,2.0,2.15,2.3][K4-1];
+  const steig=opt.pw!==undefined?opt.pw:[2,4,6,8,11][K4-1];
+  const zuend=opt.fuse||[1.7,1.85,2.0,2.15,2.3][K4-1];
   /* Abschussknall und Muendungsfeuer im Rohr */
   const v0=distVol(o);
   sfx.boom(Math.min(1.5,v0*(0.6+0.2*K4)));
@@ -1252,39 +1520,54 @@ function kugelbombe(o,kal,opt){
     psMid.emit(o.x,o.y+(o.ab!==undefined?o.ab:0.3),o.z,Math.cos(a)*w,rand(5,13),Math.sin(a)*w,1,.78,.34,rand(0.5,1.2),7,4);
   }
   /* jede Kugel hat ein Hauptbild, das es sonst nirgends gibt */
-  const haupt=opt.eff||['herz','drachenblut','weltenbrand','zehnfach','himmelsbrecher'][K4-1];
+  let haupt=opt.eff||['herz','drachenblut','weltenbrand','zehnfach','himmelsbrecher'][K4-1];
   const [C,D]=themaPaar(TH,1);
-  /* opt.stufen: eigene Nachbrueche fuer Sorten mit anderem Hauptbild */
-  const stufen=opt.stufen?opt.stufen.slice():[];
-  if(!opt.stufen&&K4===1){
+  /* opt.stufen: eigene Nachbrueche fuer Sorten mit anderem Hauptbild.
+     stufenRel: sz relativ zur Bruchgroesse (KUGEL, bombStufen). Farben
+     duerfen FW-Namen sein. */
+  const fb=x=>typeof x==='string'?K(x):x;
+  const stufen=opt.stufen?opt.stufen.filter(x=>x&&typeof x==='object').map(x=>{ const st=Object.assign({},x);
+    if(opt.stufenRel) st.sz=(st.sz||0.5)*groesse; if(st.A) st.A=fb(st.A); if(st.B) st.B=fb(st.B); if(st.t===undefined) st.t=0.5; return st; }):[];
+  /* mehrschlag (italienische Zylinderbombe): bricht schlaege-mal, jeder
+     Schlag 0,55-0,7 s nach dem vorigen und 6-8 m hoeher, Bild je Schlag
+     aus den Stufen (Namen); 'schlussschlag' = Salut mit Titanwolke */
+  if(haupt==='mehrschlag'){
+    const bilder=(opt.stufen||[]).map(x=>typeof x==='string'?x:x&&x.eff).filter(Boolean), n=Math.max(1,opt.schlaege||bilder.length||1);
+    haupt=bilder[0]||'chrys'; stufen.length=0; let t=0, y=0;
+    for(let k=1;k<n;k++){ t+=rand(0.55,0.7); y+=rand(6,8); const e=bilder[k]||bilder[bilder.length-1]||'chrys';
+      stufen.push({t,eff:e,sz:groesse*(e==='schlussschlag'?1:0.8+0.06*k),off:[0,y,0],A:k%2?B:A,B:k%2?A:B}); }
+  }
+  if(!opt.stufen&&opt.eff!=='mehrschlag'&&K4===1){
     /* zwei kleinere Herzen im selben Mittelpunkt - bum-bum */
     stufen.push({t:0.5,eff:'herz',sz:groesse*0.62,streu:0,A:C,B:A});
     stufen.push({t:0.8,eff:'herz',sz:groesse*0.4,streu:0,A,B:C});
   }
-  if(!opt.stufen&&K4===2){
+  if(!opt.stufen&&opt.eff!=='mehrschlag'&&K4===2){
     /* Kern und Aussenschale gehen mit dem Hauptbruch auf, dann faellt
        die ganze Blume als Flammenregen in denselben Farben */
     stufen.push({t:0.04,eff:'pistill',sz:groesse*0.45,streu:0,A:B,B:A,leise:true});
     stufen.push({t:0.08,eff:'kugel',sz:groesse*1.12,streu:0,A:C,B:A,leise:true});
     stufen.push({t:1.3,eff:'flammenregen',sz:groesse*0.75,streu:1,A,B});
   }
-  if(!opt.stufen&&K4===3){
+  if(!opt.stufen&&opt.eff!=='mehrschlag'&&K4===3){
     /* Kern im Hauptbruch, dann vier gleiche Toechter im Kranz */
     stufen.push({t:0.04,eff:'pistill',sz:groesse*0.42,streu:0,A:C,B:D,leise:true});
     ringLage(4,9).forEach((off,i)=>stufen.push({t:0.55,off,leise:i>0,eff:'kugel',sz:groesse*0.36,A:C,B:D}));
   }
-  if(!opt.stufen&&K4===4){
+  if(!opt.stufen&&opt.eff!=='mehrschlag'&&K4===4){
     /* der Zehnfachbruch: zehn gleiche Pistillen im Kranz um die Ringkugel */
     ringLage(10,11).forEach((off,i)=>stufen.push({t:0.5,off,leise:i>0,eff:'pistill',sz:groesse*0.3,A:i%2?C:A,B:i%2?D:B}));
   }
-  if(!opt.stufen&&K4===5){
+  if(!opt.stufen&&opt.eff!=='mehrschlag'&&K4===5){
     /* Silberbruch mit goldener Haengeweide im selben Punkt, dann zwoelf
        Dahlien im Kranz. Alles Silber, Weiss und Gold. */
     stufen.push({t:0.06,eff:'kamuro',sz:groesse*0.8,streu:0,A:FW.gold,B:FW.silber,leise:true});
     ringLage(12,14).forEach((off,i)=>stufen.push({t:0.6,off,leise:i>0,eff:'dahlie',sz:groesse*0.28,A:i%2?C:A,B:i%2?D:B}));
   }
-  shot(o,{pw:steig,sz:groesse,eff:haupt,fuse:zuend,A,B,kugel:K4,
-          trail:K4>=3?FW.weiss:FW.gold,dick:Math.min(3,K4),stufen});
+  const sg=opt.steig||(opt.eff==='mehrschlag'?'gold':undefined);
+  return shot(o,{pw:steig,sz:groesse,eff:haupt,fuse:zuend,A,B,kugel:K4,
+          trail:sg?undefined:K4>=3?FW.weiss:FW.gold,dick:sg?0:Math.min(3,K4),stufen,
+          steig:sg,bruchOpt:opt.bruchOpt,knall:opt.knall,par:opt.par,C:opt.C,kerne:opt.kerne,kobana:opt.kobana,stehen:opt.stehen,tag:opt.tag});
 }
 /* Bodeneffekt: Mine, die beim Start eine Fontäne wirft */
 function mine(o,A,B,s){
@@ -1318,12 +1601,16 @@ function leuchthof(p,c,s,hell){
 }
 function fwBurst(r){
   if(r.eff==='atom'){ atompilz(r.p); return; }
+  const tagAlt=FW_TAG; FW_TAG=r.tag||0;
   const p=r.p, fn=EFF[r.eff]||EFF.kugel, h=r.hell||1;
   /* Helligkeit: die Farben werden kraeftiger, ohne den Farbton zu aendern */
   if(h!==1){ const k=c=>[c[0]*h,c[1]*h,c[2]*h]; r.A=k(r.A); r.B=k(r.B); }
-  mitSchweif(r.eff,()=>fn(p,r.A,r.B,r.size));
+  /* der Bruch bekommt die ganze Rakete mit (par, C, kerne, text, tag, v) */
+  BASIS_LETZT=null;
+  mitSchweif(r.eff,()=>fn(p,r.A,r.B,r.size,r));
+  r.ebene=BASIS_LETZT;
   /* bruchOpt: die Standard-Zutaten abschaltbar, damit nicht jeder
-     Bruch gleich wirkt (Engine v2) */
+     Bruch gleich wirkt (Engine v2). flash: false oder Faktor. */
   const bo=r.bruchOpt||{};
   if(bo.kern!==false) kern(p,r.A,r.size);
   if(bo.kern!==false&&r.size>=1.15&&r.eff!=='salut') leuchthof(p,[(r.A[0]+r.B[0])/2,(r.A[1]+r.B[1])/2,(r.A[2]+r.B[2])/2],r.size,h);
@@ -1333,22 +1620,72 @@ function fwBurst(r){
   if(typeof bruchGesehen==='function') bruchGesehen(r.eff);
   const mix=[(r.A[0]+r.B[0])/2,(r.A[1]+r.B[1])/2,(r.A[2]+r.B[2])/2];
   const lang=r.eff==='weide'||r.eff==='brokat'||r.eff==='kamuro'||r.eff==='zeitregen';
-  flash(p,mix,(2.2+3.4*r.size)*h,lang?1.2:0.6);
-  if(r.eff!=='salut') shellSound(p,r.size);
+  if(bo.flash!==false) flash(p,mix,(2.2+3.4*r.size)*h*(typeof bo.flash==='number'?bo.flash:1),lang?1.2:0.6);
+  /* knall: eigener Bruchklang (herzton, poka) statt des Knalls */
+  if(r.knall&&sfx[r.knall]) later(camera.position.distanceTo(p)/343,()=>sfx[r.knall](distVol(p)));
+  else if(r.eff!=='salut') shellSound(p,r.size);
+  if(FW_LOG&&FW_LOG.brueche) FW_LOG.brueche.push({t:FW_UHR,eff:r.eff,x:+p.x.toFixed(2),y:+p.y.toFixed(2),z:+p.z.toFixed(2),A:r.A,B:r.B,sz:r.size,tag:r.tag,ebene:r.ebene});
   /* Nachbrueche der Kugelbombe */
-  if(r.stufen) for(const st of r.stufen){
-    /* off: feste Lage relativ zum Hauptbruch (Ring), sonst gestreut */
-    const q=st.off?{x:p.x+st.off[0],y:p.y+st.off[1],z:p.z+st.off[2]}
-                  :{x:p.x+rand(-st.streu,st.streu),y:p.y+rand(-st.streu*0.55,st.streu*0.55),z:p.z+rand(-st.streu,st.streu)};
-    later(st.t,()=>{
-      mitSchweif(st.eff,()=>(EFF[st.eff]||EFF.kugel)(q,st.A||r.A,st.B||r.B,st.sz));
-      if(!st.leise) kern(q,st.A||r.A,st.sz);
-      if(st.eff!=='salut'&&!st.leise){
-        flash(q,st.A||mix,1.6+2.2*st.sz,0.5);
-        shellSound(q,st.sz);
-      }
-    });
+  if(r.stufen) for(const st of r.stufen) stufeZuenden(r,st,mix);
+  FW_TAG=tagAlt;
+}
+/* Radius eines Kranzes relativ zur Bruchgroesse (Zehnfachbruch: 11 m bei 4,0) */
+const KRANZ_R=5.2;
+/* Drall: jede Bluete erbt w*r (Spezifikation). Voll geerbt flogen die
+   Blueten 25 m tangential weg - das Rad zerfiel zum Windrad. Mit einem
+   Drittel wandert der Ring sichtbar im Drehsinn und bleibt ein Ring. */
+const DRALL_ERBE=0.35;
+/* Ein Nachbruch (Stufe) einer Kugelbombe. Lagen (Engine v2, 26.09.):
+     off:[x,y,z]      fest neben dem Hauptbruch, sonst streu
+     n + kranz:r      n Brueche auf einem Ring (Radius r x Bruchgroesse x 5,2)
+     kranz:'reif'     auf dem Feuerreif des Hauptbruchs (gleiche Ebene)
+     drall:U/s        der Ring dreht sich (jede Bluete erbt w*r)
+     risse:{strahlen,je,r:[r0,r1],dt,zack}  Brueche auf Risslinien, Ring
+                      fuer Ring nach aussen, je Ring Blitz und Krachen
+     lage:'schirm'    0,35 Schirmradien ueber dem Bruchpunkt
+     dreh             Drehung einer Figur (geht als par.dreh an den Bruch)
+     bruchOpt         Kern/Blitz der Stufe abschaltbar */
+function stufeZuenden(r,st,mix){
+  const p=r.p, A=st.A||r.A, B=st.B||r.B, tag=r.tag||0;
+  const bruch=(q,t,laut,erbe)=>later(t,()=>{
+    const alt=FW_TAG; FW_TAG=tag; FW_ERBE=erbe||null;
+    const rr={p:q,A,B,size:st.sz,eff:st.eff,par:Object.assign({},r.par||{},{dreh:st.dreh}),C:r.C,kerne:r.kerne,kugel:r.kugel,tag,stufe:true};
+    try{ mitSchweif(st.eff,()=>(EFF[st.eff]||EFF.kugel)(q,A,B,st.sz,rr)); } finally { FW_ERBE=null; }
+    const bo=st.bruchOpt||{};
+    if(!st.leise&&bo.kern!==false) kern(q,A,st.sz);
+    if(st.eff!=='salut'&&laut){ if(bo.flash!==false) flash(q,A||mix,1.6+2.2*st.sz,0.5); shellSound(q,st.sz); }
+    if(FW_LOG&&FW_LOG.brueche) FW_LOG.brueche.push({t:FW_UHR,eff:st.eff,x:+q.x.toFixed(2),y:+q.y.toFixed(2),z:+q.z.toFixed(2),A,B,sz:st.sz,tag,stufe:true,erbe:erbe?erbe.map(x=>+x.toFixed(2)):null});
+    FW_TAG=alt; });
+  if(st.risse){
+    const R=st.risse, [u,v]=basisBlick(p,0), a0=Math.random()*Math.PI*2, S=R.strahlen||6, J=R.je||4, r0=(R.r||[8,23])[0], r1=(R.r||[8,23])[1], f=r.size/4.75;
+    for(let k=0;k<J;k++){ const d=(r0+(r1-r0)*(J>1?k/(J-1):0))*f, tk=st.t+k*(R.dt||0.15);
+      for(let l=0;l<S;l++){ const a=a0+l/S*Math.PI*2+rand(-(R.zack||0),R.zack||0);
+        bruch({x:p.x+(u[0]*Math.cos(a)+v[0]*Math.sin(a))*d,y:p.y+(u[1]*Math.cos(a)+v[1]*Math.sin(a))*d,z:p.z+(u[2]*Math.cos(a)+v[2]*Math.sin(a))*d},tk,false); }
+      /* je Ring ein Weissblitz und ein trockenes Krachen, von Ring zu Ring lauter */
+      later(tk,()=>{ flash(p,[1,1,1],2+k,0.25); later(camera.position.distanceTo(p)/343,()=>sfx.crack(distVol(p)*(0.5+0.25*k))); }); }
+    return;
   }
+  if(st.kranz==='reif'){
+    /* Feuerreif des Weltenbrands: Ellipse (u, 0.25 v) mit 11,5 m/s x Groesse */
+    const [u,v]=r.ebene||basisBlick(p,0.9), n=st.n||6;
+    for(let i=0;i<n;i++){ const a=i/n*Math.PI*2, w=11.5*r.size, vel=[(u[0]*Math.cos(a)+v[0]*Math.sin(a)*0.25)*w,(u[1]*Math.cos(a)+v[1]*Math.sin(a)*0.25)*w,(u[2]*Math.cos(a)+v[2]*Math.sin(a)*0.25)*w];
+      bruch(bahnOrt(p,vel,2.6,st.t),st.t,i===0&&!st.leise); }
+    return;
+  }
+  if(st.n>1&&st.kranz){
+    const [u,v]=basisBlick(p,0.35), n=st.n, Rk=st.kranz*KRANZ_R*r.size, om=2*Math.PI*(st.drall||0)*DRALL_ERBE, a0=rand(0,Math.PI*2);
+    for(let i=0;i<n;i++){ const a=a0+i/n*Math.PI*2, c=Math.cos(a), s=Math.sin(a);
+      const q={x:p.x+(u[0]*c+v[0]*s)*Rk,y:p.y+(u[1]*c+v[1]*s)*Rk,z:p.z+(u[2]*c+v[2]*s)*Rk};
+      const erbe=om?[(-u[0]*s+v[0]*c)*om*Rk,(-u[1]*s+v[1]*c)*om*Rk,(-u[2]*s+v[2]*c)*om*Rk]:null;
+      bruch(q,st.t,i===0&&!st.leise,erbe); }
+    return;
+  }
+  if(st.lage==='schirm'){ bruch({x:p.x,y:p.y+0.35*5.5*r.size,z:p.z},st.t,!st.leise); return; }
+  /* off: feste Lage relativ zum Hauptbruch (Ring), sonst gestreut */
+  const sw=st.streu||0;
+  const q=st.off?{x:p.x+st.off[0],y:p.y+st.off[1],z:p.z+st.off[2]}
+                :{x:p.x+rand(-sw,sw),y:p.y+rand(-sw*0.55,sw*0.55),z:p.z+rand(-sw,sw)};
+  bruch(q,st.t,!st.leise);
 }
 /* Kern: der grelle Lichtball im Moment des Zerlegens */
 function kern(p,A,s){
@@ -1539,14 +1876,19 @@ function monsterFontaene(o,hm,dauer,farben,stil){
 }
 function updateFireworks(dt){
   FW_UHR+=dt;
-  for(let i=rockets.length-1;i>=0;i--){ const r=rockets[i];
-    const x0=r.p.x, y0=r.p.y, z0=r.p.z;
-    r.v.y-=6*dt; r.p.addScaledVector(r.v,dt); r.fuse-=dt;
+  for(let i=rockets.length-1;i>=0;i--){ const r=rockets[i]; FW_TAG=r.tag||0;
+    const SA=STEIG_ART[r.steig], o0=r.off||NULL3, x0=r.p.x+o0[0], y0=r.p.y+o0[1], z0=r.p.z+o0[2];
+    if(SA&&SA.vor) SA.vor(r,dt);
+    r.v.y-=6*dt; r.p.addScaledVector(r.v,dt); r.fuse-=dt; r.alter=(r.alter||0)+dt;
+    if(r.kobana) kobanaSchritt(r);
     const tc=r.trail, dick=r.dick||0;
     /* Der Schweif entsteht auf der ganzen Strecke dieses Bildes, nicht
        nur am Endpunkt - sonst reiht er sich bei 30 Bildern je Sekunde
-       als Perlenkette auf (26.09.). Menge je Sekunde, nicht je Bild. */
-    const dx=r.p.x-x0, dy=r.p.y-y0, dz=r.p.z-z0, ort=()=>{ const f=Math.random(); return [x0+dx*f,y0+dy*f,z0+dz*f]; };
+       als Perlenkette auf (26.09.). Menge je Sekunde, nicht je Bild.
+       r.off (Schlangenlinie, Schraube) wird erst beim Aufruf gelesen. */
+    const ort=()=>{ const f=Math.random(), o1=r.off||NULL3; return [x0+(r.p.x+o1[0]-x0)*f,y0+(r.p.y+o1[1]-y0)*f,z0+(r.p.z+o1[2]-z0)*f]; };
+    if(SA){ SA.spur(r,dt,ort); }
+    else {
     r.acc=(r.acc||0)+dt*60*(2+dick*3); r.acc2=(r.acc2||0)+dt*60*dick;
     const sg=r.steig;
     if(sg==='keiner'){ r.acc=0; r.acc2=0; }
@@ -1556,13 +1898,17 @@ function updateFireworks(dt){
     /* Blinkschweif: der Schweif setzt im Takt aus */
     if(sg==='blink'){ r.bt=(r.bt||0)+dt; if((r.bt*7)%1>0.45) r.acc=0; }
     if(r.pfeif||sg==='wirbel'){ r.ph+=dt*16; const sx=Math.cos(r.ph)*0.35, sz=Math.sin(r.ph)*0.35;
-      for(let k=0;k<3;k++) psMid.emit(r.p.x+sx,r.p.y,r.p.z+sz,sx*2,rand(-1.5,0),sz*2,tc[0],tc[1],tc[2],rand(0.4,0.7),1,4); }
+      for(let k=jeSek(r,'pf',180,dt);k>0;k--) psMid.emit(r.p.x+sx,r.p.y,r.p.z+sz,sx*2,rand(-1.5,0),sz*2,tc[0],tc[1],tc[2],rand(0.4,0.7),1,4); }
     for(;r.acc>=1;r.acc--){ const q=ort(); psBig.emit(q[0],q[1],q[2],rand(-.5,.5)*(1+dick*0.4),rand(-2,0),rand(-.5,.5)*(1+dick*0.4),tc[0],tc[1]*rand(0.8,1),tc[2]*0.9,0.34+dick*0.16,1,4); }
     /* Kugelbomben ziehen zusaetzlich glimmende Schlacke hinter sich her */
     for(;r.acc2>=1;r.acc2--){ const q=ort();
       psMid.emit(q[0],q[1],q[2],rand(-1.2,1.2),rand(-3.5,-0.5),rand(-1.2,1.2),1,.62,.2,rand(0.5,1.1),3.2,4); }
-    if(r.fuse<=0){ fwBurst(r); rockets.splice(i,1); } }
-  for(let i=emitters.length-1;i>=0;i--){ const e=emitters[i]; e.t-=dt; const o=e.o||PAD;
+    }
+    if(r.fuse<=0){ if(r.off){ r.p.x+=r.off[0]; r.p.y+=r.off[1]; r.p.z+=r.off[2]; } fwBurst(r); rockets.splice(i,1); } }
+  FW_TAG=0;
+  /* Fontaenen-Phasen: Hoehe, Kegel, Neigung und Ueberblendung je Bild */
+  if(typeof fwTicks==='function') fwTicks(dt);
+  for(let i=emitters.length-1;i>=0;i--){ const e=emitters[i]; e.t-=dt; const o=e.o||PAD; FW_TAG=e.tag||0;
     if(e.k==='fountain'||e.k==='volcano'||e.k==='wasserfall'){
       const big=e.k==='volcano', wf=e.k==='wasserfall', n=big?18:wf?22:10;
       const A=e.A||FW.gold, B=e.B||FW.weiss;
@@ -1685,5 +2031,6 @@ function updateFireworks(dt){
     else { for(let k=0;k<2;k++){ const d=randDir();
         psSmall.emit(o.x,o.y+0.05,o.z,d[0],d[1]+0.4,d[2],1,0.9,0.5,rand(0.2,0.4),4,0); } }
     if(e.t<=0) emitters.splice(i,1); }
+  FW_TAG=0;
   psHuge.update(dt); psBig.update(dt); psMid.update(dt); psSmall.update(dt); updateFlash(dt); wolkenUpdate(dt);
 }

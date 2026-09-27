@@ -40,7 +40,16 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     /* Der Test braucht nur das Schussprotokoll und die Emitter, nicht die
        Partikel selbst: ohne Partikelrechnung laeuft er zehnmal schneller
        (vorher riss der volle Lauf unter Last das Zeitlimit) */
-    [bb.psHuge,bb.psBig,bb.psMid,bb.psSmall].forEach(ps=>{ if(ps){ ps.emit=()=>0; ps.update=()=>0; } });
+    /* Statt der Partikel nur ein Physik-Abdruck je Stoss: System, Lebensdauer,
+       Schwere, Tempo - farbunabhaengig. Damit hat auch Kleinfeuerwerk ohne
+       Schuss und Emitter einen Fingerabdruck (vorher leer = alle gleich). */
+    [['H',bb.psHuge],['B',bb.psBig],['M',bb.psMid],['S',bb.psSmall]].forEach(([nm,ps])=>{ if(!ps) return;
+      ps.emit=function(x,y,z,vx,vy,vz,r,g,b,life,grav){ const L=window.__emiLog; if(!L) return; const sp=Math.hypot(vx,vy,vz);
+        const k=nm+(life<0.4?0:life<1?1:life<2.5?2:3)+(grav<0.5?'a':grav<3?'b':grav<6?'c':'d')+(sp<2?0:sp<6?1:sp<15?2:3); L[k]=(L[k]||0)+1; };
+      ps.update=()=>0; });
+    /* Klang-Abdruck: welche Geraeusche ein Produkt macht */
+    Object.keys(bb.sfx||{}).forEach(k=>{ const f=bb.sfx[k]; if(typeof f!=='function') return;
+      bb.sfx[k]=function(){ if(window.__sfxLog) window.__sfxLog[k]=(window.__sfxLog[k]||0)+1; try{ return f.apply(this,arguments); }catch(e){} }; });
     return Object.keys(P).filter(t=>P[t].cat>0&&(!nur||nur.includes(t))); },nur);
   const r={prod:{},fehler:{},shows:{},FIG:['stern','herz','schneeflocke','smiley','schmetterling','saturn','regenbogen']};
   for(const t of ids0){
@@ -49,13 +58,15 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
         if(/fountain|cylinder/.test(x.shape)&&x.cat===2) return 'fontaene'; return 'klein'; };
       /* Himmel leeren: alle Raketen, Emitter und Partikel des Vorgaengers ausbrennen lassen */
       for(let i=0;i<60&&(bb.rockets.length||bb.emittersListe().length||bb.timersLen()>0);i++) bb.run(0.5,0.25);
-      const log=[]; bb.fwLog(log); const t0=bb.fwUhr; const gesehen=new Set(bb.emittersListe()); const emi=[];
+      const log=[]; bb.fwLog(log); const t0=bb.fwUhr; const gesehen=new Set(bb.emittersListe()); const emi=[]; window.__emiLog={}; window.__sfxLog={};
       try{ bb.igniteType(t); }catch(e){ bb.fwLog(null); return {fehler:e.message}; }
       const dauer=bb.SHOWS[t]?bb.showLength(t)+3:(bb.brennDauer?Math.min(45,bb.brennDauer(t)+3):15);
       for(let s=0;s<dauer;s+=0.25){ bb.run(0.25,0.125); for(const e of bb.emittersListe()){ if(!gesehen.has(e)){ gesehen.add(e); emi.push([+(bb.fwUhr-t0).toFixed(1),e.k]); } } }
       bb.fwLog(null);
       const sh=log.filter(x=>x.art==='schuss'||x.art==='kugel').map(x=>({t:+(x.t-t0).toFixed(2),eff:x.eff,ang:x.ang||0,steig:x.steig||null,stufen:x.stufenEff||[],x:x.x}));
-      const out={prod:{k:klasse(t),lvl:P[t].lvl,name:P[t].name,sh,emi:emi.filter(e=>e[1]!=='fuse'),sig:bb.SIGNATUR&&bb.SIGNATUR[t]?JSON.stringify(bb.SIGNATUR[t]):null}};
+      const EL=window.__emiLog, ges=Object.values(EL).reduce((a,b)=>a+b,0), phys=Object.keys(EL).filter(k=>EL[k]>=Math.max(3,ges*0.02));
+      const snd=Object.keys(window.__sfxLog); window.__emiLog=null; window.__sfxLog=null;
+      const out={prod:{k:klasse(t),lvl:P[t].lvl,name:P[t].name,sh,phys,snd,stoesse:ges,emi:emi.filter(e=>e[1]!=='fuse'),sig:bb.SIGNATUR&&bb.SIGNATUR[t]?JSON.stringify(bb.SIGNATUR[t]):null}};
       if(bb.SHOWS[t]){ const ph=bb.SHOWS[t]();
         out.show={lvl:P[t].lvl,basis:ph.basis||null,ph:ph.map(x=>({n:x.n===undefined?1:x.n,m:x.muster||(x.fan?(x.ang<0?'rfan':'fan'):x.vfan?'vfan':(x.perle?'perle':'gerade')),mit:!!x.mit||x.at!==undefined,boden:!!(x.boden||x.ground),gap:x.takt?Math.min(...x.takt):(x.gap===undefined?0.45:x.gap),eff:Array.isArray(x.eff)?x.eff:[x.eff||x.bombEff||x.perleEff||(x.perle?'perle':'?')]}))}; }
       return out; },t);
@@ -66,16 +77,20 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   const PR=r.prod, ids=Object.keys(PR);
   Object.entries(r.fehler).forEach(([t,e])=>pruef('LAEUFT',false,t+': '+e));
   /* LAEUFT: jedes Produkt zeigt etwas (Schuss oder Emitter); Kleinfeuerwerk darf eigene Wege haben */
-  const leer=ids.filter(t=>PR[t].k!=='klein'&&!PR[t].sh.length&&!PR[t].emi.length);
+  const leer=ids.filter(t=>!PR[t].sh.length&&!PR[t].emi.length&&!PR[t].stoesse);
   pruef('LAEUFT',!leer.length,'zeigt nichts: '+leer.join(', '));
   /* Fingerabdruck: Effekt-Menge, Aufstiege, Emitter, Winkelfolge, Takt */
   const tok=x=>{ const a=Math.abs(x.ang); return x.eff+'|'+(a<0.05?'s':(x.ang<0?'l':'r')+(a>0.35?'2':'1')); };
-  const fp=t=>{ const q=PR[t]; return {eff:new Set(q.sh.map(x=>x.eff).concat(q.sh.flatMap(x=>x.stufen))),steig:new Set(q.sh.map(x=>x.steig).filter(Boolean)),emi:new Set(q.emi.map(e=>e[1])),seq:q.sh.map(tok)}; };
+  const fp=t=>{ const q=PR[t]; return {eff:new Set(q.sh.map(x=>x.eff).concat(q.sh.flatMap(x=>x.stufen))),steig:new Set(q.sh.map(x=>x.steig).filter(Boolean)),emi:new Set(q.emi.map(e=>e[1])),phys:new Set((q.phys||[]).map(x=>'p:'+x)),snd:new Set((q.snd||[]).map(x=>'s:'+x)),seq:q.sh.map(tok)}; };
   const jac=(A,B)=>{ const u=new Set([...A,...B]); if(!u.size) return 1; let s=0; A.forEach(x=>{ if(B.has(x)) s++; }); return s/u.size; };
   const lcs=(a,b)=>{ if(!a.length||!b.length) return a.length===b.length?1:0; const n=Math.min(a.length,160), m=Math.min(b.length,160); let prev=new Array(m+1).fill(0);
     for(let i=1;i<=n;i++){ const cur=[0]; for(let j=1;j<=m;j++) cur[j]=a[i-1]===b[j-1]?prev[j-1]+1:Math.max(prev[j],cur[j-1]); prev=cur; } return prev[m]/Math.max(n,m); };
   const FP={}; ids.forEach(t=>FP[t]=fp(t));
-  const sim=(a,b)=>{ const A=FP[a],B=FP[b]; const ja=jac(new Set([...A.eff,...A.steig,...A.emi]),new Set([...B.eff,...B.steig,...B.emi])); return 0.5*ja+0.5*lcs(A.seq,B.seq); };
+  /* Aehnlichkeit: Jaccard ueber Brueche, Aufstiege, Emitter, Physik- und
+     Klang-Abdruck; dazu die Ablauf-Folge (LCS) - bei Produkten ohne Schuss
+     (Kleinfeuerwerk, Fontaenen) zaehlt nur der Abdruck */
+  const sim=(a,b)=>{ const A=FP[a],B=FP[b], U=X=>new Set([...X.eff,...X.steig,...X.emi,...X.phys,...X.snd]);
+    const ja=jac(U(A),U(B)); return !A.seq.length&&!B.seq.length?ja:0.5*ja+0.5*lcs(A.seq,B.seq); };
   const GRENZE={show:0.45,rakete:0.5,kugel:0.5,fontaene:0.55,klein:0.6};
   const paare=[];
   for(let i=0;i<ids.length;i++) for(let j=i+1;j<ids.length;j++){ const a=ids[i],c=ids[j]; if(PR[a].k!==PR[c].k) continue;

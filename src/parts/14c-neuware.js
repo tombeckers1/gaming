@@ -88,32 +88,15 @@ function neuKugel(t,o){
 }
 
 /* Fontaenen: Art, Dauer, Hoehe, Farben. set: mehrere nacheinander
-   (versetzt), reihe: nebeneinander auf einmal. Keine Ladung. */
+   (versetzt), reihe: nebeneinander auf einmal. Keine Ladung.
+   Die Fontaenen selbst laufen seit dem 26.09. (Tom: Anomalie) in Phasen
+   ueber FONT in 14k-db-fontaenen.js; hier steht nur noch Kleinfeuerwerk. */
 const NEU_FONT={
-  tortenfontaene:{k:'torte',t:8,reihe:['silber','weiss','silber','weiss']},
   stroboblinker :{k:'blinker',t:12,reihe:['weiss','rot','gruen','zitrone']},
   bengalflamme  :{k:'bengal',t:6,set:['blau','violett','magenta']},
-  feuerteufel   :{k:'knisterbrunnen',t:8,A:'gold',B:'orange',h:0.6},
-  leuchtfontaene:{k:'fountain',t:4.5,set:['limette','zitrone','rose','tuerkis']},
-  farbfontaenen :{k:'fountain',t:6,set:['magenta','gruen','blau']},
-  bodenfeuer    :{k:'knisterbrunnen',t:10,A:'orange',B:'gold',h:0.45},
-  zauberbrunnen :{k:'knisterbrunnen',t:20,A:'silber',B:'tuerkis',h:1},
-  feuerberg     :{k:'volcano',t:15,A:'gold',B:'rot'},
-  vulkanfeld    :{k:'volcano',t:8,reihe:['rot','orange','gold']},
-  funkenturm    :{k:'riesen',t:15,A:'weiss',B:'gold',h:0.6},
-  dreiklang     :{k:'volcano',t:7,set:['gold','magenta','tuerkis']},
-  wasserspiel   :{k:'wasserfall',t:6,set:['silber','himmel','silber','tuerkis']},
-  glitzerkaskade:{k:'riesen',t:20,A:'silber',B:'gold',h:0.8},
-  sternfontaene :{k:'sternregen',t:25,A:'gold',B:'violett'},
-  eisblume      :{k:'riesen',t:22,A:'silber',B:'weiss',h:1.2},
-  goldvulkan    :{k:'volcano',t:30,A:'gold',B:'zitrone'},
-  feuerwand     :{k:'volcano',t:14,reihe:['rot','orange','gold','orange','rot']},
-  silberkaskade :{k:'riesen',t:22,A:'silber',B:'weiss',h:1.9},
-  feuerkaskade  :{k:'riesen',t:10,set:['gold','orange','gold'],h:1.4},
   bengalfackel  :{k:'bengal',t:12,A:'rot'},
   bengalduo     :{k:'bengal',t:15,set:['rot','gruen']},
-  bengalholz    :{k:'bengal',t:5,set:['rot','gruen'],klein:true},
-  feuerrad      :{k:'rad',t:12,A:'gold',B:'rot'}
+  bengalholz    :{k:'bengal',t:5,set:['rot','gruen'],klein:true}
 };
 function neuFontaene(t,o){
   const f=NEU_FONT[t]; if(!f) return false;
@@ -243,6 +226,8 @@ function neuZuenden(t,o){
 }
 /* Brenndauer fuer die Station: so lange bleibt die Ware stehen */
 function neuDauer(t){
+  /* Fontaenen in Phasen (FONT, 26.09.): Dauer aus dem Drehbuch plus Nachlauf */
+  if(typeof FONT!=='undefined'&&FONT[t]) return fontDauer(FONT[t])+(FONT[t].nach||0)+1;
   const f=NEU_FONT[t];
   if(f) return (f.set?f.set.length*f.t*0.92:f.t)+(f.reihe?f.reihe.length*0.35:0)+1.5;
   if(NEU_KUGEL[t]) return [3.5,3.5,4.5,5,6.5][NEU_KUGEL[t].kal-1];

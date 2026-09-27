@@ -41,8 +41,9 @@ const P={
     art:{title:'KONFETTI',sub:'Kanone 40 cm',bg1:'#5ce1ff',bg2:'#1557a8',ac:'#ff4fa3',ac2:'#ffe45c'}},
   chips:{name:'Knabberbox',short:'Knabberzeug',cat:0,lvl:7,shape:'boxA',dims:[0.14,0.20,0.06],grid:[10,2,1],box:20,cost:1.00,market:2.49,weight:8,hype:0,risk:3,
     art:{title:'KNABBERBOX',sub:'Salzig & scharf',bg1:'#f28a1c',bg2:'#8a3d06',ac:'#ffffff',ac2:'#e63b2e'}},
-  fontaene:{name:'Feuerquelle · 3er Fontänen-Set',short:'Fontänen',cat:2,lvl:8,shape:'fountainset',dims:[0.22,0.145,0.09],grid:[7,2,1],box:7,cost:3.20,market:7.99,weight:7,hype:12,risk:4,
-    art:{title:'FEUERQUELLE',sub:'3er Fontänen-Set',bg1:'#12735a',bg2:'#063328',ac:'#ffd23f',ac2:'#ff7a3d'}},
+  fontaene:{name:'Feuerquelle · 3 Fontänen, 3 Funkenarten',short:'Feuerquelle',cat:2,lvl:8,shape:'fountainset',dims:[0.22,0.145,0.09],grid:[7,2,1],box:7,cost:3.20,market:7.99,weight:7,hype:12,risk:4,
+    desc:'Drei Fontänen, drei Funkenarten: erst weiches Kohlegold, dann flimmernder Brokat, zum Schluss hartes Titansilber.',
+    art:{title:'FEUERQUELLE',sub:'3 Fontänen · Gold, Brokat, Silber',bg1:'#12735a',bg2:'#063328',ac:'#ffd23f',ac2:'#ff7a3d'}},
   raketen:{name:'Hasenjagd · 20 Hakenschlag-Raketen',short:'Hasenjagd',cat:2,lvl:10,shape:'rocketset',dims:[0.52,0.075,0.20],grid:[3,2,2],box:6,cost:7.50,market:17.99,weight:7,hype:20,risk:6,
     desc:'Die Rakete schlägt schon beim Steigen Haken. Oben flüchten dicke Farbsterne kreuz und quer, jeder mit zwei scharfen Richtungswechseln.',
     art:{title:'HASENJAGD',sub:'20 Hakenschlag-Raketen',bg1:'#35157a',bg2:'#0c0626',ac:'#ffd23f',ac2:'#ff4fa3'}},
@@ -53,8 +54,9 @@ const P={
     art:{title:'ORAKEL',sub:'Wachsgießen',bg1:'#6a24c9',bg2:'#25093f',ac:'#ffd23f',ac2:'#5ce1ff'}},
   kindersekt:{name:'Kindersekt',short:'Kindersekt',cat:0,lvl:11,cold:true,shape:'bottle',dims:[0.07,0.26,0.07],grid:[12,2,1],box:12,cost:1.60,market:3.79,weight:6,hype:0,risk:3,
     art:{title:'KLEINER RUTSCH',sub:'Alkoholfrei 0,5 l',bg1:'#e58c85',bg2:'#8a2f2a',ac:'#ffe45c',ac2:'#f2f5ff'}},
-  vulkan:{name:'Vulkan XXL · Fontäne',short:'Vulkan',cat:2,lvl:12,shape:'cylinder',dims:[0.13,0.30,0.13],grid:[8,2,1],box:8,cost:6.50,market:14.99,weight:6,hype:22,risk:6,
-    art:{title:'VULKAN',sub:'XXL Fontäne 12 s',bg1:'#c01c20',bg2:'#3a0507',ac:'#ffd23f',ac2:'#ff8a2a'}},
+  vulkan:{name:'Zuckerhut · Kegelvulkan 20 s',short:'Zuckerhut',cat:2,lvl:12,shape:'cylinder',dims:[0.13,0.30,0.13],grid:[8,2,1],box:8,cost:6.50,market:14.99,weight:6,hype:22,risk:6,
+    desc:'Ein Goldkegel, der ruhig beginnt und 20 Sekunden lang immer höher und kräftiger wird, bis er fünf Meter erreicht.',
+    art:{title:'ZUCKERHUT',sub:'Kegelvulkan · 20 s',bg1:'#c01c20',bg2:'#3a0507',ac:'#ffd23f',ac2:'#ff8a2a'}},
   batterie16:{name:'Funkenflug · 16 Schuss Flitterbatterie',short:'Funkenflug 16',cat:2,lvl:13,shape:'battery',dims:[0.26,0.22,0.26],grid:[8,2,1],box:8,cost:9.00,market:21.99,weight:6,hype:26,risk:7,
     desc:'Am Boden erwacht eine glühende Funkenperle und sprüht verästelte Goldfunken, oben explodieren Goldsterne, deren Funken sich im Flug immer weiter verzweigen.',
     art:{title:'NACHTHIMMEL',sub:'16 Schuss Verbund',bg1:'#1f3f8a',bg2:'#070e22',ac:'#ffd23f',ac2:'#5ce1ff'}},
@@ -103,18 +105,23 @@ const P={
     desc:'Dicke Silberkometen steigen auf, bäumen sich kurz vor dem Gipfel und fallen als schimmernder Pferdeschweif zurück – erst im Trab, dann im Galopp, am Ende geht die ganze Herde durch.',
     art:{title:'SCHIMMELREITER',sub:'64 Schuss · Pferdeschweif',bg1:'#26292f',bg2:'#000000',ac:'#f2f5ff',ac2:'#5c8dff'}},
   /* Riesenfontaenen: zehn bzw. fuenfzehn Meter Feuer vom Boden */
-  goldgeysir:{name:'Goldgeysir · 10-m-Riesenfontäne',short:'Goldgeysir',cat:2,lvl:14,shape:'cylinder',dims:[0.2,0.34,0.2],grid:[8,1,1],box:4,cost:11.00,market:26.99,weight:5,hype:36,risk:7,
-    art:{title:'GOLDGEYSIR',sub:'10 m Riesenfontäne · 20 s',bg1:'#6b4a0c',bg2:'#1f1402',ac:'#ffd23f',ac2:'#fff3c4',gold:true}},
-  feuersaeule:{name:'Feuersäule · 15-m-Farbfontäne',short:'Feuersäule',cat:2,lvl:20,shape:'cylinder',dims:[0.24,0.4,0.24],grid:[6,1,1],box:3,cost:24.00,market:57.99,weight:4,hype:62,risk:9,
-    art:{title:'FEUERSÄULE',sub:'15 m · Farbwechsel · 28 s',bg1:'#7a1010',bg2:'#1a0202',ac:'#ff7a1c',ac2:'#ffd23f',gold:true}},
+  goldgeysir:{name:'Goldgeysir · 10-m-Riesenfontäne mit Knisterkrone',short:'Goldgeysir',cat:2,lvl:14,shape:'cylinder',dims:[0.2,0.34,0.2],grid:[8,1,1],box:4,cost:11.00,market:26.99,weight:5,hype:36,risk:7,
+    desc:'Zehn Meter pures Gold, und oben knistert eine Krone, die immer breiter und lauter wird.',
+    art:{title:'GOLDGEYSIR',sub:'10 m · Knisterkrone · 20 s',bg1:'#6b4a0c',bg2:'#1f1402',ac:'#ffd23f',ac2:'#fff3c4',gold:true}},
+  feuersaeule:{name:'Feuersäule · 15-m-Glühfarben-Fontäne',short:'Feuersäule',cat:2,lvl:20,shape:'cylinder',dims:[0.24,0.4,0.24],grid:[6,1,1],box:3,cost:24.00,market:57.99,weight:4,hype:62,risk:9,
+    desc:'Eine 15-m-Säule, die wie glühendes Eisen ihre Farbe ändert: Weißglut unten, Rotglut oben, und die Farben steigen durch die Säule.',
+    art:{title:'FEUERSÄULE',sub:'15 m · Glühfarben · 28 s',bg1:'#7a1010',bg2:'#1a0202',ac:'#ff7a1c',ac2:'#ffd23f',gold:true}},
   /* Monsterfontaenen (Toms PDF vom 25.09.): 30 und 50 m hoch, kurz,
      je hoeher, desto bunter. Nur Fontaene, keine Ladung. */
   fontaene30:{name:'Himmelsstürmer · 30-m-Monsterfontäne',short:'Monster 30 m',cat:2,lvl:23,shape:'cylinder',dims:[0.3,0.46,0.3],grid:[4,1,1],box:2,cost:33.00,market:79.99,weight:3,hype:74,risk:10,
+    desc:'Dreißig Meter pulsierendes Feuer. Salve um Salve steigen Glitzersterne auf und fallen oben als goldene Weide.',
     art:{title:'HIMMELSSTÜRMER',sub:'30 m · fünf Farben · 12 s',bg1:'#0c3d7a',bg2:'#020a1c',ac:'#ffd23f',ac2:'#3fe07a',gold:true}},
   fontaene50:{name:'Regenbogen-Titan · 50-m-Monsterfontäne',short:'Monster 50 m',cat:2,lvl:26,shape:'cylinder',dims:[0.36,0.52,0.36],grid:[3,1,1],box:1,cost:49.00,market:119.99,weight:2,hype:90,risk:10,
+    desc:'Fünfzig Meter Regenbogen: Acht Farbstrahlen drehen sich wie eine Tulpe, in der Mitte blitzt Silber.',
     art:{title:'REGENBOGEN-TITAN',sub:'50 m · Regenbogen · 14 s',bg1:'#4a1070',bg2:'#06020f',ac:'#5ce1ff',ac2:'#ff4fa3',gold:true}},
-  wasserfall:{name:'Niagara · Silberwasserfall 3 m',short:'Wasserfall',cat:2,lvl:18,shape:'cylinder',dims:[0.16,0.36,0.16],grid:[10,1,1],box:5,cost:14.00,market:32.99,weight:4,hype:38,risk:7,
-    art:{title:'NIAGARA',sub:'3 m Silberfall, 60 s',bg1:'#8a9299',bg2:'#2a2f36',ac:'#f2f5ff',ac2:'#5ce1ff'}},
+  wasserfall:{name:'Niagara · Silberwasserfall 30 s',short:'Niagara',cat:2,lvl:18,shape:'cylinder',dims:[0.16,0.36,0.16],grid:[10,1,1],box:5,cost:14.00,market:32.99,weight:4,hype:38,risk:7,
+    desc:'Ein Vorhang aus Silberfunken fällt drei Meter tief von der Leine und spritzt am Boden auf, dreißig Sekunden lang.',
+    art:{title:'NIAGARA',sub:'3 m Silberfall · 30 s',bg1:'#8a9299',bg2:'#2a2f36',ac:'#f2f5ff',ac2:'#5ce1ff'}},
   /* Partyzubehoer, Getraenke und Fondue/Raclette (Tom, 25.09.). Alles
      Zubehoer (cat 0): kommt nie aufs Testfeld. Die Packungen sind so
      gross wie im echten Laden, nicht winzig. */
@@ -190,10 +197,12 @@ const P={
     art:{title:'HIMMELSBRECHER',sub:'300 mm · 24 Brüche · Silberweide',bg1:'#0e1226',bg2:'#000000',ac:'#d1e5ff',ac2:'#ffd23f',gold:true}},
   /* Feuerbrunnen: Flammenfontaene mit Flammenregen (Tom, 24.09.) */
   feuerbrunnen:{name:'Feuerbrunnen · Flammenfontäne 16 s',short:'Feuerbrunnen',cat:2,lvl:15,shape:'cylinder',dims:[0.18,0.32,0.18],grid:[8,1,1],box:4,cost:9.50,market:22.99,weight:5,hype:32,risk:7,
-    art:{title:'FEUERBRUNNEN',sub:'Flammenfontäne · Flammenregen',bg1:'#8a1a08',bg2:'#240502',ac:'#ff8a2a',ac2:'#ffd23f',gold:true}},
+    desc:'Er faucht, stößt Flammenbälle bis acht Meter hoch, gerät ins Dauerfeuer und endet mit drei gewaltigen Feuerstößen.',
+    art:{title:'FEUERBRUNNEN',sub:'Flammenfontäne · 16 s',bg1:'#8a1a08',bg2:'#240502',ac:'#ff8a2a',ac2:'#ffd23f',gold:true}},
   /* Fontaene, die oben in einen Kometen uebergeht und aufblueht */
-  sternenbrunnen:{name:'Sternenbrunnen · Fontäne mit Farbsternen',short:'Sternenbrunnen',cat:2,lvl:12,shape:'cylinder',dims:[0.145,0.34,0.145],grid:[7,2,1],box:6,cost:7.90,market:18.99,weight:7,hype:26,risk:6,
-    art:{title:'STERNENBRUNNEN',sub:'Goldfontäne mit Farbsternen',bg1:'#123a6b',bg2:'#04101f',ac:'#5ce1ff',ac2:'#ffd23f'}}
+  sternenbrunnen:{name:'Blütenbrunnen · Fontäne mit Chrysanthemen-Pops',short:'Blütenbrunnen',cat:2,lvl:12,shape:'cylinder',dims:[0.145,0.34,0.145],grid:[7,2,1],box:6,cost:7.90,market:18.99,weight:7,hype:26,risk:6,
+    desc:'Vier Blütenwechsel: Silberblüten, Gold mit blauen Perlen, silberne Reisblüten und zum Schluss dichte Goldchrysanthemen, die leise aufplatzen.',
+    art:{title:'BLÜTENBRUNNEN',sub:'4 Phasen · 18 s',bg1:'#123a6b',bg2:'#04101f',ac:'#5ce1ff',ac2:'#ffd23f'}}
 };
 /* Alle Produkte wesentlich groesser (Tom, 25.09.): ein Viertel in jede
    Richtung. Ausgenommen die Kugelbomben - die muessen in ihre

@@ -2023,10 +2023,13 @@ function updateFireworks(dt){
     else if(e.k==='feuerbrunnen'){
       /* Feuerbrunnen: in Stoessen steigen grosse Flammenbaelle sechs
          bis acht Meter hoch und regnen als brennende Tropfen herunter */
-      const H=e.h||1;
+      const H=e.h||1, SA=e.ph&&e.ph.stossAlle;
       e.st=(e.st||0)-dt;
-      if(e.st<=0){ e.st=e.t<3?0.2:rand(0.32,0.5);
-        const n=Math.round((e.t<3?16:10)*H*QUAL());
+      /* Feuerbrunnen-Drehbuch (FONT, 26.09.): stossAlle = Takt der Stoesse
+         (fest oder [min,max]); ohne ihn wie bisher (Shows) */
+      if(e.st<=0){ const dauer=SA!==undefined?SA<0.25||SA[1]<0.25:e.t<3;
+        e.st=SA!==undefined?(Array.isArray(SA)?rand(SA[0],SA[1]):SA):e.t<3?0.2:rand(0.32,0.5);
+        const n=Math.round((dauer?16:10)*H*QUAL());
         for(let k=0;k<n;k++){ const a=Math.random()*Math.PI*2, w=rand(0.2,1.6)*H, vy=rand(9,12.5)*Math.sqrt(H);
           psHuge.emit(o.x,o.y+0.3,o.z,Math.cos(a)*w,vy,Math.sin(a)*w,1.7,1.0,0.3,rand(2.2,3.0),6.5,2,1.0,0.18,0.04);
           for(let q=0;q<Math.round(5*QUAL());q++){ const c=q%2?FW.orange:FW.bernstein;

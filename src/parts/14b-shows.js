@@ -577,39 +577,9 @@ function igniteType(t,o0,it){
     kugelbombe(o,kal);
     return;
   }
-  /* ----- Riesenfontaenen -----
-     Fontaene ist Fontaene (Toms PDF vom 25.09.): aus keiner Fontaene
-     steigt mehr eine Ladung, ein Komet oder eine Rakete. Vorher warfen
-     Geysir, Feuersaeule, Feuerbrunnen, Vulkan, Sternenbrunnen und das
-     Fontaenen-Set zum Schluss noch Kometen mit Bluete aus. */
-  if(t==='goldgeysir'||t==='feuersaeule'){
-    const gross=t==='feuersaeule', dauer=gross?28:20;
-    const e={t:dauer,k:'riesen',o,h:gross?1.35:1,A:FW.gold,B:FW.weiss};
-    emitters.push(e);
-    /* die Feuersaeule wechselt alle paar Sekunden die Farbe */
-    if(gross) for(let i=1;i<6;i++) later(i*dauer/6,()=>{ const [A,B]=scheme(); e.A=A; e.B=FW.gold; e.C=B; });
-    return;
-  }
-  /* Monsterfontaenen: 30 m als pulsierende Palme mit fuenf Farben,
-     50 m als drehender Regenbogenfaecher - kurz und gewaltig statt lang */
-  if(t==='fontaene30'){ monsterFontaene(o,30,12,['rot','gold','gruen','tuerkis','violett'],'puls'); return; }
-  if(t==='fontaene50'){ monsterFontaene(o,50,14,['rot','orange','zitrone','gruen','tuerkis','blau','violett','magenta'],'dreh'); return; }
-  /* ----- Feuerbrunnen: Flammenfontaene, die in Stoessen grosse
-     Flammenbaelle wirft ----- */
-  if(t==='feuerbrunnen'){
-    emitters.push({t:16,k:'feuerbrunnen',o,h:1}); sfx.fizz(distVol(o));
-    return;
-  }
-  /* ----- Sternenbrunnen: Goldfontaene, in der farbige Sterne steigen ----- */
-  if(t==='sternenbrunnen'){
-    const [A,B]=scheme(), v=distVol(o);
-    emitters.push({t:5,k:'fountain',o,A:FW.gold,B:A});
-    for(let i=0;i<5;i++) later(0.4+i*0.9,()=>{ const c=i%2?B:A;
-      for(let k=0;k<Math.round(26*QUAL());k++){ const a=Math.random()*Math.PI*2, w=rand(0.2,1.1);
-        psBig.emit(o.x,o.y+0.3,o.z,Math.cos(a)*w,rand(8,11),Math.sin(a)*w,c[0],c[1],c[2],rand(1.2,1.7),6,0); } });
-    sfx.fizz(v); later(1.6,()=>sfx.fizz(v)); later(3.2,()=>sfx.fizz(v));
-    return;
-  }
+  /* Riesen-, Monster-, Flammen- und Sternfontaenen laufen seit dem 26.09.
+     ueber FONT (14k-db-fontaenen.js, Tom: Anomalie) - oben in FONT[t].
+     Fontaene ist Fontaene (Toms PDF vom 25.09.): keine Ladung, kein Komet. */
   /* Die Furzrakete fliegt seit dem 26.09. ueber den normalen Raketenweg
      (RAKETEN_KL.furzrakete): der Witz steckt im Aufstieg 'stotter'. */
   if(sh==='sparkler'){ emitters.push({t:5,k:'spark',o}); sfx.fizz(distVol(o)); }
@@ -624,10 +594,6 @@ function igniteType(t,o0,it){
         psMid.emit(x,0.2,z,Math.cos(a)*s,rand(0.5,3.5),Math.sin(a)*s,c[0],c[1],c[2],rand(0.5,1.1),4,4); }
       sfx.whistle(distVol(o)*0.5); if(Math.random()<0.5) later(0.6,()=>sfx.crack(distVol(o)*0.5));
     });
-  }
-  else if(t==='wasserfall'){
-    emitters.push({t:22,k:'wasserfall',o,A:FW.gold,B:FW.zitrone});
-    sfx.fizz(distVol(o)); for(let i=1;i<8;i++) later(i*3,()=>sfx.fizz(distVol(o)));
   }
   /* Boeller (Toms PDF vom 25.09.): Furz, Monster, Atombombe */
   else if(t==='boeller'){
@@ -664,13 +630,6 @@ function igniteType(t,o0,it){
     sfx.crack(distVol(o));
     for(let i=0;i<130;i++){ const d=randDir(), c=K(pick(['gold','magenta','tuerkis','limette','rose','zitrone']));
       psMid.emit(o.x,o.y+0.15,o.z,d[0]*2.5,Math.abs(d[1])*5+2,d[2]*2.5,c[0],c[1],c[2],rand(1.8,2.8),2.2,4); }
-  }
-  else if(t==='vulkan'){
-    const [A,B]=scheme();
-    emitters.push({t:12,k:'volcano',o,A:FW.gold,B});
-    sfx.fizz(distVol(o)); for(let i=1;i<6;i++) later(i*2,()=>sfx.fizz(distVol(o)));
-    /* zum Schluss bricht er noch einmal auf - ohne Ladung */
-    later(9,()=>emitters.push({t:3,k:'volcano',o,A:B,B:FW.weiss}));
   }
   else if(sh==='fountainset'){
     const [A,B]=scheme();

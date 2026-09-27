@@ -340,10 +340,8 @@ EFF.spaetzuender=function(p,A,B,s){
       /* hell und golden, sonst verschwinden die Punkte zwischen den Sternen
          des Nachthimmels (Probebild 27.09.) */
       for(let i=0;i<Math.round(70*s*q);i++){ const d=randDir(), f=rr*rand(0.7,1.05), c=i%3?[1.7,1.35,.8]:(i%2?rkMal(tint[0],1.6):rkMal(tint[1],1.6));
-        (i%4?psMid:psBig).emit(p.x+d[0]*f,p.y+d[1]*f*0.9-0.6*u,p.z+d[2]*f,d[0]*rand(0.5,1.5),d[1]*rand(0.5,1.5)-0.3,d[2]*rand(0.5,1.5),c[0],c[1],c[2],rand(0.6,1.0),1.0,3); }
+        (i%2?psMid:psBig).emit(p.x+d[0]*f,p.y+d[1]*f*0.9-0.6*u,p.z+d[2]*f,d[0]*rand(0.5,1.5),d[1]*rand(0.5,1.5)-0.3,d[2]*rand(0.5,1.5),c[0],c[1],c[2],rand(0.6,1.0),1.0,3); }
       SCHWEIF=a; }); }
-  /* golden leuchtender Dunst: die Wand steht als Koerper am Himmel */
-  imBild(T0+0.1,()=>rauchball(p,{r:R*0.9,n:12,dauer:D+0.9,quellen:D*0.6,steigen:0.1,leuchten:true,c:[1,0.78,0.42],a:0.07}));
   later(T0,()=>{ flash(p,[1,.92,.75],3.5*s,0.4);
     schall(p,v=>{ sfx.crackle(v*1.3); later(0.4,()=>sfx.crackle(v*0.45)); later(0.9,()=>sfx.crackle(v*0.8)); }); });
 };
@@ -593,8 +591,8 @@ EFF.supernova=function(p,A,B,s){
     for(let i=0;i<8;i++) psHuge.emit(p.x,p.y,p.z,rand(-.5,.5),rand(-.5,.5),rand(-.5,.5),3,3,3,0.2+i*0.03,0,0);
     schall(p,vv=>{ sfx.boom(Math.min(2.2,vv*2)); sfx.crack(vv*1.3); later(0.25,()=>{ if(typeof grollen==='function') grollen(3.5,0.8*vv,70,0.2); }); shake=Math.max(shake,Math.min(1.2,1.2*vv)); });
     /* 3: Schockwelle - duenne, schnelle Kugelschale */
-    rkSchweif(0.1,()=>{ for(let i=0;i<Math.round(250*q);i++){ const d=randDir(), w=rand(18,20)*s/2.5;
-      psBig.emit(p.x,p.y,p.z,d[0]*w,d[1]*w,d[2]*w,bw[0]*1.6,bw[1]*1.6,bw[2]*1.7,1.0,0.3,2,bw[0]*0.4,bw[1]*0.5,bw[2]*0.7); } });
+    rkSchweif(0.14,()=>{ for(let i=0;i<Math.round(360*q);i++){ const d=randDir(), w=rand(18,20)*s/2.5;
+      psBig.emit(p.x,p.y,p.z,d[0]*w,d[1]*w,d[2]*w,bw[0]*1.8,bw[1]*1.8,bw[2]*1.9,1.35,0.3,2,bw[0]*0.4,bw[1]*0.5,bw[2]*0.7); } });
   });
   /* 4: Gasnebel und Pulsar */
   imBild(0.6,()=>{

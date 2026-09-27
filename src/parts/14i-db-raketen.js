@@ -115,7 +115,13 @@ EFF.fallschirm=function(p,A,B,s,r){
 /* Schnuppe (Sternschnuppe, L6): ohne Aufstiegsspur ploppt es oben leise,
    und EINE Sternschnuppe zieht fast waagrecht quer ueber den Himmel */
 EFF.schnuppe=function(p,A,B,s){
-  const q=rkQuer(p,Math.random()<0.5?-1:1), el=-rand(5,15)*Math.PI/180, w=rand(16,20);
+  /* sie zieht zur Bildmitte hin und etwas vom Zuschauer weg - so quert
+     sie den ganzen Himmel, statt nach einer halben Sekunde aus dem Bild
+     zu fliegen */
+  let seite=Math.random()<0.5?-1:1;
+  try{ const rr=new THREE.Vector3(1,0,0).applyQuaternion(camera.quaternion), c=camera.position, lat=(p.x-c.x)*rr.x+(p.z-c.z)*rr.z; if(Math.abs(lat)>1) seite=lat>0?1:-1; }catch(e){}
+  const q0=rkQuer(p,seite), zu=rkZuMir(p), wa=0.5, q=[q0[0]*Math.cos(wa)-zu[0]*Math.sin(wa),0,q0[2]*Math.cos(wa)-zu[2]*Math.sin(wa)];
+  const el=-rand(5,15)*Math.PI/180, w=rand(15,17);
   const v=[q[0]*Math.cos(el)*w,Math.sin(el)*w,q[2]*Math.cos(el)*w], T=1.6, kopf=[1.2,1.25,1.35], bl=B||FW.himmel;
   for(let i=0;i<6;i++){ const d=randDir(); psSmall.emit(p.x,p.y,p.z,d[0]*2,d[1]*2,d[2]*2,.9,.95,1,0.25,2,0); }
   rkStern(psHuge,p,[0,0,0],kopf,T,(st,dt)=>{
@@ -137,21 +143,19 @@ EFF.schnuppe=function(p,A,B,s){
    Farbsterne nach OBEN aus - sie steigen weiter, faechern auf und fallen
    in Boegen nach allen Seiten wie das Wasser eines Springbrunnens */
 EFF.garbe=function(p,A,B,s,r){
-  const q=QUAL(), n=Math.round(90*s*q);
+  const q=QUAL(), n=Math.round(64*s*q);
   let up=[0,1,0]; if(r&&r.v){ const l=r.v.length()||1; up=[r.v.x/l*0.5,1,r.v.z/l*0.5]; const m=Math.hypot(up[0],up[1],up[2]); up=[up[0]/m,up[1]/m,up[2]/m]; }
-  const [u1,u2]=quer(up), cmax=Math.cos(0.72);
-  rkSchweif(0.2,()=>{
-    for(let i=0;i<n;i++){
-      /* gleichmaessig im Kegel, am Rand etwas dichter (Wasserschleier) */
-      const cz=1-Math.pow(Math.random(),0.7)*(1-cmax), sz=Math.sqrt(1-cz*cz), a=rand(0,Math.PI*2);
-      const d=[up[0]*cz+(u1[0]*Math.cos(a)+u2[0]*Math.sin(a))*sz,up[1]*cz+(u1[1]*Math.cos(a)+u2[1]*Math.sin(a))*sz,up[2]*cz+(u1[2]*Math.cos(a)+u2[2]*Math.sin(a))*sz];
-      const w=rand(8,11)*Math.sqrt(s), c=i%2?A:B, L=rand(1.9,2.5);
-      psBig.emit(p.x,p.y,p.z,d[0]*w,d[1]*w,d[2]*w,c[0]*1.3,c[1]*1.3,c[2]*1.3,L,5,2,c[0]*0.8,c[1]*0.8,c[2]*0.8);
-      /* jeder Strahl zieht zwei langsamere Tropfen hinter sich */
-      for(let k=0;k<2;k++){ const f=rand(0.78,0.95), e=streu(d,0.025);
-        psMid.emit(p.x,p.y,p.z,e[0]*w*f,e[1]*w*f,e[2]*w*f,c[0]*0.9,c[1]*0.9,c[2]*0.9,L*rand(0.75,0.95),5,2,c[0]*0.5,c[1]*0.5,c[2]*0.5); }
-    }
-  });
+  const [u1,u2]=quer(up), cmax=Math.cos(0.75);
+  for(let i=0;i<n;i++){
+    /* gleichmaessig im Kegel, am Rand etwas dichter (Wasserschleier) */
+    const cz=1-Math.pow(Math.random(),0.6)*(1-cmax), sz=Math.sqrt(1-cz*cz), a=rand(0,Math.PI*2);
+    const d=[up[0]*cz+(u1[0]*Math.cos(a)+u2[0]*Math.sin(a))*sz,up[1]*cz+(u1[1]*Math.cos(a)+u2[1]*Math.sin(a))*sz,up[2]*cz+(u1[2]*Math.cos(a)+u2[2]*Math.sin(a))*sz];
+    const w=rand(9,12)*Math.sqrt(s), c=i%2?A:B, L=rand(2.0,2.6), st=[c[0]*0.85,c[1]*0.85,c[2]*0.85];
+    /* wenig Luftwiderstand: der Stern steigt weiter, kippt und faellt in
+       einem echten Bogen - wie ein Wasserstrahl */
+    rkStern(psBig,p,[d[0]*w,d[1]*w,d[2]*w],rkMal(c,1.3),L,(sp,dt)=>{ rkFlug(sp,dt,0.45,7); const t=sp.alter; sp.hell=t>L-0.5?(L-t)/0.5:1;
+      rkSpur(sp,dt,38,(x,y,z)=>psMid.emit(x,y,z,rand(-.1,.1),rand(-.3,0),rand(-.1,.1),st[0],st[1],st[2],rand(0.35,0.55),0.5,2,st[0]*0.3,st[1]*0.3,st[2]*0.3)); });
+  }
   for(let i=0;i<3;i++) psHuge.emit(p.x,p.y,p.z,rand(-.3,.3),rand(0,.6),rand(-.3,.3),1,.8,.45,0.14,0,0);
   schall(p,v=>sfx.rieseln(v*0.9,2.2));
 };
@@ -264,13 +268,14 @@ EFF.kometenkette=function(p,A,B,s,r){
   psHuge.emit(p.x,p.y,p.z,0,0,0,1.4,1.4,1.5,0.09,0,0);
   schall(p,v=>sfx.crack(v*0.5));
   for(let k=0;k<7;k++){
-    const q0={x:p.x-dir[0]*k*0.6,y:p.y-dir[1]*k*0.6,z:p.z-dir[2]*k*0.6}, w=(9.2-k*0.3)*Math.sqrt(s), a=rand(-0.8,0.8), b=rand(-0.5,0.5);
+    /* die vorderen Stuecke sind schneller: die Kette zieht sich sichtbar auseinander */
+    const q0={x:p.x-dir[0]*k*0.6,y:p.y-dir[1]*k*0.6,z:p.z-dir[2]*k*0.6}, w=(10.5-k*0.75)*Math.sqrt(s), a=rand(-0.8,0.8), b=rand(-0.5,0.5);
     const v=[dir[0]*w+e1[0]*a+e2[0]*b,dir[1]*w+e1[1]*a+e2[1]*b,dir[2]*w+e1[2]*a+e2[2]*b], L=1.4+k*0.2;
     rkStern(psHuge,q0,v,[0.45+kopf[0]*0.8,0.45+kopf[1]*0.8,0.5+kopf[2]*0.9],L,(st,dt)=>{
-      rkFlug(st,dt,0.35,1.8); const rest=L-st.alter;
+      rkFlug(st,dt,0.25,1.8); const rest=L-st.alter;
       st.hell=rest<0.14?(rest>0.07?2.6:0.6):1.25;
       /* Goldschweif: gluehende Teilchen bleiben hinter dem Kopf zurueck */
-      rkSpur(st,dt,120,(x,y,z)=>psBig.emit(x+rand(-.05,.05),y+rand(-.05,.05),z+rand(-.05,.05),rand(-.25,.25),rand(-.5,0),rand(-.25,.25),gold[0]*1.1,gold[1]*1.0,gold[2]*0.8,rand(0.45,0.65),1,2,gold[0]*0.5,gold[1]*0.3,gold[2]*0.1));
+      rkSpur(st,dt,110,(x,y,z)=>psMid.emit(x+rand(-.04,.04),y+rand(-.04,.04),z+rand(-.04,.04),rand(-.2,.2),rand(-.4,0),rand(-.2,.2),gold[0]*1.2,gold[1]*1.05,gold[2]*0.8,rand(0.22,0.36),1,2,gold[0]*0.6,gold[1]*0.35,gold[2]*0.1));
       st.d.fk=(st.d.fk||0)+dt*30*QUAL(); for(;st.d.fk>=1;st.d.fk--) psMid.emit(st.p[0],st.p[1],st.p[2],rand(-.8,.8),rand(-1.6,0),rand(-.8,.8),1,.8,.4,rand(0.4,0.8),3,4);
     });
   }
@@ -326,10 +331,14 @@ EFF.spaetzuender=function(p,A,B,s){
     imBild(t,()=>{ knisterPop(x,y,z,{c,funken:gross?14:9,tempo:rand(2.8,4.8),laut:0.7});
       if(gross){ const a=SCHWEIF; SCHWEIF=0; psHuge.emit(x,y,z,0,0,0,1.5,1.45,1.3,0.05,0,0); SCHWEIF=a; } });
   }
-  /* Koerper der Wand: gedaempfter Glitter, der mit ihr nach aussen geht */
-  later(T0,()=>{ for(let i=0;i<Math.round(110*q);i++){ const d=randDir(), w=rand(3,5.5)*s, c=i%2?FW.gold:FW.silber;
-      psMid.emit(p.x,p.y,p.z,d[0]*w,d[1]*w,d[2]*w,c[0]*0.55,c[1]*0.55,c[2]*0.55,rand(1.3,1.9),1.2,4); }
-    flash(p,[1,.92,.75],3.5*s,0.4);
+  /* Koerper der Wand: Knisterfunken (Modus 3: blitzen zufaellig weiss auf),
+     Welle fuer Welle weiter aussen - die Wand waechst von innen nach aussen */
+  for(let k=0;k<14;k++){ const u=k/13, t=T0+u*D*0.9, rr=R*(0.2+0.8*Math.sqrt(u));
+    imBild(t,()=>{ const a=SCHWEIF; SCHWEIF=0;
+      for(let i=0;i<Math.round(34*s*q);i++){ const d=randDir(), f=rr*rand(0.7,1.05), c=i%3?[1,.93,.75]:(i%2?tint[0]:tint[1]);
+        psMid.emit(p.x+d[0]*f,p.y+d[1]*f*0.9-0.6*u,p.z+d[2]*f,d[0]*rand(0.5,1.5),d[1]*rand(0.5,1.5)-0.3,d[2]*rand(0.5,1.5),c[0],c[1],c[2],rand(0.5,0.9),1.0,3); }
+      SCHWEIF=a; }); }
+  later(T0,()=>{ flash(p,[1,.92,.75],3.5*s,0.4);
     schall(p,v=>{ sfx.crackle(v*1.3); later(0.4,()=>sfx.crackle(v*0.45)); later(0.9,()=>sfx.crackle(v*0.8)); }); });
 };
 
@@ -359,7 +368,7 @@ EFF.achtblatt=function(p,A,B,s){
    Weissblinkern; ein Lichtkegel dreht sich 2,5-mal durch sie, nur die
    Sterne darin blitzen; roter Kern wie die Laterne */
 EFF.leuchtturm=function(p,A,B,s){
-  const n=Math.round(160*QUAL()), R=6.2*s*0.72, th0=rand(0,Math.PI*2), W=2*Math.PI*2.5/3, T=3.0, L=3.55, rot=B||FW.rot, key='lt'+(++RK.n);
+  const n=Math.round(210*QUAL()), R=6.2*s*0.72, th0=rand(0,Math.PI*2), W=2*Math.PI*2.5/3, T=3.0, L=3.55, rot=B||FW.rot, key='lt'+(++RK.n);
   const wink=t=>th0+W*Math.min(t,T);
   for(let i=0;i<n;i++){
     const d=randDir(), rr=R*rand(0.82,1.0), phi=Math.atan2(d[2],d[0]), ph=rand(0,1);
@@ -368,7 +377,7 @@ EFF.leuchtturm=function(p,A,B,s){
       st.p[0]=p.x+d[0]*rr*e; st.p[1]=p.y+d[1]*rr*e-0.15*t; st.p[2]=p.z+d[2]*rr*e; st.v[0]=st.v[1]=st.v[2]=0;
       let h;
       if(t<0.35) h=1-t/0.35*0.9;
-      else if(t<T){ const dp=Math.abs(((phi-wink(t))%(2*Math.PI)+3*Math.PI)%(2*Math.PI)-Math.PI); h=dp<0.35?(((t*10+ph)%1)<0.5?2.6:0.35):(dp<0.6?0.25:0.07); }
+      else if(t<T){ const dp=Math.abs(((phi-wink(t))%(2*Math.PI)+3*Math.PI)%(2*Math.PI)-Math.PI); h=dp<0.38?(((t*10+ph)%1)<0.5?2.8:0.45):(dp<0.65?0.3:0.07); }
       else if(t<T+0.4) h=((t*10)%1)<0.5?2.4:0.06;
       else h=0;
       st.hell=h;
@@ -378,9 +387,9 @@ EFF.leuchtturm=function(p,A,B,s){
   rkStern(psHuge,p,[0,0,0],rkMal(rot,1.4),L,(st,dt)=>{
     const t=st.alter; st.p[0]=p.x; st.p[1]=p.y-0.15*t; st.p[2]=p.z; st.hell=t<T+0.4?1+0.15*Math.sin(t*9):0;
     if(t<T+0.4) licht(key,{x:p.x,y:p.y,z:p.z},rot,1.3,{weite:22});
-    if(t>0.3&&t<T){ const a=wink(t), dir=[Math.cos(a),0,Math.sin(a)], dd=st.d; dd.st=(dd.st||0)+dt*520*QUAL();
+    if(t>0.3&&t<T){ const a=wink(t), dir=[Math.cos(a),0,Math.sin(a)], dd=st.d; dd.st=(dd.st||0)+dt*700*QUAL();
       for(;dd.st>=1;dd.st--){ const f=Math.pow(Math.random(),0.7)*R, b=rand(-0.25,0.25);
-        psMid.emit(p.x+dir[0]*f-dir[2]*b*f*0.35,p.y+rand(-.25,.25)*(0.3+f*0.12),p.z+dir[2]*f+dir[0]*b*f*0.35,0,0,0,0.42,0.42,0.4,0.07,0,0); } }
+        psMid.emit(p.x+dir[0]*f-dir[2]*b*f*0.35,p.y+rand(-.25,.25)*(0.3+f*0.12),p.z+dir[2]*f+dir[0]*b*f*0.35,0,0,0,0.55,0.55,0.5,0.07,0,0); } }
   });
   schall(p,v=>tonGen({f:190,typ:'triangle',am:W/(2*Math.PI),amTiefe:0.85,dur:T,vol:0.03*v,an:0.3,ab:0.3}));
   later(T,()=>schall(p,v=>sfx.crackle(v*0.35)));
@@ -402,7 +411,7 @@ EFF.regenring=function(p,A,B,s){
       st.hell=(t>L-0.35?(L-t)/0.35:1)*(0.9+0.2*Math.sin(t*13+ph));
       /* Silberschnur: alle paar Hundertstel ein Tropfen, senkrecht, kaum Drift */
       if(t>0.5&&t<3.0){ const dd=st.d; dd.tr=(dd.tr||0)+dt*18*QUAL();
-        for(;dd.tr>=1;dd.tr--) rkSchweif(0.32,()=>psMid.emit(st.p[0]+rand(-.04,.04),st.p[1]-0.05,st.p[2]+rand(-.04,.04),rand(-.06,.06),-4,rand(-.06,.06),w[0]*1.2,w[1]*1.2,w[2]*1.25,rand(1.2,1.5),1.2,4)); }
+        for(;dd.tr>=1;dd.tr--) rkSchweif(0.32,()=>psMid.emit(st.p[0]+rand(-.04,.04),st.p[1]-0.05,st.p[2]+rand(-.04,.04),rand(-.06,.06),-4,rand(-.06,.06),w[0]*1.2,w[1]*1.2,w[2]*1.25,rand(1.3,1.6),4.4,4)); }
     });
   }
   later(0.5,()=>schall(p,vv=>sfx.regen(vv*1.1,2.6)));
@@ -419,10 +428,10 @@ EFF.glasbruch=function(p,A,B,s){
       st.p[0]=p.x+d[0]*rr*e; st.p[1]=p.y+d[1]*rr*e-0.1*t; st.p[2]=p.z+d[2]*rr*e; st.v[0]=st.v[1]=st.v[2]=0;
       /* feiner Schimmer, kurz vor dem Bruch ein Zittern */
       st.hell=(0.85+0.25*Math.random())*(tz-t<0.08?1.6:1);
-    },{ende:st=>{ const e=st.p, k=3+Math.floor(Math.random()*3);
-      for(let j=0;j<k;j++){ const x=randDir(), w=rand(3,5), ph=rand(0,1);
-        rkStern(psBig,{x:e[0],y:e[1],z:e[2]},[x[0]*w,x[1]*w,x[2]*w],[1.2,1.25,1.3],0.6,(sp,dt)=>{
-          rkFlug(sp,dt,1.4,2.2); sp.hell=(((sp.alter*6+ph)%1)<0.5?1.7:0.12)*(1-sp.alter/0.6*0.5); },{spur:0}); } }});
+    },{ende:st=>{ const e=st.p, k=4+Math.floor(Math.random()*3);
+      for(let j=0;j<k;j++){ const x=randDir(), w=rand(3,6), ph=rand(0,1);
+        rkStern(psBig,{x:e[0],y:e[1],z:e[2]},[x[0]*w,x[1]*w,x[2]*w],[1.2,1.25,1.3],0.8,(sp,dt)=>{
+          rkFlug(sp,dt,1.4,2.2); sp.hell=(((sp.alter*6+ph)%1)<0.5?1.8:0.1)*(1-sp.alter/0.8*0.5); },{spur:0}); } }});
   }
   later(0.7,()=>schall(p,v=>{ sfx.klirren(v*1.2); later(0.09,()=>sfx.klirren(v)); later(0.18,()=>sfx.klirren(v*0.7)); }));
 };
@@ -437,7 +446,7 @@ EFF.spektralkrone=function(p,A,B,s){
        steht links Rot, in der Mitte Gruen, rechts Violett */
     const hinten=k>=7, j=k%7, be=Math.PI*(j+0.5)/7+rand(-.06,.06), sz=hinten?-1:1;
     const dh=[li[0]*Math.cos(be)+zu[0]*Math.sin(be)*sz,0,li[2]*Math.cos(be)+zu[2]*Math.sin(be)*sz], el=rand(55,65)*Math.PI/180;
-    const d=[dh[0]*Math.cos(el),Math.sin(el),dh[2]*Math.cos(el)], w=rand(10,12)*Math.sqrt(s), c=K(SPEKTRUM[j]), v0=[d[0]*w,d[1]*w,d[2]*w];
+    const d=[dh[0]*Math.cos(el),Math.sin(el),dh[2]*Math.cos(el)], w=rand(12,14)*Math.sqrt(s), c=K(SPEKTRUM[j]), v0=[d[0]*w,d[1]*w,d[2]*w];
     rkSchweif(0.5,()=>{
       psHuge.emit(p.x,p.y,p.z,v0[0],v0[1],v0[2],c[0]*1.7,c[1]*1.7,c[2]*1.7,2.2,G,2,c[0]*1.4,c[1]*1.4,c[2]*1.4);
       for(let k=0;k<3;k++){ const e=streu(d,0.03), f=rand(0.88,0.98)*w; psBig.emit(p.x,p.y,p.z,e[0]*f,e[1]*f,e[2]*f,c[0]*1.4,c[1]*1.4,c[2]*1.4,2.2,G,2,c[0],c[1],c[2]); }
@@ -583,9 +592,9 @@ EFF.supernova=function(p,A,B,s){
   /* 4: Gasnebel und Pulsar */
   imBild(0.6,()=>{
     const rotv=[0.9,0.2,0.35];
-    for(let i=0;i<Math.round(120*q);i++){ const d=randDir(), w=rand(2,4)*s/2.5, c=i%2?vio:rotv;
+    for(let i=0;i<Math.round(120*q);i++){ const d=randDir(), w=rand(3,6.5)*s/2.5, c=i%2?vio:rotv;
       psBig.emit(p.x,p.y,p.z,d[0]*w,d[1]*w,d[2]*w,c[0]*0.55,c[1]*0.55,c[2]*0.6,rand(4.4,5.0),0.05,2,c[0]*0.12,c[1]*0.1,c[2]*0.15); }
-    rauchball(p,{r:4.2*s/2.5,n:10,dauer:5,quellen:4.5,steigen:0.05,wind:[0.05,0],leuchten:true,a:0.32,farbe:t=>mischF([0.7,0.25,0.95],[0.55,0.1,0.25],clamp(t/5,0,1))});
+    rauchball(p,{r:6.5*s/2.5,n:10,dauer:5,quellen:4.5,steigen:0.05,wind:[0.05,0],leuchten:true,a:0.32,farbe:t=>mischF([0.7,0.25,0.95],[0.55,0.1,0.25],clamp(t/5,0,1))});
     const hof=rkHof();
     rkStern(psHuge,p,[0,0,0],[1.3,1.35,1.5],4.9,(st,dt)=>{ const t=st.alter+0.6; st.p[0]=p.x; st.p[1]=p.y; st.p[2]=p.z;
       /* vier Pulse, einer je Sekunde */

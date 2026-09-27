@@ -19,6 +19,10 @@ const klMisch=(a,b,u)=>[a[0]+(b[0]-a[0])*u,a[1]+(b[1]-a[1])*u,a[2]+(b[2]-a[2])*u
 /* Grundhelligkeit fuer Dinge, die nicht selbst leuchten (Papier,
    Spielzeug, Rauch): nachts gedaempft, am Tag voll */
 function klHell(){ return typeof sun!=='undefined'&&sun?clamp(0.2+0.5*sun.intensity,0.2,1):1; }
+/* Papier, Baender, Kettenglieder: nachts nicht an klHell koppeln - mit
+   0,2 waren Konfetti schwarze Quadrate (Art-Director 27.09.); das
+   Flutlicht des Testfelds macht Papier hell, Grundwert 0,62 */
+function klPapH(){ return Math.max(0.62,klHell()); }
 /* Zuendtisch: Platte 2,5 x 1,05 m, Oberkante 0,93 m */
 const KL_TI={x:STATION_POS.tisch.x,z:STATION_POS.tisch.z,y:0.93,hx:1.25,hz:0.52};
 function klGrund(x,z){ return Math.abs(x-KL_TI.x)<=KL_TI.hx&&Math.abs(z-KL_TI.z)<=KL_TI.hz?KL_TI.y:0; }
@@ -99,7 +103,7 @@ function klPapier(p,v,c,o){
 const _klQ=new THREE.Quaternion(), _klM=new THREE.Matrix4(), _klV=new THREE.Vector3(), _klS=new THREE.Vector3(), _klA=new THREE.Vector3(), _klC=new THREE.Color();
 NEU_EMIT.papierflug=(e,dt)=>{
   const L=KL_PAP.liste, m=KL_PAP.mesh; if(!m) return;
-  const H=klHell(); let n=0, tot=false;
+  const H=klPapH(); let n=0, tot=false;
   for(let i=0;i<L.length;i++){ const s=L[i];
     s.alter+=dt; const f=Math.exp(-3.2*dt);
     s.vx*=f; s.vz*=f; s.vy=s.vy>0?s.vy*Math.exp(-2.2*dt)-9.8*dt:Math.max(s.vy-9.8*dt,-s.sink);
@@ -110,7 +114,7 @@ NEU_EMIT.papierflug=(e,dt)=>{
     _klA.set(s.ax[0],s.ax[1],s.ax[2]); _klQ.setFromAxisAngle(_klA,s.w);
     _klM.compose(_klV.set(s.x,s.y,s.z),_klQ,_klS.set(s.b,s.h,1)); m.setMatrixAt(n,_klM);
     /* Folienglanz: je nach Kippwinkel dunkel oder ein kurzes helles Aufblitzen */
-    const cw=Math.abs(Math.cos(s.w)), k=H*(0.4+0.8*cw)+1.4*Math.pow(cw,12);
+    const cw=Math.abs(Math.cos(s.w)), k=H*(0.8+0.35*cw)+1.2*Math.pow(cw,12);
     if(m.setColorAt) m.setColorAt(n,_klC.setRGB(s.c[0]*k,s.c[1]*k,s.c[2]*k)); n++; }
   if(tot) KL_PAP.liste=L.filter(s=>!s.tot);
   m.count=n; m.instanceMatrix.needsUpdate=true; if(m.instanceColor) m.instanceColor.needsUpdate=true; m.visible=n>0;
@@ -175,12 +179,15 @@ function klKerzeFunken(p,dt,z,m,A,B,rate,o){
   SCHWEIF=alt;
 }
 /* Glutpunkt mit Hof */
-function klGlutpunkt(p,m,st){
-  const alt=SCHWEIF; SCHWEIF=0; st=st||1;
+function klGlutpunkt(p,m,st,hf){
+  const alt=SCHWEIF; SCHWEIF=0; st=st||1; hf=hf===undefined?1:hf;
   const c=m==='titan'?[1.8,1.8,1.9]:[1.7,1.45,1.0];
-  psMid.emit(p.x,p.y,p.z,0,0,0,c[0]*st,c[1]*st,c[2]*st,0.05,0,0);
   const h=m==='titan'?[0.35,0.38,0.45]:[0.42,0.2,0.05];
-  psBig.emit(p.x,p.y,p.z,0,0,0,h[0]*st,h[1]*st,h[2]*st,0.05,0,0);
+  if(hf<1){ /* kleiner Hof (Formkerzen): Kern 7 cm statt 15 cm, Hof 15 statt 42 cm */
+    psSmall.emit(p.x,p.y,p.z,0,0,0,c[0]*st,c[1]*st,c[2]*st,0.05,0,0);
+    psMid.emit(p.x,p.y,p.z,0,0,0,h[0]*st*1.5,h[1]*st*1.5,h[2]*st*1.5,0.05,0,0); }
+  else { psMid.emit(p.x,p.y,p.z,0,0,0,c[0]*st,c[1]*st,c[2]*st,0.05,0,0);
+    psBig.emit(p.x,p.y,p.z,0,0,0,h[0]*st,h[1]*st,h[2]*st,0.05,0,0); }
   SCHWEIF=alt;
 }
 /* Glutperle: tropft von p, springt huepf-mal flach, spritzt, glimmt */
@@ -211,7 +218,8 @@ function klKerze(e,basis,o){
     if(brennt){
       klGlutpunkt(f,m,m==='titan'?1.2:1);
       klKerzeFunken(f,dt,K,m,o.A,o.B||o.A,K.rate,o);
-      if(o.licht!==false) licht('kz'+(o.key||'')+e.prod+(e.nr||0),f,m==='titan'?[0.9,0.92,1]:[1,0.72,0.35],m==='titan'?1.4:0.7,{weite:m==='titan'?7:4});
+      /* grosse Kerzen (XXL 1 m) leuchten mehr: Licht waechst mit der Laenge */
+      if(o.licht!==false){ const gl=Math.max(1,L/0.5); licht('kz'+(o.key||'')+e.prod+(e.nr||0),f,m==='titan'?[0.9,0.92,1]:[1,0.72,0.35],(m==='titan'?1.4:0.7)*gl,{weite:(m==='titan'?7:4)*Math.sqrt(gl)}); }
       if(o.glutperle){ K.gp=(K.gp===undefined?rand(o.glutperle.alle[0],o.glutperle.alle[1]):K.gp)-dt;
         if(K.gp<=0){ K.gp=rand(o.glutperle.alle[0],o.glutperle.alle[1]); klGlutperle({x:f.x,y:f.y-0.008,z:f.z},klF(o.glutperle.A,FW.orange),o.glutperle.huepf||0,o.glutperle.spritz||6); } }
     } else if(!K.aus){ K.aus=true;
@@ -269,6 +277,9 @@ function klPfad(pk){ const s=[0]; for(let i=1;i<pk.length;i++) s.push(s[i-1]+Mat
 function klPfadOrt(P,u){ const z=u*P.L; let i=1; while(i<P.s.length-1&&P.s[i]<z) i++;
   const a=P.pk[i-1], b=P.pk[i], f=(z-P.s[i-1])/Math.max(1e-6,P.s[i]-P.s[i-1]); return [a[0]+(b[0]-a[0])*f,a[1]+(b[1]-a[1])*f]; }
 klEmit('formkerze',(e,dt,o,t)=>{
+  /* vorne an die Tischkante (zum Pult): hinten brannte Gold vor dem gelben
+     ZUENDTISCH-Schild, ohne Kontrast (Art-Director 27.09.) */
+  const Z=e.zv!==undefined?e.zv:(e.zv=klFlaeche(o)>0.5?Math.max(o.z,Math.min(o.z+0.35,KL_TI.z+KL_TI.hz-0.08)):o.z);
   const H=klHell(), A=e.A||FW.gold, B=e.B||FW.rot, G=klF(e.glut,B), gl=[G[0]*0.9+0.1,G[1]*0.55,G[2]*0.45], NG=e.nachglut||1.8;
   if(!e.teile){
     const sf=klFlaeche(o), gr=e.groesse||0.3, formen=Array.isArray(e.form)?e.form:[e.form], nf=formen.length;
@@ -276,10 +287,10 @@ klEmit('formkerze',(e,dt,o,t)=>{
     e.teile=formen.map((f,j)=>{
       const cx=o.x+(j-(nf-1)/2)*pitch, herz=f==='herz';
       const pfade=herz?[klHerzHaelfte(-1,40),klHerzHaelfte(1,40)]:[KL_ZIFFER[f]||KL_ZIFFER['0']];
-      const P=pfade.map(pk=>{ const q=pk.map(([x,y])=>[cx+(x-(herz?0:0.3))*gr,y0+y*gr,o.z]); const p=klPfad(q.map(p=>[p[0],p[1]])); p.p3=q; return p; });
+      const P=pfade.map(pk=>{ const q=pk.map(([x,y])=>[cx+(x-(herz?0:0.3))*gr,y0+y*gr,Z]); const p=klPfad(q.map(p=>[p[0],p[1]])); p.p3=q; return p; });
       P.forEach(p=>{ p.draht=klDraht(e,p.p3); });
       /* Stiel bis auf den Halter */
-      const stiel=klDraht(e,[[cx,y0-0.1,o.z],[cx,y0+(herz?0:0.01),o.z]]);
+      const stiel=klDraht(e,[[cx,y0-0.1,Z],[cx,y0+(herz?0:0.01),Z]]);
       const sc=stiel.userData.col; for(let i=0;i<6;i++) sc[i]=0.2*H; klDrahtAuf(stiel);
       return {P,start:j*(e.versatz||0),f,fa:[{},{}]};
     });
@@ -291,8 +302,8 @@ klEmit('formkerze',(e,dt,o,t)=>{
     const lt=t-tl.start, u=clamp(lt/T,0,1), brennt=lt>0&&lt<T;
     if(lt<T) alleFertig=false;
     tl.P.forEach((P,pi)=>{
-      if(brennt){ const [x,y]=klPfadOrt(P,u), f={x,y,z:o.z};
-        klGlutpunkt(f,'eisen');
+      if(brennt){ const [x,y]=klPfadOrt(P,u), f={x,y,z:Z};
+        klGlutpunkt(f,'eisen',1,0.5); /* halber Hof: der Draht bleibt lesbar */
         klKerzeFunken(f,dt,tl.fa[pi],'eisen',A,B,(e.n||6)*60*(e.fronten===2?0.8:1),{tempo:0.62});
         licht('fk'+e.prod+j+pi,f,[1,0.7,0.4],0.6,{weite:4}); }
       /* Glut: abgebrannte Punkte leuchten in B nach und bleiben als Schrift stehen */
@@ -318,7 +329,7 @@ klEmit('formkerze',(e,dt,o,t)=>{
   if(e.schluss&&t>=e.schluss.at&&t<e.schluss.at+e.schluss.funkeln){
     e.sf=(e.sf||0)+dt*700*QUAL(); SCHWEIF=0.04;
     for(;e.sf>=1;e.sf--){ const tl=e.teile[Math.floor(Math.random()*e.teile.length)], P=tl.P[0], [x,y]=klPfadOrt(P,Math.random()), d=randDir(), s=rand(0.6,1.6), c=Math.random()<0.6?A:FW.weiss;
-      psSmall.emit(x,y,o.z,d[0]*s,d[1]*s+0.3,d[2]*s,c[0]*1.2,c[1]*1.2,c[2]*1.2,rand(0.15,0.35),1.5,0); }
+      psSmall.emit(x,y,Z,d[0]*s,d[1]*s+0.3,d[2]*s,c[0]*1.2,c[1]*1.2,c[2]*1.2,rand(0.15,0.35),1.5,0); }
     SCHWEIF=alt;
     if(!e.sfT){ e.sfT=1; sfx.crackle(distVol(o)*0.4); later(0.45,()=>sfx.crackle(distVol(o)*0.35)); } }
   if(!alleFertig){ e.fz=(e.fz||0)-dt; if(e.fz<=0){ e.fz=1.3; sfx.fizz(distVol(o)*0.3); } }
@@ -348,7 +359,7 @@ klEmit('funkenkranz',(e,dt,o,t)=>{
     if(!k.an){ k.an=true; const a=SCHWEIF; SCHWEIF=0; psBig.emit(k.x,klFlaeche(o)+0.45,k.z,0,0,0,1.5,1.2,0.7,0.08,0,0); SCHWEIF=a; }
     k.K.schritt(dt); if(k.K.alter<k.K.T){ const f=k.K.front(); sx+=f.x; sz+=f.z; sn++; } }
   /* Goldschein unter dem brennenden Bogen */
-  if(sn) licht('kranz'+e.prod,{x:sx/sn,y:klFlaeche(o)+0.5,z:sz/sn},[1,0.72,0.35],0.6+sn*0.12,{weite:6});
+  if(sn) licht('kranz'+e.prod,{x:sx/sn,y:klFlaeche(o)+0.5,z:sz/sn},[1,0.72,0.35],1.0+sn*0.13,{weite:8});
   e.fz=(e.fz||0)-dt; if(e.fz<=0&&sn){ e.fz=1.1; sfx.fizz(distVol(o)*(0.2+sn*0.03)); }
 });
 
@@ -357,18 +368,24 @@ klEmit('funkenkranz',(e,dt,o,t)=>{
    ganzen Platz, jedes mit eigenem Takt
    --------------------------------------------------------- */
 /* Flamme: Kern (kern) und Mantel (A), h Hoehe m, r Radius m, st Staerke */
+/* gesaettigte Produktfarbe: Nebenkanaele gedrueckt, damit die Summe der
+   additiven Flammenzungen nicht zu Weiss uebersteuert (Art-Director
+   27.09.: "rot & gruen" zeigten weisse Kugeln) */
+function klSatt(A){ const m=Math.max(A[0],A[1],A[2],0.01); return A.map(c=>Math.pow(c/m,2.2)); }
 function klFlamme(z,p,dt,A,o){
-  o=o||{}; const q=QUAL(), st=o.st===undefined?1:o.st, h=o.h||0.25, r=o.r||0.03, K=o.kern||[1,1,0.95];
+  o=o||{}; const q=QUAL(), st=o.st===undefined?1:o.st, h=o.h||0.25, r=o.r||0.03, S=klSatt(A), K=o.kern||klMisch(S,[1,1,1],0.25);
   if(st<=0.01) return;
   z.fl=(z.fl||0)+dt*(o.rate||110)*q*Math.min(1,st*0.8+0.2);
   const alt=SCHWEIF; SCHWEIF=0;
   for(;z.fl>=1;z.fl--){ const a=Math.random()*6.283, w=Math.sqrt(Math.random())*r, kern=Math.random()<0.16;
     /* strahl: Starklicht-Fackel - kurze, schnelle Flammenzungen statt ruhiger Flamme */
-    const l=(o.strahl?rand(0.08,0.14):rand(0.16,0.3))*(kern?0.7:1), vy=h/l*(o.strahl?rand(0.9,1.3):rand(0.55,0.8)), c=kern?K:A, k=(kern?0.85:0.72)*st;
+    const l=(o.strahl?rand(0.08,0.14):rand(0.16,0.3))*(kern?0.7:1), vy=h/l*(o.strahl?rand(0.9,1.3):rand(0.55,0.8)), c=kern?K:S, k=(kern?0.5:0.42)*st*(o.strahl?0.6:1);
     (kern?psSmall:psMid).emit(p.x+Math.cos(a)*w,p.y+rand(0,0.02),p.z+Math.sin(a)*w,Math.cos(a)*w*1.5,vy,Math.sin(a)*w*1.5,c[0]*k,c[1]*k,c[2]*k,l,-0.5,0); }
-  const hf=(o.hof||0.3)*st; psBig.emit(p.x,p.y+h*0.4,p.z,0,0,0,A[0]*hf,A[1]*hf,A[2]*hf,0.05,0,0);
+  /* Weiss nur als kleiner Punkt am Fuss der Flamme */
+  psSmall.emit(p.x,p.y+h*0.12,p.z,0,0,0,0.55*st,0.55*st,0.52*st,0.05,0,0);
+  const hf=(o.hof||0.3)*st; psBig.emit(p.x,p.y+h*0.4,p.z,0,0,0,S[0]*hf,S[1]*hf,S[2]*hf,0.05,0,0);
   /* Starklicht: weiter Lichthof um die Flamme */
-  if(o.hofGross) psHuge.emit(p.x,p.y+h*0.5,p.z,0,0,0,A[0]*o.hofGross*st,A[1]*o.hofGross*st,A[2]*o.hofGross*st,0.05,0,0);
+  if(o.hofGross) psHuge.emit(p.x,p.y+h*0.5,p.z,0,0,0,S[0]*o.hofGross*st,S[1]*o.hofGross*st,S[2]*o.hofGross*st,0.05,0,0);
   SCHWEIF=alt;
 }
 /* Farbe im weichen Kreislauf durch eine Namensliste (Kosinus-Ueberblendung) */
@@ -405,7 +422,8 @@ klEmit('wechselflamme',(e,dt,o,t)=>{
     klFlamme(s.z0,{x:s.tip.x,y:s.tip.y,z:s.z},dt,C,{h:0.25*auf,r:0.02,st:auf*(0.92+Math.random()*0.08),rate:80});
     /* leichter Farbrauch ueber dem Stab */
     s.z0.r=(s.z0.r||0)+dt*6; for(;s.z0.r>=1;s.z0.r--) psBig.emit(s.tip.x,s.tip.y+0.3,s.z,rand(-.05,.05),rand(0.2,0.45),rand(-.05,.05),C[0]*0.07,C[1]*0.07,C[2]*0.07,rand(1.5,2.5),-0.05,0); }
-  if(an) licht('lst'+e.prod,{x:o.x,y:o.y+0.4,z:o.z},C,1.0+an*0.25,{weite:10});
+  /* L5: Licht klein halten (Steigerung: die L9-Fackel muss heller sein) */
+  if(an) licht('lst'+e.prod,{x:o.x,y:o.y+0.4,z:o.z},C,0.45+an*0.08,{weite:5});
   e.fz=(e.fz||0)-dt; if(e.fz<=0&&an){ e.fz=1.4; sfx.fauchen(distVol(o)*0.12,1.6); }
 });
 
@@ -422,11 +440,13 @@ klEmit('zuendholz',(e,dt,o,t)=>{
     psBig.emit(p.x,p.y+0.04,p.z,0,0,0,0.9*k,0.9*k,0.85*k,0.05,0,0); licht('zh'+e.prod+e.nr,p,[1,1,0.95],2.2*k+0.5,{weite:4}); }
   else if(t<st+T){ const u=t-st, fl=0.9+0.1*Math.sin(u*37)+0.05*Math.random(), auf=Math.min(1,u/0.2), aus=Math.min(1,(st+T-t)/0.3), s=fl*auf*aus;
     /* runde Kugelflamme um den Kopf, ruhig, mit weissem Kern */
-    e.fk=(e.fk||0)+dt*110*QUAL();
-    for(;e.fk>=1;e.fk--){ const d=randDir(), r=Math.cbrt(Math.random())*0.04, c=r<0.008?[1.1,1.05,1]:A;
-      psSmall.emit(p.x+d[0]*r,p.y+0.035+d[1]*r,p.z+d[2]*r,d[0]*0.1,0.12,d[2]*0.1,c[0]*s*0.85,c[1]*s*0.85,c[2]*s*0.85,rand(0.08,0.14),0,0); }
-    psMid.emit(p.x,p.y+0.035,p.z,0,0,0,A[0]*0.55*s,A[1]*0.55*s,A[2]*0.55*s,0.05,0,0);
-    psBig.emit(p.x,p.y+0.04,p.z,0,0,0,A[0]*0.3*s,A[1]*0.3*s,A[2]*0.3*s,0.05,0,0);
+    /* gesaettigt in der Holzfarbe, Weiss nur als Punkt im Kern */
+    const S=klSatt(A); e.fk=(e.fk||0)+dt*110*QUAL();
+    for(;e.fk>=1;e.fk--){ const d=randDir(), r=Math.cbrt(Math.random())*0.04;
+      psSmall.emit(p.x+d[0]*r,p.y+0.035+d[1]*r,p.z+d[2]*r,d[0]*0.1,0.12,d[2]*0.1,S[0]*s*0.4,S[1]*s*0.4,S[2]*s*0.4,rand(0.08,0.14),0,0); }
+    psSmall.emit(p.x,p.y+0.035,p.z,0,0,0,0.5*s,0.5*s,0.48*s,0.05,0,0);
+    psMid.emit(p.x,p.y+0.035,p.z,0,0,0,S[0]*0.4*s,S[1]*0.4*s,S[2]*0.4*s,0.05,0,0);
+    psBig.emit(p.x,p.y+0.04,p.z,0,0,0,S[0]*0.3*s,S[1]*0.3*s,S[2]*0.3*s,0.05,0,0);
     licht('zh'+e.prod+e.nr,p,A,1.5*s,{weite:5});
     e.fz=(e.fz||0)-dt; if(e.fz<=0){ e.fz=1.3; sfx.fizz(distVol(o)*0.15); } }
   else if(t<st+T+gl+1.2){ const u=(t-st-T)/gl, k=Math.max(0,1-u);
@@ -443,7 +463,8 @@ klEmit('farbnebel',(e,dt,o,t)=>{
   const sf=klFlaeche(o), p={x:o.x,y:Math.max(o.y,sf)+0.02,z:o.z}, auf=Math.min(1,t/0.6), aus=clamp(e.t/0.8,0,1), s=auf*aus;
   e.C=C;
   klFlamme(e,p,dt,C,{h:0.3,r:0.06,st:s*(0.93+0.07*Math.sin(t*23)),rate:120});
-  licht('fn'+e.prod+e.pi,{x:p.x,y:p.y+0.35,z:p.z},C,2.4*s,{weite:14});
+  /* 1,1 statt 2,4 und hoeher: drei Toepfe ueberstrahlten Tisch und Platz weiss */
+  licht('fn'+e.prod+e.pi,{x:p.x,y:p.y+0.7,z:p.z},C,1.1*s,{weite:10});
   /* Rauch: zur gemeinsamen Mitte (Station) hin, steigt, leuchtet in der Farbe seines Topfes */
   e.rb=(e.rb||0)+dt*3.5*s;
   if(e.rb>=1){ e.rb--; const ee=e, mx=o.x-(e.x||0), mz=o.z-(e.z||0);
@@ -468,7 +489,7 @@ klEmit('handfackel',(e,dt,o,t)=>{
   if(t>=S.at){ const k=Math.floor((t-S.at)/0.75), f=(t-S.at)%0.75; if(k<S.n){ if(f<0.15) s*=0.06; } else s*=Math.max(0,1-(t-S.at-S.n*0.75)/0.4); }
   if(t>T) s=0;
   const st=s*fl;
-  if(s>0.01){ klFlamme(e,p,dt,A,{h:0.3,r:0.035,st:Math.min(1.3,st),rate:400,kern:[1.5,1.4,1.35],hof:0.8,hofGross:0.35,strahl:true});
+  if(s>0.01){ klFlamme(e,p,dt,A,{h:0.3,r:0.035,st:Math.min(1.3,st),rate:400,hof:0.8,hofGross:0.35,strahl:true});
     licht('fa'+e.prod,{x:p.x,y:p.y+0.15,z:p.z},A,(e.hell||3.2)*st,{weite:25});
     /* Rauchfahne: vorne rot angestrahlt, weiter weg grau */
     e.rb=(e.rb||0)+dt*3*s;
@@ -511,7 +532,7 @@ klEmit('blitzturm',(e,dt,o,t)=>{
     e.tp=TP.map((q,i)=>({p:{x:o.x+ecken[i][0],y:Math.max(o.y,sf)+0.06,z:o.z+ecken[i][1]},A:klF(q.A),hz:q.hz,start:i*(e.gap||0.6),phi:0,an:false,klang:[1.7,0.6,1.0,0.45][i]}));
     e.aus=ES.at+ES.t+ES.dauerlicht; e.t=e.aus+0.8; }
   const alt=SCHWEIF; SCHWEIF=0;
-  let klick=false;
+  let klick=false, nan=0; const lc=[0,0,0];
   e.tp.forEach((q,i)=>{
     if(t<q.start) return;
     const p=q.p;
@@ -522,7 +543,9 @@ klEmit('blitzturm',(e,dt,o,t)=>{
     if(an){ const k=dauer?1.3:1.6;
       psBig.emit(p.x,p.y+0.05,p.z,0,0,0,q.A[0]*k,q.A[1]*k,q.A[2]*k,0.05,0,0);
       psMid.emit(p.x,p.y+0.04,p.z,0,0,0,1.6,1.6,1.6,0.05,0,0);
-      licht('bt'+e.prod+i,{x:p.x,y:p.y+0.3,z:p.z},q.A,dauer?3:2.5,{weite:18});
+      /* Blitzhof um den Turm (nur Sprite, kein Raumlicht) */
+      psHuge.emit(p.x,p.y+0.12,p.z,0,0,0,q.A[0]*0.3,q.A[1]*0.3,q.A[2]*0.3,0.05,0,0);
+      nan++; lc[0]+=q.A[0]; lc[1]+=q.A[1]; lc[2]+=q.A[2];
       if(!q.an){ /* Einschalten des Blitzes: kurzer Funkenring, Klick */
         for(let k2=0;k2<12;k2++){ const d=randDir(), v=rand(0.8,1.6); psSmall.emit(p.x,p.y+0.05,p.z,d[0]*v,Math.abs(d[1])*v,d[2]*v,q.A[0]*1.3,q.A[1]*1.3,q.A[2]*1.3,rand(0.12,0.25),1,0); }
         if(!klick&&!dauer){ klick=true; sfx.klick(distVol(o)*0.9,q.klang); } } }
@@ -532,6 +555,13 @@ klEmit('blitzturm',(e,dt,o,t)=>{
     q.an=an;
   });
   SCHWEIF=alt;
+  /* Raumlicht: EIN Licht, geglaettet (Zeitkonstante 0,3 s) - die Toepfe
+     blinken schnell, der Platz nicht; mit vier Lichtern je 2,5/18 m war
+     der Platz weiss und flackerte mit 9-14 Hz (Art-Director 27.09.) */
+  const zi=t<e.aus?Math.min(1.1,0.55*nan):0, g=1-Math.exp(-dt/0.3);
+  e.lg=(e.lg||0)+(zi-(e.lg||0))*g;
+  if(nan){ e.lc=e.lc||[1,1,1]; for(let c=0;c<3;c++) e.lc[c]+=(lc[c]/nan-e.lc[c])*g; }
+  if(e.lg>0.03) licht('bt'+e.prod,{x:o.x,y:o.y+0.35,z:o.z},e.lc||[1,1,1],e.lg,{weite:4});
   /* Dauerlicht: Brummen steigt 200 -> 900 Hz, dann hart aus mit Plopp */
   if(t>=ES.at+ES.t&&!e.brumm){ e.brumm=klTon(e,sfx.brummen(distVol(o)*1.2,200,ES.dauerlicht+0.05)); if(e.brumm) e.brumm.f(900,ES.dauerlicht*0.4); }
   if(t>=e.aus&&!e.plopp){ e.plopp=1; if(e.brumm) e.brumm.stop(); schall(o,v=>sfx.plopp(v*1.2,1)); }
@@ -622,7 +652,7 @@ klEmit('brummkreisel',(e,dt,o,t)=>{
     if(!k.ton&&!k.ende) k.ton=klTon(e,sfx.brummen(distVol(o)*0.55,TH[0]*k.det,T+0.2));
     if(k.ton){ k.tt=(k.tt||0)-dt; if(k.tt<=0){ k.tt=0.1; k.ton.f((TH[0]+(TH[1]-TH[0])*(rev-U[0])/(U[1]-U[0]))*k.det,0.08); } } }
   SCHWEIF=alt;
-  if(ln) licht('bk'+e.prod,{x:lx/ln,y:e.sf+0.3,z:lz/ln},[lc[0]/ln,lc[1]/ln,lc[2]/ln],0.8+ln*0.25,{weite:6});
+  if(ln) licht('bk'+e.prod,{x:lx/ln,y:e.sf+0.3,z:lz/ln},[lc[0]/ln,lc[1]/ln,lc[2]/ln],0.4+ln*0.1,{weite:4});
 });
 
 /* Flitzer: sechs Treiber rasen kreischend im Zickzack ueber den Boden,
@@ -698,7 +728,7 @@ klEmit('huepfer',(e,dt,o,t)=>{
     const m1=new THREE.Mesh(klMat('froschgeo',()=>new THREE.BoxGeometry(0.06,0.022,0.035)),klMat('froschrot',()=>new THREE.MeshStandardMaterial({color:0xc41e1e,emissive:0x2a0404})));
     const m2=new THREE.Mesh(klMat('froschband',()=>new THREE.BoxGeometry(0.062,0.008,0.012)),klMat('froschgelb',()=>new THREE.MeshStandardMaterial({color:0xf2c21b,emissive:0x2a2004})));
     m2.position.y=0.012; grp.add(m1); grp.add(m2); m1.userData.geoFest=m2.userData.geoFest=true; grp.userData.geoFest=true;
-    grp.position.set(g.x,g.y+0.011,g.z); klMesh(e,grp); e.grp=grp;
+    grp.scale.setScalar(1.4); grp.position.set(g.x,g.y+0.015,g.z); klMesh(e,grp); e.grp=grp;
     const TK=e.takt||[0.35], zeiten=[0]; for(let i=1;i<(e.knalle||9);i++) zeiten.push(zeiten[i-1]+TK[(i-1)%TK.length]);
     e.fr={x:g.x,z:g.z,a:rand(0,6.28),zeiten,nr:0,flug:null,ry:0}; e.t=zeiten[zeiten.length-1]+2.6; }
   const F=e.fr, g=e.g, alt=SCHWEIF, SP=klF(e.spur,FW.bernstein);
@@ -713,18 +743,19 @@ klEmit('huepfer',(e,dt,o,t)=>{
     /* Sprung: Winkel zum vorigen +-60-150 Grad; nicht zu weit vom Start */
     const SPR=e.sprung||[0.4,1.2], HO=e.hoehe||[0.15,0.45];
     let a=F.a+(Math.random()<0.5?-1:1)*rand(1.05,2.6);
-    if(Math.hypot(F.x-g.x,F.z-g.z)>1.6) a=Math.atan2(g.z-F.z,g.x-F.x)+rand(-0.6,0.6);
+    /* im Bild bleiben: nicht weiter als 0,9 m vom Start, nicht zum Pult hin unter den Bildrand */
+    if(Math.hypot(F.x-g.x,F.z-g.z)>0.9||F.z-g.z>0.35) a=Math.atan2(g.z-0.2-F.z,g.x-F.x)+rand(-0.5,0.5);
     const D=letzt?0.5:rand(SPR[0],SPR[1]), h=letzt?(L.hoehe||1.1):rand(HO[0],HO[1]), vy=Math.sqrt(2*9.8*h), T=2*vy/9.8;
     F.a=a; F.flug={t0:t,T,x0:F.x,z0:F.z,vx:Math.cos(a)*D/T,vz:Math.sin(a)*D/T,vy,dreh:(letzt?1:rand((e.dreh||[0.8,2.2])[0],(e.dreh||[0.8,2.2])[1]))*2*Math.PI/T,salto:letzt&&L.ueberschlag};
     F.nr++; }
   /* Flug */
   if(F.flug){ const f=F.flug, lt=t-f.t0;
-    if(lt<f.T){ const x=f.x0+f.vx*lt, z=f.z0+f.vz*lt, y=g.y+0.011+f.vy*lt-4.9*lt*lt;
+    if(lt<f.T){ const x=f.x0+f.vx*lt, z=f.z0+f.vz*lt, y=g.y+0.015+f.vy*lt-4.9*lt*lt;
       e.grp.position.set(x,y,z); e.grp.rotation.set(f.salto?lt/f.T*Math.PI*2:0,F.ry+f.dreh*lt,0);
       F.z2=(F.z2||0)+dt*120*QUAL(); SCHWEIF=0.04;
       for(;F.z2>=1;F.z2--) psSmall.emit(x,y,z,rand(-.3,.3),rand(-.1,.3),rand(-.3,.3),SP[0],SP[1],SP[2],rand(0.15,0.3),2,0);
       SCHWEIF=alt; F.x=x; F.z=z; }
-    else { F.x=f.x0+f.vx*f.T; F.z=f.z0+f.vz*f.T; F.ry+=f.dreh*f.T; e.grp.position.set(F.x,g.y+0.011,F.z); e.grp.rotation.set(0,F.ry,0); F.flug=null;
+    else { F.x=f.x0+f.vx*f.T; F.z=f.z0+f.vz*f.T; F.ry+=f.dreh*f.T; e.grp.position.set(F.x,g.y+0.015,F.z); e.grp.rotation.set(0,F.ry,0); F.flug=null;
       rauchball({x:F.x,y:g.y+0.03,z:F.z},{r:0.18,n:2,dauer:1.2,steigen:0.05,c:[0.45*klHell()+0.1,0.42*klHell()+0.1,0.38*klHell()+0.1],a:0.35,form:'ring'});
       schall({x:F.x,y:g.y,z:F.z},v=>sfx.poka(v*0.25)); } }
   /* Zuendschnur glimmt, nach dem letzten Sprung raucht er noch 1 s */
@@ -756,9 +787,10 @@ klEmit('konfettistrahl',(e,dt,o,t)=>{
 /* Knallbonbon: Riss-Knack, Konfettiwoelkchen links und rechts, eine
    Papierkrone fliegt hoch und trudelt wie ein Blatt herab */
 function klKroneGeo(){ return klMat('kronegeo',()=>{
-  /* Papierkrone zum Aufsetzen: Oe 16 cm (Katalog 12 cm - vom Pult aus nicht zu sehen) */
-  const n=8, R=0.08, pos=[], idx=[];
-  for(let i=0;i<=n*2;i++){ const a=i/(n*2)*Math.PI*2, oben=i%2===0?0.065:0.028;
+  /* Papierkrone: Oe 24 cm (Katalog 12 cm; mit 16 cm vom Pult aus nur
+     ein paar Pixel - Art-Director 27.09.) */
+  const n=8, R=0.12, pos=[], idx=[];
+  for(let i=0;i<=n*2;i++){ const a=i/(n*2)*Math.PI*2, oben=i%2===0?0.1:0.042;
     pos.push(Math.cos(a)*R,0,Math.sin(a)*R, Math.cos(a)*R,oben,Math.sin(a)*R); }
   for(let i=0;i<n*2;i++){ const a=i*2; idx.push(a,a+1,a+2, a+1,a+3,a+2); }
   const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3)); g.setIndex(idx); g.computeVertexNormals(); return g; }); }
@@ -799,11 +831,11 @@ klEmit('papierkrone',(e,dt,o,t)=>{
 /* Tischbombe: dumpfer Plopp, Spielzeug fliegt hoch und huepft
    (Restitution rest), der Kreisel tanzt 2 s auf der Spitze */
 const KL_TEILGEO={
-  /* 5-7 cm statt 3-5 cm: vom Pult aus sonst nur Punkte */
-  wuerfel:()=>new THREE.BoxGeometry(0.05,0.05,0.05),
-  ring:()=>new THREE.TorusGeometry(0.03,0.01,6,16),
-  kreisel:()=>{ const g=new THREE.ConeGeometry(0.032,0.06,12); g.rotateX(Math.PI); g.translate(0,0.03,0); return g; },
-  kugel:()=>new THREE.SphereGeometry(0.028,12,9)
+  /* 8-10 cm: mit 5-7 cm vom Pult (4,2 m) aus nur Punkte (Art-Director 27.09.) */
+  wuerfel:()=>new THREE.BoxGeometry(0.075,0.075,0.075),
+  ring:()=>new THREE.TorusGeometry(0.045,0.015,6,16),
+  kreisel:()=>{ const g=new THREE.ConeGeometry(0.048,0.09,12); g.rotateX(Math.PI); g.translate(0,0.045,0); return g; },
+  kugel:()=>new THREE.SphereGeometry(0.042,12,9)
 };
 klEmit('ueberraschung',(e,dt,o,t)=>{
   const RT=(e.rest&&e.rest.t)||20, R=e.rest||0.45;
@@ -812,8 +844,10 @@ klEmit('ueberraschung',(e,dt,o,t)=>{
     e.tl=(e.teile||['wuerfel','ring','kreisel','kugel']).map((art,i)=>{
       const C=F[i%F.length], mat=klMat('spiel'+i%F.length+(e.farben||[]).join(''),()=>new THREE.MeshStandardMaterial({color:klFarbe3(C[0],C[1],C[2]),roughness:0.3,metalness:0.1,emissive:klFarbe3(C[0]*0.5,C[1]*0.5,C[2]*0.5)}));
       const m=new THREE.Mesh(klMat('teil'+art,KL_TEILGEO[art]||KL_TEILGEO.kugel),mat); m.userData.geoFest=true; m.position.set(p.x,p.y,p.z); klMesh(e,m);
-      const h=rand(H[0],H[1]), vy=Math.sqrt(2*9.8*h), a=rand(0,6.283), vh=vy*Math.tan(rand(0.05,1)*(e.streu||0.35));
-      return {m,art,vx:Math.cos(a)*vh,vz:Math.sin(a)*vh,vy,ax:randDir(),w:rand(8,18),hops:0,ruhe:false,rad:art==='ring'?0.011:art==='kreisel'?0:0.026};
+      /* Landepunkt auf dem Tisch (bis 0,8 m seitlich, 0,3 m tief) statt
+         bis 3,5 m weit ins Dunkle (Katalog: Streuung auf dem Tisch) */
+      const h=rand(H[0],H[1]), vy=Math.sqrt(2*9.8*h), T=2*vy/9.8, a=rand(0,6.283), d=rand(0.1,1)*(e.streu||0.35)/0.35;
+      return {m,art,vx:Math.cos(a)*d*0.8/T,vz:Math.sin(a)*d*0.3/T,vy,ax:randDir(),w:rand(8,18),hops:0,ruhe:false,rad:art==='ring'?0.016:art==='kreisel'?0:0.038};
     });
     const alt=SCHWEIF; SCHWEIF=0; psBig.emit(p.x,p.y+0.05,p.z,0,0,0,1.2,1,0.7,0.06,0,0); SCHWEIF=alt;
     rauchball({x:p.x,y:p.y+0.15,z:p.z},{r:0.3,n:2,dauer:2,steigen:0.3,c:[0.6*klHell()+0.1,0.6*klHell()+0.1,0.62*klHell()+0.1],a:0.35});
@@ -849,7 +883,7 @@ klEmit('konfettisaeule',(e,dt,o,t)=>{
    lockeren Schraube entrollen, schwingend sinken und als Kringel liegen */
 klEmit('luftschlange',(e,dt,o,t)=>{
   const RT=(e.rest&&e.rest.t)||20, NP=24, BR=0.015;
-  if(!e.bd){ const sf=klFlaeche(o), p={x:o.x,y:Math.max(o.y,sf)+0.05,z:o.z}, F=(e.farben||KL_BUNT).map(c=>klF(c)), H=klHell();
+  if(!e.bd){ const sf=klFlaeche(o), p={x:o.x,y:Math.max(o.y,sf)+0.05,z:o.z}, F=(e.farben||KL_BUNT).map(c=>klF(c)), H=klPapH();
     const LL=e.laenge||[1.2,2.2], ST=e.steig||[4.5,6.5], LK=e.locken||[3,6];
     e.bd=[];
     for(let i=0;i<(e.n||14);i++){
@@ -953,7 +987,7 @@ klEmit('knallkette',(e,dt,o,t)=>{
     /* S-Kurve: zwei Boegen, vom Tisch zum Pult hin */
     const roh=[]; for(let i=0;i<=80;i++){ const s=i/80; roh.push([g.x+0.42*Math.sin(2*Math.PI*s),g.z+s*1.9]); }
     const P=klPfad(roh), f=L/P.L; e.pf=P; e.g=g; e.sk=f;
-    const geo=klMat('gliedgeo',()=>new THREE.BoxGeometry(0.016,0.012,0.028)), H=klHell();
+    const geo=klMat('gliedgeo',()=>new THREE.BoxGeometry(0.016,0.012,0.028)), H=klPapH();
     e.im=new THREE.InstancedMesh(geo,klMat('glied',()=>new THREE.MeshBasicMaterial({color:0xffffff,toneMapped:false})),NG); e.im.userData.geoFest=true; e.im.frustumCulled=false; klMesh(e,e.im);
     e.gl=[]; for(let i=0;i<NG;i++){ const u=i/(NG-1), [x,z]=klPfadOrt(P,u), [x2,z2]=klPfadOrt(P,Math.min(1,u+0.01)); e.gl.push({x,z,a:Math.atan2(x2-x,z2-z),u,hop:0});
       if(e.im.setColorAt) e.im.setColorAt(i,klFarbe3(0.75*H+0.08,0.08,0.06)); }
@@ -995,10 +1029,18 @@ klEmit('knallkette',(e,dt,o,t)=>{
 /* Goldstaub: Knall, 400 Koerner stehen als Wolke und glimmen; jedes
    blitzt genau einmal auf, die Welle laeuft von oben nach unten */
 klEmit('goldstaub',(e,dt,o,t)=>{
-  if(e.los) return; e.los=1; e.t=0.2;
-  const sf=klFlaeche(o), p0={x:o.x,y:Math.max(o.y,sf)+0.05,z:o.z}, h=e.h||3, r=e.r||1.2, n=Math.round((e.n||400)*QUAL());
-  const G=klF(e.glut,FW.bernstein), A=klF(e.A,FW.gold), B=klF(e.B,FW.zitrone), BL=e.blitz||{von:0.3,bis:1.6,dauer:0.04}, RI=e.riesel||2.5;
-  const mitte={x:p0.x,y:p0.y+0.35+h*0.5,z:p0.z}, v=distVol(p0), alt=SCHWEIF;
+  const BL=e.blitz||{von:0.3,bis:1.6,dauer:0.04}, RI=e.riesel||2.5, GL=2.2, h=e.h||3;
+  if(e.los){
+    /* eigenes Licht (Art-Director 27.09.: L11 wirkte schwaecher als L5):
+       Knall hell, Welle flackert, Rieseln klingt ab, Glimmen schwach */
+    const m=e.mitte, y=m.y-0.3*Math.max(0,t-BL.bis);
+    const st=t<0.3?3.2:t<BL.bis?2.2+0.6*Math.sin(t*40):t<BL.bis+RI?2.0*(1-0.75*(t-BL.bis)/RI):0.5*Math.max(0,1-(t-BL.bis-RI)/GL);
+    if(st>0.03) licht('gs'+e.prod,{x:m.x,y,z:m.z},[1,0.74,0.3],st,{weite:14});
+    return; }
+  e.los=1; e.t=BL.bis+RI+GL+0.3;
+  const sf=klFlaeche(o), p0={x:o.x,y:Math.max(o.y,sf)+0.05,z:o.z}, r=e.r||1.2, n=Math.round((e.n||400)*QUAL());
+  const G=klF(e.glut,FW.bernstein), A=klF(e.A,FW.gold), B=klF(e.B,FW.zitrone);
+  const mitte={x:p0.x,y:p0.y+0.35+h*0.5,z:p0.z}, v=distVol(p0), alt=SCHWEIF; e.mitte=mitte;
   /* Knall */
   SCHWEIF=0; psHuge.emit(p0.x,p0.y+0.2,p0.z,0,0,0,1.4,1.1,0.5,0.08,0,0); SCHWEIF=alt;
   smallPop(p0.x,p0.y,p0.z,40,5,0.35,FW.gold);
@@ -1007,7 +1049,8 @@ klEmit('goldstaub',(e,dt,o,t)=>{
   for(let i=0;i<n;i++){
     const d=randDir(), f=Math.cbrt(Math.random()), tg={x:mitte.x+d[0]*r*f,y:mitte.y+d[1]*h*0.5*f,z:mitte.z+d[2]*r*f};
     const yr=clamp((tg.y-(mitte.y-h/2))/h,0,1), tb=BL.von+(1-yr)*(BL.bis-BL.von)+rand(-0.08,0.08), C=Math.random()<0.6?A:B;
-    fuehre(psMid,p0.x,p0.y,p0.z,0,0,0,G,tb+RI*rand(0.7,1),(s,dt2)=>{
+    const ri=RI*rand(0.75,1), gl=GL*rand(0.6,1);
+    fuehre(psMid,p0.x,p0.y,p0.z,0,0,0,G,tb+ri+gl,(s,dt2)=>{
       const a=s.alter;
       if(a<0.3){ const u=a/0.3, k=1-Math.pow(1-u,3); s.p[0]=p0.x+(tg.x-p0.x)*k; s.p[1]=p0.y+(tg.y-p0.y)*k; s.p[2]=p0.z+(tg.z-p0.z)*k; s.hell=0.5; }
       else if(a<tb){ s.p[1]-=0.15*dt2; s.p[0]+=Math.sin(a*2+i)*0.02*dt2; s.hell=0.32*(0.75+0.5*Math.sin(a*7+i)); }
@@ -1015,7 +1058,11 @@ klEmit('goldstaub',(e,dt,o,t)=>{
           /* das Aufblitzen: Stern mit weissem Kern, genau einmal */
           psBig.emit(s.p[0],s.p[1],s.p[2],0,-0.1,0,C[0]*1.7,C[1]*1.7,C[2]*1.7,BL.dauer+0.03,0,0);
           psSmall.emit(s.p[0],s.p[1],s.p[2],0,-0.1,0,2.2,2.2,2.1,BL.dauer+0.02,0,0); SCHWEIF=q; }
-        s.p[1]-=0.45*dt2; s.hell=0.2*Math.max(0,1-(a-tb)/RI); }
+        /* Rieseln: sinkt wie Glitter, funkelt weiter; danach Glimmen in Bernstein */
+        const ra=a-tb;
+        if(ra<ri){ s.p[1]-=0.4*dt2; s.p[0]+=Math.sin(a*3+i)*0.05*dt2; s.hell=0.3*(1-0.5*ra/ri)*(0.55+0.45*Math.sin(a*11+i*1.7));
+          if(Math.random()<dt2*0.5){ const q=SCHWEIF; SCHWEIF=0; psSmall.emit(s.p[0],s.p[1],s.p[2],0,-0.2,0,C[0]*1.4,C[1]*1.4,C[2]*1.4,0.06,0,0); SCHWEIF=q; } }
+        else { s.p[1]-=0.25*dt2; s.hell=0.12*Math.max(0,1-(ra-ri)/gl); } }
       s.v[0]=0; s.v[1]=0; s.v[2]=0; s.c=G; },{}); }
 });
 
@@ -1143,8 +1190,8 @@ Object.assign(KLEIN,{
             {k:'titankerze',at:2.64,x:0,laenge:0.7,material:'titan',A:'silber',B:'weiss',t:8,aufflammen:true}]},
   bengalflamme:{stueck:3,lunte:0,dauer:15,
     phasen:[{k:'farbnebel',at:0,t:14,x:0.00,z:-0.1,farbzyklus:['blau','violett','magenta'],periode:9,versatz:0},
-            {k:'farbnebel',at:0,t:14,x:-0.12,z:0.08,farbzyklus:['blau','violett','magenta'],periode:9,versatz:3},
-            {k:'farbnebel',at:0,t:14,x:0.12,z:0.08,farbzyklus:['blau','violett','magenta'],periode:9,versatz:6}]},
+            {k:'farbnebel',at:0,t:14,x:-0.12,z:0.08,farbzyklus:['blau','violett','magenta'],periode:9,versatz:0.3},
+            {k:'farbnebel',at:0,t:14,x:0.12,z:0.08,farbzyklus:['blau','violett','magenta'],periode:9,versatz:0.6}]},
   /* L9 */
   monsterboeller:{stueck:1,lunte:1.5,dauer:5,phasen:[{k:'alt',fn:'monsterknall'}]},
   bengalfackel:{stueck:1,lunte:0,dauer:32,

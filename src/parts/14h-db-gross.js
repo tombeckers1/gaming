@@ -629,13 +629,17 @@ SIGNATUR.zfaecher={eff:'blitzast',text:'gezackte Blitze mit Donner'};
 /* Level 17: Achterbahn */
 SHOWS.batterie100=()=>show({basis:{pw:0.70,sz:1.060,th:'himmel'},rampe:{sz:[0.90,1.20],pw:[0,0],hell:[0.90,1.25],kurve:'linear'}},[
   /* Kettenaufzug: jeder Schuss 2,5 m hoeher, Warnblinker am Boden */
-  {n:12,gap:0.9,muster:'treppe',hoehe:'steigend',hSpanne:30,kal:'klein',eff:'pistill',steig:'blink',farbe:0,boden:{k:'blinker',gt:11,A:'weiss'},pause:0.2},
+  /* 27.09.: Hoehenspannen kleiner (Aufzug 16, Drop 18, Buckel 14 statt 30/35/20) -
+     der Drop brach bei 39 m, hoeher als die Kugelbomben bis Level 18 (Toms Regel:
+     Kugeln sind das Groesste und Hoechste bis zu ihrem Level, steigerung.js) und
+     vom Zuendpult aus ueber dem Bildrand */
+  {n:12,gap:0.9,muster:'treppe',hoehe:'steigend',hSpanne:16,kal:'klein',eff:'pistill',steig:'blink',farbe:0,boden:{k:'blinker',gt:11,A:'weiss'},pause:0.2},
   /* oben: kurzer Stillstand, ein grosser Kamuro als Aussicht */
   {n:1,muster:'gerade',eff:'kamuro',kal:'gross',pw:6,pause:1.8},
   /* erster Drop: fallend, immer schneller, kreischende Aufstiege */
-  {n:16,gap:0.35,gapEnde:0.07,muster:'v',ang:0.15,hoehe:'fallend',hSpanne:35,eff:['chrys','spinne'],steig:'pfeif',pause:1.2},
+  {n:16,gap:0.35,gapEnde:0.07,muster:'v',ang:0.15,hoehe:'fallend',hSpanne:18,eff:['chrys','spinne'],steig:'pfeif',pause:1.2},
   /* Kamelbuckel: Hoehen als Welle, Fontaene am Boden */
-  {n:18,gap:0.30,muster:'welle',ang:0.30,wellen:3,hoehe:'welle',hSpanne:20,eff:['dahlie','palme'],farbe:1},
+  {n:18,gap:0.30,muster:'welle',ang:0.30,wellen:3,hoehe:'welle',hSpanne:14,eff:['dahlie','palme'],farbe:1},
   {mit:true,n:0,boden:{k:'fountain',gt:6,gh:0.9,A:'violett',B:'gold'},pause:1.0},
   /* Steilkurve: Paare, Winkel waechst */
   {n:14,gap:0.20,muster:'paar',ang:0.50,eff:'komet',farbe:2,pause:1.0},
@@ -734,10 +738,11 @@ SHOWS.hochzeitsfaecher=()=>show({basis:{pw:2.00,sz:1.160,th:'herz'},rampe:{sz:[0
   /* Rosenblaetter schweben */
   {n:6,gap:1.2,muster:'mitte',ang:0.40,eff:'blaetter',farbe:0,pause:1.0},
   /* DAS HERZ: 7 Paare auf der Herzkontur, von der Spitze aufwaerts, alle stehen am Ende zugleich */
-  /* 27.09.: kal klein und Takt 0,25 s statt mittel/0,5 s - vorher verliefen die
-     grossen Dahlien ineinander und die Spitze war erloschen, bevor oben die
-     Boegen standen: kein Herz zu erkennen */
-  {n:14,je:2,takt:[0.25],muster:'bild',form:'herz',eff:'dahlie',kal:'klein',bruchOpt:{nachglitzer:false},boden:{k:'fountain',gt:9,A:'rose',B:'gold'},pause:3.0},
+  /* 27.09.: kal mini, Takt 0,25 s, 20 m breit und Mitte 19 m statt mittel/0,5 s/
+     24 m/~25 m - vorher verliefen die grossen Dahlien ineinander, die Spitze war
+     erloschen, bevor oben die Boegen standen, und die Boegen lagen vom
+     Zuendpult aus ueber dem Bildrand: kein Herz zu erkennen */
+  {n:14,je:2,takt:[0.25],muster:'bild',form:'herz',breite:20,mitteH:19,eff:'dahlie',kal:'mini',bruchOpt:{nachglitzer:false},boden:{k:'fountain',gt:9,A:'rose',B:'gold'},pause:3.0},
   /* FINALE Ringtausch: zwei goldene Doppelringe, darunter weisser "Reis" */
   {n:2,gap:0,muster:'v',ang:0.20,eff:'doppelring',kal:'gross',th:'gold'},
   {mit:true,n:6,gap:0.15,muster:'zufall',ang:0.40,kal:'klein',pw:-3,eff:'farbregen',th:'silber',pause:4.5}
@@ -866,24 +871,26 @@ const ODE_A2={ton:[2,2,3,4, 4,3,2,1, 0,0,1,2, 1,0,0],dauer:[1,1,1,1, 1,1,1,1, 1,
 const ODE={ton:[...ODE_A.ton,...ODE_A2.ton],dauer:[...ODE_A.dauer,...ODE_A2.dauer]};
 const ODE_BASS={ton:[0,0,-3,-3,0,0,-3,-3, 0,0,-3,-3,0,0,-3,0],dauer:Array(16).fill(2)};
 SHOWS.profi=()=>show({basis:{pw:3.10,sz:1.250,th:'koenig'},rampe:{sz:[0.90,1.30],pw:[0,2],hell:[0.85,1.35],kurve:'linear'}},[
-  /* Strophe 1 SOLO: eine Stimme, senkrecht, Hoehe = Ton (4 m je Tonschritt), Kerzenlicht-Fontaene */
-  {n:30,muster:'gerade',hoehe:'melodie',noten:ODE,viertel:0.6,hStufe:4,eff:'pistill',kal:'mittel',steig:'gold',boden:{k:'fountain',gt:20,gh:0.5,A:'gold'},pause:2.0},
+  /* Strophe 1 SOLO: eine Stimme, senkrecht, Hoehe = Ton, Kerzenlicht-Fontaene.
+     27.09.: 2,5 m je Tonschritt statt 4 m, Schlussakkord 1,1 m je Halbton ohne pw -
+     vorher brach der Akkord bei 53 m, hoeher als Kugel 200/300 (steigerung.js) */
+  {n:30,muster:'gerade',hoehe:'melodie',noten:ODE,viertel:0.6,hStufe:2.5,eff:'pistill',kal:'mittel',steig:'gold',boden:{k:'fountain',gt:20,gh:0.5,A:'gold'},pause:2.0},
   /* Zwischenspiel "Goetterfunken": knisternde Goldsterne im Scheibenwischer */
   {n:14,gap:0.2,muster:'wischer',seg:2,ang:0.40,eff:'drachenei',kal:'klein',pause:1.2},
   /* Strophe 2 DUETT: Melodie oben senkrecht, Bass in Halben tiefer im V */
-  {n:30,muster:'gerade',hoehe:'melodie',noten:ODE,viertel:0.5,eff:'dahlie',farbe:1},
-  {mit:true,n:16,muster:'v',ang:0.45,hoehe:'melodie',noten:ODE_BASS,viertel:0.5,pw:-6,kal:'klein',eff:'palme',farbe:2,pause:1.0},
+  {n:30,muster:'gerade',hoehe:'melodie',noten:ODE,viertel:0.5,hStufe:2.5,eff:'dahlie',farbe:1},
+  {mit:true,n:16,muster:'v',ang:0.45,hoehe:'melodie',noten:ODE_BASS,viertel:0.5,hStufe:2.5,pw:-6,kal:'klein',eff:'palme',farbe:2,pause:1.0},
   /* Zwischenspiel: Wasserfall der Freude - Fontaenen mitten in der Show, grosse Kronleuchter */
   {n:12,gap:1.3,muster:'aussen',ang:0.50,eff:'kronleuchter',kal:'gross',boden:[{k:'wasserfall',gt:16,A:'gold'},{k:'feuerbrunnen',gt:8,x:-3},{k:'feuerbrunnen',gt:8,x:3}],pause:1.5},
   /* KANON: linkes Modul (senkrecht) beginnt, rechtes (zur Mitte geneigt) setzt zwei Viertel spaeter ein */
-  {n:15,muster:'gerade',x:-8,hoehe:'melodie',noten:ODE_A,viertel:0.5,eff:'brokat',farbe:0},
-  {mit:1.0,n:15,muster:'x',ang:0.15,x:8,hoehe:'melodie',noten:ODE_A,viertel:0.5,eff:'brokat',farbe:1,pause:1.0},
+  {n:15,muster:'gerade',x:-8,hoehe:'melodie',noten:ODE_A,viertel:0.5,hStufe:2.5,eff:'brokat',farbe:0},
+  {mit:1.0,n:15,muster:'x',ang:0.15,x:8,hoehe:'melodie',noten:ODE_A,viertel:0.5,hStufe:2.5,eff:'brokat',farbe:1,pause:1.0},
   /* Strophe 3 TUTTI: schneller, Melodie + Bass + Pauken + Feuertoepfe */
-  {n:30,muster:'gerade',hoehe:'melodie',noten:ODE,viertel:0.38,eff:'brokat',kal:'gross',mine:true,mineEff:'gold'},
-  {mit:true,n:16,muster:'x',ang:0.50,hoehe:'melodie',noten:ODE_BASS,viertel:0.38,pw:-5,eff:'kamuro',kal:'mittel'},
+  {n:30,muster:'gerade',hoehe:'melodie',noten:ODE,viertel:0.38,hStufe:2.5,eff:'brokat',kal:'gross',mine:true,mineEff:'gold'},
+  {mit:true,n:16,muster:'x',ang:0.50,hoehe:'melodie',noten:ODE_BASS,viertel:0.38,hStufe:2.5,pw:-5,eff:'kamuro',kal:'mittel'},
   {mit:true,n:8,je:2,takt:[3.04],muster:'schlag',ang:0.50,eff:'kokosnuss',kal:'gross',pause:0.4},
   /* SCHLUSSAKKORD: neun Rohre im W, Hoehen C-E-G-C'-E'-C'-G-E-C, Riesenfontaene */
-  {n:9,gap:0,muster:'w',ang:0.50,hoehe:'akkord',noten:{ton:[0,2,4,7,9,7,4,2,0]},eff:['brokat','dahlie','kamuro'],farbVert:'mitte',kal:'riesig',pw:4,
+  {n:9,gap:0,muster:'w',ang:0.50,hoehe:'akkord',noten:{ton:[0,2,4,7,9,7,4,2,0]},eff:['brokat','dahlie','kamuro'],farbVert:'mitte',kal:'riesig',hStufe:1.1,
    boden:{k:'riesen',gt:5,gh:1.3,A:'gold',B:'violett'},pause:1.5},
   /* Nachhall: fuenf langsame goldene Zeitregen */
   {n:5,gap:0.9,muster:'zufall',ang:0.30,eff:'zeitregen',kal:'gross',pw:3,pause:6}

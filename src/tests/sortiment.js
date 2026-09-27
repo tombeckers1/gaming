@@ -51,7 +51,9 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     /* alle verwendeten Bruchbilder existieren */
     const benutzt=new Set([].concat(bb.EFF_KLEIN,bb.EFF_GROSS,bb.EFF_PRO));
     Object.keys(bb.SHOWS).forEach(t=>bb.SHOWS[t]().forEach(ph=>{ const e=ph.eff; (Array.isArray(e)?e:[e]).forEach(x=>x&&benutzt.add(x)); }));
-    o.fehlend=[...benutzt].filter(e=>typeof bb.EFF[e]!=='function');
+    /* 27.09.: Schuesse ohne Bruch (rohrkomet, kreuzkomet) stehen in SCHUSS_EFF, nicht in EFF */
+    const SE=(window.__fwA&&window.__fwA.SCHUSS_EFF)||{};
+    o.fehlend=[...benutzt].filter(e=>typeof bb.EFF[e]!=='function'&&typeof SE[e]!=='function');
     o.neueEff=['tausend','mehrring','regenbogen','glitzerweide','komet','titan','zehnfach','kaskade','schneeflocke','spirale','ringring','strauss'].filter(e=>typeof bb.EFF[e]!=='function');
     return o;
   });
@@ -70,8 +72,12 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   pruef('NEU',r.neu.titanraketen&&r.neu.titanraketen.st==='rampe'&&r.neu.pfeifraketen.st==='rampe'&&r.neu.jumbogold.st==='rampe'&&r.neu.jumboleiter.st==='rampe','Raketen gehoeren in die Roehren');
   for(const [t,[soll,ist]] of Object.entries(r.schuss))
     pruef('SCHUSS',Math.abs(ist-soll)<=Math.max(2,soll*0.05),t+': Name sagt '+soll+', Drehbuch hat '+ist);
+  /* 27.09. (Tom: Anomalie): die Schusszahl muss weiter steigen, die Laenge darf
+     aber um bis zu 30 % sinken - seit jede Batterie ihre eigene Idee hat, ist z. B.
+     Trommelfeuer (120 Schuss in 20 Salven) absichtlich kuerzer als die Achterbahn,
+     so steht es im Katalog. Ein grosses Produkt als kurzer Puff faellt weiter auf. */
   r.leiter.forEach((e,i)=>{ if(!i) return; const v=r.leiter[i-1];
-    pruef('LEITER',e[1]>v[1]&&e[2]>v[2],e[0]+' ('+e[1]+' Schuss, '+e[2]+' s) steigert '+v[0]+' ('+v[1]+', '+v[2]+' s) nicht'); });
+    pruef('LEITER',e[1]>v[1]&&e[2]>=v[2]*0.7,e[0]+' ('+e[1]+' Schuss, '+e[2]+' s) steigert '+v[0]+' ('+v[1]+', '+v[2]+' s) nicht'); });
   pruef('EFFEKTE',!r.fehlend.length&&!r.neueEff.length,'fehlen: '+r.fehlend.concat(r.neueEff));
 
   /* Goetterzorn: wie viele Brueche gehen im selben Moment auf? */

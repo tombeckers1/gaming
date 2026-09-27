@@ -90,7 +90,7 @@ function klPapierMesh(){
 function klPapier(p,v,c,o){
   o=o||{}; if(KL_PAP.liste.length>=KL_PAP.max*QUAL()) return;
   klPapierMesh();
-  const ax=randDir(), gr=o.gr||[0.01,0.015];
+  const ax=randDir(), gr=o.gr||[0.015,0.02];
   KL_PAP.liste.push({x:p.x,y:p.y,z:p.z,vx:v[0],vy:v[1],vz:v[2],c,ax,w:rand(0,6),wd:rand(6,16)*(Math.random()<0.5?-1:1),
     b:gr[0],h:gr[1],sink:o.sink||rand(0.6,0.9),art:o.art||'konfetti',dauer:o.dauer||25,
     fl:o.flatter!==undefined?o.flatter:0.35,ph:rand(0,6),alter:0});
@@ -109,7 +109,8 @@ NEU_EMIT.papierflug=(e,dt)=>{
     if(s.y<=g){ bodenrest(s.art,s.x,g,s.z,{c:s.c,dauer:s.dauer}); s.tot=tot=true; continue; }
     _klA.set(s.ax[0],s.ax[1],s.ax[2]); _klQ.setFromAxisAngle(_klA,s.w);
     _klM.compose(_klV.set(s.x,s.y,s.z),_klQ,_klS.set(s.b,s.h,1)); m.setMatrixAt(n,_klM);
-    const k=H*(0.35+0.75*Math.abs(Math.cos(s.w)));
+    /* Folienglanz: je nach Kippwinkel dunkel oder ein kurzes helles Aufblitzen */
+    const cw=Math.abs(Math.cos(s.w)), k=H*(0.4+0.8*cw)+1.4*Math.pow(cw,12);
     if(m.setColorAt) m.setColorAt(n,_klC.setRGB(s.c[0]*k,s.c[1]*k,s.c[2]*k)); n++; }
   if(tot) KL_PAP.liste=L.filter(s=>!s.tot);
   m.count=n; m.instanceMatrix.needsUpdate=true; if(m.instanceColor) m.instanceColor.needsUpdate=true; m.visible=n>0;
@@ -521,9 +522,11 @@ klEmit('blitzturm',(e,dt,o,t)=>{
       psMid.emit(p.x,p.y+0.04,p.z,0,0,0,1.6,1.6,1.6,0.05,0,0);
       licht('bt'+e.prod+i,{x:p.x,y:p.y+0.3,z:p.z},q.A,dauer?3:2.5,{weite:18});
       if(!q.an){ /* Einschalten des Blitzes: kurzer Funkenring, Klick */
-        for(let k2=0;k2<8;k2++){ const d=randDir(); psSmall.emit(p.x,p.y+0.05,p.z,d[0]*1.2,Math.abs(d[1])*1.2,d[2]*1.2,q.A[0]*1.3,q.A[1]*1.3,q.A[2]*1.3,0.12,1,0); }
+        for(let k2=0;k2<12;k2++){ const d=randDir(), v=rand(0.8,1.6); psSmall.emit(p.x,p.y+0.05,p.z,d[0]*v,Math.abs(d[1])*v,d[2]*v,q.A[0]*1.3,q.A[1]*1.3,q.A[2]*1.3,rand(0.12,0.25),1,0); }
         if(!klick&&!dauer){ klick=true; sfx.klick(distVol(o)*0.9,q.klang); } } }
     else psMid.emit(p.x,p.y+0.03,p.z,0,0,0,q.A[0]*0.15,q.A[1]*0.15,q.A[2]*0.15,0.05,0,0);
+    /* Dunst ueber dem Topf, in dem das Blitzlicht steht */
+    q.dz=(q.dz||0)+dt*5; for(;q.dz>=1;q.dz--) psBig.emit(p.x+rand(-.05,.05),p.y+0.15,p.z+rand(-.05,.05),rand(-.08,.08),rand(0.25,0.45),rand(-.08,.08),q.A[0]*0.05,q.A[1]*0.05,q.A[2]*0.05,rand(1.8,2.6),-0.05,0);
     q.an=an;
   });
   SCHWEIF=alt;
@@ -656,8 +659,8 @@ klEmit('bodenflitzer',(e,dt,o,t)=>{
    einer liegt erst still und knackt als Nachzuegler */
 function klKnack(p,leise){
   const alt=SCHWEIF; SCHWEIF=0;
-  psBig.emit(p.x,p.y+0.02,p.z,0,0,0,1.7,1.7,1.7,0.034,0,0);
-  for(let k=0;k<10;k++){ const d=randDir(), s=rand(1.2,2.6); psSmall.emit(p.x,p.y+0.01,p.z,d[0]*s,Math.abs(d[1])*s,d[2]*s,1.4,1.35,1.2,0.08,2,0); }
+  psBig.emit(p.x,p.y+0.02,p.z,0,0,0,1.8,1.8,1.8,0.034,0,0); psHuge.emit(p.x,p.y+0.05,p.z,0,0,0,0.5,0.48,0.45,0.06,0,0);
+  for(let k=0;k<14;k++){ const d=randDir(), s=rand(1.2,2.8); psSmall.emit(p.x,p.y+0.01,p.z,d[0]*s,Math.abs(d[1])*s,d[2]*s,1.5,1.45,1.3,rand(0.06,0.11),2,0); }
   SCHWEIF=alt;
   for(let k=0;k<2;k++) rauchball({x:p.x+rand(-.03,.03),y:p.y+0.05,z:p.z+rand(-.03,.03)},{r:0.12,n:1,dauer:1.3,quellen:0.5,steigen:0.15,c:[0.55*klHell()+0.1,0.55*klHell()+0.1,0.57*klHell()+0.1],a:0.4,wind:[0.05,0]});
   bodenrest('fleck',p.x,p.y,p.z,{dauer:10,gr:0.45});
@@ -740,7 +743,7 @@ klEmit('konfettistrahl',(e,dt,o,t)=>{
   const p={x:o.x,y:o.y+0.06,z:o.z}, ne=e.neig||0.3, az=e.azi||0, dir=[Math.sin(ne)*Math.sin(az),Math.cos(ne),Math.sin(ne)*Math.cos(az)];
   const F=(e.farben||KL_BUNT).map(c=>klF(c)), n=Math.round((e.n||160)*QUAL()), W=e.weite||3;
   for(let i=0;i<n;i++){ const d=streu(dir,(e.oeffnung||0.45)*Math.sqrt(Math.random())), s=W*rand(2.2,3.6);
-    klPapier(p,[d[0]*s,d[1]*s,d[2]*s],F[i%F.length],{gr:[0.01,0.015],art:'konfetti',dauer:(e.rest&&e.rest.t)||25}); }
+    klPapier(p,[d[0]*s,d[1]*s,d[2]*s],F[i%F.length],{gr:[0.016,0.022],art:'konfetti',dauer:(e.rest&&e.rest.t)||25}); }
   const alt=SCHWEIF; SCHWEIF=0; psBig.emit(p.x,p.y,p.z,0,0,0,1.2,1.1,0.9,0.05,0,0);
   for(let k=0;k<10;k++){ const d=streu(dir,0.3), s=rand(1.5,3); psSmall.emit(p.x,p.y,p.z,d[0]*s,d[1]*s,d[2]*s,1.2,1,0.6,0.1,2,0); } SCHWEIF=alt;
   rauchball({x:p.x,y:p.y+0.1,z:p.z},{r:0.15,n:1,dauer:1.2,steigen:0.2,c:[0.6*klHell()+0.1,0.6*klHell()+0.1,0.62*klHell()+0.1],a:0.3});

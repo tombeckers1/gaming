@@ -37,6 +37,10 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   /* je Produkt ein eigener Aufruf: sonst laeuft ein einziger Aufruf
      ueber eine halbe Stunde und reisst das Zeitlimit */
   const ids0=await p.evaluate(nur=>{ const bb=window.__bb, P=bb.P; bb.S.level=99; bb.S.money=9e6; window.__stille=0;
+    /* Der Test braucht nur das Schussprotokoll und die Emitter, nicht die
+       Partikel selbst: ohne Partikelrechnung laeuft er zehnmal schneller
+       (vorher riss der volle Lauf unter Last das Zeitlimit) */
+    [bb.psHuge,bb.psBig,bb.psMid,bb.psSmall].forEach(ps=>{ if(ps){ ps.emit=()=>0; ps.update=()=>0; } });
     return Object.keys(P).filter(t=>P[t].cat>0&&(!nur||nur.includes(t))); },nur);
   const r={prod:{},fehler:{},shows:{},FIG:['stern','herz','schneeflocke','smiley','schmetterling','saturn','regenbogen']};
   for(const t of ids0){

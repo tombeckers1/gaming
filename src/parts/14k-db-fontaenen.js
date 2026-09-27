@@ -42,7 +42,9 @@ function fkKlang(e,o,dt,faktor){
 }
 /* Den Standard-Zischer beim Phasenstart ersetzt der Dauerklang */
 ['rauschen','zischen','fauchen','knistern','knistern_laut','blubb','grollen','brummen'].forEach(k=>{ FONT_TON[k]=()=>{}; });
-const fkId=e=>e.id||(e.id=Math.random());
+/* Lichtschluessel je Zuendung und Duese: bleibt ueber die Phasen gleich,
+   sonst springt das Licht bei jedem Phasenwechsel in einen neuen Platz */
+const fkId=e=>e.id||(e.id=(e.tag||Math.random())+'/'+(e.nr||0));
 
 /* ---------- 2. Materialien (Funkenarten, Feld funke) ----------
    g = Schwerkraft (Endtempo g/ZIEH), Leuchtspur, Lebensdauer relativ zur
@@ -50,8 +52,10 @@ const fkId=e=>e.id||(e.id=Math.random());
 const FUNKE={
   /* Kohle-Gold / Tigerschweif: weich, dunkelorange, lange Boegen, dunkelt
      ab und funkelt nicht (e.kohleB: Farbe, zu der er abdunkelt) */
-  kohle:{g:6,emit(x,y,z,vx,vy,vz,c,tA,e){ SCHWEIF=0.3; const b=e&&e.kohleB||null;
-    psMid.emit(x,y,z,vx,vy,vz,c[0],c[1]*0.92,c[2]*0.8,tA*rand(1.25,1.9),6,2,b?b[0]*0.8:c[0]*0.6,b?b[1]*0.5:c[1]*0.22,b?b[2]*0.4:c[2]*0.05); }},
+  kohle:{g:4,emit(x,y,z,vx,vy,vz,c,tA,e){ SCHWEIF=0.3; const b=e&&e.kohleB||null;
+    /* g 4 statt 6: Endtempo 3,6 m/s - die Kohlefunken sinken weich in
+       Boegen, wie mit starkem Luftwiderstand (Katalog: ZIEH x 1,5) */
+    psMid.emit(x,y,z,vx,vy,vz,c[0],c[1]*0.92,c[2]*0.8,tA*rand(1.25,1.9),4,2,b?b[0]*0.8:c[0]*0.6,b?b[1]*0.5:c[1]*0.22,b?b[2]*0.4:c[2]*0.05); }},
   /* Brokat: helles Gold, flimmert, feine Spur */
   brokat:{g:6,emit(x,y,z,vx,vy,vz,c,tA){ SCHWEIF=0.2;
     psMid.emit(x,y,z,vx,vy,vz,c[0]*0.8+0.2,c[1]*0.8+0.16,c[2]*0.8+0.1,tA*rand(1.2,1.8),6,4); }},
@@ -90,7 +94,12 @@ function fkStrahl(e,dt,p,d,h,kg,rate,mat,A,B,mb,schl){
    basis:'<farbe>' (Leuchtbasis), kernB, knisterLeise, dunkel (s ohne
    Funken am Anfang, nach einem Zauberpuff) */
 NEU_EMIT.gerb=(e,dt,o)=>{
-  const ph=e.ph, q=QUAL(), h=Math.max(0.2,e.hAkt||2), st=e.staerke, mat=ph.funke||'kohle';
+  const ph=e.ph, q=QUAL(), st=e.staerke, mat=ph.funke||'kohle';
+  let h=Math.max(0.2,e.hAkt||2);
+  /* Zauberbrunnen: 0,4 s vor dem Puff saugt der Brunnen sich ein - die
+     Saeule schrumpft, ein Ansaugen, dann der Puff */
+  if(ph.ende&&ph.ende.startsWith('zauberpuff')){ const rest=e.dauer-e.alter;
+    if(rest<0.4){ h=Math.max(0.2,h*rest/0.4); if(!e.saug&&!e.nr){ e.saug=true; sfx.ansaugen(distVol(o)*0.8); } } }
   if(ph.basis) fkBasis(e,dt,o,farbe(ph.basis)||FW.rot,1);
   fkKlang(e,o,dt);
   if(ph.dunkel&&e.alter<ph.dunkel) return;
@@ -101,7 +110,7 @@ NEU_EMIT.gerb=(e,dt,o)=>{
   if(ph.kernB) fkStrahl(e,dt,p,d,h*1.05,kg*0.3,rate*0.3,'titan',e.B,e.B,0,'aK');
   /* Farbsterne ohne Schweif, die in Fontaenenhoehe verloeschen */
   if(ph.sterne==='B'){ const alt=SCHWEIF; SCHWEIF=0;
-    for(let n=fkJe(e,'aSt',rand(3,5)*st,dt);n>0;n--){ const r=fkKegel(d,kg*0.8), w=fkV0(h*rand(0.6,0.95),6);
+    for(let n=fkJe(e,'aSt',(ph.sterneRate||rand(3,5))*st,dt);n>0;n--){ const r=fkKegel(d,kg*0.8), w=fkV0(h*rand(0.6,0.95),6);
       psBig.emit(p.x,p.y,p.z,r[0]*w,r[1]*w,r[2]*w,e.B[0]*1.2,e.B[1]*1.2,e.B[2]*1.2,fkTA(w,6)*rand(0.95,1.1),6,0); }
     SCHWEIF=alt; }
   /* Krone: zweite Ebene an der Spitze in eigenem Material */
@@ -157,7 +166,8 @@ NEU_EMIT.hoerner=(e,dt,o)=>{
   Z.spitzen=Z.spitzen||[];
   for(const s of [-1,1]){ const a=Z.sp*s, d=[Math.sin(a),Math.cos(a),0];
     fkStrahl(e,dt,p,d,h,0.06,190*q*st,ph.funke||'kohle',e.A,e.B,ph.mischB||0,s<0?'hL':'hR');
-    const tx=o.x+Math.sin(a)*h*0.62, ty=o.y+h*0.9; Z.spitzen[s<0?0:1]={x:tx,y:ty,z:o.z};
+    /* Spitze = Gipfel der Bahn eines mittleren Funkens */
+    const w=fkV0(h,6)/Math.max(0.35,d[1])*0.93, tA=fkTA(w*d[1],6), sp=bahnOrt(p,[d[0]*w,d[1]*w,0],6,tA), tx=sp.x, ty=sp.y; Z.spitzen[s<0?0:1]={x:tx,y:ty,z:o.z};
     /* Flammenzunge an der Spitze */
     if(h>0.5){ const alt=SCHWEIF, B=e.B; SCHWEIF=0;
       for(let n=fkJe(e,s<0?'fL':'fR',14*st,dt);n>0;n--) psHuge.emit(tx+rand(-0.06,0.06),ty,o.z,Math.sin(a)*0.4,rand(0.3,0.8),0,B[0]*1.3,B[1]*0.9,B[2]*0.6,rand(0.2,0.38),-0.8,0);
@@ -177,7 +187,7 @@ function fkKlecks(o,c,h,seitlich){
   const a=Math.random()*Math.PI*2, w=rand(0.3,1.2)*(seitlich||1), v0=fkV0(h*rand(0.8,1.05),6)*0.78, cc=[Math.min(1.6,c[0]*1.35),Math.min(1.6,c[1]*1.35),Math.min(1.6,c[2]*1.35)];
   fuehre(psHuge,o.x,o.y+0.1,o.z,Math.cos(a)*w,v0,Math.sin(a)*w,cc,4,(s,dt)=>{
     const v=s.v, d=s.d;
-    if(d.liegt!==undefined){ s.hell=Math.max(0,1-(s.alter-d.liegt)/0.5)*2.2; if(s.alter-d.liegt>0.5) return false; return; }
+    if(d.liegt!==undefined){ s.hell=Math.max(0,1-(s.alter-d.liegt)/0.5)*2.2; if(s.alter-d.liegt>0.5){ s.ps.life[s.i]=0.01; return false; } return; }
     v[1]-=6*dt; s.p[0]+=v[0]*dt; s.p[1]+=v[1]*dt; s.p[2]+=v[2]*dt;
     s.hell=Math.min(2.5,1/Math.max(0.3,1-s.alter/s.life));
     const yb=fkBoden(s.p[0],s.p[2])+0.05;
@@ -206,14 +216,17 @@ NEU_EMIT.bodenring=(e,dt,o)=>{
   fkKlang(e,o,dt);
   let R=bereich(ph.radius||1.5,e.u); if(ph.atmen) R*=1+0.18*Math.sin(e.alter*Math.PI*2*ph.atmen);
   /* Zeit bis zum Rand ~0,55 s: R = w*cos(hb)/k*(1-e^-kT) */
-  const hb=(ph.hebung||6)*Math.PI/180, T=0.55, f=(1-Math.exp(-ZIEH*T))/ZIEH, w=R/(Math.cos(hb)*f), y=o.y+0.05;
+  /* Vom Zuendpult (1,6 m Augenhoehe, 8 m weg) war die flache Scheibe
+     kaum zu sehen (Probebild): die Funken fliegen als niedrige Kuppel aus
+     Boegen (hebung x 3,5, Gipfel ~0,3 m) und landen erst am Ring */
+  const hb=Math.min(40,(ph.hebung||6)*3.5)*Math.PI/180, T=0.6, f=(1-Math.exp(-ZIEH*T))/ZIEH, w=R/(Math.cos(hb)*f), y=o.y+0.05, gg=Math.max(1,Math.sin(hb)*w*f*ZIEH/(T-f));
   SCHWEIF=0.3;
-  for(let n=fkJe(e,'rS',320*q*st,dt);n>0;n--){ const a=Math.random()*Math.PI*2, ww=w*rand(0.92,1.04), c=Math.random()<0.35?e.B:e.A;
-    psMid.emit(o.x,y,o.z,Math.cos(a)*Math.cos(hb)*ww,Math.sin(hb)*ww,Math.sin(a)*Math.cos(hb)*ww,c[0],c[1]*0.92,c[2]*0.8,T*rand(0.95,1.1),3,2,c[0]*0.7,c[1]*0.25,c[2]*0.05); }
+  for(let n=fkJe(e,'rS',420*q*st,dt);n>0;n--){ const a=Math.random()*Math.PI*2, ww=w*rand(0.92,1.04), c=Math.random()<0.35?e.B:e.A;
+    psMid.emit(o.x,y,o.z,Math.cos(a)*Math.cos(hb)*ww,Math.sin(hb)*ww,Math.sin(a)*Math.cos(hb)*ww,c[0],c[1]*0.92,c[2]*0.8,T*rand(0.97,1.06),gg,2,c[0]*0.7,c[1]*0.25,c[2]*0.05); }
   /* Glutsaum am Rand und Huepfer */
   SCHWEIF=0;
-  for(let n=fkJe(e,'rR',(ph.huepfer?90:40)*q*st,dt);n>0;n--){ const a=Math.random()*Math.PI*2, r=R*rand(0.93,1.05);
-    psMid.emit(o.x+Math.cos(a)*r,y-0.03,o.z+Math.sin(a)*r,Math.cos(a)*0.4,ph.huepfer?rand(0.8,1.6):0.1,Math.sin(a)*0.4,1,0.62,0.18,rand(0.2,0.4),5,4); }
+  for(let n=fkJe(e,'rR',(ph.huepfer?160:90)*q*st,dt);n>0;n--){ const a=Math.random()*Math.PI*2, r=R*rand(0.93,1.05);
+    psBig.emit(o.x+Math.cos(a)*r,y-0.03,o.z+Math.sin(a)*r,Math.cos(a)*0.4,ph.huepfer?rand(0.8,1.6):0.1,Math.sin(a)*0.4,1,0.62,0.18,rand(0.2,0.4),5,4); }
   for(let n=fkJe(e,'rM',10*st,dt);n>0;n--) psHuge.emit(o.x,y,o.z,0,0.1,0,0.9,0.35,0.05,0.4,0,0);
   SCHWEIF=alt;
   licht('fkR'+fkId(e),{x:o.x,y:y+0.3,z:o.z},FW.orange,1.6*st,{boden:fkBoden(o.x,o.z),weite:Math.max(4,R*3)});
@@ -430,6 +443,9 @@ NEU_EMIT.wendel=(e,dt,o)=>{
   const ph=e.ph, Z=fkZ(e), st=e.staerke, q=QUAL(), h=e.hAkt||10, ng=e.neigAkt||0;
   fkKlang(e,o,dt);
   const ups=bereich(ph.ups===undefined?2:ph.ups,e.u); Z.phi=(Z.phi||0)+ups*Math.PI*2*dt;
+  /* die Drehduese surrt, Tonhoehe mit der Drehzahl */
+  if(!e.nr&&ups>0.3){ if(!Z.surr||Z.surrT<FW_UHR){ Z.surr=sfx.brummen(distVol(o)*0.35*st,120+60*ups,Math.min(4,e.dauer-e.alter)); Z.surrT=FW_UHR+Math.min(4,e.dauer-e.alter)-0.05; }
+    else if(Z.surr&&Z.surr.f) Z.surr.f(120+60*ups*(ph.zweite?1.4:1)); }
   const D=[[Z.phi,e.A,e.B]]; if(ph.zweite){ const c=farbe(ph.zweite.A)||FW.tuerkis; D.push([-Z.phi+Math.PI,c,c]); }
   const p={x:o.x,y:o.y+0.05,z:o.z};
   D.forEach(([phi,A,B],i)=>{ const d=[Math.sin(ng)*Math.cos(phi),Math.cos(ng),Math.sin(ng)*Math.sin(phi)];
@@ -554,6 +570,8 @@ Object.assign(FONT_EREIGNIS,{
   /* Zauberpuff: weisser Blitz, Rauchball 1 m, dumpfes Fump */
   zauberpuff(e,o){ const v=distVol(o), p={x:o.x,y:o.y+0.5,z:o.z};
     flash(p,FW.weiss,3,0.1); psHuge.emit(p.x,p.y,p.z,0,0,0,2.5,2.5,2.5,0.08,0,0);
+    /* der Blitz: ein Kranz kurzer weisser Funken um den Rauchball */
+    const alt=SCHWEIF; SCHWEIF=0.08; for(let i=0;i<Math.round(50*QUAL());i++){ const d=randDir(); psMid.emit(p.x,p.y,p.z,d[0]*4.5,d[1]*4.5,d[2]*4.5,1.4,1.4,1.5,rand(0.15,0.3),0.5,0); } SCHWEIF=alt;
     rauchball(p,{r:0.55,n:8,dauer:1.5,quellen:0.25,steigen:0.25,c:[0.85,0.85,0.9],a:0.55,leuchten:true,farbe:t=>t<0.15?[1.5,1.5,1.6]:[0.45,0.45,0.5]});
     sfx.thump(v*1.1); rauschF({dur:0.25,vol:0.2*v,f:500,hart:true}); },
   zauberpuff_tadaa(e,o){ FONT_EREIGNIS.zauberpuff(e,o); const p={x:o.x,y:o.y+1,z:o.z};
@@ -570,7 +588,7 @@ Object.assign(FONT_EREIGNIS,{
     for(let i=0;i<40;i++){ const d=randDir(), s=rand(0.6,1.4); psHuge.emit(o.x,o.y+0.3,o.z,d[0]*s,Math.abs(d[1])*s+0.4,d[2]*s,c[0]*1.3,c[1]*1.3,c[2]*1.3,rand(0.3,0.5),-0.5,0); }
     SCHWEIF=alt; flash({x:o.x,y:o.y+0.5,z:o.z},c,3.2,0.35); sfx.fauchen(distVol(o)*0.9,0.4,true); },
   /* Teufelslachen: die Hoerner brennen 1,15 s nach, dabei dreimal Knistern */
-  teufelslachen(e){ emitters.push(Object.assign({},e,{t:1.15,dauer:1.15,alter:0,blendeIn:0,blendeAus:0.9,lachen:true,gelacht:false,id:0})); },
+  teufelslachen(e){ emitters.push(Object.assign({},e,{t:1.15,dauer:1.15,alter:0,blendeIn:0,blendeAus:0.9,lachen:true,gelacht:false})); },
   /* Tuete ausgekippt: 20 Kleckse in allen vier Farben gleichzeitig */
   tuete(e,o,ph){ const F=(ph.farben||['magenta','limette','zitrone','aqua']).map(farbe);
     for(let i=0;i<20;i++) fkKlecks(o,F[i%F.length],rand(1.8,2.8),1.6); sfx.plopp(distVol(o)*0.7,0.9); },
@@ -640,11 +658,12 @@ Object.assign(FONT,{
     {k:'gerb',at:0,t:6,x:-0.25,hm:3.0,funke:'titan',A:'silber',basis:'magenta',ton:'zischen'},
     {k:'gerb',at:6,t:6,x:0.25,hm:3.0,funke:'brokat',A:'gold',basis:'gruen',ton:'rauschen'},
     {k:'gerb',at:12,t:6,x:0.00,hm:3.2,funke:'brokat',A:'gold',B:'silber',kernB:true,basis:'blau',ton:'rauschen',ende:'aufflammen'}]},
-  /* Zauberbrunnen: Verwandlung mit Blitz, Rauchball und 0,4 s Dunkelheit */
+  /* Zauberbrunnen: Verwandlung mit Blitz, Rauchball und 0,4 s Dunkelheit;
+     12 Farbsterne/s statt 3-5: jede Verwandlung zeigt ihre neuen Sterne */
   zauberbrunnen:{phasen:[
-    {k:'gerb',t:5.5,hm:3.0,funke:'titan',A:'silber',B:'tuerkis',sterne:'B',ton:'zischen',ende:'zauberpuff'},
-    {k:'gerb',t:5.5,hm:3.5,funke:'brokat',A:'gold',B:'violett',sterne:'B',ton:'rauschen',dunkel:0.4,ende:'zauberpuff'},
-    {k:'gerb',t:6.0,hm:4.0,funke:'knister',A:'weiss',B:'gruen',sterne:'B',ton:'knistern',dunkel:0.4,ende:'zauberpuff_tadaa'}]},
+    {k:'gerb',t:5.5,hm:3.0,funke:'titan',A:'silber',B:'tuerkis',sterne:'B',sterneRate:12,ton:'zischen',ende:'zauberpuff'},
+    {k:'gerb',t:5.5,hm:3.5,funke:'brokat',A:'gold',B:'violett',sterne:'B',sterneRate:12,ton:'rauschen',dunkel:0.4,ende:'zauberpuff'},
+    {k:'gerb',t:6.0,hm:4.0,funke:'knister',A:'weiss',B:'gruen',sterne:'B',sterneRate:12,ton:'knistern',dunkel:0.4,ende:'zauberpuff_tadaa'}]},
   /* Zuckerhut: eine Phase, der Kegel waechst stetig von 1,5 auf 5 m */
   vulkan:{phasen:[
     {k:'gerb',t:20,hm:5,hKurve:[0.3,1.0],kegel:[14,22],dichte:[200,520],funke:'brokat',A:'gold',B:'rot',mischB:0.12,ton:'rauschen',lautKurve:[0.5,1.2],ende:'aus'}]},

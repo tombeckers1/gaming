@@ -29,7 +29,8 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
       const r0=bb.rockets.length; bb.igniteType(t,pos);
       let hoch=0, dauer=0, raketen=0; const proBild=[];
       for(let s=0;s<32;s+=0.25){ bb.run(0.25,0.05); raketen=Math.max(raketen,bb.rockets.length-r0);
-        const aktiv=bb.emittersListe().some(e=>e.o===pos&&e.k!=='fuse'); if(aktiv) dauer=s+0.25;
+        /* Fontaenen in Phasen (FONT, 26.09.) setzen ihre Emitter an den Duesenort - eine Kopie von pos; die Identitaet e.o===pos maess dann 0 s. Deshalb nach Ort. */
+        const aktiv=bb.emittersListe().some(e=>e.o&&e.k!=='fuse'&&e.k!=='dienst2'&&Math.hypot(e.o.x-pos.x,e.o.z-pos.z)<1.5); if(aktiv) dauer=s+0.25;
         const anteil={}; let gesamt=0;
         for(const ps of [bb.psMid,bb.psBig]) for(let i=0;i<ps.life.length;i++){ if(ps.life[i]<=0) continue;
           const x=ps.pos[i*3], y=ps.pos[i*3+1], z=ps.pos[i*3+2];

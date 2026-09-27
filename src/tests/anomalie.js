@@ -34,28 +34,31 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   const mangel=[];
   const pruef=(n,ok,was)=>{ if(!ok) mangel.push(n+': '+was); };
   const nur=process.argv[3]?JSON.parse(process.argv[3]):null;
-  const r=await p.evaluate(async nur=>{ const bb=window.__bb, P=bb.P, o={prod:{},fehler:{}};
-    bb.S.level=99; bb.S.money=9e6;
-    const FIG=['stern','herz','schneeflocke','smiley','schmetterling','saturn','regenbogen'];
-    const klasse=t=>{ const x=P[t]; if(bb.SHOWS[t]) return 'show'; if(x.shape==='rocketset') return 'rakete'; if(x.shape==='shell') return 'kugel';
-      if(/fountain|cylinder/.test(x.shape)&&x.cat===2) return 'fontaene'; return 'klein'; };
-    const ids=Object.keys(P).filter(t=>P[t].cat>0&&(!nur||nur.includes(t)));
-    for(const t of ids){
-      bb.run(25,0.1);
+  /* je Produkt ein eigener Aufruf: sonst laeuft ein einziger Aufruf
+     ueber eine halbe Stunde und reisst das Zeitlimit */
+  const ids0=await p.evaluate(nur=>{ const bb=window.__bb, P=bb.P; bb.S.level=99; bb.S.money=9e6; window.__stille=0;
+    return Object.keys(P).filter(t=>P[t].cat>0&&(!nur||nur.includes(t))); },nur);
+  const r={prod:{},fehler:{},shows:{},FIG:['stern','herz','schneeflocke','smiley','schmetterling','saturn','regenbogen']};
+  for(const t of ids0){
+    const x=await p.evaluate(t=>{ const bb=window.__bb, P=bb.P;
+      const klasse=t=>{ const x=P[t]; if(bb.SHOWS[t]) return 'show'; if(x.shape==='rocketset') return 'rakete'; if(x.shape==='shell') return 'kugel';
+        if(/fountain|cylinder/.test(x.shape)&&x.cat===2) return 'fontaene'; return 'klein'; };
+      /* Himmel leeren: alle Raketen, Emitter und Partikel des Vorgaengers ausbrennen lassen */
+      for(let i=0;i<60&&(bb.rockets.length||bb.emittersListe().length||bb.timersLen()>0);i++) bb.run(0.5,0.25);
       const log=[]; bb.fwLog(log); const t0=bb.fwUhr; const gesehen=new Set(bb.emittersListe()); const emi=[];
-      try{ bb.igniteType(t); }catch(e){ o.fehler[t]=e.message; bb.fwLog(null); continue; }
-      const dauer=bb.SHOWS[t]?bb.showLength(t)+4:(bb.brennDauer?Math.min(60,bb.brennDauer(t)+4):20);
-      for(let s=0;s<dauer;s+=0.25){ bb.run(0.25,0.05); for(const e of bb.emittersListe()){ if(!gesehen.has(e)){ gesehen.add(e); emi.push([+(bb.fwUhr-t0).toFixed(1),e.k]); } } }
+      try{ bb.igniteType(t); }catch(e){ bb.fwLog(null); return {fehler:e.message}; }
+      const dauer=bb.SHOWS[t]?bb.showLength(t)+3:(bb.brennDauer?Math.min(45,bb.brennDauer(t)+3):15);
+      for(let s=0;s<dauer;s+=0.25){ bb.run(0.25,0.125); for(const e of bb.emittersListe()){ if(!gesehen.has(e)){ gesehen.add(e); emi.push([+(bb.fwUhr-t0).toFixed(1),e.k]); } } }
       bb.fwLog(null);
       const sh=log.filter(x=>x.art==='schuss'||x.art==='kugel').map(x=>({t:+(x.t-t0).toFixed(2),eff:x.eff,ang:x.ang||0,steig:x.steig||null,stufen:x.stufenEff||[],x:x.x}));
-      o.prod[t]={k:klasse(t),lvl:P[t].lvl,name:P[t].name,sh,emi:emi.filter(e=>e[1]!=='fuse'),sig:bb.SIGNATUR&&bb.SIGNATUR[t]?JSON.stringify(bb.SIGNATUR[t]):null};
-    }
-    /* statische Regeln der Show-Drehbuecher */
-    o.shows={};
-    for(const t of ids.filter(t=>bb.SHOWS[t])){ const ph=bb.SHOWS[t]();
-      o.shows[t]={lvl:P[t].lvl,basis:ph.basis||null,ph:ph.map(x=>({n:x.n===undefined?1:x.n,m:x.muster||(x.fan?(x.ang<0?'rfan':'fan'):x.vfan?'vfan':(x.perle?'perle':'gerade')),mit:!!x.mit||x.at!==undefined,boden:!!(x.boden||x.ground),gap:x.takt?Math.min(...x.takt):(x.gap===undefined?0.45:x.gap),eff:Array.isArray(x.eff)?x.eff:[x.eff||x.bombEff||x.perleEff||(x.perle?'perle':'?')]}))}; }
-    o.FIG=FIG;
-    return o; },nur);
+      const out={prod:{k:klasse(t),lvl:P[t].lvl,name:P[t].name,sh,emi:emi.filter(e=>e[1]!=='fuse'),sig:bb.SIGNATUR&&bb.SIGNATUR[t]?JSON.stringify(bb.SIGNATUR[t]):null}};
+      if(bb.SHOWS[t]){ const ph=bb.SHOWS[t]();
+        out.show={lvl:P[t].lvl,basis:ph.basis||null,ph:ph.map(x=>({n:x.n===undefined?1:x.n,m:x.muster||(x.fan?(x.ang<0?'rfan':'fan'):x.vfan?'vfan':(x.perle?'perle':'gerade')),mit:!!x.mit||x.at!==undefined,boden:!!(x.boden||x.ground),gap:x.takt?Math.min(...x.takt):(x.gap===undefined?0.45:x.gap),eff:Array.isArray(x.eff)?x.eff:[x.eff||x.bombEff||x.perleEff||(x.perle?'perle':'?')]}))}; }
+      return out; },t);
+    if(x.fehler){ r.fehler[t]=x.fehler; continue; }
+    r.prod[t]=x.prod; if(x.show) r.shows[t]=x.show;
+    if(process.env.ANOM_LAUT) console.log('..',t,x.prod.sh.length,'Schuss',x.prod.emi.length,'Emitter');
+  }
   const PR=r.prod, ids=Object.keys(PR);
   Object.entries(r.fehler).forEach(([t,e])=>pruef('LAEUFT',false,t+': '+e));
   /* LAEUFT: jedes Produkt zeigt etwas (Schuss oder Emitter); Kleinfeuerwerk darf eigene Wege haben */

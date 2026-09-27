@@ -959,9 +959,11 @@ SIGNATUR.geysirfeld={idee:'geysir',text:'Ausbruch am Boden, darüber eine Säule
 /* Level 24: Weltuntergang */
 SHOWS.finale=()=>show({basis:{pw:4.00,sz:1.320,th:'meteor'},rampe:{sz:[0.85,1.35],pw:[-2,4],hell:[0.60,1.45],kurve:'spaet'}},[
   /* Akt 1 Vorzeichen: dunkle Blueten, die erst glimmen und ploetzlich aufgehen; roter Horizont bis Akt 6 */
-  {n:12,gap:2.4,muster:'zufall',ang:0.40,pw:8,eff:'gamboge',th:'nacht',steig:'keiner',boden:{k:'bengal',gt:95,gh:0.25,A:'rot'},pause:1.0},
+  /* 27.09.: gap 1,4 statt 2,4 und pw 5 statt 8 - vorher 30 s fast leerer Himmel
+     zum Auftakt des groessten Produkts, und die Blueten lagen am oberen Bildrand */
+  {n:12,gap:1.4,muster:'zufall',ang:0.40,pw:5,eff:'gamboge',th:'nacht',steig:'keiner',boden:{k:'bengal',gt:85,gh:0.25,A:'rot'},pause:1.0},
   /* Akt 2 Sternfall: Meteore, immer dichter */
-  {n:30,gap:1.2,gapEnde:0.25,muster:'welle',ang:0.50,pw:8,eff:'meteor',kal:'klein',pause:1.2},
+  {n:30,gap:1.2,gapEnde:0.25,muster:'welle',ang:0.50,pw:5,eff:'meteor',kal:'klein',pause:1.2},
   /* Akt 2b Kometenhagel: harte Linien und Meteore im Zickzack */
   {n:40,gap:0.12,muster:'z',seg:3,ang:0.50,eff:['spinne','meteor'],kal:'mittel',steig:'komet',pause:1.5},
   /* Akt 3 Erdbeben: tief rumpelnd, Glut-Feuertoepfe, Flammen- und Vulkanfontaenen, oben fallen weiter Meteore */

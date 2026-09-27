@@ -96,7 +96,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   const paare=[];
   for(let i=0;i<ids.length;i++) for(let j=i+1;j<ids.length;j++){ const a=ids[i],c=ids[j]; if(PR[a].k!==PR[c].k) continue;
     const s=sim(a,c); if(s>=GRENZE[PR[a].k]) paare.push(a+'~'+c+' '+s.toFixed(2)); }
-  pruef('EINZIG',!paare.length,paare.length+' zu aehnliche Paare: '+paare.slice(0,25).join(', '));
+  pruef("EINZIG",!paare.length,paare.length+" zu aehnliche Paare: "+paare.slice(0,25).join(", ")); console.log("PAARE_KLASSEN",JSON.stringify(paare.reduce((o,x)=>{ const k=PR[x.split("~")[0]].k; o[k]=(o[k]||0)+1; return o; },{})));
   /* Raketen */
   const rak=ids.filter(t=>PR[t].k==='rakete'), rEff={}, rSteig={};
   rak.forEach(t=>{ const n=PR[t].sh.length; pruef('RAKETE',n===1,t+': '+n+' Raketen je Zuendung'); const q=PR[t].sh[0]; if(!q) return;

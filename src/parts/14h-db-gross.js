@@ -727,12 +727,13 @@ SHOWS.kometen=()=>show({basis:{pw:1.65,sz:1.135,th:'nacht'},rampe:{sz:[0.90,1.25
   {n:0,ground:'fountain',gt:2.5,gh:0.6,gA:'silber',gB:'weiss',pause:2.0},
   /* Anritt: einzelne Pferdeschweife, Silbersaeule am Boden */
   {n:6,gap:1.5,muster:'gerade',eff:'rossschweif',steig:'komet',kal:'mittel',pw:-2,A:'weiss',B:'himmel',boden:{k:'riesen',gt:9,gh:0.7,A:'silber',B:'weiss'},pause:0.8},
-  /* Trab: W, im Wechsel mit Zeitregen */
-  {n:12,gap:0.6,muster:'w',ang:0.40,pw:-1,eff:['rossschweif','zeitregen'],farbe:1,pause:1.2},
+  /* Trab: W, im Wechsel mit kleinen Kometen (27.09.: vorher Zeitregen - der gehoert der Weidenwand) */
+  {n:12,gap:0.6,muster:'w',ang:0.40,pw:-1,eff:['rossschweif','komet'],farbe:1,pause:1.2},
   /* Galopp: da-da-DUMM, Scheibenwischer zweimal hin und zurueck */
   {n:16,takt:[0.15,0.15,0.45],muster:'wischer',seg:2,ang:0.45,eff:'rossschweif',kal:'klein',pw:1,A:'weiss',B:'himmel',pause:1.4},
-  /* Maehne: grosse Blinkweiden oben, kleine Kometen unten im V */
-  {n:10,gap:0.9,muster:'gerade',eff:'strobeweide',kal:'gross',pw:2},
+  /* Maehne: grosse Silberpalmen oben (wehendes Haar), kleine Kometen unten im V
+     (27.09.: vorher Blinkweiden - die tragen die Weidenwand) */
+  {n:10,gap:0.9,muster:'gerade',eff:'palme',A:'weiss',B:'himmel',kal:'gross',pw:2},
   {mit:true,n:10,gap:0.9,muster:'v',ang:0.50,kal:'mini',pw:0,eff:'komet',pause:0.8},
   /* FINALE Durchgehen: zehn Riesen-Pferdeschweife von der Mitte nach aussen, Silber-Feuertoepfe */
   {n:10,gap:0.08,muster:'mitte',ang:0.50,eff:'rossschweif',kal:'riesig',pw:5,A:'weiss',B:'himmel',mine:true,mineEff:'silber',pause:4.5}

@@ -528,11 +528,17 @@ NEU_EMIT.ausbruch=(e,dt,o)=>{
   const [w0,w1]=ph.wolke||[8,20], R=3.2;
   for(let n=fkJe(e,'aW',560*q*st*k,dt);n>0;n--){ const a=Math.random()*Math.PI*2, yy=rand(w0,w1), rr=R*Math.sqrt(Math.random())*(0.5+0.5*(yy-w0)/(w1-w0));
     knisterPop(o.x+Math.cos(a)*rr,o.y+yy,o.z+Math.sin(a)*rr,{laut:0.5,leise:Math.random()<0.6}); }
-  /* rote und gruene Sterne ohne Schweif */
+  /* Knistermeer (Probebild 27.09.: die Pops allein - Budget 600/s im
+     ganzen Spiel - ergaben nur verstreute Punkte). Dazu treiben
+     Silber-Mikrosterne kaum sichtbar im Wolkenband und blitzen je einmal
+     auf: ein dichtes, flirrendes Meer ohne Knall-Budget. */
+  for(let n=fkJe(e,'aM',1300*q*st*k,dt);n>0;n--){ const a=Math.random()*Math.PI*2, yy=rand(w0,w1), rr=R*1.25*Math.sqrt(Math.random())*(0.45+0.55*(yy-w0)/(w1-w0)), s=rand(0.3,1.4);
+    glint(psMid,o.x+Math.cos(a)*rr,o.y+yy,o.z+Math.sin(a)*rr,Math.cos(a)*s,rand(-0.4,0.8),Math.sin(a)*s,FW.silber,1.2,{t0:0.08,t1:0.9,dim:0.16,psBlitz:psBig,blitz:3.0,blitzFarbe:[1,1,0.95],glimm:0.22,rest:0.12}); }
+  /* rote und gruene Sterne ohne Schweif, gross (psHuge) */
   const S=(ph.sterne||[]).map(c=>farbe(c)).filter(Boolean);
   if(S.length){ SCHWEIF=0;
-    for(let n=fkJe(e,'aS',8*st*k,dt);n>0;n--){ const c=S[Math.floor(Math.random()*S.length)], rr=fkKegel([0,1,0],kg*0.8), w=fkV0(rand(w0,w1*0.95),6);
-      psBig.emit(p.x,p.y,p.z,rr[0]*w,rr[1]*w,rr[2]*w,c[0]*1.3,c[1]*1.3,c[2]*1.3,fkTA(w*rr[1],6)+rand(0,0.5),6,0); } }
+    for(let n=fkJe(e,'aS',14*st*k,dt);n>0;n--){ const c=S[Math.floor(Math.random()*S.length)], rr=fkKegel([0,1,0],kg*0.8), w=fkV0(rand(w0,w1*0.95),6);
+      psHuge.emit(p.x,p.y,p.z,rr[0]*w,rr[1]*w,rr[2]*w,c[0],c[1],c[2],fkTA(w*rr[1],6)+rand(0,0.5),6,0); } }
   SCHWEIF=alt;
   licht('fkA'+fkId(e),{x:o.x,y:o.y+8,z:o.z},FW.weiss,2.8*st*k,{boden:fkBoden(o.x,o.z),weite:25});
 };

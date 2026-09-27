@@ -73,7 +73,7 @@ function rkSchirm(c){
   let S=RK.schirme.find(x=>!x.an);
   if(!S){ if(RK.schirme.length>=4) return null;
     const g=new THREE.Group();
-    const km=new THREE.MeshBasicMaterial({color:0x777777,transparent:true,opacity:0.55,side:THREE.DoubleSide,depthWrite:false,fog:false,toneMapped:false});
+    const km=new THREE.MeshBasicMaterial({color:0x777777,transparent:true,opacity:0.36,side:THREE.DoubleSide,depthWrite:false,fog:false,toneMapped:false});
     const k=new THREE.Mesh(new THREE.SphereGeometry(1,16,5,0,Math.PI*2,0,Math.PI*0.42),km);
     k.scale.set(1.1,0.6,1.1); k.position.y=1.05; g.add(k);
     const pos=[]; for(let i=0;i<8;i++){ const a=i/8*Math.PI*2, rr=1.1*Math.sin(Math.PI*0.42); pos.push(Math.cos(a)*rr,1.05+0.6*Math.cos(Math.PI*0.42),Math.sin(a)*rr,0,0.05,0); }
@@ -83,7 +83,7 @@ function rkSchirm(c){
     S={g,km,lm}; RK.schirme.push(S); }
   S.an=true;
   /* von unten angestrahlt: grau, in der Farbe des Lichts getoent */
-  S.km.color.setRGB(0.22+c[0]*0.35,0.22+c[1]*0.35,0.22+c[2]*0.35); S.lm.color.setRGB(0.3+c[0]*0.3,0.3+c[1]*0.3,0.3+c[2]*0.3);
+  S.km.color.setRGB(0.2+c[0]*0.22,0.2+c[1]*0.22,0.2+c[2]*0.22); S.lm.color.setRGB(0.3+c[0]*0.3,0.3+c[1]*0.3,0.3+c[2]*0.3);
   return S;
 }
 EFF.fallschirm=function(p,A,B,s,r){
@@ -133,8 +133,10 @@ EFF.schnuppe=function(p,A,B,s){
     /* Schweif: duenn, weiss nach himmelblau, die Teilchen stehen */
     const k=Math.min(1.4,h/1.3);
     rkSpur(st,dt,190,(x,y,z)=>psMid.emit(x,y,z,rand(-.05,.05),rand(-.08,0),rand(-.05,.05),1.1*k,1.1*k,1.15*k,rand(0.4,0.55),0,2,bl[0]*0.5,bl[1]*0.5,bl[2]*0.5));
-    const d=st.d; d.gl=(d.gl||0)+dt*55*QUAL();
-    for(;d.gl>=1;d.gl--) psBig.emit(st.p[0],st.p[1],st.p[2],0,0,0,bl[0]*0.28,bl[1]*0.28,bl[2]*0.34,rand(0.7,0.95),0,2,0,0,0);
+    /* blauer Schimmer um den Schweif - ueber die Strecke verteilt, sonst
+       stehen die Lichtpunkte als Perlenkette */
+    const d=st.d; if(!d.g2) d.g2={d:{}}; d.g2.p=st.p;
+    rkSpur(d.g2,dt,120,(x,y,z)=>psBig.emit(x,y,z,0,0,0,bl[0]*0.2,bl[1]*0.2,bl[2]*0.26,rand(0.6,0.9),0,2,0,0,0));
   },{ende:st=>{ const e=st.p; for(let i=0;i<8;i++){ const d=randDir(); psSmall.emit(e[0],e[1],e[2],v[0]*0.2+d[0]*1.5,v[1]*0.2+d[1]*1.5,v[2]*0.2+d[2]*1.5,1,1,1,rand(0.2,0.35),1,0); } }});
   schall(p,vv=>sfx.zischen(vv*0.35,1.4));
 };
@@ -269,7 +271,7 @@ EFF.kometenkette=function(p,A,B,s,r){
   schall(p,v=>sfx.crack(v*0.5));
   for(let k=0;k<7;k++){
     /* die vorderen Stuecke sind schneller: die Kette zieht sich sichtbar auseinander */
-    const q0={x:p.x-dir[0]*k*0.6,y:p.y-dir[1]*k*0.6,z:p.z-dir[2]*k*0.6}, w=(10.5-k*0.75)*Math.sqrt(s), a=rand(-0.8,0.8), b=rand(-0.5,0.5);
+    const q0={x:p.x-dir[0]*k*0.6,y:p.y-dir[1]*k*0.6,z:p.z-dir[2]*k*0.6}, w=(13-k*0.9)*Math.sqrt(s), a=rand(-0.8,0.8), b=rand(-0.5,0.5);
     const v=[dir[0]*w+e1[0]*a+e2[0]*b,dir[1]*w+e1[1]*a+e2[1]*b,dir[2]*w+e1[2]*a+e2[2]*b], L=1.4+k*0.2;
     rkStern(psHuge,q0,v,[0.45+kopf[0]*0.8,0.45+kopf[1]*0.8,0.5+kopf[2]*0.9],L,(st,dt)=>{
       rkFlug(st,dt,0.25,1.8); const rest=L-st.alter;

@@ -344,7 +344,10 @@ function playShow(o,phases,prod,tag){
    Bruchbild: Tiefbruch 4-8 m ueber der Batterie in Groesse s. */
 const TOPF_SORTE={farbe:1,blink:1,knister:1,silber:1,gold:1,glut:1};
 function feuertopf(o,eff,A,B,s){
-  if(TOPF_SORTE[eff]) return topfSaeule(o,eff,A,B,s);
+  /* zwei Fassungen entstanden parallel (Stufe 1 A/B): die aus 14e hat je
+     Sorte ein eigenes Bild und ist in bausteine2.js geprueft - sie gilt */
+  if(TOPF_SORTE[eff]) return (typeof feuertopfSorte==='function'?feuertopfSorte:topfSaeule)(o,eff,A,B,s);
+  if(typeof tiefbruch==='function') return tiefbruch(o,eff,A,B,s||0.6);
   shot(o,{eff,A,B,sz:s||0.6,pw:-8+rand(-0.8,0.8),fuse:0.7,ang:rand(-0.08,0.08),steig:'keiner',bruchOpt:{nachglitzer:false,kern:false}});
 }
 function topfSaeule(o,sorte,A,B,s){

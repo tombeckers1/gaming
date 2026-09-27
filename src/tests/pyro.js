@@ -111,17 +111,18 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   });
   console.log('KUGELBOMBE',JSON.stringify(kb));
 
-  /* --- Sternenbrunnen: Fontaene, dann Aufstieg --- */
+  /* --- Sternenbrunnen (seit 26.09. Bluetenbrunnen, Tom: Anomalie): Fontaene
+     mit Mini-Chrysanthemen in Fontaenenhoehe, keine Ladung mehr --- */
   const sb=await p.evaluate(()=>{
     const bb=window.__bb,o={};
     bb.run(10,0.05);
     bb.igniteType('sternenbrunnen');
-    bb.run(1.0,0.05); o.fontaeneLaeuft=bb.emitters.some(e=>e.k==='fountain');
-    bb.run(2.6,0.05); o.steigtAuf=bb.rockets.length>0;
+    bb.run(1.0,0.05); o.fontaeneLaeuft=bb.emitters.some(e=>e.k==='bluetenwerfer');
+    bb.run(2.6,0.05); o.keineLadung=bb.rockets.length===0;
     bb.run(2.0,0.05);
     let n=0; for(let i=0;i<bb.psBig.life.length;i++) if(bb.psBig.life[i]>0) n++;
     o.bluetePartikel=n;
-    bb.run(12,0.05);
+    bb.run(16,0.05);
     o.leer=bb.rockets.length===0&&bb.emitters.length===0;
     return o;
   });

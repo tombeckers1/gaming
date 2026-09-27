@@ -145,11 +145,12 @@ NEU_EMIT.torte=(e,dt,o)=>{
   if(!e.font||!e.ph||!e.ph.kalt) return FK_TORTE(e,dt,o);
   const ph=e.ph, h=Math.max(0.1,e.hAkt||0.5), st=e.staerke, v0=fkV0(h,6), tA=fkTA(v0,6), alt=SCHWEIF;
   const tf=Math.sqrt(h/6), life=tA+tf*0.9, dm=ph.diamant&&e.u>=ph.diamant[0]&&e.u<=ph.diamant[1];
-  SCHWEIF=0.05;
-  for(let n=fkJe(e,'aT',240*QUAL()*st,dt);n>0;n--){ const a=Math.random()*Math.PI*2, s=rand(0.05,0.32)*Math.sqrt(h/0.5), c=Math.random()<0.5?e.A:e.B;
+  /* feine Striche im offenen Faecher statt dichter Punktsaeule (Probebild) */
+  SCHWEIF=0.12;
+  for(let n=fkJe(e,'aT',170*QUAL()*st,dt);n>0;n--){ const a=Math.random()*Math.PI*2, s=rand(0.2,0.95)*Math.sqrt(h/0.5), c=Math.random()<0.5?e.A:e.B;
     const vx=Math.cos(a)*s, vz=Math.sin(a)*s, vy=v0*rand(0.85,1);
     if(dm&&Math.random()<0.3) glint(psSmall,o.x,o.y+0.05,o.z,vx,vy,vz,c,6,{tz:tA*rand(0.85,1.05),dim:0.8,blitz:3.2,blitzFarbe:[1,1,1],glimm:0.5,rest:tf*0.5});
-    else psSmall.emit(o.x,o.y+0.05,o.z,vx,vy,vz,c[0]*1.1,c[1]*1.1,c[2]*1.15,life*rand(0.85,1),6,0); }
+    else psSmall.emit(o.x,o.y+0.05,o.z,vx,vy,vz,c[0]*0.85,c[1]*0.85,c[2]*0.9,life*rand(0.85,1),6,0); }
   SCHWEIF=alt;
   /* ganz leises Zischen, kein Rauch */
   e.kl=(e.kl||0)-dt; if(e.kl<=0&&!e.nr){ e.kl=rand(0.6,1.0); sfx.zischen(distVol(o)*0.3*st,0.7); }

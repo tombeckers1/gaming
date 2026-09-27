@@ -637,9 +637,9 @@ SHOWS.batterie100=()=>show({basis:{pw:0.70,sz:1.060,th:'himmel'},rampe:{sz:[0.90
      vom Zuendpult aus ueber dem Bildrand */
   /* Einsteigen: kurze Fontaene am Bahnhof, bevor der Zug anfaehrt (Auftakt, steigerung.js) */
   {n:0,ground:'fountain',gt:2.5,gh:0.6,gA:'violett',gB:'gold',pause:2.0},
-  {n:12,gap:0.9,muster:'treppe',hoehe:'steigend',hSpanne:16,kal:'klein',eff:'pistill',steig:'blink',farbe:0,boden:{k:'blinker',gt:11,A:'weiss'},pause:0.2},
+  {n:12,gap:0.9,muster:'treppe',hoehe:'steigend',hSpanne:16,pw:-3,kal:'klein',eff:'pistill',steig:'blink',farbe:0,boden:{k:'blinker',gt:11,A:'weiss'},pause:0.2},
   /* oben: kurzer Stillstand, ein grosser Kamuro als Aussicht */
-  {n:1,muster:'gerade',eff:'kamuro',kal:'gross',pw:6,pause:1.8},
+  {n:1,muster:'gerade',eff:'kamuro',kal:'gross',pw:3,pause:1.8},
   /* erster Drop: fallend, immer schneller, kreischende Aufstiege */
   {n:16,gap:0.35,gapEnde:0.07,muster:'v',ang:0.15,hoehe:'fallend',hSpanne:18,eff:['chrys','spinne'],steig:'pfeif',pause:1.2},
   /* Kamelbuckel: Hoehen als Welle, Fontaene am Boden */
@@ -650,9 +650,9 @@ SHOWS.batterie100=()=>show({basis:{pw:0.70,sz:1.060,th:'himmel'},rampe:{sz:[0.90
   /* Tunnel: dunkel, tief, rumpelndes Knistern */
   {n:10,gap:0.25,muster:'zufall',ang:0.25,kal:'mini',pw:-3,eff:'tausend',pause:0.8},
   /* Schlussfahrt: Kreuzfeuer mit wechselnden Hoehen */
-  {n:24,gap:0.12,muster:'x',ang:0.45,hoehe:'wechsel',hSpanne:10,pw:3,eff:['kamuro','geist'],kal:'gross'},
+  {n:24,gap:0.12,muster:'x',ang:0.45,hoehe:'wechsel',hSpanne:6,pw:5,eff:['kamuro','geist'],kal:'gross'},
   /* FINALE Schlussbremse: fuenf tiefe Strobe-Blitze auf Schlag - das Achterbahn-Foto */
-  {n:5,gap:0,muster:'schlag',ang:0.50,eff:'strobe',kal:'mittel',pw:2,pause:3.5}
+  {n:5,gap:0,muster:'schlag',ang:0.50,eff:'strobe',kal:'mittel',pw:4,pause:3.5}
 ]);
 SIGNATUR.batterie100={idee:'hoehenkurve',text:'Aufzug, Drop, Buckel, Bremse'};
 
@@ -726,16 +726,16 @@ SHOWS.kometen=()=>show({basis:{pw:1.65,sz:1.135,th:'nacht'},rampe:{sz:[0.90,1.25
      Maehne und Finale hoeher (Steigerung im Ablauf, Hoehenleiter) */
   {n:0,ground:'fountain',gt:2.5,gh:0.6,gA:'silber',gB:'weiss',pause:2.0},
   /* Anritt: einzelne Pferdeschweife, Silbersaeule am Boden */
-  {n:6,gap:1.5,muster:'gerade',eff:'rossschweif',steig:'komet',kal:'mittel',A:'weiss',B:'himmel',boden:{k:'riesen',gt:9,gh:0.7,A:'silber',B:'weiss'},pause:0.8},
+  {n:6,gap:1.5,muster:'gerade',eff:'rossschweif',steig:'komet',kal:'mittel',pw:-2,A:'weiss',B:'himmel',boden:{k:'riesen',gt:9,gh:0.7,A:'silber',B:'weiss'},pause:0.8},
   /* Trab: W, im Wechsel mit Zeitregen */
-  {n:12,gap:0.6,muster:'w',ang:0.40,eff:['rossschweif','zeitregen'],farbe:1,pause:1.2},
+  {n:12,gap:0.6,muster:'w',ang:0.40,pw:-1,eff:['rossschweif','zeitregen'],farbe:1,pause:1.2},
   /* Galopp: da-da-DUMM, Scheibenwischer zweimal hin und zurueck */
-  {n:16,takt:[0.15,0.15,0.45],muster:'wischer',seg:2,ang:0.45,eff:'rossschweif',kal:'klein',A:'weiss',B:'himmel',pause:1.4},
+  {n:16,takt:[0.15,0.15,0.45],muster:'wischer',seg:2,ang:0.45,eff:'rossschweif',kal:'klein',pw:1,A:'weiss',B:'himmel',pause:1.4},
   /* Maehne: grosse Blinkweiden oben, kleine Kometen unten im V */
   {n:10,gap:0.9,muster:'gerade',eff:'strobeweide',kal:'gross',pw:2},
-  {mit:true,n:10,gap:0.9,muster:'v',ang:0.50,kal:'mini',pw:-2,eff:'komet',pause:0.8},
+  {mit:true,n:10,gap:0.9,muster:'v',ang:0.50,kal:'mini',pw:0,eff:'komet',pause:0.8},
   /* FINALE Durchgehen: zehn Riesen-Pferdeschweife von der Mitte nach aussen, Silber-Feuertoepfe */
-  {n:10,gap:0.08,muster:'mitte',ang:0.50,eff:'rossschweif',kal:'riesig',pw:3,A:'weiss',B:'himmel',mine:true,mineEff:'silber',pause:4.5}
+  {n:10,gap:0.08,muster:'mitte',ang:0.50,eff:'rossschweif',kal:'riesig',pw:5,A:'weiss',B:'himmel',mine:true,mineEff:'silber',pause:4.5}
 ]);
 SIGNATUR.kometen={eff:'rossschweif',text:'Silberne Pferdeschweife im Galopp'};
 
@@ -747,11 +747,11 @@ SHOWS.hochzeitsfaecher=()=>show({basis:{pw:2.00,sz:1.160,th:'herz'},rampe:{sz:[0
   {n:6,gap:1.2,muster:'mitte',ang:0.40,eff:'blaetter',farbe:0,pause:1.0},
   /* DAS HERZ: 7 Paare auf der Herzkontur, von der Spitze aufwaerts, alle stehen am Ende zugleich */
   /* 27.09.: kleine Paeonien (kal mini, sz 0,55 - je ~2,5 m, Punkte statt Bluten),
-     Takt 0,15 s, 20 m breit und Mitte 19 m statt Dahlie mittel/0,5 s/
+     Takt 0,08 s (das ganze Herz steht gleichzeitig), 20 m breit und Mitte 19 m statt Dahlie mittel/0,5 s/
      24 m/~25 m - vorher verliefen die grossen Dahlien ineinander, die Spitze war
      erloschen, bevor oben die Boegen standen, und die Boegen lagen vom
      Zuendpult aus ueber dem Bildrand: kein Herz zu erkennen */
-  {n:14,je:2,takt:[0.15],muster:'bild',form:'herz',breite:20,mitteH:19,eff:'kugel',kal:'mini',sz:0.55,bruchOpt:{nachglitzer:false},boden:{k:'fountain',gt:9,A:'rose',B:'gold'},pause:3.0},
+  {n:14,je:2,takt:[0.08],muster:'bild',form:'herz',breite:20,mitteH:19,eff:'kugel',kal:'mini',sz:0.55,bruchOpt:{nachglitzer:false},boden:{k:'fountain',gt:9,A:'rose',B:'gold'},pause:3.0},
   /* FINALE Ringtausch: zwei goldene Doppelringe, darunter weisser "Reis" */
   {n:2,gap:0,muster:'v',ang:0.20,eff:'doppelring',kal:'gross',th:'gold'},
   {mit:true,n:6,gap:0.15,muster:'zufall',ang:0.40,kal:'klein',pw:-3,eff:'farbregen',th:'silber',pause:4.5}
@@ -763,13 +763,13 @@ SHOWS.donnerwand=()=>show({basis:{pw:2.05,sz:1.165,th:'glut'},rampe:{sz:[0.95,1.
   /* 27.09.: Trommler zaehlt ein - kurze Flammenfontaene vorweg (Auftakt, steigerung.js) */
   {n:0,ground:'fountain',gt:2.5,gh:0.6,gA:'rot',gB:'gold',pause:2.0},
   /* Viertel: 4 Salven, Flammenfontaene */
-  {n:24,je:6,takt:[1.8],muster:'schlag',ang:0.35,eff:'palme',kal:'mittel',boden:{k:'feuerbrunnen',gt:7,A:'rot',B:'gold'},pause:1.0},
+  {n:24,je:6,takt:[1.8],muster:'schlag',ang:0.35,eff:'palme',kal:'mittel',pw:-1,boden:{k:'feuerbrunnen',gt:7,A:'rot',B:'gold'},pause:1.0},
   /* Synkope: kurz-kurz-lang, V-Salven */
   {n:24,je:6,takt:[0.5,0.5,1.4],muster:'v',ang:0.40,eff:'kokosnuss',farbe:1,pause:1.2},
   /* Paukenschlag: eine senkrechte Sechser-Salve, danach Stille */
   {n:6,je:6,muster:'gerade',eff:'weide',kal:'gross',pause:2.5},
   /* Triolen: W-Salven, Mitte andere Farbe, Fontaenen flackern */
-  {n:36,je:6,takt:[0.28,0.28,0.9],muster:'w',ang:0.45,farbVert:'mitte',eff:['spinne','flammenregen','spinne']},
+  {n:36,je:6,takt:[0.28,0.28,0.9],muster:'w',ang:0.45,farbVert:'wechsel',eff:['spinne','flammenregen','spinne']},
   {mit:true,n:0,boden:[{k:'feuerbrunnen',gt:4,x:-3},{k:'feuerbrunnen',gt:4,x:3}],pause:1.2},
   /* Wirbel: 4 Salven in 0,36 s */
   /* 27.09.: Takt 0,34 statt 0,12 s und Pause vor dem Tusch - hoechstens 18 Schuss je
@@ -893,7 +893,7 @@ SHOWS.profi=()=>show({basis:{pw:3.10,sz:1.250,th:'koenig'},rampe:{sz:[0.90,1.30]
   /* Zwischenspiel "Goetterfunken": knisternde Goldsterne im Scheibenwischer */
   {n:14,gap:0.2,muster:'wischer',seg:2,ang:0.40,eff:'drachenei',kal:'klein',pw:-2,pause:1.2},
   /* Strophe 2 DUETT: Melodie oben senkrecht, Bass in Halben tiefer im V */
-  {n:30,muster:'gerade',hoehe:'melodie',noten:ODE,viertel:0.5,hStufe:2.5,eff:'dahlie',farbe:1},
+  {n:30,muster:'gerade',hoehe:'melodie',noten:ODE,viertel:0.5,hStufe:2.5,pw:-1,eff:'dahlie',farbe:1},
   {mit:true,n:16,muster:'v',ang:0.45,hoehe:'melodie',noten:ODE_BASS,viertel:0.5,hStufe:2.5,pw:-6,kal:'klein',eff:'palme',farbe:2,pause:1.0},
   /* Zwischenspiel: Wasserfall der Freude - Fontaenen mitten in der Show, grosse Kronleuchter */
   {n:12,gap:1.3,muster:'aussen',ang:0.50,eff:'kronleuchter',kal:'gross',boden:[{k:'wasserfall',gt:16,A:'gold'},{k:'feuerbrunnen',gt:8,x:-3},{k:'feuerbrunnen',gt:8,x:3}],pause:1.5},
@@ -907,11 +907,11 @@ SHOWS.profi=()=>show({basis:{pw:3.10,sz:1.250,th:'koenig'},rampe:{sz:[0.90,1.30]
   /* SCHLUSSAKKORD: neun Rohre im W, Hoehen C-E-G-C'-E'-C'-G-E-C, Riesenfontaene */
   {n:9,gap:0,muster:'w',ang:0.50,hoehe:'akkord',noten:{ton:[0,2,4,7,9,7,4,2,0]},eff:['brokat','dahlie','kamuro'],farbVert:'wechsel',kal:'riesig',hStufe:1.1,pw:1,
    boden:{k:'riesen',gt:5,gh:1.3,A:'gold',B:'violett'},pause:1.5},
-  /* Pauken zum Akkord: acht Kokosnuesse auf den Schlag (27.09.: vorher in der Tutti
-     verteilt - so steht der Schlussakkord mit 17 Rohren, Dichte-Leiter steigerung.js) */
-  {mit:true,n:8,gap:0,muster:'schlag',ang:0.50,eff:'kokosnuss',kal:'gross',pw:1,pause:0.6},
-  /* Nachhall: fuenf langsame goldene Zeitregen */
-  {n:5,gap:0.9,muster:'zufall',ang:0.30,eff:'zeitregen',kal:'gross',pw:4,pause:6}
+  /* Pauken zum Akkord: neun Kokosnuesse auf den Schlag (27.09.: vorher in der Tutti
+     verteilt - so steht der Schlussakkord mit 18 Rohren, Dichte-Leiter steigerung.js) */
+  {mit:true,n:9,gap:0,muster:'schlag',ang:0.50,eff:'kokosnuss',kal:'gross',pw:1,pause:0.6},
+  /* Nachhall: vier langsame goldene Zeitregen */
+  {n:4,gap:0.9,muster:'zufall',ang:0.30,eff:'zeitregen',kal:'gross',pw:4,pause:6}
 ]);
 SIGNATUR.profi={muster:'melodie',text:'Ode an die Freude in Bruchhöhen'};
 
@@ -986,18 +986,18 @@ SHOWS.finale=()=>show({basis:{pw:4.00,sz:1.320,th:'meteor'},rampe:{sz:[0.85,1.35
   /* Akt 1 Vorzeichen: dunkle Blueten, die erst glimmen und ploetzlich aufgehen; roter Horizont bis Akt 6 */
   /* 27.09.: gap 1,4 statt 2,4 und pw 5 statt 8 - vorher 30 s fast leerer Himmel
      zum Auftakt des groessten Produkts, und die Blueten lagen am oberen Bildrand */
-  {n:12,gap:1.4,muster:'zufall',ang:0.40,pw:5,eff:'gamboge',th:'nacht',steig:'keiner',boden:{k:'bengal',gt:85,gh:0.25,A:'rot'},pause:1.0},
+  {n:12,gap:1.4,muster:'zufall',ang:0.40,pw:3,eff:'gamboge',th:'nacht',steig:'keiner',boden:{k:'bengal',gt:85,gh:0.25,A:'rot'},pause:1.0},
   /* Akt 2 Sternfall: Meteore, immer dichter */
-  {n:30,gap:1.2,gapEnde:0.25,muster:'welle',ang:0.50,pw:5,eff:'meteor',kal:'klein',pause:1.2},
+  {n:30,gap:1.2,gapEnde:0.25,muster:'welle',ang:0.50,pw:4,eff:'meteor',kal:'klein',pause:1.2},
   /* Akt 2b Kometenhagel: harte Linien und Meteore im Zickzack */
   {n:40,gap:0.12,muster:'z',seg:3,ang:0.50,eff:['spinne','meteor'],kal:'mittel',steig:'komet',pause:1.5},
   /* Akt 3 Erdbeben: tief rumpelnd, Glut-Feuertoepfe, Flammen- und Vulkanfontaenen, oben fallen weiter Meteore */
-  {n:36,gap:0.3,muster:'gerade',kal:'klein',pw:-6,eff:'tausend',mine:true,mineEff:'glut',
+  {n:36,gap:0.3,muster:'gerade',kal:'klein',pw:-3,eff:'tausend',mine:true,mineEff:'glut',
    boden:[{k:'feuerbrunnen',gt:11,x:-4},{k:'feuerbrunnen',gt:11,x:4},{k:'volcano',gt:11,A:'rot',B:'orange'}]},
   {mit:true,n:8,gap:1.35,muster:'aussen',ang:0.50,eff:'meteor',kal:'mittel',pause:0.3},
   /* Akt 4 Feuersturm: Kreuzfeuer ueber die ganze Breite, unten stuerzen Truemmer */
-  {n:48,gap:0.2,muster:'x',ang:0.50,rohre:'breit',eff:['flammenregen','meteor','kamuro'],kal:'gross'},
-  {mit:true,n:24,gap:0.4,muster:'v',ang:0.60,kal:'klein',pw:-4,eff:'kaskade',pause:1.0},
+  {n:48,gap:0.2,muster:'x',ang:0.50,rohre:'breit',pw:2,eff:['flammenregen','meteor','kamuro'],kal:'gross'},
+  {mit:true,n:24,gap:0.4,muster:'v',ang:0.60,kal:'klein',pw:-1,eff:'kaskade',pause:1.0},
   /* Akt 5 Die grossen Brocken: vier Kugelbomben mit Meteor-Hauptbild und Flammen-Nachbruechen */
   {n:4,gap:2.5,muster:'gerade',bomb:4,bombEff:'meteor',bombStufen:[{t:1.2,eff:'flammenregen',n:4,kranz:0.29}],pause:1.5},
   /* Akt 6 Stille: nichts, nur der rote Horizont */
@@ -1005,10 +1005,10 @@ SHOWS.finale=()=>show({basis:{pw:4.00,sz:1.320,th:'meteor'},rampe:{sz:[0.85,1.35
   /* Akt 7 Einschlag: 72 Meteore in 3,6 s von der Mitte nach aussen, weisse Feuertoepfe - dann der Weltenblitz */
   /* 27.09.: gap 0,04 und pw 4 - dichtester und hoechster Moment der Show
      (Dichte- und Hoehenleiter, Steigerung im Ablauf: steigerung.js) */
-  {n:72,gap:0.04,muster:'mitte',ang:0.60,pw:4,eff:'meteor',kal:'gross',mine:true,mineEff:'silber'},
+  {n:72,gap:0.04,muster:'mitte',ang:0.60,pw:6,eff:'meteor',kal:'gross',mine:true,mineEff:'silber'},
   {at:'ende',n:1,muster:'gerade',eff:'weltenblitz',kal:'riesig',pw:4,pause:1.0},
   /* Akt 8 Asche: glimmende Flocken sinken langsam, kein Knall */
-  {n:25,gap:0.35,muster:'zufall',ang:0.60,pw:6,eff:'glutasche',kal:'gross',steig:'keiner',pause:8}
+  {n:25,gap:0.35,muster:'zufall',ang:0.60,pw:8,eff:'glutasche',kal:'gross',steig:'keiner',pause:8}
 ]);
 SIGNATUR.finale={eff:'meteor',text:'Meteore stürzen herab und schlagen ein'};
 

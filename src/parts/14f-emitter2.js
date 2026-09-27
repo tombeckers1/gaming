@@ -137,7 +137,7 @@ NEU_EMIT.kessel=(e,dt,o)=>{
   e.acc=(e.acc||0)+dt*90*q*H;
   for(;e.acc>=1;e.acc--){ const a=Math.random()*Math.PI*2, r=Math.sqrt(Math.random())*R;
     psMid.emit(o.x+Math.cos(a)*r,y0,o.z+Math.sin(a)*r,rand(-.1,.1),rand(0.5,1.5),rand(-.1,.1),A[0]*1.2,A[1]*1.2,A[2]*1.2,rand(0.35,0.7),-0.4,0); }
-  licht('kessel'+e.id,{x:o.x,y:y0+0.9,z:o.z},A,2.4*H,{boden:y0});
+  licht('kessel'+e.id,{x:o.x,y:y0+0.9,z:o.z},A,1.4*H,{boden:y0,weite:12});   /* weite 12: vorher faerbte er das ganze Testfeld gruen (Probebild) */
   /* Knisterfontaene */
   SCHWEIF=0.06; e.acc2=(e.acc2||0)+dt*70*q*H; const vf=vFuerHoehe(2*H,6);
   for(;e.acc2>=1;e.acc2--){ const a=Math.random()*Math.PI*2, w=rand(0.1,0.9), c=Math.random()<0.7?[1,.95,.8]:A;
@@ -176,7 +176,7 @@ NEU_EMIT.geysir=(e,dt,o)=>{
   for(;e.acc2>=1;e.acc2--){ const a=Math.random()*Math.PI*2, s=rand(1,3);
     psSmall.emit(o.x+rand(-0.3,0.3),y0+hm*rand(0.82,1.0),o.z+rand(-0.3,0.3),Math.cos(a)*s,rand(-1,1),Math.sin(a)*s,1,1,1,rand(0.25,0.55),2,4); }
   SCHWEIF=alt;
-  licht('geysir'+(e.id||(e.id=Math.random())),{x:o.x,y:y0+hm*0.4,z:o.z},A,3.2*H*kraft,{boden:y0});
+  licht('geysir'+(e.id||(e.id=Math.random())),{x:o.x,y:y0+hm*0.4,z:o.z},A,1.8*H*kraft,{boden:y0,weite:20});   /* 3,2 machte die Wand am Testfeld reinweiss (Probebild) */
   /* kurz vor Schluss steigt der Dampf - noch von den Funken angestrahlt */
   if(!e.dampf&&e.t<=0.4){ e.dampf=true;
     rauchball({x:o.x,y:y0+hm*0.35,z:o.z},{r:2.6*H,n:8,dauer:3.6,quellen:1.4,steigen:1.1,wind:[0.3,0],c:[0.62,0.64,0.68],a:0.33,
@@ -200,5 +200,5 @@ if(typeof window!=='undefined') window.__fw2={
   get psHuge(){return psHuge}, get psBig(){return psBig}, get psMid(){return psMid}, get psSmall(){return psSmall}, get FW_UHR(){return FW_UHR},
   set FW_LOG(a){FW_LOG=a}, emitters, NEU_EMIT, FW, K, THEMEN, FLASH, WOLKEN, sfx, ac, tonGen, rauschF, schall, randDir, rand,
   imBild, glint, GLINT, knisterPop, knisterWolke, POP, verzweig, VERZWEIG, fuehre, GEFUEHRT, haengen, licht, LICHT, rauchball, RAUCH,
-  bodenrest, restLanden, REST, feuertopfSorte, FEUERTOPF_SORTEN, tiefbruch, einschlagAn, emAnteil
+  bodenrest, restLanden, REST, feuertopfSorte, FEUERTOPF_SORTEN, tiefbruch, STEIG_TON, einschlagAn, emAnteil
 };

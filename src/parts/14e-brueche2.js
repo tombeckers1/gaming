@@ -160,7 +160,8 @@ function haengen(ps,x,y,z,vx,vy,vz,c,life,o){
    licht(schluessel,p,c,staerke) an. Die hellsten und naechsten bekommen
    ein echtes Punktlicht - hoechstens alle Blitzlichter bis auf eins, das
    fuer die Brueche frei bleibt (4 Lichter: 3, schwache Rechner: 1) -,
-   alle anderen einen farbigen Lichtfleck auf dem Boden (o.boden = Hoehe). */
+   alle anderen einen farbigen Lichtfleck auf dem Boden (o.boden = Hoehe).
+   o.weite = Reichweite des Lichts in m (Standard 25). */
 const LICHT={an:[],alt:[],slot:{},flecken:[],vergeben:0,fleckN:0};
 function licht(key,p,c,staerke,o){ LICHT.an.push({key,p,c,st:staerke||2,o:o||{}}); dienst(); }
 let _fleckTex=null;
@@ -185,6 +186,9 @@ function lichtTakt(){
       if(f===undefined){ let best=-1, bt=1e9; FLASH.forEach((x,ix)=>{ if(!belegt.has(ix)&&x.t<bt){ bt=x.t; best=ix; } }); f=best; if(f<0) return; neu[r.key]=f; belegt.add(f); }
       const F=FLASH[f]; flashSchalten(true); flashRuhe=8;
       F.l.position.set(r.p.x,r.p.y,r.p.z); F.l.color.setRGB(clamp(r.c[0]+0.1,0,1),clamp(r.c[1]+0.1,0,1),clamp(r.c[2]+0.1,0,1));
+      /* Reichweite begrenzt (Standard 25 m): mit den 95 m der Blitze
+         faerbte ein Dauerlicht die ganze Stadt (Probebild Kessel) */
+      F.l.distance=r.o.weite||25; F.pool=true;
       F.max=r.st; F.d=0.25; F.t=0.25; F.l.intensity=r.st*0.75;
       return; }
     /* ohne Licht: Fleck auf dem Boden */
@@ -193,6 +197,8 @@ function lichtTakt(){
     m.position.set(r.p.x,b+0.02,r.p.z); m.scale.set(gr,gr,1); m.material.color.setRGB(r.c[0]*a,r.c[1]*a,r.c[2]*a); m.visible=true;
   });
   for(let k=fi;k<LICHT.flecken.length;k++) LICHT.flecken[k].visible=false;
+  /* freigegebene Lichter bekommen die Blitz-Reichweite zurueck */
+  FLASH.forEach((F,ix)=>{ if(F.pool&&!belegt.has(ix)){ F.pool=false; F.l.distance=95; } });
   LICHT.slot=neu; LICHT.vergeben=belegt.size; LICHT.fleckN=fi;
   return L.length>0;
 }
@@ -368,3 +374,41 @@ function tiefbruch(o,eff,A,B,s,opt){
   shot(o,{eff,A,B,sz:s,pw,fest:true,fuse:f,ang:opt.ang!==undefined?opt.ang:rand(-0.05,0.05),dir:opt.dir,steig:'keiner',hell:opt.hell,bruchOpt:{nachglitzer:false,kern:false}});
   return h;
 }
+
+/* ---------------------------------------------------------
+   Aufstiegsklaenge ueber tonGen (neue-effekte.md 2 und 8, 26.09.).
+   STEIG_TON[steig](r,v): r.fuse Steigzeit, r.ton Halbtoene ueber
+   1,6 kHz oder 'fallend', r.par.gleit. Die Engine (Teil A) ruft beim
+   Start STEIG_KLANG[steig] - diese Eintraege ersetzen dort die
+   Vorgaben, sobald es die Tabelle gibt.
+   --------------------------------------------------------- */
+const STEIG_TON={
+  pfeif(r,v){ if(typeof r.ton==='number'||r.ton==='fallend') return sfx.pfeifTon(v,r.ton==='fallend'?7:r.ton,{fallend:r.ton==='fallend',dur:r.fuse+0.1}); sfx.whistle(v); },
+  /* Heulbatterie: Ton je Schuss, +2 Halbtoene im Steigen; gleit = Heulboje */
+  tonleiter(r,v){ const gl=r.par&&r.par.gleit; return sfx.pfeifTon(v,typeof r.ton==='number'?r.ton:0,{gleit:gl,dur:gl?2.5:r.fuse+0.1}); },
+  /* Pfeifkonzert: Grundton -> grosse Terz -> Quinte, harte Spruenge (fallend: umgekehrt) */
+  dreiklang(r,v){ const g=typeof r.ton==='number'?r.ton:0, T=(r.fuse||1.2)/3, st=r.ton==='fallend'?[7,4,0]:[0,4,7], f=h=>1600*Math.pow(2,(g+h)/12);
+    return tonGen({f:f(st[0]),spruenge:[[T,f(st[1])],[2*T,f(st[2])]],dur:3*T+0.08,vol:0.03*v,rausch:0.06,vib:{hz:5.5,cent:12},an:0.04}); },
+  /* Silberpfeil: trockener Startknall, dann hohes Sirren */
+  pfeil(r,v){ sfx.startknall(v); return tonGen({f:3200,f2:3700,dur:Math.max(0.3,r.fuse*0.7),vol:0.012*v,rausch:0.3,an:0.03}); },
+  glasklang(r,v){ const f=rand(1600,1900); tonGen({f,dur:r.fuse+0.2,vol:0.018*v,an:0.1,ab:0.3}); return tonGen({f:f+3,dur:r.fuse+0.2,vol:0.018*v,an:0.1,ab:0.3}); },
+  /* Titanrakete: 1,2 kHz, 14 Hz zerhackt, sehr laut */
+  ratter(r,v){ return tonGen({f:1200,am:14,amTiefe:1,rausch:0.5,typ:'sawtooth',lp:2800,dur:r.fuse+0.05,vol:0.03*v}); },
+  drachenschweif(r,v){ sfx.fauchen(v*1.1,r.fuse+0.2); },
+  silberdrache(r,v){ rauschF({dur:r.fuse+0.2,vol:0.2*v,f:420,an:0.2}); },
+  farbspur(r,v){ rauschF({dur:r.fuse,vol:0.12*v,typ:'bandpass',f:700,q:0.7,an:0.15}); },
+  brokat(r,v){ rauschF({dur:r.fuse+0.1,vol:0.14*v,typ:'bandpass',f:1800,q:0.5,an:0.05}); },
+  rieselschweif(r,v){ sfx.zischen(v*1.2,r.fuse+0.1); },
+  titanspur(r,v){ rauschF({dur:r.fuse+0.1,vol:0.16*v,typ:'highpass',f:2200,an:0.05}); later(0.3,()=>sfx.prasseln(v*0.6)); },
+  /* Kugel 200: Tick 2 kHz / Tack 1,5 kHz im Takt der Spur (4 Hz) */
+  ticktack(r,v){ for(let i=0;i<Math.floor((r.fuse||1)*4);i++) later(i*0.25,()=>tone(i%2?1500:2000,0.015,'square',0.04*v)); },
+  /* Furzrakete: drei Aussetzer bei 25/50/75 %, tief - mittel - hoch */
+  stotter(r,v){ sfx.zischen(v*0.5,r.fuse); [0.25,0.5,0.75].forEach((a,i)=>later(a*r.fuse,()=>{ tonGen({f:70+i*35,f2:50+i*25,typ:'sawtooth',lp:500,am:28,amTiefe:0.7,dur:0.3,vol:0.06*v}); rauschF({dur:0.25,vol:0.15*v,f:300+i*150}); })); },
+  /* Supernova: Stufe zuendet bei 50 % - Schlag und helleres Zischen */
+  zweistufe(r,v){ sfx.zischen(v*0.7,r.fuse*0.5); later(r.fuse*0.5,()=>{ sfx.thump(v); rauschF({dur:r.fuse*0.5+0.1,vol:0.13*v,typ:'highpass',f:4500,an:0.03}); }); },
+  /* Goldkrone: Blubbern 5 je Sekunde */
+  blasen(r,v){ for(let i=0;i<Math.floor((r.fuse||1)*5);i++) later(i*0.2+rand(0,0.05),()=>tone(rand(260,420),0.07,'sine',0.05*v,rand(500,700))); },
+  /* Jumboleiter: leises Pling je stehengebliebener Perle (etwa alle 3 m) */
+  perlenschnur(r,v){ const n=Math.max(2,Math.round((r.fuse||1.2)*5)); for(let i=1;i<=n;i++) later(i*(r.fuse||1.2)/(n+1),()=>sfx.pling(v*0.8)); }
+};
+if(typeof STEIG_KLANG!=='undefined') Object.assign(STEIG_KLANG,STEIG_TON);

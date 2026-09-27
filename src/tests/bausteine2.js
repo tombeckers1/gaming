@@ -8,9 +8,12 @@
      Tiefbruch 4-8 m
    - GLINT blitzt genau einmal, VERZWEIG teilt, HAENGEN sinkt begrenzt,
      POPS/RAUCH/REST halten ihr Budget, LICHT vergibt hoechstens die
-     freien Blitzlichter, der Rest wird Bodenfleck
+     freien Blitzlichter (Reichweite 25 m, danach wieder 95), der Rest
+     wird Bodenfleck
    - THEMEN: alle neuen Themen da, nur gueltige Farben
-   - SFX: jede neue Funktion laeuft und erzeugt Klang; tick hoechstens 8 */
+   - SFX: jede neue Funktion laeuft und erzeugt Klang; tick hoechstens 8
+   - STEIGTON: jeder Aufstiegsklang laeuft, der Dreiklang springt
+     Grundton -> grosse Terz -> Quinte */
 async function neuesSpiel(p){
   await p.waitForFunction("!!document.querySelector('#startBtns button:not([disabled])')",{timeout:120000});
   await p.click('#startBtns button:last-child');
@@ -41,9 +44,10 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     /* hoechster lebender Funke nahe x=X */
     const spitze=(X,Y)=>{ let m=-1e9; PSL.forEach(ps=>{ for(let i=0;i<ps.max;i++) if(ps.life[i]>0&&Math.abs(ps.pos[i*3]-X)<8) m=Math.max(m,ps.pos[i*3+1]-Y); }); return m; };
     const lauf=(k,gt,extra,dt,X)=>{ const O={x:(X||0)+((extra&&extra.x)||0),y:0,z:-40};   /* wie bodenAn: x verschiebt den Ort */ let fehler=null, top=-1e9;
-      const L=mit(()=>{ try{ emitters.push(Object.assign({t:gt,k,o:O,A:FW.gold,B:FW.violett,h:1},extra||{})); }catch(e){ fehler=e.message; } },0,dt);
+      const EO=Object.assign({t:gt,k,o:O,A:FW.gold,B:FW.violett,h:1},extra||{}); let L=[]; try{ L=mit(()=>{ emitters.push(EO); },0,dt); }catch(e){ fehler=e.message; LOG=null; }
       LOG=[]; const t0=uhr()-0.0001;
       for(let s=0;s<gt+2;s+=(dt||0.05)){ try{ bb.run(dt||0.05,dt||0.05); }catch(e){ fehler=fehler||e.message; } top=Math.max(top,spitze(O.x,O.y)); }
+      if(fehler){ const ix=emitters.indexOf(EO); if(ix>=0) emitters.splice(ix,1); }
       const L2=LOG.map(e=>[e[0]-t0].concat(e.slice(1))); LOG=null;
       return {L:L.concat(L2),top,fehler}; };
     /* EMITTER */
@@ -59,13 +63,13 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
       if(k==='tornado'){ e.frueh=+Math.max(...L.filter(x=>x[0]<2.4).map(x=>x[2])).toFixed(2); }
       if(k==='lauffeuer'){ const f=L.filter(x=>x[5]===3); e.xAnf=+(f.slice(0,3).reduce((a,x)=>a+x[1],0)/3-X).toFixed(2); e.xEnd=+(f.slice(-3).reduce((a,x)=>a+x[1],0)/3-X).toFixed(2); }
       if(k==='flitterbrunnen'){ const T=6; e.tsubomi=L.filter(x=>x[0]>0.1&&x[0]<0.15*T-0.1&&x[5]!==1).length; e.matsuba=L.filter(x=>x[0]>0.45*T&&x[0]<0.75*T).length; }
-      if(k==='geysir'){ e.vorlauf=L.filter(x=>x[0]<0.25&&x[2]>1).length; }
+      if(k==='geysir'){ e.vorlauf=L.filter(x=>x[0]<0.25&&(x[2]>1||x[7]>5)).length; }
       o.em[k]=e;
     });
     /* LICHT: der Kessel bekommt ein Licht; sechs Anfragen zugleich */
     { for(let i=0;i<6;i++) licht('probe'+i,{x:i*3,y:2,z:-30},FW.rot,2); bb.run(0.05,0.05);
       for(let i=0;i<6;i++) licht('probe'+i,{x:i*3,y:2,z:-30},FW.rot,2); bb.run(0.05,0.05);
-      o.licht={vergeben:LICHT.vergeben,flecken:LICHT.fleckN,frei:FLASH.length-1}; bb.run(1,0.1); }
+      o.licht={vergeben:LICHT.vergeben,flecken:LICHT.fleckN,frei:FLASH.length-1,weite:Math.max(...FLASH.filter(f=>f.pool).map(f=>f.l.distance))}; bb.run(1,0.1); o.licht.danach=Math.min(...FLASH.map(f=>f.l.distance)); }
     /* TOPF */
     o.topf={};
     ['farbe','blink','knister','silber','gold','glut'].forEach((s,j)=>{ const X=300+j*40, pop0=POP.n, r0=RAUCH.n, g0=GEFUEHRT.length; let top=-1e9, gef=0, rauch=0;
@@ -106,6 +110,17 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
       o.sfx[k]={knoten:knoten-k0,fehler:f}; });
     { let ja=0; for(let i=0;i<20;i++) if(sfx.tick(1)) ja++; o.tick=ja; bb.run(0.2,0.05); }
     { const h=tonGen({f:500,f2:900,am:15,rausch:0.3,vib:{hz:5,cent:20},lp:2000,dur:0.5,vol:0.02}); o.tonGen=!!(h&&h.f&&h.stop); }
+    /* Aufstiegsklaenge (STEIG_TON, spaeter STEIG_KLANG der Engine) */
+    o.steig={};
+    const STN=F.STEIG_TON||{}, APp=AudioParam.prototype, usv=APp.setValueAtTime; let werte=[];
+    APp.setValueAtTime=function(v,t){ werte.push(v); return usv.apply(this,arguments); };
+    Object.keys(STN).forEach(k=>{ [{fuse:1.2,ton:3,par:{}},{fuse:1.5,ton:'fallend',par:{gleit:true}},{fuse:1.1,par:null}].forEach((rr,j)=>{
+      const k0=knoten; let f=null; werte=[];
+      try{ const h=STN[k](rr,1); if(h&&h.stop) h.stop(); bb.run(Math.max(0.3,rr.fuse*1.3),0.1); }catch(e){ f=e.message; }
+      const w=o.steig[k]||(o.steig[k]={knoten:1e9,fehler:null});
+      w.knoten=Math.min(w.knoten,knoten-k0); w.fehler=w.fehler||f;
+      if(k==='dreiklang'&&j===0) w.toene=werte.filter(x=>x>1000&&x<5000).map(x=>Math.round(x)); }); });
+    APp.setValueAtTime=usv;
     Ap.createOscillator=uo; Ap.createBufferSource=ub;
     PSL.forEach((ps,k)=>{ ps.emit=urEmit[k]; });
     return o; });
@@ -135,12 +150,18 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   pruef('RAUCH',r.rauch<=120&&r.wolkenTeile<=160&&r.rauchDanach===0,'Rauchballen '+r.rauch+', Teile '+r.wolkenTeile+', danach '+r.rauchDanach);
   pruef('REST',r.rest.n<=r.rest.max&&r.rest.count<=r.rest.max&&r.rest.n>=r.rest.max-1&&r.rest.mitte>0&&r.rest.danach===0,'Bodenrest: '+JSON.stringify(r.rest));
   pruef('LICHT',r.licht.vergeben<=r.licht.frei&&r.licht.vergeben>=Math.min(1,r.licht.frei)&&r.licht.flecken===6-r.licht.vergeben,'Lichter: '+JSON.stringify(r.licht));
+  pruef('LICHT',r.licht.weite<=30&&r.licht.danach===95,'Reichweite Dauerlicht '+r.licht.weite+' m, danach '+r.licht.danach+' m (Blitz 95)');
   const NEU_TH=['pfau','sonne','pastell','spektrum','hexe','aurora','buntglas','meteor','laser','tricolore','stadt'];
   for(const t of NEU_TH) pruef('THEMEN',r.themen.some(x=>x[0]===t&&x[1]>=2),'Thema fehlt: '+t);
   for(const t of r.themen){ pruef('THEMEN',t[2],'ungueltige Farbe in '+t[0]); pruef('THEMEN',t[3],'doppeltes Paar in '+t[0]); }
   for(const k of Object.keys(r.sfx)){ const s=r.sfx[k]; pruef('SFX',!s.fehler&&s.knoten>0,k+': '+(s.fehler||'kein Klang')); }
   pruef('SFX',r.tick===8,'tick gleichzeitig: '+r.tick);
   pruef('SFX',r.tonGen,'tonGen ohne Griff');
+  const SOLL_STEIG=['pfeif','tonleiter','dreiklang','pfeil','glasklang','ratter','drachenschweif','silberdrache','farbspur','brokat','rieselschweif','titanspur','ticktack','stotter','zweistufe','blasen','perlenschnur'];
+  for(const k of SOLL_STEIG){ const s=r.steig[k]; pruef('STEIGTON',s&&!s.fehler&&s.knoten>0,k+': '+(s?(s.fehler||'kein Klang'):'fehlt')); }
+  /* Dreiklang auf 3 Halbtoene ueber 1,6 kHz: Grundton, grosse Terz, Quinte */
+  { const g=1600*Math.pow(2,3/12), t=(r.steig.dreiklang&&r.steig.dreiklang.toene)||[], da=h=>t.some(x=>Math.abs(x-g*Math.pow(2,h/12))<2);
+    pruef('STEIGTON',da(0)&&da(4)&&da(7)&&!da(3)&&!da(5),'Dreiklang-Toene: '+t.join(',')); }
   console.log('MANGEL:',mangel.length?mangel.join(' | '):'keine');
   console.log('ERRORS:',errs.length||mangel.length?errs.concat(mangel).join(' | '):'keine');
   await b.close();

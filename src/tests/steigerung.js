@@ -25,7 +25,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   const mangel=[];
   const pruef=(n,ok,was)=>{ if(!ok) mangel.push(n+': '+was); };
   const r=await p.evaluate(()=>{ const bb=window.__bb, out={};
-    const messe=t=>{ const log=[]; bb.fwLog(log); const pos={x:0,y:0.4,z:-20};
+    const messe=t=>{ const log=[]; log.brueche=[]; bb.fwLog(log); const pos={x:0,y:0.4,z:-20};
       bb.igniteType(t,pos); const dauer=(bb.SHOWS[t]?bb.showLength(t):20)+10;
       for(let s=0;s<dauer;s+=1) bb.run(1,0.1);
       bb.fwLog(null);
@@ -53,7 +53,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
         return {sz:+m(x.map(e=>e.sz)).toFixed(3),h:+m(x.map(e=>e.hoehe)).toFixed(2),hell:+m(x.map(e=>e.hell||1)).toFixed(3)}; };
       const steig={an:drittel(0,1/3),ende:drittel(2/3,1)};
       return {steig,unpass:[...new Set(unpass)],maxSz:+Math.max(0,...alle.map(e=>e.groesste||e.sz)).toFixed(3),maxHoehe:+Math.max(0,...alle.map(e=>e.hoehe)).toFixed(2),
-        brueche:Math.max(0,...alle.map(e=>e.brueche||1)),fremd,n:sch.length,hoehe:+m(hoehen).toFixed(2),sz:+m(sz).toFixed(3),dichte,farben:farben.size,
+        brueche:Math.max(0,...alle.map(e=>e.brueche||1)),echt:log.brueche.length,fremd,n:sch.length,hoehe:+m(hoehen).toFixed(2),sz:+m(sz).toFixed(3),dichte,farben:farben.size,
         dauer:sch.length?+(sch[sch.length-1].t-sch[0].t).toFixed(1):0,eff:[...new Set(log.map(e=>e.eff).filter(Boolean))]}; };
     for(const t of ['batterie16','knatter','batterie49','faecher','batterie100','zfaecher','kometen','donnerwand','profi','finale','sortiment',
       'raketenklein','raketen','pfeifraketen','raketengold','titanraketen','jumbogold','jumboleiter','furzrakete','roemisch','sternenbrunnen','vulkan','goldgeysir','feuersaeule','feuerbrunnen',
@@ -122,8 +122,14 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
      groesser und hoeher als jeder Batterieschuss bis zu ihrem Level */
   const KG=['kugel75','kugel100','kugel150','kugel200','kugel300'];
   for(let i=0;i<KG.length;i++){ const k=r[KG[i]];
-    console.log(KG[i].padEnd(10),'lvl',r.lvl[KG[i]],'groesste',k.maxSz,'hoehe',k.maxHoehe,'brueche',k.brueche);
-    if(i){ const v=r[KG[i-1]]; pruef('KUGELLEITER',k.maxSz>v.maxSz&&k.maxHoehe>v.maxHoehe&&k.brueche>v.brueche,`${KG[i]} nicht ueber ${KG[i-1]}: ${JSON.stringify([k.maxSz,k.maxHoehe,k.brueche])} / ${JSON.stringify([v.maxSz,v.maxHoehe,v.brueche])}`); }
+    console.log(KG[i].padEnd(10),'lvl',r.lvl[KG[i]],'groesste',k.maxSz,'hoehe',k.maxHoehe,'brueche',k.echt);
+    /* Brueche = wirklich aufgegangene Brueche (FW_LOG.brueche), nicht die
+       Zahl der Stufen-Eintraege: ein Kranz aus 10 Blueten ist ein Eintrag.
+       26.09., Tom: Anomalie - laut Katalog haben 75 und 100 mm beide
+       Hauptbild + 2 Stufen (das Herz schlaegt zweimal, die Dahlie tropft
+       und faengt Feuer); ab 150 mm steigt die Zahl strikt (Reif, Raeder,
+       Risse). Groesse und Hoehe steigen weiter bei jeder Stufe strikt. */
+    if(i){ const v=r[KG[i-1]]; pruef('KUGELLEITER',k.maxSz>v.maxSz&&k.maxHoehe>v.maxHoehe&&(i<2?k.echt>=v.echt:k.echt>v.echt),`${KG[i]} nicht ueber ${KG[i-1]}: ${JSON.stringify([k.maxSz,k.maxHoehe,k.echt])} / ${JSON.stringify([v.maxSz,v.maxHoehe,v.echt])}`); }
     for(const t of L){ if(r.lvl[t]>r.lvl[KG[i]]+1) continue;
       pruef('KUGEL',k.maxSz>r[t].maxSz&&k.maxHoehe>r[t].maxHoehe,`${KG[i]} (Lvl ${r.lvl[KG[i]]}) nicht ueber ${t} (Lvl ${r.lvl[t]}): Groesse ${k.maxSz}/${r[t].maxSz}, Hoehe ${k.maxHoehe}/${r[t].maxHoehe}`); } }
   /* Raketen haben eigene Bruchbilder, die es in Batterien nicht gibt */

@@ -468,7 +468,7 @@ klEmit('handfackel',(e,dt,o,t)=>{
   if(t>=S.at){ const k=Math.floor((t-S.at)/0.75), f=(t-S.at)%0.75; if(k<S.n){ if(f<0.15) s*=0.06; } else s*=Math.max(0,1-(t-S.at-S.n*0.75)/0.4); }
   if(t>T) s=0;
   const st=s*fl;
-  if(s>0.01){ klFlamme(e,p,dt,A,{h:0.3,r:0.035,st:Math.min(1.3,st),rate:260,kern:[1.5,1.4,1.35],hof:0.8,hofGross:0.35,strahl:true});
+  if(s>0.01){ klFlamme(e,p,dt,A,{h:0.3,r:0.035,st:Math.min(1.3,st),rate:400,kern:[1.5,1.4,1.35],hof:0.8,hofGross:0.35,strahl:true});
     licht('fa'+e.prod,{x:p.x,y:p.y+0.15,z:p.z},A,(e.hell||3.2)*st,{weite:25});
     /* Rauchfahne: vorne rot angestrahlt, weiter weg grau */
     e.rb=(e.rb||0)+dt*3*s;

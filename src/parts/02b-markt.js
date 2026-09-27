@@ -226,7 +226,7 @@ const LIZENZEN=[
    desc:'Die Furzrakete »Donnerbalken«. Verkauft sich von allein, weil jeder sie einmal gesehen haben will.',
    items:['furzrakete']},
   {id:'grossfeuer',lvl:20,cost:21000,name:'Großkaliber',
-   desc:'Die Titan-Ratterraketen mit ihrem riesigen Silberschlag, die Jumbo-Rakete »Juwelenpalme«, die 200-mm-Kugelbombe Götterzorn mit zehn Brüchen auf einmal, das Trommelfeuer mit zwanzig Salven aus sechs Rohren, die 15-m-Feuersäule und ab Level 23 der Himmelsstürmer, eine 30-m-Monsterfontäne in fünf Farben.',
+   desc:'Die Titan-Ratterraketen mit ihrem riesigen Silberschlag, die Jumbo-Rakete »Juwelenpalme«, die 200-mm-Kugelbombe Uhrwerk mit zwei gegenläufigen Blütenrädern, das Trommelfeuer mit zwanzig Salven aus sechs Rohren, die 15-m-Feuersäule und ab Level 23 der Himmelsstürmer, eine 30-m-Monsterfontäne in fünf Farben.',
    items:['titanraketen','jumbogold','kugel200','donnerwand','feuersaeule','fontaene30']},
   {id:'profi',lvl:22,cost:26000,name:'Profiklasse',
    desc:'Der Götterfunken-Verbund: zweihundert Schuss, und der halbe Ort steht auf der Straße. Dazu die Jumbo-Rakete »Polarstern«: eine Leiter aus Lichtperlen, oben kreisen die Sterne um den Polarstern. Ab Level 23 die 300-mm-Kugel Himmelsbrecher, ab Level 24 der Weltuntergang mit dreihundert Schuss und ab Level 26 der Regenbogen-Titan: 50 m Fontäne im vollen Regenbogen.',

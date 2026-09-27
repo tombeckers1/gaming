@@ -75,18 +75,11 @@ Object.keys(NEU_SHOWS).forEach(t=>{ const s=NEU_SHOWS[t];
 
 /* Raketen: die Eintraege stehen seit dem 26.09. in 14i-db-raketen.js */
 
-/* Kugelbomben-Sorten: Kaliber wie die bekannten, aber ein eigenes
-   Hauptbild und eigene Farben - ohne die Nachbrueche der Stammkugel */
-const NEU_KUGEL={
-  palmenkugel75   :{kal:1,eff:'palme',th:'wald'},
-  farbenmeer75    :{kal:1,eff:'wechsel',th:'tropen'},
-  kristallkugel100:{kal:2,eff:'doppelring',th:'eis',nach:[{t:0.6,eff:'ringring',sz:0.5,streu:0}]},
-  goldweide100    :{kal:2,eff:'weide',th:'gold'},
-  sternenstaub150 :{kal:3,eff:'strobe',th:'silber',nach:[{t:0.5,eff:'schneeflocke',sz:0.45,streu:1}]},
-  sternkugel150   :{kal:3,eff:'crossette',th:'rotweiss',nach:[{t:0.9,eff:'crossette',sz:0.4,streu:4}]},
-  goldkrone200    :{kal:4,eff:'kamuro',th:'gold',nach:[{t:0.08,eff:'brokat',sz:0.5,streu:0,leise:true}]},
-  kaiserkrone     :{kal:5,eff:'goldvorhang',th:'koenig',nach:[{t:0.06,eff:'kamuro',sz:0.7,streu:0,leise:true},{t:1.1,eff:'glitzerweide',sz:0.5,streu:3}]}
-};
+/* Kugelbomben-Sorten: seit dem 26.09. (Tom: "jedes Produkt eine
+   Anomalie") in KUGEL (14j-db-kugeln.js) - je Sorte eigenes Hauptbild,
+   eigener Aufstieg, eigene Nachbrueche. igniteType fragt KUGEL zuerst;
+   die Tabelle hier bleibt nur fuer alte Aufrufe leer stehen. */
+const NEU_KUGEL={};
 function neuKugel(t,o){
   const k=NEU_KUGEL[t]; if(!k) return false;
   const [A,B]=themaPaar(k.th,0), gr=[2.1,2.7,3.3,4.0,4.8][k.kal-1];

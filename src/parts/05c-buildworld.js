@@ -28,8 +28,8 @@ function buildWorld(){
      Weltkoordinaten. */
   const asph=asphaltTex(); asph.repeat.set(50,50);
   { const am=lichtMat(new THREE.MeshStandardMaterial({map:asph,normalMap:_asphN,roughness:0.9}));
-    if(am.normalMap) am.normalScale.set(0.7,0.7);
-    const o=flat(200,200,am,0,0,0); o.updateMatrix(); lichtUV2(o.geometry,o.matrix); }
+    if(am.normalMap) am.normalScale=new THREE.Vector2(0.7,0.7);
+    lichtUV2(flat(200,200,am,0,0,0).geometry,tm(0,0,0,-Math.PI/2,0,0)); }
   /* Darunter eine grosse Flaeche bis zum Horizont. Sie traegt eine
      grobe Struktur, damit sie in den Luecken zwischen den Haeusern
      nicht als gleichmaessige graue Scheibe auffaellt. */

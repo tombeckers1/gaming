@@ -15325,7 +15325,7 @@ function shot(o,opt){
   /* stotter: drei Aussetzer zu je 0,3 s, die Rakete sackt jedes Mal 0,9 m ab */
   if(sg==='stotter') fuse+=0.9;
   if(sg==='knister') later(0.25,()=>sfx.crackle(distVol(o)*0.5));
-  if(FW_LOG) FW_LOG.push({t:FW_UHR,art:opt.kugel?'kugel':'schuss',ang:+ang.toFixed(3),dir:+dir.toFixed(3),x:+start.x.toFixed(2),z:+start.z.toFixed(2),steig:sg,kal:opt.kugel||0,pw:opt.pw||0,sz:opt.sz||1,eff:opt.eff||'?',A:sc[0],B:sc[1],
+  if(FW_LOG) FW_LOG.push({t:FW_UHR,art:opt.kugel?'kugel':'schuss',tief:!!opt.tief,ang:+ang.toFixed(3),dir:+dir.toFixed(3),x:+start.x.toFixed(2),z:+start.z.toFixed(2),steig:sg,kal:opt.kugel||0,pw:opt.pw||0,sz:opt.sz||1,eff:opt.eff||'?',A:sc[0],B:sc[1],
     stufenEff:(opt.stufen||[]).map(x=>x.eff),
     hoehe:+(hZiel-(sg==='stotter'?2.7:0)).toFixed(2),brueche:1+(opt.stufen?opt.stufen.length:0),fuse:+fuse.toFixed(3),tag:opt.tag||FW_TAG,ton:opt.ton,
     groesste:Math.max(opt.sz||1,...(opt.stufen||[]).filter(x=>x.eff!=='salut').map(x=>x.sz||0)),hell:opt.hell||1});
@@ -17436,7 +17436,7 @@ function feuertopfSorte(o,sorte,A,B,s,opt){
 function tiefbruch(o,eff,A,B,s,opt){
   opt=opt||{}; s=s||0.6;
   const h=clamp(4+s*3,4,8), f=0.5, pw=(h+3*f*f)/(f*STEIG)-21;
-  shot(o,{eff,A,B,sz:s,pw,fest:true,fuse:f,ang:opt.ang!==undefined?opt.ang:rand(-0.05,0.05),dir:opt.dir,steig:'keiner',hell:opt.hell,bruchOpt:{nachglitzer:false,kern:false}});
+  shot(o,{eff,A,B,sz:s,pw,fest:true,fuse:f,ang:opt.ang!==undefined?opt.ang:rand(-0.05,0.05),dir:opt.dir,steig:'keiner',hell:opt.hell,tief:true,bruchOpt:{nachglitzer:false,kern:false}});
   return h;
 }
 
@@ -18162,7 +18162,7 @@ const DB={
     {n:12,gap:0.25,gapEnde:0.12,muster:'mitte',ang:0.4,eff:'falterlicht',kal:'mittel',steig:'glut',pause:3.5}
   ]),
   /* Funkenflug, L13: Senko-Hanabi am Boden, verzweigte Goldsterne oben */
-  batterie16:()=>show({basis:{pw:-5,sz:0.78,th:'gold'}, rampe:{sz:[0.8,1.3],pw:[-2,2],hell:[0.85,1.3],kurve:'linear'}}, [
+  batterie16:()=>show({basis:{pw:-5,sz:0.78,th:'gold'}, rampe:{sz:[0.8,1.3],pw:[-3,2.5],hell:[0.85,1.3],kurve:'linear'}}, [
     {n:0,nurBoden:true,boden:{k:'flitterbrunnen',gt:6},pause:3.5},
     {n:4,gap:1.4,muster:'aussen',ang:0.3,eff:'flitterstern',kal:'klein',steig:'gold',pause:0.8},
     {n:6,gap:0.3,muster:'z',seg:2,ang:0.3,eff:['flitterstern','chrys'],steig:'gold',pause:1.0},
@@ -18188,7 +18188,7 @@ const DB={
      Orte der Teile in Metern (x) wie die des Lauffeuers - mit rohrFolge
      (relativ zur 0,4-m-Schachtel) stuende das Roemische Licht 8 cm neben
      der Mitte, das Lauffeuer endete aber 10 cm daneben. */
-  sortiment:()=>show({basis:{pw:-5.2,sz:0.76,th:'bunt'}, rampe:{sz:[0.85,1.25],pw:[-1,1.5],hell:[0.9,1.25],kurve:'welle'}}, [
+  sortiment:()=>show({basis:{pw:-5.2,sz:0.76,th:'bunt'}, rampe:{sz:[0.8,1.3],pw:[-3.5,3],hell:[0.9,1.25],kurve:'welle'}}, [
     {n:0,nurBoden:true,boden:[{k:'volcano',gt:6,x:-0.4,A:'gold',B:'rot'},{k:'lauffeuer',t:5.2,gt:1.0,x:-0.4,bis:-0.1}],pause:6.2},
     {n:4,perle:true,gap:0.8,x:-0.1,farbFolge:['rot','gruen','zitrone','blau'],boden:{k:'lauffeuer',t:3.2,gt:1.0,x:-0.1,bis:0.25},pause:1.2},
     {n:5,gap:0.5,muster:'mitte',ang:0.3,x:0.25,eff:['kugel','wechsel','chrys','kugel','wechsel'],steig:'gold',boden:{k:'lauffeuer',t:2.5,gt:1.0,x:0.25,bis:0.45},pause:1.2},
@@ -18206,12 +18206,12 @@ const DB={
     {n:4,perle:true,perleEff:'wandelperle',gap:0,muster:'schlag',ang:0.3,rohrFolge:[-0.6,-0.2,0.2,0.6],pause:3.0}
   ]),
   /* Knattersturm, L14: Crackling auf zwei Etagen zugleich */
-  knatter:()=>show({basis:{pw:-4,sz:0.84,th:'eis'}, rampe:{sz:[0.85,1.3],pw:[-1,2],hell:[0.85,1.3],kurve:'spaet'}}, [
+  knatter:()=>show({basis:{pw:-4,sz:0.90,th:'eis'}, rampe:{sz:[0.85,1.3],pw:[-1.5,3],hell:[0.85,1.3],kurve:'spaet'}}, [
     {n:4,gap:1.5,muster:'gerade',eff:'drachenei',kal:'klein',steig:'knister',pause:0.6},
     {n:6,gap:0.8,muster:'paar',ang:0.3,rohre:'breit',mineEff:'knister',mineSz:0.7,nurMine:true},
     {n:6,mit:true,gap:0.4,muster:'mitte',ang:0.3,eff:'tausend',steig:'knister',pause:1.0},
     {n:8,gap:0.15,muster:'wischer',seg:2,ang:0.35,eff:'knister',kal:'klein',steig:'silber',boden:{k:'knisterbrunnen',gt:4,gh:0.8,A:'silber',B:'tuerkis'},pause:1.2},
-    {n:6,gap:0,muster:'schlag',ang:0.4,eff:'tausend',kal:'mittel',mineEff:'knister',mineSz:0.8,steig:'knister',pause:3.5}
+    {n:6,gap:0,muster:'schlag',ang:0.4,eff:'tausend',kal:'mittel',pw:2,mineEff:'knister',mineSz:0.8,steig:'knister',pause:3.5}
   ]),
   /* Silberschwarm, L14: Fischschwaerme, der einzige Schwenk der Klasse */
   knisterfaecher:()=>show({basis:{pw:-4,sz:0.85,th:'blitz'}, rampe:{sz:[0.85,1.3],pw:[-1,2],hell:[0.85,1.3],kurve:'frueh'}}, [
@@ -18221,14 +18221,15 @@ const DB={
     {n:8,gap:0.35,muster:'x',ang:0.4,rohre:'breit',eff:'fischschwarm',kal:'mittel',steig:'silber',pause:3.5}
   ]),
   /* Feuersturm, L15: Sprint auf drei Ebenen, 3 Schuss je Sekunde */
-  batterie49:()=>show({basis:{pw:-3,sz:0.90,th:'glut'}, rampe:{sz:[0.8,1.35],pw:[-2,2.5],hell:[0.85,1.35],kurve:'frueh'}}, [
+  batterie49:()=>show({basis:{pw:-2.5,sz:0.90,th:'glut'}, rampe:{sz:[0.75,1.25],pw:[-2,2],hell:[0.85,1.35],kurve:'linear'}}, [
     {n:0,nurBoden:true,boden:[{k:'volcano',gt:15,x:-0.45,A:'orange',B:'gold'},{k:'volcano',gt:15,x:0.45,A:'rot',B:'gold'}],pause:0.4},
     {n:6,gap:0.7,muster:'gerade',eff:'lampare',kal:'klein',steig:'glut',pause:0.5},
     {n:10,gap:0.45,muster:'v',ang:0.3,eff:'chrys',steig:'glut',pause:0.5},
     {n:8,mit:true,gap:0.28,muster:'gerade',rohre:'breit',mineEff:'lampare',mineSz:0.6,nurMine:true},
     {n:12,gap:0.2,muster:'z',seg:3,ang:0.4,eff:['palme','lampare'],steig:'gold',pause:0.8},
     {n:6,gap:0.25,muster:'w',ang:0.35,eff:'chrys',kal:'mittel',steig:'knister',pause:0.6},
-    {n:7,gap:0,muster:'schlag',ang:0.45,eff:'lampare',kal:'gross',steig:'glut',mineEff:'chrys',mineSz:0.7,pause:3.0}
+    /* 27.09.: Schlussfaecher hoeher - schraege Rohre steigen sonst tiefer als der Anfang (steigerung.js) */
+    {n:7,gap:0,muster:'schlag',ang:0.45,eff:'lampare',kal:'gross',pw:2.5,steig:'glut',mineEff:'chrys',mineSz:0.7,pause:3.0}
   ]),
   /* Tausendblueten, L15: Senrin - Stille, dann ein Beet aus Blueten */
   sternenmeer42:()=>show({basis:{pw:-3,sz:0.92,th:'tropen'}, rampe:{sz:[0.8,1.35],pw:[-2,3],hell:[0.8,1.35],kurve:'linear'}}, [
@@ -18883,7 +18884,7 @@ SHOWS.regenbogenfaecher=()=>show({basis:{pw:0.60,sz:1.050,th:'spektrum'},rampe:{
 SIGNATUR.regenbogenfaecher={muster:'bogen',text:'sieben einfarbige Bögen, Rot außen, Violett innen'};
 
 /* Level 17: Blitzgewitter */
-SHOWS.zfaecher=()=>show({basis:{pw:0.65,sz:1.055,th:'blitz'},rampe:{sz:[0.90,1.30],pw:[-1,3],hell:[0.70,1.40],kurve:'spaet'}},[
+SHOWS.zfaecher=()=>show({basis:{pw:0.65,sz:1.055,th:'blitz'},rampe:{sz:[0.90,1.30],pw:[-2.5,2.5],hell:[0.70,1.40],kurve:'spaet'}},[
   /* Wetterleuchten: ferne, schwache Schlaege hoch oben */
   {n:6,gap:2.0,muster:'zufall',ang:0.35,pw:5,kal:'klein',eff:'salut',steig:'keiner',pause:0.5},
   /* erste Blitze, von aussen nach innen */
@@ -18909,7 +18910,7 @@ SHOWS.batterie100=()=>show({basis:{pw:0.70,sz:1.060,th:'himmel'},rampe:{sz:[0.90
   {n:0,ground:'fountain',gt:2.5,gh:0.6,gA:'violett',gB:'gold',pause:2.0},
   {n:12,gap:0.9,muster:'treppe',hoehe:'steigend',hSpanne:16,pw:-3,kal:'klein',eff:'pistill',steig:'blink',farbe:0,boden:{k:'blinker',gt:11,A:'weiss'},pause:0.2},
   /* oben: kurzer Stillstand, ein grosser Kamuro als Aussicht */
-  {n:1,muster:'gerade',eff:'kamuro',kal:'gross',pw:3,pause:1.8},
+  {n:1,muster:'gerade',eff:'kamuro',kal:'gross',pw:2,pause:1.8},
   /* erster Drop: fallend, immer schneller, kreischende Aufstiege */
   {n:16,gap:0.35,gapEnde:0.07,muster:'v',ang:0.15,hoehe:'fallend',hSpanne:18,eff:['chrys','spinne'],steig:'pfeif',pause:1.2},
   /* Kamelbuckel: Hoehen als Welle, Fontaene am Boden */
@@ -18920,9 +18921,9 @@ SHOWS.batterie100=()=>show({basis:{pw:0.70,sz:1.060,th:'himmel'},rampe:{sz:[0.90
   /* Tunnel: dunkel, tief, rumpelndes Knistern */
   {n:10,gap:0.25,muster:'zufall',ang:0.25,kal:'mini',pw:-3,eff:'tausend',pause:0.8},
   /* Schlussfahrt: Kreuzfeuer mit wechselnden Hoehen */
-  {n:24,gap:0.12,muster:'x',ang:0.45,hoehe:'wechsel',hSpanne:6,pw:5,eff:['kamuro','geist'],kal:'gross'},
+  {n:24,gap:0.12,muster:'x',ang:0.45,hoehe:'wechsel',hSpanne:3,pw:2.5,eff:['kamuro','geist'],kal:'gross'} /* 27.09.: pw 5->4 - die Kugelbomben sind die Koenigsklasse und steigen hoeher als die Spitze jedes Verbunds bis Level 17 (steigerung.js KUGEL) */,
   /* FINALE Schlussbremse: fuenf tiefe Strobe-Blitze auf Schlag - das Achterbahn-Foto */
-  {n:5,gap:0,muster:'schlag',ang:0.50,eff:'strobe',kal:'mittel',pw:4,pause:3.5}
+  {n:5,gap:0,muster:'schlag',ang:0.50,eff:'strobe',kal:'mittel',pw:3,pause:3.5}
 ]);
 SIGNATUR.batterie100={idee:'hoehenkurve',text:'Aufzug, Drop, Buckel, Bremse'};
 
@@ -18990,7 +18991,7 @@ SIGNATUR.goldenerregen={idee:'vorhang',text:'Vorhang fällt, öffnet sich, schli
 /* Level 19: Schimmelreiter. Galopp und Finale bekommen Silber fest
    (A silber, B blau/himmel als Spitzen) - aus dem Thema kaeme dort
    Tuerkis/Gold, und die Signatur ist der SILBERNE Pferdeschweif */
-SHOWS.kometen=()=>show({basis:{pw:1.65,sz:1.135,th:'nacht'},rampe:{sz:[0.90,1.25],pw:[-1,2],hell:[0.85,1.30],kurve:'frueh'}},[
+SHOWS.kometen=()=>show({basis:{pw:1.65,sz:1.135,th:'nacht'},rampe:{sz:[0.90,1.25],pw:[0,3],hell:[0.85,1.30],kurve:'frueh'}},[
   /* 27.09.: Stallfeuer - kurze Silberfontaene vorweg (Auftakt), Farben aus dem
      Thema eis (weiss/himmel) statt silber/blau (steigerung.js: kein Zufallsbunt),
      Maehne und Finale hoeher (Steigerung im Ablauf, Hoehenleiter) */
@@ -19030,7 +19031,7 @@ SHOWS.hochzeitsfaecher=()=>show({basis:{pw:2.00,sz:1.160,th:'herz'},rampe:{sz:[0
 SIGNATUR.hochzeitsfaecher={muster:'bild',text:'Herz aus 14 Blüten am Himmel'};
 
 /* Level 20: Trommelfeuer */
-SHOWS.donnerwand=()=>show({basis:{pw:2.05,sz:1.165,th:'glut'},rampe:{sz:[0.95,1.25],pw:[0,2],hell:[0.90,1.30],kurve:'linear'}},[
+SHOWS.donnerwand=()=>show({basis:{pw:2.05,sz:1.165,th:'glut'},rampe:{sz:[0.95,1.25],pw:[1.5,3.5],hell:[0.90,1.30],kurve:'linear'}},[
   /* 27.09.: Trommler zaehlt ein - kurze Flammenfontaene vorweg (Auftakt, steigerung.js) */
   {n:0,ground:'fountain',gt:2.5,gh:0.6,gA:'rot',gB:'gold',pause:2.0},
   /* Viertel: 4 Salven, Flammenfontaene */
@@ -19253,7 +19254,7 @@ SHOWS.geysirfeld=()=>show({basis:{pw:3.60,sz:1.290,th:'eis'},rampe:{sz:[0.90,1.2
 SIGNATUR.geysirfeld={idee:'geysir',text:'Ausbruch am Boden, darüber eine Säule aus fünf Schüssen'};
 
 /* Level 24: Weltuntergang */
-SHOWS.finale=()=>show({basis:{pw:4.00,sz:1.320,th:'meteor'},rampe:{sz:[0.85,1.35],pw:[-2,4],hell:[0.60,1.45],kurve:'spaet'}},[
+SHOWS.finale=()=>show({basis:{pw:4.00,sz:1.320,th:'meteor'},rampe:{sz:[0.85,1.35],pw:[0,4],hell:[0.60,1.45],kurve:'spaet'}},[
   /* Akt 1 Vorzeichen: dunkle Blueten, die erst glimmen und ploetzlich aufgehen; roter Horizont bis Akt 6 */
   /* 27.09.: gap 1,4 statt 2,4 und pw 5 statt 8 - vorher 30 s fast leerer Himmel
      zum Auftakt des groessten Produkts, und die Blueten lagen am oberen Bildrand */

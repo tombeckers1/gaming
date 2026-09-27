@@ -363,7 +363,8 @@ function klFlamme(z,p,dt,A,o){
   z.fl=(z.fl||0)+dt*(o.rate||110)*q*Math.min(1,st*0.8+0.2);
   const alt=SCHWEIF; SCHWEIF=0;
   for(;z.fl>=1;z.fl--){ const a=Math.random()*6.283, w=Math.sqrt(Math.random())*r, kern=Math.random()<0.16;
-    const l=rand(0.16,0.3)*(kern?0.7:1), vy=h/l*rand(0.55,0.8), c=kern?K:A, k=(kern?0.85:0.72)*st;
+    /* strahl: Starklicht-Fackel - kurze, schnelle Flammenzungen statt ruhiger Flamme */
+    const l=(o.strahl?rand(0.08,0.14):rand(0.16,0.3))*(kern?0.7:1), vy=h/l*(o.strahl?rand(0.9,1.3):rand(0.55,0.8)), c=kern?K:A, k=(kern?0.85:0.72)*st;
     (kern?psSmall:psMid).emit(p.x+Math.cos(a)*w,p.y+rand(0,0.02),p.z+Math.sin(a)*w,Math.cos(a)*w*1.5,vy,Math.sin(a)*w*1.5,c[0]*k,c[1]*k,c[2]*k,l,-0.5,0); }
   const hf=(o.hof||0.3)*st; psBig.emit(p.x,p.y+h*0.4,p.z,0,0,0,A[0]*hf,A[1]*hf,A[2]*hf,0.05,0,0);
   /* Starklicht: weiter Lichthof um die Flamme */
@@ -467,7 +468,7 @@ klEmit('handfackel',(e,dt,o,t)=>{
   if(t>=S.at){ const k=Math.floor((t-S.at)/0.75), f=(t-S.at)%0.75; if(k<S.n){ if(f<0.15) s*=0.06; } else s*=Math.max(0,1-(t-S.at-S.n*0.75)/0.4); }
   if(t>T) s=0;
   const st=s*fl;
-  if(s>0.01){ klFlamme(e,p,dt,A,{h:0.3,r:0.035,st:Math.min(1.3,st),rate:170,kern:[1.5,1.4,1.35],hof:0.8,hofGross:0.35});
+  if(s>0.01){ klFlamme(e,p,dt,A,{h:0.3,r:0.035,st:Math.min(1.3,st),rate:260,kern:[1.5,1.4,1.35],hof:0.8,hofGross:0.35,strahl:true});
     licht('fa'+e.prod,{x:p.x,y:p.y+0.15,z:p.z},A,(e.hell||3.2)*st,{weite:25});
     /* Rauchfahne: vorne rot angestrahlt, weiter weg grau */
     e.rb=(e.rb||0)+dt*3*s;
@@ -499,8 +500,7 @@ klEmit('wechselfeuer',(e,dt,o,t)=>{
     if(q.z.rb>=1){ q.z.rb--; const A=q.A; rauchball({x:q.p.x,y:q.p.y+0.45,z:q.p.z},{r:0.9,n:1,dauer:6,quellen:3,steigen:0.35,leuchten:true,a:0.35,wind:[0.1,0.05],
       farbe:tt=>{ const k=0.22*s*Math.max(0.2,1-tt/6); return [A[0]*k,A[1]*k,A[2]*k]; }}); } });
   /* der Klang pendelt mit: leises Fauchen links/rechts */
-  e.fz=(e.fz||0)-dt; if(e.fz<=0&&t<T){ e.fz=2.2; sfx.fauchen(distVol(o)*0.2,2.4); }
-  if(t>=sc.at&&!e.gleich){ e.gleich=1; schall(o,v=>sfx.zischen(v*0.6,1.2)); }
+  e.fz=(e.fz||0)-dt; if(e.fz<=0&&t<T){ e.fz=2.2; sfx.regen(distVol(o)*0.35,2.6); }
 });
 
 /* Blitztuerme: vier Blinktoepfe im Quadrat, jeder mit eigener Frequenz
@@ -675,13 +675,13 @@ klEmit('wurferbse',(e,dt,o,t)=>{
     const p0={x:o.x,y:o.y+0.05,z:KL_TI.z+KL_TI.hz+0.02};
     for(let i=0;i<(e.n||7);i++){ const a=Math.PI/2+rand(-1,1)*(e.streu||0.5), D=rand(W[0],W[1]), Hh=rand(BH[0],BH[1]);
       const tx=p0.x+Math.cos(a)*D, tz=p0.z+Math.sin(a)*D, ty=klGrund(tx,tz), vy=Math.sqrt(2*9.8*Hh), T=vy/9.8+Math.sqrt(2*(p0.y+Hh-ty)/9.8);
-      e.w.push({start:ts,T,vx:(tx-p0.x)/T,vz:(tz-p0.z)/T,vy,p0,ty,nach:NZ.nr===i+1?NZ.verz:0}); ts+=TK[i%TK.length]; }
+      e.w.push({start:ts,T,vx:(tx-p0.x)/T,vz:(tz-p0.z)/T,vy,p0,ty,nach:NZ.nr===i+1?NZ.verz:0,farbe:i%3===2?(e.B||FW.rose):(e.A||FW.weiss)}); ts+=TK[i%TK.length]; }
     e.t=ts+2.5+(NZ.verz||0); }
   const alt=SCHWEIF; SCHWEIF=0;
   e.w.forEach(w=>{ const lt=t-w.start; if(lt<0||w.fertig) return;
     if(!w.los){ w.los=1; }
     if(lt<w.T){ const x=w.p0.x+w.vx*lt, z=w.p0.z+w.vz*lt, y=w.p0.y+w.vy*lt-4.9*lt*lt;
-      psSmall.emit(x,y,z,0,0,0,0.75,0.72,0.7,0.05,0,0); return; }
+      const c=w.farbe; psSmall.emit(x,y,z,0,0,0,c[0]*0.75,c[1]*0.75,c[2]*0.75,0.05,0,0); return; }
     const p={x:w.p0.x+w.vx*w.T,y:w.ty,z:w.p0.z+w.vz*w.T};
     if(w.nach){ if(!w.still){ w.still=1; psSmall.emit(p.x,p.y+0.01,p.z,0,0,0,0.5,0.5,0.5,w.nach,0,0); }
       if(lt<w.T+w.nach) return; }

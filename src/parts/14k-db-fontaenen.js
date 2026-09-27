@@ -63,9 +63,13 @@ const FUNKE={
   titan:{g:6,emit(x,y,z,vx,vy,vz,c,tA){ SCHWEIF=0.07;
     psMid.emit(x,y,z,vx,vy,vz,c[0]*0.6+0.45,c[1]*0.6+0.47,c[2]*0.6+0.5,tA*rand(0.85,1.08),6,0); }},
   /* Glitter: fliegt gedaempft, blitzt einmal hell auf (glint) */
+  /* Probebild 27.09.: mit dim 0,32 ohne Spur war die Saeule unsichtbar und
+     oben stand nur ein matter Punktenebel. Jetzt: gedaempfte Striche (die
+     Saeule ist als dunkles Gold lesbar), der Blitz als grosser Stern in
+     psBig mit kurzem Nachglimmen - so funkelt es auch im Standbild. */
   glitter:{g:6,emit(x,y,z,vx,vy,vz,c,tA,e){ const ph=e&&e.ph||{}, an=ph.glitterAnteil===undefined?0.7:ph.glitterAnteil;
-    if(Math.random()<an) glint(psMid,x,y,z,vx,vy,vz,c,6,{t0:tA*0.55,t1:tA*1.6,dim:0.32,blitz:2.8,blitzFarbe:farbe(ph.glitterFarbe)||[1,0.95,0.75],glimm:0.12,rest:0.5});
-    else { SCHWEIF=0; psMid.emit(x,y,z,vx,vy,vz,c[0]*0.32,c[1]*0.32,c[2]*0.32,tA*rand(1.2,1.6),6,0); } }},
+    if(Math.random()<an) glint(psMid,x,y,z,vx,vy,vz,c,6,{t0:tA*0.6,t1:tA*1.7,dim:0.5,spur:0.14,psBlitz:psBig,blitz:3.4,blitzFarbe:farbe(ph.glitterFarbe)||[1,0.93,0.7],glimm:0.3,rest:0.35});
+    else { SCHWEIF=0.16; psMid.emit(x,y,z,vx,vy,vz,c[0]*0.5,c[1]*0.5,c[2]*0.5,tA*rand(1.0,1.3),6,0); } }},
   /* Kamuro: dunkelgoldene Faeden, sinken langsam (g 1,65 = 1,5 m/s), lange
      Spur; wer unten ankommt, glimmt dort 1 s */
   kamuro:{g:1.65,emit(x,y,z,vx,vy,vz,c,tA,e){ const ph=e&&e.ph||{}; SCHWEIF=(ph.fadenLaenge||1.1)/1.2;

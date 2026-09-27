@@ -1203,19 +1203,23 @@ function gussTex(){
     g.strokeStyle='#55575c'; g.lineWidth=4; g.strokeRect(264,42,240,172);
   });
 }
-/* Pfuetzenformen, 4 x 2 im Atlas: ueberlagerte weiche Flecken ergeben
-   einen unregelmaessigen, weich auslaufenden Rand (Alpha im Gruenkanal) */
+/* Pfuetzenformen, 4 x 2 im Atlas: ueberlagerte weiche Flecken, dann
+   auf eine Schwelle gezogen - Wasser hat eine klare, unregelmaessige
+   Kante. Mit dem weichen Rand wirkten sie wie ein Farbschleier. */
 function pfuetzenTex(){
   return tex(1024,512,(g,W,H)=>{ const R=saat(1231);
     g.fillStyle='#000'; g.fillRect(0,0,W,H); g.globalCompositeOperation='lighter';
     for(let k=0;k<8;k++){ const x0=(k%4)*256, y0=Math.floor(k/4)*256;
       g.save(); g.beginPath(); g.rect(x0,y0,256,256); g.clip();
-      for(let i=0;i<9;i++){ const cx=x0+64+R()*128, cy=y0+80+R()*96, r=26+R()*52;
-        g.save(); g.translate(cx,cy); g.scale(1,0.55+R()*0.4);
-        const gr=g.createRadialGradient(0,0,0,0,0,r); gr.addColorStop(0,'rgba(255,255,255,.75)'); gr.addColorStop(0.55,'rgba(255,255,255,.5)'); gr.addColorStop(1,'rgba(255,255,255,0)');
+      for(let i=0;i<11;i++){ const cx=x0+60+R()*136, cy=y0+84+R()*88, r=18+R()*46;
+        g.save(); g.translate(cx,cy); g.scale(1,0.5+R()*0.45);
+        const gr=g.createRadialGradient(0,0,0,0,0,r); gr.addColorStop(0,'rgba(255,255,255,.6)'); gr.addColorStop(1,'rgba(255,255,255,0)');
         g.fillStyle=gr; g.fillRect(-r,-r,r*2,r*2); g.restore(); }
       g.restore(); }
     g.globalCompositeOperation='source-over';
+    const d=g.getImageData(0,0,W,H), a=d.data;
+    for(let i=0;i<a.length;i+=4){ const v=clamp((a[i+1]-120)/26,0,1)*255; a[i]=a[i+1]=a[i+2]=v; }
+    g.putImageData(d,0,0);
   },false);
 }
 /* Schneerand an der Hauswand: 4 m Kachel, oben (Wand) dicht, zur
@@ -1560,12 +1564,12 @@ function buildFahrbahn(){
     for(let x=-X+3;x<X-3;x+=5+R()*11){
       if(Math.abs(x-Z)<3.5) continue;
       const gegen=R()<0.5&&(x<-26||x>22);
-      pf(x,gegen?zS-0.42-R()*0.2:zN+0.42+R()*0.2,1.2+R()*2.4,0.5+R()*0.5,R()*8|0);
-      if(R()<0.35&&frei(x+3)) pf(x+3+R()*2,R()<0.5?zN+1.35:STR.mitte+0.95,1.0+R()*1.6,0.45+R()*0.35,R()*8|0); }
+      pf(x,gegen?zS-0.4-R()*0.15:zN+0.4+R()*0.15,1.0+R()*1.8,0.45+R()*0.35,R()*8|0);
+      if(R()<0.2&&frei(x+3)) pf(x+3+R()*2,R()<0.5?zN+1.35:STR.mitte+0.95,0.8+R()*1.0,0.35+R()*0.25,R()*8|0); }
     const env=autoUmgebung();
-    const pm=lichtMat(new THREE.MeshStandardMaterial({color:LIN(0x191b1f),roughness:0.07,metalness:0.1,envMap:env||null,envMapIntensity:0.9,
+    const pm=lichtMat(new THREE.MeshStandardMaterial({color:LIN(0x141618),roughness:0.14,metalness:0.1,envMap:env||null,envMapIntensity:0.5,
       alphaMap:pfuetzenTex(),transparent:true,depthWrite:false}));
-    lampMats.push({set emissiveIntensity(v){ pm.envMapIntensity=0.9*(1-0.28*v); }});
+    lampMats.push({set emissiveIntensity(v){ pm.envMapIntensity=0.5*(1-0.28*v); }});
     const po=new THREE.Mesh(lichtUV2(Pf.geo()),pm); po.renderOrder=1; if(HIQ) po.receiveShadow=true; scene.add(po); }
 
   /* --- Markierungen nach StVO: Leitlinie 3 m Strich, 6 m Luecke, 12 cm

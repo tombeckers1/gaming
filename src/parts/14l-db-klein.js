@@ -555,7 +555,8 @@ klEmit('ascheschlange',(e,dt,o,t)=>{
       tab.userData.geoFest=true; tab.position.set(o.x+q[0],sf+0.0035,o.z+q[1]); klMesh(e,tab);
       const L=Array.isArray(e.laenge)?rand(e.laenge[0],e.laenge[1]):(e.laenge||0.35);
       e.sl.push({x0:o.x+q[0],z0:o.z+q[1],a,krumm:rand(-2.5,2.5),L:koenig?Math.max(L,0.4):L,start:i*(e.versatz||0.8),d:(e.dicke||0.035)*(koenig?(KG.dicke||1.6):1),koenig,ph:rand(0,6),z:{}}); }
-    e.sf=sf; e.T0=e.t; e.t=e.T0+2; }
+    /* die Asche bleibt liegen (die Station raeumt nach dauer, die Schlangen erst 10 s spaeter) */
+    e.sf=sf; e.T0=e.t; e.t=e.T0+10; }
   const col=new THREE.Color(), M=new THREE.Matrix4(), Q=new THREE.Quaternion(), V=new THREE.Vector3(), S=new THREE.Vector3(), H=klHell();
   let k=0; const alt=SCHWEIF; SCHWEIF=0;
   for(const s of e.sl){ const lt=t-s.start; if(lt<=0) continue;
@@ -753,8 +754,9 @@ klEmit('konfettistrahl',(e,dt,o,t)=>{
 /* Knallbonbon: Riss-Knack, Konfettiwoelkchen links und rechts, eine
    Papierkrone fliegt hoch und trudelt wie ein Blatt herab */
 function klKroneGeo(){ return klMat('kronegeo',()=>{
-  const n=8, R=0.06, pos=[], idx=[];
-  for(let i=0;i<=n*2;i++){ const a=i/(n*2)*Math.PI*2, oben=i%2===0?0.05:0.022;
+  /* Papierkrone zum Aufsetzen: Oe 16 cm (Katalog 12 cm - vom Pult aus nicht zu sehen) */
+  const n=8, R=0.08, pos=[], idx=[];
+  for(let i=0;i<=n*2;i++){ const a=i/(n*2)*Math.PI*2, oben=i%2===0?0.065:0.028;
     pos.push(Math.cos(a)*R,0,Math.sin(a)*R, Math.cos(a)*R,oben,Math.sin(a)*R); }
   for(let i=0;i<n*2;i++){ const a=i*2; idx.push(a,a+1,a+2, a+1,a+3,a+2); }
   const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3)); g.setIndex(idx); g.computeVertexNormals(); return g; }); }
@@ -764,7 +766,7 @@ klEmit('papierkrone',(e,dt,o,t)=>{
     /* das Bonbon reisst: zwei Haelften fliegen auseinander */
     const bm=klMat('bonbon'+e.nr,()=>new THREE.MeshStandardMaterial({color:klFarbe3(A[0],A[1],A[2]).multiplyScalar(0.8),emissive:klFarbe3(A[0]*0.15,A[1]*0.15,A[2]*0.15)}));
     e.haelften=[-1,1].map(sg=>{ const m=new THREE.Mesh(klMat('bonbongeo',()=>new THREE.CylinderGeometry(0.018,0.022,0.07,10)),bm); m.userData.geoFest=true; m.rotation.z=Math.PI/2; m.position.set(p.x+sg*0.035,p.y,p.z); klMesh(e,m); return {m,sg}; });
-    const km=new THREE.MeshStandardMaterial({color:klFarbe3(A[0],A[1],A[2]),metalness:0.55,roughness:0.3,emissive:klFarbe3(A[0]*0.28,A[1]*0.28,A[2]*0.28),side:THREE.DoubleSide});
+    const km=new THREE.MeshStandardMaterial({color:klFarbe3(A[0],A[1],A[2]),metalness:0.55,roughness:0.3,emissive:klFarbe3(A[0]*0.45,A[1]*0.45,A[2]*0.45),side:THREE.DoubleSide});
     const kr=new THREE.Mesh(klKroneGeo(),km); kr.userData.geoFest=true; kr.position.set(p.x,p.y,p.z); klMesh(e,kr);
     const H=e.hoch||[2,3], h=rand(H[0],H[1]);
     e.kr={m:kr,p0:p,vy:Math.sqrt(2*9.8*h),pend:rand(0,6),ww:rand(1.8,2.6),boden:null};
@@ -795,20 +797,21 @@ klEmit('papierkrone',(e,dt,o,t)=>{
 /* Tischbombe: dumpfer Plopp, Spielzeug fliegt hoch und huepft
    (Restitution rest), der Kreisel tanzt 2 s auf der Spitze */
 const KL_TEILGEO={
-  wuerfel:()=>new THREE.BoxGeometry(0.035,0.035,0.035),
-  ring:()=>new THREE.TorusGeometry(0.02,0.007,6,14),
-  kreisel:()=>{ const g=new THREE.ConeGeometry(0.022,0.04,12); g.rotateX(Math.PI); g.translate(0,0.02,0); return g; },
-  kugel:()=>new THREE.SphereGeometry(0.02,10,8)
+  /* 5-7 cm statt 3-5 cm: vom Pult aus sonst nur Punkte */
+  wuerfel:()=>new THREE.BoxGeometry(0.05,0.05,0.05),
+  ring:()=>new THREE.TorusGeometry(0.03,0.01,6,16),
+  kreisel:()=>{ const g=new THREE.ConeGeometry(0.032,0.06,12); g.rotateX(Math.PI); g.translate(0,0.03,0); return g; },
+  kugel:()=>new THREE.SphereGeometry(0.028,12,9)
 };
 klEmit('ueberraschung',(e,dt,o,t)=>{
   const RT=(e.rest&&e.rest.t)||20, R=e.rest||0.45;
   if(!e.tl){ const sf=klFlaeche(o), p={x:o.x,y:Math.max(o.y,sf)+0.02,z:o.z}, F=(e.farben||['rot','gold','blau','gruen']).map(c=>klF(c));
     const H=e.hoch||[1.2,2.4];
     e.tl=(e.teile||['wuerfel','ring','kreisel','kugel']).map((art,i)=>{
-      const C=F[i%F.length], mat=klMat('spiel'+i%F.length+(e.farben||[]).join(''),()=>new THREE.MeshStandardMaterial({color:klFarbe3(C[0],C[1],C[2]),roughness:0.35,metalness:0.05,emissive:klFarbe3(C[0]*0.3,C[1]*0.3,C[2]*0.3)}));
+      const C=F[i%F.length], mat=klMat('spiel'+i%F.length+(e.farben||[]).join(''),()=>new THREE.MeshStandardMaterial({color:klFarbe3(C[0],C[1],C[2]),roughness:0.3,metalness:0.1,emissive:klFarbe3(C[0]*0.5,C[1]*0.5,C[2]*0.5)}));
       const m=new THREE.Mesh(klMat('teil'+art,KL_TEILGEO[art]||KL_TEILGEO.kugel),mat); m.userData.geoFest=true; m.position.set(p.x,p.y,p.z); klMesh(e,m);
       const h=rand(H[0],H[1]), vy=Math.sqrt(2*9.8*h), a=rand(0,6.283), vh=vy*Math.tan(rand(0.05,1)*(e.streu||0.35));
-      return {m,art,vx:Math.cos(a)*vh,vz:Math.sin(a)*vh,vy,ax:randDir(),w:rand(8,18),hops:0,ruhe:false,rad:art==='ring'?0.008:art==='kreisel'?0:0.018};
+      return {m,art,vx:Math.cos(a)*vh,vz:Math.sin(a)*vh,vy,ax:randDir(),w:rand(8,18),hops:0,ruhe:false,rad:art==='ring'?0.011:art==='kreisel'?0:0.026};
     });
     const alt=SCHWEIF; SCHWEIF=0; psBig.emit(p.x,p.y+0.05,p.z,0,0,0,1.2,1,0.7,0.06,0,0); SCHWEIF=alt;
     rauchball({x:p.x,y:p.y+0.15,z:p.z},{r:0.3,n:2,dauer:2,steigen:0.3,c:[0.6*klHell()+0.1,0.6*klHell()+0.1,0.62*klHell()+0.1],a:0.35});
@@ -852,7 +855,7 @@ klEmit('luftschlange',(e,dt,o,t)=>{
       const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.BufferAttribute(pos,3)); g.setIndex(idx);
       const C=F[i%F.length], m=new THREE.Mesh(g,new THREE.MeshBasicMaterial({color:klFarbe3(C[0]*H,C[1]*H,C[2]*H),side:THREE.DoubleSide,toneMapped:false}));
       m.frustumCulled=false; klMesh(e,m);
-      const a=rand(0,6.283), ne=rand(0.05,0.4), v=rand(ST[0],ST[1])*1.4;
+      const a=rand(0,6.283), ne=rand(0.05,0.4), v=rand(ST[0],ST[1])*1.22;
       e.bd.push({m,g,C,L:rand(LL[0],LL[1]),N:rand(LK[0],LK[1]),h:{x:p.x,y:p.y,z:p.z},v:[Math.sin(ne)*Math.cos(a)*v,Math.cos(ne)*v,Math.sin(ne)*Math.sin(a)*v],ph:rand(0,6),dreh:rand(-3,3),start:rand(0,0.12),liegt:null}); }
     /* Knack mit einem kleinen Goldglitzer aus der Roehre */
     const alt=SCHWEIF; SCHWEIF=0.06; psBig.emit(p.x,p.y,p.z,0,0,0,1.2,1.1,0.8,0.05,0,0);
@@ -895,7 +898,10 @@ klEmit('funkenschirm',(e,dt,o,t)=>{
   if(e.los) return; e.los=1; e.t=0.1;
   const sf=klFlaeche(o), p={x:o.x,y:Math.max(o.y,sf)+0.02,z:o.z}, RG=(e.ringe||['gold']).map(c=>klF(c)), n=Math.round((e.n||120)*QUAL()), h=e.h||1.2, g=3;
   const vy=vFuerHoehe(h,g), alt=SCHWEIF;
-  for(let i=0;i<n;i++){ const az=i/n*Math.PI*2*7.3+rand(-0.05,0.05), u=Math.random(), th=(40+15*u)*Math.PI/180;
+  /* Winkel gegen die Senkrechte: 40-55 Grad im Katalog; mit dem Luftwiderstand
+     der Funken ergab das einen 7 m breiten Teller - 16-30 Grad halten die
+     Kuppel bei 1,6 m Hoehe und gut 1,5 m Radius (Probebild) */
+  for(let i=0;i<n;i++){ const az=i/n*Math.PI*2*7.3+rand(-0.05,0.05), u=Math.random(), th=(16+14*u)*Math.PI/180;
     const ring=RG[Math.min(RG.length-1,Math.floor(u*RG.length))], vh=vy*Math.tan(th)*rand(0.95,1.05), l=(typeof e.tt==='number'?e.tt:2.4)*rand(0.85,1.05);
     glint(psMid,p.x,p.y,p.z,Math.cos(az)*vh,vy*rand(0.97,1.03),Math.sin(az)*vh,ring,g,{tz:l,dim:0.7,blitz:2.2,spur:0.12}); }
   SCHWEIF=0; psBig.emit(p.x,p.y+0.05,p.z,0,0,0,1,0.95,0.8,0.05,0,0); SCHWEIF=alt;

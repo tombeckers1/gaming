@@ -68,7 +68,10 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
       for(let k=0;k<Math.ceil((dauer+5)/0.1);k++){ bb.run(0.1,0.1);
         if(bb.rockets.length>r0) raketen=Math.max(raketen,bb.rockets.length-r0);
         emit=Math.max(emit,bb.emittersListe().length);
-        if(k%5===0){ let n=0; for(const ps of [bb.psHuge,bb.psBig,bb.psMid,bb.psSmall]) for(let i=0;i<ps.life.length;i++) if(ps.life[i]>0) n++; partikel=Math.max(partikel,n); } }
+        /* 27.09. (Kleinfeuerwerk Anomalie): Konfetti, Kronen, Luftschlangen und
+           Spielzeug sind Meshes statt Funken - sie zaehlen als sichtbar mit
+           (window.__klein.sichtbar: fliegendes Papier + Meshes laufender Emitter) */
+        if(k%5===0){ let n=window.__klein?window.__klein.sichtbar():0; for(const ps of [bb.psHuge,bb.psBig,bb.psMid,bb.psSmall]) for(let i=0;i<ps.life.length;i++) if(ps.life[i]>0) n++; partikel=Math.max(partikel,n); } }
       bb.fwLog(null);
       const schuesse=log.filter(e=>e.art==='schuss').length;
       if(partikel<30) o.zuenden.push(t+': nichts zu sehen ('+partikel+' Funken)');

@@ -365,7 +365,9 @@ function klFlamme(z,p,dt,A,o){
   for(;z.fl>=1;z.fl--){ const a=Math.random()*6.283, w=Math.sqrt(Math.random())*r, kern=Math.random()<0.16;
     const l=rand(0.16,0.3)*(kern?0.7:1), vy=h/l*rand(0.55,0.8), c=kern?K:A, k=(kern?0.85:0.72)*st;
     (kern?psSmall:psMid).emit(p.x+Math.cos(a)*w,p.y+rand(0,0.02),p.z+Math.sin(a)*w,Math.cos(a)*w*1.5,vy,Math.sin(a)*w*1.5,c[0]*k,c[1]*k,c[2]*k,l,-0.5,0); }
-  psBig.emit(p.x,p.y+h*0.4,p.z,0,0,0,A[0]*0.3*st,A[1]*0.3*st,A[2]*0.3*st,0.05,0,0);
+  const hf=(o.hof||0.3)*st; psBig.emit(p.x,p.y+h*0.4,p.z,0,0,0,A[0]*hf,A[1]*hf,A[2]*hf,0.05,0,0);
+  /* Starklicht: weiter Lichthof um die Flamme */
+  if(o.hofGross) psHuge.emit(p.x,p.y+h*0.5,p.z,0,0,0,A[0]*o.hofGross*st,A[1]*o.hofGross*st,A[2]*o.hofGross*st,0.05,0,0);
   SCHWEIF=alt;
 }
 /* Farbe im weichen Kreislauf durch eine Namensliste (Kosinus-Ueberblendung) */
@@ -465,7 +467,7 @@ klEmit('handfackel',(e,dt,o,t)=>{
   if(t>=S.at){ const k=Math.floor((t-S.at)/0.75), f=(t-S.at)%0.75; if(k<S.n){ if(f<0.15) s*=0.06; } else s*=Math.max(0,1-(t-S.at-S.n*0.75)/0.4); }
   if(t>T) s=0;
   const st=s*fl;
-  if(s>0.01){ klFlamme(e,p,dt,A,{h:0.3,r:0.035,st:Math.min(1.3,st),rate:150,kern:[1.2,1.15,1.1]});
+  if(s>0.01){ klFlamme(e,p,dt,A,{h:0.3,r:0.035,st:Math.min(1.3,st),rate:170,kern:[1.5,1.4,1.35],hof:0.8,hofGross:0.35});
     licht('fa'+e.prod,{x:p.x,y:p.y+0.15,z:p.z},A,(e.hell||3.2)*st,{weite:25});
     /* Rauchfahne: vorne rot angestrahlt, weiter weg grau */
     e.rb=(e.rb||0)+dt*3*s;
@@ -491,7 +493,7 @@ klEmit('wechselfeuer',(e,dt,o,t)=>{
   if(t>=sc.at){ const u=Math.min(1,(t-sc.at)/0.3); hl+=(1-hl)*u; hr+=(1-hr)*u; }
   const an=Math.min(1,t/0.5), aus=t>T?Math.max(0,1-(t-T)/0.5):1;
   [hl,hr].forEach((h,i)=>{ const q=e.tp[i], s=h*an*aus; if(s<0.01) return;
-    klFlamme(q.z,q.p,dt,q.A,{h:0.38,r:0.07,st:s,rate:130});
+    klFlamme(q.z,q.p,dt,q.A,{h:0.42,r:0.07,st:s,rate:150,hof:0.6,hofGross:0.22});
     licht('wf'+e.prod+i,{x:q.p.x,y:q.p.y+0.4,z:q.p.z},q.A,3.4*s,{weite:20});
     q.z.rb=(q.z.rb||0)+dt*1.5*s;
     if(q.z.rb>=1){ q.z.rb--; const A=q.A; rauchball({x:q.p.x,y:q.p.y+0.45,z:q.p.z},{r:0.9,n:1,dauer:6,quellen:3,steigen:0.35,leuchten:true,a:0.35,wind:[0.1,0.05],
@@ -632,7 +634,7 @@ klEmit('bodenflitzer',(e,dt,o,t)=>{
       e.fl.push({x:g.x+sg*0.05,z:g.z,a,v:rand(V[0],V[1]),hk:rand(HK[0],HK[1]),sg:sg,h:rand(HH[0],HH[1]),start:ts,T:rand(TT[0],TT[1]),kopf:klF((e.kopf||['weiss'])[i%(e.kopf||['weiss']).length]),zz:{}});
       ts+=TK[i%TK.length]; }
     e.t=ts+Math.max(...e.fl.map(f=>f.T))+1; }
-  const alt=SCHWEIF, q=QUAL(), S=klF(e.spur,FW.gold), g=e.g, X0=g.x-6, X1=g.x+6, Z0=g.z-0.4, Z1=g.z+5;
+  const alt=SCHWEIF, q=QUAL(), S=klF(e.spur,FW.gold), g=e.g, X0=g.x-4.5, X1=g.x+4.5, Z0=g.z-0.4, Z1=g.z+3.2;  /* Feld vor dem Tisch, gut 3 m Abstand zum Pult */
   e.fl.forEach((f,i)=>{ const lt=t-f.start; if(lt<0) return;
     if(lt>f.T){ if(!f.aus){ f.aus=1; if(f.ton) f.ton.stop();
       const p={x:f.x,y:g.y+f.h,z:f.z}; SCHWEIF=0; psBig.emit(p.x,p.y,p.z,0,0,0,1.8,1.8,1.7,0.06,0,0);
@@ -961,7 +963,7 @@ klEmit('knallkette',(e,dt,o,t)=>{
   const P=e.pf, g=e.g, M=new THREE.Matrix4(), Q=new THREE.Quaternion(), V=new THREE.Vector3(), SC=new THREE.Vector3(1,1,1), SC0=new THREE.Vector3(0.0001,0.0001,0.0001), Y=new THREE.Vector3(0,1,0);
   const alt=SCHWEIF, v0=distVol(g);
   while(e.nr<NK&&t>=e.z[e.nr]){ const u=e.nr/(NK-1), [x,z]=klPfadOrt(P,u), p={x,y:g.y+0.02,z};
-    SCHWEIF=0; psBig.emit(x,p.y+0.03,z,0,0,0,1.5,1.2,0.7,0.04,0,0);
+    SCHWEIF=0; psBig.emit(x,p.y+0.03,z,0,0,0,1.5,1.2,0.7,0.04,0,0); psHuge.emit(x,p.y+0.06,z,0,0,0,0.8,0.55,0.25,0.05,0,0);
     for(let k=0;k<6;k++){ const d=randDir(), s=rand(1.5,3); psSmall.emit(x,p.y,z,d[0]*s,Math.abs(d[1])*s,d[2]*s,1.3,1.0,0.5,rand(0.08,0.15),3,0); }
     for(let k=0;k<4;k++){ const d=randDir(), s=rand(0.6,1.5); psSmall.emit(x,p.y,z,d[0]*s,Math.abs(d[1])*s+1,d[2]*s,0.8,0.3,0.08,rand(0.6,1.1),3,0); }
     SCHWEIF=alt; flash({x,y:p.y+0.25,z},FW.bernstein,0.5,0.06);
@@ -1005,14 +1007,15 @@ klEmit('goldstaub',(e,dt,o,t)=>{
   for(let i=0;i<n;i++){
     const d=randDir(), f=Math.cbrt(Math.random()), tg={x:mitte.x+d[0]*r*f,y:mitte.y+d[1]*h*0.5*f,z:mitte.z+d[2]*r*f};
     const yr=clamp((tg.y-(mitte.y-h/2))/h,0,1), tb=BL.von+(1-yr)*(BL.bis-BL.von)+rand(-0.08,0.08), C=Math.random()<0.6?A:B;
-    fuehre(psSmall,p0.x,p0.y,p0.z,0,0,0,G,tb+RI*rand(0.7,1),(s,dt2)=>{
+    fuehre(psMid,p0.x,p0.y,p0.z,0,0,0,G,tb+RI*rand(0.7,1),(s,dt2)=>{
       const a=s.alter;
       if(a<0.3){ const u=a/0.3, k=1-Math.pow(1-u,3); s.p[0]=p0.x+(tg.x-p0.x)*k; s.p[1]=p0.y+(tg.y-p0.y)*k; s.p[2]=p0.z+(tg.z-p0.z)*k; s.hell=0.5; }
-      else if(a<tb){ s.p[1]-=0.15*dt2; s.p[0]+=Math.sin(a*2+i)*0.02*dt2; s.hell=0.3*(0.8+0.4*Math.sin(a*7+i)); }
+      else if(a<tb){ s.p[1]-=0.15*dt2; s.p[0]+=Math.sin(a*2+i)*0.02*dt2; s.hell=0.32*(0.75+0.5*Math.sin(a*7+i)); }
       else { if(!s.d.bl){ s.d.bl=1; const q=SCHWEIF; SCHWEIF=0;
-          psMid.emit(s.p[0],s.p[1],s.p[2],0,-0.1,0,C[0]*1.5,C[1]*1.5,C[2]*1.5,BL.dauer+0.02,0,0);
-          psSmall.emit(s.p[0],s.p[1],s.p[2],0,-0.1,0,2,2,1.9,BL.dauer,0,0); SCHWEIF=q; }
-        s.p[1]-=0.45*dt2; s.hell=0.12*Math.max(0,1-(a-tb)/RI); }
+          /* das Aufblitzen: Stern mit weissem Kern, genau einmal */
+          psBig.emit(s.p[0],s.p[1],s.p[2],0,-0.1,0,C[0]*1.7,C[1]*1.7,C[2]*1.7,BL.dauer+0.03,0,0);
+          psSmall.emit(s.p[0],s.p[1],s.p[2],0,-0.1,0,2.2,2.2,2.1,BL.dauer+0.02,0,0); SCHWEIF=q; }
+        s.p[1]-=0.45*dt2; s.hell=0.2*Math.max(0,1-(a-tb)/RI); }
       s.v[0]=0; s.v[1]=0; s.v[2]=0; s.c=G; },{}); }
 });
 

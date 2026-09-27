@@ -72,13 +72,18 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     bb.run(10,0.1);
     /* Donnerwand: Salven von sechs */
     const sh=bb.SHOWS.donnerwand();
-    o.salven=sh.filter(ph=>ph.n>=6&&ph.gap<=0.1).length; o.phasen=sh.filter(ph=>ph.n).length; o.auftakt=!!(sh[0].ground&&!sh[0].n);
+    /* Trommelfeuer (26.09., Tom: Anomalie): die Salven sind jetzt Gruppen
+       je:6 auf Schlag im Takt eines Trommelsolos statt 20 einzelner Phasen.
+       Geprueft wird weiter: jede Schuss-Phase besteht nur aus Sechser-Salven,
+       zusammen mindestens 20. */
+    const salve=ph=>ph.n>=6&&(ph.je===6?!(ph.gap>0):ph.gap<=0.1);
+    o.salven=sh.filter(salve).reduce((a,ph)=>a+(ph.je?Math.ceil(ph.n/ph.je):1),0); o.salvenPh=sh.filter(salve).length; o.phasen=sh.filter(ph=>ph.n).length;
     return o;
   });
   console.log('SPUREN  ',JSON.stringify({kugel:r.kugel,weide:r.weide,blink:r.blink}));
   console.log('FONTAENE',JSON.stringify({geysir:r.geysir,saeule:r.saeule,fontaene:r.fontaene}));
   console.log('KUGELN  ',JSON.stringify({weiten:r.weiten,k300:r.k300,gesamt:r.k300gesamt}));
-  console.log('SALVEN  ',JSON.stringify({salven:r.salven,phasen:r.phasen}));
+  console.log('SALVEN  ',JSON.stringify({salven:r.salven,salvenPh:r.salvenPh,phasen:r.phasen}));
   pruef('SPUREN',r.kugel.segmente>20&&r.weide.segmente>20,'keine Leuchtspuren: '+r.kugel.segmente+'/'+r.weide.segmente);
   pruef('SPUREN',r.weide.mittel>r.kugel.mittel*2,'Weide ('+r.weide.mittel+' m) nicht deutlich laenger als Peonie ('+r.kugel.mittel+' m)');
   pruef('SPUREN',r.kugel.zurMitte>0.9&&r.weide.zurMitte>0.9,'Spuren zeigen nicht zur Bruchmitte: '+r.kugel.zurMitte+'/'+r.weide.zurMitte);
@@ -86,7 +91,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   pruef('FONTAENE',r.geysir>8&&r.saeule>12&&r.saeule>r.geysir&&r.geysir>r.fontaene*1.5,'Hoehen '+r.geysir+' / '+r.saeule+' / normale '+r.fontaene);
   pruef('KUGELN',r.weiten.every((w,i)=>i===0||w>r.weiten[i-1]),'Kugeln werden nicht mit dem Kaliber groesser: '+r.weiten);
   pruef('KUGELN',r.k300>=12,'300 mm: nur '+r.k300+' Brueche gleichzeitig');
-  pruef('SALVEN',r.salven===r.phasen&&r.salven>=20,'Donnerwand: '+r.salven+' Salven von '+r.phasen);
+  pruef('SALVEN',r.salvenPh===r.phasen&&r.salven>=20,'Trommelfeuer: '+r.salven+' Salven, '+r.salvenPh+' von '+r.phasen+' Phasen sind Salven');
   console.log('MANGEL:',mangel.length?mangel.join(' | '):'keine');
   console.log('ERRORS:',errs.length||mangel.length?errs.concat(mangel).join('\n'):'keine');
   await b.close();

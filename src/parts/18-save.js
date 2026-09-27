@@ -11,7 +11,7 @@ function freshState(){ const prices={}; ORDER.forEach(t=>prices[t]=P[t].market);
        bringt es an die Rampe. */
     shelves:[],racks:[],
     boxes:[],regale:[],
-    carrying:null,tut:{},seasonRevenue:0,cart:[],offen:0,pakete:0,bestellungen:[],paketGr:[],bestNr:0,lic:['start'],stat:{},erf:{},gesehen:[],eigene:[],gutschrift:0,mi:{},me:{},reg:{},mh:{},schock:{},news:[],infl:1,shopName:SHOP_DEFAULT,slogan:SLOGAN_DEFAULT}; }
+    carrying:null,tut:{},fwZaehler:{},seasonRevenue:0,cart:[],offen:0,pakete:0,bestellungen:[],paketGr:[],bestNr:0,lic:['start'],stat:{},erf:{},gesehen:[],eigene:[],gutschrift:0,mi:{},me:{},reg:{},mh:{},schock:{},news:[],infl:1,shopName:SHOP_DEFAULT,slogan:SLOGAN_DEFAULT}; }
 /* Sorten, die es nicht mehr gibt (Toms PDF vom 25.09.): die alten
    Boeller werden beim Laden zu den neuen, der Heuler zum Furzboeller.
    Preise und Marktdaten der alten Sorten fallen weg - die neuen
@@ -19,6 +19,14 @@ function freshState(){ const prices={}; ORDER.forEach(t=>prices[t]=P[t].market);
    (Regale, Kartons, Warenkorb, Bestellungen, in der Hand), zieht mit. */
 const SORTE_NEU={kanonen:'monsterboeller',grossboeller:'monsterboeller',doppelschlag:'monsterboeller',
   sprengmeister:'atomboeller',xxlpolen:'atomboeller',heuler:'boeller'};
+/* Feuerwerk-Anomalien (26.09. nachts, Tom: "jedes Produkt eine
+   Anomalie"): acht Sorten sind gestrichen, weil ein anderes Produkt
+   dasselbe Bild zeigt (kritik.md). Wer sie im Laden, im Lager, im
+   Warenkorb oder in einer Bestellung hat, bekommt beim Laden die Sorte,
+   die sie ersetzt. bengalduo bleibt (Hafenlichter). */
+const ERSETZT_DURCH={goldperlen:'roemisch',salutbatterie:'donnerschlag',kometenfaecher:'kometen',raketen50:'titanraketen',
+  sternfontaene:'sternenbrunnen',tischfeuerwerk2:'tisch',knallbonbonxxl:'knallbonbon',konfettiknaller:'partypopper'};
+Object.assign(SORTE_NEU,ERSETZT_DURCH);
 function sortenUmstellen(d){
   for(const m of ['prices','mi','me','reg','mh','schock']) if(d[m]&&typeof d[m]==='object') for(const k in SORTE_NEU) delete d[m][k];
   const geh=(o,tiefe)=>{ if(!o||typeof o!=='object'||tiefe>10) return;
@@ -36,7 +44,7 @@ function mpos(g){ return g?{x:+g.position.x.toFixed(2),z:+g.position.z.toFixed(2
 function save(){
   if(!S) return;
   try{
-    const d={v:3,money:S.money,rep:S.rep,level:S.level,xp:S.xp,season:S.season,day:S.day,loan:S.loan,prices:S.prices,up:S.up,staff:S.staff,prio:S.prio||{},einr:S.einr||{},wage:S.wage||{},pause:S.pause||{},ev:S.ev||null,goal:S.goal||null,mkt:r2(S.mkt||1),comp:r2(S.comp||1),lic:S.lic||['start'],stat:S.stat||{},erf:S.erf||{},gesehen:S.gesehen||[],eigene:S.eigene||[],gutschrift:r2(S.gutschrift||0),mi:S.mi||{},me:S.me||{},reg:S.reg||{},mh:S.mh||{},schock:S.schock||{},news:S.news||[],infl:S.infl||1,
+    const d={v:3,money:S.money,rep:S.rep,level:S.level,xp:S.xp,season:S.season,day:S.day,loan:S.loan,prices:S.prices,up:S.up,staff:S.staff,prio:S.prio||{},einr:S.einr||{},wage:S.wage||{},pause:S.pause||{},ev:S.ev||null,goal:S.goal||null,mkt:r2(S.mkt||1),comp:r2(S.comp||1),lic:S.lic||['start'],stat:S.stat||{},erf:S.erf||{},gesehen:S.gesehen||[],eigene:S.eigene||[],gutschrift:r2(S.gutschrift||0),fwZaehler:S.fwZaehler||{},mi:S.mi||{},me:S.me||{},reg:S.reg||{},mh:S.mh||{},schock:S.schock||{},news:S.news||[],infl:S.infl||1,
       wall:S.wall,floor:S.floor,schildBg:S.schildBg||'auto',schildFg:S.schildFg||'weiss',paint:S.paint,test:S.test,stamm:S.stamm,blanks:gravBlanks,grav:gravG?mpos(gravG):null,grime:r2(S.grime||0),tut:S.tut,tutAus:!!S.tutAus,karre:S.karre||null,seasonRevenue:S.seasonRevenue,carrying:S.carrying,cart:S.cart||[],rest:S.rest||null,ekVor:S.ekVor||{},offen:S.offen|0,pakete:S.pakete|0,bestellungen:(S.bestellungen||[]).map(b=>({id:b.id,pos:b.pos.map(l=>({t:l.t,n:l.n,g:l.g})),gr:b.gr,wert:b.wert,st:b.st,tag:b.tag})),paketGr:(S.paketGr||[]).slice(),bestNr:S.bestNr|0,shopName:S.shopName||SHOP_DEFAULT,slogan:S.slogan||'',
       deko:dekos.map(d2=>Object.assign({id:d2.id},mpos(d2.g))),
       ck:mpos(ckG),desk:mpos(deskG),sb2:mpos(sb2G),pack:mpos(packTisch),

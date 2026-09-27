@@ -67,24 +67,7 @@ function showAus(spec){
    als einziges zeigt (Bienen, Smiley, Schmetterling ...), bleiben bei
    ihm. */
 const NEU_SHOWS={
-  zauberwald:{lvl:10,th:'wald',n:10,akte:[{e:['kreisel'],w:3,mine:true,mineSz:0.35},{e:['stern'],w:3},{e:['ring','kugel'],s:'salve',w:4}]},
-  jugendbox:{lvl:12,th:'eis',n:30,akte:[{e:['kugel'],w:6,mine:true,mineSz:0.45},{e:['fische','kreisel'],w:8},{e:['regenbogen'],s:'fan',w:8},{e:['ringring','wechsel'],s:'salve',w:8}],auftakt:{ground:'fountain',gt:4}},
-  kinderbatterie:{lvl:4,th:'bunt',n:6,akte:[{e:['kugel'],w:2},{e:['kreisel','ring'],w:2},{e:['kugel'],s:'salve',w:2}]},
-  kinderparty:{lvl:6,th:'tropen',n:12,akte:[{e:['kugel'],w:3,mine:true,mineSz:0.4},{e:['kreisel','ring'],w:3},{e:['wechsel'],s:'fan',w:3},{e:['ringring'],s:'salve',w:3}]},
-  miniverbund:{lvl:8,th:'glut',n:9,akte:[{e:['kugel'],w:3},{e:['ring','kugel'],w:3},{e:['chrys'],s:'salve',w:3}]},
-  glitzerregen12:{lvl:9,th:'gold',n:12,akte:[{e:['kugel'],w:3,mine:true,mineSz:0.45},{e:['farbregen'],w:4},{e:['spirale'],s:'salve',w:5}]},
-  sternstaub20:{lvl:10,th:'nacht',n:20,akte:[{e:['kugel'],w:4},{e:['stern','ring'],w:6},{e:['schneeflocke'],s:'fan',w:5},{e:['stern'],s:'salve',w:5}]},
-  schneeballschlacht:{lvl:10,th:'silber',n:12,akte:[{e:['kugel'],w:3},{e:['schneeflocke','ringring'],w:5},{e:['tausend'],s:'salve',w:4}]},
-  heulbatterie:{lvl:11,th:'wald',n:12,akte:[{e:['ring'],w:3,pfeif:true},{e:['kugel','ring'],w:5,pfeif:true},{e:['tausend'],s:'salve',w:4,pfeif:true}]},
-  pfauenrad:{lvl:11,th:'tropen',n:19,akte:[{e:['kugel'],s:'fan',w:5},{e:['palme','kreisel'],s:'vfan',w:7},{e:['doppelring'],s:'salve',fan:true,w:7}]},
-  nachtfalter:{lvl:13,th:'himmel',n:36,akte:[{e:['kugel'],w:5,mine:true},{e:['geist'],w:7},{e:['spinne','fische'],s:'vfan',w:8},{e:['mehrring'],s:'salve',w:6},{e:['geist','chrys'],w:10}]},
-  goldpalmen:{lvl:13,th:'gold',n:25,akte:[{e:['palme'],w:6},{e:['palme','kokosnuss'],s:'fan',w:7},{e:['strauss'],w:6},{e:['palme'],s:'salve',w:6}]},
-  mondschein:{lvl:13,th:'eis',n:30,akte:[{e:['kugel'],w:5},{e:['blaetter'],w:7},{e:['saturn','ring'],w:8},{e:['blaetter'],s:'salve',w:10}]},
-  knisterfaecher:{lvl:14,th:'blitz',n:24,akte:[{e:['knister'],s:'fan',w:6},{e:['kaskade'],s:'vfan',w:6},{e:['knister','ringring'],s:'fan',w:6},{e:['tausend'],s:'salve',fan:true,w:6}]},
-  sternenmeer42:{lvl:15,th:'nacht',n:42,akte:[{e:['kugel'],w:6,mine:true},{e:['stern','saturn'],w:9},{e:['strauss','dreifach'],w:9},{e:['diadem'],s:'fan',w:8},{e:['stern','mehrring'],s:'salve',w:10}]},
-  /* ab Level 16: Drehbuecher in 14h-db-gross.js (26.09., Tom: Anomalie) */
-  feuerperlen:{lvl:14,th:'bunt',n:16,akte:[{s:'perle',w:8,gap:0.85},{s:'perle',w:8,gap:0.55}]},
-  goldperlen:{lvl:9,th:'gold',n:8,akte:[{s:'perle',w:8,gap:0.95}]}
+
 };
 Object.keys(NEU_SHOWS).forEach(t=>{ const s=NEU_SHOWS[t];
   if(!SHOW_BASIS[t]) SHOW_BASIS[t]=neuBasis(P[t]?P[t].lvl:s.lvl,s.th);

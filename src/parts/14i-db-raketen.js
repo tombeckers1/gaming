@@ -337,9 +337,13 @@ EFF.spaetzuender=function(p,A,B,s){
      Welle fuer Welle weiter aussen - die Wand waechst von innen nach aussen */
   for(let k=0;k<14;k++){ const u=k/13, t=T0+u*D*0.9, rr=R*(0.2+0.8*Math.sqrt(u));
     imBild(t,()=>{ const a=SCHWEIF; SCHWEIF=0;
-      for(let i=0;i<Math.round(34*s*q);i++){ const d=randDir(), f=rr*rand(0.7,1.05), c=i%3?[1,.93,.75]:(i%2?tint[0]:tint[1]);
-        psMid.emit(p.x+d[0]*f,p.y+d[1]*f*0.9-0.6*u,p.z+d[2]*f,d[0]*rand(0.5,1.5),d[1]*rand(0.5,1.5)-0.3,d[2]*rand(0.5,1.5),c[0],c[1],c[2],rand(0.5,0.9),1.0,3); }
+      /* hell und golden, sonst verschwinden die Punkte zwischen den Sternen
+         des Nachthimmels (Probebild 27.09.) */
+      for(let i=0;i<Math.round(70*s*q);i++){ const d=randDir(), f=rr*rand(0.7,1.05), c=i%3?[1.7,1.35,.8]:(i%2?rkMal(tint[0],1.6):rkMal(tint[1],1.6));
+        (i%4?psMid:psBig).emit(p.x+d[0]*f,p.y+d[1]*f*0.9-0.6*u,p.z+d[2]*f,d[0]*rand(0.5,1.5),d[1]*rand(0.5,1.5)-0.3,d[2]*rand(0.5,1.5),c[0],c[1],c[2],rand(0.6,1.0),1.0,3); }
       SCHWEIF=a; }); }
+  /* golden leuchtender Dunst: die Wand steht als Koerper am Himmel */
+  imBild(T0+0.1,()=>rauchball(p,{r:R*0.9,n:12,dauer:D+0.9,quellen:D*0.6,steigen:0.1,leuchten:true,c:[1,0.78,0.42],a:0.07}));
   later(T0,()=>{ flash(p,[1,.92,.75],3.5*s,0.4);
     schall(p,v=>{ sfx.crackle(v*1.3); later(0.4,()=>sfx.crackle(v*0.45)); later(0.9,()=>sfx.crackle(v*0.8)); }); });
 };
@@ -379,7 +383,7 @@ EFF.leuchtturm=function(p,A,B,s){
       st.p[0]=p.x+d[0]*rr*e; st.p[1]=p.y+d[1]*rr*e-0.15*t; st.p[2]=p.z+d[2]*rr*e; st.v[0]=st.v[1]=st.v[2]=0;
       let h;
       if(t<0.35) h=1-t/0.35*0.9;
-      else if(t<T){ const dp=Math.abs(((phi-wink(t))%(2*Math.PI)+3*Math.PI)%(2*Math.PI)-Math.PI); h=dp<0.38?(((t*10+ph)%1)<0.5?2.8:0.45):(dp<0.65?0.3:0.07); }
+      else if(t<T){ const dp=Math.abs(((phi-wink(t))%(2*Math.PI)+3*Math.PI)%(2*Math.PI)-Math.PI); h=dp<0.38?(((t*10+ph)%1)<0.5?3.6:0.6):(dp<0.65?0.4:0.12); }
       else if(t<T+0.4) h=((t*10)%1)<0.5?2.4:0.06;
       else h=0;
       st.hell=h;
@@ -389,9 +393,9 @@ EFF.leuchtturm=function(p,A,B,s){
   rkStern(psHuge,p,[0,0,0],rkMal(rot,1.4),L,(st,dt)=>{
     const t=st.alter; st.p[0]=p.x; st.p[1]=p.y-0.15*t; st.p[2]=p.z; st.hell=t<T+0.4?1+0.15*Math.sin(t*9):0;
     if(t<T+0.4) licht(key,{x:p.x,y:p.y,z:p.z},rot,1.3,{weite:22});
-    if(t>0.3&&t<T){ const a=wink(t), dir=[Math.cos(a),0,Math.sin(a)], dd=st.d; dd.st=(dd.st||0)+dt*700*QUAL();
+    if(t>0.3&&t<T){ const a=wink(t), dir=[Math.cos(a),0,Math.sin(a)], dd=st.d; dd.st=(dd.st||0)+dt*1100*QUAL();
       for(;dd.st>=1;dd.st--){ const f=Math.pow(Math.random(),0.7)*R, b=rand(-0.25,0.25);
-        psMid.emit(p.x+dir[0]*f-dir[2]*b*f*0.35,p.y+rand(-.25,.25)*(0.3+f*0.12),p.z+dir[2]*f+dir[0]*b*f*0.35,0,0,0,0.55,0.55,0.5,0.07,0,0); } }
+        psMid.emit(p.x+dir[0]*f-dir[2]*b*f*0.35,p.y+rand(-.25,.25)*(0.3+f*0.12),p.z+dir[2]*f+dir[0]*b*f*0.35,0,0,0,0.85,0.85,0.75,0.1,0,0); } }
   });
   schall(p,v=>tonGen({f:190,typ:'triangle',am:W/(2*Math.PI),amTiefe:0.85,dur:T,vol:0.03*v,an:0.3,ab:0.3}));
   later(T,()=>schall(p,v=>sfx.crackle(v*0.35)));
@@ -412,7 +416,7 @@ EFF.regenring=function(p,A,B,s){
       st.p[0]=p.x+d[0]*R*e; st.p[1]=p.y+d[1]*R*e-sk; st.p[2]=p.z+d[2]*R*e; st.v[0]=st.v[1]=st.v[2]=0;
       st.hell=(t>L-0.35?(L-t)/0.35:1)*(0.9+0.2*Math.sin(t*13+ph));
       /* Silberschnur: alle paar Hundertstel ein Tropfen, senkrecht, kaum Drift */
-      if(t>0.5&&t<3.0){ const dd=st.d; dd.tr=(dd.tr||0)+dt*18*QUAL();
+      if(t>0.5&&t<3.0){ const dd=st.d; dd.tr=(dd.tr||0)+dt*28*QUAL();
         for(;dd.tr>=1;dd.tr--) rkSchweif(0.32,()=>psMid.emit(st.p[0]+rand(-.04,.04),st.p[1]-0.05,st.p[2]+rand(-.04,.04),rand(-.06,.06),-4,rand(-.06,.06),w[0]*1.2,w[1]*1.2,w[2]*1.25,rand(1.3,1.6),4.4,4)); }
     });
   }
@@ -424,8 +428,8 @@ EFF.regenring=function(p,A,B,s){
 EFF.glasbruch=function(p,A,B,s){
   const n=Math.round(92*QUAL()), R=5.2*s*0.8, eis=A||FW.himmel, weissl=[0.85,0.95,1];
   for(let i=0;i<n;i++){
-    const d=randDir(), rr=R*rand(0.9,1.0), tz=rand(0.7,0.9), c=i%4?[0.45+eis[0]*0.6,0.5+eis[1]*0.55,0.55+eis[2]*0.5]:weissl;
-    rkStern(psBig,p,[0,0,0],rkMal(c,1.2),tz,(st,dt)=>{
+    const d=randDir(), rr=R*rand(0.9,1.0), tz=rand(0.7,0.9), c=i%4?[0.22+eis[0]*0.75,0.3+eis[1]*0.75,0.4+eis[2]*0.7]:weissl;
+    rkStern(psBig,p,[0,0,0],rkMal(c,1.45),tz,(st,dt)=>{
       const t=st.alter, e=1-Math.exp(-5*t);
       st.p[0]=p.x+d[0]*rr*e; st.p[1]=p.y+d[1]*rr*e-0.1*t; st.p[2]=p.z+d[2]*rr*e; st.v[0]=st.v[1]=st.v[2]=0;
       /* feiner Schimmer, kurz vor dem Bruch ein Zittern */
@@ -448,7 +452,7 @@ EFF.spektralkrone=function(p,A,B,s){
        steht links Rot, in der Mitte Gruen, rechts Violett */
     const hinten=k>=7, j=k%7, be=Math.PI*(j+0.5)/7+rand(-.06,.06), sz=hinten?-1:1;
     const dh=[li[0]*Math.cos(be)+zu[0]*Math.sin(be)*sz,0,li[2]*Math.cos(be)+zu[2]*Math.sin(be)*sz], el=rand(55,65)*Math.PI/180;
-    const d=[dh[0]*Math.cos(el),Math.sin(el),dh[2]*Math.cos(el)], w=rand(12,14)*Math.sqrt(s), c=K(SPEKTRUM[j]), v0=[d[0]*w,d[1]*w,d[2]*w];
+    const d=[dh[0]*Math.cos(el),Math.sin(el),dh[2]*Math.cos(el)], w=rand(15,17)*Math.sqrt(s), c=K(SPEKTRUM[j]), v0=[d[0]*w,d[1]*w,d[2]*w];
     rkSchweif(0.5,()=>{
       psHuge.emit(p.x,p.y,p.z,v0[0],v0[1],v0[2],c[0]*1.7,c[1]*1.7,c[2]*1.7,2.2,G,2,c[0]*1.4,c[1]*1.4,c[2]*1.4);
       for(let k=0;k<3;k++){ const e=streu(d,0.03), f=rand(0.88,0.98)*w; psBig.emit(p.x,p.y,p.z,e[0]*f,e[1]*f,e[2]*f,c[0]*1.4,c[1]*1.4,c[2]*1.4,2.2,G,2,c[0],c[1],c[2]); }
@@ -472,13 +476,14 @@ const RK_MOND_FS='uniform float cx,rs,hell,kupfer; uniform vec3 cA,cB; varying v
   'void main(){ float r=length(vU); if(r>1.0) discard;\n'+
   ' float m=0.78+0.22*sin(vU.x*6.1+1.3)*sin(vU.y*4.7+0.4)+0.08*sin(vU.x*13.0-vU.y*9.0);\n'+
   ' float kante=smoothstep(1.0,0.82,r); float sd=length(vU-vec2(cx,0.0))-rs; float sh=smoothstep(0.05,-0.05,sd);\n'+
-  ' vec3 c=mix(cA*m,cB*(0.75+0.25*m)*kupfer,sh); gl_FragColor=vec4(c*kante*hell,1.0); }';
+  ' float rd=0.5+0.5*(1.0-r*r);\n'+
+  ' vec3 c=mix(cA*m,cB*(0.7+0.3*m)*kupfer*rd*(0.85+0.15*vU.y),sh); gl_FragColor=vec4(c*kante*hell,1.0); }';
 EFF.mondfinsternis=function(p,A,B,s){
   const q=QUAL(), [ri,ob]=rkBild(p), R=4.4*s, n=Math.round(300*q), sil=[0.92,0.95,1], kup=rkMal(B||FW.scharlach,0.6);
   const T1=1.2, TS=2.5, RS=1.1, TE=T1+TS, TB=TE+0.35, L=TB+1.5;
   const cx=t=>-2.3+2.3*clamp((t-T1)/TS,0,1);
   let mesh=null;
-  try{ const mat=new THREE.ShaderMaterial({uniforms:{cx:{value:-3},rs:{value:RS},hell:{value:0},kupfer:{value:0},cA:{value:new THREE.Color(0.2,0.21,0.23)},cB:{value:new THREE.Color(kup[0]*0.45,kup[1]*0.45,kup[2]*0.45)}},
+  try{ const mat=new THREE.ShaderMaterial({uniforms:{cx:{value:-3},rs:{value:RS},hell:{value:0},kupfer:{value:0},cA:{value:new THREE.Color(0.2,0.21,0.23)},cB:{value:new THREE.Color(kup[0]*0.34,kup[1]*0.3,kup[2]*0.32)}},
       vertexShader:RK_MOND_VS,fragmentShader:RK_MOND_FS,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,fog:false});
     mesh=new THREE.Mesh(new THREE.PlaneGeometry(2*R,2*R),mat); mesh.position.set(p.x,p.y,p.z); mesh.lookAt(camera.position); scene.add(mesh);
     const g=mesh.geometry; later(L+0.3,()=>g.dispose()); }catch(e){ mesh=null; }
@@ -504,7 +509,7 @@ EFF.mondfinsternis=function(p,A,B,s){
       st.hell=h*(gr?0.75:1);
     });
   }
-  flash(p,sil,10,1.0);
+  flash(p,sil,6,1.0);
   /* Diamantring: am letzten hellen Rand rechts blitzt es auf */
   imBild(TE-0.2,()=>{ const qd={x:p.x+ri[0]*R*0.98,y:p.y+ri[1]*R*0.98,z:p.z+ri[2]*R*0.98};
     for(let i=0;i<3;i++) psHuge.emit(qd.x,qd.y,qd.z,0,0,0,2.2,2.2,2.3,0.15,0,0);
@@ -523,7 +528,7 @@ EFF.sternspuren=function(p,A,B,s){
     const t=st.alter; st.p[0]=p.x; st.p[1]=p.y; st.p[2]=p.z;
     const h=(t<4.5?1:(5-t)/0.5)*(1.1+0.25*Math.sin(t*5.5));
     st.hell=h; licht(key,{x:p.x,y:p.y,z:p.z},[0.85,0.9,1],1.8*h,{weite:30});
-    rkHofSetz(hof,[p.x,p.y,p.z],5.5,[0.8,0.85,1],0.32*h);
+    rkHofSetz(hof,[p.x,p.y,p.z],7.5,[0.8,0.85,1],0.17*h);
   },{ende:()=>rkHofWeg(hof)});
   for(let i=0;i<n;i++){
     const rr=(2+7*Math.pow(i/(n-1),0.9))*k*rand(0.97,1.03), a0=rand(0,Math.PI*2), c=i%2?sil:him, ct=[c[0]*0.75,c[1]*0.75,c[2]*0.8], L=4.9;
@@ -552,8 +557,8 @@ EFF.drachenschwinge=function(p,A,B,s){
   for(let i=0;i<Math.round(16*q);i++){ const d=randDir(), w=rand(0.5,2.5); psHuge.emit(p.x,p.y,p.z,d[0]*w,d[1]*w,d[2]*w,or[0]*1.4,or[1]*1.3,or[2],rand(0.22,0.34),0,0); }
   rauchball(p,{r:2.6*W,n:5,dauer:0.9,quellen:0.25,steigen:0.6,leuchten:true,c:[1,0.45,0.12],a:0.45});
   flash(p,or,7,0.45);
-  for(const sd of [-1,1]) for(let k=0;k<24;k++){
-    const e=k/23, ang=-0.2+e*0.72+rand(-.04,.04), sp=(9+e*2.4+rand(-.35,.35))*W, dz=rand(-0.14,0.14);
+  for(const sd of [-1,1]) for(let k=0;k<30;k++){
+    const e=k/29, ang=-0.2+e*0.72+rand(-.04,.04), sp=(11+e*3+rand(-.35,.35))*W, dz=rand(-0.14,0.14);
     const d=[ri[0]*sd*Math.cos(ang)+ob[0]*Math.sin(ang)+zu[0]*dz,ri[1]*sd*Math.cos(ang)+ob[1]*Math.sin(ang),ri[2]*sd*Math.cos(ang)+ob[2]*Math.sin(ang)+zu[2]*dz];
     const L=1.3+rand(0,0.15);
     rkStern(psHuge,p,[d[0]*sp,d[1]*sp,d[2]*sp],rkMal(rot,1.5),L,(st,dt)=>{
@@ -566,7 +571,7 @@ EFF.drachenschwinge=function(p,A,B,s){
     },{spur:0.3,ende:st=>{ const e=st.p;
       /* Asche: fuenf dunkelrote Funken taumeln langsam herab und flackern */
       for(let j=0;j<5;j++){ const x=randDir();
-        haengen(psMid,e[0],e[1],e[2],x[0]*1.2,x[1]*0.8+0.4,x[2]*1.2,[0.85,0.12,0.04],rand(2.6,3.2),{g:2,k:5,sink:rand(0.35,0.6),pendel:{amp:rand(0.25,0.5),hz:rand(0.5,0.9),achse:[Math.random()-0.5,Math.random()-0.5]},flacker:3.2}); } }});
+        haengen(j%2?psMid:psBig,e[0],e[1],e[2],x[0]*1.2,x[1]*0.8+0.4,x[2]*1.2,j%2?[1.4,0.3,0.06]:[1.1,0.22,0.05],rand(2.6,3.2),{g:2,k:5,sink:rand(0.35,0.6),pendel:{amp:rand(0.25,0.5),hz:rand(0.5,0.9),achse:[Math.random()-0.5,Math.random()-0.5]},flacker:3.2}); } }});
   }
   schall(p,v=>sfx.bruellen(v*1.1));
   later(0.7,()=>schall(p,v=>sfx.wumms(v*0.9)));
@@ -596,7 +601,7 @@ EFF.supernova=function(p,A,B,s){
     const rotv=[0.9,0.2,0.35];
     for(let i=0;i<Math.round(120*q);i++){ const d=randDir(), w=rand(3,6.5)*s/2.5, c=i%2?vio:rotv;
       psBig.emit(p.x,p.y,p.z,d[0]*w,d[1]*w,d[2]*w,c[0]*0.55,c[1]*0.55,c[2]*0.6,rand(4.4,5.0),0.05,2,c[0]*0.12,c[1]*0.1,c[2]*0.15); }
-    rauchball(p,{r:6.5*s/2.5,n:10,dauer:5,quellen:4.5,steigen:0.05,wind:[0.05,0],leuchten:true,a:0.32,farbe:t=>mischF([0.7,0.25,0.95],[0.55,0.1,0.25],clamp(t/5,0,1))});
+    rauchball(p,{r:8.5*s/2.5,n:14,dauer:5,quellen:4.5,steigen:0.05,wind:[0.05,0],leuchten:true,a:0.1,farbe:t=>mischF([0.7,0.25,0.95],[0.55,0.1,0.25],clamp(t/5,0,1))});
     const hof=rkHof();
     rkStern(psHuge,p,[0,0,0],[1.3,1.35,1.5],4.9,(st,dt)=>{ const t=st.alter+0.6; st.p[0]=p.x; st.p[1]=p.y; st.p[2]=p.z;
       /* vier Pulse, einer je Sekunde */
@@ -629,14 +634,14 @@ Object.assign(RAKETEN_KL,{
   smaragd        :{n:1,gap:0,sz:1.38,pw:1.6,fuse:1.3, steig:'wirbel',   trail:'gruen',A:'gruen',B:'mint',eff:['achtblatt'],bruchOpt:{nachglitzer:false,flash:0.35},dauer:4.4},
   blinkstern     :{n:1,gap:0,sz:1.42,pw:2.2,fuse:1.3, steig:'blink',    A:'weiss',B:'rot',eff:['leuchtturm'],bruchOpt:{kern:false,nachglitzer:false},dauer:5.8},
   silberregen    :{n:1,gap:0,sz:1.46,pw:3,  fuse:1.3, steig:'rieselschweif',A:'silber',B:'weiss',dick:1,eff:['regenring'],bruchOpt:{kern:false,nachglitzer:false},dauer:6},
-  kristall       :{n:1,gap:0,sz:1.5, pw:3.5,fuse:1.3, steig:'glasklang',A:'himmel',B:'weiss',dick:1,eff:['glasbruch'],bruchOpt:{nachglitzer:false},dauer:4.2},
+  kristall       :{n:1,gap:0,sz:1.5, pw:3.5,fuse:1.3, steig:'glasklang',A:'himmel',B:'weiss',dick:1,eff:['glasbruch'],bruchOpt:{kern:false,nachglitzer:false,flash:0.35},dauer:4.2},
   /* Furzrakete »Donnerbalken«: normaler Raketenweg, der Witz steckt im
      Aufstieg - sie setzt dreimal aus und pupst sich weiter */
   furzrakete     :{n:1,gap:0,sz:1.55,pw:4.2,fuse:1.6, steig:'stotter',  A:'braun',B:'sumpf',eff:['furz'],knall:'furz',bruchOpt:{kern:false,nachglitzer:false}},
   regenbogenkrone:{n:1,gap:0,sz:1.65,pw:4.6,fuse:1.35,steig:'spektralschweif',dick:2,eff:['spektralkrone'],bruchOpt:{kern:false,nachglitzer:false},dauer:4.8},
   titanraketen   :{n:1,gap:0,sz:1.75,pw:5.5,fuse:1.35,steig:'ratter',   th:'eis',dick:1,eff:['titan'],dauer:5},
   jumbogold      :{n:1,gap:0,sz:2.2, pw:8,  fuse:1.4, steig:'glut',     th:'koenig',dick:2,trail:'bernstein',eff:['sternpalme'],dauer:6},
-  silbermond     :{n:1,gap:0,sz:2.25,pw:9,  fuse:1.4, steig:'titanspur',A:'silber',B:'scharlach',dick:2,eff:['mondfinsternis'],knall:'rakTief',bruchOpt:{nachglitzer:false},dauer:8.5},
+  silbermond     :{n:1,gap:0,sz:2.25,pw:9,  fuse:1.4, steig:'titanspur',A:'silber',B:'scharlach',dick:2,eff:['mondfinsternis'],knall:'rakTief',bruchOpt:{nachglitzer:false,flash:0.5},dauer:8.5},
   jumboleiter    :{n:1,gap:0,sz:2.3, pw:10, fuse:1.45,steig:'perlenschnur',A:'weiss',B:'himmel',dick:2,eff:['sternspuren'],bruchOpt:{kern:false,nachglitzer:false},dauer:7.5},
   feuerdrache    :{n:1,gap:0,sz:2.4, pw:11, fuse:1.4, steig:'drachenschweif',A:'rot',B:'gold',dick:2,trail:'orange',eff:['drachenschwinge'],bruchOpt:{nachglitzer:false},dauer:7},
   supernova      :{n:1,gap:0,sz:2.5, pw:12, fuse:1.45,steig:'zweistufe',A:'violett',B:'himmel',dick:2,eff:['supernova'],knall:'ansaugen',bruchOpt:{kern:false,nachglitzer:false,flash:false},dauer:8}

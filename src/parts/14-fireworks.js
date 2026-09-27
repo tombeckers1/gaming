@@ -1282,7 +1282,7 @@ function shot(o,opt){
   const r={
     p:start, v, fuse, fuse0:fuse, alter:0, y0:start.y, hZiel, stufeT,
     A:sc[0],B:sc[1],eff:opt.eff||pick(EFF_GROSS),size:opt.sz||1,
-    trail:opt.trail||(spurAB?sc[spurAB]:STEIG_FARBE[sg])||(Math.random()<0.25?FW.silber:FW.gold),
+    trail:opt.trail||(spurAB!==undefined?sc[spurAB]:STEIG_FARBE[sg])||(Math.random()<0.25?FW.silber:FW.gold),
     /* Aufstieg je Phase festgelegt (Engine v2) - vorher gewuerfelt */
     steig:sg, bruchOpt:opt.bruchOpt||null,
     /* Nachbrueche: Tochterbomben, die nach dem Hauptbruch aufgehen */
@@ -1312,7 +1312,8 @@ const STEIG_FARBE={gold:[1,.72,.3],silber:[.85,.88,.95],glut:[1,.42,.12],knister
   pfeif:[1,.8,.45],stamm:[1,.7,.26],tonleiter:[.86,.92,1],dreiklang:[.8,.9,1],tremolant:[.69,.44,.12],pfeil:[1,1,1],brokat:[1,.82,.48],
   rieselschweif:[.88,.93,1],stotter:[.62,.36,.14],spektralschweif:[1,.13,.1],ratter:[1,1,1],titanspur:[1,1,1],perlenschnur:[.8,.86,.95],
   drachenschweif:[1,.35,.08],zweistufe:[1,.72,.3],blasen:[.55,.75,1],silberdrache:[.86,.9,1],ticktack:[1,.74,.28]};
-/* Diese Aufstiege ziehen eine Farbe der Rakete statt einer festen (0 = A, 1 = B) */
+/* Diese Aufstiege ziehen eine Farbe der Rakete statt einer festen (0 = A, 1 = B;
+   Abfrage mit !==undefined, 0 ist ein gueltiger Wert) */
 const STEIG_SPUR_AB={farbspur:0,zickzack:0,glasklang:1,schleife:0,wirbel:0};
 /* =========================================================
    Aufstiege (steig), neu am 26.09. nachts (Tom: "jedes Produkt eine

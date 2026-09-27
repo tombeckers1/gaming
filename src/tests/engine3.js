@@ -96,8 +96,11 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
       const L4=lauf([{n:2,gap:0.3,nurBoden:true,eff:'chrys'}],2); o.nurBodenAlt=L4.s.length; }
     /* PERLE */
     { const PS=W.ps(), zaehle=(fn)=>{ let n=0; for(const k in PS){ const ps=PS[k]; for(let i=0;i<ps.max;i++) if(ps.life[i]>0&&fn(ps,i,k)) n++; } return n; };
-      const L=lauf([{n:4,gap:0.3,perle:true,perleEff:'wandelperle',muster:'v',ang:0.3,A:'rot',B:'gold'}],0.05);
-      warte(0.85); const g=bb.FW.gold; o.wandelB=zaehle((ps,i,k)=>k==='psHuge'&&Math.abs(ps.base[i*3]-g[0]*1.3)<0.02&&Math.abs(ps.base[i*3+1]-g[1]*1.3)<0.02&&Math.abs(ps.base[i*3+2]-g[2]*1.3)<0.02);
+      /* B = violett (kommt sonst nirgends als psHuge*1,3 vor), Grundzaehlung vorher abziehen */
+      const g=bb.FW.violett, istB=(ps,i,k)=>k==='psHuge'&&Math.abs(ps.base[i*3]-g[0]*1.3)<0.02&&Math.abs(ps.base[i*3+1]-g[1]*1.3)<0.02&&Math.abs(ps.base[i*3+2]-g[2]*1.3)<0.02;
+      const b0=zaehle(istB);
+      const L=lauf([{n:4,gap:0.3,perle:true,perleEff:'wandelperle',muster:'v',ang:0.3,A:'rot',B:'violett'}],0.05);
+      warte(0.85); o.wandelB=zaehle(istB)-b0;
       warte(3); o.perleV=L.p.map(x=>[x.eff,x.v[0]]);
       lauf([{n:3,gap:0.6,perle:true,perleEff:'schwebeperle',A:'blau',B:'gold'}],3.2);
       o.schweben=zaehle((ps,i,k)=>k==='psHuge'&&Math.abs(ps.vel[i*3+1])<0.5&&ps.pos[i*3+1]>O.y+6&&ps.life[i]>0.5);
@@ -285,7 +288,10 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
       if(db<0.35&&df<0.5) gleich.push(arten[i]+'~'+arten[j]+'('+db.toFixed(2)+'/'+df.toFixed(2)+')'); }
     pruef('STEIG',!gleich.length,'nicht unterscheidbar: '+gleich.join(', '));
     const leer=arten.filter(a=>a!=='keiner'&&(S[a].psHuge+S[a].psBig+S[a].psMid+S[a].psSmall)<20);
-    pruef('STEIG',!leer.length&&(S.keiner.psBig+S.keiner.psMid)<5,'kein Schweif: '+J(leer)); }
+    pruef('STEIG',!leer.length&&(S.keiner.psBig+S.keiner.psMid)<5,'kein Schweif: '+J(leer));
+    /* Farbe aus der Rakete: farbspur, wirbel, zickzack ziehen A (rot), glasklang B (blau) */
+    const nachA=['farbspur','wirbel','zickzack'].filter(a=>!(S[a].r>0.6)), nachB=S.glasklang.b>0.6;
+    pruef('STEIG',!nachA.length&&nachB,'Schweif nicht in A/B: '+J(nachA)+' glasklang b '+S.glasklang.b); }
   { const Bn=r.steigBahn, H=Bn.gold.hoehe;
     /* Hoehe: gleich hoch wie Gold (pfeil, zweistufe), stotter etwas tiefer */
     pruef('STEIG',Math.abs(Bn.pfeil.hoehe-H)<1.5&&Math.abs(Bn.zweistufe.hoehe-H)<1.5&&Bn.stotter.hoehe<H-1&&Bn.stotter.hoehe>H-5,'Bruchhoehen: '+J({gold:H,pfeil:Bn.pfeil.hoehe,zweistufe:Bn.zweistufe.hoehe,stotter:Bn.stotter.hoehe}));

@@ -1385,7 +1385,10 @@ function lichtKarte(){
   _lichtK=tex(1024,128,(g,W,H)=>{ g.fillStyle='#000'; g.fillRect(0,0,W,H); },false);
   _lichtK.wrapS=_lichtK.wrapT=THREE.ClampToEdgeWrapping;
   /* die Tageszeit setzt an lampMats emissiveIntensity = f*3 */
-  lampMats.push({set emissiveIntensity(v){ const k=v/3*1.7; for(const m of LICHT_MATS) m.lightMapIntensity=k; }});
+  /* 1,7 war zu zaghaft: nachts lag die Strasse gleichmaessig dunkel, die
+     Lichtpfuetzen waren kaum zu sehen (26.09., Tom: "nachts ist die
+     Strasse dunkel") */
+  lampMats.push({set emissiveIntensity(v){ const k=v/3*3.8; for(const m of LICHT_MATS) m.lightMapIntensity=k; }});
   return _lichtK;
 }
 const imLicht=p=>p.x>LK.x0+9&&p.x<LK.x0+LK.w-9&&p.z>LK.z0+6&&p.z<LK.z0+LK.d-6;
@@ -1395,10 +1398,12 @@ function lichtKarteMalen(){
     g.globalCompositeOperation='lighter';
     for(const p of LICHTER){ if(!imLicht(p)) continue;
       /* breit laengs der Strasse, schmaler quer; Mitte etwas zur Fahrbahn */
-      g.save(); g.translate((p.x-LK.x0)*LK.px,(p.z+p.s*0.6-LK.z0)*LK.px); g.scale(1,0.64);
-      const r=8*LK.px, gr=g.createRadialGradient(0,0,0,0,0,r);
-      gr.addColorStop(0,'rgba(255,224,182,1)'); gr.addColorStop(0.14,'rgba(255,221,177,.82)'); gr.addColorStop(0.36,'rgba(255,215,168,.4)');
-      gr.addColorStop(0.62,'rgba(255,209,160,.12)'); gr.addColorStop(1,'rgba(255,205,155,0)');
+      /* enger als zuerst (8 m): bei 7 m Abstand flossen die Pfuetzen zu
+         einer gleichmaessig grauen Flaeche zusammen */
+      g.save(); g.translate((p.x-LK.x0)*LK.px,(p.z+p.s*0.6-LK.z0)*LK.px); g.scale(1,0.7);
+      const r=6.5*LK.px, gr=g.createRadialGradient(0,0,0,0,0,r);
+      gr.addColorStop(0,'rgba(255,224,182,1)'); gr.addColorStop(0.12,'rgba(255,221,177,.9)'); gr.addColorStop(0.35,'rgba(255,215,168,.45)');
+      gr.addColorStop(0.65,'rgba(255,209,160,.12)'); gr.addColorStop(1,'rgba(255,205,155,0)');
       g.fillStyle=gr; g.fillRect(-r,-r,r*2,r*2); g.restore(); }
     g.globalCompositeOperation='source-over';
     /* Rand schwarz: ausserhalb liest ClampToEdge den Rand */

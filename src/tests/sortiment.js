@@ -46,8 +46,14 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     Object.keys(bb.SHOWS).forEach(t=>{ const m=/(\d+) Schuss/.exec(P[t]&&P[t].name||''); if(!m) return;
       o.schuss[t]=[+m[1],bb.SHOWS[t]().reduce((a,ph)=>a+(ph.n||1),0)]; });
     /* Leiter: Schuss und Laenge wachsen */
-    const LEITER=['batterie16','knatter','faecher','zfaecher','batterie49','kometen','batterie100','donnerwand','profi','finale'];
+    /* 27.09.: Feuersturm (batterie49, L15) ist absichtlich
+       ein Sprint - 50 Schuss in 16 s (Tom: "Batterien, die nicht so lange gehen,
+       aber deutlich intensiver sind") - und steht nicht in der Laengen-Leiter;
+       dafuer muss er dichter feuern als jede Show bis Level 15 (SPRINT) */
+    const LEITER=['batterie16','knatter','faecher','zfaecher','kometen','batterie100','donnerwand','profi','finale'];
     o.leiter=LEITER.map(t=>[t,bb.SHOWS[t]().reduce((a,ph)=>a+(ph.n||1),0),bb.showLength(t),P[t].market]);
+    const dichte=t=>bb.SHOWS[t]().reduce((a,ph)=>a+(ph.n===undefined?1:ph.n),0)/Math.max(1,bb.showLength(t));
+    o.sprint={feuersturm:+dichte('batterie49').toFixed(2),andere:+Math.max(...Object.keys(bb.SHOWS).filter(t=>t!=='batterie49'&&P[t]&&P[t].cat>0&&P[t].lvl<=15).map(dichte)).toFixed(2)};
     /* alle verwendeten Bruchbilder existieren */
     const benutzt=new Set([].concat(bb.EFF_KLEIN,bb.EFF_GROSS,bb.EFF_PRO));
     Object.keys(bb.SHOWS).forEach(t=>bb.SHOWS[t]().forEach(ph=>{ const e=ph.eff; (Array.isArray(e)?e:[e]).forEach(x=>x&&benutzt.add(x)); }));
@@ -78,6 +84,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
      so steht es im Katalog. Ein grosses Produkt als kurzer Puff faellt weiter auf. */
   r.leiter.forEach((e,i)=>{ if(!i) return; const v=r.leiter[i-1];
     pruef('LEITER',e[1]>v[1]&&e[2]>=v[2]*0.7,e[0]+' ('+e[1]+' Schuss, '+e[2]+' s) steigert '+v[0]+' ('+v[1]+', '+v[2]+' s) nicht'); });
+  pruef('SPRINT',r.sprint.feuersturm>r.sprint.andere,'Feuersturm nicht dichter als die Shows bis Level 15: '+JSON.stringify(r.sprint));
   pruef('EFFEKTE',!r.fehlend.length&&!r.neueEff.length,'fehlen: '+r.fehlend.concat(r.neueEff));
 
   /* Goetterzorn: wie viele Brueche gehen im selben Moment auf? */

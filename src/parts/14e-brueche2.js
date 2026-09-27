@@ -371,7 +371,7 @@ function feuertopfSorte(o,sorte,A,B,s,opt){
 function tiefbruch(o,eff,A,B,s,opt){
   opt=opt||{}; s=s||0.6;
   const h=clamp(4+s*3,4,8), f=0.5, pw=(h+3*f*f)/(f*STEIG)-21;
-  shot(o,{eff,A,B,sz:s,pw,fest:true,fuse:f,ang:opt.ang!==undefined?opt.ang:rand(-0.05,0.05),dir:opt.dir,steig:'keiner',hell:opt.hell,bruchOpt:{nachglitzer:false,kern:false}});
+  shot(o,{eff,A,B,sz:s,pw,fest:true,fuse:f,ang:opt.ang!==undefined?opt.ang:rand(-0.05,0.05),dir:opt.dir,steig:'keiner',hell:opt.hell,tief:true,bruchOpt:{nachglitzer:false,kern:false}});
   return h;
 }
 

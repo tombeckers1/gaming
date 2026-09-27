@@ -479,7 +479,7 @@ const DB={
     {n:12,gap:0.25,gapEnde:0.12,muster:'mitte',ang:0.4,eff:'falterlicht',kal:'mittel',steig:'glut',pause:3.5}
   ]),
   /* Funkenflug, L13: Senko-Hanabi am Boden, verzweigte Goldsterne oben */
-  batterie16:()=>show({basis:{pw:-5,sz:0.78,th:'gold'}, rampe:{sz:[0.8,1.3],pw:[-2,2],hell:[0.85,1.3],kurve:'linear'}}, [
+  batterie16:()=>show({basis:{pw:-5,sz:0.78,th:'gold'}, rampe:{sz:[0.8,1.3],pw:[-3,2.5],hell:[0.85,1.3],kurve:'linear'}}, [
     {n:0,nurBoden:true,boden:{k:'flitterbrunnen',gt:6},pause:3.5},
     {n:4,gap:1.4,muster:'aussen',ang:0.3,eff:'flitterstern',kal:'klein',steig:'gold',pause:0.8},
     {n:6,gap:0.3,muster:'z',seg:2,ang:0.3,eff:['flitterstern','chrys'],steig:'gold',pause:1.0},
@@ -505,7 +505,7 @@ const DB={
      Orte der Teile in Metern (x) wie die des Lauffeuers - mit rohrFolge
      (relativ zur 0,4-m-Schachtel) stuende das Roemische Licht 8 cm neben
      der Mitte, das Lauffeuer endete aber 10 cm daneben. */
-  sortiment:()=>show({basis:{pw:-5.2,sz:0.76,th:'bunt'}, rampe:{sz:[0.85,1.25],pw:[-1,1.5],hell:[0.9,1.25],kurve:'welle'}}, [
+  sortiment:()=>show({basis:{pw:-5.2,sz:0.76,th:'bunt'}, rampe:{sz:[0.8,1.3],pw:[-3.5,3],hell:[0.9,1.25],kurve:'welle'}}, [
     {n:0,nurBoden:true,boden:[{k:'volcano',gt:6,x:-0.4,A:'gold',B:'rot'},{k:'lauffeuer',t:5.2,gt:1.0,x:-0.4,bis:-0.1}],pause:6.2},
     {n:4,perle:true,gap:0.8,x:-0.1,farbFolge:['rot','gruen','zitrone','blau'],boden:{k:'lauffeuer',t:3.2,gt:1.0,x:-0.1,bis:0.25},pause:1.2},
     {n:5,gap:0.5,muster:'mitte',ang:0.3,x:0.25,eff:['kugel','wechsel','chrys','kugel','wechsel'],steig:'gold',boden:{k:'lauffeuer',t:2.5,gt:1.0,x:0.25,bis:0.45},pause:1.2},
@@ -523,12 +523,12 @@ const DB={
     {n:4,perle:true,perleEff:'wandelperle',gap:0,muster:'schlag',ang:0.3,rohrFolge:[-0.6,-0.2,0.2,0.6],pause:3.0}
   ]),
   /* Knattersturm, L14: Crackling auf zwei Etagen zugleich */
-  knatter:()=>show({basis:{pw:-4,sz:0.84,th:'eis'}, rampe:{sz:[0.85,1.3],pw:[-1,2],hell:[0.85,1.3],kurve:'spaet'}}, [
+  knatter:()=>show({basis:{pw:-4,sz:0.90,th:'eis'}, rampe:{sz:[0.85,1.3],pw:[-1.5,3],hell:[0.85,1.3],kurve:'spaet'}}, [
     {n:4,gap:1.5,muster:'gerade',eff:'drachenei',kal:'klein',steig:'knister',pause:0.6},
     {n:6,gap:0.8,muster:'paar',ang:0.3,rohre:'breit',mineEff:'knister',mineSz:0.7,nurMine:true},
     {n:6,mit:true,gap:0.4,muster:'mitte',ang:0.3,eff:'tausend',steig:'knister',pause:1.0},
     {n:8,gap:0.15,muster:'wischer',seg:2,ang:0.35,eff:'knister',kal:'klein',steig:'silber',boden:{k:'knisterbrunnen',gt:4,gh:0.8,A:'silber',B:'tuerkis'},pause:1.2},
-    {n:6,gap:0,muster:'schlag',ang:0.4,eff:'tausend',kal:'mittel',mineEff:'knister',mineSz:0.8,steig:'knister',pause:3.5}
+    {n:6,gap:0,muster:'schlag',ang:0.4,eff:'tausend',kal:'mittel',pw:2,mineEff:'knister',mineSz:0.8,steig:'knister',pause:3.5}
   ]),
   /* Silberschwarm, L14: Fischschwaerme, der einzige Schwenk der Klasse */
   knisterfaecher:()=>show({basis:{pw:-4,sz:0.85,th:'blitz'}, rampe:{sz:[0.85,1.3],pw:[-1,2],hell:[0.85,1.3],kurve:'frueh'}}, [
@@ -538,14 +538,15 @@ const DB={
     {n:8,gap:0.35,muster:'x',ang:0.4,rohre:'breit',eff:'fischschwarm',kal:'mittel',steig:'silber',pause:3.5}
   ]),
   /* Feuersturm, L15: Sprint auf drei Ebenen, 3 Schuss je Sekunde */
-  batterie49:()=>show({basis:{pw:-3,sz:0.90,th:'glut'}, rampe:{sz:[0.8,1.35],pw:[-2,2.5],hell:[0.85,1.35],kurve:'frueh'}}, [
+  batterie49:()=>show({basis:{pw:-2.5,sz:0.90,th:'glut'}, rampe:{sz:[0.75,1.25],pw:[-2,2],hell:[0.85,1.35],kurve:'linear'}}, [
     {n:0,nurBoden:true,boden:[{k:'volcano',gt:15,x:-0.45,A:'orange',B:'gold'},{k:'volcano',gt:15,x:0.45,A:'rot',B:'gold'}],pause:0.4},
     {n:6,gap:0.7,muster:'gerade',eff:'lampare',kal:'klein',steig:'glut',pause:0.5},
     {n:10,gap:0.45,muster:'v',ang:0.3,eff:'chrys',steig:'glut',pause:0.5},
     {n:8,mit:true,gap:0.28,muster:'gerade',rohre:'breit',mineEff:'lampare',mineSz:0.6,nurMine:true},
     {n:12,gap:0.2,muster:'z',seg:3,ang:0.4,eff:['palme','lampare'],steig:'gold',pause:0.8},
     {n:6,gap:0.25,muster:'w',ang:0.35,eff:'chrys',kal:'mittel',steig:'knister',pause:0.6},
-    {n:7,gap:0,muster:'schlag',ang:0.45,eff:'lampare',kal:'gross',steig:'glut',mineEff:'chrys',mineSz:0.7,pause:3.0}
+    /* 27.09.: Schlussfaecher hoeher - schraege Rohre steigen sonst tiefer als der Anfang (steigerung.js) */
+    {n:7,gap:0,muster:'schlag',ang:0.45,eff:'lampare',kal:'gross',pw:2.5,steig:'glut',mineEff:'chrys',mineSz:0.7,pause:3.0}
   ]),
   /* Tausendblueten, L15: Senrin - Stille, dann ein Beet aus Blueten */
   sternenmeer42:()=>show({basis:{pw:-3,sz:0.92,th:'tropen'}, rampe:{sz:[0.8,1.35],pw:[-2,3],hell:[0.8,1.35],kurve:'linear'}}, [

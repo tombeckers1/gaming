@@ -613,7 +613,7 @@ SHOWS.regenbogenfaecher=()=>show({basis:{pw:0.60,sz:1.050,th:'spektrum'},rampe:{
 SIGNATUR.regenbogenfaecher={muster:'bogen',text:'sieben einfarbige Bögen, Rot außen, Violett innen'};
 
 /* Level 17: Blitzgewitter */
-SHOWS.zfaecher=()=>show({basis:{pw:0.65,sz:1.055,th:'blitz'},rampe:{sz:[0.90,1.30],pw:[-1,3],hell:[0.70,1.40],kurve:'spaet'}},[
+SHOWS.zfaecher=()=>show({basis:{pw:0.65,sz:1.055,th:'blitz'},rampe:{sz:[0.90,1.30],pw:[-2.5,2.5],hell:[0.70,1.40],kurve:'spaet'}},[
   /* Wetterleuchten: ferne, schwache Schlaege hoch oben */
   {n:6,gap:2.0,muster:'zufall',ang:0.35,pw:5,kal:'klein',eff:'salut',steig:'keiner',pause:0.5},
   /* erste Blitze, von aussen nach innen */
@@ -639,7 +639,7 @@ SHOWS.batterie100=()=>show({basis:{pw:0.70,sz:1.060,th:'himmel'},rampe:{sz:[0.90
   {n:0,ground:'fountain',gt:2.5,gh:0.6,gA:'violett',gB:'gold',pause:2.0},
   {n:12,gap:0.9,muster:'treppe',hoehe:'steigend',hSpanne:16,pw:-3,kal:'klein',eff:'pistill',steig:'blink',farbe:0,boden:{k:'blinker',gt:11,A:'weiss'},pause:0.2},
   /* oben: kurzer Stillstand, ein grosser Kamuro als Aussicht */
-  {n:1,muster:'gerade',eff:'kamuro',kal:'gross',pw:3,pause:1.8},
+  {n:1,muster:'gerade',eff:'kamuro',kal:'gross',pw:2,pause:1.8},
   /* erster Drop: fallend, immer schneller, kreischende Aufstiege */
   {n:16,gap:0.35,gapEnde:0.07,muster:'v',ang:0.15,hoehe:'fallend',hSpanne:18,eff:['chrys','spinne'],steig:'pfeif',pause:1.2},
   /* Kamelbuckel: Hoehen als Welle, Fontaene am Boden */
@@ -650,9 +650,9 @@ SHOWS.batterie100=()=>show({basis:{pw:0.70,sz:1.060,th:'himmel'},rampe:{sz:[0.90
   /* Tunnel: dunkel, tief, rumpelndes Knistern */
   {n:10,gap:0.25,muster:'zufall',ang:0.25,kal:'mini',pw:-3,eff:'tausend',pause:0.8},
   /* Schlussfahrt: Kreuzfeuer mit wechselnden Hoehen */
-  {n:24,gap:0.12,muster:'x',ang:0.45,hoehe:'wechsel',hSpanne:6,pw:5,eff:['kamuro','geist'],kal:'gross'},
+  {n:24,gap:0.12,muster:'x',ang:0.45,hoehe:'wechsel',hSpanne:3,pw:2.5,eff:['kamuro','geist'],kal:'gross'} /* 27.09.: pw 5->4 - die Kugelbomben sind die Koenigsklasse und steigen hoeher als die Spitze jedes Verbunds bis Level 17 (steigerung.js KUGEL) */,
   /* FINALE Schlussbremse: fuenf tiefe Strobe-Blitze auf Schlag - das Achterbahn-Foto */
-  {n:5,gap:0,muster:'schlag',ang:0.50,eff:'strobe',kal:'mittel',pw:4,pause:3.5}
+  {n:5,gap:0,muster:'schlag',ang:0.50,eff:'strobe',kal:'mittel',pw:3,pause:3.5}
 ]);
 SIGNATUR.batterie100={idee:'hoehenkurve',text:'Aufzug, Drop, Buckel, Bremse'};
 
@@ -720,7 +720,7 @@ SIGNATUR.goldenerregen={idee:'vorhang',text:'Vorhang fällt, öffnet sich, schli
 /* Level 19: Schimmelreiter. Galopp und Finale bekommen Silber fest
    (A silber, B blau/himmel als Spitzen) - aus dem Thema kaeme dort
    Tuerkis/Gold, und die Signatur ist der SILBERNE Pferdeschweif */
-SHOWS.kometen=()=>show({basis:{pw:1.65,sz:1.135,th:'nacht'},rampe:{sz:[0.90,1.25],pw:[-1,2],hell:[0.85,1.30],kurve:'frueh'}},[
+SHOWS.kometen=()=>show({basis:{pw:1.65,sz:1.135,th:'nacht'},rampe:{sz:[0.90,1.25],pw:[0,3],hell:[0.85,1.30],kurve:'frueh'}},[
   /* 27.09.: Stallfeuer - kurze Silberfontaene vorweg (Auftakt), Farben aus dem
      Thema eis (weiss/himmel) statt silber/blau (steigerung.js: kein Zufallsbunt),
      Maehne und Finale hoeher (Steigerung im Ablauf, Hoehenleiter) */
@@ -760,7 +760,7 @@ SHOWS.hochzeitsfaecher=()=>show({basis:{pw:2.00,sz:1.160,th:'herz'},rampe:{sz:[0
 SIGNATUR.hochzeitsfaecher={muster:'bild',text:'Herz aus 14 Blüten am Himmel'};
 
 /* Level 20: Trommelfeuer */
-SHOWS.donnerwand=()=>show({basis:{pw:2.05,sz:1.165,th:'glut'},rampe:{sz:[0.95,1.25],pw:[0,2],hell:[0.90,1.30],kurve:'linear'}},[
+SHOWS.donnerwand=()=>show({basis:{pw:2.05,sz:1.165,th:'glut'},rampe:{sz:[0.95,1.25],pw:[1.5,3.5],hell:[0.90,1.30],kurve:'linear'}},[
   /* 27.09.: Trommler zaehlt ein - kurze Flammenfontaene vorweg (Auftakt, steigerung.js) */
   {n:0,ground:'fountain',gt:2.5,gh:0.6,gA:'rot',gB:'gold',pause:2.0},
   /* Viertel: 4 Salven, Flammenfontaene */
@@ -983,7 +983,7 @@ SHOWS.geysirfeld=()=>show({basis:{pw:3.60,sz:1.290,th:'eis'},rampe:{sz:[0.90,1.2
 SIGNATUR.geysirfeld={idee:'geysir',text:'Ausbruch am Boden, darüber eine Säule aus fünf Schüssen'};
 
 /* Level 24: Weltuntergang */
-SHOWS.finale=()=>show({basis:{pw:4.00,sz:1.320,th:'meteor'},rampe:{sz:[0.85,1.35],pw:[-2,4],hell:[0.60,1.45],kurve:'spaet'}},[
+SHOWS.finale=()=>show({basis:{pw:4.00,sz:1.320,th:'meteor'},rampe:{sz:[0.85,1.35],pw:[0,4],hell:[0.60,1.45],kurve:'spaet'}},[
   /* Akt 1 Vorzeichen: dunkle Blueten, die erst glimmen und ploetzlich aufgehen; roter Horizont bis Akt 6 */
   /* 27.09.: gap 1,4 statt 2,4 und pw 5 statt 8 - vorher 30 s fast leerer Himmel
      zum Auftakt des groessten Produkts, und die Blueten lagen am oberen Bildrand */

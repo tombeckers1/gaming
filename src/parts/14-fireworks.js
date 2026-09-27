@@ -1288,7 +1288,7 @@ function shot(o,opt){
   /* stotter: drei Aussetzer zu je 0,3 s, die Rakete sackt jedes Mal 0,9 m ab */
   if(sg==='stotter') fuse+=0.9;
   if(sg==='knister') later(0.25,()=>sfx.crackle(distVol(o)*0.5));
-  if(FW_LOG) FW_LOG.push({t:FW_UHR,art:opt.kugel?'kugel':'schuss',ang:+ang.toFixed(3),dir:+dir.toFixed(3),x:+start.x.toFixed(2),z:+start.z.toFixed(2),steig:sg,kal:opt.kugel||0,pw:opt.pw||0,sz:opt.sz||1,eff:opt.eff||'?',A:sc[0],B:sc[1],
+  if(FW_LOG) FW_LOG.push({t:FW_UHR,art:opt.kugel?'kugel':'schuss',tief:!!opt.tief,ang:+ang.toFixed(3),dir:+dir.toFixed(3),x:+start.x.toFixed(2),z:+start.z.toFixed(2),steig:sg,kal:opt.kugel||0,pw:opt.pw||0,sz:opt.sz||1,eff:opt.eff||'?',A:sc[0],B:sc[1],
     stufenEff:(opt.stufen||[]).map(x=>x.eff),
     hoehe:+(hZiel-(sg==='stotter'?2.7:0)).toFixed(2),brueche:1+(opt.stufen?opt.stufen.length:0),fuse:+fuse.toFixed(3),tag:opt.tag||FW_TAG,ton:opt.ton,
     groesste:Math.max(opt.sz||1,...(opt.stufen||[]).filter(x=>x.eff!=='salut').map(x=>x.sz||0)),hell:opt.hell||1});

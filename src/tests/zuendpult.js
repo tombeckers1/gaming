@@ -61,6 +61,10 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     o.dauer8=bb.brennDauer('batterie16');
     bb.run(2.6,0.05);
     o.tasterOben=+(bb.pultTaster[7].userData.y0-bb.pultTaster[7].position.y).toFixed(4);
+    /* Funkenflug (batterie16) beginnt seit dem 26.09. mit 3,5 s
+       Flitterbrunnen am Boden (Katalog Einstieg, Tom: Anomalie) - die
+       ersten Sterne steigen erst danach; also 1,6 s weiter */
+    bb.run(1.6,0.05);
     const m8=bb.muendung(bb.stations.tisch,1,'batterie16');
     o.muendung8={x:+m8.x.toFixed(2),y:+m8.y.toFixed(2),z:+m8.z.toFixed(2)};
     o.raketenStart=bb.rockets.map(q=>+q.p.x.toFixed(2));

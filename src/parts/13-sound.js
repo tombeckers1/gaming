@@ -67,3 +67,112 @@ const sfx={
     later(0.05,()=>grollen(8,1.5*v,170,0.45)); later(0.3,()=>grollen(5.5,0.8*v,440,0.7));
     later(1.6,()=>noise(1.4,0.5*v,220)); later(3.2,()=>noise(1.3,0.3*v,180)); },
 };
+/* =========================================================
+   Neue Geraeusche fuer die Anomalie-Ueberarbeitung (Tom, 26.09. nachts:
+   "jedes Produkt eine Anomalie"). Alles prozedural wie oben. v ist die
+   Lautstaerke (meist distVol), die Schallverzoegerung macht schall().
+   ========================================================= */
+function weissBuf(){ if(!noiseBuf&&AC){ noiseBuf=AC.createBuffer(1,AC.sampleRate*1.5,AC.sampleRate); const d=noiseBuf.getChannelData(0); for(let i=0;i<d.length;i++) d[i]=Math.random()*2-1; } return noiseBuf; }
+/* Rosa Rauschen (Regen, Rieseln): weicher als weisses */
+let rosaBuf=null;
+function rosaRausch(){ if(!rosaBuf&&AC){ rosaBuf=AC.createBuffer(1,AC.sampleRate*2,AC.sampleRate); const d=rosaBuf.getChannelData(0); let b0=0,b1=0,b2=0;
+    for(let i=0;i<d.length;i++){ const w=Math.random()*2-1; b0=0.99765*b0+w*0.099046; b1=0.963*b1+w*0.2965164; b2=0.57*b2+w*1.0526913; d[i]=(b0+b1+b2+w*0.1848)*0.2; } }
+  return rosaBuf; }
+/* Gefiltertes Rauschen: typ lowpass|highpass|bandpass, f -> f2 gleitend,
+   an = Anschwellen (s), hart = endet abrupt, rosa = rosa Rauschen */
+function rauschF(o){ if(!AC||!(o.vol>=0.004)) return null;
+  const s=AC.createBufferSource(), f=AC.createBiquadFilter(), g=AC.createGain(), t=AC.currentTime, d=o.dur||0.3;
+  s.buffer=o.rosa?rosaRausch():weissBuf(); s.loop=d>0.9;
+  f.type=o.typ||'lowpass'; f.frequency.setValueAtTime(o.f||1000,t); if(o.f2) f.frequency.exponentialRampToValueAtTime(o.f2,t+d); if(o.q) f.Q.value=o.q;
+  if(o.an){ g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(o.vol,t+Math.min(o.an,d*0.98)); } else g.gain.setValueAtTime(o.vol,t);
+  if(o.hart){ g.gain.setValueAtTime(o.vol,t+Math.max(d-0.02,o.an||0)); g.gain.linearRampToValueAtTime(0,t+d); } else g.gain.exponentialRampToValueAtTime(0.0001,t+d);
+  s.connect(f); f.connect(g); g.connect(master); s.start(t,Math.random()*0.5); s.stop(t+d+0.05); return g; }
+/* tonGen: ein Synth fuer alle Pfeif-, Kreisch- und Brummtoene.
+   o = {f Grundton Hz, f2 Zielton (Glissando ueber gl oder dur),
+        spruenge:[[t,Hz],...] harte Tonspruenge, am Zerhacken Hz (Rechteck),
+        amTiefe 0..1, rausch 0..1 Rauschanteil um den Ton, vib:{hz,cent},
+        typ Wellenform, lp Tiefpass Hz, dur s (ohne: laeuft bis stop, max 60 s),
+        vol, an Anschwellen s, ab Ausklingen s}
+   Rueckgabe {f(hz,zeit) Ton live nachfuehren, vol(v), stop(ab)} */
+function tonGen(o){ if(!AC) return null;
+  const t=AC.currentTime, D=o.dur||60, vol=Math.max(0.0002,o.vol||0.04), an=o.an||0.02, ab=o.ab||0.08;
+  const osc=AC.createOscillator(), am=AC.createGain(), g=AC.createGain(), quellen=[osc];
+  osc.type=o.typ||'sine'; osc.frequency.setValueAtTime(o.f,t);
+  if(o.f2) osc.frequency.exponentialRampToValueAtTime(o.f2,t+(o.gl||D));
+  (o.spruenge||[]).forEach(([ts,f])=>osc.frequency.setValueAtTime(f,t+ts));
+  if(o.vib){ const vib=AC.createOscillator(), vg=AC.createGain(); vib.frequency.value=o.vib.hz||5;
+    vg.gain.value=o.f*(Math.pow(2,(o.vib.cent||30)/1200)-1); vib.connect(vg); vg.connect(osc.frequency); quellen.push(vib); }
+  let k=osc;
+  if(o.lp){ const lp=AC.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=o.lp; lp.Q.value=o.q||1; k.connect(lp); k=lp; }
+  k.connect(am);
+  if(o.am){ const lfo=AC.createOscillator(), tf=AC.createGain(), T=o.amTiefe===undefined?1:o.amTiefe;
+    lfo.type='square'; lfo.frequency.value=o.am; am.gain.value=1-T/2; tf.gain.value=T/2; lfo.connect(tf); tf.connect(am.gain); quellen.push(lfo); }
+  let rf=null;
+  if(o.rausch){ const rs=AC.createBufferSource(), rg=AC.createGain(); rf=AC.createBiquadFilter();
+    rs.buffer=weissBuf(); rs.loop=true; rf.type='bandpass'; rf.frequency.setValueAtTime(o.f,t); if(o.f2) rf.frequency.exponentialRampToValueAtTime(o.f2,t+(o.gl||D)); rf.Q.value=3;
+    rg.gain.value=o.rausch*4; rs.connect(rf); rf.connect(rg); rg.connect(am); quellen.push(rs); }
+  am.connect(g); g.connect(master);
+  g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(vol,t+an);
+  g.gain.setValueAtTime(vol,t+Math.max(an,D-ab)); g.gain.exponentialRampToValueAtTime(0.0001,t+D);
+  quellen.forEach(q=>{ q.start(t); q.stop(t+D+0.05); });
+  return { f(hz,zeit){ const n=AC.currentTime; osc.frequency.cancelScheduledValues(n); osc.frequency.setTargetAtTime(hz,n,zeit||0.05); if(rf){ rf.frequency.cancelScheduledValues(n); rf.frequency.setTargetAtTime(hz,n,zeit||0.05); } },
+    vol(v){ g.gain.cancelScheduledValues(AC.currentTime); g.gain.setTargetAtTime(Math.max(0.0001,v),AC.currentTime,0.05); },
+    stop(a){ const n=AC.currentTime; a=a||0.08; g.gain.cancelScheduledValues(n); g.gain.setTargetAtTime(0.0001,n,a/4); quellen.forEach(q=>{ try{ q.stop(n+a+0.03); }catch(e){} }); } };
+}
+/* Schall kommt nach dem Licht: fn(v) nach Laufzeit Abstand/343 */
+function schall(p,fn){ const d=camera.position.distanceTo(p)/343, v=distVol(p); if(d<0.02) fn(v); else later(d,()=>fn(v)); }
+let tickAktiv=0;
+Object.assign(sfx,{
+  /* trockener Startknall ohne Zischen (Silberpfeil) */
+  startknall:v=>{ rauschF({dur:0.1,vol:0.7*v,f:2200}); tone(130,0.12,'sine',0.12*v,50); },
+  /* Glasklang: zwei Sinus 1,6-1,9 kHz, 3 Hz Schwebung (Kristall) */
+  glasklang:(v,f)=>{ f=f||rand(1600,1900); tone(f,1.6,'sine',0.045*v); tone(f+3,1.6,'sine',0.045*v); tone(f*2.76,0.45,'sine',0.01*v); },
+  /* Klirren: 6-10 helle Tinks in 0,25 s */
+  klirren:v=>{ const n=6+Math.floor(Math.random()*5); for(let i=0;i<n;i++) later(Math.random()*0.25,()=>tone(rand(3000,6000),rand(0.04,0.1),'sine',0.03*v)); },
+  /* Eisknistern: 40 leise Klicks ueber 4 kHz in 0,8 s */
+  eisknistern:v=>{ for(let i=0;i<40;i++) later(Math.random()*0.8,()=>rauschF({dur:0.012,vol:0.07*v,typ:'highpass',f:4000})); },
+  /* Kreischen (Schwaermer): 1,2-2 kHz, zerhackt 12-18 Hz, mit Rauschen; gl = faellt ab */
+  kreischen:(v,dur,gl)=>{ const f=rand(1200,2000); return tonGen({f,f2:gl?f*0.55:undefined,am:rand(12,18),amTiefe:0.8,rausch:0.35,typ:'square',lp:3600,dur:dur||1.5,vol:0.02*v}); },
+  /* Rattern (Titanrakete): derselbe Generator, haerter zerhackt, mehr Rauschen */
+  ratter:(v,dur)=>tonGen({f:rand(1200,1500),am:rand(22,28),amTiefe:1,rausch:0.6,typ:'sawtooth',lp:2600,dur:dur||1.2,vol:0.022*v}),
+  /* Brummen (Kreisel, Blitzturm): Saegezahn mit Tiefpass, Ton live
+     nachfuehrbar: const h=sfx.brummen(v,120); ... h.f(600) */
+  brummen:(v,f,dur)=>tonGen({f:f||120,typ:'sawtooth',lp:1800,q:2,dur,vol:0.028*v,an:0.1}),
+  /* Fauchen: tiefes Rauschen, schwillt an (Drache, Fackel, Geysir) */
+  fauchen:(v,dur,hart)=>rauschF({dur:dur||1.5,vol:0.32*v,f:300,an:(dur||1.5)*0.4,hart}),
+  /* Bruellen: Rauschen, Tonhoehe 200 -> 90 Hz in 1,2 s */
+  bruellen:v=>{ rauschF({dur:1.2,vol:0.5*v,typ:'bandpass',f:200,f2:90,q:2.5,an:0.08}); tone(200,1.2,'sawtooth',0.03*v,90); },
+  /* Ansaugen: umgekehrter Rauschanstieg 0,4 s, endet hart */
+  ansaugen:v=>rauschF({dur:0.4,vol:0.35*v,typ:'bandpass',f:500,f2:2500,q:0.8,an:0.38,hart:true}),
+  pling:v=>tone(2640,0.25,'sine',0.03*v),
+  regen:(v,dur)=>rauschF({dur:dur||2.5,vol:0.18*v,typ:'bandpass',f:2500,q:0.6,rosa:true,an:0.3}),
+  snap:v=>rauschF({dur:0.02,vol:0.5*v,typ:'bandpass',f:4500,q:1.2}),
+  /* Plopp: tiefer Sinus 110 -> 60 Hz und dumpfes Rauschen; h > 1 hoeher */
+  plopp:(v,h)=>{ h=h||1; tone(110*h,0.08,'sine',0.14*v,60*h); rauschF({dur:0.08,vol:0.12*v,f:400*h}); },
+  ratsch:v=>rauschF({dur:0.15,vol:0.25*v,typ:'bandpass',f:1500,f2:3200,q:2}),
+  rieseln:(v,dur)=>rauschF({dur:dur||2.5,vol:0.08*v,typ:'highpass',f:5000,rosa:true,an:0.2}),
+  herzton:v=>{ tone(rand(55,70),0.18,'sine',0.25*v,45); tone(1000,0.012,'square',0.03*v); },
+  poka:v=>rauschF({dur:0.2,vol:0.55*v,f:320}),
+  /* Tick-Tack: Klicks 2 kHz und 1,5 kHz im Wechsel, n Paare */
+  ticktack:(v,n)=>{ for(let i=0;i<(n||1)*2;i++) later(i*0.25,()=>tone(i%2?1500:2000,0.015,'square',0.04*v)); },
+  /* Glocke: 110 Hz mit unharmonischen Obertoenen, 4 s */
+  dong:v=>{ [[1,0.16],[2,0.06],[2.76,0.05],[5.4,0.02],[8.93,0.01]].forEach(([k,a])=>tone(110*k,4/Math.sqrt(k),'sine',a*v)); tone(55,4,'sine',0.05*v); },
+  /* Donner: Knacken, dann Grollen (lang: Weltenblitz) */
+  donner:(v,lang)=>{ rauschF({dur:0.09,vol:0.7*v,typ:'highpass',f:2500}); later(0.05,()=>grollen(lang?4:2.2,0.9*v,120,0.25)); later(0.4,()=>noise(0.8,0.3*v,200)); },
+  /* Tick: 1-kHz-Korn, hoechstens 8 gleichzeitig (Hagel bei 10 Schuss/s) */
+  tick:v=>{ if(tickAktiv>=8) return false; tickAktiv++; tone(1000,0.012,'square',0.035*v); later(0.03,()=>{ tickAktiv--; }); return true; },
+  /* Klick eines Knisterpops, h = Tonhoehe */
+  klick:(v,h)=>rauschF({dur:0.018,vol:0.16*v,typ:'highpass',f:3000*(h||1)}),
+  /* Pfeifton mit Tonhoehe: ton Halbtoene ueber 1,6 kHz, steigt beim
+     Steigen 2 Halbtoene. o.gleit: tief, sinkt ueber 2,5 s eine Quarte und
+     vibriert (Heulboje). o.fallend: Glissando abwaerts */
+  pfeifTon:(v,ton,o)=>{ o=o||{}; const f=1600*Math.pow(2,((ton||0)-(o.gleit?12:0))/12), d=o.dur||(o.gleit?2.5:1.3);
+    const f2=o.gleit?f*Math.pow(2,-5/12):o.fallend?f*0.6:f*Math.pow(2,2/12);
+    return tonGen({f,f2,dur:d,vol:0.03*v,vib:o.gleit?{hz:6,cent:35}:null,rausch:0.08,an:0.05}); },
+  /* Zischen (Lauffeuer), Brodeln (Kessel), Prasseln (Flitterbrunnen), Wumms (Einschlag) */
+  zischen:(v,dur)=>rauschF({dur:dur||0.8,vol:0.1*v,typ:'highpass',f:3500,an:0.05}),
+  brodeln:(v,dur)=>{ dur=dur||1; rauschF({dur,vol:0.12*v,f:180,an:0.2});
+    for(let i=0;i<Math.round(dur*4);i++) later(Math.random()*dur,()=>tone(rand(60,110),0.12,'sine',0.07*v,rand(120,170))); },
+  prasseln:v=>{ for(let i=0;i<4;i++) later(Math.random()*0.3,()=>rauschF({dur:0.015,vol:0.06*v,typ:'highpass',f:rand(2500,5000)})); },
+  wumms:v=>{ tone(48,0.6,'sine',0.35*v,28); noise(0.5,0.5*v,180); }
+});

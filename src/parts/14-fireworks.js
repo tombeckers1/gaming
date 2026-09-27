@@ -170,7 +170,22 @@ const THEMEN={
   bunt:[['rot','gold'],['gruen','zitrone'],['blau','weiss'],['magenta','tuerkis']],
   herz:[['rose','gold'],['rot','weiss']],
   zorn:[['magenta','gold'],['violett','zitrone']],
-  silber:[['silber','gold'],['weiss','tuerkis']]
+  silber:[['silber','gold'],['weiss','tuerkis']],
+  /* Neue Themen der Anomalie-Ueberarbeitung (26.09., Tom: "jedes
+     Produkt eine Anomalie"): je eins fuer das Produkt, dessen Farbe es
+     traegt. Feste Paare, kein Zufall. */
+  pfau:[['tuerkis','gold'],['blau','limette'],['gruen','violett']],
+  sonne:[['gold','bernstein'],['orange','zitrone'],['scharlach','gold']],
+  pastell:[['rose','aqua'],['zitrone','mint'],['pfirsich','himmel'],['violett','zitrone']],
+  spektrum:[['rot','weiss'],['orange','weiss'],['zitrone','weiss'],['gruen','weiss'],['tuerkis','weiss'],['blau','weiss'],['violett','weiss']],
+  hexe:[['limette','violett'],['gruen','magenta'],['violett','zitrone']],
+  aurora:[['gruen','violett'],['mint','rose'],['limette','indigo']],
+  buntglas:[['rot','tuerkis'],['zitrone','violett'],['gruen','magenta'],['blau','orange']],
+  meteor:[['bernstein','weiss'],['rot','orange'],['scharlach','zitrone']],
+  laser:[['gruen','weiss'],['tuerkis','magenta'],['violett','limette']],
+  tricolore:[['gruen','weiss'],['weiss','rot'],['rot','gruen']],
+  /* Wolkenkratzer: Index = Etage */
+  stadt:[['gold','bernstein'],['rot','scharlach'],['weiss','silber'],['blau','violett']]
 };
 function themaPaar(th,i){ const T=THEMEN[th]||THEMEN.bunt, s=T[((i|0)%T.length+T.length)%T.length]; return [K(s[0]),K(s[1])]; }
 function scheme(i){ const s=(typeof i==='number'&&i>=0)?SCHEMES[i%SCHEMES.length]:pick(SCHEMES); return [K(s[0]),K(s[1])]; }

@@ -69,42 +69,50 @@ const FASSADE={
 const FENSTER={putz:[.27,.2,.46,.58],klinker:[.27,.2,.46,.58],stein:[.25,.17,.5,.62],raster:[.15,.16,.7,.6],band:[.04,.38,.92,.46],glas:[.05,.2,.9,.72]};
 const BUERO={stein:1,band:1,raster:1,glas:1};
 function fZufall(seed){ let x=seed*9301+49297; return ()=>{ x=(x*233280+49297)%2147483647; return (x%100000)/100000; }; }
+/* Nachtbild (28.09., Art-Director: "graue Farbbalken, ganze Etagen
+   wiederholen sich alle 8 Geschosse"): eigenes Modul aus 8 Achsen mal
+   NMOD Geschossen, der Shader liest es mit gestauchtem v (FMOD/NMOD).
+   Bueros leuchten kraeftig in warmem bis neutralem Weiss statt in
+   halbdurchsichtigem Grau, dunkle Etagen ueberwiegen. */
+const NMOD=32;
 function fassadeZeichnen(g,W,H,stil,nacht){
-  const R=fZufall({putz:11,klinker:23,band:37,glas:53,stein:71,raster:89}[stil]), cw=W/FMOD, ch=H/FMOD;
+  const R=fZufall({putz:11,klinker:23,band:37,glas:53,stein:71,raster:89}[stil]), cw=W/FMOD, ch=H/(nacht?NMOD:FMOD);
   const rr=(a,b)=>a+R()*(b-a), [fx,fy,fw,fh]=FENSTER[stil];
   if(nacht){
     g.fillStyle='#000'; g.fillRect(0,0,W,H);
-    const WARM=['#ffd79a','#ffc478','#f7e6c4','#ffb96b','#ffe3b0'], KALT=['#e6edff','#f3f0e4','#fff0d6','#dfe6f5'];
+    const WARM=['#ffd79a','#ffc478','#f7e6c4','#ffb96b','#ffe3b0'], BL=['#ffe9c4','#f4ecdc','#ffe0b4','#e4ebf4','#fff1d8','#f0e6d0'];
     const buero=!!BUERO[stil];
-    for(let r=0;r<FMOD;r++){
-      /* Bueros: ganze Etagen brennen, auf dunklen Etagen arbeitet hier
-         und da noch ein Team - Gruppen statt Salz und Pfeffer */
-      const etageAn=R()<0.2, farbe=KALT[Math.floor(R()*4)];
-      let an=R()<0.2;
+    for(let r=0;r<NMOD;r++){
+      /* Bueros: manche Etagen brennen ganz, auf anderen arbeitet ein
+         Team in einem Abschnitt, der Rest ist dunkel */
+      const e=R(), etageAn=e<0.16, teil=!etageAn&&e<0.46, farbe=BL[Math.floor(R()*BL.length)];
+      const a0=Math.floor(R()*FMOD), a1=a0+1+Math.floor(R()*4);
       for(let c=0;c<FMOD;c++){
         const x=c*cw+cw*fx, y=r*ch+ch*fy, w=cw*fw, h=ch*fh;
         let lit;
-        if(buero){ an=an?R()>0.35:R()<0.1; lit=etageAn?R()<0.8:an&&R()<0.75; }
-        else lit=R()<0.42;
+        if(buero) lit=etageAn?R()<0.88:teil?((c>=a0&&c<a1)||(c+FMOD>=a0&&c+FMOD<a1))&&R()<0.9:R()<0.03;
+        else lit=R()<0.4;
         if(!lit) continue;
         const tv=!buero&&R()<0.12;
         const f=tv?'#8fb4ff':buero?farbe:WARM[Math.floor(R()*5)];
-        const hell=(buero?(etageAn?rr(0.42,0.64):rr(0.26,0.48)):rr(0.55,1))*(stil==='band'?0.72:1);
+        const hell=buero?rr(0.58,0.88):rr(0.55,1);
         g.globalAlpha=hell; g.fillStyle=f; g.fillRect(x,y,w,h);
         if(buero){
-          /* Deckenleuchten als heller Streifen, unten Tische und Bruestung */
-          g.globalAlpha=Math.min(1,hell+0.3); g.fillStyle='#fff'; g.fillRect(x,y+h*0.05,w,Math.max(2,h*0.05));
-          g.globalAlpha=0.5; g.fillStyle='#000'; g.fillRect(x,y+h*0.74,w,h*0.26);
-          g.globalAlpha=0.35; for(let k=1;k<4;k++) g.fillRect(x+w*k/4-1,y,2,h);
+          /* Deckenleuchten als heller Streifen, unten Tische, Pfosten */
+          g.globalAlpha=1; g.fillStyle='#fff'; g.fillRect(x,y+h*0.04,w,Math.max(2,h*0.06));
+          g.globalAlpha=0.35; g.fillStyle='#000'; g.fillRect(x,y+h*0.76,w,h*0.24);
+          g.globalAlpha=0.5; for(let k=1;k<4;k++) g.fillRect(x+w*k/4-1,y,2,h);
         } else if(R()<0.45){ g.globalAlpha=0.55; g.fillStyle='#000'; const k=rr(0.2,0.5); g.fillRect(x,y,w*k,h); }
         /* Streulicht */
-        g.globalAlpha=0.12; g.fillStyle=f; g.fillRect(x-w*0.1,y-h*0.1,w*1.2,h*1.2);
+        g.globalAlpha=0.1; g.fillStyle=f; g.fillRect(x-w*0.08,y-h*0.08,w*1.16,h*1.16);
         g.globalAlpha=1;
         /* Sprossen bleiben dunkel */
         g.fillStyle='rgba(0,0,0,.8)';
         if(stil==='putz'||stil==='klinker'||stil==='stein'){ g.fillRect(x+w/2-2,y,4,h); g.fillRect(x,y+h*0.32,w,3); }
       }
     }
+    /* dort liest der Dachdeckel (u 0.004, v 0.996): bleibt dunkel */
+    g.fillStyle='#000'; g.fillRect(0,H*(1-0.996*FMOD/NMOD)-6,10,12);
     return;
   }
   const rauschen=(n,a,hell)=>{ for(let i=0;i<n;i++){ g.fillStyle=hell?`rgba(255,255,255,${R()*a})`:`rgba(0,0,0,${R()*a})`; g.fillRect(R()*W,R()*H,rr(1,4),rr(1,4)); } };
@@ -240,27 +248,29 @@ function stadtUmgebung(){
   return _stadtEnv||null;
 }
 const STADT_MATS={}, FASSADE_TEX={};
-function fassadenMaterial(stil,fern){
-  const key=stil+(fern?'f':'n');
-  if(STADT_MATS[key]) return STADT_MATS[key];
+/* 28.09.: ein Material je Stil fuer alle Ringe - nah und fern waren
+   ausser beim Handy identisch und kosteten trotzdem je einen Zeichenaufruf */
+function fassadenMaterial(stil){
+  if(STADT_MATS[stil]) return STADT_MATS[stil];
   const px=COARSE?512:1024;
-  /* Nah und fern teilen sich die Texturen. Nacht- und Glanzbild
-     reichen in halber Aufloesung. */
+  /* Nacht- und Glanzbild reichen in halber Aufloesung, das Nachtbild
+     ist dafuer NMOD/FMOD mal so hoch */
   const mk=art=>{ const k=stil+art; if(FASSADE_TEX[k]) return FASSADE_TEX[k];
     const p=art==='T'?px:px/2;
-    const t=tex(p,p,(g,W,H)=>art==='G'?glanzZeichnen(g,W,H,stil):fassadeZeichnen(g,W,H,stil,art==='N'),false);
+    const t=tex(p,art==='N'?p*NMOD/FMOD:p,(g,W,H)=>art==='G'?glanzZeichnen(g,W,H,stil):fassadeZeichnen(g,W,H,stil,art==='N'),false);
     t.wrapS=t.wrapT=THREE.RepeatWrapping; t.anisotropy=8; return FASSADE_TEX[k]=t; };
   /* Auf dem Handy nur das Glas mit Spiegelung, sonst jede Scheibe */
   const glanz=!COARSE||stil==='glas', env=glanz?stadtUmgebung():null;
   const m=new THREE.MeshStandardMaterial({
     vertexColors:true, map:mk('T'), emissive:LIN(0xffffff), emissiveMap:mk('N'), emissiveIntensity:0,
-    roughness:glanz?1:(fern?1:0.9), metalness:glanz?1:0,
+    roughness:glanz?1:0.95, metalness:glanz?1:0,
     roughnessMap:glanz?mk('G'):null, metalnessMap:glanz?mk('G'):null,
     envMap:env, envMapIntensity:stil==='glas'?1.25:0.9
   });
+  m.onBeforeCompile=sh=>{ sh.fragmentShader=sh.fragmentShader.replace('texture2D( emissiveMap, vUv )','texture2D( emissiveMap, vec2( vUv.x, vUv.y*'+(FMOD/NMOD).toFixed(4)+' ) )'); };
   m.userData={env:m.envMapIntensity};
   houseMats.push(m);
-  STADT_MATS[key]=m;
+  STADT_MATS[stil]=m;
   return m;
 }
 /* Box mit Fassade im richtigen Massstab (nur noch fuer den fernen Ring) */
@@ -377,9 +387,12 @@ function dachGeo(L,prof,inn){
     G.push([[x,my,mz],[x,a[1],a[0]],[x,b[1],b[0]],w,w,w,[sx,0,0]]); }
   return {dach:dreiecke(T),giebel:dreiecke(G)};
 }
-function pyramide(w,d,h){
-  const e=[[w/2,0,-d/2],[w/2,0,d/2],[-w/2,0,d/2],[-w/2,0,-d/2]], T=[], sp=[0,h,0];
-  for(let i=0;i<4;i++){ const a=e[i], b=e[(i+1)%4]; T.push([a,b,sp,[0,0],[1,0],[0.5,1],[(a[0]+b[0])/2,0.3,(a[2]+b[2])/2]]); }
+/* Pyramide ueber einem Grundriss (28.09.: auf gefasten Tuermen ragten
+   die Ecken der Rechteck-Pyramide frei ueber die Fasen) */
+function pyramide(P,h){
+  const T=[], sp=[0,h,0];
+  for(let i=0;i<P.length;i++){ const a=[P[i].x,0,P[i].z], b=[P[(i+1)%P.length].x,0,P[(i+1)%P.length].z];
+    T.push([a,b,sp,[0,0],[1,0],[0.5,1],[(a[0]+b[0])/2,0.3,(a[2]+b[2])/2]]); }
   return dreiecke(T);
 }
 
@@ -388,11 +401,11 @@ function pyramide(w,d,h){
    einem Mesh verschmolzen - egal aus welchem Ring es kommt.
    -------------------------------------------------------- */
 const ST_KANTEN=[], ST_DEKO=[], ST_DACH=[], ST_LOBBY=[], ST_KRONE=[], ST_HELI=[], ST_LICHTER=[];
-function sammler(fern){ const f={}; for(const s in FASSADE) f[s]=[]; return {fern,fass:f,boxen:0}; }
+function sammler(){ const f={}; for(const s in FASSADE) f[s]=[]; return {fass:f,boxen:0}; }
 function sammlerBauen(S){
   for(const s in S.fass){ if(!S.fass[s].length) continue;
     SKYLINE_INFO.stile.add(s);
-    stadtAdd(new THREE.Mesh(merge(S.fass[s]),fassadenMaterial(s,S.fern))); S.fass[s].length=0; }
+    stadtAdd(new THREE.Mesh(merge(S.fass[s]),fassadenMaterial(s))); S.fass[s].length=0; }
   return S.boxen;
 }
 /* Flugwarnlichter auf den hohen Tuermen - bei Nacht und Feuerwerk
@@ -405,38 +418,44 @@ const KRONEN=[];
 let _lobbyM=null, _kroneM=null, _dachM=null, lichtPts=null;
 /* Erdgeschoss: oben in der Textur eine Lobby, unten Ladenzeilen.
    Tagsueber dunkles Glas mit Spiegelung, nachts warmes Licht. */
+/* 28.09. (Art-Director: "ueberstrahlter weisser Streifen hinter dem
+   Parkzaun"): 20 m je Kachel statt 10, vier Laeden, von denen nachts
+   nur etwa die Haelfte brennt; Lobbylicht gedaempft. */
 function lobbyMaterial(){
   if(_lobbyM) return _lobbyM;
   const zeichne=(g,W,H,nacht)=>{
-    const R=fZufall(97), Hh=H/2;
+    const R=fZufall(97), Hh=H/2, F=8;
     g.fillStyle=nacht?'#000':'#1c2228'; g.fillRect(0,0,W,H);
-    /* Lobby: vier Felder zu 2,5 m, Tuer im zweiten */
-    if(nacht){ const gr=g.createLinearGradient(0,0,0,Hh); gr.addColorStop(0,'#fff1d2'); gr.addColorStop(0.5,'#e8c690'); gr.addColorStop(1,'#8a6a42'); g.fillStyle=gr; g.fillRect(0,0,W,Hh);
-      g.fillStyle='#fff'; for(let x=16;x<W;x+=32) g.fillRect(x,Hh*0.1,6,4);
-      g.fillStyle='rgba(0,0,0,.55)'; g.fillRect(W*0.58,Hh*0.62,W*0.22,Hh*0.3); }
+    /* Lobby: acht Felder zu 2,5 m, Tuer im zweiten und sechsten */
+    if(nacht){ const gr=g.createLinearGradient(0,0,0,Hh); gr.addColorStop(0,'#b8a684'); gr.addColorStop(0.5,'#8a7452'); gr.addColorStop(1,'#3e3020'); g.fillStyle=gr; g.fillRect(0,0,W,Hh);
+      g.fillStyle='#e8dcc0'; for(let x=16;x<W;x+=48) g.fillRect(x,Hh*0.1,6,4);
+      g.fillStyle='rgba(0,0,0,.55)'; for(const k of [1,5]) g.fillRect(W*(k+0.2)/F,Hh*0.62,W*0.6/F,Hh*0.3);
+      /* zwei Felder hinter Wandscheiben: dunkel */
+      g.fillStyle='#000'; g.fillRect(W*3/F,0,W/F,Hh); g.fillRect(W*7/F,0,W/F,Hh); }
     else { const gr=g.createLinearGradient(0,0,W,Hh); gr.addColorStop(0,'#3a4550'); gr.addColorStop(0.5,'#232a31'); gr.addColorStop(1,'#303a44'); g.fillStyle=gr; g.fillRect(0,0,W,Hh);
-      g.fillStyle='rgba(220,210,190,.2)'; g.fillRect(0,Hh*0.08,W,Hh*0.05); g.fillStyle='rgba(150,140,120,.25)'; g.fillRect(W*0.58,Hh*0.62,W*0.22,Hh*0.3);
-      g.fillStyle='rgba(200,220,240,.12)'; for(let i=0;i<5;i++){ const x=(i*0.23+0.07)*W; g.beginPath(); g.moveTo(x,0); g.lineTo(x+40,0); g.lineTo(x-30,Hh); g.lineTo(x-70,Hh); g.fill(); } }
+      g.fillStyle='rgba(220,210,190,.2)'; g.fillRect(0,Hh*0.08,W,Hh*0.05); g.fillStyle='rgba(150,140,120,.25)'; for(const k of [1,5]) g.fillRect(W*(k+0.2)/F,Hh*0.62,W*0.6/F,Hh*0.3);
+      g.fillStyle='rgba(200,220,240,.12)'; for(let i=0;i<10;i++){ const x=(i*0.113+0.04)*W; g.beginPath(); g.moveTo(x,0); g.lineTo(x+40,0); g.lineTo(x-30,Hh); g.lineTo(x-70,Hh); g.fill(); } }
     g.fillStyle=nacht?'#000':'#8e969e';
-    for(let k=0;k<=4;k++) g.fillRect(k*W/4-5,0,10,Hh);
+    for(let k=0;k<=F;k++) g.fillRect(k*W/F-5,0,10,Hh);
     g.fillRect(0,0,W,12); g.fillRect(0,Hh*0.8,W,6); g.fillRect(0,Hh-10,W,10);
-    g.fillRect(W*0.25+W*0.125-3,Hh*0.8,6,Hh*0.2);
-    /* Laeden: je 10 m zwei Schaufenster mit Blende, dazwischen Pfeiler */
+    /* Laeden: je 5 m ein Schaufenster mit Blende, dazwischen Pfeiler */
     const y0=Hh, BL=['#1f4a3a','#5a1f24','#1d2f52','#2b2b2e','#6a4a1c','#3d2450'];
     g.fillStyle=nacht?'#000':'#cfc6b4'; g.fillRect(0,y0,W,Hh);
-    for(let j=0;j<2;j++){ const bx=W*(0.05+0.5*j), bw=W*0.4, f=BL[Math.floor(R()*BL.length)], warm=R()<0.6, schild=R()<0.6;
-      g.fillStyle=nacht&&!schild?'#000':f; g.globalAlpha=nacht?0.9:1;
+    for(let j=0;j<4;j++){ const bx=W*(0.025+0.25*j), bw=W*0.2, f=BL[Math.floor(R()*BL.length)], warm=R()<0.6, schild=R()<0.5, an=j%2===0?R()<0.7:R()<0.3;
+      g.fillStyle=nacht&&!(schild&&an)?'#000':f; g.globalAlpha=nacht?0.8:1;
       g.fillRect(bx,y0+Hh*0.08,bw,Hh*0.14); g.globalAlpha=1;
-      if(nacht){ const gr=g.createLinearGradient(0,y0+Hh*0.26,0,y0+Hh*0.94); gr.addColorStop(0,warm?'#fff0cf':'#eef4ff'); gr.addColorStop(1,warm?'#c9a06a':'#9fb2c8'); g.fillStyle=gr; }
-      else g.fillStyle='#232a31';
+      if(nacht&&an){ const gr=g.createLinearGradient(0,y0+Hh*0.26,0,y0+Hh*0.94); gr.addColorStop(0,warm?'#d8c49c':'#b8c4d4'); gr.addColorStop(1,warm?'#6e5436':'#4c5a6c'); g.fillStyle=gr; }
+      else g.fillStyle=nacht?'#000':'#232a31';
       g.fillRect(bx,y0+Hh*0.26,bw,Hh*0.68);
+      /* nachts: im dunklen Laden brennt manchmal nur die Auslage */
+      if(nacht&&!an&&R()<0.4){ g.fillStyle='#4a3a26'; g.fillRect(bx+bw*0.1,y0+Hh*0.7,bw*0.8,Hh*0.2); }
       /* Ware im Fenster */
       for(let i=0;i<7;i++){ g.fillStyle=nacht?'rgba(0,0,0,.35)':`rgba(${150+R()*90|0},${120+R()*90|0},${100+R()*90|0},.35)`;
         g.fillRect(bx+R()*bw*0.85,y0+Hh*(0.6+R()*0.2),bw*0.1,Hh*0.14); }
       if(!nacht){ g.fillStyle='rgba(210,225,240,.14)'; g.fillRect(bx,y0+Hh*0.26,bw,Hh*0.2); }
       g.fillStyle=nacht?'#000':'#39424b'; g.fillRect(bx,y0+Hh*0.26,bw,5); g.fillRect(bx+bw/2-3,y0+Hh*0.26,6,Hh*0.68); }
   };
-  const tT=tex(512,512,(g,W,H)=>zeichne(g,W,H,false),false), tN=tex(512,512,(g,W,H)=>zeichne(g,W,H,true),false);
+  const tT=tex(1024,512,(g,W,H)=>zeichne(g,W,H,false),false), tN=tex(1024,512,(g,W,H)=>zeichne(g,W,H,true),false);
   tT.wrapS=tN.wrapS=THREE.RepeatWrapping;
   _lobbyM=new THREE.MeshStandardMaterial({map:tT,emissive:LIN(0xffffff),emissiveMap:tN,emissiveIntensity:0,roughness:0.3,metalness:0.2,
     envMap:stadtUmgebung(),envMapIntensity:0.8});
@@ -444,11 +463,22 @@ function lobbyMaterial(){
   houseMats.push(_lobbyM);
   return _lobbyM;
 }
-/* Kronen und Lamellen: nachts von unten angestrahlt, oben verlaeuft das Licht */
+/* Kronen und Lamellen: nachts von unten angestrahlt, oben verlaeuft das
+   Licht. 28.09. (Art-Director: "weisse Kappen auf jedem zweiten Turm"):
+   das Leuchtbild hat vier Spalten - dunkel, warmweiss, eisblau, bernstein.
+   Jede Krone liest nur eine Spalte (kroneSpalte), so ist nur etwa jede
+   dritte angestrahlt, einzelne farbig, ohne weiteres Material. */
+const KRONE_SP=4;
+function kroneSpalte(geo,sp){ const uv=geo.attributes.uv; for(let i=0;i<uv.count;i++) uv.setX(i,(sp+0.5)/KRONE_SP); return geo; }
 function kroneMaterial(){
   if(_kroneM) return _kroneM;
-  const grad=tex(8,128,(g,W,H)=>{ const gr=g.createLinearGradient(0,H,0,0); gr.addColorStop(0,'#fff'); gr.addColorStop(0.5,'#8a8a8a'); gr.addColorStop(1,'#141414'); g.fillStyle=gr; g.fillRect(0,0,W,H); });
-  _kroneM=new THREE.MeshStandardMaterial({vertexColors:true,roughness:0.45,metalness:0.4,emissive:LIN(0xffe9c8),emissiveMap:grad,emissiveIntensity:0,
+  const grad=tex(4*KRONE_SP,128,(g,W,H)=>{ const cw=W/KRONE_SP;
+    ['#000','#fff0d8','#9cc4ff','#ffb45c'].forEach((c,i)=>{ const gr=g.createLinearGradient(0,H,0,0);
+      gr.addColorStop(0,c); gr.addColorStop(0.55,i?'#555':'#000'); gr.addColorStop(1,'#000');
+      g.fillStyle=gr; g.fillRect(i*cw,0,cw,H);
+      if(i){ g.globalCompositeOperation='multiply'; g.fillStyle=c; g.fillRect(i*cw,0,cw,H); g.globalCompositeOperation='source-over'; } }); },false);
+  grad.minFilter=THREE.LinearFilter; grad.generateMipmaps=false;
+  _kroneM=new THREE.MeshStandardMaterial({vertexColors:true,roughness:0.45,metalness:0.4,emissive:LIN(0xffffff),emissiveMap:grad,emissiveIntensity:0,
     envMap:stadtUmgebung(),envMapIntensity:0.7});
   _kroneM.userData={env:0.7};
   return _kroneM;
@@ -514,11 +544,13 @@ const GESIMS=0xd6cfc0;
    Stadthaus: Laden- oder Sockelgeschoss, Fassade, Gesimse, Dach mit
    Gauben und Schornsteinen. Achse X: der First laeuft entlang x.
    -------------------------------------------------------- */
+/* Schornsteinkoepfe: dort steigt der Rauch auf (buildRauch) */
+const SCHORNSTEINE=[];
 function haus(S,cx,cz,w,d,h,stil,achseX,o){
   const L=achseX?w:d, B=achseX?d:w, hex=o.hex, gs=o.gesims||GESIMS, EG=o.eg||0;
   belegen(cx,cz,w/2,d/2); S.boxen++;
   if(EG){
-    ST_LOBBY.push({geo:bake(prisma(gRechteck(w-0.5,d-0.5),EG,null,{u:10,u0:Math.random(),v:o.laden?[0,0.5]:[0.5,1],deckel:false}),cx,0,cz),m:ID});
+    ST_LOBBY.push({geo:bake(prisma(gRechteck(w-0.5,d-0.5),EG,null,{u:20,u0:Math.random(),v:o.laden?[0,0.5]:[0.5,1],deckel:false}),cx,0,cz),m:ID});
     ST_KANTEN.push({geo:new THREE.BoxGeometry(w+0.24,0.42,d+0.24),m:tm(cx,EG,cz),color:gs});
   }
   S.fass[stil].push({geo:bake(prisma(gRechteck(w,d),h-EG,stil),cx,EG,cz),m:ID,color:hex});
@@ -555,9 +587,10 @@ function haus(S,cx,cz,w,d,h,stil,achseX,o){
         ST_DACH.push({geo:new THREE.BoxGeometry(1.8,0.14,2.3),m:lok(gx,yb+1.52,sz*(zf-0.9),sz*0.16),color:o.dachHex}); } }
   }
   /* Schornsteine am First */
-  if(Math.random()<0.75){ const hc=rand(1.2,2.2), zz=rand(-0.4,0.4)*b;
+  if(Math.random()<0.75){ const hc=rand(1.2,2.2), zz=rand(-0.4,0.4)*b, xx=rand(-L*0.3,L*0.3);
     const y=sl?rh-Math.abs(zz)*sl:rh-0.2;
-    ST_DEKO.push({geo:new THREE.BoxGeometry(0.62,hc,0.75),m:lok(rand(-L*0.3,L*0.3),y+hc/2-0.3,zz),color:0x7a4a3c}); }
+    ST_DEKO.push({geo:new THREE.BoxGeometry(0.62,hc,0.75),m:lok(xx,y+hc/2-0.3,zz),color:0x7a4a3c});
+    SCHORNSTEINE.push(new THREE.Vector3(xx,y+hc-0.2,zz).applyMatrix4(Wm)); }
 }
 
 /* --------------------------------------------------------
@@ -567,11 +600,11 @@ function haus(S,cx,cz,w,d,h,stil,achseX,o){
    Pfosten-Riegel, Naturstein, Beton, Klinker, Dachaufbauten und
    glaubwuerdigem Nachtlicht statt glatter Kloetze.
    -------------------------------------------------------- */
-function lamellen(P,x,y,z,hk,abst){
+function lamellen(P,x,y,z,hk,abst,sp){
   for(let i=0;i<P.length;i++){ const a=P[i], b=P[(i+1)%P.length], dx=b.x-a.x, dz=b.z-a.z, l=Math.hypot(dx,dz);
     const k=Math.max(1,Math.round(l/abst)), nx=dz/l, nz=-dx/l, ry=Math.atan2(-dz,dx);
     for(let j=0;j<k;j++){ const t=(j+0.5)/k;
-      ST_KRONE.push({geo:new THREE.BoxGeometry(0.22,hk,0.7),m:tm(x+a.x+dx*t+nx*0.12,y+hk/2,z+a.z+dz*t+nz*0.12,0,ry,0),color:0x9098a2}); } }
+      ST_KRONE.push({geo:kroneSpalte(new THREE.BoxGeometry(0.22,hk,0.7),sp),m:tm(x+a.x+dx*t+nx*0.12,y+hk/2,z+a.z+dz*t+nz*0.12,0,ry,0),color:0x9098a2}); } }
 }
 function relief(stil,form,P,ww,dd,th,x,y,z){
   const S=FASSADE[stil], rows=Math.max(1,Math.round(th/S.geschoss)), fh=th/rows;
@@ -602,7 +635,7 @@ function turm(S,cx,cz,w,d,h,stil,o){
   if(o.sockel){
     /* Sockelbau mit Ladenzeile, der Turm steht darauf */
     const [pw,pd]=o.sockel, ps=Math.random()<0.5?'stein':'raster', ph=rand(8,13);
-    ST_LOBBY.push({geo:bake(prisma(gRechteck(pw-0.6,pd-0.6),4.6,null,{u:10,u0:Math.random(),v:[0,0.5],deckel:false}),cx,0,cz),m:ID});
+    ST_LOBBY.push({geo:bake(prisma(gRechteck(pw-0.6,pd-0.6),4.6,null,{u:20,u0:Math.random(),v:[0,0.5],deckel:false}),cx,0,cz),m:ID});
     ST_KANTEN.push({geo:new THREE.BoxGeometry(pw+0.3,0.5,pd+0.3),m:tm(cx,4.6,cz),color:0xd8d2c6});
     S.fass[ps].push({geo:bake(prisma(gRechteck(pw,pd),ph-4.6,ps),cx,4.6,cz),m:ID,color:stadtTon(ps,r)});
     ST_KANTEN.push({geo:new THREE.BoxGeometry(pw+0.3,0.8,pd+0.3),m:tm(cx,ph+0.2,cz),color:0xd0cabd});
@@ -610,7 +643,7 @@ function turm(S,cx,cz,w,d,h,stil,o){
     y=ph;
   } else {
     /* Lobby: eingerueckter Glassockel unter einem Vordach */
-    ST_LOBBY.push({geo:bake(prisma(grund(w-1.4,d-1.4),5,null,{u:10,u0:Math.random(),v:[0.5,1],deckel:false}),cx,0,cz),m:ID});
+    ST_LOBBY.push({geo:bake(prisma(grund(w-1.4,d-1.4),5,null,{u:20,u0:Math.random(),v:[0.5,1],deckel:false}),cx,0,cz),m:ID});
     ST_KANTEN.push({geo:bake(prisma(weiter(grund(w,d),w,d,0.4),0.5,null,{boden:true}),cx,4.75,cz),m:ID,color:0xcfd4da});
     y=5;
   }
@@ -636,30 +669,37 @@ function turm(S,cx,cz,w,d,h,stil,o){
   let top=y;
   if(h>38){
     const k=o.krone||(q<0.5?'lamellen':form==='eckig'||form==='fase'?(q<0.68?'spitze':q<0.84?'heli':'technik'):(q<0.8?'heli':'technik'));
-    KRONEN.push({cx:tx,cz:tz,w:ww,d:dd,y:top});
+    /* nur etwa jede dritte Krone wird angestrahlt, einzelne farbig */
+    const kl=Math.random(), sp=o.licht!==undefined?o.licht:kl<0.68?0:kl<0.86?1:kl<0.94?2:3;
+    KRONEN.push({cx:tx,cz:tz,w:ww,d:dd,y:top,licht:sp});
     if(k==='lamellen'){
-      /* Technikgeschoss hinter einem Lamellenschirm, nachts angestrahlt */
+      /* Technikgeschoss hinter einem Lamellenschirm */
       const hk=clamp(Math.min(ww,dd)*rand(0.18,0.3),3,7);
       ST_KANTEN.push({geo:new THREE.BoxGeometry(ww*0.55,hk*0.85,dd*0.55),m:tm(tx,top+hk*0.42,tz),color:0x6c737c});
-      lamellen(P,tx,top,tz,hk,detail?1.4:2.2);
-      ST_KRONE.push({geo:bake(prisma(weiter(P,ww,dd,0.2),0.4,null,{v:[0.55,0.62],boden:true}),tx,top+hk-0.4,tz),m:ID,color:0x9098a2});
+      lamellen(P,tx,top,tz,hk,detail?1.4:2.2,sp);
+      ST_KRONE.push({geo:kroneSpalte(bake(prisma(weiter(P,ww,dd,0.2),0.4,null,{v:[0.55,0.62],boden:true}),tx,top+hk-0.4,tz),sp),m:ID,color:0x9098a2});
       top+=hk;
     } else if(k==='spitze'){
-      /* Pyramidendach aus Metall, von unten angestrahlt */
+      /* Pyramidendach aus Metall auf dem eigenen Grundriss */
       const hs=Math.min(ww,dd)*rand(0.45,0.85);
-      ST_KRONE.push({geo:bake(pyramide(ww*0.94,dd*0.94,hs),tx,top,tz),m:ID,color:q<0.6?0x8a939c:0x6f8c80});
+      ST_KRONE.push({geo:kroneSpalte(bake(pyramide(weiter(P,ww,dd,-0.25),hs),tx,top,tz),sp),m:ID,color:q<0.6?0x8a939c:0x6f8c80});
       top+=hs;
     } else if(k==='heli'){
-      /* Hubschrauberlandeplatz mit Befeuerung */
-      const R=Math.min(ww,dd)*0.36;
-      ST_KANTEN.push({geo:new THREE.BoxGeometry(ww*0.35,2.6,dd*0.3),m:tm(tx+ww*0.2,top+1.3,tz-dd*0.22),color:0x737a83});
-      ST_HELI.push({geo:new THREE.CylinderGeometry(R,R,0.3,24),m:tm(tx-ww*0.08,top+1.6,tz+dd*0.06)});
-      for(let i=0;i<8;i++){ const a=i/8*Math.PI*2; ST_LICHTER.push([tx-ww*0.08+Math.cos(a)*R,top+1.9,tz+dd*0.06+Math.sin(a)*R].concat(i%2?GRUEN:WEISS)); }
-      top+=1.8;
+      /* Hubschrauberlandeplatz: die Plattform liegt auf einem Technik-
+         block und vier Stuetzen (28.09.: vorher schwebte sie, und der
+         Block stach durch sie hindurch) */
+      const R=Math.min(ww,dd)*0.36, px=tx-ww*0.08, pz=tz+dd*0.06;
+      ST_KANTEN.push({geo:new THREE.BoxGeometry(R*1.1,2.4,R*1.1),m:tm(px,top+1.2,pz),color:0x737a83});
+      for(let i=0;i<4;i++){ const a=i*Math.PI/2+Math.PI/4;
+        ST_DEKO.push({geo:new THREE.BoxGeometry(0.3,2.5,0.3),m:tm(px+Math.cos(a)*R*0.9,top+1.25,pz+Math.sin(a)*R*0.9),color:0x5d636b}); }
+      ST_HELI.push({geo:new THREE.CylinderGeometry(R,R,0.3,24),m:tm(px,top+2.6,pz)});
+      for(let i=0;i<8;i++){ const a=i/8*Math.PI*2; ST_LICHTER.push([px+Math.cos(a)*R,top+2.9,pz+Math.sin(a)*R].concat(i%2?GRUEN:WEISS)); }
+      top+=2.8;
     } else {
-      /* Technikaufbau mit Rueckkuehlern */
-      ST_KANTEN.push({geo:new THREE.BoxGeometry(ww*0.6,3.6,dd*0.5),m:tm(tx,top+1.8,tz),color:0x7b828b});
-      for(let i=0;i<4;i++) ST_DEKO.push({geo:new THREE.CylinderGeometry(0.9,0.9,1.1,10),m:tm(tx+(i-1.5)*2.2,top+4.15,tz),color:0x9aa2ac});
+      /* Technikaufbau mit Rueckkuehlern - so viele, wie auf ihn passen */
+      const bw=ww*0.6, bd=dd*0.5, n=clamp(Math.floor(bw/2.4),1,4), ab=bw/n, rk=Math.min(0.9,ab*0.4,bd*0.4);
+      ST_KANTEN.push({geo:new THREE.BoxGeometry(bw,3.6,bd),m:tm(tx,top+1.8,tz),color:0x7b828b});
+      for(let i=0;i<n;i++) ST_DEKO.push({geo:new THREE.CylinderGeometry(rk,rk,1.1,10),m:tm(tx+(i-(n-1)/2)*ab,top+4.15,tz),color:0x9aa2ac});
       top+=4.7;
     }
     /* Antennenmast */
@@ -668,8 +708,8 @@ function turm(S,cx,cz,w,d,h,stil,o){
       ST_DEKO.push({geo:new THREE.CylinderGeometry(0.12,0.38,ah,6),m:tm(tx,top+ah/2,tz),color:0xb8bec6}); spitze=top+ah; }
     WARNLICHT.push([tx,spitze+0.6,tz]);
     /* Flugwarnlichter an den Dachecken (ab etwa 60 m) */
-    if(y>58){ const E=[[ww/2,dd/2],[-ww/2,dd/2],[-ww/2,-dd/2],[ww/2,-dd/2]];
-      for(const [ex,ez] of E) ST_LICHTER.push([tx+ex*0.95,y+0.4,tz+ez*0.95].concat(ROT));
+    if(y>58){ /* auf dem Grundriss, auch bei runden Tuermen */
+      for(let i=0;i<4;i++){ const p=P[Math.floor(i*P.length/4)]; ST_LICHTER.push([tx+p.x*0.97,y+0.4,tz+p.z*0.97].concat(ROT)); }
       if(spitze>top) ST_LICHTER.push([tx,top+(spitze-top)*0.5,tz].concat(ROT)); }
   }
   return y;
@@ -813,7 +853,7 @@ function buildFernsehturm(x,z){
   schaft.position.y=H*0.36; schaft.material.side=THREE.DoubleSide; g.add(schaft);
   /* Kanzel mit Fensterband */
   const kanzel=new THREE.Mesh(new THREE.CylinderGeometry(9.5,9.5,9,20),
-    fassadenMaterial('glas',true));
+    fassadenMaterial('glas'));
   kanzel.position.y=H*0.72; g.add(kanzel);
   /* Fensterband im Massstab: 24 Achsen rundum, drei Geschosse */
   { const uv=kanzel.geometry.attributes.uv; for(let i=0;i<uv.count;i++) uv.setXY(i,uv.getX(i)*24/FMOD,uv.getY(i)*3/FMOD); uv.needsUpdate=true; }
@@ -1065,28 +1105,28 @@ function buildFlieger(){
   fliegerLicht.position.set(0,-0.3,1.5); g.add(fliegerLicht);
   flieger=g;
 }
-/* --- Rauch aus den Schornsteinen der Stadt --- */
+/* --- Rauch aus den Schornsteinen der Stadt ---
+   28.09. (Art-Director: "Perlenkette gleicher Kugeln mitten in der
+   Luft"): Quellen sind echte Schornsteine, jede Wolke waechst mit dem
+   Alter und wird duenner, nachts ist der Rauch dunkel. */
 let rauchPts=null, rauchDat=[];
 function buildRauch(){
-  const quellen=[];
-  for(let i=0;i<(COARSE?3:6);i++){
-    const a=Math.random()*Math.PI*2, r=rand(70,150);
-    const x=Math.cos(a)*r, z=Math.sin(a)*r;
-    if(!stadtFrei(x,z,10)) continue;
-    quellen.push({x,y:rand(18,34),z});
-  }
+  const kand=SCHORNSTEINE.filter(p=>{ const r=Math.hypot(p.x,p.z); return r>45&&r<170; }), quellen=[];
+  for(let i=0;i<(COARSE?3:6)&&kand.length;i++) quellen.push(kand.splice(Math.floor(Math.random()*kand.length),1)[0]);
   if(!quellen.length) return;
-  const proQuelle=COARSE?10:18, n=quellen.length*proQuelle;
-  const pos=new Float32Array(n*3);
+  const proQuelle=COARSE?12:22, n=quellen.length*proQuelle;
+  const pos=new Float32Array(n*3), col=new Float32Array(n*4), gr=new Float32Array(n);
   rauchDat=[];
-  for(let q=0;q<quellen.length;q++) for(let i=0;i<proQuelle;i++){
-    rauchDat.push({q:quellen[q],t:i/proQuelle,sp:rand(0.055,0.1),dr:rand(0.6,1.8)});
-  }
+  for(let q=0;q<quellen.length;q++) for(let i=0;i<proQuelle;i++)
+    rauchDat.push({q:quellen[q],t:Math.random(),sp:rand(0.05,0.11),dr:rand(0.6,1.8),g:rand(0.7,1.3),a:rand(0.6,1),ph:Math.random()*6.28});
   const g=new THREE.BufferGeometry();
   g.setAttribute('position',new THREE.BufferAttribute(pos,3));
-  rauchPts=new THREE.Points(g,new THREE.PointsMaterial({
-    size:7,map:dotTex,color:0xc8ceda,transparent:true,opacity:0.16,
-    depthWrite:false,fog:true}));
+  g.setAttribute('color',new THREE.BufferAttribute(col,4));
+  g.setAttribute('groesse',new THREE.BufferAttribute(gr,1));
+  const m=new THREE.PointsMaterial({size:7,map:dotTex,color:0xc8ceda,vertexColors:true,transparent:true,depthWrite:false,fog:true});
+  /* Groesse je Wolke: PointsMaterial kennt nur eine */
+  m.onBeforeCompile=sh=>{ sh.vertexShader='attribute float groesse;\n'+sh.vertexShader.replace('gl_PointSize = size;','gl_PointSize = size * groesse;'); };
+  rauchPts=new THREE.Points(g,m);
   rauchPts.frustumCulled=false; scene.add(rauchPts);
 }
 
@@ -1094,12 +1134,31 @@ function buildRauch(){
    Alles zusammenbauen
    -------------------------------------------------------- */
 let stadtBoxen=0, stadtBaeume=0;
+/* 28.09. (Art-Director: "jedes Laden eine andere, mal schwaechere
+   Stadt"): die Stadt entsteht aus einem festen Startwert. Waehrend des
+   Aufbaus liefert Math.random diese Folge, danach wieder den Zufall. */
+const STADT_SAAT=20260928;
+function stadtZufall(a){ return ()=>{ a=a+0x6D2B79F5|0; let t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
+/* Hochhauszentrum hinter der Zeile gegenueber (28.09., Art-Director: "von
+   der Strasse sieht man nichts vom Umbau, auch nicht mit Blick nach
+   oben"): drei Tuerme, hoch und nah genug, dass sie ueber die Traufen
+   ragen, wenn man vor dem Laden nach oben schaut. */
+const STADT_HELDEN=[
+  {x:-12,z:122,w:26,d:22,h:186,stil:'glas',form:'rund',krone:'lamellen',licht:1},
+  {x:40,z:140,w:22,d:22,h:160,stil:'stein',form:'fase',krone:'spitze',licht:3},
+  {x:-60,z:138,w:26,d:19,h:138,stil:'raster',form:'eckig',krone:'heli',licht:0}
+];
 function buildStadt(){
+  const zufall=Math.random; Math.random=stadtZufall(STADT_SAAT);
+  try{ stadtAufbauen(); } finally { Math.random=zufall; }
+}
+function stadtAufbauen(){
   /* 26.09.: Die Kamera schnitt bei 300 m ab - die Skyline endete mitten
      im zweiten Ring. Der Nebel (bis 520 m) blendet jetzt aus, nicht
      die Schnittebene. */
   if(camera.far<640){ camera.far=640; camera.updateProjectionMatrix(); }
-  const NAH=sammler(false), FERN=sammler(true);
+  const NAH=sammler(), FERN=NAH;
+  for(const t of STADT_HELDEN) turm(NAH,t.x,t.z,t.w,t.d,t.h,t.stil,{form:t.form,krone:t.krone,licht:t.licht,held:true,sockel:[t.w+12,t.d+12]});
   /* Die Strasse laeuft nach beiden Seiten weiter, gesaeumt von Haeusern.
      Vorne die Zeile gegenueber, dahinter eine Reihe zur Tiefe. */
   stadtZeile(NAH,-150,-44,23,8.5,[11,18],1,0.8);
@@ -1115,7 +1174,7 @@ function buildStadt(){
   /* Ring C: die Skyline, Ring D: die Stadt im Dunst */
   skyline(FERN,{r0:165,r1:330,raster:COARSE?58:44,jitter:9,dichte:COARSE?0.42:0.58,breite:[18,32],hoehe:[34,80],glas:0.4,turmChance:0.2});
   fernRing(FERN,{r0:342,r1:470,raster:COARSE?56:40,dichte:COARSE?0.45:0.66});
-  stadtBoxen=sammlerBauen(NAH)+sammlerBauen(FERN);
+  stadtBoxen=sammlerBauen(NAH);
   stadtTeileBauen();
   /* Blinkende Befeuerung: die hoechsten Tuerme */
   WARNLICHT.sort((a,b)=>b[1]-a[1]).slice(0,COARSE?4:6).forEach(([x,y,z])=>baueBeacon(x,y,z,false));
@@ -1144,8 +1203,12 @@ function updateStadt(dt){
     const k=1-0.85*nacht;
     for(const key in STADT_MATS){ const m=STADT_MATS[key]; if(m.envMap) m.envMapIntensity=m.userData.env*k; }
     for(const m of [_lobbyM,_kroneM]) if(m&&m.envMap) m.envMapIntensity=m.userData.env*k;
-    if(_kroneM) _kroneM.emissiveIntensity=nacht*1.05;
-    if(lichtPts) lichtPts.material.opacity=nacht; }
+    if(_kroneM) _kroneM.emissiveIntensity=nacht*0.5;
+    if(lichtPts) lichtPts.material.opacity=nacht;
+    /* 28.09.: Die Sterne (Kugel r 270 um die Kamera) wurden ueber die
+       Tuerme jenseits von 270 m gezeichnet. Mit der Kugel hinter dem
+       fernen Ring (470 m) verdecken die Tuerme sie. Punktgroesse bleibt. */
+    if(starPts&&starPts.scale.x===1) starPts.scale.setScalar(2.2); }
   /* Vogelschwaerme ziehen ihre Kreise und schlagen mit den Fluegeln */
   for(const s of schwaerme){
     s.a+=s.sp*dt;
@@ -1207,19 +1270,22 @@ function updateStadt(dt){
       fliegerLicht.visible=((t*1.4)%1)<0.2;
     }
   }
-  /* Rauchfahnen */
+  /* Rauchfahnen: steigen, treiben ab, wachsen und verduennen */
   if(rauchPts){
-    const a=rauchPts.geometry.attributes.position, arr=a.array;
+    const G=rauchPts.geometry, arr=G.attributes.position.array, col=G.attributes.color.array, gr=G.attributes.groesse.array;
     for(let i=0;i<rauchDat.length;i++){
       const d=rauchDat[i];
       d.t+=d.sp*dt*0.28;
       if(d.t>1) d.t-=1;
-      const h=d.t*26;
-      arr[i*3]=d.q.x+Math.sin(d.t*4+i)*d.dr*(0.4+d.t*2.4);
+      const u=d.t, h=u*22;
+      arr[i*3]=d.q.x+Math.sin(u*4+d.ph)*d.dr*(0.3+u*2.4)+u*6;
       arr[i*3+1]=d.q.y+h;
-      arr[i*3+2]=d.q.z+Math.cos(d.t*3+i)*d.dr*(0.3+d.t*1.8);
+      arr[i*3+2]=d.q.z+Math.cos(u*3+d.ph)*d.dr*(0.2+u*1.8);
+      gr[i]=d.g*(0.35+u*1.5);
+      col[i*4]=col[i*4+1]=col[i*4+2]=1;
+      col[i*4+3]=d.a*Math.min(1,u*8)*Math.pow(1-u,1.3)*0.3;
     }
-    a.needsUpdate=true;
-    rauchPts.material.opacity=0.10+0.09*(1-nacht);
+    G.attributes.position.needsUpdate=G.attributes.color.needsUpdate=G.attributes.groesse.needsUpdate=true;
+    rauchPts.material.color.setRGB(0.78-0.56*nacht,0.8-0.56*nacht,0.85-0.55*nacht);
   }
 }

@@ -293,6 +293,15 @@ function gRund(w,d,r,seg){
 function gOval(w,d,n){ const p=[]; for(let i=0;i<n;i++){ const a=i/n*Math.PI*2; p.push(P2(Math.cos(a)*w/2,Math.sin(a)*d/2,true,true)); } return p; }
 /* um o Meter nach aussen (o<0: nach innen) */
 function weiter(pts,w,d,o){ const sx=(w+2*o)/w, sz=(d+2*o)/d; return pts.map(p=>P2(p.x*sx,p.z*sz,p.r,p.b)); }
+/* Lage direkt in die Eckpunkte schreiben (Drehung nur um y). So stimmen
+   die Koordinaten auch dort, wo niemand Matrizen anwendet (Testattrappe). */
+const ID=new THREE.Matrix4();
+function bake(g,x,y,z,ry){
+  const p=g.attributes.position.array, n=g.attributes.normal.array, c=Math.cos(ry||0), s=Math.sin(ry||0);
+  for(let i=0;i<p.length;i+=3){ const px=p[i], pz=p[i+2], nx=n[i], nz=n[i+2];
+    p[i]=px*c+pz*s+x; p[i+1]+=y; p[i+2]=-px*s+pz*c+z; n[i]=nx*c+nz*s; n[i+2]=-nx*s+nz*c; }
+  return g;
+}
 /* Vieleck senkrecht hochgezogen: u laeuft um das Haus herum, v zaehlt
    Geschosse - so sitzen die Fenster auch an Fasen und Rundungen im
    Massstab (jeder Bogen bekommt ganze Achsen). Ohne Stil: glatte
@@ -508,16 +517,16 @@ function haus(S,cx,cz,w,d,h,stil,achseX,o){
   const L=achseX?w:d, B=achseX?d:w, hex=o.hex, gs=o.gesims||GESIMS, EG=o.eg||0;
   belegen(cx,cz,w/2,d/2); S.boxen++;
   if(EG){
-    ST_LOBBY.push({geo:prisma(gRechteck(w-0.5,d-0.5),EG,null,{u:10,u0:Math.random(),v:o.laden?[0,0.5]:[0.5,1],deckel:false}),m:tm(cx,0,cz)});
+    ST_LOBBY.push({geo:bake(prisma(gRechteck(w-0.5,d-0.5),EG,null,{u:10,u0:Math.random(),v:o.laden?[0,0.5]:[0.5,1],deckel:false}),cx,0,cz),m:ID});
     ST_KANTEN.push({geo:new THREE.BoxGeometry(w+0.24,0.42,d+0.24),m:tm(cx,EG,cz),color:gs});
   }
-  S.fass[stil].push({geo:prisma(gRechteck(w,d),h-EG,stil),m:tm(cx,EG,cz),color:hex});
+  S.fass[stil].push({geo:bake(prisma(gRechteck(w,d),h-EG,stil),cx,EG,cz),m:ID,color:hex});
   if(o.dach==='flach'){
     ST_KANTEN.push({geo:new THREE.BoxGeometry(w+0.3,0.9,d+0.3),m:tm(cx,h+0.25,cz),color:gs});
     const sw=w-2.4, sd=d-3;
     if(o.staffel&&sw>4&&sd>4){
       /* Staffelgeschoss, zur Strasse zurueckgesetzt */
-      S.fass[stil].push({geo:prisma(gRechteck(sw,sd),3.0,stil),m:tm(cx,h+0.1,cz),color:hex});
+      S.fass[stil].push({geo:bake(prisma(gRechteck(sw,sd),3.0,stil),cx,h+0.1,cz),m:ID,color:hex});
       ST_KANTEN.push({geo:new THREE.BoxGeometry(sw+0.3,0.6,sd+0.3),m:tm(cx,h+3.2,cz),color:gs});
     } else for(let a=0;a<2;a++) ST_DEKO.push({geo:new THREE.BoxGeometry(rand(1.2,2.4),rand(0.8,1.6),rand(1.2,2)),m:tm(cx+rand(-w*0.25,w*0.25),h+1,cz+rand(-d*0.25,d*0.25)),color:0x9aa2ac});
     return;
@@ -531,8 +540,9 @@ function haus(S,cx,cz,w,d,h,stil,achseX,o){
   else { rh=Math.min(5.5,b*rand(0.62,0.95)); sl=(rh+0.32)/(b+0.5);
     prof=[[b+0.5,-0.32],[0,rh],[-b-0.5,-0.32]]; inn=[[b,-0.2],[0,rh-0.16],[-b,-0.2]]; }
   const dg=dachGeo(L,prof,inn);
-  ST_DACH.push({geo:dg.dach,m:Wm,color:o.dachHex});
-  S.fass[stil].push({geo:dg.giebel,m:Wm,color:hex});
+  const ry=achseX?0:Math.PI/2;
+  ST_DACH.push({geo:bake(dg.dach,cx,h+0.2,cz,ry),m:ID,color:o.dachHex});
+  S.fass[stil].push({geo:bake(dg.giebel,cx,h+0.2,cz,ry),m:ID,color:hex});
   const lok=(x,y,z,rx,sx,sy,sz)=>Wm.clone().multiply(tm(x,y,z,rx||0,0,0,sx,sy,sz));
   /* Schleppgauben auf der Strassenseite, manchmal auch hinten */
   if(sl&&o.gauben&&rh>2.6){
@@ -567,7 +577,7 @@ function relief(stil,form,P,ww,dd,th,x,y,z){
   if(stil==='band'&&rows<40){
     /* Bruestungsbaender stehen vor: jedes Geschoss wirft einen Schatten */
     const ring=weiter(P,ww,dd,0.3);
-    for(let k=1;k<rows;k++) ST_KANTEN.push({geo:prisma(ring,0.34,null,{boden:true}),m:tm(x,y+k*fh-fh*0.1,z),color:0xe4e1da});
+    for(let k=1;k<rows;k++) ST_KANTEN.push({geo:bake(prisma(ring,0.34,null,{boden:true}),x,y+k*fh-fh*0.1,z),m:ID,color:0xe4e1da});
     return;
   }
   if(form!=='eckig'||stil==='putz') return;
@@ -591,16 +601,16 @@ function turm(S,cx,cz,w,d,h,stil,o){
   if(o.sockel){
     /* Sockelbau mit Ladenzeile, der Turm steht darauf */
     const [pw,pd]=o.sockel, ps=Math.random()<0.5?'stein':'raster', ph=rand(8,13);
-    ST_LOBBY.push({geo:prisma(gRechteck(pw-0.6,pd-0.6),4.6,null,{u:10,u0:Math.random(),v:[0,0.5],deckel:false}),m:tm(cx,0,cz)});
+    ST_LOBBY.push({geo:bake(prisma(gRechteck(pw-0.6,pd-0.6),4.6,null,{u:10,u0:Math.random(),v:[0,0.5],deckel:false}),cx,0,cz),m:ID});
     ST_KANTEN.push({geo:new THREE.BoxGeometry(pw+0.3,0.5,pd+0.3),m:tm(cx,4.6,cz),color:0xd8d2c6});
-    S.fass[ps].push({geo:prisma(gRechteck(pw,pd),ph-4.6,ps),m:tm(cx,4.6,cz),color:stadtTon(ps,r)});
+    S.fass[ps].push({geo:bake(prisma(gRechteck(pw,pd),ph-4.6,ps),cx,4.6,cz),m:ID,color:stadtTon(ps,r)});
     ST_KANTEN.push({geo:new THREE.BoxGeometry(pw+0.3,0.8,pd+0.3),m:tm(cx,ph+0.2,cz),color:0xd0cabd});
     /* Lobby des Turms auf dem Sockeldach nicht noetig: der Turm beginnt hier */
     y=ph;
   } else {
     /* Lobby: eingerueckter Glassockel unter einem Vordach */
-    ST_LOBBY.push({geo:prisma(grund(w-1.4,d-1.4),5,null,{u:10,u0:Math.random(),v:[0.5,1],deckel:false}),m:tm(cx,0,cz)});
-    ST_KANTEN.push({geo:prisma(weiter(grund(w,d),w,d,0.4),0.5,null,{boden:true}),m:tm(cx,4.75,cz),color:0xcfd4da});
+    ST_LOBBY.push({geo:bake(prisma(grund(w-1.4,d-1.4),5,null,{u:10,u0:Math.random(),v:[0.5,1],deckel:false}),cx,0,cz),m:ID});
+    ST_KANTEN.push({geo:bake(prisma(weiter(grund(w,d),w,d,0.4),0.5,null,{boden:true}),cx,4.75,cz),m:ID,color:0xcfd4da});
     y=5;
   }
   /* Staffelung mit Ruecksprung, manchmal aus der Mitte geschoben */
@@ -608,11 +618,11 @@ function turm(S,cx,cz,w,d,h,stil,o){
   let ww=w, dd=d, ox=0, oz=0; const H0=h-y;
   for(let t=0;t<nT;t++){
     const th=H0*fr[t], P=grund(ww,dd);
-    S.fass[stil].push({geo:prisma(P,th,stil),m:tm(cx+ox,y,cz+oz),color:hex});
+    S.fass[stil].push({geo:bake(prisma(P,th,stil),cx+ox,y,cz+oz),m:ID,color:hex});
     if(detail) relief(stil,form,P,ww,dd,th,cx+ox,y,cz+oz);
     y+=th;
     if(t<nT-1){
-      ST_KANTEN.push({geo:prisma(weiter(P,ww,dd,0.45),0.7,null,{boden:true}),m:tm(cx+ox,y-0.35,cz+oz),color:0xd3d6da});
+      ST_KANTEN.push({geo:bake(prisma(weiter(P,ww,dd,0.45),0.7,null,{boden:true}),cx+ox,y-0.35,cz+oz),m:ID,color:0xd3d6da});
       const nw=ww*rand(0.7,0.86), nd=dd*rand(0.7,0.86), z=Math.random();
       if(z<0.3) ox+=(Math.random()<0.5?1:-1)*(ww-nw)/2*0.9; else if(z<0.55) oz+=(Math.random()<0.5?1:-1)*(dd-nd)/2*0.9;
       ww=nw; dd=nd;
@@ -620,7 +630,7 @@ function turm(S,cx,cz,w,d,h,stil,o){
   }
   if(nT>1) SKYLINE_INFO.stufen++;
   const P=grund(ww,dd), tx=cx+ox, tz=cz+oz;
-  ST_KANTEN.push({geo:prisma(weiter(P,ww,dd,0.25),1.1,null,{boden:true}),m:tm(tx,y-0.2,tz),color:0xd3d6da});
+  ST_KANTEN.push({geo:bake(prisma(weiter(P,ww,dd,0.25),1.1,null,{boden:true}),tx,y-0.2,tz),m:ID,color:0xd3d6da});
   y+=0.9;
   let top=y;
   if(h>38){
@@ -631,12 +641,12 @@ function turm(S,cx,cz,w,d,h,stil,o){
       const hk=clamp(Math.min(ww,dd)*rand(0.18,0.3),3,7);
       ST_KANTEN.push({geo:new THREE.BoxGeometry(ww*0.55,hk*0.85,dd*0.55),m:tm(tx,top+hk*0.42,tz),color:0x6c737c});
       lamellen(P,tx,top,tz,hk,detail?1.4:2.2);
-      ST_KRONE.push({geo:prisma(weiter(P,ww,dd,0.2),0.4,null,{v:[0.55,0.62],boden:true}),m:tm(tx,top+hk-0.4,tz),color:0x9098a2});
+      ST_KRONE.push({geo:bake(prisma(weiter(P,ww,dd,0.2),0.4,null,{v:[0.55,0.62],boden:true}),tx,top+hk-0.4,tz),m:ID,color:0x9098a2});
       top+=hk;
     } else if(k==='spitze'){
       /* Pyramidendach aus Metall, von unten angestrahlt */
       const hs=Math.min(ww,dd)*rand(0.45,0.85);
-      ST_KRONE.push({geo:pyramide(ww*0.94,dd*0.94,hs),m:tm(tx,top,tz),color:q<0.6?0x8a939c:0x6f8c80});
+      ST_KRONE.push({geo:bake(pyramide(ww*0.94,dd*0.94,hs),tx,top,tz),m:ID,color:q<0.6?0x8a939c:0x6f8c80});
       top+=hs;
     } else if(k==='heli'){
       /* Hubschrauberlandeplatz mit Befeuerung */
@@ -850,7 +860,7 @@ function buildKirche(x,z,ry){
   const STEIN=0xa39887, DACHF=0x5d4a44, DUNKEL=0x2c313a;
   L(new THREE.BoxGeometry(16,11,9),0,5.5,0,STEIN);
   const dg=dachGeo(16,[[4.9,-0.3],[0,6.2],[-4.9,-0.3]],[[4.5,-0.2],[0,6],[-4.5,-0.2]]);
-  L(dg.dach,0,11,0,DACHF); L(dg.giebel,0,11,0,STEIN);
+  T.push({geo:bake(dg.dach,x,11,z,ry),m:ID,color:DACHF},{geo:bake(dg.giebel,x,11,z,ry),m:ID,color:STEIN});
   for(let i=0;i<5;i++){ const px=-5.2+i*3.2;
     for(const s of [1,-1]){ L(new THREE.BoxGeometry(1.3,5.2,0.08),px,5.6,s*4.52,DUNKEL);
       if(i<4) L(new THREE.BoxGeometry(0.7,7.5,0.9),px+1.6,3.75,s*4.9,0x958a7a); } }

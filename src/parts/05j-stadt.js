@@ -73,22 +73,22 @@ function fassadeZeichnen(g,W,H,stil,nacht){
   const rr=(a,b)=>a+R()*(b-a), [fx,fy,fw,fh]=FENSTER[stil];
   if(nacht){
     g.fillStyle='#000'; g.fillRect(0,0,W,H);
-    const WARM=['#ffd79a','#ffc478','#f7e6c4','#ffb96b','#ffe3b0'], KALT=['#dfe8ff','#cfe0ff','#eef3ff','#fff4dc'];
+    const WARM=['#ffd79a','#ffc478','#f7e6c4','#ffb96b','#ffe3b0'], KALT=['#e6edff','#f3f0e4','#fff0d6','#dfe6f5'];
     const buero=!!BUERO[stil];
     for(let r=0;r<FMOD;r++){
       /* Bueros: ganze Etagen brennen, auf dunklen Etagen arbeitet hier
          und da noch ein Team - Gruppen statt Salz und Pfeffer */
-      const etageAn=R()<0.42, farbe=KALT[Math.floor(R()*4)];
-      let an=R()<0.18;
+      const etageAn=R()<0.2, farbe=KALT[Math.floor(R()*4)];
+      let an=R()<0.2;
       for(let c=0;c<FMOD;c++){
         const x=c*cw+cw*fx, y=r*ch+ch*fy, w=cw*fw, h=ch*fh;
         let lit;
-        if(buero){ if(R()<0.24) an=!an; lit=etageAn?R()<0.86:an&&R()<0.8; }
+        if(buero){ an=an?R()>0.35:R()<0.1; lit=etageAn?R()<0.8:an&&R()<0.75; }
         else lit=R()<0.42;
         if(!lit) continue;
         const tv=!buero&&R()<0.12;
         const f=tv?'#8fb4ff':buero?farbe:WARM[Math.floor(R()*5)];
-        const hell=buero?(etageAn?rr(0.5,0.78):rr(0.32,0.58)):rr(0.55,1);
+        const hell=(buero?(etageAn?rr(0.42,0.64):rr(0.26,0.48)):rr(0.55,1))*(stil==='band'?0.72:1);
         g.globalAlpha=hell; g.fillStyle=f; g.fillRect(x,y,w,h);
         if(buero){
           /* Deckenleuchten als heller Streifen, unten Tische und Bruestung */
@@ -489,14 +489,14 @@ const ROT=[1,0.12,0.06], GRUEN=[0.3,1,0.45], WEISS=[1,0.93,0.8];
    Klinker in mehreren Braennungen, Glas mal blau, mal gruenlich */
 const TON={
   putz:[0xd8cca9,0xd0bb92,0xd2b29d,0xc2c5be,0xbac6b0,0xb5bfca,0xdad6cd,0xcda783,0xc9b9c0],
-  klinker:[0xd8d8d8,0xcabfb6,0xbaaaa2,0xa99686],
-  stein:[0xdcd8d0,0xd2c6b0,0xc4bcb0],
-  band:[0xd2d2ce,0xc3c5c7,0xbcb8b0],
-  raster:[0xd0ccc3,0xc4bfb4,0xbabcbe],
-  glas:[0xc0ccd6,0xafbfca,0xb8c2bc,0xb0b6c4,0xc6ccd2]
+  klinker:[0xbdb5ae,0xa89c94,0x968a82,0xb0a49a],
+  stein:[0xc9bca4,0xb9ad99,0xab9f8c,0xd2c6b2],
+  band:[0xb2b2ae,0xa4a6a8,0x9e9a92],
+  raster:[0xb2aea6,0xa29e96,0x9ca0a4,0xbcb6aa],
+  glas:[0x9fb3c4,0x8ea4b4,0x9cafaa,0x8e96a8,0xa8b4be]
 };
 function stadtTon(stil,r){ const a=TON[stil]; const c=new THREE.Color(a[Math.floor(Math.random()*a.length)]);
-  return c.lerp(new THREE.Color(0xb9cbdd),clamp((r-60)/330,0,1)*0.55).getHex(); }
+  return c.lerp(new THREE.Color(0xb9cbdd),clamp((r-60)/330,0,1)*0.3).getHex(); }
 const DACHTON=[0x9c4a34,0xa85a3e,0x8a4230,0x55585e,0x4a4c52,0x70463a,0x5d6068];
 const GESIMS=0xd6cfc0;
 
@@ -560,7 +560,7 @@ function lamellen(P,x,y,z,hk,abst){
   for(let i=0;i<P.length;i++){ const a=P[i], b=P[(i+1)%P.length], dx=b.x-a.x, dz=b.z-a.z, l=Math.hypot(dx,dz);
     const k=Math.max(1,Math.round(l/abst)), nx=dz/l, nz=-dx/l, ry=Math.atan2(-dz,dx);
     for(let j=0;j<k;j++){ const t=(j+0.5)/k;
-      ST_KRONE.push({geo:new THREE.BoxGeometry(0.22,hk,0.7),m:tm(x+a.x+dx*t+nx*0.12,y+hk/2,z+a.z+dz*t+nz*0.12,0,ry,0),color:0xd8dee4}); } }
+      ST_KRONE.push({geo:new THREE.BoxGeometry(0.22,hk,0.7),m:tm(x+a.x+dx*t+nx*0.12,y+hk/2,z+a.z+dz*t+nz*0.12,0,ry,0),color:0x9098a2}); } }
 }
 function relief(stil,form,P,ww,dd,th,x,y,z){
   const S=FASSADE[stil], rows=Math.max(1,Math.round(th/S.geschoss)), fh=th/rows;
@@ -581,7 +581,7 @@ function relief(stil,form,P,ww,dd,th,x,y,z){
 }
 function turm(S,cx,cz,w,d,h,stil,o){
   o=o||{};
-  const r=Math.hypot(cx,cz), detail=!COARSE&&(!S.fern||o.held), hex=stadtTon(stil,r);
+  const r=Math.hypot(cx,cz), detail=!COARSE, hex=stadtTon(stil,r);
   belegen(cx,cz,(o.sockel?o.sockel[0]:w)/2+1,(o.sockel?o.sockel[1]:d)/2+1); S.boxen++;
   const q=Math.random(), rund=w/d<1.45&&d/w<1.45;
   const form=o.form||(stil==='glas'?(q<0.26?'rund':q<0.46?'fase':q<0.6&&rund?'oval':'eckig'):(stil==='klinker'||stil==='putz')?'eckig':(q<0.22?'fase':q<0.3?'rund':'eckig'));
@@ -628,10 +628,10 @@ function turm(S,cx,cz,w,d,h,stil,o){
     KRONEN.push({cx:tx,cz:tz,w:ww,d:dd,y:top});
     if(k==='lamellen'){
       /* Technikgeschoss hinter einem Lamellenschirm, nachts angestrahlt */
-      const hk=rand(3.5,7);
+      const hk=clamp(Math.min(ww,dd)*rand(0.18,0.3),3,7);
       ST_KANTEN.push({geo:new THREE.BoxGeometry(ww*0.55,hk*0.85,dd*0.55),m:tm(tx,top+hk*0.42,tz),color:0x6c737c});
-      lamellen(P,tx,top,tz,hk,detail?1.1:1.8);
-      ST_KRONE.push({geo:prisma(weiter(P,ww,dd,0.2),0.4,null,{v:[0.55,0.62],boden:true}),m:tm(tx,top+hk-0.4,tz),color:0xd8dee4});
+      lamellen(P,tx,top,tz,hk,detail?1.4:2.2);
+      ST_KRONE.push({geo:prisma(weiter(P,ww,dd,0.2),0.4,null,{v:[0.55,0.62],boden:true}),m:tm(tx,top+hk-0.4,tz),color:0x9098a2});
       top+=hk;
     } else if(k==='spitze'){
       /* Pyramidendach aus Metall, von unten angestrahlt */
@@ -743,7 +743,9 @@ function skyline(S,opt){
     if(r<opt.r0||r>opt.r1) continue;
     const bo=cityBoost(cx,cz);
     if(Math.random()>opt.dichte+bo*0.35) continue;
-    const w=rand(opt.breite[0],opt.breite[1])*(1-bo*0.2), d=rand(opt.breite[0],opt.breite[1])*(1-bo*0.2);
+    let w=rand(opt.breite[0],opt.breite[1])*(1-bo*0.1), d=rand(opt.breite[0],opt.breite[1])*(1-bo*0.1);
+    /* ab und zu eine Scheibe statt eines Stifts */
+    if(Math.random()<0.25){ if(Math.random()<0.5) w*=1.5; else d*=1.5; }
     let h=rand(opt.hoehe[0],opt.hoehe[1])*(1+bo*1.1);
     if(Math.random()<opt.turmChance) h*=rand(1.3,1.8);
     liste.push({cx,cz,w,d,h:Math.min(h,152),bo});
@@ -1100,7 +1102,7 @@ function buildStadt(){
   /* Ring B: das Quartier gleich hinter der Haeuserzeile */
   quartier(NAH,{r0:40,r1:150,raster:COARSE?42:32,dichte:COARSE?0.5:0.74,hoehe:[12,21],turmChance:0.07});
   /* Ring C: die Skyline, Ring D: die Stadt im Dunst */
-  skyline(FERN,{r0:165,r1:330,raster:COARSE?58:44,jitter:9,dichte:COARSE?0.42:0.58,breite:[16,30],hoehe:[34,80],glas:0.4,turmChance:0.2});
+  skyline(FERN,{r0:165,r1:330,raster:COARSE?58:44,jitter:9,dichte:COARSE?0.42:0.58,breite:[18,32],hoehe:[34,80],glas:0.4,turmChance:0.2});
   fernRing(FERN,{r0:342,r1:470,raster:COARSE?56:40,dichte:COARSE?0.45:0.66});
   stadtBoxen=sammlerBauen(NAH)+sammlerBauen(FERN);
   stadtTeileBauen();
@@ -1131,7 +1133,7 @@ function updateStadt(dt){
     const k=1-0.85*nacht;
     for(const key in STADT_MATS){ const m=STADT_MATS[key]; if(m.envMap) m.envMapIntensity=m.userData.env*k; }
     for(const m of [_lobbyM,_kroneM]) if(m&&m.envMap) m.envMapIntensity=m.userData.env*k;
-    if(_kroneM) _kroneM.emissiveIntensity=nacht*1.7;
+    if(_kroneM) _kroneM.emissiveIntensity=nacht*1.05;
     if(lichtPts) lichtPts.material.opacity=nacht; }
   /* Vogelschwaerme ziehen ihre Kreise und schlagen mit den Fluegeln */
   for(const s of schwaerme){

@@ -22,7 +22,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
       const st=bb.stations.tisch; st.items.forEach(x=>{ if(x.mesh) bb.scene.remove(x.mesh); }); st.items.length=0;
       S.carrying={type:t,count:1,q:1}; bb.placeOnStation(st); S.carrying=null;
       const it=st.items[st.items.length-1]; if(!it){ out[t]={fehler:'nicht platziert'}; continue; }
-      const P0={x:-1.5+[-0.8,0,0.8][it.slot%3],z:-19.0};
+      const P0={x:bb.STATION_POS.tisch.x+bb.TISCH_X[it.slot%3],z:bb.STATION_POS.tisch.z};
       window.__pk=[]; bb.zuendeAlle();
       for(let s=0;s<12;s+=0.1) bb.run(0.1,0.05);
       const pk=window.__pk; window.__pk=null;

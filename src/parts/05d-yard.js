@@ -15,10 +15,13 @@ const pultLamps=[], pultTaster=[];
 /* x der Kanal-Leuchte i auf der Pultplatte: neun Kanaele in drei
    Gruppen zu drei - Moerser, Raketen, Tisch (Tom, 25.09.) */
 const PULT_LAMP_X=i=>-0.35+i*0.075+Math.floor(i/3)*0.05;
-/* Plaetze auf Tisch und Rampe: je drei. Der Tisch behaelt seine
-   Breite, die Plaetze stehen weiter auseinander - grosse Batterien
-   brauchen den Platz. Die Rampe hat nur noch drei Rohre. */
-const TISCH_X=[-0.8,0,0.8], RAMPE_X=[-0.4,0,0.4];
+/* Plaetze auf Tisch und Rampe: je drei. Die Rampe hat nur noch drei
+   Rohre. Der Tisch ist 3,3 m breit, die Plaetze stehen 1,1 m
+   auseinander: jede Batterie steht mit ihrer Breite quer zum Blick,
+   auch das Finale (1 m). Vorher (2,5 m, 0,8 m Abstand) wurden Verbunde
+   ueber 0,76 m quer gestellt - die Schuesse liefen aber ueber die
+   Breite und kamen neben dem Karton heraus (28.09., Tom: echt). */
+const TISCH_B=3.3, TISCH_X=[-1.1,0,1.1], RAMPE_X=[-0.4,0,0.4];
 /* Hinweisschild auf zwei Rohrpfosten, damit es nicht in der Luft haengt */
 function schild(x,y,z,w,h,mat,steelM){
   const g=new THREE.Group(); g.position.set(x,0,z); scene.add(g);
@@ -125,23 +128,24 @@ function buildYard(){
   /* --- Zündtisch aus Metall --- */
   {
     const s=STATION_POS.tisch, g=new THREE.Group(); g.position.set(s.x,0,s.z); scene.add(g);
-    bbox(2.5,0.04,1.05,perfM,0,0.9,0,g);
-    bbox(2.56,0.05,0.05,steelDark,0,0.925,0.52,g); bbox(2.56,0.05,0.05,steelDark,0,0.925,-0.52,g);
-    bbox(0.05,0.05,1.07,steelDark,1.27,0.925,0,g); bbox(0.05,0.05,1.07,steelDark,-1.27,0.925,0,g);
-    for(const [x,z] of [[-1.14,-0.42],[1.14,-0.42],[-1.14,0.42],[1.14,0.42]]){
+    const TB=TISCH_B/2;
+    bbox(TISCH_B,0.04,1.05,perfM,0,0.9,0,g);
+    bbox(TISCH_B+0.06,0.05,0.05,steelDark,0,0.925,0.52,g); bbox(TISCH_B+0.06,0.05,0.05,steelDark,0,0.925,-0.52,g);
+    bbox(0.05,0.05,1.07,steelDark,TB+0.02,0.925,0,g); bbox(0.05,0.05,1.07,steelDark,-TB-0.02,0.925,0,g);
+    for(const [x,z] of [[-TB+0.11,-0.42],[TB-0.11,-0.42],[-TB+0.11,0.42],[TB-0.11,0.42],[0,-0.42],[0,0.42]]){
       bbox(0.07,0.88,0.07,steelDark,x,0.44,z,g);
       bbox(0.12,0.025,0.12,rubber,x,0.012,z,g,false);
     }
-    bbox(2.3,0.03,0.16,steelDark,0,0.3,0.42,g,false);
-    bbox(2.3,0.03,0.16,steelDark,0,0.3,-0.42,g,false);
-    bbox(0.06,0.06,0.9,steelDark,1.1,0.3,0,g,false);
-    bbox(0.06,0.06,0.9,steelDark,-1.1,0.3,0,g,false);
+    bbox(TISCH_B-0.2,0.03,0.16,steelDark,0,0.3,0.42,g,false);
+    bbox(TISCH_B-0.2,0.03,0.16,steelDark,0,0.3,-0.42,g,false);
+    bbox(0.06,0.06,0.9,steelDark,TB-0.15,0.3,0,g,false);
+    bbox(0.06,0.06,0.9,steelDark,-TB+0.15,0.3,0,g,false);
     /* Kanalnummern an der Vorderkante, je Platz eine */
     for(let i=0;i<s.cap;i++) plane(0.1,0.064,kanalMat(KANAL_START.tisch+i),TISCH_X[i],0.915,0.549,0,g);
-    const hit=bbox(2.6,0.95,1.15,hitM,0,0.62,0,g,false);
+    const hit=bbox(TISCH_B+0.1,0.95,1.15,hitM,0,0.62,0,g,false);
     stations.tisch={id:'tisch',g,items:[],cap:s.cap,hit};
     hit.userData={kind:'station',ref:stations.tisch};
-    col(s.x-1.3,s.x+1.3,s.z-0.58,s.z+0.58);
+    col(s.x-TB-0.05,s.x+TB+0.05,s.z-0.58,s.z+0.58);
     schild(s.x,1.34,s.z-0.72,0.9,0.2,new THREE.MeshStandardMaterial({map:tex(540,120,(g2,W,H)=>{
       g2.fillStyle='#ffd23f'; g2.fillRect(0,0,W,H);
       g2.fillStyle='#0e1226'; g2.lineWidth=6; g2.strokeStyle='#0e1226'; g2.strokeRect(4,4,W-8,H-8);
@@ -481,14 +485,24 @@ function kanalItem(k){ const e=alleKanaele().find(x=>x.kanal===k); return e?e.it
 /* Wo der Effekt eines Platzes startet: Oberkante des Produkts auf
    dem Tisch, Muendung des Rohrs, Muendung des Moerserrohrs. jit ist
    der seitliche Versatz eines Schusses - aus einem Rohr kommt er
-   gerade heraus, nicht irgendwo aus der Naehe. */
+   gerade heraus, nicht irgendwo aus der Naehe. hx/hz: halbe Oeffnung
+   quer und in der Tiefe - weiter darf kein Abschuss, keine Mine und
+   keine Duese vom Mittelpunkt weg (28.09., Tom: echt). */
 const MOERSER_MUND=[1.48,1.73,2.03];
 function muendung(st,slot,t){
   const p=STATION_POS[st.id];
   if(st.id==='tisch'){ const h=P[t]&&P[t].dims?P[t].dims[1]:0.2;
-    return {x:p.x+TISCH_X[slot%3],y:0.93+h,z:p.z,ab:0.08,jit:0.06}; }
-  if(st.id==='moerser') return {x:p.x+[-0.72,0,0.78][slot%3],y:MOERSER_MUND[slot%3],z:p.z,ab:0.05,jit:0.02};
-  return {x:p.x+RAMPE_X[slot%3],y:1.34,z:p.z-0.08,ab:0.05,jit:0.02};
+    const d=P[t]&&P[t].dims||[0.2,0.2,0.2], hx=d[0]/2, hz=d[2]/2;
+    return {x:p.x+TISCH_X[slot%3],y:0.93+h,z:p.z,ab:0.08,jit:Math.min(0.06,hx*0.5,hz*0.5),hx,hz}; }
+  if(st.id==='moerser') return {x:p.x+[-0.72,0,0.78][slot%3],y:MOERSER_MUND[slot%3],z:p.z,ab:0.05,jit:0.02,hx:ROHR_INNEN[slot%3]*0.8,hz:ROHR_INNEN[slot%3]*0.8};
+  /* Roemische Lichter stehen im Rohr und ragen heraus: ihre Oeffnung
+     sind die fuenf Rohre des Buendels oben (Modell: Rohre bei +-0,52 w,
+     Hoehe 0,9 h). Vorher starteten ihre Schuesse an der Rohrmuendung
+     (1,34 m) - 20 bis 30 cm tief im Buendel (28.09., Tom: echt). */
+  const pc=P[t];
+  if(pc&&pc.shape==='candle'&&pc.dims){ const d=pc.dims;
+    return {x:p.x+RAMPE_X[slot%3],y:1.18+d[1]*0.9,z:p.z-0.08,ab:0.02,jit:0.01,hx:d[0]*0.52,hz:d[2]*0.3}; }
+  return {x:p.x+RAMPE_X[slot%3],y:1.34,z:p.z-0.08,ab:0.05,jit:0.02,hx:0.045,hz:0.045};
 }
 function placedCount(){ let n=0; for(const k in stations) n+=stations[k].items.length; return n; }
 function bereitCount(){ let n=0; for(const k in stations) n+=stations[k].items.filter(it=>it.state==='bereit').length; return n; }
@@ -654,8 +668,10 @@ function placeOnStation(st){
     const m=makeEngraved(c.text||''); m.position.set(sl.x,sl.y+0.06,sl.z); m.rotation.y=sl.ry; scene.add(m);
     it.mesh=m; it.text=c.text;
   } else {
-    /* breite Verbunde stehen quer, sonst ragen sie in den Nachbarplatz */
-    it.h=pools[c.type].add(mx(sl.x,sl.y,sl.z,sl.ry+(st.id==='tisch'&&P[c.type].dims[0]>0.76?Math.PI/2:0)));
+    /* alle stehen mit der Breite quer zum Blick - die Schuesse laufen
+       ueber diese Breite. Vorher wurden Verbunde ueber 0,76 m quer
+       gestellt und schossen dann neben dem Karton (28.09.) */
+    it.h=pools[c.type].add(mx(sl.x,sl.y,sl.z,sl.ry));
   }
   st.items.push(it);
   c.count--; S.tut.build=true; sfx.pop();
@@ -717,9 +733,11 @@ function zuendeItem(st,it,leise){
   });
   const dauer=vor+(dud?2.2:brennDauer(it.type));
   later(dauer,()=>{
-    /* abgebrannt: ein Rest Rauch, dann ist der Platz wieder frei */
+    /* abgebrannt: ein Rest Rauch, dann ist der Platz wieder frei. Er
+       steigt aus der Oeffnung, nicht daneben (28.09., Tom: echt) */
+    const dd=P[it.type].dims||[0.2,0.2,0.2], rr=st.id==='tisch'?Math.min(0.08,Math.min(dd[0],dd[2])*0.4):0.03;
     for(let k=0;k<14;k++){ const d=randDir();
-      psSmall.emit(o.x+rand(-.08,.08),o.y,o.z+rand(-.08,.08),d[0]*0.25,Math.abs(d[1])*0.6+0.3,d[2]*0.25,0.34,0.34,0.36,rand(1.2,2.2),-0.25,0); }
+      psSmall.emit(o.x+rand(-rr,rr),o.y,o.z+rand(-rr,rr),d[0]*0.25,Math.abs(d[1])*0.6+0.3,d[2]*0.25,0.34,0.34,0.36,rand(1.2,2.2),-0.25,0); }
     itemEntfernen(st,it); drawPult();
   });
   if(!leise) sfx.pop();

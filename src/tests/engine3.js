@@ -5,6 +5,11 @@
    - GRUPPEN  je:k mit takt zwischen den Gruppen, gap in der Gruppe
    - ZEIT     mit:Zahl, at:'ende'
    - ORT      x in Metern (je Schuss / je Gruppe), rohrFolge, rohre:'breit'
+   - OEFFNUNG Versaetze breiter als das Produkt werden auf seine Oeffnung
+              gestaucht, das Muster bleibt (28.09., Tom: "Effekte am Produkt
+              rauslassen"); Duesenreihen ebenso. Die Probe-Station O ist
+              12 m breit (hx 6,1), damit die Meterangaben dort ungestaucht
+              bleiben; O2 ist eine 60-cm-Batterie.
    - KALIBER  kal als Liste je Platz in der Gruppe
    - FARBE    farbFolge, A/B auf der Phase, farbVert:'spektrum'
    - BOGEN    Brueche auf sieben... hier zwei Boegen, Radius r*30 m, 20-160 Grad
@@ -41,7 +46,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   const mangel=[];
   const pruef=(n,ok,was)=>{ if(!ok) mangel.push(n+': '+was); };
   const r=await p.evaluate(()=>{
-    const W=window.__fwA, bb=window.__bb, o={}, O={x:0,y:1,z:-40};
+    const W=window.__fwA, bb=window.__bb, o={}, O={x:0,y:1,z:-40,hx:6.1}, O2={x:0,y:1,z:-40,hx:0.3,hz:0.2,jit:0.06,ab:0.08};
     const RA={sz:[1,1],pw:[0,0],hell:[1,1]};
     const warte=s=>bb.run(s,1/60);
     const lauf=(spuren,dauer,basis)=>{ const log=[]; log.brueche=[]; W.fwLog(log); const t0=W.uhr;
@@ -63,6 +68,16 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     { const L=lauf([{n:3,gap:0.2,x:[-5,0,5],eff:'kugel'}],2); o.ortX=L.s.map(x=>+(x.x-O.x).toFixed(2));
       const L2=lauf([{n:4,je:2,takt:[0.5],orte:[-6,6],eff:'kugel'}],2); o.orte=L2.s.map(x=>+(x.x-O.x).toFixed(2));
       const L3=lauf([{n:2,gap:0.2,rohrFolge:[-1,1],eff:'kugel'}],2); o.rohrFolge=L3.s.map(x=>+(x.x-O.x).toFixed(2)); }
+    /* OEFFNUNG: dieselben Orte an einer 60-cm-Batterie */
+    { const lauf2=(spuren,dauer)=>{ const log=[]; W.fwLog(log); W.playShow(O2,{basis:{pw:0,sz:1,th:'bunt'},rampe:RA,spuren},'__probe'); warte(dauer); W.fwLog(null);
+        return log.filter(x=>x.art==='schuss').map(x=>+(x.x-O2.x).toFixed(2)); };
+      o.oeX=lauf2([{n:3,gap:0.2,x:[-5,0,5],eff:'kugel'}],2);
+      o.oeBreit=lauf2([{n:4,gap:0.2,muster:'x',ang:0.35,rohre:'breit',eff:'kugel'}],2);
+      o.oeTreffen=lauf2([{n:2,gap:0.2,muster:'x',ang:0.35,rohre:'breit',treffen:true,eff:'kugel'}],2);
+      W.fontPhasen(O2,{duesen:[-0.4,0,0.4],phasen:[{k:'fountain',t:0.5,hm:2,x:'alle3'}]},'__probe'); bb.run(0.1,0.05);
+      o.oeDuesen=W.emitters.filter(e=>e.font&&e.k==='fountain').map(e=>+(e.o.x-O2.x).toFixed(2)).sort((a,b)=>a-b); warte(1.5);
+      /* Fontaenen-Set: die Kegel des Modells (fontDuesenLage) sind genau die Duesen, aus denen es spruehet */
+      o.oeLage={lage:W.fontDuesenLage('dreiklang'),dims:bb.P.dreiklang.dims[0]}; }
     /* KALIBER */
     { const L=lauf([{n:3,je:3,kal:['mini','mittel','riesig'],eff:'kugel'}],2); o.kal=L.s.map(x=>x.sz); }
     /* FARBE */
@@ -233,6 +248,15 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   pruef('ORT',r.ortX.length===3&&Math.abs(r.ortX[0]+5)<0.1&&Math.abs(r.ortX[1])<0.1&&Math.abs(r.ortX[2]-5)<0.1,'x je Schuss: '+J(r.ortX));
   pruef('ORT',r.orte.length===4&&Math.abs(r.orte[0]+6)<0.1&&Math.abs(r.orte[1]+6)<0.1&&Math.abs(r.orte[2]-6)<0.1&&Math.abs(r.orte[3]-6)<0.1,'orte je Gruppe: '+J(r.orte));
   pruef('ORT',r.rohrFolge.length===2&&r.rohrFolge[0]<-0.2&&r.rohrFolge[1]>0.2,'rohrFolge: '+J(r.rohrFolge));
+  /* OEFFNUNG: halbe Oeffnung 0,3 - Streuung 0,06 - 0,01 = 0,23; mit Streuung
+     bleibt jeder Start innerhalb 0,3 m + 3 cm */
+  { const h=0.23, drin=a=>a.every(v=>Math.abs(v)<=0.33);
+    pruef('OEFFNUNG',r.oeX.length===3&&Math.abs(r.oeX[0]+h)<0.07&&Math.abs(r.oeX[1])<0.07&&Math.abs(r.oeX[2]-h)<0.07,'x gestaucht: '+J(r.oeX));
+    pruef('OEFFNUNG',r.oeBreit.length===4&&drin(r.oeBreit)&&Math.min(...r.oeBreit)<-0.15&&Math.max(...r.oeBreit)>0.15,'rohre breit: '+J(r.oeBreit));
+    pruef('OEFFNUNG',r.oeTreffen.length===2&&drin(r.oeTreffen),'treffen: '+J(r.oeTreffen));
+    pruef('OEFFNUNG',J(r.oeDuesen)===J([-h,0,h]),'Duesen: '+J(r.oeDuesen));
+    /* Farbmischer: 79 cm breit, die drei Duesen (+-0,35 m) passen ungestaucht hinein */
+    pruef('OEFFNUNG',J(r.oeLage.lage)===J([-0.35,0,0.35])&&r.oeLage.dims>0.75,'Fontaenen-Set: Duesen/Kegel '+J(r.oeLage)); }
   /* KALIBER */
   { const kl=r.kal.slice().sort((a,b)=>a-b); r.kal=kl; }
   pruef('KALIBER',r.kal.length===3&&Math.abs(r.kal[1]/r.kal[0]-1/0.45)<0.05&&Math.abs(r.kal[2]/r.kal[0]-1.6/0.45)<0.05,'kal-Liste: '+J(r.kal));

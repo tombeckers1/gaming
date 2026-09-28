@@ -1124,7 +1124,9 @@ EFF.nishiki=function(p,A,B,s){
                     weiter), links A, rechts B */
 function perleSchuss(o,A,s,opt){
   opt=opt||{};
-  const y0=(o.y!==undefined?o.y:0.4)+0.3, alt=SCHWEIF; SCHWEIF=0.35;
+  /* die Kugel kommt oben aus dem Rohr (ab der Station), nicht 30 cm
+     darueber aus der Luft (28.09., Tom: echt) */
+  const y0=(o.y!==undefined?o.y:0.4)+(o.ab!==undefined?o.ab:0.3), alt=SCHWEIF; SCHWEIF=0.35;
   const sp=rand(15,18)*Math.sqrt(s||1), ang=opt.ang||0, dir=opt.dir===undefined?Math.PI/2:opt.dir;
   const gerichtet=opt.ang!==undefined||opt.eff;
   const vx=gerichtet?Math.sin(dir)*Math.sin(ang)*sp+rand(-0.25,0.25):rand(-0.6,0.6),
@@ -1172,7 +1174,7 @@ function perleSchuss(o,A,s,opt){
         for(let k=0;k<Math.round(10*QUAL());k++) psMid.emit(q.x,q.y,q.z,Math.sin(az)*w*rand(0.3,0.9),rand(-1,0.5),Math.cos(az)*w*rand(0.3,0.9),1,.75,.35,rand(0.4,0.8),3,4); }
       SCHWEIF=alt2; psHuge.emit(q.x,q.y,q.z,0,0,0,1,1,1,0.07,0,0); later(camera.position.distanceTo(q)/343,()=>sfx.crack(distVol(q)*0.9)); });
   }
-  if(FW_LOG) FW_LOG.push({t:FW_UHR,art:'perle',kal:0,pw:0,sz:s||1,eff:art||'perle',A,B,stufenEff:[],hoehe:0,brueche:1,groesste:s||1,ang:+ang.toFixed(3),dir:+dir.toFixed(3),x:+o.x.toFixed(2),v:[+vx.toFixed(2),+vy.toFixed(2),+vz.toFixed(2)],tag});
+  if(FW_LOG) FW_LOG.push({t:FW_UHR,art:'perle',kal:0,pw:0,sz:s||1,eff:art||'perle',A,B,stufenEff:[],hoehe:0,brueche:1,groesste:s||1,ang:+ang.toFixed(3),dir:+dir.toFixed(3),x:+o.x.toFixed(2),y:+y0.toFixed(2),z:+o.z.toFixed(2),v:[+vx.toFixed(2),+vy.toFixed(2),+vz.toFixed(2)],tag});
   if(typeof bruchGesehen==='function') bruchGesehen(art||'perle');
   sfx.thump(distVol(o)*0.8);
 }
@@ -1288,7 +1290,7 @@ function shot(o,opt){
   /* stotter: drei Aussetzer zu je 0,3 s, die Rakete sackt jedes Mal 0,9 m ab */
   if(sg==='stotter') fuse+=0.9;
   if(sg==='knister') later(0.25,()=>sfx.crackle(distVol(o)*0.5));
-  if(FW_LOG) FW_LOG.push({t:FW_UHR,art:opt.kugel?'kugel':'schuss',tief:!!opt.tief,ang:+ang.toFixed(3),dir:+dir.toFixed(3),x:+start.x.toFixed(2),z:+start.z.toFixed(2),steig:sg,kal:opt.kugel||0,pw:opt.pw||0,sz:opt.sz||1,eff:opt.eff||'?',A:sc[0],B:sc[1],
+  if(FW_LOG) FW_LOG.push({t:FW_UHR,art:opt.kugel?'kugel':'schuss',tief:!!opt.tief,ang:+ang.toFixed(3),dir:+dir.toFixed(3),x:+start.x.toFixed(2),y:+start.y.toFixed(2),z:+start.z.toFixed(2),steig:sg,kal:opt.kugel||0,pw:opt.pw||0,sz:opt.sz||1,eff:opt.eff||'?',A:sc[0],B:sc[1],
     stufenEff:(opt.stufen||[]).map(x=>x.eff),
     hoehe:+(hZiel-(sg==='stotter'?2.7:0)).toFixed(2),brueche:1+(opt.stufen?opt.stufen.length:0),fuse:+fuse.toFixed(3),tag:opt.tag||FW_TAG,ton:opt.ton,
     groesste:Math.max(opt.sz||1,...(opt.stufen||[]).filter(x=>x.eff!=='salut').map(x=>x.sz||0)),hell:opt.hell||1});
@@ -1890,6 +1892,12 @@ function monsterFontaene(o,hm,dauer,farben,stil){
   emitters.push({t:dauer,k:'monsterfont',o,hm,v0,tA:Math.log(1+ZIEH*v0/6)/ZIEH,farben:farben.map(c=>typeof c==='string'?K(c):c),stil:stil||'puls'});
   const v=distVol(o); sfx.fizz(v); sfx.thump(v*1.2);
 }
+/* Hoehe, auf der ein Boden-Emitter spruehet: auf einer Station die
+   Oeffnung des Produkts (o.ab wie beim Schuss), sonst wie frueher 20-30 cm
+   ueber dem Boden. Vorher standen Fontaene, Riesen- und Monsterfontaene
+   auch auf dem Tisch 20-30 cm ueber dem Karton in der Luft (28.09., Tom:
+   echt). */
+function emY(o,d){ return o.y+(o.ab!==undefined?o.ab:d); }
 function updateFireworks(dt){
   FW_UHR+=dt;
   for(let i=rockets.length-1;i>=0;i--){ const r=rockets[i]; FW_TAG=r.tag||0;
@@ -1929,8 +1937,11 @@ function updateFireworks(dt){
       const big=e.k==='volcano', wf=e.k==='wasserfall', n=big?18:wf?22:10;
       const A=e.A||FW.gold, B=e.B||FW.weiss;
       e.fl=(e.fl||0)-dt; if(e.fl<=0){ e.fl=0.3; flash({x:o.x,y:o.y+1.4,z:o.z},A,big?1.8:1.2,0.34); }
+      /* der Wasserfall-Vorhang so breit wie das Produkt, hoechstens
+         3,2 m (vorher immer 3,2 m - neben jeder Batterie, 28.09.) */
+      const wb=wf?Math.min(1.6,e.spielraum!==undefined?e.spielraum:1.6):0;
       for(let k=0;k<n;k++){ const a=Math.random()*Math.PI*2, s=rand(0.3,wf?2.6:big?1.9:1.2), c=Math.random()<0.72?A:B;
-        psMid.emit(o.x+(wf?rand(-1.6,1.6):0),o.y+0.2,o.z,Math.cos(a)*s,wf?rand(3,6):rand(4.5,big?10.5:6.8),Math.sin(a)*s,c[0],c[1],c[2],rand(0.8,wf?2.4:big?1.9:1.3),wf?7:5,4); } }
+        psMid.emit(o.x+(wf?rand(-wb,wb):0),emY(o,0.2),o.z,Math.cos(a)*s,wf?rand(3,6):rand(4.5,big?10.5:6.8),Math.sin(a)*s,c[0],c[1],c[2],rand(0.8,wf?2.4:big?1.9:1.3),wf?7:5,4); } }
     else if(e.k==='riesen'){
       /* Riesenfontaene: ein Goldstrahl von zehn Metern und mehr, oben
          eine knisternde Krone, dazwischen farbige Sterne. Die Menge je
@@ -1943,11 +1954,11 @@ function updateFireworks(dt){
          aus wie Laserstrahlen") - vorher 0,6 s Spur, 6-8 m lange Striche */
       const alt=SCHWEIF; SCHWEIF=0.1;
       for(;e.acc>=1;e.acc--){ const a=Math.random()*Math.PI*2, w=rand(0.2,2.6)*H, c=Math.random()<0.8?A:B;
-        psMid.emit(o.x,o.y+0.25,o.z,Math.cos(a)*w,rand(17,21)*Math.sqrt(H),Math.sin(a)*w,c[0],c[1],c[2],rand(1.6,2.6),6,4); }
+        psMid.emit(o.x,emY(o,0.25),o.z,Math.cos(a)*w,rand(17,21)*Math.sqrt(H),Math.sin(a)*w,c[0],c[1],c[2],rand(1.6,2.6),6,4); }
       e.acc2=(e.acc2||0)+dt*16*H;
       SCHWEIF=0.12;
       for(;e.acc2>=1;e.acc2--){ const a=Math.random()*Math.PI*2, w=rand(0.5,2.4)*H, c=e.C||pick(SCHEMES.map(x=>K(x[0])));
-        psBig.emit(o.x,o.y+0.25,o.z,Math.cos(a)*w,rand(19,24)*Math.sqrt(H),Math.sin(a)*w,c[0],c[1],c[2],rand(2.0,2.6),6,0); }
+        psBig.emit(o.x,emY(o,0.25),o.z,Math.cos(a)*w,rand(19,24)*Math.sqrt(H),Math.sin(a)*w,c[0],c[1],c[2],rand(2.0,2.6),6,0); }
       SCHWEIF=alt;
       /* knisternde Krone auf etwa zehn Metern */
       const kr=10.2*H;
@@ -1977,7 +1988,7 @@ function updateFireworks(dt){
           const c1=F[e.nr%F.length], c2=F[(e.nr+2)%F.length], n=Math.round(44*q*kraft);
           SCHWEIF=0.05;
           for(let k=0;k<n;k++){ const a=Math.random()*Math.PI*2, tl=Math.sqrt(Math.random())*0.24, sp=v0*rand(0.9,1.0), c=k%2?c1:c2;
-            psBig.emit(o.x,o.y+0.3,o.z,Math.cos(a)*Math.sin(tl)*sp,Math.cos(tl)*sp,Math.sin(a)*Math.sin(tl)*sp,c[0],c[1],c[2],e.tA*rand(1.0,1.2),6,4); }
+            psBig.emit(o.x,emY(o,0.3),o.z,Math.cos(a)*Math.sin(tl)*sp,Math.cos(tl)*sp,Math.sin(a)*Math.sin(tl)*sp,c[0],c[1],c[2],e.tA*rand(1.0,1.2),6,4); }
           SCHWEIF=alt;
           flash({x:o.x,y:o.y+2.5,z:o.z},c1,3.5*kraft,0.25);
           const oben={x:o.x,y:o.y+hm*0.94,z:o.z}, r0=hm*0.16;
@@ -1992,11 +2003,11 @@ function updateFireworks(dt){
         }
         e.acc=(e.acc||0)+dt*150*q*kraft; SCHWEIF=0.1;
         for(;e.acc>=1;e.acc--){ const a=Math.random()*Math.PI*2, w=rand(0.6,3.4), c=Math.random()<0.8?FW.gold:FW.weiss;
-          psMid.emit(o.x,o.y+0.25,o.z,Math.cos(a)*w,rand(9,13),Math.sin(a)*w,c[0],c[1],c[2],rand(1.3,1.9),6,4); }
+          psMid.emit(o.x,emY(o,0.25),o.z,Math.cos(a)*w,rand(9,13),Math.sin(a)*w,c[0],c[1],c[2],rand(1.3,1.9),6,4); }
         /* zwischen den Salven ein lockerer Glitzerschleier im selben Kegel */
         e.acc3=(e.acc3||0)+dt*110*q*kraft; SCHWEIF=0.03;
         for(;e.acc3>=1;e.acc3--){ const a=Math.random()*Math.PI*2, tl=Math.sqrt(Math.random())*0.26, sp=v0*rand(0.75,0.98), c=F[(e.nr||0)%F.length];
-          psMid.emit(o.x,o.y+0.3,o.z,Math.cos(a)*Math.sin(tl)*sp,Math.cos(tl)*sp,Math.sin(a)*Math.sin(tl)*sp,c[0]*0.8,c[1]*0.8,c[2]*0.8,e.tA*rand(0.9,1.1),6,4); }
+          psMid.emit(o.x,emY(o,0.3),o.z,Math.cos(a)*Math.sin(tl)*sp,Math.cos(tl)*sp,Math.sin(a)*Math.sin(tl)*sp,c[0]*0.8,c[1]*0.8,c[2]*0.8,e.tA*rand(0.9,1.1),6,4); }
         SCHWEIF=alt;
       } else {
         /* 50 m »Regenbogen-Titan«: drehender Regenbogenfaecher. Je Farbe
@@ -2008,11 +2019,11 @@ function updateFireworks(dt){
         const kipp=0.2+0.08*Math.sin(e.alter*0.8);
         e.acc=(e.acc||0)+dt*520*q*kraft; SCHWEIF=0.03;
         for(;e.acc>=1;e.acc--){ const j=Math.floor(Math.random()*J), a=e.rot+j/J*Math.PI*2+rand(-0.12,0.12), tl=kipp+rand(-0.05,0.05), sp=v0*rand(0.93,1.0), c=F[j];
-          psMid.emit(o.x,o.y+0.3,o.z,Math.cos(a)*Math.sin(tl)*sp,Math.cos(tl)*sp,Math.sin(a)*Math.sin(tl)*sp,c[0]*0.9,c[1]*0.9,c[2]*0.9,e.tA*rand(0.95,1.3),6,4); }
+          psMid.emit(o.x,emY(o,0.3),o.z,Math.cos(a)*Math.sin(tl)*sp,Math.cos(tl)*sp,Math.sin(a)*Math.sin(tl)*sp,c[0]*0.9,c[1]*0.9,c[2]*0.9,e.tA*rand(0.95,1.3),6,4); }
         SCHWEIF=alt;
         e.acc2=(e.acc2||0)+dt*80*q*kraft;
         for(;e.acc2>=1;e.acc2--){ const a=Math.random()*Math.PI*2, w=rand(0,2.2);
-          psMid.emit(o.x,o.y+0.3,o.z,Math.cos(a)*w,v0*rand(0.55,0.75),Math.sin(a)*w,1,1,1,rand(1.4,1.9),6,1); }
+          psMid.emit(o.x,emY(o,0.3),o.z,Math.cos(a)*w,v0*rand(0.55,0.75),Math.sin(a)*w,1,1,1,rand(1.4,1.9),6,1); }
         e.kr=(e.kr||0)-dt;
         if(e.kr<=0&&kraft>0.3){ e.kr=0.6; const y=o.y+hm*0.93, R=hm*0.2;
           for(let k=0;k<Math.round(48*q);k++){ const a=e.rot+k/48*Math.PI*2, c=F[Math.floor(k/48*J)%J];
@@ -2031,22 +2042,22 @@ function updateFireworks(dt){
         e.st=SA!==undefined?(Array.isArray(SA)?rand(SA[0],SA[1]):SA):e.t<3?0.2:rand(0.32,0.5);
         const n=Math.round((dauer?16:10)*H*QUAL());
         for(let k=0;k<n;k++){ const a=Math.random()*Math.PI*2, w=rand(0.2,1.6)*H, vy=rand(9,12.5)*Math.sqrt(H);
-          psHuge.emit(o.x,o.y+0.3,o.z,Math.cos(a)*w,vy,Math.sin(a)*w,1.7,1.0,0.3,rand(2.2,3.0),6.5,2,1.0,0.18,0.04);
+          psHuge.emit(o.x,emY(o,0.3),o.z,Math.cos(a)*w,vy,Math.sin(a)*w,1.7,1.0,0.3,rand(2.2,3.0),6.5,2,1.0,0.18,0.04);
           for(let q=0;q<Math.round(5*QUAL());q++){ const c=q%2?FW.orange:FW.bernstein;
-            psBig.emit(o.x,o.y+0.3,o.z,Math.cos(a)*w+rand(-.5,.5),vy+rand(-.6,.6),Math.sin(a)*w+rand(-.5,.5),c[0]*1.35,c[1]*1.2,c[2],rand(1.9,2.7),6.5,2,0.7,0.1,0.02); } }
+            psBig.emit(o.x,emY(o,0.3),o.z,Math.cos(a)*w+rand(-.5,.5),vy+rand(-.6,.6),Math.sin(a)*w+rand(-.5,.5),c[0]*1.35,c[1]*1.2,c[2],rand(1.9,2.7),6.5,2,0.7,0.1,0.02); } }
         flash({x:o.x,y:o.y+2.5,z:o.z},FW.orange,2.6*H,0.4);
         if(Math.random()<0.5) sfx.fizz(distVol(o)*0.8); }
       for(let k=0;k<6;k++){ const a=Math.random()*Math.PI*2, w=rand(0.3,1.2);
-        psMid.emit(o.x,o.y+0.25,o.z,Math.cos(a)*w,rand(3,6),Math.sin(a)*w,1,rand(0.5,0.75),0.12,rand(0.6,1.1),4,0); } }
+        psMid.emit(o.x,emY(o,0.25),o.z,Math.cos(a)*w,rand(3,6),Math.sin(a)*w,1,rand(0.5,0.75),0.12,rand(0.6,1.1),4,0); } }
     else if(e.k==='furzfont'){
       /* brauner Schweif, waehrend die Rakete steigt */
       for(let k=0;k<9;k++){ const a=Math.random()*Math.PI*2, sp=rand(0.2,1.3);
         const c=k%4?FW.braun:FW.sumpf;
-        psMid.emit(o.x,o.y+0.25,o.z,Math.cos(a)*sp,rand(2.5,5.5),Math.sin(a)*sp,c[0],c[1],c[2],rand(1.2,2.2),-0.2); } }
+        psMid.emit(o.x,emY(o,0.25),o.z,Math.cos(a)*sp,rand(2.5,5.5),Math.sin(a)*sp,c[0],c[1],c[2],rand(1.2,2.2),-0.2); } }
     else if(typeof NEU_EMIT!=='undefined'&&NEU_EMIT[e.k]) NEU_EMIT[e.k](e,dt,o);
     else if(e.k==='spark'){
       for(let k=0;k<7;k++){ const d=randDir(), s=rand(1,2.4);
-        psSmall.emit(o.x,o.y+0.3,o.z,d[0]*s,d[1]*s+0.4,d[2]*s,1,rand(0.8,1),rand(0.45,0.85),rand(0.25,0.55),4,3); } }
+        psSmall.emit(o.x,emY(o,0.3),o.z,d[0]*s,d[1]*s+0.4,d[2]*s,1,rand(0.8,1),rand(0.45,0.85),rand(0.25,0.55),4,3); } }
     else { for(let k=0;k<2;k++){ const d=randDir();
         psSmall.emit(o.x,o.y+0.05,o.z,d[0],d[1]+0.4,d[2],1,0.9,0.5,rand(0.2,0.4),4,0); } }
     if(e.t<=0) emitters.splice(i,1); }

@@ -131,11 +131,21 @@ function buildProduct(t){
   }
   else if(sh==='fountainset'){
     const th=h*0.17; addAtlasBox(w,th,d,tm(0,th/2,0));
-    const cols=[0xd8352a,0xffc93a,0x2f7fd0];
-    for(let i=0;i<3;i++){ const x=-w*0.3+i*w*0.3;
-      vc.push({geo:new THREE.CylinderGeometry(w*0.04,w*0.13,h*0.72,16),m:tm(x,th+h*0.36,0),color:cols[i]});
-      vc.push({geo:new THREE.CylinderGeometry(w*0.042,w*0.055,h*0.1,16),m:tm(x,th+h*0.5,0),color:0xf4f0e6});
-      vc.push({geo:new THREE.CylinderGeometry(0.004,0.009,h*0.08,10),m:tm(x,th+h*0.78,0),color:0x3b3b3b}); }
+    const cols=[0xd8352a,0xffc93a,0x2f7fd0,0x2f9e57,0x9b3bd6];
+    /* ein Kegel je Duese, genau dort, wo die Fontaene herauskommt
+       (fontDuesenLage). Auf dem Tisch steht das Set gedreht (ry = pi),
+       darum gespiegelt. Vorher immer drei Kegel bei +-0,3 w - die
+       Fontaenen kamen daneben heraus (28.09., Tom: echt) */
+    const L=typeof fontDuesenLage==='function'?fontDuesenLage(t,true):null;
+    const D=L&&L.length>1?L.map(q=>({x:-q.x,c:q.c})).sort((a,b)=>a.x-b.x):[-w*0.3,0,w*0.3].map(x=>({x,c:null}));
+    let ab=w*0.3; for(let i=1;i<D.length;i++) ab=Math.min(ab,D[i].x-D[i-1].x);
+    const R=Math.min(w*0.13,d*0.42,ab*0.45);
+    /* Kegelfarbe = Farbe der Fontaene aus dieser Duese */
+    const hex=c=>(Math.round(clamp(c[0],0,1)*255)<<16)+(Math.round(clamp(c[1],0,1)*255)<<8)+Math.round(clamp(c[2],0,1)*255);
+    D.forEach(({x,c},i)=>{
+      vc.push({geo:new THREE.CylinderGeometry(R*0.31,R,h*0.72,16),m:tm(x,th+h*0.36,0),color:c?hex(c):cols[i%cols.length]});
+      vc.push({geo:new THREE.CylinderGeometry(R*0.32,R*0.42,h*0.1,16),m:tm(x,th+h*0.5,0),color:0xf4f0e6});
+      vc.push({geo:new THREE.CylinderGeometry(0.004,0.009,h*0.08,10),m:tm(x,th+h*0.78,0),color:0x3b3b3b}); });
   }
   else if(sh==='battery'){
     const n=w>0.75?16:w>0.5?12:w>0.35?10:w>0.25?7:4;

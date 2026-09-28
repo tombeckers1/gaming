@@ -39,7 +39,7 @@ const NEUWARE={
   pharao:{name:'Pharaoschlangen 12er',short:'Pharaoschlangen',cat:1,lvl:2,shape:'boxA',dims:[0.12,0.05,0.08],grid:[8,2,2],box:24,cost:0.50,market:1.29,weight:5,hype:2,risk:1,
     desc:'Vier schwarze Schlangen wachsen aus kleinen Tabletten und winden sich glimmend über den Boden. Eine davon hebt am Ende den Kopf.',
     art:{title:'PHARAO',sub:'12 Schlangen aus Asche',bg1:'#4a3a14',bg2:'#140e02',ac:'#ffd23f',ac2:'#c8e04a'}},
-  leuchtfontaene:{name:'Gummibärchen · 4 Neon-Fontänen',short:'Gummibärchen',cat:1,lvl:4,shape:'fountainset',dims:[0.18,0.12,0.07],grid:[7,2,1],box:12,cost:1.50,market:3.79,weight:6,hype:6,risk:2,
+  leuchtfontaene:{name:'Gummibärchen · 4 Neon-Fontänen',short:'Gummibärchen',cat:1,lvl:4,shape:'fountainset',dims:[0.44,0.12,0.07],grid:[7,2,1],box:12,cost:1.50,market:3.79,weight:6,hype:6,risk:2,
     desc:'Vier Fontänen, aus denen leuchtende Neon-Gummibärchen hüpfen. Beim letzten wird die ganze Tüte ausgekippt.',
     art:{title:'GUMMIBÄRCHEN',sub:'4 Neon-Fontänen',bg1:'#1f5d2a',bg2:'#06200c',ac:'#c8ff5c',ac2:'#ffd23f'}},
   feuerteufel:{name:'Feuerteufel · Zweihorn-Fontäne',short:'Feuerteufel',cat:1,lvl:4,shape:'cylinder',dims:[0.08,0.2,0.08],grid:[12,2,1],box:16,cost:0.90,market:2.29,weight:6,hype:5,risk:2,
@@ -104,7 +104,7 @@ const NEUWARE={
   knallteppich:{name:'Knallteppich · 500er Chinakette',short:'Knallteppich',cat:2,lvl:8,shape:'boxA',dims:[0.24,0.08,0.16],grid:[6,2,2],box:10,cost:3.80,market:8.99,weight:7,hype:14,risk:5,
     desc:'Fünfhundert Kracher in einer Schlangenlinie: Die Kette peitscht, wird immer schneller, rote Papierfetzen fliegen – und am Ende drei dicke Schläge.',
     art:{title:'KNALLTEPPICH',sub:'500er Chinakette',bg1:'#c8201c',bg2:'#3a0507',ac:'#ffd23f',ac2:'#f2f5ff'}},
-  farbfontaenen:{name:'Farbenspiel · 3 Fontänen mit Farbflamme',short:'Farbenspiel',cat:2,lvl:8,shape:'fountainset',dims:[0.22,0.145,0.09],grid:[7,2,1],box:7,cost:3.60,market:8.49,weight:7,hype:12,risk:4,
+  farbfontaenen:{name:'Farbenspiel · 3 Fontänen mit Farbflamme',short:'Farbenspiel',cat:2,lvl:8,shape:'fountainset',dims:[0.47,0.145,0.09],grid:[7,2,1],box:7,cost:3.60,market:8.49,weight:7,hype:12,risk:4,
     desc:'Unten eine farbige Flamme, oben ein Funkenstrahl: Magenta mit Silber, Grün mit Gold, Blau mit Gold und silbernem Kern.',
     art:{title:'FARBENSPIEL',sub:'3 Fontänen mit Farbflamme',bg1:'#5a1470',bg2:'#1a0322',ac:'#5cff9e',ac2:'#ff4fa3'}},
   bodenfeuer:{name:'Feuerkreis · Bodenring mit Knisterfinale',short:'Feuerkreis',cat:2,lvl:8,shape:'cylinder',dims:[0.14,0.14,0.14],grid:[8,2,1],box:10,cost:2.40,market:5.79,weight:7,hype:10,risk:4,
@@ -249,7 +249,7 @@ const NEUWARE={
   smaragd:{name:'Smaragd · 7 Raketen Achtblatt',short:'Smaragd',cat:2,lvl:15,shape:'rocketset',dims:[0.48,0.065,0.145],grid:[3,2,2],box:6,cost:8.20,market:18.99,weight:6,hype:24,risk:6,
     desc:'Ein grüner Wirbel dreht sich nach oben. Dort geht eine achtblättrige Blüte in drei Grüntönen auf, geschliffen wie ein Smaragd.',
     art:{title:'SMARAGD',sub:'7 Raketen · Achtblatt-Blüte',bg1:'#0d4a2a',bg2:'#021208',ac:'#5cff9e',ac2:'#ffd23f'}},
-  dreiklang:{name:'Farbmischer · Rot, Grün, Blau, zusammen Weiß',short:'Farbmischer',cat:2,lvl:15,shape:'fountainset',dims:[0.26,0.17,0.1],grid:[6,2,1],box:5,cost:7.40,market:17.49,weight:6,hype:24,risk:6,
+  dreiklang:{name:'Farbmischer · Rot, Grün, Blau, zusammen Weiß',short:'Farbmischer',cat:2,lvl:15,shape:'fountainset',dims:[0.63,0.17,0.1],grid:[6,2,1],box:5,cost:7.40,market:17.49,weight:6,hype:24,risk:6,
     desc:'Rot, dann Grün, dann Blau. Wo sich die Strahlen kreuzen, entsteht Gelb und am Ende reines Weiß.',
     art:{title:'FARBMISCHER',sub:'Rot · Grün · Blau = Weiß',bg1:'#123a6b',bg2:'#04101f',ac:'#ffd23f',ac2:'#ff4fa3'}},
   sternenmeer42:{name:'Tausendblüten · 42 Schuss Senrin',short:'Tausendblüten 42',cat:2,lvl:15,shape:'battery',dims:[0.36,0.28,0.34],grid:[6,1,1],box:5,cost:15.00,market:34.99,weight:5,hype:34,risk:7,
@@ -269,7 +269,7 @@ const NEUWARE={
   blinkstern:{name:'Leuchtturm · 5 Blinkraketen',short:'Leuchtturm',cat:2,lvl:16,shape:'rocketset',dims:[0.48,0.065,0.145],grid:[3,2,2],box:6,cost:9.00,market:20.99,weight:6,hype:28,risk:6,
     desc:'Die Rakete blinkt schon im Steigen. Oben wandert ein Lichtstrahl im Kreis durch die Sternkugel, wie das Leuchtfeuer eines Leuchtturms.',
     art:{title:'LEUCHTTURM',sub:'5 Blinkraketen',bg1:'#0f2a4a',bg2:'#02060f',ac:'#f2f5ff',ac2:'#5ce1ff'}},
-  wasserspiel:{name:'Wasserorgel · 4 Fontänen im Tanz',short:'Wasserorgel',cat:2,lvl:16,shape:'fountainset',dims:[0.3,0.17,0.1],grid:[6,2,1],box:5,cost:8.80,market:20.49,weight:6,hype:28,risk:6,
+  wasserspiel:{name:'Wasserorgel · 4 Fontänen im Tanz',short:'Wasserorgel',cat:2,lvl:16,shape:'fountainset',dims:[0.79,0.17,0.1],grid:[6,2,1],box:5,cost:8.80,market:20.49,weight:6,hype:28,risk:6,
     desc:'Vier Fontänen tanzen wie ein Wasserspiel: Sie atmen, wogen, stampfen im Wechsel und springen zum Schluss alle gemeinsam sechs Meter hoch.',
     art:{title:'WASSERORGEL',sub:'4 Fontänen im Tanz · 20 s',bg1:'#0f5a6b',bg2:'#032028',ac:'#5ce1ff',ac2:'#f2f5ff'}},
   weisswein:{name:'Weißwein Riesling',short:'Weißwein',cat:0,lvl:16,cold:true,shape:'bottle',dims:[0.078,0.31,0.078],grid:[12,2,1],box:6,cost:3.40,market:8.49,weight:6,hype:0,risk:4,
@@ -345,7 +345,7 @@ const NEUWARE={
   blitzgewitter60:{name:'Lauflicht · 60 Schuss Strobe',short:'Lauflicht',cat:2,lvl:21,shape:'battery',dims:[0.48,0.38,0.42],grid:[4,1,1],box:3,cost:30.00,market:69.99,weight:4,hype:58,risk:9,
     desc:'Hunderte Blinksterne, die nicht wild durcheinander flackern, sondern im Gleichtakt: Ein Lichtband läuft durch die Wolke, mal quer, mal als Ring nach außen – im Finale über den ganzen Himmel.',
     art:{title:'LAUFLICHT',sub:'60 Schuss · Strobe',bg1:'#0f2a4a',bg2:'#02060f',ac:'#f2f5ff',ac2:'#5ce1ff'}},
-  feuerwand:{name:'Feuerwand · 5er Fächerfontäne',short:'Feuerwand',cat:2,lvl:21,shape:'fountainset',dims:[0.4,0.2,0.12],grid:[5,1,1],box:3,cost:19.00,market:44.99,weight:4,hype:52,risk:8,
+  feuerwand:{name:'Feuerwand · 5er Fächerfontäne',short:'Feuerwand',cat:2,lvl:21,shape:'fountainset',dims:[0.72,0.2,0.12],grid:[5,1,1],box:3,cost:19.00,market:44.99,weight:4,hype:52,risk:8,
     desc:'Fünf Fontänen öffnen sich zum Feuerfächer, schlagen wie Flügel, kreuzen sich und stehen zum Schluss als acht Meter hohe Wand.',
     art:{title:'FEUERWAND',sub:'5 Fontänen · Fächer · 15 s',bg1:'#8a1a08',bg2:'#240502',ac:'#ff8a2a',ac2:'#ffd23f',gold:true}},
   sternkugel150:{name:'Sternkranz · Kugelbombe 150 mm Crossette-Ring',short:'Kugel 150 Kreuz',cat:2,lvl:20,shape:'shell',dims:[0.165,0.2,0.165],grid:[4,1,1],box:3,cost:31.00,market:73.99,weight:4,hype:70,risk:10,
@@ -396,7 +396,7 @@ const NEUWARE={
   wolkenkratzer:{name:'Wolkenkratzer · 240 Schuss in 36 s – vier Etagen',short:'Wolkenkratzer',cat:2,lvl:26,shape:'battery',dims:[0.92,0.82,0.58],grid:[2,1,1],box:1,cost:104.00,market:229.99,weight:2,hype:100,risk:10,
     desc:'Ein Hochhaus aus Feuer: Unten sprühen goldene Fontänen, darüber rote Feuertöpfe, in der Mitte weiße Blüten, ganz oben blaue Großkaliber und ein rotes Warnlicht – Stockwerk für Stockwerk, bis alle vier Etagen gleichzeitig brennen.',
     art:{title:'WOLKENKRATZER',sub:'240 Schuss · 4 Etagen',bg1:'#12204a',bg2:'#000000',ac:'#ffd23f',ac2:'#ff3b2e',gold:true}},
-  feuerkaskade:{name:'Feuerkaskade · 3 Riesenfontänen mit Zerlegerfinale',short:'Feuerkaskade',cat:2,lvl:26,shape:'fountainset',dims:[0.44,0.24,0.16],grid:[4,1,1],box:2,cost:40.00,market:92.99,weight:3,hype:84,risk:10,
+  feuerkaskade:{name:'Feuerkaskade · 3 Riesenfontänen mit Zerlegerfinale',short:'Feuerkaskade',cat:2,lvl:26,shape:'fountainset',dims:[0.8,0.24,0.16],grid:[4,1,1],box:2,cost:40.00,market:92.99,weight:3,hype:84,risk:10,
     desc:'Drei Riesenfontänen bauen einen Dreizack aus Gold und Silber. Im Finale zerspringen alle drei in hundert knisternde Brocken.',
     art:{title:'FEUERKASKADE',sub:'3 Riesenfontänen · Zerlegerfinale',bg1:'#7a1010',bg2:'#000000',ac:'#ffd23f',ac2:'#ff7a1c',gold:true}},
 
@@ -430,7 +430,7 @@ const NEUWARE={
   schneeballschlacht:{name:'Schneeballschlacht · 12 Schuss Kreuzwurf',short:'Schneeball 12',cat:2,lvl:10,shape:'battery',dims:[0.2,0.16,0.2],grid:[9,2,1],box:10,cost:4.80,market:11.49,weight:6,hype:15,risk:5,
     desc:'Weiße Schneebälle fliegen über Kreuz und treffen sich in der Luft – jeder Treffer zerstäubt zu Pulverschnee, der langsam herunterrieselt. Am Ende ein wildes Getümmel.',
     art:{title:'SCHNEEBALLSCHLACHT',sub:'12 Schuss · Kreuzwurf',bg1:'#8a9299',bg2:'#2a2f36',ac:'#f2f5ff',ac2:'#5ce1ff'}},
-  vulkanfeld:{name:'Popcorn · 3 Mini-Vulkane mit Knallsternen',short:'Popcorn-Vulkane',cat:2,lvl:12,shape:'fountainset',dims:[0.24,0.15,0.1],grid:[6,2,1],box:6,cost:5.40,market:12.79,weight:6,hype:18,risk:5,
+  vulkanfeld:{name:'Popcorn · 3 Mini-Vulkane mit Knallsternen',short:'Popcorn-Vulkane',cat:2,lvl:12,shape:'fountainset',dims:[0.55,0.15,0.1],grid:[6,2,1],box:6,cost:5.40,market:12.79,weight:6,hype:18,risk:5,
     desc:'Drei Mini-Vulkane, in denen es erst vereinzelt, dann wie wild ploppt. Und der letzte Knall kommt, wenn keiner mehr damit rechnet.',
     art:{title:'POPCORN',sub:'3 Mini-Vulkane · Knallsterne',bg1:'#8a1a08',bg2:'#240502',ac:'#ff8a2a',ac2:'#ffd23f'}},
   kristallkugel100:{name:'Eiskristall · Kugelbombe 100 mm Kristallgitter',short:'Kugel 100 Kristall',cat:2,lvl:16,shape:'shell',dims:[0.12,0.15,0.12],grid:[6,2,1],box:6,cost:11.00,market:25.99,weight:5,hype:34,risk:8,
@@ -619,6 +619,12 @@ function neuVola(q){
    und die Warengruppe ihres Levels */
 NEU_LIZ_DAZU.import.push('hagelsturm'); NEU_LIZ_DAZU.grossfeuer.push('hexenkessel'); NEU_LIZ_DAZU.profi.push('geysirfeld');
 NEU_GRUPPE.batterien.push('hexenkessel','geysirfeld','wolkenkratzer');
+/* Fontaenen-Sets (Feuerquelle, Gummibaerchen, Farbenspiel, Farbmischer,
+   Wasserorgel, Feuerwand, Feuerkaskade, Popcorn) sind so breit wie ihre
+   Duesenreihe - vorher 18-44 cm Karton, die Duesen standen aber bis
+   50 cm vom Mittelpunkt, also neben dem Karton (28.09., Tom: "wenn der
+   Effekt zu gross ist, dann die Produktgroesse aendern"). Hoechstens
+   1 m, so breit wie ein Tischplatz. */
 /* Einhaengen */
 (function(){
   for(const t in NEUWARE){

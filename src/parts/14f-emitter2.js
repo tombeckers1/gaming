@@ -27,7 +27,10 @@ NEU_EMIT.tornado=(e,dt,o)=>{
     e.zt-=dt; if(e.zt<=0){ e.zt=rand(0.5,0.9); e.zx=rand(-0.35,0.35); e.zz=rand(-0.35,0.35); }
     e.cx+=(e.zx-e.cx)*Math.min(1,dt*1.5); e.cz+=(e.zz-e.cz)*Math.min(1,dt*1.5);
     e.wb+=dt*3.2; e.w+=dt*40;
-    const r=0.45+0.15*Math.sin(t*1.9), x=o.x+e.cx+Math.cos(e.wb)*r, z=o.z+e.cz+Math.sin(e.wb)*r;
+    /* aus einer Batterie (spielraum) kreiselt er auf ihr, nicht daneben
+       (28.09., Tom: echt) - Bahn 0,95 m weit auf die Oeffnung gestaucht */
+    const fk=e.spielraum!==undefined?Math.min(1,e.spielraum/0.95):1;
+    const r=0.45+0.15*Math.sin(t*1.9), x=o.x+(e.cx+Math.cos(e.wb)*r)*fk, z=o.z+(e.cz+Math.sin(e.wb)*r)*fk;
     e.pos=[x,z];
     e.acc=(e.acc||0)+dt*260*q; SCHWEIF=0.08;
     for(;e.acc>=1;e.acc--){ const a=e.w+Math.random()*Math.PI*2, s=rand(2.5,4.5), c=Math.random()<0.6?S:A;
@@ -37,7 +40,7 @@ NEU_EMIT.tornado=(e,dt,o)=>{
   } else if(!e.oben){
     /* Aufstieg: Helix, Durchmesser 0,6 m, in 1 s auf hTop */
     const u=clamp((t-e.ab)/1.0,0,1), [bx,bz]=e.pos||[o.x,o.z], hy=y0+e.hTop*(1-Math.pow(1-u,1.6)), a=(t-e.ab)*18;
-    const x=bx+Math.cos(a)*0.3, z=bz+Math.sin(a)*0.3;
+    const hr=0.3*(e.spielraum!==undefined?Math.min(1,e.spielraum/0.95):1), x=bx+Math.cos(a)*hr, z=bz+Math.sin(a)*hr;
     e.acc=(e.acc||0)+dt*220*q; SCHWEIF=0.2;
     for(;e.acc>=1;e.acc--){ const f=Math.random(), yy=hy-f*dt*e.hTop*1.4;
       psBig.emit(x+rand(-.05,.05),yy,z+rand(-.05,.05),rand(-.3,.3),rand(-1.2,0),rand(-.3,.3),A[0],A[1],A[2],rand(0.45,0.8),1,0); }
@@ -130,7 +133,8 @@ function einschlagAn(p,A,gt,h){ const e={t:gt||1.5,k:'einschlag',o:{x:p.x,y:p.y!
    niedrige Knisterfontaene (2 m), 3-5 Blasen je Sekunde steigen in B
    auf und platzen mit Plopp. Brodelt und knistert. */
 NEU_EMIT.kessel=(e,dt,o)=>{
-  const A=e.A||FW.limette, B=e.B||FW.violett, q=QUAL(), H=e.h||1, y0=(o.y!==undefined?o.y:0)+0.05, R=0.75*H, v=distVol(o);
+  /* Leuchtbasis so weit wie der Platz auf der Batterie (spielraum) (28.09.) */
+  const A=e.A||FW.limette, B=e.B||FW.violett, q=QUAL(), H=e.h||1, y0=(o.y!==undefined?o.y:0)+0.05, R=Math.min(0.75*H,e.spielraum!==undefined?e.spielraum:9), v=distVol(o);
   if(e.id===undefined) e.id=Math.random();
   const alt=SCHWEIF; SCHWEIF=0;
   /* Flammenteppich */
@@ -188,7 +192,9 @@ NEU_EMIT.geysir=(e,dt,o)=>{
    so viel wie bei 60 (Test bausteine2.js). Bild wie vorher bei 60 Bildern. */
 NEU_EMIT.kreisel=(e,dt,o)=>{ if(!(e.i>=0)) e.i=0;
   e.w=(e.w||0)+dt*(2+e.i*0.4); e.r=(e.r||0.2)+dt*0.12;
-  const x=o.x+Math.cos(e.w+e.i*2)*e.r*(1+e.i*0.3), z=o.z+Math.sin(e.w+e.i*2)*e.r*(1+e.i*0.3), c=e.A||FW.gold;
+  /* aus einer Batterie (spielraum): die Spirale bleibt auf ihr (28.09.) */
+  const rr=Math.min(e.r*(1+e.i*0.3),e.spielraum!==undefined?e.spielraum:9);
+  const x=o.x+Math.cos(e.w+e.i*2)*rr, z=o.z+Math.sin(e.w+e.i*2)*rr, c=e.A||FW.gold;
   e.acc=(e.acc||0)+dt*360;
   for(;e.acc>=1;e.acc--){ const a=Math.random()*Math.PI*2, s=rand(1.5,3.2);
     psMid.emit(x,o.y+0.08,z,Math.cos(a)*s,rand(0.3,1.2),Math.sin(a)*s,c[0],c[1],c[2],rand(0.3,0.6),5,4); } };

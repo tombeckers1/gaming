@@ -212,6 +212,21 @@ function versetzt(o,off,dz){
   const q=V(o.x+Math.sin(FANDIR)*off,o.y,o.z+Math.cos(FANDIR)*off+(dz||0));
   q.jit=o.jit!==undefined?Math.min(o.jit,0.06):0.06; q.ab=o.ab; return q;
 }
+/* Halbe Oeffnung des Produkts quer zum Blick, abzueglich Streuung:
+   so weit darf ein Abschuss hoechstens vom Mittelpunkt weg (28.09.,
+   Tom: "die Effekte am Produkt rauslassen - teilweise gehen die
+   komplett woanders"). Die Station sagt es (muendung: hx), sonst die
+   Kartonbreite. */
+function oeffnungHalb(o,prod){
+  const d=P[prod]&&P[prod].dims, hx=o&&o.hx!==undefined?o.hx:(d?d[0]/2:0.3);
+  return Math.max(0,hx-(o&&o.jit!==undefined?Math.min(o.jit,0.06):0.06)-0.01);
+}
+/* Versatz-Massstab: die Orte im Drehbuch (x, boden.x, rohrFolge,
+   rohre:'breit', treffen) werden als Muster gelesen und auf die
+   Oeffnung gestaucht, wenn sie breiter sind als das Produkt. Das
+   Muster (links/rechts, aussen/innen, Reihenfolge) bleibt. */
+function versatzMass(){ const m={max:0,halb:0,k(){ return m.max>m.halb&&m.max>0?m.halb/m.max:1; },
+  nimm(off){ m.max=Math.max(m.max,Math.abs(off||0)); return off||0; }}; return m; }
 function playShow(o,phases,prod,tag){
   phases=showNorm(phases);
   tag=tag||neuerShowTag();
@@ -222,8 +237,14 @@ function playShow(o,phases,prod,tag){
   phases.forEach((ph,pi)=>{ const S=plaene[pi].schuesse; if(!S.length) return; const s=zeiten[pi];
     t0=t0===null?s+S[0].t:Math.min(t0,s+S[0].t); t1=Math.max(t1,s+S[S.length-1].t); });
   const rampe=tt=>showRampe(t1>t0?clamp((tt-t0)/(t1-t0),0,1):0.5,R);
-  /* Breite der Batterie fuer den Abschuss ueber mehrere Rohre */
-  const dims=P[prod]&&P[prod].dims, breite=clamp(dims?dims[0]*1.1:0.6,0.3,1.5);
+  /* Breite der Batterie fuer den Abschuss ueber mehrere Rohre: die
+     Oeffnung des Produkts (vorher Kartonbreite x 1,1 und mindestens
+     30 cm - die aeusseren Rohre lagen neben dem Karton) */
+  const VM=versatzMass(); VM.halb=oeffnungHalb(o,prod);
+  const breite=2*VM.halb;
+  /* Ort zum Versatz: erst beim Zuenden gerechnet, wenn alle Versaetze
+     der Show bekannt sind (VM.k) */
+  const ortAus=off=>off?versetzt(o,off*VM.k()):versetzt(o,0);
   phases.forEach((ph0,pi)=>{
     const ph=phNorm(ph0), t=zeiten[pi], pl=plaene[pi], n=pl.n, th=ph.th||BS.th, je=pl.je;
     const m=ph.muster||(ph.fan?'fan':ph.vfan?'vfan':null);
@@ -231,13 +252,18 @@ function playShow(o,phases,prod,tag){
     /* Farbpaar: aus dem Thema, je Phase eins; wechsel = Paare im Takt */
     const paar=i=>th?themaPaar(th,(ph.farbe!==undefined?ph.farbe:pi)+(ph.wechsel||ph.farbVert==='wechsel'?i:0)):scheme(ph.sc===undefined?zufall:ph.sc);
     /* Boden-Ebene: alle Felder gehen an den Emitter (i, klein, bis ...) */
+    /* Boden-Ebene am Produkt: ort ist der Versatz der Gruppe (je), b.x
+       und b.bis kommen dazu - alles gestaucht auf die Oeffnung */
     const bodenAn=(b,st,ort)=>{ const [gA,gB]=paar(0), A=farbe(b.A)||(b.gA?K(b.gA):gA), B=farbe(b.B)||(b.gB?K(b.gB):gB);
-      const basisOrt=ort||o, ob=b.x?versetzt(basisOrt,b.x):basisOrt;
-      if(b.k==='monsterfont'){ later(st,()=>monsterFontaene(ob,b.gh||20,b.gt||8,b.farben||[A,B,FW.gold])); return; }
-      const e=Object.assign({},b,{t:b.gt||4,k:b.k,o:ob,A,B,h:b.gh||1,tag,versatz:b.t||0});
-      if(b.bis!==undefined) e.ziel=versetzt(basisOrt,b.bis);
-      delete e.je; delete e.x;
-      later(st,()=>{ emitters.push(e); sfx.fizz(distVol(ob)); }); };
+      /* bis: Ziel des Lauffeuers (sonst 0,4 m weiter) - auch gestaucht */
+      const offB=VM.nimm((ort||0)+(+b.x||0)), offZ=b.bis!==undefined?VM.nimm((ort||0)+(+b.bis||0)):b.k==='lauffeuer'?VM.nimm(offB+0.4):null;
+      if(b.k==='monsterfont'){ later(st,()=>monsterFontaene(ortAus(offB),b.gh||20,b.gt||8,b.farben||[A,B,FW.gold])); return; }
+      /* spielraum: Platz vom Emitter bis zum Rand des Produkts - breite
+         oder wandernde Boden-Emitter (Wasserfall, Kreisel, Kessel)
+         bleiben darin */
+      const e=Object.assign({},b,{t:b.gt||4,k:b.k,A,B,h:b.gh||1,tag,versatz:b.t||0});
+      delete e.je; delete e.x; delete e.bis;
+      later(st,()=>{ e.o=ortAus(offB); e.spielraum=Math.max(0.02,VM.halb-Math.abs(offB*VM.k())); if(offZ!==null){ e.ziel=ortAus(offZ); e.bis=(offZ-offB)*VM.k(); } emitters.push(e); sfx.fizz(distVol(e.o)); }); };
     if(ph.ground) bodenAn({k:ph.ground,gt:ph.gt,gh:ph.gh,gA:ph.gA,gB:ph.gB,farben:ph.farben},t);
     const boeden=ph.boden?(Array.isArray(ph.boden)?ph.boden:[ph.boden]):[];
     boeden.forEach(b=>{ if(!b.je) bodenAn(b,t+(b.t||0)); });
@@ -303,8 +329,12 @@ function playShow(o,phases,prod,tag){
       let off=0;
       if(ph.x!==undefined) off+=+jeSchuss(ph.x,je?s.g:i)||0;
       if(ph.rohrFolge) off+=jeSchuss(ph.rohrFolge,i)*breite/2;
-      if(ph.rohre==='breit'||(mm==='x'&&ph.treffen)) off+=seite*(ph.treffen?Math.max(breite/2,Math.min(4,hB*Math.tan(A0)*0.5)):breite/2);
-      const os=(off||ph.x!==undefined||ph.rohrFolge||ph.rohre==='breit')?versetzt(o,off):o;
+      /* breit und treffen: die aeusseren Rohre der Batterie. treffen
+         zielt von dort auf einen Punkt ueber der Mitte - die Schuesse
+         kreuzen sich, ohne dass sie meterweit neben dem Karton starten */
+      if(ph.rohre==='breit'||(mm==='x'&&ph.treffen)) off+=seite*breite/2;
+      VM.nimm(off);
+      const mitOrt=!!(off||ph.x!==undefined||ph.rohrFolge||ph.rohre==='breit');
       /* Bildmuster ueber den Zielschuss: der Bruch liegt genau am Bildpunkt */
       if(mm==='halbkreis'){ const Rh=hB; ziel={x:o.x+Math.sin(FANDIR)*Math.sin(ang)*Rh,y:(o.y||0)+Math.max(8,Math.cos(ang)*Rh),z:o.z+Math.cos(FANDIR)*Math.sin(ang)*Rh}; }
       else if(mm==='bogen'){ const r=ph.r||[1,0.7], Rb=30*(r[0]+(r[1]-r[0])*kg)*rSk, th2=(20+140*(gn>1?q/(gn-1):0.5))*Math.PI/180, yc=(o.y||0)+(ph.bogenY!==undefined?ph.bogenY:4);
@@ -318,9 +348,10 @@ function playShow(o,phases,prod,tag){
       const opt={eff,sz,pw,ang,dir,A,B,fuse:ziel?(bildT||ph.fuse||zielZeit(ziel.y-(o.y||0))):ph.fuse,dick:ph.dick,hell:Rz.hell,pfeif:ph.pfeif||ph.steig==='pfeif',steig:ph.steig,bruchOpt:ph.bruchOpt,
         trail,ton:tonFuer(ph.ton,i,q),par,tag,ziel};
       /* Boden je Gruppe am Gruppenort */
-      if(q===0) boeden.forEach(b=>{ if(b.je) bodenAn(b,tt+(b.t||0),os); });
+      if(q===0) boeden.forEach(b=>{ if(b.je) bodenAn(b,tt+(b.t||0),off); });
       const [mA,mB]=[A,B];
       later(tt,()=>{
+        const os=mitOrt?ortAus(off):o;
         const alt=FW_TAG; FW_TAG=tag;
         /* Feuertopf (Sorte) oder Tiefbruch (EFF) statt der alten Mine */
         if(ph.mineEff) feuertopf(os,ph.mineEff,mA,mB,(ph.mineSz||(TOPF_SORTE[ph.mineEff]?1:0.6))*Rz.sz);
@@ -453,20 +484,46 @@ function fontTick(e,dt){
   if(e.k==='riesen'&&e.hAkt) e.h=e.hAkt/10.2;
 }
 function fwTicks(dt){ for(const e of emitters) if(e.font) fontTick(e,dt); }
+/* Duesen einer Fontaenen-Phase (x quer in m) */
+function duesenListe(spec,ph){ return typeof ph.x==='string'?(spec.duesen&&spec.duesen.length&&ph.x.startsWith('alle')?spec.duesen:DUESEN_STD[ph.x]||[0]):Array.isArray(ph.x)?ph.x:[ph.x||0]; }
+/* Duesen sitzen im Produkt: Reihen breiter als der Karton werden auf
+   seine Oeffnung gestaucht, die Reihenfolge bleibt (28.09., Tom: echt).
+   Vorher standen die Duesen der Dreier- und Fuenferreihen bis 0,4 m
+   vom Mittelpunkt - neben einer 27 cm breiten Fontaene. */
+function duesenMass(spec,o,prod){ const VM=versatzMass(); VM.halb=oeffnungHalb(o,prod);
+  fontPhasenListe(spec).forEach(ph=>duesenListe(spec,ph).forEach(dx=>VM.nimm(+dx||0))); (spec.duesen||[]).forEach(dx=>VM.nimm(dx)); return VM; }
+/* Wo die Duesen eines Fontaenen-Sets im Karton sitzen (quer, m, wie auf
+   dem Tisch) - das Modell setzt seine Kegel genau dorthin: die Fontaene
+   kommt aus der Duese, die man sieht */
+function fontDuesenLage(t,mitFarbe){
+  const spec=FONT[t], p=P[t]; if(!spec||!p||!p.dims) return null;
+  const hx=p.dims[0]/2, hz=p.dims[2]/2, VM=duesenMass(spec,{hx,jit:Math.min(0.06,hx*0.5,hz*0.5)},t), k=VM.k(), xs=new Map();
+  /* eine Phase ohne x ist bei Sets mit duesen nur der Ankerpunkt - ihr
+     Emitter spruehet aus den duesen (Wasserorgel, Faecherwand). Farbe
+     einer Duese: A der ersten Phase, die aus ihr spruehet */
+  const nimm=(dx,A)=>{ const x=+((+dx||0)*k).toFixed(3); if(!xs.has(x)||(!xs.get(x)&&A)) xs.set(x,A?farbe(A):null); };
+  fontPhasenListe(spec).forEach(ph=>{ if(ph.x===undefined&&spec.duesen) return; const L=duesenListe(spec,ph);
+    L.forEach((dx,nr)=>nimm(dx,Array.isArray(ph.A)&&ph.A.length===L.length?ph.A[nr]:typeof ph.A==='string'?ph.A:null)); });
+  (spec.duesen||[]).forEach(dx=>nimm(dx,typeof spec.A==='string'?spec.A:null));
+  const L=[...xs.keys()].sort((a,b)=>a-b);
+  return mitFarbe?L.map(x=>({x,c:xs.get(x)})):L;
+}
 function fontPhasen(o,spec,prod,tag){
   tag=tag||neuerShowTag();
   const PH=fontPhasenListe(spec), {z,ein}=fontZeiten(PH);
+  const VM=duesenMass(spec,o,prod);
+  const kx=VM.k(), duesenK=spec.duesen?spec.duesen.map(v=>v*kx):null, d=P[prod]&&P[prod].dims, hz=Math.max(0,(o&&o.hz!==undefined?o.hz:d?d[2]/2:0.3)-0.02);
   PH.forEach((ph,pi)=>{
-    const xs=typeof ph.x==='string'?(spec.duesen&&spec.duesen.length&&ph.x.startsWith('alle')?spec.duesen:DUESEN_STD[ph.x]||[0]):Array.isArray(ph.x)?ph.x:[ph.x||0];
+    const xs=duesenListe(spec,ph);
     const viele=xs.length>1;
     xs.forEach((dx,nr)=>{
       /* Felder als Liste gelten je Duese */
       const pn=Object.assign({},ph); if(viele) for(const f of ['A','B','C','neig','azi']) if(Array.isArray(ph[f])&&ph[f].length===xs.length) pn[f]=ph[f][nr];
-      const ob=versetzt(o,dx,ph.z||0);
+      const ob=versetzt(o,dx*kx,clamp(ph.z||0,-hz,hz));
       const A=farbe(pn.A)||FW.gold, B=farbe(pn.B)||FW.weiss, C=farbe(pn.C)||null;
       later(z[pi],()=>{
         if(ph.k==='monsterfont'){ monsterFontaene(ob,ph.hm||30,ph.t||12,ph.farben||[A,B,FW.gold],ph.stil); return; }
-        const e={k:ph.k,t:ph.t||4,o:ob,A,B,C,ph:pn,font:true,alter:0,dauer:ph.t||4,blendeIn:ein[pi],blendeAus:ph.blende||0,nr,dx,duesen:spec.duesen||null,
+        const e={k:ph.k,t:ph.t||4,o:ob,A,B,C,ph:pn,font:true,alter:0,dauer:ph.t||4,blendeIn:ein[pi],blendeAus:ph.blende||0,nr,dx:dx*kx,duesen:duesenK,spielraum:Math.max(0.02,VM.halb-Math.abs(dx*kx)),
           h:ph.hm&&ph.k==='riesen'?ph.hm/10.2:(ph.h||1),klein:ph.klein,tag,prod};
         fontTick(e,0); emitters.push(e);
         if(nr===0){ if(FONT_TON[ph.ton]) FONT_TON[ph.ton](e,distVol(ob)); else if(ph.ton!=='still') sfx.fizz(distVol(ob)); }
@@ -634,6 +691,6 @@ function igniteType(t,o0,it){
 }
 /* Testzugang zur Feuerwerk-Engine v2 (Test engine3.js) */
 window.__fwA={playShow,showNorm,showZeiten,showDauer,phPlan,shot,zielSchuss,zielTempo,steigHoehe,pwFuerHoehe,STEIG_ART,STEIG_FARBE,STEIG_KLANG,SCHUSS_EFF,
-  kugelbombe,kugelSorte,KUGEL,FONT,FONT_EREIGNIS,fontPhasen,fontDauer,fontZeiten,fontPhasenListe,feuertopf,TOPF_SORTE,perleSchuss,showLoeschen,neuerShowTag,
+  kugelbombe,kugelSorte,KUGEL,FONT,FONT_EREIGNIS,fontPhasen,fontDauer,fontZeiten,fontPhasenListe,fontDuesenLage,oeffnungHalb,feuertopf,TOPF_SORTE,perleSchuss,showLoeschen,neuerShowTag,
   RAKETEN_KL,igniteType,EFF,SPEKTRUM_FW,BILD_FORM,get rockets(){return rockets},get emitters(){return emitters},get uhr(){return FW_UHR},
   fwLog:a=>{FW_LOG=a;},ps:()=>({psHuge,psBig,psMid,psSmall})};

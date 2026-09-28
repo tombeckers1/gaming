@@ -11,7 +11,7 @@
 /* ---------- 1. Grundlagen ---------- */
 /* Boden unter einem Punkt: Platte des Zuendtischs (0,93 m) oder Hof */
 function fkBoden(x,z){ const T=STATION_POS&&STATION_POS.tisch;
-  return T&&Math.abs(x-T.x)<1.25&&Math.abs(z-T.z)<0.52?0.94:0.02; }
+  return T&&Math.abs(x-T.x)<TISCH_B/2&&Math.abs(z-T.z)<0.52?0.94:0.02; }
 /* Starttempo fuer h Meter (mit Luftwiderstand), zwischengespeichert */
 const FK_V0={};
 function fkV0(h,g){ const k=Math.round(h*20)+'|'+g; return FK_V0[k]||(FK_V0[k]=vFuerHoehe(Math.max(0.05,h),g)); }

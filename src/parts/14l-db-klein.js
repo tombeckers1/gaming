@@ -23,8 +23,8 @@ function klHell(){ return typeof sun!=='undefined'&&sun?clamp(0.2+0.5*sun.intens
    0,2 waren Konfetti schwarze Quadrate (Art-Director 27.09.); das
    Flutlicht des Testfelds macht Papier hell, Grundwert 0,62 */
 function klPapH(){ return Math.max(0.62,klHell()); }
-/* Zuendtisch: Platte 2,5 x 1,05 m, Oberkante 0,93 m */
-const KL_TI={x:STATION_POS.tisch.x,z:STATION_POS.tisch.z,y:0.93,hx:1.25,hz:0.52};
+/* Zuendtisch: Platte 3,3 x 1,05 m (TISCH_B), Oberkante 0,93 m */
+const KL_TI={x:STATION_POS.tisch.x,z:STATION_POS.tisch.z,y:0.93,hx:TISCH_B/2,hz:0.52};
 function klGrund(x,z){ return Math.abs(x-KL_TI.x)<=KL_TI.hx&&Math.abs(z-KL_TI.z)<=KL_TI.hz?KL_TI.y:0; }
 /* Flaeche, auf der das Produkt steht (o ist seine Oberkante) */
 function klFlaeche(o){ const g=klGrund(o.x,o.z); return o.y>=g-0.01?g:(o.y||0); }

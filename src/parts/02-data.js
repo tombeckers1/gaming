@@ -45,7 +45,8 @@ const P={
     art:{title:'KONFETTI',sub:'Kanone 40 cm',bg1:'#5ce1ff',bg2:'#1557a8',ac:'#ff4fa3',ac2:'#ffe45c'}},
   chips:{name:'Knabberbox',short:'Knabberzeug',cat:0,lvl:7,shape:'boxA',dims:[0.14,0.20,0.06],grid:[10,2,1],box:20,cost:1.00,market:2.49,weight:8,hype:0,risk:3,
     art:{title:'KNABBERBOX',sub:'Salzig & scharf',bg1:'#f28a1c',bg2:'#8a3d06',ac:'#ffffff',ac2:'#e63b2e'}},
-  fontaene:{name:'Feuerquelle · 3 Fontänen, 3 Funkenarten',short:'Feuerquelle',cat:2,lvl:8,shape:'fountainset',dims:[0.22,0.145,0.09],grid:[7,2,1],box:7,cost:3.20,market:7.99,weight:7,hype:12,risk:4,
+  /* 47 statt 22 cm: so breit wie die drei Duesen (28.09., siehe 02e) */
+  fontaene:{name:'Feuerquelle · 3 Fontänen, 3 Funkenarten',short:'Feuerquelle',cat:2,lvl:8,shape:'fountainset',dims:[0.47,0.145,0.09],grid:[7,2,1],box:7,cost:3.20,market:7.99,weight:7,hype:12,risk:4,
     desc:'Drei Fontänen, drei Funkenarten: erst weiches Kohlegold, dann flimmernder Brokat, zum Schluss hartes Titansilber.',
     art:{title:'FEUERQUELLE',sub:'3 Fontänen · Gold, Brokat, Silber',bg1:'#12735a',bg2:'#063328',ac:'#ffd23f',ac2:'#ff7a3d'}},
   raketen:{name:'Hasenjagd · 20 Hakenschlag-Raketen',short:'Hasenjagd',cat:2,lvl:10,shape:'rocketset',dims:[0.52,0.075,0.20],grid:[3,2,2],box:6,cost:7.50,market:17.99,weight:7,hype:20,risk:6,

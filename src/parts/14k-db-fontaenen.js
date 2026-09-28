@@ -62,15 +62,17 @@ const fkId=e=>e.id||(e.id=(e.tag||Math.random())+'/'+(e.nr||0));
    0,2 -> 0,12 s): ein Funke im Video ist ein kurzer Strich, keine Linie. */
 /* Spurlaenge begrenzen (28.09., Tom: echt - "Laser"): SCHWEIF ist eine
    Zeit; ein schneller Funke zog damit 1-2 m lange gerade Striche. Ein
-   Funke im Video ist ein kurzer Strich: hoechstens L Meter. */
-const fkSpur=(t,vx,vy,vz,L)=>Math.min(t,L/Math.max(0.5,Math.hypot(vx,vy,vz)));
+   Funke im Video ist ein kurzer Strich: hoechstens L Meter, aber nie
+   kuerzer als ein Videobild (mn, Funken 0,035 s; Farbsterne 0: Punkte). */
+const fkSpur=(t,vx,vy,vz,L,mn)=>Math.min(t,Math.max(mn===undefined?0.035:mn,L/Math.max(0.5,Math.hypot(vx,vy,vz))));
 const FUNKE={
   /* Kohle-Gold / Tigerschweif: weich, dunkelorange, lange Boegen, dunkelt
-     ab und funkelt nicht (e.kohleB: Farbe, zu der er abdunkelt) */
+     ab und funkelt nicht (e.kohleB: Farbe, zu der er abdunkelt; 28.09.,
+     Tom: echt - dunkler, vorher standen hellrote Punkte in der Luft) */
   kohle:{g:4,emit(x,y,z,vx,vy,vz,c,tA,e){ SCHWEIF=fkSpur(0.14,vx,vy,vz,0.6); const b=e&&e.kohleB||null;
     /* g 4 statt 6: Endtempo 3,6 m/s - die Kohlefunken sinken weich in
        Boegen, wie mit starkem Luftwiderstand (Katalog: ZIEH x 1,5) */
-    psMid.emit(x,y,z,vx,vy,vz,c[0],c[1]*0.92,c[2]*0.8,tA*rand(1.25,1.9),4,2,b?b[0]*0.8:c[0]*0.6,b?b[1]*0.5:c[1]*0.22,b?b[2]*0.4:c[2]*0.05); }},
+    psMid.emit(x,y,z,vx,vy,vz,c[0],c[1]*0.92,c[2]*0.8,tA*rand(1.25,1.9),4,2,b?b[0]*0.5:c[0]*0.6,b?b[1]*0.3:c[1]*0.22,b?b[2]*0.2:c[2]*0.05); }},
   /* Brokat: helles Gold, flimmert, feine Spur */
   brokat:{g:6,emit(x,y,z,vx,vy,vz,c,tA){ SCHWEIF=fkSpur(0.12,vx,vy,vz,0.45);
     psMid.emit(x,y,z,vx,vy,vz,c[0]*0.8+0.2,c[1]*0.8+0.16,c[2]*0.8+0.1,tA*rand(1.2,1.8),6,4); }},
@@ -92,7 +94,7 @@ const FUNKE={
     else { SCHWEIF=0.06; psMid.emit(x,y,z,vx,vy,vz,c[0]*0.18,c[1]*0.18,c[2]*0.18,tA*rand(1.0,1.3),6,0); } }},
   /* Kamuro: dunkelgoldene Faeden, steigen fast unsichtbar und leuchten erst
      ab dem Scheitel auf - dort haengen sie und sinken langsam (g 1,65);
-     wer unten ankommt, glimmt dort 1 s. 28.09., Tom: echt - ab dem Scheitel
+     wer unten ankommt, glimmt dort kurz (0,2-0,45 s; vorher 1 s: stehende Punkte). 28.09., Tom: echt - ab dem Scheitel
      bremst die Luft die Faeden quer (x0,3): vorher trieben sie 10 m weit
      und regneten ueber den ganzen Platz statt als Glocke um die Fontaene. */
   kamuro:{g:1.65,emit(x,y,z,vx,vy,vz,c,tA,e){ const ph=e&&e.ph||{}, fl=(ph.fadenLaenge||0.55)/1.2;
@@ -101,7 +103,7 @@ const FUNKE={
     imBild(tA,()=>{ const q=bahnOrt(p,v,1.65,tA), w=bahnTempo(v,1.65,tA), a=SCHWEIF, rest=life-tA; w[0]*=0.3; w[2]*=0.3;
       SCHWEIF=fl; psMid.emit(q.x,q.y,q.z,w[0],w[1],w[2],c[0]*0.95,c[1]*0.72,c[2]*0.3,rest,1.65,2,c[0]*0.45,c[1]*0.26,c[2]*0.06); SCHWEIF=a;
       const u=bahnOrt(q,w,1.65,rest);
-      if(u.y<yb+0.6) imBild(rest-0.02,()=>{ const a2=SCHWEIF; SCHWEIF=0; psMid.emit(u.x,yb+0.02,u.z,0,0,0,0.55,0.3,0.06,1.0,0,0); SCHWEIF=a2; }); }); }},
+      if(u.y<yb+0.6) imBild(rest-0.02,()=>{ const a2=SCHWEIF; SCHWEIF=0; psMid.emit(u.x,yb+0.02,u.z,0,0,0,0.4,0.2,0.04,rand(0.2,0.45),0,0); SCHWEIF=a2; }); }); }},
   /* Knister: Mikrosterne, die dunkel steigen und oben einmal weiss aufplatzen */
   knister:{g:6,emit(x,y,z,vx,vy,vz,c,tA){ SCHWEIF=0;
     psMid.emit(x,y,z,vx,vy,vz,c[0],c[1],c[2],tA*rand(0.95,1.35),6,3); }}
@@ -154,7 +156,7 @@ function fkRauch(e,dt,o,h,dichte){
 function fkSterne(e,dt,p,d,h,kg,rate,F,key,o){
   o=o||{}; const alt=SCHWEIF, ps=o.ps||psMid, hl=o.hell||1.35; SCHWEIF=o.spur||0;
   for(let n=fkJe(e,key||'aP',rate,dt);n>0;n--){ const r=fkKegel(d,kg), hh=h*rand(o.hMin||0.55,1.0), w=fkV0(hh,6)/Math.max(0.4,r[1]), tA=fkTA(w*r[1],6), c=F[Math.floor(Math.random()*F.length)];
-    SCHWEIF=o.spur?fkSpur(o.spur,r[0]*w,r[1]*w,r[2]*w,0.12):0;
+    SCHWEIF=o.spur?fkSpur(o.spur,r[0]*w,r[1]*w,r[2]*w,0.12,0):0;
     ps.emit(p.x,p.y,p.z,r[0]*w,r[1]*w,r[2]*w,c[0]*hl,c[1]*hl,c[2]*hl,tA*rand(0.95,1.3),6,0); }
   SCHWEIF=alt;
 }
@@ -361,7 +363,7 @@ NEU_EMIT.bluetenwerfer=(e,dt,o)=>{
   for(let n=fkJe(e,'bS',bereich(bl.rate||3,e.u)*st,dt);n>0;n--){
     const perle=bl.art==='perle', hb=h*(perle?rand(0.8,1.0):rand(0.55,0.8)), d=fkKegel([0,1,0],perle?0.45:0.26), w=fkV0(hb,6)/Math.max(0.5,d[1]), tA=fkTA(w*d[1],6), p={x:o.x,y:o.y+0.03,z:o.z}, v=[d[0]*w,d[1]*w,d[2]*w];
     /* Perlen: helle Sterne mit kurzer Spur, breit gefaechert */
-    if(perle){ SCHWEIF=fkSpur(0.08,v[0],v[1],v[2],0.15); psBig.emit(p.x,p.y,p.z,v[0],v[1],v[2],c[0]*1.3+0.1,c[1]*1.3+0.1,c[2]*1.3+0.1,tA*rand(1.05,1.3),6,0); continue; }
+    if(perle){ SCHWEIF=fkSpur(0.08,v[0],v[1],v[2],0.15,0); psBig.emit(p.x,p.y,p.z,v[0],v[1],v[2],c[0]*1.3+0.1,c[1]*1.3+0.1,c[2]*1.3+0.1,tA*rand(1.05,1.3),6,0); continue; }
     SCHWEIF=0.06; psMid.emit(p.x,p.y,p.z,v[0]*0.97,v[1]*0.97,v[2]*0.97,c[0]*0.5,c[1]*0.5,c[2]*0.5,tA,6,0);
     imBild(tA,()=>{ const b=bahnOrt(p,v,6,tA), reis=bl.art==='reis', n2=Math.round((bl.funken||34)*q), gr=reis?1.5:2.1, a2=SCHWEIF, st2=farbe(bl.stempel)||[1,1,1];
       SCHWEIF=reis?0:0.08;
@@ -707,7 +709,7 @@ NEU_EMIT.riesenpuls=(e,dt,o)=>{
   e.ps=(e.ps||0)-dt;
   if(e.ps<=0&&kraft>0.15){ e.ps=0.3; e.nS=(e.nS||0)+1;
     const mitRot=e.nS%2===0, n=Math.round(44*q*kraft);
-    SCHWEIF=fkSpur(0.05,0,v0,0,0.25);
+    SCHWEIF=fkSpur(0.05,0,v0,0,0.25,0);
     for(let k=0;k<n;k++){ const a=Math.random()*Math.PI*2, tl=Math.sqrt(Math.random())*0.24, sp=v0*rand(0.88,1.0), c=mitRot&&k%3===0?rot:FW.gold;
       psBig.emit(p.x,p.y,p.z,Math.cos(a)*Math.sin(tl)*sp,Math.cos(tl)*sp,Math.sin(a)*Math.sin(tl)*sp,c[0],c[1]*(c===FW.gold?0.95:1),c[2],tA*rand(1.0,1.2),6,c===FW.gold?4:0); }
     SCHWEIF=alt;
@@ -1010,9 +1012,9 @@ Object.assign(FONT,{
     {k:'wendel',t:4,hm:11,neigKurve:[12,32],ups:3,zweite:{dreh:-1,A:'weiss'},funke:'titan',A:'silber',sterne:['tuerkis'],sterneRate:5,ton:'zischen',ende:'knister'}]},
   /* Lametta (L20): Kamuro-Faeden sinken bis zum Boden, blaue Sterne */
   goldvulkan:{phasen:[
-    {k:'lametta',t:6,hm:4,kegel:14,funke:'kamuro',A:'gold',ton:'rauschen'},
-    {k:'lametta',t:18,hm:7,kegel:20,funke:'kamuro',A:'gold',B:'blau',sterneB:1.5,ton:'rauschen'},
-    {k:'lametta',t:6,hm:7,kegel:22,funke:'kamuro',A:'gold',fadenLaenge:0.9,dichte:1.5,ton:'rauschen',ende:'nachregen'}],nach:3.5},
+    {k:'lametta',t:6,hm:4,kegel:8,funke:'kamuro',A:'gold',ton:'rauschen'},
+    {k:'lametta',t:18,hm:7,kegel:10,funke:'kamuro',A:'gold',B:'blau',sterneB:1.5,ton:'rauschen'},
+    {k:'lametta',t:6,hm:7,kegel:12,funke:'kamuro',A:'gold',fadenLaenge:0.9,dichte:1.5,ton:'rauschen',ende:'nachregen'}],nach:3.5},
   /* Feuersaeule (L20): 15-m-Saeule, die wie Eisen abkuehlt - Weissglut
      (Titan), Gelbglut (Eisen mit Aesten), Rotglut (Kohle), verglimmt */
   feuersaeule:{phasen:[

@@ -274,12 +274,18 @@ function hzTex(){
       const gr=g.createLinearGradient(0,y,0,y+40); gr.addColorStop(0,`rgb(${v*0.8|0},${v*0.8|0},${v*0.8|0})`); gr.addColorStop(1,`rgb(${v},${v},${v})`);
       g.fillStyle='rgba(0,0,0,.5)'; g.beginPath(); g.moveTo(x+1,y); g.lineTo(x+31,y); g.lineTo(x+31,y+30); g.arc(x+16,y+31,15,0,Math.PI); g.closePath(); g.fill();
       g.fillStyle=gr; g.beginPath(); g.moveTo(x+2,y); g.lineTo(x+30,y); g.lineTo(x+30,y+28); g.arc(x+16,y+28,14,0,Math.PI); g.closePath(); g.fill(); } });
+  /* Schiefer in Schuppendeckung fuer die steile Mansardflaeche: mit den
+     Biberschwaenzen las sie sich als schwarz gesprenkelte Masse (26.09.) */
+  T.schiefer=tex(256,256,(g,W,H)=>{ g.fillStyle='#1c1e22'; g.fillRect(0,0,W,H);
+    for(let r=11;r>=-1;r--) for(let c=-1;c<13;c++){ const x=c*21.33+(r&1)*10.67, y=r*21.33-6, v=150+Math.random()*60|0;
+      const gr=g.createLinearGradient(0,y,0,y+26); gr.addColorStop(0,`rgb(${v*0.75|0},${v*0.78|0},${v*0.82|0})`); gr.addColorStop(1,`rgb(${v},${v+4},${v+10})`);
+      g.fillStyle=gr; g.beginPath(); g.moveTo(x+1,y); g.lineTo(x+20,y); g.lineTo(x+20,y+16); g.quadraticCurveTo(x+20,y+24,x+10.5,y+26); g.quadraticCurveTo(x+1,y+24,x+1,y+16); g.closePath(); g.fill(); } });
   /* Schnee in Flecken, die den Ziegelreihen folgen */
   T.schnee=tex(256,256,(g,W,H)=>{ g.clearRect(0,0,W,H);
     for(let i=0;i<340;i++){ const x=Math.random()*W, y=Math.random()*H, rw=rand(8,46), rh=rand(3,9);
       g.fillStyle=`rgba(255,255,255,${rand(0.55,1)})`;
       for(const ox of [-W,0,W]) for(const oy of [-H,0,H]){ g.beginPath(); g.ellipse(x+ox,y+oy,rw,rh,0,0,Math.PI*2); g.fill(); } } });
-  for(const k of ['putz','dach','schnee']){ T[k].wrapS=T[k].wrapT=THREE.RepeatWrapping; T[k].anisotropy=8; }
+  for(const k of ['putz','dach','schiefer','schnee']){ T[k].wrapS=T[k].wrapT=THREE.RepeatWrapping; T[k].anisotropy=8; }
   T.fenster=tex(A,A,(g)=>{ for(let c=0;c<16;c++) fensterZelle(g,(c%4)*S,(c>>2)*S,S,c%8,false); });
   T.fensterE=tex(A,A,(g)=>{ g.fillStyle='#000'; g.fillRect(0,0,A,A); for(let c=8;c<16;c++) fensterZelle(g,(c%4)*S,(c>>2)*S,S,c%8,true); });
   T.fenster.anisotropy=T.fensterE.anisotropy=8;
@@ -311,6 +317,7 @@ function hzMats(){
     zink:new THREE.MeshStandardMaterial({vertexColors:true,roughness:0.4,metalness:0.55}),
     messing:new THREE.MeshStandardMaterial({color:LIN(0xc9a14e),metalness:0.85,roughness:0.28}),
     dach:new THREE.MeshStandardMaterial({vertexColors:true,map:T.dach,roughness:0.82}),
+    schiefer:new THREE.MeshStandardMaterial({vertexColors:true,map:T.schiefer,roughness:0.5,metalness:0.15}),
     schnee:new THREE.MeshStandardMaterial({color:LIN(0xf3f6fa),map:T.schnee,alphaTest:0.5,roughness:1}),
     glas:new THREE.MeshStandardMaterial({map:T.fenster,emissive:LIN(0xffffff),emissiveMap:T.fensterE,emissiveIntensity:0,roughness:0.12,metalness:0.2,envMap:env,envMapIntensity:0.45}),
     scheibe:new THREE.MeshBasicMaterial({map:T.spiegel,transparent:true,depthWrite:false}),
@@ -366,6 +373,15 @@ function schildAtlas(licht){
     HZS.forEach((sp,i)=>{ const y=i*SCH.zeile;
       const s=fitFont(g,sp.t,SCH.W-60,78,s=>schriftFont(sp,s)); g.font=schriftFont(sp,s);
       g.textAlign='center'; g.textBaseline='middle';
+      /* Leuchtkasten und Holzbrett: Zeile deckend in Kasten- bzw.
+         Brettfarbe, dann greift kein Alpha-Test und die Schrift zerfaellt
+         in der Ferne nicht mehr in den Mipmaps (26.09., Toms Wunsch nach
+         hochwertigen Laeden; vorher wurde aus REISEBUERO Buchstabensalat) */
+      if(sp.grund){ g.fillStyle=licht?sp.grundL:sp.grund; g.fillRect(0,y,SCH.W,SCH.zeile);
+        if(!licht&&sp.serif){ g.fillStyle='rgba(20,14,8,.85)'; g.fillText(sp.t,SCH.W/2+3,y+SCH.zeile/2+7); } }
+      else { /* Einzelbuchstaben: dunkle Kontur macht die Striche dicker,
+         der Alpha-Wert bleibt auch in kleinen Mipmaps ueber der Schwelle */
+        g.lineJoin='round'; g.lineWidth=7; g.strokeStyle=licht?'#000':'#2a2622'; g.strokeText(sp.t,SCH.W/2,y+SCH.zeile/2+4); }
       g.fillStyle=licht?(sp.kasten?'#fff8ea':sp.glut):(sp.kasten?'#f8f5ee':sp.farbe);
       g.fillText(sp.t,SCH.W/2,y+SCH.zeile/2+4); });
     SYMBOLE.forEach((s,i)=>{ const L=LADEN.find(l=>l.s===s); symbolMalen(g,s,(i%8)*128+4,SCH.sym+(i>>3)*128+4,120,L?L.f:'#2b3a5e',licht);
@@ -390,7 +406,7 @@ function markiseAtlas(){
 /* Alles Gesammelte zu je einem Mesh */
 function hzFertig(){
   const M=hzMats();
-  if(HZS.length){ const sm=new THREE.MeshStandardMaterial({vertexColors:true,map:schildAtlas(false),emissive:LIN(0xffffff),emissiveMap:schildAtlas(true),emissiveIntensity:0,alphaTest:0.45,roughness:0.5,side:THREE.DoubleSide});
+  if(HZS.length){ const sm=new THREE.MeshStandardMaterial({vertexColors:true,map:schildAtlas(false),emissive:LIN(0xffffff),emissiveMap:schildAtlas(true),emissiveIntensity:0,alphaTest:0.3,alphaToCoverage:true,roughness:0.5,side:THREE.DoubleSide});
     sm.map.anisotropy=8; houseMats.push(sm); M.schild=sm; }
   if(HZA.length){ const mt=markiseAtlas(); mt.wrapS=THREE.RepeatWrapping; M.markise=new THREE.MeshStandardMaterial({map:mt,alphaTest:0.5,roughness:0.9,side:THREE.DoubleSide}); }
   for(const k in HZ){
@@ -398,7 +414,7 @@ function hzFertig(){
     if(!mat&&k.startsWith('tuer:')) mat=new THREE.MeshStandardMaterial({map:tuerTex(k.slice(5)),roughness:0.45,metalness:0.05});
     if(!mat) continue;
     const mesh=new THREE.Mesh(merge(HZ[k]),mat);
-    if(HIQ&&(k==='putz'||k==='dach')){ mesh.castShadow=true; mesh.receiveShadow=true; }
+    if(HIQ&&(k==='putz'||k==='dach'||k==='schiefer')){ mesh.castShadow=true; mesh.receiveShadow=true; }
     if(k==='glas') mesh.onBeforeRender=M.nacht;
     if(k==='spill'||k==='scheibe') mesh.renderOrder=2;
     scene.add(mesh);
@@ -525,7 +541,9 @@ function ladenInnen(g,typ,xa,xb,gfH,z1,farbe,yb){
   B(iw,0.04,D,xm,yb-0.02,(z0+z1)/2,holz?0x8a6a4a:0xcdc8bf);
   B(iw,0.04,D,xm,yt,(z0+z1)/2,0xf2f0ea);
   B(iw,yt-yb,0.05,xm,(yb+yt)/2,z0,hell);
-  for(const sx of [-1,1]) B(0.05,yt-yb,D,xm+sx*iw/2,(yb+yt)/2,(z0+z1)/2,0xd6cfc2);
+  /* Seitenwaende eine Stufe dunkler als die Rueckwand: das helle Creme
+     stand schraeg gesehen als leuchtender Block hinter der Tuer (26.09.) */
+  for(const sx of [-1,1]) B(0.05,yt-yb,D,xm+sx*iw/2,(yb+yt)/2,(z0+z1)/2,hexMix(hell,0x2a2622,0.35));
   /* Deckenleuchten */
   const nl=Math.max(2,Math.round(iw/2));
   for(let i=0;i<nl;i++) L.push({geo:new THREE.BoxGeometry(0.9,0.03,0.25),m:tm(x0+iw*(i+0.5)/nl,yt-0.03,(z0+z1)/2)});
@@ -571,7 +589,14 @@ function ladenInnen(g,typ,xa,xb,gfH,z1,farbe,yb){
     theke(x0+iw*0.6,iw*0.55,0x5a3b26);
     for(let j=0;j<Math.floor(iw*0.5/0.3);j++) C(0.11,0.11,0.08,x0+iw*0.38+j*0.3,yb+1.03,z0+1.35,j%2?0xf2e6d0:0x6a3a2a,12);
     B(0.55,0.45,0.4,x0+iw*0.8,yb+0.72+0.5,z0+0.3,0x9aa1ac); B(iw*0.8,0.03,0.3,xm,yb+1.6,z0+0.2,0x5a3b26);
-    for(let j=0;j<nA(1.4);j++){ const x=x0+0.7+j*1.4, z=z1-0.6;
+    /* Tortenvitrine direkt am Glas, damit schraeg gesehen Ware statt
+       nur Spiegelung zu sehen ist (26.09.) */
+    { const xv=x0+0.75, zv=z1-0.5; B(1.2,0.8,0.55,xv,yb+0.4,zv,0x5a3b26); B(1.24,0.04,0.6,xv,yb+0.82,zv,0x2a2018);
+      for(const sx of [-1,1]) B(0.03,0.75,0.03,xv+sx*0.59,yb+1.2,zv+0.26,0xc9a14e);
+      B(1.2,0.03,0.52,xv,yb+1.2,zv,0xe8e4dc); B(1.22,0.04,0.56,xv,yb+1.58,zv,0x2a2018);
+      for(let k=0;k<2;k++) for(let j=0;j<4;j++){ const c=[0xf2e6d0,0x6a3a2a,0xe8a0a8,0xd9a45a][(j+k*2)%4], xx=xv-0.43+j*0.29, y=yb+0.84+k*0.38;
+        C(0.12,0.12,0.12,xx,y+0.06,zv,c,12); C(0.12,0.12,0.02,xx,y+0.13,zv,k?0xf8f4ee:0xb8403a,12); } }
+    for(let j=0;j<nA(1.4)-1;j++){ const x=x0+2.3+j*1.4, z=z1-0.6;
       C(0.32,0.32,0.03,x,yb+0.74,z,0xf2f0ea,14); C(0.035,0.035,0.72,x,yb+0.36,z,0x2a2e36);
       for(const sx of [-1,1]){ B(0.36,0.04,0.36,x+sx*0.5,yb+0.45,z,0x3a2a20); B(0.36,0.42,0.04,x+sx*0.5,yb+0.68,z-0.16,0x3a2a20); }
       C(0.04,0.035,0.08,x+0.08,yb+0.8,z,0xf2f0ea); }
@@ -595,16 +620,26 @@ function ladenInnen(g,typ,xa,xb,gfH,z1,farbe,yb){
   } else if(t.startsWith('PIZZ')){
     theke(x0+iw*0.3,iw*0.45,0x7a3a2a);
     B(0.9,0.9,0.7,x0+iw*0.75,yb+0.7,z0+0.4,0x3a3a3a); L.push({geo:new THREE.BoxGeometry(0.5,0.2,0.02),m:tm(x0+iw*0.75,yb+0.7,z0+0.76)});
-    for(let j=0;j<Math.min(2,nA(1.6));j++){ const x=x0+0.8+j*1.6, z=z1-0.7; C(0.35,0.35,0.04,x,yb+0.74,z,0xe8e2d4,14); C(0.04,0.04,0.72,x,yb+0.36,z,0x3a3f48);
+    /* Am Glas: gemauerter Pizzaofen mit Glut und ein Stapel Kartons -
+       vorher sah man durch die Scheibe fast nur Spiegelung (26.09.) */
+    const xo=x0+0.75, zo=z1-0.75;
+    B(1.1,0.75,0.9,xo,yb+0.375,zo,0x6a3a2a); K(0.5,xo,yb+0.78,zo,0xa0583a,0.75);
+    B(0.4,0.26,0.05,xo,yb+0.9,zo+0.48,0x1a1210); B(0.34,0.16,0.02,xo,yb+0.86,zo+0.51,0xff8a2a);
+    C(0.06,0.06,0.5,xo+0.2,yb+1.35,zo-0.1,0x3a3a3a);
+    for(let k=0;k<5;k++) B(0.36,0.05,0.36,xo+0.9,yb+0.03+k*0.052,z1-0.4,k%2?0xe8dcc0:0xd8c8a8);
+    for(let j=0;j<Math.min(2,nA(1.6))-1;j++){ const x=x0+2.4+j*1.6, z=z1-0.7; C(0.35,0.35,0.04,x,yb+0.74,z,0xe8e2d4,14); C(0.04,0.04,0.72,x,yb+0.36,z,0x3a3f48);
       for(const sx of [-1,1]){ B(0.36,0.04,0.36,x+sx*0.55,yb+0.45,z,0x6a4a2a); B(0.36,0.4,0.04,x+sx*0.55,yb+0.66,z,0x6a4a2a); } }
   } else if(t.startsWith('METZ')){
     B(iw*0.8,0.85,0.7,xm,yb+0.425,z0+1.4,0xf2f2ee);
     for(let j=0;j<Math.floor(iw*0.75/0.22);j++) K(0.08,xm-iw*0.37+j*0.22,yb+0.9,z0+1.4,j%3?0xb8403a:0xd88a80,0.5);
     regal(xm,iw*0.7,3,(x,y,z,j)=>C(0.04,0.04,0.2,x,y+0.1,z,j%2?0x9a3a2a:0xc9a07a),0xe4e8ea);
     /* Im Fenster: Stange mit Wuersten und Schinken, darunter Schalen */
+    /* dunkle Kachelwand dahinter und dicke Wuerste: vorher las sich die
+       Auslage wie eine Tapete mit Punkten (26.09.) */
+    B(aw,1.25,0.03,am,yb+1.5,zA-0.22,0x3a2e2a);
     B(aw,0.03,0.03,am,yb+2.05,zA,0xb8bec8);
-    for(let j=0;j<nA(0.3);j++){ const x=x0+0.2+j*0.3;
-      if(j%3===1) K(0.13,x,yb+1.84,zA,0x9a4a3a,1.5); else C(0.035,0.03,0.42,x,yb+1.83,zA,j%2?0x8a3a2a:0xb0704a); }
+    for(let j=0;j<nA(0.34);j++){ const x=x0+0.22+j*0.34;
+      if(j%3===1) K(0.17,x,yb+1.72,zA,0x9a4a3a,1.6); else { C(0.06,0.05,0.6,x,yb+1.72,zA,j%2?0x7a2a22:0xa05a3a); C(0.012,0.012,0.12,x,yb+1.99,zA,0xe8e2d4,4); } }
     podest(0.4,0xf2f2ee);
     for(let j=0;j<nA(0.4);j++) B(0.3,0.04,0.22,x0+0.25+j*0.4,yb+0.42,z1-0.3,j%2?0xb8403a:0xd88a80);
   } else if(t.startsWith('FRIS')){
@@ -636,6 +671,9 @@ function ladenInnen(g,typ,xa,xb,gfH,z1,farbe,yb){
        Wand mit schraeg gestellten Zeitschriften */
     regal(x0+iw*0.3,iw*0.5,5,(x,y,z,j)=>B(0.12,0.16,0.08,x,y+0.08,z,R[j%7]),0x3a3f48);
     theke(x0+iw*0.72,iw*0.36,0x3a4a6a);
+    /* hinter der Glastuer ein Getraenkekuehlschrank statt nackter Wand (26.09.) */
+    { const xk=x1-0.45; B(0.8,1.95,0.6,xk,yb+0.975,z0+0.9,0x2a2e36); B(0.7,1.7,0.02,xk,yb+1.0,z0+1.21,0x6a8aa8);
+      for(let k=0;k<5;k++) for(let j=0;j<4;j++) C(0.035,0.035,0.22,xk-0.24+j*0.16,yb+0.3+k*0.33,z0+1.12,R[(j+k*3)%7],6); }
     B(aw,1.2,0.03,am,yb+0.9,zA-0.14,0x2a2e36);
     for(let k=0;k<3;k++) for(let j=0;j<nA(0.24);j++){ const x=x0+0.18+j*0.24, y=yb+0.5+k*0.37;
       T.push({geo:new THREE.BoxGeometry(0.2,0.28,0.012),m:tm(x,y,zA,-0.2,0,0),color:R[(j*3+k*5)%7]});
@@ -681,7 +719,9 @@ function fenster(K,o,x,yb,ww,wh,art){
   if(HIQ&&art!=='treppe'&&art!=='eg'&&wh<2&&Math.random()<(art==='bel'?0.4:0.12)){ const zk=zf+0.11, yk=yb+(alt?0.035:0.028), n=Math.max(3,Math.round(ww/0.15));
     K.B('rahmen',ww+0.04,0.16,0.16,x,yk+0.08,zk,alt?0x5e4230:0x3a3f48);
     for(let i=0;i<n;i++){ const px=x-ww/2+0.07+i*(ww-0.14)/(n-1);
-      K.K('rahmen',0.085,px,yk+0.19+(i%2)*0.03,zk+(i%2?0.03:-0.02),i%3?0x2c4a2e:0x3a5a34);
+      /* Tannengruen als flache Kegel statt Kugeln - die lasen sich wie
+         eine Reihe gruener Baelle (26.09.) */
+      K.C('rahmen',0.012,0.085,0.17+(i%3)*0.03,px,yk+0.24+(i%3)*0.015,zk+(i%2?0.03:-0.02),i%3?0x2c4a2e:0x3a5a34);
       if(i%3===1) K.K('rahmen',0.028,px+0.03,yk+0.25,zk+0.08,0xb8202a); } }
   /* Faschen um die Oeffnung decken zugleich die Schnittkante im Putz */
   const s=alt?0.14:0.1, pr=alt?0.05:0.02, fc=alt?sc:o.faschF;
@@ -727,7 +767,7 @@ function gaube(K,o,xc,zD,h,zE,t,wd,wh,vorn,wange){
 /* ---------- Dach: Sattel, Mansarde oder flach mit Attika ---------- */
 function hausDach(K,o){
   const w=o.w, zf=o.zf, h=o.h, x0=-w/2, x1=w/2, dc=o.dachF;
-  const S=(P,schnee)=>{ K.F('dach',[P],dc,1.2); if(schnee) K.F('schnee',[P.map(p=>[p[0],p[1]+0.035,p[2]])],0xffffff,2.2); };
+  const S=(P,schnee,sch)=>{ K.F(sch?'schiefer':'dach',[P],sch?0x5a5f68:dc,1.2); if(schnee) K.F('schnee',[P.map(p=>[p[0],p[1]+0.035,p[2]])],0xffffff,2.2); };
   const giebel=(pr)=>{ /* Giebelwaende aus dem Profil [z,y], von vorn nach hinten */
     K.F('putz',[pr.map(([z,y])=>[x1,y,z]).reverse()],o.farbe); K.F('putz',[pr.map(([z,y])=>[x0,y,z])],o.farbe); };
   const kamin=(yF,zK)=>{ const n=w>9?2:1; for(let i=0;i<n;i++){ const kx=(n===1?rand(-0.3,0.3):(i?0.28:-0.3))*w, kh=1.0+Math.random()*0.5;
@@ -746,7 +786,7 @@ function hausDach(K,o){
     for(const gx of o.gauben) gaube(K,o,gx,zf-0.2,h,zE,t,1.35,1.1,o.stil==='nach'?o.farbe:o.stuckF,o.farbe);
     kamin(yF,-0.7);
   } else if(o.dach==='mansard'){ const t1=Math.tan(1.2), hm=2.7, ov=o.ueber, zE=zf+ov, zK=zE-hm/t1, t2=Math.tan(0.36), yK=h+hm, yF=yK+zK*t2, yW=h+ov*t1;
-    S([[x0,h,zE],[x1,h,zE],[x1,yK,zK],[x0,yK,zK]],0); S([[x1,h,-zE],[x0,h,-zE],[x0,yK,-zK],[x1,yK,-zK]],0);
+    S([[x0,h,zE],[x1,h,zE],[x1,yK,zK],[x0,yK,zK]],0,1); S([[x1,h,-zE],[x0,h,-zE],[x0,yK,-zK],[x1,yK,-zK]],0,1);
     S([[x0,yK,zK],[x1,yK,zK],[x1,yF,0],[x0,yF,0]],1); S([[x1,yK,-zK],[x0,yK,-zK],[x0,yF,0],[x1,yF,0]],1);
     giebel([[zf,h],[zf,yW],[zK,yK],[0,yF],[-zK,yK],[-zf,yW],[-zf,h]]);
     K.B('zink',w,0.07,0.12,0,yK+0.02,zK,0x6a6e76);
@@ -797,15 +837,19 @@ function ladenFront(K,g,o){
   if(i<SCH.zeilen){
     const kasten=!L.holz&&Math.random()<0.5, fc=parseInt(L.f.slice(1),16);
     const sp={t:L.n,serif:!!L.holz,kasten,farbe:L.holz?'#d9b25a':L.f,glut:L.holz?'#ffd98a':hexCss(hexMix(fc,0xffffff,0.55))};
+    if(kasten||L.holz){ sp.grund=L.f; sp.grundL=kasten?hexCss(hexMix(fc,0x000000,0.45)):'#000'; }
     HZS.push(sp);
     const frac=schriftBreite(sp)/SCH.W, band=o.gH-yT, yc=yT+band*0.5+0.03, xc=(xa+xb)/2;
     const qH=Math.min(kasten?band*0.95:band*1.1,(xb-xa)*0.86/(frac*SCH.W/SCH.zeile)), qW=qH*SCH.W/SCH.zeile, uv=schildUV(i);
     const Q=(z,c)=>K.Q('schild',[[xc-qW/2,yc-qH/2,z],[xc+qW/2,yc-qH/2,z],[xc+qW/2,yc+qH/2,z],[xc-qW/2,yc+qH/2,z]],uv,c);
     /* Traditionsladen: Goldschrift auf dunklem Holzbrett - auf hellem
        Putz war die Goldschrift kaum zu lesen */
-    if(L.holz){ const bh=Math.min(band-0.2,qH*0.85); K.B('rahmen',frac*qW+0.6,bh,0.06,xc,yc,zf+0.03,fc); K.B('rahmen',frac*qW+0.66,0.04,0.08,xc,yc+bh/2,zf+0.04,0xb8913e);
-      for(let k=2;k>=1;k--) Q(zf+0.062+0.012*(2-k),0x2a2218); Q(zf+0.1,0xffffff); }
-    else if(kasten){ K.B('rahmen',frac*qW+0.5,Math.min(band-0.2,qH*0.8),0.14,xc,yc,zf+0.07,fc); Q(zf+0.142,0xffffff); }
+    /* deckende Zeile: nur die Vorderflaeche von Brett/Kasten bekleben */
+    const QF=(bw,bh,z)=>{ const fu=bw/qW/2, fv=(1-bh/qH)/2*(uv[3]-uv[1]);
+      K.Q('schild',[[xc-bw/2,yc-bh/2,z],[xc+bw/2,yc-bh/2,z],[xc+bw/2,yc+bh/2,z],[xc-bw/2,yc+bh/2,z]],[0.5-fu,uv[1]+fv,0.5+fu,uv[3]-fv],0xffffff); };
+    if(L.holz){ const bh=Math.min(band-0.2,qH*0.85), bw=frac*qW+0.6; K.B('rahmen',bw,bh,0.06,xc,yc,zf+0.03,fc); K.B('rahmen',bw+0.06,0.04,0.08,xc,yc+bh/2,zf+0.04,0xb8913e);
+      QF(bw,bh,zf+0.062); }
+    else if(kasten){ const bw=frac*qW+0.5, bh=Math.min(band-0.2,qH*0.8); K.B('rahmen',bw,bh,0.14,xc,yc,zf+0.07,fc); QF(bw,bh,zf+0.142); }
     else { for(let k=3;k>=1;k--) Q(zf+0.05-k*0.012,0x2a2622); Q(zf+0.052,0xffffff); }
   }
   /* Ausleger mit Symbol am linken Pfeiler */
@@ -890,19 +934,22 @@ function buildHaus(cx,zFront,o){
   const M=tm(cx,0,zFront+zf,0,Math.PI,0), K=hausKit(M);
   const g=new THREE.Group(); g.position.set(cx,0,zFront+zf); g.rotation.y=Math.PI; scene.add(g);
   const nC=o.cols, bay=w/nC, bx=i=>-w/2+bay*(i+0.5), gH=o.gH, fh=o.fh, sc=o.stuckF;
-  const xT=bx(nC-1);
-  /* Erdgeschoss: Laden links, Hauseingang in der rechten Achse */
+  /* Hauseingang, Treppenhaus und Fallrohr je Haus mal links, mal rechts -
+     vorher war jedes Haus gleich aufgeteilt und die Zeile wirkte wie ein
+     Kopierstempel (26.09., Toms Wunsch nach einer hochwertigeren Stadt) */
+  const sp=Math.random()<0.5, cT=sp?0:nC-1, xT=bx(cT);
+  /* Erdgeschoss: Laden neben dem Hauseingang */
   o.yT=gH-0.75;
-  if(o.laden){ o.sx0=-w/2+0.45; o.sx1=xT-0.65-0.45; ladenFront(K,g,o); }
-  else for(let c=0;c<nC-1;c++) fenster(K,o,bx(c),1.3,alt?Math.min(1.2,bay-1):Math.min(1.4,bay-0.8),Math.min(1.9,gH-2.1),'eg');
+  if(o.laden){ o.sx0=sp?xT+0.65+0.45:-w/2+0.45; o.sx1=sp?w/2-0.45:xT-0.65-0.45; ladenFront(K,g,o); }
+  else for(let c=0;c<nC;c++) if(c!==cT) fenster(K,o,bx(c),1.3,alt?Math.min(1.2,bay-1):Math.min(1.4,bay-0.8),Math.min(1.9,gH-2.1),'eg');
   hausTuer(K,o,xT);
   /* Obergeschosse; ueber der Haustuer liegt das Treppenhaus mit
      Fenstern auf halber Hoehe */
   const ww=alt?Math.min(1.22,bay-1.0):Math.min(1.45,bay-0.8);
-  const balkon=!alt&&Math.random()<0.45?Math.floor(Math.random()*(nC-1)):-1;
+  const balkon=!alt&&Math.random()<0.45?Math.floor(Math.random()*(nC-1))+(sp?1:0):-1;
   for(let r=0;r<o.rows;r++){ const fy=gH+r*fh;
     for(let c=0;c<nC;c++){
-      if(c===nC-1&&o.treppe){ fenster(K,o,bx(c),fy+fh*0.5-0.1,0.8,1.3,'treppe'); continue; }
+      if(c===cT&&o.treppe){ fenster(K,o,bx(c),fy+fh*0.5-0.1,0.8,1.3,'treppe'); continue; }
       if(c===balkon){ fenster(K,o,bx(c),fy+0.05,Math.min(1.1,bay-1),2.15,'nach'); continue; }
       const art=!alt?'nach':r===0?'bel':r===o.rows-1?'oben':'mitte';
       const wh=!alt?1.45:r===0?2.1:r===o.rows-1?1.7:1.95;
@@ -931,8 +978,8 @@ function buildHaus(cx,zFront,o){
   }
   /* Sockel aus Stein unter dem Putz */
   K.B('putz',w,0.14,0.04,0,0.07,zf+0.02,0x6f6a62);
-  /* Fallrohr an der rechten Hauskante */
-  { const fx=w/2-0.12, top=alt?h-0.4:h-0.45, zr=zf+0.12, zn=0x8f959e;
+  /* Fallrohr an der Hauskante auf der Seite des Eingangs */
+  { const fx=(sp?-1:1)*(w/2-0.12), top=alt?h-0.4:h-0.45, zr=zf+0.12, zn=0x8f959e;
     K.Z('zink',0.055,top-0.25,fx,(top+0.25)/2,zr,zn);
     for(let y=1.2;y<top;y+=2.1) K.B('zink',0.14,0.04,0.13,fx,y,zf+0.065,zn);
     K.B('zink',0.13,0.15,0.13,fx,0.2,zr,zn);
@@ -1538,6 +1585,12 @@ function buildStreet(){
      einmal vor. */
   HZ={}; HZS=[]; HZA=[];
   scene.updateMatrixWorld();
+  /* Fester Seed fuer die ganze Zeile samt zweiter Reihe: vorher stand
+     nach jedem Neuladen eine andere Strasse da (Art-Director, 26.09.,
+     Toms Wunsch nach einer vertrauten, hochwertigen Stadt). rand()/pick()
+     laufen ueber Math.random mit, danach wird es zurueckgesetzt. */
+  const _zufall=Math.random; let _seed=1234;
+  Math.random=()=>{ _seed=(_seed+0x6D2B79F5)|0; let t=Math.imul(_seed^(_seed>>>15),1|_seed); t=(t+Math.imul(t^(t>>>7),61|t))^t; return ((t^(t>>>14))>>>0)/4294967296; };
   const laeden=LADEN.slice().sort(()=>Math.random()-0.5); let li=0, vorige=0;
   let x=-44;
   while(x<43.5){
@@ -1556,6 +1609,7 @@ function buildStreet(){
   while(x<46){ const w=Math.min(rand(8,13),47-x), stil=Math.random()<0.55?'alt':'nach';
     if(w>4) hinterhaus(x+w/2,36,{w,d:9,h:rand(14,21),stil,farbe:pick(HAUSFARBEN[stil])}); x+=w; }
   hzFertig();
+  Math.random=_zufall;
   // Autos am gegenüberliegenden Bordstein
   /* echte Lackfarben: viel Silber, Weiss, Schwarz und Grau, dazu Blau, Rot, Gruen */
   const carCols=[0xc9ccd2,0xeeeeec,0x17191d,0x5b6068,0x1f4a8a,0x9c1e1e,0x2c4a3c,0xa9a39a,0x7d8794];

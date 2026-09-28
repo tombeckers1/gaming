@@ -301,6 +301,12 @@ function playShow(o,phases,prod,tag){
         ang=v==='aussen'?musterWinkel('aussen',i,n,k,A0,ph)[0]:(v==='mitte'||!g0)?musterWinkel('mitte',i,n,k,A0,ph)[0]:(-1+2*k)*A0; }
       else if(mm&&mm!=='bogen'&&mm!=='bild') [ang,dOff]=musterWinkel(mm,i,n,k,A0,ph);
       else if(!mm&&ph.ang) ang=rand(-ph.ang,ph.ang);
+      /* angOff: Grundwinkel, gezaehlt wie x (Liste je Schuss, in Gruppen
+         je Gruppe) - Saeulen und Module aus einem Karton faechern sich am
+         Himmel auf, statt am selben Punkt zu stehen (28.09., Tom: echt -
+         die Orte liegen auf der Oeffnung, die Breite am Himmel kommt aus
+         dem Rohrwinkel wie bei echten Faecherbatterien) */
+      if(ph.angOff!==undefined) ang+=+jeSchuss(ph.angOff,je?s.g:i)||0;
       if(!seite) seite=A0>0?clamp(ang/A0,-1,1):0;
       /* Effekte der Reihe nach, nicht gewuerfelt */
       const eff=Array.isArray(ph.eff)?ph.eff[idx%ph.eff.length]:(ph.eff||pick(EFF_GROSS));

@@ -117,22 +117,26 @@ EFF.glitterspur=function(p,A,B,s,r){
   schall(p,v=>later(0.35,()=>sfx.rieseln(v*0.9,1.2)));
 };
 
-/* Pulverschnee (schneeballschlacht): weisser Glitzerball (echte "White
-   Glitter Peony") - dicht gefuellt, die Sterne flackern und fallen wie
-   Schnee; feiner Schneestaub blitzt einzeln nach. Mit treffen brechen
-   zwei Schneebaelle am selben Punkt - zwei Plopps, 30 ms versetzt.
-   Vorher bremste jeder Stern auf null und stand 2,5 s als Wolke (Lichtshow). */
+/* Pulverschnee (schneeballschlacht): weisse Paeonie, deren Sterne am Ende
+   zu Silberschnee zerfallen (echte "Peony to Glitter"): die Sterne fliegen
+   als Kugelschale aus - alle etwa gleich schnell -, brennen weiss, und wo
+   jeder verlischt, sinken drei bis fuenf feine Silberflocken langsam
+   herab und blitzen einzeln auf. 28.09., Tom: echt - vorher fuellten die
+   Sterne die Kugel gleichmaessig und flackerten alle zugleich: eine
+   Punktwolke, kein Bruch. */
 EFF.pulverschnee=function(p,A,B,s,r){
   zutaten(r,{flash:0.55}); leise(r);
-  const vers=r&&r.par&&r.par.treffen?0.03*((r.par.q|0)%2):0;
-  schall(p,v=>later(vers,()=>{ rauschF({dur:0.34,vol:0.32*v,typ:'bandpass',f:800,f2:250,q:0.7,an:0.01}); sfx.plopp(v*0.55,0.65); }));
-  const q=QUAL(), n=Math.round(rand(90,115)*q*clamp(0.5+s*0.5,0.7,1.3)), vmax=6.8*(0.5+s*0.8), alt=SCHWEIF;
+  schall(p,v=>{ rauschF({dur:0.34,vol:0.32*v,typ:'bandpass',f:800,f2:250,q:0.7,an:0.01}); sfx.plopp(v*0.55,0.65); later(0.9,()=>sfx.rieseln(v*0.6,1.6)); });
+  const q=QUAL(), n=Math.round(rand(50,62)*q*clamp(0.6+s*0.4,0.75,1.25)), G=2.4, alt=SCHWEIF, vw=6.6*(0.55+s*0.6);
+  const fl=[0.9,0.94,1];
   SCHWEIF=0.1;
-  for(let i=0;i<n;i++){ const d=randDir(), w=vmax*Math.cbrt(rand(0.12,1)), c=i%3?WEISS:FW.silber;
-    psBig.emit(p.x,p.y,p.z,d[0]*w,d[1]*w,d[2]*w,c[0],c[1],c[2],rand(1.3,1.9),1.8,4); }
+  for(let i=0;i<n;i++){ const d=randDir(), w=vw*rand(0.9,1.04), c=i%4?WEISS:FW.silber, L=rand(0.85,1.1), v=[d[0]*w,d[1]*w,d[2]*w];
+    psBig.emit(p.x,p.y,p.z,v[0],v[1],v[2],c[0],c[1],c[2],L,G,0);
+    const tz=L*rand(0.93,0.99);
+    imBild(tz,()=>{ const e=bahnOrt(p,v,G,tz), u=bahnTempo(v,G,tz), m=3+Math.floor(Math.random()*3);
+      for(let k=0;k<m;k++){ const h=randDir(), w2=rand(0.5,1.3);
+        glint(psSmall,e.x,e.y,e.z,u[0]*0.3+h[0]*w2,u[1]*0.3+h[1]*w2-0.2,u[2]*0.3+h[2]*w2,fl,0.7,{t0:0.15,t1:1.3,dim:0.3,blitz:2.4,glimm:0.25,rest:0.7,psBlitz:psMid}); } }); }
   SCHWEIF=alt;
-  for(let i=0;i<Math.round(36*q);i++){ const d=randDir(), w=vmax*rand(0.25,0.9);
-    glint(psMid,p.x,p.y,p.z,d[0]*w,d[1]*w,d[2]*w,[0.9,0.94,1],1.4,{t0:0.5,t1:1.5,dim:0.25,glimm:0.2,rest:0.4,blitz:2.2}); }
 };
 
 /* Zeitsterne (sternstaub20, japanisch Jisa-shiki): der Bruch oeffnet
@@ -421,9 +425,9 @@ const DB={
      28.09.: nur Limette und Rosa (vorher Gruen, Violett, Magenta, Rosa);
      Tortenfontaenen in Silber - Funken sind nie rosa */
   kinderparty:()=>show({basis:{pw:-10.5,sz:0.44,th:'brause'}, rampe:{sz:[0.85,1.2],pw:[-1,1.5],hell:[0.9,1.2],kurve:'frueh'}}, [
-    {n:0,nurBoden:true,boden:[{k:'kreisel',gt:5,x:-0.35,A:'limette',i:0},{k:'kreisel',gt:5,x:0,A:'rose',i:1,t:0.4},{k:'kreisel',gt:5,x:0.35,A:'limette',i:2,t:0.8}],pause:4.6},
+    {n:0,nurBoden:true,boden:[{k:'kreisel',gt:5,x:-0.1,A:'limette',i:0},{k:'kreisel',gt:5,x:0,A:'rose',i:1,t:0.4},{k:'kreisel',gt:5,x:0.1,A:'limette',i:2,t:0.8}],pause:4.6},
     {n:2,gap:1.4,muster:'mitte',ang:0.18,eff:'brausepulver',farbe:2,steig:'gold',pause:0.9},
-    {n:0,nurBoden:true,boden:[{k:'torte',gt:6,x:-0.3,A:'silber'},{k:'torte',gt:6,x:0.3,A:'silber'}]},
+    {n:0,nurBoden:true,boden:[{k:'torte',gt:6,x:-0.09,A:'silber'},{k:'torte',gt:6,x:0.09,A:'silber'}]},
     {n:3,mit:true,takt:[0.4,1.4],muster:'w',ang:0.25,eff:['kugel','kugel','brausepulver'],farbe:0,kal:'mini',steig:'gold',pause:1.2},
     {n:2,gap:0,muster:'v',ang:0.28,eff:'brausepulver',farbe:1,kal:'klein',steig:'gold',pause:3.0}
   ]),
@@ -449,11 +453,14 @@ const DB={
     {n:4,gap:1.0,muster:'v',ang:0.25,eff:'glitterspur',farbVert:'seite',steig:'gold',pause:1.2},
     {n:5,gap:0.32,gapEnde:0.12,muster:'zufall',ang:0.15,eff:'glitterspur',kal:'mittel',steig:'glut',boden:{k:'fountain',gt:3,A:'gold',B:'zitrone'},pause:3.2}
   ]),
-  /* Schneeballschlacht, L10: Kreuzwuerfe treffen sich in der Luft und
-     zerstieben als weisser Glitzer (28.09.: keine stehende Wolke mehr) */
+  /* Schneeballschlacht, L10: Kreuzwuerfe - je zwei Schneebaelle fliegen
+     aus den aeusseren Rohren uebers Kreuz und zerfallen zu Silberschnee.
+     28.09. (Tom: echt): keine stehende Wolke mehr; kein "treffen" - aus
+     zwei Rohren, die 6 cm auseinander stehen, trifft sich nichts in der
+     Luft, beide brachen am selben Punkt */
   schneeballschlacht:()=>show({basis:{pw:-7.5,sz:0.60,th:'silber'}, rampe:{sz:[0.9,1.2],pw:[-1,1],hell:[0.9,1.2],kurve:'welle'}}, [
     {n:2,gap:1.6,muster:'gerade',eff:'pulverschnee',kal:'klein',steig:'silber',pause:0.8},
-    {n:6,gap:1.0,muster:'x',ang:0.35,rohre:'breit',treffen:true,eff:'pulverschnee',steig:'silber',pause:1.2},
+    {n:6,gap:1.0,muster:'x',ang:0.38,rohre:'breit',eff:'pulverschnee',steig:'silber',pause:1.2},
     {n:4,gap:0.25,muster:'zufall',ang:0.3,eff:'pulverschnee',kal:'mini',steig:'keiner',boden:{k:'torte',gt:3,A:'weiss'},pause:3.0}
   ]),
   /* Funkelnacht, L10: Zeitsterne gehen einer nach dem anderen an.
@@ -492,13 +499,14 @@ const DB={
   ]),
   /* Tornado-Box, L12: Bodenwirbel, die sich in die Luft schrauben.
      28.09.: statt der zweifarbigen Drallringe summende Bienen, Farbwechsel
-     und Knister - Tuerkis mit Silber */
+     und Knister - Tuerkis mit Silber; Knisterfontaene statt des Boden-
+     Stroboskops (Blitzlicht im Takt wirkte wie Lichtshow) */
   jugendbox:()=>show({basis:{pw:-6.0,sz:0.70,th:'eis'}, rampe:{sz:[0.85,1.2],pw:[-1,1.5],hell:[0.9,1.2],kurve:'welle'}}, [
-    {n:0,nurBoden:true,boden:[{k:'tornado',gt:4,x:-0.3,A:'tuerkis'},{k:'tornado',gt:4,x:0.3,A:'silber',t:0.7}],pause:4.8},
+    {n:0,nurBoden:true,boden:[{k:'tornado',gt:4,x:-0.11,A:'tuerkis'},{k:'tornado',gt:4,x:0.11,A:'silber',t:0.7}],pause:4.8},
     {n:8,gap:0.35,muster:'welle',ang:0.25,wellen:1,eff:'bienen',farbe:0,kal:'mini',steig:'silber',pause:1.0},
-    {n:6,gap:0.8,muster:'gerade',eff:'wechsel',farbe:0,kal:'klein',steig:'silber',boden:[{k:'tornado',gt:4,x:-0.35,A:'weiss',t:0.5},{k:'tornado',gt:4,x:0.35,A:'tuerkis',t:2.5}],pause:1.0},
-    {n:6,gap:0.6,muster:'v',ang:0.3,eff:'knister',farbe:2,steig:'silber',boden:{k:'blinker',gt:4,A:'weiss'},pause:1.0},
-    {n:0,nurBoden:true,boden:[{k:'tornado',gt:4,x:-0.2,A:'tuerkis'},{k:'tornado',gt:4,x:0.2,A:'silber'}],pause:2.8},
+    {n:6,gap:0.8,muster:'gerade',eff:'wechsel',farbe:0,kal:'klein',steig:'silber',boden:[{k:'tornado',gt:4,x:-0.13,A:'weiss',t:0.5},{k:'tornado',gt:4,x:0.13,A:'tuerkis',t:2.5}],pause:1.0},
+    {n:6,gap:0.6,muster:'v',ang:0.3,eff:'knister',farbe:2,steig:'silber',boden:{k:'knisterbrunnen',gt:4,gh:0.6,A:'silber',B:'weiss'},pause:1.0},
+    {n:0,nurBoden:true,boden:[{k:'tornado',gt:4,x:-0.07,A:'tuerkis'},{k:'tornado',gt:4,x:0.07,A:'silber'}],pause:2.8},
     {n:3,gap:0.12,muster:'mitte',ang:0.35,eff:'bienen',farbe:2,kal:'klein',steig:'silber',pause:3.0}
   ]),
   /* Nachtfalter, L12: aus jedem violetten Farbkranz taumeln glimmende
@@ -516,7 +524,7 @@ const DB={
     {n:0,nurBoden:true,boden:{k:'flitterbrunnen',gt:6},pause:3.5},
     {n:4,gap:1.4,muster:'aussen',ang:0.3,eff:'flitterstern',kal:'klein',steig:'gold',pause:0.8},
     {n:6,gap:0.3,muster:'z',seg:2,ang:0.3,eff:['flitterstern','chrys'],steig:'gold',pause:1.0},
-    {n:6,gap:0.9,muster:'paar',ang:0.35,eff:'flitterstern',kal:'mittel',steig:'glut',boden:[{k:'flitterbrunnen',gt:5,x:-0.3},{k:'flitterbrunnen',gt:5,x:0.3}],pause:3.2}
+    {n:6,gap:0.9,muster:'paar',ang:0.35,eff:'flitterstern',kal:'mittel',steig:'glut',boden:{k:'flitterbrunnen',gt:5,gh:1.3},pause:3.2}
   ]),
   /* Palmenhain, L13: Goldpalmen mit stehendem Stamm auf zwei Etagen */
   goldpalmen:()=>show({basis:{pw:-5,sz:0.78,th:'gold'}, rampe:{sz:[0.85,1.35],pw:[-1,2],hell:[0.85,1.3],kurve:'spaet'}}, [
@@ -580,7 +588,7 @@ const DB={
      28.09.: Vulkane Orange/Gold und Bernstein/Gold - rote Funken gibt es
      nicht (Kohle glueht orange-gold) */
   batterie49:()=>show({basis:{pw:-2.5,sz:0.90,th:'glut'}, rampe:{sz:[0.75,1.25],pw:[-2.8,2],hell:[0.85,1.35],kurve:'linear'}}, [
-    {n:0,nurBoden:true,boden:[{k:'volcano',gt:15,x:-0.45,A:'orange',B:'gold'},{k:'volcano',gt:15,x:0.45,A:'bernstein',B:'gold'}],pause:0.4},
+    {n:0,nurBoden:true,boden:[{k:'volcano',gt:15,x:-0.13,A:'orange',B:'gold'},{k:'volcano',gt:15,x:0.13,A:'bernstein',B:'gold'}],pause:0.4},
     {n:6,gap:0.7,muster:'gerade',eff:'lampare',kal:'klein',steig:'glut',pause:0.5},
     {n:10,gap:0.45,muster:'v',ang:0.3,eff:'chrys',steig:'glut',pause:0.5},
     {n:8,mit:true,gap:0.28,muster:'gerade',rohre:'breit',mineEff:'lampare',mineSz:0.6,nurMine:true},
@@ -597,7 +605,7 @@ const DB={
     {n:8,gap:0.45,muster:'spirale',ang:0.3,seg:1,eff:['wechsel','tausendblueten'],steig:'gold',boden:{k:'sternregen',gt:5,A:'gold',B:'rose'},pause:1.0},
     {n:10,takt:[0.2,0.2,0.2,1.0],muster:'aussen',ang:0.4,eff:'tausendblueten',farbVert:'mitte',steig:'silber',pause:1.0},
     {n:12,gap:0.15,muster:'w',ang:0.35,eff:['chrys','tausendblueten'],hoehe:'wechsel',hSpanne:6,steig:'gold',pause:1.2},
-    {n:8,gap:0,muster:'schlag',ang:0.45,eff:'tausendblueten',kal:'mittel',steig:'silber',boden:[{k:'volcano',gt:4,x:-0.35,A:'gold',B:'zitrone'},{k:'volcano',gt:4,x:0.35,A:'gold',B:'zitrone'}],pause:4.0}
+    {n:8,gap:0,muster:'schlag',ang:0.45,eff:'tausendblueten',kal:'mittel',steig:'silber',boden:[{k:'volcano',gt:4,x:-0.11,A:'gold',B:'zitrone'},{k:'volcano',gt:4,x:0.11,A:'gold',B:'zitrone'}],pause:4.0}
   ])
 };
 Object.keys(DB).forEach(t=>{ SHOWS[t]=DB[t];
@@ -611,7 +619,7 @@ Object.assign(SIGNATUR,{
   miniverbund:{muster:'treppe',idee:'Dreisprung 3x3',text:'dreimal drei Schuss, jeder Satz eine Stufe hoeher'},
   roemisch:{idee:'Farbkanon',text:'fuenf Lichter, erst rot, dann gruen, zum Schluss im Wechsel'},
   glitzerregen12:{eff:'glitterspur',text:'Goldsterne verlieren Troepfchen, die einzeln aufblitzen'},
-  schneeballschlacht:{idee:'treffen',eff:'pulverschnee',text:'zwei Wuerfe treffen sich und zerstieben als weisser Glitzer'},
+  schneeballschlacht:{idee:'kreuzwurf',eff:'pulverschnee',text:'Schneebaelle fliegen uebers Kreuz und zerfallen zu sinkendem Silberschnee'},
   sternstaub20:{eff:'zeitsterne',text:'dunkler Bruch, die Sterne gehen einzeln an'},
   zauberwald:{eff:'irrlicht',text:'gruene Fische schwimmen zischend im Zickzack davon'},
   heulbatterie:{eff:'klangperle',idee:'tonleiter',text:'Heuler spielen eine Tonleiter, oben ein Sternbruch je Ton'},

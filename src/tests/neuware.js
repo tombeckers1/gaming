@@ -57,7 +57,8 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     /* Feuerwerk zuenden */
     o.zuenden=[]; o.raketen=[]; o.fontLadung=[]; o.schuss=[]; o.frueh=[];
     const PROFI=['dahlie','pistill','kamuro','kronleuchter','titan','zehnfach','zeitregen','brokat','sternschnuppen','glitzerweide'];
-    const FONT=['leuchtfontaene','feuerteufel','farbfontaenen','bodenfeuer','zauberbrunnen','feuerberg','vulkanfeld','funkenturm','dreiklang','wasserspiel','glitzerkaskade','sternfontaene','eisblume','goldvulkan','feuerwand','silberkaskade','feuerkaskade','bengalfackel','bengalduo','feuerrad'];
+    /* sternfontaene gestrichen (26.09., Katalog: Dublette von sternenbrunnen) */
+    const FONT=['leuchtfontaene','feuerteufel','farbfontaenen','bodenfeuer','zauberbrunnen','feuerberg','vulkanfeld','funkenturm','dreiklang','wasserspiel','glitzerkaskade','eisblume','goldvulkan','feuerwand','silberkaskade','feuerkaskade','bengalfackel','bengalduo','feuerrad'];
     NEU.filter(t=>P[t].cat>0).forEach(t=>{
       const st=bb.stationOf(t); if(!st){ o.zuenden.push(t+': keine Station'); return; }
       bb.run(4,0.1);

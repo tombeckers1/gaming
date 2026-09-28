@@ -198,7 +198,10 @@ function lichtTakt(){
   });
   for(let k=fi;k<LICHT.flecken.length;k++) LICHT.flecken[k].visible=false;
   /* freigegebene Lichter bekommen die Blitz-Reichweite zurueck */
-  FLASH.forEach((F,ix)=>{ if(F.pool&&!belegt.has(ix)){ F.pool=false; F.l.distance=95; } });
+  /* ... und gehen sofort aus: sonst glimmte das Dauerlicht 0,25 s mit 95 m
+     Reichweite nach und hellte das ganze Testfeld auf (27.09., Probebild
+     Feuerkreis beim Phasenwechsel) */
+  FLASH.forEach((F,ix)=>{ if(F.pool&&!belegt.has(ix)){ F.pool=false; F.l.distance=95; F.t=0; F.l.intensity=0; } });
   LICHT.slot=neu; LICHT.vergeben=belegt.size; LICHT.fleckN=fi;
   return L.length>0;
 }

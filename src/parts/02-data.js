@@ -201,7 +201,7 @@ const P={
     art:{title:'FEUERBRUNNEN',sub:'Flammenfontäne · 16 s',bg1:'#8a1a08',bg2:'#240502',ac:'#ff8a2a',ac2:'#ffd23f',gold:true}},
   /* Fontaene, die oben in einen Kometen uebergeht und aufblueht */
   sternenbrunnen:{name:'Blütenbrunnen · Fontäne mit Chrysanthemen-Pops',short:'Blütenbrunnen',cat:2,lvl:12,shape:'cylinder',dims:[0.145,0.34,0.145],grid:[7,2,1],box:6,cost:7.90,market:18.99,weight:7,hype:26,risk:6,
-    desc:'Vier Blütenwechsel: Silberblüten, Gold mit blauen Perlen, silberne Reisblüten und zum Schluss dichte Goldchrysanthemen, die leise aufplatzen.',
+    desc:'Vier Blütenwechsel: rote Blüten über Silber, Gold mit blauen Perlen, grüne Reisblüten und zum Schluss dichte violette Chrysanthemen, die leise aufplatzen.',
     art:{title:'BLÜTENBRUNNEN',sub:'4 Phasen · 18 s',bg1:'#123a6b',bg2:'#04101f',ac:'#5ce1ff',ac2:'#ffd23f'}}
 };
 /* Alle Produkte wesentlich groesser (Tom, 25.09.): ein Viertel in jede

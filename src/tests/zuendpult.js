@@ -14,10 +14,12 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   const p=await b.newPage({viewport:{width:1280,height:800}});
   const fehler=[];
   p.on('pageerror',e=>fehler.push('PAGEERROR '+e.message));
-  await p.goto('file://'+process.argv[2]);
+  /* Unter Last (4 Kerne, paralleles Rendern) lief goto zweimal in die
+     30-s-Vorgabe von playwright - Ladezeit ist hier nicht Pruefgegenstand */
+  await p.goto('file://'+process.argv[2],{timeout:120000});
   await p.waitForFunction('window.__bb!==undefined',{timeout:90000});
   await p.evaluate(()=>localStorage.clear());
-  await p.reload(); await p.waitForFunction('window.__bb!==undefined',{timeout:90000});
+  await p.reload({timeout:120000}); await p.waitForFunction('window.__bb!==undefined',{timeout:90000});
   await p.waitForFunction("!!document.querySelector('#startBtns button:not([disabled])')",{timeout:90000});
   await p.click('#startBtns button:last-child');
   await p.waitForSelector('#nameBox.show',{state:'visible',timeout:30000});

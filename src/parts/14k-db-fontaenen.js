@@ -66,17 +66,27 @@ const FUNKE={
   /* Probebild 27.09.: mit dim 0,32 ohne Spur war die Saeule unsichtbar und
      oben stand nur ein matter Punktenebel. Jetzt: gedaempfte Striche (die
      Saeule ist als dunkles Gold lesbar), der Blitz als grosser Stern in
-     psBig mit kurzem Nachglimmen - so funkelt es auch im Standbild. */
+     psBig mit kurzem Nachglimmen - so funkelt es auch im Standbild.
+     Art-Director 28.09.: so war sie vom Goldgeysir nicht zu unterscheiden
+     (helle Goldsaeule). Jetzt steigt sie wirklich dunkel (dim 0,2, kurze
+     Spur), geblitzt wird erst ab 80 % der Steigzeit, also oben und im
+     Fall; jeder zweite Blitz ist ein weisser Glanzstern (psHuge). */
   glitter:{g:6,emit(x,y,z,vx,vy,vz,c,tA,e){ const ph=e&&e.ph||{}, an=ph.glitterAnteil===undefined?0.7:ph.glitterAnteil;
-    if(Math.random()<an) glint(psMid,x,y,z,vx,vy,vz,c,6,{t0:tA*0.6,t1:tA*1.7,dim:0.5,spur:0.14,psBlitz:psBig,blitz:3.4,blitzFarbe:farbe(ph.glitterFarbe)||[1,0.93,0.7],glimm:0.3,rest:0.35});
-    else { SCHWEIF=0.16; psMid.emit(x,y,z,vx,vy,vz,c[0]*0.5,c[1]*0.5,c[2]*0.5,tA*rand(1.0,1.3),6,0); } }},
+    if(Math.random()<an) glint(psMid,x,y,z,vx,vy,vz,c,6,{t0:tA*0.8,t1:tA*1.55,dim:0.2,spur:0.06,psBlitz:Math.random()<0.5?psHuge:psBig,blitz:3.6,blitzFarbe:farbe(ph.glitterFarbe)||[1,0.95,0.8],glimm:0.35,rest:0.3});
+    else { SCHWEIF=0.06; psMid.emit(x,y,z,vx,vy,vz,c[0]*0.18,c[1]*0.18,c[2]*0.18,tA*rand(1.0,1.3),6,0); } }},
   /* Kamuro: dunkelgoldene Faeden, sinken langsam (g 1,65 = 1,5 m/s), lange
      Spur; wer unten ankommt, glimmt dort 1 s */
-  kamuro:{g:1.65,emit(x,y,z,vx,vy,vz,c,tA,e){ const ph=e&&e.ph||{}; SCHWEIF=(ph.fadenLaenge||1.1)/1.2;
-    const yb=fkBoden(x,z), life=tA+Math.max(0.5,(y+(e&&e.hAkt||4)-yb)/1.5)+rand(-0.3,0.4);
-    psMid.emit(x,y,z,vx,vy,vz,c[0]*0.95,c[1]*0.72,c[2]*0.3,life,1.65,2,c[0]*0.45,c[1]*0.26,c[2]*0.06);
-    const q=bahnOrt({x,y,z},[vx,vy,vz],1.65,life);
-    if(q.y<yb+0.6) imBild(life-0.02,()=>{ const a=SCHWEIF; SCHWEIF=0; psMid.emit(q.x,yb+0.02,q.z,0,0,0,0.55,0.3,0.06,1.0,0,0); SCHWEIF=a; }); }},
+  /* Art-Director 28.09.: mit langer Spur schon im Steigen lasen sich die
+     Faeden als Strahlenfaecher von der Duese ("Laser"). Jetzt steigt der
+     Faden fast unsichtbar und leuchtet erst ab dem Scheitel auf - dort
+     haengt er und sinkt langsam: eine Goldweide, keine Strahlen. */
+  kamuro:{g:1.65,emit(x,y,z,vx,vy,vz,c,tA,e){ const ph=e&&e.ph||{}, fl=(ph.fadenLaenge||0.55)/1.2;
+    const yb=fkBoden(x,z), life=tA+Math.max(0.5,(y+(e&&e.hAkt||4)-yb)/1.5)+rand(-0.3,0.4), p={x,y,z}, v=[vx,vy,vz];
+    SCHWEIF=0.03; psMid.emit(x,y,z,vx,vy,vz,c[0]*0.14,c[1]*0.1,c[2]*0.04,tA,1.65,0);
+    imBild(tA,()=>{ const q=bahnOrt(p,v,1.65,tA), w=bahnTempo(v,1.65,tA), a=SCHWEIF, rest=life-tA;
+      SCHWEIF=fl; psMid.emit(q.x,q.y,q.z,w[0],w[1],w[2],c[0]*0.95,c[1]*0.72,c[2]*0.3,rest,1.65,2,c[0]*0.45,c[1]*0.26,c[2]*0.06); SCHWEIF=a;
+      const u=bahnOrt(q,w,1.65,rest);
+      if(u.y<yb+0.6) imBild(rest-0.02,()=>{ const a2=SCHWEIF; SCHWEIF=0; psMid.emit(u.x,yb+0.02,u.z,0,0,0,0.55,0.3,0.06,1.0,0,0); SCHWEIF=a2; }); }); }},
   /* Knister: Mikrosterne, die zufaellig weiss aufplatzen */
   knister:{g:6,emit(x,y,z,vx,vy,vz,c,tA){ SCHWEIF=0;
     psMid.emit(x,y,z,vx,vy,vz,c[0],c[1],c[2],tA*rand(0.95,1.35),6,3); }}
@@ -169,12 +179,16 @@ NEU_EMIT.hoerner=(e,dt,o)=>{
   fkKlang(e,o,dt);
   e.kohleB=e.B; const p={x:o.x,y:o.y+0.04,z:o.z};
   Z.spitzen=Z.spitzen||[];
+  /* Art-Director 28.09.: beim Phasenwechsel standen die Flammen schon an
+     der kuenftigen Hornspitze, die Funken noch unten. Die sichtbare Hoehe
+     folgt der Soll-Hoehe erst mit einer Steigzeit - also glaetten. */
+  const tAh=fkTA(fkV0(h,6),6); if(Z.hg===undefined) Z.hg=h; Z.hg+=(h-Z.hg)*Math.min(1,dt/Math.max(0.2,tAh));
   for(const s of [-1,1]){ const a=Z.sp*s, d=[Math.sin(a),Math.cos(a),0];
     fkStrahl(e,dt,p,d,h,0.06,190*q*st,ph.funke||'kohle',e.A,e.B,ph.mischB||0,s<0?'hL':'hR');
     /* Spitze = Gipfel der Bahn eines mittleren Funkens */
-    const w=fkV0(h,6)/Math.max(0.35,d[1])*0.93, tA=fkTA(w*d[1],6), sp=bahnOrt(p,[d[0]*w,d[1]*w,0],6,tA), tx=sp.x, ty=sp.y; Z.spitzen[s<0?0:1]={x:tx,y:ty,z:o.z};
+    const w=fkV0(Z.hg,6)/Math.max(0.35,d[1])*0.93, tA=fkTA(w*d[1],6), sp=bahnOrt(p,[d[0]*w,d[1]*w,0],6,tA), tx=sp.x, ty=sp.y; Z.spitzen[s<0?0:1]={x:tx,y:ty,z:o.z};
     /* Flammenzunge an der Spitze */
-    if(h>0.5){ const alt=SCHWEIF, B=e.B; SCHWEIF=0;
+    if(Z.hg>0.5){ const alt=SCHWEIF, B=e.B; SCHWEIF=0;
       for(let n=fkJe(e,s<0?'fL':'fR',14*st,dt);n>0;n--) psHuge.emit(tx+rand(-0.06,0.06),ty,o.z,Math.sin(a)*0.4,rand(0.3,0.8),0,B[0]*1.3,B[1]*0.9,B[2]*0.6,rand(0.2,0.38),-0.8,0);
       SCHWEIF=alt; } }
   licht('fkH'+fkId(e),{x:o.x,y:o.y+h*0.5,z:o.z},FW.orange,1.2*st*Math.min(1,h/1.5),{boden:fkBoden(o.x,o.z),weite:7});
@@ -244,17 +258,29 @@ NEU_EMIT.bodenring=(e,dt,o)=>{
 const FK_LAVA={n:0};
 function fkBrocken(o,A,B,hSpanne,weite){
   const h=Array.isArray(hSpanne)?rand(hSpanne[0],hSpanne[1]):hSpanne, a=Math.random()*Math.PI*2, w=rand(0.4,1.1)*(weite||1)*Math.sqrt(h/3), c=Math.random()<0.6?A:B;
-  const cc=[c[0]*1.3,c[1]*1.05,c[2]*0.8], v0=fkV0(h,6)*0.8;
-  fuehre(psHuge,o.x,o.y+0.1,o.z,Math.cos(a)*w,v0,Math.sin(a)*w,cc,5,(s,dt)=>{
+  /* Art-Director 28.09.: psHuge-Glanzsterne mit Kreuzstrahlen sahen aus
+     wie die Gummibaerchen-Kleckse. Lava ist jetzt ein schwerer, dunkel
+     gluehender Klumpen ohne Glanzkreuz (psBig, Kern + flackernde Kruste)
+     mit Rauchspur; die Pfuetze ein flacher Glutfleck, der nachdunkelt. */
+  const cc=[0.95*c[0]+0.05,0.32*c[1]+0.02,0.04], v0=fkV0(h,6)*0.8;
+  fuehre(psBig,o.x,o.y+0.1,o.z,Math.cos(a)*w,v0,Math.sin(a)*w,cc,5,(s,dt)=>{
     const v=s.v; v[1]-=7*dt; s.p[0]+=v[0]*dt; s.p[1]+=v[1]*dt; s.p[2]+=v[2]*dt;
-    s.hell=Math.min(2,1/Math.max(0.3,1-s.alter/s.life));
+    s.hell=rand(0.85,1.05);
+    /* Kruste: flackernde dunkelrote Klumpen um den Kern, dazu die Rauchspur */
+    const al=SCHWEIF; SCHWEIF=0;
+    for(let n=fkJe(s.d,'k',36,dt);n>0;n--) psBig.emit(s.p[0]+rand(-0.09,0.09),s.p[1]+rand(-0.09,0.09),s.p[2]+rand(-0.09,0.09),v[0]*0.3,v[1]*0.3,v[2]*0.3,0.55,0.07,0.01,rand(0.12,0.3),0,2,0.12,0.01,0);
+    for(let n=fkJe(s.d,'r',14,dt);n>0;n--) psMid.emit(s.p[0],s.p[1],s.p[2],rand(-0.2,0.2),rand(0.2,0.5),rand(-0.2,0.2),0.3,0.1,0.04,rand(0.5,0.8),-0.3,2,0.05,0.04,0.04);
+    SCHWEIF=al;
     const yb=fkBoden(s.p[0],s.p[2]);
     if(s.p[1]<=yb+0.03&&v[1]<0){ const x=s.p[0], z=s.p[2], y=yb+0.03;
       s.ps.life[s.i]=0.01;
       if(FK_LAVA.n<30){ FK_LAVA.n++; later(3.2,()=>{ FK_LAVA.n--; });
         const alt=SCHWEIF; SCHWEIF=0;
-        psHuge.emit(x,y,z,0,0,0,1.3,0.55,0.08,3.2,0,2,0.45,0.03,0.0);
-        for(let k=0;k<4;k++){ const b=Math.random()*Math.PI*2, r=rand(0.08,0.2); psBig.emit(x+Math.cos(b)*r,y,z+Math.sin(b)*r,0,0,0,1,0.4,0.05,rand(2.2,3),0,2,0.3,0.02,0); }
+        /* Glutfleck: flach (breit, nicht hoch), orange -> fast schwarzrot */
+        const br=rand(0.12,0.22);
+        for(let k=0;k<9;k++){ const b=Math.random()*Math.PI*2, r=br*Math.sqrt(Math.random()), L=rand(2.6,3.4)*(1-r/br*0.4);
+          psBig.emit(x+Math.cos(b)*r*1.6,y,z+Math.sin(b)*r*1.6,0,0,0,1.0,0.36,0.04,L,0,2,0.16,0.01,0); }
+        psMid.emit(x,y+0.02,z,0,0,0,1.3,0.7,0.2,1.2,0,2,0.4,0.05,0);
         SCHWEIF=alt;
         rauchball({x,y:y+0.2,z},{r:0.2,n:1,dauer:1.6,steigen:0.5,c:[0.55,0.52,0.5],a:0.28});
         schall({x,y,z},vv=>{ sfx.plopp(vv*0.35,0.55); sfx.zischen(vv*0.25,0.35); }); }
@@ -285,21 +311,28 @@ NEU_EMIT.lava=(e,dt,o)=>{
 };
 
 /* bluetenwerfer (Bluetenbrunnen): Unterbau-Fontaene, dazu Sterne, die in
-   60-90 % der Hoehe leise zu Mini-Chrysanthemen aufplatzen (nie darueber) */
+   60-90 % der Hoehe leise zu Mini-Chrysanthemen aufplatzen (nie darueber).
+   Art-Director 28.09.: Ton in Ton (Silber auf Silber, 15 Funken psMid) war
+   vom Pult aus nicht zu sehen. Jetzt: Bluete in Kontrastfarbe, 34+ Funken
+   in psBig, Radius ~1 m, silberner Stempel in der Mitte; Perlen psHuge. */
 NEU_EMIT.bluetenwerfer=(e,dt,o)=>{
   const ph=e.ph, st=e.staerke, q=QUAL(), h=e.hAkt||2.5, bl=ph.bluete||{}, c=farbe(bl.farbe)||e.B, alt=SCHWEIF;
   fkKlang(e,o,dt);
   fkStrahl(e,dt,{x:o.x,y:o.y+0.05,z:o.z},[0,1,0],h,0.16,250*q*st,ph.funke||'titan',e.A,e.A,0,'bU');
   for(let n=fkJe(e,'bS',bereich(bl.rate||3,e.u)*st,dt);n>0;n--){
-    const hb=h*rand(0.6,0.9), d=fkKegel([0,1,0],0.26), w=fkV0(hb,6)/Math.max(0.5,d[1]), tA=fkTA(w*d[1],6), p={x:o.x,y:o.y+0.05,z:o.z}, v=[d[0]*w,d[1]*w,d[2]*w];
+    const hb=h*rand(0.55,0.8), d=fkKegel([0,1,0],0.26), w=fkV0(hb,6)/Math.max(0.5,d[1]), tA=fkTA(w*d[1],6), p={x:o.x,y:o.y+0.05,z:o.z}, v=[d[0]*w,d[1]*w,d[2]*w];
     SCHWEIF=0.12;
-    if(bl.art==='perle'){ psBig.emit(p.x,p.y,p.z,v[0],v[1],v[2],c[0]*1.2,c[1]*1.2,c[2]*1.2,tA*rand(1.1,1.35),6,0); continue; }
-    psBig.emit(p.x,p.y,p.z,v[0],v[1],v[2],c[0],c[1],c[2],tA,6,0);
-    imBild(tA,()=>{ const b=bahnOrt(p,v,6,tA), reis=bl.art==='reis', n2=Math.round((bl.funken||15)*q), gr=reis?1.2:2.1, a2=SCHWEIF;
-      SCHWEIF=reis?0:0.14;
-      for(let k=0;k<n2;k++){ const dd=randDir(), s=gr*rand(0.8,1.1);
-        (reis?psSmall:psMid).emit(b.x,b.y,b.z,dd[0]*s,dd[1]*s,dd[2]*s,c[0],c[1],c[2],reis?rand(0.2,0.35):rand(0.5,0.7),2.5,reis?0:4); }
-      psBig.emit(b.x,b.y,b.z,0,0,0,1.2,1.2,1.2,0.05,0,0); SCHWEIF=a2;
+    /* Perlen: im Probebild gingen sie im Gold unter - heller, mit Schweif */
+    if(bl.art==='perle'){ SCHWEIF=0.12; psHuge.emit(p.x,p.y,p.z,v[0],v[1],v[2],c[0]*1.6+0.2,c[1]*1.6+0.2,c[2]*1.8+0.1,tA*rand(1.1,1.35),6,0); continue; }
+    psBig.emit(p.x,p.y,p.z,v[0]*0.97,v[1]*0.97,v[2]*0.97,c[0]*0.6,c[1]*0.6,c[2]*0.6,tA,6,0);
+    imBild(tA,()=>{ const b=bahnOrt(p,v,6,tA), reis=bl.art==='reis', n2=Math.round((bl.funken||34)*q), gr=reis?1.5:2.1, a2=SCHWEIF, st2=farbe(bl.stempel)||[1,1,1];
+      SCHWEIF=reis?0:0.12;
+      for(let k=0;k<n2;k++){ const dd=randDir(), s=gr*rand(0.85,1.05);
+        psBig.emit(b.x,b.y,b.z,dd[0]*s,dd[1]*s,dd[2]*s,c[0]*1.4,c[1]*1.4,c[2]*1.4,reis?rand(0.3,0.45):rand(0.7,0.95),2.5,reis?0:2,c[0]*0.5,c[1]*0.5,c[2]*0.5); }
+      /* Stempel: kleiner heller Kern in der Kontrastfarbe des Unterbaus */
+      SCHWEIF=0;
+      for(let k=0;k<(reis?0:8);k++){ const dd=randDir(), s=rand(0.6,1.1); psMid.emit(b.x,b.y,b.z,dd[0]*s,dd[1]*s,dd[2]*s,st2[0],st2[1],st2[2],rand(0.4,0.6),2.5,0); }
+      psHuge.emit(b.x,b.y,b.z,0,0,0,c[0]*0.8+0.5,c[1]*0.8+0.5,c[2]*0.8+0.5,0.06,0,0); SCHWEIF=a2;
       if(!reis||Math.random()<0.25) schall(b,vv=>sfx.plopp(vv*0.18,2.2)); }); }
   SCHWEIF=alt;
 };
@@ -328,21 +361,23 @@ NEU_EMIT.popcorn=(e,dt,o)=>{
   for(let k=fkJe(e,'pK',r/n,dt);k>0;k--) fkKorn(o,ph.knallHoehe||[1.5,3],ph.woelkchen);
 };
 
-/* saxon (Drehsonne): Radscheibe 0,4 m auf 1 m Hoehe mit zwei Treibern und
+/* saxon (Drehsonne): Radscheibe 0,7 m auf 2 m Hoehe mit zwei Treibern und
    farbiger Nabe; Drehrichtung dreh, Drehzahl ups (Rampe); stottern: Rad
    steht, Funken setzen aus; beide: beide Treiber; rand:'knister' */
 const FK_MAT={};
+/* Art-Director 28.09.: 0,2 m war vom Pult aus zu klein fuer Level 14 */
+const FK_RAD=0.35, FK_RADH=2.0; /* Rad auf 2 m am Pfahl: auf 1 m war es vom Pult aus halb verdeckt */
 function fkMat(c,em){ const k=c+'|'+(em||0); return FK_MAT[k]||(FK_MAT[k]=new THREE.MeshStandardMaterial({color:c,roughness:0.8,emissive:em||0})); }
 function fkRadDeko(Z,o,dauer){
   if(Z.rad) return; const g=new THREE.Group();
-  const stab=new THREE.Mesh(new THREE.BoxGeometry(0.04,1.0,0.04),fkMat(0x6b4a2a)); stab.position.set(0,-0.5,-0.03); g.add(stab);
-  const scheibe=new THREE.Mesh(new THREE.CylinderGeometry(0.2,0.2,0.03,20),fkMat(0x2a2320,0x140800)); scheibe.rotation.x=Math.PI/2; g.add(scheibe);
-  for(const s of [-1,1]){ const h=new THREE.Mesh(new THREE.CylinderGeometry(0.025,0.025,0.16,8),fkMat(0xb03020)); h.position.set(s*0.2,0,0.02); g.add(h); }
-  g.position.set(o.x,o.y+1.0,o.z+0.05); scene.add(g); Z.rad=g;
+  const stab=new THREE.Mesh(new THREE.BoxGeometry(0.05,FK_RADH,0.05),fkMat(0x6b4a2a)); stab.position.set(0,-FK_RADH/2,-0.03); g.add(stab);
+  const scheibe=new THREE.Mesh(new THREE.CylinderGeometry(FK_RAD,FK_RAD,0.03,24),fkMat(0x2a2320,0x140800)); scheibe.rotation.x=Math.PI/2; g.add(scheibe);
+  for(const s of [-1,1]){ const h=new THREE.Mesh(new THREE.CylinderGeometry(0.03,0.03,0.2,8),fkMat(0xb03020)); h.position.set(s*FK_RAD,0,0.02); g.add(h); }
+  g.position.set(o.x,o.y+FK_RADH,o.z+0.05); scene.add(g); Z.rad=g;
   later(dauer+1.5,()=>{ scene.remove(g); Z.rad=null; });
 }
 NEU_EMIT.saxon=(e,dt,o)=>{
-  const ph=e.ph, Z=fkZ(e), st=e.staerke, q=QUAL(), c0={x:o.x,y:o.y+1.0,z:o.z+0.08};
+  const ph=e.ph, Z=fkZ(e), st=e.staerke, q=QUAL(), c0={x:o.x,y:o.y+FK_RADH,z:o.z+0.08};
   if(!Z.rad&&FONT[e.prod]) fkRadDeko(Z,o,fontDauer(FONT[e.prod])-e.alter);
   const ziel=(ph.dreh||0)*bereich(ph.ups===undefined?3:ph.ups,e.u)*Math.PI*2;
   Z.om=Z.om===undefined?ziel:Z.om+(ziel-Z.om)*Math.min(1,dt*(ph.stottern?7:1.6));
@@ -356,13 +391,19 @@ NEU_EMIT.saxon=(e,dt,o)=>{
   /* Stottern: Aussetzer und zwei kurze Zischer */
   if(ph.stottern){ if(!e.zz){ e.zz=true; const v=distVol(o); sfx.zischen(v*0.6,0.12); later(0.3,()=>sfx.zischen(v*0.6,0.15)); }
     if(e.alter<0.3||(e.alter>0.42&&e.alter<0.5)) return; }
-  const R=0.2, dreh=Math.sign(Z.om)||ph.dreh||1, M=FUNKE[ph.funke||'kohle'], treiber=ph.beide?[0,Math.PI]:[0], tan=Math.abs(Z.om)*R;
-  for(const off of treiber){ const a=Z.w+off, px=c0.x+Math.cos(a)*R, py=c0.y+Math.sin(a)*R;
-    /* Tangente in Drehrichtung; die Funken treten nach hinten aus */
-    const tx=-Math.sin(a)*dreh, ty=Math.cos(a)*dreh;
-    for(let n=fkJe(e,'sT'+off,(ph.beide?210:260)*q*st,dt);n>0;n--){ const s=rand(4,6.5), c=ph.B&&Math.random()<0.4?e.B:e.A, sx=rand(-0.5,0.5);
-      M.emit(px,py,c0.z,-tx*s+tx*tan+sx*0.3,-ty*s+ty*tan+sx*0.3,rand(-0.3,0.3),c,0.55,e); } }
-  if(ph.rand==='knister') for(let n=fkJe(e,'sK',40*st,dt);n>0;n--){ const a=Math.random()*Math.PI*2; knisterPop(c0.x+Math.cos(a)*1.5,c0.y+Math.sin(a)*1.5,c0.z,{laut:0.3,funken:5}); }
+  /* Art-Director 28.09.: alle Funken eines Bildes traten am selben Winkel
+     aus - bei 7-8 U/s sprang der Treiber 45-85 Grad je Bild, man sah
+     Speichen. Jetzt bekommt jeder Funke seinen eigenen Zeitpunkt im Bild:
+     Winkel zurueckgerechnet, und er ist um genau diese Zeit schon
+     geflogen. So entsteht die durchgehende Spirale. */
+  const R=FK_RAD, dreh=Math.sign(Z.om)||ph.dreh||1, M=FUNKE[ph.funke||'kohle'], treiber=ph.beide?[0,Math.PI]:[0], tan=Math.abs(Z.om)*R, sp=ph.funke==='titan'?1.25:1;
+  for(const off of treiber)
+    for(let n=fkJe(e,'sT'+off,(ph.beide?240:320)*q*st,dt);n>0;n--){ const f=Math.random()*dt, a=Z.w+off-Z.om*f, px=c0.x+Math.cos(a)*R, py=c0.y+Math.sin(a)*R;
+      /* Tangente in Drehrichtung; die Funken treten nach hinten aus */
+      const tx=-Math.sin(a)*dreh, ty=Math.cos(a)*dreh, s=rand(5.5,8)*sp, c=ph.B&&Math.random()<0.4?e.B:e.A, sx=rand(-0.5,0.5);
+      const vx=-tx*s+tx*tan+sx*0.3, vy=-ty*s+ty*tan+sx*0.3;
+      M.emit(px+vx*f,py+vy*f,c0.z,vx,vy,rand(-0.3,0.3),c,0.7,e); }
+  if(ph.rand==='knister') for(let n=fkJe(e,'sK',40*st,dt);n>0;n--){ const a=Math.random()*Math.PI*2; knisterPop(c0.x+Math.cos(a)*2.2,c0.y+Math.sin(a)*2.2,c0.z,{laut:0.3,funken:5}); }
 };
 
 /* farbstrahl (Farbmischer): enger, dichter Strahl in reiner Farbe; Duese
@@ -517,7 +558,7 @@ NEU_EMIT.faecherwand=(e,dt,o)=>{
    Start mit Druckstoss; knisterWellen: die Rate schwillt n-mal; abklingen. */
 NEU_EMIT.ausbruch=(e,dt,o)=>{
   const ph=e.ph, st=e.staerke, q=QUAL(), h=e.hAkt||22, kg=(ph.kegel||18)*Math.PI/180;
-  if(!e.los&&!ph.abklingen){ e.los=true; const v=distVol(o); flash({x:o.x,y:o.y+6,z:o.z},FW.weiss,4,0.25); sfx.boom(v*0.45); if(typeof bildBlitz==='function') bildBlitz(0.25,0.2); }
+  if(!e.los&&!ph.abklingen){ e.los=true; const v=distVol(o); flash({x:o.x,y:o.y+6,z:o.z},FW.weiss,6,0.3); sfx.boom(v*0.45); if(typeof bildBlitz==='function') bildBlitz(0.25,0.2); }
   let k=1; if(ph.knisterWellen) k=0.55+0.45*Math.cos(e.u*Math.PI*2*ph.knisterWellen); if(ph.abklingen) k*=1-e.u;
   fkKlang(e,o,dt,k);
   const p={x:o.x,y:o.y+0.05,z:o.z}, alt=SCHWEIF;
@@ -525,20 +566,23 @@ NEU_EMIT.ausbruch=(e,dt,o)=>{
   fkStrahl(e,dt,p,[0,1,0],h,kg*0.5,340*q*st*(ph.abklingen?1-e.u:1),'titan',FW.silber,FW.weiss,0.3,'aT');
   fkStrahl(e,dt,p,[0,1,0],h*0.95,kg,420*q*st*k,'knister',FW.weiss,FW.weiss,0,'aK');
   /* Knisterwolke im Band, oben breiter (Blumenkohl) */
-  const [w0,w1]=ph.wolke||[8,20], R=3.2;
+  /* Art-Director 28.09.: R 3,2 m war zu schmal - L24 wirkte schwaecher als
+     Lametta und Feuerwand. Jetzt R aus dem Drehbuch (Std. 7 m) */
+  const [w0,w1]=ph.wolke||[8,20], R=ph.breite||7;
   for(let n=fkJe(e,'aW',560*q*st*k,dt);n>0;n--){ const a=Math.random()*Math.PI*2, yy=rand(w0,w1), rr=R*Math.sqrt(Math.random())*(0.5+0.5*(yy-w0)/(w1-w0));
     knisterPop(o.x+Math.cos(a)*rr,o.y+yy,o.z+Math.sin(a)*rr,{laut:0.5,leise:Math.random()<0.6}); }
   /* Knistermeer (Probebild 27.09.: die Pops allein - Budget 600/s im
      ganzen Spiel - ergaben nur verstreute Punkte). Dazu treiben
      Silber-Mikrosterne kaum sichtbar im Wolkenband und blitzen je einmal
      auf: ein dichtes, flirrendes Meer ohne Knall-Budget. */
-  for(let n=fkJe(e,'aM',1300*q*st*k,dt);n>0;n--){ const a=Math.random()*Math.PI*2, yy=rand(w0,w1), rr=R*1.25*Math.sqrt(Math.random())*(0.45+0.55*(yy-w0)/(w1-w0)), s=rand(0.3,1.4);
+  for(let n=fkJe(e,'aM',2400*q*st*k,dt);n>0;n--){ const a=Math.random()*Math.PI*2, yy=rand(w0,w1), rr=R*1.25*Math.sqrt(Math.random())*(0.45+0.55*(yy-w0)/(w1-w0)), s=rand(0.3,1.4);
     glint(psMid,o.x+Math.cos(a)*rr,o.y+yy,o.z+Math.sin(a)*rr,Math.cos(a)*s,rand(-0.4,0.8),Math.sin(a)*s,FW.silber,1.2,{t0:0.08,t1:0.9,dim:0.16,psBlitz:psBig,blitz:3.0,blitzFarbe:[1,1,0.95],glimm:0.22,rest:0.12}); }
-  /* rote und gruene Sterne ohne Schweif, gross (psHuge) */
+  /* rote und gruene Sterne: gross und hell (psHuge, 1,5-fach), mit kurzem
+     Kometenschweif und breit gefaechert, damit sie aus 10 m sofort wirken */
   const S=(ph.sterne||[]).map(c=>farbe(c)).filter(Boolean);
-  if(S.length){ SCHWEIF=0;
-    for(let n=fkJe(e,'aS',14*st*k,dt);n>0;n--){ const c=S[Math.floor(Math.random()*S.length)], rr=fkKegel([0,1,0],kg*0.8), w=fkV0(rand(w0,w1*0.95),6);
-      psHuge.emit(p.x,p.y,p.z,rr[0]*w,rr[1]*w,rr[2]*w,c[0],c[1],c[2],fkTA(w*rr[1],6)+rand(0,0.5),6,0); } }
+  if(S.length){ SCHWEIF=0.22;
+    for(let n=fkJe(e,'aS',34*st*k,dt);n>0;n--){ const c=S[Math.floor(Math.random()*S.length)], rr=fkKegel([0,1,0],kg*1.3), w=fkV0(rand(w0,w1*0.95),6)/Math.max(0.5,rr[1]);
+      psHuge.emit(p.x,p.y,p.z,rr[0]*w,rr[1]*w,rr[2]*w,c[0]*1.5,c[1]*1.5,c[2]*1.5,fkTA(w*rr[1],6)+rand(0.2,0.7),6,0); } }
   SCHWEIF=alt;
   licht('fkA'+fkId(e),{x:o.x,y:o.y+8,z:o.z},FW.weiss,2.8*st*k,{boden:fkBoden(o.x,o.z),weite:25});
 };
@@ -684,11 +728,14 @@ Object.assign(FONT,{
     {k:'lava',t:8,modus:'auswurf',rate:[3,6],hm:[2,4],A:'orange',B:'rot',unterbau:{funke:'kohle',hm:1.5},ton:'blubb'},
     {k:'lava',t:3,modus:'ausbruch',stoss:12,hm:4.5,A:'orange',B:'zitrone',ton:'grollen',ende:'nachgluehen'}],nach:3},
   /* Bluetenbrunnen: vier Bluetenwechsel in Fontaenenhoehe */
+  /* Art-Director 28.09.: Blueten in Kontrastfarbe (Rot auf Silber, Blau
+     auf Gold, Gruen auf Weiss, Violett auf Gold), Rate so, dass immer 3-4
+     Blueten zugleich stehen; Hoehe 3-4 m, damit sie ueber dem Unterbau bluehen */
   sternenbrunnen:{phasen:[
-    {k:'bluetenwerfer',t:4.5,hm:2.5,funke:'titan',A:'silber',bluete:{art:'chrys',farbe:'silber',rate:3,funken:15},ton:'zischen'},
-    {k:'bluetenwerfer',t:4.5,hm:2.8,funke:'kohle',A:'gold',bluete:{art:'perle',farbe:'blau',rate:5},ton:'rauschen'},
-    {k:'bluetenwerfer',t:4.0,hm:2.8,funke:'titan',A:'weiss',bluete:{art:'reis',farbe:'weiss',rate:9,funken:5},ton:'zischen'},
-    {k:'bluetenwerfer',t:5.0,hm:3.2,funke:'brokat',A:'gold',bluete:{art:'chrys',farbe:'gold',rate:[4,9],funken:22},ton:'rauschen',ende:'aus'}]},
+    {k:'bluetenwerfer',t:4.5,hm:3.2,funke:'titan',A:'silber',bluete:{art:'chrys',farbe:'rot',stempel:'silber',rate:4.5,funken:34},ton:'zischen'},
+    {k:'bluetenwerfer',t:4.5,hm:3.4,funke:'kohle',A:'gold',bluete:{art:'perle',farbe:'blau',rate:14},ton:'rauschen'},
+    {k:'bluetenwerfer',t:4.0,hm:3.4,funke:'titan',A:'weiss',bluete:{art:'reis',farbe:'gruen',rate:12,funken:16},ton:'zischen'},
+    {k:'bluetenwerfer',t:5.0,hm:3.8,funke:'brokat',A:'gold',bluete:{art:'chrys',farbe:'violett',stempel:'gold',rate:[5,9],funken:40},ton:'rauschen',ende:'aus'}]},
   /* Popcorn: Knallsterne im Popcorn-Rhythmus, dann der Nachzuegler */
   vulkanfeld:{phasen:[
     {k:'popcorn',at:0,t:12,x:'reihe3',hm:1.5,funke:'kohle',A:'gold',ton:'rauschen',
@@ -738,11 +785,13 @@ Object.assign(FONT,{
     {k:'wasserorgel',t:3,figur:'kanon',hm:[1,6],von:'aussen',abstand:0.5},
     {k:'wasserorgel',t:6,figur:'alle',hm:[2,6],hKurve:[0.3,1],ende:'zusammenfall_gischt'}]},
   /* Funkelsaeule: dunkle Saeule, die oben in Einzelblitzen zerstaeubt */
+  /* Art-Director 28.09.: 11/12 m statt 8/9 m (hoeher als der Goldgeysir
+     auf L14), Glitter von Anfang an dicht, Silber frueher und laenger */
   glitzerkaskade:{phasen:[
-    {k:'gerb',t:5,hm:8,hKurve:[0.6,1],funke:'glitter',A:'bernstein',glitterAnteil:0.3,ton:'rauschen',blende:1},
-    {k:'gerb',t:10,hm:8,funke:'glitter',A:'bernstein',B:'gold',mischB:0.4,glitterAnteil:0.8,ton:'rauschen',blende:1.5},
-    {k:'gerb',t:4,hm:9,funke:'glitter',A:'silber',glitterFarbe:'weiss',glitterAnteil:1.0,ton:'zischen'},
-    {k:'gerb',t:1,hm:9,hKurve:[1,0.2],funke:'glitter',A:'silber',glitterFarbe:'weiss',glitterAnteil:1.0,ende:'nachglitzern'}],nach:1.5},
+    {k:'gerb',t:4,hm:11,hKurve:[0.5,1],funke:'glitter',A:'bernstein',glitterAnteil:0.6,ton:'rauschen',blende:1},
+    {k:'gerb',t:7,hm:11,funke:'glitter',A:'bernstein',B:'gold',mischB:0.4,glitterAnteil:0.9,ton:'rauschen',blende:1.5},
+    {k:'gerb',t:8,hm:12,funke:'glitter',A:'silber',glitterFarbe:'weiss',glitterAnteil:1.0,ton:'zischen'},
+    {k:'gerb',t:1,hm:12,hKurve:[1,0.2],funke:'glitter',A:'silber',glitterFarbe:'weiss',glitterAnteil:1.0,ende:'nachglitzern'}],nach:1.5},
   /* Niagara: Silbervorhang faellt von der Leine */
   wasserfall:{phasen:[
     {k:'niagara',t:2,hoehe:3,breite:2.4,duesen:12,dichteKurve:[0.2,1],funke:'titan',A:'silber',B:'weiss',ton:'rauschen'},
@@ -757,8 +806,8 @@ Object.assign(FONT,{
   /* Lametta: Kamuro-Faeden sinken bis zum Boden, Nachregen */
   goldvulkan:{phasen:[
     {k:'lametta',t:6,hm:4,kegel:20,funke:'kamuro',A:'gold',ton:'rauschen'},
-    {k:'lametta',t:18,hm:7,kegel:50,funke:'kamuro',A:'gold',B:'blau',sterneB:1.5,ton:'rauschen'},
-    {k:'lametta',t:6,hm:7,kegel:55,funke:'kamuro',A:'gold',fadenLaenge:1.6,dichte:1.5,ton:'rauschen',ende:'nachregen'}],nach:3.5},
+    {k:'lametta',t:18,hm:7,kegel:32,funke:'kamuro',A:'gold',B:'blau',sterneB:1.5,ton:'rauschen'},
+    {k:'lametta',t:6,hm:7,kegel:35,funke:'kamuro',A:'gold',fadenLaenge:0.9,dichte:1.5,ton:'rauschen',ende:'nachregen'}],nach:3.5},
   /* Feuersaeule: Gluehfarben steigen als Schichten durch die Saeule */
   feuersaeule:{phasen:[
     {k:'farbschichten',t:24,hm:15,schub:4,folge:['weiss','zitrone','gold','orange','rot','scharlach'],funke:'brokat',ton:'rauschen'},
@@ -777,8 +826,8 @@ Object.assign(FONT,{
   silberkaskade:{phasen:[
     {k:'gerb',t:10,hm:20,kegel:9,funke:'titan',A:'silber',B:'weiss',mischB:0.3,knisterLeise:1,ton:'rauschen'},
     {k:'gerb',t:0.8,hm:6,kegel:6,dichte:140,funke:'titan',A:'silber',blende:0,ton:'still'},
-    {k:'ausbruch',t:9,hm:22,kegel:18,funke:'knister',A:'weiss',sterne:['rot','gruen'],wolke:[8,20],ton:'knistern_laut'},
-    {k:'ausbruch',t:3.2,hm:22,kegel:18,knisterWellen:3,abklingen:true,sterne:['rot','gruen'],wolke:[8,20],ton:'knistern_laut',ende:'nachgluehen_silber'}],nach:1.5},
+    {k:'ausbruch',t:9,hm:28,kegel:24,funke:'knister',A:'weiss',sterne:['rot','gruen'],wolke:[9,27],breite:7.5,ton:'knistern_laut'},
+    {k:'ausbruch',t:3.2,hm:28,kegel:24,knisterWellen:3,abklingen:true,sterne:['rot','gruen'],wolke:[9,27],breite:7.5,ton:'knistern_laut',ende:'nachgluehen_silber'}],nach:1.5},
   /* Feuerkaskade: Dreizack, dann zerspringen alle drei Saeulen */
   feuerkaskade:{duesen:[-0.5,0,0.5],phasen:[
     {k:'gerb',at:0,t:16,x:0.0,hm:10,funke:'brokat',A:'gold',ton:'rauschen'},

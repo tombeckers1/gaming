@@ -1,7 +1,13 @@
 /* Fontaenen (Toms PDF vom 25.09.): "Fontaene ist Fontaene" - aus
    keiner Fontaene steigt eine Ladung, ein Komet oder eine Rakete. Die
-   Monsterfontaenen erreichen 30 und 50 m, sind kurz und werden mit der
-   Hoehe bunter. Gemessen an den Sternen selbst, nicht an Parametern. */
+   Monsterfontaenen erreichen 30 und 50 m und sind kurz. Gemessen an den
+   Sternen selbst, nicht an Parametern.
+   28.09., Tom: echt ("Farben viel zu durcheinander, so ein Feuerwerk gibt
+   es nicht"; /tmp/fw/echt.md 1.4): "mit der Hoehe bunter" (5 und 8 Farben)
+   ist ersetzt durch STIMMIG - keine Fontaene zeigt mehr als zwei Farben
+   zugleich -, und die 50 m unterscheiden sich von den 30 m nicht mehr
+   durch Regenbogenstrahlen, sondern durch Ruhe (PULS30) und ihr Thema:
+   30 m Gold/Rot (warm), 50 m Silber/Blau (kalt). */
 async function neuesSpiel(p){
   await p.waitForFunction("!!document.querySelector('#startBtns button:not([disabled])')",{timeout:30000});
   await p.click('#startBtns button:last-child');
@@ -27,7 +33,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
       let h; if(mx===r) h=((g-b)/(mx-mn))%6; else if(mx===g) h=(b-r)/(mx-mn)+2; else h=(r-g)/(mx-mn)+4; return Math.floor(((h*60+360)%360)/30); };
     const miss=t=>{ const log=[]; bb.fwLog(log); bb.run(16,0.1);
       const r0=bb.rockets.length; bb.igniteType(t,pos);
-      let hoch=0, dauer=0, raketen=0; const proBild=[];
+      let hoch=0, dauer=0, raketen=0; const proBild=[], summe={};
       for(let s=0;s<32;s+=0.25){ bb.run(0.25,0.05); raketen=Math.max(raketen,bb.rockets.length-r0);
         /* Fontaenen in Phasen (FONT, 26.09.) setzen ihre Emitter an den Duesenort - eine Kopie von pos; die Identitaet e.o===pos maess dann 0 s. Deshalb nach Ort. */
         const aktiv=bb.emittersListe().some(e=>e.o&&e.k!=='fuse'&&e.k!=='dienst2'&&Math.hypot(e.o.x-pos.x,e.o.z-pos.z)<1.5); if(aktiv) dauer=s+0.25;
@@ -36,14 +42,15 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
           const x=ps.pos[i*3], y=ps.pos[i*3+1], z=ps.pos[i*3+2];
           if(Math.abs(x-pos.x)<12&&Math.abs(z-pos.z)<12){ hoch=Math.max(hoch,y-pos.y);
             if(y-pos.y>3){ gesamt++; const h=hue(ps.base[i*3],ps.base[i*3+1],ps.base[i*3+2]); if(h>=0) anteil[h]=(anteil[h]||0)+1; } } }
-        if(aktiv&&gesamt>50) proBild.push(Object.values(anteil).filter(n=>n>=gesamt*0.05).length); }
+        if(aktiv&&gesamt>50){ proBild.push(Object.values(anteil).filter(n=>n>=gesamt*0.05).length); for(const h in anteil) summe[h]=(summe[h]||0)+anteil[h]; } }
       bb.fwLog(null);
       /* Farben, die gleichzeitig zu sehen sind: je mindestens 5 % der
          Sterne in einem Bild, Median ueber die Brenndauer. Einzelne
          Zufallssterne zaehlen nicht, ein Farbwechsel ueber die Zeit auch
          nicht - sonst waere die Feuersaeule mal 4, mal 5 Farben bunt. */
       proBild.sort((a,b)=>a-b); const farben=proBild.length?proBild[Math.floor(proBild.length/2)]:0;
-      return {schuesse:log.length,raketen,hoch:+hoch.toFixed(1),dauer,farben}; };
+      /* Farbton-Summe ueber die ganze Brenndauer (30-Grad-Faecher 0..11) */
+      return {schuesse:log.length,raketen,hoch:+hoch.toFixed(1),dauer,farben,toene:summe}; };
     for(const t of ['fontaene','vulkan','sternenbrunnen','goldgeysir','feuersaeule','feuerbrunnen','wasserfall','fontaene30','fontaene50']) out[t]=miss(t);
     /* Bild der Monsterfontaenen (Tom, 25.09.): "sieht aus wie
        Laserstrahlen" und "30 und 50 m sahen fast gleich aus".
@@ -77,13 +84,16 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   pruef('HOEHE50',r.fontaene50.hoch>=46&&r.fontaene50.hoch<=55,'50-m-Fontaene erreicht '+r.fontaene50.hoch+' m');
   pruef('LEITER',r.goldgeysir.hoch<r.feuersaeule.hoch&&r.feuersaeule.hoch<r.fontaene30.hoch&&r.lvl.g<r.lvl.f&&r.lvl.f<r.lvl.m30&&r.lvl.m30<r.lvl.m50,'Hoehe oder Level steigen nicht: '+JSON.stringify(r.lvl));
   pruef('KURZ',r.fontaene30.dauer<=13&&r.fontaene50.dauer<=15,'zu lang: '+r.fontaene30.dauer+' / '+r.fontaene50.dauer+' s');
-  pruef('BUNT',r.fontaene30.farben>=5&&r.fontaene50.farben>r.fontaene30.farben&&r.fontaene30.farben>r.goldgeysir.farben&&r.fontaene30.farben>r.feuersaeule.farben,'nicht bunter mit der Hoehe: '+[r.goldgeysir.farben,r.feuersaeule.farben,r.fontaene30.farben,r.fontaene50.farben]);
+  pruef('STIMMIG',F.every(t=>r[t].farben<=2),'mehr als zwei Farben zugleich: '+F.map(t=>t+' '+r[t].farben).join(', '));
+  /* Thema: haeufigster Farbton unter den farbigen Sternen - 30 m warm
+     (Rot/Orange/Gelb, 0-90 Grad), 50 m kalt (Blau, 180-270 Grad) */
+  const haupt=t=>{ const T=r[t].toene; let b=-1, m=0; for(const h in T) if(T[h]>m){ m=T[h]; b=+h; } return b; };
+  pruef('THEMA',haupt('fontaene30')>=0&&haupt('fontaene30')<=2&&haupt('fontaene50')>=6&&haupt('fontaene50')<=8,'30 m nicht warm oder 50 m nicht kalt: '+haupt('fontaene30')+' / '+haupt('fontaene50'));
   pruef('LIZENZ',r.lizenz.every(Boolean),'ohne Lizenz');
   const s30=r.sig30, s50=r.sig50;
   pruef('KEIN_LASER',[s30,s50,r.sigGeysir,r.sigSaeule].every(x=>x.spur<3.5),'Leuchtspuren im Strahl bis '+[s30,s50,r.sigGeysir,r.sigSaeule].map(x=>x.spur).join(' / ')+' m lang');
   pruef("DICHT",s30.sterne>=12&&s50.sterne>=12,'Fontaene zu duenn: '+s30.sterne+' / '+s50.sterne+' Sterne im Band');
   pruef('PULS30',s30.puls>=0.2&&s30.puls>=2*s50.puls,'30 m pulsiert nicht: '+s30.puls+' gegen '+s50.puls);
-  pruef('STRAHLEN50',s50.strahl>=0.45&&s50.strahl>=s30.strahl+0.25,'50 m ohne eigene Strahlen: '+s50.strahl+' gegen '+s30.strahl);
   console.log('MANGEL:',mangel.length?mangel.join(' | '):'keine');
   console.log('ERRORS:',errs.length||mangel.length?errs.concat(mangel).join('\n'):'keine');
   await b.close();

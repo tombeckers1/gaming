@@ -34,6 +34,14 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     const soll=bb.fwTestProdukte(), da=bb.fwTestBoxen.map(x=>x.type);
     o.soll=soll.length; o.da=da.length; o.fehlt=soll.filter(t=>da.indexOf(t)<0); o.doppelt=da.length-new Set(da).size;
     o.arten={tisch:soll.filter(t=>bb.stationOf(t)==='tisch').length,rampe:soll.filter(t=>bb.stationOf(t)==='rampe').length,moerser:soll.filter(t=>bb.stationOf(t)==='moerser').length};
+    /* 28.09. (Tom): nach Level sortiert - gelesen vorne nach hinten, links
+       nach rechts, oben vor unten; Level darf nie fallen */
+    const lese=bb.fwTestBoxen.map(x=>({l:bb.P[x.type].lvl,x:x.mesh.position.x,y:x.mesh.position.y,z:x.mesh.position.z}))
+      .sort((a,b)=>(b.z-a.z)||(a.x-b.x)||(b.y-a.y));
+    o.faellt=lese.map(e=>e.l).filter((l,i,a)=>i&&l<a[i-1]).length;
+    o.aufkleber=bb.fwTestBoxen.filter(x=>x.mesh.children.length).length;
+    o.marken=bb.fwTestMarken.length; o.stufen=new Set(soll.map(t=>bb.fwStufe(bb.P[t].lvl))).size;
+    o.hinten=+Math.min(...bb.fwTestBoxen.map(x=>x.mesh.position.z)).toFixed(2);
     const pp=bb.playerPos(); o.spieler=[+pp.x.toFixed(1),+pp.z.toFixed(1)];
     /* kein Karton steckt in einem Hindernis (Mast, Tisch, Wand) */
     o.imWeg=bb.fwTestBoxen.filter(x=>bb.colliders.some(c=>c.x0!==undefined&&x.mesh.position.x>c.x0-0.2&&x.mesh.position.x<c.x1+0.2&&x.mesh.position.z>c.z0-0.2&&x.mesh.position.z<c.z1+0.2)||Math.hypot(x.mesh.position.x+5.6,x.mesh.position.z+13.0)<0.5).map(x=>x.type);
@@ -48,16 +56,19 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     o.gezuendet=log.filter(e=>e.art==='kugel').length;
     /* aus */
     bb.fwTestSchalten(); bb.run(0.3,0.05);
-    o.aus={an:bb.fwTestAn,sonne:bb.sonne(),reste:bb.floorBoxes.filter(x=>soll.indexOf(x.type)>=0&&x.mesh.position.z<-12).length};
+    o.aus={an:bb.fwTestAn,sonne:bb.sonne(),reste:bb.floorBoxes.filter(x=>soll.indexOf(x.type)>=0&&x.mesh.position.z<-12).length,marken:bb.fwTestMarken.length};
     return o; });
   console.log(JSON.stringify(r));
   pruef('KNOPF',r.knopf,'kein Knopf unter Laden');
   pruef('NACHT',r.an&&r.sonneNacht<0.3&&r.sonneTag>1,'keine Nacht: '+r.sonneTag+' -> '+r.sonneNacht);
   pruef('KARTONS',r.da===r.soll&&!r.fehlt.length&&!r.doppelt&&r.soll>=40,'Kartons: '+JSON.stringify({soll:r.soll,da:r.da,fehlt:r.fehlt,doppelt:r.doppelt}));
+  pruef('REIHENFOLGE',r.faellt===0,'Level faellt '+r.faellt+'-mal in Leserichtung');
+  pruef('STUFEN',r.marken===2*r.stufen/* Bodenstreifen + Stehschild */&&r.stufen>=4&&r.aufkleber===r.da,'Stufen/Aufkleber: '+JSON.stringify({marken:r.marken,stufen:r.stufen,aufkleber:r.aufkleber,da:r.da}));
+  pruef('PLATZ',r.hinten>-27.5,'Kartons ragen ueber das Testfeld hinaus: z '+r.hinten);
   pruef('FREI',!r.imWeg.length,'Kartons stecken in Hindernissen: '+r.imWeg.join(','));
   pruef('NAH',r.naechster<2.5,'Kartons zu weit weg: '+r.naechster);
   pruef('ZUENDEN',r.traegt==='kugel300'&&r.gezuendet===1,'aufheben und zuenden geht nicht: '+JSON.stringify([r.traegt,r.gezuendet]));
-  pruef('AUS',!r.aus.an&&r.aus.sonne>1&&r.aus.reste===0,'Ausschalten: '+JSON.stringify(r.aus));
+  pruef('AUS',!r.aus.an&&r.aus.sonne>1&&r.aus.reste===0&&r.aus.marken===0,'Ausschalten: '+JSON.stringify(r.aus));
   if(process.argv[3]){ await p.evaluate(()=>{ const bb=window.__bb; bb.fwTestSchalten(); bb.run(0.3,0.05); document.querySelectorAll('#hud,.tip,#tip,#toasts,#zielPfeil').forEach(e=>e.style.display='none'); bb.renderFrame(1/60); });
     await p.screenshot({path:process.argv[3]}); }
   console.log('MANGEL:',mangel.length?mangel.join(' | '):'keine');

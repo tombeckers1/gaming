@@ -222,7 +222,7 @@ function klKerze(e,basis,o){
       klGlutpunkt(f,m,m==='titan'?1.2:1);
       klKerzeFunken(f,dt,K,m,o.A,o.B||o.A,K.rate,o);
       /* grosse Kerzen (XXL 1 m) leuchten mehr: Licht waechst mit der Laenge */
-      if(o.licht!==false){ const gl=Math.max(1,L/0.5); licht('kz'+(o.key||'')+e.prod+(e.nr||0),f,m==='titan'?[0.9,0.92,1]:[1,0.72,0.35],(m==='titan'?1.4:0.7)*gl,{weite:(m==='titan'?7:4)*Math.sqrt(gl)}); }
+      if(o.licht!==false){ const gl=Math.sqrt(Math.max(1,L/0.5)); licht('kz'+(o.key||'')+e.prod+(e.nr||0),f,m==='titan'?[0.9,0.92,1]:[1,0.72,0.35],(m==='titan'?1.4:0.7)*gl,{weite:(m==='titan'?7:4)*Math.sqrt(gl)}); }
       if(o.glutperle){ K.gp=(K.gp===undefined?rand(o.glutperle.alle[0],o.glutperle.alle[1]):K.gp)-dt;
         if(K.gp<=0){ K.gp=rand(o.glutperle.alle[0],o.glutperle.alle[1]); klGlutperle({x:f.x,y:f.y-0.008,z:f.z},klF(o.glutperle.A,FW.orange),o.glutperle.huepf||0,o.glutperle.spritz||6); } }
     } else if(!K.aus){ K.aus=true;
@@ -849,7 +849,10 @@ const KL_TEILGEO={
   kugel:()=>new THREE.SphereGeometry(0.042,12,9)
 };
 klEmit('ueberraschung',(e,dt,o,t)=>{
-  const RT=(e.rest&&e.rest.t)||20, R=e.rest||0.45;
+  /* e.rest ist beim Produkt der Bodenrest {k,art,t} und ueberdeckt die
+     Phasenzahl rest:0.45 - vy*Objekt = NaN, das Spielzeug verschwand beim
+     ersten Aufprall (27.09.) */
+  const RT=(e.rest&&e.rest.t)||20, R=typeof e.rest==='number'?e.rest:0.45;
   if(!e.tl){ const sf=klFlaeche(o), p={x:o.x,y:Math.max(o.y,sf)+0.02,z:o.z}, F=(e.farben||['rot','gold','blau','gruen']).map(c=>klF(c));
     const H=e.hoch||[1.2,2.4];
     e.tl=(e.teile||['wuerfel','ring','kreisel','kugel']).map((art,i)=>{

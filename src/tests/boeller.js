@@ -4,11 +4,11 @@
    riesiger Pilz). Gemessen: Sortiment, Lautstaerke am Ausgang, Hoehe
    und Groesse des Pilzes, Aufraeumen, alte Spielstaende. */
 async function neuesSpiel(p){
-  await p.waitForFunction("!!document.querySelector('#startBtns button:not([disabled])')",{timeout:30000});
+  await p.waitForFunction("!!document.querySelector('#startBtns button:not([disabled])')",{timeout:90000});
   await p.click('#startBtns button:last-child');
-  await p.waitForSelector('#nameBox.show',{state:'visible',timeout:15000});
+  await p.waitForSelector('#nameBox.show',{state:'visible',timeout:90000});
   await p.click('#nameGo');
-  await p.waitForFunction("!document.getElementById('start').classList.contains('show')",{timeout:15000});
+  await p.waitForFunction("!document.getElementById('start').classList.contains('show')",{timeout:90000});
 }
 const { chromium } = require('/opt/node22/lib/node_modules/playwright');
 (async()=>{

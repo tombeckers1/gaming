@@ -12,6 +12,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
 (async()=>{
   const b=await chromium.launch({args:['--use-gl=swiftshader','--enable-unsafe-swiftshader','--no-sandbox']});
   const p=await b.newPage({viewport:{width:1280,height:800}});
+  p.setDefaultTimeout(90000); /* 28.09.: unter Last lief der Klick auf Start in die 30-s-Vorgabe (wie boeller.js) */
   const fehler=[];
   p.on('pageerror',e=>fehler.push('PAGEERROR '+e.message));
   /* Unter Last (4 Kerne, paralleles Rendern) lief goto zweimal in die
@@ -22,9 +23,9 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   await p.reload({timeout:120000}); await p.waitForFunction('window.__bb!==undefined',{timeout:90000});
   await p.waitForFunction("!!document.querySelector('#startBtns button:not([disabled])')",{timeout:90000});
   await p.click('#startBtns button:last-child');
-  await p.waitForSelector('#nameBox.show',{state:'visible',timeout:30000});
+  await p.waitForSelector('#nameBox.show',{state:'visible',timeout:90000});
   await p.click('#nameGo');
-  await p.waitForFunction("!document.getElementById('start').classList.contains('show')",{timeout:30000});
+  await p.waitForFunction("!document.getElementById('start').classList.contains('show')",{timeout:90000});
   const mangel=[];
   const pruef=(n,ok,was)=>{ if(!ok) mangel.push(n+': '+was); };
 

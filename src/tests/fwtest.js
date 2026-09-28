@@ -6,16 +6,17 @@
    - ausschalten: Kartons weg, Tageslicht wieder da
    Aufruf: node fwtest.js real.html [bild] */
 async function neuesSpiel(p){
-  await p.waitForFunction("!!document.querySelector('#startBtns button:not([disabled])')",{timeout:30000});
+  await p.waitForFunction("!!document.querySelector('#startBtns button:not([disabled])')",{timeout:90000});
   await p.click('#startBtns button:last-child');
-  await p.waitForSelector('#nameBox.show',{state:'visible',timeout:15000});
+  await p.waitForSelector('#nameBox.show',{state:'visible',timeout:90000});
   await p.click('#nameGo',{timeout:90000});
-  await p.waitForFunction("!document.getElementById('start').classList.contains('show')",{timeout:15000});
+  await p.waitForFunction("!document.getElementById('start').classList.contains('show')",{timeout:90000});
 }
 const { chromium } = require('/opt/node22/lib/node_modules/playwright');
 (async()=>{
   const b=await chromium.launch({args:['--use-gl=swiftshader','--enable-unsafe-swiftshader','--no-sandbox']});
   const p=await b.newPage({viewport:{width:1000,height:640}});
+  p.setDefaultTimeout(90000); /* 28.09.: unter Last lief schon der Klick auf Start in die 30-s-Vorgabe */
   const errs=[]; p.on('pageerror',e=>errs.push('PAGEERROR: '+e.message));
   /* 28.09.: Lade-Grenzen 120 s - unter Last (4 Kerne, paralleles Rendern) lief das Laden in die 30 s; Ladezeit ist nicht Pruefgegenstand */
   await p.goto('file://'+process.argv[2],{timeout:120000});

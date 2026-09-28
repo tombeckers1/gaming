@@ -60,38 +60,45 @@ const fkId=e=>e.id||(e.id=(e.tag||Math.random())+'/'+(e.nr||0));
    (Kohle, Brokat/Eisen, Titan, Glitter) - nie farbig (echt.md 1.7).
    28.09., Tom: echt - Leuchtspuren kuerzer (Kohle 0,3 -> 0,14 s, Brokat
    0,2 -> 0,12 s): ein Funke im Video ist ein kurzer Strich, keine Linie. */
+/* Spurlaenge begrenzen (28.09., Tom: echt - "Laser"): SCHWEIF ist eine
+   Zeit; ein schneller Funke zog damit 1-2 m lange gerade Striche. Ein
+   Funke im Video ist ein kurzer Strich: hoechstens L Meter. */
+const fkSpur=(t,vx,vy,vz,L)=>Math.min(t,L/Math.max(0.5,Math.hypot(vx,vy,vz)));
 const FUNKE={
   /* Kohle-Gold / Tigerschweif: weich, dunkelorange, lange Boegen, dunkelt
      ab und funkelt nicht (e.kohleB: Farbe, zu der er abdunkelt) */
-  kohle:{g:4,emit(x,y,z,vx,vy,vz,c,tA,e){ SCHWEIF=0.14; const b=e&&e.kohleB||null;
+  kohle:{g:4,emit(x,y,z,vx,vy,vz,c,tA,e){ SCHWEIF=fkSpur(0.14,vx,vy,vz,0.6); const b=e&&e.kohleB||null;
     /* g 4 statt 6: Endtempo 3,6 m/s - die Kohlefunken sinken weich in
        Boegen, wie mit starkem Luftwiderstand (Katalog: ZIEH x 1,5) */
     psMid.emit(x,y,z,vx,vy,vz,c[0],c[1]*0.92,c[2]*0.8,tA*rand(1.25,1.9),4,2,b?b[0]*0.8:c[0]*0.6,b?b[1]*0.5:c[1]*0.22,b?b[2]*0.4:c[2]*0.05); }},
   /* Brokat: helles Gold, flimmert, feine Spur */
-  brokat:{g:6,emit(x,y,z,vx,vy,vz,c,tA){ SCHWEIF=0.12;
+  brokat:{g:6,emit(x,y,z,vx,vy,vz,c,tA){ SCHWEIF=fkSpur(0.12,vx,vy,vz,0.45);
     psMid.emit(x,y,z,vx,vy,vz,c[0]*0.8+0.2,c[1]*0.8+0.16,c[2]*0.8+0.1,tA*rand(1.2,1.8),6,4); }},
   /* Eisen/Stahl: hellgold, jeder dritte Funke veraestelt sich am Ende in
      2-4 Nadeln (Wunderkerze, Brokat-Aeste; PMC 2022: Kohlenstoff im Eisen) */
   eisen:{g:6,emit(x,y,z,vx,vy,vz,c,tA){ const l=tA*rand(0.75,1.1), cc=[c[0]*0.85+0.18,c[1]*0.85+0.14,c[2]*0.7+0.08];
     if(Math.random()<0.33) verzweig(psMid,x,y,z,vx,vy,vz,cc,l+0.2,6,{tz:l,n:[2,4],streu:1.2,spur:0.06,minTempo:1.2,C:[1,0.9,0.62]});
-    else { SCHWEIF=0.08; psMid.emit(x,y,z,vx,vy,vz,cc[0],cc[1],cc[2],l*rand(1,1.3),6,0); } }},
+    else { SCHWEIF=fkSpur(0.08,vx,vy,vz,0.4); psMid.emit(x,y,z,vx,vy,vz,cc[0],cc[1],cc[2],l*rand(1,1.3),6,0); } }},
   /* Titan: grellweiss-blaeulich, hart, schnell, kurze Striche, verloescht oben */
-  titan:{g:6,emit(x,y,z,vx,vy,vz,c,tA){ SCHWEIF=0.07;
+  titan:{g:6,emit(x,y,z,vx,vy,vz,c,tA){ SCHWEIF=fkSpur(0.07,vx,vy,vz,0.4);
     psMid.emit(x,y,z,vx,vy,vz,c[0]*0.6+0.45,c[1]*0.6+0.47,c[2]*0.6+0.5,tA*rand(0.85,1.08),6,0); }},
   /* Glitter: fliegt gedaempft, blitzt einmal hell auf (glint) */
   /* Art-Director 28.09.: dunkel steigen (dim 0,2, kurze Spur), geblitzt
      wird erst ab 80 % der Steigzeit, also oben und im Fall; jeder zweite
-     Blitz ist ein weisser Glanzstern. */
+     Blitz ist ein weisser Glanzstern. 28.09., Tom: echt - Blitze kleiner
+     (meist psBig, 2,6 statt 3,6): vorher standen oben weiche Leuchtkugeln. */
   glitter:{g:6,emit(x,y,z,vx,vy,vz,c,tA,e){ const ph=e&&e.ph||{}, an=ph.glitterAnteil===undefined?0.7:ph.glitterAnteil;
-    if(Math.random()<an) glint(psMid,x,y,z,vx,vy,vz,c,6,{t0:tA*0.8,t1:tA*1.55,dim:0.2,spur:0.06,psBlitz:Math.random()<0.5?psHuge:psBig,blitz:3.6,blitzFarbe:farbe(ph.glitterFarbe)||[1,0.95,0.8],glimm:0.35,rest:0.3});
+    if(Math.random()<an) glint(psMid,x,y,z,vx,vy,vz,c,6,{t0:tA*0.8,t1:tA*1.55,dim:0.2,spur:0.06,psBlitz:Math.random()<0.25?psHuge:psBig,blitz:2.6,blitzFarbe:farbe(ph.glitterFarbe)||[1,0.95,0.8],glimm:0.35,rest:0.3});
     else { SCHWEIF=0.06; psMid.emit(x,y,z,vx,vy,vz,c[0]*0.18,c[1]*0.18,c[2]*0.18,tA*rand(1.0,1.3),6,0); } }},
   /* Kamuro: dunkelgoldene Faeden, steigen fast unsichtbar und leuchten erst
      ab dem Scheitel auf - dort haengen sie und sinken langsam (g 1,65);
-     wer unten ankommt, glimmt dort 1 s */
+     wer unten ankommt, glimmt dort 1 s. 28.09., Tom: echt - ab dem Scheitel
+     bremst die Luft die Faeden quer (x0,3): vorher trieben sie 10 m weit
+     und regneten ueber den ganzen Platz statt als Glocke um die Fontaene. */
   kamuro:{g:1.65,emit(x,y,z,vx,vy,vz,c,tA,e){ const ph=e&&e.ph||{}, fl=(ph.fadenLaenge||0.55)/1.2;
     const yb=fkBoden(x,z), life=tA+Math.max(0.5,(y+(e&&e.hAkt||4)-yb)/1.5)+rand(-0.3,0.4), p={x,y,z}, v=[vx,vy,vz];
     SCHWEIF=0.03; psMid.emit(x,y,z,vx,vy,vz,c[0]*0.14,c[1]*0.1,c[2]*0.04,tA,1.65,0);
-    imBild(tA,()=>{ const q=bahnOrt(p,v,1.65,tA), w=bahnTempo(v,1.65,tA), a=SCHWEIF, rest=life-tA;
+    imBild(tA,()=>{ const q=bahnOrt(p,v,1.65,tA), w=bahnTempo(v,1.65,tA), a=SCHWEIF, rest=life-tA; w[0]*=0.3; w[2]*=0.3;
       SCHWEIF=fl; psMid.emit(q.x,q.y,q.z,w[0],w[1],w[2],c[0]*0.95,c[1]*0.72,c[2]*0.3,rest,1.65,2,c[0]*0.45,c[1]*0.26,c[2]*0.06); SCHWEIF=a;
       const u=bahnOrt(q,w,1.65,rest);
       if(u.y<yb+0.6) imBild(rest-0.02,()=>{ const a2=SCHWEIF; SCHWEIF=0; psMid.emit(u.x,yb+0.02,u.z,0,0,0,0.55,0.3,0.06,1.0,0,0); SCHWEIF=a2; }); }); }},
@@ -147,6 +154,7 @@ function fkRauch(e,dt,o,h,dichte){
 function fkSterne(e,dt,p,d,h,kg,rate,F,key,o){
   o=o||{}; const alt=SCHWEIF, ps=o.ps||psMid, hl=o.hell||1.35; SCHWEIF=o.spur||0;
   for(let n=fkJe(e,key||'aP',rate,dt);n>0;n--){ const r=fkKegel(d,kg), hh=h*rand(o.hMin||0.55,1.0), w=fkV0(hh,6)/Math.max(0.4,r[1]), tA=fkTA(w*r[1],6), c=F[Math.floor(Math.random()*F.length)];
+    SCHWEIF=o.spur?fkSpur(o.spur,r[0]*w,r[1]*w,r[2]*w,0.12):0;
     ps.emit(p.x,p.y,p.z,r[0]*w,r[1]*w,r[2]*w,c[0]*hl,c[1]*hl,c[2]*hl,tA*rand(0.95,1.3),6,0); }
   SCHWEIF=alt;
 }
@@ -217,7 +225,7 @@ NEU_EMIT.gerb=(e,dt,o)=>{
     for(let n=fkJe(e,'aKn',kn*st,dt);n>0;n--){ const r=fkKegel(d,kg), yy=h*rand(0.6,1.0);
       knisterPop(o.x+r[0]/Math.max(0.3,r[1])*yy,o.y+yy,o.z+r[2]/Math.max(0.3,r[1])*yy,{laut:0.3,leise:Math.random()<0.4,funken:7}); } }
   if(ph.rauch!==0) fkRauch(e,dt,o,h,ph.rauch||1);
-  if(!e.nr) fkLicht(e,o,o.y+Math.min(h*0.35,3),mat==='titan'||mat==='glitter'&&ph.A==='silber'?[0.85,0.88,1]:FW.bernstein,(0.9+h*0.12)*st,Math.min(22,6+h));
+  if(!e.nr) fkLicht(e,o,o.y+Math.min(h*0.35,3),mat==='titan'||mat==='glitter'&&ph.A==='silber'?[0.85,0.88,1]:FW.bernstein,Math.min(1.6,0.9+h*0.06)*st,Math.min(16,6+h)); /* 28.09., Tom: echt - vorher bis 2,4: der Platz wurde taghell wie unter Scheinwerfern */
 };
 
 /* torte mit kalt/diamant (Eissterne): Kaltfunken, die auf halber
@@ -342,7 +350,9 @@ NEU_EMIT.lava=(e,dt,o)=>{
 
 /* bluetenwerfer (Bluetenbrunnen): Unterbau-Fontaene, dazu Sterne, die in
    60-90 % der Hoehe leise zu Mini-Chrysanthemen aufplatzen (nie darueber).
-   Bluete in der Farbe des Produkts (Rot), Stempel Silber oder Gold. */
+   Bluete in der Farbe des Produkts (Rot), Stempel Silber oder Gold.
+   28.09., Tom: echt - Bluetensterne als kleine Sterne (psMid) statt
+   grosser Leuchtpunkte, die zu roten Nebelbaellen verschwammen. */
 NEU_EMIT.bluetenwerfer=(e,dt,o)=>{
   const ph=e.ph, st=e.staerke, q=QUAL(), h=e.hAkt||2.5, bl=ph.bluete||{}, c=farbe(bl.farbe)||e.B, alt=SCHWEIF;
   fkKlang(e,o,dt);
@@ -351,12 +361,12 @@ NEU_EMIT.bluetenwerfer=(e,dt,o)=>{
   for(let n=fkJe(e,'bS',bereich(bl.rate||3,e.u)*st,dt);n>0;n--){
     const perle=bl.art==='perle', hb=h*(perle?rand(0.8,1.0):rand(0.55,0.8)), d=fkKegel([0,1,0],perle?0.45:0.26), w=fkV0(hb,6)/Math.max(0.5,d[1]), tA=fkTA(w*d[1],6), p={x:o.x,y:o.y+0.03,z:o.z}, v=[d[0]*w,d[1]*w,d[2]*w];
     /* Perlen: helle Sterne mit kurzer Spur, breit gefaechert */
-    if(perle){ SCHWEIF=0.08; psBig.emit(p.x,p.y,p.z,v[0],v[1],v[2],c[0]*1.3+0.1,c[1]*1.3+0.1,c[2]*1.3+0.1,tA*rand(1.05,1.3),6,0); continue; }
-    SCHWEIF=0.06; psBig.emit(p.x,p.y,p.z,v[0]*0.97,v[1]*0.97,v[2]*0.97,c[0]*0.6,c[1]*0.6,c[2]*0.6,tA,6,0);
+    if(perle){ SCHWEIF=fkSpur(0.08,v[0],v[1],v[2],0.15); psBig.emit(p.x,p.y,p.z,v[0],v[1],v[2],c[0]*1.3+0.1,c[1]*1.3+0.1,c[2]*1.3+0.1,tA*rand(1.05,1.3),6,0); continue; }
+    SCHWEIF=0.06; psMid.emit(p.x,p.y,p.z,v[0]*0.97,v[1]*0.97,v[2]*0.97,c[0]*0.5,c[1]*0.5,c[2]*0.5,tA,6,0);
     imBild(tA,()=>{ const b=bahnOrt(p,v,6,tA), reis=bl.art==='reis', n2=Math.round((bl.funken||34)*q), gr=reis?1.5:2.1, a2=SCHWEIF, st2=farbe(bl.stempel)||[1,1,1];
       SCHWEIF=reis?0:0.08;
       for(let k=0;k<n2;k++){ const dd=randDir(), s=gr*rand(0.7,1.05);
-        psBig.emit(b.x,b.y,b.z,dd[0]*s,dd[1]*s,dd[2]*s,c[0]*1.3,c[1]*1.3,c[2]*1.3,reis?rand(0.3,0.45):rand(0.6,0.95),2.5,reis?0:2,c[0]*0.5,c[1]*0.5,c[2]*0.5); }
+        psMid.emit(b.x,b.y,b.z,dd[0]*s,dd[1]*s,dd[2]*s,c[0]*1.2+0.1,c[1]*1.2+0.1,c[2]*1.2+0.1,reis?rand(0.3,0.45):rand(0.6,0.95),2.5,reis?0:2,c[0]*0.5,c[1]*0.5,c[2]*0.5); }
       /* Stempel: kleiner heller Kern in Gold/Silber */
       SCHWEIF=0;
       for(let k=0;k<(reis?0:8);k++){ const dd=randDir(), s=rand(0.6,1.1); psMid.emit(b.x,b.y,b.z,dd[0]*s,dd[1]*s,dd[2]*s,st2[0],st2[1],st2[2],rand(0.4,0.6),2.5,0); }
@@ -697,7 +707,7 @@ NEU_EMIT.riesenpuls=(e,dt,o)=>{
   e.ps=(e.ps||0)-dt;
   if(e.ps<=0&&kraft>0.15){ e.ps=0.3; e.nS=(e.nS||0)+1;
     const mitRot=e.nS%2===0, n=Math.round(44*q*kraft);
-    SCHWEIF=0.05;
+    SCHWEIF=fkSpur(0.05,0,v0,0,0.25);
     for(let k=0;k<n;k++){ const a=Math.random()*Math.PI*2, tl=Math.sqrt(Math.random())*0.24, sp=v0*rand(0.88,1.0), c=mitRot&&k%3===0?rot:FW.gold;
       psBig.emit(p.x,p.y,p.z,Math.cos(a)*Math.sin(tl)*sp,Math.cos(tl)*sp,Math.sin(a)*Math.sin(tl)*sp,c[0],c[1]*(c===FW.gold?0.95:1),c[2],tA*rand(1.0,1.2),6,c===FW.gold?4:0); }
     SCHWEIF=alt;
@@ -767,13 +777,14 @@ Object.assign(FONT_EREIGNIS,{
         glint(psMid,o.x,o.y+0.03,o.z,Math.cos(a)*s,rand(5,8),Math.sin(a)*s,[1,0.95,0.85],6,{t0:0.6,t1:1.5,dim:0.4,glimm:0.4,rest:0.3}); }
       sfx.crackle(distVol(o)*0.7); }); },
   /* Etagenschlag: Zwischenschlag - Knall, kurzer Blitz an der Duese, ein
-     Stoss Funken nach oben, Rauch (vorher ein Ring aus 24 Punkten) */
+     Stoss Funken nach oben, Rauch (vorher ein Ring aus 24 Punkten). 28.09.,
+     Tom: echt - Rauch duenner, beim Dreischlag stand sonst ein heller Nebelball */
   etagenschlag(e,o){ const v=distVol(o), alt=SCHWEIF; SCHWEIF=0.08;
     for(let i=0;i<Math.round(40*QUAL());i++){ const r=fkKegel([0,1,0],0.6), s=rand(4,9); psMid.emit(o.x,o.y+0.03,o.z,r[0]*s,r[1]*s,r[2]*s,1.3,1.25,1.15,rand(0.25,0.5),6,0); }
     SCHWEIF=alt; flash({x:o.x,y:o.y+0.3,z:o.z},FW.weiss,2,0.1);
-    rauchball({x:o.x,y:o.y+0.5,z:o.z},{r:0.5,n:3,dauer:2.5,quellen:0.4,steigen:0.4,c:[0.6,0.6,0.62],a:0.3});
+    rauchball({x:o.x,y:o.y+0.5,z:o.z},{r:0.5,n:3,dauer:2.5,quellen:0.4,steigen:0.4,c:[0.5,0.5,0.52],a:e.dreifach?0.1:0.2});
     sfx.wumms(v*0.7); sfx.thump(v); },
-  dreischlag(e,o){ for(let i=0;i<3;i++) later(i*0.3,()=>FONT_EREIGNIS.etagenschlag(e,o)); },
+  dreischlag(e,o){ const E=Object.assign({},e,{dreifach:true}); for(let i=0;i<3;i++) later(i*0.3,()=>FONT_EREIGNIS.etagenschlag(E,o)); },
   /* Endaufflammen: der Flammenfuss flammt kurz hoch auf und verlischt */
   aufflammen(e,o,ph){ const c=farbe(Array.isArray(ph.flamme)?ph.flamme[ph.flamme.length-1]:ph.flamme)||FW.gruen, E={spielraum:e.spielraum,staerke:1,prod:e.prod};
     for(let i=0;i<8;i++) later(i*0.05,()=>{ E.staerke=1-i/8; fkFlamme(E,0.05,o,c,4.5); fkFlamme(E,0.05,o,c,4.5,'fl2'); });
@@ -797,7 +808,7 @@ Object.assign(FONT_EREIGNIS,{
   nachgluehen(e,o){ emitters.push({t:3,k:'lava',o,A:FW.rot,B:FW.rot,ph:{modus:'grollen'},staerke:0.6,u:0,tag:e.tag,spielraum:e.spielraum}); },
   /* Feuersaeule, Goldgeysir: die letzten Funken kuehlen oben ab */
   ausklingen(e,o){ const alt=SCHWEIF, h=e.hAkt||10; SCHWEIF=0.1;
-    for(let i=0;i<Math.round(80*QUAL());i++){ const r=fkKegel([0,1,0],0.12), w=fkV0(h*rand(0.6,1),4); psMid.emit(o.x,o.y+0.03,o.z,r[0]*w,r[1]*w,r[2]*w,0.9,0.35,0.06,fkTA(w,4)*rand(1.4,2),4,2,0.3,0.04,0); }
+    for(let i=0;i<Math.round(80*QUAL());i++){ const r=fkKegel([0,1,0],0.12), w=fkV0(h*rand(0.6,1),4); SCHWEIF=fkSpur(0.1,0,w,0,0.5); psMid.emit(o.x,o.y+0.03,o.z,r[0]*w,r[1]*w,r[2]*w,0.9,0.35,0.06,fkTA(w,4)*rand(1.4,2),4,2,0.3,0.04,0); }
     SCHWEIF=alt; },
   nachglitzern(){},
   /* Niagara: die letzten Tropfen fallen */
@@ -868,12 +879,14 @@ Object.assign(FONT,{
     {k:'torte',mit:true,t:1.0,x:0.21,hm:0.2,hKurve:[0.3,1],A:'weiss',B:'silber',kalt:true},
     {k:'torte',at:1.0,t:7.0,x:'alle4',hm:0.7,A:'silber',B:'weiss',kalt:true,diamant:[0.66,1],ende:'pff'}]},
   /* Feuerteufel (L4): zwei gespreizte Hoerner aus Kohlefunken, die zur
-     Spitze rot abkuehlen; zum Schluss lacht er (Glut: Orange/Rot) */
+     Spitze rot abkuehlen; zum Schluss lacht er (Glut: Orange/Rot). 28.09.,
+     Tom: echt - kaum reinrote Funken (mischB 0,3-0,4 -> 0,1): sie standen
+     als rote Punkte um die Hoerner; rot wird ein Funke erst beim Abkuehlen */
   feuerteufel:{phasen:[
     {k:'hoerner',t:1.5,hm:0.3,spreiz:0,funke:'kohle',A:'orange',B:'rot',ton:'zischen'},
-    {k:'hoerner',t:5.0,hm:1.5,spreiz:25,funke:'kohle',A:'gold',B:'rot',mischB:0.3,ton:'fauchen'},
-    {k:'hoerner',t:2.0,hm:1.8,spreiz:40,funke:'kohle',A:'orange',B:'rot',mischB:0.4,ton:'fauchen'},
-    {k:'hoerner',t:0.5,hm:1.8,spreiz:40,funke:'kohle',A:'orange',B:'rot',mischB:0.4,ende:'teufelslachen'}]},
+    {k:'hoerner',t:5.0,hm:1.5,spreiz:25,funke:'kohle',A:'gold',B:'rot',mischB:0.08,ton:'fauchen'},
+    {k:'hoerner',t:2.0,hm:1.8,spreiz:40,funke:'kohle',A:'orange',B:'rot',mischB:0.12,ton:'fauchen'},
+    {k:'hoerner',t:0.5,hm:1.8,spreiz:40,funke:'kohle',A:'orange',B:'rot',mischB:0.12,ende:'teufelslachen'}]},
   /* Gummibaerchen (L4): vier kleine Silberfontaenen, eine nach der anderen,
      mit roten bzw. gruenen Perlen; zum Schluss alle vier und ein Schauer */
   leuchtfontaene:{phasen:[
@@ -997,9 +1010,9 @@ Object.assign(FONT,{
     {k:'wendel',t:4,hm:11,neigKurve:[12,32],ups:3,zweite:{dreh:-1,A:'weiss'},funke:'titan',A:'silber',sterne:['tuerkis'],sterneRate:5,ton:'zischen',ende:'knister'}]},
   /* Lametta (L20): Kamuro-Faeden sinken bis zum Boden, blaue Sterne */
   goldvulkan:{phasen:[
-    {k:'lametta',t:6,hm:4,kegel:20,funke:'kamuro',A:'gold',ton:'rauschen'},
-    {k:'lametta',t:18,hm:7,kegel:32,funke:'kamuro',A:'gold',B:'blau',sterneB:1.5,ton:'rauschen'},
-    {k:'lametta',t:6,hm:7,kegel:35,funke:'kamuro',A:'gold',fadenLaenge:0.9,dichte:1.5,ton:'rauschen',ende:'nachregen'}],nach:3.5},
+    {k:'lametta',t:6,hm:4,kegel:14,funke:'kamuro',A:'gold',ton:'rauschen'},
+    {k:'lametta',t:18,hm:7,kegel:20,funke:'kamuro',A:'gold',B:'blau',sterneB:1.5,ton:'rauschen'},
+    {k:'lametta',t:6,hm:7,kegel:22,funke:'kamuro',A:'gold',fadenLaenge:0.9,dichte:1.5,ton:'rauschen',ende:'nachregen'}],nach:3.5},
   /* Feuersaeule (L20): 15-m-Saeule, die wie Eisen abkuehlt - Weissglut
      (Titan), Gelbglut (Eisen mit Aesten), Rotglut (Kohle), verglimmt */
   feuersaeule:{phasen:[

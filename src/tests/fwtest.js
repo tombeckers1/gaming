@@ -17,9 +17,10 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   const b=await chromium.launch({args:['--use-gl=swiftshader','--enable-unsafe-swiftshader','--no-sandbox']});
   const p=await b.newPage({viewport:{width:1000,height:640}});
   const errs=[]; p.on('pageerror',e=>errs.push('PAGEERROR: '+e.message));
-  await p.goto('file://'+process.argv[2]);
-  await p.waitForFunction('window.__bb!==undefined',{timeout:30000});
-  await p.evaluate(()=>localStorage.clear()); await p.reload(); await p.waitForFunction('window.__bb!==undefined',{timeout:30000});
+  /* 28.09.: Lade-Grenzen 120 s - unter Last (4 Kerne, paralleles Rendern) lief das Laden in die 30 s; Ladezeit ist nicht Pruefgegenstand */
+  await p.goto('file://'+process.argv[2],{timeout:120000});
+  await p.waitForFunction('window.__bb!==undefined',{timeout:90000});
+  await p.evaluate(()=>localStorage.clear()); await p.reload({timeout:120000}); await p.waitForFunction('window.__bb!==undefined',{timeout:90000});
   await neuesSpiel(p);
   const mangel=[];
   const pruef=(n,ok,was)=>{ if(!ok) mangel.push(n+': '+was); };

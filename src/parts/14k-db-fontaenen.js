@@ -320,9 +320,10 @@ NEU_EMIT.bluetenwerfer=(e,dt,o)=>{
   fkKlang(e,o,dt);
   fkStrahl(e,dt,{x:o.x,y:o.y+0.05,z:o.z},[0,1,0],h,0.16,250*q*st,ph.funke||'titan',e.A,e.A,0,'bU');
   for(let n=fkJe(e,'bS',bereich(bl.rate||3,e.u)*st,dt);n>0;n--){
-    const hb=h*rand(0.55,0.8), d=fkKegel([0,1,0],0.26), w=fkV0(hb,6)/Math.max(0.5,d[1]), tA=fkTA(w*d[1],6), p={x:o.x,y:o.y+0.05,z:o.z}, v=[d[0]*w,d[1]*w,d[2]*w];
+    const perle=bl.art==='perle', hb=h*(perle?rand(0.8,1.0):rand(0.55,0.8)), d=fkKegel([0,1,0],perle?0.5:0.26), w=fkV0(hb,6)/Math.max(0.5,d[1]), tA=fkTA(w*d[1],6), p={x:o.x,y:o.y+0.05,z:o.z}, v=[d[0]*w,d[1]*w,d[2]*w];
     SCHWEIF=0.12;
-    /* Perlen: im Probebild gingen sie im Gold unter - heller, mit Schweif */
+    /* Perlen: im Probebild gingen sie im Gold unter - heller, mit Schweif,
+       breiter gefaechert (0,5 rad), damit sie neben dem Goldstrahl stehen */
     if(bl.art==='perle'){ SCHWEIF=0.12; psHuge.emit(p.x,p.y,p.z,v[0],v[1],v[2],c[0]*1.6+0.2,c[1]*1.6+0.2,c[2]*1.8+0.1,tA*rand(1.1,1.35),6,0); continue; }
     psBig.emit(p.x,p.y,p.z,v[0]*0.97,v[1]*0.97,v[2]*0.97,c[0]*0.6,c[1]*0.6,c[2]*0.6,tA,6,0);
     imBild(tA,()=>{ const b=bahnOrt(p,v,6,tA), reis=bl.art==='reis', n2=Math.round((bl.funken||34)*q), gr=reis?1.5:2.1, a2=SCHWEIF, st2=farbe(bl.stempel)||[1,1,1];

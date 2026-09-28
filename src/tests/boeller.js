@@ -15,10 +15,11 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   const b=await chromium.launch({args:['--use-gl=swiftshader','--enable-unsafe-swiftshader','--no-sandbox','--autoplay-policy=no-user-gesture-required']});
   const p=await b.newPage({viewport:{width:1100,height:700}}); p.setDefaultTimeout(120000);  /* Spielstand laden dauert im Software-Renderer >30 s */
   const errs=[]; p.on('pageerror',e=>errs.push('PAGEERROR: '+e.message));
-  await p.goto('file://'+process.argv[2]);
-  await p.waitForFunction('window.__bb!==undefined',{timeout:30000});
+  /* 28.09.: Lade-Grenzen 120 s - unter Last (4 Kerne, paralleles Rendern) lief das Laden in die 30 s; Ladezeit ist nicht Pruefgegenstand */
+  await p.goto('file://'+process.argv[2],{timeout:120000});
+  await p.waitForFunction('window.__bb!==undefined',{timeout:90000});
   await p.evaluate(()=>localStorage.clear());
-  await p.reload(); await p.waitForFunction('window.__bb!==undefined',{timeout:30000});
+  await p.reload({timeout:120000}); await p.waitForFunction('window.__bb!==undefined',{timeout:90000});
   await neuesSpiel(p);
   const mangel=[];
   const pruef=(n,ok,was)=>{ if(!ok) mangel.push(n+': '+was); };
@@ -116,7 +117,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     d.carrying={type:'sprengmeister',count:1,q:1}; d.cart=[{t:'doppelschlag',n:2}];
     d.prices.kanonen=7.99; d.stat=d.stat||{};
     localStorage.setItem(K,JSON.stringify(d)); });
-  await p.reload(); await p.waitForFunction('window.__bb!==undefined',{timeout:30000});
+  await p.reload({timeout:120000}); await p.waitForFunction('window.__bb!==undefined',{timeout:90000});
   await p.waitForFunction("!!document.querySelector('#startBtns button:not([disabled])')",{timeout:30000});
   await p.click('#startBtns button'); await p.waitForTimeout(400);
   const alt=await p.evaluate(()=>{ const bb=window.__bb, S=bb.S; const lv=bb.shelves[0].levels;

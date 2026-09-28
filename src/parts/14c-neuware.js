@@ -92,11 +92,6 @@ function neuKugel(t,o){
    Die Fontaenen selbst laufen seit dem 26.09. (Tom: Anomalie) in Phasen
    ueber FONT in 14k-db-fontaenen.js; hier steht nur noch Kleinfeuerwerk. */
 const NEU_FONT={
-  stroboblinker :{k:'blinker',t:12,reihe:['weiss','rot','gruen','zitrone']},
-  bengalflamme  :{k:'bengal',t:6,set:['blau','violett','magenta']},
-  bengalfackel  :{k:'bengal',t:12,A:'rot'},
-  bengalduo     :{k:'bengal',t:15,set:['rot','gruen']},
-  bengalholz    :{k:'bengal',t:5,set:['rot','gruen'],klein:true}
 };
 function neuFontaene(t,o){
   const f=NEU_FONT[t]; if(!f) return false;
@@ -180,45 +175,10 @@ function konfetti(o,n,h){
     psMid.emit(o.x,o.y+0.2,o.z,Math.cos(a)*w,rand(2.5,h||6),Math.sin(a)*w,c[0]*0.8,c[1]*0.8,c[2]*0.8,rand(2.5,4.0),1.2,1); }
   SCHWEIF=alt;
 }
-/* Boeller und Kleinfeuerwerk der neuen Ware */
-function neuKnall(t,o){
-  const v=distVol(o), yb=o.y!==undefined?o.y:0.4, p0={x:o.x,y:yb,z:o.z};
-  const lunte=(s,fn)=>{ emitters.push({t:s,k:'fuse',o}); later(s,fn); };
-  if(t==='blitzknaller'){ lunte(1.0,()=>{ flash({x:o.x,y:yb+0.5,z:o.z},FW.weiss,3.2,0.12); smallPop(o.x,yb,o.z,50,6,0.3,FW.weiss); sfx.crack(v*1.3); shake=Math.max(shake,0.2*v); }); return true; }
-  if(t==='knallteppich'){ lunte(1.2,()=>{ for(let i=0;i<48;i++) later(i*0.085,()=>{ const x=o.x-1.2+i*0.05+rand(-0.15,0.15), z=o.z+rand(-0.25,0.25);
-      smallPop(x,yb,z,22,3.5,0.45); flash({x,y:yb+0.2,z},FW.bernstein,0.6,0.08); sfx.crack(v*0.55); }); }); return true; }
-  if(t==='konfettiknaller'){ lunte(1.2,()=>{ smallPop(o.x,yb,o.z,40,5,0.4); sfx.boom(v*0.6); konfetti(p0,220,7); }); return true; }
-  if(t==='goldstaubboeller'){ lunte(1.3,()=>{ smallPop(o.x,yb,o.z,60,6,0.5,FW.gold); sfx.boom(v*0.8); shake=Math.max(shake,0.3*v);
-      for(let i=0;i<Math.round(260*QUAL());i++){ const d=randDir(), s=rand(0.5,3.5);
-        psSmall.emit(o.x,yb+0.8,o.z,d[0]*s,Math.abs(d[1])*s+1,d[2]*s,1,.85,.35,rand(2.0,3.4),0.6,3); } }); return true; }
-  if(t==='farbrauchboeller'){ const c=K(pick(['rot','blau','gruen','violett']));
-    lunte(1.3,()=>{ smallPop(o.x,yb,o.z,70,7,0.5); sfx.boom(v*0.9); shake=Math.max(shake,0.35*v); flash({x:o.x,y:yb+0.4,z:o.z},c,1.4,0.25);
-      for(let i=0;i<Math.round(90*QUAL());i++){ const a=Math.random()*Math.PI*2, w=rand(0.2,1.4);
-        psHuge.emit(o.x+rand(-0.3,0.3),yb+0.3,o.z+rand(-0.3,0.3),Math.cos(a)*w,rand(0.5,2.2),Math.sin(a)*w,c[0]*0.22,c[1]*0.22,c[2]*0.22,rand(3.5,5.5),-0.12,0); } }); return true; }
-  if(t==='partypopper'){ for(let i=0;i<3;i++) later(0.3+i*0.6,()=>{ const q={x:o.x+(i-1)*0.3,y:yb,z:o.z}; sfx.crack(v*0.5); smallPop(q.x,q.y+0.1,q.z,12,2,0.25,FW.gold); konfetti(q,110,8); }); return true; }
-  if(t==='luftschlangentisch'){ lunte(0.8,()=>{ sfx.crack(v); smallPop(o.x,yb+0.1,o.z,24,3,0.3,FW.gold);
-      /* Luftschlangen: je Schlange eine Richtung, die Blaettchen liegen
-         auf einer Linie statt zu streuen */
-      const C=['rot','gold','gruen','blau','magenta','tuerkis'].map(K), alt=SCHWEIF; SCHWEIF=0;
-      for(let s2=0;s2<14;s2++){ const a=Math.random()*Math.PI*2, w=rand(0.4,1.4), vy=rand(5,6.5), c=C[s2%C.length];
-        for(let j=0;j<12;j++){ const f=0.55+j*0.05; psMid.emit(o.x,yb+0.2,o.z,Math.cos(a)*w*f,vy*f,Math.sin(a)*w*f,c[0]*0.8,c[1]*0.8,c[2]*0.8,rand(2.5,3.2),1.4,1); } }
-      SCHWEIF=alt; }); return true; }
-  if(t==='knallbonbonxxl'){ later(0.5,()=>{ flash({x:o.x,y:yb+0.3,z:o.z},FW.gold,1.2,0.12); smallPop(o.x,yb,o.z,40,3.5,0.4,FW.gold); sfx.boom(v*0.45); konfetti(p0,320,6); }); return true; }
-  if(t==='knallbonbon'){ for(let i=0;i<4;i++) later(i*0.7,()=>{ const q={x:o.x+rand(-0.5,0.5),y:yb,z:o.z+rand(-0.4,0.4)}; smallPop(q.x,q.y,q.z,14,2.5,0.3); sfx.crack(v*0.5); konfetti(q,40,3); }); return true; }
-  if(t==='tischbombe'){ lunte(1.0,()=>{ sfx.crack(v); konfetti(p0,260,5.5); smallPop(o.x,yb+0.1,o.z,30,3,0.35,FW.gold); }); return true; }
-  if(t==='tischfeuerwerk2'){ for(let j=0;j<3;j++) later(j*1.1,()=>{ sfx.crack(v); for(let i=0;i<110;i++){ const d=randDir(), c=i%3?FW.gold:FW.zitrone;
-      psMid.emit(o.x+(j-1)*0.25,o.y+0.15,o.z,d[0]*2.2,Math.abs(d[1])*5+2,d[2]*2.2,c[0],c[1],c[2],rand(1.8,2.8),2.2,4); } }); return true; }
-  if(t==='pharao'){ for(let i=0;i<4;i++) emitters.push({t:9,k:'asche',o,dx:(i-1.5)*0.14}); return true; }
-  if(t==='bodenkreisel'){ const C=['limette','magenta','zitrone','tuerkis','gold','rose'];
-    for(let i=0;i<6;i++) later(i*0.25,()=>emitters.push({t:5,k:'kreisel',o,i,A:K(C[i])}));
-    for(let s=0;s<6;s+=0.6) later(s,()=>sfx.whistle(v*0.25)); return true; }
-  /* Wunderkerzen und Leuchtstaebe: farbige Funken */
-  const FUNKEN={wunderfarbe:{c:['rot','gruen','blau','magenta'],t:6},wunderherz:{c:['rose','gold'],t:5},wunderzahl:{c:['gold'],t:7,reihe:4},
-    leuchtstaebe:{c:['magenta','limette','tuerkis'],t:6},wunderkerzeXXL:{c:['gold'],t:12,n:12},wunderbox:{c:['gold'],t:6,reihe:5,n:12}};
-  const F=FUNKEN[t];
-  if(F){ F.c.forEach((col,i)=>later(i*F.t*0.2,()=>emitters.push({t:F.t,k:'funken',o,A:K(col),reihe:F.reihe,n:F.n}))); sfx.fizz(v); return true; }
-  return false;
-}
+/* Boeller und Kleinfeuerwerk der neuen Ware: seit dem 26.09. (Tom:
+   Anomalie) alle ueber die Drehbuecher KLEIN in 14l-db-klein.js -
+   igniteType fragt kleinZuenden vorher. Hier bleibt nichts mehr. */
+function neuKnall(t,o){ return false; }
 /* Einstieg aus igniteType: true, wenn die Ware hier abgebrannt wurde */
 function neuZuenden(t,o){
   if(!NEUWARE[t]) return false;
@@ -228,9 +188,9 @@ function neuZuenden(t,o){
 function neuDauer(t){
   /* Fontaenen in Phasen (FONT, 26.09.): Dauer aus dem Drehbuch plus Nachlauf */
   if(typeof FONT!=='undefined'&&FONT[t]) return fontDauer(FONT[t])+(FONT[t].nach||0)+1;
+  if(typeof kleinDauer==='function'){ const d=kleinDauer(t); if(d) return d; }
   const f=NEU_FONT[t];
   if(f) return (f.set?f.set.length*f.t*0.92:f.t)+(f.reihe?f.reihe.length*0.35:0)+1.5;
   if(NEU_KUGEL[t]) return [3.5,3.5,4.5,5,6.5][NEU_KUGEL[t].kal-1];
-  return {partypopper:4,luftschlangentisch:5,knallbonbonxxl:4,blitzknaller:3,knallteppich:6,konfettiknaller:4,goldstaubboeller:5,farbrauchboeller:7,knallbonbon:4,tischbombe:4,tischfeuerwerk2:5,
-    pharao:10,bodenkreisel:7,wunderfarbe:8,wunderherz:6,wunderzahl:8,leuchtstaebe:8,wunderkerzeXXL:13,wunderbox:7}[t]||0;
+  return 0;
 }

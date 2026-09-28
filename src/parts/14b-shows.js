@@ -582,56 +582,11 @@ function igniteType(t,o0,it){
      Fontaene ist Fontaene (Toms PDF vom 25.09.): keine Ladung, kein Komet. */
   /* Die Furzrakete fliegt seit dem 26.09. ueber den normalen Raketenweg
      (RAKETEN_KL.furzrakete): der Witz steckt im Aufstieg 'stotter'. */
-  if(sh==='sparkler'){ emitters.push({t:5,k:'spark',o}); sfx.fizz(distVol(o)); }
-  else if(t==='knallerbsen'||t==='knallfrosch'){
-    const n=t==='knallfrosch'?10:7;
-    for(let i=0;i<n;i++) later(i*0.16+rand(0,.1),()=>{ smallPop(o.x+rand(-1.2,1.2),0.15,o.z+rand(-1.2,1.2),14,3,0.35); sfx.crack(distVol(o)*0.6); });
-  }
-  else if(t==='schwaermer'){
-    for(let i=0;i<9;i++) later(i*0.3+rand(0,.15),()=>{
-      const x=o.x+rand(-1.4,1.4), z=o.z+rand(-1.4,1.4), c=K(pick(['gold','zitrone','tuerkis','magenta','limette']));
-      for(let k=0;k<40;k++){ const a=Math.random()*Math.PI*2, s=rand(1,5);
-        psMid.emit(x,0.2,z,Math.cos(a)*s,rand(0.5,3.5),Math.sin(a)*s,c[0],c[1],c[2],rand(0.5,1.1),4,4); }
-      sfx.whistle(distVol(o)*0.5); if(Math.random()<0.5) later(0.6,()=>sfx.crack(distVol(o)*0.5));
-    });
-  }
-  /* Boeller (Toms PDF vom 25.09.): Furz, Monster, Atombombe */
-  else if(t==='boeller'){
-    emitters.push({t:1.2,k:'fuse',o});
-    later(1.2,()=>{ const v=distVol(o), yb=o.y!==undefined?o.y:0.4;
-      smallPop(o.x,yb,o.z,36,4,0.5,FW.senf);
-      flash({x:o.x,y:yb+0.4,z:o.z},FW.sumpf,1.1,0.3);
-      /* braune Spritzer, die kurz hochfliegen und zurueckfallen */
-      for(let i=0;i<Math.round(60*QUAL());i++){ const a=Math.random()*Math.PI*2, w=rand(0.5,2.2), c=i%3?FW.braun:FW.sumpf;
-        psMid.emit(o.x,yb+0.1,o.z,Math.cos(a)*w,rand(2,5),Math.sin(a)*w,c[0],c[1],c[2],rand(0.9,1.6),7,0); }
-      sfx.pups(v); furzwolke({x:o.x,y:yb,z:o.z});
-      shake=Math.max(shake,0.25*v); });
-  }
-  else if(t==='monsterboeller'){
-    emitters.push({t:1.5,k:'fuse',o});
-    later(1.5,()=>monsterknall({x:o.x,y:o.y!==undefined?o.y:0.4,z:o.z}));
-  }
-  else if(t==='atomboeller'){
-    /* Die Zuendschnur brennt etwas laenger, dann steigt die Bombe mit
-       dicker Glutspur auf und geht auf rund 25 m als Pilz auf. Sie
-       steigt leicht schraeg vom Pult weg: der Pilz wird ueber 40 m
-       breit und hoch, und erst aus gut 20 m Abstand passt er ganz
-       ins Bild. */
-    emitters.push({t:1.8,k:'fuse',o});
-    later(1.8,()=>shot(o,{pw:2,sz:1,eff:'atom',fuse:2.2,dick:2,trail:FW.orange,A:FW.orange,B:FW.gold,ang:0.36,dir:Math.PI}));
-  }
-  else if(sh==='tubepack'){
-    emitters.push({t:1.4,k:'fuse',o});
-    later(1.4,()=>{ const v=distVol(o), yb=o.y!==undefined?o.y:0.4;
-      smallPop(o.x,yb,o.z,100,8,0.6); sfx.boom(v); shake=Math.max(shake,0.45*v);
-      flash({x:o.x,y:yb+0.4,z:o.z},FW.bernstein,1.2,0.3); });
-  }
-  else if(t==='tisch'){
-    sfx.crack(distVol(o));
-    for(let i=0;i<130;i++){ const d=randDir(), c=K(pick(['gold','magenta','tuerkis','limette','rose','zitrone']));
-      psMid.emit(o.x,o.y+0.15,o.z,d[0]*2.5,Math.abs(d[1])*5+2,d[2]*2.5,c[0],c[1],c[2],rand(1.8,2.8),2.2,4); }
-  }
-  else if(sh==='fountainset'){
+  /* Wunderkerzen, Knallerbsen, Knallfrosch, Schwaermer, Tischfeuerwerk
+     und alle Boeller laufen seit dem 26.09. (Tom: Anomalie) ueber die
+     Drehbuecher KLEIN in 14l-db-klein.js (kleinZuenden, oben);
+     Wasserfall und Vulkan ueber FONT (14k-db-fontaenen.js). */
+  if(sh==='fountainset'){
     const [A,B]=scheme();
     emitters.push({t:8,k:'fountain',o,A:FW.gold,B:A});
     sfx.fizz(distVol(o)); later(2.5,()=>sfx.fizz(distVol(o)));

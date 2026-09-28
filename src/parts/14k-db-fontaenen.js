@@ -918,10 +918,12 @@ Object.assign(FONT,{
     {k:'gerb',at:6,t:6,x:0.25,hm:3.0,funke:'titan',A:'silber',flamme:'gruen',flammeGross:1.6,ton:'zischen'},
     {k:'gerb',at:12,t:6,x:0.00,hm:3.2,funke:'brokat',A:'gold',B:'silber',kernB:true,flamme:['rot','gruen'],wechsel:1.5,flammeGross:1.8,ton:'rauschen',ende:'aufflammen'}]},
   /* Zauberbrunnen (L10): Verwandlung in drei Saetzen mit Zwischenschlag und
-     0,4 s Dunkelheit - Silber mit gruenen Sternen, Gold mit violetten,
-     zum Schluss Knister mit beiden Farben */
+     0,4 s Dunkelheit - Silberglitter mit gruenen Sternen, Gold mit
+     violetten, zum Schluss Knister mit beiden Farben (28.09.: der erste
+     Satz blinkt als Glitter statt Titan - so ist jede Verwandlung eine
+     andere Funkenart) */
   zauberbrunnen:{phasen:[
-    {k:'gerb',t:5.5,hm:3.0,funke:'titan',A:'silber',B:'gruen',sterne:'B',sterneRate:12,ton:'zischen',ende:'zauberpuff'},
+    {k:'gerb',t:5.5,hm:3.0,funke:'glitter',A:'silber',glitterFarbe:'weiss',glitterAnteil:0.8,B:'gruen',sterne:'B',sterneRate:12,ton:'zischen',ende:'zauberpuff'},
     {k:'gerb',t:5.5,hm:3.5,funke:'brokat',A:'gold',B:'violett',sterne:'B',sterneRate:12,ton:'rauschen',dunkel:0.4,ende:'zauberpuff'},
     {k:'gerb',t:6.0,hm:4.0,funke:'knister',A:'weiss',B:'gruen',sterne:['gruen','violett'],sterneRate:12,ton:'knistern',dunkel:0.4,ende:'zauberpuff_tadaa'}]},
   /* Zuckerhut (L12): eine Phase, der Kegel baut seine Hoehe stetig von

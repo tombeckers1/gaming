@@ -61,7 +61,10 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
       const log=[]; bb.fwLog(log); const t0=bb.fwUhr; const gesehen=new Set(bb.emittersListe()); const emi=[]; window.__emiLog={}; window.__sfxLog={};
       try{ bb.igniteType(t); }catch(e){ bb.fwLog(null); return {fehler:e.message}; }
       const dauer=bb.SHOWS[t]?bb.showLength(t)+3:(bb.brennDauer?Math.min(45,bb.brennDauer(t)+3):15);
-      for(let s=0;s<dauer;s+=0.25){ bb.run(0.25,0.125); for(const e of bb.emittersListe()){ if(!gesehen.has(e)){ gesehen.add(e); emi.push([+(bb.fwUhr-t0).toFixed(1),e.k]); } } }
+      for(let s=0;s<dauer;s+=0.25){ bb.run(0.25,0.125); for(const e of bb.emittersListe()){ if(!gesehen.has(e)){ gesehen.add(e); const ph=e.ph||{};
+        /* Ablauf-Merkmal je Phase (28.09., Tom: echt): Funkenart, Hoehe, Flammenfuss, Sterne, Phasenende, Duese im Set -
+           echte Fontaenen unterscheiden sich im Ablauf, nicht in Fantasie-Emittern */
+        emi.push([+(bb.fwUhr-t0).toFixed(1),e.k,e.k+'|'+(ph.funke||'')+'|h'+Math.round(Math.log2(Math.max(0.25,ph.hm||e.hAkt||1))*2)+(ph.flamme?'|F':'')+(ph.sterne||ph.bluete||ph.perlen?'|S':'')+(ph.ende?'|'+ph.ende:'')+(ph.x!==undefined?'|x'+ph.x:'')]); } } }
       bb.fwLog(null);
       /* auch die Leuchtkugeln der Roemischen Lichter (perleSchuss loggt art:'perle') - sonst 'zeigt nichts' (27.09., aus Stufe 2 uebernommen) */
       const sh=log.filter(x=>x.art==='schuss'||x.art==='kugel'||x.art==='perle').map(x=>({t:+(x.t-t0).toFixed(2),eff:x.eff,ang:x.ang||0,steig:x.steig||null,stufen:x.stufenEff||[],x:x.x}));
@@ -82,7 +85,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   pruef('LAEUFT',!leer.length,'zeigt nichts: '+leer.join(', '));
   /* Fingerabdruck: Effekt-Menge, Aufstiege, Emitter, Winkelfolge, Takt */
   const tok=x=>{ const a=Math.abs(x.ang); return x.eff+'|'+(a<0.05?'s':(x.ang<0?'l':'r')+(a>0.35?'2':'1')); };
-  const fp=t=>{ const q=PR[t]; return {eff:new Set(q.sh.map(x=>x.eff).concat(q.sh.flatMap(x=>x.stufen))),steig:new Set(q.sh.map(x=>x.steig).filter(Boolean)),emi:new Set(q.emi.map(e=>e[1])),phys:new Set((q.phys||[]).map(x=>'p:'+x)),snd:new Set((q.snd||[]).map(x=>'s:'+x)),seq:q.sh.map(tok)}; };
+  const fp=t=>{ const q=PR[t]; return {eff:new Set(q.sh.map(x=>x.eff).concat(q.sh.flatMap(x=>x.stufen))),steig:new Set(q.sh.map(x=>x.steig).filter(Boolean)),emi:new Set(q.emi.map(e=>e[1])),phys:new Set((q.phys||[]).map(x=>'p:'+x)),snd:new Set((q.snd||[]).map(x=>'s:'+x)),abl:new Set(q.k==='fontaene'?q.emi.map(e=>'a:'+e[2]):[]),seq:q.sh.map(tok)}; };
   const jac=(A,B)=>{ const u=new Set([...A,...B]); if(!u.size) return 1; let s=0; A.forEach(x=>{ if(B.has(x)) s++; }); return s/u.size; };
   const lcs=(a,b)=>{ if(!a.length||!b.length) return a.length===b.length?1:0; const n=Math.min(a.length,160), m=Math.min(b.length,160); let prev=new Array(m+1).fill(0);
     for(let i=1;i<=n;i++){ const cur=[0]; for(let j=1;j<=m;j++) cur[j]=a[i-1]===b[j-1]?prev[j-1]+1:Math.max(prev[j],cur[j-1]); prev=cur; } return prev[m]/Math.max(n,m); };
@@ -90,7 +93,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   /* Aehnlichkeit: Jaccard ueber Brueche, Aufstiege, Emitter, Physik- und
      Klang-Abdruck; dazu die Ablauf-Folge (LCS) - bei Produkten ohne Schuss
      (Kleinfeuerwerk, Fontaenen) zaehlt nur der Abdruck */
-  const sim=(a,b)=>{ const A=FP[a],B=FP[b], U=X=>new Set([...X.eff,...X.steig,...X.emi,...X.phys,...X.snd]);
+  const sim=(a,b)=>{ const A=FP[a],B=FP[b], U=X=>new Set([...X.eff,...X.steig,...X.emi,...X.phys,...X.snd,...X.abl]);
     const ja=jac(U(A),U(B)); return !A.seq.length&&!B.seq.length?ja:0.5*ja+0.5*lcs(A.seq,B.seq); };
   const GRENZE={show:0.45,rakete:0.5,kugel:0.5,fontaene:0.55,klein:0.6};
   const paare=[];

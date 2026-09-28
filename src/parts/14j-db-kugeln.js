@@ -2,13 +2,20 @@
    Kugelbomben - je Sorte ein eigenes Hauptbild mit Nachbruechen
    (Tom, 26.09. nachts: "jedes Produkt eine Anomalie - komplett
    einzigartig, eigener Effekt, eigene Abfolge, Name passt")
-   Katalog: katalog-kugeln.md. Leiter (Kaliber, Bild):
+   28.09., Tom: echt - "keine Laser, keine Punkte, keine Lichtshow; die
+   Effekte muessen ineinander passen, auch von den Farben her". Seitdem
+   ist jedes Hauptbild eine echte Bombe aus dem Feuerwerkskatalog (Herz-
+   Musterbombe, Palme, Geisterbombe, Paeonie mit Blink-Pistill, Dahlie,
+   Yanagi, Chrysantheme mit Farbwechsel und Saturnring, Zeitregen,
+   Crossette-Kranz, Zehnfachbruch, Brokat-Qualle, Silberbruch, Yaeshin
+   mit Kiekuchi), jeder Stern fliegt ballistisch, und jede Sorte hat
+   eine Farbe plus Gold/Silber/Weiss - ihre Stufen bleiben im Paar.
+   Katalog: katalog-kugeln.md, Regeln: /tmp/fw/echt.md. Leiter:
      75 mm  ein Bild mit einem Kniff   Herzschlag, Suedsee, Chamaeleon
      100 mm zwei Stufen                Eiskristall, Drachenblut, Haengeweide
-     150 mm drei Stufen                Weltenbrand, Milchstrasse, Sternkranz
+     150 mm drei Stufen                Weltenbrand, Sternenstaub, Sternkranz
      200 mm Bewegung im Bild           Uhrwerk, Leuchtqualle
      300 mm Meisterbomben              Himmelsbrecher, Kaiserkrone
-   Jede Sorte: eigenes Hauptbild, eigener Aufstieg, feste Farben.
    ========================================================= */
 
 /* ---------- Hilfen ---------- */
@@ -26,14 +33,6 @@ function kgLebt(h){ return !!h&&h.ps.maxl[h.i]===h.mx&&h.ps.life[h.i]>0; }
 function kgOrt(h){ const j=h.i*3, P=h.ps.pos, W=h.ps.vel; return [{x:P[j],y:P[j+1],z:P[j+2]},[W[j],W[j+1],W[j+2]]]; }
 function kgAus(h){ if(kgLebt(h)) h.ps.life[h.i]=1e-4; }
 function kgFarbe(h,c,k){ if(!kgLebt(h)) return; const j=h.i*3, b=h.ps.base; k=k||1; b[j]=c[0]*k; b[j+1]=c[1]*k; b[j+2]=c[2]*k; }
-/* Ablauf je Bild ueber dauer s: fn(t) - false bricht ab. Die Show-Kennung
-   (FW_TAG) des Bruchs gilt auch fuer alles, was fn spaeter ausstoesst. */
-function kgLauf(dauer,fn){
-  const t0=FW_UHR, tag=FW_TAG;
-  const schritt=()=>{ const t=FW_UHR-t0, alt=FW_TAG; FW_TAG=tag; let r; try{ r=fn(t); } finally { FW_TAG=alt; }
-    if(r===false||t>=dauer) return; imBild(1/30,schritt); };
-  imBild(0,schritt);
-}
 function kgSpaeter(tz,fn){ const tag=FW_TAG; imBild(tz,()=>{ const alt=FW_TAG; FW_TAG=tag; try{ fn(); } finally { FW_TAG=alt; } }); }
 /* Bildschirmachsen vom Zuschauer aus: rechts, oben, Blickrichtung */
 function kgAchsen(p){
@@ -41,99 +40,84 @@ function kgAchsen(p){
   let r=[-f[2],0,f[0]]; const lr=Math.hypot(r[0],r[2])||1; r=[r[0]/lr,0,r[2]/lr];
   return [r,[r[1]*f[2]-r[2]*f[1],r[2]*f[0]-r[0]*f[2],r[0]*f[1]-r[1]*f[0]],f];
 }
-/* Drehung von a um die Einheitsachse k (Rodrigues) */
-function kgDreh(a,k,w){ const c=Math.cos(w), s=Math.sin(w), d=(k[0]*a[0]+k[1]*a[1]+k[2]*a[2])*(1-c);
-  return [a[0]*c+(k[1]*a[2]-k[2]*a[1])*s+k[0]*d, a[1]*c+(k[2]*a[0]-k[0]*a[2])*s+k[1]*d, a[2]*c+(k[0]*a[1]-k[1]*a[0])*s+k[2]*d]; }
 const kgMal=(a,k)=>[a[0]*k,a[1]*k,a[2]*k];
-const kgPunkt=(p,a,k)=>({x:p.x+a[0]*k,y:p.y+a[1]*k,z:p.z+a[2]*k});
-const kgKreuz=(a,b)=>{ const c=[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]], l=Math.hypot(c[0],c[1],c[2])||1; return [c[0]/l,c[1]/l,c[2]/l]; };
+/* Farbwechsel mit Dunkelphase (echt.md 1.4): der Stern h brennt aus, nach
+   dunkel s brennt er an derselben Bahnstelle in Farbe c weiter (life s,
+   Schwere g). Kein Weissblitz: der neue Stern gilt als schon angebrannt. */
+function kgWechsel(h,c,dunkel,life,g,mode,spur){
+  if(!kgLebt(h)) return null; const [o,v]=kgOrt(h); kgAus(h); const r={h:null};
+  kgSpaeter(dunkel,()=>{ const e=bahnOrt(o,v,g,dunkel), w=bahnTempo(v,g,dunkel); r.h=kgStern(psBig,e,w,c,life,g,mode||0,spur,life/0.9); });
+  return r;
+}
 
-/* ---------- Neue Hauptbilder (neue-effekte.md 1.4) ---------- */
+/* ---------- Hauptbilder ---------- */
 
-/* Suedsee (palmenkugel75): goldene Palme ueber einer waagrechten
-   tuerkisen Lagune, aus der Krone plumpsen drei Kokosnuesse */
+/* Suedsee (palmenkugel75): goldene Palme - sieben dicke Kometen mit
+   Kohle-Goldschweif steigen als Wedel auf und biegen sich -, in der Mitte
+   ein tuerkiser Kern, und aus der Krone plumpsen drei schwere Kokosnuss-
+   Sterne, die unten mit einem Plopp zerplatzen. Gold und Tuerkis.
+   (28.09., Tom: echt - vorher lag ein waagrechter Ring als Lagune in der Luft) */
 EFF.palmeninsel=function(p,A,B,s,r){
-  const q=QUAL(), C=(r&&r.C)||FW.bernstein, dreh=rand(0,Math.PI*2), alt=SCHWEIF;
-  /* sieben Wedel: Kometen mit Kohle-Goldschweif, nur nach oben, biegen sich */
+  const q=QUAL(), gold=A||FW.gold, tk=B||FW.tuerkis, C=(r&&r.C)||FW.bernstein, dreh=rand(0,Math.PI*2), G=5.5, fu=[1,.66,.28];
   for(let a=0;a<7;a++){
-    const az=dreh+a/7*Math.PI*2+rand(-0.2,0.2), el=rand(22,68)*Math.PI/180, sp=rand(9,10)*s;
-    const d=[Math.cos(az)*Math.cos(el),Math.sin(el),Math.sin(az)*Math.cos(el)], v=kgMal(d,sp);
-    SCHWEIF=1.1; psHuge.emit(p.x,p.y,p.z,v[0],v[1],v[2],A[0],A[1],A[2],rand(2.1,2.3),5.5,0);
-    /* der Wedel: ein schmaler Kegel aus Glitzersternen, vorne dicht, nach innen duenner */
-    for(let i=0;i<Math.round(12*q);i++){ const e=streu(d,0.045), w=sp*rand(0.7,0.98);
-      psBig.emit(p.x,p.y,p.z,e[0]*w,e[1]*w,e[2]*w,A[0],A[1]*0.9,A[2]*0.7,rand(1.9,2.2),5.5,4); }
-    SCHWEIF=alt; funkenSchweif(p,v,5.5,1.9,3,A);
+    const az=dreh+a/7*Math.PI*2+rand(-0.25,0.25), el=rand(25,70)*Math.PI/180, sp=rand(9,10.5)*s;
+    const d=[Math.cos(az)*Math.cos(el),Math.sin(el),Math.sin(az)*Math.cos(el)], v=kgMal(d,sp), T=rand(2.0,2.3);
+    kgStern(psHuge,p,v,kgMal(gold,1.2),T,G,4,0.12);
+    for(let i=0;i<Math.round(8*q);i++){ const e=streu(d,0.05), w=sp*rand(0.8,0.98); kgStern(psBig,p,kgMal(e,w),[gold[0],gold[1]*0.9,gold[2]*0.7],T*rand(0.85,1),G,4,0.3); }
+    rkFunken(p,v,G,0.04,T,70,fu,{life:[0.5,1.0],g:3.2,streu:0.3,mit:0.08});
   }
-  /* Lagune: waagrechter Ring (leicht gekippt), ohne Schweif, dazu Wasserglitzern */
-  const ax=[Math.cos(dreh),0,Math.sin(dreh)], U=kgDreh([Math.cos(dreh+1.57),0,Math.sin(dreh+1.57)],ax,0.2), W=ax;
-  SCHWEIF=0.05;
-  const n=Math.round(42*q), ring=a=>[U[0]*Math.cos(a)+W[0]*Math.sin(a),U[1]*Math.cos(a)+W[1]*Math.sin(a),U[2]*Math.cos(a)+W[2]*Math.sin(a)];
-  for(let i=0;i<n;i++){ const d=ring(i/n*Math.PI*2), w=7*s*rand(0.98,1.02);
-    psBig.emit(p.x,p.y,p.z,d[0]*w,d[1]*w,d[2]*w,B[0],B[1],B[2],rand(1.35,1.45),0.6,0); }
-  for(let i=0;i<Math.round(34*q);i++){ const d=ring(rand(0,Math.PI*2)), w=rand(4.5,6.5)*s;
-    psMid.emit(p.x,p.y,p.z,d[0]*w,d[1]*w,d[2]*w,0.6+B[0]*0.4,0.6+B[1]*0.4,0.6+B[2]*0.4,rand(1.0,1.4),0.6,4); }
-  SCHWEIF=alt;
+  /* tuerkiser Kern - die Lagune */
+  for(let i=0;i<Math.round(40*s*q);i++){ const d=randDir(), w=rand(2.2,3.4)*s; kgStern(psBig,p,kgMal(d,w),kgMal(tk,1.3),rand(1.6,2.1),2.4,0,0.05); }
   schall(p,v=>sfx.fizz(v*0.6));
-  /* drei Kokosnuesse fallen aus der Kronenmitte, 6-8 m, dann Plopp */
-  for(let k=0;k<3;k++) kgSpaeter(0.9+k*0.12,()=>{
-    const o={x:p.x+rand(-1.5,1.5),y:p.y+rand(0.5,1.5),z:p.z+rand(-1.5,1.5)}, v=[rand(-0.6,0.6),rand(-0.5,0.3),rand(-0.6,0.6)], T=rand(1.15,1.35), g=9;
-    const a=SCHWEIF; SCHWEIF=0.18; psHuge.emit(o.x,o.y,o.z,v[0],v[1],v[2],C[0],C[1],C[2],T,g,0); SCHWEIF=a;
-    kgSpaeter(T,()=>{ const e=bahnOrt(o,v,g,T), a2=SCHWEIF; SCHWEIF=0;
-      for(let i=0;i<6;i++){ const d=randDir(), w=rand(1.5,3); psSmall.emit(e.x,e.y,e.z,d[0]*w,Math.abs(d[1])*w,d[2]*w,C[0],C[1],C[2],rand(0.2,0.35),4,0); }
-      SCHWEIF=a2; schall(e,v=>sfx.plopp(v*0.8,1)); });
-  });
+  /* drei Kokosnuesse: schwere Sterne mit wenig Tempo, fallen schnell */
+  for(let k=0;k<3;k++){ const v=[rand(-1.2,1.2),rand(-0.5,1.5),rand(-1.2,1.2)], T=rand(1.6,1.9), g=9;
+    kgStern(psHuge,p,v,kgMal(C,1.1),T,g,0,0.15);
+    kgSpaeter(T,()=>{ const e=bahnOrt(p,v,g,T), a2=SCHWEIF; SCHWEIF=0;
+      for(let i=0;i<8;i++){ const d=randDir(), w=rand(1.5,3); psSmall.emit(e.x,e.y,e.z,d[0]*w,Math.abs(d[1])*w,d[2]*w,C[0],C[1],C[2],rand(0.2,0.35),4,0); }
+      SCHWEIF=a2; schall(e,v2=>sfx.plopp(v2*0.8,1)); }); }
 };
 
-/* Chamaeleon (farbenmeer75): Geisterbombe. Die Kugel steht, eine gerade
-   Farbgrenze wandert von links nach rechts durch sie (A -> B), danach
-   eine zweite von unten nach oben (-> C); jeder Stern blitzt beim
-   Umschlagen kurz weiss. Alle verloeschen im selben Augenblick. */
+/* Chamaeleon (farbenmeer75): Geisterbombe (Rhein in Flammen 2022,
+   "Ghost"). Die gruene Kugel geht auf; eine Farbgrenze wandert von links
+   nach rechts hindurch - jeder Stern setzt, wenn sie ihn erreicht, 0,1 s
+   aus und brennt orange weiter -, und alle verloeschen im selben
+   Augenblick. Die Sterne fliegen und fallen wie jede Paeonie. Gruen und
+   Orange. (28.09., Tom: echt - vorher drei Farben, ein Weissblitz je
+   Stern und eine Kugel, die 6 s in der Luft stand) */
 EFF.chamaeleon=function(p,A,B,s,r){
-  const q=QUAL(), C=(r&&r.C)||FW.orange, n=Math.round(150*q), [re,ob]=kgAchsen(p), L=6, T=2.2, g=0.8, H=[], hell=c=>kgMal(c,1.5);
-  for(let i=0;i<n;i++){ const d=randDir(), w=rand(7.7,8.3)*s;
-    H.push({h:kgStern(psBig,p,kgMal(d,w),hell(A),L,g,0,0.1),x:d[0]*re[0]+d[1]*re[1]+d[2]*re[2],y:d[0]*ob[0]+d[1]*ob[1]+d[2]*ob[2]}); }
-  const wechsel=(st,c,t)=>{ if(!kgLebt(st.h)) return; const [o,v]=kgOrt(st.h); kgAus(st.h);
-    const a=SCHWEIF; SCHWEIF=0; psHuge.emit(o.x,o.y,o.z,v[0],v[1],v[2],1.4,1.4,1.4,0.08,g,0); SCHWEIF=a;
-    st.h=kgStern(psBig,o,v,hell(c),L-t,g,0,0.1,L); };
-  for(const st of H){ const t1=0.35+(st.x+1)/2*0.6, t2=1.1+(st.y+1)/2*0.6;
-    kgSpaeter(t1,()=>wechsel(st,B,t1)); kgSpaeter(t2,()=>wechsel(st,C,t2)); }
-  kgSpaeter(T,()=>{ for(const st of H) kgAus(st.h); });
+  const q=QUAL(), n=Math.round(150*q), [re]=kgAchsen(p), L=2.9, T=2.6, g=2.6, H=[], a1=kgMal(A,1.4), b1=kgMal(B,1.4);
+  for(let i=0;i<n;i++){ const d=randDir(), w=rand(7.4,8.6)*s;
+    H.push({h:kgStern(psBig,p,kgMal(d,w),a1,L,g,0,0.06),x:d[0]*re[0]+d[1]*re[1]+d[2]*re[2]}); }
+  for(const st of H){ const t1=0.8+(st.x+1)/2*0.7+rand(-0.04,0.04);
+    kgSpaeter(t1,()=>{ const w=kgWechsel(st.h,b1,0.1,L-t1-0.1,g,0,0.06); st.w=w; }); }
+  /* Kiekuchi: alle im selben Bild aus */
+  kgSpaeter(T,()=>{ for(const st of H){ kgAus(st.h); if(st.w&&st.w.h) kgAus(st.w.h); } });
   const fft=v=>rauschF({dur:0.3,vol:0.1*v,typ:'bandpass',f:1600,f2:3800,q:0.8,an:0.05});
-  kgSpaeter(0.35,()=>schall(p,fft)); kgSpaeter(1.1,()=>schall(p,fft));
+  kgSpaeter(0.8,()=>schall(p,fft));
 };
 
-/* Eiskristall (kristallkugel100): raeumliches Oktaeder aus leuchtenden
-   Kanten und sechs hellen Ecken. Jeder Stern fliegt mit seiner Lage
-   auf dem Einheits-Oktaeder - bei gleichem Luftwiderstand blaeht sich
-   die Form selbstaehnlich auf und bleibt scharf. Ab 1,3 s zerfallen die
-   Kanten zu funkelndem Diamantstaub. par.dreh dreht um die Senkrechte
-   (Kristall im Kristall). */
+/* Eiskristall (kristallkugel100): tuerkise Paeonie mit weissem Blink-
+   Pistill, jeder Blinker im eigenen Takt; nach gut einer Sekunde enden
+   die tuerkisen Sterne in feinem weissem Glitzer - Diamantstaub - und es
+   knistert leise. Tuerkis und Weiss. (28.09., Tom: echt - vorher ein
+   Oktaeder aus Punktkanten in einer Nebelscheibe, darin ein zweites) */
 EFF.eiskristall=function(p,A,B,s,r){
-  const q=QUAL(), dreh=(r&&r.par&&r.par.dreh)||0, stufe=!!(r&&r.stufe), [re]=kgAchsen(p), az=rand(-Math.PI/4,Math.PI/4)+dreh;
-  const k15=15*Math.PI/180, X=kgDreh([Math.cos(az),0,Math.sin(az)],re,k15), Y=kgDreh([0,1,0],re,k15), Z=kgDreh([-Math.sin(az),0,Math.cos(az)],re,k15);
-  const E=[X,kgMal(X,-1),Y,kgMal(Y,-1),Z,kgMal(Z,-1)], w=6.5*s, kanten=[], m=Math.max(7,Math.round(14*q));
-  for(let a=0;a<6;a++) for(let b=a+1;b<6;b++){ if((a>>1)===(b>>1)) continue;
-    for(let i=1;i<=m;i++){ const t=i/(m+1), d=[E[a][0]*(1-t)+E[b][0]*t,E[a][1]*(1-t)+E[b][1]*t,E[a][2]*(1-t)+E[b][2]*t];
-      kanten.push(kgStern(psBig,p,kgMal(d,w),kgMal(A,1.3),3.2,0,0,0.03,3.6)); } }
-  const ecken=E.map(d=>kgStern(psHuge,p,kgMal(d,w),kgMal(B,1.4),2.6,0,0,0.03));
-  /* ab 1,2 s sinkt alles ganz langsam */
-  kgSpaeter(1.2,()=>{ for(const h of kanten.concat(ecken)) if(kgLebt(h)) h.ps.grav[h.i]=0.35; });
-  kgSpaeter(1.3,()=>{
-    const S=FW.silber;
-    for(const h of kanten){ if(!kgLebt(h)) continue; const [o]=kgOrt(h); kgAus(h);
-      const k=Math.random()<0.5?2:3;
-      for(let j=0;j<k;j++){ const ph=rand(0,6.28), hz=rand(3,5), dx=rand(-0.25,0.25), dz=rand(-0.25,0.25), x0=o.x+rand(-0.4,0.4), y0=o.y+rand(-0.4,0.4), z0=o.z+rand(-0.4,0.4);
-        fuehre(psMid,x0,y0,z0,0,-0.5,0,S,rand(1.8,2.2),(st,dt)=>{ const t=st.alter;
-          st.p=[x0+dx*t,y0-0.5*t,z0+dz*t]; st.v=[dx,-0.5,dz];
-          st.hell=(0.35+1.8*Math.pow(Math.max(0,Math.sin(t*hz*6.283+ph)),4))*Math.min(1,(st.life-t)/0.5); }); } }
-    schall(p,v=>sfx.eisknistern(v*(stufe?0.4:1)));
-  });
+  const q=QUAL(), tk=A||FW.tuerkis, w0=B||FW.weiss, G=2.8, n=Math.round(64*s*q);
+  for(let i=0;i<n;i++){ const d=randDir(), w=rand(8.2,9.8)*s, v=kgMal(d,w), T=rand(1.15,1.45);
+    kgStern(psBig,p,v,kgMal(tk,1.3),T,G,0,0.06);
+    kgSpaeter(T,()=>{ const e=bahnOrt(p,v,G,T), vr=bahnTempo(v,G,T), a=SCHWEIF; SCHWEIF=0.03;
+      for(let k=0;k<Math.round(4*q);k++){ const x=randDir(), sw=rand(0.6,1.6); psMid.emit(e.x,e.y,e.z,vr[0]*0.5+x[0]*sw,vr[1]*0.5+x[1]*sw,vr[2]*0.5+x[2]*sw,w0[0]*1.3,w0[1]*1.3,w0[2]*1.35,rand(0.6,1.1),2.2,4); }
+      SCHWEIF=a; }); }
+  for(let i=0;i<Math.round(30*q);i++){ const d=randDir(), w=rand(2.2,3.4)*s, hz=rand(3,7), ph=rand(0,1);
+    rkStern(psBig,p,kgMal(d,w),kgMal(w0,1.3),rand(2.0,2.6),(st,dt)=>{ rkFlug(st,dt,ZIEH,2.2); st.hell=((st.alter*hz+ph)%1)<0.35?1.8:0.04; }); }
+  kgSpaeter(1.3,()=>schall(p,v=>sfx.eisknistern(v*0.8)));
 };
 
 /* Haengeweide (goldweide100): japanische Yanagi - kein Knall, die Sterne
    werden nur ausgeschuettet und ziehen dunkelgoldene Kohleschweife, die
-   zehn Sekunden haengen und fast bis zum Boden sinken. Zum Schluss treibt
-   jeder Ast eine gruene Blattspitze. */
+   zehn Sekunden haengen und fast bis zum Boden sinken. Zum Schluss wird
+   jeder Ast an der Spitze gruen und faellt weiter (farbige Spitze der
+   Weide, fireworksland). */
 EFF.haengeweide=function(p,A,B,s,r){
   const q=QUAL(), n=Math.round(58*q), g=2.75, gk=g/ZIEH, boden=4.5, alt=SCHWEIF;
   /* wie lange ein Stern lebt, bis sein Kopf 4,5 m ueber dem Boden steht */
@@ -152,124 +136,134 @@ EFF.haengeweide=function(p,A,B,s,r){
       kgSpaeter(tt,()=>{ const o=bahnOrt(p,v,g,tt), a=SCHWEIF; SCHWEIF=0.25;
         psSmall.emit(o.x,o.y,o.z,rand(-0.3,0.3),rand(-1.2,-0.4),rand(-0.3,0.3),1,.62,.2,rand(0.5,0.9),2.5,4); SCHWEIF=a; }); }
   }
-  /* am Ende: je Kopf eine gruene Blattspitze, eine nach der anderen */
-  for(const k of koepfe){ const tb=Math.max(1,k.L-rand(0.3,1.6));
-    kgSpaeter(tb,()=>{ if(!kgLebt(k.h)) return; const [o]=kgOrt(k.h); kgAus(k.h);
-      fuehre(psBig,o.x,o.y,o.z,0,-2.5,0,B,0.5,(st,dt)=>{ st.p=[o.x,o.y-2.5*st.alter,o.z]; st.v=[0,-2.5,0]; st.hell=(Math.floor(st.alter*12)%2)?0.25:1.5; }); }); }
+  /* am Ende: je Ast eine gruene Spitze, eine nach der anderen - der Stern
+     wechselt die Farbe und faellt weiter (28.09.: vorher blinkte sie auf
+     einer gefuehrten Geraden) */
+  for(const k of koepfe){ const tb=Math.max(1,k.L-rand(0.4,1.4));
+    kgSpaeter(tb,()=>{ if(!kgLebt(k.h)) return; const [o,v]=kgOrt(k.h); kgAus(k.h);
+      kgStern(psBig,o,v,kgMal(B,1.3),rand(0.6,0.9),g,0,0.1,rand(0.7,1.0)); }); }
   schall(p,v=>sfx.rieseln(v*0.7,8));
 };
 
-/* Milchstrasse (sternenstaub150): flache, schraeg liegende Spiralgalaxie.
-   Heller Kern, zwei logarithmische Arme aus schimmernden Punkten, die in
-   0,6 s an ihren Platz fliegen, sich drehen (0,12 U/s) und dann von
-   aussen nach innen zu Sternenstaub zerfliessen. */
-EFF.galaxie=function(p,A,B,s,r){
-  const q=QUAL(), C=(r&&r.C)||FW.gold, c=camera.position;
-  let n0=[c.x-p.x,c.y-p.y,c.z-p.z]; const l0=Math.hypot(n0[0],n0[1],n0[2])||1; n0=kgMal(n0,1/l0);
-  /* Ebene 35-45 Grad zur Kamera geneigt */
-  const [q1,q2]=quer(n0), ka=rand(0,Math.PI*2), kw=[q1[0]*Math.cos(ka)+q2[0]*Math.sin(ka),q1[1]*Math.cos(ka)+q2[1]*Math.sin(ka),q1[2]*Math.cos(ka)+q2[2]*Math.sin(ka)];
-  const nn=kgDreh(n0,kgKreuz(kw,n0),rand(35,45)*Math.PI/180);
-  const [u,v]=quer(nn), R=6.2*s, TW=1.25*Math.PI*2, R0=R/Math.exp(0.3*TW), om=0.12*Math.PI*2, alt=SCHWEIF;
-  /* Kern */
-  SCHWEIF=0.05;
-  /* heller, dichter Kern: in der Scheibe flachgedrueckt, dazu drei Leuchtsterne */
-  for(let i=0;i<Math.round(60*q);i++){ const d=randDir(), w=rand(0.3,1.3)*s, k=d[0]*nn[0]+d[1]*nn[1]+d[2]*nn[2], e=[d[0]-nn[0]*k*0.7,d[1]-nn[1]*k*0.7,d[2]-nn[2]*k*0.7];
-    psBig.emit(p.x,p.y,p.z,e[0]*w,e[1]*w,e[2]*w,(0.5+C[0]*0.5)*1.8,(0.5+C[1]*0.5)*1.8,(0.5+C[2]*0.5)*1.8,rand(3.3,3.7),0.1,0); }
-  for(let i=0;i<3;i++) psHuge.emit(p.x,p.y,p.z,rand(-.2,.2),rand(-.2,.2),rand(-.2,.2),0.9,0.85,0.7,3.6,0.05,0);
-  SCHWEIF=alt;
-  leuchthof(p,C,s*0.4,1.0);
-  const punkt=(rr,th,col,ps,hz,dunkel,td)=>{ const ph=rand(0,6.28);
-    fuehre(ps,p.x,p.y,p.z,0,0,0,col,td+0.5,(st,dt)=>{ const t=st.alter;
-      let rad, ang;
-      if(t<0.6){ const e=1-Math.pow(1-t/0.6,3); rad=rr*e; ang=th-(1-e)*0.9; }
-      else { rad=rr+(t>td?(t-td)*1.0:0); ang=th+om*(t-0.6); }
-      const x=Math.cos(ang)*rad, y=Math.sin(ang)*rad;
-      const np=[p.x+u[0]*x+v[0]*y,p.y+u[1]*x+v[1]*y,p.z+u[2]*x+v[2]*y];
-      st.v=dt>0?[(np[0]-st.p[0])/dt,(np[1]-st.p[1])/dt,(np[2]-st.p[2])/dt]:[0,0,0]; st.p=np;
-      st.hell=dunkel*(0.4+0.6*(0.5+0.5*Math.sin(t*hz*6.283+ph)))*(t>td?Math.max(0,1-(t-td)/0.5):1); },{spur:0.12}); };
-  const a0=rand(0,Math.PI*2), m=Math.round(140*q);
-  for(let arm=0;arm<2;arm++) for(let i=0;i<m;i++){
-    const f=i/m, phi=f*TW, rr=R0*Math.exp(0.3*phi)*rand(0.94,1.06), th=a0+arm*Math.PI+phi+rand(-0.09,0.09);
-    punkt(rr,th,f>0.8?B:A,psBig,rand(12,20),1.5-0.4*f,2.6+(1-rr/R)*1.0); }
-  /* Sternenstaub zwischen den Armen: der Nebel der Scheibe */
-  for(let i=0;i<Math.round(90*q);i++){ const f=Math.pow(Math.random(),0.8), rr=R*f*0.9, th=a0+rand(0,Math.PI*2);
-    punkt(rr,th,A,psMid,rand(6,12),0.8*(1.2-f),2.5+(1-f)*1.0); }
-  schall(p,v=>sfx.rieseln(v*0.8,2));
+/* Feuertropfen (kugel100 »Drachenblut«, Stufe bei KG_TROPF_T): wo die
+   roten Dahliensterne gerade fliegen, faengt ein Teil der Tropfen Feuer -
+   orange Glut mit kurzem Goldschweif, die im Fallen dunkelrot verglimmt.
+   Die Orte folgen derselben Flugbahn wie die Dahlie (Tempo 9,5-11 x
+   Groesse, Schwere 3). Ersetzt den Flammenregen mit seinen Flammen-
+   baellen, die 3-4 s in der Luft standen (echt.md 2.1). */
+const KG_TROPF_T=1.3;
+EFF.feuertropfen=function(p,A,B,s,r){
+  const q=QUAL(), n=Math.round(34*s*q), or=A||FW.orange, fu=[1,.66,.26], T=KG_TROPF_T, alt=SCHWEIF;
+  for(let i=0;i<n;i++){ const d=randDir(), w=rand(9.5,11)*s, v0=kgMal(d,w), o=bahnOrt(p,v0,3,T), vt=bahnTempo(v0,3,T), v=[vt[0]+rand(-.5,.5),vt[1]+rand(-.8,0),vt[2]+rand(-.5,.5)], L=rand(1.3,1.8);
+    SCHWEIF=0.25; psBig.emit(o.x,o.y,o.z,v[0],v[1],v[2],or[0]*1.5,or[1]*1.4,or[2]*1.2,L,3.6,2,0.5,0.06,0.02); SCHWEIF=alt;
+    if(i%2===0) rkFunken(o,v,3.6,0.05,L*0.8,20,fu,{life:[0.4,0.8],g:2.6,streu:0.25,mit:0.08}); }
+  kgSpaeter(0.2,()=>schall(p,v=>sfx.crackle(v*0.35)));
+};
+
+/* Feuerreif (kugel150 »Weltenbrand«): rote Chrysantheme, deren Sterne
+   nach gut einer Sekunde kurz aussetzen und golden glitzernd weiter-
+   brennen (Farbwechsel mit Dunkelphase), um die Kugel ein leicht
+   gekippter Saturnring aus orangem Feuer. Die sechs Glutnester auf dem
+   Ring sind eine Stufe (kranz:'reif', dieselbe Ebene und Bahn). Rot,
+   Orange, Gold. (28.09., Tom: echt - vorher Violett nach Gold ohne
+   Dunkelphase und ein perfekter Reif) */
+EFF.feuerreif=function(p,A,B,s,r){
+  const q=QUAL(), rot=kgMal(A||FW.rot,1.25), gold=kgMal(B||FW.gold,1.15), or=kgMal(FW.orange,1.2), G=3.2;
+  for(let i=0;i<Math.round(150*s*q);i++){ const d=randDir(), w=rand(8.5,10.5)*s, T=rand(1.05,1.25);
+    const h=kgStern(psBig,p,kgMal(d,w),rot,T+0.02,G,0,0.1);
+    kgSpaeter(T,()=>kgWechsel(h,gold,0.1,rand(1.0,1.4),G,4,0.3)); }
+  /* Saturnring: flache Ellipse in der Ebene, auf der die Glutnester liegen */
+  const [u,v]=basisBlick(p,0.9), a0=rand(0,Math.PI*2), m=Math.round(64*q);
+  for(let i=0;i<m;i++){ const a=a0+i/m*Math.PI*2+rand(-0.04,0.04), x=Math.cos(a), y=Math.sin(a)*0.25+rand(-0.02,0.02), w=11.5*s*rand(0.96,1.04);
+    kgStern(psBig,p,[(u[0]*x+v[0]*y)*w,(u[1]*x+v[1]*y)*w,(u[2]*x+v[2]*y)*w],or,rand(1.8,2.3),2.6,0,0.25); }
+};
+
+/* Sternenstaub (sternenstaub150): silberner Zeitregen (Jisa, "Time
+   Rain") - fuenfzig grosse, langsam brennende Silbersterne treiben
+   auseinander und sinken fuenf Sekunden lang, jeder rieselt zischend
+   Glitzer ab; dazu ein kurzer weisser Kern. Silber und Weiss.
+   (28.09., Tom: echt - vorher eine drehende Spiralgalaxie aus Punkten
+   in einer Nebelscheibe) */
+EFF.sternenstaub=function(p,A,B,s,r){
+  const q=QUAL(), sil=A||FW.silber, w0=B||FW.weiss, n=Math.round(15*s*q), G=2.0, fu=[1.05,1.08,1.15];
+  /* 28.09. nach dem Rendern: die Koepfe waren ruhige Punkte wie die
+     Himmelssterne - jetzt funkeln sie (Glitzersatz) und ziehen einen
+     dichten, kurzen Glitzerschweif hinter sich her */
+  for(let i=0;i<n;i++){ const d=randDir(), w=rand(5.5,7.5)*s, v=kgMal(d,w), L=rand(4.6,5.6);
+    kgStern(psHuge,p,v,kgMal(sil,1.3),L,G,4,0.12);
+    rkFunken(p,v,G,0.25,L-0.2,44,fu,{life:[0.35,0.75],g:2.2,streu:0.22,mit:0.04}); }
+  for(let i=0;i<Math.round(40*q);i++){ const d=randDir(), w=rand(2.5,4)*s; kgStern(psBig,p,kgMal(d,w),kgMal(w0,1.2),rand(1.2,1.6),2.4,0,0.05); }
+  schall(p,v=>sfx.rieseln(v*0.8,5));
+  kgSpaeter(1.5,()=>schall(p,v=>sfx.crackle(v*0.25)));
 };
 
 /* Sternkranz (sternkugel150): 16 rote Kometen fliegen als Ring in einer
-   Ebene auseinander, dann ein gemeinsames Krachen - jeder zerspringt in
-   ein Kreuz aus vier weissen Sternen: ein Kranz aus 16 kleinen "+". */
+   Ebene auseinander, dann ein gemeinsames Krachen - jeder zerspringt als
+   Crossette in ein Kreuz aus vier weissen Sternen, jedes Kreuz anders
+   gedreht: ein Kranz aus 16 kleinen "+". Rot und Weiss. */
 EFF.kreuzkranz=function(p,A,B,s,r){
-  const [u,v]=basisBlick(p,0.5), a0=rand(0,Math.PI*2), g=1.5, alt=SCHWEIF, S=FW.silber, TE=0.78+0.9;
+  const [u,v]=basisBlick(p,0.5), a0=rand(0,Math.PI*2), g=1.5, alt=SCHWEIF, TE=0.78+0.9, fu=[1,.94,.84];
   for(let k=0;k<16;k++){
-    const a=a0+k/16*Math.PI*2, ca=Math.cos(a), sa=Math.sin(a), d=[u[0]*ca+v[0]*sa,u[1]*ca+v[1]*sa,u[2]*ca+v[2]*sa], tg=[-u[0]*sa+v[0]*ca,-u[1]*sa+v[1]*ca,-u[2]*sa+v[2]*ca];
+    const a=a0+k/16*Math.PI*2+rand(-0.05,0.05), ca=Math.cos(a), sa=Math.sin(a), d=[u[0]*ca+v[0]*sa,u[1]*ca+v[1]*sa,u[2]*ca+v[2]*sa], tg=[-u[0]*sa+v[0]*ca,-u[1]*sa+v[1]*ca,-u[2]*sa+v[2]*ca];
     /* Tempo 8 statt 11 m/s*s: mit 11 lag der Kranz vom Zuendpult aus am Bildrand */
-    const w=8*s, vel=kgMal(d,w), ts=0.75+rand(-0.03,0.03);
-    SCHWEIF=0; psHuge.emit(p.x,p.y,p.z,vel[0],vel[1],vel[2],A[0]*1.3,A[1]*1.3,A[2]*1.3,ts,g,0);
+    const w=8*s*rand(0.97,1.03), vel=kgMal(d,w), ts=0.75+rand(-0.03,0.03);
+    SCHWEIF=0.05; psHuge.emit(p.x,p.y,p.z,vel[0],vel[1],vel[2],A[0]*1.3,A[1]*1.3,A[2]*1.3,ts,g,0);
     for(let i=0;i<3;i++){ const e=streu(d,0.012), ww=w*rand(0.97,1); psBig.emit(p.x,p.y,p.z,e[0]*ww,e[1]*ww,e[2]*ww,A[0]*1.6,A[1]*1.6,A[2]*1.6,ts,g,0); }
-    SCHWEIF=0.4; psBig.emit(p.x,p.y,p.z,vel[0],vel[1],vel[2],S[0]*0.9,S[1]*0.9,S[2]*0.9,ts,g,4);
-    SCHWEIF=alt; funkenSchweif(p,vel,g,ts,2,S);
-    kgSpaeter(ts,()=>{ const o=bahnOrt(p,vel,g,ts), w2=bahnTempo(vel,g,ts), a2=SCHWEIF;
+    SCHWEIF=alt;
+    /* Kometenschweif aus fallenden, streuenden Funken - 28.09. nach dem
+       Rendern: der Glitzerstern mit 0,4 s Spur zog 16 duenne Speichen
+       vom Zerlegerpunkt aus (Laser) */
+    rkFunken(p,vel,g,0.03,ts,90,fu,{life:[0.18,0.42],g:3,streu:0.9,mit:0.12});
+    kgSpaeter(ts,()=>{ const o=bahnOrt(p,vel,g,ts), w2=bahnTempo(vel,g,ts), a2=SCHWEIF, ro=rand(0,Math.PI*2), cr=Math.cos(ro), sr=Math.sin(ro);
+      const e1=[tg[0]*cr+d[0]*sr,tg[1]*cr+d[1]*sr,tg[2]*cr+d[2]*sr], e2=[-tg[0]*sr+d[0]*cr,-tg[1]*sr+d[1]*cr,-tg[2]*sr+d[2]*cr];
       SCHWEIF=0; psBig.emit(o.x,o.y,o.z,w2[0],w2[1],w2[2],2,2,2,0.034,g,0);
-      SCHWEIF=0.08;
-      for(const [e,f] of [[tg,1],[tg,-1],[d,1],[d,-1]]){ const x=7*f;
-        psBig.emit(o.x,o.y,o.z,w2[0]+e[0]*x,w2[1]+e[1]*x,w2[2]+e[2]*x,B[0]*1.6,B[1]*1.6,B[2]*1.6,TE-ts,g,0);
-        psBig.emit(o.x,o.y,o.z,w2[0]+e[0]*x*0.6,w2[1]+e[1]*x*0.6,w2[2]+e[2]*x*0.6,B[0],B[1],B[2],TE-ts,g,0); }
+      /* vier Arme als kleine Kometen: kurze Spur plus Funken - so steht ein "+" */
+      for(const [e0,f] of [[e1,1],[e1,-1],[e2,1],[e2,-1]]){ const e=streu(e0,0.08), x=9*f*rand(0.9,1.1), va=[w2[0]+e[0]*x,w2[1]+e[1]*x,w2[2]+e[2]*x];
+        SCHWEIF=0.18; psBig.emit(o.x,o.y,o.z,va[0],va[1],va[2],B[0]*1.7,B[1]*1.7,B[2]*1.7,TE-ts,g,0);
+        SCHWEIF=0.1; psBig.emit(o.x,o.y,o.z,va[0]*0.97,va[1]*0.97,va[2]*0.97,B[0],B[1],B[2],TE-ts,g,0);
+        rkFunken(o,va,g,0.02,TE-ts-0.05,34,fu,{life:[0.15,0.35],g:3,streu:0.6,mit:0.1}); }
       SCHWEIF=a2; });
   }
   kgSpaeter(0.75,()=>{ flash(p,[1,1,1],2.5+s,0.3);
     schall(p,vl=>{ for(let i=0;i<16;i++) later(Math.random()*0.05,()=>sfx.crack(vl*0.35)); }); });
 };
 
-/* Leuchtqualle (goldkrone200): pfirsichfarbener Halbkugel-Schirm mit
-   hellem Rand, der einmal langsam pulsiert; darunter wehen acht goldene
-   Brokat-Fangarme, durch die eine Welle nach unten laeuft. */
+/* Leuchtqualle (goldkrone200): echte "Jellyfish"-Bombe - eine goldene
+   Brokatglocke (dichter Glitzer, der nach oben aufgeht und nach aussen
+   und unten durchhaengt), darunter Fangarme: schwere Glitzersterne, nach
+   unten ausgestossen, die langsam mit langen Schweifen sinken. Im Schirm
+   leuchtet ein blauer Pistill (Stufe). Gold und Blau. (28.09., Tom: echt -
+   vorher ein pulsierender Pfirsich-Schirm mit gefuehrten, wehenden
+   Armen, einer Leuchtscheibe und einem Blasen-Aufstieg) */
 EFF.qualle=function(p,A,B,s,r){
-  const q=QUAL(), C=(r&&r.C)||FW.gold, [re]=kgAchsen(p), W=6.4*s, schirm=[], rand8=[], g=0.5, dreh=rand(0,Math.PI*2);
-  for(let i=0;i<Math.round(135*q);i++){ const az=rand(0,Math.PI*2), el=Math.asin(rand(Math.sin(5*Math.PI/180),Math.sin(85*Math.PI/180))), w=W*rand(0.95,1.05);
-    schirm.push(kgStern(psBig,p,[Math.cos(az)*Math.cos(el)*w,Math.sin(el)*w,Math.sin(az)*Math.cos(el)*w],A,rand(2.3,2.5),g,0,0.08)); }
-  const nr=Math.round(40*q), jeder=Math.max(1,Math.floor(nr/8));
-  for(let i=0;i<nr;i++){ const az=dreh+i/nr*Math.PI*2, el=rand(0,5)*Math.PI/180, w=W*1.02;
-    const h=kgStern(psBig,p,[Math.cos(az)*Math.cos(el)*w,Math.sin(el)*w,Math.sin(az)*Math.cos(el)*w],B,2.6,g,0,0.08);
-    if(i%jeder===0&&rand8.length<8) rand8.push({h,az}); }
-  /* einmal langsam pulsieren: 70 -> 100 -> 70 % in 1,2 s */
-  kgLauf(1.4,t=>{ if(t<0.2) return; const k=0.7+0.3*Math.sin(Math.min(1,(t-0.2)/1.2)*Math.PI);
-    for(const h of schirm) kgFarbe(h,A,k/0.85); });
-  /* Fangarme: je Arm alle 0,08 s ein Brokatstern am Rand, 1,6 s lang;
-     jeder sinkt und schwingt seitlich, die Phase laeuft den Arm hinunter */
-  const amp=0.8*s/2.5, sink=1.5*s/2.5, T0=FW_UHR;
-  rand8.forEach((ar,k)=>{ let ende=null;
-    for(let j=0;j<20;j++){ const tz=0.3+j*0.08;
-      kgSpaeter(tz,()=>{ let o;
-        if(kgLebt(ar.h)){ o=kgOrt(ar.h)[0]; ende=o; } else o=ende||kgPunkt(p,[Math.cos(ar.az),0,Math.sin(ar.az)],W/ZIEH*0.9);
-        const x0=o.x, z0=o.z, ph=rand(-0.2,0.2); let y=o.y, vy=-rand(2,3)*s/2.5;
-        fuehre(psBig,x0,y,z0,0,vy,0,C,rand(4,5),(st,dt)=>{ vy+=(-sink-vy)*Math.min(1,dt*1.5); y+=vy*dt;
-          const l=amp*Math.sin((FW_UHR-T0)*Math.PI*2/1.5-j*0.45+k*0.8+ph)*Math.min(1,st.alter*2);
-          const np=[x0+re[0]*l,y,z0+re[2]*l]; st.v=dt>0?[(np[0]-st.p[0])/dt,vy,(np[2]-st.p[2])/dt]:[0,vy,0]; st.p=np;
-          st.hell=Math.min(1,(st.life-st.alter)/1.0)*(0.75+Math.random()*0.5); },{spur:0.35}); }); } });
-  schall(p,v=>sfx.zischen(v*0.5,2.5));
+  const q=QUAL(), gold=A||FW.gold, G=3.4, fu=[1,.8,.42];
+  for(let i=0;i<Math.round(110*s*q);i++){ const d0=randDir(), d=[d0[0],Math.abs(d0[1])*0.9+0.1,d0[2]], l=Math.hypot(d[0],d[1],d[2]), w=rand(6,8)*s;
+    kgStern(psBig,p,[d[0]/l*w,d[1]/l*w+1,d[2]/l*w],gold,rand(3.0,3.8),G,4,1.1); }
+  for(let i=0;i<Math.round(16*q);i++){ const a=rand(0,Math.PI*2), el=-rand(0.9,1.4), w=rand(2.5,4)*s, v=[Math.cos(a)*Math.cos(el)*w,Math.sin(el)*w,Math.sin(a)*Math.cos(el)*w], L=rand(4.2,5.0);
+    kgStern(psHuge,p,v,kgMal(gold,1.1),L,1.6,4,1.8);
+    rkFunken(p,v,1.6,0.3,L-0.2,18,fu,{life:[0.9,1.5],g:2.2,streu:0.1,mit:0.02}); }
+  schall(p,v=>sfx.zischen(v*0.5,3));
 };
 
-/* Kaiserkrone (kaiserkrone): Meisterbombe nach japanischem Vorbild.
-   Fuenf ineinanderliegende Kugeln (Farben par.kerne, innen -> aussen)
-   in einer goldenen Brokatkrone; bei 1,0 und 1,8 s wandern die Farben
-   eine Schale nach aussen (innen wird weiss), bei 2,6 s erloeschen alle
-   Kernsterne im selben Bild. Die Krone haengt bis 8 s, zum Schluss
-   funkeln ihre Spitzen silbern. */
+/* Kaiserkrone (kaiserkrone): Meisterbombe nach japanischem Vorbild
+   (Yaeshin). Fuenf ineinanderliegende Kugeln (Farben par.kerne, innen ->
+   aussen) in einer goldenen Brokatkrone; bei 1,0 und 1,8 s wandern die
+   Farben eine Schale nach aussen (innen wird weiss), bei 2,6 s erloeschen
+   alle Kernsterne im selben Bild (Kiekuchi). Die Krone haengt bis 8 s,
+   zum Schluss funkeln ihre Spitzen silbern. */
 EFF.fuenfkern=function(p,A,B,s,r){
-  const q=QUAL(), kerne=(r&&r.kerne)||['weiss','zitrone','rot','violett','indigo'].map(K);
-  const V=[2.5,4.5,6.5,8.5,10.5], N=[30,50,70,90,110], schalen=[], krone=[], F=0.8;
+  const q=QUAL(), kerne=(r&&r.kerne)||['weiss','violett','weiss','violett','weiss'].map(K);
+  const V=[2.5,4.5,6.5,8.5,10.5], N=[30,50,70,90,110], schalen=[], krone=[], F=0.8, HK=1.6;   // HK: Kerne heller als die Goldkrone - sonst gingen sie darin unter (Render 28.09.)
   let farben=kerne.slice(0,5);
   for(let k=0;k<5;k++){ const hs=[], n=Math.round(N[k]*q);
-    for(let i=0;i<n;i++){ const d=randDir(), w=V[k]*s*F*rand(0.97,1.03); hs.push(kgStern(psBig,p,kgMal(d,w),farben[k],4,0.3,0,0.06)); }
+    /* Schwere 2,4 wie jeder Stern - mit 0,3 standen die Kerne in der Luft (28.09.) */
+    for(let i=0;i<n;i++){ const d=randDir(), w=V[k]*s*F*rand(0.97,1.03); hs.push(kgStern(psBig,p,kgMal(d,w),kgMal(farben[k],HK),4,2.4,0,0.08)); }
     schalen.push(hs); }
   for(let i=0;i<Math.round(240*q);i++){ const d=randDir(), w=11.5*s*F*rand(0.95,1.02), L=rand(7.6,8.3);
-    krone.push(kgStern(psBig,p,kgMal(d,w),A,L,3.3,4,1.6)); }
+    krone.push(kgStern(psBig,p,kgMal(d,w),A,L,3.3,4,0.8)); }   // Spur 0,8 s: mit 1,6 s liefen gerade Speichen bis in die Mitte (Laser)
   /* Verwandlung: jede Schale nimmt die Farbe ihrer inneren Nachbarin */
   const henka=()=>{ farben=[FW.weiss].concat(farben.slice(0,4));
-    schalen.forEach((hs,k)=>{ for(const h of hs) kgFarbe(h,farben[k],1.8); });
-    kgSpaeter(0.05,()=>schalen.forEach((hs,k)=>{ for(const h of hs) kgFarbe(h,farben[k]); })); };
+    schalen.forEach((hs,k)=>{ for(const h of hs) kgFarbe(h,farben[k],HK); }); };   // ohne Aufblitzen, wie ein echter Wechselstern
   kgSpaeter(1.0,henka); kgSpaeter(1.8,henka);
   /* Kiekuchi: alle Kernsterne im selben Bild aus, ohne Geraeusch */
   kgSpaeter(2.6,()=>schalen.forEach(hs=>hs.forEach(kgAus)));
@@ -295,9 +289,9 @@ EFF.zehnfach=function(p,A,B,s,r){
   flash({x:p.x,y:p.y,z:p.z},FW.weiss,6*s,0.4);
 };
 
-/* Spurlaengen und Familien der neuen Bilder (mitSchweif, effPassen) */
-Object.assign(EFF_SCHWEIF,{palmeninsel:1.1,chamaeleon:0,eiskristall:0.1,haengeweide:2.8,galaxie:0.12,kreuzkranz:0.35,qualle:0.1,fuenfkern:1.6});
-Object.assign(EFF_FAMILIE,{palmeninsel:'haenger',chamaeleon:'kugel',eiskristall:'figur',haengeweide:'haenger',galaxie:'figur',kreuzkranz:'knister',qualle:'haenger',fuenfkern:'kugel'});
+/* Spurlaengen und Familien der Hauptbilder (mitSchweif, effPassen) */
+Object.assign(EFF_SCHWEIF,{palmeninsel:0.12,chamaeleon:0.06,eiskristall:0.06,haengeweide:2.8,feuertropfen:0.25,feuerreif:0.1,sternenstaub:0.1,kreuzkranz:0.35,qualle:1.1,fuenfkern:0.8});
+Object.assign(EFF_FAMILIE,{palmeninsel:'haenger',chamaeleon:'kugel',eiskristall:'kugel',haengeweide:'haenger',feuertropfen:'flamme',feuerreif:'kugel',sternenstaub:'haenger',kreuzkranz:'knister',qualle:'haenger',fuenfkern:'kugel'});
 
 /* ---------- Die Sorten (Katalog, verbindlich) ---------- */
 Object.assign(KUGEL,{
@@ -308,60 +302,59 @@ Object.assign(KUGEL,{
             {t:0.80,eff:'herz',sz:0.40,A:'weiss',B:'rot',leise:true}]},    // "-DUMM"
   palmenkugel75:{kal:1,sz:2.10,pw:2.1,fuse:1.70,th:'wald',haupt:'palmeninsel',A:'gold',B:'tuerkis',C:'bernstein',
     steig:'gold', bruchOpt:{kern:false,nachglitzer:false}, stufen:[]},
-  farbenmeer75:{kal:1,sz:2.20,pw:2.4,fuse:1.72,th:'tropen',haupt:'chamaeleon',A:'limette',B:'tuerkis',C:'orange',
+  farbenmeer75:{kal:1,sz:2.20,pw:2.4,fuse:1.72,th:'tropen',haupt:'chamaeleon',A:'gruen',B:'orange',
     steig:'silber', bruchOpt:{kern:false,nachglitzer:false}, stufen:[]},
   /* 100 mm - zwei Stufen */
   kristallkugel100:{kal:2,sz:2.60,pw:3.8,fuse:1.85,th:'eis',haupt:'eiskristall',A:'tuerkis',B:'weiss',
-    steig:'blink', bruchOpt:{kern:false,nachglitzer:false},
-    stufen:[{t:0.45,eff:'eiskristall',sz:0.45,A:'weiss',B:'himmel',dreh:0.785,leise:true}]},   // Kristall im Kristall
+    steig:'blink', bruchOpt:{kern:false,nachglitzer:false}, stufen:[]},
   kugel100:{kal:2,sz:2.70,pw:4.0,fuse:1.85,th:'glut',haupt:'drachenblut',A:'rot',B:'scharlach',
-    steig:'glut',
-    stufen:[{t:0.04,eff:'pistill',sz:0.40,A:'gold',B:'orange',leise:true},     // Drachenauge
-            {t:1.30,eff:'flammenregen',sz:0.75,A:'orange',B:'rot'}]},           // Tropfen fangen Feuer
+    steig:'glut', bruchOpt:{nachglitzer:false},
+    stufen:[{t:0.04,eff:'pistill',sz:0.40,A:'gold',B:'orange',leise:true},            // Drachenauge
+            {t:KG_TROPF_T,eff:'feuertropfen',sz:1.0,A:'orange',B:'rot',leise:true}]},  // Tropfen fangen Feuer
   goldweide100:{kal:2,sz:2.80,pw:4.6,fuse:1.90,th:'gold',haupt:'haengeweide',A:'bernstein',B:'limette',
     steig:'komet', bruchOpt:{kern:false,nachglitzer:false,flash:0.3}, ton:'poka',
     stufen:[{t:0.05,eff:'pistill',sz:0.28,A:'limette',B:'gruen',leise:true}]},
   /* 150 mm - drei Stufen */
-  kugel150:{kal:3,sz:3.25,pw:5.8,fuse:2.00,th:'himmel',haupt:'weltenbrand',A:'violett',B:'gold',
-    steig:'knister',
-    stufen:[{t:0.04,eff:'pistill',sz:0.42,A:'rot',B:'gold',leise:true},              // Glutkern
+  kugel150:{kal:3,sz:3.25,pw:5.8,fuse:2.00,th:'glut',haupt:'feuerreif',A:'rot',B:'gold',
+    steig:'knister', bruchOpt:{nachglitzer:false},
+    stufen:[{t:0.04,eff:'pistill',sz:0.42,A:'gold',B:'rot',leise:true},              // Glutkern
             {t:1.50,eff:'tausend',sz:0.26,A:'orange',B:'gold',n:6,kranz:'reif'}]},  // Glut springt ueber
-  sternenstaub150:{kal:3,sz:3.30,pw:6.0,fuse:2.00,th:'nacht',haupt:'galaxie',A:'silber',B:'himmel',C:'gold',
-    steig:'wirbel', bruchOpt:{kern:false,nachglitzer:false}, stufen:[]},
+  sternenstaub150:{kal:3,sz:3.30,pw:6.0,fuse:2.00,th:'silber',haupt:'sternenstaub',A:'silber',B:'weiss',
+    steig:'silber', bruchOpt:{kern:false,nachglitzer:false}, stufen:[]},
   sternkugel150:{kal:3,sz:3.45,pw:6.4,fuse:2.05,th:'rotweiss',haupt:'kreuzkranz',A:'rot',B:'weiss',
     steig:'pfeif', bruchOpt:{kern:false,nachglitzer:false},
     stufen:[{t:0.90,eff:'knister',sz:0.30,A:'silber',B:'weiss'}]},   // Knisterkern in der Kranzmitte
   /* 200 mm - Bewegung im Bild */
   kugel200:{kal:4,sz:3.95,pw:7.8,fuse:2.15,th:'zorn',haupt:'zehnfach',A:'magenta',B:'gold',drall:0.30,
-    steig:'ticktack',
-    stufen:[{t:0.50,eff:'pistill',sz:0.30,n:10,kranz:0.55,drall:-0.40,A:'zitrone',B:'violett'},   // inneres Rad, gegenlaeufig
-            {t:1.60,eff:'wechsel',sz:0.28,A:'gold',B:'weiss'}]},                                    // Nabe
-  goldkrone200:{kal:4,sz:4.10,pw:8.3,fuse:2.15,th:'tropen',haupt:'qualle',A:'pfirsich',B:'rose',C:'gold',
-    steig:'blasen', bruchOpt:{kern:false,nachglitzer:false}, ton:'wumms',   // weiches "Wumpf" statt Knall (Spezifikation qualle)
-    stufen:[{t:0.60,eff:'strobe',sz:0.22,A:'blau',B:'himmel',leise:true,lage:'schirm'}]},   // Leuchtorgan im Schirm
+    steig:'brokat', bruchOpt:{kern:false,nachglitzer:false},   // 28.09.: ohne Leuchtball in der leeren Mitte
+    stufen:[{t:0.50,eff:'pistill',sz:0.30,n:10,kranz:0.55,drall:-0.40,A:'gold',B:'magenta',bruchOpt:{kern:false}},   // inneres Rad, gegenlaeufig (ohne Kern: sonst zehn Leuchtkugeln)
+            {t:1.60,eff:'wechsel',sz:0.28,A:'gold',B:'weiss'}]},                                // Nabe
+  goldkrone200:{kal:4,sz:4.10,pw:8.3,fuse:2.15,th:'gold',haupt:'qualle',A:'gold',B:'blau',
+    steig:'glut', bruchOpt:{kern:false,nachglitzer:false}, ton:'wumms',   // weiches "Wumpf" statt Knall
+    stufen:[{t:0.04,eff:'pistill',sz:0.30,A:'blau',B:'blau',leise:true}]},   // Leuchtorgan: blauer Pistill in der Glocke (28.09.: vorher blaue Blinker ueber dem Schirm - Punkte)
   /* 300 mm - Meisterbomben */
   kugel300:{kal:5,sz:4.75,pw:10.8,fuse:2.30,th:'silber',haupt:'himmelsbrecher',A:'silber',B:'himmel',
     steig:'titanspur', stehen:1,                              // Titanlinie bleibt 1 s als Funkenvorhang
     stufen:[{t:0.06,eff:'glitzerweide',sz:0.80,A:'silber',B:'weiss',leise:true},     // Silberweide
             {t:0.55,eff:'dahlie',sz:0.20,A:'weiss',B:'silber',risse:{strahlen:6,je:4,r:[8,23],dt:0.15,zack:0.10}}]},   // 24 Splitter
   kaiserkrone:{kal:5,sz:5.00,pw:11.5,fuse:2.40,th:'koenig',haupt:'fuenfkern',
-    kerne:['weiss','zitrone','rot','violett','indigo'], A:'gold',B:'silber',
-    steig:'silberdrache', kobana:3, bruchOpt:{kern:false,nachglitzer:false}, stufen:[]}
+    kerne:['weiss','violett','weiss','violett','weiss'], A:'gold',B:'silber',
+    steig:'gold', kobana:3, bruchOpt:{kern:false,nachglitzer:false}, stufen:[]}   // 28.09.: gerader Goldschweif statt Schlangenlinie
 });
 
 /* Signaturen: je Kugel genau ein Hauptbild, das es sonst nirgends gibt */
 Object.assign(SIGNATUR,{
   kugel75:{eff:'herz',text:'Herz, das zweimal schlägt'},
-  palmenkugel75:{eff:'palmeninsel',text:'Palme im Lagunenring, Kokosnüsse fallen'},
-  farbenmeer75:{eff:'chamaeleon',text:'Farbe wandert durch die stehende Kugel'},
-  kristallkugel100:{eff:'eiskristall',text:'Kristall im Kristall, rieselt als Diamantstaub'},
+  palmenkugel75:{eff:'palmeninsel',text:'Goldpalme mit türkisem Kern, Kokosnüsse fallen'},
+  farbenmeer75:{eff:'chamaeleon',text:'Geisterbombe: Grün wird Stern für Stern Orange'},
+  kristallkugel100:{eff:'eiskristall',text:'Türkise Kugel mit weißem Blinkkern, zerfällt zu Diamantstaub'},
   kugel100:{eff:'drachenblut',text:'Blutrote Dahlie tropft und fängt Feuer'},
   goldweide100:{eff:'haengeweide',text:'zehn Sekunden Goldweide bis fast zum Boden, grüne Spitzen'},
-  kugel150:{eff:'weltenbrand',text:'Farbwechsel-Chrysantheme mit Feuerreif, Glut springt über'},
-  sternenstaub150:{eff:'galaxie',text:'drehende Spiralgalaxie aus schimmerndem Staub'},
+  kugel150:{eff:'feuerreif',text:'Rot wird Gold mit Dunkelphase, Saturnring, Glut springt über'},
+  sternenstaub150:{eff:'sternenstaub',text:'silberner Zeitregen, fünf Sekunden Sternenstaub'},
   sternkugel150:{eff:'kreuzkranz',text:'Ring aus Kometen, die zu 16 Kreuzen zerplatzen'},
   kugel200:{eff:'zehnfach',text:'zwei gegenläufige Räder aus zehn Blüten'},
-  goldkrone200:{eff:'qualle',text:'Qualle mit wehenden Fangarmen, Aufstieg aus Luftblasen'},
+  goldkrone200:{eff:'qualle',text:'Brokatglocke mit sinkenden Fangarmen, blaues Leuchtorgan'},
   kugel300:{eff:'himmelsbrecher',text:'Himmel reißt in sechs Linien, 24 Splitterbrüche, Silberweide'},
   kaiserkrone:{eff:'fuenfkern',text:'fünf Kerne verwandeln sich und erlöschen gleichzeitig in der Goldkrone'}
 });

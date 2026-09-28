@@ -86,48 +86,6 @@ function buildZaun(){
   const lo=LAY.sued.z0, nO=Math.max(1,Math.round((lo-T.z0)/8));
   for(let i=0;i<nO;i++) warnSchild(T.x1-0.12,T.z0+(i+0.5)*(lo-T.z0)/nO,-Math.PI/2);
 }
-/* Strassenleuchte: Sockel, konischer Mast, Ausleger, echter Leuchtenkopf */
-function strassenlampe(x,z,dir){
-  const g=new THREE.Group(); g.position.set(x,0,z); g.rotation.y=dir||0; scene.add(g);
-  const mast=std(0x4b515c,{metalness:0.62,roughness:0.38});
-  const dunkel=std(0x2a2e38,{metalness:0.5,roughness:0.5});
-  /* Fundamentsockel mit Revisionsklappe */
-  const so=new THREE.Mesh(new THREE.CylinderGeometry(0.15,0.19,0.34,14),dunkel);
-  so.position.y=0.17; if(HIQ) so.castShadow=true; g.add(so);
-  bbox(0.1,0.16,0.02,std(0x6a7078,{metalness:0.6}),0,0.2,0.185,g,false);
-  const flansch=new THREE.Mesh(new THREE.CylinderGeometry(0.16,0.16,0.03,14),dunkel);
-  flansch.position.y=0.35; g.add(flansch);
-  for(let i=0;i<4;i++){ const a=i/4*Math.PI*2;
-    bbox(0.035,0.03,0.035,std(0x7d838c,{metalness:0.7}),Math.cos(a)*0.13,0.37,Math.sin(a)*0.13,g,false); }
-  /* konischer Mast */
-  const m1=new THREE.Mesh(new THREE.CylinderGeometry(0.075,0.11,4.4,14),mast);
-  m1.position.y=2.57; if(HIQ) m1.castShadow=true; g.add(m1);
-  /* Bogen als kurze Segmente */
-  const R=0.9, seg=7;
-  for(let i=0;i<seg;i++){
-    const a0=i/seg*(Math.PI/2), a1=(i+1)/seg*(Math.PI/2);
-    const x0=Math.sin(a0)*R, y0=R-Math.cos(a0)*R, x1=Math.sin(a1)*R, y1=R-Math.cos(a1)*R;
-    const len=Math.hypot(x1-x0,y1-y0);
-    const b=new THREE.Mesh(new THREE.CylinderGeometry(0.062,0.066,len*1.08,10),mast);
-    b.position.set(0,4.77+ (y0+y1)/2, (x0+x1)/2);
-    b.rotation.x=Math.atan2(x1-x0,y1-y0);
-    g.add(b);
-  }
-  /* Leuchtenkopf mit Wanne */
-  const kopf=new THREE.Group(); kopf.position.set(0,5.63,0.9); kopf.rotation.x=0.06; g.add(kopf);
-  const geh=rbox(0.3,0.11,0.82,0.04,std(0x3b414c,{metalness:0.55,roughness:0.4}),0,0.06,0,kopf);
-  bbox(0.26,0.03,0.74,std(0x71787f,{metalness:0.6}),0,0.005,0,kopf,false);
-  const lm=new THREE.MeshStandardMaterial({color:LIN(0x23262e),emissive:LIN(0xffe9c0),emissiveIntensity:0});
-  lampMats.push(lm);
-  const wanne=new THREE.Mesh(new THREE.BoxGeometry(0.24,0.045,0.7),lm);
-  wanne.position.set(0,-0.02,0); kopf.add(wanne);
-  /* Halterung und Deckel */
-  bbox(0.16,0.09,0.16,std(0x2f343e,{metalness:0.5}),0,0.06,-0.44,kopf,false);
-  bbox(0.24,0.02,0.6,std(0x4d535d,{metalness:0.6}),0,0.125,0.02,kopf,false);
-  col(x-0.22,x+0.22,z-0.22,z+0.22);
-  return g;
-}
-
 /* =========================================================
    Straße: Häuserzeile, Autos, Bäume, Stadtmöbel
    ========================================================= */
@@ -1570,15 +1528,984 @@ function buildMuelleimer(x,z,ry){
   col(x-0.26,x+0.26,z-0.26,z+0.26);
   return g;
 }
+/* =========================================================
+   Strassenraum (Tom, 26.09.: "Laeden gegenueber, Hochhaeuser und
+   alles drum herum nochmal deutlich schoener und hochwertiger in
+   der 3D"). Vorher: schwarze Kritzel-Risse im Asphalt, ein grauer
+   Balken als Bordstein, zwei Mittellinien (eine lief unter den
+   parkenden Autos durch), nur auf unserer Seite Laternen und nachts
+   eine pechschwarze Strasse.
+   Jetzt: Asphalt mit Splittkorn, Flickstellen und vergossenen Fugen,
+   Granitbord mit Fase und Rinne, Plattengehweg, Markierungen nach
+   StVO, Moeblierung gegenueber und Lichtpfuetzen unter den Laternen.
+   Alles Kleinteilige wird je Material zu EINEM Mesh verschmolzen -
+   die ganze Moeblierung kostet so nur eine Handvoll Draw-Calls.
+   ========================================================= */
+/* Bordkanten (Fahrbahnseite), Parkstreifen, Leitlinie, Zebrastreifen */
+const STR={zN:11.1, zS:17.3, park:14.9, mitte:13.0, zebra:33, X:100};
+/* Absenkungen der Borde: Hofzufahrt und Ueberweg (unsere Seite endet bei x 38) */
+const BORD_ABS_N=[[-30.2,-19.8],[STR.zebra-1.6,STR.zebra+1.6]], BORD_ABS_S=[[STR.zebra-1.6,STR.zebra+1.6]];
+/* Gehweghoehe (28.09., Tom: "alles drum herum deutlich schoener"): der
+   Gehweg lag auf Fahrbahnhoehe, der Bord stand als 12-cm-Schwelle
+   dazwischen. Jetzt liegt er am Bord buendig mit dessen Ruecken und
+   faellt zu den Haeusern auf 1 cm ab - an Tueren und Fussmatten bleibt
+   alles, wie es war. Kunden und Stadtmoebel stehen auf dieser Hoehe. */
+function gwH(x,z,nord){
+  if(nord){ const zN=STR.zN-0.2; return 0.012+(0.008+0.1*bordHoch(x,BORD_ABS_N))*clamp((z-7.5)/(zN-7.5),0,1); }
+  const zS=STR.zS+0.2; return 0.012+(0.008+0.1*bordHoch(x,BORD_ABS_S))*clamp((22.4-z)/(22.4-zS),0,1);
+}
+function gehwegY(x,z){
+  if(z>=5.8&&z<=STR.zN-0.2&&x>-STR.X&&x<38&&(x<-30.2||x>-19.8)) return gwH(x,z,true);
+  if(z>=STR.zS+0.2&&z<=24&&Math.abs(x)<STR.X) return gwH(x,z,false);
+  return 0;
+}
+/* ---------- Sammler: Teile je Material, am Ende verschmolzen ---------- */
+let _stS={}, _stM=new THREE.Matrix4(), _strMats=null;
+function stOrt(x,z,ry){ _stM=tm(x,gehwegY(x,z),z,0,ry||0,0); }
+function stM(k,geo,m,farbe){ (_stS[k]=_stS[k]||[]).push({geo,m:_stM.clone().multiply(m),color:farbe}); }
+function mT(k,geo,x,y,z,rx,ry,rz,farbe){ stM(k,geo,tm(x,y,z,rx,ry,rz),farbe); }
+/* Rohr von a nach b (lokale Koordinaten des aktuellen Orts) */
+const _yAchse=new THREE.Vector3(0,1,0);
+function stRohr(k,a,b,r,farbe,seg){
+  const d=new THREE.Vector3(b[0]-a[0],b[1]-a[1],b[2]-a[2]), l=d.length();
+  const q=new THREE.Quaternion().setFromUnitVectors(_yAchse,d.normalize());
+  stM(k,new THREE.CylinderGeometry(r,r,l,seg||8,1,true),new THREE.Matrix4().compose(V((a[0]+b[0])/2,(a[1]+b[1])/2,(a[2]+b[2])/2),q,V(1,1,1)),farbe);
+}
+/* UV einer Geometrie in ein Rechteck des Schildatlas legen (Pixel, 1024er Atlas) */
+function atlasUV(geo,x0,y0,x1,y1){
+  const uv=geo.attributes.uv;
+  for(let i=0;i<uv.count;i++) uv.setXY(i,(x0+uv.getX(i)*(x1-x0))/1024,1-(y1-uv.getY(i)*(y1-y0))/1024);
+  return geo;
+}
+function strMats(){
+  if(_strMats) return _strMats;
+  const at=schildAtlas();
+  const lampe=new THREE.MeshStandardMaterial({color:LIN(0x23262e),emissive:LIN(0xffe9c0),emissiveIntensity:0}); lampMats.push(lampe);
+  /* Werbevitrine der Haltestelle: nachts von innen beleuchtet */
+  const leucht=new THREE.MeshStandardMaterial({map:at,emissiveMap:at,emissive:LIN(0x9a9a9a),emissiveIntensity:0,roughness:0.3}); lampMats.push(leucht);
+  _strMats={
+    lack:lichtMat(std(0xffffff,{vertexColors:true,metalness:0.5,roughness:0.42})),
+    matt:lichtMat(std(0xffffff,{vertexColors:true,roughness:0.88})),
+    schild:lichtMat(new THREE.MeshStandardMaterial({map:at,roughness:0.45,metalness:0.1})),
+    glas:new THREE.MeshStandardMaterial({color:LIN(0xcfdde8),transparent:true,opacity:0.2,roughness:0.06,metalness:0.3,depthWrite:false}),
+    lampe, leucht
+  };
+  return _strMats;
+}
+function stFertig(){
+  const M=strMats();
+  for(const k in _stS){ const t=_stS[k]; if(!t.length) continue;
+    const geo=merge(t);
+    const o=new THREE.Mesh(lichtUV2(geo),M[k]); o.userData.strasse=k;
+    if(HIQ&&k!=='glas'){ o.castShadow=true; o.receiveShadow=true; }
+    scene.add(o); }
+  _stS={};
+}
+/* Flaechen aus Dreiecken mit Farbe je Ecke. Die Dreiecke werden nach
+   der Richtung h gedreht, damit die Normale stimmt. */
+function bauer(){
+  const P=[],U=[],C=[];
+  const o={
+    tri(a,b,c,h){
+      const ux=b.p[0]-a.p[0],uy=b.p[1]-a.p[1],uz=b.p[2]-a.p[2], vx=c.p[0]-a.p[0],vy=c.p[1]-a.p[1],vz=c.p[2]-a.p[2];
+      const nx=uy*vz-uz*vy, ny=uz*vx-ux*vz, nz=ux*vy-uy*vx;
+      if(nx*h[0]+ny*h[1]+nz*h[2]<0){ const t=b; b=c; c=t; }
+      for(const q of [a,b,c]){ P.push(q.p[0],q.p[1],q.p[2]); U.push(q.u[0],q.u[1]); C.push(q.c[0],q.c[1],q.c[2]); }
+    },
+    quad(a,b,c,d,h){ o.tri(a,b,c,h||[0,1,0]); o.tri(a,c,d,h||[0,1,0]); },
+    leer:()=>!P.length,
+    geo(){ const g=new THREE.BufferGeometry();
+      g.setAttribute('position',new THREE.Float32BufferAttribute(P,3)); g.setAttribute('uv',new THREE.Float32BufferAttribute(U,2));
+      g.setAttribute('color',new THREE.Float32BufferAttribute(C,3)); g.computeVertexNormals(); g.computeBoundingSphere(); return g; }
+  };
+  return o;
+}
+const ecke=(x,y,z,u,v,c)=>({p:[x,y,z],u:[u,v],c:c||[1,1,1]});
+const grau=f=>[f,f,f];
+/* Streifen laengs einer Linie in der Ebene y: pts [[x,z],...] */
+function streifen(B,pts,w,y,c,uvf){
+  for(let i=0;i<pts.length-1;i++){
+    const [x0,z0]=pts[i], [x1,z1]=pts[i+1], l=Math.hypot(x1-x0,z1-z0)||1, nx=-(z1-z0)/l*w/2, nz=(x1-x0)/l*w/2;
+    const e=(x,z)=>{ const [u,v]=uvf(x,z); return ecke(x,y,z,u,v,c); };
+    B.quad(e(x0+nx,z0+nz),e(x1+nx,z1+nz),e(x1-nx,z1-nz),e(x0-nx,z0-nz));
+  }
+}
+/* ---------- Texturen ---------- */
+/* Asphalt: 4 x 4 m, feines Splittkorn statt Kritzel-Rissen. Dieselben
+   Koerner liefern die Hoehe fuer die Normal-Map - bei tief stehender
+   Sonne glitzert die Decke leicht. */
+let _asphT=null, _asphN=null;
+function asphaltTex(){
+  if(_asphT) return _asphT;
+  const korn=(g,W,H,hoehe)=>{ const R=saat(4711);
+    for(let i=0;i<52000;i++){ const x=R()*W|0, y=R()*H|0, t=R(), a=R(), s=R()<0.82?1:2;
+      if(hoehe) g.fillStyle=t<0.45?`rgba(0,0,0,${0.3+a*0.4})`:`rgba(255,255,255,${0.3+a*0.5})`;
+      else g.fillStyle=t<0.45?`rgba(16,17,20,${0.2+a*0.35})`:t<0.9?`rgba(158,158,156,${0.12+a*0.3})`:`rgba(196,176,154,${0.15+a*0.3})`;
+      g.fillRect(x,y,s,s); } };
+  const t=tex(512,512,(g,W,H)=>{
+    g.fillStyle='#4f5258'; g.fillRect(0,0,W,H);
+    /* flaue Wolken: Alterung und Walzspuren, nahtlos gekachelt */
+    const R=saat(99);
+    for(let i=0;i<44;i++){ const x=R()*W, y=R()*H, r=30+R()*110, hell=R()<0.45, a=0.035+R()*0.05;
+      for(const ox of [-W,0,W]) for(const oy of [-H,0,H]){
+        const gr=g.createRadialGradient(x+ox,y+oy,0,x+ox,y+oy,r);
+        gr.addColorStop(0,hell?`rgba(150,152,150,${a})`:`rgba(18,20,24,${a*1.3})`); gr.addColorStop(1,'rgba(0,0,0,0)');
+        g.fillStyle=gr; g.fillRect(x+ox-r,y+oy-r,r*2,r*2); } }
+    korn(g,W,H,false);
+  });
+  t.wrapS=t.wrapT=THREE.RepeatWrapping; t.anisotropy=8;
+  const n=normalMapFrom(512,512,(g,W,H)=>{ g.fillStyle='#808080'; g.fillRect(0,0,W,H); korn(g,W,H,true); },1.6);
+  if(n) n.wrapS=n.wrapT=THREE.RepeatWrapping;
+  _asphN=n;
+  _asphT=t; return t;
+}
+/* Gehwegplatten 30 x 30 cm, Kachel 2,4 m */
+function gehwegTex(){
+  const t=tex(512,512,(g,W,H)=>{ const R=saat(31), P=64;
+    g.fillStyle='#5d5f63'; g.fillRect(0,0,W,H);
+    for(let j=0;j<8;j++) for(let i=0;i<8;i++){
+      const b=142+R()*24|0, w=R()<0.15?6:0;
+      g.fillStyle=`rgb(${b+w},${b+1},${b+3})`; g.fillRect(i*P+1.5,j*P+1.5,P-3,P-3);
+      /* leichte Schattenkante unten rechts, abgeplatzte Ecke ab und zu */
+      g.fillStyle='rgba(0,0,0,.07)'; g.fillRect(i*P+1.5,j*P+P-4,P-3,2.5); g.fillRect(i*P+P-4,j*P+1.5,2.5,P-3);
+      if(R()<0.18){ g.fillStyle='#6a6c70'; g.beginPath(); const cx=i*P+(R()<0.5?2:P-2), cy=j*P+(R()<0.5?2:P-2); g.arc(cx,cy,3+R()*4,0,Math.PI*2); g.fill(); }
+    }
+    for(let k=0;k<16000;k++){ const a=R(); g.fillStyle=R()<0.5?`rgba(0,0,0,${a*0.12})`:`rgba(255,255,255,${a*0.12})`; g.fillRect(R()*W,R()*H,1.5,1.5); }
+    /* Kaugummiflecken, Salzraender, Schmutz */
+    for(let k=0;k<26;k++){ g.fillStyle=`rgba(38,38,40,${0.25+R()*0.3})`; g.beginPath(); g.arc(R()*W,R()*H,1.5+R()*2.5,0,Math.PI*2); g.fill(); }
+    for(let k=0;k<10;k++){ const x=R()*W,y=R()*H,r=20+R()*50, gr=g.createRadialGradient(x,y,0,x,y,r);
+      gr.addColorStop(0,R()<0.5?'rgba(235,238,240,.10)':'rgba(40,38,34,.08)'); gr.addColorStop(1,'rgba(0,0,0,0)'); g.fillStyle=gr; g.fillRect(x-r,y-r,r*2,r*2); }
+  });
+  t.wrapS=t.wrapT=THREE.RepeatWrapping; t.anisotropy=8; return t;
+}
+/* Eine Reihe Steine, nahtlos ueber den Kachelrand: der letzte Stein
+   schliesst genau an den ersten an, was rechts uebersteht, kommt links wieder */
+function steinReihe(R,W,y,h,wmin,wmax,mal){
+  const o=R()*wmin; let x=o;
+  while(x<o+W-1){ let w=wmin+R()*(wmax-wmin); if(o+W-x<w+wmin*0.8) w=o+W-x;
+    mal(x,y,w,h); if(x+w>W) mal(x-W,y,w,h); x+=w; }
+}
+/* Kleinpflaster aus Granit (Baumstreifen), Kachel 1,6 m */
+function pflasterTex(){
+  const t=tex(512,512,(g,W,H)=>{ const R=saat(57);
+    g.fillStyle='#3f4144'; g.fillRect(0,0,W,H);
+    for(let r=0;r<16;r++) steinReihe(R,W,r*32,32,26,36,(x,y,w,h)=>{
+      const b=110+R()*50|0, blau=R()<0.3?8:0, warm=R()<0.25?10:0;
+      g.fillStyle=`rgb(${b+warm},${b},${b+blau})`; g.fillRect(x+1.5,y+1.5,w-3,h-3);
+      const gr=g.createLinearGradient(x,y,x+w,y+h); gr.addColorStop(0,'rgba(255,255,255,.12)'); gr.addColorStop(1,'rgba(0,0,0,.14)');
+      g.fillStyle=gr; g.fillRect(x+1.5,y+1.5,w-3,h-3); });
+    for(let k=0;k<9000;k++){ g.fillStyle=R()<0.5?'rgba(0,0,0,.15)':'rgba(255,255,255,.14)'; g.fillRect(R()*W,R()*H,1.5,1.5); }
+  });
+  t.wrapS=t.wrapT=THREE.RepeatWrapping; t.anisotropy=8; return t;
+}
+/* Granit: oben der Bordstein (1 m Stein, Profil abgewickelt),
+   unten die Rinne aus drei Reihen Grosspflaster */
+function granitTex(){
+  const t=tex(512,512,(g,W,H)=>{ const R=saat(13);
+    const speck=(y0,y1,n)=>{ for(let k=0;k<n;k++){ const t2=R(); g.fillStyle=t2<0.4?`rgba(25,25,28,${0.3+R()*0.4})`:t2<0.8?`rgba(235,235,232,${0.2+R()*0.4})`:`rgba(170,140,130,${0.3+R()*0.3})`; g.fillRect(R()*W,y0+R()*(y1-y0),1.5+R(),1.5+R()); } };
+    g.fillStyle='#9c9d9b'; g.fillRect(0,0,W,256);
+    /* Ansichtsflaeche zur Fahrbahn: Spritzwasser und Streusalz */
+    const gr=g.createLinearGradient(0,0,0,70); gr.addColorStop(0,'rgba(40,42,46,.55)'); gr.addColorStop(1,'rgba(40,42,46,0)');
+    g.fillStyle=gr; g.fillRect(0,0,W,70);
+    g.fillStyle='rgba(255,255,255,.08)'; g.fillRect(0,78,W,70);          // abgelaufene Oberseite
+    speck(0,256,9000);
+    g.fillStyle='rgba(30,30,32,.75)'; g.fillRect(0,0,2,256); g.fillRect(W-2,0,2,256);   // Stossfuge
+    /* Rinne */
+    g.fillStyle='#34363a'; g.fillRect(0,256,W,256);
+    for(let r=0;r<3;r++) steinReihe(R,W,256+r*85,85,48,76,(x,y,w,h)=>{ const b=95+R()*45|0;
+      g.fillStyle=`rgb(${b},${b},${b+4})`; g.fillRect(x+2.5,y+2.5,w-5,h-5);
+      const q=g.createLinearGradient(0,y,0,y+h); q.addColorStop(0,'rgba(255,255,255,.10)'); q.addColorStop(1,'rgba(0,0,0,.18)'); g.fillStyle=q; g.fillRect(x+2.5,y+2.5,w-5,h-5); });
+    speck(256,512,6000);
+  });
+  t.wrapS=THREE.RepeatWrapping; t.anisotropy=8; return t;
+}
+/* Guss: links Schachtdeckel, rechts Rost des Strassenablaufs */
+function gussTex(){
+  return tex(512,256,(g,W,H)=>{ const R=saat(3);
+    g.fillStyle='#2e3034'; g.fillRect(0,0,W,H);
+    const cx=128, cy=128;
+    g.fillStyle='#3a3c40'; g.beginPath(); g.arc(cx,cy,126,0,Math.PI*2); g.fill();
+    g.strokeStyle='#1c1d20'; g.lineWidth=5; g.beginPath(); g.arc(cx,cy,112,0,Math.PI*2); g.stroke();
+    /* Rautenmuster */
+    g.save(); g.beginPath(); g.arc(cx,cy,104,0,Math.PI*2); g.clip();
+    for(let y=-120;y<130;y+=14) for(let x=-120;x<130;x+=14){ g.fillStyle=((x+y)/14)%2?'#46484d':'#26282b'; g.fillRect(cx+x+2,cy+y+2,9,9); }
+    g.restore();
+    g.fillStyle='#2a2c30'; g.beginPath(); g.arc(cx,cy,34,0,Math.PI*2); g.fill();
+    g.fillStyle='#9a9ca0'; g.font='bold 22px sans-serif'; g.textAlign='center'; g.textBaseline='middle'; g.fillText('KANAL',cx,cy);
+    for(let k=0;k<2500;k++){ g.fillStyle=R()<0.5?`rgba(120,80,50,${R()*0.18})`:`rgba(255,255,255,${R()*0.08})`; g.fillRect(R()*256,R()*256,2,2); }
+    /* Rost */
+    g.fillStyle='#3b3d41'; g.fillRect(262,40,244,176);
+    for(let i=0;i<11;i++){ g.fillStyle='#08090a'; g.fillRect(278+i*20.5,58,12,140); }
+    g.strokeStyle='#55575c'; g.lineWidth=4; g.strokeRect(264,42,240,172);
+  });
+}
+/* Pfuetzenformen, 4 x 2 im Atlas: ueberlagerte weiche Flecken, dann
+   auf eine Schwelle gezogen - Wasser hat eine klare, unregelmaessige
+   Kante. Mit dem weichen Rand wirkten sie wie ein Farbschleier.
+   28.09.: dazu ein nasser, dunkler Rand (zweite Schwelle, halbe Deckung,
+   matt), im Wasser Kraeuselung als Normal- und Rauheitskarte. Mit
+   glatter Flaeche zeigte jede Pfuetze nur EINEN Spiegelton und las
+   sich als Farbfleck statt als Wasser. a: Deckung, r: Rauheit, n: Normalen,
+   w: nasser Rand */
+let _pfT=null;
+function pfuetzenTex(){
+  if(_pfT) return _pfT;
+  const W=1024, H=512, f=new Float32Array(W*H), R=saat(1231);
+  const a=tex(W,H,(g)=>{
+    g.fillStyle='#000'; g.fillRect(0,0,W,H); g.globalCompositeOperation='lighter';
+    for(let k=0;k<8;k++){ const x0=(k%4)*256, y0=Math.floor(k/4)*256;
+      g.save(); g.beginPath(); g.rect(x0,y0,256,256); g.clip();
+      for(let i=0;i<11;i++){ const cx=x0+60+R()*136, cy=y0+84+R()*88, r=18+R()*46;
+        g.save(); g.translate(cx,cy); g.scale(1,0.5+R()*0.45);
+        const gr=g.createRadialGradient(0,0,0,0,0,r); gr.addColorStop(0,'rgba(255,255,255,.6)'); gr.addColorStop(1,'rgba(255,255,255,0)');
+        g.fillStyle=gr; g.fillRect(-r,-r,r*2,r*2); g.restore(); }
+      g.restore(); }
+    g.globalCompositeOperation='source-over';
+    const d=g.getImageData(0,0,W,H), p=d.data;
+    for(let i=0;i<W*H;i++){ const x=i%W, y=i/W|0, r=Math.min(x%256,255-x%256,y%256,255-y%256);
+      f[i]=p[i*4+1]*clamp(r/18,0,1);
+      p[i*4]=p[i*4+1]=p[i*4+2]=clamp((f[i]-120)/26,0,1)*255; }
+    g.putImageData(d,0,0);
+  },false);
+  /* nasser Rand: weich auslaufend, eigene matte Schicht - im Pfuetzen-
+     material haette die Spiegelung den dunklen Rand wieder aufgehellt */
+  const w=tex(W,H,(g)=>{ g.fillStyle='#000'; g.fillRect(0,0,W,H); const d=g.getImageData(0,0,W,H), p=d.data;
+    for(let i=0;i<W*H;i++){ const v=clamp((f[i]-36)/74,0,1); p[i*4]=p[i*4+1]=p[i*4+2]=v*v*(3-2*v)*255; p[i*4+3]=255; }
+    g.putImageData(d,0,0); },false);
+  /* Kraeuselung: ein paar schraege Wellenzuege, im Kern kraeftig */
+  const hoehe=(x,y)=>Math.sin(x*0.21+y*0.07)*0.5+Math.sin(x*0.05-y*0.19+1.3)*0.6+Math.sin(x*0.37+y*0.29+2.1)*0.25+Math.sin(x*0.013+y*0.031)*1.2;
+  const r=tex(W,H,(g)=>{ g.fillStyle='#000'; g.fillRect(0,0,W,H); const d=g.getImageData(0,0,W,H), p=d.data;
+    for(let i=0;i<W*H;i++){ const x=i%W, y=i/W|0, kern=clamp((f[i]-120)/26,0,1), w=0.5+0.5*Math.sin(hoehe(x,y)*2.3);
+      p[i*4]=p[i*4+1]=p[i*4+2]=(kern*(0.04+0.16*w)+(1-kern)*0.75)*255; p[i*4+3]=255; }
+    g.putImageData(d,0,0); },false);
+  const n=tex(W,H,(g)=>{ g.fillStyle='#8080ff'; g.fillRect(0,0,W,H); const d=g.getImageData(0,0,W,H), p=d.data;
+    for(let i=0;i<W*H;i++){ const x=i%W, y=i/W|0, kern=clamp((f[i]-100)/40,0,1); if(!kern) continue;
+      const h0=hoehe(x,y), nx=-(hoehe(x+1,y)-h0)*kern*1.4, ny=(hoehe(x,y+1)-h0)*kern*1.4, l=Math.hypot(nx,ny,1);
+      p[i*4]=(nx/l*0.5+0.5)*255; p[i*4+1]=(ny/l*0.5+0.5)*255; p[i*4+2]=(1/l*0.5+0.5)*255; }
+    g.putImageData(d,0,0); },false);
+  return _pfT={a,r,n,w};
+}
+/* Graue Umgebung nur fuer die Pfuetzen: heller Himmel, dunkle
+   Haeuserkante. Die bunte Autoumgebung faerbte die Pfuetzen gruen
+   oder blau wie Oel (28.09.). */
+let _pfEnv=null;
+function pfuetzenUmgebung(){
+  if(_pfEnv!==null) return _pfEnv||null;
+  _pfEnv=false;
+  try{
+    if(!THREE.PMREMGenerator) return null;
+    const R=saat(515), t=tex(512,256,(g,W,H)=>{
+      const gr=g.createLinearGradient(0,0,0,H); gr.addColorStop(0,'#9ea3a9'); gr.addColorStop(0.46,'#d6d9dc'); gr.addColorStop(0.5,'#e2e4e6');
+      gr.addColorStop(0.52,'#3a3b3d'); gr.addColorStop(1,'#1d1e1f'); g.fillStyle=gr; g.fillRect(0,0,W,H);
+      /* Fassaden mittelhell mit dunklen Fenstern: im Kraeuseln bricht
+         die Spiegelung in helle und dunkle Flecken - daran liest man Wasser */
+      for(let x=0;x<W;){ const w=14+R()*34, h=6+R()*24, v=92+R()*70|0; g.fillStyle=`rgb(${v},${v},${v+3})`;
+        g.fillRect(x,H*0.5-h,w,h);
+        g.fillStyle='rgba(20,22,26,.75)'; for(let y=H*0.5-h+3;y<H*0.5-4;y+=6) for(let xx=x+3;xx<x+w-4;xx+=6) g.fillRect(xx,y,3,3);
+        x+=w+R()*5; }
+    });
+    t.mapping=THREE.EquirectangularReflectionMapping;
+    const pm=new THREE.PMREMGenerator(renderer);
+    _pfEnv=pm.fromEquirectangular(t).texture; pm.dispose();
+  }catch(e){ _pfEnv=false; }
+  return _pfEnv||null;
+}
+/* Schneerand an der Hauswand: 4 m Kachel, oben (Wand) dicht, zur
+   Strasse hin ausgefranst, mit Tauloechern */
+function schneeRandTex(){
+  const t=tex(512,64,(g,W,H)=>{ const R=saat(88);
+    g.fillStyle='#000'; g.fillRect(0,0,W,H);
+    const tief=[]; let d=0.5;
+    for(let x=0;x<W;x++){ d+=(R()-0.5)*0.08; d=clamp(d,0.15,0.9); tief.push(d); }
+    /* nahtlos: Enden aufeinander zu ziehen */
+    for(let x=0;x<32;x++){ const k=x/32; tief[W-32+x]=tief[W-32+x]*(1-k)+tief[0]*k; }
+    for(let x=0;x<W;x++){ const y0=H*(1-tief[x]);
+      const gr=g.createLinearGradient(0,y0-3,0,y0+3); gr.addColorStop(0,'rgba(255,255,255,0)'); gr.addColorStop(1,'rgba(255,255,255,1)');
+      g.fillStyle=gr; g.fillRect(x,y0-3,1,H-y0+3); }
+    g.fillStyle='#000'; for(let k=0;k<60;k++){ g.beginPath(); g.arc(R()*W,H*(0.3+R()*0.5),1+R()*2.5,0,Math.PI*2); g.fill(); }
+  },false);
+  t.wrapS=THREE.RepeatWrapping; return t;
+}
+/* Abnutzung der Markierungsfarbe (Alpha, 1,5-m-Kachel) */
+function abriebTex(){
+  const t=tex(256,256,(g,W,H)=>{ const R=saat(77);
+    g.fillStyle='#fff'; g.fillRect(0,0,W,H);
+    for(let k=0;k<320;k++){ g.fillStyle=`rgba(0,0,0,${0.5+R()*0.5})`; g.beginPath(); g.arc(R()*W,R()*H,0.6+R()*1.4,0,Math.PI*2); g.fill(); }
+    for(let k=0;k<7;k++){ const x=R()*W,y=R()*H,r=10+R()*22, gr=g.createRadialGradient(x,y,0,x,y,r);
+      gr.addColorStop(0,'rgba(0,0,0,.75)'); gr.addColorStop(1,'rgba(0,0,0,0)'); g.fillStyle=gr; g.fillRect(x-r,y-r,r*2,r*2); }
+  },false);
+  t.wrapS=t.wrapT=THREE.RepeatWrapping; return t;
+}
+/* Schildatlas 1024 x 1024: Plakate, Verkehrszeichen, Automat, Kasten */
+let _atlasT=null;
+function schildAtlas(){
+  if(_atlasT) return _atlasT;
+  _atlasT=tex(1024,1024,(g,W,H)=>{ const R=saat(21);
+    g.fillStyle='#d8d4ca'; g.fillRect(0,0,W,H);
+    /* Schrift passt sich der Breite an (maxW), sonst lief sie ueber den Plakatrand */
+    const txt=(s,x,y,px,farbe,font,al,maxW)=>{ g.fillStyle=farbe; const f=n=>`${font||'bold'} ${n}px "Barlow Condensed", Arial, sans-serif`;
+      if(maxW) px=fitFont(g,s,maxW,px,f); g.font=f(px); g.textAlign=al||'center'; g.textBaseline='middle'; g.fillText(s,x,y); };
+    /* --- Litfasssaeule: Plakatwand, 1024 x 512 --- */
+    const pl=[['#10254d','SILVESTER','GALA','31.12. · STADTHALLE','#f2c14e'],['#f4efe2','NEUJAHRS','KONZERT','1. Januar · 17 Uhr','#8c1c24'],
+      ['#c8322a','ZIRKUS','ROMANI','bis 6. Januar','#fff3c4'],['#1f6b4a','FLOHMARKT','am Hafen','jeden Sonntag','#f5f1e6'],
+      ['#f2c230','KNALLER','PREISE!','Feuerwerk ab 28.12.','#1a1a1a'],['#2c2f36','KINO','DIE NACHT','ab Donnerstag','#e8e2d0']];
+    let x=0;
+    for(const [bg,a,b,c,fg] of pl){ const w=W/pl.length;
+      g.fillStyle=bg; g.fillRect(x,0,w,512);
+      txt(a,x+w/2,120,54,fg,0,0,w-22); txt(b,x+w/2,190,46,fg,0,0,w-22); txt(c,x+w/2,300,24,fg,'600',0,w-16);
+      g.fillStyle=fg; g.globalAlpha=0.35; g.fillRect(x+18,230,w-36,4); g.globalAlpha=1;
+      /* Knitter und Kleisterkanten */
+      for(let k=0;k<5;k++){ g.fillStyle=`rgba(255,255,255,${R()*0.06})`; g.fillRect(x+R()*w,0,2+R()*4,512); }
+      g.fillStyle='rgba(0,0,0,.18)'; g.fillRect(x+w-3,0,3,512);
+      x+=w; }
+    g.fillStyle='rgba(0,0,0,.12)'; g.fillRect(0,400,W,112);
+    txt('Stadtwerke · Kulturamt · Plakatierung verboten',W/2,470,20,'#e8e4da','600');
+    /* --- Verkehrszeichen, je 128 px, Zeile y 512 --- */
+    const blau='#1d5fae';
+    const rr=(x,y,w,h,r,f)=>{ g.fillStyle=f; g.beginPath(); g.moveTo(x+r,y); g.arcTo(x+w,y,x+w,y+h,r); g.arcTo(x+w,y+h,x,y+h,r); g.arcTo(x,y+h,x,y,r); g.arcTo(x,y,x+w,y,r); g.fill(); };
+    /* Z 350 Fussgaengerueberweg */
+    rr(0,512,128,128,12,'#fff'); rr(5,517,118,118,9,blau);
+    g.fillStyle='#fff'; g.beginPath(); g.moveTo(64,530); g.lineTo(116,622); g.lineTo(12,622); g.closePath(); g.fill();
+    g.fillStyle='#111'; for(let i=0;i<4;i++) g.fillRect(30+i*18,606,11,10);
+    g.beginPath(); g.arc(66,561,6,0,Math.PI*2); g.fill();
+    g.strokeStyle='#111'; g.lineWidth=6; g.lineCap='round'; g.beginPath(); g.moveTo(64,569); g.lineTo(60,588); g.lineTo(52,602); g.moveTo(60,588); g.lineTo(70,601);
+    g.moveTo(63,574); g.lineTo(52,584); g.moveTo(63,574); g.lineTo(74,582); g.stroke();
+    /* Z 314 Parken */
+    rr(128,512,128,128,12,'#fff'); rr(133,517,118,118,9,blau); txt('P',192,578,104,'#fff','900');
+    /* Z 224 Haltestelle */
+    g.fillStyle='#1a7a3a'; g.beginPath(); g.arc(320,576,62,0,Math.PI*2); g.fill();
+    g.fillStyle='#f5c800'; g.beginPath(); g.arc(320,576,54,0,Math.PI*2); g.fill(); txt('H',320,580,80,'#1a7a3a','900');
+    /* Z 274.1 Tempo-30-Zone */
+    rr(384,512,128,128,8,'#f6f6f2'); g.strokeStyle='#222'; g.lineWidth=2; g.strokeRect(388,516,120,120);
+    g.fillStyle='#c8102e'; g.beginPath(); g.arc(448,564,38,0,Math.PI*2); g.fill(); g.fillStyle='#fff'; g.beginPath(); g.arc(448,564,29,0,Math.PI*2); g.fill();
+    txt('30',448,566,36,'#111','900'); txt('ZONE',448,620,26,'#111','800');
+    /* Zusatzzeichen */
+    rr(512,512,128,62,5,'#222'); rr(514,514,124,58,4,'#fff'); txt('mit Parkschein',576,543,21,'#111','700');
+    rr(512,578,128,62,5,'#222'); rr(514,580,124,58,4,'#fff'); txt('Mo–Sa 8–20 h',576,609,22,'#111','700');
+    /* Haltestellenname */
+    rr(640,512,256,64,6,'#1a7a3a'); txt('Marktstraße',768,545,38,'#fff','700');
+    /* Leerfeld fuer Blechrueckseiten */
+    g.fillStyle='#8f959c'; g.fillRect(896,512,128,128);
+    /* --- City-Light-Plakat 256 x 384 (y 640) --- */
+    const cg=g.createLinearGradient(0,640,0,1024); cg.addColorStop(0,'#1d3f96'); cg.addColorStop(1,'#5b2a8e'); g.fillStyle=cg; g.fillRect(0,640,256,384);
+    for(let k=0;k<5;k++){ const bx=40+R()*176, by=690+R()*150, br=20+R()*34, f=['#ffd35a','#ff5a6e','#6ee7ff','#b388ff','#8dff9a'][k];
+      g.strokeStyle=f; g.lineWidth=2;
+      for(let a=0;a<24;a++){ const w=a/24*Math.PI*2; g.globalAlpha=0.9; g.beginPath(); g.moveTo(bx+Math.cos(w)*br*0.25,by+Math.sin(w)*br*0.25); g.lineTo(bx+Math.cos(w)*br,by+Math.sin(w)*br); g.stroke(); }
+      g.globalAlpha=1; }
+    txt('SILVESTER',128,900,40,'#ffd35a','900'); txt('PARTY',128,944,40,'#fff','900'); txt('31.12. · ab 21 Uhr',128,990,20,'#cfd6ff','600');
+    /* --- Fahrplan 128 x 160 (x 256, y 640) --- */
+    g.fillStyle='#fbfbf6'; g.fillRect(256,640,128,160); g.fillStyle='#1a7a3a'; g.fillRect(256,640,128,24); txt('Linie 42',320,652,16,'#fff','700');
+    g.fillStyle='#555'; for(let k=0;k<11;k++) g.fillRect(264,672+k*11,40+R()*70,4);
+    /* --- Parkscheinautomat, Front 128 x 256 (x 384, y 640) --- */
+    g.fillStyle='#9aa1a8'; g.fillRect(384,640,128,256);
+    rr(396,650,104,50,6,blau); txt('P',424,676,38,'#fff','900'); txt('Parkschein',470,676,14,'#fff','700');
+    g.fillStyle='#1b2a22'; g.fillRect(404,712,88,38); txt('0,50 €',448,731,20,'#9fe8a8','700');
+    for(let r=0;r<3;r++) for(let c=0;c<3;c++){ g.fillStyle='#e6e8ea'; g.fillRect(410+c*28,762+r*22,20,15); }
+    g.fillStyle='#111'; g.fillRect(420,836,56,6); g.fillRect(430,856,36,5);
+    g.fillStyle='#f2c230'; g.fillRect(396,876,104,12);
+    /* --- Kabelverteiler, Tuer 256 x 256 (x 512, y 640) --- */
+    g.fillStyle='#c7c4b6'; g.fillRect(512,640,256,256);
+    g.strokeStyle='rgba(0,0,0,.35)'; g.lineWidth=3; g.strokeRect(522,650,110,236); g.strokeRect(646,650,112,236);
+    g.fillStyle='#555'; g.fillRect(622,760,6,20); g.fillRect(650,760,6,20);
+    g.fillStyle='#f2c230'; g.beginPath(); g.moveTo(690,700); g.lineTo(716,746); g.lineTo(664,746); g.closePath(); g.fill(); txt('⚡',690,730,22,'#111');
+    g.save(); g.translate(560,820); g.rotate(-0.12); txt('RKZ',0,0,40,'#2d4f9e','900'); g.restore();
+    g.fillStyle='#e8e2d2'; g.fillRect(540,690,50,34); g.fillStyle='#c8322a'; g.fillRect(544,694,42,8);
+    for(let k=0;k<3000;k++){ g.fillStyle=`rgba(60,50,40,${R()*0.08})`; g.fillRect(512+R()*256,640+R()*256,2,2); }
+    const sm=g.createLinearGradient(0,840,0,896); sm.addColorStop(0,'rgba(60,55,45,0)'); sm.addColorStop(1,'rgba(60,55,45,.35)'); g.fillStyle=sm; g.fillRect(512,840,256,56);
+    /* --- Sitzbank Holz 128 x 64 (x 768, y 640) --- */
+    g.fillStyle='#8a5a36'; g.fillRect(768,640,256,64); for(let k=0;k<6;k++){ g.fillStyle='rgba(0,0,0,.15)'; g.fillRect(768,650+k*10,256,2); }
+  });
+  _atlasT.anisotropy=8; return _atlasT;
+}
+/* Strassenschrift "30" und "BUS" mit Alpha */
+function strSchrift(){
+  const t=tex(512,256,(g,W,H)=>{ g.clearRect(0,0,W,H);
+    g.fillStyle='#fff'; g.textAlign='center'; g.textBaseline='middle';
+    g.font='bold 230px "Barlow Condensed", Arial, sans-serif'; g.fillText('30',128,134);
+    g.font='bold 150px "Barlow Condensed", Arial, sans-serif'; g.fillText('BUS',384,134);
+    /* Abrieb */
+    const R=saat(8); g.globalCompositeOperation='destination-out';
+    for(let k=0;k<700;k++){ g.fillStyle=`rgba(0,0,0,${0.5+R()*0.5})`; g.beginPath(); g.arc(R()*W,R()*H,0.8+R()*2.4,0,Math.PI*2); g.fill(); }
+    g.globalCompositeOperation='source-over';
+  });
+  return t;
+}
+
+/* ---------- Leuchte ---------- */
+/* Die Teile einer Leuchte in lokalen Koordinaten; add(k,geo,matrix,farbe) */
+function lampTeile(add){
+  const D=0x2a2e38, MA=0x4b515c, C=(a,b,h,s)=>new THREE.CylinderGeometry(a,b,h,s);
+  add('lack',C(0.15,0.19,0.34,14),tm(0,0.17,0),D);
+  add('lack',new THREE.BoxGeometry(0.1,0.16,0.02),tm(0,0.2,0.185),0x6a7078);
+  add('lack',C(0.16,0.16,0.03,14),tm(0,0.35,0),D);
+  for(let i=0;i<4;i++){ const a=i/4*Math.PI*2; add('lack',new THREE.BoxGeometry(0.035,0.03,0.035),tm(Math.cos(a)*0.13,0.37,Math.sin(a)*0.13),0x7d838c); }
+  add('mast',C(0.075,0.11,4.4,14),tm(0,2.57,0),MA);
+  /* Bogen als kurze Segmente */
+  const R=0.9, seg=7;
+  for(let i=0;i<seg;i++){
+    const a0=i/seg*(Math.PI/2), a1=(i+1)/seg*(Math.PI/2);
+    const x0=Math.sin(a0)*R, y0=R-Math.cos(a0)*R, x1=Math.sin(a1)*R, y1=R-Math.cos(a1)*R;
+    add('lack',C(0.062,0.066,Math.hypot(x1-x0,y1-y0)*1.08,10),tm(0,4.77+(y0+y1)/2,(x0+x1)/2,Math.atan2(x1-x0,y1-y0),0,0),MA);
+  }
+  /* Leuchtenkopf mit Wanne, Halterung und Deckel */
+  const K=tm(0,5.63,0.9,0.06,0,0), k=(geo,x,y,z,c,key)=>add(key||'lack',geo,K.clone().multiply(tm(x,y,z)),c);
+  k(roundedBoxGeo(0.3,0.11,0.82,0.04),0,0.06,0,0x3b414c);
+  k(new THREE.BoxGeometry(0.26,0.03,0.74),0,0.005,0,0x71787f);
+  k(new THREE.BoxGeometry(0.24,0.045,0.7),0,-0.02,0,0xffffff,'lampe');
+  k(new THREE.BoxGeometry(0.16,0.09,0.16),0,0.06,-0.44,0x2f343e);
+  k(new THREE.BoxGeometry(0.24,0.02,0.6),0,0.125,0.02,0x4d535d);
+}
+/* Nachtlicht der Leuchten (Tom, 26.09.: "alles drum herum deutlich
+   hochwertiger"). Zuerst lagen additive Flaechen ueber dem Boden: sie
+   faerbten den Asphalt sandfarben, und wo Flicken und Markierungen per
+   polygonOffset nach vorn gezogen waren, fehlten sie ganz (schwarze
+   Balken im Zebrastreifen). Jetzt traegt eine Lichtkarte (20 cm je
+   Pixel) das Licht aller Strassenleuchten; die Bodenmaterialien lesen
+   sie als lightMap ueber uv2 aus der Weltlage. Das Licht wird so mit
+   der Bodenfarbe multipliziert - weisse Streifen leuchten, Asphalt
+   bleibt dunkelgrau - und kostet keinen Draw-Call. Nur Leuchten
+   ausserhalb der Karte (Hof) bekommen noch eine Flaeche. */
+const LICHTER=[], LICHT_MATS=[];
+const LK={x0:-102.4,z0:2.6,w:204.8,d:25.6,px:5};      /* 1024 x 128 Pixel */
+let _lichtK=null, _strLichtM=null, _lichtFertig=false;
+function lichtKarte(){
+  if(_lichtK) return _lichtK;
+  _lichtK=tex(1024,128,(g,W,H)=>{ g.fillStyle='#000'; g.fillRect(0,0,W,H); },false);
+  _lichtK.wrapS=_lichtK.wrapT=THREE.ClampToEdgeWrapping;
+  /* die Tageszeit setzt an lampMats emissiveIntensity = f*3 */
+  /* 1,7 war zu zaghaft: nachts lag die Strasse gleichmaessig dunkel, die
+     Lichtpfuetzen waren kaum zu sehen (26.09., Tom: "nachts ist die
+     Strasse dunkel") */
+  /* 3,8 war zu viel: lightMap wird noch mit PI multipliziert, auch der
+     Rand der Pfuetzen lief ueber, und unser Gehweg lag nachts so hell
+     und gleichmaessig wie am Tag (27.09.). Jetzt 2,6 und ein steilerer
+     Abfall - zwischen den Leuchten wird es wieder dunkler. */
+  lampMats.push({set emissiveIntensity(v){ const k=v/3*2.6; for(const m of LICHT_MATS) m.lightMapIntensity=k; }});
+  return _lichtK;
+}
+const imLicht=p=>p.x>LK.x0+9&&p.x<LK.x0+LK.w-9&&p.z>LK.z0+6&&p.z<LK.z0+LK.d-6;
+function lichtKarteMalen(){
+  redraw(lichtKarte(),(g,W,H)=>{
+    g.globalCompositeOperation='source-over'; g.fillStyle='#000'; g.fillRect(0,0,W,H);
+    g.globalCompositeOperation='lighter';
+    for(const p of LICHTER){ if(!imLicht(p)) continue;
+      /* breit laengs der Strasse, schmaler quer; Mitte etwas zur Fahrbahn */
+      /* enger als zuerst (8 m): bei 7 m Abstand flossen die Pfuetzen zu
+         einer gleichmaessig grauen Flaeche zusammen */
+      /* gegenueber zum Gehweg geschoben (28.09.): mitten auf der Fahrbahn
+         lag die Pfuetze hinter den parkenden Autos verborgen; auf unserer
+         Seite etwas naeher an den Gehweg, seit die Masten weiter stehen */
+      g.save(); g.translate((p.x-LK.x0)*LK.px,(p.z+(p.s>0?0.3:0.95)-LK.z0)*LK.px); g.scale(1,0.7);
+      const r=7*LK.px, gr=g.createRadialGradient(0,0,0,0,0,r);
+      gr.addColorStop(0,'rgba(255,224,182,1)'); gr.addColorStop(0.1,'rgba(255,222,179,.93)'); gr.addColorStop(0.28,'rgba(255,216,170,.55)');
+      gr.addColorStop(0.48,'rgba(255,211,163,.2)'); gr.addColorStop(0.72,'rgba(255,207,158,.05)'); gr.addColorStop(1,'rgba(255,205,155,0)');
+      g.fillStyle=gr; g.fillRect(-r,-r,r*2,r*2); g.restore(); }
+    g.globalCompositeOperation='source-over';
+    /* Rand schwarz: ausserhalb liest ClampToEdge den Rand */
+    g.strokeStyle='#000'; g.lineWidth=2; g.strokeRect(0,0,W,H);
+  });
+}
+function lichtMat(m){ m.lightMap=lichtKarte(); m.lightMapIntensity=0; LICHT_MATS.push(m); return m; }
+/* uv2 fuer die Lichtkarte aus der Weltlage (mx: Lage des Meshes; von
+   Hand gerechnet, der Logik-Stub der Tests kennt kein applyMatrix4) */
+function lichtUV2(geo,mx){
+  const p=geo.attributes.position, a=new Float32Array(p.count*2), e=mx&&mx.elements;
+  for(let i=0;i<p.count;i++){ let x=p.getX(i), y=p.getY(i), z=p.getZ(i);
+    if(e){ const wx=e[0]*x+e[4]*y+e[8]*z+e[12], wz=e[2]*x+e[6]*y+e[10]*z+e[14]; x=wx; z=wz; }
+    a[i*2]=(x-LK.x0)/LK.w; a[i*2+1]=1-(z-LK.z0)/LK.d; }
+  geo.setAttribute('uv2',new THREE.BufferAttribute(a,2)); return geo;
+}
+function nachtMat(m,maxOp){
+  Object.defineProperty(m,'emissiveIntensity',{configurable:true,get(){ return m.opacity*3/maxOp; },set(v){ m.opacity=maxOp*v/3; m.visible=v>0.01; }});
+  m.visible=false; lampMats.push(m); return m;
+}
+/* Lichtkegel im Schneetreiben: nur ein Hauch, zum Rand hin (Kegel von
+   der Seite gesehen) ausgeblendet - mit harter Kontur standen sie wie
+   Suchscheinwerfer im Nachthimmel */
+function kegelMat(){
+  const m=new THREE.ShaderMaterial({uniforms:{st:{value:0},fa:{value:new THREE.Color(1,0.8,0.58)}},
+    vertexShader:'varying float vK,vH; void main(){ vec4 mv=modelViewMatrix*vec4(position,1.0); vK=abs(dot(normalize(normalMatrix*normal),normalize(-mv.xyz))); vH=uv.y; gl_Position=projectionMatrix*mv; }',
+    fragmentShader:'uniform float st; uniform vec3 fa; varying float vK,vH; void main(){ gl_FragColor=vec4(fa*st*vK*vK*vK*(0.15+0.85*vH*vH),1.0); }',
+    transparent:true,blending:THREE.AdditiveBlending,depthWrite:false});
+  Object.defineProperty(m,'emissiveIntensity',{set(v){ m.uniforms.st.value=v/3*0.07; m.visible=v>0.01; }});
+  m.visible=false; lampMats.push(m); return m;
+}
+function lichtMats(){
+  if(_strLichtM) return _strLichtM;
+  const pf=tex(256,256,(g,W,H)=>{ const gr=g.createRadialGradient(W/2,H/2,0,W/2,H/2,W/2);
+    gr.addColorStop(0,'rgba(255,232,196,1)'); gr.addColorStop(0.3,'rgba(255,226,186,.72)'); gr.addColorStop(0.58,'rgba(255,218,172,.3)'); gr.addColorStop(0.82,'rgba(255,210,160,.08)'); gr.addColorStop(1,'rgba(255,205,155,0)');
+    g.fillStyle='#000'; g.fillRect(0,0,W,H); g.fillStyle=gr; g.fillRect(0,0,W,H); });
+  _strLichtM={
+    pf:nachtMat(new THREE.MeshBasicMaterial({map:pf,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false,fog:false}),0.45),
+    ke:kegelMat()
+  };
+  return _strLichtM;
+}
+/* Kegel fuer alle, Flaeche nur fuer Leuchten ausserhalb der Lichtkarte */
+function lichtBauen(L){
+  if(!L.length) return;
+  const M=lichtMats(), pg=[], kg=[];
+  const PG=new THREE.PlaneGeometry(13,9.5), KG=new THREE.CylinderGeometry(0.18,2.3,5.5,18,1,true);
+  for(const p of L){
+    if(!imLicht(p)) pg.push({geo:PG,m:tm(p.x,0.03,p.z,-Math.PI/2,0,0)});
+    kg.push({geo:KG,m:tm(p.x,p.y-2.78,p.z)});
+  }
+  if(pg.length){ const a=new THREE.Mesh(merge(pg),M.pf); a.renderOrder=3; scene.add(a); }
+  const b=new THREE.Mesh(merge(kg),M.ke); b.renderOrder=4; scene.add(b);
+}
+/* Strassenleuchte: Sockel, konischer Mast, Ausleger, echter Leuchtenkopf.
+   Einzeln gebaut kostet sie drei Draw-Calls (Mast, Rest, Wanne) statt
+   gut zwanzig; mit sammeln=true landet sie ganz im Sammler. Der Mast
+   bleibt einzeln ein Zylinder - daran erkennt der Baumtest die Laterne. */
+function strassenlampe(x,z,dir,sammeln){
+  const a=dir||0, p={x:x+Math.sin(a)*0.9, z:z+Math.cos(a)*0.9, y:5.6, s:Math.cos(a)};
+  LICHTER.push(p);
+  if(_lichtFertig){ lichtBauen([p]); if(imLicht(p)) lichtKarteMalen(); }
+  col(x-0.22,x+0.22,z-0.22,z+0.22);
+  if(sammeln){ stOrt(x,z,a); lampTeile((k,geo,m,c)=>stM(k==='mast'?'lack':k,geo,m,c)); return null; }
+  const y=gehwegY(x,z), g=new THREE.Group(); g.position.set(x,y,z); g.rotation.y=a; scene.add(g);
+  const T={}, M=strMats(), W=tm(x,y,z,0,a,0);
+  lampTeile((k,geo,m,c)=>{
+    if(k==='mast'){ const o=new THREE.Mesh(geo.applyMatrix4(m),std(c,{metalness:0.62,roughness:0.38})); if(HIQ) o.castShadow=true; g.add(o); }
+    else (T[k]=T[k]||[]).push({geo,m,color:c}); });
+  for(const k in T){ const o=new THREE.Mesh(lichtUV2(merge(T[k]),W),M[k]); if(HIQ&&k==='lack') o.castShadow=true; g.add(o); }
+  return g;
+}
+
+/* ---------- Fahrbahn ---------- */
+const uvWelt=(x,z)=>[0.5+x/200,0.5-z/200];      /* wie die grosse Bodenflaeche */
+/* Hoehe des Bordsteins: 1 = Hochbord, 0 = abgesenkt (Zufahrt, Ueberweg) */
+function bordHoch(x,abs){ let k=1; for(const [a,b] of abs){ if(x>a-1&&x<b+1) k=Math.min(k,x<a?a-x:x>b?x-b:0); } return k; }
+/* Profil quer zur Kante: Ansicht, Fase, 15 cm Oberseite, dann steil
+   hinunter auf den Gehweg. Die Rueckseite lief erst 25 cm flach aus -
+   von oben sah der Bord wie ein 45 cm breites helles Band aus. Auch
+   10 cm Schraege lagen noch als dunkle Fuge im Eigenschatten zwischen
+   Pflaster und Bord (27.09., Tom: "alles drum herum deutlich schoener"):
+   jetzt faellt der Ruecken auf 2 cm, das Pflaster laeuft bis heran. */
+const BORD_B=0.2;
+function bordProfil(k){ const h=0.02+0.1*k;
+  return [[0,0],[0,h-0.02],[0.025,h+0.01],[0.175,h+0.008],[0.19,h+0.002],[BORD_B,h]]; }
+/* Bordstein von x0 bis x1, Fahrbahnkante bei zR, Gehweg in Richtung s */
+function bordstein(B,x0,x1,zR,s,abs){
+  /* Die Richtung je Profilabschnitt ist seine Aussennormale. Vorher
+     galt fuer alle [0,1,-s] - der Ruecken zum Gehweg wurde dadurch zur
+     Fahrbahn gewendet und stand von der Strasse aus als dunkle Fuge
+     zwischen Pflaster und Bord (27.09.). */
+  const R=saat(Math.round(zR*10));
+  const xs=[x0]; for(let x=Math.floor(x0)+1;x<x1;x++) xs.push(x); xs.push(x1);
+  for(let i=0;i<xs.length-1;i++){
+    const xa=xs[i], xb=xs[i+1], pa=bordProfil(bordHoch(xa,abs)), pb=bordProfil(bordHoch(xb,abs));
+    const f=0.82+R()*0.14, c=[f,f,f*0.99], ua=xa, ub=xb;
+    let L=0;
+    for(let j=0;j<pa.length-1;j++){
+      const l=Math.hypot(pa[j+1][0]-pa[j][0],pa[j+1][1]-pa[j][1]), v0=1-L/0.6*0.5, v1=1-(L+l)/0.6*0.5; L+=l;
+      B.quad(ecke(xa,pa[j][1],zR+s*pa[j][0],ua,v0,c),ecke(xb,pb[j][1],zR+s*pb[j][0],ub,v0,c),
+             ecke(xb,pb[j+1][1],zR+s*pb[j+1][0],ub,v1,c),ecke(xa,pa[j+1][1],zR+s*pa[j+1][0],ua,v1,c),
+             [0,pa[j+1][0]-pa[j][0],-s*(pa[j+1][1]-pa[j][1])]);
+    }
+    /* Rinne: drei Reihen Grosspflaster vor dem Bord */
+    const g=0.9+R()*0.12, cr=[g*0.92,g*0.92,g*0.95];
+    B.quad(ecke(xa,0.005,zR,ua,0.5,cr),ecke(xb,0.005,zR,ub,0.5,cr),ecke(xb,0.005,zR-s*0.3,ub,0.02,cr),ecke(xa,0.005,zR-s*0.3,ua,0.02,cr));
+  }
+  /* Stirnseiten */
+  for(const [x,sx] of [[x0,-1],[x1,1]]){ const p=bordProfil(bordHoch(x,abs));
+    for(let j=1;j<p.length-1;j++) B.tri(ecke(x,p[0][1],zR,0,0.6),ecke(x,p[j][1],zR+s*p[j][0],0.2,0.7),ecke(x,p[j+1][1],zR+s*p[j+1][0],0.3,0.8),[sx,0,0]);
+    B.tri(ecke(x,0,zR,0,0.6),ecke(x,p[p.length-1][1],zR+s*p[p.length-1][0],0.3,0.8),ecke(x,0,zR+s*BORD_B,0.1,0.9),[sx,0,0]); }
+}
+/* Flaeche in Weltkoordinaten (Gehweg, Pflaster): UV nach Kachelgroesse */
+function bodenRechteck(B,x0,x1,z0,z1,y,kachel,c){
+  const e=(x,z)=>ecke(x,y,z,x/kachel,-z/kachel,c);
+  B.quad(e(x0,z0),e(x1,z0),e(x1,z1),e(x0,z1));
+}
+/* Gehwegflaeche auf gwH(): in x je Meter (Bordabsenkungen), in z an den
+   Knicken der Querneigung geteilt; Stirnseite, wo sie hoch endet */
+function gehwegFlaeche(B,x0,x1,z0,z1,kachel,nord){
+  const zs=[z0]; for(const k of [7.5,22.4]) if(k>z0&&k<z1) zs.push(k); zs.push(z1);
+  const xs=[x0]; for(let x=Math.floor(x0)+1;x<x1;x++) xs.push(x); xs.push(x1);
+  const e=(x,z,y)=>ecke(x,y===undefined?gwH(x,z,nord):y,z,x/kachel,-z/kachel);
+  for(let i=0;i<xs.length-1;i++) for(let j=0;j<zs.length-1;j++)
+    B.quad(e(xs[i],zs[j]),e(xs[i+1],zs[j]),e(xs[i+1],zs[j+1]),e(xs[i],zs[j+1]));
+  for(const [x,sx] of [[x0,-1],[x1,1]]) for(let j=0;j<zs.length-1;j++){
+    if(gwH(x,zs[j],nord)<0.03&&gwH(x,zs[j+1],nord)<0.03) continue;
+    B.quad(e(x,zs[j],0),e(x,zs[j+1],0),e(x,zs[j+1]),e(x,zs[j]),[sx,0,0]); }
+}
+function buildFahrbahn(){
+  const X=STR.X, zN=STR.zN, zS=STR.zS, Z=STR.zebra, R=saat(2612);
+  const asph=asphaltTex();
+  /* --- Deckschicht: Flickstellen, vergossene Fugen, nasse Rinne.
+     Dieselbe Textur in denselben Weltkoordinaten wie der Boden, nur
+     ueber die Eckfarben abgedunkelt: das Korn laeuft ungebrochen durch. */
+  const D=bauer(), uv=(x,z)=>uvWelt(x,z);
+  const flaeche=(x0,x1,z0,z1,y,c0,c1,quer)=>{ const e=(x,z,c)=>{ const [u,v]=uv(x,z); return ecke(x,y,z,u,v,c); };
+    if(quer) D.quad(e(x0,z0,c0),e(x1,z0,c0),e(x1,z1,c1),e(x0,z1,c1)); else D.quad(e(x0,z0,c0),e(x1,z0,c1),e(x1,z1,c1),e(x0,z1,c0)); };
+  /* feuchte Rinne und Streusalzschleier an beiden Borden */
+  flaeche(-X,X,zN+0.3,zN+0.95,0.004,grau(0.62),grau(1),true);
+  flaeche(-X,X,zS-0.3,zS-0.95,0.004,grau(0.62),grau(1),true);
+  /* Flickstellen: Aufgrabungen quer ueber eine Spur und kleine Flicken */
+  const flicken=[];
+  for(let x=-X+6;x<X-6;x+=9+R()*16){
+    if(Math.abs(x-Z)<5) continue;
+    const quer=R()<0.4, w=quer?0.8+R()*0.5:0.9+R()*1.4, z0=quer?(R()<0.5?zN+1.0:STR.mitte+0.15):zN+1.1+R()*(zS-zN-3.2), d=quer?1.8+R()*0.9:0.7+R()*1.2;
+    const z1=Math.min(z0+d,zS-1.05), f=0.84+R()*0.1, c=[f*0.97,f*0.98,f], n=0.03;
+    flicken.push([x-n,x+w+n]);
+    flaeche(x,x+w,z0,z1,0.004,c,c,true);
+    const fu=grau(0.5);
+    flaeche(x-n,x+w+n,z0-n,z0,0.004,fu,fu,true); flaeche(x-n,x+w+n,z1,z1+n,0.004,fu,fu,true);
+    flaeche(x-n,x,z0,z1,0.004,fu,fu,true); flaeche(x+w,x+w+n,z0,z1,0.004,fu,fu,true);
+  }
+  const frei=x=>!flicken.some(([a,b])=>x>a-0.3&&x<b+0.3);
+  /* Laengsfuge der Einbaubahnen neben der Leitlinie */
+  { let pts=[]; const zf=STR.mitte+0.3;
+    for(let x=-X;x<=X;x+=0.8){ if(!frei(x)||Math.abs(x-Z)<2){ if(pts.length>1) streifen(D,pts,0.05,0.0055,grau(0.45),uv); pts=[]; continue; }
+      pts.push([x,zf+Math.sin(x*0.37)*0.03+(R()-0.5)*0.02]); }
+    if(pts.length>1) streifen(D,pts,0.05,0.0055,grau(0.45),uv); }
+  /* Fahrspuren: wo die Reifen rollen, ist die Decke dunkler und glatter */
+  for(const zc of [zN+1.35,STR.mitte+0.95]){ let a=null;
+    for(let x=-X;x<=X;x+=0.5){ const ok=frei(x)&&frei(x+0.5)&&Math.abs(x-Z)>2;
+      if(ok&&a===null) a=x; if((!ok||x+0.5>X)&&a!==null){ if(x>a){ flaeche(a,x,zc-0.35,zc,0.004,grau(1),grau(0.86),true); flaeche(a,x,zc,zc+0.35,0.004,grau(0.86),grau(1),true); } a=null; } } }
+  /* Querrisse, mit Bitumen vergossen */
+  for(let x=-X+4;x<X-4;x+=6+R()*11){
+    if(!frei(x)||Math.abs(x-Z)<3) continue;
+    const pts=[]; let z=zN+0.35+R()*0.4, xx=x; const bis=R()<0.5?STR.mitte+R()*0.6:zS-0.4-R()*0.8;
+    while(z<bis){ pts.push([xx,z]); xx+=(R()-0.5)*0.22; z+=0.3+R()*0.25; }
+    if(pts.length>1) streifen(D,pts,0.035+R()*0.025,0.0055,grau(0.3),uv);
+  }
+  /* Kein polygonOffset auf den Bodenschichten: bei flachem Blick zog er
+     sie um Dezimeter nach vorn - vor Reifen, Bordkanten und Licht. Die
+     Millimeter Hoehe reichen bei near 0,2 m bis weit hinten. */
+  const dm=lichtMat(new THREE.MeshStandardMaterial({map:asph,normalMap:_asphN,vertexColors:true,roughness:0.8}));
+  if(dm.normalMap) dm.normalScale=new THREE.Vector2(0.7,0.7);
+  const dk=new THREE.Mesh(lichtUV2(D.geo()),dm); if(HIQ) dk.receiveShadow=true; scene.add(dk);
+  /* --- Pfuetzen (Tom, 26.09.: nasse Silvesterstimmung): Schmelzwasser
+     in der Rinne und in den Fahrspuren. Sie spiegeln den Himmel wie der
+     Autolack; nachts dunkeln sie mit ihm ab. Nicht unter den parkenden
+     Autos - dort spiegelte sonst der helle Himmel. */
+  { const Pf=bauer(), pf=(cx,cz,l,b,k)=>{ const u0=(k%4)/4, v0=Math.floor(k/4)/2, e=(x,z,u,v)=>ecke(cx+x,0.0065,cz+z,u0+u/4,v0+v/2);
+      Pf.quad(e(-l/2,-b/2,0,0),e(l/2,-b/2,1,0),e(l/2,b/2,1,1),e(-l/2,b/2,0,1)); };
+    for(let x=-X+3;x<X-3;x+=5+R()*11){
+      if(Math.abs(x-Z)<3.5) continue;
+      const gegen=R()<0.5&&(x<-26||x>22);
+      pf(x,gegen?zS-0.4-R()*0.15:zN+0.4+R()*0.15,1.0+R()*1.8,0.45+R()*0.35,R()*8|0);
+      if(R()<0.2&&frei(x+3)) pf(x+3+R()*2,R()<0.5?zN+1.35:STR.mitte+0.95,0.8+R()*1.0,0.35+R()*0.25,R()*8|0); }
+    const env=pfuetzenUmgebung(), pt=pfuetzenTex();
+    const pm=lichtMat(new THREE.MeshStandardMaterial({color:LIN(0x121314),roughness:1,roughnessMap:pt.r,normalMap:pt.n,metalness:0.1,envMap:env||null,envMapIntensity:3.2,
+      alphaMap:pt.a,transparent:true,depthWrite:false}));
+    if(pm.normalMap) pm.normalScale=new THREE.Vector2(0.45,0.45);
+    /* 0,5 war zu wenig: bei Tag lagen die Pfuetzen als dunkle, gruenliche
+       Flecken wie Oel auf der Decke statt den Himmel zu spiegeln. Der
+       echte Himmel ist vielfach heller als der Asphalt - das holt die
+       Staerke nach (27.09.). */
+    lampMats.push({set emissiveIntensity(v){ pm.envMapIntensity=3.2*(1-0.3*v); }});
+    const pg=lichtUV2(Pf.geo());
+    const nr=new THREE.Mesh(pg,new THREE.MeshBasicMaterial({color:0x000000,alphaMap:pt.w,transparent:true,opacity:0.55,depthWrite:false}));
+    nr.renderOrder=1; scene.add(nr);
+    const po=new THREE.Mesh(pg,pm); po.renderOrder=2; if(HIQ) po.receiveShadow=true; scene.add(po); }
+
+  /* --- Markierungen nach StVO: Leitlinie 3 m Strich, 6 m Luecke, 12 cm
+     breit; Parkstreifen mit T-Marken zwischen den Buchten; Zebrastreifen;
+     Zickzack an der Haltestelle. Abrieb per Alpha-Maske. */
+  const Mk=bauer(), uvM=(x,z)=>[x/1.5,z/1.5], mk=(x0,x1,z0,z1)=>{ const e=(x,z)=>ecke(x,0.009,z,x/1.5,z/1.5); Mk.quad(e(x0,z0),e(x1,z0),e(x1,z1),e(x0,z1)); };
+  for(let x=-X+2;x<X-3;x+=9) if(x+3<Z-2.5||x>Z+2.5) mk(x,x+3,STR.mitte-0.06,STR.mitte+0.06);
+  const P0=-25.3, P1=20.9;
+  mk(P0,P1,STR.park-0.06,STR.park+0.06);
+  for(let x=P0;x<=P1+0.01;x+=6.6) mk(x-0.06,x+0.06,STR.park,STR.park+0.6);
+  /* Zebrastreifen: Balken in Fahrtrichtung, 50 cm breit, 50 cm Abstand */
+  for(let z=zN+0.35;z+0.5<zS-0.3;z+=1.0) mk(Z-1.5,Z+1.5,z,z+0.5);
+  /* Grenzmarkierung (Z 299) an der Bushaltestelle */
+  { const a=-45, b=-30, n=10, pts=[[a,STR.park+0.2]];
+    for(let i=1;i<n;i++) pts.push([a+(b-a)*i/n,i%2?zS-0.45:STR.park+0.2]);
+    pts.push([b,STR.park+0.2]); streifen(Mk,pts,0.12,0.009,grau(1),uvM); }
+  const ab=abriebTex();
+  const mm=lichtMat(new THREE.MeshStandardMaterial({color:LIN(0xe9e7df),roughness:0.62,alphaMap:ab,alphaTest:0.5}));
+  const mkm=new THREE.Mesh(lichtUV2(Mk.geo()),mm); if(HIQ) mkm.receiveShadow=true; scene.add(mkm);
+  /* Schrift "30" (je Spur, in Fahrtrichtung lesbar) und "BUS" */
+  { const Sb=bauer(), sch=(cx,cz,ux,uz,w,h,u0,u1)=>{ const rx=-uz, rz=ux, e=(a,b,u,v)=>ecke(cx+ux*b+rx*a,0.01,cz+uz*b+rz*a,u,v);
+      Sb.quad(e(-w/2,-h/2,u0,0),e(w/2,-h/2,u1,0),e(w/2,h/2,u1,1),e(-w/2,h/2,u0,1)); };
+    sch(-60,(zN+STR.mitte)/2,-1,0,1.3,2.6,0,0.5); sch(60,(STR.mitte+STR.park)/2,1,0,1.3,2.6,0,0.5);
+    sch(-37.5,(STR.park+zS)/2+0.05,1,0,1.3,2.2,0.5,1);
+    const sm=new THREE.Mesh(lichtUV2(Sb.geo()),lichtMat(new THREE.MeshStandardMaterial({color:LIN(0xe9e7df),map:strSchrift(),alphaTest:0.5,roughness:0.62}))); if(HIQ) sm.receiveShadow=true; scene.add(sm); }
+
+  /* --- Schachtdeckel in der Fahrbahn, Strassenablaeufe in der Rinne --- */
+  { const G=[], sd=new THREE.CircleGeometry(0.31,28), ro=new THREE.PlaneGeometry(0.34,0.52);
+    sd.attributes.uv.array.forEach((v,i,a)=>{ if(i%2===0) a[i]=v*0.5; });
+    ro.attributes.uv.array.forEach((v,i,a)=>{ if(i%2===0) a[i]=0.5+v*0.5; });
+    for(let x=-88;x<90;x+=21+R()*6){ if(Math.abs(x-Z)<3) continue; G.push({geo:sd,m:tm(x,0.008,R()<0.5?12.1:14.0,-Math.PI/2,0,0)}); }
+    for(let x=-90;x<90;x+=18+R()*5){ if(Math.abs(x-Z)<3) continue;
+      if(x<37) G.push({geo:ro,m:tm(x,0.0085,zN+0.17,-Math.PI/2,0,Math.PI/2)}); G.push({geo:ro,m:tm(x+7,0.0085,zS-0.17,-Math.PI/2,0,Math.PI/2)}); }
+    const gm=new THREE.Mesh(lichtUV2(merge(G)),lichtMat(new THREE.MeshStandardMaterial({map:gussTex(),metalness:0.55,roughness:0.5}))); if(HIQ) gm.receiveShadow=true; scene.add(gm); }
+
+  /* --- Bordsteine, Rinnen, Gehwege --- */
+  const Bs=bauer(), Z0=Z-1.6, Z1=Z+1.6;
+  /* unsere Seite: an der Hofzufahrt (x -30..-20) und am Ueberweg abgesenkt */
+  bordstein(Bs,-X,38,zN,-1,BORD_ABS_N);
+  bordstein(Bs,-X,X,zS,1,BORD_ABS_S);
+  const gt=granitTex(), bm=new THREE.Mesh(lichtUV2(Bs.geo()),lichtMat(new THREE.MeshStandardMaterial({map:gt,vertexColors:true,roughness:0.78})));
+  if(HIQ){ bm.receiveShadow=true; bm.castShadow=true; } scene.add(bm);
+  /* Gehwegplatten, zur Bordseite ein Streifen Kleinpflaster (Baum- und
+     Laternenstreifen). Unsere Seite laesst die Hofzufahrt frei - dort
+     liegt der Beton der Zufahrt. */
+  const Gp=bauer(), Kp=bauer(), zNg=zN-BORD_B, zSg=zS+BORD_B;
+  for(const [a,b] of [[-X,-30.2],[-19.8,38]]){
+    gehwegFlaeche(Gp,a,b,6.0,9.7,2.4,true); gehwegFlaeche(Kp,a,b,9.7,zNg,1.6,true); }
+  gehwegFlaeche(Kp,-X,X,zSg,18.3,1.6,false); gehwegFlaeche(Gp,-X,X,18.3,23.4,2.4,false);
+  const gm2=lichtMat(new THREE.MeshStandardMaterial({map:gehwegTex(),vertexColors:true,roughness:0.86}));
+  const km=lichtMat(new THREE.MeshStandardMaterial({map:pflasterTex(),vertexColors:true,roughness:0.84}));
+  for(const [B,m] of [[Gp,gm2],[Kp,km]]){ const o=new THREE.Mesh(lichtUV2(B.geo()),m); if(HIQ) o.receiveShadow=true; scene.add(o); }
+  /* Liegengebliebener Schnee an den Hauswaenden gegenueber: dort wird
+     nicht gelaufen und nicht geraeumt. Ausgefranster Rand ueber Alpha. */
+  { const Sr=bauer(), e=(x,z,u,v)=>ecke(x,0.015,z,u,v);
+    for(let x=-44;x<44;x+=4) Sr.quad(e(x,22.5,x/4,0),e(x+4,22.5,x/4+1,0),e(x+4,23.1,x/4+1,1),e(x,23.1,x/4,1));
+    const sr=lichtMat(new THREE.MeshStandardMaterial({color:LIN(0xe6ebf2),roughness:0.95,alphaMap:schneeRandTex(),transparent:true,depthWrite:false}));
+    const o=new THREE.Mesh(lichtUV2(Sr.geo()),sr); o.renderOrder=1; if(HIQ) o.receiveShadow=true; scene.add(o); }
+}
+
+/* ---------- Stadtmoebel (alles in den Sammler) ---------- */
+function stPoller(x,z){ stOrt(x,z,0);
+  mT('lack',new THREE.CylinderGeometry(0.075,0.075,0.02,14),0,0.01,0,0,0,0,0x33373e);
+  mT('lack',new THREE.CylinderGeometry(0.05,0.05,0.86,14),0,0.44,0,0,0,0,0x3a3f47);
+  mT('lack',new THREE.SphereGeometry(0.05,14,6,0,Math.PI*2,0,Math.PI/2),0,0.87,0,0,0,0,0x3a3f47);
+  mT('matt',new THREE.CylinderGeometry(0.052,0.052,0.07,14,1,true),0,0.74,0,0,0,0,0xf2f2ee);
+}
+function stSchild(x,z,ry,felder,h){   /* felder: [[x0,y0,x1,y1,breite,hoehe,rund]] von oben nach unten */
+  stOrt(x,z,ry); h=h||2.35;
+  mT('lack',new THREE.CylinderGeometry(0.032,0.032,h,10),0,h/2,0,0,0,0,0x9aa0a6);
+  mT('lack',new THREE.CylinderGeometry(0.036,0.036,0.03,10),0,h+0.015,0,0,0,0,0x7d838c);
+  let y=h-0.02;
+  for(const [x0,y0,x1,y1,w,hh,rund] of felder){
+    y-=hh/2;
+    const rueck=rund?new THREE.CylinderGeometry(w/2,w/2,0.015,28):new THREE.BoxGeometry(w,hh,0.015);
+    mT('lack',rueck,0,y,0.045,rund?Math.PI/2:0,0,0,0x8f959c);
+    const vorn=rund?new THREE.CircleGeometry(w/2,28):new THREE.PlaneGeometry(w,hh);
+    mT('schild',atlasUV(vorn,x0,y0,x1,y1),0,y,0.054,0,0,0);
+    mT('lack',new THREE.BoxGeometry(0.1,0.035,0.05),0,y+hh*0.3,0.025,0,0,0,0x7d838c);
+    mT('lack',new THREE.BoxGeometry(0.1,0.035,0.05),0,y-hh*0.3,0.025,0,0,0,0x7d838c);
+    y-=hh/2+0.03;
+  }
+}
+function stFahrradbuegel(x,z){ stOrt(x,z,0);
+  for(const s of [-1,1]) mT('lack',new THREE.CylinderGeometry(0.024,0.024,0.62,10),0,0.31,s*0.35,0,0,0,0x5a6068);
+  mT('lack',new THREE.TorusGeometry(0.35,0.024,8,16,Math.PI),0,0.62,0,0,Math.PI/2,0,0x5a6068);
+}
+/* neig: Schraeglage zum Buegel hin (28.09.) - senkrecht und ohne
+   Stuetze standen die Raeder wie abgestellte Requisiten */
+function stFahrrad(x,z,ry,lack,neig){ stOrt(x,z,ry); _stM.multiply(tm(0,0,0,0,0,neig||0));
+  const lk=Math.sign(neig||0)*0.3, lx=Math.cos(lk)*0.24, lz=Math.sin(lk)*0.24;
+  const Rr=0.33, F=[0,Rr,0.53], B=[0,Rr,-0.5], T=[0,0.3,0], S=[0,0.84,-0.14], H=[0,0.88,0.36], Hu=[0,0.7,0.41];
+  for(const w of [F,B]){
+    mT('matt',new THREE.TorusGeometry(Rr,0.02,6,28),w[0],w[1],w[2],0,Math.PI/2,0,0x17181b);
+    mT('lack',new THREE.TorusGeometry(Rr-0.03,0.008,4,24),w[0],w[1],w[2],0,Math.PI/2,0,0xb8bcc2);
+    mT('lack',new THREE.CylinderGeometry(0.022,0.022,0.1,8),w[0],w[1],w[2],0,0,Math.PI/2,0x9aa0a6);
+    for(let i=0;i<6;i++){ const a=i/6*Math.PI; stRohr('lack',[0,w[1]+Math.cos(a)*(Rr-0.03),w[2]+Math.sin(a)*(Rr-0.03)],[0,w[1]-Math.cos(a)*(Rr-0.03),w[2]-Math.sin(a)*(Rr-0.03)],0.003,0xc8ccd2,3); }
+  }
+  for(const [a,b] of [[T,S],[S,Hu],[T,Hu],[T,B],[S,B],[Hu,F],[Hu,H]]) stRohr('lack',a,b,0.018,lack,8);
+  /* Lenker leicht eingeschlagen */
+  stRohr('lack',[lx,H[1]+0.04,H[2]-0.06-lz],[-lx,H[1]+0.04,H[2]-0.06+lz],0.012,0x2b2e33,6);
+  for(const s of [-1,1]) stRohr('matt',[s*lx*0.83,H[1]+0.04,H[2]-0.06-s*lz*0.83],[s*lx*1.12,H[1]+0.04,H[2]-0.06-s*lz*1.12],0.018,0x17181b,6);
+  stRohr('lack',[0,S[1],S[2]],[0,S[1]+0.08,S[2]-0.02],0.013,0x9aa0a6,6);
+  mT('matt',new THREE.BoxGeometry(0.13,0.05,0.25),0,S[1]+0.1,S[2]-0.02,0,0,0,0x1b1c1f);
+  mT('matt',new THREE.BoxGeometry(0.16,0.012,0.14),0,S[1]+0.13,S[2]-0.02,0,0,0,0xeef1f5);  // Schnee auf dem Sattel
+  mT('lack',new THREE.CylinderGeometry(0.07,0.07,0.02,14),0.04,T[1],T[2],0,0,Math.PI/2,0x6b7078);
+  stRohr('lack',[0.06,T[1],T[2]],[0.06,T[1]-0.14,T[2]+0.06],0.012,0x6b7078,6);
+  mT('matt',new THREE.BoxGeometry(0.1,0.025,0.05),0.1,T[1]-0.15,T[2]+0.06,0,0,0,0x202225);
+  /* Schutzbleche und Gepaecktraeger */
+  mT('lack',new THREE.TorusGeometry(Rr+0.04,0.03,3,14,Math.PI*0.55),0,B[1],B[2],0,Math.PI/2,Math.PI*0.3,lack);
+  stRohr('lack',[0,0.74,-0.2],[0,0.74,-0.72],0.01,0x2b2e33,5); stRohr('lack',[0,0.74,-0.72],[0,Rr,-0.5],0.01,0x2b2e33,5);
+}
+function stHydrant(x,z){ stOrt(x,z,0.4); const rot=0xb3261e;
+  mT('lack',new THREE.CylinderGeometry(0.16,0.17,0.06,16),0,0.03,0,0,0,0,rot);
+  mT('lack',new THREE.CylinderGeometry(0.105,0.115,0.6,16),0,0.36,0,0,0,0,rot);
+  mT('lack',new THREE.CylinderGeometry(0.135,0.135,0.05,16),0,0.12,0,0,0,0,rot);
+  mT('lack',new THREE.CylinderGeometry(0.13,0.12,0.06,16),0,0.69,0,0,0,0,rot);
+  mT('lack',new THREE.SphereGeometry(0.12,16,8,0,Math.PI*2,0,Math.PI/2),0,0.72,0,0,0,0,rot);
+  mT('lack',new THREE.CylinderGeometry(0.03,0.035,0.06,5),0,0.85,0,0,0,0,0x9aa0a6);
+  for(const s of [-1,1]){ mT('lack',new THREE.CylinderGeometry(0.045,0.045,0.12,12),s*0.15,0.5,0,0,0,Math.PI/2,rot);
+    mT('lack',new THREE.CylinderGeometry(0.052,0.052,0.035,12),s*0.22,0.5,0,0,0,Math.PI/2,0xa8adb3); }
+  mT('lack',new THREE.CylinderGeometry(0.06,0.06,0.1,12),0,0.44,0.14,Math.PI/2,0,0,rot);
+  mT('lack',new THREE.CylinderGeometry(0.068,0.068,0.035,12),0,0.44,0.2,Math.PI/2,0,0,0xa8adb3);
+  mT('matt',new THREE.CylinderGeometry(0.08,0.12,0.03,14),0,0.815,0,0,0,0,0xeef1f5);
+}
+function stAutomat(x,z,ry){ stOrt(x,z,ry);
+  mT('lack',new THREE.BoxGeometry(0.46,0.05,0.36),0,0.025,0,0,0,0,0x3a3f47);
+  mT('lack',new THREE.BoxGeometry(0.4,1.42,0.3),0,0.76,0,0,0,0,0x8e959c);
+  mT('schild',atlasUV(new THREE.PlaneGeometry(0.36,0.72),384,640,512,896),0,1.02,0.152,0,0,0);
+  mT('lack',new THREE.BoxGeometry(0.44,0.06,0.34),0,1.5,0,0,0,0,0x6b7178);
+  mT('lack',new THREE.BoxGeometry(0.4,0.02,0.3),0,1.56,-0.02,-0.35,0,0,0x1c2c52);   // Solarmodul
+  mT('matt',new THREE.BoxGeometry(0.42,0.03,0.3),0,1.595,-0.03,-0.35,0,0,0xeef1f5);
+}
+/* Briefkasten: gelber Kasten mit runder Haube auf dem Pfosten, ohne
+   Firmenzeichen. Einwurf zum Gehweg. */
+function stBriefkasten(x,z,ry){ stOrt(x,z,ry); const gelb=0xf0bf12;
+  mT('lack',new THREE.CylinderGeometry(0.035,0.042,0.88,10),0,0.44,0,0,0,0,0x4a5058);
+  mT('lack',new THREE.BoxGeometry(0.42,0.53,0.3),0,1.135,0,0,0,0,gelb);
+  mT('lack',new THREE.CylinderGeometry(0.21,0.21,0.3,16,1,false,-Math.PI/2,Math.PI),0,1.4,0,-Math.PI/2,0,0,gelb);
+  mT('lack',new THREE.BoxGeometry(0.25,0.03,0.02),0,1.3,0.152,0,0,0,0x1b1c1e);
+  mT('matt',new THREE.BoxGeometry(0.15,0.1,0.006),0,1.04,0.152,0,0,0,0xf2f1ea);
+  mT('matt',new THREE.CylinderGeometry(0.218,0.218,0.31,12,1,false,-Math.PI/4,Math.PI/2),0,1.4,0,-Math.PI/2,0,0,0xeef1f5);
+}
+function stKasten(x,z,ry){ stOrt(x,z,ry);
+  mT('matt',new THREE.BoxGeometry(0.98,0.12,0.36),0,0.06,0,0,0,0,0x6c6e70);
+  mT('matt',new THREE.BoxGeometry(0.94,1.1,0.32),0,0.67,0,0,0,0,0xc4c1b3);
+  mT('schild',atlasUV(new THREE.PlaneGeometry(0.92,1.08),512,640,768,896),0,0.67,0.162,0,0,0);
+  mT('matt',new THREE.BoxGeometry(1.0,0.05,0.4),0,1.245,0,0,0,0,0xb4b1a4);
+  mT('matt',new THREE.BoxGeometry(0.96,0.035,0.36),0,1.285,0,0,0,0,0xeef1f5);
+}
+function stLitfass(x,z){ stOrt(x,z,0); const gruen=0x2f4a3a;
+  mT('lack',new THREE.CylinderGeometry(0.68,0.7,0.32,32),0,0.16,0,0,0,0,gruen);
+  mT('lack',new THREE.CylinderGeometry(0.64,0.68,0.06,32),0,0.35,0,0,0,0,gruen);
+  mT('schild',atlasUV(new THREE.CylinderGeometry(0.6,0.6,2.3,40,1,true),0,0,1024,512),0,1.53,0,0,0,0);
+  mT('lack',new THREE.CylinderGeometry(0.7,0.62,0.14,32),0,2.75,0,0,0,0,gruen);
+  mT('lack',new THREE.CylinderGeometry(0.66,0.66,0.08,32),0,2.86,0,0,0,0,gruen);
+  mT('lack',new THREE.CylinderGeometry(0.2,0.62,0.5,32),0,3.15,0,0,0,0,gruen);
+  mT('matt',new THREE.CylinderGeometry(0.28,0.64,0.2,32),0,3.02,0,0,0,0,0xe8ecf2);         // Schnee auf der Haube
+  mT('lack',new THREE.SphereGeometry(0.12,14,8),0,3.44,0,0,0,0,gruen);
+  mT('lack',new THREE.CylinderGeometry(0.03,0.03,0.2,8),0,3.6,0,0,0,0,gruen);
+}
+function stHaltestelle(x,z){ stOrt(x,z,0);
+  const W2=1.9, T=1.5, H=2.35, an=0x3a3f47;
+  for(const sx of [-1,1]) for(const sz of [-1,1]) mT('lack',new THREE.BoxGeometry(0.07,H,0.07),sx*W2,H/2,sz*T/2,0,0,0,an);
+  mT('lack',new THREE.BoxGeometry(W2*2+0.4,0.1,T+0.35),0,H+0.05,0.05,0,0,0,an);
+  mT('matt',new THREE.BoxGeometry(W2*2+0.34,0.05,T+0.28),0,H+0.125,0.05,0,0,0,0xeef1f5);   // Schnee auf dem Dach
+  mT('schild',atlasUV(new THREE.PlaneGeometry(1.6,0.4),640,512,896,576),0,H+0.05,-(T+0.35)/2+0.05-0.002,0,Math.PI,0);
+  /* Glas: Rueckwand und Seiten */
+  mT('glas',new THREE.PlaneGeometry(W2*2-0.07,H-0.2),0,H/2+0.05,T/2,0,0,0);
+  mT('glas',new THREE.PlaneGeometry(T-0.07,H-0.2),-W2,H/2+0.05,0,0,Math.PI/2,0);
+  for(const y of [0.08,H-0.05]){ mT('lack',new THREE.BoxGeometry(W2*2,0.05,0.05),0,y,T/2,0,0,0,an); mT('lack',new THREE.BoxGeometry(0.05,0.05,T),-W2,y,0,0,0,0,an); }
+  /* Werbevitrine an der Ostseite: nachts beleuchtet */
+  mT('lack',new THREE.BoxGeometry(0.14,2.0,1.36),W2,1.12,0,0,0,0,an);
+  for(const s of [-1,1]) mT('leucht',atlasUV(new THREE.PlaneGeometry(1.18,1.77),0,640,256,1024),W2+s*0.071,1.12,0,0,s*Math.PI/2,0);
+  /* Bank: Stahlgestell, Holzlatten */
+  for(const s of [-1,1]) mT('lack',new THREE.BoxGeometry(0.05,0.45,0.4),s*0.8,0.225,T/2-0.3,0,0,0,an);
+  mT('schild',atlasUV(new THREE.BoxGeometry(1.8,0.05,0.4),768,640,1024,704),0,0.47,T/2-0.3,0,0,0);
+  mT('schild',atlasUV(new THREE.BoxGeometry(1.8,0.3,0.04),768,640,1024,704),0,0.72,T/2-0.08,-0.12,0,0);
+  /* Fahrplan in der Rueckwand */
+  mT('schild',atlasUV(new THREE.PlaneGeometry(0.45,0.56),256,640,384,800),1.2,1.45,T/2-0.02,0,Math.PI,0);
+}
+/* Schneehaufen (Tom, 26.09.: Silvesterstimmung): zusammengeschobener
+   Altschnee in der Rinne, gebuckelt, oben weiss, unten grau vom
+   Spritzwasser und mit Splitt gesprenkelt, weich schattiert. Vorher
+   waren es facettierte, gleichmaessig weisse Klumpen. Die Beulen haengen
+   nur an der Ausgangslage der Ecken - doppelte Ecken bleiben dicht. */
+/* 28.09.: in Endmassen gebaut und erst dann weich schattiert - vorher
+   wurde eine Kugel auf 20-40 cm plattgedrueckt, die Beulen standen als
+   Facetten wie zerknuelltes Papier. Zur Fahrbahn (Seite s) grau vom
+   Spritzwasser, zum Bord hin an dessen Ansicht angeschoben statt
+   ueber die Kante zu haengen. */
+function schneeGeo(x,l,h,d,s){
+  const g=new THREE.SphereGeometry(1,HIQ?26:18,HIQ?14:10).toNonIndexed(), p=g.attributes.position, n=p.count, c=new Float32Array(n*3), ph=x*1.7;
+  for(let i=0;i<n;i++){ const px=p.getX(i),py=p.getY(i),pz=p.getZ(i);
+    const k=1+0.14*Math.sin(px*4.3+pz*3.1+ph)+0.08*Math.sin(py*5.9+px*5.3+ph*2)+0.04*Math.sin(pz*9+px*7+py*3);
+    const y=Math.max(py>0?Math.pow(py,0.8):py,-0.12);
+    let zz=pz*k*d; if(-s*zz>0.27) zz=-s*0.27;
+    p.setXYZ(i,px*k*l,y*k*h,zz);
+    const t=clamp((y+0.12)*1.2,0,1), sp=0.93+0.07*Math.sin(px*37+pz*29+py*17), dreck=clamp(pz*s*1.3,0,1)*(1-0.6*t);
+    const f=(0.2+0.44*t)*sp*(1-0.38*dreck);
+    c[i*3]=f*(1.02-0.05*t+0.04*dreck); c[i*3+1]=f*0.99; c[i*3+2]=f*(0.94+0.09*t-0.04*dreck); }
+  g.setAttribute('color',new THREE.BufferAttribute(c,3));
+  glatteNormalen(g,88); return g;
+}
+/* Nach den Autos gebaut: in den Parkbuchten liegen die Haufen nur in
+   den Luecken zwischen den tatsaechlich stehenden Wagen */
+function buildSchneehaufen(){
+  const Z=STR.zebra, zS=STR.zS, R=saat(404), H=[];
+  const haufen=(x,z,l,h)=>{ const s=z<STR.mitte?1:-1, g=schneeGeo(x,l/2,h,0.3,s); g.applyMatrix4(tm(x,-0.02,z,0,Math.sin(x*7)*0.03,0)); H.push(g); };
+  for(let x=-95;x<95;x+=3+R()*9){
+    if(Math.abs(x-Z)<3.5||(x>-47&&x<-28)||(x>-26&&x<22)) continue;
+    if(R()<(COARSE?0.35:0.7)) haufen(x,zS-0.3,0.9+R()*1.4,0.3+R()*0.16); }
+  /* Autos: Laenge aus den Huellquadern der Teile, sie stehen laengs x */
+  const autos=[];
+  for(const o of scene.children) if(o.isGroup&&o.children[0]&&o.children[0].material===_lackM){ let h=0;
+    for(const m of o.children){ m.geometry.computeBoundingBox(); const b=m.geometry.boundingBox; h=Math.max(h,b.max.x-b.min.x,b.max.z-b.min.z); }
+    autos.push({min:{x:o.position.x-h/2},max:{x:o.position.x+h/2}}); }
+  autos.sort((a,b)=>a.min.x-b.min.x);
+  let x0=-25.3;
+  for(const b of autos.concat([{min:{x:21.5},max:{x:99}}])){
+    const w=b.min.x-x0-0.5;
+    if(w>0.6&&R()<0.85) haufen((x0+b.min.x)/2,zS-0.3,Math.min(w,1.5),0.26+R()*0.12);
+    x0=b.max.x; }
+  /* auf unserer Seite nur fern vom Laden (Laufwege der Kunden) */
+  for(let x=-95;x<-34;x+=4+R()*9) if(R()<(COARSE?0.3:0.6)) haufen(x,STR.zN+0.3,0.8+R()*1.2,0.28+R()*0.14);
+  for(let x=42;x<95;x+=4+R()*9) if(R()<(COARSE?0.3:0.6)) haufen(x,STR.zN+0.3,0.8+R()*1.2,0.28+R()*0.14);
+  if(!H.length) return;
+  let n=0; for(const g of H) n+=g.attributes.position.count;
+  const P=new Float32Array(n*3), N=new Float32Array(n*3), C=new Float32Array(n*3); let o=0;
+  for(const g of H){ P.set(g.attributes.position.array,o*3); N.set(g.attributes.normal.array,o*3); C.set(g.attributes.color.array,o*3); o+=g.attributes.position.count; g.dispose(); }
+  const geo=new THREE.BufferGeometry();
+  geo.setAttribute('position',new THREE.BufferAttribute(P,3)); geo.setAttribute('normal',new THREE.BufferAttribute(N,3)); geo.setAttribute('color',new THREE.BufferAttribute(C,3));
+  geo.computeBoundingSphere();
+  const m=new THREE.Mesh(lichtUV2(geo),lichtMat(new THREE.MeshStandardMaterial({vertexColors:true,roughness:0.9})));
+  if(HIQ){ m.castShadow=true; m.receiveShadow=true; } scene.add(m);
+}
+function buildStadtmoebel(){
+  const zS=STR.zS, zG=zS+0.45, Z=STR.zebra;
+  /* Laternen gegenueber: dasselbe Modell wie unsere, Ausleger zur Fahrbahn */
+  /* Auf dem Handy nur die naeheren - die fernen verschwinden ohnehin im Dunst */
+  for(const x of [-84.5,-71.5,-58.5,-45.5,-32.5,-19.5,-6.5,6.5,19.5,Z+2.6,48.5,61.5,74.5,87.5])
+    if(!COARSE||Math.abs(x)<50) strassenlampe(x,zS+0.5,Math.PI,true);
+  /* Fahrradbuegel mit zwei Raedern, genau gegenueber vom Laden in der
+     Luecke zwischen zwei Parkbuchten - sonst verdecken sie die Autos */
+  for(const x of [0.2,1.1,2.0]) stFahrradbuegel(x,zG+0.55);
+  stFahrrad(0.35,zG+0.62,0.03,0x1f4a8a,0.12); stFahrrad(1.85,zG+0.6,-0.04,0x7a1d24,-0.11);
+  stAutomat(-3.6,zS+0.5,Math.PI);
+  stHydrant(10.6,zS+0.55);
+  stBriefkasten(-10.4,zS+0.62,0);
+  stKasten(14.6,22.55,Math.PI);
+  stLitfass(-26.2,20.2);
+  stHaltestelle(-37.5,21.3);
+  /* Schilder: Parken mit Parkschein, Haltestelle, Ueberweg, Tempo-30-Zone.
+     Sie stehen quer zur Fahrbahn und zeigen dem Verkehr entgegen, leicht
+     zur Fahrbahn gedreht - Rechtsverkehr: gegenueber faehrt man nach +x.
+     Vorher zeigten alle zum Gehweg, fuer Autofahrer unsichtbar. */
+  const GEG=-Math.PI/2-0.26;
+  const PARK=[[128,512,256,640,0.42,0.42],[512,512,640,574,0.42,0.2],[512,578,640,640,0.42,0.2]];
+  stSchild(-25.9,zG,GEG,PARK); stSchild(21.4,zG,GEG,PARK);
+  stSchild(-41.3,zG,GEG,[[256,512,384,640,0.45,0.45,true],[640,512,896,576,0.6,0.15]],2.6);
+  /* Fahrplan am Haltestellenmast zeigt zu den Wartenden */
+  stOrt(-41.3,zG,0);
+  mT('lack',new THREE.BoxGeometry(0.5,0.62,0.06),0,1.45,0.066,0,0,0,0x3a3f47);
+  mT('schild',atlasUV(new THREE.PlaneGeometry(0.45,0.56),256,640,384,800),0,1.45,0.098,0,0,0);
+  /* Z 350 beidseitig, quer zur Fahrbahn */
+  stSchild(Z-1.95,zG,-Math.PI/2,[[0,512,128,640,0.6,0.6]]); mT('schild',atlasUV(new THREE.PlaneGeometry(0.6,0.6),0,512,128,640),0,2.03,0.036,0,Math.PI,0);
+  stSchild(Z+2.0,STR.zN-0.35,Math.PI/2,[[0,512,128,640,0.6,0.6]]); mT('schild',atlasUV(new THREE.PlaneGeometry(0.6,0.6),0,512,128,640),0,2.03,0.036,0,Math.PI,0);
+  col(Z+1.95,Z+2.05,STR.zN-0.4,STR.zN-0.3);
+  stSchild(-52,zG,GEG,[[384,512,512,640,0.6,0.6]]);
+  for(const x of [Z-1.35,Z+1.35]) stPoller(x,zG);
+  /* Blindenleitstreifen (Rippenplatten) an beiden Seiten des Ueberwegs */
+  for(const [z0,z1] of [[STR.zN-1.0,STR.zN-0.45],[zS+0.45,zS+1.0]]){ stOrt(0,0,0);
+    for(let x=Z-1.5;x<Z+1.49;x+=0.3) mT('matt',new THREE.BoxGeometry(0.28,0.012,z1-z0),x+0.15,0.024,(z0+z1)/2,0,0,0,0xaeaca4); }
+  stFertig();
+}
+/* Baumscheibe aus Guss, 1,2 x 1,2 m im Pflasterstreifen (28.09.): der
+   Torus-Ring von 1,5 m Durchmesser ragte durch den Bord 11 cm auf die
+   Fahrbahn. Liegt 8 mm ueber dem geneigten Gehweg, Stamm bei z 10,4. */
+const BS={z0:9.7,z1:10.9,zb:10.4};
+function baumscheibe(B,bx){
+  const x0=bx-0.6, x1=bx+0.6, e=(x,z,d)=>ecke(x,gwH(x,z,true)+(d===undefined?0.008:d),z,(x-x0)/1.2,(z-BS.z0)/1.2);
+  B.quad(e(x0,BS.z0),e(x1,BS.z0),e(x1,BS.z1),e(x0,BS.z1));
+  for(const [a,b,n] of [[[x0,BS.z0],[x1,BS.z0],[0,0,-1]],[[x1,BS.z1],[x0,BS.z1],[0,0,1]],[[x0,BS.z1],[x0,BS.z0],[-1,0,0]],[[x1,BS.z0],[x1,BS.z1],[1,0,0]]])
+    B.quad(e(a[0],a[1],0),e(b[0],b[1],0),e(b[0],b[1]),e(a[0],a[1]),n);
+}
+function baumscheibeTex(){
+  return tex(256,256,(g,W,H)=>{ const R=saat(71), cx=W/2, cy=H*(1-(BS.zb-BS.z0)/1.2);
+    g.fillStyle='#3a3c40'; g.fillRect(0,0,W,H);
+    /* Rahmen, dann Ringe mit Schlitzen zwischen radialen Stegen */
+    g.strokeStyle='#26282b'; g.lineWidth=6; g.strokeRect(5,5,W-10,H-10);
+    g.lineWidth=5; g.strokeStyle='#0b0c0d';
+    for(let r=38;r<Math.hypot(W,H)/2;r+=13){ const n=Math.max(8,Math.round(r/7));
+      for(let i=0;i<n;i++){ const a0=i/n*Math.PI*2+0.08, a1=(i+1)/n*Math.PI*2-0.08; g.beginPath(); g.arc(cx,cy,r,a0,a1); g.stroke(); } }
+    /* Rahmen deckt die Schlitze am Rand ab */
+    g.fillStyle='#34363a'; g.fillRect(0,0,W,12); g.fillRect(0,H-12,W,12); g.fillRect(0,0,12,H); g.fillRect(W-12,0,12,H);
+    g.strokeStyle='#1e2023'; g.lineWidth=2; g.strokeRect(12,12,W-24,H-24);
+    /* Pflanzloch: Erde mit Laub und etwas Schnee */
+    g.fillStyle='#1b1712'; g.beginPath(); g.arc(cx,cy,30,0,Math.PI*2); g.fill();
+    for(let i=0;i<160;i++){ const a=R()*Math.PI*2, r=R()*29; g.fillStyle=R()<0.3?'rgba(220,226,232,.8)':`rgba(${60+R()*40|0},${44+R()*25|0},${26+R()*15|0},.8)`; g.fillRect(cx+Math.cos(a)*r,cy+Math.sin(a)*r,2+R()*3,2+R()*2); }
+    /* Rost und Streusalz */
+    for(let i=0;i<500;i++){ g.fillStyle=R()<0.5?`rgba(120,70,40,${R()*0.18})`:`rgba(230,232,235,${R()*0.12})`; g.fillRect(R()*W,R()*H,2+R()*4,2+R()*4); }
+  });
+}
 function buildStreet(){
-  // Bordstein und Gehweg gegenüber
-  bbox(60,0.16,0.26,std(0x9aa0a8,{roughness:0.95}),0,0.08,17.4,null,false);
-  const gw=concreteTex(); gw.repeat.set(30,3);
-  flat(60,5,new THREE.MeshStandardMaterial({map:gw,roughness:0.92}),0,0.015,19.9);
-  for(let i=-7;i<=7;i++){ if(Math.random()<0.6) bbox(rand(1.0,2.4),0.18,0.5,std(0xe8ecf2,{roughness:1}),i*4,0.14,17.1,null,false); }
-  // Fahrbahnmarkierung und Gullys
-  for(let i=-12;i<=12;i++) flat(2.2,0.16,std(0xd9d4c2),i*4,0.014,13.2);
-  for(const x of [-16,12]){ const gu=new THREE.Mesh(new THREE.CircleGeometry(0.42,14),std(0x3a3d44,{metalness:0.4,roughness:0.7})); gu.rotation.x=-Math.PI/2; gu.position.set(x,0.016,15.6); scene.add(gu); }
+  /* Fahrbahn, Borde, Gehwege und Moeblierung: siehe Strassenraum oben */
+  buildFahrbahn();
+  buildStadtmoebel();
   /* Haeuserzeile gegenueber: geschlossener Blockrand statt einzelner
      Kloetze mit Luecken (Tom, 26.09.). Gruenderzeit- und Nachkriegs-
      haeuser gemischt, fast jedes mit Laden; jeder Laden kommt nur
@@ -1622,9 +2549,16 @@ function buildStreet(){
   // Bäume und Stadtmöbel auf unserer Seite
   /* Der mittlere Baum stand bei x -11 genau in der Laterne - der
      Mast lief durch die Krone. Jetzt zwischen zwei Laternen. */
+  const Bsch=bauer();
   for(const bx of (COARSE?[-16.5,13]:[-16.5,-7.5,13])){ const b=makeBaum(); b.position.set(bx,0,10.4); b.scale.setScalar(rand(0.9,1.2)); scene.add(b);
-    const ring=new THREE.Mesh(new THREE.TorusGeometry(0.75,0.06,6,18),std(0x3a3d44)); ring.rotation.x=Math.PI/2; ring.position.set(bx,0.06,10.4); scene.add(ring);
+    baumscheibe(Bsch,bx);
     col(bx-0.42,bx+0.42,9.98,10.82); b.userData.baum=true; }
+  { const o=new THREE.Mesh(lichtUV2(Bsch.geo()),lichtMat(new THREE.MeshStandardMaterial({map:baumscheibeTex(),metalness:0.45,roughness:0.62})));
+    if(HIQ) o.receiveShadow=true; scene.add(o); }
   /* Hier stand noch ein Kasten als Platzhalter-Muelleimer neben der
      Laterne - die echten Muelleimer stehen am Laden. Weg damit. */
+  /* Lichtpfuetzen aller bis hierher gebauten Leuchten in einem Rutsch;
+     spaeter gebaute (Hof) bekommen ihre eigenen */
+  buildSchneehaufen();
+  lichtBauen(LICHTER); lichtKarteMalen(); _lichtFertig=true;
 }

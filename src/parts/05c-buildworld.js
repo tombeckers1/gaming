@@ -22,14 +22,14 @@ function buildWorld(){
   wallTex=tex(wpx,wpy,leer); wallTex.wrapS=THREE.RepeatWrapping; wallTex.wrapT=THREE.ClampToEdgeWrapping; wallTex.repeat.set(1/WAND_B,1/WAND_H);
   shopWall=new THREE.MeshStandardMaterial({map:wallTex,roughness:0.92});
   // Boden draußen
-  const asph=tex(256,256,(g,W,H)=>{
-    g.fillStyle='#3a3d45'; g.fillRect(0,0,W,H);
-    for(let i=0;i<3400;i++){ const v=Math.random(); g.fillStyle=`rgba(${v<0.5?0:255},${v<0.5?0:255},${v<0.5?0:255},${Math.random()*0.07})`; g.fillRect(Math.random()*W,Math.random()*H,2,2);}
-    for(let i=0;i<7;i++){ g.fillStyle=`rgba(20,22,26,${rand(0.05,0.14)})`; g.beginPath(); g.ellipse(Math.random()*W,Math.random()*H,rand(18,60),rand(14,46),Math.random()*3,0,Math.PI*2); g.fill(); }
-    g.strokeStyle='rgba(18,20,24,.45)'; g.lineWidth=1.5;
-    for(let i=0;i<9;i++){ let x=Math.random()*W, y=Math.random()*H; g.beginPath(); g.moveTo(x,y); for(let k=0;k<6;k++){ x+=rand(-26,26); y+=rand(-26,26); g.lineTo(x,y);} g.stroke(); }
-  }); asph.wrapS=asph.wrapT=THREE.RepeatWrapping; asph.repeat.set(40,40);
-  flat(200,200,new THREE.MeshStandardMaterial({map:asph,roughness:0.95}),0,0,0);
+  /* Asphalt mit Splittkorn statt schwarzer Kritzel-Risse (Tom, 26.09.:
+     "alles drum herum deutlich hochwertiger"); 4-m-Kachel aus 05e. Die
+     Deckschicht der Fahrbahn nutzt dieselbe Textur in denselben
+     Weltkoordinaten. */
+  const asph=asphaltTex(); asph.repeat.set(50,50);
+  { const am=lichtMat(new THREE.MeshStandardMaterial({map:asph,normalMap:_asphN,roughness:0.9}));
+    if(am.normalMap) am.normalScale=new THREE.Vector2(0.7,0.7);
+    lichtUV2(flat(200,200,am,0,0,0).geometry,tm(0,0,0,-Math.PI/2,0,0)); }
   /* Darunter eine grosse Flaeche bis zum Horizont. Sie traegt eine
      grobe Struktur, damit sie in den Luecken zwischen den Haeusern
      nicht als gleichmaessige graue Scheibe auffaellt. */
@@ -50,9 +50,7 @@ function buildWorld(){
   });
   fern.wrapS=fern.wrapT=THREE.RepeatWrapping; fern.repeat.set(7,7);
   flat(1400,1400,new THREE.MeshStandardMaterial({map:fern,roughness:1}),0,-0.02,0);
-  const sw=concreteTex(); sw.repeat.set(24,3); flat(48,5,new THREE.MeshStandardMaterial({map:sw,roughness:0.9}),-2,0.012,8.5);
-  bbox(48,0.14,0.2,std(0x9a9ea6),-2,0.07,11,null,false);
-  for(let i=-8;i<=8;i++) flat(2,0.15,std(0xe8e2c8),i*4,0.013,15.5);
+  /* Gehweg, Bord und Markierungen baut buildFahrbahn (05e) */
   // Innenböden
   floorTexRef=tex(bpx,bpx,leer); floorTexRef.wrapS=floorTexRef.wrapT=THREE.RepeatWrapping; floorTexRef.repeat.set(1,1); floorTexRef.anisotropy=8;
   floorMat=new THREE.MeshStandardMaterial({map:floorTexRef,roughness:0.5});
@@ -225,7 +223,11 @@ function buildWorld(){
   // Hof & Testfeld
   buildZaun();
   buildYard();
-  for(const x of [-11,-4,3,10]) strassenlampe(x,10.9,Math.PI);
+  /* Ausleger zur Fahrbahn wie gegenueber, Mast 50 cm hinter der
+     Bordkante; zwei weitere vor der Erweiterung. 28.09.: 13-16 m
+     Abstand wie gegenueber und versetzt zu den Baeumen - bei 7 m stand
+     ein Wald aus Masten da, zwei Koepfe steckten im Geaest. */
+  for(const x of [-11,2.5,18.5,30.5]) strassenlampe(x,10.6,0);
   buildStreet();
   buildStadt();
   buildPark();

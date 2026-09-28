@@ -151,7 +151,9 @@ EFF.zeitsterne=function(p,A,B,s,r){
   for(let i=0;i<n;i++){ const d=randDir(), w=rand(8,10)*s, v=[d[0]*w,d[1]*w,d[2]*w], tz=rand(0.3,1.6), c=i%5===4?B:A, L=rand(0.8,1.2);
     spur.push({v,tz});
     imBild(tz,()=>{ const e=bahnOrt(p,v,G,tz), u=bahnTempo(v,G,tz), a=SCHWEIF;
-      SCHWEIF=0.28; psBig.emit(e.x,e.y,e.z,u[0],u[1],u[2],c[0]*1.6,c[1]*1.6,c[2]*1.6,L,G,0); SCHWEIF=a;
+      /* 28.09., Tom: echt - Farbsterne ohne Schweif, nur die kurze Flamme
+         (0,28 s zog im Bild blaue Stecknadeln: Kopf mit geradem Strich) */
+      SCHWEIF=0.08; psBig.emit(e.x,e.y,e.z,u[0],u[1],u[2],c[0]*1.6,c[1]*1.6,c[2]*1.6,L,G,0); SCHWEIF=a;
       /* Zuendfunken beim Angehen */
       for(let k=0;k<3;k++){ const h=randDir(); psSmall.emit(e.x,e.y,e.z,u[0]*0.5+h[0]*1.5,u[1]*0.5+h[1]*1.5,u[2]*0.5+h[2]*1.5,1,.85,.6,rand(0.15,0.3),2,0); } }); }
   /* dunkler Flug: bis zum Zuenden ein schwacher Glutfaden je Stern */
@@ -182,7 +184,11 @@ function fischFlug(p,n,o){
       st.hell=o.hell*(0.78+Math.random()*0.4)*Math.min(1,(st.life-t)/0.2)*komp(st);
       st.d.acc=(st.d.acc||0)+dt*o.funken*q;
       /* Funkenfaden als psMid: psSmall war aus 30-40 m kaum zu sehen (Probebild 28.09.) */
-      for(;st.d.acc>=1;st.d.acc--) psMid.emit(st.p[0],st.p[1],st.p[2],-v[0]*0.1+rand(-.3,.3),-v[1]*0.1+rand(-.4,.1),-v[2]*0.1+rand(-.3,.3),fk[0],fk[1],fk[2],rand(o.funkL?o.funkL[0]:0.15,o.funkL?o.funkL[1]:0.3),1.5,0);
+      /* 28.09., Tom: "Punkte" - die Funken entstehen verteilt auf dem Weg
+         dieses Bildes (vorher alle am selben Ort: der Faden zerfiel zur
+         Perlenkette aus gleich weit stehenden Punkten), streuen staerker
+         und verloeschen frueher - ein kurzer, zerrissener Funkenschwanz */
+      for(;st.d.acc>=1;st.d.acc--){ const f=Math.random(); psMid.emit(st.p[0]-v[0]*dt*f,st.p[1]-v[1]*dt*f,st.p[2]-v[2]*dt*f,-v[0]*0.15+rand(-.7,.7),-v[1]*0.15+rand(-.9,.2),-v[2]*0.15+rand(-.7,.7),fk[0],fk[1],fk[2],rand(o.funkL?o.funkL[0]:0.15,o.funkL?o.funkL[1]:0.3)*rand(0.45,0.8),1.5,4); }
     },{spur:0.05});
   }
 }
@@ -341,7 +347,10 @@ EFF.lampare=function(p,A,B,s,r){
   const q=QUAL(), g=clamp(s,0.4,1.6), n=Math.round(rand(60,80)*q*clamp(0.6+g*0.4,0.7,1.3)), alt=SCHWEIF;
   SCHWEIF=0.12;
   for(let i=0;i<n;i++){ const d=randDir(), w=rand(3,5)*g*rand(0.6,1), L=rand(0.8,1.2);
-    psBig.emit(p.x,p.y,p.z,d[0]*w,d[1]*w+0.6,d[2]*w,1,.82,.32,L,-1,2,.55,.06,.01); }
+    /* 28.09., Tom: echt - Flammen verloeschen dunkel und frueh; vorher
+       glommen sie 1 s als dunkelrote Scheiben nach (im Finale ein Himmel
+       voll roter Punkte) */
+    psBig.emit(p.x,p.y,p.z,d[0]*w,d[1]*w+0.6,d[2]*w,1,.82,.32,L*0.7,-1,2,.3,.05,.01); }
   SCHWEIF=0;
   for(let i=0;i<6;i++) psHuge.emit(p.x,p.y,p.z,rand(-.4,.4),rand(0,.6),rand(-.4,.4),1,.7,.3,rand(0.3,0.55),-0.5,0);
   SCHWEIF=alt;
@@ -415,9 +424,11 @@ Object.assign(THEMEN,{
 const DB={
   /* Pusteblume, L4: zwei gelbe Loewenzahnblueten, dann vier Pusteblumen.
      28.09. (Tom: echt): Silberflitter statt driftender Punktwolke, Thema
-     pusteblume - Zitrone/Gold, dann Silber/Gold */
+     pusteblume - Zitrone/Gold, dann Silber/Gold. Die Loewenzahnblueten
+     sind kleine Chrysanthemen (als Mini-Paeonie standen 30 dicke Punkte
+     im Kreis - ein Punktkranz, kein Bruch) */
   kinderbatterie:()=>show({basis:{pw:-11.5,sz:0.40,th:'pusteblume'}, rampe:{sz:[0.9,1.15],pw:[-1,1],hell:[0.9,1.15],kurve:'linear'}}, [
-    {n:2,gap:1.7,eff:'kugel',kal:'mini',farbe:1,muster:'gerade',steig:'keiner',bruchOpt:{kern:false,nachglitzer:false},pause:0.9},
+    {n:2,gap:1.7,eff:'chrys',kal:'klein',farbe:1,muster:'gerade',steig:'keiner',bruchOpt:{kern:false,nachglitzer:false},pause:0.9},
     {n:2,gap:1.5,eff:'pusteblume',farbe:0,steig:'silber',muster:'zufall',ang:0.12,boden:{k:'torte',gt:4,A:'silber'},pause:1.0},
     {n:2,gap:0,muster:'v',ang:0.22,eff:'pusteblume',farbe:0,kal:'klein',steig:'silber',pause:3.0}
   ]),
@@ -428,7 +439,7 @@ const DB={
     {n:0,nurBoden:true,boden:[{k:'kreisel',gt:5,x:-0.1,A:'limette',i:0},{k:'kreisel',gt:5,x:0,A:'rose',i:1,t:0.4},{k:'kreisel',gt:5,x:0.1,A:'limette',i:2,t:0.8}],pause:4.6},
     {n:2,gap:1.4,muster:'mitte',ang:0.18,eff:'brausepulver',farbe:2,steig:'gold',pause:0.9},
     {n:0,nurBoden:true,boden:[{k:'torte',gt:6,x:-0.09,A:'silber'},{k:'torte',gt:6,x:0.09,A:'silber'}]},
-    {n:3,mit:true,takt:[0.4,1.4],muster:'w',ang:0.25,eff:['kugel','kugel','brausepulver'],farbe:0,kal:'mini',steig:'gold',pause:1.2},
+    {n:3,mit:true,takt:[0.4,1.4],muster:'w',ang:0.25,eff:['kugel','kugel','brausepulver'],farbe:0,kal:'klein',steig:'gold',pause:1.2},
     {n:2,gap:0,muster:'v',ang:0.28,eff:'brausepulver',farbe:1,kal:'klein',steig:'gold',pause:3.0}
   ]),
   /* Dreisprung, L8: dreimal drei Schuss, jeder Satz eine Stufe hoeher.

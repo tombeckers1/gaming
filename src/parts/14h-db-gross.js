@@ -163,7 +163,10 @@ function kreuzSplit(p,vk,A,B,s,split){
   schall(p,v2=>{ sfx.crack(v2*1.3); later(0.03,()=>sfx.crack(v2*0.8)); });
   for(let k=0;k<4;k++){ const a=roll+k*Math.PI/2, d=[u[0]*Math.cos(a)+v[0]*Math.sin(a),u[1]*Math.cos(a)+v[1]*Math.sin(a),u[2]*Math.cos(a)+v[2]*Math.sin(a)];
     const w=rand(10,14)*Math.sqrt(s), vel=[d[0]*w+vk[0]*0.25,d[1]*w+vk[1]*0.25,d[2]*w+vk[2]*0.25];
-    grSpur(0.3,()=>{ psHuge.emit(p.x,p.y,p.z,vel[0],vel[1],vel[2],stB[0]*1.3,stB[1]*1.3,stB[2]*1.3,split>1?0.52:0.9,3,0);
+    /* 28.09., Tom: "Laser" - die Leuchtspur nur als kurze Flamme, den
+       Schweif tragen die Funken (funkenSchweif); mit 0,3 s zog jedes
+       Stueck einen geraden weissen Strich */
+    grSpur(0.14,()=>{ psHuge.emit(p.x,p.y,p.z,vel[0],vel[1],vel[2],stB[0]*1.3,stB[1]*1.3,stB[2]*1.3,split>1?0.52:0.9,3,0);
       for(let i=0;i<3;i++){ const e=streu(d,0.03), ww=w*rand(0.93,1); psBig.emit(p.x,p.y,p.z,e[0]*ww+vk[0]*0.25,e[1]*ww+vk[1]*0.25,e[2]*ww+vk[2]*0.25,stB[0],stB[1],stB[2],split>1?0.52:rand(0.8,0.9),3,0); } });
     funkenSchweif(p,vel,3,split>1?0.5:0.85,2,B);
     if(split>1) later(0.5,()=>{ const o=bahnOrt(p,vel,3,0.5), w2=bahnTempo(vel,3,0.5), l=Math.hypot(w2[0],w2[1],w2[2])||1, dn=[w2[0]/l,w2[1]/l,w2[2]/l];
@@ -471,8 +474,10 @@ SCHUSS_EFF.blinkkugel=function(r){
     imBild(tt,()=>{ const alt=FW_TAG; FW_TAG=tag; const o=bahnOrt(P0,v,G,tt), w=bahnTempo(v,G,tt);
       for(let k=0;k<Math.round(4*q);k++) psMid.emit(o.x,o.y,o.z,w[0]*0.15+rand(-.3,.3),w[1]*0.15+rand(-.5,0),w[2]*0.15+rand(-.3,.3),fu[0],fu[1],fu[2],rand(0.35,0.6),3,4); FW_TAG=alt; }); }
   /* Scheitel: Glitterzerleger, jeder Stern funkelt fuer sich und rieselt */
-  imBild(t2,()=>{ const alt=FW_TAG; FW_TAG=tag; const o=bahnOrt(P0,v,G,t2), w=bahnTempo(v,G,t2), n=Math.round(rand(12,16)*q);
-    grSpur(0.22,()=>{ for(let i=0;i<n;i++){ const d=randDir(), u=rand(3,4.5); psBig.emit(o.x,o.y,o.z,w[0]+d[0]*u,w[1]+d[1]*u,w[2]+d[2]*u,1.3,1.32,1.4,rand(1.2,1.8),1.8,4); } });
+  /* 28.09. (Probebild vom Zuendpult): 12-16 Sterne mit 3-4,5 m/s waren
+     aus 40 m kaum zu sehen - jetzt ein voller kleiner Glitterzerleger */
+  imBild(t2,()=>{ const alt=FW_TAG; FW_TAG=tag; const o=bahnOrt(P0,v,G,t2), w=bahnTempo(v,G,t2), n=Math.round(rand(26,34)*q);
+    grSpur(0.22,()=>{ for(let i=0;i<n;i++){ const d=randDir(), u=rand(4.5,6.5); psBig.emit(o.x,o.y,o.z,w[0]+d[0]*u,w[1]+d[1]*u,w[2]+d[2]*u,1.3,1.32,1.4,rand(1.4,2.1),1.8,4); } });
     later(camera.position.distanceTo(o)/343,()=>{ sfx.klick(distVol(o)*1.4,rand(0.8,1.1)); later(0.25,()=>sfx.crackle(distVol(o)*0.5)); });
     FW_TAG=alt; });
 };
@@ -913,8 +918,10 @@ SIGNATUR.goldregen22={eff:'zwilling',text:'Leuchtkugel teilt sich in zwei'};
 SHOWS.pfeifkonzert=()=>show({basis:{pw:3.05,sz:1.245,th:'wald'},rampe:{sz:[0.90,1.20],pw:[0,2],hell:[0.90,1.25],kurve:'welle'}},[
   /* Einstimmen: acht Heuler, jeder in einem anderen schiefen Ton */
   {n:8,gap:0.9,muster:'aussen',ang:0.35,steig:'heuler',ton:'stimmen',eff:'kugel',kal:'klein',farbe:0,boden:{k:'fountain',gt:8,A:'gold',B:'weiss'},pause:1.0},
-  /* Piccolo: kurze, hohe Pfiffe, flache Sternschnuppen */
-  {n:16,gap:0.15,muster:'zufall',ang:0.35,kal:'mini',pw:-5,steig:'heuler',ton:'hoch',eff:'sternschnuppen',farbe:1,pause:1.2},
+  /* Piccolo: kurze, hohe Pfiffe, oben kleine Paeonien mit Pistill
+     (28.09., Tom: echt - die Sternschnuppen standen als dicke weisse
+     Sternfiguren mit geraden Strahlen am Himmel) */
+  {n:16,gap:0.15,muster:'zufall',ang:0.35,kal:'mini',pw:-5,steig:'heuler',ton:'hoch',eff:'pistill',farbe:1,pause:1.2},
   /* Duett: oben Dreiklang-Heuler im V, unten brummende Bienen */
   {n:12,gap:1.2,muster:'v',ang:0.40,steig:'dreiklang',eff:'palme',A:'gold',B:'gruen',kal:'mittel'},
   {mit:true,n:12,gap:1.2,muster:'gerade',kal:'mini',pw:-7,steig:'heuler',ton:'tief',eff:'bienen',farbe:0,pause:0.8},
@@ -943,7 +950,9 @@ SHOWS.profi=()=>show({basis:{pw:3.10,sz:1.250,th:'goetter'},rampe:{sz:[0.90,1.30
   /* Zwischenspiel "Goetterfunken": knisternde Goldsterne im Scheibenwischer */
   {n:14,gap:0.2,muster:'wischer',seg:2,ang:0.40,eff:'drachenei',kal:'klein',pw:-2,farbe:1,pause:1.2},
   /* Strophe 2 DUETT: Melodie oben senkrecht, Bass in Halben tiefer im V */
-  {n:30,muster:'gerade',hoehe:'melodie',noten:ODE,viertel:0.5,hStufe:2.5,pw:-1,eff:'dahlie',farbe:1},
+  /* 28.09., Tom: echt - Chrysanthemen statt Dahlien: deren grosse
+     Einzelsterne standen tief vor dem Zuendpult als gelbe Leuchtscheiben */
+  {n:30,muster:'gerade',hoehe:'melodie',noten:ODE,viertel:0.5,hStufe:2.5,pw:-1,eff:'chrys',farbe:1},
   {mit:true,n:16,muster:'v',ang:0.45,hoehe:'melodie',noten:ODE_BASS,viertel:0.5,hStufe:2.5,pw:-6,kal:'klein',eff:'palme',farbe:0,pause:1.0},
   /* Zwischenspiel: Wasserfall der Freude - Fontaenen mitten in der Show, grosse Kronleuchter */
   {n:12,gap:1.3,muster:'aussen',ang:0.50,eff:'kronleuchter',kal:'gross',farbe:0,boden:{k:'wasserfall',gt:16,A:'gold',B:'weiss'},pause:1.5},
@@ -1153,7 +1162,9 @@ SHOWS.wolkenkratzer=()=>show({basis:{pw:5.05,sz:1.405,th:'hochhaus'},rampe:{sz:[
   /* 1. Etage: rote Feuertoepfe im Scheibenwischer */
   {n:24,gap:0.25,nurMine:true,mineEff:'farbe',muster:'wischer',seg:2,ang:0.40,farbe:1},
   /* 2. Etage kommt dazu (1. laeuft weiter) */
-  {n:30,gap:0.3,muster:'w',ang:0.35,kal:'mittel',pw:-2,eff:['dahlie','chrys'],farbe:2},
+  /* 28.09., Tom: echt - Pistill statt Dahlie: die grossen Dahliensterne
+     fielen aus der tiefen Etage bis vor das Zuendpult (Leuchtscheiben) */
+  {n:30,gap:0.3,muster:'w',ang:0.35,kal:'mittel',pw:-2,eff:['pistill','chrys'],farbe:2},
   {mit:true,n:30,gap:0.2,nurMine:true,mineEff:'farbe',muster:'zufall',ang:0.30,farbe:1},
   /* Dach: goldene Kronleuchter im Penthouse, darunter beide Etagen dicht */
   {n:8,gap:1.1,muster:'gerade',kal:'riesig',pw:6,eff:'kronleuchter',farbe:3},

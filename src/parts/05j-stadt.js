@@ -31,7 +31,8 @@ const STADT_BELEGT=[
   {x0:-222,x1:-202,z0:-176,z1:176},{x0:208,x1:228,z0:-176,z1:176},   /* Hochstrassen */
   {x0:-132,x1:-104,z0:192,z1:220},                                    /* Fernsehturm  */
   {x0:84,x1:108,z0:136,z1:160},{x0:-76,x1:-52,z0:164,z1:188},         /* Kraene       */
-  {x0:58,x1:90,z0:72,z1:100}                                          /* Kirche       */
+  {x0:58,x1:90,z0:72,z1:100},                                         /* Kirche       */
+  {x0:-72,x1:97,z0:-34,z1:18}         /* Umfeld von Laden und Logistik (Test start.js) */
 ];
 function belegen(x,z,hw,hd){ STADT_BELEGT.push({x0:x-hw,x1:x+hw,z0:z-hd,z1:z+hd}); }
 function platzFrei(x,z,hw,hd){

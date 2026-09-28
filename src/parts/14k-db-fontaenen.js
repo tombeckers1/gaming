@@ -654,7 +654,7 @@ NEU_EMIT.ausbruch=(e,dt,o)=>{
   if(S.length) fkSterne(e,dt,p,[0,1,0],w1*0.95,kg*1.3,26*st*k,S,'aS2',{ps:psBig,hell:1.25,hMin:w0/w1,spur:0.06});
   SCHWEIF=alt;
   fkRauch(e,dt,o,h*0.5,2);
-  fkLicht(e,o,o.y+8,[0.92,0.94,1],2.6*st*k,25);
+  fkLicht(e,o,o.y+8,[0.92,0.94,1],1.9*st*k,20);
 };
 
 /* zerfall (Feuerkaskade): zum Schluss stoesst jede Duese einen Schwall
@@ -731,7 +731,7 @@ NEU_EMIT.riesenpuls=(e,dt,o)=>{
     glint(psMid,p.x,p.y,p.z,Math.cos(a)*Math.sin(tl)*sp,Math.cos(tl)*sp,Math.sin(a)*Math.sin(tl)*sp,FW.gold,6,{t0:tA*0.5,t1:tA*1.1,dim:0.3,spur:0.03,blitz:2.6,glimm:0.3,rest:0.25}); }
   SCHWEIF=alt;
   fkRauch(e,dt,o,12,2);
-  fkLicht(e,o,o.y+3,FW.bernstein,2.6*kraft,25);
+  fkLicht(e,o,o.y+3,FW.bernstein,1.9*kraft,20);
   e.fz=(e.fz||0)-dt; if(e.fz<=0){ e.fz=0.9; noise(1.0,0.12*distVol(o)*kraft,900); }
 };
 
@@ -758,7 +758,7 @@ NEU_EMIT.titan50=(e,dt,o)=>{
   for(let n=fkJe(e,'tKn',70*q*kraft,dt);n>0;n--){ const a=Math.random()*Math.PI*2, r=rand(0,hm*0.12), y=hm*rand(0.82,1.0);
     knisterPop(o.x+d[0]/d[1]*y+Math.cos(a)*r,o.y+y,o.z+d[2]/d[1]*y+Math.sin(a)*r,{laut:0.35,leise:Math.random()<0.5,funken:6}); }
   fkRauch(e,dt,o,16,2.2);
-  fkLicht(e,o,o.y+4,[0.88,0.92,1],3*kraft,30);
+  fkLicht(e,o,o.y+4,[0.88,0.92,1],2*kraft,22); /* 28.09., Tom: echt - vorher 3: Hauswand wie im Flutlicht */
   e.fz=(e.fz||0)-dt; if(e.fz<=0){ e.fz=0.9; noise(1.0,0.14*distVol(o)*kraft,1200); }
 };
 
@@ -771,7 +771,7 @@ Object.assign(FONT_EREIGNIS,{
   zauberpuff(e,o){ const v=distVol(o), p={x:o.x,y:o.y+0.25,z:o.z};
     flash(p,FW.weiss,2,0.08);
     const alt=SCHWEIF; SCHWEIF=0.06; for(let i=0;i<Math.round(40*QUAL());i++){ const d=randDir(), s=rand(2,4.5); psMid.emit(o.x,o.y+0.03,o.z,d[0]*s,Math.abs(d[1])*s+1,d[2]*s,1.3,1.25,1.2,rand(0.15,0.35),4,0); } SCHWEIF=alt;
-    rauchball(p,{r:0.45,n:4,dauer:2.2,quellen:0.4,steigen:0.35,c:[0.62,0.62,0.66],a:0.4});
+    rauchball(p,{r:0.4,n:3,dauer:2.2,quellen:0.4,steigen:0.35,c:[0.46,0.46,0.48],a:0.2}); /* 28.09., Tom: echt - vorher a 0,4: heller Nebelball */
     sfx.thump(v*1.1); rauschF({dur:0.25,vol:0.2*v,f:500,hart:true}); },
   zauberpuff_tadaa(e,o){ FONT_EREIGNIS.zauberpuff(e,o);
     /* zum Schluss sinkt ein Schleier aus Glitzersternen */

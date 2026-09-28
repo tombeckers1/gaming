@@ -538,7 +538,7 @@ const DB={
     {n:8,gap:0.35,muster:'x',ang:0.4,rohre:'breit',eff:'fischschwarm',kal:'mittel',steig:'silber',pause:3.5}
   ]),
   /* Feuersturm, L15: Sprint auf drei Ebenen, 3 Schuss je Sekunde */
-  batterie49:()=>show({basis:{pw:-2.5,sz:0.90,th:'glut'}, rampe:{sz:[0.75,1.25],pw:[-2,2],hell:[0.85,1.35],kurve:'linear'}}, [
+  batterie49:()=>show({basis:{pw:-2.5,sz:0.90,th:'glut'}, rampe:{sz:[0.75,1.25],pw:[-2.8,2],hell:[0.85,1.35],kurve:'linear'}}, [
     {n:0,nurBoden:true,boden:[{k:'volcano',gt:15,x:-0.45,A:'orange',B:'gold'},{k:'volcano',gt:15,x:0.45,A:'rot',B:'gold'}],pause:0.4},
     {n:6,gap:0.7,muster:'gerade',eff:'lampare',kal:'klein',steig:'glut',pause:0.5},
     {n:10,gap:0.45,muster:'v',ang:0.3,eff:'chrys',steig:'glut',pause:0.5},

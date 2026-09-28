@@ -115,19 +115,19 @@ const P={
     desc:'Zehn Meter pures Gold, und oben knistert eine Krone, die immer breiter und lauter wird.',
     art:{title:'GOLDGEYSIR',sub:'10 m · Knisterkrone · 20 s',bg1:'#6b4a0c',bg2:'#1f1402',ac:'#ffd23f',ac2:'#fff3c4',gold:true}},
   feuersaeule:{name:'Feuersäule · 15-m-Glühfarben-Fontäne',short:'Feuersäule',cat:2,lvl:20,shape:'cylinder',dims:[0.24,0.4,0.24],grid:[6,1,1],box:3,cost:24.00,market:57.99,weight:4,hype:62,risk:9,
-    desc:'Eine 15-m-Säule, die wie glühendes Eisen ihre Farbe ändert: Weißglut unten, Rotglut oben, und die Farben steigen durch die Säule.',
+    desc:'Eine 15-m-Säule, die abkühlt wie glühendes Eisen: erst Weißglut aus Titan, dann Gelbglut mit verästelten Eisenfunken, dann tiefe Rotglut aus Kohle.',
     art:{title:'FEUERSÄULE',sub:'15 m · Glühfarben · 28 s',bg1:'#7a1010',bg2:'#1a0202',ac:'#ff7a1c',ac2:'#ffd23f',gold:true}},
   /* Monsterfontaenen (Toms PDF vom 25.09.): 30 und 50 m hoch, kurz,
      je hoeher, desto bunter. Nur Fontaene, keine Ladung. */
   fontaene30:{name:'Himmelsstürmer · 30-m-Monsterfontäne',short:'Monster 30 m',cat:2,lvl:23,shape:'cylinder',dims:[0.3,0.46,0.3],grid:[4,1,1],box:2,cost:33.00,market:79.99,weight:3,hype:74,risk:10,
-    desc:'Dreißig Meter pulsierendes Feuer. Salve um Salve steigen Glitzersterne auf und fallen oben als goldene Weide.',
-    art:{title:'HIMMELSSTÜRMER',sub:'30 m · fünf Farben · 12 s',bg1:'#0c3d7a',bg2:'#020a1c',ac:'#ffd23f',ac2:'#3fe07a',gold:true}},
-  fontaene50:{name:'Regenbogen-Titan · 50-m-Monsterfontäne',short:'Monster 50 m',cat:2,lvl:26,shape:'cylinder',dims:[0.36,0.52,0.36],grid:[3,1,1],box:1,cost:49.00,market:119.99,weight:2,hype:90,risk:10,
-    desc:'Fünfzig Meter Regenbogen: Acht Farbstrahlen drehen sich wie eine Tulpe, in der Mitte blitzt Silber.',
-    art:{title:'REGENBOGEN-TITAN',sub:'50 m · Regenbogen · 14 s',bg1:'#4a1070',bg2:'#06020f',ac:'#5ce1ff',ac2:'#ff4fa3',gold:true}},
-  wasserfall:{name:'Niagara · Silberwasserfall 30 s',short:'Niagara',cat:2,lvl:18,shape:'cylinder',dims:[0.16,0.36,0.16],grid:[10,1,1],box:5,cost:14.00,market:32.99,weight:4,hype:38,risk:7,
-    desc:'Ein Vorhang aus Silberfunken fällt drei Meter tief von der Leine und spritzt am Boden auf, dreißig Sekunden lang.',
-    art:{title:'NIAGARA',sub:'3 m Silberfall · 30 s',bg1:'#8a9299',bg2:'#2a2f36',ac:'#f2f5ff',ac2:'#5ce1ff'}},
+    desc:'Dreißig Meter pulsierendes Feuer. Salve um Salve steigen Gold- und Rotsterne auf und fallen oben knisternd als goldene Weide.',
+    art:{title:'HIMMELSSTÜRMER',sub:'30 m · Gold und Rot · 12 s',bg1:'#0c3d7a',bg2:'#020a1c',ac:'#ffd23f',ac2:'#3fe07a',gold:true}},
+  fontaene50:{name:'Silbertitan · 50-m-Monsterfontäne',short:'Monster 50 m',cat:2,lvl:26,shape:'cylinder',dims:[0.36,0.52,0.36],grid:[3,1,1],box:1,cost:49.00,market:119.99,weight:2,hype:90,risk:10,
+    desc:'Fünfzig Meter Titan: ein ruhiger Silberstrahl aus der Drehdüse, oben eine knisternde Silberkrone, dazwischen blaue Sterne.',
+    art:{title:'SILBERTITAN',sub:'50 m · Titan · 14 s',bg1:'#4a1070',bg2:'#06020f',ac:'#5ce1ff',ac2:'#ff4fa3',gold:true}},
+  wasserfall:{name:'Niagara · Silberwasserfall 30 s',short:'Niagara',cat:2,lvl:18,shape:'boxA',dims:[0.92,0.3,0.12],gestell:'leine',leineH:2.2,grid:[10,1,1],box:5,cost:14.00,market:32.99,weight:4,hype:38,risk:7,
+    desc:'Zwei Pfosten, eine Leine, neun Fontänen daran: Die Zündschnur öffnet den Silbervorhang, der zwei Meter tief auf den Tisch fällt und aufspritzt, dreißig Sekunden lang. Kommt auf dem Zündtisch aufgebaut.',
+    art:{title:'NIAGARA',sub:'Silbervorhang · 30 s',bg1:'#8a9299',bg2:'#2a2f36',ac:'#f2f5ff',ac2:'#5ce1ff'}},
   /* Partyzubehoer, Getraenke und Fondue/Raclette (Tom, 25.09.). Alles
      Zubehoer (cat 0): kommt nie aufs Testfeld. Die Packungen sind so
      gross wie im echten Laden, nicht winzig. */
@@ -202,12 +202,12 @@ const P={
     desc:'Eine riesige Silberkugel – dann bricht der Himmel: Sechs Risse laufen krachend nach außen, 24 Splitter blitzen auf, und zum Schluss hängt eine Silberweide über allem.',
     art:{title:'HIMMELSBRECHER',sub:'300 mm · 24 Brüche · Silberweide',bg1:'#0e1226',bg2:'#000000',ac:'#d1e5ff',ac2:'#ffd23f',gold:true}},
   /* Feuerbrunnen: Flammenfontaene mit Flammenregen (Tom, 24.09.) */
-  feuerbrunnen:{name:'Feuerbrunnen · Flammenfontäne 16 s',short:'Feuerbrunnen',cat:2,lvl:15,shape:'cylinder',dims:[0.18,0.32,0.18],grid:[8,1,1],box:4,cost:9.50,market:22.99,weight:5,hype:32,risk:7,
-    desc:'Er faucht, stößt Flammenbälle bis acht Meter hoch, gerät ins Dauerfeuer und endet mit drei gewaltigen Feuerstößen.',
-    art:{title:'FEUERBRUNNEN',sub:'Flammenfontäne · 16 s',bg1:'#8a1a08',bg2:'#240502',ac:'#ff8a2a',ac2:'#ffd23f',gold:true}},
+  feuerbrunnen:{name:'Feuerbrunnen · Kometenfontäne 16 s',short:'Feuerbrunnen',cat:2,lvl:15,shape:'cylinder',dims:[0.18,0.32,0.18],grid:[8,1,1],box:4,cost:9.50,market:22.99,weight:5,hype:32,risk:7,
+    desc:'Er faucht mit großer Flamme und stößt Brokatkometen bis acht Meter hoch, gerät ins Dauerfeuer und endet mit drei gewaltigen Stößen.',
+    art:{title:'FEUERBRUNNEN',sub:'Kometenfontäne · 16 s',bg1:'#8a1a08',bg2:'#240502',ac:'#ff8a2a',ac2:'#ffd23f',gold:true}},
   /* Fontaene, die oben in einen Kometen uebergeht und aufblueht */
   sternenbrunnen:{name:'Blütenbrunnen · Fontäne mit Chrysanthemen-Pops',short:'Blütenbrunnen',cat:2,lvl:12,shape:'cylinder',dims:[0.145,0.34,0.145],grid:[7,2,1],box:6,cost:7.90,market:18.99,weight:7,hype:26,risk:6,
-    desc:'Vier Blütenwechsel: rote Blüten über Silber, Gold mit blauen Perlen, grüne Reisblüten und zum Schluss dichte violette Chrysanthemen, die leise aufplatzen.',
+    desc:'Vier Blütenwechsel in Rot: rote Blüten über Silber, Goldperlen, rote Reisblüten und zum Schluss dichte rote Chrysanthemen mit goldenem Stempel, die leise aufplatzen.',
     art:{title:'BLÜTENBRUNNEN',sub:'4 Phasen · 18 s',bg1:'#123a6b',bg2:'#04101f',ac:'#5ce1ff',ac2:'#ffd23f'}}
 };
 /* Alle Produkte wesentlich groesser (Tom, 25.09.): ein Viertel in jede

@@ -242,10 +242,12 @@ const REST={max:COARSE?500:1500,next:0,n:0,t0:null,dauer:null,m:null,mesh:null,w
   try{
     const g=new THREE.PlaneGeometry(1,1); g.rotateX(-Math.PI/2);
     const mesh=new THREE.InstancedMesh(g,new THREE.MeshStandardMaterial({roughness:0.85,metalness:0,side:THREE.DoubleSide}),REST.max);
-    mesh.count=0; mesh.frustumCulled=false; mesh.visible=false;
     /* die Farbspur je Plaettchen gleich anlegen, sonst uebersetzt three.js
-       den Shader beim ersten Rest neu */
+       den Shader beim ersten Rest neu - und VOR count=0: setColorAt legt
+       count*3 Werte an, sonst ist der Puffer leer und jeder Rest schwarz
+       (27.09., Kleinfeuerwerk: Konfettiteppich schwarz) */
     if(mesh.setColorAt) mesh.setColorAt(0,new THREE.Color(1,1,1));
+    mesh.count=0; mesh.frustumCulled=false; mesh.visible=false;
     scene.add(mesh); REST.mesh=mesh;
     REST.t0=new Float32Array(REST.max); REST.dauer=new Float32Array(REST.max); REST.m=new Float32Array(REST.max*6);
   }catch(e){ REST.mesh=null; }

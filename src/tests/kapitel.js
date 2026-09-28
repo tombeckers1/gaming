@@ -135,7 +135,11 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     bb.openShop();
     /* Ein Kunde mit sechs Artikeln stellt sich an: geht er an eine
        besetzte Kasse, und geht es dort schneller? */
-    let c=null; for(let t=0;t<200&&!c;t++){ bb.run(0.5,0.05); c=bb.customers.find(x=>x.state!=='leave'&&x.state!=='enter'); }
+    /* 28.09.: Im Regal liegen nur Boeller; bei ueber 250 Sorten wollte kaum
+       ein Kunde zufaellig welche und ging sofort wieder ("kein Kunde", je nach
+       Zufallsfolge). Geprueft wird hier die Kassenwahl, nicht der Wunsch:
+       wer hereinkommt, will Boeller. */
+    let c=null; for(let t=0;t<200&&!c;t++){ bb.customers.forEach(x=>{ if(x.state==='enter') x.wishes=[{type:'boeller',qty:1}]; }); bb.run(0.5,0.05); c=bb.customers.find(x=>x.state!=='leave'&&x.state!=='enter'); }
     if(!c){ o.fehler='kein Kunde'; return o; }
     const korb=()=>Array.from({length:6},()=>({type:'boeller',price:4.49}));
     /* an der Hauptkasse bedient niemand: der Kunde nimmt die besetzte SB-Kasse */

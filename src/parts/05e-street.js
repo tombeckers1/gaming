@@ -1579,7 +1579,7 @@ function atlasUV(geo,x0,y0,x1,y1){
 }
 function strMats(){
   if(_strMats) return _strMats;
-  const at=schildAtlas();
+  const at=strassenAtlas();
   const lampe=new THREE.MeshStandardMaterial({color:LIN(0x23262e),emissive:LIN(0xffe9c0),emissiveIntensity:0}); lampMats.push(lampe);
   /* Werbevitrine der Haltestelle: nachts von innen beleuchtet */
   const leucht=new THREE.MeshStandardMaterial({map:at,emissiveMap:at,emissive:LIN(0x9a9a9a),emissiveIntensity:0,roughness:0.3}); lampMats.push(leucht);
@@ -1838,7 +1838,7 @@ function abriebTex(){
 }
 /* Schildatlas 1024 x 1024: Plakate, Verkehrszeichen, Automat, Kasten */
 let _atlasT=null;
-function schildAtlas(){
+function strassenAtlas(){
   if(_atlasT) return _atlasT;
   _atlasT=tex(1024,1024,(g,W,H)=>{ const R=saat(21);
     g.fillStyle='#d8d4ca'; g.fillRect(0,0,W,H);

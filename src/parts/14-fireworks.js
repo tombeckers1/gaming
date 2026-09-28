@@ -11,7 +11,8 @@ const sternTex=tex(128,128,(g,W,H)=>{ const c=W/2;
   gr.addColorStop(0.2,'rgba(255,255,255,.35)'); gr.addColorStop(0.5,'rgba(255,255,255,.06)'); gr.addColorStop(1,'rgba(255,255,255,0)');
   g.fillStyle=gr; g.fillRect(0,0,W,H);
   for(const [dx,dy] of [[1,0],[0,1]]){ const lg=g.createLinearGradient(c-dx*c,c-dy*c,c+dx*c,c+dy*c);
-    lg.addColorStop(0,'rgba(255,255,255,0)'); lg.addColorStop(0.5,'rgba(255,255,255,.85)'); lg.addColorStop(1,'rgba(255,255,255,0)');
+    /* Strahlen nur angedeutet (28.09., echt.md 1.10: 0,85 wirkte wie Scheinwerfer) */
+    lg.addColorStop(0,'rgba(255,255,255,0)'); lg.addColorStop(0.5,'rgba(255,255,255,.3)'); lg.addColorStop(1,'rgba(255,255,255,0)');
     g.fillStyle=lg; if(dx) g.fillRect(0,c-1.5,W,3); else g.fillRect(c-1.5,0,3,H); } },false);
 /* Modi: 0 ruhiger Stern · 1 Stroboskop · 2 Farbwechsel · 3 Knistern · 4 Glitzer
    Leuchtspuren: jeder Stern zieht eine Linie hinter sich her. Die
@@ -19,7 +20,9 @@ const sternTex=tex(128,128,(g,W,H)=>{ const c=W/2;
    gerechnet - Luftwiderstand und Schwerkraft sind bekannt. So
    entstehen die Strahlen einer Chrysantheme und die haengenden
    Faeden einer Weide ohne Verlaufsspeicher. */
-const SCHWEIF_MODUS=[0.22,0,0.25,0,0.5];
+/* 28.09.: ruhige Sterne und Wechsler ohne eigenen Eintrag nur mit kurzer
+   Flamme (vorher 0,22/0,25 s farbige Linie = "Laser") */
+const SCHWEIF_MODUS=[0.1,0,0.08,0,0.5];
 let SCHWEIF=null;
 /* Engine v2 (26.09.): FW_TAG markiert jeden Stern mit der Show, aus der
    er kommt (weltenblitz loescht alle Sterne einer Show). FW_ERBE ist eine
@@ -30,12 +33,25 @@ const ZIEH=1.1;
    Flugbahn. Mit Luftwiderstand k und Schwerkraft g (gk=g/k):
    p(tau) = Kopf - v'*(e^(k*tau)-1)/k + (0, gk*tau, 0), v'=v+(0,gk,0).
    Die Helligkeit faellt zum Ende mit (1-s/S)^1.6. */
+/* 28.09. (Tom: "sieht aus wie Laser"; Recherche /tmp/fw/echt.md 1.2/1.10):
+   ein echter Schweif sind Funken aus Kohle/Titan - Gold oder Silber,
+   koernig und flackernd - keine durchgehende Linie in Sternfarbe. Darum:
+   - Farbe: nur die Flamme direkt hinter dem Stern traegt seine Farbe,
+     dahinter geht der Schweif in Kohle-Gold ueber (Silber/Weiss bleibt);
+   - Koernung: ab einem Viertel der Spur leuchtet nur ein Teil der
+     Abschnitte, je Stern und Abschnitt anders (position.y = Abschnitt),
+     und das Muster wandert, waehrend der Stern langsamer wird. */
 function spurMaterial(S){
   return new THREE.ShaderMaterial({
     uniforms:{S:{value:S},Z:{value:ZIEH}},
     vertexShader:'uniform float S;\nuniform float Z;\nattribute vec4 iP;\nattribute vec4 iV;\nattribute vec3 iC;\nvarying vec3 vC;\n'+
-      'void main(){\n  float s=position.x, tau=iP.w*s/S, A=(exp(Z*tau)-1.0)/Z;\n  vec3 p=iP.xyz-iV.xyz*A; p.y+=iV.w*tau;\n'+
-      '  vC=iC*pow(max(1.0-s/S,0.0),1.6);\n  gl_Position=projectionMatrix*modelViewMatrix*vec4(p,1.0);\n}',
+      'float hsh(vec3 q){ return fract(sin(dot(q,vec3(12.9898,78.233,45.164)))*43758.5453); }\n'+
+      'void main(){\n  float s=position.x, u=s/S, tau=iP.w*s/S, A=(exp(Z*tau)-1.0)/Z;\n  vec3 p=iP.xyz-iV.xyz*A; p.y+=iV.w*tau;\n'+
+      '  float L=max(iC.r,max(iC.g,iC.b)), sat=(L-min(iC.r,min(iC.g,iC.b)))/max(L,0.001);\n'+
+      '  vec3 c=mix(iC,vec3(1.0,0.6,0.22)*L,0.75*sat*smoothstep(0.04,0.3,u));\n'+
+      '  float h=hsh(vec3(position.y,floor(iV.x*1.7+iV.z*2.3),floor(iP.w*9.0+iV.y*1.3)));\n'+
+      '  float korn=mix(1.0,step(0.52,h)*(0.5+1.0*h),smoothstep(0.06,0.24,u));\n'+
+      '  vC=c*korn*pow(max(1.0-u,0.0),2.0);\n  gl_Position=projectionMatrix*modelViewMatrix*vec4(p,1.0);\n}',
     fragmentShader:'varying vec3 vC;\nvoid main(){ gl_FragColor=linearToOutputTexel(vec4(vC,1.0)); }',
     transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,fog:false,toneMapped:false});
 }
@@ -71,7 +87,8 @@ class PS{
          rechnete das der Prozessor und schickte bis zu 60 Zahlen je
          Stern und Bild. */
       const S=this.seg, sp=new Float32Array(S*2*3);
-      for(let s=1;s<=S;s++){ sp[(s-1)*6]=s-1; sp[(s-1)*6+3]=s; }
+      /* y = Nummer des Abschnitts (beide Enden gleich): die Koernung im Shader */
+      for(let s=1;s<=S;s++){ sp[(s-1)*6]=s-1; sp[(s-1)*6+3]=s; sp[(s-1)*6+1]=s; sp[(s-1)*6+4]=s; }
       const lg=new THREE.InstancedBufferGeometry(); lg.setAttribute('position',new THREE.BufferAttribute(sp,3));
       this.iP=new Float32Array(max*4); this.iV=new Float32Array(max*4); this.iC=new Float32Array(max*3);
       lg.setAttribute('iP',new THREE.InstancedBufferAttribute(this.iP,4)); lg.setAttribute('iV',new THREE.InstancedBufferAttribute(this.iV,4)); lg.setAttribute('iC',new THREE.InstancedBufferAttribute(this.iC,3));
@@ -103,9 +120,17 @@ class PS{
       const f=this.life[i]/this.maxl[i], m=this.md[i];
       let k=f, r=this.base[j], g=this.base[j+1], b=this.base[j+2];
       if(m===0) k*=f<0.18?0.3+Math.random()*0.9:0.86+Math.random()*0.14;
-      else if(m===1){ k*=((this.life[i]*11+this.ph[i])%1)<0.42?1.9:0.05; }
-      else if(m===2){ const u=1-f; r+=(this.c2[j]-r)*u; g+=(this.c2[j+1]-g)*u; b+=(this.c2[j+2]-b)*u; k*=0.9+Math.random()*0.1; }
-      else if(m===3){ if(Math.random()<0.26){ k=2.4; r=g=b=1; } else k*=0.06; }
+      /* 28.09. (echt.md 1.3/1.10): Strobe je Stern eigener Takt 3-9 Hz (vorher
+         alle starr 11 Hz = Lauflicht); Wechsler mit Dunkelphase ("dark relay")
+         statt Farbverlauf; Knister: dunkler Stern, der einmal hart aufknackt
+         (vorher 26 % je Bild weiss = Pixelrauschen) */
+      else if(m===1){ const hz=3+(this.ph[i]%1)*6; k*=((this.life[i]*hz+this.ph[i])%1)<0.35?1.9:0.03; }
+      else if(m===2){ const u=1-f, c2=this.c2;
+        /* dunkleres Ziel = Glut kuehlt ab (weich); gleich helles = Farbwechsel mit Dunkelphase */
+        if(Math.max(c2[j],c2[j+1],c2[j+2])<0.55*Math.max(r,g,b)){ r+=(c2[j]-r)*u; g+=(c2[j+1]-g)*u; b+=(c2[j+2]-b)*u; k*=0.9+Math.random()*0.1; }
+        else if(u>=0.5){ if(u<0.57) k*=0.04; else { r=c2[j]; g=c2[j+1]; b=c2[j+2]; k*=0.9+Math.random()*0.1; } }
+        else k*=0.9+Math.random()*0.1; }
+      else if(m===3){ const u=1-f, tp=0.12+((this.ph[i]*0.618)%1)*0.72; if(u<tp) k*=0.05; else if(u<tp+0.04){ k=2.4; r=g=b=1; } else k=0; }
       else k*=0.45+Math.random()*1.05;
       /* Die ersten Zehntel seines Lebens glueht ein Stern weiss auf,
          dann setzt die Farbe ein - wie beim echten Zerlegerschlag.
@@ -1209,16 +1234,20 @@ EFF.himmelsbrecher=function(p,A,B,s){
       psSmall.emit(e.x,e.y,e.z,d[0]*w,d[1]*w,d[2]*w,1,1,.9,rand(0.3,0.6),2,3); }
     sfx.crackle(distVol(p)); later(0.1,()=>sfx.crackle(distVol(p))); });
 };
-/* Wie lang die Leuchtspur je Bruchbild ist (Sekunden Flugbahn) */
-const EFF_SCHWEIF={kugel:0.4,chrys:0.75,wechsel:0.35,weide:1.9,palme:1.1,ring:0.3,doppelring:0.3,crossette:0.35,
-  knister:0.3,blink:0,brokat:1.3,herz:0.18,stern:0.18,kreisel:0.4,fische:0.25,doppel:0.4,dreifach:0.45,
-  dahlie:0.45,pistill:0.4,kamuro:1.8,spinne:0.5,strobe:0,zeitregen:0.9,blaetter:0,geist:0.35,salut:0.08,saturn:0.3,
-  tausend:0.25,mehrring:0.35,regenbogen:0.4,glitzerweide:2.0,komet:0.9,titan:0.8,zehnfach:0.35,kaskade:0.5,
-  schneeflocke:0.22,spirale:0.3,ringring:0.25,strauss:0.35,furz:0,
-  flammenregen:0.7,kronleuchter:0.9,feuerrad:0.55,sternschnuppen:0.9,farbregen:0.5,spektrum:0.2,goldglitzer:0.9,
-  sternpalme:1.1,polarstern:0.35,
-  smiley:0.15,bienen:0.3,drachenei:0.6,kokosnuss:1.3,schmetterling:0.2,blumenkranz:0.25,strobeweide:1.2,rossschweif:1.4,
-  diadem:0.3,goldvorhang:1.3,krone:1.1,regenbogenring:0.2,pfeifsterne:0.9,nishiki:1.1,drachenblut:0.5,weltenbrand:0.6,himmelsbrecher:0.5};
+/* Wie lang die Leuchtspur je Bruchbild ist (Sekunden Flugbahn).
+   28.09. (echt.md 1.2): Farbsterne (Paeonie, Dahlie, Ring, Figuren,
+   Wechsler) haben keinen Funkenschweif - nur die kurze Flamme hinter dem
+   Stern (0,06-0,15 s). Lange Schweife bleiben den Gold/Silber-Effekten
+   (Chrysantheme, Weide, Kamuro, Brokat, Palme, Komet). */
+const EFF_SCHWEIF={kugel:0.07,chrys:0.75,wechsel:0.08,weide:1.9,palme:1.1,ring:0.07,doppelring:0.07,crossette:0.35,
+  knister:0.12,blink:0,brokat:1.3,herz:0.06,stern:0.06,kreisel:0.12,fische:0.25,doppel:0.1,dreifach:0.1,
+  dahlie:0.12,pistill:0.15,kamuro:1.8,spinne:0.5,strobe:0,zeitregen:0.9,blaetter:0,geist:0.08,salut:0.08,saturn:0.08,
+  tausend:0.12,mehrring:0.08,regenbogen:0.08,glitzerweide:2.0,komet:0.9,titan:0.8,zehnfach:0.1,kaskade:0.5,
+  schneeflocke:0.06,spirale:0.15,ringring:0.07,strauss:0.1,furz:0,
+  flammenregen:0.5,kronleuchter:0.9,feuerrad:0.15,sternschnuppen:0.9,farbregen:0.3,spektrum:0.08,goldglitzer:0.9,
+  sternpalme:1.1,polarstern:0.12,
+  smiley:0.06,bienen:0.3,drachenei:0.6,kokosnuss:1.3,schmetterling:0.06,blumenkranz:0.08,strobeweide:1.2,rossschweif:1.4,
+  diadem:0.12,goldvorhang:1.3,krone:1.1,regenbogenring:0.08,pfeifsterne:0.9,nishiki:1.1,drachenblut:0.3,weltenbrand:0.3,himmelsbrecher:0.5};
 function mitSchweif(eff,fn){ const alt=SCHWEIF; SCHWEIF=EFF_SCHWEIF[eff]!==undefined?EFF_SCHWEIF[eff]:null; try{ fn(); } finally { SCHWEIF=alt; } }
 const EFF_ALL=Object.keys(EFF);
 /* Was in welcher Groessenklasse geschossen wird */
@@ -1611,8 +1640,10 @@ function muendungsblitz(o,y,k){
    Farbe an - zwei weiche, additive Ballen, die aufgehen und verblassen */
 function leuchthof(p,c,s,hell){
   if(typeof wolke!=='function') return;
+  /* 28.09. (echt.md 1.10): nur ein kurzes Aufhellen des Rauchs (0,35 s,
+     schwach) - vorher stand 1 s eine sichtbare Nebelscheibe von 12 m */
   const sp=[wolkenSprite(true),wolkenSprite(true)], R=5.5*s;
-  wolke(1.0,sp,(w,t)=>{ const a=(t<0.08?t/0.08:1)*(1-glatt(0.1,1.0,t))*0.11*hell, r=R*(0.45+0.35*(1-Math.exp(-t*5)));
+  wolke(0.35,sp,(w,t)=>{ const a=(t<0.05?t/0.05:1)*(1-glatt(0.05,0.35,t))*0.04*hell, r=R*(0.45+0.35*(1-Math.exp(-t*5)));
     wSetz(sp[0],p.x,p.y,p.z,r*2.2,c,a); wSetz(sp[1],p.x,p.y,p.z,r*1.1,[1,1,1],a*0.6); });
 }
 function fwBurst(r){

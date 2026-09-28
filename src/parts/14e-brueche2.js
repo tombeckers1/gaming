@@ -163,7 +163,12 @@ function haengen(ps,x,y,z,vx,vy,vz,c,life,o){
    alle anderen einen farbigen Lichtfleck auf dem Boden (o.boden = Hoehe).
    o.weite = Reichweite des Lichts in m (Standard 25). */
 const LICHT={an:[],alt:[],slot:{},flecken:[],vergeben:0,fleckN:0};
-function licht(key,p,c,staerke,o){ LICHT.an.push({key,p,c,st:staerke||2,o:o||{}}); dienst(); }
+/* 28.09. (echt.md 1.10: Dauerlicht wirkte wie Buehnenscheinwerfer): Feuer
+   leuchtet nie in reiner Farbe gleichmaessig - Farbe zu 35 % zur warmen
+   Flamme hin, leichtes Flackern. o.rein = Bengalfeuer, bleibt satt. */
+function licht(key,p,c,staerke,o){ o=o||{};
+  if(!o.rein){ const L=Math.max(c[0],c[1],c[2]); c=[c[0]*0.65+L*0.35,c[1]*0.65+L*0.35*0.72,c[2]*0.65+L*0.35*0.4]; }
+  LICHT.an.push({key,p,c,st:(staerke||2)*(0.88+Math.random()*0.18),o}); dienst(); }
 let _fleckTex=null;
 function fleckMesh(){
   if(!_fleckTex) _fleckTex=tex(64,64,(g,W,H)=>{ const gr=g.createRadialGradient(W/2,H/2,0,W/2,H/2,W/2);

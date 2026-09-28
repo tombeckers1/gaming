@@ -534,55 +534,12 @@ function fontPhasen(o,spec,prod,tag){
   return fontDauer(spec);
 }
 /* --- Drehbücher --- */
-const SHOWS={
-  /* Familienfest, 18 Teile: bunt, klein, freundlich */
-  sortiment:()=>[
-    {n:0,ground:'fountain',gt:6,pause:5.2},
-    {n:3,gap:0.9,eff:'kugel',mine:true,mineSz:0.5,pause:1.2},
-    {n:2,gap:1.3,eff:'smiley',pause:1.4},
-    {n:4,gap:0.8,eff:['kugel','regenbogen','knister','kugel'],wechsel:true,pause:1.2},
-    {n:4,gap:0.6,eff:'wechsel',fan:true,ang:0.3,pause:1.4},
-    {n:5,gap:0.5,eff:['kugel','chrys','regenbogen','kugel','chrys'],wechsel:true,sz:1.1,pw:1,pause:2.5}
-  ],
-  /* Nachthimmel, 16 Schuss: Blau und Gold, zum Schluss ein Regenbogen */
-  batterie16:()=>[
-    {n:4,gap:1.0,eff:'kugel',mine:true,mineSz:0.55,pause:1.2},
-    {n:4,gap:0.8,eff:'ring',fan:true,ang:0.3,pause:1.4},
-    {n:4,gap:0.75,eff:'bienen',pause:1.4},
-    {n:2,gap:0.6,eff:'regenbogen',sz:1.05,pw:1,pause:0.8},
-    {n:2,gap:0.12,eff:'chrys',farbe:0,sz:1.1,pw:1,pause:3.0}
-  ],
-  /* Knattersturm, 30 Schuss: Eisfarben, alles knistert, dazwischen
-     kurze Dreiersalven */
-  knatter:()=>[
-    {n:6,gap:0.7,eff:'knister',mine:true,mineSz:0.6,pause:1.4},
-    {n:3,gap:0.1,eff:'tausend',fan:true,ang:0.35,pause:2.2},
-    {n:6,gap:0.65,eff:['drachenei','fische'],fan:true,ang:0.3,pause:1.4},
-    {n:3,gap:0.1,eff:'tausend',fan:true,ang:-0.35,pause:2.2},
-    {n:6,gap:0.55,eff:['feuerrad','ring','feuerrad'],sz:1.05,pause:1.6},
-    {n:3,gap:0.1,eff:'kaskade',fan:true,ang:0.35,sz:1.1,pw:1,pause:1.6},
-    {n:3,gap:0.1,eff:'tausend',sz:1.15,pw:2,pause:3.0}
-  ],
-  /* Feuersturm, 49 Schuss: Rot, Orange, Gold - hier gibt es zum
-     ersten Mal den Flammenregen */
-  batterie49:()=>[
-    {n:6,gap:0.85,eff:'kugel',mine:true,pause:1.4},
-    {n:6,gap:0.55,eff:'wechsel',fan:true,ang:0.4,pause:1.4},
-    {n:6,gap:0.8,eff:['chrys','kokosnuss'],pause:1.6},
-    {n:4,gap:0.1,eff:'ring',fan:true,ang:0.4,pause:2.0},
-    {n:6,gap:0.9,eff:'flammenregen',sz:0.95,pw:1,pause:2.2},
-    {n:8,gap:0.45,eff:['feuerrad','doppelring','feuerrad','ring'],wechsel:true,pause:1.6},
-    {n:4,gap:0.12,eff:'kokosnuss',fan:true,ang:-0.4,sz:1.1,pw:1,pause:2.0},
-    {n:5,gap:0.5,eff:['chrys','flammenregen','chrys','palme','flammenregen'],sz:1.15,pw:2,pause:0.6},
-    {n:4,gap:0.1,eff:'salut',sz:1.0,pause:3.4}
-  ],
-  /* faecher, batterie100, zfaecher, kometen, donnerwand, profi, finale:
-     Drehbuecher seit dem 26.09. (Tom: Anomalie) in 14h-db-gross.js */
-  /* Roemische Lichter: echte Leuchtkugeln aus dem Rohr, keine Brueche */
-  roemisch:()=>[
-    {n:10,gap:1.0,perle:true,wechsel:true,pause:1.5}
-  ]
-};
+/* Alle Show-Drehbuecher stehen seit dem 26.09. in 14g-db-einstieg.js
+   (bis Level 15) und 14h-db-gross.js (ab Level 16). Die alten Eintraege
+   fuer Familienfest, Nachthimmel, Knattersturm, Feuersturm und das
+   Roemische Licht wurden dort ohnehin ueberschrieben und sind weg
+   (28.09.: sie enthielten noch Regenbogen- und Feuerradbrueche). */
+const SHOWS={};
 /* Raketensets: die Eintraege stehen seit dem 26.09. in 14i-db-raketen.js
    (Tom: "jede Rakete eine Anomalie" - eigener Aufstieg, eigener Bruch). */
 const RAKETEN_KL={};

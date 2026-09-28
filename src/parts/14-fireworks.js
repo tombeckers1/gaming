@@ -1137,7 +1137,8 @@ function perleSchuss(o,A,s,opt){
   const tS=Math.log(1+ZIEH*Math.max(0.1,vy)/G)/ZIEH;
   const L=art?tS:rand(1.6,2.0);
   const kugelFarbe=art==='wandelperle'?A:A;
-  for(let k=0;k<(art==='schwebeperle'?4:3);k++) psHuge.emit(o.x,y0,o.z,vx,vy,vz,kugelFarbe[0]*1.3,kugelFarbe[1]*1.3,kugelFarbe[2]*1.3,art==='wandelperle'?Math.min(0.6,L):L,G,0);
+  /* wandelperle: A endet kurz vor dem Wechsel - Dunkelphase (28.09., echt.md 1.4) */
+  for(let k=0;k<(art==='schwebeperle'?4:3);k++) psHuge.emit(o.x,y0,o.z,vx,vy,vz,kugelFarbe[0]*1.3,kugelFarbe[1]*1.3,kugelFarbe[2]*1.3,art==='wandelperle'?Math.max(0.1,Math.min(0.6,tS*0.45)-0.05):L,G,0);
   psBig.emit(o.x,y0,o.z,vx,vy,vz,1,1,1,L*0.4,G,0);
   /* Funkenschweif hinter der Kugel und ein kurzer Muendungsblitz */
   const schweif=art==='wandelperle'?0.55:1;
@@ -1148,8 +1149,15 @@ function perleSchuss(o,A,s,opt){
   const bei=(t,fn)=>later(t,()=>{ const a=FW_TAG; FW_TAG=tag; const q=bahnOrt(p0,v0,G,t), w=bahnTempo(v0,G,t); fn(q,w); FW_TAG=a; });
   if(art==='wandelperle'){
     const t1=Math.min(0.6,tS*0.45), t2=Math.max(t1+0.2,Math.min(1.2,tS-0.15));
-    bei(t1,(q,w)=>{ for(let k=0;k<3;k++) psHuge.emit(q.x,q.y,q.z,w[0],w[1],w[2],B[0]*1.3,B[1]*1.3,B[2]*1.3,t2-t1,G,0); });
-    bei(t2,(q,w)=>{ for(let k=0;k<3;k++) psHuge.emit(q.x,q.y,q.z,w[0],w[1],w[2],1.3,1.3,1.3,tS+0.05-t2,G,0); });
+    /* Farbwechsel mit Dunkelphase ("dark relay"): A geht aus, 0,1 s dunkel,
+       dann B; vor dem Weiss noch einmal kurz dunkel (28.09., Tom: echt) */
+    /* jede Stufe brennt als Kugel mit Schweif und Funken, nicht als
+       stehender Leuchtpunkt (28.09., Tom: "Punkte") */
+    const mitSp=fn=>{ const a=SCHWEIF; SCHWEIF=0.45; fn(); SCHWEIF=a; };
+    bei(t1+0.05,(q,w)=>mitSp(()=>{ for(let k=0;k<3;k++) psHuge.emit(q.x,q.y,q.z,w[0],w[1],w[2],B[0]*1.3,B[1]*1.3,B[2]*1.3,Math.max(0.1,t2-t1-0.1),G,0); }));
+    bei(t2+0.03,(q,w)=>mitSp(()=>{ for(let k=0;k<3;k++) psHuge.emit(q.x,q.y,q.z,w[0],w[1],w[2],1.3,1.3,1.3,Math.max(0.08,tS+0.02-t2),G,0); }));
+    for(let t=0.06;t<tS;t+=0.06){ if(Math.abs(t-t1-0.02)<0.05||Math.abs(t-t2-0.01)<0.04) continue;
+      bei(t,(q,w)=>{ for(let k=0;k<Math.round(4*QUAL());k++) psMid.emit(q.x,q.y,q.z,w[0]*0.2+rand(-.3,.3),w[1]*0.2+rand(-.4,0),w[2]*0.2+rand(-.3,.3),1,.75,.35,rand(0.3,0.5),3,4); }); }
     bei(tS+0.05,q=>{ for(let i=0;i<Math.round(rand(12,16)*QUAL());i++){ const d=randDir(); psMid.emit(q.x,q.y,q.z,d[0]*7,d[1]*7,d[2]*7,.85,.9,1,0.3,2,0); }
       psHuge.emit(q.x,q.y,q.z,0,0,0,1,1,1,0.08,0,0); later(camera.position.distanceTo(q)/343,()=>sfx.crack(distVol(q)*1.1)); });
   }

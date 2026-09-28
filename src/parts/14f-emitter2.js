@@ -181,10 +181,12 @@ NEU_EMIT.geysir=(e,dt,o)=>{
     psSmall.emit(o.x+rand(-0.3,0.3),y0+hm*rand(0.82,1.0),o.z+rand(-0.3,0.3),Math.cos(a)*s,rand(-1,1),Math.sin(a)*s,1,1,1,rand(0.25,0.55),2,4); }
   SCHWEIF=alt;
   licht('geysir'+(e.id||(e.id=Math.random())),{x:o.x,y:y0+hm*0.4,z:o.z},A,1.8*H*kraft,{boden:y0,weite:20});   /* 3,2 machte die Wand am Testfeld reinweiss (Probebild) */
-  /* kurz vor Schluss steigt der Dampf - noch von den Funken angestrahlt */
+  /* kurz vor Schluss steigt der Rauch - grau, nur schwach angestrahlt
+     (28.09., Tom: echt - die hell leuchtenden Dampfballen standen wie
+     weisse Wattebaeusche im Bild; nur das Geysirfeld nutzt diesen Emitter) */
   if(!e.dampf&&e.t<=0.4){ e.dampf=true;
-    rauchball({x:o.x,y:y0+hm*0.35,z:o.z},{r:2.6*H,n:8,dauer:3.6,quellen:1.4,steigen:1.1,wind:[0.3,0],c:[0.62,0.64,0.68],a:0.33,
-      farbe:tt=>tt<0.5?[0.95,0.96,1]:[0.62,0.64,0.68]}); }
+    rauchball({x:o.x,y:y0+hm*0.35,z:o.z},{r:1.8*H,n:6,dauer:3.0,quellen:1.2,steigen:1.1,wind:[0.3,0],c:[0.4,0.41,0.44],a:0.2,
+      farbe:tt=>tt<0.4?[0.62,0.63,0.66]:[0.4,0.41,0.44]}); }
 };
 
 /* Kreisel, jetzt auch als Boden-Ebene in Shows: ohne i stand er (e.i

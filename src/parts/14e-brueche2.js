@@ -197,8 +197,10 @@ function lichtTakt(){
     m.position.set(r.p.x,b+0.02,r.p.z); m.scale.set(gr,gr,1); m.material.color.setRGB(r.c[0]*a,r.c[1]*a,r.c[2]*a); m.visible=true;
   });
   for(let k=fi;k<LICHT.flecken.length;k++) LICHT.flecken[k].visible=false;
-  /* freigegebene Lichter bekommen die Blitz-Reichweite zurueck */
-  FLASH.forEach((F,ix)=>{ if(F.pool&&!belegt.has(ix)){ F.pool=false; F.l.distance=95; } });
+  /* freigegebene Lichter bekommen die Blitz-Reichweite zurueck - und sind
+     sofort aus: mit 95 m klang das Dauerlicht sonst noch 0,25 s ueber den
+     ganzen Platz nach (27.09.: Kreisel-Finale hellte die Wand auf 129 auf) */
+  FLASH.forEach((F,ix)=>{ if(F.pool&&!belegt.has(ix)){ F.pool=false; F.l.distance=95; F.t=0; F.l.intensity=0; } });
   LICHT.slot=neu; LICHT.vergeben=belegt.size; LICHT.fleckN=fi;
   return L.length>0;
 }

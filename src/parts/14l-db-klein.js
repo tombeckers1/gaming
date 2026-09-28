@@ -471,7 +471,8 @@ klEmit('farbnebel',(e,dt,o,t)=>{
   const Z=e.farbzyklus||['blau','violett','magenta'], per=e.periode||9, C=klKreis(Z,(t+(e.versatz||0))/per);
   const sf=klFlaeche(o), p={x:o.x,y:Math.max(o.y,sf)+0.02,z:o.z}, auf=Math.min(1,t/0.6), aus=clamp(e.t/0.8,0,1), s=auf*aus;
   e.C=C;
-  klFlamme(e,p,dt,C,{h:0.3,r:0.06,st:s*(0.93+0.07*Math.sin(t*23)),rate:120});
+  /* dichtere Flamme: Blau/Violett wirkt additiv dunkel, mit 120/s sah man nur den Fusspunkt */
+  klFlamme(e,p,dt,C,{h:0.35,r:0.06,st:s*(0.93+0.07*Math.sin(t*23)),rate:240,hof:0.45});
   /* 1,1 statt 2,4 und hoeher: drei Toepfe ueberstrahlten Tisch und Platz weiss */
   licht('fn'+e.prod+e.pi,{x:p.x,y:p.y+0.7,z:p.z},C,1.1*s,{weite:10});
   /* Rauch: zur gemeinsamen Mitte (Station) hin, steigt, leuchtet in der Farbe seines Topfes */
@@ -856,8 +857,11 @@ klEmit('ueberraschung',(e,dt,o,t)=>{
       const m=new THREE.Mesh(klMat('teil'+art,KL_TEILGEO[art]||KL_TEILGEO.kugel),mat); m.userData.geoFest=true; m.position.set(p.x,p.y,p.z); klMesh(e,m);
       /* Landepunkt auf dem Tisch (bis 0,8 m seitlich, 0,3 m tief) statt
          bis 3,5 m weit ins Dunkle (Katalog: Streuung auf dem Tisch) */
-      const h=rand(H[0],H[1]), vy=Math.sqrt(2*9.8*h), T=2*vy/9.8, a=rand(0,6.283), d=rand(0.1,1)*(e.streu||0.35)/0.35;
-      return {m,art,vx:Math.cos(a)*d*0.8/T,vz:Math.sin(a)*d*0.3/T,vy,ax:randDir(),w:rand(8,18),hops:0,ruhe:false,rad:art==='ring'?0.016:art==='kreisel'?0:0.038};
+      const h=rand(H[0],H[1]), vy=Math.sqrt(2*9.8*h), T=2*vy/9.8, f=(e.streu||0.35)/0.35, auf=sf>0.5;
+      /* Ziel vorne auf der Platte (die Bombe steht hinten am Schild) */
+      const tx=auf?clamp(p.x+rand(-0.7,0.7)*f,KL_TI.x-KL_TI.hx+0.12,KL_TI.x+KL_TI.hx-0.12):p.x+rand(-0.7,0.7)*f;
+      const tz=auf?clamp(p.z+rand(0.1,0.5)*f,KL_TI.z-KL_TI.hz+0.12,KL_TI.z+KL_TI.hz-0.15):p.z+rand(-0.3,0.3)*f;
+      return {m,art,vx:(tx-p.x)/T,vz:(tz-p.z)/T,vy,ax:randDir(),w:rand(8,18),hops:0,ruhe:false,rad:art==='ring'?0.016:art==='kreisel'?0:0.038};
     });
     const alt=SCHWEIF; SCHWEIF=0; psBig.emit(p.x,p.y+0.05,p.z,0,0,0,1.2,1,0.7,0.06,0,0); SCHWEIF=alt;
     rauchball({x:p.x,y:p.y+0.15,z:p.z},{r:0.3,n:2,dauer:2,steigen:0.3,c:[0.6*klHell()+0.1,0.6*klHell()+0.1,0.62*klHell()+0.1],a:0.35});
@@ -871,7 +875,7 @@ klEmit('ueberraschung',(e,dt,o,t)=>{
       ax.set(s.ax[0],s.ax[1],s.ax[2]); q.setFromAxisAngle(ax,s.w*dt); m.quaternion.premultiply(q);
       const gy=klGrund(m.position.x,m.position.z)+s.rad+0.001;
       if(m.position.y<=gy&&s.vy<0){ m.position.y=gy;
-        if(s.hops<(e.huepf||3)&&-s.vy>0.6){ s.hops++; s.vy=-s.vy*R; s.vx*=0.6; s.vz*=0.6; s.w*=0.6; schall(m.position,v=>sfx.klick(v*0.35,0.5+Math.random()*0.4)); }
+        if(s.hops<(e.huepf||3)&&-s.vy>0.6){ s.hops++; s.vy=-s.vy*R; s.vx*=0.35; s.vz*=0.35; s.w*=0.6; schall(m.position,v=>sfx.klick(v*0.35,0.5+Math.random()*0.4)); }
         else { s.ruhe=t;
           /* Ruhelage: Kreisel auf der Spitze, Ring flach, Wuerfel auf einer Seite */
           if(s.art==='ring') m.rotation.set(Math.PI/2,rand(0,6),0); else m.rotation.set(0,rand(0,6),0);
@@ -1164,7 +1168,7 @@ Object.assign(KLEIN,{
       folge:[{at:0,x:-0.15,z:-0.08,A:'rot'},{at:3.0,x:0.15,z:0.08,A:'gruen'},{at:6.0,x:-0.05,z:0.08,A:'rot'},{at:9.0,x:0.05,z:-0.08,A:'gruen'}]}]},
   /* L3 */
   wunderzahl:{stueck:4,lunte:0,dauer:12,
-    phasen:[{k:'glutschrift',form:['2','0','2','7'],abstand:0.16,groesse:0.25,at:0,t:6.5,versatz:0.4,start:'strich',fronten:1,A:'gold',B:'zitrone',glut:'gold',nachglut:3.0,
+    phasen:[{k:'glutschrift',form:['2','0','2','7'],abstand:0.16,groesse:0.25,at:0,t:6.5,versatz:0.4,start:'strich',fronten:1,A:'gold',B:'zitrone',glut:'gold',nachglut:3.0,n:4, /* weniger Funken: die Ziffern sollen schon beim Brennen lesbar sein */
       schluss:{at:7.8,funkeln:1.0}}]},
   /* L4 */
   boeller:{stueck:1,lunte:1.2,dauer:5,phasen:[{k:'alt',fn:'furzboeller'}]},

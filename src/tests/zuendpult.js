@@ -12,7 +12,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
 (async()=>{
   const b=await chromium.launch({args:['--use-gl=swiftshader','--enable-unsafe-swiftshader','--no-sandbox']});
   const p=await b.newPage({viewport:{width:1280,height:800}});
-  p.setDefaultTimeout(90000); /* 28.09.: unter Last lief der Klick auf Start in die 30-s-Vorgabe (wie boeller.js) */
+  p.setDefaultTimeout(240000); /* 28.09.: unter Last lief der Klick auf Start in die 30-s-Vorgabe (wie boeller.js); der Klick auf nameGo baut die Welt und blockiert unter Last >90 s */
   const fehler=[];
   p.on('pageerror',e=>fehler.push('PAGEERROR '+e.message));
   /* Unter Last (4 Kerne, paralleles Rendern) lief goto zweimal in die
@@ -66,8 +66,10 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     o.tasterOben=+(bb.pultTaster[7].userData.y0-bb.pultTaster[7].position.y).toFixed(4);
     /* Funkenflug (batterie16) beginnt seit dem 26.09. mit 3,5 s
        Flitterbrunnen am Boden (Katalog Einstieg, Tom: Anomalie) - die
-       ersten Sterne steigen erst danach; also 1,6 s weiter */
-    bb.run(1.6,0.05);
+       ersten Sterne steigen erst danach. Feste 1,6 s reichten nicht
+       (28.09.: Zuendschnur + 3,5 s Brunnen, rockets noch leer) - also in
+       0,1-s-Schritten weiter, bis der erste Stern steigt (hoechstens 4 s) */
+    for(let k=0;k<40&&!bb.rockets.length;k++) bb.run(0.1,0.05);
     const m8=bb.muendung(bb.stations.tisch,1,'batterie16');
     o.muendung8={x:+m8.x.toFixed(2),y:+m8.y.toFixed(2),z:+m8.z.toFixed(2)};
     o.raketenStart=bb.rockets.map(q=>+q.p.x.toFixed(2));

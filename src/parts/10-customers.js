@@ -227,6 +227,8 @@ class Customer{
     if(!this.path.length){ this.moving=false; return true; }
     const t=this.path[0], dx=t.x-this.pos.x, dz=t.z-this.pos.z, d=Math.hypot(dx,dz), st=this.speed*dt;
     if(d<=st){ this.pos.x=t.x; this.pos.z=t.z; this.path.shift(); } else { this.pos.x+=dx/d*st; this.pos.z+=dz/d*st; }
+    /* draussen auf dem erhoehten Gehweg (28.09.) - sonst steckten die Fuesse darin */
+    if(this.pos.z>5.8) this.pos.y=gehwegY(this.pos.x,this.pos.z); else if(this.pos.y>0&&this.pos.y<0.2) this.pos.y=0;
     if(d>0.02){ const ty=Math.atan2(dx,dz); let df=ty-this.g.rotation.y; while(df>Math.PI) df-=Math.PI*2; while(df<-Math.PI) df+=Math.PI*2; this.g.rotation.y+=df*Math.min(1,dt*10); }
     this.moving=true; return this.path.length===0;
   }

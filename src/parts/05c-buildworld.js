@@ -224,8 +224,10 @@ function buildWorld(){
   buildZaun();
   buildYard();
   /* Ausleger zur Fahrbahn wie gegenueber, Mast 50 cm hinter der
-     Bordkante; zwei weitere vor der Erweiterung */
-  for(const x of [-11,-4,3,10,17.5,24.5]) strassenlampe(x,10.6,0);
+     Bordkante; zwei weitere vor der Erweiterung. 28.09.: 13-16 m
+     Abstand wie gegenueber und versetzt zu den Baeumen - bei 7 m stand
+     ein Wald aus Masten da, zwei Koepfe steckten im Geaest. */
+  for(const x of [-11,2.5,18.5,30.5]) strassenlampe(x,10.6,0);
   buildStreet();
   buildStadt();
   buildPark();

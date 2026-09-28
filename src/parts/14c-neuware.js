@@ -149,7 +149,9 @@ const NEU_EMIT={
     /* 28.09.: ab der Duese (emY), vorher 20-30 cm ueber dem Karton */
     for(let k=0;k<10;k++){ const a=Math.random()*Math.PI*2, s=rand(0.3,1.4);
       psMid.emit(o.x,y0,o.z,Math.cos(a)*s,rand(5,8),Math.sin(a)*s,A[0],A[1],A[2],rand(0.9,1.4),5,4); }
-    e.st=(e.st||0)-dt; if(e.st<=0){ e.st=0.35; const c=Math.random()<0.5?B:FW.weiss;
+    /* 28.09. (Tom: echt): nur Farbsterne in B - die weissen standen als
+       grelle Punktballen ueber dem Kessel (nur Batterien nutzen das) */
+    e.st=(e.st||0)-dt; if(e.st<=0){ e.st=0.35; const c=B;
       for(let k=0;k<Math.round(8*QUAL());k++){ const a=Math.random()*Math.PI*2, w=rand(0.3,1.2);
         psBig.emit(o.x,y0,o.z,Math.cos(a)*w,rand(9,12),Math.sin(a)*w,c[0],c[1],c[2],rand(1.3,1.8),6,0); } } },
   /* Farbige Wunderkerze: e.A die Funkenfarbe */

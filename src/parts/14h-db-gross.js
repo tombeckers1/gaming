@@ -799,14 +799,16 @@ SHOWS.donnerwand=()=>show({basis:{pw:2.05,sz:1.165,th:'glut'},rampe:{sz:[0.95,1.
   /* 27.09.: Trommler zaehlt ein - kurze Flammenfontaene vorweg (Auftakt, steigerung.js) */
   {n:0,ground:'fountain',gt:2.5,gh:0.6,gA:'gold',gB:'bernstein',pause:2.0},
   /* Viertel: 4 Salven, Flammenfontaene */
-  {n:24,je:6,takt:[1.8],muster:'schlag',ang:0.35,eff:'palme',kal:'mittel',pw:-1,A:'gold',B:'rot',boden:{k:'feuerbrunnen',gt:7,A:'rot',B:'gold'},pause:1.0},
+  {n:24,je:6,takt:[1.8],muster:'schlag',ang:0.35,eff:'palme',kal:'mittel',pw:-1,A:'gold',B:'rot',boden:{k:'volcano',gt:7,A:'orange',B:'gold'},pause:1.0},
   /* Synkope: kurz-kurz-lang, V-Salven */
   {n:24,je:6,takt:[0.5,0.5,1.4],muster:'v',ang:0.40,eff:'kokosnuss',farbe:1,pause:1.2},
   /* Paukenschlag: eine senkrechte Sechser-Salve, danach Stille */
   {n:6,je:6,muster:'gerade',eff:'weide',kal:'gross',farbe:0,pause:2.5},
   /* Triolen: W-Salven, Fontaenen flackern */
   {n:36,je:6,takt:[0.28,0.28,0.9],muster:'w',ang:0.45,eff:['spinne','chrys','spinne'],farbe:0},
-  {mit:true,n:0,boden:[{k:'feuerbrunnen',gt:4,x:-0.28},{k:'feuerbrunnen',gt:4,x:0.28}],pause:1.2},
+  /* 28.09., Tom: echt - Vulkane (Funken) statt Flammenfontaenen: die
+     Flammenbaelle standen als orange Leuchtwolke ueber dem Karton */
+  {mit:true,n:0,boden:[{k:'volcano',gt:4,x:-0.28,A:'gold',B:'bernstein'},{k:'volcano',gt:4,x:0.28,A:'gold',B:'bernstein'}],pause:1.2},
   /* Wirbel: 4 Salven in 0,36 s */
   /* 27.09.: Takt 0,34 statt 0,12 s und Pause vor dem Tusch - hoechstens 18 Schuss je
      Sekunde, die Dichte-Leiter (steigerung.js) laesst Goetterfunken und Weltuntergang

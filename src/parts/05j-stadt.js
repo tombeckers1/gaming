@@ -590,7 +590,7 @@ function haus(S,cx,cz,w,d,h,stil,achseX,o){
   if(Math.random()<0.75){ const hc=rand(1.2,2.2), zz=rand(-0.4,0.4)*b, xx=rand(-L*0.3,L*0.3);
     const y=sl?rh-Math.abs(zz)*sl:rh-0.2;
     ST_DEKO.push({geo:new THREE.BoxGeometry(0.62,hc,0.75),m:lok(xx,y+hc/2-0.3,zz),color:0x7a4a3c});
-    SCHORNSTEINE.push(new THREE.Vector3(xx,y+hc-0.2,zz).applyMatrix4(Wm)); }
+    const c=Math.cos(ry), sn=Math.sin(ry); SCHORNSTEINE.push({x:cx+xx*c+zz*sn,y:h+y+hc,z:cz-xx*sn+zz*c}); }
 }
 
 /* --------------------------------------------------------

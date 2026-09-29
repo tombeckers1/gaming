@@ -17,7 +17,7 @@ function emAnteil(e,dt){ e.alter=(e.alter||0)+dt; return clamp(e.alter/Math.max(
    schraubt sich dann als Helix mit Leuchtspur A auf 8-12 m. */
 NEU_EMIT.tornado=(e,dt,o)=>{
   const A=e.A||FW.tuerkis, S=FW.silber, H=e.h||1, y0=(o.y!==undefined?o.y:0)+0.06, q=QUAL();
-  if(e.alter===undefined){ e.T=e.t+dt; e.ab=clamp(e.T-1.2,0.5,2.8); e.w=rand(0,6); e.wb=rand(0,6); e.cx=0; e.cz=0; e.zx=0; e.zz=0; e.zt=0; e.hTop=rand(8,12)*H;
+  if(e.alter===undefined){ e.T=e.t+dt; e.ab=e.spielraum!==undefined?rand(0.3,0.5):clamp(e.T-1.2,0.5,2.8); e.w=rand(0,6); e.wb=rand(0,6); e.cx=0; e.cz=0; e.zx=0; e.zz=0; e.zt=0; e.hTop=rand(8,12)*H;
     e.ton=tonGen({f:2100,f2:2700,gl:e.ab,dur:e.ab+1.05,vol:0.02*distVol(o),vib:{hz:9,cent:25},rausch:0.15,an:0.2}); }
   const t=(e.alter=(e.alter||0)+dt);
   const alt=SCHWEIF;
@@ -33,7 +33,11 @@ NEU_EMIT.tornado=(e,dt,o)=>{
     const r=0.45+0.15*Math.sin(t*1.9), x=o.x+(e.cx+Math.cos(e.wb)*r)*fk, z=o.z+(e.cz+Math.sin(e.wb)*r)*fk;
     e.pos=[x,z];
     e.acc=(e.acc||0)+dt*260*q; SCHWEIF=0.08;
-    for(;e.acc>=1;e.acc--){ const a=e.w+Math.random()*Math.PI*2, s=rand(2.5,4.5), c=Math.random()<0.6?S:A;
+    /* aus der Batterie (28.09., Tom: "am Produkt rauslassen"): der Wirbel
+       hebt nach 0,3-0,5 s ab und spruehet dabei nur ueber dem Karton -
+       vorher kreiselte er 2 s und warf die Funken 2 m weit ueber den Tisch */
+    const sp=e.spielraum!==undefined?[0.8,1.6]:[2.5,4.5];
+    for(;e.acc>=1;e.acc--){ const a=e.w+Math.random()*Math.PI*2, s=rand(sp[0],sp[1]), c=Math.random()<0.6?S:A;
       psMid.emit(x+Math.cos(a)*0.08,y0,z+Math.sin(a)*0.08,-Math.sin(a)*s,rand(0.2,0.9),Math.cos(a)*s,c[0],c[1],c[2],rand(0.22,0.4),4,4); }
     SCHWEIF=alt;
     e.kp=(e.kp||0)+dt*30; for(;e.kp>=1;e.kp--) psBig.emit(x,y0+0.03,z,0,0,0,1.3,1.3,1.3,0.05,0,0);

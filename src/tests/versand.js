@@ -102,7 +102,8 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     pruef('VERSCHIEBEN',Math.abs(v.teile[k].dx-v.dx)<0.02&&Math.abs(v.teile[k].dz-v.dz)<0.02,`${k} wandert nicht mit (${JSON.stringify(v.teile[k])})`);
   pruef('VERSCHIEBEN',v.cols===4&&Math.abs(v.colDx-v.dx)<0.02&&Math.abs(v.colDz-v.dz)<0.02,'die Kollision bleibt am alten Platz');
   pruef('VERSCHIEBEN',v.altBlock===0,'am alten Platz steht noch eine unsichtbare Wand');
-  pruef('UMBAU',v.mode==='Umbaumodus','im Bild steht noch eine Tastenliste: '+v.mode);
+  /* 29.09.: kein Umbaumodus mehr - mit Moebel in der Hand steht nur das, keine Tastenliste */
+  pruef('UMBAU',v.mode===''||v.mode==='Möbel in der Hand','im Bild steht noch eine Tastenliste: '+v.mode);
 
   /* 3 - drehen: die Kollision dreht mit */
   await p.evaluate(()=>{ const bb=window.__bb; bb.toggleBuild(true); bb.setView(-13.5,-8.0,Math.PI/2,0); bb.grab(bb.packMov); bb.rotateGrab(); });

@@ -23,7 +23,11 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     S.level=40; S.money=1e7; ['shop_halb','testfeld'].forEach(id=>bb.testKauf(id)); bb.run(0.2,0.05);
     /* je Station drei verschiedene Produkte */
     const art={tisch:[],rampe:[],moerser:[]};
-    for(const t of Object.keys(bb.P)){ const s=bb.stationOf(t); if(s&&art[s]&&art[s].length<3&&!art[s].some(x=>bb.P[x].short===bb.P[t].short)) art[s].push(t); }
+    /* Moerser: je Rohr ein passendes Kaliber (jedes Rohr nimmt nur seins) */
+    const rohre=new Set();
+    for(const t of Object.keys(bb.P)){ const s=bb.stationOf(t); if(!s||!art[s]||art[s].length>=3||art[s].some(x=>bb.P[x].short===bb.P[t].short)) continue;
+      if(s==='moerser'){ const r=bb.moerserRohr(t); if(rohre.has(r)) continue; rohre.add(r); }
+      art[s].push(t); }
     for(const s of ['moerser','rampe','tisch']) for(const t of art[s]){ S.carrying={type:t,count:1,q:1}; bb.placeOnStation(bb.stations[s]); }
     S.carrying=null; bb.drawPult();
     o.voll={scharf:bb.bereitCount(),text:bb.pultText};

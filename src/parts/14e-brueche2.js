@@ -332,9 +332,10 @@ function feuertopfSorte(o,sorte,A,B,s,opt){
   const alt=SCHWEIF;
   if(sorte==='blink'){
     /* Blinksterne 6 Hz, haengen oben kurz */
-    strahl(Math.round(26*q*(0.6+s*0.5)),(i,vx,vy,vz,f)=>{ const c=k(i%3?A:B,1.25), ph=Math.random();
+    /* 28.09., Tom: echt - jeder Stern in seinem Takt (3-9 Hz), nicht alle mit 6 Hz */
+    strahl(Math.round(26*q*(0.6+s*0.5)),(i,vx,vy,vz,f)=>{ const c=k(i%3?A:B,1.25), ph=Math.random(), hz=rand(3,9);
       fuehre(psBig,o.x,y0,o.z,vx,vy,vz,c,tS*f+0.7,(st,dt)=>{ const v=st.v, fz=Math.max(0,1-ZIEH*dt); v[0]*=fz; v[2]*=fz; v[1]=v[1]*fz-G*dt;
-        st.p[0]+=v[0]*dt; st.p[1]+=v[1]*dt; st.p[2]+=v[2]*dt; st.hell=((st.alter*6+ph)%1)<0.45?1.6:0.06; },{spur:0.06}); });
+        st.p[0]+=v[0]*dt; st.p[1]+=v[1]*dt; st.p[2]+=v[2]*dt; st.hell=((st.alter*hz+ph)%1)<0.45?1.6:0.06; },{spur:0.06}); });
   } else if(sorte==='knister'){
     /* warmweisse Saeule, oben zerplatzt jeder Stern knisternd */
     SCHWEIF=0.15;
@@ -349,7 +350,7 @@ function feuertopfSorte(o,sorte,A,B,s,opt){
     strahl(Math.round(70*q*(0.6+s*0.5)),(i,vx,vy,vz,f)=>{ const c=k(i%3?FW.weiss:FW.silber,1.4);
       psMid.emit(o.x,y0,o.z,vx*rand(0.9,1.1),vy,vz*rand(0.9,1.1),c[0],c[1],c[2],tS*f*rand(0.7,0.9),G,4); });
     SCHWEIF=alt;
-    flash({x:o.x,y:y0+1,z:o.z},FW.weiss,2.6,0.18); schall(o,v=>sfx.crack(v*0.8));
+    flash({x:o.x,y:y0+1,z:o.z},FW.weiss,1.2,0.18); schall(o,v=>sfx.crack(v*0.8));   /* 28.09.: 2,6 - zwoelf Toepfe hintereinander liessen den Platz weiss flackern */
   } else if(sorte==='gold'){
     /* Brokat: flimmernd, lange Glut, faellt langsam */
     SCHWEIF=0.5;
@@ -375,7 +376,7 @@ function feuertopfSorte(o,sorte,A,B,s,opt){
      warm, nicht in reiner Sternfarbe - 20 Farbtoepfe hintereinander
      tauchten Tisch, Wand und Haeuser sonst in Magenta. Nur Batterie-
      Drehbuecher (mineEff) zuenden Feuertoepfe. */
-  flash({x:o.x,y:y0+0.8,z:o.z},sorte==='glut'?[1,.35,.08]:mischF(A,[1,.82,.55],0.6),sorte==='glut'?1.0:1.0,0.2);
+  flash({x:o.x,y:y0+0.8,z:o.z},sorte==='glut'?[1,.35,.08]:mischF(A,[1,.82,.55],0.6),0.6,0.2);   /* 28.09.: 1,0 - bei dichten Finalen blieb der Platz hell */
   sfx.thump(distVol(o)*(sorte==='glut'?1.3:1.1));
   if(FW_LOG) FW_LOG.push({t:FW_UHR,art:'topf',sorte,x:+o.x.toFixed(2),ang:+ang.toFixed(3),hoehe:+hoch.toFixed(2),A,B});
   return hoch;

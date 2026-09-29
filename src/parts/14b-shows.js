@@ -59,9 +59,11 @@ function show(kopf,phasen){ return Object.assign(phasen,kopf||{}); }
    Wand, Tisch und Haeuser bei fast jedem Schuss reinweiss, gruen oder gelb
    da - wie ein Scheinwerfer. Faktor fuer alle Schuesse aus show(); die
    eigenen Brueche (14g/14h) rechnen ihren Wert damit um. Salute blitzen
-   weiter voll. */
+   weiter voll. Ohne Kern: die weissen Kern-Sprites (0,1-0,3 s) standen im
+   Bild als runde Leuchtscheiben um jeden Bruch - bei 30-mm-Bruechen ist
+   der Zerlegerblitz im Sternbild nicht zu sehen. */
 const SHOW_BLITZ=0.4;
-const showBlitz=bo=>Object.assign({flash:SHOW_BLITZ},bo||{});
+const showBlitz=bo=>Object.assign({flash:SHOW_BLITZ,kern:false},bo||{});
 /* Funkenfaden: hinter jedem Stern der Liste [{v,L}] loesen sich alle
    0,08 s Titan-/Kohlefunken, die kurz flackern, fallen und verloeschen -
    ein koerniger Schweif statt einer durchgehenden Linie (28.09., Tom: echt).

@@ -362,9 +362,9 @@ EFF.lampare=function(p,A,B,s,r){
      eine aufquellende Flammenwolke lesen: innen gelbweiss, aussen orange,
      sie steigen (Auftrieb) und gehen dunkel in Rauch ueber. */
   SCHWEIF=0.06;
-  for(let i=0;i<n;i++){ const d=randDir(), f=Math.cbrt(Math.random()), w=rand(2.2,4.2)*g*f, L=rand(0.25,0.55)*(1.2-0.4*f),
-      c=f<0.55?[1,.9,.55]:[1,.6+rand(0,.15),.18];
-    psMid.emit(p.x+d[0]*0.3*g,p.y+d[1]*0.3*g,p.z+d[2]*0.3*g,d[0]*w,d[1]*w+0.8,d[2]*w,c[0],c[1],c[2],L,-1.6,2,.22,.04,.01); }
+  for(let i=0;i<n;i++){ const d=randDir(), f=Math.cbrt(Math.random()), w=rand(3.2,6)*g*f, L=rand(0.35,0.75)*(1.25-0.45*f),
+      c=f<0.55?[1,.9,.55]:[1,.6+rand(0,.15),.18], ps=i%5<2?psBig:psMid;
+    ps.emit(p.x+d[0]*0.3*g,p.y+d[1]*0.3*g,p.z+d[2]*0.3*g,d[0]*w,d[1]*w+0.8,d[2]*w,c[0],c[1],c[2],L,-1.6,2,.22,.04,.01); }
   /* heisser Kern, nur einen Augenblick */
   SCHWEIF=0;
   for(let i=0;i<4;i++) psHuge.emit(p.x,p.y,p.z,rand(-.4,.4),rand(0,.6),rand(-.4,.4),1,.72,.32,rand(0.15,0.3),-0.5,0);
@@ -372,7 +372,7 @@ EFF.lampare=function(p,A,B,s,r){
   /* Glutkugel: zwei schwache Ballen, 0,5 s (der Koerper der Flamme, kein Licht) */
   for(let k=0;k<2;k++){ const R=(1.4+k*0.7)*g, c=[[1,.7,.28],[1,.42,.1]][k];
     hof(0.5,t=>[p.x,p.y+0.8*t,p.z],c,t=>R*(0.45+0.55*(1-Math.exp(-t*6))),t=>(0.13-k*0.04)*Math.min(1,t/0.05)*(1-glatt(0.1,0.5,t))); }
-  flash(p,[1,.52,.16],1.8*g,0.6);   /* 28.09.: 4,5 - sieben zugleich im Finale tauchten den Platz in Weiss; 1,8: ein Feuerball faerbt die Umgebung orange, nicht grell */
+  flash(p,[1,.52,.16],1.2*g,0.6);   /* 28.09.: 4,5 - sieben zugleich im Finale tauchten den Platz in Weiss; 1,8: ein Feuerball faerbt die Umgebung orange, nicht grell */
   const ort={x:p.x,y:p.y,z:p.z};
   later(0.8,()=>rauchball({x:ort.x,y:ort.y+0.6,z:ort.z},{r:2.4*g,n:6,dauer:2.6,quellen:0.8,steigen:0.6,c:[0.11,0.09,0.08],a:0.45}));
 };

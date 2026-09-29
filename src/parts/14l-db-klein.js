@@ -557,6 +557,10 @@ klEmit('strobotopf',(e,dt,o,t)=>{
     e.t=e.T0+1; }
   const alt=SCHWEIF, H=klHell(); let blitz=null;
   e.tp.forEach(q=>{ const lt=t-q.start; if(lt<0||t>q.ende) return;
+    /* zwischen den Blitzen glimmt der Satz schwach und wirft Glutkoernchen */
+    q.gk=(q.gk||0)+dt*22; SCHWEIF=0.03;
+    for(;q.gk>=1;q.gk--){ const d=streu([0,1,0],0.7), v=rand(0.15,0.5); psSmall.emit(q.p.x,q.p.y+0.01,q.p.z,d[0]*v,d[1]*v,d[2]*v,0.32,0.14,0.05,rand(0.3,0.55),1,0); }
+    SCHWEIF=alt;
     q.nb-=dt; if(q.nb>0) return;
     const lahm=1+0.9*clamp((t-(q.ende-2.5))/2.5,0,1); q.nb=rand(0.65,1.35)*lahm/q.hz;
     const p=q.p, C=klMisch(q.A,[1,1,1],0.35), k=rand(1.5,2.1); SCHWEIF=0;

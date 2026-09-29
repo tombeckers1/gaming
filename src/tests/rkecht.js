@@ -9,7 +9,7 @@
      Ausnahme: der Fallschirm-Leuchtsatz, der ist ein Dauerlicht.
    Aufruf: node rkecht.js test.html ['["id",...]'] */
 const { chromium } = require('/opt/node22/lib/node_modules/playwright');
-const IDS=["glueckrakete","raketenklein","glitzerraketen","blanko","gravur","raketen","silberpfeil","kometenraketen","pfeifraketen","farbenrausch","raketengold","knisterstern","smaragd","blinkstern","silberregen","kristall","furzrakete","regenbogenkrone","titanraketen","jumbogold","silbermond","jumboleiter","feuerdrache","supernova","kugel75","palmenkugel75","farbenmeer75","kristallkugel100","kugel100","goldweide100","kugel150","sternenstaub150","sternkugel150","kugel200","goldkrone200","kugel300","kaiserkrone"];
+const IDS=["raketenklein","glitzerraketen","blanko","gravur","raketen","silberpfeil","kometenraketen","pfeifraketen","farbenrausch","raketengold","knisterstern","smaragd","blinkstern","silberregen","kristall","furzrakete","regenbogenkrone","titanraketen","jumbogold","silbermond","jumboleiter","feuerdrache","supernova","kugel75","palmenkugel75","farbenmeer75","kristallkugel100","kugel100","goldweide100","kugel150","sternenstaub150","sternkugel150","kugel200","goldkrone200","kugel300","kaiserkrone"];
 (async()=>{
   const b=await chromium.launch({args:['--no-sandbox']}); const p=await b.newPage(); p.setDefaultTimeout(900000);
   const errs=[]; p.on('pageerror',e=>errs.push('PAGEERROR: '+e.message));

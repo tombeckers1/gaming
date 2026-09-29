@@ -116,7 +116,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   const sb=await p.evaluate(()=>{
     const bb=window.__bb,o={};
     bb.run(10,0.05);
-    bb.igniteType('sternenbrunnen');
+    bb.igniteType('zauberbrunnen'); /* 29.09.: Bluetenbrunnen aus dem Sortiment */
     bb.run(1.0,0.05); o.fontaeneLaeuft=bb.emitters.some(e=>e.k==='bluetenwerfer');
     bb.run(2.6,0.05); o.keineLadung=bb.rockets.length===0;
     bb.run(2.0,0.05);
@@ -132,12 +132,12 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   const bat=await p.evaluate(()=>{
     const bb=window.__bb,o={};
     o.laenge={};
-    ['batterie16','knatter','faecher','zfaecher','batterie49','kometen','batterie100','profi','finale'].forEach(t=>{ o.laenge[t]=bb.showLength(t); });
+    ['batterie16','knatter','faecher','batterie49','kometen','batterie100','profi','finale'].forEach(t=>{ o.laenge[t]=bb.showLength(t); });
     const wachsend=(a)=>a.every((v,i)=>i===0||v>=a[i-1]);
     o.laengeSteigt=wachsend(Object.values(o.laenge));
     /* Schusszahl je Drehbuch */
     o.schuesse={};
-    ['batterie16','knatter','faecher','zfaecher','batterie49','kometen','batterie100','profi','finale'].forEach(t=>{
+    ['batterie16','knatter','faecher','batterie49','kometen','batterie100','profi','finale'].forEach(t=>{
       o.schuesse[t]=bb.SHOWS[t]().reduce((a,ph)=>a+(ph.n||1),0); });
     o.schuesseSteigen=wachsend(Object.values(o.schuesse));
     /* Profi nutzt die Profi-Effekte und Kugelbomben */
@@ -160,13 +160,13 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   /* --- Produktnamen und Lizenzen --- */
   const pr=await p.evaluate(()=>{
     const bb=window.__bb,o={};
-    o.neu=['kugel75','kugel100','kugel150','sternenbrunnen'].map(t=>bb.P[t]&&bb.P[t].name);
-    o.imPaket=['kugel75','kugel100','kugel150','sternenbrunnen'].map(t=>bb.lizenzOf(t));
+    o.neu=['kugel75','kugel100','kugel150','goldgeysir'].map(t=>bb.P[t]&&bb.P[t].name);
+    o.imPaket=['kugel75','kugel100','kugel150','goldgeysir'].map(t=>bb.lizenzOf(t));
     for(let i=0;i<4;i++) bb.regalStellen('standard');
     for(let i=0;i<2;i++) bb.regalStellen('hoch');
     o.regale=bb.shelves.length;
-    o.regalPlatz=['kugel75','kugel100','kugel150','sternenbrunnen'].map(t=>bb.shelfCapOf(t));
-    o.einraeumbar=['kugel75','kugel100','kugel150','sternenbrunnen'].map(t=>!!bb.emptyLevel(t));
+    o.regalPlatz=['kugel75','kugel100','kugel150','goldgeysir'].map(t=>bb.shelfCapOf(t));
+    o.einraeumbar=['kugel75','kugel100','kugel150','goldgeysir'].map(t=>!!bb.emptyLevel(t));
     o.produkte=Object.keys(bb.P).length;
     o.ohnePaket=Object.keys(bb.P).filter(t=>!bb.lizenzOf(t));
     o.namen=['batterie16','batterie49','batterie100','profi','kugel150'].map(t=>bb.P[t].name);

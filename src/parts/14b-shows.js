@@ -393,7 +393,8 @@ function playShow(o,phases,prod,tag){
         if(!ph.nurMine){
           /* bomb: echte Kugelbombe mit Nachbruechen statt einer Rakete */
           if(ph.bomb){ BLITZ_K=SHOW_BLITZ; try{ kugelbombe(os,ph.bomb,{A:mA,B:mB,eff:ph.bombEff||['dahlie','dahlie','chrys','mehrring','kamuro'][ph.bomb-1],stufen:ph.bombStufen,stufenRel:true,
-            schlaege:ph.schlaege,steig:ph.steig,bruchOpt:showBlitz(ph.bruchOpt),par,tag}); } finally { BLITZ_K=1; } }
+            schlaege:ph.schlaege,steig:ph.steig,bruchOpt:showBlitz(ph.bruchOpt),par,tag,
+            pw:ph.bombPw,sz:ph.bombSz,schlag:ph.schlag,dick:ph.dick,trail:ph.trail?K(ph.trail):undefined,fuse:ph.bombFuse}); } finally { BLITZ_K=1; } }
           /* perle: Roemisches Licht - eine Leuchtkugel direkt aus dem Rohr */
           else if(ph.perle) perleSchuss(os,mA,sz,{eff:perleEff,ang:mm&&mm!=='gerade'?ang:(perleEff||ph.rohrFolge?0:undefined),dir:dir===undefined?FANDIR:dir,B:mB,i,kette,splitDreh:ph.splitDreh});
           else shot(os,opt);

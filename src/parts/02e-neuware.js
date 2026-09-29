@@ -648,3 +648,21 @@ NEU_GRUPPE.batterien.push('hexenkessel','geysirfeld','wolkenkratzer');
   SPARTE.essen.forEach(t=>{ if(P[t]&&P[t].cat===0){ P[t].sparte='essen'; umhaengen(t,'essen'); } });
   SPARTE.getraenke.forEach(t=>{ if(P[t]&&P[t].cat===0){ P[t].sparte='getraenke'; umhaengen(t,'sekt'); } });
 })();
+/* =========================================================
+   Aus dem Sortiment genommen (Tom, 29.09.: "komplett entfernen, gefaellt
+   mir nicht"). Die Produkte verschwinden ueberall: Katalog, Lizenzen,
+   Warengruppen, Lieferanten. Alte Spielstaende verlieren Bestand und
+   Bestellungen dieser Sorten beim Laden (18-save.js).
+   ========================================================= */
+const ENTFERNT=['fontaene50','fontaene30','silberkaskade','feuerkaskade','jugendbox','zfaecher','vulkan','feuersaeule',
+  'knisterfaecher','bengalduo','zauberwald','silberwirbel','glitzerkaskade','nachtfalter','regenbogenfaecher','goldvulkan',
+  'funkenturm','sortiment','sternstaub20','knallteppich','vulkanfeld','feuerbrunnen','farbrauchboeller','goldstaubboeller',
+  'sternenbrunnen','bengalfackel','glueckrakete','mondschein','farbfontaenen','bengalflamme','tisch','tortenfontaene',
+  'leuchtstaebe','pharao','stroboblinker','hagelsturm','himmelsfaecher','silvesternacht','nordlicht','wolkenkratzer'];
+(function(){
+  const weg=new Set(ENTFERNT);
+  ENTFERNT.forEach(t=>{ delete P[t]; if(typeof VOLA!=='undefined') delete VOLA[t]; if(typeof LIZ_VON!=='undefined') delete LIZ_VON[t]; });
+  for(let i=ORDER.length-1;i>=0;i--) if(weg.has(ORDER[i])) ORDER.splice(i,1);
+  LIZENZEN.forEach(l=>{ l.items=l.items.filter(t=>!weg.has(t)); });
+  for(const g in GRUPPE) GRUPPE[g]=GRUPPE[g].filter(t=>!weg.has(t));
+})();

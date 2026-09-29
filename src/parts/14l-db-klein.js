@@ -1353,3 +1353,11 @@ Object.assign(SIGNATUR,{
    Meshes der laufenden Kleinfeuerwerk-Emitter) */
 if(typeof window!=='undefined') window.__klein={KLEIN,papier:()=>KL_PAP.liste.length,
   sichtbar:()=>KL_PAP.liste.length+emitters.reduce((n,e)=>n+(e.meshes?e.meshes.length:0),0)};
+
+/* Aus dem Sortiment genommene Produkte (02e, ENTFERNT) auch aus allen
+   Effekt-Datenbanken streichen - sonst tauchten sie in Listen auf, die
+   ueber SHOWS, FONT oder KLEIN laufen (Teststation, Signaturen). */
+(function(){ if(typeof ENTFERNT==='undefined') return;
+  const tabellen=[SHOWS,SIGNATUR,FONT,RAKETEN_KL,NEU_SHOWS,NEU_KUGEL,NEU_FONT,KLEIN,typeof NEUWARE!=='undefined'?NEUWARE:null];
+  ENTFERNT.forEach(t=>tabellen.forEach(T=>{ if(T&&Object.prototype.hasOwnProperty.call(T,t)) delete T[t]; }));
+})();

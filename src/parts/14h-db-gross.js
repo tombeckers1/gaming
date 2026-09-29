@@ -1210,22 +1210,34 @@ SHOWS.himmelsfaecher=()=>show({basis:{pw:4.55,sz:1.365,th:'gitter'},rampe:{sz:[0
 ]);
 SIGNATUR.himmelsfaecher={idee:'gitter',text:'Titankometen aus drei Positionen spannen ein Netz'};
 
-/* Level 26: Finale Grande. 28.09. (Tom: echt): kurze Goldfontaene als
-   Eroeffnung statt 48 s gruen-weiss-rotem Bengallicht */
-SHOWS.kugelfinale=()=>show({basis:{pw:5.00,sz:1.400,th:'tricolore'},rampe:{sz:[0.95,1.30],pw:[0,3],hell:[0.90,1.40],kurve:'linear'}},[
-  {n:0,boden:{k:'fountain',gt:4,gh:0.8,A:'gold',B:'weiss'},pause:1.5},
-  /* Salutini (0,7 s: dritte Tempoklasse) */
-  {n:3,gap:0.7,muster:'v',ang:0.30,kal:'mini',pw:-6,eff:'salut',pause:0.6},
-  {n:1,muster:'gerade',bomb:3,bombEff:'mehrschlag',steig:'gold',schlaege:1,bombStufen:['dahlie'],pause:4},
-  {n:4,gap:0.3,muster:'w',ang:0.35,kal:'mini',pw:-6,eff:'salut',pause:0.5},
-  {n:1,muster:'gerade',bomb:3,bombEff:'mehrschlag',steig:'gold',schlaege:2,bombStufen:['chrys','weide'],pause:5},
-  {n:5,gap:0.15,muster:'mitte',ang:0.35,kal:'mini',pw:-6,eff:'salut',pause:0.5},
-  {n:1,muster:'gerade',bomb:4,bombEff:'mehrschlag',steig:'gold',schlaege:3,bombStufen:['pistill','brokat','blinkregen'],pause:6},
-  {n:6,gap:0.12,muster:'aussen',ang:0.40,kal:'mini',pw:-6,eff:'salut',pause:0.5},
-  {n:1,muster:'gerade',bomb:4,bombEff:'mehrschlag',steig:'gold',schlaege:4,bombStufen:['kamuro','dahlie','spinne','zeitregen'],pause:7},
-  {n:8,gap:0.1,muster:'zufall',ang:0.40,kal:'mini',pw:-6,eff:'salut',pause:0.6},
-  /* FINALE: fuenf Schlaege, der letzte ist der Schlussschlag */
-  {n:1,muster:'gerade',bomb:5,bombEff:'mehrschlag',steig:'gold',schlaege:5,bombStufen:['dahlie','kronleuchter','brokat','glitzerweide','schlussschlag'],pause:8}
+/* Level 26: Finale Grande - komplett neu (29.09., Tom: "teils keine
+   Lichteffekte, keine Abschuesse, viel schoener und einzigartiger").
+   Fuenf italienische Zylinderbomben, uno bis cinque: jede steigt mit
+   dickem Goldschweif sichtbar auf, bricht in Sichthoehe (vorher 32 m,
+   oben aus dem Bild), jeder Schlag in einer eigenen Farbe der Tricolore
+   und leicht seitlich versetzt, sodass die Schlaege nebeneinander stehen
+   statt uebereinander aus dem Bild zu wandern. Zwischen den Bomben keine
+   Dunkelpausen, sondern kurze Kometenfaecher in Gruen-Weiss-Rot. */
+const FG_BOMBE=(k,o)=>Object.assign({n:1,muster:'gerade',bomb:k<3?3:k<5?4:5,bombEff:'mehrschlag',schlaege:k,dick:3,trail:'gold',
+  bruchOpt:{flash:1.8}},o);
+SHOWS.kugelfinale=()=>show({basis:{pw:0,sz:1.2,th:'tricolore'},rampe:{sz:[0.95,1.25],pw:[0,2],hell:[1.0,1.4],kurve:'linear'}},[
+  /* Auftakt: drei Kometen in den Landesfarben faechern auf */
+  {n:3,gap:0.18,muster:'v',ang:0.32,eff:'rohrkomet',art:'farbe',farbe:0,pause:0.6},
+  /* UNO - gruene Dahlie mit weissem Kern */
+  FG_BOMBE(1,{bombPw:-2.5,bombSz:2.6,bombStufen:['dahlie'],schlag:{farben:[['gruen','weiss']]},pause:2.2}),
+  {n:5,gap:0.14,muster:'w',ang:0.40,eff:'rohrkomet',art:'glitter',pause:0.8},
+  /* DUE - rote Chrysantheme, dann goldene Glitzerweide */
+  FG_BOMBE(2,{bombPw:-2,bombSz:2.8,bombStufen:['chrys','glitzerweide'],schlag:{dy:[3,4],dx:1.6,dt:[0.7,0.8],farben:[['rot','weiss'],['gold','gold']]},pause:2.4}),
+  {n:6,gap:0.12,muster:'x',ang:0.45,eff:'kreuzstern',farbe:1,pause:0.8},
+  /* TRE - weisser Pistill, gruene Dahlie, roter Blinkregen */
+  FG_BOMBE(3,{bombPw:-2,bombSz:3.0,bombStufen:['pistill','dahlie','blinkregen'],schlag:{dy:[3,4],dx:2,dt:[0.65,0.8],farben:[['weiss','weiss'],['gruen','weiss'],['rot','rot']]},pause:2.6}),
+  {n:8,gap:0.1,muster:'zufall',ang:0.45,eff:'rohrkomet',art:'silber',pause:0.8},
+  /* QUATTRO - Goldkamuro, gruene Dahlie, roter Pistill, weisser Zeitregen */
+  FG_BOMBE(4,{bombPw:-2.2,bombSz:3.2,bombStufen:['kamuro','dahlie','pistill','zeitregen'],schlag:{dy:[3,4],dx:2.5,dt:[0.6,0.75],farben:[['gold','gold'],['gruen','weiss'],['rot','weiss'],['weiss','weiss']]},pause:2.8}),
+  /* Vorfinale: zwei Zwoelfersalven Kometen in den Landesfarben */
+  {n:24,je:12,takt:[0.9],x:[-0.2,0.2],angOff:[-0.25,0.25],muster:'schlag',ang:0.5,eff:'rohrkomet',art:'farbe',farbe:2,pause:1.2},
+  /* CINQUE - fuenf wachsende Schlaege, der letzte ist der Donnerschlag */
+  FG_BOMBE(5,{bombPw:-2.6,bombSz:3.4,bombStufen:['dahlie','kronleuchter','brokat','glitzerweide','schlussschlag'],schlag:{dy:[3,4],dx:2.5,dt:[0.6,0.7],wachsen:true,farben:[['gruen','weiss'],['weiss','weiss'],['gold','gold'],['rot','gold'],['weiss','weiss']]},pause:8})
 ]);
 SIGNATUR.kugelfinale={eff:'mehrschlag',text:'eins, zwei, drei, vier, fünf Schläge übereinander'};
 

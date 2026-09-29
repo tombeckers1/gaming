@@ -52,7 +52,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     const hoch=(t,sek)=>{ bb.run(10,0.1); bb.igniteType(t,{x:3,y:0.95,z:-18,ab:0.1,jit:0.05}); let h=0;
       for(let i=0;i<sek*10;i++){ bb.run(0.1,0.05); for(let k=0;k<bb.psMid.max;k++) if(bb.psMid.life[k]>0) h=Math.max(h,bb.psMid.pos[k*3+1]); }
       bb.run(35,0.1); return +h.toFixed(1); };
-    o.geysir=hoch('goldgeysir',5); o.saeule=hoch('feuersaeule',5); o.fontaene=hoch('fontaene',4);
+    o.geysir=hoch('goldgeysir',5); o.saeule=null; /* 29.09.: Feuersaeule aus dem Sortiment */ o.fontaene=hoch('fontaene',4);
     /* Kugelbomben: Ausdehnung 1,5 s nach dem Bruch */
     const weite=kal=>{ bb.run(14,0.1); const pad={x:5,y:1.7,z:-23}; bb.kugelbombe(pad,kal,{eff:'kugel'});
       let brP=null; for(let i=0;i<80&&!brP;i++){ const r0=bb.rockets.slice(-1)[0]; const pp=r0&&{x:r0.p.x,y:r0.p.y,z:r0.p.z}; bb.run(0.05,0.05); if(!bb.rockets.length&&pp) brP=pp; }
@@ -88,7 +88,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   pruef('SPUREN',r.weide.mittel>r.kugel.mittel*2,'Weide ('+r.weide.mittel+' m) nicht deutlich laenger als Peonie ('+r.kugel.mittel+' m)');
   pruef('SPUREN',r.kugel.zurMitte>0.9&&r.weide.zurMitte>0.9,'Spuren zeigen nicht zur Bruchmitte: '+r.kugel.zurMitte+'/'+r.weide.zurMitte);
   pruef('SPUREN',r.blink.segmente===0,'Blinksterne ziehen Spuren ('+r.blink.segmente+')');
-  pruef('FONTAENE',r.geysir>8&&r.saeule>12&&r.saeule>r.geysir&&r.geysir>r.fontaene*1.5,'Hoehen '+r.geysir+' / '+r.saeule+' / normale '+r.fontaene);
+  pruef('FONTAENE',r.geysir>8&&r.geysir>r.fontaene*1.5,'Hoehen '+r.geysir+' / normale '+r.fontaene);
   pruef('KUGELN',r.weiten.every((w,i)=>i===0||w>r.weiten[i-1]),'Kugeln werden nicht mit dem Kaliber groesser: '+r.weiten);
   pruef('KUGELN',r.k300>=12,'300 mm: nur '+r.k300+' Brueche gleichzeitig');
   pruef('SALVEN',r.salvenPh===r.phasen&&r.salven>=20,'Trommelfeuer: '+r.salven+' Salven, '+r.salvenPh+' von '+r.phasen+' Phasen sind Salven');

@@ -91,13 +91,18 @@ EFF.pusteblume=function(p,A,B,s,r){
    Stern zu seiner Zeit, nicht alle zugleich. */
 EFF.brausepulver=function(p,A,B,s,r){
   zutaten(r,{flash:0.4}); leise(r);
-  schall(p,v=>sfx.plopp(v*0.5,0.75));
+  /* 29.09. (Tom: Sounds fehlen): der Zerleger war kaum hoerbar (plopp 0,5)
+     und das Knistern lief nur ueber die gedrosselten Einzelklicks - jetzt
+     ein kleiner, aber hoerbarer Zerleger und ein Knisterteppich, wenn
+     die Sterne zerplatzen */
+  schall(p,v=>{ sfx.plopp(v*1.1,0.8); sfx.boom(v*0.28); });
   const q=QUAL(), g=clamp(s,0.3,1.4), n=Math.round(rand(40,52)*q*clamp(0.7+g*0.4,0.8,1.2)), G=2.2, alt=SCHWEIF;
   const cA=mischF(A,WEISS,0.15), cB=mischF(B,WEISS,0.15);
   SCHWEIF=0.2;
   for(let i=0;i<n;i++){ const d=randDir(), w=rand(5.2,6.6)*(0.6+g*0.55), c=i%4===3?cB:cA, L=rand(0.75,1.05), v=[d[0]*w,d[1]*w,d[2]*w];
     psBig.emit(p.x,p.y,p.z,v[0],v[1],v[2],c[0],c[1],c[2],L,G,0);
     if(Math.random()<0.7){ const tz=L*rand(0.9,1.0); imBild(tz,()=>{ const e=bahnOrt(p,v,G,tz); knisterPop(e.x,e.y,e.z,{funken:5,c:[1,1,0.94],laut:0.4}); }); } }
+  later(0.75,()=>schall(p,v=>{ sfx.crackle(v*0.7); later(0.3,()=>sfx.crackle(v*0.45)); }));
   SCHWEIF=alt;
 };
 
@@ -473,9 +478,11 @@ const DB={
      28.09.: nur Limette und Rosa (vorher Gruen, Violett, Magenta, Rosa);
      Tortenfontaenen in Silber - Funken sind nie rosa */
   kinderparty:()=>show({basis:{pw:-10.5,sz:0.44,th:'brause'}, rampe:{sz:[0.85,1.2],pw:[-1,1.5],hell:[0.9,1.2],kurve:'frueh'}}, [
-    {n:0,nurBoden:true,boden:[{k:'farbtorte',gt:5,x:-0.1,A:'limette'},{k:'farbtorte',gt:5,x:0,A:'rose',t:0.4},{k:'farbtorte',gt:5,x:0.1,A:'limette',t:0.8}],pause:4.6},
-    {n:2,gap:1.4,muster:'mitte',ang:0.18,eff:'brausepulver',farbe:2,steig:'gold',pause:0.9},
-    {n:0,nurBoden:true,boden:[{k:'torte',gt:6,x:-0.09,A:'silber'},{k:'torte',gt:6,x:0.09,A:'silber'}]},
+    /* 29.09. (Tom): 3-5 s laenger - Farbtorten und Silbertorten brennen
+       je 2 s laenger, dazu ein dritter Brausestern im ersten Satz */
+    {n:0,nurBoden:true,boden:[{k:'farbtorte',gt:7,x:-0.1,A:'limette'},{k:'farbtorte',gt:7,x:0,A:'rose',t:0.4},{k:'farbtorte',gt:7,x:0.1,A:'limette',t:0.8}],pause:6.2},
+    {n:3,gap:1.4,muster:'mitte',ang:0.18,eff:'brausepulver',farbe:2,steig:'gold',pause:0.9},
+    {n:0,nurBoden:true,boden:[{k:'torte',gt:8,x:-0.09,A:'silber'},{k:'torte',gt:8,x:0.09,A:'silber'}]},
     {n:3,mit:true,takt:[0.4,1.4],muster:'w',ang:0.25,eff:['kugel','kugel','brausepulver'],farbe:0,kal:'klein',steig:'gold',pause:1.2},
     {n:2,gap:0,muster:'v',ang:0.28,eff:'brausepulver',farbe:1,kal:'klein',steig:'gold',pause:3.0}
   ]),

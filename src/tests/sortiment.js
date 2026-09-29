@@ -32,8 +32,9 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   const r=await p.evaluate(()=>{
     const bb=window.__bb,P=bb.P,o={};
     bb.S.level=30; bb.S.money=9e6; bb.LIZENZEN.forEach(l=>bb.buyLizenz(l.id));
-    o.weg=['batterie25','stinkbombe'].filter(t=>P[t]||bb.LIZENZEN.some(l=>l.items.includes(t)));
-    const NEU=['knatter','zfaecher','kometen','finale','pfeifraketen','titanraketen','kugel200','goldgeysir','feuersaeule','donnerwand','kugel300','jumbogold','jumboleiter','monsterboeller','atomboeller','fontaene30','fontaene50'];
+    /* 29.09. (Tom): 40 Produkte aus dem Sortiment genommen - Stichprobe */
+    o.weg=['batterie25','stinkbombe','fontaene50','hagelsturm','nordlicht','wolkenkratzer','silvesternacht','tisch','pharao','knallteppich','zfaecher','sortiment'].filter(t=>P[t]||bb.LIZENZEN.some(l=>l.items.includes(t))||bb.ORDER.includes(t));
+    const NEU=['knatter','zfaecher','kometen','finale','pfeifraketen','titanraketen','kugel200','goldgeysir','feuersaeule','donnerwand','kugel300','jumbogold','jumboleiter','monsterboeller','atomboeller','fontaene30','fontaene50'].filter(t=>P[t]);
     o.neu={};
     for(let i=0;i<4;i++) bb.regalStellen('hoch');
     /* die Riesenverbunde brauchen seit 25.09. das Grossverbund-Regal */
@@ -50,7 +51,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
        ein Sprint - 50 Schuss in 16 s (Tom: "Batterien, die nicht so lange gehen,
        aber deutlich intensiver sind") - und steht nicht in der Laengen-Leiter;
        dafuer muss er dichter feuern als jede Show bis Level 15 (SPRINT) */
-    const LEITER=['batterie16','knatter','faecher','zfaecher','kometen','batterie100','donnerwand','profi','finale'];
+    const LEITER=['batterie16','knatter','faecher','zfaecher','kometen','batterie100','donnerwand','profi','finale'].filter(t=>P[t]);
     o.leiter=LEITER.map(t=>[t,bb.SHOWS[t]().reduce((a,ph)=>a+(ph.n||1),0),bb.showLength(t),P[t].market]);
     const dichte=t=>bb.SHOWS[t]().reduce((a,ph)=>a+(ph.n===undefined?1:ph.n),0)/Math.max(1,bb.showLength(t));
     o.sprint={feuersturm:+dichte('batterie49').toFixed(2),andere:+Math.max(...Object.keys(bb.SHOWS).filter(t=>t!=='batterie49'&&P[t]&&P[t].cat>0&&P[t].lvl<=15).map(dichte)).toFixed(2)};

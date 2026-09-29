@@ -33,7 +33,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   const pruef=(n,ok,was)=>{ if(!ok) mangel.push(n+': '+was); };
   const r=await p.evaluate(()=>{ const bb=window.__bb, S=bb.S, P=bb.P, o={};
     S.level=40; S.money=1e7; bb.LIZENZEN.forEach(l=>bb.buyLizenz(l.id));
-    const FH=bb.SUPPLIERS[0], T1={n:1,d:0}, W=['wunder','knallerbsen','tisch','feuerzeug','batterie16','sekt','popcorn'];
+    const FH=bb.SUPPLIERS[0], T1={n:1,d:0}, W=['wunder','knallerbsen','knallfrosch','feuerzeug','batterie16','sekt','popcorn'];
     const p0={}, i0={}, last={}; o.wechsel={}; o.runter={};
     W.forEach(t=>{ p0[t]=bb.tierPrice(t,FH,T1); i0[t]=bb.ekRoh(t); last[t]=p0[t]; o.wechsel[t]=0; o.runter[t]=0; });
     for(let d=0;d<60;d++){ bb.rollMarkt(); W.forEach(t=>{ const q=bb.tierPrice(t,FH,T1); if(q!==last[t]) o.wechsel[t]++; if(q<last[t]) o.runter[t]++; last[t]=q; }); }

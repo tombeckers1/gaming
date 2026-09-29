@@ -2760,6 +2760,24 @@ NEU_GRUPPE.batterien.push('hexenkessel','geysirfeld','wolkenkratzer');
   SPARTE.essen.forEach(t=>{ if(P[t]&&P[t].cat===0){ P[t].sparte='essen'; umhaengen(t,'essen'); } });
   SPARTE.getraenke.forEach(t=>{ if(P[t]&&P[t].cat===0){ P[t].sparte='getraenke'; umhaengen(t,'sekt'); } });
 })();
+/* =========================================================
+   Aus dem Sortiment genommen (Tom, 29.09.: "komplett entfernen, gefaellt
+   mir nicht"). Die Produkte verschwinden ueberall: Katalog, Lizenzen,
+   Warengruppen, Lieferanten. Alte Spielstaende verlieren Bestand und
+   Bestellungen dieser Sorten beim Laden (18-save.js).
+   ========================================================= */
+const ENTFERNT=['fontaene50','fontaene30','silberkaskade','feuerkaskade','jugendbox','zfaecher','vulkan','feuersaeule',
+  'knisterfaecher','bengalduo','zauberwald','silberwirbel','glitzerkaskade','nachtfalter','regenbogenfaecher','goldvulkan',
+  'funkenturm','sortiment','sternstaub20','knallteppich','vulkanfeld','feuerbrunnen','farbrauchboeller','goldstaubboeller',
+  'sternenbrunnen','bengalfackel','glueckrakete','mondschein','farbfontaenen','bengalflamme','tisch','tortenfontaene',
+  'leuchtstaebe','pharao','stroboblinker','hagelsturm','himmelsfaecher','silvesternacht','nordlicht','wolkenkratzer'];
+(function(){
+  const weg=new Set(ENTFERNT);
+  ENTFERNT.forEach(t=>{ delete P[t]; if(typeof VOLA!=='undefined') delete VOLA[t]; if(typeof LIZ_VON!=='undefined') delete LIZ_VON[t]; });
+  for(let i=ORDER.length-1;i>=0;i--) if(weg.has(ORDER[i])) ORDER.splice(i,1);
+  LIZENZEN.forEach(l=>{ l.items=l.items.filter(t=>!weg.has(t)); });
+  for(const g in GRUPPE) GRUPPE[g]=GRUPPE[g].filter(t=>!weg.has(t));
+})();
 
 /* =========================================================
    Renderer & Szene
@@ -17864,8 +17882,15 @@ function kugelbombe(o,kal,opt){
   if(haupt==='mehrschlag'){
     const bilder=(opt.stufen||[]).map(x=>typeof x==='string'?x:x&&x.eff).filter(Boolean), n=Math.max(1,opt.schlaege||bilder.length||1);
     haupt=bilder[0]||'chrys'; stufen.length=0; let t=0, y=0;
-    for(let k=1;k<n;k++){ t+=rand(0.55,0.7); y+=rand(6,8); const e=bilder[k]||bilder[bilder.length-1]||'chrys';
-      stufen.push({t,eff:e,sz:groesse*(e==='schlussschlag'?1:0.8+0.06*k),off:[0,y,0],A:k%2?B:A,B:k%2?A:B,bruchOpt:opt.bruchOpt}); }   /* 28.09.: bruchOpt auch fuer die Folgeschlaege (Batterie-Verbund: Licht gedaempft) */
+    /* opt.schlag: {dy:[a,b] Hoehe je Schlag, dx seitlicher Versatz im
+       Wechsel, dt:[a,b] Abstand, farben:[[A,B],...] je Schlag} - 29.09.
+       (Finale Grande): die Schlaege lagen 6-8 m uebereinander und gingen
+       oben aus dem Bild */
+    const SG=opt.schlag||{}, DY=SG.dy||[6,8], DT=SG.dt||[0.55,0.7];
+    for(let k=1;k<n;k++){ t+=rand(DT[0],DT[1]); y+=rand(DY[0],DY[1]); const e=bilder[k]||bilder[bilder.length-1]||'chrys';
+      const x=SG.dx?(k%2?1:-1)*SG.dx*(0.7+0.3*k/n):0, F=SG.farben&&SG.farben[k];
+      stufen.push({t,eff:e,sz:groesse*(e==='schlussschlag'?1:(SG.wachsen?0.85+0.1*k:0.8+0.06*k)),off:[x,y,0],A:F?fb(F[0]):k%2?B:A,B:F?fb(F[1]||F[0]):k%2?A:B,bruchOpt:opt.bruchOpt}); }
+    if(SG.farben&&SG.farben[0]){ opt.A=fb(SG.farben[0][0]); opt.B=fb(SG.farben[0][1]||SG.farben[0][0]); }   /* 28.09.: bruchOpt auch fuer die Folgeschlaege (Batterie-Verbund: Licht gedaempft) */
   }
   if(!opt.stufen&&opt.eff!=='mehrschlag'&&K4===1){
     /* zwei kleinere Herzen im selben Mittelpunkt - bum-bum */
@@ -17895,8 +17920,10 @@ function kugelbombe(o,kal,opt){
     ringLage(12,14).forEach((off,i)=>stufen.push({t:0.6,off,leise:i>0,eff:'dahlie',sz:groesse*0.28,A:i%2?C:A,B:i%2?D:B}));
   }
   const sg=opt.steig||(opt.eff==='mehrschlag'?'gold':undefined);
-  return shot(o,{pw:steig,sz:groesse,eff:haupt,fuse:zuend,A,B,kugel:K4,
-          trail:sg?undefined:K4>=3?FW.weiss:FW.gold,dick:sg?0:Math.min(3,K4),stufen,
+  /* opt.dick: dicker, gut sichtbarer Steigschweif auch bei eigener Steigart */
+  const A2=opt.schlag&&opt.schlag.farben?opt.A:A, B2=opt.schlag&&opt.schlag.farben?opt.B:B;
+  return shot(o,{pw:steig,sz:groesse,eff:haupt,fuse:zuend,A:A2,B:B2,kugel:K4,
+          trail:opt.trail||(sg?undefined:K4>=3?FW.weiss:FW.gold),dick:opt.dick!==undefined?opt.dick:sg?0:Math.min(3,K4),stufen,
           steig:sg,bruchOpt:opt.bruchOpt,knall:opt.knall,par:opt.par,C:opt.C,kerne:opt.kerne,kobana:opt.kobana,stehen:opt.stehen,tag:opt.tag});
 }
 /* Bodeneffekt: Mine, die beim Start eine Fontäne wirft */
@@ -18784,7 +18811,8 @@ function playShow(o,phases,prod,tag){
         if(!ph.nurMine){
           /* bomb: echte Kugelbombe mit Nachbruechen statt einer Rakete */
           if(ph.bomb){ BLITZ_K=SHOW_BLITZ; try{ kugelbombe(os,ph.bomb,{A:mA,B:mB,eff:ph.bombEff||['dahlie','dahlie','chrys','mehrring','kamuro'][ph.bomb-1],stufen:ph.bombStufen,stufenRel:true,
-            schlaege:ph.schlaege,steig:ph.steig,bruchOpt:showBlitz(ph.bruchOpt),par,tag}); } finally { BLITZ_K=1; } }
+            schlaege:ph.schlaege,steig:ph.steig,bruchOpt:showBlitz(ph.bruchOpt),par,tag,
+            pw:ph.bombPw,sz:ph.bombSz,schlag:ph.schlag,dick:ph.dick,trail:ph.trail?K(ph.trail):undefined,fuse:ph.bombFuse}); } finally { BLITZ_K=1; } }
           /* perle: Roemisches Licht - eine Leuchtkugel direkt aus dem Rohr */
           else if(ph.perle) perleSchuss(os,mA,sz,{eff:perleEff,ang:mm&&mm!=='gerade'?ang:(perleEff||ph.rohrFolge?0:undefined),dir:dir===undefined?FANDIR:dir,B:mB,i,kette,splitDreh:ph.splitDreh});
           else shot(os,opt);
@@ -19191,7 +19219,10 @@ const NEU_EMIT={
   /* Tortenfontaene: kleine, dichte Silberfontaene, 30 bis 70 cm hoch */
   torte(e,dt,o){ const A=e.A||FW.silber; e.acc=(e.acc||0)+dt*260;
     for(;e.acc>=1;e.acc--){ const a=Math.random()*Math.PI*2, s=rand(0.05,0.35);
-      psSmall.emit(o.x,o.y+0.12,o.z,Math.cos(a)*s,rand(1.8,3.0),Math.sin(a)*s,A[0],A[1],A[2],rand(0.35,0.7),5,4); } },
+      psSmall.emit(o.x,o.y+0.12,o.z,Math.cos(a)*s,rand(1.8,3.0),Math.sin(a)*s,A[0],A[1],A[2],rand(0.35,0.7),5,4); }
+    /* 29.09. (Tom: Brausepulver, Sounds fehlen): brannte stumm - jetzt ein
+       durchgehendes Zischen (1,4 s Rauschen alle 1,2 s, lueckenlos) */
+    e.fz=(e.fz||0.6)-dt; if(e.fz<=0){ e.fz=1.2; sfx.fizz(distVol(o)*0.6); } },
   /* Stroboskop-Blinker: glimmt und blitzt in unregelmaessigem Takt */
   blinker(e,dt,o){ const A=e.A||FW.weiss; e.acc=(e.acc||0)+dt*70;
     for(;e.acc>=1;e.acc--){ const a=Math.random()*Math.PI*2, s=rand(0.05,0.3);
@@ -19231,7 +19262,9 @@ const NEU_EMIT={
        grelle Punktballen ueber dem Kessel (nur Batterien nutzen das) */
     e.st=(e.st||0)-dt; if(e.st<=0){ e.st=0.35; const c=B;
       for(let k=0;k<Math.round(8*QUAL());k++){ const a=Math.random()*Math.PI*2, w=rand(0.3,1.2);
-        psBig.emit(o.x,y0,o.z,Math.cos(a)*w,rand(9,12),Math.sin(a)*w,c[0],c[1],c[2],rand(1.3,1.8),6,0); } } },
+        psBig.emit(o.x,y0,o.z,Math.cos(a)*w,rand(9,12),Math.sin(a)*w,c[0],c[1],c[2],rand(1.3,1.8),6,0); } }
+    /* 29.09.: Goldfontaene rauscht, solange sie brennt (vorher stumm) */
+    e.fz=(e.fz||0.6)-dt; if(e.fz<=0){ e.fz=1.2; sfx.fizz(distVol(o)*0.8); } },
   /* Farbige Wunderkerze: e.A die Funkenfarbe */
   funken(e,dt,o){ const A=e.A||FW.gold;
     /* je Sekunde, nicht je Bild - sonst waeren es bei 30 Bildern halb so viele */
@@ -20025,13 +20058,18 @@ EFF.pusteblume=function(p,A,B,s,r){
    Stern zu seiner Zeit, nicht alle zugleich. */
 EFF.brausepulver=function(p,A,B,s,r){
   zutaten(r,{flash:0.4}); leise(r);
-  schall(p,v=>sfx.plopp(v*0.5,0.75));
+  /* 29.09. (Tom: Sounds fehlen): der Zerleger war kaum hoerbar (plopp 0,5)
+     und das Knistern lief nur ueber die gedrosselten Einzelklicks - jetzt
+     ein kleiner, aber hoerbarer Zerleger und ein Knisterteppich, wenn
+     die Sterne zerplatzen */
+  schall(p,v=>{ sfx.plopp(v*1.1,0.8); sfx.boom(v*0.28); });
   const q=QUAL(), g=clamp(s,0.3,1.4), n=Math.round(rand(40,52)*q*clamp(0.7+g*0.4,0.8,1.2)), G=2.2, alt=SCHWEIF;
   const cA=mischF(A,WEISS,0.15), cB=mischF(B,WEISS,0.15);
   SCHWEIF=0.2;
   for(let i=0;i<n;i++){ const d=randDir(), w=rand(5.2,6.6)*(0.6+g*0.55), c=i%4===3?cB:cA, L=rand(0.75,1.05), v=[d[0]*w,d[1]*w,d[2]*w];
     psBig.emit(p.x,p.y,p.z,v[0],v[1],v[2],c[0],c[1],c[2],L,G,0);
     if(Math.random()<0.7){ const tz=L*rand(0.9,1.0); imBild(tz,()=>{ const e=bahnOrt(p,v,G,tz); knisterPop(e.x,e.y,e.z,{funken:5,c:[1,1,0.94],laut:0.4}); }); } }
+  later(0.75,()=>schall(p,v=>{ sfx.crackle(v*0.7); later(0.3,()=>sfx.crackle(v*0.45)); }));
   SCHWEIF=alt;
 };
 
@@ -20407,9 +20445,11 @@ const DB={
      28.09.: nur Limette und Rosa (vorher Gruen, Violett, Magenta, Rosa);
      Tortenfontaenen in Silber - Funken sind nie rosa */
   kinderparty:()=>show({basis:{pw:-10.5,sz:0.44,th:'brause'}, rampe:{sz:[0.85,1.2],pw:[-1,1.5],hell:[0.9,1.2],kurve:'frueh'}}, [
-    {n:0,nurBoden:true,boden:[{k:'farbtorte',gt:5,x:-0.1,A:'limette'},{k:'farbtorte',gt:5,x:0,A:'rose',t:0.4},{k:'farbtorte',gt:5,x:0.1,A:'limette',t:0.8}],pause:4.6},
-    {n:2,gap:1.4,muster:'mitte',ang:0.18,eff:'brausepulver',farbe:2,steig:'gold',pause:0.9},
-    {n:0,nurBoden:true,boden:[{k:'torte',gt:6,x:-0.09,A:'silber'},{k:'torte',gt:6,x:0.09,A:'silber'}]},
+    /* 29.09. (Tom): 3-5 s laenger - Farbtorten und Silbertorten brennen
+       je 2 s laenger, dazu ein dritter Brausestern im ersten Satz */
+    {n:0,nurBoden:true,boden:[{k:'farbtorte',gt:7,x:-0.1,A:'limette'},{k:'farbtorte',gt:7,x:0,A:'rose',t:0.4},{k:'farbtorte',gt:7,x:0.1,A:'limette',t:0.8}],pause:6.2},
+    {n:3,gap:1.4,muster:'mitte',ang:0.18,eff:'brausepulver',farbe:2,steig:'gold',pause:0.9},
+    {n:0,nurBoden:true,boden:[{k:'torte',gt:8,x:-0.09,A:'silber'},{k:'torte',gt:8,x:0.09,A:'silber'}]},
     {n:3,mit:true,takt:[0.4,1.4],muster:'w',ang:0.25,eff:['kugel','kugel','brausepulver'],farbe:0,kal:'klein',steig:'gold',pause:1.2},
     {n:2,gap:0,muster:'v',ang:0.28,eff:'brausepulver',farbe:1,kal:'klein',steig:'gold',pause:3.0}
   ]),
@@ -21835,22 +21875,34 @@ SHOWS.himmelsfaecher=()=>show({basis:{pw:4.55,sz:1.365,th:'gitter'},rampe:{sz:[0
 ]);
 SIGNATUR.himmelsfaecher={idee:'gitter',text:'Titankometen aus drei Positionen spannen ein Netz'};
 
-/* Level 26: Finale Grande. 28.09. (Tom: echt): kurze Goldfontaene als
-   Eroeffnung statt 48 s gruen-weiss-rotem Bengallicht */
-SHOWS.kugelfinale=()=>show({basis:{pw:5.00,sz:1.400,th:'tricolore'},rampe:{sz:[0.95,1.30],pw:[0,3],hell:[0.90,1.40],kurve:'linear'}},[
-  {n:0,boden:{k:'fountain',gt:4,gh:0.8,A:'gold',B:'weiss'},pause:1.5},
-  /* Salutini (0,7 s: dritte Tempoklasse) */
-  {n:3,gap:0.7,muster:'v',ang:0.30,kal:'mini',pw:-6,eff:'salut',pause:0.6},
-  {n:1,muster:'gerade',bomb:3,bombEff:'mehrschlag',steig:'gold',schlaege:1,bombStufen:['dahlie'],pause:4},
-  {n:4,gap:0.3,muster:'w',ang:0.35,kal:'mini',pw:-6,eff:'salut',pause:0.5},
-  {n:1,muster:'gerade',bomb:3,bombEff:'mehrschlag',steig:'gold',schlaege:2,bombStufen:['chrys','weide'],pause:5},
-  {n:5,gap:0.15,muster:'mitte',ang:0.35,kal:'mini',pw:-6,eff:'salut',pause:0.5},
-  {n:1,muster:'gerade',bomb:4,bombEff:'mehrschlag',steig:'gold',schlaege:3,bombStufen:['pistill','brokat','blinkregen'],pause:6},
-  {n:6,gap:0.12,muster:'aussen',ang:0.40,kal:'mini',pw:-6,eff:'salut',pause:0.5},
-  {n:1,muster:'gerade',bomb:4,bombEff:'mehrschlag',steig:'gold',schlaege:4,bombStufen:['kamuro','dahlie','spinne','zeitregen'],pause:7},
-  {n:8,gap:0.1,muster:'zufall',ang:0.40,kal:'mini',pw:-6,eff:'salut',pause:0.6},
-  /* FINALE: fuenf Schlaege, der letzte ist der Schlussschlag */
-  {n:1,muster:'gerade',bomb:5,bombEff:'mehrschlag',steig:'gold',schlaege:5,bombStufen:['dahlie','kronleuchter','brokat','glitzerweide','schlussschlag'],pause:8}
+/* Level 26: Finale Grande - komplett neu (29.09., Tom: "teils keine
+   Lichteffekte, keine Abschuesse, viel schoener und einzigartiger").
+   Fuenf italienische Zylinderbomben, uno bis cinque: jede steigt mit
+   dickem Goldschweif sichtbar auf, bricht in Sichthoehe (vorher 32 m,
+   oben aus dem Bild), jeder Schlag in einer eigenen Farbe der Tricolore
+   und leicht seitlich versetzt, sodass die Schlaege nebeneinander stehen
+   statt uebereinander aus dem Bild zu wandern. Zwischen den Bomben keine
+   Dunkelpausen, sondern kurze Kometenfaecher in Gruen-Weiss-Rot. */
+const FG_BOMBE=(k,o)=>Object.assign({n:1,muster:'gerade',bomb:k<3?3:k<5?4:5,bombEff:'mehrschlag',schlaege:k,dick:3,trail:'gold',
+  bruchOpt:{flash:1.8}},o);
+SHOWS.kugelfinale=()=>show({basis:{pw:0,sz:1.2,th:'tricolore'},rampe:{sz:[0.95,1.25],pw:[0,2],hell:[1.0,1.4],kurve:'linear'}},[
+  /* Auftakt: drei Kometen in den Landesfarben faechern auf */
+  {n:3,gap:0.18,muster:'v',ang:0.32,eff:'rohrkomet',art:'farbe',farbe:0,pause:0.6},
+  /* UNO - gruene Dahlie mit weissem Kern */
+  FG_BOMBE(1,{bombPw:-2.5,bombSz:2.6,bombStufen:['dahlie'],schlag:{farben:[['gruen','weiss']]},pause:2.2}),
+  {n:5,gap:0.14,muster:'w',ang:0.40,eff:'rohrkomet',art:'glitter',pause:0.8},
+  /* DUE - rote Chrysantheme, dann goldene Glitzerweide */
+  FG_BOMBE(2,{bombPw:-2,bombSz:2.8,bombStufen:['chrys','glitzerweide'],schlag:{dy:[3,4],dx:1.6,dt:[0.7,0.8],farben:[['rot','weiss'],['gold','gold']]},pause:2.4}),
+  {n:6,gap:0.12,muster:'x',ang:0.45,eff:'kreuzstern',farbe:1,pause:0.8},
+  /* TRE - weisser Pistill, gruene Dahlie, roter Blinkregen */
+  FG_BOMBE(3,{bombPw:-2,bombSz:3.0,bombStufen:['pistill','dahlie','blinkregen'],schlag:{dy:[3,4],dx:2,dt:[0.65,0.8],farben:[['weiss','weiss'],['gruen','weiss'],['rot','rot']]},pause:2.6}),
+  {n:8,gap:0.1,muster:'zufall',ang:0.45,eff:'rohrkomet',art:'silber',pause:0.8},
+  /* QUATTRO - Goldkamuro, gruene Dahlie, roter Pistill, weisser Zeitregen */
+  FG_BOMBE(4,{bombPw:-2.2,bombSz:3.2,bombStufen:['kamuro','dahlie','pistill','zeitregen'],schlag:{dy:[3,4],dx:2.5,dt:[0.6,0.75],farben:[['gold','gold'],['gruen','weiss'],['rot','weiss'],['weiss','weiss']]},pause:2.8}),
+  /* Vorfinale: zwei Zwoelfersalven Kometen in den Landesfarben */
+  {n:24,je:12,takt:[0.9],x:[-0.2,0.2],angOff:[-0.25,0.25],muster:'schlag',ang:0.5,eff:'rohrkomet',art:'farbe',farbe:2,pause:1.2},
+  /* CINQUE - fuenf wachsende Schlaege, der letzte ist der Donnerschlag */
+  FG_BOMBE(5,{bombPw:-2.6,bombSz:3.4,bombStufen:['dahlie','kronleuchter','brokat','glitzerweide','schlussschlag'],schlag:{dy:[3,4],dx:2.5,dt:[0.6,0.7],wachsen:true,farben:[['gruen','weiss'],['weiss','weiss'],['gold','gold'],['rot','gold'],['weiss','weiss']]},pause:8})
 ]);
 SIGNATUR.kugelfinale={eff:'mehrschlag',text:'eins, zwei, drei, vier, fünf Schläge übereinander'};
 
@@ -25655,6 +25707,14 @@ Object.assign(SIGNATUR,{
 if(typeof window!=='undefined') window.__klein={KLEIN,papier:()=>KL_PAP.liste.length,
   sichtbar:()=>KL_PAP.liste.length+emitters.reduce((n,e)=>n+(e.meshes?e.meshes.length:0),0)};
 
+/* Aus dem Sortiment genommene Produkte (02e, ENTFERNT) auch aus allen
+   Effekt-Datenbanken streichen - sonst tauchten sie in Listen auf, die
+   ueber SHOWS, FONT oder KLEIN laufen (Teststation, Signaturen). */
+(function(){ if(typeof ENTFERNT==='undefined') return;
+  const tabellen=[SHOWS,SIGNATUR,FONT,RAKETEN_KL,NEU_SHOWS,NEU_KUGEL,NEU_FONT,KLEIN,typeof NEUWARE!=='undefined'?NEUWARE:null];
+  ENTFERNT.forEach(t=>tabellen.forEach(T=>{ if(T&&Object.prototype.hasOwnProperty.call(T,t)) delete T[t]; }));
+})();
+
 /* =========================================================
    Spieler
    ========================================================= */
@@ -28443,7 +28503,7 @@ function startGame(fresh){
     S.up.shop_halb=true; S.up.lager_nord=true; S.up.testfeld=true;
   }
   const F=freshState();
-  S.prices=Object.assign(F.prices,S.prices||{}); S.up=Object.assign(F.up,S.up||{}); S.staff=Object.assign({},S.staff||{}); S.prio=Object.assign({},S.prio||{}); S.grime=clamp(+S.grime||0,0,1); S.mkt=clamp(+S.mkt||1,0.7,1.4); S.comp=clamp(+S.comp||1,0.85,1.15); if(S.ev&&!eventById(S.ev)) S.ev=null; S.wage=Object.assign({},S.wage||{}); S.pause=Object.assign({},S.pause||{}); S.tut=S.tut||{}; S.paint=S.paint||[]; S.stamm=S.stamm||{};
+  S.prices=Object.assign(F.prices,S.prices||{}); for(const t in S.prices) if(!P[t]) delete S.prices[t]; /* aus dem Sortiment genommene Sorten */ S.up=Object.assign(F.up,S.up||{}); S.staff=Object.assign({},S.staff||{}); S.prio=Object.assign({},S.prio||{}); S.grime=clamp(+S.grime||0,0,1); S.mkt=clamp(+S.mkt||1,0.7,1.4); S.comp=clamp(+S.comp||1,0.85,1.15); if(S.ev&&!eventById(S.ev)) S.ev=null; S.wage=Object.assign({},S.wage||{}); S.pause=Object.assign({},S.pause||{}); S.tut=S.tut||{}; S.paint=S.paint||[]; S.stamm=S.stamm||{};
   S.shopName=(typeof S.shopName==='string'&&S.shopName.trim())?S.shopName.trim().slice(0,22):SHOP_DEFAULT;
   S.slogan=(typeof S.slogan==='string')?S.slogan.trim().slice(0,38):SLOGAN_DEFAULT;
   /* Restposten gibt es seit 26.09. nur noch als Angebot mit Vorrat -

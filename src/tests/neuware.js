@@ -104,7 +104,9 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   ['daten','regal','zuenden','raketen','fontLadung','schuss','frueh','stufe'].forEach(k=>console.log(k.toUpperCase().padEnd(8),r[k].length,JSON.stringify(r[k].slice(0,8))));
   console.log('KOPIEN  ',JSON.stringify(r.kopien),JSON.stringify(r.rkopien));
   pruef('ANZAHL',r.gesamt>=200,'nur '+r.gesamt+' Produkte');
-  const duenn=Object.keys(r.proLevel).filter(l=>r.proLevel[l]<5);
+  /* 29.09. (Tom): 40 Produkte aus dem Sortiment genommen - seitdem stehen
+     auf manchen Leveln nur noch drei; weniger als drei waere zu duenn */
+  const duenn=Object.keys(r.proLevel).filter(l=>r.proLevel[l]<3);
   pruef('ANZAHL',!duenn.length,'zu wenig auf Level '+duenn.map(l=>l+' ('+r.proLevel[l]+')').join(', '));
   pruef('DATEN',!r.daten.length,r.daten.slice(0,6).join(' | '));
   pruef('REGAL',!r.regal.length,'passt in kein Regal: '+r.regal.join(', '));

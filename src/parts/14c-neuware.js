@@ -113,7 +113,10 @@ const NEU_EMIT={
   /* Tortenfontaene: kleine, dichte Silberfontaene, 30 bis 70 cm hoch */
   torte(e,dt,o){ const A=e.A||FW.silber; e.acc=(e.acc||0)+dt*260;
     for(;e.acc>=1;e.acc--){ const a=Math.random()*Math.PI*2, s=rand(0.05,0.35);
-      psSmall.emit(o.x,o.y+0.12,o.z,Math.cos(a)*s,rand(1.8,3.0),Math.sin(a)*s,A[0],A[1],A[2],rand(0.35,0.7),5,4); } },
+      psSmall.emit(o.x,o.y+0.12,o.z,Math.cos(a)*s,rand(1.8,3.0),Math.sin(a)*s,A[0],A[1],A[2],rand(0.35,0.7),5,4); }
+    /* 29.09. (Tom: Brausepulver, Sounds fehlen): brannte stumm - jetzt ein
+       durchgehendes Zischen (1,4 s Rauschen alle 1,2 s, lueckenlos) */
+    e.fz=(e.fz||0.6)-dt; if(e.fz<=0){ e.fz=1.2; sfx.fizz(distVol(o)*0.6); } },
   /* Stroboskop-Blinker: glimmt und blitzt in unregelmaessigem Takt */
   blinker(e,dt,o){ const A=e.A||FW.weiss; e.acc=(e.acc||0)+dt*70;
     for(;e.acc>=1;e.acc--){ const a=Math.random()*Math.PI*2, s=rand(0.05,0.3);
@@ -153,7 +156,9 @@ const NEU_EMIT={
        grelle Punktballen ueber dem Kessel (nur Batterien nutzen das) */
     e.st=(e.st||0)-dt; if(e.st<=0){ e.st=0.35; const c=B;
       for(let k=0;k<Math.round(8*QUAL());k++){ const a=Math.random()*Math.PI*2, w=rand(0.3,1.2);
-        psBig.emit(o.x,y0,o.z,Math.cos(a)*w,rand(9,12),Math.sin(a)*w,c[0],c[1],c[2],rand(1.3,1.8),6,0); } } },
+        psBig.emit(o.x,y0,o.z,Math.cos(a)*w,rand(9,12),Math.sin(a)*w,c[0],c[1],c[2],rand(1.3,1.8),6,0); } }
+    /* 29.09.: Goldfontaene rauscht, solange sie brennt (vorher stumm) */
+    e.fz=(e.fz||0.6)-dt; if(e.fz<=0){ e.fz=1.2; sfx.fizz(distVol(o)*0.8); } },
   /* Farbige Wunderkerze: e.A die Funkenfarbe */
   funken(e,dt,o){ const A=e.A||FW.gold;
     /* je Sekunde, nicht je Bild - sonst waeren es bei 30 Bildern halb so viele */

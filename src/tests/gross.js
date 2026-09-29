@@ -49,13 +49,13 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     o.etagen={h:P.finale.dims[1],zwei:+(1.8*bb.fachHoehe(Ks,0)).toFixed(3),gross:passt('gross','finale'),standard:passt('standard','finale')};
     /* alles groesser als vorher (Masse vom 25.09. vormittags) */
     const ALT={wunder:0.3,tisch:0.21,raketen:0.52,sekt:0.3,fontaene:0.22,ballons:0.28,knallerbsen:null,roemisch:0.34,vulkan:0.3,konfetti:0.21};
-    o.kleiner=Object.keys(ALT).filter(t=>ALT[t]&&Math.max(...P[t].dims)<ALT[t]*1.2);
+    o.kleiner=Object.keys(ALT).filter(t=>ALT[t]&&P[t]&&Math.max(...P[t].dims)<ALT[t]*1.2); /* 29.09.: entfernte Produkte zaehlen nicht */
     /* Zuendtisch: drei gleiche Produkte nebeneinander */
     const st=bb.stations.tisch; o.tisch=[];
     /* 28.09.: Plaetze 1,1 m auseinander, alles steht mit der Breite quer
        (auch die Fontaenen-Sets bis 1 m) */
     o.abstand=+(bb.TISCH_X[1]-bb.TISCH_X[0]).toFixed(2);
-    for(const t of ['finale','profi','donnerwand','faecher','zfaecher','batterie100','atomboeller','feuerkaskade','wasserspiel']){
+    for(const t of ['finale','profi','donnerwand','faecher','zfaecher','batterie100','atomboeller','feuerkaskade','wasserspiel'].filter(t=>P[t])){
       bb.clearStations(); for(let k=0;k<3;k++){ S.carrying={type:t,count:1,q:1}; bb.placeOnStation(st); }
       const fp=st.items.map(it=>{ const e=it.h.m.elements, cx=Math.hypot(e[0],e[2]), sx=Math.hypot(e[8],e[10]);
         /* Breite entlang der Tischkante: Anteil der Produkt-x- und -z-Achse an Welt-x */

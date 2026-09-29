@@ -1594,8 +1594,15 @@ function kugelbombe(o,kal,opt){
   if(haupt==='mehrschlag'){
     const bilder=(opt.stufen||[]).map(x=>typeof x==='string'?x:x&&x.eff).filter(Boolean), n=Math.max(1,opt.schlaege||bilder.length||1);
     haupt=bilder[0]||'chrys'; stufen.length=0; let t=0, y=0;
-    for(let k=1;k<n;k++){ t+=rand(0.55,0.7); y+=rand(6,8); const e=bilder[k]||bilder[bilder.length-1]||'chrys';
-      stufen.push({t,eff:e,sz:groesse*(e==='schlussschlag'?1:0.8+0.06*k),off:[0,y,0],A:k%2?B:A,B:k%2?A:B,bruchOpt:opt.bruchOpt}); }   /* 28.09.: bruchOpt auch fuer die Folgeschlaege (Batterie-Verbund: Licht gedaempft) */
+    /* opt.schlag: {dy:[a,b] Hoehe je Schlag, dx seitlicher Versatz im
+       Wechsel, dt:[a,b] Abstand, farben:[[A,B],...] je Schlag} - 29.09.
+       (Finale Grande): die Schlaege lagen 6-8 m uebereinander und gingen
+       oben aus dem Bild */
+    const SG=opt.schlag||{}, DY=SG.dy||[6,8], DT=SG.dt||[0.55,0.7];
+    for(let k=1;k<n;k++){ t+=rand(DT[0],DT[1]); y+=rand(DY[0],DY[1]); const e=bilder[k]||bilder[bilder.length-1]||'chrys';
+      const x=SG.dx?(k%2?1:-1)*SG.dx*(0.7+0.3*k/n):0, F=SG.farben&&SG.farben[k];
+      stufen.push({t,eff:e,sz:groesse*(e==='schlussschlag'?1:(SG.wachsen?0.85+0.1*k:0.8+0.06*k)),off:[x,y,0],A:F?fb(F[0]):k%2?B:A,B:F?fb(F[1]||F[0]):k%2?A:B,bruchOpt:opt.bruchOpt}); }
+    if(SG.farben&&SG.farben[0]){ opt.A=fb(SG.farben[0][0]); opt.B=fb(SG.farben[0][1]||SG.farben[0][0]); }   /* 28.09.: bruchOpt auch fuer die Folgeschlaege (Batterie-Verbund: Licht gedaempft) */
   }
   if(!opt.stufen&&opt.eff!=='mehrschlag'&&K4===1){
     /* zwei kleinere Herzen im selben Mittelpunkt - bum-bum */
@@ -1625,8 +1632,10 @@ function kugelbombe(o,kal,opt){
     ringLage(12,14).forEach((off,i)=>stufen.push({t:0.6,off,leise:i>0,eff:'dahlie',sz:groesse*0.28,A:i%2?C:A,B:i%2?D:B}));
   }
   const sg=opt.steig||(opt.eff==='mehrschlag'?'gold':undefined);
-  return shot(o,{pw:steig,sz:groesse,eff:haupt,fuse:zuend,A,B,kugel:K4,
-          trail:sg?undefined:K4>=3?FW.weiss:FW.gold,dick:sg?0:Math.min(3,K4),stufen,
+  /* opt.dick: dicker, gut sichtbarer Steigschweif auch bei eigener Steigart */
+  const A2=opt.schlag&&opt.schlag.farben?opt.A:A, B2=opt.schlag&&opt.schlag.farben?opt.B:B;
+  return shot(o,{pw:steig,sz:groesse,eff:haupt,fuse:zuend,A:A2,B:B2,kugel:K4,
+          trail:opt.trail||(sg?undefined:K4>=3?FW.weiss:FW.gold),dick:opt.dick!==undefined?opt.dick:sg?0:Math.min(3,K4),stufen,
           steig:sg,bruchOpt:opt.bruchOpt,knall:opt.knall,par:opt.par,C:opt.C,kerne:opt.kerne,kobana:opt.kobana,stehen:opt.stehen,tag:opt.tag});
 }
 /* Bodeneffekt: Mine, die beim Start eine Fontäne wirft */

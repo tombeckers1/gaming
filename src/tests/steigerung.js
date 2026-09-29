@@ -66,12 +66,11 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
         dauer:sch.length?+(sch[sch.length-1].t-sch[0].t).toFixed(1):0,eff:[...new Set(log.map(e=>e.eff).filter(Boolean))]}; };
     for(const t of ['batterie16','knatter','batterie49','faecher','batterie100','zfaecher','kometen','donnerwand','profi','finale','sortiment',
       'raketenklein','raketen','pfeifraketen','raketengold','titanraketen','jumbogold','jumboleiter','furzrakete','roemisch','sternenbrunnen','vulkan','goldgeysir','feuersaeule','feuerbrunnen',
-      'kugel75','kugel100','kugel150','kugel200','kugel300'])
+      'kugel75','kugel100','kugel150','kugel200','kugel300'].filter(t=>bb.P[t])) /* 29.09.: entfernte Produkte fallen weg */
       out[t]=messe(t);
     /* Feuerbrunnen: eigener Bodeneffekt */
-    const pos={x:0,y:0.4,z:-20}; bb.igniteType('feuerbrunnen',pos); bb.run(0.3,0.1);
-    /* 28.09.: das Produkt hat einen eigenen Emitter 'flammen' (Kometenfontaene); 'feuerbrunnen' bleibt der Show-Effekt */
-    out.brunnenEmitter=bb.emittersListe().some(e=>e.k==='feuerbrunnen'||e.k==='flammen');
+    const pos={x:0,y:0.4,z:-20};
+    /* 29.09.: der Feuerbrunnen ist aus dem Sortiment - der Show-Effekt 'feuerbrunnen' bleibt */
     /* neue Effekte einzeln */
     /* jedes Bruchbild einzeln zuenden und zaehlen, wie viele Sterne es
        erzeugt (bb.fwShot - bb.shot ist das Bildschirmfoto) */
@@ -88,11 +87,11 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
       out.blick={dot:+Math.abs((n[0]*d[0]+n[1]*d[1]+n[2]*d[2])/l).toFixed(3),auf:+v[1].toFixed(3)}; }
     out.lvl={}; Object.keys(out).forEach(t=>{ if(bb.P[t]) out.lvl[t]=bb.P[t].lvl; });
     /* Auftakt: beginnt die Show mit einer Fontaene, bevor geschossen wird? */
-    out.auftakt={}; for(const t of ['sortiment','batterie100','kometen','donnerwand','profi']){ const ph=bb.SHOWS[t]()[0]; out.auftakt[t]=!!((ph.ground||ph.boden)&&!ph.n); }  // 27.09.: Drehbuch v2 schreibt die Bodenphase als boden:{...} (Familienfest: Vulkan + Lauffeuer)
+    out.auftakt={}; for(const t of ['sortiment','batterie100','kometen','donnerwand','profi'].filter(t=>bb.SHOWS[t])){ const ph=bb.SHOWS[t]()[0]; out.auftakt[t]=!!((ph.ground||ph.boden)&&!ph.n); }  // 27.09.: Drehbuch v2 schreibt die Bodenphase als boden:{...} (Familienfest: Vulkan + Lauffeuer)
     /* Weltuntergang nur mit Schuessen (Tom, 25.09.) */
     out.finaleBoden=bb.SHOWS.finale().filter(ph=>ph.ground).length;
     return out; });
-  const L=['batterie16','knatter','batterie49','faecher','batterie100','zfaecher','kometen','donnerwand','profi','finale'];
+  const L=['batterie16','knatter','batterie49','faecher','batterie100','zfaecher','kometen','donnerwand','profi','finale'].filter(t=>r[t]);
   const SOLL={batterie16:16,knatter:30,batterie49:49,faecher:36,batterie100:100,zfaecher:48,kometen:64,donnerwand:120,profi:200,finale:300};
   for(const t of Object.keys(r).filter(k=>r[k]&&r[k].n!==undefined))
     console.log(t.padEnd(14),'lvl',String(r.lvl[t]).padStart(2),'n',String(r[t].n).padStart(3),'hoehe',String(r[t].hoehe).padStart(6),'sz',String(r[t].sz).padStart(6),'dichte',String(r[t].dichte).padStart(2),'farben',String(r[t].farben).padStart(2),'dauer',String(r[t].dauer).padStart(6));
@@ -110,12 +109,12 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   L.forEach(t=>pruef('ANZAHL',r[t].gefeuert>=r[t].n,`${t}: nur ${r[t].gefeuert} von ${r[t].n} Rohren gefeuert`));
   /* Jede Show wird intensiver: am Ende groessere, hoehere, hellere Brueche
      (Tom, 25.09.) */
-  L.concat(['sortiment']).forEach(t=>{ const g=r[t].steig; if(!g||!g.an){ pruef('STEIGERUNG',false,t+' zu wenig Schuesse'); return; }
+  L.concat(['sortiment'].filter(t=>r[t])).forEach(t=>{ const g=r[t].steig; if(!g||!g.an){ pruef('STEIGERUNG',false,t+' zu wenig Schuesse'); return; }
     pruef('STEIGERUNG',g.ende.sz>g.an.sz*1.3&&g.ende.h>g.an.h+1.5/* 27.09.: 1,5 statt 2 m - Streuung je Ende +-0,4 m gemessen */&&g.ende.hell>g.an.hell+0.2,`${t}: Anfang ${JSON.stringify(g.an)} Ende ${JSON.stringify(g.ende)}`); });
   /* Jedes Feuerwerk ist einzigartig: mindestens ein Bruchbild, das kein
      anderes Produkt zeigt */
   /* roemisch (Farbkanon) hat kein eigenes Bruchbild, sondern eine eigene Idee - die Farbwelle ueber die Rohre; das prueft anomalie.js (SIGNATUR) */
-  const EINZ=L.concat(['sortiment','raketenklein','raketen','pfeifraketen','raketengold','titanraketen','jumbogold','jumboleiter','furzrakete','kugel75','kugel100','kugel150','kugel200','kugel300']);
+  const EINZ=L.concat(['sortiment'].filter(t=>r[t])).concat(['raketenklein','raketen','pfeifraketen','raketengold','titanraketen','jumbogold','jumboleiter','furzrakete','kugel75','kugel100','kugel150','kugel200','kugel300']);
   EINZ.forEach(t=>{ const eigene=r[t].eff.filter(e=>!EINZ.some(x=>x!==t&&r[x].eff.includes(e)));
     pruef('EINZIGARTIG',eigene.length>0,`${t} hat kein eigenes Bruchbild: ${r[t].eff.join(',')}`); });
   /* Grosse Verbunde beginnen mit einer Fontaene */
@@ -133,7 +132,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   leiter(R,'RAKETEN','hoehe',0.25); leiter(R,'RAKETEN','sz',0.01);
   const PROFI=['dahlie','pistill','kamuro','kronleuchter','titan','zehnfach','zeitregen','brokat','sternschnuppen','glitzerweide'];
   Object.keys(r.lvl).forEach(t=>{ if(r.lvl[t]<=15&&t!=='raketengold'){ const f=r[t].eff.filter(e=>PROFI.indexOf(e)>=0); pruef('FRUEH',!f.length,`${t} (Level ${r.lvl[t]}) zeigt schon ${f.join(',')}`); } });
-  L.concat(['sortiment','raketenklein','raketen','raketengold']).forEach(t=>{ const max=t==='finale'?18:t==='profi'?12:4;
+  L.concat(['sortiment'].filter(t=>r[t])).concat(['raketenklein','raketen','raketengold']).forEach(t=>{ const max=t==='finale'?18:t==='profi'?12:4;
     pruef('FARBEN',r[t].farben<=max&&r[t].fremd===0,`${t}: ${r[t].farben} Farbpaare, ${r[t].fremd} ausserhalb der Themen - zu bunt`); });
   /* Kugelbomben: jede Stufe groesser, hoeher, mit mehr Bruechen - und
      groesser und hoeher als jeder Batterieschuss bis zu ihrem Level */
@@ -160,12 +159,12 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   const EXKL=['fallschirm','schnuppe','garbe','goldglitzer','initiale','hakenschlag','silberspinne','kometenkette','pfeifsterne','halbhalb','nishiki','spaetzuender',
     'achtblatt','blinkfeuer','silberregen','glasbruch','furz','pupswolke','saphirkrone','titan','titanschlag','juwelenpalme','blutmond','nordstern','drachenpalme','supernova'];
   ['raketenklein','raketen','pfeifraketen','raketengold'].forEach(t=>pruef('RAKETE',r[t].eff.some(e=>EXKL.indexOf(e)>=0),`${t} ohne eigenes Raketen-Bruchbild: ${r[t].eff}`));
-  L.concat(['sortiment']).forEach(t=>pruef('EXKLUSIV',!r[t].eff.some(e=>EXKL.indexOf(e)>=0),`${t} nutzt Raketen-Bruchbild`));
+  L.concat(['sortiment'].filter(t=>r[t])).forEach(t=>pruef('EXKLUSIV',!r[t].eff.some(e=>EXKL.indexOf(e)>=0),`${t} nutzt Raketen-Bruchbild`));
   Object.keys(r).forEach(t=>{ if(r[t]&&r[t].unpass) pruef('PASST',!r[t].unpass.length,`${t}: ${r[t].unpass.slice(0,6).join(', ')}`); });
   Object.keys(r.neu).forEach(e=>pruef('BRUCHBILD',typeof r.neu[e]==='number'&&r.neu[e]>=60,`${e}: ${r.neu[e]} Sterne`));
   console.log('BRUCHBILDER',JSON.stringify(r.neu));
   pruef('BLICK',r.blick.dot>0.99&&r.blick.auf>0.5,'Figur zeigt nicht zum Zuschauer: '+JSON.stringify(r.blick));
-  pruef('BRUNNEN',r.brunnenEmitter&&r.feuerbrunnen.n===0,'Feuerbrunnen ohne Flammen oder mit Ladung: '+JSON.stringify(r.feuerbrunnen));
+  /* BRUNNEN entfaellt: Feuerbrunnen aus dem Sortiment (29.09.) */
   console.log('MANGEL:',mangel.length?mangel.join(' | '):'keine');
   console.log('ERRORS:',errs.length||mangel.length?errs.concat(mangel).join('\n'):'keine');
   await b.close();

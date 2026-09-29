@@ -365,10 +365,13 @@ function feuertopfSorte(o,sorte,A,B,s,opt){
     SCHWEIF=alt;
     rauchball({x:o.x+D[0]*hoch*0.4,y:y0+hoch*0.35,z:o.z+D[2]*hoch*0.4},{r:1.4,n:4,dauer:3.5,steigen:0.5,c:[0.16,0.1,0.08],a:0.4,farbe:t=>t<0.8?[0.5,0.18,0.06]:[0.16,0.1,0.08]});
   } else {
-    /* farbe: Farbsterne A, jeder dritte B */
+    /* farbe: Farbsterne A, jeder dritte B. 28.09. (Tom: echt): die Sterne
+       einer Mine fliegen verschieden schnell (45-100 %) und etwas breiter -
+       sie ziehen sich zur Saeule auseinander. Vorher (84-100 %, psBig)
+       flogen sie als ein Klumpen: am Zuendtisch ein weiss-magenta Leuchtball */
     SCHWEIF=0.12;
-    strahl(Math.round(34*q*(0.6+s*0.5)),(i,vx,vy,vz,f)=>{ const c=k(i%3?A:B,1.2);
-      psBig.emit(o.x,y0,o.z,vx,vy,vz,c[0],c[1],c[2],tS*f*rand(0.95,1.08),G,0); });
+    for(let i=0;i<Math.round(34*q*(0.6+s*0.5));i++){ const d=streu(D,0.13), f=rand(0.45,1.0), w=v0*f, c=k(i%3?A:B,1.2), ps=i%3?psMid:psBig, h=i%3?1.4:1;
+      ps.emit(o.x,y0,o.z,d[0]*w,d[1]*w,d[2]*w,c[0]*h,c[1]*h,c[2]*h,tS*Math.sqrt(f)*rand(0.9,1.08),G,0); }
     SCHWEIF=alt;
   }
   muendungsblitz(o,y0,1.3);

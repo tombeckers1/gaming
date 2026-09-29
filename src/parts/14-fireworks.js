@@ -1338,7 +1338,7 @@ function shot(o,opt){
     A:sc[0],B:sc[1],eff:opt.eff||pick(EFF_GROSS),size:opt.sz||1,
     trail:opt.trail||(spurAB!==undefined?sc[spurAB]:STEIG_FARBE[sg])||(Math.random()<0.25?FW.silber:FW.gold),
     /* Aufstieg je Phase festgelegt (Engine v2) - vorher gewuerfelt */
-    steig:sg, bruchOpt:opt.bruchOpt||null,
+    steig:sg, bruchOpt:opt.bruchOpt||null, fein:!!opt.fein,
     /* Nachbrueche: Tochterbomben, die nach dem Hauptbruch aufgehen */
     stufen:opt.stufen||null, dick:opt.dick||(sg==='stamm'?2:0),
     /* pfeif: die Rakete zieht eine Spirale und heult beim Steigen */
@@ -1590,7 +1590,7 @@ function kugelbombe(o,kal,opt){
     const bilder=(opt.stufen||[]).map(x=>typeof x==='string'?x:x&&x.eff).filter(Boolean), n=Math.max(1,opt.schlaege||bilder.length||1);
     haupt=bilder[0]||'chrys'; stufen.length=0; let t=0, y=0;
     for(let k=1;k<n;k++){ t+=rand(0.55,0.7); y+=rand(6,8); const e=bilder[k]||bilder[bilder.length-1]||'chrys';
-      stufen.push({t,eff:e,sz:groesse*(e==='schlussschlag'?1:0.8+0.06*k),off:[0,y,0],A:k%2?B:A,B:k%2?A:B}); }
+      stufen.push({t,eff:e,sz:groesse*(e==='schlussschlag'?1:0.8+0.06*k),off:[0,y,0],A:k%2?B:A,B:k%2?A:B,bruchOpt:opt.bruchOpt}); }   /* 28.09.: bruchOpt auch fuer die Folgeschlaege (Batterie-Verbund: Licht gedaempft) */
   }
   if(!opt.stufen&&opt.eff!=='mehrschlag'&&K4===1){
     /* zwei kleinere Herzen im selben Mittelpunkt - bum-bum */
@@ -1710,7 +1710,7 @@ function stufeZuenden(r,st,mix){
     try{ mitSchweif(st.eff,()=>(EFF[st.eff]||EFF.kugel)(q,A,B,st.sz,rr)); } finally { FW_ERBE=null; }
     const bo=st.bruchOpt||{};
     if(!st.leise&&bo.kern!==false) kern(q,A,st.sz);
-    if(st.eff!=='salut'&&laut){ if(bo.flash!==false) flash(q,A||mix,1.6+2.2*st.sz,0.5); shellSound(q,st.sz); }
+    if(st.eff!=='salut'&&laut){ if(bo.flash!==false) flash(q,A||mix,(1.6+2.2*st.sz)*(typeof bo.flash==='number'?bo.flash:1),0.5); shellSound(q,st.sz); }
     if(FW_LOG&&FW_LOG.brueche) FW_LOG.brueche.push({t:FW_UHR,eff:st.eff,x:+q.x.toFixed(2),y:+q.y.toFixed(2),z:+q.z.toFixed(2),A,B,sz:st.sz,tag,stufe:true,erbe:erbe?erbe.map(x=>+x.toFixed(2)):null});
     FW_TAG=alt; });
   if(st.risse){
@@ -1937,6 +1937,10 @@ function monsterFontaene(o,hm,dauer,farben,stil){
    auch auf dem Tisch 20-30 cm ueber dem Karton in der Luft (28.09., Tom:
    echt). */
 function emY(o,d){ return o.y+(o.ab!==undefined?o.ab:d); }
+/* Umgebungslicht einer Boden-Ebene: aus einer Batterie (spielraum, keine
+   Fontaenen-Phase) halb so stark - 28.09., Tom: echt; zwei Riesen-
+   fontaenen im Finale tauchten Tisch, Wand und Haeuser in Weiss */
+function emLicht(e){ return e.spielraum!==undefined&&!e.font?0.45:1; }
 function updateFireworks(dt){
   FW_UHR+=dt;
   for(let i=rockets.length-1;i>=0;i--){ const r=rockets[i]; FW_TAG=r.tag||0;
@@ -1962,7 +1966,11 @@ function updateFireworks(dt){
     if(sg==='blink'){ r.bt=(r.bt||0)+dt; if((r.bt*7)%1>0.45) r.acc=0; }
     if(r.pfeif||sg==='wirbel'){ r.ph+=dt*16; const sx=Math.cos(r.ph)*0.35, sz=Math.sin(r.ph)*0.35;
       for(let k=jeSek(r,'pf',180,dt);k>0;k--) psMid.emit(r.p.x+sx,r.p.y,r.p.z+sz,sx*2,rand(-1.5,0),sz*2,tc[0],tc[1],tc[2],rand(0.4,0.7),1,4); }
-    for(;r.acc>=1;r.acc--){ const q=ort(); psBig.emit(q[0],q[1],q[2],rand(-.5,.5)*(1+dick*0.4),rand(-2,0),rand(-.5,.5)*(1+dick*0.4),tc[0],tc[1]*rand(0.8,1),tc[2]*0.9,0.34+dick*0.16,1,4); }
+    /* fein (Batterie-Schuesse, 28.09., Tom: echt): der Steigschweif aus
+       feinen Funken (psMid) - die grossen weichen psBig-Punkte standen aus
+       3 m am Zuendtisch als Leuchtsaeule aus Kugeln ueber dem Karton */
+    const psS=r.fein?psMid:psBig, hS=r.fein?1.25:1;
+    for(;r.acc>=1;r.acc--){ const q=ort(); psS.emit(q[0],q[1],q[2],rand(-.5,.5)*(1+dick*0.4),rand(-2,0),rand(-.5,.5)*(1+dick*0.4),tc[0]*hS,tc[1]*rand(0.8,1)*hS,tc[2]*0.9*hS,(0.34+dick*0.16)*(r.fein?rand(0.8,1.5):1),1,4); }
     /* Kugelbomben ziehen zusaetzlich glimmende Schlacke hinter sich her */
     for(;r.acc2>=1;r.acc2--){ const q=ort();
       psMid.emit(q[0],q[1],q[2],rand(-1.2,1.2),rand(-3.5,-0.5),rand(-1.2,1.2),1,.62,.2,rand(0.5,1.1),3.2,4); }
@@ -1975,7 +1983,7 @@ function updateFireworks(dt){
     if(e.k==='fountain'||e.k==='volcano'||e.k==='wasserfall'){
       const big=e.k==='volcano', wf=e.k==='wasserfall', n=big?18:wf?22:10;
       const A=e.A||FW.gold, B=e.B||FW.weiss;
-      e.fl=(e.fl||0)-dt; if(e.fl<=0){ e.fl=0.3; flash({x:o.x,y:o.y+1.4,z:o.z},A,big?1.8:1.2,0.34); }
+      e.fl=(e.fl||0)-dt; if(e.fl<=0){ e.fl=0.3; flash({x:o.x,y:o.y+1.4,z:o.z},A,(big?1.8:1.2)*emLicht(e),0.34); }
       /* der Wasserfall-Vorhang so breit wie das Produkt, hoechstens
          3,2 m (vorher immer 3,2 m - neben jeder Batterie, 28.09.) */
       const wb=wf?Math.min(1.6,e.spielraum!==undefined?e.spielraum:1.6):0;
@@ -1987,7 +1995,7 @@ function updateFireworks(dt){
          Sekunde ist fest, nicht je Bild - sonst waere sie auf schnellen
          Rechnern dichter. */
       const H=e.h||1, A=e.A||FW.gold, B=e.B||FW.weiss;
-      e.fl=(e.fl||0)-dt; if(e.fl<=0){ e.fl=0.22; flash({x:o.x,y:o.y+4,z:o.z},A,2.6*H,0.3); }
+      e.fl=(e.fl||0)-dt; if(e.fl<=0){ e.fl=0.22; flash({x:o.x,y:o.y+4,z:o.z},A,2.6*H*emLicht(e),0.3); }
       e.acc=(e.acc||0)+dt*560*H*QUAL();
       /* kurze Spuren und ein Kegel statt Strahl (Tom, 25.09.: "sieht
          aus wie Laserstrahlen") - vorher 0,6 s Spur, 6-8 m lange Striche */

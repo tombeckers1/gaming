@@ -151,7 +151,8 @@ SCHUSS_EFF.kreuzkomet=function(r){
     if(e.alter>=T){ kreuzSplit({x:st.p[0],y:st.p[1],z:st.p[2]},st.v,A,B,s,split); return false; }
     st.v[1]-=6*dt; for(let k=0;k<3;k++) st.p[k]+=st.v[k]*dt;
     const [x,y,z]=st.p, v=st.v;
-    grSpur(0,()=>{ psHuge.emit(x,y,z,0,0,0,kopf[0]*1.4,kopf[1]*1.4,kopf[2]*1.4,0.05,0,0); });
+    /* 28.09.: Kopf psBig - als psHuge stand er am Zuendtisch als weisser Leuchtball ueber dem Karton */
+    grSpur(0,()=>{ psBig.emit(x,y,z,0,0,0,kopf[0]*1.6,kopf[1]*1.6,kopf[2]*1.6,0.05,0,0); });
     e.acc=(e.acc||0)+dt*230*q;
     grSpur(0.12,()=>{ for(;e.acc>=1;e.acc--){ const f=Math.random();
       psMid.emit(x-v[0]*dt*f+rand(-.08,.08),y-v[1]*dt*f,z-v[2]*dt*f+rand(-.08,.08),-v[0]*0.08+rand(-.6,.6),-v[1]*0.08+rand(-.8,.2),-v[2]*0.08+rand(-.6,.6),.92,.95,1.05,rand(0.3,0.6),2.5,0); } });
@@ -169,13 +170,13 @@ function kreuzSplit(p,vk,A,B,s,split){
     /* 28.09., Tom: "Laser" - die Leuchtspur nur als kurze Flamme, den
        Schweif tragen die Funken (funkenSchweif); mit 0,3 s zog jedes
        Stueck einen geraden weissen Strich */
-    grSpur(0.14,()=>{ psHuge.emit(p.x,p.y,p.z,vel[0],vel[1],vel[2],stB[0]*1.3,stB[1]*1.3,stB[2]*1.3,split>1?0.52:0.9,3,0);
+    grSpur(0.14,()=>{ psBig.emit(p.x,p.y,p.z,vel[0],vel[1],vel[2],stB[0]*1.5,stB[1]*1.5,stB[2]*1.5,split>1?0.52:0.9,3,0);
       for(let i=0;i<3;i++){ const e=streu(d,0.03), ww=w*rand(0.93,1); psBig.emit(p.x,p.y,p.z,e[0]*ww+vk[0]*0.25,e[1]*ww+vk[1]*0.25,e[2]*ww+vk[2]*0.25,stB[0],stB[1],stB[2],split>1?0.52:rand(0.8,0.9),3,0); } });
     funkenSchweif(p,vel,3,split>1?0.5:0.85,2,B);
     if(split>1) later(0.5,()=>{ const o=bahnOrt(p,vel,3,0.5), w2=bahnTempo(vel,3,0.5), l=Math.hypot(w2[0],w2[1],w2[2])||1, dn=[w2[0]/l,w2[1]/l,w2[2]/l];
       const [a1]=quer(dn); schall(o,v2=>sfx.crack(v2*0.6));
       grSpur(0.22,()=>{ for(const sg of [-1,1]){ const vv=[w2[0]*0.5+a1[0]*6*sg,w2[1]*0.5+a1[1]*6*sg,w2[2]*0.5+a1[2]*6*sg];
-        psHuge.emit(o.x,o.y,o.z,vv[0],vv[1],vv[2],A[0]*1.2,A[1]*1.2,A[2]*1.2,0.6,3,0);
+        psBig.emit(o.x,o.y,o.z,vv[0],vv[1],vv[2],A[0]*1.4,A[1]*1.4,A[2]*1.4,0.6,3,0);
         for(let i=0;i<2;i++) psBig.emit(o.x,o.y,o.z,vv[0]*rand(.9,1),vv[1]*rand(.9,1),vv[2]*rand(.9,1),A[0],A[1],A[2],0.55,3,0); } }); });
   }
 }
@@ -435,11 +436,13 @@ SCHUSS_EFF.rohrkomet=function(r){
     if(e.alter>=T){ const [x,y,z]=st.p; grSpur(0.05,()=>{ for(let i=0;i<Math.round(12*q);i++){ const d=randDir(); psMid.emit(x,y,z,d[0]*2+st.v[0]*0.2,d[1]*2+st.v[1]*0.2,d[2]*2+st.v[2]*0.2,kopf[0],kopf[1],kopf[2],rand(0.2,0.4),2,0); } }); return false; }
     st.v[1]-=6*dt; for(let k=0;k<3;k++) st.p[k]+=st.v[k]*dt;
     const [x,y,z]=st.p, v=st.v, lf=e.alter/T, hk=1.5*(1-0.45*lf)*Math.min(1.3,Math.sqrt(s));
-    grSpur(0,()=>{ psHuge.emit(x,y,z,0,0,0,kopf[0]*hk,kopf[1]*hk,kopf[2]*hk,0.05,0,0); });
+    grSpur(0,()=>{ psBig.emit(x,y,z,0,0,0,kopf[0]*hk*1.2,kopf[1]*hk*1.2,kopf[2]*hk*1.2,0.05,0,0); });   /* 28.09.: psBig statt Leuchtball (Bodenbild) */
     const ort=()=>{ const f=Math.random(); return [x-v[0]*dt*f,y-v[1]*dt*f,z-v[2]*dt*f]; };
     if(art==='gold'||art==='farbe'){
       e.acc=(e.acc||0)+dt*(art==='gold'?260:170)*q;
-      grSpur(0.1,()=>{ for(;e.acc>=1;e.acc--){ const o=ort(); psBig.emit(o[0]+rand(-.1,.1),o[1]+rand(-.1,.1),o[2]+rand(-.1,.1),v[0]*0.04+rand(-.35,.35),v[1]*0.04+rand(-.5,.15),v[2]*0.04+rand(-.35,.35),gold[0],gold[1],gold[2],rand(0.9,1.7),0.9,4); } });
+      /* 28.09.: zwei Drittel der Glut als feine Funken (psMid) - nur psBig
+         lag am Zuendtisch als Kette grosser Goldkugeln ueber dem Karton */
+      grSpur(0.1,()=>{ for(;e.acc>=1;e.acc--){ const o=ort(), fein=Math.random()<0.67, ps=fein?psMid:psBig, h=fein?1.3:1; ps.emit(o[0]+rand(-.1,.1),o[1]+rand(-.1,.1),o[2]+rand(-.1,.1),v[0]*0.04+rand(-.35,.35),v[1]*0.04+rand(-.5,.15),v[2]*0.04+rand(-.35,.35),gold[0]*h,gold[1]*h,gold[2]*h,rand(0.9,1.7),0.9,4); } });
       e.acc2=(e.acc2||0)+dt*60*q;
       grSpur(0.15,()=>{ for(;e.acc2>=1;e.acc2--){ const o=ort(); psMid.emit(o[0],o[1],o[2],rand(-1,1),rand(-2,0),rand(-1,1),1,.72,.3,rand(0.5,1.0),4,0); } }); }
     else if(art==='glitter'){
@@ -903,8 +906,10 @@ SIGNATUR.feuerpfau={idee:'farbsaeule',text:'Farbe steigt vom Feuertopf bis zum B
    Dauerlicht mit Leuchtblasen), Farbwechsel statt Geisterkugeln mit
    Zufallsfarbe; nur Limette und Violett mit Gold */
 SHOWS.hexenkessel=()=>show({basis:{pw:2.15,sz:1.175,th:'hexenring'},rampe:{sz:[0.90,1.25],pw:[0,2],hell:[0.90,1.35],kurve:'spaet'}},[
-  /* der Kessel heizt: knisternde Blasen, der Kessel laeuft die ganze Show */
-  {n:28,gap:0.30,muster:'zufall',ang:0.20,kal:'klein',pw:-7,eff:'knister',farbe:1,boden:{k:'sternregen',gt:34,A:'gold',B:'limette'}},
+  /* der Kessel heizt: knisternde Blasen, der Kessel brodelt zum Auftakt
+     (28.09., Tom: "Effekt zu gross" - vorher 34 s: eine Goldfontaene von
+     5 m stand die ganze Show ueber der Batterie, Bodenbild) */
+  {n:28,gap:0.30,muster:'zufall',ang:0.20,kal:'klein',pw:-7,eff:'knister',farbe:1,boden:{k:'sternregen',gt:9,A:'gold',B:'limette'}},
   {mit:true,n:4,takt:[2.0],muster:'v',ang:0.40,kal:'mittel',eff:'wechsel',farbe:0,pause:0.4},
   /* Hexenringe: 6 Ringe a 8, schraeg nach aussen, Farben im Wechsel */
   {n:48,je:8,takt:[0.9,0.9,0.5],muster:'kreis',ang:0.40,eff:['wechsel','kugel'],kal:'mittel',farbVert:'wechsel'}, /* 28.09., Tom: "Laser" - keine Spinne (Striche quer durchs Bild) */
@@ -950,7 +955,7 @@ SHOWS.nordlicht=()=>show({basis:{pw:2.55,sz:1.205,th:'polar'},rampe:{sz:[1.00,1.
   /* Akt 3 Vorhaenge wehen: paarweise, im Wechsel mit Farbwechsel-Kugeln */
   {n:20,gap:0.6,muster:'paar',ang:0.40,eff:['polarlicht','wechsel'],farbe:1,pause:1.2},
   /* Akt 4 Eisbrunnen: Silberfontaene mitten in der Show, Silberweiden darueber */
-  {n:12,gap:1.0,muster:'mitte',ang:0.40,eff:'glitzerweide',farbe:0,boden:{k:'riesen',gt:12,gh:1.0,A:'silber',B:'weiss',C:FW.gruen},pause:1.2},
+  {n:12,gap:1.0,muster:'mitte',ang:0.40,eff:'glitzerweide',farbe:0,boden:{k:'riesen',gt:7,gh:1.0,A:'silber',B:'weiss',C:FW.gruen},pause:1.2},   /* 28.09.: 7 s statt 12 s */
   /* Akt 5 Sonnensturm (laut): Kreuzfeuer, gruene Feuertoepfe, Knisterfontaene */
   {n:30,gap:0.18,muster:'x',ang:0.45,eff:['kamuro','polarlicht','glitzerweide'],kal:'gross',farbe:1,mine:true,mineEff:'farbe',boden:{k:'knisterbrunnen',gt:5,A:'silber',B:'weiss'},pause:1.4}, /* 28.09., Tom: "Laser" - keine Spinne (Striche quer durchs Bild) */
   /* Akt 6 Koronaschlag: zwei Sechser-Salven Nordlichtweiden */
@@ -1004,7 +1009,7 @@ SHOWS.profi=()=>show({basis:{pw:3.10,sz:1.250,th:'goetter'},rampe:{sz:[0.90,1.30
      28.09. (Tom: "Farben zu durcheinander"): Gold und Rot mit Weiss (Thema
      goetter) statt Gold, Rot, Blau, Violett */
   {n:0,ground:'fountain',gt:2.5,gh:0.5,gA:'gold',gB:'zitrone',pause:2.0},
-  {n:30,muster:'gerade',hoehe:'melodie',noten:ODE,viertel:0.6,hStufe:2.5,pw:-3,eff:'pistill',kal:'klein',farbe:0,steig:'gold',boden:{k:'fountain',gt:20,gh:0.5,A:'gold',B:'weiss'},pause:2.0},
+  {n:30,muster:'gerade',hoehe:'melodie',noten:ODE,viertel:0.6,hStufe:2.5,pw:-3,eff:'pistill',kal:'klein',farbe:0,steig:'gold',boden:{k:'fountain',gt:8,gh:0.5,A:'gold',B:'weiss'},pause:2.0},   /* 28.09., Tom: "Effekt zu gross" - 8 s statt 20 s Fontaene ueber der Batterie */
   /* Zwischenspiel "Goetterfunken": knisternde Goldsterne im Scheibenwischer */
   {n:14,gap:0.2,muster:'wischer',seg:2,ang:0.40,eff:'drachenei',kal:'klein',pw:-2,farbe:1,pause:1.2},
   /* Strophe 2 DUETT: Melodie oben senkrecht, Bass in Halben tiefer im V */
@@ -1013,7 +1018,7 @@ SHOWS.profi=()=>show({basis:{pw:3.10,sz:1.250,th:'goetter'},rampe:{sz:[0.90,1.30
   {n:30,muster:'gerade',hoehe:'melodie',noten:ODE,viertel:0.5,hStufe:2.5,pw:-1,eff:'chrys',farbe:1},
   {mit:true,n:16,muster:'v',ang:0.45,hoehe:'melodie',noten:ODE_BASS,viertel:0.5,hStufe:2.5,pw:-6,kal:'klein',eff:'palme',farbe:0,pause:1.0},
   /* Zwischenspiel: Fontaene der Freude mitten in der Show, grosse Kronleuchter */
-  {n:12,gap:1.3,muster:'aussen',ang:0.50,eff:'kronleuchter',kal:'gross',farbe:0,boden:{k:'fountain',gt:16,A:'gold',B:'weiss'},pause:1.5}, /* 28.09., Tom: "Effekt zu gross" - Silberfontaene statt Wasserfall: der spruehte 1,5 m breit ueber Tisch und Boden (Bodenbild) */
+  {n:12,gap:1.3,muster:'aussen',ang:0.50,eff:'kronleuchter',kal:'gross',farbe:0,boden:{k:'fountain',gt:8,A:'gold',B:'weiss'},pause:1.5}, /* 28.09., Tom: "Effekt zu gross" - Silberfontaene statt Wasserfall: der spruehte 1,5 m breit ueber Tisch und Boden (Bodenbild) */
   /* KANON: linkes Modul beginnt, rechtes setzt zwei Viertel spaeter ein.
      28.09. (Tom: echt): die Module sind die zwei Kartonhaelften (x +-0,3 m,
      vorher +-8 m neben dem Karton); am Himmel trennt sie der Rohrwinkel */
@@ -1061,12 +1066,12 @@ SIGNATUR.kometenwand={idee:'dreimodul',text:'drei Batterien im Dialog, Finale al
    fontaenen statt des Feuerrads in der Luft */
 SHOWS.sternenkaiser=()=>show({basis:{pw:3.55,sz:1.285,th:'kaiser'},rampe:{sz:[0.90,1.30],pw:[-1,3],hell:[0.90,1.35],kurve:'welle'}},[
   /* Akt 1 Drehung: einzelne Kaleidoskope, Goldfontaene am Boden */
-  {n:8,gap:1.8,muster:'gerade',eff:'kaleidoskop',kal:'mittel',farbe:0,boden:{k:'fountain',gt:15,A:'gold',B:'weiss'},pause:1.0},
+  {n:8,gap:1.8,muster:'gerade',eff:'kaleidoskop',kal:'mittel',farbe:0,boden:{k:'fountain',gt:8,A:'gold',B:'weiss'},pause:1.0},   /* 28.09., Tom: "Effekt zu gross" - Fontaenen hoechstens 8 s (vorher 15-16 s ueber dem Verbund) */
   /* Akt 2 Spiegel: V-Paare, links Farbe A, rechts Farbe B */
   {n:34,gap:0.55,muster:'v',ang:0.40,eff:['kaleidoskop','pistill'],farbe:1,farbVert:'seite',pause:1.2},
   /* Akt 3 Facetten: oben W (Mitte andere Farbe), unten kleine Knister, zwei symmetrische Fontaenen */
   {n:20,gap:0.8,muster:'w',ang:0.45,farbVert:'mitte',eff:'dahlie',farbe:2},
-  {mit:true,n:20,gap:0.8,muster:'gerade',kal:'mini',pw:-8,eff:'knister',farbe:2,boden:[{k:'fountain',gt:16,x:-0.33,A:'gold',B:'weiss'},{k:'fountain',gt:16,x:0.33,A:'gold',B:'weiss'}],pause:0.6},
+  {mit:true,n:20,gap:0.8,muster:'gerade',kal:'mini',pw:-8,eff:'knister',farbe:2,boden:[{k:'fountain',gt:8,x:-0.33,A:'gold',B:'weiss'},{k:'fountain',gt:8,x:0.33,A:'gold',B:'weiss',t:5}],pause:0.6},
   /* Akt 4 Glassplitter: harte Goldspinnen, aussen nach innen, sehr schnell */
   /* 28.09., Tom: "Laser" - Chrysanthemen statt 44 Spinnen (Striche quer durchs Bild) */
   {n:44,gap:0.12,muster:'aussen',ang:0.55,eff:'chrys',farbe:0,pause:1.4},
@@ -1189,13 +1194,13 @@ SHOWS.himmelsfaecher=()=>show({basis:{pw:4.55,sz:1.365,th:'gitter'},rampe:{sz:[0
   {n:24,gap:0.4,muster:'x',ang:0.50,rohre:'breit',eff:'rohrkomet',art:'farbe',farbe:0,pause:1.2},
   /* Knoten: Kometen kreuzen sich, an den Kreuzungen Spinnen, zwei Fontaenen */
   {n:20,gap:0.7,muster:'w',ang:0.45,eff:'kreuzstern',farbe:1}, /* 28.09., Tom: "Laser" - keine Spinne (Striche quer durchs Bild) */
-  {mit:true,n:20,gap:0.7,muster:'x',ang:0.50,rohre:'breit',eff:'rohrkomet',art:'glitter',boden:[{k:'fountain',x:-0.32,gt:14,A:'gold',B:'weiss'},{k:'fountain',x:0.32,gt:14,A:'gold',B:'weiss'}],pause:1.0},
+  {mit:true,n:20,gap:0.7,muster:'x',ang:0.50,rohre:'breit',eff:'rohrkomet',art:'glitter',boden:[{k:'fountain',x:-0.32,gt:7,A:'gold',B:'weiss'},{k:'fountain',x:0.32,gt:7,A:'gold',B:'weiss',t:4}],pause:1.0},   /* 28.09., Tom: "Effekt zu gross" - 7 s versetzt statt 14 s zugleich */
   /* Gitter: drei Module, je Modul ein V, fuenf Sechser-Salven (28.09.: die
      Module sind Kartondrittel, x -0,3/0/0,3 m statt -10/0/10 m; am Himmel
      liegen ihre V ueber den Rohrwinkel nebeneinander) */
   {n:30,je:6,takt:[0.9],x:[-0.3,0,0.3],angOff:[-0.42,0,0.42],muster:'v',ang:0.3,eff:'rohrkomet',art:'silber',pause:1.4},
   /* Ruhe im Netz: Silberfontaene mitten in der Show, oben Kronleuchter, unten kleine Blinker */
-  {n:12,gap:1.5,muster:'gerade',eff:'kronleuchter',kal:'gross',farbe:0,boden:{k:'fountain',gt:20,A:'silber',B:'weiss'}}, /* 28.09., Tom: "Effekt zu gross" - Silberfontaene statt Wasserfall: der spruehte 1,5 m breit ueber Tisch und Boden (Bodenbild) */
+  {n:12,gap:1.5,muster:'gerade',eff:'kronleuchter',kal:'gross',farbe:0,boden:{k:'fountain',gt:8,A:'silber',B:'weiss'}}, /* 28.09., Tom: "Effekt zu gross" - Silberfontaene statt Wasserfall: der spruehte 1,5 m breit ueber Tisch und Boden (Bodenbild) */
   {mit:true,n:12,gap:1.5,muster:'zufall',ang:0.35,kal:'mini',pw:-7,eff:'blinkregen',farbe:1,pause:0.8},
   /* Gangwechsel: das Netz verdichtet sich, Feuertoepfe */
   {n:30,gap:0.1,muster:'x',ang:0.55,rohre:'breit',eff:['rohrkomet','kreuzstern'],art:'silber',farbe:2,mine:true,mineEff:'farbe',pause:1.4}, /* 28.09., Tom: "Laser" - keine Spinne (Striche quer durchs Bild) */
@@ -1231,7 +1236,9 @@ SIGNATUR.kugelfinale={eff:'mehrschlag',text:'eins, zwei, drei, vier, fÃ¼nf SchlÃ
 SHOWS.wolkenkratzer=()=>show({basis:{pw:5.05,sz:1.405,th:'hochhaus'},rampe:{sz:[0.95,1.30],pw:[0,2],hell:[0.90,1.40],kurve:'frueh'}},[
   /* Fundament: zwei goldene Fontaenen an den Kartonecken laufen die ganze Show
      (28.09., Tom: echt - vorher vier bei x -6..6 m, gestaucht 10 cm auseinander) */
-  {n:0,boden:[{k:'fountain',x:-0.3,gt:36,A:'gold',B:'zitrone'},{k:'fountain',x:0.3,gt:36,A:'gold',B:'zitrone'}],pause:1.5},
+  /* 28.09., Tom: "Effekt zu gross" - 10 s zum Auftakt statt 36 s: zwei
+     Goldfontaenen die ganze Show ueber dem Karton ueberstrahlten die Etagen */
+  {n:0,boden:[{k:'fountain',x:-0.3,gt:10,A:'gold',B:'zitrone'},{k:'fountain',x:0.3,gt:10,A:'gold',B:'zitrone'}],pause:1.5},
   /* 1. Etage: rote Feuertoepfe im Scheibenwischer */
   {n:24,gap:0.25,nurMine:true,mineEff:'farbe',muster:'wischer',seg:2,ang:0.40,farbe:1},
   /* 2. Etage kommt dazu (1. laeuft weiter) */

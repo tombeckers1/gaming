@@ -379,7 +379,7 @@ function playShow(o,phases,prod,tag){
       /* Schussfarbe der Aufstiegsspur */
       const trail=ph.spurFarbe==='A'?A:ph.spurFarbe==='B'?B:ph.spurFarbe?farbe(ph.spurFarbe)||undefined:undefined;
       const par={art:ph.art,split:ph.split,modus:ph.modus,sync:ph.sync,splitDreh:ph.splitDreh,schlaege:ph.schlaege,gleit:ph.gleit,form:ph.form,treffen:ph.treffen,i,n,g:s.g,q};
-      const opt={eff,sz,pw,ang,dir,A,B,fuse:ziel?(bildT||ph.fuse||zielZeit(ziel.y-(o.y||0))):ph.fuse,dick:ph.dick,hell:Rz.hell,pfeif:ph.pfeif||ph.steig==='pfeif',steig:ph.steig,bruchOpt:showBlitz(ph.bruchOpt),
+      const opt={eff,sz,pw,ang,dir,A,B,fuse:ziel?(bildT||ph.fuse||zielZeit(ziel.y-(o.y||0))):ph.fuse,dick:ph.dick,hell:Rz.hell,pfeif:ph.pfeif||ph.steig==='pfeif',steig:ph.steig,fein:true,bruchOpt:showBlitz(ph.bruchOpt),
         trail,ton:tonFuer(ph.ton,i,q),par,tag,ziel};
       /* Boden je Gruppe am Gruppenort */
       if(q===0) boeden.forEach(b=>{ if(b.je) bodenAn(b,tt+(b.t||0),off); });

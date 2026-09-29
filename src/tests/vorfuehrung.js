@@ -1,6 +1,6 @@
 /* Feuerwerk-Vorfuehrung (Tom, 29.09.): alle Feuerwerke nach Level, einzeln
    per Taste - Leertaste zuendet das naechste, der Name steht gross oben,
-   Pfeile vor/zurueck, 1/2 Notiz, Esc beendet. Nichts laeuft von selbst. */
+   Pfeile vor/zurueck, 1/2 Notiz, B beendet. Nichts laeuft von selbst. */
 async function neuesSpiel(p){
   await p.waitForFunction("!!document.querySelector('#startBtns button:not([disabled])')",{timeout:60000});
   await p.click('#startBtns button:last-child');
@@ -28,26 +28,33 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     o.sortiert=L.every((t,i)=>!i||P[L[i-1]].lvl<=P[t].lvl);
     o.alle=Object.keys(P).filter(t=>P[t].cat&&bb.stationOf(t)&&!P[t].rezept&&!P[t].noOrder).length;
     /* nichts laeuft von selbst */
-    const g0=bb.stat('gezuendet'); bb.run(3,0.1); o.vonSelbst=bb.stat('gezuendet')-g0;
+    const g0=bb.vfGezuendet; bb.run(3,0.1); o.vonSelbst=bb.vfGezuendet-g0;
     /* Leertaste: das erste zuendet, sein Name steht oben */
     taste('Space'); bb.run(0.1,0.05);
-    o.erst={letzt:bb.vfLetzt,soll:L[0],idx:bb.vfIdx,gez:bb.stat('gezuendet')-g0,text:bb.vfEl.innerText.slice(0,400)};
+    o.erst={letzt:bb.vfLetzt,soll:L[0],idx:bb.vfIdx,gez:bb.vfGezuendet-g0,text:bb.vfEl.innerText.slice(0,400)};
     o.erst.nameDa=o.erst.text.indexOf(P[L[0]].short)>=0&&o.erst.text.indexOf('L'+P[L[0]].lvl)>=0;
     o.erst.naechstDa=o.erst.text.indexOf(P[L[1]].short)>=0;
     /* Pfeile, Notiz */
     taste('ArrowRight'); const i1=bb.vfIdx; taste('ArrowLeft'); const i2=bb.vfIdx;
     taste('Digit1'); o.pfeile={i1,i2}; o.note=bb.vfText().split('\n')[0]; o.haken=bb.vfEl.innerText.indexOf('gut')>=0;
     /* R: das letzte nochmal */
-    const g1=bb.stat('gezuendet'); taste('KeyR'); bb.run(0.1,0.05); o.nochmal={gez:bb.stat('gezuendet')-g1,idx:bb.vfIdx};
+    const g1=bb.vfGezuendet; taste('KeyR'); bb.run(0.1,0.05); o.nochmal={gez:bb.vfGezuendet-g1,idx:bb.vfIdx};
     /* das ganze Sortiment, alle 0,6 s eins - jedes muss zuenden */
     const fehlt=[]; let zeit=0;
     /* nach jeder Zuendung Funken und Emitter abraeumen - sonst ueberlagern
        sich im Test 180 Shows und die Simulation dauert Viertelstunden */
-    const leer=()=>{ [bb.psHuge,bb.psBig,bb.psMid,bb.psSmall].forEach(ps=>ps.life.fill(0)); bb.rockets.length=0; bb.emittersListe().length=0; };
-    while(bb.vfIdx<L.length){ const t=L[bb.vfIdx], g=bb.stat('gezuendet'); taste('Space'); bb.run(0.9,0.3); zeit+=0.9; if(bb.stat('gezuendet')<=g) fehlt.push(t); leer(); }
+    const leer=()=>{ [bb.psHuge,bb.psBig,bb.psMid,bb.psSmall].forEach(ps=>ps.life.fill(0)); bb.rockets.length=0; bb.emittersListe().length=0; bb.timersLeeren(); };
+    let n=0; while(bb.vfIdx<L.length&&n++<L.length+5){ const t=L[bb.vfIdx], g=bb.vfGezuendet; taste('Space'); bb.run(0.9,0.3); zeit+=0.9; if(bb.vfGezuendet<=g) fehlt.push(t); leer(); }
+    o.xp={level:bb.S.level,xp:bb.S.xp};
     o.durch={fehlt,idx:bb.vfIdx,minuten:+(zeit/60).toFixed(1),ende:bb.vfEl.innerText.indexOf('Ende der Liste')>=0};
-    /* Esc beendet (ohne Mauszeiger-Sperre) */
-    taste('Escape'); o.aus={an:bb.vfAn,el:!!document.getElementById('vorfuehrung')};
+    /* drei gleich grosse Kugelbomben kurz hintereinander: drei Rohre */
+    const kal={}; L.filter(t=>bb.stationOf(t)==='moerser').forEach(t=>{ const k=bb.moerserRohr(t); (kal[k]=kal[k]||[]).push(t); });
+    const k3=Object.values(kal).find(l=>l.length>=1)||[], kug=[k3[0],k3[0],k3[0]].filter(Boolean);
+    const log=[]; log.brueche=[]; bb.fwLog(log); kug.forEach(t=>{ bb.vfZuenden(t); bb.run(0.2,0.05); }); bb.run(1.5,0.05); bb.fwLog(null);
+    const xs=log.filter(e=>(e.art==='kugel'||e.art==='schuss')&&e.x!==undefined).map(e=>+e.x.toFixed(2));
+    o.rohre={n:kug.length,x:[...new Set(xs)].slice(0,6),alle:xs.length};
+    /* Beenden mit B (Esc greift bei gefangenem Mauszeiger der Browser ab) */
+    taste('KeyB'); o.aus={an:bb.vfAn,el:!!document.getElementById('vorfuehrung')};
     return o; });
   console.log('VORF',JSON.stringify(r).slice(0,1500));
   pruef('START',r.start.an&&r.start.el&&r.start.n===r.alle&&r.start.n>100,'Start/Liste: '+JSON.stringify(r.start)+' alle '+r.alle);
@@ -60,6 +67,8 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   pruef('NOTIZ',/gut\s*$/.test(r.note)&&r.haken,'Notiz: '+r.note);
   pruef('NOCHMAL',r.nochmal.gez===1&&r.nochmal.idx===1,'R: '+JSON.stringify(r.nochmal));
   pruef('ALLE',!r.durch.fehlt.length&&r.durch.ende,'nicht gezuendet: '+JSON.stringify(r.durch));
+  pruef('KEINE_XP',r.xp.level===1,'Level steigt in der Vorfuehrung: '+JSON.stringify(r.xp));
+  pruef('ROHRE',r.rohre.n===3&&r.rohre.x.length>=3,'gleiche Kugelbomben aus demselben Rohr: '+JSON.stringify(r.rohre));
   pruef('ESC',!r.aus.an&&!r.aus.el,'Esc: '+JSON.stringify(r.aus));
   console.log('MANGEL:',mangel.length?mangel.join(' | '):'keine');
   console.log('ERRORS:',errs.length||mangel.length?errs.concat(mangel).join('\n'):'keine');

@@ -9,7 +9,7 @@
    Datei samt Aufrufen entfernen). Tom sagt Bescheid, wann.
    ========================================================= */
 const FW_DEV=true;
-let fwTestAn=false, fwTestBoxen=[], fwTestMarken=[], vfAn=false;
+let fwTestAn=false, fwTestBoxen=[], fwTestMarken=[], vfAn=false, vfGezuendet=0;
 /* Welche Uhrzeit das Licht sieht: im Testmodus immer 22 Uhr */
 function todUhr(){ return FW_DEV&&(fwTestAn||vfAn)?Math.max(clock,1320):clock; }
 /* Stufen nach Level (Tom, 28.09.: "welches Level was ist ... die hat
@@ -108,11 +108,11 @@ function fwTestSchalten(){
    Taste, dann kommt das naechste Feuerwerk ... einzeln, nicht
    automatisch ... der Name muss klar sichtbar sein" - in 15 Minuten
    einmal durch das ganze Sortiment, ohne Kartons zu schleppen.
-   Gezuendet wird auf den echten Stationen (Tisch, Rohre, Moerser):
-   Effekt, Abschussort und Klang sind genau wie im Spiel.
+   Gezuendet wird auf einer eigenen grossen Anlage (Tisch, zwoelf Rohre,
+   zwoelf Moerser) mit denselben Abschussorten wie im Spiel.
    Tasten: Leertaste/Enter zuenden (dann das naechste), Pfeil rechts
    ueberspringen, Pfeil links zurueck, R nochmal, 1 gut, 2 aendern,
-   L Liste, Esc beenden. Der Stand (Nummer, Notizen) bleibt gemerkt.
+   L Liste, B beenden (Esc nur ohne gefangenen Mauszeiger). Der Stand (Nummer, Notizen) bleibt gemerkt.
    ========================================================= */
 let vfIdx=0, vfListe=[], vfEl=null, vfLetzt=null, vfNoten={}, vfListeAuf=false;
 const VF_KEY='bb_vorfuehrung', VF_ART={tisch:'Tisch',rampe:'Rohre',moerser:'Mörser'};
@@ -123,32 +123,76 @@ function vorfuehrungAn(){
   if(fwTestAn) fwTestSchalten();
   if(!S.up.testfeld){ S.up.shop_halb=true; S.up.testfeld=true; if(typeof applyZonen==='function') applyZonen(); }
   vfListe=fwTestProdukte(); vfLaden(); vfIdx=clamp(vfIdx,0,Math.max(0,vfListe.length-1)); vfLetzt=null;
-  vfAn=true; lastF=-1; applyTOD(); clearStations();
+  vfAn=true; lastF=-1; applyTOD(); clearStations(); vfAnlageBauen(); vfBelegt={};
+  /* Uhr, Geld, Tutorial und Zielpfeil stoeren beim Zusehen - weg damit */
+  if(!document.getElementById('vfStil')){ const st=document.createElement('style'); st.id='vfStil';
+    st.textContent='body.vorf #hud .tl,body.vorf #tip,body.vorf #zielPfeil,body.vorf #staff,body.vorf #cross{display:none!important}'; document.head.appendChild(st); }
+  document.body.classList.add('vorf');
   /* hinter das Zuendpult, Blick ueber die Stationen in den Himmel */
-  const m=testfeldMitte(); let px=m.x, pz=m.z+11;
+  const m={x:0.3,z:VF_Z}; let px=m.x, pz=m.z+14;
   if(typeof pultHit!=='undefined'&&pultHit&&pultHit.parent){ const w=new THREE.Vector3(); pultHit.parent.getWorldPosition(w);
     const dx=w.x-m.x, dz=w.z-m.z, l=Math.hypot(dx,dz)||1; px=w.x+dx/l*1.6; pz=w.z+dz/l*1.6; }
-  pl.x=px; pl.z=pz; yaw=Math.atan2(-(m.x-px),-(m.z-pz)); pitch=0.42;
+  pl.x=px; pl.z=pz; yaw=Math.atan2(-(m.x-px),-(m.z-pz)); pitch=0.62;
   if(laptopOpen) closeLaptop(true); if(typeof handyOpen!=='undefined'&&handyOpen) closeHandy();
   vfZeigen();
 }
 function vorfuehrungAus(){
   vfAn=false; vfListeAuf=false; vfMerken(); lastF=-1; applyTOD();
   if(vfEl){ vfEl.remove(); vfEl=null; }
+  if(vfAnlage) vfAnlage.visible=false;
+  document.body.classList.remove('vorf');
   toast('Vorführung beendet. Nummer und Notizen sind gemerkt.');
 }
-/* ein Produkt auf seine Station stellen und sofort zuenden */
+/* Grosse Vorfuehranlage (Tom, 29.09.: "riesiger Zuendtisch, riesige
+   Abschussrohre, ganz viele Abschussrohre und ganz viele fuer
+   Kugelbomben"): eine eigene Reihe hinten im Testfeld, 15 m vor dem
+   Pult - ein langer Tisch mit zehn Plaetzen, ein Gestell mit zwoelf
+   Rohren, eine Moerserbatterie mit vier Rohren je Kaliber. Jede Zuendung
+   nimmt den naechsten freien Platz, nichts kommt sich in die Quere. */
+const VF_Z=-26.2, VF_TISCH={x0:-7.0,n:10,dx:0.52,y:0.93}, VF_ROHR={x0:-1.4,n:12,dx:0.3,y:1.34}, VF_MOERSER={x0:2.9,n:4,dx:0.42,gdx:1.7,hoch:[0.62,0.82,1.02]};
+let vfAnlage=null, vfBelegt={};
+function vfAnlageBauen(){
+  if(vfAnlage){ vfAnlage.visible=true; return; }
+  const g=new THREE.Group(), stahl=std(0x8a929e,{metalness:0.6,roughness:0.4}), holz=std(0xa8844f,{roughness:0.8}), rohrM=std(0x6f7782,{metalness:0.5,roughness:0.5}), gruen=std(0x4f8a5c,{roughness:0.7});
+  const box=(w,h,d,m,x,y,z)=>{ const b=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m); b.position.set(x,y,z); b.castShadow=b.receiveShadow=true; g.add(b); return b; };
+  const T=VF_TISCH, tw=T.n*T.dx+0.2, tx=T.x0+(T.n-1)*T.dx/2;
+  box(tw,0.06,0.9,holz,tx,T.y-0.03,VF_Z);
+  for(const sx of [-1,1]) for(const sz of [-1,1]) box(0.08,T.y-0.06,0.08,stahl,tx+sx*(tw/2-0.1),(T.y-0.06)/2,VF_Z+sz*0.35);
+  const R=VF_ROHR, rw=(R.n-1)*R.dx+0.4, rx=R.x0+(R.n-1)*R.dx/2;
+  box(rw,0.1,0.5,stahl,rx,0.05,VF_Z); box(rw,0.06,0.12,stahl,rx,0.9,VF_Z);
+  for(let i=0;i<R.n;i++){ const c=new THREE.Mesh(new THREE.CylinderGeometry(0.055,0.055,1.25,14,1,true),rohrM); c.position.set(R.x0+i*R.dx,R.y-0.625,VF_Z); g.add(c); }
+  const M=VF_MOERSER;
+  for(let k=0;k<3;k++){ const gx=M.x0+k*M.gdx, h=M.hoch[k], r=ROHR_INNEN[k]+0.012;
+    box(M.n*M.dx+0.1,0.12,0.6,gruen,gx+(M.n-1)*M.dx/2,0.06,VF_Z);
+    for(let i=0;i<M.n;i++){ const c=new THREE.Mesh(new THREE.CylinderGeometry(r,r,h,18,1,true),rohrM); c.position.set(gx+i*M.dx,h/2,VF_Z); g.add(c); } }
+  scene.add(g); vfAnlage=g;
+}
+/* naechster freier Platz der Art (Tisch, Rohr, Moerser je Kaliber) */
+function vfPlatz(art,n){ const jetzt=FW_UHR; let best=0, bz=Infinity;
+  for(let i=0;i<n;i++){ const z=vfBelegt[art+i]||0; if(z<=jetzt) return i; if(z<bz){ bz=z; best=i; } }
+  return best; }
+function vfMuendung(t){
+  const sid=stationOf(t), p=P[t], d=p.dims||[0.2,0.2,0.2];
+  if(sid==='tisch'){ const i=vfPlatz('t',VF_TISCH.n), hx=d[0]/2, hz=d[2]/2;
+    return {art:'t'+i,sid,x:VF_TISCH.x0+i*VF_TISCH.dx,y:VF_TISCH.y+d[1],z:VF_Z,ab:0.08,jit:Math.min(0.06,hx*0.5,hz*0.5),hx,hz,boden:VF_TISCH.y}; }
+  if(sid==='moerser'){ const k=moerserRohr(t)%3, i=vfPlatz('m'+k,VF_MOERSER.n);
+    return {art:'m'+k+i,sid,x:VF_MOERSER.x0+k*VF_MOERSER.gdx+i*VF_MOERSER.dx,y:VF_MOERSER.hoch[k],z:VF_Z,ab:0.05,jit:0.02,hx:ROHR_INNEN[k]*0.8,hz:ROHR_INNEN[k]*0.8}; }
+  const i=vfPlatz('r',VF_ROHR.n), kerze=p.shape==='candle';
+  return {art:'r'+i,sid,x:VF_ROHR.x0+i*VF_ROHR.dx,y:kerze?VF_ROHR.y+0.25:VF_ROHR.y,z:VF_Z,ab:kerze?0.02:0.05,jit:kerze?0.005:0.02,hx:kerze?0.05:0.045,hz:kerze?0.05:0.045};
+}
+/* ein Produkt auf seinen Platz der Anlage und sofort zuenden - wie auf
+   der Station: Zuendschnur bei Rohr und Moerser, dann igniteType am
+   Abschussort (Effekt und Klang wie im Spiel) */
 function vfZuenden(t){
-  if(!t) return false;
-  const sid=stationOf(t), st=stations[sid]; if(!st) return false;
-  /* was noch unbenutzt dasteht, raeumen - Brennendes laeuft weiter */
-  st.items.filter(it=>it.state==='bereit').forEach(it=>itemEntfernen(st,it));
-  const alt=S.carrying, n0=st.items.length; S.carrying={type:t,count:2,q:1};
-  placeOnStation(st); S.carrying=alt; if(typeof updateCarry==='function') updateCarry();
-  const it=st.items.length>n0?st.items[st.items.length-1]:null;
-  /* Platz belegt (gleiches Moerserrohr brennt noch): dann mitten auf der Station */
-  if(it) zuendeItem(st,it,true); else igniteType(t,padOf(t));
-  vfLetzt=t; drawPult(); return true;
+  if(!t||!P[t]) return false;
+  const o=vfMuendung(t), dauer=brennDauer(t), vor=o.sid==='moerser'?0.75:o.sid==='rampe'?0.4:0;
+  vfBelegt[o.art]=FW_UHR+vor+dauer+0.5;
+  let h=null;
+  if(o.sid==='tisch'&&pools[t]&&!pools[t].full()) h=pools[t].add(mx(o.x,o.boden,o.z,Math.PI));
+  if(vor){ emitters.push({t:vor,k:'fuse',o:{x:o.x,y:o.y,z:o.z}}); sfx.fizz(distVol(o)*0.5); }
+  later(vor,()=>{ if(vfAn) igniteType(t,o); });
+  if(h) later(vor+dauer,()=>{ if(h.pool) h.pool.remove(h); });
+  vfLetzt=t; return true;
 }
 function vfNaechstes(){ if(!vfListe.length) return; vfZuenden(vfListe[vfIdx]); vfIdx=Math.min(vfListe.length,vfIdx+1); vfMerken(); vfZeigen(); }
 function vfSpringen(d){ vfIdx=clamp(vfIdx+d,0,vfListe.length); vfMerken(); vfZeigen(); }
@@ -167,7 +211,8 @@ function vfTaste(e){
   if(c==='Digit1'||c==='Numpad1'){ vfNote('gut'); return true; }
   if(c==='Digit2'||c==='Numpad2'){ vfNote('aendern'); return true; }
   if(c==='KeyL'){ vfListeAuf=!vfListeAuf; vfZeigen(); return true; }
-  if(c==='Escape'&&!locked){ vorfuehrungAus(); return true; }
+  /* Beenden mit B - Esc faengt bei gefangenem Mauszeiger der Browser ab (dann Pause) */
+  if(c==='KeyB'||(c==='Escape'&&!locked)){ vorfuehrungAus(); return true; }
   return false;
 }
 const vfEsc=s=>String(s).replace(/[&<>"]/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]));
@@ -180,7 +225,7 @@ function vfZeile(t,klein){
 function vfZeigen(){
   if(!vfAn) return;
   if(!vfEl){ vfEl=document.createElement('div'); vfEl.id='vorfuehrung';
-    vfEl.style.cssText='position:fixed;left:50%;top:12px;transform:translateX(-50%);z-index:60;width:min(760px,94vw);background:rgba(10,13,28,.86);color:#f2f5ff;border:2px solid #f2c230;border-radius:14px;padding:12px 18px 10px;font:600 16px "Barlow Condensed",sans-serif;pointer-events:auto;box-shadow:0 8px 30px rgba(0,0,0,.5)';
+    vfEl.style.cssText='position:fixed;left:50%;bottom:10px;transform:translateX(-50%);z-index:60;width:min(760px,94vw);background:rgba(10,13,28,.86);color:#f2f5ff;border:2px solid #f2c230;border-radius:14px;padding:12px 18px 10px;font:600 16px "Barlow Condensed",sans-serif;pointer-events:auto;box-shadow:0 8px 30px rgba(0,0,0,.5)';
     vfEl.addEventListener('click',e=>{ const b=e.target.closest('[data-vf]'); if(!b) return; const a=b.dataset.vf;
       if(a==='zuenden') vfNaechstes(); else if(a==='vor') vfSpringen(1); else if(a==='zurueck') vfSpringen(-1);
       else if(a==='nochmal'){ if(vfLetzt) vfZuenden(vfLetzt); vfZeigen(); }
@@ -200,9 +245,9 @@ function vfZeigen(){
   else h+=`<div style="margin:6px 0;font:${BAR(20)}">Leertaste zündet das erste Feuerwerk.</div>`;
   h+=`<div style="margin-top:8px;padding-top:6px;border-top:1px solid rgba(242,197,48,.35);font:${BAR(17)}">`+
     (naechst?`ALS NÄCHSTES (${vfIdx+1}): <b>${vfEsc(P[naechst].short)}</b> &nbsp;${vfZeile(naechst,true)}`:'<b>Ende der Liste.</b> Mit Pfeil links zurück.')+`</div>`;
-  h+=`<div style="margin-top:6px">${btn('zuenden','␣ Zünden','#8a2a16')}${btn('zurueck','← Zurück')}${btn('vor','→ Weiter')}${btn('nochmal','R Nochmal')}${btn('gut','1 Gut')}${btn('aendern','2 Ändern')}${btn('liste','L Liste')}${btn('ende','Esc Ende')}</div>`;
+  h+=`<div style="margin-top:6px">${btn('zuenden','␣ Zünden','#8a2a16')}${btn('zurueck','← Zurück')}${btn('vor','→ Weiter')}${btn('nochmal','R Nochmal')}${btn('gut','1 Gut')}${btn('aendern','2 Ändern')}${btn('liste','L Liste')}${btn('ende','B Beenden')}</div>`;
   if(vfListeAuf){
-    h+=`<div style="margin-top:6px;max-height:34vh;overflow:auto;border-top:1px solid rgba(242,197,48,.35)">`+
+    h+=`<div style="margin-top:6px;max-height:30vh;overflow:auto;border-top:1px solid rgba(242,197,48,.35)">`+
       vfListe.map((t,i)=>`<div data-vf="i${i}" style="cursor:pointer;padding:2px 4px;${i===vfIdx?'background:rgba(242,197,48,.22);':''}${t===akt?'outline:1px solid #f2c230;':''}">`+
         `<span style="opacity:.6;display:inline-block;width:34px">${i+1}</span><b>${vfEsc(P[t].short)}</b> ${vfZeile(t,true)}</div>`).join('')+`</div>`+
       `<div style="margin-top:4px">${btn('kopieren','Liste mit Notizen kopieren')}</div>`;

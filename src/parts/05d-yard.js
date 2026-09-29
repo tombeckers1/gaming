@@ -296,11 +296,12 @@ function buildYard(){
     /* Lueftungsschlitze an beiden Seiten */
     for(const sx of [-0.492,0.492]) for(let i=0;i<7;i++)
       bbox(0.006,0.014,0.30,rippe,sx,0.30+i*0.055,0,g,false);
-    /* Kabeleinfuehrung nach unten, in einem Schutzrohr */
+    /* Kabeleinfuehrung nach unten, in einem Schutzrohr. Das Kabel
+       geht dort in den Boden. Ein loses Stueck, das schraeg daneben
+       lag, steckte halb im Boden und endete im Nichts - von oben ein
+       schwarzer Keil (Tom, Foto 29.09.). */
     { const kr=new THREE.Mesh(new THREE.CylinderGeometry(0.035,0.035,0.16,10),std(0x1c1f26,{roughness:0.9}));
-      kr.position.set(0.30,0.08,-0.24); g.add(kr);
-      const kb=new THREE.Mesh(new THREE.CylinderGeometry(0.02,0.02,0.5,8),std(0x14161c,{roughness:0.95}));
-      kb.rotation.x=1.4; kb.position.set(0.30,0.03,-0.45); g.add(kb); }
+      kr.position.set(0.30,0.08,-0.24); kr.userData.kabelrohr=true; g.add(kr); }
     /* Warnstreifen ueber dem Sockel */
     plane(0.98,0.07,new THREE.MeshStandardMaterial({map:tex(420,32,(c,W,H)=>{
       for(let x=-H;x<W;x+=H*1.6){ c.save(); c.translate(x,0); c.rotate(0);

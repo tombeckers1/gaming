@@ -4,7 +4,9 @@
       ragte ein Pfeiler 6 mm heraus - eine senkrechte Linie in der Wand.
    2. An der Fensterfront der Erweiterungen hatte der Bodenschatten an
       jeder Raumgrenze eine helle Luecke (Streifen quer zur Wand), und
-      innen fehlte die Sockelleiste, waehrend sie im Basisladen lief. */
+      innen fehlte die Sockelleiste, waehrend sie im Basisladen lief.
+   3. Am Zuendpult lag ein Kabelstueck schraeg halb im Boden - von oben
+      ein schwarzer Keil. */
 async function neuesSpiel(p){
   await p.waitForFunction("!!document.querySelector('#startBtns button:not([disabled])')",{timeout:60000});
   await p.click('#startBtns button:last-child');
@@ -54,12 +56,18 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     so.sort((a,b)=>a[0]-b[0]);
     let sb=0; for(const [a,c] of so){ const a2=Math.max(a,8.0), c2=Math.min(c,37.9); if(c2>a2) sb+=c2-a2; }
     o.sockel={stuecke:so.length,meterErweiterung:+sb.toFixed(2)};
+    /* 4. Zuendpult (Foto 29.09.): kein Teil steckt halb im Boden */
+    const pg=bb.pultHit&&bb.pultHit.parent, T=window.THREE, stecken=[];
+    if(pg&&T){ pg.updateMatrixWorld(true); pg.traverse(m=>{ if(!m.isMesh||m===bb.pultHit) return;
+      const bx=new T.Box3().setFromObject(m); if(bx.min.y<-0.004&&bx.max.y>0.004) stecken.push([+bx.min.y.toFixed(3),+bx.max.y.toFixed(3),m.geometry.type]); }); }
+    o.pult={gefunden:!!pg,stecken};
     return o; });
   console.log('FUGEN',JSON.stringify(r));
   pruef('RUECKWAND',!r.rueckwand.length,'ragt in den Laden: '+JSON.stringify(r.rueckwand));
   pruef('BODENSCHATTEN',r.ao.n>=3&&!r.ao.luecken.length,'Luecken im Schatten an der Fensterfront: '+JSON.stringify(r.ao));
   /* 29,9 m Front, abzueglich der Eingangsachse (hoechstens gut 5 m) */
   pruef('SOCKEL',r.sockel.meterErweiterung>=24,'Sockelleiste in den Erweiterungen nur '+r.sockel.meterErweiterung+' m');
+  pruef('PULT_BODEN',r.pult.gefunden&&!r.pult.stecken.length,'Teile des Zuendpults stecken im Boden: '+JSON.stringify(r.pult));
   console.log('MANGEL:',mangel.length?mangel.join(' | '):'keine');
   console.log('ERRORS:',errs.length||mangel.length?errs.concat(mangel).join('\n'):'keine');
   await b.close();

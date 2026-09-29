@@ -140,7 +140,9 @@ const NEU_EMIT={
     for(let k=0;k<Math.round(6*kl);k++){ const a=Math.random()*Math.PI*2, s=rand(0.1,0.6);
       psMid.emit(o.x,o.y+0.35*kl,o.z,Math.cos(a)*s,rand(0.6,1.8),Math.sin(a)*s,A[0]*1.2,A[1]*1.2,A[2]*1.2,rand(0.4,0.8),-0.3,0); }
     if(Math.random()<dt*14*kl){ const a=Math.random()*Math.PI*2;
-      psBig.emit(o.x,o.y+0.5*kl,o.z,Math.cos(a)*0.2,rand(0.4,0.9),Math.sin(a)*0.2,0.25,0.24,0.26,rand(2.5,3.5),-0.15,0); } },
+      psBig.emit(o.x,o.y+0.5*kl,o.z,Math.cos(a)*0.2,rand(0.4,0.9),Math.sin(a)*0.2,0.25,0.24,0.26,rand(2.5,3.5),-0.15,0); }
+    /* 29.09.: Bengalfeuer faucht leise, solange es brennt (vorher stumm) */
+    e.fz=(e.fz||0.6)-dt; if(e.fz<=0){ e.fz=1.2; sfx.fizz(distVol(o)*0.45*kl); } },
   /* Feuerrad: Funken wirbeln tangential von einem drehenden Rad */
   rad(e,dt,o){ e.w=(e.w||0)+dt*9; const R=0.32, y=o.y+0.8;
     for(let k=0;k<3;k++){ const a=e.w+k*Math.PI*2/3, cx=Math.cos(a)*R, cy=Math.sin(a)*R, c=k%2?e.A:e.B;

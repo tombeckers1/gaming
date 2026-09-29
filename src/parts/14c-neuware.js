@@ -121,10 +121,13 @@ const NEU_EMIT={
     e.bl=(e.bl||0)-dt; if(e.bl<=0){ e.bl=rand(0.1,0.25); flash({x:o.x,y:o.y+0.4,z:o.z},A,2.2,0.05);
       for(let k=0;k<10;k++){ const d=randDir(); psSmall.emit(o.x,o.y+0.35,o.z,d[0]*0.6,d[1]*0.6,d[2]*0.6,A[0],A[1],A[2],0.07,0,0); } } },
   /* Fontaene mit knisternder Krone */
-  knisterbrunnen(e,dt,o){ const H=e.h||1, A=e.A, B=e.B;
+  knisterbrunnen(e,dt,o){ const H=e.h||1, A=e.A, B=e.B, y0=emY(o,0.2);
+    /* 28.09. (Tom: echt): Funken ab der Duese (emY: auf dem Karton 8 cm
+       ueber der Oeffnung) - vorher 20 cm darueber, die Fontaene begann in
+       der Luft. Nur die Batterien nutzen diese Fontaene. */
     for(let k=0;k<Math.round(9*H);k++){ const a=Math.random()*Math.PI*2, s=rand(0.3,1.2)*H, c=Math.random()<0.7?A:B;
-      psMid.emit(o.x,o.y+0.2,o.z,Math.cos(a)*s,rand(4,6.5)*Math.sqrt(H),Math.sin(a)*s,c[0],c[1],c[2],rand(0.8,1.3),5,4); }
-    const kr=2.2*H+0.4;
+      psMid.emit(o.x,y0,o.z,Math.cos(a)*s,rand(4,6.5)*Math.sqrt(H),Math.sin(a)*s,c[0],c[1],c[2],rand(0.8,1.3),5,4); }
+    const kr=2.2*H+0.4+(y0-o.y-0.2);
     for(let k=0;k<Math.round(dt*160*H);k++){ const a=Math.random()*Math.PI*2, r=rand(0,0.8)*H;
       psSmall.emit(o.x+Math.cos(a)*r,o.y+kr+rand(-0.4,0.3),o.z+Math.sin(a)*r,rand(-.4,.4),rand(-.6,.4),rand(-.4,.4),1,.95,.8,rand(0.15,0.35),2,3); }
     e.kn=(e.kn||0)-dt; if(e.kn<=0){ e.kn=rand(0.3,0.7); sfx.crackle(distVol(o)*0.4); } },
@@ -142,12 +145,15 @@ const NEU_EMIT={
         psMid.emit(o.x+cx,y+cy,o.z,-Math.sin(a)*s,Math.cos(a)*s,rand(-0.3,0.3),c[0],c[1],c[2],rand(0.4,0.8),4,4); } }
     e.fz=(e.fz||0)-dt; if(e.fz<=0){ e.fz=0.8; sfx.fizz(distVol(o)*0.6); } },
   /* Sternregen: Goldfontaene, in der farbige Sterne langsam steigen */
-  sternregen(e,dt,o){ const A=e.A, B=e.B;
+  sternregen(e,dt,o){ const A=e.A, B=e.B, y0=emY(o,0.2);
+    /* 28.09.: ab der Duese (emY), vorher 20-30 cm ueber dem Karton */
     for(let k=0;k<10;k++){ const a=Math.random()*Math.PI*2, s=rand(0.3,1.4);
-      psMid.emit(o.x,o.y+0.2,o.z,Math.cos(a)*s,rand(5,8),Math.sin(a)*s,A[0],A[1],A[2],rand(0.9,1.4),5,4); }
-    e.st=(e.st||0)-dt; if(e.st<=0){ e.st=0.35; const c=Math.random()<0.5?B:FW.weiss;
+      psMid.emit(o.x,y0,o.z,Math.cos(a)*s,rand(5,8),Math.sin(a)*s,A[0],A[1],A[2],rand(0.9,1.4),5,4); }
+    /* 28.09. (Tom: echt): nur Farbsterne in B - die weissen standen als
+       grelle Punktballen ueber dem Kessel (nur Batterien nutzen das) */
+    e.st=(e.st||0)-dt; if(e.st<=0){ e.st=0.35; const c=B;
       for(let k=0;k<Math.round(8*QUAL());k++){ const a=Math.random()*Math.PI*2, w=rand(0.3,1.2);
-        psBig.emit(o.x,o.y+0.3,o.z,Math.cos(a)*w,rand(9,12),Math.sin(a)*w,c[0],c[1],c[2],rand(1.3,1.8),6,0); } } },
+        psBig.emit(o.x,y0,o.z,Math.cos(a)*w,rand(9,12),Math.sin(a)*w,c[0],c[1],c[2],rand(1.3,1.8),6,0); } } },
   /* Farbige Wunderkerze: e.A die Funkenfarbe */
   funken(e,dt,o){ const A=e.A||FW.gold;
     /* je Sekunde, nicht je Bild - sonst waeren es bei 30 Bildern halb so viele */

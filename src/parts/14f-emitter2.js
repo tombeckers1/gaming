@@ -41,11 +41,15 @@ NEU_EMIT.tornado=(e,dt,o)=>{
     /* Aufstieg: Helix, Durchmesser 0,6 m, in 1 s auf hTop */
     const u=clamp((t-e.ab)/1.0,0,1), [bx,bz]=e.pos||[o.x,o.z], hy=y0+e.hTop*(1-Math.pow(1-u,1.6)), a=(t-e.ab)*18;
     const hr=0.3*(e.spielraum!==undefined?Math.min(1,e.spielraum/0.95):1), x=bx+Math.cos(a)*hr, z=bz+Math.sin(a)*hr;
-    e.acc=(e.acc||0)+dt*220*q; SCHWEIF=0.2;
-    for(;e.acc>=1;e.acc--){ const f=Math.random(), yy=hy-f*dt*e.hTop*1.4;
-      psBig.emit(x+rand(-.05,.05),yy,z+rand(-.05,.05),rand(-.3,.3),rand(-1.2,0),rand(-.3,.3),A[0],A[1],A[2],rand(0.45,0.8),1,0); }
+    /* 28.09. (Tom: echt): der drehende Treibsatz schleudert Silber- und
+       Goldfunken tangential weg, die fallen und verloeschen - vorher blieb
+       eine senkrechte Saeule farbiger Punkte stehen (wirkte wie ein Laser).
+       Farbig ist nur die kleine Flamme am Kopf. */
+    e.acc=(e.acc||0)+dt*240*q; SCHWEIF=0.05;
+    for(;e.acc>=1;e.acc--){ const f=Math.random(), yy=hy-f*dt*e.hTop*1.4, ta=a+Math.PI/2+rand(-.4,.4), sp=rand(1.5,3.2), c=Math.random()<0.7?S:[1,.78,.42];
+      psMid.emit(x,yy,z,Math.cos(ta)*sp,rand(-1.6,0.3),Math.sin(ta)*sp,c[0],c[1],c[2],rand(0.3,0.65),4.5,4); }
     SCHWEIF=alt;
-    psBig.emit(x,hy,z,0,0,0,1.4,1.4,1.4,0.05,0,0);
+    psBig.emit(x,hy,z,0,0,0,0.5+A[0]*0.9,0.5+A[1]*0.9,0.5+A[2]*0.9,0.05,0,0);
     if(e.ton&&!e.hoch){ e.hoch=true; e.ton.f(3300,0.3); }
     if(u>=1){ e.oben=true;
       /* oben: kleiner Plopp mit acht Funken */
@@ -77,16 +81,18 @@ NEU_EMIT.lauffeuer=(e,dt,o)=>{
     flash({x:e.px,y:y0+0.3,z:e.pz},FW.bernstein,0.8,0.12); schall(o,v=>sfx.crack(v*0.35)); }
 };
 
-/* Flitterbrunnen (Funkenflug): Senko-Hanabi am Boden. Eine gluehende
-   Perle in 0,4 m laeuft durch vier Phasen: Tsubomi (glueht, zittert),
+/* Flitterbrunnen (Funkenflug): Senko-Hanabi als Fontaene. Eine gluehende
+   Perle in der Duese laeuft durch vier Phasen: Tsubomi (glueht, zittert),
    Botan (einzelne kraeftige Funken), Matsuba (verzweigte Funken,
    1-1,5 m), Chiri-giku (duenne fallende Funken) - dann erlischt sie. */
 NEU_EMIT.flitterbrunnen=(e,dt,o)=>{
-  const A=e.A||FW.gold, B=e.B||FW.orange, q=QUAL(), H=e.h||1, py=(o.y!==undefined?o.y:0)+0.4*H;
+  /* 28.09. (Tom: echt): die Perle glueht in der Duese auf dem Karton -
+     vorher schwebte sie 0,4 m darueber als Leuchtpunkt in der Luft */
+  const A=e.A||FW.gold, B=e.B||FW.orange, q=QUAL(), H=e.h||1, py=(o.y!==undefined?o.y:0)+0.03;
   if(e.alter===undefined){ e.T=e.t+dt;
     e.perle=fuehre(psBig,o.x,py,o.z,0,0,0,[1,.42,.1],e.T+0.05,st=>{ const u=st.alter/st.life, z=u<0.15?0.012:0.004;
-      st.p[0]=o.x+rand(-z,z); st.p[1]=py+rand(-z,z)-u*0.05; st.p[2]=o.z+rand(-z,z); st.hell=(u<0.15?0.4+u*5:1.35)*(u>0.96?(1-u)*25:1)*(0.9+Math.random()*0.2); }); }
-  const u=emAnteil(e,dt), x=o.x, y=py-u*0.05, z=o.z, alt=SCHWEIF;
+      st.p[0]=o.x+rand(-z,z); st.p[1]=py+rand(-z,z); st.p[2]=o.z+rand(-z,z); st.hell=(u<0.15?0.4+u*5:1.35)*(u>0.96?(1-u)*25:1)*(0.9+Math.random()*0.2); }); }
+  const u=emAnteil(e,dt), x=o.x, y=py, z=o.z, alt=SCHWEIF;
   if(u<0.15){ /* Tsubomi: nur die Perle */ }
   else if(u<0.4){
     e.acc=(e.acc||0)+dt*9*H; SCHWEIF=0.08;
@@ -97,7 +103,7 @@ NEU_EMIT.flitterbrunnen=(e,dt,o)=>{
   } else if(u<0.8){
     e.acc=(e.acc||0)+dt*42*q*H;
     for(;e.acc>=1;e.acc--){ const d=randDir(), s=rand(4,6)*H, c=Math.random()<0.75?A:B;
-      verzweig(psMid,x,y,z,d[0]*s,d[1]*s*0.8+0.6,d[2]*s,c,0.45,3,{n:[3,6],tiefe:Math.random()<0.4?2:1,C:[1,.88,.55]}); }
+      verzweig(psMid,x,y,z,d[0]*s*0.8,Math.abs(d[1])*s*0.9+0.8,d[2]*s*0.8,c,0.45,3,{n:[3,6],tiefe:Math.random()<0.4?2:1,C:[1,.88,.55]}); }
     e.pr=(e.pr||0)-dt; if(e.pr<=0){ e.pr=0.18; sfx.prasseln(distVol(o)*0.8); }
   } else {
     e.acc=(e.acc||0)+dt*12*H; SCHWEIF=0.12;
@@ -180,11 +186,13 @@ NEU_EMIT.geysir=(e,dt,o)=>{
   for(;e.acc2>=1;e.acc2--){ const a=Math.random()*Math.PI*2, s=rand(1,3);
     psSmall.emit(o.x+rand(-0.3,0.3),y0+hm*rand(0.82,1.0),o.z+rand(-0.3,0.3),Math.cos(a)*s,rand(-1,1),Math.sin(a)*s,1,1,1,rand(0.25,0.55),2,4); }
   SCHWEIF=alt;
-  licht('geysir'+(e.id||(e.id=Math.random())),{x:o.x,y:y0+hm*0.4,z:o.z},A,1.8*H*kraft,{boden:y0,weite:20});   /* 3,2 machte die Wand am Testfeld reinweiss (Probebild) */
-  /* kurz vor Schluss steigt der Dampf - noch von den Funken angestrahlt */
+  licht('geysir'+(e.id||(e.id=Math.random())),{x:o.x,y:y0+hm*0.4,z:o.z},A,0.9*H*kraft,{boden:y0,weite:14});   /* 3,2 machte die Wand am Testfeld reinweiss (Probebild); 28.09.: 0,9 - fuenf Geysire zugleich im Finale tauchten Tisch, Wand und Boden in reines Weiss */
+  /* kurz vor Schluss steigt der Rauch - grau, nur schwach angestrahlt
+     (28.09., Tom: echt - die hell leuchtenden Dampfballen standen wie
+     weisse Wattebaeusche im Bild; nur das Geysirfeld nutzt diesen Emitter) */
   if(!e.dampf&&e.t<=0.4){ e.dampf=true;
-    rauchball({x:o.x,y:y0+hm*0.35,z:o.z},{r:2.6*H,n:8,dauer:3.6,quellen:1.4,steigen:1.1,wind:[0.3,0],c:[0.62,0.64,0.68],a:0.33,
-      farbe:tt=>tt<0.5?[0.95,0.96,1]:[0.62,0.64,0.68]}); }
+    rauchball({x:o.x,y:y0+hm*0.35,z:o.z},{r:1.8*H,n:6,dauer:3.0,quellen:1.2,steigen:1.1,wind:[0.3,0],c:[0.4,0.41,0.44],a:0.2,
+      farbe:tt=>tt<0.4?[0.62,0.63,0.66]:[0.4,0.41,0.44]}); }
 };
 
 /* Kreisel, jetzt auch als Boden-Ebene in Shows: ohne i stand er (e.i

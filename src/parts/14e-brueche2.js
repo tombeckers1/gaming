@@ -371,7 +371,11 @@ function feuertopfSorte(o,sorte,A,B,s,opt){
     SCHWEIF=alt;
   }
   muendungsblitz(o,y0,1.3);
-  flash({x:o.x,y:y0+0.8,z:o.z},sorte==='glut'?[1,.35,.08]:A,sorte==='glut'?1.2:1.6,0.25);
+  /* 28.09. (Tom: "Lichtshow"): der Ausstoss erhellt den Platz kurz und
+     warm, nicht in reiner Sternfarbe - 20 Farbtoepfe hintereinander
+     tauchten Tisch, Wand und Haeuser sonst in Magenta. Nur Batterie-
+     Drehbuecher (mineEff) zuenden Feuertoepfe. */
+  flash({x:o.x,y:y0+0.8,z:o.z},sorte==='glut'?[1,.35,.08]:mischF(A,[1,.82,.55],0.6),sorte==='glut'?1.0:1.0,0.2);
   sfx.thump(distVol(o)*(sorte==='glut'?1.3:1.1));
   if(FW_LOG) FW_LOG.push({t:FW_UHR,art:'topf',sorte,x:+o.x.toFixed(2),ang:+ang.toFixed(3),hoehe:+hoch.toFixed(2),A,B});
   return hoch;

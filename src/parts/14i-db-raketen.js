@@ -556,7 +556,7 @@ EFF.nordstern=function(p,A,B,s){
    (28.09., Tom: echt - vorher zwei Fluegel-Figuren, die einmal schlugen) */
 EFF.drachenpalme=function(p,A,B,s){
   const q=QUAL(), rot=A||FW.rot, gold=B||FW.gold, or=FW.orange, G=4.4, fu=[1,.66,.26];
-  rkSchweif(0,()=>{ for(let i=0;i<Math.round(16*q);i++){ const d=randDir(), w=rand(0.5,2.5); psHuge.emit(p.x,p.y,p.z,d[0]*w,d[1]*w,d[2]*w,or[0]*1.4,or[1]*1.2,or[2],rand(0.22,0.34),0,0); } });
+  rkSchweif(0,()=>{ for(let i=0;i<Math.round(16*q);i++){ const d=randDir(), w=rand(1.6,3.2); psHuge.emit(p.x,p.y,p.z,d[0]*w,d[1]*w,d[2]*w,or[0]*1.4,or[1]*1.2,or[2],rand(0.1,0.16),0,0); /* nur Aufgluehen, kein stehender Ball (rkecht) */ } });
   /* der Feuerball nur als kurzes Aufgluehen im eigenen Rauch (28.09.: bei 0,3 Deckkraft stand er als orange Wolke) */
   rauchball(p,{r:1.8*Math.sqrt(s),n:4,dauer:0.45,quellen:0.2,steigen:0.6,leuchten:true,c:[0.9,0.38,0.1],a:0.12});
   flash(p,or,7,0.45);

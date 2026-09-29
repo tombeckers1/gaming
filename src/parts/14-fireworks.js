@@ -333,14 +333,16 @@ function shaderVorab(){
        Dinge hinter der Kamera drankommen. */
     /* 29.09.: Rauch-/Glutballen (wolkenSprite) entstehen erst beim Zuenden -
        ihr Sprite-Shader wurde mitten im Feuerwerk uebersetzt (Ruckler beim
-       ersten Zauberbrunnen, leistung.js). Je ein Muster bleibt unsichtbar
-       in der Szene, damit das Programm im Speicher bleibt. */
+       ersten Zauberbrunnen, leistung.js). Je ein Muster wird mitgezeichnet. */
     if(!shaderVorab.sp&&typeof wolkenSprite==='function') shaderVorab.sp=[wolkenSprite(true),wolkenSprite(false)];
-    if(shaderVorab.sp) shaderVorab.sp.forEach(sp=>{ sp.visible=true; sp.material.opacity=0.01; sp.position.copy(camera.position); });
+    if(shaderVorab.sp) shaderVorab.sp.forEach(sp=>{ if(!sp.parent) scene.add(sp); sp.visible=true; sp.material.opacity=0.01; sp.position.copy(camera.position); });
     const aus=[]; scene.traverse(o=>{ if(o.frustumCulled){ o.frustumCulled=false; aus.push(o); } });
     for(const an of [true,false]){ flashSchalten(an); renderer.compile(scene,camera); renderer.render(scene,camera); }
     aus.forEach(o=>{ o.frustumCulled=true; });
-    if(shaderVorab.sp) shaderVorab.sp.forEach(sp=>{ sp.visible=false; sp.material.opacity=0; });
+    /* danach wieder aus der Szene: ein Sprite ohne Kamera laesst jeden
+       Strahl ueber die ganze Szene abstuerzen (naht.js, park.js). Das
+       Material bleibt erhalten - und mit ihm das uebersetzte Programm. */
+    if(shaderVorab.sp) shaderVorab.sp.forEach(sp=>{ sp.visible=false; sp.material.opacity=0; scene.remove(sp); });
     flashSchalten(alt);
     if(renderer.setRenderTarget) renderer.setRenderTarget(null);
     shaderVorab.ms=Math.round(performance.now()-t0);

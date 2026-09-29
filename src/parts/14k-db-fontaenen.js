@@ -150,7 +150,7 @@ function fkFlamme(e,dt,o,c,gr,key){
 function fkLicht(e,o,y,c,st,weite){ if(st<0.03) return;
   /* Silber/Titan: kuehles Licht wirkt im Bild doppelt so hell wie warmes -
      Platz, Wand und Haeuser standen wie im Flutlicht (28.09., Tom: echt) */
-  if(c&&c[2]>c[0]*0.9){ st*=0.5; weite=Math.min(weite||8,10); }
+  st*=0.8; if(c&&c[2]>c[0]*0.9){ st*=0.5; weite=Math.min(weite||8,10); }
   licht('fk'+fkId(e),{x:o.x,y,z:o.z},c||FW.bernstein,st*rand(0.75,1.1),{boden:fkBoden(o.x,o.z),weite:weite||8}); }
 /* Rauch: jede echte Fontaene raucht - graue Schwaden steigen ueber der
    Duese auf und ziehen mit dem Wind. Nur die erste Duese eines Sets
@@ -490,7 +490,9 @@ NEU_EMIT.flammen=(e,dt,o)=>{
     e.st=SA===undefined?0.45:Array.isArray(SA)?rand(SA[0],SA[1]):SA;
     const n=Math.round((SA!==undefined&&(SA<0.25||SA[1]<0.25)?5:9)*Math.min(1.4,H)*q), v=distVol(o);
     for(let k=0;k<n;k++){ const a=Math.random()*Math.PI*2, hh=rand(4.5,7.5)*Math.min(1.25,0.75+H*0.3), vy=fkV0(hh,5), w=rand(0.3,1.5);
-      fkKomet({x:o.x+rand(-0.02,0.02),y:o.y+0.05,z:o.z+rand(-0.02,0.02)},[Math.cos(a)*w,vy,Math.sin(a)*w],5,fkTA(vy,5)*rand(1.5,1.9),[1.25,0.62,0.16],{funken:4,funkenFarbe:[1,0.66,0.2],zerspringt:4,klang:false}); }
+      fkKomet({x:o.x+rand(-0.02,0.02),y:o.y+0.05,z:o.z+rand(-0.02,0.02)},[Math.cos(a)*w,vy,Math.sin(a)*w],5,fkTA(vy,5)*rand(1.5,1.9),[1.4,0.72,0.2],{ps:psMid,funken:4,funkenFarbe:[1,0.66,0.2],zerspringt:4,klang:false}); }
+    /* psMid statt psBig (28.09., Tom: echt): neun grosse Sterne gluehten beim
+       Start zugleich weiss auf - an der Duese stand eine Gluehbirne */
     flash({x:o.x,y:o.y+0.6,z:o.z},FW.orange,0.8*H,0.15);
     if(Math.random()<0.6) sfx.fauchen(v*0.7,0.5,true); }
   fkRauch(e,dt,o,3+H*2,1.4);
@@ -859,12 +861,14 @@ function fkGestellBau(t,x,y,z){
   const g=new THREE.Group(), holz=fkMat(0x6b4a2a), stahl=fkMat(0x7a7f86), d=p.dims;
   g.position.set(x,y,z);
   if(p.gestell==='rad'){
-    /* Fuss, Pfosten bis zur Nabe, Radscheibe mit zwei Treibern */
+    /* Fuss, Pfosten bis zur Nabe, Latte mit zwei Treibern */
     const nab=d[1]+FK_NABE;
     const fuss=new THREE.Mesh(new THREE.BoxGeometry(0.26,0.03,0.12),holz); fuss.position.set(0,0.015,0); g.add(fuss);
     const pf=new THREE.Mesh(new THREE.BoxGeometry(0.04,nab,0.04),holz); pf.position.set(0,nab/2,-0.035); g.add(pf);
     const rad=new THREE.Group(); rad.position.set(0,nab,0.0); g.add(rad);
-    const sch=new THREE.Mesh(new THREE.CylinderGeometry(FK_RAD*0.82,FK_RAD*0.82,0.012,24),fkMat(0x2a2320,0x0a0400)); sch.rotation.x=Math.PI/2; rad.add(sch);
+    /* Saxon = Holzlatte mit einem Treiber an jedem Ende (28.09., Tom: echt -
+       vorher eine braune Radscheibe, die Treiber waren kaum zu sehen) */
+    const sch=new THREE.Mesh(new THREE.BoxGeometry(FK_RAD*2+0.02,0.035,0.014),holz); rad.add(sch);
     const nabe=new THREE.Mesh(new THREE.CylinderGeometry(0.03,0.03,0.05,12),stahl); nabe.rotation.x=Math.PI/2; rad.add(nabe);
     for(const s of [-1,1]){ const h=new THREE.Mesh(new THREE.CylinderGeometry(0.018,0.018,0.2,8),fkMat(0xb03020)); h.position.set(s*FK_RAD,0,0.012); rad.add(h);
       const k=new THREE.Mesh(new THREE.CylinderGeometry(0.012,0.02,0.03,8),fkMat(0x3b3b3b)); k.position.set(s*FK_RAD,s*0.11,0.012); rad.add(k); }

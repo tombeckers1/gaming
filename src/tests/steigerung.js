@@ -158,7 +158,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
      silberspinne, blinkfeuer, silberregen, saphirkrone, juwelenpalme,
      blutmond, nordstern, drachenpalme */
   const EXKL=['fallschirm','schnuppe','garbe','goldglitzer','initiale','hakenschlag','silberspinne','kometenkette','pfeifsterne','halbhalb','nishiki','spaetzuender',
-    'achtblatt','blinkfeuer','silberregen','glasbruch','furz','saphirkrone','titan','juwelenpalme','blutmond','nordstern','drachenpalme','supernova'];
+    'achtblatt','blinkfeuer','silberregen','glasbruch','furz','pupswolke','saphirkrone','titan','titanschlag','juwelenpalme','blutmond','nordstern','drachenpalme','supernova'];
   ['raketenklein','raketen','pfeifraketen','raketengold'].forEach(t=>pruef('RAKETE',r[t].eff.some(e=>EXKL.indexOf(e)>=0),`${t} ohne eigenes Raketen-Bruchbild: ${r[t].eff}`));
   L.concat(['sortiment']).forEach(t=>pruef('EXKLUSIV',!r[t].eff.some(e=>EXKL.indexOf(e)>=0),`${t} nutzt Raketen-Bruchbild`));
   Object.keys(r).forEach(t=>{ if(r[t]&&r[t].unpass) pruef('PASST',!r[t].unpass.length,`${t}: ${r[t].unpass.slice(0,6).join(', ')}`); });

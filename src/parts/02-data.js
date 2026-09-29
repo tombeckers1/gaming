@@ -39,7 +39,7 @@ const P={
   brille:{name:'Partybrillen 2027',short:'Partybrillen',cat:0,lvl:5,shape:'boxA',dims:[0.13,0.055,0.085],grid:[9,2,1],box:18,cost:1.10,market:2.99,weight:6,hype:0,risk:2,
     art:{title:'2027',sub:'Partybrille',bg1:'#ffd23f',bg2:'#f28a1c',ac:'#0e1226',ac2:'#e63b2e',light:true}},
   raketenklein:{name:'Sternschnuppe · 3er Raketenset',short:'Sternschnuppe 3er',cat:2,lvl:6,shape:'rocketset',dims:[0.42,0.055,0.11],grid:[4,2,2],box:8,cost:2.60,market:6.49,weight:8,hype:10,risk:4,
-    desc:'Die Rakete steigt fast unsichtbar. Dann ziehen oben fünf Silberkometen mit langem Glitzerschweif in weiten Bögen auseinander – schnell etwas wünschen!',
+    desc:'Die Rakete steigt mit kurzem Kohlefunken-Schweif. Dann ziehen oben fünf Silberkometen mit langem Glitzerschweif in weiten Bögen auseinander – schnell etwas wünschen!',
     art:{title:'STERNSCHNUPPE',sub:'3 Raketen · Silberkometen',bg1:'#35157a',bg2:'#0c0626',ac:'#ffd23f',ac2:'#ff4fa3'}},
   konfetti:{name:'Konfettikanone',short:'Konfetti',cat:0,lvl:7,shape:'cylinder',dims:[0.055,0.21,0.055],grid:[12,2,1],box:12,cost:1.60,market:3.99,weight:6,hype:0,risk:2,
     art:{title:'KONFETTI',sub:'Kanone 40 cm',bg1:'#5ce1ff',bg2:'#1557a8',ac:'#ff4fa3',ac2:'#ffe45c'}},
@@ -83,7 +83,7 @@ const P={
     desc:'Japanischer Brokat: Flimmerndes Gold steigt auf und öffnet sich zu einer Goldkugel, deren Spitzen violett leuchten.',
     art:{title:'GOLDBROKAT',sub:'5 Raketen · Farbspitzen',bg1:'#4a3308',bg2:'#150e02',ac:'#ffd23f',ac2:'#fff3c4',gold:true}},
   titanraketen:{name:'Titan · 3 XXL-Ratterraketen',short:'Titan',cat:2,lvl:20,shape:'rocketset',dims:[0.62,0.085,0.18],grid:[3,1,1],box:3,cost:19.00,market:44.99,weight:5,hype:44,risk:9,
-    desc:'Drei XXL-Raketen, die kreischend mit knisterndem Titanschweif aufsteigen und oben mit einem Schlag in eine riesige Silberkugel mit Knisterkranz zerbersten.',
+    desc:'Drei XXL-Raketen, die kreischend mit knisterndem Titanschweif aufsteigen und oben mit einem harten Titanschlag in Silberfunken und eisblaue Sterne zerbersten, zum Schluss knistert ein Kranz.',
     art:{title:'TITAN',sub:'3 XXL-Ratterraketen · Silberschlag',bg1:'#26292f',bg2:'#000000',ac:'#d1e5ff',ac2:'#ffd23f'}},
   /* Jumbo-Raketen (Tom, 25.09.): je eine grosse Einzelrakete mit einem
      Effekt, den es sonst nirgends gibt. stueck: eine Rakete je Packung */
@@ -182,12 +182,12 @@ const P={
     art:{title:'WELTUNTERGANG',sub:'300 Schuss · 2 Minuten',bg1:'#3a0507',bg2:'#000000',ac:'#ff3b2e',ac2:'#ffd23f',gold:true}},
   /* Schabernack-Edition: der Spaßkram ganz am Ende */
   furzrakete:{name:'Furzrakete »Donnerbalken«',short:'Furzrakete',cat:2,lvl:19,shape:'rocketset',dims:[0.44,0.06,0.12],grid:[4,2,2],box:6,cost:6.20,market:15.99,weight:9,hype:28,risk:4,
-    desc:'Kommt nur mühsam hoch: Dreimal geht ihr die Luft aus, dreimal hilft ein Pups nach. Oben gibt es den großen Knall und eine grünbraune Wolke.',
+    desc:'Kommt nur mühsam hoch: Dreimal geht ihr die Luft aus, dreimal hilft ein Pups nach. Oben macht es Pff: eine schmutzige Rauchwolke, aus der schlappe Glut nach unten sackt.',
     art:{title:'DONNERBALKEN',sub:'3 Furzraketen',bg1:'#6b4a1c',bg2:'#241504',ac:'#c8e04a',ac2:'#ffd23f'}},
   /* Kugelbomben: gehoeren in die Moerserbatterie, nicht auf den Tisch.
      Eine Kugel, ein Aufstieg, oben mehrere Brueche nacheinander. */
   kugel75:{name:'Herzschlag · Kugelbombe 75 mm',short:'Kugel 75 Herz',cat:2,lvl:14,shape:'shell',dims:[0.09,0.115,0.09],grid:[8,2,1],box:8,cost:5.40,market:13.49,weight:7,hype:24,risk:7,
-    desc:'Ein rosa Herz am Himmel – und dann schlägt es: zweimal pocht es, und jedes Mal leuchtet ein kleineres Herz darin auf.',
+    desc:'Ein rotes Herz am Himmel – und dann schlägt es ein zweites Mal: Ein kleineres rosa Herz geht darin auf.',
     art:{title:'HERZSCHLAG',sub:'Kugelbombe 75 mm · Herz mit Herzschlag',bg1:'#8a1230',bg2:'#2a0410',ac:'#ff4f7a',ac2:'#ffd23f'}},
   kugel100:{name:'Drachenblut · Kugelbombe 100 mm Tropfbruch',short:'Drachenblut 100',cat:2,lvl:16,shape:'shell',dims:[0.12,0.15,0.12],grid:[6,2,1],box:6,cost:11.50,market:27.99,weight:6,hype:38,risk:8,
     desc:'Eine blutrote Dahlie mit glühendem Drachenauge. Dann tropft sie – und jeder Tropfen fängt im Fallen Feuer.',
@@ -195,8 +195,8 @@ const P={
   kugel150:{name:'Weltenbrand · Kugelbombe 150 mm Feuerreif',short:'Weltenbrand 150',cat:2,lvl:18,shape:'shell',dims:[0.165,0.20,0.165],grid:[4,1,1],box:3,cost:29.00,market:69.99,weight:5,hype:70,risk:10,
     desc:'Rot wird Gold – jeder Stern setzt kurz aus und glitzert golden weiter –, ein Feuerreif legt sich um die Kugel, und wo er ausbrennt, knistert die Glut in sechs Nestern.',
     art:{title:'WELTENBRAND',sub:'150 mm · Feuerreif mit Glutnestern',bg1:'#4a0e08',bg2:'#140302',ac:'#ff6a2a',ac2:'#ffd23f',gold:true}},
-  kugel200:{name:'Uhrwerk · Kugelbombe 200 mm Zehnfachbruch',short:'Kugel 200 Uhrwerk',cat:2,lvl:21,shape:'shell',dims:[0.21,0.25,0.21],grid:[3,1,1],box:2,cost:44.00,market:104.99,weight:4,hype:95,risk:10,
-    desc:'Zwanzig Blüten auf zwei Rädern: Das äußere dreht sich rechtsherum, das innere linksherum – wie ein Uhrwerk aus Feuer.',
+  kugel200:{name:'Blütenkranz · Kugelbombe 200 mm Zehnfachbruch',short:'Kugel 200 Blütenkranz',cat:2,lvl:21,shape:'shell',dims:[0.21,0.25,0.21],grid:[3,1,1],box:2,cost:44.00,market:104.99,weight:4,hype:95,risk:10,
+    desc:'Zwanzig Blüten in zwei Kränzen: außen Magenta und Gold, innen ein kleinerer Goldkranz, zum Schluss wechselt die Mitte von Gold zu Weiß.',
     art:{title:'UHRWERK',sub:'200 mm · Zehnfachbruch · zwei Räder',bg1:'#2a0f5a',bg2:'#050109',ac:'#ff4fd8',ac2:'#ffd23f',gold:true}},
   kugel300:{name:'Himmelsbrecher · Kugelbombe 300 mm 24 Brüche · Silberweide',short:'Himmelsbrecher',cat:2,lvl:23,shape:'shell',dims:[0.3,0.34,0.3],grid:[2,1,1],box:1,cost:70.00,market:164.99,weight:3,hype:100,risk:10,
     desc:'Eine riesige Silberkugel – dann bricht der Himmel: Sechs Risse laufen krachend nach außen, 24 Splitter blitzen auf, und zum Schluss hängt eine Silberweide über allem.',

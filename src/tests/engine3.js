@@ -366,7 +366,8 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   { const R=r.rakete, Fr=r.font175.fw;
     pruef('RAKETE',J(R.farben.map(x=>x[0]))===J([Fr.rot,Fr.gruen,Fr.blau])&&R.farben.every(x=>x[1]===F.gold),'farbRotation/A/B: '+J(R.farben));
     pruef('RAKETE',R.tx==='Anna'&&R.tx2==='Tom'&&R.kern===false&&R.sg==='zickzack','Text/bruchOpt/steig: '+J(R));
-    pruef('RAKETE',R.furz&&R.furz.steig==='stotter'&&R.furz.eff==='furz'&&R.furz.knall==='furz'&&R.furzfont===0,'Furzrakete: '+J(R.furz)+' furzfont '+R.furzfont); }
+    /* 28.09., Tom: echt - die Furzrakete bricht als Pupswolke (Rauch und schlapper Kohle-Rossschweif) statt als schwebende braune Punktwolke */
+    pruef('RAKETE',R.furz&&R.furz.steig==='stotter'&&R.furz.eff==='pupswolke'&&R.furz.knall==='furz'&&R.furzfont===0,'Furzrakete: '+J(R.furz)+' furzfont '+R.furzfont); }
   /* FONT */
   { pruef('FONT',J(r.fontZeiten)==='[0,1.5,1.5,5]'&&J(r.fontEin)==='[0,0.5,0,0]'&&r.fontDauer===6,'Phasenzeiten: '+J([r.fontZeiten,r.fontEin,r.fontDauer]));
     pruef('FONT',r.font01.n===1&&r.font01.h>1.4&&r.font01.h<1.7,'Start/hKurve: '+J(r.font01));

@@ -181,7 +181,7 @@ const NEUWARE={
 
   /* ---------- Level 12 ---------- */
   farbenrausch:{name:'Halbe-Halbe · 7 Raketen Zweifarbenbruch',short:'Halbe-Halbe',cat:2,lvl:12,shape:'rocketset',dims:[0.46,0.065,0.14],grid:[3,2,2],box:6,cost:6.40,market:14.99,weight:7,hype:20,risk:5,
-    desc:'Eine Hälfte Magenta, eine Hälfte Limette – dann setzen alle Sterne kurz aus und die Hälften tauschen. Die Rakete fliegt mit farbiger Flamme statt Funkenschweif.',
+    desc:'Eine Hälfte Rot, eine Hälfte Grün – dann setzen die Sterne kurz aus und die Hälften tauschen. Die Rakete steigt mit roter Flamme und Kohlefunken.',
     art:{title:'HALBE-HALBE',sub:'7 Raketen · Zweifarbenbruch',bg1:'#6a24c9',bg2:'#25093f',ac:'#5cff9e',ac2:'#ff4fa3'}},
   nachtfalter:{name:'Nachtfalter · 36 Schuss Lichtertanz',short:'Nachtfalter 36',cat:2,lvl:12,shape:'battery',dims:[0.3,0.24,0.3],grid:[7,1,1],box:6,cost:11.00,market:25.99,weight:6,hype:26,risk:6,
     desc:'Eine kleine Goldfontäne zum Auftakt, dann gehen am Himmel violette Blüten auf – und ihre Falter flattern taumelnd herab, jeder in seinem eigenen Flügelschlag.',

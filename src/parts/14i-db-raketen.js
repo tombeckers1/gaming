@@ -112,8 +112,13 @@ function rkSchirm(c){
   S.an=true;
   /* von unten angestrahlt: dunkles Grau, nur leicht in der Farbe des
      Lichts getoent - nachts sieht man den Schirm kaum (28.09.: vorher
-     leuchtete er als rosa Scheibe) */
-  S.km.color.setRGB(0.05+c[0]*0.09,0.05+c[1]*0.09,0.05+c[2]*0.09); S.lm.color.setRGB(0.08+c[0]*0.12,0.08+c[1]*0.12,0.08+c[2]*0.12);
+     leuchtete er als rosa Scheibe). 28.09., Tom: echt - Nachpruefung:
+     die Farbe ist linear, 0,14 wurde am Schirm ein deutliches Lachsrot,
+     und mit 2,2 m war er so gross wie ein Gleitschirm. Ein Konsumer-
+     Fallschirm misst gut einen halben Meter und ist nachts nur ein
+     schwacher Schatten ueber dem Licht. */
+  S.g.scale.setScalar(0.28);
+  S.km.color.setRGB(0.012+c[0]*0.022,0.012+c[1]*0.022,0.012+c[2]*0.022); S.lm.color.setRGB(0.02+c[0]*0.03,0.02+c[1]*0.03,0.02+c[2]*0.03);
   return S;
 }
 EFF.fallschirm=function(p,A,B,s,r){
@@ -156,7 +161,10 @@ EFF.schnuppe=function(p,A,B,s){
   for(let k=0;k<n;k++){
     const az=dreh+k/n*Math.PI*2+rand(-0.4,0.4), el=rand(-0.3,0.5), w=rand(10,12)*s, c=k%2?blau:sil, L=rand(1.5,1.9);
     const v=[Math.cos(az)*Math.cos(el)*w,Math.sin(el)*w+1.5,Math.sin(az)*Math.cos(el)*w];
-    rkSchweif(0.06,()=>psHuge.emit(p.x,p.y,p.z,v[0],v[1],v[2],c[0]*1.25,c[1]*1.25,c[2]*1.3,L,G,0));
+    /* 28.09., Tom: echt - Nachpruefung: als psHuge war jeder Kopf ein
+       weicher Leuchtball mit Blendenstern; ein Komet ist ein kleiner,
+       heller Stern, sichtbar wird er durch seinen Funkenschweif */
+    rkSchweif(0.06,()=>psBig.emit(p.x,p.y,p.z,v[0],v[1],v[2],c[0]*1.35,c[1]*1.35,c[2]*1.4,L,G,0));
     rkFunken(p,v,G,0.03,L-0.1,110,fu,{life:[0.45,0.9],g:2.2,streu:0.3,mit:0.12});
   }
   rkSchweif(0,()=>{ for(let i=0;i<10;i++){ const d=randDir(), w=rand(1.5,3); psSmall.emit(p.x,p.y,p.z,d[0]*w,d[1]*w,d[2]*w,1,.95,.85,rand(0.15,0.3),2,0); }
@@ -223,11 +231,14 @@ EFF.initiale=function(p,A,B,s,r){
     for(let i=0;i<txt.length;i++){ const g=RK_SCHRIFT[txt[i]]; if(!g) continue; const c=(txt[i]==='+'||txt[i]==='&')?rose:gold;
       for(let y=0;y<7;y++) for(let x=0;x<5;x++) if(g[y][x]==='1') pts.push([(i*6+x-(cols-1)/2)*d,(3-y)*d,c]); } }
   /* ohne Gravur ein Ring - gestreut wie ein echter Ringbruch, kein Punktkreis */
-  if(!pts.length){ const n=34, R=3.6*s; for(let k=0;k<n;k++){ const a=k/n*Math.PI*2+rand(-0.07,0.07), rr=R*rand(0.93,1.07); pts.push([Math.cos(a)*rr,Math.sin(a)*rr,gold]); } }
+  if(!pts.length){ const n=34, R=3.6*s; for(let k=0;k<n;k++){ const a=k/n*Math.PI*2+rand(-0.1,0.1), rr=R*rand(0.9,1.1); pts.push([Math.cos(a)*rr,Math.sin(a)*rr,gold]); } }
   /* Tempo = Lage x K: nach rund zwei Sekunden hat die Form ihre Endgroesse */
   const G=2.2, K=ZIEH*1.05;
   pts.forEach(([x,y,c])=>{
-    const f=rand(0.97,1.03), x1=x+rand(-0.07,0.07)*d, y1=y+rand(-0.07,0.07)*d;
+    /* 28.09., Tom: echt - Nachpruefung: mit 7 % Streuung standen die
+       Buchstaben als Punktraster wie eine Laufschrift am Himmel; von Hand
+       gepackte Sterne liegen ungenauer */
+    const f=rand(0.94,1.06), x1=x+rand(-0.15,0.15)*d, y1=y+rand(-0.15,0.15)*d;
     const v=[(ri[0]*x1+ob[0]*y1)*K*f,(ri[1]*x1+ob[1]*y1)*K*f+0.6,(ri[2]*x1+ob[2]*y1)*K*f], L=rand(2.0,2.4);
     rkSchweif(0.06,()=>psBig.emit(p.x,p.y,p.z,v[0],v[1],v[2],c[0]*1.3,c[1]*1.3,c[2]*1.2,L,G,0));
     rkFunken(p,v,G,0.5,L-0.1,10,[1.1,.9,.5],{life:[0.5,0.9],g:1.6,streu:0.2,mit:0.05});
@@ -331,12 +342,15 @@ EFF.pfeifsterne=function(p,A,B,s){
 /* Halbe-Halbe (Halbe-Halbe, L12): die Kugel ist halb A und halb B
    (echte Half-and-Half-Bombe); nach 1,2 s setzen alle Sterne kurz aus
    und brennen in der anderen Farbe weiter - Farbwechsel mit Dunkel-
-   phase wie im Stern geschichtet (echt.md 1.4). Magenta und Limette. */
+   phase wie im Stern geschichtet (echt.md 1.4). Rot und Gruen.
+   28.09., Tom: echt - Nachpruefung: Magenta/Limette wirkte wie Neonlicht,
+   und alle Sterne wechselten binnen 0,1 s (synchron). Jetzt das klassische
+   Paar Rot/Gruen, der Wechsel streut ueber 0,3 s wie echte Schichtsterne. */
 EFF.halbhalb=function(p,A,B,s){
   const [ri,ob]=rkBild(p), a=rand(-0.52,0.52), nn=[ri[0]*Math.cos(a)+ob[0]*Math.sin(a),ri[1]*Math.cos(a)+ob[1]*Math.sin(a),ri[2]*Math.cos(a)+ob[2]*Math.sin(a)];
   const n=Math.round(140*s*QUAL()), a1=rkMal(A,1.3), b1=rkMal(B,1.3);
   for(let i=0;i<n;i++){
-    const d=randDir(), w=rand(8,9.5)*s, seite=d[0]*nn[0]+d[1]*nn[1]+d[2]*nn[2]>0, tw=1.2+rand(-0.05,0.05);
+    const d=randDir(), w=rand(8,9.5)*s, seite=d[0]*nn[0]+d[1]*nn[1]+d[2]*nn[2]>0, tw=1.2+rand(-0.15,0.15);
     rkStern(psBig,p,[d[0]*w,d[1]*w,d[2]*w],seite?a1:b1,2.4,(st,dt)=>{
       rkFlug(st,dt,ZIEH,2.3); const t=st.alter;
       st.c=(t<tw)===seite?a1:b1;
@@ -415,7 +429,7 @@ EFF.achtblatt=function(p,A,B,s){
 EFF.blinkfeuer=function(p,A,B,s){
   const q=QUAL(), w0=rkMal(A||FW.weiss,1.15), gold=B||FW.gold;
   for(let i=0;i<Math.round(110*s*q);i++){ const d=randDir(), w=rand(6.5,8.5)*s, hz=rand(3,8), ph=rand(0,1), L=rand(3.0,4.2);
-    rkStern(psBig,p,[d[0]*w,d[1]*w,d[2]*w],w0,L,(st,dt)=>{ rkFlug(st,dt,ZIEH,1.8); st.hell=((st.alter*hz+ph)%1)<0.35?1.5:0.03; }); }
+    rkStern(psBig,p,[d[0]*w,d[1]*w,d[2]*w],w0,L,(st,dt)=>{ rkFlug(st,dt,ZIEH,1.8); st.hell=((st.alter*hz+ph)%1)<0.35?1.1:0.03; }); }   // 28.09.: 1,1 statt 1,5 - die Blitze standen als weiche Lichtkugeln am Himmel
   rkSchweif(0.06,()=>{ for(let i=0;i<Math.round(46*s*q);i++){ const d=randDir(), w=rand(2.4,3.6)*s; psBig.emit(p.x,p.y,p.z,d[0]*w,d[1]*w,d[2]*w,gold[0]*1.2,gold[1]*1.2,gold[2]*1.2,rand(2.2,2.8),2.2,0); } });
   later(0.5,()=>schall(p,v=>sfx.crackle(v*0.3)));
 };
@@ -500,12 +514,15 @@ EFF.juwelenpalme=function(p,A,B,s){
    vorher eine Mondscheibe als Flaeche, ueber die ein Schatten zog) */
 EFF.blutmond=function(p,A,B,s){
   const q=QUAL(), sil=A||FW.silber, rot=B||FW.scharlach, G=3.2, fu=[.9,.93,1];
-  for(let i=0;i<Math.round(170*s*q);i++){ const d=randDir(), w=rand(8.8,10.2)*s, v=[d[0]*w,d[1]*w,d[2]*w], L=rand(2.4,3.0);
+  for(let i=0;i<Math.round(110*s*q);i++){ const d=randDir(), w=rand(8.4,10.2)*s, v=[d[0]*w,d[1]*w,d[2]*w], L=rand(2.2,3.0);   // 28.09.: 110 statt 170 x Groesse - 380 gleiche Silberspuren sahen aus wie ein Sprung in den Hyperraum
     rkSchweif(0.4,()=>psBig.emit(p.x,p.y,p.z,v[0],v[1],v[2],sil[0]*1.1,sil[1]*1.1,sil[2]*1.15,L,G,4));
-    if(i%4===0) rkFunken(p,v,G,0.3,L-0.2,10,fu,{life:[0.5,0.9],g:2.6,streu:0.15,mit:0.04}); }
+    if(i%2===0) rkFunken(p,v,G,0.1,L-0.2,18,fu,{life:[0.4,0.8],g:2.6,streu:0.25,mit:0.06}); }
   /* der Blutmond: dichter, kleiner Pistill (28.09. nach dem Rendern: mit
      3-4,2 m/s x Groesse lagen die Sterne als lose rote Punkte im Himmel) */
-  rkSchweif(0.12,()=>{ for(let i=0;i<Math.round(52*s*q);i++){ const d=randDir(), w=rand(1.5,2.3)*s; psBig.emit(p.x,p.y,p.z,d[0]*w,d[1]*w,d[2]*w,rot[0]*1.4,rot[1]*1.3,rot[2]*1.2,rand(3.6,4.2),2.6,0); } });
+  /* 28.09., Tom: echt - Nachpruefung: 3,6-4,2 s bei Schwere 2,6 hing der
+     Kern als ruhige Punktkugel am Himmel; jetzt sinkt er sichtbar und
+     verlischt Stern fuer Stern */
+  rkSchweif(0.12,()=>{ for(let i=0;i<Math.round(52*s*q);i++){ const d=randDir(), w=rand(1.5,2.3)*s; psBig.emit(p.x,p.y,p.z,d[0]*w,d[1]*w,d[2]*w,rot[0]*1.4,rot[1]*1.3,rot[2]*1.2,rand(2.4,3.3),3.4,0); } });
   later(2.6,()=>schall(p,v=>sfx.rieseln(v*0.6,2)));
 };
 
@@ -518,12 +535,15 @@ EFF.blutmond=function(p,A,B,s){
 EFF.nordstern=function(p,A,B,s){
   const q=QUAL(), sil=A||FW.silber, blau=B||FW.blau, G=4.2, fu=[.88,.92,1];
   for(let i=0;i<Math.round(110*s*q);i++){ const d=randDir(), w=rand(5.5,7.5)*s, v=[d[0]*w,d[1]*w*0.85+1.6,d[2]*w], L=rand(3.6,4.4);
-    rkSchweif(1.3,()=>psBig.emit(p.x,p.y,p.z,v[0],v[1],v[2],sil[0]*0.95,sil[1]*0.95,sil[2],L,G,4));
-    if(i%3===0) rkFunken(p,v,G,0.3,L-0.3,10,fu,{life:[0.6,1.1],g:3,streu:0.12,mit:0.03});
+    /* 28.09., Tom: echt - Nachpruefung: 1,3 s Spur zogen bis zur ersten
+       Sekunde gerade Speichen aus der Mitte; der Weidenschleier kommt jetzt
+       mehr aus haengenden Funken als aus der Linie */
+    rkSchweif(0.8,()=>psBig.emit(p.x,p.y,p.z,v[0],v[1],v[2],sil[0]*0.95,sil[1]*0.95,sil[2],L,G,4));
+    if(i%2===0) rkFunken(p,v,G,0.2,L-0.3,16,fu,{life:[0.7,1.3],g:2.4,streu:0.12,mit:0.03});
     /* die Spitze blinkt ab gut der Haelfte des Wegs */
     if(i%2===0){ const ts=L*rand(0.5,0.62), hz=rand(3,8), ph=rand(0,1);
       imBild(ts,()=>{ const e=bahnOrt(p,v,G,ts), w2=bahnTempo(v,G,ts);
-        rkStern(psBig,e,w2,[1.3,1.3,1.35],L-ts,(st,dt)=>{ rkFlug(st,dt,ZIEH,G); st.hell=((st.alter*hz+ph)%1)<0.35?1.5:0.04; }); }); } }
+        rkStern(psBig,e,w2,[1.3,1.3,1.35],L-ts,(st,dt)=>{ rkFlug(st,dt,ZIEH,G); st.hell=((st.alter*hz+ph)%1)<0.35?1.1:0.04; }); }); } }
   rkSchweif(0.06,()=>{ for(let i=0;i<Math.round(46*s*q);i++){ const d=randDir(), w=rand(3.0,4.2)*s; psBig.emit(p.x,p.y,p.z,d[0]*w,d[1]*w,d[2]*w,blau[0]*1.35,blau[1]*1.35,blau[2]*1.35,rand(2.6,3.2),2.2,0); } });
   later(1.4,()=>schall(p,v=>sfx.rieseln(v*0.8,3)));
   later(2.2,()=>schall(p,v=>sfx.crackle(v*0.25)));
@@ -553,6 +573,44 @@ EFF.drachenpalme=function(p,A,B,s){
   }
   schall(p,v=>sfx.bruellen(v*1.1));
   later(2.0,()=>schall(p,v=>sfx.crackle(v*0.4)));
+};
+
+/* Titanschlag (titanraketen, L19): ein harter Titansalut - weisser
+   Blitz, dann spritzt eine Kugel aus Titanfunken auseinander, die schnell
+   bremsen, kurz silbern glitzern und im Fallen verloeschen; eisblaue
+   Sterne mittendrin, zum Schluss knistert ein Kranz. Silber und Eisblau.
+   28.09., Tom: echt - Nachpruefung: EFF.titan der Bibliothek warf 450
+   Silbersterne mit 16-24 m/s - groesser als jede Jumbo-Rakete, und die
+   gleich hellen geraden Spuren sahen aus wie ein Sprung in den Hyperraum */
+EFF.titanschlag=function(p,A,B,s){
+  const q=QUAL(), sil=FW.silber, eis=A||FW.eis||FW.himmel, G=3.4, fu=[.95,.97,1.05];
+  rkSchweif(0,()=>{ for(let i=0;i<3;i++) psHuge.emit(p.x,p.y,p.z,0,0,0,1.3,1.3,1.3,0.05+i*0.03,0,0); });
+  for(let i=0;i<Math.round(120*s*q);i++){ const d=randDir(), w=rand(6.5,9)*s, v=[d[0]*w,d[1]*w,d[2]*w], L=rand(1.3,2.0);
+    rkSchweif(0.22,()=>psBig.emit(p.x,p.y,p.z,v[0],v[1],v[2],sil[0]*1.2,sil[1]*1.2,sil[2]*1.25,L,G,4));
+    if(i%3===0) rkFunken(p,v,G,0.04,L*0.8,26,fu,{life:[0.25,0.55],g:3,streu:0.35,mit:0.1}); }
+  rkSchweif(0.05,()=>{ for(let i=0;i<Math.round(28*s*q);i++){ const d=randDir(), w=rand(4,6.5)*s; psBig.emit(p.x,p.y,p.z,d[0]*w,d[1]*w,d[2]*w,eis[0]*1.3,eis[1]*1.3,eis[2]*1.3,rand(1.2,1.6),G,0); } });
+  later(0.8,()=>{ for(let i=0;i<Math.round(30*q);i++){ const d=randDir(), r0=rand(5,7)*s; later(rand(0,0.5),()=>knisterPop(p.x+d[0]*r0,p.y+d[1]*r0-1.5,p.z+d[2]*r0,{funken:4,tempo:rand(1.5,2.5),laut:0.25,leise:i%3>0})); } });
+  schall(p,v=>later(0.03,()=>sfx.crack(v)));
+};
+
+/* Pupswolke (Furzrakete »Donnerbalken«, L18): ein muedes Pff, eine
+   schmutzig-graue Rauchwolke, aus der ein schlapper Rossschweif aus
+   dunkler Kohleglut nach unten sackt - jeder Stern zieht rieselnde
+   Orangefunken und verlischt im Fallen. Bernstein und Orange.
+   (28.09., Tom: echt - Nachpruefung: vorher schwebten 400 braune Punkte
+   mit negativer Schwere drei Sekunden als stehende Punktwolke - braune
+   Sterne gibt es nicht, und Sterne steigen nicht von selbst) */
+EFF.pupswolke=function(p,A,B,s){
+  const q=QUAL(), gl=A||FW.bernstein, or=B||FW.orange, fu=[1,.56,.2], G=5.5;
+  /* Rauch nachts: nur ein schwacher, dunkler Schleier (Probebild: mit
+     Deckkraft 0,55 stand eine helle Wattewolke am Himmel) */
+  rauchball(p,{r:2.6*s,quellen:0.7,steigen:0.25,wind:[0.35,0.1],c:[0.1,0.095,0.08],a:0.22,n:7,dauer:4});
+  for(let i=0;i<Math.round(34*s*q);i++){ const a=rand(0,Math.PI*2), el=rand(-0.9,0.35), w=rand(3.2,5.2)*s,
+      v=[Math.cos(a)*Math.cos(el)*w,Math.sin(el)*w,Math.sin(a)*Math.cos(el)*w], L=rand(1.8,2.6), c=i%3?gl:or;
+    rkSchweif(0.1,()=>psBig.emit(p.x,p.y,p.z,v[0],v[1],v[2],c[0]*0.8,c[1]*0.7,c[2]*0.6,L,G,4));
+    if(i%2===0) rkFunken(p,v,G,0.08,L*0.9,30,fu,{life:[0.4,0.8],g:3,streu:0.3,mit:0.1}); }
+  /* ein paar Glutbrocken spritzen hoch und fallen zurueck */
+  rkSchweif(0.05,()=>{ for(let i=0;i<Math.round(12*q);i++){ const d=randDir(), w=rand(5,8)*s; psMid.emit(p.x,p.y,p.z,d[0]*w,Math.abs(d[1])*w,d[2]*w,or[0],or[1]*0.8,or[2],rand(0.8,1.3),6,4); } });
 };
 
 /* Supernova (Jumbo »Supernova«, L25): nach der zweiten Stufe oben ein
@@ -635,10 +693,13 @@ Object.assign(STEIG_ART,{
    streuen erst, wenn die Rakete das Rohr verlassen hat (voll ab 1,2 m). */
 const rkEng=(r,q)=>Math.min(1,Math.max(0,(q[1]-r.y0)/1.2));
 Object.assign(STEIG_ART,{
-  farbflamme:{spur(r,dt,ort){ const c=r.trail, k=0.75*(1+0.2*Math.sin(r.alter*Math.PI*24)), v=r.v;
+  /* 28.09., Tom: echt - Nachpruefung: die Flamme pulste mit festen 12 Hz
+     und alle 0,3 s blitzte ein farbiges Licht auf (Lauflicht-Takt); jetzt
+     flackert sie unregelmaessig und leuchtet nur den eigenen Rauch an */
+  farbflamme:{spur(r,dt,ort){ const c=r.trail, k=0.75*rand(0.8,1.15), v=r.v;
     for(let n=jeSek(r,'a',45,dt);n>0;n--){ const q=ort(), f=rkEng(r,q); psHuge.emit(q[0]+rand(-.1,.1)*f,q[1],q[2]+rand(-.1,.1)*f,-v.x*0.06+rand(-.3,.3)*f,-v.y*0.06,-v.z*0.06+rand(-.3,.3)*f,c[0]*k,c[1]*k,c[2]*k,rand(0.12,0.2),0,0); }
     for(let n=jeSek(r,'b',200,dt);n>0;n--){ const q=ort(), f=rkEng(r,q); psBig.emit(q[0]+rand(-.15,.15)*f,q[1]-rand(0,1.2)*f,q[2]+rand(-.15,.15)*f,rand(-.4,.4)*f,rand(-1,0),rand(-.4,.4)*f,c[0]*k,c[1]*k,c[2]*k,rand(0.1,0.15),0,0); }
-    if(FW_UHR-(STEIG_ART.farbflamme.licht||-9)>0.3){ STEIG_ART.farbflamme.licht=FW_UHR; flash(r.p,c,0.9,0.35); } }},
+    for(let n=jeSek(r,'c',60,dt);n>0;n--){ const q=ort(), f=rkEng(r,q); psMid.emit(q[0],q[1],q[2],rand(-.5,.5)*f,rand(-1.6,-.3),rand(-.5,.5)*f,1,.6,.22,rand(0.3,0.55),2.4,4); } }},
   goldsaeule:{spur(r,dt,ort){ const c=r.trail;
     for(let n=jeSek(r,'a',240,dt);n>0;n--){ const q=ort(), f=rkEng(r,q); psBig.emit(q[0]+rand(-.12,.12)*f,q[1],q[2]+rand(-.12,.12)*f,rand(-.15,.15)*f,rand(-.35,0),rand(-.15,.15)*f,c[0],c[1]*rand(.85,1),c[2],rand(1.0,1.4),0.3,0); }
     for(let n=jeSek(r,'b',50,dt);n>0;n--){ const q=ort(), f=rkEng(r,q); psMid.emit(q[0],q[1],q[2],rand(-.8,.8)*f,rand(-2,-.5),rand(-.8,.8)*f,1,.62,.2,rand(0.6,1.1),3,4); } }}
@@ -651,13 +712,39 @@ Object.assign(STEIG_ART,{
     for(let n=jeSek(r,'a',100,dt);n>0;n--){ const q=ort(), f=rkEng(r,q); psHuge.emit(q[0],q[1],q[2],-v.x*0.15+rand(-.4,.4)*f,-v.y*0.15,-v.z*0.15+rand(-.4,.4)*f,c[0]*1.4,c[1]*1.4,c[2]*1.4,rand(0.2,0.3),-0.5,0); }
     for(let n=jeSek(r,'b',15,dt);n>0;n--){ const q=ort(), f=rkEng(r,q); psBig.emit(q[0],q[1],q[2],rand(-1,1)*f,rand(-1,0.5),rand(-1,1)*f,b[0],b[1],b[2],1.2,3,4); } }}
 });
+/* Kohle (Sternschnuppe): der einfachste Treibsatz - ein kurzer, dichter
+   Schweif aus orangegoldenen Kohlefunken, die schnell verloeschen.
+   28.09., Tom: echt - vorher stieg die kleinste Rakete ganz ohne Schweif
+   (steig:'keiner') unsichtbar in den Himmel */
+Object.assign(STEIG_ART,{
+  kohle:{spur(r,dt,ort){ const c=r.trail;
+    for(let n=jeSek(r,'a',150,dt);n>0;n--){ const q=ort(), f=rkEng(r,q); psMid.emit(q[0],q[1],q[2],rand(-.35,.35)*f,rand(-1.3,-0.2),rand(-.35,.35)*f,c[0],c[1]*rand(.8,1),c[2],rand(0.22,0.45),2.4,4); } }}
+});
+/* Stotter (Furzrakete, nur sie): Ablauf wie in der Bibliothek - dreimal
+   geht der Satz aus, die Rakete sackt ab und zuendet mit einem Pups neu.
+   28.09., Tom: echt - Nachpruefung (Test rkecht.js): jeder Pups liess 8
+   graubraune Leuchtpunkte mit negativer Schwere 1-1,6 s aufsteigen und
+   30 braune Sterne spritzen; jetzt ist der Pups ein kleiner dunkler
+   Rauchball mit orangen Kohlefunken, der Schweif Kohle statt Braun. */
+Object.assign(STEIG_ART,{
+  stotter:{vor(r,dt){ const T0=r.fuse0-0.9;
+      if(!r.stall&&(r.stn||0)<3&&r.alter>=T0*((r.stn||0)+1)/4+0.3*(r.stn||0)){ r.stall={bis:r.alter+0.3,v:r.v.clone()}; r.v.set(r.v.x*0.15,-3,r.v.z*0.15); r.stn=(r.stn||0)+1; }
+      if(r.stall){ if(r.alter>=r.stall.bis){ r.v.copy(r.stall.v); r.stall=null; const p=r.p;
+          rkSchweif(0,()=>{ for(let i=0;i<Math.round(24*QUAL());i++){ const d=randDir(), c=i%3?FW.orange:FW.bernstein; psMid.emit(p.x,p.y-0.2,p.z,d[0]*3,d[1]*2-1.5,d[2]*3,c[0],c[1]*0.8,c[2],rand(0.3,0.6),3,4); } });
+          rauchball({x:p.x,y:p.y-0.3,z:p.z},{r:0.9,quellen:0.4,steigen:0.15,c:[0.1,0.095,0.08],a:0.3,n:3,dauer:1.8});
+          if(sfx.pfffft) sfx.pfffft(distVol(p)*[0.6,0.8,1][Math.min(2,r.stn-1)]); }
+        else r.v.y+=6*dt; } },
+    spur(r,dt,ort){ if(r.stall) return; const c=r.trail; for(let n=jeSek(r,'a',80,dt);n>0;n--){ const q=ort(); psMid.emit(q[0],q[1],q[2],rand(-.3,.3),rand(-1,0),rand(-.3,.3),c[0]*1.3,c[1]*1.1,c[2],rand(0.3,0.5),2.4,4); } }}
+});
+Object.assign(STEIG_FARBE,{stotter:[1,.5,.16]});
 Object.assign(STEIG_SPUR_AB,{farbflamme:0});
-Object.assign(STEIG_FARBE,{goldregen:[1,.72,.3],hummel:[1,.74,.34],farbkomet:[1,.62,.25],flitter:[.9,.94,1],titanknister:[1,1,1],kobana:[.86,.9,1],goldsaeule:[1,.7,.26],drachenfeuer:[1,.35,.08]});
+Object.assign(STEIG_FARBE,{kohle:[1,.56,.2],goldregen:[1,.72,.3],hummel:[1,.74,.34],farbkomet:[1,.62,.25],flitter:[.9,.94,1],titanknister:[1,1,1],kobana:[.86,.9,1],goldsaeule:[1,.7,.26],drachenfeuer:[1,.35,.08]});
 Object.assign(STEIG_KLANG,{
   goldregen(r,v){ sfx.zischen(v*0.4,r.fuse+0.1); },
   hummel(r,v){ if(typeof tonGen==='function') tonGen({f:170,typ:'sawtooth',lp:900,am:23,amTiefe:0.6,dur:r.fuse+0.1,vol:0.02*v,an:0.1}); sfx.zischen(v*0.3,r.fuse); },
   farbkomet:STEIG_TON.farbspur, flitter:STEIG_TON.glasklang, titanknister:STEIG_TON.ratter,
   kobana(r,v){ sfx.fizz(v*0.8); },
+  kohle(r,v){ sfx.zischen(v*0.3,r.fuse); },
   farbflamme:STEIG_TON.farbspur, drachenfeuer:STEIG_TON.drachenschweif
 });
 
@@ -668,15 +755,15 @@ Object.assign(STEIG_KLANG,{
    --------------------------------------------------------- */
 Object.assign(RAKETEN_KL,{
   glueckrakete   :{n:1,gap:0,sz:0.85,pw:-6, fuse:1.2, steig:'gold',     eff:['fallschirm'],farbRotation:['rot','gruen','zitrone','himmel','weiss'],knall:'plopp',bruchOpt:{kern:false,nachglitzer:false,flash:0.2},dauer:10},
-  raketenklein   :{n:1,gap:0,sz:0.88,pw:-5, fuse:1.25,steig:'keiner',   A:'silber',B:'himmel',eff:['schnuppe'],knall:'rakPff',bruchOpt:{kern:false,nachglitzer:false,flash:0.3},dauer:3.8},
+  raketenklein   :{n:1,gap:0,sz:0.88,pw:-5, fuse:1.25,steig:'kohle',      A:'silber',B:'himmel',eff:['schnuppe'],knall:'rakPff',bruchOpt:{kern:false,nachglitzer:false,flash:0.3},dauer:3.8},
   glitzerraketen :{n:1,gap:0,sz:0.92,pw:-4, fuse:1.2, steig:'tremolant',A:'limette',B:'gold',eff:['garbe'],knall:'rakPuff',bruchOpt:{kern:false,nachglitzer:false,flash:0.35},dauer:4.4},
-  blanko         :{n:1,gap:0,sz:0.95,pw:-3.5,fuse:1.2,steig:'silber',   th:'gold',eff:['goldglitzer'],dauer:4.5},
+  blanko         :{n:1,gap:0,sz:0.95,pw:-3.5,fuse:1.2,steig:'silber',   th:'gold',eff:['goldglitzer'],bruchOpt:{kern:false},dauer:4.5},
   gravur         :{n:1,gap:0,sz:0.98,pw:-3, fuse:1.25,steig:'goldregen',A:'gold',B:'rose',eff:['initiale'],bruchOpt:{kern:false,nachglitzer:false,flash:0.5},dauer:4.8},
-  raketen        :{n:1,gap:0,sz:1.0, pw:-3, fuse:1.25,steig:'hummel',   A:'tuerkis',B:'gold',eff:['hakenschlag'],bruchOpt:{nachglitzer:false},dauer:4},
-  silberpfeil    :{n:1,gap:0,sz:1.02,pw:-2.5,fuse:0.95,steig:'pfeil',   A:'weiss',B:'silber',eff:['silberspinne'],bruchOpt:{nachglitzer:false,flash:1.1},dauer:3},
+  raketen        :{n:1,gap:0,sz:1.0, pw:-3, fuse:1.25,steig:'hummel',   A:'tuerkis',B:'gold',eff:['hakenschlag'],bruchOpt:{kern:false,nachglitzer:false},dauer:4},
+  silberpfeil    :{n:1,gap:0,sz:1.02,pw:-2.5,fuse:0.95,steig:'pfeil',   A:'weiss',B:'silber',eff:['silberspinne'],bruchOpt:{kern:false,nachglitzer:false,flash:1.1},dauer:3},
   kometenraketen :{n:1,gap:0,sz:1.05,pw:-2, fuse:1.3, steig:'komet',    A:'gold',B:'blau',eff:['kometenkette'],bruchOpt:{kern:false,nachglitzer:false,flash:0.4},dauer:4.8},
-  pfeifraketen   :{n:1,gap:0,sz:1.05,pw:-2, fuse:1.3, steig:'pfeif',    pfeif:true,A:'rot',B:'weiss',eff:['pfeifsterne'],bruchOpt:{nachglitzer:false},dauer:3.8},
-  farbenrausch   :{n:1,gap:0,sz:1.1, pw:-1, fuse:1.25,steig:'farbflamme',A:'magenta',B:'limette',eff:['halbhalb'],bruchOpt:{nachglitzer:false},dauer:4.4},
+  pfeifraketen   :{n:1,gap:0,sz:1.05,pw:-2, fuse:1.3, steig:'pfeif',    pfeif:true,A:'rot',B:'weiss',eff:['pfeifsterne'],bruchOpt:{kern:false,nachglitzer:false},dauer:3.8},
+  farbenrausch   :{n:1,gap:0,sz:1.1, pw:-1, fuse:1.25,steig:'farbflamme',A:'rot',B:'gruen',eff:['halbhalb'],bruchOpt:{kern:false,nachglitzer:false},dauer:4.4},
   raketengold    :{n:1,gap:0,sz:1.3, pw:0.8,fuse:1.3, steig:'brokat',   th:'koenig',dick:1,eff:['nishiki'],bruchOpt:{kern:false},dauer:5},
   knisterstern   :{n:1,gap:0,sz:1.34,pw:1.2,fuse:1.25,steig:'knister',  A:'silber',B:'gold',eff:['spaetzuender'],knall:'rakPff',bruchOpt:{kern:false,nachglitzer:false,flash:0.15},dauer:5.6},
   smaragd        :{n:1,gap:0,sz:1.38,pw:1.6,fuse:1.3, steig:'farbkomet',A:'gruen',B:'mint',eff:['achtblatt'],bruchOpt:{kern:false,nachglitzer:false,flash:0.35},dauer:4.4},
@@ -685,9 +772,9 @@ Object.assign(RAKETEN_KL,{
   kristall       :{n:1,gap:0,sz:1.5, pw:3.5,fuse:1.3, steig:'flitter',  A:'himmel',B:'weiss',dick:1,eff:['glasbruch'],bruchOpt:{kern:false,nachglitzer:false,flash:0.35},dauer:4.4},
   /* Furzrakete »Donnerbalken«: normaler Raketenweg, der Witz steckt im
      Aufstieg - sie setzt dreimal aus und pupst sich weiter */
-  furzrakete     :{n:1,gap:0,sz:1.55,pw:4.2,fuse:1.6, steig:'stotter',  A:'braun',B:'sumpf',eff:['furz'],knall:'furz',bruchOpt:{kern:false,nachglitzer:false}},
+  furzrakete     :{n:1,gap:0,sz:1.55,pw:4.2,fuse:1.6, steig:'stotter',  A:'bernstein',B:'orange',eff:['pupswolke'],knall:'furz',bruchOpt:{kern:false,nachglitzer:false}},
   regenbogenkrone:{n:1,gap:0,sz:1.65,pw:4.6,fuse:1.35,steig:'goldsaeule',A:'blau',B:'gold',dick:2,eff:['saphirkrone'],bruchOpt:{kern:false,nachglitzer:false},dauer:5.4},
-  titanraketen   :{n:1,gap:0,sz:1.75,pw:5.5,fuse:1.35,steig:'titanknister',th:'eis',dick:1,eff:['titan'],bruchOpt:{kern:false},dauer:5},
+  titanraketen   :{n:1,gap:0,sz:1.75,pw:5.5,fuse:1.35,steig:'titanknister',th:'eis',dick:1,eff:['titanschlag'],bruchOpt:{kern:false},dauer:5},
   jumbogold      :{n:1,gap:0,sz:2.2, pw:8,  fuse:1.4, steig:'glut',     th:'koenig',dick:2,trail:'bernstein',eff:['juwelenpalme'],bruchOpt:{kern:false},dauer:6},
   silbermond     :{n:1,gap:0,sz:2.25,pw:9,  fuse:1.4, steig:'titanspur',A:'silber',B:'scharlach',dick:2,eff:['blutmond'],knall:'rakTief',bruchOpt:{kern:false,nachglitzer:false,flash:0.6},dauer:7.5},
   jumboleiter    :{n:1,gap:0,sz:2.3, pw:10, fuse:1.45,steig:'kobana',   A:'silber',B:'blau',dick:2,eff:['nordstern'],bruchOpt:{kern:false,nachglitzer:false},dauer:7.5},
@@ -718,19 +805,15 @@ if(typeof RAKETEN_LOOK!=='undefined') Object.assign(RAKETEN_LOOK,{
 /* Schweiflaenge der Bruchsterne, wenn der Bruch sie nicht selbst setzt:
    Farbsterne nur mit kurzer Flamme (echt.md 1.2) */
 Object.assign(EFF_SCHWEIF,{fallschirm:0,schnuppe:0.06,garbe:0.08,initiale:0.06,hakenschlag:0.05,silberspinne:0.1,kometenkette:0.08,halbhalb:0.06,spaetzuender:0,
-  achtblatt:0.08,blinkfeuer:0,silberregen:1.2,glasbruch:0.06,saphirkrone:0.1,juwelenpalme:0.12,blutmond:0.4,nordstern:0.7,drachenpalme:0.1,supernova:0.1});
-/* Titan (titanraketen, nur Raketen - Liste EXKL in steigerung.js): die
-   Silberspur 0,4 statt 0,8 s - mit 0,8 s standen 10 m lange gerade
-   Silberstriche am Himmel (Probebild 28.09.) */
-EFF_SCHWEIF.titan=0.4;
+  achtblatt:0.08,blinkfeuer:0,pupswolke:0.1,titanschlag:0.22,silberregen:1.2,glasbruch:0.06,saphirkrone:0.1,juwelenpalme:0.12,blutmond:0.25,nordstern:0.55,drachenpalme:0.1,supernova:0.1});
 /* Familien fuer effPassen: Glitzer- und Haengebilder, Knister */
 Object.assign(EFF_FAMILIE,{schnuppe:'haenger',garbe:'haenger',silberspinne:'knister',kometenkette:'haenger',hakenschlag:'knister',silberregen:'haenger',
-  glasbruch:'knister',saphirkrone:'kugel',juwelenpalme:'haenger',blutmond:'kugel',nordstern:'haenger',drachenpalme:'haenger',supernova:'kugel',blinkfeuer:'knister'});
+  glasbruch:'knister',pupswolke:'spass',titanschlag:'kugel',saphirkrone:'kugel',juwelenpalme:'haenger',blutmond:'kugel',nordstern:'haenger',drachenpalme:'haenger',supernova:'kugel',blinkfeuer:'knister'});
 
 /* Signaturen: Bruch und Aufstieg, beide nur bei dieser Rakete */
 Object.assign(SIGNATUR,{
   glueckrakete   :{eff:'fallschirm',steig:'gold',text:'Ein Leuchtsatz haengt am Fallschirm, sinkt acht Sekunden pendelnd, tropft und faerbt den Boden.'},
-  raketenklein   :{eff:'schnuppe',steig:'keiner',text:'Dunkler Aufstieg, oben ziehen fuenf Silberkometen mit langem Glitzerschweif wie Sternschnuppen nach aussen.'},
+  raketenklein   :{eff:'schnuppe',steig:'kohle',text:'Kurzer Kohlefunken-Schweif, oben ziehen fuenf Silberkometen mit langem Glitzerschweif wie Sternschnuppen nach aussen.'},
   glitzerraketen :{eff:'garbe',steig:'tremolant',text:'Glitzernder Aufstieg, oben eine Garbe aus Limette und Gold, die weiter steigt und in Boegen faellt.'},
   blanko         :{eff:'goldglitzer',steig:'silber',text:'Das unbeschriebene Blatt: schlichter Silberschweif, Goldglitzer mit haengenden Glitzervorhaengen.'},
   gravur         :{eff:'initiale',steig:'goldregen',text:'Ein Goldschleier traegt sie hoch, oben gehen die Initialen als Musterbombe in Gold auf.'},
@@ -738,18 +821,18 @@ Object.assign(SIGNATUR,{
   silberpfeil    :{eff:'silberspinne',steig:'pfeil',text:'Startknall, doppelt so schnell, gleissender Titanschweif, oben eine harte Silberspinne.'},
   kometenraketen :{eff:'kometenkette',steig:'komet',text:'Goldkometen spalten sich zweimal - eine Kette aus immer kleineren Kometen, die blau verglimmen.'},
   pfeifraketen   :{eff:'pfeifsterne',steig:'pfeif',text:'Pfeift im Steigen und im Bruch: aus einem roten Kern schrauben sich Pfeifsterne davon und knacken.'},
-  farbenrausch   :{eff:'halbhalb',steig:'farbflamme',text:'Halb Magenta, halb Limette - kurz dunkel, dann tauschen die Haelften.'},
+  farbenrausch   :{eff:'halbhalb',steig:'farbflamme',text:'Halb Rot, halb Gruen - kurz dunkel, dann tauschen die Haelften.'},
   raketengold    :{eff:'nishiki',steig:'brokat',text:'Flimmernder Brokat-Aufstieg, Goldkugel mit violetten Spitzen.'},
   knisterstern   :{eff:'spaetzuender',steig:'knister',text:'Scheinbruch wie ein Blindgaenger, Stille - dann eine riesige Knisterwand.'},
   smaragd        :{eff:'achtblatt',steig:'farbkomet',text:'Gruener Kometenkopf im Aufstieg, oben acht Buendel in drei Gruentoenen - geschliffen wie ein Smaragd.'},
   blinkstern     :{eff:'blinkfeuer',steig:'blink',text:'Weisse Blinksterne, jeder im eigenen Takt, um eine goldene Laterne.'},
   silberregen    :{eff:'silberregen',steig:'rieselschweif',text:'Silberne Kamuro-Glocke, aus der ein feiner Silberregen rieselt.'},
   kristall       :{eff:'glasbruch',steig:'flitter',text:'Singt wie ein Weinglas; oben zerspringt jeder eisblaue Stern klirrend in weisse Splitter.'},
-  furzrakete     :{eff:'furz',steig:'stotter',text:'Kommt nur muehsam hoch: dreimal geht ihr die Luft aus, dreimal hilft ein Pups nach.'},
+  furzrakete     :{eff:'pupswolke',steig:'stotter',text:'Kommt nur muehsam hoch: dreimal geht ihr die Luft aus, dreimal hilft ein Pups nach.'},
   regenbogenkrone:{eff:'saphirkrone',steig:'goldsaeule',text:'Ein Goldstamm waechst hoch, oben eine Krone aus saphirblauen Sternen mit goldenen Funkenschweifen.'},
-  titanraketen   :{eff:'titan',steig:'titanknister',text:'Kreischend-knisternder Titanschweif, oben ein harter Schlag in eine riesige Silberkugel.'},
+  titanraketen   :{eff:'titanschlag',steig:'titanknister',text:'Kreischend-knisternder Titanschweif, oben ein harter Titanschlag: Silberfunken, eisblaue Sterne, ein Knisterkranz.'},
   jumbogold      :{eff:'juwelenpalme',steig:'glut',text:'Ein Glutstamm waechst hoch, oben eine Goldpalme mit einem violetten Juwel an jeder Spitze.'},
-  silbermond     :{eff:'blutmond',steig:'titanspur',text:'Ein silberner Vollmond verglimmt, sein kupferroter Kern bleibt als Blutmond stehen.'},
+  silbermond     :{eff:'blutmond',steig:'titanspur',text:'Ein silberner Vollmond verglimmt, sein kupferroter Kern sinkt als Blutmond hinterher.'},
   jumboleiter    :{eff:'nordstern',steig:'kobana',text:'Vier Silberblueten im Aufstieg, oben eine silberne Brokatkrone mit blauem Kern und Blinkern.'},
   feuerdrache    :{eff:'drachenpalme',steig:'drachenfeuer',text:'Fauchender Flammenschweif, oben Feuerball und rote Palme, deren Wedel als Glut abtropfen.'},
   supernova      :{eff:'supernova',steig:'zweistufe',text:'Zweistufig; oben ein Titansalut und die groesste violette Chrysantheme, die zu Glitzer zerfaellt.'}

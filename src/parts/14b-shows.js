@@ -64,6 +64,12 @@ function show(kopf,phasen){ return Object.assign(phasen,kopf||{}); }
    der Zerlegerblitz im Sternbild nicht zu sehen. */
 const SHOW_BLITZ=0.4;
 const showBlitz=bo=>Object.assign({flash:SHOW_BLITZ,kern:false},bo||{});
+/* Moerserblitz der Kugelbomben aus einem Verbund (Finale Grande): der
+   Abschussblitz der Bibliothek (Punktlicht 6-8) tauchte Tisch, Wand und
+   Haeuser bei jedem Schuss in Weiss - im Verbund gedaempft wie die Brueche.
+   BLITZ_K gilt nur waehrend des Aufrufs (14b, show). */
+let BLITZ_K=1;
+{ const flashRoh=flash; flash=function(p,c,power,dur){ return flashRoh(p,c,power*BLITZ_K,dur); }; }
 /* Funkenfaden: hinter jedem Stern der Liste [{v,L}] loesen sich alle
    0,08 s Titan-/Kohlefunken, die kurz flackern, fallen und verloeschen -
    ein koerniger Schweif statt einer durchgehenden Linie (28.09., Tom: echt).
@@ -386,8 +392,8 @@ function playShow(o,phases,prod,tag){
         else if(ph.mine||ph.nurMine) mine(os,mA,mB,(ph.mineSz||0.8)*Rz.sz);
         if(!ph.nurMine){
           /* bomb: echte Kugelbombe mit Nachbruechen statt einer Rakete */
-          if(ph.bomb) kugelbombe(os,ph.bomb,{A:mA,B:mB,eff:ph.bombEff||['dahlie','dahlie','chrys','mehrring','kamuro'][ph.bomb-1],stufen:ph.bombStufen,stufenRel:true,
-            schlaege:ph.schlaege,steig:ph.steig,bruchOpt:showBlitz(ph.bruchOpt),par,tag});
+          if(ph.bomb){ BLITZ_K=SHOW_BLITZ; try{ kugelbombe(os,ph.bomb,{A:mA,B:mB,eff:ph.bombEff||['dahlie','dahlie','chrys','mehrring','kamuro'][ph.bomb-1],stufen:ph.bombStufen,stufenRel:true,
+            schlaege:ph.schlaege,steig:ph.steig,bruchOpt:showBlitz(ph.bruchOpt),par,tag}); } finally { BLITZ_K=1; } }
           /* perle: Roemisches Licht - eine Leuchtkugel direkt aus dem Rohr */
           else if(ph.perle) perleSchuss(os,mA,sz,{eff:perleEff,ang:mm&&mm!=='gerade'?ang:(perleEff||ph.rohrFolge?0:undefined),dir:dir===undefined?FANDIR:dir,B:mB,i,kette,splitDreh:ph.splitDreh});
           else shot(os,opt);

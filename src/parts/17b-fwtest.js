@@ -9,9 +9,9 @@
    Datei samt Aufrufen entfernen). Tom sagt Bescheid, wann.
    ========================================================= */
 const FW_DEV=true;
-let fwTestAn=false, fwTestBoxen=[], fwTestMarken=[];
+let fwTestAn=false, fwTestBoxen=[], fwTestMarken=[], vfAn=false;
 /* Welche Uhrzeit das Licht sieht: im Testmodus immer 22 Uhr */
-function todUhr(){ return FW_DEV&&fwTestAn?Math.max(clock,1320):clock; }
+function todUhr(){ return FW_DEV&&(fwTestAn||vfAn)?Math.max(clock,1320):clock; }
 /* Stufen nach Level (Tom, 28.09.: "welches Level was ist ... die hat
    man am Anfang, die in der Mitte, das sind die wirklich krassen
    Sachen" - damit die Steigerung beim Testen sichtbar wird) */
@@ -100,4 +100,112 @@ function fwTestSchalten(){
   pl.x=-3.0; pl.z=-11.8; yaw=Math.atan2(4,6); pitch=-0.18;
   if(laptopOpen) closeLaptop(true); if(typeof handyOpen!=='undefined'&&handyOpen) closeHandy();
   toast(`Teststation: Nacht, ${n} Kartons nach Level sortiert – vorne links Level 1, hinten die Königsklasse.`,'money');
+}
+
+/* =========================================================
+   FEUERWERK-VORFUEHRUNG - NUR FUER DIE ENTWICKLUNG (Tom, 29.09.)
+   "alle Feuerwerke aufgelistet, Level und Name ... ich druecke eine
+   Taste, dann kommt das naechste Feuerwerk ... einzeln, nicht
+   automatisch ... der Name muss klar sichtbar sein" - in 15 Minuten
+   einmal durch das ganze Sortiment, ohne Kartons zu schleppen.
+   Gezuendet wird auf den echten Stationen (Tisch, Rohre, Moerser):
+   Effekt, Abschussort und Klang sind genau wie im Spiel.
+   Tasten: Leertaste/Enter zuenden (dann das naechste), Pfeil rechts
+   ueberspringen, Pfeil links zurueck, R nochmal, 1 gut, 2 aendern,
+   L Liste, Esc beenden. Der Stand (Nummer, Notizen) bleibt gemerkt.
+   ========================================================= */
+let vfIdx=0, vfListe=[], vfEl=null, vfLetzt=null, vfNoten={}, vfListeAuf=false;
+const VF_KEY='bb_vorfuehrung', VF_ART={tisch:'Tisch',rampe:'Rohre',moerser:'Mörser'};
+function vfLaden(){ try{ const d=JSON.parse(localStorage.getItem(VF_KEY)||'{}'); vfIdx=d.i|0; vfNoten=d.n||{}; }catch(e){ vfIdx=0; vfNoten={}; } }
+function vfMerken(){ try{ localStorage.setItem(VF_KEY,JSON.stringify({i:vfIdx,n:vfNoten})); }catch(e){} }
+function vorfuehrungSchalten(){ if(!FW_DEV) return; if(vfAn) vorfuehrungAus(); else vorfuehrungAn(); }
+function vorfuehrungAn(){
+  if(fwTestAn) fwTestSchalten();
+  if(!S.up.testfeld){ S.up.shop_halb=true; S.up.testfeld=true; if(typeof applyZonen==='function') applyZonen(); }
+  vfListe=fwTestProdukte(); vfLaden(); vfIdx=clamp(vfIdx,0,Math.max(0,vfListe.length-1)); vfLetzt=null;
+  vfAn=true; lastF=-1; applyTOD(); clearStations();
+  /* hinter das Zuendpult, Blick ueber die Stationen in den Himmel */
+  const m=testfeldMitte(); let px=m.x, pz=m.z+11;
+  if(typeof pultHit!=='undefined'&&pultHit&&pultHit.parent){ const w=new THREE.Vector3(); pultHit.parent.getWorldPosition(w);
+    const dx=w.x-m.x, dz=w.z-m.z, l=Math.hypot(dx,dz)||1; px=w.x+dx/l*1.6; pz=w.z+dz/l*1.6; }
+  pl.x=px; pl.z=pz; yaw=Math.atan2(-(m.x-px),-(m.z-pz)); pitch=0.42;
+  if(laptopOpen) closeLaptop(true); if(typeof handyOpen!=='undefined'&&handyOpen) closeHandy();
+  vfZeigen();
+}
+function vorfuehrungAus(){
+  vfAn=false; vfListeAuf=false; vfMerken(); lastF=-1; applyTOD();
+  if(vfEl){ vfEl.remove(); vfEl=null; }
+  toast('Vorführung beendet. Nummer und Notizen sind gemerkt.');
+}
+/* ein Produkt auf seine Station stellen und sofort zuenden */
+function vfZuenden(t){
+  if(!t) return false;
+  const sid=stationOf(t), st=stations[sid]; if(!st) return false;
+  /* was noch unbenutzt dasteht, raeumen - Brennendes laeuft weiter */
+  st.items.filter(it=>it.state==='bereit').forEach(it=>itemEntfernen(st,it));
+  const alt=S.carrying, n0=st.items.length; S.carrying={type:t,count:2,q:1};
+  placeOnStation(st); S.carrying=alt; if(typeof updateCarry==='function') updateCarry();
+  const it=st.items.length>n0?st.items[st.items.length-1]:null;
+  /* Platz belegt (gleiches Moerserrohr brennt noch): dann mitten auf der Station */
+  if(it) zuendeItem(st,it,true); else igniteType(t,padOf(t));
+  vfLetzt=t; drawPult(); return true;
+}
+function vfNaechstes(){ if(!vfListe.length) return; vfZuenden(vfListe[vfIdx]); vfIdx=Math.min(vfListe.length,vfIdx+1); vfMerken(); vfZeigen(); }
+function vfSpringen(d){ vfIdx=clamp(vfIdx+d,0,vfListe.length); vfMerken(); vfZeigen(); }
+function vfNote(w){ const t=vfLetzt||vfListe[vfIdx]; if(!t) return; vfNoten[t]=vfNoten[t]===w?undefined:w; if(!vfNoten[t]) delete vfNoten[t]; vfMerken(); vfZeigen(); }
+function vfText(){
+  return vfListe.map((t,i)=>`${String(i+1).padStart(3)}  L${String(P[t].lvl).padStart(2)}  ${P[t].short.padEnd(22)} ${vfNoten[t]==='gut'?'gut':vfNoten[t]==='aendern'?'ÄNDERN':''}`).join('\n');
+}
+/* Tasten - true: verbraucht */
+function vfTaste(e){
+  if(!vfAn||e.repeat) return vfAn&&['Space','Enter','ArrowLeft','ArrowRight'].includes(e.code);
+  const c=e.code;
+  if(c==='Space'||c==='Enter'){ e.preventDefault(); vfNaechstes(); return true; }
+  if(c==='ArrowRight'){ e.preventDefault(); vfSpringen(1); return true; }
+  if(c==='ArrowLeft'){ e.preventDefault(); vfSpringen(-1); return true; }
+  if(c==='KeyR'){ if(vfLetzt) vfZuenden(vfLetzt); vfZeigen(); return true; }
+  if(c==='Digit1'||c==='Numpad1'){ vfNote('gut'); return true; }
+  if(c==='Digit2'||c==='Numpad2'){ vfNote('aendern'); return true; }
+  if(c==='KeyL'){ vfListeAuf=!vfListeAuf; vfZeigen(); return true; }
+  if(c==='Escape'&&!locked){ vorfuehrungAus(); return true; }
+  return false;
+}
+const vfEsc=s=>String(s).replace(/[&<>"]/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]));
+function vfZeile(t,klein){
+  const p=P[t], s=FW_STUFEN[fwStufe(p.lvl)], n=vfNoten[t];
+  return `<span style="background:${s.farbe};color:#0e1226;border-radius:6px;padding:1px 8px;font:${BUN(klein?13:18)}">L${p.lvl}</span> `+
+    `<span style="color:${s.farbe};font:${BAR(klein?14:18)};letter-spacing:.06em">${s.name}</span> · <span style="opacity:.8">${VF_ART[stationOf(t)]||''}</span>`+
+    (n?` <b style="color:${n==='gut'?'#5fe07a':'#ff6a55'}">${n==='gut'?'✓ gut':'✗ ändern'}</b>`:'');
+}
+function vfZeigen(){
+  if(!vfAn) return;
+  if(!vfEl){ vfEl=document.createElement('div'); vfEl.id='vorfuehrung';
+    vfEl.style.cssText='position:fixed;left:50%;top:12px;transform:translateX(-50%);z-index:60;width:min(760px,94vw);background:rgba(10,13,28,.86);color:#f2f5ff;border:2px solid #f2c230;border-radius:14px;padding:12px 18px 10px;font:600 16px "Barlow Condensed",sans-serif;pointer-events:auto;box-shadow:0 8px 30px rgba(0,0,0,.5)';
+    vfEl.addEventListener('click',e=>{ const b=e.target.closest('[data-vf]'); if(!b) return; const a=b.dataset.vf;
+      if(a==='zuenden') vfNaechstes(); else if(a==='vor') vfSpringen(1); else if(a==='zurueck') vfSpringen(-1);
+      else if(a==='nochmal'){ if(vfLetzt) vfZuenden(vfLetzt); vfZeigen(); }
+      else if(a==='gut') vfNote('gut'); else if(a==='aendern') vfNote('aendern');
+      else if(a==='liste'){ vfListeAuf=!vfListeAuf; vfZeigen(); }
+      else if(a==='kopieren'){ try{ navigator.clipboard.writeText(vfText()); toast('Liste mit Notizen kopiert.'); }catch(err){} }
+      else if(a==='ende') vorfuehrungAus();
+      else if(a.startsWith('i')){ vfIdx=+a.slice(1); vfMerken(); vfZeigen(); } });
+    document.body.appendChild(vfEl); }
+  const N=vfListe.length, akt=vfLetzt, naechst=vfListe[vfIdx];
+  const btn=(a,txt,f)=>`<button data-vf="${a}" style="font:700 15px 'Barlow Condensed',sans-serif;padding:5px 10px;margin:2px;border-radius:8px;border:1px solid #f2c230;background:${f||'#1b2140'};color:#f2f5ff;cursor:pointer">${txt}</button>`;
+  let h=`<div style="display:flex;justify-content:space-between;align-items:center;font:${BAR(15)};opacity:.85"><span>FEUERWERK-VORFÜHRUNG</span><span>${Math.min(vfIdx,N)} / ${N} gezündet</span></div>`;
+  if(akt){ const p=P[akt];
+    h+=`<div style="margin-top:4px;font:${BAR(14)};color:#f2c230">BRENNT JETZT</div>`+
+      `<div style="font:${BUN(40)};line-height:1.05;margin:2px 0;word-break:break-word">${vfEsc(p.short)}</div>`+
+      `<div style="font:${BAR(17)};opacity:.85">${vfEsc(p.name)}</div><div style="margin:4px 0 2px">${vfZeile(akt)}</div>`; }
+  else h+=`<div style="margin:6px 0;font:${BAR(20)}">Leertaste zündet das erste Feuerwerk.</div>`;
+  h+=`<div style="margin-top:8px;padding-top:6px;border-top:1px solid rgba(242,197,48,.35);font:${BAR(17)}">`+
+    (naechst?`ALS NÄCHSTES (${vfIdx+1}): <b>${vfEsc(P[naechst].short)}</b> &nbsp;${vfZeile(naechst,true)}`:'<b>Ende der Liste.</b> Mit Pfeil links zurück.')+`</div>`;
+  h+=`<div style="margin-top:6px">${btn('zuenden','␣ Zünden','#8a2a16')}${btn('zurueck','← Zurück')}${btn('vor','→ Weiter')}${btn('nochmal','R Nochmal')}${btn('gut','1 Gut')}${btn('aendern','2 Ändern')}${btn('liste','L Liste')}${btn('ende','Esc Ende')}</div>`;
+  if(vfListeAuf){
+    h+=`<div style="margin-top:6px;max-height:34vh;overflow:auto;border-top:1px solid rgba(242,197,48,.35)">`+
+      vfListe.map((t,i)=>`<div data-vf="i${i}" style="cursor:pointer;padding:2px 4px;${i===vfIdx?'background:rgba(242,197,48,.22);':''}${t===akt?'outline:1px solid #f2c230;':''}">`+
+        `<span style="opacity:.6;display:inline-block;width:34px">${i+1}</span><b>${vfEsc(P[t].short)}</b> ${vfZeile(t,true)}</div>`).join('')+`</div>`+
+      `<div style="margin-top:4px">${btn('kopieren','Liste mit Notizen kopieren')}</div>`;
+  }
+  vfEl.innerHTML=h;
 }

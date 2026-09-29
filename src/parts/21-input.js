@@ -179,6 +179,8 @@ addEventListener('keydown',e=>{
   if(pdaOpen){ if(e.code==='Escape') closePDA(); return; }
   if(gravOpen){ if(e.code==='Escape') closeGravInput(false); if(e.code==='Enter') closeGravInput(true); return; }
   if(dealOpen){ if(e.code==='Escape') declineDeal(); return; }
+  /* Feuerwerk-Vorfuehrung (Entwicklung): Leertaste zuendet das naechste */
+  if(vfAn&&S&&!overlayOpen()&&vfTaste(e)) return;
   /* Zuendmodus: Ziffern zuenden, alles andere geht normal weiter -
      laufen, umsehen, E. Esc ohne Mauszeiger-Sperre beendet ihn. */
   if(zuendOpen&&S&&!overlayOpen()){

@@ -61,13 +61,13 @@ function kgWechsel(h,c,dunkel,life,g,mode,spur){
    Doppelpunkte als perfekte Kurve, drei Herzen in vier Farben und ein
    Leuchtball im Zerlegerpunkt */
 EFF.herzschlag=function(p,A,B,s){
-  const q=QUAL(), [u0,v0]=basisBlick(p,0.45), dr=rand(-0.3,0.3), cd=Math.cos(dr), sd=Math.sin(dr), n=Math.round(52*q), G=2.6;
+  const q=QUAL(), [u0,v0]=basisBlick(p,0.45), dr=rand(-0.3,0.3), cd=Math.cos(dr), sd=Math.sin(dr), n=Math.round(64*q), G=2.6;
   const u=[u0[0]*cd+v0[0]*sd,u0[1]*cd+v0[1]*sd,u0[2]*cd+v0[2]*sd], v=[v0[0]*cd-u0[0]*sd,v0[1]*cd-u0[1]*sd,v0[2]*cd-u0[2]*sd];
   for(let i=0;i<n;i++){
     const t=rand(0,Math.PI*2), hx=Math.pow(Math.sin(t),3)+rand(-.07,.07), hy=(13*Math.cos(t)-5*Math.cos(2*t)-2*Math.cos(3*t)-Math.cos(4*t))/16+rand(-.07,.07);
     const sp=8.5*s*rand(0.93,1.05), c=i%4?A:B, x=rand(-.06,.06);
     const w=[(u[0]*hx+v[0]*hy)*sp+x,(u[1]*hx+v[1]*hy)*sp,(u[2]*hx+v[2]*hy)*sp-x];
-    psBig.emit(p.x,p.y,p.z,w[0],w[1],w[2],c[0]*1.25,c[1]*1.25,c[2]*1.25,rand(1.6,2.3),G,0); }
+    psBig.emit(p.x,p.y,p.z,w[0],w[1],w[2],c[0]*1.5,c[1]*1.5,c[2]*1.5,rand(1.6,2.3),G,0); }
   /* ein paar Sterne gehen immer daneben */
   for(let i=0;i<Math.round(5*q);i++){ const d=randDir(), w=rand(3,7)*s; psBig.emit(p.x,p.y,p.z,d[0]*w,d[1]*w,d[2]*w,A[0],A[1],A[2],rand(1.2,1.8),G,0); }
 };
@@ -313,11 +313,28 @@ EFF.zehnfach=function(p,A,B,s,r){
   flash({x:p.x,y:p.y,z:p.z},FW.weiss,6*s,0.4);
 };
 
+/* Silberbrecher (kugel300 »Himmelsbrecher«): die grosse Silberkugel der
+   Meisterbombe - Titanglitzersterne, die hart bremsen, silbern rieseln
+   und an den Spitzen knisternd zerplatzen; dazu eine hellblaue innere
+   Schale. 28.09., Tom: echt - Nachpruefung: EFF.himmelsbrecher der
+   Bibliothek warf 1100 Silbersterne mit gleich hellen 15-m-Spuren - vom
+   Pult aus ein Sprung in den Hyperraum. Jetzt halb so viele, kurze
+   Spuren, die Koernung kommt aus fallenden Titanfunken. */
+EFF.silberbrecher=function(p,A,B,s){
+  const q=QUAL(), w0=FW.silber, T=1.35, G=2.6, spitzen=[], fu=[.92,.95,1.02];
+  for(let i=0;i<Math.round(110*s*q);i++){ const d=randDir(), w=rand(9,11)*s, v=[d[0]*w,d[1]*w,d[2]*w];
+    kgStern(psBig,p,v,kgMal(w0,1.1),T,G,4,0.18);
+    if(i%3===0) rkFunken(p,v,G,0.05,T,20,fu,{life:[0.4,0.8],g:2.4,streu:0.3,mit:0.06});
+    if(i%5===0) spitzen.push(sternNach(p,v[0],v[1],v[2],G,T)); }
+  for(let i=0;i<Math.round(60*s*q);i++){ const d=randDir(), w=rand(5,6)*s; kgStern(psBig,p,kgMal(d,w),kgMal(B,1.2),rand(1.8,2.2),2.4,0,0.05); }
+  kgSpaeter(T,()=>{ for(const e of spitzen) knisterPop(e.x,e.y,e.z,{funken:4,tempo:rand(1.2,2.2),laut:0.3,leise:Math.random()<0.6}); });
+};
+
 /* Spurlaengen und Familien der Hauptbilder (mitSchweif, effPassen) */
 /* drachenblut (Bibliothek) zeigt nur kugel100: die roten Dahliensterne
    zogen 0,3 s lange rote Striche (Laser) - eine Dahlie hat kurze Spuren */
-Object.assign(EFF_SCHWEIF,{drachenblut:0.12,herzschlag:0.05,palmeninsel:0.12,chamaeleon:0.06,eiskristall:0.06,haengeweide:2.8,feuertropfen:0.25,feuerreif:0.1,sternenstaub:0.1,kreuzkranz:0.35,qualle:0.7,fuenfkern:0.5,himmelsbrecher:0.3});
-Object.assign(EFF_FAMILIE,{herzschlag:'figur',palmeninsel:'haenger',chamaeleon:'kugel',eiskristall:'kugel',haengeweide:'haenger',feuertropfen:'flamme',feuerreif:'kugel',sternenstaub:'haenger',kreuzkranz:'knister',qualle:'haenger',fuenfkern:'kugel'});
+Object.assign(EFF_SCHWEIF,{drachenblut:0.12,herzschlag:0.05,palmeninsel:0.12,chamaeleon:0.06,eiskristall:0.06,haengeweide:2.8,feuertropfen:0.25,feuerreif:0.1,sternenstaub:0.1,kreuzkranz:0.35,qualle:0.7,fuenfkern:0.5,silberbrecher:0.18});
+Object.assign(EFF_FAMILIE,{herzschlag:'figur',palmeninsel:'haenger',chamaeleon:'kugel',eiskristall:'kugel',haengeweide:'haenger',feuertropfen:'flamme',feuerreif:'kugel',sternenstaub:'haenger',kreuzkranz:'knister',qualle:'haenger',fuenfkern:'kugel',silberbrecher:'kugel'});
 
 /* ---------- Die Sorten (Katalog, verbindlich) ---------- */
 Object.assign(KUGEL,{
@@ -363,7 +380,7 @@ Object.assign(KUGEL,{
     steig:'glut', bruchOpt:{kern:false,nachglitzer:false}, ton:'wumms',   // weiches "Wumpf" statt Knall
     stufen:[{t:0.04,eff:'pistill',sz:0.30,A:'blau',B:'blau',leise:true}]},   // Leuchtorgan: blauer Pistill in der Glocke (28.09.: vorher blaue Blinker ueber dem Schirm - Punkte)
   /* 300 mm - Meisterbomben */
-  kugel300:{kal:5,sz:4.75,pw:10.8,fuse:2.30,th:'silber',haupt:'himmelsbrecher',A:'silber',B:'himmel',
+  kugel300:{kal:5,sz:4.75,pw:10.8,fuse:2.30,th:'silber',haupt:'silberbrecher',A:'silber',B:'himmel',
     steig:'titanspur', stehen:1, bruchOpt:{kern:false},       // Titanlinie bleibt 1 s als Funkenvorhang; 28.09.: ohne Leuchtball (im Bild eine weisse Scheibe von 20 m)
     stufen:[{t:0.06,eff:'glitzerweide',sz:0.80,A:'silber',B:'weiss',leise:true},     // Silberweide
             {t:0.55,eff:'dahlie',sz:0.20,A:'weiss',B:'silber',risse:{strahlen:6,je:4,r:[8,23],dt:0.15,zack:0.10},bruchOpt:{kern:false}}]},   // 24 Splitter, ohne Leuchtkugeln
@@ -385,6 +402,6 @@ Object.assign(SIGNATUR,{
   sternkugel150:{eff:'kreuzkranz',text:'Ring aus Kometen, die zu 16 Kreuzen zerplatzen'},
   kugel200:{eff:'zehnfach',text:'zwei Kränze aus zehn Blüten, Magenta und Gold'},
   goldkrone200:{eff:'qualle',text:'Brokatglocke mit sinkenden Fangarmen, blaues Leuchtorgan'},
-  kugel300:{eff:'himmelsbrecher',text:'Himmel reißt in sechs Linien, 24 Splitterbrüche, Silberweide'},
+  kugel300:{eff:'silberbrecher',text:'Himmel reißt in sechs Linien, 24 Splitterbrüche, Silberweide'},
   kaiserkrone:{eff:'fuenfkern',text:'fünf Kerne verwandeln sich und erlöschen gleichzeitig in der Goldkrone'}
 });

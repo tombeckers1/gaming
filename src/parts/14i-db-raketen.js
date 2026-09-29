@@ -342,12 +342,15 @@ EFF.pfeifsterne=function(p,A,B,s){
 /* Halbe-Halbe (Halbe-Halbe, L12): die Kugel ist halb A und halb B
    (echte Half-and-Half-Bombe); nach 1,2 s setzen alle Sterne kurz aus
    und brennen in der anderen Farbe weiter - Farbwechsel mit Dunkel-
-   phase wie im Stern geschichtet (echt.md 1.4). Magenta und Limette. */
+   phase wie im Stern geschichtet (echt.md 1.4). Rot und Gruen.
+   28.09., Tom: echt - Nachpruefung: Magenta/Limette wirkte wie Neonlicht,
+   und alle Sterne wechselten binnen 0,1 s (synchron). Jetzt das klassische
+   Paar Rot/Gruen, der Wechsel streut ueber 0,3 s wie echte Schichtsterne. */
 EFF.halbhalb=function(p,A,B,s){
   const [ri,ob]=rkBild(p), a=rand(-0.52,0.52), nn=[ri[0]*Math.cos(a)+ob[0]*Math.sin(a),ri[1]*Math.cos(a)+ob[1]*Math.sin(a),ri[2]*Math.cos(a)+ob[2]*Math.sin(a)];
   const n=Math.round(140*s*QUAL()), a1=rkMal(A,1.3), b1=rkMal(B,1.3);
   for(let i=0;i<n;i++){
-    const d=randDir(), w=rand(8,9.5)*s, seite=d[0]*nn[0]+d[1]*nn[1]+d[2]*nn[2]>0, tw=1.2+rand(-0.05,0.05);
+    const d=randDir(), w=rand(8,9.5)*s, seite=d[0]*nn[0]+d[1]*nn[1]+d[2]*nn[2]>0, tw=1.2+rand(-0.15,0.15);
     rkStern(psBig,p,[d[0]*w,d[1]*w,d[2]*w],seite?a1:b1,2.4,(st,dt)=>{
       rkFlug(st,dt,ZIEH,2.3); const t=st.alter;
       st.c=(t<tw)===seite?a1:b1;
@@ -426,7 +429,7 @@ EFF.achtblatt=function(p,A,B,s){
 EFF.blinkfeuer=function(p,A,B,s){
   const q=QUAL(), w0=rkMal(A||FW.weiss,1.15), gold=B||FW.gold;
   for(let i=0;i<Math.round(110*s*q);i++){ const d=randDir(), w=rand(6.5,8.5)*s, hz=rand(3,8), ph=rand(0,1), L=rand(3.0,4.2);
-    rkStern(psBig,p,[d[0]*w,d[1]*w,d[2]*w],w0,L,(st,dt)=>{ rkFlug(st,dt,ZIEH,1.8); st.hell=((st.alter*hz+ph)%1)<0.35?1.5:0.03; }); }
+    rkStern(psBig,p,[d[0]*w,d[1]*w,d[2]*w],w0,L,(st,dt)=>{ rkFlug(st,dt,ZIEH,1.8); st.hell=((st.alter*hz+ph)%1)<0.35?1.1:0.03; }); }   // 28.09.: 1,1 statt 1,5 - die Blitze standen als weiche Lichtkugeln am Himmel
   rkSchweif(0.06,()=>{ for(let i=0;i<Math.round(46*s*q);i++){ const d=randDir(), w=rand(2.4,3.6)*s; psBig.emit(p.x,p.y,p.z,d[0]*w,d[1]*w,d[2]*w,gold[0]*1.2,gold[1]*1.2,gold[2]*1.2,rand(2.2,2.8),2.2,0); } });
   later(0.5,()=>schall(p,v=>sfx.crackle(v*0.3)));
 };
@@ -511,9 +514,9 @@ EFF.juwelenpalme=function(p,A,B,s){
    vorher eine Mondscheibe als Flaeche, ueber die ein Schatten zog) */
 EFF.blutmond=function(p,A,B,s){
   const q=QUAL(), sil=A||FW.silber, rot=B||FW.scharlach, G=3.2, fu=[.9,.93,1];
-  for(let i=0;i<Math.round(170*s*q);i++){ const d=randDir(), w=rand(8.8,10.2)*s, v=[d[0]*w,d[1]*w,d[2]*w], L=rand(2.4,3.0);
+  for(let i=0;i<Math.round(110*s*q);i++){ const d=randDir(), w=rand(8.4,10.2)*s, v=[d[0]*w,d[1]*w,d[2]*w], L=rand(2.2,3.0);   // 28.09.: 110 statt 170 x Groesse - 380 gleiche Silberspuren sahen aus wie ein Sprung in den Hyperraum
     rkSchweif(0.4,()=>psBig.emit(p.x,p.y,p.z,v[0],v[1],v[2],sil[0]*1.1,sil[1]*1.1,sil[2]*1.15,L,G,4));
-    if(i%3===0) rkFunken(p,v,G,0.1,L-0.2,18,fu,{life:[0.4,0.8],g:2.6,streu:0.25,mit:0.06}); }
+    if(i%2===0) rkFunken(p,v,G,0.1,L-0.2,18,fu,{life:[0.4,0.8],g:2.6,streu:0.25,mit:0.06}); }
   /* der Blutmond: dichter, kleiner Pistill (28.09. nach dem Rendern: mit
      3-4,2 m/s x Groesse lagen die Sterne als lose rote Punkte im Himmel) */
   /* 28.09., Tom: echt - Nachpruefung: 3,6-4,2 s bei Schwere 2,6 hing der
@@ -532,12 +535,15 @@ EFF.blutmond=function(p,A,B,s){
 EFF.nordstern=function(p,A,B,s){
   const q=QUAL(), sil=A||FW.silber, blau=B||FW.blau, G=4.2, fu=[.88,.92,1];
   for(let i=0;i<Math.round(110*s*q);i++){ const d=randDir(), w=rand(5.5,7.5)*s, v=[d[0]*w,d[1]*w*0.85+1.6,d[2]*w], L=rand(3.6,4.4);
-    rkSchweif(1.3,()=>psBig.emit(p.x,p.y,p.z,v[0],v[1],v[2],sil[0]*0.95,sil[1]*0.95,sil[2],L,G,4));
-    if(i%3===0) rkFunken(p,v,G,0.3,L-0.3,10,fu,{life:[0.6,1.1],g:3,streu:0.12,mit:0.03});
+    /* 28.09., Tom: echt - Nachpruefung: 1,3 s Spur zogen bis zur ersten
+       Sekunde gerade Speichen aus der Mitte; der Weidenschleier kommt jetzt
+       mehr aus haengenden Funken als aus der Linie */
+    rkSchweif(0.8,()=>psBig.emit(p.x,p.y,p.z,v[0],v[1],v[2],sil[0]*0.95,sil[1]*0.95,sil[2],L,G,4));
+    if(i%2===0) rkFunken(p,v,G,0.2,L-0.3,16,fu,{life:[0.7,1.3],g:2.4,streu:0.12,mit:0.03});
     /* die Spitze blinkt ab gut der Haelfte des Wegs */
     if(i%2===0){ const ts=L*rand(0.5,0.62), hz=rand(3,8), ph=rand(0,1);
       imBild(ts,()=>{ const e=bahnOrt(p,v,G,ts), w2=bahnTempo(v,G,ts);
-        rkStern(psBig,e,w2,[1.3,1.3,1.35],L-ts,(st,dt)=>{ rkFlug(st,dt,ZIEH,G); st.hell=((st.alter*hz+ph)%1)<0.35?1.5:0.04; }); }); } }
+        rkStern(psBig,e,w2,[1.3,1.3,1.35],L-ts,(st,dt)=>{ rkFlug(st,dt,ZIEH,G); st.hell=((st.alter*hz+ph)%1)<0.35?1.1:0.04; }); }); } }
   rkSchweif(0.06,()=>{ for(let i=0;i<Math.round(46*s*q);i++){ const d=randDir(), w=rand(3.0,4.2)*s; psBig.emit(p.x,p.y,p.z,d[0]*w,d[1]*w,d[2]*w,blau[0]*1.35,blau[1]*1.35,blau[2]*1.35,rand(2.6,3.2),2.2,0); } });
   later(1.4,()=>schall(p,v=>sfx.rieseln(v*0.8,3)));
   later(2.2,()=>schall(p,v=>sfx.crackle(v*0.25)));
@@ -596,7 +602,9 @@ EFF.titanschlag=function(p,A,B,s){
    Sterne gibt es nicht, und Sterne steigen nicht von selbst) */
 EFF.pupswolke=function(p,A,B,s){
   const q=QUAL(), gl=A||FW.bernstein, or=B||FW.orange, fu=[1,.56,.2], G=5.5;
-  rauchball(p,{r:3.2*s,quellen:0.9,steigen:0.25,wind:[0.35,0.1],c:[0.3,0.27,0.2],a:0.55,n:8,dauer:5.5});
+  /* Rauch nachts: nur ein schwacher, dunkler Schleier (Probebild: mit
+     Deckkraft 0,55 stand eine helle Wattewolke am Himmel) */
+  rauchball(p,{r:2.6*s,quellen:0.7,steigen:0.25,wind:[0.35,0.1],c:[0.1,0.095,0.08],a:0.22,n:7,dauer:4});
   for(let i=0;i<Math.round(34*s*q);i++){ const a=rand(0,Math.PI*2), el=rand(-0.9,0.35), w=rand(3.2,5.2)*s,
       v=[Math.cos(a)*Math.cos(el)*w,Math.sin(el)*w,Math.sin(a)*Math.cos(el)*w], L=rand(1.8,2.6), c=i%3?gl:or;
     rkSchweif(0.1,()=>psBig.emit(p.x,p.y,p.z,v[0],v[1],v[2],c[0]*0.8,c[1]*0.7,c[2]*0.6,L,G,4));
@@ -738,7 +746,7 @@ Object.assign(RAKETEN_KL,{
   silberpfeil    :{n:1,gap:0,sz:1.02,pw:-2.5,fuse:0.95,steig:'pfeil',   A:'weiss',B:'silber',eff:['silberspinne'],bruchOpt:{nachglitzer:false,flash:1.1},dauer:3},
   kometenraketen :{n:1,gap:0,sz:1.05,pw:-2, fuse:1.3, steig:'komet',    A:'gold',B:'blau',eff:['kometenkette'],bruchOpt:{kern:false,nachglitzer:false,flash:0.4},dauer:4.8},
   pfeifraketen   :{n:1,gap:0,sz:1.05,pw:-2, fuse:1.3, steig:'pfeif',    pfeif:true,A:'rot',B:'weiss',eff:['pfeifsterne'],bruchOpt:{nachglitzer:false},dauer:3.8},
-  farbenrausch   :{n:1,gap:0,sz:1.1, pw:-1, fuse:1.25,steig:'farbflamme',A:'magenta',B:'limette',eff:['halbhalb'],bruchOpt:{nachglitzer:false},dauer:4.4},
+  farbenrausch   :{n:1,gap:0,sz:1.1, pw:-1, fuse:1.25,steig:'farbflamme',A:'rot',B:'gruen',eff:['halbhalb'],bruchOpt:{nachglitzer:false},dauer:4.4},
   raketengold    :{n:1,gap:0,sz:1.3, pw:0.8,fuse:1.3, steig:'brokat',   th:'koenig',dick:1,eff:['nishiki'],bruchOpt:{kern:false},dauer:5},
   knisterstern   :{n:1,gap:0,sz:1.34,pw:1.2,fuse:1.25,steig:'knister',  A:'silber',B:'gold',eff:['spaetzuender'],knall:'rakPff',bruchOpt:{kern:false,nachglitzer:false,flash:0.15},dauer:5.6},
   smaragd        :{n:1,gap:0,sz:1.38,pw:1.6,fuse:1.3, steig:'farbkomet',A:'gruen',B:'mint',eff:['achtblatt'],bruchOpt:{kern:false,nachglitzer:false,flash:0.35},dauer:4.4},
@@ -796,7 +804,7 @@ Object.assign(SIGNATUR,{
   silberpfeil    :{eff:'silberspinne',steig:'pfeil',text:'Startknall, doppelt so schnell, gleissender Titanschweif, oben eine harte Silberspinne.'},
   kometenraketen :{eff:'kometenkette',steig:'komet',text:'Goldkometen spalten sich zweimal - eine Kette aus immer kleineren Kometen, die blau verglimmen.'},
   pfeifraketen   :{eff:'pfeifsterne',steig:'pfeif',text:'Pfeift im Steigen und im Bruch: aus einem roten Kern schrauben sich Pfeifsterne davon und knacken.'},
-  farbenrausch   :{eff:'halbhalb',steig:'farbflamme',text:'Halb Magenta, halb Limette - kurz dunkel, dann tauschen die Haelften.'},
+  farbenrausch   :{eff:'halbhalb',steig:'farbflamme',text:'Halb Rot, halb Gruen - kurz dunkel, dann tauschen die Haelften.'},
   raketengold    :{eff:'nishiki',steig:'brokat',text:'Flimmernder Brokat-Aufstieg, Goldkugel mit violetten Spitzen.'},
   knisterstern   :{eff:'spaetzuender',steig:'knister',text:'Scheinbruch wie ein Blindgaenger, Stille - dann eine riesige Knisterwand.'},
   smaragd        :{eff:'achtblatt',steig:'farbkomet',text:'Gruener Kometenkopf im Aufstieg, oben acht Buendel in drei Gruentoenen - geschliffen wie ein Smaragd.'},

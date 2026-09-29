@@ -140,7 +140,7 @@ NEU_EMIT.papierflug=(e,dt)=>{
    (gleiche Bahn, gleiche Rechnung wie PS.update) - so sehen ihn auch
    die Tests (ursprung, amprodukt, anomalie).
    --------------------------------------------------------- */
-const KL_FK={max:COARSE?1500:3600,n:0,mesh:null,e:null};
+const KL_FK={max:COARSE?1500:3600,n:0,mesh:null};
 function klFunkMesh(){
   if(KL_FK.mesh) return KL_FK.mesh;
   const M=KL_FK.max;
@@ -157,10 +157,11 @@ function klFunke(x,y,z,vx,vy,vz,c,life,g,ast,kopf){
   if(K.n>=K.max) return; const i=K.n++, j=i*3;
   K.p[j]=x; K.p[j+1]=y; K.p[j+2]=z; K.v[j]=vx; K.v[j+1]=vy; K.v[j+2]=vz; K.c[j]=c[0]; K.c[j+1]=c[1]; K.c[j+2]=c[2];
   K.l[i]=life; K.ml[i]=life; K.g[i]=g; K.a[i]=ast||0;
-  if(!K.e||emitters.indexOf(K.e)<0){ K.e={t:1,k:'funkflug',o:PAD}; emitters.push(K.e); }
+  dienst();
 }
-NEU_EMIT.funkflug=(e,dt)=>{
-  const K=KL_FK, m=K.mesh; if(!m) return;
+/* Die Striche rechnet der Hilfsdienst aus 14e mit (dienst2), wie die gefuehrten Funken */
+function klFunkTakt(dt){
+  const K=KL_FK, m=K.mesh; if(!m) return false;
   const drag=Math.max(0,1-ZIEH*dt), P=K.p, W=K.v, C=K.c, a=m.geometry.attributes, AP=a.position.array, AC=a.color.array, BL=0.028, ast=[];
   let n=0;
   for(let i=0;i<K.n;i++){ const j=i*3;
@@ -180,8 +181,10 @@ NEU_EMIT.funkflug=(e,dt)=>{
   for(const q of ast){ const sp=Math.hypot(q[3],q[4],q[5]), dn=sp>0.05?[q[3]/sp,q[4]/sp,q[5]/sp]:randDir(), cc=[q[6]*1.15,q[7]*1.15,q[8]*1.15];
     for(let b=0;b<q[9];b++){ const d=streu(dn,1.1), s=Math.max(0.8,sp*rand(0.5,0.9)); klFunke(q[0],q[1],q[2],d[0]*s,d[1]*s,d[2]*s,cc,rand(0.05,0.11),q[10],0,0); } }
   m.geometry.setDrawRange(0,K.n*2); a.position.needsUpdate=true; a.color.needsUpdate=true; m.visible=K.n>0;
-  e.t=K.n?1:0;
-};
+  return K.n>0;
+}
+const _klDienst2=NEU_EMIT.dienst2;
+NEU_EMIT.dienst2=(e,dt)=>{ _klDienst2(e,dt); if(klFunkTakt(dt)) e.t=0.5; };
 
 /* Konfetti-Farben ohne Zufallsbunt: feste Reihe */
 const KL_BUNT=['rot','gold','gruen','blau','magenta','tuerkis','zitrone'];
@@ -229,10 +232,12 @@ function klKerzeFunken(p,dt,z,m,A,B,rate,o){
       klFunke(x,y,zz,d[0]*s,d[1]*s+0.3,d[2]*s,[c[0]*k,c[1]*k,c[2]*k*1.05],l,4,Math.random()<0.1?2:0,0.18);
     } else if(m==='farbspitze'){
       /* Goldfunke, der im letzten Teil seines Lebens hart in B umschlaegt (+20 % hell) */
-      const s=rand(1.8,3.2), l=rand(0.2,0.36), sp=o.spitze||0.3, t1=l*(1-sp), v=[d[0]*s,d[1]*s+0.3,d[2]*s], P0={x,y,z:zz};
-      klFunke(x,y,zz,v[0],v[1],v[2],[A[0]*0.95,A[1]*0.95,A[2]*0.95],t1,1.5,0,0.25);
-      imBild(t1,()=>{ const pp=bahnOrt(P0,v,1.5,t1), w=bahnTempo(v,1.5,t1);
-        klFunke(pp.x,pp.y,pp.z,w[0],w[1],w[2],[B[0]*1.1,B[1]*1.1,B[2]*1.1],l-t1+0.04,1.5,Math.random()<0.4?2:0,0.2); });
+      /* Farbsatz brennt traeger als Eisen: langsamere Funken (1,3-2 m/s), die Farbe traegt die Wirkung */
+      const s=rand(1.3,1.95), l=rand(0.22,0.38), sp=o.spitze||0.3, t1=l*(1-sp), v=[d[0]*s,d[1]*s+0.3,d[2]*s], P0={x,y,z:zz};
+      /* Farbsatz-Funken sind schwere Schlacketropfen: sie haengen im Bogen durch (g 3,5 statt 1,5) */
+      klFunke(x,y,zz,v[0],v[1],v[2],[A[0]*0.95,A[1]*0.95,A[2]*0.95],t1,3.5,0,0.25);
+      imBild(t1,()=>{ const pp=bahnOrt(P0,v,3.5,t1), w=bahnTempo(v,3.5,t1);
+        klFunke(pp.x,pp.y,pp.z,w[0],w[1],w[2],[B[0]*1.1,B[1]*1.1,B[2]*1.1],l-t1+0.04,3.5,Math.random()<0.4?2:0,0.5); });
     } else {
       /* Eisen: schiesst schnell heraus (2-4 m/s), lebt kurz und zerspritzt
          am Ende in 2-4 Aestchen - das typische Wunderkerzen-Sternchen */
@@ -243,10 +248,11 @@ function klKerzeFunken(p,dt,z,m,A,B,rate,o){
   SCHWEIF=alt;
 }
 /* Glutpunkt mit Hof */
-function klGlutpunkt(p,m,st,hf){
+function klGlutpunkt(p,m,st,hf,F){
   const alt=SCHWEIF; SCHWEIF=0; st=st||1; hf=hf===undefined?1:hf;
-  const c=m==='titan'?[1.8,1.8,1.9]:[1.7,1.45,1.0];
-  const h=m==='titan'?[0.35,0.38,0.45]:[0.42,0.2,0.05];
+  /* F: Farbsatz (Farbwunderkerze) - der Kopf brennt in seiner Farbe mit weissem Kern */
+  const c=m==='titan'?[1.8,1.8,1.9]:F?klMisch(klSatt(F),[1,1,1],0.35).map(v=>v*1.6):[1.7,1.45,1.0];
+  const h=m==='titan'?[0.35,0.38,0.45]:F?klSatt(F).map(v=>v*0.45):[0.42,0.2,0.05];
   /* kleiner Hof (Formkerzen, und 29.09. alle Eisenkerzen): Kern 7 cm statt 15 cm, Hof 15 statt 42 cm -
      der 42-cm-Hof stand als Leuchtball an der Kerze */
   if(hf<1||m!=='titan'){
@@ -282,7 +288,9 @@ function klKerze(e,basis,o){
     K.alter+=dt;
     const f=K.front(), brennt=K.alter<K.T, H=klHell();
     if(brennt){
-      klGlutpunkt(f,m,m==='titan'?1.2:1);
+      /* 29.09., Tom: echt - Farbwunderkerze brennt mit farbigem Kopf (wie im Handel), nicht nur mit Farbspitzen */
+      klGlutpunkt(f,m,m==='titan'?1.2:1,1,m==='farbspitze'?(o.B||o.A):null);
+      if(m==='farbspitze') klFlamme(K.fl||(K.fl={}),f,dt,o.B||o.A,{h:0.04,r:0.006,st:0.45,rate:45,hof:0.1});
       klKerzeFunken(f,dt,K,m,o.A,o.B||o.A,K.rate,o);
       /* grosse Kerzen (XXL 1 m) leuchten mehr: Licht waechst mit der Laenge */
       if(o.licht!==false){ const gl=Math.sqrt(Math.max(1,L/0.5)); licht('kz'+(o.key||'')+e.prod+(e.nr||0),f,m==='titan'?[0.9,0.92,1]:[1,0.72,0.35],(m==='titan'?1.4:0.7)*gl,{weite:(m==='titan'?7:4)*Math.sqrt(gl)}); }

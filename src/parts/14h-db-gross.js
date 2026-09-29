@@ -501,6 +501,17 @@ STEIG_ART.heuler={spur(r,dt,ort){ const c=r.trail;
   for(let n=jeSek(r,'b',25,dt);n>0;n--){ const q=ort(); psSmall.emit(q[0],q[1],q[2],rand(-.8,.8),rand(-1.5,0),rand(-.8,.8),1,.85,.55,rand(0.2,0.35),3,0); } }};
 STEIG_KLANG.heuler=STEIG_KLANG.pfeif;
 
+/* Farbkomet (Farbsaeulen): der Stern steigt mit farbiger Flamme am Kopf,
+   dahinter ein kurzer Schweif aus Kohle-Goldfunken, die fallen. Wie
+   'farbspur', aber ohne das Licht alle 0,3 s - bei 20 Saeulen hinter-
+   einander tauchte es Tisch, Wand und Haeuser abwechselnd in reines
+   Magenta und Limette (Bodenbild, 28.09., Tom: "Lichtshow"). Nur die
+   Farbsaeulen nutzen diesen Aufstieg. */
+STEIG_SPUR_AB.farbkomet=0;
+STEIG_ART.farbkomet={spur(r,dt,ort){ const c=r.trail, v=r.v, k=0.8+0.2*Math.random();
+  for(let n=jeSek(r,'a',40,dt);n>0;n--){ const q=ort(); psBig.emit(q[0]+rand(-.06,.06),q[1],q[2]+rand(-.06,.06),-v.x*0.05+rand(-.2,.2),-v.y*0.05,-v.z*0.05+rand(-.2,.2),c[0]*k*1.2,c[1]*k*1.2,c[2]*k*1.2,rand(0.1,0.16),0,0); }
+  for(let n=jeSek(r,'b',150,dt);n>0;n--){ const q=ort(); psMid.emit(q[0]+rand(-.08,.08),q[1]-rand(0,0.4),q[2]+rand(-.08,.08),rand(-.5,.5),rand(-1.6,-0.2),rand(-.5,.5),1,.62,.24,rand(0.25,0.5),2,4); } }};
+
 /* Familien und Schweife der neuen Brueche (effPassen, mitSchweif) */
 Object.assign(EFF_FAMILIE,{blinkregen:'knister',vorhang:'haenger',polarlicht:'haenger',meteor:'haenger',blinkchrys:'knister',donnerblitz:'salut',donnerkette:'salut',kaleidoskop:'kugel',silberwelle:'kugel'});
 Object.assign(EFF_SCHWEIF,{blinkregen:0.2,vorhang:1.4,polarlicht:1.5,blinkchrys:0.35,donnerblitz:0.1,donnerkette:0.06,kaleidoskop:0.14,silberwelle:0.32});
@@ -596,12 +607,12 @@ SIGNATUR.familienmix={muster:'spirale',text:'Karussell aus Zuckerwatte-Farben'};
 
 /* Level 17: Hagelsturm (neu) */
 SHOWS.hagelsturm=()=>show({basis:{pw:0.55,sz:1.045,th:'eis'},rampe:{sz:[0.90,1.20],pw:[0,2],hell:[0.90,1.30],kurve:'frueh'}},[
-  /* Aufzug der Wolke: lockeres Prasseln, eine Knisterfontaene laeuft die ganze Show
+  /* Aufzug der Wolke: lockeres Prasseln, eine Knisterfontaene zum Auftakt
      (28.09., Tom: echt - vorher zwei bei x +-2 m, auf den Karton gestaucht
      standen sie 28 cm auseinander und wirkten wie eine) */
   /* 27.09.: pw -10 brach bei 7-8 m (hinter der Mauer), Katalog will 15-20 m */
   {n:40,gap:0.25,muster:'zufall',ang:0.30,kal:'mini',pw:-2,eff:'hagel',steig:'keiner',
-   boden:{k:'knisterbrunnen',gt:38,A:'silber',B:'weiss'}},
+   boden:{k:'knisterbrunnen',gt:8,gh:0.7,A:'silber',B:'weiss'}},   /* 28.09., Tom: "Effekt zu gross" - nur zum Aufzug, vorher 38 s: die Fontaene uebertoente die Batterie */
   {mit:true,n:2,gap:5,muster:'gerade',kal:'gross',pw:2,eff:'spinne',th:'silber'},
   /* Prasseln: dicht, als Welle ueber die Breite; oben grosse Schlaege */
   {n:100,gap:0.10,muster:'welle',ang:0.40,wellen:3,kal:'mini',pw:-1,eff:'hagel'},
@@ -826,18 +837,18 @@ SIGNATUR.donnerwand={idee:'trommel',text:'20 Salven im Takt eines Trommelsolos'}
 SHOWS.feuerpfau=()=>show({basis:{pw:2.10,sz:1.170,th:'saeulen'},rampe:{sz:[0.90,1.25],pw:[-1,2],hell:[0.95,1.35],kurve:'frueh'}},[
   /* Auftakt: Farbsaeule bis zur Paeonie (28.09.: Paeonie statt tiefer Dahlie,
      deren grosse Sterne wie Leuchtscheiben standen) */
-  {n:4,gap:1.8,muster:'gerade',mine:true,mineEff:'farbe',steig:'farbspur',eff:'kugel',kal:'mittel',farbe:0,boden:{k:'fountain',gt:8,A:'gold',B:'weiss'},pause:1.0},
+  {n:4,gap:1.8,muster:'gerade',mine:true,mineEff:'farbe',steig:'farbkomet',eff:'kugel',kal:'mittel',farbe:0,boden:{k:'fountain',gt:8,A:'gold',B:'weiss'},pause:1.0},
   /* Saeulengang: aussen nach innen, ueber die Breite verteilt, Farben im Wechsel */
-  {n:14,gap:0.55,muster:'aussen',ang:0.50,rohre:'breit',mine:true,mineEff:'farbe',steig:'farbspur',eff:'pistill',farbVert:'wechsel',pause:1.2},
+  {n:14,gap:0.55,muster:'aussen',ang:0.50,rohre:'breit',mine:true,mineEff:'farbe',steig:'farbkomet',eff:'pistill',farbVert:'wechsel',pause:1.2},
   /* Komplementaer: oben V in Limette, unten Blinker-Feuertoepfe in Magenta */
-  {n:12,gap:0.9,muster:'v',ang:0.35,steig:'farbspur',eff:'chrys',farbe:1},
+  {n:12,gap:0.9,muster:'v',ang:0.35,steig:'farbkomet',eff:'chrys',farbe:1},
   {mit:true,n:12,gap:0.9,nurMine:true,mineEff:'blink',muster:'gerade',farbe:0,pause:0.6},
   /* Paare: Farbwechsel Magenta zu Gold */
-  {n:20,gap:0.30,muster:'paar',ang:0.45,mine:true,mineEff:'farbe',steig:'farbspur',eff:'wechsel',farbe:0,pause:1.2},
+  {n:20,gap:0.30,muster:'paar',ang:0.45,mine:true,mineEff:'farbe',steig:'farbkomet',eff:'wechsel',farbe:0,pause:1.2},
   /* Saeulenwand: Mitte nach aussen, schnell */
-  {n:18,gap:0.12,muster:'mitte',ang:0.55,rohre:'breit',mine:true,mineEff:'farbe',steig:'farbspur',eff:'chrys',kal:'gross',farbe:2,pause:1.0},
+  {n:18,gap:0.12,muster:'mitte',ang:0.55,rohre:'breit',mine:true,mineEff:'farbe',steig:'farbkomet',eff:'chrys',kal:'gross',farbe:2,pause:1.0},
   /* FINALE: zwei Zehner-Salven, jede Saeule in ihrer Farbe, Mitte anders */
-  {n:20,je:10,takt:[0.6],muster:'schlag',ang:0.60,mine:true,mineEff:'farbe',steig:'farbspur',eff:'dahlie',kal:'riesig',farbe:2,farbVert:'mitte',
+  {n:20,je:10,takt:[0.6],muster:'schlag',ang:0.60,mine:true,mineEff:'farbe',steig:'farbkomet',eff:'dahlie',kal:'riesig',farbe:2,farbVert:'mitte',
    boden:{k:'fountain',gt:3,gh:1.2,A:'gold',B:'weiss'},pause:4.5}
 ]);
 SIGNATUR.feuerpfau={idee:'farbsaeule',text:'Farbe steigt vom Feuertopf bis zum Bruch'};

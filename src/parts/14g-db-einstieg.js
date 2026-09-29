@@ -359,7 +359,7 @@ EFF.lampare=function(p,A,B,s,r){
      Leuchtscheiben; die Flammen selbst sind die Sterne oben) */
   for(let k=0;k<3;k++){ const R=(1.5+k*0.6)*g, c=[[1,.75,.3],[1,.45,.1],[.8,.2,.04]][k];
     hof(0.8,t=>[p.x,p.y+0.8*t,p.z],c,t=>R*(0.45+0.55*(1-Math.exp(-t*5))),t=>(0.2-k*0.05)*Math.min(1,t/0.06)*(1-glatt(0.15+k*0.08,0.75,t))); }
-  flash(p,[1,.52,.16],4.5*g,1.0);
+  flash(p,[1,.52,.16],2.6*g,0.7);   /* 28.09.: 4,5 - sieben zugleich im Finale tauchten den Platz in Weiss */
   const ort={x:p.x,y:p.y,z:p.z};
   later(0.8,()=>rauchball({x:ort.x,y:ort.y+0.6,z:ort.z},{r:2.4*g,n:6,dauer:2.6,quellen:0.8,steigen:0.6,c:[0.11,0.09,0.08],a:0.45}));
 };
@@ -402,7 +402,9 @@ STEIG_ART.tonleiter={spur(r,dt,ort){ const c=r.trail;
    sie 1-1,4 s fast reglos in der Luft stehen (echt.md 1.9: stehende
    Punkte). Nur der Palmenhain nutzt diesen Aufstieg. */
 STEIG_ART.stamm={spur(r,dt,ort){ const c=r.trail;
-  for(let n=jeSek(r,'a',220,dt);n>0;n--){ const q=ort(); psBig.emit(q[0]+rand(-.1,.1),q[1],q[2]+rand(-.1,.1),rand(-.3,.3),rand(-1.2,-0.2),rand(-.3,.3),c[0],c[1]*rand(.85,1),c[2],rand(0.6,1.0),2.2,4); }
+  /* 28.09.: feine Funken (psMid) - die grossen psBig-Punkte standen am
+     Karton als Leuchtwolke (Bodenbild) */
+  for(let n=jeSek(r,'a',300,dt);n>0;n--){ const q=ort(); psMid.emit(q[0]+rand(-.1,.1),q[1],q[2]+rand(-.1,.1),rand(-.4,.4),rand(-1.4,-0.2),rand(-.4,.4),c[0],c[1]*rand(.85,1),c[2],rand(0.5,0.9),2.2,4); }
   for(let n=jeSek(r,'b',50,dt);n>0;n--){ const q=ort(); psMid.emit(q[0],q[1],q[2],rand(-.8,.8),rand(-2,-.5),rand(-.8,.8),1,.62,.2,rand(0.6,1.1),3,4); } }};
 
 /* Farbthemen dieser Klasse (28.09., Tom: "die Effekte muessen ineinander
@@ -599,7 +601,9 @@ const DB={
      28.09.: Vulkane Orange/Gold und Bernstein/Gold - rote Funken gibt es
      nicht (Kohle glueht orange-gold) */
   batterie49:()=>show({basis:{pw:-2.5,sz:0.90,th:'glut'}, rampe:{sz:[0.75,1.25],pw:[-2.8,2],hell:[0.85,1.35],kurve:'linear'}}, [
-    {n:0,nurBoden:true,boden:[{k:'volcano',gt:15,x:-0.13,A:'orange',B:'gold'},{k:'volcano',gt:15,x:0.13,A:'bernstein',B:'gold'}],pause:0.4},
+    /* 28.09., Tom: "Effekt zu gross" - zwei kurze kleine Goldfontaenen zum
+       Auftakt (vorher 15 s Vulkane in voller Hoehe: mehr Fontaene als Batterie) */
+    {n:0,nurBoden:true,boden:[{k:'fountain',gt:5,x:-0.13,A:'orange',B:'gold'},{k:'fountain',gt:5,x:0.13,A:'bernstein',B:'gold',t:0.3}],pause:0.4},
     {n:6,gap:0.7,muster:'gerade',eff:'lampare',kal:'klein',steig:'glut',pause:0.5},
     {n:10,gap:0.45,muster:'v',ang:0.3,eff:'chrys',steig:'glut',pause:0.5},
     {n:8,mit:true,gap:0.28,muster:'gerade',rohre:'breit',mineEff:'lampare',mineSz:0.6,nurMine:true},

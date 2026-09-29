@@ -211,7 +211,7 @@ const NEUWARE={
     desc:'Knistert beim Steigen, macht oben kurz »Pff« … und wenn keiner mehr hinschaut, prasselt eine riesige Knisterwolke los.',
     art:{title:'SPÄTZÜNDER',sub:'10 Knisterraketen',bg1:'#12406b',bg2:'#04121f',ac:'#5ce1ff',ac2:'#ffd23f'}},
   mondschein:{name:'Mondschein · 30 Schuss Silbermond',short:'Mondschein 30',cat:2,lvl:13,shape:'battery',dims:[0.3,0.24,0.3],grid:[7,1,1],box:6,cost:11.50,market:26.99,weight:6,hype:26,risk:6,
-    desc:'Silberne Chrysanthemen mit blassgelbem Mond im Kern gehen über einem Wasserfall aus Silber auf. Dazwischen ziehen Sternschleier und Silberweiden vorbei.',
+    desc:'Silberne Chrysanthemen mit blassgelbem Mond im Kern gehen über einer Silberfontäne auf. Dazwischen ziehen Sternschleier und Silberweiden vorbei.',
     art:{title:'MONDSCHEIN',sub:'30 Schuss · Silber',bg1:'#8a9299',bg2:'#2a2f36',ac:'#f2f5ff',ac2:'#5ce1ff'}},
   kaeseplatte:{name:'Käseplatte für 6',short:'Käseplatte',cat:0,lvl:13,cold:true,kuehlpflicht:true,shape:'boxA',dims:[0.3,0.07,0.22],grid:[3,2,3],box:6,cost:6.40,market:15.99,weight:5,hype:0,risk:5,
     art:{title:'KÄSEPLATTE',sub:'für 6 · gekühlt',bg1:'#e8b418',bg2:'#8a5a08',ac:'#1b3a6b',ac2:'#c8322a',light:true}},

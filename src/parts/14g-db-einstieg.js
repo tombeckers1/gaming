@@ -548,12 +548,12 @@ const DB={
     {n:4,gap:0,muster:'schlag',ang:0.35,eff:'palme',kal:'gross',steig:'stamm',hoehe:'wechsel',hSpanne:8,pause:4.0}
   ]),
   /* Mondschein, L13: Silberchrysanthemen mit blassgelbem Mond im Kern ueber
-     einem Silberwasserfall. 28.09.: statt stehender Punktsicheln mit
+     einer Silberfontaene. 28.09.: statt stehender Punktsicheln mit
      grauem Nebelhof (Lichtshow) */
   mondschein:()=>show({basis:{pw:-5,sz:0.78,th:'silber'}, rampe:{sz:[0.85,1.3],pw:[-1,2],hell:[0.8,1.3],kurve:'linear'}}, [
     {n:4,gap:2.0,muster:'gerade',eff:'vollmond',kal:'klein',steig:'silber',pause:1.0},
     {n:8,gap:0.6,muster:'welle',ang:0.3,wellen:1,eff:['farbregen','farbregen','farbregen','vollmond'],steig:'keiner',pause:1.2},
-    {n:0,nurBoden:true,boden:{k:'wasserfall',gt:9,A:'silber',B:'weiss'}},
+    {n:0,nurBoden:true,boden:{k:'fountain',gt:9,A:'silber',B:'weiss'}}, /* 28.09., Tom: "Effekt zu gross" - Silberfontaene statt Wasserfall: der spruehte 1,5 m breit ueber Tisch und Boden (Bodenbild) */
     {n:10,mit:true,takt:[0.3,0.3,1.2],muster:'aussen',ang:0.35,eff:['mondregen','mondregen','vollmond'],steig:'silber',pause:1.0},
     {n:8,gap:0.2,muster:'zufall',ang:0.25,eff:['farbregen','vollmond'],kal:'mittel',hoehe:'zufall',hSpanne:8,steig:'keiner',pause:4.0}
   ]),

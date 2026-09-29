@@ -635,7 +635,7 @@ SIGNATUR.hagelsturm={eff:'hagel',text:'Prasseln aus 300 Mini-Kalibern'};
    sieben Boegen in 2 s gleichzeitig am Himmel. */
 SHOWS.regenbogenfaecher=()=>show({basis:{pw:0.60,sz:1.050,th:'spektrum'},rampe:{sz:[0.95,1.20],pw:[0,1],hell:[0.80,1.30],kurve:'linear'}},[
   /* Regenschauer: Silberregen am Boden, traege Glitzertropfen */
-  {n:7,gap:0.8,muster:'zufall',ang:0.30,eff:'zeitregen',kal:'klein',th:'eis',boden:{k:'wasserfall',gt:10,A:'silber',B:'weiss'},pause:1.0},
+  {n:7,gap:0.8,muster:'zufall',ang:0.30,eff:'zeitregen',kal:'klein',th:'eis',boden:{k:'fountain',gt:10,A:'silber',B:'weiss'},pause:1.0}, /* 28.09., Tom: "Effekt zu gross" - Silberfontaene statt Wasserfall: der spruehte 1,5 m breit ueber Tisch und Boden (Bodenbild) */
   /* Farbtropfen: sieben einzelne Paeonien, jede eine Spektralfarbe, eine nach der anderen
      (28.09.: statt Dahlien - ihre grossen Sterne standen als Leuchtscheiben am Himmel) */
   {n:7,gap:1.8,muster:'mitte',ang:0.50,eff:'kugel',farbVert:'spektrum',bruchOpt:{kern:false},pause:1.2},
@@ -653,7 +653,7 @@ SHOWS.zfaecher=()=>show({basis:{pw:0.65,sz:1.055,th:'blitz'},rampe:{sz:[0.90,1.3
   /* erste Blitze, von aussen nach innen */
   {n:8,gap:0.9,muster:'aussen',ang:0.45,eff:'donnerblitz',steig:'silber',pause:1.2},
   /* Regen setzt ein: Silberregen am Boden, Blinkweiden als Regenschleier, dazwischen Blitze */
-  {n:10,gap:0.4,muster:'gerade',eff:'strobeweide',farbe:1,boden:{k:'wasserfall',gt:8,A:'silber',B:'weiss'}},
+  {n:10,gap:0.4,muster:'gerade',eff:'strobeweide',farbe:1,boden:{k:'fountain',gt:8,A:'silber',B:'weiss'}}, /* 28.09., Tom: "Effekt zu gross" - Silberfontaene statt Wasserfall: der spruehte 1,5 m breit ueber Tisch und Boden (Bodenbild) */
   {mit:true,n:6,gap:0.7,muster:'zufall',ang:0.40,pw:4,eff:'donnerblitz',kal:'mittel',pause:0.5},
   /* Sturmboee - der alte Z-Faecher als eine kurze Phase */
   {n:12,gap:0.12,muster:'z',seg:2,ang:0.45,eff:['spinne','donnerblitz'],farbe:0,pause:1.5},
@@ -967,8 +967,8 @@ SHOWS.profi=()=>show({basis:{pw:3.10,sz:1.250,th:'goetter'},rampe:{sz:[0.90,1.30
      Einzelsterne standen tief vor dem Zuendpult als gelbe Leuchtscheiben */
   {n:30,muster:'gerade',hoehe:'melodie',noten:ODE,viertel:0.5,hStufe:2.5,pw:-1,eff:'chrys',farbe:1},
   {mit:true,n:16,muster:'v',ang:0.45,hoehe:'melodie',noten:ODE_BASS,viertel:0.5,hStufe:2.5,pw:-6,kal:'klein',eff:'palme',farbe:0,pause:1.0},
-  /* Zwischenspiel: Wasserfall der Freude - Fontaenen mitten in der Show, grosse Kronleuchter */
-  {n:12,gap:1.3,muster:'aussen',ang:0.50,eff:'kronleuchter',kal:'gross',farbe:0,boden:{k:'wasserfall',gt:16,A:'gold',B:'weiss'},pause:1.5},
+  /* Zwischenspiel: Fontaene der Freude mitten in der Show, grosse Kronleuchter */
+  {n:12,gap:1.3,muster:'aussen',ang:0.50,eff:'kronleuchter',kal:'gross',farbe:0,boden:{k:'fountain',gt:16,A:'gold',B:'weiss'},pause:1.5}, /* 28.09., Tom: "Effekt zu gross" - Silberfontaene statt Wasserfall: der spruehte 1,5 m breit ueber Tisch und Boden (Bodenbild) */
   /* KANON: linkes Modul beginnt, rechtes setzt zwei Viertel spaeter ein.
      28.09. (Tom: echt): die Module sind die zwei Kartonhaelften (x +-0,3 m,
      vorher +-8 m neben dem Karton); am Himmel trennt sie der Rohrwinkel */
@@ -1024,9 +1024,10 @@ SHOWS.sternenkaiser=()=>show({basis:{pw:3.55,sz:1.285,th:'kaiser'},rampe:{sz:[0.
   {mit:true,n:20,gap:0.8,muster:'gerade',kal:'mini',pw:-8,eff:'knister',farbe:2,boden:[{k:'fountain',gt:16,x:-0.33,A:'gold',B:'weiss'},{k:'fountain',gt:16,x:0.33,A:'gold',B:'weiss'}],pause:0.6},
   /* Akt 4 Glassplitter: harte Goldspinnen, aussen nach innen, sehr schnell */
   {n:44,gap:0.12,muster:'aussen',ang:0.55,eff:'spinne',farbe:0,pause:1.4},
-  /* Akt 5 Rosette: riesige Einzel-Kaleidoskope, dazu zwei Kugelbomben mit eigenem Bild */
-  {n:10,gap:2.2,muster:'mitte',ang:0.35,eff:'kaleidoskop',kal:'riesig',pw:5,farbe:1,bruchOpt:{nachglitzer:false}},
-  {mit:true,n:2,gap:11,bomb:3,bombEff:'kaleidoskop',farbe:1,bombStufen:[{t:1.0,eff:'pistill',n:8,kranz:0.47}],pause:1.0},
+  /* Akt 5 Rosette: riesige Einzel-Kaleidoskope */
+  /* 28.09., Tom: echt - ohne die zwei Kugelbomben aus dem Karton: ihr
+     Aufstieg stand als gleissend weisse Saeule neben dem Verbund */
+  {n:10,gap:2.2,muster:'mitte',ang:0.35,eff:'kaleidoskop',kal:'riesig',pw:5,farbe:1,bruchOpt:{nachglitzer:false},pause:1.0},
   /* Akt 6 Doppelspiegel: Kreuzfeuer aus der ganzen Breite, Feuertoepfe, Knisterfontaenen symmetrisch */
   {n:48,gap:0.25,muster:'x',ang:0.50,rohre:'breit',eff:['kaleidoskop','brokat'],farbe:0,farbVert:'seite',mine:true,mineEff:'farbe',
    boden:[{k:'knisterbrunnen',gt:8,x:-0.33,A:'silber',B:'weiss'},{k:'knisterbrunnen',gt:8,x:0.33,A:'silber',B:'weiss'}],pause:1.5},
@@ -1086,8 +1087,12 @@ SHOWS.finale=()=>show({basis:{pw:4.00,sz:1.320,th:'meteor'},rampe:{sz:[0.85,1.35
   /* Akt 4 Feuersturm: Kreuzfeuer ueber die ganze Breite, unten stuerzen Truemmer */
   {n:48,gap:0.2,muster:'x',ang:0.50,rohre:'breit',pw:2,eff:['chrys','meteor','kamuro'],kal:'gross',farbe:1},
   {mit:true,n:24,gap:0.4,muster:'v',ang:0.60,kal:'klein',pw:-1,eff:'kaskade',farbe:2,pause:1.0},
-  /* Akt 5 Die grossen Brocken: vier Kugelbomben mit Meteor-Hauptbild und Brokat-Nachbruechen */
-  {n:4,gap:2.5,muster:'gerade',bomb:4,bombEff:'meteor',farbe:0,bombStufen:[{t:1.2,eff:'brokat',n:4,kranz:0.29}],pause:1.5},
+  /* Akt 5 Die grossen Brocken: vier grosse Meteore, darueber Brokat */
+  /* 28.09., Tom: echt - grosse Kometenbomben aus dem Karton statt
+     Kugelbomben: deren dicker Aufstieg stand als gleissend weisse Saeule
+     neben dem Verbund (Bodenbild); Brokat-Nachbruch als eigener Schuss */
+  {n:4,gap:2.5,muster:'gerade',eff:'meteor',kal:'riesig',pw:4,farbe:0},
+  {mit:1.2,n:4,gap:2.5,muster:'mitte',ang:0.25,eff:'brokat',kal:'mittel',pw:6,farbe:0,pause:1.5},
   /* Akt 6 Stille */
   {n:0,pause:3.0},
   /* Akt 7 Einschlag: 72 Meteore in 3,6 s von der Mitte nach aussen, weisse Feuertoepfe - dann der Weltenblitz */
@@ -1134,8 +1139,8 @@ SHOWS.himmelsfaecher=()=>show({basis:{pw:4.55,sz:1.365,th:'gitter'},rampe:{sz:[0
      Module sind Kartondrittel, x -0,3/0/0,3 m statt -10/0/10 m; am Himmel
      liegen ihre V ueber den Rohrwinkel nebeneinander) */
   {n:30,je:6,takt:[0.9],x:[-0.3,0,0.3],angOff:[-0.42,0,0.42],muster:'v',ang:0.3,eff:'rohrkomet',art:'silber',pause:1.4},
-  /* Ruhe im Netz: Wasserfall mitten in der Show, oben Kronleuchter, unten kleine Blinker */
-  {n:12,gap:1.5,muster:'gerade',eff:'kronleuchter',kal:'gross',farbe:0,boden:{k:'wasserfall',gt:20,A:'silber',B:'weiss'}},
+  /* Ruhe im Netz: Silberfontaene mitten in der Show, oben Kronleuchter, unten kleine Blinker */
+  {n:12,gap:1.5,muster:'gerade',eff:'kronleuchter',kal:'gross',farbe:0,boden:{k:'fountain',gt:20,A:'silber',B:'weiss'}}, /* 28.09., Tom: "Effekt zu gross" - Silberfontaene statt Wasserfall: der spruehte 1,5 m breit ueber Tisch und Boden (Bodenbild) */
   {mit:true,n:12,gap:1.5,muster:'zufall',ang:0.35,kal:'mini',pw:-7,eff:'blinkregen',farbe:1,pause:0.8},
   /* Gangwechsel: das Netz verdichtet sich, Feuertoepfe */
   {n:30,gap:0.1,muster:'x',ang:0.55,rohre:'breit',eff:['rohrkomet','spinne'],art:'silber',farbe:2,mine:true,mineEff:'farbe',pause:1.4},

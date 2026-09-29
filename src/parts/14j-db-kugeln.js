@@ -14,7 +14,7 @@
      75 mm  ein Bild mit einem Kniff   Herzschlag, Suedsee, Chamaeleon
      100 mm zwei Stufen                Eiskristall, Drachenblut, Haengeweide
      150 mm drei Stufen                Weltenbrand, Sternenstaub, Sternkranz
-     200 mm Bewegung im Bild           Uhrwerk, Leuchtqualle
+     200 mm Bewegung im Bild           Bluetenkranz, Leuchtqualle
      300 mm Meisterbomben              Himmelsbrecher, Kaiserkrone
    ========================================================= */
 
@@ -51,6 +51,26 @@ function kgWechsel(h,c,dunkel,life,g,mode,spur){
 }
 
 /* ---------- Hauptbilder ---------- */
+
+/* Herzschlag (kugel75): Herz-Musterbombe, wie sie im Handel ist - rund
+   50 rote Sterne, von Hand ins Herz gelegt, also ungleich verteilt und
+   nicht ganz in der Form; die Bombe liegt nie genau zum Zuschauer (bis
+   25 Grad gekippt und verdreht). Die Sterne bremsen, sinken und verloeschen
+   einzeln. Der zweite Schlag ist die kleine Stufe (Tempo x Groesse).
+   28.09., Tom: echt - Nachpruefung: vorher 90 gleich weit verteilte
+   Doppelpunkte als perfekte Kurve, drei Herzen in vier Farben und ein
+   Leuchtball im Zerlegerpunkt */
+EFF.herzschlag=function(p,A,B,s){
+  const q=QUAL(), [u0,v0]=basisBlick(p,0.45), dr=rand(-0.3,0.3), cd=Math.cos(dr), sd=Math.sin(dr), n=Math.round(52*q), G=2.6;
+  const u=[u0[0]*cd+v0[0]*sd,u0[1]*cd+v0[1]*sd,u0[2]*cd+v0[2]*sd], v=[v0[0]*cd-u0[0]*sd,v0[1]*cd-u0[1]*sd,v0[2]*cd-u0[2]*sd];
+  for(let i=0;i<n;i++){
+    const t=rand(0,Math.PI*2), hx=Math.pow(Math.sin(t),3)+rand(-.07,.07), hy=(13*Math.cos(t)-5*Math.cos(2*t)-2*Math.cos(3*t)-Math.cos(4*t))/16+rand(-.07,.07);
+    const sp=8.5*s*rand(0.93,1.05), c=i%4?A:B, x=rand(-.06,.06);
+    const w=[(u[0]*hx+v[0]*hy)*sp+x,(u[1]*hx+v[1]*hy)*sp,(u[2]*hx+v[2]*hy)*sp-x];
+    psBig.emit(p.x,p.y,p.z,w[0],w[1],w[2],c[0]*1.25,c[1]*1.25,c[2]*1.25,rand(1.6,2.3),G,0); }
+  /* ein paar Sterne gehen immer daneben */
+  for(let i=0;i<Math.round(5*q);i++){ const d=randDir(), w=rand(3,7)*s; psBig.emit(p.x,p.y,p.z,d[0]*w,d[1]*w,d[2]*w,A[0],A[1],A[2],rand(1.2,1.8),G,0); }
+};
 
 /* Suedsee (palmenkugel75): goldene Palme - sieben dicke Kometen mit
    Kohle-Goldschweif steigen als Wedel auf und biegen sich -, in der Mitte
@@ -238,7 +258,7 @@ EFF.kreuzkranz=function(p,A,B,s,r){
 EFF.qualle=function(p,A,B,s,r){
   const q=QUAL(), gold=A||FW.gold, G=3.4, fu=[1,.8,.42];
   for(let i=0;i<Math.round(110*s*q);i++){ const d0=randDir(), d=[d0[0],Math.abs(d0[1])*0.9+0.1,d0[2]], l=Math.hypot(d[0],d[1],d[2]), w=rand(6,8)*s;
-    kgStern(psBig,p,[d[0]/l*w,d[1]/l*w+1,d[2]/l*w],gold,rand(3.0,3.8),G,4,1.1); }
+    kgStern(psBig,p,[d[0]/l*w,d[1]/l*w+1,d[2]/l*w],gold,rand(3.0,3.8),G,4,0.7); }   // 28.09.: Spur 0,7 statt 1,1 s - sonst gerade Goldspeichen aus der Mitte
   for(let i=0;i<Math.round(16*q);i++){ const a=rand(0,Math.PI*2), el=-rand(0.9,1.4), w=rand(2.5,4)*s, v=[Math.cos(a)*Math.cos(el)*w,Math.sin(el)*w,Math.sin(a)*Math.cos(el)*w], L=rand(4.2,5.0);
     kgStern(psHuge,p,v,kgMal(gold,1.1),L,1.6,4,1.8);
     rkFunken(p,v,1.6,0.3,L-0.2,18,fu,{life:[0.9,1.5],g:2.2,streu:0.1,mit:0.02}); }
@@ -259,8 +279,12 @@ EFF.fuenfkern=function(p,A,B,s,r){
     /* Schwere 2,4 wie jeder Stern - mit 0,3 standen die Kerne in der Luft (28.09.) */
     for(let i=0;i<n;i++){ const d=randDir(), w=V[k]*s*F*rand(0.97,1.03); hs.push(kgStern(psBig,p,kgMal(d,w),kgMal(farben[k],HK),4,2.4,0,0.08)); }
     schalen.push(hs); }
-  for(let i=0;i<Math.round(240*q);i++){ const d=randDir(), w=11.5*s*F*rand(0.95,1.02), L=rand(7.6,8.3);
-    krone.push(kgStern(psBig,p,kgMal(d,w),A,L,3.3,4,0.8)); }   // Spur 0,8 s: mit 1,6 s liefen gerade Speichen bis in die Mitte (Laser)
+  /* Spur 0,5 s: mit 1,6 s (und noch mit 0,8 s, Nachpruefung 28.09.) liefen
+     gleich helle gerade Speichen bis in die Mitte (Laser); die Koernung
+     machen die Kohlefunken */
+  for(let i=0;i<Math.round(190*q);i++){ const d=randDir(), w=11.5*s*F*rand(0.92,1.03), L=rand(7.6,8.3), v=kgMal(d,w);
+    krone.push(kgStern(psBig,p,v,A,L,3.3,4,0.5));
+    if(i%4===0) rkFunken(p,v,3.3,0.1,2.4,14,[1,.66,.26],{life:[0.5,1.0],g:2.6,streu:0.25,mit:0.05}); }
   /* Verwandlung: jede Schale nimmt die Farbe ihrer inneren Nachbarin */
   const henka=()=>{ farben=[FW.weiss].concat(farben.slice(0,4));
     schalen.forEach((hs,k)=>{ for(const h of hs) kgFarbe(h,farben[k],HK); }); };   // ohne Aufblitzen, wie ein echter Wechselstern
@@ -272,9 +296,9 @@ EFF.fuenfkern=function(p,A,B,s,r){
   schall(p,v=>sfx.rieseln(v*0.6,6));
 };
 
-/* Uhrwerk (kugel200): Zehnfachbruch mit zwei Farben und Drall - zehn
-   Blueten auf einem Ring, der Ring dreht sich (jede Bluete erbt
-   w*r*DRALL_ERBE). Ersetzt den Buntmix aus fuenf Farben. */
+/* Bluetenkranz (kugel200): Zehnfachbruch mit zwei Farben - zehn Blueten
+   auf einem Ring (Drall nur noch, wenn par.drall gesetzt ist - die Sorte
+   setzt ihn seit 28.09. nicht mehr). Ersetzt den Buntmix aus fuenf Farben. */
 EFF.zehnfach=function(p,A,B,s,r){
   const [u,v]=basisBlick(p,0.4), R=6.5*s, dr=(r&&r.par&&r.par.drall)||0, om=2*Math.PI*dr*DRALL_ERBE, a0=rand(0,Math.PI*2), q=QUAL(), alt=FW_ERBE;
   try{
@@ -290,16 +314,18 @@ EFF.zehnfach=function(p,A,B,s,r){
 };
 
 /* Spurlaengen und Familien der Hauptbilder (mitSchweif, effPassen) */
-Object.assign(EFF_SCHWEIF,{palmeninsel:0.12,chamaeleon:0.06,eiskristall:0.06,haengeweide:2.8,feuertropfen:0.25,feuerreif:0.1,sternenstaub:0.1,kreuzkranz:0.35,qualle:1.1,fuenfkern:0.8});
-Object.assign(EFF_FAMILIE,{palmeninsel:'haenger',chamaeleon:'kugel',eiskristall:'kugel',haengeweide:'haenger',feuertropfen:'flamme',feuerreif:'kugel',sternenstaub:'haenger',kreuzkranz:'knister',qualle:'haenger',fuenfkern:'kugel'});
+/* drachenblut (Bibliothek) zeigt nur kugel100: die roten Dahliensterne
+   zogen 0,3 s lange rote Striche (Laser) - eine Dahlie hat kurze Spuren */
+Object.assign(EFF_SCHWEIF,{drachenblut:0.12,herzschlag:0.05,palmeninsel:0.12,chamaeleon:0.06,eiskristall:0.06,haengeweide:2.8,feuertropfen:0.25,feuerreif:0.1,sternenstaub:0.1,kreuzkranz:0.35,qualle:0.7,fuenfkern:0.5,himmelsbrecher:0.3});
+Object.assign(EFF_FAMILIE,{herzschlag:'figur',palmeninsel:'haenger',chamaeleon:'kugel',eiskristall:'kugel',haengeweide:'haenger',feuertropfen:'flamme',feuerreif:'kugel',sternenstaub:'haenger',kreuzkranz:'knister',qualle:'haenger',fuenfkern:'kugel'});
 
 /* ---------- Die Sorten (Katalog, verbindlich) ---------- */
 Object.assign(KUGEL,{
   /* 75 mm - ein Bild mit einem Kniff */
-  kugel75:{kal:1,sz:2.05,pw:2.0,fuse:1.70,th:'herz',haupt:'herz',A:'rose',B:'gold',
-    steig:'keiner', bruchOpt:{nachglitzer:false}, ton:'herzton',
-    stufen:[{t:0.55,eff:'herz',sz:0.62,A:'rot',B:'rose',leise:true},      // "ba-"
-            {t:0.80,eff:'herz',sz:0.40,A:'weiss',B:'rot',leise:true}]},    // "-DUMM"
+  /* 28.09., Tom: echt - ein Farbthema (Rot, Rosa), zwei Schlaege, kein Leuchtball */
+  kugel75:{kal:1,sz:2.05,pw:2.0,fuse:1.70,th:'herz',haupt:'herzschlag',A:'rot',B:'rose',
+    steig:'keiner', bruchOpt:{kern:false,nachglitzer:false}, ton:'herzton',
+    stufen:[{t:0.55,eff:'herzschlag',sz:0.55,A:'rose',B:'rot',leise:true}]},      // "ba-DUMM"
   palmenkugel75:{kal:1,sz:2.10,pw:2.1,fuse:1.70,th:'wald',haupt:'palmeninsel',A:'gold',B:'tuerkis',C:'bernstein',
     steig:'gold', bruchOpt:{kern:false,nachglitzer:false}, stufen:[]},
   farbenmeer75:{kal:1,sz:2.20,pw:2.4,fuse:1.72,th:'tropen',haupt:'chamaeleon',A:'gruen',B:'orange',
@@ -308,7 +334,7 @@ Object.assign(KUGEL,{
   kristallkugel100:{kal:2,sz:2.60,pw:3.8,fuse:1.85,th:'eis',haupt:'eiskristall',A:'tuerkis',B:'weiss',
     steig:'blink', bruchOpt:{kern:false,nachglitzer:false}, stufen:[]},
   kugel100:{kal:2,sz:2.70,pw:4.0,fuse:1.85,th:'glut',haupt:'drachenblut',A:'rot',B:'scharlach',
-    steig:'glut', bruchOpt:{nachglitzer:false},
+    steig:'glut', bruchOpt:{kern:false,nachglitzer:false},   // 28.09., Tom: echt - ohne Leuchtball (im Bild eine 15 m grosse orange Scheibe)
     stufen:[{t:0.04,eff:'pistill',sz:0.40,A:'gold',B:'orange',leise:true},            // Drachenauge
             {t:KG_TROPF_T,eff:'feuertropfen',sz:1.0,A:'orange',B:'rot',leise:true}]},  // Tropfen fangen Feuer
   goldweide100:{kal:2,sz:2.80,pw:4.6,fuse:1.90,th:'gold',haupt:'haengeweide',A:'bernstein',B:'limette',
@@ -316,7 +342,7 @@ Object.assign(KUGEL,{
     stufen:[{t:0.05,eff:'pistill',sz:0.28,A:'limette',B:'gruen',leise:true}]},
   /* 150 mm - drei Stufen */
   kugel150:{kal:3,sz:3.25,pw:5.8,fuse:2.00,th:'glut',haupt:'feuerreif',A:'rot',B:'gold',
-    steig:'knister', bruchOpt:{nachglitzer:false},
+    steig:'knister', bruchOpt:{kern:false,nachglitzer:false},   // 28.09.: ohne Leuchtball
     stufen:[{t:0.04,eff:'pistill',sz:0.42,A:'gold',B:'rot',leise:true},              // Glutkern
             {t:1.50,eff:'tausend',sz:0.26,A:'orange',B:'gold',n:6,kranz:'reif'}]},  // Glut springt ueber
   sternenstaub150:{kal:3,sz:3.30,pw:6.0,fuse:2.00,th:'silber',haupt:'sternenstaub',A:'silber',B:'weiss',
@@ -325,18 +351,22 @@ Object.assign(KUGEL,{
     steig:'pfeif', bruchOpt:{kern:false,nachglitzer:false},
     stufen:[{t:0.90,eff:'knister',sz:0.30,A:'silber',B:'weiss'}]},   // Knisterkern in der Kranzmitte
   /* 200 mm - Bewegung im Bild */
-  kugel200:{kal:4,sz:3.95,pw:7.8,fuse:2.15,th:'zorn',haupt:'zehnfach',A:'magenta',B:'gold',drall:0.30,
+  /* 28.09., Tom: echt - Nachpruefung: ohne Drall. Die zwei gegenlaeufig
+     kreisenden Raeder waren gelenkte Bewegung (echt.md 1.9 Nr. 4); ein
+     echter Mehrfachbruch legt seine Blueten als Kranz, und die fliegen
+     gerade auseinander. Jetzt »Bluetenkranz« statt »Uhrwerk«. */
+  kugel200:{kal:4,sz:3.95,pw:7.8,fuse:2.15,th:'zorn',haupt:'zehnfach',A:'magenta',B:'gold',
     steig:'brokat', bruchOpt:{kern:false,nachglitzer:false},   // 28.09.: ohne Leuchtball in der leeren Mitte
-    stufen:[{t:0.50,eff:'pistill',sz:0.30,n:10,kranz:0.55,drall:-0.40,A:'gold',B:'magenta',bruchOpt:{kern:false}},   // inneres Rad, gegenlaeufig (ohne Kern: sonst zehn Leuchtkugeln)
-            {t:1.60,eff:'wechsel',sz:0.28,A:'gold',B:'weiss'}]},                                // Nabe
+    stufen:[{t:0.50,eff:'pistill',sz:0.30,n:10,kranz:0.55,A:'gold',B:'magenta',bruchOpt:{kern:false}},   // innerer Kranz (ohne Kern: sonst zehn Leuchtkugeln)
+            {t:1.60,eff:'wechsel',sz:0.28,A:'gold',B:'weiss',bruchOpt:{kern:false}}]},          // Mitte
   goldkrone200:{kal:4,sz:4.10,pw:8.3,fuse:2.15,th:'gold',haupt:'qualle',A:'gold',B:'blau',
     steig:'glut', bruchOpt:{kern:false,nachglitzer:false}, ton:'wumms',   // weiches "Wumpf" statt Knall
     stufen:[{t:0.04,eff:'pistill',sz:0.30,A:'blau',B:'blau',leise:true}]},   // Leuchtorgan: blauer Pistill in der Glocke (28.09.: vorher blaue Blinker ueber dem Schirm - Punkte)
   /* 300 mm - Meisterbomben */
   kugel300:{kal:5,sz:4.75,pw:10.8,fuse:2.30,th:'silber',haupt:'himmelsbrecher',A:'silber',B:'himmel',
-    steig:'titanspur', stehen:1,                              // Titanlinie bleibt 1 s als Funkenvorhang
+    steig:'titanspur', stehen:1, bruchOpt:{kern:false},       // Titanlinie bleibt 1 s als Funkenvorhang; 28.09.: ohne Leuchtball (im Bild eine weisse Scheibe von 20 m)
     stufen:[{t:0.06,eff:'glitzerweide',sz:0.80,A:'silber',B:'weiss',leise:true},     // Silberweide
-            {t:0.55,eff:'dahlie',sz:0.20,A:'weiss',B:'silber',risse:{strahlen:6,je:4,r:[8,23],dt:0.15,zack:0.10}}]},   // 24 Splitter
+            {t:0.55,eff:'dahlie',sz:0.20,A:'weiss',B:'silber',risse:{strahlen:6,je:4,r:[8,23],dt:0.15,zack:0.10},bruchOpt:{kern:false}}]},   // 24 Splitter, ohne Leuchtkugeln
   kaiserkrone:{kal:5,sz:5.00,pw:11.5,fuse:2.40,th:'koenig',haupt:'fuenfkern',
     kerne:['weiss','violett','weiss','violett','weiss'], A:'gold',B:'silber',
     steig:'gold', kobana:3, bruchOpt:{kern:false,nachglitzer:false}, stufen:[]}   // 28.09.: gerader Goldschweif statt Schlangenlinie
@@ -344,7 +374,7 @@ Object.assign(KUGEL,{
 
 /* Signaturen: je Kugel genau ein Hauptbild, das es sonst nirgends gibt */
 Object.assign(SIGNATUR,{
-  kugel75:{eff:'herz',text:'Herz, das zweimal schlägt'},
+  kugel75:{eff:'herzschlag',text:'Rotes Herz, das zweimal schlägt'},
   palmenkugel75:{eff:'palmeninsel',text:'Goldpalme mit türkisem Kern, Kokosnüsse fallen'},
   farbenmeer75:{eff:'chamaeleon',text:'Geisterbombe: Grün wird Stern für Stern Orange'},
   kristallkugel100:{eff:'eiskristall',text:'Türkise Kugel mit weißem Blinkkern, zerfällt zu Diamantstaub'},
@@ -353,7 +383,7 @@ Object.assign(SIGNATUR,{
   kugel150:{eff:'feuerreif',text:'Rot wird Gold mit Dunkelphase, Saturnring, Glut springt über'},
   sternenstaub150:{eff:'sternenstaub',text:'silberner Zeitregen, fünf Sekunden Sternenstaub'},
   sternkugel150:{eff:'kreuzkranz',text:'Ring aus Kometen, die zu 16 Kreuzen zerplatzen'},
-  kugel200:{eff:'zehnfach',text:'zwei gegenläufige Räder aus zehn Blüten'},
+  kugel200:{eff:'zehnfach',text:'zwei Kränze aus zehn Blüten, Magenta und Gold'},
   goldkrone200:{eff:'qualle',text:'Brokatglocke mit sinkenden Fangarmen, blaues Leuchtorgan'},
   kugel300:{eff:'himmelsbrecher',text:'Himmel reißt in sechs Linien, 24 Splitterbrüche, Silberweide'},
   kaiserkrone:{eff:'fuenfkern',text:'fünf Kerne verwandeln sich und erlöschen gleichzeitig in der Goldkrone'}

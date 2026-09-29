@@ -94,7 +94,7 @@ const P={
     desc:'Im Aufstieg öffnen sich vier kleine Silberblüten wie Sprossen einer Himmelsleiter. Oben hängt eine silberne Weide, deren Spitzen wie ein Sternhimmel zu blinken beginnen, in der Mitte ein blauer Kern.',
     art:{title:'POLARSTERN',sub:'Himmelsleiter · Blinkweide',bg1:'#12204a',bg2:'#04081a',ac:'#8fd0ff',ac2:'#ffd23f'}},
   sortiment:{name:'Familienfest · 14 Teile Staffel-Sortiment',short:'Familienfest',cat:2,lvl:13,shape:'assort',dims:[0.40,0.16,0.30],grid:[4,1,1],box:2,cost:18.00,market:42.99,weight:6,hype:34,risk:6,
-    desc:'Vierzehn Teile, eins nach dem anderen: Ein Funke läuft vom Vulkan zum Römischen Licht, weiter zur Minibatterie, zu den Kreiseln und zum großen Schluss.',
+    desc:'Vierzehn Teile, eins nach dem anderen: Ein Funke läuft vom Vulkan zum Römischen Licht, weiter zur Minibatterie, zum Sternbrunnen und zum großen Schluss.',
     art:{title:'FAMILIENFEST',sub:'18 Teile gemischt',bg1:'#2f5d9e',bg2:'#0a1a33',ac:'#ffd23f',ac2:'#ff4fa3'}},
   /* Knattersturm: ersetzt den alten 25er. Jeder Schuss knistert,
      dazwischen Salven aus fuenf Rohren auf einmal. */

@@ -21,7 +21,10 @@
 /* Neue Brueche bringen Kern, Leuchthof und Nachglitzern nicht von
    selbst mit (neue-effekte.md): fwBurst liest bruchOpt erst nach dem
    Bruch, der Bruch darf es darum hier setzen. */
-function zutaten(r,o){ if(r) r.bruchOpt=Object.assign({},r.bruchOpt||{},{kern:false,nachglitzer:false},o||{}); }
+function zutaten(r,o){ if(!r) return; o=Object.assign({},o||{});
+  /* 28.09., Tom: echt - Bruchlicht wie alle Batterieschuesse gedaempft (SHOW_BLITZ, 14b) */
+  if(typeof o.flash==='number') o.flash*=SHOW_BLITZ;
+  r.bruchOpt=Object.assign({},r.bruchOpt||{},{kern:false,nachglitzer:false},o); }
 /* eigener Klang statt des Standardknalls */
 sfx.e1still=()=>{};
 function leise(r){ if(r) r.knall='e1still'; }
@@ -308,8 +311,15 @@ EFF.flitterstern=function(p,A,B,s,r){
 EFF.vollmond=function(p,A,B,s,r){
   zutaten(r,{flash:0.6});
   const q=QUAL(), alt=SCHWEIF, silber=mischF(FW.silber,A,0.1), mond=mischF(FW.zitrone,WEISS,0.45);
-  SCHWEIF=0.55;
-  for(let i=0;i<Math.round(90*s*q);i++){ const d=randDir(), w=rand(8,9.6)*s; psBig.emit(p.x,p.y,p.z,d[0]*w,d[1]*w,d[2]*w,silber[0],silber[1],silber[2],rand(2.0,2.6),3.4,4); }
+  /* 28.09., Tom: "Laser" - mit 0,55 s Leuchtspur zog jeder Silberstern
+     eine glatte gerade Linie mit hellem Kopf (Stecknadel). Echt ist ein
+     Kopf mit kurzer Flamme, dahinter ein Faden aus Titanfunken, die
+     flackern, fallen und einzeln verloeschen (funkenFaden). */
+  const st=[];
+  SCHWEIF=0.12;
+  for(let i=0;i<Math.round(90*s*q);i++){ const d=randDir(), w=rand(8,9.6)*s, v=[d[0]*w,d[1]*w,d[2]*w], L=rand(2.0,2.6);
+    psBig.emit(p.x,p.y,p.z,v[0],v[1],v[2],silber[0],silber[1],silber[2],L,3.4,4); st.push({v,L}); }
+  funkenFaden(p,st,3.4,[.85,.88,.95],0.45);
   SCHWEIF=0.06;
   for(let i=0;i<Math.round(34*s*q);i++){ const d=randDir(), w=rand(2.8,3.6)*s; psBig.emit(p.x,p.y,p.z,d[0]*w,d[1]*w,d[2]*w,mond[0],mond[1],mond[2],rand(2.2,2.8),2.2,0); }
   SCHWEIF=alt;
@@ -344,22 +354,25 @@ EFF.fischschwarm=function(p,A,B,s,r){
 EFF.lampare=function(p,A,B,s,r){
   zutaten(r,{flash:1.3}); leise(r);
   schall(p,v=>{ sfx.wumms(v*1.1); rauschF({dur:0.9,vol:0.3*v,typ:'lowpass',f:260,an:0.03}); });
-  const q=QUAL(), g=clamp(s,0.4,1.6), n=Math.round(rand(60,80)*q*clamp(0.6+g*0.4,0.7,1.3)), alt=SCHWEIF;
-  SCHWEIF=0.12;
-  for(let i=0;i<n;i++){ const d=randDir(), w=rand(3,5)*g*rand(0.6,1), L=rand(0.8,1.2);
-    /* 28.09., Tom: echt - Flammen verloeschen dunkel und frueh; vorher
-       glommen sie 1 s als dunkelrote Scheiben nach (im Finale ein Himmel
-       voll roter Punkte) */
-    psBig.emit(p.x,p.y,p.z,d[0]*w,d[1]*w+0.6,d[2]*w,1,.82,.32,L*0.7,-1,2,.3,.05,.01); }
+  const q=QUAL(), g=clamp(s,0.4,1.6), n=Math.round(rand(150,190)*q*clamp(0.6+g*0.4,0.7,1.3)), alt=SCHWEIF;
+  /* 28.09., Tom: echt ("Punkte") - im Finale lagen 60-80 grosse, eine
+     Sekunde lebende Flammen-Sprites je Ball als rote und gelbe Scheiben
+     ueber dem ganzen Bild (Bokeh, kein Feuer). Jetzt viele kleine, kurze
+     Flammenzungen (psMid, 0,25-0,55 s), die dicht ueberlappen und als
+     eine aufquellende Flammenwolke lesen: innen gelbweiss, aussen orange,
+     sie steigen (Auftrieb) und gehen dunkel in Rauch ueber. */
+  SCHWEIF=0.06;
+  for(let i=0;i<n;i++){ const d=randDir(), f=Math.cbrt(Math.random()), w=rand(3.2,6)*g*f, L=rand(0.35,0.75)*(1.25-0.45*f),
+      c=f<0.55?[1,.9,.55]:[1,.6+rand(0,.15),.18], ps=i%5<2?psBig:psMid;
+    ps.emit(p.x+d[0]*0.3*g,p.y+d[1]*0.3*g,p.z+d[2]*0.3*g,d[0]*w,d[1]*w+0.8,d[2]*w,c[0],c[1],c[2],L,-1.6,2,.22,.04,.01); }
+  /* heisser Kern, nur einen Augenblick */
   SCHWEIF=0;
-  for(let i=0;i<6;i++) psHuge.emit(p.x,p.y,p.z,rand(-.4,.4),rand(0,.6),rand(-.4,.4),1,.7,.3,rand(0.3,0.55),-0.5,0);
+  for(let i=0;i<4;i++) psHuge.emit(p.x,p.y,p.z,rand(-.4,.4),rand(0,.6),rand(-.4,.4),1,.72,.32,rand(0.15,0.3),-0.5,0);
   SCHWEIF=alt;
-  /* Glutkugel: drei Ballen, die aufquellen und verloeschen (28.09.: kleiner,
-     schwaecher und kuerzer - im Finale wirkten sieben Hoefe wie runde
-     Leuchtscheiben; die Flammen selbst sind die Sterne oben) */
-  for(let k=0;k<3;k++){ const R=(1.5+k*0.6)*g, c=[[1,.75,.3],[1,.45,.1],[.8,.2,.04]][k];
-    hof(0.8,t=>[p.x,p.y+0.8*t,p.z],c,t=>R*(0.45+0.55*(1-Math.exp(-t*5))),t=>(0.2-k*0.05)*Math.min(1,t/0.06)*(1-glatt(0.15+k*0.08,0.75,t))); }
-  flash(p,[1,.52,.16],2.6*g,0.7);   /* 28.09.: 4,5 - sieben zugleich im Finale tauchten den Platz in Weiss */
+  /* Glutkugel: zwei schwache Ballen, 0,5 s (der Koerper der Flamme, kein Licht) */
+  for(let k=0;k<2;k++){ const R=(1.4+k*0.7)*g, c=[[1,.7,.28],[1,.42,.1]][k];
+    hof(0.5,t=>[p.x,p.y+0.8*t,p.z],c,t=>R*(0.45+0.55*(1-Math.exp(-t*6))),t=>(0.13-k*0.04)*Math.min(1,t/0.05)*(1-glatt(0.1,0.5,t))); }
+  flash(p,[1,.52,.16],1.2*g,0.6);   /* 28.09.: 4,5 - sieben zugleich im Finale tauchten den Platz in Weiss; 1,8: ein Feuerball faerbt die Umgebung orange, nicht grell */
   const ort={x:p.x,y:p.y,z:p.z};
   later(0.8,()=>rauchball({x:ort.x,y:ort.y+0.6,z:ort.z},{r:2.4*g,n:6,dauer:2.6,quellen:0.8,steigen:0.6,c:[0.11,0.09,0.08],a:0.45}));
 };
@@ -372,7 +385,9 @@ EFF.tausendblueten=function(p,A,B,s,r){
   schall(p,v=>sfx.plopp(v*0.5,1.1));
   const q=QUAL(), n=Math.round(rand(15,25)*Math.max(0.75,q)*clamp(0.8+s*0.2,0.9,1.15)), G=1.8, tB=rand(0.5,0.7), bw=clamp(s,0.6,1.4);
   const alt=SCHWEIF; SCHWEIF=0; psHuge.emit(p.x,p.y,p.z,0,0,0,0.5,0.45,0.35,0.06,0,0); SCHWEIF=alt;
-  for(let i=0;i<n;i++){ const d=randDir(), w=rand(5,7)*s, v=[d[0]*w,d[1]*w,d[2]*w], tz=tB+rand(-0.08,0.08), c=i%2?B:A;
+  /* 28.09., Tom: echt - Blueten ueber die ganze Kugel verteilt (alle gleich schnell
+     lagen sie beim Aufgehen als Kranz aus Punkten auf dem Rand) */
+  for(let i=0;i<n;i++){ const d=randDir(), w=(2.8+4.2*Math.cbrt(Math.random()))*s, v=[d[0]*w,d[1]*w,d[2]*w], tz=tB+rand(-0.08,0.08), c=i%2?B:A;
     imBild(tz,()=>{ const e=bahnOrt(p,v,G,tz), m=Math.round(rand(10,14)*Math.max(0.75,q)), a=SCHWEIF; SCHWEIF=0.12;
       psBig.emit(e.x,e.y,e.z,0,0,0,c[0]*0.9+0.4,c[1]*0.9+0.4,c[2]*0.9+0.4,0.06,0,0);
       for(let k=0;k<m;k++){ const f=randDir(), u=rand(1.6,2.1)*bw; psBig.emit(e.x,e.y,e.z,f[0]*u,f[1]*u,f[2]*u,c[0],c[1],c[2],rand(0.75,0.9),1.5,0); }
@@ -384,10 +399,27 @@ EFF.tausendblueten=function(p,A,B,s,r){
 /* Leuchtspuren je Bruchbild (mitSchweif): die Brueche setzen ihre Spur
    selbst, hier nur die Vorgabe fuer alles, was sie nicht setzen */
 Object.assign(EFF_SCHWEIF,{pusteblume:0.2,brausepulver:0.2,glitterspur:0.3,pulverschnee:0.1,zeitsterne:0.28,irrlicht:0.05,klangperle:0.2,pfauenauge:1.0,
-  falterlicht:0,flitterstern:0.22,vollmond:0.55,fischschwarm:0.05,lampare:0.12,tausendblueten:0.12,mondregen:1.1});
+  falterlicht:0,flitterstern:0.22,vollmond:0.12,fischschwarm:0.05,lampare:0.12,tausendblueten:0.12,mondregen:1.1});
 /* Familien fuer effPassen: die Pfauenfeder ist eine Palme, der Vollmond
    ein Pistill - keine Figuren mehr */
 EFF_FAMILIE.pfauenauge='haenger'; EFF_FAMILIE.vollmond='kugel';
+
+/* Farbtorte (Boden-Ebene der Sortimente statt Bodenkreisel, 28.09., Tom:
+   "Effekte am Produkt rauslassen"): ein Kreisel tanzt auf dem Boden und
+   spruehte vom Karton aus 1,5 m breit farbige Funken ueber den Tisch -
+   farbige Funken gibt es nicht, und aus einer Schachtel kommt kein
+   Kreisel. Jetzt eine kleine Silberfontaene aus der Duese, 0,5-0,9 m
+   hoch, in der alle 0,25 s ein paar Farbsterne (A) aufsteigen und
+   verloeschen ("micro stars", echt.md 1.7). */
+NEU_EMIT.farbtorte=(e,dt,o)=>{ const A=e.A||FW.gold, S=FW.silber, y0=emY(o,0.12), q=QUAL(), alt=SCHWEIF;
+  e.acc=(e.acc||0)+dt*230*q; SCHWEIF=0.05;
+  for(;e.acc>=1;e.acc--){ const a=Math.random()*Math.PI*2, w=rand(0.05,0.35);
+    psSmall.emit(o.x,y0,o.z,Math.cos(a)*w,rand(2.4,3.8),Math.sin(a)*w,S[0],S[1],S[2],rand(0.35,0.7),5,4); }
+  e.st=(e.st||0)-dt; if(e.st<=0){ e.st=rand(0.2,0.3); SCHWEIF=0.08;
+    for(let k=0;k<3;k++){ const a=Math.random()*Math.PI*2, w=rand(0.1,0.4);
+      psMid.emit(o.x,y0,o.z,Math.cos(a)*w,rand(4,5.5),Math.sin(a)*w,A[0]*1.2,A[1]*1.2,A[2]*1.2,rand(0.5,0.8),5,0); } }
+  SCHWEIF=alt;
+  e.fz=(e.fz||0)-dt; if(e.fz<=0){ e.fz=1.4; sfx.fizz(distVol(o)*0.5); } };
 
 /* Heuler (heulbatterie): gerader, heller Pfeifschweif mit wenigen
    Funken statt der Silberspirale (echt.md 2.3: "Spirale weg, gerader
@@ -438,7 +470,7 @@ const DB={
      28.09.: nur Limette und Rosa (vorher Gruen, Violett, Magenta, Rosa);
      Tortenfontaenen in Silber - Funken sind nie rosa */
   kinderparty:()=>show({basis:{pw:-10.5,sz:0.44,th:'brause'}, rampe:{sz:[0.85,1.2],pw:[-1,1.5],hell:[0.9,1.2],kurve:'frueh'}}, [
-    {n:0,nurBoden:true,boden:[{k:'kreisel',gt:5,x:-0.1,A:'limette',i:0},{k:'kreisel',gt:5,x:0,A:'rose',i:1,t:0.4},{k:'kreisel',gt:5,x:0.1,A:'limette',i:2,t:0.8}],pause:4.6},
+    {n:0,nurBoden:true,boden:[{k:'farbtorte',gt:5,x:-0.1,A:'limette'},{k:'farbtorte',gt:5,x:0,A:'rose',t:0.4},{k:'farbtorte',gt:5,x:0.1,A:'limette',t:0.8}],pause:4.6},
     {n:2,gap:1.4,muster:'mitte',ang:0.18,eff:'brausepulver',farbe:2,steig:'gold',pause:0.9},
     {n:0,nurBoden:true,boden:[{k:'torte',gt:6,x:-0.09,A:'silber'},{k:'torte',gt:6,x:0.09,A:'silber'}]},
     {n:3,mit:true,takt:[0.4,1.4],muster:'w',ang:0.25,eff:['kugel','kugel','brausepulver'],farbe:0,kal:'klein',steig:'gold',pause:1.2},
@@ -511,15 +543,17 @@ const DB={
     {n:7,gap:0,muster:'schlag',ang:0.6,eff:'pfauenauge',kal:'mittel',farbe:0,steig:'komet',boden:{k:'fountain',gt:4,A:'gold',B:'weiss'},pause:3.5}
   ]),
   /* Tornado-Box, L12: Bodenwirbel, die sich in die Luft schrauben.
+     28.09. (Tom: "am Produkt rauslassen"): jeder Wirbel dreht nur kurz auf
+     dem Karton und hebt dann ab - die sechs darum etwas gestaffelt.
      28.09.: statt der zweifarbigen Drallringe summende Bienen, Farbwechsel
      und Knister - Tuerkis mit Silber; Knisterfontaene statt des Boden-
      Stroboskops (Blitzlicht im Takt wirkte wie Lichtshow) */
   jugendbox:()=>show({basis:{pw:-6.0,sz:0.70,th:'eis'}, rampe:{sz:[0.85,1.2],pw:[-1,1.5],hell:[0.9,1.2],kurve:'welle'}}, [
-    {n:0,nurBoden:true,boden:[{k:'tornado',gt:4,x:-0.11,A:'tuerkis'},{k:'tornado',gt:4,x:0.11,A:'silber',t:0.7}],pause:4.8},
+    {n:0,nurBoden:true,boden:[{k:'tornado',gt:4,x:-0.11,A:'tuerkis'},{k:'tornado',gt:4,x:0.11,A:'silber',t:0.9},{k:'tornado',gt:4,x:0,A:'tuerkis',t:1.9}],pause:4.8},
     {n:8,gap:0.35,muster:'welle',ang:0.25,wellen:1,eff:'bienen',farbe:0,kal:'mini',steig:'silber',pause:1.0},
     {n:6,gap:0.8,muster:'gerade',eff:'wechsel',farbe:0,kal:'klein',steig:'silber',boden:[{k:'tornado',gt:4,x:-0.13,A:'weiss',t:0.5},{k:'tornado',gt:4,x:0.13,A:'tuerkis',t:2.5}],pause:1.0},
     {n:6,gap:0.6,muster:'v',ang:0.3,eff:'knister',farbe:2,steig:'silber',boden:{k:'knisterbrunnen',gt:4,gh:0.6,A:'silber',B:'weiss'},pause:1.0},
-    {n:0,nurBoden:true,boden:[{k:'tornado',gt:4,x:-0.07,A:'tuerkis'},{k:'tornado',gt:4,x:0.07,A:'silber'}],pause:2.8},
+    {n:0,nurBoden:true,boden:[{k:'tornado',gt:4,x:0,A:'tuerkis'}],pause:2.0},
     {n:3,gap:0.12,muster:'mitte',ang:0.35,eff:'bienen',farbe:2,kal:'klein',steig:'silber',pause:3.0}
   ]),
   /* Nachtfalter, L12: aus jedem violetten Farbkranz taumeln glimmende
@@ -567,7 +601,7 @@ const DB={
     {n:0,nurBoden:true,boden:[{k:'volcano',gt:6,x:-0.4,A:'gold',B:'zitrone'},{k:'lauffeuer',t:5.2,gt:1.0,x:-0.4,bis:-0.1}],pause:6.2},
     {n:4,perle:true,gap:0.8,x:-0.1,farbFolge:['rot','gold','rot','gold'],boden:{k:'lauffeuer',t:3.2,gt:1.0,x:-0.1,bis:0.25},pause:1.2},
     {n:5,gap:0.5,muster:'mitte',ang:0.3,x:0.25,eff:['kugel','wechsel','chrys','kugel','wechsel'],farbe:1,steig:'gold',boden:{k:'lauffeuer',t:2.5,gt:1.0,x:0.25,bis:0.45},pause:1.2},
-    {n:0,nurBoden:true,boden:[{k:'kreisel',gt:5,x:0.45,A:'gruen',i:0},{k:'kreisel',gt:5,x:0.45,A:'gold',i:1,t:0.3},{k:'kreisel',gt:5,x:0.45,A:'gruen',i:2,t:0.6},{k:'lauffeuer',t:4.4,gt:1.2,x:0.45,bis:0}]},
+    {n:0,nurBoden:true,boden:[{k:'farbtorte',gt:5,x:0.45,A:'gruen'},{k:'lauffeuer',t:4.4,gt:1.2,x:0.45,bis:0}]},
     {n:3,mit:true,gap:0.9,x:0.45,mineEff:'kugel',mineSz:0.6,nurMine:true,farbe:2,pause:2.8},
     {n:3,gap:0.3,muster:'aussen',ang:0.35,x:0,eff:'chrys',kal:'mittel',farbe:2,steig:'gold',boden:[{k:'fountain',gt:5,x:-0.25,A:'gold',B:'weiss'},{k:'fountain',gt:5,x:0.25,A:'gold',B:'zitrone'}],pause:4.5}
   ]),

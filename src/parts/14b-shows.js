@@ -53,6 +53,34 @@ const SHOW_BASIS={
    Ein Drehbuch bleibt ein Array von Phasen; rampe/basis haengen als
    Eigenschaften daran: show({rampe:{...}}, [phasen]). */
 function show(kopf,phasen){ return Object.assign(phasen,kopf||{}); }
+/* Bruchlicht der Batterien (28.09., Tom: echt - "sieht aus wie Lichttechnik"):
+   ein 30-mm-Bruch in 20-40 m hellt Rauch und Haeuser nur kurz und schwach
+   auf. Mit dem vollen Bruchlicht der Bibliothek (Punktlicht 6-9) standen
+   Wand, Tisch und Haeuser bei fast jedem Schuss reinweiss, gruen oder gelb
+   da - wie ein Scheinwerfer. Faktor fuer alle Schuesse aus show(); die
+   eigenen Brueche (14g/14h) rechnen ihren Wert damit um. Salute blitzen
+   weiter voll. Ohne Kern: die weissen Kern-Sprites (0,1-0,3 s) standen im
+   Bild als runde Leuchtscheiben um jeden Bruch - bei 30-mm-Bruechen ist
+   der Zerlegerblitz im Sternbild nicht zu sehen. */
+const SHOW_BLITZ=0.4;
+const showBlitz=bo=>Object.assign({flash:SHOW_BLITZ,kern:false},bo||{});
+/* Moerserblitz der Kugelbomben aus einem Verbund (Finale Grande): der
+   Abschussblitz der Bibliothek (Punktlicht 6-8) tauchte Tisch, Wand und
+   Haeuser bei jedem Schuss in Weiss - im Verbund gedaempft wie die Brueche.
+   BLITZ_K gilt nur waehrend des Aufrufs (14b, show). */
+let BLITZ_K=1;
+{ const flashRoh=flash; flash=function(p,c,power,dur){ return flashRoh(p,c,power*BLITZ_K,dur); }; }
+/* Funkenfaden: hinter jedem Stern der Liste [{v,L}] loesen sich alle
+   0,08 s Titan-/Kohlefunken, die kurz flackern, fallen und verloeschen -
+   ein koerniger Schweif statt einer durchgehenden Linie (28.09., Tom: echt).
+   dichte: Anteil der Sterne je Takt, lebt: Brenndauer der Funken [von,bis] s. */
+function funkenFaden(p,st,G,c,dichte,lebt){ const LB=lebt||[0.3,0.7];
+  const q=QUAL(), tm=Math.max(...st.map(x=>x.L))*0.9;
+  for(let t=0.08;t<tm;t+=0.08){ const tt=t;
+    imBild(tt,()=>{ for(const x of st){ if(tt>x.L*0.9||Math.random()>dichte*q) continue; const e=bahnOrt(p,x.v,G,tt), w=bahnTempo(x.v,G,tt);
+      psMid.emit(e.x,e.y,e.z,w[0]*0.1+rand(-.35,.35),w[1]*0.1+rand(-.9,0),w[2]*0.1+rand(-.35,.35),c[0],c[1],c[2],rand(LB[0],LB[1]),3,4); } }); }
+}
+
 /* Drehbuch in der Katalogschreibweise ({basis, rampe, spuren:[...]})
    oder als Array mit basis/rampe als Eigenschaften - beides geht */
 function showNorm(s){
@@ -351,7 +379,7 @@ function playShow(o,phases,prod,tag){
       /* Schussfarbe der Aufstiegsspur */
       const trail=ph.spurFarbe==='A'?A:ph.spurFarbe==='B'?B:ph.spurFarbe?farbe(ph.spurFarbe)||undefined:undefined;
       const par={art:ph.art,split:ph.split,modus:ph.modus,sync:ph.sync,splitDreh:ph.splitDreh,schlaege:ph.schlaege,gleit:ph.gleit,form:ph.form,treffen:ph.treffen,i,n,g:s.g,q};
-      const opt={eff,sz,pw,ang,dir,A,B,fuse:ziel?(bildT||ph.fuse||zielZeit(ziel.y-(o.y||0))):ph.fuse,dick:ph.dick,hell:Rz.hell,pfeif:ph.pfeif||ph.steig==='pfeif',steig:ph.steig,bruchOpt:ph.bruchOpt,
+      const opt={eff,sz,pw,ang,dir,A,B,fuse:ziel?(bildT||ph.fuse||zielZeit(ziel.y-(o.y||0))):ph.fuse,dick:ph.dick,hell:Rz.hell,pfeif:ph.pfeif||ph.steig==='pfeif',steig:ph.steig,fein:true,bruchOpt:showBlitz(ph.bruchOpt),
         trail,ton:tonFuer(ph.ton,i,q),par,tag,ziel};
       /* Boden je Gruppe am Gruppenort */
       if(q===0) boeden.forEach(b=>{ if(b.je) bodenAn(b,tt+(b.t||0),off); });
@@ -364,8 +392,8 @@ function playShow(o,phases,prod,tag){
         else if(ph.mine||ph.nurMine) mine(os,mA,mB,(ph.mineSz||0.8)*Rz.sz);
         if(!ph.nurMine){
           /* bomb: echte Kugelbombe mit Nachbruechen statt einer Rakete */
-          if(ph.bomb) kugelbombe(os,ph.bomb,{A:mA,B:mB,eff:ph.bombEff||['dahlie','dahlie','chrys','mehrring','kamuro'][ph.bomb-1],stufen:ph.bombStufen,stufenRel:true,
-            schlaege:ph.schlaege,steig:ph.steig,bruchOpt:ph.bruchOpt,par,tag});
+          if(ph.bomb){ BLITZ_K=SHOW_BLITZ; try{ kugelbombe(os,ph.bomb,{A:mA,B:mB,eff:ph.bombEff||['dahlie','dahlie','chrys','mehrring','kamuro'][ph.bomb-1],stufen:ph.bombStufen,stufenRel:true,
+            schlaege:ph.schlaege,steig:ph.steig,bruchOpt:showBlitz(ph.bruchOpt),par,tag}); } finally { BLITZ_K=1; } }
           /* perle: Roemisches Licht - eine Leuchtkugel direkt aus dem Rohr */
           else if(ph.perle) perleSchuss(os,mA,sz,{eff:perleEff,ang:mm&&mm!=='gerade'?ang:(perleEff||ph.rohrFolge?0:undefined),dir:dir===undefined?FANDIR:dir,B:mB,i,kette,splitDreh:ph.splitDreh});
           else shot(os,opt);

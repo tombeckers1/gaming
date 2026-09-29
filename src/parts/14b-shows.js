@@ -376,10 +376,23 @@ function playShow(o,phases,prod,tag){
       else if(mm==='bild'){ const f=(BILD_FORM[ph.form]||BILD_FORM.herz)(i,n), W=bildW, yc=(o.y||0)+bildY;
         ziel={x:o.x+Math.sin(FANDIR)*f[0]*W,y:yc+f[1]*W,z:o.z+Math.cos(FANDIR)*f[0]*W}; }
       else if(mm==='x'&&ph.treffen){ ziel={x:o.x,y:(o.y||0)+0.4+hB,z:o.z}; }
+      /* Rohrstreuung (29.09., Tom: "in echten Batterien kommt jeder Schuss
+         aus seinem eigenen Rohr - die Explosion ist NIE 1:1 an derselben
+         Stelle"): jedes Rohr steht ein wenig schief, bis ROHR_STREU rad in
+         zufaelliger Richtung. Vorher brach ein Drittel aller Schuesse auf
+         30 cm genau dort, wo schon ein anderer gebrochen war (gerade
+         Salven: sechs Kugeln in einem Punkt). Bildmuster behalten ihre
+         Form - ihr Zielpunkt wandert nur ein paar Dezimeter. */
+      const streu=ph.streu!==undefined?ph.streu:ROHR_STREU;
+      let sAng=ang, sDir=dir;
+      if(streu>0&&!ziel){ const r=streu*Math.sqrt(Math.random()), az=Math.random()*Math.PI*2, d0=dir===undefined?rand(0,Math.PI*2):dir;
+        const vx=Math.sin(d0)*Math.sin(ang)+Math.sin(az)*r, vz=Math.cos(d0)*Math.sin(ang)+Math.cos(az)*r, vy=Math.cos(ang);
+        sAng=Math.atan2(Math.hypot(vx,vz),vy); sDir=Math.atan2(vx,vz); }
+      if(streu>0&&ziel){ const w=streu*6; ziel={x:ziel.x+rand(-w,w),y:ziel.y+rand(-w,w)*0.6,z:ziel.z+rand(-w,w)}; }
       /* Schussfarbe der Aufstiegsspur */
       const trail=ph.spurFarbe==='A'?A:ph.spurFarbe==='B'?B:ph.spurFarbe?farbe(ph.spurFarbe)||undefined:undefined;
       const par={art:ph.art,split:ph.split,modus:ph.modus,sync:ph.sync,splitDreh:ph.splitDreh,schlaege:ph.schlaege,gleit:ph.gleit,form:ph.form,treffen:ph.treffen,i,n,g:s.g,q};
-      const opt={eff,sz,pw,ang,dir,A,B,fuse:ziel?(bildT||ph.fuse||zielZeit(ziel.y-(o.y||0))):ph.fuse,dick:ph.dick,hell:Rz.hell,pfeif:ph.pfeif||ph.steig==='pfeif',steig:ph.steig,fein:true,bruchOpt:showBlitz(ph.bruchOpt),
+      const opt={eff,sz,pw,ang:sAng,dir:sDir,A,B,fuse:ziel?(bildT||ph.fuse||zielZeit(ziel.y-(o.y||0))):ph.fuse,dick:ph.dick,hell:Rz.hell,pfeif:ph.pfeif||ph.steig==='pfeif',steig:ph.steig,fein:true,bruchOpt:showBlitz(ph.bruchOpt),
         trail,ton:tonFuer(ph.ton,i,q),par,tag,ziel};
       /* Boden je Gruppe am Gruppenort */
       if(q===0) boeden.forEach(b=>{ if(b.je) bodenAn(b,tt+(b.t||0),off); });
@@ -405,6 +418,9 @@ function playShow(o,phases,prod,tag){
   });
   return showDauer(phases);
 }
+/* Rohrstreuung der Batterien in rad (siehe show): 0,05 rad = knapp 3 Grad,
+   am Bruchpunkt in 20-25 m gut ein Meter */
+let ROHR_STREU=0.05;
 /* Feuertopf (mineEff). Sorten = Sternsaeule 10-15 m ohne Bombette:
    farbe, blink, knister, silber, gold, glut. Jeder andere Name ist ein
    Bruchbild: Tiefbruch 4-8 m ueber der Batterie in Groesse s. */

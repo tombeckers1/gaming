@@ -29,7 +29,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   await neuesSpiel(p);
   const mangel=[];
   const pruef=(n,ok,was)=>{ if(!ok) mangel.push(n+': '+was); };
-  const r=await p.evaluate(()=>{ const bb=window.__bb, o={}, O={x:0,y:1,z:-40};
+  const r=await p.evaluate(()=>{ const bb=window.__bb, o={}, O={x:0,y:1,z:-40}; bb.rohrStreu=0; /* 29.09.: Mustergeometrie ohne Rohrstreuung pruefen (die misst streuung.js) */
     const lauf=(phasen,dauer)=>{ const log=[]; bb.fwLog(log); const e0=bb.emittersListe().length; const t0=bb.fwUhr;
       bb.playShow(O,phasen,'__probe'); const emi=[]; for(let s=0;s<dauer;s+=0.05){ bb.run(0.05,0.05); } bb.fwLog(null);
       return log.filter(x=>x.art==='schuss').map(x=>({t:+(x.t-t0).toFixed(2),ang:x.ang,dir:x.dir,x:x.x,steig:x.steig,eff:x.eff})); };

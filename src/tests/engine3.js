@@ -46,7 +46,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   const mangel=[];
   const pruef=(n,ok,was)=>{ if(!ok) mangel.push(n+': '+was); };
   const r=await p.evaluate(()=>{
-    const W=window.__fwA, bb=window.__bb, o={}, O={x:0,y:1,z:-40,hx:6.1}, O2={x:0,y:1,z:-40,hx:0.3,hz:0.2,jit:0.06,ab:0.08};
+    const W=window.__fwA, bb=window.__bb, o={}, O={x:0,y:1,z:-40,hx:6.1}, _s=(bb.rohrStreu=0) /* 29.09.: Geometrie ohne Rohrstreuung (streuung.js) */, O2={x:0,y:1,z:-40,hx:0.3,hz:0.2,jit:0.06,ab:0.08};
     const RA={sz:[1,1],pw:[0,0],hell:[1,1]};
     const warte=s=>bb.run(s,1/60);
     const lauf=(spuren,dauer,basis)=>{ const log=[]; log.brueche=[]; W.fwLog(log); const t0=W.uhr;

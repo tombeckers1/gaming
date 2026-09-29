@@ -1078,7 +1078,9 @@ SHOWS.finale=()=>show({basis:{pw:4.00,sz:1.320,th:'meteor'},rampe:{sz:[0.85,1.35
      zum Auftakt des groessten Produkts, und die Blueten lagen am oberen Bildrand */
   {n:12,gap:1.4,muster:'zufall',ang:0.40,pw:3,eff:'gamboge',farbe:1,steig:'keiner',pause:1.0},
   /* Akt 2 Sternfall: Meteore, immer dichter */
-  {n:30,gap:1.2,gapEnde:0.25,muster:'welle',ang:0.50,pw:4,eff:'meteor',kal:'klein',farbe:0,pause:1.2},
+  /* 28.09. (Probebild): Meteore im Wechsel mit Glut-Chrysanthemen und
+     mittelgross - kleine Meteore allein liessen den Himmel fast leer */
+  {n:30,gap:1.2,gapEnde:0.25,muster:'welle',ang:0.50,pw:4,eff:['meteor','chrys'],kal:'mittel',farbe:0,pause:1.2},
   /* Akt 2b Kometenhagel: harte Goldspinnen und Meteore im Zickzack */
   {n:40,gap:0.12,muster:'z',seg:3,ang:0.50,eff:['spinne','meteor'],kal:'mittel',farbe:0,steig:'komet',pause:1.5},
   /* Akt 3 Erdbeben: tief rumpelnd, Glut-Feuertoepfe, oben fallen weiter Meteore */

@@ -178,14 +178,18 @@ function klKerzeFunken(p,dt,z,m,A,B,rate,o){
       else psMid.emit(x,y,zz,d[0]*s,d[1]*s+0.3,d[2]*s,c[0]*k,c[1]*k,c[2]*k*1.05,l,4,0);
     } else if(m==='farbspitze'){
       /* Goldfunke, der im letzten Teil seines Lebens hart in B umschlaegt (+20 % hell) */
-      const s=rand(1.1,2.3), l=rand(0.3,0.55), sp=o.spitze||0.3, t1=l*(1-sp), v=[d[0]*s,d[1]*s+0.3,d[2]*s], P0={x,y,z:zz};
-      SCHWEIF=0.07; psMid.emit(x,y,zz,v[0],v[1],v[2],A[0]*0.55,A[1]*0.55,A[2]*0.55,t1,1.5,0);
+      const s=rand(1.8,3.2), l=rand(0.2,0.36), sp=o.spitze||0.3, t1=l*(1-sp), v=[d[0]*s,d[1]*s+0.3,d[2]*s], P0={x,y,z:zz};
+      SCHWEIF=0.1; psSmall.emit(x,y,zz,v[0],v[1],v[2],A[0]*0.95,A[1]*0.95,A[2]*0.95,t1,1.5,0);
       imBild(t1,()=>{ const pp=bahnOrt(P0,v,1.5,t1), w=bahnTempo(v,1.5,t1), a=SCHWEIF; SCHWEIF=0.1;
-        psMid.emit(pp.x,pp.y,pp.z,w[0],w[1],w[2],B[0]*0.62,B[1]*0.62,B[2]*0.62,l-t1+0.04,1.5,0); SCHWEIF=a; });
+        psSmall.emit(pp.x,pp.y,pp.z,w[0],w[1],w[2],B[0]*1.1,B[1]*1.1,B[2]*1.1,l-t1+0.04,1.5,0); SCHWEIF=a; });
     } else {
-      const s=rand(1.0,2.4)*(o.tempo||1), c=Math.random()<0.78?A:B, l=rand(0.25,0.55), k=0.6, cc=[c[0]*k,c[1]*k,c[2]*k];
-      if(Math.random()<0.45) verzweig(psMid,x,y,zz,d[0]*s,d[1]*s+0.3,d[2]*s,cc,l,1.5,{n:[2,3],tz:rand(0.08,0.15),spur:0.06,ps2:psMid,minTempo:1.0});
-      else { SCHWEIF=0.07; psMid.emit(x,y,zz,d[0]*s,d[1]*s+0.3,d[2]*s,cc[0],cc[1],cc[2],l,1.5,0); }
+      /* 28.09., Tom: echt - Eisenfunken schiessen schnell heraus (2-4 m/s) und
+         leben kurz: Strahlen, die am Ende zerspritzen; vorher 1-2 m/s bei
+         0,5 s = eine Wolke schwebender Punkte */
+      const s=rand(2.0,4.0)*(o.tempo?0.5+0.5*o.tempo:1), c=Math.random()<0.78?A:B, l=rand(0.12,0.26), k=1.1, cc=[c[0]*k,c[1]*k,c[2]*k];
+      /* feine Funken (psSmall, 7 cm): mit psMid sah man aus der Naehe weiche Kugeln */
+      if(Math.random()<0.5) verzweig(psSmall,x,y,zz,d[0]*s,d[1]*s+0.3,d[2]*s,cc,l,1.5,{n:[2,4],tz:l*rand(0.5,0.8),spur:0.12,ps2:psSmall,minTempo:1.2});
+      else { SCHWEIF=0.12; psSmall.emit(x,y,zz,d[0]*s,d[1]*s+0.3,d[2]*s,cc[0],cc[1],cc[2],l,1.5,0); }
     }
   }
   SCHWEIF=alt;
@@ -314,8 +318,9 @@ klEmit('formkerze',(e,dt,o,t)=>{
     if(lt<T) alleFertig=false;
     tl.P.forEach((P,pi)=>{
       if(brennt){ const [x,y]=klPfadOrt(P,u), f={x,y,z:Z};
-        klGlutpunkt(f,'eisen',1,0.5); /* halber Hof: der Draht bleibt lesbar */
-        klKerzeFunken(f,dt,tl.fa[pi],'eisen',A,B,(e.n||6)*60*(e.fronten===2?0.8:1),{tempo:0.62});
+        const MT=e.material||'eisen';
+        klGlutpunkt(f,MT,1,0.5); /* halber Hof: der Draht bleibt lesbar */
+        klKerzeFunken(f,dt,tl.fa[pi],MT,A,B,(e.n||6)*60*(e.fronten===2?0.8:1),{tempo:0.62,weite:e.weite});
         licht('fk'+e.prod+j+pi,f,[1,0.7,0.4],0.6,{weite:4}); }
       /* Glut: abgebrannte Punkte leuchten in B nach und bleiben als Schrift stehen */
       const col=P.draht.userData.col, n=P.p3.length, fertig=lt-T;
@@ -454,6 +459,8 @@ klEmit('bengalstab',(e,dt,o,t)=>{
     if(lt<0||lt>s.T) continue;
     if(!s.an){ s.an=1; schall(tip,v=>sfx.zischen(v*0.35,0.4)); }
     const w=klBengal(s.z0,tip,dt,s.C,{st:Math.min(1,lt/0.35)*Math.min(1,(s.T-lt)/0.4),h:0.09,r:0.012,rate:90,funken:1.2,rauch:{rate:1.5,gr:0.6,licht:0.5,h:0.08}});
+    /* Bengalstaebe tropfen: gluehende Schlacke faellt ab und spritzt auf */
+    s.gp=(s.gp===undefined?rand(1,2.5):s.gp)-dt; if(s.gp<=0){ s.gp=rand(1.4,3); klGlutperle({x:tip.x,y:tip.y-0.01,z:tip.z},FW.orange,0,4,0.8); }
     an++; const S=klSatt(s.C); lc[0]+=S[0]*w; lc[1]+=S[1]*w; lc[2]+=S[2]*w; }
   /* EIN Raumlicht in der Mischfarbe der brennenden Staebe (L5: klein halten) */
   if(an){ const m=Math.max(lc[0],lc[1],lc[2],0.01); licht('bs'+e.prod,{x:o.x,y:o.y+0.35,z:o.z},[lc[0]/m,lc[1]/m,lc[2]/m],0.35+0.12*an,{weite:5,rein:true}); }
@@ -685,9 +692,10 @@ klEmit('bodenflitzer',(e,dt,o,t)=>{
     if(f.x<X0||f.x>X1){ f.a=Math.PI-f.a; f.x=clamp(f.x,X0,X1); }
     if(f.z<Z0||f.z>Z1){ f.a=-f.a; f.z=clamp(f.z,Z0,Z1); }
     const y=g.y+f.h+0.03*Math.sin(lt*23+i);
-    /* Goldspur: liegt und verglueht 0,6 s */
-    f.zz.s=(f.zz.s||0)+dt*260*q; SCHWEIF=0;
-    for(;f.zz.s>=1;f.zz.s--){ const u=Math.random(); psMid.emit(x0+(f.x-x0)*u,y,z0+(f.z-z0)*u,rand(-.1,.1),rand(0,0.15),rand(-.1,.1),S[0]*0.8,S[1]*0.8,S[2]*0.8,rand(0.45,0.65),0.2,0); }
+    /* Funkenspur: Kohlefunken spritzen hinter dem Treiber auf und verloeschen
+       nach 0,2-0,35 s (28.09., Tom: echt - vorher lag 0,6 s eine Leuchtlinie) */
+    f.zz.s=(f.zz.s||0)+dt*200*q; SCHWEIF=0.05;
+    for(;f.zz.s>=1;f.zz.s--){ const u=Math.random(); psSmall.emit(x0+(f.x-x0)*u,y,z0+(f.z-z0)*u,rand(-.5,.5)-Math.cos(f.a)*0.8,rand(0.2,0.9),rand(-.5,.5)-Math.sin(f.a)*0.8,S[0]*1.1,S[1]*1.1,S[2]*1.1,rand(0.18,0.35),3,0); }
     f.zz.k=(f.zz.k||0)+dt*90*q; SCHWEIF=0.05;
     for(;f.zz.k>=1;f.zz.k--){ const d=randDir(), s=rand(0.8,2); psSmall.emit(f.x,y,f.z,-Math.cos(f.a)*2+d[0]*s,Math.abs(d[1])*s,-Math.sin(f.a)*2+d[2]*s,1,0.8,0.35,rand(0.1,0.25),3,0); }
     SCHWEIF=0; psBig.emit(f.x,y,f.z,0,0,0,f.kopf[0]*1.2,f.kopf[1]*1.2,f.kopf[2]*1.2,0.05,0,0); psMid.emit(f.x,y,f.z,0,0,0,1.8,1.8,1.8,0.05,0,0);
@@ -1161,7 +1169,8 @@ Object.assign(KLEIN,{
   /* L3 */
   wunderzahl:{stueck:4,lunte:0,dauer:12,
     /* 28.09., Tom: Ziffern 13 cm hoch dicht an dicht - die Schrift steht ueber dem 32-cm-Karton (vorher 60 cm breit) */
-    phasen:[{k:'glutschrift',form:['2','0','2','7'],abstand:0.095,groesse:0.13,at:0,t:6.5,versatz:0.4,start:'strich',fronten:1,A:'gold',B:'zitrone',glut:'gold',nachglut:3.0,n:4, /* weniger Funken: die Ziffern sollen schon beim Brennen lesbar sein */
+    /* Silberfunken (Titan, kurz gehalten): Silvester-Silber, die Ziffern gluehen golden nach */
+    phasen:[{k:'glutschrift',form:['2','0','2','7'],abstand:0.095,groesse:0.13,at:0,t:6.5,versatz:0.4,start:'strich',fronten:1,material:'titan',weite:0.7,A:'silber',B:'weiss',glut:'gold',nachglut:3.0,n:2.2, /* weniger Funken: die Ziffern sollen schon beim Brennen lesbar sein */
       schluss:{at:7.8,funkeln:1.0}}]},
   /* L4 */
   boeller:{stueck:1,lunte:1.2,dauer:5,phasen:[{k:'alt',fn:'furzboeller'}]},

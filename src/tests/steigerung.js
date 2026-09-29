@@ -70,7 +70,8 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
       out[t]=messe(t);
     /* Feuerbrunnen: eigener Bodeneffekt */
     const pos={x:0,y:0.4,z:-20}; bb.igniteType('feuerbrunnen',pos); bb.run(0.3,0.1);
-    out.brunnenEmitter=bb.emittersListe().some(e=>e.k==='feuerbrunnen');
+    /* 28.09.: das Produkt hat einen eigenen Emitter 'flammen' (Kometenfontaene); 'feuerbrunnen' bleibt der Show-Effekt */
+    out.brunnenEmitter=bb.emittersListe().some(e=>e.k==='feuerbrunnen'||e.k==='flammen');
     /* neue Effekte einzeln */
     /* jedes Bruchbild einzeln zuenden und zaehlen, wie viele Sterne es
        erzeugt (bb.fwShot - bb.shot ist das Bildschirmfoto) */

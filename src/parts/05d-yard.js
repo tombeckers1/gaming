@@ -648,6 +648,12 @@ function stationsModell(st,it,sl){
     const g=kugelModell(t,it.slot); g.position.set(o.x,o.y,o.z); g.rotation.y=-Math.PI*0.5;
     scene.add(g); it.modell=g; return true;
   }
+  /* Fontaenen mit Gestell (Drehsonne, Niagara): das aufgebaute Gestell
+     steht auf dem Platz, die Funken kommen aus seinen Duesen (28.09.,
+     Tom: echt - vorher erschienen Rad und Leine erst beim Zuenden in der
+     Luft ueber dem Karton). Eigenes Feld gestell: es bleibt beim Zuenden
+     stehen und hat keine Zuendschnur-Vorlaufzeit wie ein Rohr. */
+  if(st.id==='tisch'&&typeof fkGestell==='function'){ const g=fkGestell(t,sl); if(g){ scene.add(g); it.gestell=g; return true; } }
   return false;
 }
 function placeOnStation(st){
@@ -683,6 +689,7 @@ function itemEntfernen(st,it){
   if(it.h) it.h.pool.remove(it.h);
   if(it.mesh) disposeEngraved(it.mesh);
   if(it.modell&&it.modell.parent) it.modell.parent.remove(it.modell);
+  if(it.gestell&&it.gestell.parent) it.gestell.parent.remove(it.gestell);
   const i=st.items.indexOf(it); if(i>=0) st.items.splice(i,1);
 }
 function clearStations(){ for(const k in stations){ stations[k].items.slice().forEach(it=>itemEntfernen(stations[k],it)); } drawPult(); }

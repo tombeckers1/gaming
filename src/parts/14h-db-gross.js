@@ -820,15 +820,18 @@ SHOWS.kometen=()=>show({basis:{pw:1.65,sz:1.135,th:'nacht'},rampe:{sz:[0.90,1.25
   /* Anritt: einzelne Pferdeschweife, Silbersaeule am Boden (28.09.: ohne bunte Zufallssterne) */
   {n:6,gap:1.5,muster:'gerade',eff:'rossschweif',steig:'komet',kal:'mittel',pw:-2,A:'weiss',B:'himmel',boden:{k:'riesen',gt:9,gh:0.7,A:'silber',B:'weiss',C:FW.weiss},pause:0.8},
   /* Trab: W, im Wechsel mit kleinen Kometen (27.09.: vorher Zeitregen - der gehoert der Weidenwand) */
-  {n:12,gap:0.6,muster:'w',ang:0.40,pw:-1,eff:['rossschweif','komet'],farbe:1,pause:1.2},
+  {n:8,gap:0.6,muster:'w',ang:0.40,pw:-1,eff:['rossschweif','komet'],farbe:1,pause:1.2},
   /* Galopp: da-da-DUMM, Scheibenwischer zweimal hin und zurueck */
   {n:16,takt:[0.15,0.15,0.45],muster:'wischer',seg:2,ang:0.45,eff:'rossschweif',kal:'klein',pw:1,A:'weiss',B:'himmel',pause:1.4},
   /* Maehne: grosse Silberpalmen oben (wehendes Haar), kleine Kometen unten im V
      (27.09.: vorher Blinkweiden - die tragen die Weidenwand) */
-  {n:10,gap:0.9,muster:'gerade',eff:'palme',A:'weiss',B:'himmel',kal:'gross',pw:2},
-  {mit:true,n:10,gap:0.9,muster:'v',ang:0.50,kal:'mini',pw:0,eff:'komet',farbe:1,pause:0.8},
-  /* FINALE Durchgehen: zehn Riesen-Pferdeschweife von der Mitte nach aussen, Silber-Feuertoepfe */
-  {n:10,gap:0.08,muster:'mitte',ang:0.50,eff:'rossschweif',kal:'riesig',pw:5,A:'weiss',B:'himmel',mine:true,mineEff:'silber',pause:4.5}
+  {n:6,gap:0.9,muster:'gerade',eff:'palme',A:'weiss',B:'himmel',kal:'gross',pw:2},
+  {mit:true,n:6,gap:0.9,muster:'v',ang:0.50,kal:'mini',pw:0,eff:'komet',farbe:1,pause:0.8},
+  /* FINALE Durchgehen: die Herde bricht aus - 22 Riesen-Pferdeschweife in
+     einer Sekunde von der Mitte nach aussen, Silber-Feuertoepfe (29.09.:
+     vorher 10 in 0,8 s - weniger dicht als die Achterbahn auf L17; Trab
+     und Maehne geben dafuer Rohre ab, es bleiben 64 Schuss) */
+  {n:22,gap:0.045,muster:'mitte',ang:0.50,eff:'rossschweif',kal:'riesig',pw:5,A:'weiss',B:'himmel',mine:true,mineEff:'silber',pause:4.5}
 ]);
 SIGNATUR.kometen={eff:'rossschweif',text:'Silberne Pferdeschweife im Galopp'};
 

@@ -1232,7 +1232,7 @@ Object.assign(KLEIN,{
        Funkenwolke (40 cm) deckte das 17-cm-Herz zu. Jetzt 24 cm Herz, kurze
        Funken (Reichweite ~15 cm) und weniger davon: man sieht die zwei
        Glutpunkte die Herzlinie hochwandern und das Herz rot nachgluehen. */
-    phasen:[{k:'herzdraht',form:'herz',at:0,t:7,groesse:0.24,start:'spitze',fronten:2,n:3,weite:0.8,A:'gold',B:'bernstein',glut:'rot',treffen:{flash:'weiss',funken:40},nachglut:2.4}]},
+    phasen:[{k:'herzdraht',form:'herz',at:0,t:7,groesse:0.22,start:'spitze',fronten:2,n:3,weite:0.8,A:'gold',B:'bernstein',glut:'rot',treffen:{flash:'weiss',funken:40},nachglut:2.4}]},
   knallbonbon:{stueck:4,lunte:0,dauer:9,
     phasen:[{k:'papierkrone',hoch:[2,3],pendel:0.6,konfettiSeiten:40,
       folge:[{at:0.4,x:-0.3,A:'gold'},{at:2.2,x:0.3,A:'silber'},{at:4.0,x:-0.1,A:'rot'},{at:5.6,x:0.1,A:'blau'}]}],

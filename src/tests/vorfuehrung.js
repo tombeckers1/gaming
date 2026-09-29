@@ -41,7 +41,10 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     const g1=bb.stat('gezuendet'); taste('KeyR'); bb.run(0.1,0.05); o.nochmal={gez:bb.stat('gezuendet')-g1,idx:bb.vfIdx};
     /* das ganze Sortiment, alle 0,6 s eins - jedes muss zuenden */
     const fehlt=[]; let zeit=0;
-    while(bb.vfIdx<L.length){ const t=L[bb.vfIdx], g=bb.stat('gezuendet'); taste('Space'); bb.run(0.9,0.05); zeit+=0.9; if(bb.stat('gezuendet')<=g) fehlt.push(t); }
+    /* nach jeder Zuendung Funken und Emitter abraeumen - sonst ueberlagern
+       sich im Test 180 Shows und die Simulation dauert Viertelstunden */
+    const leer=()=>{ [bb.psHuge,bb.psBig,bb.psMid,bb.psSmall].forEach(ps=>ps.life.fill(0)); bb.rockets.length=0; bb.emittersListe().length=0; };
+    while(bb.vfIdx<L.length){ const t=L[bb.vfIdx], g=bb.stat('gezuendet'); taste('Space'); bb.run(0.9,0.3); zeit+=0.9; if(bb.stat('gezuendet')<=g) fehlt.push(t); leer(); }
     o.durch={fehlt,idx:bb.vfIdx,minuten:+(zeit/60).toFixed(1),ende:bb.vfEl.innerText.indexOf('Ende der Liste')>=0};
     /* Esc beendet (ohne Mauszeiger-Sperre) */
     taste('Escape'); o.aus={an:bb.vfAn,el:!!document.getElementById('vorfuehrung')};

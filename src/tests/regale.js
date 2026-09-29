@@ -103,14 +103,19 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   pruef('LIEFERUNG',fahrt.zustand==='docked','der LKW dockt nicht an');
   pruef('LIEFERUNG',fahrt.getragen==='klein','das Regalpaket laesst sich nicht tragen');
 
-  /* 7 - Aufbauen */
+  /* 7 - Aufbauen (29.09.: Q stellt das Paket nur ab, F packt es aus,
+     E setzt das Regal ab) */
   const bau=await p.evaluate(()=>{
     const bb=window.__bb;
-    bb.setView(-2,2,0,0);
-    const vor=bb.shelves.length; bb.dropBox();
-    return {vor,nach:bb.shelves.length,haendeFrei:!bb.S.carrying};
+    bb.setView(-2,2,0,0); bb.run(0.05,0.05);
+    const vor=bb.shelves.length, pv=bb.einbauPakete.length; bb.dropBox();
+    const abgestellt={pakete:bb.einbauPakete.length-pv,regale:bb.shelves.length-vor};
+    bb.paketAufheben(bb.einbauPakete[bb.einbauPakete.length-1]);
+    bb.paketAuspacken(); if(bb.grabbed){ bb.updateGrab(); bb.placeGrab(); }
+    return {vor,nach:bb.shelves.length,haendeFrei:!bb.S.carrying&&!bb.grabbed,abgestellt};
   });
   console.log('AUFBAU    ',JSON.stringify(bau));
+  pruef('AUFBAU',bau.abgestellt.pakete===1&&bau.abgestellt.regale===0,'Q baut auf statt abzustellen: '+JSON.stringify(bau.abgestellt));
   pruef('AUFBAU',bau.nach===bau.vor+1,'das Regal wird nicht aufgebaut');
   pruef('AUFBAU',bau.haendeFrei,'das Paket klebt an den Haenden');
 

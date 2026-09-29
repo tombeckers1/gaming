@@ -344,11 +344,16 @@ function flash(p,c,power,dur){
   flashSchalten(true); flashRuhe=8;
   let f=FLASH[0]; for(const x of FLASH){ if(x.t<=0){ f=x; break; } if(x.t<f.t) f=x; }
   f.l.position.set(p.x,p.y,p.z);
+  if(Math.min(c[0],c[1],c[2])>0.8) c=[1,0.86,0.66];
   f.l.color.setRGB(clamp(c[0]+0.15,0,1),clamp(c[1]+0.15,0,1),clamp(c[2]+0.15,0,1));
   /* Brennen mehrere Blitze zugleich, teilen sie sich die Helligkeit.
      Bei elf gleichzeitigen Zuendungen war der Boden sonst reinweiss. */
   let aktiv=0; for(const x of FLASH) if(x.t>0) aktiv++;
   power*=aktiv>=3?0.45:aktiv>=2?0.62:aktiv>=1?0.8:1;
+  /* 29.09.: weiche Obergrenze (hoechstens ~4,5) und Weiss zur warmen
+     Flamme hin - grosse Brueche tauchten die Fassaden sonst in
+     reinweisses Scheinwerferlicht */
+  if(power>2) power=2+2.5*(1-Math.exp(-(power-2)/2.5));
   f.max=power; f.d=dur||0.6; f.t=f.d; f.l.intensity=power;
 }
 function updateFlash(dt){
@@ -1677,7 +1682,9 @@ function fwBurst(r){
   if(typeof bruchGesehen==='function') bruchGesehen(r.eff);
   const mix=[(r.A[0]+r.B[0])/2,(r.A[1]+r.B[1])/2,(r.A[2]+r.B[2])/2];
   const lang=r.eff==='weide'||r.eff==='brokat'||r.eff==='kamuro'||r.eff==='zeitregen';
-  if(bo.flash!==false) flash(p,mix,(2.2+3.4*r.size)*h*(typeof bo.flash==='number'?bo.flash:1),lang?1.2:0.6);
+  /* 29.09.: Blitz gedaempft (x0,55) - vorher leuchteten ganze Hausfassaden
+     beim Aufgehen weiss auf, das wirkte wie ein Scheinwerfer */
+  if(bo.flash!==false) flash(p,mix,(1.2+1.9*r.size)*h*(typeof bo.flash==='number'?bo.flash:1),lang?1.2:0.6);
   /* knall: eigener Bruchklang (herzton, poka) statt des Knalls */
   if(r.knall&&sfx[r.knall]) later(camera.position.distanceTo(p)/343,()=>sfx[r.knall](distVol(p)));
   else if(r.eff!=='salut') shellSound(p,r.size);
@@ -1746,7 +1753,8 @@ function stufeZuenden(r,st,mix){
 }
 /* Kern: der grelle Lichtball im Moment des Zerlegens */
 function kern(p,A,s){
-  for(let i=0;i<3;i++) psHuge.emit(p.x,p.y,p.z,0,0,0,1,1,1,0.10+i*0.05,0,0);
+  /* ein kurzer weisser Kern statt drei gestapelter (greller Ball im Bild) */
+  psHuge.emit(p.x,p.y,p.z,0,0,0,1,1,1,0.10,0,0);
   for(let i=0;i<4;i++) psHuge.emit(p.x,p.y,p.z,rand(-.4,.4),rand(-.4,.4),rand(-.4,.4),
     0.5+A[0]*0.5,0.5+A[1]*0.5,0.5+A[2]*0.5,rand(0.18,0.28),0,0);
 }

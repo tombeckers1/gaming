@@ -90,8 +90,8 @@ const FUNKE={
      Blitz ist ein weisser Glanzstern. 28.09., Tom: echt - Blitze kleiner
      (meist psBig, 2,6 statt 3,6): vorher standen oben weiche Leuchtkugeln. */
   glitter:{g:6,emit(x,y,z,vx,vy,vz,c,tA,e){ const ph=e&&e.ph||{}, an=ph.glitterAnteil===undefined?0.7:ph.glitterAnteil;
-    if(Math.random()<an) glint(psMid,x,y,z,vx,vy,vz,c,6,{t0:tA*0.8,t1:tA*1.55,dim:0.2,spur:0.06,psBlitz:Math.random()<0.25?psHuge:psBig,blitz:2.6,blitzFarbe:farbe(ph.glitterFarbe)||[1,0.95,0.8],glimm:0.35,rest:0.3});
-    else { SCHWEIF=0.06; psMid.emit(x,y,z,vx,vy,vz,c[0]*0.18,c[1]*0.18,c[2]*0.18,tA*rand(1.0,1.3),6,0); } }},
+    if(Math.random()<an) glint(psMid,x,y,z,vx,vy,vz,c,6,{t0:tA*0.8,t1:tA*1.55,dim:0.2,spur:fkSpur(0.06,vx,vy,vz,0.2),psBlitz:psBig,blitz:2.2,blitzFarbe:farbe(ph.glitterFarbe)||[1,0.95,0.8],glimm:0.35,rest:0.3});
+    else { SCHWEIF=fkSpur(0.06,vx,vy,vz,0.2); psMid.emit(x,y,z,vx,vy,vz,c[0]*0.18,c[1]*0.18,c[2]*0.18,tA*rand(1.0,1.3),6,0); } }},
   /* Kamuro: dunkelgoldene Faeden, steigen fast unsichtbar und leuchten erst
      ab dem Scheitel auf - dort haengen sie und sinken langsam (g 1,65);
      wer unten ankommt, glimmt dort kurz (0,2-0,45 s; vorher 1 s: stehende Punkte). 28.09., Tom: echt - ab dem Scheitel
@@ -117,9 +117,17 @@ const FUNKE={
    eine echte Garbe. Rueckgabe: Steigzeit. */
 function fkStrahl(e,dt,p,d,h,kg,rate,mat,A,B,mb,schl,sv){
   const M=FUNKE[mat]||FUNKE.kohle, dy=Math.max(0.35,d[1]), v0=fkV0(h,M.g)/dy, tA=fkTA(v0*dy,M.g), alt=SCHWEIF, s=sv===undefined?0.25:sv;
-  for(let n=fkJe(e,schl||'aS',rate,dt);n>0;n--){ const r=fkKegel(d,kg), w=v0*(1-s*Math.random()), c=mb&&Math.random()<mb?B:A;
-    M.emit(p.x,p.y,p.z,r[0]*w,r[1]*w,r[2]*w,c,tA*(0.75+0.25*w/v0),e); }
+  for(let n=fkJe(e,schl||'aS',rate,dt);n>0;n--){ const r=fkKegel(d,kg), w=v0*(1-s*Math.random()), c=mb&&Math.random()<mb?B:A, i0=psMid.next;
+    M.emit(p.x,p.y,p.z,r[0]*w,r[1]*w,r[2]*w,c,tA*(0.75+0.25*w/v0),e); fkUnterbild(psMid,i0,Math.random()*dt); }
   SCHWEIF=alt; return tA;
+}
+/* Unterbild (28.09., Tom: echt): alle Funken eines Bildes starteten im
+   selben Augenblick - die Saeule zerfiel in waagrechte Ringe, im Bild eine
+   Schraube aus Lichtlinien. Jeder Funke ist nun schon f Sekunden (Anteil
+   des Bildes) unterwegs, so fliesst der Strahl. */
+function fkUnterbild(ps,i0,f){
+  for(let i=i0;i!==ps.next;i=(i+1)%ps.max){ const j=i*3; if(ps.life[i]<=f) continue;
+    ps.pos[j]+=ps.vel[j]*f; ps.pos[j+1]+=ps.vel[j+1]*f; ps.pos[j+2]+=ps.vel[j+2]*f; ps.life[i]-=f; }
 }
 /* Duesenflamme (28.09., Tom: echt): der Satz brennt an der Duese mit einer
    kleinen, hellen, flackernden Flamme - weissgelber Kern, warmer Rand; bei
@@ -139,7 +147,11 @@ function fkFlamme(e,dt,o,c,gr,key){
 }
 /* Licht der Fontaene: warm flackernd, schwach (echt.md 1.10: kein
    Buehnenscheinwerfer); Silber kuehl-weiss, Gold warm */
-function fkLicht(e,o,y,c,st,weite){ if(st<0.03) return; licht('fk'+fkId(e),{x:o.x,y,z:o.z},c||FW.bernstein,st*rand(0.75,1.1),{boden:fkBoden(o.x,o.z),weite:weite||8}); }
+function fkLicht(e,o,y,c,st,weite){ if(st<0.03) return;
+  /* Silber/Titan: kuehles Licht wirkt im Bild doppelt so hell wie warmes -
+     Platz, Wand und Haeuser standen wie im Flutlicht (28.09., Tom: echt) */
+  if(c&&c[2]>c[0]*0.9){ st*=0.5; weite=Math.min(weite||8,10); }
+  licht('fk'+fkId(e),{x:o.x,y,z:o.z},c||FW.bernstein,st*rand(0.75,1.1),{boden:fkBoden(o.x,o.z),weite:weite||8}); }
 /* Rauch: jede echte Fontaene raucht - graue Schwaden steigen ueber der
    Duese auf und ziehen mit dem Wind. Nur die erste Duese eines Sets
    raucht (dichte gilt fuers ganze Set). */
@@ -206,11 +218,14 @@ NEU_EMIT.gerb=(e,dt,o)=>{
     if(rest<0.4){ h=Math.max(0.2,h*rest/0.4); if(!e.saug&&!e.nr){ e.saug=true; sfx.ansaugen(distVol(o)*0.8); } } }
   fkKlang(e,o,dt);
   if(ph.dunkel&&e.alter<ph.dunkel) return;
-  const fc=fkFlammenFarbe(e,ph), gross=ph.flammeGross||Math.min(2.2,0.7+h*0.12);
+  const fc=fkFlammenFarbe(e,ph), gross=ph.flammeGross||Math.min(1.6,0.7+h*0.08);
   if(fc!=='aus') fkFlamme(e,dt,o,fc,gross);
   const kg=((e.kegelAkt!==undefined?e.kegelAkt:ph.kegel)||10)*Math.PI/180, d=e.dir||[0,1,0];
   const rate=(e.dichteAkt||Math.min(620,170+42*h))*q*st, p={x:o.x,y:o.y+0.03,z:o.z};
   fkStrahl(e,dt,p,d,h,kg,ph.kernB?rate*0.75:rate,mat,e.A,e.B,ph.mischB||0,'aS',ph.sv);
+  /* Knistersatz: die Mikrosterne steigen dunkel - ein duenner Goldschleier
+     traegt die Saeule, sonst stand nur Knacken im Leeren (28.09., Tom: echt) */
+  if(mat==='knister') fkStrahl(e,dt,p,d,h*0.9,kg*0.8,rate*0.3,'brokat',FW.gold,FW.gold,0,'aKg',0.35);
   /* Kern in B: enger, etwas hoeher */
   if(ph.kernB) fkStrahl(e,dt,p,d,h*1.05,kg*0.3,rate*0.3,'titan',e.B,e.B,0,'aK');
   /* Farbsterne im Strahl (hoechstens zwei Farben) */
@@ -222,7 +237,7 @@ NEU_EMIT.gerb=(e,dt,o)=>{
     fkStrahl(e,dt,p,d,h*1.02,kg*1.9,120*q*st,ph.krone.funke,c,c,0,'aKr',0.15); }
   /* Knister: Mikrosterne aus der Duese, die oben einzeln aufknacken;
      Titan knackt ab und zu leise mit */
-  const kn=(ph.knister||0)+(mat==='titan'?0.7:0)+(ph.knisterLeise?5*ph.knisterLeise:0)+(mat==='knister'?28:0);
+  const kn=(ph.knister||0)+(mat==='titan'?0.7:0)+(ph.knisterLeise?5*ph.knisterLeise:0)+(mat==='knister'?50:0);
   if(kn>0){ fkStrahl(e,dt,p,d,h*0.98,kg*1.1,kn*2.5*q*st,'knister',[0.9,0.85,0.7],null,0,'aKm');
     for(let n=fkJe(e,'aKn',kn*st,dt);n>0;n--){ const r=fkKegel(d,kg), yy=h*rand(0.6,1.0);
       knisterPop(o.x+r[0]/Math.max(0.3,r[1])*yy,o.y+yy,o.z+r[2]/Math.max(0.3,r[1])*yy,{laut:0.3,leise:Math.random()<0.4,funken:7}); } }
@@ -363,7 +378,7 @@ NEU_EMIT.bluetenwerfer=(e,dt,o)=>{
   for(let n=fkJe(e,'bS',bereich(bl.rate||3,e.u)*st,dt);n>0;n--){
     const perle=bl.art==='perle', hb=h*(perle?rand(0.8,1.0):rand(0.55,0.8)), d=fkKegel([0,1,0],perle?0.45:0.26), w=fkV0(hb,6)/Math.max(0.5,d[1]), tA=fkTA(w*d[1],6), p={x:o.x,y:o.y+0.03,z:o.z}, v=[d[0]*w,d[1]*w,d[2]*w];
     /* Perlen: helle Sterne mit kurzer Spur, breit gefaechert */
-    if(perle){ SCHWEIF=fkSpur(0.08,v[0],v[1],v[2],0.15,0); psBig.emit(p.x,p.y,p.z,v[0],v[1],v[2],c[0]*1.3+0.1,c[1]*1.3+0.1,c[2]*1.3+0.1,tA*rand(1.05,1.3),6,0); continue; }
+    if(perle){ SCHWEIF=fkSpur(0.08,v[0],v[1],v[2],0.15,0); psMid.emit(p.x,p.y,p.z,v[0],v[1],v[2],c[0]*1.15+0.05,c[1]*1.15+0.05,c[2]*1.15+0.05,tA*rand(1.05,1.3),6,0); continue; }
     SCHWEIF=0.06; psMid.emit(p.x,p.y,p.z,v[0]*0.97,v[1]*0.97,v[2]*0.97,c[0]*0.5,c[1]*0.5,c[2]*0.5,tA,6,0);
     imBild(tA,()=>{ const b=bahnOrt(p,v,6,tA), reis=bl.art==='reis', n2=Math.round((bl.funken||34)*q), gr=reis?1.5:2.1, a2=SCHWEIF, st2=farbe(bl.stempel)||[1,1,1];
       SCHWEIF=reis?0:0.08;
@@ -467,7 +482,7 @@ NEU_EMIT.kreuz=(e,dt,o)=>{
 NEU_EMIT.flammen=(e,dt,o)=>{
   const ph=e.ph, st=e.staerke, q=QUAL(), SA=ph.stossAlle, H=ph.h||1;
   fkKlang(e,o,dt);
-  fkFlamme(e,dt,o,null,1.6+H);
+  fkFlamme(e,dt,o,null,Math.min(1.9,1.1+H*0.6)); /* 28.09., Tom: echt - vorher bis 3: weisse Gluehbirne an der Duese */
   e.kohleB=FW.rot;
   fkStrahl(e,dt,{x:o.x,y:o.y+0.03,z:o.z},[0,1,0],1.6+H*1.6,0.22,(150+100*H)*q*st,'kohle',FW.orange,FW.gold,0.3,'fU',0.45);
   e.st=(e.st===undefined?0.2:e.st)-dt;
@@ -476,10 +491,10 @@ NEU_EMIT.flammen=(e,dt,o)=>{
     const n=Math.round((SA!==undefined&&(SA<0.25||SA[1]<0.25)?5:9)*Math.min(1.4,H)*q), v=distVol(o);
     for(let k=0;k<n;k++){ const a=Math.random()*Math.PI*2, hh=rand(4.5,7.5)*Math.min(1.25,0.75+H*0.3), vy=fkV0(hh,5), w=rand(0.3,1.5);
       fkKomet({x:o.x+rand(-0.02,0.02),y:o.y+0.05,z:o.z+rand(-0.02,0.02)},[Math.cos(a)*w,vy,Math.sin(a)*w],5,fkTA(vy,5)*rand(1.5,1.9),[1.25,0.62,0.16],{funken:4,funkenFarbe:[1,0.66,0.2],zerspringt:4,klang:false}); }
-    flash({x:o.x,y:o.y+0.6,z:o.z},FW.orange,1.6*H,0.2);
+    flash({x:o.x,y:o.y+0.6,z:o.z},FW.orange,0.8*H,0.15);
     if(Math.random()<0.6) sfx.fauchen(v*0.7,0.5,true); }
   fkRauch(e,dt,o,3+H*2,1.4);
-  fkLicht(e,o,o.y+1.2,FW.orange,(1.6+H*0.6)*st,11);
+  fkLicht(e,o,o.y+1.2,FW.orange,Math.min(1.6,1.1+H*0.4)*st,10);
 };
 
 /* orgel (Wasserorgel): vier Silberfontaenen, jede ein eigener Satz, die
@@ -533,15 +548,18 @@ NEU_EMIT.niagara=(e,dt,o)=>{
   /* Zuendschnur: unten am Pfosten angezuendet, hinauf und die Leine entlang */
   if(hoch<1){ const y=G.fussY+hoch*(H-G.fussY); psSmall.emit(xL,y,G.z,rand(-0.5,0.5),rand(-0.2,0.8),rand(-0.3,0.3),1.25,1,0.7,0.2,3,0); }
   else if(lauf<1){ const x=xL+lauf*G.breite; psSmall.emit(x,H,G.z,rand(-0.5,0.5),rand(-0.2,0.6),rand(-0.3,0.3),1.25,1,0.7,0.2,3,0); }
-  SCHWEIF=0.09;
+  SCHWEIF=0.12;
   for(let i=0;i<N;i++){
     const u=i/(N-1); if(u>lauf) continue;
     /* am Ende verloeschen die Duesen einzeln (jede ihr eigener Satz) */
     if(ph.ausduennen&&e.alter>e.dauer-Z.aus[i]) continue;
     const x=G.x+(u-0.5)*Bt, y=H-0.07, yb=fkBoden(x,G.z), fall=y-yb;
     for(let n=fkJe(e,'n'+i,70*dk*q*st,dt);n>0;n--){ const vy=-rand(0.8,2.6), vx=rand(-0.35,0.35)+wind, vz=rand(-0.2,0.2), c=Math.random()<0.4?e.B:e.A;
-      const tl=(Math.sqrt(vy*vy+12*fall)+vy)/6, life=Math.max(0.3,tl*rand(0.95,1.1));
+      const tl=(Math.sqrt(vy*vy+12*fall)+vy)/6, life=Math.max(0.3,tl*rand(0.95,1.1)), i0=psMid.next;
       psMid.emit(x+rand(-0.015,0.015),y,G.z+rand(-0.015,0.015),vx,vy,vz,c[0]*1.1,c[1]*1.1,c[2]*1.1,life,6,0);
+      /* 28.09., Tom: echt - ohne Unterbild fielen die Funken in Reihen:
+         ein Punktraster wie ein LED-Vorhang */
+      fkUnterbild(psMid,i0,Math.random()*dt);
       /* Aufschlag: ein Teil spritzt vom Tisch hoch */
       if(ph.spritzer&&Math.random()<0.35&&life>=tl*0.99){ const P0={x,y,z:G.z}, V0=[vx,vy,vz];
         imBild(tl,()=>{ const b=bahnOrt(P0,V0,6,tl), a2=SCHWEIF; SCHWEIF=0.04;
@@ -569,7 +587,9 @@ NEU_EMIT.wendel=(e,dt,o)=>{
   const p={x:o.x,y:o.y+0.03,z:o.z};
   fkFlamme(e,dt,o,null,1.4);
   D.forEach(([phi,A,B],i)=>{ const d=[Math.sin(ng)*Math.cos(phi),Math.cos(ng),Math.sin(ng)*Math.sin(phi)];
-    fkStrahl(e,dt,p,d,h,0.035,(ph.zweite?300:480)*q*st,ph.funke||'titan',A,B,0.25,'wd'+i,0.2);
+    /* Kegel 4,5 statt 2 Grad (28.09., Tom: echt): der 12-m-Strahl stand
+       als duenner weisser Strich - ein Laser */
+    fkStrahl(e,dt,p,d,h,0.08,(ph.zweite?300:480)*q*st,ph.funke||'titan',A,B,0.25,'wd'+i,0.3);
     if(ph.sterne) fkSterne(e,dt,p,d,h,0.05,(ph.sterneRate||3)*st,ph.sterne.map(farbe),'wS'+i,{ps:psBig,hell:1.1,hMin:0.7}); });
   fkRauch(e,dt,o,h,1);
   fkLicht(e,o,o.y+2,[0.85,0.9,1],1.8*st,14);
@@ -605,7 +625,7 @@ NEU_EMIT.saeule=(e,dt,o)=>{
   if(ph.knister) for(let n=fkJe(e,'sKn',ph.knister*st,dt);n>0;n--){ const r=fkKegel([0,1,0],kg), yy=h*rand(0.55,1.0);
     knisterPop(o.x+r[0]/Math.max(0.3,r[1])*yy,o.y+yy,o.z+r[2]/Math.max(0.3,r[1])*yy,{laut:0.3,leise:Math.random()<0.5,funken:7}); }
   fkRauch(e,dt,o,h,1.3);
-  if(!e.nr) fkLicht(e,o,o.y+3,ph.funke==='titan'?[0.9,0.92,1]:ph.funke==='kohle'?FW.orange:FW.bernstein,2.2*st,16);
+  if(!e.nr) fkLicht(e,o,o.y+3,ph.funke==='titan'?[0.9,0.92,1]:ph.funke==='kohle'?FW.orange:FW.bernstein,1.6*st,12); /* 28.09., Tom: echt - vorher 2,2/16 m: Flutlicht */
 };
 
 /* faecher (Feuerwand): fuenf Duesen je Satz, jede mit festem Winkel quer
@@ -618,11 +638,11 @@ NEU_EMIT.faecher=(e,dt,o)=>{
   e.kohleB=e.B;
   for(let i=0;i<n;i++){ const a=W[i]*Math.PI/180, d=[Math.sin(a),Math.cos(a),0], p=versetzt(o,D[i],0);
     const E=e['fl'+i]||(e['fl'+i]={spielraum:0.03,prod:e.prod}); E.staerke=st; fkFlamme(E,dt,p,null,1);
-    fkStrahl(e,dt,{x:p.x,y:p.y+0.03,z:p.z},d,h,0.06,170*q*st,ph.funke||'kohle',e.A,e.B,ph.mischB===undefined?0.35:ph.mischB,'fw'+i,0.3); }
+    fkStrahl(e,dt,{x:p.x,y:p.y+0.03,z:p.z},d,h,0.06,170*q*st,ph.funke||'kohle',e.A,e.B,ph.mischB===undefined?0.1:ph.mischB,'fw'+i,0.3); }
   if(ph.knister) for(let n2=fkJe(e,'fwK',ph.knister*st,dt);n2>0;n2--){ const i=Math.floor(Math.random()*n), a=W[i]*Math.PI/180, yy=h*rand(0.6,1), pp=versetzt(o,D[i],0);
     knisterPop(pp.x+Math.tan(a)*yy,o.y+yy,pp.z,{laut:0.3,leise:Math.random()<0.5,funken:6}); }
   fkRauch(e,dt,o,h,1.3);
-  fkLicht(e,o,o.y+2,FW.orange,1.8*st,12);
+  fkLicht(e,o,o.y+2,FW.orange,1.4*st,10);
 };
 
 /* ausbruch (Silberausbruch): Knister-Riesenfontaene mit breitem Kegel und
@@ -632,7 +652,7 @@ NEU_EMIT.faecher=(e,dt,o)=>{
    Sterne nur noch Rot (vorher Rot und Gruen, grosse Glanzsterne). */
 NEU_EMIT.ausbruch=(e,dt,o)=>{
   const ph=e.ph, st=e.staerke, q=QUAL(), h=e.hAkt||22, kg=(ph.kegel||18)*Math.PI/180;
-  if(!e.los&&!ph.abklingen){ e.los=true; const v=distVol(o); flash({x:o.x,y:o.y+2,z:o.z},FW.weiss,4,0.25); sfx.boom(v*0.45); }
+  if(!e.los&&!ph.abklingen){ e.los=true; const v=distVol(o); flash({x:o.x,y:o.y+2,z:o.z},FW.weiss,2,0.2); sfx.boom(v*0.45); }
   let k=1; if(ph.knisterWellen) k=0.55+0.45*Math.cos(e.u*Math.PI*2*ph.knisterWellen); if(ph.abklingen) k*=1-e.u;
   fkKlang(e,o,dt,k);
   const p={x:o.x,y:o.y+0.03,z:o.z}, alt=SCHWEIF;
@@ -651,7 +671,9 @@ NEU_EMIT.ausbruch=(e,dt,o)=>{
     glint(psMid,o.x+Math.cos(a)*rr,o.y+yy,o.z+Math.sin(a)*rr,Math.cos(a)*s,rand(-0.4,0.8),Math.sin(a)*s,FW.silber,1.2,{t0:0.08,t1:0.9,dim:0.16,psBlitz:psBig,blitz:3.0,blitzFarbe:[1,1,0.95],glimm:0.22,rest:0.12}); }
   /* rote Sterne aus der Duese, breit gefaechert */
   const S=(ph.sterne||[]).map(c=>farbe(c)).filter(Boolean);
-  if(S.length) fkSterne(e,dt,p,[0,1,0],w1*0.95,kg*1.3,26*st*k,S,'aS2',{ps:psBig,hell:1.25,hMin:w0/w1,spur:0.06});
+  /* 28.09., Tom: echt - Sterne klein und im Strahl (vorher psBig weit
+     gefaechert: rote Leuchtkugeln frei neben der Fontaene) */
+  if(S.length) fkSterne(e,dt,p,[0,1,0],w1*0.95,kg*0.8,14*st*k,S,'aS2',{ps:psMid,hell:1.6,hMin:w0/w1,spur:0.06});
   SCHWEIF=alt;
   fkRauch(e,dt,o,h*0.5,2);
   fkLicht(e,o,o.y+8,[0.92,0.94,1],1.9*st*k,20);
@@ -692,7 +714,7 @@ NEU_EMIT.knistersaeule=(e,dt,o)=>{
       knisterPop(o.x+Math.cos(a)*r,o.y+h*rand(0.82,1.04),o.z+Math.sin(a)*r,{laut:0.3+0.15*kr,leise:Math.random()<0.5,c:[1,0.85,0.45]}); }
     e.kk=(e.kk||0)-dt; if(e.kk<=0){ e.kk=rand(0.25,0.45)/kr; sfx.crackle(distVol(o)*0.35*kr); } }
   fkRauch(e,dt,o,h,1.4);
-  fkLicht(e,o,o.y+3,FW.bernstein,2.4*st,18);
+  fkLicht(e,o,o.y+3,FW.bernstein,1.6*st,12);
 };
 
 /* riesenpuls (Himmelsstuermer, 30 m): pulsierende Riesenfontaene -
@@ -708,12 +730,16 @@ NEU_EMIT.riesenpuls=(e,dt,o)=>{
   const rot=farbe(ph.farbe)||FW.rot;
   e.ps=(e.ps||0)-dt;
   if(e.ps<=0&&kraft>0.15){ e.ps=0.3; e.nS=(e.nS||0)+1;
+    /* 28.09., Tom: echt - Sterne klein (psMid) mit kurzer Funkenspur statt
+       grosser Leuchtkugeln; rot nur jeder vierte Stern jeder zweiten
+       Salve; kein Blitz je Salve mehr (3 Hz Flackern = Lichtorgel) */
     const mitRot=e.nS%2===0, n=Math.round(44*q*kraft);
-    SCHWEIF=fkSpur(0.05,0,v0,0,0.25,0);
-    for(let k=0;k<n;k++){ const a=Math.random()*Math.PI*2, tl=Math.sqrt(Math.random())*0.24, sp=v0*rand(0.88,1.0), c=mitRot&&k%3===0?rot:FW.gold;
-      psBig.emit(p.x,p.y,p.z,Math.cos(a)*Math.sin(tl)*sp,Math.cos(tl)*sp,Math.sin(a)*Math.sin(tl)*sp,c[0],c[1]*(c===FW.gold?0.95:1),c[2],tA*rand(1.0,1.2),6,c===FW.gold?4:0); }
+    for(let k=0;k<n;k++){ const a=Math.random()*Math.PI*2, tl=Math.sqrt(Math.random())*0.24, sp=v0*rand(0.88,1.0), c=mitRot&&k%4===0?rot:FW.gold, gold=c===FW.gold, hl=gold?1.5:1.4;
+      const vx=Math.cos(a)*Math.sin(tl)*sp, vy=Math.cos(tl)*sp, vz=Math.sin(a)*Math.sin(tl)*sp;
+      SCHWEIF=fkSpur(0.1,vx,vy,vz,0.35,0.035);
+      psMid.emit(p.x,p.y,p.z,vx,vy,vz,c[0]*hl,c[1]*hl*(gold?0.95:1),c[2]*hl,tA*rand(1.0,1.2),6,gold?4:0); }
     SCHWEIF=alt;
-    flash({x:o.x,y:o.y+2,z:o.z},FW.bernstein,2.4*kraft,0.2);
+    flash({x:o.x,y:o.y+1,z:o.z},FW.bernstein,0.6*kraft,0.1);
     /* oben: die Salve zerfaellt knisternd, Goldfaeden sinken */
     const oben={x:o.x,y:o.y+hm*0.94,z:o.z}, r0=hm*0.16;
     imBild(tA*0.95,()=>{
@@ -1023,10 +1049,10 @@ Object.assign(FONT,{
     {k:'saeule',t:9,hm:15,hKurve:[0.6,1],funke:'titan',A:'weiss',B:'silber',mischB:0.3,ton:'zischen',blende:1.5},
     {k:'saeule',t:9.5,hm:15,funke:'eisen',A:'gold',B:'zitrone',mischB:0.3,knister:8,ton:'rauschen',blende:1.5},
     {k:'saeule',t:9,hm:14,funke:'kohle',A:'orange',B:'gold',mischB:0.3,ton:'rauschen',blende:1},
-    {k:'saeule',t:3,hm:12,hKurve:[1,0.35],dichte:300,funke:'kohle',A:'orange',B:'rot',mischB:0.5,ton:'rauschen',ende:'ausklingen'}]},
+    {k:'saeule',t:3,hm:12,hKurve:[1,0.35],dichte:300,funke:'kohle',A:'orange',B:'rot',mischB:0.2,ton:'rauschen',ende:'ausklingen'}]},
   /* Feuerwand (L21): fuenf Rohre je Satz - senkrecht, Faecher, geschlossen
      und offen im Wechsel, Kreuz, zum Schluss die Wand in Gold mit Knistern */
-  feuerwand:{duesen:[-0.28,-0.14,0,0.14,0.28],funke:'kohle',A:'orange',B:'rot',ton:'fauchen',phasen:[
+  feuerwand:{duesen:[-0.28,-0.14,0,0.14,0.28],funke:'kohle',A:'orange',B:'gold',ton:'fauchen',phasen:[
     {k:'faecher',t:3,hm:4,winkel:[0,0,0,0,0],blende:0.3},
     {k:'faecher',t:3,hm:6,winkel:[-40,-20,0,20,40],blende:0.3},
     {k:'faecher',t:1.4,hm:6,winkel:[-8,-4,0,4,8],blende:0.25},

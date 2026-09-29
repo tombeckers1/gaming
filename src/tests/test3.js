@@ -40,7 +40,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     // Dieb + Spray
     S.level=10; bb.openShop();
     bb.run(120,0.05);
-    const lvs=bb.allLevels(); for(let i=0;i<3;i++){ for(let k=0;k<20;k++) bb.addToLevel(lvs[i],['wunder','knallerbsen','tisch'][i]); }
+    const lvs=bb.allLevels(); for(let i=0;i<3;i++){ for(let k=0;k<20;k++) bb.addToLevel(lvs[i],['wunder','knallerbsen','knallfrosch'][i]); }
     bb.run(200,0.05);
     o.thieves=bb.customers.filter(c=>c.state==='steal').length;
     o.rev=Math.round(bb.DS.revenue); o.dirt=bb.dirts.length;

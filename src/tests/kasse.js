@@ -54,7 +54,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   const tag=await p.evaluate(()=>{ const bb=window.__bb, S=bb.S; S.money=50000; S.level=12;
     ['REGAL:standard','REGAL:standard'].forEach(id=>bb.testKauf(id));
     S.staff.kassierer=true; bb.hireStaff('kassierer');
-    const types=['wunder','knallerbsen','tisch','knallfrosch'], lvs=bb.allLevels();
+    const types=['wunder','knallerbsen','boeller','knallfrosch'], lvs=bb.allLevels();
     types.forEach((t,i)=>{ const lv=lvs[i]; if(!lv) return; for(let k=0;k<60;k++) if(!bb.addToLevel(lv,t)) break; });
     let maxQ=0; bb.openShop(); for(let i=0;i<240;i++){ bb.run(1,0.05); maxQ=Math.max(maxQ,bb.queue.length); }
     return {kunden:bb.DS.customers,verkauft:bb.DS.sold,umsatz:Math.round(bb.DS.revenue),maxQ,wuetend:bb.DS.angry}; });

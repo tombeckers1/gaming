@@ -47,7 +47,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     bb.buyUp('rampe2'); bb.buyUp('rampe3');
     /* Lieferung an Tor 2 */
     const vorBoxen=bb.floorBoxes.length;
-    bb.spawnWTruck(0,[{type:'wunder',q:1},{type:'wunder',q:1},{type:'tisch',q:1}],'mertens','Mertens');
+    bb.spawnWTruck(0,[{type:'wunder',q:1},{type:'wunder',q:1},{type:'knallerbsen',q:1}],'mertens','Mertens');
     for(let i=0;i<400&&bb.wbays[0];i++) bb.run(0.1,0.1);
     const neu=bb.floorBoxes.slice(vorBoxen).map(x=>({x:+x.mesh.position.x.toFixed(2),z:+x.mesh.position.z.toFixed(2)}));
     o.lieferung={n:neu.length,boxen:neu,frei:!bb.wbays[0]};

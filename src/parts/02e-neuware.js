@@ -651,16 +651,26 @@ NEU_GRUPPE.batterien.push('hexenkessel','geysirfeld','wolkenkratzer');
 /* =========================================================
    Aus dem Sortiment genommen (Tom, 29.09.: "komplett entfernen, gefaellt
    mir nicht"). Die Produkte verschwinden ueberall: Katalog, Lizenzen,
-   Warengruppen, Lieferanten. Alte Spielstaende verlieren Bestand und
-   Bestellungen dieser Sorten beim Laden (18-save.js).
+   Warengruppen, Lieferanten. In alten Spielstaenden wird Bestand dieser
+   Sorten beim Laden zur aehnlichsten verbliebenen (ENTFERNT_ERSATZ).
    ========================================================= */
 const ENTFERNT=['fontaene50','fontaene30','silberkaskade','feuerkaskade','jugendbox','zfaecher','vulkan','feuersaeule',
   'knisterfaecher','bengalduo','zauberwald','silberwirbel','glitzerkaskade','nachtfalter','regenbogenfaecher','goldvulkan',
   'funkenturm','sortiment','sternstaub20','knallteppich','vulkanfeld','feuerbrunnen','farbrauchboeller','goldstaubboeller',
   'sternenbrunnen','bengalfackel','glueckrakete','mondschein','farbfontaenen','bengalflamme','tisch','tortenfontaene',
   'leuchtstaebe','pharao','stroboblinker','hagelsturm','himmelsfaecher','silvesternacht','nordlicht','wolkenkratzer'];
+/* Ersatz fuer alte Spielstaende: jede gestrichene Sorte wird beim Laden
+   zur naechsten verbliebenen - gleiche Kategorie, moeglichst gleiche Form,
+   Level und Preis am naechsten (18-save.js, SORTE_NEU). Sonst stuende
+   Ware ohne Katalogeintrag im Regal und das Spiel braeche ab. */
+const ENTFERNT_ERSATZ={};
 (function(){
   const weg=new Set(ENTFERNT);
+  ENTFERNT.forEach(t=>{ const a=P[t]; if(!a) return; let best=null, bw=1e9;
+    for(const [u,b] of Object.entries(P)){ if(weg.has(u)||b.cat!==a.cat||b.eigen) continue;
+      const w=(b.shape===a.shape?0:100)+Math.abs((b.lvl||1)-(a.lvl||1))*3+Math.abs(Math.log((b.market||1)/(a.market||1)));
+      if(w<bw){ bw=w; best=u; } }
+    if(best) ENTFERNT_ERSATZ[t]=best; });
   ENTFERNT.forEach(t=>{ delete P[t]; if(typeof VOLA!=='undefined') delete VOLA[t]; if(typeof LIZ_VON!=='undefined') delete LIZ_VON[t]; });
   for(let i=ORDER.length-1;i>=0;i--) if(weg.has(ORDER[i])) ORDER.splice(i,1);
   LIZENZEN.forEach(l=>{ l.items=l.items.filter(t=>!weg.has(t)); });

@@ -24,7 +24,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     const bb=window.__bb,S=bb.S,o={};
     /* echter Verkauf: Regal, Ware, Kunde bezahlt an der Kasse */
     S.level=10; S.money=5000;
-    bb.regalStellen('standard'); bb.regalStellen('standard'); const sorten=['wunder','knallerbsen','tisch','knallfrosch']; bb.allLevels().forEach((l,i)=>{ for(let k=0;k<8;k++) bb.addToLevel(l,sorten[i%4],1); });
+    bb.regalStellen('standard'); bb.regalStellen('standard'); const sorten=['wunder','knallerbsen','boeller','knallfrosch']; bb.allLevels().forEach((l,i)=>{ for(let k=0;k<8;k++) bb.addToLevel(l,sorten[i%4],1); });
     bb.openShop();
     let geschwebt=0, bezahlt=0, symbole=0;
     const vorGeld=S.money;

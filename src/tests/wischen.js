@@ -89,7 +89,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   /* 4. Dreck: ein Tag mit Kunden */
   const dr=await p.evaluate(()=>{ const bb=window.__bb, S=bb.S;
     bb.fireStaff&&bb.fireStaff('reinigung');
-    bb.regalStellen('standard'); bb.regalStellen('standard'); const sorten=['wunder','knallerbsen','tisch','knallfrosch']; bb.allLevels().forEach((l,i)=>{ for(let k=0;k<8;k++) bb.addToLevel(l,sorten[i%4],1); });
+    bb.regalStellen('standard'); bb.regalStellen('standard'); const sorten=['wunder','knallerbsen','boeller','knallfrosch']; bb.allLevels().forEach((l,i)=>{ for(let k=0;k<8;k++) bb.addToLevel(l,sorten[i%4],1); });
     bb.phase='closed'; bb.dirts.slice().forEach(d=>{ d.work=1; bb.cleanTick(d); }); bb.DS.dreck=0; bb.DS.customers=0;
     const gesehen=new Set();
     bb.openShop(); for(let i=0;i<300&&bb.phase==='open';i++){ bb.run(2,0.1); bb.customers.forEach(c=>gesehen.add(c)); if(i%10===0) bb.allLevels().forEach((l,j)=>{ for(let k=0;k<3;k++) bb.addToLevel(l,sorten[j%4],1); }); }

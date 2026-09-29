@@ -98,7 +98,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   const D=await p.evaluate(()=>{
     const bb=window.__bb,o={};
     bb.S.staff.kassierer=true; bb.hireStaff('kassierer');
-    const lvs=bb.allLevels(); ['wunder','boeller','tisch'].forEach((t,i)=>{ for(let k=0;k<20;k++) bb.addToLevel(lvs[i],t,1); });
+    const lvs=bb.allLevels(); ['wunder','boeller','knallfrosch'].forEach((t,i)=>{ for(let k=0;k<20;k++) bb.addToLevel(lvs[i],t,1); });
     bb.openShop(); bb.run(420,0.05);
     o.gravurVerkauft=bb.DS.gravur||0; o.umsatz=Math.round(bb.DS.revenue); o.kunden=bb.DS.customers;
     o.rohlingeRest=bb.gravBlanks;

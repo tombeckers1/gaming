@@ -26,7 +26,9 @@ const SORTE_NEU={kanonen:'monsterboeller',grossboeller:'monsterboeller',doppelsc
    die sie ersetzt. bengalduo bleibt (Hafenlichter). */
 const ERSETZT_DURCH={goldperlen:'roemisch',salutbatterie:'donnerschlag',kometenfaecher:'kometen',raketen50:'titanraketen',
   sternfontaene:'sternenbrunnen',tischfeuerwerk2:'tisch',knallbonbonxxl:'knallbonbon',konfettiknaller:'partypopper'};
-Object.assign(SORTE_NEU,ERSETZT_DURCH);
+Object.assign(SORTE_NEU,ERSETZT_DURCH,typeof ENTFERNT_ERSATZ!=='undefined'?ENTFERNT_ERSATZ:{});
+/* Ketten aufloesen (tischfeuerwerk2 -> tisch -> gestrichen -> Ersatz) */
+for(const k in SORTE_NEU){ let v=SORTE_NEU[k], n=0; while(SORTE_NEU[v]&&n++<5) v=SORTE_NEU[v]; SORTE_NEU[k]=v; }
 function sortenUmstellen(d){
   for(const m of ['prices','mi','me','reg','mh','schock']) if(d[m]&&typeof d[m]==='object') for(const k in SORTE_NEU) delete d[m][k];
   const geh=(o,tiefe)=>{ if(!o||typeof o!=='object'||tiefe>10) return;

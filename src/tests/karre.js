@@ -34,7 +34,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     bb.toggleKarre(); o.ohne={an:bb.karreAn(),toast:bb.toastLast};
     S.level=10; S.money=9000; bb.buyUp('sackkarre'); bb.toggleKarre(); o.an=bb.karreAn();
     /* sechs Kartons auf den Boden, dann einzeln aufheben */
-    const sorten=['wunder','knallerbsen','tisch','knallfrosch','wunder','tisch'];
+    const sorten=['wunder','knallerbsen','boeller','knallfrosch','wunder','boeller'];
     sorten.forEach((t,i)=>bb.spawnFloorBox(t,bb.P[t].box,{x:-3+i*0.8,y:0.2,z:2,ry:0}));
     const boxen=bb.floorBoxes.slice(-6);
     for(let i=0;i<5;i++) bb.tuAktion('box',boxen[i]);

@@ -193,7 +193,7 @@ function rollMarkt(){
    ========================================================= */
 const LIZENZEN=[
   {id:'start',lvl:1,cost:0,name:'Grundsortiment',
-   desc:'Womit jeder Laden anfängt: Wunderkerzen, Knallerbsen, Tischfeuerwerk, Knallfrösche.',
+   desc:'Womit jeder Laden anfängt: Wunderkerzen, Knallerbsen, Knallfrösche.',
    items:['wunder','knallerbsen','tisch','knallfrosch']},
   {id:'zubehoer',lvl:3,cost:120,name:'Silvesterzubehör',
    desc:'Alles um das Feuerwerk herum. Kleine Margen, aber fast jeder Kunde nimmt etwas davon mit.',

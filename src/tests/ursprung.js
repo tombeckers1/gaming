@@ -39,7 +39,8 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   /* ebenso die Aufstiegsarten (STEIG_ART): Schweif und Nachblitzen */
   const sa=html.findIndex(l=>l.startsWith('const STEIG_ART={'));
   const SL=[sa+1,html.findIndex((l,i)=>i>sa&&l.startsWith('};'))+1];
-  const WEIT=['schwaermer','knallerbsen','goldstaubboeller','atomboeller','tisch','luftschlangentisch'];
+  /* knallfrosch: springt absichtlich vom Karton weg (28.09., klein) - der erste Knall zaehlt */
+  const WEIT=['schwaermer','knallerbsen','goldstaubboeller','atomboeller','tisch','luftschlangentisch','knallfrosch'];
   const r=await p.evaluate(([nur,WEIT,FZ,RL,SL])=>{ const bb=window.__bb, S=bb.S, P=bb.P, out={};
     S.up.testfeld=true; S.up.shop_halb=true;
     /* Funken, die unterwegs aus einem anderen Funken entstehen (Verzweigung,

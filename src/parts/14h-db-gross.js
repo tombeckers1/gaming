@@ -736,7 +736,7 @@ SHOWS.batterie100=()=>show({basis:{pw:0.70,sz:1.060,th:'achterbahn'},rampe:{sz:[
   /* Tunnel: dunkel, tief, rumpelndes Knistern */
   {n:10,gap:0.25,muster:'zufall',ang:0.25,kal:'mini',pw:-3,eff:'tausend',farbe:2,pause:0.8},
   /* Schlussfahrt: Kreuzfeuer mit wechselnden Hoehen */
-  {n:24,gap:0.12,muster:'x',ang:0.45,hoehe:'wechsel',hSpanne:3,pw:2.5,eff:['kamuro','wechsel'],farbe:0,kal:'gross'} /* 27.09.: pw 5->4 - die Kugelbomben sind die Koenigsklasse und steigen hoeher als die Spitze jedes Verbunds bis Level 17 (steigerung.js KUGEL) */,
+  {n:24,gap:0.2,muster:'x',ang:0.45,hoehe:'wechsel',hSpanne:3,pw:2.5,eff:['kamuro','wechsel'],farbe:0,kal:'gross'} /* 29.09.: gap 0,12->0,2 - mit dem Blinkregen-Schlag 21 Schuss/s, dichter als Donnerwand (L20) und Goetterfunken (L22); bis L22 hoechstens 18 */ /* 27.09.: pw 5->4 - die Kugelbomben sind die Koenigsklasse und steigen hoeher als die Spitze jedes Verbunds bis Level 17 (steigerung.js KUGEL) */,
   /* FINALE Schlussbremse: fuenf tiefe Blinkregen auf Schlag - das Achterbahn-Foto */
   {n:5,gap:0,muster:'schlag',ang:0.50,eff:'blinkregen',kal:'mittel',pw:3,farbe:1,pause:3.5}
 ]);
@@ -820,18 +820,18 @@ SHOWS.kometen=()=>show({basis:{pw:1.65,sz:1.135,th:'nacht'},rampe:{sz:[0.90,1.25
   /* Anritt: einzelne Pferdeschweife, Silbersaeule am Boden (28.09.: ohne bunte Zufallssterne) */
   {n:6,gap:1.5,muster:'gerade',eff:'rossschweif',steig:'komet',kal:'mittel',pw:-2,A:'weiss',B:'himmel',boden:{k:'riesen',gt:9,gh:0.7,A:'silber',B:'weiss',C:FW.weiss},pause:0.8},
   /* Trab: W, im Wechsel mit kleinen Kometen (27.09.: vorher Zeitregen - der gehoert der Weidenwand) */
-  {n:8,gap:0.6,muster:'w',ang:0.40,pw:-1,eff:['rossschweif','komet'],farbe:1,pause:1.2},
+  {n:10,gap:0.6,muster:'w',ang:0.40,pw:-1,eff:['rossschweif','komet'],farbe:1,pause:1.2},
   /* Galopp: da-da-DUMM, Scheibenwischer zweimal hin und zurueck */
   {n:16,takt:[0.15,0.15,0.45],muster:'wischer',seg:2,ang:0.45,eff:'rossschweif',kal:'klein',pw:1,A:'weiss',B:'himmel',pause:1.4},
   /* Maehne: grosse Silberpalmen oben (wehendes Haar), kleine Kometen unten im V
      (27.09.: vorher Blinkweiden - die tragen die Weidenwand) */
-  {n:6,gap:0.9,muster:'gerade',eff:'palme',A:'weiss',B:'himmel',kal:'gross',pw:2},
-  {mit:true,n:6,gap:0.9,muster:'v',ang:0.50,kal:'mini',pw:0,eff:'komet',farbe:1,pause:0.8},
-  /* FINALE Durchgehen: die Herde bricht aus - 22 Riesen-Pferdeschweife in
+  {n:8,gap:0.9,muster:'gerade',eff:'palme',A:'weiss',B:'himmel',kal:'gross',pw:2},
+  {mit:true,n:8,gap:0.9,muster:'v',ang:0.50,kal:'mini',pw:0,eff:'komet',farbe:1,pause:0.8},
+  /* FINALE Durchgehen: die Herde bricht aus - 16 Riesen-Pferdeschweife in
      einer Sekunde von der Mitte nach aussen, Silber-Feuertoepfe (29.09.:
-     vorher 10 in 0,8 s - weniger dicht als die Achterbahn auf L17; Trab
-     und Maehne geben dafuer Rohre ab, es bleiben 64 Schuss) */
-  {n:22,gap:0.045,muster:'mitte',ang:0.50,eff:'rossschweif',kal:'riesig',pw:2.5,A:'weiss',B:'himmel',mine:true,mineEff:'silber',pause:4.5}
+     vorher 10 in 0,8 s - duenner als die Achterbahn auf L17; Trab und
+     Maehne geben dafuer Rohre ab, es bleiben 64 Schuss) */
+  {n:16,gap:0.06,muster:'mitte',ang:0.50,eff:'rossschweif',kal:'riesig',pw:4,A:'weiss',B:'himmel',mine:true,mineEff:'silber',pause:4.5}
 ]);
 SIGNATUR.kometen={eff:'rossschweif',text:'Silberne Pferdeschweife im Galopp'};
 
@@ -872,10 +872,10 @@ SHOWS.donnerwand=()=>show({basis:{pw:2.05,sz:1.165,th:'glut'},rampe:{sz:[0.95,1.
      Flammenbaelle standen als orange Leuchtwolke ueber dem Karton */
   {mit:true,n:0,boden:[{k:'volcano',gt:4,x:-0.28,A:'gold',B:'bernstein'},{k:'volcano',gt:4,x:0.28,A:'gold',B:'bernstein'}],pause:1.2},
   /* Wirbel: 4 Salven in 0,36 s */
-  /* 27.09.: Takt 0,34 statt 0,12 s und Pause vor dem Tusch - hoechstens 18 Schuss je
+  /* 27.09.: Takt 0,4 statt 0,12 s (29.09.: 0,34 lag auf der Kante - 4 Salven in gut 1 s zaehlten je nach Startzeit im 0,1-s-Raster als 24) und Pause vor dem Tusch - hoechstens 18 Schuss je
      Sekunde, die Dichte-Leiter (steigerung.js) laesst Goetterfunken und Weltuntergang
      sonst nicht mehr drueber; hoeher fuer die Steigerung im Ablauf */
-  {n:24,je:6,takt:[0.34],muster:'schlag',ang:0.55,eff:'brokat',kal:'gross',pw:3,farbe:2,pause:0.7},
+  {n:24,je:6,takt:[0.4],muster:'schlag',ang:0.55,eff:'brokat',kal:'gross',pw:3,farbe:2,pause:0.7},
   /* FINALE Tusch: eine senkrechte Riesen-Salve */
   {n:6,je:6,muster:'gerade',eff:'kamuro',kal:'riesig',pw:4,farbe:0,pause:4.5}
 ]);

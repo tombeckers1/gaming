@@ -4212,11 +4212,12 @@ function buildYard(){
     /* Lueftungsschlitze an beiden Seiten */
     for(const sx of [-0.492,0.492]) for(let i=0;i<7;i++)
       bbox(0.006,0.014,0.30,rippe,sx,0.30+i*0.055,0,g,false);
-    /* Kabeleinfuehrung nach unten, in einem Schutzrohr */
+    /* Kabeleinfuehrung nach unten, in einem Schutzrohr. Das Kabel
+       geht dort in den Boden. Ein loses Stueck, das schraeg daneben
+       lag, steckte halb im Boden und endete im Nichts - von oben ein
+       schwarzer Keil (Tom, Foto 29.09.). */
     { const kr=new THREE.Mesh(new THREE.CylinderGeometry(0.035,0.035,0.16,10),std(0x1c1f26,{roughness:0.9}));
-      kr.position.set(0.30,0.08,-0.24); g.add(kr);
-      const kb=new THREE.Mesh(new THREE.CylinderGeometry(0.02,0.02,0.5,8),std(0x14161c,{roughness:0.95}));
-      kb.rotation.x=1.4; kb.position.set(0.30,0.03,-0.45); g.add(kb); }
+      kr.position.set(0.30,0.08,-0.24); kr.userData.kabelrohr=true; g.add(kr); }
     /* Warnstreifen ueber dem Sockel */
     plane(0.98,0.07,new THREE.MeshStandardMaterial({map:tex(420,32,(c,W,H)=>{
       for(let x=-H;x<W;x+=H*1.6){ c.save(); c.translate(x,0); c.rotate(0);
@@ -4416,12 +4417,13 @@ function muendung(st,slot,t){
      Hoehe 0,9 h). Vorher starteten ihre Schuesse an der Rohrmuendung
      (1,34 m) - 20 bis 30 cm tief im Buendel (28.09., Tom: echt). */
   const pc=P[t];
-  if(pc&&pc.shape==='candle'&&pc.dims){ const d=pc.dims;
-    return {x:p.x+RAMPE_X[slot%3],y:1.18+d[1]*0.9,z:p.z-0.08,ab:0.02,jit:0.01,hx:d[0]*0.52,hz:d[2]*0.3}; }
+  if(pc&&pc.shape==='candle'&&pc.dims){ const k=kerzeImRohr(slot,t);
+    return {x:k.top.x,y:k.top.y,z:k.top.z,ab:0.02,jit:0.005,hx:k.hx,hz:k.hz}; }
   return {x:p.x+RAMPE_X[slot%3],y:1.34,z:p.z-0.08,ab:0.05,jit:0.02,hx:0.045,hz:0.045};
 }
 function placedCount(){ let n=0; for(const k in stations) n+=stations[k].items.length; return n; }
 function bereitCount(){ let n=0; for(const k in stations) n+=stations[k].items.filter(it=>it.state==='bereit').length; return n; }
+let pultText='';
 function drawPult(){
   if(!pultTex) return;
   const n=bereitCount(), b=placedCount()-n;
@@ -4432,9 +4434,15 @@ function drawPult(){
     g.fillText(b?'ZÜNDUNG':n?'BEREIT':'LEER',14,30);
     g.font=BAR(26); g.fillStyle='#e8eef8';
     g.fillText(`${n} von ${kanalAnzahl()} Kanälen scharf`,14,72);
-    const names=[]; for(const k in stations) stations[k].items.forEach(it=>{ if(it.state==='bereit'&&names.indexOf(P[it.type].short)<0) names.push(P[it.type].short); });
-    const txt=names.join(', ')||'Ware auf Tisch, Röhren oder Mörser stellen';
-    g.fillStyle='#8fb4e0'; fitFont(g,txt,W-28,22,BAR); g.fillText(txt,14,110);
+    /* 29.09. (Tom): waehrend der Zuendung steht da, was gerade brennt;
+       danach wieder, was noch scharf ist. Hoechstens drei Namen, dann
+       "…" - bei neun vollen Kanaelen passte sonst nichts mehr lesbar hin. */
+    const liste=st2=>{ const a=[]; alleKanaele().forEach(e=>{ const it=e&&e.it; if(it&&it.state===st2&&a.indexOf(P[it.type].short)<0) a.push(P[it.type].short); }); return a; };
+    const kurz=a=>a.length>3?a.slice(0,3).join(', ')+', …':a.join(', ');
+    const brennt=liste('brennt'), bereit=liste('bereit');
+    const txt=brennt.length?'Zündet: '+kurz(brennt):bereit.length?kurz(bereit):'Ware auf Tisch, Röhren oder Mörser stellen';
+    g.fillStyle=brennt.length?'#ffb489':'#8fb4e0'; fitFont(g,txt,W-28,22,BAR); g.fillText(txt,14,110);
+    pultText=txt;
     g.fillStyle=b?'#ff6a3d':n?'#ffd23f':'#39405a'; g.fillRect(0,H-22,W,22);
   });
   pultLampen();
@@ -4448,6 +4456,20 @@ function pultLampen(){
     if(!it){ m.emissiveIntensity=0; return; }
     if(it.state==='brennt'){ m.emissive.copy(LIN(0xff3b2e)); m.emissiveIntensity=1.6; }
     else { m.emissive.copy(LIN(0x39ff7a)); m.emissiveIntensity=1.3; } });
+}
+/* Roemische Lichter stecken IM Abschussrohr (Tom, Foto 29.09.): das
+   Buendel war mit bis zu 25 cm doppelt so breit wie das Rohr (11 cm),
+   stand senkrecht auf dem Rand und machte die Neigung nicht mit. Jetzt
+   folgt es der Rohrachse, ist so schmal, dass es hineinpasst (einzelne
+   Kerzen 2-3 cm wie in echt), und das obere Drittel schaut heraus. */
+const ROHR_ACHSE={y:0.72,z:-0.02,neig:-0.1,halb:0.625,innen:0.056};
+function kerzeImRohr(slot,t){
+  const p=STATION_POS.rampe, d=P[t].dims, w=d[0], HH=d[1]*0.9;
+  const s=Math.min(1,(ROHR_ACHSE.innen*2-0.008)/(1.41*w));
+  const c=Math.cos(ROHR_ACHSE.neig), sn=Math.sin(ROHR_ACHSE.neig);
+  const bei=u=>({x:p.x+RAMPE_X[slot%3],y:ROHR_ACHSE.y+c*u,z:p.z+ROHR_ACHSE.z+sn*u});
+  const tb=ROHR_ACHSE.halb-0.4*HH;
+  return {base:bei(tb),top:bei(tb+HH),s,neig:ROHR_ACHSE.neig,hx:0.52*w*s,hz:0.5*w*s};
 }
 function stationSlot(st,i){
   const p=STATION_POS[st.id];
@@ -4593,7 +4615,10 @@ function placeOnStation(st){
     /* alle stehen mit der Breite quer zum Blick - die Schuesse laufen
        ueber diese Breite. Vorher wurden Verbunde ueber 0,76 m quer
        gestellt und schossen dann neben dem Karton (28.09.) */
-    it.h=pools[c.type].add(mx(sl.x,sl.y,sl.z,sl.ry));
+    if(st.id==='rampe'&&P[c.type].shape==='candle'){
+      const k=kerzeImRohr(slot,c.type); _e.set(k.neig,0,0); _q.setFromEuler(_e);
+      it.h=pools[c.type].add(new THREE.Matrix4().compose(V(k.base.x,k.base.y,k.base.z),_q,V(k.s,1,k.s)));
+    } else it.h=pools[c.type].add(mx(sl.x,sl.y,sl.z,sl.ry));
   }
   st.items.push(it);
   c.count--; S.tut.build=true; sfx.pop();
@@ -20371,7 +20396,10 @@ const DB={
      sind kleine Chrysanthemen (als Mini-Paeonie standen 30 dicke Punkte
      im Kreis - ein Punktkranz, kein Bruch) */
   kinderbatterie:()=>show({basis:{pw:-11.5,sz:0.40,th:'pusteblume'}, rampe:{sz:[0.9,1.15],pw:[-1,1],hell:[0.9,1.15],kurve:'linear'}}, [
-    {n:2,gap:1.7,eff:'chrys',kal:'klein',farbe:1,muster:'gerade',steig:'keiner',bruchOpt:{kern:false,nachglitzer:false},pause:0.9},
+    /* 29.09. (Tom): bei den ersten beiden sah man keinen Abschuss -
+       sie stiegen ohne Schweif (steig:'keiner'). Jetzt mit feinem
+       Goldschweif wie jede Jugendbatterie. */
+    {n:2,gap:1.7,eff:'chrys',kal:'klein',farbe:1,muster:'gerade',bruchOpt:{kern:false,nachglitzer:false},pause:0.9},
     {n:2,gap:1.5,eff:'pusteblume',farbe:0,steig:'silber',muster:'zufall',ang:0.12,boden:{k:'torte',gt:4,A:'silber'},pause:1.0},
     {n:2,gap:0,muster:'v',ang:0.22,eff:'pusteblume',farbe:0,kal:'klein',steig:'silber',pause:3.0}
   ]),
@@ -23146,17 +23174,57 @@ const FK_Z=new Map();
 function fkZ(e){ const k=e.tag||0; let z=FK_Z.get(k); if(!z){ z={}; FK_Z.set(k,z); if(FK_Z.size>40) FK_Z.delete(FK_Z.keys().next().value); } return z; }
 /* Menge je Sekunde (nicht je Bild) */
 function fkJe(e,k,rate,dt){ e[k]=(e[k]||0)+dt*Math.max(0,rate); const n=Math.floor(e[k]); e[k]-=n; return n; }
-/* Dauerklang je Phase (Feld ton); Lautstaerke folgt staerke und
-   lautKurve. Nur die erste Duese klingt, sonst waere ein Set viermal so laut. */
+/* Dauerklang je Duese (29.09., Tom: "passende Geraeusche"). Vorher wurde
+   alle 1,1-1,3 s ein neues Rauschen angestossen - das pulsierte hoerbar
+   ("wusch - wusch"), und der Ton hing fest an der Phase: die Glitterphase
+   des Zauberbrunnens zischte glatt wie Titan. Jetzt:
+   - ein durchgehendes Rauschbett je Duese, dessen Lautstaerke der Staerke
+     folgt und das in Dunkelpausen und am Ende weich ausblendet;
+   - der Klang folgt der Funkenart: Kohle/Brokat rauschen tief, Titan und
+     Eisen zischen hell, Glitter britzelt (feine unregelmaessige Knackser
+     ueber leisem Zischen), Knister knistert ueber leisem Rauschen.
+   Nur die erste Duese klingt, sonst waere ein Set viermal so laut. */
+const FK_BETT={
+  rauschen:{rosa:true, typ:'lowpass', f:1100,vol:0.11},
+  zischen: {rosa:false,typ:'highpass',f:3200,vol:0.075},
+  fauchen: {rosa:true, typ:'lowpass', f:520, vol:0.24},
+  glitzer: {rosa:false,typ:'highpass',f:4200,vol:0.035},
+  knistern:{rosa:true, typ:'lowpass', f:1600,vol:0.06}};
+/* Funkenart -> Klang; ausdrueckliche Sonderklaenge der Phase gehen vor */
+const FK_FUNKTON={kohle:'rauschen',brokat:'rauschen',titan:'zischen',eisen:'zischen',glitter:'glitzer',knister:'knistern'};
+const FK_SONDER={still:1,blubb:1,grollen:1,brummen:1,fauchen:1,knistern_laut:1};
+function fkTonArt(ph){ const t=ph&&ph.ton; if(!t) return null; if(FK_SONDER[t]) return t;
+  const fu=Array.isArray(ph.funke)?ph.funke[0]:ph.funke; return FK_FUNKTON[fu]||t; }
+const FK_BETTEN=[], FK_KLANG_LOG={betten:0,arten:[]};
+function fkBettStopp(b){ try{ const t=AC.currentTime; b.g.gain.cancelScheduledValues(t); b.g.gain.setTargetAtTime(0,t,0.12); b.s.stop(t+0.8); }catch(err){} b.aus=true; }
+function fkBett(e,art,ziel){
+  if(!AC) return;
+  let b=e.bett;
+  if(b&&b.art!==art){ fkBettStopp(b); b=e.bett=null; }
+  if(!b){ const B=FK_BETT[art]; if(!B) return;
+    const src=AC.createBufferSource(), fl=AC.createBiquadFilter(), g=AC.createGain(), t=AC.currentTime;
+    src.buffer=B.rosa?rosaRausch():weissBuf(); src.loop=true; fl.type=B.typ; fl.frequency.value=B.f;
+    g.gain.setValueAtTime(0.0001,t); src.connect(fl); fl.connect(g); g.connect(master); src.start(t,Math.random());
+    b=e.bett={art,s:src,g,B,last:t}; FK_BETTEN.push(b); FK_KLANG_LOG.betten++; FK_KLANG_LOG.arten.push(art); }
+  const t=AC.currentTime; b.last=t;
+  /* Ziel anfahren, und von selbst ausblenden, wenn niemand mehr nachfasst
+     (Dunkelpause, Phasenende, Duese erloschen) */
+  b.g.gain.cancelScheduledValues(t); b.g.gain.setTargetAtTime(Math.max(0.0001,ziel*b.B.vol),t,0.09);
+  b.g.gain.setTargetAtTime(0.0001,t+0.3,0.12);
+  /* verwaiste Betten aufraeumen */
+  for(let i=FK_BETTEN.length-1;i>=0;i--){ const x=FK_BETTEN[i]; if(x.aus||t-x.last>1.5){ if(!x.aus) fkBettStopp(x); FK_BETTEN.splice(i,1); } }
+}
 function fkKlang(e,o,dt,faktor){
-  const t=e.ph&&e.ph.ton; if(!t||t==='still'||e.nr) return;
+  const t=fkTonArt(e.ph); if(!t||t==='still'||e.nr) return;
   const st=(e.staerke===undefined?1:e.staerke)*(e.lautAkt||1)*(faktor===undefined?1:faktor); if(st<0.05) return;
-  e.kl=(e.kl||0)-dt; if(e.kl>0) return; const v=distVol(o)*st;
-  if(t==='rauschen'){ e.kl=1.3; sfx.fizz(v*0.85); }
-  else if(t==='zischen'){ e.kl=1.1; sfx.zischen(v*0.8,1.25); }
-  else if(t==='fauchen'){ e.kl=0.95; sfx.fauchen(v*0.8,1.1); }
-  else if(t==='knistern'){ e.kl=rand(0.25,0.5); sfx.crackle(v*0.55); }
-  else if(t==='knistern_laut'){ e.kl=0.1; sfx.crackle(v); }
+  const v=distVol(o)*st;
+  if(FK_BETT[t]){ fkBett(e,t,v);
+    /* Glitter: feine, unregelmaessige Knackser; Knister: dichte Knatterstoesse */
+    if(t==='glitzer'){ e.gk=(e.gk||0)-dt; if(e.gk<=0){ e.gk=rand(0.03,0.12); noise(0.02,0.05*v,rand(5000,9000)); } }
+    if(t==='knistern'){ e.kl=(e.kl||0)-dt; if(e.kl<=0){ e.kl=rand(0.25,0.5); sfx.crackle(v*0.55); } }
+    return; }
+  e.kl=(e.kl||0)-dt; if(e.kl>0) return;
+  if(t==='knistern_laut'){ e.kl=0.1; sfx.crackle(v); }
   else if(t==='blubb'){ e.kl=rand(0.6,1.1); sfx.plopp(v*0.35,0.7); }
   else if(t==='grollen'){ e.kl=0.8; sfx.thump(v*0.35); }
   else if(t==='brummen'){ e.kl=1.2; sfx.brodeln(v*0.6,1.3); }
@@ -24230,6 +24298,7 @@ Object.assign(SIGNATUR,{
   feuerkaskade:{eff:'zerfall',text:'Dreizack aus Gold und Silber, zum Schluss knisternde Goldkometen aus allen drei Düsen'},
   fontaene50:{eff:'titan-drehduese',text:'50 m ruhiger Titanstrahl aus der Drehdüse, Silberkrone mit Knistern und blauen Sternen'}
 });
+if(typeof window!=='undefined') window.__fontklang={FK_KLANG_LOG,fkTonArt,FONT,FK_BETTEN};
 /* =========================================================
    Kleinfeuerwerk und Boeller
    (Tom, 26.09. nachts: "jedes Produkt eine Anomalie - komplett
@@ -24927,29 +24996,41 @@ klEmit('brummkreisel',(e,dt,o,t)=>{
     const PL=e.plaetze||[[0,0],[-0.065,0.03],[0.065,-0.03],[0.065,0.03],[-0.065,-0.03],[0,0.03]];
     for(let i=0;i<n;i++){ const q=PL[i%PL.length];
       e.kr.push({x0:o.x+q[0],z0:o.z+q[1],x:0,z:0,dx:0,dz:0,zt:0,w:rand(0,6),start:i*(e.gap||0.4),
-        det:e.ton&&e.ton.groesse?rand(0.85,1.15):1,C:FF[i%FF.length].map(c=>klF(c)),z2:{}}); }
+        det:e.ton&&e.ton.groesse?rand(0.85,1.15):1,C:FF[i%FF.length].map(c=>klF(c)),z2:{},
+        /* 29.09. (Tom: "wirklich Kreise"): jeder Kreisel wandert vom
+           Karton weg ueber den Tisch - hoechstens 0,3 m - und zieht dort
+           seinen Feuerkreis. Vorher tanzten alle auf 13 x 6 cm und die
+           Funken standen als Wolke um die Verpackung. */
+        ziel:(()=>{ const a=rand(0,6.283), r=rand(0.14,0.3); return [Math.cos(a)*r,Math.sin(a)*r*0.6]; })()}); }
     e.sf=sf; e.t=T+(n-1)*(e.gap||0.4)+1.2; }
   const alt=SCHWEIF, q=QUAL();
   let lx=0,lz=0,ln=0,lc=[0,0,0];
   for(const k of e.kr){ const lt=t-k.start; if(lt<0) continue;
     const u=lt/T;
     if(u>=1){ if(!k.ende){ k.ende=1; if(k.ton){ k.ton.stop(); k.ton=null; } } continue; }
-    /* Drift: Zufallsweg, glatt, hoechstens drift m */
-    k.zt-=dt; if(k.zt<=0){ k.zt=rand(0.4,0.8); k.dx=rand(-1,1)*(e.drift||0.02); k.dz=rand(-1,1)*(e.drift||0.02)*0.7; }
-    k.x+=(k.dx-k.x)*Math.min(1,dt*1.2); k.z+=(k.dz-k.z)*Math.min(1,dt*1.2);
+    /* Weg: vom Karton zum eigenen Platz, dort leicht schlingernd */
+    k.zt-=dt; if(k.zt<=0){ k.zt=rand(0.4,0.8); k.dx=k.ziel[0]+rand(-1,1)*(e.drift||0.02); k.dz=k.ziel[1]+rand(-1,1)*(e.drift||0.02)*0.7; }
+    k.x+=(k.dx-k.x)*Math.min(1,dt*0.9); k.z+=(k.dz-k.z)*Math.min(1,dt*0.9);
     const rev=U[0]+(U[1]-U[0])*u, fin=lt>T-FIN.t, kipp=lt>T-0.3?(lt-(T-0.3))/0.3:0;
     k.w+=2*Math.PI*rev*dt;
     const x=k.x0+k.x, z=k.z0+k.z, y=e.sf+0.03+kipp*0.04;
     /* Farbe: hart gewechselt bei den Anteilen wechselBei */
     const stufe=WB.filter(w=>u>=w).length, C=fin?FW.silber:stufe===1?k.C[1]:k.C[0];
-    /* Funkenscheibe: tangential aus dem Rand, 0,6-0,8 m */
-    k.z2.f=(k.z2.f||0)+dt*380*q; SCHWEIF=0.07;
-    const nk=Math.cos(kipp*1.05), sk=Math.sin(kipp*1.05);
-    for(;k.z2.f>=1;k.z2.f--){ const a=k.w+Math.random()*6.283, s=rand(2.2,3.2)*(0.8+0.2*rev/U[1]), cx=Math.cos(a), cz=Math.sin(a);
-      const vx=-cz*s, vz=cx*s, vy=rand(0.1,0.5)+vz*sk; 
-      /* 29.09., Tom: echt - tangentiale Funkenstriche (vorher 15-cm-Punkte = Leuchtkugeln auf dem Tisch) */
-      if(fin) psSmall.emit(x+cx*0.025,y,z+cz*0.025*nk,vx,vy,vz*nk,C[0],C[1],C[2],rand(0.14,0.22),1,3);
-      else klFunke(x+cx*0.025,y,z+cz*0.025*nk,vx,vy,vz*nk,C,rand(0.12,0.2),1,0,0.2); }
+    /* Feuerkreis: die Duese sitzt am Rand und laeuft mit der Drehung
+       um. Jeder Funke startet dort, wo die Duese gerade ist, und fliegt
+       tangential weiter - bei 4 bis 14 Umdrehungen pro Sekunde und
+       0,2 s Leuchtdauer schliesst sich die Spur zu einem Ring. Der Ring
+       waechst mit der Drehzahl (12 -> 22 cm Durchmesser). */
+    k.z2.f=(k.z2.f||0)+dt*420*q; SCHWEIF=0.07;
+    const nk=Math.cos(kipp*1.05), sk=Math.sin(kipp*1.05), R=0.06+0.05*u, vU=2*Math.PI*rev*R;
+    for(;k.z2.f>=1;k.z2.f--){ const a=k.w-Math.random()*0.5, cx=Math.cos(a), cz=Math.sin(a);
+      const s=vU*rand(0.45,0.7)+rand(0.2,0.5), ra=rand(0.15,0.45);
+      const vx=-cz*s+cx*ra, vz=cx*s+cz*ra, vy=rand(0.02,0.18)+vz*sk;
+      if(fin) psSmall.emit(x+cx*R,y,z+cz*R*nk,vx,vy,vz*nk,C[0],C[1],C[2],rand(0.14,0.22),1,3);
+      else klFunke(x+cx*R,y,z+cz*R*nk,vx,vy,vz*nk,C,rand(0.16,0.26),1.5,0,0.25); }
+    /* ein paar Funken reissen ab und fliegen weit ueber den Tisch */
+    if(!fin&&Math.random()<dt*25){ const a=k.w, cx=Math.cos(a), cz=Math.sin(a), s=rand(1.6,2.6);
+      klFunke(x+cx*R,y,z+cz*R,-cz*s,rand(0.2,0.6),cx*s,C,rand(0.3,0.5),3,0,0.3); }
     psSmall.emit(x,y+0.01,z,0,0,0,1.5,1.4,1.2,0.05,0,0);
     if(fin&&Math.random()<dt*30){ const a=Math.random()*6.283; knisterPop(x+Math.cos(a)*0.03,y+rand(0,0.08),z+Math.sin(a)*0.03,{c:FW.silber,laut:0.4}); }
     if(lt>T-0.06&&!k.hops){ k.hops=1; psBig.emit(x,y+0.05,z,0,0,0,1.3,1.3,1.4,0.08,0,0); psMid.emit(x,y,z,rand(-.3,.3),1.2,rand(-.3,.3),1,1,1,0.25,9.8,0); }
@@ -29341,7 +29422,7 @@ fontsReady().then(()=>{
   setTimeout(()=>{ if(typeof shaderVorab==='function') shaderVorab(); },400);
   window.__bb={get S(){return S},get phase(){return phase},set phase(v){phase=v},set clock(v){clock=v},get clock(){return clock},pickUp,floorBoxes,shelves,racks,dekos,stockOne,openShop,step,customers,queue,belt,scanBelt,buyUp,buyDeko,get DS(){return DS},endDay,pending,save,openLaptop,closeLaptop,pl,addXP,hireStaff,fireStaff,staff,dirts,addDirt,movables,toggleBuild,setWall,setFloor,
     stations,firePult,placeOnStation,igniteType,get order(){return order},get phone(){return phone},makeCall,answerPhone,haggle,acceptDeal,declineDeal,get truck(){return truck},spawnTruck,takeFromTruck,takeBox,dropBox,updateTruck,get door(){return door},get tuer(){return tuer},tuerSet,tuerNah,updateSchiebetuer,doorOpen,doorIsOpen,trailerOccupied,LR,lrFront,TOR,orderReady,orderLeft,shipOne,removeFloorBox,prioOf,setPrio,racks,updateCarry,spawnFloorBox,staff,SHELFKIND,layout,shelfCapOf,shelfAccepts,emptyLevel,dateInfo,dateStr,dateShort,seasonInfo,isSunday,dayMult,ruhetag,wageOf,setWage,friendliness,inPause,setPause,windowGrime,addGrime,cleanWindowTick,ambienteScore,bildBoost,fixedCosts,dailyWages,dispoLimit,verfuegbar,dispoZins,takeLoan,loanTier,loanDaily,EVENTS,GOALS,CUSTTYPES,UPGRADES,STAFF,stockOf,spawnInterval,pools,todayEvent,evv,rollEvent,rollMarket,newGoal,goalAdd,goalTick,ekFactor,marktText,xpFor,rollCustType,priceTol,buyChance,regCustomer,makeWishes,nachfrageFaktor,shelfStockOf,buildGravur,refillGrav,openGravInput,closeGravInput,get gravBlanks(){return gravBlanks},set gravBlanks(v){gravBlanks=v},orderBox,buyPack,cartAdd,cartAddPack,cartOrder,cartClear,cartDel,cartGoods,cartFee,cartTotal,cartBoxes,cartLines,LIEFERZEIT_SEK,VERSAND,VERSANDFREI,lieferSek,
-    scene,camera,P,NEUWARE,NEU_SHOWS,NEU_FONT,NEU_KUGEL,neuZuenden,PARK,restWelle,restTick,restDruck,restDaten,buyAngebot,grossOffen,updatePark,parkWasser:()=>_wasserM,parkTannen:()=>PARK_TANNEN,parkLeben:()=>parkEnten.concat(parkLeute).map(e=>({x:e.g.position.x,z:e.g.position.z})),pendingListe:()=>pending,einbauPakete,spawnPaket,paketAblegen,paketAufheben,EINBAU,PAKET_MASS,vorDieTuer,setSB2,sbZiel,makeAuto,AUTOFORM,stadtInfo:()=>({warn:beacons.length,kronen:KRONEN.length,stufen:SKYLINE_INFO.stufen,skyStile:SKYLINE_INFO.stile.size,stile:Object.keys(STADT_MATS).length}),clearStations,fachHoehe,kindOf,packKartonWert,SUPPLIERS,supplierFor,supplierOf,tierPrice,isUnlocked,lizLevel,renderLaptop,get lsup(){return lsup},set lsup(v){lsup=v},get lkat(){return lkat},set lkat(v){lkat=v},SPARTE,SPARTE_NAME,sparteVon,HEADNAME,headArt,catPill,ekRoh,ekDelta,ekTag,ekNiveau,ekPill,get ltab(){return ltab},set ltab(v){ltab=v},EFF,EFF_ALL,EFF_KLEIN,EFF_GROSS,EFF_PRO,SHOWS,kugelbombe,shot,mine,FW,stations,stationOf,placedCount,togglePDA,openPDA,closePDA,setPost,get postOn(){return postOn},get pdaOn(){return pdaOn},showLength,psHuge,psBig,psMid,psSmall,rockets,emitters,timersLen:()=>timers.length,setView:(x,z,y,p)=>{pl.x=x;pl.z=z;yaw=y;pitch=p;aim=null;},schiebe:(x,z)=>{pl.x=x;pl.z=z;collide(pl,0.32);return{x:pl.x,z:pl.z};},PLZ_MAX,camYaw:()=>yaw,camPitch:()=>pitch,playerPos:()=>({x:pl.x,z:pl.z}),pultYaw:()=>pultHit?pultHit.parent.rotation.y:null,applyShopName,shopName,shopSlogan,signTexPx:()=>signTex&&signTex.image?signTex.image.getContext('2d').getImageData(0,0,signTex.image.width,40).data.join(''):null,lagerWall,fwShot:shot,KUGEL_R,ROHR_INNEN,MOERSER_R,moerserRohr,sfx,WOLKEN,get master(){return master},ac,SORTE_NEU,sortenUmstellen,get shakeWert(){return shake},get ckG(){return ckG},get ckNameTex(){return ckNameTex},get ckMovable(){return ckMov},CK_HOME,CK_ALT,spotPos,queueApproach,ckTexPx:()=>ckNameTex&&ckNameTex.image?ckNameTex.image.getContext('2d').getImageData(0,0,ckNameTex.image.width,60).data.join(''):null,testfeldMitte,STATION_POS,aimAt,UPGRADES,upPic,PLAN,planFlaechen,uhrZeiger:()=>({std:uhrStd?+uhrStd.rotation.z.toFixed(4):0,min:uhrMin?+uhrMin.rotation.z.toFixed(4):0}),drawRackSchild,get snowPts(){return snowPts},buildStadt,updateStadt,get stadtBoxen(){return stadtBoxen},get stadtBaeume(){return stadtBaeume},buildFernbaeume,schwaerme,beacons,silhouetten,get verkehrPts(){return verkehrPts},get rauchPts(){return rauchPts},get flieger(){return flieger},stadtFrei,STADT_FREI,WALLS,FLOORS,bodenMalen,wandMalen,oberflaechenMuster,oberflaechenAnwenden,BODEN_KACHEL,WAND_B,WAND_H,bodenPx,wandPx,innenUmgebung,sockelM,get wallTex(){return wallTex},get floorTexRef(){return floorTexRef},get floorMat(){return floorMat},get shopWall(){return shopWall},renderOnline,onlineHint,onlineStufe,onlineZahlen,onlineListe,updateOnline,SCHILDBG,SCHILDFG,setSchild,schildBg,schildFg,repaintSchilder,updateHead,allLevels,addToLevel,putInSlot,regCustomer,ZONEN,zoneOffen,oeffneZone,applyZonen,SLOTS,RACKS,slotsOffen,colliders,LAY,LOGI,WRAMPEN,WTORE,updateSnow,unterDach,dachBereiche,get lapHit2(){return lapHit2},buildLagerTerminal,toggleTest,testLevel,buyUp,get toastLast(){return toastLast},__floorBoxen:()=>floorBoxes.length,WBAY_UP,wbays,dockPlaetze,wbayFrei,wbayOffen,spawnWTruck,updateWBays,wbaysInit,wtorSet,GANG,GANGTUER,buildLagergang,flaeche,WTOR,RACKKIND,route,NAV,navFrei,navIdx,navBuild,shelfStand,shelves,sbLanes,buildSBKasse,sbFrei,sbOffen,sbNutzbar,EING2,eingaenge,naechsterEingang,setEingang2,buildSBKasse2,get sb2G(){return sb2G},TUEREN,tuerSetD,tuerNahD,packBereit,packOne,paketWert,bestellungenProTag,pakete,ddlAbholung,updateVersand,VS_GR,VS_FELD,WG_PARK,vsNeueBestellung,vsAbgleich,vsKlasse,vsQuellen,vsBestand,vsErfuellbar,vsPlan,vsStapel,vsSpielerPacken,vsSpielerBestellung,vsTischFrei,vsStatus,vsAufraeumen,vsLaden,vsBahn,vsPaketOffen,vsKlappen,vsFuellung,vsPaketZu,get vsTisch(){return vsTisch},get vsWagen(){return vsWagen},createShelf,createRack,regalStellen,testKauf,regalAufbauen,orderRegal,REGALWARE,regalOf,regalKind,regalPreis,regalPlatz,regalOffen,startGame,promptFor,ERFOLGE,erfOffen,erfStufe,erfStand,erfZiel,erfFertig,erfAnteil,erfGeschafft,erfGesamt,stat,statAdd,statRekord,statVerkauf,bruchGesehen,gruppeVon,GRUPPE,TRAEGER,BRUCH,BRUCH_IDS,REZ_FARBEN,ETIKETT,traegerVon,traegerOffen,bruchOffen,bruchListe,rezeptWow,rezeptKosten,rezeptMarkt,rezeptHype,rezeptDauer,rezeptEntwicklung,rezeptGueltig,eigeneListe,eigenesEintragen,rezepteTick,rezProto,rezBauen,renderRezeptur,get entwurf(){return entwurf},set entwurf(v){entwurf=v},entwurfInit,ORDER,LIZENZEN,lizenzOf,hatLizenz,lizenzDaten,naechsteLizenz,buyLizenz,VOLA,volaOf,REGIME,marketOf,costOf,marktZiel,marktLuecke,meOf,miOf,marktDelta,marktNiveau,marktPhase,marktSchock,marktLabel,marktSchnitt,marktExtrem,marktChance,sortimentBreite,sortimentZug,bekanntheit,spawnInterval,rollMarkt,marktInit,inflOf,inflText,setPreisAufMarkt,igniteType,get packHit(){return packHit},get packTisch(){return packTisch},get packMov(){return packMov},zuendeKanal,zuendeAlle,alleKanaele,kanalItem,openZuend,closeZuend,get zuendOpen(){return zuendOpen},overlayOpen,pultTaster,zuendTick,TISCH_X,RAMPE_X,KANAL_START,bereitCount,brennDauer,muendung,pultLamps,RAKETEN_LOOK,RAKETEN_KL,makePerson,applyTOD,updateHUD,renderer,renderFrame,get DEMO(){return DEMO},LHALLE,LOGI_STUFEN,TOR_STUFE,logiStufe,logiZeige,logiAnwenden,LOGI_G,TOR_G,WTORE,tuAktion:(kind,ref)=>{ const alt=target; target={kind,ref}; try{ doAction(); } finally { target=alt; } },promptFor,KARREN,karreArt,karreAn,karreStapel,karreLast,karreNimmt,toggleKarre,updateKarre,setTutorial,tutorialAn,zielFuer,get zielAktuell(){return zielAktuell},get tipKey(){return tipKey},updateZiel,set DEMO(v){DEMO=v},kapitelVon,kapitelVoll,openHandy,closeHandy,toggleHandy,get handyOpen(){return handyOpen},get happ(){return happ},HANDY_APPS,renderHandy,shaderVorab,SCHONER,schonerMalen,updateSchoner,makeWischer,stelleWischer,get wischer(){return wischer},updateWischen,wischerPersonal,cleanTick,updateFireworks,FLASH,spurEnden,LR_LAMPE,schweber,kundenSymbol,geldSchwebt,get serie(){return serie},serieZufrieden,serieBricht,KAPITEL,kapitel,kapitelNr,kapitelAufstieg,WA,WA_SLOTS,vorDieTuer,SB_KASSIERER,sbBesetzt,sbLaneVon,sbKassiererPlatz,sbBetreuer,sbHeimPlatz,sbHelferPlatz,sbGeholfen,sbFreiNah,sbZone,SB_SELBST,sbPos,MUSIK,STUECKE,musikAn,musikWeiter,musikVol,musikTick,spielSchritt,get mStep(){return mStep},set mStep(v){mStep=v;mTakte=0;},get mBus(){return mBus},get postHalf(){return postHalf},EFF_SCHWEIF,mitSchweif,KOEPFE,KLEID,UNIFORM,STAFFKOPF,faceCache,animPerson,PACKS,packPreis,packPool,packOffen,packContents,syncPakete,rotateGrab,cancelGrab,moebelTaste,moebelEinpacken,paketAuspacken,moebelImBlick,removeShelf,removeRack,PACK_FL,PACK_HOME,spotFree,rectOf,grab,placeGrab,updateGrab,get grabbed(){return grabbed},showPause,closePause,pauseSeite,pauseSeiteAktiv,zumStartbildschirm,fortsetzen,musikWahl,musikTitel,get startOpen(){return startOpen},get pauseOpen(){return pauseOpen},get target(){return target},einrOf,einrAktiv,einrHoch,einrRunter,einrSchalten,AUFGABEN,einrJob,kartonMat,pools,shelfStockOf,removeFromLevel,fwLog:(a)=>{FW_LOG=a;},moerserRohr,ROHR_KALIBER,effPassen,EFF_FAMILIE,basisBlick,fwTestSchalten,fwTestProdukte,fwTestStapeln,get fwTestAn(){return fwTestAn},get fwTestBoxen(){return fwTestBoxen},get fwTestMarken(){return fwTestMarken},fwStufe,sonne:()=>sun.intensity,get fwUhr(){return FW_UHR},THEMEN,SHOW_BASIS,EFF,emittersListe:()=>emitters,show,SIGNATUR,showZeiten,showDauer,phDauer,musterWinkel,feuertopf,playShow,KAL,
+    scene,camera,P,NEUWARE,NEU_SHOWS,NEU_FONT,NEU_KUGEL,neuZuenden,PARK,restWelle,restTick,restDruck,restDaten,buyAngebot,grossOffen,updatePark,parkWasser:()=>_wasserM,parkTannen:()=>PARK_TANNEN,parkLeben:()=>parkEnten.concat(parkLeute).map(e=>({x:e.g.position.x,z:e.g.position.z})),pendingListe:()=>pending,einbauPakete,spawnPaket,paketAblegen,paketAufheben,EINBAU,PAKET_MASS,vorDieTuer,setSB2,sbZiel,makeAuto,AUTOFORM,stadtInfo:()=>({warn:beacons.length,kronen:KRONEN.length,stufen:SKYLINE_INFO.stufen,skyStile:SKYLINE_INFO.stile.size,stile:Object.keys(STADT_MATS).length}),clearStations,fachHoehe,kindOf,packKartonWert,SUPPLIERS,supplierFor,supplierOf,tierPrice,isUnlocked,lizLevel,renderLaptop,get lsup(){return lsup},set lsup(v){lsup=v},get lkat(){return lkat},set lkat(v){lkat=v},SPARTE,SPARTE_NAME,sparteVon,HEADNAME,headArt,catPill,ekRoh,ekDelta,ekTag,ekNiveau,ekPill,get ltab(){return ltab},set ltab(v){ltab=v},EFF,EFF_ALL,EFF_KLEIN,EFF_GROSS,EFF_PRO,SHOWS,kugelbombe,shot,mine,FW,stations,stationOf,placedCount,togglePDA,openPDA,closePDA,setPost,get postOn(){return postOn},get pdaOn(){return pdaOn},showLength,psHuge,psBig,psMid,psSmall,rockets,emitters,timersLen:()=>timers.length,setView:(x,z,y,p)=>{pl.x=x;pl.z=z;yaw=y;pitch=p;aim=null;},schiebe:(x,z)=>{pl.x=x;pl.z=z;collide(pl,0.32);return{x:pl.x,z:pl.z};},PLZ_MAX,camYaw:()=>yaw,camPitch:()=>pitch,playerPos:()=>({x:pl.x,z:pl.z}),pultYaw:()=>pultHit?pultHit.parent.rotation.y:null,get pultHit(){return pultHit},applyShopName,shopName,shopSlogan,signTexPx:()=>signTex&&signTex.image?signTex.image.getContext('2d').getImageData(0,0,signTex.image.width,40).data.join(''):null,lagerWall,fwShot:shot,KUGEL_R,ROHR_INNEN,MOERSER_R,moerserRohr,sfx,WOLKEN,get master(){return master},ac,SORTE_NEU,sortenUmstellen,get shakeWert(){return shake},get ckG(){return ckG},get ckNameTex(){return ckNameTex},get ckMovable(){return ckMov},CK_HOME,CK_ALT,spotPos,queueApproach,ckTexPx:()=>ckNameTex&&ckNameTex.image?ckNameTex.image.getContext('2d').getImageData(0,0,ckNameTex.image.width,60).data.join(''):null,testfeldMitte,STATION_POS,aimAt,UPGRADES,upPic,PLAN,planFlaechen,uhrZeiger:()=>({std:uhrStd?+uhrStd.rotation.z.toFixed(4):0,min:uhrMin?+uhrMin.rotation.z.toFixed(4):0}),drawRackSchild,get snowPts(){return snowPts},buildStadt,updateStadt,get stadtBoxen(){return stadtBoxen},get stadtBaeume(){return stadtBaeume},buildFernbaeume,schwaerme,beacons,silhouetten,get verkehrPts(){return verkehrPts},get rauchPts(){return rauchPts},get flieger(){return flieger},stadtFrei,STADT_FREI,WALLS,FLOORS,bodenMalen,wandMalen,oberflaechenMuster,oberflaechenAnwenden,BODEN_KACHEL,WAND_B,WAND_H,bodenPx,wandPx,innenUmgebung,sockelM,get wallTex(){return wallTex},get floorTexRef(){return floorTexRef},get floorMat(){return floorMat},get shopWall(){return shopWall},renderOnline,onlineHint,onlineStufe,onlineZahlen,onlineListe,updateOnline,SCHILDBG,SCHILDFG,setSchild,schildBg,schildFg,repaintSchilder,updateHead,allLevels,addToLevel,putInSlot,regCustomer,ZONEN,zoneOffen,oeffneZone,applyZonen,SLOTS,RACKS,slotsOffen,colliders,LAY,LOGI,WRAMPEN,WTORE,updateSnow,unterDach,dachBereiche,get lapHit2(){return lapHit2},buildLagerTerminal,toggleTest,testLevel,buyUp,get toastLast(){return toastLast},__floorBoxen:()=>floorBoxes.length,WBAY_UP,wbays,dockPlaetze,wbayFrei,wbayOffen,spawnWTruck,updateWBays,wbaysInit,wtorSet,GANG,GANGTUER,buildLagergang,flaeche,WTOR,RACKKIND,route,NAV,navFrei,navIdx,navBuild,shelfStand,shelves,sbLanes,buildSBKasse,sbFrei,sbOffen,sbNutzbar,EING2,eingaenge,naechsterEingang,setEingang2,buildSBKasse2,get sb2G(){return sb2G},TUEREN,tuerSetD,tuerNahD,packBereit,packOne,paketWert,bestellungenProTag,pakete,ddlAbholung,updateVersand,VS_GR,VS_FELD,WG_PARK,vsNeueBestellung,vsAbgleich,vsKlasse,vsQuellen,vsBestand,vsErfuellbar,vsPlan,vsStapel,vsSpielerPacken,vsSpielerBestellung,vsTischFrei,vsStatus,vsAufraeumen,vsLaden,vsBahn,vsPaketOffen,vsKlappen,vsFuellung,vsPaketZu,get vsTisch(){return vsTisch},get vsWagen(){return vsWagen},createShelf,createRack,regalStellen,testKauf,regalAufbauen,orderRegal,REGALWARE,regalOf,regalKind,regalPreis,regalPlatz,regalOffen,startGame,promptFor,ERFOLGE,erfOffen,erfStufe,erfStand,erfZiel,erfFertig,erfAnteil,erfGeschafft,erfGesamt,stat,statAdd,statRekord,statVerkauf,bruchGesehen,gruppeVon,GRUPPE,TRAEGER,BRUCH,BRUCH_IDS,REZ_FARBEN,ETIKETT,traegerVon,traegerOffen,bruchOffen,bruchListe,rezeptWow,rezeptKosten,rezeptMarkt,rezeptHype,rezeptDauer,rezeptEntwicklung,rezeptGueltig,eigeneListe,eigenesEintragen,rezepteTick,rezProto,rezBauen,renderRezeptur,get entwurf(){return entwurf},set entwurf(v){entwurf=v},entwurfInit,ORDER,LIZENZEN,lizenzOf,hatLizenz,lizenzDaten,naechsteLizenz,buyLizenz,VOLA,volaOf,REGIME,marketOf,costOf,marktZiel,marktLuecke,meOf,miOf,marktDelta,marktNiveau,marktPhase,marktSchock,marktLabel,marktSchnitt,marktExtrem,marktChance,sortimentBreite,sortimentZug,bekanntheit,spawnInterval,rollMarkt,marktInit,inflOf,inflText,setPreisAufMarkt,igniteType,get packHit(){return packHit},get packTisch(){return packTisch},get packMov(){return packMov},zuendeKanal,zuendeAlle,alleKanaele,get pultText(){return pultText},drawPult,kanalItem,openZuend,closeZuend,get zuendOpen(){return zuendOpen},overlayOpen,pultTaster,zuendTick,TISCH_X,RAMPE_X,KANAL_START,bereitCount,brennDauer,muendung,pultLamps,RAKETEN_LOOK,RAKETEN_KL,makePerson,applyTOD,updateHUD,renderer,renderFrame,get DEMO(){return DEMO},LHALLE,LOGI_STUFEN,TOR_STUFE,logiStufe,logiZeige,logiAnwenden,LOGI_G,TOR_G,WTORE,tuAktion:(kind,ref)=>{ const alt=target; target={kind,ref}; try{ doAction(); } finally { target=alt; } },promptFor,KARREN,karreArt,karreAn,karreStapel,karreLast,karreNimmt,toggleKarre,updateKarre,setTutorial,tutorialAn,zielFuer,get zielAktuell(){return zielAktuell},get tipKey(){return tipKey},updateZiel,set DEMO(v){DEMO=v},kapitelVon,kapitelVoll,openHandy,closeHandy,toggleHandy,get handyOpen(){return handyOpen},get happ(){return happ},HANDY_APPS,renderHandy,shaderVorab,SCHONER,schonerMalen,updateSchoner,makeWischer,stelleWischer,get wischer(){return wischer},updateWischen,wischerPersonal,cleanTick,updateFireworks,FLASH,spurEnden,LR_LAMPE,schweber,kundenSymbol,geldSchwebt,get serie(){return serie},serieZufrieden,serieBricht,KAPITEL,kapitel,kapitelNr,kapitelAufstieg,WA,WA_SLOTS,vorDieTuer,SB_KASSIERER,sbBesetzt,sbLaneVon,sbKassiererPlatz,sbBetreuer,sbHeimPlatz,sbHelferPlatz,sbGeholfen,sbFreiNah,sbZone,SB_SELBST,sbPos,MUSIK,STUECKE,musikAn,musikWeiter,musikVol,musikTick,spielSchritt,get mStep(){return mStep},set mStep(v){mStep=v;mTakte=0;},get mBus(){return mBus},get postHalf(){return postHalf},EFF_SCHWEIF,mitSchweif,KOEPFE,KLEID,UNIFORM,STAFFKOPF,faceCache,animPerson,PACKS,packPreis,packPool,packOffen,packContents,syncPakete,rotateGrab,cancelGrab,moebelTaste,moebelEinpacken,paketAuspacken,moebelImBlick,removeShelf,removeRack,PACK_FL,PACK_HOME,spotFree,rectOf,grab,placeGrab,updateGrab,get grabbed(){return grabbed},showPause,closePause,pauseSeite,pauseSeiteAktiv,zumStartbildschirm,fortsetzen,musikWahl,musikTitel,get startOpen(){return startOpen},get pauseOpen(){return pauseOpen},get target(){return target},einrOf,einrAktiv,einrHoch,einrRunter,einrSchalten,AUFGABEN,einrJob,kartonMat,pools,shelfStockOf,removeFromLevel,fwLog:(a)=>{FW_LOG=a;},moerserRohr,ROHR_KALIBER,effPassen,EFF_FAMILIE,basisBlick,fwTestSchalten,fwTestProdukte,fwTestStapeln,get fwTestAn(){return fwTestAn},get fwTestBoxen(){return fwTestBoxen},get fwTestMarken(){return fwTestMarken},fwStufe,sonne:()=>sun.intensity,get fwUhr(){return FW_UHR},THEMEN,SHOW_BASIS,EFF,emittersListe:()=>emitters,show,SIGNATUR,showZeiten,showDauer,phDauer,musterWinkel,feuertopf,playShow,KAL,
     shot:()=>{ noLoop=true; camera.position.set(pl.x,1.65,pl.z); camera.rotation.set(pitch,yaw,0); camera.updateMatrixWorld(); updateTarget(); applyTOD(); renderFrame(0.016); return canvas.toDataURL('image/jpeg',0.85); },
     run:(sec,dt)=>{ noLoop=true; const n=Math.round(sec/(dt||0.05)); for(let i=0;i<n;i++) step(dt||0.05); }};
 });

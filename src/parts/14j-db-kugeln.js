@@ -361,12 +361,12 @@ Object.assign(KUGEL,{
   kugel150:{kal:3,sz:3.25,pw:5.8,fuse:2.00,th:'glut',haupt:'feuerreif',A:'rot',B:'gold',
     steig:'knister', bruchOpt:{kern:false,nachglitzer:false},   // 28.09.: ohne Leuchtball
     stufen:[{t:0.04,eff:'pistill',sz:0.42,A:'gold',B:'rot',leise:true},              // Glutkern
-            {t:1.50,eff:'tausend',sz:0.26,A:'orange',B:'gold',n:6,kranz:'reif'}]},  // Glut springt ueber
+            {t:1.50,eff:'tausend',sz:0.26,A:'orange',B:'gold',n:6,kranz:'reif',bruchOpt:{kern:false}}]},  // Glut springt ueber (28.09.: ohne Leuchtkugeln, Test rkecht.js)
   sternenstaub150:{kal:3,sz:3.30,pw:6.0,fuse:2.00,th:'silber',haupt:'sternenstaub',A:'silber',B:'weiss',
     steig:'silber', bruchOpt:{kern:false,nachglitzer:false}, stufen:[]},
   sternkugel150:{kal:3,sz:3.45,pw:6.4,fuse:2.05,th:'rotweiss',haupt:'kreuzkranz',A:'rot',B:'weiss',
     steig:'pfeif', bruchOpt:{kern:false,nachglitzer:false},
-    stufen:[{t:0.90,eff:'knister',sz:0.30,A:'silber',B:'weiss'}]},   // Knisterkern in der Kranzmitte
+    stufen:[{t:0.90,eff:'knister',sz:0.30,A:'silber',B:'weiss',bruchOpt:{kern:false}}]},   // Knisterkern in der Kranzmitte (ohne Leuchtkugel)
   /* 200 mm - Bewegung im Bild */
   /* 28.09., Tom: echt - Nachpruefung: ohne Drall. Die zwei gegenlaeufig
      kreisenden Raeder waren gelenkte Bewegung (echt.md 1.9 Nr. 4); ein

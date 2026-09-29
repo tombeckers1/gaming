@@ -720,6 +720,23 @@ Object.assign(STEIG_ART,{
   kohle:{spur(r,dt,ort){ const c=r.trail;
     for(let n=jeSek(r,'a',150,dt);n>0;n--){ const q=ort(), f=rkEng(r,q); psMid.emit(q[0],q[1],q[2],rand(-.35,.35)*f,rand(-1.3,-0.2),rand(-.35,.35)*f,c[0],c[1]*rand(.8,1),c[2],rand(0.22,0.45),2.4,4); } }}
 });
+/* Stotter (Furzrakete, nur sie): Ablauf wie in der Bibliothek - dreimal
+   geht der Satz aus, die Rakete sackt ab und zuendet mit einem Pups neu.
+   28.09., Tom: echt - Nachpruefung (Test rkecht.js): jeder Pups liess 8
+   graubraune Leuchtpunkte mit negativer Schwere 1-1,6 s aufsteigen und
+   30 braune Sterne spritzen; jetzt ist der Pups ein kleiner dunkler
+   Rauchball mit orangen Kohlefunken, der Schweif Kohle statt Braun. */
+Object.assign(STEIG_ART,{
+  stotter:{vor(r,dt){ const T0=r.fuse0-0.9;
+      if(!r.stall&&(r.stn||0)<3&&r.alter>=T0*((r.stn||0)+1)/4+0.3*(r.stn||0)){ r.stall={bis:r.alter+0.3,v:r.v.clone()}; r.v.set(r.v.x*0.15,-3,r.v.z*0.15); r.stn=(r.stn||0)+1; }
+      if(r.stall){ if(r.alter>=r.stall.bis){ r.v.copy(r.stall.v); r.stall=null; const p=r.p;
+          rkSchweif(0,()=>{ for(let i=0;i<Math.round(24*QUAL());i++){ const d=randDir(), c=i%3?FW.orange:FW.bernstein; psMid.emit(p.x,p.y-0.2,p.z,d[0]*3,d[1]*2-1.5,d[2]*3,c[0],c[1]*0.8,c[2],rand(0.3,0.6),3,4); } });
+          rauchball({x:p.x,y:p.y-0.3,z:p.z},{r:0.9,quellen:0.4,steigen:0.15,c:[0.1,0.095,0.08],a:0.3,n:3,dauer:1.8});
+          if(sfx.pfffft) sfx.pfffft(distVol(p)*[0.6,0.8,1][Math.min(2,r.stn-1)]); }
+        else r.v.y+=6*dt; } },
+    spur(r,dt,ort){ if(r.stall) return; const c=r.trail; for(let n=jeSek(r,'a',80,dt);n>0;n--){ const q=ort(); psMid.emit(q[0],q[1],q[2],rand(-.3,.3),rand(-1,0),rand(-.3,.3),c[0]*1.3,c[1]*1.1,c[2],rand(0.3,0.5),2.4,4); } }}
+});
+Object.assign(STEIG_FARBE,{stotter:[1,.5,.16]});
 Object.assign(STEIG_SPUR_AB,{farbflamme:0});
 Object.assign(STEIG_FARBE,{kohle:[1,.56,.2],goldregen:[1,.72,.3],hummel:[1,.74,.34],farbkomet:[1,.62,.25],flitter:[.9,.94,1],titanknister:[1,1,1],kobana:[.86,.9,1],goldsaeule:[1,.7,.26],drachenfeuer:[1,.35,.08]});
 Object.assign(STEIG_KLANG,{
@@ -740,13 +757,13 @@ Object.assign(RAKETEN_KL,{
   glueckrakete   :{n:1,gap:0,sz:0.85,pw:-6, fuse:1.2, steig:'gold',     eff:['fallschirm'],farbRotation:['rot','gruen','zitrone','himmel','weiss'],knall:'plopp',bruchOpt:{kern:false,nachglitzer:false,flash:0.2},dauer:10},
   raketenklein   :{n:1,gap:0,sz:0.88,pw:-5, fuse:1.25,steig:'kohle',      A:'silber',B:'himmel',eff:['schnuppe'],knall:'rakPff',bruchOpt:{kern:false,nachglitzer:false,flash:0.3},dauer:3.8},
   glitzerraketen :{n:1,gap:0,sz:0.92,pw:-4, fuse:1.2, steig:'tremolant',A:'limette',B:'gold',eff:['garbe'],knall:'rakPuff',bruchOpt:{kern:false,nachglitzer:false,flash:0.35},dauer:4.4},
-  blanko         :{n:1,gap:0,sz:0.95,pw:-3.5,fuse:1.2,steig:'silber',   th:'gold',eff:['goldglitzer'],dauer:4.5},
+  blanko         :{n:1,gap:0,sz:0.95,pw:-3.5,fuse:1.2,steig:'silber',   th:'gold',eff:['goldglitzer'],bruchOpt:{kern:false},dauer:4.5},
   gravur         :{n:1,gap:0,sz:0.98,pw:-3, fuse:1.25,steig:'goldregen',A:'gold',B:'rose',eff:['initiale'],bruchOpt:{kern:false,nachglitzer:false,flash:0.5},dauer:4.8},
-  raketen        :{n:1,gap:0,sz:1.0, pw:-3, fuse:1.25,steig:'hummel',   A:'tuerkis',B:'gold',eff:['hakenschlag'],bruchOpt:{nachglitzer:false},dauer:4},
-  silberpfeil    :{n:1,gap:0,sz:1.02,pw:-2.5,fuse:0.95,steig:'pfeil',   A:'weiss',B:'silber',eff:['silberspinne'],bruchOpt:{nachglitzer:false,flash:1.1},dauer:3},
+  raketen        :{n:1,gap:0,sz:1.0, pw:-3, fuse:1.25,steig:'hummel',   A:'tuerkis',B:'gold',eff:['hakenschlag'],bruchOpt:{kern:false,nachglitzer:false},dauer:4},
+  silberpfeil    :{n:1,gap:0,sz:1.02,pw:-2.5,fuse:0.95,steig:'pfeil',   A:'weiss',B:'silber',eff:['silberspinne'],bruchOpt:{kern:false,nachglitzer:false,flash:1.1},dauer:3},
   kometenraketen :{n:1,gap:0,sz:1.05,pw:-2, fuse:1.3, steig:'komet',    A:'gold',B:'blau',eff:['kometenkette'],bruchOpt:{kern:false,nachglitzer:false,flash:0.4},dauer:4.8},
-  pfeifraketen   :{n:1,gap:0,sz:1.05,pw:-2, fuse:1.3, steig:'pfeif',    pfeif:true,A:'rot',B:'weiss',eff:['pfeifsterne'],bruchOpt:{nachglitzer:false},dauer:3.8},
-  farbenrausch   :{n:1,gap:0,sz:1.1, pw:-1, fuse:1.25,steig:'farbflamme',A:'rot',B:'gruen',eff:['halbhalb'],bruchOpt:{nachglitzer:false},dauer:4.4},
+  pfeifraketen   :{n:1,gap:0,sz:1.05,pw:-2, fuse:1.3, steig:'pfeif',    pfeif:true,A:'rot',B:'weiss',eff:['pfeifsterne'],bruchOpt:{kern:false,nachglitzer:false},dauer:3.8},
+  farbenrausch   :{n:1,gap:0,sz:1.1, pw:-1, fuse:1.25,steig:'farbflamme',A:'rot',B:'gruen',eff:['halbhalb'],bruchOpt:{kern:false,nachglitzer:false},dauer:4.4},
   raketengold    :{n:1,gap:0,sz:1.3, pw:0.8,fuse:1.3, steig:'brokat',   th:'koenig',dick:1,eff:['nishiki'],bruchOpt:{kern:false},dauer:5},
   knisterstern   :{n:1,gap:0,sz:1.34,pw:1.2,fuse:1.25,steig:'knister',  A:'silber',B:'gold',eff:['spaetzuender'],knall:'rakPff',bruchOpt:{kern:false,nachglitzer:false,flash:0.15},dauer:5.6},
   smaragd        :{n:1,gap:0,sz:1.38,pw:1.6,fuse:1.3, steig:'farbkomet',A:'gruen',B:'mint',eff:['achtblatt'],bruchOpt:{kern:false,nachglitzer:false,flash:0.35},dauer:4.4},

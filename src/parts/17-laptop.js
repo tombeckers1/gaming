@@ -1082,7 +1082,7 @@ function lapZeichnen(body){
       knopf('rest',restOffen?`Restposten${nRest?` (${nRest})`:''}`:`Restposten · Lvl ${rest.lvl}`,restOffen)+`</div></div>`;
     if(lsup==='regal'){
       h=`<div class="row"><div class="rm"><b>Regale &amp; Einrichtung</b><small>Regale, Kühlschränke, Kassen und Technik für den Laden. Nichts davon muss man freikaufen – manches gibt es erst ab einem bestimmten Level.</small>`+
-        `<small>Regale, Kühlschränke und Kassen kommen als Paket mit dem LKW – ${zoneOffen('lager')?'an die Rampe':'ohne Lager vor die Ladentür'}. Paket dorthin tragen, wo es stehen soll, und mit „Ablegen“ auspacken. Wo kein Platz ist, bleibt es als Paket stehen und lässt sich lagern. Technik wie Kameras oder Heizstrahler wird sofort eingebaut.</small></div></div>`+knoepfe;
+        `<small>Regale, Kühlschränke und Kassen kommen als Paket mit dem LKW – ${zoneOffen('lager')?'an die Rampe':'ohne Lager vor die Ladentür'}. Paket dorthin tragen, wo es stehen soll, und mit F (am Handy „Auspacken“) auspacken – dann steht es vor dir und du stellst es mit E ab. Mit „Ablegen“ bleibt es ein Paket und lässt sich lagern. Technik wie Kameras oder Heizstrahler wird sofort eingebaut.</small></div></div>`+knoepfe;
       h+=`<div class="kgruppe">Regale</div><div class="karten">`+REGALWARE.map(r=>{
           const K=regalKind(r), offen=regalOffen(r.id), platz=regalPlatz(r.id), pr=regalPreis(r.id);
           const wo=r.art==='rack'?'Lager':'Verkaufsfläche';
@@ -1244,7 +1244,7 @@ function lapZeichnen(body){
   } else if(ltab==='rez'){
     h=renderRezeptur(); hint=rezHint;
   } else if(ltab==='deko'){
-    hint=`Stimmung im Laden: ${ambienteScore()} von 100. Verschieben geht im Umbaumodus.`;
+    hint=`Stimmung im Laden: ${ambienteScore()} von 100. Verschieben: Möbel anschauen und F.`;
     const sw=(arr,cur,kind)=>arr.map(w=>{ const lock=S.level<w.lvl, own=cur===w.id;
       /* echtes Material im Kleinen, im Massstab (05o) - erst die
          Grundfarbe, das Muster malt musterSchritt nach (alle auf
@@ -1494,7 +1494,7 @@ function buyUp(id){
       else if(id==='lager_sued') toast('Der zweite Abschnitt ist offen. Die Wand dazwischen ist ganz weg.','money');
       else if(id==='lager_sued2') toast('Die Halle Süd ist komplett: 283 Quadratmeter am Stück.','money');
       else if(id==='lager_west') toast('Die Logistikhalle gehört dir: hinter der Schleuse, die Tore rechts an der Südwand. Mit jeder Stufe wird sie größer.','money');
-      else if(id==='eingang2'){ setEingang2(true); toast('Der zweite Eingang ist offen. Die Kassenzeile dahinter kannst du im Umbaumodus verschieben.','money'); }
+      else if(id==='eingang2'){ setEingang2(true); toast('Der zweite Eingang ist offen. Die Kassenzeile dahinter kannst du mit F in die Hand nehmen und verschieben.','money'); }
       else if(id.indexOf('rampe')===0) toast(`${u.name.split(' ')[0]} Andockstation geht in Betrieb. Das Tor ist frei.`,'money');
       else if(id==='packstation'){ drawPackSchild(); toast(S.up.onlineshop?'Die Packstation steht. Ab jetzt kommen Onlinebestellungen als Pakete herein.':'Die Packstation steht. Für den Versand brauchst du noch den Onlineshop.','money'); }
       addXP(Math.round(cost/12),'Ausbau'); sfx.cash(); save(); return;
@@ -1513,7 +1513,7 @@ function buyUp(id){
 function buyDeko(id){
   const d=DEKO.find(x=>x.id===id); if(!d||S.level<d.lvl||S.money<d.cost) return;
   S.money=r2(S.money-d.cost); DS.upgrades=r2(DS.upgrades+d.cost);
-  createDeko(id,null); sfx.cash(); addXP(Math.round(d.cost/12),'Deko'); toast(`${d.name} aufgestellt. Verschieben im Umbaumodus.`); save();
+  createDeko(id,null); sfx.cash(); addXP(Math.round(d.cost/12),'Deko'); toast(`${d.name} aufgestellt. Verschieben: anschauen und F.`); save();
 }
 function setWall(id){ const w=WALLS.find(x=>x.id===id); if(!w||S.level<w.lvl||S.wall===id) return;
   const paid=(S.paint||[]).indexOf(id)>=0;

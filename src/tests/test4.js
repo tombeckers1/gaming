@@ -31,7 +31,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     o.sprayLabel=document.getElementById('tool').textContent;
     window.dispatchEvent(new KeyboardEvent('keydown',{code:'KeyE',bubbles:true}));
     o.caught=bb.DS.caught-before; o.state=c.state; o.items=c.items.length;
-    // Umbau
+    // Moebeltaste (29.09.: kein Umbaumodus mehr)
     window.dispatchEvent(new KeyboardEvent('keydown',{code:'KeyF',bubbles:true}));
     o.modeTxt=document.getElementById('mode').textContent.slice(0,12);
     const m=bb.movables.find(x=>x.kind==='shelf');

@@ -178,7 +178,10 @@ function halle(id,r,opt){
   /* Der Bodenschatten gehoert nur an Kanten, an denen dauerhaft
      eine Wand steht - sonst bleibt er nach dem Kauf mitten im
      Raum stehen. */
-  roomAO(r.x0+0.02,r.x1-0.02,r.z0+0.02,r.z1-0.02,id,opt.ao||au);
+  /* Die Streifen reichen bis an die Raumgrenze: 2 cm eingerueckt
+     blieb zwischen zwei aneinanderstossenden Hallen eine 4 cm breite
+     helle Luecke im Schatten an der Fensterfront (Tom, Foto 29.09.) */
+  roomAO(r.x0,r.x1,r.z0,r.z1,id,opt.ao||au);
 }
 
 /* Eine Wand mit vorbereiteten Durchbruechen. Pfeiler und Sturz
@@ -591,7 +594,11 @@ function buildAusbau(){
   /* Innenwaende zwischen zwei Verkaufsraeumen: auf beiden Seiten
      Ladentapete, sonst schaut man von drinnen auf Backstein. */
   durchbruchWand('shop_ost',false,LAY.ost1.x1,LAY.ost1.z0,LAY.ost1.z1,[[-4.2,4.2]],shopWall,shopWall,null,null,null,true);
-  durchbruchWand('shop_sued',true,LAY.sued.z1,LAY.sued.x0,LAY.sued.x1,[[10.0,17.0],[24.0,32.0]],shopWall,shopWall,null,null,null,true);
+  /* 29.09. (Tom, Foto): die Wand steht 10 cm suedlicher als die Mitte
+     der Linie. Mittig auf z=-5,9 stand ihre Nordseite 10 cm vor der
+     Rueckwand des Ladenlokals - bei x=8 eine senkrechte Stufe gleich
+     hinter der Testfeldtuer. Jetzt fluchtet sie mit der Rueckwand. */
+  durchbruchWand('shop_sued',true,LAY.sued.z1-LW/2,LAY.sued.x0,LAY.sued.x1,[[10.0,17.0],[24.0,32.0]],shopWall,shopWall,null,null,null,true);
   /* Die beiden ersten Durchbrueche stehen schon in 05c beziehungsweise
      im Dock - hier kommt nur die Fuellung in die Oeffnung. */
   trennwand('shop_gross',false,8.0,-4.4,4.4,2.7,shopWall,shopWall);
@@ -674,7 +681,10 @@ function buildAusbau(){
      einen Gang zwischen zwei Gebaeuden - beides ist Fassade, nicht
      gelbe Lagerwand. */
   durchbruchWand('shop_sued',false,7.9,GANG.z0,GANG.z1,[],shopWall,undefined,2.5,WH,'+x');
-  durchbruchWand('shop_sued',false,7.9,GANG.z1,LAY.sued.z1,[],shopWall,undefined,2.5,WH,'+x');
+  /* endet 12 mm vor der Ladenflucht: mit den ueblichen 6 mm Ueberstand
+     ragte das Stueck sonst 6 mm aus der Rueckwand - als feine
+     senkrechte Linie gleich hinter der Testfeldtuer (Tom, 29.09.) */
+  durchbruchWand('shop_sued',false,7.9,GANG.z1,LAY.sued.z1-0.012,[],shopWall,undefined,2.5,WH,'+x');
   /* Der Gang muendet in die Halle Sued und wird mit ihr freigegeben. */
   /* Der Gang muendet in den ersten Abschnitt der Halle Sued, wird
      aber erst mit dem Grosshandel geoeffnet - vorher fuehrt er

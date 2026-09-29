@@ -62,7 +62,7 @@ function updatePlayer(dt){
   if(sprayCool>0) sprayCool-=dt;
 }
 
-/* ---------- Umbaumodus ---------- */
+/* ---------- Moebel in der Hand ---------- */
 function rectOf(m,x,z,ry){
   if(m.flaeche) return rectWelt(x,z,ry,m.flaeche);
   const s=Math.abs(Math.sin(ry))>0.5, w=(s?m.fd:m.fw)/2, d=(s?m.fw:m.fd)/2; return {minX:x-w,maxX:x+w,minZ:z-d,maxZ:z+d}; }
@@ -103,18 +103,88 @@ function spotFree(m,x,z,ry){
     if(r.minX<a.maxX&&r.maxX>a.minX&&r.minZ<a.maxZ&&r.maxZ>a.minZ) return false; }
   return true;
 }
-function toggleBuild(on){
-  build=on===undefined?!build:on;
-  if(!build&&grabbed) cancelGrab();
-  /* Nur der Zustand, keine Tastenliste - die steht im Pausenmenue */
-  $('mode').textContent=build?'Umbaumodus':'';
-  $('btnMove').classList.toggle('on',build);
-  S.tut.move=true;
-}
-function grab(m){
-  grabbed=m; grabRy=m.g.rotation.y; grabHome={x:m.g.position.x,z:m.g.position.z,ry:grabRy};
+/* Den Umbaumodus gibt es nicht mehr (Tom, 29.09.). Moebel nimmt man
+   mit F in die Hand, stellt sie mit E ab, dreht sie mit R und packt
+   sie mit F wieder ins Paket. Die Funktion bleibt fuer alte Aufrufe. */
+function toggleBuild(on){ if(on===false&&grabbed) cancelGrab(); }
+function grab(m,neu){
+  S.tut.move=true; grabbed=m; grabRy=m.g.rotation.y; grabHome=neu?null:{x:m.g.position.x,z:m.g.position.z,ry:grabRy};
   dropFootprint(m);
-  sfx.pop();
+  sfx.pop(); moebelKnoepfe();
+}
+/* Welches Moebel hat der Spieler im Blick (bis 4 m)? */
+function moebelImBlick(){
+  /* frisch verschobene Moebel: Weltmatrix erst beim naechsten Bild -
+     beim Tastendruck lieber gleich nachziehen */
+  scene.updateMatrixWorld(); ray.setFromCamera(center,camera); ray.far=4;
+  const list=movables.filter(m=>m.g.visible!==false&&nahDran(m.g.position,8)).map(m=>m.g);
+  const hits=ray.intersectObjects(list,true); ray.far=3.3;
+  for(const h of hits){ const m=movableOf(h.object); if(m) return m; }
+  return null;
+}
+/* Paket, Moebel und Einrichtungsart gehoeren zusammen */
+function regalIdVon(m){
+  if(m.kind==='shelf'){ const r=REGALWARE.find(x=>x.art==='shelf'&&x.kind===m.ref.kind); return r&&r.id; }
+  if(m.kind==='rack'){ const r=REGALWARE.find(x=>x.art==='rack'&&x.kind===m.ref.kind); return r&&r.id; }
+  return null;
+}
+function moebelTaste(){
+  if(paused||!S) return;
+  if(grabbed){ moebelEinpacken(); return; }
+  const c=S.carrying;
+  if(c&&(c.regal||c.einbau)){ paketAuspacken(); return; }
+  if(c){ toast('Du trägst einen Karton. Erst abstellen.','bad'); return; }
+  const m=moebelImBlick();
+  if(m){ grab(m); return; }
+  toast(COARSE?'Schau ein Möbel an und tippe „Möbel“, um es aufzunehmen.':'Schau ein Möbel an und drück F, um es aufzunehmen.');
+}
+/* Auspacken: das Paket verschwindet, das Moebel steht vor einem und
+   haengt an der Hand, bis man es mit E absetzt */
+function paketAuspacken(){
+  const c=S.carrying; if(!c) return;
+  const d=2.2, x=Math.round((pl.x-Math.sin(yaw)*d)*4)/4, z=Math.round((pl.z-Math.cos(yaw)*d)*4)/4;
+  const ry=Math.round(yaw/(Math.PI/2))*(Math.PI/2);
+  let m=null;
+  if(c.regal){
+    const r=regalOf(c.regal); if(!r) return;
+    if(r.art==='rack') m=createRack(racks.length,{kind:r.kind,x,z,ry}).mov;
+    else m=createShelf(shelves.length,{kind:r.kind,x,z,ry}).mov;
+    S.tut.shelf=true;
+  } else if(c.einbau==='kasse3'){
+    einbauAufstellen('kasse3'); m=typeof sb2Mov!=='undefined'?sb2Mov:null;
+  } else if(c.einbau){
+    /* die SB-Kassenzeile der Erweiterung hat ihren festen Platz */
+    const zl=EINBAU[c.einbau].ziel();
+    if(!zl||Math.hypot(zl.x-pl.x,zl.z-pl.z)>EINBAU[c.einbau].weit+1.5){
+      toast(`${paketName(c)} haben einen festen Platz: vor der Kassenzeile in der Erweiterung. Dort auspacken.`,'bad'); return; }
+    einbauAufstellen(c.einbau); S.carrying=null; updateCarry(); moebelKnoepfe(); return;
+  }
+  S.carrying=null; updateCarry(); sfx.pop();
+  if(m){ m.g.position.x=x; m.g.position.z=z; m.g.rotation.y=ry; grab(m,true); updateGrab(); }
+  toast(COARSE?'Ausgepackt. „Aktion“ stellt ab, „Drehen“ dreht, „Einpacken“ packt wieder ein.':'Ausgepackt. E stellt ab, R dreht, F packt wieder ein.');
+}
+/* Einpacken: nur leere Regale - die Ware muesste sonst irgendwohin */
+function moebelEinpacken(){
+  const m=grabbed; if(!m) return;
+  const id=regalIdVon(m);
+  if(m.kind==='shelf'||m.kind==='rack'){
+    const voll=m.kind==='shelf'?m.ref.levels.some(l=>l.count>0):m.ref.slots.some(sl=>sl.box);
+    if(voll){ toast('Erst ausräumen – mit Ware drin lässt es sich nicht einpacken.','bad'); return; }
+    if(!id) return;
+    if(m.kind==='shelf') removeShelf(m.ref); else removeRack(m.ref);
+    grabbed=null; grabHome=null;
+    S.carrying={regal:id}; updateCarry(); sfx.pop(); moebelKnoepfe(); save();
+    toast(`${regalName(id)} eingepackt. Paket mit Q abstellen oder woanders mit F auspacken.`);
+    return;
+  }
+  if(m.kind==='sb2'){
+    if(sbLanes.some(l=>l.up==='kasse3'&&l.busy)){ toast('An der Kasse zahlt gerade jemand. Gleich noch mal.','bad'); return; }
+    grabbed=null; grabHome=null;
+    S.up.kasse3=false; setSB2(false); (S.einbauBestellt||(S.einbauBestellt={})).kasse3=true;
+    S.carrying={einbau:'kasse3'}; updateCarry(); sfx.pop(); moebelKnoepfe(); save();
+    toast('SB-Kassen Eingang 2 eingepackt.'); return;
+  }
+  toast(`${m.name} lässt sich nur verschieben: mit E abstellen, mit Q zurück.`);
 }
 function updateGrab(){
   if(!grabbed) return;
@@ -140,15 +210,33 @@ function placeGrab(){
   const m=grabbed;
   if(!spotFree(m,m.g.position.x,m.g.position.z,grabRy)){ toast('Da passt es nicht hin.','bad'); return; }
   applyFootprint(m); if(m.onPlace) m.onPlace();
-  grabbed=null; grabHome=null; sfx.pop(); save();
+  grabbed=null; grabHome=null; sfx.pop(); moebelKnoepfe(); save();
 }
+/* Q: zurueck an den alten Platz - ein frisch ausgepacktes Moebel hat
+   keinen, das wandert zurueck ins Paket */
 function cancelGrab(){
   if(!grabbed) return;
-  const m=grabbed; m.g.position.x=grabHome.x; m.g.position.z=grabHome.z; m.g.rotation.y=grabHome.ry;
+  const m=grabbed;
+  if(!grabHome){ const k=m.kind;
+    if(k==='shelf'||k==='rack'||k==='sb2'){ moebelEinpacken(); if(!grabbed) return; }
+    return; }
+  m.g.position.x=grabHome.x; m.g.position.z=grabHome.z; m.g.rotation.y=grabHome.ry;
   applyFootprint(m); if(m.onPlace) m.onPlace();
-  grabbed=null; grabHome=null;
+  grabbed=null; grabHome=null; moebelKnoepfe();
 }
 function rotateGrab(){ if(!grabbed) return; grabRy=(grabRy+Math.PI/2)%(Math.PI*2); updateGrab(); }
+/* Die Knoepfe am Handy sagen, was die Moebeltaste gerade tut */
+let _mkTxt='';
+function moebelKnoepfe(){
+  if(typeof document==='undefined') return;
+  const bm=$('btnMove'), bt=$('btnTool'); if(!bm||!bt) return;
+  const c=S&&S.carrying;
+  const t=grabbed?(regalIdVon(grabbed)||grabbed.kind==='sb2'?'Einpacken':'Möbel'):(c&&(c.regal||c.einbau))?'Auspacken':'Möbel';
+  const k=t+'|'+!!grabbed; if(k===_mkTxt) return; _mkTxt=k;
+  bm.textContent=t; bm.classList.toggle('on',!!grabbed);
+  bt.textContent=grabbed?'Drehen':'Spray';
+  $('mode').textContent=grabbed?'Möbel in der Hand':'';
+}
 
 /* ---------- Pfefferspray ---------- */
 function toggleSpray(){ if(pdaOn){ pdaOn=false; if(pdaG) pdaG.visible=false; }
@@ -185,15 +273,9 @@ function movableOf(obj){ let o=obj; while(o){ const m=movables.find(m=>m.g===o);
 function nahDran(p,r){ return Math.abs(p.x-pl.x)<r&&Math.abs(p.z-pl.z)<r; }
 function nahBox(a,r){ return pl.x>a.x0-r&&pl.x<a.x1+r&&pl.z>a.z0-r&&pl.z<a.z1+r; }
 function updateTarget(){
-  ray.setFromCamera(center,camera); ray.far=build?6:3.3;
+  ray.setFromCamera(center,camera); ray.far=3.3;
   target=null;
-  if(build){
-    if(grabbed){ target={kind:'placing'}; return; }
-    const list=movables.filter(m=>nahDran(m.g.position,8)).map(m=>m.g);
-    const hits=ray.intersectObjects(list,true);
-    if(hits.length){ const m=movableOf(hits[0].object); if(m) target={kind:'movable',ref:m}; }
-    return;
-  }
+  if(grabbed){ target={kind:'placing'}; return; }
   const R=5.5;
   const list=[];
   floorBoxes.forEach(b=>{ if(nahDran(b.mesh.position,R)) list.push(b.mesh); });
@@ -202,6 +284,7 @@ function updateTarget(){
   dirts.forEach(d=>{ if(nahDran(d.m.position,R)) list.push(d.hit); });
   racks.forEach(r=>{ if(nahDran(r.g.position,R)) r.slots.forEach(s=>list.push(s.hit)); });
   belt.forEach(b=>list.push(b.hit));
+  sbLanes.forEach((l,i)=>{ if(l.hit&&sbNutzbar(i)&&nahDran(sbPos(i),R)) list.push(l.hit); });
   for(const k in stations) if(nahDran(stations[k].g.position,R)) list.push(stations[k].hit);
   list.push(lapHit,doorSign,posHit,cardHit);
   if(lapHit2&&lapHit2.parent&&lapHit2.parent.visible) list.push(lapHit2);
@@ -217,9 +300,10 @@ function updateTarget(){
 }
 function promptFor(t){
   if(!t) return null; const c=S.carrying, reg=regCustomer();
-  if(pdaOn&&!build){ const pt=pdaTargetType(); if(pt) return {t:`Preisgerät: ${P[pt].short} · ${eur(S.prices[pt])}`,a:true}; }
+  if(pdaOn&&!grabbed){ const pt=pdaTargetType(); if(pt) return {t:`Preisgerät: ${P[pt].short} · ${eur(S.prices[pt])}`,a:true}; }
   switch(t.kind){
-    case 'placing': return {t:spotFree(grabbed,grabbed.g.position.x,grabbed.g.position.z,grabRy)?'Absetzen':'Hier ist kein Platz',a:true};
+    case 'placing': { const frei=spotFree(grabbed,grabbed.g.position.x,grabbed.g.position.z,grabRy), pk=!!(regalIdVon(grabbed)||grabbed.kind==='sb2');
+      return {t:(frei?`Absetzen: ${grabbed.name}`:'Hier ist kein Platz')+(COARSE?'':` · R drehen · ${pk?'F einpacken':'Q zurück'}`),a:frei}; }
     case 'movable': return {t:`Verschieben: ${t.ref.name}`,a:true};
     case 'box': if(c&&karreAn()&&!c.regal&&!c.einbau) return karreVoll()?{t:'Die Karre ist voll',a:false}:{t:`Auf die Karre: ${P[t.ref.type].name} (${karreLast()}/${KARREN[karreArt()].cap})`,a:true};
       return c?{t:'Du trägst schon einen Karton',a:false}:{t:`Aufheben: ${P[t.ref.type].name} (${t.ref.count} Stück)`,a:true};
@@ -237,6 +321,9 @@ function promptFor(t){
       if(c) return sl.box?(karreAn()&&!c.regal&&!c.einbau&&!karreVoll()?{t:'Auf die Karre laden',a:true}:{t:'Platz ist belegt',a:false}):{t:'Karton einlagern',a:true};
       return sl.box?{t:`Karton nehmen: ${P[sl.box.type].name} (${sl.box.count})`,a:true}:{t:'Freier Lagerplatz',a:false}; }
     case 'belt': return {t:`Scannen: ${P[t.ref.type].short} ${eur(t.ref.price)}`,a:true};
+    case 'sbterm': { const l=t.ref, c=l.busy;
+      if(c&&c.state==='sbHilfe') return {t:l.helfer?'Kunden helfen (Betreuer ist unterwegs)':'Kunden an der SB-Kasse helfen',a:true};
+      return {t:c?'SB-Kasse: Kunde zahlt selbst':'SB-Kasse frei',a:false}; }
     case 'card': return reg&&reg.state==='pay'&&reg.method==='card'?{t:'Kartenzahlung abschließen',a:true}:{t:'Kartenterminal',a:false};
     case 'pos': if(reg&&reg.state==='pay') return reg.method==='cash'?{t:`Bargeld annehmen: ${eur(reg.given)}`,a:true}:{t:'Kartenzahlung abschließen',a:true}; return {t:'Kasse',a:false};
     case 'tfsperre': return {t:'Zugang zum Testfeld — im Laptop unter Ausbau freischalten',a:false};
@@ -278,9 +365,9 @@ function promptFor(t){
 }
 function doAction(){
   if(paused) return;
-  if(sprayOn&&!build){ doSpray(); return; }
+  if(sprayOn&&!grabbed){ doSpray(); return; }
   if(!target) return;
-  if(pdaOn&&!build){ const t=pdaTargetType(); if(t){ openPDA(t); return; } }
+  if(pdaOn&&!grabbed){ const t=pdaTargetType(); if(t){ openPDA(t); return; } }
   const k=target.kind, r=target.ref, reg=regCustomer();
   if(k==='placing') placeGrab();
   else if(k==='movable') grab(r);
@@ -297,6 +384,7 @@ function doAction(){
     else if(r.box&&(!S.carrying||karreNimmt())){ S.carrying={type:r.box.type,count:r.box.count,q:r.box.q||1}; r.rk.g.remove(r.box.mesh); r.box=null; drawRackSchild(r.rk); sfx.pop(); updateCarry(); }
   }
   else if(k==='belt') scanBelt(r);
+  else if(k==='sbterm'){ if(r.busy&&r.busy.state==='sbHilfe') sbGeholfen(r,'spieler'); }
   else if(k==='card'){ if(reg&&reg.state==='pay'){ if(reg.method==='card') reg.finishCard(); else toast('Der Kunde zahlt bar. Klick die Kasse an.'); } }
   else if(k==='pos'){ if(reg&&reg.state==='pay'){ if(reg.method==='cash') openCash(reg); else reg.finishCard(); } }
   else if(k==='pack') vsSpielerPacken();

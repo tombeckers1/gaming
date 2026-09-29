@@ -292,17 +292,12 @@ class Customer{
     if(staff.security&&staff.security.chase===this) staff.security.chase=null;
   }
   joinQueue(){
-    /* Eine besetzte Kasse nimmt jeden Korb. Der Kunde geht dorthin,
-       wenn an der Hauptkasse schon jemand steht oder dort niemand
-       bedient - sonst bleibt die Hauptkasse die erste Wahl. */
-    if(sbOffen()&&(queue.length>=1||regCustomer()||!staff.kassierer)){
-      for(let i=0;i<sbLanes.length;i++) if(sbBesetzt(i)&&!sbLanes[i].busy&&sbNutzbar(i)){
-        this.sb=i; sbLanes[i].busy=this; sbLampe(sbLanes[i],false);
-        this.state='sbGo'; this.path=[...route(this.pos,sbPos(i))]; DS.sb=(DS.sb||0)+1; return; }
-    }
-    /* Wenig Ware und die Hauptschlange steht? Dann lieber SB-Kasse. */
-    if(sbOffen()&&this.items.length<=3&&(queue.length>=1||Math.random()<0.45)){
-      const i=sbFrei();
+    /* SB-Kassen (Tom, 29.09.): der Kunde zahlt dort immer selbst. Steht
+       ein SB-Betreuer bereit, trauen sich auch Kunden mit vollerem Korb
+       hin - ohne Betreuer nur, wer wenig hat. */
+    const betreut=sbBetreuer().length>0, maxKorb=betreut?8:3;
+    if(sbOffen()&&this.items.length<=maxKorb&&(queue.length>=1||regCustomer()||!staff.kassierer||Math.random()<(betreut?0.6:0.45))){
+      const i=sbFreiNah(this.pos);
       if(i>=0){ this.sb=i; sbLanes[i].busy=this; sbLampe(sbLanes[i],false);
         this.state='sbGo'; this.path=[...route(this.pos,sbPos(i))]; DS.sb=(DS.sb||0)+1; return; }
     }
@@ -311,17 +306,20 @@ class Customer{
   sbStart(){
     this.state='sbPay';
     this.total=r2(this.items.reduce((a,it)=>a+it.price,0));
-    if(sbBesetzt(this.sb)){
-      /* bedient: der Kassierer scannt, gut doppelt so schnell */
-      const w=sbBesetzt(this.sb);
-      this.sbT=(0.9+this.items.length*0.5)/((w&&w.wf)||1);
-      this.method=Math.random()<0.6?'card':'cash';
-      this.say(pick(['Hallo!','Einmal alles, bitte.','Mit Karte.','Guten Abend!']));
-      return;
-    }
     this.sbT=1.1+this.items.length*1.25;
     this.method='card';
+    /* etwa jeder dritte bis fuenfte kommt nicht weiter - mit mehr
+       Ware im Korb eher als mit einem Teil */
+    this.sbProblem=Math.random()<Math.min(0.36,0.18+0.025*this.items.length);
+    this.sbProbBei=this.sbT*rand(0.25,0.7); this.hilfeT=0;
     this.say(pick(['Geht auch selbst.','Schnell durch hier.','Piep.']));
+  }
+  sbHilfeRuf(){
+    this.state='sbHilfe'; this.sbProblem=false; this.hilfeT=0;
+    const l=sbLanes[this.sb]; if(l) sbLampeHilfe(l,true);
+    this.say(pick(['Hm, das geht nicht …','Artikel nicht erkannt?','Hallo? Hilfe!','Alterskontrolle …?']));
+    DS.sbProbleme=(DS.sbProbleme||0)+1;
+    if(!sbBetreuer().length&&sbHinweisOk()) toast('SB-Kasse: Ein Kunde kommt nicht weiter. Hilf ihm (E am Terminal) oder stell einen SB-Betreuer ein.');
   }
   sbFree(){
     if(this.sb===undefined||this.sb===null) return;
@@ -363,7 +361,7 @@ class Customer{
   }
   giveUp(){
     this.say('Dauert mir zu lange!',true); rep(-2); DS.angry++; kundenSymbol(this.g,'sauer'); serieBricht();
-    if(['unload','scan','pay','sbPay'].includes(this.state)) this.cleanupRegister();
+    if(['unload','scan','pay','sbPay','sbHilfe'].includes(this.state)) this.cleanupRegister();
     this.items=[]; this.leave();
   }
   leave(){
@@ -416,9 +414,18 @@ class Customer{
         break;
       case 'sbPay':
         this.sbT-=dt; this.patience-=dt*0.3;
+        if(this.sbProblem&&this.sbT<=this.sbProbBei){ this.sbHilfeRuf(); break; }
         if(this.sbT<=0){ sfx.beep(); this.complete(this.total,0); }
         else if(this.patience<=0) this.giveUp();
         break;
+      case 'sbHilfe': {
+        /* wartet auf Hilfe. Kommt keiner, fummelt er sich nach einer
+           halben Minute selbst durch - verärgert. */
+        this.hilfeT+=dt; this.patience-=dt*0.5;
+        const l=sbLanes[this.sb]; if(l) sbLampeBlink(l,this.hilfeT);
+        if(this.hilfeT>=SB_SELBST){ this.missed=true; rep(-0.4); DS.sbAllein=(DS.sbAllein||0)+1;
+          this.say(pick(['Na endlich …','Nie wieder SB-Kasse.','Hat ja lange gedauert.'])); sbGeholfen(l,null); }
+        break; }
       case 'leave': if(this.walk(dt)) this.remove(); break;
     }
     animPerson(this.g,this.moving,dt,this.speed);

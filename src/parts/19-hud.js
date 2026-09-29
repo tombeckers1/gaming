@@ -7,7 +7,7 @@ let tipKey=null;
 function tipText(){ const t=tipWahl(); return t; }
 function tipWahl(){
   tipKey=null;
-  if(build) return compact?'Objekt anvisieren, greifen, absetzen.':'Umbaumodus: Objekt anvisieren, greifen, drehen, absetzen.';
+  if(grabbed) return compact?'Möbel: Aktion stellt ab, Drehen dreht.':'Möbel in der Hand: E stellt ab, R dreht, F packt ein, Q bricht ab.';
   if(phase==='after'){ tipKey='open'; return compact?'Feierabend: Tag am Türschild beenden.':'Feierabend. Räum in Ruhe auf und beende den Tag am Türschild.'; }
   /* ohne Tutorial: keine Tipps, keine Marker */
   if(S.tutAus) return '';
@@ -98,9 +98,9 @@ function updateHUD(){
 }
 function updatePrompt(){
   const p=promptFor(target), el=$('prompt');
-  const html=p?((p.a&&!COARSE)?'<kbd>E</kbd>':'')+p.t:(sprayOn&&!build?'<kbd>E</kbd>Sprühen':'');
+  const html=p?((p.a&&!COARSE)?'<kbd>E</kbd>':'')+p.t:(sprayOn&&!grabbed?'<kbd>E</kbd>Sprühen':'');
   if(el.innerHTML!==html) el.innerHTML=html;
-  const cr=$('cross'); cr.classList.toggle('hot',!!(p&&p.a)); cr.classList.toggle('move',build);
+  const cr=$('cross'); cr.classList.toggle('hot',!!(p&&p.a)); cr.classList.toggle('move',!!grabbed);
 }
 
 /* Neues Kapitel: grosses Banner, Fanfare, Toast */

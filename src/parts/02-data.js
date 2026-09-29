@@ -300,7 +300,7 @@ const UPGRADES=[
   {id:'lager_west3',kat:'flaeche',lvl:30,req:'lager_west2',name:'Logistikhalle – Stufe 3',desc:'Die volle Halle: 40 mal 27 Meter und 11 Meter hoch, Platz für Hochregale bis unters Dach und das letzte Tor.',cost:()=>42000,done:()=>S.up.lager_west3},
   {id:'rampe5',kat:'flaeche',lvl:31,req:'lager_west3',name:'Andockstation 5',desc:'Das letzte Tor der Logistikhalle. Zusammen mit der Basisrampe rollen dann fünf Lieferungen gleichzeitig an — mehr gibt das Grundstück nicht her.',cost:()=>26000,done:()=>S.up.rampe5},
   {id:'packstation',kat:'flaeche',lvl:16,req:'lager_gross',name:'Packstation für den Versand',desc:'Packtisch, Waage, Etikettendrucker und Abholrampe im ersten Abschnitt der großen Halle, gleich hinter dem Rolltor. Zusammen mit dem Onlineshop kommen Bestellungen als echte Pakete herein: packen, auf die Rampe stellen, DDL holt am Abend ab.',cost:()=>6400,done:()=>S.up.packstation},
-  {id:'eingang2',kat:'flaeche',lvl:25,req:'shop_ost',name:'Ladenerweiterung 5 – zweite Tür mit Kasse',desc:'Im Eckhaus ist die mittlere Achse bis zum Boden offen und wartet auf eine Tür. Der Ausbau setzt dieselbe Schiebetür wie am Haupteingang hinein, mit Vordach und Matte, und stellt dahinter eine eigene SB-Kassenzeile auf. Kunden nehmen ab jetzt den Eingang, der näher liegt, und die Schlange am Band wird spürbar kürzer. Die Kassenzeile lässt sich im Umbaumodus verschieben.',cost:()=>11500,done:()=>S.up.eingang2},
+  {id:'eingang2',kat:'flaeche',lvl:25,req:'shop_ost',name:'Ladenerweiterung 5 – zweite Tür mit Kasse',desc:'Im Eckhaus ist die mittlere Achse bis zum Boden offen und wartet auf eine Tür. Der Ausbau setzt dieselbe Schiebetür wie am Haupteingang hinein, mit Vordach und Matte, und stellt dahinter eine eigene SB-Kassenzeile auf. Kunden nehmen ab jetzt den Eingang, der näher liegt, und die Schlange am Band wird spürbar kürzer. Die Kassenzeile lässt sich mit F in die Hand nehmen und verschieben.',cost:()=>11500,done:()=>S.up.eingang2},
   {id:'kasse2',kat:'einr',lvl:16,req:'shop_gross',name:'SB-Kassen',desc:'Zwei Selbstbedienungsterminals in der neuen Verkaufsfläche. Kunden mit wenig Ware zahlen dort selbst, das entlastet deine Schlange spürbar.',cost:()=>3400,done:()=>S.up.kasse2},
   /* Die Kassenzeile am zweiten Eingang kam frueher mit der Tuer mit.
      Jetzt ist sie ein eigener Kauf ab Level 25 und kommt als Paket. */
@@ -331,12 +331,13 @@ const STAFF=[
   {id:'auffueller',lvl:9,req:'lager',name:'Einräumer',desc:'Lädt den LKW aus, räumt ins Lager und füllt die Regale - Karton für Karton, Stück für Stück. Was er zuerst macht, stellst du am Handy unter Team ein.',hire:450,wage:110},
   {id:'auffueller2',lvl:12,req:'lager',name:'Zweiter Einräumer',desc:'Zweites Paar Hände. Gib ihm eine andere Reihenfolge, dann greift es ineinander.',hire:600,wage:130},
   {id:'kassierer',lvl:11,name:'Kassierer',desc:'Scannt und kassiert selbstständig an der Kasse.',hire:600,wage:145},
-  /* Weitere Kassierer: jeder besetzt eine SB-Kasse. Besetzt nimmt sie
-     auch volle Koerbe und kassiert gut doppelt so schnell. */
-  {id:'kassierer2',kurz:'Kasse 2',lvl:16,req:'kasse2',name:'Kassierer an SB-Kasse 1',desc:'Besetzt die erste SB-Kasse in der Erweiterung. Dort zahlen dann auch Kunden mit vollem Korb, und es geht gut doppelt so schnell.',hire:600,wage:140},
-  {id:'kassierer3',kurz:'Kasse 3',lvl:17,req:'kasse2',name:'Kassierer an SB-Kasse 2',desc:'Besetzt die zweite SB-Kasse in der Erweiterung.',hire:600,wage:140},
-  {id:'kassierer4',kurz:'Kasse 4',lvl:25,req:'kasse3',name:'Kassierer am zweiten Eingang 1',desc:'Besetzt die erste Kasse am zweiten Eingang.',hire:650,wage:145},
-  {id:'kassierer5',kurz:'Kasse 5',lvl:25,req:'kasse3',name:'Kassierer am zweiten Eingang 2',desc:'Besetzt die zweite Kasse am zweiten Eingang. Damit sind alle fünf Kassen besetzt.',hire:650,wage:145},
+  /* SB-Betreuer (Tom, 29.09.): an SB-Kassen kassiert niemand, der
+     Betreuer hilft, wenn ein Kunde nicht weiterkommt. Die Ids bleiben
+     die alten Kassierer-Ids, damit Spielstaende passen. */
+  {id:'kassierer2',kurz:'SB 1',lvl:16,req:'kasse2',name:'SB-Betreuer',desc:'Steht bei den SB-Kassen. Etwa jeder dritte bis fünfte Kunde kommt beim Selberzahlen nicht weiter – dann geht er hin und hilft. Einer schafft alle SB-Kassen, und mit Betreuer nehmen Kunden auch mit vollerem Korb die SB-Kasse.',hire:600,wage:140},
+  {id:'kassierer3',kurz:'SB 2',lvl:17,req:'kasse2',name:'Zweiter SB-Betreuer',desc:'Für viel Betrieb: Hängen zwei Kunden gleichzeitig, muss keiner warten. Lohnt sich erst, wenn es an den SB-Kassen voll wird.',hire:600,wage:140},
+  {id:'kassierer4',kurz:'SB 3',lvl:25,req:'kasse3',name:'SB-Betreuer Eingang 2',desc:'Steht bei den SB-Kassen am zweiten Eingang. Ohne ihn läuft der Betreuer aus der Erweiterung quer durch den Laden, wenn dort jemand hängt.',hire:650,wage:145},
+  {id:'kassierer5',kurz:'SB 4',lvl:25,req:'kasse3',name:'Vierter SB-Betreuer',desc:'Für die Stoßzeiten mit beiden SB-Zeilen voll: geht immer dorthin, wo gerade jemand Hilfe braucht.',hire:650,wage:145},
   {id:'security',lvl:13,name:'Sicherheitsdienst',desc:'Hält Diebe im Laden auf, bevor sie rauskommen.',hire:800,wage:190},
   {id:'packer',lvl:18,req:'packstation',name:'Versandmitarbeiter',desc:'Schiebt einen Kommissionierwagen mit sechs Fächern durchs Lager – fehlt dort etwas, durch den Laden –, legt jede Onlinebestellung Stück für Stück in ihren Karton, klebt am Packtisch zu und stapelt die Pakete für DDL.',hire:700,wage:165}
 ];
@@ -762,7 +763,7 @@ const TUT=[
   ['lager','Im Lager kannst du Kartons in die Lagerregale stellen.','Kartons ins Lagerregal stellen.'],
   ['clean','Dreck kostet Ruf. Stell dich davor und halt die Aktionstaste.','Vor den Dreck stellen, Aktion halten.'],
   ['fenster','Die Schaufenster werden mit der Zeit blind. Von innen anvisieren und putzen.','Schaufenster von innen putzen.'],
-  ['move','Im Umbaumodus verschiebst du Regale, Kasse und Deko.','Umbau: Möbel verschieben.'],
+  ['move','Möbel anschauen und F drücken: Du nimmst Regale, Kasse oder Deko in die Hand und stellst sie mit E woanders ab.','Möbel: F nimmt, E stellt ab.'],
   ['launch','Im Hof hinten kannst du Feuerwerk zünden. Das lockt Kunden an.','Im Hof zünden bringt Hype.'],
   ['build','Stell die Ware im Hof auf die passende Station. Am Pult schaltet E den Zündmodus ein, dann zündet die Kanalnummer: 1–3 Mörser, 4–6 Raketen, 7–9 Tisch.','Ware aufbauen, am Pult E, dann Taste 1–9.'],
   ['phone','Dein Handy klingelt. Mit H rangehen.','Handy klingelt: H drücken.'],

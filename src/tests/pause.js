@@ -65,10 +65,12 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
       dunkel:[...document.querySelectorAll('#steuer kbd, #handbuch kbd')].filter(k=>{ const m=getComputedStyle(k).color.match(/[\d.]+/g).map(Number); return (0.2126*m[0]+0.7152*m[1]+0.0722*m[2])/255<0.6; }).length,
       kbdGesamt:document.querySelectorAll('#steuer kbd, #handbuch kbd').length}; });
   console.log('STEUER  ',JSON.stringify({seite:st.seite,tasten:st.tasten,dunkel:st.dunkel,kbd:st.kbdGesamt,abschnitte:st.abschnitte,zeichen:st.text.length}));
-  const muss=['Sackkarre','Plattformwagen','Preisgerät','Pfefferspray','Umbau','Zündpult','Kasse','Regal','Handy','Laptop','Putz','Musik','Versand','Karton'];
+  const muss=['Sackkarre','Plattformwagen','Preisgerät','Pfefferspray','Möbel','Zündpult','Kasse','Regal','Handy','Laptop','Putz','Musik','Versand','Karton'];
   const fehlt=muss.filter(w=>st.text.indexOf(w)<0);
   pruef('STEUERUNG',st.seite==='pSteuer'&&st.sichtbar&&st.hauptWeg,'eigene Maske fehlt: '+JSON.stringify({seite:st.seite,sichtbar:st.sichtbar,hauptWeg:st.hauptWeg}));
   pruef('STEUERUNG',st.tasten>=20&&st.abschnitte.length>=10&&!fehlt.length,'unvollstaendig: '+st.tasten+' Tasten, '+st.abschnitte.length+' Abschnitte, fehlt '+fehlt.join(','));
+  /* 29.09.: den Umbaumodus gibt es nicht mehr - die Steuerung darf ihn nicht nennen */
+  pruef('STEUERUNG',st.text.indexOf('Umbaumodus')<0,'Steuerung nennt noch den Umbaumodus');
   pruef('STEUERUNG',/Sackkarre[^.]*K\b|K[^.]{0,40}Sackkarre/.test(st.text),'Sackkarre ohne Taste K');
   pruef('STEUERUNG',st.kbdGesamt>=30&&st.dunkel===0,'unlesbare Tasten: '+st.dunkel+' von '+st.kbdGesamt);
   await p.keyboard.press('Escape');

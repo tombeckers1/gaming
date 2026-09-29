@@ -32,15 +32,19 @@ function updateCarry(){
     const M=paketMass(c);
     carryRegal=new THREE.Mesh(new THREE.BoxGeometry(M[0],M[1],M[2]),regalPaketMat());
     carryRegal.userData.von=paketName(c);
-    carryRegal.position.set(0.28,-0.3-M[1]*0.3,-0.75-M[2]*0.35); carryRegal.rotation.set(0.1,-0.3,0.04);
-    carryRegal.scale.setScalar(0.62); camera.add(carryRegal);
+    /* Flachpakete traegt man laengs unter dem Arm - das lange Ende
+       zeigt nach vorn und verdeckt nicht das halbe Bild. Hohe Kartons
+       (Kuehlschrank, Terminal) schiebt man vor sich her, unten im Bild. */
+    if(M[1]>0.8){ carryRegal.position.set(0.05,-0.62-M[1]*0.32,-1.25); carryRegal.rotation.set(0.08,0,0); }
+    else { carryRegal.position.set(0.42,-0.5,-0.35-M[0]*0.28); carryRegal.rotation.set(0.1,Math.PI/2-0.12,0.05); }
+    carryRegal.scale.setScalar(0.6); camera.add(carryRegal);
   }
   const q=c?qualityLabel(c.q||1):null;
   $('carry').innerHTML=c?(
-      reg?`Paket: ${paketName(c)} · ${COARSE?'Ablegen':'<kbd>Q</kbd>'} am Stellplatz auspacken, sonst abstellen`
+      reg?`Paket: ${paketName(c)} · ${COARSE?'„Auspacken“':'<kbd>F</kbd>'} auspacken`
     : uniq?`Gravur-Rakete: „${c.text}"`
     : `${P[c.type].name}: noch ${c.count} im Karton${q&&q[0]?` <span class="${q[0]}">(${q[1]})</span>`:''}`)
-    +(COARSE?'':`<span style="color:var(--muted)">, <kbd>Q</kbd>${reg?'aufbauen':'abstellen'}</span>`)
+    +(COARSE?'':`<span style="color:var(--muted)">, <kbd>Q</kbd>abstellen</span>`)
     +(karreAn()?` <span style="color:var(--muted)">· ${KARREN[karreArt()].name} ${karreLast()}/${KARREN[karreArt()].cap}</span>`:'')
     :(karreAn()?`${KARREN[karreArt()].name}: leer`+(COARSE?'':` <span style="color:var(--muted)">, <kbd>K</kbd> wegstellen</span>`):'');
   updateKarre();
@@ -49,8 +53,6 @@ function pickUp(b){ if(!removeFloorBox(b)) return; S.carrying={type:b.type,count
 function dropBox(){
   const c=S&&S.carrying; if(!c||paused) return;
   const p={x:pl.x-Math.sin(yaw)*0.9,z:pl.z-Math.cos(yaw)*0.9}; collide(p,0.36);
-  /* Ein Regalpaket wird nicht abgestellt, sondern aufgebaut - auf
-     dem Stellplatz, der von hier aus am naechsten frei ist. */
   if(c.regal||c.einbau){ paketAblegen(c,p); return; }
   if(c.type==='gravur'){ S.carrying=null; updateCarry(); toast('Die Gravur-Rakete gehört auf die Abschussrampe.'); return; }
   spawnFloorBox(c.type,c.count,{x:p.x,y:0.2,z:p.z,ry:yaw},c.q);
@@ -96,18 +98,20 @@ function regalAufbauen(id,x,z){
   return true;
 }
 /* =========================================================
-   Einbau-Pakete (Tom, 26.09.): Regale, Kuehlschraenke und Kassen
-   werden geliefert - ohne Lager vor die Ladentuer, mit Lager an die
-   Rampe. Man traegt das Paket dorthin, wo es stehen soll, und packt
-   es mit "Ablegen" aus. Ist dort kein passender Platz, bleibt es als
-   Paket stehen: Pakete lassen sich lagern und spaeter aufbauen.
-   Die Pakete sind so gross wie der Inhalt - Umzugskarton bis
-   Kuehlschrankkarton, keine Riesenkisten.
+   Einbau-Pakete (Tom, 26.09./29.09.): Regale, Kuehlschraenke und
+   Kassen werden geliefert - ohne Lager vor die Ladentuer, mit Lager
+   an die Rampe. Man traegt das Paket hin und packt es mit der
+   Moebeltaste (F) aus: das Paket verschwindet, das Moebel haengt an
+   der Hand und wird mit E abgesetzt. Mit F packt man ein leeres
+   Moebel wieder ein. Pakete lassen sich abstellen und lagern.
    ========================================================= */
 const einbauPakete=[];
-const PAKET_MASS={klein:[0.95,0.2,0.45],standard:[1.2,0.22,0.55],hoch:[1.2,0.26,0.55],kuehl:[0.75,1.2,0.7],
-  gondel:[1.2,0.26,0.6],eck:[1.1,0.24,0.6],gross:[1.25,0.3,0.65],rack:[1.2,0.24,0.5],rhoch:[1.25,0.3,0.55],rschwer:[1.25,0.34,0.6],
-  kasse2:[0.8,0.95,0.6],kasse3:[0.8,0.95,0.6]};
+/* 29.09. (Tom: "viel zu klein"): ein Flachpaket ist so lang wie die
+   laengsten Teile darin - die Seitenwangen -, der Kuehlschrank kommt
+   stehend im eigenen Karton, die SB-Terminals in einer Kiste */
+const PAKET_MASS={klein:[1.7,0.26,0.5],standard:[2.1,0.3,0.6],hoch:[2.2,0.36,0.62],kuehl:[1.15,2.05,0.7],
+  gondel:[2.1,0.4,0.62],eck:[1.9,0.36,0.62],gross:[2.1,0.42,0.7],rack:[2.4,0.3,0.55],rhoch:[2.6,0.36,0.6],rschwer:[2.8,0.42,0.66],
+  kasse2:[1.0,1.25,0.8],kasse3:[1.0,1.25,0.8]};
 const EINBAU={
   kasse2:{name:'SB-Kassen',ziel:()=>typeof sbZiel==='function'?sbZiel():null,weit:5},
   kasse3:{name:'SB-Kassen Eingang 2',ziel:()=>EING2.x!==null?{x:EING2.x,z:3.5}:null,weit:5}
@@ -127,22 +131,12 @@ function paketAufheben(b){
   if(!removePaket(b)) return;
   S.carrying=b.einbau?{einbau:b.einbau}:{regal:b.regal}; sfx.pop(); updateCarry();
 }
-/* Ablegen: nah genug am passenden Platz wird ausgepackt und aufgebaut,
-   sonst steht das Paket einfach da */
+/* Ablegen stellt das Paket nur ab (29.09.). Ausgepackt wird mit der
+   Moebeltaste - dann steht das Moebel vor einem in der Hand. */
 function paketAblegen(c,p){
-  if(c.regal){
-    const r=regalOf(c.regal), K=r&&regalKind(r);
-    const liste=r?(r.art==='rack'?rackPlatzFrei(K):slotsOffen().filter(sl=>slotPasst(K,sl))):[];
-    let bd=1e9; for(const sl of liste) bd=Math.min(bd,Math.hypot(sl.x-p.x,sl.z-p.z));
-    if(bd<=3.2&&regalAufbauen(c.regal,p.x,p.z)){ S.carrying=null; updateCarry(); return; }
-  } else if(c.einbau){
-    const z=EINBAU[c.einbau].ziel();
-    if(z&&Math.hypot(z.x-p.x,z.z-p.z)<=EINBAU[c.einbau].weit){ einbauAufstellen(c.einbau); S.carrying=null; updateCarry(); return; }
-  }
   spawnPaket(c,{x:p.x,z:p.z,ry:yaw});
   S.carrying=null; updateCarry(); sfx.pop();
-  toast(c.einbau?`${paketName(c)}: Paket abgestellt. Zum Aufbauen an den Kassenplatz tragen.`
-                :`${paketName(c)}: Paket abgestellt. Zum Aufbauen an einen freien Stellplatz tragen.`);
+  toast(`${paketName(c)}: Paket abgestellt. Aufheben und mit ${COARSE?'„Auspacken“':'F'} auspacken, wo es stehen soll.`);
 }
 /* Kassen aufstellen: jetzt erst wird der Kauf wirksam */
 function einbauAufstellen(id){

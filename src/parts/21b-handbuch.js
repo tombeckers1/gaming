@@ -44,14 +44,15 @@ function handbuchHTML(){
       ab(`Lagerregale bekommst du mit dem Lager (ab Level 6) kostenlos. Mit Karton einen freien Platz anschauen („Karton einlagern“) und ${E} – ein ganzer Karton je Platz. Ohne Karton auf einen belegten Platz: „Karton nehmen“. Lagerregal 9 Plätze, Hochregal 15, Schwerlastregal 16. Das Schild am Regal zeigt die häufigsten Sorten.`)],
     ['Regale und Kassen aufbauen',
       schritte([`Im Laptop unter Bestellen › Regale & Einrichtung „bestellen“ – das geht nur, wenn für diese Art ein Stellplatz frei ist.`,
-        `Das Regal kommt als flaches Paket (vor die Tür oder mit dem LKW). Mit leeren Händen ${E}: Paket aufheben.`,
-        `Zum gewünschten Platz tragen und ${Q}: Liegt ein freier, passender Stellplatz höchstens 3,2 m entfernt, steht das Regal sofort. Sonst bleibt das Paket stehen.`])+
-      ab(`SB-Kassen-Pakete legst du höchstens 5 m vor dem Kassenplatz ab. Technik wie Kameras, Heizstrahler, Soundanlage, Kartenterminal, Gravur-Automat und die Karren ist sofort nach dem Kauf eingebaut. Stehende Regale verschiebst du im Umbaumodus.`)],
+        `Das Regal kommt als Paket (vor die Tür oder mit dem LKW). Mit leeren Händen ${E}: Paket aufheben. ${Q} stellt es wieder ab – so lässt es sich auch lagern.`,
+        `Dort, wo es stehen soll, ${F}: Das Paket geht auf und das Regal steht vor dir in der Hand. ${R} dreht es, ${E} stellt es ab.`,
+        `Zu viel oder falsch? Ein leeres Regal mit ${F} in die Hand nehmen und noch mal ${F}: Es wandert zurück ins Paket.`])+
+      ab(`Die SB-Kassen der Erweiterung haben einen festen Platz: dort auspacken. Die Kassenzeile am zweiten Eingang packst du aus wie ein Regal. Technik wie Kameras, Heizstrahler, Soundanlage, Kartenterminal, Gravur-Automat und die Karren ist sofort nach dem Kauf eingebaut.`)],
     ['Kasse',
       schritte([`Ein Kunde legt seine Ware aufs Band. Jeden Artikel anschauen und ${E} (halten scannt am Stück).`,
         `Zahlt er mit Karte: Kasse oder Kartenterminal anschauen und ${E}.`,
         `Zahlt er bar: Kasse anschauen und ${E}. Im Fenster Scheine und Münzen antippen, bis das Rückgeld stimmt, dann „Rückgeld geben“. Genau passend gibt es 3 XP extra, zu viel zahlst du drauf.`])+
-      ab(`Wer zu lange wartet, geht verärgert, und dein Ruf sinkt. Ein Kassierer (ab Level 11, Handy › Team) und SB-Kassen (ab Level 16) kassieren selbst.`)],
+      ab(`Wer zu lange wartet, geht verärgert, und dein Ruf sinkt. Ein Kassierer (ab Level 11, Handy › Team) kassiert für dich. An SB-Kassen (ab Level 16) zahlen Kunden selbst – kommt einer nicht weiter, blinkt die Lampe rot: Hilf ihm mit E am Terminal oder stell einen SB-Betreuer ein, der das übernimmt.`)],
     ['Preise und Preisgerät',
       ab(`${T} nimmt das Preisgerät in die Hand (ab Level 2). Schaust du auf ein Fach mit Ware, einen Lagerplatz oder einen Karton, zeigt es Verkaufspreis, Marktpreis, Einkauf, Marge und Bestand. ${E} öffnet das Preismenü: −0,50 bis +0,50 €, „Markt“, und Nachbestellen in den Warenkorb (bestellt wird am Laptop).`)+
       ab(`Wichtig: Solange das Preisgerät in der Hand ist, hebst du Kartons mit Ware nicht auf – erst mit ${T} wegstecken. Alle Preise auf einmal änderst du im Laptop unter Preise & Markt.`)],
@@ -60,12 +61,11 @@ function handbuchHTML(){
       ab(`Solange das Spray bereit ist, sprüht ${E} nur – danach mit ${G} wegstecken. Hilfe: Überwachungskameras (ab Level 10), Sicherheitsdienst (ab Level 13, Handy › Team), Warensicherung (ab Level 14).`)],
     ['Putzen',
       ab(`Dreckflecken am Boden anschauen („Sauber machen“) und ${EH}, bis er weg ist. Die beiden Schaufenster links und rechts der Tür werden mit der Zeit blind: anschauen und ${EH}. Dreck kostet Kunden und Ruf. Ein Mülleimer (Deko, ab Level 6) halbiert neuen Dreck, die Reinigungskraft (ab Level 6, Handy › Team) wischt selbst – Fenster putzt sie nicht.`)],
-    ['Umbau',
-      schritte([`${F} schaltet den Umbaumodus an. Jetzt greift ${E} nur Möbel (bis 6 m).`,
-        `Möbel anschauen („Verschieben: Name“) und ${E}: es schwebt vor dir und rastet im 25-cm-Raster.`,
-        `${R} dreht es um 90 Grad. ${E} setzt es ab – bei „Hier ist kein Platz“ überlappt es oder steht nicht ganz im Raum. ${Q} bricht ab.`,
-        `${F} schaltet den Modus wieder aus.`])+
-      ab(`Verschieben kannst du Verkaufsregale und Kühlschränke samt Ware, Lagerregale samt Kartons, die Kasse, den Schreibtisch mit Laptop, die Versandecke, den Gravur-Automaten und Deko.`)],
+    ['Möbel verschieben, aus- und einpacken',
+      schritte([`Möbel anschauen (bis 4 m) und ${F}: Du nimmst es in die Hand. Es schwebt vor dir und rastet im 25-cm-Raster.`,
+        `${R} dreht es um 90 Grad. ${E} setzt es ab – bei „Hier ist kein Platz“ überlappt es oder steht nicht ganz im Raum. ${Q} stellt es zurück an den alten Platz.`,
+        `Noch mal ${F} mit einem leeren Regal, Kühlschrank oder Lagerregal in der Hand: Es wird wieder zum Paket.`])+
+      ab(`Verschieben kannst du Verkaufsregale und Kühlschränke samt Ware, Lagerregale samt Kartons, die Kasse, den Schreibtisch mit Laptop, die Versandecke, den Gravur-Automaten und Deko. Einpacken geht nur leer.`)],
     ['Testfeld und Zündpult',
       ab(`Das Testfeld hinter dem Laden schaltest du im Laptop unter Ausbau frei (ab Level 5, nach Ladenerweiterung 1).`)+
       schritte([`Karton mit Feuerwerk tragen und die passende Station anschauen: Kugelbomben in den Mörser (Kanal 1–3, jedes Kaliber sein Rohr), Raketen und Römische Lichter auf die Abschussröhren (4–6), alles andere auf den Zündtisch (7–9).`,
@@ -81,7 +81,7 @@ function handbuchHTML(){
     ['Laptop',
       ab(`${E} am Schreibtisch öffnet den Laptop (in der Logistikhalle zusätzlich das Lagerterminal). Reiter: <b>Bestellen</b>, <b>Preise &amp; Markt</b>, <b>Sortiment</b> (Lizenzpakete), <b>Entwicklung</b> (Labor), <b>Ausbau</b> (neue Flächen nach Kapiteln), <b>Deko</b> (Wände, Böden, Schilder, Deko-Stücke) und <b>Laden</b> (öffnen, Tag beenden). „Laptop zuklappen“ bringt dich zurück ins Spiel.`)],
     ['Personal',
-      ab(`Im Handy unter Team stellst du ein: Reinigungskraft (ab Level 6), Einräumer (ab Level 9 und 12, mit Lager – die Reihenfolge seiner Aufgaben legst du mit ▲ ▼ fest), Kassierer (ab Level 11, weitere an den SB-Kassen), Sicherheitsdienst (ab Level 13) und Versand (ab Level 18, mit Packstation).`)+
+      ab(`Im Handy unter Team stellst du ein: Reinigungskraft (ab Level 6), Einräumer (ab Level 9 und 12, mit Lager – die Reihenfolge seiner Aufgaben legst du mit ▲ ▼ fest), Kassierer (ab Level 11), SB-Betreuer (helfen an den SB-Kassen, einer schafft mehrere), Sicherheitsdienst (ab Level 13) und Versand (ab Level 18, mit Packstation).`)+
       ab(`Der Lohn entscheidet über Tempo und Freundlichkeit: Mindestlohn (×0,75, sie kündigen öfter), Normal, Gut (×1,3) oder Top (×1,65). In der Saisonpause bekommen sie 30 % und arbeiten nicht.`)],
     ['Versand',
       ab(`Der Onlineshop (ab Level 15) bringt eine Tagespauschale. Mit der Packstation (ab Level 16, nach Lagererweiterung 2) kommen echte Bestellungen: Packtisch anschauen und ${E} packt die älteste Bestellung, deren Ware da ist. Die Pakete landen auf der PAKETABLAGE, DDL holt sie beim Tagesabschluss ab. Mehr als 8 offene Bestellungen am Abend kosten Ruf.`)],

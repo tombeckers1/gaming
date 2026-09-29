@@ -73,7 +73,7 @@ function updateZiel(dt){
   if(!S) return;
   zielBauen();
   const pf=$('zielPfeil');
-  const k=(tutorialAn()&&!build&&!overlayOpen())?tipKey:null;
+  const k=(tutorialAn()&&!grabbed&&!overlayOpen())?tipKey:null;
   const p=k?zielFuer(k):null;
   zielAktuell=p?{k,x:p.x,y:p.y,z:p.z}:null;
   if(!p){ zielG.visible=false; if(pf) pf.style.display='none'; return; }

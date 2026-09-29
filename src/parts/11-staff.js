@@ -3,31 +3,56 @@
    Personal
    ========================================================= */
 const staff={reinigung:null,auffueller:null,auffueller2:null,kassierer:null,kassierer2:null,kassierer3:null,kassierer4:null,kassierer5:null,security:null,packer:null};
-/* Welche SB-Kasse ein Kassierer besetzt: kassierer2 die erste, ... */
+/* SB-Betreuer (Tom, 29.09.): an SB-Kassen kassiert niemand. Der Kunde
+   scannt und zahlt selbst; etwa jeder dritte bis fuenfte kommt nicht
+   weiter (Artikel wird nicht erkannt, Alterspruefung, Karte zickt).
+   Dann blinkt die Lampe rot, und ein Betreuer geht hin und hilft. Einer
+   schafft mehrere Kassen - je mehr Kassen und Kunden, desto eher
+   braucht es einen zweiten. Die Ids bleiben die alten (Spielstaende). */
 const SB_KASSIERER=['kassierer2','kassierer3','kassierer4','kassierer5'];
-/* Die Terminals entstehen in der Reihenfolge, in der die Ausbauten
-   gekauft werden. Deshalb nicht nach Index zuordnen, sondern nach
-   Standort: 2 und 3 an den SB-Kassen der Erweiterung, 4 und 5 am
-   zweiten Eingang. */
-function sbLaneVon(id){
-  const k=SB_KASSIERER.indexOf(id); if(k<0) return -1;
-  const liste=[]; sbLanes.forEach((l,i)=>{ if((k<2)===!l.up) liste.push(i); });
-  return liste[k%2]!==undefined?liste[k%2]:-1;
+function sbBetreuer(){ return SB_KASSIERER.map(id=>staff[id]).filter(Boolean); }
+/* Zeile einer Spur: die der Erweiterung (e1) oder die am zweiten Eingang (e2) */
+function sbZone(i){ const l=sbLanes[i]; return l&&l.up?'e2':'e1'; }
+function sbWelt(i,x,z){
+  const l=sbLanes[i], g=l.g, p=g.parent;
+  return (p&&p!==scene)?localToWorld(p,g.position.x+x,g.position.z+z):V(g.position.x+x,0,g.position.z+z);
 }
-function sbBesetzt(i){ for(const id of SB_KASSIERER){ const w=staff[id]; if(w&&sbLaneVon(id)===i) return w; } return null; }
-/* Platz hinter dem Terminal, mit Blick zum Kunden */
-function sbKassiererPlatz(i){
+/* Wo der Betreuer beim Helfen steht: seitlich vor dem Terminal, mit
+   Blick auf den Bildschirm - neben dem Kunden, der mittig davor steht */
+function sbHelferPlatz(i){
   const l=sbLanes[i]; if(!l) return {p:V(0,0,0),ry:0};
-  const g=l.g, p=g.parent;
-  const w=(p&&p!==scene)?localToWorld(p,g.position.x,g.position.z-0.62):V(g.position.x,0,g.position.z-0.62);
-  return {p:w,ry:(p&&p!==scene?p.rotation.y:0)};
+  const pr=l.g.parent, ry=(pr&&pr!==scene?pr.rotation.y:0);
+  return {p:sbWelt(i,0.66,0.95),ry:ry+Math.atan2(-0.66,-0.95)};
 }
+/* Warteplatz einer Zeile: hinter den Terminals auf der Ladenseite (vor
+   der ersten Zeile ist gleich die Fensterfront), mit Blick zu den Kassen. Betreuer 1 und 2 gehoeren zur Erweiterung,
+   3 und 4 an den zweiten Eingang - gibt es die Zeile nicht, zur anderen. */
+function sbHeimZone(id){
+  const k=SB_KASSIERER.indexOf(id), e1=!!(S&&S.up&&S.up.kasse2), e2=!!(S&&S.up&&S.up.kasse3);
+  if(k>=2) return e2?'e2':'e1';
+  return e1?'e1':'e2';
+}
+function sbHeimPlatz(id){
+  const z=sbHeimZone(id), idx=[]; sbLanes.forEach((l,i)=>{ if(sbZone(i)===z) idx.push(i); });
+  if(!idx.length) return {p:freiePos(IDLE.kassierer2||V(10.6,0,6)),ry:Math.PI};
+  const k=SB_KASSIERER.indexOf(id)%2;
+  const a=sbWelt(idx[0],0,0), b=sbWelt(idx[idx.length-1],0,0);
+  const pr=sbLanes[idx[0]].g.parent, ry=(pr&&pr!==scene?pr.rotation.y:0);
+  /* 0,95 m hinter der Zeile, der zweite Betreuer einen Meter daneben */
+  const m=V((a.x+b.x)/2,0,(a.z+b.z)/2), s=Math.sin(ry), c=Math.cos(ry), off=k?0.9:-0.3;
+  const p=V(m.x-0.95*s+off*c,0,m.z-0.95*c-off*s);
+  return {p:freiePos(p),ry};
+}
+/* Alte Schnittstellen: eine Spur "besetzt" gibt es nicht mehr */
+function sbLaneVon(id){ return -1; }
+function sbBesetzt(i){ const l=sbLanes[i]; return l&&l.helfer||null; }
+function sbKassiererPlatz(i){ return sbHelferPlatz(i); }
 /* Platz vor dem Packtisch, in Weltkoordinaten, mit Blick zum Tisch */
 function packerPlatz(){
   if(typeof packTisch==='undefined'||!packTisch) return {p:IDLE.packer,ry:-Math.PI/2};
   return {p:localToWorld(packTisch,0,0.9),ry:packTisch.rotation.y+Math.PI};
 }
-const IDLE={reinigung:V(-6.6,0,4.2),auffueller:V(-7.0,0,1.0),auffueller2:V(-7.0,0,-0.4),kassierer:V(0,0,0),security:V(1.4,0,4.6),packer:V(-16.3,0,3.4)};
+const IDLE={kassierer2:V(10.6,0,6.3),reinigung:V(-6.6,0,4.2),auffueller:V(-7.0,0,1.0),auffueller2:V(-7.0,0,-0.4),kassierer:V(0,0,0),security:V(1.4,0,4.6),packer:V(-16.3,0,3.4)};
 const PRIO={lkw:'LKW zuerst',regal:'Regale zuerst'};
 /* Feste Ruheplaetze koennen unter verschiebbaren Moebeln liegen - der
    des Einraeumers lag mitten im Buerotisch. Dann die naechste freie Stelle. */
@@ -96,7 +121,7 @@ function freeRackSlot(){ for(const r of racks) for(const sl of r.slots) if(!sl.b
 class Worker{
   constructor(id){
     this.id=id; this.kind=id==='auffueller2'?'auffueller':SB_KASSIERER.indexOf(id)>=0?'sbkasse':id; this.g=makePerson({uniform:id});
-    const st=id==='packer'?packerPlatz().p:this.kind==='sbkasse'?sbKassiererPlatz(sbLaneVon(id)).p:freiePos(IDLE[id]); this.g.position.copy(id==='kassierer'?ck(-0.25,-0.85):st); scene.add(this.g);
+    const st=id==='packer'?packerPlatz().p:this.kind==='sbkasse'?sbHeimPlatz(id).p:freiePos(IDLE[id]); this.g.position.copy(id==='kassierer'?ck(-0.25,-0.85):st); scene.add(this.g);
     this.path=[]; this.base=id==='security'?1.9:1.45; this.speed=this.base; this.state='idle'; this.t=0; this.carry=null; this.chase=null; this.moving=false; this.applyWage();
   }
   get pos(){ return this.g.position; }
@@ -157,7 +182,7 @@ class Worker{
       if(this.t<=0){
         const sl=this.slot;
         if(!this.carry){ this.state='idle'; return; }
-        if(sl&&!sl.box) putInSlot(sl,this.carry.type,this.carry.count,this.carry.q);
+        if(sl&&!sl.box&&!(sl.rk&&sl.rk.weg)) putInSlot(sl,this.carry.type,this.carry.count,this.carry.q);
         else spawnFloorBox(this.carry.type,this.carry.count,null,this.carry.q);
         this.carry=null; this.slot=null; this.state='idle'; sfx.pop();
       }
@@ -198,11 +223,26 @@ class Worker{
     if(this.t<=0&&belt.length&&regCustomer()){ scanBelt(belt[0]); this.t=0.5/(this.wf||1); }
   }
   sbLoop(dt){
-    /* steht hinter seinem Terminal und schaut zum Kunden */
-    const P=sbKassiererPlatz(sbLaneVon(this.id));
-    if(this.pos.distanceTo(P.p)>0.12){ this.path=[P.p]; this.walk(dt); return; }
-    let df=P.ry-this.g.rotation.y; while(df>Math.PI) df-=Math.PI*2; while(df<-Math.PI) df+=Math.PI*2;
-    this.g.rotation.y+=df*Math.min(1,dt*6);
+    /* Wer gerade hilft, bleibt dabei, bis der Kunde weiter kann */
+    if(this.job){ const l=this.job, c=l.busy;
+      if(!c||c.state!=='sbHilfe'){ if(l.helfer===this) l.helfer=null; this.job=null; this.state='idle'; this.path=[]; return; }
+      if(this.state!=='hilft'){ if(this.walk(dt)){ this.state='hilft'; this.t=rand(2.2,3.6)/(this.wf||1); } return; }
+      const H=sbHelferPlatz(sbLanes.indexOf(l));
+      let df=H.ry-this.g.rotation.y; while(df>Math.PI) df-=Math.PI*2; while(df<-Math.PI) df+=Math.PI*2;
+      this.g.rotation.y+=df*Math.min(1,dt*6);
+      this.t-=dt; if(this.t<=0){ sbGeholfen(l,this); this.job=null; this.state='idle'; }
+      return; }
+    /* naechstes Problem: das naechstgelegene, um das sich noch keiner kuemmert */
+    let best=-1, bd=1e9;
+    sbLanes.forEach((l,i)=>{ const c=l.busy; if(!c||c.state!=='sbHilfe'||l.helfer||!sbNutzbar(i)) return;
+      const q=sbHelferPlatz(i).p, d=Math.hypot(q.x-this.pos.x,q.z-this.pos.z); if(d<bd){ bd=d; best=i; } });
+    if(best>=0){ const l=sbLanes[best]; l.helfer=this; this.job=l; this.state='geht'; this.goTo(sbHelferPlatz(best).p); this.walk(dt); return; }
+    /* sonst wartet er an seiner Zeile und behaelt die Kassen im Blick */
+    const H=sbHeimPlatz(this.id);
+    if(this.pos.distanceTo(H.p)>0.3){ if(!this.path.length) this.goTo(H.p); this.walk(dt); return; }
+    this.path=[];
+    let df=H.ry-this.g.rotation.y; while(df>Math.PI) df-=Math.PI*2; while(df<-Math.PI) df+=Math.PI*2;
+    this.g.rotation.y+=df*Math.min(1,dt*4);
   }
   guardLoop(dt){
     if(this.chase&&customers.indexOf(this.chase)>=0&&!this.chase.caught){
@@ -214,7 +254,7 @@ class Worker{
     if(this.path.length===0){ if(Math.random()<0.5) this.goTo(V(rand(-5,5),0,rand(-4,4))); else this.goTo(IDLE.security); }
     this.walk(dt);
   }
-  remove(){ einrAufraeumen(this); if(this.kind==='packer') vsAufraeumen(this); scene.remove(this.g); if(this.carry&&this.carry.count>0) spawnFloorBox(this.carry.type,this.carry.count,null,this.carry.q||1); }
+  remove(){ if(this.job&&this.job.helfer===this) this.job.helfer=null; einrAufraeumen(this); if(this.kind==='packer') vsAufraeumen(this); scene.remove(this.g); if(this.carry&&this.carry.count>0) spawnFloorBox(this.carry.type,this.carry.count,null,this.carry.q||1); }
 }
 function hireStaff(id){ if(staff[id]) return; staff[id]=new Worker(id); }
 function fireStaff(id){ if(!staff[id]) return; staff[id].remove(); staff[id]=null; }

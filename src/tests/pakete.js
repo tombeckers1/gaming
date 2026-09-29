@@ -1,7 +1,8 @@
 /* Einrichtung wird geliefert (Tom, 26.09.): Regale, Kuehlschraenke und
    Kassen kommen als Paket - ohne Lager vor die Tuer -, werden am
    Stellplatz ausgepackt oder als Paket abgestellt (lagerbar). Pakete
-   haben normale Kartongroesse. Die SB-Kassen am zweiten Eingang
+   sind so gross wie ihr Inhalt (29.09.) - Pruefung der Groesse und der
+   Moebeltaste in moebel.js. Die SB-Kassen am zweiten Eingang
    kommen nicht mehr mit der Tuer, sondern sind ein eigener Kauf. */
 async function neuesSpiel(p){
   await p.waitForFunction("!!document.querySelector('#startBtns button:not([disabled])')",{timeout:60000});
@@ -30,6 +31,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
       z:bb.einbauPakete.length?+bb.einbauPakete[0].mesh.position.z.toFixed(1):null};
     /* 2. Groessen */
     o.gross=Math.max(...Object.values(bb.PAKET_MASS).map(m=>Math.max(...m)));
+    o.klein=Math.min(...Object.values(bb.PAKET_MASS).map(m=>Math.max(...m)));
     /* 3. Weit weg abstellen = lagern, am Stellplatz = aufbauen */
     /* ohne Paket vor der Tuer ein eigenes nehmen, damit die weiteren
        Schritte trotzdem gemessen werden */
@@ -42,7 +44,8 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     if(!bb.einbauPakete.length) bb.spawnPaket({regal:'standard'},{x:-15,z:-2});
     bb.paketAufheben(bb.einbauPakete[0]);
     const sl=bb.slotsOffen().filter(s=>(s.art||'wand')==='wand'&&!bb.shelves.some(h=>Math.abs(h.g.position.x-s.x)<0.05&&Math.abs(h.g.position.z-s.z)<0.05))[0];
-    bb.paketAblegen(S.carrying,{x:sl.x+0.4,z:sl.z+0.6});
+    bb.setView(sl.x,sl.z+2.6,0,-0.1); bb.run(0.05,0.05);
+    bb.paketAuspacken(); if(bb.grabbed){ bb.updateGrab(); bb.placeGrab(); }
     o.aufgebaut={pakete:bb.einbauPakete.length,regale:bb.shelves.length-basis,tragen:!!S.carrying};
     /* 4. Zweiter Eingang ohne Kassen */
     ['shop_halb','lager','lager_nord','shop_gross','shop_ost','eingang2'].forEach(id=>bb.testKauf(id));
@@ -52,14 +55,15 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     bb.buyUp('kasse3');
     o.bestellt={kasse3:!!S.up.kasse3,unterwegs:bb.pendingListe().filter(pd=>pd.einbau==='kasse3').length};
     S.carrying={einbau:'kasse3'}; const z=bb.EINBAU.kasse3.ziel();
-    bb.paketAblegen(S.carrying,{x:z.x+1,z:z.z});
+    bb.setView(z.x,z.z+3,0,-0.1); bb.run(0.05,0.05);
+    bb.paketAuspacken(); o.kasseInHand=!!bb.grabbed; if(bb.grabbed){ bb.updateGrab(); bb.placeGrab(); if(bb.grabbed) bb.cancelGrab(); }
     o.aufgestellt={kasse3:!!S.up.kasse3,nutzbar:lanes2().filter(Boolean).length,sichtbar:!!(bb.sb2G&&bb.sb2G.visible)};
     return o; });
   console.log('PAKETE',JSON.stringify(r));
   pruef('VOR_DIE_TUER',r.ohneLager.pakete===1&&r.ohneLager.regale===0,'ohne Lager: '+JSON.stringify(r.ohneLager));
-  pruef('GROESSE',r.gross<=1.3,'Paket bis '+r.gross+' m');
+  pruef('GROESSE',r.gross<=3&&r.klein>=1,'Pakete '+r.klein+' bis '+r.gross+' m');
   pruef('LAGERN',r.gelagert.pakete===1&&r.gelagert.regale===0&&!r.gelagert.tragen,'weit weg abgestellt: '+JSON.stringify(r.gelagert));
-  pruef('AUSPACKEN',r.aufgebaut.pakete===0&&r.aufgebaut.regale===1&&!r.aufgebaut.tragen,'am Stellplatz: '+JSON.stringify(r.aufgebaut));
+  pruef('AUSPACKEN',r.aufgebaut.pakete===0&&r.aufgebaut.regale===1&&!r.aufgebaut.tragen,'am Stellplatz ausgepackt: '+JSON.stringify(r.aufgebaut));
   pruef('EINGANG2_OHNE_KASSEN',!r.eingang2.kasse3&&r.eingang2.nutzbar===0&&!r.eingang2.sichtbar,'Kassen kommen mit der Tuer: '+JSON.stringify(r.eingang2));
   pruef('KASSE_ALS_PAKET',!r.bestellt.kasse3&&r.bestellt.unterwegs===1,'Kauf stellt Kassen sofort auf: '+JSON.stringify(r.bestellt));
   pruef('KASSE_AUFSTELLEN',r.aufgestellt.kasse3&&r.aufgestellt.nutzbar===2&&r.aufgestellt.sichtbar,'Aufstellen: '+JSON.stringify(r.aufgestellt));

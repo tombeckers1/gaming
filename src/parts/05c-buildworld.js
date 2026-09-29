@@ -168,7 +168,9 @@ function buildWorld(){
   }
   /* Ost- beziehungsweise Nordkante gehoeren zu einer Wand, die
      beim Ausbau faellt - der Schatten muss mit ihr verschwinden. */
-  roomAO(-7.9,7.9,-5.9,5.9,null,{n:true,s:true,w:true});
+  /* bis x=8,0: dort beginnt die erste Erweiterung - bis 7,9 blieb an
+     der Stossstelle ein heller Spalt im Bodenschatten */
+  roomAO(-7.9,8.0,-5.9,5.9,null,{n:true,s:true,w:true});
   zWand('shop_gross',aoFloor(7.9-0.2,0,11.8,0.4,'+x',0.021));
   /* Rampenraum und Anbau sind ein Raum - der Schatten laeuft
      einmal aussen herum, nicht an der alten Trennlinie. */

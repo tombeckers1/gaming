@@ -92,11 +92,12 @@ function vorDieTuer(){
   statAdd('lkw',1); S.tut.lkw=true;
   sfx.thump(0.8);
   if(n) toast(`Lieferung: ${n} Karton${n>1?'s':''} vor der Ladentür abgestellt.`,'xp');
-  if(regale) toast(`${regale} Paket${regale>1?'e':''} mit Einrichtung vor der Ladentür. Hinbringen, wo es stehen soll, und auspacken.`,'money');
+  if(regale) toast(`${regale} Paket${regale>1?'e':''} mit Einrichtung vor der Ladentür. Hinbringen, wo es stehen soll, und mit F auspacken.`,'money');
 }
 function step(dt){
   updatePlayer(dt);
-  if(build) updateGrab();
+  if(grabbed) updateGrab();
+  moebelKnoepfe();
   updateDay(dt);
   for(const c of customers.slice()) c.update(dt);
   for(const k in staff) if(staff[k]) staff[k].update(dt);

@@ -1400,6 +1400,12 @@ function nachbarFassade(x0,x1,zid,unterzeile,eingang){
     px=b2;
   });
   F(px,x1,0,H);
+  /* 29.09. (Tom, Foto): innen hatte die Fensterfront der Erweiterungen
+     keine Sockelleiste - im Basisladen schon. An der Stossstelle hoerte
+     die Leiste mitten an der Wand auf. Jetzt laeuft sie durch, nur an
+     der Eingangsachse nicht. */
+  { const sl=(a2,b2)=>{ if(b2>a2+0.01) zAdd(zid,bbox(b2-a2,0.1,0.02,sockelM(),(a2+b2)/2,0.05,zf-0.21,null,false)); };
+    if(eingang!==undefined){ const [ea,eb]=OEFF[eingang]; sl(x0,ea); sl(eb,x1); } else sl(x0,x1); }
   /* Attika, Gesims und Sockel. Die Farben gehen mit der Fassade:
      anthrazit wie der Sockel in der Textur, nicht mehr das
      Sandsteinbeige von der Ziegelwand. */

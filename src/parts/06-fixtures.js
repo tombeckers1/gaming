@@ -272,7 +272,11 @@ function sbTerminal(parent,x,z){
   lamp.position.set(-0.3,1.9,-0.2); g.add(lamp);
   /* Tuete am Buegel */
   bbox(0.02,0.3,0.24,stahl,0.6,1.14,0,g,false);
-  return {g,lamp,lampM,busy:null,t:0};
+  /* unsichtbare Trefferflaeche: der Spieler kann selbst helfen */
+  const hit=bbox(0.9,1.9,0.8,hitM,0,0.95,0.05,g,false);
+  const l={g,lamp,lampM,busy:null,t:0,hit,helfer:null,hilfe:false};
+  hit.userData={kind:'sbterm',ref:l};
+  return l;
 }
 function buildSBKasse(){
   if(sbG) return sbG;
@@ -295,6 +299,33 @@ function buildSBKasse(){
 function sbLampe(l,frei){
   l.lampM.color.copy(LIN(frei?0x1d5f36:0x5f3a1d));
   l.lampM.emissive.copy(LIN(frei?0x37d977:0xf2a23a));
+  l.lampM.emissiveIntensity=1.6; l.hilfe=false;
+}
+/* Rot blinkend: hier kommt ein Kunde nicht weiter */
+function sbLampeHilfe(l,an){
+  if(!an){ sbLampe(l,!l.busy); return; }
+  l.hilfe=true; l.lampM.color.copy(LIN(0x5f1d1d)); l.lampM.emissive.copy(LIN(0xff3a2e));
+}
+function sbLampeBlink(l,t){ l.lampM.emissiveIntensity=(t*2.4)%1<0.55?2.2:0.25; }
+/* Nach der Hilfe (Betreuer, Spieler oder der Kunde selbst) scannt er weiter */
+const SB_SELBST=30;
+function sbGeholfen(l,wer){
+  if(!l) return; const c=l.busy; l.helfer=null;
+  sbLampe(l,false);
+  if(!c||c.state!=='sbHilfe') return;
+  c.state='sbPay';
+  if(wer){ c.say(pick(['Danke!','Ah, so geht das.','Super, danke!'])); DS.sbHilfe=(DS.sbHilfe||0)+1; rep(0.1); sfx.beep(); }
+  if(wer==='spieler'){ addXP(4,'SB-Hilfe'); }
+}
+let sbHinweisZeit=-1e9;
+function sbHinweisOk(){ const t=performance.now(); if(t-sbHinweisZeit<45000) return false; sbHinweisZeit=t; return true; }
+/* Der Kunde nimmt die freie SB-Kasse, die ihm am naechsten ist -
+   nicht einfach die erste in der Liste am anderen Ende des Ladens */
+function sbFreiNah(pos){
+  let best=-1, bd=1e9;
+  for(let i=0;i<sbLanes.length;i++){ if(sbLanes[i].busy||!sbNutzbar(i)) continue;
+    const q=sbPos(i), d=Math.hypot(q.x-pos.x,q.z-pos.z); if(d<bd){ bd=d; best=i; } }
+  return best;
 }
 /* Beim Laden eines anderen Spielstands muessen die Terminals wieder weg */
 function setSB(an){
@@ -591,6 +622,7 @@ function updateLabel(lv){
 }
 function capOf(lv,t){ return layout(t||lv.type,lv.sh,lv).cap; }
 function addToLevel(lv,t,q){
+  if(lv.sh&&lv.sh.weg) return false;
   /* jedes eingeraeumte Stueck zaehlt fuer die Herausforderung */
   if(lv.type&&lv.type!==t) return false;
   if(!shelfAccepts(lv.sh,t)) return false;
@@ -760,6 +792,25 @@ function createRack(i,data){
   if(data&&data.slots) data.slots.forEach((sd,k)=>{ if(sd&&P[sd.type]&&rk.slots[k]) putInSlot(rk.slots[k],sd.type,sd.count,sd.q); });
   drawRackSchild(rk);
   return rk;
+}
+/* Einpacken (Tom, 29.09.): ein leeres Regal verschwindet wieder ins
+   Paket. Alles, was noch darauf verweist (Einraeumer unterwegs,
+   Kunden auf dem Weg), sieht es an sh.weg und laesst es links liegen. */
+function moebelWeg(m){
+  dropFootprint(m); const i=movables.indexOf(m); if(i>=0) movables.splice(i,1);
+  scene.remove(m.g); if(typeof navDirty==='function') navDirty();
+}
+function removeShelf(sh){
+  const i=shelves.indexOf(sh); if(i<0) return false;
+  sh.weg=true; moebelWeg(sh.mov); shelves.splice(i,1);
+  shelves.forEach((x,k)=>{ x.i=k; });
+  return true;
+}
+function removeRack(rk){
+  const i=racks.indexOf(rk); if(i<0) return false;
+  rk.weg=true; moebelWeg(rk.mov); racks.splice(i,1);
+  racks.forEach((x,k)=>{ x.nr=k; drawRackSchild(x); });
+  return true;
 }
 function putInSlot(sl,type,count,q){ const m=new THREE.Mesh(kartonGeo,kartonMat[type]); m.position.set(sl.x,sl.y+0.2,0); m.rotation.y=rand(-0.05,0.05); if(HIQ){ m.castShadow=true; m.receiveShadow=true; } sl.rk.g.add(m); sl.box={type,count,q:q||1,mesh:m}; drawRackSchild(sl.rk); }
 function findStoredBox(type){ for(const r of racks) for(const s of r.slots) if(s.box&&(!type||s.box.type===type)) return s; return null; }

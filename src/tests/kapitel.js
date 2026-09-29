@@ -117,47 +117,23 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   console.log('ALTSTAND',JSON.stringify({gespeichert:alt,key:migr,nachLaden}));
   pruef('ALTSTAND',nachLaden.lager===true&&nachLaden.nr===2,'alter Spielstand verliert sein Lager: '+JSON.stringify(nachLaden));
 
-  /* Kassierer an den SB-Kassen */
+  /* SB-Betreuer an den SB-Kassen (29.09.: niemand kassiert dort, der
+     Betreuer hilft - ausfuehrlich in sbhilfe.js) */
   const ka=await p.evaluate(()=>{
     const bb=window.__bb,S=bb.S,o={};
     S.level=99; S.money=9e6; bb.LIZENZEN.forEach(l=>bb.buyLizenz(l.id));
     ['shop_halb','shop_gross','kasse2'].forEach(id=>bb.testKauf(id));
     o.lanes=bb.sbLanes.length;
-    for(let i=0;i<4;i++) bb.regalStellen('standard');
-    bb.allLevels().forEach(l=>{ for(let k=0;k<8;k++) bb.addToLevel(l,'boeller',1); });
-    ['kassierer','kassierer2','kassierer3'].forEach(id=>{ S.staff[id]=true; bb.hireStaff(id); });
-    const bahn=['kassierer2','kassierer3'].map(id=>bb.sbLaneVon(id));
-    o.bahnen=bahn;
-    o.besetzt=bahn.map(i=>!!bb.sbBesetzt(i));
-    o.plaetze=bahn.map((i,k)=>{ const w=bb.staff['kassierer'+(k+2)]; const P=bb.sbKassiererPlatz(i); return +Math.hypot(w.pos.x-P.p.x,w.pos.z-P.p.z).toFixed(2); });
-    /* die besetzten Bahnen gehoeren zu den SB-Kassen der Erweiterung */
-    o.richtigeBahn=bahn.every(i=>i>=0&&!bb.sbLanes[i].up);
-    bb.openShop();
-    /* Ein Kunde mit sechs Artikeln stellt sich an: geht er an eine
-       besetzte Kasse, und geht es dort schneller? */
-    /* 28.09.: Im Regal liegen nur Boeller; bei ueber 250 Sorten wollte kaum
-       ein Kunde zufaellig welche und ging sofort wieder ("kein Kunde", je nach
-       Zufallsfolge). Geprueft wird hier die Kassenwahl, nicht der Wunsch:
-       wer hereinkommt, will Boeller. */
-    let c=null; for(let t=0;t<200&&!c;t++){ bb.customers.forEach(x=>{ if(x.state==='enter') x.wishes=[{type:'boeller',qty:1}]; }); bb.run(0.5,0.05); c=bb.customers.find(x=>x.state!=='leave'&&x.state!=='enter'); }
-    if(!c){ o.fehler='kein Kunde'; return o; }
-    const korb=()=>Array.from({length:6},()=>({type:'boeller',price:4.49}));
-    /* an der Hauptkasse bedient niemand: der Kunde nimmt die besetzte SB-Kasse */
-    bb.fireStaff('kassierer'); S.staff.kassierer=false;
-    c.items=korb(); c.state='shop'; c.joinQueue();
-    o.vollerKorb={state:c.state,bahn:c.sb,besetzt:bahn.indexOf(c.sb)>=0};
-    if(c.sb!==null&&c.sb!==undefined){ c.sbStart(); o.dauerBesetzt=+c.sbT.toFixed(2); c.sbFree(); }
-    /* ohne Kassierer: sechs Artikel duerfen nicht an die SB-Kasse */
+    ['kassierer2','kassierer3'].forEach(id=>{ S.staff[id]=true; bb.hireStaff(id); });
+    bb.run(5,0.1);
+    o.plaetze=['kassierer2','kassierer3'].map(id=>{ const w=bb.staff[id], H=bb.sbHeimPlatz(id); return +Math.hypot(w.pos.x-H.p.x,w.pos.z-H.p.z).toFixed(2); });
+    /* die Warteplaetze liegen bei den SB-Kassen der Erweiterung */
+    o.nah=['kassierer2','kassierer3'].map(id=>{ const H=bb.sbHeimPlatz(id), q=bb.sbPos(0); return +Math.hypot(H.p.x-q.x,H.p.z-q.z).toFixed(2); });
     ['kassierer2','kassierer3'].forEach(id=>{ bb.fireStaff(id); S.staff[id]=false; });
-    c.sb=null; c.items=korb(); c.state='shop'; c.joinQueue();
-    o.ohneKassierer=c.state;
     return o;
   });
   console.log('KASSEN  ',JSON.stringify(ka));
-  pruef('KASSEN',ka.lanes>=2&&ka.richtigeBahn&&ka.besetzt.every(x=>x)&&ka.plaetze.every(d=>d<0.5),'Kassierer nicht an den SB-Kassen: '+JSON.stringify(ka));
-  pruef('KASSEN',ka.vollerKorb&&ka.vollerKorb.state==='sbGo'&&ka.vollerKorb.besetzt,'voller Korb geht nicht an die besetzte Kasse: '+JSON.stringify(ka));
-  pruef('KASSEN',ka.dauerBesetzt<1.1+6*1.25*0.6,'besetzte Kasse nicht schneller: '+ka.dauerBesetzt+' s');
-  pruef('KASSEN',ka.ohneKassierer==='queue','ohne Kassierer geht der volle Korb an die SB-Kasse: '+ka.ohneKassierer);
+  pruef('KASSEN',ka.lanes>=2&&ka.plaetze.every(d=>d<0.6)&&ka.nah.every(d=>d<4),'SB-Betreuer nicht an den SB-Kassen: '+JSON.stringify(ka));
 
   console.log('MANGEL:',mangel.length?mangel.join(' | '):'keine');
   console.log('ERRORS:',errs.length||mangel.length?errs.concat(mangel).join('\n'):'keine');

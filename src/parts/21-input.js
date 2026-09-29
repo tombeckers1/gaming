@@ -76,7 +76,7 @@ const STEUER_PC=[
     [['Maus'],'Umsehen']]],
   ['Handeln',[
     [['E','Klick'],'Aktion – halten wiederholt (einräumen, scannen, putzen)'],
-    [['Q','Rechts'],'Karton abstellen, Paket auspacken'],
+    [['Q','Rechts'],'Karton oder Paket abstellen'],
     [['K'],'Sackkarre / Wagen holen, wegstellen (nach Kauf)'],
     [['Tab'],'Handy: Onlineshop, Team, Werbung, Bank, Bericht, Ziele'],
     [['H'],'Anruf annehmen, wenn es klingelt']]],
@@ -88,11 +88,11 @@ const STEUER_PC=[
     [['1…9'],'Kanal zünden'],
     [['Enter'],'Alle nacheinander'],
     [['Leer'],'Alle gleichzeitig']]],
-  ['Umbau',[
-    [['F'],'Umbaumodus an / aus'],
-    [['E'],'Möbel greifen, absetzen'],
-    [['R'],'Gegriffenes drehen'],
-    [['Q','Rechts'],'Greifen abbrechen']]],
+  ['Möbel',[
+    [['F'],'Möbel aufnehmen · Paket auspacken · Möbel einpacken'],
+    [['E'],'Möbel in der Hand absetzen'],
+    [['R'],'Möbel in der Hand drehen'],
+    [['Q','Rechts'],'Zurück an den alten Platz']]],
   ['Sonstiges',[
     [['P'],'Bildeffekte an / aus'],
     [['M'],'Musik an / aus'],
@@ -105,8 +105,9 @@ const STEUER_TOUCH=[
     [['rechts'],'Wischen zum Umsehen']]],
   ['Knöpfe',[
     [['Aktion'],'Aktion – halten zum Putzen'],
-    [['Ablegen'],'Karton abstellen, Greifen abbrechen'],
-    [['Umbau'],'Umbaumodus an / aus'],
+    [['Ablegen'],'Karton oder Paket abstellen, Möbel zurück'],
+    [['Möbel'],'Möbel aufnehmen, Paket aus- und einpacken'],
+    [['Drehen'],'Möbel in der Hand drehen (statt Spray)'],
     [['Handy'],'Onlineshop, Team, Werbung, Bank, Bericht, Ziele'],
     [['Karre'],'Sackkarre / Wagen (erscheint nach dem Kauf)'],
     [['Menü'],'Pausenmenü: Steuerung, Musik, Tutorial, Startbildschirm'],
@@ -163,7 +164,7 @@ canvas.addEventListener('mousedown',e=>{
   /* Ohne Mauszeiger-Sperre schaut man per Klicken und Ziehen: der
      Klick aufs Pult darf den Zuendmodus dann nicht wieder beenden -
      das macht nur E */
-  if(e.button===0){ mouseDown=true; if(!(zuendOpen&&target&&target.kind==='pult')) pressAction(); } else if(e.button===2){ if(build&&grabbed) cancelGrab(); else dropBox(); }
+  if(e.button===0){ mouseDown=true; if(!(zuendOpen&&target&&target.kind==='pult')) pressAction(); } else if(e.button===2){ if(grabbed) cancelGrab(); else dropBox(); }
 });
 addEventListener('mouseup',e=>{ if(e.button===0) mouseDown=false; });
 addEventListener('mousemove',e=>{ if(overlayOpen()) return; if(locked) look(e.movementX,e.movementY,0.0022); else if(mouseDown&&(lockFailed||!lockWorked)) look(e.movementX||0,e.movementY||0,0.004); });
@@ -199,8 +200,8 @@ addEventListener('keydown',e=>{
   if(!S||overlayOpen()) return;
   keys[e.code]=true;
   if(e.code==='KeyE'&&!e.repeat) pressAction();
-  if(e.code==='KeyQ'&&!e.repeat){ if(build&&grabbed) cancelGrab(); else dropBox(); }
-  if(e.code==='KeyF'&&!e.repeat) toggleBuild();
+  if(e.code==='KeyQ'&&!e.repeat){ if(grabbed) cancelGrab(); else dropBox(); }
+  if(e.code==='KeyF'&&!e.repeat) moebelTaste();
   if(e.code==='KeyG'&&!e.repeat) toggleSpray();
   if(e.code==='KeyT'&&!e.repeat) togglePDA();
   if(e.code==='KeyK'&&!e.repeat) toggleKarre();
@@ -209,7 +210,7 @@ addEventListener('keydown',e=>{
   if(e.code==='KeyN'&&!e.repeat){ ac(); if(!MUSIK.an) musikAn(true); else musikWeiter(false); }
   /* H: klingelt es, geht man ran - sonst kommt das Handy heraus */
   if(e.code==='KeyH'&&!e.repeat){ if(typeof phone!=='undefined'&&phone.state==='ringing') answerPhone(); else openHandy(); }
-  if(e.code==='KeyR'&&!e.repeat&&build) rotateGrab();
+  if(e.code==='KeyR'&&!e.repeat&&grabbed) rotateGrab();
   /* Tab holt das Handy heraus. Der Laptop steht im Buero - dafuer geht man hin. */
   if(e.code==='Tab'&&!e.repeat){ e.preventDefault(); openHandy(); }
   if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code)) e.preventDefault();
@@ -238,8 +239,8 @@ const btnAct=$('btnAct'), btnDrop=$('btnDrop'), btnTool=$('btnTool'), btnMove=$(
 btnAct.addEventListener('touchstart',e=>{ e.preventDefault(); if(!S||overlayOpen()) return; touchAct=true; btnAct.classList.add('down'); pressAction(); },{passive:false});
 const actEnd=e=>{ e.preventDefault(); touchAct=false; btnAct.classList.remove('down'); };
 btnAct.addEventListener('touchend',actEnd); btnAct.addEventListener('touchcancel',actEnd);
-btnDrop.addEventListener('touchstart',e=>{ e.preventDefault(); if(!S||overlayOpen()) return; ac(); if(build&&grabbed) cancelGrab(); else dropBox(); },{passive:false});
-btnTool.addEventListener('touchstart',e=>{ e.preventDefault(); if(!S||overlayOpen()) return; ac(); toggleSpray(); },{passive:false});
+btnDrop.addEventListener('touchstart',e=>{ e.preventDefault(); if(!S||overlayOpen()) return; ac(); if(grabbed) cancelGrab(); else dropBox(); },{passive:false});
+btnTool.addEventListener('touchstart',e=>{ e.preventDefault(); if(!S||overlayOpen()) return; ac(); if(grabbed) rotateGrab(); else toggleSpray(); },{passive:false});
 $('btnPda').addEventListener('touchstart',e=>{ e.preventDefault(); if(!S||overlayOpen()) return; ac(); togglePDA(); },{passive:false});
 $('pTut').addEventListener('click',()=>{ setTutorial(!tutorialAn()); tutKnopf(); });
 $('btnKarre').addEventListener('touchstart',e=>{ e.preventDefault(); if(!S||overlayOpen()) return; ac(); toggleKarre(); },{passive:false});
@@ -257,4 +258,4 @@ $('pdaBody').addEventListener('click',e=>{
   else if(a==='po'){ cartAdd(t,+b.dataset.n,b.dataset.s); }
   renderPDA(); drawPDA(true); save();
 });
-btnMove.addEventListener('touchstart',e=>{ e.preventDefault(); if(!S||overlayOpen()) return; ac(); if(build&&grabbed) rotateGrab(); else toggleBuild(); },{passive:false});
+btnMove.addEventListener('touchstart',e=>{ e.preventDefault(); if(!S||overlayOpen()) return; ac(); moebelTaste(); },{passive:false});

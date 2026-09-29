@@ -506,6 +506,7 @@ function muendung(st,slot,t){
 }
 function placedCount(){ let n=0; for(const k in stations) n+=stations[k].items.length; return n; }
 function bereitCount(){ let n=0; for(const k in stations) n+=stations[k].items.filter(it=>it.state==='bereit').length; return n; }
+let pultText='';
 function drawPult(){
   if(!pultTex) return;
   const n=bereitCount(), b=placedCount()-n;
@@ -516,9 +517,15 @@ function drawPult(){
     g.fillText(b?'ZÜNDUNG':n?'BEREIT':'LEER',14,30);
     g.font=BAR(26); g.fillStyle='#e8eef8';
     g.fillText(`${n} von ${kanalAnzahl()} Kanälen scharf`,14,72);
-    const names=[]; for(const k in stations) stations[k].items.forEach(it=>{ if(it.state==='bereit'&&names.indexOf(P[it.type].short)<0) names.push(P[it.type].short); });
-    const txt=names.join(', ')||'Ware auf Tisch, Röhren oder Mörser stellen';
-    g.fillStyle='#8fb4e0'; fitFont(g,txt,W-28,22,BAR); g.fillText(txt,14,110);
+    /* 29.09. (Tom): waehrend der Zuendung steht da, was gerade brennt;
+       danach wieder, was noch scharf ist. Hoechstens drei Namen, dann
+       "…" - bei neun vollen Kanaelen passte sonst nichts mehr lesbar hin. */
+    const liste=st2=>{ const a=[]; alleKanaele().forEach(e=>{ const it=e&&e.it; if(it&&it.state===st2&&a.indexOf(P[it.type].short)<0) a.push(P[it.type].short); }); return a; };
+    const kurz=a=>a.length>3?a.slice(0,3).join(', ')+', …':a.join(', ');
+    const brennt=liste('brennt'), bereit=liste('bereit');
+    const txt=brennt.length?'Zündet: '+kurz(brennt):bereit.length?kurz(bereit):'Ware auf Tisch, Röhren oder Mörser stellen';
+    g.fillStyle=brennt.length?'#ffb489':'#8fb4e0'; fitFont(g,txt,W-28,22,BAR); g.fillText(txt,14,110);
+    pultText=txt;
     g.fillStyle=b?'#ff6a3d':n?'#ffd23f':'#39405a'; g.fillRect(0,H-22,W,22);
   });
   pultLampen();

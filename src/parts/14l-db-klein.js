@@ -695,29 +695,41 @@ klEmit('brummkreisel',(e,dt,o,t)=>{
     const PL=e.plaetze||[[0,0],[-0.065,0.03],[0.065,-0.03],[0.065,0.03],[-0.065,-0.03],[0,0.03]];
     for(let i=0;i<n;i++){ const q=PL[i%PL.length];
       e.kr.push({x0:o.x+q[0],z0:o.z+q[1],x:0,z:0,dx:0,dz:0,zt:0,w:rand(0,6),start:i*(e.gap||0.4),
-        det:e.ton&&e.ton.groesse?rand(0.85,1.15):1,C:FF[i%FF.length].map(c=>klF(c)),z2:{}}); }
+        det:e.ton&&e.ton.groesse?rand(0.85,1.15):1,C:FF[i%FF.length].map(c=>klF(c)),z2:{},
+        /* 29.09. (Tom: "wirklich Kreise"): jeder Kreisel wandert vom
+           Karton weg ueber den Tisch - hoechstens 0,3 m - und zieht dort
+           seinen Feuerkreis. Vorher tanzten alle auf 13 x 6 cm und die
+           Funken standen als Wolke um die Verpackung. */
+        ziel:(()=>{ const a=rand(0,6.283), r=rand(0.14,0.3); return [Math.cos(a)*r,Math.sin(a)*r*0.6]; })()}); }
     e.sf=sf; e.t=T+(n-1)*(e.gap||0.4)+1.2; }
   const alt=SCHWEIF, q=QUAL();
   let lx=0,lz=0,ln=0,lc=[0,0,0];
   for(const k of e.kr){ const lt=t-k.start; if(lt<0) continue;
     const u=lt/T;
     if(u>=1){ if(!k.ende){ k.ende=1; if(k.ton){ k.ton.stop(); k.ton=null; } } continue; }
-    /* Drift: Zufallsweg, glatt, hoechstens drift m */
-    k.zt-=dt; if(k.zt<=0){ k.zt=rand(0.4,0.8); k.dx=rand(-1,1)*(e.drift||0.02); k.dz=rand(-1,1)*(e.drift||0.02)*0.7; }
-    k.x+=(k.dx-k.x)*Math.min(1,dt*1.2); k.z+=(k.dz-k.z)*Math.min(1,dt*1.2);
+    /* Weg: vom Karton zum eigenen Platz, dort leicht schlingernd */
+    k.zt-=dt; if(k.zt<=0){ k.zt=rand(0.4,0.8); k.dx=k.ziel[0]+rand(-1,1)*(e.drift||0.02); k.dz=k.ziel[1]+rand(-1,1)*(e.drift||0.02)*0.7; }
+    k.x+=(k.dx-k.x)*Math.min(1,dt*0.9); k.z+=(k.dz-k.z)*Math.min(1,dt*0.9);
     const rev=U[0]+(U[1]-U[0])*u, fin=lt>T-FIN.t, kipp=lt>T-0.3?(lt-(T-0.3))/0.3:0;
     k.w+=2*Math.PI*rev*dt;
     const x=k.x0+k.x, z=k.z0+k.z, y=e.sf+0.03+kipp*0.04;
     /* Farbe: hart gewechselt bei den Anteilen wechselBei */
     const stufe=WB.filter(w=>u>=w).length, C=fin?FW.silber:stufe===1?k.C[1]:k.C[0];
-    /* Funkenscheibe: tangential aus dem Rand, 0,6-0,8 m */
-    k.z2.f=(k.z2.f||0)+dt*380*q; SCHWEIF=0.07;
-    const nk=Math.cos(kipp*1.05), sk=Math.sin(kipp*1.05);
-    for(;k.z2.f>=1;k.z2.f--){ const a=k.w+Math.random()*6.283, s=rand(2.2,3.2)*(0.8+0.2*rev/U[1]), cx=Math.cos(a), cz=Math.sin(a);
-      const vx=-cz*s, vz=cx*s, vy=rand(0.1,0.5)+vz*sk; 
-      /* 29.09., Tom: echt - tangentiale Funkenstriche (vorher 15-cm-Punkte = Leuchtkugeln auf dem Tisch) */
-      if(fin) psSmall.emit(x+cx*0.025,y,z+cz*0.025*nk,vx,vy,vz*nk,C[0],C[1],C[2],rand(0.14,0.22),1,3);
-      else klFunke(x+cx*0.025,y,z+cz*0.025*nk,vx,vy,vz*nk,C,rand(0.12,0.2),1,0,0.2); }
+    /* Feuerkreis: die Duese sitzt am Rand und laeuft mit der Drehung
+       um. Jeder Funke startet dort, wo die Duese gerade ist, und fliegt
+       tangential weiter - bei 4 bis 14 Umdrehungen pro Sekunde und
+       0,2 s Leuchtdauer schliesst sich die Spur zu einem Ring. Der Ring
+       waechst mit der Drehzahl (12 -> 22 cm Durchmesser). */
+    k.z2.f=(k.z2.f||0)+dt*420*q; SCHWEIF=0.07;
+    const nk=Math.cos(kipp*1.05), sk=Math.sin(kipp*1.05), R=0.06+0.05*u, vU=2*Math.PI*rev*R;
+    for(;k.z2.f>=1;k.z2.f--){ const a=k.w-Math.random()*0.5, cx=Math.cos(a), cz=Math.sin(a);
+      const s=vU*rand(0.45,0.7)+rand(0.2,0.5), ra=rand(0.15,0.45);
+      const vx=-cz*s+cx*ra, vz=cx*s+cz*ra, vy=rand(0.02,0.18)+vz*sk;
+      if(fin) psSmall.emit(x+cx*R,y,z+cz*R*nk,vx,vy,vz*nk,C[0],C[1],C[2],rand(0.14,0.22),1,3);
+      else klFunke(x+cx*R,y,z+cz*R*nk,vx,vy,vz*nk,C,rand(0.16,0.26),1.5,0,0.25); }
+    /* ein paar Funken reissen ab und fliegen weit ueber den Tisch */
+    if(!fin&&Math.random()<dt*25){ const a=k.w, cx=Math.cos(a), cz=Math.sin(a), s=rand(1.6,2.6);
+      klFunke(x+cx*R,y,z+cz*R,-cz*s,rand(0.2,0.6),cx*s,C,rand(0.3,0.5),3,0,0.3); }
     psSmall.emit(x,y+0.01,z,0,0,0,1.5,1.4,1.2,0.05,0,0);
     if(fin&&Math.random()<dt*30){ const a=Math.random()*6.283; knisterPop(x+Math.cos(a)*0.03,y+rand(0,0.08),z+Math.sin(a)*0.03,{c:FW.silber,laut:0.4}); }
     if(lt>T-0.06&&!k.hops){ k.hops=1; psBig.emit(x,y+0.05,z,0,0,0,1.3,1.3,1.4,0.08,0,0); psMid.emit(x,y,z,rand(-.3,.3),1.2,rand(-.3,.3),1,1,1,0.25,9.8,0); }

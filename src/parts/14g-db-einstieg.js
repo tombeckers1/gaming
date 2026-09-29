@@ -462,7 +462,10 @@ const DB={
      sind kleine Chrysanthemen (als Mini-Paeonie standen 30 dicke Punkte
      im Kreis - ein Punktkranz, kein Bruch) */
   kinderbatterie:()=>show({basis:{pw:-11.5,sz:0.40,th:'pusteblume'}, rampe:{sz:[0.9,1.15],pw:[-1,1],hell:[0.9,1.15],kurve:'linear'}}, [
-    {n:2,gap:1.7,eff:'chrys',kal:'klein',farbe:1,muster:'gerade',steig:'keiner',bruchOpt:{kern:false,nachglitzer:false},pause:0.9},
+    /* 29.09. (Tom): bei den ersten beiden sah man keinen Abschuss -
+       sie stiegen ohne Schweif (steig:'keiner'). Jetzt mit feinem
+       Goldschweif wie jede Jugendbatterie. */
+    {n:2,gap:1.7,eff:'chrys',kal:'klein',farbe:1,muster:'gerade',bruchOpt:{kern:false,nachglitzer:false},pause:0.9},
     {n:2,gap:1.5,eff:'pusteblume',farbe:0,steig:'silber',muster:'zufall',ang:0.12,boden:{k:'torte',gt:4,A:'silber'},pause:1.0},
     {n:2,gap:0,muster:'v',ang:0.22,eff:'pusteblume',farbe:0,kal:'klein',steig:'silber',pause:3.0}
   ]),

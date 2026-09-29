@@ -33,17 +33,57 @@ const FK_Z=new Map();
 function fkZ(e){ const k=e.tag||0; let z=FK_Z.get(k); if(!z){ z={}; FK_Z.set(k,z); if(FK_Z.size>40) FK_Z.delete(FK_Z.keys().next().value); } return z; }
 /* Menge je Sekunde (nicht je Bild) */
 function fkJe(e,k,rate,dt){ e[k]=(e[k]||0)+dt*Math.max(0,rate); const n=Math.floor(e[k]); e[k]-=n; return n; }
-/* Dauerklang je Phase (Feld ton); Lautstaerke folgt staerke und
-   lautKurve. Nur die erste Duese klingt, sonst waere ein Set viermal so laut. */
+/* Dauerklang je Duese (29.09., Tom: "passende Geraeusche"). Vorher wurde
+   alle 1,1-1,3 s ein neues Rauschen angestossen - das pulsierte hoerbar
+   ("wusch - wusch"), und der Ton hing fest an der Phase: die Glitterphase
+   des Zauberbrunnens zischte glatt wie Titan. Jetzt:
+   - ein durchgehendes Rauschbett je Duese, dessen Lautstaerke der Staerke
+     folgt und das in Dunkelpausen und am Ende weich ausblendet;
+   - der Klang folgt der Funkenart: Kohle/Brokat rauschen tief, Titan und
+     Eisen zischen hell, Glitter britzelt (feine unregelmaessige Knackser
+     ueber leisem Zischen), Knister knistert ueber leisem Rauschen.
+   Nur die erste Duese klingt, sonst waere ein Set viermal so laut. */
+const FK_BETT={
+  rauschen:{rosa:true, typ:'lowpass', f:1100,vol:0.11},
+  zischen: {rosa:false,typ:'highpass',f:3200,vol:0.075},
+  fauchen: {rosa:true, typ:'lowpass', f:520, vol:0.24},
+  glitzer: {rosa:false,typ:'highpass',f:4200,vol:0.035},
+  knistern:{rosa:true, typ:'lowpass', f:1600,vol:0.06}};
+/* Funkenart -> Klang; ausdrueckliche Sonderklaenge der Phase gehen vor */
+const FK_FUNKTON={kohle:'rauschen',brokat:'rauschen',titan:'zischen',eisen:'zischen',glitter:'glitzer',knister:'knistern'};
+const FK_SONDER={still:1,blubb:1,grollen:1,brummen:1,fauchen:1,knistern_laut:1};
+function fkTonArt(ph){ const t=ph&&ph.ton; if(!t) return null; if(FK_SONDER[t]) return t;
+  const fu=Array.isArray(ph.funke)?ph.funke[0]:ph.funke; return FK_FUNKTON[fu]||t; }
+const FK_BETTEN=[], FK_KLANG_LOG={betten:0,arten:[]};
+function fkBettStopp(b){ try{ const t=AC.currentTime; b.g.gain.cancelScheduledValues(t); b.g.gain.setTargetAtTime(0,t,0.12); b.s.stop(t+0.8); }catch(err){} b.aus=true; }
+function fkBett(e,art,ziel){
+  if(!AC) return;
+  let b=e.bett;
+  if(b&&b.art!==art){ fkBettStopp(b); b=e.bett=null; }
+  if(!b){ const B=FK_BETT[art]; if(!B) return;
+    const src=AC.createBufferSource(), fl=AC.createBiquadFilter(), g=AC.createGain(), t=AC.currentTime;
+    src.buffer=B.rosa?rosaRausch():weissBuf(); src.loop=true; fl.type=B.typ; fl.frequency.value=B.f;
+    g.gain.setValueAtTime(0.0001,t); src.connect(fl); fl.connect(g); g.connect(master); src.start(t,Math.random());
+    b=e.bett={art,s:src,g,B,last:t}; FK_BETTEN.push(b); FK_KLANG_LOG.betten++; FK_KLANG_LOG.arten.push(art); }
+  const t=AC.currentTime; b.last=t;
+  /* Ziel anfahren, und von selbst ausblenden, wenn niemand mehr nachfasst
+     (Dunkelpause, Phasenende, Duese erloschen) */
+  b.g.gain.cancelScheduledValues(t); b.g.gain.setTargetAtTime(Math.max(0.0001,ziel*b.B.vol),t,0.09);
+  b.g.gain.setTargetAtTime(0.0001,t+0.3,0.12);
+  /* verwaiste Betten aufraeumen */
+  for(let i=FK_BETTEN.length-1;i>=0;i--){ const x=FK_BETTEN[i]; if(x.aus||t-x.last>1.5){ if(!x.aus) fkBettStopp(x); FK_BETTEN.splice(i,1); } }
+}
 function fkKlang(e,o,dt,faktor){
-  const t=e.ph&&e.ph.ton; if(!t||t==='still'||e.nr) return;
+  const t=fkTonArt(e.ph); if(!t||t==='still'||e.nr) return;
   const st=(e.staerke===undefined?1:e.staerke)*(e.lautAkt||1)*(faktor===undefined?1:faktor); if(st<0.05) return;
-  e.kl=(e.kl||0)-dt; if(e.kl>0) return; const v=distVol(o)*st;
-  if(t==='rauschen'){ e.kl=1.3; sfx.fizz(v*0.85); }
-  else if(t==='zischen'){ e.kl=1.1; sfx.zischen(v*0.8,1.25); }
-  else if(t==='fauchen'){ e.kl=0.95; sfx.fauchen(v*0.8,1.1); }
-  else if(t==='knistern'){ e.kl=rand(0.25,0.5); sfx.crackle(v*0.55); }
-  else if(t==='knistern_laut'){ e.kl=0.1; sfx.crackle(v); }
+  const v=distVol(o)*st;
+  if(FK_BETT[t]){ fkBett(e,t,v);
+    /* Glitter: feine, unregelmaessige Knackser; Knister: dichte Knatterstoesse */
+    if(t==='glitzer'){ e.gk=(e.gk||0)-dt; if(e.gk<=0){ e.gk=rand(0.03,0.12); noise(0.02,0.05*v,rand(5000,9000)); } }
+    if(t==='knistern'){ e.kl=(e.kl||0)-dt; if(e.kl<=0){ e.kl=rand(0.25,0.5); sfx.crackle(v*0.55); } }
+    return; }
+  e.kl=(e.kl||0)-dt; if(e.kl>0) return;
+  if(t==='knistern_laut'){ e.kl=0.1; sfx.crackle(v); }
   else if(t==='blubb'){ e.kl=rand(0.6,1.1); sfx.plopp(v*0.35,0.7); }
   else if(t==='grollen'){ e.kl=0.8; sfx.thump(v*0.35); }
   else if(t==='brummen'){ e.kl=1.2; sfx.brodeln(v*0.6,1.3); }
@@ -1117,3 +1157,4 @@ Object.assign(SIGNATUR,{
   feuerkaskade:{eff:'zerfall',text:'Dreizack aus Gold und Silber, zum Schluss knisternde Goldkometen aus allen drei Düsen'},
   fontaene50:{eff:'titan-drehduese',text:'50 m ruhiger Titanstrahl aus der Drehdüse, Silberkrone mit Knistern und blauen Sternen'}
 });
+if(typeof window!=='undefined') window.__fontklang={FK_KLANG_LOG,fkTonArt,FONT,FK_BETTEN};

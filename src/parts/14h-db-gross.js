@@ -831,7 +831,7 @@ SHOWS.kometen=()=>show({basis:{pw:1.65,sz:1.135,th:'nacht'},rampe:{sz:[0.90,1.25
      einer Sekunde von der Mitte nach aussen, Silber-Feuertoepfe (29.09.:
      vorher 10 in 0,8 s - weniger dicht als die Achterbahn auf L17; Trab
      und Maehne geben dafuer Rohre ab, es bleiben 64 Schuss) */
-  {n:22,gap:0.045,muster:'mitte',ang:0.50,eff:'rossschweif',kal:'riesig',pw:5,A:'weiss',B:'himmel',mine:true,mineEff:'silber',pause:4.5}
+  {n:22,gap:0.045,muster:'mitte',ang:0.50,eff:'rossschweif',kal:'riesig',pw:2.5,A:'weiss',B:'himmel',mine:true,mineEff:'silber',pause:4.5}
 ]);
 SIGNATUR.kometen={eff:'rossschweif',text:'Silberne Pferdeschweife im Galopp'};
 

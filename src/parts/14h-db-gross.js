@@ -1027,7 +1027,7 @@ SHOWS.sternenkaiser=()=>show({basis:{pw:3.55,sz:1.285,th:'kaiser'},rampe:{sz:[0.
   /* Akt 5 Rosette: riesige Einzel-Kaleidoskope */
   /* 28.09., Tom: echt - ohne die zwei Kugelbomben aus dem Karton: ihr
      Aufstieg stand als gleissend weisse Saeule neben dem Verbund */
-  {n:10,gap:2.2,muster:'mitte',ang:0.35,eff:'kaleidoskop',kal:'riesig',pw:5,farbe:1,bruchOpt:{nachglitzer:false},pause:1.0},
+  {n:12,gap:1.9,muster:'mitte',ang:0.35,eff:'kaleidoskop',kal:'riesig',pw:5,farbe:1,bruchOpt:{nachglitzer:false},pause:1.0},
   /* Akt 6 Doppelspiegel: Kreuzfeuer aus der ganzen Breite, Feuertoepfe, Knisterfontaenen symmetrisch */
   {n:48,gap:0.25,muster:'x',ang:0.50,rohre:'breit',eff:['kaleidoskop','brokat'],farbe:0,farbVert:'seite',mine:true,mineEff:'farbe',
    boden:[{k:'knisterbrunnen',gt:8,x:-0.33,A:'silber',B:'weiss'},{k:'knisterbrunnen',gt:8,x:0.33,A:'silber',B:'weiss'}],pause:1.5},
@@ -1087,12 +1087,11 @@ SHOWS.finale=()=>show({basis:{pw:4.00,sz:1.320,th:'meteor'},rampe:{sz:[0.85,1.35
   /* Akt 4 Feuersturm: Kreuzfeuer ueber die ganze Breite, unten stuerzen Truemmer */
   {n:48,gap:0.2,muster:'x',ang:0.50,rohre:'breit',pw:2,eff:['chrys','meteor','kamuro'],kal:'gross',farbe:1},
   {mit:true,n:24,gap:0.4,muster:'v',ang:0.60,kal:'klein',pw:-1,eff:'kaskade',farbe:2,pause:1.0},
-  /* Akt 5 Die grossen Brocken: vier grosse Meteore, darueber Brokat */
+  /* Akt 5 Die grossen Brocken: vier grosse Meteore */
   /* 28.09., Tom: echt - grosse Kometenbomben aus dem Karton statt
      Kugelbomben: deren dicker Aufstieg stand als gleissend weisse Saeule
-     neben dem Verbund (Bodenbild); Brokat-Nachbruch als eigener Schuss */
-  {n:4,gap:2.5,muster:'gerade',eff:'meteor',kal:'riesig',pw:4,farbe:0},
-  {mit:1.2,n:4,gap:2.5,muster:'mitte',ang:0.25,eff:'brokat',kal:'mittel',pw:6,farbe:0,pause:1.5},
+     neben dem Verbund (Bodenbild) */
+  {n:4,gap:2.5,muster:'gerade',eff:'meteor',kal:'riesig',pw:4,farbe:0,pause:1.5},
   /* Akt 6 Stille */
   {n:0,pause:3.0},
   /* Akt 7 Einschlag: 72 Meteore in 3,6 s von der Mitte nach aussen, weisse Feuertoepfe - dann der Weltenblitz */

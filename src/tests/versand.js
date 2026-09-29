@@ -200,7 +200,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   pruef('PAUSE',pa.auf===true,'Esc oeffnet die Pause nicht');
   pruef('PAUSE',aufHaupt==='pHaupt','Esc zeigt nicht die Hauptmaske: '+aufHaupt);
   pruef('PAUSE',pa.zeilen>=15,'in der Pause stehen nur '+pa.zeilen+' Tasten');
-  pruef('PAUSE',/Preisgerät/.test(pa.text)&&/Pfefferspray/.test(pa.text)&&/Umbaumodus/.test(pa.text),'Steuerung unvollstaendig');
+  pruef('PAUSE',/Preisgerät/.test(pa.text)&&/Pfefferspray/.test(pa.text)&&/Möbel/.test(pa.text)&&!/Umbaumodus/.test(pa.text),'Steuerung unvollstaendig');
   pruef('PAUSE',!pz,'Weiterspielen schliesst die Pause nicht');
   pruef('HUD',tool0==='','unten rechts steht noch eine Tastenliste: '+tool0);
 

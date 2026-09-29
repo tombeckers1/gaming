@@ -501,8 +501,8 @@ function muendung(st,slot,t){
      Hoehe 0,9 h). Vorher starteten ihre Schuesse an der Rohrmuendung
      (1,34 m) - 20 bis 30 cm tief im Buendel (28.09., Tom: echt). */
   const pc=P[t];
-  if(pc&&pc.shape==='candle'&&pc.dims){ const d=pc.dims;
-    return {x:p.x+RAMPE_X[slot%3],y:1.18+d[1]*0.9,z:p.z-0.08,ab:0.02,jit:0.01,hx:d[0]*0.52,hz:d[2]*0.3}; }
+  if(pc&&pc.shape==='candle'&&pc.dims){ const k=kerzeImRohr(slot,t);
+    return {x:k.top.x,y:k.top.y,z:k.top.z,ab:0.02,jit:0.005,hx:k.hx,hz:k.hz}; }
   return {x:p.x+RAMPE_X[slot%3],y:1.34,z:p.z-0.08,ab:0.05,jit:0.02,hx:0.045,hz:0.045};
 }
 function placedCount(){ let n=0; for(const k in stations) n+=stations[k].items.length; return n; }
@@ -540,6 +540,20 @@ function pultLampen(){
     if(!it){ m.emissiveIntensity=0; return; }
     if(it.state==='brennt'){ m.emissive.copy(LIN(0xff3b2e)); m.emissiveIntensity=1.6; }
     else { m.emissive.copy(LIN(0x39ff7a)); m.emissiveIntensity=1.3; } });
+}
+/* Roemische Lichter stecken IM Abschussrohr (Tom, Foto 29.09.): das
+   Buendel war mit bis zu 25 cm doppelt so breit wie das Rohr (11 cm),
+   stand senkrecht auf dem Rand und machte die Neigung nicht mit. Jetzt
+   folgt es der Rohrachse, ist so schmal, dass es hineinpasst (einzelne
+   Kerzen 2-3 cm wie in echt), und das obere Drittel schaut heraus. */
+const ROHR_ACHSE={y:0.72,z:-0.02,neig:-0.1,halb:0.625,innen:0.056};
+function kerzeImRohr(slot,t){
+  const p=STATION_POS.rampe, d=P[t].dims, w=d[0], HH=d[1]*0.9;
+  const s=Math.min(1,(ROHR_ACHSE.innen*2-0.008)/(1.41*w));
+  const c=Math.cos(ROHR_ACHSE.neig), sn=Math.sin(ROHR_ACHSE.neig);
+  const bei=u=>({x:p.x+RAMPE_X[slot%3],y:ROHR_ACHSE.y+c*u,z:p.z+ROHR_ACHSE.z+sn*u});
+  const tb=ROHR_ACHSE.halb-0.4*HH;
+  return {base:bei(tb),top:bei(tb+HH),s,neig:ROHR_ACHSE.neig,hx:0.52*w*s,hz:0.5*w*s};
 }
 function stationSlot(st,i){
   const p=STATION_POS[st.id];
@@ -685,7 +699,10 @@ function placeOnStation(st){
     /* alle stehen mit der Breite quer zum Blick - die Schuesse laufen
        ueber diese Breite. Vorher wurden Verbunde ueber 0,76 m quer
        gestellt und schossen dann neben dem Karton (28.09.) */
-    it.h=pools[c.type].add(mx(sl.x,sl.y,sl.z,sl.ry));
+    if(st.id==='rampe'&&P[c.type].shape==='candle'){
+      const k=kerzeImRohr(slot,c.type); _e.set(k.neig,0,0); _q.setFromEuler(_e);
+      it.h=pools[c.type].add(new THREE.Matrix4().compose(V(k.base.x,k.base.y,k.base.z),_q,V(k.s,1,k.s)));
+    } else it.h=pools[c.type].add(mx(sl.x,sl.y,sl.z,sl.ry));
   }
   st.items.push(it);
   c.count--; S.tut.build=true; sfx.pop();

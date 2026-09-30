@@ -17,6 +17,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
 (async()=>{
   const b=await chromium.launch({args:['--use-gl=swiftshader','--enable-unsafe-swiftshader','--no-sandbox']});
   const p=await b.newPage({viewport:{width:800,height:500},deviceScaleFactor:2});
+  p.on('crash',()=>errs.push('CRASH'));
   const errs=[]; p.on('pageerror',e=>errs.push('PAGEERROR: '+e.message));
   const mangel=[]; const pruef=(n,ok,w)=>{ if(!ok) mangel.push(n+': '+w); };
   await p.goto('file://'+process.argv[2]); await p.waitForFunction('window.__bb!==undefined',{timeout:120000});
@@ -41,12 +42,16 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     bb.gfxWaehlen('niedrig');
     return o; });
   console.log(JSON.stringify(a));
-  await p.reload(); await p.waitForFunction('window.__bb!==undefined',{timeout:120000});
-  const c=await p.evaluate(()=>{ const bb=window.__bb, R=bb.renderer; return {gfx:bb.GFX,wahl:bb.GFX_WAHL,aa:R.getContext().getContextAttributes().antialias,pr:R.getPixelRatio(),schatten:R.shadowMap.enabled}; });
+  /* neue Seite im selben Browser (gleicher Speicher) - ein Neuladen der
+     schweren Seite brach in der Software-Grafik ab */
+  const ctx=p.context(); await p.close(); const p2=await ctx.newPage(); p2.setDefaultTimeout(600000);
+  p2.on('pageerror',e=>errs.push('PAGEERROR: '+e.message)); p2.on('crash',()=>errs.push('CRASH'));
+  await p2.goto('file://'+process.argv[2]); await p2.waitForFunction('window.__bb!==undefined',{timeout:240000});
+  const c=await p2.evaluate(()=>{ const bb=window.__bb, R=bb.renderer; return {gfx:bb.GFX,wahl:bb.GFX_WAHL,aa:R.getContext().getContextAttributes().antialias,pr:R.getPixelRatio(),schatten:R.shadowMap.enabled}; });
   console.log(JSON.stringify(c));
   /* Pausenmenue: Seite Grafik, Knopf Mittel */
-  await neuesSpiel(p);
-  const d=await p.evaluate(()=>{ const bb=window.__bb; bb.showPause(); bb.pauseSeite('pGrafik'); document.querySelector('#gfxWahl [data-gfx="mittel"]').click();
+  await neuesSpiel(p2);
+  const d=await p2.evaluate(()=>{ const bb=window.__bb; bb.showPause(); bb.pauseSeite('pGrafik'); document.querySelector('#gfxWahl [data-gfx="mittel"]').click();
     return {gfx:bb.GFX,an:document.querySelector('#gfxWahl .an')&&document.querySelector('#gfxWahl .an').dataset.gfx,info:document.getElementById('gfxInfo').textContent}; });
   console.log(JSON.stringify(d));
   pruef('START',a.start.wahl==='auto'&&a.start.gfx==='hoch'&&a.start.pr>1.5&&a.start.schatten&&a.start.qual===1,'Start nicht auto/hoch: '+JSON.stringify(a.start));

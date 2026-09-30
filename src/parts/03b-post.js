@@ -126,9 +126,21 @@ function sonneNachfuehren(){
   sun.target.position.set(tx,0,tz);
   sun.target.updateMatrixWorld();
   sun.shadow.camera.updateProjectionMatrix();
+  renderer.shadowMap.needsUpdate=true;
+}
+/* Schattenbild: in 'hoch' jedes Bild neu, in 'mittel' jedes dritte (die
+   Sonne steht still, nur Figuren und Kartons bewegen sich - drei Bilder
+   Verzug sieht man nicht). Der Schattenpass zeichnet jedes Objekt ein
+   zweites Mal: im Laden rund 1000 zusaetzliche Zeichenaufrufe. */
+let schattenN=0;
+function schattenTakt(){
+  const R=renderer.shadowMap; if(!R.enabled){ return; }
+  R.autoUpdate=false; schattenN++;
+  if(GFX==='hoch'||schattenN>=3){ R.needsUpdate=true; schattenN=0; }
 }
 function renderFrame(dt){
   sonneNachfuehren();
+  schattenTakt();
   if(skyMesh){ skyMesh.position.set(camera.position.x,0,camera.position.z); starPts.position.copy(skyMesh.position); }
   if(!postOK||!postOn){ if(renderer.setRenderTarget) renderer.setRenderTarget(null); renderer.render(scene,camera); return; }
   try{

@@ -129,6 +129,7 @@ function vorfuehrungAn(nur){
   vfSonder=Array.isArray(nur)?nur.filter(t=>P[t]&&stationOf(t)):null;
   vfListe=vfSonder||fwTestProdukte(); vfLaden(); if(vfSonder) vfIdx=0; vfIdx=clamp(vfIdx,0,Math.max(0,vfListe.length-1)); vfLetzt=null;
   vfAn=true; lastF=-1; applyTOD(); clearStations(); vfAnlageBauen(); vfBelegt={};
+  for(const sid of ['tisch','rampe','moerser']) if(stations[sid]&&stations[sid].g) stations[sid].g.visible=false;
   /* Uhr, Geld, Tutorial und Zielpfeil stoeren beim Zusehen - weg damit */
   if(!document.getElementById('vfStil')){ const st=document.createElement('style'); st.id='vfStil';
     st.textContent='body.vorf #hud .tl,body.vorf #tip,body.vorf #zielPfeil,body.vorf #staff,body.vorf #cross{display:none!important}'; document.head.appendChild(st); }
@@ -145,6 +146,7 @@ function vorfuehrungAus(){
   vfAn=false; vfListeAuf=false; vfMerken(); lastF=-1; applyTOD();
   if(vfEl){ vfEl.remove(); vfEl=null; }
   if(vfAnlage) vfAnlage.visible=false;
+  for(const sid of ['tisch','rampe','moerser']) if(stations[sid]&&stations[sid].g) stations[sid].g.visible=true;
   document.body.classList.remove('vorf');
   toast('Vorführung beendet. Nummer und Notizen sind gemerkt.');
 }
@@ -154,7 +156,10 @@ function vorfuehrungAus(){
    Pult - ein langer Tisch mit zehn Plaetzen, ein Gestell mit zwoelf
    Rohren, eine Moerserbatterie mit vier Rohren je Kaliber. Jede Zuendung
    nimmt den naechsten freien Platz, nichts kommt sich in die Quere. */
-const VF_Z=-26.2, VF_TISCH={x0:-7.0,n:10,dx:0.52,y:0.93}, VF_ROHR={x0:-1.4,n:12,dx:0.3,y:1.34}, VF_MOERSER={x0:2.9,n:4,dx:0.42,gdx:1.7,hoch:[0.62,0.82,1.02]};
+/* 30.09. (Tom: "alle Test-Vorfuehrungen in die Mitte des Testfelds, dass
+   man alles gut sehen kann - aktuell hinten links"): die Reihe steht in der
+   Mitte (Testfeld z -28..-6), die normalen Stationen sind solange ausgeblendet */
+const VF_Z=-18.0, VF_TISCH={x0:-7.0,n:10,dx:0.52,y:0.93}, VF_ROHR={x0:-1.4,n:12,dx:0.3,y:1.34}, VF_MOERSER={x0:2.9,n:4,dx:0.42,gdx:1.7,hoch:[0.62,0.82,1.02]};
 let vfAnlage=null, vfBelegt={};
 function vfAnlageBauen(){
   if(vfAnlage){ vfAnlage.visible=true; return; }
@@ -196,6 +201,11 @@ function vfZuenden(t){
   if(o.sid==='tisch'&&pools[t]&&!pools[t].full()) h=pools[t].add(mx(o.x,o.boden,o.z,Math.PI));
   if(vor){ emitters.push({t:vor,k:'fuse',o:{x:o.x,y:o.y,z:o.z}}); sfx.fizz(distVol(o)*0.5); }
   later(vor,()=>{ if(vfAn) igniteType(t,o); });
+  /* der Blick folgt dem Produkt: zur Seite auf seinen Platz, nach oben so
+     weit, wie es steigt - Kleinfeuerwerk flach, Batterien halb, Raketen
+     und Kugeln steil */
+  { const sh=P[t].shape; pitch=o.sid==='tisch'?(SHOWS[t]||sh==='battery'||sh==='fan'?0.55:sh==='fountain'||sh==='cylinder'||sh==='fountainset'?0.35:0.1):o.sid==='rampe'?0.72:0.85;
+    yaw=Math.atan2(-(o.x-pl.x),-(o.z-pl.z)); }
   if(h) later(vor+dauer,()=>{ if(h.pool) h.pool.remove(h); });
   vfLetzt=t; return true;
 }

@@ -20560,7 +20560,10 @@ const DB={
   schneeballschlacht:()=>show({basis:{pw:-7.5,sz:0.60,th:'silber'}, rampe:{sz:[0.9,1.2],pw:[-1,1],hell:[0.9,1.2],kurve:'welle'}}, [
     {n:2,gap:1.6,muster:'gerade',eff:'pulverschnee',kal:'klein',steig:'silber',pause:0.8},
     {n:6,gap:1.0,muster:'x',ang:0.38,rohre:'breit',eff:'pulverschnee',steig:'silber',pause:1.2},
-    {n:4,gap:0.25,muster:'zufall',ang:0.3,eff:'pulverschnee',kal:'mini',steig:'keiner',boden:{k:'torte',gt:3,A:'weiss'},pause:3.0}
+    /* 30.09. (Tom): im Finale sah man keine Geschosse hochgehen, nur die
+       Brueche am Himmel - sie stiegen ohne Schweif (steig:'keiner').
+       Jetzt mit feinem Silberschweif wie die Kreuzwuerfe davor. */
+    {n:4,gap:0.25,muster:'zufall',ang:0.3,eff:'pulverschnee',kal:'mini',steig:'silber',boden:{k:'torte',gt:3,A:'weiss'},pause:3.0}
   ]),
   /* Funkelnacht, L10: Zeitsterne gehen einer nach dem anderen an.
      28.09.: je Phase ein Paar (Blau/Gold, Himmel/Weiss); kein Boden-

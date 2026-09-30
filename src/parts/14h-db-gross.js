@@ -1285,3 +1285,67 @@ SIGNATUR.wolkenkratzer={idee:'etagen',text:'vier Etagen übereinander, gleichzei
  'donnerschlag','goldenerregen','kometen','hochzeitsfaecher','donnerwand','feuerpfau','hexenkessel','blitzgewitter60','nordlicht','goldregen22',
  'pfeifkonzert','profi','kometenwand','sternenkaiser','geysirfeld','finale','silvesternacht','himmelsfaecher','kugelfinale','wolkenkratzer'].forEach(t=>{
   const b=SHOWS[t]&&SHOWS[t]().basis; if(b) SHOW_BASIS[t]={pw:b.pw,sz:b.sz,th:b.th}; });
+
+/* =========================================================
+   Zwei Mix-Batterien mit Roemischen Lichtern (30.09., Tom: "viel so
+   roemische Lichter ... Mix-Batterien, wo du ein bisschen Fontaene hast,
+   roemische Lichter und dann Knalle - eine mittlere und eine extreme;
+   achte auf die Sounds und das Zusammenspiel").
+   ========================================================= */
+Object.assign(THEMEN,{
+  roemer:[['gold','rot'],['gold','weiss'],['rot','gold']],
+  arena:[['gold','rot'],['silber','weiss'],['rot','gold'],['weiss','gold']]
+});
+/* Level 16: Roemerfeuer. Knister-Kerzen (Goldkugeln, die knisternd
+   zerfallen) laufen ueber den Karton, Kracher antworten, zwei Gold-
+   fontaenen tragen den Boden; Finale Kerzen-Schlag mit Titan-Krachern.
+   Klang: Fontaenen rauschen, Kerzen ploppen und prasseln, Kracher
+   knallen trocken - nie alles zugleich, sondern im Wechsel. */
+SHOWS.roemerfeuer=()=>show({basis:{pw:0.05,sz:1.005,th:'roemer'},rampe:{sz:[0.9,1.25],pw:[0,2],hell:[0.85,1.3],kurve:'spaet'}},[
+  /* Auftakt: die Kerzen erwachen ueber zwei Goldfontaenen */
+  {n:6,perle:true,perleEff:'knisterperle',gap:0.6,muster:'gerade',rohrFolge:[-1,-0.4,0.2,0.8,0.4,-0.2],farbe:0,
+    boden:[{k:'fountain',gt:6,gh:0.7,x:-0.2,A:'gold',B:'weiss'},{k:'fountain',gt:6,gh:0.7,x:0.2,A:'gold',B:'weiss',t:0.4}],pause:0.5},
+  /* Antwort: sechs Kracher im V, trocken und kurz */
+  {n:6,gap:0.28,muster:'v',ang:0.32,eff:'salut',kal:'klein',pw:-2,pause:0.9},
+  /* Wechselspiel: Knister-Kerzen gestreut, darueber rote Palmen */
+  {n:10,perle:true,perleEff:'knisterperle',gap:0.35,muster:'zufall',ang:0.14,rohrFolge:[-0.8,0.6,-0.2,1,-1,0.2,0.8,-0.6,0,0.4],farbe:1},
+  {mit:true,n:5,gap:0.75,muster:'gerade',eff:['palme','chrys'],kal:'mittel',pw:1,farbe:2,pause:1.0},
+  /* Zwischenspiel: ein Vulkan brodelt, goldene Kamuros sinken langsam */
+  {n:4,gap:1.0,muster:'w',ang:0.3,eff:'kamuro',pw:2,farbe:0,boden:{k:'volcano',gt:4.5,A:'gold',B:'rot'},pause:0.6},
+  /* FINALE: acht Kerzen auf Schlag, dazu Titan-Kracher im X und die Fontaenen */
+  {n:8,perle:true,perleEff:'knisterperle',gap:0.1,muster:'schlag',ang:0.2,rohrFolge:[-1,1,-0.6,0.6,-0.2,0.2,0,0],farbe:0,
+    boden:[{k:'fountain',gt:4,gh:1.0,x:-0.2,A:'gold',B:'zitrone'},{k:'fountain',gt:4,gh:1.0,x:0.2,A:'gold',B:'zitrone'}]},
+  {mit:true,n:10,gap:0.08,muster:'x',ang:0.36,eff:'titanschlag',kal:'mittel',pw:2,pause:4.0}
+]);
+SIGNATUR.roemerfeuer={eff:'knisterperle',text:'Knister-Kerzen im Wechsel mit Krachern über Goldfontänen'};
+
+/* Level 25: Kolosseum. Das Extrem: Einmarsch zwischen zwei Riesen-
+   fontaenen, Knall-Kerzen (Kugel steigt, oben ein harter Knall mit
+   Weissblitz), Fanfare aus Goldkometen, Gladiatoren (Titanschlaege mit
+   Palmen), Loewen (Riesen-Kamuros ueber Knall-Kerzen), Wagenrennen
+   (Kreuzsterne im Kreis), Stille - dann das Finale aus Donnerblitzen,
+   Knall-Kerzen auf Schlag, Riesenfontaenen und Feuertoepfen, zum
+   Schluss sechs Riesen-Titanschlaege. */
+SHOWS.kolosseum=()=>show({basis:{pw:4.0,sz:1.33,th:'arena'},rampe:{sz:[0.95,1.3],pw:[0,2.5],hell:[0.9,1.45],kurve:'spaet'}},[
+  /* Einmarsch */
+  {n:10,perle:true,perleEff:'knallperle',gap:0.7,muster:'gerade',rohrFolge:[-1,1,-0.6,0.6,-0.2,0.2,-0.8,0.8,-0.4,0.4],farbe:0,
+    boden:[{k:'riesen',x:-0.3,gt:8,gh:0.8,A:'gold',B:'weiss',C:FW.gold},{k:'riesen',x:0.3,gt:8,gh:0.8,A:'gold',B:'weiss',C:FW.gold,t:0.6}],pause:0.4},
+  /* Fanfare: Goldkometen von der Mitte nach aussen, dazu Knall-Kerzen */
+  {n:12,gap:0.22,muster:'mitte',ang:0.45,eff:'rohrkomet',art:'gold'},
+  {mit:true,n:6,perle:true,perleEff:'knallperle',gap:0.45,muster:'zufall',ang:0.12,rohrFolge:[-0.5,0.5,0,-0.9,0.9,0],farbe:1,pause:1.0},
+  /* Gladiatoren: Titanschlag und Palme im Wechsel, im Takt da-da-DAMM */
+  {n:18,takt:[0.2,0.2,0.65],muster:'paar',ang:0.42,eff:['titanschlag','titanschlag','palme'],kal:'gross',farbe:2,boden:{k:'volcano',gt:5,A:'rot',B:'gold'},pause:0.9},
+  /* Loewen: Riesen-Kamuros, darunter Knall-Kerzen */
+  {n:6,gap:1.1,muster:'gerade',eff:'kamuro',kal:'riesig',pw:3,farbe:3},
+  {mit:true,n:14,perle:true,perleEff:'knallperle',gap:0.45,muster:'zufall',ang:0.2,farbe:1,pause:0.8},
+  /* Wagenrennen: Kreuzsterne ziehen im Kreis */
+  {n:24,gap:0.12,muster:'kreis',ang:0.32,eff:'crossette',kal:'mittel',farbe:1,pause:2.2},
+  /* FINALE: Donnerblitz-Salven aus vier Modulen, Knall-Kerzen auf Schlag,
+     Riesenfontaenen und goldene Feuertoepfe */
+  {n:24,je:6,takt:[0.55],x:[-0.3,-0.1,0.1,0.3],angOff:[-0.3,-0.1,0.1,0.3],muster:'schlag',ang:0.35,eff:'donnerblitz',kal:'gross',farbe:0,mineEff:'gold',
+    boden:[{k:'riesen',x:-0.3,gt:5,gh:1.0,A:'gold',B:'weiss',C:FW.gold},{k:'riesen',x:0.3,gt:5,gh:1.0,A:'gold',B:'weiss',C:FW.gold}]},
+  {mit:true,n:20,perle:true,perleEff:'knallperle',gap:0.08,muster:'schlag',ang:0.3,farbe:0,pause:0.6},
+  /* Schluss: sechs Riesen-Titanschlaege senkrecht */
+  {n:6,je:6,muster:'gerade',eff:'titanschlag',kal:'riesig',pw:4,farbe:1,pause:5}
+]);
+SIGNATUR.kolosseum={eff:'knallperle',text:'Knall-Kerzen, Riesenfontänen und Titanschläge – die Arena bebt'};

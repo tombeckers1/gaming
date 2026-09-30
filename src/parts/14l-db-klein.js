@@ -1276,7 +1276,7 @@ Object.assign(KLEIN,{
        Titanfunken flogen 30-50 cm weit und machten aus 13-cm-Ziffern vier
        Funkenbaelle. Jetzt kurze Funken (Reichweite ~12 cm) direkt an der
        Glutfront, Ziffern 16 cm: man sieht die 2027 Strich fuer Strich entstehen */
-    phasen:[{k:'glutschrift',form:['2','0','2','7'],abstand:0.118,groesse:0.16,at:0,t:6.5,versatz:0.4,start:'strich',fronten:1,material:'titan',weite:0.28,A:'silber',B:'weiss',glut:'gold',nachglut:3.0,n:3, /* weniger Funken: die Ziffern sollen schon beim Brennen lesbar sein */
+    phasen:[{k:'glutschrift',form:['2','0','2','7'],abstand:0.105,groesse:0.16,at:0,t:6.5,versatz:0.4,start:'strich',fronten:1,material:'titan',weite:0.28,A:'silber',B:'weiss',glut:'gold',nachglut:3.0,n:3, /* weniger Funken: die Ziffern sollen schon beim Brennen lesbar sein */
       schluss:{at:7.8,funkeln:1.0}}]},
   /* L4 */
   boeller:{stueck:1,lunte:1.2,dauer:5,phasen:[{k:'alt',fn:'furzboeller'}]},

@@ -1221,6 +1221,26 @@ function perleSchuss(o,A,s,opt){
         for(let k=0;k<Math.round(10*QUAL());k++) psMid.emit(q.x,q.y,q.z,Math.sin(az)*w*rand(0.3,0.9),rand(-1,0.5),Math.cos(az)*w*rand(0.3,0.9),1,.75,.35,rand(0.4,0.8),3,4); }
       SCHWEIF=alt2; psHuge.emit(q.x,q.y,q.z,0,0,0,1,1,1,0.07,0,0); later(camera.position.distanceTo(q)/343,()=>sfx.crack(distVol(q)*0.9)); });
   }
+  else if(art==='knisterperle'){
+    /* 30.09. (Tom: neue Mix-Batterie mit Roemischen Lichtern): Knister-
+       Kerze wie echt - die Goldkugel zieht knisternde Funken hinter sich
+       her und zerfaellt oben in einen prasselnden Knisterball */
+    const n=Math.max(3,Math.floor(tS/0.12));
+    for(let i=1;i<n;i++) if(Math.random()<0.55) bei(i*tS/n,q=>{ if(typeof knisterPop==='function') knisterPop(q.x+rand(-.15,.15),q.y-rand(0,.4),q.z+rand(-.15,.15),{funken:3,c:[1,0.86,0.5],laut:0.35}); });
+    bei(tS,q=>{ if(typeof knisterWolke==='function') knisterWolke(q,Math.round(34*QUAL()),0.8,1.7,{c:[1,0.9,0.62],funken:6,laut:0.6});
+      else later(0.05,()=>sfx.crackle(distVol(q))); });
+  }
+  else if(art==='knallperle'){
+    /* 30.09. (Tom: extreme Mix-Batterie): Roemisches Licht mit Knall -
+       die Kugel steigt, oben ein harter Knall mit Weissblitz und kurzem
+       Silberkranz (Kerzen mit "report") */
+    bei(tS,q=>{ const alt2=SCHWEIF; SCHWEIF=0;
+      for(let k=0;k<2;k++) psHuge.emit(q.x,q.y,q.z,0,0,0,1.8,1.8,1.7,0.07,0,0);
+      for(let k=0;k<Math.round(26*QUAL());k++){ const d=randDir(), w=rand(9,13); psSmall.emit(q.x,q.y,q.z,d[0]*w,d[1]*w,d[2]*w,1.6,1.6,1.55,rand(0.08,0.14),0,0); }
+      SCHWEIF=0.2; for(let k=0;k<Math.round(14*QUAL());k++){ const d=randDir(), w=rand(3,5); psMid.emit(q.x,q.y,q.z,d[0]*w,d[1]*w,d[2]*w,0.9,0.92,1,rand(0.5,0.8),3,4); }
+      SCHWEIF=alt2; flash(q,FW.weiss,2.2,0.08);
+      later(camera.position.distanceTo(q)/343,()=>{ const v=distVol(q); sfx.crack(v*1.5); sfx.boom(v*0.45); }); });
+  }
   if(FW_LOG) FW_LOG.push({t:FW_UHR,art:'perle',kal:0,pw:0,sz:s||1,eff:art||'perle',A,B,stufenEff:[],hoehe:0,brueche:1,groesste:s||1,ang:+ang.toFixed(3),dir:+dir.toFixed(3),x:+o.x.toFixed(2),y:+y0.toFixed(2),z:+o.z.toFixed(2),v:[+vx.toFixed(2),+vy.toFixed(2),+vz.toFixed(2)],tag});
   if(typeof bruchGesehen==='function') bruchGesehen(art||'perle');
   sfx.thump(distVol(o)*0.8);

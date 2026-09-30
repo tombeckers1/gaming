@@ -998,10 +998,13 @@ Object.assign(FONT,{
   /* Feuerkreis (L8): der Karton spruehet ringsum flach, die Funken landen
      als Glutring und springen auf; der Ring waechst, steht, zieht sich
      zusammen, zum Schluss steigt eine Knisterkrone */
+  /* 30.09. (Tom: "der erste Effekt - dieses Zischen passt nicht"): Gold-
+     und Orangefunken sind Kohlefunken, die rauschen tief statt hell zu
+     zischen (Titan). Aufschiessen: Fauchen, dann Rauschen */
   bodenfeuer:{phasen:[
-    {k:'bodenring',t:2.0,radius:[0.3,1.6],hebung:5,A:'orange',B:'gold',ton:'zischen'},
+    {k:'bodenring',t:2.0,radius:[0.3,1.6],hebung:5,A:'orange',B:'gold',ton:'fauchen'},
     {k:'bodenring',t:5.0,radius:[1.6,1.9],hebung:6,A:'gold',B:'orange',huepfer:true,ton:'rauschen'},
-    {k:'bodenring',t:3.0,radius:[1.8,0.2],hebung:8,A:'gold',B:'orange',ton:'zischen',ende:'knisterkrone'}]},
+    {k:'bodenring',t:3.0,radius:[1.8,0.2],hebung:8,A:'gold',B:'orange',ton:'rauschen',ende:'knisterkrone'}]},
   /* Farbenspiel (L8): drei Fontaenen mit Farbflamme an der Duese -
      Rot, dann Gruen, dann eine mit Farbwechsel Rot/Gruen (Dunkelphase);
      die Funken bleiben Gold und Silber */

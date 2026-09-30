@@ -33,7 +33,7 @@ const NEUWARE={
   wunderherz:{name:'Herzfunken · 6 Herz-Wunderkerzen',short:'Herz-Wunderk.',cat:1,lvl:2,shape:'sparkler',dims:[0.14,0.28,0.03],grid:[12,3,1],box:24,cost:0.90,market:2.29,weight:6,hype:3,risk:1,
     desc:'Das Herz brennt von der Spitze aus auf beiden Seiten gleichzeitig hoch – oben treffen sich die Funken, und kurz leuchtet das ganze Herz.',
     art:{title:'HERZFUNKEN',sub:'6 Herz-Wunderkerzen',bg1:'#c01c6a',bg2:'#4a0626',ac:'#ffd23f',ac2:'#fff3c4'}},
-  wunderzahl:{name:'Jahreszahl 2027 · 4 Zahlen-Wunderkerzen',short:'2027-Wunderk.',cat:1,lvl:3,shape:'sparkler',dims:[0.26,0.3,0.03],grid:[12,3,1],box:20,cost:1.20,market:2.99,weight:6,hype:4,risk:1,
+  wunderzahl:{name:'Jahreszahl 2027 · 4 Zahlen-Wunderkerzen',short:'2027-Wunderk.',cat:1,lvl:3,shape:'sparkler',dims:[0.36,0.3,0.03],grid:[12,3,1],box:20,cost:1.20,market:2.99,weight:6,hype:4,risk:1,
     desc:'Vier Zahlen-Wunderkerzen schreiben 2027 in Funken – Strich für Strich, und danach steht die Jahreszahl noch als Glut in der Luft.',
     art:{title:'2027',sub:'Zahlen-Wunderkerzen',bg1:'#0e1226',bg2:'#000000',ac:'#ffd23f',ac2:'#f2f5ff',gold:true}},
   pharao:{name:'Pharaoschlangen 12er',short:'Pharaoschlangen',cat:1,lvl:2,shape:'boxA',dims:[0.12,0.05,0.08],grid:[8,2,2],box:24,cost:0.50,market:1.29,weight:5,hype:2,risk:1,
@@ -339,6 +339,13 @@ const NEUWARE={
   hexenkessel:{name:'Hexenkessel · 180 Schuss in 35 s',short:'Hexenkessel',cat:2,lvl:20,shape:'battery',dims:[0.62,0.42,0.5],grid:[3,1,1],box:2,cost:40.00,market:89.99,weight:4,hype:74,risk:9,
     desc:'In der Mitte brodelt ein Kessel aus Goldfunken mit grünen Sternen, rundherum schießen Ringe aus acht Rohren gleichzeitig schräg nach außen – eine Hexenkrone nach der anderen, immer schneller.',
     art:{title:'HEXENKESSEL',sub:'180 Schuss · 35 Sekunden',bg1:'#2a5a0a',bg2:'#0a0214',ac:'#b6ff3a',ac2:'#c85cff'}},
+  /* 30.09. (Tom): zwei Mix-Batterien mit vielen Roemischen Lichtern - eine mittlere, eine extreme */
+  roemerfeuer:{name:'Römerfeuer · 49 Schuss Kerzen-Mix',short:'Römerfeuer',cat:2,lvl:16,shape:'battery',dims:[0.46,0.36,0.4],grid:[3,1,1],box:2,cost:25.50,market:57.99,weight:5,hype:60,risk:7,
+    desc:'Ein Mix wie aus dem Bilderbuch: Knister-Kerzen laufen über den Karton und zerfallen oben prasselnd, trockene Kracher antworten, zwei Goldfontänen tragen den Boden – im Finale acht Kerzen auf Schlag mit Titan-Krachern.',
+    art:{title:'RÖMERFEUER',sub:'49 Schuss · Kerzen · Fontänen · Kracher',bg1:'#8a1a0a',bg2:'#1a0602',ac:'#ffc63a',ac2:'#ff5a2e'}},
+  kolosseum:{name:'Kolosseum · 140 Schuss Arena-Verbund',short:'Kolosseum',cat:2,lvl:25,shape:'battery',dims:[0.98,0.84,0.6],grid:[2,1,1],box:1,cost:104.00,market:234.99,weight:2,hype:99,risk:10,
+    desc:'Die Arena bebt: Einmarsch zwischen zwei Riesenfontänen, Knall-Kerzen mit Weißblitz, Goldkometen als Fanfare, Titanschläge der Gladiatoren, Riesen-Kamuros, ein Wagenrennen aus Kreuzsternen – und ein Finale aus Donnerblitzen, Knall-Kerzen auf Schlag und Feuertöpfen.',
+    art:{title:'KOLOSSEUM',sub:'140 Schuss · Arena-Verbund',bg1:'#6a4a14',bg2:'#140a02',ac:'#ffe08a',ac2:'#ff3a2e',gold:true}},
   nordlicht:{name:'Nordlicht · 150 Schuss Polarlicht-Verbund',short:'Nordlicht',cat:2,lvl:21,shape:'battery',dims:[0.76,0.6,0.5],grid:[3,1,1],box:2,cost:58.00,market:129.99,weight:3,hype:80,risk:10,
     desc:'Leise, hoch und langsam: Silberweiden mit grünen Spitzen, die violett werden, hängen über dem Himmel. Nur einmal bricht ein Sonnensturm los – danach wird es wieder still.',
     art:{title:'NORDLICHT',sub:'150 Schuss · Polarlicht',bg1:'#0d4a2a',bg2:'#021208',ac:'#5cff9e',ac2:'#c8a2ff'}},
@@ -546,7 +553,7 @@ const NEU_LIZ_DAZU={
 };
 const NEU_LIZENZEN=[
   {id:'jugend',lvl:2,cost:60,name:'Jugendfeuerwerk',
-   desc:'Feuerwerk, das auch Kinder zünden dürfen: Knallbonbons, Tischbomben, Bengalische Hölzer, Zahlen-Wunderkerzen, Pharaoschlangen, die Gummibärchen-Fontänen, der Zweihorn-Feuerteufel, die Pusteblume-Jugendbatterie und das Brausepulver-Sortiment.',
+   desc:'Feuerwerk, das auch Kinder zünden dürfen: Knallbonbons, Tischbomben, Bengalische Hölzer, Zahlen-Wunderkerzen, die Gummibärchen-Fontänen, der Zweihorn-Feuerteufel, die Pusteblume-Jugendbatterie und das Brausepulver-Sortiment.',
    items:['knallbonbon','tischbombe','bengalholz','wunderzahl','pharao','leuchtfontaene','feuerteufel','kinderbatterie','kinderparty','wunderkerzeXXL','tortenfontaene','luftschlangentisch','stroboblinker']},
   {id:'snacks',lvl:7,cost:260,name:'Snacks & Süßes',
    desc:'Popcorn, Salzgebäck, Erdnüsse, Fruchtgummi, Berliner-Nachschub und die Glücksbringer zum Naschen: Marzipanschweinchen und Schoko-Glückstaler.',
@@ -555,17 +562,17 @@ const NEU_LIZENZEN=[
    desc:'Heringssalat, Kartoffel- und Nudelsalat, gefüllte Eier, Würstchen, Mini-Frikadellen, Fingerfood, Baguette, Mett-Igel, Partypizza, Dips, die Mitternachts-Gulaschsuppe und das Katerfrühstück. Vieles davon gehört in den Kühlschrank.',
    items:['heringssalat','kartoffelsalat','wuerstchen','frikadellen','baguette','mettigel','partypizza','dips','rollmops','gefuellteeier','nudelsalat','gulaschsuppe','fingerfood']},
   {id:'kleinfeuer',lvl:10,cost:1800,name:'Kleinfeuerwerk',
-   desc:'Die ersten richtigen Batterien für den kleinen Geldbeutel: die Funkelnacht mit 20 Zeitsternen, die Schneeballschlacht, die Tonleiter mit Heulschüssen, das Pfauenrad als erster Fächer, der Zauberwald und die Tornado-Box. Dazu Silberpfeil-Raketen und der Zauberbrunnen.',
+   desc:'Die ersten richtigen Batterien für den kleinen Geldbeutel: die Schneeballschlacht, die Tonleiter mit Heulschüssen und das Pfauenrad als erster Fächer. Dazu Silberpfeil-Raketen und der Zauberbrunnen.',
    items:['sternstaub20','schneeballschlacht','heulbatterie','pfauenrad','silberpfeil','zauberbrunnen','zauberwald','jugendbox']},
   {id:'feuerzauber',lvl:13,cost:4200,name:'Feuerzauber',
-   desc:'Palmenhain, Mondschein, der Funkenturm mit sechs Metern, Spätzünder-Knisterraketen und die Hafenlichter.',
+   desc:'Palmenhain mit 25 Schuss und die Spätzünder-Knisterraketen.',
    items:['goldpalmen','mondschein','funkenturm','knisterstern','bengalduo']},
   {id:'getraenke',lvl:14,cost:5000,name:'Feine Getränke',
    desc:'Champagner, Rot- und Weißwein, Eierlikör, Sahnelikör, Hugo-Set, Gin & Tonic, Whisky, das Cocktail-Set, Kindersekt Erdbeere, die Magnumflasche, Goldsekt, Jahrgangs-Champagner, der Sektturm und Kaviar für den großen Moment.',
    items:['champagner','cocktailset','rotwein','weisswein','eierlikoer','likoer','kindersekt2','magnum','kaviar','champagnerturm','goldsekt','jahrgang','hugo','gintonic','whisky']},
   {id:'nachthimmel',lvl:16,cost:9000,name:'Nachthimmel',
-   desc:'Die Silberbrandung mit 80 Schuss, der Silberwirbel mit drehenden Silberrädern, die 100-mm-Kugel Eiskristall, Leuchtturm-Blinkraketen und die tanzende Wasserorgel.',
-   items:['sternenmeer80','silberwirbel','kristallkugel100','blinkstern','wasserspiel']},
+   desc:'Die Silberbrandung mit 80 Schuss, das Römerfeuer mit Knister-Kerzen und Krachern, die 100-mm-Kugel Eiskristall, Leuchtturm-Blinkraketen und die tanzende Wasserorgel.',
+   items:['sternenmeer80','silberwirbel','kristallkugel100','blinkstern','wasserspiel','roemerfeuer']},
   {id:'goldklasse',lvl:18,cost:15000,name:'Goldklasse',
    desc:'Kreuzfeuer mit gekreuzten Kometen, Glasbruch-Raketen und die 150-mm-Kugel Milchstraße.',
    items:['kreuzfeuer','kristall','sternenstaub150']},
@@ -579,8 +586,8 @@ const NEU_LIZENZEN=[
    desc:'Frische Austern und gekochter Hummer für das große Silvesterdinner. Nur aus dem Kühlschrank.',
    items:['austern','hummer']},
   {id:'meister',lvl:25,cost:34000,name:'Meisterklasse',
-   desc:'Das Ende der Leiter: das Kometengitter mit 180 Schuss, die Jumbo-Rakete »Supernova«, das Silvesternacht-Sortiment, die 300-mm-Kaiserkrone, das Finale Grande, der Wolkenkratzer mit vier Etagen und die Feuerkaskade aus drei Riesenfontänen.',
-   items:['himmelsfaecher','supernova','silvesternacht','kaiserkrone','kugelfinale','wolkenkratzer','feuerkaskade']}
+   desc:'Das Ende der Leiter: das Kolosseum mit 140 Schuss, Knall-Kerzen und Riesenfontänen, die Jumbo-Rakete »Supernova«, die 300-mm-Kaiserkrone und das Finale Grande.',
+   items:['himmelsfaecher','supernova','silvesternacht','kaiserkrone','kugelfinale','wolkenkratzer','feuerkaskade','kolosseum']}
 ];
 /* Warengruppen fuer Herausforderungen und Restposten */
 const NEU_GRUPPE={
@@ -620,6 +627,8 @@ function neuVola(q){
    und die Warengruppe ihres Levels */
 NEU_LIZ_DAZU.import.push('hagelsturm'); NEU_LIZ_DAZU.grossfeuer.push('hexenkessel'); NEU_LIZ_DAZU.profi.push('geysirfeld');
 NEU_GRUPPE.batterien.push('hexenkessel','geysirfeld','wolkenkratzer');
+/* 30.09.: Mix-Batterien mit Roemischen Lichtern */
+NEU_GRUPPE.batterien.push('roemerfeuer','kolosseum');
 /* Fontaenen-Sets (Feuerquelle, Gummibaerchen, Farbenspiel, Farbmischer,
    Wasserorgel, Feuerwand, Feuerkaskade, Popcorn) sind so breit wie ihre
    Duesenreihe - vorher 18-44 cm Karton, die Duesen standen aber bis
@@ -659,8 +668,8 @@ const ENTFERNT=['fontaene50','fontaene30','silberkaskade','feuerkaskade','jugend
   'funkenturm','sortiment','sternstaub20','knallteppich','vulkanfeld','feuerbrunnen','farbrauchboeller','goldstaubboeller',
   'sternenbrunnen','bengalfackel','glueckrakete','mondschein','farbfontaenen','bengalflamme','tisch','tortenfontaene',
   'leuchtstaebe','pharao','stroboblinker','hagelsturm','himmelsfaecher','silvesternacht','nordlicht','wolkenkratzer',
-  /* 30.09. (Tom): Farbzauber soll weg */
-  'wunderfarbe'];
+  /* 30.09. (Tom): Farbzauber und Wunderkerzen-Box sollen weg */
+  'wunderfarbe','wunderbox'];
 /* Ersatz fuer alte Spielstaende: jede gestrichene Sorte wird beim Laden
    zur naechsten verbliebenen - gleiche Kategorie, moeglichst gleiche Form,
    Level und Preis am naechsten (18-save.js, SORTE_NEU). Sonst stuende

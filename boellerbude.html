@@ -1688,25 +1688,25 @@ const LIZENZEN=[
    desc:'Getränke und Spiel für den Abend: alkoholfreier Secco und das Partyfass kommen in den Kühlschrank, dazu Glühwein und das Partyspiel »Countdown«.',
    items:['partyspiel','secco','partyfass','gluehwein']},
   {id:'himmel',lvl:11,cost:2600,name:'Bunte Nacht',
-   desc:'Die Hasenjagd, Korkenzieher-Pfeifraketen, Goldbrokat-Raketen, ab Level 14 der Goldgeysir mit wachsender Knisterkrone, der Zuckerhut, der Niagara-Silberfall und der Blütenbrunnen, in dem kleine Chrysanthemen aufplatzen. Dazu Wachsgießen und Feuerzangenbowle.',
+   desc:'Die Hasenjagd, Korkenzieher-Pfeifraketen, Goldbrokat-Raketen, ab Level 14 der Goldgeysir mit wachsender Knisterkrone und der Niagara-Silberfall. Dazu Wachsgießen und Feuerzangenbowle.',
    items:['raketen','pfeifraketen','raketengold','vulkan','goldgeysir','wasserfall','sternenbrunnen','bleigiessen','bowle']},
   {id:'genuss',lvl:12,cost:3400,name:'Fondue & Raclette',
    desc:'Fondue-Set und Raclette-Grill für acht Personen, dazu fertige Platten für vier: Fleisch mit Soßen fürs Fondue, Käse und Beilagen fürs Raclette. Die Platten sind frisch und gehören in den Kühlschrank.',
    items:['fonduegeraet','raclettegeraet','fondueessen','racletteessen']},
   {id:'verbund',lvl:14,cost:6000,name:'Verbund & Kugelbomben',
-   desc:'Batterien, der Knattersturm, Fächer, der Feuerbrunnen mit seinen Flammenstößen und die ersten Kugelbomben. Die gehören in die Mörserbatterie auf dem Testfeld: ein Schuss, oben mehrere Brüche nacheinander.',
+   desc:'Batterien, der Knattersturm, Fächer und die ersten Kugelbomben. Die gehören in die Mörserbatterie auf dem Testfeld: ein Schuss, oben mehrere Brüche nacheinander.',
    items:['batterie16','knatter','batterie49','sortiment','faecher','feuerbrunnen','kugel75','kugel100']},
   {id:'import',lvl:17,cost:13000,name:'Import & Sonderposten',
-   desc:'Der Atombomben-Böller mit dem großen Pilz, die Achterbahn mit 100 Schuss, das Blitzgewitter, der Schimmelreiter und die 150-mm-Kugelbombe Weltenbrand. Teuer im Einkauf, launisch im Preis, aber die Kunden reden darüber.',
+   desc:'Der Atombomben-Böller mit dem großen Pilz, die Achterbahn mit 100 Schuss, der Schimmelreiter und die 150-mm-Kugelbombe Weltenbrand. Teuer im Einkauf, launisch im Preis, aber die Kunden reden darüber.',
    items:['atomboeller','batterie100','zfaecher','kometen','kugel150']},
   {id:'schabernack',lvl:19,cost:16000,name:'Schabernack-Edition',
    desc:'Die Furzrakete »Donnerbalken«. Verkauft sich von allein, weil jeder sie einmal gesehen haben will.',
    items:['furzrakete']},
   {id:'grossfeuer',lvl:20,cost:21000,name:'Großkaliber',
-   desc:'Die Titan-Ratterraketen mit ihrem riesigen Silberschlag, die Jumbo-Rakete »Juwelenpalme«, die 200-mm-Kugelbombe Uhrwerk mit zwei gegenläufigen Blütenrädern, das Trommelfeuer mit zwanzig Salven aus sechs Rohren, die 15-m-Feuersäule in den Glühfarben von Eisen und ab Level 23 der Himmelsstürmer, eine 30-m-Monsterfontäne in fünf Farben.',
+   desc:'Die Titan-Ratterraketen mit ihrem riesigen Silberschlag, die Jumbo-Rakete »Juwelenpalme«, die 200-mm-Kugelbombe Uhrwerk mit zwei gegenläufigen Blütenrädern, das Trommelfeuer mit zwanzig Salven aus sechs Rohren und der Hexenkessel mit 180 Schuss.',
    items:['titanraketen','jumbogold','kugel200','donnerwand','feuersaeule','fontaene30']},
   {id:'profi',lvl:22,cost:26000,name:'Profiklasse',
-   desc:'Der Götterfunken-Verbund: zweihundert Schuss, und der halbe Ort steht auf der Straße. Dazu die Jumbo-Rakete »Polarstern«: eine Leiter aus Lichtperlen, oben kreisen die Sterne um den Polarstern. Ab Level 23 die 300-mm-Kugel Himmelsbrecher, ab Level 24 der Weltuntergang mit dreihundert Schuss und ab Level 26 der Regenbogen-Titan: 50 m Fontäne im vollen Regenbogen.',
+   desc:'Der Götterfunken-Verbund: zweihundert Schuss, und der halbe Ort steht auf der Straße. Dazu die Jumbo-Rakete »Polarstern«: eine Leiter aus Lichtperlen, oben kreisen die Sterne um den Polarstern. Ab Level 23 die 300-mm-Kugel Himmelsbrecher, ab Level 23 das Geysirfeld und ab Level 24 der Weltuntergang mit dreihundert Schuss.',
    items:['profi','finale','kugel300','jumboleiter','fontaene50']}
 ];
 const LIZ_VON={};
@@ -2145,7 +2145,7 @@ const NEUWARE={
   wunderherz:{name:'Herzfunken · 6 Herz-Wunderkerzen',short:'Herz-Wunderk.',cat:1,lvl:2,shape:'sparkler',dims:[0.14,0.28,0.03],grid:[12,3,1],box:24,cost:0.90,market:2.29,weight:6,hype:3,risk:1,
     desc:'Das Herz brennt von der Spitze aus auf beiden Seiten gleichzeitig hoch – oben treffen sich die Funken, und kurz leuchtet das ganze Herz.',
     art:{title:'HERZFUNKEN',sub:'6 Herz-Wunderkerzen',bg1:'#c01c6a',bg2:'#4a0626',ac:'#ffd23f',ac2:'#fff3c4'}},
-  wunderzahl:{name:'Jahreszahl 2027 · 4 Zahlen-Wunderkerzen',short:'2027-Wunderk.',cat:1,lvl:3,shape:'sparkler',dims:[0.26,0.3,0.03],grid:[12,3,1],box:20,cost:1.20,market:2.99,weight:6,hype:4,risk:1,
+  wunderzahl:{name:'Jahreszahl 2027 · 4 Zahlen-Wunderkerzen',short:'2027-Wunderk.',cat:1,lvl:3,shape:'sparkler',dims:[0.36,0.3,0.03],grid:[12,3,1],box:20,cost:1.20,market:2.99,weight:6,hype:4,risk:1,
     desc:'Vier Zahlen-Wunderkerzen schreiben 2027 in Funken – Strich für Strich, und danach steht die Jahreszahl noch als Glut in der Luft.',
     art:{title:'2027',sub:'Zahlen-Wunderkerzen',bg1:'#0e1226',bg2:'#000000',ac:'#ffd23f',ac2:'#f2f5ff',gold:true}},
   pharao:{name:'Pharaoschlangen 12er',short:'Pharaoschlangen',cat:1,lvl:2,shape:'boxA',dims:[0.12,0.05,0.08],grid:[8,2,2],box:24,cost:0.50,market:1.29,weight:5,hype:2,risk:1,
@@ -2451,6 +2451,13 @@ const NEUWARE={
   hexenkessel:{name:'Hexenkessel · 180 Schuss in 35 s',short:'Hexenkessel',cat:2,lvl:20,shape:'battery',dims:[0.62,0.42,0.5],grid:[3,1,1],box:2,cost:40.00,market:89.99,weight:4,hype:74,risk:9,
     desc:'In der Mitte brodelt ein Kessel aus Goldfunken mit grünen Sternen, rundherum schießen Ringe aus acht Rohren gleichzeitig schräg nach außen – eine Hexenkrone nach der anderen, immer schneller.',
     art:{title:'HEXENKESSEL',sub:'180 Schuss · 35 Sekunden',bg1:'#2a5a0a',bg2:'#0a0214',ac:'#b6ff3a',ac2:'#c85cff'}},
+  /* 30.09. (Tom): zwei Mix-Batterien mit vielen Roemischen Lichtern - eine mittlere, eine extreme */
+  roemerfeuer:{name:'Römerfeuer · 49 Schuss Kerzen-Mix',short:'Römerfeuer',cat:2,lvl:16,shape:'battery',dims:[0.46,0.36,0.4],grid:[3,1,1],box:2,cost:25.50,market:57.99,weight:5,hype:60,risk:7,
+    desc:'Ein Mix wie aus dem Bilderbuch: Knister-Kerzen laufen über den Karton und zerfallen oben prasselnd, trockene Kracher antworten, zwei Goldfontänen tragen den Boden – im Finale acht Kerzen auf Schlag mit Titan-Krachern.',
+    art:{title:'RÖMERFEUER',sub:'49 Schuss · Kerzen · Fontänen · Kracher',bg1:'#8a1a0a',bg2:'#1a0602',ac:'#ffc63a',ac2:'#ff5a2e'}},
+  kolosseum:{name:'Kolosseum · 140 Schuss Arena-Verbund',short:'Kolosseum',cat:2,lvl:25,shape:'battery',dims:[0.98,0.84,0.6],grid:[2,1,1],box:1,cost:104.00,market:234.99,weight:2,hype:99,risk:10,
+    desc:'Die Arena bebt: Einmarsch zwischen zwei Riesenfontänen, Knall-Kerzen mit Weißblitz, Goldkometen als Fanfare, Titanschläge der Gladiatoren, Riesen-Kamuros, ein Wagenrennen aus Kreuzsternen – und ein Finale aus Donnerblitzen, Knall-Kerzen auf Schlag und Feuertöpfen.',
+    art:{title:'KOLOSSEUM',sub:'140 Schuss · Arena-Verbund',bg1:'#6a4a14',bg2:'#140a02',ac:'#ffe08a',ac2:'#ff3a2e',gold:true}},
   nordlicht:{name:'Nordlicht · 150 Schuss Polarlicht-Verbund',short:'Nordlicht',cat:2,lvl:21,shape:'battery',dims:[0.76,0.6,0.5],grid:[3,1,1],box:2,cost:58.00,market:129.99,weight:3,hype:80,risk:10,
     desc:'Leise, hoch und langsam: Silberweiden mit grünen Spitzen, die violett werden, hängen über dem Himmel. Nur einmal bricht ein Sonnensturm los – danach wird es wieder still.',
     art:{title:'NORDLICHT',sub:'150 Schuss · Polarlicht',bg1:'#0d4a2a',bg2:'#021208',ac:'#5cff9e',ac2:'#c8a2ff'}},
@@ -2658,7 +2665,7 @@ const NEU_LIZ_DAZU={
 };
 const NEU_LIZENZEN=[
   {id:'jugend',lvl:2,cost:60,name:'Jugendfeuerwerk',
-   desc:'Feuerwerk, das auch Kinder zünden dürfen: Knallbonbons, Tischbomben, Bengalische Hölzer, Zahlen-Wunderkerzen, Pharaoschlangen, die Gummibärchen-Fontänen, der Zweihorn-Feuerteufel, die Pusteblume-Jugendbatterie und das Brausepulver-Sortiment.',
+   desc:'Feuerwerk, das auch Kinder zünden dürfen: Knallbonbons, Tischbomben, Bengalische Hölzer, Zahlen-Wunderkerzen, die Gummibärchen-Fontänen, der Zweihorn-Feuerteufel, die Pusteblume-Jugendbatterie und das Brausepulver-Sortiment.',
    items:['knallbonbon','tischbombe','bengalholz','wunderzahl','pharao','leuchtfontaene','feuerteufel','kinderbatterie','kinderparty','wunderkerzeXXL','tortenfontaene','luftschlangentisch','stroboblinker']},
   {id:'snacks',lvl:7,cost:260,name:'Snacks & Süßes',
    desc:'Popcorn, Salzgebäck, Erdnüsse, Fruchtgummi, Berliner-Nachschub und die Glücksbringer zum Naschen: Marzipanschweinchen und Schoko-Glückstaler.',
@@ -2667,17 +2674,17 @@ const NEU_LIZENZEN=[
    desc:'Heringssalat, Kartoffel- und Nudelsalat, gefüllte Eier, Würstchen, Mini-Frikadellen, Fingerfood, Baguette, Mett-Igel, Partypizza, Dips, die Mitternachts-Gulaschsuppe und das Katerfrühstück. Vieles davon gehört in den Kühlschrank.',
    items:['heringssalat','kartoffelsalat','wuerstchen','frikadellen','baguette','mettigel','partypizza','dips','rollmops','gefuellteeier','nudelsalat','gulaschsuppe','fingerfood']},
   {id:'kleinfeuer',lvl:10,cost:1800,name:'Kleinfeuerwerk',
-   desc:'Die ersten richtigen Batterien für den kleinen Geldbeutel: die Funkelnacht mit 20 Zeitsternen, die Schneeballschlacht, die Tonleiter mit Heulschüssen, das Pfauenrad als erster Fächer, der Zauberwald und die Tornado-Box. Dazu Silberpfeil-Raketen und der Zauberbrunnen.',
+   desc:'Die ersten richtigen Batterien für den kleinen Geldbeutel: die Schneeballschlacht, die Tonleiter mit Heulschüssen und das Pfauenrad als erster Fächer. Dazu Silberpfeil-Raketen und der Zauberbrunnen.',
    items:['sternstaub20','schneeballschlacht','heulbatterie','pfauenrad','silberpfeil','zauberbrunnen','zauberwald','jugendbox']},
   {id:'feuerzauber',lvl:13,cost:4200,name:'Feuerzauber',
-   desc:'Palmenhain, Mondschein, der Funkenturm mit sechs Metern, Spätzünder-Knisterraketen und die Hafenlichter.',
+   desc:'Palmenhain mit 25 Schuss und die Spätzünder-Knisterraketen.',
    items:['goldpalmen','mondschein','funkenturm','knisterstern','bengalduo']},
   {id:'getraenke',lvl:14,cost:5000,name:'Feine Getränke',
    desc:'Champagner, Rot- und Weißwein, Eierlikör, Sahnelikör, Hugo-Set, Gin & Tonic, Whisky, das Cocktail-Set, Kindersekt Erdbeere, die Magnumflasche, Goldsekt, Jahrgangs-Champagner, der Sektturm und Kaviar für den großen Moment.',
    items:['champagner','cocktailset','rotwein','weisswein','eierlikoer','likoer','kindersekt2','magnum','kaviar','champagnerturm','goldsekt','jahrgang','hugo','gintonic','whisky']},
   {id:'nachthimmel',lvl:16,cost:9000,name:'Nachthimmel',
-   desc:'Die Silberbrandung mit 80 Schuss, der Silberwirbel mit drehenden Silberrädern, die 100-mm-Kugel Eiskristall, Leuchtturm-Blinkraketen und die tanzende Wasserorgel.',
-   items:['sternenmeer80','silberwirbel','kristallkugel100','blinkstern','wasserspiel']},
+   desc:'Die Silberbrandung mit 80 Schuss, das Römerfeuer mit Knister-Kerzen und Krachern, die 100-mm-Kugel Eiskristall, Leuchtturm-Blinkraketen und die tanzende Wasserorgel.',
+   items:['sternenmeer80','silberwirbel','kristallkugel100','blinkstern','wasserspiel','roemerfeuer']},
   {id:'goldklasse',lvl:18,cost:15000,name:'Goldklasse',
    desc:'Kreuzfeuer mit gekreuzten Kometen, Glasbruch-Raketen und die 150-mm-Kugel Milchstraße.',
    items:['kreuzfeuer','kristall','sternenstaub150']},
@@ -2691,8 +2698,8 @@ const NEU_LIZENZEN=[
    desc:'Frische Austern und gekochter Hummer für das große Silvesterdinner. Nur aus dem Kühlschrank.',
    items:['austern','hummer']},
   {id:'meister',lvl:25,cost:34000,name:'Meisterklasse',
-   desc:'Das Ende der Leiter: das Kometengitter mit 180 Schuss, die Jumbo-Rakete »Supernova«, das Silvesternacht-Sortiment, die 300-mm-Kaiserkrone, das Finale Grande, der Wolkenkratzer mit vier Etagen und die Feuerkaskade aus drei Riesenfontänen.',
-   items:['himmelsfaecher','supernova','silvesternacht','kaiserkrone','kugelfinale','wolkenkratzer','feuerkaskade']}
+   desc:'Das Ende der Leiter: das Kolosseum mit 140 Schuss, Knall-Kerzen und Riesenfontänen, die Jumbo-Rakete »Supernova«, die 300-mm-Kaiserkrone und das Finale Grande.',
+   items:['himmelsfaecher','supernova','silvesternacht','kaiserkrone','kugelfinale','wolkenkratzer','feuerkaskade','kolosseum']}
 ];
 /* Warengruppen fuer Herausforderungen und Restposten */
 const NEU_GRUPPE={
@@ -2732,6 +2739,8 @@ function neuVola(q){
    und die Warengruppe ihres Levels */
 NEU_LIZ_DAZU.import.push('hagelsturm'); NEU_LIZ_DAZU.grossfeuer.push('hexenkessel'); NEU_LIZ_DAZU.profi.push('geysirfeld');
 NEU_GRUPPE.batterien.push('hexenkessel','geysirfeld','wolkenkratzer');
+/* 30.09.: Mix-Batterien mit Roemischen Lichtern */
+NEU_GRUPPE.batterien.push('roemerfeuer','kolosseum');
 /* Fontaenen-Sets (Feuerquelle, Gummibaerchen, Farbenspiel, Farbmischer,
    Wasserorgel, Feuerwand, Feuerkaskade, Popcorn) sind so breit wie ihre
    Duesenreihe - vorher 18-44 cm Karton, die Duesen standen aber bis
@@ -2771,8 +2780,8 @@ const ENTFERNT=['fontaene50','fontaene30','silberkaskade','feuerkaskade','jugend
   'funkenturm','sortiment','sternstaub20','knallteppich','vulkanfeld','feuerbrunnen','farbrauchboeller','goldstaubboeller',
   'sternenbrunnen','bengalfackel','glueckrakete','mondschein','farbfontaenen','bengalflamme','tisch','tortenfontaene',
   'leuchtstaebe','pharao','stroboblinker','hagelsturm','himmelsfaecher','silvesternacht','nordlicht','wolkenkratzer',
-  /* 30.09. (Tom): Farbzauber soll weg */
-  'wunderfarbe'];
+  /* 30.09. (Tom): Farbzauber und Wunderkerzen-Box sollen weg */
+  'wunderfarbe','wunderbox'];
 /* Ersatz fuer alte Spielstaende: jede gestrichene Sorte wird beim Laden
    zur naechsten verbliebenen - gleiche Kategorie, moeglichst gleiche Form,
    Level und Preis am naechsten (18-save.js, SORTE_NEU). Sonst stuende
@@ -17521,6 +17530,26 @@ function perleSchuss(o,A,s,opt){
         for(let k=0;k<Math.round(10*QUAL());k++) psMid.emit(q.x,q.y,q.z,Math.sin(az)*w*rand(0.3,0.9),rand(-1,0.5),Math.cos(az)*w*rand(0.3,0.9),1,.75,.35,rand(0.4,0.8),3,4); }
       SCHWEIF=alt2; psHuge.emit(q.x,q.y,q.z,0,0,0,1,1,1,0.07,0,0); later(camera.position.distanceTo(q)/343,()=>sfx.crack(distVol(q)*0.9)); });
   }
+  else if(art==='knisterperle'){
+    /* 30.09. (Tom: neue Mix-Batterie mit Roemischen Lichtern): Knister-
+       Kerze wie echt - die Goldkugel zieht knisternde Funken hinter sich
+       her und zerfaellt oben in einen prasselnden Knisterball */
+    const n=Math.max(3,Math.floor(tS/0.12));
+    for(let i=1;i<n;i++) if(Math.random()<0.55) bei(i*tS/n,q=>{ if(typeof knisterPop==='function') knisterPop(q.x+rand(-.15,.15),q.y-rand(0,.4),q.z+rand(-.15,.15),{funken:3,c:[1,0.86,0.5],laut:0.35}); });
+    bei(tS,q=>{ if(typeof knisterWolke==='function') knisterWolke(q,Math.round(34*QUAL()),0.8,1.7,{c:[1,0.9,0.62],funken:6,laut:0.6});
+      else later(0.05,()=>sfx.crackle(distVol(q))); });
+  }
+  else if(art==='knallperle'){
+    /* 30.09. (Tom: extreme Mix-Batterie): Roemisches Licht mit Knall -
+       die Kugel steigt, oben ein harter Knall mit Weissblitz und kurzem
+       Silberkranz (Kerzen mit "report") */
+    bei(tS,q=>{ const alt2=SCHWEIF; SCHWEIF=0;
+      for(let k=0;k<2;k++) psHuge.emit(q.x,q.y,q.z,0,0,0,1.8,1.8,1.7,0.07,0,0);
+      for(let k=0;k<Math.round(26*QUAL());k++){ const d=randDir(), w=rand(9,13); psSmall.emit(q.x,q.y,q.z,d[0]*w,d[1]*w,d[2]*w,1.6,1.6,1.55,rand(0.08,0.14),0,0); }
+      SCHWEIF=0.2; for(let k=0;k<Math.round(14*QUAL());k++){ const d=randDir(), w=rand(3,5); psMid.emit(q.x,q.y,q.z,d[0]*w,d[1]*w,d[2]*w,0.9,0.92,1,rand(0.5,0.8),3,4); }
+      SCHWEIF=alt2; flash(q,FW.weiss,2.2,0.08);
+      later(camera.position.distanceTo(q)/343,()=>{ const v=distVol(q); sfx.crack(v*1.5); sfx.boom(v*0.45); }); });
+  }
   if(FW_LOG) FW_LOG.push({t:FW_UHR,art:'perle',kal:0,pw:0,sz:s||1,eff:art||'perle',A,B,stufenEff:[],hoehe:0,brueche:1,groesste:s||1,ang:+ang.toFixed(3),dir:+dir.toFixed(3),x:+o.x.toFixed(2),y:+y0.toFixed(2),z:+o.z.toFixed(2),v:[+vx.toFixed(2),+vy.toFixed(2),+vz.toFixed(2)],tag});
   if(typeof bruchGesehen==='function') bruchGesehen(art||'perle');
   sfx.thump(distVol(o)*0.8);
@@ -21998,6 +22027,70 @@ SIGNATUR.wolkenkratzer={idee:'etagen',text:'vier Etagen übereinander, gleichzei
  'donnerschlag','goldenerregen','kometen','hochzeitsfaecher','donnerwand','feuerpfau','hexenkessel','blitzgewitter60','nordlicht','goldregen22',
  'pfeifkonzert','profi','kometenwand','sternenkaiser','geysirfeld','finale','silvesternacht','himmelsfaecher','kugelfinale','wolkenkratzer'].forEach(t=>{
   const b=SHOWS[t]&&SHOWS[t]().basis; if(b) SHOW_BASIS[t]={pw:b.pw,sz:b.sz,th:b.th}; });
+
+/* =========================================================
+   Zwei Mix-Batterien mit Roemischen Lichtern (30.09., Tom: "viel so
+   roemische Lichter ... Mix-Batterien, wo du ein bisschen Fontaene hast,
+   roemische Lichter und dann Knalle - eine mittlere und eine extreme;
+   achte auf die Sounds und das Zusammenspiel").
+   ========================================================= */
+Object.assign(THEMEN,{
+  roemer:[['gold','rot'],['gold','weiss'],['rot','gold']],
+  arena:[['gold','rot'],['silber','weiss'],['rot','gold'],['weiss','gold']]
+});
+/* Level 16: Roemerfeuer. Knister-Kerzen (Goldkugeln, die knisternd
+   zerfallen) laufen ueber den Karton, Kracher antworten, zwei Gold-
+   fontaenen tragen den Boden; Finale Kerzen-Schlag mit Titan-Krachern.
+   Klang: Fontaenen rauschen, Kerzen ploppen und prasseln, Kracher
+   knallen trocken - nie alles zugleich, sondern im Wechsel. */
+SHOWS.roemerfeuer=()=>show({basis:{pw:0.05,sz:1.005,th:'roemer'},rampe:{sz:[0.9,1.25],pw:[0,2],hell:[0.85,1.3],kurve:'spaet'}},[
+  /* Auftakt: die Kerzen erwachen ueber zwei Goldfontaenen */
+  {n:6,perle:true,perleEff:'knisterperle',gap:0.6,muster:'gerade',rohrFolge:[-1,-0.4,0.2,0.8,0.4,-0.2],farbe:0,
+    boden:[{k:'fountain',gt:6,gh:0.7,x:-0.2,A:'gold',B:'weiss'},{k:'fountain',gt:6,gh:0.7,x:0.2,A:'gold',B:'weiss',t:0.4}],pause:0.5},
+  /* Antwort: sechs Kracher im V, trocken und kurz */
+  {n:6,gap:0.28,muster:'v',ang:0.32,eff:'salut',kal:'klein',pw:-2,pause:0.9},
+  /* Wechselspiel: Knister-Kerzen gestreut, darueber rote Palmen */
+  {n:10,perle:true,perleEff:'knisterperle',gap:0.35,muster:'zufall',ang:0.14,rohrFolge:[-0.8,0.6,-0.2,1,-1,0.2,0.8,-0.6,0,0.4],farbe:1},
+  {mit:true,n:5,gap:0.75,muster:'gerade',eff:['palme','chrys'],kal:'mittel',pw:1,farbe:2,pause:1.0},
+  /* Zwischenspiel: ein Vulkan brodelt, goldene Kamuros sinken langsam */
+  {n:4,gap:1.0,muster:'w',ang:0.3,eff:'kamuro',pw:2,farbe:0,boden:{k:'volcano',gt:4.5,A:'gold',B:'rot'},pause:0.6},
+  /* FINALE: acht Kerzen auf Schlag, dazu Titan-Kracher im X und die Fontaenen */
+  {n:8,perle:true,perleEff:'knisterperle',gap:0.1,muster:'schlag',ang:0.2,rohrFolge:[-1,1,-0.6,0.6,-0.2,0.2,0,0],farbe:0,
+    boden:[{k:'fountain',gt:4,gh:1.0,x:-0.2,A:'gold',B:'zitrone'},{k:'fountain',gt:4,gh:1.0,x:0.2,A:'gold',B:'zitrone'}]},
+  {mit:true,n:10,gap:0.08,muster:'x',ang:0.36,eff:'titanschlag',kal:'mittel',pw:2,pause:4.0}
+]);
+SIGNATUR.roemerfeuer={eff:'knisterperle',text:'Knister-Kerzen im Wechsel mit Krachern über Goldfontänen'};
+
+/* Level 25: Kolosseum. Das Extrem: Einmarsch zwischen zwei Riesen-
+   fontaenen, Knall-Kerzen (Kugel steigt, oben ein harter Knall mit
+   Weissblitz), Fanfare aus Goldkometen, Gladiatoren (Titanschlaege mit
+   Palmen), Loewen (Riesen-Kamuros ueber Knall-Kerzen), Wagenrennen
+   (Kreuzsterne im Kreis), Stille - dann das Finale aus Donnerblitzen,
+   Knall-Kerzen auf Schlag, Riesenfontaenen und Feuertoepfen, zum
+   Schluss sechs Riesen-Titanschlaege. */
+SHOWS.kolosseum=()=>show({basis:{pw:4.0,sz:1.33,th:'arena'},rampe:{sz:[0.95,1.3],pw:[0,2.5],hell:[0.9,1.45],kurve:'spaet'}},[
+  /* Einmarsch */
+  {n:10,perle:true,perleEff:'knallperle',gap:0.7,muster:'gerade',rohrFolge:[-1,1,-0.6,0.6,-0.2,0.2,-0.8,0.8,-0.4,0.4],farbe:0,
+    boden:[{k:'riesen',x:-0.3,gt:8,gh:0.8,A:'gold',B:'weiss',C:FW.gold},{k:'riesen',x:0.3,gt:8,gh:0.8,A:'gold',B:'weiss',C:FW.gold,t:0.6}],pause:0.4},
+  /* Fanfare: Goldkometen von der Mitte nach aussen, dazu Knall-Kerzen */
+  {n:12,gap:0.22,muster:'mitte',ang:0.45,eff:'rohrkomet',art:'gold'},
+  {mit:true,n:6,perle:true,perleEff:'knallperle',gap:0.45,muster:'zufall',ang:0.12,rohrFolge:[-0.5,0.5,0,-0.9,0.9,0],farbe:1,pause:1.0},
+  /* Gladiatoren: Titanschlag und Palme im Wechsel, im Takt da-da-DAMM */
+  {n:18,takt:[0.2,0.2,0.65],muster:'paar',ang:0.42,eff:['titanschlag','titanschlag','palme'],kal:'gross',farbe:2,boden:{k:'volcano',gt:5,A:'rot',B:'gold'},pause:0.9},
+  /* Loewen: Riesen-Kamuros, darunter Knall-Kerzen */
+  {n:6,gap:1.1,muster:'gerade',eff:'kamuro',kal:'riesig',pw:3,farbe:3},
+  {mit:true,n:14,perle:true,perleEff:'knallperle',gap:0.45,muster:'zufall',ang:0.2,farbe:1,pause:0.8},
+  /* Wagenrennen: Kreuzsterne ziehen im Kreis */
+  {n:24,gap:0.12,muster:'kreis',ang:0.32,eff:'crossette',kal:'mittel',farbe:1,pause:2.2},
+  /* FINALE: Donnerblitz-Salven aus vier Modulen, Knall-Kerzen auf Schlag,
+     Riesenfontaenen und goldene Feuertoepfe */
+  {n:24,je:6,takt:[0.55],x:[-0.3,-0.1,0.1,0.3],angOff:[-0.3,-0.1,0.1,0.3],muster:'schlag',ang:0.35,eff:'donnerblitz',kal:'gross',farbe:0,mineEff:'gold',
+    boden:[{k:'riesen',x:-0.3,gt:5,gh:1.0,A:'gold',B:'weiss',C:FW.gold},{k:'riesen',x:0.3,gt:5,gh:1.0,A:'gold',B:'weiss',C:FW.gold}]},
+  {mit:true,n:20,perle:true,perleEff:'knallperle',gap:0.08,muster:'schlag',ang:0.3,farbe:0,pause:0.6},
+  /* Schluss: sechs Riesen-Titanschlaege senkrecht */
+  {n:6,je:6,muster:'gerade',eff:'titanschlag',kal:'riesig',pw:4,farbe:1,pause:5}
+]);
+SIGNATUR.kolosseum={eff:'knallperle',text:'Knall-Kerzen, Riesenfontänen und Titanschläge – die Arena bebt'};
 /* =========================================================
    Raketen - je Rakete ein eigener Aufstieg und ein eigener Bruch
    (Tom, 26.09. nachts: "jedes Produkt eine Anomalie - komplett
@@ -24244,10 +24337,13 @@ Object.assign(FONT,{
   /* Feuerkreis (L8): der Karton spruehet ringsum flach, die Funken landen
      als Glutring und springen auf; der Ring waechst, steht, zieht sich
      zusammen, zum Schluss steigt eine Knisterkrone */
+  /* 30.09. (Tom: "der erste Effekt - dieses Zischen passt nicht"): Gold-
+     und Orangefunken sind Kohlefunken, die rauschen tief statt hell zu
+     zischen (Titan). Aufschiessen: Fauchen, dann Rauschen */
   bodenfeuer:{phasen:[
-    {k:'bodenring',t:2.0,radius:[0.3,1.6],hebung:5,A:'orange',B:'gold',ton:'zischen'},
+    {k:'bodenring',t:2.0,radius:[0.3,1.6],hebung:5,A:'orange',B:'gold',ton:'fauchen'},
     {k:'bodenring',t:5.0,radius:[1.6,1.9],hebung:6,A:'gold',B:'orange',huepfer:true,ton:'rauschen'},
-    {k:'bodenring',t:3.0,radius:[1.8,0.2],hebung:8,A:'gold',B:'orange',ton:'zischen',ende:'knisterkrone'}]},
+    {k:'bodenring',t:3.0,radius:[1.8,0.2],hebung:8,A:'gold',B:'orange',ton:'rauschen',ende:'knisterkrone'}]},
   /* Farbenspiel (L8): drei Fontaenen mit Farbflamme an der Duese -
      Rot, dann Gruen, dann eine mit Farbwechsel Rot/Gruen (Dunkelphase);
      die Funken bleiben Gold und Silber */
@@ -25704,7 +25800,7 @@ Object.assign(KLEIN,{
        Titanfunken flogen 30-50 cm weit und machten aus 13-cm-Ziffern vier
        Funkenbaelle. Jetzt kurze Funken (Reichweite ~12 cm) direkt an der
        Glutfront, Ziffern 16 cm: man sieht die 2027 Strich fuer Strich entstehen */
-    phasen:[{k:'glutschrift',form:['2','0','2','7'],abstand:0.118,groesse:0.16,at:0,t:6.5,versatz:0.4,start:'strich',fronten:1,material:'titan',weite:0.28,A:'silber',B:'weiss',glut:'gold',nachglut:3.0,n:3, /* weniger Funken: die Ziffern sollen schon beim Brennen lesbar sein */
+    phasen:[{k:'glutschrift',form:['2','0','2','7'],abstand:0.105,groesse:0.16,at:0,t:6.5,versatz:0.4,start:'strich',fronten:1,material:'titan',weite:0.28,A:'silber',B:'weiss',glut:'gold',nachglut:3.0,n:3, /* weniger Funken: die Ziffern sollen schon beim Brennen lesbar sein */
       schluss:{at:7.8,funkeln:1.0}}]},
   /* L4 */
   boeller:{stueck:1,lunte:1.2,dauer:5,phasen:[{k:'alt',fn:'furzboeller'}]},

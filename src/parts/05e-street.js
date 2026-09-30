@@ -382,7 +382,7 @@ function hzFertig(){
 /* Hoehe des Gehwegs vor der Zeile (der Gehweg gehoert der Strasse und
    kann sich aendern - Stufen und Lichtfleck setzen sich darauf) */
 function bodenY(x,z){
-  try{ const rc=new THREE.Raycaster(new THREE.Vector3(x,3,z),new THREE.Vector3(0,-1,0),0,4); rc.layers.enable(1);
+  try{ const rc=new THREE.Raycaster(new THREE.Vector3(x,3,z),new THREE.Vector3(0,-1,0),0,4); if(rc.layers) rc.layers.enable(1);
     const h=rc.intersectObjects(scene.children,true).filter(i=>i.object.isMesh&&i.face&&i.face.normal.clone().transformDirection(i.object.matrixWorld).y>0.5);
     return h.length?Math.max(0,Math.min(0.4,h[0].point.y)):0.015; }catch(e){ return 0.015; }
 }

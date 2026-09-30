@@ -3146,7 +3146,7 @@ function gruppenBuendeln(o){
   o.userData._gbGeo=g; o.geometry=ng; o.material=uniq; o.userData._gbM=uniq;
 }
 let gbN=0;
-function gruppenTakt(){ if(--gbN>0) return; gbN=20; scene.traverse(o=>{ if(o.isMesh&&Array.isArray(o.material)) gruppenBuendeln(o); }); }
+function gruppenTakt(){ if(--gbN>0) return; gbN=20; try{ scene.traverse(o=>{ if(o.isMesh&&Array.isArray(o.material)) gruppenBuendeln(o); }); }catch(e){ gbN=1e9; } }
 /* Buendeln mit Waechter (30.09., Leistung): Blatt-Meshes einer Gruppe (und
    die losen Meshes direkt in der Szene, je 24-m-Feld) mit gleichem Material
    werden zu einem Mesh zusammengezeichnet. Die Originale bleiben in der
@@ -3228,7 +3228,9 @@ function bSammeln(){
   if(lose.length>=2) bBauen(scene,lose,o=>{ const w=o.matrixWorld.elements; return Math.floor(w[12]/24)+','+Math.floor(w[14]/24); });
 }
 let bT=0;
-function buendelTakt(){ if(BUENDEL.aus) return; bT++; if(bT%20===0) bWaechter(); if(bT%300===1) bSammeln(); }
+/* ohne echte Ebenen (Test-Stub) bleibt alles, wie es ist */
+function buendelTakt(){ if(BUENDEL.aus) return; if(!scene.layers||!THREE.Matrix4.prototype.determinant){ BUENDEL.aus=true; return; }
+  bT++; try{ if(bT%20===0) bWaechter(); if(bT%300===1) bSammeln(); }catch(e){ BUENDEL.aus=true; BUENDEL.fehler=String(e&&e.message||e); } }
 let schattenN=0;
 function schattenTakt(){
   const R=renderer.shadowMap; if(!R.enabled){ return; }
@@ -5420,7 +5422,7 @@ function hzFertig(){
 /* Hoehe des Gehwegs vor der Zeile (der Gehweg gehoert der Strasse und
    kann sich aendern - Stufen und Lichtfleck setzen sich darauf) */
 function bodenY(x,z){
-  try{ const rc=new THREE.Raycaster(new THREE.Vector3(x,3,z),new THREE.Vector3(0,-1,0),0,4); rc.layers.enable(1);
+  try{ const rc=new THREE.Raycaster(new THREE.Vector3(x,3,z),new THREE.Vector3(0,-1,0),0,4); if(rc.layers) rc.layers.enable(1);
     const h=rc.intersectObjects(scene.children,true).filter(i=>i.object.isMesh&&i.face&&i.face.normal.clone().transformDirection(i.object.matrixWorld).y>0.5);
     return h.length?Math.max(0,Math.min(0.4,h[0].point.y)):0.015; }catch(e){ return 0.015; }
 }
@@ -26698,7 +26700,7 @@ function doSpray(){
    ========================================================= */
 const ray=new THREE.Raycaster(), center=new THREE.Vector2(0,0);
 /* auch Ebene 1: gebuendelte Originale (03b, BUENDEL) bleiben treffbar */
-ray.layers.enable(1);
+if(ray.layers) ray.layers.enable(1);
 let target=null, repeatT=0, touchAct=false, mouseDown=false;
 function movableOf(obj){ let o=obj; while(o){ const m=movables.find(m=>m.g===o); if(m) return m; o=o.parent; } return null; }
 /* Der Strahl reicht hoechstens sechs Meter weit. Alles, was weiter
@@ -30390,9 +30392,10 @@ fontsReady().then(()=>{
      mehr ihre Einzelteile an) */
   { const B=[]; for(const k of ['tisch','rampe','moerser']) if(stations[k]) B.push(stations[k].g);
     if(pultHit&&pultHit.parent) B.push(pultHit.parent); LOGI_G.forEach(g=>{ if(g) B.push(g); });
-    let n=0; B.forEach(g=>{ n+=statikBuendeln(g); });
+    let n=0; try{ B.forEach(g=>{ n+=statikBuendeln(g); });
     /* Ladetore der Andockstationen: nur das Torblatt faehrt, der Rest steht */
     WTORE.forEach(e=>{ if(!e||!e.g) return; const aus=new Set(); if(e.blatt) e.blatt.traverse(o=>aus.add(o)); n+=statikBuendeln(e.g,{aus}); });
+    }catch(e){ statikBuendeln.fehler=String(e&&e.message||e); }
     statikBuendeln.n=n; }
   { const li=$('logoImg'); if(li) logoFreistellen(LOGO,u=>{ li.src=u; }); }
   initPost(); buildPDA();

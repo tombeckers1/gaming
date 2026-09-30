@@ -155,7 +155,7 @@ function gruppenBuendeln(o){
   o.userData._gbGeo=g; o.geometry=ng; o.material=uniq; o.userData._gbM=uniq;
 }
 let gbN=0;
-function gruppenTakt(){ if(--gbN>0) return; gbN=20; scene.traverse(o=>{ if(o.isMesh&&Array.isArray(o.material)) gruppenBuendeln(o); }); }
+function gruppenTakt(){ if(--gbN>0) return; gbN=20; try{ scene.traverse(o=>{ if(o.isMesh&&Array.isArray(o.material)) gruppenBuendeln(o); }); }catch(e){ gbN=1e9; } }
 /* Buendeln mit Waechter (30.09., Leistung): Blatt-Meshes einer Gruppe (und
    die losen Meshes direkt in der Szene, je 24-m-Feld) mit gleichem Material
    werden zu einem Mesh zusammengezeichnet. Die Originale bleiben in der
@@ -237,7 +237,9 @@ function bSammeln(){
   if(lose.length>=2) bBauen(scene,lose,o=>{ const w=o.matrixWorld.elements; return Math.floor(w[12]/24)+','+Math.floor(w[14]/24); });
 }
 let bT=0;
-function buendelTakt(){ if(BUENDEL.aus) return; bT++; if(bT%20===0) bWaechter(); if(bT%300===1) bSammeln(); }
+/* ohne echte Ebenen (Test-Stub) bleibt alles, wie es ist */
+function buendelTakt(){ if(BUENDEL.aus) return; if(!scene.layers||!THREE.Matrix4.prototype.determinant){ BUENDEL.aus=true; return; }
+  bT++; try{ if(bT%20===0) bWaechter(); if(bT%300===1) bSammeln(); }catch(e){ BUENDEL.aus=true; BUENDEL.fehler=String(e&&e.message||e); } }
 let schattenN=0;
 function schattenTakt(){
   const R=renderer.shadowMap; if(!R.enabled){ return; }

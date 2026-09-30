@@ -129,9 +129,10 @@ fontsReady().then(()=>{
      mehr ihre Einzelteile an) */
   { const B=[]; for(const k of ['tisch','rampe','moerser']) if(stations[k]) B.push(stations[k].g);
     if(pultHit&&pultHit.parent) B.push(pultHit.parent); LOGI_G.forEach(g=>{ if(g) B.push(g); });
-    let n=0; B.forEach(g=>{ n+=statikBuendeln(g); });
+    let n=0; try{ B.forEach(g=>{ n+=statikBuendeln(g); });
     /* Ladetore der Andockstationen: nur das Torblatt faehrt, der Rest steht */
     WTORE.forEach(e=>{ if(!e||!e.g) return; const aus=new Set(); if(e.blatt) e.blatt.traverse(o=>aus.add(o)); n+=statikBuendeln(e.g,{aus}); });
+    }catch(e){ statikBuendeln.fehler=String(e&&e.message||e); }
     statikBuendeln.n=n; }
   { const li=$('logoImg'); if(li) logoFreistellen(LOGO,u=>{ li.src=u; }); }
   initPost(); buildPDA();

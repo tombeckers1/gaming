@@ -40,7 +40,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     o.proLevel={}; for(let l=1;l<=26;l++) o.proLevel[l]=bb.ORDER.filter(t=>!P[t].noOrder&&P[t].lvl===l).length;
     /* Daten */
     o.daten=[];
-    NEU.forEach(t=>{ const q=P[t], liz=bb.lizenzOf(t), L=bb.LIZENZEN.find(x=>x.id===liz), g=bb.gruppeVon(t), m=q.market/q.cost;
+    NEU.filter(t=>!P[t].noOrder).forEach(t=>{ const q=P[t], liz=bb.lizenzOf(t), L=bb.LIZENZEN.find(x=>x.id===liz), g=bb.gruppeVon(t), m=q.market/q.cost;
       const [lo,hi]=q.cat===0?[2.3,2.8]:[2.1,2.6];
       if(!liz) o.daten.push(t+': keine Lizenz');
       else if(L.lvl>q.lvl+0) { if(L.lvl>q.lvl) o.daten.push(t+': Lizenz '+liz+' (Level '+L.lvl+') nach Produkt-Level '+q.lvl); }

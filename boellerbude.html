@@ -1721,16 +1721,16 @@ const LIZENZEN=[
    desc:'Batterien, der Knattersturm, Fächer und die ersten Kugelbomben. Die gehören in die Mörserbatterie auf dem Testfeld: ein Schuss, oben mehrere Brüche nacheinander.',
    items:['batterie16','knatter','batterie49','sortiment','faecher','feuerbrunnen','kugel75','kugel100']},
   {id:'import',lvl:17,cost:13000,name:'Import & Sonderposten',
-   desc:'Der Atombomben-Böller mit dem großen Pilz, die Achterbahn mit 100 Schuss, der Schimmelreiter die 150-mm-Kugelbombe Weltenbrand, die Pfeifkerzen-Batterie Nachtigall und die Perlenkette mit Knisterperlen. Teuer im Einkauf, launisch im Preis, aber die Kunden reden darüber.',
+   desc:'Der Atombomben-Böller mit dem großen Pilz, die Achterbahn mit 100 Schuss, der Schimmelreiter die 150-mm-Kugelbombe Weltenbrand, die Lichterprozession aus großen Römischen Lichtern und die 100-mm-Kugel Rosengarten. Teuer im Einkauf, launisch im Preis, aber die Kunden reden darüber.',
    items:['atomboeller','batterie100','zfaecher','kometen','kugel150']},
   {id:'schabernack',lvl:19,cost:16000,name:'Schabernack-Edition',
    desc:'Die Furzrakete »Donnerbalken«. Verkauft sich von allein, weil jeder sie einmal gesehen haben will.',
    items:['furzrakete']},
   {id:'grossfeuer',lvl:20,cost:21000,name:'Großkaliber',
-   desc:'Die Titan-Ratterraketen mit ihrem riesigen Silberschlag, die Jumbo-Rakete »Juwelenpalme«, die 200-mm-Kugelbomben Goldspinne und Hummelkönigin, die Sirene mit Pfeifkometen, das Katapult mit Bombetten-Kerzen, das Trommelfeuer mit zwanzig Salven aus sechs Rohren und der Hexenkessel mit 180 Schuss.',
+   desc:'Die Titan-Ratterraketen mit ihrem riesigen Silberschlag, die Jumbo-Rakete »Juwelenpalme«, die 200-mm-Kugelbombe Sternschleier, der Kometenreigen aus Kometenkerzen, das Trommelfeuer mit zwanzig Salven aus sechs Rohren und der Hexenkessel mit 180 Schuss.',
    items:['titanraketen','jumbogold','kugel200','donnerwand','feuersaeule','fontaene30']},
   {id:'profi',lvl:22,cost:26000,name:'Profiklasse',
-   desc:'Der Götterfunken-Verbund: zweihundert Schuss, und der halbe Ort steht auf der Straße. Dazu die Jumbo-Rakete »Polarstern«: eine Leiter aus Lichtperlen, oben kreisen die Sterne um den Polarstern. Ab Level 23 die 300-mm-Kugel Himmelsbrecher, ab Level 23 das Geysirfeld ab Level 22 die Fischkerzen-Batterie Piranha und die 200-mm-Kugel Niagara, ab Level 24 der Weltuntergang mit dreihundert Schuss und die 300-mm-Kanonade.',
+   desc:'Der Götterfunken-Verbund: zweihundert Schuss, und der halbe Ort steht auf der Straße. Dazu die Jumbo-Rakete »Polarstern«: eine Leiter aus Lichtperlen, oben kreisen die Sterne um den Polarstern. Ab Level 23 die 300-mm-Kugel Himmelsbrecher, ab Level 23 das Geysirfeld ab Level 22 die 200-mm-Kugel Feuerlilie, ab Level 24 der Weltuntergang mit dreihundert Schuss, das Sternentor aus 160 Kerzen und die 300-mm-Kanonade.',
    items:['profi','finale','kugel300','jumboleiter','fontaene50']}
 ];
 const LIZ_VON={};
@@ -2475,54 +2475,36 @@ const NEUWARE={
   hexenkessel:{name:'Hexenkessel · 180 Schuss in 35 s',short:'Hexenkessel',cat:2,lvl:20,shape:'battery',dims:[0.62,0.42,0.5],grid:[3,1,1],box:2,cost:40.00,market:89.99,weight:4,hype:74,risk:9,
     desc:'In der Mitte brodelt ein Kessel aus Goldfunken mit grünen Sternen, rundherum schießen Ringe aus acht Rohren gleichzeitig schräg nach außen – eine Hexenkrone nach der anderen, immer schneller.',
     art:{title:'HEXENKESSEL',sub:'180 Schuss · 35 Sekunden',bg1:'#2a5a0a',bg2:'#0a0214',ac:'#b6ff3a',ac2:'#c85cff'}},
-  /* 30.09. (Tom): zwei Mix-Batterien mit vielen Roemischen Lichtern - eine mittlere, eine extreme */
-  roemerfeuer:{name:'Römerfeuer · 49 Schuss Kerzen-Mix',short:'Römerfeuer',cat:2,lvl:16,shape:'battery',dims:[0.46,0.36,0.4],grid:[3,1,1],box:2,cost:25.50,market:57.99,weight:5,hype:60,risk:7,
-    desc:'Ein Mix wie aus dem Bilderbuch: Knister-Kerzen laufen über den Karton und zerfallen oben prasselnd, trockene Kracher antworten, zwei Goldfontänen tragen den Boden – im Finale acht Kerzen auf Schlag mit Titan-Krachern.',
-    art:{title:'RÖMERFEUER',sub:'49 Schuss · Kerzen · Fontänen · Kracher',bg1:'#8a1a0a',bg2:'#1a0602',ac:'#ffc63a',ac2:'#ff5a2e'}},
-  kolosseum:{name:'Kolosseum · 140 Schuss Arena-Verbund',short:'Kolosseum',cat:2,lvl:25,shape:'battery',dims:[0.98,0.84,0.6],grid:[2,1,1],box:1,cost:104.00,market:234.99,weight:2,hype:99,risk:10,
-    desc:'Die Arena bebt: Einmarsch zwischen zwei Riesenfontänen, Knall-Kerzen mit Weißblitz, Goldkometen als Fanfare, Titanschläge der Gladiatoren, Riesen-Kamuros, ein Wagenrennen aus Kreuzsternen – und ein Finale aus Donnerblitzen, Knall-Kerzen auf Schlag und Feuertöpfen.',
-    art:{title:'KOLOSSEUM',sub:'140 Schuss · Arena-Verbund',bg1:'#6a4a14',bg2:'#140a02',ac:'#ffe08a',ac2:'#ff3a2e',gold:true}},
-  /* 30.09. (Tom): fuenf weitere Batterien mit Roemischen Lichtern, jede mit eigener Kerzenart */
-  nachtigall:{name:'Nachtigall · 42 Schuss Pfeifkerzen',short:'Nachtigall',cat:2,lvl:17,shape:'battery',dims:[0.46,0.34,0.4],grid:[3,1,1],box:2,cost:24.00,market:54.99,weight:5,hype:56,risk:7,
-    desc:'Pfeifkerzen singen: Jede Silberkugel pfeift, solange sie steigt, und jede einen Ton höher – eine Tonleiter über der Silberfontäne. Pfeifsterne antworten, im Finale zwölf Pfeifkerzen auf einen Schlag mit Blinkbrüchen.',
-    art:{title:'NACHTIGALL',sub:'42 Schuss · Pfeifkerzen',bg1:'#12304a',bg2:'#02060f',ac:'#e8f6ff',ac2:'#5ce1ff'}},
-  kreuzritter:{name:'Kreuzritter · 64 Schuss Kreuzkerzen',short:'Kreuzritter',cat:2,lvl:18,shape:'battery',dims:[0.5,0.36,0.42],grid:[3,1,1],box:2,cost:30.00,market:68.99,weight:5,hype:64,risk:8,
-    desc:'Schwere Titankugeln mit Glitzerschweif steigen aus den Rohren und zerspringen oben mit einem Knacks in vier Kometen – ein Kreuz nach dem anderen. Dazwischen Crossettes, trockene Kracher, Goldpalmen über dem Vulkan und ein Finale aus 16 Kreuzkerzen mit Titanschlägen.',
-    art:{title:'KREUZRITTER',sub:'64 Schuss · Kreuzkerzen',bg1:'#5a0a0a',bg2:'#140202',ac:'#f2f5ff',ac2:'#ff3a2e'}},
-  katapult:{name:'Katapult · 70 Schuss Bombetten-Kerzen',short:'Katapult',cat:2,lvl:20,shape:'battery',dims:[0.56,0.38,0.44],grid:[3,1,1],box:2,cost:38.00,market:86.99,weight:4,hype:72,risk:9,
-    desc:'Aus jedem Rohr fliegt eine kleine Bombe, kaum zu sehen – und oben zerlegt sie zu einer bunten Päonie, jede in einem anderen Farbpaar. Dazwischen große Dahlien und goldene Kamuros, im Finale 24 Bombetten auf einen Schlag über zwei Fontänen.',
-    art:{title:'KATAPULT',sub:'70 Schuss · Bombetten-Kerzen',bg1:'#3a0a5c',bg2:'#0a0214',ac:'#9cff3a',ac2:'#ff4fd8'}},
-  piranha:{name:'Piranha · 90 Schuss Fischkerzen',short:'Piranha',cat:2,lvl:22,shape:'battery',dims:[0.62,0.42,0.48],grid:[3,1,1],box:2,cost:50.00,market:114.99,weight:4,hype:82,risk:9,
-    desc:'Oben löst sich aus jeder Kerzenkugel ein Schwarm Silberfische und zischt im Zickzack davon. Fischschwärme in der Welle, knisternde Dracheneier, silberne Pferdeschweife über Riesenfontänen – und im Finale 24 Fischkerzen auf Schlag.',
-    art:{title:'PIRANHA',sub:'90 Schuss · Fischkerzen',bg1:'#0a3a4a',bg2:'#020a10',ac:'#f2f5ff',ac2:'#ff3a2e'}},
+  /* 30.09. (Tom): Kerzen-Batterien - die grosse Legion und drei reine
+     Shows aus grossen Roemischen Lichtern, ohne Knall */
   legion:{name:'Legion · 240 Schuss Kerzen-Heer',short:'Legion',cat:2,lvl:26,shape:'battery',dims:[0.98,0.84,0.6],grid:[2,1,1],box:1,cost:118.00,market:269.99,weight:2,hype:100,risk:10,
     desc:'Ein ganzes Heer aus Römischen Lichtern: goldene Weidenkerzen zwischen Riesenfontänen, ein Wischer aus Blinkkerzen, Kreuzkerzen im Kreis über dem Vulkan, Bombetten, Pfeif- und Fischkerzen, Titanschläge – und ein Finale aus 48 Weidenkerzen, 36 Knallkerzen und zwölf Riesen-Kamuros.',
     art:{title:'LEGION',sub:'240 Schuss · Kerzen-Heer',bg1:'#6a4a14',bg2:'#140a02',ac:'#ffe08a',ac2:'#ff3a2e',gold:true}},
-  /* 30.09. (Tom): drei neue 200-mm-Bomben statt Bluetenkranz, dazu fuenf Kugeln mit Kerzen-Effekten */
-  gluehwurm75:{name:'Glühwürmchen · Kugelbombe 75 mm Blinkperlen',short:'Kugel 75 Glühwurm',cat:2,lvl:15,shape:'shell',dims:[0.09,0.115,0.09],grid:[8,2,1],box:8,cost:6.40,market:15.49,weight:6,hype:30,risk:7,
-    desc:'Zwanzig weiche Leuchtperlen in Limette und Zitrone schweben langsam auseinander, sinken kaum und blinken jede in ihrem eigenen Takt – wie Glühwürmchen am Nachthimmel.',
-    art:{title:'GLÜHWÜRMCHEN',sub:'75 mm · Blinkperlen',bg1:'#1f4a0a',bg2:'#050f02',ac:'#c8ff3a',ac2:'#fff36a'}},
-  perlenkette100:{name:'Perlenkette · Kugelbombe 100 mm Knisterperlen',short:'Kugel 100 Perlen',cat:2,lvl:17,shape:'shell',dims:[0.12,0.15,0.12],grid:[6,2,1],box:6,cost:12.50,market:29.99,weight:5,hype:42,risk:8,
-    desc:'Ein Kranz aus zwölf Goldperlen mit Funkenschweif, wie die Kugeln einer Knisterkerze – nach gut einer Sekunde zerfällt jede Perle prasselnd. In der Mitte ein roter Kern.',
-    art:{title:'PERLENKETTE',sub:'100 mm · Knisterperlen',bg1:'#6b4a0c',bg2:'#1f1402',ac:'#ffd23f',ac2:'#ff7a1c',gold:true}},
-  doppelgaenger150:{name:'Doppelgänger · Kugelbombe 150 mm Zwillingskometen',short:'Kugel 150 Zwilling',cat:2,lvl:19,shape:'shell',dims:[0.165,0.2,0.165],grid:[4,1,1],box:3,cost:31.50,market:74.99,weight:4,hype:70,risk:10,
-    desc:'Sechzehn weiße Kometen fliegen aus, und jeder teilt sich mit einem Knacks in zwei Perlen – Türkis nach links, Magenta nach rechts. Aus einem Bild werden zwei.',
-    art:{title:'DOPPELGÄNGER',sub:'150 mm · Zwillingskometen',bg1:'#0a3a4a',bg2:'#10020f',ac:'#5ce1ff',ac2:'#ff4fd8'}},
-  sirene150:{name:'Sirene · Kugelbombe 150 mm Pfeifkometen',short:'Kugel 150 Sirene',cat:2,lvl:20,shape:'shell',dims:[0.165,0.2,0.165],grid:[4,1,1],box:3,cost:32.00,market:75.99,weight:4,hype:72,risk:10,
-    desc:'Zwölf Pfeifkometen schießen aus dem Bruch nach oben, ihr Heulen gleitet hinauf wie eine Sirene – oben verpufft jeder in einem Bündel roter Sterne.',
-    art:{title:'SIRENE',sub:'150 mm · Pfeifkometen',bg1:'#7a1010',bg2:'#1a0202',ac:'#f2f5ff',ac2:'#ff3a2e'}},
-  goldspinne200:{name:'Goldspinne · Kugelbombe 200 mm Spinnenbeine',short:'Kugel 200 Spinne',cat:2,lvl:21,shape:'shell',dims:[0.21,0.25,0.21],grid:[3,1,1],box:2,cost:44.00,market:104.99,weight:4,hype:94,risk:10,
-    desc:'Schwere Brokatsterne schießen blitzschnell auseinander, bremsen hart und hängen als dicke goldene Spinnenbeine durch. Am Ende jedes dritten Beins glimmt ein rotes Auge auf.',
-    art:{title:'GOLDSPINNE',sub:'200 mm · Spinnenbeine',bg1:'#4a3308',bg2:'#000000',ac:'#ffd23f',ac2:'#ff3a2e',gold:true}},
-  hummelkoenigin200:{name:'Hummelkönigin · Kugelbombe 200 mm Tourbillons',short:'Kugel 200 Hummel',cat:2,lvl:21,shape:'shell',dims:[0.21,0.25,0.21],grid:[3,1,1],box:2,cost:45.00,market:106.99,weight:4,hype:94,risk:10,
-    desc:'Eine blaue Päonie öffnet sich – und aus ihr brechen dreißig Hummeln: kleine Goldkometen, die sich um sich selbst drehen, summend Schrauben in den Himmel ziehen und verlöschen.',
-    art:{title:'HUMMELKÖNIGIN',sub:'200 mm · Tourbillons',bg1:'#0c2a7a',bg2:'#020a1c',ac:'#ffd23f',ac2:'#5c8aff'}},
-  niagara200:{name:'Niagara · Kugelbombe 200 mm Silber-Pferdeschweif',short:'Kugel 200 Niagara',cat:2,lvl:22,shape:'shell',dims:[0.21,0.25,0.21],grid:[3,1,1],box:2,cost:47.00,market:111.99,weight:3,hype:94,risk:10,
-    desc:'Die Silbersterne werden steil nach oben geworfen, kippen und stürzen als dichter, langer Glitzervorhang herab – unten zerstäubt der Wasserfall knisternd wie Gischt.',
-    art:{title:'NIAGARA',sub:'200 mm · Pferdeschweif',bg1:'#26292f',bg2:'#000000',ac:'#f2f5ff',ac2:'#5ce1ff'}},
+  lichterprozession:{name:'Lichterprozession · 64 Schuss Großkerzen',short:'Lichterprozession',cat:2,lvl:17,shape:'battery',dims:[0.5,0.36,0.42],grid:[3,1,1],box:2,cost:27.00,market:62.99,weight:5,hype:60,risk:7,
+    desc:'Eine Show nur aus großen Römischen Lichtern, ganz ohne Knall: dicke Leuchtkugeln steigen in Reihen, Wellen und Treppen, schwebende Perlen hängen als Girlanden am Himmel – zum Schluss sechzehn Kugeln auf einen Schlag über zwei Goldfontänen.',
+    art:{title:'LICHTERPROZESSION',sub:'64 Schuss · Großkerzen · ohne Knall',bg1:'#3a1a5c',bg2:'#0a0214',ac:'#ffd23f',ac2:'#ff7ad8'}},
+  kometenreigen:{name:'Kometenreigen · 96 Schuss Kometenkerzen',short:'Kometenreigen',cat:2,lvl:21,shape:'battery',dims:[0.6,0.4,0.46],grid:[3,1,1],box:2,cost:44.00,market:99.99,weight:4,hype:76,risk:9,
+    desc:'Kometenkerzen tanzen einen Reigen: goldene Brokatkugeln mit langem Glitzerschweif kreuzen sich, fallen als kleine Trauerweiden auseinander und kreisen über einem glühenden Vulkan – ganz ohne Knall, nur Glanz und Rieseln.',
+    art:{title:'KOMETENREIGEN',sub:'96 Schuss · Kometenkerzen · ohne Knall',bg1:'#4a3308',bg2:'#150e02',ac:'#ffd23f',ac2:'#fff3c4',gold:true}},
+  sternentor:{name:'Sternentor · 160 Schuss Kerzen-Verbund',short:'Sternentor',cat:2,lvl:24,shape:'battery',dims:[0.9,0.6,0.56],grid:[2,1,1],box:1,cost:76.00,market:174.99,weight:3,hype:94,risk:10,
+    desc:'Der große Kerzen-Verbund ohne einen einzigen Knall: Farbwechsel-Kerzen wischen über den Himmel, Sternkerzen öffnen sich zu kleinen Sternen, schwebende Perlen bilden ein Tor aus Licht – im Finale 36 Kerzen auf einen Schlag zwischen zwei Riesenfontänen.',
+    art:{title:'STERNENTOR',sub:'160 Schuss · Kerzen-Verbund · ohne Knall',bg1:'#0c2a7a',bg2:'#020a1c',ac:'#f2f5ff',ac2:'#ffd23f'}},
+  /* 30.09. (Tom): neue Kugeln - die Kanonade und vier klassisch schoene Bomben */
   kanonade300:{name:'Kanonade · Kugelbombe 300 mm 30 Knallkugeln',short:'Kanonade 300',cat:2,lvl:24,shape:'shell',dims:[0.3,0.34,0.3],grid:[2,1,1],box:1,cost:72.00,market:169.99,weight:2,hype:100,risk:10,
     desc:'Dreißig schwere weiße Kugeln fliegen aus wie Knallkerzen und zerknallen nacheinander mit Weißblitz – ein rollender Donner, über dem ein goldener Kamuro hängt.',
     art:{title:'KANONADE',sub:'300 mm · Knallkugeln',bg1:'#2a2e36',bg2:'#000000',ac:'#f2f5ff',ac2:'#ffd23f'}},
+  rosengarten100:{name:'Rosengarten · Kugelbombe 100 mm Doppelpäonie',short:'Kugel 100 Rosengarten',cat:2,lvl:17,shape:'shell',dims:[0.12,0.15,0.12],grid:[6,2,1],box:6,cost:12.50,market:29.99,weight:5,hype:42,risk:8,
+    desc:'Eine runde Päonie aus rosa Sternen, darin ein weißer Kern – zum Ende hin funkeln die Rosenblätter silbern und verglühen einzeln.',
+    art:{title:'ROSENGARTEN',sub:'100 mm · Doppelpäonie',bg1:'#6b1a3a',bg2:'#1a0610',ac:'#ff8ac8',ac2:'#f2f5ff'}},
+  pfauenkrone150:{name:'Pfauenkrone · Kugelbombe 150 mm Farbwechsel-Chrysantheme',short:'Kugel 150 Pfau',cat:2,lvl:19,shape:'shell',dims:[0.165,0.2,0.165],grid:[4,1,1],box:3,cost:31.50,market:74.99,weight:4,hype:70,risk:10,
+    desc:'Eine goldene Chrysantheme mit langen Schweifen – dann werden die Spitzen dunkel, leuchten türkis auf und noch einmal violett: das Rad eines Pfaus, in der Mitte ein grünes Auge.',
+    art:{title:'PFAUENKRONE',sub:'150 mm · Farbwechsel',bg1:'#0a3a4a',bg2:'#050214',ac:'#5ce1ff',ac2:'#c85cff'}},
+  sternschleier200:{name:'Sternschleier · Kugelbombe 200 mm Silberschleier',short:'Kugel 200 Schleier',cat:2,lvl:21,shape:'shell',dims:[0.21,0.25,0.21],grid:[3,1,1],box:2,cost:44.00,market:104.99,weight:4,hype:94,risk:10,
+    desc:'Eine riesige Silber-Chrysantheme, deren Sterne langsam werden und als feiner Schleier herabhängen. Darin ein blauer Kern, und zum Schluss blitzen im Schleier weiße Tautropfen auf.',
+    art:{title:'STERNSCHLEIER',sub:'200 mm · Silberschleier',bg1:'#26292f',bg2:'#000000',ac:'#f2f5ff',ac2:'#5c8aff'}},
+  feuerlilie200:{name:'Feuerlilie · Kugelbombe 200 mm Lilienblüte',short:'Kugel 200 Lilie',cat:2,lvl:22,shape:'shell',dims:[0.21,0.25,0.21],grid:[3,1,1],box:2,cost:47.00,market:111.99,weight:3,hype:94,risk:10,
+    desc:'Zwölf rote Blütenblätter mit goldenem Schweif biegen sich wie eine Lilie auseinander – und an jeder Spitze öffnet sich ein goldener Blütenstempel. Mitten in der Blüte glüht ein roter Kern.',
+    art:{title:'FEUERLILIE',sub:'200 mm · Lilienblüte',bg1:'#7a1010',bg2:'#1a0202',ac:'#ff5a2e',ac2:'#ffd23f',gold:true}},
   nordlicht:{name:'Nordlicht · 150 Schuss Polarlicht-Verbund',short:'Nordlicht',cat:2,lvl:21,shape:'battery',dims:[0.76,0.6,0.5],grid:[3,1,1],box:2,cost:58.00,market:129.99,weight:3,hype:80,risk:10,
     desc:'Leise, hoch und langsam: Silberweiden mit grünen Spitzen, die violett werden, hängen über dem Himmel. Nur einmal bricht ein Sonnensturm los – danach wird es wieder still.',
     art:{title:'NORDLICHT',sub:'150 Schuss · Polarlicht',bg1:'#0d4a2a',bg2:'#021208',ac:'#5cff9e',ac2:'#c8a2ff'}},
@@ -2748,13 +2730,13 @@ const NEU_LIZENZEN=[
    desc:'Champagner, Rot- und Weißwein, Eierlikör, Sahnelikör, Hugo-Set, Gin & Tonic, Whisky, das Cocktail-Set, Kindersekt Erdbeere, die Magnumflasche, Goldsekt, Jahrgangs-Champagner, der Sektturm und Kaviar für den großen Moment.',
    items:['champagner','cocktailset','rotwein','weisswein','eierlikoer','likoer','kindersekt2','magnum','kaviar','champagnerturm','goldsekt','jahrgang','hugo','gintonic','whisky']},
   {id:'nachthimmel',lvl:16,cost:9000,name:'Nachthimmel',
-   desc:'Die Silberbrandung mit 80 Schuss, das Römerfeuer mit Knister-Kerzen und Krachern, die 100-mm-Kugel Eiskristall, Leuchtturm-Blinkraketen und die tanzende Wasserorgel.',
-   items:['sternenmeer80','silberwirbel','kristallkugel100','blinkstern','wasserspiel','roemerfeuer']},
+   desc:'Die Silberbrandung mit 80 Schuss, die 100-mm-Kugel Eiskristall, Leuchtturm-Blinkraketen und die tanzende Wasserorgel.',
+   items:['sternenmeer80','silberwirbel','kristallkugel100','blinkstern','wasserspiel']},
   {id:'goldklasse',lvl:18,cost:15000,name:'Goldklasse',
-   desc:'Kreuzfeuer mit gekreuzten Kometen, Glasbruch-Raketen, die 150-mm-Kugel Milchstraße und der Kreuzritter mit 64 Kreuzkerzen.',
+   desc:'Kreuzfeuer mit gekreuzten Kometen, Glasbruch-Raketen und die 150-mm-Kugel Milchstraße.',
    items:['kreuzfeuer','kristall','sternenstaub150']},
   {id:'sternklasse',lvl:19,cost:18000,name:'Sternklasse',
-   desc:'Vorhang auf! mit 70 Schuss Goldvorhang, die Jumbo-Rakete »Regenbogenkrone«, die Lichterkette aus 24 Glitzerkugeln, die Wendeltreppe, die sich zwölf Meter hochschraubt, der Donnerschlag mit 20 Knallbomben und die 150-mm-Kugel Doppelgänger mit Zwillingskometen.',
+   desc:'Vorhang auf! mit 70 Schuss Goldvorhang, die Jumbo-Rakete »Regenbogenkrone«, die Lichterkette aus 24 Glitzerkugeln, die Wendeltreppe, die sich zwölf Meter hochschraubt, der Donnerschlag mit 20 Knallbomben und die 150-mm-Kugel Pfauenkrone.',
    items:['goldenerregen','regenbogenkrone','lichterkugeln','eisblume','donnerschlag']},
   {id:'festtafel',lvl:15,cost:6500,name:'Festtafel',
    desc:'Silvesterkarpfen, Tiramisu, die Neujahrstorte und die Sushi-Platte. Alles gehört in den Kühlschrank.',
@@ -2763,8 +2745,8 @@ const NEU_LIZENZEN=[
    desc:'Frische Austern und gekochter Hummer für das große Silvesterdinner. Nur aus dem Kühlschrank.',
    items:['austern','hummer']},
   {id:'meister',lvl:25,cost:34000,name:'Meisterklasse',
-   desc:'Das Ende der Leiter: das Kolosseum mit 140 Schuss, Knall-Kerzen und Riesenfontänen, die Legion mit 240 Kerzen, die Jumbo-Rakete »Supernova«, die 300-mm-Kaiserkrone und das Finale Grande.',
-   items:['himmelsfaecher','supernova','silvesternacht','kaiserkrone','kugelfinale','wolkenkratzer','feuerkaskade','kolosseum']}
+   desc:'Das Ende der Leiter: die Legion mit 240 Kerzen, die Jumbo-Rakete »Supernova«, die 300-mm-Kaiserkrone und das Finale Grande.',
+   items:['himmelsfaecher','supernova','silvesternacht','kaiserkrone','kugelfinale','wolkenkratzer','feuerkaskade']}
 ];
 /* Warengruppen fuer Herausforderungen und Restposten */
 const NEU_GRUPPE={
@@ -2805,19 +2787,17 @@ function neuVola(q){
 NEU_LIZ_DAZU.import.push('hagelsturm'); NEU_LIZ_DAZU.grossfeuer.push('hexenkessel'); NEU_LIZ_DAZU.profi.push('geysirfeld');
 NEU_GRUPPE.batterien.push('hexenkessel','geysirfeld','wolkenkratzer');
 /* 30.09.: Mix-Batterien mit Roemischen Lichtern */
-NEU_GRUPPE.batterien.push('roemerfeuer','kolosseum');
-/* 30.09.: fuenf weitere Kerzen-Batterien und acht neue Kugeln - in die
-   Lizenzpakete ihres Levels und in die Warengruppen */
-NEU_GRUPPE.batterien.push('nachtigall','kreuzritter','katapult','piranha','legion');
-NEU_GRUPPE.kugeln.push('gluehwurm75','perlenkette100','doppelgaenger150','sirene150','goldspinne200','hummelkoenigin200','niagara200','kanonade300');
-NEU_LIZ_DAZU.verbund.push('gluehwurm75'); NEU_LIZ_DAZU.import.push('perlenkette100','nachtigall');
-NEU_LIZ_DAZU.grossfeuer.push('sirene150','katapult','goldspinne200','hummelkoenigin200'); NEU_LIZ_DAZU.profi.push('niagara200','piranha','kanonade300');
-NEU_LIZENZEN.find(l=>l.id==='goldklasse').items.push('kreuzritter');
-NEU_LIZENZEN.find(l=>l.id==='sternklasse').items.push('doppelgaenger150');
+/* 30.09.: Kerzen-Batterien und neue Kugeln - in die Lizenzpakete ihres
+   Levels und in die Warengruppen */
+NEU_GRUPPE.batterien.push('legion','lichterprozession','kometenreigen','sternentor');
+NEU_GRUPPE.kugeln.push('kanonade300','rosengarten100','pfauenkrone150','sternschleier200','feuerlilie200');
+NEU_LIZ_DAZU.import.push('lichterprozession','rosengarten100');
+NEU_LIZ_DAZU.grossfeuer.push('kometenreigen','sternschleier200'); NEU_LIZ_DAZU.profi.push('sternentor','feuerlilie200','kanonade300');
+NEU_LIZENZEN.find(l=>l.id==='sternklasse').items.push('pfauenkrone150');
 NEU_LIZENZEN.find(l=>l.id==='meister').items.push('legion');
 /* Liste fuer die Testsektionen im Laden-Reiter (17-laptop) */
-const NEU_TEST={batterien:['roemerfeuer','kolosseum','nachtigall','kreuzritter','katapult','piranha','legion'],
-  kugeln:['goldspinne200','hummelkoenigin200','niagara200','gluehwurm75','perlenkette100','doppelgaenger150','sirene150','kanonade300']};
+const NEU_TEST={batterien:['legion','lichterprozession','kometenreigen','sternentor'],
+  kugeln:['kanonade300','rosengarten100','pfauenkrone150','sternschleier200','feuerlilie200']};
 /* Fontaenen-Sets (Feuerquelle, Gummibaerchen, Farbenspiel, Farbmischer,
    Wasserorgel, Feuerwand, Feuerkaskade, Popcorn) sind so breit wie ihre
    Duesenreihe - vorher 18-44 cm Karton, die Duesen standen aber bis
@@ -3103,9 +3083,21 @@ function sonneNachfuehren(){
   sun.target.position.set(tx,0,tz);
   sun.target.updateMatrixWorld();
   sun.shadow.camera.updateProjectionMatrix();
+  renderer.shadowMap.needsUpdate=true;
+}
+/* Schattenbild: in 'hoch' jedes Bild neu, in 'mittel' jedes dritte (die
+   Sonne steht still, nur Figuren und Kartons bewegen sich - drei Bilder
+   Verzug sieht man nicht). Der Schattenpass zeichnet jedes Objekt ein
+   zweites Mal: im Laden rund 1000 zusaetzliche Zeichenaufrufe. */
+let schattenN=0;
+function schattenTakt(){
+  const R=renderer.shadowMap; if(!R.enabled){ return; }
+  R.autoUpdate=false; schattenN++;
+  if(GFX==='hoch'||schattenN>=3){ R.needsUpdate=true; schattenN=0; }
 }
 function renderFrame(dt){
   sonneNachfuehren();
+  schattenTakt();
   if(skyMesh){ skyMesh.position.set(camera.position.x,0,camera.position.z); starPts.position.copy(skyMesh.position); }
   if(!postOK||!postOn){ if(renderer.setRenderTarget) renderer.setRenderTarget(null); renderer.render(scene,camera); return; }
   try{
@@ -17637,16 +17629,19 @@ function perleSchuss(o,A,s,opt){
   const B=opt.B||A, art=opt.eff||null, p0={x:o.x,y:y0,z:o.z}, v0=[vx,vy,vz], G=6;
   /* Scheitel der Kugel (Luftwiderstand ZIEH wie im Partikelsystem) */
   const tS=Math.log(1+ZIEH*Math.max(0.1,vy)/G)/ZIEH;
-  const L=art?tS:rand(1.6,2.0);
+  /* grossperle brennt ueber den Scheitel hinaus und sinkt noch ein Stueck */
+  const L=art==='grossperle'?tS+0.55:art?tS:rand(1.6,2.0);
   const kugelFarbe=art==='wandelperle'?A:A;
   /* wandelperle: A endet kurz vor dem Wechsel - Dunkelphase (28.09., echt.md 1.4) */
   /* 30.09.: Blinkkerze blinkt schon im Steigen (Modus 1); die Bombette
      steigt nur schwach glimmend - sie ist eine kleine Bombe, keine Kugel */
-  const kMd=art==='blinkperle'?1:0, kH=art==='bombette'?0.32:art==='kometperle'?1.5:1.3;
-  for(let k=0;k<(art==='schwebeperle'?4:art==='bombette'?1:3);k++) psHuge.emit(o.x,y0,o.z,vx,vy,vz,kugelFarbe[0]*kH,kugelFarbe[1]*kH,kugelFarbe[2]*kH,art==='wandelperle'?Math.max(0.1,Math.min(0.6,tS*0.45)-0.05):L,G,kMd);
+  const kMd=art==='blinkperle'?1:0, kH=art==='bombette'?0.32:art==='kometperle'||art==='schweifperle'?1.5:art==='grossperle'?1.7:1.3;
+  /* farbperle: A brennt bis kurz vor dem Wechsel (Dunkelphase), dann B */
+  const tW=Math.max(0.15,Math.min(0.9,tS*0.5));
+  for(let k=0;k<(art==='schwebeperle'||art==='grossperle'?5:art==='bombette'?1:3);k++) psHuge.emit(o.x,y0,o.z,vx,vy,vz,kugelFarbe[0]*kH,kugelFarbe[1]*kH,kugelFarbe[2]*kH,art==='wandelperle'?Math.max(0.1,Math.min(0.6,tS*0.45)-0.05):art==='farbperle'?tW-0.06:L,G,kMd);
   if(art!=='bombette') psBig.emit(o.x,y0,o.z,vx,vy,vz,1,1,1,L*0.4,G,kMd);
   /* Funkenschweif hinter der Kugel und ein kurzer Muendungsblitz */
-  const schweif=art==='wandelperle'?0.55:art==='bombette'?0.45:art==='blinkperle'?0.4:1;
+  const schweif=art==='wandelperle'?0.55:art==='bombette'?0.45:art==='blinkperle'?0.4:art==='grossperle'?1.5:1;
   for(let i=0;i<Math.round(40*schweif*QUAL());i++) psMid.emit(o.x,y0,o.z,vx*0.9+rand(-.3,.3),vy*rand(0.45,0.98),vz*0.9+rand(-.3,.3),1,.8,.4,rand(0.8,1.5)*schweif,6,4);
   muendungsblitz(o,y0,1.2);
   SCHWEIF=alt;
@@ -17751,6 +17746,35 @@ function perleSchuss(o,A,s,opt){
     bei(tS,q=>{ const a2=SCHWEIF; SCHWEIF=0;
       for(let k=0;k<Math.round(rand(6,8));k++){ const d=randDir(), w=rand(1.8,3); psBig.emit(q.x,q.y,q.z,d[0]*w,d[1]*w,d[2]*w,B[0]*1.2,B[1]*1.2,B[2]*1.2,rand(1.8,2.6),0.9,1); }
       SCHWEIF=a2; schall(q,v=>sfx.crackle(v*0.25)); });
+  }
+  /* ---- 30.09. (Tom: "eine schoene Show aus roemischen Lichtern, ohne
+     Knalle"): vier leise Kerzenarten ---- */
+  else if(art==='grossperle'){
+    /* Grosskerze: eine dicke Leuchtkugel mit dichtem Funkenschweif, die
+       ueber den Scheitel hinaus brennt und im Sinken verglimmt - kein Knall */
+    for(let t=0.08;t<L;t+=0.08) bei(t,(q,w)=>{ for(let k=0;k<Math.round(3*QUAL());k++) psMid.emit(q.x,q.y,q.z,w[0]*0.15+rand(-.35,.35),w[1]*0.15+rand(-.5,0),w[2]*0.15+rand(-.35,.35),A[0]*0.6+0.4,A[1]*0.6+0.3,A[2]*0.6+0.1,rand(0.4,0.8),2.5,4); });
+  }
+  else if(art==='farbperle'){
+    /* Farbwechselkerze: A geht kurz aus (Dunkelphase), die Kugel brennt
+       an derselben Bahnstelle in B weiter bis zum Scheitel - leise */
+    bei(tW+0.05,(q,w)=>{ const a2=SCHWEIF; SCHWEIF=0.4; for(let k=0;k<3;k++) psHuge.emit(q.x,q.y,q.z,w[0],w[1],w[2],B[0]*1.35,B[1]*1.35,B[2]*1.35,Math.max(0.2,tS-tW+0.35),G,0); SCHWEIF=a2; });
+    for(let t=0.08;t<tS+0.3;t+=0.08){ if(Math.abs(t-tW)<0.06) continue; const c=t<tW?A:B;
+      bei(t,(q,w)=>{ for(let k=0;k<Math.round(3*QUAL());k++) psMid.emit(q.x,q.y,q.z,w[0]*0.15+rand(-.3,.3),w[1]*0.15+rand(-.4,0),w[2]*0.15+rand(-.3,.3),c[0]*0.7+0.3,c[1]*0.7+0.25,c[2]*0.7+0.1,rand(0.3,0.55),3,4); }); }
+  }
+  else if(art==='schweifperle'){
+    /* Kometenkerze: goldene Brokatkugel, deren Glitzerschweif lange in der
+       Luft stehen bleibt und nach unten rieselt; oben verlischt sie leise */
+    for(let t=0.04;t<tS;t+=0.04) bei(t,(q,w)=>{ for(let k=0;k<Math.round(4*QUAL());k++) psMid.emit(q.x+rand(-.06,.06),q.y,q.z+rand(-.06,.06),w[0]*0.05+rand(-.25,.25),w[1]*0.05+rand(-.35,0.05),w[2]*0.05+rand(-.25,.25),1,.82,.42,rand(0.9,1.6),1.0,4); });
+    bei(tS,q=>{ for(let k=0;k<Math.round(14*QUAL());k++){ const d=randDir(), w=rand(0.6,1.6); psMid.emit(q.x,q.y,q.z,d[0]*w,d[1]*w,d[2]*w,1,.85,.5,rand(0.8,1.3),1.4,4); } schall(q,v=>sfx.rieseln(v*0.35,1.5)); });
+  }
+  else if(art==='sternperle'){
+    /* Sternkerze: im Scheitel oeffnet sich die Kugel leise zu einem
+       fuenfzackigen Stern aus Perlen in B, der zum Zuschauer steht,
+       langsam sinkt und verglimmt */
+    bei(tS,q=>{ const [u,v]=basisBlick(q,0.25), a0=rand(0,Math.PI*2), a2=SCHWEIF; SCHWEIF=0.15;
+      for(let k=0;k<10;k++){ const a=a0+k*Math.PI/5, r=k%2?0.45:1, sp=rand(2.6,3.0)*r, ca=Math.cos(a), sa=Math.sin(a);
+        for(let j=0;j<2;j++){ const f=j?0.55:1; psBig.emit(q.x,q.y,q.z,(u[0]*ca+v[0]*sa)*sp*f,(u[1]*ca+v[1]*sa)*sp*f,(u[2]*ca+v[2]*sa)*sp*f,B[0]*1.25,B[1]*1.25,B[2]*1.25,rand(1.3,1.7),0.9,0); } }
+      SCHWEIF=a2; schall(q,v=>sfx.rieseln(v*0.3,1.2)); });
   }
   else if(art==='weidenperle'){
     /* Weidenkerze: dicke Brokatkugel; im Scheitel faellt sie als kleine
@@ -22254,142 +22278,19 @@ SIGNATUR.wolkenkratzer={idee:'etagen',text:'vier Etagen übereinander, gleichzei
   const b=SHOWS[t]&&SHOWS[t]().basis; if(b) SHOW_BASIS[t]={pw:b.pw,sz:b.sz,th:b.th}; });
 
 /* =========================================================
-   Zwei Mix-Batterien mit Roemischen Lichtern (30.09., Tom: "viel so
-   roemische Lichter ... Mix-Batterien, wo du ein bisschen Fontaene hast,
-   roemische Lichter und dann Knalle - eine mittlere und eine extreme;
-   achte auf die Sounds und das Zusammenspiel").
+   Kerzen-Batterien (30.09., Tom): die Legion - alle Kerzenarten als Heer -
+   und drei reine Shows aus grossen Roemischen Lichtern OHNE Knall ("eine
+   schoene Show aus roemischen Lichtern, ohne Knalle"). Jede hat ihre
+   eigenen Kerzenarten (perleSchuss): Lichterprozession grosse Kugeln und
+   schwebende Perlen, Kometenreigen Kometen- und Weidenkerzen, Sternentor
+   Farbwechsel- und Sternkerzen. Grundstufe passend zum Level.
    ========================================================= */
 Object.assign(THEMEN,{
-  roemer:[['gold','rot'],['gold','weiss'],['rot','gold']],
-  arena:[['gold','rot'],['silber','weiss'],['rot','gold'],['weiss','gold']]
+  legion:[['gold','rot'],['silber','weiss'],['gold','weiss'],['rot','gold']],
+  prozession:[['gold','rose'],['tuerkis','gold'],['rose','weiss']],
+  reigen:[['gold','bernstein'],['silber','gold'],['bernstein','rot'],['gold','weiss']],
+  sternentor:[['himmel','violett'],['gold','tuerkis'],['magenta','gold'],['weiss','himmel']]
 });
-/* Level 16: Roemerfeuer. Knister-Kerzen (Goldkugeln, die knisternd
-   zerfallen) laufen ueber den Karton, Kracher antworten, zwei Gold-
-   fontaenen tragen den Boden; Finale Kerzen-Schlag mit Titan-Krachern.
-   Klang: Fontaenen rauschen, Kerzen ploppen und prasseln, Kracher
-   knallen trocken - nie alles zugleich, sondern im Wechsel. */
-SHOWS.roemerfeuer=()=>show({basis:{pw:0.05,sz:1.005,th:'roemer'},rampe:{sz:[0.9,1.25],pw:[0,2],hell:[0.85,1.3],kurve:'spaet'}},[
-  /* Auftakt: die Kerzen erwachen ueber zwei Goldfontaenen */
-  {n:6,perle:true,perleEff:'knisterperle',gap:0.6,muster:'gerade',rohrFolge:[-1,-0.4,0.2,0.8,0.4,-0.2],farbe:0,
-    boden:[{k:'fountain',gt:6,gh:0.7,x:-0.2,A:'gold',B:'weiss'},{k:'fountain',gt:6,gh:0.7,x:0.2,A:'gold',B:'weiss',t:0.4}],pause:0.5},
-  /* Antwort: sechs Kracher im V, trocken und kurz */
-  {n:6,gap:0.28,muster:'v',ang:0.32,eff:'salut',kal:'klein',pw:-2,pause:0.9},
-  /* Wechselspiel: Knister-Kerzen gestreut, darueber rote Palmen */
-  {n:10,perle:true,perleEff:'knisterperle',gap:0.35,muster:'zufall',ang:0.14,rohrFolge:[-0.8,0.6,-0.2,1,-1,0.2,0.8,-0.6,0,0.4],farbe:1},
-  {mit:true,n:5,gap:0.75,muster:'gerade',eff:['palme','chrys'],kal:'mittel',pw:1,farbe:2,pause:1.0},
-  /* Zwischenspiel: ein Vulkan brodelt, goldene Kamuros sinken langsam */
-  {n:4,gap:1.0,muster:'w',ang:0.3,eff:'kamuro',pw:2,farbe:0,boden:{k:'volcano',gt:4.5,A:'gold',B:'rot'},pause:0.6},
-  /* FINALE: acht Kerzen auf Schlag, dazu Titan-Kracher im X und die Fontaenen */
-  {n:8,perle:true,perleEff:'knisterperle',gap:0.1,muster:'schlag',ang:0.2,rohrFolge:[-1,1,-0.6,0.6,-0.2,0.2,0,0],farbe:0,
-    boden:[{k:'fountain',gt:4,gh:1.0,x:-0.2,A:'gold',B:'zitrone'},{k:'fountain',gt:4,gh:1.0,x:0.2,A:'gold',B:'zitrone'}]},
-  {mit:true,n:10,gap:0.08,muster:'x',ang:0.36,eff:'titanschlag',kal:'mittel',pw:2,pause:4.0}
-]);
-SIGNATUR.roemerfeuer={eff:'knisterperle',text:'Knister-Kerzen im Wechsel mit Krachern über Goldfontänen'};
-
-/* Level 25: Kolosseum. Das Extrem: Einmarsch zwischen zwei Riesen-
-   fontaenen, Knall-Kerzen (Kugel steigt, oben ein harter Knall mit
-   Weissblitz), Fanfare aus Goldkometen, Gladiatoren (Titanschlaege mit
-   Palmen), Loewen (Riesen-Kamuros ueber Knall-Kerzen), Wagenrennen
-   (Kreuzsterne im Kreis), Stille - dann das Finale aus Donnerblitzen,
-   Knall-Kerzen auf Schlag, Riesenfontaenen und Feuertoepfen, zum
-   Schluss sechs Riesen-Titanschlaege. */
-SHOWS.kolosseum=()=>show({basis:{pw:4.0,sz:1.33,th:'arena'},rampe:{sz:[0.95,1.3],pw:[0,2.5],hell:[0.9,1.45],kurve:'spaet'}},[
-  /* Einmarsch */
-  {n:10,perle:true,perleEff:'knallperle',gap:0.7,muster:'gerade',rohrFolge:[-1,1,-0.6,0.6,-0.2,0.2,-0.8,0.8,-0.4,0.4],farbe:0,
-    boden:[{k:'riesen',x:-0.3,gt:8,gh:0.8,A:'gold',B:'weiss',C:FW.gold},{k:'riesen',x:0.3,gt:8,gh:0.8,A:'gold',B:'weiss',C:FW.gold,t:0.6}],pause:0.4},
-  /* Fanfare: Goldkometen von der Mitte nach aussen, dazu Knall-Kerzen */
-  {n:12,gap:0.22,muster:'mitte',ang:0.45,eff:'rohrkomet',art:'gold'},
-  {mit:true,n:6,perle:true,perleEff:'knallperle',gap:0.45,muster:'zufall',ang:0.12,rohrFolge:[-0.5,0.5,0,-0.9,0.9,0],farbe:1,pause:1.0},
-  /* Gladiatoren: Titanschlag und Palme im Wechsel, im Takt da-da-DAMM */
-  {n:18,takt:[0.2,0.2,0.65],muster:'paar',ang:0.42,eff:['titanschlag','titanschlag','palme'],kal:'gross',farbe:2,boden:{k:'volcano',gt:5,A:'rot',B:'gold'},pause:0.9},
-  /* Loewen: Riesen-Kamuros, darunter Knall-Kerzen */
-  {n:6,gap:1.1,muster:'gerade',eff:'kamuro',kal:'riesig',pw:3,farbe:3},
-  {mit:true,n:14,perle:true,perleEff:'knallperle',gap:0.45,muster:'zufall',ang:0.2,farbe:1,pause:0.8},
-  /* Wagenrennen: Kreuzsterne ziehen im Kreis */
-  {n:24,gap:0.12,muster:'kreis',ang:0.32,eff:'crossette',kal:'mittel',farbe:1,pause:2.2},
-  /* FINALE: Donnerblitz-Salven aus vier Modulen, Knall-Kerzen auf Schlag,
-     Riesenfontaenen und goldene Feuertoepfe */
-  {n:24,je:6,takt:[0.55],x:[-0.3,-0.1,0.1,0.3],angOff:[-0.3,-0.1,0.1,0.3],muster:'schlag',ang:0.35,eff:'donnerblitz',kal:'gross',farbe:0,mineEff:'gold',
-    boden:[{k:'riesen',x:-0.3,gt:5,gh:1.0,A:'gold',B:'weiss',C:FW.gold},{k:'riesen',x:0.3,gt:5,gh:1.0,A:'gold',B:'weiss',C:FW.gold}]},
-  {mit:true,n:20,perle:true,perleEff:'knallperle',gap:0.08,muster:'schlag',ang:0.3,farbe:0,pause:0.6},
-  /* Schluss: sechs Riesen-Titanschlaege senkrecht */
-  {n:6,je:6,muster:'gerade',eff:'titanschlag',kal:'riesig',pw:4,farbe:1,pause:5}
-]);
-SIGNATUR.kolosseum={eff:'knallperle',text:'Knall-Kerzen, Riesenfontänen und Titanschläge – die Arena bebt'};
-
-/* =========================================================
-   Fuenf weitere Batterien mit Roemischen Lichtern (30.09., Tom: "5 neue
-   Batterien mit roemischen Lichtern, verschiedene Effekte"). Jede hat
-   ihre eigene Kerzenart als Herz (perleSchuss): Pfeif-, Kreuz-,
-   Bombetten-, Fisch- und im Extrem alle zusammen mit Weiden- und
-   Blinkkerzen. Grundstufe passend zum Level (Steigerung).
-   ========================================================= */
-Object.assign(THEMEN,{
-  nachtigall:[['silber','weiss'],['tuerkis','silber'],['weiss','gold']],
-  ritter:[['silber','rot'],['gold','silber'],['rot','weiss']],
-  katapult:[['rot','gruen'],['blau','gold'],['magenta','limette'],['orange','violett']],
-  piranha:[['silber','rot'],['tuerkis','silber'],['rot','gold']],
-  legion:[['gold','rot'],['silber','weiss'],['gold','weiss'],['rot','gold']]
-});
-/* Level 17: Nachtigall. Pfeifkerzen singen eine Tonleiter ueber einer
-   Silberfontaene, Pfeifsterne antworten, im Finale zwoelf Pfeifkerzen
-   auf Schlag mit Blinkbruechen. Klang: fast nur Pfeifen, kaum Knall. */
-SHOWS.nachtigall=()=>show({basis:{pw:0.6,sz:1.05,th:'nachtigall'},rampe:{sz:[0.9,1.2],pw:[0,1.5],hell:[0.85,1.25],kurve:'spaet'}},[
-  {n:5,perle:true,perleEff:'pfeifperle',gap:0.9,muster:'gerade',rohrFolge:[0,-0.6,0.6,-0.3,0.3],farbe:0,boden:{k:'fountain',gt:5,gh:0.6,A:'silber',B:'weiss'}},
-  {n:8,gap:0.3,muster:'v',ang:0.3,eff:'pfeifsterne',kal:'klein',pw:-1,farbe:1,pause:0.6},
-  {n:9,perle:true,perleEff:'pfeifperle',gap:0.22,muster:'treppe',ang:0.25,farbe:2},
-  {mit:true,n:4,gap:0.8,muster:'gerade',eff:'chrys',kal:'mittel',pw:0,farbe:0,pause:1.2},
-  {n:12,perle:true,perleEff:'pfeifperle',gap:0.08,muster:'schlag',ang:0.3,farbe:1,
-    boden:[{k:'fountain',gt:4,gh:0.9,x:-0.2,A:'silber',B:'weiss'},{k:'fountain',gt:4,gh:0.9,x:0.2,A:'silber',B:'weiss'}]},
-  {mit:true,n:4,gap:0.5,muster:'mitte',ang:0.3,eff:'strobe',kal:'mittel',pw:1,farbe:2,pause:4}
-]);
-SIGNATUR.nachtigall={eff:'pfeifperle',text:'Pfeifkerzen singen eine Tonleiter über der Silberfontäne'};
-
-/* Level 18: Kreuzritter. Kreuzkerzen (Titankugel mit Glitzerschweif, oben
-   vier Kometen) im Wechsel mit Crossettes und trockenen Krachern; dazu
-   Goldfontaene und Vulkan; Finale: 16 Kreuzkerzen auf Schlag mit
-   Titanschlaegen im W. */
-SHOWS.kreuzritter=()=>show({basis:{pw:1.1,sz:1.09,th:'ritter'},rampe:{sz:[0.9,1.25],pw:[0,2],hell:[0.85,1.3],kurve:'spaet'}},[
-  {n:6,perle:true,perleEff:'kometperle',gap:0.7,muster:'aussen',ang:0.2,farbe:0,boden:{k:'fountain',gt:5,gh:0.8,A:'gold',B:'weiss'}},
-  {n:10,gap:0.12,muster:'x',ang:0.38,eff:'crossette',kal:'klein',pw:0,farbe:1,pause:0.8},
-  {n:12,perle:true,perleEff:'kometperle',gap:0.35,muster:'kreis',ang:0.25,farbe:2},
-  {mit:true,n:6,gap:0.6,muster:'paar',ang:0.3,eff:'salut',kal:'klein',pw:0,pause:1.0},
-  {n:6,gap:0.9,muster:'gerade',eff:'palme',kal:'gross',pw:1,farbe:1,boden:{k:'volcano',gt:5,A:'gold',B:'rot'}},
-  {n:16,perle:true,perleEff:'kometperle',gap:0.1,muster:'schlag',ang:0.35,farbe:0},
-  {mit:true,n:8,gap:0.15,muster:'w',ang:0.35,eff:'titanschlag',kal:'mittel',pw:1,farbe:2,pause:4}
-]);
-SIGNATUR.kreuzritter={eff:'kometperle',text:'Kreuzkerzen: Titankugeln zerspringen oben in vier Kometen'};
-
-/* Level 20: Katapult. Bombettenkerzen - kleine Bomben aus dem Rohr, die
-   oben zu bunten Paeonien zerlegen, jede Kugel ein anderes Farbpaar;
-   dazwischen grosse Dahlien und Kamuros, Finale 24 Bombetten auf Schlag. */
-SHOWS.katapult=()=>show({basis:{pw:2.2,sz:1.18,th:'katapult'},rampe:{sz:[0.9,1.3],pw:[0,2],hell:[0.85,1.35],kurve:'spaet'}},[
-  {n:8,perle:true,perleEff:'bombette',gap:0.5,muster:'z',ang:0.3,farbe:0,wechsel:true,boden:{k:'volcano',gt:4,A:'rot',B:'gold'}},
-  {n:12,perle:true,perleEff:'bombette',gap:0.18,muster:'spirale',ang:0.35,farbe:1,wechsel:true},
-  {mit:true,n:3,gap:1.2,muster:'gerade',eff:'dahlie',kal:'gross',pw:1,farbe:2,pause:0.8},
-  {n:15,takt:[0.15,0.15,0.6],perle:true,perleEff:'bombette',muster:'paar',ang:0.3,farbe:3},
-  {n:5,gap:0.9,muster:'aussen',ang:0.3,eff:'kamuro',kal:'mittel',farbe:1,pause:1.0},
-  {n:24,perle:true,perleEff:'bombette',gap:0.06,muster:'schlag',ang:0.4,farbe:2,wechsel:true,
-    boden:[{k:'fountain',gt:3.5,gh:1.0,x:-0.25,A:'gold',B:'rot'},{k:'fountain',gt:3.5,gh:1.0,x:0.25,A:'gold',B:'gruen'}]},
-  {mit:true,n:3,gap:0.3,muster:'mitte',ang:0.25,eff:'dahlie',kal:'riesig',pw:2,farbe:0,pause:4}
-]);
-SIGNATUR.katapult={eff:'bombette',text:'Bombettenkerzen: kleine Bomben aus dem Rohr, oben bunte Päonien'};
-
-/* Level 22: Piranha. Fischkerzen - oben loest sich ein Schwarm Fische -
-   ueber einer Silberfontaene, Fischschwaerme in der Welle, knisternde
-   Dracheneier, Pferdeschweife ueber Riesenfontaenen; Finale 24 Fisch-
-   kerzen auf Schlag und zwoelf Dracheneier. */
-SHOWS.piranha=()=>show({basis:{pw:3.15,sz:1.255,th:'piranha'},rampe:{sz:[0.9,1.3],pw:[0,2.5],hell:[0.85,1.35],kurve:'spaet'}},[
-  {n:6,perle:true,perleEff:'fischperle',gap:0.8,muster:'mitte',ang:0.2,farbe:0,boden:{k:'fountain',gt:6,gh:0.7,A:'silber',B:'weiss'}},
-  {n:14,gap:0.14,muster:'welle',ang:0.35,eff:'fischschwarm',kal:'klein',pw:-1,farbe:1,pause:0.6},
-  {n:16,perle:true,perleEff:'fischperle',gap:0.3,muster:'zufall',ang:0.2,farbe:2},
-  {mit:true,n:8,gap:0.55,muster:'v',ang:0.35,eff:'drachenei',kal:'mittel',farbe:0,pause:1.0},
-  {n:10,gap:1.0,muster:'gerade',eff:'rossschweif',kal:'gross',farbe:1,boden:[{k:'riesen',x:-0.3,gt:6,gh:0.8,A:'silber',B:'weiss',C:FW.silber},{k:'riesen',x:0.3,gt:6,gh:0.8,A:'silber',B:'weiss',C:FW.silber,t:0.5}]},
-  {n:24,perle:true,perleEff:'fischperle',gap:0.07,muster:'schlag',ang:0.35,farbe:0},
-  {mit:true,n:12,gap:0.18,muster:'aussen',ang:0.4,eff:'drachenei',kal:'gross',pw:2,farbe:2,pause:4.5}
-]);
-SIGNATUR.piranha={eff:'fischperle',text:'Fischkerzen: oben schwimmt ein Schwarm Silberfische davon'};
-
 /* Level 26: Legion. Das Extrem: alle Kerzenarten als Heer - Weidenkerzen
    zwischen zwei Riesenfontaenen, ein Wischer aus Blinkkerzen, Riesen-
    Kamuros, ein Kreis aus Kreuzkerzen ueber dem Vulkan, Bombetten im W,
@@ -22411,6 +22312,55 @@ SHOWS.legion=()=>show({basis:{pw:4.2,sz:1.36,th:'legion'},rampe:{sz:[0.95,1.35],
   {mit:true,n:12,gap:0.25,muster:'mitte',ang:0.3,eff:'kamuro',kal:'riesig',pw:4,farbe:2,pause:6}
 ]);
 SIGNATUR.legion={eff:'weidenperle',text:'Ein Heer aus Kerzen: Weiden-, Blink-, Kreuz-, Bombetten-, Pfeif- und Fischkerzen'};
+
+/* Level 17: Lichterprozession. Grosse Leuchtkugeln steigen in Reihen,
+   Treppen und Wellen, schwebende Perlen haengen als Girlanden; Finale:
+   sechzehn Grosskerzen auf Schlag ueber zwei Goldfontaenen, darueber acht
+   aus der Mitte. Klang: nur das dumpfe Ploppen der Rohre und die Fontaenen. */
+SHOWS.lichterprozession=()=>show({basis:{pw:0.6,sz:1.05,th:'prozession'},rampe:{sz:[0.9,1.2],pw:[0,1.5],hell:[0.85,1.25],kurve:'spaet'}},[
+  {n:8,perle:true,perleEff:'grossperle',gap:0.7,muster:'gerade',rohrFolge:[-1,1,-0.5,0.5,-0.2,0.2,-0.8,0.8],farbe:0,boden:{k:'fountain',gt:6,gh:0.7,A:'gold',B:'weiss'}},
+  {n:6,perle:true,perleEff:'schwebeperle',gap:0.9,muster:'aussen',ang:0.25,farbe:2},
+  {n:14,perle:true,perleEff:'grossperle',gap:0.2,muster:'treppe',ang:0.3,farbe:1},
+  {mit:true,n:12,perle:true,perleEff:'schwebeperle',gap:0.35,muster:'welle',ang:0.3,farbe:0,pause:1.0},
+  {n:16,perle:true,perleEff:'grossperle',gap:0.08,muster:'schlag',ang:0.35,farbe:2,
+    boden:[{k:'fountain',gt:4,gh:1.0,x:-0.2,A:'gold',B:'rose'},{k:'fountain',gt:4,gh:1.0,x:0.2,A:'gold',B:'rose'}]},
+  {mit:true,n:8,perle:true,perleEff:'grossperle',gap:0.25,muster:'mitte',ang:0.2,farbe:1,pause:4}
+]);
+SIGNATUR.lichterprozession={eff:'grossperle',text:'Große Leuchtkugeln in Reihen und schwebende Perlen-Girlanden – ohne Knall'};
+
+/* Level 21: Kometenreigen. Brokat-Kometenkerzen mit langem Glitzer-
+   schweif kreuzen sich, Weidenkerzen fallen als kleine Trauerweiden
+   auseinander, ein Kometenkreis ueber dem Vulkan; Finale: 24 Kometen
+   in der Spirale, dazu acht Weiden aus der Mitte. Klang: Rauschen, Rieseln. */
+SHOWS.kometenreigen=()=>show({basis:{pw:2.4,sz:1.19,th:'reigen'},rampe:{sz:[0.9,1.3],pw:[0,2],hell:[0.85,1.35],kurve:'spaet'}},[
+  {n:10,perle:true,perleEff:'schweifperle',gap:0.6,muster:'aussen',ang:0.22,farbe:0,boden:{k:'fountain',gt:6,gh:0.8,A:'gold',B:'weiss'}},
+  {n:16,perle:true,perleEff:'schweifperle',gap:0.18,muster:'x',ang:0.38,farbe:1},
+  {mit:true,n:8,perle:true,perleEff:'weidenperle',gap:0.6,muster:'gerade',farbe:2,pause:0.8},
+  {n:18,takt:[0.12,0.12,0.5],perle:true,perleEff:'schweifperle',muster:'kreis',ang:0.3,farbe:3,boden:{k:'volcano',gt:5,A:'gold',B:'rot'}},
+  {n:12,perle:true,perleEff:'weidenperle',gap:0.5,muster:'v',ang:0.3,farbe:1},
+  {n:24,perle:true,perleEff:'schweifperle',gap:0.06,muster:'spirale',ang:0.4,farbe:0},
+  {mit:true,n:8,perle:true,perleEff:'weidenperle',gap:0.2,muster:'mitte',ang:0.15,farbe:2,pause:5}
+]);
+SIGNATUR.kometenreigen={eff:'schweifperle',text:'Kometenkerzen mit Glitzerschweif und kleine Trauerweiden – ohne Knall'};
+
+/* Level 24: Sternentor. Farbwechsel-Kerzen wischen ueber den Himmel,
+   Sternkerzen oeffnen sich oben zu fuenfzackigen Sternen, zwei Riesen-
+   fontaenen bilden das Tor; Finale: 36 Farbwechsel-Kerzen auf Schlag,
+   sechzehn Sternkerzen im X und acht aus der Mitte. */
+SHOWS.sternentor=()=>show({basis:{pw:3.8,sz:1.31,th:'sternentor'},rampe:{sz:[0.95,1.35],pw:[0,2.5],hell:[0.9,1.4],kurve:'spaet'}},[
+  {n:12,perle:true,perleEff:'farbperle',gap:0.5,muster:'mitte',ang:0.25,farbe:0,
+    boden:[{k:'riesen',x:-0.35,gt:7,gh:0.8,A:'weiss',B:'himmel',C:FW.silber},{k:'riesen',x:0.35,gt:7,gh:0.8,A:'weiss',B:'himmel',C:FW.silber,t:0.5}]},
+  {n:24,perle:true,perleEff:'farbperle',gap:0.12,muster:'wischer',ang:0.35,farbe:1},
+  {mit:true,n:10,perle:true,perleEff:'sternperle',gap:0.7,muster:'w',ang:0.3,farbe:2,pause:0.8},
+  {n:20,perle:true,perleEff:'sternperle',gap:0.25,muster:'paar',ang:0.35,farbe:3},
+  {mit:true,n:10,perle:true,perleEff:'farbperle',gap:0.5,muster:'gerade',farbe:0,boden:{k:'volcano',gt:5,A:'gold',B:'violett'}},
+  {n:24,takt:[0.1,0.1,0.1,0.45],perle:true,perleEff:'sternperle',muster:'kreis',ang:0.3,farbe:1},
+  {n:36,perle:true,perleEff:'farbperle',gap:0.05,muster:'schlag',ang:0.4,farbe:2,
+    boden:[{k:'riesen',x:-0.35,gt:5,gh:1.0,A:'weiss',B:'himmel',C:FW.silber},{k:'riesen',x:0.35,gt:5,gh:1.0,A:'weiss',B:'himmel',C:FW.silber}]},
+  {mit:true,n:16,perle:true,perleEff:'sternperle',gap:0.12,muster:'x',ang:0.35,farbe:0},
+  {mit:true,n:8,perle:true,perleEff:'farbperle',gap:0.3,muster:'mitte',ang:0.15,farbe:3,pause:6}
+]);
+SIGNATUR.sternentor={eff:'farbperle',text:'Farbwechsel- und Sternkerzen zwischen zwei Riesenfontänen – ohne Knall'};
 /* =========================================================
    Raketen - je Rakete ein eigener Aufstieg und ein eigener Bruch
    (Tom, 26.09. nachts: "jedes Produkt eine Anomalie - komplett
@@ -23659,112 +23609,12 @@ Object.assign(SIGNATUR,{
 });
 
 /* =========================================================
-   30.09. (Tom): der Bluetenkranz (kugel200) ist raus - dafuer drei neue
-   200-mm-Bomben mit Bewegung im Bild (Goldspinne, Hummelkoenigin,
-   Niagara) und fuenf Kugeln mit Effekten der Roemischen Lichter
-   (Leuchtkugeln, die knistern, sich teilen, pfeifen, knallen, blinken).
-   Alles echte Bomben aus dem Katalog: Spider, Hummer/Tourbillon,
-   Horsetail, Crackling-Comet-Ring, Split-Comet, Whistle, Report-Ring,
-   Strobe-Pearls.
+   30.09. (Tom): der Bluetenkranz (kugel200) ist raus; von den neuen Kugeln
+   bleibt die Kanonade, dazu vier klassisch schoene Bomben aus dem Katalog:
+   Doppelpaeonie (Rosengarten), Chrysantheme mit zweifachem Farbwechsel
+   (Pfauenkrone), Silber-Chrysantheme zum Schleier mit Strobe-Tautropfen
+   (Sternschleier) und Kometen-Lilie mit Pistill-Spitzen (Feuerlilie).
    ========================================================= */
-
-/* Goldspinne (goldspinne200): Spinnenbombe - schwere Brokatsterne
-   schiessen sehr schnell auseinander, bremsen hart, ziehen dicke
-   Goldspuren und haengen dann wie Spinnenbeine durch. Am Ende jedes
-   dritten Beins (hoechstens neun) glimmt ein rotes Auge auf. */
-EFF.goldspinne=function(p,A,B,s,r){
-  const q=QUAL(), g=FW.gold, n=Math.round(22*s*q), G=3.4, augen=[];
-  let ai=0;
-  /* die Augen sind echte kleine Pistill-Brueche an den Beinspitzen
-     (wie "Brokat zu roten Spitzen"), leise - kein Knall je Auge */
-  const auge=e=>fwBurst({p:e,A:kgMal(A,1.2),B:A,size:0.45,eff:'pistill',knall:'e1still',bruchOpt:{kern:false,nachglitzer:false,flash:0.12},tag:FW_TAG});
-  for(let i=0;i<n;i++){ const d=randDir(), w=rand(9.5,11.5)*s, v=kgMal(d,w), T=rand(2.3,2.8);
-    kgStern(psBig,p,v,kgMal(g,1.05),T,G,4,0.9);
-    rkFunken(p,v,G,0.1,T-0.3,26,[1,.82,.45],{life:[0.5,1.0],g:2.2,streu:0.25,mit:0.05});
-    if(i%3===0&&ai++<9){ const e=sternNach(p,v[0],v[1],v[2],G,T-0.05); augen.push(e); kgSpaeter(T-0.05,()=>auge(e)); } }
-  schall(p,v=>later(0.5,()=>sfx.rieseln(v*0.55,3.5)));
-};
-
-/* Hummelkoenigin (hummelkoenigin200): blaue Paeonie, aus der dreissig
-   Hummeln (Tourbillons) brechen - kleine Goldkometen, die sich um sich
-   selbst drehen, dabei Schrauben ziehen und summen. */
-EFF.hummelkoenigin=function(p,A,B,s,r){
-  const q=QUAL(), gold=FW.gold;
-  for(let i=0;i<Math.round(24*s*q);i++){ const d=randDir(), w=rand(6.5,7.8)*s; kgStern(psBig,p,kgMal(d,w),kgMal(A,1.15),rand(1.7,2.2),2.6,0,0.06); }
-  const n=Math.round(rand(26,32)*Math.max(0.7,q));
-  for(let i=0;i<n;i++){ const d=randDir(), w=rand(9,12)*Math.sqrt(s), om=rand(9,14)*(i%2?1:-1), c=i%4?gold:B;
-    fuehre(psMid,p.x,p.y,p.z,d[0]*w,d[1]*w,d[2]*w,c,rand(1.7,2.3),(st,dt)=>{
-      const v=st.v, t=st.alter, cs=Math.cos(om*dt), sn=Math.sin(om*dt), vx=v[0]*cs-v[2]*sn, vz=v[0]*sn+v[2]*cs, f=Math.exp(-1.3*dt);
-      v[0]=vx*f; v[2]=vz*f; v[1]=v[1]*f-1.9*dt;
-      st.p[0]+=v[0]*dt; st.p[1]+=v[1]*dt; st.p[2]+=v[2]*dt;
-      st.hell=1.6*Math.min(1,(st.life-t)/0.3)*komp(st);
-      st.d.acc=(st.d.acc||0)+dt*55*q;
-      for(;st.d.acc>=1;st.d.acc--) psMid.emit(st.p[0],st.p[1],st.p[2],-v[0]*0.1+rand(-.5,.5),-v[1]*0.1+rand(-.6,.2),-v[2]*0.1+rand(-.5,.5),1,.8,.4,rand(0.25,0.45),1.5,4);
-    },{spur:0.05}); }
-  schall(p,v=>{ if(typeof tonGen==='function') later(0.1,()=>tonGen({f:170,typ:'sawtooth',am:22,amTiefe:0.6,rausch:0.6,lp:1600,dur:2.1,vol:0.03*v,an:0.15})); });
-};
-
-/* Niagara (niagara200): Pferdeschweif - die Silbersterne werden steil
-   nach oben geworfen, kippen und fallen als dichter, langer Glitzer-
-   vorhang; unten zerstaeubt er knisternd wie Gischt. */
-EFF.niagara=function(p,A,B,s,r){
-  const q=QUAL(), n=Math.round(30*s*q), sil=A||FW.silber, G=3.2, gischt=[];
-  for(let i=0;i<n;i++){ const a=rand(0,Math.PI*2), rr=Math.sqrt(Math.random())*0.6, d=[Math.cos(a)*rr,Math.sqrt(1-rr*rr),Math.sin(a)*rr], w=rand(6,8.5)*s, v=kgMal(d,w), T=rand(3.6,4.4);
-    kgStern(psBig,p,v,kgMal(sil,1.1),T,G,4,1.2);
-    rkFunken(p,v,G,0.4,T-0.2,22,[.9,.93,1],{life:[0.6,1.1],g:2.6,streu:0.3,mit:0.03});
-    if(i%4===0) gischt.push(sternNach(p,v[0],v[1],v[2],G,T)); }
-  kgSpaeter(3.7,()=>{ for(const e of gischt) knisterWolke(e,4,0.5,0.8,{funken:4,laut:0.3,c:[.9,.95,1]}); });
-  schall(p,v=>{ sfx.rieseln(v*0.7,4.5); });
-};
-
-/* Gluehwuermchen (gluehwurm75): zwanzig weiche Leuchtperlen schweben
-   langsam aus, sinken kaum und blinken jede in ihrem Takt - wie die
-   Leuchtkugeln einer Blinkkerze, nur im Himmel verteilt. */
-EFF.gluehwurm=function(p,A,B,s,r){
-  const q=QUAL(), n=Math.round(rand(18,24)*Math.max(0.8,q));
-  for(let i=0;i<n;i++){ const d=randDir(), w=rand(3.2,4.6)*s, c=i%3?A:B;
-    kgStern(psBig,p,kgMal(d,w),kgMal(c,1.3),rand(3.2,4.2),0.7,1,0); }
-  for(let i=0;i<Math.round(14*s*q);i++){ const d=randDir(), w=rand(5.5,6.5)*s; kgStern(psMid,p,kgMal(d,w),kgMal(FW.gold,0.9),rand(0.9,1.3),2.4,4,0.15); }
-  schall(p,v=>sfx.crackle(v*0.2));
-};
-
-/* Perlenkette (perlenkette100): ein Kranz aus zwoelf Goldperlen mit
-   Funkenschweif, genau wie die Kugeln einer Knisterkerze - nach gut
-   einer Sekunde zerfaellt jede Perle knisternd. */
-EFF.perlenkette=function(p,A,B,s,r){
-  const [u,v]=basisBlick(p,0.6), a0=rand(0,Math.PI*2), G=2.6, T=1.25, perlen=[];
-  for(let k=0;k<12;k++){ const a=a0+k/12*Math.PI*2+rand(-0.04,0.04), ca=Math.cos(a), sa=Math.sin(a), d=[u[0]*ca+v[0]*sa,u[1]*ca+v[1]*sa,u[2]*ca+v[2]*sa], w=6.5*s*rand(0.97,1.03), vel=kgMal(d,w);
-    for(let j=0;j<2;j++) kgStern(psHuge,p,vel,kgMal(A,1.3),T,G,0,0.3);
-    rkFunken(p,vel,G,0.05,T,60,[1,.8,.4],{life:[0.3,0.6],g:3,streu:0.5,mit:0.1});
-    perlen.push(sternNach(p,vel[0],vel[1],vel[2],G,T)); }
-  kgSpaeter(T,()=>{ for(const e of perlen) knisterWolke(e,Math.round(9*QUAL()),0.6,1.1,{c:[1,.9,.6],funken:5,laut:0.4}); });
-};
-
-/* Doppelgaenger (doppelgaenger150): sechzehn weisse Kometen fliegen aus,
-   und jeder teilt sich mit einem Knacks in zwei Perlen - links A,
-   rechts B - wie die Zwillingskerze. */
-EFF.doppelgaenger=function(p,A,B,s,r){
-  const G=2.8, T=0.9, n=16;
-  for(let k=0;k<n;k++){ const d=randDir(), w=rand(7,8.5)*s, vel=kgMal(d,w);
-    kgStern(psHuge,p,vel,[1.4,1.4,1.35],T,G,0,0.35);
-    rkFunken(p,vel,G,0.05,T,40,[1,.95,.85],{life:[0.2,0.4],g:3,streu:0.6,mit:0.12});
-    kgSpaeter(T,()=>{ const e=sternNach(p,vel[0],vel[1],vel[2],G,T), w2=bahnTempo(vel,G,T), sq=Math.hypot(w2[0],w2[2])||1, qx=-w2[2]/sq, qz=w2[0]/sq;
-      for(const [sg,c] of [[-1,A],[1,B]]){ const sp=rand(4,5.5)*sg*Math.sqrt(s); kgStern(psHuge,e,[w2[0]*0.4+qx*sp,w2[1]*0.4+0.6,w2[2]*0.4+qz*sp],kgMal(c,1.3),rand(1.3,1.7),G,0,0.25); }
-      if(k%4===0) schall(e,v=>sfx.crack(v*0.6)); }); }
-};
-
-/* Sirene (sirene150): zwoelf Pfeifkometen schiessen aus dem Bruch nach
-   oben und aussen, ihr Pfeifen gleitet hinauf; oben verpufft jeder in
-   einem Buendel roter Sterne. */
-EFF.sirene=function(p,A,B,s,r){
-  const G=2.4, T=1.4, n=12;
-  for(let k=0;k<n;k++){ const d=randDir(); d[1]=Math.abs(d[1])*0.8+0.35; const l=Math.hypot(d[0],d[1],d[2]); const w=rand(8,9.5)*s/l, vel=[d[0]*w,d[1]*w,d[2]*w];
-    kgStern(psHuge,p,vel,[1.3,1.3,1.35],T,G,0,0.4);
-    rkFunken(p,vel,G,0.05,T,50,[.95,.95,1],{life:[0.25,0.5],g:2.6,streu:0.4,mit:0.1});
-    kgSpaeter(T,()=>{ const e=sternNach(p,vel[0],vel[1],vel[2],G,T);
-      for(let i=0;i<Math.round(14*QUAL());i++){ const dd=randDir(), ww=rand(2.5,4)*Math.sqrt(s); kgStern(psBig,e,kgMal(dd,ww),kgMal(A,1.2),rand(1.0,1.4),2.6,0,0.08); } }); }
-  schall(p,v=>{ for(let i=0;i<3;i++) later(i*0.07,()=>sfx.pfeifTon(v*0.7,i*4-2,{gleit:true,dur:1.4})); });
-};
 
 /* Kanonade (kanonade300): dreissig schwere weisse Kugeln fliegen aus -
    wie Knallkerzen - und zerknallen nacheinander mit Weissblitz; ein
@@ -23780,39 +23630,84 @@ EFF.kanonade=function(p,A,B,s,r){
       schall(e,v=>{ sfx.crack(v*1.2); if(k%4===0) sfx.boom(v*0.4); }); }); }
 };
 
-Object.assign(EFF_SCHWEIF,{goldspinne:0.9,niagara:1.2,perlenkette:0.3,doppelgaenger:0.35,sirene:0.4,kanonade:0.3});
-Object.assign(EFF_FAMILIE,{goldspinne:'haenger',hummelkoenigin:'kugel',niagara:'haenger',gluehwurm:'kugel',perlenkette:'knister',doppelgaenger:'kugel',sirene:'kugel',kanonade:'knister'});
+/* Rosengarten (rosengarten100): Doppelpaeonie - aussen rosa Sterne auf
+   einer runden Schale, innen ein weisser Kern (Stufe Pistill). Die
+   Rosensterne ziehen gegen Ende einen feinen Silberglitzer und verloeschen
+   einzeln (Lebensdauer gestreut). */
+EFF.rosengarten=function(p,A,B,s,r){
+  const q=QUAL(), G=2.6;
+  for(let i=0;i<Math.round(34*s*q);i++){ const d=randDir(), w=rand(8.2,9.2)*s, v=kgMal(d,w), T=rand(1.7,2.3);
+    kgStern(psBig,p,v,kgMal(A,1.2),T,G,0,0.06);
+    if(i%3===0) rkFunken(p,v,G,T*0.55,T,18,[.95,.95,1],{life:[0.25,0.5],g:2,streu:0.4,mit:0.05}); }
+  schall(p,v=>later(1.3,()=>sfx.rieseln(v*0.35,1.5)));
+};
+
+/* Pfauenkrone (pfauenkrone150): goldene Chrysantheme mit Schweif; nach
+   1,1 s werden die Sterne dunkel und brennen tuerkis weiter, nach 1,9 s
+   noch einmal dunkel und violett - das Pfauenrad (echter Relaisstern,
+   kgWechsel). In der Mitte ein gruener Pistill (Stufe). */
+EFF.pfauenkrone=function(p,A,B,s,r){
+  const q=QUAL(), G=2.4, gold=kgMal(FW.gold,1.15), tuerkis=kgMal(A,1.25), violett=kgMal(B,1.3);
+  for(let i=0;i<Math.round(40*s*q);i++){ const d=randDir(), w=rand(8.5,9.8)*s, T=rand(1.05,1.15);
+    const h=kgStern(psBig,p,kgMal(d,w),gold,T+0.02,G,4,0.35);
+    kgSpaeter(T,()=>{ const r2=kgWechsel(h,tuerkis,0.1,rand(0.9,1.1),G,0,0.12);
+      if(r2) kgSpaeter(0.85,()=>{ if(r2.h) kgWechsel(r2.h,violett,0.1,rand(1.0,1.4),G,0,0.08); }); }); }
+  schall(p,v=>later(1.2,()=>sfx.crackle(v*0.15)));
+};
+
+/* Sternschleier (sternschleier200): grosse Silber-Chrysantheme mit feinen
+   Spuren; die Sterne bremsen, werden langsam und haengen als Schleier
+   (lange Lebensdauer, wenig Schwere). Zum Schluss blitzen im Schleier
+   einzelne weisse Tautropfen (Strobe) - kein Knall. Blauer Kern (Stufe). */
+EFF.sternschleier=function(p,A,B,s,r){
+  const q=QUAL(), sil=kgMal(A||FW.silber,1.15), G=1.4;
+  for(let i=0;i<Math.round(46*s*q);i++){ const d=randDir(), w=rand(8.5,10)*s, v=kgMal(d,w), T=rand(3.2,4.0);
+    kgStern(psBig,p,v,sil,T,G,4,0.45);
+    if(i%4===0){ const e=sternNach(p,v[0],v[1],v[2],G,T*0.6); kgSpaeter(T*0.6,()=>{ const a=SCHWEIF; SCHWEIF=0; psBig.emit(e.x,e.y,e.z,rand(-.2,.2),-0.4,rand(-.2,.2),1.4,1.4,1.45,rand(1.0,1.5),0.4,1); SCHWEIF=a; }); } }
+  schall(p,v=>{ later(0.8,()=>sfx.rieseln(v*0.6,4)); });
+};
+
+/* Feuerlilie (feuerlilie200): zwoelf schwere rote Kometen mit Goldschweif
+   als Bluetenblaetter (Kranz, leicht zum Zuschauer gekippt); sie biegen
+   sich unter der Schwere nach unten wie eine Lilie, und an jeder Spitze
+   oeffnet sich nach 1,6 s ein goldener Bluetenstempel - ein echter
+   kleiner Pistill-Bruch (Kometen zu Spitzen). Roter Kern (Stufe). */
+EFF.feuerlilie=function(p,A,B,s,r){
+  const [u,v]=basisBlick(p,0.45), a0=rand(0,Math.PI*2), G=3.0, T=1.6, rot=kgMal(A,1.3);
+  const stempel=e=>fwBurst({p:e,A:kgMal(B,1.15),B:kgMal(FW.gold,1.1),size:0.55,eff:'pistill',knall:'e1still',bruchOpt:{kern:false,nachglitzer:false,flash:0.15},tag:FW_TAG});
+  for(let k=0;k<12;k++){ const a=a0+k/12*Math.PI*2+rand(-0.04,0.04), ca=Math.cos(a), sa=Math.sin(a);
+    const d=[u[0]*ca+v[0]*sa,u[1]*ca+v[1]*sa+0.25,u[2]*ca+v[2]*sa], l=Math.hypot(d[0],d[1],d[2]), w=8.2*s*rand(0.97,1.03)/l, vel=[d[0]*w,d[1]*w,d[2]*w];
+    for(let j=0;j<2;j++) kgStern(psHuge,p,vel,rot,T,G,0,0.5);
+    rkFunken(p,vel,G,0.05,T,70,[1,.8,.35],{life:[0.4,0.8],g:2.2,streu:0.35,mit:0.1});
+    const e=sternNach(p,vel[0],vel[1],vel[2],G,T); kgSpaeter(T,()=>stempel(e)); }
+  schall(p,v=>later(T,()=>sfx.rieseln(v*0.5,2.5)));
+};
+
+Object.assign(EFF_SCHWEIF,{kanonade:0.3,rosengarten:0.06,pfauenkrone:0.35,sternschleier:0.45,feuerlilie:0.5});
+Object.assign(EFF_FAMILIE,{kanonade:'knister',rosengarten:'kugel',pfauenkrone:'kugel',sternschleier:'haenger',feuerlilie:'kugel'});
 
 Object.assign(KUGEL,{
-  gluehwurm75:{kal:1,sz:2.15,pw:2.2,fuse:1.70,th:'wald',haupt:'gluehwurm',A:'limette',B:'zitrone',
-    steig:'glut', bruchOpt:{kern:false,nachglitzer:false,flash:0.4}, ton:'poka', stufen:[]},
-  perlenkette100:{kal:2,sz:2.75,pw:4.2,fuse:1.88,th:'gold',haupt:'perlenkette',A:'gold',B:'orange',
+  rosengarten100:{kal:2,sz:2.75,pw:4.2,fuse:1.88,th:'herz',haupt:'rosengarten',A:'rose',B:'weiss',
+    steig:'silber', bruchOpt:{kern:false,nachglitzer:false},
+    stufen:[{t:0.04,eff:'pistill',sz:0.36,A:'weiss',B:'silber',leise:true}]},
+  pfauenkrone150:{kal:3,sz:3.35,pw:6.1,fuse:2.02,th:'tropen',haupt:'pfauenkrone',A:'tuerkis',B:'violett',
     steig:'gold', bruchOpt:{kern:false,nachglitzer:false},
-    stufen:[{t:0.05,eff:'pistill',sz:0.28,A:'rot',B:'gold',leise:true}]},
-  doppelgaenger150:{kal:3,sz:3.35,pw:6.1,fuse:2.02,th:'tropen',haupt:'doppelgaenger',A:'tuerkis',B:'magenta',
-    steig:'silber', bruchOpt:{kern:false,nachglitzer:false}, stufen:[]},
-  sirene150:{kal:3,sz:3.40,pw:6.3,fuse:2.03,th:'rotweiss',haupt:'sirene',A:'rot',B:'weiss',
-    steig:'pfeif', bruchOpt:{kern:false,nachglitzer:false}, stufen:[]},
-  goldspinne200:{kal:4,sz:3.95,pw:7.8,fuse:2.15,th:'gold',haupt:'goldspinne',A:'rot',B:'gold',
-    steig:'brokat', bruchOpt:{kern:false,nachglitzer:false},
-    stufen:[{t:0.04,eff:'pistill',sz:0.22,A:'rot',B:'rot',leise:true}]},
-  hummelkoenigin200:{kal:4,sz:4.00,pw:8.0,fuse:2.15,th:'himmel',haupt:'hummelkoenigin',A:'blau',B:'weiss',
-    steig:'glut', bruchOpt:{kern:false,nachglitzer:false}, stufen:[]},
-  niagara200:{kal:4,sz:4.05,pw:8.2,fuse:2.15,th:'silber',haupt:'niagara',A:'silber',B:'himmel',
-    steig:'silber', bruchOpt:{kern:false,nachglitzer:false,flash:0.5},
-    stufen:[{t:0.05,eff:'pistill',sz:0.24,A:'himmel',B:'blau',leise:true}]},
+    stufen:[{t:0.04,eff:'pistill',sz:0.3,A:'gruen',B:'limette',leise:true}]},
+  sternschleier200:{kal:4,sz:3.95,pw:7.8,fuse:2.15,th:'silber',haupt:'sternschleier',A:'silber',B:'blau',
+    steig:'silber', bruchOpt:{kern:false,nachglitzer:false,flash:0.6},
+    stufen:[{t:0.05,eff:'pistill',sz:0.24,A:'blau',B:'himmel',leise:true}]},
+  feuerlilie200:{kal:4,sz:4.05,pw:8.2,fuse:2.15,th:'glut',haupt:'feuerlilie',A:'rot',B:'gold',
+    steig:'glut', bruchOpt:{kern:false,nachglitzer:false},
+    stufen:[{t:0.04,eff:'pistill',sz:0.24,A:'rot',B:'scharlach',leise:true}]},
   kanonade300:{kal:5,sz:4.80,pw:10.9,fuse:2.30,th:'silber',haupt:'kanonade',A:'weiss',B:'silber',
     steig:'titanspur', bruchOpt:{kern:false,nachglitzer:false},
     stufen:[{t:0.08,eff:'kamuro',sz:0.55,A:'gold',B:'gold',leise:true}]}
 });
 Object.assign(SIGNATUR,{
-  gluehwurm75:{eff:'gluehwurm',text:'Blinkende Leuchtperlen schweben wie Glühwürmchen'},
-  perlenkette100:{eff:'perlenkette',text:'Kranz aus zwölf Goldperlen, die knisternd zerfallen'},
-  doppelgaenger150:{eff:'doppelgaenger',text:'Sechzehn Kometen teilen sich in türkis-magenta Zwillinge'},
-  sirene150:{eff:'sirene',text:'Pfeifkometen gleiten hinauf und verpuffen rot'},
-  goldspinne200:{eff:'goldspinne',text:'Spinnenbeine aus schwerem Goldbrokat mit roten Augen'},
-  hummelkoenigin200:{eff:'hummelkoenigin',text:'Blaue Päonie, aus der dreißig summende Hummeln schrauben'},
-  niagara200:{eff:'niagara',text:'Silberner Pferdeschweif stürzt als Wasserfall mit Gischt'},
+  rosengarten100:{eff:'rosengarten',text:'Rosa Doppelpäonie mit weißem Kern, verglüht silbern'},
+  pfauenkrone150:{eff:'pfauenkrone',text:'Gold wird Türkis wird Violett – das Rad eines Pfaus'},
+  sternschleier200:{eff:'sternschleier',text:'Silber-Chrysantheme zum hängenden Schleier mit Tautropfen'},
+  feuerlilie200:{eff:'feuerlilie',text:'Zwölf rote Kometenblätter mit goldenen Blütenstempeln'},
   kanonade300:{eff:'kanonade',text:'Dreißig Knallkugeln – rollender Donner unter goldenem Kamuro'}
 });
 /* =========================================================
@@ -29124,6 +29019,7 @@ function vorfuehrungAn(nur){
   vfSonder=Array.isArray(nur)?nur.filter(t=>P[t]&&stationOf(t)):null;
   vfListe=vfSonder||fwTestProdukte(); vfLaden(); if(vfSonder) vfIdx=0; vfIdx=clamp(vfIdx,0,Math.max(0,vfListe.length-1)); vfLetzt=null;
   vfAn=true; lastF=-1; applyTOD(); clearStations(); vfAnlageBauen(); vfBelegt={};
+  for(const sid of ['tisch','rampe','moerser']) if(stations[sid]&&stations[sid].g) stations[sid].g.visible=false;
   /* Uhr, Geld, Tutorial und Zielpfeil stoeren beim Zusehen - weg damit */
   if(!document.getElementById('vfStil')){ const st=document.createElement('style'); st.id='vfStil';
     st.textContent='body.vorf #hud .tl,body.vorf #tip,body.vorf #zielPfeil,body.vorf #staff,body.vorf #cross{display:none!important}'; document.head.appendChild(st); }
@@ -29140,6 +29036,7 @@ function vorfuehrungAus(){
   vfAn=false; vfListeAuf=false; vfMerken(); lastF=-1; applyTOD();
   if(vfEl){ vfEl.remove(); vfEl=null; }
   if(vfAnlage) vfAnlage.visible=false;
+  for(const sid of ['tisch','rampe','moerser']) if(stations[sid]&&stations[sid].g) stations[sid].g.visible=true;
   document.body.classList.remove('vorf');
   toast('Vorführung beendet. Nummer und Notizen sind gemerkt.');
 }
@@ -29149,7 +29046,10 @@ function vorfuehrungAus(){
    Pult - ein langer Tisch mit zehn Plaetzen, ein Gestell mit zwoelf
    Rohren, eine Moerserbatterie mit vier Rohren je Kaliber. Jede Zuendung
    nimmt den naechsten freien Platz, nichts kommt sich in die Quere. */
-const VF_Z=-26.2, VF_TISCH={x0:-7.0,n:10,dx:0.52,y:0.93}, VF_ROHR={x0:-1.4,n:12,dx:0.3,y:1.34}, VF_MOERSER={x0:2.9,n:4,dx:0.42,gdx:1.7,hoch:[0.62,0.82,1.02]};
+/* 30.09. (Tom: "alle Test-Vorfuehrungen in die Mitte des Testfelds, dass
+   man alles gut sehen kann - aktuell hinten links"): die Reihe steht in der
+   Mitte (Testfeld z -28..-6), die normalen Stationen sind solange ausgeblendet */
+const VF_Z=-18.0, VF_TISCH={x0:-7.0,n:10,dx:0.52,y:0.93}, VF_ROHR={x0:-1.4,n:12,dx:0.3,y:1.34}, VF_MOERSER={x0:2.9,n:4,dx:0.42,gdx:1.7,hoch:[0.62,0.82,1.02]};
 let vfAnlage=null, vfBelegt={};
 function vfAnlageBauen(){
   if(vfAnlage){ vfAnlage.visible=true; return; }
@@ -29191,6 +29091,11 @@ function vfZuenden(t){
   if(o.sid==='tisch'&&pools[t]&&!pools[t].full()) h=pools[t].add(mx(o.x,o.boden,o.z,Math.PI));
   if(vor){ emitters.push({t:vor,k:'fuse',o:{x:o.x,y:o.y,z:o.z}}); sfx.fizz(distVol(o)*0.5); }
   later(vor,()=>{ if(vfAn) igniteType(t,o); });
+  /* der Blick folgt dem Produkt: zur Seite auf seinen Platz, nach oben so
+     weit, wie es steigt - Kleinfeuerwerk flach, Batterien halb, Raketen
+     und Kugeln steil */
+  { const sh=P[t].shape; pitch=o.sid==='tisch'?(SHOWS[t]||sh==='battery'||sh==='fan'?0.55:sh==='fountain'||sh==='cylinder'||sh==='fountainset'?0.35:0.1):o.sid==='rampe'?0.72:0.85;
+    yaw=Math.atan2(-(o.x-pl.x),-(o.z-pl.z)); }
   if(h) later(vor+dauer,()=>{ if(h.pool) h.pool.remove(h); });
   vfLetzt=t; return true;
 }
@@ -29281,7 +29186,13 @@ const SORTE_NEU={kanonen:'monsterboeller',grossboeller:'monsterboeller',doppelsc
    Warenkorb oder in einer Bestellung hat, bekommt beim Laden die Sorte,
    die sie ersetzt. bengalduo bleibt (Hafenlichter). */
 const ERSETZT_DURCH={goldperlen:'roemisch',salutbatterie:'donnerschlag',kometenfaecher:'kometen',raketen50:'titanraketen',
-  sternfontaene:'sternenbrunnen',tischfeuerwerk2:'tisch',knallbonbonxxl:'knallbonbon',konfettiknaller:'partypopper'};
+  sternfontaene:'sternenbrunnen',tischfeuerwerk2:'tisch',knallbonbonxxl:'knallbonbon',konfettiknaller:'partypopper',
+  /* 30.09. (Tom): neue Batterien ausser der Legion und neue Kugeln ausser der
+     Kanonade wieder raus - Bestand wird zur naechsten neuen Sorte */
+  roemerfeuer:'lichterprozession',nachtigall:'lichterprozession',kreuzritter:'lichterprozession',
+  katapult:'kometenreigen',piranha:'kometenreigen',kolosseum:'sternentor',
+  gluehwurm75:'farbenmeer75',perlenkette100:'rosengarten100',doppelgaenger150:'pfauenkrone150',sirene150:'pfauenkrone150',
+  goldspinne200:'sternschleier200',hummelkoenigin200:'sternschleier200',niagara200:'feuerlilie200'};
 Object.assign(SORTE_NEU,ERSETZT_DURCH,typeof ENTFERNT_ERSATZ!=='undefined'?ENTFERNT_ERSATZ:{});
 /* Ketten aufloesen (tischfeuerwerk2 -> tisch -> gestrichen -> Ersatz) */
 for(const k in SORTE_NEU){ let v=SORTE_NEU[k], n=0; while(SORTE_NEU[v]&&n++<5) v=SORTE_NEU[v]; SORTE_NEU[k]=v; }

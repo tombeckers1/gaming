@@ -91,6 +91,12 @@ function bbox(w,h,d,m,x,y,z,parent,shadow){
 }
 function plane(w,h,m,x,y,z,ry,parent){ const o=new THREE.Mesh(new THREE.PlaneGeometry(w,h),m); o.position.set(x,y,z); o.rotation.y=ry||0; (parent||scene).add(o); return o; }
 const hitM=new THREE.MeshBasicMaterial({transparent:true,opacity:0,depthWrite:false});
+/* 30.09. (Leistung): unsichtbare Trefferflaechen (Regalboeden, Lagerplaetze,
+   Pult, Laptop ...) wurden trotz Deckkraft 0 jedes Bild gezeichnet - je ein
+   Zeichenaufruf. material.visible=false: three zeichnet sie nicht mehr, der
+   Raycaster trifft sie weiter (er fragt nur Ebenen ab, nicht Sichtbarkeit);
+   object.visible bleibt frei fuer die Spiellogik (tfHit, lapHit2). */
+hitM.visible=false;
 const colliders=[]; 
 function col(a,b,c,d,ref){ const o={minX:a,maxX:b,minZ:c,maxZ:d,ref:ref||null}; colliders.push(o); return o; }
 function dropCol(o){ const i=colliders.indexOf(o); if(i>=0) colliders.splice(i,1); }

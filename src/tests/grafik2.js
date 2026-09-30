@@ -16,7 +16,7 @@ async function neuesSpiel(p){
 const { chromium } = require('/opt/node22/lib/node_modules/playwright');
 (async()=>{
   const b=await chromium.launch({args:['--use-gl=swiftshader','--enable-unsafe-swiftshader','--no-sandbox']});
-  const p=await b.newPage({viewport:{width:420,height:260},deviceScaleFactor:2});   // klein: 800x500 bei 2-fach brachte die Software-Grafik zum Absturz
+  const ctx=await b.newContext({viewport:{width:420,height:260},deviceScaleFactor:2}); const p=await ctx.newPage(); p.setDefaultTimeout(600000); p.setDefaultNavigationTimeout(240000);   // klein: 800x500 bei 2-fach brachte die Software-Grafik zum Absturz
   p.on('crash',()=>errs.push('CRASH'));
   const errs=[]; p.on('pageerror',e=>errs.push('PAGEERROR: '+e.message));
   const mangel=[]; const pruef=(n,ok,w)=>{ if(!ok) mangel.push(n+': '+w); };
@@ -44,7 +44,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   console.log(JSON.stringify(a));
   /* neue Seite im selben Browser (gleicher Speicher) - ein Neuladen der
      schweren Seite brach in der Software-Grafik ab */
-  const ctx=p.context(); await p.close(); const p2=await ctx.newPage(); p2.setDefaultTimeout(600000);
+  await p.close(); const p2=await ctx.newPage(); p2.setDefaultNavigationTimeout(240000); p2.setDefaultTimeout(600000);
   p2.on('pageerror',e=>errs.push('PAGEERROR: '+e.message)); p2.on('crash',()=>errs.push('CRASH'));
   await p2.goto('file://'+process.argv[2]); await p2.waitForFunction('window.__bb!==undefined',{timeout:240000});
   const c=await p2.evaluate(()=>{ const bb=window.__bb, R=bb.renderer; return {gfx:bb.GFX,wahl:bb.GFX_WAHL,aa:R.getContext().getContextAttributes().antialias,pr:R.getPixelRatio(),schatten:R.shadowMap.enabled}; });

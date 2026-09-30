@@ -1405,7 +1405,7 @@ EFF.tigerschweif=function(p,A,B,s,r){
   const q=QUAL(), G=3, n=Math.round(rand(9,12));
   for(let i=0;i<n;i++){ const d=randDir(); d[1]=d[1]*0.7+0.25; const l=Math.hypot(d[0],d[1],d[2]), w=rand(13,15.5)*s/l, v=[d[0]*w,d[1]*w,d[2]*w], T=rand(1.7,2.1);
     for(let k=0;k<2;k++) kgStern(psHuge,p,v,kgMal(A,1.35),T,G,0,0.25);
-    rkFunken(p,v,G,0.03,T,45,mischF(A,[1,.8,.4],0.5),{life:[0.9,1.6],g:1.1,streu:0.5,mit:0.06,mode:4});
+    rkFunken(p,v,G,0.03,T,85,mischF(A,[1,.8,.4],0.5),{life:[0.9,1.6],g:1.1,streu:0.5,mit:0.06,mode:4});
     kgSpaeter(T,()=>{ const e=sternNach(p,v[0],v[1],v[2],G,T); for(let j=0;j<Math.round(10*q);j++){ const dd=randDir(), ww=rand(1,2.5); psMid.emit(e.x,e.y,e.z,dd[0]*ww,dd[1]*ww,dd[2]*ww,B[0],B[1],B[2],rand(0.5,0.9),2,4); } }); }
   schall(p,v=>{ sfx.boom(v*0.45); sfx.fauchen(v*0.45,1.6); later(1.2,()=>sfx.rieseln(v*0.5,3)); });
 };
@@ -1457,7 +1457,7 @@ EFF.smaragdregen=function(p,A,B,s,r){
   const q=QUAL(), G=2.4;
   for(let i=0;i<Math.round(60*s*q);i++){ const d=randDir(), w=rand(11,13)*s, v=kgMal(d,w), T=rand(2.2,2.7);
     kgStern(psBig,p,v,kgMal(A,1.4),T,G,0,0.2);
-    rkFunken(p,v,G,0.1,T,7,mischF(A,[1,1,1],0.35),{life:[0.7,1.2],g:1.8,streu:0.3,mit:0.05,mode:4}); }
+    rkFunken(p,v,G,0.1,T,14,mischF(A,[1,1,1],0.35),{life:[0.7,1.2],g:1.8,streu:0.3,mit:0.05,mode:4}); }
   schall(p,v=>{ sfx.boom(v*0.6); later(1.1,()=>sfx.rieseln(v*0.45,2.5)); });
 };
 
@@ -1470,7 +1470,7 @@ EFF.kiefernkrone=function(p,A,B,s,r){
   for(let i=0;i<n;i++){ const d=randDir(), w=rand(11.5,13.5)*s;
     const v=[d[0]*w,d[1]*w,d[2]*w];
     verzweig(psBig,p.x,p.y,p.z,v[0],v[1],v[2],g,1.9,2.2,{tz:rand(1.25,1.45),n:[3,5],tiefe:2,streu:1.1,spur:0.3,minTempo:2.5,C:kgMal(B,1.5),ps2:psMid});
-    rkFunken(p,v,2.2,0.05,1.3,6,[1,.85,.5],{life:[0.6,1.1],g:1.6,streu:0.3,mit:0.05,mode:4}); }
+    rkFunken(p,v,2.2,0.05,1.3,12,[1,.85,.5],{life:[0.6,1.1],g:1.6,streu:0.3,mit:0.05,mode:4}); }
   schall(p,v=>{ sfx.boom(v*0.5); later(1.05,()=>{ sfx.crackle(v*0.6); later(0.12,()=>sfx.crackle(v*0.4)); }); });
 };
 
@@ -1482,7 +1482,7 @@ EFF.lavaregen=function(p,A,B,s,r){
   const q=QUAL(), G=5.2, n=Math.round(rand(20,26)*q), dunkel=[.35,.05,.02];
   for(let i=0;i<n;i++){ const a=rand(0,Math.PI*2), el=rand(0.1,1.2), w=rand(8,11.5)*s, v=[Math.cos(a)*Math.cos(el)*w,Math.sin(el)*w,Math.sin(a)*Math.cos(el)*w], T=rand(2.0,2.6);
     for(let k=0;k<2;k++) kgStern(psHuge,p,v,kgMal(A,1.3),T,G,0,0.15);
-    rkFunken(p,v,G,0.05,T,22,B,{life:[0.6,1.1],g:0.6,streu:0.4,mit:0.04,mode:2});
+    rkFunken(p,v,G,0.05,T,40,B,{life:[0.6,1.1],g:0.6,streu:0.4,mit:0.04,mode:2});
     kgSpaeter(T,()=>{ const e=sternNach(p,v[0],v[1],v[2],G,T); for(let j=0;j<Math.round(9*q);j++){ const dd=randDir(), ww=rand(1.5,3.5); psMid.emit(e.x,e.y,e.z,dd[0]*ww,Math.abs(dd[1])*ww,dd[2]*ww,A[0],A[1],A[2],rand(0.4,0.8),5,2,dunkel[0],dunkel[1],dunkel[2]); } }); }
   schall(p,v=>{ sfx.wumms?sfx.wumms(v*0.9):sfx.boom(v*0.8); rauschF({dur:1.8,vol:0.16*v,typ:'lowpass',f:500,an:0.1}); });
 };
@@ -1574,7 +1574,7 @@ EFF.sternspritzer=function(p,A,B,s,r){
   const q=QUAL(), G=2.4;
   for(let i=0;i<Math.round(45*s*q);i++){ const d=randDir(), w=rand(10.5,12.5)*s, v=kgMal(d,w), T=rand(2.1,2.6);
     kgStern(psBig,p,v,kgMal(A,1.7),T,G,0,0.12);
-    rkFunken(p,v,G,0.05,T,20,[1.5,1.4,1.2],{ps:psMid,life:[0.18,0.38],g:1,streu:2.4,mit:0.2,mode:4,spur:0.05}); }
+    rkFunken(p,v,G,0.05,T,45,[1.5,1.4,1.2],{ps:psMid,life:[0.18,0.38],g:1,streu:2.4,mit:0.2,mode:4,spur:0.05}); }
   schall(p,v=>{ sfx.boom(v*0.4); sfx.zischen(v*0.4,2.3); for(let i=0;i<4;i++) later(0.25+i*0.5,()=>sfx.prasseln(v*0.5)); });
 };
 

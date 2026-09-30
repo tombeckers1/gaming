@@ -126,7 +126,7 @@ fontsReady().then(()=>{
   buildWorld();
   { const li=$('logoImg'); if(li) logoFreistellen(LOGO,u=>{ li.src=u; }); }
   initPost(); buildPDA();
-  initFlash(); psHuge=new PS(COARSE?700:2000,0.95,COARSE?2:4,sternTex); psBig=new PS(COARSE?3600:10000,0.42,COARSE?3:5); psMid=new PS(COARSE?1800:5000,0.15,COARSE?2:3); psSmall=new PS(COARSE?900:1800,0.07);
+  initFlash(); psHuge=new PS(COARSE?700:2000,0.95,COARSE?2:4,sternTex); psBig=new PS(COARSE?3600:10000,0.42,COARSE?3:5); psMid=new PS(COARSE?1800:9000,0.15,COARSE?2:3); psSmall=new PS(COARSE?900:1800,0.07);
   camera.position.set(pl.x,1.65,pl.z); camera.rotation.set(pitch,yaw,0);
   /* Schatten ueber die Vorderseiten werfen. Mit den Rueckseiten (der
      Voreinstellung) lag an jeder Stelle, wo eine Wand an eine andere

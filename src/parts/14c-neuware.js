@@ -116,7 +116,7 @@ const NEU_EMIT={
       psSmall.emit(o.x,o.y+0.12,o.z,Math.cos(a)*s,rand(1.8,3.0),Math.sin(a)*s,A[0],A[1],A[2],rand(0.35,0.7),5,4); }
     /* 29.09. (Tom: Brausepulver, Sounds fehlen): brannte stumm - jetzt ein
        durchgehendes Zischen (1,4 s Rauschen alle 1,2 s, lueckenlos) */
-    e.fz=(e.fz||0.6)-dt; if(e.fz<=0){ e.fz=1.2; sfx.fizz(distVol(o)*0.6); } },
+    zischBett(e,'zischen',distVol(o)*0.9,dt); },
   /* Stroboskop-Blinker: glimmt und blitzt in unregelmaessigem Takt */
   blinker(e,dt,o){ const A=e.A||FW.weiss; e.acc=(e.acc||0)+dt*70;
     for(;e.acc>=1;e.acc--){ const a=Math.random()*Math.PI*2, s=rand(0.05,0.3);
@@ -142,13 +142,13 @@ const NEU_EMIT={
     if(Math.random()<dt*14*kl){ const a=Math.random()*Math.PI*2;
       psBig.emit(o.x,o.y+0.5*kl,o.z,Math.cos(a)*0.2,rand(0.4,0.9),Math.sin(a)*0.2,0.25,0.24,0.26,rand(2.5,3.5),-0.15,0); }
     /* 29.09.: Bengalfeuer faucht leise, solange es brennt (vorher stumm) */
-    e.fz=(e.fz||0.6)-dt; if(e.fz<=0){ e.fz=1.2; sfx.fizz(distVol(o)*0.45*kl); } },
+    zischBett(e,'fauchen',distVol(o)*0.45*kl,dt); },
   /* Feuerrad: Funken wirbeln tangential von einem drehenden Rad */
   rad(e,dt,o){ e.w=(e.w||0)+dt*9; const R=0.32, y=o.y+0.8;
     for(let k=0;k<3;k++){ const a=e.w+k*Math.PI*2/3, cx=Math.cos(a)*R, cy=Math.sin(a)*R, c=k%2?e.A:e.B;
       for(let q=0;q<4;q++){ const s=rand(2.5,4.5);
         psMid.emit(o.x+cx,y+cy,o.z,-Math.sin(a)*s,Math.cos(a)*s,rand(-0.3,0.3),c[0],c[1],c[2],rand(0.4,0.8),4,4); } }
-    e.fz=(e.fz||0)-dt; if(e.fz<=0){ e.fz=0.8; sfx.fizz(distVol(o)*0.6); } },
+    zischBett(e,'zischen',distVol(o)*1.0,dt); },
   /* Sternregen: Goldfontaene, in der farbige Sterne langsam steigen */
   sternregen(e,dt,o){ const A=e.A, B=e.B, y0=emY(o,0.2);
     /* 28.09.: ab der Duese (emY), vorher 20-30 cm ueber dem Karton */
@@ -160,13 +160,14 @@ const NEU_EMIT={
       for(let k=0;k<Math.round(8*QUAL());k++){ const a=Math.random()*Math.PI*2, w=rand(0.3,1.2);
         psBig.emit(o.x,y0,o.z,Math.cos(a)*w,rand(9,12),Math.sin(a)*w,c[0],c[1],c[2],rand(1.3,1.8),6,0); } }
     /* 29.09.: Goldfontaene rauscht, solange sie brennt (vorher stumm) */
-    e.fz=(e.fz||0.6)-dt; if(e.fz<=0){ e.fz=1.2; sfx.fizz(distVol(o)*0.8); } },
+    zischBett(e,'rauschen',distVol(o)*1.0,dt); },
   /* Farbige Wunderkerze: e.A die Funkenfarbe */
   funken(e,dt,o){ const A=e.A||FW.gold;
     /* je Sekunde, nicht je Bild - sonst waeren es bei 30 Bildern halb so viele */
     e.acc=(e.acc||0)+dt*(e.n||7)*60;
     for(;e.acc>=1;e.acc--){ const d=randDir(), s=rand(1,2.4), dx=e.reihe?(Math.floor(Math.random()*e.reihe)-(e.reihe-1)/2)*0.12:0;
-      psSmall.emit(o.x+dx,o.y+0.3,o.z,d[0]*s,d[1]*s+0.4,d[2]*s,A[0],A[1],A[2],rand(0.25,0.55),4,3); } },
+      psSmall.emit(o.x+dx,o.y+0.3,o.z,d[0]*s,d[1]*s+0.4,d[2]*s,A[0],A[1],A[2],rand(0.25,0.55),4,3); }
+    zischBett(e,'wunderkerze',distVol(o)*0.6,dt); },
   /* Pharaoschlange: graue Asche waechst langsam in die Hoehe */
   asche(e,dt,o){ e.h=(e.h||0)+dt*0.07;
     for(let k=0;k<3;k++){ const a=Math.random()*Math.PI*2, r=0.05;
@@ -176,7 +177,8 @@ const NEU_EMIT={
   kreisel(e,dt,o){ e.w=(e.w||0)+dt*(2+e.i*0.4); e.r=(e.r||0.2)+dt*0.12;
     const x=o.x+Math.cos(e.w+e.i*2)*e.r*(1+e.i*0.3), z=o.z+Math.sin(e.w+e.i*2)*e.r*(1+e.i*0.3), c=e.A;
     for(let k=0;k<6;k++){ const a=Math.random()*Math.PI*2, s=rand(1.5,3.2);
-      psMid.emit(x,o.y+0.08,z,Math.cos(a)*s,rand(0.3,1.2),Math.sin(a)*s,c[0],c[1],c[2],rand(0.3,0.6),5,4); } }
+      psMid.emit(x,o.y+0.08,z,Math.cos(a)*s,rand(0.3,1.2),Math.sin(a)*s,c[0],c[1],c[2],rand(0.3,0.6),5,4); }
+    zischBett(e,'zischen',distVol(o)*0.7,dt); }
 };
 
 /* Ein Schwall Konfetti: bunte Blaettchen, die langsam fallen */

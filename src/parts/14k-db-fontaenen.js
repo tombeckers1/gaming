@@ -73,6 +73,20 @@ function fkBett(e,art,ziel){
   /* verwaiste Betten aufraeumen */
   for(let i=FK_BETTEN.length-1;i>=0;i--){ const x=FK_BETTEN[i]; if(x.aus||t-x.last>1.5){ if(!x.aus) fkBettStopp(x); FK_BETTEN.splice(i,1); } }
 }
+/* Durchgehendes Funkengeraeusch fuer Boden-Emitter (30.09., Tom:
+   "Wunderkerzen - das muesste ein durchgehendes Funkengeraeusch sein,
+   aber es ist immer nur so ein kurzes Geraeusch, dann hoert sie auf,
+   dann faengt sie an"). Vorher spielte jede Wunderkerze, Torte und
+   Bodenfontaene alle 0,8-1,4 s einen abklingenden Zisch (sfx.fizz):
+   hoerbares An-Aus. Jetzt ein Klangbett je Emitter wie bei den
+   Katalog-Fontaenen, dazu bei der Wunderkerze das feine, unregelmaessige
+   Knacken der Eisenfunken. */
+FK_BETT.wunderkerze={rosa:false,typ:'highpass',f:2600,vol:0.075};
+function zischBett(e,art,v,dt){
+  if(!(v>0.004)) return;
+  fkBett(e,art,v);
+  if(art==='wunderkerze'){ e._zk=(e._zk||0)-dt; if(e._zk<=0){ e._zk=rand(0.015,0.06); noise(0.012,0.06*v,rand(4500,9500)); } }
+}
 function fkKlang(e,o,dt,faktor){
   const t=fkTonArt(e.ph); if(!t||t==='still'||e.nr) return;
   const st=(e.staerke===undefined?1:e.staerke)*(e.lautAkt||1)*(faktor===undefined?1:faktor); if(st<0.05) return;

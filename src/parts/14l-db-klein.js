@@ -314,7 +314,7 @@ klEmit('wunderkerze',(e,dt,o,t)=>{
       nachglut:e.nachglut,endperle:e.endperle,glutperle:e.glutperle,weite:e.weite,dichte:e.dichte,spitze:e.spitze,key:'w'});
     if(e.aufflammen){ flash({x:o.x,y:o.y+e.laenge,z:o.z},FW.silber,1.6,0.3); schall(o,v=>sfx.zischen(v*0.8,0.5)); } }
   e.K.schritt(dt);
-  if(t<e.T0){ e.fz=(e.fz||0)-dt; if(e.fz<=0){ e.fz=1.25; sfx.fizz(distVol(o)*(e.material==='titan'?0.75:0.3)); }
+  if(t<e.T0){ zischBett(e,'wunderkerze',distVol(o)*(e.material==='titan'?1.0:0.6),dt);
     if(e.material==='titan'){ e.kn=(e.kn||0)-dt; if(e.kn<=0){ e.kn=rand(0.8,2); sfx.crackle(distVol(o)*0.25); } } }
 });
 
@@ -407,7 +407,7 @@ klEmit('formkerze',(e,dt,o,t)=>{
       klFunke(x,y,Z,d[0]*s,d[1]*s+0.3,d[2]*s,[c[0]*1.2,c[1]*1.2,c[2]*1.2],rand(0.15,0.35),1.5,0,0.3); }
     SCHWEIF=alt;
     if(!e.sfT){ e.sfT=1; sfx.crackle(distVol(o)*0.4); later(0.45,()=>sfx.crackle(distVol(o)*0.35)); } }
-  if(!alleFertig){ e.fz=(e.fz||0)-dt; if(e.fz<=0){ e.fz=1.3; sfx.fizz(distVol(o)*0.3); } }
+  if(!alleFertig) zischBett(e,'wunderkerze',distVol(o)*0.55,dt);
 });
 
 /* Herz (zwei Fronten, Treffen) und Glutschrift (Ziffern, Schlussfunkeln)
@@ -435,7 +435,7 @@ klEmit('funkenkranz',(e,dt,o,t)=>{
     k.K.schritt(dt); if(k.K.alter<k.K.T){ const f=k.K.front(); sx+=f.x; sz+=f.z; sn++; } }
   /* Goldschein unter dem brennenden Bogen */
   if(sn) licht('kranz'+e.prod,{x:sx/sn,y:klFlaeche(o)+0.5,z:sz/sn},[1,0.72,0.35],0.6+sn*0.08,{weite:6});
-  e.fz=(e.fz||0)-dt; if(e.fz<=0&&sn){ e.fz=1.1; sfx.fizz(distVol(o)*(0.2+sn*0.03)); }
+  if(sn) zischBett(e,'wunderkerze',distVol(o)*(0.35+sn*0.05),dt);
 });
 
 /* ---------------------------------------------------------
@@ -545,7 +545,7 @@ klEmit('zuendholz',(e,dt,o,t)=>{
        faerbt die Umgebung (vorher ein ruhiger 4-cm-Leuchtball) */
     SCHWEIF=alt; klBengal(e.bz||(e.bz={}),{x:p.x,y:p.y+0.01,z:p.z},dt,A,{st:s,h:0.075,r:0.01,rate:90,hof:0.16,funken:1.5,
       rauch:{rate:1.2,gr:0.45,licht:0.5,h:0.06,dauer:4},licht:{key:'zh'+e.prod+e.nr,st:0.3,h:0.25,weite:2.5}}); SCHWEIF=0;
-    e.fz=(e.fz||0)-dt; if(e.fz<=0){ e.fz=1.3; sfx.fizz(distVol(o)*0.15); } }
+    zischBett(e,'fauchen',distVol(o)*0.2,dt); }
   else if(t<st+T+gl+1.2){ const u=(t-st-T)/gl, k=Math.max(0,1-u);
     if(u<1) psSmall.emit(p.x,p.y,p.z,0,0,0,1*k,0.4*k,0.1*k,0.05,0,0);
     /* Rauchfaden: steigt senkrecht, leicht wellig */

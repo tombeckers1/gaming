@@ -2010,6 +2010,8 @@ function updateFireworks(dt){
       const big=e.k==='volcano', wf=e.k==='wasserfall', n=big?18:wf?22:10;
       const A=e.A||FW.gold, B=e.B||FW.weiss;
       e.fl=(e.fl||0)-dt; if(e.fl<=0){ e.fl=0.3; flash({x:o.x,y:o.y+1.4,z:o.z},A,(big?1.8:1.2)*emLicht(e),0.34); }
+      /* 30.09.: rauscht, solange sie brennt (vorher nur ein Zisch beim Zuenden) */
+      zischBett(e,wf?'zischen':'rauschen',distVol(o)*(big?1.4:1.0),dt);
       /* der Wasserfall-Vorhang so breit wie das Produkt, hoechstens
          3,2 m (vorher immer 3,2 m - neben jeder Batterie, 28.09.) */
       const wb=wf?Math.min(1.6,e.spielraum!==undefined?e.spielraum:1.6):0;
@@ -2038,7 +2040,7 @@ function updateFireworks(dt){
       for(let k=0;k<Math.round(dt*220*H);k++){ const a=Math.random()*Math.PI*2, r=rand(0,2.4)*H;
         psSmall.emit(o.x+Math.cos(a)*r,o.y+kr+rand(-1.2,0.6),o.z+Math.sin(a)*r,rand(-.5,.5),rand(-1,0.5),rand(-.5,.5),1,.95,.8,rand(0.2,0.45),2,3); }
       e.kn=(e.kn||0)-dt; if(e.kn<=0){ e.kn=rand(0.35,0.8); sfx.crackle(distVol(o)*0.6); }
-      e.fz=(e.fz||0)-dt; if(e.fz<=0){ e.fz=1.2; sfx.fizz(distVol(o)); } }
+      zischBett(e,'rauschen',distVol(o)*1.4,dt); }
     else if(e.k==='monsterfont'){
       /* Monsterfontaenen (Tom, 25.09.): keine Laserstrahlen und zwei
          ganz verschiedene Bilder. Vorher stiegen alle Sterne eng
@@ -2103,7 +2105,7 @@ function updateFireworks(dt){
             psSmall.emit(o.x+Math.cos(a)*R,y+rand(-1,1),o.z+Math.sin(a)*R,Math.cos(a)*2.5,rand(-2,0),Math.sin(a)*2.5,c[0],c[1],c[2],rand(1.0,1.5),2,1); } }
       }
       e.kn=(e.kn||0)-dt; if(e.kn<=0){ e.kn=rand(0.3,0.6); sfx.crackle(distVol(o)*0.7*kraft); }
-      e.fz=(e.fz||0)-dt; if(e.fz<=0){ e.fz=0.9; sfx.fizz(distVol(o)*1.3*kraft); noise(1.0,0.12*distVol(o)*kraft,900); } }
+      zischBett(e,'fauchen',distVol(o)*1.6*kraft,dt); }
     else if(e.k==='feuerbrunnen'){
       /* Feuerbrunnen: in Stoessen steigen grosse Flammenbaelle sechs
          bis acht Meter hoch und regnen als brennende Tropfen herunter */
@@ -2130,7 +2132,8 @@ function updateFireworks(dt){
     else if(typeof NEU_EMIT!=='undefined'&&NEU_EMIT[e.k]) NEU_EMIT[e.k](e,dt,o);
     else if(e.k==='spark'){
       for(let k=0;k<7;k++){ const d=randDir(), s=rand(1,2.4);
-        psSmall.emit(o.x,emY(o,0.3),o.z,d[0]*s,d[1]*s+0.4,d[2]*s,1,rand(0.8,1),rand(0.45,0.85),rand(0.25,0.55),4,3); } }
+        psSmall.emit(o.x,emY(o,0.3),o.z,d[0]*s,d[1]*s+0.4,d[2]*s,1,rand(0.8,1),rand(0.45,0.85),rand(0.25,0.55),4,3); }
+      zischBett(e,'wunderkerze',distVol(o)*0.6,dt); }
     else { for(let k=0;k<2;k++){ const d=randDir();
         psSmall.emit(o.x,o.y+0.05,o.z,d[0],d[1]+0.4,d[2],1,0.9,0.5,rand(0.2,0.4),4,0); } }
     if(e.t<=0) emitters.splice(i,1); }

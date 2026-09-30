@@ -632,7 +632,7 @@ function igniteType(t,o0,it){
     } else if(tr.shape==='cylinder'){
       const v=distVol(o);
       emitters.push({t:3.2,k:'fountain',o,A:FW.gold,B:A});
-      sfx.fizz(v); later(1.6,()=>sfx.fizz(v));
+      sfx.fizz(v);   /* danach rauscht das Klangbett der Fontaene (30.09.) */
       later(3.2,()=>shot(o,{pw:3,sz:tr.kal*1.2,eff:rz.eff,A,B,fuse:1.3,dick:1,stufen:st}));
     } else {
       for(let i=0;i<tr.schuss;i++) later(i*0.45,()=>
@@ -658,8 +658,8 @@ function igniteType(t,o0,it){
   if(sh==='fountainset'){
     const [A,B]=scheme();
     emitters.push({t:8,k:'fountain',o,A:FW.gold,B:A});
-    sfx.fizz(distVol(o)); later(2.5,()=>sfx.fizz(distVol(o)));
-    later(5,()=>{ emitters.push({t:5,k:'fountain',o,A:B,B:FW.weiss}); sfx.fizz(distVol(o)); });
+    sfx.fizz(distVol(o));
+    later(5,()=>{ emitters.push({t:5,k:'fountain',o,A:B,B:FW.weiss}); });
   }
   else if(sh==='rocketset'){
     const KL=RAKETEN_KL[t]||{n:3,gap:0.45,sz:0.95,pw:0,eff:null};

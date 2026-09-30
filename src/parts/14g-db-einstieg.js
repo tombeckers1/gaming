@@ -424,7 +424,7 @@ NEU_EMIT.farbtorte=(e,dt,o)=>{ const A=e.A||FW.gold, S=FW.silber, y0=emY(o,0.12)
     for(let k=0;k<3;k++){ const a=Math.random()*Math.PI*2, w=rand(0.1,0.4);
       psMid.emit(o.x,y0,o.z,Math.cos(a)*w,rand(4,5.5),Math.sin(a)*w,A[0]*1.2,A[1]*1.2,A[2]*1.2,rand(0.5,0.8),5,0); } }
   SCHWEIF=alt;
-  e.fz=(e.fz||0)-dt; if(e.fz<=0){ e.fz=1.4; sfx.fizz(distVol(o)*0.5); } };
+  zischBett(e,'zischen',distVol(o)*0.9,dt); };
 
 /* Heuler (heulbatterie): gerader, heller Pfeifschweif mit wenigen
    Funken statt der Silberspirale (echt.md 2.3: "Spirale weg, gerader

@@ -3,7 +3,7 @@
    zurueck ... bei Steuerung alles reinschreiben: Werkzeuge, wie setze
    ich die Sackkarre ein ... Musik: die verschiedenen Titel auswaehlen,
    lauter und leiser. Fuer jedes eine einzelne Maske."
-   - HAUPT: Esc zeigt nur die Hauptmaske mit fuenf Punkten
+   - HAUPT: Esc zeigt nur die Hauptmaske mit sechs Punkten (30.09.: dazu Grafik)
    - STEUERUNG: eigene Maske, alle Tasten und ein Handbuch mit den
      Werkzeugen und Ablaeufen; Esc fuehrt zur Hauptmaske zurueck
    - MUSIK: eigene Maske, jeder Titel waehlbar, Lautstaerke
@@ -50,7 +50,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     const knoepfe=[...H.querySelectorAll('button')].filter(x=>x.getBoundingClientRect().width>0).map(x=>x.textContent.trim());
     return {auf:P.classList.contains('show'),knoepfe,steuerSichtbar:document.getElementById('steuer').getBoundingClientRect().height>0,musikSichtbar:document.getElementById('pMusikVol').getBoundingClientRect().width>0}; });
   console.log('HAUPT   ',JSON.stringify(haupt));
-  pruef('HAUPT',haupt.auf&&haupt.knoepfe.length===5,'Hauptmaske: '+JSON.stringify(haupt.knoepfe));
+  pruef('HAUPT',haupt.auf&&haupt.knoepfe.length===6&&haupt.knoepfe.includes('Grafik'),'Hauptmaske: '+JSON.stringify(haupt.knoepfe));
   pruef('HAUPT',/Weiterspielen/.test(haupt.knoepfe[0]||'')&&haupt.knoepfe.some(t=>t==='Steuerung')&&haupt.knoepfe.some(t=>t==='Musik')&&haupt.knoepfe.some(t=>/^Tutorial (ein|aus)blenden$/.test(t))&&haupt.knoepfe.some(t=>/Startbildschirm/.test(t)),'Punkte fehlen: '+JSON.stringify(haupt.knoepfe));
   pruef('HAUPT',!haupt.steuerSichtbar&&!haupt.musikSichtbar,'Steuerung oder Musik stehen schon auf der Hauptmaske');
 

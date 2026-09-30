@@ -1407,7 +1407,7 @@ EFF.tigerschweif=function(p,A,B,s,r){
     for(let k=0;k<2;k++) kgStern(psHuge,p,v,kgMal(A,1.35),T,G,0,0.25);
     rkFunken(p,v,G,0.03,T,150,mischF(A,[1,.8,.4],0.5),{life:[1.1,2.1],g:1.1,streu:0.5,mit:0.06,mode:4});
     kgSpaeter(T,()=>{ const e=sternNach(p,v[0],v[1],v[2],G,T); for(let j=0;j<Math.round(10*q);j++){ const dd=randDir(), ww=rand(1,2.5); psMid.emit(e.x,e.y,e.z,dd[0]*ww,dd[1]*ww,dd[2]*ww,B[0],B[1],B[2],rand(0.5,0.9),2,4); } }); }
-  schall(p,v=>{ sfx.fauchen?sfx.fauchen(v*0.5):sfx.zischen(v*0.5,1.5); later(1.2,()=>sfx.rieseln(v*0.5,3)); });
+  schall(p,v=>{ sfx.boom(v*0.45); sfx.fauchen(v*0.45,1.6); later(1.2,()=>sfx.rieseln(v*0.5,3)); });
 };
 
 /* 3 Seerose: ein flacher Ringbruch waagerecht - von unten gesehen eine
@@ -1446,7 +1446,7 @@ EFF.diamantstaub=function(p,A,B,s,r){
   grSpur(0,()=>{ for(let i=0;i<Math.round(260*s*q);i++){ const d=randDir(), w=Math.cbrt(Math.random())*rand(6,9.5)*s, c=i%5?[1.5,1.5,1.6]:kgMal(A,1.4);
     psBig.emit(p.x,p.y,p.z,d[0]*w,d[1]*w,d[2]*w,c[0],c[1],c[2],rand(3.0,4.2),0.6,4); } });
   grSpur(0.05,()=>{ for(let i=0;i<Math.round(60*s*q);i++){ const d=randDir(), w=rand(4,8)*s; psBig.emit(p.x,p.y,p.z,d[0]*w,d[1]*w,d[2]*w,1.3,1.3,1.4,rand(2.0,3.0),0.7,1); } });
-  schall(p,v=>{ sfx.pop?sfx.pop(v*0.4):sfx.plopp(v*0.4,1.3); sfx.rieseln(v*0.55,3.5); });
+  schall(p,v=>{ sfx.boom(v*0.45); later(0.15,()=>sfx.rieseln(v*0.55,3.5)); });
 };
 
 /* 6 Smaragdregen: farbiger Glitzer - gruene Sterne ziehen einen Schweif
@@ -1522,7 +1522,7 @@ EFF.seidenweide=function(p,A,B,s,r){
   grSpur(1.7,()=>{ for(let i=0;i<Math.round(300*s*q);i++){ const d=randDir(), w=rand(5,7)*s;
     psMid.emit(p.x,p.y,p.z,d[0]*w,d[1]*w*0.85+1,d[2]*w,A[0]*1.05,A[1]*1.05,A[2]*1.1,rand(5,6.2),1.25,4); } });
   grSpur(0.6,()=>{ for(let i=0;i<Math.round(16*s*q);i++){ const d=randDir(), w=rand(6,7)*s; psBig.emit(p.x,p.y,p.z,d[0]*w,d[1]*w,d[2]*w,B[0],B[1],B[2],rand(4,5),1.3,4); } });
-  schall(p,v=>sfx.rieseln(v*0.6,6));
+  schall(p,v=>{ sfx.boom(v*0.45); later(0.3,()=>sfx.rieseln(v*0.6,6)); });
 };
 
 /* 12 Honigtau: schwere Goldsterne, von denen waehrend des Flugs immer
@@ -1563,7 +1563,8 @@ EFF.seifenblase=function(p,A,B,s,r){
     const h=(Math.atan2(d[2],d[0])/(Math.PI*2)+0.5+y*0.3)*sch.length, L=sch.length, fl=Math.floor(h), k=((fl%L)+L)%L, f=h-fl, c=mischF(sch[k],sch[(k+1)%L],f);
     kgStern(psBig,p,kgMal(d,w),kgMal(c,1.6),T,G,0,0.16); blase.push(kgMal(d,w)); }
   kgSpaeter(T,()=>{ for(const v of blase){ const e=sternNach(p,v[0],v[1],v[2],G,T); for(let j=0;j<3;j++){ const dd=randDir(); psMid.emit(e.x,e.y,e.z,v[0]*0.3+dd[0]*2.2,v[1]*0.3+dd[1]*2.2,v[2]*0.3+dd[2]*2.2,1.5,1.5,1.6,rand(0.6,1.0),1.2,4); } }
-    schall(p,x=>sfx.plopp(x*0.6,1.6)); });
+    schall(p,x=>{ sfx.plopp(x*0.7,1.6); sfx.rieseln(x*0.4,1); }); });
+  schall(p,v=>sfx.boom(v*0.35));
 };
 
 /* 15 Sternspritzer: jeder Stern brennt wie eine Wunderkerze - er spruehet
@@ -1574,7 +1575,7 @@ EFF.sternspritzer=function(p,A,B,s,r){
   for(let i=0;i<Math.round(55*s*q);i++){ const d=randDir(), w=rand(10.5,12.5)*s, v=kgMal(d,w), T=rand(2.1,2.6);
     kgStern(psBig,p,v,kgMal(A,1.7),T,G,0,0.12);
     rkFunken(p,v,G,0.05,T,150,[1.5,1.4,1.2],{ps:psMid,life:[0.18,0.38],g:1,streu:2.4,mit:0.2,mode:4,spur:0.05}); }
-  schall(p,v=>{ sfx.zischen(v*0.5,2.2); later(0.2,()=>sfx.prasseln?sfx.prasseln(v*0.4):0); });
+  schall(p,v=>{ sfx.boom(v*0.4); sfx.zischen(v*0.4,2.3); for(let i=0;i<7;i++) later(0.2+i*0.3,()=>sfx.prasseln(v*0.5)); });
 };
 
 Object.assign(EFF_SCHWEIF,{funkelregen:0.08,tigerschweif:0.25,seerose:0.12,galaxie:0.1,diamantstaub:0,smaragdregen:0.1,kiefernkrone:0.12,lavaregen:0.15,echoringe:0.12,kirschbluete:0.08,seidenweide:1.7,honigtau:0.15,glockenblume:0.14,seifenblase:0.05,sternspritzer:0.05});

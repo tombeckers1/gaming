@@ -1457,7 +1457,7 @@ EFF.smaragdregen=function(p,A,B,s,r){
   const q=QUAL(), G=2.4;
   for(let i=0;i<Math.round(60*s*q);i++){ const d=randDir(), w=rand(11,13)*s, v=kgMal(d,w), T=rand(2.2,2.7);
     kgStern(psBig,p,v,kgMal(A,1.4),T,G,0,0.2);
-    rkFunken(p,v,G,0.1,T,14,mischF(A,[1,1,1],0.35),{life:[0.7,1.2],g:1.8,streu:0.3,mit:0.05,mode:4}); }
+    rkFunken(p,v,G,0.1,T,10,mischF(A,[1,1,1],0.35),{life:[0.7,1.2],g:1.8,streu:0.3,mit:0.05,mode:4}); }
   schall(p,v=>{ sfx.boom(v*0.6); later(1.1,()=>sfx.rieseln(v*0.45,2.5)); });
 };
 
@@ -1574,7 +1574,7 @@ EFF.sternspritzer=function(p,A,B,s,r){
   const q=QUAL(), G=2.4;
   for(let i=0;i<Math.round(45*s*q);i++){ const d=randDir(), w=rand(10.5,12.5)*s, v=kgMal(d,w), T=rand(2.1,2.6);
     kgStern(psBig,p,v,kgMal(A,1.7),T,G,0,0.12);
-    rkFunken(p,v,G,0.05,T,45,[1.5,1.4,1.2],{ps:psMid,life:[0.18,0.38],g:1,streu:2.4,mit:0.2,mode:4,spur:0.05}); }
+    rkFunken(p,v,G,0.05,T,34,[1.5,1.4,1.2],{ps:psMid,life:[0.18,0.38],g:1,streu:2.4,mit:0.2,mode:4,spur:0.05}); }
   schall(p,v=>{ sfx.boom(v*0.4); sfx.zischen(v*0.4,2.3); for(let i=0;i<4;i++) later(0.25+i*0.5,()=>sfx.prasseln(v*0.5)); });
 };
 

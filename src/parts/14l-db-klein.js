@@ -25,7 +25,13 @@ function klHell(){ return typeof sun!=='undefined'&&sun?clamp(0.2+0.5*sun.intens
 function klPapH(){ return Math.max(0.62,klHell()); }
 /* Zuendtisch: Platte 3,3 x 1,05 m (TISCH_B), Oberkante 0,93 m */
 const KL_TI={x:STATION_POS.tisch.x,z:STATION_POS.tisch.z,y:0.93,hx:TISCH_B/2,hz:0.52};
-function klGrund(x,z){ return Math.abs(x-KL_TI.x)<=KL_TI.hx&&Math.abs(z-KL_TI.z)<=KL_TI.hz?KL_TI.y:0; }
+function klGrund(x,z){
+  /* 30.09. (Tom: Kreisel "auf dem Zuendtisch, nicht auf dem Boden"): der
+     lange Tisch der Vorfuehranlage zaehlt als Tisch - vorher hielt alles
+     Kleinfeuerwerk dort die Tischplatte fuer Boden */
+  if(typeof vfAn!=='undefined'&&vfAn&&typeof VF_TISCH!=='undefined'){ const T=VF_TISCH, x0=T.x0-0.36, x1=T.x0+(T.n-1)*T.dx+0.36;
+    if(x>=x0&&x<=x1&&Math.abs(z-VF_Z)<=0.45) return T.y; }
+  return Math.abs(x-KL_TI.x)<=KL_TI.hx&&Math.abs(z-KL_TI.z)<=KL_TI.hz?KL_TI.y:0; }
 /* Flaeche, auf der das Produkt steht (o ist seine Oberkante) */
 function klFlaeche(o){ const g=klGrund(o.x,o.z); return o.y>=g-0.01?g:(o.y||0); }
 /* Bodenstueck vor dem Tisch (zum Pult hin): da laufen Frosch, Flitzer
@@ -403,7 +409,7 @@ klEmit('formkerze',(e,dt,o,t)=>{
   /* Schluss: alle Pfade spruehen eine Sekunde ueber ihre ganze Laenge */
   if(e.schluss&&t>=e.schluss.at&&t<e.schluss.at+e.schluss.funkeln){
     e.sf=(e.sf||0)+dt*700*QUAL(); SCHWEIF=0.04;
-    for(;e.sf>=1;e.sf--){ const tl=e.teile[Math.floor(Math.random()*e.teile.length)], P=tl.P[0], [x,y]=klPfadOrt(P,Math.random()), d=randDir(), s=rand(0.6,1.6), c=Math.random()<0.6?A:FW.weiss;
+    for(;e.sf>=1;e.sf--){ const tl=e.teile[Math.floor(Math.random()*e.teile.length)], P=tl.P[0], [x,y]=klPfadOrt(P,Math.random()), d=randDir(), s=rand(0.3,0.8), c=Math.random()<0.6?A:FW.weiss; /* 30.09.: dicht an den Ziffern */
       klFunke(x,y,Z,d[0]*s,d[1]*s+0.3,d[2]*s,[c[0]*1.2,c[1]*1.2,c[2]*1.2],rand(0.15,0.35),1.5,0,0.3); }
     SCHWEIF=alt;
     if(!e.sfT){ e.sfT=1; sfx.crackle(distVol(o)*0.4); later(0.45,()=>sfx.crackle(distVol(o)*0.35)); } }
@@ -711,7 +717,10 @@ klEmit('brummkreisel',(e,dt,o,t)=>{
     const u=lt/T;
     if(u>=1){ if(!k.ende){ k.ende=1; if(k.ton){ k.ton.stop(); k.ton=null; } } continue; }
     /* Weg: vom Karton zum eigenen Platz, dort leicht schlingernd */
-    k.zt-=dt; if(k.zt<=0){ k.zt=rand(0.4,0.8); k.dx=k.ziel[0]+rand(-1,1)*(e.drift||0.02); k.dz=k.ziel[1]+rand(-1,1)*(e.drift||0.02)*0.7; }
+    k.zt-=dt; if(k.zt<=0){ k.zt=rand(0.4,0.8);
+      /* wandern: immer wieder ein neues Ziel auf der Tischplatte - der Ring zieht ueber den Tisch */
+      if(e.wandern&&lt>0.6){ const a=rand(0,6.283), r=rand(0.08,e.wandern); k.ziel=[Math.cos(a)*r,Math.sin(a)*r*0.55]; k.zt=rand(0.7,1.3); }
+      k.dx=k.ziel[0]+rand(-1,1)*(e.drift||0.02); k.dz=k.ziel[1]+rand(-1,1)*(e.drift||0.02)*0.7; }
     k.x+=(k.dx-k.x)*Math.min(1,dt*0.9); k.z+=(k.dz-k.z)*Math.min(1,dt*0.9);
     const rev=U[0]+(U[1]-U[0])*u, fin=lt>T-FIN.t, kipp=lt>T-0.3?(lt-(T-0.3))/0.3:0;
     k.w+=2*Math.PI*rev*dt;
@@ -1069,7 +1078,7 @@ klEmit('funkenschirm',(e,dt,o,t)=>{
    Nachbild (28.09., Tom: echt); Huellenfetzchen glimmen nach */
 klEmit('weissblitz',(e,dt,o,t)=>{
   if(e.los) return; e.los=1; e.t=0.1;
-  const sf=klFlaeche(o), p={x:o.x,y:Math.max(o.y,sf)+0.08,z:o.z}, v=distVol(p), alt=SCHWEIF;
+  const sf=klFlaeche(o), p=e.bz!==undefined?{x:o.x+(e.bx||0),y:0.03,z:o.z+e.bz}:{x:o.x,y:Math.max(o.y,sf)+0.08,z:o.z}, v=distVol(p), alt=SCHWEIF;
   flash(p,FW.weiss,e.hell||4,0.09);
   SCHWEIF=0; psHuge.emit(p.x,p.y,p.z,0,0,0,1.6,1.6,1.55,0.05,0,0); psBig.emit(p.x,p.y,p.z,0,0,0,2,2,2,0.04,0,0);
   for(let k=0;k<30;k++){ const d=randDir(), s=rand(3,6); psSmall.emit(p.x,p.y,p.z,d[0]*s,d[1]*s,d[2]*s,2,2,2,0.06,0,0); }
@@ -1263,7 +1272,11 @@ Object.assign(KLEIN,{
   wunderzahl:{stueck:4,lunte:0,dauer:12,
     /* 28.09., Tom: Ziffern 13 cm hoch dicht an dicht - die Schrift steht ueber dem 32-cm-Karton (vorher 60 cm breit) */
     /* Silberfunken (Titan, kurz gehalten): Silvester-Silber, die Ziffern gluehen golden nach */
-    phasen:[{k:'glutschrift',form:['2','0','2','7'],abstand:0.095,groesse:0.13,at:0,t:6.5,versatz:0.4,start:'strich',fronten:1,material:'titan',weite:0.7,A:'silber',B:'weiss',glut:'gold',nachglut:3.0,n:2.2, /* weniger Funken: die Ziffern sollen schon beim Brennen lesbar sein */
+    /* 30.09., Tom: "die Funken direkt an der 2027, wie beim Herz" - die
+       Titanfunken flogen 30-50 cm weit und machten aus 13-cm-Ziffern vier
+       Funkenbaelle. Jetzt kurze Funken (Reichweite ~12 cm) direkt an der
+       Glutfront, Ziffern 16 cm: man sieht die 2027 Strich fuer Strich entstehen */
+    phasen:[{k:'glutschrift',form:['2','0','2','7'],abstand:0.118,groesse:0.16,at:0,t:6.5,versatz:0.4,start:'strich',fronten:1,material:'titan',weite:0.28,A:'silber',B:'weiss',glut:'gold',nachglut:3.0,n:3, /* weniger Funken: die Ziffern sollen schon beim Brennen lesbar sein */
       schluss:{at:7.8,funkeln:1.0}}]},
   /* L4 */
   boeller:{stueck:1,lunte:1.2,dauer:5,phasen:[{k:'alt',fn:'furzboeller'}]},
@@ -1271,12 +1284,18 @@ Object.assign(KLEIN,{
     phasen:[{k:'luftschlange',at:0,n:14,laenge:[1.2,2.2],steig:[4.5,6.5],locken:[3,6],schwing:0.4,farben:['rot','gold','gruen','blau','magenta','tuerkis']}],
     rest:{k:'bodenrest',art:'band',t:20}},
   /* L5 */
-  blitzknaller:{stueck:1,lunte:1.0,dauer:3,
+  /* 30.09., Tom: "nur ein einziger - mehrmals am Boden, so fuenf, sechs Mal":
+     sechs Knaller, einzeln angezuendet und vor den Tisch geworfen, jeder
+     an einer anderen Stelle, in unregelmaessigem Abstand */
+  blitzknaller:{stueck:6,lunte:1.0,dauer:6.5,
     /* 28.09., Tom: echt - Blitz wie ein Fotoblitz, kein weisser Bildschirm, kein Nachbild */
-    phasen:[{k:'weissblitz',at:0,hell:4.0,knall:'trocken'}]},
-  bodenkreisel:{stueck:6,lunte:0,dauer:11,
+    phasen:[{k:'weissblitz',hell:4.0,knall:'trocken',folge:[{at:0,bx:-0.35,bz:1.25},{at:0.85,bx:0.5,bz:1.7},{at:1.9,bx:-0.7,bz:2.1},{at:2.45,bx:0.15,bz:1.45},{at:3.7,bx:0.8,bz:2.3},{at:4.6,bx:-0.2,bz:2.6}]}]},
+  bodenkreisel:{stueck:6,lunte:0,dauer:9.5,
     /* 28.09., Tom: echt - zwei Farbpaare statt zwoelf Farben, die Kreisel tanzen auf dem Karton-Feld, hoechstens drei zugleich */
-    phasen:[{k:'brummkreisel',at:0,n:6,zuend:'mitte',gap:1.15,t:3.6,umdreh:[4,14],drift:0.02,ton:{hz:[90,320],groesse:true},
+    /* 30.09., Tom: "mehrere Ringe, die sich auf dem Zuendtisch bewegen" -
+       dichter hintereinander (bis vier zugleich), laenger, und jeder
+       Kreisel wandert waehrend des Drehens ueber die Tischplatte */
+    phasen:[{k:'brummkreisel',at:0,n:6,zuend:'mitte',gap:0.7,t:4.6,umdreh:[4,14],drift:0.02,wandern:0.34,ton:{hz:[90,320],groesse:true},
       farbFolge:[['gold','rot'],['silber','gruen']],
       wechselBei:[0.35,0.7],finale:{k:'knistern',A:'silber',t:1.2,umfallen:true}}]},
   leuchtstaebe:{stueck:6,lunte:0,dauer:16,

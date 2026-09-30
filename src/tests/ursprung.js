@@ -41,7 +41,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   const SL=[sa+1,html.findIndex((l,i)=>i>sa&&l.startsWith('};'))+1];
   /* knallfrosch: springt absichtlich vom Karton weg (28.09., klein) - der erste Knall zaehlt */
   /* bodenkreisel: die Kreisel laufen vom Karton weg und ziehen dort ihre Feuerkreise (29.09., Tom: "wirklich Kreise") */
-  const WEIT=['schwaermer','knallerbsen','goldstaubboeller','atomboeller','tisch','luftschlangentisch','knallfrosch','bodenkreisel'];
+  const WEIT=['schwaermer','knallerbsen','goldstaubboeller','atomboeller','tisch','luftschlangentisch','knallfrosch','bodenkreisel','blitzknaller'];
   const r=await p.evaluate(([nur,WEIT,FZ,RL,SL])=>{ const bb=window.__bb, S=bb.S, P=bb.P, out={};
     S.up.testfeld=true; S.up.shop_halb=true;
     /* Funken, die unterwegs aus einem anderen Funken entstehen (Verzweigung,

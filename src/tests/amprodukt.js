@@ -39,7 +39,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   /* Effekte, die absichtlich weit gehen: Flitzer rasen ueber den Boden,
      Erbsen werden geworfen, Luftbilder (Goldstaub, Atompilz), Tischfeuerwerk-
      Schirm und Luftschlangen fliegen hoch/weit */
-  const WEIT=['schwaermer','knallerbsen','goldstaubboeller','atomboeller','tisch','luftschlangentisch'];
+  const WEIT=['schwaermer','knallerbsen','goldstaubboeller','atomboeller','tisch','luftschlangentisch','blitzknaller'];
   for(const [t,v] of Object.entries(r)){
     if(v.fehler||v.leer){ mangel.push(t+': '+(v.fehler||'keine Funken')); continue; }
     if(v.start>0.4) mangel.push(`${t}: erste Funken ${v.start} m vom Produkt`);

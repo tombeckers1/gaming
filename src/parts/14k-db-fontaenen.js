@@ -63,7 +63,11 @@ function fkBett(e,art,ziel){
   if(!b){ const B=FK_BETT[art]; if(!B) return;
     const src=AC.createBufferSource(), fl=AC.createBiquadFilter(), g=AC.createGain(), t=AC.currentTime;
     src.buffer=B.rosa?rosaRausch():weissBuf(); src.loop=true; fl.type=B.typ; fl.frequency.value=B.f;
-    g.gain.setValueAtTime(0.0001,t); src.connect(fl); fl.connect(g); g.connect(master); src.start(t,Math.random());
+    /* 30.09. (Tom: "komischer Sound genau am Anfang"): der Startwert muss
+       direkt gesetzt werden - setValueAtTime(t) loeschte das
+       cancelScheduledValues(t) unten gleich wieder, das Bett begann mit
+       voller Lautstaerke (gemessen: 25-fach) und fiel erst nach 0,3 s ab */
+    g.gain.value=0.0001; src.connect(fl); fl.connect(g); g.connect(master); src.start(t,Math.random());
     b=e.bett={art,s:src,g,B,last:t}; FK_BETTEN.push(b); FK_KLANG_LOG.betten++; FK_KLANG_LOG.arten.push(art); }
   const t=AC.currentTime; b.last=t;
   /* Ziel anfahren, und von selbst ausblenden, wenn niemand mehr nachfasst

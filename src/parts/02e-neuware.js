@@ -59,9 +59,9 @@ const NEUWARE={
     art:{title:'SPRAYPARTY',sub:'3 Dosen · bunt',bg1:'#5ce1ff',bg2:'#1557a8',ac:'#ff4fa3',ac2:'#ffe45c'}},
 
   /* ---------- Level 5-6: Klassiker ---------- */
-  blitzknaller:{name:'Blitzknaller · 20 Stück',short:'Blitzknaller',cat:2,lvl:5,shape:'tubepack',dims:[0.13,0.05,0.05],grid:[8,2,2],box:16,cost:1.60,market:3.79,weight:8,hype:7,risk:3,
+  blitzknaller:{name:'Blitzknaller · 6 Stück',short:'Blitzknaller',cat:2,lvl:5,shape:'tubepack',dims:[0.13,0.05,0.05],grid:[8,2,2],box:16,cost:1.60,market:3.79,weight:8,hype:7,risk:3,
     desc:'Ein Blitz wie vom Fotoapparat und ein trockener Knall – danach tanzt dir kurz ein Fleck vor den Augen.',
-    art:{title:'BLITZKNALLER',sub:'20 Stück · Blitz & Knall',bg1:'#f2f5ff',bg2:'#8a92a8',ac:'#1b1b2e',ac2:'#ff3b2e',light:true}},
+    art:{title:'BLITZKNALLER',sub:'6 Stück · Blitz & Knall',bg1:'#f2f5ff',bg2:'#8a92a8',ac:'#1b1b2e',ac2:'#ff3b2e',light:true}},
   bodenkreisel:{name:'Brummkreisel · 6 Farbwechsel-Kreisel',short:'Kreisel',cat:2,lvl:5,shape:'boxA',dims:[0.16,0.06,0.1],grid:[8,2,2],box:16,cost:1.30,market:3.19,weight:7,hype:5,risk:2,
     desc:'Sechs Kreisel brummen los, drehen immer schneller und höher, wechseln zweimal die Farbe – und knistern silbern aus.',
     art:{title:'BRUMMKREISEL',sub:'6 Farbwechsel-Kreisel',bg1:'#5a1470',bg2:'#1a0322',ac:'#5cff9e',ac2:'#ffd23f'}},

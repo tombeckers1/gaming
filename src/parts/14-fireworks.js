@@ -337,7 +337,18 @@ function shaderVorab(){
     if(!shaderVorab.sp&&typeof wolkenSprite==='function') shaderVorab.sp=[wolkenSprite(true),wolkenSprite(false)];
     if(shaderVorab.sp) shaderVorab.sp.forEach(sp=>{ if(!sp.parent) scene.add(sp); sp.visible=true; sp.material.opacity=0.01; sp.position.copy(camera.position); });
     const aus=[]; scene.traverse(o=>{ if(o.frustumCulled){ o.frustumCulled=false; aus.push(o); } });
+    /* 30.09.: Leere Partikel-Pools (Zeichenbereich 0, Spuren unsichtbar)
+       zeichnet three gar nicht - ihr Shader wurde erst beim ersten Stern
+       fertiggestellt: erstes Feuerwerksbild doppelt so lang (leistung.js).
+       Darum je ein unsichtbarer Punkt (Farbe 0, additiv) mitgezeichnet. */
+    if(typeof klFunkMesh==='function') klFunkMesh();
+    const leer=[]; scene.traverse(o=>{ const g=o.geometry; if(!g) return;
+      const z={o,vis:o.visible};
+      if(g.drawRange&&g.drawRange.count===0){ z.dr=true; g.drawRange.count=1; }
+      if(g.isInstancedBufferGeometry&&g.instanceCount===0){ z.ic=true; g.instanceCount=1; }
+      if(z.dr||z.ic){ o.visible=true; leer.push(z); } });
     for(const an of [true,false]){ flashSchalten(an); renderer.compile(scene,camera); renderer.render(scene,camera); }
+    leer.forEach(z=>{ const g=z.o.geometry; if(z.dr) g.drawRange.count=0; if(z.ic) g.instanceCount=0; z.o.visible=z.vis; });
     aus.forEach(o=>{ o.frustumCulled=true; });
     /* danach wieder aus der Szene: ein Sprite ohne Kamera laesst jeden
        Strahl ueber die ganze Szene abstuerzen (naht.js, park.js). Das
@@ -345,6 +356,12 @@ function shaderVorab(){
     if(shaderVorab.sp) shaderVorab.sp.forEach(sp=>{ sp.visible=false; sp.material.opacity=0; scene.remove(sp); });
     flashSchalten(alt);
     if(renderer.setRenderTarget) renderer.setRenderTarget(null);
+    /* 30.09.: Das winzige Ziel deckt nicht jedes echte Ziel ab (ohne
+       Nachbearbeitung zeichnet der Bildschirm mit Kantenglaettung): der
+       erste Moerserblitz kostete trotzdem ein doppelt langes Bild
+       (leistung.js). Darum die Blitzlichter ein paar echte Bilder lang
+       an - mit Helligkeit 0, sie sind also nicht zu sehen. */
+    if(!alt&&FLASH.length&&FLASH.every(f=>f.t<=0)){ FLASH.forEach(f=>{ f.l.intensity=0; }); flashSchalten(true); flashRuhe=0.12; }
     shaderVorab.ms=Math.round(performance.now()-t0);
   }catch(e){ try{ if(renderer.setRenderTarget) renderer.setRenderTarget(null); }catch(e2){} }
 }

@@ -536,16 +536,19 @@ klEmit('zuendholz',(e,dt,o,t)=>{
     e.holz=klDraht(e,[[o.x,e.kopf.y-0.1,o.z],[o.x,e.kopf.y,o.z]]); const c=e.holz.userData.col; c[0]=0.25;c[1]=0.16;c[2]=0.08;c[3]=0.35;c[4]=0.2;c[5]=0.1; klDrahtAuf(e.holz);
     const p=e.kopf, alt=SCHWEIF; SCHWEIF=0.08; flash(p,FW.weiss,1.0,0.2);
     for(let k=0;k<15;k++){ const d=streu([rand(-0.4,0.4),1,rand(-0.3,0.3)],0.5), v=rand(1.5,3); psSmall.emit(p.x,p.y,p.z,d[0]*v,d[1]*v,d[2]*v,1.5,1.4,1.2,rand(0.15,0.3),3,0); }
-    SCHWEIF=alt; schall(p,v=>sfx.ratsch(v*1.2)); }
+    SCHWEIF=alt; schall(p,v=>{ sfx.ratsch(v*1.2); later(0.06,()=>sfx.zischen(v*0.9,0.35)); }); }
   const p=e.kopf, alt=SCHWEIF; SCHWEIF=0;
   if(t<st){ const k=1-t/st; psMid.emit(p.x,p.y+0.03,p.z,0,0.6,0,2*k+0.4,2*k+0.4,1.9*k+0.4,0.05,0,0);
     psBig.emit(p.x,p.y+0.04,p.z,0,0,0,0.9*k,0.9*k,0.85*k,0.05,0,0); licht('zh'+e.prod+e.nr,p,[1,1,0.95],2.2*k+0.5,{weite:4}); }
   else if(t<st+T){ const u=t-st, s=Math.min(1,u/0.2)*Math.min(1,(st+T-t)/0.3);
     /* 28.09., Tom: echt - flackernde Bengalflamme 7-9 cm mit Rauchfaden,
        faerbt die Umgebung (vorher ein ruhiger 4-cm-Leuchtball) */
-    SCHWEIF=alt; klBengal(e.bz||(e.bz={}),{x:p.x,y:p.y+0.01,z:p.z},dt,A,{st:s,h:0.075,r:0.01,rate:90,hof:0.16,funken:1.5,
-      rauch:{rate:1.2,gr:0.45,licht:0.5,h:0.06,dauer:4},licht:{key:'zh'+e.prod+e.nr,st:0.3,h:0.25,weite:2.5}}); SCHWEIF=0;
-    zischBett(e,'fauchen',distVol(o)*0.2,dt); }
+    /* 30.09., Tom: "Lichter heller machen, ist so schwach" - Flamme groesser
+       und dichter, Leuchthof breiter, Raumlicht 0,3 -> 1,1 und 4 m weit
+       (29.09. war es auf 2,5 m gedrosselt, weil es den Platz flutete) */
+    SCHWEIF=alt; klBengal(e.bz||(e.bz={}),{x:p.x,y:p.y+0.01,z:p.z},dt,A,{st:s,h:0.095,r:0.013,rate:150,hof:0.28,funken:2.5,
+      rauch:{rate:1.2,gr:0.45,licht:0.8,h:0.06,dauer:4},licht:{key:'zh'+e.prod+e.nr,st:1.1,h:0.25,weite:4}}); SCHWEIF=0;
+    zischBett(e,'bengal',distVol(o)*0.7*s,dt); }
   else if(t<st+T+gl+1.2){ const u=(t-st-T)/gl, k=Math.max(0,1-u);
     if(u<1) psSmall.emit(p.x,p.y,p.z,0,0,0,1*k,0.4*k,0.1*k,0.05,0,0);
     /* Rauchfaden: steigt senkrecht, leicht wellig */
@@ -1206,9 +1209,13 @@ KLEIN_ALT.atomboeller=o=>shot(o,{pw:2,sz:1,eff:'atom',fuse:2.2,dick:2,trail:FW.o
    ========================================================= */
 Object.assign(KLEIN,{
   /* L1 */
-  knallerbsen:{stueck:7,lunte:0,dauer:5,
+  /* 30.09. (Tom): "50 Stueck enthalten, da kommen nur 5, 6 Knalle" - jetzt
+     30 Erbsen (Packung: 30 Stueck), geworfen wie echt: handvollweise, drei
+     bis fuenf kurz hintereinander, dann eine Pause zum Nachgreifen */
+  knallerbsen:{stueck:30,lunte:0,dauer:12,
     /* Wurf zum Pult hin statt weg: hinter dem Tisch saehe man die Aufschlaege vom Pult aus nicht */
-    phasen:[{k:'wurferbse',at:0,n:7,takt:[0.35,0.2,0.5,0.25,0.4,0.3,0.3],weite:[1.5,3.5],bogenH:[0.6,1.4],streu:0.5,erstNah:0.05,A:'weiss',B:'rose',nachzuegler:{nr:6,verz:1.3}}],
+    phasen:[{k:'wurferbse',at:0,n:30,takt:[0.12,0.08,0.15,0.7, 0.1,0.14,0.09,0.12,0.8, 0.15,0.1,0.55, 0.08,0.12,0.1,0.9, 0.11,0.09,0.13,0.07,0.6, 0.14,0.1,0.75, 0.09,0.12,0.1,0.65, 0.12,0.1],
+      weite:[1.2,3.8],bogenH:[0.5,1.5],streu:0.65,erstNah:0.05,A:'weiss',B:'rose',nachzuegler:{nr:17,verz:1.3}}],
     rest:{k:'bodenrest',art:'fleck',t:10}},
   partypopper:{stueck:3,lunte:0,dauer:6,
     phasen:[{k:'konfettistrahl',folge:[{at:0.3,x:0,neig:0.25,azi:0},{at:1.0,x:-0.25,neig:0.7,azi:-0.6},{at:1.6,x:0.25,neig:0.7,azi:0.6}],

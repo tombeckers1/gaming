@@ -82,10 +82,14 @@ function fkBett(e,art,ziel){
    Katalog-Fontaenen, dazu bei der Wunderkerze das feine, unregelmaessige
    Knacken der Eisenfunken. */
 FK_BETT.wunderkerze={rosa:false,typ:'highpass',f:2600,vol:0.075};
+/* Bengalholz (30.09., Tom: "Sound passt nicht"): kein tiefes Fauchen,
+   sondern ein leises, helles Brennen um 2 kHz mit Spritzern */
+FK_BETT.bengal={rosa:true,typ:'bandpass',f:2100,vol:0.1};
 function zischBett(e,art,v,dt){
   if(!(v>0.004)) return;
   fkBett(e,art,v);
   if(art==='wunderkerze'){ e._zk=(e._zk||0)-dt; if(e._zk<=0){ e._zk=rand(0.015,0.06); noise(0.012,0.06*v,rand(4500,9500)); } }
+  if(art==='bengal'){ e._zk=(e._zk||0)-dt; if(e._zk<=0){ e._zk=rand(0.06,0.22); noise(rand(0.02,0.045),0.05*v,rand(1400,3200)); } }
 }
 function fkKlang(e,o,dt,faktor){
   const t=fkTonArt(e.ph); if(!t||t==='still'||e.nr) return;

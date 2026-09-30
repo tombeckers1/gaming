@@ -658,7 +658,9 @@ const ENTFERNT=['fontaene50','fontaene30','silberkaskade','feuerkaskade','jugend
   'knisterfaecher','bengalduo','zauberwald','silberwirbel','glitzerkaskade','nachtfalter','regenbogenfaecher','goldvulkan',
   'funkenturm','sortiment','sternstaub20','knallteppich','vulkanfeld','feuerbrunnen','farbrauchboeller','goldstaubboeller',
   'sternenbrunnen','bengalfackel','glueckrakete','mondschein','farbfontaenen','bengalflamme','tisch','tortenfontaene',
-  'leuchtstaebe','pharao','stroboblinker','hagelsturm','himmelsfaecher','silvesternacht','nordlicht','wolkenkratzer'];
+  'leuchtstaebe','pharao','stroboblinker','hagelsturm','himmelsfaecher','silvesternacht','nordlicht','wolkenkratzer',
+  /* 30.09. (Tom): Farbzauber soll weg */
+  'wunderfarbe'];
 /* Ersatz fuer alte Spielstaende: jede gestrichene Sorte wird beim Laden
    zur naechsten verbliebenen - gleiche Kategorie, moeglichst gleiche Form,
    Level und Preis am naechsten (18-save.js, SORTE_NEU). Sonst stuende

@@ -90,6 +90,34 @@ function bbox(w,h,d,m,x,y,z,parent,shadow){
   return rbox(w,h,d,Math.min(0.02,mn*0.17),m,x,y,z,parent,shadow);
 }
 function plane(w,h,m,x,y,z,ry,parent){ const o=new THREE.Mesh(new THREE.PlaneGeometry(w,h),m); o.position.set(x,y,z); o.rotation.y=ry||0; (parent||scene).add(o); return o; }
+/* Feste Baugruppen buendeln (30.09., Leistung: im Laden gut 1300
+   Zeichenaufrufe je Bild). Alle Blatt-Meshes einer Gruppe mit demselben
+   Material (und gleichem Schattenwurf) werden zu einem Mesh zusammengelegt.
+   Nur fuer Gruppen, deren Teile danach nicht mehr einzeln angefasst werden
+   (vom Aufrufer geprueft). Ausgenommen: Meshes mit userData (Treffer,
+   bewegte Tasten), unsichtbare, transparente, mit Vertex-Farben oder
+   Mehrfach-Material, und alles in opt.aus. */
+function statikBuendeln(root,opt){
+  opt=opt||{}; const aus=opt.aus||new Set(); root.updateMatrixWorld(true);
+  const inv=new THREE.Matrix4().copy(root.matrixWorld).invert(), topf=new Map();
+  const sichtbar=o=>{ for(let x=o;x&&x!==root;x=x.parent) if(!x.visible) return false; return true; };
+  root.traverse(o=>{ if(o===root||!o.isMesh||o.isInstancedMesh||o.isSkinnedMesh||o.children.length||aus.has(o)) return;
+    const m=o.material; if(!m||Array.isArray(m)||!m.visible||m.transparent||m.vertexColors||Object.keys(o.userData).length||!sichtbar(o)) return;
+    const g=o.geometry; if(!g||!g.attributes.position||!g.attributes.normal||g.morphAttributes&&Object.keys(g.morphAttributes).length) return;
+    const k=m.uuid+'|'+o.castShadow+'|'+o.receiveShadow+'|'+!!g.attributes.uv;
+    (topf.get(k)||topf.set(k,[]).get(k)).push(o); });
+  let n=0;
+  for(const liste of topf.values()){ if(liste.length<2) continue;
+    let total=0; const teile=liste.map(o=>{ const g=o.geometry.index?o.geometry.toNonIndexed():o.geometry.clone();
+      g.applyMatrix4(new THREE.Matrix4().multiplyMatrices(inv,o.matrixWorld)); total+=g.attributes.position.count; return g; });
+    const mitUV=!!liste[0].geometry.attributes.uv, pos=new Float32Array(total*3), nor=new Float32Array(total*3), uv=mitUV?new Float32Array(total*2):null; let p=0;
+    for(const g of teile){ const c=g.attributes.position.count; pos.set(g.attributes.position.array,p*3); nor.set(g.attributes.normal.array,p*3); if(uv) uv.set(g.attributes.uv.array,p*2); p+=c; g.dispose(); }
+    const out=new THREE.BufferGeometry(); out.setAttribute('position',new THREE.BufferAttribute(pos,3)); out.setAttribute('normal',new THREE.BufferAttribute(nor,3)); if(uv) out.setAttribute('uv',new THREE.BufferAttribute(uv,2));
+    out.computeBoundingSphere();
+    const a=liste[0], mm=new THREE.Mesh(out,a.material); mm.castShadow=a.castShadow; mm.receiveShadow=a.receiveShadow; mm.renderOrder=a.renderOrder; mm.userData.gebuendelt=liste.length;
+    root.add(mm); for(const o of liste) o.parent.remove(o); n+=liste.length-1; }
+  return n;
+}
 const hitM=new THREE.MeshBasicMaterial({transparent:true,opacity:0,depthWrite:false});
 /* 30.09. (Leistung): unsichtbare Trefferflaechen (Regalboeden, Lagerplaetze,
    Pult, Laptop ...) wurden trotz Deckkraft 0 jedes Bild gezeichnet - je ein

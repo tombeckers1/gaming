@@ -132,6 +132,112 @@ function sonneNachfuehren(){
    Sonne steht still, nur Figuren und Kartons bewegen sich - drei Bilder
    Verzug sieht man nicht). Der Schattenpass zeichnet jedes Objekt ein
    zweites Mal: im Laden rund 1000 zusaetzliche Zeichenaufrufe. */
+/* Mehrfach-Materialien buendeln (30.09., Leistung): Kartons, Koepfe,
+   Container haben sechs Materialien - eins je Seite -, meist aber nur zwei
+   oder drei verschiedene. Jede Seite war ein eigener Zeichenaufruf (im Laden
+   137 Objekte, 777 Aufrufe, im Schattenpass noch einmal). Die Seiten mit
+   gleichem Material werden zu einer Gruppe zusammengelegt - gleiches Bild.
+   Die Original-Geometrie bleibt gemerkt: setzt das Spiel spaeter ein neues
+   Material-Feld (Einraeumer), wird von ihr aus neu gebuendelt. */
+const _gbCache=new Map();
+function gruppenBuendeln(o){
+  const M=o.material; if(!Array.isArray(M)||o.userData._gbM===M) return;
+  if(o.userData._gbGeo&&o.geometry!==o.userData._gbGeo) o.geometry=o.userData._gbGeo;
+  const g=o.geometry; o.userData._gbM=M;
+  if(!g||!g.index||!g.groups||g.groups.length<2) return;
+  const uniq=[], map=[];
+  for(const gr of g.groups){ const m=M[gr.materialIndex]; let k=uniq.indexOf(m); if(k<0){ k=uniq.length; uniq.push(m); } map.push(k); }
+  if(uniq.length===g.groups.length) return;
+  const key=g.uuid+'|'+map.join(','); let ng=_gbCache.get(key);
+  if(!ng){ ng=g.clone(); const src=g.index.array, out=new src.constructor(src.length); let p=0; ng.clearGroups();
+    for(let k=0;k<uniq.length;k++){ const s0=p; g.groups.forEach((gr,i)=>{ if(map[i]!==k) return; out.set(src.subarray(gr.start,gr.start+gr.count),p); p+=gr.count; }); ng.addGroup(s0,p-s0,k); }
+    ng.setIndex(new THREE.BufferAttribute(out,1)); _gbCache.set(key,ng); }
+  o.userData._gbGeo=g; o.geometry=ng; o.material=uniq; o.userData._gbM=uniq;
+}
+let gbN=0;
+function gruppenTakt(){ if(--gbN>0) return; gbN=20; scene.traverse(o=>{ if(o.isMesh&&Array.isArray(o.material)) gruppenBuendeln(o); }); }
+/* Buendeln mit Waechter (30.09., Leistung): Blatt-Meshes einer Gruppe (und
+   die losen Meshes direkt in der Szene, je 24-m-Feld) mit gleichem Material
+   werden zu einem Mesh zusammengezeichnet. Die Originale bleiben in der
+   Szene - fuer Klicks, Kollision und Spiellogik -, liegen aber auf Ebene 1
+   und werden nicht mehr gezeichnet (Kamera und Schatten sehen nur Ebene 0).
+   Alle 20 Bilder prueft ein Waechter: hat sich an einem Original etwas
+   geaendert (Lage relativ zur Gruppe, Sichtbarkeit, Material, Geometrie,
+   Eltern), wird sein Buendel sofort aufgeloest und die Gruppe nicht mehr
+   angefasst. So kann nichts falsch stehen bleiben. */
+const BUENDEL={liste:[], fertig:new WeakSet(), unruhig:new WeakSet(), vorher:new WeakMap(), n:0, aufgeloest:0, aus:false};
+try{ if(localStorage.getItem('bb_buendel')==='0') BUENDEL.aus=true; }catch(e){}
+function bKandidat(o,root){
+  if(!o.isMesh||o.isInstancedMesh||o.isSkinnedMesh||o.children.length||o.userData._bnd) return false;
+  const m=o.material; if(!m||Array.isArray(m)||!m.visible||m.transparent||m.vertexColors||(m.map&&m.map.isVideoTexture)) return false;
+  if(Object.keys(o.userData).length&&!(o.userData._gbM||o.userData._gbGeo)) return false;
+  if(o.onBeforeRender!==THREE.Object3D.prototype.onBeforeRender) return false;
+  const g=o.geometry; if(!g||!g.attributes.position||!g.attributes.normal||(g.morphAttributes&&Object.keys(g.morphAttributes).length)) return false;
+  for(let x=o;x&&x!==root;x=x.parent) if(!x.visible) return false;
+  /* gespiegelte Teile (negative Skalierung) drehen beim Einbacken die Flaechen um */
+  if(o.matrixWorld.determinant()<0) return false;
+  if(typeof occluders!=='undefined'&&occluders.indexOf(o)>=0) return false;
+  return !!o.parent;
+}
+function bSicht(o,root){ for(let x=o;x&&x!==root;x=x.parent) if(!x.visible) return false; return true; }
+function bBauen(root,liste,feld){
+  const inv=new THREE.Matrix4().copy(root.matrixWorld).invert(), topf=new Map();
+  for(const o of liste){ const g=o.geometry, m=o.material;
+    const k=m.uuid+'|'+o.castShadow+'|'+o.receiveShadow+'|'+!!g.attributes.uv+'|'+o.renderOrder+'|'+o.frustumCulled+(feld?'|'+feld(o):'');
+    (topf.get(k)||topf.set(k,[]).get(k)).push(o); }
+  for(const L of topf.values()){ if(L.length<2) continue;
+    let total=0; const rel=[], teile=L.map(o=>{ const r=new THREE.Matrix4().multiplyMatrices(inv,o.matrixWorld); rel.push(r); const g=o.geometry.index?o.geometry.toNonIndexed():o.geometry.clone(); g.applyMatrix4(r); total+=g.attributes.position.count; return g; });
+    const mitUV=!!L[0].geometry.attributes.uv, pos=new Float32Array(total*3), nor=new Float32Array(total*3), uv=mitUV?new Float32Array(total*2):null; let p=0;
+    for(const g of teile){ const c=g.attributes.position.count; pos.set(g.attributes.position.array,p*3); nor.set(g.attributes.normal.array,p*3); if(uv&&g.attributes.uv) uv.set(g.attributes.uv.array,p*2); p+=c; g.dispose(); }
+    const out=new THREE.BufferGeometry(); out.setAttribute('position',new THREE.BufferAttribute(pos,3)); out.setAttribute('normal',new THREE.BufferAttribute(nor,3)); if(uv) out.setAttribute('uv',new THREE.BufferAttribute(uv,2)); out.computeBoundingSphere();
+    const a=L[0], mm=new THREE.Mesh(out,a.material); mm.castShadow=a.castShadow; mm.receiveShadow=a.receiveShadow; mm.renderOrder=a.renderOrder; mm.frustumCulled=a.frustumCulled; mm.userData._bnd=true; mm.matrixAutoUpdate=false;
+    const halter=root===scene?BUENDEL.szene:root; if(root===scene) mm.matrix.identity(); halter.add(mm); mm.updateMatrixWorld(true);
+    const ver=g=>{ let v=0; for(const k in g.attributes) v+=g.attributes[k].version; return v+(g.index?g.index.version:0); };
+    const orig=L.map((o,i)=>({o,rel:rel[i].elements.slice(),mat:o.material,geo:o.geometry,ver:ver(o.geometry),par:o.parent,mask:o.layers.mask}));
+    for(const x of orig){ x.o.layers.set(1); }
+    BUENDEL.liste.push({root,mm,orig}); BUENDEL.n+=L.length-1; }
+}
+function bAufloesen(b){ b.mm.parent&&b.mm.parent.remove(b.mm); b.mm.geometry.dispose(); for(const x of b.orig) x.o.layers.mask=x.mask; BUENDEL.aufgeloest++; }
+const _bInv=new THREE.Matrix4(), _bRel=new THREE.Matrix4();
+function bWaechter(){
+  for(let i=BUENDEL.liste.length-1;i>=0;i--){ const b=BUENDEL.liste[i], root=b.root; let kaputt=false;
+    if(root!==scene) _bInv.copy(root.matrixWorld).invert(); else _bInv.identity();
+    for(const x of b.orig){ const o=x.o;
+      if(o.parent!==x.par||o.material!==x.mat||o.geometry!==x.geo||!bSicht(o,root)){ kaputt=true; break; }
+      { let v=0; const g=o.geometry; for(const k in g.attributes) v+=g.attributes[k].version; if(g.index) v+=g.index.version; if(v!==x.ver){ kaputt=true; break; } }
+      let top=o; while(top.parent&&top.parent!==scene) top=top.parent; if(!top.parent){ kaputt=true; break; }
+      _bRel.multiplyMatrices(_bInv,o.matrixWorld); const e=_bRel.elements, r=x.rel;
+      for(let k=0;k<16;k++) if(Math.abs(e[k]-r[k])>1e-4){ kaputt=true; break; }
+      if(kaputt) break; }
+    if(kaputt&&root===scene){ bAufloesen(b); BUENDEL.liste.splice(i,1); for(const x of b.orig) BUENDEL.unruhig.add(x.o); continue; }
+    if(kaputt){ bAufloesen(b); BUENDEL.liste.splice(i,1); BUENDEL.unruhig.add(root);
+      /* alle Buendel derselben Gruppe mit aufloesen - sie gehoeren zusammen */
+      for(let j=BUENDEL.liste.length-1;j>=0;j--) if(BUENDEL.liste[j].root===root){ bAufloesen(BUENDEL.liste[j]); BUENDEL.liste.splice(j,1); } i=Math.min(i,BUENDEL.liste.length); }
+  }
+}
+/* neue Gruppen alle 300 Bilder aufnehmen; Gruppen mit Personen, Fahrzeugen
+   und Feuerwerk bewegen sich - sie loest der Waechter beim ersten Mal auf
+   und nimmt sie nie wieder */
+function bSammeln(){
+  if(!BUENDEL.szene){ BUENDEL.szene=new THREE.Group(); BUENDEL.szene.userData._bnd=true; scene.add(BUENDEL.szene); }
+  scene.updateMatrixWorld(true);
+  /* erst aufnehmen, wenn es beim vorigen Durchgang (5 s) schon genauso da war:
+     Raketen, Kunden und alles Fliegende sind dann laengst weg */
+  const ruhig=o=>{ const w=o.matrixWorld.elements, h=Math.round(w[12]*100)+','+Math.round(w[13]*100)+','+Math.round(w[14]*100)+','+o.children.length, alt=BUENDEL.vorher.get(o);
+    BUENDEL.vorher.set(o,h); return alt===h; };
+  const lose=[];
+  for(const top of scene.children){ if(top===BUENDEL.szene||top.userData._bnd||BUENDEL.fertig.has(top)||BUENDEL.unruhig.has(top)) continue;
+    if(top.isMesh){ if(bKandidat(top,scene)&&ruhig(top)){ lose.push(top); BUENDEL.fertig.add(top); } continue; }
+    if(!top.isGroup&&top.type!=='Object3D') continue;
+    /* Personen (Kunden, Personal, Parkleute) bewegen Arme und Beine */
+    const ud=top.userData; if(ud.legs||ud.arms||ud.torso||ud.sway) { BUENDEL.unruhig.add(top); continue; }
+    if(!ruhig(top)) continue;
+    BUENDEL.fertig.add(top); const L=[]; top.traverse(o=>{ if(o!==top&&bKandidat(o,top)) L.push(o); });
+    if(L.length>=4) bBauen(top,L); }
+  if(lose.length>=2) bBauen(scene,lose,o=>{ const w=o.matrixWorld.elements; return Math.floor(w[12]/24)+','+Math.floor(w[14]/24); });
+}
+let bT=0;
+function buendelTakt(){ if(BUENDEL.aus) return; bT++; if(bT%20===0) bWaechter(); if(bT%300===1) bSammeln(); }
 let schattenN=0;
 function schattenTakt(){
   const R=renderer.shadowMap; if(!R.enabled){ return; }
@@ -140,6 +246,8 @@ function schattenTakt(){
 }
 function renderFrame(dt){
   sonneNachfuehren();
+  gruppenTakt();
+  buendelTakt();
   schattenTakt();
   if(skyMesh){ skyMesh.position.set(camera.position.x,0,camera.position.z); starPts.position.copy(skyMesh.position); }
   if(!postOK||!postOn){ if(renderer.setRenderTarget) renderer.setRenderTarget(null); renderer.render(scene,camera); return; }

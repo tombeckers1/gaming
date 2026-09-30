@@ -264,6 +264,8 @@ function doSpray(){
    Interaktion
    ========================================================= */
 const ray=new THREE.Raycaster(), center=new THREE.Vector2(0,0);
+/* auch Ebene 1: gebuendelte Originale (03b, BUENDEL) bleiben treffbar */
+ray.layers.enable(1);
 let target=null, repeatT=0, touchAct=false, mouseDown=false;
 function movableOf(obj){ let o=obj; while(o){ const m=movables.find(m=>m.g===o); if(m) return m; o=o.parent; } return null; }
 /* Der Strahl reicht hoechstens sechs Meter weit. Alles, was weiter

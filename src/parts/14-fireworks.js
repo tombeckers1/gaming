@@ -122,7 +122,12 @@ class PS{
       this.pos[j]+=this.vel[j]*dt; this.pos[j+1]+=this.vel[j+1]*dt; this.pos[j+2]+=this.vel[j+2]*dt;
       /* echte Sterne brennen in der Luft aus: unter 5 m verlischt ein
          Luftstern binnen 0,2 s, auf Kopfhoehe kommt keiner mehr an */
-      if(this.luft[i]&&this.pos[j+1]<5&&this.vel[j+1]<0){ this.life[i]-=dt*5; if(this.life[i]<=0){ this.pos[j+1]=-999; this.col[j]=this.col[j+1]=this.col[j+2]=0; continue; } }
+      /* 30.09.: Restbrenndauer haengt an der Hoehe (unter 7 m: 0,15 s + 0,12 s
+         je Meter ueber 3 m); die Helligkeit laeuft stetig weiter aus (maxl
+         mitgezogen) - langlebige Sterne der Farbsaeulen kamen sonst noch am
+         Boden an (bodenabstand.js) */
+      if(this.luft[i]&&this.pos[j+1]<7&&this.vel[j+1]<0){ const cap=0.15+Math.max(0,this.pos[j+1]-3)*0.12;
+        if(this.life[i]>cap){ const f0=this.life[i]/this.maxl[i]; this.life[i]=cap; this.maxl[i]=cap/Math.max(0.05,f0); } }
       const f=this.life[i]/this.maxl[i], m=this.md[i];
       let k=f, r=this.base[j], g=this.base[j+1], b=this.base[j+2];
       if(m===0) k*=f<0.18?0.3+Math.random()*0.9:0.86+Math.random()*0.14;

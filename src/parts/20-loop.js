@@ -138,7 +138,8 @@ let noLoop=location.hash.indexOf('test')>=0;
 function frame(now){
   requestAnimationFrame(frame);
   if(noLoop) return;
-  let dt=(now-last)/1000; last=now; if(dt>0.05) dt=0.05;
+  let dt=(now-last)/1000; last=now; const roh=dt; if(dt>0.05) dt=0.05;
+  if(typeof gfxMessen==='function') gfxMessen(roh,!!S&&!paused&&!overlayOpen());
   if(S&&!paused) step(dt);
   renderFrame(dt);
 }

@@ -9,6 +9,7 @@ const QUAD_V='varying vec2 vUv;\nvoid main(){ vUv=uv; gl_Position=vec4(position.
 function initPost(){
   try{
     if(localStorage.getItem('bb_post')==='0') postOn=false;
+    if(GFX==='niedrig') postOn=false;
   }catch(e){}
   try{
     const opt={minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter,format:THREE.RGBAFormat,stencilBuffer:false,depthBuffer:true};
@@ -22,7 +23,7 @@ function initPost(){
     postHalf=half;
     const ms=renderer.capabilities&&renderer.capabilities.isWebGL2&&THREE.WebGLMultisampleRenderTarget;
     rtScene=ms?new THREE.WebGLMultisampleRenderTarget(2,2,opt):new THREE.WebGLRenderTarget(2,2,opt);
-    if(ms) rtScene.samples=COARSE?2:4;
+    if(ms) rtScene.samples=COARSE?2:GFX==='hoch'?4:2;
     const bopt={minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter,format:THREE.RGBAFormat,depthBuffer:false,stencilBuffer:false};
     rtA=new THREE.WebGLRenderTarget(2,2,bopt); rtB=new THREE.WebGLRenderTarget(2,2,bopt);
     matBright=new THREE.ShaderMaterial({
@@ -62,6 +63,51 @@ function setPost(on){
   postOn=!!on&&postOK;
   try{ localStorage.setItem('bb_post',postOn?'1':'0'); }catch(e){}
   toast(postOn?'Bildeffekte an.':'Bildeffekte aus.');
+}
+/* Grafikstufe zur Laufzeit wechseln (Pausenmenue oder Automatik):
+   Aufloesung, Schatten, Kantenglaettung der Nachbearbeitung, Bildeffekte
+   und Partikelmenge (QUAL). Nur die Kantenglaettung des Bildschirms
+   selbst braucht einen Neustart - sie zaehlt nur ohne Bildeffekte. */
+function gfxAnwenden(st){
+  if(GFX_STUFEN.indexOf(st)<0) return;
+  const alt=GFX; GFX=st;
+  renderer.setPixelRatio(gfxPixel()); renderer.setSize(innerWidth,innerHeight,false);
+  const sh=HIQ&&st!=='niedrig', gr=st==='hoch'?2048:1024;
+  const typ=st==='hoch'?THREE.PCFSoftShadowMap:THREE.PCFShadowMap;
+  const shAlt=renderer.shadowMap.enabled, typAlt=renderer.shadowMap.type;
+  renderer.shadowMap.enabled=sh; renderer.shadowMap.type=typ; sun.castShadow=sh;
+  if(sun.shadow.mapSize.x!==gr){ sun.shadow.mapSize.set(gr,gr); if(sun.shadow.map){ sun.shadow.map.dispose(); sun.shadow.map=null; } }
+  /* Schatten an/aus oder andere Filterung: die Materialien brauchen andere Shader */
+  if(shAlt!==sh||typAlt!==typ) scene.traverse(o=>{ const m=o.material; if(!m) return; (Array.isArray(m)?m:[m]).forEach(x=>{ x.needsUpdate=true; }); });
+  let wunsch=true; try{ wunsch=localStorage.getItem('bb_post')!=='0'; }catch(e){}
+  postOn=postOK&&wunsch&&st!=='niedrig';
+  if(rtScene&&rtScene.isWebGLMultisampleRenderTarget){ const n=COARSE?2:st==='hoch'?4:2; if(rtScene.samples!==n){ rtScene.samples=n; rtScene.dispose(); } }
+  resizePost();
+  if(alt!==st&&typeof shaderVorab==='function') setTimeout(()=>{ try{ shaderVorab(); }catch(e){} },30);
+}
+/* Wahl im Pausenmenue: 'auto' oder eine feste Stufe */
+function gfxWaehlen(w){
+  GFX_WAHL=w; try{ localStorage.setItem('bb_gfx',w); }catch(e){}
+  if(w==='auto'){ let st='hoch'; try{ st=localStorage.getItem('bb_gfx_auto')||'hoch'; }catch(e){} gfxAnwenden(st); gfxMess.ruhe=4; }
+  else gfxAnwenden(w);
+}
+/* Automatik: Bildrate ueber Fenster von 2 s; liegt sie drei Fenster
+   hintereinander unter 28 Bildern/s, eine Stufe tiefer (gemerkt fuer den
+   naechsten Start). Nicht in Pause, Laptop oder verstecktem Tab, und
+   nicht in den ersten 8 s nach dem Start oder nach einem Wechsel. */
+const gfxMess={t:0,n:0,schlecht:0,ruhe:8,fps:0};
+function gfxMessen(roh,aktiv){
+  const M=gfxMess;
+  if(!aktiv||document.hidden||roh>0.5){ M.t=0; M.n=0; return; }
+  if(M.ruhe>0){ M.ruhe-=roh; return; }
+  M.t+=roh; M.n++;
+  if(M.t<2) return;
+  M.fps=M.n/M.t; M.t=0; M.n=0;
+  if(GFX_WAHL!=='auto'||GFX==='niedrig'){ M.schlecht=0; return; }
+  M.schlecht=M.fps<28?M.schlecht+1:0;
+  if(M.schlecht>=3){ const st=GFX_STUFEN[GFX_STUFEN.indexOf(GFX)-1]; M.schlecht=0; M.ruhe=6;
+    try{ localStorage.setItem('bb_gfx_auto',st); }catch(e){}
+    gfxAnwenden(st); if(typeof toast==='function') toast('Grafik automatisch auf „'+st[0].toUpperCase()+st.slice(1)+'“ gestellt ('+Math.round(M.fps)+' Bilder/s). Ändern: Esc → Grafik.'); }
 }
 let postT=0;
 /* Der Schattenwurf der Sonne deckt nur einen Ausschnitt ab. Solange

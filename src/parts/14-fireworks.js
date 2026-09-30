@@ -288,7 +288,7 @@ function effPassen(a,b){
   if(fa==='figur'||fb==='figur') return a===b||(fa===fb&&fa==='figur');
   return true;
 }
-const QUAL=()=>COARSE?0.55:1;
+const QUAL=()=>COARSE?0.55:GFX_QUAL[GFX];
 const STEIG=0.8;
 const NULL3=[0,0,0];
 

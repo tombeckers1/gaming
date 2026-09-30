@@ -3,14 +3,20 @@
    Renderer & Szene
    ========================================================= */
 const canvas=$('c');
-const renderer=new THREE.WebGLRenderer({canvas,antialias:true,powerPreference:'high-performance'});
-renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,COARSE?1.5:1.9));
+/* Kantenglaettung des Bildschirms laesst sich nur beim Start festlegen:
+   in 'niedrig' ohne (Wechsel wirkt nach dem Neuladen) */
+const renderer=new THREE.WebGLRenderer({canvas,antialias:GFX!=='niedrig',powerPreference:'high-performance'});
+/* Aufloesung je Grafikstufe: hoch bis 1,9-fach (Retina), mittel 1-fach,
+   niedrig 0,75-fach - das Bild wird hochgezogen, kostet aber nur gut die
+   Haelfte der Pixel */
+function gfxPixel(){ const d=window.devicePixelRatio||1; return GFX==='hoch'?Math.min(d,COARSE?1.5:1.9):GFX==='mittel'?Math.min(d,1):0.75; }
+renderer.setPixelRatio(gfxPixel());
 renderer.setSize(innerWidth,innerHeight,false);
 renderer.outputEncoding=THREE.sRGBEncoding;
 renderer.toneMapping=THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure=1.05;
-renderer.shadowMap.enabled=HIQ;
-renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+renderer.shadowMap.enabled=HIQ&&GFX!=='niedrig';
+renderer.shadowMap.type=GFX==='hoch'?THREE.PCFSoftShadowMap:THREE.PCFShadowMap;
 const scene=new THREE.Scene();
 scene.background=new THREE.Color(0x0b1030);
 /* Die Sichtweite reicht jetzt bis in die Stadt. Der Nebel bleibt, aber
@@ -36,7 +42,7 @@ const sun=new THREE.DirectionalLight(0xfff0dc,1.6); sun.position.set(-18,30,26);
    rechts keiner. updateSonne() zieht sie im Loop dem Spieler nach,
    die Lichtrichtung bleibt dabei dieselbe. */
 const SONNE_OFF={x:-18,y:30,z:26};
-if(HIQ){ sun.castShadow=true; sun.shadow.mapSize.set(2048,2048); const sc=sun.shadow.camera; sc.left=-34; sc.right=34; sc.top=34; sc.bottom=-34; sc.near=5; sc.far=95; sun.shadow.bias=-0.0006; sun.shadow.normalBias=0.02; }
+if(HIQ){ sun.castShadow=GFX!=='niedrig'; sun.shadow.mapSize.set(GFX==='hoch'?2048:1024,GFX==='hoch'?2048:1024); const sc=sun.shadow.camera; sc.left=-34; sc.right=34; sc.top=34; sc.bottom=-34; sc.near=5; sc.far=95; sun.shadow.bias=-0.0006; sun.shadow.normalBias=0.02; }
 function updateSonne(x,z){
   sun.target.position.set(x,0,z);
   sun.position.set(x+SONNE_OFF.x,SONNE_OFF.y,z+SONNE_OFF.z);
@@ -49,7 +55,7 @@ const shopFill2=new THREE.PointLight(0xe9f0ff,0.5,14,1.5); shopFill2.position.se
 const lagerLight=new THREE.PointLight(0xe8f0ff,1.0,13,1.3); lagerLight.position.set(-13.5,3.2,-2); lagerLight.distance=17; scene.add(lagerLight);
 const yardLight=new THREE.PointLight(0xffc98a,0,16,1.6); yardLight.position.set(3,3.6,-9.5); scene.add(yardLight);
 const shelfLight=new THREE.PointLight(0xfff4e0,0,11,1.6); shelfLight.position.set(-2.5,2.3,-4.6); scene.add(shelfLight);
-addEventListener('resize',()=>{ renderer.setSize(innerWidth,innerHeight,false); camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix(); setCompact(); if(typeof resizePost==='function') resizePost(); });
+addEventListener('resize',()=>{ renderer.setPixelRatio(gfxPixel()); renderer.setSize(innerWidth,innerHeight,false); camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix(); setCompact(); if(typeof resizePost==='function') resizePost(); });
 
 function box(w,h,d,m,x,y,z,parent,shadow){ const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m); o.position.set(x,y,z); if(HIQ&&shadow!==false){ o.castShadow=true; o.receiveShadow=true; } (parent||scene).add(o); return o; }
 /* Abgeschrägte Kanten: fängt Licht wie ein echtes Möbelstück */

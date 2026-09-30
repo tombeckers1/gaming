@@ -287,6 +287,7 @@ body.compact .kan span{display:none}
 .pseite.on{display:block}
 .pmenu{display:flex;flex-direction:column;gap:10px;max-width:340px;margin:18px auto 10px}
 .pmenu button{font-size:20px;padding:13px 18px}
+.gfxwahl button.an{background:#ffd23f;color:#1a1204;border-color:#ffd23f}
 .phint{display:block;text-align:center;opacity:.6;font-size:13px}
 .pkopf{display:grid;grid-template-columns:110px 1fr 110px;align-items:center;margin-bottom:10px}
 .pkopf h2{margin:0}
@@ -617,6 +618,7 @@ body.compact .pdahead2 b{font-size:16px}
       <button id="pBtn">Weiterspielen</button>
       <button class="ghost" data-pseite="pSteuer">Steuerung</button>
       <button class="ghost" data-pseite="pMusikSeite">Musik</button>
+      <button class="ghost" data-pseite="pGrafik">Grafik</button>
       <button class="ghost" id="pTut">Tutorial ausblenden</button>
       <button class="ghost" id="pHome">Zum Startbildschirm</button>
     </div>
@@ -625,6 +627,16 @@ body.compact .pdahead2 b{font-size:16px}
   <div class="pseite" id="pSteuer">
     <div class="pkopf"><button class="ghost pzur">‹ Zurück</button><h2>Steuerung</h2><span></span></div>
     <div class="pscroll"><div class="steuer" id="steuer"></div><div class="handbuch" id="handbuch"></div></div>
+  </div>
+  <div class="pseite" id="pGrafik">
+    <div class="pkopf"><button class="ghost pzur">‹ Zurück</button><h2>Grafik</h2><span></span></div>
+    <div class="pmenu gfxwahl" id="gfxWahl">
+      <button class="ghost" data-gfx="auto">Automatisch</button>
+      <button class="ghost" data-gfx="hoch">Hoch</button>
+      <button class="ghost" data-gfx="mittel">Mittel</button>
+      <button class="ghost" data-gfx="niedrig">Niedrig</button>
+    </div>
+    <small class="phint" id="gfxInfo"></small>
   </div>
   <div class="pseite" id="pMusikSeite">
     <div class="pkopf"><button class="ghost pzur">‹ Zurück</button><h2>Musik</h2><span></span></div>

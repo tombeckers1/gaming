@@ -6,6 +6,18 @@ const $=id=>document.getElementById(id);
 const pick=a=>a[Math.floor(Math.random()*a.length)];
 const COARSE=!!(window.matchMedia&&matchMedia('(pointer: coarse)').matches);
 const HIQ=!COARSE;
+/* Grafikstufe (30.09., Tom: "laggt stark auf meinem alten Laptop und PC").
+   Bisher lief jeder PC in der hoechsten Stufe. Jetzt: 'hoch' | 'mittel' |
+   'niedrig', gewaehlt im Pausenmenue, oder 'auto': startet mit der zuletzt
+   automatisch gefundenen Stufe und schaltet herunter, wenn die Bildrate
+   laenger unter 28 faellt (20-loop, gfxMessen). */
+const GFX_STUFEN=['niedrig','mittel','hoch'];
+let GFX_WAHL='auto', GFX='hoch';
+try{ GFX_WAHL=localStorage.getItem('bb_gfx')||'auto'; GFX=GFX_WAHL==='auto'?(localStorage.getItem('bb_gfx_auto')||'hoch'):GFX_WAHL; }catch(e){}
+if(GFX_WAHL!=='auto'&&GFX_STUFEN.indexOf(GFX_WAHL)<0) GFX_WAHL='auto';
+if(GFX_STUFEN.indexOf(GFX)<0) GFX='hoch';
+/* Partikelmenge je Stufe (QUAL in 14-fireworks) */
+const GFX_QUAL={hoch:1,mittel:0.8,niedrig:0.55};
 if(COARSE) document.body.classList.add('coarse');
 const KEY='boellerbude_v3';
 const LIN=h=>new THREE.Color(h).convertSRGBToLinear();

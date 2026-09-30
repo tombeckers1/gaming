@@ -130,7 +130,20 @@ function pauseSeite(id){
   if(id==='pSteuer'){ renderSteuer(); const sc=document.querySelector('#pSteuer .pscroll'); if(sc) sc.scrollTop=0; }
   if(id==='pMusikSeite'){ musikAnzeige(); musikTitel(); }
   if(id==='pHaupt') tutKnopf();
+  if(id==='pGrafik') gfxAnzeige();
 }
+/* Grafik-Seite: gewaehlter Knopf hervorgehoben, darunter was die Stufe tut */
+const GFX_TEXT={hoch:'Volle Auflösung, weiche Schatten, Kantenglättung, Leuchteffekte, alle Funken.',
+  mittel:'Normale Auflösung, einfache Schatten, halbe Kantenglättung, 80 % der Funken.',
+  niedrig:'Dreiviertel-Auflösung, keine Schatten, keine Leuchteffekte, gut die Hälfte der Funken – für ältere Laptops und PCs.'};
+function gfxAnzeige(){
+  document.querySelectorAll('#gfxWahl [data-gfx]').forEach(b=>b.classList.toggle('an',b.dataset.gfx===GFX_WAHL));
+  const i=$('gfxInfo'); if(!i) return;
+  i.textContent=(GFX_WAHL==='auto'?'Automatisch – zurzeit „'+GFX[0].toUpperCase()+GFX.slice(1)+'“. Läuft das Spiel länger unter 28 Bildern pro Sekunde, schaltet es eine Stufe tiefer. ':'')+GFX_TEXT[GFX]+
+    (gfxMess.fps?' Zuletzt '+Math.round(gfxMess.fps)+' Bilder/s.':'')+(GFX==='niedrig'?' Kantenglättung aus ab dem nächsten Laden.':'');
+}
+$('gfxWahl').addEventListener('click',e=>{ const b=e.target.closest('[data-gfx]'); if(!b) return; gfxWaehlen(b.dataset.gfx); gfxAnzeige(); });
+
 function pauseSeiteAktiv(){ const el=document.querySelector('#pause .pseite.on'); return el?el.id:'pHaupt'; }
 function showPause(){ if(overlayOpen()) return; pauseSeite('pHaupt'); musikAnzeige(); pauseOpen=true; paused=true;
   /* Maus freigeben - sonst gehen Klicks auf die Spielflaeche statt ins Menue */

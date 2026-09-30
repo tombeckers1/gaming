@@ -353,6 +353,53 @@ const NEUWARE={
   sternentor:{name:'Sternentor · 160 Schuss Kerzen-Verbund',short:'Sternentor',cat:2,lvl:24,shape:'battery',dims:[0.9,0.6,0.56],grid:[2,1,1],box:1,cost:76.00,market:174.99,weight:3,hype:94,risk:10,
     desc:'Der große Kerzen-Verbund ohne einen einzigen Knall: Farbwechsel-Kerzen wischen über den Himmel, Sternkerzen öffnen sich zu kleinen Sternen, schwebende Perlen bilden ein Tor aus Licht – im Finale 36 Kerzen auf einen Schlag zwischen zwei Riesenfontänen.',
     art:{title:'STERNENTOR',sub:'160 Schuss · Kerzen-Verbund · ohne Knall',bg1:'#0c2a7a',bg2:'#020a1c',ac:'#f2f5ff',ac2:'#ffd23f'}},
+  /* 30.09. (Tom): 15 Muster-Batterien mit je einem neuen Effekt - nur zum
+     Ansehen in der Testsektion, nicht bestellbar */
+  mb_funkelregen:{name:'Muster 01 · Funkelregen',short:'Funkelregen',cat:2,lvl:15,shape:'battery',dims:[0.5,0.36,0.42],grid:[3,1,1],box:2,cost:30.00,market:69.99,weight:4,hype:60,risk:8,noOrder:true,
+    desc:'Silbersterne, die einzeln aufblitzen – sie funkeln wie Glitzer im Licht.',
+    art:{title:'FUNKELREGEN',sub:'Muster 01 · 37 Schuss',bg1:'#26292f',bg2:'#000000',ac:'#f2f5ff',ac2:'#5ce1ff'}},
+  mb_tigerschweif:{name:'Muster 02 · Tigerschweif',short:'Tigerschweif',cat:2,lvl:15,shape:'battery',dims:[0.5,0.36,0.42],grid:[3,1,1],box:2,cost:30.00,market:69.99,weight:4,hype:60,risk:8,noOrder:true,
+    desc:'Schwere Goldkometen mit so dichtem Funkenschweif, dass jeder als breites, gestreiftes Band am Himmel stehen bleibt.',
+    art:{title:'TIGERSCHWEIF',sub:'Muster 02 · 37 Schuss',bg1:'#6b3a0c',bg2:'#1f0f02',ac:'#ffb43f',ac2:'#ff7a1c'}},
+  mb_seerose:{name:'Muster 03 · Seerose',short:'Seerose',cat:2,lvl:15,shape:'battery',dims:[0.5,0.36,0.42],grid:[3,1,1],box:2,cost:30.00,market:69.99,weight:4,hype:60,risk:8,noOrder:true,
+    desc:'Ein waagerechter Ringbruch – von unten eine Blume, die sich öffnet –, darin ein weißer Kranz und ein aufsteigender Stempel.',
+    art:{title:'SEEROSE',sub:'Muster 03 · 37 Schuss',bg1:'#6b1a3a',bg2:'#1a0610',ac:'#ff8ac8',ac2:'#c8ff3a'}},
+  mb_galaxie:{name:'Muster 04 · Galaxie',short:'Galaxie',cat:2,lvl:15,shape:'battery',dims:[0.5,0.36,0.42],grid:[3,1,1],box:2,cost:30.00,market:69.99,weight:4,hype:60,risk:8,noOrder:true,
+    desc:'Drei Spiralarme um einen weißen Kern, die beim Auseinanderfliegen ihre Form behalten.',
+    art:{title:'GALAXIE',sub:'Muster 04 · 37 Schuss',bg1:'#1a0a4a',bg2:'#02010f',ac:'#8ab4ff',ac2:'#d05cff'}},
+  mb_diamantstaub:{name:'Muster 05 · Diamantstaub',short:'Diamantstaub',cat:2,lvl:15,shape:'battery',dims:[0.5,0.36,0.42],grid:[3,1,1],box:2,cost:30.00,market:69.99,weight:4,hype:60,risk:8,noOrder:true,
+    desc:'Hunderte feinste Funken, die funkeln und ganz langsam sinken – wie Staub im Sonnenlicht.',
+    art:{title:'DIAMANTSTAUB',sub:'Muster 05 · 37 Schuss',bg1:'#12304a',bg2:'#02060f',ac:'#f2f5ff',ac2:'#8ae8ff'}},
+  mb_smaragdregen:{name:'Muster 06 · Smaragdregen',short:'Smaragdregen',cat:2,lvl:15,shape:'battery',dims:[0.5,0.36,0.42],grid:[3,1,1],box:2,cost:30.00,market:69.99,weight:4,hype:60,risk:8,noOrder:true,
+    desc:'Grüne Sterne mit grün-weißem Glitzerschweif, der stehen bleibt und rieselt.',
+    art:{title:'SMARAGDREGEN',sub:'Muster 06 · 37 Schuss',bg1:'#0d4a2a',bg2:'#021208',ac:'#5cff9e',ac2:'#f2f5ff'}},
+  mb_kiefernkrone:{name:'Muster 07 · Kiefernkrone',short:'Kiefernkrone',cat:2,lvl:15,shape:'battery',dims:[0.5,0.36,0.42],grid:[3,1,1],box:2,cost:30.00,market:69.99,weight:4,hype:60,risk:8,noOrder:true,
+    desc:'Goldsterne zerspringen nach einer Sekunde in feine, verzweigte Tannennadeln und knistern trocken.',
+    art:{title:'KIEFERNKRONE',sub:'Muster 07 · 37 Schuss',bg1:'#4a3308',bg2:'#150e02',ac:'#ffd23f',ac2:'#ff9a2e'}},
+  mb_lavaregen:{name:'Muster 08 · Lavaregen',short:'Lavaregen',cat:2,lvl:15,shape:'battery',dims:[0.5,0.36,0.42],grid:[3,1,1],box:2,cost:30.00,market:69.99,weight:4,hype:60,risk:8,noOrder:true,
+    desc:'Glühende Lavabrocken fliegen im Bogen auf, ziehen dunkelrote Glutfäden und zerspritzen.',
+    art:{title:'LAVAREGEN',sub:'Muster 08 · 37 Schuss',bg1:'#5a1204',bg2:'#140301',ac:'#ff6a1c',ac2:'#ffd23f'}},
+  mb_echoringe:{name:'Muster 09 · Echoringe',short:'Echoringe',cat:2,lvl:15,shape:'battery',dims:[0.5,0.36,0.42],grid:[3,1,1],box:2,cost:30.00,market:69.99,weight:4,hype:60,risk:8,noOrder:true,
+    desc:'Drei Ringe nacheinander aus demselben Punkt, jeder langsamer – ineinander wie ein Echo.',
+    art:{title:'ECHORINGE',sub:'Muster 09 · 37 Schuss',bg1:'#0c2a7a',bg2:'#020a1c',ac:'#5c8aff',ac2:'#ff4fd8'}},
+  mb_kirschbluete:{name:'Muster 10 · Kirschblüte',short:'Kirschblüte',cat:2,lvl:15,shape:'battery',dims:[0.5,0.36,0.42],grid:[3,1,1],box:2,cost:30.00,market:69.99,weight:4,hype:60,risk:8,noOrder:true,
+    desc:'Eine rosa Päonie, die in Blütenblätter zerfällt, die kaum sinken und seitlich davontreiben.',
+    art:{title:'KIRSCHBLÜTE',sub:'Muster 10 · 37 Schuss',bg1:'#6b1a3a',bg2:'#1a0610',ac:'#ffb8d8',ac2:'#ffffff'}},
+  mb_seidenweide:{name:'Muster 11 · Seidenweide',short:'Seidenweide',cat:2,lvl:15,shape:'battery',dims:[0.5,0.36,0.42],grid:[3,1,1],box:2,cost:30.00,market:69.99,weight:4,hype:60,risk:8,noOrder:true,
+    desc:'Eine Weide aus Hunderten haarfeiner Silberfäden, sechs Sekunden lang.',
+    art:{title:'SEIDENWEIDE',sub:'Muster 11 · 37 Schuss',bg1:'#3a3e46',bg2:'#08090c',ac:'#e8eef8',ac2:'#ffffff'}},
+  mb_honigtau:{name:'Muster 12 · Honigtau',short:'Honigtau',cat:2,lvl:15,shape:'battery',dims:[0.5,0.36,0.42],grid:[3,1,1],box:2,cost:30.00,market:69.99,weight:4,hype:60,risk:8,noOrder:true,
+    desc:'Schwere Goldsterne, von denen im Flug Honigtropfen abreißen und fallen.',
+    art:{title:'HONIGTAU',sub:'Muster 12 · 37 Schuss',bg1:'#6b4a0c',bg2:'#1f1402',ac:'#ffd23f',ac2:'#ff9a2e'}},
+  mb_glockenblume:{name:'Muster 13 · Glockenblume',short:'Glockenblume',cat:2,lvl:15,shape:'battery',dims:[0.5,0.36,0.42],grid:[3,1,1],box:2,cost:30.00,market:69.99,weight:4,hype:60,risk:8,noOrder:true,
+    desc:'Eine violette Glocke mit weißem Rand hängt am Himmel, aus der Mitte fällt ein goldener Stempel.',
+    art:{title:'GLOCKENBLUME',sub:'Muster 13 · 37 Schuss',bg1:'#3a0a5c',bg2:'#0a0214',ac:'#c85cff',ac2:'#ffffff'}},
+  mb_seifenblase:{name:'Muster 14 · Seifenblase',short:'Seifenblase',cat:2,lvl:15,shape:'battery',dims:[0.5,0.36,0.42],grid:[3,1,1],box:2,cost:30.00,market:69.99,weight:4,hype:60,risk:8,noOrder:true,
+    desc:'Eine hauchdünne Kugel, die in allen Regenbogenfarben schillert – und dann zerplatzt.',
+    art:{title:'SEIFENBLASE',sub:'Muster 14 · 37 Schuss',bg1:'#1a2a3a',bg2:'#02060f',ac:'#ff8af0',ac2:'#8affe8'}},
+  mb_sternspritzer:{name:'Muster 15 · Sternspritzer',short:'Sternspritzer',cat:2,lvl:15,shape:'battery',dims:[0.5,0.36,0.42],grid:[3,1,1],box:2,cost:30.00,market:69.99,weight:4,hype:60,risk:8,noOrder:true,
+    desc:'Jeder Stern sprüht im Flug wie eine Wunderkerze.',
+    art:{title:'STERNSPRITZER',sub:'Muster 15 · 37 Schuss',bg1:'#4a3308',bg2:'#150e02',ac:'#fff3c4',ac2:'#ffd23f'}},
   /* 30.09. (Tom): neue Kugeln - die Kanonade und vier klassisch schoene Bomben */
   kanonade300:{name:'Kanonade · Kugelbombe 300 mm 30 Knallkugeln',short:'Kanonade 300',cat:2,lvl:24,shape:'shell',dims:[0.3,0.34,0.3],grid:[2,1,1],box:1,cost:72.00,market:169.99,weight:2,hype:100,risk:10,
     desc:'Dreißig schwere weiße Kugeln fliegen aus wie Knallkerzen und zerknallen nacheinander mit Weißblitz – ein rollender Donner, über dem ein goldener Kamuro hängt.',
@@ -660,7 +707,7 @@ NEU_LIZ_DAZU.grossfeuer.push('kometenreigen','sternschleier200'); NEU_LIZ_DAZU.p
 NEU_LIZENZEN.find(l=>l.id==='sternklasse').items.push('pfauenkrone150');
 NEU_LIZENZEN.find(l=>l.id==='meister').items.push('legion');
 /* Liste fuer die Testsektionen im Laden-Reiter (17-laptop) */
-const NEU_TEST={batterien:['legion','lichterprozession','kometenreigen','sternentor'],
+const NEU_TEST={batterien:['mb_funkelregen','mb_tigerschweif','mb_seerose','mb_galaxie','mb_diamantstaub','mb_smaragdregen','mb_kiefernkrone','mb_lavaregen','mb_echoringe','mb_kirschbluete','mb_seidenweide','mb_honigtau','mb_glockenblume','mb_seifenblase','mb_sternspritzer'],
   kugeln:['kanonade300','rosengarten100','pfauenkrone150','sternschleier200','feuerlilie200']};
 /* Fontaenen-Sets (Feuerquelle, Gummibaerchen, Farbenspiel, Farbmischer,
    Wasserorgel, Feuerwand, Feuerkaskade, Popcorn) sind so breit wie ihre
@@ -713,7 +760,7 @@ const ENTFERNT_ERSATZ={};
 (function(){
   const weg=new Set(ENTFERNT);
   ENTFERNT.forEach(t=>{ const a=P[t]; if(!a) return; let best=null, bw=1e9;
-    for(const [u,b] of Object.entries(P)){ if(weg.has(u)||b.cat!==a.cat||b.eigen) continue;
+    for(const [u,b] of Object.entries(P)){ if(weg.has(u)||b.cat!==a.cat||b.eigen||b.noOrder) continue;
       const w=(b.shape===a.shape?0:100)+Math.abs((b.lvl||1)-(a.lvl||1))*3+Math.abs(Math.log((b.market||1)/(a.market||1)));
       if(w<bw){ bw=w; best=u; } }
     if(best) ENTFERNT_ERSATZ[t]=best; });

@@ -580,7 +580,7 @@ const DB={
     {n:12,gap:0.25,gapEnde:0.12,muster:'mitte',ang:0.4,eff:'falterlicht',kal:'mittel',farbe:0,steig:'glut',pause:3.5}
   ]),
   /* Funkenflug, L13: Senko-Hanabi am Boden, verzweigte Goldsterne oben */
-  batterie16:()=>show({basis:{pw:-5,sz:0.78,th:'gold'}, rampe:{sz:[0.8,1.3],pw:[-3,2.5],hell:[0.85,1.3],kurve:'linear'}}, [
+  batterie16:()=>show({basis:{pw:-5,sz:0.78,th:'gold'}, rampe:{sz:[0.8,1.3],pw:[-3,4.5],hell:[0.85,1.3],kurve:'linear'}}, [
     {n:0,nurBoden:true,boden:{k:'flitterbrunnen',gt:6},pause:3.5},
     {n:4,gap:1.4,muster:'aussen',ang:0.3,eff:'flitterstern',kal:'klein',steig:'gold',pause:0.8},
     {n:6,gap:0.3,muster:'z',seg:2,ang:0.3,eff:['flitterstern','chrys'],steig:'gold',pause:1.0},

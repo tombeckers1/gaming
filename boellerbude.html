@@ -17763,7 +17763,7 @@ const SCHUSS_EFF={}, STEIG_KLANG={};
 function zielZeit(dy){ return clamp(0.95+dy/32,1.0,2.6); }
 /* Bruchhoehe ueber dem Rohr fuer pw und Zuendzeit (Raketen fliegen ohne
    Luftwiderstand, Schwerkraft 6) */
-const BRUCH_MIN=12;
+const BRUCH_MIN=11;   // 30.09.: 11 m - bei 12 m stieg die erste Batterie (batterie16) kaum noch an (steigerung.js)
 function steigHoehe(pw,fuse){ fuse=fuse||1.2; return (pw+21)*STEIG*fuse-3*fuse*fuse; }
 function pwFuerHoehe(h,fuse){ fuse=fuse||1.2; return (h+3*fuse*fuse)/(STEIG*fuse)-21; }
 /* Anfangstempo, mit dem ein Schuss nach T Sekunden genau bei ziel ist */
@@ -17791,13 +17791,14 @@ function shot(o,opt){
   /* 30.09. (Tom: "Explosionen nicht mehr so tief"): kein Luftbruch unter
      BRUCH_MIN - kleine Kaliber und die ersten Schuesse einer Rampe gingen
      auf 5-9 m auf, keine zwei Koerperlaengen ueber den Stationen */
-  if(opt.ziel&&opt.ziel.y<BRUCH_MIN) opt=Object.assign({},opt,{ziel:{x:opt.ziel.x,y:BRUCH_MIN,z:opt.ziel.z}});
+  /* ausgenommen: der gewollte Tiefbruch (tiefbruch, 4-8 m, klein) */
+  if(opt.ziel&&opt.ziel.y<BRUCH_MIN&&!opt.tief) opt=Object.assign({},opt,{ziel:{x:opt.ziel.x,y:BRUCH_MIN,z:opt.ziel.z}});
   if(opt.ziel){
     /* zielSchuss: Winkel und Tempo aus einer Parabel, keine Suche */
     fuse=opt.fuse||zielZeit(opt.ziel.y-start.y); v=zielTempo(start,opt.ziel,fuse);
     const l=v.length()||1; ang=Math.acos(clamp(v.y/l,-1,1)); dir=Math.atan2(v.x,v.z);
   } else v=V(Math.sin(dir)*Math.sin(ang)*up,Math.cos(ang)*up,Math.cos(dir)*Math.sin(ang)*up);
-  if(!opt.ziel){ const H=v.y*fuse-3*fuse*fuse; if(start.y+H<BRUCH_MIN&&v.y>0.5){ const vy=(BRUCH_MIN-start.y+3*fuse*fuse)/fuse; v.multiplyScalar(vy/v.y); } }
+  if(!opt.ziel&&!opt.tief){ const H=v.y*fuse-3*fuse*fuse; if(start.y+H<BRUCH_MIN&&v.y>0.5){ const vy=(BRUCH_MIN-start.y+3*fuse*fuse)/fuse; v.multiplyScalar(vy/v.y); } }
   const sg=opt.steig||null;
   /* pfeil: 1,6-mal so schnell, gleiche Bruchhoehe - also kuerzer unterwegs */
   if(sg==='pfeil'&&!opt.ziel){ const H=v.y*fuse-3*fuse*fuse, vy=v.y*1.6, D=vy*vy-12*H;
@@ -18632,7 +18633,7 @@ const SHOW_GROESSE=1.2;
 const SHOW_BASIS={
   roemisch   :{pw:-9,sz:0.45,th:'bunt'},
   sortiment  :{pw:-6,sz:0.72,th:'bunt'},
-  batterie16 :{pw:-5,sz:0.78,th:'nacht'},
+  batterie16 :{pw:-4,sz:0.78,th:'nacht'},   // 30.09.: -5; mit 12 m Mindesthoehe (BRUCH_MIN) stieg die Show sonst kaum an
   knatter    :{pw:-4,sz:0.84,th:'eis'},
   batterie49 :{pw:-3,sz:0.90,th:'glut'},
   faecher    :{pw:-1.5,sz:0.95,th:'tropen'},

@@ -1,7 +1,7 @@
 /* Bodenabstand (30.09., Tom: "Explosionen nicht mehr so tief, und die
    Funken treffen die Spielfigur"): Feuerwerke einzeln zuenden, Spieler
    am Zuendpult. Geprueft wird
-   - TIEF: kein Luftbruch unter 11,5 m
+   - TIEF: kein Luftbruch unter 10,5 m (BRUCH_MIN 11 m)
    - TREFFER: hoechstens 10 Partikel-Bilder mit hellen Sternen in
      Kopfhoehe (0-2,3 m) im Umkreis von 2 m um den Spieler.
    Gegenprobe (vorher): Profi-Verbund Brueche ab 4,9 m, 356 Treffer;
@@ -20,7 +20,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   const errs=[]; p.on('pageerror',e=>errs.push('PAGEERROR: '+e.message));
   await p.goto('file://'+process.argv[2]); await p.waitForFunction('window.__bb!==undefined',{timeout:120000});
   await neuesSpiel(p);
-  const nur=process.argv[3]?JSON.parse(process.argv[3]):['profi','finale','batterie100','miniverbund','glitzerregen12','feuerpfau','legion','kanonade300'];
+  const nur=process.argv[3]&&process.argv[3].startsWith('[')?JSON.parse(process.argv[3]):['profi','finale','batterie100','miniverbund','glitzerregen12','feuerpfau','legion','kanonade300'];
   const ids=await p.evaluate(nur=>{ const bb=window.__bb,P=bb.P; bb.S.level=99; bb.clock=1300; bb.applyTOD();
     return Object.keys(P).filter(t=>P[t].cat>0&&bb.stationOf(t)&&(!nur||nur.includes(t))); },nur);
   const out=[];
@@ -44,7 +44,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   }
   const mangel=[];
   out.forEach(r=>{ if(r.fehler) mangel.push('LAEUFT: '+r.t+' '+r.fehler);
-    if(r.minBruch!==null&&r.minBruch<11.5) mangel.push('TIEF: '+r.t+' bricht schon bei '+r.minBruch+' m ('+r.tief.join(',')+')');
+    if(r.minBruch!==null&&r.minBruch<10.5) mangel.push('TIEF: '+r.t+' bricht schon bei '+r.minBruch+' m ('+r.tief.join(',')+')');
     if(r.treffer>10) mangel.push('TREFFER: '+r.t+' '+r.treffer+' Funken-Bilder am Spieler'); });
   console.log('MANGEL:',mangel.length?mangel.join(' | '):'keine');
   console.log('ERRORS:',errs.length||mangel.length?errs.concat(mangel).join(' | '):'keine');

@@ -21,7 +21,7 @@ const SHOW_GROESSE=1.2;
 const SHOW_BASIS={
   roemisch   :{pw:-9,sz:0.45,th:'bunt'},
   sortiment  :{pw:-6,sz:0.72,th:'bunt'},
-  batterie16 :{pw:-5,sz:0.78,th:'nacht'},
+  batterie16 :{pw:-4,sz:0.78,th:'nacht'},   // 30.09.: -5; mit 12 m Mindesthoehe (BRUCH_MIN) stieg die Show sonst kaum an
   knatter    :{pw:-4,sz:0.84,th:'eis'},
   batterie49 :{pw:-3,sz:0.90,th:'glut'},
   faecher    :{pw:-1.5,sz:0.95,th:'tropen'},

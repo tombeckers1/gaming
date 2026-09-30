@@ -294,7 +294,9 @@ EFF.meteor=function(p,A,B,s,r){
       const f=Math.exp(-0.55*dt); h.v[0]*=f; h.v[2]*=f; h.v[1]=h.v[1]*f-5.5*dt;
       for(let k=0;k<3;k++) h.p[k]+=h.v[k]*dt;
       const [x,y,z]=h.p;
-      if(h.t>h.aus){ h.tot=true; METEOR.koepfe=Math.max(0,METEOR.koepfe-1);
+      /* 30.09.: unter 5 m verglueht der Kopf - vorher schlug er vor dem
+         Zuendpult auf und zog seine Glut durch die Spielfigur (bodenabstand.js) */
+      if(h.t>h.aus||(y<5&&h.v[1]<0)){ h.tot=true; METEOR.koepfe=Math.max(0,METEOR.koepfe-1);
         grSpur(0.05,()=>{ for(let j=0;j<Math.round(8*q);j++){ const d=randDir(); psMid.emit(x,y,z,d[0]*2+h.v[0]*0.2,d[1]*2,d[2]*2+h.v[2]*0.2,glut[0],glut[1],glut[2],rand(0.2,0.4),3,0); } });
         continue; }
       da++;

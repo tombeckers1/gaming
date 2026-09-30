@@ -68,6 +68,9 @@ class PS{
     this.life=new Float32Array(max); this.maxl=new Float32Array(max); this.grav=new Float32Array(max);
     this.md=new Uint8Array(max); this.ph=new Float32Array(max); this.tl=new Float32Array(max);
     this.tag=new Uint16Array(max);
+    /* 30.09.: Stern aus einem Luftbruch (ueber 8 m entstanden) - er verglueht,
+       bevor er den Boden erreicht (Tom: "Funken treffen die Spielfigur") */
+    this.luft=new Uint8Array(max);
     this.next=0; this.dirty=false;
     for(let i=0;i<max;i++) this.pos[i*3+1]=-999;
     /* Gezeichnet wird aus eigenen Puffern, in denen nur die lebenden
@@ -100,7 +103,7 @@ class PS{
   emit(x,y,z,vx,vy,vz,r,g,b,life,grav,mode,r2,g2,b2){
     const i=this.next; this.next=(i+1)%this.max; const j=i*3;
     if(FW_ERBE){ vx+=FW_ERBE[0]; vy+=FW_ERBE[1]; vz+=FW_ERBE[2]; }
-    this.tag[i]=FW_TAG;
+    this.tag[i]=FW_TAG; this.luft[i]=y>8?1:0;
     this.pos[j]=x; this.pos[j+1]=y; this.pos[j+2]=z; this.vel[j]=vx; this.vel[j+1]=vy; this.vel[j+2]=vz;
     this.base[j]=r; this.base[j+1]=g; this.base[j+2]=b;
     this.c2[j]=r2===undefined?r:r2; this.c2[j+1]=g2===undefined?g:g2; this.c2[j+2]=b2===undefined?b:b2;
@@ -117,6 +120,9 @@ class PS{
       if(this.life[i]<=0){ this.pos[j+1]=-999; this.col[j]=this.col[j+1]=this.col[j+2]=0; continue; }
       this.vel[j]*=drag; this.vel[j+1]=this.vel[j+1]*drag-this.grav[i]*dt; this.vel[j+2]*=drag;
       this.pos[j]+=this.vel[j]*dt; this.pos[j+1]+=this.vel[j+1]*dt; this.pos[j+2]+=this.vel[j+2]*dt;
+      /* echte Sterne brennen in der Luft aus: unter 5 m verlischt ein
+         Luftstern binnen 0,2 s, auf Kopfhoehe kommt keiner mehr an */
+      if(this.luft[i]&&this.pos[j+1]<5&&this.vel[j+1]<0){ this.life[i]-=dt*5; if(this.life[i]<=0){ this.pos[j+1]=-999; this.col[j]=this.col[j+1]=this.col[j+2]=0; continue; } }
       const f=this.life[i]/this.maxl[i], m=this.md[i];
       let k=f, r=this.base[j], g=this.base[j+1], b=this.base[j+2];
       if(m===0) k*=f<0.18?0.3+Math.random()*0.9:0.86+Math.random()*0.14;
@@ -1393,6 +1399,7 @@ const SCHUSS_EFF={}, STEIG_KLANG={};
 function zielZeit(dy){ return clamp(0.95+dy/32,1.0,2.6); }
 /* Bruchhoehe ueber dem Rohr fuer pw und Zuendzeit (Raketen fliegen ohne
    Luftwiderstand, Schwerkraft 6) */
+const BRUCH_MIN=12;
 function steigHoehe(pw,fuse){ fuse=fuse||1.2; return (pw+21)*STEIG*fuse-3*fuse*fuse; }
 function pwFuerHoehe(h,fuse){ fuse=fuse||1.2; return (h+3*fuse*fuse)/(STEIG*fuse)-21; }
 /* Anfangstempo, mit dem ein Schuss nach T Sekunden genau bei ziel ist */
@@ -1417,11 +1424,16 @@ function shot(o,opt){
   /* Muendungsfeuer: kurzer Blitz, ein paar Funken zur Seite */
   muendungsblitz(start,start.y,1+(opt.dick||0));
   let fuse=opt.fuse||rand(1.05,1.35), v;
+  /* 30.09. (Tom: "Explosionen nicht mehr so tief"): kein Luftbruch unter
+     BRUCH_MIN - kleine Kaliber und die ersten Schuesse einer Rampe gingen
+     auf 5-9 m auf, keine zwei Koerperlaengen ueber den Stationen */
+  if(opt.ziel&&opt.ziel.y<BRUCH_MIN) opt=Object.assign({},opt,{ziel:{x:opt.ziel.x,y:BRUCH_MIN,z:opt.ziel.z}});
   if(opt.ziel){
     /* zielSchuss: Winkel und Tempo aus einer Parabel, keine Suche */
     fuse=opt.fuse||zielZeit(opt.ziel.y-start.y); v=zielTempo(start,opt.ziel,fuse);
     const l=v.length()||1; ang=Math.acos(clamp(v.y/l,-1,1)); dir=Math.atan2(v.x,v.z);
   } else v=V(Math.sin(dir)*Math.sin(ang)*up,Math.cos(ang)*up,Math.cos(dir)*Math.sin(ang)*up);
+  if(!opt.ziel){ const H=v.y*fuse-3*fuse*fuse; if(start.y+H<BRUCH_MIN&&v.y>0.5){ const vy=(BRUCH_MIN-start.y+3*fuse*fuse)/fuse; v.multiplyScalar(vy/v.y); } }
   const sg=opt.steig||null;
   /* pfeil: 1,6-mal so schnell, gleiche Bruchhoehe - also kuerzer unterwegs */
   if(sg==='pfeil'&&!opt.ziel){ const H=v.y*fuse-3*fuse*fuse, vy=v.y*1.6, D=vy*vy-12*H;

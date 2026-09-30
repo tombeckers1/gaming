@@ -698,4 +698,7 @@ Object.assign(SIGNATUR,{
   batterie49:{idee:'Sprint drei Ebenen',eff:'lampare',text:'49 Schuss in 16 s, Feuerbaelle auf drei Ebenen'},
   sternenmeer42:{eff:'tausendblueten',text:'Stille, dann platzen Dutzende kleiner Blueten zugleich'}
 });
+/* 30.09.: Fischflug und Helligkeitsausgleich auch fuer die Fischkerze
+   (perleSchuss) und die Hummelkoenigin (14j) - sonst stecken sie hier fest */
+globalThis.fischFlug=fischFlug; globalThis.komp=komp;
 })();

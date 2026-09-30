@@ -16,7 +16,7 @@ async function neuesSpiel(p){
 const { chromium } = require('/opt/node22/lib/node_modules/playwright');
 (async()=>{
   const b=await chromium.launch({args:['--use-gl=swiftshader','--enable-unsafe-swiftshader','--no-sandbox']});
-  const p=await b.newPage({viewport:{width:800,height:500},deviceScaleFactor:2});
+  const p=await b.newPage({viewport:{width:420,height:260},deviceScaleFactor:2});   // klein: 800x500 bei 2-fach brachte die Software-Grafik zum Absturz
   p.on('crash',()=>errs.push('CRASH'));
   const errs=[]; p.on('pageerror',e=>errs.push('PAGEERROR: '+e.message));
   const mangel=[]; const pruef=(n,ok,w)=>{ if(!ok) mangel.push(n+': '+w); };

@@ -9,7 +9,7 @@
      Ausnahme: der Fallschirm-Leuchtsatz, der ist ein Dauerlicht.
    Aufruf: node rkecht.js test.html ['["id",...]'] */
 const { chromium } = require('/opt/node22/lib/node_modules/playwright');
-const IDS=["raketenklein","glitzerraketen","blanko","gravur","raketen","silberpfeil","kometenraketen","pfeifraketen","farbenrausch","raketengold","knisterstern","smaragd","blinkstern","silberregen","kristall","furzrakete","regenbogenkrone","titanraketen","jumbogold","silbermond","jumboleiter","feuerdrache","supernova","kugel75","palmenkugel75","farbenmeer75","kristallkugel100","kugel100","goldweide100","kugel150","sternenstaub150","sternkugel150","goldspinne200","hummelkoenigin200","niagara200","goldkrone200","gluehwurm75","perlenkette100","doppelgaenger150","sirene150","kanonade300","kugel300","kaiserkrone"];
+const IDS=["raketenklein","glitzerraketen","blanko","gravur","raketen","silberpfeil","kometenraketen","pfeifraketen","farbenrausch","raketengold","knisterstern","smaragd","blinkstern","silberregen","kristall","furzrakete","regenbogenkrone","titanraketen","jumbogold","silbermond","jumboleiter","feuerdrache","supernova","kugel75","palmenkugel75","farbenmeer75","kristallkugel100","kugel100","goldweide100","kugel150","sternenstaub150","sternkugel150","sternschleier200","feuerlilie200","goldkrone200","rosengarten100","pfauenkrone150","kanonade300","kugel300","kaiserkrone"];
 (async()=>{
   const b=await chromium.launch({args:['--no-sandbox']}); const p=await b.newPage(); p.setDefaultTimeout(900000);
   const errs=[]; p.on('pageerror',e=>errs.push('PAGEERROR: '+e.message));

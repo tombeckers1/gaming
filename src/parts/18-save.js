@@ -25,7 +25,13 @@ const SORTE_NEU={kanonen:'monsterboeller',grossboeller:'monsterboeller',doppelsc
    Warenkorb oder in einer Bestellung hat, bekommt beim Laden die Sorte,
    die sie ersetzt. bengalduo bleibt (Hafenlichter). */
 const ERSETZT_DURCH={goldperlen:'roemisch',salutbatterie:'donnerschlag',kometenfaecher:'kometen',raketen50:'titanraketen',
-  sternfontaene:'sternenbrunnen',tischfeuerwerk2:'tisch',knallbonbonxxl:'knallbonbon',konfettiknaller:'partypopper'};
+  sternfontaene:'sternenbrunnen',tischfeuerwerk2:'tisch',knallbonbonxxl:'knallbonbon',konfettiknaller:'partypopper',
+  /* 30.09. (Tom): neue Batterien ausser der Legion und neue Kugeln ausser der
+     Kanonade wieder raus - Bestand wird zur naechsten neuen Sorte */
+  roemerfeuer:'lichterprozession',nachtigall:'lichterprozession',kreuzritter:'lichterprozession',
+  katapult:'kometenreigen',piranha:'kometenreigen',kolosseum:'sternentor',
+  gluehwurm75:'farbenmeer75',perlenkette100:'rosengarten100',doppelgaenger150:'pfauenkrone150',sirene150:'pfauenkrone150',
+  goldspinne200:'sternschleier200',hummelkoenigin200:'sternschleier200',niagara200:'feuerlilie200'};
 Object.assign(SORTE_NEU,ERSETZT_DURCH,typeof ENTFERNT_ERSATZ!=='undefined'?ENTFERNT_ERSATZ:{});
 /* Ketten aufloesen (tischfeuerwerk2 -> tisch -> gestrichen -> Ersatz) */
 for(const k in SORTE_NEU){ let v=SORTE_NEU[k], n=0; while(SORTE_NEU[v]&&n++<5) v=SORTE_NEU[v]; SORTE_NEU[k]=v; }

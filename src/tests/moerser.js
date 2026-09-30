@@ -28,12 +28,12 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
       const it=st.items.length>vor?st.items[st.items.length-1]:null; bb.S.carrying=null;
       return it?{slot:it.slot,kanal:it.kanal,x:+(it.modell.position.x-M.x).toFixed(2)}:{abgelehnt:bb.toastLast!==tl?bb.toastLast:''}; };
     o.gross=stell('kugel300'); o.klein=stell('kugel75'); o.mittel=stell('kugel150');
-    o.zweiMittel=stell('goldspinne200'); o.zweiKlein=stell('kugel100');
+    o.zweiMittel=stell('feuerlilie200'); o.zweiKlein=stell('kugel100');
     o.schilder=bb.ROHR_KALIBER;
     /* Passt die Kugel ins Rohr? Echte Groesse (Kaliber aus dem Namen)
        und hoechstens knapp drei Zentimeter Luft zu jeder Seite */
-    o.passung=['kugel75','kugel100','kugel150','goldspinne200','kugel300'].map(t=>{ const sl=bb.moerserRohr(t), innen=bb.ROHR_INNEN[sl];
-      const rk=Math.min(bb.KUGEL_R[t==='goldspinne200'?'kugel200':t],innen*0.97), mm=+(/(\d+) mm/.exec(bb.P[t].name)||[0,0])[1];
+    o.passung=['kugel75','kugel100','kugel150','feuerlilie200','kugel300'].map(t=>{ const sl=bb.moerserRohr(t), innen=bb.ROHR_INNEN[sl];
+      const rk=Math.min(bb.KUGEL_R[t==='feuerlilie200'?'kugel200':t],innen*0.97), mm=+(/(\d+) mm/.exec(bb.P[t].name)||[0,0])[1];
       return {t,sl,innen,rk,luft:+(innen-rk).toFixed(3),echt:rk*2>=mm/1000,aussen:bb.MOERSER_R[sl]}; });
     return o; });
   console.log(JSON.stringify(r));

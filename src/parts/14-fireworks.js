@@ -1197,16 +1197,19 @@ function perleSchuss(o,A,s,opt){
   const B=opt.B||A, art=opt.eff||null, p0={x:o.x,y:y0,z:o.z}, v0=[vx,vy,vz], G=6;
   /* Scheitel der Kugel (Luftwiderstand ZIEH wie im Partikelsystem) */
   const tS=Math.log(1+ZIEH*Math.max(0.1,vy)/G)/ZIEH;
-  const L=art?tS:rand(1.6,2.0);
+  /* grossperle brennt ueber den Scheitel hinaus und sinkt noch ein Stueck */
+  const L=art==='grossperle'?tS+0.55:art?tS:rand(1.6,2.0);
   const kugelFarbe=art==='wandelperle'?A:A;
   /* wandelperle: A endet kurz vor dem Wechsel - Dunkelphase (28.09., echt.md 1.4) */
   /* 30.09.: Blinkkerze blinkt schon im Steigen (Modus 1); die Bombette
      steigt nur schwach glimmend - sie ist eine kleine Bombe, keine Kugel */
-  const kMd=art==='blinkperle'?1:0, kH=art==='bombette'?0.32:art==='kometperle'?1.5:1.3;
-  for(let k=0;k<(art==='schwebeperle'?4:art==='bombette'?1:3);k++) psHuge.emit(o.x,y0,o.z,vx,vy,vz,kugelFarbe[0]*kH,kugelFarbe[1]*kH,kugelFarbe[2]*kH,art==='wandelperle'?Math.max(0.1,Math.min(0.6,tS*0.45)-0.05):L,G,kMd);
+  const kMd=art==='blinkperle'?1:0, kH=art==='bombette'?0.32:art==='kometperle'||art==='schweifperle'?1.5:art==='grossperle'?1.7:1.3;
+  /* farbperle: A brennt bis kurz vor dem Wechsel (Dunkelphase), dann B */
+  const tW=Math.max(0.15,Math.min(0.9,tS*0.5));
+  for(let k=0;k<(art==='schwebeperle'||art==='grossperle'?5:art==='bombette'?1:3);k++) psHuge.emit(o.x,y0,o.z,vx,vy,vz,kugelFarbe[0]*kH,kugelFarbe[1]*kH,kugelFarbe[2]*kH,art==='wandelperle'?Math.max(0.1,Math.min(0.6,tS*0.45)-0.05):art==='farbperle'?tW-0.06:L,G,kMd);
   if(art!=='bombette') psBig.emit(o.x,y0,o.z,vx,vy,vz,1,1,1,L*0.4,G,kMd);
   /* Funkenschweif hinter der Kugel und ein kurzer Muendungsblitz */
-  const schweif=art==='wandelperle'?0.55:art==='bombette'?0.45:art==='blinkperle'?0.4:1;
+  const schweif=art==='wandelperle'?0.55:art==='bombette'?0.45:art==='blinkperle'?0.4:art==='grossperle'?1.5:1;
   for(let i=0;i<Math.round(40*schweif*QUAL());i++) psMid.emit(o.x,y0,o.z,vx*0.9+rand(-.3,.3),vy*rand(0.45,0.98),vz*0.9+rand(-.3,.3),1,.8,.4,rand(0.8,1.5)*schweif,6,4);
   muendungsblitz(o,y0,1.2);
   SCHWEIF=alt;
@@ -1311,6 +1314,35 @@ function perleSchuss(o,A,s,opt){
     bei(tS,q=>{ const a2=SCHWEIF; SCHWEIF=0;
       for(let k=0;k<Math.round(rand(6,8));k++){ const d=randDir(), w=rand(1.8,3); psBig.emit(q.x,q.y,q.z,d[0]*w,d[1]*w,d[2]*w,B[0]*1.2,B[1]*1.2,B[2]*1.2,rand(1.8,2.6),0.9,1); }
       SCHWEIF=a2; schall(q,v=>sfx.crackle(v*0.25)); });
+  }
+  /* ---- 30.09. (Tom: "eine schoene Show aus roemischen Lichtern, ohne
+     Knalle"): vier leise Kerzenarten ---- */
+  else if(art==='grossperle'){
+    /* Grosskerze: eine dicke Leuchtkugel mit dichtem Funkenschweif, die
+       ueber den Scheitel hinaus brennt und im Sinken verglimmt - kein Knall */
+    for(let t=0.08;t<L;t+=0.08) bei(t,(q,w)=>{ for(let k=0;k<Math.round(3*QUAL());k++) psMid.emit(q.x,q.y,q.z,w[0]*0.15+rand(-.35,.35),w[1]*0.15+rand(-.5,0),w[2]*0.15+rand(-.35,.35),A[0]*0.6+0.4,A[1]*0.6+0.3,A[2]*0.6+0.1,rand(0.4,0.8),2.5,4); });
+  }
+  else if(art==='farbperle'){
+    /* Farbwechselkerze: A geht kurz aus (Dunkelphase), die Kugel brennt
+       an derselben Bahnstelle in B weiter bis zum Scheitel - leise */
+    bei(tW+0.05,(q,w)=>{ const a2=SCHWEIF; SCHWEIF=0.4; for(let k=0;k<3;k++) psHuge.emit(q.x,q.y,q.z,w[0],w[1],w[2],B[0]*1.35,B[1]*1.35,B[2]*1.35,Math.max(0.2,tS-tW+0.35),G,0); SCHWEIF=a2; });
+    for(let t=0.08;t<tS+0.3;t+=0.08){ if(Math.abs(t-tW)<0.06) continue; const c=t<tW?A:B;
+      bei(t,(q,w)=>{ for(let k=0;k<Math.round(3*QUAL());k++) psMid.emit(q.x,q.y,q.z,w[0]*0.15+rand(-.3,.3),w[1]*0.15+rand(-.4,0),w[2]*0.15+rand(-.3,.3),c[0]*0.7+0.3,c[1]*0.7+0.25,c[2]*0.7+0.1,rand(0.3,0.55),3,4); }); }
+  }
+  else if(art==='schweifperle'){
+    /* Kometenkerze: goldene Brokatkugel, deren Glitzerschweif lange in der
+       Luft stehen bleibt und nach unten rieselt; oben verlischt sie leise */
+    for(let t=0.04;t<tS;t+=0.04) bei(t,(q,w)=>{ for(let k=0;k<Math.round(4*QUAL());k++) psMid.emit(q.x+rand(-.06,.06),q.y,q.z+rand(-.06,.06),w[0]*0.05+rand(-.25,.25),w[1]*0.05+rand(-.35,0.05),w[2]*0.05+rand(-.25,.25),1,.82,.42,rand(0.9,1.6),1.0,4); });
+    bei(tS,q=>{ for(let k=0;k<Math.round(14*QUAL());k++){ const d=randDir(), w=rand(0.6,1.6); psMid.emit(q.x,q.y,q.z,d[0]*w,d[1]*w,d[2]*w,1,.85,.5,rand(0.8,1.3),1.4,4); } schall(q,v=>sfx.rieseln(v*0.35,1.5)); });
+  }
+  else if(art==='sternperle'){
+    /* Sternkerze: im Scheitel oeffnet sich die Kugel leise zu einem
+       fuenfzackigen Stern aus Perlen in B, der zum Zuschauer steht,
+       langsam sinkt und verglimmt */
+    bei(tS,q=>{ const [u,v]=basisBlick(q,0.25), a0=rand(0,Math.PI*2), a2=SCHWEIF; SCHWEIF=0.15;
+      for(let k=0;k<10;k++){ const a=a0+k*Math.PI/5, r=k%2?0.45:1, sp=rand(2.6,3.0)*r, ca=Math.cos(a), sa=Math.sin(a);
+        for(let j=0;j<2;j++){ const f=j?0.55:1; psBig.emit(q.x,q.y,q.z,(u[0]*ca+v[0]*sa)*sp*f,(u[1]*ca+v[1]*sa)*sp*f,(u[2]*ca+v[2]*sa)*sp*f,B[0]*1.25,B[1]*1.25,B[2]*1.25,rand(1.3,1.7),0.9,0); } }
+      SCHWEIF=a2; schall(q,v=>sfx.rieseln(v*0.3,1.2)); });
   }
   else if(art==='weidenperle'){
     /* Weidenkerze: dicke Brokatkugel; im Scheitel faellt sie als kleine

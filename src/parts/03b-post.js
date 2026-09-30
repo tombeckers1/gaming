@@ -145,14 +145,16 @@ function gruppenBuendeln(o){
   if(o.userData._gbGeo&&o.geometry!==o.userData._gbGeo) o.geometry=o.userData._gbGeo;
   const g=o.geometry; o.userData._gbM=M;
   if(!g||!g.index||!g.groups||g.groups.length<2) return;
-  const uniq=[], map=[];
-  for(const gr of g.groups){ const m=M[gr.materialIndex]; let k=uniq.indexOf(m); if(k<0){ k=uniq.length; uniq.push(m); } map.push(k); }
+  /* je verschiedenem Material eine Gruppe; ihr Index zeigt auf das erste
+     Vorkommen im unveraenderten Material-Feld (material[k] bleibt gueltig) */
+  const uniq=[], erst=[], map=[];
+  for(const gr of g.groups){ const m=M[gr.materialIndex]; let k=uniq.indexOf(m); if(k<0){ k=uniq.length; uniq.push(m); erst.push(gr.materialIndex); } map.push(k); }
   if(uniq.length===g.groups.length) return;
-  const key=g.uuid+'|'+map.join(','); let ng=_gbCache.get(key);
-  if(!ng){ ng=g.clone(); const src=g.index.array, out=new src.constructor(src.length); let p=0; ng.clearGroups();
-    for(let k=0;k<uniq.length;k++){ const s0=p; g.groups.forEach((gr,i)=>{ if(map[i]!==k) return; out.set(src.subarray(gr.start,gr.start+gr.count),p); p+=gr.count; }); ng.addGroup(s0,p-s0,k); }
+  const key=g.uuid+'|'+map.join(',')+'|'+erst.join(','); let ng=_gbCache.get(key);
+  if(!ng){ ng=g.clone(); ng.type=g.type; ng.parameters=g.parameters; const src=g.index.array, out=new src.constructor(src.length); let p=0; ng.clearGroups();
+    for(let k=0;k<uniq.length;k++){ const s0=p; g.groups.forEach((gr,i)=>{ if(map[i]!==k) return; out.set(src.subarray(gr.start,gr.start+gr.count),p); p+=gr.count; }); ng.addGroup(s0,p-s0,erst[k]); }
     ng.setIndex(new THREE.BufferAttribute(out,1)); _gbCache.set(key,ng); }
-  o.userData._gbGeo=g; o.geometry=ng; o.material=uniq; o.userData._gbM=uniq;
+  o.userData._gbGeo=g; o.geometry=ng;
 }
 let gbN=0;
 function gruppenTakt(){ if(--gbN>0) return; gbN=20; try{ scene.traverse(o=>{ if(o.isMesh&&Array.isArray(o.material)) gruppenBuendeln(o); }); }catch(e){ gbN=1e9; } }

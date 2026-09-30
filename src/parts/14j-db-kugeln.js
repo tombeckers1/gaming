@@ -405,3 +405,161 @@ Object.assign(SIGNATUR,{
   kugel300:{eff:'silberbrecher',text:'Himmel reißt in sechs Linien, 24 Splitterbrüche, Silberweide'},
   kaiserkrone:{eff:'fuenfkern',text:'fünf Kerne verwandeln sich und erlöschen gleichzeitig in der Goldkrone'}
 });
+
+/* =========================================================
+   30.09. (Tom): der Bluetenkranz (kugel200) ist raus - dafuer drei neue
+   200-mm-Bomben mit Bewegung im Bild (Goldspinne, Hummelkoenigin,
+   Niagara) und fuenf Kugeln mit Effekten der Roemischen Lichter
+   (Leuchtkugeln, die knistern, sich teilen, pfeifen, knallen, blinken).
+   Alles echte Bomben aus dem Katalog: Spider, Hummer/Tourbillon,
+   Horsetail, Crackling-Comet-Ring, Split-Comet, Whistle, Report-Ring,
+   Strobe-Pearls.
+   ========================================================= */
+
+/* Goldspinne (goldspinne200): Spinnenbombe - schwere Brokatsterne
+   schiessen sehr schnell auseinander, bremsen hart, ziehen dicke
+   Goldspuren und haengen dann wie Spinnenbeine durch. Am Ende jedes
+   dritten Beins (hoechstens neun) glimmt ein rotes Auge auf. */
+EFF.goldspinne=function(p,A,B,s,r){
+  const q=QUAL(), g=FW.gold, n=Math.round(22*s*q), G=3.4, augen=[];
+  let ai=0;
+  /* die Augen sind echte kleine Pistill-Brueche an den Beinspitzen
+     (wie "Brokat zu roten Spitzen"), leise - kein Knall je Auge */
+  const auge=e=>fwBurst({p:e,A:kgMal(A,1.2),B:A,size:0.45,eff:'pistill',knall:'e1still',bruchOpt:{kern:false,nachglitzer:false,flash:0.12},tag:FW_TAG});
+  for(let i=0;i<n;i++){ const d=randDir(), w=rand(9.5,11.5)*s, v=kgMal(d,w), T=rand(2.3,2.8);
+    kgStern(psBig,p,v,kgMal(g,1.05),T,G,4,0.9);
+    rkFunken(p,v,G,0.1,T-0.3,26,[1,.82,.45],{life:[0.5,1.0],g:2.2,streu:0.25,mit:0.05});
+    if(i%3===0&&ai++<9){ const e=sternNach(p,v[0],v[1],v[2],G,T-0.05); augen.push(e); kgSpaeter(T-0.05,()=>auge(e)); } }
+  schall(p,v=>later(0.5,()=>sfx.rieseln(v*0.55,3.5)));
+};
+
+/* Hummelkoenigin (hummelkoenigin200): blaue Paeonie, aus der dreissig
+   Hummeln (Tourbillons) brechen - kleine Goldkometen, die sich um sich
+   selbst drehen, dabei Schrauben ziehen und summen. */
+EFF.hummelkoenigin=function(p,A,B,s,r){
+  const q=QUAL(), gold=FW.gold;
+  for(let i=0;i<Math.round(24*s*q);i++){ const d=randDir(), w=rand(6.5,7.8)*s; kgStern(psBig,p,kgMal(d,w),kgMal(A,1.15),rand(1.7,2.2),2.6,0,0.06); }
+  const n=Math.round(rand(26,32)*Math.max(0.7,q));
+  for(let i=0;i<n;i++){ const d=randDir(), w=rand(9,12)*Math.sqrt(s), om=rand(9,14)*(i%2?1:-1), c=i%4?gold:B;
+    fuehre(psMid,p.x,p.y,p.z,d[0]*w,d[1]*w,d[2]*w,c,rand(1.7,2.3),(st,dt)=>{
+      const v=st.v, t=st.alter, cs=Math.cos(om*dt), sn=Math.sin(om*dt), vx=v[0]*cs-v[2]*sn, vz=v[0]*sn+v[2]*cs, f=Math.exp(-1.3*dt);
+      v[0]=vx*f; v[2]=vz*f; v[1]=v[1]*f-1.9*dt;
+      st.p[0]+=v[0]*dt; st.p[1]+=v[1]*dt; st.p[2]+=v[2]*dt;
+      st.hell=1.6*Math.min(1,(st.life-t)/0.3)*komp(st);
+      st.d.acc=(st.d.acc||0)+dt*55*q;
+      for(;st.d.acc>=1;st.d.acc--) psMid.emit(st.p[0],st.p[1],st.p[2],-v[0]*0.1+rand(-.5,.5),-v[1]*0.1+rand(-.6,.2),-v[2]*0.1+rand(-.5,.5),1,.8,.4,rand(0.25,0.45),1.5,4);
+    },{spur:0.05}); }
+  schall(p,v=>{ if(typeof tonGen==='function') later(0.1,()=>tonGen({f:170,typ:'sawtooth',am:22,amTiefe:0.6,rausch:0.6,lp:1600,dur:2.1,vol:0.03*v,an:0.15})); });
+};
+
+/* Niagara (niagara200): Pferdeschweif - die Silbersterne werden steil
+   nach oben geworfen, kippen und fallen als dichter, langer Glitzer-
+   vorhang; unten zerstaeubt er knisternd wie Gischt. */
+EFF.niagara=function(p,A,B,s,r){
+  const q=QUAL(), n=Math.round(30*s*q), sil=A||FW.silber, G=3.2, gischt=[];
+  for(let i=0;i<n;i++){ const a=rand(0,Math.PI*2), rr=Math.sqrt(Math.random())*0.6, d=[Math.cos(a)*rr,Math.sqrt(1-rr*rr),Math.sin(a)*rr], w=rand(6,8.5)*s, v=kgMal(d,w), T=rand(3.6,4.4);
+    kgStern(psBig,p,v,kgMal(sil,1.1),T,G,4,1.2);
+    rkFunken(p,v,G,0.4,T-0.2,22,[.9,.93,1],{life:[0.6,1.1],g:2.6,streu:0.3,mit:0.03});
+    if(i%4===0) gischt.push(sternNach(p,v[0],v[1],v[2],G,T)); }
+  kgSpaeter(3.7,()=>{ for(const e of gischt) knisterWolke(e,4,0.5,0.8,{funken:4,laut:0.3,c:[.9,.95,1]}); });
+  schall(p,v=>{ sfx.rieseln(v*0.7,4.5); });
+};
+
+/* Gluehwuermchen (gluehwurm75): zwanzig weiche Leuchtperlen schweben
+   langsam aus, sinken kaum und blinken jede in ihrem Takt - wie die
+   Leuchtkugeln einer Blinkkerze, nur im Himmel verteilt. */
+EFF.gluehwurm=function(p,A,B,s,r){
+  const q=QUAL(), n=Math.round(rand(18,24)*Math.max(0.8,q));
+  for(let i=0;i<n;i++){ const d=randDir(), w=rand(3.2,4.6)*s, c=i%3?A:B;
+    kgStern(psBig,p,kgMal(d,w),kgMal(c,1.3),rand(3.2,4.2),0.7,1,0); }
+  for(let i=0;i<Math.round(14*s*q);i++){ const d=randDir(), w=rand(5.5,6.5)*s; kgStern(psMid,p,kgMal(d,w),kgMal(FW.gold,0.9),rand(0.9,1.3),2.4,4,0.15); }
+  schall(p,v=>sfx.crackle(v*0.2));
+};
+
+/* Perlenkette (perlenkette100): ein Kranz aus zwoelf Goldperlen mit
+   Funkenschweif, genau wie die Kugeln einer Knisterkerze - nach gut
+   einer Sekunde zerfaellt jede Perle knisternd. */
+EFF.perlenkette=function(p,A,B,s,r){
+  const [u,v]=basisBlick(p,0.6), a0=rand(0,Math.PI*2), G=2.6, T=1.25, perlen=[];
+  for(let k=0;k<12;k++){ const a=a0+k/12*Math.PI*2+rand(-0.04,0.04), ca=Math.cos(a), sa=Math.sin(a), d=[u[0]*ca+v[0]*sa,u[1]*ca+v[1]*sa,u[2]*ca+v[2]*sa], w=6.5*s*rand(0.97,1.03), vel=kgMal(d,w);
+    for(let j=0;j<2;j++) kgStern(psHuge,p,vel,kgMal(A,1.3),T,G,0,0.3);
+    rkFunken(p,vel,G,0.05,T,60,[1,.8,.4],{life:[0.3,0.6],g:3,streu:0.5,mit:0.1});
+    perlen.push(sternNach(p,vel[0],vel[1],vel[2],G,T)); }
+  kgSpaeter(T,()=>{ for(const e of perlen) knisterWolke(e,Math.round(9*QUAL()),0.6,1.1,{c:[1,.9,.6],funken:5,laut:0.4}); });
+};
+
+/* Doppelgaenger (doppelgaenger150): sechzehn weisse Kometen fliegen aus,
+   und jeder teilt sich mit einem Knacks in zwei Perlen - links A,
+   rechts B - wie die Zwillingskerze. */
+EFF.doppelgaenger=function(p,A,B,s,r){
+  const G=2.8, T=0.9, n=16;
+  for(let k=0;k<n;k++){ const d=randDir(), w=rand(7,8.5)*s, vel=kgMal(d,w);
+    kgStern(psHuge,p,vel,[1.4,1.4,1.35],T,G,0,0.35);
+    rkFunken(p,vel,G,0.05,T,40,[1,.95,.85],{life:[0.2,0.4],g:3,streu:0.6,mit:0.12});
+    kgSpaeter(T,()=>{ const e=sternNach(p,vel[0],vel[1],vel[2],G,T), w2=bahnTempo(vel,G,T), sq=Math.hypot(w2[0],w2[2])||1, qx=-w2[2]/sq, qz=w2[0]/sq;
+      for(const [sg,c] of [[-1,A],[1,B]]){ const sp=rand(4,5.5)*sg*Math.sqrt(s); kgStern(psHuge,e,[w2[0]*0.4+qx*sp,w2[1]*0.4+0.6,w2[2]*0.4+qz*sp],kgMal(c,1.3),rand(1.3,1.7),G,0,0.25); }
+      if(k%4===0) schall(e,v=>sfx.crack(v*0.6)); }); }
+};
+
+/* Sirene (sirene150): zwoelf Pfeifkometen schiessen aus dem Bruch nach
+   oben und aussen, ihr Pfeifen gleitet hinauf; oben verpufft jeder in
+   einem Buendel roter Sterne. */
+EFF.sirene=function(p,A,B,s,r){
+  const G=2.4, T=1.4, n=12;
+  for(let k=0;k<n;k++){ const d=randDir(); d[1]=Math.abs(d[1])*0.8+0.35; const l=Math.hypot(d[0],d[1],d[2]); const w=rand(8,9.5)*s/l, vel=[d[0]*w,d[1]*w,d[2]*w];
+    kgStern(psHuge,p,vel,[1.3,1.3,1.35],T,G,0,0.4);
+    rkFunken(p,vel,G,0.05,T,50,[.95,.95,1],{life:[0.25,0.5],g:2.6,streu:0.4,mit:0.1});
+    kgSpaeter(T,()=>{ const e=sternNach(p,vel[0],vel[1],vel[2],G,T);
+      for(let i=0;i<Math.round(14*QUAL());i++){ const dd=randDir(), ww=rand(2.5,4)*Math.sqrt(s); kgStern(psBig,e,kgMal(dd,ww),kgMal(A,1.2),rand(1.0,1.4),2.6,0,0.08); } }); }
+  schall(p,v=>{ for(let i=0;i<3;i++) later(i*0.07,()=>sfx.pfeifTon(v*0.7,i*4-2,{gleit:true,dur:1.4})); });
+};
+
+/* Kanonade (kanonade300): dreissig schwere weisse Kugeln fliegen aus -
+   wie Knallkerzen - und zerknallen nacheinander mit Weissblitz; ein
+   rollender Donner, ueber dem ein goldener Kamuro haengt. */
+EFF.kanonade=function(p,A,B,s,r){
+  const G=2.6, n=30;
+  for(let k=0;k<n;k++){ const d=randDir(), w=rand(6,7.5)*s, vel=kgMal(d,w), T=rand(1.1,1.9);
+    kgStern(psHuge,p,vel,kgMal(A,1.4),T,G,0,0.3);
+    kgSpaeter(T,()=>{ const e=sternNach(p,vel[0],vel[1],vel[2],G,T), a=SCHWEIF; SCHWEIF=0;
+      psHuge.emit(e.x,e.y,e.z,0,0,0,1.8,1.8,1.7,0.07,0,0);
+      for(let i=0;i<Math.round(16*QUAL());i++){ const dd=randDir(), ww=rand(8,12); psSmall.emit(e.x,e.y,e.z,dd[0]*ww,dd[1]*ww,dd[2]*ww,1.5,1.5,1.45,rand(0.07,0.12),0,0); }
+      SCHWEIF=a; if(k%3===0) flash(e,FW.weiss,1.6,0.08);
+      schall(e,v=>{ sfx.crack(v*1.2); if(k%4===0) sfx.boom(v*0.4); }); }); }
+};
+
+Object.assign(EFF_SCHWEIF,{goldspinne:0.9,niagara:1.2,perlenkette:0.3,doppelgaenger:0.35,sirene:0.4,kanonade:0.3});
+Object.assign(EFF_FAMILIE,{goldspinne:'haenger',hummelkoenigin:'kugel',niagara:'haenger',gluehwurm:'kugel',perlenkette:'knister',doppelgaenger:'kugel',sirene:'kugel',kanonade:'knister'});
+
+Object.assign(KUGEL,{
+  gluehwurm75:{kal:1,sz:2.15,pw:2.2,fuse:1.70,th:'wald',haupt:'gluehwurm',A:'limette',B:'zitrone',
+    steig:'glut', bruchOpt:{kern:false,nachglitzer:false,flash:0.4}, ton:'poka', stufen:[]},
+  perlenkette100:{kal:2,sz:2.75,pw:4.2,fuse:1.88,th:'gold',haupt:'perlenkette',A:'gold',B:'orange',
+    steig:'gold', bruchOpt:{kern:false,nachglitzer:false},
+    stufen:[{t:0.05,eff:'pistill',sz:0.28,A:'rot',B:'gold',leise:true}]},
+  doppelgaenger150:{kal:3,sz:3.35,pw:6.1,fuse:2.02,th:'tropen',haupt:'doppelgaenger',A:'tuerkis',B:'magenta',
+    steig:'silber', bruchOpt:{kern:false,nachglitzer:false}, stufen:[]},
+  sirene150:{kal:3,sz:3.40,pw:6.3,fuse:2.03,th:'rotweiss',haupt:'sirene',A:'rot',B:'weiss',
+    steig:'pfeif', bruchOpt:{kern:false,nachglitzer:false}, stufen:[]},
+  goldspinne200:{kal:4,sz:3.95,pw:7.8,fuse:2.15,th:'gold',haupt:'goldspinne',A:'rot',B:'gold',
+    steig:'brokat', bruchOpt:{kern:false,nachglitzer:false},
+    stufen:[{t:0.04,eff:'pistill',sz:0.22,A:'rot',B:'rot',leise:true}]},
+  hummelkoenigin200:{kal:4,sz:4.00,pw:8.0,fuse:2.15,th:'himmel',haupt:'hummelkoenigin',A:'blau',B:'weiss',
+    steig:'glut', bruchOpt:{kern:false,nachglitzer:false}, stufen:[]},
+  niagara200:{kal:4,sz:4.05,pw:8.2,fuse:2.15,th:'silber',haupt:'niagara',A:'silber',B:'himmel',
+    steig:'silber', bruchOpt:{kern:false,nachglitzer:false,flash:0.5},
+    stufen:[{t:0.05,eff:'pistill',sz:0.24,A:'himmel',B:'blau',leise:true}]},
+  kanonade300:{kal:5,sz:4.80,pw:10.9,fuse:2.30,th:'silber',haupt:'kanonade',A:'weiss',B:'silber',
+    steig:'titanspur', bruchOpt:{kern:false,nachglitzer:false},
+    stufen:[{t:0.08,eff:'kamuro',sz:0.55,A:'gold',B:'gold',leise:true}]}
+});
+Object.assign(SIGNATUR,{
+  gluehwurm75:{eff:'gluehwurm',text:'Blinkende Leuchtperlen schweben wie Glühwürmchen'},
+  perlenkette100:{eff:'perlenkette',text:'Kranz aus zwölf Goldperlen, die knisternd zerfallen'},
+  doppelgaenger150:{eff:'doppelgaenger',text:'Sechzehn Kometen teilen sich in türkis-magenta Zwillinge'},
+  sirene150:{eff:'sirene',text:'Pfeifkometen gleiten hinauf und verpuffen rot'},
+  goldspinne200:{eff:'goldspinne',text:'Spinnenbeine aus schwerem Goldbrokat mit roten Augen'},
+  hummelkoenigin200:{eff:'hummelkoenigin',text:'Blaue Päonie, aus der dreißig summende Hummeln schrauben'},
+  niagara200:{eff:'niagara',text:'Silberner Pferdeschweif stürzt als Wasserfall mit Gischt'},
+  kanonade300:{eff:'kanonade',text:'Dreißig Knallkugeln – rollender Donner unter goldenem Kamuro'}
+});

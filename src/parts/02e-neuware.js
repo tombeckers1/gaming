@@ -346,6 +346,47 @@ const NEUWARE={
   kolosseum:{name:'Kolosseum · 140 Schuss Arena-Verbund',short:'Kolosseum',cat:2,lvl:25,shape:'battery',dims:[0.98,0.84,0.6],grid:[2,1,1],box:1,cost:104.00,market:234.99,weight:2,hype:99,risk:10,
     desc:'Die Arena bebt: Einmarsch zwischen zwei Riesenfontänen, Knall-Kerzen mit Weißblitz, Goldkometen als Fanfare, Titanschläge der Gladiatoren, Riesen-Kamuros, ein Wagenrennen aus Kreuzsternen – und ein Finale aus Donnerblitzen, Knall-Kerzen auf Schlag und Feuertöpfen.',
     art:{title:'KOLOSSEUM',sub:'140 Schuss · Arena-Verbund',bg1:'#6a4a14',bg2:'#140a02',ac:'#ffe08a',ac2:'#ff3a2e',gold:true}},
+  /* 30.09. (Tom): fuenf weitere Batterien mit Roemischen Lichtern, jede mit eigener Kerzenart */
+  nachtigall:{name:'Nachtigall · 42 Schuss Pfeifkerzen',short:'Nachtigall',cat:2,lvl:17,shape:'battery',dims:[0.46,0.34,0.4],grid:[3,1,1],box:2,cost:24.00,market:54.99,weight:5,hype:56,risk:7,
+    desc:'Pfeifkerzen singen: Jede Silberkugel pfeift, solange sie steigt, und jede einen Ton höher – eine Tonleiter über der Silberfontäne. Pfeifsterne antworten, im Finale zwölf Pfeifkerzen auf einen Schlag mit Blinkbrüchen.',
+    art:{title:'NACHTIGALL',sub:'42 Schuss · Pfeifkerzen',bg1:'#12304a',bg2:'#02060f',ac:'#e8f6ff',ac2:'#5ce1ff'}},
+  kreuzritter:{name:'Kreuzritter · 64 Schuss Kreuzkerzen',short:'Kreuzritter',cat:2,lvl:18,shape:'battery',dims:[0.5,0.36,0.42],grid:[3,1,1],box:2,cost:30.00,market:68.99,weight:5,hype:64,risk:8,
+    desc:'Schwere Titankugeln mit Glitzerschweif steigen aus den Rohren und zerspringen oben mit einem Knacks in vier Kometen – ein Kreuz nach dem anderen. Dazwischen Crossettes, trockene Kracher, Goldpalmen über dem Vulkan und ein Finale aus 16 Kreuzkerzen mit Titanschlägen.',
+    art:{title:'KREUZRITTER',sub:'64 Schuss · Kreuzkerzen',bg1:'#5a0a0a',bg2:'#140202',ac:'#f2f5ff',ac2:'#ff3a2e'}},
+  katapult:{name:'Katapult · 70 Schuss Bombetten-Kerzen',short:'Katapult',cat:2,lvl:20,shape:'battery',dims:[0.56,0.38,0.44],grid:[3,1,1],box:2,cost:38.00,market:86.99,weight:4,hype:72,risk:9,
+    desc:'Aus jedem Rohr fliegt eine kleine Bombe, kaum zu sehen – und oben zerlegt sie zu einer bunten Päonie, jede in einem anderen Farbpaar. Dazwischen große Dahlien und goldene Kamuros, im Finale 24 Bombetten auf einen Schlag über zwei Fontänen.',
+    art:{title:'KATAPULT',sub:'70 Schuss · Bombetten-Kerzen',bg1:'#3a0a5c',bg2:'#0a0214',ac:'#9cff3a',ac2:'#ff4fd8'}},
+  piranha:{name:'Piranha · 90 Schuss Fischkerzen',short:'Piranha',cat:2,lvl:22,shape:'battery',dims:[0.62,0.42,0.48],grid:[3,1,1],box:2,cost:50.00,market:114.99,weight:4,hype:82,risk:9,
+    desc:'Oben löst sich aus jeder Kerzenkugel ein Schwarm Silberfische und zischt im Zickzack davon. Fischschwärme in der Welle, knisternde Dracheneier, silberne Pferdeschweife über Riesenfontänen – und im Finale 24 Fischkerzen auf Schlag.',
+    art:{title:'PIRANHA',sub:'90 Schuss · Fischkerzen',bg1:'#0a3a4a',bg2:'#020a10',ac:'#f2f5ff',ac2:'#ff3a2e'}},
+  legion:{name:'Legion · 240 Schuss Kerzen-Heer',short:'Legion',cat:2,lvl:26,shape:'battery',dims:[0.98,0.84,0.6],grid:[2,1,1],box:1,cost:118.00,market:269.99,weight:2,hype:100,risk:10,
+    desc:'Ein ganzes Heer aus Römischen Lichtern: goldene Weidenkerzen zwischen Riesenfontänen, ein Wischer aus Blinkkerzen, Kreuzkerzen im Kreis über dem Vulkan, Bombetten, Pfeif- und Fischkerzen, Titanschläge – und ein Finale aus 48 Weidenkerzen, 36 Knallkerzen und zwölf Riesen-Kamuros.',
+    art:{title:'LEGION',sub:'240 Schuss · Kerzen-Heer',bg1:'#6a4a14',bg2:'#140a02',ac:'#ffe08a',ac2:'#ff3a2e',gold:true}},
+  /* 30.09. (Tom): drei neue 200-mm-Bomben statt Bluetenkranz, dazu fuenf Kugeln mit Kerzen-Effekten */
+  gluehwurm75:{name:'Glühwürmchen · Kugelbombe 75 mm Blinkperlen',short:'Kugel 75 Glühwurm',cat:2,lvl:15,shape:'shell',dims:[0.09,0.115,0.09],grid:[8,2,1],box:8,cost:6.40,market:15.49,weight:6,hype:30,risk:7,
+    desc:'Zwanzig weiche Leuchtperlen in Limette und Zitrone schweben langsam auseinander, sinken kaum und blinken jede in ihrem eigenen Takt – wie Glühwürmchen am Nachthimmel.',
+    art:{title:'GLÜHWÜRMCHEN',sub:'75 mm · Blinkperlen',bg1:'#1f4a0a',bg2:'#050f02',ac:'#c8ff3a',ac2:'#fff36a'}},
+  perlenkette100:{name:'Perlenkette · Kugelbombe 100 mm Knisterperlen',short:'Kugel 100 Perlen',cat:2,lvl:17,shape:'shell',dims:[0.12,0.15,0.12],grid:[6,2,1],box:6,cost:12.50,market:29.99,weight:5,hype:42,risk:8,
+    desc:'Ein Kranz aus zwölf Goldperlen mit Funkenschweif, wie die Kugeln einer Knisterkerze – nach gut einer Sekunde zerfällt jede Perle prasselnd. In der Mitte ein roter Kern.',
+    art:{title:'PERLENKETTE',sub:'100 mm · Knisterperlen',bg1:'#6b4a0c',bg2:'#1f1402',ac:'#ffd23f',ac2:'#ff7a1c',gold:true}},
+  doppelgaenger150:{name:'Doppelgänger · Kugelbombe 150 mm Zwillingskometen',short:'Kugel 150 Zwilling',cat:2,lvl:19,shape:'shell',dims:[0.165,0.2,0.165],grid:[4,1,1],box:3,cost:31.50,market:74.99,weight:4,hype:70,risk:10,
+    desc:'Sechzehn weiße Kometen fliegen aus, und jeder teilt sich mit einem Knacks in zwei Perlen – Türkis nach links, Magenta nach rechts. Aus einem Bild werden zwei.',
+    art:{title:'DOPPELGÄNGER',sub:'150 mm · Zwillingskometen',bg1:'#0a3a4a',bg2:'#10020f',ac:'#5ce1ff',ac2:'#ff4fd8'}},
+  sirene150:{name:'Sirene · Kugelbombe 150 mm Pfeifkometen',short:'Kugel 150 Sirene',cat:2,lvl:20,shape:'shell',dims:[0.165,0.2,0.165],grid:[4,1,1],box:3,cost:32.00,market:75.99,weight:4,hype:72,risk:10,
+    desc:'Zwölf Pfeifkometen schießen aus dem Bruch nach oben, ihr Heulen gleitet hinauf wie eine Sirene – oben verpufft jeder in einem Bündel roter Sterne.',
+    art:{title:'SIRENE',sub:'150 mm · Pfeifkometen',bg1:'#7a1010',bg2:'#1a0202',ac:'#f2f5ff',ac2:'#ff3a2e'}},
+  goldspinne200:{name:'Goldspinne · Kugelbombe 200 mm Spinnenbeine',short:'Kugel 200 Spinne',cat:2,lvl:21,shape:'shell',dims:[0.21,0.25,0.21],grid:[3,1,1],box:2,cost:44.00,market:104.99,weight:4,hype:94,risk:10,
+    desc:'Schwere Brokatsterne schießen blitzschnell auseinander, bremsen hart und hängen als dicke goldene Spinnenbeine durch. Am Ende jedes dritten Beins glimmt ein rotes Auge auf.',
+    art:{title:'GOLDSPINNE',sub:'200 mm · Spinnenbeine',bg1:'#4a3308',bg2:'#000000',ac:'#ffd23f',ac2:'#ff3a2e',gold:true}},
+  hummelkoenigin200:{name:'Hummelkönigin · Kugelbombe 200 mm Tourbillons',short:'Kugel 200 Hummel',cat:2,lvl:21,shape:'shell',dims:[0.21,0.25,0.21],grid:[3,1,1],box:2,cost:45.00,market:106.99,weight:4,hype:94,risk:10,
+    desc:'Eine blaue Päonie öffnet sich – und aus ihr brechen dreißig Hummeln: kleine Goldkometen, die sich um sich selbst drehen, summend Schrauben in den Himmel ziehen und verlöschen.',
+    art:{title:'HUMMELKÖNIGIN',sub:'200 mm · Tourbillons',bg1:'#0c2a7a',bg2:'#020a1c',ac:'#ffd23f',ac2:'#5c8aff'}},
+  niagara200:{name:'Niagara · Kugelbombe 200 mm Silber-Pferdeschweif',short:'Kugel 200 Niagara',cat:2,lvl:22,shape:'shell',dims:[0.21,0.25,0.21],grid:[3,1,1],box:2,cost:47.00,market:111.99,weight:3,hype:94,risk:10,
+    desc:'Die Silbersterne werden steil nach oben geworfen, kippen und stürzen als dichter, langer Glitzervorhang herab – unten zerstäubt der Wasserfall knisternd wie Gischt.',
+    art:{title:'NIAGARA',sub:'200 mm · Pferdeschweif',bg1:'#26292f',bg2:'#000000',ac:'#f2f5ff',ac2:'#5ce1ff'}},
+  kanonade300:{name:'Kanonade · Kugelbombe 300 mm 30 Knallkugeln',short:'Kanonade 300',cat:2,lvl:24,shape:'shell',dims:[0.3,0.34,0.3],grid:[2,1,1],box:1,cost:72.00,market:169.99,weight:2,hype:100,risk:10,
+    desc:'Dreißig schwere weiße Kugeln fliegen aus wie Knallkerzen und zerknallen nacheinander mit Weißblitz – ein rollender Donner, über dem ein goldener Kamuro hängt.',
+    art:{title:'KANONADE',sub:'300 mm · Knallkugeln',bg1:'#2a2e36',bg2:'#000000',ac:'#f2f5ff',ac2:'#ffd23f'}},
   nordlicht:{name:'Nordlicht · 150 Schuss Polarlicht-Verbund',short:'Nordlicht',cat:2,lvl:21,shape:'battery',dims:[0.76,0.6,0.5],grid:[3,1,1],box:2,cost:58.00,market:129.99,weight:3,hype:80,risk:10,
     desc:'Leise, hoch und langsam: Silberweiden mit grünen Spitzen, die violett werden, hängen über dem Himmel. Nur einmal bricht ein Sonnensturm los – danach wird es wieder still.',
     art:{title:'NORDLICHT',sub:'150 Schuss · Polarlicht',bg1:'#0d4a2a',bg2:'#021208',ac:'#5cff9e',ac2:'#c8a2ff'}},
@@ -574,10 +615,10 @@ const NEU_LIZENZEN=[
    desc:'Die Silberbrandung mit 80 Schuss, das Römerfeuer mit Knister-Kerzen und Krachern, die 100-mm-Kugel Eiskristall, Leuchtturm-Blinkraketen und die tanzende Wasserorgel.',
    items:['sternenmeer80','silberwirbel','kristallkugel100','blinkstern','wasserspiel','roemerfeuer']},
   {id:'goldklasse',lvl:18,cost:15000,name:'Goldklasse',
-   desc:'Kreuzfeuer mit gekreuzten Kometen, Glasbruch-Raketen und die 150-mm-Kugel Milchstraße.',
+   desc:'Kreuzfeuer mit gekreuzten Kometen, Glasbruch-Raketen, die 150-mm-Kugel Milchstraße und der Kreuzritter mit 64 Kreuzkerzen.',
    items:['kreuzfeuer','kristall','sternenstaub150']},
   {id:'sternklasse',lvl:19,cost:18000,name:'Sternklasse',
-   desc:'Vorhang auf! mit 70 Schuss Goldvorhang, die Jumbo-Rakete »Regenbogenkrone«, die Lichterkette aus 24 Glitzerkugeln, die Wendeltreppe, die sich zwölf Meter hochschraubt, und der Donnerschlag mit 20 Knallbomben.',
+   desc:'Vorhang auf! mit 70 Schuss Goldvorhang, die Jumbo-Rakete »Regenbogenkrone«, die Lichterkette aus 24 Glitzerkugeln, die Wendeltreppe, die sich zwölf Meter hochschraubt, der Donnerschlag mit 20 Knallbomben und die 150-mm-Kugel Doppelgänger mit Zwillingskometen.',
    items:['goldenerregen','regenbogenkrone','lichterkugeln','eisblume','donnerschlag']},
   {id:'festtafel',lvl:15,cost:6500,name:'Festtafel',
    desc:'Silvesterkarpfen, Tiramisu, die Neujahrstorte und die Sushi-Platte. Alles gehört in den Kühlschrank.',
@@ -586,7 +627,7 @@ const NEU_LIZENZEN=[
    desc:'Frische Austern und gekochter Hummer für das große Silvesterdinner. Nur aus dem Kühlschrank.',
    items:['austern','hummer']},
   {id:'meister',lvl:25,cost:34000,name:'Meisterklasse',
-   desc:'Das Ende der Leiter: das Kolosseum mit 140 Schuss, Knall-Kerzen und Riesenfontänen, die Jumbo-Rakete »Supernova«, die 300-mm-Kaiserkrone und das Finale Grande.',
+   desc:'Das Ende der Leiter: das Kolosseum mit 140 Schuss, Knall-Kerzen und Riesenfontänen, die Legion mit 240 Kerzen, die Jumbo-Rakete »Supernova«, die 300-mm-Kaiserkrone und das Finale Grande.',
    items:['himmelsfaecher','supernova','silvesternacht','kaiserkrone','kugelfinale','wolkenkratzer','feuerkaskade','kolosseum']}
 ];
 /* Warengruppen fuer Herausforderungen und Restposten */
@@ -629,6 +670,18 @@ NEU_LIZ_DAZU.import.push('hagelsturm'); NEU_LIZ_DAZU.grossfeuer.push('hexenkesse
 NEU_GRUPPE.batterien.push('hexenkessel','geysirfeld','wolkenkratzer');
 /* 30.09.: Mix-Batterien mit Roemischen Lichtern */
 NEU_GRUPPE.batterien.push('roemerfeuer','kolosseum');
+/* 30.09.: fuenf weitere Kerzen-Batterien und acht neue Kugeln - in die
+   Lizenzpakete ihres Levels und in die Warengruppen */
+NEU_GRUPPE.batterien.push('nachtigall','kreuzritter','katapult','piranha','legion');
+NEU_GRUPPE.kugeln.push('gluehwurm75','perlenkette100','doppelgaenger150','sirene150','goldspinne200','hummelkoenigin200','niagara200','kanonade300');
+NEU_LIZ_DAZU.verbund.push('gluehwurm75'); NEU_LIZ_DAZU.import.push('perlenkette100','nachtigall');
+NEU_LIZ_DAZU.grossfeuer.push('sirene150','katapult','goldspinne200','hummelkoenigin200'); NEU_LIZ_DAZU.profi.push('niagara200','piranha','kanonade300');
+NEU_LIZENZEN.find(l=>l.id==='goldklasse').items.push('kreuzritter');
+NEU_LIZENZEN.find(l=>l.id==='sternklasse').items.push('doppelgaenger150');
+NEU_LIZENZEN.find(l=>l.id==='meister').items.push('legion');
+/* Liste fuer die Testsektionen im Laden-Reiter (17-laptop) */
+const NEU_TEST={batterien:['roemerfeuer','kolosseum','nachtigall','kreuzritter','katapult','piranha','legion'],
+  kugeln:['goldspinne200','hummelkoenigin200','niagara200','gluehwurm75','perlenkette100','doppelgaenger150','sirene150','kanonade300']};
 /* Fontaenen-Sets (Feuerquelle, Gummibaerchen, Farbenspiel, Farbmischer,
    Wasserorgel, Feuerwand, Feuerkaskade, Popcorn) sind so breit wie ihre
    Duesenreihe - vorher 18-44 cm Karton, die Duesen standen aber bis
@@ -669,7 +722,9 @@ const ENTFERNT=['fontaene50','fontaene30','silberkaskade','feuerkaskade','jugend
   'sternenbrunnen','bengalfackel','glueckrakete','mondschein','farbfontaenen','bengalflamme','tisch','tortenfontaene',
   'leuchtstaebe','pharao','stroboblinker','hagelsturm','himmelsfaecher','silvesternacht','nordlicht','wolkenkratzer',
   /* 30.09. (Tom): Farbzauber und Wunderkerzen-Box sollen weg */
-  'wunderfarbe','wunderbox'];
+  'wunderfarbe','wunderbox',
+  /* 30.09. (Tom): Kugel 200 Bluetenkranz raus, dafuer drei neue 200-mm-Bomben */
+  'kugel200'];
 /* Ersatz fuer alte Spielstaende: jede gestrichene Sorte wird beim Laden
    zur naechsten verbliebenen - gleiche Kategorie, moeglichst gleiche Form,
    Level und Preis am naechsten (18-save.js, SORTE_NEU). Sonst stuende

@@ -1194,10 +1194,13 @@ function perleSchuss(o,A,s,opt){
   const L=art?tS:rand(1.6,2.0);
   const kugelFarbe=art==='wandelperle'?A:A;
   /* wandelperle: A endet kurz vor dem Wechsel - Dunkelphase (28.09., echt.md 1.4) */
-  for(let k=0;k<(art==='schwebeperle'?4:3);k++) psHuge.emit(o.x,y0,o.z,vx,vy,vz,kugelFarbe[0]*1.3,kugelFarbe[1]*1.3,kugelFarbe[2]*1.3,art==='wandelperle'?Math.max(0.1,Math.min(0.6,tS*0.45)-0.05):L,G,0);
-  psBig.emit(o.x,y0,o.z,vx,vy,vz,1,1,1,L*0.4,G,0);
+  /* 30.09.: Blinkkerze blinkt schon im Steigen (Modus 1); die Bombette
+     steigt nur schwach glimmend - sie ist eine kleine Bombe, keine Kugel */
+  const kMd=art==='blinkperle'?1:0, kH=art==='bombette'?0.32:art==='kometperle'?1.5:1.3;
+  for(let k=0;k<(art==='schwebeperle'?4:art==='bombette'?1:3);k++) psHuge.emit(o.x,y0,o.z,vx,vy,vz,kugelFarbe[0]*kH,kugelFarbe[1]*kH,kugelFarbe[2]*kH,art==='wandelperle'?Math.max(0.1,Math.min(0.6,tS*0.45)-0.05):L,G,kMd);
+  if(art!=='bombette') psBig.emit(o.x,y0,o.z,vx,vy,vz,1,1,1,L*0.4,G,kMd);
   /* Funkenschweif hinter der Kugel und ein kurzer Muendungsblitz */
-  const schweif=art==='wandelperle'?0.55:1;
+  const schweif=art==='wandelperle'?0.55:art==='bombette'?0.45:art==='blinkperle'?0.4:1;
   for(let i=0;i<Math.round(40*schweif*QUAL());i++) psMid.emit(o.x,y0,o.z,vx*0.9+rand(-.3,.3),vy*rand(0.45,0.98),vz*0.9+rand(-.3,.3),1,.8,.4,rand(0.8,1.5)*schweif,6,4);
   muendungsblitz(o,y0,1.2);
   SCHWEIF=alt;
@@ -1257,6 +1260,59 @@ function perleSchuss(o,A,s,opt){
       SCHWEIF=0.2; for(let k=0;k<Math.round(14*QUAL());k++){ const d=randDir(), w=rand(3,5); psMid.emit(q.x,q.y,q.z,d[0]*w,d[1]*w,d[2]*w,0.9,0.92,1,rand(0.5,0.8),3,4); }
       SCHWEIF=alt2; flash(q,FW.weiss,2.2,0.08);
       later(camera.position.distanceTo(q)/343,()=>{ const v=distVol(q); sfx.crack(v*1.5); sfx.boom(v*0.45); }); });
+  }
+  /* ---- 30.09. (Tom: fuenf neue Batterien mit Roemischen Lichtern,
+     "verschiedene Effekte"): sechs weitere echte Kerzenarten ---- */
+  else if(art==='pfeifperle'){
+    /* Pfeifkerze: die Silberkugel pfeift, solange sie steigt. Jede Kugel
+       der Phase einen Ton hoeher (opt.i) - zusammen eine Tonleiter. Oben
+       verlischt sie mit einem kleinen Funkenbuendel in B, ohne Knall. */
+    const ton=[0,2,4,5,7,9,11,12][(opt.i||0)%8]-7;
+    schall(p0,v=>sfx.pfeifTon(v*0.75,ton,{dur:Math.max(0.5,tS*0.95)}));
+    bei(tS,q=>{ const a2=SCHWEIF; SCHWEIF=0.1; for(let k=0;k<Math.round(12*QUAL());k++){ const d=randDir(), w=rand(1.5,3.2); psMid.emit(q.x,q.y,q.z,d[0]*w,d[1]*w,d[2]*w,B[0],B[1],B[2],rand(0.5,0.9),2,0); } SCHWEIF=a2; });
+  }
+  else if(art==='kometperle'){
+    /* Kreuzkerze: schwere Titankugel mit dichtem Glitzerschweif, der
+       hinter ihr stehen bleibt; im Scheitel ein trockener Knacks und sie
+       zerspringt in vier Kometen (Crossette) in Farbe B */
+    for(let t=0.05;t<tS;t+=0.05) bei(t,(q,w)=>{ for(let k=0;k<Math.round(3*QUAL());k++) psMid.emit(q.x+rand(-.08,.08),q.y,q.z+rand(-.08,.08),w[0]*0.1+rand(-.4,.4),w[1]*0.1+rand(-.5,0),w[2]*0.1+rand(-.4,.4),1,.85,.5,rand(0.6,1.1),1.2,4); });
+    bei(tS,(q,w)=>{ const [u,v]=basisBlick(q,0.5), a0=rand(0,Math.PI/2), a2=SCHWEIF; SCHWEIF=0.4;
+      for(let k=0;k<4;k++){ const a=a0+k*Math.PI/2, ca=Math.cos(a), sa=Math.sin(a), sp=rand(8,10), d=[u[0]*ca+v[0]*sa,u[1]*ca+v[1]*sa,u[2]*ca+v[2]*sa];
+        for(let j=0;j<2;j++) psHuge.emit(q.x,q.y,q.z,d[0]*sp+w[0]*0.3,d[1]*sp+w[1]*0.3,d[2]*sp+w[2]*0.3,B[0]*1.2,B[1]*1.2,B[2]*1.2,rand(0.8,1.0),G*0.6,0);
+        for(let j=0;j<Math.round(8*QUAL());j++){ const f=rand(.3,.9); psMid.emit(q.x,q.y,q.z,d[0]*sp*f,d[1]*sp*f,d[2]*sp*f,1,.85,.5,rand(0.4,0.8),3,4); } }
+      SCHWEIF=a2; psHuge.emit(q.x,q.y,q.z,0,0,0,1.5,1.5,1.4,0.06,0,0);
+      later(camera.position.distanceTo(q)/343,()=>sfx.crack(distVol(q)*1.0)); });
+  }
+  else if(art==='bombette'){
+    /* Bombettenkerze: statt der Leuchtkugel steigt eine kleine Bombe, nur
+       schwach glimmend, und zerlegt im Scheitel zu einer Paeonie in A und
+       B - ein dumpfer Plopp statt eines Knalls */
+    bei(tS,q=>{ const n=Math.round(rand(46,56)*QUAL()), a2=SCHWEIF, g=Math.sqrt(s||1); SCHWEIF=0.08;
+      for(let i=0;i<n;i++){ const d=randDir(), sp=rand(5.5,6.8)*g, c=i%3?A:B; psBig.emit(q.x,q.y,q.z,d[0]*sp,d[1]*sp,d[2]*sp,c[0]*1.1,c[1]*1.1,c[2]*1.1,rand(1.1,1.5),2.6,0); }
+      SCHWEIF=a2; flash(q,A,1.4,0.15);
+      schall(q,v=>{ sfx.boom(v*0.5); sfx.crack(v*0.35); }); });
+  }
+  else if(art==='fischperle'){
+    /* Fischkerze: oben loest sich ein Schwarm kleiner Fische aus der
+       Kugel und zischt im Zickzack davon */
+    bei(tS,q=>{ fischFlug(q,Math.round(rand(9,12)*Math.max(0.7,QUAL())),{v0:[4,6],L:[0.7,1.1],tempo:[4,6],haken:[0.05,0.1],sink:0.3,aus:0.18,funken:30,funkL:[0.2,0.35],funke:[.9,.93,1],hell:1.7,farbe:i=>i%4===3?B:A});
+      schall(q,v=>{ sfx.plopp(v*0.5,1.2); sfx.zischen(v*0.45,0.9); }); });
+  }
+  else if(art==='blinkperle'){
+    /* Blinkkerze: die Kugel blinkt schon im Steigen, im Scheitel teilt sie
+       sich in sechs bis acht Blinksterne, die langsam sinken und jeder in
+       seinem eigenen Takt weiterblinken */
+    bei(tS,q=>{ const a2=SCHWEIF; SCHWEIF=0;
+      for(let k=0;k<Math.round(rand(6,8));k++){ const d=randDir(), w=rand(1.8,3); psBig.emit(q.x,q.y,q.z,d[0]*w,d[1]*w,d[2]*w,B[0]*1.2,B[1]*1.2,B[2]*1.2,rand(1.8,2.6),0.9,1); }
+      SCHWEIF=a2; schall(q,v=>sfx.crackle(v*0.25)); });
+  }
+  else if(art==='weidenperle'){
+    /* Weidenkerze: dicke Brokatkugel; im Scheitel faellt sie als kleine
+       goldene Trauerweide auseinander - lange Spuren, die langsam
+       herabhaengen und rieseln */
+    bei(tS,(q,w)=>{ const a2=SCHWEIF; SCHWEIF=1.1;
+      for(let k=0;k<Math.round(rand(26,32)*QUAL());k++){ const d=randDir(), sp=rand(2.2,3.6); psBig.emit(q.x,q.y,q.z,d[0]*sp+w[0]*0.2,d[1]*sp*0.7+0.6,d[2]*sp+w[2]*0.2,A[0]*0.95,A[1]*0.8,A[2]*0.5,rand(2.4,3.2),1.6,4); }
+      SCHWEIF=a2; schall(q,v=>sfx.rieseln(v*0.5,3)); });
   }
   if(FW_LOG) FW_LOG.push({t:FW_UHR,art:'perle',kal:0,pw:0,sz:s||1,eff:art||'perle',A,B,stufenEff:[],hoehe:0,brueche:1,groesste:s||1,ang:+ang.toFixed(3),dir:+dir.toFixed(3),x:+o.x.toFixed(2),y:+y0.toFixed(2),z:+o.z.toFixed(2),v:[+vx.toFixed(2),+vy.toFixed(2),+vz.toFixed(2)],tag});
   if(typeof bruchGesehen==='function') bruchGesehen(art||'perle');

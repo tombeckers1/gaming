@@ -34,7 +34,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     bb.S.level=30; bb.S.money=9e6; bb.LIZENZEN.forEach(l=>bb.buyLizenz(l.id));
     /* 29.09. (Tom): 40 Produkte aus dem Sortiment genommen - Stichprobe */
     o.weg=['batterie25','stinkbombe','fontaene50','hagelsturm','nordlicht','wolkenkratzer','silvesternacht','tisch','pharao','knallteppich','zfaecher','sortiment'].filter(t=>P[t]||bb.LIZENZEN.some(l=>l.items.includes(t))||bb.ORDER.includes(t));
-    const NEU=['knatter','zfaecher','kometen','finale','pfeifraketen','titanraketen','kugel200','goldgeysir','feuersaeule','donnerwand','kugel300','jumbogold','jumboleiter','monsterboeller','atomboeller','fontaene30','fontaene50'].filter(t=>P[t]);
+    const NEU=['knatter','zfaecher','kometen','finale','pfeifraketen','titanraketen','goldspinne200','goldgeysir','feuersaeule','donnerwand','kugel300','jumbogold','jumboleiter','monsterboeller','atomboeller','fontaene30','fontaene50'].filter(t=>P[t]);
     o.neu={};
     for(let i=0;i<4;i++) bb.regalStellen('hoch');
     /* die Riesenverbunde brauchen seit 25.09. das Grossverbund-Regal */
@@ -75,7 +75,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     pruef('NEU',v.marge>=2.1&&v.marge<=2.6,t+' Marge '+v.marge+' faellt aus der Reihe');
     pruef('NEU',v.gruppe!=='sonstiges',t+' in keiner Warengruppe');
   }
-  pruef('NEU',r.neu.kugel200&&r.neu.kugel200.st==='moerser','Kugel 200 gehoert in den Moerser');
+  pruef('NEU',r.neu.goldspinne200&&r.neu.goldspinne200.st==='moerser','Kugel 200 Goldspinne gehoert in den Moerser');
   pruef('NEU',r.neu.titanraketen&&r.neu.titanraketen.st==='rampe'&&r.neu.pfeifraketen.st==='rampe'&&r.neu.jumbogold.st==='rampe'&&r.neu.jumboleiter.st==='rampe','Raketen gehoeren in die Roehren');
   for(const [t,[soll,ist]] of Object.entries(r.schuss))
     pruef('SCHUSS',Math.abs(ist-soll)<=Math.max(2,soll*0.05),t+': Name sagt '+soll+', Drehbuch hat '+ist);

@@ -1349,3 +1349,98 @@ SHOWS.kolosseum=()=>show({basis:{pw:4.0,sz:1.33,th:'arena'},rampe:{sz:[0.95,1.3]
   {n:6,je:6,muster:'gerade',eff:'titanschlag',kal:'riesig',pw:4,farbe:1,pause:5}
 ]);
 SIGNATUR.kolosseum={eff:'knallperle',text:'Knall-Kerzen, Riesenfontänen und Titanschläge – die Arena bebt'};
+
+/* =========================================================
+   Fuenf weitere Batterien mit Roemischen Lichtern (30.09., Tom: "5 neue
+   Batterien mit roemischen Lichtern, verschiedene Effekte"). Jede hat
+   ihre eigene Kerzenart als Herz (perleSchuss): Pfeif-, Kreuz-,
+   Bombetten-, Fisch- und im Extrem alle zusammen mit Weiden- und
+   Blinkkerzen. Grundstufe passend zum Level (Steigerung).
+   ========================================================= */
+Object.assign(THEMEN,{
+  nachtigall:[['silber','weiss'],['tuerkis','silber'],['weiss','gold']],
+  ritter:[['silber','rot'],['gold','silber'],['rot','weiss']],
+  katapult:[['rot','gruen'],['blau','gold'],['magenta','limette'],['orange','violett']],
+  piranha:[['silber','rot'],['tuerkis','silber'],['rot','gold']],
+  legion:[['gold','rot'],['silber','weiss'],['gold','weiss'],['rot','gold']]
+});
+/* Level 17: Nachtigall. Pfeifkerzen singen eine Tonleiter ueber einer
+   Silberfontaene, Pfeifsterne antworten, im Finale zwoelf Pfeifkerzen
+   auf Schlag mit Blinkbruechen. Klang: fast nur Pfeifen, kaum Knall. */
+SHOWS.nachtigall=()=>show({basis:{pw:0.6,sz:1.05,th:'nachtigall'},rampe:{sz:[0.9,1.2],pw:[0,1.5],hell:[0.85,1.25],kurve:'spaet'}},[
+  {n:5,perle:true,perleEff:'pfeifperle',gap:0.9,muster:'gerade',rohrFolge:[0,-0.6,0.6,-0.3,0.3],farbe:0,boden:{k:'fountain',gt:5,gh:0.6,A:'silber',B:'weiss'}},
+  {n:8,gap:0.3,muster:'v',ang:0.3,eff:'pfeifsterne',kal:'klein',pw:-1,farbe:1,pause:0.6},
+  {n:9,perle:true,perleEff:'pfeifperle',gap:0.22,muster:'treppe',ang:0.25,farbe:2},
+  {mit:true,n:4,gap:0.8,muster:'gerade',eff:'chrys',kal:'mittel',pw:0,farbe:0,pause:1.2},
+  {n:12,perle:true,perleEff:'pfeifperle',gap:0.08,muster:'schlag',ang:0.3,farbe:1,
+    boden:[{k:'fountain',gt:4,gh:0.9,x:-0.2,A:'silber',B:'weiss'},{k:'fountain',gt:4,gh:0.9,x:0.2,A:'silber',B:'weiss'}]},
+  {mit:true,n:4,gap:0.5,muster:'mitte',ang:0.3,eff:'strobe',kal:'mittel',pw:1,farbe:2,pause:4}
+]);
+SIGNATUR.nachtigall={eff:'pfeifperle',text:'Pfeifkerzen singen eine Tonleiter über der Silberfontäne'};
+
+/* Level 18: Kreuzritter. Kreuzkerzen (Titankugel mit Glitzerschweif, oben
+   vier Kometen) im Wechsel mit Crossettes und trockenen Krachern; dazu
+   Goldfontaene und Vulkan; Finale: 16 Kreuzkerzen auf Schlag mit
+   Titanschlaegen im W. */
+SHOWS.kreuzritter=()=>show({basis:{pw:1.1,sz:1.09,th:'ritter'},rampe:{sz:[0.9,1.25],pw:[0,2],hell:[0.85,1.3],kurve:'spaet'}},[
+  {n:6,perle:true,perleEff:'kometperle',gap:0.7,muster:'aussen',ang:0.2,farbe:0,boden:{k:'fountain',gt:5,gh:0.8,A:'gold',B:'weiss'}},
+  {n:10,gap:0.12,muster:'x',ang:0.38,eff:'crossette',kal:'klein',pw:0,farbe:1,pause:0.8},
+  {n:12,perle:true,perleEff:'kometperle',gap:0.35,muster:'kreis',ang:0.25,farbe:2},
+  {mit:true,n:6,gap:0.6,muster:'paar',ang:0.3,eff:'salut',kal:'klein',pw:0,pause:1.0},
+  {n:6,gap:0.9,muster:'gerade',eff:'palme',kal:'gross',pw:1,farbe:1,boden:{k:'volcano',gt:5,A:'gold',B:'rot'}},
+  {n:16,perle:true,perleEff:'kometperle',gap:0.1,muster:'schlag',ang:0.35,farbe:0},
+  {mit:true,n:8,gap:0.15,muster:'w',ang:0.35,eff:'titanschlag',kal:'mittel',pw:1,farbe:2,pause:4}
+]);
+SIGNATUR.kreuzritter={eff:'kometperle',text:'Kreuzkerzen: Titankugeln zerspringen oben in vier Kometen'};
+
+/* Level 20: Katapult. Bombettenkerzen - kleine Bomben aus dem Rohr, die
+   oben zu bunten Paeonien zerlegen, jede Kugel ein anderes Farbpaar;
+   dazwischen grosse Dahlien und Kamuros, Finale 24 Bombetten auf Schlag. */
+SHOWS.katapult=()=>show({basis:{pw:2.2,sz:1.18,th:'katapult'},rampe:{sz:[0.9,1.3],pw:[0,2],hell:[0.85,1.35],kurve:'spaet'}},[
+  {n:8,perle:true,perleEff:'bombette',gap:0.5,muster:'z',ang:0.3,farbe:0,wechsel:true,boden:{k:'volcano',gt:4,A:'rot',B:'gold'}},
+  {n:12,perle:true,perleEff:'bombette',gap:0.18,muster:'spirale',ang:0.35,farbe:1,wechsel:true},
+  {mit:true,n:3,gap:1.2,muster:'gerade',eff:'dahlie',kal:'gross',pw:1,farbe:2,pause:0.8},
+  {n:15,takt:[0.15,0.15,0.6],perle:true,perleEff:'bombette',muster:'paar',ang:0.3,farbe:3},
+  {n:5,gap:0.9,muster:'aussen',ang:0.3,eff:'kamuro',kal:'mittel',farbe:1,pause:1.0},
+  {n:24,perle:true,perleEff:'bombette',gap:0.06,muster:'schlag',ang:0.4,farbe:2,wechsel:true,
+    boden:[{k:'fountain',gt:3.5,gh:1.0,x:-0.25,A:'gold',B:'rot'},{k:'fountain',gt:3.5,gh:1.0,x:0.25,A:'gold',B:'gruen'}]},
+  {mit:true,n:3,gap:0.3,muster:'mitte',ang:0.25,eff:'dahlie',kal:'riesig',pw:2,farbe:0,pause:4}
+]);
+SIGNATUR.katapult={eff:'bombette',text:'Bombettenkerzen: kleine Bomben aus dem Rohr, oben bunte Päonien'};
+
+/* Level 22: Piranha. Fischkerzen - oben loest sich ein Schwarm Fische -
+   ueber einer Silberfontaene, Fischschwaerme in der Welle, knisternde
+   Dracheneier, Pferdeschweife ueber Riesenfontaenen; Finale 24 Fisch-
+   kerzen auf Schlag und zwoelf Dracheneier. */
+SHOWS.piranha=()=>show({basis:{pw:3.15,sz:1.255,th:'piranha'},rampe:{sz:[0.9,1.3],pw:[0,2.5],hell:[0.85,1.35],kurve:'spaet'}},[
+  {n:6,perle:true,perleEff:'fischperle',gap:0.8,muster:'mitte',ang:0.2,farbe:0,boden:{k:'fountain',gt:6,gh:0.7,A:'silber',B:'weiss'}},
+  {n:14,gap:0.14,muster:'welle',ang:0.35,eff:'fischschwarm',kal:'klein',pw:-1,farbe:1,pause:0.6},
+  {n:16,perle:true,perleEff:'fischperle',gap:0.3,muster:'zufall',ang:0.2,farbe:2},
+  {mit:true,n:8,gap:0.55,muster:'v',ang:0.35,eff:'drachenei',kal:'mittel',farbe:0,pause:1.0},
+  {n:10,gap:1.0,muster:'gerade',eff:'rossschweif',kal:'gross',farbe:1,boden:[{k:'riesen',x:-0.3,gt:6,gh:0.8,A:'silber',B:'weiss',C:FW.silber},{k:'riesen',x:0.3,gt:6,gh:0.8,A:'silber',B:'weiss',C:FW.silber,t:0.5}]},
+  {n:24,perle:true,perleEff:'fischperle',gap:0.07,muster:'schlag',ang:0.35,farbe:0},
+  {mit:true,n:12,gap:0.18,muster:'aussen',ang:0.4,eff:'drachenei',kal:'gross',pw:2,farbe:2,pause:4.5}
+]);
+SIGNATUR.piranha={eff:'fischperle',text:'Fischkerzen: oben schwimmt ein Schwarm Silberfische davon'};
+
+/* Level 26: Legion. Das Extrem: alle Kerzenarten als Heer - Weidenkerzen
+   zwischen zwei Riesenfontaenen, ein Wischer aus Blinkkerzen, Riesen-
+   Kamuros, ein Kreis aus Kreuzkerzen ueber dem Vulkan, Bombetten im W,
+   Pfeifkerzen darunter, Fischkerzen im V mit Titanschlaegen - und ein
+   Finale aus 48 Weidenkerzen, 36 Knallkerzen und zwoelf Riesen-Kamuros. */
+SHOWS.legion=()=>show({basis:{pw:4.2,sz:1.36,th:'legion'},rampe:{sz:[0.95,1.35],pw:[0,3],hell:[0.9,1.45],kurve:'spaet'}},[
+  {n:12,perle:true,perleEff:'weidenperle',gap:0.45,muster:'aussen',ang:0.18,farbe:0,
+    boden:[{k:'riesen',x:-0.35,gt:7,gh:0.8,A:'gold',B:'weiss',C:FW.gold},{k:'riesen',x:0.35,gt:7,gh:0.8,A:'gold',B:'weiss',C:FW.gold,t:0.5}]},
+  {n:24,perle:true,perleEff:'blinkperle',gap:0.12,muster:'wischer',ang:0.35,farbe:1},
+  {mit:true,n:6,gap:0.8,muster:'gerade',eff:'kamuro',kal:'riesig',pw:3,farbe:2,pause:0.8},
+  {n:30,takt:[0.1,0.1,0.1,0.5],perle:true,perleEff:'kometperle',muster:'kreis',ang:0.3,farbe:3,boden:{k:'volcano',gt:6,A:'rot',B:'gold'}},
+  {n:20,perle:true,perleEff:'bombette',gap:0.2,muster:'w',ang:0.35,farbe:0,wechsel:true},
+  {mit:true,n:20,perle:true,perleEff:'pfeifperle',gap:0.2,muster:'zufall',ang:0.2,farbe:1,pause:0.6},
+  {n:24,perle:true,perleEff:'fischperle',gap:0.15,muster:'v',ang:0.35,farbe:1},
+  {mit:true,n:8,gap:0.45,muster:'paar',ang:0.35,eff:'titanschlag',kal:'gross',pw:3,farbe:2,pause:1.5},
+  {n:48,perle:true,perleEff:'weidenperle',gap:0.05,muster:'schlag',ang:0.4,farbe:2,
+    boden:[{k:'riesen',x:-0.35,gt:5,gh:1.0,A:'gold',B:'weiss',C:FW.gold},{k:'riesen',x:0.35,gt:5,gh:1.0,A:'gold',B:'weiss',C:FW.gold}]},
+  {mit:true,n:36,perle:true,perleEff:'knallperle',gap:0.07,muster:'x',ang:0.35,farbe:0},
+  {mit:true,n:12,gap:0.25,muster:'mitte',ang:0.3,eff:'kamuro',kal:'riesig',pw:4,farbe:2,pause:6}
+]);
+SIGNATUR.legion={eff:'weidenperle',text:'Ein Heer aus Kerzen: Weiden-, Blink-, Kreuz-, Bombetten-, Pfeif- und Fischkerzen'};

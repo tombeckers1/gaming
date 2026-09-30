@@ -1319,7 +1319,10 @@ function lapZeichnen(body){
         `</div><button class="${S.test?'red':''}" data-a="test">${S.test?'Testmodus aus':'Testmodus an'}</button></div>`+
       (FW_DEV?`<div class="row"><div class="rm"><b>Feuerwerk-Teststation <span class="warn">(nur Entwicklung)</span></b><small>Macht Nacht und stellt von jedem Feuerwerk einen Karton neben das Zündpult. Du stehst direkt davor.</small>${fwTestAn?'<small class="warn">Aktiv. Kartons neu stapeln füllt alles wieder auf.</small>':''}</div>`+
         (fwTestAn?`<div class="steps"><button data-a="fwtestneu">Neu stapeln</button><button class="red" data-a="fwtest">Aus</button></div>`:`<button data-a="fwtest">Einschalten</button>`)+'</div>'+
-        `<div class="row"><div class="rm"><b>Feuerwerk-Vorführung <span class="warn">(nur Entwicklung)</span></b><small>Alle Feuerwerke nach Level, eins nach dem anderen: Leertaste zündet das nächste, der Name steht groß oben. Pfeile vor/zurück, R nochmal, 1 gut, 2 ändern, L Liste, B beenden.</small></div><button data-a="vorfuehrung">Starten</button></div>`:'')+
+        `<div class="row"><div class="rm"><b>Feuerwerk-Vorführung <span class="warn">(nur Entwicklung)</span></b><small>Alle Feuerwerke nach Level, eins nach dem anderen: Leertaste zündet das nächste, der Name steht groß oben. Pfeile vor/zurück, R nochmal, 1 gut, 2 ändern, L Liste, B beenden.</small></div><button data-a="vorfuehrung">Starten</button></div>`+
+        /* 30.09. (Tom): eigene Testsektionen fuer die neuen Batterien und Kugeln */
+        `<div class="row"><div class="rm"><b>Neue Batterien testen <span class="warn">(nur Entwicklung)</span></b><small>Nur die ${NEU_TEST.batterien.length} neuen Batterien mit Römischen Lichtern, nacheinander auf der großen Anlage: ${NEU_TEST.batterien.filter(t=>P[t]).map(t=>P[t].short).join(', ')}.</small></div><button data-a="vfbatt">Starten</button></div>`+
+        `<div class="row"><div class="rm"><b>Neue Kugelbomben testen <span class="warn">(nur Entwicklung)</span></b><small>Nur die ${NEU_TEST.kugeln.length} neuen Kugelbomben: ${NEU_TEST.kugeln.filter(t=>P[t]).map(t=>P[t].short).join(', ')}.</small></div><button data-a="vfkugel">Starten</button></div>`:'')+
       `<div class="row"><div class="rm"><b>Spielstand</b><small>Wird automatisch gespeichert.</small></div><button class="ghost" data-a="reset">${resetArm?'Wirklich löschen?':'Spielstand löschen'}</button></div>`;
   }
   body.innerHTML=h;
@@ -1409,6 +1412,8 @@ function lapKlick(e,imHandy){
   else if(a==='test'){ toggleTest(); }
   else if(a==='fwtest'){ fwTestSchalten(); return; }
   else if(a==='vorfuehrung'){ vorfuehrungAn(); return; }
+  else if(a==='vfbatt'){ vorfuehrungAn(NEU_TEST.batterien); return; }
+  else if(a==='vfkugel'){ vorfuehrungAn(NEU_TEST.kugeln); return; }
   else if(a==='fwtestneu'){ const n=fwTestStapeln(); toast(`${n} Kartons neu gestapelt.`); }
   else if(a==='reset'){ if(!resetArm) resetArm=true; else { try{ localStorage.removeItem(KEY); }catch(err){} location.reload(); return; } }
   renderLaptop();

@@ -117,12 +117,17 @@ function fwTestSchalten(){
 let vfIdx=0, vfListe=[], vfEl=null, vfLetzt=null, vfNoten={}, vfListeAuf=false;
 const VF_KEY='bb_vorfuehrung', VF_ART={tisch:'Tisch',rampe:'Rohre',moerser:'Mörser'};
 function vfLaden(){ try{ const d=JSON.parse(localStorage.getItem(VF_KEY)||'{}'); vfIdx=d.i|0; vfNoten=d.n||{}; }catch(e){ vfIdx=0; vfNoten={}; } }
-function vfMerken(){ try{ localStorage.setItem(VF_KEY,JSON.stringify({i:vfIdx,n:vfNoten})); }catch(e){} }
+/* vfSonder: eine Testsektion (nur die neuen Batterien oder Kugeln) - ihr
+   Platz in der Liste ersetzt nicht den der ganzen Vorfuehrung */
+let vfSonder=null;
+function vfMerken(){ try{ let i=vfIdx; if(vfSonder){ const d=JSON.parse(localStorage.getItem(VF_KEY)||'{}'); i=d.i|0; }
+  localStorage.setItem(VF_KEY,JSON.stringify({i,n:vfNoten})); }catch(e){} }
 function vorfuehrungSchalten(){ if(!FW_DEV) return; if(vfAn) vorfuehrungAus(); else vorfuehrungAn(); }
-function vorfuehrungAn(){
+function vorfuehrungAn(nur){
   if(fwTestAn) fwTestSchalten();
   if(!S.up.testfeld){ S.up.shop_halb=true; S.up.testfeld=true; if(typeof applyZonen==='function') applyZonen(); }
-  vfListe=fwTestProdukte(); vfLaden(); vfIdx=clamp(vfIdx,0,Math.max(0,vfListe.length-1)); vfLetzt=null;
+  vfSonder=Array.isArray(nur)?nur.filter(t=>P[t]&&stationOf(t)):null;
+  vfListe=vfSonder||fwTestProdukte(); vfLaden(); if(vfSonder) vfIdx=0; vfIdx=clamp(vfIdx,0,Math.max(0,vfListe.length-1)); vfLetzt=null;
   vfAn=true; lastF=-1; applyTOD(); clearStations(); vfAnlageBauen(); vfBelegt={};
   /* Uhr, Geld, Tutorial und Zielpfeil stoeren beim Zusehen - weg damit */
   if(!document.getElementById('vfStil')){ const st=document.createElement('style'); st.id='vfStil';

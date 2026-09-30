@@ -66,7 +66,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     return {ruhig:{step:st(ruhig.map(x=>x[0])),render:st(ruhig.map(x=>x[1]))},
       feuer:{step:st(feuer.map(x=>x[0])),render:st(feuer.map(x=>x[1])),gesamt:st(feuer.map(x=>x[0]+x[1]))},
       shader:{vorher:prog0,neu:maxProg-prog0}, uploadKB:{mittel:+(upl/400/1024).toFixed(0),max:+(maxUpl/1024).toFixed(0)},
-      partikel:Math.max(...lebend), blitzAus, lkw, spitzen:feuer.map((x,i)=>[i,Math.round(x[1])]).sort((a,b)=>b[1]-a[1]).slice(0,4)};
+      partikel:Math.max(...lebend), blitzAus, lkw, erstes:Math.round(feuer[0][1]), spitzen:feuer.map((x,i)=>[i,Math.round(x[1])]).sort((a,b)=>b[1]-a[1]).slice(0,4)};
   });
   console.log('RUHIG   ',JSON.stringify(r.ruhig));
   console.log('FEUER   ',JSON.stringify(r.feuer));
@@ -74,6 +74,9 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   console.log('DANACH  ',JSON.stringify({blitzAus:r.blitzAus,lkw:r.lkw}));
   if(process.argv[3]!=='basis'){
     pruef('RUCKLER',r.feuer.render.max<r.feuer.render.p50*2,'Einzelbild '+r.feuer.render.max+' ms bei Median '+r.feuer.render.p50+' ms');
+    /* 30.09.: das erste Feuerwerksbild eigens - ohne Vorzeichnen der
+       Blitzlichter lag es bei 1,9x Median und schluepfte unter der 2x-Grenze durch */
+    pruef('ERSTES',r.erstes<r.feuer.render.p50*1.5,'erstes Feuerwerksbild '+r.erstes+' ms bei Median '+r.feuer.render.p50+' ms');
     pruef('BLITZ',r.blitzAus,'Blitzlichter bleiben nach dem Feuerwerk an (kostet im Laden Rechenzeit)');
     pruef('LKW',r.lkw.neu===0&&r.lkw.lampe>0.5,'LKW dockt an: '+JSON.stringify(r.lkw));
     pruef('SHADER',r.shader.neu===0,r.shader.neu+' Shader waehrend des Feuerwerks neu uebersetzt (Ruckler)');

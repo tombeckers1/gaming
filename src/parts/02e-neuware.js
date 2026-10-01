@@ -694,7 +694,7 @@ LICHT_MUSTER.forEach(([e,nm,form,F,txt],k)=>{ const nr=String(k+1).padStart(2,'0
     art:{title:nm.toUpperCase(),sub:'Licht '+nr+' · 3 Schuss',bg1:'#1c2440',bg2:'#05070f',ac:'#ffe08a',ac2:'#8ad8ff'}}; });
 /* 01.10. (Tom): 10 Kugel-Muster mit eigenstaendigen Effekten (14j) -
    nur fuer die Testsektion */
-[['donnerschlag','Donnerschlag',200],['rossschweif','Rossschweif',150],['blitzgewitter','Blitzgewitter',200],['zeitregen','Zeitregen',200],['magmakrone','Magmakrone',200],
+[['donnerschlag','Donnerschlag',200],['pferdeschweif','Rossschweif',150],['blitzgewitter','Blitzgewitter',200],['zeitglitzer','Zeitregen',200],['magmakrone','Magmakrone',200],
  ['brokatschirm','Brokatschirm',200],['drachenherz','Drachenherz',150],['dreischlag','Dreischlag',200],['meteorschauer','Meteorschauer',150],['wechselblinker','Wechselblinker',150]].forEach(([e,nm,mm],k)=>{
   const nr=String(k+1).padStart(2,'0'), gross=mm===200;
   NEUWARE['km_'+e]={name:'Kugel-Muster '+nr+' · '+nm+' '+mm+' mm',short:nm,cat:2,lvl:15,shape:'shell',dims:gross?[0.21,0.25,0.21]:[0.165,0.2,0.165],grid:gross?[3,1,1]:[4,1,1],box:gross?2:3,cost:gross?40:28,market:gross?94.99:64.99,weight:3,hype:60,risk:9,noOrder:true,
@@ -702,7 +702,7 @@ LICHT_MUSTER.forEach(([e,nm,form,F,txt],k)=>{ const nr=String(k+1).padStart(2,'0
     art:{title:nm.toUpperCase(),sub:'Kugel-Muster '+nr+' · '+mm+' mm',bg1:'#2a1c40',bg2:'#07040f',ac:'#ffd23f',ac2:'#ff8ac8'}}; });
 /* Liste fuer die Testsektionen im Laden-Reiter (17-laptop) */
 const NEU_TEST={batterien:['glutschmiede'].concat(LICHT_MUSTER.map(x=>'lm_'+x[0])),
-  kugeln:['donnerschlag','rossschweif','blitzgewitter','zeitregen','magmakrone','brokatschirm','drachenherz','dreischlag','meteorschauer','wechselblinker'].map(e=>'km_'+e)};
+  kugeln:['donnerschlag','pferdeschweif','blitzgewitter','zeitglitzer','magmakrone','brokatschirm','drachenherz','dreischlag','meteorschauer','wechselblinker'].map(e=>'km_'+e)};
 /* Fontaenen-Sets (Feuerquelle, Gummibaerchen, Farbenspiel, Farbmischer,
    Wasserorgel, Feuerwand, Feuerkaskade, Popcorn) sind so breit wie ihre
    Duesenreihe - vorher 18-44 cm Karton, die Duesen standen aber bis

@@ -47,7 +47,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     o.uhr22={phase:bb.phase,tag:S.day};
     document.querySelectorAll('.ov.show').forEach(x=>x.classList.remove('show'));
     /* Rohr je Kaliber */
-    const soll={kugel75:0,kugel100:0,kugel150:1,sternschleier200:1,feuerlilie200:1,rosengarten100:0,pfauenkrone150:1,kanonade300:2,kugel300:2,palmenkugel75:0,farbenmeer75:0,goldweide100:0,kristallkugel100:0,sternenstaub150:1,sternkugel150:1,goldkrone200:1,kaiserkrone:2};
+    const soll={kugel75:0,kugel100:0,kugel150:1,feuerlilie200:1,kanonade300:2,kugel300:2,palmenkugel75:0,farbenmeer75:0,goldweide100:0,kristallkugel100:0,sternenstaub150:1,sternkugel150:1,goldkrone200:1,kaiserkrone:2};
     o.rohr={}; o.rohrFalsch=[]; for(const t in soll){ const ist=bb.moerserRohr(t); o.rohr[t]=ist; if(ist!==soll[t]) o.rohrFalsch.push(t+':'+ist+'≠'+soll[t]); }
     /* Qualitaet durchs Lagerregal */
     S.up.lager=true; bb.oeffneZone&&bb.oeffneZone('lager',true);

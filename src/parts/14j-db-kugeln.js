@@ -483,9 +483,9 @@ EFF.donnerschlag=function(p,A,B,s,r){
       kgStern(psBig,p,v,[1.45,1.02,.45],rand(3.2,4.4),1.1,4,0.3); }
     schall(p,v=>later(0.4,()=>sfx.rieseln(v*0.55,4))); });
 };
-/* K2 Rossschweif: die Sterne werden nur schwach ausgestossen und stuerzen
+/* K2 Pferdeschweif (Rossschweif): die Sterne werden nur schwach ausgestossen und stuerzen
    als dichter, breiter Goldfall herab - wie der Schweif eines Pferdes */
-EFF.rossschweif=function(p,A,B,s,r){
+EFF.pferdeschweif=function(p,A,B,s,r){
   const q=QUAL(), S=s/4, G=3.6;
   for(let i=0;i<Math.round(110*S*q*1.5);i++){ const a=rand(0,Math.PI*2), el=rand(-0.2,0.9), w=rand(2.5,7)*s*0.6, v=[Math.cos(a)*Math.cos(el)*w,Math.sin(el)*w,Math.sin(a)*Math.cos(el)*w];
     kgStern(psBig,p,v,i%6?[1.05,.72,.3]:kgMal(A,1.2),rand(2.6,3.4),G,i%3?0:4,0.65); }
@@ -500,9 +500,9 @@ EFF.blitzgewitter=function(p,A,B,s,r){
   SCHWEIF=a;
   schall(p,v=>{ sfx.boom(v*0.6); later(0.3,()=>sfx.rieseln(v*0.5,3.2)); });
 };
-/* K4 Zeitregen: gedaempfte Goldsterne sinken langsam, und jeder flammt
+/* K4 Zeitglitzer (Zeitregen): gedaempfte Goldsterne sinken langsam, und jeder flammt
    zu zufaelligen Zeiten knisternd auf - es regnet Glitzer */
-EFF.zeitregen=function(p,A,B,s,r){
+EFF.zeitglitzer=function(p,A,B,s,r){
   const q=QUAL(), S=s/4, G=1.5;
   for(let i=0;i<Math.round(70*S*q*1.5);i++){ const d=randDir(), w=rand(7,9.5)*s, v=kgMal(d,w), T=rand(3.6,4.6);
     kgStern(psBig,p,v,[1.15,.78,.32],T,G,0,0.18);
@@ -570,14 +570,14 @@ EFF.wechselblinker=function(p,A,B,s,r){
   for(let t=0.15;t<T;t+=1/30){ const tt=t; kgSpaeter(tt,()=>{ for(const [h,o] of H){ const ph=((tt+o)/0.3)%1; kgFarbe(h,ph<0.38?cA:ph<0.5?dunkel:ph<0.88?cB:dunkel); } }); }
   schall(p,v=>{ sfx.boom(v*0.6); later(0.6,()=>sfx.rieseln(v*0.35,2.5)); });
 };
-Object.assign(EFF_SCHWEIF,{donnerschlag:0,rossschweif:0.65,blitzgewitter:0,zeitregen:0.18,magmakrone:0.3,brokatschirm:0.7,drachenherz:0.08,dreischlag:0.35,meteorschauer:0.35,wechselblinker:0.04});
-Object.assign(EFF_FAMILIE,{donnerschlag:'knall',rossschweif:'haenger',blitzgewitter:'glitzer',zeitregen:'glitzer',magmakrone:'flamme',brokatschirm:'haenger',drachenherz:'knister',dreischlag:'kugel',meteorschauer:'komet',wechselblinker:'kugel'});
+Object.assign(EFF_SCHWEIF,{donnerschlag:0,pferdeschweif:0.65,blitzgewitter:0,zeitglitzer:0.18,magmakrone:0.3,brokatschirm:0.7,drachenherz:0.08,dreischlag:0.35,meteorschauer:0.35,wechselblinker:0.04});
+Object.assign(EFF_FAMILIE,{donnerschlag:'knall',pferdeschweif:'haenger',blitzgewitter:'glitzer',zeitglitzer:'glitzer',magmakrone:'flamme',brokatschirm:'haenger',drachenherz:'knister',dreischlag:'kugel',meteorschauer:'komet',wechselblinker:'kugel'});
 /* Muster-Liste (Produkte in 02e): id, Effekt, Kaliber 3=150/4=200 mm, Farben, Aufstieg */
 const KUGEL_MUSTER=[
   ['donnerschlag',4,'weiss','gold','titanspur','Titanschlag mit Donner, danach rieselt ein Goldregen'],
-  ['rossschweif',3,'gold','orange','gold','Dichter, breiter Goldfall wie ein Pferdeschweif'],
+  ['pferdeschweif',3,'gold','orange','gold','Dichter, breiter Goldfall wie ein Pferdeschweif'],
   ['blitzgewitter',4,'weiss','himmel','silber','Hunderte weiße Blinksterne – eine flirrende Gewitterwolke'],
-  ['zeitregen',4,'gold','zitrone','gold','Sinkende Goldsterne, die zufällig knisternd aufflammen'],
+  ['zeitglitzer',4,'gold','zitrone','gold','Sinkende Goldsterne, die zufällig knisternd aufflammen'],
   ['magmakrone',4,'orange','rot','glut','Glühende Brocken kühlen im Fallen von Weißgelb zu Dunkelrot'],
   ['brokatschirm',4,'gold','rot','gold','Flacher, breiter Brokatschirm, der an den Rändern herabhängt'],
   ['drachenherz',3,'rot','gold','glut','Rote Päonie mit knisterndem Herz aus Goldkugeln'],

@@ -29,6 +29,7 @@ function buildProduct(t,roh){
   else if(sh==='cylinder'){
     const R=w/2, HH=h*0.86, C=2*Math.PI*R;
     const wt=wrapTex(C,HH,a,(g,W,Hh)=>{
+      if(p.cat&&typeof designZeichnen==='function'){ for(let k=0;k<2;k++){ g.save(); g.translate(k*W/2,0); g.beginPath(); g.rect(0,0,W/2,Hh); g.clip(); drawFront(g,W/2,Hh,a,p.cat); g.restore(); } return; }
       const gr=g.createLinearGradient(0,0,0,Hh); gr.addColorStop(0,a.bg1); gr.addColorStop(1,a.bg2); g.fillStyle=gr; g.fillRect(0,0,W,Hh);
       for(let i=0;i<30;i++){ g.fillStyle=pick([a.ac,a.ac2,'#fff','#8cff8c']); g.save(); g.translate(Math.random()*W,Math.random()*Hh*0.5); g.rotate(Math.random()*3); g.fillRect(-5,-2,10,4); g.restore(); }
       for(let k=0;k<2;k++){ const cx=W*(0.25+k*0.5);
@@ -36,7 +37,7 @@ function buildProduct(t,roh){
         fitFont(g,a.sub,W*0.4,Math.round(Hh*0.085),BAR); g.fillStyle='#fff'; g.fillText(a.sub,cx,Hh*0.72); }
       g.fillStyle=a.ac; g.fillRect(0,Hh*0.9,W,Hh*0.1); g.fillStyle=a.ac2; g.fillRect(0,0,W,Hh*0.05);
     });
-    parts.push({geo:merge([{geo:new THREE.CylinderGeometry(R,R,HH,26,1,true),m:tm(0,HH/2,0)}]),mat:new THREE.MeshStandardMaterial({map:wt,roughness:0.5,side:THREE.DoubleSide})});
+    parts.push({geo:merge([{geo:new THREE.CylinderGeometry(R,R,HH,26,1,true,-Math.PI/2),m:tm(0,HH/2,0)}]),mat:new THREE.MeshStandardMaterial({map:wt,roughness:0.5,side:THREE.DoubleSide})});
     vc.push({geo:new THREE.CylinderGeometry(R,R,0.004,26),m:tm(0,0.002,0),color:0x2a2a30});
     vc.push({geo:new THREE.CylinderGeometry(R*0.3,R*1.02,h*0.13,26),m:tm(0,HH+h*0.065,0),color:0xe8c35a});
     vc.push({geo:new THREE.CylinderGeometry(0.0022,0.0022,h*0.1,5),m:tm(0,HH+h*0.16,0),color:0x2e8b3a});
@@ -179,13 +180,14 @@ function buildProduct(t,roh){
     });
     const bandH=h*0.3, C=2*Math.PI*w*0.5;
     const bt=wrapTex(C,bandH,a,(g,W,Hh)=>{
+      if(p.cat&&typeof designZeichnen==='function'){ for(let k=0;k<2;k++){ g.save(); g.translate(k*W/2,0); g.beginPath(); g.rect(0,0,W/2,Hh); g.clip(); drawFront(g,W/2,Hh,a,p.cat); g.restore(); } return; }
       const gr=g.createLinearGradient(0,0,0,Hh); gr.addColorStop(0,a.bg1); gr.addColorStop(1,a.bg2); g.fillStyle=gr; g.fillRect(0,0,W,Hh);
       g.fillStyle=a.ac; g.fillRect(0,0,W,Hh*0.08); g.fillRect(0,Hh*0.92,W,Hh*0.08);
       for(let k=0;k<2;k++){ const cx=W*(0.25+k*0.5); g.textAlign='center'; g.textBaseline='middle';
         fitFont(g,a.title,W*0.44,Math.round(Hh*0.3),BUN); g.fillStyle=a.ac; g.fillText(a.title,cx,Hh*0.4);
         fitFont(g,a.sub,W*0.42,Math.round(Hh*0.17),BAR); g.fillStyle='#f2f5ff'; g.fillText(a.sub,cx,Hh*0.68); }
     });
-    parts.push({geo:merge([{geo:new THREE.CylinderGeometry(w*0.5,w*0.5,bandH,22,1,true),m:tm(0,bandH*0.62,0)}]),mat:new THREE.MeshStandardMaterial({map:bt,roughness:0.6,side:THREE.DoubleSide})});
+    parts.push({geo:merge([{geo:new THREE.CylinderGeometry(w*0.5,w*0.5,bandH,22,1,true,-Math.PI/2),m:tm(0,bandH*0.62,0)}]),mat:new THREE.MeshStandardMaterial({map:bt,roughness:0.6,side:THREE.DoubleSide})});
   }
   else if(sh==='fan'){
     /* Fächerbatterie: flacher Block, oben gefächerte Rohrmündungen */

@@ -188,10 +188,14 @@ function blockTop(a,cat){ return (g,W,H)=>{ drawTop(g,W,H,a,cat); g.fillStyle='r
 function buildBatterieVerpackung(t){
   const p=P[t], a=p.art, w=p.dims[0], h=p.dims[1], d=p.dims[2], parts=[], vc=[], n=rohrBedarf(t).schuss||0;
   if(istVerbundKarton(t)){
-    const A=atlas(w,h,d,a,p.cat,{front:verbundFront(t),side:verbundSeite(t),top:verbundTop,rough:0.9});
+    /* Verkaufsverpackung des Verbunds: vollflaechig bedruckter Karton mit
+       Tragegriff oben (der braune Wellpappkarton ist der Aussenkarton) */
+    const A=atlas(w,h,d,a,p.cat,{rough:0.6});
     parts.push({geo:merge([{geo:atlasBox(w,h,d,A.R),m:tm(0,h/2,0)}]),mat:A.mat});
-    /* Umreifungsband */
-    for(const fx of [-0.3,0.3]) vc.push({geo:new THREE.BoxGeometry(0.012,h*1.006,d*1.006),m:tm(w*fx,h/2,0),color:0x2b2b2b});
+    const gw=Math.min(0.28,w*0.32);
+    vc.push({geo:new THREE.BoxGeometry(gw,0.022,0.03),m:tm(0,h+0.05,0),color:0x26282e});
+    for(const sx of [-1,1]) vc.push({geo:new THREE.BoxGeometry(0.02,0.055,0.03),m:tm(sx*gw/2,h+0.022,0),color:0x26282e});
+    vc.push({geo:new THREE.BoxGeometry(gw+0.06,0.006,0.06),m:tm(0,h+0.003,0),color:0x26282e});
   } else {
     const A=atlas(w,h,d,a,p.cat,{side:blockSeite(a,p.cat,n),top:blockTop(a,p.cat)});
     parts.push({geo:merge([{geo:atlasBox(w,h,d,A.R),m:tm(0,h/2,0)}]),mat:A.mat});
@@ -234,7 +238,8 @@ function buildVerpackung(t){
     /* flache Schachtel, unten ein Sichtfenster auf die grauen Staebe */
     const front=(g,W,H)=>{ const gr=g.createLinearGradient(0,0,0,H); gr.addColorStop(0,a.bg1); gr.addColorStop(1,a.bg2); g.fillStyle=gr; g.fillRect(0,0,W,H);
       /* Sternfunken oben */
-      const cx=W*0.5, cy=H*0.16, R=W*0.34; g.strokeStyle='#fff3c4'; g.lineCap='round';
+      const lin=typeof linieVon==='function'?linieVon(t):'funkenkind'; g.fillStyle=lin==='funkenkind'?'#e0287a':'#d8322a'; g.fillRect(0,0,W,H*0.035); g.fillStyle='#fff'; g.textAlign='center'; g.textBaseline='middle'; fitFont(g,LINIE_NAME[lin]||'',W*0.9,Math.round(H*0.026),BAR); g.fillText(LINIE_NAME[lin]||'',W/2,H*0.018);
+      const cx=W*0.5, cy=H*0.18, R=W*0.34; g.strokeStyle='#fff3c4'; g.lineCap='round';
       for(let i=0;i<22;i++){ const an=i/22*Math.PI*2, r1=R*(0.55+0.45*((i*7)%5)/5); g.lineWidth=Math.max(1,W*0.012); g.beginPath(); g.moveTo(cx+Math.cos(an)*R*0.12,cy+Math.sin(an)*R*0.12); g.lineTo(cx+Math.cos(an)*r1,cy+Math.sin(an)*r1); g.stroke(); }
       g.fillStyle='#fffbe8'; g.beginPath(); g.arc(cx,cy,R*0.12,0,Math.PI*2); g.fill();
       g.save(); g.translate(W*0.5,H*0.42); g.rotate(-Math.PI/2); g.textAlign='center'; g.textBaseline='middle'; fitFont(g,a.title,H*0.3,Math.round(W*0.24),BUN);
@@ -255,7 +260,7 @@ function buildVerpackung(t){
     const n=p.stueck||clamp(Math.round(d/0.026),3,9), cols=[0xd8352a,0x2f7fd0,0xffc93a,0x2f9e57,0x9b3bd6,0xf2f5ff,0xff7a3d,0x39c4d8,0xe35aa8];
     const A=lochAtlas(w,h,d,a,p.cat,{top:(g,W,H)=>drawFront(g,W,H,a,p.cat),lochTop:(W,H)=>[{x:W*0.34,y:H*0.12,w:W*0.62,h:H*0.76}]});
     boxPart(parts,w,h,d,A,tm(0,h/2,0));
-    vc.push({geo:new THREE.BoxGeometry(w*0.98,0.004,d*0.96),m:tm(0,0.006,0),color:0xe8e2d2});
+    vc.push({geo:new THREE.BoxGeometry(w*0.98,0.004,d*0.96),m:tm(0,0.006,0),color:0x1d2130});
     const step=d*0.8/n, rr=p.stueck?Math.min(h*0.34,step*0.42):Math.min(h*0.3,0.0115,step*0.44);
     for(let i=0;i<n;i++){ const z=-d*0.4+step*(i+0.5), y=0.008+rr, c=cols[i%cols.length];
       vc.push({geo:new THREE.CylinderGeometry(rr,rr,w*0.3,10),m:tm(w*0.2,y,z,0,0,Math.PI/2),color:c});
@@ -265,17 +270,23 @@ function buildVerpackung(t){
     parts.push({geo:merge([{geo:new THREE.BoxGeometry(w*0.62,0.002,d*0.76),m:tm(w*0.15,h-0.003,0)}]),mat:folieKlar});
   }
   else if(sh==='shell'){
-    /* Einzelkarton mit rundem Fenster vorn, darin die Kugel */
-    const front=(g,W,H)=>{ drawFront(g,W,H,a,p.cat); g.fillStyle='rgba(0,0,0,.55)'; g.fillRect(0,H*0.82,W,H*0.18);
-      g.fillStyle='#fff'; g.textAlign='center'; g.textBaseline='middle'; const kal=(t.match(/\d{2,3}/)||[''])[0];
-      fitFont(g,kal?`KALIBER ${kal} MM`:'KUGELBOMBE',W*0.86,Math.round(H*0.08),BAR); g.fillText(kal?`KALIBER ${kal} MM`:'KUGELBOMBE',W/2,H*0.91); };
-    const side=(g,W,H)=>{ drawSide(g,W,H,a); gefahrRaute(g,W*0.5,H*0.2,Math.min(W,H)*0.42,'1.3G'); };
-    const A=lochAtlas(w,h,d,a,p.cat,{front,side,lochFront:(W,H)=>[{x:W*0.5,y:H*0.5,r:Math.min(W,H)*0.27}]});
-    boxPart(parts,w,h,d,A,tm(0,h/2,0));
-    vc.push({geo:new THREE.BoxGeometry(w*0.96,0.004,d*0.96),m:tm(0,0.004,0),color:0xd9cbb0});
-    vc.push({geo:new THREE.BoxGeometry(w*0.96,h*0.96,0.004),m:tm(0,h/2,-d*0.47),color:0xd9cbb0});
-    roh().forEach(q=>{ q.geo.applyMatrix4(new THREE.Matrix4().makeScale(0.78,0.78,0.78)); q.geo.applyMatrix4(new THREE.Matrix4().makeTranslation(0,h*0.06,0)); parts.push(q); });
-    parts.push({geo:merge([{geo:new THREE.CylinderGeometry(Math.min(w,h)*0.28,Math.min(w,h)*0.28,0.002,24),m:tm(0,h/2,d/2-0.002,Math.PI/2)}]),mat:folieKlar});
+    /* Kugelbomben: kleine Kaliber in der Klarsichtkuppel auf bedruckter
+       Karte (die Kugel mit Etikett sichtbar), grosse in der bedruckten
+       Bombendose mit Metalldeckel - so werden einzelne Kugeln verkauft */
+    if(w<0.15){
+      const kh=0.014, A=atlas(w,kh,d,a,p.cat,{}); boxPart(parts,w,kh,d,A,tm(0,kh/2,0));
+      roh().forEach(q=>{ q.geo.applyMatrix4(new THREE.Matrix4().makeScale(0.86,0.86,0.86)); q.geo.applyMatrix4(new THREE.Matrix4().makeTranslation(0,kh,0)); parts.push(q); });
+      const R=Math.min(w,d)*0.49, dome=new THREE.SphereGeometry(R,22,12,0,Math.PI*2,0,Math.PI/2);
+      parts.push({geo:merge([{geo:dome,m:tm(0,kh,0,0,0,0,1,(h-kh)/R,1)}]),mat:folieKlar});
+      vc.push({geo:new THREE.CylinderGeometry(R*1.04,R*1.04,0.004,22),m:tm(0,kh+0.002,0),color:0xe9e9ee});
+    } else {
+      const R=w*0.49, HH=h*0.94, C=2*Math.PI*R;
+      const wt=wrapTex(C,HH,a,(g,W,Hh)=>{ for(let k=0;k<2;k++){ g.save(); g.translate(k*W/2,0); g.beginPath(); g.rect(0,0,W/2,Hh); g.clip(); drawFront(g,W/2,Hh,a,p.cat); g.restore(); } });
+      parts.push({geo:merge([{geo:new THREE.CylinderGeometry(R,R,HH,28,1,true,-Math.PI/2),m:tm(0,HH/2,0)}]),mat:new THREE.MeshStandardMaterial({map:wt,roughness:0.45,side:THREE.DoubleSide})});
+      vc.push({geo:new THREE.CylinderGeometry(R*1.02,R*1.02,h*0.07,28),m:tm(0,HH+h*0.03,0),color:0xb9bec6});
+      vc.push({geo:new THREE.CylinderGeometry(R*1.02,R*1.02,h*0.03,28),m:tm(0,h*0.015,0),color:0x8f949c});
+      vc.push({geo:new THREE.CylinderGeometry(R*0.98,R*0.98,0.004,28),m:tm(0,h*0.998,0),color:0xd7dbe0});
+    }
   }
   else if(sh==='fountainset'){
     /* Karton mit Fenster vorn, darin die Fontaenen auf ihrem Brett */

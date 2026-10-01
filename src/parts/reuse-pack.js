@@ -9,6 +9,7 @@ function burst(g,x,y,r,c,n){
   g.globalAlpha=1; g.beginPath(); g.arc(x,y,r*0.1,0,Math.PI*2); g.fillStyle='#fff'; g.fill(); g.restore();
 }
 function drawFront(g,W,H,a,cat){
+  if(typeof designZeichnen==='function'&&designZeichnen('front',g,W,H,a,cat)) return;
   const gr=g.createLinearGradient(0,0,0,H); gr.addColorStop(0,a.bg1); gr.addColorStop(1,a.bg2); g.fillStyle=gr; g.fillRect(0,0,W,H);
   const S0=Math.min(W,H);
   if(!a.light){ g.fillStyle='rgba(255,255,255,.75)'; for(let i=0;i<40;i++){ g.beginPath(); g.arc(Math.random()*W,Math.random()*H*0.7,Math.random()*S0*0.012+0.6,0,Math.PI*2); g.fill(); } }
@@ -42,10 +43,11 @@ function drawFront(g,W,H,a,cat){
     g.fillStyle='#0e1226'; g.font=BUN(Math.round(br*0.9)); g.textAlign='center'; g.textBaseline='middle'; g.fillText('F'+cat,bx,by+br*0.06); }
 }
 function drawSide(g,W,H,a){
+  if(typeof designZeichnen==='function'&&designZeichnen('side',g,W,H,a,1)) return;
   g.fillStyle=a.bg2; g.fillRect(0,0,W,H); g.fillStyle=a.ac2; g.fillRect(0,H*0.84,W,H*0.16);
   g.save(); g.translate(W/2,H*0.45); g.rotate(-Math.PI/2); fitFont(g,a.title,H*0.7,Math.round(W*0.55),BUN); g.textAlign='center'; g.textBaseline='middle'; g.fillStyle=a.ac; g.fillText(a.title,0,0); g.restore();
 }
-function drawTop(g,W,H,a){ const gr=g.createLinearGradient(0,0,W,H); gr.addColorStop(0,a.bg1); gr.addColorStop(1,a.bg2); g.fillStyle=gr; g.fillRect(0,0,W,H); if(!a.light) burst(g,W*0.5,H*0.5,Math.min(W,H)*0.4,a.ac,14); }
+function drawTop(g,W,H,a,cat){ if(typeof designZeichnen==='function'&&designZeichnen('top',g,W,H,a,1)) return; const gr=g.createLinearGradient(0,0,W,H); gr.addColorStop(0,a.bg1); gr.addColorStop(1,a.bg2); g.fillStyle=gr; g.fillRect(0,0,W,H); if(!a.light) burst(g,W*0.5,H*0.5,Math.min(W,H)*0.4,a.ac,14); }
 function atlas(w,h,d,a,cat,o){
   o=o||{};
   /* Aufloesung nach Groesse der Packung: eine 8-cm-Schachtel braucht

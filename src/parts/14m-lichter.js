@@ -138,12 +138,14 @@ LICHTYP.blitzregen=function(o,A,B,s,opt){
 function lBlitzfaden(q,c,s){
   let p={x:q.x,y:q.y,z:q.z}; const n=Math.round(rand(6,10));
   for(let k=0;k<n;k++){ const d=randDir(), l=rand(0.8,1.7)*Math.sqrt(s), z=[p.x+d[0]*l,p.y-Math.abs(d[1])*l*0.9-0.3,p.z+d[2]*l];
-    for(let u=0;u<=1;u+=0.2) psHuge.emit(p.x+(z[0]-p.x)*u,p.y+(z[1]-p.y)*u,p.z+(z[2]-p.z)*u,0,0,0,c[0],c[1],c[2],rand(0.06,0.12),0,0);
+    for(let u=0;u<=1;u+=0.2) psHuge.emit(p.x+(z[0]-p.x)*u,p.y+(z[1]-p.y)*u,p.z+(z[2]-p.z)*u,0,0,0,c[0],c[1],c[2],rand(0.14,0.26),0,0);
     if(Math.random()<0.25){ const ab={x:p.x,y:p.y,z:p.z}; for(let j=0;j<3;j++){ const dd=randDir(); psBig.emit(ab.x+dd[0]*0.6*j,ab.y-0.5*j,ab.z+dd[2]*0.6*j,0,0,0,c[0]*0.8,c[1]*0.8,c[2]*0.8,0.08,0,0); } }
     p={x:z[0],y:z[1],z:z[2]}; }
 }
 function lWolke(e,c,s,n){
-  for(let j=0;j<n;j++){ const a=rand(0,Math.PI*2), r=Math.sqrt(Math.random())*7*Math.sqrt(s); psBig.emit(e.x+Math.cos(a)*r,e.y+rand(-1.2,1.2),e.z+Math.sin(a)*r,0,0,0,c[0]*0.5,c[1]*0.5,c[2]*0.55,rand(0.1,0.22),0,0); }
+  /* weicher Leuchthof: ein paar grosse, schwache Lichtflecken - die Wolke selbst leuchtet auf */
+  for(let j=0;j<Math.max(4,Math.round(n/5));j++){ const a=rand(0,Math.PI*2), r=Math.sqrt(Math.random())*5*Math.sqrt(s); psHuge.emit(e.x+Math.cos(a)*r,e.y+rand(-0.8,0.8),e.z+Math.sin(a)*r,0,0,0,c[0]*0.45,c[1]*0.45,c[2]*0.5,rand(0.3,0.6),0,0); }
+  for(let j=0;j<n;j++){ const a=rand(0,Math.PI*2), r=Math.sqrt(Math.random())*7*Math.sqrt(s); psBig.emit(e.x+Math.cos(a)*r,e.y+rand(-1.2,1.2),e.z+Math.sin(a)*r,0,0,0,c[0]*0.75,c[1]*0.75,c[2]*0.8,rand(0.25,0.55),0,0); }
 }
 function lGewitter(e,A,s,bunt){
   let t=0; for(let k=0;k<12;k++){ t+=rand(0.12,0.4); const tt=t;
@@ -273,7 +275,7 @@ LICHTYP.farbwasserfall=function(o,A,B,s,opt){
   lStart(m,1,0.7); sfx.regen(distVol(m)*0.7,T+2);
 };
 LICHTYP.knisterwasserfall=function(o,A,B,s,opt){ lFall(o,s,opt,{c:[1.25,1.25,1.3],knister:true}); };
-LICHTYP.blinkwasserfall=function(o,A,B,s,opt){ lFall(o,s,opt,{c:[1.6,1.6,1.65],md:1,rate:90,life:[2.2,3.0],g:2}); };
+LICHTYP.blinkwasserfall=function(o,A,B,s,opt){ lFall(o,s,opt,{c:[1.6,1.6,1.65],md:1,rate:170,life:[2.2,3.0],g:2}); };
 /* Wassertor: zwei Boegen zugleich von links und rechts - ein Tor aus Licht */
 LICHTYP.wassertor=function(o,A,B,s,opt){ lFall(o,s,opt,{seite:-1,ang:0.5,H:17,c:[1.25,1.25,1.3]}); lFall(o,s,opt,{seite:1,ang:0.5,H:17,c:kgMal(A,1.15),kopf:kgMal(A,1.4)}); };
 /* Regenbogenfall: der Vorhang in Farbbaendern entlang des Bogens */
@@ -391,14 +393,14 @@ lbShow('lb_geisterstunde',[['magenta','tuerkis'],['violett','limette'],['blau','
   {mit:true,n:14,gap:0.08,muster:'schlag',ang:0.4,licht:'geisterkomet',kal:'gross',farbe:0,pause:6}]);
 lbShow('lb_kreuzfeuer',[['gold','rot'],['silber','gruen'],['orange','weiss']],{sz:[0.9,1.3],pw:[0,3],hell:[0.85,1.3],kurve:'spaet'},[
   {n:6,gap:1.0,muster:'aussen',ang:0.3,licht:'crossette',farbe:0},
-  {n:10,gap:0.35,muster:'x',ang:0.35,licht:'goldkomet',farbe:1},
+  {n:10,gap:0.35,muster:'x',ang:0.35,licht:'farbcrossette',farbe:1},
   {mit:true,n:4,gap:0.9,muster:'mitte',ang:0.12,licht:'crossette',kal:'gross',farbe:2,pause:1,boden:{k:'volcano',gt:5,A:'gold',B:'rot'}},
-  {n:8,gap:0.6,muster:'v',ang:0.3,licht:'kometenfaecher',farbe:0},
+  {n:8,gap:0.6,muster:'v',ang:0.3,licht:'farbkomet',farbe:0},
   {n:12,takt:[0.15,0.15,0.15,0.55],muster:'kreis',ang:0.35,licht:'crossette',farbe:1,pause:0.8},
-  {n:16,gap:0.1,muster:'wischer',ang:0.45,licht:'goldkomet',farbe:2},
+  {n:16,gap:0.1,muster:'wischer',ang:0.45,licht:'zwillingskomet',farbe:2},
   {mit:true,n:8,gap:0.25,muster:'paar',ang:0.3,licht:'crossette',farbe:0,pause:1},
-  {n:12,gap:0.08,muster:'schlag',ang:0.4,licht:'kometenfaecher',kal:'gross',farbe:1},
-  {mit:true,n:8,gap:0.08,muster:'w',ang:0.35,licht:'goldkomet',kal:'gross',farbe:2},
+  {n:12,gap:0.08,muster:'schlag',ang:0.4,licht:'dreifachcrossette',kal:'gross',farbe:1},
+  {mit:true,n:8,gap:0.08,muster:'w',ang:0.35,licht:'farbcrossette',kal:'gross',farbe:2},
   {mit:true,n:6,gap:0.2,muster:'mitte',ang:0.15,licht:'crossette',kal:'gross',farbe:2,pause:6}]);
 lbShow('lb_silberkaskade',[['silber','weiss'],['himmel','silber'],['weiss','gold']],{sz:[0.9,1.3],pw:[0,2],hell:[0.85,1.3],kurve:'spaet'},[
   {n:4,gap:1.6,licht:'wasserfall',farbe:0},
@@ -411,14 +413,14 @@ lbShow('lb_silberkaskade',[['silber','weiss'],['himmel','silber'],['weiss','gold
   {mit:true,n:8,gap:0.15,licht:'wasserfall',kal:'gross',farbe:2,pause:6}]);
 lbShow('lb_bluetenzauber',[['rose','gold'],['gruen','violett'],['tuerkis','magenta']],{sz:[0.9,1.3],pw:[0,2.5],hell:[0.85,1.3],kurve:'linear'},[
   {n:6,gap:0.9,rohrFolge:RF6,licht:'bluetenmine',farbe:0,boden:{k:'volcano',gt:5,A:'rose',B:'gold'}},
-  {n:8,gap:0.5,muster:'paar',ang:0.3,licht:'geisterkomet',farbe:1},
-  {mit:true,n:4,gap:1,muster:'mitte',ang:0.12,licht:'kometenfaecher',farbe:2,pause:1},
-  {n:12,takt:[0.15,0.15,0.6],muster:'welle',ang:0.35,licht:'bluetenmine',farbe:1},
-  {n:10,gap:0.35,muster:'spirale',ang:0.35,licht:'geisterkomet',farbe:0,pause:0.8},
-  {n:14,gap:0.1,muster:'wischer',ang:0.4,licht:'bluetenmine',farbe:2},
-  {mit:true,n:6,gap:0.4,muster:'v',ang:0.3,licht:'kometenfaecher',farbe:0,pause:1},
+  {n:8,gap:0.5,muster:'paar',ang:0.3,licht:'bluetenpastell',farbe:1},
+  {mit:true,n:4,gap:1,muster:'mitte',ang:0.12,licht:'bluetenbukett',farbe:2,pause:1},
+  {n:12,takt:[0.15,0.15,0.6],muster:'welle',ang:0.35,licht:'bluetenkranz',farbe:1},
+  {n:10,gap:0.35,muster:'spirale',ang:0.35,licht:'bluetenfaecher',farbe:0,pause:0.8},
+  {n:14,gap:0.1,muster:'wischer',ang:0.4,licht:'bluetenglitzer',farbe:2},
+  {mit:true,n:6,gap:0.4,muster:'v',ang:0.3,licht:'bluetendreiklang',farbe:0,pause:1},
   {n:12,gap:0.06,muster:'schlag',ang:0.4,licht:'bluetenmine',kal:'gross',farbe:1},
-  {mit:true,n:6,gap:0.25,muster:'mitte',ang:0.15,licht:'geisterkomet',kal:'gross',farbe:2,pause:6}]);
+  {mit:true,n:6,gap:0.25,muster:'mitte',ang:0.15,licht:'bluetenbukett',kal:'gross',farbe:2,pause:6}]);
 lbShow('lb_gewitterfront',[['weiss','violett'],['himmel','weiss'],['violett','gold']],{sz:[0.9,1.3],pw:[0,3],hell:[0.85,1.3],kurve:'spaet'},[
   {n:3,gap:1.8,licht:'wetterleuchten',farbe:0,boden:{k:'volcano',gt:5,A:'silber',B:'weiss'}},
   {n:8,gap:0.45,muster:'aussen',ang:0.3,licht:'crossette',farbe:1},
@@ -430,14 +432,14 @@ lbShow('lb_gewitterfront',[['weiss','violett'],['himmel','weiss'],['violett','go
   {mit:true,n:7,gap:0.2,muster:'kreis',ang:0.3,licht:'glitzermine',kal:'gross',farbe:0,pause:6}]);
 lbShow('lb_glutstrom',[['gold','orange'],['orange','scharlach'],['bernstein','gold'],['scharlach','gold']],{sz:[0.85,1.35],pw:[-1,3],hell:[0.85,1.3],kurve:'spaet'},[
   {n:6,gap:0.9,muster:'aussen',ang:0.3,licht:'goldkomet',farbe:0,boden:{k:'volcano',gt:6,A:'gold',B:'orange'}},
-  {n:8,gap:0.5,muster:'x',ang:0.35,eff:'tigerschweif',kal:'mittel',farbe:1},
+  {n:8,gap:0.5,muster:'x',ang:0.35,licht:'goldfaecher',farbe:1},
   {mit:true,n:4,gap:1.1,muster:'mitte',ang:0.12,licht:'weidenkomet',farbe:0,pause:1},
   {n:10,takt:[0.15,0.15,0.6],muster:'welle',ang:0.35,eff:'lavaregen',kal:'mittel',farbe:3},
   {n:14,gap:0.12,muster:'wischer',ang:0.45,licht:'goldkomet',farbe:2,pause:0.6},
-  {n:8,gap:0.3,muster:'paar',ang:0.3,eff:'kiefernkrone',kal:'gross',farbe:2},
-  {mit:true,n:6,gap:0.4,rohrFolge:RF6,licht:'glitzermine',farbe:0,pause:1},
-  {n:8,gap:0.06,muster:'schlag',ang:0.4,eff:['tigerschweif','lavaregen'],kal:'gross',farbe:1},
-  {mit:true,n:6,gap:0.2,muster:'mitte',ang:0.15,licht:'weidenkomet',kal:'gross',farbe:0,pause:6}]);
+  {n:8,gap:0.3,muster:'paar',ang:0.3,licht:'goldwasserfall',kal:'gross',farbe:2},
+  {mit:true,n:6,gap:0.4,rohrFolge:RF6,licht:'glitzergold',farbe:0,pause:1},
+  {n:8,gap:0.06,muster:'schlag',ang:0.4,eff:'tigerschweif',kal:'gross',farbe:1},
+  {mit:true,n:6,gap:0.2,muster:'mitte',ang:0.15,licht:'weidenfaecher',kal:'gross',farbe:0,pause:6}]);
 lbShow('lb_grandelumiere',[['gold','silber'],['rose','gold'],['gold','rot'],['magenta','tuerkis']],{sz:[0.9,1.35],pw:[0,3.5],hell:[0.85,1.35],kurve:'spaet'},[
   {n:4,gap:1.4,licht:'wasserfall',farbe:0,boden:{k:'volcano',gt:6,A:'gold',B:'silber'}},
   {mit:true,n:4,gap:1.4,rohrFolge:RF4,licht:'bluetenmine',farbe:1,pause:0.8},
@@ -457,10 +459,10 @@ lbShow('lb_grandelumiere',[['gold','silber'],['rose','gold'],['gold','rot'],['ma
 Object.assign(SIGNATUR,{
   lb_goldader:{eff:'licht:goldkomet',text:'Goldkometen, Glitzerminen und Weidenkometen – alles in Gold'},
   lb_geisterstunde:{eff:'licht:geisterkomet',text:'Farbwechselnde Geisterkometen, Wetterleuchten und Blütenminen'},
-  lb_kreuzfeuer:{eff:'licht:crossette',text:'Crossetten im Kreuz, Kometenfächer und Goldkometen'},
+  lb_kreuzfeuer:{eff:'licht:crossette',text:'Crossetten im Kreuz, farbige Zwillingskometen und Dreifach-Crossetten'},
   lb_silberkaskade:{eff:'licht:wasserfall',text:'Silberne Wasserfälle über Glitzerminen'},
-  lb_bluetenzauber:{eff:'licht:bluetenmine',text:'Blütenminen in Wellen, Geisterkometen und Kometenfächer'},
+  lb_bluetenzauber:{eff:'licht:bluetenmine',text:'Blütenminen in allen Formen: Kranz, Fächer, Bukett, Pastell, Glitzer'},
   lb_gewitterfront:{eff:'licht:wetterleuchten',text:'Wetterleuchten über Crossetten und Glitzerminen'},
-  lb_glutstrom:{eff:'licht:weidenkomet',text:'Goldkometen und Weiden zwischen Tigerkometen und Lavabrocken'},
+  lb_glutstrom:{eff:'licht:weidenkomet',text:'Goldkometen, Goldfächer und Goldwasserfall zwischen Tigerkometen und Lavabrocken'},
   lb_grandelumiere:{eff:'licht:kometenfaecher',text:'Das große Lichter-Finale: alle Favoriten in einer Show'}
 });

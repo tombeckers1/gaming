@@ -22,7 +22,11 @@
 /* Stern mit Griff: spaeter Ort lesen, umfaerben oder ausloeschen.
    maxl > life: der Stern ist schon "aelter" (Helligkeit f = life/maxl),
    so setzt ein umgefaerbter Stern ohne Helligkeitssprung fort. */
+/* STERN_LEBEN: Brenndauer-Faktor fuer Hauptsterne (die neuen Kugeln
+   brennen laenger, wie echte Kugelsterne) */
+let STERN_LEBEN=1;
 function kgStern(ps,p,v,c,life,g,mode,spur,maxl){
+  if(STERN_LEBEN!==1){ life*=STERN_LEBEN; if(maxl) maxl*=STERN_LEBEN; }
   const i=ps.next, alt=SCHWEIF; if(spur!==undefined) SCHWEIF=spur;
   ps.emit(p.x,p.y,p.z,v[0],v[1],v[2],c[0],c[1],c[2],life,g,mode||0);
   SCHWEIF=alt;

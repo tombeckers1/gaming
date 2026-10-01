@@ -56,7 +56,7 @@ function rkSpur(s,dt,rate,fn){
    o = {ps, life:[a,b], g, mode (4 Glitzer), streu m/s, mit (Anteil des
    Sterntempos, den der Funke mitnimmt), spur} */
 function rkFunken(p,v,g,t0,t1,rate,c,o){
-  o=o||{}; const ps=o.ps||psMid, L=o.life||[0.4,0.8], gs=o.g!==undefined?o.g:2.6, md=o.mode!==undefined?o.mode:4,
+  t1*=STERN_LEBEN; o=o||{}; const ps=o.ps||psMid, L=o.life||[0.4,0.8], gs=o.g!==undefined?o.g:2.6, md=o.mode!==undefined?o.mode:4,
     st=o.streu!==undefined?o.streu:0.35, mit=o.mit!==undefined?o.mit:0.1, tag=FW_TAG, DT=1/15;
   for(let t=Math.max(0.02,t0);t<t1;t+=DT){ const ta=t, tb=Math.min(t1,t+DT);
     imBild(tb,()=>{ const n=Math.floor(rate*(tb-ta)*QUAL()+Math.random()); if(!n) return;

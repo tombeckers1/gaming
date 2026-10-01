@@ -38,8 +38,8 @@ EFF.geisterkrone=function(p,A,B,s){ const dunkel=[0.03,0.03,0.03];
 EFF.crossettenstern=function(p,A,B,s){ nKugel(6,8*s,v=>nCross(p,v,3,0.65,kgMal(A,1.4),kgMal(B,1.5),s)); schall(p,v=>{ sfx.plopp(v*0.5,1); later(0.65,()=>sfx.crack(v*0.6)); }); };
 EFF.weidenregen=function(p,A,B,s){ nKugel(Math.round(60*s*QUAL()),8.5*s,v=>{ kgStern(psBig,p,v,[1.1,.7,.28],rand(3.6,4.4),1.1,0,0.9); });
   schall(p,v=>later(0.5,()=>sfx.rieseln(v*0.6,4))); };
-EFF.faecherstern=function(p,A,B,s){ for(let k=0;k<9;k++){ const a=-1.1+k*0.275, d=[Math.sin(a),Math.cos(a)*0.9+0.2,rand(-0.15,0.15)], l=Math.hypot(...d);
-    nKomet(p,kgMal(d,9.5*s/l),kgMal(k%2?A:B,1.5),1.9,2.4,[1,.78,.38],60); } schall(p,v=>sfx.zischen(v*0.4,1.5)); };
+EFF.faecherstern=function(p,A,B,s){ for(let k=0;k<13;k++){ const a=-1.2+k*0.2, d=[Math.sin(a),Math.cos(a)*0.9+0.2,rand(-0.15,0.15)], l=Math.hypot(...d);
+    nKomet(p,kgMal(d,11*s/l),kgMal(k%2?A:B,1.5),1.9,2.4,[1,.78,.38],50); } schall(p,v=>sfx.zischen(v*0.4,1.5)); };
 EFF.wetterwolke=function(p,A,B,s){ for(let i=0;i<Math.round(30*QUAL());i++){ const d=randDir(), w=rand(1.5,3)*s; kgStern(psBig,p,kgMal(d,w),[.5,.5,.6],rand(0.4,0.7),0.5,0,0); }
   const t=lGewitter(p,A,s*0.8,null); schall(p,v=>later(t*0.6,()=>sfx.donner(v*0.2,true))); };
 EFF.glitzerbukett=function(p,A,B,s){ for(let i=0;i<Math.round(70*s*QUAL());i++){ const d=randDir(); d[1]=Math.abs(d[1])*0.8+0.3; const l=Math.hypot(...d), w=rand(6,9)*s/l;
@@ -51,8 +51,8 @@ EFF.blitzweide=function(p,A,B,s){ nKugel(Math.round(28*QUAL()),8*s,v=>{ kgStern(
   schall(p,v=>later(0.4,()=>sfx.rieseln(v*0.5,3.5))); };
 EFF.tigerstern=function(p,A,B,s){ nKugel(Math.round(10*QUAL())+2,10*s,v=>{ kgStern(psHuge,p,v,kgMal(A,1.4),1.8,3,0,0.25); rkFunken(p,v,3,0.03,1.8,70,mischF(A,[1,.8,.4],0.5),{ps:psMid,life:[0.9,1.5],g:1.1,streu:0.5,mit:0.06,mode:4}); });
   schall(p,v=>{ sfx.boom(v*0.4); sfx.fauchen(v*0.35,1.6); }); };
-EFF.kiefernstern=function(p,A,B,s){ nKugel(Math.round(40*s*QUAL()),10*s,v=>verzweig(psBig,p.x,p.y,p.z,v[0],v[1],v[2],kgMal(A,1.35),1.3,2.2,{tz:rand(0.85,1.0),n:[3,5],tiefe:2,streu:1.1,spur:0.3,minTempo:2.5,C:kgMal(B,1.5),ps2:psMid}));
-  schall(p,v=>later(0.95,()=>{ sfx.crackle(v*0.6); later(0.12,()=>sfx.crackle(v*0.4)); })); };
+EFF.kiefernstern=function(p,A,B,s){ nKugel(Math.round(40*s*QUAL()),10*s,v=>verzweig(psBig,p.x,p.y,p.z,v[0],v[1],v[2],kgMal(A,1.35),1.9,2.2,{tz:rand(1.15,1.35),n:[3,5],tiefe:2,streu:1.1,spur:0.3,minTempo:2.5,C:kgMal(B,1.5),ps2:psMid}));
+  schall(p,v=>later(1.25,()=>{ sfx.crackle(v*0.6); later(0.12,()=>sfx.crackle(v*0.4)); })); };
 EFF.lavastern=function(p,A,B,s){ nKugel(Math.round(26*QUAL()),7.5*s,v=>{ const h=kgStern(psHuge,p,v,[1.7,1.4,.7],2.6,4.5,0,0.2); nFolge(h,[[1.4,.6,.12],[.9,.15,.04]],[0.5,1.3]);
     rkFunken(p,v,4.5,0.3,2.6,14,[.8,.22,.05],{ps:psMid,life:[0.7,1.2],g:1.2,streu:0.15,mit:0.02,mode:0}); }); schall(p,v=>sfx.wumms(v*0.7)); };
 EFF.spritzkrone=function(p,A,B,s){ nKugel(Math.round(30*s*QUAL()),9.5*s,v=>{ kgStern(psBig,p,v,kgMal(A,1.6),2.2,2.4,0,0.1); rkFunken(p,v,2.4,0.05,2.2,24,[1.5,1.4,1.2],{ps:psMid,life:[0.18,0.38],g:1,streu:2.2,mit:0.2,mode:4}); });
@@ -68,59 +68,66 @@ EFF.mondtau=function(p,A,B,s){ nKugel(Math.round(34*s*QUAL()),6.5*s,v=>{ kgStern
 EFF.sternenkrone=function(p,A,B,s){ nKugel(Math.round(44*s*QUAL()),9.5*s,v=>kgStern(psBig,p,v,[1.6,1.6,1.65],2.0,2.4,0,0.25));
   nKugel(Math.round(22*QUAL()),3.2*s,v=>kgStern(psBig,p,v,[1.3,.95,.4],1.6,2,4,0.05)); schall(p,v=>sfx.boom(v*0.35)); };
 
+/* Dichte der Kugelbruche: echte Kugeln tragen viele Sterne, und je
+   groesser das Kaliber, desto voller der Bruch (75 mm x2.3 ... 300 mm x3.6) */
+function KQ(s){ return QUAL()*(1.2+0.5*s); }
 /* ---------------- Kugelbomben: Bruch, aus dem ein Feuerwerk entsteht ---------------- */
 /* Roemerkrone (Toms Beispiel): Dutzende Roemische Lichter fliegen aus der
    Kugel und leuchten in verschiedenen Farben auf - jede Kugel wechselt
    einmal die Farbe, bevor sie verlischt */
 EFF.roemerkrone=function(p,A,B,s){ const F=[A,B,FW.gold,FW.gruen,FW.violett,FW.tuerkis].map(c=>kgMal(c,1.6));
-  nKugel(Math.round(46*QUAL()),8.5*s,(v,i)=>{ const h=nPerle(p,v,F[i%F.length],3.0,2.2); nFolge(h,[F[(i+2)%F.length]],[rand(1.3,1.7)]); });
+  nKugel(Math.round(46*KQ(s)),8.5*s,(v,i)=>{ const h=nPerle(p,v,F[i%F.length],3.0,2.2); nFolge(h,[F[(i+2)%F.length]],[rand(1.3,1.7)]); });
   schall(p,v=>{ sfx.boom(v*0.9); later(0.4,()=>sfx.rieseln(v*0.4,3)); }); };
-EFF.perlenkranz=function(p,A,B,s){ nRing(p,Math.round(20*QUAL()),9*s,(v,i)=>nPerle(p,v,kgMal(i%2?A:B,1.6),2.2,2.4)); nKugel(Math.round(10*QUAL()),3*s,v=>nPerle(p,v,[1.6,1.5,1.2],1.6,2)); schall(p,v=>sfx.boom(v*0.7)); };
-EFF.geisterbluete=function(p,A,B,s){ const d0=[0.03,0.03,0.03]; nKugel(Math.round(40*s/2*QUAL()),8.5*s,v=>{ const h=kgStern(psBig,p,v,kgMal(A,1.5),2.0,2.4,0,0.1); nFolge(h,[d0,kgMal(B,1.6)],[0.8,0.95]); }); schall(p,v=>sfx.boom(v*0.7)); };
-EFF.kometenkranz=function(p,A,B,s){ nRing(p,Math.round(14*QUAL())+2,9*s,v=>nKomet(p,v,kgMal(A,1.5),2.2,2.4,[1,.74,.32],60),0.35); nKugel(Math.round(8*QUAL()),3*s,v=>kgStern(psBig,p,v,kgMal(B,1.5),1.5,2,0,0.05)); schall(p,v=>{ sfx.boom(v*0.8); sfx.zischen(v*0.35,2); }); };
-EFF.blitzweidenkugel=function(p,A,B,s){ nKugel(Math.round(40*QUAL()),8*s,v=>{ kgStern(psHuge,p,v,[1.9,1.9,1.95],3.6,1.2,1,0); rkFunken(p,v,1.2,0.2,3.6,20,[1.6,1.6,1.7],{ps:psMid,life:[1.0,1.6],g:0.9,streu:0.1,mit:0.02,mode:1}); });
-  nKugel(Math.round(12*QUAL()),3*s,v=>kgStern(psBig,p,v,kgMal(A,1.6),1.8,2,0,0.05)); schall(p,v=>{ sfx.boom(v*0.8); later(0.4,()=>sfx.rieseln(v*0.5,4)); }); };
-EFF.glitzerdom=function(p,A,B,s){ for(let i=0;i<Math.round(110*QUAL());i++){ const d=randDir(); d[1]=Math.abs(d[1])*0.7+0.25; const l=Math.hypot(...d), w=rand(7,9.5)*s/l;
+EFF.perlenkranz=function(p,A,B,s){ nRing(p,Math.round(20*KQ(s)),9*s,(v,i)=>nPerle(p,v,kgMal(i%2?A:B,1.6),2.2,2.4)); nKugel(Math.round(10*KQ(s)),3*s,v=>nPerle(p,v,[1.6,1.5,1.2],1.6,2)); schall(p,v=>sfx.boom(v*0.7)); };
+EFF.geisterbluete=function(p,A,B,s){ const d0=[0.03,0.03,0.03]; nKugel(Math.round(40*s/2*KQ(s)),8.5*s,v=>{ const h=kgStern(psBig,p,v,kgMal(A,1.5),2.0,2.4,0,0.1); nFolge(h,[d0,kgMal(B,1.6)],[0.8,0.95]); }); schall(p,v=>sfx.boom(v*0.7)); };
+EFF.kometenkranz=function(p,A,B,s){ nRing(p,Math.round(14*KQ(s))+2,9*s,v=>nKomet(p,v,kgMal(A,1.5),2.2,2.4,[1,.74,.32],60),0.35); nKugel(Math.round(8*KQ(s)),3*s,v=>kgStern(psBig,p,v,kgMal(B,1.5),1.5,2,0,0.05)); schall(p,v=>{ sfx.boom(v*0.8); sfx.zischen(v*0.35,2); }); };
+EFF.blitzweidenkugel=function(p,A,B,s){ nKugel(Math.round(40*KQ(s)),8*s,v=>{ kgStern(psHuge,p,v,[1.9,1.9,1.95],3.6,1.2,1,0); rkFunken(p,v,1.2,0.2,3.6,12,[1.6,1.6,1.7],{ps:psMid,life:[1.0,1.6],g:0.9,streu:0.1,mit:0.02,mode:1}); });
+  nKugel(Math.round(12*KQ(s)),3*s,v=>kgStern(psBig,p,v,kgMal(A,1.6),1.8,2,0,0.05)); schall(p,v=>{ sfx.boom(v*0.8); later(0.4,()=>sfx.rieseln(v*0.5,4)); }); };
+EFF.glitzerdom=function(p,A,B,s){ for(let i=0;i<Math.round(110*KQ(s));i++){ const d=randDir(); d[1]=Math.abs(d[1])*0.7+0.25; const l=Math.hypot(...d), w=rand(7,9.5)*s/l;
     kgStern(psBig,p,kgMal(d,w),i%7?[1.45,1.45,1.5]:kgMal(A,1.5),rand(2.8,3.4),2,4,0.3); } schall(p,v=>{ sfx.boom(v*0.8); later(0.6,()=>sfx.rieseln(v*0.6,3.5)); }); };
-EFF.spritzbombe=function(p,A,B,s){ nKugel(Math.round(30*QUAL()),9*s,v=>{ kgStern(psBig,p,v,kgMal(A,1.7),2.4,2.2,0,0.1); rkFunken(p,v,2.2,0.05,2.4,26,[1.5,1.4,1.2],{ps:psMid,life:[0.2,0.4],g:1,streu:2.4,mit:0.2,mode:4}); });
+EFF.spritzbombe=function(p,A,B,s){ nKugel(Math.round(30*KQ(s)),9*s,v=>{ kgStern(psBig,p,v,kgMal(A,1.7),2.4,2.2,0,0.1); rkFunken(p,v,2.2,0.05,2.4,26,[1.5,1.4,1.2],{ps:psMid,life:[0.2,0.4],g:1,streu:2.4,mit:0.2,mode:4}); });
   schall(p,v=>{ sfx.boom(v*0.7); sfx.zischen(v*0.4,2.4); for(let i=0;i<4;i++) later(0.3+i*0.5,()=>sfx.prasseln(v*0.6)); }); };
-EFF.crossettennetz=function(p,A,B,s){ nKugel(Math.round(10*QUAL())+2,7.5*s,v=>nCross(p,v,2.8,0.75,kgMal(A,1.4),kgMal(B,1.5),s*0.7)); schall(p,v=>{ sfx.boom(v*0.8); later(0.75,()=>{ sfx.crack(v*0.8); later(0.08,()=>sfx.crack(v*0.6)); }); }); };
-EFF.tigerkrone=function(p,A,B,s){ nKugel(Math.round(14*QUAL())+2,9.5*s,v=>{ kgStern(psHuge,p,v,kgMal(A,1.4),2.2,3,0,0.25); kgStern(psHuge,p,v,kgMal(A,1.4),2.2,3,0,0.15);
-    rkFunken(p,v,3,0.03,2.2,60,mischF(A,[1,.8,.4],0.5),{ps:psMid,life:[1.0,1.7],g:1.1,streu:0.5,mit:0.06,mode:4}); }); schall(p,v=>{ sfx.boom(v*0.9); sfx.fauchen(v*0.4,2); }); };
-EFF.kiefernbombe=function(p,A,B,s){ nKugel(Math.round(44*QUAL()),9.5*s,v=>verzweig(psBig,p.x,p.y,p.z,v[0],v[1],v[2],kgMal(A,1.35),1.6,2.2,{tz:rand(1.0,1.25),n:[3,5],tiefe:2,streu:1.1,spur:0.3,minTempo:2.5,C:kgMal(B,1.5),ps2:psMid}));
+EFF.crossettennetz=function(p,A,B,s){ nKugel(Math.round(10*KQ(s))+2,7.5*s,v=>nCross(p,v,2.8,0.75,kgMal(A,1.4),kgMal(B,1.5),s*0.7)); schall(p,v=>{ sfx.boom(v*0.8); later(0.75,()=>{ sfx.crack(v*0.8); later(0.08,()=>sfx.crack(v*0.6)); }); }); };
+EFF.tigerkrone=function(p,A,B,s){ nKugel(Math.round(14*KQ(s))+2,9.5*s,v=>{ kgStern(psHuge,p,v,kgMal(A,1.4),2.2,3,0,0.25); kgStern(psHuge,p,v,kgMal(A,1.4),2.2,3,0,0.15);
+    rkFunken(p,v,3,0.03,2.2,36,mischF(A,[1,.8,.4],0.5),{ps:psMid,life:[1.0,1.7],g:1.1,streu:0.5,mit:0.06,mode:4}); }); schall(p,v=>{ sfx.boom(v*0.9); sfx.fauchen(v*0.4,2); }); };
+EFF.kiefernbombe=function(p,A,B,s){ nKugel(Math.round(44*KQ(s)),9.5*s,v=>verzweig(psBig,p.x,p.y,p.z,v[0],v[1],v[2],kgMal(A,1.35),1.6,2.2,{tz:rand(1.0,1.25),n:[3,5],tiefe:2,streu:1.1,spur:0.3,minTempo:2.5,C:kgMal(B,1.5),ps2:psMid}));
   schall(p,v=>{ sfx.boom(v*0.8); later(1.1,()=>{ sfx.crackle(v*0.8); later(0.15,()=>sfx.crackle(v*0.6)); }); }); };
-EFF.wasserkaskade=function(p,A,B,s){ nKranz(Math.round(22*QUAL()),8.5*s,v=>{ kgStern(psHuge,p,v,[1.5,1.5,1.55],3.0,1.5,0,0.2); nVorhang(p,v,1.5,3.0,[1.25,1.25,1.3],34); },0.15);
-  nKugel(Math.round(10*QUAL()),3*s,v=>kgStern(psBig,p,v,kgMal(A,1.5),1.6,2,0,0.05)); schall(p,v=>{ sfx.boom(v*0.8); later(0.5,()=>sfx.regen(v*0.7,3.5)); }); };
-EFF.bluetenmeer=function(p,A,B,s){ [[9.5,A,B],[6.5,B,FW.weiss],[3.5,FW.gold,A]].forEach(([w,c1,c2],k)=>nKugel(Math.round((40-k*10)*QUAL()),w*s,v=>{ const h=kgStern(psBig,p,v,kgMal(c1,1.5),2.3,2.2,0,0.08); nFolge(h,[kgMal(c2,1.55)],[1.0+k*0.2]); }));
+EFF.wasserkaskade=function(p,A,B,s){ nKranz(Math.round(22*KQ(s)),8.5*s,v=>{ kgStern(psHuge,p,v,[1.5,1.5,1.55],3.0,1.5,0,0.2); nVorhang(p,v,1.5,3.0,[1.25,1.25,1.3],22); },0.15);
+  nKugel(Math.round(10*KQ(s)),3*s,v=>kgStern(psBig,p,v,kgMal(A,1.5),1.6,2,0,0.05)); schall(p,v=>{ sfx.boom(v*0.8); later(0.5,()=>sfx.regen(v*0.7,3.5)); }); };
+EFF.bluetenmeer=function(p,A,B,s){ [[9.5,A,B],[6.5,B,FW.weiss],[3.5,FW.gold,A]].forEach(([w,c1,c2],k)=>nKugel(Math.round((40-k*10)*KQ(s)),w*s,v=>{ const h=kgStern(psBig,p,v,kgMal(c1,1.5),2.3,2.2,0,0.08); nFolge(h,[kgMal(c2,1.55)],[1.0+k*0.2]); }));
   schall(p,v=>sfx.boom(v*0.85)); };
-EFF.gewitterbombe=function(p,A,B,s){ nKugel(Math.round(40*QUAL()),8*s,v=>kgStern(psBig,p,v,[1.3,1.3,1.45],1.6,2.2,0,0.12)); kgSpaeter(1.2,()=>{ const t=lGewitter(p,A,s*0.8,B); schall(p,v=>later(t*0.6,()=>sfx.donner(v*0.35,true))); });
+EFF.gewitterbombe=function(p,A,B,s){ nKugel(Math.round(40*KQ(s)),8*s,v=>kgStern(psBig,p,v,[1.3,1.3,1.45],1.6,2.2,0,0.12)); kgSpaeter(1.2,()=>{ const t=lGewitter(p,A,s*0.8,B); schall(p,v=>later(t*0.6,()=>sfx.donner(v*0.35,true))); });
   schall(p,v=>sfx.boom(v*0.9)); };
-EFF.weidenkoenig=function(p,A,B,s){ nKugel(Math.round(70*QUAL()),8.5*s,(v,i)=>{ const h=kgStern(psBig,p,v,i%5?[1.1,.72,.28]:kgMal(A,1.6),rand(4.0,4.8),1.0,i%5?4:0,0.9); }); schall(p,v=>{ sfx.boom(v*1.0); later(0.8,()=>sfx.rieseln(v*0.7,5)); }); };
+EFF.weidenkoenig=function(p,A,B,s){ nKugel(Math.round(70*KQ(s)),8.5*s,(v,i)=>{ const h=kgStern(psBig,p,v,i%5?[1.1,.72,.28]:kgMal(A,1.6),rand(4.0,4.8),1.0,i%5?4:0,0.9); }); schall(p,v=>{ sfx.boom(v*1.0); later(0.8,()=>sfx.rieseln(v*0.7,5)); }); };
 EFF.faecherbombe=function(p,A,B,s){ const [u,w]=basisBlick(p,0.3); for(let f=0;f<4;f++){ const ax=f%2?u:[0,1,0], sg=f<2?1:-1;
     for(let k=0;k<6;k++){ const a=-0.6+k*0.24, d=[ax[0]*sg*Math.cos(a)+w[0]*Math.sin(a),ax[1]*sg*Math.cos(a)+w[1]*Math.sin(a)+0.15,ax[2]*sg*Math.cos(a)+w[2]*Math.sin(a)];
       const l=Math.hypot(...d); nKomet(p,kgMal(d,9*s/l),kgMal(f%2?A:B,1.5),2.0,2.4,[1,.78,.38],40); } }
   schall(p,v=>{ sfx.boom(v*0.9); sfx.zischen(v*0.4,2); }); };
-EFF.vulkanherz=function(p,A,B,s){ nKugel(Math.round(36*QUAL()),8*s,v=>{ const h=kgStern(psHuge,p,v,[1.8,1.5,.8],3.0,4.2,0,0.25); nFolge(h,[[1.5,.65,.12],[1.0,.18,.04],[.55,.07,.03]],[0.5,1.2,2.0]);
+EFF.vulkanherz=function(p,A,B,s){ nKugel(Math.round(36*KQ(s)),8*s,v=>{ const h=kgStern(psHuge,p,v,[1.8,1.5,.8],3.0,4.2,0,0.25); nFolge(h,[[1.5,.65,.12],[1.0,.18,.04],[.55,.07,.03]],[0.5,1.2,2.0]);
     rkFunken(p,v,4.2,0.3,3.0,14,[.85,.24,.05],{ps:psMid,life:[0.8,1.4],g:1.4,streu:0.15,mit:0.02,mode:0}); }); schall(p,v=>{ sfx.wumms(v*1.2); sfx.boom(v*0.8); }); };
-EFF.donnerkrone=function(p,A,B,s){ nRing(p,Math.round(14*QUAL()),8*s,v=>{ const t=rand(0.9,1.4); kgStern(psBig,p,v,[1.2,.9,.4],t,2.4,0,0.2);
-    kgSpaeter(t,()=>{ const e=sternNach(p,v[0],v[1],v[2],2.4,t); for(let j=0;j<3;j++) psHuge.emit(e.x,e.y,e.z,0,0,0,2,2,1.9,0.08,0,0); for(let j=0;j<Math.round(14*QUAL());j++){ const d=randDir(); psMid.emit(e.x,e.y,e.z,d[0]*6,d[1]*6,d[2]*6,1.7,1.7,1.6,rand(0.06,0.15),0,4); }
-      schall(e,x=>sfx.crack(x*1.1)); for(let j=0;j<Math.round(10*QUAL());j++){ const d=randDir(); kgStern(psBig,e,kgMal(d,rand(1,2.5)),[1.3,.95,.4],rand(2,2.8),1.2,4,0.2); } }); });
+EFF.donnerkrone=function(p,A,B,s){ nRing(p,Math.round(14*KQ(s)),8*s,v=>{ const t=rand(0.9,1.4); kgStern(psBig,p,v,[1.2,.9,.4],t,2.4,0,0.2);
+    kgSpaeter(t,()=>{ const e=sternNach(p,v[0],v[1],v[2],2.4,t); for(let j=0;j<3;j++) psHuge.emit(e.x,e.y,e.z,0,0,0,2,2,1.9,0.08,0,0); for(let j=0;j<Math.round(14*KQ(s));j++){ const d=randDir(); psMid.emit(e.x,e.y,e.z,d[0]*6,d[1]*6,d[2]*6,1.7,1.7,1.6,rand(0.06,0.15),0,4); }
+      schall(e,x=>sfx.crack(x*1.1)); for(let j=0;j<Math.round(10*KQ(s));j++){ const d=randDir(); kgStern(psBig,e,kgMal(d,rand(1,2.5)),[1.3,.95,.4],rand(2,2.8),1.2,4,0.2); } }); });
   schall(p,v=>sfx.boom(v*1.0)); };
 EFF.kronjuwel=function(p,A,B,s){ const d0=[0.03,0.03,0.03];
-  nRing(p,Math.round(40*QUAL()),9.5*s,v=>{ const h=kgStern(psHuge,p,v,kgMal(A,1.6),2.4,2.0,0,0.3); nFolge(h,[d0,kgMal(B,1.7)],[0.9,1.05]); },0.4);
-  nKugel(Math.round(80*QUAL()),7*s,v=>kgStern(psBig,p,v,[1.4,1.4,1.45],2.6,2.0,4,0.2));
-  kgSpaeter(1.6,()=>{ nKugel(Math.round(50*QUAL()),5*s,v=>kgStern(psBig,p,v,[1.1,.72,.28],rand(3.6,4.4),1.0,0,0.9)); schall(p,v=>sfx.rieseln(v*0.7,5)); });
+  nRing(p,Math.round(40*KQ(s)),9.5*s,v=>{ const h=kgStern(psHuge,p,v,kgMal(A,1.6),2.4,2.0,0,0.3); nFolge(h,[d0,kgMal(B,1.7)],[0.9,1.05]); },0.4);
+  nKugel(Math.round(80*KQ(s)),7*s,v=>kgStern(psBig,p,v,[1.4,1.4,1.45],2.6,2.0,4,0.2));
+  kgSpaeter(1.6,()=>{ nKugel(Math.round(50*KQ(s)),5*s,v=>kgStern(psBig,p,v,[1.1,.72,.28],rand(3.6,4.4),1.0,0,0.9)); schall(p,v=>sfx.rieseln(v*0.7,5)); });
   schall(p,v=>sfx.boom(v*1.1)); };
 EFF.lichterdom=function(p,A,B,s){ const F=[A,B,FW.gold,FW.weiss].map(c=>kgMal(c,1.6));
-  nKugel(Math.round(40*QUAL()),9*s,(v,i)=>nPerle(p,v,F[i%4],3.2,2.0));
-  nRing(p,Math.round(12*QUAL()),11*s,v=>nKomet(p,v,[1.6,1.4,.9],2.6,2.2,[1,.74,.32],50),0.2);
-  kgSpaeter(1.4,()=>{ nKranz(Math.round(16*QUAL()),5*s,v=>{ kgStern(psHuge,p,v,[1.5,1.5,1.55],2.8,1.5,0,0.2); nVorhang(p,v,1.5,2.8,[1.25,1.25,1.3],30); },-0.1); schall(p,v=>sfx.regen(v*0.6,3)); });
+  nKugel(Math.round(40*KQ(s)),9*s,(v,i)=>nPerle(p,v,F[i%4],3.2,2.0));
+  nRing(p,Math.round(12*KQ(s)),11*s,v=>nKomet(p,v,[1.6,1.4,.9],2.6,2.2,[1,.74,.32],30),0.2);
+  kgSpaeter(1.4,()=>{ nKranz(Math.round(16*KQ(s)),5*s,v=>{ kgStern(psHuge,p,v,[1.5,1.5,1.55],2.8,1.5,0,0.2); nVorhang(p,v,1.5,2.8,[1.25,1.25,1.3],18); },-0.1); schall(p,v=>sfx.regen(v*0.6,3)); });
   schall(p,v=>sfx.boom(v*1.1)); };
-EFF.sternensturm=function(p,A,B,s){ nKugel(Math.round(12*QUAL())+2,8*s,v=>nCross(p,v,2.6,0.7,kgMal(A,1.4),kgMal(B,1.5),s*0.7));
-  nKugel(Math.round(30*QUAL()),6*s,v=>{ kgStern(psHuge,p,v,[1.9,1.9,1.95],3.0,1.2,1,0); });
-  kgSpaeter(2.6,()=>{ for(let i=0;i<Math.round(150*QUAL());i++){ const d=randDir(), w=Math.cbrt(Math.random())*rand(8,14)*s*0.5; psMid.emit(p.x,p.y,p.z,d[0]*w,d[1]*w,d[2]*w,1.7,1.7,1.65,rand(0.06,0.2),0,4); }
+EFF.sternensturm=function(p,A,B,s){ nKugel(Math.round(12*KQ(s))+2,8*s,v=>nCross(p,v,2.6,0.7,kgMal(A,1.4),kgMal(B,1.5),s*0.7));
+  nKugel(Math.round(30*KQ(s)),6*s,v=>{ kgStern(psHuge,p,v,[1.9,1.9,1.95],3.0,1.2,1,0); });
+  kgSpaeter(2.6,()=>{ for(let i=0;i<Math.round(150*KQ(s));i++){ const d=randDir(), w=Math.cbrt(Math.random())*rand(8,14)*s*0.5; psMid.emit(p.x,p.y,p.z,d[0]*w,d[1]*w,d[2]*w,1.7,1.7,1.65,rand(0.06,0.2),0,4); }
     for(let i=0;i<4;i++) psHuge.emit(p.x,p.y,p.z,0,0,0,2,2,1.9,0.12,0,0); flash(p,[1,1,1],6,0.4); schall(p,v=>{ sfx.boom(v*1.4); sfx.crack(v*1.2); }); });
   schall(p,v=>{ sfx.boom(v*1.0); later(0.7,()=>sfx.crack(v*0.8)); }); };
+/* Alle neuen Raketen: Hauptsterne brennen 25 % laenger */
+['kometenstern','geisterkrone','crossettenstern','weidenregen','faecherstern','wetterwolke','glitzerbukett','bluetenstern','wasserring','blitzweide','tigerstern','kiefernstern','lavastern','spritzkrone','perlenring','zwillingsring','goldkaskade','farbglitzerregen','mondtau','sternenkrone'].forEach(n=>{ const f=EFF[n]; EFF[n]=function(){ const alt=STERN_LEBEN; STERN_LEBEN=1.25; try{ return f.apply(this,arguments); } finally{ STERN_LEBEN=alt; } }; });
+/* Alle neuen Kugeln: Hauptsterne brennen 35 % laenger */
+['roemerkrone','perlenkranz','geisterbluete','kometenkranz','blitzweidenkugel','glitzerdom','spritzbombe','crossettennetz','tigerkrone','kiefernbombe','wasserkaskade','bluetenmeer','gewitterbombe','weidenkoenig','faecherbombe','vulkanherz','donnerkrone','kronjuwel','lichterdom','sternensturm'].forEach(n=>{ const f=EFF[n]; EFF[n]=function(){ const alt=STERN_LEBEN; STERN_LEBEN=1.35; try{ return f.apply(this,arguments); } finally{ STERN_LEBEN=alt; } }; });
 Object.assign(EFF_FAMILIE,{kometenstern:'komet',geisterkrone:'kugel',crossettenstern:'komet',weidenregen:'haenger',faecherstern:'komet',wetterwolke:'figur',glitzerbukett:'glitzer',bluetenstern:'kugel',wasserring:'haenger',blitzweide:'glitzer',
   tigerstern:'komet',kiefernstern:'knister',lavastern:'flamme',spritzkrone:'glitzer',perlenring:'kugel',zwillingsring:'kugel',goldkaskade:'haenger',farbglitzerregen:'glitzer',mondtau:'haenger',sternenkrone:'kugel',
   roemerkrone:'kugel',perlenkranz:'kugel',geisterbluete:'kugel',kometenkranz:'komet',blitzweidenkugel:'glitzer',glitzerdom:'glitzer',spritzbombe:'glitzer',crossettennetz:'komet',tigerkrone:'komet',kiefernbombe:'knister',
@@ -166,6 +173,14 @@ const NEU_RAKETEN=[
 NEU_RAKETEN.forEach(([id,eff,steig,A,B,sz,txt],k)=>{
   RAKETEN_KL[id]={n:1,gap:0,sz,pw:-2+k*0.5,fuse:1.3,steig,A,B,eff:[eff],knall:k%3===0?'plopp':'rakPff',bruchOpt:{kern:false,nachglitzer:false,flash:0.35},dauer:5};
   SIGNATUR[id]={eff,text:txt}; });
+/* Groesse und Steighoehe der Test-Raketen aus der Level-Leiter des
+   Sortiments: jede liegt zwischen dem groessten Produkt darunter und dem
+   kleinsten darueber - so faellt keine aus der Steigerung */
+(function(){ const Q=t=>P[t]||NEUWARE[t], neu=new Set(NEU_RAKETEN.map(x=>x[0])),
+    alt=Object.keys(RAKETEN_KL).filter(t=>!neu.has(t)&&Q(t)&&Q(t).shape==='rocketset'&&!['gravur','blanko','furzrakete','pfeifraketen'].includes(t));
+  for(const id of neu){ const L=Q(id)&&Q(id).lvl; if(!L) continue;
+    for(const f of ['sz','pw']){ const lo=Math.max(...alt.filter(t=>Q(t).lvl<L).map(t=>RAKETEN_KL[t][f])), hi=Math.min(...alt.filter(t=>Q(t).lvl>L).map(t=>RAKETEN_KL[t][f]));
+      if(isFinite(lo)&&isFinite(hi)&&hi>=lo) RAKETEN_KL[id][f]=+((lo+hi)/2).toFixed(3); } } })();
 const NEU_KUGELN=[
   ['kn_perlenkranz75','perlenkranz',1,'rot','gold','gold','Kranz aus Leuchtperlen in zwei Farben'],
   ['kn_geisterbluete75','geisterbluete',1,'magenta','tuerkis','silber','Kleine Blüte, die erlischt und in neuer Farbe weiterblüht'],

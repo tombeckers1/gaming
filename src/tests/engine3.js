@@ -259,7 +259,10 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     pruef('OEFFNUNG',J(r.oeLage.lage)===J([-0.35,0,0.35])&&r.oeLage.dims>0.75,'Fontaenen-Set: Duesen/Kegel '+J(r.oeLage)); }
   /* KALIBER */
   { const kl=r.kal.slice().sort((a,b)=>a-b); r.kal=kl; }
-  pruef('KALIBER',r.kal.length===3&&Math.abs(r.kal[1]/r.kal[0]-1/0.45)<0.05&&Math.abs(r.kal[2]/r.kal[0]-1.6/0.45)<0.05,'kal-Liste: '+J(r.kal));
+  /* 01.10.: Brueche ueber 1,0 werden gestaucht (bruchKappe in 14b, Tom:
+     Batteriebrueche zu gross) - erwartet wird das Verhaeltnis nach der Kappe */
+  const kappe=x=>x<=1?x:1+(x-1)*0.27, k0=r.kal[0];
+  pruef('KALIBER',r.kal.length===3&&k0<=1&&Math.abs(r.kal[1]-kappe(k0/0.45))<0.02&&Math.abs(r.kal[2]-kappe(k0*1.6/0.45))<0.02,'kal-Liste: '+J(r.kal));
   /* FARBE */
   const F=r.fw;
   pruef('FARBE',J(r.farbFolge)===J([[F.rot,F.weiss],[F.gruen,F.weiss],[F.rot,F.weiss]]),'farbFolge: '+J(r.farbFolge));

@@ -814,7 +814,7 @@ SIGNATUR.goldenerregen={idee:'vorhang',text:'Vorhang fällt, öffnet sich, schli
 /* Level 19: Schimmelreiter. Galopp und Finale bekommen Silber fest
    (A silber, B blau/himmel als Spitzen) - aus dem Thema kaeme dort
    Tuerkis/Gold, und die Signatur ist der SILBERNE Pferdeschweif */
-SHOWS.kometen=()=>show({basis:{pw:1.65,sz:1.135,th:'nacht'},rampe:{sz:[0.90,1.25],pw:[0,3],hell:[0.85,1.30],kurve:'frueh'}},[
+SHOWS.kometen=()=>show({basis:{pw:1.65,sz:1.135,th:'nacht'},rampe:{sz:[0.38,1.25],pw:[0,3],hell:[0.85,1.30],kurve:'frueh'}},[
   /* 27.09.: Stallfeuer - kurze Silberfontaene vorweg (Auftakt), Farben aus dem
      Thema eis (weiss/himmel) statt silber/blau (steigerung.js: kein Zufallsbunt),
      Maehne und Finale hoeher (Steigerung im Ablauf, Hoehenleiter) */
@@ -859,7 +859,7 @@ SIGNATUR.hochzeitsfaecher={eff:'herz',idee:'herzbomben',text:'vier Herzbomben, z
 /* Level 20: Trommelfeuer. 28.09. (Tom: echt): Goldfontaene statt roter
    Funken zum Auftakt, Chrysanthemen statt 4 s stehender Flammenbaelle,
    je Salve ein Farbpaar */
-SHOWS.donnerwand=()=>show({basis:{pw:2.05,sz:1.165,th:'glut'},rampe:{sz:[0.95,1.25],pw:[1.5,3.5],hell:[0.90,1.30],kurve:'linear'}},[
+SHOWS.donnerwand=()=>show({basis:{pw:2.05,sz:1.165,th:'glut'},rampe:{sz:[0.52,1.25],pw:[1.5,3.5],hell:[0.90,1.30],kurve:'linear'}},[
   /* 27.09.: Trommler zaehlt ein - kurze Flammenfontaene vorweg (Auftakt, steigerung.js) */
   {n:0,ground:'fountain',gt:2.5,gh:0.6,gA:'gold',gB:'bernstein',pause:2.0},
   /* Viertel: 4 Salven, Flammenfontaene */
@@ -1007,7 +1007,7 @@ const ODE_A={ton:[2,2,3,4, 4,3,2,1, 0,0,1,2, 2,1,1],dauer:[1,1,1,1, 1,1,1,1, 1,1
 const ODE_A2={ton:[2,2,3,4, 4,3,2,1, 0,0,1,2, 1,0,0],dauer:[1,1,1,1, 1,1,1,1, 1,1,1,1, 1.5,0.5,2]};
 const ODE={ton:[...ODE_A.ton,...ODE_A2.ton],dauer:[...ODE_A.dauer,...ODE_A2.dauer]};
 const ODE_BASS={ton:[0,0,-3,-3,0,0,-3,-3, 0,0,-3,-3,0,0,-3,0],dauer:Array(16).fill(2)};
-SHOWS.profi=()=>show({basis:{pw:3.10,sz:1.250,th:'goetter'},rampe:{sz:[0.90,1.30],pw:[0,2],hell:[0.85,1.35],kurve:'linear'}},[
+SHOWS.profi=()=>show({basis:{pw:3.10,sz:1.250,th:'goetter'},rampe:{sz:[0.72,1.30],pw:[0,2],hell:[0.85,1.35],kurve:'linear'}},[
   /* Strophe 1 SOLO: eine Stimme, senkrecht, Hoehe = Ton, Kerzenlicht-Fontaene.
      27.09.: 2,5 m je Tonschritt statt 4 m, Schlussakkord 1,1 m je Halbton ohne pw -
      vorher brach der Akkord bei 53 m, hoeher als Kugel 200/300 (steigerung.js)
@@ -1128,7 +1128,7 @@ SIGNATUR.geysirfeld={idee:'geysir',text:'Ausbruch am Boden, darüber eine Säule
    der Luft (vorher Einschlaege im Feld, bis 17 m neben dem Produkt); der
    Schluss ist eine Traube aus Titanschlaegen (vorher Vollbild-Weiss und
    alle Sterne geloescht); Chrysanthemen statt stehender Flammenbaelle */
-SHOWS.finale=()=>show({basis:{pw:4.00,sz:1.320,th:'meteor'},rampe:{sz:[0.85,1.35],pw:[0,4],hell:[0.60,1.45],kurve:'spaet'}},[
+SHOWS.finale=()=>show({basis:{pw:4.00,sz:1.320,th:'meteor'},rampe:{sz:[0.66,1.35],pw:[-1,4],hell:[0.60,1.45],kurve:'spaet'}},[
   /* Akt 1 Vorzeichen: dunkle Blueten, die erst glimmen und ploetzlich aufgehen */
   /* 27.09.: gap 1,4 statt 2,4 und pw 5 statt 8 - vorher 30 s fast leerer Himmel
      zum Auftakt des groessten Produkts, und die Blueten lagen am oberen Bildrand */

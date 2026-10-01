@@ -720,11 +720,11 @@ LICHT_MUSTER.forEach(([e,nm,form,F,txt],k)=>{ const nr=String(k+1).padStart(2,'0
    Erst zum Testen, nicht bestellbar. */
 [['lb_goldader','Goldader','84 Schuss Goldkometen',18,[0.9,0.3,0.6],'#5a3a06','#140a02','#ffd23f','#fff3c4','Goldkometen im Zickzack, Glitzerminen, Weidenkometen und Kometenfächer – ein Finale aus sechzehn Goldkometen und acht Weiden.'],
  ['lb_geisterstunde','Geisterstunde','72 Schuss Geisterkometen',20,[0.86,0.3,0.6],'#3a1460','#08020f','#ff6ad8','#5ff2e8','Kometen, die im Flug die Farbe wechseln, Wetterleuchten über der Batterie und Blütenminen von links nach rechts.'],
- ['lb_kreuzfeuer','Kreuzfeuer','90 Schuss Crossetten',21,[0.95,0.3,0.62],'#5a0e0a','#140202','#ffd23f','#ff4a3a','Crossetten teilen sich im Kreuz, Goldkometen kreuzen sich, Kometenfächer aus jedem Rohr.'],
+ ['lb_kreuzfeuer','Kreuzfeuer','90 Schuss Crossetten',21,[0.95,0.3,0.62],'#5a0e0a','#140202','#ffd23f','#ff4a3a','Crossetten teilen sich im Kreuz, farbige Crossetten und Zwillingskometen, zum Schluss Dreifach-Crossetten.'],
  ['lb_silberkaskade','Silberkaskade','64 Schuss Wasserfälle',19,[1.0,0.28,0.56],'#2a3440','#05070c','#f2f5ff','#9fd8ff','Silberne Wasserfälle im Bogen über Glitzerminen, dazu Weidenkometen – das Finale ein Vorhang aus acht Bögen.'],
- ['lb_bluetenzauber','Blütenzauber','78 Schuss Blütenminen',18,[0.9,0.3,0.58],'#5a1240','#12030c','#ff8ac8','#ffd23f','Blütenminen in Wellen über die ganze Breite, Geisterkometen in Spiralen und Kometenfächer.'],
+ ['lb_bluetenzauber','Blütenzauber','78 Schuss Blütenminen',18,[0.9,0.3,0.58],'#5a1240','#12030c','#ff8ac8','#ffd23f','Blütenminen in allen Formen: Wellen, Kranz, Fächer-Spirale, Pastell, Glitzer und ein großes Bukett.'],
  ['lb_gewitterfront','Gewitterfront','56 Schuss Wetterleuchten',22,[0.86,0.3,0.6],'#1c1c3a','#04040c','#d8c8ff','#ffffff','Wetterleuchten und Blitzfäden über Crossetten und Glitzerminen – ohne Knall, nur Licht.'],
- ['lb_glutstrom','Glutstrom','70 Schuss Glut und Gold',23,[0.95,0.32,0.62],'#6a2a06','#140602','#ffd23f','#ff5a1e','Goldkometen und Weiden zwischen Tigerkometen, Lavabrocken und Kiefernkronen.'],
+ ['lb_glutstrom','Glutstrom','70 Schuss Glut und Gold',23,[0.95,0.32,0.62],'#6a2a06','#140602','#ffd23f','#ff5a1e','Goldkometen, Goldfächer und Goldwasserfall zwischen Tigerkometen und Lavabrocken, Weidenfächer zum Schluss.'],
  ['lb_grandelumiere','Grande Lumière','150 Schuss Lichter-Finale',26,[1.0,0.36,0.7],'#4a3308','#0a0602','#fff3c4','#ffd23f','Alle Lichter-Favoriten in einer großen Show: Wasserfälle, Blütenminen, Goldkometen, Crossetten, Wetterleuchten, Geisterkometen, Weiden und Fächer.']
 ].forEach(([id,nm,sub,lvl,dims,bg1,bg2,ac,ac2,desc])=>{
   NEUWARE[id]={name:nm+' · '+sub,short:nm,cat:2,lvl,shape:'battery',dims,grid:[2,1,1],box:1,cost:Math.round(lvl*2.6),market:Math.round(lvl*2.6*2.3)-0.01,weight:3,hype:70+lvl,risk:9,noOrder:true,desc,

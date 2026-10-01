@@ -54,46 +54,50 @@ EFF.pfauenfaecher=function(p,A,B,s){
 };
 EFF_FAMILIE.einfarbbombette='kugel'; EFF_FAMILIE.farbmixbombe='kugel'; EFF_FAMILIE.stakkatostern='knister'; EFF_FAMILIE.pfauenfaecher='haenger';
 
-/* Farbreihen 25 (L12): fuenf Reihen, jede eine Farbe. Die Zuendschnur
-   laeuft Reihe fuer Reihe - die Farbe wechselt mit der Reihe. */
+/* Farbreihen 25 (L12): fuenf Saetze, jeder eine Farbe; der dritte laeuft
+   als zweite Ebene mit dem zweiten. Wohin ein Schuss fliegt, sagt sein
+   Rohr (04c) - die Muster hier geben Takt und Hoehe. */
 SHOWS.rb25=()=>show({basis:{pw:-6,sz:0.72,th:'farbreihen'},rampe:{sz:[0.85,1.3],pw:[-1,2],hell:[0.85,1.3],kurve:'linear'}},[
-  {n:5,gap:0.35,muster:'fan',ang:0.12,eff:'einfarbbombette',farbe:0,pause:0.4},
-  {n:5,gap:0.35,muster:'rfan',ang:0.12,eff:'einfarbbombette',farbe:1,pause:0.4},
-  {n:5,gap:0.3,muster:'mitte',ang:0.12,eff:'einfarbbombette',farbe:2,pause:0.4},
-  {n:5,gap:0.3,muster:'aussen',ang:0.12,eff:'einfarbbombette',farbe:3,pause:0.4},
-  {n:5,gap:0.2,muster:'fan',ang:0.14,eff:'einfarbbombette',farbe:4,kal:'gross',pause:1.5}
+  {n:5,gap:0.45,muster:'gerade',eff:'einfarbbombette',farbe:0,pause:0.4},
+  {n:5,gap:0.3,muster:'mitte',ang:0.12,eff:'einfarbbombette',farbe:1},
+  {mit:true,n:5,gap:0.3,muster:'aussen',ang:0.12,eff:'einfarbbombette',farbe:2,hoehe:'steigend',pause:0.4},
+  {n:5,gap:0.2,muster:'w',ang:0.12,eff:'einfarbbombette',farbe:3,pause:0.4},
+  {n:5,gap:0.1,muster:'fan',ang:0.14,eff:'einfarbbombette',farbe:4,kal:'gross',pause:1.5}
 ]);
-/* Konfetti 49 (L15): sieben Reihen, jede aus einer anderen Farbkiste */
+/* Konfetti 49 (L15): sieben Saetze aus sieben Farbkisten, langsam,
+   mittel und als Salve; der dritte als zweite Ebene */
 SHOWS.rb49=()=>show({basis:{pw:-2.8,sz:0.93,th:'konfetti'},rampe:{sz:[0.85,1.3],pw:[-1,2],hell:[0.85,1.3],kurve:'linear'}},[
-  {n:7,gap:0.35,muster:'gerade',eff:'farbmixbombe',farbe:0},
+  {n:7,gap:0.45,muster:'gerade',eff:'farbmixbombe',farbe:0},
   {n:7,gap:0.3,muster:'w',ang:0.12,eff:'farbmixbombe',farbe:1},
-  {n:7,gap:0.3,muster:'fan',ang:0.14,eff:'farbmixbombe',farbe:2},
-  {n:7,gap:0.25,muster:'rfan',ang:0.14,eff:'farbmixbombe',farbe:3},
-  {n:7,gap:0.25,muster:'mitte',ang:0.14,eff:'farbmixbombe',farbe:4},
-  {n:7,gap:0.2,muster:'aussen',ang:0.14,eff:'farbmixbombe',farbe:5},
+  {mit:true,n:7,gap:0.25,muster:'mitte',ang:0.14,eff:'farbmixbombe',farbe:2,hoehe:'steigend'},
+  {n:7,gap:0.2,muster:'aussen',ang:0.14,eff:'farbmixbombe',farbe:3},
+  {n:7,gap:0.6,muster:'z',ang:0.14,eff:'farbmixbombe',farbe:4},
+  {n:7,gap:0.1,muster:'wischer',ang:0.14,eff:'farbmixbombe',farbe:5},
   {n:7,gap:0,muster:'zufall',ang:0.15,eff:'farbmixbombe',farbe:6,kal:'gross',pause:1.5}
 ]);
-/* Stakkato 100 (L18): zehn Reihen ohne Pause im schnellsten Takt */
+/* Stakkato 100 (L18): zehn Saetze fast ohne Pause, ueber einer Glut-
+   fontaene; ein Satz als zweite Ebene, zwei kurze Atempausen */
 SHOWS.rb100=()=>show({basis:{pw:1.1,sz:1.09,th:'stakkato'},rampe:{sz:[0.85,1.3],pw:[-1,2],hell:[0.85,1.3],kurve:'linear'}},[
-  {n:10,gap:0,muster:'fan',ang:0.12,eff:'stakkatostern',farbe:0},
-  {n:10,gap:0,muster:'rfan',ang:0.12,eff:'stakkatostern',farbe:0},
+  {n:10,gap:0,muster:'fan',ang:0.12,eff:'stakkatostern',farbe:0,boden:{k:'volcano',gt:6,A:'orange',B:'weiss'}},
+  {mit:true,n:10,gap:0,muster:'mitte',ang:0.12,eff:'stakkatostern',farbe:0,hoehe:'wechsel'},
   {n:10,gap:0,muster:'z',ang:0.14,eff:'stakkatostern',farbe:1},
-  {n:10,gap:0,muster:'wischer',ang:0.14,eff:'stakkatostern',farbe:1},
+  {n:10,gap:0.2,muster:'wischer',ang:0.14,eff:'stakkatostern',farbe:1},
   {n:10,gap:0,muster:'welle',ang:0.14,eff:'stakkatostern',farbe:2},
-  {n:10,gap:0,muster:'mitte',ang:0.14,eff:'stakkatostern',farbe:2},
-  {n:10,gap:0,muster:'aussen',ang:0.15,eff:'stakkatostern',farbe:3},
+  {n:10,gap:0,muster:'aussen',ang:0.14,eff:'stakkatostern',farbe:2},
+  {n:10,gap:0.45,muster:'gerade',eff:'stakkatostern',farbe:3},
   {n:10,gap:0,muster:'w',ang:0.15,eff:'stakkatostern',farbe:3},
-  {n:10,gap:0,muster:'fan',ang:0.15,eff:'stakkatostern',farbe:0,kal:'gross'},
-  {n:10,gap:0,muster:'rfan',ang:0.15,eff:'stakkatostern',farbe:1,kal:'gross',pause:1.5}
+  {n:10,gap:0,muster:'zufall',ang:0.15,eff:'stakkatostern',farbe:0,kal:'gross'},
+  {n:10,gap:0,muster:'v',ang:0.15,eff:'stakkatostern',farbe:1,kal:'gross',pause:1.5}
 ]);
-/* Pfauenschweif 30 (L16, Faecher): die Rohre stehen je Spalte schraeg.
-   Reihe 1 faechert nach rechts auf, Reihe 2 zurueck nach links ... */
+/* Pfauenschweif 30 (L16, Faecher): die Rohre stehen spaltenweise schraeg,
+   jede Reihe faechert von links nach rechts oder zurueck auf (Zuendschnur
+   in Schlangenlinie); darunter eine Goldfontaene */
 SHOWS.rbfaecher=()=>show({basis:{pw:0.05,sz:1.0,th:'pfau'},rampe:{sz:[0.85,1.3],pw:[-1,2],hell:[0.85,1.3],kurve:'linear'}},[
-  {n:6,gap:0.35,muster:'rfan',ang:0.42,eff:'pfauenfaecher',farbe:0,pause:0.4},
-  {n:6,gap:0.35,muster:'fan',ang:0.46,eff:'pfauenfaecher',farbe:1,pause:0.4},
-  {n:6,gap:0.3,muster:'rfan',ang:0.5,eff:'pfauenfaecher',farbe:2,pause:0.4},
-  {n:6,gap:0.3,muster:'fan',ang:0.54,eff:'pfauenfaecher',farbe:0,pause:0.4},
-  {n:6,gap:0.2,muster:'rfan',ang:0.58,eff:'pfauenfaecher',farbe:1,kal:'gross',pause:1.5}
+  {n:6,gap:0.45,muster:'rfan',ang:0.42,eff:'pfauenfaecher',farbe:0,boden:{k:'volcano',gt:5,A:'gold',B:'tuerkis'},pause:0.4},
+  {n:6,gap:0.3,muster:'mitte',ang:0.46,eff:'pfauenfaecher',farbe:1},
+  {mit:true,n:6,gap:0.3,muster:'aussen',ang:0.5,eff:'pfauenfaecher',farbe:2,hoehe:'steigend',pause:0.4},
+  {n:6,gap:0.6,muster:'w',ang:0.54,eff:'pfauenfaecher',farbe:0},
+  {n:6,gap:0.1,muster:'z',ang:0.58,eff:'pfauenfaecher',farbe:1,kal:'gross',pause:1.5}
 ]);
 ['rb25','rb49','rb100','rbfaecher'].forEach(t=>{ const b=SHOWS[t]().basis; SHOW_BASIS[t]={pw:b.pw,sz:b.sz,th:b.th}; });
 Object.assign(SIGNATUR,{

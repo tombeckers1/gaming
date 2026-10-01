@@ -751,10 +751,10 @@ Object.assign(NEUWARE,{
     desc:'7 × 7 Rohre voller Farbmix-Bomben: in jeder Kugel stecken vier Farben durcheinander wie Konfetti, Reihe für Reihe aus einer anderen Farbkiste.',
     art:{title:'KONFETTI',sub:'49 Schuss · 7×7 · gemischte Farben',bg1:'#6a1a5a',bg2:'#14031a',ac:'#ffd23f',ac2:'#5ce1ff'}},
   rb100:{name:'Stakkato · 100 Schuss Schnellfeuer',short:'Stakkato 100',cat:2,lvl:18,shape:'battery',raster:[10,10],dims:[0.5,0.3,0.5],grid:[4,1,1],box:2,cost:30.00,market:69.99,weight:4,hype:56,risk:8,
-    desc:'10 × 10 Rohre im schnellsten Takt der Batterie: fünf Schuss pro Sekunde, kleine harte Stakkato-Sterne mit Knister-Spitzen, zwanzig Sekunden ohne Pause.',
+    desc:'10 × 10 Rohre im schnellsten Takt der Batterie: bis zu fünf Schuss pro Sekunde, kleine harte Stakkato-Sterne mit Knister-Spitzen über einer Glutfontäne – kaum eine Atempause.',
     art:{title:'STAKKATO',sub:'100 Schuss · 10×10 · 5 Schuss/s',bg1:'#2a2a2a',bg2:'#050505',ac:'#ff5a1e',ac2:'#f2f5ff'}},
   rbfaecher:{name:'Pfauenschweif · 30 Schuss Fächerbatterie',short:'Pfauenschweif 30',cat:2,lvl:16,shape:'fan',raster:[6,5],dims:[0.44,0.3,0.34],grid:[4,1,1],box:3,cost:17.50,market:39.99,weight:5,hype:42,risk:7,
-    desc:'Sechs Spalten schräger Rohre: jede Reihe fächert von außen nach außen – erst nach rechts, dann nach links, wie ein Pfau, der sein Rad schlägt. Goldpalmen mit grünen und blauen Spitzen.',
+    desc:'Sechs Spalten schräger Rohre: jede Reihe fächert von außen nach außen – erst nach rechts, dann nach links, wie ein Pfau, der sein Rad schlägt. Goldpalmen mit grünen und blauen Spitzen über einer Goldfontäne.',
     art:{title:'PFAUENSCHWEIF',sub:'30 Schuss · Fächer · 6 Spalten',bg1:'#0a4a4a',bg2:'#021414',ac:'#ffd23f',ac2:'#3a8aff'}}
 });
 NEU_GRUPPE.batterien.push('rb25','rb49','rb100','rbfaecher');

@@ -104,7 +104,11 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   /* 27.09.: der Feuersturm (batterie49) ist ein Sprint - absichtlich dichter als
      alles bis Level 20; die Dichte-Leiter gilt fuer die normalen Verbunde
      (seine eigene Pruefung: sortiment.js SPRINT) */
-  leiter(L.filter(t=>t!=='batterie49'),'DICHTE','dichte',0);
+  /* 01.10. abends (Tom: "0,2 bis 0,4 Sekunden Abstand" je Rohr): mehr als
+     5 Schuss je Sekunde gibt es nicht mehr - wer die Grenze erreicht, hat
+     die volle Dichte; die Leiter gilt bis dahin */
+  L.forEach(t=>{ if(r[t]) r[t].dichte5=Math.min(5,r[t].dichte); });
+  leiter(L.filter(t=>t!=='batterie49'),'DICHTE','dichte5',0);
   L.forEach(t=>pruef('ANZAHL',r[t].n===SOLL[t],`${t}: ${r[t].n} statt ${SOLL[t]} Schuss`));
   L.forEach(t=>pruef('ANZAHL',r[t].gefeuert>=r[t].n,`${t}: nur ${r[t].gefeuert} von ${r[t].n} Rohren gefeuert`));
   /* Jede Show wird intensiver: am Ende groessere, hoehere, hellere Brueche

@@ -92,6 +92,13 @@ function rohrSaat(seed,fn){ const alt=Math.random; Math.random=saatZufall(seed);
    schnell/langsam erhalten, jeder Schuss hat seinen eigenen Takt. */
 const ZUEND_MIN=0.2, ZUEND_MAX=0.4;
 function zuendAbstand(d){ return ZUEND_MIN+(ZUEND_MAX-ZUEND_MIN)*clamp(d/0.6,0,1); }
+/* Zeitachse der Zuendfolge: alte Schusszeiten -> neue (0,2-0,4 s Takt) */
+function zeitAchse(zeiten){ const alt=zeiten.slice().sort((a,b)=>a-b), neu=[]; let T=alt.length?alt[0]:0;
+  alt.forEach((t,i)=>{ if(i) T+=zuendAbstand(t-alt[i-1]); neu.push(T); });
+  const map=t=>{ if(!alt.length||t<=alt[0]) return t;
+    for(let i=1;i<alt.length;i++) if(t<=alt[i]){ const u=alt[i]-alt[i-1]; return neu[i-1]+(u>0?(t-alt[i-1])/u:1)*(neu[i]-neu[i-1]); }
+    return neu[neu.length-1]+Math.min(t-alt[alt.length-1],2.5); };
+  return {map,start:neu.length?neu[0]:0,ende:neu.length?neu[neu.length-1]:0}; }
 /* Zuendfolge einer Batterie aus den geplanten Ereignissen von playShow:
    Schuss i (nach Zeit) kommt aus Rohr folge[i], neue Zeiten im Takt
    0,2-0,4 s. Boden-Ereignisse rutschen mit (Zeitachse stueckweise). */

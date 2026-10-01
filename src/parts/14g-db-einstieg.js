@@ -647,15 +647,17 @@ const DB={
   /* Feuersturm, L15: Sprint auf drei Ebenen, 3 Schuss je Sekunde.
      28.09.: Vulkane Orange/Gold und Bernstein/Gold - rote Funken gibt es
      nicht (Kohle glueht orange-gold) */
+  /* 01.10. abends: jedes Rohr feuert 0,2-0,4 s nach dem vorigen - der
+     Sprint bleibt der Sprint, indem er fast nur den kuerzesten Takt nimmt */
   batterie49:()=>show({basis:{pw:-2.5,sz:0.90,th:'glut'}, rampe:{sz:[0.75,1.25],pw:[-2.8,2],hell:[0.85,1.35],kurve:'linear'}}, [
     /* 28.09., Tom: "Effekt zu gross" - zwei kurze kleine Goldfontaenen zum
        Auftakt (vorher 15 s Vulkane in voller Hoehe: mehr Fontaene als Batterie) */
     {n:0,nurBoden:true,boden:[{k:'fountain',gt:5,x:-0.13,A:'orange',B:'gold'},{k:'fountain',gt:5,x:0.13,A:'bernstein',B:'gold',t:0.3}],pause:0.4},
-    {n:6,gap:0.7,muster:'gerade',eff:'lampare',kal:'klein',steig:'glut',pause:0.5},
-    {n:10,gap:0.45,muster:'v',ang:0.3,eff:'chrys',steig:'glut',pause:0.5},
-    {n:8,mit:true,gap:0.28,muster:'gerade',rohre:'breit',mineEff:'lampare',mineSz:0.6,nurMine:true},
-    {n:12,gap:0.2,muster:'z',seg:3,ang:0.4,eff:['palme','lampare'],steig:'gold',pause:0.8},
-    {n:6,gap:0.25,muster:'w',ang:0.35,eff:'chrys',kal:'mittel',steig:'knister',pause:0.6},
+    {n:6,gap:0.45,muster:'gerade',eff:'lampare',kal:'klein',steig:'glut',pause:0.2},
+    {n:10,gap:0.2,muster:'v',ang:0.3,eff:'chrys',steig:'glut',pause:0.2},
+    {n:8,mit:true,gap:0.1,muster:'gerade',rohre:'breit',mineEff:'lampare',mineSz:0.6,nurMine:true},
+    {n:12,gap:0.1,muster:'z',seg:3,ang:0.4,eff:['palme','lampare'],steig:'gold',pause:0.3},
+    {n:6,gap:0.2,muster:'w',ang:0.35,eff:'chrys',kal:'mittel',steig:'knister',pause:0.2},
     /* 27.09.: Schlussfaecher hoeher - schraege Rohre steigen sonst tiefer als der Anfang (steigerung.js) */
     {n:7,gap:0,muster:'schlag',ang:0.45,eff:'lampare',kal:'gross',pw:2.5,steig:'glut',mineEff:'chrys',mineSz:0.7,pause:3.0}
   ]),
@@ -695,7 +697,7 @@ Object.assign(SIGNATUR,{
   feuerperlen:{eff:'wandelperle',text:'Leuchtkugel rot, gold, weiss mit Dunkelpause - und oben ein Knall'},
   knatter:{idee:'Doppeldeck-Knistern',text:'Knistern auf zwei Hoehen zugleich'},
   knisterfaecher:{eff:'fischschwarm',text:'Silberfische zischen im Zickzack auseinander'},
-  batterie49:{idee:'Sprint drei Ebenen',eff:'lampare',text:'49 Schuss in 16 s, Feuerbaelle auf drei Ebenen'},
+  batterie49:{idee:'Sprint drei Ebenen',eff:'lampare',text:'49 Schuss in 12 s, Feuerbaelle auf drei Ebenen'},
   sternenmeer42:{eff:'tausendblueten',text:'Stille, dann platzen Dutzende kleiner Blueten zugleich'}
 });
 /* 30.09.: Fischflug und Helligkeitsausgleich auch fuer die Fischkerze

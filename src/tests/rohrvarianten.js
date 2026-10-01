@@ -29,6 +29,8 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     bb.regalStellen('standard'); bb.regalStellen('standard'); bb.regalStellen('standard');
     for(const t of Object.keys(SOLL)){
       const q=P[t], o={t};
+      /* bestellbar, sobald das Lizenzpaket ihres Levels gekauft ist */
+      o.lizenz=bb.lizenzOf(t); if(o.lizenz&&!S.lic.includes(o.lizenz)) S.lic.push(o.lizenz);
       o.da=!!q&&q.cat===2&&!q.noOrder&&bb.ORDER.includes(t);
       o.frei=bb.isUnlocked(t);
       const n0=bb.pendingListe().filter(x=>x.type===t).length; bb.orderBox(t,1,'fachhandel');

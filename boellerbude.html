@@ -2907,6 +2907,12 @@ Object.assign(NEUWARE,{
     art:{title:'PFAUENSCHWEIF',sub:'30 Schuss · Fächer · 6 Spalten',bg1:'#0a4a4a',bg2:'#021414',ac:'#ffd23f',ac2:'#3a8aff'}}
 });
 NEU_GRUPPE.batterien.push('rb25','rb49','rb100','rbfaecher');
+/* je in das Lizenzpaket ihres Levels: Kleinfeuerwerk (L10), Verbund &
+   Kugelbomben (L14), Nachthimmel (L16), Goldklasse (L18) */
+NEU_LIZ_DAZU.verbund.push('rb49');
+NEU_LIZENZEN.find(l=>l.id==='kleinfeuer').items.push('rb25');
+NEU_LIZENZEN.find(l=>l.id==='nachthimmel').items.push('rbfaecher');
+NEU_LIZENZEN.find(l=>l.id==='goldklasse').items.push('rb100');
 /* Einhaengen */
 (function(){
   for(const t in NEUWARE){

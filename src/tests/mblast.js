@@ -24,7 +24,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     for(const id of L){ for(const k in ueber) ueber[k]=0; tone=[];
       for(let i=0;i<60&&(bb.rockets.length||bb.timersLen()>0);i++) bb.run(0.5,0.25);
       for(const k in pools) pools[k].life.fill(0);
-      bb.igniteType(id,{x:0,y:0.4,z:-20}); const dauer=bb.showLength(id)+8, maxA={}; let tmax=0, n=0;
+      bb.igniteType(id,{x:0,y:0.4,z:-20}); const dauer=(bb.SHOWS[id]?bb.showLength(id):6)+8, maxA={}; let tmax=0, n=0;
       for(let s=0;s<dauer;s+=0.1){ const t0=performance.now(); bb.run(0.1,1/30); tmax=Math.max(tmax,performance.now()-t0); n++;
         if(n%3===0) for(const k in pools){ let a=0; const l=pools[k].life; for(let i=0;i<l.length;i++) if(l[i]>0) a++; maxA[k]=Math.max(maxA[k]||0,a); } }
       const zeiten=tone.map(x=>x[0]); let spitze=0; for(const t of zeiten){ spitze=Math.max(spitze,zeiten.filter(u=>u>=t&&u<t+1).length); }

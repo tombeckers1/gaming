@@ -8303,9 +8303,21 @@ function stilleWand(x0,x1,z0,z1,y0,y1,inFace,inMat,exMat,ue){
   const i=occluders.indexOf(m); if(i>=0) occluders.splice(i,1);
   return m;
 }
-/* Scheuerleiste auf beiden Seiten einer Wandflucht */
-function sockelLeiste(id,laengs,fest,a0,a1){
-  for(const s of [-1,1]){
+/* Auf welcher Seite einer Wand (-1/+1 entlang ihrer Dicke) klebt die
+   Ladentapete? face ist die Innenseite ('-z' = Seite zu kleinerem z). */
+function ladenSeiten(face,innen,aussen){
+  const si=face[0]==='-'?-1:1, r=[];
+  if(innen===shopWall) r.push(si);
+  if(aussen===shopWall) r.push(-si);
+  return r;
+}
+/* Scheuerleiste auf einer oder beiden Seiten einer Wandflucht */
+/* seiten: nur die Seiten, auf denen Ladentapete klebt. Frueher kam die
+   Leiste immer auf beide Seiten - an einer Wand zwischen Laden und
+   Lager lag die dunkle Ladenleiste dann im Lager ueber dem gelb-
+   schwarzen Sockel (Tom, 01.10.: doppelter Streifen in der Ecke). */
+function sockelLeiste(id,laengs,fest,a0,a1,seiten){
+  for(const s of (seiten||[-1,1])){
     const o=laengs
       ? bbox(a1-a0,0.1,0.02,sockelM(),(a0+a1)/2,0.05,fest+s*(LW/2+0.011),null,false)
       : bbox(0.02,0.1,a1-a0,sockelM(),fest+s*(LW/2+0.011),0.05,(a0+a1)/2,null,false);
@@ -8324,7 +8336,7 @@ function trennwand(id,laengs,fest,a0,a1,h,innen,aussen,face){
     ? stilleWand(a0,a1,fest-LW/2,fest+LW/2,0,h,f,innen,aussen,0)
     : stilleWand(fest-LW/2,fest+LW/2,a0,a1,0,h,f,innen,aussen,0);
   zWand(id,m);
-  if(innen===shopWall) sockelLeiste(id,laengs,fest,a0,a1);
+  sockelLeiste(id,laengs,fest,a0,a1,ladenSeiten(f,innen,aussen));
   zWandCol(id,laengs?col(a0,a1,fest-LW/2,fest+LW/2):col(fest-LW/2,fest+LW/2,a0,a1));
   return m;
 }
@@ -8468,7 +8480,7 @@ function durchbruchWand(id,laengs,fest,von,bis,oeffnungen,mat,exMat,sturzY,hoehe
     const m=w(a2,b2,y0,y1);
     if(offen){ zWand(id,m); if(y0<=0.01) zc(a2,b2); }
     else { if(y0<=0.01) c(a2,b2); }
-    if(mat===shopWall&&y0<=0.01) sockelLeiste(offen?id:null,laengs,fest,a2,b2);
+    if(y0<=0.01) sockelLeiste(offen?id:null,laengs,fest,a2,b2,ladenSeiten(f,mat,exMat));
     return m;
   };
   const saeulen=[];

@@ -26658,7 +26658,7 @@ function lAbschuss(H,G,opt,streu){ const v0=vFuerHoehe(H,G), r=lRicht(opt), e=st
   return [r[0]*v0+rand(-e,e),r[1]*v0,r[2]*v0+rand(-e,e)]; }
 function lScheitel(vy,G){ return Math.log(1+ZIEH*Math.max(0.1,vy)/G)/ZIEH; }
 /* fortlaufender Ausstoss (Fontaene, Rad): fn(t) je Bild bis dauer */
-function lLaufend(dauer,fn){ for(let t=0;t<dauer;t+=1/30){ const tt=t; kgSpaeter(tt,()=>fn(tt)); } }
+function lLaufend(dauer,fn,spur){ for(let t=0;t<dauer;t+=1/30){ const tt=t; kgSpaeter(tt,()=>{ const a=SCHWEIF; SCHWEIF=spur===undefined?0.06:spur; try{ fn(tt); } finally { SCHWEIF=a; } }); } }
 function lStart(m,k,laut){ muendungsblitz(m,m.y,k||1); if(laut) sfx.thump(distVol(m)*laut); }
 /* Seitenachse der Batterie (quer zum Zuschauer) */
 function lQuer(opt){ const d=opt.dir===undefined?FANDIR:opt.dir; return [Math.sin(d),0,Math.cos(d)]; }
@@ -26672,6 +26672,15 @@ function lBahn(ps,p,v,schritte,dt,c,G,dreh,spur,mode,folge){
     q=sternNach(q,w[0],w[1],w[2],G,dt); w=bahnTempo(w,G,dt); w=dreh(w,k); t+=dt; }
   return t;
 }
+/* Kopf eines Kometen: zwei Leuchtsterne und ein heller Kern - aus 15 m
+   Abstand sonst nur ein Punkt (01.10., Sichtpruefung) */
+function lKopf(m,v,c,T,G,mode,spur){
+  kgStern(psHuge,m,v,kgMal(c,1.25),T,G,mode||0,spur||0); kgStern(psHuge,m,v,kgMal(c,1.25),T,G,mode||0,(spur||0)*0.6);
+  kgStern(psBig,m,v,[1.6,1.55,1.45],T*0.92,G,mode||0,0); }
+/* Schweif: feine Funken (psMid) und ein Drittel groebere Glitzerflocken
+   (psBig) - nur feine Funken lasen sich aus 15 m als duenner Strich */
+function lFunken(p,v,g,t0,t1,rate,c,o){ o=o||{}; rkFunken(p,v,g,t0,t1,rate,c,o);
+  if(!o.ps||o.ps===psMid){ const L=o.life||[0.4,0.8]; rkFunken(p,v,g,t0,t1,rate*0.32,kgMal(c,1.1),Object.assign({},o,{ps:psBig,life:[L[0]*0.8,L[1]*0.9]})); } }
 function lichtSchuss(o,name,A,B,s,opt){
   const m=lMund(o);
   if(FW_LOG) FW_LOG.push({t:FW_UHR,art:'perle',kal:0,pw:0,sz:s||1,eff:'licht:'+name,A,B,stufenEff:[],hoehe:0,brueche:0,groesste:s||1,ang:+(opt.ang||0).toFixed(3),x:+m.x.toFixed(2),y:+m.y.toFixed(2),z:+m.z.toFixed(2),tag:FW_TAG});
@@ -26682,47 +26691,47 @@ function lichtSchuss(o,name,A,B,s,opt){
 /* 1 Goldkomet: Schweifkomet - goldene Spitze, langer Goldglitzerschweif */
 LICHTYP.goldkomet=function(o,A,B,s,opt){
   const m=lMund(o), G=6, v=lAbschuss(26*Math.sqrt(s),G,opt,0.4), T=lScheitel(v[1],G)+0.35;
-  kgStern(psHuge,m,v,kgMal(A,1.5),T,G,0,0.35); kgStern(psBig,m,v,[1.3,1.1,.7],T,G,0,0.6);
-  rkFunken(m,v,G,0.03,T,140,[1,.74,.32],{ps:psMid,life:[0.7,1.3],g:2.4,streu:0.25,mit:0.1,mode:4});
+  lKopf(m,v,kgMal(A,1.5),T,G,0,0.35); kgStern(psBig,m,v,[1.3,1.1,.7],T,G,0,0.6);
+  lFunken(m,v,G,0.03,T,160,[1,.74,.32],{ps:psMid,life:[0.7,1.3],g:2.4,streu:0.25,mit:0.1,mode:4});
   lStart(m,1.3,0.8); sfx.zischen(distVol(m)*0.35,T);
 };
 /* 2 Knisterkomet: Silberkomet, dessen Schweif knistert (Crackling) */
 LICHTYP.knisterkomet=function(o,A,B,s,opt){
   const m=lMund(o), G=6, v=lAbschuss(24*Math.sqrt(s),G,opt,0.4), T=lScheitel(v[1],G)+0.3;
-  kgStern(psHuge,m,v,[1.4,1.4,1.35],T,G,0,0.2);
-  rkFunken(m,v,G,0.15,T,55,[1.3,1.25,1.1],{ps:psSmall,life:[0.12,0.3],g:0.8,streu:1.4,mit:0.05,mode:3});
-  rkFunken(m,v,G,0.03,T,40,[1,1,1],{ps:psMid,life:[0.3,0.6],g:2,streu:0.2,mit:0.1,mode:0});
+  lKopf(m,v,[1.4,1.4,1.35],T,G,0,0.2);
+  lFunken(m,v,G,0.15,T,55,[1.3,1.25,1.1],{ps:psSmall,life:[0.12,0.3],g:0.8,streu:1.4,mit:0.05,mode:3});
+  lFunken(m,v,G,0.03,T,40,[1,1,1],{ps:psMid,life:[0.3,0.6],g:2,streu:0.2,mit:0.1,mode:0});
   lStart(m,1,0.8); const p0=m; for(let i=0;i<Math.round(T/0.35);i++) later(0.3+i*0.35,()=>sfx.prasseln(distVol(p0)*0.8));
 };
 /* 3 Geisterkomet: steigt in Farbe A, wird nach einer kurzen Dunkelphase
    zu Farbe B - farbiger, weicher Schweif ohne Glitzer */
 LICHTYP.geisterkomet=function(o,A,B,s,opt){
   const m=lMund(o), G=6, v=lAbschuss(25*Math.sqrt(s),G,opt,0.4), T=lScheitel(v[1],G)+0.5, tW=T*0.5;
-  kgStern(psHuge,m,v,kgMal(A,1.5),tW-0.06,G,0,0.6);
-  rkFunken(m,v,G,0.03,tW-0.08,70,kgMal(A,0.9),{ps:psMid,life:[0.35,0.6],g:1.5,streu:0.2,mit:0.15,mode:0});
+  lKopf(m,v,kgMal(A,1.5),tW-0.06,G,0,0.6);
+  lFunken(m,v,G,0.03,tW-0.08,70,kgMal(A,0.9),{ps:psMid,life:[0.35,0.6],g:1.5,streu:0.2,mit:0.15,mode:0});
   kgSpaeter(tW,()=>{ const e=sternNach(m,v[0],v[1],v[2],G,tW), w=bahnTempo(v,G,tW);
-    kgStern(psHuge,e,w,kgMal(B,1.6),T-tW,G,0,0.6);
-    rkFunken(e,w,G,0.02,T-tW,70,kgMal(B,0.9),{ps:psMid,life:[0.35,0.6],g:1.5,streu:0.2,mit:0.15,mode:0}); });
+    lKopf(e,w,kgMal(B,1.6),T-tW,G,0,0.6);
+    lFunken(e,w,G,0.02,T-tW,70,kgMal(B,0.9),{ps:psMid,life:[0.35,0.6],g:1.5,streu:0.2,mit:0.15,mode:0}); });
   lStart(m,1,0.75); sfx.fizz(distVol(m)*0.6);
 };
 /* 4 Blinkkomet: steigt blinkend, sein Schweif blitzt silbern */
 LICHTYP.blinkkomet=function(o,A,B,s,opt){
   const m=lMund(o), G=6, v=lAbschuss(25*Math.sqrt(s),G,opt,0.4), T=lScheitel(v[1],G)+0.6;
-  kgStern(psHuge,m,v,[1.5,1.5,1.5],T,G,1,0);
-  rkFunken(m,v,G,0.05,T,45,[1.4,1.4,1.4],{ps:psMid,life:[0.8,1.5],g:1.2,streu:0.35,mit:0.05,mode:1});
+  lKopf(m,v,[1.5,1.5,1.5],T,G,1,0);
+  lFunken(m,v,G,0.05,T,45,[1.4,1.4,1.4],{ps:psMid,life:[0.8,1.5],g:1.2,streu:0.35,mit:0.05,mode:1});
   lStart(m,1,0.8); sfx.fizz(distVol(m)*0.5);
 };
 /* 5 Crossette: der Komet teilt sich vor dem Scheitel mit leisem Knacken in
    vier Kometen, die als Kreuz auseinanderfliegen */
 LICHTYP.crossette=function(o,A,B,s,opt){
   const m=lMund(o), G=6, v=lAbschuss(24*Math.sqrt(s),G,opt,0.3), tS=lScheitel(v[1],G)*0.72;
-  kgStern(psHuge,m,v,kgMal(A,1.4),tS,G,0,0.25);
-  rkFunken(m,v,G,0.03,tS,90,[1,.8,.42],{ps:psMid,life:[0.5,0.9],g:2.2,streu:0.2,mit:0.1,mode:4});
+  lKopf(m,v,kgMal(A,1.4),tS,G,0,0.25);
+  lFunken(m,v,G,0.03,tS,90,[1,.8,.42],{ps:psMid,life:[0.5,0.9],g:2.2,streu:0.2,mit:0.1,mode:4});
   lStart(m,1,0.8);
   kgSpaeter(tS,()=>{ const e=sternNach(m,v[0],v[1],v[2],G,tS), w=bahnTempo(v,G,tS), a0=rand(0,Math.PI*2);
     for(let k=0;k<4;k++){ const a=a0+k*Math.PI/2, sp=7.5*Math.sqrt(s), dv=[Math.cos(a)*sp+w[0]*0.4,1.2+w[1]*0.4,Math.sin(a)*sp+w[2]*0.4];
-      kgStern(psHuge,e,dv,kgMal(B,1.45),1.5,3.5,0,0.3);
-      rkFunken(e,dv,3.5,0.02,1.5,70,[1,.8,.42],{ps:psMid,life:[0.4,0.8],g:2,streu:0.2,mit:0.1,mode:4}); }
+      lKopf(e,dv,kgMal(B,1.45),1.5,3.5,0,0.3);
+      lFunken(e,dv,3.5,0.02,1.5,70,[1,.8,.42],{ps:psMid,life:[0.4,0.8],g:2,streu:0.2,mit:0.1,mode:4}); }
     for(let i=0;i<3;i++) psHuge.emit(e.x,e.y,e.z,0,0,0,1.3,1.2,1,0.05,0,0);
     schall(e,x=>sfx.crack(x*0.55)); });
 };
@@ -26730,22 +26739,22 @@ LICHTYP.crossette=function(o,A,B,s,opt){
    Trauerweide herabsinkt - der Stern faellt nach dem Scheitel noch weiter */
 LICHTYP.weidenkomet=function(o,A,B,s,opt){
   const m=lMund(o), G=5, v=lAbschuss(25*Math.sqrt(s),G,opt,0.4), T=lScheitel(v[1],G)+1.3;
-  kgStern(psHuge,m,v,[1.3,.85,.4],T,G,0,0.4);
-  rkFunken(m,v,G,0.05,T,75,[.95,.55,.2],{ps:psMid,life:[2.0,3.0],g:0.75,streu:0.12,mit:0.03,mode:0,spur:0.25});
+  lKopf(m,v,[1.3,.85,.4],T,G,0,0.4);
+  lFunken(m,v,G,0.05,T,75,[.95,.55,.2],{ps:psMid,life:[2.0,3.0],g:0.75,streu:0.12,mit:0.03,mode:0,spur:0.25});
   lStart(m,1.1,0.8); sfx.zischen(distVol(m)*0.3,T); later(1.2,()=>sfx.rieseln(distVol(m)*0.4,3));
 };
 /* 7 Pfeifkomet: silberner Komet mit Pfeifsatz - der Ton steigt mit */
 LICHTYP.pfeifkomet=function(o,A,B,s,opt){
   const m=lMund(o), G=6, v=lAbschuss(24*Math.sqrt(s),G,opt,0.4), T=lScheitel(v[1],G)+0.25;
-  kgStern(psHuge,m,v,[1.4,1.4,1.4],T,G,0,0.15);
-  rkFunken(m,v,G,0.03,T,90,[1.15,1.15,1.2],{ps:psMid,life:[0.25,0.5],g:1.5,streu:0.25,mit:0.12,mode:0});
+  lKopf(m,v,[1.4,1.4,1.4],T,G,0,0.15);
+  lFunken(m,v,G,0.03,T,90,[1.15,1.15,1.2],{ps:psMid,life:[0.25,0.5],g:1.5,streu:0.25,mit:0.12,mode:0});
   lStart(m,1,0.7); sfx.pfeifTon(distVol(m)*1.4,(opt.i||0)*4,{dur:T});
 };
 /* 8 Titankomet: weissgleissender Titanschweif, sehr hell, lautes Zischen */
 LICHTYP.titankomet=function(o,A,B,s,opt){
   const m=lMund(o), G=6, v=lAbschuss(27*Math.sqrt(s),G,opt,0.3), T=lScheitel(v[1],G)+0.2;
-  for(let k=0;k<3;k++) kgStern(psHuge,m,v,[1.7,1.7,1.7],T,G,0,0.12);
-  rkFunken(m,v,G,0.02,T,230,[1.5,1.5,1.55],{ps:psMid,life:[0.18,0.45],g:1,streu:0.9,mit:0.18,mode:4});
+  for(let k=0;k<3;k++) lKopf(m,v,[1.7,1.7,1.7],T,G,0,0.12);
+  lFunken(m,v,G,0.02,T,230,[1.5,1.5,1.55],{ps:psMid,life:[0.18,0.45],g:1,streu:0.9,mit:0.18,mode:4});
   lStart(m,1.6,1.0); sfx.fauchen(distVol(m)*0.35,T,true); sfx.zischen(distVol(m)*0.5,T);
   for(let k=1;k<4;k++){ const t=T*k/4; kgSpaeter(t,()=>flash(sternNach(m,v[0],v[1],v[2],G,t),[1,1,1],0.9,0.12)); }
 };
@@ -26753,16 +26762,16 @@ LICHTYP.titankomet=function(o,A,B,s,opt){
    eine breite, funkelnde Bahn statt eines duennen Schweifs */
 LICHTYP.brokatkomet=function(o,A,B,s,opt){
   const m=lMund(o), G=5, v=lAbschuss(23*Math.sqrt(s),G,opt,0.4), T=lScheitel(v[1],G)+0.8;
-  for(let k=0;k<2;k++) kgStern(psHuge,m,v,[1.35,.8,.35],T,G,0,0.3);
-  rkFunken(m,v,G,0.08,T,55,[1.15,.78,.36],{ps:psBig,life:[1.2,2.0],g:1.3,streu:0.7,mit:0.05,mode:4,spur:0.08});
+  for(let k=0;k<2;k++) lKopf(m,v,[1.35,.8,.35],T,G,0,0.3);
+  lFunken(m,v,G,0.08,T,55,[1.15,.78,.36],{ps:psBig,life:[1.2,2.0],g:1.3,streu:0.7,mit:0.05,mode:4,spur:0.08});
   lStart(m,1.2,0.85); sfx.zischen(distVol(m)*0.3,T); later(0.6,()=>sfx.rieseln(distVol(m)*0.5,2.5));
 };
 /* 10 Kometenfaecher: ein Rohr, fuenf kleine Farbkometen als Faecher */
 LICHTYP.kometenfaecher=function(o,A,B,s,opt){
   const m=lMund(o), G=6;
   for(let k=0;k<5;k++){ const a=(opt.ang||0)+(-0.5+k*0.25), H=(20-Math.abs(k-2)*2)*Math.sqrt(s), v=lAbschuss(H,G,{ang:a,dir:opt.dir},0.2), T=lScheitel(v[1],G)+0.2;
-    kgStern(psHuge,m,v,kgMal(k%2?B:A,1.45),T,G,0,0.3);
-    rkFunken(m,v,G,0.03,T,45,[1,.78,.38],{ps:psMid,life:[0.35,0.7],g:2,streu:0.15,mit:0.1,mode:4}); }
+    lKopf(m,v,kgMal(k%2?B:A,1.45),T,G,0,0.3);
+    lFunken(m,v,G,0.03,T,45,[1,.78,.38],{ps:psMid,life:[0.35,0.7],g:2,streu:0.15,mit:0.1,mode:4}); }
   lStart(m,1.5,1.0); sfx.fizz(distVol(m)*0.7);
 };
 /* 11 Sternschnuppen: flach geschossene Kometen, die mit langem, kuehl
@@ -26770,8 +26779,8 @@ LICHTYP.kometenfaecher=function(o,A,B,s,opt){
 LICHTYP.sternschnuppe=function(o,A,B,s,opt){
   const m=lMund(o), G=3, sd=(opt.i||0)%2?1:-1, a=sd*1.05, v=lAbschuss(14*Math.sqrt(s),G,{ang:a,dir:opt.dir},0.3), T=2.4;
   const w=kgMal(v,1.25);
-  kgStern(psHuge,m,w,[1.3,1.4,1.6],T,G,0,0.5);
-  rkFunken(m,w,G,0.05,T,85,[.8,.9,1.2],{ps:psMid,life:[1.0,1.6],g:0.35,streu:0.08,mit:0,mode:0,spur:0.2});
+  lKopf(m,w,[1.3,1.4,1.6],T,G,0,0.5);
+  lFunken(m,w,G,0.05,T,85,[.8,.9,1.2],{ps:psMid,life:[1.0,1.6],g:0.35,streu:0.08,mit:0,mode:0,spur:0.2});
   lStart(m,1,0.7); sfx.zischen(distVol(m)*0.3,T);
 };
 
@@ -26803,8 +26812,8 @@ LICHTYP.wetterleuchten=function(o,A,B,s,opt){
    dann ganz langsam wie eine Fallschirmleuchte, sie taucht alles in Licht */
 LICHTYP.schwebestern=function(o,A,B,s,opt){
   const m=lMund(o), G=6, v=lAbschuss(24*Math.sqrt(s),G,opt,0.3), T=lScheitel(v[1],G);
-  kgStern(psHuge,m,v,kgMal(A,1.4),T,G,0,0.3);
-  rkFunken(m,v,G,0.03,T,40,[1,.8,.45],{ps:psMid,life:[0.3,0.6],g:2,streu:0.2,mit:0.1,mode:0});
+  lKopf(m,v,kgMal(A,1.4),T,G,0,0.3);
+  lFunken(m,v,G,0.03,T,40,[1,.8,.45],{ps:psMid,life:[0.3,0.6],g:2,streu:0.2,mit:0.1,mode:0});
   lStart(m,1,0.75);
   kgSpaeter(T,()=>{ const e=sternNach(m,v[0],v[1],v[2],G,T), D=5.5, dv=[rand(-0.4,0.4),-0.9,rand(-0.4,0.4)];
     for(let k=0;k<4;k++) kgStern(psHuge,e,dv,kgMal(A,1.7),D,0,0,0.05);
@@ -26900,54 +26909,54 @@ LICHTYP.dracheneier=function(o,A,B,s,opt){
 };
 /* 24 Goldfontaene: klassische Fontaene, fuenf Sekunden Goldglitzer */
 LICHTYP.goldfontaene=function(o,A,B,s,opt){
-  const m=lMund(o), G=4, D=5.5, H=6.5*Math.sqrt(s), v0=vFuerHoehe(H,G), rr=lRicht(opt);
+  const m=lMund(o), G=4, D=5.5, H=9*Math.sqrt(s), v0=vFuerHoehe(H,G), rr=lRicht(opt);
   lStart(m,0.8,0.4); sfx.fauchen(distVol(m)*0.35,D); sfx.rieseln(distVol(m)*0.35,D);
   lLaufend(D,t=>{ const k=Math.min(1,t/0.4)*Math.min(1,(D-t)/0.6);
-    for(let j=0;j<Math.round(7*k*QUAL());j++){ const w=v0*rand(0.7,1.05); psMid.emit(m.x,m.y,m.z,(rr[0]+rand(-.13,.13))*w,rr[1]*w,(rr[2]+rand(-.13,.13))*w,1.15,.8,.36,rand(1.0,1.5),G,4); } });
+    for(let j=0;j<Math.round(11*k*QUAL());j++){ const w=v0*rand(0.7,1.05), ps=j%3?psMid:psBig; ps.emit(m.x,m.y,m.z,(rr[0]+rand(-.15,.15))*w,rr[1]*w,(rr[2]+rand(-.15,.15))*w,1.2,.82,.36,rand(1.0,1.6),G,4); } });
 };
 /* 25 Knisterfontaene: Silberfontaene, oben knistert es ununterbrochen */
 LICHTYP.knisterfontaene=function(o,A,B,s,opt){
-  const m=lMund(o), G=4, D=5.5, H=5.5*Math.sqrt(s), v0=vFuerHoehe(H,G), T=lScheitel(v0,G), rr=lRicht(opt);
+  const m=lMund(o), G=4, D=5.5, H=8*Math.sqrt(s), v0=vFuerHoehe(H,G), T=lScheitel(v0,G), rr=lRicht(opt);
   lStart(m,0.8,0.4); sfx.zischen(distVol(m)*0.45,D);
   for(let k=0;k<Math.round(D/0.3);k++) later(0.6+k*0.3,()=>sfx.prasseln(distVol(m)*0.9));
-  lLaufend(D,t=>{ for(let j=0;j<Math.round(5*QUAL());j++){ const w=v0*rand(0.7,1.05), v=[(rr[0]+rand(-.12,.12))*w,rr[1]*w,(rr[2]+rand(-.12,.12))*w];
-      psMid.emit(m.x,m.y,m.z,v[0],v[1],v[2],1.2,1.2,1.25,rand(0.7,1.0)*T,G,0); }
+  lLaufend(D,t=>{ for(let j=0;j<Math.round(8*QUAL());j++){ const w=v0*rand(0.7,1.05), v=[(rr[0]+rand(-.12,.12))*w,rr[1]*w,(rr[2]+rand(-.12,.12))*w];
+      (j%3?psMid:psBig).emit(m.x,m.y,m.z,v[0],v[1],v[2],1.2,1.2,1.25,rand(0.7,1.0)*T,G,0); }
     if(Math.random()<0.6){ const w=v0*rand(0.85,1), v=[(rr[0]+rand(-.1,.1))*w,rr[1]*w,(rr[2]+rand(-.1,.1))*w], tt=T*rand(0.8,1);
       kgSpaeter(tt,()=>{ const e=sternNach(m,v[0],v[1],v[2],G,tt); for(let j=0;j<Math.round(5*QUAL());j++){ const d=randDir(); psSmall.emit(e.x,e.y,e.z,d[0]*2,d[1]*2,d[2]*2,1.5,1.45,1.3,rand(0.05,0.12),1,3); } }); } });
 };
 /* 26 Perlfontaene: eine Goldfontaene, aus der farbige Perlen springen */
 LICHTYP.perlfontaene=function(o,A,B,s,opt){
-  const m=lMund(o), G=4, D=5.5, H=5*Math.sqrt(s), v0=vFuerHoehe(H,G), rr=lRicht(opt);
+  const m=lMund(o), G=4, D=5.5, H=7.5*Math.sqrt(s), v0=vFuerHoehe(H,G), rr=lRicht(opt);
   lStart(m,0.8,0.4); sfx.fizz(distVol(m)*0.8); sfx.zischen(distVol(m)*0.35,D);
-  lLaufend(D,t=>{ for(let j=0;j<Math.round(3*QUAL());j++){ const w=v0*rand(0.6,0.95); psMid.emit(m.x,m.y,m.z,(rr[0]+rand(-.15,.15))*w,rr[1]*w,(rr[2]+rand(-.15,.15))*w,1,.72,.3,rand(0.6,1.0),G,4); }
-    if(Math.random()<0.28){ const P=vFuerHoehe(rand(8,12)*Math.sqrt(s),5), c=Math.random()<0.5?A:B, v=[(rr[0]+rand(-.2,.2))*P,rr[1]*P,(rr[2]+rand(-.2,.2))*P];
+  lLaufend(D,t=>{ for(let j=0;j<Math.round(6*QUAL());j++){ const w=v0*rand(0.6,0.95); (j%3?psMid:psBig).emit(m.x,m.y,m.z,(rr[0]+rand(-.15,.15))*w,rr[1]*w,(rr[2]+rand(-.15,.15))*w,1,.72,.3,rand(0.6,1.0),G,4); }
+    if(Math.random()<0.4){ const P=vFuerHoehe(rand(11,16)*Math.sqrt(s),5), c=Math.random()<0.5?A:B, v=[(rr[0]+rand(-.2,.2))*P,rr[1]*P,(rr[2]+rand(-.2,.2))*P];
       kgStern(psBig,m,v,kgMal(c,1.45),lScheitel(v[1],5)+0.3,5,0,0.25); } });
 };
 /* 27 Blinkfontaene: eine Fontaene aus Blinksatz - eine flirrende, weiss
    blitzende Saeule statt Funken */
 LICHTYP.blinkfontaene=function(o,A,B,s,opt){
-  const m=lMund(o), G=2.2, D=5.5, H=6*Math.sqrt(s), v0=vFuerHoehe(H,G), rr=lRicht(opt);
+  const m=lMund(o), G=2.2, D=5.5, H=9*Math.sqrt(s), v0=vFuerHoehe(H,G), rr=lRicht(opt);
   lStart(m,0.8,0.4); sfx.zischen(distVol(m)*0.3,D); sfx.fizz(distVol(m)*0.6);
-  lLaufend(D,t=>{ for(let j=0;j<Math.round(4*QUAL());j++){ const w=v0*rand(0.5,1); psMid.emit(m.x,m.y,m.z,(rr[0]+rand(-.12,.12))*w,rr[1]*w,(rr[2]+rand(-.12,.12))*w,1.5,1.5,1.5,rand(1.4,2.2),G,1); } });
+  lLaufend(D,t=>{ for(let j=0;j<Math.round(6*QUAL());j++){ const w=v0*rand(0.5,1); (j%2?psMid:psBig).emit(m.x,m.y,m.z,(rr[0]+rand(-.12,.12))*w,rr[1]*w,(rr[2]+rand(-.12,.12))*w,1.5,1.5,1.5,rand(1.4,2.2),G,1); } });
 };
 /* 28 Silberwasserfall: Kometen im flachen Bogen ueber die Batterie - aus
    dem Bogen faellt ein Vorhang silberner Funken senkrecht herab */
 LICHTYP.wasserfall=function(o,A,B,s,opt){
   const m=lMund(o), G=4, sd=(opt.i||0)%2?1:-1, v=lAbschuss(15*Math.sqrt(s),G,{ang:sd*0.62,dir:opt.dir},0.2), T=lScheitel(v[1],G)*1.7;
-  kgStern(psHuge,m,v,[1.4,1.4,1.45],T,G,0,0.2);
-  rkFunken(m,v,G,0.08,T,120,[1.25,1.25,1.3],{ps:psMid,life:[1.8,2.6],g:2.6,streu:0.06,mit:0,mode:0,spur:0.12});
+  lKopf(m,v,[1.4,1.4,1.45],T,G,0,0.2);
+  lFunken(m,v,G,0.08,T,120,[1.25,1.25,1.3],{ps:psMid,life:[1.8,2.6],g:2.6,streu:0.06,mit:0,mode:0,spur:0.12});
   lStart(m,1,0.7); sfx.regen(distVol(m)*0.7,T+2);
 };
 /* 29 Sonnenrad: ein senkrechtes Feuerrad ueber der Batterie, vier Duesen,
    es dreht sich immer schneller und spruehrt einen goldenen Kreis */
 LICHTYP.sonnenrad=function(o,A,B,s,opt){
-  const m=lMund(o), D=5.5, r=0.75*Math.sqrt(s), q=lQuer(opt), c={x:m.x,y:m.y+1.6,z:m.z};
+  const m=lMund(o), D=5.5, r=1.1*Math.sqrt(s), q=lQuer(opt), c={x:m.x,y:m.y+2.4,z:m.z};
   lStart(m,0.6,0.3); sfx.fauchen(distVol(m)*0.4,D);
   let th=0;
   lLaufend(D,t=>{ th+=(1.5+t*0.7)*Math.PI*2/30;
     for(let k=0;k<4;k++){ const a=th+k*Math.PI/2, ca=Math.cos(a), sa=Math.sin(a), px=c.x+q[0]*ca*r, py=c.y+sa*r, pz=c.z+q[2]*ca*r, tx=q[0]*sa, ty=-ca, tz=q[2]*sa;
       psHuge.emit(px,py,pz,0,0,0,1.3,1.1,.7,0.05,0,0);
-      for(let j=0;j<Math.round(4*QUAL());j++){ const w=rand(4,6.5); psMid.emit(px,py,pz,tx*w+rand(-.3,.3),ty*w+rand(-.3,.3),tz*w+rand(-.3,.3),k%2?A[0]*1.2:1.2,k%2?A[1]*1.2:.85,k%2?A[2]*1.2:.4,rand(0.35,0.6),2.5,4); } } });
+      for(let j=0;j<Math.round(6*QUAL());j++){ const w=rand(5,8); (j%3?psMid:psBig).emit(px,py,pz,tx*w+rand(-.3,.3),ty*w+rand(-.3,.3),tz*w+rand(-.3,.3),k%2?A[0]*1.2:1.2,k%2?A[1]*1.2:.85,k%2?A[2]*1.2:.4,rand(0.35,0.6),2.5,4); } } });
 };
 /* 30 Bengalglut: bengalisches Feuer auf der Batterie - ruhiges, tiefes
    Farblicht, das Rauch und Umgebung farbig ausleuchtet */
@@ -26955,8 +26964,9 @@ LICHTYP.bengalglut=function(o,A,B,s,opt){
   const m=lMund(o), D=6, c=(opt.i||0)%2?B:A;
   lStart(m,0.5,0); sfx.fizz(distVol(m)*0.5); sfx.brodeln(distVol(m)*0.6,D);
   lLaufend(D,t=>{ const k=Math.min(1,t/0.5)*Math.min(1,(D-t)/0.8);
-    for(let j=0;j<Math.round(3*QUAL());j++) psHuge.emit(m.x+rand(-.15,.15),m.y+0.2,m.z+rand(-.15,.15),rand(-.3,.3),rand(0.6,1.6),rand(-.3,.3),c[0]*1.5*k,c[1]*1.5*k,c[2]*1.5*k,rand(0.4,0.8),-0.4,0);
-    if(Math.round(t*30)%5===0) flash({x:m.x,y:m.y+1.2,z:m.z},c,2.2*k,0.3); });
+    for(let j=0;j<Math.round(6*QUAL());j++) psHuge.emit(m.x+rand(-.2,.2),m.y+0.15,m.z+rand(-.2,.2),rand(-.35,.35),rand(0.8,2.2),rand(-.35,.35),c[0]*1.6*k,c[1]*1.6*k,c[2]*1.6*k,rand(0.5,1.0),-0.5,0);
+    for(let j=0;j<Math.round(3*QUAL());j++) psBig.emit(m.x,m.y+0.2,m.z,rand(-.6,.6),rand(1.5,3.5),rand(-.6,.6),c[0]*1.3*k+.2,c[1]*1.3*k+.2,c[2]*1.3*k+.2,rand(0.3,0.6),-0.3,0);
+    if(Math.round(t*30)%4===0) flash({x:m.x,y:m.y+1.5,z:m.z},c,3.2*k,0.3); });
 };
 
 /* Die 30 Muster (Liste in 02e): drei Schuss je Muster - zwei links und

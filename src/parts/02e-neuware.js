@@ -699,7 +699,7 @@ const LICHT_MUSTER=[
   ['bengalglut','Bengalglut','boden',['rot','gruen'],'Bengalisches Farblicht leuchtet die Umgebung aus']
 ];
 LICHT_MUSTER.forEach(([e,nm,form,F,txt],k)=>{ const nr=String(k+1).padStart(2,'0');
-  NEUWARE['lm_'+e]={name:'Licht '+nr+' · '+nm,short:nm,cat:2,lvl:10,shape:'battery',dims:[0.3,0.25,0.3],grid:[3,1,1],box:2,cost:9.00,market:20.99,weight:4,hype:30,risk:5,noOrder:true,
+  NEUWARE['lm_'+e]={name:'Licht '+nr+' · '+nm,short:nm,cat:2,lvl:10,shape:'battery',dims:[0.56,0.3,0.36],grid:[3,1,1],box:2,cost:9.00,market:20.99,weight:4,hype:30,risk:5,noOrder:true,
     desc:txt+'. Muster '+nr+' mit drei Schuss, nur zum Ansehen.',
     art:{title:nm.toUpperCase(),sub:'Licht '+nr+' · 3 Schuss',bg1:'#1c2440',bg2:'#05070f',ac:'#ffe08a',ac2:'#8ad8ff'}}; });
 /* Liste fuer die Testsektionen im Laden-Reiter (17-laptop) */

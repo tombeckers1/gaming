@@ -11,7 +11,8 @@
    opt.ang/opt.dir Rohrneigung (wie perleSchuss).
    ========================================================= */
 const LICHTYP={};
-function lMund(o){ return {x:o.x,y:(o.y!==undefined?o.y:0.4)+0.3,z:o.z}; }
+/* Muendung: oben an der Rohroeffnung (ab der Station), wie perleSchuss */
+function lMund(o){ return {x:o.x,y:(o.y!==undefined?o.y:0.4)+(o.ab!==undefined?o.ab:0.3),z:o.z}; }
 function lRicht(opt){ const a=opt.ang||0, d=opt.dir===undefined?FANDIR:opt.dir; return [Math.sin(d)*Math.sin(a),Math.cos(a),Math.cos(d)*Math.sin(a)]; }
 /* Abschuss auf Hoehe H (m) bei Schwere G, entlang der Rohrneigung */
 function lAbschuss(H,G,opt,streu){ const v0=vFuerHoehe(H,G), r=lRicht(opt), e=streu||0;
@@ -33,7 +34,8 @@ function lBahn(ps,p,v,schritte,dt,c,G,dreh,spur,mode,folge){
   return t;
 }
 function lichtSchuss(o,name,A,B,s,opt){
-  if(FW_LOG) FW_LOG.push({t:FW_UHR,art:'perle',eff:'licht:'+name,ang:+(opt.ang||0).toFixed(3),x:+o.x.toFixed(2),tag:FW_TAG});
+  const m=lMund(o);
+  if(FW_LOG) FW_LOG.push({t:FW_UHR,art:'perle',kal:0,pw:0,sz:s||1,eff:'licht:'+name,A,B,stufenEff:[],hoehe:0,brueche:0,groesste:s||1,ang:+(opt.ang||0).toFixed(3),x:+m.x.toFixed(2),y:+m.y.toFixed(2),z:+m.z.toFixed(2),tag:FW_TAG});
   LICHTYP[name](o,A,B,Math.max(0.6,Math.min(1.8,s||1)),opt||{});
 }
 

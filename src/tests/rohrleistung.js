@@ -20,7 +20,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
 (async()=>{
   const b=await chromium.launch({args:['--use-gl=swiftshader','--enable-unsafe-swiftshader','--no-sandbox']});
   const p=await b.newPage({viewport:{width:200,height:125}});
-  const errs=[]; p.on('pageerror',e=>errs.push('PAGEERROR: '+e.message));
+  const errs=[]; p.on('console',m=>{ if(m.text().startsWith('bild')) console.log(m.text()); }); p.on('pageerror',e=>errs.push('PAGEERROR: '+e.message));
   await p.goto('file://'+process.argv[2]); await p.waitForFunction('window.__bb!==undefined',{timeout:60000});
   await neuesSpiel(p);
   const lauf=async st=>p.evaluate(st=>{
@@ -35,12 +35,17 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     const prog0=R.info.programs.length, it=bb.stations.tisch.items[0];
     bb.zuendeKanal(it.kanal);
     const n=Math.ceil((bb.brennDauer('rb100')+0.5)*15), fr=[]; let teile=0, wolken=0;
-    for(let i=0;i<n;i++){ fr.push(bild());
+    for(let i=0;i<n;i++){ fr.push(bild()); if(i%95===0) console.log('bild',st,i,n);
       if(i%3===0){ let c=0; for(const ps of [bb.psHuge,bb.psBig,bb.psMid,bb.psSmall]) for(let k=0;k<ps.max;k++) if(ps.life[k]>0) c++; teile=Math.max(teile,c); wolken=Math.max(wolken,bb.WOLKEN.reduce((a,w)=>a+w.teile.length,0)); } }
     const s=a=>{ const x=a.slice().sort((u,v)=>u-v); return {mittel:+(a.reduce((u,v)=>u+v,0)/a.length).toFixed(2),p50:+x[Math.floor(x.length/2)].toFixed(1),max:+x[x.length-1].toFixed(1)}; };
     return {st,bilder:n,step:s(fr.map(x=>x[0])),render:s(fr.slice(3).map(x=>x[1]).filter(x=>x!==null)),teile,wolken,shaderNeu:R.info.programs.length-prog0};
   },st);
-  const hoch=await lauf('hoch'), niedrig=await lauf('niedrig');
+  /* je Stufe ein eigener Lauf (frische Seite); der zweite Lauf auf
+     derselben Seite blieb im Test haengen */
+  const hoch=await lauf('hoch');
+  await p.goto('file://'+process.argv[2]); await p.waitForFunction('window.__bb!==undefined',{timeout:60000});
+  await neuesSpiel(p);
+  const niedrig=await lauf('niedrig');
   const m=[];
   for(const r of [hoch,niedrig]){ console.log(JSON.stringify(r));
     if(r.render.max>r.render.p50*2) m.push(`RUCKLER ${r.st}: Einzelbild ${r.render.max} ms bei Median ${r.render.p50} ms`);

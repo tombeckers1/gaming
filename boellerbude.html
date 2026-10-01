@@ -3071,6 +3071,9 @@ function initPost(){
     quadMesh=new THREE.Mesh(new THREE.PlaneGeometry(2,2),matBright);
     quadMesh.frustumCulled=false; quadScene.add(quadMesh);
     resizePost();
+    /* den Kopier-Shader gleich mit uebersetzen - sonst entsteht er erst
+       beim ersten Wechsel auf niedrig */
+    try{ quadMesh.material=matKopie; renderer.compile(quadScene,quadCam); quadMesh.material=matBright; }catch(e){}
     postOK=true;
   }catch(e){ postOK=false; }
 }

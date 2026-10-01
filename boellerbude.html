@@ -3425,12 +3425,14 @@ const bottleGlass=new THREE.MeshStandardMaterial({color:LIN(0x1f4a35),transparen
 function wrapTex(circ,hh,a,draw){
   return tex(Math.max(32,Math.round(circ*1400)),Math.max(32,Math.round(hh*1400)),draw);
 }
-function buildProduct(t){
+function buildProduct(t,roh){
+  /* roh: das Produkt selbst ohne Verpackung (Zuendtisch, Inhalt des Kartons) */
+  if(!roh&&typeof buildVerpackung==='function'){ const vp=buildVerpackung(t); if(vp) return vp; }
   const p=P[t], a=p.art, w=p.dims[0], h=p.dims[1], d=p.dims[2], parts=[], vc=[];
   const addAtlasBox=(bw,bh,bd,m,o)=>{ const A=atlas(bw,bh,bd,a,p.cat,o); parts.push({geo:merge([{geo:atlasBox(bw,bh,bd,A.R),m}]),mat:A.mat}); };
   const sh=p.shape;
   /* Batterien: Verpackung aus 04c (Karton bzw. Block in Schrumpffolie) */
-  if((sh==='battery'||sh==='fan')&&typeof istBatterie==='function'&&istBatterie(t)) return buildBatterieVerpackung(t);
+  if(!roh&&(sh==='battery'||sh==='fan')&&typeof istBatterie==='function'&&istBatterie(t)) return buildBatterieVerpackung(t);
   if(sh==='boxA'){ addAtlasBox(w,h,d,tm(0,h/2,0)); }
   else if(sh==='sparkler'){
     const ph=h*0.78; addAtlasBox(w,ph,d,tm(0,ph/2,0));
@@ -3825,7 +3827,7 @@ function buildAusgepackt(t){
     for(let k=1;k<L.B;k++){ const x=L.bloecke[k].x0; vc.push({geo:new THREE.CylinderGeometry(0.003,0.003,0.06,5),m:tm(x,bh*0.55,d/2+0.008,0,0,Math.PI/2),color:0x2e8b3a}); } }
   /* Rohre: Rohrrand aus Pappe, dunkle Muendung, Abschlussring */
   const top=bh;
-  const rim=new THREE.CylinderGeometry(1,1,1,12,1,true), loch=new THREE.CylinderGeometry(1,1,1,10), ring=new THREE.RingGeometry(0.74,1,12);
+  const rim=new THREE.CylinderGeometry(1,1,1,12,1,true), loch=new THREE.CylinderGeometry(1,1,1,10), ring=new THREE.CylinderGeometry(1,1,1,12);
   for(const r of L.rohre){
     const ro=fan?0.03:0.008, y=top+(fan?h*0.16:ro/2);
     const M=(sx,sy,sz,dy)=>{ const mm=new THREE.Matrix4(); const q=new THREE.Quaternion().setFromEuler(new THREE.Euler(0,0,-r.tilt));
@@ -3833,9 +3835,9 @@ function buildAusgepackt(t){
     if(fan){ vc.push({geo:rim,m:M(r.r,h*0.38,r.r,0),color:0x2f3038}); }
     else vc.push({geo:rim,m:M(r.r,ro,r.r,0),color:0xc9a46a});
     const yTop=fan?h*0.19:ro/2;
-    vc.push({geo:loch,m:M(r.r*0.74,0.002,r.r*0.74,yTop-0.004),color:0x140e0a});
-    const rm=M(r.r,1,r.r,yTop); const rq=new THREE.Matrix4().makeRotationX(-Math.PI/2); rm.multiply(rq);
-    vc.push({geo:ring,m:rm,color:fan?0xd9cbb0:0xdcc495});
+    /* Rohrende: heller Pappring, darin die dunkle Muendung */
+    vc.push({geo:ring,m:M(r.r,0.002,r.r,yTop-0.001),color:fan?0xd9cbb0:0xdcc495});
+    vc.push({geo:loch,m:M(r.r*0.74,0.002,r.r*0.74,yTop+0.0006),color:0x140e0a});
   }
   /* Zuendschnur vorn rechts, Schutzkappe ist ab */
   vc.push({geo:new THREE.CylinderGeometry(0.0035,0.0035,0.09,6),m:tm(w*0.42,bh*0.18,d/2+0.035,Math.PI/2.4),color:0x2e8b3a});
@@ -3846,10 +3848,10 @@ function buildAusgepackt(t){
 }
 const _poolsAus={};
 const poolsAus=new Proxy(_poolsAus,{get(o,k){
-  if(typeof k==='string'&&!(k in o)&&typeof P!=='undefined'&&P[k]&&P[k].dims) o[k]=new ItemPool(istBatterie(k)?buildAusgepackt(k):buildProduct(k),12);
+  if(typeof k==='string'&&!(k in o)&&typeof P!=='undefined'&&P[k]&&P[k].dims) o[k]=new ItemPool(istBatterie(k)?buildAusgepackt(k):buildProduct(k,true),12);
   return o[k]; }});
 /* Was steht auf dem Zuendtisch: Batterien ausgepackt, alles andere wie im Regal */
-function stationsPool(t){ return istBatterie(t)?poolsAus[t]:pools[t]; }
+function stationsPool(t){ return istBatterie(t)||(P[t]&&P[t].shape==='fountainset')?poolsAus[t]:pools[t]; }
 
 /* ---------------- Verpackung im Laden ---------------- */
 /* Grosse Verbunde kommen im braunen Wellpappkarton mit Etikett,
@@ -3923,6 +3925,118 @@ function buildBatterieVerpackung(t){
   return parts;
 }
 const folieMat=new THREE.MeshStandardMaterial({color:0xffffff,transparent:true,opacity:0.1,roughness:0.08,metalness:0.0,depthWrite:false});
+
+/* ---------------- Verpackungen der uebrigen Feuerwerksarten ----------------
+   Nach echten Vorbildern (Recherche 01.10.): Wunderkerzen in der flachen
+   10er-Schachtel mit Sichtfenster, Raketen in der langen Schachtel mit
+   Fenster ueber den Raketen samt Stab, Kugelbomben einzeln im Karton mit
+   rundem Fenster, Fontaenen-Sets im Karton mit Fenster, Boeller als
+   "Schinken" in Schrumpffolie, Roemische Lichter im Folienbuendel mit
+   Kopfkarte, Sonnenraeder als Blisterkarte. */
+const folieKlar=new THREE.MeshStandardMaterial({color:0xffffff,transparent:true,opacity:0.16,roughness:0.06,metalness:0,depthWrite:false});
+/* Atlas mit Fenster: o.loch(W,H) liefert die Ausschnitte (Rechtecke oder
+   Kreise) der Vorderseite bzw. Oberseite, die durchsichtig bleiben. */
+function lochAtlas(w,h,d,a,cat,o){
+  const wrap=(fn,loch)=>(g,W,H)=>{ fn(g,W,H); if(!loch) return; const L=loch(W,H);
+    g.save(); g.globalCompositeOperation='destination-out';
+    for(const q of L){ g.beginPath(); if(q.r) g.arc(q.x,q.y,q.r,0,Math.PI*2); else g.rect(q.x,q.y,q.w,q.h); g.fill(); }
+    g.restore(); g.save(); g.strokeStyle='rgba(255,255,255,.85)'; g.lineWidth=Math.max(2,Math.min(W,H)*0.012);
+    for(const q of L){ g.beginPath(); if(q.r) g.arc(q.x,q.y,q.r,0,Math.PI*2); else g.rect(q.x,q.y,q.w,q.h); g.stroke(); } g.restore(); };
+  const A=atlas(w,h,d,a,cat,{front:wrap(o.front||((g,W,H)=>drawFront(g,W,H,a,cat)),o.lochFront),side:o.side,top:wrap(o.top||((g,W,H)=>drawTop(g,W,H,a,cat)),o.lochTop)});
+  A.mat.alphaTest=0.5; A.mat.side=THREE.FrontSide; return A;
+}
+function boxPart(parts,w,h,d,A,m){ parts.push({geo:merge([{geo:atlasBox(w,h,d,A.R),m}]),mat:A.mat}); }
+function buildVerpackung(t){
+  const p=P[t], a=p.art, sh=p.shape, w=p.dims[0], h=p.dims[1], d=p.dims[2], parts=[], vc=[];
+  if(!p.cat||!a) return null;
+  const roh=()=>buildProduct(t,true);
+  if(sh==='sparkler'){
+    /* flache Schachtel, unten ein Sichtfenster auf die grauen Staebe */
+    const front=(g,W,H)=>{ const gr=g.createLinearGradient(0,0,0,H); gr.addColorStop(0,a.bg1); gr.addColorStop(1,a.bg2); g.fillStyle=gr; g.fillRect(0,0,W,H);
+      /* Sternfunken oben */
+      const cx=W*0.5, cy=H*0.16, R=W*0.34; g.strokeStyle='#fff3c4'; g.lineCap='round';
+      for(let i=0;i<22;i++){ const an=i/22*Math.PI*2, r1=R*(0.55+0.45*((i*7)%5)/5); g.lineWidth=Math.max(1,W*0.012); g.beginPath(); g.moveTo(cx+Math.cos(an)*R*0.12,cy+Math.sin(an)*R*0.12); g.lineTo(cx+Math.cos(an)*r1,cy+Math.sin(an)*r1); g.stroke(); }
+      g.fillStyle='#fffbe8'; g.beginPath(); g.arc(cx,cy,R*0.12,0,Math.PI*2); g.fill();
+      g.save(); g.translate(W*0.5,H*0.42); g.rotate(-Math.PI/2); g.textAlign='center'; g.textBaseline='middle'; fitFont(g,a.title,H*0.3,Math.round(W*0.24),BUN);
+      g.lineWidth=Math.max(2,W*0.03); g.strokeStyle='rgba(0,0,0,.55)'; g.strokeText(a.title,0,0); g.fillStyle=a.ac; g.fillText(a.title,0,0); g.restore();
+      /* Fensterhintergrund: die Staebe */
+      const y0=H*0.56, y1=H*0.88; g.fillStyle='#ece8de'; g.fillRect(W*0.12,y0,W*0.76,y1-y0);
+      const n=7; for(let i=0;i<n;i++){ const x=W*(0.18+i*0.64/(n-1)); g.fillStyle='#5f6268'; g.fillRect(x-W*0.018,y0-2,W*0.036,(y1-y0)*0.78); g.fillStyle='#9aa0a8'; g.fillRect(x-W*0.006,y0+(y1-y0)*0.78,W*0.012,(y1-y0)*0.24); }
+      g.fillStyle='rgba(255,255,255,.22)'; g.beginPath(); g.moveTo(W*0.12,y1); g.lineTo(W*0.36,y0); g.lineTo(W*0.46,y0); g.lineTo(W*0.22,y1); g.fill();
+      g.strokeStyle='rgba(255,255,255,.9)'; g.lineWidth=Math.max(2,W*0.015); g.strokeRect(W*0.12,y0,W*0.76,y1-y0);
+      g.fillStyle=a.ac2; g.fillRect(0,H*0.91,W,H*0.09); g.fillStyle='#fff'; g.textAlign='center'; g.textBaseline='middle'; fitFont(g,'10 STÜCK',W*0.8,Math.round(H*0.05),BAR); g.fillText('10 STÜCK',W/2,H*0.955);
+      g.fillStyle='#fff'; g.beginPath(); g.arc(W*0.84,H*0.05,W*0.1,0,Math.PI*2); g.fill(); g.fillStyle='#0e1226'; g.font=BUN(Math.round(W*0.09)); g.fillText('F'+p.cat,W*0.84,H*0.055); };
+    const A=atlas(w,h,d,a,p.cat,{front}); boxPart(parts,w,h,d,A,tm(0,h/2,0));
+    /* Aufhaengelasche (Euroloch) oben */
+    vc.push({geo:new THREE.BoxGeometry(w*0.5,h*0.06,0.003),m:tm(0,h*1.03,-d*0.3),color:parseInt(a.bg2.slice(1),16)});
+  }
+  else if(sh==='rocketset'){
+    /* lange Schachtel, oben ein Fenster: darunter liegen die Raketen mit Stab */
+    const n=p.stueck||clamp(Math.round(d/0.026),3,9), cols=[0xd8352a,0x2f7fd0,0xffc93a,0x2f9e57,0x9b3bd6,0xf2f5ff,0xff7a3d,0x39c4d8,0xe35aa8];
+    const A=lochAtlas(w,h,d,a,p.cat,{top:(g,W,H)=>drawFront(g,W,H,a,p.cat),lochTop:(W,H)=>[{x:W*0.34,y:H*0.12,w:W*0.62,h:H*0.76}]});
+    boxPart(parts,w,h,d,A,tm(0,h/2,0));
+    vc.push({geo:new THREE.BoxGeometry(w*0.98,0.004,d*0.96),m:tm(0,0.006,0),color:0xe8e2d2});
+    const step=d*0.8/n, rr=p.stueck?Math.min(h*0.34,step*0.42):Math.min(h*0.3,0.0115,step*0.44);
+    for(let i=0;i<n;i++){ const z=-d*0.4+step*(i+0.5), y=0.008+rr, c=cols[i%cols.length];
+      vc.push({geo:new THREE.CylinderGeometry(rr,rr,w*0.3,10),m:tm(w*0.2,y,z,0,0,Math.PI/2),color:c});
+      vc.push({geo:new THREE.ConeGeometry(rr,w*0.07,10),m:tm(w*0.385,y,z,0,0,-Math.PI/2),color:c});
+      vc.push({geo:new THREE.CylinderGeometry(rr*1.02,rr*1.02,0.012,10),m:tm(w*0.07,y,z,0,0,Math.PI/2),color:0xf2f2f2});
+      vc.push({geo:new THREE.CylinderGeometry(Math.max(0.0025,rr*0.22),Math.max(0.0025,rr*0.22),w*0.52,4),m:tm(-w*0.2,0.012,z+rr*0.4,0,0,Math.PI/2),color:0xc9a46a}); }
+    parts.push({geo:merge([{geo:new THREE.BoxGeometry(w*0.62,0.002,d*0.76),m:tm(w*0.15,h-0.003,0)}]),mat:folieKlar});
+  }
+  else if(sh==='shell'){
+    /* Einzelkarton mit rundem Fenster vorn, darin die Kugel */
+    const front=(g,W,H)=>{ drawFront(g,W,H,a,p.cat); g.fillStyle='rgba(0,0,0,.55)'; g.fillRect(0,H*0.82,W,H*0.18);
+      g.fillStyle='#fff'; g.textAlign='center'; g.textBaseline='middle'; const kal=(t.match(/\d{2,3}/)||[''])[0];
+      fitFont(g,kal?`KALIBER ${kal} MM`:'KUGELBOMBE',W*0.86,Math.round(H*0.08),BAR); g.fillText(kal?`KALIBER ${kal} MM`:'KUGELBOMBE',W/2,H*0.91); };
+    const side=(g,W,H)=>{ drawSide(g,W,H,a); gefahrRaute(g,W*0.5,H*0.2,Math.min(W,H)*0.42,'1.3G'); };
+    const A=lochAtlas(w,h,d,a,p.cat,{front,side,lochFront:(W,H)=>[{x:W*0.5,y:H*0.5,r:Math.min(W,H)*0.27}]});
+    boxPart(parts,w,h,d,A,tm(0,h/2,0));
+    vc.push({geo:new THREE.BoxGeometry(w*0.96,0.004,d*0.96),m:tm(0,0.004,0),color:0xd9cbb0});
+    vc.push({geo:new THREE.BoxGeometry(w*0.96,h*0.96,0.004),m:tm(0,h/2,-d*0.47),color:0xd9cbb0});
+    roh().forEach(q=>{ q.geo.applyMatrix4(new THREE.Matrix4().makeScale(0.78,0.78,0.78)); q.geo.applyMatrix4(new THREE.Matrix4().makeTranslation(0,h*0.06,0)); parts.push(q); });
+    parts.push({geo:merge([{geo:new THREE.CylinderGeometry(Math.min(w,h)*0.28,Math.min(w,h)*0.28,0.002,24),m:tm(0,h/2,d/2-0.002,Math.PI/2)}]),mat:folieKlar});
+  }
+  else if(sh==='fountainset'){
+    /* Karton mit Fenster vorn, darin die Fontaenen auf ihrem Brett */
+    const front=(g,W,H)=>{ drawFront(g,W,H,a,p.cat); };
+    const A=lochAtlas(w,h,d,a,p.cat,{front,lochFront:(W,H)=>[{x:W*0.05,y:H*0.06,w:W*0.68,h:H*0.6}]});
+    boxPart(parts,w,h,d,A,tm(0,h/2,0));
+    vc.push({geo:new THREE.BoxGeometry(w*0.98,h*0.98,0.004),m:tm(0,h/2,-d*0.47),color:0x1b2238});
+    roh().forEach(q=>{ q.geo.applyMatrix4(new THREE.Matrix4().makeScale(0.92,0.92,0.7)); parts.push(q); });
+    parts.push({geo:merge([{geo:new THREE.BoxGeometry(w*0.7,h*0.62,0.002),m:tm(-w*0.11,h*0.64,d/2-0.002)}]),mat:folieKlar});
+  }
+  else if(sh==='tubepack'){
+    /* "Schinken": die Boeller in Schrumpffolie */
+    roh().forEach(q=>parts.push(q));
+    parts.push({geo:merge([{geo:new THREE.BoxGeometry(w*1.02,h*1.04,d*1.04),m:tm(0,h*0.52,0)}]),mat:folieKlar});
+  }
+  else if(sh==='candle'){
+    /* Buendel in Folie, oben eine gefaltete Kopfkarte mit dem Namen */
+    roh().forEach(q=>parts.push(q));
+    parts.push({geo:merge([{geo:new THREE.CylinderGeometry(w*0.56,w*0.56,h*0.86,16,1,true),m:tm(0,h*0.45,0)}]),mat:folieKlar});
+    const A=atlas(w*1.1,h*0.2,0.006,a,p.cat,{});
+    boxPart(parts,w*1.1,h*0.2,0.006,A,tm(0,h*0.86,d*0.58));
+  }
+  else if(sh==='cylinder'&&p.cat){
+    /* Fontaene: Kunststofffuss und Folie */
+    roh().forEach(q=>parts.push(q));
+    vc.push({geo:new THREE.CylinderGeometry(w*0.62,w*0.68,h*0.04,20),m:tm(0,h*0.02,0),color:0x1d1f24});
+    parts.push({geo:merge([{geo:new THREE.CylinderGeometry(w*0.52,w*0.52,h*0.88,20,1,true),m:tm(0,h*0.44,0)}]),mat:folieKlar});
+  }
+  else if(sh==='boxA'&&t==='feuerrad'){
+    /* Blisterkarte: bedruckte Karte, davor die Klarsichtblase mit dem Rad */
+    const kd=d*0.14, A=atlas(w,h,kd,a,p.cat,{}); boxPart(parts,w,h,kd,A,tm(0,h/2,-d/2+kd/2));
+    const R=Math.min(w,h)*0.3, cz=-d/2+kd+R*0.32;
+    vc.push({geo:new THREE.TorusGeometry(R,R*0.1,8,28),m:tm(0,h*0.46,cz),color:0x2f3a8c});
+    for(let i=0;i<8;i++){ const an=i/8*Math.PI*2; vc.push({geo:new THREE.CylinderGeometry(R*0.08,R*0.08,R*0.5,8),m:tm(Math.cos(an)*R,h*0.46+Math.sin(an)*R,cz,0,0,an),color:[0xd8352a,0xffc93a,0x2f9e57,0x2f7fd0][i%4]}); }
+    vc.push({geo:new THREE.CylinderGeometry(R*0.18,R*0.18,R*0.3,12),m:tm(0,h*0.46,cz,Math.PI/2),color:0xd9cbb0});
+    parts.push({geo:merge([{geo:new THREE.BoxGeometry(R*2.7,R*2.7,R*0.75),m:tm(0,h*0.46,-d/2+kd+R*0.38)}]),mat:folieKlar});
+  }
+  else return null;
+  if(vc.length) parts.push({geo:merge(vc),mat:vcMat});
+  return parts;
+}
 
 /* =========================================================
    Wände, Böden, Welt

@@ -8,12 +8,14 @@ const bottleGlass=new THREE.MeshStandardMaterial({color:LIN(0x1f4a35),transparen
 function wrapTex(circ,hh,a,draw){
   return tex(Math.max(32,Math.round(circ*1400)),Math.max(32,Math.round(hh*1400)),draw);
 }
-function buildProduct(t){
+function buildProduct(t,roh){
+  /* roh: das Produkt selbst ohne Verpackung (Zuendtisch, Inhalt des Kartons) */
+  if(!roh&&typeof buildVerpackung==='function'){ const vp=buildVerpackung(t); if(vp) return vp; }
   const p=P[t], a=p.art, w=p.dims[0], h=p.dims[1], d=p.dims[2], parts=[], vc=[];
   const addAtlasBox=(bw,bh,bd,m,o)=>{ const A=atlas(bw,bh,bd,a,p.cat,o); parts.push({geo:merge([{geo:atlasBox(bw,bh,bd,A.R),m}]),mat:A.mat}); };
   const sh=p.shape;
   /* Batterien: Verpackung aus 04c (Karton bzw. Block in Schrumpffolie) */
-  if((sh==='battery'||sh==='fan')&&typeof istBatterie==='function'&&istBatterie(t)) return buildBatterieVerpackung(t);
+  if(!roh&&(sh==='battery'||sh==='fan')&&typeof istBatterie==='function'&&istBatterie(t)) return buildBatterieVerpackung(t);
   if(sh==='boxA'){ addAtlasBox(w,h,d,tm(0,h/2,0)); }
   else if(sh==='sparkler'){
     const ph=h*0.78; addAtlasBox(w,ph,d,tm(0,ph/2,0));

@@ -697,14 +697,24 @@ LICHT_MUSTER.forEach(([e,nm,form,F,txt],k)=>{ const nr=String(k+1).padStart(2,'0
   NEUWARE['lm_'+e]={name:'Licht '+nr+' · '+nm,short:nm,cat:2,lvl:10,shape:'battery',dims:[0.56,0.3,0.36],grid:[3,1,1],box:2,cost:9.00,market:20.99,weight:4,hype:30,risk:5,noOrder:true,
     desc:txt+'. Muster '+nr+' mit drei Schuss, nur zum Ansehen.',
     art:{title:nm.toUpperCase(),sub:'Licht '+nr+' · 3 Schuss',bg1:'#1c2440',bg2:'#05070f',ac:'#ffe08a',ac2:'#8ad8ff'}}; });
-/* 01.10. (Tom): 10 Kugel-Muster mit eigenstaendigen Effekten (14j) -
-   nur fuer die Testsektion */
-[['donnerschlag','Donnerschlag',200],['pferdeschweif','Rossschweif',150],['blitzgewitter','Blitzgewitter',200],['zeitglitzer','Zeitregen',200],['magmakrone','Magmakrone',200],
- ['brokatschirm','Brokatschirm',200],['drachenherz','Drachenherz',150],['dreischlag','Dreischlag',200],['meteorschauer','Meteorschauer',150],['wechselblinker','Wechselblinker',150]].forEach(([e,nm,mm],k)=>{
-  const nr=String(k+1).padStart(2,'0'), gross=mm===200;
-  NEUWARE['km_'+e]={name:'Kugel-Muster '+nr+' · '+nm+' '+mm+' mm',short:nm,cat:2,lvl:15,shape:'shell',dims:gross?[0.21,0.25,0.21]:[0.165,0.2,0.165],grid:gross?[3,1,1]:[4,1,1],box:gross?2:3,cost:gross?40:28,market:gross?94.99:64.99,weight:3,hype:60,risk:9,noOrder:true,
-    desc:'Kugelbombe '+mm+' mm, Muster '+nr+' – nur zum Ansehen.',
-    art:{title:nm.toUpperCase(),sub:'Kugel-Muster '+nr+' · '+mm+' mm',bg1:'#2a1c40',bg2:'#07040f',ac:'#ffd23f',ac2:'#ff8ac8'}}; });
+/* 01.10. (Tom): 20 neue Kugelbomben und 20 neue Raketen (14n) - erst in
+   den Teststationen, nach Freigabe ins Sortiment */
+[['kn_perlenkranz75','Perlenkranz',75],['kn_geisterbluete75','Geisterblüte',75],['kn_kometenkranz100','Kometenkranz',100],['kn_blitzweide100','Blitzweide',100],
+ ['kn_glitzerdom100','Glitzerdom',100],['kn_spritzbombe100','Sternspritzer',100],['kn_roemerkrone150','Römerkrone',150],['kn_crossettennetz150','Crossettennetz',150],
+ ['kn_tigerkrone150','Tigerkrone',150],['kn_kiefernbombe150','Kiefernkrone',150],['kn_wasserkaskade150','Wasserkaskade',150],['kn_bluetenmeer150','Blütenmeer',150],
+ ['kn_gewitterbombe200','Gewitterbombe',200],['kn_weidenkoenig200','Weidenkönig',200],['kn_faecherbombe200','Fächerbombe',200],['kn_vulkanherz200','Vulkanherz',200],
+ ['kn_donnerkrone200','Donnerkrone',200],['kn_kronjuwel300','Kronjuwel',300],['kn_lichterdom300','Lichterdom',300],['kn_sternensturm300','Sternensturm',300]].forEach(([id,nm,mm],k)=>{
+  const nr=String(k+1).padStart(2,'0'), d={75:[0.09,0.115,0.09],100:[0.12,0.15,0.12],150:[0.165,0.2,0.165],200:[0.21,0.25,0.21],300:[0.3,0.34,0.3]}[mm], g={75:[8,2,1],100:[6,2,1],150:[4,1,1],200:[3,1,1],300:[2,1,1]}[mm];
+  NEUWARE[id]={name:nm+' · Kugelbombe '+mm+' mm',short:'Kugel '+mm+' '+nm,cat:2,lvl:{75:14,100:16,150:18,200:21,300:24}[mm],shape:'shell',dims:d,grid:g,box:{75:8,100:6,150:3,200:2,300:1}[mm],
+    cost:{75:6,100:12,150:30,200:44,300:70}[mm],market:{75:14.99,100:28.99,150:69.99,200:104.99,300:164.99}[mm],weight:4,hype:40+k*3,risk:9,noOrder:true,
+    desc:'Kugel '+nr+' – nur zum Ansehen.',art:{title:nm.toUpperCase(),sub:'Kugelbombe '+mm+' mm',bg1:'#2a1c40',bg2:'#07040f',ac:'#ffd23f',ac2:'#ff8ac8'}}; });
+[['rn_kometenstern','Kometenstern'],['rn_geisterkrone','Geisterkrone'],['rn_crossettenstern','Crossettenstern'],['rn_weidenregen','Weidenregen'],['rn_faecherstern','Fächerstern'],
+ ['rn_wetterwolke','Wetterwolke'],['rn_glitzerbukett','Glitzerbukett'],['rn_bluetenstern','Blütenstern'],['rn_wasserring','Wasserring'],['rn_blitzweide','Blitzweide'],
+ ['rn_tigerstern','Tigerstern'],['rn_kiefernstern','Kiefernstern'],['rn_lavastern','Lavastern'],['rn_spritzkrone','Spritzkrone'],['rn_perlenring','Perlenring'],
+ ['rn_zwillingsring','Zwillingsring'],['rn_goldkaskade','Goldkaskade'],['rn_farbglitzerregen','Farbglitzerregen'],['rn_mondtau','Mondtau'],['rn_sternenkrone','Sternenkrone']].forEach(([id,nm],k)=>{
+  NEUWARE[id]={name:nm+' · 6 Raketen',short:nm,cat:2,lvl:10+Math.floor(k/2),shape:'rocketset',dims:[0.44,0.06,0.13],grid:[4,2,2],box:8,cost:6+k*0.4,market:Math.round((6+k*0.4)*2.3*100)/100,weight:6,hype:16+k,risk:5,noOrder:true,
+    desc:'Rakete '+String(k+1).padStart(2,'0')+' – nur zum Ansehen.',art:{title:nm.toUpperCase(),sub:'Rakete · Testmuster',bg1:'#0c2a4a',bg2:'#020a14',ac:'#ffd23f',ac2:'#9fd8ff'}}; });
+
 /* 01.10. (Tom): acht Lichter-Batterien aus den Favoriten - breit und lang
    statt hoch ("die sind oft viel zu klein fuer das, was rauskommt").
    Erst zum Testen, nicht bestellbar. */
@@ -721,7 +731,8 @@ LICHT_MUSTER.forEach(([e,nm,form,F,txt],k)=>{ const nr=String(k+1).padStart(2,'0
     art:{title:nm.toUpperCase(),sub,bg1,bg2,ac,ac2}}; });
 /* Liste fuer die Testsektionen im Laden-Reiter (17-laptop) */
 const NEU_TEST={batterien:['lb_goldader','lb_geisterstunde','lb_kreuzfeuer','lb_silberkaskade','lb_bluetenzauber','lb_gewitterfront','lb_glutstrom','lb_grandelumiere'].concat(LICHT_MUSTER.map(x=>'lm_'+x[0])),
-  kugeln:['donnerschlag','pferdeschweif','blitzgewitter','zeitglitzer','magmakrone','brokatschirm','drachenherz','dreischlag','meteorschauer','wechselblinker'].map(e=>'km_'+e)};
+  kugeln:Object.keys(NEUWARE).filter(t=>t.startsWith('kn_')),
+  raketen:Object.keys(NEUWARE).filter(t=>t.startsWith('rn_'))};
 /* Fontaenen-Sets (Feuerquelle, Gummibaerchen, Farbenspiel, Farbmischer,
    Wasserorgel, Feuerwand, Feuerkaskade, Popcorn) sind so breit wie ihre
    Duesenreihe - vorher 18-44 cm Karton, die Duesen standen aber bis

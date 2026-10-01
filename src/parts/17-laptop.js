@@ -1322,7 +1322,8 @@ function lapZeichnen(body){
         `<div class="row"><div class="rm"><b>Feuerwerk-Vorführung <span class="warn">(nur Entwicklung)</span></b><small>Alle Feuerwerke nach Level, eins nach dem anderen: Leertaste zündet das nächste, der Name steht groß oben. Pfeile vor/zurück, R nochmal, 1 gut, 2 ändern, L Liste, B beenden.</small></div><button data-a="vorfuehrung">Starten</button></div>`+
         /* 30.09. (Tom): eigene Testsektionen fuer die neuen Batterien und Kugeln */
         `<div class="row"><div class="rm"><b>Neue Batterien testen <span class="warn">(nur Entwicklung)</span></b><small>Acht Lichter-Batterien aus deinen Favoriten, danach ${NEU_TEST.batterien.length-8} neue Lichter-Muster mit je drei Schuss, nacheinander auf der großen Anlage: ${NEU_TEST.batterien.filter(t=>P[t]).map(t=>P[t].short).join(', ')}.</small></div><button data-a="vfbatt">Starten</button></div>`+
-        `<div class="row"><div class="rm"><b>Neue Kugelbomben testen <span class="warn">(nur Entwicklung)</span></b><small>${NEU_TEST.kugeln.length} Kugel-Muster, jede mit einem eigenen Effekt: ${NEU_TEST.kugeln.filter(t=>P[t]).map(t=>P[t].short).join(', ')}.</small></div><button data-a="vfkugel">Starten</button></div>`:'')+
+        `<div class="row"><div class="rm"><b>Neue Kugelbomben testen <span class="warn">(nur Entwicklung)</span></b><small>${NEU_TEST.kugeln.length} neue Kugelbomben von 75 bis 300 mm, aus jedem Bruch entsteht ein eigenes Feuerwerk: ${NEU_TEST.kugeln.filter(t=>P[t]).map(t=>P[t].short).join(', ')}.</small></div><button data-a="vfkugel">Starten</button></div>`+
+        `<div class="row"><div class="rm"><b>Neue Raketen testen <span class="warn">(nur Entwicklung)</span></b><small>${NEU_TEST.raketen.length} neue Raketen, jede mit eigenem Aufstieg und Bruch: ${NEU_TEST.raketen.filter(t=>P[t]).map(t=>P[t].short).join(', ')}.</small></div><button data-a="vfrakete">Starten</button></div>`:'')+
       `<div class="row"><div class="rm"><b>Spielstand</b><small>Wird automatisch gespeichert.</small></div><button class="ghost" data-a="reset">${resetArm?'Wirklich löschen?':'Spielstand löschen'}</button></div>`;
   }
   body.innerHTML=h;
@@ -1414,6 +1415,7 @@ function lapKlick(e,imHandy){
   else if(a==='vorfuehrung'){ vorfuehrungAn(); return; }
   else if(a==='vfbatt'){ vorfuehrungAn(NEU_TEST.batterien); return; }
   else if(a==='vfkugel'){ vorfuehrungAn(NEU_TEST.kugeln); return; }
+  else if(a==='vfrakete'){ vorfuehrungAn(NEU_TEST.raketen); return; }
   else if(a==='fwtestneu'){ const n=fwTestStapeln(); toast(`${n} Kartons neu gestapelt.`); }
   else if(a==='reset'){ if(!resetArm) resetArm=true; else { try{ localStorage.removeItem(KEY); }catch(err){} location.reload(); return; } }
   renderLaptop();

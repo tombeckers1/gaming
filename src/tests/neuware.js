@@ -82,7 +82,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     /* Drehbuecher */
     const sig={};
     Object.keys(bb.SHOWS).forEach(t=>{ const ph=bb.SHOWS[t](); const effs=new Set();
-      ph.forEach(x=>{ (Array.isArray(x.eff)?x.eff:[x.eff]).forEach(e=>e&&effs.add(e)); if(x.bomb) effs.add('bomb'+x.bomb); if(x.perle) effs.add('perle'); });
+      ph.forEach(x=>{ (Array.isArray(x.eff)?x.eff:[x.eff]).forEach(e=>e&&effs.add(e)); if(x.bomb) effs.add('bomb'+x.bomb); if(x.perle) effs.add('perle'); if(x.licht) effs.add('licht:'+x.licht); });
       const th=(bb.SHOW_BASIS[t]||{}).th, key=[...effs].sort().join(',')+'|'+th+'|'+ph.length;
       (sig[key]=sig[key]||[]).push(t);
       const m=/(\d+) Schuss/.exec(P[t].name), summe=ph.reduce((a,x)=>a+(x.n===undefined?1:x.n),0);

@@ -432,10 +432,15 @@ function playShowRoh(o,phases,prod,tag,PLAN){
       plane(tt,ev=>{
         const os=RS?RS.ort(ev.k):(mitOrt?ortAus(off):o);
         if(RS) RS.feuer(ev.k,os);
+        /* Batterie: der Schuss fliegt in Richtung seines Rohrs (Zielschuesse
+           fuer Bildmuster behalten ihren Zielpunkt) */
+        let fa=sAng, fd=sDir;
+        const ausRohr=RS&&!ziel;
+        if(ausRohr){ const r=RS.richtung(ev.k); fa=r.ang; fd=r.dir; }
         const alt=FW_TAG; FW_TAG=tag;
         /* licht: ein Lichtertyp direkt aus dem Rohr, ohne Bombette (14m,
            01.10., Tom: Kometen, Blinker, Fontaenen, Wasserfall ...) */
-        if(ph.licht&&typeof LICHTYP!=='undefined'&&LICHTYP[ph.licht]){ try{ lichtSchuss(os,ph.licht,mA,mB,sz,{ang:sAng,dir:sDir===undefined?FANDIR:sDir,i,n,hell:Rz.hell}); } finally { FW_TAG=alt; } return; }
+        if(ph.licht&&typeof LICHTYP!=='undefined'&&LICHTYP[ph.licht]){ try{ lichtSchuss(os,ph.licht,mA,mB,sz,{ang:fa,dir:fd===undefined?FANDIR:fd,i,n,hell:Rz.hell}); } finally { FW_TAG=alt; } return; }
         /* Feuertopf (Sorte) oder Tiefbruch (EFF) statt der alten Mine */
         if(ph.mineEff) feuertopf(os,ph.mineEff,mA,mB,(ph.mineSz||(TOPF_SORTE[ph.mineEff]?1:0.6))*Rz.sz);
         else if(ph.mine||ph.nurMine) mine(os,mA,mB,(ph.mineSz||0.8)*Rz.sz);
@@ -445,8 +450,8 @@ function playShowRoh(o,phases,prod,tag,PLAN){
             schlaege:ph.schlaege,steig:ph.steig,bruchOpt:showBlitz(ph.bruchOpt),par,tag,
             pw:ph.bombPw,sz:ph.bombSz,schlag:ph.schlag,dick:ph.dick,trail:ph.trail?K(ph.trail):undefined,fuse:ph.bombFuse}); } finally { BLITZ_K=1; } }
           /* perle: Roemisches Licht - eine Leuchtkugel direkt aus dem Rohr */
-          else if(ph.perle) perleSchuss(os,mA,sz,{eff:perleEff,ang:mm&&mm!=='gerade'?ang:(perleEff||ph.rohrFolge?0:undefined),dir:dir===undefined?FANDIR:dir,B:mB,i,kette,splitDreh:ph.splitDreh});
-          else shot(os,opt);
+          else if(ph.perle) perleSchuss(os,mA,sz,{eff:perleEff,ang:ausRohr?fa:mm&&mm!=='gerade'?ang:(perleEff||ph.rohrFolge?0:undefined),dir:ausRohr?fd:dir===undefined?FANDIR:dir,B:mB,i,kette,splitDreh:ph.splitDreh});
+          else shot(os,ausRohr?Object.assign({},opt,{ang:fa,dir:fd}):opt);
         }
         FW_TAG=alt;
       },{art:'s',ang:sAng,dir:sDir,rv});

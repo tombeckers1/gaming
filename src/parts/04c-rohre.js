@@ -121,16 +121,23 @@ function zuendPlan(t){
   else { /* eigene Rezeptur: gleichmaessig im Takt 0,32 s, leicht schraeg */
     const EV=[]; rohrSaat(saatZahl(t),()=>{ for(let i=0;i<L.N;i++){ const a=rand(-0.08,0.08), dr=rand(0,Math.PI*2); EV.push({art:'s',tt:0.32*i,ang:a,dir:dr}); } });
     Z=zuendFolge(EV,t,0.32*L.N); }
-  const dir=L.rohre.map(()=>[0,1,0]);
-  for(const e of Z.S) if(e.k>=0){ let v;
-    if(e.rv) v=e.rv; else { const a=e.ang||0, dr=e.dir===undefined?FANDIR:e.dir; v=[Math.sin(dr)*Math.sin(a),Math.cos(a),Math.cos(dr)*Math.sin(a)]; }
-    dir[e.k]=v; }
-  return (_zplan[t]={S:Z.S,dir,letzter:Z.letzter,dauer:Z.dauer,ueber:Z.ueber});
+  /* Neigung der Rohre (01.10. abends, Tom: "sieht nicht gut aus" - die
+     Rohre standen im Winkel ihres Drehbuch-Schusses kreuz und quer und
+     steckten ineinander). Jetzt wie bei echten Batterien: die Rohre
+     stehen geordnet, Spalte fuer Spalte gleichmaessig nach aussen
+     geneigt, nur quer zur Batterie. Wie weit, sagt das Drehbuch (die
+     weitesten Schuesse quer), begrenzt: Batterie 0,1-0,3 rad, Faecher
+     0,3-0,6 rad. Jeder Schuss fliegt in Richtung seines Rohrs. */
+  const quer=[]; for(const e of Z.S){ if(e.rv) continue; const a=e.ang||0, dr=e.dir===undefined?FANDIR:e.dir; quer.push(Math.abs(Math.atan2(Math.sin(dr)*Math.sin(a),Math.cos(a)))); }
+  quer.sort((a,b)=>a-b); const q9=quer.length?quer[Math.floor(quer.length*0.9)]:0.1, fan=p.shape==='fan';
+  const neig=fan?clamp(q9,0.3,0.6):clamp(q9,0.1,0.3);
+  return (_zplan[t]={S:Z.S,neig,letzter:Z.letzter,dauer:Z.dauer,ueber:Z.ueber});
 }
+/* Neigung von Rohr k (rad, um die Tiefenachse, + = nach lokal +x) */
+function rohrNeigung(t,k){ const L=rohrLayout(t), r=L.rohre[k], h=(L.cols-1)/2; return h>0?(r.col-h)/h*zuendPlan(t).neig:0; }
 /* Muendung von Rohr k im Produkt (lokal, y ab Tischplatte) */
-function rohrHoehe(t){ const p=P[t], h=p.dims[1], fan=p.shape==='fan'; return {bh:fan?h*0.64:h*0.94,lp:fan?h*0.34:Math.max(0.012,h*0.06)}; }
-function lokalRichtung(v,ry){ const c=Math.cos(ry), s=Math.sin(ry); return [v[0]*c-v[2]*s,v[1],v[0]*s+v[2]*c]; }
-function rohrMund(t,k,ry){ const L=rohrLayout(t), Z=zuendPlan(t), r=L.rohre[k], H=rohrHoehe(t), u=lokalRichtung(Z.dir[k],ry);
+function rohrHoehe(t){ const p=P[t], h=p.dims[1], fan=p.shape==='fan'; return {bh:fan?h*0.72:h*0.94,lp:fan?h*0.26:Math.max(0.012,h*0.06)}; }
+function rohrMund(t,k){ const L=rohrLayout(t), r=L.rohre[k], H=rohrHoehe(t), n=rohrNeigung(t,k), u=[Math.sin(n),Math.cos(n),0];
   return {x:r.x+u[0]*H.lp,y:H.bh+u[1]*H.lp,z:r.z+u[2]*H.lp,u}; }
 
 /* Rohrsatz beim Zuenden: Rohr k nach Plan, Fontaenen-Module fuer die
@@ -148,7 +155,7 @@ function rohrSatz(o,prod){
   const rs={benutzt:0,ueber:0,gefeuert:new Set(),
     ort(k){
       if(k===undefined||k<0||k>=L.rohre.length){ rs.ueber++; if(ROHR_LOG) ROHR_LOG.push({prod,i:-1}); return versetzt(o,0); }
-      const m=rohrMund(prod,k,ry), q=welt(m.x,m.y,m.z); q.jit=0.002; q.ab=0.004; q.rohr=k; rs.benutzt++;
+      const m=rohrMund(prod,k), q=welt(m.x,m.y,m.z); q.jit=0.002; q.ab=0.004; q.rohr=k; rs.benutzt++;
       if(ROHR_LOG){ const r=L.rohre[k], b=welt(r.x,0,r.z); ROHR_LOG.push({prod,i:k,x:q.x,z:q.z,y:q.y,bx:b.x,bz:b.z,t:typeof FW_UHR!=='undefined'?FW_UHR:0}); }
       return q; },
     modul(wunsch){
@@ -158,6 +165,11 @@ function rohrSatz(o,prod){
       if(o.batt) o.batt.modul(f.i);
       if(ROHR_LOG) ROHR_LOG.push({prod,modul:f.i});
       return q; },
+    /* Richtung, in der Rohr k schiesst (Welt), mit ROHR_STREU Streuung */
+    richtung(k){ const n=rohrNeigung(prod,k), ux=Math.sin(n), uy=Math.cos(n);
+      const r=(typeof ROHR_STREU!=='undefined'?ROHR_STREU:0.05)*Math.sqrt(Math.random()), az=Math.random()*Math.PI*2;
+      const vx=ux*c+Math.sin(az)*r, vz=-ux*s+Math.cos(az)*r;
+      return {ang:Math.atan2(Math.hypot(vx,vz),uy),dir:Math.atan2(vx,vz)}; },
     feuer(k,os){
       rs.gefeuert.add(k);
       muendungsblitz(os,os.y,0.7);
@@ -165,7 +177,7 @@ function rohrSatz(o,prod){
       if(o.batt) o.batt.feuer(k); },
     /* nach dem letzten Schuss raucht die Batterie noch ein paar Sekunden */
     nachrauch(dauer){ const q=QUAL(), n=Math.round(dauer/0.3);
-      for(let i=0;i<n;i++) later(i*0.3,()=>{ const k=Math.floor(Math.random()*L.rohre.length), m=rohrMund(prod,k,ry), p0=welt(m.x,m.y,m.z), a=1-i/n;
+      for(let i=0;i<n;i++) later(i*0.3,()=>{ const k=Math.floor(Math.random()*L.rohre.length), m=rohrMund(prod,k), p0=welt(m.x,m.y,m.z), a=1-i/n;
         rohrRauch(p0.x,p0.y,p0.z,0.55+0.6*a,2.6);
         for(let j=0;j<Math.round(3*q*a);j++) psSmall.emit(p0.x,p0.y,p0.z,rand(-.1,.1),rand(0.2,0.6),rand(-.1,.1),0.32,0.32,0.34,rand(1.2,2),-0.2,0); }); }};
   return rs;
@@ -215,19 +227,19 @@ function korpusTeile(t){ return _korpus[t]||(_korpus[t]=buildKorpus(t)); }
    damit ein abgefeuertes Rohr einzeln verkohlen kann. Rohr: Wand aus
    Pappe (offen), heller Pappring oben, dunkle Muendung - steht im
    Winkel, in dem es schiesst. */
-const ROHR_FARBE={wand:0xc9a46a,ring:0xdcc495,loch:0x140e0a,kohle:0x2a211b,kohleRing:0x3b2f26,fanWand:0x2f3038,fanRing:0xd9cbb0,modul:0xb83a2a,modulRing:0xe9dcc0};
+const ROHR_FARBE={wand:0xc9a46a,ring:0xdcc495,loch:0x140e0a,kohle:0x2a211b,kohleRing:0x3b2f26,fanWand:0x9a7448,fanRing:0xe0cfa8,modul:0xb83a2a,modulRing:0xe9dcc0};
 const _rohrGeo={};
 function rohrGeometrie(t,ry){
-  const key=t+'|'+ry.toFixed(3); if(_rohrGeo[key]) return _rohrGeo[key];
+  const key=t; if(_rohrGeo[key]) return _rohrGeo[key];
   const p=P[t], L=rohrLayout(t), H=rohrHoehe(t), fan=p.shape==='fan', parts=[], rohr=[], modul=[];
-  const wand=new THREE.CylinderGeometry(1,1,1,10,1,true), scheibe=new THREE.CylinderGeometry(1,1,1,10);
+  const wand=new THREE.CylinderGeometry(1,1,1,12), scheibe=new THREE.CylinderGeometry(1,1,1,12);
   const tief=Math.min(0.02,H.bh*0.3);
-  L.rohre.forEach((r,k)=>{ const m=rohrMund(t,k,ry), q=new THREE.Quaternion().setFromUnitVectors(V(0,1,0),V(m.u[0],m.u[1],m.u[2]));
+  L.rohre.forEach((r,k)=>{ const m=rohrMund(t,k), q=new THREE.Quaternion().setFromUnitVectors(V(0,1,0),V(m.u[0],m.u[1],m.u[2]));
     const M=(sx,sy,sz,along)=>{ const mm=new THREE.Matrix4(); mm.compose(V(r.x+m.u[0]*along,H.bh+m.u[1]*along,r.z+m.u[2]*along),q,V(sx,sy,sz)); return mm; };
     const len=H.lp+tief, mitte=(H.lp-tief)/2, i0=parts.length;
     parts.push({geo:wand,m:M(r.r,len,r.r,mitte),color:fan?ROHR_FARBE.fanWand:ROHR_FARBE.wand,rolle:'wand'});
-    parts.push({geo:scheibe,m:M(r.r,0.002,r.r,H.lp-0.001),color:fan?ROHR_FARBE.fanRing:ROHR_FARBE.ring,rolle:'ring'});
-    parts.push({geo:scheibe,m:M(r.r*0.74,0.002,r.r*0.74,H.lp+0.0006),color:ROHR_FARBE.loch,rolle:'loch'});
+    parts.push({geo:scheibe,m:M(r.r*0.97,0.002,r.r*0.97,H.lp+0.0008),color:fan?ROHR_FARBE.fanRing:ROHR_FARBE.ring,rolle:'ring'});
+    parts.push({geo:scheibe,m:M(r.r*0.74,0.002,r.r*0.74,H.lp+0.0019),color:ROHR_FARBE.loch,rolle:'loch'});
     rohr.push([i0,parts.length]); });
   L.module.forEach(M0=>{ const i0=parts.length;
     parts.push({geo:new THREE.CylinderGeometry(M0.r,M0.r*1.08,M0.h,10),m:tm(M0.x,M0.h/2,M0.z),color:ROHR_FARBE.modul,rolle:'wand'});

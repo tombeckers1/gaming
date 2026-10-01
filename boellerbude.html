@@ -18956,6 +18956,15 @@ function updateFireworks(dt){
 const FANDIR=Math.PI/2;                 // Fächer quer zum Blickfeld
 /* Alle Verbunde brechen ein Fuenftel groesser als frueher */
 const SHOW_GROESSE=1.2;
+/* Bruchgroesse der Batterien (01.10., Tom: "der Durchmesser ist bei vielen
+   Effekten zu gross - auf einmal ist der ganze Himmel voll, das kriegt man
+   aus einer Batterie gar nicht raus, und die Kugelbombe sieht dagegen klein
+   aus"). Gemessen: Batterien bis 3,5, Kugel 75 mm bricht mit 2,05. Bis 1,0
+   bleibt alles, darueber waechst ein Bruch nur noch mit 27 Prozent - so
+   bleibt die Reihenfolge (Steigerung) erhalten, das Groesste liegt bei
+   etwa 1,7 und damit klar unter jeder Kugelbombe. */
+const BRUCH_KNIE=1.0, BRUCH_REST=0.27;
+function bruchKappe(x){ return x<=BRUCH_KNIE?x:BRUCH_KNIE+(x-BRUCH_KNIE)*BRUCH_REST; }
 const SHOW_BASIS={
   roemisch   :{pw:-9,sz:0.45,th:'bunt'},
   sortiment  :{pw:-6,sz:0.72,th:'bunt'},
@@ -19295,7 +19304,7 @@ function playShow(o,phases,prod,tag){
       let pw=BS.pw+(ph.pw||0)+Rz.pw+hAdd;
       /* nie tiefer als 6 m ueber dem Rohr brechen */
       if(steigHoehe(pw,fuseS)<6) pw=pwFuerHoehe(6,fuseS);
-      const sz=(ph.sz||1)*szK*BS.sz*SHOW_GROESSE*Rz.sz, hB=steigHoehe(pw,fuseS);
+      const sz=bruchKappe((ph.sz||1)*szK*BS.sz*SHOW_GROESSE*Rz.sz), hB=steigHoehe(pw,fuseS);
       /* Abschussort: x in Metern (Liste je Schuss, in Gruppen je Gruppe),
          rohrFolge relativ zur Batteriebreite, rohre:'breit' nach Seite */
       let off=0;

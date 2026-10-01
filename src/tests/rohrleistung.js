@@ -19,7 +19,7 @@ async function neuesSpiel(p){
 const { chromium } = require('/opt/node22/lib/node_modules/playwright');
 (async()=>{
   const b=await chromium.launch({args:['--use-gl=swiftshader','--enable-unsafe-swiftshader','--no-sandbox']});
-  const p=await b.newPage({viewport:{width:200,height:125}});
+  let p=await b.newPage({viewport:{width:200,height:125}});
   const errs=[]; p.on('console',m=>{ if(m.text().startsWith('bild')) console.log(m.text()); }); p.on('pageerror',e=>errs.push('PAGEERROR: '+e.message));
   await p.goto('file://'+process.argv[2]); await p.waitForFunction('window.__bb!==undefined',{timeout:60000});
   await neuesSpiel(p);
@@ -42,12 +42,14 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   },st);
   /* je Stufe ein eigener Lauf (frische Seite); der zweite Lauf auf
      derselben Seite blieb im Test haengen */
-  const hoch=await lauf('hoch');
+  const hoch=await lauf('hoch'); console.log(JSON.stringify(hoch));
+  await p.close(); p=await b.newPage({viewport:{width:200,height:125}}); p.on('pageerror',e=>errs.push('PAGEERROR: '+e.message));
   await p.goto('file://'+process.argv[2]); await p.waitForFunction('window.__bb!==undefined',{timeout:60000});
   await neuesSpiel(p);
   const niedrig=await lauf('niedrig');
   const m=[];
-  for(const r of [hoch,niedrig]){ console.log(JSON.stringify(r));
+  console.log(JSON.stringify(niedrig));
+  for(const r of [hoch,niedrig]){
     if(r.render.max>r.render.p50*2) m.push(`RUCKLER ${r.st}: Einzelbild ${r.render.max} ms bei Median ${r.render.p50} ms`);
     if(r.shaderNeu) m.push(`SHADER ${r.st}: ${r.shaderNeu} neu`);
     if(r.step.mittel>4) m.push(`LOGIK ${r.st}: ${r.step.mittel} ms je Bild`); }

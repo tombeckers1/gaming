@@ -480,7 +480,7 @@ EFF.donnerschlag=function(p,A,B,s,r){
   flash(p,[1,1,1],8*S,0.45); shake=Math.max(shake,0.5*distVol(p));
   schall(p,v=>{ sfx.boom(v*1.5); sfx.crack(v*1.3); if(typeof grollen==='function') grollen(2.6,0.4*v,180,0.1); });
   kgSpaeter(0.15,()=>{ for(let i=0;i<Math.round(140*S*q*1.5);i++){ const d=randDir(), w=rand(1.5,7)*s*0.55, v=[d[0]*w,d[1]*w*0.5,d[2]*w];
-      kgStern(psBig,p,v,[1.05,.74,.32],rand(3.2,4.4),1.1,4,0.3); }
+      kgStern(psBig,p,v,[1.45,1.02,.45],rand(3.2,4.4),1.1,4,0.3); }
     schall(p,v=>later(0.4,()=>sfx.rieseln(v*0.55,4))); });
 };
 /* K2 Rossschweif: die Sterne werden nur schwach ausgestossen und stuerzen
@@ -495,8 +495,8 @@ EFF.rossschweif=function(p,A,B,s,r){
    flirrende Gewitterwolke, die langsam auseinandertreibt */
 EFF.blitzgewitter=function(p,A,B,s,r){
   const q=QUAL(), S=s/4, a=SCHWEIF; SCHWEIF=0;
-  for(let i=0;i<Math.round(240*S*q*1.5);i++){ const d=randDir(), w=Math.cbrt(Math.random())*rand(7,11)*s, c=i%7?[1.6,1.6,1.65]:kgMal(A,1.4);
-    psBig.emit(p.x,p.y,p.z,d[0]*w,d[1]*w,d[2]*w,c[0],c[1],c[2],rand(2.6,3.8),0.7,1); }
+  for(let i=0;i<Math.round(240*S*q*1.5);i++){ const d=randDir(), w=Math.cbrt(Math.random())*rand(7,11)*s, c=i%7?[2.1,2.1,2.15]:kgMal(A,1.8);
+    (i%4?psBig:psHuge).emit(p.x,p.y,p.z,d[0]*w,d[1]*w,d[2]*w,c[0],c[1],c[2],rand(2.6,3.8),0.7,1); }
   SCHWEIF=a;
   schall(p,v=>{ sfx.boom(v*0.6); later(0.3,()=>sfx.rieseln(v*0.5,3.2)); });
 };
@@ -505,9 +505,9 @@ EFF.blitzgewitter=function(p,A,B,s,r){
 EFF.zeitregen=function(p,A,B,s,r){
   const q=QUAL(), S=s/4, G=1.5;
   for(let i=0;i<Math.round(70*S*q*1.5);i++){ const d=randDir(), w=rand(7,9.5)*s, v=kgMal(d,w), T=rand(3.6,4.6);
-    kgStern(psBig,p,v,[.75,.5,.2],T,G,0,0.18);
+    kgStern(psBig,p,v,[1.15,.78,.32],T,G,0,0.18);
     const n=Math.round(rand(2,4)); for(let k=0;k<n;k++){ const t=rand(0.7,T-0.2);
-      kgSpaeter(t,()=>{ const e=sternNach(p,v[0],v[1],v[2],G,t); psHuge.emit(e.x,e.y,e.z,0,0,0,1.6,1.3,.8,0.06,0,0);
+      kgSpaeter(t,()=>{ const e=sternNach(p,v[0],v[1],v[2],G,t); for(let j=0;j<2;j++) psHuge.emit(e.x,e.y,e.z,0,0,0,2,1.6,1,0.08,0,0);
         for(let j=0;j<Math.round(7*q);j++){ const dd=randDir(), ww=rand(1.5,3); psSmall.emit(e.x,e.y,e.z,dd[0]*ww,dd[1]*ww,dd[2]*ww,1.5,1.25,.7,rand(0.12,0.28),1,0); } }); } }
   schall(p,v=>{ sfx.boom(v*0.55); for(let k=0;k<8;k++) later(0.9+k*0.4,()=>sfx.prasseln(v*0.7)); });
 };
@@ -565,8 +565,8 @@ EFF.meteorschauer=function(p,A,B,s,r){
 /* K10 Wechselblinker: eine Krone, deren Sterne im Takt zwischen zwei
    Farben hin und her blinken, mit kurzer Dunkelphase dazwischen */
 EFF.wechselblinker=function(p,A,B,s,r){
-  const q=QUAL(), S=s/4, G=1.8, T=3.4, H=[], cA=kgMal(A,1.45), cB=kgMal(B,1.45), dunkel=[0.04,0.04,0.04];
-  for(let i=0;i<Math.round(64*S*q*1.5);i++){ const d=randDir(), w=rand(8.5,9.5)*s; H.push([kgStern(psBig,p,kgMal(d,w),cA,T*rand(0.9,1.05),G,0,0.04),rand(0,0.3)]); }
+  const q=QUAL(), S=s/4, G=1.8, T=3.4, H=[], cA=kgMal(A,1.9), cB=kgMal(B,1.9), dunkel=[0.04,0.04,0.04];
+  for(let i=0;i<Math.round(64*S*q*1.5);i++){ const d=randDir(), w=rand(8.5,9.5)*s; H.push([kgStern(i%3?psBig:psHuge,p,kgMal(d,w),cA,T*rand(0.9,1.05),G,0,0.04),rand(0,0.3)]); }
   for(let t=0.15;t<T;t+=1/30){ const tt=t; kgSpaeter(tt,()=>{ for(const [h,o] of H){ const ph=((tt+o)/0.3)%1; kgFarbe(h,ph<0.38?cA:ph<0.5?dunkel:ph<0.88?cB:dunkel); } }); }
   schall(p,v=>{ sfx.boom(v*0.6); later(0.6,()=>sfx.rieseln(v*0.35,2.5)); });
 };

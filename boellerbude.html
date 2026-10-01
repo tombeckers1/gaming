@@ -4180,7 +4180,7 @@ function buildVerpackung(t){
        Bombendose mit Metalldeckel - so werden einzelne Kugeln verkauft */
     if(w<0.15){
       const kh=0.014, A=atlas(w,kh,d,a,p.cat,{}); boxPart(parts,w,kh,d,A,tm(0,kh/2,0));
-      roh().forEach(q=>{ q.geo.applyMatrix4(new THREE.Matrix4().makeScale(0.86,0.86,0.86)); q.geo.applyMatrix4(new THREE.Matrix4().makeTranslation(0,kh,0)); parts.push(q); });
+      roh().forEach(q=>{ q.geo.applyMatrix4(tm(0,kh,0,0,0,0,0.86,0.86,0.86)); parts.push(q); });
       const R=Math.min(w,d)*0.49, dome=new THREE.SphereGeometry(R,22,12,0,Math.PI*2,0,Math.PI/2);
       parts.push({geo:merge([{geo:dome,m:tm(0,kh,0,0,0,0,1,(h-kh)/R,1)}]),mat:folieKlar});
       vc.push({geo:new THREE.CylinderGeometry(R*1.04,R*1.04,0.004,22),m:tm(0,kh+0.002,0),color:0xe9e9ee});
@@ -4199,7 +4199,7 @@ function buildVerpackung(t){
     const A=lochAtlas(w,h,d,a,p.cat,{front,lochFront:(W,H)=>[{x:W*0.05,y:H*0.06,w:W*0.68,h:H*0.6}]});
     boxPart(parts,w,h,d,A,tm(0,h/2,0));
     vc.push({geo:new THREE.BoxGeometry(w*0.98,h*0.98,0.004),m:tm(0,h/2,-d*0.47),color:0x1b2238});
-    roh().forEach(q=>{ q.geo.applyMatrix4(new THREE.Matrix4().makeScale(0.92,0.92,0.7)); parts.push(q); });
+    roh().forEach(q=>{ q.geo.applyMatrix4(tm(0,0,0,0,0,0,0.92,0.92,0.7)); parts.push(q); });
     parts.push({geo:merge([{geo:new THREE.BoxGeometry(w*0.7,h*0.62,0.002),m:tm(-w*0.11,h*0.64,d/2-0.002)}]),mat:folieKlar});
   }
   else if(sh==='tubepack'){

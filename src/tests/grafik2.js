@@ -26,10 +26,16 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   const a=await p.evaluate(()=>{ const bb=window.__bb, R=bb.renderer, gl=R.getContext(), px=new Uint8Array(4);
     const zeit=()=>{ bb.run(0.3,0.05); const t=[]; for(let i=0;i<6;i++){ const t0=performance.now(); bb.renderFrame(1/60); gl.readPixels(0,0,1,1,gl.RGBA,gl.UNSIGNED_BYTE,px); t.push(performance.now()-t0); } t.sort((x,y)=>x-y); return Math.round(t[3]); };
     const m=bb.testfeldMitte(); bb.setView(m.x,m.z+12,Math.PI,0.1);
-    const o={start:{wahl:bb.GFX_WAHL,gfx:bb.GFX,pr:R.getPixelRatio(),schatten:R.shadowMap.enabled,post:bb.postOn,qual:bb.QUAL()}};
+    const o={start:{wahl:bb.GFX_WAHL,gfx:bb.GFX,pr:R.getPixelRatio(),schatten:bb.schattenSichtbar(),post:bb.postOn,qual:bb.QUAL()}};
     for(let i=0;i<3;i++) zeit(); o.msHoch=zeit();
+    /* WECHSEL (01.10., Tom: Rechner haengt beim Umschalten): kein
+       Stufenwechsel darf Shader neu uebersetzen; Wechsel + erstes Bild
+       gemessen */
+    const progs=()=>R.info.programs?R.info.programs.length:-1, n0=progs(); o.wechselMs=[];
+    for(const st of ['mittel','niedrig','hoch','niedrig','mittel','hoch']){ const t0=performance.now(); bb.gfxWaehlen(st); bb.renderFrame(1/60); gl.readPixels(0,0,1,1,gl.RGBA,gl.UNSIGNED_BYTE,px); o.wechselMs.push(Math.round(performance.now()-t0)); }
+    o.progs=[n0,progs()];
     bb.gfxWaehlen('niedrig');
-    o.niedrig={gfx:bb.GFX,pr:R.getPixelRatio(),schatten:R.shadowMap.enabled,post:bb.postOn,qual:bb.QUAL(),ls:localStorage.getItem('bb_gfx')};
+    o.niedrig={gfx:bb.GFX,pr:R.getPixelRatio(),schatten:bb.schattenSichtbar(),post:bb.postOn,qual:bb.QUAL(),ls:localStorage.getItem('bb_gfx')};
     for(let i=0;i<3;i++) zeit(); o.msNiedrig=zeit();
     /* Gegenprobe Automatik: feste Stufe hoch, 20 Bilder/s - bleibt */
     bb.gfxWaehlen('hoch'); bb.gfxMess.ruhe=0; for(let i=0;i<20*8;i++) bb.gfxMessen(0.05,true); o.festHoch=bb.GFX;
@@ -47,7 +53,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   await p.close(); const p2=await ctx.newPage(); p2.setDefaultNavigationTimeout(240000); p2.setDefaultTimeout(600000);
   p2.on('pageerror',e=>errs.push('PAGEERROR: '+e.message)); p2.on('crash',()=>errs.push('CRASH'));
   await p2.goto('file://'+process.argv[2]); await p2.waitForFunction('window.__bb!==undefined',{timeout:240000});
-  const c=await p2.evaluate(()=>{ const bb=window.__bb, R=bb.renderer; return {gfx:bb.GFX,wahl:bb.GFX_WAHL,aa:R.getContext().getContextAttributes().antialias,pr:R.getPixelRatio(),schatten:R.shadowMap.enabled}; });
+  const c=await p2.evaluate(()=>{ const bb=window.__bb, R=bb.renderer; return {gfx:bb.GFX,wahl:bb.GFX_WAHL,aa:R.getContext().getContextAttributes().antialias,pr:R.getPixelRatio(),schatten:bb.schattenSichtbar()}; });
   console.log(JSON.stringify(c));
   /* Pausenmenue: Seite Grafik, Knopf Mittel */
   await neuesSpiel(p2);
@@ -56,6 +62,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   console.log(JSON.stringify(d));
   pruef('START',a.start.wahl==='auto'&&a.start.gfx==='hoch'&&a.start.pr>1.5&&a.start.schatten&&a.start.qual===1,'Start nicht auto/hoch: '+JSON.stringify(a.start));
   pruef('STUFE',a.niedrig.gfx==='niedrig'&&a.niedrig.pr===0.75&&!a.niedrig.schatten&&!a.niedrig.post&&a.niedrig.qual===0.55&&a.niedrig.ls==='niedrig','niedrig: '+JSON.stringify(a.niedrig));
+  pruef('WECHSEL',a.progs[0]>0&&a.progs[1]===a.progs[0],'Stufenwechsel uebersetzt Shader neu: '+JSON.stringify(a.progs)+' Programme, Wechsel '+JSON.stringify(a.wechselMs)+' ms');
   pruef('SCHNELLER',a.msNiedrig<a.msHoch*0.75,'niedrig '+a.msNiedrig+' ms, hoch '+a.msHoch+' ms');
   pruef('AUTO',a.festHoch==='hoch','feste Stufe hoch wurde veraendert: '+a.festHoch);
   pruef('AUTO',a.autoPause==='hoch','in der Pause heruntergeschaltet');

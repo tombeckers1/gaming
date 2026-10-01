@@ -326,7 +326,7 @@ function shaderVorab(){
        das echte Ziel - der Shader haengt am Format, nicht an der Groesse.
        In voller Aufloesung dauerte das Vorzeichnen auf schwachen
        Rechnern viele Sekunden. */
-    const post=(typeof postOK!=='undefined'&&postOK&&postOn&&typeof rtScene!=='undefined'&&rtScene);
+    const post=(typeof postOK!=='undefined'&&postOK&&typeof rtScene!=='undefined'&&rtScene);
     /* auch Kantenglaettung wie beim echten Ziel: Treiber stellen den
        Shader je Bildformat und Abtastzahl fertig */
     if(!vorabZiel&&THREE.WebGLRenderTarget){

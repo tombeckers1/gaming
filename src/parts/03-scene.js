@@ -15,8 +15,13 @@ renderer.setSize(innerWidth,innerHeight,false);
 renderer.outputEncoding=THREE.sRGBEncoding;
 renderer.toneMapping=THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure=1.05;
-renderer.shadowMap.enabled=HIQ&&GFX!=='niedrig';
-renderer.shadowMap.type=GFX==='hoch'?THREE.PCFSoftShadowMap:THREE.PCFShadowMap;
+/* Schatten (01.10., Tom: beim Grafikwechsel hing sich der Rechner auf):
+   Art und an/aus stehen fest - ein Wechsel daran uebersetzt die Shader
+   aller Materialien neu (Hunderte auf einmal). Die Stufen unterscheiden
+   sich nur in Werten (schattenWerte): Kartengroesse, Weichheit (radius),
+   wie oft neu gerechnet wird; niedrig blendet sie per Versatz aus. */
+renderer.shadowMap.enabled=HIQ;
+renderer.shadowMap.type=THREE.PCFShadowMap;
 const scene=new THREE.Scene();
 scene.background=new THREE.Color(0x0b1030);
 /* Die Sichtweite reicht jetzt bis in die Stadt. Der Nebel bleibt, aber
@@ -42,7 +47,7 @@ const sun=new THREE.DirectionalLight(0xfff0dc,1.6); sun.position.set(-18,30,26);
    rechts keiner. updateSonne() zieht sie im Loop dem Spieler nach,
    die Lichtrichtung bleibt dabei dieselbe. */
 const SONNE_OFF={x:-18,y:30,z:26};
-if(HIQ){ sun.castShadow=GFX!=='niedrig'; sun.shadow.mapSize.set(GFX==='hoch'?2048:1024,GFX==='hoch'?2048:1024); const sc=sun.shadow.camera; sc.left=-34; sc.right=34; sc.top=34; sc.bottom=-34; sc.near=5; sc.far=95; sun.shadow.bias=-0.0006; sun.shadow.normalBias=0.02; }
+if(HIQ){ sun.castShadow=true; const sc=sun.shadow.camera; sc.left=-34; sc.right=34; sc.top=34; sc.bottom=-34; sc.near=5; sc.far=95; sun.shadow.bias=-0.0006; sun.shadow.normalBias=0.02; }
 function updateSonne(x,z){
   sun.target.position.set(x,0,z);
   sun.position.set(x+SONNE_OFF.x,SONNE_OFF.y,z+SONNE_OFF.z);
@@ -50,6 +55,18 @@ function updateSonne(x,z){
 }
 const shopSpot=new THREE.SpotLight(0xfff1dc,1.35,24,1.2,0.8,1.1); shopSpot.position.set(-0.5,3.45,-0.3); shopSpot.target.position.set(-0.5,0,-0.3); scene.add(shopSpot); scene.add(shopSpot.target);
 if(HIQ){ shopSpot.castShadow=true; shopSpot.shadow.mapSize.set(1024,1024); shopSpot.shadow.camera.near=0.5; shopSpot.shadow.camera.far=9; shopSpot.shadow.bias=-0.0008; shopSpot.shadow.normalBias=0.02; }
+/* Schattenwerte je Grafikstufe - nur Zahlen, keine Shader-Aenderung.
+   niedrig: Versatz -10 laesst jeden Punkt beleuchtet (keine Schatten)
+   und die Karte wird nicht mehr neu gezeichnet (schattenTakt). */
+function schattenWerte(st){
+  if(!HIQ) return;
+  const gr=st==='hoch'?2048:st==='mittel'?1024:512, aus=st==='niedrig';
+  if(sun.shadow.mapSize.x!==gr){ sun.shadow.mapSize.set(gr,gr); if(sun.shadow.map){ sun.shadow.map.dispose(); sun.shadow.map=null; } }
+  sun.shadow.radius=st==='hoch'?2.2:1.2;
+  sun.shadow.bias=aus?-10:-0.0006; shopSpot.shadow.bias=aus?-10:-0.0008;
+  renderer.shadowMap.needsUpdate=true;
+}
+schattenWerte(GFX);
 const shopFill=new THREE.PointLight(0xffe9cf,0.75,15,1.4); shopFill.position.set(4.5,3.2,2.5); scene.add(shopFill);
 const shopFill2=new THREE.PointLight(0xe9f0ff,0.5,14,1.5); shopFill2.position.set(-4.5,3.2,-2.5); scene.add(shopFill2);
 const lagerLight=new THREE.PointLight(0xe8f0ff,1.0,13,1.3); lagerLight.position.set(-13.5,3.2,-2); lagerLight.distance=17; scene.add(lagerLight);

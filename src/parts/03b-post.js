@@ -2,7 +2,7 @@
 /* =========================================================
    Bildaufbereitung: Bloom, Vignette, Filmkorn
    ========================================================= */
-let postOK=false, postOn=true, rtScene=null, rtA=null, rtB=null;
+let postOK=false, postOn=true, rtScene=null, rtA=null, rtB=null, matKopie=null;
 let quadScene=null, quadCam=null, quadMesh=null, matBright=null, matBlur=null, matComp=null;
 let postW=0, postH=0, postDiv=4, postHalf=false;
 const QUAD_V='varying vec2 vUv;\nvoid main(){ vUv=uv; gl_Position=vec4(position.xy,0.0,1.0); }';
@@ -42,6 +42,9 @@ function initPost(){
       vertexShader:QUAD_V,
       fragmentShader:'uniform sampler2D tDiffuse;\nuniform sampler2D tBloom;\nuniform float bloom;\nuniform float vig;\nuniform float grain;\nuniform float aberr;\nuniform float sat;\nuniform float time;\nvarying vec2 vUv;\nfloat hash(vec2 p){ return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453); }\nvec3 toSRGB(vec3 v){ return mix(pow(v,vec3(0.41666))*1.055-0.055, v*12.92, vec3(lessThanEqual(v,vec3(0.0031308)))); }\nvoid main(){\n  vec2 uv=vUv;\n  vec2 d=uv-0.5;\n  float r2=dot(d,d);\n  float a=aberr*r2;\n  vec3 col;\n  col.r=texture2D(tDiffuse,uv+d*a).r;\n  col.g=texture2D(tDiffuse,uv).g;\n  col.b=texture2D(tDiffuse,uv-d*a).b;\n  col+=texture2D(tBloom,uv).rgb*bloom;\n  float lum=dot(col,vec3(0.2126,0.7152,0.0722));\n  col=mix(vec3(lum),col,sat);\n  col*=1.0-vig*smoothstep(0.12,0.62,r2);\n  col=toSRGB(max(col,0.0));\n  col+=(hash(uv*1024.0+time)-0.5)*grain;\n  gl_FragColor=vec4(col,1.0);\n}',
       depthTest:false,depthWrite:false});
+    matKopie=new THREE.ShaderMaterial({uniforms:{tDiffuse:{value:null}},vertexShader:QUAD_V,
+      fragmentShader:'uniform sampler2D tDiffuse;\nvarying vec2 vUv;\nvec3 toSRGB(vec3 v){ return mix(pow(v,vec3(0.41666))*1.055-0.055, v*12.92, vec3(lessThanEqual(v,vec3(0.0031308)))); }\nvoid main(){ gl_FragColor=vec4(toSRGB(max(texture2D(tDiffuse,vUv).rgb,0.0)),1.0); }',
+      depthTest:false,depthWrite:false});
     quadScene=new THREE.Scene();
     quadCam=new THREE.OrthographicCamera(-1,1,1,-1,0,1);
     quadMesh=new THREE.Mesh(new THREE.PlaneGeometry(2,2),matBright);
@@ -72,18 +75,17 @@ function gfxAnwenden(st){
   if(GFX_STUFEN.indexOf(st)<0) return;
   const alt=GFX; GFX=st;
   renderer.setPixelRatio(gfxPixel()); renderer.setSize(innerWidth,innerHeight,false);
-  const sh=HIQ&&st!=='niedrig', gr=st==='hoch'?2048:1024;
-  const typ=st==='hoch'?THREE.PCFSoftShadowMap:THREE.PCFShadowMap;
-  const shAlt=renderer.shadowMap.enabled, typAlt=renderer.shadowMap.type;
-  renderer.shadowMap.enabled=sh; renderer.shadowMap.type=typ; sun.castShadow=sh;
-  if(sun.shadow.mapSize.x!==gr){ sun.shadow.mapSize.set(gr,gr); if(sun.shadow.map){ sun.shadow.map.dispose(); sun.shadow.map=null; } }
-  /* Schatten an/aus oder andere Filterung: die Materialien brauchen andere Shader */
-  if(shAlt!==sh||typAlt!==typ) scene.traverse(o=>{ const m=o.material; if(!m) return; (Array.isArray(m)?m:[m]).forEach(x=>{ x.needsUpdate=true; }); });
+  /* 01.10. (Tom: "wenn ich die Grafik aendere, haengt sich oft mein
+     Rechner auf"): frueher wechselten hier Schatten an/aus und die
+     Filterart - dann musste jedes Material neu uebersetzt werden, dazu
+     30 ms spaeter das komplette Vorzeichnen (shaderVorab). Jetzt aendern
+     sich nur Zahlen: Aufloesung, Schattenwerte, Abtastzahl - kein Shader. */
+  schattenWerte(st);
   let wunsch=true; try{ wunsch=localStorage.getItem('bb_post')!=='0'; }catch(e){}
   postOn=postOK&&wunsch&&st!=='niedrig';
   if(rtScene&&rtScene.isWebGLMultisampleRenderTarget){ const n=COARSE?2:st==='hoch'?4:2; if(rtScene.samples!==n){ rtScene.samples=n; rtScene.dispose(); } }
   resizePost();
-  if(alt!==st&&typeof shaderVorab==='function') setTimeout(()=>{ try{ shaderVorab(); }catch(e){} },30);
+  gfxMess.ruhe=Math.max(gfxMess.ruhe,4);
 }
 /* Wahl im Pausenmenue: 'auto' oder eine feste Stufe */
 function gfxWaehlen(w){
@@ -246,6 +248,8 @@ let schattenN=0;
 function schattenTakt(){
   const R=renderer.shadowMap; if(!R.enabled){ return; }
   R.autoUpdate=false; schattenN++;
+  /* niedrig: Schatten ausgeblendet (schattenWerte), nie neu zeichnen */
+  if(GFX==='niedrig') return;
   if(GFX==='hoch'||schattenN>=3){ R.needsUpdate=true; schattenN=0; }
 }
 function renderFrame(dt){
@@ -254,7 +258,15 @@ function renderFrame(dt){
   buendelTakt();
   schattenTakt();
   if(skyMesh){ skyMesh.position.set(camera.position.x,0,camera.position.z); starPts.position.copy(skyMesh.position); }
-  if(!postOK||!postOn){ if(renderer.setRenderTarget) renderer.setRenderTarget(null); renderer.render(scene,camera); return; }
+  if(!postOK){ if(renderer.setRenderTarget) renderer.setRenderTarget(null); renderer.render(scene,camera); return; }
+  /* Ohne Nachbearbeitung (niedrig oder abgeschaltet) trotzdem ueber das
+     Szenenbild: direkt auf den Schirm braucht jedes Material einen
+     anderen Shader (Farbraum) - der Wechsel liess schwache Rechner haengen.
+     Nur eine schlichte Kopie, kein Leuchten, kein Korn. */
+  if(!postOn){ try{ renderer.setRenderTarget(rtScene); renderer.render(scene,camera);
+      quadMesh.material=matKopie; matKopie.uniforms.tDiffuse.value=rtScene.texture;
+      renderer.setRenderTarget(null); renderer.render(quadScene,quadCam); return; }
+    catch(e){ postOK=false; if(renderer.setRenderTarget) renderer.setRenderTarget(null); renderer.render(scene,camera); return; } }
   try{
     postT+=dt||0.016;
     renderer.setRenderTarget(rtScene); renderer.render(scene,camera);

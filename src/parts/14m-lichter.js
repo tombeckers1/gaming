@@ -138,8 +138,8 @@ LICHTYP.kometenfaecher=function(o,A,B,s,opt){
 /* 11 Sternschnuppen: flach geschossene Kometen, die mit langem, kuehl
    weissblauem Schweif quer ueber den Himmel ziehen */
 LICHTYP.sternschnuppe=function(o,A,B,s,opt){
-  const m=lMund(o), G=3, sd=(opt.i||0)%2?1:-1, a=sd*1.05, v=lAbschuss(14*Math.sqrt(s),G,{ang:a,dir:opt.dir},0.3), T=2.4;
-  const w=kgMal(v,1.25);
+  const m=lMund(o), G=3, sd=(opt.i||0)%2?1:-1, a=sd*0.78, v=lAbschuss(20*Math.sqrt(s),G,{ang:a,dir:opt.dir},0.3), T=2.4;
+  const w=kgMal(v,1.15);
   lKopf(m,w,[1.3,1.4,1.6],T,G,0,0.5);
   lFunken(m,w,G,0.05,T,85,[.8,.9,1.2],{ps:psMid,life:[1.0,1.6],g:0.35,streu:0.08,mit:0,mode:0,spur:0.2});
   lStart(m,1,0.7); sfx.zischen(distVol(m)*0.3,T);
@@ -152,8 +152,8 @@ LICHTYP.blitzregen=function(o,A,B,s,opt){
   const m=lMund(o), G=6, v=lAbschuss(26*Math.sqrt(s),G,opt,0.3), T=lScheitel(v[1],G);
   kgStern(psBig,m,v,[.5,.25,.12],T,G,0,0.2); lStart(m,0.8,0.7);
   kgSpaeter(T,()=>{ const e=sternNach(m,v[0],v[1],v[2],G,T);
-    for(let i=0;i<Math.round(75*s*QUAL());i++){ const d=randDir(), w=rand(1.5,4)*Math.sqrt(s);
-      kgStern(psBig,e,[d[0]*w,d[1]*w*0.6,d[2]*w],i%4?[1.5,1.5,1.5]:kgMal(A,1.4),rand(3.2,4.4),1.1,1,0); }
+    for(let i=0;i<Math.round(150*s*QUAL());i++){ const d=randDir(), w=rand(2,6)*Math.sqrt(s);
+      kgStern(i%5?psBig:psHuge,e,[d[0]*w,d[1]*w*0.6,d[2]*w],i%4?[1.9,1.9,1.9]:kgMal(A,1.7),rand(3.2,4.4),1.1,1,0); }
     schall(e,x=>{ sfx.plopp(x*0.6,1.2); sfx.rieseln(x*0.35,3.5); }); });
 };
 /* 13 Wetterleuchten: kein Knall - hoch oben flackern Blitze in einer
@@ -177,9 +177,9 @@ LICHTYP.schwebestern=function(o,A,B,s,opt){
   lFunken(m,v,G,0.03,T,40,[1,.8,.45],{ps:psMid,life:[0.3,0.6],g:2,streu:0.2,mit:0.1,mode:0});
   lStart(m,1,0.75);
   kgSpaeter(T,()=>{ const e=sternNach(m,v[0],v[1],v[2],G,T), D=5.5, dv=[rand(-0.4,0.4),-0.9,rand(-0.4,0.4)];
-    for(let k=0;k<4;k++) kgStern(psHuge,e,dv,kgMal(A,1.7),D,0,0,0.05);
+    for(let k=0;k<7;k++) kgStern(psHuge,e,dv,kgMal(A,1.9),D,0,0,0.05); for(let k=0;k<3;k++) kgStern(psBig,e,dv,[1.8,1.7,1.5],D*0.95,0,0,0);
     for(let t=0;t<D;t+=0.3){ const tt=t; kgSpaeter(tt,()=>{ const q={x:e.x+dv[0]*tt,y:e.y+dv[1]*tt,z:e.z+dv[2]*tt};
-      flash(q,A,0.9,0.35); for(let j=0;j<3;j++) psMid.emit(q.x,q.y,q.z,rand(-.3,.3),-rand(0.5,1.5),rand(-.3,.3),A[0],A[1],A[2],rand(0.6,1.1),1.5,4); }); }
+      flash(q,A,2.2,0.35); for(let j=0;j<4;j++) psBig.emit(q.x,q.y,q.z,rand(-.3,.3),-rand(0.5,1.5),rand(-.3,.3),A[0],A[1],A[2],rand(0.6,1.1),1.5,4); }); }
     schall(e,x=>sfx.zischen(x*0.25,D)); });
 };
 /* 15 Fischschwarm: oben schwaermen mit leisem Puffen zwanzig Fische aus,
@@ -188,9 +188,9 @@ LICHTYP.fischschwarm=function(o,A,B,s,opt){
   const m=lMund(o), G=6, v=lAbschuss(23*Math.sqrt(s),G,opt,0.3), T=lScheitel(v[1],G);
   kgStern(psBig,m,v,[1,.8,.5],T,G,0,0.3); lStart(m,0.9,0.75);
   kgSpaeter(T,()=>{ const e=sternNach(m,v[0],v[1],v[2],G,T);
-    for(let f=0;f<Math.round(20*QUAL());f++){ const d=randDir(), sp=rand(5,7.5)*Math.sqrt(s), c=f%3?[1.3,1.2,1.05]:kgMal(A,1.3);
-      lBahn(psBig,e,[d[0]*sp,d[1]*sp*0.6+1,d[2]*sp],Math.round(rand(10,15)),0.11,c,1.2,w=>{ const l=Math.hypot(w[0],w[1],w[2])||1, r=randDir(), k=sp*0.9;
-        const n=[w[0]/l+r[0]*0.9,w[1]/l+r[1]*0.9,w[2]/l+r[2]*0.9], nl=Math.hypot(n[0],n[1],n[2])||1; return [n[0]/nl*k,n[1]/nl*k,n[2]/nl*k]; },0.1,0); }
+    for(let f=0;f<Math.round(28*QUAL());f++){ const d=randDir(), sp=rand(5.5,8)*Math.sqrt(s), c=f%3?[1.8,1.6,1.3]:kgMal(A,1.7);
+      lBahn(psHuge,e,[d[0]*sp,d[1]*sp*0.6+1,d[2]*sp],Math.round(rand(10,15)),0.11,c,1.2,w=>{ const l=Math.hypot(w[0],w[1],w[2])||1, r=randDir(), k=sp*0.9;
+        const n=[w[0]/l+r[0]*0.9,w[1]/l+r[1]*0.9,w[2]/l+r[2]*0.9], nl=Math.hypot(n[0],n[1],n[2])||1; return [n[0]/nl*k,n[1]/nl*k,n[2]/nl*k]; },0.16,0,(q,w)=>{ for(let j=0;j<3;j++) psMid.emit(q.x,q.y,q.z,-w[0]*0.1+rand(-.4,.4),-w[1]*0.1+rand(-.4,.4),-w[2]*0.1+rand(-.4,.4),1.2,1,.6,rand(0.3,0.6),1.5,4); }); }
     schall(e,x=>{ sfx.plopp(x*0.4,1.5); later(0.1,()=>sfx.fizz(x*0.6)); later(0.6,()=>sfx.fizz(x*0.4)); }); });
 };
 /* 16 Fallende Blaetter: oben loesen sich goldene Blaetter, die flatternd
@@ -199,19 +199,19 @@ LICHTYP.fallendeblaetter=function(o,A,B,s,opt){
   const m=lMund(o), G=6, v=lAbschuss(28*Math.sqrt(s),G,opt,0.3), T=lScheitel(v[1],G);
   kgStern(psBig,m,v,[.7,.45,.2],T,G,0,0.2); lStart(m,0.8,0.7);
   kgSpaeter(T,()=>{ const e=sternNach(m,v[0],v[1],v[2],G,T);
-    for(let f=0;f<Math.round(32*QUAL());f++){ const d=randDir(), p={x:e.x+d[0]*rand(1,4),y:e.y+d[1]*2,z:e.z+d[2]*rand(1,4)}, c=f%3?kgMal(A,1.3):kgMal(B,1.3), ph=rand(0,6), q=lQuer(opt);
-      lBahn(psBig,p,[0,-0.6,0],34,0.13,c,0,(w,k)=>{ const sw=Math.sin(ph+k*0.9)*1.8; return [q[0]*sw+rand(-.3,.3),-rand(0.9,1.4)+Math.abs(Math.sin(ph+k*0.9))*0.5,q[2]*sw+rand(-.3,.3)]; },0.12,4); }
+    for(let f=0;f<Math.round(40*QUAL());f++){ const d=randDir(), p={x:e.x+d[0]*rand(1.5,6),y:e.y+d[1]*3,z:e.z+d[2]*rand(1.5,6)}, c=f%3?kgMal(A,1.7):kgMal(B,1.7), ph=rand(0,6), q=lQuer(opt);
+      lBahn(psHuge,p,[0,-0.6,0],34,0.13,c,0,(w,k)=>{ const sw=Math.sin(ph+k*0.9)*1.8; return [q[0]*sw+rand(-.3,.3),-rand(0.9,1.4)+Math.abs(Math.sin(ph+k*0.9))*0.5,q[2]*sw+rand(-.3,.3)]; },0.12,4); }
     schall(e,x=>{ sfx.plopp(x*0.45,1); sfx.rieseln(x*0.3,4); }); });
 };
 /* 17 Doppelhelix: zwei Farbkometen, die sich beim Steigen umeinander
    winden - der Treibsatz sitzt schraeg, beide drehen um die Achse */
 LICHTYP.doppelhelix=function(o,A,B,s,opt){
-  const m=lMund(o), H=22*Math.sqrt(s), D=2.2, r=0.55, om=Math.PI*2*2.2, rr=lRicht(opt), q=lQuer(opt), z=[q[2],0,-q[0]];
+  const m=lMund(o), H=24*Math.sqrt(s), D=2.4, r=0.95, om=Math.PI*2*2.2, rr=lRicht(opt), q=lQuer(opt), z=[q[2],0,-q[0]];
   lStart(m,1.2,0.8); sfx.zischen(distVol(m)*0.4,D);
   lLaufend(D,t=>{ const f=t/D, hh=H*(1-Math.pow(1-f,2)), c={x:m.x+rr[0]*hh,y:m.y+rr[1]*hh,z:m.z+rr[2]*hh};
     for(let k=0;k<2;k++){ const a=om*t+k*Math.PI, pp={x:c.x+(q[0]*Math.cos(a)+z[0]*Math.sin(a))*r,y:c.y,z:c.z+(q[2]*Math.cos(a)+z[2]*Math.sin(a))*r}, col=k?B:A;
-      psHuge.emit(pp.x,pp.y,pp.z,0,0,0,col[0]*1.5,col[1]*1.5,col[2]*1.5,0.05,0,0);
-      for(let j=0;j<3;j++) psMid.emit(pp.x,pp.y,pp.z,rand(-.25,.25),rand(-.6,0),rand(-.25,.25),col[0]*1.1,col[1]*1.1,col[2]*1.1,rand(0.5,0.9),1.2,0); } });
+      for(let j=0;j<2;j++) psHuge.emit(pp.x,pp.y,pp.z,0,0,0,col[0]*1.8,col[1]*1.8,col[2]*1.8,0.06,0,0);
+      for(let j=0;j<4;j++) (j%2?psMid:psBig).emit(pp.x,pp.y,pp.z,rand(-.25,.25),rand(-.6,0),rand(-.25,.25),col[0]*1.1,col[1]*1.1,col[2]*1.1,rand(0.5,0.9),1.2,0); } });
 };
 /* 18 Tourbillon: ein waagerechtes Rad, das sich in die Hoehe schraubt und
    dabei Funken tangential wegschleudert - eine steigende Funkenspirale */
@@ -238,9 +238,9 @@ LICHTYP.ufokreisel=function(o,A,B,s,opt){
    jede kreiselt im Zickzack nach oben und verlischt */
 LICHTYP.bienenschwarm=function(o,A,B,s,opt){
   const m=lMund(o);
-  for(let f=0;f<Math.round(22*QUAL());f++){ const a=rand(0,Math.PI*2), el=rand(0.7,1.4), sp=rand(8,11), c=f%2?kgMal(A,1.3):[1.3,1.05,.5];
-    later(rand(0,0.5),()=>lBahn(psMid,m,[Math.cos(a)*Math.cos(el)*sp,Math.sin(el)*sp,Math.sin(a)*Math.cos(el)*sp],Math.round(rand(9,14)),0.08,c,3,w=>{ const r=randDir(), k=rand(7,10);
-      const n=[r[0],Math.abs(r[1])*0.8+0.4,r[2]], l=Math.hypot(n[0],n[1],n[2]); return [n[0]/l*k,n[1]/l*k,n[2]/l*k]; },0.1,4)); }
+  for(let f=0;f<Math.round(30*QUAL());f++){ const a=rand(0,Math.PI*2), el=rand(0.7,1.4), sp=rand(9,12), c=f%2?kgMal(A,1.7):[1.8,1.4,.6];
+    later(rand(0,0.6),()=>lBahn(psBig,m,[Math.cos(a)*Math.cos(el)*sp,Math.sin(el)*sp,Math.sin(a)*Math.cos(el)*sp],Math.round(rand(9,14)),0.08,c,3,w=>{ const r=randDir(), k=rand(7,10);
+      const n=[r[0],Math.abs(r[1])*0.8+0.4,r[2]], l=Math.hypot(n[0],n[1],n[2]); return [n[0]/l*k,n[1]/l*k,n[2]/l*k]; },0.18,4,(q,w)=>{ for(let j=0;j<2;j++) psMid.emit(q.x,q.y,q.z,rand(-1,1),rand(-1,1),rand(-1,1),1.3,1.1,.5,rand(0.2,0.4),2,4); })); }
   lStart(m,1.2,0.6); sfx.brummen(distVol(m)*1.6,210,1.6); later(0.3,()=>sfx.brummen(distVol(m)*1.2,260,1.2));
 };
 

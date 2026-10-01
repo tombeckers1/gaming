@@ -60,7 +60,8 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     o.lampBrennt=lamp(7);
     o.taster=bb.pultTaster.length; o.tasterUnten=+(bb.pultTaster[7].userData.y0-bb.pultTaster[7].position.y).toFixed(4);
     const it8=bb.kanalItem(8);
-    o.stehtNoch=!!(it8&&it8.h);
+    /* 01.10. abends: Batterien stehen als eigenes Modell (it.batt) auf dem Tisch, nicht mehr im Pool */
+    o.stehtNoch=!!(it8&&(it8.h||(it8.batt&&it8.batt.g.parent)));
     o.dauer8=bb.brennDauer('batterie16');
     bb.run(2.6,0.05);
     o.tasterOben=+(bb.pultTaster[7].userData.y0-bb.pultTaster[7].position.y).toFixed(4);

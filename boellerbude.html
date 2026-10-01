@@ -5252,7 +5252,7 @@ function buildYard(){
       inner.position.copy(t.position); inner.rotation.copy(t.rotation); g.add(inner);
       /* Boden des Rohrs, Muendungsring, Schelle */
       const fussY=A.y-c*A.halb, fussZ=A.z-sn*A.halb;
-      const boden=new THREE.Mesh(new THREE.CylinderGeometry(0.062,0.062,0.012,20),steelDark); boden.position.set(x,fussY,fussZ); boden.rotation.x=A.neig; g.add(boden);
+      const boden=new THREE.Mesh(new THREE.CylinderGeometry(0.06,0.06,0.012,20),steelDark); boden.position.set(x,fussY,fussZ); boden.rotation.x=A.neig; g.add(boden);
       const ring=new THREE.Mesh(new THREE.TorusGeometry(0.064,0.013,8,18),steel);
       ring.rotation.x=Math.PI/2+A.neig; ring.position.set(x,A.y+c*A.halb,A.z+sn*A.halb); g.add(ring);
       const schelle=new THREE.Mesh(new THREE.TorusGeometry(0.066,0.012,8,18),steelDark);

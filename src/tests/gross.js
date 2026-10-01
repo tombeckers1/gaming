@@ -59,7 +59,8 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     o.abstand=+(bb.TISCH_X[1]-bb.TISCH_X[0]).toFixed(2);
     for(const t of ['finale','profi','donnerwand','faecher','zfaecher','batterie100','atomboeller','feuerkaskade','wasserspiel'].filter(t=>P[t])){
       bb.clearStations(); for(let k=0;k<3;k++){ S.carrying={type:t,count:1,q:1}; bb.placeOnStation(st); }
-      const fp=st.items.map(it=>{ const e=it.h.m.elements, cx=Math.hypot(e[0],e[2]), sx=Math.hypot(e[8],e[10]);
+      /* 01.10. abends: Batterien stehen als eigenes Modell (it.batt.g), sonst im Pool (it.h.m) */
+      const fp=st.items.map(it=>{ const M=it.batt?(it.batt.g.updateMatrixWorld(true),it.batt.g.matrixWorld):it.h.m; const e=M.elements, cx=Math.hypot(e[0],e[2]), sx=Math.hypot(e[8],e[10]);
         /* Breite entlang der Tischkante: Anteil der Produkt-x- und -z-Achse an Welt-x */
         return Math.abs(e[0])/cx*P[t].dims[0]+Math.abs(e[8])/sx*P[t].dims[2]; });
       o.tisch.push({t,n:st.items.length,breit:+Math.max(...fp).toFixed(2)}); }

@@ -353,53 +353,11 @@ const NEUWARE={
   sternentor:{name:'Sternentor · 160 Schuss Kerzen-Verbund',short:'Sternentor',cat:2,lvl:24,shape:'battery',dims:[0.9,0.6,0.56],grid:[2,1,1],box:1,cost:76.00,market:174.99,weight:3,hype:94,risk:10,
     desc:'Der große Kerzen-Verbund ohne einen einzigen Knall: Farbwechsel-Kerzen wischen über den Himmel, Sternkerzen öffnen sich zu kleinen Sternen, schwebende Perlen bilden ein Tor aus Licht – im Finale 36 Kerzen auf einen Schlag zwischen zwei Riesenfontänen.',
     art:{title:'STERNENTOR',sub:'160 Schuss · Kerzen-Verbund · ohne Knall',bg1:'#0c2a7a',bg2:'#020a1c',ac:'#f2f5ff',ac2:'#ffd23f'}},
-  /* 30.09. (Tom): 15 Muster-Batterien mit je einem neuen Effekt - nur zum
-     Ansehen in der Testsektion, nicht bestellbar */
-  mb_funkelregen:{name:'Muster 01 · Funkelregen',short:'Funkelregen',cat:2,lvl:15,shape:'battery',dims:[0.5,0.36,0.42],grid:[3,1,1],box:2,cost:30.00,market:69.99,weight:4,hype:60,risk:8,noOrder:true,
-    desc:'Silbersterne, die einzeln aufblitzen – sie funkeln wie Glitzer im Licht.',
-    art:{title:'FUNKELREGEN',sub:'Muster 01 · 37 Schuss',bg1:'#26292f',bg2:'#000000',ac:'#f2f5ff',ac2:'#5ce1ff'}},
-  mb_tigerschweif:{name:'Muster 02 · Tigerschweif',short:'Tigerschweif',cat:2,lvl:15,shape:'battery',dims:[0.5,0.36,0.42],grid:[3,1,1],box:2,cost:30.00,market:69.99,weight:4,hype:60,risk:8,noOrder:true,
-    desc:'Schwere Goldkometen mit so dichtem Funkenschweif, dass jeder als breites, gestreiftes Band am Himmel stehen bleibt.',
-    art:{title:'TIGERSCHWEIF',sub:'Muster 02 · 37 Schuss',bg1:'#6b3a0c',bg2:'#1f0f02',ac:'#ffb43f',ac2:'#ff7a1c'}},
-  mb_seerose:{name:'Muster 03 · Seerose',short:'Seerose',cat:2,lvl:15,shape:'battery',dims:[0.5,0.36,0.42],grid:[3,1,1],box:2,cost:30.00,market:69.99,weight:4,hype:60,risk:8,noOrder:true,
-    desc:'Ein waagerechter Ringbruch – von unten eine Blume, die sich öffnet –, darin ein weißer Kranz und ein aufsteigender Stempel.',
-    art:{title:'SEEROSE',sub:'Muster 03 · 37 Schuss',bg1:'#6b1a3a',bg2:'#1a0610',ac:'#ff8ac8',ac2:'#c8ff3a'}},
-  mb_galaxie:{name:'Muster 04 · Galaxie',short:'Galaxie',cat:2,lvl:15,shape:'battery',dims:[0.5,0.36,0.42],grid:[3,1,1],box:2,cost:30.00,market:69.99,weight:4,hype:60,risk:8,noOrder:true,
-    desc:'Drei Spiralarme um einen weißen Kern, die beim Auseinanderfliegen ihre Form behalten.',
-    art:{title:'GALAXIE',sub:'Muster 04 · 37 Schuss',bg1:'#1a0a4a',bg2:'#02010f',ac:'#8ab4ff',ac2:'#d05cff'}},
-  mb_diamantstaub:{name:'Muster 05 · Diamantstaub',short:'Diamantstaub',cat:2,lvl:15,shape:'battery',dims:[0.5,0.36,0.42],grid:[3,1,1],box:2,cost:30.00,market:69.99,weight:4,hype:60,risk:8,noOrder:true,
-    desc:'Hunderte feinste Funken, die funkeln und ganz langsam sinken – wie Staub im Sonnenlicht.',
-    art:{title:'DIAMANTSTAUB',sub:'Muster 05 · 37 Schuss',bg1:'#12304a',bg2:'#02060f',ac:'#f2f5ff',ac2:'#8ae8ff'}},
-  mb_smaragdregen:{name:'Muster 06 · Smaragdregen',short:'Smaragdregen',cat:2,lvl:15,shape:'battery',dims:[0.5,0.36,0.42],grid:[3,1,1],box:2,cost:30.00,market:69.99,weight:4,hype:60,risk:8,noOrder:true,
-    desc:'Grüne Sterne mit grün-weißem Glitzerschweif, der stehen bleibt und rieselt.',
-    art:{title:'SMARAGDREGEN',sub:'Muster 06 · 37 Schuss',bg1:'#0d4a2a',bg2:'#021208',ac:'#5cff9e',ac2:'#f2f5ff'}},
-  mb_kiefernkrone:{name:'Muster 07 · Kiefernkrone',short:'Kiefernkrone',cat:2,lvl:15,shape:'battery',dims:[0.5,0.36,0.42],grid:[3,1,1],box:2,cost:30.00,market:69.99,weight:4,hype:60,risk:8,noOrder:true,
-    desc:'Goldsterne zerspringen nach einer Sekunde in feine, verzweigte Tannennadeln und knistern trocken.',
-    art:{title:'KIEFERNKRONE',sub:'Muster 07 · 37 Schuss',bg1:'#4a3308',bg2:'#150e02',ac:'#ffd23f',ac2:'#ff9a2e'}},
-  mb_lavaregen:{name:'Muster 08 · Lavaregen',short:'Lavaregen',cat:2,lvl:15,shape:'battery',dims:[0.5,0.36,0.42],grid:[3,1,1],box:2,cost:30.00,market:69.99,weight:4,hype:60,risk:8,noOrder:true,
-    desc:'Glühende Lavabrocken fliegen im Bogen auf, ziehen dunkelrote Glutfäden und zerspritzen.',
-    art:{title:'LAVAREGEN',sub:'Muster 08 · 37 Schuss',bg1:'#5a1204',bg2:'#140301',ac:'#ff6a1c',ac2:'#ffd23f'}},
-  mb_echoringe:{name:'Muster 09 · Echoringe',short:'Echoringe',cat:2,lvl:15,shape:'battery',dims:[0.5,0.36,0.42],grid:[3,1,1],box:2,cost:30.00,market:69.99,weight:4,hype:60,risk:8,noOrder:true,
-    desc:'Drei Ringe nacheinander aus demselben Punkt, jeder langsamer – ineinander wie ein Echo.',
-    art:{title:'ECHORINGE',sub:'Muster 09 · 37 Schuss',bg1:'#0c2a7a',bg2:'#020a1c',ac:'#5c8aff',ac2:'#ff4fd8'}},
-  mb_kirschbluete:{name:'Muster 10 · Kirschblüte',short:'Kirschblüte',cat:2,lvl:15,shape:'battery',dims:[0.5,0.36,0.42],grid:[3,1,1],box:2,cost:30.00,market:69.99,weight:4,hype:60,risk:8,noOrder:true,
-    desc:'Eine rosa Päonie, die in Blütenblätter zerfällt, die kaum sinken und seitlich davontreiben.',
-    art:{title:'KIRSCHBLÜTE',sub:'Muster 10 · 37 Schuss',bg1:'#6b1a3a',bg2:'#1a0610',ac:'#ffb8d8',ac2:'#ffffff'}},
-  mb_seidenweide:{name:'Muster 11 · Seidenweide',short:'Seidenweide',cat:2,lvl:15,shape:'battery',dims:[0.5,0.36,0.42],grid:[3,1,1],box:2,cost:30.00,market:69.99,weight:4,hype:60,risk:8,noOrder:true,
-    desc:'Eine Weide aus Hunderten haarfeiner Silberfäden, sechs Sekunden lang.',
-    art:{title:'SEIDENWEIDE',sub:'Muster 11 · 37 Schuss',bg1:'#3a3e46',bg2:'#08090c',ac:'#e8eef8',ac2:'#ffffff'}},
-  mb_honigtau:{name:'Muster 12 · Honigtau',short:'Honigtau',cat:2,lvl:15,shape:'battery',dims:[0.5,0.36,0.42],grid:[3,1,1],box:2,cost:30.00,market:69.99,weight:4,hype:60,risk:8,noOrder:true,
-    desc:'Schwere Goldsterne, von denen im Flug Honigtropfen abreißen und fallen.',
-    art:{title:'HONIGTAU',sub:'Muster 12 · 37 Schuss',bg1:'#6b4a0c',bg2:'#1f1402',ac:'#ffd23f',ac2:'#ff9a2e'}},
-  mb_glockenblume:{name:'Muster 13 · Glockenblume',short:'Glockenblume',cat:2,lvl:15,shape:'battery',dims:[0.5,0.36,0.42],grid:[3,1,1],box:2,cost:30.00,market:69.99,weight:4,hype:60,risk:8,noOrder:true,
-    desc:'Eine violette Glocke mit weißem Rand hängt am Himmel, aus der Mitte fällt ein goldener Stempel.',
-    art:{title:'GLOCKENBLUME',sub:'Muster 13 · 37 Schuss',bg1:'#3a0a5c',bg2:'#0a0214',ac:'#c85cff',ac2:'#ffffff'}},
-  mb_seifenblase:{name:'Muster 14 · Seifenblase',short:'Seifenblase',cat:2,lvl:15,shape:'battery',dims:[0.5,0.36,0.42],grid:[3,1,1],box:2,cost:30.00,market:69.99,weight:4,hype:60,risk:8,noOrder:true,
-    desc:'Eine hauchdünne Kugel, die in allen Regenbogenfarben schillert – und dann zerplatzt.',
-    art:{title:'SEIFENBLASE',sub:'Muster 14 · 37 Schuss',bg1:'#1a2a3a',bg2:'#02060f',ac:'#ff8af0',ac2:'#8affe8'}},
-  mb_sternspritzer:{name:'Muster 15 · Sternspritzer',short:'Sternspritzer',cat:2,lvl:15,shape:'battery',dims:[0.5,0.36,0.42],grid:[3,1,1],box:2,cost:30.00,market:69.99,weight:4,hype:60,risk:8,noOrder:true,
-    desc:'Jeder Stern sprüht im Flug wie eine Wunderkerze.',
-    art:{title:'STERNSPRITZER',sub:'Muster 15 · 37 Schuss',bg1:'#4a3308',bg2:'#150e02',ac:'#fff3c4',ac2:'#ffd23f'}},
+  /* 01.10. (Tom): aus den Lieblingen der 15 Muster (Tigerschweif,
+     Kiefernkrone, Lavaregen, Sternspritzer) eine fertige Batterie */
+  glutschmiede:{name:'Glutschmiede · 51 Schuss Feuerbatterie',short:'Glutschmiede',cat:2,lvl:22,shape:'battery',dims:[0.6,0.42,0.46],grid:[3,1,1],box:2,cost:46.00,market:104.99,weight:4,hype:82,risk:9,
+    desc:'Eine Schmiede aus Glut und Gold: Sternspritzer sprühen wie Wunderkerzen, Tigerkometen ziehen breite Goldbänder, glühende Lavabrocken stürzen im Bogen, Goldsterne zerspringen knisternd zu Tannennadeln – über zwei Vulkanen, im Finale alles zugleich.',
+    art:{title:'GLUTSCHMIEDE',sub:'51 Schuss · Feuerbatterie',bg1:'#6a2a06',bg2:'#140602',ac:'#ffd23f',ac2:'#ff5a1e',gold:true}},
   /* 30.09. (Tom): neue Kugeln - die Kanonade und vier klassisch schoene Bomben */
   kanonade300:{name:'Kanonade · Kugelbombe 300 mm 30 Knallkugeln',short:'Kanonade 300',cat:2,lvl:24,shape:'shell',dims:[0.3,0.34,0.3],grid:[2,1,1],box:1,cost:72.00,market:169.99,weight:2,hype:100,risk:10,
     desc:'Dreißig schwere weiße Kugeln fliegen aus wie Knallkerzen und zerknallen nacheinander mit Weißblitz – ein rollender Donner, über dem ein goldener Kamuro hängt.',
@@ -700,14 +658,52 @@ NEU_GRUPPE.batterien.push('hexenkessel','geysirfeld','wolkenkratzer');
 /* 30.09.: Mix-Batterien mit Roemischen Lichtern */
 /* 30.09.: Kerzen-Batterien und neue Kugeln - in die Lizenzpakete ihres
    Levels und in die Warengruppen */
-NEU_GRUPPE.batterien.push('legion','lichterprozession','kometenreigen','sternentor');
+NEU_GRUPPE.batterien.push('legion','lichterprozession','kometenreigen','sternentor','glutschmiede');
 NEU_GRUPPE.kugeln.push('kanonade300','rosengarten100','pfauenkrone150','sternschleier200','feuerlilie200');
 NEU_LIZ_DAZU.import.push('lichterprozession','rosengarten100');
-NEU_LIZ_DAZU.grossfeuer.push('kometenreigen','sternschleier200'); NEU_LIZ_DAZU.profi.push('sternentor','feuerlilie200','kanonade300');
+NEU_LIZ_DAZU.grossfeuer.push('kometenreigen','sternschleier200','glutschmiede'); NEU_LIZ_DAZU.profi.push('sternentor','feuerlilie200','kanonade300');
 NEU_LIZENZEN.find(l=>l.id==='sternklasse').items.push('pfauenkrone150');
 NEU_LIZENZEN.find(l=>l.id==='meister').items.push('legion');
+/* 01.10. (Tom): 30 Lichter-Muster mit je 2-3 Schuss - jeder ein anderer
+   Lichtertyp ohne grossen Knall (14m). Nur fuer die Testsektion. */
+const LICHT_MUSTER=[
+  ['goldkomet','Goldkomet','luft',['gold','orange'],'Schweifkomet: goldene Spitze, langer Goldglitzerschweif'],
+  ['knisterkomet','Knisterkomet','luft',['silber','weiss'],'Silberkomet, dessen Schweif knistert'],
+  ['geisterkomet','Geisterkomet','luft',['magenta','tuerkis'],'Steigt magenta, wird nach kurzer Dunkelphase türkis'],
+  ['blinkkomet','Blinkkomet','luft',['weiss','silber'],'Steigt blinkend, der Schweif blitzt silbern'],
+  ['crossette','Crossette','luft',['gold','rot'],'Komet teilt sich mit leisem Knacken in ein Kreuz aus vier Kometen'],
+  ['weidenkomet','Weidenkomet','luft',['bernstein','gold'],'Goldkomet, dessen Schweif als Trauerweide stehen bleibt'],
+  ['pfeifkomet','Pfeifkomet','luft',['silber','weiss'],'Silberkomet, der beim Steigen pfeift'],
+  ['titankomet','Titankomet','luft',['weiss','silber'],'Gleißend weißer Titanschweif mit Lichtblitzen'],
+  ['brokatkomet','Brokatkomet','luft',['gold','bernstein'],'Dicker Goldkomet, der große Glitzerflocken abwirft'],
+  ['kometenfaecher','Kometenfächer','luft',['rot','gruen'],'Fünf Farbkometen aus einem Rohr als Fächer'],
+  ['sternschnuppe','Sternschnuppen','quer',['himmel','weiss'],'Flache Kometen mit langem kühlem Schweif quer über den Himmel'],
+  ['blitzregen','Blitzregen','luft',['weiss','himmel'],'Oben lösen sich leise viele Blinksterne und sinken blitzend herab'],
+  ['wetterleuchten','Wetterleuchten','luft',['violett','weiss'],'Blitze flackern in einer unsichtbaren Wolke, dann leises Grollen'],
+  ['schwebestern','Schwebestern','luft',['rot','orange'],'Große Leuchtkugel, die wie eine Fallschirmleuchte langsam sinkt'],
+  ['fischschwarm','Fischschwarm','luft',['gold','gruen'],'Zwanzig Fische zappeln kreuz und quer'],
+  ['fallendeblaetter','Fallende Blätter','luft',['gold','orange'],'Goldene Blätter segeln flatternd zu Boden'],
+  ['doppelhelix','Doppelhelix','luft',['blau','gold'],'Zwei Farbkometen winden sich umeinander nach oben'],
+  ['tourbillon','Tourbillon','luft',['silber','gold'],'Ein Funkenrad schraubt sich in die Höhe'],
+  ['ufokreisel','Ufo-Kreisel','luft',['gruen','mint'],'Eine Scheibe steigt und schleudert einen Funkenring'],
+  ['bienenschwarm','Bienenschwarm','luft',['limette','gold'],'Summende Bienen kreiseln im Zickzack nach oben'],
+  ['glitzermine','Glitzermine','mine',['himmel','silber'],'Säule aus Silberglitzer-Sternen aus dem Rohr'],
+  ['bluetenmine','Blütenmine','mine',['rose','gold'],'Strauß aus Farbsternen, die oben die Farbe wechseln'],
+  ['dracheneier','Dracheneier','mine',['gold','orange'],'Goldkugeln zerplatzen oben knisternd'],
+  ['goldfontaene','Goldfontäne','boden',['gold','orange'],'Klassische Goldglitzer-Fontäne'],
+  ['knisterfontaene','Knisterfontäne','boden',['silber','weiss'],'Silberfontäne, oben knistert es ununterbrochen'],
+  ['perlfontaene','Perlfontäne','boden',['violett','gruen'],'Goldfontäne, aus der farbige Perlen springen'],
+  ['blinkfontaene','Blinkfontäne','boden',['weiss','silber'],'Flirrende, weiß blitzende Säule aus Blinksatz'],
+  ['wasserfall','Silberwasserfall','quer',['silber','weiss'],'Aus einem flachen Bogen fällt ein silberner Funkenvorhang'],
+  ['sonnenrad','Sonnenrad','boden',['rot','gold'],'Feuerrad über der Batterie, dreht immer schneller'],
+  ['bengalglut','Bengalglut','boden',['rot','gruen'],'Bengalisches Farblicht leuchtet die Umgebung aus']
+];
+LICHT_MUSTER.forEach(([e,nm,form,F,txt],k)=>{ const nr=String(k+1).padStart(2,'0');
+  NEUWARE['lm_'+e]={name:'Licht '+nr+' · '+nm,short:nm,cat:2,lvl:10,shape:'battery',dims:[0.3,0.25,0.3],grid:[3,1,1],box:2,cost:9.00,market:20.99,weight:4,hype:30,risk:5,noOrder:true,
+    desc:txt+'. Muster '+nr+' mit drei Schuss, nur zum Ansehen.',
+    art:{title:nm.toUpperCase(),sub:'Licht '+nr+' · 3 Schuss',bg1:'#1c2440',bg2:'#05070f',ac:'#ffe08a',ac2:'#8ad8ff'}}; });
 /* Liste fuer die Testsektionen im Laden-Reiter (17-laptop) */
-const NEU_TEST={batterien:['mb_funkelregen','mb_tigerschweif','mb_seerose','mb_galaxie','mb_diamantstaub','mb_smaragdregen','mb_kiefernkrone','mb_lavaregen','mb_echoringe','mb_kirschbluete','mb_seidenweide','mb_honigtau','mb_glockenblume','mb_seifenblase','mb_sternspritzer'],
+const NEU_TEST={batterien:['glutschmiede'].concat(LICHT_MUSTER.map(x=>'lm_'+x[0])),
   kugeln:['kanonade300','rosengarten100','pfauenkrone150','sternschleier200','feuerlilie200']};
 /* Fontaenen-Sets (Feuerquelle, Gummibaerchen, Farbenspiel, Farbmischer,
    Wasserorgel, Feuerwand, Feuerkaskade, Popcorn) sind so breit wie ihre

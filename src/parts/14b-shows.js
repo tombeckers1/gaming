@@ -400,6 +400,9 @@ function playShow(o,phases,prod,tag){
       later(tt,()=>{
         const os=mitOrt?ortAus(off):o;
         const alt=FW_TAG; FW_TAG=tag;
+        /* licht: ein Lichtertyp direkt aus dem Rohr, ohne Bombette (14m,
+           01.10., Tom: Kometen, Blinker, Fontaenen, Wasserfall ...) */
+        if(ph.licht&&typeof LICHTYP!=='undefined'&&LICHTYP[ph.licht]){ try{ lichtSchuss(os,ph.licht,mA,mB,sz,{ang:sAng,dir:sDir===undefined?FANDIR:sDir,i,n,hell:Rz.hell}); } finally { FW_TAG=alt; } return; }
         /* Feuertopf (Sorte) oder Tiefbruch (EFF) statt der alten Mine */
         if(ph.mineEff) feuertopf(os,ph.mineEff,mA,mB,(ph.mineSz||(TOPF_SORTE[ph.mineEff]?1:0.6))*Rz.sz);
         else if(ph.mine||ph.nurMine) mine(os,mA,mB,(ph.mineSz||0.8)*Rz.sz);

@@ -72,7 +72,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
       const snd=Object.keys(window.__sfxLog); window.__emiLog=null; window.__sfxLog=null;
       const out={prod:{k:klasse(t),lvl:P[t].lvl,name:P[t].name,sh,phys,snd,stoesse:ges,emi:emi.filter(e=>e[1]!=='fuse'),sig:bb.SIGNATUR&&bb.SIGNATUR[t]?JSON.stringify(bb.SIGNATUR[t]):null}};
       if(bb.SHOWS[t]){ const ph=bb.SHOWS[t]();
-        out.show={lvl:P[t].lvl,basis:ph.basis||null,ph:ph.map(x=>({n:x.n===undefined?1:x.n,m:x.muster||(x.fan?(x.ang<0?'rfan':'fan'):x.vfan?'vfan':(x.perle?'perle':'gerade')),mit:!!x.mit||x.at!==undefined,boden:!!(x.boden||x.ground),gap:x.takt?Math.min(...x.takt):(x.gap===undefined?0.45:x.gap),takt:x.takt||null,eff:Array.isArray(x.eff)?x.eff:[x.eff||x.bombEff||x.perleEff||(x.perle?'perle':'?')]}))}; }
+        out.show={lvl:P[t].lvl,basis:ph.basis||null,ph:ph.map(x=>({n:x.n===undefined?1:x.n,m:x.muster||(x.fan?(x.ang<0?'rfan':'fan'):x.vfan?'vfan':(x.perle?'perle':'gerade')),mit:!!x.mit||x.at!==undefined,boden:!!(x.boden||x.ground),gap:x.takt?Math.min(...x.takt):(x.gap===undefined?0.45:x.gap),takt:x.takt||null,eff:Array.isArray(x.eff)?x.eff:[x.eff||x.bombEff||x.perleEff||(x.licht?'licht:'+x.licht:'')||(x.perle?'perle':'?')]}))}; }
       return out; },t);
     if(x.fehler){ r.fehler[t]=x.fehler; continue; }
     r.prod[t]=x.prod; if(x.show) r.shows[t]=x.show;

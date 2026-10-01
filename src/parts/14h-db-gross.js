@@ -1372,32 +1372,14 @@ SHOWS.sternentor=()=>show({basis:{pw:3.8,sz:1.31,th:'sternentor'},rampe:{sz:[0.9
   {mit:true,n:8,perle:true,perleEff:'farbperle',gap:0.3,muster:'mitte',ang:0.15,farbe:3,pause:6}
 ]);
 SIGNATUR.sternentor={eff:'farbperle',text:'Farbwechsel- und Sternkerzen zwischen zwei Riesenfontänen – ohne Knall'};
-
 /* =========================================================
-   15 Muster-Batterien (30.09., Tom: "15 neue Batterien mit ganz neuen
-   Effekten, ueberrasch mich, extrem schoen - jede Batterie komplett andere
-   Effekte, in jeder Batterie jeweils der gleiche Effekt-Typ; ich sag dir
-   am Ende, welche am schoensten sind"). Jede zeigt genau ein neues
-   Bruchbild in verschiedenen Mustern und Takten. Nur fuer die Testsektion
-   (nicht bestellbar). Alles echte Physik: Sterne fliegen ballistisch mit
-   Luftwiderstand (sternNach), keine gelenkte Bewegung.
-   ========================================================= */
+   Glut-Effekte (30.09./01.10., Tom: aus den 15 Mustern gefallen ihm
+   Tigerschweif, Kiefernkrone, Lavaregen und Sternspritzer - daraus wird
+   eine fertige Batterie, die uebrigen Muster sind entfernt). Alles echte
+   Physik: Sterne fliegen ballistisch mit Luftwiderstand (sternNach).
+   ========================================================= 
 
-/* 1 Funkelregen: langsame Silbersterne, die unregelmaessig aufblitzen -
-   jeder Stern funkelt fuer sich, wie Glitzer im Licht (japanisch kirakira) */
-EFF.funkelregen=function(p,A,B,s,r){
-  grOhneZutaten(r,0.5);
-  const q=QUAL(), G=1.6, n=Math.round(150*s*q);
-  for(let i=0;i<n;i++){ const d=randDir(), w=rand(8,10.5)*s, v=[d[0]*w,d[1]*w,d[2]*w], T=rand(3.6,4.6), c=i%4?A:B;
-    grSpur(0.22,()=>psBig.emit(p.x,p.y,p.z,v[0],v[1],v[2],c[0]*0.95,c[1]*0.95,c[2]*1.0,T,G,4));
-    const blitze=Math.round(rand(3,5)*q);
-    for(let k=0;k<blitze;k++){ const t=rand(0.5,T-0.2); kgSpaeter(t,()=>{ const e=sternNach(p,v[0],v[1],v[2],G,t);
-      grSpur(0,()=>{ psHuge.emit(e.x,e.y,e.z,0,-0.2,0,1.8,1.8,1.9,0.08,0,0);
-        for(let j=0;j<3;j++){ const dd=randDir(); psSmall.emit(e.x,e.y,e.z,dd[0]*1.6,dd[1]*1.6,dd[2]*1.6,1.3,1.3,1.4,0.1,0,0); } }); }); } }
-  schall(p,v=>{ sfx.rieseln(v*0.5,4); later(0.8,()=>sfx.crackle(v*0.12)); });
-};
-
-/* 2 Tigerschweif: zehn schwere Goldkometen mit so dichtem Glitzerschweif,
+/* Tigerschweif: zehn schwere Goldkometen mit so dichtem Glitzerschweif,
    dass jeder als breites, gestreiftes Funkenband am Himmel stehen bleibt
    und langsam herabrieselt */
 EFF.tigerschweif=function(p,A,B,s,r){
@@ -1410,58 +1392,7 @@ EFF.tigerschweif=function(p,A,B,s,r){
   schall(p,v=>{ sfx.boom(v*0.45); sfx.fauchen(v*0.45,1.6); later(1.2,()=>sfx.rieseln(v*0.5,3)); });
 };
 
-/* 3 Seerose: ein flacher Ringbruch waagerecht - von unten gesehen eine
-   sich oeffnende Blume -, darin ein kleinerer weisser Kranz; aus der Mitte
-   steigt ein goldgruener Stempel nach oben */
-EFF.seerose=function(p,A,B,s,r){
-  grOhneZutaten(r,0.6);
-  const q=QUAL(), a0=rand(0,Math.PI*2), G=2.2;
-  const ring=(n,w0,c,L)=>{ for(let i=0;i<n;i++){ const a=a0+i/n*Math.PI*2+rand(-0.03,0.03), w=w0*rand(0.97,1.03);
-    kgStern(psBig,p,[Math.cos(a)*w,rand(-0.3,0.3),Math.sin(a)*w],kgMal(c,1.35),L*rand(0.92,1.05),G,0,0.35); } };
-  ring(Math.round(120*q),12*s,A,3.0); ring(Math.round(80*q),7.5*s,[1,1,1],2.6);
-  for(let i=0;i<Math.round(36*q);i++){ const a=rand(0,Math.PI*2), el=rand(0.8,1.0), w=rand(6,8)*s;
-    kgStern(psHuge,p,[Math.cos(a)*Math.cos(el)*w*0.35,Math.sin(el)*w,Math.sin(a)*Math.cos(el)*w*0.35],kgMal(B,1.2),rand(1.5,1.9),G,0,0.3); }
-  schall(p,v=>sfx.boom(v*0.6));
-};
-
-/* 4 Galaxie: ein Musterbruch mit drei Spiralarmen - die Sterne liegen in
-   der Kugel so gepackt, dass schnellere weiter gedreht sind; beim
-   Auseinanderfliegen bleibt die Spirale stehen und waechst. Weisser Kern,
-   die Arme werden nach aussen farbig */
-EFF.galaxie=function(p,A,B,s,r){
-  grOhneZutaten(r,0.6);
-  const [u,v]=basisBlick(p,0.35), a0=rand(0,Math.PI*2), q=QUAL(), G=1.8, dreh=Math.random()<0.5?1:-1;
-  for(let k=0;k<3;k++) for(let i=0;i<Math.round(64*q);i++){ const f=i/(64*q), a=a0+k*Math.PI*2/3+dreh*f*2.2+rand(-0.07,0.07), w=(2.5+12*f)*s*rand(0.96,1.04);
-    const d=[u[0]*Math.cos(a)+v[0]*Math.sin(a),u[1]*Math.cos(a)+v[1]*Math.sin(a),u[2]*Math.cos(a)+v[2]*Math.sin(a)];
-    const c=f<0.25?[1,1,1]:f<0.65?A:B; kgStern(psBig,p,kgMal(d,w),kgMal(c,1.35),rand(2.9,3.5),G,0,0.3); }
-  for(let i=0;i<Math.round(40*q);i++){ const d=randDir(), w=rand(1,2.5)*s; kgStern(psHuge,p,kgMal(d,w),[1.4,1.4,1.3],rand(1.6,2.2),G,4,0.1); }
-  schall(p,v=>{ sfx.boom(v*0.5); later(1.0,()=>sfx.rieseln(v*0.35,2)); });
-};
-
-/* 5 Diamantstaub: eine Wolke aus Hunderten feinster weisser Funken, die
-   funkeln und ganz langsam sinken - wie Staub im Sonnenlicht */
-EFF.diamantstaub=function(p,A,B,s,r){
-  grOhneZutaten(r,0.4);
-  const q=QUAL();
-  grSpur(0,()=>{ for(let i=0;i<Math.round(260*s*q);i++){ const d=randDir(), w=Math.cbrt(Math.random())*rand(6,9.5)*s, c=i%5?[1.5,1.5,1.6]:kgMal(A,1.4);
-    psBig.emit(p.x,p.y,p.z,d[0]*w,d[1]*w,d[2]*w,c[0],c[1],c[2],rand(3.0,4.2),0.6,4); } });
-  grSpur(0.05,()=>{ for(let i=0;i<Math.round(60*s*q);i++){ const d=randDir(), w=rand(4,8)*s; psBig.emit(p.x,p.y,p.z,d[0]*w,d[1]*w,d[2]*w,1.3,1.3,1.4,rand(2.0,3.0),0.7,1); } });
-  schall(p,v=>{ sfx.boom(v*0.45); later(0.15,()=>sfx.rieseln(v*0.55,3.5)); });
-};
-
-/* 6 Smaragdregen: farbiger Glitzer - gruene Sterne ziehen einen Schweif
-   aus gruen-weissem Glitzer, der stehen bleibt und rieselt (sonst gibt es
-   Glitzer nur in Gold und Silber) */
-EFF.smaragdregen=function(p,A,B,s,r){
-  grOhneZutaten(r,0.6);
-  const q=QUAL(), G=2.4;
-  for(let i=0;i<Math.round(60*s*q);i++){ const d=randDir(), w=rand(11,13)*s, v=kgMal(d,w), T=rand(2.2,2.7);
-    kgStern(psBig,p,v,kgMal(A,1.4),T,G,0,0.2);
-    rkFunken(p,v,G,0.1,T,10,mischF(A,[1,1,1],0.35),{life:[0.7,1.2],g:1.8,streu:0.3,mit:0.05,mode:4}); }
-  schall(p,v=>{ sfx.boom(v*0.6); later(1.1,()=>sfx.rieseln(v*0.45,2.5)); });
-};
-
-/* 7 Kiefernkrone (Matsuba): Goldsterne fliegen aus und zerspringen nach
+/* Kiefernkrone (Matsuba): Goldsterne fliegen aus und zerspringen nach
    einer Sekunde in feine, sich verzweigende Nadeln - ein Kranz aus
    Tannenzweigen, der trocken knistert */
 EFF.kiefernkrone=function(p,A,B,s,r){
@@ -1474,7 +1405,7 @@ EFF.kiefernkrone=function(p,A,B,s,r){
   schall(p,v=>{ sfx.boom(v*0.5); later(1.05,()=>{ sfx.crackle(v*0.6); later(0.12,()=>sfx.crackle(v*0.4)); }); });
 };
 
-/* 8 Lavaregen: schwere, gluehende Lavabrocken fliegen im Bogen auf und
+/* Lavaregen: schwere, gluehende Lavabrocken fliegen im Bogen auf und
    stuerzen wieder ab, ziehen dunkelrote Glut und Rauchfaeden hinter sich
    und zerspritzen am Ende */
 EFF.lavaregen=function(p,A,B,s,r){
@@ -1487,87 +1418,7 @@ EFF.lavaregen=function(p,A,B,s,r){
   schall(p,v=>{ sfx.wumms?sfx.wumms(v*0.9):sfx.boom(v*0.8); rauschF({dur:1.8,vol:0.16*v,typ:'lowpass',f:500,an:0.1}); });
 };
 
-/* 9 Echoringe: drei Ringe aus demselben Punkt, einer nach dem anderen im
-   Abstand von 0,3 s - jeder langsamer, so liegen sie ineinander; jeder mit
-   einem dumpfen Schlag wie ein Echo */
-EFF.echoringe=function(p,A,B,s,r){
-  grOhneZutaten(r,0.5);
-  const [u,v]=basisBlick(p,0.25), q=QUAL(), G=2.2, farben=[A,B,[1,1,1]];
-  [12,9,6].forEach((w0,k)=>kgSpaeter(k*0.32,()=>{ const a0=rand(0,Math.PI*2), n=Math.round((100-k*20)*q);
-    for(let i=0;i<n;i++){ const a=a0+i/n*Math.PI*2, d=[u[0]*Math.cos(a)+v[0]*Math.sin(a),u[1]*Math.cos(a)+v[1]*Math.sin(a),u[2]*Math.cos(a)+v[2]*Math.sin(a)];
-      kgStern(psBig,p,kgMal(d,w0*s*rand(0.98,1.02)),kgMal(farben[k],1.4),rand(2.6,3.0)-k*0.25,G,0,0.3); }
-    grSpur(0,()=>psHuge.emit(p.x,p.y,p.z,0,0,0,1.4,1.4,1.4,0.06,0,0));
-    schall(p,x=>sfx.boom(x*(0.55-k*0.12))); }));
-};
-
-/* 10 Kirschbluete: eine rosa Paeonie; nach gut einer Sekunde loest sich
-   jeder Stern in drei, vier blasse Bluetenblaetter auf, die kaum sinken und
-   seitlich davontreiben */
-EFF.kirschbluete=function(p,A,B,s,r){
-  grOhneZutaten(r,0.5);
-  const q=QUAL(), G=2.3, T=1.15, wind=[rand(-0.6,0.6),0,rand(-0.6,0.6)];
-  for(let i=0;i<Math.round(90*s*q);i++){ const d=randDir(), w=rand(10,11.5)*s, v=kgMal(d,w), T2=T*rand(0.95,1.1);
-    kgStern(psBig,p,v,kgMal(A,1.35),T2,G,0,0.2);
-    kgSpaeter(T2,()=>{ const e=sternNach(p,v[0],v[1],v[2],G,T2); grSpur(0.02,()=>{ for(let j=0;j<Math.round(rand(3,4)*q);j++){ const c=j%2?B:A;
-      psBig.emit(e.x,e.y,e.z,wind[0]+rand(-0.9,0.9),rand(-0.3,0.4),wind[2]+rand(-0.9,0.9),c[0]*1.05,c[1]*1.05,c[2]*1.1,rand(2.6,3.6),0.35,0); } }); }); }
-  schall(p,v=>{ sfx.boom(v*0.5); later(1.2,()=>sfx.rieseln(v*0.3,3)); });
-};
-
-/* 11 Seidenweide: eine Weide aus Hunderten feinster Silbersterne mit
-   langen, haarfeinen Spuren - viel zarter als die Goldweide, sechs
-   Sekunden lang */
-EFF.seidenweide=function(p,A,B,s,r){
-  grOhneZutaten(r,0.4);
-  const q=QUAL();
-  grSpur(1.7,()=>{ for(let i=0;i<Math.round(300*s*q);i++){ const d=randDir(), w=rand(5,7)*s;
-    psMid.emit(p.x,p.y,p.z,d[0]*w,d[1]*w*0.85+1,d[2]*w,A[0]*1.05,A[1]*1.05,A[2]*1.1,rand(5,6.2),1.25,4); } });
-  grSpur(0.6,()=>{ for(let i=0;i<Math.round(16*s*q);i++){ const d=randDir(), w=rand(6,7)*s; psBig.emit(p.x,p.y,p.z,d[0]*w,d[1]*w,d[2]*w,B[0],B[1],B[2],rand(4,5),1.3,4); } });
-  schall(p,v=>{ sfx.boom(v*0.45); later(0.3,()=>sfx.rieseln(v*0.6,6)); });
-};
-
-/* 12 Honigtau: schwere Goldsterne, von denen waehrend des Flugs immer
-   wieder kleine bernsteinfarbene Tropfen abreissen und nach unten fallen */
-EFF.honigtau=function(p,A,B,s,r){
-  grOhneZutaten(r,0.6);
-  const q=QUAL(), G=2.4, n=Math.round(55*s*q);
-  for(let i=0;i<n;i++){ const d=randDir(), w=rand(9,11)*s, v=kgMal(d,w), T=rand(2.9,3.5);
-    kgStern(psHuge,p,v,kgMal(A,1.25),T,G,0,0.15);
-    for(let t=0.55;t<T-0.2;t+=rand(0.22,0.34)) kgSpaeter(t,()=>{ const e=sternNach(p,v[0],v[1],v[2],G,t), wv=bahnTempo(v,G,t);
-      grSpur(0.12,()=>psMid.emit(e.x,e.y-0.05,e.z,wv[0]*0.1,-0.6,wv[2]*0.1,B[0],B[1],B[2],rand(0.5,0.75),6.5,0)); }); }
-  schall(p,v=>{ sfx.boom(v*0.55); later(1.0,()=>sfx.rieseln(v*0.35,2.5)); });
-};
-
-/* 13 Glockenblume: die Sterne fliegen als nach unten offene Glocke aus,
-   violett mit weissem Rand, und haengen durch; aus der Mitte faellt ein
-   goldener Stempel */
-EFF.glockenblume=function(p,A,B,s,r){
-  grOhneZutaten(r,0.5);
-  const q=QUAL(), G=1.7;
-  for(let i=0;i<Math.round(150*q);i++){ const a=rand(0,Math.PI*2), el=rand(-0.95,-0.2), w=rand(8.5,9.8)*s;
-    kgStern(psBig,p,[Math.cos(a)*Math.cos(el)*w,Math.sin(el)*w*0.7+3,Math.sin(a)*Math.cos(el)*w],kgMal(A,1.45),rand(2.5,2.9),G,0,0.3); }
-  for(let i=0;i<Math.round(64*q);i++){ const a=i/(64*q)*Math.PI*2, w=10*s, v=[Math.cos(a)*w,-0.8,Math.sin(a)*w];
-    kgStern(psBig,p,v,kgMal(B,1.5),rand(2.6,2.9),G,0,0.2);
-    if(i%3===0) rkFunken(p,v,G,0.3,2.5,14,kgMal(B,1.1),{ps:psMid,life:[0.5,0.9],g:1.2,streu:0.15,mit:0.02,mode:4}); }
-  for(let i=0;i<Math.round(8*q);i++) kgStern(psHuge,p,[rand(-.3,.3),-rand(2,5)*s,rand(-.3,.3)],kgMal(FW.gold,1.2),rand(1.6,2.0),G,0,0.3);
-  schall(p,v=>sfx.boom(v*0.5));
-};
-
-/* 14 Seifenblase: eine hauchduenne, vollkommen runde Kugel aus winzigen
-   Sternen, die in allen Regenbogenfarben schillert, langsam waechst - und
-   dann zerplatzt sie in einen Hauch weisser Funken */
-EFF.seifenblase=function(p,A,B,s,r){
-  grOhneZutaten(r,0.3);
-  const q=QUAL(), G=0.4, T=2.1, n=Math.round(260*q), sch=[FW.magenta,FW.tuerkis,FW.gold,FW.violett,FW.mint];
-  const blase=[];
-  for(let i=0;i<n;i++){ const y=1-2*(i+0.5)/n, rr=Math.sqrt(1-y*y), a=i*2.39996, d=[Math.cos(a)*rr,y,Math.sin(a)*rr], w=8*s;
-    const h=(Math.atan2(d[2],d[0])/(Math.PI*2)+0.5+y*0.3)*sch.length, L=sch.length, fl=Math.floor(h), k=((fl%L)+L)%L, f=h-fl, c=mischF(sch[k],sch[(k+1)%L],f);
-    kgStern(psBig,p,kgMal(d,w),kgMal(c,1.6),T,G,0,0.16); blase.push(kgMal(d,w)); }
-  kgSpaeter(T,()=>{ for(const v of blase){ const e=sternNach(p,v[0],v[1],v[2],G,T); for(let j=0;j<3;j++){ const dd=randDir(); psMid.emit(e.x,e.y,e.z,v[0]*0.3+dd[0]*2.2,v[1]*0.3+dd[1]*2.2,v[2]*0.3+dd[2]*2.2,1.5,1.5,1.6,rand(0.6,1.0),1.2,4); } }
-    schall(p,x=>{ sfx.plopp(x*0.7,1.6); sfx.rieseln(x*0.4,1); }); });
-  schall(p,v=>sfx.boom(v*0.35));
-};
-
-/* 15 Sternspritzer: jeder Stern brennt wie eine Wunderkerze - er spruehet
+/* Sternspritzer: jeder Stern brennt wie eine Wunderkerze - er spruehet
    ringsum feine, weisse, sich verzweigende Funken, waehrend er fliegt */
 EFF.sternspritzer=function(p,A,B,s,r){
   grOhneZutaten(r,0.6);
@@ -1578,70 +1429,23 @@ EFF.sternspritzer=function(p,A,B,s,r){
   schall(p,v=>{ sfx.boom(v*0.4); sfx.zischen(v*0.4,2.3); for(let i=0;i<4;i++) later(0.25+i*0.5,()=>sfx.prasseln(v*0.5)); });
 };
 
-Object.assign(EFF_SCHWEIF,{funkelregen:0.08,tigerschweif:0.25,seerose:0.12,galaxie:0.1,diamantstaub:0,smaragdregen:0.1,kiefernkrone:0.12,lavaregen:0.15,echoringe:0.12,kirschbluete:0.08,seidenweide:1.7,honigtau:0.15,glockenblume:0.14,seifenblase:0.05,sternspritzer:0.05});
-Object.assign(EFF_FAMILIE,{funkelregen:'glitzer',tigerschweif:'komet',seerose:'kugel',galaxie:'figur',diamantstaub:'glitzer',smaragdregen:'glitzer',kiefernkrone:'knister',lavaregen:'flamme',echoringe:'kugel',kirschbluete:'kugel',seidenweide:'haenger',honigtau:'haenger',glockenblume:'kugel',seifenblase:'kugel',sternspritzer:'glitzer'});
-
-/* Die Batterien: je ein Effekt, verschiedene Muster, Takte und Farben.
-   Aufbau: Auftakt, Antwort, zweite Ebene, Rhythmus, Finale mit Schluss. */
-Object.assign(THEMEN,{
-  mb_funkeln:[['silber','weiss'],['himmel','silber'],['weiss','zitrone']],
-  mb_tiger:[['orange','gold'],['bernstein','rot'],['gold','orange']],
-  mb_seerose:[['rose','gold'],['magenta','limette'],['weiss','rose']],
-  mb_galaxie:[['himmel','violett'],['tuerkis','magenta'],['violett','blau']],
-  mb_diamant:[['himmel','weiss'],['silber','tuerkis'],['weiss','himmel']],
-  mb_smaragd:[['gruen','weiss'],['mint','gold'],['limette','gruen']],
-  mb_kiefer:[['gold','bernstein'],['zitrone','gold'],['bernstein','orange']],
-  mb_lava:[['orange','scharlach'],['rot','orange'],['scharlach','gold']],
-  mb_echo:[['blau','weiss'],['magenta','gold'],['tuerkis','violett']],
-  mb_kirsch:[['rose','weiss'],['pfirsich','rose'],['magenta','rose']],
-  mb_seide:[['silber','weiss'],['silber','himmel'],['weiss','silber']],
-  mb_honig:[['gold','bernstein'],['bernstein','orange'],['zitrone','bernstein']],
-  mb_glocke:[['violett','weiss'],['indigo','silber'],['magenta','weiss']],
-  mb_blase:[['weiss','silber'],['weiss','silber'],['weiss','silber']],
-  mb_spritzer:[['gold','weiss'],['zitrone','weiss'],['bernstein','weiss']]
-});
-const MUSTERBATT=[
-  /* id, Effekt, Thema, Muster Auftakt/Antwort/Rhythmus/Finale */
-  ['mb_funkelregen','funkelregen','mb_funkeln',['gerade','v','kreis','schlag']],
-  ['mb_tigerschweif','tigerschweif','mb_tiger',['aussen','x','paar','w']],
-  ['mb_seerose','seerose','mb_seerose',['mitte','welle','treppe','schlag']],
-  ['mb_galaxie','galaxie','mb_galaxie',['gerade','paar','spirale','mitte']],
-  ['mb_diamantstaub','diamantstaub','mb_diamant',['v','gerade','zufall','schlag']],
-  ['mb_smaragdregen','smaragdregen','mb_smaragd',['z','mitte','welle','x']],
-  ['mb_kiefernkrone','kiefernkrone','mb_kiefer',['aussen','zufall','kreis','schlag']],
-  ['mb_lavaregen','lavaregen','mb_lava',['paar','v','w','mitte']],
-  ['mb_echoringe','echoringe','mb_echo',['gerade','aussen','treppe','schlag']],
-  ['mb_kirschbluete','kirschbluete','mb_kirsch',['welle','paar','zufall','mitte']],
-  ['mb_seidenweide','seidenweide','mb_seide',['mitte','gerade','v','schlag']],
-  ['mb_honigtau','honigtau','mb_honig',['x','mitte','paar','w']],
-  ['mb_glockenblume','glockenblume','mb_glocke',['treppe','v','mitte','schlag']],
-  ['mb_seifenblase','seifenblase','mb_blase',['zufall','gerade','kreis','aussen']],
-  ['mb_sternspritzer','sternspritzer','mb_spritzer',['w','aussen','spirale','schlag']]
-];
-MUSTERBATT.forEach(([id,E,th,M],k)=>{
-  SHOWS[id]=()=>show({rampe:{sz:[0.9,1.25],pw:[0,2],hell:[0.85,1.3],kurve:'spaet'}},[
-    {n:5,gap:0.9,muster:M[0],ang:0.25,eff:E,kal:'mittel',pw:2,th,farbe:0},
-    {n:8,gap:0.35,muster:M[1],ang:0.35,eff:E,kal:'mittel',pw:3,th,farbe:1},
-    {mit:true,n:3,gap:1.1,muster:'gerade',eff:E,kal:'gross',pw:5,th,farbe:2,pause:1.0},
-    {n:10,takt:[0.15,0.15,0.6],muster:M[2],ang:0.35,eff:E,kal:'gross',pw:4,th,farbe:0,pause:0.8},
-    {n:8,gap:0.1,muster:M[3],ang:0.35,eff:E,kal:'gross',pw:4,th,farbe:1},
-    {mit:true,n:3,gap:0.35,muster:'mitte',ang:0.15,eff:E,kal:'riesig',pw:6,th,farbe:2,pause:5}
-  ]);
-});
-Object.assign(SIGNATUR,{
-  mb_funkelregen:{eff:'funkelregen',text:'Silbersterne, die einzeln aufblitzen – Funkeln wie Glitzer im Licht'},
-  mb_tigerschweif:{eff:'tigerschweif',text:'Goldkometen mit breitem, stehendem Funkenband'},
-  mb_seerose:{eff:'seerose',text:'Waagerechter Ringbruch – eine Seerose, die sich öffnet'},
-  mb_galaxie:{eff:'galaxie',text:'Drei Spiralarme um einen weißen Kern'},
-  mb_diamantstaub:{eff:'diamantstaub',text:'Hunderte feinste funkelnde Funken, die langsam sinken'},
-  mb_smaragdregen:{eff:'smaragdregen',text:'Grüne Sterne mit grünem Glitzerschweif'},
-  mb_kiefernkrone:{eff:'kiefernkrone',text:'Goldsterne zerspringen in verzweigte Tannennadeln'},
-  mb_lavaregen:{eff:'lavaregen',text:'Glühende Lavabrocken im Bogen mit Glutfäden'},
-  mb_echoringe:{eff:'echoringe',text:'Drei Ringe nacheinander aus einem Punkt – wie ein Echo'},
-  mb_kirschbluete:{eff:'kirschbluete',text:'Rosa Päonie, die in treibende Blütenblätter zerfällt'},
-  mb_seidenweide:{eff:'seidenweide',text:'Haarfeine Silberweide, sechs Sekunden lang'},
-  mb_honigtau:{eff:'honigtau',text:'Goldsterne, von denen Honigtropfen abreißen'},
-  mb_glockenblume:{eff:'glockenblume',text:'Violette Glocke mit weißem Rand und goldenem Stempel'},
-  mb_seifenblase:{eff:'seifenblase',text:'Schillernde Kugel, die zerplatzt'},
-  mb_sternspritzer:{eff:'sternspritzer',text:'Sterne, die wie Wunderkerzen sprühen'}
-});
+Object.assign(EFF_SCHWEIF,{tigerschweif:0.25,kiefernkrone:0.12,lavaregen:0.15,sternspritzer:0.05});
+Object.assign(EFF_FAMILIE,{tigerschweif:'komet',kiefernkrone:'knister',lavaregen:'flamme',sternspritzer:'glitzer'});
+/* Glutschmiede (01.10., Tom): die vier Lieblinge der Muster in einer
+   Batterie, alles in Glutfarben - Gold, Orange, Bernstein, Scharlach.
+   Ablauf: Sternspritzer ueber dem Vulkan, Tigerkometen im Kreuz mit
+   Lavabrocken darunter, Kiefernkronen im Rhythmus, ein Wischer aus
+   Sternspritzern, Kiefer und Lava im W, Finale alle zugleich. */
+THEMEN.glutschmiede=[['gold','orange'],['orange','scharlach'],['bernstein','gold'],['scharlach','gold']];
+SHOWS.glutschmiede=()=>show({rampe:{sz:[0.85,1.35],pw:[-1,3],hell:[0.85,1.3],kurve:'spaet'}},[
+  {n:4,gap:1.1,muster:'aussen',ang:0.3,eff:'sternspritzer',kal:'mittel',th:'glutschmiede',farbe:0,boden:{k:'volcano',gt:5,A:'gold',B:'orange'},pause:0.6},
+  {n:6,gap:0.5,muster:'x',ang:0.35,eff:'tigerschweif',kal:'mittel',th:'glutschmiede',farbe:1},
+  {mit:true,n:3,gap:1.2,muster:'mitte',ang:0.1,eff:'lavaregen',kal:'gross',pw:2,th:'glutschmiede',farbe:3,pause:0.8},
+  {n:9,takt:[0.18,0.18,0.7],muster:'welle',ang:0.35,eff:'kiefernkrone',kal:'mittel',th:'glutschmiede',farbe:2,pause:0.6},
+  {n:10,gap:0.12,muster:'wischer',ang:0.4,eff:'sternspritzer',kal:'mittel',th:'glutschmiede',farbe:0},
+  {mit:true,n:2,gap:0.8,muster:'paar',ang:0.3,eff:'tigerschweif',kal:'gross',pw:3,th:'glutschmiede',farbe:1,pause:1.0},
+  {n:8,gap:0.28,muster:'w',ang:0.35,eff:['kiefernkrone','lavaregen'],kal:'gross',th:'glutschmiede',farbe:3,pause:0.6},
+  {n:6,gap:0,muster:'schlag',ang:0.35,eff:['tigerschweif','kiefernkrone','lavaregen'],kal:'gross',pw:4,th:'glutschmiede',farbe:1,boden:{k:'volcano',gt:4,A:'gold',B:'scharlach'}},
+  {mit:true,n:3,gap:0.3,muster:'mitte',ang:0.15,eff:'sternspritzer',kal:'riesig',pw:5,th:'glutschmiede',farbe:0,pause:5}
+]);
+SIGNATUR.glutschmiede={eff:'kiefernkrone',text:'Tigerkometen, Lavabrocken, Kiefernkronen und Sternspritzer in Glutfarben'};

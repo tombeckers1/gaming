@@ -362,15 +362,6 @@ const NEUWARE={
   kanonade300:{name:'Kanonade · Kugelbombe 300 mm 30 Knallkugeln',short:'Kanonade 300',cat:2,lvl:24,shape:'shell',dims:[0.3,0.34,0.3],grid:[2,1,1],box:1,cost:72.00,market:169.99,weight:2,hype:100,risk:10,
     desc:'Dreißig schwere weiße Kugeln fliegen aus wie Knallkerzen und zerknallen nacheinander mit Weißblitz – ein rollender Donner, über dem ein goldener Kamuro hängt.',
     art:{title:'KANONADE',sub:'300 mm · Knallkugeln',bg1:'#2a2e36',bg2:'#000000',ac:'#f2f5ff',ac2:'#ffd23f'}},
-  rosengarten100:{name:'Rosengarten · Kugelbombe 100 mm Doppelpäonie',short:'Kugel 100 Rosengarten',cat:2,lvl:17,shape:'shell',dims:[0.12,0.15,0.12],grid:[6,2,1],box:6,cost:12.50,market:29.99,weight:5,hype:42,risk:8,
-    desc:'Eine runde Päonie aus rosa Sternen, darin ein weißer Kern – zum Ende hin funkeln die Rosenblätter silbern und verglühen einzeln.',
-    art:{title:'ROSENGARTEN',sub:'100 mm · Doppelpäonie',bg1:'#6b1a3a',bg2:'#1a0610',ac:'#ff8ac8',ac2:'#f2f5ff'}},
-  pfauenkrone150:{name:'Pfauenkrone · Kugelbombe 150 mm Farbwechsel-Chrysantheme',short:'Kugel 150 Pfau',cat:2,lvl:19,shape:'shell',dims:[0.165,0.2,0.165],grid:[4,1,1],box:3,cost:31.50,market:74.99,weight:4,hype:70,risk:10,
-    desc:'Eine goldene Chrysantheme mit langen Schweifen – dann werden die Spitzen dunkel, leuchten türkis auf und noch einmal violett: das Rad eines Pfaus, in der Mitte ein grünes Auge.',
-    art:{title:'PFAUENKRONE',sub:'150 mm · Farbwechsel',bg1:'#0a3a4a',bg2:'#050214',ac:'#5ce1ff',ac2:'#c85cff'}},
-  sternschleier200:{name:'Sternschleier · Kugelbombe 200 mm Silberschleier',short:'Kugel 200 Schleier',cat:2,lvl:21,shape:'shell',dims:[0.21,0.25,0.21],grid:[3,1,1],box:2,cost:44.00,market:104.99,weight:4,hype:94,risk:10,
-    desc:'Eine riesige Silber-Chrysantheme, deren Sterne langsam werden und als feiner Schleier herabhängen. Darin ein blauer Kern, und zum Schluss blitzen im Schleier weiße Tautropfen auf.',
-    art:{title:'STERNSCHLEIER',sub:'200 mm · Silberschleier',bg1:'#26292f',bg2:'#000000',ac:'#f2f5ff',ac2:'#5c8aff'}},
   feuerlilie200:{name:'Feuerlilie · Kugelbombe 200 mm Lilienblüte',short:'Kugel 200 Lilie',cat:2,lvl:22,shape:'shell',dims:[0.21,0.25,0.21],grid:[3,1,1],box:2,cost:47.00,market:111.99,weight:3,hype:94,risk:10,
     desc:'Zwölf rote Blütenblätter mit goldenem Schweif biegen sich wie eine Lilie auseinander – und an jeder Spitze öffnet sich ein goldener Blütenstempel. Mitten in der Blüte glüht ein roter Kern.',
     art:{title:'FEUERLILIE',sub:'200 mm · Lilienblüte',bg1:'#7a1010',bg2:'#1a0202',ac:'#ff5a2e',ac2:'#ffd23f',gold:true}},
@@ -659,10 +650,9 @@ NEU_GRUPPE.batterien.push('hexenkessel','geysirfeld','wolkenkratzer');
 /* 30.09.: Kerzen-Batterien und neue Kugeln - in die Lizenzpakete ihres
    Levels und in die Warengruppen */
 NEU_GRUPPE.batterien.push('legion','lichterprozession','kometenreigen','sternentor','glutschmiede');
-NEU_GRUPPE.kugeln.push('kanonade300','rosengarten100','pfauenkrone150','sternschleier200','feuerlilie200');
-NEU_LIZ_DAZU.import.push('lichterprozession','rosengarten100');
-NEU_LIZ_DAZU.grossfeuer.push('kometenreigen','sternschleier200','glutschmiede'); NEU_LIZ_DAZU.profi.push('sternentor','feuerlilie200','kanonade300');
-NEU_LIZENZEN.find(l=>l.id==='sternklasse').items.push('pfauenkrone150');
+NEU_GRUPPE.kugeln.push('kanonade300','feuerlilie200');
+NEU_LIZ_DAZU.import.push('lichterprozession');
+NEU_LIZ_DAZU.grossfeuer.push('kometenreigen','glutschmiede'); NEU_LIZ_DAZU.profi.push('sternentor','feuerlilie200','kanonade300');
 NEU_LIZENZEN.find(l=>l.id==='meister').items.push('legion');
 /* 01.10. (Tom): 30 Lichter-Muster mit je 2-3 Schuss - jeder ein anderer
    Lichtertyp ohne grossen Knall (14m). Nur fuer die Testsektion. */
@@ -702,9 +692,17 @@ LICHT_MUSTER.forEach(([e,nm,form,F,txt],k)=>{ const nr=String(k+1).padStart(2,'0
   NEUWARE['lm_'+e]={name:'Licht '+nr+' · '+nm,short:nm,cat:2,lvl:10,shape:'battery',dims:[0.56,0.3,0.36],grid:[3,1,1],box:2,cost:9.00,market:20.99,weight:4,hype:30,risk:5,noOrder:true,
     desc:txt+'. Muster '+nr+' mit drei Schuss, nur zum Ansehen.',
     art:{title:nm.toUpperCase(),sub:'Licht '+nr+' · 3 Schuss',bg1:'#1c2440',bg2:'#05070f',ac:'#ffe08a',ac2:'#8ad8ff'}}; });
+/* 01.10. (Tom): 10 Kugel-Muster mit eigenstaendigen Effekten (14j) -
+   nur fuer die Testsektion */
+[['donnerschlag','Donnerschlag',200],['rossschweif','Rossschweif',150],['blitzgewitter','Blitzgewitter',200],['zeitregen','Zeitregen',200],['magmakrone','Magmakrone',200],
+ ['brokatschirm','Brokatschirm',200],['drachenherz','Drachenherz',150],['dreischlag','Dreischlag',200],['meteorschauer','Meteorschauer',150],['wechselblinker','Wechselblinker',150]].forEach(([e,nm,mm],k)=>{
+  const nr=String(k+1).padStart(2,'0'), gross=mm===200;
+  NEUWARE['km_'+e]={name:'Kugel-Muster '+nr+' · '+nm+' '+mm+' mm',short:nm,cat:2,lvl:15,shape:'shell',dims:gross?[0.21,0.25,0.21]:[0.165,0.2,0.165],grid:gross?[3,1,1]:[4,1,1],box:gross?2:3,cost:gross?40:28,market:gross?94.99:64.99,weight:3,hype:60,risk:9,noOrder:true,
+    desc:'Kugelbombe '+mm+' mm, Muster '+nr+' – nur zum Ansehen.',
+    art:{title:nm.toUpperCase(),sub:'Kugel-Muster '+nr+' · '+mm+' mm',bg1:'#2a1c40',bg2:'#07040f',ac:'#ffd23f',ac2:'#ff8ac8'}}; });
 /* Liste fuer die Testsektionen im Laden-Reiter (17-laptop) */
 const NEU_TEST={batterien:['glutschmiede'].concat(LICHT_MUSTER.map(x=>'lm_'+x[0])),
-  kugeln:['kanonade300','rosengarten100','pfauenkrone150','sternschleier200','feuerlilie200']};
+  kugeln:['donnerschlag','rossschweif','blitzgewitter','zeitregen','magmakrone','brokatschirm','drachenherz','dreischlag','meteorschauer','wechselblinker'].map(e=>'km_'+e)};
 /* Fontaenen-Sets (Feuerquelle, Gummibaerchen, Farbenspiel, Farbmischer,
    Wasserorgel, Feuerwand, Feuerkaskade, Popcorn) sind so breit wie ihre
    Duesenreihe - vorher 18-44 cm Karton, die Duesen standen aber bis

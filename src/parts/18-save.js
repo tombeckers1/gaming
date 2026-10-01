@@ -30,8 +30,10 @@ const ERSETZT_DURCH={goldperlen:'roemisch',salutbatterie:'donnerschlag',kometenf
      Kanonade wieder raus - Bestand wird zur naechsten neuen Sorte */
   roemerfeuer:'lichterprozession',nachtigall:'lichterprozession',kreuzritter:'lichterprozession',
   katapult:'kometenreigen',piranha:'kometenreigen',kolosseum:'sternentor',
-  gluehwurm75:'farbenmeer75',perlenkette100:'rosengarten100',doppelgaenger150:'pfauenkrone150',sirene150:'pfauenkrone150',
-  goldspinne200:'sternschleier200',hummelkoenigin200:'sternschleier200',niagara200:'feuerlilie200'};
+  gluehwurm75:'farbenmeer75',perlenkette100:'kugel100',doppelgaenger150:'kugel150',sirene150:'kugel150',
+  goldspinne200:'feuerlilie200',hummelkoenigin200:'feuerlilie200',niagara200:'feuerlilie200',
+  /* 01.10.: von den Kugeln des 30.09. bleibt die Feuerlilie */
+  rosengarten100:'kugel100',pfauenkrone150:'kugel150',sternschleier200:'feuerlilie200'};
 Object.assign(SORTE_NEU,ERSETZT_DURCH,typeof ENTFERNT_ERSATZ!=='undefined'?ENTFERNT_ERSATZ:{});
 /* Ketten aufloesen (tischfeuerwerk2 -> tisch -> gestrichen -> Ersatz) */
 for(const k in SORTE_NEU){ let v=SORTE_NEU[k], n=0; while(SORTE_NEU[v]&&n++<5) v=SORTE_NEU[v]; SORTE_NEU[k]=v; }

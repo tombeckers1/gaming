@@ -2498,15 +2498,6 @@ const NEUWARE={
   kanonade300:{name:'Kanonade · Kugelbombe 300 mm 30 Knallkugeln',short:'Kanonade 300',cat:2,lvl:24,shape:'shell',dims:[0.3,0.34,0.3],grid:[2,1,1],box:1,cost:72.00,market:169.99,weight:2,hype:100,risk:10,
     desc:'Dreißig schwere weiße Kugeln fliegen aus wie Knallkerzen und zerknallen nacheinander mit Weißblitz – ein rollender Donner, über dem ein goldener Kamuro hängt.',
     art:{title:'KANONADE',sub:'300 mm · Knallkugeln',bg1:'#2a2e36',bg2:'#000000',ac:'#f2f5ff',ac2:'#ffd23f'}},
-  rosengarten100:{name:'Rosengarten · Kugelbombe 100 mm Doppelpäonie',short:'Kugel 100 Rosengarten',cat:2,lvl:17,shape:'shell',dims:[0.12,0.15,0.12],grid:[6,2,1],box:6,cost:12.50,market:29.99,weight:5,hype:42,risk:8,
-    desc:'Eine runde Päonie aus rosa Sternen, darin ein weißer Kern – zum Ende hin funkeln die Rosenblätter silbern und verglühen einzeln.',
-    art:{title:'ROSENGARTEN',sub:'100 mm · Doppelpäonie',bg1:'#6b1a3a',bg2:'#1a0610',ac:'#ff8ac8',ac2:'#f2f5ff'}},
-  pfauenkrone150:{name:'Pfauenkrone · Kugelbombe 150 mm Farbwechsel-Chrysantheme',short:'Kugel 150 Pfau',cat:2,lvl:19,shape:'shell',dims:[0.165,0.2,0.165],grid:[4,1,1],box:3,cost:31.50,market:74.99,weight:4,hype:70,risk:10,
-    desc:'Eine goldene Chrysantheme mit langen Schweifen – dann werden die Spitzen dunkel, leuchten türkis auf und noch einmal violett: das Rad eines Pfaus, in der Mitte ein grünes Auge.',
-    art:{title:'PFAUENKRONE',sub:'150 mm · Farbwechsel',bg1:'#0a3a4a',bg2:'#050214',ac:'#5ce1ff',ac2:'#c85cff'}},
-  sternschleier200:{name:'Sternschleier · Kugelbombe 200 mm Silberschleier',short:'Kugel 200 Schleier',cat:2,lvl:21,shape:'shell',dims:[0.21,0.25,0.21],grid:[3,1,1],box:2,cost:44.00,market:104.99,weight:4,hype:94,risk:10,
-    desc:'Eine riesige Silber-Chrysantheme, deren Sterne langsam werden und als feiner Schleier herabhängen. Darin ein blauer Kern, und zum Schluss blitzen im Schleier weiße Tautropfen auf.',
-    art:{title:'STERNSCHLEIER',sub:'200 mm · Silberschleier',bg1:'#26292f',bg2:'#000000',ac:'#f2f5ff',ac2:'#5c8aff'}},
   feuerlilie200:{name:'Feuerlilie · Kugelbombe 200 mm Lilienblüte',short:'Kugel 200 Lilie',cat:2,lvl:22,shape:'shell',dims:[0.21,0.25,0.21],grid:[3,1,1],box:2,cost:47.00,market:111.99,weight:3,hype:94,risk:10,
     desc:'Zwölf rote Blütenblätter mit goldenem Schweif biegen sich wie eine Lilie auseinander – und an jeder Spitze öffnet sich ein goldener Blütenstempel. Mitten in der Blüte glüht ein roter Kern.',
     art:{title:'FEUERLILIE',sub:'200 mm · Lilienblüte',bg1:'#7a1010',bg2:'#1a0202',ac:'#ff5a2e',ac2:'#ffd23f',gold:true}},
@@ -2795,10 +2786,9 @@ NEU_GRUPPE.batterien.push('hexenkessel','geysirfeld','wolkenkratzer');
 /* 30.09.: Kerzen-Batterien und neue Kugeln - in die Lizenzpakete ihres
    Levels und in die Warengruppen */
 NEU_GRUPPE.batterien.push('legion','lichterprozession','kometenreigen','sternentor','glutschmiede');
-NEU_GRUPPE.kugeln.push('kanonade300','rosengarten100','pfauenkrone150','sternschleier200','feuerlilie200');
-NEU_LIZ_DAZU.import.push('lichterprozession','rosengarten100');
-NEU_LIZ_DAZU.grossfeuer.push('kometenreigen','sternschleier200','glutschmiede'); NEU_LIZ_DAZU.profi.push('sternentor','feuerlilie200','kanonade300');
-NEU_LIZENZEN.find(l=>l.id==='sternklasse').items.push('pfauenkrone150');
+NEU_GRUPPE.kugeln.push('kanonade300','feuerlilie200');
+NEU_LIZ_DAZU.import.push('lichterprozession');
+NEU_LIZ_DAZU.grossfeuer.push('kometenreigen','glutschmiede'); NEU_LIZ_DAZU.profi.push('sternentor','feuerlilie200','kanonade300');
 NEU_LIZENZEN.find(l=>l.id==='meister').items.push('legion');
 /* 01.10. (Tom): 30 Lichter-Muster mit je 2-3 Schuss - jeder ein anderer
    Lichtertyp ohne grossen Knall (14m). Nur fuer die Testsektion. */
@@ -2835,12 +2825,20 @@ const LICHT_MUSTER=[
   ['bengalglut','Bengalglut','boden',['rot','gruen'],'Bengalisches Farblicht leuchtet die Umgebung aus']
 ];
 LICHT_MUSTER.forEach(([e,nm,form,F,txt],k)=>{ const nr=String(k+1).padStart(2,'0');
-  NEUWARE['lm_'+e]={name:'Licht '+nr+' · '+nm,short:nm,cat:2,lvl:10,shape:'battery',dims:[0.3,0.25,0.3],grid:[3,1,1],box:2,cost:9.00,market:20.99,weight:4,hype:30,risk:5,noOrder:true,
+  NEUWARE['lm_'+e]={name:'Licht '+nr+' · '+nm,short:nm,cat:2,lvl:10,shape:'battery',dims:[0.56,0.3,0.36],grid:[3,1,1],box:2,cost:9.00,market:20.99,weight:4,hype:30,risk:5,noOrder:true,
     desc:txt+'. Muster '+nr+' mit drei Schuss, nur zum Ansehen.',
     art:{title:nm.toUpperCase(),sub:'Licht '+nr+' · 3 Schuss',bg1:'#1c2440',bg2:'#05070f',ac:'#ffe08a',ac2:'#8ad8ff'}}; });
+/* 01.10. (Tom): 10 Kugel-Muster mit eigenstaendigen Effekten (14j) -
+   nur fuer die Testsektion */
+[['donnerschlag','Donnerschlag',200],['rossschweif','Rossschweif',150],['blitzgewitter','Blitzgewitter',200],['zeitregen','Zeitregen',200],['magmakrone','Magmakrone',200],
+ ['brokatschirm','Brokatschirm',200],['drachenherz','Drachenherz',150],['dreischlag','Dreischlag',200],['meteorschauer','Meteorschauer',150],['wechselblinker','Wechselblinker',150]].forEach(([e,nm,mm],k)=>{
+  const nr=String(k+1).padStart(2,'0'), gross=mm===200;
+  NEUWARE['km_'+e]={name:'Kugel-Muster '+nr+' · '+nm+' '+mm+' mm',short:nm,cat:2,lvl:15,shape:'shell',dims:gross?[0.21,0.25,0.21]:[0.165,0.2,0.165],grid:gross?[3,1,1]:[4,1,1],box:gross?2:3,cost:gross?40:28,market:gross?94.99:64.99,weight:3,hype:60,risk:9,noOrder:true,
+    desc:'Kugelbombe '+mm+' mm, Muster '+nr+' – nur zum Ansehen.',
+    art:{title:nm.toUpperCase(),sub:'Kugel-Muster '+nr+' · '+mm+' mm',bg1:'#2a1c40',bg2:'#07040f',ac:'#ffd23f',ac2:'#ff8ac8'}}; });
 /* Liste fuer die Testsektionen im Laden-Reiter (17-laptop) */
 const NEU_TEST={batterien:['glutschmiede'].concat(LICHT_MUSTER.map(x=>'lm_'+x[0])),
-  kugeln:['kanonade300','rosengarten100','pfauenkrone150','sternschleier200','feuerlilie200']};
+  kugeln:['donnerschlag','rossschweif','blitzgewitter','zeitregen','magmakrone','brokatschirm','drachenherz','dreischlag','meteorschauer','wechselblinker'].map(e=>'km_'+e)};
 /* Fontaenen-Sets (Feuerquelle, Gummibaerchen, Farbenspiel, Farbmischer,
    Wasserorgel, Feuerwand, Feuerkaskade, Popcorn) sind so breit wie ihre
    Duesenreihe - vorher 18-44 cm Karton, die Duesen standen aber bis
@@ -23876,43 +23874,6 @@ EFF.kanonade=function(p,A,B,s,r){
       schall(e,v=>{ sfx.crack(v*1.2); if(k%4===0) sfx.boom(v*0.4); }); }); }
 };
 
-/* Rosengarten (rosengarten100): Doppelpaeonie - aussen rosa Sterne auf
-   einer runden Schale, innen ein weisser Kern (Stufe Pistill). Die
-   Rosensterne ziehen gegen Ende einen feinen Silberglitzer und verloeschen
-   einzeln (Lebensdauer gestreut). */
-EFF.rosengarten=function(p,A,B,s,r){
-  const q=QUAL(), G=2.6;
-  for(let i=0;i<Math.round(34*s*q);i++){ const d=randDir(), w=rand(8.2,9.2)*s, v=kgMal(d,w), T=rand(1.7,2.3);
-    kgStern(psBig,p,v,kgMal(A,1.2),T,G,0,0.06);
-    if(i%3===0) rkFunken(p,v,G,T*0.55,T,18,[.95,.95,1],{life:[0.25,0.5],g:2,streu:0.4,mit:0.05}); }
-  schall(p,v=>later(1.3,()=>sfx.rieseln(v*0.35,1.5)));
-};
-
-/* Pfauenkrone (pfauenkrone150): goldene Chrysantheme mit Schweif; nach
-   1,1 s werden die Sterne dunkel und brennen tuerkis weiter, nach 1,9 s
-   noch einmal dunkel und violett - das Pfauenrad (echter Relaisstern,
-   kgWechsel). In der Mitte ein gruener Pistill (Stufe). */
-EFF.pfauenkrone=function(p,A,B,s,r){
-  const q=QUAL(), G=2.4, gold=kgMal(FW.gold,1.15), tuerkis=kgMal(A,1.25), violett=kgMal(B,1.3);
-  for(let i=0;i<Math.round(40*s*q);i++){ const d=randDir(), w=rand(8.5,9.8)*s, T=rand(1.05,1.15);
-    const h=kgStern(psBig,p,kgMal(d,w),gold,T+0.02,G,4,0.35);
-    kgSpaeter(T,()=>{ const r2=kgWechsel(h,tuerkis,0.1,rand(0.9,1.1),G,0,0.12);
-      if(r2) kgSpaeter(0.85,()=>{ if(r2.h) kgWechsel(r2.h,violett,0.1,rand(1.0,1.4),G,0,0.08); }); }); }
-  schall(p,v=>later(1.2,()=>sfx.crackle(v*0.15)));
-};
-
-/* Sternschleier (sternschleier200): grosse Silber-Chrysantheme mit feinen
-   Spuren; die Sterne bremsen, werden langsam und haengen als Schleier
-   (lange Lebensdauer, wenig Schwere). Zum Schluss blitzen im Schleier
-   einzelne weisse Tautropfen (Strobe) - kein Knall. Blauer Kern (Stufe). */
-EFF.sternschleier=function(p,A,B,s,r){
-  const q=QUAL(), sil=kgMal(A||FW.silber,1.15), G=1.4;
-  for(let i=0;i<Math.round(46*s*q);i++){ const d=randDir(), w=rand(8.5,10)*s, v=kgMal(d,w), T=rand(3.2,4.0);
-    kgStern(psBig,p,v,sil,T,G,4,0.45);
-    if(i%4===0){ const e=sternNach(p,v[0],v[1],v[2],G,T*0.6); kgSpaeter(T*0.6,()=>{ const a=SCHWEIF; SCHWEIF=0; psBig.emit(e.x,e.y,e.z,rand(-.2,.2),-0.4,rand(-.2,.2),1.4,1.4,1.45,rand(1.0,1.5),0.4,1); SCHWEIF=a; }); } }
-  schall(p,v=>{ later(0.8,()=>sfx.rieseln(v*0.6,4)); });
-};
-
 /* Feuerlilie (feuerlilie200): zwoelf schwere rote Kometen mit Goldschweif
    als Bluetenblaetter (Kranz, leicht zum Zuschauer gekippt); sie biegen
    sich unter der Schwere nach unten wie eine Lilie, und an jeder Spitze
@@ -23929,19 +23890,10 @@ EFF.feuerlilie=function(p,A,B,s,r){
   schall(p,v=>later(T,()=>sfx.rieseln(v*0.5,2.5)));
 };
 
-Object.assign(EFF_SCHWEIF,{kanonade:0.3,rosengarten:0.06,pfauenkrone:0.35,sternschleier:0.45,feuerlilie:0.5});
-Object.assign(EFF_FAMILIE,{kanonade:'knister',rosengarten:'kugel',pfauenkrone:'kugel',sternschleier:'haenger',feuerlilie:'kugel'});
+Object.assign(EFF_SCHWEIF,{kanonade:0.3,feuerlilie:0.5});
+Object.assign(EFF_FAMILIE,{kanonade:'knister',feuerlilie:'kugel'});
 
 Object.assign(KUGEL,{
-  rosengarten100:{kal:2,sz:2.75,pw:4.2,fuse:1.88,th:'herz',haupt:'rosengarten',A:'rose',B:'weiss',
-    steig:'silber', bruchOpt:{kern:false,nachglitzer:false},
-    stufen:[{t:0.04,eff:'pistill',sz:0.36,A:'weiss',B:'silber',leise:true}]},
-  pfauenkrone150:{kal:3,sz:3.35,pw:6.1,fuse:2.02,th:'tropen',haupt:'pfauenkrone',A:'tuerkis',B:'violett',
-    steig:'gold', bruchOpt:{kern:false,nachglitzer:false},
-    stufen:[{t:0.04,eff:'pistill',sz:0.3,A:'gruen',B:'limette',leise:true}]},
-  sternschleier200:{kal:4,sz:3.95,pw:7.8,fuse:2.15,th:'silber',haupt:'sternschleier',A:'silber',B:'blau',
-    steig:'silber', bruchOpt:{kern:false,nachglitzer:false,flash:0.6},
-    stufen:[{t:0.05,eff:'pistill',sz:0.24,A:'blau',B:'himmel',leise:true}]},
   feuerlilie200:{kal:4,sz:4.05,pw:8.2,fuse:2.15,th:'glut',haupt:'feuerlilie',A:'rot',B:'gold',
     steig:'glut', bruchOpt:{kern:false,nachglitzer:false},
     stufen:[{t:0.04,eff:'pistill',sz:0.24,A:'rot',B:'scharlach',leise:true}]},
@@ -23950,12 +23902,138 @@ Object.assign(KUGEL,{
     stufen:[{t:0.08,eff:'kamuro',sz:0.55,A:'gold',B:'gold',leise:true}]}
 });
 Object.assign(SIGNATUR,{
-  rosengarten100:{eff:'rosengarten',text:'Rosa Doppelpäonie mit weißem Kern, verglüht silbern'},
-  pfauenkrone150:{eff:'pfauenkrone',text:'Gold wird Türkis wird Violett – das Rad eines Pfaus'},
-  sternschleier200:{eff:'sternschleier',text:'Silber-Chrysantheme zum hängenden Schleier mit Tautropfen'},
   feuerlilie200:{eff:'feuerlilie',text:'Zwölf rote Kometenblätter mit goldenen Blütenstempeln'},
   kanonade300:{eff:'kanonade',text:'Dreißig Knallkugeln – rollender Donner unter goldenem Kamuro'}
 });
+
+/* =========================================================
+   Kugel-Muster (01.10., Tom: "10 neue Kugelbomben ... schau wirklich,
+   was es so gibt: Knallsachen, breite Lichter, Blitze, eine Art Regen,
+   Lava ... komplett eigenstaendige Effekte, nicht wie Lichter, Neon oder
+   Laser"). Echte Vorbilder: Titansalut mit Goldregen, Pferdeschweif
+   (Horsetail), Blinker-Bombe (Strobe), Zeitregen (Time Rain),
+   Magma-Bombe, Brokatschirm, Drachenei-Pistill, Mehrschlag-Zylinder,
+   Meteor (fallende Kometen), Wechselblinker. Alles ballistisch mit
+   Luftwiderstand, nur Farben, Funken und Rauch - keine Linien.
+   s ist die Kaliber-Groesse (100 mm 2,7 ... 200 mm 4,0); S=s/4.
+   ========================================================= */
+/* K1 Donnerschlag: ein schwerer Titanschlag - gleissende Wolke, Knall,
+   Grollen; aus dem Blitz rieselt danach ein langer Goldregen */
+EFF.donnerschlag=function(p,A,B,s,r){
+  const q=QUAL(), S=s/4;
+  for(let i=0;i<Math.round(260*q);i++){ const d=randDir(), w=Math.cbrt(Math.random())*rand(8,16)*S; psMid.emit(p.x,p.y,p.z,d[0]*w,d[1]*w,d[2]*w,1.7,1.7,1.65,rand(0.06,0.22),0,4); }
+  for(let i=0;i<6;i++) psHuge.emit(p.x+rand(-1,1),p.y+rand(-1,1),p.z+rand(-1,1),0,0,0,2,2,1.9,0.14,0,0);
+  flash(p,[1,1,1],8*S,0.45); shake=Math.max(shake,0.5*distVol(p));
+  schall(p,v=>{ sfx.boom(v*1.5); sfx.crack(v*1.3); if(typeof grollen==='function') grollen(2.6,0.4*v,180,0.1); });
+  kgSpaeter(0.15,()=>{ for(let i=0;i<Math.round(140*S*q);i++){ const d=randDir(), w=rand(1.5,7)*S, v=[d[0]*w,d[1]*w*0.5,d[2]*w];
+      kgStern(psBig,p,v,[1.05,.74,.32],rand(3.2,4.4),1.1,4,0.3); }
+    schall(p,v=>later(0.4,()=>sfx.rieseln(v*0.55,4))); });
+};
+/* K2 Rossschweif: die Sterne werden nur schwach ausgestossen und stuerzen
+   als dichter, breiter Goldfall herab - wie der Schweif eines Pferdes */
+EFF.rossschweif=function(p,A,B,s,r){
+  const q=QUAL(), S=s/4, G=3.6;
+  for(let i=0;i<Math.round(110*S*q);i++){ const a=rand(0,Math.PI*2), el=rand(-0.2,0.9), w=rand(2.5,7)*S, v=[Math.cos(a)*Math.cos(el)*w,Math.sin(el)*w,Math.sin(a)*Math.cos(el)*w];
+    kgStern(psBig,p,v,i%6?[1.05,.72,.3]:kgMal(A,1.2),rand(2.6,3.4),G,i%3?0:4,0.65); }
+  schall(p,v=>{ sfx.boom(v*0.55); later(0.5,()=>sfx.regen(v*0.6,3)); });
+};
+/* K3 Blitzgewitter: eine Kugel aus Hunderten weisser Blinksterne - eine
+   flirrende Gewitterwolke, die langsam auseinandertreibt */
+EFF.blitzgewitter=function(p,A,B,s,r){
+  const q=QUAL(), S=s/4, a=SCHWEIF; SCHWEIF=0;
+  for(let i=0;i<Math.round(240*S*q);i++){ const d=randDir(), w=Math.cbrt(Math.random())*rand(7,11)*S, c=i%7?[1.6,1.6,1.65]:kgMal(A,1.4);
+    psBig.emit(p.x,p.y,p.z,d[0]*w,d[1]*w,d[2]*w,c[0],c[1],c[2],rand(2.6,3.8),0.7,1); }
+  SCHWEIF=a;
+  schall(p,v=>{ sfx.boom(v*0.6); later(0.3,()=>sfx.rieseln(v*0.5,3.2)); });
+};
+/* K4 Zeitregen: gedaempfte Goldsterne sinken langsam, und jeder flammt
+   zu zufaelligen Zeiten knisternd auf - es regnet Glitzer */
+EFF.zeitregen=function(p,A,B,s,r){
+  const q=QUAL(), S=s/4, G=1.5;
+  for(let i=0;i<Math.round(70*S*q);i++){ const d=randDir(), w=rand(7,9.5)*S, v=kgMal(d,w), T=rand(3.6,4.6);
+    kgStern(psBig,p,v,[.75,.5,.2],T,G,0,0.18);
+    const n=Math.round(rand(2,4)); for(let k=0;k<n;k++){ const t=rand(0.7,T-0.2);
+      kgSpaeter(t,()=>{ const e=sternNach(p,v[0],v[1],v[2],G,t); psHuge.emit(e.x,e.y,e.z,0,0,0,1.6,1.3,.8,0.06,0,0);
+        for(let j=0;j<Math.round(7*q);j++){ const dd=randDir(), ww=rand(1.5,3); psSmall.emit(e.x,e.y,e.z,dd[0]*ww,dd[1]*ww,dd[2]*ww,1.5,1.25,.7,rand(0.12,0.28),1,0); } }); } }
+  schall(p,v=>{ sfx.boom(v*0.55); for(let k=0;k<8;k++) later(0.9+k*0.4,()=>sfx.prasseln(v*0.7)); });
+};
+/* K5 Magmakrone: schwere Sterne fliegen weissgelb gluehend aus, kuehlen
+   im Fallen ueber Orange zu dunklem Rot ab und tropfen Glut */
+EFF.magmakrone=function(p,A,B,s,r){
+  const q=QUAL(), S=s/4, G=4.2, stufen=[[0.45,[1.5,.75,.18]],[1.1,[1.2,.32,.06]],[1.8,[.75,.12,.03]]];
+  for(let i=0;i<Math.round(48*S*q);i++){ const d=randDir(), w=rand(8.5,10.5)*S, v=kgMal(d,w), T=rand(2.6,3.1);
+    const h=kgStern(psHuge,p,v,[1.7,1.45,.8],T,G,0,0.3);
+    stufen.forEach(([t,c])=>kgSpaeter(t,()=>kgFarbe(h,c)));
+    rkFunken(p,v,G,0.3,T,16,[.85,.24,.05],{life:[0.8,1.4],g:1.4,streu:0.15,mit:0.02,mode:0}); }
+  schall(p,v=>{ sfx.wumms(v*1.1); sfx.boom(v*0.6); rauschF({dur:2,vol:0.12*v,typ:'lowpass',f:400,an:0.2}); });
+};
+/* K6 Brokatschirm: ein flacher, breiter Schirm aus dicken Brokatsternen,
+   der sich weit aufspannt und an den Raendern herabhaengt */
+EFF.brokatschirm=function(p,A,B,s,r){
+  const q=QUAL(), S=s/4, G=1.6, n=Math.round(64*S*q), a0=rand(0,Math.PI*2);
+  for(let i=0;i<n;i++){ const a=a0+i/n*Math.PI*2+rand(-0.03,0.03), el=rand(-0.12,0.1), w=rand(10.5,12)*S, v=[Math.cos(a)*Math.cos(el)*w,Math.sin(el)*w,Math.sin(a)*Math.cos(el)*w], T=rand(3.2,3.8);
+    kgStern(psBig,p,v,[1.15,.78,.34],T,G,4,0.7);
+    if(i%2===0) rkFunken(p,v,G,0.15,T,16,[1,.7,.3],{life:[1.4,2.2],g:0.9,streu:0.25,mit:0.04,mode:4}); }
+  for(let i=0;i<Math.round(18*q);i++){ const d=randDir(), w=rand(2,3.5)*S; kgStern(psBig,p,kgMal(d,w),kgMal(A,1.3),rand(1.4,1.8),G,0,0.1); }
+  schall(p,v=>{ sfx.boom(v*0.7); later(0.7,()=>sfx.rieseln(v*0.6,3.5)); });
+};
+/* K7 Drachenherz: eine rote Paeonie, in deren Mitte ein Herz aus
+   Goldkugeln liegt - die zerplatzen danach eine nach der anderen knisternd */
+EFF.drachenherz=function(p,A,B,s,r){
+  const q=QUAL(), S=s/4, G=2.4;
+  for(let i=0;i<Math.round(52*S*q);i++){ const d=randDir(), w=rand(9,10)*S; kgStern(psBig,p,kgMal(d,w),kgMal(A,1.3),rand(1.6,2.0),G,0,0.08); }
+  for(let i=0;i<Math.round(34*q);i++){ const d=randDir(), w=rand(2.5,4.2)*S, v=kgMal(d,w), t=rand(0.8,1.6);
+    kgStern(psBig,p,v,[1.1,.75,.3],t,G,0,0.05);
+    kgSpaeter(t,()=>{ const e=sternNach(p,v[0],v[1],v[2],G,t); for(let j=0;j<Math.round(9*q);j++){ const dd=randDir(), ww=rand(2,4); psSmall.emit(e.x,e.y,e.z,dd[0]*ww,dd[1]*ww,dd[2]*ww,1.6,1.4,1.1,rand(0.05,0.14),1,3); } }); }
+  schall(p,v=>{ sfx.boom(v*0.65); for(let k=0;k<6;k++) later(0.8+k*0.14,()=>sfx.prasseln(v*1.1)); later(0.9,()=>sfx.crackle(v*0.5)); });
+};
+/* K8 Dreischlag: Mehrschlag-Zylinder - drei Brueche uebereinander, blau,
+   dann silber, dann goldene Weide, zum Schluss ein Kanonenschlag */
+EFF.dreischlag=function(p,A,B,s,r){
+  const q=QUAL(), S=s/4;
+  const bruch=(dy,fn)=>{ const e={x:p.x+rand(-1,1),y:p.y+dy,z:p.z+rand(-1,1)}; fn(e); schall(e,v=>sfx.boom(v*0.6)); };
+  bruch(0,e=>{ for(let i=0;i<Math.round(34*S*q);i++){ const d=randDir(), w=rand(6.5,7.2)*S; kgStern(psBig,e,kgMal(d,w),kgMal(A,1.3),rand(1.3,1.6),2.4,0,0.06); } });
+  kgSpaeter(0.9,()=>bruch(6*S,e=>{ for(let i=0;i<Math.round(42*S*q);i++){ const d=randDir(), w=rand(8,9)*S; kgStern(psBig,e,kgMal(d,w),[1.35,1.35,1.4],rand(1.5,1.9),2.2,4,0.35); } }));
+  kgSpaeter(1.9,()=>bruch(11*S,e=>{ for(let i=0;i<Math.round(54*S*q);i++){ const d=randDir(), w=rand(8.5,9.5)*S; kgStern(psBig,e,kgMal(d,w),[.95,.62,.24],rand(3.4,4.0),1.0,0,0.7); }
+    kgSpaeter(1.0,()=>{ const z={x:e.x,y:e.y+1.5,z:e.z}; for(let i=0;i<Math.round(120*q);i++){ const d=randDir(), w=rand(6,12)*S; psMid.emit(z.x,z.y,z.z,d[0]*w,d[1]*w,d[2]*w,1.7,1.7,1.65,rand(0.06,0.18),0,4); }
+      for(let i=0;i<4;i++) psHuge.emit(z.x,z.y,z.z,0,0,0,2,2,1.9,0.1,0,0); flash(z,[1,1,1],5*S,0.3); schall(z,v=>{ sfx.crack(v*1.3); sfx.boom(v*0.9); }); }); }));
+};
+/* K9 Meteorschauer: aus dem Bruch stuerzen schnelle Meteore mit langen,
+   kuehlen Funkenschweifen schraeg nach unten und verglühen nacheinander */
+EFF.meteorschauer=function(p,A,B,s,r){
+  const q=QUAL(), S=s/4, G=3;
+  for(let i=0;i<Math.round(24*S*q);i++){ const a=rand(0,Math.PI*2), el=rand(-1.15,-0.05), w=rand(13,17)*S, v=[Math.cos(a)*Math.cos(el)*w,Math.sin(el)*w,Math.sin(a)*Math.cos(el)*w], T=rand(1.0,2.2);
+    kgStern(psHuge,p,v,i%4?[1.35,1.4,1.55]:kgMal(A,1.4),T,G,0,0.35);
+    rkFunken(p,v,G,0.03,T,45,[.8,.88,1.15],{life:[0.8,1.3],g:0.4,streu:0.12,mit:0,mode:0});
+    kgSpaeter(T,()=>{ const e=sternNach(p,v[0],v[1],v[2],G,T); for(let j=0;j<4;j++){ const dd=randDir(); psSmall.emit(e.x,e.y,e.z,dd[0]*2,dd[1]*2,dd[2]*2,1.4,1.4,1.5,rand(0.1,0.2),1,0); } }); }
+  schall(p,v=>{ sfx.boom(v*0.55); sfx.zischen(v*0.4,2); });
+};
+/* K10 Wechselblinker: eine Krone, deren Sterne im Takt zwischen zwei
+   Farben hin und her blinken, mit kurzer Dunkelphase dazwischen */
+EFF.wechselblinker=function(p,A,B,s,r){
+  const q=QUAL(), S=s/4, G=1.8, T=3.4, H=[], cA=kgMal(A,1.45), cB=kgMal(B,1.45), dunkel=[0.04,0.04,0.04];
+  for(let i=0;i<Math.round(64*S*q);i++){ const d=randDir(), w=rand(8.5,9.5)*S; H.push([kgStern(psBig,p,kgMal(d,w),cA,T*rand(0.9,1.05),G,0,0.04),rand(0,0.3)]); }
+  for(let t=0.15;t<T;t+=1/30){ const tt=t; kgSpaeter(tt,()=>{ for(const [h,o] of H){ const ph=((tt+o)/0.3)%1; kgFarbe(h,ph<0.38?cA:ph<0.5?dunkel:ph<0.88?cB:dunkel); } }); }
+  schall(p,v=>{ sfx.boom(v*0.6); later(0.6,()=>sfx.rieseln(v*0.35,2.5)); });
+};
+Object.assign(EFF_SCHWEIF,{donnerschlag:0,rossschweif:0.65,blitzgewitter:0,zeitregen:0.18,magmakrone:0.3,brokatschirm:0.7,drachenherz:0.08,dreischlag:0.35,meteorschauer:0.35,wechselblinker:0.04});
+Object.assign(EFF_FAMILIE,{donnerschlag:'knall',rossschweif:'haenger',blitzgewitter:'glitzer',zeitregen:'glitzer',magmakrone:'flamme',brokatschirm:'haenger',drachenherz:'knister',dreischlag:'kugel',meteorschauer:'komet',wechselblinker:'kugel'});
+/* Muster-Liste (Produkte in 02e): id, Effekt, Kaliber 3=150/4=200 mm, Farben, Aufstieg */
+const KUGEL_MUSTER=[
+  ['donnerschlag',4,'weiss','gold','titanspur','Titanschlag mit Donner, danach rieselt ein Goldregen'],
+  ['rossschweif',3,'gold','orange','gold','Dichter, breiter Goldfall wie ein Pferdeschweif'],
+  ['blitzgewitter',4,'weiss','himmel','silber','Hunderte weiße Blinksterne – eine flirrende Gewitterwolke'],
+  ['zeitregen',4,'gold','zitrone','gold','Sinkende Goldsterne, die zufällig knisternd aufflammen'],
+  ['magmakrone',4,'orange','rot','glut','Glühende Brocken kühlen im Fallen von Weißgelb zu Dunkelrot'],
+  ['brokatschirm',4,'gold','rot','gold','Flacher, breiter Brokatschirm, der an den Rändern herabhängt'],
+  ['drachenherz',3,'rot','gold','glut','Rote Päonie mit knisterndem Herz aus Goldkugeln'],
+  ['dreischlag',4,'blau','gold','silber','Drei Brüche übereinander und ein Kanonenschlag zum Schluss'],
+  ['meteorschauer',3,'himmel','weiss','silber','Meteore mit langen kühlen Schweifen stürzen schräg herab'],
+  ['wechselblinker',3,'rot','gruen','gold','Krone aus Sternen, die zwischen Rot und Grün blinken']
+];
+KUGEL_MUSTER.forEach(([e,kal,A,B,steig,txt])=>{ const id='km_'+e, g=kal===3?{sz:3.35,pw:6.1,fuse:2.02}:{sz:3.95,pw:7.8,fuse:2.15};
+  KUGEL[id]=Object.assign({kal,th:'silber',haupt:e,A,B,steig,bruchOpt:{kern:false,nachglitzer:false,flash:e==='donnerschlag'?false:0.6},stufen:[]},g);
+  SIGNATUR[id]={eff:e,text:txt}; });
 /* =========================================================
    Fontaenen und Bodeneffekte - je Produkt eigene Funkenart und Phasen
    (Tom, 26.09. nachts: "jedes Produkt eine Anomalie - komplett
@@ -26543,7 +26621,8 @@ if(typeof window!=='undefined') window.__klein={KLEIN,papier:()=>KL_PAP.liste.le
    opt.ang/opt.dir Rohrneigung (wie perleSchuss).
    ========================================================= */
 const LICHTYP={};
-function lMund(o){ return {x:o.x,y:(o.y!==undefined?o.y:0.4)+0.3,z:o.z}; }
+/* Muendung: oben an der Rohroeffnung (ab der Station), wie perleSchuss */
+function lMund(o){ return {x:o.x,y:(o.y!==undefined?o.y:0.4)+(o.ab!==undefined?o.ab:0.3),z:o.z}; }
 function lRicht(opt){ const a=opt.ang||0, d=opt.dir===undefined?FANDIR:opt.dir; return [Math.sin(d)*Math.sin(a),Math.cos(a),Math.cos(d)*Math.sin(a)]; }
 /* Abschuss auf Hoehe H (m) bei Schwere G, entlang der Rohrneigung */
 function lAbschuss(H,G,opt,streu){ const v0=vFuerHoehe(H,G), r=lRicht(opt), e=streu||0;
@@ -26565,7 +26644,8 @@ function lBahn(ps,p,v,schritte,dt,c,G,dreh,spur,mode,folge){
   return t;
 }
 function lichtSchuss(o,name,A,B,s,opt){
-  if(FW_LOG) FW_LOG.push({t:FW_UHR,art:'perle',eff:'licht:'+name,ang:+(opt.ang||0).toFixed(3),x:+o.x.toFixed(2),tag:FW_TAG});
+  const m=lMund(o);
+  if(FW_LOG) FW_LOG.push({t:FW_UHR,art:'perle',kal:0,pw:0,sz:s||1,eff:'licht:'+name,A,B,stufenEff:[],hoehe:0,brueche:0,groesste:s||1,ang:+(opt.ang||0).toFixed(3),x:+m.x.toFixed(2),y:+m.y.toFixed(2),z:+m.z.toFixed(2),tag:FW_TAG});
   LICHTYP[name](o,A,B,Math.max(0.6,Math.min(1.8,s||1)),opt||{});
 }
 
@@ -29030,8 +29110,8 @@ function lapZeichnen(body){
         (fwTestAn?`<div class="steps"><button data-a="fwtestneu">Neu stapeln</button><button class="red" data-a="fwtest">Aus</button></div>`:`<button data-a="fwtest">Einschalten</button>`)+'</div>'+
         `<div class="row"><div class="rm"><b>Feuerwerk-Vorführung <span class="warn">(nur Entwicklung)</span></b><small>Alle Feuerwerke nach Level, eins nach dem anderen: Leertaste zündet das nächste, der Name steht groß oben. Pfeile vor/zurück, R nochmal, 1 gut, 2 ändern, L Liste, B beenden.</small></div><button data-a="vorfuehrung">Starten</button></div>`+
         /* 30.09. (Tom): eigene Testsektionen fuer die neuen Batterien und Kugeln */
-        `<div class="row"><div class="rm"><b>Neue Batterien testen <span class="warn">(nur Entwicklung)</span></b><small>${NEU_TEST.batterien.length} Muster-Batterien, jede mit einem eigenen neuen Effekt, nacheinander auf der großen Anlage: ${NEU_TEST.batterien.filter(t=>P[t]).map(t=>P[t].short).join(', ')}.</small></div><button data-a="vfbatt">Starten</button></div>`+
-        `<div class="row"><div class="rm"><b>Neue Kugelbomben testen <span class="warn">(nur Entwicklung)</span></b><small>Nur die ${NEU_TEST.kugeln.length} neuen Kugelbomben: ${NEU_TEST.kugeln.filter(t=>P[t]).map(t=>P[t].short).join(', ')}.</small></div><button data-a="vfkugel">Starten</button></div>`:'')+
+        `<div class="row"><div class="rm"><b>Neue Batterien testen <span class="warn">(nur Entwicklung)</span></b><small>Die Glutschmiede und ${NEU_TEST.batterien.length-1} Lichter-Muster mit je drei Schuss, jedes ein anderer Lichtertyp, nacheinander auf der großen Anlage: ${NEU_TEST.batterien.filter(t=>P[t]).map(t=>P[t].short).join(', ')}.</small></div><button data-a="vfbatt">Starten</button></div>`+
+        `<div class="row"><div class="rm"><b>Neue Kugelbomben testen <span class="warn">(nur Entwicklung)</span></b><small>${NEU_TEST.kugeln.length} Kugel-Muster, jede mit einem eigenen Effekt: ${NEU_TEST.kugeln.filter(t=>P[t]).map(t=>P[t].short).join(', ')}.</small></div><button data-a="vfkugel">Starten</button></div>`:'')+
       `<div class="row"><div class="rm"><b>Spielstand</b><small>Wird automatisch gespeichert.</small></div><button class="ghost" data-a="reset">${resetArm?'Wirklich löschen?':'Spielstand löschen'}</button></div>`;
   }
   body.innerHTML=h;
@@ -29779,8 +29859,10 @@ const ERSETZT_DURCH={goldperlen:'roemisch',salutbatterie:'donnerschlag',kometenf
      Kanonade wieder raus - Bestand wird zur naechsten neuen Sorte */
   roemerfeuer:'lichterprozession',nachtigall:'lichterprozession',kreuzritter:'lichterprozession',
   katapult:'kometenreigen',piranha:'kometenreigen',kolosseum:'sternentor',
-  gluehwurm75:'farbenmeer75',perlenkette100:'rosengarten100',doppelgaenger150:'pfauenkrone150',sirene150:'pfauenkrone150',
-  goldspinne200:'sternschleier200',hummelkoenigin200:'sternschleier200',niagara200:'feuerlilie200'};
+  gluehwurm75:'farbenmeer75',perlenkette100:'kugel100',doppelgaenger150:'kugel150',sirene150:'kugel150',
+  goldspinne200:'feuerlilie200',hummelkoenigin200:'feuerlilie200',niagara200:'feuerlilie200',
+  /* 01.10.: von den Kugeln des 30.09. bleibt die Feuerlilie */
+  rosengarten100:'kugel100',pfauenkrone150:'kugel150',sternschleier200:'feuerlilie200'};
 Object.assign(SORTE_NEU,ERSETZT_DURCH,typeof ENTFERNT_ERSATZ!=='undefined'?ENTFERNT_ERSATZ:{});
 /* Ketten aufloesen (tischfeuerwerk2 -> tisch -> gestrichen -> Ersatz) */
 for(const k in SORTE_NEU){ let v=SORTE_NEU[k], n=0; while(SORTE_NEU[v]&&n++<5) v=SORTE_NEU[v]; SORTE_NEU[k]=v; }

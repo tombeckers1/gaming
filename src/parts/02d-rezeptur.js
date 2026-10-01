@@ -14,7 +14,7 @@ const TRAEGER=[
   {id:'rakete5',  name:'Raketenset, 5 Stück', shape:'rocketset', lvl:26, req:'himmel',
    dims:[0.48,0.065,0.145],grid:[3,2,2], box:6,  basis:4.4, kal:1.30, schuss:5,  zeit:3,
    desc:'Fünf große Raketen. Mehr Kaliber, größerer Bruch.'},
-  {id:'batterie', name:'Batterie, 25 Schuss', shape:'battery',  lvl:27, req:'verbund',
+  {id:'batterie', name:'Batterie, 12 Schuss', shape:'battery',  lvl:27, req:'verbund',
    dims:[0.24,0.20,0.24], grid:[7,1,1], box:7,  basis:7.5, kal:1.05, schuss:12, zeit:3,
    desc:'Ein Verbund, der von allein durchläuft. Zwölf sichtbare Schüsse.'},
   {id:'kugel75',  name:'Kugelbombe, 75 mm',   shape:'shell',    lvl:28, req:'verbund',

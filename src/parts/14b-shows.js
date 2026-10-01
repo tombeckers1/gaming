@@ -264,7 +264,17 @@ function oeffnungHalb(o,prod){
    Muster (links/rechts, aussen/innen, Reihenfolge) bleibt. */
 function versatzMass(){ const m={max:0,halb:0,k(){ return m.max>m.halb&&m.max>0?m.halb/m.max:1; },
   nimm(off){ m.max=Math.max(m.max,Math.abs(off||0)); return off||0; }}; return m; }
-function playShow(o,phases,prod,tag){
+/* Batterien (01.10. abends, Tom: "realistisch"): playShow plant erst alle
+   Ereignisse (mit fester Saat - das Produkt feuert jedes Mal gleich),
+   dann legt zuendFolge (04c) fest, aus welchem Rohr jeder Schuss kommt
+   (feste Folge der Zuendschnur) und wann (0,2-0,4 s Abstand). mod.plan:
+   nur planen, nichts zuenden (Modell auf dem Tisch, Tests). */
+function playShow(o,phases,prod,tag,mod){
+  const PLAN=!!(mod&&mod.plan);
+  if(typeof istBatterie==='function'&&istBatterie(prod)) return rohrSaat(saatZahl(prod),()=>playShowRoh(o,phases,prod,tag,PLAN));
+  return playShowRoh(o,phases,prod,tag,false);
+}
+function playShowRoh(o,phases,prod,tag,PLAN){
   phases=showNorm(phases);
   tag=tag||neuerShowTag();
   const BS=phases.basis||SHOW_BASIS[prod]||{pw:0,sz:1,th:null};
@@ -285,6 +295,8 @@ function playShow(o,phases,prod,tag){
   /* Batterien: jeder Schuss und jeder Boden-Effekt aus seinem eigenen
      Rohr (04c, Tom 01.10.: so viele Loecher wie Schuss) */
   const RS=rohrSatz(o,prod);
+  /* Batterie: Ereignisse sammeln statt sofort einplanen */
+  const EV=[], plane=(tt,fn,info)=>{ if(RS||PLAN) EV.push(Object.assign({tt,fn},info||{})); else later(tt,fn); };
   phases.forEach((ph0,pi)=>{
     const ph=phNorm(ph0), t=zeiten[pi], pl=plaene[pi], n=pl.n, th=ph.th||BS.th, je=pl.je;
     const m=ph.muster||(ph.fan?'fan':ph.vfan?'vfan':null);
@@ -297,13 +309,13 @@ function playShow(o,phases,prod,tag){
     const bodenAn=(b,st,ort)=>{ const [gA,gB]=paar(0), A=farbe(b.A)||(b.gA?K(b.gA):gA), B=farbe(b.B)||(b.gB?K(b.gB):gB);
       /* bis: Ziel des Lauffeuers (sonst 0,4 m weiter) - auch gestaucht */
       const offB=VM.nimm((ort||0)+(+b.x||0)), offZ=b.bis!==undefined?VM.nimm((ort||0)+(+b.bis||0)):b.k==='lauffeuer'?VM.nimm(offB+0.4):null;
-      if(b.k==='monsterfont'){ later(st,()=>monsterFontaene(ortAus(offB),b.gh||20,b.gt||8,b.farben||[A,B,FW.gold])); return; }
+      if(b.k==='monsterfont'){ plane(st,()=>monsterFontaene(RS?RS.modul(offB*VM.k()):ortAus(offB),b.gh||20,b.gt||8,b.farben||[A,B,FW.gold]),{art:'b'}); return; }
       /* spielraum: Platz vom Emitter bis zum Rand des Produkts - breite
          oder wandernde Boden-Emitter (Wasserfall, Kreisel, Kessel)
          bleiben darin */
       const e=Object.assign({},b,{t:b.gt||4,k:b.k,A,B,h:b.gh||1,tag,versatz:b.t||0});
       delete e.je; delete e.x; delete e.bis;
-      later(st,()=>{ e.o=RS?RS.nimm(offB*VM.k()):ortAus(offB); e.spielraum=Math.max(0.02,VM.halb-Math.abs(offB*VM.k())); if(offZ!==null){ e.ziel=ortAus(offZ); e.bis=(offZ-offB)*VM.k(); } emitters.push(e); sfx.fizz(distVol(e.o)); }); };
+      plane(st,()=>{ e.o=RS?RS.modul(offB*VM.k()):ortAus(offB); e.spielraum=Math.max(0.02,VM.halb-Math.abs(offB*VM.k())); if(offZ!==null){ e.ziel=ortAus(offZ); e.bis=(offZ-offB)*VM.k(); } emitters.push(e); sfx.fizz(distVol(e.o)); },{art:'b'}); };
     if(ph.ground) bodenAn({k:ph.ground,gt:ph.gt,gh:ph.gh,gA:ph.gA,gB:ph.gB,farben:ph.farben},t);
     const boeden=ph.boden?(Array.isArray(ph.boden)?ph.boden:[ph.boden]):[];
     boeden.forEach(b=>{ if(!b.je) bodenAn(b,t+(b.t||0)); });
@@ -397,6 +409,8 @@ function playShow(o,phases,prod,tag){
          Form - ihr Zielpunkt wandert nur ein paar Dezimeter. */
       const streu=ph.streu!==undefined?ph.streu:ROHR_STREU;
       let sAng=ang, sDir=dir;
+      /* Batterie: Richtung schon hier festlegen (Saat), das Rohr steht so */
+      if(RS&&dir===undefined&&!ziel) sDir=rand(0,Math.PI*2);
       if(streu>0&&!ziel){ const r=streu*Math.sqrt(Math.random()), az=Math.random()*Math.PI*2, d0=dir===undefined?rand(0,Math.PI*2):dir;
         const vx=Math.sin(d0)*Math.sin(ang)+Math.sin(az)*r, vz=Math.cos(d0)*Math.sin(ang)+Math.cos(az)*r, vy=Math.cos(ang);
         sAng=Math.atan2(Math.hypot(vx,vz),vy); sDir=Math.atan2(vx,vz); }
@@ -409,8 +423,15 @@ function playShow(o,phases,prod,tag){
       /* Boden je Gruppe am Gruppenort */
       if(q===0) boeden.forEach(b=>{ if(b.je) bodenAn(b,tt+(b.t||0),off); });
       const [mA,mB]=[A,B];
-      later(tt,()=>{
-        const os=RS?RS.nimm(mitOrt?off*VM.k():0):(mitOrt?ortAus(off):o);
+      /* Richtung des Rohrs (Welt): Zielschuss zum Zielpunkt, Mine und
+         Kugel senkrecht, sonst Winkel und Azimut des Schusses */
+      let rv=null;
+      if(ziel){ const T=opt.fuse||zielZeit(ziel.y-(o.y||0)), v=zielTempo(V(o.x,o.y||0,o.z),ziel,T), l=v.length()||1; rv=[v.x/l,v.y/l,v.z/l]; }
+      else if(ph.bomb||ph.nurMine||ph.mine||ph.mineEff) rv=[0,1,0];
+      else if(ph.perle){ const a=mm&&mm!=='gerade'?ang:0, d0=dir===undefined?FANDIR:dir; rv=[Math.sin(d0)*Math.sin(a),Math.cos(a),Math.cos(d0)*Math.sin(a)]; }
+      plane(tt,ev=>{
+        const os=RS?RS.ort(ev.k):(mitOrt?ortAus(off):o);
+        if(RS) RS.feuer(ev.k,os);
         const alt=FW_TAG; FW_TAG=tag;
         /* licht: ein Lichtertyp direkt aus dem Rohr, ohne Bombette (14m,
            01.10., Tom: Kometen, Blinker, Fontaenen, Wasserfall ...) */
@@ -428,9 +449,16 @@ function playShow(o,phases,prod,tag){
           else shot(os,opt);
         }
         FW_TAG=alt;
-      });
+      },{art:'s',ang:sAng,dir:sDir,rv});
     });
   });
+  if(RS||PLAN){
+    const Z=zuendFolge(EV,prod,showDauer(phases));
+    if(PLAN) return Z;
+    for(const e of EV) later(e.tt,()=>e.fn(e));
+    later(Z.letzter+0.35,()=>RS.nachrauch(3.2));
+    return Z.dauer;
+  }
   return showDauer(phases);
 }
 /* Rohrstreuung der Batterien in rad (siehe show): 0,05 rad = knapp 3 Grad,
@@ -609,7 +637,10 @@ const SHOWS={};
 /* Raketensets: die Eintraege stehen seit dem 26.09. in 14i-db-raketen.js
    (Tom: "jede Rakete eine Anomalie" - eigener Aufstieg, eigener Bruch). */
 const RAKETEN_KL={};
-function showLength(id){ const f=SHOWS[id]; if(!f) return 0; return Math.round(showDauer(f())); }
+function showLength(id){ const f=SHOWS[id]; if(!f) return 0;
+  /* Batterien: Dauer nach der echten Zuendfolge (0,2-0,4 s je Schuss) */
+  if(typeof istBatterie==='function'&&istBatterie(id)){ const Z=zuendPlan(id); if(Z) return Math.round(Z.dauer); }
+  return Math.round(showDauer(f())); }
 
 /* =========================================================
    Zünden
@@ -641,8 +672,13 @@ function igniteType(t,o0,it){
     if(tr.shape==='shell'){
       kugelbombe(o,rz.traeger==='kugel100'?2:1,{A,B,eff:rz.eff});
     } else if(tr.shape==='battery'){
+      /* eigene Batterie: wie jede Batterie Rohr fuer Rohr nach Plan */
       emitters.push({t:0.7,k:'fuse',o});
-      for(let i=0;i<tr.schuss;i++) later(0.7+i*0.32,()=>
+      const Z=zuendPlan(t), RS=rohrSatz(o,t);
+      if(Z&&RS){ Z.S.forEach((e,i)=>later(0.7+e.tt,()=>{ const os=RS.ort(e.k); RS.feuer(e.k,os);
+          shot(os,{sz:tr.kal,eff:rz.eff,A,B,ang:e.ang,dir:e.dir,stufen:i===Z.S.length-1?st:null}); }));
+        later(0.7+Z.letzter+0.35,()=>RS.nachrauch(3.2)); }
+      else for(let i=0;i<tr.schuss;i++) later(0.7+i*0.32,()=>
         shot(o,{sz:tr.kal,eff:rz.eff,A,B,ang:rand(-0.08,0.08),stufen:i===tr.schuss-1?st:null}));
     } else if(tr.shape==='cylinder'){
       const v=distVol(o);

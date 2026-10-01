@@ -27,10 +27,10 @@ function redraw(t,draw){ const c=t.image; draw(c.getContext('2d'),c.width,c.heig
 function tm(x,y,z,rx,ry,rz,sx,sy,sz){ const m=new THREE.Matrix4(); m.compose(V(x,y,z),new THREE.Quaternion().setFromEuler(new THREE.Euler(rx||0,ry||0,rz||0)),V(sx||1,sy||1,sz||1)); return m; }
 function merge(parts){
   let total=0;
-  const gs=parts.map(p=>{ const g=p.geo.index?p.geo.toNonIndexed():p.geo.clone(); g.applyMatrix4(p.m); total+=g.attributes.position.count; return {g,c:p.color}; });
+  const gs=parts.map(p=>{ const g=p.geo.index?p.geo.toNonIndexed():p.geo.clone(); g.applyMatrix4(p.m); total+=g.attributes.position.count; return {g,c:p.color,p}; });
   const pos=new Float32Array(total*3), nor=new Float32Array(total*3), uv=new Float32Array(total*2), col=new Float32Array(total*3); let o=0;
-  for(const {g,c} of gs){
-    const n=g.attributes.position.count;
+  for(const {g,c,p} of gs){
+    const n=g.attributes.position.count; p._o=o; p._n=n;   // Eckbereich je Teil (Rohre verkohlen einzeln)
     pos.set(g.attributes.position.array,o*3); nor.set(g.attributes.normal.array,o*3);
     if(g.attributes.uv) uv.set(g.attributes.uv.array,o*2);
     const cc=LIN(c===undefined?0xffffff:c);

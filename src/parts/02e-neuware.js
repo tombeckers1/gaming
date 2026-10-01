@@ -739,6 +739,25 @@ const NEU_TEST={batterien:['lb_goldader','lb_geisterstunde','lb_kreuzfeuer','lb_
    50 cm vom Mittelpunkt, also neben dem Karton (28.09., Tom: "wenn der
    Effekt zu gross ist, dann die Produktgroesse aendern"). Hoechstens
    1 m, so breit wie ein Tischplatz. */
+/* 01.10. abends (Tom: "Batterie-Varianten anlegen, jede mit eigener
+   Verpackung, Roehrenzahl, Preis und Effekt"): vier Batterien nach dem
+   Rohr-Raster - die Rohre stehen genau so (raster), wie es draufsteht.
+   Drehbuecher und Effekte in 14o-rohrbatterien.js. */
+Object.assign(NEUWARE,{
+  rb25:{name:'Farbreihen · 25 Schuss Einfarb-Bombetten',short:'Farbreihen 25',cat:2,lvl:12,shape:'battery',raster:[5,5],dims:[0.26,0.2,0.26],grid:[7,2,1],box:6,cost:8.20,market:18.99,weight:6,hype:22,risk:6,
+    desc:'5 × 5 Rohre, jede Reihe eine Farbe: fünf rote Bombetten, fünf grüne, fünf blaue, fünf goldene, fünf weiße – jede Kugel einfarbig und klar wie ein Glasstein.',
+    art:{title:'FARBREIHEN',sub:'25 Schuss · 5×5 · Einfarb-Bombetten',bg1:'#1a2a6a',bg2:'#070a1e',ac:'#ff4a4a',ac2:'#5cff9e'}},
+  rb49:{name:'Konfetti · 49 Schuss Farbmix',short:'Konfetti 49',cat:2,lvl:15,shape:'battery',raster:[7,7],dims:[0.34,0.26,0.34],grid:[5,1,1],box:4,cost:15.50,market:36.99,weight:5,hype:38,risk:7,
+    desc:'7 × 7 Rohre voller Farbmix-Bomben: in jeder Kugel stecken vier Farben durcheinander wie Konfetti, Reihe für Reihe aus einer anderen Farbkiste.',
+    art:{title:'KONFETTI',sub:'49 Schuss · 7×7 · gemischte Farben',bg1:'#6a1a5a',bg2:'#14031a',ac:'#ffd23f',ac2:'#5ce1ff'}},
+  rb100:{name:'Stakkato · 100 Schuss Schnellfeuer',short:'Stakkato 100',cat:2,lvl:18,shape:'battery',raster:[10,10],dims:[0.5,0.3,0.5],grid:[4,1,1],box:2,cost:30.00,market:69.99,weight:4,hype:56,risk:8,
+    desc:'10 × 10 Rohre im schnellsten Takt der Batterie: fünf Schuss pro Sekunde, kleine harte Stakkato-Sterne mit Knister-Spitzen, zwanzig Sekunden ohne Pause.',
+    art:{title:'STAKKATO',sub:'100 Schuss · 10×10 · 5 Schuss/s',bg1:'#2a2a2a',bg2:'#050505',ac:'#ff5a1e',ac2:'#f2f5ff'}},
+  rbfaecher:{name:'Pfauenschweif · 30 Schuss Fächerbatterie',short:'Pfauenschweif 30',cat:2,lvl:16,shape:'fan',raster:[6,5],dims:[0.44,0.3,0.34],grid:[4,1,1],box:3,cost:17.50,market:39.99,weight:5,hype:42,risk:7,
+    desc:'Sechs Spalten schräger Rohre: jede Reihe fächert von außen nach außen – erst nach rechts, dann nach links, wie ein Pfau, der sein Rad schlägt. Goldpalmen mit grünen und blauen Spitzen.',
+    art:{title:'PFAUENSCHWEIF',sub:'30 Schuss · Fächer · 6 Spalten',bg1:'#0a4a4a',bg2:'#021414',ac:'#ffd23f',ac2:'#3a8aff'}}
+});
+NEU_GRUPPE.batterien.push('rb25','rb49','rb100','rbfaecher');
 /* Einhaengen */
 (function(){
   for(const t in NEUWARE){

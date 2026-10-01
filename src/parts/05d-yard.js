@@ -152,34 +152,43 @@ function buildYard(){
       g2.font=BUN(62); g2.textAlign='center'; g2.textBaseline='middle';
       g2.fillText('ZÜNDTISCH',W/2,H/2+3); })}),steelDark);
   }
-  /* --- Abschussröhren --- */
+  /* --- Abschussröhren ---
+     (01.10. abends, Tom: "Raketen starten einzeln aus einer Abschuss-
+     vorrichtung auf dem Tisch"): ein Stahltisch, darauf drei Abschussrohre
+     auf schweren Fussplatten - je Rohr genau eine Rakete, der Stab haengt
+     im Rohr. Vorher standen 1,25 m lange Rohre in einem Bodengestell. */
   {
     const s=STATION_POS.rampe, g=new THREE.Group(); g.position.set(s.x,0,s.z); scene.add(g);
-    /* drei Rohre - das Gestell ist entsprechend schmaler */
-    bbox(1.3,0.09,0.75,steelDark,0,0.045,0,g);
-    for(const x of [-0.58,0.58]){ bbox(0.08,0.06,0.8,steelDark,x,0.1,0,g,false); }
-    bbox(1.24,0.06,0.06,steelDark,0,1.05,-0.26,g,false);
-    bbox(1.24,0.06,0.06,steelDark,0,0.62,0.26,g,false);
-    for(const x of [-0.62,0.62]){
-      bbox(0.07,1.1,0.07,steelDark,x,0.6,-0.26,g);
-      const d=bbox(0.06,0.78,0.06,steelDark,x,0.42,0.02,g,false); d.rotation.x=-0.62;
-    }
+    const TT=RAMPE_TISCH;
+    bbox(1.3,0.04,0.74,perfM,0,TT-0.02,0,g);
+    bbox(1.36,0.05,0.05,steelDark,0,TT-0.025,0.37,g); bbox(1.36,0.05,0.05,steelDark,0,TT-0.025,-0.37,g);
+    bbox(0.05,0.05,0.76,steelDark,0.66,TT-0.025,0,g); bbox(0.05,0.05,0.76,steelDark,-0.66,TT-0.025,0,g);
+    for(const [x,z] of [[-0.58,-0.3],[0.58,-0.3],[-0.58,0.3],[0.58,0.3]]){
+      bbox(0.06,TT-0.05,0.06,steelDark,x,(TT-0.05)/2,z,g);
+      bbox(0.11,0.025,0.11,rubber,x,0.012,z,g,false); }
+    bbox(1.1,0.03,0.12,steelDark,0,0.26,0.3,g,false); bbox(1.1,0.03,0.12,steelDark,0,0.26,-0.3,g,false);
     const tubeM=std(0x3e4652,{metalness:0.72,roughness:0.34});
+    const A=ROHR_ACHSE, c=Math.cos(A.neig), sn=Math.sin(A.neig);
     for(let i=0;i<s.cap;i++){
       const x=RAMPE_X[i];
-      const t=new THREE.Mesh(new THREE.CylinderGeometry(0.062,0.062,1.25,20,1,true),tubeM);
-      t.material.side=THREE.DoubleSide; t.position.set(x,0.72,-0.02); t.rotation.x=-0.1;
+      const t=new THREE.Mesh(new THREE.CylinderGeometry(0.062,0.062,A.halb*2,20,1,true),tubeM);
+      t.material.side=THREE.DoubleSide; t.position.set(x,A.y,A.z); t.rotation.x=A.neig;
       if(HIQ) t.castShadow=true; g.add(t);
-      const inner=new THREE.Mesh(new THREE.CylinderGeometry(0.056,0.056,1.2,16,1,true),std(0x14161b,{roughness:0.9,side:THREE.DoubleSide}));
+      const inner=new THREE.Mesh(new THREE.CylinderGeometry(0.056,0.056,A.halb*2-0.03,16,1,true),std(0x14161b,{roughness:0.9,side:THREE.DoubleSide}));
       inner.position.copy(t.position); inner.rotation.copy(t.rotation); g.add(inner);
+      /* Boden des Rohrs, Muendungsring, Schelle */
+      const fussY=A.y-c*A.halb, fussZ=A.z-sn*A.halb;
+      const boden=new THREE.Mesh(new THREE.CylinderGeometry(0.062,0.062,0.012,20),steelDark); boden.position.set(x,fussY,fussZ); boden.rotation.x=A.neig; g.add(boden);
       const ring=new THREE.Mesh(new THREE.TorusGeometry(0.064,0.013,8,18),steel);
-      ring.rotation.x=Math.PI/2-0.1; ring.position.set(x,1.33,-0.08); g.add(ring);
-      const ring2=new THREE.Mesh(new THREE.TorusGeometry(0.066,0.015,8,18),steelDark);
-      ring2.rotation.x=Math.PI/2-0.1; ring2.position.set(x,0.86,0.01); g.add(ring2);
-      bbox(0.17,0.025,0.17,steelDark,x,0.105,0.04,g,false);
+      ring.rotation.x=Math.PI/2+A.neig; ring.position.set(x,A.y+c*A.halb,A.z+sn*A.halb); g.add(ring);
+      const schelle=new THREE.Mesh(new THREE.TorusGeometry(0.066,0.012,8,18),steelDark);
+      schelle.rotation.x=Math.PI/2+A.neig; schelle.position.set(x,A.y-c*A.halb*0.55,A.z-sn*A.halb*0.55); g.add(schelle);
+      /* schwere Fussplatte mit zwei Stuetzen zur Schelle */
+      bbox(0.24,0.022,0.24,steelDark,x,TT+0.011,fussZ,g,false);
+      for(const sx of [-1,1]){ const st=bbox(0.014,0.2,0.014,steelDark,x+sx*0.085,TT+0.1,fussZ+0.02,g,false); st.rotation.z=-sx*0.32; }
     }
-    for(let i=0;i<s.cap;i++) plane(0.1,0.064,kanalMat(KANAL_START.rampe+i),RAMPE_X[i],0.62,0.292,0,g);
-    const hit=bbox(1.4,1.5,0.95,hitM,0,0.78,0,g,false);
+    for(let i=0;i<s.cap;i++) plane(0.1,0.064,kanalMat(KANAL_START.rampe+i),RAMPE_X[i],TT-0.03,0.378,0,g);
+    const hit=bbox(1.4,1.5,0.85,hitM,0,0.78,0,g,false);
     stations.rampe={id:'rampe',g,items:[],cap:s.cap,hit};
     hit.userData={kind:'station',ref:stations.rampe};
     col(s.x-0.68,s.x+0.68,s.z-0.46,s.z+0.46);
@@ -503,7 +512,7 @@ function muendung(st,slot,t){
   const pc=P[t];
   if(pc&&pc.shape==='candle'&&pc.dims){ const k=kerzeImRohr(slot,t);
     return {x:k.top.x,y:k.top.y,z:k.top.z,ab:0.02,jit:0.005,hx:k.hx,hz:k.hz}; }
-  return {x:p.x+RAMPE_X[slot%3],y:1.34,z:p.z-0.08,ab:0.05,jit:0.02,hx:0.045,hz:0.045};
+  const mu=rampeMund(slot); return {x:mu.x,y:mu.y,z:mu.z,ab:0.05,jit:0.02,hx:0.045,hz:0.045};
 }
 function placedCount(){ let n=0; for(const k in stations) n+=stations[k].items.length; return n; }
 function bereitCount(){ let n=0; for(const k in stations) n+=stations[k].items.filter(it=>it.state==='bereit').length; return n; }
@@ -546,7 +555,11 @@ function pultLampen(){
    stand senkrecht auf dem Rand und machte die Neigung nicht mit. Jetzt
    folgt es der Rohrachse, ist so schmal, dass es hineinpasst (einzelne
    Kerzen 2-3 cm wie in echt), und das obere Drittel schaut heraus. */
-const ROHR_ACHSE={y:0.72,z:-0.02,neig:-0.1,halb:0.625,innen:0.056};
+/* Abschussrohre auf dem Tisch (01.10. abends): Platte in 0,76 m, Rohr
+   0,62 m lang, um 0,1 rad vom Pult weg geneigt - Muendung in 1,38 m */
+const RAMPE_TISCH=0.76;
+const ROHR_ACHSE={y:RAMPE_TISCH+0.012+0.31*Math.cos(0.1),z:-0.055,neig:-0.1,halb:0.31,innen:0.056};
+function rampeMund(slot){ const p=STATION_POS.rampe, A=ROHR_ACHSE; return {x:p.x+RAMPE_X[slot%3],y:A.y+Math.cos(A.neig)*A.halb,z:p.z+A.z+Math.sin(A.neig)*A.halb}; }
 function kerzeImRohr(slot,t){
   const p=STATION_POS.rampe, d=P[t].dims, w=d[0], HH=d[1]*0.9;
   const s=Math.min(1,(ROHR_ACHSE.innen*2-0.008)/(1.41*w));
@@ -559,7 +572,7 @@ function stationSlot(st,i){
   const p=STATION_POS[st.id];
   if(st.id==='tisch') return {x:p.x+TISCH_X[i%3],y:0.93,z:p.z,ry:Math.PI};
   if(st.id==='moerser'){ const x=[-0.72,0,0.78][i%3]; return {x:p.x+x,y:[1.36,1.62,1.92][i%3],z:p.z,ry:rand(0,Math.PI*2)}; }
-  return {x:p.x+RAMPE_X[i%3],y:1.18,z:p.z-0.08,ry:0};
+  const mu=rampeMund(i); return {x:mu.x,y:mu.y-0.16,z:mu.z,ry:0};
 }
 /* =========================================================
    Was auf der Station sichtbar steht. Raketen stecken mit dem Stab
@@ -585,9 +598,10 @@ function raketeModell(t){
   const L0=RAKETEN_LOOK[t]||{r:0.028,L:0.2,body:a.bg1||'#35157a',kopf:a.ac||'#ffd23f',band:a.ac2||'#ffffff'};
   const g=new THREE.Group();
   const mat=h=>std(parseInt(h.slice(1),16),L0.metall?{metalness:0.55,roughness:0.3}:{roughness:0.5});
-  /* Stab steckt im Rohr */
-  const stab=new THREE.Mesh(new THREE.CylinderGeometry(L0.jumbo?0.011:0.006,L0.jumbo?0.011:0.006,0.95,6),std(0xc9a46a,{roughness:0.8}));
-  stab.position.y=-0.46; g.add(stab);
+  /* Stab haengt im Abschussrohr (0,62 m) - er reicht nicht bis zum Boden */
+  const SL=0.56;
+  const stab=new THREE.Mesh(new THREE.CylinderGeometry(L0.jumbo?0.011:0.006,L0.jumbo?0.011:0.006,SL,6),std(0xc9a46a,{roughness:0.8}));
+  stab.position.y=-SL/2+0.01; g.add(stab);
   /* Treibsatz, Band, Kopf */
   const body=new THREE.Mesh(new THREE.CylinderGeometry(L0.r,L0.r,L0.L,HIQ?16:10),mat(L0.body));
   body.position.y=L0.L/2; g.add(body);
@@ -702,6 +716,10 @@ function placeOnStation(st){
     if(st.id==='rampe'&&P[c.type].shape==='candle'){
       const k=kerzeImRohr(slot,c.type); _e.set(k.neig,0,0); _q.setFromEuler(_e);
       it.h=pools[c.type].add(new THREE.Matrix4().compose(V(k.base.x,k.base.y,k.base.z),_q,V(k.s,1,k.s)));
+    } else if(istBatterie(c.type)){
+      /* Batterie: eigenes Modell mit echten Rohren - jedes Rohr verkohlt,
+         sobald es geschossen hat; sie bleibt stehen, bis sie abgebrannt ist */
+      const b=batterieModell(c.type,sl.ry); b.g.position.set(sl.x,sl.y,sl.z); b.g.rotation.y=sl.ry; scene.add(b.g); it.batt=b;
     } else it.h=stationsPool(c.type).add(mx(sl.x,sl.y,sl.z,sl.ry));
   }
   st.items.push(it);
@@ -712,6 +730,7 @@ function placeOnStation(st){
 }
 function itemEntfernen(st,it){
   if(it.h) it.h.pool.remove(it.h);
+  if(it.batt) it.batt.weg();
   if(it.mesh) disposeEngraved(it.mesh);
   if(it.modell&&it.modell.parent) it.modell.parent.remove(it.modell);
   if(it.gestell&&it.gestell.parent) it.gestell.parent.remove(it.gestell);
@@ -727,6 +746,8 @@ function testfeldMitte(){
    stehen, danach ist es verbraucht und verschwindet. */
 function brennDauer(t){
   const p=P[t]; if(!p) return 3;
+  /* Batterie: bis der letzte Schuss raus ist und sie ausgeraucht hat */
+  if(typeof istBatterie==='function'&&istBatterie(t)){ const Z=zuendPlan(t); return 0.8+Math.max(Z.letzter+4.2,Z.dauer+1.5); }
   if(typeof SHOWS!=='undefined'&&SHOWS[t]) return 0.8+showLength(t)+1.5;
   if(typeof neuDauer==='function'){ const d=neuDauer(t); if(d) return d; }
   const fest={wunder:5,knallerbsen:2.2,knallfrosch:2.8,tisch:3,schwaermer:3.8,vulkan:14,wasserfall:23,
@@ -745,6 +766,7 @@ function zuendeItem(st,it,leise){
   if(!it||it.state!=='bereit') return false;
   it.state='brennt';
   const o=muendung(st,it.slot,it.type);
+  if(it.batt) o.batt=it.batt;
   const dud=Math.random()<clamp((1-(it.q||1))*0.65,0,0.45);
   /* Raketen und Kugelbomben brennen erst die Zuendschnur herunter,
      dann verlassen sie Rohr oder Moerser - und sind weg. */

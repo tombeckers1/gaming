@@ -159,7 +159,7 @@ function vorfuehrungAus(){
 /* 30.09. (Tom: "alle Test-Vorfuehrungen in die Mitte des Testfelds, dass
    man alles gut sehen kann - aktuell hinten links"): die Reihe steht in der
    Mitte (Testfeld z -28..-6), die normalen Stationen sind solange ausgeblendet */
-const VF_Z=-18.0, VF_TISCH={x0:-7.0,n:10,dx:0.52,y:0.93}, VF_ROHR={x0:-1.4,n:12,dx:0.3,y:1.34}, VF_MOERSER={x0:2.9,n:4,dx:0.42,gdx:1.7,hoch:[0.62,0.82,1.02]};
+const VF_Z=-18.0, VF_TISCH={x0:-7.0,n:10,dx:0.52,y:0.93}, VF_ROHR={x0:-1.4,n:12,dx:0.3,y:1.38}, VF_MOERSER={x0:2.9,n:4,dx:0.42,gdx:1.7,hoch:[0.62,0.82,1.02]};
 let vfAnlage=null, vfBelegt={};
 function vfAnlageBauen(){
   if(vfAnlage){ vfAnlage.visible=true; return; }
@@ -169,8 +169,11 @@ function vfAnlageBauen(){
   box(tw,0.06,0.9,holz,tx,T.y-0.03,VF_Z);
   for(const sx of [-1,1]) for(const sz of [-1,1]) box(0.08,T.y-0.06,0.08,stahl,tx+sx*(tw/2-0.1),(T.y-0.06)/2,VF_Z+sz*0.35);
   const R=VF_ROHR, rw=(R.n-1)*R.dx+0.4, rx=R.x0+(R.n-1)*R.dx/2;
-  box(rw,0.1,0.5,stahl,rx,0.05,VF_Z); box(rw,0.06,0.12,stahl,rx,0.9,VF_Z);
-  for(let i=0;i<R.n;i++){ const c=new THREE.Mesh(new THREE.CylinderGeometry(0.055,0.055,1.25,14,1,true),rohrM); c.position.set(R.x0+i*R.dx,R.y-0.625,VF_Z); g.add(c); }
+  /* Raketen: Abschussrohre (0,62 m) auf Fussplatten auf einem Tisch, wie an der Station */
+  box(rw,0.04,0.5,stahl,rx,0.74,VF_Z);
+  for(const sx of [-1,1]) for(const sz of [-1,1]) box(0.06,0.72,0.06,stahl,rx+sx*(rw/2-0.08),0.36,VF_Z+sz*0.2);
+  for(let i=0;i<R.n;i++){ const c=new THREE.Mesh(new THREE.CylinderGeometry(0.055,0.055,0.62,14,1,true),rohrM); c.position.set(R.x0+i*R.dx,R.y-0.31,VF_Z); g.add(c);
+    box(0.16,0.02,0.16,stahl,R.x0+i*R.dx,0.77,VF_Z); }
   const M=VF_MOERSER;
   for(let k=0;k<3;k++){ const gx=M.x0+k*M.gdx, h=M.hoch[k], r=ROHR_INNEN[k]+0.012;
     box(M.n*M.dx+0.1,0.12,0.6,gruen,gx+(M.n-1)*M.dx/2,0.06,VF_Z);
@@ -197,8 +200,9 @@ function vfZuenden(t){
   if(!t||!P[t]) return false;
   const o=vfMuendung(t), dauer=brennDauer(t), vor=o.sid==='moerser'?0.75:o.sid==='rampe'?0.4:0;
   vfBelegt[o.art]=FW_UHR+vor+dauer+0.5;
-  let h=null;
-  if(o.sid==='tisch'&&stationsPool(t)&&!stationsPool(t).full()) h=stationsPool(t).add(mx(o.x,o.boden,o.z,Math.PI));
+  let h=null, bt=null;
+  if(o.sid==='tisch'&&istBatterie(t)){ bt=batterieModell(t,Math.PI); bt.g.position.set(o.x,o.boden,o.z); bt.g.rotation.y=Math.PI; scene.add(bt.g); o.batt=bt; }
+  else if(o.sid==='tisch'&&stationsPool(t)&&!stationsPool(t).full()) h=stationsPool(t).add(mx(o.x,o.boden,o.z,Math.PI));
   if(vor){ emitters.push({t:vor,k:'fuse',o:{x:o.x,y:o.y,z:o.z}}); sfx.fizz(distVol(o)*0.5); }
   later(vor,()=>{ if(vfAn) igniteType(t,o); });
   /* der Blick folgt dem Produkt: zur Seite auf seinen Platz, nach oben so
@@ -207,6 +211,7 @@ function vfZuenden(t){
   { const sh=P[t].shape; pitch=o.sid==='tisch'?(SHOWS[t]||sh==='battery'||sh==='fan'?0.55:sh==='fountain'||sh==='cylinder'||sh==='fountainset'?0.35:0.1):o.sid==='rampe'?0.72:0.85;
     yaw=Math.atan2(-(o.x-pl.x),-(o.z-pl.z)); }
   if(h) later(vor+dauer,()=>{ if(h.pool) h.pool.remove(h); });
+  if(bt) later(vor+dauer,()=>bt.weg());
   vfLetzt=t; return true;
 }
 function vfNaechstes(){ if(!vfListe.length) return; vfZuenden(vfListe[vfIdx]); vfIdx=Math.min(vfListe.length,vfIdx+1); vfMerken(); vfZeigen(); }

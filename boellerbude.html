@@ -3841,13 +3841,6 @@ function rohrSaat(seed,fn){ const alt=Math.random; Math.random=saatZufall(seed);
    schnell/langsam erhalten, jeder Schuss hat seinen eigenen Takt. */
 const ZUEND_MIN=0.2, ZUEND_MAX=0.4;
 function zuendAbstand(d){ return ZUEND_MIN+(ZUEND_MAX-ZUEND_MIN)*clamp(d/0.6,0,1); }
-/* Zeitachse der Zuendfolge: alte Schusszeiten -> neue (0,2-0,4 s Takt) */
-function zeitAchse(zeiten){ const alt=zeiten.slice().sort((a,b)=>a-b), neu=[]; let T=alt.length?alt[0]:0;
-  alt.forEach((t,i)=>{ if(i) T+=zuendAbstand(t-alt[i-1]); neu.push(T); });
-  const map=t=>{ if(!alt.length||t<=alt[0]) return t;
-    for(let i=1;i<alt.length;i++) if(t<=alt[i]){ const u=alt[i]-alt[i-1]; return neu[i-1]+(u>0?(t-alt[i-1])/u:1)*(neu[i]-neu[i-1]); }
-    return neu[neu.length-1]+Math.min(t-alt[alt.length-1],2.5); };
-  return {map,start:neu.length?neu[0]:0,ende:neu.length?neu[neu.length-1]:0}; }
 /* Zuendfolge einer Batterie aus den geplanten Ereignissen von playShow:
    Schuss i (nach Zeit) kommt aus Rohr folge[i], neue Zeiten im Takt
    0,2-0,4 s. Boden-Ereignisse rutschen mit (Zeitachse stueckweise). */
@@ -20174,12 +20167,7 @@ function playShowRoh(o,phases,prod,tag,PLAN){
   let t0=null, t1=0;
   phases.forEach((ph,pi)=>{ const S=plaene[pi].schuesse; if(!S.length) return; const s=zeiten[pi];
     t0=t0===null?s+S[0].t:Math.min(t0,s+S[0].t); t1=Math.max(t1,s+S[S.length-1].t); });
-  let rampe=tt=>showRampe(t1>t0?clamp((tt-t0)/(t1-t0),0,1):0.5,R);
-  /* Batterie: die Steigerung laeuft ueber die echte Zuendfolge (0,2-0,4 s
-     je Rohr), nicht ueber die Drehbuch-Zeit - sonst laege das letzte
-     Drittel der echten Show noch mitten in der Rampe */
-  if(PLAN||(typeof istBatterie==='function'&&istBatterie(prod)&&o)){ const A=zeitAchse(phases.map((ph,pi)=>plaene[pi].schuesse.map(x=>zeiten[pi]+x.t)).flat());
-    if(A.ende>A.start) rampe=tt=>showRampe(clamp((A.map(tt)-A.start)/(A.ende-A.start),0,1),R); }
+  const rampe=tt=>showRampe(t1>t0?clamp((tt-t0)/(t1-t0),0,1):0.5,R);
   /* Breite der Batterie fuer den Abschuss ueber mehrere Rohre: die
      Oeffnung des Produkts (vorher Kartonbreite x 1,1 und mindestens
      30 cm - die aeusseren Rohre lagen neben dem Karton) */
@@ -22814,7 +22802,7 @@ Object.assign(THEMEN,{
 /* Level 16: Sonnenaufgang. 28.09. (Tom: echt): ohne rotes Bengal-
    Dauerlicht am Boden; zum Schluss geht die Sonne als goldenes Pistill
    mit orangem Kern auf (vorher ein perfekter Goldreif um eine Kugel) */
-SHOWS.faecher=()=>show({basis:{pw:0.00,sz:1.000,th:'morgen'},rampe:{sz:[0.85,1.30],pw:[-3,2],hell:[0.70,1.35],kurve:'spaet'}},[
+SHOWS.faecher=()=>show({basis:{pw:0.00,sz:1.000,th:'morgen'},rampe:{sz:[0.60,1.60],pw:[-3,2],hell:[0.70,1.35],kurve:'linear'}},[
   /* Morgenroete - tief, langsam: Scharlach, das zu Gold wird (28.09.: statt
      tiefer Dahlien, deren grosse Sterne nah am Zuendpult wie Lampen wirkten) */
   {n:4,gap:1.8,muster:'gerade',eff:'wechsel',kal:'klein',pw:-5,farbe:2,steig:'glut',pause:1.0},
@@ -22947,7 +22935,7 @@ SIGNATUR.zfaecher={eff:'donnerblitz',text:'Titanblitze mit Donner und nachflacke
 /* Level 17: Achterbahn. 28.09. (Tom: "Farben zu durcheinander"): nur
    Violett und Gold (vorher Blau, Rosa, Violett, Magenta, Gelb), Farbwechsel
    statt Geisterkugeln mit dritter Zufallsfarbe, Palmen golden */
-SHOWS.batterie100=()=>show({basis:{pw:0.70,sz:1.060,th:'achterbahn'},rampe:{sz:[0.90,1.20],pw:[0,0],hell:[0.90,1.25],kurve:'linear'}},[
+SHOWS.batterie100=()=>show({basis:{pw:0.70,sz:1.060,th:'achterbahn'},rampe:{sz:[0.52,1.50],pw:[-1,1],hell:[0.90,1.25],kurve:'linear'}},[
   /* Kettenaufzug: jeder Schuss 2,5 m hoeher (28.09.: ohne Warnblinker
      am Boden - eine Batterie hat kein Stroboskop) */
   /* 27.09.: Hoehenspannen kleiner (Aufzug 16, Drop 18, Buckel 14 statt 30/35/20) -

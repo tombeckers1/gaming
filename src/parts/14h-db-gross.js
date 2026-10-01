@@ -583,7 +583,7 @@ Object.assign(THEMEN,{
 /* Level 16: Sonnenaufgang. 28.09. (Tom: echt): ohne rotes Bengal-
    Dauerlicht am Boden; zum Schluss geht die Sonne als goldenes Pistill
    mit orangem Kern auf (vorher ein perfekter Goldreif um eine Kugel) */
-SHOWS.faecher=()=>show({basis:{pw:0.00,sz:1.000,th:'morgen'},rampe:{sz:[0.85,1.30],pw:[-3,2],hell:[0.70,1.35],kurve:'spaet'}},[
+SHOWS.faecher=()=>show({basis:{pw:0.00,sz:1.000,th:'morgen'},rampe:{sz:[0.60,1.60],pw:[-3,2],hell:[0.70,1.35],kurve:'linear'}},[
   /* Morgenroete - tief, langsam: Scharlach, das zu Gold wird (28.09.: statt
      tiefer Dahlien, deren grosse Sterne nah am Zuendpult wie Lampen wirkten) */
   {n:4,gap:1.8,muster:'gerade',eff:'wechsel',kal:'klein',pw:-5,farbe:2,steig:'glut',pause:1.0},
@@ -716,7 +716,7 @@ SIGNATUR.zfaecher={eff:'donnerblitz',text:'Titanblitze mit Donner und nachflacke
 /* Level 17: Achterbahn. 28.09. (Tom: "Farben zu durcheinander"): nur
    Violett und Gold (vorher Blau, Rosa, Violett, Magenta, Gelb), Farbwechsel
    statt Geisterkugeln mit dritter Zufallsfarbe, Palmen golden */
-SHOWS.batterie100=()=>show({basis:{pw:0.70,sz:1.060,th:'achterbahn'},rampe:{sz:[0.90,1.20],pw:[0,0],hell:[0.90,1.25],kurve:'linear'}},[
+SHOWS.batterie100=()=>show({basis:{pw:0.70,sz:1.060,th:'achterbahn'},rampe:{sz:[0.52,1.50],pw:[-1,1],hell:[0.90,1.25],kurve:'linear'}},[
   /* Kettenaufzug: jeder Schuss 2,5 m hoeher (28.09.: ohne Warnblinker
      am Boden - eine Batterie hat kein Stroboskop) */
   /* 27.09.: Hoehenspannen kleiner (Aufzug 16, Drop 18, Buckel 14 statt 30/35/20) -

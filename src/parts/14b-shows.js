@@ -283,12 +283,7 @@ function playShowRoh(o,phases,prod,tag,PLAN){
   let t0=null, t1=0;
   phases.forEach((ph,pi)=>{ const S=plaene[pi].schuesse; if(!S.length) return; const s=zeiten[pi];
     t0=t0===null?s+S[0].t:Math.min(t0,s+S[0].t); t1=Math.max(t1,s+S[S.length-1].t); });
-  let rampe=tt=>showRampe(t1>t0?clamp((tt-t0)/(t1-t0),0,1):0.5,R);
-  /* Batterie: die Steigerung laeuft ueber die echte Zuendfolge (0,2-0,4 s
-     je Rohr), nicht ueber die Drehbuch-Zeit - sonst laege das letzte
-     Drittel der echten Show noch mitten in der Rampe */
-  if(PLAN||(typeof istBatterie==='function'&&istBatterie(prod)&&o)){ const A=zeitAchse(phases.map((ph,pi)=>plaene[pi].schuesse.map(x=>zeiten[pi]+x.t)).flat());
-    if(A.ende>A.start) rampe=tt=>showRampe(clamp((A.map(tt)-A.start)/(A.ende-A.start),0,1),R); }
+  const rampe=tt=>showRampe(t1>t0?clamp((tt-t0)/(t1-t0),0,1):0.5,R);
   /* Breite der Batterie fuer den Abschuss ueber mehrere Rohre: die
      Oeffnung des Produkts (vorher Kartonbreite x 1,1 und mindestens
      30 cm - die aeusseren Rohre lagen neben dem Karton) */

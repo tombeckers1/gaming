@@ -503,6 +503,7 @@ function oberflaechenAnwenden(){
     const env=f.glanz?innenUmgebung(w.a):null;
     floorMat.envMap=env; floorMat.envMapIntensity=(f.glanz||0)*0.6; floorMat.needsUpdate=true; }
   /* Sockelleiste im dunklen Ton der Wand */
+  if(typeof regaleFaerben==='function') regaleFaerben();
   if(typeof sockelM==='function'){ const c=hx(w.sockel||w.a), s=w.sockel?c:ton(c,0.7); sockelM().color.setRGB(s[0]/255,s[1]/255,s[2]/255).convertSRGBToLinear(); }
 }
 /* Musterkarte fuer den Laptop: das echte Material im Kleinen */

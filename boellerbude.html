@@ -1208,22 +1208,33 @@ function shopSlogan(){ return (S&&S.slogan!==undefined&&S.slogan!==null)?S.sloga
 const LIEFERZEIT_SEK=5, VERSAND=5.9, VERSANDFREI=150;
 function lieferSek(){ return LIEFERZEIT_SEK; }
 /* Regaltypen. Klein ist der Einstieg, der Kühlschrank nimmt nur Sekt & Co. */
+/* Faecher (Tom, 01.10.): alle Faecher eines Regals sind gleich hoch -
+   vorher war oben das groesste und unten (hinter der Sockelblende) das
+   kleinste Fach. Der unterste Boden liegt jetzt ueber der Blende,
+   oben gibt "oben" die Hoehe des obersten Fachs bis zur Deckplatte. */
 const SHELFKIND={
-  klein:{id:'klein',name:'Kleines Regal',w:1.0,d:0.42,lv:[0.12,0.6,1.08],lvl:1,cost:45,step:28,amb:0},
-  standard:{id:'standard',name:'Verkaufsregal',w:2.0,d:0.52,lv:[0.115,0.62,1.125,1.63],lvl:4,cost:130,step:70,amb:1},
-  hoch:{id:'hoch',name:'Hochregal',w:2.0,d:0.52,lv:[0.11,0.53,0.95,1.37,1.79],lvl:10,cost:260,step:95,amb:2},
-  kuehl:{id:'kuehl',name:'Sekt-Kühlschrank',w:1.1,d:0.58,lv:[0.2,0.64,1.08,1.52],lvl:6,cost:430,step:155,amb:5,cold:true},
+  klein:{id:'klein',name:'Kleines Regal',w:1.0,d:0.42,lv:[0.19,0.75,1.31],oben:0.52,lvl:1,cost:45,step:28,amb:0},
+  standard:{id:'standard',name:'Verkaufsregal',w:2.0,d:0.52,lv:[0.19,0.75,1.31,1.87],oben:0.52,lvl:4,cost:130,step:70,amb:1},
+  hoch:{id:'hoch',name:'Hochregal',w:2.0,d:0.52,lv:[0.19,0.63,1.07,1.51,1.95],oben:0.40,lvl:10,cost:260,step:95,amb:2},
+  kuehl:{id:'kuehl',name:'Sekt-Kühlschrank',w:1.1,d:0.58,lv:[0.2,0.68,1.16,1.64],oben:0.44,lvl:6,cost:430,step:155,amb:5,cold:true},
   /* Mittelgondel: steht frei im Raum, Ware auf beiden Seiten. */
-  gondel:{id:'gondel',name:'Mittelgondel',w:2.0,d:0.46,fw:2.1,fd:1.0,lv:[0.12,0.58,1.04,1.5],lvl:12,cost:560,step:190,amb:3,art:'insel',
+  gondel:{id:'gondel',name:'Mittelgondel',w:2.0,d:0.46,fw:2.1,fd:1.0,lv:[0.19,0.67,1.15,1.63],oben:0.44,lvl:12,cost:560,step:190,amb:3,art:'insel',
     seiten:[{ry:0,ox:0,oz:0.24},{ry:Math.PI,ox:0,oz:-0.24}]},
   /* Eckregal: zwei Schenkel ueber Eck, wie im Supermarkt. */
-  eck:{id:'eck',name:'Eckregal',w:1.2,d:0.5,fw:1.74,fd:1.74,lv:[0.115,0.62,1.125,1.63],lvl:14,cost:480,step:165,amb:2,art:'ecke',
+  eck:{id:'eck',name:'Eckregal',w:1.2,d:0.5,fw:1.74,fd:1.74,lv:[0.19,0.75,1.31,1.87],oben:0.52,lvl:14,cost:480,step:165,amb:2,art:'ecke',
     seiten:[{ry:0,ox:0.25,oz:-0.60},{ry:Math.PI/2,ox:-0.60,oz:0.25}]},
-  /* Grossverbund-Regal (Tom, 25.09.): die ganz grossen Verbunde gehen
-     ueber mehrere Etagen - unten ein Fach fast einen Meter hoch */
-  gross:{id:'gross',name:'Großverbund-Regal',w:2.0,d:0.6,lv:[0.12,1.12],lvl:18,cost:640,step:210,amb:2}
+  /* Grossverbund-Regal: zwei gleich hohe Faecher, in jedes passen zwei
+     der ganz grossen Verbunde nebeneinander - vier Legion insgesamt
+     (Tom, 01.10.: "oben zwei, unten zwei") */
+  gross:{id:'gross',name:'Großverbund-Regal',w:2.12,d:0.68,lv:[0.19,1.15],oben:0.92,lvl:18,cost:640,step:210,amb:2},
+  /* Verkaufstisch und Aktions-Gitterbox (Tom, 01.10.): grosse Batterien
+     stehen im Laden auf Tischen oder in Gitterboxen wie beim Discounter,
+     nicht im Regal. frei: Ware wird auch in die Tiefe und aufeinander
+     gestapelt, so weit Flaeche und Hoehe reichen. */
+  tisch:{id:'tisch',name:'Verkaufstisch',w:2.2,d:1.3,lv:[0.76],oben:0.96,bau:'tisch',frei:true,lvl:8,cost:220,step:80,amb:2},
+  gitter:{id:'gitter',name:'Aktions-Gitterbox',w:1.24,d:0.84,lv:[0.14],oben:0.86,bau:'gitter',frei:true,lvl:5,cost:120,step:45,amb:1}
 };
-const SHELFORDER=['klein','standard','hoch','kuehl','gondel','eck','gross'];
+const SHELFORDER=['klein','standard','hoch','kuehl','gondel','eck','gross','gitter','tisch'];
 /* =========================================================
    Regalbau Stegemann. Regale stehen nicht mehr auf Knopfdruck im
    Laden - man bestellt sie wie Ware, der LKW bringt sie als
@@ -1240,6 +1251,8 @@ const REGALWARE=[
   {id:'gondel',  art:'shelf',kind:'gondel',  lvl:12,req:'shop_gross'},
   {id:'eck',     art:'shelf',kind:'eck',     lvl:14,req:'shop_gross'},
   {id:'gross',   art:'shelf',kind:'gross',   lvl:18},
+  {id:'gitter',  art:'shelf',kind:'gitter',  lvl:5},
+  {id:'tisch',   art:'shelf',kind:'tisch',   lvl:8},
   {id:'rhoch',   art:'rack', kind:'hoch',    lvl:16,req:'lager_gross'},
   {id:'rschwer', art:'rack', kind:'schwer',  lvl:18,req:'lager_gross'}
 ];
@@ -2365,7 +2378,7 @@ const NEUWARE={
   farbrauchboeller:{name:'Farbrauch · 6 Tagböller in sechs Farben',short:'Farbrauchböller',cat:2,lvl:14,shape:'tubepack',dims:[0.16,0.065,0.065],grid:[7,2,2],box:12,cost:3.60,market:8.49,weight:6,hype:14,risk:5,
     desc:'Kräftiger Schlag, dann quillt eine dicke Farbwolke auf – sechs Böller, sechs Farben der Reihe nach, von Rot bis Orange.',
     art:{title:'FARBRAUCH',sub:'6 Tagböller · 6 Farben',bg1:'#1557a8',bg2:'#8a1f6a',ac:'#5cff9e',ac2:'#ffe45c'}},
-  feuerrad:{name:'Drehsonne · Saxon mit Richtungswechsel',short:'Drehsonne',cat:2,lvl:14,shape:'boxA',dims:[0.56,0.46,0.1],gestell:'rad',grid:[6,2,1],box:6,cost:5.20,market:12.49,weight:6,hype:18,risk:5,
+  feuerrad:{name:'Drehsonne · Saxon mit Richtungswechsel',short:'Drehsonne',cat:2,lvl:14,shape:'boxA',dims:[0.56,0.41,0.1],gestell:'rad',grid:[6,2,1],box:6,cost:5.20,market:12.49,weight:6,hype:18,risk:5,
     desc:'Das Rad auf seinem Ständer dreht rechtsherum in Gold, stockt und wirbelt dann linksherum in Silber weiter, schneller als vorher. Kommt auf dem Zündtisch aufgebaut.',
     art:{title:'DREHSONNE',sub:'Saxon · Richtungswechsel · 14 s',bg1:'#f2a01c',bg2:'#8a3d06',ac:'#ffffff',ac2:'#c8201c'}},
   knisterfaecher:{name:'Silberschwarm · 24 Schuss Fischfächer',short:'Silberschwarm',cat:2,lvl:14,shape:'fan',dims:[0.48,0.24,0.3],grid:[4,1,1],box:3,cost:12.00,market:27.99,weight:6,hype:30,risk:7,
@@ -2444,7 +2457,7 @@ const NEUWARE={
   sternenstaub150:{name:'Sternenstaub · Kugelbombe 150 mm Silberzeitregen',short:'Kugel 150 Sternenstaub',cat:2,lvl:18,shape:'shell',dims:[0.165,0.2,0.165],grid:[4,1,1],box:3,cost:30.00,market:71.99,weight:4,hype:66,risk:10,
     desc:'Keine Kugel, sondern ein Regen: Fünfzig große Silbersterne treiben langsam auseinander und sinken fünf Sekunden lang – jeder rieselt zischend Sternenstaub.',
     art:{title:'STERNENSTAUB',sub:'150 mm · Silberzeitregen',bg1:'#12204a',bg2:'#04081a',ac:'#f2f5ff',ac2:'#ffd23f'}},
-  magnum:{name:'Champagner Magnum 1,5 l',short:'Magnum',cat:0,lvl:18,cold:true,shape:'bottle',dims:[0.11,0.4,0.11],grid:[8,1,1],box:3,cost:28.00,market:69.99,weight:3,hype:0,risk:7,
+  magnum:{name:'Champagner Magnum 1,5 l',short:'Magnum',cat:0,lvl:18,cold:true,shape:'bottle',dims:[0.11,0.35,0.11],grid:[8,1,1],box:3,cost:28.00,market:69.99,weight:3,hype:0,risk:7,
     art:{title:'MAGNUM',sub:'Champagner 1,5 l',bg1:'#0e1226',bg2:'#000000',ac:'#e8c35a',ac2:'#f2f5ff',gold:true}},
 
   /* ---------- Level 19: Sternklasse ---------- */
@@ -2454,7 +2467,7 @@ const NEUWARE={
   regenbogenkrone:{name:'Jumbo-Rakete »Saphirkrone«',short:'Jumbo Saphirkrone',cat:2,lvl:19,shape:'rocketset',stueck:1,dims:[0.8,0.1,0.15],grid:[2,1,1],box:4,cost:12.50,market:29.99,weight:4,hype:40,risk:9,
     desc:'Ein dicker Goldstamm wächst in den Himmel. Oben öffnet sich eine Krone aus saphirblauen Sternen, jeder zieht einen goldenen Funkenschweif, und in der Mitte glitzert Gold.',
     art:{title:'SAPHIRKRONE',sub:'Chrysanthemenkrone · Einzelrakete',bg1:'#12275e',bg2:'#040a1f',ac:'#ffd23f',ac2:'#5c8dff'}},
-  lichterkugeln:{name:'Lichterkette · 24 Glitzerkugeln',short:'Lichterkette',cat:2,lvl:19,shape:'candle',dims:[0.13,0.42,0.13],grid:[7,2,1],box:4,cost:10.50,market:24.49,weight:5,hype:34,risk:7,
+  lichterkugeln:{name:'Lichterkette · 24 Glitzerkugeln',short:'Lichterkette',cat:2,lvl:19,shape:'candle',dims:[0.13,0.41,0.13],grid:[7,2,1],box:4,cost:10.50,market:24.49,weight:5,hype:34,risk:7,
     desc:'Sechs Rohre legen eine Kette aus Leuchtkugeln quer über den Himmel – jede steigt mit Goldschweif, geht oben kurz aus und zerfällt in funkelnden Silberglitter.',
     art:{title:'LICHTERKETTE',sub:'24 Kugeln · Glitter',bg1:'#0c3d7a',bg2:'#020a1c',ac:'#ffd23f',ac2:'#ff4fa3'}},
   eisblume:{name:'Wendeltreppe · 12-m-Drehfontäne',short:'Wendeltreppe',cat:2,lvl:19,shape:'cylinder',dims:[0.22,0.38,0.22],grid:[6,1,1],box:3,cost:18.00,market:42.99,weight:4,hype:50,risk:8,
@@ -2566,7 +2579,7 @@ const NEUWARE={
   /* ---------- noch mehr Kleinkram fuer den Laden ---------- */
   kindersekt2:{name:'Kindersekt Erdbeere',short:'Kindersekt Erdb.',cat:0,lvl:14,cold:true,shape:'bottle',dims:[0.07,0.26,0.07],grid:[12,2,1],box:12,cost:1.70,market:4.19,weight:5,hype:0,risk:3,
     art:{title:'ERDBEERSPRITZ',sub:'Kindersekt · 0,75 l',bg1:'#c8325a',bg2:'#5a0a1e',ac:'#ffe45c',ac2:'#f2f5ff'}},
-  wunderkerzeXXL:{name:'Riesenfunken · 1-m-Wunderkerzen 5er',short:'Riesen-Wunderk.',cat:1,lvl:6,shape:'sparkler',dims:[0.12,0.46,0.04],grid:[10,2,1],box:10,cost:2.20,market:5.49,weight:6,hype:6,risk:2,
+  wunderkerzeXXL:{name:'Riesenfunken · 1-m-Wunderkerzen 5er',short:'Riesen-Wunderk.',cat:1,lvl:6,shape:'sparkler',dims:[0.12,0.41,0.04],grid:[10,2,1],box:10,cost:2.20,market:5.49,weight:6,hype:6,risk:2,
     desc:'Ein Meter Silberregen: Grelle Funken sprühen bis zwei Meter weit, und immer wieder tropft eine glühende Perle ab und zerspritzt am Boden.',
     art:{title:'RIESENFUNKEN',sub:'5 Wunderkerzen · 1 m',bg1:'#26307a',bg2:'#0b0f2e',ac:'#ffd23f',ac2:'#fff3c4',gold:true}},
   leuchtstaebe:{name:'Magic Light · 6 Bengalstäbe grün & weiß',short:'Leuchtstäbe',cat:1,lvl:5,shape:'sparkler',dims:[0.1,0.3,0.03],grid:[12,3,1],box:24,cost:1.10,market:2.79,weight:6,hype:4,risk:1,
@@ -2602,7 +2615,7 @@ const NEUWARE={
   hochzeitsfaecher:{name:'Rosenherz · 36 Schuss Herzbomben',short:'Rosenherz',cat:2,lvl:20,shape:'fan',dims:[0.62,0.28,0.34],grid:[4,1,1],box:2,cost:26.00,market:59.99,weight:4,hype:50,risk:8,
     desc:'Rosenblätter schweben, dann gehen nacheinander vier rosa Herzen am Himmel auf, danach ein Rosenstrauß. Zum Schluss: zwei goldene Ringe.',
     art:{title:'ROSENHERZ',sub:'36 Schuss · Herzbomben',bg1:'#c01c6a',bg2:'#4a0626',ac:'#ffd23f',ac2:'#fff3c4'}},
-  goldregen22:{name:'Goldene Zwillinge · 22 Kugeln Splitlicht',short:'Zwillinge 22',cat:2,lvl:22,shape:'candle',dims:[0.14,0.44,0.14],grid:[6,2,1],box:4,cost:14.00,market:32.99,weight:4,hype:44,risk:8,
+  goldregen22:{name:'Goldene Zwillinge · 22 Kugeln Splitlicht',short:'Zwillinge 22',cat:2,lvl:22,shape:'candle',dims:[0.14,0.41,0.14],grid:[6,2,1],box:4,cost:14.00,market:32.99,weight:4,hype:44,risk:8,
     desc:'Jede goldene Leuchtkugel teilt sich im Gipfel mit einem Knacks in zwei, die in entgegengesetzte Richtungen davonziehen – von Schuss zu Schuss in eine andere Richtung, bis ein Stern aus Paaren entsteht.',
     art:{title:'GOLDENE ZWILLINGE',sub:'22 Kugeln · Split',bg1:'#4a3308',bg2:'#000000',ac:'#ffd23f',ac2:'#fff3c4',gold:true}},
   bengalduo:{name:'Hafenlichter · Bengalfeuer Rot & Grün 30 s',short:'Hafenlichter',cat:2,lvl:13,shape:'fountainset',dims:[0.18,0.2,0.08],grid:[7,2,1],box:8,cost:3.80,market:8.99,weight:6,hype:14,risk:4,
@@ -3416,6 +3429,8 @@ function buildProduct(t){
   const p=P[t], a=p.art, w=p.dims[0], h=p.dims[1], d=p.dims[2], parts=[], vc=[];
   const addAtlasBox=(bw,bh,bd,m,o)=>{ const A=atlas(bw,bh,bd,a,p.cat,o); parts.push({geo:merge([{geo:atlasBox(bw,bh,bd,A.R),m}]),mat:A.mat}); };
   const sh=p.shape;
+  /* Batterien: Verpackung aus 04c (Karton bzw. Block in Schrumpffolie) */
+  if((sh==='battery'||sh==='fan')&&typeof istBatterie==='function'&&istBatterie(t)) return buildBatterieVerpackung(t);
   if(sh==='boxA'){ addAtlasBox(w,h,d,tm(0,h/2,0)); }
   else if(sh==='sparkler'){
     const ph=h*0.78; addAtlasBox(w,ph,d,tm(0,ph/2,0));
@@ -3701,6 +3716,213 @@ function buildKartons(){
     })});
   });
 }
+/* =========================================================
+   Batterien: Rohre, ausgepackte Batterie, Verpackung
+   (Tom, 01.10.): Im Regal steht die Batterie in ihrer Verpackung.
+   Auf dem Zuendtisch steht sie ausgepackt - man sieht die Rohre, und
+   es gibt genau so viele Rohre wie Schuss. Aus jedem Rohr kommt genau
+   ein Schuss (bzw. ein Effekt); kein Rohr feuert zweimal.
+   ========================================================= */
+
+/* Wie viele Rohre braucht die Batterie? Jeder Schuss des Drehbuchs und
+   jeder Boden-Effekt (Feuertopf, Vulkan ...) hat sein eigenes Rohr -
+   gezaehlt genau so, wie playShow sie abfeuert. */
+const _rohrBedarf={};
+function rohrBedarf(t){
+  if(_rohrBedarf[t]) return _rohrBedarf[t];
+  let s=0, b=0;
+  if(typeof SHOWS!=='undefined'&&SHOWS[t]){
+    const phases=showNorm(SHOWS[t]()), plaene=phases.map(phPlan);
+    phases.forEach((ph0,pi)=>{ const ph=phNorm(ph0), pl=plaene[pi]; s+=pl.schuesse.length;
+      if(ph.ground) b++;
+      const bo=ph.boden?(Array.isArray(ph.boden)?ph.boden:[ph.boden]):[];
+      b+=bo.filter(x=>!x.je).length;
+      b+=bo.filter(x=>x.je).length*pl.schuesse.filter(x=>x.q===0).length; });
+  }
+  const r={schuss:s,boden:b,n:s+b}; if(typeof SHOWS!=='undefined') _rohrBedarf[t]=r; return r;
+}
+function istBatterie(t){ const sh=P[t]&&P[t].shape; return (sh==='battery'||sh==='fan')&&rohrBedarf(t).n>0; }
+
+/* Rohrbild: so viele Rohre wie noetig in einem Raster, das die
+   Grundflaeche fuellt. Ab 80 Schuss besteht die Batterie aus mehreren
+   Bloecken (Verbund) mit einer Fuge dazwischen, wie echte Verbunde, die
+   aus einzelnen Batterien zusammengesetzt sind. Faecher: die Rohre
+   stehen je Spalte schraeg. Koordinaten im Produkt (x Breite, z Tiefe). */
+const _rohrLayout={};
+function rohrLayout(t){
+  if(_rohrLayout[t]) return _rohrLayout[t];
+  const p=P[t], N=rohrBedarf(t).n; if(!N) return null;
+  const w=p.dims[0], d=p.dims[2], m=Math.min(0.014,w*0.04), fan=p.shape==='fan';
+  const B=fan?1:N>=150&&w>=0.6?3:N>=80&&w>=0.45?2:1, fuge=B>1?0.014:0;
+  const iw=w-2*m-(B-1)*fuge, id=d-2*m;
+  /* Spalten je Block gleich: Gesamtspalten ein Vielfaches von B */
+  let cols=Math.max(B,Math.round(Math.sqrt(N*iw/id)/B)*B), rows=Math.ceil(N/cols);
+  while(cols*rows<N) cols+=B;
+  /* zu viele leere Plaetze? Reihen zuerst passend machen */
+  while(cols>B&&(cols-B)*rows>=N) cols-=B;
+  rows=Math.ceil(N/cols);
+  const cpb=cols/B, cw=iw/cols, ch=id/rows, r=Math.min(cw,ch)*0.45;
+  const bloecke=[], rohre=[];
+  const bw=iw/B;
+  for(let k=0;k<B;k++) bloecke.push({x0:k?-w/2+m+k*(bw+fuge)-fuge/2:-w/2, x1:k<B-1?-w/2+m+(k+1)*bw+k*fuge+fuge/2:w/2});
+  /* letzte (hinterste) Reihe evtl. kuerzer, mittig */
+  let rest=N;
+  for(let rI=0;rI<rows;rI++){
+    const inReihe=Math.min(cols,rest); rest-=inReihe;
+    const start=Math.floor((cols-inReihe)/2);
+    for(let c=start;c<start+inReihe;c++){
+      const blk=Math.floor(c/cpb);
+      const x=-w/2+m+blk*fuge+(c+0.5)*cw, z=d/2-m-(rI+0.5)*ch;
+      const tilt=fan?((cols>1?c/(cols-1):0.5)-0.5)*0.7:0;
+      rohre.push({x,z,r,tilt,blk});
+    }
+  }
+  return (_rohrLayout[t]={rohre,bloecke,cols,rows,B,r,N,m});
+}
+
+/* Rohrsatz beim Zuenden: jeder Schuss nimmt das freie Rohr, das seinem
+   Wunschort (Versatz aus dem Drehbuch) am naechsten liegt. Jedes Rohr
+   genau einmal - wenn eine Batterie mehr Schuesse haette als Rohre,
+   faellt das hier auf (ueberzaehlig). */
+let ROHR_LOG=null;
+function rohrSatz(o,prod){
+  if(!o||!istBatterie(prod)) return null;
+  const L=rohrLayout(prod); if(!L) return null;
+  const ry=o.ry!==undefined?o.ry:Math.PI, c=Math.cos(ry), s=Math.sin(ry);
+  const frei=L.rohre.map((r,i)=>({i,off:r.x*c+r.z*s,dz:-r.x*s+r.z*c,tilt:r.tilt}));
+  const rs={frei,benutzt:0,ueber:0,
+    nimm(wunsch){
+      if(!frei.length){ rs.ueber++; if(ROHR_LOG) ROHR_LOG.push({prod,i:-1}); return versetzt(o,wunsch||0); }
+      let bi=0, bd=1e9;
+      for(let k=0;k<frei.length;k++){ const f=frei[k], dd=Math.abs(f.off-(wunsch||0))+Math.abs(f.dz)*0.05+Math.random()*0.002; if(dd<bd){ bd=dd; bi=k; } }
+      const f=frei.splice(bi,1)[0]; rs.benutzt++;
+      const q=V(o.x+f.off,o.y,o.z+f.dz); q.jit=0.002; q.ab=0.015; q.rohr=f.i;
+      if(ROHR_LOG) ROHR_LOG.push({prod,i:f.i,x:q.x,z:q.z,y:q.y});
+      return q; }};
+  return rs;
+}
+
+/* ---------------- ausgepackte Batterie (Zuendtisch) ---------------- */
+function kraftTop(g,W,H){ g.fillStyle='#b8925f'; g.fillRect(0,0,W,H);
+  for(let i=0;i<600;i++){ g.fillStyle=`rgba(${Math.random()<0.5?'90,60,30':'230,200,150'},${0.05+Math.random()*0.08})`; g.fillRect(Math.random()*W,Math.random()*H,1+Math.random()*3,1); } }
+function buildAusgepackt(t){
+  const p=P[t], a=p.art, w=p.dims[0], h=p.dims[1], d=p.dims[2], L=rohrLayout(t), parts=[], vc=[];
+  const fan=p.shape==='fan', bh=fan?h*0.62:h*0.94;
+  /* Bloecke: bedrucktes Papier rundum (Produktbild), oben Karton */
+  L.bloecke.forEach((b,k)=>{ const bw=b.x1-b.x0-(L.B>1?0.006:0), cx=(b.x0+b.x1)/2;
+    /* Verbund: jede Batterie traegt ihr Stueck des durchgehenden
+       Frontbilds - nebeneinander ergeben sie das ganze Motiv */
+    const o2={top:kraftTop};
+    if(L.B>1) o2.front=(g,W,H)=>{ g.save(); g.translate(-k*W,0); drawFront(g,W*L.B,H,a,p.cat); g.restore(); };
+    const A=atlas(bw,bh,d,a,p.cat,o2);
+    parts.push({geo:merge([{geo:atlasBox(bw,bh,d,A.R),m:tm(cx,bh/2,0)}]),mat:A.mat});
+    /* Kartonkante oben und Sockelkragen je Block */
+    vc.push({geo:new THREE.BoxGeometry(bw*1.01,0.012,d*1.01),m:tm(cx,bh-0.004,0),color:0x9c7a4c});
+    vc.push({geo:new THREE.BoxGeometry(bw*1.02,Math.min(0.03,h*0.08),d*1.02),m:tm(cx,Math.min(0.015,h*0.04),0),color:0x7d6440});
+  });
+  /* Verbund: Grundplatte und Verbindungs-Zuendschnur ueber die Fugen */
+  if(L.B>1){ vc.push({geo:new THREE.BoxGeometry(w*1.02,0.012,d*1.02),m:tm(0,0.006,0),color:0x6b5536});
+    for(let k=1;k<L.B;k++){ const x=L.bloecke[k].x0; vc.push({geo:new THREE.CylinderGeometry(0.003,0.003,0.06,5),m:tm(x,bh*0.55,d/2+0.008,0,0,Math.PI/2),color:0x2e8b3a}); } }
+  /* Rohre: Rohrrand aus Pappe, dunkle Muendung, Abschlussring */
+  const top=bh;
+  const rim=new THREE.CylinderGeometry(1,1,1,12,1,true), loch=new THREE.CylinderGeometry(1,1,1,10), ring=new THREE.RingGeometry(0.74,1,12);
+  for(const r of L.rohre){
+    const ro=fan?0.03:0.008, y=top+(fan?h*0.16:ro/2);
+    const M=(sx,sy,sz,dy)=>{ const mm=new THREE.Matrix4(); const q=new THREE.Quaternion().setFromEuler(new THREE.Euler(0,0,-r.tilt));
+      const off=new THREE.Vector3(0,dy,0).applyQuaternion(q); mm.compose(V(r.x+off.x,y+off.y,r.z+off.z),q,V(sx,sy,sz)); return mm; };
+    if(fan){ vc.push({geo:rim,m:M(r.r,h*0.38,r.r,0),color:0x2f3038}); }
+    else vc.push({geo:rim,m:M(r.r,ro,r.r,0),color:0xc9a46a});
+    const yTop=fan?h*0.19:ro/2;
+    vc.push({geo:loch,m:M(r.r*0.74,0.002,r.r*0.74,yTop-0.004),color:0x140e0a});
+    const rm=M(r.r,1,r.r,yTop); const rq=new THREE.Matrix4().makeRotationX(-Math.PI/2); rm.multiply(rq);
+    vc.push({geo:ring,m:rm,color:fan?0xd9cbb0:0xdcc495});
+  }
+  /* Zuendschnur vorn rechts, Schutzkappe ist ab */
+  vc.push({geo:new THREE.CylinderGeometry(0.0035,0.0035,0.09,6),m:tm(w*0.42,bh*0.18,d/2+0.035,Math.PI/2.4),color:0x2e8b3a});
+  /* Warnetikett an der Seite */
+  vc.push({geo:new THREE.BoxGeometry(0.004,bh*0.16,d*0.34),m:tm(w/2+0.003,bh*0.3,0),color:0xf2f0e6});
+  parts.push({geo:merge(vc),mat:vcMat});
+  return parts;
+}
+const _poolsAus={};
+const poolsAus=new Proxy(_poolsAus,{get(o,k){
+  if(typeof k==='string'&&!(k in o)&&typeof P!=='undefined'&&P[k]&&P[k].dims) o[k]=new ItemPool(istBatterie(k)?buildAusgepackt(k):buildProduct(k),12);
+  return o[k]; }});
+/* Was steht auf dem Zuendtisch: Batterien ausgepackt, alles andere wie im Regal */
+function stationsPool(t){ return istBatterie(t)?poolsAus[t]:pools[t]; }
+
+/* ---------------- Verpackung im Laden ---------------- */
+/* Grosse Verbunde kommen im braunen Wellpappkarton mit Etikett,
+   Gefahrgutraute 1.4G, Pfeilen "oben" und Grifflöchern - drin liegen
+   die Einzelbatterien, die man vor dem Zuenden aufbaut. Kleinere
+   Batterien stehen als bedruckter Block in Schrumpffolie im Regal. */
+function istVerbundKarton(t){ const p=P[t]; return p.shape==='battery'&&(rohrBedarf(t).n>=120||p.dims[0]>=0.75); }
+function gefahrRaute(g,x,y,s,txt){ g.save(); g.translate(x,y); g.rotate(Math.PI/4); g.fillStyle='#f28c1b'; g.fillRect(-s/2,-s/2,s,s); g.strokeStyle='#1b1b1b'; g.lineWidth=Math.max(1,s*0.04); g.strokeRect(-s*0.44,-s*0.44,s*0.88,s*0.88); g.restore();
+  g.fillStyle='#1b1b1b'; g.textAlign='center'; g.textBaseline='middle'; g.font=`700 ${Math.round(s*0.32)}px "Barlow Condensed", Arial, sans-serif`; g.fillText(txt,x,y+s*0.05); g.font=`700 ${Math.round(s*0.16)}px Arial`; g.fillText('1',x,y+s*0.42); }
+function wellpappe(g,W,H){ g.fillStyle='#b48a58'; g.fillRect(0,0,W,H);
+  for(let x=0;x<W;x+=4){ g.fillStyle=`rgba(80,52,24,${0.04+0.04*Math.sin(x*0.7)})`; g.fillRect(x,0,2,H); }
+  for(let i=0;i<500;i++){ g.fillStyle=`rgba(60,40,20,${Math.random()*0.06})`; g.fillRect(Math.random()*W,Math.random()*H,2,1); } }
+function verbundFront(t){ const p=P[t], a=p.art, n=rohrBedarf(t).schuss;
+  return (g,W,H)=>{ wellpappe(g,W,H);
+    /* aufgeklebtes Farbetikett mit dem Produktbild */
+    const lx=W*0.07, ly=H*0.1, lw=W*0.62, lh=H*0.62;
+    g.save(); g.translate(lx,ly); g.beginPath(); g.rect(0,0,lw,lh); g.clip(); drawFront(g,lw,lh,a,p.cat); g.restore();
+    g.strokeStyle='rgba(255,255,255,.85)'; g.lineWidth=Math.max(2,W*0.006); g.strokeRect(lx,ly,lw,lh);
+    /* Stempeldruck in Schwarz auf der Pappe */
+    g.fillStyle='#1d1a16'; g.textAlign='left'; g.textBaseline='alphabetic';
+    const F=s=>`700 ${Math.round(s)}px "Barlow Condensed", Arial, sans-serif`;
+    g.font=F(H*0.07); g.fillText('VERBUNDFEUERWERK',W*0.07,H*0.82);
+    g.font=F(H*0.05); g.fillText(`${n} SCHUSS · KATEGORIE F${p.cat||2} · ${rohrLayout(t).B>1?rohrLayout(t).B+' BATTERIEN ZUM AUFBAUEN':'1 BATTERIE'}`,W*0.07,H*0.9);
+    g.font=F(H*0.042); g.fillStyle='#3a332a'; g.fillText('UN 0336 · 1.4G · NUR IM FREIEN VERWENDEN',W*0.07,H*0.96);
+    gefahrRaute(g,W*0.84,H*0.32,Math.min(W,H)*0.22,'1.4G');
+    /* Pfeile "oben" */
+    g.fillStyle='#1d1a16'; for(const dx of [0,1]){ const x=W*(0.78+dx*0.1), y=H*0.66; g.beginPath(); g.moveTo(x,y-H*0.09); g.lineTo(x-W*0.025,y-H*0.04); g.lineTo(x+W*0.025,y-H*0.04); g.closePath(); g.fill(); g.fillRect(x-W*0.008,y-H*0.045,W*0.016,H*0.08); }
+  }; }
+function verbundSeite(t){ const p=P[t], a=p.art;
+  return (g,W,H)=>{ wellpappe(g,W,H);
+    /* Griffloch */
+    g.fillStyle='#2a2016'; const gw=W*0.36, gh=H*0.06; g.beginPath(); g.ellipse(W/2,H*0.16,gw/2,gh/2,0,0,Math.PI*2); g.fill();
+    g.save(); g.translate(W*0.5,H*0.58); g.rotate(-Math.PI/2); g.fillStyle='#1d1a16'; g.textAlign='center'; g.textBaseline='middle';
+    fitFont(g,a.title,H*0.6,Math.round(W*0.32),BUN); g.fillText(a.title,0,0); g.restore();
+    gefahrRaute(g,W*0.5,H*0.88,Math.min(W,H*0.3)*0.6,'1.4G'); }; }
+function verbundTop(g,W,H){ wellpappe(g,W,H);
+  /* Klebeband ueber die Klappen */
+  g.fillStyle='rgba(196,160,104,.9)'; g.fillRect(0,H*0.42,W,H*0.16); g.fillStyle='rgba(255,255,255,.12)'; g.fillRect(0,H*0.44,W,H*0.03);
+  g.strokeStyle='rgba(60,40,20,.5)'; g.lineWidth=2; g.beginPath(); g.moveTo(0,H/2); g.lineTo(W,H/2); g.stroke(); }
+/* Seite eines Batterieblocks im Schrumpffilm: Sicherheitshinweise,
+   Piktogramme, CE, Barcode */
+function blockSeite(a,cat,n){ return (g,W,H)=>{ g.fillStyle=a.bg2; g.fillRect(0,0,W,H);
+  g.fillStyle='rgba(255,255,255,.92)'; g.fillRect(W*0.08,H*0.06,W*0.84,H*0.52);
+  g.fillStyle='#1b1b1b'; g.textAlign='left'; g.textBaseline='top'; const F=s=>`600 ${Math.max(6,Math.round(s))}px Arial, sans-serif`;
+  g.font=`700 ${Math.max(7,Math.round(W*0.09))}px Arial`; g.fillText(`${n} Schuss`,W*0.12,H*0.08);
+  g.font=F(W*0.055); for(let i=0;i<7;i++){ g.fillStyle='rgba(30,30,30,.55)'; g.fillRect(W*0.12,H*(0.17+i*0.05),W*(0.55+0.2*((i*37)%5)/5),Math.max(1,H*0.012)); }
+  g.fillStyle='#1b1b1b'; g.font=`700 ${Math.max(7,Math.round(W*0.12))}px Arial`; g.fillText('CE',W*0.12,H*0.5);
+  g.font=`700 ${Math.max(6,Math.round(W*0.07))}px Arial`; g.fillText('F'+(cat||2),W*0.42,H*0.51);
+  /* Barcode */
+  g.fillStyle='#fff'; g.fillRect(W*0.1,H*0.66,W*0.8,H*0.14); g.fillStyle='#111'; for(let x=W*0.13;x<W*0.87;x+=W*0.02*(1+((x*13)|0)%2)) g.fillRect(x,H*0.68,Math.max(1,W*0.01),H*0.1);
+  g.fillStyle=a.ac2; g.fillRect(0,H*0.88,W,H*0.12); }; }
+function blockTop(a,cat){ return (g,W,H)=>{ drawTop(g,W,H,a,cat); g.fillStyle='rgba(255,255,255,.18)'; g.fillRect(0,0,W,H*0.06); }; }
+/* Verpackungsmodell einer Batterie (Regal, Lager, Laptopbild) */
+function buildBatterieVerpackung(t){
+  const p=P[t], a=p.art, w=p.dims[0], h=p.dims[1], d=p.dims[2], parts=[], vc=[], n=rohrBedarf(t).schuss||0;
+  if(istVerbundKarton(t)){
+    const A=atlas(w,h,d,a,p.cat,{front:verbundFront(t),side:verbundSeite(t),top:verbundTop,rough:0.9});
+    parts.push({geo:merge([{geo:atlasBox(w,h,d,A.R),m:tm(0,h/2,0)}]),mat:A.mat});
+    /* Umreifungsband */
+    for(const fx of [-0.3,0.3]) vc.push({geo:new THREE.BoxGeometry(0.012,h*1.006,d*1.006),m:tm(w*fx,h/2,0),color:0x2b2b2b});
+  } else {
+    const A=atlas(w,h,d,a,p.cat,{side:blockSeite(a,p.cat,n),top:blockTop(a,p.cat)});
+    parts.push({geo:merge([{geo:atlasBox(w,h,d,A.R),m:tm(0,h/2,0)}]),mat:A.mat});
+    /* Zuendschnur unter roter Schutzkappe, Kantenschutz */
+    vc.push({geo:new THREE.CylinderGeometry(0.009,0.009,0.016,10),m:tm(w*0.38,h*0.16,d/2+0.008,Math.PI/2),color:0xd8352a});
+    for(const sx of [-1,1]) for(const sz of [-1,1]) vc.push({geo:new THREE.BoxGeometry(0.012,h*0.98,0.012),m:tm(sx*(w/2-0.002),h/2,sz*(d/2-0.002)),color:0xe8e4d8});
+    /* Schrumpffolie: glaenzende Huelle */
+    parts.push({geo:merge([{geo:new THREE.BoxGeometry(w*1.012,h*1.006,d*1.012),m:tm(0,h/2,0)}]),mat:folieMat});
+  }
+  if(vc.length) parts.push({geo:merge(vc),mat:vcMat});
+  return parts;
+}
+const folieMat=new THREE.MeshStandardMaterial({color:0xffffff,transparent:true,opacity:0.1,roughness:0.08,metalness:0.0,depthWrite:false});
 
 /* =========================================================
    Wände, Böden, Welt
@@ -4292,7 +4514,7 @@ function buildWorld(){
   buildDock();
 }
 function updateSign(){
-  if(neonOpen) neonOpen.emissiveIntensity=phase==='open'?1.6:0;
+  if(neonOpen){ neonOpen.emissiveIntensity=phase==='open'?0.38:0; leuchtkastenMalen(); }
   if(!doorSignTex) return;
   const t=phase==='open'?'GEÖFFNET':phase==='after'?'FEIERABEND':'GESCHLOSSEN';
   redraw(doorSignTex,(g,W,H)=>{ g.fillStyle=phase==='open'?'#2f9e57':phase==='after'?'#c9861c':'#c8322a'; g.fillRect(0,0,W,H); g.strokeStyle='#f2f5ff'; g.lineWidth=8; g.strokeRect(10,10,W-20,H-20); g.fillStyle='#f2f5ff'; fitFont(g,t,W-50,34,BUN); g.textAlign='center'; g.textBaseline='middle'; g.fillText(t,W/2,H/2+3); });
@@ -4793,7 +5015,7 @@ function muendung(st,slot,t){
   const p=STATION_POS[st.id];
   if(st.id==='tisch'){ const h=P[t]&&P[t].dims?P[t].dims[1]:0.2;
     const d=P[t]&&P[t].dims||[0.2,0.2,0.2], hx=d[0]/2, hz=d[2]/2;
-    return {x:p.x+TISCH_X[slot%3],y:0.93+h,z:p.z,ab:0.08,jit:Math.min(0.06,hx*0.5,hz*0.5),hx,hz}; }
+    return {x:p.x+TISCH_X[slot%3],y:0.93+h,z:p.z,ab:0.08,jit:Math.min(0.06,hx*0.5,hz*0.5),hx,hz,ry:stationSlot(st,slot).ry}; }
   if(st.id==='moerser') return {x:p.x+[-0.72,0,0.78][slot%3],y:MOERSER_MUND[slot%3],z:p.z,ab:0.05,jit:0.02,hx:ROHR_INNEN[slot%3]*0.8,hz:ROHR_INNEN[slot%3]*0.8};
   /* Roemische Lichter stehen im Rohr und ragen heraus: ihre Oeffnung
      sind die fuenf Rohre des Buendels oben (Modell: Rohre bei +-0,52 w,
@@ -5001,7 +5223,7 @@ function placeOnStation(st){
     if(st.id==='rampe'&&P[c.type].shape==='candle'){
       const k=kerzeImRohr(slot,c.type); _e.set(k.neig,0,0); _q.setFromEuler(_e);
       it.h=pools[c.type].add(new THREE.Matrix4().compose(V(k.base.x,k.base.y,k.base.z),_q,V(k.s,1,k.s)));
-    } else it.h=pools[c.type].add(mx(sl.x,sl.y,sl.z,sl.ry));
+    } else it.h=stationsPool(c.type).add(mx(sl.x,sl.y,sl.z,sl.ry));
   }
   st.items.push(it);
   c.count--; S.tut.build=true; sfx.pop();
@@ -7689,7 +7911,25 @@ function buildStreet(){
 /* =========================================================
    Ladenfassade: Leuchtschild, Tuer, Sockel
    ========================================================= */
-let neonOpen=null, signTex=null;
+let neonOpen=null, signTex=null, leuchtTex=null;
+/* Leuchtkasten innen: offen leuchtet GEOEFFNET gruen auf Weiss, sonst
+   steht dort unbeleuchtet GESCHLOSSEN */
+function leuchtkastenMalen(){
+  if(!leuchtTex) return; let ph='open'; try{ ph=phase; }catch(e){} const offen=ph==='open';
+  /* Wie ein echtes Ladenschild: weisse Acrylfront, umlaufende Zierlinie,
+     kraeftige schmale Grotesk mit Sperrung (Barlow Condensed fett),
+     darunter eine ruhige Zeile - keine Comic-Schrift. */
+  redraw(leuchtTex,(g,W,H)=>{ const gr=g.createLinearGradient(0,0,0,H); gr.addColorStop(0,'#fdfcf9'); gr.addColorStop(1,'#efede7'); g.fillStyle=gr; g.fillRect(0,0,W,H);
+    const c=offen?'#13804a':'#b02a24';
+    g.strokeStyle=c; g.lineWidth=5; g.strokeRect(22,20,W-44,H-40); g.lineWidth=2; g.strokeRect(32,30,W-64,H-60);
+    const t=offen?'GEÖFFNET':(ph==='after'?'FEIERABEND':'GESCHLOSSEN');
+    const F=x=>`700 ${x}px "Barlow Condensed", "Arial Narrow", Arial, sans-serif`;
+    g.textAlign='center'; g.textBaseline='middle'; g.letterSpacing='10px';
+    fitFont(g,t,W-160,150,F); g.fillStyle=c; g.fillText(t,W/2+5,H/2-20);
+    g.letterSpacing='4px'; g.font=`500 38px "Barlow Condensed", "Arial Narrow", Arial, sans-serif`; g.fillStyle='#50555e';
+    g.fillText(offen?'HERZLICH WILLKOMMEN':'BIS BALD',W/2+2,H-72);
+    g.letterSpacing='0px'; });
+}
 function drawSignFace(g,W,H){
     const bg=g.createLinearGradient(0,0,0,H); bg.addColorStop(0,'#1b2a52'); bg.addColorStop(0.55,'#101a36'); bg.addColorStop(1,'#0a1128');
     g.fillStyle=bg; g.fillRect(0,0,W,H);
@@ -7796,12 +8036,29 @@ function buildFacade(){
       for(const dz of [-0.525,0.525]) bbox(2.0,0.012,0.06,gum,0,0.014,6.85+dz,null,false);
       for(const dx of [-0.98,0.98]) bbox(0.06,0.012,1.13,gum,dx,0.014,6.85,null,false);
     }
-    // Neon "GEÖFFNET" im Oberlicht
-    const nm=new THREE.MeshStandardMaterial({color:LIN(0x2a1f10),emissive:LIN(0xffd23f),emissiveIntensity:0,transparent:true,opacity:0.95,
-      map:tex(256,64,(g,W,Hh)=>{ g.fillStyle='#000'; g.fillRect(0,0,W,Hh); g.fillStyle='#ffd23f'; g.font=BUN(34); g.textAlign='center'; g.textBaseline='middle'; g.fillText('GEÖFFNET',W/2,Hh/2+2); }),
-      emissiveMap:tex(256,64,(g,W,Hh)=>{ g.fillStyle='#000'; g.fillRect(0,0,W,Hh); g.fillStyle='#fff'; g.font=BUN(34); g.textAlign='center'; g.textBaseline='middle'; g.fillText('GEÖFFNET',W/2,Hh/2+2); })});
-    neonOpen=nm;
-    bbox(1.5,0.36,0.05,nm,0,2.75,5.86,null,false);
+    /* Leuchtkasten ueber der Tuer, von innen zu sehen. Vorher klebte hier
+       ein schwarzer Kasten flach an der Wand - auf heller Tapete wirkte er
+       wie ein Loch (Tom, 01.10.). Jetzt ein echtes Ladenschild: Alu-Gehaeuse
+       mit Rahmen, Acrylfront, an zwei Stangen von der Decke abgehaengt und
+       vor der Wand - es sieht auf jeder Wandfarbe gleich aus. */
+    { const SW=1.56, SH=0.40, SD=0.09, sy=2.86, sz=5.74, fz=sz-SD/2-0.003;
+      const gehaeuse=std(0x2a2e35,{metalness:0.55,roughness:0.38}), alu=std(0xc9ced6,{metalness:0.85,roughness:0.25});
+      bbox(SW-0.02,SH-0.02,SD-0.01,gehaeuse,0,sy,sz,null,false);
+      for(const dy of [-1,1]) bbox(SW,0.034,SD+0.006,gehaeuse,0,sy+dy*(SH/2-0.017),sz,null,false);
+      for(const dx of [-1,1]) bbox(0.034,SH,SD+0.006,gehaeuse,dx*(SW/2-0.017),sy,sz,null,false);
+      /* schmale Alukante innen am Rahmen */
+      for(const dy of [-1,1]) bbox(SW-0.068,0.006,0.006,alu,0,sy+dy*(SH/2-0.037),fz-0.002,null,false);
+      for(const dx of [-1,1]) bbox(0.006,SH-0.068,0.006,alu,dx*(SW/2-0.037),sy,fz-0.002,null,false);
+      leuchtTex=tex(1024,256,()=>{});
+      neonOpen=new THREE.MeshStandardMaterial({map:leuchtTex,emissiveMap:leuchtTex,emissive:LIN(0xffffff),emissiveIntensity:0,roughness:0.3,metalness:0});
+      plane(SW-0.07,SH-0.07,neonOpen,0,sy,fz,Math.PI,null);
+      /* Abhaengung: zwei Edelstahlstangen mit Deckenrosette */
+      const oben=WH-0.01, unten=sy+SH/2, L=oben-unten;
+      for(const dx of [-0.58,0.58]){
+        const st=new THREE.Mesh(new THREE.CylinderGeometry(0.006,0.006,L,10),alu); st.position.set(dx,unten+L/2,sz); scene.add(st);
+        const ro=new THREE.Mesh(new THREE.CylinderGeometry(0.03,0.03,0.012,16),alu); ro.position.set(dx,oben-0.006,sz); scene.add(ro);
+        bbox(0.03,0.02,0.03,alu,dx,unten+0.01,sz,null,false); }
+      leuchtkastenMalen(); }
   }
   // --- Sockel, Poller, Gitter, Kamera
   /* Sockel unter den Schaufenstern: dunkles Anthrazit wie bei der
@@ -12036,6 +12293,7 @@ function oberflaechenAnwenden(){
     const env=f.glanz?innenUmgebung(w.a):null;
     floorMat.envMap=env; floorMat.envMapIntensity=(f.glanz||0)*0.6; floorMat.needsUpdate=true; }
   /* Sockelleiste im dunklen Ton der Wand */
+  if(typeof regaleFaerben==='function') regaleFaerben();
   if(typeof sockelM==='function'){ const c=hx(w.sockel||w.a), s=w.sockel?c:ton(c,0.7); sockelM().color.setRGB(s[0]/255,s[1]/255,s[2]/255).convertSRGBToLinear(); }
 }
 /* Musterkarte fuer den Laptop: das echte Material im Kleinen */
@@ -12508,7 +12766,13 @@ let _gestell=null;
 function gestellMat(){ if(!_gestell) _gestell=new THREE.MeshStandardMaterial({vertexColors:true,metalness:0,roughness:0.72}); return _gestell; }
 const coldFrame=std(0xc8ccd4,{metalness:0.6,roughness:0.3});
 const coldGlass=new THREE.MeshStandardMaterial({color:LIN(0xd8ecff),transparent:true,opacity:0.2,roughness:0.05,metalness:0.2,depthWrite:false});
-const pegMat=new THREE.MeshStandardMaterial({roughness:0.8,map:(()=>{ const t=tex(128,128,(g,W,H)=>{ g.fillStyle='#e9ecf1'; g.fillRect(0,0,W,H); g.fillStyle='#9aa1ad'; for(let x=8;x<W;x+=16) for(let y=8;y<H;y+=16){ g.beginPath(); g.arc(x,y,2.2,0,Math.PI*2); g.fill(); } }); t.wrapS=t.wrapT=THREE.RepeatWrapping; t.repeat.set(4,4); return t; })()});
+/* Rueckwand: pulverbeschichtetes Lochblech. Die Textur ist neutral hell,
+   die Farbe kommt ueber material.color aus der Regalpalette - so passt
+   sie zu jeder Wand. Loecher mit Schattenkante statt aufgemalter Punkte. */
+const pegMat=new THREE.MeshStandardMaterial({roughness:0.62,metalness:0.12,map:(()=>{ const t=tex(256,256,(g,W,H)=>{ g.fillStyle='#f4f5f6'; g.fillRect(0,0,W,H);
+  for(let i=0;i<1400;i++){ g.fillStyle=`rgba(${Math.random()<0.5?'255,255,255':'120,124,130'},${0.03+Math.random()*0.04})`; g.fillRect(Math.random()*W,Math.random()*H,2,2); }
+  for(let x=16;x<W;x+=32) for(let y=16;y<H;y+=32){ g.fillStyle='rgba(255,255,255,.7)'; g.fillRect(x-3,y-4,7,9); g.fillStyle='#3a3d43'; g.fillRect(x-3,y-5,6,9); g.fillStyle='#6a6e76'; g.fillRect(x-3,y-5,6,2); } });
+  t.wrapS=t.wrapT=THREE.RepeatWrapping; t.repeat.set(5,5); return t; })()});
 function kindOf(sh){ return SHELFKIND[sh&&sh.kind]||SHELFKIND.standard; }
 function shelfCount(k){ return shelves.filter(s=>s.kind===k).length; }
 /* Fassungsvermögen richtet sich nach Regalbreite und -tiefe */
@@ -12516,7 +12780,7 @@ function shelfCount(k){ return shelves.filter(s=>s.kind===k).length; }
    Fach hat mehr Luft bis zur Deckplatte - dort stehen die grossen Verbundbatterien
    (Tom, 25.09.: "die wirklich krassen viel, viel groesser"). Vorher
    stand hohe Ware einfach im Boden darueber. */
-function fachHoehe(K,li){ return li<K.lv.length-1?K.lv[li+1]-K.lv[li]-0.04:(K.cold?0.44:0.58); }
+function fachHoehe(K,li){ return li<K.lv.length-1?K.lv[li+1]-K.lv[li]-0.04:(K.oben!==undefined?K.oben:(K.cold?0.44:0.58)); }
 function layout(t,sh,lv){
   const p=P[t], G=p.grid, K=kindOf(sh), g=0.012;
   /* Die Ware fuellt das Fach von links bis rechts (Tom, 25.09.: "nur in
@@ -12524,10 +12788,10 @@ function layout(t,sh,lv){
      Gitter im Produkt die Spalten - acht kleine Packungen standen dann
      mitten in einem zwei Meter breiten Regal. */
   const cols=Math.max(1,Math.floor((K.w-0.1+g)/(p.dims[0]+g)));
-  const rows=Math.max(1,Math.min(G[1],Math.floor((K.d-0.06+g)/(p.dims[2]+g))));
+  const rows=Math.max(1,K.frei?Math.floor((K.d-0.06+g)/(p.dims[2]+g)):Math.min(G[1],Math.floor((K.d-0.06+g)/(p.dims[2]+g))));
   /* ohne Fach: das hoechste, das dieses Regal hat */
   const lvH=lv?fachHoehe(K,lv.li):Math.max(...K.lv.map((_,i)=>fachHoehe(K,i)));
-  const st=p.dims[1]>lvH+0.001?0:Math.max(1,Math.min(G[2],Math.floor(lvH/p.dims[1])));
+  const st=p.dims[1]>lvH+0.001?0:Math.max(1,K.frei?Math.min(4,Math.floor(lvH/p.dims[1])):Math.min(G[2],Math.floor(lvH/p.dims[1])));
   return {cols,rows,st,cap:cols*rows*st,w:p.dims[0],h:p.dims[1],d:p.dims[2],g,K};
 }
 function slotLocal(t,idx,sh,lv){
@@ -12565,49 +12829,142 @@ function faceWorld(sh,f,x,z){
   const si=Math.sin(f.ry), c=Math.cos(f.ry);
   return localToWorld(sh.g,f.ox+x*c+z*si,f.oz-x*si+z*c);
 }
+/* Regalpalette aus der Wandfarbe: auf heller Wand ein anthrazitfarbenes
+   Gestell mit hellen, leicht in den Wandton gebrochenen Seiten und
+   Rueckwand, auf dunkler Wand ein helles Alu-Gestell. Boeden und Preis-
+   leiste bleiben neutral grau wie im echten Ladenbau. */
+function regalFarben(K){
+  let w=null; try{ w=wallSet(); }catch(e){} w=w||{a:'#e9e1d1'};
+  const hx=h=>parseInt(String(h).slice(1),16), ch=(c,k)=>(c>>k)&255, lum=c=>(0.2126*ch(c,16)+0.7152*ch(c,8)+0.0722*ch(c,0))/255;
+  const mix=(a,b,t)=>(Math.round(ch(a,16)*(1-t)+ch(b,16)*t)<<16)|(Math.round(ch(a,8)*(1-t)+ch(b,8)*t)<<8)|Math.round(ch(a,0)*(1-t)+ch(b,0)*t);
+  const wa=hx(w.a), hell=lum(wa)>0.42;
+  if(K&&K.cold) return {rahmen:0xc8ccd4,seite:0xc8ccd4,blende:0xc8ccd4,fuss:0x2a2e38,boden:0xd9dde4,preis:0xc8ccd4,lippe:0xe8ecf2,kopf:0x1b2340,platte:0xbf9a6c,rueck:0xeef4fa};
+  return {rahmen:hell?0x3b3f47:0xb9bec6, seite:hell?mix(wa,0xf6f6f4,0.78):mix(wa,0x9da2aa,0.45), blende:hell?0x3b3f47:0xb9bec6, fuss:0x24272d,
+    boden:0xd6d9de, preis:0xe9ebee, lippe:0xb4b9c1, kopf:hell?0x2b2f36:0x1d2026, platte:hell?0xbf9a6c:0x9c7a52, rueck:hell?mix(wa,0xf4f4f2,0.82):mix(wa,0xb4b8be,0.5)};
+}
+function regaleFaerben(){
+  pegMat.color.copy(LIN(regalFarben(null).rueck));
+  shelves.forEach(sh=>{ (sh.gestelle||[]).forEach(m=>{ const RF=regalFarben(m.userData.regalK), ca=m.geometry.attributes.color; let o=0;
+      for(const [r,n] of m.userData.rollen){ const c=LIN(RF[r]); for(let i=0;i<n;i++) ca.setXYZ(o+i,c.r,c.g,c.b); o+=n; } ca.needsUpdate=true; });
+    if(sh.gitterM) sh.gitterM.color.copy(LIN(regalFarben(kindOf(sh)).rahmen));
+    if(sh.blind){ const RF=regalFarben(kindOf(sh)); sh.blind[0].material.color.copy(LIN(RF.seite)); sh.blind[1].material.color.copy(LIN(RF.rahmen)); } });
+}
+/* Drahtgitter fuer die Gitterbox: Stahldraht 4 mm im 5-cm-Raster, als
+   Alpha-Textur - man sieht die Ware durch das Gitter */
+let _gitterT=null;
+function gitterTex(){ if(_gitterT) return _gitterT;
+  _gitterT=tex(128,128,(g,W,H)=>{ g.clearRect(0,0,W,H); g.fillStyle='#ffffff';
+    for(let x=0;x<W;x+=32){ g.fillRect(x,0,5,H); } for(let y=0;y<H;y+=32){ g.fillRect(0,y,W,5); }
+    g.fillStyle='rgba(0,0,0,.35)'; for(let x=0;x<W;x+=32) g.fillRect(x+4,0,1,H); });
+  _gitterT.wrapS=_gitterT.wrapT=THREE.RepeatWrapping; return _gitterT; }
+/* Verkaufstisch und Gitterbox: eigene Bauform, aber dieselben Faecher
+   (Level), Preisschilder, Kopfschild und Treffer wie ein Regal - Kunden,
+   Einraeumer und Speicherstand behandeln sie wie jedes andere Regal. */
+function bauMoebel(K,sh,g,RF){
+  const W=K.w, D=K.d, y=K.lv[0], fh=K.oben, iw=W-0.1, st=[];
+  const GB={}; const box=(w,h,d)=>GB[w+'|'+h+'|'+d]||(GB[w+'|'+h+'|'+d]=new THREE.BoxGeometry(w,h,d));
+  const fg=new THREE.Group(); g.add(fg);
+  let preisY, headY;
+  if(K.bau==='tisch'){
+    /* Ladenbau-Tisch: Platte mit Kantenumleimer, vier Vierkantbeine,
+       Zarge und eine Ablage darunter fuer Nachschub */
+    st.push({geo:box(W,0.04,D),m:tm(0,y-0.02,0),rolle:'platte'});
+    st.push({geo:box(W+0.01,0.02,D+0.01),m:tm(0,y-0.045,0),rolle:'rahmen'});
+    for(const sx of [-1,1]) for(const sz of [-1,1]) st.push({geo:box(0.05,y-0.06,0.05),m:tm(sx*(W/2-0.06),(y-0.06)/2,sz*(D/2-0.06)),rolle:'rahmen'});
+    for(const sz of [-1,1]) st.push({geo:box(W-0.12,0.08,0.025),m:tm(0,y-0.1,sz*(D/2-0.06)),rolle:'rahmen'});
+    for(const sx of [-1,1]) st.push({geo:box(0.025,0.08,D-0.12),m:tm(sx*(W/2-0.06),y-0.1,0),rolle:'rahmen'});
+    st.push({geo:box(W-0.14,0.02,D-0.14),m:tm(0,0.16,0),rolle:'platte'});
+    for(const sx of [-1,1]) for(const sz of [-1,1]) st.push({geo:box(0.06,0.015,0.06),m:tm(sx*(W/2-0.06),0.008,sz*(D/2-0.06)),rolle:'fuss'});
+    /* Preisleiste vorn an der Zarge */
+    st.push({geo:box(iw,0.05,0.014),m:tm(0,y-0.1,D/2-0.04),rolle:'preis'});
+    preisY=y-0.1; 
+    /* Aktionsschild auf einem Steckpfosten hinten in der Mitte */
+    st.push({geo:box(0.03,0.62,0.03),m:tm(0,y+fh+0.05,-D/2+0.08),rolle:'rahmen'});
+    headY=y+fh+0.42;
+    st.push({geo:box(1.0,0.2,0.03),m:tm(0,headY,-D/2+0.08),rolle:'kopf'});
+  } else {
+    /* Gitterbox: Bodenwanne, vier Eckpfosten, Drahtgitter rundum, oben
+       ein umlaufender Rohrrahmen; vorn etwas niedriger zum Hineingreifen */
+    const hw=0.62, hv=0.5;
+    st.push({geo:box(W,0.04,D),m:tm(0,y-0.02,0),rolle:'boden'});
+    st.push({geo:box(W,0.08,D),m:tm(0,0.05,0),rolle:'rahmen'});
+    for(const sx of [-1,1]) for(const sz of [-1,1]) st.push({geo:box(0.035,hw+y,0.035),m:tm(sx*(W/2-0.018),(hw+y)/2,sz*(D/2-0.018)),rolle:'rahmen'});
+    st.push({geo:box(W,0.025,0.025),m:tm(0,y+hw,-D/2+0.012),rolle:'rahmen'});
+    st.push({geo:box(W,0.025,0.025),m:tm(0,y+hv,D/2-0.012),rolle:'rahmen'});
+    for(const sx of [-1,1]) st.push({geo:box(0.025,0.025,D),m:tm(sx*(W/2-0.012),y+hw,0),rolle:'rahmen'});
+    for(const sx of [-1,1]) for(const sz of [-1,1]) st.push({geo:box(0.08,0.04,0.08),m:tm(sx*(W/2-0.08),0.02,sz*(D/2-0.08)),rolle:'fuss'});
+    const gm=new THREE.MeshStandardMaterial({map:gitterTex(),color:LIN(RF.rahmen),alphaTest:0.4,transparent:false,side:THREE.DoubleSide,metalness:0.5,roughness:0.45});
+    sh.gitterM=gm;
+    const wand=(w,h,x,yy,z,ry)=>{ const t=gitterTex(); const m=plane(w,h,gm,x,yy,z,ry,fg); const uv=m.geometry.attributes.uv; for(let i=0;i<uv.count;i++) uv.setXY(i,uv.getX(i)*w/0.2,uv.getY(i)*h/0.2); uv.needsUpdate=true; return m; };
+    wand(W-0.04,hw,0,y+hw/2,-D/2+0.012,0); wand(W-0.04,hv,0,y+hv/2,D/2-0.012,0);
+    for(const sx of [-1,1]) wand(D-0.04,hw,sx*(W/2-0.012),y+hw/2,0,Math.PI/2);
+    preisY=y+hv-0.04; headY=y+hv+0.13;
+    /* Klappschild vorn am Rohrrahmen */
+    st.push({geo:box(0.9,0.2,0.02),m:tm(0,headY,D/2-0.004),rolle:'kopf'});
+  }
+  st.forEach(x=>{ x.color=RF[x.rolle]; });
+  const gest=new THREE.Mesh(merge(st),gestellMat());
+  gest.userData.rollen=st.map(x=>[x.rolle,x.geo.index?x.geo.index.count:x.geo.attributes.position.count]); gest.userData.regalK=K; sh.gestelle=[gest];
+  if(HIQ){ gest.castShadow=true; gest.receiveShadow=true; } fg.add(gest);
+  for(const k in GB) GB[k].dispose();
+  const lt=tex(700,80,()=>{}); lt.anisotropy=8;
+  plane(Math.min(0.46,iw*0.46),0.052,new THREE.MeshBasicMaterial({map:lt,toneMapped:false}),0,preisY,D/2+(K.bau==='tisch'?-0.032:0.003),0,fg);
+  const hit=bbox(iw,fh,D,hitM,0,y+fh/2,0.01,fg,false);
+  const lv={sh,li:0,face:0,type:null,count:0,q:1,items:[],tex:lt,hit}; hit.userData={kind:'level',ref:lv}; sh.levels.push(lv);
+  sh.headTex=tex(1024,160,()=>{});
+  const hz=K.bau==='tisch'?-D/2+0.08+0.016:D/2+0.008, hwid=K.bau==='tisch'?0.96:0.86;
+  plane(hwid,0.17,new THREE.MeshBasicMaterial({map:sh.headTex,toneMapped:false,side:THREE.DoubleSide}),0,headY,hz,0,fg);
+  sh.headY=headY;
+}
 function createShelf(i,data){
   const kind=(data&&data.kind&&SHELFKIND[data.kind])?data.kind:'standard';
   const K=SHELFKIND[kind];
+  pegMat.color.copy(LIN(regalFarben(null).rueck));
   const g=new THREE.Group(); const frei=slotsOffen().filter(sl=>slotPasst(K,sl));
   const s=data&&data.x!==undefined?data:(frei[0]||slotsOffen()[0]||SLOTS[0]);
   g.position.set(s.x,0,s.z); g.rotation.y=s.ry||0; scene.add(g);
-  const W=K.w, D=K.d, top=K.lv[K.lv.length-1]+(K.cold?0.48:0.62), hw=W/2, iw=W-0.1;
+  const W=K.w, D=K.d, top=K.lv[K.lv.length-1]+fachHoehe(K,K.lv.length-1)+0.04, hw=W/2, iw=W-0.1;
   const sh={i,g,kind,levels:[],W,D};
   /* Das Gestell ist reine Kulisse und wird je Warenseite zu einem
      Mesh verschmolzen - bei fuenfzig Regalen im Endausbau zaehlt das. */
   const GB={}; const box=(w,h,d)=>GB[w+'|'+h+'|'+d]||(GB[w+'|'+h+'|'+d]=new THREE.BoxGeometry(w,h,d));
-  const rahmenFarbe=K.cold?0xc8ccd4:0x4a5266, seitenFarbe=K.cold?0xc8ccd4:0xe4e7ec;
+  /* Farben nach Rolle: sie folgen der Wandfarbe (regalFarben) und werden
+     beim Umstreichen nachgefaerbt (regaleFaerben) */
+  const RF=regalFarben(K);
+  if(K.bau){ bauMoebel(K,sh,g,RF); } else
   seitenVon(K).forEach((f,fi)=>{
     const fg=new THREE.Group(); fg.position.set(f.ox,0,f.oz); fg.rotation.y=f.ry; g.add(fg);
     const st=[];   /* Gestell */
     const li0=[];  /* Lichtleisten */
-    st.push({geo:box(0.05,top,D),m:tm(-hw+0.025,top/2,0),color:rahmenFarbe});
-    st.push({geo:box(0.05,top,D),m:tm( hw-0.025,top/2,0),color:rahmenFarbe});
-    st.push({geo:box(W,0.06,D),  m:tm(0,top+0.03,0),color:rahmenFarbe});
-    st.push({geo:box(iw,0.08,D-0.02),m:tm(0,0.04,0),color:rahmenFarbe});
-    for(const sx of [-1,1]) st.push({geo:box(0.022,top-0.08,D),m:tm(sx*(hw+0.005),top/2,0),color:seitenFarbe});
-    st.push({geo:box(W-0.06,0.14,0.03),m:tm(0,0.11,D/2-0.005),color:seitenFarbe});
+    st.push({geo:box(0.05,top,D),m:tm(-hw+0.025,top/2,0),rolle:'rahmen'});
+    st.push({geo:box(0.05,top,D),m:tm( hw-0.025,top/2,0),rolle:'rahmen'});
+    st.push({geo:box(W,0.06,D),  m:tm(0,top+0.03,0),rolle:'rahmen'});
+    st.push({geo:box(iw,0.08,D-0.02),m:tm(0,0.04,0),rolle:'rahmen'});
+    for(const sx of [-1,1]) st.push({geo:box(0.022,top-0.08,D),m:tm(sx*(hw+0.005),top/2,0),rolle:'seite'});
+    st.push({geo:box(W-0.06,0.14,0.03),m:tm(0,0.11,D/2-0.005),rolle:'blende'});
     for(const sx of [-1,1]) for(const sz of [-1,1])
-      st.push({geo:box(0.09,0.04,0.09),m:tm(sx*(hw-0.1),0.02,sz*(D/2-0.1)),color:0x2a2e38});
+      st.push({geo:box(0.09,0.04,0.09),m:tm(sx*(hw-0.1),0.02,sz*(D/2-0.1)),rolle:'fuss'});
     /* Rueckwand bleibt eigenes Mesh: Lochblech beziehungsweise Kuehlschrankwand */
     bbox(iw,top-0.1,0.02,K.cold?std(0xeef4fa,{roughness:0.5}):pegMat,0,top/2,-D/2+0.03,fg);
     K.lv.forEach((y,li)=>{
-      st.push({geo:box(iw,0.03,D-0.04),m:tm(0,y-0.015,0),color:0xd9dde4});
-      st.push({geo:box(iw,0.05,0.014),m:tm(0,y-0.02,D/2-0.013),color:K.cold?0xc8ccd4:0xc8322a});
-      st.push({geo:box(iw,0.012,0.02),m:tm(0,y-0.045,D/2-0.011),color:0xe8ecf2});
-      st.push({geo:box(iw-0.04,0.018,0.05),m:tm(0,y-0.055,-D/2+0.06),color:rahmenFarbe});
+      st.push({geo:box(iw,0.03,D-0.04),m:tm(0,y-0.015,0),rolle:'boden'});
+      st.push({geo:box(iw,0.05,0.014),m:tm(0,y-0.02,D/2-0.013),rolle:'preis'});
+      st.push({geo:box(iw,0.012,0.02),m:tm(0,y-0.045,D/2-0.011),rolle:'lippe'});
+      st.push({geo:box(iw-0.04,0.018,0.05),m:tm(0,y-0.055,-D/2+0.06),rolle:'rahmen'});
       if(li>0||K.cold) li0.push({geo:box(iw-0.06,0.016,0.04),m:tm(0,y-0.048,D/2-0.07)});
       const lt=tex(700,80,()=>{}); lt.anisotropy=8;
       plane(Math.min(0.46,iw*0.46),0.052,new THREE.MeshBasicMaterial({map:lt,toneMapped:false}),0,y-0.02,D/2-0.004,0,fg);
-      const hit=bbox(iw,0.42,D,hitM,0,y+0.21,0.01,fg,false);
+      const fh=fachHoehe(K,li), hit=bbox(iw,fh,D,hitM,0,y+fh/2,0.01,fg,false);
       const lv={sh,li,face:fi,type:null,count:0,q:1,items:[],tex:lt,hit}; hit.userData={kind:'level',ref:lv}; sh.levels.push(lv);
     });
     /* Kopfschild ueber jeder Warenseite */
     if(fi===0) sh.headTex=tex(1024,160,()=>{});
     const hy=top+(K.cold?0.34:0.18);
-    st.push({geo:box(W-0.04,0.28,0.05),m:tm(0,hy,0.02),color:0x1b2340});
+    st.push({geo:box(W-0.04,0.28,0.05),m:tm(0,hy,0.02),rolle:'kopf'});
     plane(W-0.1,0.24,new THREE.MeshBasicMaterial({map:sh.headTex,toneMapped:false}),0,hy,0.051,0,fg);
+    st.forEach(x=>{ x.color=RF[x.rolle]; });
     const gest=new THREE.Mesh(merge(st),gestellMat());
+    gest.userData.rollen=st.map(x=>[x.rolle,x.geo.index?x.geo.index.count:x.geo.attributes.position.count]); gest.userData.regalK=K; sh.gestelle=(sh.gestelle||[]).concat([gest]);
     if(HIQ){ gest.castShadow=true; gest.receiveShadow=true; } fg.add(gest);
     if(li0.length){
       const strip=new THREE.MeshStandardMaterial({color:LIN(0xf5f7fb),emissive:LIN(K.cold?0xcfe8ff:0xfff2dc),emissiveIntensity:K.cold?1.1:0});
@@ -12628,11 +12985,10 @@ function createShelf(i,data){
      Im Supermarkt steht dort ein Blindfeld - sonst schaut man durch
      den Spalt auf die Wand. */
   if(K.art==='ecke'){
-    bbox(0.52,top,0.52,std(0x4a5266,{roughness:0.8}),-0.6,top/2,-0.6,g);
-    bbox(0.56,0.06,0.56,std(0xe4e7ec,{roughness:0.7}),-0.6,top+0.03,-0.6,g,false);
+    const RF=regalFarben(K); sh.blind=[bbox(0.52,top,0.52,std(RF.seite,{roughness:0.8}),-0.6,top/2,-0.6,g),bbox(0.56,0.06,0.56,std(RF.rahmen,{roughness:0.7}),-0.6,top+0.03,-0.6,g,false)];
   }
   for(const k in GB) GB[k].dispose();
-  sh.headY=top+(K.cold?0.34:0.18);
+  if(!K.bau) sh.headY=top+(K.cold?0.34:0.18);
   sh.mov=addMovable({kind:'shelf',name:K.name,g,fw:(K.fw||W)+0.06,fd:(K.fd||D)+0.04,ref:sh,onPlace:()=>syncShelf(sh)});
   shelves.push(sh);
   if(data&&data.levels) data.levels.forEach((ld,li)=>{ if(ld&&ld.type&&P[ld.type]&&sh.levels[li]){ const n=Math.min(ld.count|0,layout(ld.type,sh,sh.levels[li]).cap); for(let k=0;k<n;k++) addToLevel(sh.levels[li],ld.type,ld.q||1); } });
@@ -12699,7 +13055,9 @@ function emptyLevel(t){ if(!canShelf(t)) return null;
   const pref=P[t].cold?pool.filter(l=>kindOf(l.sh).cold):[];
   for(const list of [pref,pool]){
     for(const l of list) if(l.type===t&&l.count<capOf(l,t)) return l;
-    for(const l of list) if(!l.type) return l;
+    /* nur Faecher, in die die Ware auch passt - sonst lief der Einraeumer
+       immer wieder ein zu niedriges Fach an */
+    for(const l of list) if(!l.type&&capOf(l,t)>0) return l;
   }
   return null; }
 
@@ -13297,6 +13655,7 @@ function stockOne(lv,quiet){
   const c=S.carrying; if(!c) return;
   if(!canShelf(c.type)){ if(!quiet) toast(`${P[c.type].short} gehört nicht ins Regal.`,'bad'); return; }
   if(lv.type&&lv.type!==c.type){ if(!quiet) toast(`In dem Fach liegen ${P[lv.type].short}.`,'bad'); return; }
+  if(!capOf(lv,c.type)){ if(!quiet) toast(`${P[c.type].short} passt nicht ins Regal – zu groß für dieses Fach.`,'bad'); return; }
   if(lv.count>=capOf(lv,c.type)){ if(!quiet) toast('Das Fach ist voll.'); return; }
   if(!addToLevel(lv,c.type,c.q||1)){ if(!quiet) toast('Kein Platz mehr.'); return; }
   c.count--; S.tut.stock=true; sfx.pop();
@@ -13344,7 +13703,7 @@ const einbauPakete=[];
    laengsten Teile darin - die Seitenwangen -, der Kuehlschrank kommt
    stehend im eigenen Karton, die SB-Terminals in einer Kiste */
 const PAKET_MASS={klein:[1.7,0.26,0.5],standard:[2.1,0.3,0.6],hoch:[2.2,0.36,0.62],kuehl:[1.15,2.05,0.7],
-  gondel:[2.1,0.4,0.62],eck:[1.9,0.36,0.62],gross:[2.1,0.42,0.7],rack:[2.4,0.3,0.55],rhoch:[2.6,0.36,0.6],rschwer:[2.8,0.42,0.66],
+  gondel:[2.1,0.4,0.62],eck:[1.9,0.36,0.62],gross:[2.2,0.42,0.74],gitter:[1.3,0.5,0.9],tisch:[2.3,0.3,1.36],rack:[2.4,0.3,0.55],rhoch:[2.6,0.36,0.6],rschwer:[2.8,0.42,0.66],
   kasse2:[1.0,1.25,0.8],kasse3:[1.0,1.25,0.8]};
 const EINBAU={
   kasse2:{name:'SB-Kassen',ziel:()=>typeof sbZiel==='function'?sbZiel():null,weit:5},
@@ -19232,6 +19591,9 @@ function playShow(o,phases,prod,tag){
   /* Ort zum Versatz: erst beim Zuenden gerechnet, wenn alle Versaetze
      der Show bekannt sind (VM.k) */
   const ortAus=off=>off?versetzt(o,off*VM.k()):versetzt(o,0);
+  /* Batterien: jeder Schuss und jeder Boden-Effekt aus seinem eigenen
+     Rohr (04c, Tom 01.10.: so viele Loecher wie Schuss) */
+  const RS=rohrSatz(o,prod);
   phases.forEach((ph0,pi)=>{
     const ph=phNorm(ph0), t=zeiten[pi], pl=plaene[pi], n=pl.n, th=ph.th||BS.th, je=pl.je;
     const m=ph.muster||(ph.fan?'fan':ph.vfan?'vfan':null);
@@ -19250,7 +19612,7 @@ function playShow(o,phases,prod,tag){
          bleiben darin */
       const e=Object.assign({},b,{t:b.gt||4,k:b.k,A,B,h:b.gh||1,tag,versatz:b.t||0});
       delete e.je; delete e.x; delete e.bis;
-      later(st,()=>{ e.o=ortAus(offB); e.spielraum=Math.max(0.02,VM.halb-Math.abs(offB*VM.k())); if(offZ!==null){ e.ziel=ortAus(offZ); e.bis=(offZ-offB)*VM.k(); } emitters.push(e); sfx.fizz(distVol(e.o)); }); };
+      later(st,()=>{ e.o=RS?RS.nimm(offB*VM.k()):ortAus(offB); e.spielraum=Math.max(0.02,VM.halb-Math.abs(offB*VM.k())); if(offZ!==null){ e.ziel=ortAus(offZ); e.bis=(offZ-offB)*VM.k(); } emitters.push(e); sfx.fizz(distVol(e.o)); }); };
     if(ph.ground) bodenAn({k:ph.ground,gt:ph.gt,gh:ph.gh,gA:ph.gA,gB:ph.gB,farben:ph.farben},t);
     const boeden=ph.boden?(Array.isArray(ph.boden)?ph.boden:[ph.boden]):[];
     boeden.forEach(b=>{ if(!b.je) bodenAn(b,t+(b.t||0)); });
@@ -19357,7 +19719,7 @@ function playShow(o,phases,prod,tag){
       if(q===0) boeden.forEach(b=>{ if(b.je) bodenAn(b,tt+(b.t||0),off); });
       const [mA,mB]=[A,B];
       later(tt,()=>{
-        const os=mitOrt?ortAus(off):o;
+        const os=RS?RS.nimm(mitOrt?off*VM.k():0):(mitOrt?ortAus(off):o);
         const alt=FW_TAG; FW_TAG=tag;
         /* licht: ein Lichtertyp direkt aus dem Rohr, ohne Bombette (14m,
            01.10., Tom: Kometen, Blinker, Fontaenen, Wasserfall ...) */
@@ -27560,7 +27922,7 @@ function promptFor(t){
     case 'level': { const lv=t.ref;
       if(c&&(c.regal||c.einbau)) return {t:'Paket: am Boden abstellen oder am Stellplatz auspacken',a:false};
       if(c){ if(lv.type&&lv.type!==c.type) return {t:`Fach mit ${P[lv.type].short}`,a:false};
-        const cp=capOf(lv,c.type); if(lv.count>=cp) return {t:'Fach ist voll',a:false};
+        const cp=capOf(lv,c.type); if(!cp) return {t:'Produkt passt nicht ins Regal',a:false}; if(lv.count>=cp) return {t:'Fach ist voll',a:false};
         return {t:`Einräumen: ${P[c.type].short} ${lv.count}/${cp}`,a:true}; }
       return {t:lv.type?`${P[lv.type].short}: ${lv.count}/${capOf(lv)} für ${eur(S.prices[lv.type])}`:'Leeres Fach',a:false}; }
     case 'rslot': { const sl=t.ref;
@@ -27957,7 +28319,7 @@ function showSummary(title,text,rows,btn,fn){
   const b=$('sBtn'); b.textContent=btn; b.onclick=fn;
   $('summary').classList.add('show'); summaryOpen=true; paused=true; if(locked) document.exitPointerLock();
 }
-const SHELFFIX={klein:4,standard:9,hoch:12,kuehl:18};
+const SHELFFIX={klein:4,standard:9,hoch:12,kuehl:18,gondel:14,eck:11,gross:13,gitter:3,tisch:6};
 /* Dispokredit: solange der Laden laeuft, gibt die Bank einen Rahmen.
    Ohne den koennte ein schlechter Januar das Spiel unrettbar festfahren:
    kein Geld -> keine Ware -> keine Kunden -> kein Geld. */
@@ -28925,6 +29287,13 @@ function upPic(id){
           g.fillRect(48+k*24,y-13,18,13); g.fillRect(110+k*24,y-13,18,13); } }
       g.fillStyle='#1b2340'; g.fillRect(44,18,136,10); break;
     case 'shelf_gross': regal(2,128,'#5a6170'); break;
+    case 'shelf_tisch':
+      bg('#1b2540','#0d1326'); g.fillStyle='#c9ced8'; g.fillRect(40,74,140,10); g.fillStyle='#5a6170'; for(const x of [46,168]) g.fillRect(x,84,6,40);
+      for(let k=0;k<3;k++){ g.fillStyle=['#d8b468','#c05a4a','#6fa8d8'][k]; g.fillRect(50+k*42,44,36,30); } break;
+    case 'shelf_gitter':
+      bg('#1b2540','#0d1326'); g.strokeStyle='#aab1bd'; g.lineWidth=2; for(let x=50;x<=170;x+=12){ g.beginPath(); g.moveTo(x,62); g.lineTo(x,122); g.stroke(); }
+      for(let y=62;y<=122;y+=12){ g.beginPath(); g.moveTo(50,y); g.lineTo(170,y); g.stroke(); }
+      for(let k=0;k<4;k++){ g.fillStyle=['#d8b468','#c05a4a','#6fa8d8','#8fd6a8'][k]; g.fillRect(56+k*28,46+(k%2)*6,24,22); } break;
     case 'shelf_eck':
       bg('#1b2540','#0d1326');
       /* Eckregal von oben: zwei Schenkel ueber Eck */
@@ -30037,7 +30406,7 @@ function vfPlatz(art,n){ const jetzt=FW_UHR; let best=0, bz=Infinity;
 function vfMuendung(t){
   const sid=stationOf(t), p=P[t], d=p.dims||[0.2,0.2,0.2];
   if(sid==='tisch'){ const i=vfPlatz('t',VF_TISCH.n), hx=d[0]/2, hz=d[2]/2;
-    return {art:'t'+i,sid,x:VF_TISCH.x0+i*VF_TISCH.dx,y:VF_TISCH.y+d[1],z:VF_Z,ab:0.08,jit:Math.min(0.06,hx*0.5,hz*0.5),hx,hz,boden:VF_TISCH.y}; }
+    return {art:'t'+i,sid,x:VF_TISCH.x0+i*VF_TISCH.dx,y:VF_TISCH.y+d[1],z:VF_Z,ab:0.08,jit:Math.min(0.06,hx*0.5,hz*0.5),hx,hz,boden:VF_TISCH.y,ry:Math.PI}; }
   if(sid==='moerser'){ const k=moerserRohr(t)%3, i=vfPlatz('m'+k,VF_MOERSER.n);
     return {art:'m'+k+i,sid,x:VF_MOERSER.x0+k*VF_MOERSER.gdx+i*VF_MOERSER.dx,y:VF_MOERSER.hoch[k],z:VF_Z,ab:0.05,jit:0.02,hx:ROHR_INNEN[k]*0.8,hz:ROHR_INNEN[k]*0.8}; }
   const i=vfPlatz('r',VF_ROHR.n), kerze=p.shape==='candle';
@@ -30051,7 +30420,7 @@ function vfZuenden(t){
   const o=vfMuendung(t), dauer=brennDauer(t), vor=o.sid==='moerser'?0.75:o.sid==='rampe'?0.4:0;
   vfBelegt[o.art]=FW_UHR+vor+dauer+0.5;
   let h=null;
-  if(o.sid==='tisch'&&pools[t]&&!pools[t].full()) h=pools[t].add(mx(o.x,o.boden,o.z,Math.PI));
+  if(o.sid==='tisch'&&stationsPool(t)&&!stationsPool(t).full()) h=stationsPool(t).add(mx(o.x,o.boden,o.z,Math.PI));
   if(vor){ emitters.push({t:vor,k:'fuse',o:{x:o.x,y:o.y,z:o.z}}); sfx.fizz(distVol(o)*0.5); }
   later(vor,()=>{ if(vfAn) igniteType(t,o); });
   /* der Blick folgt dem Produkt: zur Seite auf seinen Platz, nach oben so
@@ -31220,7 +31589,7 @@ fontsReady().then(()=>{
   setTimeout(()=>{ if(typeof shaderVorab==='function') shaderVorab(); },400);
   window.__bb={get S(){return S},get phase(){return phase},set phase(v){phase=v},set clock(v){clock=v},get clock(){return clock},pickUp,floorBoxes,shelves,racks,dekos,stockOne,openShop,step,customers,queue,belt,scanBelt,buyUp,buyDeko,get DS(){return DS},endDay,pending,save,openLaptop,closeLaptop,pl,addXP,hireStaff,fireStaff,staff,dirts,addDirt,movables,toggleBuild,setWall,setFloor,
     stations,firePult,placeOnStation,igniteType,get order(){return order},get phone(){return phone},makeCall,answerPhone,haggle,acceptDeal,declineDeal,get truck(){return truck},spawnTruck,takeFromTruck,takeBox,dropBox,updateTruck,get door(){return door},get tuer(){return tuer},tuerSet,tuerNah,updateSchiebetuer,doorOpen,doorIsOpen,trailerOccupied,LR,lrFront,TOR,orderReady,orderLeft,shipOne,removeFloorBox,prioOf,setPrio,racks,updateCarry,spawnFloorBox,staff,SHELFKIND,layout,shelfCapOf,shelfAccepts,emptyLevel,dateInfo,dateStr,dateShort,seasonInfo,isSunday,dayMult,ruhetag,wageOf,setWage,friendliness,inPause,setPause,windowGrime,addGrime,cleanWindowTick,ambienteScore,bildBoost,fixedCosts,dailyWages,dispoLimit,verfuegbar,dispoZins,takeLoan,loanTier,loanDaily,EVENTS,GOALS,CUSTTYPES,UPGRADES,STAFF,stockOf,spawnInterval,pools,todayEvent,evv,rollEvent,rollMarket,newGoal,goalAdd,goalTick,ekFactor,marktText,xpFor,rollCustType,priceTol,buyChance,regCustomer,makeWishes,nachfrageFaktor,shelfStockOf,buildGravur,refillGrav,openGravInput,closeGravInput,get gravBlanks(){return gravBlanks},set gravBlanks(v){gravBlanks=v},orderBox,buyPack,cartAdd,cartAddPack,cartOrder,cartClear,cartDel,cartGoods,cartFee,cartTotal,cartBoxes,cartLines,LIEFERZEIT_SEK,VERSAND,VERSANDFREI,lieferSek,
-    scene,camera,P,NEUWARE,NEU_SHOWS,NEU_FONT,NEU_KUGEL,neuZuenden,PARK,restWelle,restTick,restDruck,restDaten,buyAngebot,grossOffen,updatePark,parkWasser:()=>_wasserM,parkTannen:()=>PARK_TANNEN,parkLeben:()=>parkEnten.concat(parkLeute).map(e=>({x:e.g.position.x,z:e.g.position.z})),pendingListe:()=>pending,einbauPakete,spawnPaket,paketAblegen,paketAufheben,EINBAU,PAKET_MASS,vorDieTuer,setSB2,sbZiel,makeAuto,AUTOFORM,stadtInfo:()=>({warn:beacons.length,kronen:KRONEN.length,stufen:SKYLINE_INFO.stufen,skyStile:SKYLINE_INFO.stile.size,stile:Object.keys(STADT_MATS).length}),clearStations,fachHoehe,kindOf,packKartonWert,SUPPLIERS,supplierFor,supplierOf,tierPrice,isUnlocked,lizLevel,renderLaptop,get lsup(){return lsup},set lsup(v){lsup=v},get lkat(){return lkat},set lkat(v){lkat=v},SPARTE,SPARTE_NAME,sparteVon,HEADNAME,headArt,catPill,ekRoh,ekDelta,ekTag,ekNiveau,ekPill,get ltab(){return ltab},set ltab(v){ltab=v},EFF,EFF_ALL,EFF_KLEIN,EFF_GROSS,EFF_PRO,SHOWS,kugelbombe,shot,mine,FW,stations,stationOf,placedCount,togglePDA,openPDA,closePDA,setPost,get postOn(){return postOn},get pdaOn(){return pdaOn},showLength,psHuge,psBig,psMid,psSmall,rockets,emitters,timersLen:()=>timers.length,timersLeeren:()=>{timers.length=0;},setView:(x,z,y,p)=>{pl.x=x;pl.z=z;yaw=y;pitch=p;aim=null;},schiebe:(x,z)=>{pl.x=x;pl.z=z;collide(pl,0.32);return{x:pl.x,z:pl.z};},PLZ_MAX,camYaw:()=>yaw,camPitch:()=>pitch,playerPos:()=>({x:pl.x,z:pl.z}),pultYaw:()=>pultHit?pultHit.parent.rotation.y:null,get pultHit(){return pultHit},applyShopName,shopName,shopSlogan,signTexPx:()=>signTex&&signTex.image?signTex.image.getContext('2d').getImageData(0,0,signTex.image.width,40).data.join(''):null,lagerWall,fwShot:shot,KUGEL_R,ROHR_INNEN,MOERSER_R,moerserRohr,sfx,WOLKEN,get master(){return master},ac,SORTE_NEU,sortenUmstellen,get shakeWert(){return shake},get ckG(){return ckG},get ckNameTex(){return ckNameTex},get ckMovable(){return ckMov},CK_HOME,CK_ALT,spotPos,queueApproach,ckTexPx:()=>ckNameTex&&ckNameTex.image?ckNameTex.image.getContext('2d').getImageData(0,0,ckNameTex.image.width,60).data.join(''):null,testfeldMitte,STATION_POS,aimAt,UPGRADES,upPic,PLAN,planFlaechen,uhrZeiger:()=>({std:uhrStd?+uhrStd.rotation.z.toFixed(4):0,min:uhrMin?+uhrMin.rotation.z.toFixed(4):0}),drawRackSchild,get snowPts(){return snowPts},buildStadt,updateStadt,get stadtBoxen(){return stadtBoxen},get stadtBaeume(){return stadtBaeume},buildFernbaeume,schwaerme,beacons,silhouetten,get verkehrPts(){return verkehrPts},get rauchPts(){return rauchPts},get flieger(){return flieger},stadtFrei,STADT_FREI,WALLS,FLOORS,bodenMalen,wandMalen,oberflaechenMuster,oberflaechenAnwenden,BODEN_KACHEL,WAND_B,WAND_H,bodenPx,wandPx,innenUmgebung,sockelM,get wallTex(){return wallTex},get floorTexRef(){return floorTexRef},get floorMat(){return floorMat},get shopWall(){return shopWall},renderOnline,onlineHint,onlineStufe,onlineZahlen,onlineListe,updateOnline,SCHILDBG,SCHILDFG,setSchild,schildBg,schildFg,repaintSchilder,updateHead,allLevels,addToLevel,putInSlot,regCustomer,ZONEN,zoneOffen,oeffneZone,applyZonen,SLOTS,RACKS,slotsOffen,colliders,LAY,LOGI,WRAMPEN,WTORE,updateSnow,unterDach,dachBereiche,get lapHit2(){return lapHit2},buildLagerTerminal,toggleTest,testLevel,buyUp,get toastLast(){return toastLast},__floorBoxen:()=>floorBoxes.length,WBAY_UP,wbays,dockPlaetze,wbayFrei,wbayOffen,spawnWTruck,updateWBays,wbaysInit,wtorSet,GANG,GANGTUER,buildLagergang,flaeche,WTOR,RACKKIND,route,NAV,navFrei,navIdx,navBuild,shelfStand,shelves,sbLanes,buildSBKasse,sbFrei,sbOffen,sbNutzbar,EING2,eingaenge,naechsterEingang,setEingang2,buildSBKasse2,get sb2G(){return sb2G},TUEREN,tuerSetD,tuerNahD,packBereit,packOne,paketWert,bestellungenProTag,pakete,ddlAbholung,updateVersand,VS_GR,VS_FELD,WG_PARK,vsNeueBestellung,vsAbgleich,vsKlasse,vsQuellen,vsBestand,vsErfuellbar,vsPlan,vsStapel,vsSpielerPacken,vsSpielerBestellung,vsTischFrei,vsStatus,vsAufraeumen,vsLaden,vsBahn,vsPaketOffen,vsKlappen,vsFuellung,vsPaketZu,get vsTisch(){return vsTisch},get vsWagen(){return vsWagen},createShelf,createRack,regalStellen,testKauf,regalAufbauen,orderRegal,REGALWARE,regalOf,regalKind,regalPreis,regalPlatz,regalOffen,startGame,promptFor,ERFOLGE,erfOffen,erfStufe,erfStand,erfZiel,erfFertig,erfAnteil,erfGeschafft,erfGesamt,stat,statAdd,statRekord,statVerkauf,bruchGesehen,gruppeVon,GRUPPE,TRAEGER,BRUCH,BRUCH_IDS,REZ_FARBEN,ETIKETT,traegerVon,traegerOffen,bruchOffen,bruchListe,rezeptWow,rezeptKosten,rezeptMarkt,rezeptHype,rezeptDauer,rezeptEntwicklung,rezeptGueltig,eigeneListe,eigenesEintragen,rezepteTick,rezProto,rezBauen,renderRezeptur,get entwurf(){return entwurf},set entwurf(v){entwurf=v},entwurfInit,ORDER,LIZENZEN,lizenzOf,hatLizenz,lizenzDaten,naechsteLizenz,buyLizenz,VOLA,volaOf,REGIME,marketOf,costOf,marktZiel,marktLuecke,meOf,miOf,marktDelta,marktNiveau,marktPhase,marktSchock,marktLabel,marktSchnitt,marktExtrem,marktChance,sortimentBreite,sortimentZug,bekanntheit,spawnInterval,rollMarkt,marktInit,inflOf,inflText,setPreisAufMarkt,igniteType,get packHit(){return packHit},get packTisch(){return packTisch},get packMov(){return packMov},zuendeKanal,zuendeAlle,alleKanaele,get pultText(){return pultText},drawPult,kanalItem,openZuend,closeZuend,get zuendOpen(){return zuendOpen},overlayOpen,pultTaster,zuendTick,TISCH_X,RAMPE_X,KANAL_START,bereitCount,brennDauer,muendung,pultLamps,RAKETEN_LOOK,RAKETEN_KL,makePerson,applyTOD,updateHUD,renderer,renderFrame,get DEMO(){return DEMO},LHALLE,LOGI_STUFEN,TOR_STUFE,logiStufe,logiZeige,logiAnwenden,LOGI_G,TOR_G,WTORE,tuAktion:(kind,ref)=>{ const alt=target; target={kind,ref}; try{ doAction(); } finally { target=alt; } },promptFor,KARREN,karreArt,karreAn,karreStapel,karreLast,karreNimmt,toggleKarre,updateKarre,setTutorial,tutorialAn,zielFuer,get zielAktuell(){return zielAktuell},get tipKey(){return tipKey},updateZiel,set DEMO(v){DEMO=v},kapitelVon,kapitelVoll,openHandy,closeHandy,toggleHandy,get handyOpen(){return handyOpen},get happ(){return happ},HANDY_APPS,renderHandy,shaderVorab,SCHONER,schonerMalen,updateSchoner,makeWischer,stelleWischer,get wischer(){return wischer},updateWischen,wischerPersonal,cleanTick,updateFireworks,FLASH,spurEnden,LR_LAMPE,schweber,kundenSymbol,geldSchwebt,get serie(){return serie},serieZufrieden,serieBricht,KAPITEL,kapitel,kapitelNr,kapitelAufstieg,WA,WA_SLOTS,vorDieTuer,SB_KASSIERER,sbBesetzt,sbLaneVon,sbKassiererPlatz,sbBetreuer,sbHeimPlatz,sbHelferPlatz,sbGeholfen,sbFreiNah,sbZone,SB_SELBST,sbPos,MUSIK,STUECKE,musikAn,musikWeiter,musikVol,musikTick,spielSchritt,get mStep(){return mStep},set mStep(v){mStep=v;mTakte=0;},get mBus(){return mBus},get postHalf(){return postHalf},EFF_SCHWEIF,mitSchweif,KOEPFE,KLEID,UNIFORM,STAFFKOPF,faceCache,animPerson,PACKS,packPreis,packPool,packOffen,packContents,syncPakete,rotateGrab,cancelGrab,moebelTaste,moebelEinpacken,paketAuspacken,moebelImBlick,removeShelf,removeRack,PACK_FL,PACK_HOME,spotFree,rectOf,grab,placeGrab,updateGrab,get grabbed(){return grabbed},showPause,closePause,pauseSeite,pauseSeiteAktiv,zumStartbildschirm,fortsetzen,musikWahl,musikTitel,get startOpen(){return startOpen},get pauseOpen(){return pauseOpen},get target(){return target},einrOf,einrAktiv,einrHoch,einrRunter,einrSchalten,AUFGABEN,einrJob,kartonMat,pools,shelfStockOf,removeFromLevel,fwLog:(a)=>{FW_LOG=a;},moerserRohr,ROHR_KALIBER,effPassen,EFF_FAMILIE,basisBlick,fwTestSchalten,fwTestProdukte,fwTestStapeln,get fwTestAn(){return fwTestAn},get fwTestBoxen(){return fwTestBoxen},get fwTestMarken(){return fwTestMarken},fwStufe,sonne:()=>sun.intensity,get fwUhr(){return FW_UHR},THEMEN,SHOW_BASIS,EFF,emittersListe:()=>emitters,show,SIGNATUR,showZeiten,showDauer,phDauer,musterWinkel,feuertopf,playShow,KAL,get rohrStreu(){return ROHR_STREU},vorfuehrungAn,vorfuehrungAus,vfNaechstes,vfZuenden,vfSpringen,vfNote,vfText,vfTaste,get vfAn(){return vfAn},get vfGezuendet(){return vfGezuendet},get vfIdx(){return vfIdx},get vfLetzt(){return vfLetzt},get vfListe(){return vfListe},get vfEl(){return vfEl},set rohrStreu(v){ROHR_STREU=v},BUENDEL,bSammeln,bWaechter,buendelJetzt:()=>{ bSammeln(); bSammeln(); return BUENDEL.n; },NEU_TEST,get vfSonder(){return vfSonder},gfxAnwenden,gfxWaehlen,gfxMessen,gfxMess,gfxAnzeige,get GFX(){return GFX},get GFX_WAHL(){return GFX_WAHL},QUAL,schattenSichtbar:()=>renderer.shadowMap.enabled&&sun.shadow.bias>-1,
+    scene,camera,P,NEUWARE,NEU_SHOWS,NEU_FONT,NEU_KUGEL,neuZuenden,PARK,restWelle,restTick,restDruck,restDaten,buyAngebot,grossOffen,updatePark,parkWasser:()=>_wasserM,parkTannen:()=>PARK_TANNEN,parkLeben:()=>parkEnten.concat(parkLeute).map(e=>({x:e.g.position.x,z:e.g.position.z})),pendingListe:()=>pending,einbauPakete,spawnPaket,paketAblegen,paketAufheben,EINBAU,PAKET_MASS,vorDieTuer,setSB2,sbZiel,makeAuto,AUTOFORM,stadtInfo:()=>({warn:beacons.length,kronen:KRONEN.length,stufen:SKYLINE_INFO.stufen,skyStile:SKYLINE_INFO.stile.size,stile:Object.keys(STADT_MATS).length}),clearStations,fachHoehe,kindOf,packKartonWert,SUPPLIERS,supplierFor,supplierOf,tierPrice,isUnlocked,lizLevel,renderLaptop,get lsup(){return lsup},set lsup(v){lsup=v},get lkat(){return lkat},set lkat(v){lkat=v},SPARTE,SPARTE_NAME,sparteVon,HEADNAME,headArt,catPill,ekRoh,ekDelta,ekTag,ekNiveau,ekPill,get ltab(){return ltab},set ltab(v){ltab=v},EFF,EFF_ALL,EFF_KLEIN,EFF_GROSS,EFF_PRO,SHOWS,kugelbombe,shot,mine,FW,stations,stationOf,placedCount,togglePDA,openPDA,closePDA,setPost,get postOn(){return postOn},get pdaOn(){return pdaOn},showLength,psHuge,psBig,psMid,psSmall,rockets,emitters,timersLen:()=>timers.length,timersLeeren:()=>{timers.length=0;},setView:(x,z,y,p)=>{pl.x=x;pl.z=z;yaw=y;pitch=p;aim=null;},schiebe:(x,z)=>{pl.x=x;pl.z=z;collide(pl,0.32);return{x:pl.x,z:pl.z};},PLZ_MAX,camYaw:()=>yaw,camPitch:()=>pitch,playerPos:()=>({x:pl.x,z:pl.z}),pultYaw:()=>pultHit?pultHit.parent.rotation.y:null,get pultHit(){return pultHit},applyShopName,shopName,shopSlogan,signTexPx:()=>signTex&&signTex.image?signTex.image.getContext('2d').getImageData(0,0,signTex.image.width,40).data.join(''):null,lagerWall,fwShot:shot,KUGEL_R,ROHR_INNEN,MOERSER_R,moerserRohr,sfx,WOLKEN,get master(){return master},ac,SORTE_NEU,sortenUmstellen,get shakeWert(){return shake},get ckG(){return ckG},get ckNameTex(){return ckNameTex},get ckMovable(){return ckMov},CK_HOME,CK_ALT,spotPos,queueApproach,ckTexPx:()=>ckNameTex&&ckNameTex.image?ckNameTex.image.getContext('2d').getImageData(0,0,ckNameTex.image.width,60).data.join(''):null,testfeldMitte,STATION_POS,aimAt,UPGRADES,upPic,PLAN,planFlaechen,uhrZeiger:()=>({std:uhrStd?+uhrStd.rotation.z.toFixed(4):0,min:uhrMin?+uhrMin.rotation.z.toFixed(4):0}),drawRackSchild,get snowPts(){return snowPts},buildStadt,updateStadt,get stadtBoxen(){return stadtBoxen},get stadtBaeume(){return stadtBaeume},buildFernbaeume,schwaerme,beacons,silhouetten,get verkehrPts(){return verkehrPts},get rauchPts(){return rauchPts},get flieger(){return flieger},stadtFrei,STADT_FREI,WALLS,FLOORS,bodenMalen,wandMalen,oberflaechenMuster,oberflaechenAnwenden,BODEN_KACHEL,WAND_B,WAND_H,bodenPx,wandPx,innenUmgebung,sockelM,get wallTex(){return wallTex},get floorTexRef(){return floorTexRef},get floorMat(){return floorMat},get shopWall(){return shopWall},renderOnline,onlineHint,onlineStufe,onlineZahlen,onlineListe,updateOnline,SCHILDBG,SCHILDFG,setSchild,schildBg,schildFg,repaintSchilder,updateHead,allLevels,addToLevel,putInSlot,regCustomer,ZONEN,zoneOffen,oeffneZone,applyZonen,SLOTS,RACKS,slotsOffen,colliders,LAY,LOGI,WRAMPEN,WTORE,updateSnow,unterDach,dachBereiche,get lapHit2(){return lapHit2},buildLagerTerminal,toggleTest,testLevel,buyUp,get toastLast(){return toastLast},__floorBoxen:()=>floorBoxes.length,WBAY_UP,wbays,dockPlaetze,wbayFrei,wbayOffen,spawnWTruck,updateWBays,wbaysInit,wtorSet,GANG,GANGTUER,buildLagergang,flaeche,WTOR,RACKKIND,route,NAV,navFrei,navIdx,navBuild,shelfStand,shelves,sbLanes,buildSBKasse,sbFrei,sbOffen,sbNutzbar,EING2,eingaenge,naechsterEingang,setEingang2,buildSBKasse2,get sb2G(){return sb2G},TUEREN,tuerSetD,tuerNahD,packBereit,packOne,paketWert,bestellungenProTag,pakete,ddlAbholung,updateVersand,VS_GR,VS_FELD,WG_PARK,vsNeueBestellung,vsAbgleich,vsKlasse,vsQuellen,vsBestand,vsErfuellbar,vsPlan,vsStapel,vsSpielerPacken,vsSpielerBestellung,vsTischFrei,vsStatus,vsAufraeumen,vsLaden,vsBahn,vsPaketOffen,vsKlappen,vsFuellung,vsPaketZu,get vsTisch(){return vsTisch},get vsWagen(){return vsWagen},createShelf,createRack,regalStellen,testKauf,regalAufbauen,orderRegal,REGALWARE,regalOf,regalKind,regalPreis,regalPlatz,regalOffen,startGame,promptFor,ERFOLGE,erfOffen,erfStufe,erfStand,erfZiel,erfFertig,erfAnteil,erfGeschafft,erfGesamt,stat,statAdd,statRekord,statVerkauf,bruchGesehen,gruppeVon,GRUPPE,TRAEGER,BRUCH,BRUCH_IDS,REZ_FARBEN,ETIKETT,traegerVon,traegerOffen,bruchOffen,bruchListe,rezeptWow,rezeptKosten,rezeptMarkt,rezeptHype,rezeptDauer,rezeptEntwicklung,rezeptGueltig,eigeneListe,eigenesEintragen,rezepteTick,rezProto,rezBauen,renderRezeptur,get entwurf(){return entwurf},set entwurf(v){entwurf=v},entwurfInit,ORDER,LIZENZEN,lizenzOf,hatLizenz,lizenzDaten,naechsteLizenz,buyLizenz,VOLA,volaOf,REGIME,marketOf,costOf,marktZiel,marktLuecke,meOf,miOf,marktDelta,marktNiveau,marktPhase,marktSchock,marktLabel,marktSchnitt,marktExtrem,marktChance,sortimentBreite,sortimentZug,bekanntheit,spawnInterval,rollMarkt,marktInit,inflOf,inflText,setPreisAufMarkt,igniteType,get packHit(){return packHit},get packTisch(){return packTisch},get packMov(){return packMov},zuendeKanal,zuendeAlle,alleKanaele,get pultText(){return pultText},drawPult,kanalItem,openZuend,closeZuend,get zuendOpen(){return zuendOpen},overlayOpen,pultTaster,zuendTick,TISCH_X,RAMPE_X,KANAL_START,bereitCount,brennDauer,muendung,pultLamps,RAKETEN_LOOK,RAKETEN_KL,makePerson,applyTOD,updateHUD,renderer,renderFrame,get DEMO(){return DEMO},LHALLE,LOGI_STUFEN,TOR_STUFE,logiStufe,logiZeige,logiAnwenden,LOGI_G,TOR_G,WTORE,tuAktion:(kind,ref)=>{ const alt=target; target={kind,ref}; try{ doAction(); } finally { target=alt; } },promptFor,KARREN,karreArt,karreAn,karreStapel,karreLast,karreNimmt,toggleKarre,updateKarre,setTutorial,tutorialAn,zielFuer,get zielAktuell(){return zielAktuell},get tipKey(){return tipKey},updateZiel,set DEMO(v){DEMO=v},kapitelVon,kapitelVoll,openHandy,closeHandy,toggleHandy,get handyOpen(){return handyOpen},get happ(){return happ},HANDY_APPS,renderHandy,shaderVorab,SCHONER,schonerMalen,updateSchoner,makeWischer,stelleWischer,get wischer(){return wischer},updateWischen,wischerPersonal,cleanTick,updateFireworks,FLASH,spurEnden,LR_LAMPE,schweber,kundenSymbol,geldSchwebt,get serie(){return serie},serieZufrieden,serieBricht,KAPITEL,kapitel,kapitelNr,kapitelAufstieg,WA,WA_SLOTS,vorDieTuer,SB_KASSIERER,sbBesetzt,sbLaneVon,sbKassiererPlatz,sbBetreuer,sbHeimPlatz,sbHelferPlatz,sbGeholfen,sbFreiNah,sbZone,SB_SELBST,sbPos,MUSIK,STUECKE,musikAn,musikWeiter,musikVol,musikTick,spielSchritt,get mStep(){return mStep},set mStep(v){mStep=v;mTakte=0;},get mBus(){return mBus},get postHalf(){return postHalf},EFF_SCHWEIF,mitSchweif,KOEPFE,KLEID,UNIFORM,STAFFKOPF,faceCache,animPerson,PACKS,packPreis,packPool,packOffen,packContents,syncPakete,rotateGrab,cancelGrab,moebelTaste,moebelEinpacken,paketAuspacken,moebelImBlick,removeShelf,removeRack,PACK_FL,PACK_HOME,spotFree,rectOf,grab,placeGrab,updateGrab,get grabbed(){return grabbed},showPause,closePause,pauseSeite,pauseSeiteAktiv,zumStartbildschirm,fortsetzen,musikWahl,musikTitel,get startOpen(){return startOpen},get pauseOpen(){return pauseOpen},get target(){return target},einrOf,einrAktiv,einrHoch,einrRunter,einrSchalten,AUFGABEN,einrJob,kartonMat,pools,shelfStockOf,removeFromLevel,fwLog:(a)=>{FW_LOG=a;},moerserRohr,ROHR_KALIBER,effPassen,EFF_FAMILIE,basisBlick,fwTestSchalten,fwTestProdukte,fwTestStapeln,get fwTestAn(){return fwTestAn},get fwTestBoxen(){return fwTestBoxen},get fwTestMarken(){return fwTestMarken},fwStufe,sonne:()=>sun.intensity,get fwUhr(){return FW_UHR},THEMEN,SHOW_BASIS,EFF,emittersListe:()=>emitters,show,SIGNATUR,showZeiten,showDauer,phDauer,musterWinkel,feuertopf,playShow,KAL,get rohrStreu(){return ROHR_STREU},vorfuehrungAn,vorfuehrungAus,vfNaechstes,vfZuenden,vfSpringen,vfNote,vfText,vfTaste,get vfAn(){return vfAn},get vfGezuendet(){return vfGezuendet},get vfIdx(){return vfIdx},get vfLetzt(){return vfLetzt},get vfListe(){return vfListe},get vfEl(){return vfEl},set rohrStreu(v){ROHR_STREU=v},BUENDEL,bSammeln,bWaechter,buendelJetzt:()=>{ bSammeln(); bSammeln(); return BUENDEL.n; },NEU_TEST,get vfSonder(){return vfSonder},gfxAnwenden,gfxWaehlen,gfxMessen,gfxMess,gfxAnzeige,get GFX(){return GFX},get GFX_WAHL(){return GFX_WAHL},QUAL,rohrBedarf,rohrLayout,rohrSatz,istBatterie,stationsPool,poolsAus,istVerbundKarton,regalFarben,regaleFaerben,get ROHR_LOG(){return ROHR_LOG},set ROHR_LOG(v){ROHR_LOG=v},schattenSichtbar:()=>renderer.shadowMap.enabled&&sun.shadow.bias>-1,
     shot:()=>{ noLoop=true; camera.position.set(pl.x,1.65,pl.z); camera.rotation.set(pitch,yaw,0); camera.updateMatrixWorld(); updateTarget(); applyTOD(); renderFrame(0.016); return canvas.toDataURL('image/jpeg',0.85); },
     run:(sec,dt)=>{ noLoop=true; const n=Math.round(sec/(dt||0.05)); for(let i=0;i<n;i++) step(dt||0.05); }};
 });

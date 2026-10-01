@@ -843,6 +843,13 @@ function upPic(id){
           g.fillRect(48+k*24,y-13,18,13); g.fillRect(110+k*24,y-13,18,13); } }
       g.fillStyle='#1b2340'; g.fillRect(44,18,136,10); break;
     case 'shelf_gross': regal(2,128,'#5a6170'); break;
+    case 'shelf_tisch':
+      bg('#1b2540','#0d1326'); g.fillStyle='#c9ced8'; g.fillRect(40,74,140,10); g.fillStyle='#5a6170'; for(const x of [46,168]) g.fillRect(x,84,6,40);
+      for(let k=0;k<3;k++){ g.fillStyle=['#d8b468','#c05a4a','#6fa8d8'][k]; g.fillRect(50+k*42,44,36,30); } break;
+    case 'shelf_gitter':
+      bg('#1b2540','#0d1326'); g.strokeStyle='#aab1bd'; g.lineWidth=2; for(let x=50;x<=170;x+=12){ g.beginPath(); g.moveTo(x,62); g.lineTo(x,122); g.stroke(); }
+      for(let y=62;y<=122;y+=12){ g.beginPath(); g.moveTo(50,y); g.lineTo(170,y); g.stroke(); }
+      for(let k=0;k<4;k++){ g.fillStyle=['#d8b468','#c05a4a','#6fa8d8','#8fd6a8'][k]; g.fillRect(56+k*28,46+(k%2)*6,24,22); } break;
     case 'shelf_eck':
       bg('#1b2540','#0d1326');
       /* Eckregal von oben: zwei Schenkel ueber Eck */

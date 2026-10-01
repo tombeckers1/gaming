@@ -161,7 +161,7 @@ function showSummary(title,text,rows,btn,fn){
   const b=$('sBtn'); b.textContent=btn; b.onclick=fn;
   $('summary').classList.add('show'); summaryOpen=true; paused=true; if(locked) document.exitPointerLock();
 }
-const SHELFFIX={klein:4,standard:9,hoch:12,kuehl:18};
+const SHELFFIX={klein:4,standard:9,hoch:12,kuehl:18,gondel:14,eck:11,gross:13,gitter:3,tisch:6};
 /* Dispokredit: solange der Laden laeuft, gibt die Bank einen Rahmen.
    Ohne den koennte ein schlechter Januar das Spiel unrettbar festfahren:
    kein Geld -> keine Ware -> keine Kunden -> kein Geld. */

@@ -260,7 +260,7 @@ function buildWorld(){
   buildDock();
 }
 function updateSign(){
-  if(neonOpen) neonOpen.emissiveIntensity=phase==='open'?1.6:0;
+  if(neonOpen){ neonOpen.emissiveIntensity=phase==='open'?0.38:0; leuchtkastenMalen(); }
   if(!doorSignTex) return;
   const t=phase==='open'?'GEÖFFNET':phase==='after'?'FEIERABEND':'GESCHLOSSEN';
   redraw(doorSignTex,(g,W,H)=>{ g.fillStyle=phase==='open'?'#2f9e57':phase==='after'?'#c9861c':'#c8322a'; g.fillRect(0,0,W,H); g.strokeStyle='#f2f5ff'; g.lineWidth=8; g.strokeRect(10,10,W-20,H-20); g.fillStyle='#f2f5ff'; fitFont(g,t,W-50,34,BUN); g.textAlign='center'; g.textBaseline='middle'; g.fillText(t,W/2,H/2+3); });

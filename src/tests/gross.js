@@ -46,7 +46,9 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     /* ueber mehrere Etagen: fast so hoch wie zwei Faecher eines
        Verkaufsregals, passt nur ins Grossverbund-Regal */
     const Ks=bb.SHELFKIND.standard;
-    o.etagen={h:P.finale.dims[1],zwei:+(1.8*bb.fachHoehe(Ks,0)).toFixed(3),gross:passt('gross','finale'),standard:passt('standard','finale')};
+    /* 01.10.: Faecher des Verkaufsregals jetzt alle gleich (0,52 m statt
+       0,465 unten) - der Massstab bleibt "fast zwei Faecher hoch" */
+    o.etagen={h:P.finale.dims[1],zwei:+(1.7*bb.fachHoehe(Ks,0)).toFixed(3),gross:passt('gross','finale'),standard:passt('standard','finale')};
     /* alles groesser als vorher (Masse vom 25.09. vormittags) */
     const ALT={wunder:0.3,tisch:0.21,raketen:0.52,sekt:0.3,fontaene:0.22,ballons:0.28,knallerbsen:null,roemisch:0.34,vulkan:0.3,konfetti:0.21};
     o.kleiner=Object.keys(ALT).filter(t=>ALT[t]&&P[t]&&Math.max(...P[t].dims)<ALT[t]*1.2); /* 29.09.: entfernte Produkte zaehlen nicht */

@@ -282,6 +282,9 @@ function playShow(o,phases,prod,tag){
   /* Ort zum Versatz: erst beim Zuenden gerechnet, wenn alle Versaetze
      der Show bekannt sind (VM.k) */
   const ortAus=off=>off?versetzt(o,off*VM.k()):versetzt(o,0);
+  /* Batterien: jeder Schuss und jeder Boden-Effekt aus seinem eigenen
+     Rohr (04c, Tom 01.10.: so viele Loecher wie Schuss) */
+  const RS=rohrSatz(o,prod);
   phases.forEach((ph0,pi)=>{
     const ph=phNorm(ph0), t=zeiten[pi], pl=plaene[pi], n=pl.n, th=ph.th||BS.th, je=pl.je;
     const m=ph.muster||(ph.fan?'fan':ph.vfan?'vfan':null);
@@ -300,7 +303,7 @@ function playShow(o,phases,prod,tag){
          bleiben darin */
       const e=Object.assign({},b,{t:b.gt||4,k:b.k,A,B,h:b.gh||1,tag,versatz:b.t||0});
       delete e.je; delete e.x; delete e.bis;
-      later(st,()=>{ e.o=ortAus(offB); e.spielraum=Math.max(0.02,VM.halb-Math.abs(offB*VM.k())); if(offZ!==null){ e.ziel=ortAus(offZ); e.bis=(offZ-offB)*VM.k(); } emitters.push(e); sfx.fizz(distVol(e.o)); }); };
+      later(st,()=>{ e.o=RS?RS.nimm(offB*VM.k()):ortAus(offB); e.spielraum=Math.max(0.02,VM.halb-Math.abs(offB*VM.k())); if(offZ!==null){ e.ziel=ortAus(offZ); e.bis=(offZ-offB)*VM.k(); } emitters.push(e); sfx.fizz(distVol(e.o)); }); };
     if(ph.ground) bodenAn({k:ph.ground,gt:ph.gt,gh:ph.gh,gA:ph.gA,gB:ph.gB,farben:ph.farben},t);
     const boeden=ph.boden?(Array.isArray(ph.boden)?ph.boden:[ph.boden]):[];
     boeden.forEach(b=>{ if(!b.je) bodenAn(b,t+(b.t||0)); });
@@ -407,7 +410,7 @@ function playShow(o,phases,prod,tag){
       if(q===0) boeden.forEach(b=>{ if(b.je) bodenAn(b,tt+(b.t||0),off); });
       const [mA,mB]=[A,B];
       later(tt,()=>{
-        const os=mitOrt?ortAus(off):o;
+        const os=RS?RS.nimm(mitOrt?off*VM.k():0):(mitOrt?ortAus(off):o);
         const alt=FW_TAG; FW_TAG=tag;
         /* licht: ein Lichtertyp direkt aus dem Rohr, ohne Bombette (14m,
            01.10., Tom: Kometen, Blinker, Fontaenen, Wasserfall ...) */

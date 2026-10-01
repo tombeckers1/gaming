@@ -315,7 +315,7 @@ function promptFor(t){
     case 'level': { const lv=t.ref;
       if(c&&(c.regal||c.einbau)) return {t:'Paket: am Boden abstellen oder am Stellplatz auspacken',a:false};
       if(c){ if(lv.type&&lv.type!==c.type) return {t:`Fach mit ${P[lv.type].short}`,a:false};
-        const cp=capOf(lv,c.type); if(lv.count>=cp) return {t:'Fach ist voll',a:false};
+        const cp=capOf(lv,c.type); if(!cp) return {t:'Produkt passt nicht ins Regal',a:false}; if(lv.count>=cp) return {t:'Fach ist voll',a:false};
         return {t:`Einräumen: ${P[c.type].short} ${lv.count}/${cp}`,a:true}; }
       return {t:lv.type?`${P[lv.type].short}: ${lv.count}/${capOf(lv)} für ${eur(S.prices[lv.type])}`:'Leeres Fach',a:false}; }
     case 'rslot': { const sl=t.ref;

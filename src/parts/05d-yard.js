@@ -494,7 +494,7 @@ function muendung(st,slot,t){
   const p=STATION_POS[st.id];
   if(st.id==='tisch'){ const h=P[t]&&P[t].dims?P[t].dims[1]:0.2;
     const d=P[t]&&P[t].dims||[0.2,0.2,0.2], hx=d[0]/2, hz=d[2]/2;
-    return {x:p.x+TISCH_X[slot%3],y:0.93+h,z:p.z,ab:0.08,jit:Math.min(0.06,hx*0.5,hz*0.5),hx,hz}; }
+    return {x:p.x+TISCH_X[slot%3],y:0.93+h,z:p.z,ab:0.08,jit:Math.min(0.06,hx*0.5,hz*0.5),hx,hz,ry:stationSlot(st,slot).ry}; }
   if(st.id==='moerser') return {x:p.x+[-0.72,0,0.78][slot%3],y:MOERSER_MUND[slot%3],z:p.z,ab:0.05,jit:0.02,hx:ROHR_INNEN[slot%3]*0.8,hz:ROHR_INNEN[slot%3]*0.8};
   /* Roemische Lichter stehen im Rohr und ragen heraus: ihre Oeffnung
      sind die fuenf Rohre des Buendels oben (Modell: Rohre bei +-0,52 w,
@@ -702,7 +702,7 @@ function placeOnStation(st){
     if(st.id==='rampe'&&P[c.type].shape==='candle'){
       const k=kerzeImRohr(slot,c.type); _e.set(k.neig,0,0); _q.setFromEuler(_e);
       it.h=pools[c.type].add(new THREE.Matrix4().compose(V(k.base.x,k.base.y,k.base.z),_q,V(k.s,1,k.s)));
-    } else it.h=pools[c.type].add(mx(sl.x,sl.y,sl.z,sl.ry));
+    } else it.h=stationsPool(c.type).add(mx(sl.x,sl.y,sl.z,sl.ry));
   }
   st.items.push(it);
   c.count--; S.tut.build=true; sfx.pop();

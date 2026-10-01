@@ -501,22 +501,33 @@ function shopSlogan(){ return (S&&S.slogan!==undefined&&S.slogan!==null)?S.sloga
 const LIEFERZEIT_SEK=5, VERSAND=5.9, VERSANDFREI=150;
 function lieferSek(){ return LIEFERZEIT_SEK; }
 /* Regaltypen. Klein ist der Einstieg, der Kühlschrank nimmt nur Sekt & Co. */
+/* Faecher (Tom, 01.10.): alle Faecher eines Regals sind gleich hoch -
+   vorher war oben das groesste und unten (hinter der Sockelblende) das
+   kleinste Fach. Der unterste Boden liegt jetzt ueber der Blende,
+   oben gibt "oben" die Hoehe des obersten Fachs bis zur Deckplatte. */
 const SHELFKIND={
-  klein:{id:'klein',name:'Kleines Regal',w:1.0,d:0.42,lv:[0.12,0.6,1.08],lvl:1,cost:45,step:28,amb:0},
-  standard:{id:'standard',name:'Verkaufsregal',w:2.0,d:0.52,lv:[0.115,0.62,1.125,1.63],lvl:4,cost:130,step:70,amb:1},
-  hoch:{id:'hoch',name:'Hochregal',w:2.0,d:0.52,lv:[0.11,0.53,0.95,1.37,1.79],lvl:10,cost:260,step:95,amb:2},
-  kuehl:{id:'kuehl',name:'Sekt-Kühlschrank',w:1.1,d:0.58,lv:[0.2,0.64,1.08,1.52],lvl:6,cost:430,step:155,amb:5,cold:true},
+  klein:{id:'klein',name:'Kleines Regal',w:1.0,d:0.42,lv:[0.19,0.75,1.31],oben:0.52,lvl:1,cost:45,step:28,amb:0},
+  standard:{id:'standard',name:'Verkaufsregal',w:2.0,d:0.52,lv:[0.19,0.75,1.31,1.87],oben:0.52,lvl:4,cost:130,step:70,amb:1},
+  hoch:{id:'hoch',name:'Hochregal',w:2.0,d:0.52,lv:[0.19,0.63,1.07,1.51,1.95],oben:0.40,lvl:10,cost:260,step:95,amb:2},
+  kuehl:{id:'kuehl',name:'Sekt-Kühlschrank',w:1.1,d:0.58,lv:[0.2,0.68,1.16,1.64],oben:0.44,lvl:6,cost:430,step:155,amb:5,cold:true},
   /* Mittelgondel: steht frei im Raum, Ware auf beiden Seiten. */
-  gondel:{id:'gondel',name:'Mittelgondel',w:2.0,d:0.46,fw:2.1,fd:1.0,lv:[0.12,0.58,1.04,1.5],lvl:12,cost:560,step:190,amb:3,art:'insel',
+  gondel:{id:'gondel',name:'Mittelgondel',w:2.0,d:0.46,fw:2.1,fd:1.0,lv:[0.19,0.67,1.15,1.63],oben:0.44,lvl:12,cost:560,step:190,amb:3,art:'insel',
     seiten:[{ry:0,ox:0,oz:0.24},{ry:Math.PI,ox:0,oz:-0.24}]},
   /* Eckregal: zwei Schenkel ueber Eck, wie im Supermarkt. */
-  eck:{id:'eck',name:'Eckregal',w:1.2,d:0.5,fw:1.74,fd:1.74,lv:[0.115,0.62,1.125,1.63],lvl:14,cost:480,step:165,amb:2,art:'ecke',
+  eck:{id:'eck',name:'Eckregal',w:1.2,d:0.5,fw:1.74,fd:1.74,lv:[0.19,0.75,1.31,1.87],oben:0.52,lvl:14,cost:480,step:165,amb:2,art:'ecke',
     seiten:[{ry:0,ox:0.25,oz:-0.60},{ry:Math.PI/2,ox:-0.60,oz:0.25}]},
-  /* Grossverbund-Regal (Tom, 25.09.): die ganz grossen Verbunde gehen
-     ueber mehrere Etagen - unten ein Fach fast einen Meter hoch */
-  gross:{id:'gross',name:'Großverbund-Regal',w:2.0,d:0.6,lv:[0.12,1.12],lvl:18,cost:640,step:210,amb:2}
+  /* Grossverbund-Regal: zwei gleich hohe Faecher, in jedes passen zwei
+     der ganz grossen Verbunde nebeneinander - vier Legion insgesamt
+     (Tom, 01.10.: "oben zwei, unten zwei") */
+  gross:{id:'gross',name:'Großverbund-Regal',w:2.12,d:0.68,lv:[0.19,1.15],oben:0.92,lvl:18,cost:640,step:210,amb:2},
+  /* Verkaufstisch und Aktions-Gitterbox (Tom, 01.10.): grosse Batterien
+     stehen im Laden auf Tischen oder in Gitterboxen wie beim Discounter,
+     nicht im Regal. frei: Ware wird auch in die Tiefe und aufeinander
+     gestapelt, so weit Flaeche und Hoehe reichen. */
+  tisch:{id:'tisch',name:'Verkaufstisch',w:2.2,d:1.3,lv:[0.76],oben:0.96,bau:'tisch',frei:true,lvl:8,cost:220,step:80,amb:2},
+  gitter:{id:'gitter',name:'Aktions-Gitterbox',w:1.24,d:0.84,lv:[0.14],oben:0.86,bau:'gitter',frei:true,lvl:5,cost:120,step:45,amb:1}
 };
-const SHELFORDER=['klein','standard','hoch','kuehl','gondel','eck','gross'];
+const SHELFORDER=['klein','standard','hoch','kuehl','gondel','eck','gross','gitter','tisch'];
 /* =========================================================
    Regalbau Stegemann. Regale stehen nicht mehr auf Knopfdruck im
    Laden - man bestellt sie wie Ware, der LKW bringt sie als
@@ -533,6 +544,8 @@ const REGALWARE=[
   {id:'gondel',  art:'shelf',kind:'gondel',  lvl:12,req:'shop_gross'},
   {id:'eck',     art:'shelf',kind:'eck',     lvl:14,req:'shop_gross'},
   {id:'gross',   art:'shelf',kind:'gross',   lvl:18},
+  {id:'gitter',  art:'shelf',kind:'gitter',  lvl:5},
+  {id:'tisch',   art:'shelf',kind:'tisch',   lvl:8},
   {id:'rhoch',   art:'rack', kind:'hoch',    lvl:16,req:'lager_gross'},
   {id:'rschwer', art:'rack', kind:'schwer',  lvl:18,req:'lager_gross'}
 ];

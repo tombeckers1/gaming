@@ -2,7 +2,25 @@
 /* =========================================================
    Ladenfassade: Leuchtschild, Tuer, Sockel
    ========================================================= */
-let neonOpen=null, signTex=null;
+let neonOpen=null, signTex=null, leuchtTex=null;
+/* Leuchtkasten innen: offen leuchtet GEOEFFNET gruen auf Weiss, sonst
+   steht dort unbeleuchtet GESCHLOSSEN */
+function leuchtkastenMalen(){
+  if(!leuchtTex) return; let ph='open'; try{ ph=phase; }catch(e){} const offen=ph==='open';
+  /* Wie ein echtes Ladenschild: weisse Acrylfront, umlaufende Zierlinie,
+     kraeftige schmale Grotesk mit Sperrung (Barlow Condensed fett),
+     darunter eine ruhige Zeile - keine Comic-Schrift. */
+  redraw(leuchtTex,(g,W,H)=>{ const gr=g.createLinearGradient(0,0,0,H); gr.addColorStop(0,'#fdfcf9'); gr.addColorStop(1,'#efede7'); g.fillStyle=gr; g.fillRect(0,0,W,H);
+    const c=offen?'#13804a':'#b02a24';
+    g.strokeStyle=c; g.lineWidth=5; g.strokeRect(22,20,W-44,H-40); g.lineWidth=2; g.strokeRect(32,30,W-64,H-60);
+    const t=offen?'GEÖFFNET':(ph==='after'?'FEIERABEND':'GESCHLOSSEN');
+    const F=x=>`700 ${x}px "Barlow Condensed", "Arial Narrow", Arial, sans-serif`;
+    g.textAlign='center'; g.textBaseline='middle'; g.letterSpacing='10px';
+    fitFont(g,t,W-160,150,F); g.fillStyle=c; g.fillText(t,W/2+5,H/2-20);
+    g.letterSpacing='4px'; g.font=`500 38px "Barlow Condensed", "Arial Narrow", Arial, sans-serif`; g.fillStyle='#50555e';
+    g.fillText(offen?'HERZLICH WILLKOMMEN':'BIS BALD',W/2+2,H-72);
+    g.letterSpacing='0px'; });
+}
 function drawSignFace(g,W,H){
     const bg=g.createLinearGradient(0,0,0,H); bg.addColorStop(0,'#1b2a52'); bg.addColorStop(0.55,'#101a36'); bg.addColorStop(1,'#0a1128');
     g.fillStyle=bg; g.fillRect(0,0,W,H);
@@ -109,12 +127,29 @@ function buildFacade(){
       for(const dz of [-0.525,0.525]) bbox(2.0,0.012,0.06,gum,0,0.014,6.85+dz,null,false);
       for(const dx of [-0.98,0.98]) bbox(0.06,0.012,1.13,gum,dx,0.014,6.85,null,false);
     }
-    // Neon "GEÖFFNET" im Oberlicht
-    const nm=new THREE.MeshStandardMaterial({color:LIN(0x2a1f10),emissive:LIN(0xffd23f),emissiveIntensity:0,transparent:true,opacity:0.95,
-      map:tex(256,64,(g,W,Hh)=>{ g.fillStyle='#000'; g.fillRect(0,0,W,Hh); g.fillStyle='#ffd23f'; g.font=BUN(34); g.textAlign='center'; g.textBaseline='middle'; g.fillText('GEÖFFNET',W/2,Hh/2+2); }),
-      emissiveMap:tex(256,64,(g,W,Hh)=>{ g.fillStyle='#000'; g.fillRect(0,0,W,Hh); g.fillStyle='#fff'; g.font=BUN(34); g.textAlign='center'; g.textBaseline='middle'; g.fillText('GEÖFFNET',W/2,Hh/2+2); })});
-    neonOpen=nm;
-    bbox(1.5,0.36,0.05,nm,0,2.75,5.86,null,false);
+    /* Leuchtkasten ueber der Tuer, von innen zu sehen. Vorher klebte hier
+       ein schwarzer Kasten flach an der Wand - auf heller Tapete wirkte er
+       wie ein Loch (Tom, 01.10.). Jetzt ein echtes Ladenschild: Alu-Gehaeuse
+       mit Rahmen, Acrylfront, an zwei Stangen von der Decke abgehaengt und
+       vor der Wand - es sieht auf jeder Wandfarbe gleich aus. */
+    { const SW=1.56, SH=0.40, SD=0.09, sy=2.86, sz=5.74, fz=sz-SD/2-0.003;
+      const gehaeuse=std(0x2a2e35,{metalness:0.55,roughness:0.38}), alu=std(0xc9ced6,{metalness:0.85,roughness:0.25});
+      bbox(SW-0.02,SH-0.02,SD-0.01,gehaeuse,0,sy,sz,null,false);
+      for(const dy of [-1,1]) bbox(SW,0.034,SD+0.006,gehaeuse,0,sy+dy*(SH/2-0.017),sz,null,false);
+      for(const dx of [-1,1]) bbox(0.034,SH,SD+0.006,gehaeuse,dx*(SW/2-0.017),sy,sz,null,false);
+      /* schmale Alukante innen am Rahmen */
+      for(const dy of [-1,1]) bbox(SW-0.068,0.006,0.006,alu,0,sy+dy*(SH/2-0.037),fz-0.002,null,false);
+      for(const dx of [-1,1]) bbox(0.006,SH-0.068,0.006,alu,dx*(SW/2-0.037),sy,fz-0.002,null,false);
+      leuchtTex=tex(1024,256,()=>{});
+      neonOpen=new THREE.MeshStandardMaterial({map:leuchtTex,emissiveMap:leuchtTex,emissive:LIN(0xffffff),emissiveIntensity:0,roughness:0.3,metalness:0});
+      plane(SW-0.07,SH-0.07,neonOpen,0,sy,fz,Math.PI,null);
+      /* Abhaengung: zwei Edelstahlstangen mit Deckenrosette */
+      const oben=WH-0.01, unten=sy+SH/2, L=oben-unten;
+      for(const dx of [-0.58,0.58]){
+        const st=new THREE.Mesh(new THREE.CylinderGeometry(0.006,0.006,L,10),alu); st.position.set(dx,unten+L/2,sz); scene.add(st);
+        const ro=new THREE.Mesh(new THREE.CylinderGeometry(0.03,0.03,0.012,16),alu); ro.position.set(dx,oben-0.006,sz); scene.add(ro);
+        bbox(0.03,0.02,0.03,alu,dx,unten+0.01,sz,null,false); }
+      leuchtkastenMalen(); }
   }
   // --- Sockel, Poller, Gitter, Kamera
   /* Sockel unter den Schaufenstern: dunkles Anthrazit wie bei der

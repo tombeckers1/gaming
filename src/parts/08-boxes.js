@@ -63,6 +63,7 @@ function stockOne(lv,quiet){
   const c=S.carrying; if(!c) return;
   if(!canShelf(c.type)){ if(!quiet) toast(`${P[c.type].short} gehört nicht ins Regal.`,'bad'); return; }
   if(lv.type&&lv.type!==c.type){ if(!quiet) toast(`In dem Fach liegen ${P[lv.type].short}.`,'bad'); return; }
+  if(!capOf(lv,c.type)){ if(!quiet) toast(`${P[c.type].short} passt nicht ins Regal – zu groß für dieses Fach.`,'bad'); return; }
   if(lv.count>=capOf(lv,c.type)){ if(!quiet) toast('Das Fach ist voll.'); return; }
   if(!addToLevel(lv,c.type,c.q||1)){ if(!quiet) toast('Kein Platz mehr.'); return; }
   c.count--; S.tut.stock=true; sfx.pop();
@@ -110,7 +111,7 @@ const einbauPakete=[];
    laengsten Teile darin - die Seitenwangen -, der Kuehlschrank kommt
    stehend im eigenen Karton, die SB-Terminals in einer Kiste */
 const PAKET_MASS={klein:[1.7,0.26,0.5],standard:[2.1,0.3,0.6],hoch:[2.2,0.36,0.62],kuehl:[1.15,2.05,0.7],
-  gondel:[2.1,0.4,0.62],eck:[1.9,0.36,0.62],gross:[2.1,0.42,0.7],rack:[2.4,0.3,0.55],rhoch:[2.6,0.36,0.6],rschwer:[2.8,0.42,0.66],
+  gondel:[2.1,0.4,0.62],eck:[1.9,0.36,0.62],gross:[2.2,0.42,0.74],gitter:[1.3,0.5,0.9],tisch:[2.3,0.3,1.36],rack:[2.4,0.3,0.55],rhoch:[2.6,0.36,0.6],rschwer:[2.8,0.42,0.66],
   kasse2:[1.0,1.25,0.8],kasse3:[1.0,1.25,0.8]};
 const EINBAU={
   kasse2:{name:'SB-Kassen',ziel:()=>typeof sbZiel==='function'?sbZiel():null,weit:5},

@@ -184,7 +184,7 @@ function vfPlatz(art,n){ const jetzt=FW_UHR; let best=0, bz=Infinity;
 function vfMuendung(t){
   const sid=stationOf(t), p=P[t], d=p.dims||[0.2,0.2,0.2];
   if(sid==='tisch'){ const i=vfPlatz('t',VF_TISCH.n), hx=d[0]/2, hz=d[2]/2;
-    return {art:'t'+i,sid,x:VF_TISCH.x0+i*VF_TISCH.dx,y:VF_TISCH.y+d[1],z:VF_Z,ab:0.08,jit:Math.min(0.06,hx*0.5,hz*0.5),hx,hz,boden:VF_TISCH.y}; }
+    return {art:'t'+i,sid,x:VF_TISCH.x0+i*VF_TISCH.dx,y:VF_TISCH.y+d[1],z:VF_Z,ab:0.08,jit:Math.min(0.06,hx*0.5,hz*0.5),hx,hz,boden:VF_TISCH.y,ry:Math.PI}; }
   if(sid==='moerser'){ const k=moerserRohr(t)%3, i=vfPlatz('m'+k,VF_MOERSER.n);
     return {art:'m'+k+i,sid,x:VF_MOERSER.x0+k*VF_MOERSER.gdx+i*VF_MOERSER.dx,y:VF_MOERSER.hoch[k],z:VF_Z,ab:0.05,jit:0.02,hx:ROHR_INNEN[k]*0.8,hz:ROHR_INNEN[k]*0.8}; }
   const i=vfPlatz('r',VF_ROHR.n), kerze=p.shape==='candle';
@@ -198,7 +198,7 @@ function vfZuenden(t){
   const o=vfMuendung(t), dauer=brennDauer(t), vor=o.sid==='moerser'?0.75:o.sid==='rampe'?0.4:0;
   vfBelegt[o.art]=FW_UHR+vor+dauer+0.5;
   let h=null;
-  if(o.sid==='tisch'&&pools[t]&&!pools[t].full()) h=pools[t].add(mx(o.x,o.boden,o.z,Math.PI));
+  if(o.sid==='tisch'&&stationsPool(t)&&!stationsPool(t).full()) h=stationsPool(t).add(mx(o.x,o.boden,o.z,Math.PI));
   if(vor){ emitters.push({t:vor,k:'fuse',o:{x:o.x,y:o.y,z:o.z}}); sfx.fizz(distVol(o)*0.5); }
   later(vor,()=>{ if(vfAn) igniteType(t,o); });
   /* der Blick folgt dem Produkt: zur Seite auf seinen Platz, nach oben so

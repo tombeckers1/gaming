@@ -456,7 +456,13 @@ let _gestell=null;
 function gestellMat(){ if(!_gestell) _gestell=new THREE.MeshStandardMaterial({vertexColors:true,metalness:0,roughness:0.72}); return _gestell; }
 const coldFrame=std(0xc8ccd4,{metalness:0.6,roughness:0.3});
 const coldGlass=new THREE.MeshStandardMaterial({color:LIN(0xd8ecff),transparent:true,opacity:0.2,roughness:0.05,metalness:0.2,depthWrite:false});
-const pegMat=new THREE.MeshStandardMaterial({roughness:0.8,map:(()=>{ const t=tex(128,128,(g,W,H)=>{ g.fillStyle='#e9ecf1'; g.fillRect(0,0,W,H); g.fillStyle='#9aa1ad'; for(let x=8;x<W;x+=16) for(let y=8;y<H;y+=16){ g.beginPath(); g.arc(x,y,2.2,0,Math.PI*2); g.fill(); } }); t.wrapS=t.wrapT=THREE.RepeatWrapping; t.repeat.set(4,4); return t; })()});
+/* Rueckwand: pulverbeschichtetes Lochblech. Die Textur ist neutral hell,
+   die Farbe kommt ueber material.color aus der Regalpalette - so passt
+   sie zu jeder Wand. Loecher mit Schattenkante statt aufgemalter Punkte. */
+const pegMat=new THREE.MeshStandardMaterial({roughness:0.62,metalness:0.12,map:(()=>{ const t=tex(256,256,(g,W,H)=>{ g.fillStyle='#f4f5f6'; g.fillRect(0,0,W,H);
+  for(let i=0;i<1400;i++){ g.fillStyle=`rgba(${Math.random()<0.5?'255,255,255':'120,124,130'},${0.03+Math.random()*0.04})`; g.fillRect(Math.random()*W,Math.random()*H,2,2); }
+  for(let x=16;x<W;x+=32) for(let y=16;y<H;y+=32){ g.fillStyle='rgba(255,255,255,.7)'; g.fillRect(x-3,y-4,7,9); g.fillStyle='#3a3d43'; g.fillRect(x-3,y-5,6,9); g.fillStyle='#6a6e76'; g.fillRect(x-3,y-5,6,2); } });
+  t.wrapS=t.wrapT=THREE.RepeatWrapping; t.repeat.set(5,5); return t; })()});
 function kindOf(sh){ return SHELFKIND[sh&&sh.kind]||SHELFKIND.standard; }
 function shelfCount(k){ return shelves.filter(s=>s.kind===k).length; }
 /* Fassungsvermögen richtet sich nach Regalbreite und -tiefe */
@@ -464,7 +470,7 @@ function shelfCount(k){ return shelves.filter(s=>s.kind===k).length; }
    Fach hat mehr Luft bis zur Deckplatte - dort stehen die grossen Verbundbatterien
    (Tom, 25.09.: "die wirklich krassen viel, viel groesser"). Vorher
    stand hohe Ware einfach im Boden darueber. */
-function fachHoehe(K,li){ return li<K.lv.length-1?K.lv[li+1]-K.lv[li]-0.04:(K.cold?0.44:0.58); }
+function fachHoehe(K,li){ return li<K.lv.length-1?K.lv[li+1]-K.lv[li]-0.04:(K.oben!==undefined?K.oben:(K.cold?0.44:0.58)); }
 function layout(t,sh,lv){
   const p=P[t], G=p.grid, K=kindOf(sh), g=0.012;
   /* Die Ware fuellt das Fach von links bis rechts (Tom, 25.09.: "nur in
@@ -472,10 +478,10 @@ function layout(t,sh,lv){
      Gitter im Produkt die Spalten - acht kleine Packungen standen dann
      mitten in einem zwei Meter breiten Regal. */
   const cols=Math.max(1,Math.floor((K.w-0.1+g)/(p.dims[0]+g)));
-  const rows=Math.max(1,Math.min(G[1],Math.floor((K.d-0.06+g)/(p.dims[2]+g))));
+  const rows=Math.max(1,K.frei?Math.floor((K.d-0.06+g)/(p.dims[2]+g)):Math.min(G[1],Math.floor((K.d-0.06+g)/(p.dims[2]+g))));
   /* ohne Fach: das hoechste, das dieses Regal hat */
   const lvH=lv?fachHoehe(K,lv.li):Math.max(...K.lv.map((_,i)=>fachHoehe(K,i)));
-  const st=p.dims[1]>lvH+0.001?0:Math.max(1,Math.min(G[2],Math.floor(lvH/p.dims[1])));
+  const st=p.dims[1]>lvH+0.001?0:Math.max(1,K.frei?Math.min(4,Math.floor(lvH/p.dims[1])):Math.min(G[2],Math.floor(lvH/p.dims[1])));
   return {cols,rows,st,cap:cols*rows*st,w:p.dims[0],h:p.dims[1],d:p.dims[2],g,K};
 }
 function slotLocal(t,idx,sh,lv){
@@ -513,49 +519,142 @@ function faceWorld(sh,f,x,z){
   const si=Math.sin(f.ry), c=Math.cos(f.ry);
   return localToWorld(sh.g,f.ox+x*c+z*si,f.oz-x*si+z*c);
 }
+/* Regalpalette aus der Wandfarbe: auf heller Wand ein anthrazitfarbenes
+   Gestell mit hellen, leicht in den Wandton gebrochenen Seiten und
+   Rueckwand, auf dunkler Wand ein helles Alu-Gestell. Boeden und Preis-
+   leiste bleiben neutral grau wie im echten Ladenbau. */
+function regalFarben(K){
+  let w=null; try{ w=wallSet(); }catch(e){} w=w||{a:'#e9e1d1'};
+  const hx=h=>parseInt(String(h).slice(1),16), ch=(c,k)=>(c>>k)&255, lum=c=>(0.2126*ch(c,16)+0.7152*ch(c,8)+0.0722*ch(c,0))/255;
+  const mix=(a,b,t)=>(Math.round(ch(a,16)*(1-t)+ch(b,16)*t)<<16)|(Math.round(ch(a,8)*(1-t)+ch(b,8)*t)<<8)|Math.round(ch(a,0)*(1-t)+ch(b,0)*t);
+  const wa=hx(w.a), hell=lum(wa)>0.42;
+  if(K&&K.cold) return {rahmen:0xc8ccd4,seite:0xc8ccd4,blende:0xc8ccd4,fuss:0x2a2e38,boden:0xd9dde4,preis:0xc8ccd4,lippe:0xe8ecf2,kopf:0x1b2340,platte:0xbf9a6c,rueck:0xeef4fa};
+  return {rahmen:hell?0x3b3f47:0xb9bec6, seite:hell?mix(wa,0xf6f6f4,0.78):mix(wa,0x9da2aa,0.45), blende:hell?0x3b3f47:0xb9bec6, fuss:0x24272d,
+    boden:0xd6d9de, preis:0xe9ebee, lippe:0xb4b9c1, kopf:hell?0x2b2f36:0x1d2026, platte:hell?0xbf9a6c:0x9c7a52, rueck:hell?mix(wa,0xf4f4f2,0.82):mix(wa,0xb4b8be,0.5)};
+}
+function regaleFaerben(){
+  pegMat.color.copy(LIN(regalFarben(null).rueck));
+  shelves.forEach(sh=>{ (sh.gestelle||[]).forEach(m=>{ const RF=regalFarben(m.userData.regalK), ca=m.geometry.attributes.color; let o=0;
+      for(const [r,n] of m.userData.rollen){ const c=LIN(RF[r]); for(let i=0;i<n;i++) ca.setXYZ(o+i,c.r,c.g,c.b); o+=n; } ca.needsUpdate=true; });
+    if(sh.gitterM) sh.gitterM.color.copy(LIN(regalFarben(kindOf(sh)).rahmen));
+    if(sh.blind){ const RF=regalFarben(kindOf(sh)); sh.blind[0].material.color.copy(LIN(RF.seite)); sh.blind[1].material.color.copy(LIN(RF.rahmen)); } });
+}
+/* Drahtgitter fuer die Gitterbox: Stahldraht 4 mm im 5-cm-Raster, als
+   Alpha-Textur - man sieht die Ware durch das Gitter */
+let _gitterT=null;
+function gitterTex(){ if(_gitterT) return _gitterT;
+  _gitterT=tex(128,128,(g,W,H)=>{ g.clearRect(0,0,W,H); g.fillStyle='#ffffff';
+    for(let x=0;x<W;x+=32){ g.fillRect(x,0,5,H); } for(let y=0;y<H;y+=32){ g.fillRect(0,y,W,5); }
+    g.fillStyle='rgba(0,0,0,.35)'; for(let x=0;x<W;x+=32) g.fillRect(x+4,0,1,H); });
+  _gitterT.wrapS=_gitterT.wrapT=THREE.RepeatWrapping; return _gitterT; }
+/* Verkaufstisch und Gitterbox: eigene Bauform, aber dieselben Faecher
+   (Level), Preisschilder, Kopfschild und Treffer wie ein Regal - Kunden,
+   Einraeumer und Speicherstand behandeln sie wie jedes andere Regal. */
+function bauMoebel(K,sh,g,RF){
+  const W=K.w, D=K.d, y=K.lv[0], fh=K.oben, iw=W-0.1, st=[];
+  const GB={}; const box=(w,h,d)=>GB[w+'|'+h+'|'+d]||(GB[w+'|'+h+'|'+d]=new THREE.BoxGeometry(w,h,d));
+  const fg=new THREE.Group(); g.add(fg);
+  let preisY, headY;
+  if(K.bau==='tisch'){
+    /* Ladenbau-Tisch: Platte mit Kantenumleimer, vier Vierkantbeine,
+       Zarge und eine Ablage darunter fuer Nachschub */
+    st.push({geo:box(W,0.04,D),m:tm(0,y-0.02,0),rolle:'platte'});
+    st.push({geo:box(W+0.01,0.02,D+0.01),m:tm(0,y-0.045,0),rolle:'rahmen'});
+    for(const sx of [-1,1]) for(const sz of [-1,1]) st.push({geo:box(0.05,y-0.06,0.05),m:tm(sx*(W/2-0.06),(y-0.06)/2,sz*(D/2-0.06)),rolle:'rahmen'});
+    for(const sz of [-1,1]) st.push({geo:box(W-0.12,0.08,0.025),m:tm(0,y-0.1,sz*(D/2-0.06)),rolle:'rahmen'});
+    for(const sx of [-1,1]) st.push({geo:box(0.025,0.08,D-0.12),m:tm(sx*(W/2-0.06),y-0.1,0),rolle:'rahmen'});
+    st.push({geo:box(W-0.14,0.02,D-0.14),m:tm(0,0.16,0),rolle:'platte'});
+    for(const sx of [-1,1]) for(const sz of [-1,1]) st.push({geo:box(0.06,0.015,0.06),m:tm(sx*(W/2-0.06),0.008,sz*(D/2-0.06)),rolle:'fuss'});
+    /* Preisleiste vorn an der Zarge */
+    st.push({geo:box(iw,0.05,0.014),m:tm(0,y-0.1,D/2-0.04),rolle:'preis'});
+    preisY=y-0.1; 
+    /* Aktionsschild auf einem Steckpfosten hinten in der Mitte */
+    st.push({geo:box(0.03,0.62,0.03),m:tm(0,y+fh+0.05,-D/2+0.08),rolle:'rahmen'});
+    headY=y+fh+0.42;
+    st.push({geo:box(1.0,0.2,0.03),m:tm(0,headY,-D/2+0.08),rolle:'kopf'});
+  } else {
+    /* Gitterbox: Bodenwanne, vier Eckpfosten, Drahtgitter rundum, oben
+       ein umlaufender Rohrrahmen; vorn etwas niedriger zum Hineingreifen */
+    const hw=0.62, hv=0.5;
+    st.push({geo:box(W,0.04,D),m:tm(0,y-0.02,0),rolle:'boden'});
+    st.push({geo:box(W,0.08,D),m:tm(0,0.05,0),rolle:'rahmen'});
+    for(const sx of [-1,1]) for(const sz of [-1,1]) st.push({geo:box(0.035,hw+y,0.035),m:tm(sx*(W/2-0.018),(hw+y)/2,sz*(D/2-0.018)),rolle:'rahmen'});
+    st.push({geo:box(W,0.025,0.025),m:tm(0,y+hw,-D/2+0.012),rolle:'rahmen'});
+    st.push({geo:box(W,0.025,0.025),m:tm(0,y+hv,D/2-0.012),rolle:'rahmen'});
+    for(const sx of [-1,1]) st.push({geo:box(0.025,0.025,D),m:tm(sx*(W/2-0.012),y+hw,0),rolle:'rahmen'});
+    for(const sx of [-1,1]) for(const sz of [-1,1]) st.push({geo:box(0.08,0.04,0.08),m:tm(sx*(W/2-0.08),0.02,sz*(D/2-0.08)),rolle:'fuss'});
+    const gm=new THREE.MeshStandardMaterial({map:gitterTex(),color:LIN(RF.rahmen),alphaTest:0.4,transparent:false,side:THREE.DoubleSide,metalness:0.5,roughness:0.45});
+    sh.gitterM=gm;
+    const wand=(w,h,x,yy,z,ry)=>{ const t=gitterTex(); const m=plane(w,h,gm,x,yy,z,ry,fg); const uv=m.geometry.attributes.uv; for(let i=0;i<uv.count;i++) uv.setXY(i,uv.getX(i)*w/0.2,uv.getY(i)*h/0.2); uv.needsUpdate=true; return m; };
+    wand(W-0.04,hw,0,y+hw/2,-D/2+0.012,0); wand(W-0.04,hv,0,y+hv/2,D/2-0.012,0);
+    for(const sx of [-1,1]) wand(D-0.04,hw,sx*(W/2-0.012),y+hw/2,0,Math.PI/2);
+    preisY=y+hv-0.04; headY=y+hv+0.13;
+    /* Klappschild vorn am Rohrrahmen */
+    st.push({geo:box(0.9,0.2,0.02),m:tm(0,headY,D/2-0.004),rolle:'kopf'});
+  }
+  st.forEach(x=>{ x.color=RF[x.rolle]; });
+  const gest=new THREE.Mesh(merge(st),gestellMat());
+  gest.userData.rollen=st.map(x=>[x.rolle,x.geo.index?x.geo.index.count:x.geo.attributes.position.count]); gest.userData.regalK=K; sh.gestelle=[gest];
+  if(HIQ){ gest.castShadow=true; gest.receiveShadow=true; } fg.add(gest);
+  for(const k in GB) GB[k].dispose();
+  const lt=tex(700,80,()=>{}); lt.anisotropy=8;
+  plane(Math.min(0.46,iw*0.46),0.052,new THREE.MeshBasicMaterial({map:lt,toneMapped:false}),0,preisY,D/2+(K.bau==='tisch'?-0.032:0.003),0,fg);
+  const hit=bbox(iw,fh,D,hitM,0,y+fh/2,0.01,fg,false);
+  const lv={sh,li:0,face:0,type:null,count:0,q:1,items:[],tex:lt,hit}; hit.userData={kind:'level',ref:lv}; sh.levels.push(lv);
+  sh.headTex=tex(1024,160,()=>{});
+  const hz=K.bau==='tisch'?-D/2+0.08+0.016:D/2+0.008, hwid=K.bau==='tisch'?0.96:0.86;
+  plane(hwid,0.17,new THREE.MeshBasicMaterial({map:sh.headTex,toneMapped:false,side:THREE.DoubleSide}),0,headY,hz,0,fg);
+  sh.headY=headY;
+}
 function createShelf(i,data){
   const kind=(data&&data.kind&&SHELFKIND[data.kind])?data.kind:'standard';
   const K=SHELFKIND[kind];
+  pegMat.color.copy(LIN(regalFarben(null).rueck));
   const g=new THREE.Group(); const frei=slotsOffen().filter(sl=>slotPasst(K,sl));
   const s=data&&data.x!==undefined?data:(frei[0]||slotsOffen()[0]||SLOTS[0]);
   g.position.set(s.x,0,s.z); g.rotation.y=s.ry||0; scene.add(g);
-  const W=K.w, D=K.d, top=K.lv[K.lv.length-1]+(K.cold?0.48:0.62), hw=W/2, iw=W-0.1;
+  const W=K.w, D=K.d, top=K.lv[K.lv.length-1]+fachHoehe(K,K.lv.length-1)+0.04, hw=W/2, iw=W-0.1;
   const sh={i,g,kind,levels:[],W,D};
   /* Das Gestell ist reine Kulisse und wird je Warenseite zu einem
      Mesh verschmolzen - bei fuenfzig Regalen im Endausbau zaehlt das. */
   const GB={}; const box=(w,h,d)=>GB[w+'|'+h+'|'+d]||(GB[w+'|'+h+'|'+d]=new THREE.BoxGeometry(w,h,d));
-  const rahmenFarbe=K.cold?0xc8ccd4:0x4a5266, seitenFarbe=K.cold?0xc8ccd4:0xe4e7ec;
+  /* Farben nach Rolle: sie folgen der Wandfarbe (regalFarben) und werden
+     beim Umstreichen nachgefaerbt (regaleFaerben) */
+  const RF=regalFarben(K);
+  if(K.bau){ bauMoebel(K,sh,g,RF); } else
   seitenVon(K).forEach((f,fi)=>{
     const fg=new THREE.Group(); fg.position.set(f.ox,0,f.oz); fg.rotation.y=f.ry; g.add(fg);
     const st=[];   /* Gestell */
     const li0=[];  /* Lichtleisten */
-    st.push({geo:box(0.05,top,D),m:tm(-hw+0.025,top/2,0),color:rahmenFarbe});
-    st.push({geo:box(0.05,top,D),m:tm( hw-0.025,top/2,0),color:rahmenFarbe});
-    st.push({geo:box(W,0.06,D),  m:tm(0,top+0.03,0),color:rahmenFarbe});
-    st.push({geo:box(iw,0.08,D-0.02),m:tm(0,0.04,0),color:rahmenFarbe});
-    for(const sx of [-1,1]) st.push({geo:box(0.022,top-0.08,D),m:tm(sx*(hw+0.005),top/2,0),color:seitenFarbe});
-    st.push({geo:box(W-0.06,0.14,0.03),m:tm(0,0.11,D/2-0.005),color:seitenFarbe});
+    st.push({geo:box(0.05,top,D),m:tm(-hw+0.025,top/2,0),rolle:'rahmen'});
+    st.push({geo:box(0.05,top,D),m:tm( hw-0.025,top/2,0),rolle:'rahmen'});
+    st.push({geo:box(W,0.06,D),  m:tm(0,top+0.03,0),rolle:'rahmen'});
+    st.push({geo:box(iw,0.08,D-0.02),m:tm(0,0.04,0),rolle:'rahmen'});
+    for(const sx of [-1,1]) st.push({geo:box(0.022,top-0.08,D),m:tm(sx*(hw+0.005),top/2,0),rolle:'seite'});
+    st.push({geo:box(W-0.06,0.14,0.03),m:tm(0,0.11,D/2-0.005),rolle:'blende'});
     for(const sx of [-1,1]) for(const sz of [-1,1])
-      st.push({geo:box(0.09,0.04,0.09),m:tm(sx*(hw-0.1),0.02,sz*(D/2-0.1)),color:0x2a2e38});
+      st.push({geo:box(0.09,0.04,0.09),m:tm(sx*(hw-0.1),0.02,sz*(D/2-0.1)),rolle:'fuss'});
     /* Rueckwand bleibt eigenes Mesh: Lochblech beziehungsweise Kuehlschrankwand */
     bbox(iw,top-0.1,0.02,K.cold?std(0xeef4fa,{roughness:0.5}):pegMat,0,top/2,-D/2+0.03,fg);
     K.lv.forEach((y,li)=>{
-      st.push({geo:box(iw,0.03,D-0.04),m:tm(0,y-0.015,0),color:0xd9dde4});
-      st.push({geo:box(iw,0.05,0.014),m:tm(0,y-0.02,D/2-0.013),color:K.cold?0xc8ccd4:0xc8322a});
-      st.push({geo:box(iw,0.012,0.02),m:tm(0,y-0.045,D/2-0.011),color:0xe8ecf2});
-      st.push({geo:box(iw-0.04,0.018,0.05),m:tm(0,y-0.055,-D/2+0.06),color:rahmenFarbe});
+      st.push({geo:box(iw,0.03,D-0.04),m:tm(0,y-0.015,0),rolle:'boden'});
+      st.push({geo:box(iw,0.05,0.014),m:tm(0,y-0.02,D/2-0.013),rolle:'preis'});
+      st.push({geo:box(iw,0.012,0.02),m:tm(0,y-0.045,D/2-0.011),rolle:'lippe'});
+      st.push({geo:box(iw-0.04,0.018,0.05),m:tm(0,y-0.055,-D/2+0.06),rolle:'rahmen'});
       if(li>0||K.cold) li0.push({geo:box(iw-0.06,0.016,0.04),m:tm(0,y-0.048,D/2-0.07)});
       const lt=tex(700,80,()=>{}); lt.anisotropy=8;
       plane(Math.min(0.46,iw*0.46),0.052,new THREE.MeshBasicMaterial({map:lt,toneMapped:false}),0,y-0.02,D/2-0.004,0,fg);
-      const hit=bbox(iw,0.42,D,hitM,0,y+0.21,0.01,fg,false);
+      const fh=fachHoehe(K,li), hit=bbox(iw,fh,D,hitM,0,y+fh/2,0.01,fg,false);
       const lv={sh,li,face:fi,type:null,count:0,q:1,items:[],tex:lt,hit}; hit.userData={kind:'level',ref:lv}; sh.levels.push(lv);
     });
     /* Kopfschild ueber jeder Warenseite */
     if(fi===0) sh.headTex=tex(1024,160,()=>{});
     const hy=top+(K.cold?0.34:0.18);
-    st.push({geo:box(W-0.04,0.28,0.05),m:tm(0,hy,0.02),color:0x1b2340});
+    st.push({geo:box(W-0.04,0.28,0.05),m:tm(0,hy,0.02),rolle:'kopf'});
     plane(W-0.1,0.24,new THREE.MeshBasicMaterial({map:sh.headTex,toneMapped:false}),0,hy,0.051,0,fg);
+    st.forEach(x=>{ x.color=RF[x.rolle]; });
     const gest=new THREE.Mesh(merge(st),gestellMat());
+    gest.userData.rollen=st.map(x=>[x.rolle,x.geo.index?x.geo.index.count:x.geo.attributes.position.count]); gest.userData.regalK=K; sh.gestelle=(sh.gestelle||[]).concat([gest]);
     if(HIQ){ gest.castShadow=true; gest.receiveShadow=true; } fg.add(gest);
     if(li0.length){
       const strip=new THREE.MeshStandardMaterial({color:LIN(0xf5f7fb),emissive:LIN(K.cold?0xcfe8ff:0xfff2dc),emissiveIntensity:K.cold?1.1:0});
@@ -576,11 +675,10 @@ function createShelf(i,data){
      Im Supermarkt steht dort ein Blindfeld - sonst schaut man durch
      den Spalt auf die Wand. */
   if(K.art==='ecke'){
-    bbox(0.52,top,0.52,std(0x4a5266,{roughness:0.8}),-0.6,top/2,-0.6,g);
-    bbox(0.56,0.06,0.56,std(0xe4e7ec,{roughness:0.7}),-0.6,top+0.03,-0.6,g,false);
+    const RF=regalFarben(K); sh.blind=[bbox(0.52,top,0.52,std(RF.seite,{roughness:0.8}),-0.6,top/2,-0.6,g),bbox(0.56,0.06,0.56,std(RF.rahmen,{roughness:0.7}),-0.6,top+0.03,-0.6,g,false)];
   }
   for(const k in GB) GB[k].dispose();
-  sh.headY=top+(K.cold?0.34:0.18);
+  if(!K.bau) sh.headY=top+(K.cold?0.34:0.18);
   sh.mov=addMovable({kind:'shelf',name:K.name,g,fw:(K.fw||W)+0.06,fd:(K.fd||D)+0.04,ref:sh,onPlace:()=>syncShelf(sh)});
   shelves.push(sh);
   if(data&&data.levels) data.levels.forEach((ld,li)=>{ if(ld&&ld.type&&P[ld.type]&&sh.levels[li]){ const n=Math.min(ld.count|0,layout(ld.type,sh,sh.levels[li]).cap); for(let k=0;k<n;k++) addToLevel(sh.levels[li],ld.type,ld.q||1); } });
@@ -647,7 +745,9 @@ function emptyLevel(t){ if(!canShelf(t)) return null;
   const pref=P[t].cold?pool.filter(l=>kindOf(l.sh).cold):[];
   for(const list of [pref,pool]){
     for(const l of list) if(l.type===t&&l.count<capOf(l,t)) return l;
-    for(const l of list) if(!l.type) return l;
+    /* nur Faecher, in die die Ware auch passt - sonst lief der Einraeumer
+       immer wieder ein zu niedriges Fach an */
+    for(const l of list) if(!l.type&&capOf(l,t)>0) return l;
   }
   return null; }
 

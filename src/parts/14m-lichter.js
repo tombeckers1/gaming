@@ -160,13 +160,13 @@ LICHTYP.blitzregen=function(o,A,B,s,opt){
    unsichtbaren Wolke wie ein fernes Gewitter, dann leises Grollen */
 LICHTYP.wetterleuchten=function(o,A,B,s,opt){
   const m=lMund(o), G=6, v=lAbschuss(30*Math.sqrt(s),G,opt,0.3), T=lScheitel(v[1],G);
-  kgStern(psBig,m,v,[.4,.4,.55],T,G,0,0.15); lStart(m,0.7,0.6);
+  kgStern(psBig,m,v,[.4,.4,.55],T,G,0,0.15); lFunken(m,v,G,0.05,T,35,[.35,.35,.5],{life:[0.4,0.8],g:1,streu:0.2,mit:0.1,mode:0}); lStart(m,0.7,0.6);
   kgSpaeter(T,()=>{ const e=sternNach(m,v[0],v[1],v[2],G,T);
     let t=0; for(let k=0;k<11;k++){ t+=rand(0.12,0.38); const tt=t;
       kgSpaeter(tt,()=>{ const d=randDir(), r=rand(1,7)*Math.sqrt(s), q={x:e.x+d[0]*r,y:e.y+d[1]*r*0.4,z:e.z+d[2]*r}, c=k%3?[1.5,1.5,1.7]:kgMal(A,1.4);
         flash(q,c,1.6,0.16);
         for(let j=0;j<6;j++) psHuge.emit(q.x+rand(-1.5,1.5),q.y+rand(-0.6,0.6),q.z+rand(-1.5,1.5),0,0,0,c[0],c[1],c[2],rand(0.04,0.1),0,0);
-        for(let j=0;j<Math.round(18*QUAL());j++){ const dd=randDir(), w=rand(0.5,2); psMid.emit(q.x,q.y,q.z,dd[0]*w,dd[1]*w,dd[2]*w,c[0],c[1],c[2],rand(0.08,0.2),0,0); } }); }
+        for(let j=0;j<Math.round(45*QUAL());j++){ const dd=randDir(), w=rand(0.8,3); (j%3?psMid:psBig).emit(q.x,q.y,q.z,dd[0]*w,dd[1]*w*0.5,dd[2]*w,c[0],c[1],c[2],rand(0.12,0.35),0,j%2?0:1); } }); }
     schall(e,x=>later(t*0.6,()=>sfx.donner(x*0.22,true))); });
 };
 /* 14 Schwebestern: eine grosse, sehr helle Leuchtkugel steigt und sinkt

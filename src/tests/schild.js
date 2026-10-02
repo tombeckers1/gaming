@@ -29,7 +29,7 @@ async function start(p,neu){
     document.getElementById('schildIn').value='XXL Fontänen und noch viel mehr Text';
     bb.schildFertig('ok');
     if(bb.schildOpen) m.push('TEXT: Feld bleibt offen');
-    if(sh.schild!=='XXL Fontänen und noch vie') m.push('LAENGE/TEXT: '+JSON.stringify(sh.schild));
+    if(sh.schild!=='XXL Fontänen und noch vi') m.push('LAENGE/TEXT: '+JSON.stringify(sh.schild));
     if(px()===vor) m.push('TEXT: Kopfschild unveraendert');
     if(sh.kopfG&&!sh.kopfG.visible) m.push('TEXT: Schild am leeren Regal unsichtbar');
     bb.save(); const d=JSON.parse(localStorage.getItem('boellerbude_v3'));
@@ -38,7 +38,7 @@ async function start(p,neu){
   await p.reload(); await p.waitForFunction('window.__bb!==undefined',null,{timeout:120000});
   await start(p,false);
   const r2=await p.evaluate(()=>{ const bb=window.__bb, m=[], sh=bb.shelves[0];
-    if(!sh||sh.schild!=='XXL Fontänen und noch vie') m.push('SPEICHER: geladen '+JSON.stringify(sh&&sh.schild));
+    if(!sh||sh.schild!=='XXL Fontänen und noch vi') m.push('SPEICHER: geladen '+JSON.stringify(sh&&sh.schild));
     bb.schildTaste(sh); bb.schildFertig('auto');
     if(sh.schild) m.push('AUTO: eigener Text bleibt');
     return m; });

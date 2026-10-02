@@ -107,7 +107,7 @@ function resSetzen(r){ RES=Math.round(clamp(r,RES_MIN,1)*100)/100; renderer.setP
    Bildrate ist gedeckelt, z. B. Stromsparmodus am iPhone mit 30 Bildern/s),
    geht sie zurueck und der Regler wartet 20 s. */
 function resRegeln(roh){
-  const M=gfxMess; M.rt+=roh; M.rn++; if(M.rt<1) return;
+  const M=gfxMess; M.rt+=roh; M.rn++; if(M.rt<0.999) return;
   const f=M.rn/M.rt; M.rt=0; M.rn=0; M.fps=f;
   if(M.sperre>0){ M.sperre--; M.vorher=0; return; }
   if(M.vorher){ const v=M.vorher; M.vorher=0; if(f<v+2&&f<45){ resSetzen(RES+M.schritt); M.sperre=20; return; } }

@@ -1,93 +1,46 @@
-/* Regalschilder: Farben setzen, speichern, laden */
-async function neuesSpiel(p){
-  await p.waitForFunction("!!document.querySelector('#startBtns button:not([disabled])')",{timeout:60000});
-  await p.click('#startBtns button:last-child');
-  await p.waitForSelector('#nameBox.show',{state:'visible',timeout:20000});
-  await p.click('#nameGo');
-  await p.waitForFunction("!document.getElementById('start').classList.contains('show')",{timeout:20000});
-}
+/* Regalschild beschriften (Tom, 03.10.: "die einzelnen Regale umbenennen
+   ... XXL Fontaene oder irgendwas anderes"):
+   - TEXT: L oeffnet das Feld, Beschriften setzt den Text aufs Kopfschild
+     (das Bild aendert sich), auch ein leeres Regal zeigt dann sein Schild
+   - LAENGE: hoechstens 24 Zeichen
+   - SPEICHER: das Schild uebersteht Speichern und Laden
+   - AUTO: "Automatisch" nimmt den eigenen Text wieder weg
+   - TASTEN: solange das Feld offen ist, gilt das Spiel als Overlay
+   Aufruf: node schild.js real.html */
 const { chromium } = require('/opt/node22/lib/node_modules/playwright');
+async function start(p,neu){
+  await p.waitForFunction("!!document.querySelector('#startBtns button:not([disabled])')",null,{timeout:120000});
+  if(neu){ await p.click('#startBtns button:last-child'); await p.waitForSelector('#nameBox.show',{state:'visible'}); await p.click('#nameGo'); }
+  else await p.click('#startBtns button:first-child');
+  await p.waitForFunction("!document.getElementById('start').classList.contains('show')",null,{timeout:60000});
+}
 (async()=>{
-  const b=await chromium.launch({args:['--use-gl=swiftshader','--enable-unsafe-swiftshader','--no-sandbox']});
-  const p=await b.newPage({viewport:{width:1280,height:800}});
+  const b=await chromium.launch({args:['--no-sandbox']});
+  const p=await b.newPage({viewport:{width:700,height:450}});
   const errs=[]; p.on('pageerror',e=>errs.push('PAGEERROR: '+e.message));
-  p.on('console',m=>{ if(m.type()==='error'&&m.text().indexOf('ERR_CERT')<0) errs.push('CONSOLE: '+m.text()); });
-  await p.goto('file://'+process.argv[2]);
-  await p.waitForFunction('window.__bb!==undefined',{timeout:60000});
-  await p.evaluate(()=>localStorage.clear());
-  await p.reload(); await p.waitForFunction('window.__bb!==undefined',{timeout:60000});
-  await neuesSpiel(p);
-
-  /* Bildpunkt aus der Mitte des Kopfschilds lesen */
-  /* Eine Zeile quer durch das Schild scannen: die haeufigste Farbe ist
-     der Hintergrund, die zweithaeufigste die Schrift. Ein einzelner
-     Messpunkt in der Mitte landet leicht in einer Buchstabenluecke. */
-  const px=()=>p.evaluate(()=>{
-    const bb=window.__bb, sh=bb.shelves[0];
-    if(!sh||!sh.headTex) return null;
-    const c=sh.headTex.image, g=c.getContext('2d');
-    const y=Math.round(c.height*0.52);
-    const d=g.getImageData(0,y,c.width,1).data, zaehl={};
-    for(let i=0;i<c.width;i++){
-      const k='#'+[d[i*4],d[i*4+1],d[i*4+2]].map(v=>v.toString(16).padStart(2,'0')).join('');
-      zaehl[k]=(zaehl[k]||0)+1;
-    }
-    const sortiert=Object.keys(zaehl).sort((a,b)=>zaehl[b]-zaehl[a]);
-    return {bg:sortiert[0],text:sortiert[1]||null,farben:sortiert.length};
-  });
-
-  const start=await p.evaluate(()=>{
-    const bb=window.__bb;
-    bb.S.level=20; bb.S.money=99999;
-    bb.regalStellen('standard');
-    const lv=bb.shelves[0].levels[0];
-    for(let i=0;i<6;i++) bb.addToLevel(lv,'boeller',1);
-    return {regale:bb.shelves.length,bg:bb.S.schildBg,fg:bb.S.schildFg};
-  });
-  console.log('START',JSON.stringify(start),JSON.stringify(await px()));
-
-  const gesetzt=await p.evaluate(()=>{
-    const bb=window.__bb;
-    bb.setSchild('schildbg','tuerkis');
-    bb.setSchild('schildfg','gelb');
-    return {bg:bb.S.schildBg,fg:bb.S.schildFg,
-            listen:{bg:bb.SCHILDBG.length,fg:bb.SCHILDFG.length}};
-  });
-  console.log('GESETZT',JSON.stringify(gesetzt),JSON.stringify(await px()));
-
-  /* Alle Kombinationen durchprobieren, keine darf einen Fehler werfen */
-  const alle=await p.evaluate(()=>{
-    const bb=window.__bb; let n=0;
-    for(const a of bb.SCHILDBG) for(const c of bb.SCHILDFG){
-      bb.setSchild('schildbg',a.id); bb.setSchild('schildfg',c.id); n++; }
-    bb.setSchild('schildbg','bordeaux'); bb.setSchild('schildfg','sand');
-    return {kombinationen:n,bg:bb.S.schildBg,fg:bb.S.schildFg};
-  });
-  console.log('ALLE',JSON.stringify(alle),JSON.stringify(await px()));
-
-  /* Speichern, neu laden, Farbe muss bleiben */
-  await p.evaluate(()=>window.__bb.save());
-  await p.reload(); await p.waitForFunction('window.__bb!==undefined',{timeout:60000});
-  await p.waitForFunction("!!document.querySelector('#startBtns button:not([disabled])')",{timeout:60000});
-  await p.click('#startBtns button:first-child');
-  await p.waitForFunction("!document.getElementById('start').classList.contains('show')",{timeout:20000});
-  await p.waitForTimeout(300);
-  const neu=await p.evaluate(()=>({bg:window.__bb.S.schildBg,fg:window.__bb.S.schildFg,regale:window.__bb.shelves.length}));
-  console.log('NEUGELADEN',JSON.stringify(neu),JSON.stringify(await px()));
-
-  /* Und im Laptop sind die Muster da */
-  await p.evaluate(()=>window.__bb.openLaptop());
-  await p.waitForTimeout(150);
-  await p.click('#ltabs button[data-tab="deko"]'); await p.waitForTimeout(150);
-  const ui=await p.evaluate(()=>({
-    bgKnoepfe:document.querySelectorAll('[data-a="schildbg"]').length,
-    fgKnoepfe:document.querySelectorAll('[data-a="schildfg"]').length,
-    aktivBg:(document.querySelector('[data-a="schildbg"].on')||{}).dataset,
-    aktivFg:(document.querySelector('[data-a="schildfg"].on')||{}).dataset}));
-  console.log('LAPTOP',JSON.stringify(ui));
-  await p.evaluate(()=>{ document.getElementById('lbody').scrollTop=120; });
-  await p.waitForTimeout(120);
-  await p.screenshot({path:'/tmp/schild-laptop.png'});
-  console.log(errs.length?'ERRORS:\n'+errs.join('\n'):'ERRORS: keine');
-  await b.close();
+  await p.goto('file://'+process.argv[2]); await p.waitForFunction('window.__bb!==undefined',null,{timeout:120000});
+  await start(p,true);
+  const r=await p.evaluate(()=>{ const bb=window.__bb, m=[];
+    bb.regalStellen('standard'); const sh=bb.shelves[0];
+    const px=()=>{ const c=bb.texCanvas(sh.headTex); return c.getContext('2d').getImageData(0,0,c.width,c.height).data.join(','); };
+    const vor=px();
+    bb.schildTaste(sh);
+    if(!bb.schildOpen||!bb.overlayOpen()) m.push('TASTEN: Feld nicht offen bzw. kein Overlay');
+    document.getElementById('schildIn').value='XXL Fontänen und noch viel mehr Text';
+    bb.schildFertig('ok');
+    if(bb.schildOpen) m.push('TEXT: Feld bleibt offen');
+    if(sh.schild!=='XXL Fontänen und noch vie') m.push('LAENGE/TEXT: '+JSON.stringify(sh.schild));
+    if(px()===vor) m.push('TEXT: Kopfschild unveraendert');
+    if(sh.kopfG&&!sh.kopfG.visible) m.push('TEXT: Schild am leeren Regal unsichtbar');
+    bb.save(); const d=JSON.parse(localStorage.getItem('boellerbude_v3'));
+    if(!d.shelves[0]||d.shelves[0].schild!==sh.schild) m.push('SPEICHER: nicht gespeichert '+JSON.stringify(d.shelves[0]&&d.shelves[0].schild));
+    return m; });
+  await p.reload(); await p.waitForFunction('window.__bb!==undefined',null,{timeout:120000});
+  await start(p,false);
+  const r2=await p.evaluate(()=>{ const bb=window.__bb, m=[], sh=bb.shelves[0];
+    if(!sh||sh.schild!=='XXL Fontänen und noch vie') m.push('SPEICHER: geladen '+JSON.stringify(sh&&sh.schild));
+    bb.schildTaste(sh); bb.schildFertig('auto');
+    if(sh.schild) m.push('AUTO: eigener Text bleibt');
+    return m; });
+  console.log('ERRORS:',r.concat(r2,errs).join(' | ')||'keine'); await b.close();
 })();

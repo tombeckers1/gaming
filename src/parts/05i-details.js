@@ -17,6 +17,6 @@ function normalMapFrom(w,h,draw,strength){
     d[i]=(nx/l*0.5+0.5)*255; d[i+1]=(ny/l*0.5+0.5)*255; d[i+2]=(nz/l*0.5+0.5)*255; d[i+3]=255;
   }
   g.putImageData(out,0,0);
-  const t=new THREE.CanvasTexture(c); t.anisotropy=4; return t;
+  const t=new THREE.CanvasTexture(texSpar(c)); t.anisotropy=4; return t;
 }
 

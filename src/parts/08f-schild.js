@@ -10,9 +10,9 @@ const SCHILD_MAX=24;
 let schildOpen=false, schildSh=null;
 function schildZiel(){ const t=target; return t&&t.kind==='level'&&t.ref&&t.ref.sh?t.ref.sh:null; }
 function schildAuto(sh){ const b=headArt(sh); return b!==null?HEADNAME[b][0]:''; }
-function schildTaste(){
+function schildTaste(ziel){
   if(!S||overlayOpen()) return;
-  const sh=schildZiel();
+  const sh=ziel||schildZiel();
   if(!sh){ toast(`Stell dich vor ein Regal und schau es an – dann ${COARSE?'„Schild“':'L'} drücken.`,'bad'); return; }
   schildSh=sh; schildOpen=true;
   const inp=$('schildIn'); inp.value=sh.schild||''; inp.placeholder=schildAuto(sh)||'z. B. XXL-Fontänen';

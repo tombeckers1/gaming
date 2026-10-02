@@ -22,8 +22,20 @@ if(COARSE) document.body.classList.add('coarse');
 const KEY='boellerbude_v3';
 const LIN=h=>new THREE.Color(h).convertSRGBToLinear();
 function std(hex,o){ const m=new THREE.MeshStandardMaterial(Object.assign({roughness:0.85,metalness:0},o||{})); m.color=LIN(hex); return m; }
-function tex(w,h,draw,srgb){ const c=document.createElement('canvas'); c.width=w; c.height=h; draw(c.getContext('2d'),w,h); const t=new THREE.CanvasTexture(c); t.anisotropy=4; if(srgb!==false) t.encoding=THREE.sRGBEncoding; return t; }
-function redraw(t,draw){ const c=t.image; draw(c.getContext('2d'),c.width,c.height); t.needsUpdate=true; }
+/* Canvas-Speicher (03.10., Tom, iPhone: im Testraum blieben ganze Regale
+   schwarz): Safari erlaubt einer Seite nur rund 384 MB Canvas-Speicher -
+   gemessen hielt das Spiel schon 300 MB, die Vorfuehrung 431 MB, danach
+   bekommt jede neue Canvas kein Bild mehr. Fertig gemalte Texturen behalten
+   ihre Pixel deshalb als ImageData (zaehlt nicht zum Canvas-Speicher), die
+   Canvas wird sofort freigegeben. Texturen, die spaeter neu bemalt werden
+   (leere Malfunktion, redraw), bleiben Canvas. */
+/* nur mit WebGL2: WebGL1 muesste Bilder ohne Zweierpotenz-Groesse ueber eine
+   Canvas umrechnen - das geht mit ImageData nicht */
+function texSpar(c){ try{ if(!renderer.capabilities.isWebGL2) return c; const d=c.getContext('2d').getImageData(0,0,c.width,c.height); c.width=c.height=0; return d; }catch(e){ return c; } }
+function tex(w,h,draw,srgb){ const c=document.createElement('canvas'); c.width=w; c.height=h; draw(c.getContext('2d'),w,h); const t=new THREE.CanvasTexture(draw.length?texSpar(c):c); t.anisotropy=4; if(srgb!==false) t.encoding=THREE.sRGBEncoding; return t; }
+function texCanvas(t){ let c=t.image; if(c&&c.getContext) return c;
+  const n=document.createElement('canvas'); n.width=c.width; n.height=c.height; if(c&&c.data) n.getContext('2d').putImageData(c,0,0); t.image=n; return n; }
+function redraw(t,draw){ const c=texCanvas(t); draw(c.getContext('2d'),c.width,c.height); t.needsUpdate=true; }
 function tm(x,y,z,rx,ry,rz,sx,sy,sz){ const m=new THREE.Matrix4(); m.compose(V(x,y,z),new THREE.Quaternion().setFromEuler(new THREE.Euler(rx||0,ry||0,rz||0)),V(sx||1,sy||1,sz||1)); return m; }
 function merge(parts){
   let total=0;

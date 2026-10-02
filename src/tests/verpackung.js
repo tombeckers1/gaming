@@ -1,0 +1,83 @@
+/* Verpackungs-Vorfuehrung (Tom, 02.10.: "jedes Produkt in einer Reihe im
+   Regal ... dass das Regal befuellt ist, keine Luecken, das Produkt haengt
+   nicht halb ueber, die Sachen verschmelzen nicht ... wie im Supermarkt").
+   Prueft nach vpStart():
+   - PLATZ: jedes Produkt hat ein Fach, kein Fach bleibt leer, die Moebel
+     ueberschneiden sich nicht und stehen in der Halle
+   - VOLL: jedes Fach ist bis zur Fassung gefuellt
+   - RAND: keine Packung ragt aus dem Fach (Breite zwischen den Stehern,
+     Tiefe, Hoehe bis zum naechsten Boden)
+   - FUGE: keine zwei Packungen stecken ineinander
+   - SEITE: Ware der zweiten Gondel- und Eckregalseite steht auf ihrer
+     Seite (vorher landete sie auf der ersten)
+   - LUECKE: in seinem Heimatregal fuellt jedes Produkt das Fach-Modul in
+     der Breite zu mindestens 85 % und in der Tiefe zu mindestens 75 %
+   - AUS: nach dem Beenden ist alles wie vorher (Regale, Zonen, Kollision)
+   Aufruf: node -r ladezeit-preload.js verpackung.js real.html
+   Gegenprobe (02.10.): ohne face in addToLevel -> SEITE schlaegt an (48
+   Faecher auf der falschen Gondelseite); ohne Massraster -> LUECKE (119
+   Produkte) und RAND (9 lange Packungen ueber dem Mittelsteher). */
+async function neuesSpiel(p){
+  await p.waitForFunction("!!document.querySelector('#startBtns button:not([disabled])')",{timeout:120000});
+  await p.click('#startBtns button:last-child');
+  await p.waitForSelector('#nameBox.show',{state:'visible',timeout:60000});
+  await p.click('#nameGo',{timeout:90000});
+  await p.waitForFunction("!document.getElementById('start').classList.contains('show')",{timeout:60000});
+}
+const { chromium } = require('/opt/node22/lib/node_modules/playwright');
+(async()=>{
+  const b=await chromium.launch({args:['--use-gl=swiftshader','--enable-unsafe-swiftshader','--no-sandbox']});
+  const p=await b.newPage({viewport:{width:600,height:400}}); p.setDefaultTimeout(900000);
+  const errs=[]; p.on('pageerror',e=>errs.push('PAGEERROR: '+e.message));
+  await p.goto('file://'+process.argv[2]); await p.waitForFunction('window.__bb!==undefined',{timeout:240000});
+  await neuesSpiel(p);
+  const r=await p.evaluate(()=>{ const bb=window.__bb, P=bb.P, o={platz:[],voll:[],rand:[],fuge:[],seite:[],luecke:[],aus:[]};
+    const vorher={shelves:bb.shelves.length,cols:bb.colliders.length,lager:bb.ZONEN.lager_gross?bb.ZONEN.lager_gross.offen:null};
+    bb.vpStart();
+    const regale=bb.vpRegale, plan=bb.vpPlan, alle=bb.vpProdukte();
+    /* PLATZ */
+    const hat=new Set(plan.map(e=>e.t)); alle.forEach(t=>{ if(!hat.has(t)) o.platz.push('ohne Fach: '+t); });
+    regale.forEach(sh=>sh.levels.forEach(lv=>{ if(!lv.count) o.platz.push('leer: '+sh.kind+'/'+(lv.face||0)+'/'+lv.li); }));
+    const rect=sh=>{ const K=bb.kindOf(sh), w=(K.fw||K.w)/2, d=(K.fd||K.d)/2, q=Math.abs(Math.round(Math.sin(sh.g.rotation.y))), x=sh.g.position.x, z=sh.g.position.z;
+      return q?[x-d,x+d,z-w,z+w]:[x-w,x+w,z-d,z+d]; };
+    const F=bb.VP_FL;
+    regale.forEach((a,i)=>{ const A=rect(a); if(A[0]<F.x0-0.01||A[1]>F.x1+0.01||A[2]<F.z0-0.01||A[3]>F.z1+0.01) o.platz.push('aus der Halle: '+a.kind+i);
+      regale.forEach((c,j)=>{ if(j<=i) return; const C=rect(c); if(A[0]<C[1]-0.01&&A[1]>C[0]+0.01&&A[2]<C[3]-0.01&&A[3]>C[2]+0.01) o.platz.push('ueberschneiden: '+a.kind+i+'/'+c.kind+j); }); });
+    /* VOLL, RAND, FUGE */
+    plan.forEach(e=>{ const sh=e.sh, lv=e.lv, K=bb.kindOf(sh), L=bb.layout(e.t,sh,lv), cap=L.cap, id=e.t+'@'+sh.kind+'/'+lv.li;
+      if(lv.count!==cap) o.voll.push(id+' '+lv.count+'/'+cap);
+      const H=bb.fachHoehe(K,lv.li), iw=K.w-0.1, n=K.mod||1, mb=(iw-(n-1)*0.03)/n;
+      const box=[];
+      for(let k=0;k<cap;k++){ const s=bb.slotLocal(e.t,k,sh,lv), x0=s.x-L.w/2, x1=s.x+L.w/2, z0=s.z-L.d/2, z1=s.z+L.d/2;
+        if(x0<-iw/2-0.002||x1>iw/2+0.002) { o.rand.push(id+' seitlich'); break; }
+        if(!K.frei&&n>1){ const m=Math.floor((s.x+iw/2)/(mb+0.03)), mx0=-iw/2+m*(mb+0.03), mx1=mx0+mb; if(x0<mx0-0.002||x1>mx1+0.002){ o.rand.push(id+' ueber den Mittelsteher'); break; } }
+        if(z0<-K.d/2-0.002||z1>K.d/2+0.002){ o.rand.push(id+' Tiefe'); break; }
+        if(s.y+L.h>H+0.002){ o.rand.push(id+' Hoehe '+(s.y+L.h).toFixed(2)+'>'+H.toFixed(2)); break; }
+        box.push([x0,x1,s.y,s.y+L.h,z0,z1]); }
+      if(box.length<=400) for(let i=0;i<box.length;i++) for(let j=i+1;j<box.length;j++){ const A=box[i],C=box[j];
+        if(A[0]<C[1]-0.001&&A[1]>C[0]+0.001&&A[2]<C[3]-0.001&&A[3]>C[2]+0.001&&A[4]<C[5]-0.001&&A[5]>C[4]+0.001){ o.fuge.push(id+' #'+i+'/#'+j); i=box.length; break; } } });
+    /* SEITE: Weltlage der Ware vor der Warenseite */
+    const VC=bb.camera.position.constructor, v=new VC(), q=new bb.camera.quaternion.constructor(), s3=new VC();
+    plan.forEach(e=>{ const sh=e.sh, lv=e.lv, K=bb.kindOf(sh); if(!K.seiten) return;
+      const f=K.seiten[lv.face||0], a=sh.g.rotation.y+f.ry, nx=Math.sin(a), nz=Math.cos(a);
+      const cx=sh.g.position.x+f.ox*Math.cos(sh.g.rotation.y)+f.oz*Math.sin(sh.g.rotation.y), cz=sh.g.position.z-f.ox*Math.sin(sh.g.rotation.y)+f.oz*Math.cos(sh.g.rotation.y);
+      const h=lv.items[lv.items.length-1]; if(!h) return; h.m.decompose(v,q,s3);
+      const vor=(v.x-cx)*nx+(v.z-cz)*nz; if(vor<-0.01||vor>K.d/2+0.01) o.seite.push(e.t+'@'+sh.kind+' Seite '+(lv.face||0)+': '+vor.toFixed(2)+' m vor der Seitenmitte'); });
+    /* LUECKE: Heimatregal (wie kartonWahl) */
+    alle.forEach(t=>{ const pp=P[t], heim=pp.kuehlpflicht?['kuehl','tisch']:['standard','gross','tisch'];
+      for(const k of heim){ const K=bb.SHELFKIND[k]; let best=null;
+        K.lv.forEach((_,li)=>{ const L=bb.layout(t,{kind:k,levels:[]},{li}); if(!L.cap) return; const R=bb.modRaster(K);
+          const fw=L.cols*(L.w+L.g)/(R.B*R.MX), fd=L.rows*(L.d+L.g)/(R.T*R.MZ); if(!best||fw*fd>best.fw*best.fd) best={fw,fd}; });
+        /* Kugelbomben sind rund und muessen ins Moerserrohr: nur die Breite zaehlt */
+        if(best){ if(best.fw<0.85||(best.fd<0.75&&pp.shape!=='shell')) o.luecke.push(`${t} in ${k}: Breite ${Math.round(best.fw*100)} %, Tiefe ${Math.round(best.fd*100)} %`); break; } } });
+    bb.vpAus();
+    const nach={shelves:bb.shelves.length,cols:bb.colliders.length,lager:bb.ZONEN.lager_gross?bb.ZONEN.lager_gross.offen:null};
+    if(JSON.stringify(vorher)!==JSON.stringify(nach)) o.aus.push(JSON.stringify(vorher)+' -> '+JSON.stringify(nach));
+    if(bb.vpRegale.length) o.aus.push('Moebel bleiben stehen');
+    o.n=plan.length; o.moebel=regale.length; return o; });
+  console.log('Produkte',r.n,'Moebel',r.moebel);
+  const m=[];
+  for(const k of ['platz','voll','rand','fuge','seite','luecke','aus']) if(r[k].length) m.push(k.toUpperCase()+' '+r[k].length+'x: '+r[k].slice(0,40).join(' | '));
+  console.log('MANGEL:',m.join('\n')||'keine');
+  console.log('ERRORS:',errs.join(' | ')||'keine'); await b.close();
+})();

@@ -38,7 +38,7 @@ function einrStueck(t){
   scene.add(g); return g;
 }
 const _ep=new THREE.Vector3(), _eq=new THREE.Quaternion(), _es=new THREE.Vector3(), _ez=new THREE.Vector3();
-function einrZiel(lv,t){ const m=itemMatrix(lv.sh,{li:lv.li,type:t},lv.count,0); const p=new THREE.Vector3(), q=new THREE.Quaternion(), s=new THREE.Vector3(); m.decompose(p,q,s); return {p,q,s}; }
+function einrZiel(lv,t){ const m=itemMatrix(lv.sh,{li:lv.li,type:t,face:lv.face},lv.count,0); const p=new THREE.Vector3(), q=new THREE.Quaternion(), s=new THREE.Vector3(); m.decompose(p,q,s); return {p,q,s}; }
 /* Auftrag suchen - in der Reihenfolge, die der Spieler eingestellt hat */
 function einrJob(w){
   /* auch der Versandmitarbeiter: den Karton, zu dem er gerade

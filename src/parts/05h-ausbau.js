@@ -31,10 +31,14 @@ function oeffneZone(id,leise){
   if(!leise) sfx.cash();
 }
 /* Nach dem Laden eines Spielstands alle gekauften Bereiche oeffnen */
+/* Verpackungs-Vorfuehrung (17c): diese Bereiche stehen solange offen,
+   ohne dass sie gekauft sind - nur Waende und Licht, die Spiellogik
+   fragt weiter zoneOffen */
+let VP_ZONEN=null;
 function applyZonen(){
   for(const id in ZONEN){
     const z=ZONEN[id];
-    if(zoneOffen(id)) oeffneZone(id,true);
+    if(zoneOffen(id)||(VP_ZONEN&&VP_ZONEN.includes(id))) oeffneZone(id,true);
     else { z.offen=false;
       z.wand.forEach(o=>{ o.visible=true; });
       z.obj.forEach(o=>{ o.visible=false; });

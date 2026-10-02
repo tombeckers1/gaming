@@ -1336,6 +1336,8 @@ function lapZeichnen(body){
       (FW_DEV?`<div class="row"><div class="rm"><b>Feuerwerk-Teststation <span class="warn">(nur Entwicklung)</span></b><small>Macht Nacht und stellt von jedem Feuerwerk einen Karton neben das Zündpult. Du stehst direkt davor.</small>${fwTestAn?'<small class="warn">Aktiv. Kartons neu stapeln füllt alles wieder auf.</small>':''}</div>`+
         (fwTestAn?`<div class="steps"><button data-a="fwtestneu">Neu stapeln</button><button class="red" data-a="fwtest">Aus</button></div>`:`<button data-a="fwtest">Einschalten</button>`)+'</div>'+
         `<div class="row"><div class="rm"><b>Feuerwerk-Vorführung <span class="warn">(nur Entwicklung)</span></b><small>Alle Feuerwerke nach Level, eins nach dem anderen: Leertaste zündet das nächste, der Name steht groß oben. Pfeile vor/zurück, R nochmal, 1 gut, 2 ändern, L Liste, B beenden.</small></div><button data-a="vorfuehrung">Starten</button></div>`+
+        /* 02.10. (Tom): alle Verpackungen im Regal auf einen Blick */
+        `<div class="row"><div class="rm"><b>Verpackungs-Vorführung <span class="warn">(nur Entwicklung)</span></b><small>Die Lagerhalle Süd voller Regale: Hochregal, Verkaufsregal, Mittelgondel, kleines Regal, Kühlschrank, Großverbund-Regal, Tische, Gitterboxen und Eckregale. Jedes Produkt füllt genau ein Fach – so sieht man jede Verpackung und wie sie im Regal steht. B beendet.</small></div><button data-a="verpackung">${vpAn?'Beenden':'Starten'}</button></div>`+
         /* 30.09. (Tom): eigene Testsektionen fuer die neuen Batterien und Kugeln */
         `<div class="row"><div class="rm"><b>Neue Batterien testen <span class="warn">(nur Entwicklung)</span></b><small>${NEU_LB.length} Lichter-Batterien aus deinen Favoriten, danach ${LICHT_MUSTER.length} Lichter-Muster (deine Favoriten und 30 neue Effekte, darunter breite Einzelfontänen), nacheinander auf der großen Anlage: ${NEU_TEST.batterien.filter(t=>P[t]).map(t=>P[t].short).join(', ')}.</small></div><button data-a="vfbatt">Starten</button></div>`+
         `<div class="row"><div class="rm"><b>Neue Kugelbomben testen <span class="warn">(nur Entwicklung)</span></b><small>${NEU_TEST.kugeln.length} neue, besonders intensive Kugelbomben von 100 bis 300 mm – Fontäne, Römische Lichter oder Kometen schon beim Abschuss, oben ein Feuerwerk in mehreren Stufen: ${NEU_TEST.kugeln.filter(t=>P[t]).map(t=>P[t].short).join(', ')}.</small></div><button data-a="vfkugel">Starten</button></div>`+
@@ -1429,6 +1431,7 @@ function lapKlick(e,imHandy){
   else if(a==='test'){ toggleTest(); }
   else if(a==='fwtest'){ fwTestSchalten(); return; }
   else if(a==='vorfuehrung'){ vorfuehrungAn(); return; }
+  else if(a==='verpackung'){ vpSchalten(); return; }
   else if(a==='vfbatt'){ vorfuehrungAn(NEU_TEST.batterien); return; }
   else if(a==='vfkugel'){ vorfuehrungAn(NEU_TEST.kugeln); return; }
   else if(a==='vfrakete'){ vorfuehrungAn(NEU_TEST.raketen); return; }

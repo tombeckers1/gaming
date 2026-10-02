@@ -194,6 +194,8 @@ addEventListener('keydown',e=>{
   if(dealOpen){ if(e.code==='Escape') declineDeal(); return; }
   /* Feuerwerk-Vorfuehrung (Entwicklung): Leertaste zuendet das naechste */
   if(vfAn&&S&&!overlayOpen()&&vfTaste(e)) return;
+  /* Verpackungs-Vorfuehrung (Entwicklung): B beendet */
+  if(vpAn&&S&&!overlayOpen()&&vpTaste(e)) return;
   /* Zuendmodus: Ziffern zuenden, alles andere geht normal weiter -
      laufen, umsehen, E. Esc ohne Mauszeiger-Sperre beendet ihn. */
   if(zuendOpen&&S&&!overlayOpen()){

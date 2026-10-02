@@ -93,7 +93,7 @@ EFF.farbkreuz=function(p,A,B,s){
 /* Kronenkranz (200): ein Ring Goldkometen, an jedem Ende haengt eine
    Glitzerkrone (Kometenkrone); in der Mitte eine Kugel B, die zu A wechselt */
 EFF.kronenkranz=function(p,A,B,s){ const G=2.4, T=1.5;
-  nRing(p,Math.round(4*KQ(s))+8,9*s,v=>{ nKomet(p,v,kgMal(A,1.6),T,G,[1,.74,.32],80); nKomet(p,v,kgMal(A,1.4),T,G,[1,.74,.32],30);
+  nRing(p,Math.round(4*KQ(s))+8,9*s,v=>{ nKomet(p,v,kgMal(A,1.6),T,G,[1,.74,.32],110);
     kgSpaeter(T,()=>{ const e=sternNach(p,v[0],v[1],v[2],G,T); wKrone(e,i=>i%3?[1.6,1.2,.55]:kgMal(B,1.8),s*1.6,Math.round(30*QUAL())+10,3.4); flash(e,[1,.85,.5],1.5,0.2); }); },0.35);
   nKugel(Math.round(40*KQ(s)),5.5*s,v=>{ const h=kgStern(psBig,p,v,kgMal(B,1.5),2.4,2.2,0,0.1); nFolge(h,[kgMal(A,1.6)],[1.1]); });
   kgSpaeter(T,()=>schall(p,x=>sfx.rieseln(x*0.8,3.5)));

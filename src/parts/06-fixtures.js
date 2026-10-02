@@ -519,6 +519,12 @@ function layout(t,sh,lv){
          dann ueber das ganze Fach */
       let [a,b,c]=ganzeKartons(R.cm,R.rm,R.st,box);
       if(a*b*c){ cols=a*R.mx; rows=b*R.mz; st=c; if(!K.frei&&R.mx>1){ modCm=a; modN=R.mx; } }
+      /* Tisch und Gitterbox: passt kein Karton in ein Modul, dann in eine
+         Modulspalte (1 x 2) - so bleibt der grosse Tisch genau doppelt so
+         voll wie der kleine */
+      else if(K.frei&&R.mz>=2&&(([a,b,c]=ganzeKartons(R.cm,R.rm*2,R.st,box)),a*b*c)){ cols=a*R.mx; rows=b*Math.floor(R.mz/2); st=c; }
+      /* ... sonst in die ganze Breite, zwei Module tief */
+      else if(K.frei&&R.mz>=2&&(([a,b,c]=ganzeKartons(R.cm*R.mx,R.rm*2,R.st,box)),a*b*c)){ cols=a; rows=b*Math.floor(R.mz/2); st=c; }
       else [cols,rows,st]=ganzeKartons(R.cm*R.mx,R.rm*R.mz,R.st,box);
     } else [cols,rows,st]=ganzeKartons(R.cols,R.rows,R.st,box);
     if(!(R.st>0)) cols=rows=st=0;
@@ -552,6 +558,57 @@ function kartonWahl(t){
     if(best){ p.box=best.k; return; }
   }
 }
+/* Massraster (02.10., Tom, Verpackungs-Vorfuehrung: "dass das Regal
+   befuellt ist und nicht irgendwelche Luecken ... notfalls die
+   Produktgroesse veraendern"): eine Packung von 53 cm Breite stand
+   einzeln im 90-cm-Fach, daneben 37 cm Luft. Jede Packung bekommt jetzt
+   Breite und Tiefe so, dass eine ganze Zahl davon das Fach-Modul (90 x 44,
+   Grossverbund 98 x 62) fuellt - die naechstliegende solche Groesse.
+   Runde Ware (Dosen, Flaschen, Kerzen, Kugelbomben) waechst oder
+   schrumpft gleichmaessig, Kugelbomben nur wenig (sie muessen in ihr
+   Moerserrohr). Flache Packungen werden so hoch gestapelt, wie das Fach
+   es hergibt (eine Handbreit Luft nach oben). Was schon voll ist, bleibt. */
+const RASTER_STAPEL=new Set(['boxA','rocketset','tubepack','fountainset','assort','battery','fan','sparkler']);
+const RASTER_RUND=new Set(['cylinder','bottle','candle','shell','atombombe','fass','lighter']);
+function rasterFuell(x,L){ const g=0.012, n=Math.floor((L+g)/(x+g)); return n*(x+g)/L; }
+/* n Packungen je Modul; zwei Module nebeneinander (Tisch, Gitterbox) brauchen
+   dazwischen noch eine Fuge, darum (L+g/2)/n */
+function rasterKandidaten(x,L,lo,hi){ const g=0.012, out=[];
+  for(let n=1;n<=60;n++){ const v=Math.floor(((L+g/2)/n-g-0.001)*1000)/1000, q=v/x; if(q>=lo&&q<=hi) out.push(q); }
+  return out; }
+function massRaster(t){
+  const p=P[t]; if(!p||!p.dims||!p.grid||p.noOrder||p.rezept||p.dims0) return;
+  p.dims0=p.dims.slice();
+  /* die Raketenzahl im Set haengt sonst an der Tiefe der Packung */
+  if(p.shape==='rocketset'&&p.stueck===undefined) p.stueck=Math.max(3,Math.round(p.dims[2]/0.026));
+  const [w,h,d]=p.dims, Hs=fachHoehe(SHELFKIND.standard,0);
+  const M=h<=Hs?{B:MODUL.B,T:MODUL.T,H:Hs}:{B:SHELFKIND.gross.modB,T:SHELFKIND.gross.tiefe,H:fachHoehe(SHELFKIND.gross,0)};
+  if(RASTER_RUND.has(p.shape)){
+    /* gleichmaessig: die Groesse, bei der Breite mal Tiefe am vollsten ist */
+    const lo=p.shape==='shell'?0.92:0.65, hi=p.shape==='shell'?1.08:1.3;
+    let best={q:1,f:rasterFuell(w,M.B)*rasterFuell(d,M.T)};
+    for(const q of rasterKandidaten(w,M.B,lo,hi).concat(rasterKandidaten(d,M.T,lo,hi))){
+      if(w*q>M.B||d*q>M.T||(q>1&&h*q>M.H-0.01)) continue;
+      const f=rasterFuell(w*q,M.B)*rasterFuell(d*q,M.T)-0.25*Math.abs(Math.log(q));
+      if(f>best.f+0.02) best={q,f}; }
+    if(best.q!==1) p.dims=[w*best.q,h*best.q,d*best.q].map(v=>Math.round(v*1000)/1000);
+  } else {
+    /* keine Packung waechst ueber eine Paketgrenze des Versands (86 cm
+       im grossen Paket) - sonst brauchte das Raketen-Set ploetzlich das riesige */
+    const VSG=0.86;
+    const achse=(x,L)=>{ if(x<=L&&rasterFuell(x,L)>=0.92) return x;
+      const ok=q=>x>VSG||x*q<=VSG;
+      /* naechstliegende Groesse; erst wenn keine im Rahmen liegt, auch weiter weg
+         (60 cm im 90-cm-Fach: 44 oder 89 cm, beides weit) */
+      let b=null; for(const q of rasterKandidaten(x,L,0.75,1.4)) if(ok(q)&&(!b||Math.abs(Math.log(q))<Math.abs(Math.log(b)))) b=q;
+      if(!b) for(const q of rasterKandidaten(x,L,0.6,1.6)) if(ok(q)&&(!b||Math.abs(Math.log(q))<Math.abs(Math.log(b)))) b=q;
+      return b?Math.round(x*b*1000)/1000:x; };
+    p.dims=[achse(w,M.B),h,achse(d,M.T)];
+  }
+  /* Kugelbomben und kleine Dosen stehen in Papphuelsen - die stapelt man auch */
+  if(RASTER_STAPEL.has(p.shape)||p.shape==='shell'||(p.shape==='cylinder'&&p.dims[1]<=0.22)){ const hh=p.dims[1]; p.grid=[p.grid[0],p.grid[1],Math.max(p.grid[2]|0,Math.min(6,Math.floor((M.H-0.06)/hh)))]; }
+}
+Object.keys(P).forEach(massRaster);
 /* alle Produkte bekommen ihre Kartongroesse (P ist hier vollstaendig) */
 Object.keys(P).forEach(kartonWahl);
 /* Breite eines Regalmoduls zwischen den Stehern (Mittelsteher 3 cm) */
@@ -828,7 +885,7 @@ function repaintSchilder(){ shelves.forEach(updateHead); }
 function updateLabel(lv){
   redraw(lv.tex,(g,W,H)=>{ g.setTransform(1,0,0,1,0,0); g.scale(W/300,H/34); W=300; H=34;
     g.fillStyle=lv.type?'#ffd23f':'#39405a'; g.fillRect(0,0,W,H); g.textBaseline='middle';
-    if(lv.type){ g.fillStyle='#0e1226'; g.font=BAR(26); g.textAlign='left'; g.fillText(P[lv.type].short,8,H/2+1); g.font=BUN(22); g.textAlign='right'; g.fillText(S.prices[lv.type].toFixed(2).replace('.',',')+' €',W-8,H/2+2); }
+    if(lv.type){ g.fillStyle='#0e1226'; g.font=BAR(26); g.textAlign='left'; g.fillText(P[lv.type].short,8,H/2+1); g.font=BUN(22); g.textAlign='right'; g.fillText((S.prices[lv.type]||marketOf(lv.type)).toFixed(2).replace('.',',')+' €',W-8,H/2+2); }
     else { g.fillStyle='rgba(242,245,255,.75)'; g.font=BAR(24); g.textAlign='center'; g.fillText('leer',W/2,H/2+1); } });
 }
 function capOf(lv,t){ return layout(t||lv.type,lv.sh,lv).cap; }
@@ -841,7 +898,9 @@ function addToLevel(lv,t,q){
   if(q===undefined) q=1;
   lv.q=lv.count?((lv.q||1)*lv.count+q)/(lv.count+1):q;
   lv.type=t; const jit=rand(-0.04,0.04);
-  const h=pools[t].add(itemMatrix(lv.sh,{li:lv.li,type:t},lv.count,jit)); h.jit=jit;
+  /* face mitgeben: sonst landete die Ware der zweiten Gondel- und
+     Eckregalseite auf der ersten (02.10., Verpackungs-Vorfuehrung) */
+  const h=pools[t].add(itemMatrix(lv.sh,{li:lv.li,type:t,face:lv.face},lv.count,jit)); h.jit=jit;
   lv.items.push(h); lv.count++; updateLabel(lv); updateHead(lv.sh); return true;
 }
 /* der Kunde nimmt vorn: das zuletzt eingeraeumte Stueck steht am weitesten vorn */

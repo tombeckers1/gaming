@@ -58,7 +58,7 @@ function save(){
       wall:S.wall,floor:S.floor,schildBg:S.schildBg||'auto',schildFg:S.schildFg||'weiss',paint:S.paint,test:S.test,stamm:S.stamm,blanks:gravBlanks,grav:gravG?mpos(gravG):null,grime:r2(S.grime||0),tut:S.tut,tutAus:!!S.tutAus,karre:S.karre||null,seasonRevenue:S.seasonRevenue,carrying:S.carrying,kisten:S.kisten|0,kisteHand:!!S.kisteHand,cart:S.cart||[],rest:S.rest||null,ekVor:S.ekVor||{},offen:S.offen|0,pakete:S.pakete|0,bestellungen:(S.bestellungen||[]).map(b=>({id:b.id,pos:b.pos.map(l=>({t:l.t,n:l.n,g:l.g})),gr:b.gr,wert:b.wert,st:b.st,tag:b.tag})),paketGr:(S.paketGr||[]).slice(),bestNr:S.bestNr|0,shopName:S.shopName||SHOP_DEFAULT,slogan:S.slogan||'',
       deko:dekos.map(d2=>Object.assign({id:d2.id},mpos(d2.g))),
       ck:mpos(ckG),desk:mpos(deskG),sb2:mpos(sb2G),pack:mpos(packTisch),
-      shelves:shelves.map(s=>Object.assign(mpos(s.g),{kind:s.kind,levels:s.levels.map(l=>({type:l.type,count:l.count,q:l.q||1}))})),
+      shelves:shelves.map(s=>Object.assign(mpos(s.g),{kind:s.kind,schild:s.schild||undefined,levels:s.levels.map(l=>({type:l.type,count:l.count,q:l.q||1}))})),
       racks:racks.map(r=>Object.assign(mpos(r.g),{kind:r.kind,slots:r.slots.map(s=>s.box?{type:s.box.type,count:s.box.count,q:s.box.q||1,kiste:s.box.kiste?1:0}:null)})),
       /* Unterwegs bestellte Regale gehen beim Speichern nicht
          verloren: sie stehen als eigene Liste im Spielstand. */

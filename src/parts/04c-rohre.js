@@ -415,6 +415,65 @@ function lochAtlas(w,h,d,a,cat,o){
   A.mat.alphaTest=0.5; A.mat.side=THREE.FrontSide; return A;
 }
 function boxPart(parts,w,h,d,A,m){ parts.push({geo:merge([{geo:atlasBox(w,h,d,A.R),m}]),mat:A.mat}); }
+/* Stueckzahl aus dem Namen ("6 Herz-Wunderkerzen", "5er"); Laengen wie
+   "50 cm" oder "1-m" zaehlen nicht */
+function wkStueck(t){ const nm=String(P[t].name||''), sub=nm.includes(' · ')?nm.split(' · ')[1]:nm;
+  const m=sub.match(/(?<!\d)(\d+)(?!\d)(?!\s*cm)(?!-m)(?!\s*m\b)/); return m?+m[1]:10; }
+/* Effektbild der Wunderkerzen-Schachtel: x,y,w,h im Bild */
+function wkBild(g,x,y,w,h,t){
+  g.save(); g.beginPath(); g.rect(x,y,w,h); g.clip();
+  const bg=g.createLinearGradient(0,y,0,y+h); bg.addColorStop(0,'#1a2246'); bg.addColorStop(1,'#04060d'); g.fillStyle=bg; g.fillRect(x,y,w,h);
+  g.fillStyle='rgba(255,255,255,.55)'; for(let i=0;i<14;i++){ const sx=x+((i*53)%97)/97*w, sy=y+((i*31)%89)/89*h*0.5; g.fillRect(sx,sy,1,1); }
+  const S=Math.min(w,h), lw=Math.max(1,S*0.045);
+  /* ein Stab: Drahtgriff unten, grau ummantelt oben */
+  const stab=(bx,by,ang,len,mantel,draht)=>{ const ex=bx+Math.sin(ang)*len, ey=by-Math.cos(ang)*len, mx=bx+Math.sin(ang)*len*0.3, my=by-Math.cos(ang)*len*0.3;
+    g.lineCap='round'; g.strokeStyle=draht||'#9aa0a8'; g.lineWidth=Math.max(1,lw*0.35); g.beginPath(); g.moveTo(bx,by); g.lineTo(mx,my); g.stroke();
+    g.strokeStyle=mantel||'#6b6d70'; g.lineWidth=lw; g.beginPath(); g.moveTo(mx,my); g.lineTo(ex,ey); g.stroke();
+    g.strokeStyle='rgba(255,255,255,.25)'; g.lineWidth=Math.max(1,lw*0.3); g.beginPath(); g.moveTo(mx-lw*0.2,my); g.lineTo(ex-lw*0.2,ey); g.stroke();
+    return {x:ex,y:ey}; };
+  /* Funkenkranz: heller Kern, Strahlen mit Verzweigungen */
+  const funke=(cx,cy,R,farben)=>{ g.save(); g.globalCompositeOperation='lighter';
+    const rg=g.createRadialGradient(cx,cy,0,cx,cy,R*1.3); rg.addColorStop(0,'rgba(255,250,220,.95)'); rg.addColorStop(0.25,'rgba(255,200,90,.45)'); rg.addColorStop(1,'rgba(255,140,40,0)');
+    g.fillStyle=rg; g.beginPath(); g.arc(cx,cy,R*1.3,0,Math.PI*2); g.fill();
+    for(let i=0;i<26;i++){ const an=i*2.399, r=R*(0.45+((i*37)%11)/11*0.55), ex=cx+Math.cos(an)*r, ey=cy+Math.sin(an)*r;
+      g.strokeStyle=farben[i%farben.length]; g.lineWidth=Math.max(1,S*0.012); g.beginPath(); g.moveTo(cx+Math.cos(an)*R*0.12,cy+Math.sin(an)*R*0.12); g.lineTo(ex,ey); g.stroke();
+      if(i%2===0){ const b=an+0.6, bl=r*0.28; g.beginPath(); g.moveTo(ex-Math.cos(an)*r*0.25,ey-Math.sin(an)*r*0.25); g.lineTo(ex-Math.cos(an)*r*0.25+Math.cos(b)*bl,ey-Math.sin(an)*r*0.25+Math.sin(b)*bl); g.stroke(); } }
+    g.fillStyle='#fffbea'; g.beginPath(); g.arc(cx,cy,Math.max(1.5,S*0.035),0,Math.PI*2); g.fill(); g.restore(); };
+  const gold=['#fff3c4','#ffd36a','#ffe9a8'], unten=y+h*1.02, mx=x+w/2;
+  if(t==='wunderherz'){
+    /* Herz aus ummanteltem Draht, Funke an der Herzspitze oben links */
+    const cx=mx, cy=y+h*0.46, r=S*0.24;
+    g.strokeStyle='#9aa0a8'; g.lineWidth=Math.max(1,lw*0.35); g.beginPath(); g.moveTo(cx,cy+r*1.25); g.lineTo(cx,unten); g.stroke();
+    g.strokeStyle='#6b6d70'; g.lineWidth=lw; g.lineJoin='round'; g.beginPath(); g.moveTo(cx,cy+r*1.25);
+    g.bezierCurveTo(cx-r*2.1,cy-r*0.1,cx-r*1.0,cy-r*1.5,cx,cy-r*0.45); g.bezierCurveTo(cx+r*1.0,cy-r*1.5,cx+r*2.1,cy-r*0.1,cx,cy+r*1.25); g.stroke();
+    funke(cx-r*0.95,cy-r*0.95,S*0.26,['#fff3c4','#ff9ab8','#ffd36a']);
+  } else if(t==='wunderzahl'){
+    /* die Jahreszahl aus Wunderkerzen, die 7 brennt */
+    g.textAlign='center'; g.textBaseline='middle'; g.font=`700 ${Math.round(h*0.55)}px Arial, sans-serif`; g.lineJoin='round';
+    const ziff=['2','0','2','7'], sp=w*0.2;
+    ziff.forEach((z,i)=>{ const zx=mx+(i-1.5)*sp; g.strokeStyle='#9aa0a8'; g.lineWidth=Math.max(1,lw*0.3); g.beginPath(); g.moveTo(zx,y+h*0.72); g.lineTo(zx,unten); g.stroke();
+      g.lineWidth=Math.max(1.5,lw*0.55); g.strokeStyle='#707276'; g.strokeText(z,zx,y+h*0.42); });
+    funke(mx+1.5*sp+w*0.04,y+h*0.2,S*0.24,gold);
+  } else if(t==='bengalholz'){
+    /* Zuendhoelzer mit roten und gruenen Koepfen, eins brennt rot */
+    const n=5; for(let i=0;i<n;i++){ const ang=(i-(n-1)/2)*0.16, e=stab(mx+(i-2)*w*0.05,unten,ang,h*0.78,'#c9a46a','#c9a46a');
+      g.fillStyle=i%2?'#2f9e57':'#d8322a'; g.beginPath(); g.ellipse(e.x,e.y,lw*0.9,lw*1.6,ang,0,Math.PI*2); g.fill();
+      if(i===1) funke(e.x,e.y-lw,S*0.22,['#ff6a5a','#ffb0a0','#ff3b2f']); }
+  } else if(t==='leuchtstaebe'){
+    const n=4; for(let i=0;i<n;i++){ const ang=(i-(n-1)/2)*0.22, e=stab(mx,unten,ang,h*0.82);
+      if(i===1) funke(e.x,e.y,S*0.24,['#8cff9c','#d8ffe0','#3ddc6a']); if(i===2) funke(e.x,e.y,S*0.2,['#ffffff','#e8f4ff','#c8e4ff']); }
+  } else if(t==='wunderfarbe'){
+    const n=5, F=[['#ff5a5a','#ffb0b0'],['#5ce1ff','#c8f4ff'],['#8cff8c','#d8ffd8'],['#ffd23f','#fff0b0'],['#c78bff','#ecd8ff']];
+    for(let i=0;i<n;i++){ const ang=(i-(n-1)/2)*0.2, e=stab(mx,unten,ang,h*(0.7+0.12*Math.abs(i-2)/2)); if(i!==2) funke(e.x,e.y,S*0.15,F[i]); }
+  } else if(t==='wunderkerzeXXL'){
+    /* ein langer Stab quer durchs Bild, Funke weit oben */
+    stab(x+w*0.12,unten,0.5,h*1.25); const e=stab(x+w*0.3,unten,0.42,h*1.15); funke(e.x,e.y+h*0.05,S*0.32,gold);
+  } else {
+    /* klassisch: Faecher aus Wunderkerzen, die mittlere brennt */
+    const n=5; for(let i=0;i<n;i++){ const ang=(i-(n-1)/2)*0.17, e=stab(mx,unten,ang,h*0.86); if(i===2) funke(e.x,e.y+h*0.04,S*0.3,gold); }
+  }
+  g.restore();
+}
 function buildVerpackung(t){
   const p=P[t], a=p.art, sh=p.shape, w=p.dims[0], h=p.dims[1], d=p.dims[2], parts=[], vc=[];
   if(!p.cat||!a) return null;
@@ -429,12 +488,12 @@ function buildVerpackung(t){
       g.fillStyle='#fffbe8'; g.beginPath(); g.arc(cx,cy,R*0.12,0,Math.PI*2); g.fill();
       g.save(); g.translate(W*0.5,H*0.42); g.rotate(-Math.PI/2); g.textAlign='center'; g.textBaseline='middle'; fitFont(g,a.title,H*0.3,Math.round(W*0.24),BUN);
       g.lineWidth=Math.max(2,W*0.03); g.strokeStyle='rgba(0,0,0,.55)'; g.strokeText(a.title,0,0); g.fillStyle=a.ac; g.fillText(a.title,0,0); g.restore();
-      /* Fensterhintergrund: die Staebe */
-      const y0=H*0.56, y1=H*0.88; g.fillStyle='#ece8de'; g.fillRect(W*0.12,y0,W*0.76,y1-y0);
-      const n=7; for(let i=0;i<n;i++){ const x=W*(0.18+i*0.64/(n-1)); g.fillStyle='#5f6268'; g.fillRect(x-W*0.018,y0-2,W*0.036,(y1-y0)*0.78); g.fillStyle='#9aa0a8'; g.fillRect(x-W*0.006,y0+(y1-y0)*0.78,W*0.012,(y1-y0)*0.24); }
-      g.fillStyle='rgba(255,255,255,.22)'; g.beginPath(); g.moveTo(W*0.12,y1); g.lineTo(W*0.36,y0); g.lineTo(W*0.46,y0); g.lineTo(W*0.22,y1); g.fill();
-      g.strokeStyle='rgba(255,255,255,.9)'; g.lineWidth=Math.max(2,W*0.015); g.strokeRect(W*0.12,y0,W*0.76,y1-y0);
-      g.fillStyle=a.ac2; g.fillRect(0,H*0.91,W,H*0.09); g.fillStyle='#fff'; g.textAlign='center'; g.textBaseline='middle'; fitFont(g,'10 STÜCK',W*0.8,Math.round(H*0.05),BAR); g.fillText('10 STÜCK',W/2,H*0.955);
+      /* Effektbild statt Sichtfenster (03.10., Tom: "sieht aus wie ein
+         Stueck vom Klavier, die Tasten"): brennende Wunderkerzen vor
+         Nachthimmel - je Produkt ein eigenes Motiv */
+      const y0=H*0.555, y1=H*0.885; wkBild(g,W*0.1,y0,W*0.8,y1-y0,t);
+      g.strokeStyle='rgba(255,255,255,.9)'; g.lineWidth=Math.max(2,W*0.015); g.strokeRect(W*0.1,y0,W*0.8,y1-y0);
+      g.fillStyle=a.ac2; g.fillRect(0,H*0.91,W,H*0.09); g.fillStyle='#fff'; g.textAlign='center'; g.textBaseline='middle'; const stk=wkStueck(t)+' STÜCK'; fitFont(g,stk,W*0.8,Math.round(H*0.05),BAR); g.fillText(stk,W/2,H*0.955);
       g.fillStyle='#fff'; g.beginPath(); g.arc(W*0.84,H*0.05,W*0.1,0,Math.PI*2); g.fill(); g.fillStyle='#0e1226'; g.font=BUN(Math.round(W*0.09)); g.fillText('F'+p.cat,W*0.84,H*0.055); };
     const A=atlas(w,h,d,a,p.cat,{front}); boxPart(parts,w,h,d,A,tm(0,h/2,0));
     /* Aufhaengelasche (Euroloch) oben */

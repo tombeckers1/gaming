@@ -728,19 +728,24 @@ function bauMoebel(K,sh,g,RF){
        Boeden mit Preisleiste. Wanne: Bodenblech, Eckpfosten, Drahtgitter
        rundum, oben ein Rohrrahmen; vorn niedriger zum Hineingreifen. */
     const hw=Math.min(0.62,fh+0.06), hv=Math.min(hw-0.1,fh-0.08);
-    for(const sx of [-1,1]) st.push({geo:box(0.03,y,D),m:tm(sx*(W/2-0.015),y/2,0),rolle:'seite'});
-    st.push({geo:box(W-0.06,y,0.02),m:tm(0,y/2,-D/2+0.01),rolle:'rueck'});
-    st.push({geo:box(W,0.08,D),m:tm(0,0.04,0),rolle:'rahmen'});
+    /* 03.10. (Tom, iPhone-Foto: Saegezaehne unten am Unterbau): Sockel,
+       Seitenwangen und Wannenboden lagen in derselben Ebene und flimmerten
+       gegeneinander. Jetzt: dunkler Sockel 25 mm zurueckgesetzt, Wangen
+       und Rueckwand stehen auf dem Sockel, die Wannenplatte steht 6 mm
+       ueber - keine zwei Flaechen teilen sich mehr eine Ebene. */
+    const SK=0.08;
+    for(const sx of [-1,1]) st.push({geo:box(0.03,y-SK,D),m:tm(sx*(W/2-0.015),(y+SK)/2,0),rolle:'seite'});
+    st.push({geo:box(W-0.06,y-SK,0.02),m:tm(0,(y+SK)/2,-D/2+0.01),rolle:'rueck'});
+    st.push({geo:box(W-0.05,SK,D-0.05),m:tm(0,SK/2,0),rolle:'fuss'});
     preisY=[];
     for(let li=0;li<nL-1;li++){ const yl=K.lv[li];
       st.push({geo:box(W-0.06,0.025,D-0.03),m:tm(0,yl-0.012,0),rolle:'boden'});
       st.push({geo:box(iw,0.05,0.014),m:tm(0,yl-0.02,D/2-0.013),rolle:'preis'}); preisY.push(yl-0.02); }
-    st.push({geo:box(W,0.04,D),m:tm(0,y-0.02,0),rolle:'boden'});
+    st.push({geo:box(W+0.012,0.04,D+0.012),m:tm(0,y-0.02,0),rolle:'boden'});
     for(const sx of [-1,1]) for(const sz of [-1,1]) st.push({geo:box(0.035,hw+0.02,0.035),m:tm(sx*(W/2-0.018),y+hw/2,sz*(D/2-0.018)),rolle:'rahmen'});
     st.push({geo:box(W,0.025,0.025),m:tm(0,y+hw,-D/2+0.012),rolle:'rahmen'});
     st.push({geo:box(W,0.025,0.025),m:tm(0,y+hv,D/2-0.012),rolle:'rahmen'});
     for(const sx of [-1,1]) st.push({geo:box(0.025,0.025,D),m:tm(sx*(W/2-0.012),y+hw,0),rolle:'rahmen'});
-    for(const sx of [-1,1]) for(const sz of [-1,1]) st.push({geo:box(0.08,0.02,0.08),m:tm(sx*(W/2-0.08),0.01,sz*(D/2-0.08)),rolle:'fuss'});
     const gm=new THREE.MeshStandardMaterial({map:gitterTex(),color:LIN(RF.rahmen),alphaTest:0.4,transparent:false,side:THREE.DoubleSide,metalness:0.5,roughness:0.45});
     sh.gitterM=gm;
     const wand=(w,h,x,yy,z,ry)=>{ const m=plane(w,h,gm,x,yy,z,ry,fg); const uv=m.geometry.attributes.uv; for(let i=0;i<uv.count;i++) uv.setXY(i,uv.getX(i)*w/0.2,uv.getY(i)*h/0.2); uv.needsUpdate=true; return m; };
@@ -778,6 +783,7 @@ function createShelf(i,data){
   g.position.set(s.x,0,s.z); g.rotation.y=s.ry||0; scene.add(g);
   const W=K.w, D=K.d, top=K.lv[K.lv.length-1]+fachHoehe(K,K.lv.length-1)+0.04, hw=W/2, iw=W-0.1;
   const sh={i,g,kind,levels:[],W,D};
+  if(data&&typeof data.schild==='string'&&data.schild.trim()) sh.schild=data.schild.trim().slice(0,24);
   /* Das Gestell ist reine Kulisse und wird je Warenseite zu einem
      Mesh verschmolzen - bei fuenfzig Regalen im Endausbau zaehlt das. */
   const GB={}; const box=(w,h,d)=>GB[w+'|'+h+'|'+d]||(GB[w+'|'+h+'|'+d]=new THREE.BoxGeometry(w,h,d));
@@ -868,8 +874,9 @@ function updateHead(sh){
   /* 02.10. (Tom): kein "REGAL FREI" mehr - dass es leer ist, sieht man.
      Tisch und Gitterbox zeigen leer gar kein Schild, Regale einen
      schlichten Kopf ohne Schrift. */
-  if(sh.kopfG) sh.kopfG.visible=best!==null;
-  const H=best!==null?HEADNAME[best]:['','#39405a'];
+  /* eigenes Schild (Taste L) geht vor die Warengruppe */
+  if(sh.kopfG) sh.kopfG.visible=best!==null||!!sh.schild;
+  const H=best!==null?HEADNAME[best].slice():['','#39405a']; if(sh.schild) H[0]=sh.schild;
   const bg=schildBg().c||H[1], fg=schildFg().c;
   redraw(sh.headTex,(g,W,Hh)=>{
     g.setTransform(1,0,0,1,0,0); g.scale(W/512,Hh/80); W=512; Hh=80;

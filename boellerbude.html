@@ -90,6 +90,7 @@ body:has(.ov.show) #touch{display:none}
 #btnKarre{right:calc(24px + env(safe-area-inset-right));bottom:calc(354px + env(safe-area-inset-bottom));width:60px;height:60px;background:#ffb48a;font-size:14px}
 #btnKarre.on{box-shadow:0 0 0 3px rgba(255,180,138,.5)}
 #btnKiste{right:calc(24px + env(safe-area-inset-right));bottom:calc(424px + env(safe-area-inset-bottom));width:60px;height:60px;background:#7fb2ee;font-size:14px}
+#btnSchild{right:calc(94px + env(safe-area-inset-right));bottom:calc(424px + env(safe-area-inset-bottom));width:60px;height:60px;background:#f2d27a;font-size:14px}
 #btnKiste.on{box-shadow:0 0 0 3px rgba(127,178,238,.55)}
 #btnMenu{left:max(12px,env(safe-area-inset-left));top:calc(max(12px,env(safe-area-inset-top)) + 82px);width:52px;height:52px;background:rgba(242,245,255,.88);font-size:13px}
 #btnPda.on{background:var(--mint);box-shadow:0 0 0 3px rgba(142,240,168,.4)}
@@ -388,7 +389,9 @@ body.compact .pic{width:78px;height:54px}
 #dRounds{font-size:15px;color:var(--muted);margin:10px 0 6px}
 #dHaggle{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
 #dHaggle button{background:rgba(242,245,255,.12);color:var(--snow);font-size:16px;padding:8px 12px}
-#grav .card{max-width:420px;text-align:center}
+#grav .card,#schildOv .card{max-width:420px;text-align:center}
+#schildIn{width:100%;font-family:var(--display);font-size:24px;text-align:center;padding:12px;border-radius:10px;border:2px solid var(--line);background:rgba(242,245,255,.08);color:var(--snow);margin:6px 0 4px}
+#schildIn:focus{outline:none;border-color:var(--signal)}
 #gravIn{width:100%;font-family:var(--display);font-size:24px;text-align:center;padding:12px;border-radius:10px;border:2px solid var(--line);background:rgba(242,245,255,.08);color:var(--snow);margin:6px 0 4px}
 #gravIn:focus{outline:none;border-color:var(--signal)}
 #gravHint{font-size:15px;color:var(--muted);margin-bottom:14px}
@@ -446,6 +449,7 @@ body.compact #btnTool{width:42px;height:42px;font-size:11px;right:calc(14px + en
 body.compact #btnMove{width:42px;height:42px;font-size:11px;right:calc(80px + env(safe-area-inset-right));bottom:calc(66px + env(safe-area-inset-bottom))}
 body.compact #btnHandy{width:42px;height:42px;font-size:11px;right:calc(14px + env(safe-area-inset-right));bottom:calc(178px + env(safe-area-inset-bottom))}
 body.compact #btnKarre{width:42px;height:42px;font-size:11px;right:calc(14px + env(safe-area-inset-right));bottom:calc(226px + env(safe-area-inset-bottom))}
+body.compact #btnSchild{width:42px;height:42px;font-size:11px;right:calc(64px + env(safe-area-inset-right));bottom:calc(274px + env(safe-area-inset-bottom))}
 body.compact #btnKiste{width:42px;height:42px;font-size:11px;right:calc(14px + env(safe-area-inset-right));bottom:calc(274px + env(safe-area-inset-bottom))}
 body.compact #btnPda{width:42px;height:42px;font-size:11px;right:calc(14px + env(safe-area-inset-right));bottom:calc(130px + env(safe-area-inset-bottom))}
 body.compact.coarse #carry{bottom:calc(10px + env(safe-area-inset-bottom));left:calc(50% - 60px);transform:none}
@@ -492,7 +496,7 @@ body.compact .pdahead2 b{font-size:16px}
   <div id="joy"></div>
   <div id="joyBase"><div id="joyKnob"></div></div>
   <button class="tbtn" id="btnMove" aria-label="Möbel aufnehmen, aus- und einpacken">Möbel</button>
-  <button class="tbtn" id="btnPda" aria-label="Preisgerät">Preis</button><button class="tbtn" id="btnHandy" aria-label="Handy">Handy</button><button class="tbtn" id="btnKarre" aria-label="Sackkarre" style="display:none">Karre</button><button class="tbtn" id="btnKiste" aria-label="Kiste" style="display:none">Kiste</button>
+  <button class="tbtn" id="btnPda" aria-label="Preisgerät">Preis</button><button class="tbtn" id="btnHandy" aria-label="Handy">Handy</button><button class="tbtn" id="btnKarre" aria-label="Sackkarre" style="display:none">Karre</button><button class="tbtn" id="btnKiste" aria-label="Kiste" style="display:none">Kiste</button><button class="tbtn" id="btnSchild" aria-label="Regalschild" style="display:none">Schild</button>
   <button class="tbtn" id="btnTool" aria-label="Pfefferspray">Spray</button>
   <button class="tbtn" id="btnDrop" aria-label="Karton abstellen">Ablegen</button>
   <button class="tbtn" id="btnAct" aria-label="Aktion">Aktion</button>
@@ -591,6 +595,14 @@ body.compact .pdahead2 b{font-size:16px}
     <button data-step="0.2">20 %</button>
   </div>
   <div class="btns"><button id="dAccept">Abschließen</button><button class="ghost" id="dDecline">Ablehnen</button></div>
+</div></div>
+
+<div class="ov" id="schildOv"><div class="card">
+  <h2>Regalschild</h2>
+  <p class="lead" style="margin:4px auto 8px">Was soll oben auf dem Regal stehen?</p>
+  <input id="schildIn" maxlength="24" autocomplete="off" spellcheck="false">
+  <div id="schildHint" style="opacity:.7;font-size:13px">Maximal 24 Zeichen · leer = Warengruppe</div>
+  <div class="btns" style="justify-content:center"><button id="schildOk">Beschriften</button><button class="ghost" id="schildAuto">Automatisch</button><button class="ghost" id="schildAbbr">Abbrechen</button></div>
 </div></div>
 
 <div class="ov" id="grav"><div class="card">
@@ -4262,6 +4274,65 @@ function lochAtlas(w,h,d,a,cat,o){
   A.mat.alphaTest=0.5; A.mat.side=THREE.FrontSide; return A;
 }
 function boxPart(parts,w,h,d,A,m){ parts.push({geo:merge([{geo:atlasBox(w,h,d,A.R),m}]),mat:A.mat}); }
+/* Stueckzahl aus dem Namen ("6 Herz-Wunderkerzen", "5er"); Laengen wie
+   "50 cm" oder "1-m" zaehlen nicht */
+function wkStueck(t){ const nm=String(P[t].name||''), sub=nm.includes(' · ')?nm.split(' · ')[1]:nm;
+  const m=sub.match(/(?<!\d)(\d+)(?!\d)(?!\s*cm)(?!-m)(?!\s*m\b)/); return m?+m[1]:10; }
+/* Effektbild der Wunderkerzen-Schachtel: x,y,w,h im Bild */
+function wkBild(g,x,y,w,h,t){
+  g.save(); g.beginPath(); g.rect(x,y,w,h); g.clip();
+  const bg=g.createLinearGradient(0,y,0,y+h); bg.addColorStop(0,'#1a2246'); bg.addColorStop(1,'#04060d'); g.fillStyle=bg; g.fillRect(x,y,w,h);
+  g.fillStyle='rgba(255,255,255,.55)'; for(let i=0;i<14;i++){ const sx=x+((i*53)%97)/97*w, sy=y+((i*31)%89)/89*h*0.5; g.fillRect(sx,sy,1,1); }
+  const S=Math.min(w,h), lw=Math.max(1,S*0.045);
+  /* ein Stab: Drahtgriff unten, grau ummantelt oben */
+  const stab=(bx,by,ang,len,mantel,draht)=>{ const ex=bx+Math.sin(ang)*len, ey=by-Math.cos(ang)*len, mx=bx+Math.sin(ang)*len*0.3, my=by-Math.cos(ang)*len*0.3;
+    g.lineCap='round'; g.strokeStyle=draht||'#9aa0a8'; g.lineWidth=Math.max(1,lw*0.35); g.beginPath(); g.moveTo(bx,by); g.lineTo(mx,my); g.stroke();
+    g.strokeStyle=mantel||'#6b6d70'; g.lineWidth=lw; g.beginPath(); g.moveTo(mx,my); g.lineTo(ex,ey); g.stroke();
+    g.strokeStyle='rgba(255,255,255,.25)'; g.lineWidth=Math.max(1,lw*0.3); g.beginPath(); g.moveTo(mx-lw*0.2,my); g.lineTo(ex-lw*0.2,ey); g.stroke();
+    return {x:ex,y:ey}; };
+  /* Funkenkranz: heller Kern, Strahlen mit Verzweigungen */
+  const funke=(cx,cy,R,farben)=>{ g.save(); g.globalCompositeOperation='lighter';
+    const rg=g.createRadialGradient(cx,cy,0,cx,cy,R*1.3); rg.addColorStop(0,'rgba(255,250,220,.95)'); rg.addColorStop(0.25,'rgba(255,200,90,.45)'); rg.addColorStop(1,'rgba(255,140,40,0)');
+    g.fillStyle=rg; g.beginPath(); g.arc(cx,cy,R*1.3,0,Math.PI*2); g.fill();
+    for(let i=0;i<26;i++){ const an=i*2.399, r=R*(0.45+((i*37)%11)/11*0.55), ex=cx+Math.cos(an)*r, ey=cy+Math.sin(an)*r;
+      g.strokeStyle=farben[i%farben.length]; g.lineWidth=Math.max(1,S*0.012); g.beginPath(); g.moveTo(cx+Math.cos(an)*R*0.12,cy+Math.sin(an)*R*0.12); g.lineTo(ex,ey); g.stroke();
+      if(i%2===0){ const b=an+0.6, bl=r*0.28; g.beginPath(); g.moveTo(ex-Math.cos(an)*r*0.25,ey-Math.sin(an)*r*0.25); g.lineTo(ex-Math.cos(an)*r*0.25+Math.cos(b)*bl,ey-Math.sin(an)*r*0.25+Math.sin(b)*bl); g.stroke(); } }
+    g.fillStyle='#fffbea'; g.beginPath(); g.arc(cx,cy,Math.max(1.5,S*0.035),0,Math.PI*2); g.fill(); g.restore(); };
+  const gold=['#fff3c4','#ffd36a','#ffe9a8'], unten=y+h*1.02, mx=x+w/2;
+  if(t==='wunderherz'){
+    /* Herz aus ummanteltem Draht, Funke an der Herzspitze oben links */
+    const cx=mx, cy=y+h*0.46, r=S*0.24;
+    g.strokeStyle='#9aa0a8'; g.lineWidth=Math.max(1,lw*0.35); g.beginPath(); g.moveTo(cx,cy+r*1.25); g.lineTo(cx,unten); g.stroke();
+    g.strokeStyle='#6b6d70'; g.lineWidth=lw; g.lineJoin='round'; g.beginPath(); g.moveTo(cx,cy+r*1.25);
+    g.bezierCurveTo(cx-r*2.1,cy-r*0.1,cx-r*1.0,cy-r*1.5,cx,cy-r*0.45); g.bezierCurveTo(cx+r*1.0,cy-r*1.5,cx+r*2.1,cy-r*0.1,cx,cy+r*1.25); g.stroke();
+    funke(cx-r*0.95,cy-r*0.95,S*0.26,['#fff3c4','#ff9ab8','#ffd36a']);
+  } else if(t==='wunderzahl'){
+    /* die Jahreszahl aus Wunderkerzen, die 7 brennt */
+    g.textAlign='center'; g.textBaseline='middle'; g.font=`700 ${Math.round(h*0.55)}px Arial, sans-serif`; g.lineJoin='round';
+    const ziff=['2','0','2','7'], sp=w*0.2;
+    ziff.forEach((z,i)=>{ const zx=mx+(i-1.5)*sp; g.strokeStyle='#9aa0a8'; g.lineWidth=Math.max(1,lw*0.3); g.beginPath(); g.moveTo(zx,y+h*0.72); g.lineTo(zx,unten); g.stroke();
+      g.lineWidth=Math.max(1.5,lw*0.55); g.strokeStyle='#707276'; g.strokeText(z,zx,y+h*0.42); });
+    funke(mx+1.5*sp+w*0.04,y+h*0.2,S*0.24,gold);
+  } else if(t==='bengalholz'){
+    /* Zuendhoelzer mit roten und gruenen Koepfen, eins brennt rot */
+    const n=5; for(let i=0;i<n;i++){ const ang=(i-(n-1)/2)*0.16, e=stab(mx+(i-2)*w*0.05,unten,ang,h*0.78,'#c9a46a','#c9a46a');
+      g.fillStyle=i%2?'#2f9e57':'#d8322a'; g.beginPath(); g.ellipse(e.x,e.y,lw*0.9,lw*1.6,ang,0,Math.PI*2); g.fill();
+      if(i===1) funke(e.x,e.y-lw,S*0.22,['#ff6a5a','#ffb0a0','#ff3b2f']); }
+  } else if(t==='leuchtstaebe'){
+    const n=4; for(let i=0;i<n;i++){ const ang=(i-(n-1)/2)*0.22, e=stab(mx,unten,ang,h*0.82);
+      if(i===1) funke(e.x,e.y,S*0.24,['#8cff9c','#d8ffe0','#3ddc6a']); if(i===2) funke(e.x,e.y,S*0.2,['#ffffff','#e8f4ff','#c8e4ff']); }
+  } else if(t==='wunderfarbe'){
+    const n=5, F=[['#ff5a5a','#ffb0b0'],['#5ce1ff','#c8f4ff'],['#8cff8c','#d8ffd8'],['#ffd23f','#fff0b0'],['#c78bff','#ecd8ff']];
+    for(let i=0;i<n;i++){ const ang=(i-(n-1)/2)*0.2, e=stab(mx,unten,ang,h*(0.7+0.12*Math.abs(i-2)/2)); if(i!==2) funke(e.x,e.y,S*0.15,F[i]); }
+  } else if(t==='wunderkerzeXXL'){
+    /* ein langer Stab quer durchs Bild, Funke weit oben */
+    stab(x+w*0.12,unten,0.5,h*1.25); const e=stab(x+w*0.3,unten,0.42,h*1.15); funke(e.x,e.y+h*0.05,S*0.32,gold);
+  } else {
+    /* klassisch: Faecher aus Wunderkerzen, die mittlere brennt */
+    const n=5; for(let i=0;i<n;i++){ const ang=(i-(n-1)/2)*0.17, e=stab(mx,unten,ang,h*0.86); if(i===2) funke(e.x,e.y+h*0.04,S*0.3,gold); }
+  }
+  g.restore();
+}
 function buildVerpackung(t){
   const p=P[t], a=p.art, sh=p.shape, w=p.dims[0], h=p.dims[1], d=p.dims[2], parts=[], vc=[];
   if(!p.cat||!a) return null;
@@ -4276,12 +4347,12 @@ function buildVerpackung(t){
       g.fillStyle='#fffbe8'; g.beginPath(); g.arc(cx,cy,R*0.12,0,Math.PI*2); g.fill();
       g.save(); g.translate(W*0.5,H*0.42); g.rotate(-Math.PI/2); g.textAlign='center'; g.textBaseline='middle'; fitFont(g,a.title,H*0.3,Math.round(W*0.24),BUN);
       g.lineWidth=Math.max(2,W*0.03); g.strokeStyle='rgba(0,0,0,.55)'; g.strokeText(a.title,0,0); g.fillStyle=a.ac; g.fillText(a.title,0,0); g.restore();
-      /* Fensterhintergrund: die Staebe */
-      const y0=H*0.56, y1=H*0.88; g.fillStyle='#ece8de'; g.fillRect(W*0.12,y0,W*0.76,y1-y0);
-      const n=7; for(let i=0;i<n;i++){ const x=W*(0.18+i*0.64/(n-1)); g.fillStyle='#5f6268'; g.fillRect(x-W*0.018,y0-2,W*0.036,(y1-y0)*0.78); g.fillStyle='#9aa0a8'; g.fillRect(x-W*0.006,y0+(y1-y0)*0.78,W*0.012,(y1-y0)*0.24); }
-      g.fillStyle='rgba(255,255,255,.22)'; g.beginPath(); g.moveTo(W*0.12,y1); g.lineTo(W*0.36,y0); g.lineTo(W*0.46,y0); g.lineTo(W*0.22,y1); g.fill();
-      g.strokeStyle='rgba(255,255,255,.9)'; g.lineWidth=Math.max(2,W*0.015); g.strokeRect(W*0.12,y0,W*0.76,y1-y0);
-      g.fillStyle=a.ac2; g.fillRect(0,H*0.91,W,H*0.09); g.fillStyle='#fff'; g.textAlign='center'; g.textBaseline='middle'; fitFont(g,'10 STÜCK',W*0.8,Math.round(H*0.05),BAR); g.fillText('10 STÜCK',W/2,H*0.955);
+      /* Effektbild statt Sichtfenster (03.10., Tom: "sieht aus wie ein
+         Stueck vom Klavier, die Tasten"): brennende Wunderkerzen vor
+         Nachthimmel - je Produkt ein eigenes Motiv */
+      const y0=H*0.555, y1=H*0.885; wkBild(g,W*0.1,y0,W*0.8,y1-y0,t);
+      g.strokeStyle='rgba(255,255,255,.9)'; g.lineWidth=Math.max(2,W*0.015); g.strokeRect(W*0.1,y0,W*0.8,y1-y0);
+      g.fillStyle=a.ac2; g.fillRect(0,H*0.91,W,H*0.09); g.fillStyle='#fff'; g.textAlign='center'; g.textBaseline='middle'; const stk=wkStueck(t)+' STÜCK'; fitFont(g,stk,W*0.8,Math.round(H*0.05),BAR); g.fillText(stk,W/2,H*0.955);
       g.fillStyle='#fff'; g.beginPath(); g.arc(W*0.84,H*0.05,W*0.1,0,Math.PI*2); g.fill(); g.fillStyle='#0e1226'; g.font=BUN(Math.round(W*0.09)); g.fillText('F'+p.cat,W*0.84,H*0.055); };
     const A=atlas(w,h,d,a,p.cat,{front}); boxPart(parts,w,h,d,A,tm(0,h/2,0));
     /* Aufhaengelasche (Euroloch) oben */
@@ -13767,19 +13838,24 @@ function bauMoebel(K,sh,g,RF){
        Boeden mit Preisleiste. Wanne: Bodenblech, Eckpfosten, Drahtgitter
        rundum, oben ein Rohrrahmen; vorn niedriger zum Hineingreifen. */
     const hw=Math.min(0.62,fh+0.06), hv=Math.min(hw-0.1,fh-0.08);
-    for(const sx of [-1,1]) st.push({geo:box(0.03,y,D),m:tm(sx*(W/2-0.015),y/2,0),rolle:'seite'});
-    st.push({geo:box(W-0.06,y,0.02),m:tm(0,y/2,-D/2+0.01),rolle:'rueck'});
-    st.push({geo:box(W,0.08,D),m:tm(0,0.04,0),rolle:'rahmen'});
+    /* 03.10. (Tom, iPhone-Foto: Saegezaehne unten am Unterbau): Sockel,
+       Seitenwangen und Wannenboden lagen in derselben Ebene und flimmerten
+       gegeneinander. Jetzt: dunkler Sockel 25 mm zurueckgesetzt, Wangen
+       und Rueckwand stehen auf dem Sockel, die Wannenplatte steht 6 mm
+       ueber - keine zwei Flaechen teilen sich mehr eine Ebene. */
+    const SK=0.08;
+    for(const sx of [-1,1]) st.push({geo:box(0.03,y-SK,D),m:tm(sx*(W/2-0.015),(y+SK)/2,0),rolle:'seite'});
+    st.push({geo:box(W-0.06,y-SK,0.02),m:tm(0,(y+SK)/2,-D/2+0.01),rolle:'rueck'});
+    st.push({geo:box(W-0.05,SK,D-0.05),m:tm(0,SK/2,0),rolle:'fuss'});
     preisY=[];
     for(let li=0;li<nL-1;li++){ const yl=K.lv[li];
       st.push({geo:box(W-0.06,0.025,D-0.03),m:tm(0,yl-0.012,0),rolle:'boden'});
       st.push({geo:box(iw,0.05,0.014),m:tm(0,yl-0.02,D/2-0.013),rolle:'preis'}); preisY.push(yl-0.02); }
-    st.push({geo:box(W,0.04,D),m:tm(0,y-0.02,0),rolle:'boden'});
+    st.push({geo:box(W+0.012,0.04,D+0.012),m:tm(0,y-0.02,0),rolle:'boden'});
     for(const sx of [-1,1]) for(const sz of [-1,1]) st.push({geo:box(0.035,hw+0.02,0.035),m:tm(sx*(W/2-0.018),y+hw/2,sz*(D/2-0.018)),rolle:'rahmen'});
     st.push({geo:box(W,0.025,0.025),m:tm(0,y+hw,-D/2+0.012),rolle:'rahmen'});
     st.push({geo:box(W,0.025,0.025),m:tm(0,y+hv,D/2-0.012),rolle:'rahmen'});
     for(const sx of [-1,1]) st.push({geo:box(0.025,0.025,D),m:tm(sx*(W/2-0.012),y+hw,0),rolle:'rahmen'});
-    for(const sx of [-1,1]) for(const sz of [-1,1]) st.push({geo:box(0.08,0.02,0.08),m:tm(sx*(W/2-0.08),0.01,sz*(D/2-0.08)),rolle:'fuss'});
     const gm=new THREE.MeshStandardMaterial({map:gitterTex(),color:LIN(RF.rahmen),alphaTest:0.4,transparent:false,side:THREE.DoubleSide,metalness:0.5,roughness:0.45});
     sh.gitterM=gm;
     const wand=(w,h,x,yy,z,ry)=>{ const m=plane(w,h,gm,x,yy,z,ry,fg); const uv=m.geometry.attributes.uv; for(let i=0;i<uv.count;i++) uv.setXY(i,uv.getX(i)*w/0.2,uv.getY(i)*h/0.2); uv.needsUpdate=true; return m; };
@@ -13817,6 +13893,7 @@ function createShelf(i,data){
   g.position.set(s.x,0,s.z); g.rotation.y=s.ry||0; scene.add(g);
   const W=K.w, D=K.d, top=K.lv[K.lv.length-1]+fachHoehe(K,K.lv.length-1)+0.04, hw=W/2, iw=W-0.1;
   const sh={i,g,kind,levels:[],W,D};
+  if(data&&typeof data.schild==='string'&&data.schild.trim()) sh.schild=data.schild.trim().slice(0,24);
   /* Das Gestell ist reine Kulisse und wird je Warenseite zu einem
      Mesh verschmolzen - bei fuenfzig Regalen im Endausbau zaehlt das. */
   const GB={}; const box=(w,h,d)=>GB[w+'|'+h+'|'+d]||(GB[w+'|'+h+'|'+d]=new THREE.BoxGeometry(w,h,d));
@@ -13907,8 +13984,9 @@ function updateHead(sh){
   /* 02.10. (Tom): kein "REGAL FREI" mehr - dass es leer ist, sieht man.
      Tisch und Gitterbox zeigen leer gar kein Schild, Regale einen
      schlichten Kopf ohne Schrift. */
-  if(sh.kopfG) sh.kopfG.visible=best!==null;
-  const H=best!==null?HEADNAME[best]:['','#39405a'];
+  /* eigenes Schild (Taste L) geht vor die Warengruppe */
+  if(sh.kopfG) sh.kopfG.visible=best!==null||!!sh.schild;
+  const H=best!==null?HEADNAME[best].slice():['','#39405a']; if(sh.schild) H[0]=sh.schild;
   const bg=schildBg().c||H[1], fg=schildFg().c;
   redraw(sh.headTex,(g,W,Hh)=>{
     g.setTransform(1,0,0,1,0,0); g.scale(W/512,Hh/80); W=512; Hh=80;
@@ -15371,6 +15449,41 @@ function kartonLeer(c,text){
 }
 /* Kiste, die ein Mitarbeiter oder der Versand leer gemacht hat, kommt in den Vorrat */
 function kisteZurueck(b){ if(b&&b.kiste&&S) S.kisten=(S.kisten|0)+1; }
+/* =========================================================
+   Regalschild beschriften (Tom, 03.10.: "dass man die einzelnen Regale
+   auch umbenennen kann ... an die Regale gehen und umbenennen, wenn man
+   da XXL Fontaene oder irgendwas anderes schreiben will").
+   L (Handy: Knopf "Schild") vor einem Regal oeffnet das Eingabefeld.
+   Leer lassen bzw. "Automatisch" setzt wieder die Warengruppe ein.
+   Das Schild bleibt im Speicherstand.
+   ========================================================= */
+const SCHILD_MAX=24;
+let schildOpen=false, schildSh=null;
+function schildZiel(){ const t=target; return t&&t.kind==='level'&&t.ref&&t.ref.sh?t.ref.sh:null; }
+function schildAuto(sh){ const b=headArt(sh); return b!==null?HEADNAME[b][0]:''; }
+function schildTaste(){
+  if(!S||overlayOpen()) return;
+  const sh=schildZiel();
+  if(!sh){ toast(`Stell dich vor ein Regal und schau es an – dann ${COARSE?'„Schild“':'L'} drücken.`,'bad'); return; }
+  schildSh=sh; schildOpen=true;
+  const inp=$('schildIn'); inp.value=sh.schild||''; inp.placeholder=schildAuto(sh)||'z. B. XXL-Fontänen';
+  $('schildOv').classList.add('show');
+  for(const k in keys) keys[k]=false; mouseDown=false; touchAct=false;
+  if(locked) document.exitPointerLock();
+  setTimeout(()=>{ try{ inp.focus(); inp.select(); }catch(e){} },60);
+}
+/* ok: uebernehmen, auto: zurueck zur Warengruppe, sonst abbrechen */
+function schildFertig(art){
+  const sh=schildSh; $('schildOv').classList.remove('show'); schildOpen=false; schildSh=null;
+  if(sh&&art){
+    const txt=art==='auto'?'':($('schildIn').value||'').replace(/\s+/g,' ').trim().slice(0,SCHILD_MAX);
+    if(txt) sh.schild=txt; else delete sh.schild;
+    updateHead(sh); sfx.pop();
+    toast(txt?`Regalschild: „${txt}“`:'Regalschild zeigt wieder die Warengruppe.');
+    if(!sh.vp) save();
+  }
+  requestLock();
+}
 /* =========================================================
    Figuren im Low-Poly-Stil: kantige Koerper, Pixelgesichter.
    Wenige Koepfe, viele Kleider. Ein Kopf ist eine feste Person
@@ -32273,7 +32386,7 @@ function save(){
       wall:S.wall,floor:S.floor,schildBg:S.schildBg||'auto',schildFg:S.schildFg||'weiss',paint:S.paint,test:S.test,stamm:S.stamm,blanks:gravBlanks,grav:gravG?mpos(gravG):null,grime:r2(S.grime||0),tut:S.tut,tutAus:!!S.tutAus,karre:S.karre||null,seasonRevenue:S.seasonRevenue,carrying:S.carrying,kisten:S.kisten|0,kisteHand:!!S.kisteHand,cart:S.cart||[],rest:S.rest||null,ekVor:S.ekVor||{},offen:S.offen|0,pakete:S.pakete|0,bestellungen:(S.bestellungen||[]).map(b=>({id:b.id,pos:b.pos.map(l=>({t:l.t,n:l.n,g:l.g})),gr:b.gr,wert:b.wert,st:b.st,tag:b.tag})),paketGr:(S.paketGr||[]).slice(),bestNr:S.bestNr|0,shopName:S.shopName||SHOP_DEFAULT,slogan:S.slogan||'',
       deko:dekos.map(d2=>Object.assign({id:d2.id},mpos(d2.g))),
       ck:mpos(ckG),desk:mpos(deskG),sb2:mpos(sb2G),pack:mpos(packTisch),
-      shelves:shelves.map(s=>Object.assign(mpos(s.g),{kind:s.kind,levels:s.levels.map(l=>({type:l.type,count:l.count,q:l.q||1}))})),
+      shelves:shelves.map(s=>Object.assign(mpos(s.g),{kind:s.kind,schild:s.schild||undefined,levels:s.levels.map(l=>({type:l.type,count:l.count,q:l.q||1}))})),
       racks:racks.map(r=>Object.assign(mpos(r.g),{kind:r.kind,slots:r.slots.map(s=>s.box?{type:s.box.type,count:s.box.count,q:s.box.q||1,kiste:s.box.kiste?1:0}:null)})),
       /* Unterwegs bestellte Regale gehen beim Speichern nicht
          verloren: sie stehen als eigene Liste im Spielstand. */
@@ -32420,6 +32533,7 @@ function setCompact(){
 let toastLast='', geldAnz=null, geldBlink=0;
 function toast(msg,cls){ const box_=$('toasts'); const el=document.createElement('div'); el.className='toast'+(cls?' '+cls:''); el.textContent=msg; box_.appendChild(el); while(box_.children.length>4) box_.removeChild(box_.firstChild); setTimeout(()=>el.remove(),2600); toastLast=msg; }
 function updateHUD(){
+  { const sb=$('btnSchild'); if(sb){ const d=(!S.carrying&&!S.kisteHand&&schildZiel())?'':'none'; if(sb.style.display!==d) sb.style.display=d; } }
   { const kk=$('btnKiste'); if(kk){ const c=S.carrying, da=(S.kisten|0)>0||S.kisteHand||(c&&c.kiste); const d=da?'':'none'; if(kk.style.display!==d) kk.style.display=d; kk.classList.toggle('on',!!(S.kisteHand||(c&&c.kiste))); } }
   { const kb=$('btnKarre'); if(kb){ const d=karreArt()?'':'none'; if(kb.style.display!==d) kb.style.display=d; kb.classList.toggle('on',karreAn()); } }
   $('hDate').textContent=compact?dateShort(S.day):`${dateStr(S.day)} · Jahr ${S.season}`;
@@ -32809,7 +32923,7 @@ function requestLock(){
   try{ const r=canvas.requestPointerLock(); if(r&&r.catch) r.catch(()=>{ lockFailed=true; dragHint(); }); }catch(e){ lockFailed=true; dragHint(); }
 }
 let zuendOpen=false;
-function overlayOpen(){ return startOpen||laptopOpen||handyOpen||summaryOpen||pauseOpen||cashOpen||levelOpen||dealOpen||gravOpen||pdaOpen; }
+function overlayOpen(){ return schildOpen||startOpen||laptopOpen||handyOpen||summaryOpen||pauseOpen||cashOpen||levelOpen||dealOpen||gravOpen||pdaOpen; }
 /* =========================================================
    Zuendmodus am Pult (Tom, 25.09.): E am Pult schaltet ihn ein.
    Kein Fenster, keine Kamerafahrt - man schaut sich weiter frei um
@@ -32879,6 +32993,7 @@ const STEUER_PC=[
     [['Q','Rechts'],'Karton oder Paket abstellen'],
     [['K'],'Sackkarre / Wagen holen, wegstellen (nach Kauf)'],
     [['X'],'Mehrwegkiste: leere nehmen / wegstellen, volle aus- oder einräumen'],
+    [['L'],'Regalschild beschriften (vor dem Regal)'],
     [['Tab'],'Handy: Onlineshop, Team, Werbung, Bank, Bericht, Ziele'],
     [['H'],'Anruf annehmen, wenn es klingelt']]],
   ['Werkzeuge',[
@@ -32912,6 +33027,7 @@ const STEUER_TOUCH=[
     [['Handy'],'Onlineshop, Team, Werbung, Bank, Bericht, Ziele'],
     [['Karre'],'Sackkarre / Wagen (erscheint nach dem Kauf)'],
     [['Kiste'],'Leere Kiste nehmen / wegstellen, volle: aus- oder einräumen (nach dem Kauf)'],
+    [['Schild'],'Regalschild beschriften (erscheint vor einem Regal)'],
     [['Menü'],'Pausenmenü: Steuerung, Musik, Tutorial, Startbildschirm'],
     [['Preis'],'Preisgerät (ab Level 2)'],
     [['Spray'],'Pfefferspray (ab Level 4)']]]
@@ -33025,6 +33141,7 @@ addEventListener('keydown',e=>{
   if(e.code==='KeyT'&&!e.repeat) togglePDA();
   if(e.code==='KeyK'&&!e.repeat) toggleKarre();
   if(e.code==='KeyX'&&!e.repeat) kisteTaste();
+  if(e.code==='KeyL'&&!e.repeat) schildTaste();
   if(e.code==='KeyP'&&!e.repeat) setPost(!postOn);
   if(e.code==='KeyM'&&!e.repeat) musikAn();
   if(e.code==='KeyN'&&!e.repeat){ ac(); if(!MUSIK.an) musikAn(true); else musikWeiter(false); }
@@ -33065,6 +33182,10 @@ $('btnPda').addEventListener('touchstart',e=>{ e.preventDefault(); if(!S||overla
 $('pTut').addEventListener('click',()=>{ setTutorial(!tutorialAn()); tutKnopf(); });
 $('btnKarre').addEventListener('touchstart',e=>{ e.preventDefault(); if(!S||overlayOpen()) return; ac(); toggleKarre(); },{passive:false});
 $('btnKarre').addEventListener('click',e=>{ if(COARSE) return; ac(); toggleKarre(); });
+$('btnSchild').addEventListener('touchstart',e=>{ e.preventDefault(); if(!S||overlayOpen()) return; ac(); schildTaste(); },{passive:false});
+$('btnSchild').addEventListener('click',e=>{ if(COARSE) return; ac(); schildTaste(); });
+$('schildIn').addEventListener('keydown',e=>{ e.stopPropagation(); if(e.key==='Enter') schildFertig('ok'); if(e.key==='Escape') schildFertig(null); });
+$('schildOk').onclick=()=>schildFertig('ok'); $('schildAuto').onclick=()=>schildFertig('auto'); $('schildAbbr').onclick=()=>schildFertig(null);
 $('btnKiste').addEventListener('touchstart',e=>{ e.preventDefault(); if(!S||overlayOpen()) return; ac(); kisteTaste(); },{passive:false});
 $('btnKiste').addEventListener('click',e=>{ if(COARSE) return; ac(); kisteTaste(); });
 $('btnHandy').addEventListener('touchstart',e=>{ e.preventDefault(); if(!S||(overlayOpen()&&!handyOpen)) return; ac(); toggleHandy(); },{passive:false});
@@ -33320,7 +33441,7 @@ fontsReady().then(()=>{
   setTimeout(()=>{ if(typeof shaderVorab==='function') shaderVorab(); },400);
   window.__bb={get S(){return S},get phase(){return phase},set phase(v){phase=v},set clock(v){clock=v},get clock(){return clock},pickUp,floorBoxes,shelves,racks,dekos,stockOne,openShop,step,customers,queue,belt,scanBelt,buyUp,buyDeko,get DS(){return DS},endDay,pending,save,openLaptop,closeLaptop,pl,addXP,hireStaff,fireStaff,staff,dirts,addDirt,movables,toggleBuild,setWall,setFloor,
     stations,firePult,placeOnStation,igniteType,get order(){return order},get phone(){return phone},makeCall,answerPhone,haggle,acceptDeal,declineDeal,get truck(){return truck},spawnTruck,takeFromTruck,takeBox,dropBox,updateTruck,get door(){return door},get tuer(){return tuer},tuerSet,tuerNah,updateSchiebetuer,doorOpen,doorIsOpen,trailerOccupied,LR,lrFront,TOR,orderReady,orderLeft,shipOne,removeFloorBox,prioOf,setPrio,racks,updateCarry,spawnFloorBox,staff,SHELFKIND,layout,shelfCapOf,shelfAccepts,emptyLevel,dateInfo,dateStr,dateShort,seasonInfo,isSunday,dayMult,ruhetag,wageOf,setWage,friendliness,inPause,setPause,windowGrime,addGrime,cleanWindowTick,ambienteScore,bildBoost,fixedCosts,dailyWages,dispoLimit,verfuegbar,dispoZins,takeLoan,loanTier,loanDaily,EVENTS,GOALS,CUSTTYPES,UPGRADES,STAFF,stockOf,spawnInterval,pools,todayEvent,evv,rollEvent,rollMarket,newGoal,goalAdd,goalTick,ekFactor,marktText,xpFor,rollCustType,priceTol,buyChance,regCustomer,makeWishes,nachfrageFaktor,shelfStockOf,buildGravur,refillGrav,openGravInput,closeGravInput,get gravBlanks(){return gravBlanks},set gravBlanks(v){gravBlanks=v},orderBox,buyPack,cartAdd,cartAddPack,cartOrder,cartClear,cartDel,cartGoods,cartFee,cartTotal,cartBoxes,cartLines,LIEFERZEIT_SEK,VERSAND,VERSANDFREI,lieferSek,
-    scene,camera,P,NEUWARE,NEU_SHOWS,NEU_FONT,NEU_KUGEL,neuZuenden,PARK,restWelle,restTick,restDruck,restDaten,buyAngebot,grossOffen,updatePark,parkWasser:()=>_wasserM,parkTannen:()=>PARK_TANNEN,parkLeben:()=>parkEnten.concat(parkLeute).map(e=>({x:e.g.position.x,z:e.g.position.z})),pendingListe:()=>pending,einbauPakete,spawnPaket,paketAblegen,paketAufheben,EINBAU,PAKET_MASS,vorDieTuer,setSB2,sbZiel,makeAuto,AUTOFORM,stadtInfo:()=>({warn:beacons.length,kronen:KRONEN.length,stufen:SKYLINE_INFO.stufen,skyStile:SKYLINE_INFO.stile.size,stile:Object.keys(STADT_MATS).length}),clearStations,fachHoehe,kindOf,packKartonWert,SUPPLIERS,supplierFor,supplierOf,tierPrice,isUnlocked,lizLevel,renderLaptop,get lsup(){return lsup},set lsup(v){lsup=v},get lkat(){return lkat},set lkat(v){lkat=v},SPARTE,SPARTE_NAME,sparteVon,HEADNAME,headArt,catPill,ekRoh,ekDelta,ekTag,ekNiveau,ekPill,get ltab(){return ltab},set ltab(v){ltab=v},EFF,EFF_ALL,EFF_KLEIN,EFF_GROSS,EFF_PRO,SHOWS,kugelbombe,shot,mine,FW,stations,stationOf,placedCount,togglePDA,openPDA,closePDA,setPost,get postOn(){return postOn},get pdaOn(){return pdaOn},showLength,psHuge,psBig,psMid,psSmall,rockets,emitters,timersLen:()=>timers.length,timersLeeren:()=>{timers.length=0;},setView:(x,z,y,p)=>{pl.x=x;pl.z=z;yaw=y;pitch=p;aim=null;},schiebe:(x,z)=>{pl.x=x;pl.z=z;collide(pl,0.32);return{x:pl.x,z:pl.z};},PLZ_MAX,camYaw:()=>yaw,camPitch:()=>pitch,playerPos:()=>({x:pl.x,z:pl.z}),pultYaw:()=>pultHit?pultHit.parent.rotation.y:null,get pultHit(){return pultHit},applyShopName,shopName,shopSlogan,signTexPx:()=>signTex&&signTex.image?signTex.image.getContext('2d').getImageData(0,0,signTex.image.width,40).data.join(''):null,lagerWall,fwShot:shot,KUGEL_R,ROHR_INNEN,MOERSER_R,moerserRohr,sfx,WOLKEN,get master(){return master},ac,SORTE_NEU,sortenUmstellen,get shakeWert(){return shake},get ckG(){return ckG},get ckNameTex(){return ckNameTex},get ckMovable(){return ckMov},CK_HOME,CK_ALT,spotPos,queueApproach,ckTexPx:()=>ckNameTex&&ckNameTex.image?ckNameTex.image.getContext('2d').getImageData(0,0,ckNameTex.image.width,60).data.join(''):null,testfeldMitte,STATION_POS,aimAt,UPGRADES,upPic,PLAN,planFlaechen,uhrZeiger:()=>({std:uhrStd?+uhrStd.rotation.z.toFixed(4):0,min:uhrMin?+uhrMin.rotation.z.toFixed(4):0}),drawRackSchild,get snowPts(){return snowPts},buildStadt,updateStadt,get stadtBoxen(){return stadtBoxen},get stadtBaeume(){return stadtBaeume},buildFernbaeume,schwaerme,beacons,silhouetten,get verkehrPts(){return verkehrPts},get rauchPts(){return rauchPts},get flieger(){return flieger},stadtFrei,STADT_FREI,WALLS,FLOORS,bodenMalen,wandMalen,oberflaechenMuster,oberflaechenAnwenden,BODEN_KACHEL,WAND_B,WAND_H,bodenPx,wandPx,innenUmgebung,sockelM,get wallTex(){return wallTex},get floorTexRef(){return floorTexRef},get floorMat(){return floorMat},get shopWall(){return shopWall},renderOnline,onlineHint,onlineStufe,onlineZahlen,onlineListe,updateOnline,SCHILDBG,SCHILDFG,setSchild,schildBg,schildFg,repaintSchilder,updateHead,allLevels,addToLevel,putInSlot,regCustomer,ZONEN,zoneOffen,oeffneZone,applyZonen,SLOTS,RACKS,slotsOffen,colliders,LAY,LOGI,WRAMPEN,WTORE,updateSnow,unterDach,dachBereiche,get lapHit2(){return lapHit2},buildLagerTerminal,toggleTest,testLevel,buyUp,get toastLast(){return toastLast},__floorBoxen:()=>floorBoxes.length,WBAY_UP,wbays,dockPlaetze,wbayFrei,wbayOffen,spawnWTruck,updateWBays,wbaysInit,wtorSet,GANG,GANGTUER,buildLagergang,flaeche,WTOR,RACKKIND,route,NAV,navFrei,navIdx,navBuild,shelfStand,shelves,sbLanes,buildSBKasse,sbFrei,sbOffen,sbNutzbar,EING2,eingaenge,naechsterEingang,setEingang2,buildSBKasse2,get sb2G(){return sb2G},TUEREN,tuerSetD,tuerNahD,packBereit,packOne,paketWert,bestellungenProTag,pakete,ddlAbholung,updateVersand,VS_GR,VS_FELD,WG_PARK,vsNeueBestellung,vsAbgleich,vsKlasse,vsQuellen,vsBestand,vsErfuellbar,vsPlan,vsStapel,vsSpielerPacken,vsSpielerBestellung,vsTischFrei,vsStatus,vsAufraeumen,vsLaden,vsBahn,vsPaketOffen,vsKlappen,vsFuellung,vsPaketZu,get vsTisch(){return vsTisch},get vsWagen(){return vsWagen},createShelf,createRack,regalStellen,testKauf,regalAufbauen,orderRegal,REGALWARE,regalOf,regalKind,regalPreis,regalPlatz,regalOffen,startGame,promptFor,ERFOLGE,erfOffen,erfStufe,erfStand,erfZiel,erfFertig,erfAnteil,erfGeschafft,erfGesamt,stat,statAdd,statRekord,statVerkauf,bruchGesehen,gruppeVon,GRUPPE,TRAEGER,BRUCH,BRUCH_IDS,REZ_FARBEN,ETIKETT,traegerVon,traegerOffen,bruchOffen,bruchListe,rezeptWow,rezeptKosten,rezeptMarkt,rezeptHype,rezeptDauer,rezeptEntwicklung,rezeptGueltig,eigeneListe,eigenesEintragen,rezepteTick,rezProto,rezBauen,renderRezeptur,get entwurf(){return entwurf},set entwurf(v){entwurf=v},entwurfInit,ORDER,LIZENZEN,lizenzOf,hatLizenz,lizenzDaten,naechsteLizenz,buyLizenz,VOLA,volaOf,REGIME,marketOf,costOf,marktZiel,marktLuecke,meOf,miOf,marktDelta,marktNiveau,marktPhase,marktSchock,marktLabel,marktSchnitt,marktExtrem,marktChance,sortimentBreite,sortimentZug,bekanntheit,spawnInterval,rollMarkt,marktInit,inflOf,inflText,setPreisAufMarkt,igniteType,get packHit(){return packHit},get packTisch(){return packTisch},get packMov(){return packMov},zuendeKanal,zuendeAlle,alleKanaele,get pultText(){return pultText},drawPult,kanalItem,openZuend,closeZuend,get zuendOpen(){return zuendOpen},overlayOpen,pultTaster,zuendTick,TISCH_X,RAMPE_X,KANAL_START,bereitCount,brennDauer,muendung,pultLamps,RAKETEN_LOOK,RAKETEN_KL,makePerson,applyTOD,updateHUD,renderer,renderFrame,get DEMO(){return DEMO},LHALLE,LOGI_STUFEN,TOR_STUFE,logiStufe,logiZeige,logiAnwenden,LOGI_G,TOR_G,WTORE,tuAktion:(kind,ref)=>{ const alt=target; target={kind,ref}; try{ doAction(); } finally { target=alt; } },promptFor,KARREN,karreArt,karreAn,karreStapel,karreLast,karreNimmt,toggleKarre,updateKarre,setTutorial,tutorialAn,zielFuer,get zielAktuell(){return zielAktuell},get tipKey(){return tipKey},updateZiel,set DEMO(v){DEMO=v},kapitelVon,kapitelVoll,openHandy,closeHandy,toggleHandy,get handyOpen(){return handyOpen},get happ(){return happ},HANDY_APPS,renderHandy,shaderVorab,SCHONER,schonerMalen,updateSchoner,makeWischer,stelleWischer,get wischer(){return wischer},updateWischen,wischerPersonal,cleanTick,updateFireworks,FLASH,spurEnden,LR_LAMPE,schweber,kundenSymbol,geldSchwebt,get serie(){return serie},serieZufrieden,serieBricht,KAPITEL,kapitel,kapitelNr,kapitelAufstieg,WA,WA_SLOTS,vorDieTuer,SB_KASSIERER,sbBesetzt,sbLaneVon,sbKassiererPlatz,sbBetreuer,sbHeimPlatz,sbHelferPlatz,sbGeholfen,sbFreiNah,sbZone,SB_SELBST,sbPos,MUSIK,STUECKE,musikAn,musikWeiter,musikVol,musikTick,spielSchritt,get mStep(){return mStep},set mStep(v){mStep=v;mTakte=0;},get mBus(){return mBus},get postHalf(){return postHalf},EFF_SCHWEIF,mitSchweif,KOEPFE,KLEID,UNIFORM,STAFFKOPF,faceCache,animPerson,PACKS,packPreis,packPool,packOffen,packContents,syncPakete,rotateGrab,cancelGrab,moebelTaste,moebelEinpacken,paketAuspacken,moebelImBlick,removeShelf,removeRack,PACK_FL,PACK_HOME,spotFree,rectOf,grab,placeGrab,updateGrab,get grabbed(){return grabbed},showPause,closePause,pauseSeite,pauseSeiteAktiv,zumStartbildschirm,fortsetzen,musikWahl,musikTitel,get startOpen(){return startOpen},get pauseOpen(){return pauseOpen},get target(){return target},einrOf,einrAktiv,einrHoch,einrRunter,einrSchalten,AUFGABEN,einrJob,kartonMat,pools,shelfStockOf,removeFromLevel,fwLog:(a)=>{FW_LOG=a;},moerserRohr,ROHR_KALIBER,effPassen,EFF_FAMILIE,basisBlick,fwTestSchalten,fwTestProdukte,fwTestStapeln,get fwTestAn(){return fwTestAn},get fwTestBoxen(){return fwTestBoxen},get fwTestMarken(){return fwTestMarken},fwStufe,sonne:()=>sun.intensity,get fwUhr(){return FW_UHR},THEMEN,SHOW_BASIS,EFF,emittersListe:()=>emitters,show,SIGNATUR,showZeiten,showDauer,phDauer,musterWinkel,feuertopf,playShow,KAL,get rohrStreu(){return ROHR_STREU},vorfuehrungAn,vorfuehrungAus,vfNaechstes,vfZuenden,vfSpringen,vfNote,vfText,vfTaste,get vfAn(){return vfAn},get vfGezuendet(){return vfGezuendet},get vfIdx(){return vfIdx},get vfLetzt(){return vfLetzt},get vfListe(){return vfListe},get vfEl(){return vfEl},set rohrStreu(v){ROHR_STREU=v},BUENDEL,bSammeln,bWaechter,buendelJetzt:()=>{ bSammeln(); bSammeln(); return BUENDEL.n; },NEU_TEST,get vfSonder(){return vfSonder},vpSchalten,vpStart,vpAus,vpStellplaetze,vpVerteilen,vpProdukte,vpFuellung,get vpAn(){return vpAn},get vpRegale(){return vpRegale},get vpPlan(){return vpPlan},get vpFertig(){return vpFertig},get SPIEL_RAUM(){return SPIEL_RAUM},vpZeilenMass,VP_ZEILEN,get vpNamenM(){return vpNamenM},kisteTaste,kannRaus,kisteRaus,kisteMat,KISTE_STUECK,poolDa,poolWeg,VP_FL,modRaster,slotLocal,gfxAnwenden,gfxWaehlen,gfxMessen,gfxMess,gfxAnzeige,get GFX(){return GFX},get GFX_WAHL(){return GFX_WAHL},QUAL,rohrBedarf,rohrLayout,rohrSatz,istBatterie,batterieModell,zuendPlan,buildProduct,capOf,zuendFolge,rohrMund,korpusTeile,rohrGeometrie,stationsPool,poolsAus,istVerbundKarton,regalFarben,regaleFaerben,get ROHR_LOG(){return ROHR_LOG},set ROHR_LOG(v){ROHR_LOG=v},schattenSichtbar:()=>renderer.shadowMap.enabled&&sun.shadow.bias>-1,
+    scene,camera,P,NEUWARE,NEU_SHOWS,NEU_FONT,NEU_KUGEL,neuZuenden,PARK,restWelle,restTick,restDruck,restDaten,buyAngebot,grossOffen,updatePark,parkWasser:()=>_wasserM,parkTannen:()=>PARK_TANNEN,parkLeben:()=>parkEnten.concat(parkLeute).map(e=>({x:e.g.position.x,z:e.g.position.z})),pendingListe:()=>pending,einbauPakete,spawnPaket,paketAblegen,paketAufheben,EINBAU,PAKET_MASS,vorDieTuer,setSB2,sbZiel,makeAuto,AUTOFORM,stadtInfo:()=>({warn:beacons.length,kronen:KRONEN.length,stufen:SKYLINE_INFO.stufen,skyStile:SKYLINE_INFO.stile.size,stile:Object.keys(STADT_MATS).length}),clearStations,fachHoehe,kindOf,packKartonWert,SUPPLIERS,supplierFor,supplierOf,tierPrice,isUnlocked,lizLevel,renderLaptop,get lsup(){return lsup},set lsup(v){lsup=v},get lkat(){return lkat},set lkat(v){lkat=v},SPARTE,SPARTE_NAME,sparteVon,HEADNAME,headArt,catPill,ekRoh,ekDelta,ekTag,ekNiveau,ekPill,get ltab(){return ltab},set ltab(v){ltab=v},EFF,EFF_ALL,EFF_KLEIN,EFF_GROSS,EFF_PRO,SHOWS,kugelbombe,shot,mine,FW,stations,stationOf,placedCount,togglePDA,openPDA,closePDA,setPost,get postOn(){return postOn},get pdaOn(){return pdaOn},showLength,psHuge,psBig,psMid,psSmall,rockets,emitters,timersLen:()=>timers.length,timersLeeren:()=>{timers.length=0;},setView:(x,z,y,p)=>{pl.x=x;pl.z=z;yaw=y;pitch=p;aim=null;},schiebe:(x,z)=>{pl.x=x;pl.z=z;collide(pl,0.32);return{x:pl.x,z:pl.z};},PLZ_MAX,camYaw:()=>yaw,camPitch:()=>pitch,playerPos:()=>({x:pl.x,z:pl.z}),pultYaw:()=>pultHit?pultHit.parent.rotation.y:null,get pultHit(){return pultHit},applyShopName,shopName,shopSlogan,signTexPx:()=>signTex&&signTex.image?signTex.image.getContext('2d').getImageData(0,0,signTex.image.width,40).data.join(''):null,lagerWall,fwShot:shot,KUGEL_R,ROHR_INNEN,MOERSER_R,moerserRohr,sfx,WOLKEN,get master(){return master},ac,SORTE_NEU,sortenUmstellen,get shakeWert(){return shake},get ckG(){return ckG},get ckNameTex(){return ckNameTex},get ckMovable(){return ckMov},CK_HOME,CK_ALT,spotPos,queueApproach,ckTexPx:()=>ckNameTex&&ckNameTex.image?ckNameTex.image.getContext('2d').getImageData(0,0,ckNameTex.image.width,60).data.join(''):null,testfeldMitte,STATION_POS,aimAt,UPGRADES,upPic,PLAN,planFlaechen,uhrZeiger:()=>({std:uhrStd?+uhrStd.rotation.z.toFixed(4):0,min:uhrMin?+uhrMin.rotation.z.toFixed(4):0}),drawRackSchild,get snowPts(){return snowPts},buildStadt,updateStadt,get stadtBoxen(){return stadtBoxen},get stadtBaeume(){return stadtBaeume},buildFernbaeume,schwaerme,beacons,silhouetten,get verkehrPts(){return verkehrPts},get rauchPts(){return rauchPts},get flieger(){return flieger},stadtFrei,STADT_FREI,WALLS,FLOORS,bodenMalen,wandMalen,oberflaechenMuster,oberflaechenAnwenden,BODEN_KACHEL,WAND_B,WAND_H,bodenPx,wandPx,innenUmgebung,sockelM,get wallTex(){return wallTex},get floorTexRef(){return floorTexRef},get floorMat(){return floorMat},get shopWall(){return shopWall},renderOnline,onlineHint,onlineStufe,onlineZahlen,onlineListe,updateOnline,SCHILDBG,SCHILDFG,setSchild,schildBg,schildFg,repaintSchilder,updateHead,allLevels,addToLevel,putInSlot,regCustomer,ZONEN,zoneOffen,oeffneZone,applyZonen,SLOTS,RACKS,slotsOffen,colliders,LAY,LOGI,WRAMPEN,WTORE,updateSnow,unterDach,dachBereiche,get lapHit2(){return lapHit2},buildLagerTerminal,toggleTest,testLevel,buyUp,get toastLast(){return toastLast},__floorBoxen:()=>floorBoxes.length,WBAY_UP,wbays,dockPlaetze,wbayFrei,wbayOffen,spawnWTruck,updateWBays,wbaysInit,wtorSet,GANG,GANGTUER,buildLagergang,flaeche,WTOR,RACKKIND,route,NAV,navFrei,navIdx,navBuild,shelfStand,shelves,sbLanes,buildSBKasse,sbFrei,sbOffen,sbNutzbar,EING2,eingaenge,naechsterEingang,setEingang2,buildSBKasse2,get sb2G(){return sb2G},TUEREN,tuerSetD,tuerNahD,packBereit,packOne,paketWert,bestellungenProTag,pakete,ddlAbholung,updateVersand,VS_GR,VS_FELD,WG_PARK,vsNeueBestellung,vsAbgleich,vsKlasse,vsQuellen,vsBestand,vsErfuellbar,vsPlan,vsStapel,vsSpielerPacken,vsSpielerBestellung,vsTischFrei,vsStatus,vsAufraeumen,vsLaden,vsBahn,vsPaketOffen,vsKlappen,vsFuellung,vsPaketZu,get vsTisch(){return vsTisch},get vsWagen(){return vsWagen},createShelf,createRack,regalStellen,testKauf,regalAufbauen,orderRegal,REGALWARE,regalOf,regalKind,regalPreis,regalPlatz,regalOffen,startGame,promptFor,ERFOLGE,erfOffen,erfStufe,erfStand,erfZiel,erfFertig,erfAnteil,erfGeschafft,erfGesamt,stat,statAdd,statRekord,statVerkauf,bruchGesehen,gruppeVon,GRUPPE,TRAEGER,BRUCH,BRUCH_IDS,REZ_FARBEN,ETIKETT,traegerVon,traegerOffen,bruchOffen,bruchListe,rezeptWow,rezeptKosten,rezeptMarkt,rezeptHype,rezeptDauer,rezeptEntwicklung,rezeptGueltig,eigeneListe,eigenesEintragen,rezepteTick,rezProto,rezBauen,renderRezeptur,get entwurf(){return entwurf},set entwurf(v){entwurf=v},entwurfInit,ORDER,LIZENZEN,lizenzOf,hatLizenz,lizenzDaten,naechsteLizenz,buyLizenz,VOLA,volaOf,REGIME,marketOf,costOf,marktZiel,marktLuecke,meOf,miOf,marktDelta,marktNiveau,marktPhase,marktSchock,marktLabel,marktSchnitt,marktExtrem,marktChance,sortimentBreite,sortimentZug,bekanntheit,spawnInterval,rollMarkt,marktInit,inflOf,inflText,setPreisAufMarkt,igniteType,get packHit(){return packHit},get packTisch(){return packTisch},get packMov(){return packMov},zuendeKanal,zuendeAlle,alleKanaele,get pultText(){return pultText},drawPult,kanalItem,openZuend,closeZuend,get zuendOpen(){return zuendOpen},overlayOpen,pultTaster,zuendTick,TISCH_X,RAMPE_X,KANAL_START,bereitCount,brennDauer,muendung,pultLamps,RAKETEN_LOOK,RAKETEN_KL,makePerson,applyTOD,updateHUD,renderer,renderFrame,get DEMO(){return DEMO},LHALLE,LOGI_STUFEN,TOR_STUFE,logiStufe,logiZeige,logiAnwenden,LOGI_G,TOR_G,WTORE,tuAktion:(kind,ref)=>{ const alt=target; target={kind,ref}; try{ doAction(); } finally { target=alt; } },promptFor,KARREN,karreArt,karreAn,karreStapel,karreLast,karreNimmt,toggleKarre,updateKarre,setTutorial,tutorialAn,zielFuer,get zielAktuell(){return zielAktuell},get tipKey(){return tipKey},updateZiel,set DEMO(v){DEMO=v},kapitelVon,kapitelVoll,openHandy,closeHandy,toggleHandy,get handyOpen(){return handyOpen},get happ(){return happ},HANDY_APPS,renderHandy,shaderVorab,SCHONER,schonerMalen,updateSchoner,makeWischer,stelleWischer,get wischer(){return wischer},updateWischen,wischerPersonal,cleanTick,updateFireworks,FLASH,spurEnden,LR_LAMPE,schweber,kundenSymbol,geldSchwebt,get serie(){return serie},serieZufrieden,serieBricht,KAPITEL,kapitel,kapitelNr,kapitelAufstieg,WA,WA_SLOTS,vorDieTuer,SB_KASSIERER,sbBesetzt,sbLaneVon,sbKassiererPlatz,sbBetreuer,sbHeimPlatz,sbHelferPlatz,sbGeholfen,sbFreiNah,sbZone,SB_SELBST,sbPos,MUSIK,STUECKE,musikAn,musikWeiter,musikVol,musikTick,spielSchritt,get mStep(){return mStep},set mStep(v){mStep=v;mTakte=0;},get mBus(){return mBus},get postHalf(){return postHalf},EFF_SCHWEIF,mitSchweif,KOEPFE,KLEID,UNIFORM,STAFFKOPF,faceCache,animPerson,PACKS,packPreis,packPool,packOffen,packContents,syncPakete,rotateGrab,cancelGrab,moebelTaste,moebelEinpacken,paketAuspacken,moebelImBlick,removeShelf,removeRack,PACK_FL,PACK_HOME,spotFree,rectOf,grab,placeGrab,updateGrab,get grabbed(){return grabbed},showPause,closePause,pauseSeite,pauseSeiteAktiv,zumStartbildschirm,fortsetzen,musikWahl,musikTitel,get startOpen(){return startOpen},get pauseOpen(){return pauseOpen},get target(){return target},einrOf,einrAktiv,einrHoch,einrRunter,einrSchalten,AUFGABEN,einrJob,kartonMat,pools,shelfStockOf,removeFromLevel,fwLog:(a)=>{FW_LOG=a;},moerserRohr,ROHR_KALIBER,effPassen,EFF_FAMILIE,basisBlick,fwTestSchalten,fwTestProdukte,fwTestStapeln,get fwTestAn(){return fwTestAn},get fwTestBoxen(){return fwTestBoxen},get fwTestMarken(){return fwTestMarken},fwStufe,sonne:()=>sun.intensity,get fwUhr(){return FW_UHR},THEMEN,SHOW_BASIS,EFF,emittersListe:()=>emitters,show,SIGNATUR,showZeiten,showDauer,phDauer,musterWinkel,feuertopf,playShow,KAL,get rohrStreu(){return ROHR_STREU},vorfuehrungAn,vorfuehrungAus,vfNaechstes,vfZuenden,vfSpringen,vfNote,vfText,vfTaste,get vfAn(){return vfAn},get vfGezuendet(){return vfGezuendet},get vfIdx(){return vfIdx},get vfLetzt(){return vfLetzt},get vfListe(){return vfListe},get vfEl(){return vfEl},set rohrStreu(v){ROHR_STREU=v},BUENDEL,bSammeln,bWaechter,buendelJetzt:()=>{ bSammeln(); bSammeln(); return BUENDEL.n; },NEU_TEST,get vfSonder(){return vfSonder},vpSchalten,vpStart,vpAus,vpStellplaetze,vpVerteilen,vpProdukte,vpFuellung,get vpAn(){return vpAn},get vpRegale(){return vpRegale},get vpPlan(){return vpPlan},get vpFertig(){return vpFertig},get SPIEL_RAUM(){return SPIEL_RAUM},vpZeilenMass,VP_ZEILEN,schildTaste,schildFertig,schildZiel,get schildOpen(){return schildOpen},get vpNamenM(){return vpNamenM},kisteTaste,kannRaus,kisteRaus,kisteMat,KISTE_STUECK,poolDa,poolWeg,VP_FL,modRaster,slotLocal,gfxAnwenden,gfxWaehlen,gfxMessen,gfxMess,gfxAnzeige,get GFX(){return GFX},get GFX_WAHL(){return GFX_WAHL},QUAL,rohrBedarf,rohrLayout,rohrSatz,istBatterie,batterieModell,zuendPlan,buildProduct,capOf,zuendFolge,rohrMund,korpusTeile,rohrGeometrie,stationsPool,poolsAus,istVerbundKarton,regalFarben,regaleFaerben,get ROHR_LOG(){return ROHR_LOG},set ROHR_LOG(v){ROHR_LOG=v},schattenSichtbar:()=>renderer.shadowMap.enabled&&sun.shadow.bias>-1,
     shot:()=>{ noLoop=true; camera.position.set(pl.x,1.65,pl.z); camera.rotation.set(pitch,yaw,0); camera.updateMatrixWorld(); updateTarget(); applyTOD(); renderFrame(0.016); return canvas.toDataURL('image/jpeg',0.85); },
     run:(sec,dt)=>{ noLoop=true; const n=Math.round(sec/(dt||0.05)); for(let i=0;i<n;i++) step(dt||0.05); }};
 });

@@ -1,6 +1,11 @@
 /* =========================================================
    Verpackungs-Grafik (Canvas)
    ========================================================= */
+/* Aufloesungsfaktor fuer neue Verpackungsbilder. Die Verpackungs-
+   Vorfuehrung laedt alle 225 Produkte auf einmal - bei voller Aufloesung
+   124 Megapixel, rund 660 MB Grafik- und 500 MB Zwischenspeicher: das
+   iPhone stuerzte ab (02.10.). Dort gilt solange 0,5. */
+let TEX_FAKTOR=1;
 function burst(g,x,y,r,c,n){
   g.save(); g.strokeStyle=c; g.fillStyle=c; g.lineCap='round';
   for(let i=0;i<n;i++){ const a=i/n*Math.PI*2+0.2, r0=r*0.18, r1=r*(0.75+0.25*((i*7)%3)/2);
@@ -52,7 +57,7 @@ function atlas(w,h,d,a,cat,o){
   o=o||{};
   /* Aufloesung nach Groesse der Packung: eine 8-cm-Schachtel braucht
      keine 1120 Pixel. Rund 2000 Pixel je Meter, hoechstens 1120. */
-  const CAP=Math.min(HIQ?1120:640,Math.max(256,Math.round(Math.max(w+d,h+d)*2000)));
+  const CAP=Math.round(Math.min(HIQ?1120:640,Math.max(256,Math.round(Math.max(w+d,h+d)*2000)))*TEX_FAKTOR);
   const s=Math.min(CAP/(w+d),CAP/(h+d)), Wf=Math.max(8,Math.round(w*s)), Hf=Math.max(8,Math.round(h*s)), Ds=Math.max(8,Math.round(d*s)), W=Wf+Ds, H=Hf+Ds;
   const t=tex(W,H,(g)=>{
     const reg=(x,y,w2,h2,fn)=>{ g.save(); g.beginPath(); g.rect(x,y,w2,h2); g.clip(); g.translate(x,y); fn(g,w2,h2); g.restore(); };

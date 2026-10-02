@@ -3451,6 +3451,11 @@ function renderFrame(dt){
 /* =========================================================
    Verpackungs-Grafik (Canvas)
    ========================================================= */
+/* Aufloesungsfaktor fuer neue Verpackungsbilder. Die Verpackungs-
+   Vorfuehrung laedt alle 225 Produkte auf einmal - bei voller Aufloesung
+   124 Megapixel, rund 660 MB Grafik- und 500 MB Zwischenspeicher: das
+   iPhone stuerzte ab (02.10.). Dort gilt solange 0,5. */
+let TEX_FAKTOR=1;
 function burst(g,x,y,r,c,n){
   g.save(); g.strokeStyle=c; g.fillStyle=c; g.lineCap='round';
   for(let i=0;i<n;i++){ const a=i/n*Math.PI*2+0.2, r0=r*0.18, r1=r*(0.75+0.25*((i*7)%3)/2);
@@ -3502,7 +3507,7 @@ function atlas(w,h,d,a,cat,o){
   o=o||{};
   /* Aufloesung nach Groesse der Packung: eine 8-cm-Schachtel braucht
      keine 1120 Pixel. Rund 2000 Pixel je Meter, hoechstens 1120. */
-  const CAP=Math.min(HIQ?1120:640,Math.max(256,Math.round(Math.max(w+d,h+d)*2000)));
+  const CAP=Math.round(Math.min(HIQ?1120:640,Math.max(256,Math.round(Math.max(w+d,h+d)*2000)))*TEX_FAKTOR);
   const s=Math.min(CAP/(w+d),CAP/(h+d)), Wf=Math.max(8,Math.round(w*s)), Hf=Math.max(8,Math.round(h*s)), Ds=Math.max(8,Math.round(d*s)), W=Wf+Ds, H=Hf+Ds;
   const t=tex(W,H,(g)=>{
     const reg=(x,y,w2,h2,fn)=>{ g.save(); g.beginPath(); g.rect(x,y,w2,h2); g.clip(); g.translate(x,y); fn(g,w2,h2); g.restore(); };
@@ -3521,7 +3526,7 @@ const vcMat=new THREE.MeshStandardMaterial({vertexColors:true,roughness:0.45});
 const glassMat=new THREE.MeshStandardMaterial({color:0xffffff,transparent:true,opacity:0.22,roughness:0.05,metalness:0.1,depthWrite:false});
 const bottleGlass=new THREE.MeshStandardMaterial({color:LIN(0x1f4a35),transparent:true,opacity:0.82,roughness:0.15,metalness:0.15});
 function wrapTex(circ,hh,a,draw){
-  return tex(Math.max(32,Math.round(circ*1400)),Math.max(32,Math.round(hh*1400)),draw);
+  return tex(Math.max(32,Math.round(circ*1400*TEX_FAKTOR)),Math.max(32,Math.round(hh*1400*TEX_FAKTOR)),draw);
 }
 function buildProduct(t,roh){
   /* roh: das Produkt selbst ohne Verpackung (Zuendtisch, Inhalt des Kartons) */
@@ -3794,6 +3799,14 @@ const pools=new Proxy(_pools,{get(o,k){
   if(typeof k==='string'&&!(k in o)&&typeof P!=='undefined'&&P[k]&&P[k].dims) o[k]=new ItemPool(buildProduct(k),poolCap(k));
   return o[k]; }});
 function poolDa(t){ return t in _pools; }
+/* Pool ganz weg (Verpackungs-Vorfuehrung beim Beenden): Meshes aus der
+   Szene, eigene Geometrie, Materialien mit Bild und die Bilder frei.
+   Die geteilten Materialien (vcMat, Glas) bleiben. */
+function poolWeg(t){ const pl=_pools[t]; if(!pl) return; const geteilt=new Set([vcMat,glassMat,bottleGlass]);
+  for(const m of pl.meshes){ if(m.parent) m.parent.remove(m); m.geometry.dispose(); if(m.dispose) m.dispose();
+    const ms=Array.isArray(m.material)?m.material:[m.material];
+    ms.forEach(mt=>{ if(!mt||geteilt.has(mt)) return; for(const k of ['map','emissiveMap','alphaMap','bumpMap']) if(mt[k]) mt[k].dispose(); mt.dispose(); }); }
+  delete _pools[t]; }
 const _q=new THREE.Quaternion(), _e=new THREE.Euler(), _one=V(1,1,1);
 function mx(x,y,z,ry){ _e.set(0,ry||0,0); _q.setFromEuler(_e); return new THREE.Matrix4().compose(V(x,y,z),_q,_one); }
 
@@ -13784,11 +13797,11 @@ function bauMoebel(K,sh,g,RF){
   for(const k in GB) GB[k].dispose();
   /* je Ebene Preisschild und Trefferflaeche (Unterbau-Faecher, Wanne bzw. Platte) */
   K.lv.forEach((yl,li)=>{
-    const lt=tex(700,80,()=>{}); lt.anisotropy=8;
+    const lt=tex(Math.round(700*REGAL_TEX),Math.round(80*REGAL_TEX),()=>{}); lt.anisotropy=8;
     plane(Math.min(0.46,iw*0.46),0.052,new THREE.MeshBasicMaterial({map:lt,toneMapped:false}),0,preisY[li],D/2+(K.bau==='tisch'?-0.032:0.003),0,fg);
     const h=fachHoehe(K,li), hit=bbox(iw,h,D,hitM,0,yl+h/2,0.01,fg,false);
     const lv={sh,li,face:0,type:null,count:0,q:1,items:[],tex:lt,hit}; hit.userData={kind:'level',ref:lv}; sh.levels.push(lv); });
-  sh.headTex=tex(1024,160,()=>{});
+  sh.headTex=tex(Math.round(1024*REGAL_TEX),Math.round(160*REGAL_TEX),()=>{});
   const hz=K.bau==='tisch'?-D/2+0.08+0.016:D/2+0.008, hwid=K.bau==='tisch'?0.96:0.86;
   plane(hwid,0.17,new THREE.MeshBasicMaterial({map:sh.headTex,toneMapped:false,side:THREE.DoubleSide}),0,headY,hz,0,kg);
   sh.headY=headY;
@@ -13832,13 +13845,13 @@ function createShelf(i,data){
       st.push({geo:box(iw,0.012,0.02),m:tm(0,y-0.045,D/2-0.011),rolle:'lippe'});
       st.push({geo:box(iw-0.04,0.018,0.05),m:tm(0,y-0.055,-D/2+0.06),rolle:'rahmen'});
       if(li>0||K.cold) li0.push({geo:box(iw-0.06,0.016,0.04),m:tm(0,y-0.048,D/2-0.07)});
-      const lt=tex(700,80,()=>{}); lt.anisotropy=8;
+      const lt=tex(Math.round(700*REGAL_TEX),Math.round(80*REGAL_TEX),()=>{}); lt.anisotropy=8;
       plane(Math.min(0.46,iw*0.46),0.052,new THREE.MeshBasicMaterial({map:lt,toneMapped:false}),0,y-0.02,D/2-0.004,0,fg);
       const fh=fachHoehe(K,li), hit=bbox(iw,fh,D,hitM,0,y+fh/2,0.01,fg,false);
       const lv={sh,li,face:fi,type:null,count:0,q:1,items:[],tex:lt,hit}; hit.userData={kind:'level',ref:lv}; sh.levels.push(lv);
     });
     /* Kopfschild ueber jeder Warenseite */
-    if(fi===0) sh.headTex=tex(1024,160,()=>{});
+    if(fi===0) sh.headTex=tex(Math.round(1024*REGAL_TEX),Math.round(160*REGAL_TEX),()=>{});
     const hy=top+(K.cold?0.34:0.18);
     st.push({geo:box(W-0.04,0.28,0.05),m:tm(0,hy,0.02),rolle:'kopf'});
     plane(W-0.1,0.24,new THREE.MeshBasicMaterial({map:sh.headTex,toneMapped:false}),0,hy,0.051,0,fg);
@@ -13913,6 +13926,16 @@ function updateLabel(lv){
     else { g.fillStyle='rgba(242,245,255,.75)'; g.font=BAR(24); g.textAlign='center'; g.fillText('leer',W/2,H/2+1); } });
 }
 function capOf(lv,t){ return layout(t||lv.type,lv.sh,lv).cap; }
+/* Schildaufloesung (1 = Laden). Die Verpackungs-Vorfuehrung stellt 50
+   Moebel auf einmal auf - mit halber Aufloesung brauchen ihre rund 250
+   Schilder ein Viertel des Grafikspeichers (02.10., iPhone stuerzte ab). */
+let REGAL_TEX=1;
+/* Viele Stuecke auf einmal: Preis- und Kopfschild erst am Ende zeichnen.
+   Vorher wurde fuer jedes einzelne Stueck neu gemalt und hochgeladen -
+   bei 10 000 Stueck zwanzigtausendmal (Verpackungs-Vorfuehrung, 6 s). */
+let _ohneSchild=false;
+function addViele(lv,t,n){ _ohneSchild=true; let k=0; try{ while(k<n&&addToLevel(lv,t,1)) k++; } finally{ _ohneSchild=false; } updateLabel(lv); updateHead(lv.sh); return k; }
+function leereFach(lv){ _ohneSchild=true; try{ while(lv.count>0) removeFromLevel(lv); } finally{ _ohneSchild=false; } }
 function addToLevel(lv,t,q){
   if(lv.sh&&lv.sh.weg) return false;
   /* jedes eingeraeumte Stueck zaehlt fuer die Herausforderung */
@@ -13925,10 +13948,10 @@ function addToLevel(lv,t,q){
   /* face mitgeben: sonst landete die Ware der zweiten Gondel- und
      Eckregalseite auf der ersten (02.10., Verpackungs-Vorfuehrung) */
   const h=pools[t].add(itemMatrix(lv.sh,{li:lv.li,type:t,face:lv.face},lv.count,jit)); h.jit=jit;
-  lv.items.push(h); lv.count++; updateLabel(lv); updateHead(lv.sh); return true;
+  lv.items.push(h); lv.count++; if(!_ohneSchild){ updateLabel(lv); updateHead(lv.sh); } return true;
 }
 /* der Kunde nimmt vorn: das zuletzt eingeraeumte Stueck steht am weitesten vorn */
-function removeFromLevel(lv){ const h=lv.items.pop(); if(h) h.pool.remove(h); lv.count--; if(lv.count<=0){ lv.count=0; lv.type=null; lv.q=1; } updateLabel(lv); updateHead(lv.sh); }
+function removeFromLevel(lv){ const h=lv.items.pop(); if(h) h.pool.remove(h); lv.count--; if(lv.count<=0){ lv.count=0; lv.type=null; lv.q=1; } if(!_ohneSchild){ updateLabel(lv); updateHead(lv.sh); } }
 function allLevels(){ const a=[]; shelves.forEach(s=>s.levels.forEach(l=>a.push(l))); return a; }
 function findLevel(t,from){ let best=null,bd=1e9; for(const l of allLevels()){ if(l.type===t&&l.count>0){ const d=from?from.distanceTo(shelfStand(l.sh,l)):0; if(d<bd){ bd=d; best=l; } } } return best; }
 /* Größtes Fach, das dieses Produkt überhaupt aufnehmen kann */
@@ -29857,7 +29880,8 @@ function prodPic(t){
       /* Ware, die noch nirgends steht, bekommt fuer das Bild ein Modell
          auf Zeit - danach wird es wieder freigegeben, statt fuer jedes
          Produkt im Katalog dauerhaft Texturen zu halten */
-      const da=poolDa(t), teile=da?pools[t].meshes.map(m=>({geo:m.geometry,mat:m.material})):buildProduct(t);
+      /* Vorfuehrungs-Modelle haben ihre Leinwand schon abgegeben - nicht nehmen */
+      const da=poolDa(t)&&!pools[t].vp, teile=da?pools[t].meshes.map(m=>({geo:m.geometry,mat:m.material})):buildProduct(t);
       const g=new THREE.Group(); teile.forEach(m=>g.add(new THREE.Mesh(m.geo,m.mat)));
       /* Packung leicht gedreht, Kamera auf die groesste Ausdehnung */
       g.rotation.y=-0.5; T.sc.add(g);
@@ -31867,6 +31891,13 @@ function vfZeigen(){
    und kommt beim Beenden zurueck.
    ========================================================= */
 let vpAn=false, vpRegale=[], vpWeg=[], vpEl=null, vpPlan=[], vpVorher=null;
+/* 02.10. (Tom: "beim Starten haengt sich das Spiel auf ... Fehler ist
+   aufgetreten", PC und iPhone): alle 225 Verpackungen auf einmal kosteten
+   124 Megapixel Texturen (660 MB Grafik- + 500 MB Zwischenspeicher) und
+   blockierten den Start 10 s. Jetzt: Verpackungsbilder der Vorfuehrung in
+   halber Aufloesung, Leinwand nach dem Hochladen frei, keine Schatten,
+   Aufbau Stueck fuer Stueck mit Anzeige, beim Beenden alles wieder frei. */
+let vpFertig=false, vpLauf=0, vpNeu=new Set(), vpV=null;
 const VP_FL={x0:-19.9,x1:-8.1,z0:-29.9,z1:-5.9}, VP_RAND=0.25, VP_GANG=1.8;
 /* Reihen von Nord (Eingang) nach Sued. seite: wohin die Ware schaut
    (n = zum Eingang, s = nach Sueden); paar: steht Ruecken an Ruecken
@@ -31953,19 +31984,44 @@ function vpVerteilen(regale){
 }
 function vpAufbauen(){
   const st=vpStellplaetze();
-  vpRegale=st.map((s,i)=>{ const sh=createShelf(9000+i,{kind:s.kind,x:s.x,z:s.z,ry:s.ry});
+  REGAL_TEX=0.5;
+  try{ vpRegale=st.map((s,i)=>{ const sh=createShelf(9000+i,{kind:s.kind,x:s.x,z:s.z,ry:s.ry});
     /* nicht Teil des Ladens: raus aus Regal- und Moebelliste, die
        Kollision bleibt, damit man nicht hindurchlaeuft */
     const k=shelves.indexOf(sh); if(k>=0) shelves.splice(k,1);
     const m=movables.indexOf(sh.mov); if(m>=0) movables.splice(m,1);
-    sh.vp=true; return sh; });
+    sh.vp=true; return sh; }); } finally { REGAL_TEX=1; }
   const V=vpVerteilen(vpRegale); vpPlan=V.plan;
-  V.plan.forEach(e=>{ const n=layout(e.t,e.sh,e.lv).cap; for(let k=0;k<n;k++) if(!addToLevel(e.lv,e.t,1)) break; });
   return V;
 }
+/* ein Produkt einraeumen; fehlt sein Modell noch, entsteht es sparsam */
+function vpEinraeumen(e){
+  if(!poolDa(e.t)){ TEX_FAKTOR=0.5; let pl; try{ pl=pools[e.t]; } finally { TEX_FAKTOR=1; }
+    pl.vp=true; vpNeu.add(e.t);
+    pl.meshes.forEach(m=>{ m.castShadow=false;
+      const ms=Array.isArray(m.material)?m.material:[m.material];
+      /* nach dem Hochladen braucht das Bild keine Leinwand mehr */
+      ms.forEach(mt=>{ const tx=mt&&mt.map; if(tx&&tx.image&&tx.image.getContext&&!tx.onUpdate){ tx.__px=tx.image.width*tx.image.height; tx.onUpdate=()=>{ tx.image.width=1; tx.image.height=1; tx.onUpdate=null; }; } }); }); }
+  addViele(e.lv,e.t,layout(e.t,e.sh,e.lv).cap);
+}
+/* Stueck fuer Stueck: je Bild hoechstens ~25 ms, dann darf das Spiel zeichnen */
+function vpFuellen(lauf,i){
+  if(!vpAn||lauf!==vpLauf) return;
+  const t0=performance.now();
+  while(i<vpPlan.length&&performance.now()-t0<25){ vpEinraeumen(vpPlan[i]); i++; }
+  if(i<vpPlan.length){ vpZeigen(vpV,i); setTimeout(()=>vpFuellen(lauf,i),16); return; }
+  vpFertig=true; vpZeigen(vpV);
+  toast(`Verpackungs-Vorführung: ${vpPlan.length} Produkte in ${vpRegale.length} Möbeln. B beendet.`,'money');
+}
 function vpAbbauen(){
-  vpRegale.forEach(sh=>{ sh.levels.forEach(lv=>{ while(lv.count>0) removeFromLevel(lv); }); dropFootprint(sh.mov); scene.remove(sh.g); });
+  vpRegale.forEach(sh=>{ sh.levels.forEach(leereFach); dropFootprint(sh.mov); scene.remove(sh.g);
+    /* eigene Texturen und Geometrien freigeben - geteilte Materialien bleiben */
+    sh.g.traverse(o=>{ if(!o.isMesh) return; const m=o.material;
+      if(m&&m.map&&(sh.levels.some(lv=>lv.tex===m.map)||m.map===sh.headTex)){ m.map.dispose(); m.dispose(); }
+      if((sh.gestelle||[]).includes(o)) o.geometry.dispose(); }); });
   vpRegale=[]; vpPlan=[];
+  /* Modelle, die nur fuer die Vorfuehrung entstanden sind, wieder weg */
+  vpNeu.forEach(t=>{ if(poolDa(t)&&pools[t].h.length===0) poolWeg(t); }); vpNeu=new Set();
 }
 /* Was sonst in der Halle steht, raeumen wir so lange beiseite */
 function vpImFeld(x,z){ return x>VP_FL.x0&&x<VP_FL.x1&&z>VP_FL.z0&&z<VP_FL.z1; }
@@ -31983,26 +32039,29 @@ function vpStart(){
   vpVorher={x:pl.x,z:pl.z,yaw,pitch};
   vpAn=true; VP_ZONEN=['lager','lager_gross','lager_sued','lager_sued2']; applyZonen();
   vpWegraeumen();
-  const V=vpAufbauen();
+  vpFertig=false; vpLauf++;
+  const V=vpAufbauen(); vpV=V;
   if(V.uebrig.length) console.warn('Verpackungs-Vorfuehrung: kein Platz fuer',V.uebrig.join(', '));
   /* am Eingang der Halle, Blick in die erste Gasse */
   pl.x=(VP_FL.x0+VP_FL.x1)/2; pl.z=VP_FL.z1-0.8; yaw=0; pitch=-0.08;
   if(laptopOpen) closeLaptop(true); if(typeof handyOpen!=='undefined'&&handyOpen) closeHandy();
-  vpZeigen(V);
-  toast(`Verpackungs-Vorführung: ${V.plan.length} Produkte in ${vpRegale.length} Möbeln. B beendet.`,'money');
+  vpZeigen(V,0);
+  const lauf=vpLauf; setTimeout(()=>vpFuellen(lauf,0),30);
 }
 function vpAus(){
   if(!vpAn) return;
+  vpLauf++; vpFertig=false;
   vpAbbauen(); vpZurueck(); vpAn=false; VP_ZONEN=null; applyZonen();
   if(vpEl){ vpEl.remove(); vpEl=null; }
   /* zurueck, wo man vorher stand */
   if(vpVorher){ pl.x=vpVorher.x; pl.z=vpVorher.z; yaw=vpVorher.yaw; pitch=vpVorher.pitch; vpVorher=null; }
   toast('Verpackungs-Vorführung beendet.');
 }
-function vpZeigen(V){
+function vpZeigen(V,bis){
   if(!vpEl){ vpEl=document.createElement('div'); vpEl.id='vpInfo';
     vpEl.style.cssText='position:fixed;left:50%;top:12px;transform:translateX(-50%);z-index:30;pointer-events:none;background:rgba(14,18,38,.82);color:#f2f5ff;border-radius:10px;padding:8px 16px;font:600 14px Barlow,Arial,sans-serif;text-align:center;border-top:3px solid #ffd23f';
     document.body.appendChild(vpEl); }
+  if(bis!==undefined){ vpEl.innerHTML=`<b style="font-size:17px;letter-spacing:.04em">VERPACKUNGS-VORFÜHRUNG</b><br>Regale werden eingeräumt … ${bis} / ${V.plan.length}`; return; }
   vpEl.innerHTML=`<b style="font-size:17px;letter-spacing:.04em">VERPACKUNGS-VORFÜHRUNG</b><br>${V.plan.length} Produkte · je Fach ein Produkt · Name und Preis am Fach${V.uebrig.length?` · <span style="color:#ff8a7a">${V.uebrig.length} ohne Platz</span>`:''} · B beendet`;
 }
 function vpTaste(e){ if(e.code==='KeyB'&&!e.repeat){ vpAus(); return true; } return false; }
@@ -33106,7 +33165,7 @@ fontsReady().then(()=>{
   setTimeout(()=>{ if(typeof shaderVorab==='function') shaderVorab(); },400);
   window.__bb={get S(){return S},get phase(){return phase},set phase(v){phase=v},set clock(v){clock=v},get clock(){return clock},pickUp,floorBoxes,shelves,racks,dekos,stockOne,openShop,step,customers,queue,belt,scanBelt,buyUp,buyDeko,get DS(){return DS},endDay,pending,save,openLaptop,closeLaptop,pl,addXP,hireStaff,fireStaff,staff,dirts,addDirt,movables,toggleBuild,setWall,setFloor,
     stations,firePult,placeOnStation,igniteType,get order(){return order},get phone(){return phone},makeCall,answerPhone,haggle,acceptDeal,declineDeal,get truck(){return truck},spawnTruck,takeFromTruck,takeBox,dropBox,updateTruck,get door(){return door},get tuer(){return tuer},tuerSet,tuerNah,updateSchiebetuer,doorOpen,doorIsOpen,trailerOccupied,LR,lrFront,TOR,orderReady,orderLeft,shipOne,removeFloorBox,prioOf,setPrio,racks,updateCarry,spawnFloorBox,staff,SHELFKIND,layout,shelfCapOf,shelfAccepts,emptyLevel,dateInfo,dateStr,dateShort,seasonInfo,isSunday,dayMult,ruhetag,wageOf,setWage,friendliness,inPause,setPause,windowGrime,addGrime,cleanWindowTick,ambienteScore,bildBoost,fixedCosts,dailyWages,dispoLimit,verfuegbar,dispoZins,takeLoan,loanTier,loanDaily,EVENTS,GOALS,CUSTTYPES,UPGRADES,STAFF,stockOf,spawnInterval,pools,todayEvent,evv,rollEvent,rollMarket,newGoal,goalAdd,goalTick,ekFactor,marktText,xpFor,rollCustType,priceTol,buyChance,regCustomer,makeWishes,nachfrageFaktor,shelfStockOf,buildGravur,refillGrav,openGravInput,closeGravInput,get gravBlanks(){return gravBlanks},set gravBlanks(v){gravBlanks=v},orderBox,buyPack,cartAdd,cartAddPack,cartOrder,cartClear,cartDel,cartGoods,cartFee,cartTotal,cartBoxes,cartLines,LIEFERZEIT_SEK,VERSAND,VERSANDFREI,lieferSek,
-    scene,camera,P,NEUWARE,NEU_SHOWS,NEU_FONT,NEU_KUGEL,neuZuenden,PARK,restWelle,restTick,restDruck,restDaten,buyAngebot,grossOffen,updatePark,parkWasser:()=>_wasserM,parkTannen:()=>PARK_TANNEN,parkLeben:()=>parkEnten.concat(parkLeute).map(e=>({x:e.g.position.x,z:e.g.position.z})),pendingListe:()=>pending,einbauPakete,spawnPaket,paketAblegen,paketAufheben,EINBAU,PAKET_MASS,vorDieTuer,setSB2,sbZiel,makeAuto,AUTOFORM,stadtInfo:()=>({warn:beacons.length,kronen:KRONEN.length,stufen:SKYLINE_INFO.stufen,skyStile:SKYLINE_INFO.stile.size,stile:Object.keys(STADT_MATS).length}),clearStations,fachHoehe,kindOf,packKartonWert,SUPPLIERS,supplierFor,supplierOf,tierPrice,isUnlocked,lizLevel,renderLaptop,get lsup(){return lsup},set lsup(v){lsup=v},get lkat(){return lkat},set lkat(v){lkat=v},SPARTE,SPARTE_NAME,sparteVon,HEADNAME,headArt,catPill,ekRoh,ekDelta,ekTag,ekNiveau,ekPill,get ltab(){return ltab},set ltab(v){ltab=v},EFF,EFF_ALL,EFF_KLEIN,EFF_GROSS,EFF_PRO,SHOWS,kugelbombe,shot,mine,FW,stations,stationOf,placedCount,togglePDA,openPDA,closePDA,setPost,get postOn(){return postOn},get pdaOn(){return pdaOn},showLength,psHuge,psBig,psMid,psSmall,rockets,emitters,timersLen:()=>timers.length,timersLeeren:()=>{timers.length=0;},setView:(x,z,y,p)=>{pl.x=x;pl.z=z;yaw=y;pitch=p;aim=null;},schiebe:(x,z)=>{pl.x=x;pl.z=z;collide(pl,0.32);return{x:pl.x,z:pl.z};},PLZ_MAX,camYaw:()=>yaw,camPitch:()=>pitch,playerPos:()=>({x:pl.x,z:pl.z}),pultYaw:()=>pultHit?pultHit.parent.rotation.y:null,get pultHit(){return pultHit},applyShopName,shopName,shopSlogan,signTexPx:()=>signTex&&signTex.image?signTex.image.getContext('2d').getImageData(0,0,signTex.image.width,40).data.join(''):null,lagerWall,fwShot:shot,KUGEL_R,ROHR_INNEN,MOERSER_R,moerserRohr,sfx,WOLKEN,get master(){return master},ac,SORTE_NEU,sortenUmstellen,get shakeWert(){return shake},get ckG(){return ckG},get ckNameTex(){return ckNameTex},get ckMovable(){return ckMov},CK_HOME,CK_ALT,spotPos,queueApproach,ckTexPx:()=>ckNameTex&&ckNameTex.image?ckNameTex.image.getContext('2d').getImageData(0,0,ckNameTex.image.width,60).data.join(''):null,testfeldMitte,STATION_POS,aimAt,UPGRADES,upPic,PLAN,planFlaechen,uhrZeiger:()=>({std:uhrStd?+uhrStd.rotation.z.toFixed(4):0,min:uhrMin?+uhrMin.rotation.z.toFixed(4):0}),drawRackSchild,get snowPts(){return snowPts},buildStadt,updateStadt,get stadtBoxen(){return stadtBoxen},get stadtBaeume(){return stadtBaeume},buildFernbaeume,schwaerme,beacons,silhouetten,get verkehrPts(){return verkehrPts},get rauchPts(){return rauchPts},get flieger(){return flieger},stadtFrei,STADT_FREI,WALLS,FLOORS,bodenMalen,wandMalen,oberflaechenMuster,oberflaechenAnwenden,BODEN_KACHEL,WAND_B,WAND_H,bodenPx,wandPx,innenUmgebung,sockelM,get wallTex(){return wallTex},get floorTexRef(){return floorTexRef},get floorMat(){return floorMat},get shopWall(){return shopWall},renderOnline,onlineHint,onlineStufe,onlineZahlen,onlineListe,updateOnline,SCHILDBG,SCHILDFG,setSchild,schildBg,schildFg,repaintSchilder,updateHead,allLevels,addToLevel,putInSlot,regCustomer,ZONEN,zoneOffen,oeffneZone,applyZonen,SLOTS,RACKS,slotsOffen,colliders,LAY,LOGI,WRAMPEN,WTORE,updateSnow,unterDach,dachBereiche,get lapHit2(){return lapHit2},buildLagerTerminal,toggleTest,testLevel,buyUp,get toastLast(){return toastLast},__floorBoxen:()=>floorBoxes.length,WBAY_UP,wbays,dockPlaetze,wbayFrei,wbayOffen,spawnWTruck,updateWBays,wbaysInit,wtorSet,GANG,GANGTUER,buildLagergang,flaeche,WTOR,RACKKIND,route,NAV,navFrei,navIdx,navBuild,shelfStand,shelves,sbLanes,buildSBKasse,sbFrei,sbOffen,sbNutzbar,EING2,eingaenge,naechsterEingang,setEingang2,buildSBKasse2,get sb2G(){return sb2G},TUEREN,tuerSetD,tuerNahD,packBereit,packOne,paketWert,bestellungenProTag,pakete,ddlAbholung,updateVersand,VS_GR,VS_FELD,WG_PARK,vsNeueBestellung,vsAbgleich,vsKlasse,vsQuellen,vsBestand,vsErfuellbar,vsPlan,vsStapel,vsSpielerPacken,vsSpielerBestellung,vsTischFrei,vsStatus,vsAufraeumen,vsLaden,vsBahn,vsPaketOffen,vsKlappen,vsFuellung,vsPaketZu,get vsTisch(){return vsTisch},get vsWagen(){return vsWagen},createShelf,createRack,regalStellen,testKauf,regalAufbauen,orderRegal,REGALWARE,regalOf,regalKind,regalPreis,regalPlatz,regalOffen,startGame,promptFor,ERFOLGE,erfOffen,erfStufe,erfStand,erfZiel,erfFertig,erfAnteil,erfGeschafft,erfGesamt,stat,statAdd,statRekord,statVerkauf,bruchGesehen,gruppeVon,GRUPPE,TRAEGER,BRUCH,BRUCH_IDS,REZ_FARBEN,ETIKETT,traegerVon,traegerOffen,bruchOffen,bruchListe,rezeptWow,rezeptKosten,rezeptMarkt,rezeptHype,rezeptDauer,rezeptEntwicklung,rezeptGueltig,eigeneListe,eigenesEintragen,rezepteTick,rezProto,rezBauen,renderRezeptur,get entwurf(){return entwurf},set entwurf(v){entwurf=v},entwurfInit,ORDER,LIZENZEN,lizenzOf,hatLizenz,lizenzDaten,naechsteLizenz,buyLizenz,VOLA,volaOf,REGIME,marketOf,costOf,marktZiel,marktLuecke,meOf,miOf,marktDelta,marktNiveau,marktPhase,marktSchock,marktLabel,marktSchnitt,marktExtrem,marktChance,sortimentBreite,sortimentZug,bekanntheit,spawnInterval,rollMarkt,marktInit,inflOf,inflText,setPreisAufMarkt,igniteType,get packHit(){return packHit},get packTisch(){return packTisch},get packMov(){return packMov},zuendeKanal,zuendeAlle,alleKanaele,get pultText(){return pultText},drawPult,kanalItem,openZuend,closeZuend,get zuendOpen(){return zuendOpen},overlayOpen,pultTaster,zuendTick,TISCH_X,RAMPE_X,KANAL_START,bereitCount,brennDauer,muendung,pultLamps,RAKETEN_LOOK,RAKETEN_KL,makePerson,applyTOD,updateHUD,renderer,renderFrame,get DEMO(){return DEMO},LHALLE,LOGI_STUFEN,TOR_STUFE,logiStufe,logiZeige,logiAnwenden,LOGI_G,TOR_G,WTORE,tuAktion:(kind,ref)=>{ const alt=target; target={kind,ref}; try{ doAction(); } finally { target=alt; } },promptFor,KARREN,karreArt,karreAn,karreStapel,karreLast,karreNimmt,toggleKarre,updateKarre,setTutorial,tutorialAn,zielFuer,get zielAktuell(){return zielAktuell},get tipKey(){return tipKey},updateZiel,set DEMO(v){DEMO=v},kapitelVon,kapitelVoll,openHandy,closeHandy,toggleHandy,get handyOpen(){return handyOpen},get happ(){return happ},HANDY_APPS,renderHandy,shaderVorab,SCHONER,schonerMalen,updateSchoner,makeWischer,stelleWischer,get wischer(){return wischer},updateWischen,wischerPersonal,cleanTick,updateFireworks,FLASH,spurEnden,LR_LAMPE,schweber,kundenSymbol,geldSchwebt,get serie(){return serie},serieZufrieden,serieBricht,KAPITEL,kapitel,kapitelNr,kapitelAufstieg,WA,WA_SLOTS,vorDieTuer,SB_KASSIERER,sbBesetzt,sbLaneVon,sbKassiererPlatz,sbBetreuer,sbHeimPlatz,sbHelferPlatz,sbGeholfen,sbFreiNah,sbZone,SB_SELBST,sbPos,MUSIK,STUECKE,musikAn,musikWeiter,musikVol,musikTick,spielSchritt,get mStep(){return mStep},set mStep(v){mStep=v;mTakte=0;},get mBus(){return mBus},get postHalf(){return postHalf},EFF_SCHWEIF,mitSchweif,KOEPFE,KLEID,UNIFORM,STAFFKOPF,faceCache,animPerson,PACKS,packPreis,packPool,packOffen,packContents,syncPakete,rotateGrab,cancelGrab,moebelTaste,moebelEinpacken,paketAuspacken,moebelImBlick,removeShelf,removeRack,PACK_FL,PACK_HOME,spotFree,rectOf,grab,placeGrab,updateGrab,get grabbed(){return grabbed},showPause,closePause,pauseSeite,pauseSeiteAktiv,zumStartbildschirm,fortsetzen,musikWahl,musikTitel,get startOpen(){return startOpen},get pauseOpen(){return pauseOpen},get target(){return target},einrOf,einrAktiv,einrHoch,einrRunter,einrSchalten,AUFGABEN,einrJob,kartonMat,pools,shelfStockOf,removeFromLevel,fwLog:(a)=>{FW_LOG=a;},moerserRohr,ROHR_KALIBER,effPassen,EFF_FAMILIE,basisBlick,fwTestSchalten,fwTestProdukte,fwTestStapeln,get fwTestAn(){return fwTestAn},get fwTestBoxen(){return fwTestBoxen},get fwTestMarken(){return fwTestMarken},fwStufe,sonne:()=>sun.intensity,get fwUhr(){return FW_UHR},THEMEN,SHOW_BASIS,EFF,emittersListe:()=>emitters,show,SIGNATUR,showZeiten,showDauer,phDauer,musterWinkel,feuertopf,playShow,KAL,get rohrStreu(){return ROHR_STREU},vorfuehrungAn,vorfuehrungAus,vfNaechstes,vfZuenden,vfSpringen,vfNote,vfText,vfTaste,get vfAn(){return vfAn},get vfGezuendet(){return vfGezuendet},get vfIdx(){return vfIdx},get vfLetzt(){return vfLetzt},get vfListe(){return vfListe},get vfEl(){return vfEl},set rohrStreu(v){ROHR_STREU=v},BUENDEL,bSammeln,bWaechter,buendelJetzt:()=>{ bSammeln(); bSammeln(); return BUENDEL.n; },NEU_TEST,get vfSonder(){return vfSonder},vpSchalten,vpStart,vpAus,vpStellplaetze,vpVerteilen,vpProdukte,vpFuellung,get vpAn(){return vpAn},get vpRegale(){return vpRegale},get vpPlan(){return vpPlan},VP_FL,modRaster,slotLocal,gfxAnwenden,gfxWaehlen,gfxMessen,gfxMess,gfxAnzeige,get GFX(){return GFX},get GFX_WAHL(){return GFX_WAHL},QUAL,rohrBedarf,rohrLayout,rohrSatz,istBatterie,batterieModell,zuendPlan,buildProduct,capOf,zuendFolge,rohrMund,korpusTeile,rohrGeometrie,stationsPool,poolsAus,istVerbundKarton,regalFarben,regaleFaerben,get ROHR_LOG(){return ROHR_LOG},set ROHR_LOG(v){ROHR_LOG=v},schattenSichtbar:()=>renderer.shadowMap.enabled&&sun.shadow.bias>-1,
+    scene,camera,P,NEUWARE,NEU_SHOWS,NEU_FONT,NEU_KUGEL,neuZuenden,PARK,restWelle,restTick,restDruck,restDaten,buyAngebot,grossOffen,updatePark,parkWasser:()=>_wasserM,parkTannen:()=>PARK_TANNEN,parkLeben:()=>parkEnten.concat(parkLeute).map(e=>({x:e.g.position.x,z:e.g.position.z})),pendingListe:()=>pending,einbauPakete,spawnPaket,paketAblegen,paketAufheben,EINBAU,PAKET_MASS,vorDieTuer,setSB2,sbZiel,makeAuto,AUTOFORM,stadtInfo:()=>({warn:beacons.length,kronen:KRONEN.length,stufen:SKYLINE_INFO.stufen,skyStile:SKYLINE_INFO.stile.size,stile:Object.keys(STADT_MATS).length}),clearStations,fachHoehe,kindOf,packKartonWert,SUPPLIERS,supplierFor,supplierOf,tierPrice,isUnlocked,lizLevel,renderLaptop,get lsup(){return lsup},set lsup(v){lsup=v},get lkat(){return lkat},set lkat(v){lkat=v},SPARTE,SPARTE_NAME,sparteVon,HEADNAME,headArt,catPill,ekRoh,ekDelta,ekTag,ekNiveau,ekPill,get ltab(){return ltab},set ltab(v){ltab=v},EFF,EFF_ALL,EFF_KLEIN,EFF_GROSS,EFF_PRO,SHOWS,kugelbombe,shot,mine,FW,stations,stationOf,placedCount,togglePDA,openPDA,closePDA,setPost,get postOn(){return postOn},get pdaOn(){return pdaOn},showLength,psHuge,psBig,psMid,psSmall,rockets,emitters,timersLen:()=>timers.length,timersLeeren:()=>{timers.length=0;},setView:(x,z,y,p)=>{pl.x=x;pl.z=z;yaw=y;pitch=p;aim=null;},schiebe:(x,z)=>{pl.x=x;pl.z=z;collide(pl,0.32);return{x:pl.x,z:pl.z};},PLZ_MAX,camYaw:()=>yaw,camPitch:()=>pitch,playerPos:()=>({x:pl.x,z:pl.z}),pultYaw:()=>pultHit?pultHit.parent.rotation.y:null,get pultHit(){return pultHit},applyShopName,shopName,shopSlogan,signTexPx:()=>signTex&&signTex.image?signTex.image.getContext('2d').getImageData(0,0,signTex.image.width,40).data.join(''):null,lagerWall,fwShot:shot,KUGEL_R,ROHR_INNEN,MOERSER_R,moerserRohr,sfx,WOLKEN,get master(){return master},ac,SORTE_NEU,sortenUmstellen,get shakeWert(){return shake},get ckG(){return ckG},get ckNameTex(){return ckNameTex},get ckMovable(){return ckMov},CK_HOME,CK_ALT,spotPos,queueApproach,ckTexPx:()=>ckNameTex&&ckNameTex.image?ckNameTex.image.getContext('2d').getImageData(0,0,ckNameTex.image.width,60).data.join(''):null,testfeldMitte,STATION_POS,aimAt,UPGRADES,upPic,PLAN,planFlaechen,uhrZeiger:()=>({std:uhrStd?+uhrStd.rotation.z.toFixed(4):0,min:uhrMin?+uhrMin.rotation.z.toFixed(4):0}),drawRackSchild,get snowPts(){return snowPts},buildStadt,updateStadt,get stadtBoxen(){return stadtBoxen},get stadtBaeume(){return stadtBaeume},buildFernbaeume,schwaerme,beacons,silhouetten,get verkehrPts(){return verkehrPts},get rauchPts(){return rauchPts},get flieger(){return flieger},stadtFrei,STADT_FREI,WALLS,FLOORS,bodenMalen,wandMalen,oberflaechenMuster,oberflaechenAnwenden,BODEN_KACHEL,WAND_B,WAND_H,bodenPx,wandPx,innenUmgebung,sockelM,get wallTex(){return wallTex},get floorTexRef(){return floorTexRef},get floorMat(){return floorMat},get shopWall(){return shopWall},renderOnline,onlineHint,onlineStufe,onlineZahlen,onlineListe,updateOnline,SCHILDBG,SCHILDFG,setSchild,schildBg,schildFg,repaintSchilder,updateHead,allLevels,addToLevel,putInSlot,regCustomer,ZONEN,zoneOffen,oeffneZone,applyZonen,SLOTS,RACKS,slotsOffen,colliders,LAY,LOGI,WRAMPEN,WTORE,updateSnow,unterDach,dachBereiche,get lapHit2(){return lapHit2},buildLagerTerminal,toggleTest,testLevel,buyUp,get toastLast(){return toastLast},__floorBoxen:()=>floorBoxes.length,WBAY_UP,wbays,dockPlaetze,wbayFrei,wbayOffen,spawnWTruck,updateWBays,wbaysInit,wtorSet,GANG,GANGTUER,buildLagergang,flaeche,WTOR,RACKKIND,route,NAV,navFrei,navIdx,navBuild,shelfStand,shelves,sbLanes,buildSBKasse,sbFrei,sbOffen,sbNutzbar,EING2,eingaenge,naechsterEingang,setEingang2,buildSBKasse2,get sb2G(){return sb2G},TUEREN,tuerSetD,tuerNahD,packBereit,packOne,paketWert,bestellungenProTag,pakete,ddlAbholung,updateVersand,VS_GR,VS_FELD,WG_PARK,vsNeueBestellung,vsAbgleich,vsKlasse,vsQuellen,vsBestand,vsErfuellbar,vsPlan,vsStapel,vsSpielerPacken,vsSpielerBestellung,vsTischFrei,vsStatus,vsAufraeumen,vsLaden,vsBahn,vsPaketOffen,vsKlappen,vsFuellung,vsPaketZu,get vsTisch(){return vsTisch},get vsWagen(){return vsWagen},createShelf,createRack,regalStellen,testKauf,regalAufbauen,orderRegal,REGALWARE,regalOf,regalKind,regalPreis,regalPlatz,regalOffen,startGame,promptFor,ERFOLGE,erfOffen,erfStufe,erfStand,erfZiel,erfFertig,erfAnteil,erfGeschafft,erfGesamt,stat,statAdd,statRekord,statVerkauf,bruchGesehen,gruppeVon,GRUPPE,TRAEGER,BRUCH,BRUCH_IDS,REZ_FARBEN,ETIKETT,traegerVon,traegerOffen,bruchOffen,bruchListe,rezeptWow,rezeptKosten,rezeptMarkt,rezeptHype,rezeptDauer,rezeptEntwicklung,rezeptGueltig,eigeneListe,eigenesEintragen,rezepteTick,rezProto,rezBauen,renderRezeptur,get entwurf(){return entwurf},set entwurf(v){entwurf=v},entwurfInit,ORDER,LIZENZEN,lizenzOf,hatLizenz,lizenzDaten,naechsteLizenz,buyLizenz,VOLA,volaOf,REGIME,marketOf,costOf,marktZiel,marktLuecke,meOf,miOf,marktDelta,marktNiveau,marktPhase,marktSchock,marktLabel,marktSchnitt,marktExtrem,marktChance,sortimentBreite,sortimentZug,bekanntheit,spawnInterval,rollMarkt,marktInit,inflOf,inflText,setPreisAufMarkt,igniteType,get packHit(){return packHit},get packTisch(){return packTisch},get packMov(){return packMov},zuendeKanal,zuendeAlle,alleKanaele,get pultText(){return pultText},drawPult,kanalItem,openZuend,closeZuend,get zuendOpen(){return zuendOpen},overlayOpen,pultTaster,zuendTick,TISCH_X,RAMPE_X,KANAL_START,bereitCount,brennDauer,muendung,pultLamps,RAKETEN_LOOK,RAKETEN_KL,makePerson,applyTOD,updateHUD,renderer,renderFrame,get DEMO(){return DEMO},LHALLE,LOGI_STUFEN,TOR_STUFE,logiStufe,logiZeige,logiAnwenden,LOGI_G,TOR_G,WTORE,tuAktion:(kind,ref)=>{ const alt=target; target={kind,ref}; try{ doAction(); } finally { target=alt; } },promptFor,KARREN,karreArt,karreAn,karreStapel,karreLast,karreNimmt,toggleKarre,updateKarre,setTutorial,tutorialAn,zielFuer,get zielAktuell(){return zielAktuell},get tipKey(){return tipKey},updateZiel,set DEMO(v){DEMO=v},kapitelVon,kapitelVoll,openHandy,closeHandy,toggleHandy,get handyOpen(){return handyOpen},get happ(){return happ},HANDY_APPS,renderHandy,shaderVorab,SCHONER,schonerMalen,updateSchoner,makeWischer,stelleWischer,get wischer(){return wischer},updateWischen,wischerPersonal,cleanTick,updateFireworks,FLASH,spurEnden,LR_LAMPE,schweber,kundenSymbol,geldSchwebt,get serie(){return serie},serieZufrieden,serieBricht,KAPITEL,kapitel,kapitelNr,kapitelAufstieg,WA,WA_SLOTS,vorDieTuer,SB_KASSIERER,sbBesetzt,sbLaneVon,sbKassiererPlatz,sbBetreuer,sbHeimPlatz,sbHelferPlatz,sbGeholfen,sbFreiNah,sbZone,SB_SELBST,sbPos,MUSIK,STUECKE,musikAn,musikWeiter,musikVol,musikTick,spielSchritt,get mStep(){return mStep},set mStep(v){mStep=v;mTakte=0;},get mBus(){return mBus},get postHalf(){return postHalf},EFF_SCHWEIF,mitSchweif,KOEPFE,KLEID,UNIFORM,STAFFKOPF,faceCache,animPerson,PACKS,packPreis,packPool,packOffen,packContents,syncPakete,rotateGrab,cancelGrab,moebelTaste,moebelEinpacken,paketAuspacken,moebelImBlick,removeShelf,removeRack,PACK_FL,PACK_HOME,spotFree,rectOf,grab,placeGrab,updateGrab,get grabbed(){return grabbed},showPause,closePause,pauseSeite,pauseSeiteAktiv,zumStartbildschirm,fortsetzen,musikWahl,musikTitel,get startOpen(){return startOpen},get pauseOpen(){return pauseOpen},get target(){return target},einrOf,einrAktiv,einrHoch,einrRunter,einrSchalten,AUFGABEN,einrJob,kartonMat,pools,shelfStockOf,removeFromLevel,fwLog:(a)=>{FW_LOG=a;},moerserRohr,ROHR_KALIBER,effPassen,EFF_FAMILIE,basisBlick,fwTestSchalten,fwTestProdukte,fwTestStapeln,get fwTestAn(){return fwTestAn},get fwTestBoxen(){return fwTestBoxen},get fwTestMarken(){return fwTestMarken},fwStufe,sonne:()=>sun.intensity,get fwUhr(){return FW_UHR},THEMEN,SHOW_BASIS,EFF,emittersListe:()=>emitters,show,SIGNATUR,showZeiten,showDauer,phDauer,musterWinkel,feuertopf,playShow,KAL,get rohrStreu(){return ROHR_STREU},vorfuehrungAn,vorfuehrungAus,vfNaechstes,vfZuenden,vfSpringen,vfNote,vfText,vfTaste,get vfAn(){return vfAn},get vfGezuendet(){return vfGezuendet},get vfIdx(){return vfIdx},get vfLetzt(){return vfLetzt},get vfListe(){return vfListe},get vfEl(){return vfEl},set rohrStreu(v){ROHR_STREU=v},BUENDEL,bSammeln,bWaechter,buendelJetzt:()=>{ bSammeln(); bSammeln(); return BUENDEL.n; },NEU_TEST,get vfSonder(){return vfSonder},vpSchalten,vpStart,vpAus,vpStellplaetze,vpVerteilen,vpProdukte,vpFuellung,get vpAn(){return vpAn},get vpRegale(){return vpRegale},get vpPlan(){return vpPlan},get vpFertig(){return vpFertig},poolDa,poolWeg,VP_FL,modRaster,slotLocal,gfxAnwenden,gfxWaehlen,gfxMessen,gfxMess,gfxAnzeige,get GFX(){return GFX},get GFX_WAHL(){return GFX_WAHL},QUAL,rohrBedarf,rohrLayout,rohrSatz,istBatterie,batterieModell,zuendPlan,buildProduct,capOf,zuendFolge,rohrMund,korpusTeile,rohrGeometrie,stationsPool,poolsAus,istVerbundKarton,regalFarben,regaleFaerben,get ROHR_LOG(){return ROHR_LOG},set ROHR_LOG(v){ROHR_LOG=v},schattenSichtbar:()=>renderer.shadowMap.enabled&&sun.shadow.bias>-1,
     shot:()=>{ noLoop=true; camera.position.set(pl.x,1.65,pl.z); camera.rotation.set(pitch,yaw,0); camera.updateMatrixWorld(); updateTarget(); applyTOD(); renderFrame(0.016); return canvas.toDataURL('image/jpeg',0.85); },
     run:(sec,dt)=>{ noLoop=true; const n=Math.round(sec/(dt||0.05)); for(let i=0;i<n;i++) step(dt||0.05); }};
 });

@@ -70,7 +70,8 @@ function prodPic(t){
       /* Ware, die noch nirgends steht, bekommt fuer das Bild ein Modell
          auf Zeit - danach wird es wieder freigegeben, statt fuer jedes
          Produkt im Katalog dauerhaft Texturen zu halten */
-      const da=poolDa(t), teile=da?pools[t].meshes.map(m=>({geo:m.geometry,mat:m.material})):buildProduct(t);
+      /* Vorfuehrungs-Modelle haben ihre Leinwand schon abgegeben - nicht nehmen */
+      const da=poolDa(t)&&!pools[t].vp, teile=da?pools[t].meshes.map(m=>({geo:m.geometry,mat:m.material})):buildProduct(t);
       const g=new THREE.Group(); teile.forEach(m=>g.add(new THREE.Mesh(m.geo,m.mat)));
       /* Packung leicht gedreht, Kamera auf die groesste Ausdehnung */
       g.rotation.y=-0.5; T.sc.add(g);

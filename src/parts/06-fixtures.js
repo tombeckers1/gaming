@@ -760,11 +760,11 @@ function bauMoebel(K,sh,g,RF){
   for(const k in GB) GB[k].dispose();
   /* je Ebene Preisschild und Trefferflaeche (Unterbau-Faecher, Wanne bzw. Platte) */
   K.lv.forEach((yl,li)=>{
-    const lt=tex(700,80,()=>{}); lt.anisotropy=8;
+    const lt=tex(Math.round(700*REGAL_TEX),Math.round(80*REGAL_TEX),()=>{}); lt.anisotropy=8;
     plane(Math.min(0.46,iw*0.46),0.052,new THREE.MeshBasicMaterial({map:lt,toneMapped:false}),0,preisY[li],D/2+(K.bau==='tisch'?-0.032:0.003),0,fg);
     const h=fachHoehe(K,li), hit=bbox(iw,h,D,hitM,0,yl+h/2,0.01,fg,false);
     const lv={sh,li,face:0,type:null,count:0,q:1,items:[],tex:lt,hit}; hit.userData={kind:'level',ref:lv}; sh.levels.push(lv); });
-  sh.headTex=tex(1024,160,()=>{});
+  sh.headTex=tex(Math.round(1024*REGAL_TEX),Math.round(160*REGAL_TEX),()=>{});
   const hz=K.bau==='tisch'?-D/2+0.08+0.016:D/2+0.008, hwid=K.bau==='tisch'?0.96:0.86;
   plane(hwid,0.17,new THREE.MeshBasicMaterial({map:sh.headTex,toneMapped:false,side:THREE.DoubleSide}),0,headY,hz,0,kg);
   sh.headY=headY;
@@ -808,13 +808,13 @@ function createShelf(i,data){
       st.push({geo:box(iw,0.012,0.02),m:tm(0,y-0.045,D/2-0.011),rolle:'lippe'});
       st.push({geo:box(iw-0.04,0.018,0.05),m:tm(0,y-0.055,-D/2+0.06),rolle:'rahmen'});
       if(li>0||K.cold) li0.push({geo:box(iw-0.06,0.016,0.04),m:tm(0,y-0.048,D/2-0.07)});
-      const lt=tex(700,80,()=>{}); lt.anisotropy=8;
+      const lt=tex(Math.round(700*REGAL_TEX),Math.round(80*REGAL_TEX),()=>{}); lt.anisotropy=8;
       plane(Math.min(0.46,iw*0.46),0.052,new THREE.MeshBasicMaterial({map:lt,toneMapped:false}),0,y-0.02,D/2-0.004,0,fg);
       const fh=fachHoehe(K,li), hit=bbox(iw,fh,D,hitM,0,y+fh/2,0.01,fg,false);
       const lv={sh,li,face:fi,type:null,count:0,q:1,items:[],tex:lt,hit}; hit.userData={kind:'level',ref:lv}; sh.levels.push(lv);
     });
     /* Kopfschild ueber jeder Warenseite */
-    if(fi===0) sh.headTex=tex(1024,160,()=>{});
+    if(fi===0) sh.headTex=tex(Math.round(1024*REGAL_TEX),Math.round(160*REGAL_TEX),()=>{});
     const hy=top+(K.cold?0.34:0.18);
     st.push({geo:box(W-0.04,0.28,0.05),m:tm(0,hy,0.02),rolle:'kopf'});
     plane(W-0.1,0.24,new THREE.MeshBasicMaterial({map:sh.headTex,toneMapped:false}),0,hy,0.051,0,fg);
@@ -889,6 +889,16 @@ function updateLabel(lv){
     else { g.fillStyle='rgba(242,245,255,.75)'; g.font=BAR(24); g.textAlign='center'; g.fillText('leer',W/2,H/2+1); } });
 }
 function capOf(lv,t){ return layout(t||lv.type,lv.sh,lv).cap; }
+/* Schildaufloesung (1 = Laden). Die Verpackungs-Vorfuehrung stellt 50
+   Moebel auf einmal auf - mit halber Aufloesung brauchen ihre rund 250
+   Schilder ein Viertel des Grafikspeichers (02.10., iPhone stuerzte ab). */
+let REGAL_TEX=1;
+/* Viele Stuecke auf einmal: Preis- und Kopfschild erst am Ende zeichnen.
+   Vorher wurde fuer jedes einzelne Stueck neu gemalt und hochgeladen -
+   bei 10 000 Stueck zwanzigtausendmal (Verpackungs-Vorfuehrung, 6 s). */
+let _ohneSchild=false;
+function addViele(lv,t,n){ _ohneSchild=true; let k=0; try{ while(k<n&&addToLevel(lv,t,1)) k++; } finally{ _ohneSchild=false; } updateLabel(lv); updateHead(lv.sh); return k; }
+function leereFach(lv){ _ohneSchild=true; try{ while(lv.count>0) removeFromLevel(lv); } finally{ _ohneSchild=false; } }
 function addToLevel(lv,t,q){
   if(lv.sh&&lv.sh.weg) return false;
   /* jedes eingeraeumte Stueck zaehlt fuer die Herausforderung */
@@ -901,10 +911,10 @@ function addToLevel(lv,t,q){
   /* face mitgeben: sonst landete die Ware der zweiten Gondel- und
      Eckregalseite auf der ersten (02.10., Verpackungs-Vorfuehrung) */
   const h=pools[t].add(itemMatrix(lv.sh,{li:lv.li,type:t,face:lv.face},lv.count,jit)); h.jit=jit;
-  lv.items.push(h); lv.count++; updateLabel(lv); updateHead(lv.sh); return true;
+  lv.items.push(h); lv.count++; if(!_ohneSchild){ updateLabel(lv); updateHead(lv.sh); } return true;
 }
 /* der Kunde nimmt vorn: das zuletzt eingeraeumte Stueck steht am weitesten vorn */
-function removeFromLevel(lv){ const h=lv.items.pop(); if(h) h.pool.remove(h); lv.count--; if(lv.count<=0){ lv.count=0; lv.type=null; lv.q=1; } updateLabel(lv); updateHead(lv.sh); }
+function removeFromLevel(lv){ const h=lv.items.pop(); if(h) h.pool.remove(h); lv.count--; if(lv.count<=0){ lv.count=0; lv.type=null; lv.q=1; } if(!_ohneSchild){ updateLabel(lv); updateHead(lv.sh); } }
 function allLevels(){ const a=[]; shelves.forEach(s=>s.levels.forEach(l=>a.push(l))); return a; }
 function findLevel(t,from){ let best=null,bd=1e9; for(const l of allLevels()){ if(l.type===t&&l.count>0){ const d=from?from.distanceTo(shelfStand(l.sh,l)):0; if(d<bd){ bd=d; best=l; } } } return best; }
 /* Größtes Fach, das dieses Produkt überhaupt aufnehmen kann */

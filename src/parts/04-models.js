@@ -6,7 +6,7 @@ const vcMat=new THREE.MeshStandardMaterial({vertexColors:true,roughness:0.45});
 const glassMat=new THREE.MeshStandardMaterial({color:0xffffff,transparent:true,opacity:0.22,roughness:0.05,metalness:0.1,depthWrite:false});
 const bottleGlass=new THREE.MeshStandardMaterial({color:LIN(0x1f4a35),transparent:true,opacity:0.82,roughness:0.15,metalness:0.15});
 function wrapTex(circ,hh,a,draw){
-  return tex(Math.max(32,Math.round(circ*1400)),Math.max(32,Math.round(hh*1400)),draw);
+  return tex(Math.max(32,Math.round(circ*1400*TEX_FAKTOR)),Math.max(32,Math.round(hh*1400*TEX_FAKTOR)),draw);
 }
 function buildProduct(t,roh){
   /* roh: das Produkt selbst ohne Verpackung (Zuendtisch, Inhalt des Kartons) */

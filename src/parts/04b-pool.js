@@ -25,6 +25,14 @@ const pools=new Proxy(_pools,{get(o,k){
   if(typeof k==='string'&&!(k in o)&&typeof P!=='undefined'&&P[k]&&P[k].dims) o[k]=new ItemPool(buildProduct(k),poolCap(k));
   return o[k]; }});
 function poolDa(t){ return t in _pools; }
+/* Pool ganz weg (Verpackungs-Vorfuehrung beim Beenden): Meshes aus der
+   Szene, eigene Geometrie, Materialien mit Bild und die Bilder frei.
+   Die geteilten Materialien (vcMat, Glas) bleiben. */
+function poolWeg(t){ const pl=_pools[t]; if(!pl) return; const geteilt=new Set([vcMat,glassMat,bottleGlass]);
+  for(const m of pl.meshes){ if(m.parent) m.parent.remove(m); m.geometry.dispose(); if(m.dispose) m.dispose();
+    const ms=Array.isArray(m.material)?m.material:[m.material];
+    ms.forEach(mt=>{ if(!mt||geteilt.has(mt)) return; for(const k of ['map','emissiveMap','alphaMap','bumpMap']) if(mt[k]) mt[k].dispose(); mt.dispose(); }); }
+  delete _pools[t]; }
 const _q=new THREE.Quaternion(), _e=new THREE.Euler(), _one=V(1,1,1);
 function mx(x,y,z,ry){ _e.set(0,ry||0,0); _q.setFromEuler(_e); return new THREE.Matrix4().compose(V(x,y,z),_q,_one); }
 

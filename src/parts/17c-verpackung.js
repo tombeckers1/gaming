@@ -14,6 +14,13 @@
    und kommt beim Beenden zurueck.
    ========================================================= */
 let vpAn=false, vpRegale=[], vpWeg=[], vpEl=null, vpPlan=[], vpVorher=null;
+/* 02.10. (Tom: "beim Starten haengt sich das Spiel auf ... Fehler ist
+   aufgetreten", PC und iPhone): alle 225 Verpackungen auf einmal kosteten
+   124 Megapixel Texturen (660 MB Grafik- + 500 MB Zwischenspeicher) und
+   blockierten den Start 10 s. Jetzt: Verpackungsbilder der Vorfuehrung in
+   halber Aufloesung, Leinwand nach dem Hochladen frei, keine Schatten,
+   Aufbau Stueck fuer Stueck mit Anzeige, beim Beenden alles wieder frei. */
+let vpFertig=false, vpLauf=0, vpNeu=new Set(), vpV=null;
 const VP_FL={x0:-19.9,x1:-8.1,z0:-29.9,z1:-5.9}, VP_RAND=0.25, VP_GANG=1.8;
 /* Reihen von Nord (Eingang) nach Sued. seite: wohin die Ware schaut
    (n = zum Eingang, s = nach Sueden); paar: steht Ruecken an Ruecken
@@ -100,19 +107,44 @@ function vpVerteilen(regale){
 }
 function vpAufbauen(){
   const st=vpStellplaetze();
-  vpRegale=st.map((s,i)=>{ const sh=createShelf(9000+i,{kind:s.kind,x:s.x,z:s.z,ry:s.ry});
+  REGAL_TEX=0.5;
+  try{ vpRegale=st.map((s,i)=>{ const sh=createShelf(9000+i,{kind:s.kind,x:s.x,z:s.z,ry:s.ry});
     /* nicht Teil des Ladens: raus aus Regal- und Moebelliste, die
        Kollision bleibt, damit man nicht hindurchlaeuft */
     const k=shelves.indexOf(sh); if(k>=0) shelves.splice(k,1);
     const m=movables.indexOf(sh.mov); if(m>=0) movables.splice(m,1);
-    sh.vp=true; return sh; });
+    sh.vp=true; return sh; }); } finally { REGAL_TEX=1; }
   const V=vpVerteilen(vpRegale); vpPlan=V.plan;
-  V.plan.forEach(e=>{ const n=layout(e.t,e.sh,e.lv).cap; for(let k=0;k<n;k++) if(!addToLevel(e.lv,e.t,1)) break; });
   return V;
 }
+/* ein Produkt einraeumen; fehlt sein Modell noch, entsteht es sparsam */
+function vpEinraeumen(e){
+  if(!poolDa(e.t)){ TEX_FAKTOR=0.5; let pl; try{ pl=pools[e.t]; } finally { TEX_FAKTOR=1; }
+    pl.vp=true; vpNeu.add(e.t);
+    pl.meshes.forEach(m=>{ m.castShadow=false;
+      const ms=Array.isArray(m.material)?m.material:[m.material];
+      /* nach dem Hochladen braucht das Bild keine Leinwand mehr */
+      ms.forEach(mt=>{ const tx=mt&&mt.map; if(tx&&tx.image&&tx.image.getContext&&!tx.onUpdate){ tx.__px=tx.image.width*tx.image.height; tx.onUpdate=()=>{ tx.image.width=1; tx.image.height=1; tx.onUpdate=null; }; } }); }); }
+  addViele(e.lv,e.t,layout(e.t,e.sh,e.lv).cap);
+}
+/* Stueck fuer Stueck: je Bild hoechstens ~25 ms, dann darf das Spiel zeichnen */
+function vpFuellen(lauf,i){
+  if(!vpAn||lauf!==vpLauf) return;
+  const t0=performance.now();
+  while(i<vpPlan.length&&performance.now()-t0<25){ vpEinraeumen(vpPlan[i]); i++; }
+  if(i<vpPlan.length){ vpZeigen(vpV,i); setTimeout(()=>vpFuellen(lauf,i),16); return; }
+  vpFertig=true; vpZeigen(vpV);
+  toast(`Verpackungs-Vorführung: ${vpPlan.length} Produkte in ${vpRegale.length} Möbeln. B beendet.`,'money');
+}
 function vpAbbauen(){
-  vpRegale.forEach(sh=>{ sh.levels.forEach(lv=>{ while(lv.count>0) removeFromLevel(lv); }); dropFootprint(sh.mov); scene.remove(sh.g); });
+  vpRegale.forEach(sh=>{ sh.levels.forEach(leereFach); dropFootprint(sh.mov); scene.remove(sh.g);
+    /* eigene Texturen und Geometrien freigeben - geteilte Materialien bleiben */
+    sh.g.traverse(o=>{ if(!o.isMesh) return; const m=o.material;
+      if(m&&m.map&&(sh.levels.some(lv=>lv.tex===m.map)||m.map===sh.headTex)){ m.map.dispose(); m.dispose(); }
+      if((sh.gestelle||[]).includes(o)) o.geometry.dispose(); }); });
   vpRegale=[]; vpPlan=[];
+  /* Modelle, die nur fuer die Vorfuehrung entstanden sind, wieder weg */
+  vpNeu.forEach(t=>{ if(poolDa(t)&&pools[t].h.length===0) poolWeg(t); }); vpNeu=new Set();
 }
 /* Was sonst in der Halle steht, raeumen wir so lange beiseite */
 function vpImFeld(x,z){ return x>VP_FL.x0&&x<VP_FL.x1&&z>VP_FL.z0&&z<VP_FL.z1; }
@@ -130,26 +162,29 @@ function vpStart(){
   vpVorher={x:pl.x,z:pl.z,yaw,pitch};
   vpAn=true; VP_ZONEN=['lager','lager_gross','lager_sued','lager_sued2']; applyZonen();
   vpWegraeumen();
-  const V=vpAufbauen();
+  vpFertig=false; vpLauf++;
+  const V=vpAufbauen(); vpV=V;
   if(V.uebrig.length) console.warn('Verpackungs-Vorfuehrung: kein Platz fuer',V.uebrig.join(', '));
   /* am Eingang der Halle, Blick in die erste Gasse */
   pl.x=(VP_FL.x0+VP_FL.x1)/2; pl.z=VP_FL.z1-0.8; yaw=0; pitch=-0.08;
   if(laptopOpen) closeLaptop(true); if(typeof handyOpen!=='undefined'&&handyOpen) closeHandy();
-  vpZeigen(V);
-  toast(`Verpackungs-Vorführung: ${V.plan.length} Produkte in ${vpRegale.length} Möbeln. B beendet.`,'money');
+  vpZeigen(V,0);
+  const lauf=vpLauf; setTimeout(()=>vpFuellen(lauf,0),30);
 }
 function vpAus(){
   if(!vpAn) return;
+  vpLauf++; vpFertig=false;
   vpAbbauen(); vpZurueck(); vpAn=false; VP_ZONEN=null; applyZonen();
   if(vpEl){ vpEl.remove(); vpEl=null; }
   /* zurueck, wo man vorher stand */
   if(vpVorher){ pl.x=vpVorher.x; pl.z=vpVorher.z; yaw=vpVorher.yaw; pitch=vpVorher.pitch; vpVorher=null; }
   toast('Verpackungs-Vorführung beendet.');
 }
-function vpZeigen(V){
+function vpZeigen(V,bis){
   if(!vpEl){ vpEl=document.createElement('div'); vpEl.id='vpInfo';
     vpEl.style.cssText='position:fixed;left:50%;top:12px;transform:translateX(-50%);z-index:30;pointer-events:none;background:rgba(14,18,38,.82);color:#f2f5ff;border-radius:10px;padding:8px 16px;font:600 14px Barlow,Arial,sans-serif;text-align:center;border-top:3px solid #ffd23f';
     document.body.appendChild(vpEl); }
+  if(bis!==undefined){ vpEl.innerHTML=`<b style="font-size:17px;letter-spacing:.04em">VERPACKUNGS-VORFÜHRUNG</b><br>Regale werden eingeräumt … ${bis} / ${V.plan.length}`; return; }
   vpEl.innerHTML=`<b style="font-size:17px;letter-spacing:.04em">VERPACKUNGS-VORFÜHRUNG</b><br>${V.plan.length} Produkte · je Fach ein Produkt · Name und Preis am Fach${V.uebrig.length?` · <span style="color:#ff8a7a">${V.uebrig.length} ohne Platz</span>`:''} · B beendet`;
 }
 function vpTaste(e){ if(e.code==='KeyB'&&!e.repeat){ vpAus(); return true; } return false; }

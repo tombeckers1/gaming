@@ -14,6 +14,12 @@
      der Breite zu mindestens 85 % und in der Tiefe zu mindestens 75 %
    - AUS: nach dem Beenden ist alles wie vorher (Regale, Zonen, Kollision)
    Aufruf: node -r ladezeit-preload.js verpackung.js real.html
+   - SPEICHER / KNOPF (02.10. abends, Tom: "haengt sich auf, Fehler ist
+     aufgetreten", PC und iPhone): gestartet wird ueber den Knopf im Laptop,
+     der Klick haelt das Spiel hoechstens 2,5 s an (vorher 10,4 s), die
+     Verpackungsbilder der Vorfuehrung haben zusammen hoechstens 45
+     Megapixel (vorher 124), nach dem Beenden sind die Modelle wieder weg.
+     Gegenprobe: volle Aufloesung -> SPEICHER (124,2 MP).
    Gegenprobe (02.10.): ohne face in addToLevel -> SEITE schlaegt an (48
    Faecher auf der falschen Gondelseite); ohne Massraster -> LUECKE (119
    Produkte) und RAND (9 lange Packungen ueber dem Mittelsteher). */
@@ -31,9 +37,16 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   const errs=[]; p.on('pageerror',e=>errs.push('PAGEERROR: '+e.message));
   await p.goto('file://'+process.argv[2]); await p.waitForFunction('window.__bb!==undefined',{timeout:240000});
   await neuesSpiel(p);
-  const r=await p.evaluate(()=>{ const bb=window.__bb, P=bb.P, o={platz:[],voll:[],rand:[],fuge:[],seite:[],luecke:[],aus:[]};
-    const vorher={shelves:bb.shelves.length,cols:bb.colliders.length,lager:bb.ZONEN.lager_gross?bb.ZONEN.lager_gross.offen:null};
-    bb.vpStart();
+  /* wie im Spiel: Knopf im Laptop, dann baut sich die Halle Stueck fuer
+     Stueck auf - waehrenddessen laeuft das Spiel weiter */
+  const start=await p.evaluate(()=>{ const bb=window.__bb; window.__vorher={shelves:bb.shelves.length,cols:bb.colliders.length,lager:bb.ZONEN.lager_gross?bb.ZONEN.lager_gross.offen:null,pools:Object.keys(bb.pools).length};
+    bb.openLaptop(); bb.ltab='laden'; bb.renderLaptop(); const k=document.querySelector('[data-a="verpackung"]'); const t=performance.now(); if(k) k.click(); return {knopf:!!k,ms:Math.round(performance.now()-t)}; });
+  console.log('Knopf',JSON.stringify(start));
+  await p.waitForFunction('window.__bb.vpFertig',null,{timeout:1200000,polling:500});
+  const r=await p.evaluate((start)=>{ const bb=window.__bb, P=bb.P, o={platz:[],voll:[],rand:[],fuge:[],seite:[],luecke:[],aus:[]};
+    const vorher=window.__vorher;
+    /* der Klick darf das Spiel nicht lange anhalten (vorher 10 s) */
+    if(!start.knopf) o.aus.push('kein Knopf im Laptop'); if(start.ms>2500) o.aus.push('Knopf blockiert das Spiel '+start.ms+' ms');
     const regale=bb.vpRegale, plan=bb.vpPlan, alle=bb.vpProdukte();
     /* PLATZ */
     const hat=new Set(plan.map(e=>e.t)); alle.forEach(t=>{ if(!hat.has(t)) o.platz.push('ohne Fach: '+t); });
@@ -70,12 +83,18 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
           const fw=L.cols*(L.w+L.g)/(R.B*R.MX), fd=L.rows*(L.d+L.g)/(R.T*R.MZ); if(!best||fw*fd>best.fw*best.fd) best={fw,fd}; });
         /* Kugelbomben sind rund und muessen ins Moerserrohr: nur die Breite zaehlt */
         if(best){ if(best.fw<0.85||(best.fd<0.75&&pp.shape!=='shell')) o.luecke.push(`${t} in ${k}: Breite ${Math.round(best.fw*100)} %, Tiefe ${Math.round(best.fd*100)} %`); break; } } });
+    /* SPEICHER: Verpackungsbilder der Vorfuehrung zusammen hoechstens 45
+       Megapixel (vorher 124 - das iPhone stuerzte ab) */
+    { const seen=new Set(); let px=0; for(const t of alle){ const pl=bb.pools[t]; if(!pl||!pl.vp) continue;
+        pl.meshes.forEach(m=>{ (Array.isArray(m.material)?m.material:[m.material]).forEach(mt=>{ const tx=mt&&mt.map; if(tx&&!seen.has(tx)){ seen.add(tx); px+=(tx.__px||(tx.image?tx.image.width*tx.image.height:0)); } }); }); }
+      o.mp=Math.round(px/1e5)/10; }
     bb.vpAus();
-    const nach={shelves:bb.shelves.length,cols:bb.colliders.length,lager:bb.ZONEN.lager_gross?bb.ZONEN.lager_gross.offen:null};
+    const nach={shelves:bb.shelves.length,cols:bb.colliders.length,lager:bb.ZONEN.lager_gross?bb.ZONEN.lager_gross.offen:null,pools:Object.keys(bb.pools).length};
     if(JSON.stringify(vorher)!==JSON.stringify(nach)) o.aus.push(JSON.stringify(vorher)+' -> '+JSON.stringify(nach));
     if(bb.vpRegale.length) o.aus.push('Moebel bleiben stehen');
-    o.n=plan.length; o.moebel=regale.length; return o; });
-  console.log('Produkte',r.n,'Moebel',r.moebel);
+    o.n=plan.length; o.moebel=regale.length; return o; },start);
+  console.log('Produkte',r.n,'Moebel',r.moebel,'Verpackungsbilder',r.mp,'MP');
+  if(!(r.mp<=45)) r.aus.push('SPEICHER: Verpackungsbilder '+r.mp+' Megapixel (hoechstens 45)');
   const m=[];
   for(const k of ['platz','voll','rand','fuge','seite','luecke','aus']) if(r[k].length) m.push(k.toUpperCase()+' '+r[k].length+'x: '+r[k].slice(0,40).join(' | '));
   console.log('MANGEL:',m.join('\n')||'keine');

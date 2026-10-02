@@ -2,9 +2,10 @@
    reinpasst, auch schoen - ich will nicht jedes einzelne testen; wenn
    nicht, Meldung 'passt nicht ins Regal'"):
    - PLATZ: jedes bestellbare Produkt passt in mindestens ein Moebel, das es
-     spaetestens auf seinem Level gibt - mit Platz fuer mindestens zwei Stueck
+     spaetestens auf seinem Level gibt - mit Platz fuer mindestens einen
+     vollen Karton (02.10.: vorher zwei Stueck)
    - KANTE: wo ein Produkt als passend gilt, steht es nirgends ueber -
-     Breite, Tiefe und Hoehe liegen innerhalb des Fachs
+     die ganze Anordnung (Spalten, Reihen, Lagen) liegt im Fach
    - MELDUNG: in ein zu kleines Fach gibt es die Meldung "passt nicht"
    Aufruf: node passform.js test.html */
 async function neuesSpiel(p){
@@ -29,11 +30,12 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
       for(const rw of RW){ const Kk=K[rw.kind]; if(!Kk) continue; if(Kk.cold?!q.cold:q.kuehlpflicht) continue;
         let best=0;
         Kk.lv.forEach((_,li)=>{ const L=bb.layout(t,{kind:rw.kind,levels:[]},{li}); if(L.cap>0){ best=Math.max(best,L.cap);
-          if(q.dims[0]>Kk.w-0.1+0.001||q.dims[2]>Kk.d-0.06+0.001||q.dims[1]>fh(Kk,li)+0.001) o.kante.push(t+' in '+rw.kind+' Fach '+li); } });
+          const B=L.cols*(L.w+L.g)-L.g, T=L.rows*(L.d+L.g)-L.g+0.03, H=L.st*L.h;
+          if(B>Kk.w-0.06+0.001||T>Kk.d+0.001||H>fh(Kk,li)+0.001) o.kante.push(t+' in '+rw.kind+' Fach '+li+' ('+B.toFixed(2)+'x'+T.toFixed(2)+'x'+H.toFixed(2)+')'); } });
         if(best>0) passt.push({k:rw.kind,lvl:rw.lvl,cap:best}); }
       if(!passt.length){ o.keins.push(t); continue; }
       const da=passt.filter(x=>x.lvl<=Math.max(q.lvl,1)); const capDa=da.length?Math.max(...da.map(x=>x.cap)):0;
-      if(capDa<2) o.knapp.push(t+' (L'+q.lvl+'): '+(da.length?'nur '+capDa+' Stueck':'erst ab L'+Math.min(...passt.map(x=>x.lvl)))); }
+      if(capDa<q.box) o.knapp.push(t+' (L'+q.lvl+'): '+(da.length?'nur '+capDa+' Stueck, Karton '+q.box:'erst ab L'+Math.min(...passt.map(x=>x.lvl)))); }
     /* Meldung: Weltuntergang ins kleine Regal */
     bb.regalStellen('klein'); const sh=bb.shelves[bb.shelves.length-1], lv=sh.levels[0];
     const S=bb.S; S.carrying={type:'finale',count:1,q:1}; bb.aimAt&&0;

@@ -505,36 +505,50 @@ function lieferSek(){ return LIEFERZEIT_SEK; }
    vorher war oben das groesste und unten (hinter der Sockelblende) das
    kleinste Fach. Der unterste Boden liegt jetzt ueber der Blende,
    oben gibt "oben" die Hoehe des obersten Fachs bis zur Deckplatte. */
+/* Regal-Module (02.10., Tom: "ein grosses Regal hat genau doppelt so
+   viel wie ein kleines - sonst bleibt am Ende immer was uebrig"): jedes
+   Moebel besteht aus gleichen Modulen.
+   - Regale (klein, Verkaufsregal, Hochregal, Gondel, Eck, Kuehlschrank):
+     ein Fach-Modul ist 0,9 m breit, 0,44 m tief, 0,52 m hoch; mod = Zahl
+     der Module nebeneinander (klein 1, Verkaufsregal 2 ...)
+   - Tische und Gitterboxen: dieselbe Grundflaeche 0,9 x 0,44 m je
+     Modul, modX x modZ (Gitterbox 2, gross 4, XL 8; Tisch 4, grosser
+     Tisch 8) - gestapelt wird so hoch, wie Platz ist; alle Wannen und
+     Tischplatten gleich hoch, damit nur die Flaeche zaehlt
+   - Grossverbund-Regal (nur ein Modell): Module 0,98 x 0,62 x 0,92 m
+   Was in ein Modul passt, ist bei allen Moebeln einer Art gleich - ein
+   Verkaufsregal fasst genau doppelt so viel wie ein kleines, der grosse
+   Tisch doppelt so viel wie der normale. */
 const SHELFKIND={
-  klein:{id:'klein',name:'Kleines Regal',w:1.0,d:0.42,lv:[0.19,0.75,1.31],oben:0.52,lvl:1,cost:45,step:28,amb:0},
-  standard:{id:'standard',name:'Verkaufsregal',w:2.0,d:0.52,lv:[0.19,0.75,1.31,1.87],oben:0.52,lvl:4,cost:130,step:70,amb:1},
-  hoch:{id:'hoch',name:'Hochregal',w:2.0,d:0.52,lv:[0.19,0.63,1.07,1.51,1.95],oben:0.40,lvl:10,cost:260,step:95,amb:2},
-  kuehl:{id:'kuehl',name:'Sekt-Kühlschrank',w:1.1,d:0.58,lv:[0.2,0.68,1.16,1.64],oben:0.44,lvl:6,cost:430,step:155,amb:5,cold:true},
+  klein:{id:'klein',name:'Kleines Regal',w:1.0,d:0.52,mod:1,lv:[0.19,0.75,1.31],oben:0.52,lvl:1,cost:45,step:28,amb:0},
+  standard:{id:'standard',name:'Verkaufsregal',w:2.0,d:0.52,mod:2,lv:[0.19,0.75,1.31,1.87],oben:0.52,lvl:4,cost:130,step:70,amb:1},
+  hoch:{id:'hoch',name:'Hochregal',w:2.0,d:0.52,mod:2,lv:[0.12,0.68,1.24,1.80,2.36],oben:0.52,lvl:10,cost:260,step:95,amb:2},
+  kuehl:{id:'kuehl',name:'Sekt-Kühlschrank',w:1.1,d:0.58,mod:1,lv:[0.14,0.70,1.26,1.82],oben:0.52,lvl:6,cost:430,step:155,amb:5,cold:true},
   /* Mittelgondel: steht frei im Raum, Ware auf beiden Seiten. */
-  gondel:{id:'gondel',name:'Mittelgondel',w:2.0,d:0.46,fw:2.1,fd:1.0,lv:[0.19,0.67,1.15,1.63],oben:0.44,lvl:12,cost:560,step:190,amb:3,art:'insel',
-    seiten:[{ry:0,ox:0,oz:0.24},{ry:Math.PI,ox:0,oz:-0.24}]},
+  gondel:{id:'gondel',name:'Mittelgondel',w:2.0,d:0.5,mod:2,fw:2.1,fd:1.04,lv:[0.19,0.75,1.31,1.87],oben:0.52,lvl:12,cost:560,step:190,amb:3,art:'insel',
+    seiten:[{ry:0,ox:0,oz:0.25},{ry:Math.PI,ox:0,oz:-0.25}]},
   /* Eckregal: zwei Schenkel ueber Eck, wie im Supermarkt. */
-  eck:{id:'eck',name:'Eckregal',w:1.2,d:0.5,fw:1.74,fd:1.74,lv:[0.19,0.75,1.31,1.87],oben:0.52,lvl:14,cost:480,step:165,amb:2,art:'ecke',
+  eck:{id:'eck',name:'Eckregal',w:1.2,d:0.5,mod:1,fw:1.74,fd:1.74,lv:[0.19,0.75,1.31,1.87],oben:0.52,lvl:14,cost:480,step:165,amb:2,art:'ecke',
     seiten:[{ry:0,ox:0.25,oz:-0.60},{ry:Math.PI/2,ox:-0.60,oz:0.25}]},
   /* Grossverbund-Regal: zwei gleich hohe Faecher, in jedes passen zwei
      der ganz grossen Verbunde nebeneinander - vier Legion insgesamt
      (Tom, 01.10.: "oben zwei, unten zwei") */
-  gross:{id:'gross',name:'Großverbund-Regal',w:2.12,d:0.68,lv:[0.19,1.15],oben:0.92,lvl:18,cost:640,step:210,amb:2},
+  gross:{id:'gross',name:'Großverbund-Regal',w:2.12,d:0.68,mod:2,modB:0.98,tiefe:0.62,lv:[0.19,1.15],oben:0.92,lvl:18,cost:640,step:210,amb:2},
   /* Verkaufstisch und Aktions-Gitterbox (Tom, 01.10.): grosse Batterien
      stehen im Laden auf Tischen oder in Gitterboxen wie beim Discounter,
      nicht im Regal. frei: Ware wird auch in die Tiefe und aufeinander
      gestapelt, so weit Flaeche und Hoehe reichen. */
-  tisch:{id:'tisch',name:'Verkaufstisch',w:2.2,d:1.3,lv:[0.76],oben:0.96,bau:'tisch',frei:true,lvl:8,cost:220,step:80,amb:2},
+  tisch:{id:'tisch',name:'Verkaufstisch',w:2.0,d:0.94,modX:2,modZ:2,lv:[0.76],oben:1.0,bau:'tisch',frei:true,lvl:8,cost:220,step:80,amb:2},
   /* 02.10. (Tom: "auch groessere Verkaufstische"): der grosse Tisch steht
      frei im Gang wie beim Discounter - auf den Inselplaetzen */
-  tischgross:{id:'tischgross',name:'Großer Verkaufstisch',w:2.8,d:1.6,lv:[0.78],oben:1.0,bau:'tisch',art:'insel',frei:true,lvl:12,cost:340,step:120,amb:3},
+  tischgross:{id:'tischgross',name:'Großer Verkaufstisch',w:2.0,d:1.86,modX:2,modZ:4,lv:[0.78],oben:1.0,bau:'tisch',art:'insel',frei:true,lvl:12,cost:340,step:120,amb:3},
   /* Gitterboxen (02.10., Tom: "hoeher, damit sich der Kunde nicht buecken
      muss, verschiedene Groessen, darunter Mini-Regale fuer Kleinartikel"):
      die Wanne steht auf 64 cm, darunter zwei offene Faecher. Die letzte
      Ebene ist immer die Wanne. */
-  gitter:{id:'gitter',name:'Gitterbox',w:1.24,d:0.84,lv:[0.12,0.36,0.64],oben:0.66,bau:'gitter',frei:true,lvl:5,cost:140,step:50,amb:1},
-  gitter2:{id:'gitter2',name:'Gitterbox groß',w:1.7,d:1.0,lv:[0.12,0.36,0.64],oben:0.7,bau:'gitter',frei:true,lvl:9,cost:210,step:75,amb:2},
-  gitter3:{id:'gitter3',name:'Gitterbox XL',w:2.1,d:1.2,lv:[0.12,0.36,0.64],oben:0.76,bau:'gitter',frei:true,lvl:13,cost:290,step:100,amb:2}
+  gitter:{id:'gitter',name:'Gitterbox',w:1.0,d:0.94,modX:1,modZ:2,lv:[0.12,0.36,0.64],oben:0.76,bau:'gitter',frei:true,lvl:5,cost:140,step:50,amb:1},
+  gitter2:{id:'gitter2',name:'Gitterbox groß',w:1.9,d:0.94,modX:2,modZ:2,lv:[0.12,0.36,0.64],oben:0.76,bau:'gitter',frei:true,lvl:9,cost:210,step:75,amb:2},
+  gitter3:{id:'gitter3',name:'Gitterbox XL',w:1.9,d:1.86,modX:2,modZ:4,lv:[0.12,0.36,0.64],oben:0.76,bau:'gitter',frei:true,lvl:13,cost:290,step:100,amb:2}
 };
 const SHELFORDER=['klein','standard','hoch','kuehl','gondel','eck','gross','gitter','gitter2','gitter3','tisch','tischgross'];
 /* =========================================================

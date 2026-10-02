@@ -36,11 +36,15 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
         cap:bb.shelfCapOf(t),kauf:+bb.buyChance(t,bb.marketOf(t),1,false,null).toFixed(2)}; });
     o.kiste=bb.PACKS.find(x=>x.id==='partykiste'); o.kisteOffen=o.kiste?bb.packOffen(o.kiste):false;
     /* Fuellung: auf jedem Regaltyp bleibt links und rechts hoechstens
-       ein halber Artikel frei */
+       ein halber Artikel frei - seit 02.10. je Regalmodul (0,9 m
+       zwischen den Stehern) */
     o.luecken=[];
     for(const kind of Object.keys(bb.SHELFKIND)){ const K=bb.SHELFKIND[kind];
       for(const t of bb.ORDER){ const q=P[t]; if(q.noShelf) continue; if(K.cold&&!q.cold) continue; if(!K.cold&&q.kuehlpflicht) continue;
-        const L=bb.layout(t,{kind}); const breit=L.cols*(L.w+L.g)-L.g, frei=(K.w-0.1)-breit;
+        /* Grossverbund-Regal: nur fuer grosse Verbunde gedacht - Kleinware
+           darf dort fuer ganze Kartons eine Spalte Luft haben */
+        if(kind==='gross') continue;
+        const L=bb.layout(t,{kind}); if(!L.cap||q.dims[0]>0.9) continue; const mb=0.9, breit=(L.modCm||L.cols/(K.frei?(K.modX||1):(K.mod||1)))*(L.w+L.g)-L.g, frei=mb-breit;
         if(frei>q.dims[0]+L.g+0.001) o.luecken.push(kind+'/'+t+' '+frei.toFixed(2)+' m frei'); } }
     return o; },NEU);
   r.produkte.forEach(x=>console.log(x.t.padEnd(15),JSON.stringify(x)));

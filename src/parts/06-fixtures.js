@@ -471,27 +471,100 @@ function shelfCount(k){ return shelves.filter(s=>s.kind===k).length; }
    (Tom, 25.09.: "die wirklich krassen viel, viel groesser"). Vorher
    stand hohe Ware einfach im Boden darueber. */
 function fachHoehe(K,li){ return li<K.lv.length-1?K.lv[li+1]-K.lv[li]-0.04:(K.oben!==undefined?K.oben:(K.cold?0.44:0.58)); }
+/* Fach-Module (02.10., Tom, Foto Wunderkerzen: "da ist nur eine Reihe
+   vorne - und im Karton sind 36 Stueck, ins Fach passen 39"):
+   - Die Ware fuellt das Fach jetzt auch in die Tiefe, Reihe hinter Reihe
+     wie im Supermarkt (vorher begrenzte das Gitter im Produkt die Tiefe
+     auf eine bis drei Reihen).
+   - Jedes Moebel besteht aus gleichen Modulen (SHELFKIND, 02-data):
+     gerechnet wird, was in EIN Modul passt, mal die Zahl der Module -
+     das Verkaufsregal fasst genau doppelt so viel wie das kleine.
+   - Ein Fach fasst immer ganze Kartons: wo die Menge nicht aufgeht,
+     bleibt eine Reihe oder Lage frei. Die Kartongroesse jedes Produkts
+     ist so gewaehlt, dass ein Modul ganze Kartons fasst (kartonWahl).
+   Zu breit, zu tief oder zu hoch fuer das Fach heisst "passt nicht". */
+const MODUL={B:0.9,T:0.44,H:0.52};
+const _lay=new Map();
+/* groesste Menge a*b*c <= Grenzen, die ein Vielfaches von box ist -
+   bei Gleichstand die breiteste, dann die tiefste Anordnung */
+function ganzeKartons(c,r,s,box){
+  if(box<=1) return [c,r,s];
+  /* zuerst die volle Breite halten (Tom, 25.09.: das Fach von links bis
+     rechts fuellen) - dann eher eine Reihe hinten oder eine Lage weniger */
+  for(let a=c;a>=1;a--){ let best=null, bn=0;
+    for(let b=r;b>=1;b--) for(let d=s;d>=1;d--){ const n=a*b*d; if(n%box||n<bn) continue; if(n>bn||b>best[1]){ bn=n; best=[a,b,d]; } }
+    if(best&&(bn>=0.6*c*r*s||a===1)) return best; }
+  return [0,0,0];
+}
+/* Modulraster eines Moebels: Grundflaeche B x T je Modul, MX x MZ Module */
+function modRaster(K){ return K.frei?{B:MODUL.B,T:MODUL.T,MX:K.modX||1,MZ:K.modZ||1}:{B:K.modB||MODUL.B,T:K.tiefe||MODUL.T,MX:K.mod||Math.max(1,Math.round(K.w)),MZ:1}; }
+function layoutRoh(t,K,lvH){
+  const p=P[t], G=p.grid, g=0.012, dw=p.dims[0], dh=p.dims[1], dd=p.dims[2], R=modRaster(K);
+  const pro=(L,d)=>Math.floor((L+g)/(d+g)), auf=(d,m)=>Math.ceil(d/m-1e-6);
+  /* Tische und Gitterboxen: stapeln, so hoch es geht (hoechstens 4);
+     Regale: so hoch, wie das Produkt stapelbar ist (grid[2]) */
+  const st=dh>lvH+0.001?0:K.frei?Math.min(4,Math.floor(lvH/dh)):Math.max(1,Math.min(G[2],Math.floor(lvH/dh)));
+  if(dw<=R.B&&dd<=R.T) return {cm:pro(R.B,dw),rm:pro(R.T,dd),st,mx:R.MX,mz:R.MZ};
+  return {cols:dw<=R.B?R.MX*pro(R.B,dw):Math.floor(R.MX/auf(dw,R.B)),rows:dd<=R.T?R.MZ*pro(R.T,dd):Math.floor(R.MZ/auf(dd,R.T)),st};
+}
 function layout(t,sh,lv){
-  const p=P[t], G=p.grid, K=kindOf(sh), g=0.012;
-  /* Die Ware fuellt das Fach von links bis rechts (Tom, 25.09.: "nur in
-     der Mitte was und links und rechts frei"). Vorher begrenzte das
-     Gitter im Produkt die Spalten - acht kleine Packungen standen dann
-     mitten in einem zwei Meter breiten Regal. */
-  const cols=Math.max(1,Math.floor((K.w-0.1+g)/(p.dims[0]+g)));
-  const rows=Math.max(1,K.frei?Math.floor((K.d-0.06+g)/(p.dims[2]+g)):Math.min(G[1],Math.floor((K.d-0.06+g)/(p.dims[2]+g))));
+  const p=P[t], K=kindOf(sh), g=0.012;
   /* ohne Fach: das hoechste, das dieses Regal hat */
   const lvH=lv?fachHoehe(K,lv.li):Math.max(...K.lv.map((_,i)=>fachHoehe(K,i)));
-  /* 02.10. (Tom: "dass alles passt - und wenn nicht, Meldung"): zu breit
-     oder zu tief fuer das Fach heisst ebenfalls "passt nicht" - vorher
-     stand so eine Packung einfach ueber die Kante hinaus */
-  const zuGross=p.dims[0]>K.w-0.1+0.001||p.dims[2]>K.d-0.06+0.001;
-  const st=zuGross||p.dims[1]>lvH+0.001?0:Math.max(1,K.frei?Math.min(4,Math.floor(lvH/p.dims[1])):Math.min(G[2],Math.floor(lvH/p.dims[1])));
-  return {cols,rows,st,cap:cols*rows*st,w:p.dims[0],h:p.dims[1],d:p.dims[2],g,K};
+  const box=Math.max(1,p.box|0), key=t+'|'+K.id+'|'+lvH.toFixed(3)+'|'+box+'|'+p.dims.join(',');
+  let L=_lay.get(key);
+  if(!L){ const R=layoutRoh(t,K,lvH); let cols, rows, st, modCm=0, modN=0;
+    if(R.cm!==undefined){
+      /* je Modul ganze Kartons; reicht ein Modul nicht fuer einen Karton,
+         dann ueber das ganze Fach */
+      let [a,b,c]=ganzeKartons(R.cm,R.rm,R.st,box);
+      if(a*b*c){ cols=a*R.mx; rows=b*R.mz; st=c; if(!K.frei&&R.mx>1){ modCm=a; modN=R.mx; } }
+      else [cols,rows,st]=ganzeKartons(R.cm*R.mx,R.rm*R.mz,R.st,box);
+    } else [cols,rows,st]=ganzeKartons(R.cols,R.rows,R.st,box);
+    if(!(R.st>0)) cols=rows=st=0;
+    L={cols:Math.max(1,cols),rows:Math.max(1,rows),st,cap:cols*rows*st,w:p.dims[0],h:p.dims[1],d:p.dims[2],g,K,modCm,modN};
+    _lay.set(key,L); }
+  return L;
 }
+/* Kartongroesse (02.10., Tom: "dann musst du die Stueckzahl im Karton
+   veraendern"): je Produkt eine handelsuebliche Stueckzahl nahe der
+   bisherigen, die ein Fach-Modul seines Heimatmoebels (Regal, sonst
+   Grossverbund-Regal, sonst Tisch) mit ganzen Kartons fuellt - moeglichst
+   ganz breit und tief. Der Preis je Stueck bleibt, der Karton kostet
+   entsprechend mehr oder weniger. */
+const KARTON_ZAHLEN=[1,2,3,4,5,6,8,10,12,15,16,18,20,24,25,30,32,36,40,45,48,50,60,64,72,80,90,96,100,120,144];
+function kartonWahl(t){
+  const p=P[t]; if(!p||!p.dims||!p.grid) return;
+  if(p.box0===undefined) p.box0=p.box;
+  const b0=Math.max(1,p.box0|0);
+  const heim=p.kuehlpflicht?['kuehl','tisch']:['standard','gross','tisch'];
+  for(const kid of heim){ const K=SHELFKIND[kid], H=Math.max(...K.lv.map((_,i)=>fachHoehe(K,i))), R=layoutRoh(t,K,H);
+    const [c,r,s]=R.cm!==undefined?[R.cm,R.rm,R.st]:[R.cols,R.rows,R.st];
+    if(!(c*r*s)) continue;
+    const V0=c*r*s; let best=null;
+    for(let a=c;a>=Math.max(1,Math.ceil(c*0.75));a--) for(let b=r;b>=Math.max(1,Math.ceil(r*0.6));b--) for(let d=s;d>=Math.max(1,Math.ceil(s*0.5));d--){
+      const V=a*b*d;
+      /* nahe an der alten Stueckzahl, das Modul voll, die Breite voll
+         (eine Spalte weniger wiegt schwer), runde Zahlen bevorzugt */
+      for(let k=1;k<=Math.min(V,200);k++){ if(V%k) continue;
+        const w=Math.abs(Math.log(k/b0))+2*(1-V/V0)+6*(1-a/c)+(KARTON_ZAHLEN.includes(k)?0:0.15);
+        if(!best||w<best.w) best={w,k}; } }
+    if(best){ p.box=best.k; return; }
+  }
+}
+/* alle Produkte bekommen ihre Kartongroesse (P ist hier vollstaendig) */
+Object.keys(P).forEach(kartonWahl);
+/* Breite eines Regalmoduls zwischen den Stehern (Mittelsteher 3 cm) */
+const STEHER=0.03;
+function modBreite(K){ const n=K.mod||1; return (K.w-0.1-(n-1)*STEHER)/n; }
 function slotLocal(t,idx,sh,lv){
   const L=layout(t,sh,lv), c=idx%L.cols, rest=Math.floor(idx/L.cols), layer=rest%L.st, row=Math.floor(rest/L.st);
+  const z=L.K.d/2-0.03-L.d/2-row*(L.d+L.g);
+  /* Regal aus mehreren Modulen: je Modul mittig zwischen den Stehern */
+  if(L.modCm){ const m=Math.floor(c/L.modCm), cc=c%L.modCm, mb=modBreite(L.K), iw=L.K.w-0.1, tw=L.modCm*(L.w+L.g)-L.g;
+    return {x:-iw/2+m*(mb+STEHER)+mb/2-tw/2+L.w/2+cc*(L.w+L.g), y:layer*L.h, z}; }
   const tw=L.cols*(L.w+L.g)-L.g;
-  return {x:-tw/2+L.w/2+c*(L.w+L.g), y:layer*L.h, z:L.K.d/2-0.03-L.d/2-row*(L.d+L.g)};
+  return {x:-tw/2+L.w/2+c*(L.w+L.g), y:layer*L.h, z};
 }
 function slotFrei(sl){ return !sl.zone||zoneOffen(sl.zone); }
 /* Mittelgondeln und Eckregale brauchen den passenden Stellplatz */
@@ -660,6 +733,9 @@ function createShelf(i,data){
     st.push({geo:box(W,0.06,D),  m:tm(0,top+0.03,0),rolle:'rahmen'});
     st.push({geo:box(iw,0.08,D-0.02),m:tm(0,0.04,0),rolle:'rahmen'});
     for(const sx of [-1,1]) st.push({geo:box(0.022,top-0.08,D),m:tm(sx*(hw+0.005),top/2,0),rolle:'seite'});
+    /* Mittelsteher zwischen den Regalmodulen (02.10.: jedes Modul fasst
+       ganze Kartons, das Verkaufsregal sind zwei Module) */
+    for(let k=1;k<(K.mod||1);k++) st.push({geo:box(STEHER,top-0.1,D-0.06),m:tm(-iw/2+k*(modBreite(K)+STEHER)-STEHER/2,top/2,-0.02),rolle:'rahmen'});
     st.push({geo:box(W-0.06,0.14,0.03),m:tm(0,0.11,D/2-0.005),rolle:'blende'});
     for(const sx of [-1,1]) for(const sz of [-1,1])
       st.push({geo:box(0.09,0.04,0.09),m:tm(sx*(hw-0.1),0.02,sz*(D/2-0.1)),rolle:'fuss'});

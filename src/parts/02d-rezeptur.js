@@ -173,6 +173,7 @@ function rezeptProdukt(e){
 function eigenesEintragen(e){
   if(P[e.id]) return P[e.id];
   P[e.id]=rezeptProdukt(e);
+  if(typeof kartonWahl==='function') kartonWahl(e.id);
   if(ORDER.indexOf(e.id)<0) ORDER.push(e.id);
   VOLA[e.id]=0.55;
   if(!(S.prices[e.id]>0)) S.prices[e.id]=P[e.id].market;

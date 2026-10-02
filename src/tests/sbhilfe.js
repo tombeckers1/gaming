@@ -81,6 +81,10 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     for(let t=0;t<300&&!d;t++){ d=bb.customers.find(x=>x!==c&&x.state!=='leave'&&x.state!=='enter'&&x.sb==null)||null;
       if(!d){ bb.customers.forEach(x=>{ if(x.state==='enter') x.wishes=[{type:'boeller',qty:1}]; }); bb.run(0.5,0.05); } }
     if(!d){ o.fehler='kein zweiter Kunde'; return o; }
+    /* echte Kunden duerfen die Kassen nicht belegt halten (02.10.: nach
+       dem Regalumbau waren beim Test oft alle SB-Kassen von laufenden
+       Kunden belegt - dann fand der zweite Testkunde keinen Platz) */
+    bb.sbLanes.forEach(l=>{ const x=l.busy; if(x&&x!==c&&x!==d){ if(x.sbFree) x.sbFree(); x.state='shop'; x.sb=null; l.busy=null; } });
     const a1=anSB(c,2,true), a2=anSB(d,2,true); bb.run(0.3,0.05);
     o.zweiStart=[c.state,d.state,a1,a2];
     let t2=0; while((c.state==='sbHilfe'||d.state==='sbHilfe')&&t2<40){ bb.run(0.2,0.05); t2+=0.2; }

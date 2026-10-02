@@ -110,8 +110,10 @@ const einbauPakete=[];
 /* 29.09. (Tom: "viel zu klein"): ein Flachpaket ist so lang wie die
    laengsten Teile darin - die Seitenwangen -, der Kuehlschrank kommt
    stehend im eigenen Karton, die SB-Terminals in einer Kiste */
-const PAKET_MASS={klein:[1.7,0.26,0.5],standard:[2.1,0.3,0.6],hoch:[2.2,0.36,0.62],kuehl:[1.15,2.05,0.7],
-  gondel:[2.1,0.4,0.62],eck:[1.9,0.36,0.62],gross:[2.2,0.42,0.74],gitter:[1.3,0.5,0.9],gitter2:[1.76,0.5,1.06],gitter3:[2.16,0.55,1.26],tisch:[2.3,0.3,1.36],tischgross:[2.9,0.32,1.66],rack:[2.4,0.3,0.55],rhoch:[2.6,0.36,0.6],rschwer:[2.8,0.42,0.66],
+/* 02.10.: Masse an die Modul-Moebel angepasst (Hochregal und Kuehlschrank
+   hoeher, Tische und Gitterboxen im Modulraster) */
+const PAKET_MASS={klein:[1.7,0.26,0.6],standard:[2.1,0.3,0.6],hoch:[2.95,0.36,0.62],kuehl:[1.15,2.4,0.7],
+  gondel:[2.1,0.4,0.62],eck:[1.9,0.36,0.62],gross:[2.2,0.42,0.74],gitter:[1.06,0.5,1.0],gitter2:[1.96,0.5,1.0],gitter3:[1.96,0.55,1.92],tisch:[2.1,0.3,1.0],tischgross:[2.1,0.32,1.92],rack:[2.4,0.3,0.55],rhoch:[2.6,0.36,0.6],rschwer:[2.8,0.42,0.66],
   kasse2:[1.0,1.25,0.8],kasse3:[1.0,1.25,0.8]};
 const EINBAU={
   kasse2:{name:'SB-Kassen',ziel:()=>typeof sbZiel==='function'?sbZiel():null,weit:5},

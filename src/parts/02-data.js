@@ -260,6 +260,9 @@ const CATNAME={0:'Zubehör',1:'F1',2:'F2'};
 const UPGRADES=[
   {id:'plakat',kat:'markt',lvl:4,name:'Werbeplakate in der Stadt',desc:'Dauerhaft rund 30 Prozent mehr Kunden.',cost:()=>400,done:()=>S.up.plakat},
   {id:'sackkarre',kat:'einr',lvl:3,name:'Sackkarre',desc:'Vier Kartons auf einmal. Mit K herausholen: jeder Karton, den du aufhebst, kommt mit drauf.',cost:()=>350,done:()=>S.up.sackkarre},
+  /* 03.10. (Tom): Ware aus dem Regal zurueckholen - mit leeren Kisten.
+     Wiederholbar: jeder Kauf legt fuenf Kisten in den Vorrat. */
+  {id:'kisten',kat:'einr',lvl:1,name:'Mehrwegkisten · 5 Stück',desc:'Leere Kunststoffkisten zum Ausräumen: mit X (Handy: Knopf „Kiste“) eine leere Kiste nehmen, auf ein Fach zielen – die Ware kommt vorn heraus in die Kiste. Danach wie einen Karton woanders einräumen, abstellen oder ins Lager bringen. Beliebig oft nachkaufbar.',cost:()=>10,done:()=>false},
   {id:'wagen',kat:'einr',lvl:8,req:'lager',name:'Plattformwagen',desc:'Acht Kartons auf einmal - für den LKW und das Lager. Ersetzt die Sackkarre.',cost:()=>1400,done:()=>S.up.wagen},
   {id:'terminal',kat:'einr',lvl:6,name:'Kontaktlos-Terminal',desc:'Kartenzahlung geht deutlich schneller.',cost:()=>320,done:()=>S.up.terminal},
   {id:'tag4',kat:'markt',lvl:7,name:'Sonntagsgenehmigung',desc:'Du darfst auch sonntags öffnen. Sonst ist Sonntag Ruhetag.',cost:()=>900,done:()=>S.up.tag4},

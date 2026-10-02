@@ -40,6 +40,7 @@ function setCompact(){
 let toastLast='', geldAnz=null, geldBlink=0;
 function toast(msg,cls){ const box_=$('toasts'); const el=document.createElement('div'); el.className='toast'+(cls?' '+cls:''); el.textContent=msg; box_.appendChild(el); while(box_.children.length>4) box_.removeChild(box_.firstChild); setTimeout(()=>el.remove(),2600); toastLast=msg; }
 function updateHUD(){
+  { const kk=$('btnKiste'); if(kk){ const c=S.carrying, da=(S.kisten|0)>0||S.kisteHand||(c&&c.kiste); const d=da?'':'none'; if(kk.style.display!==d) kk.style.display=d; kk.classList.toggle('on',!!(S.kisteHand||(c&&c.kiste))); } }
   { const kb=$('btnKarre'); if(kb){ const d=karreArt()?'':'none'; if(kb.style.display!==d) kb.style.display=d; kb.classList.toggle('on',karreAn()); } }
   $('hDate').textContent=compact?dateShort(S.day):`${dateStr(S.day)} · Jahr ${S.season}`;
   $('hTime').textContent=fmtClock(clock);

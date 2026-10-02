@@ -78,6 +78,7 @@ const STEUER_PC=[
     [['E','Klick'],'Aktion – halten wiederholt (einräumen, scannen, putzen)'],
     [['Q','Rechts'],'Karton oder Paket abstellen'],
     [['K'],'Sackkarre / Wagen holen, wegstellen (nach Kauf)'],
+    [['X'],'Mehrwegkiste: leere nehmen / wegstellen, volle aus- oder einräumen'],
     [['Tab'],'Handy: Onlineshop, Team, Werbung, Bank, Bericht, Ziele'],
     [['H'],'Anruf annehmen, wenn es klingelt']]],
   ['Werkzeuge',[
@@ -110,6 +111,7 @@ const STEUER_TOUCH=[
     [['Drehen'],'Möbel in der Hand drehen (statt Spray)'],
     [['Handy'],'Onlineshop, Team, Werbung, Bank, Bericht, Ziele'],
     [['Karre'],'Sackkarre / Wagen (erscheint nach dem Kauf)'],
+    [['Kiste'],'Leere Kiste nehmen / wegstellen, volle: aus- oder einräumen (nach dem Kauf)'],
     [['Menü'],'Pausenmenü: Steuerung, Musik, Tutorial, Startbildschirm'],
     [['Preis'],'Preisgerät (ab Level 2)'],
     [['Spray'],'Pfefferspray (ab Level 4)']]]
@@ -222,6 +224,7 @@ addEventListener('keydown',e=>{
   if(e.code==='KeyG'&&!e.repeat) toggleSpray();
   if(e.code==='KeyT'&&!e.repeat) togglePDA();
   if(e.code==='KeyK'&&!e.repeat) toggleKarre();
+  if(e.code==='KeyX'&&!e.repeat) kisteTaste();
   if(e.code==='KeyP'&&!e.repeat) setPost(!postOn);
   if(e.code==='KeyM'&&!e.repeat) musikAn();
   if(e.code==='KeyN'&&!e.repeat){ ac(); if(!MUSIK.an) musikAn(true); else musikWeiter(false); }
@@ -262,6 +265,8 @@ $('btnPda').addEventListener('touchstart',e=>{ e.preventDefault(); if(!S||overla
 $('pTut').addEventListener('click',()=>{ setTutorial(!tutorialAn()); tutKnopf(); });
 $('btnKarre').addEventListener('touchstart',e=>{ e.preventDefault(); if(!S||overlayOpen()) return; ac(); toggleKarre(); },{passive:false});
 $('btnKarre').addEventListener('click',e=>{ if(COARSE) return; ac(); toggleKarre(); });
+$('btnKiste').addEventListener('touchstart',e=>{ e.preventDefault(); if(!S||overlayOpen()) return; ac(); kisteTaste(); },{passive:false});
+$('btnKiste').addEventListener('click',e=>{ if(COARSE) return; ac(); kisteTaste(); });
 $('btnHandy').addEventListener('touchstart',e=>{ e.preventDefault(); if(!S||(overlayOpen()&&!handyOpen)) return; ac(); toggleHandy(); },{passive:false});
 $('btnHandy').addEventListener('click',e=>{ if(COARSE) return; ac(); toggleHandy(); });
 /* Am Touchgeraet gab es keinen Weg ins Pausenmenue (kein Esc) */

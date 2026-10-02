@@ -190,8 +190,8 @@ class Worker{
     else if(this.state==='fetch'){
       if(this.walk(dt)){
         const s=this.src;
-        if(s.kind==='floor'&&floorBoxes.indexOf(s.box)>=0){ this.carry={type:s.box.type,count:s.box.count,q:s.box.q||1}; removeFloorBox(s.box); }
-        else if(s.kind==='rack'&&s.slot.box){ this.carry={type:s.slot.box.type,count:s.slot.box.count,q:s.slot.box.q||1}; s.slot.rk.g.remove(s.slot.box.mesh); s.slot.box=null; drawRackSchild(s.slot.rk); }
+        if(s.kind==='floor'&&floorBoxes.indexOf(s.box)>=0){ this.carry={type:s.box.type,count:s.box.count,q:s.box.q||1}; kisteZurueck(s.box); removeFloorBox(s.box); }
+        else if(s.kind==='rack'&&s.slot.box){ this.carry={type:s.slot.box.type,count:s.slot.box.count,q:s.slot.box.q||1}; kisteZurueck(s.slot.box); s.slot.rk.g.remove(s.slot.box.mesh); s.slot.box=null; drawRackSchild(s.slot.rk); }
         this.src=null;
         this.state=this.carry?'toShelf':'idle'; if(this.carry) this.pickShelf();
       }

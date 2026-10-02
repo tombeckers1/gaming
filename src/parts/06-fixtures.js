@@ -1072,7 +1072,7 @@ function createRack(i,data){
   bbox(0.56,0.3,0.012,std(0x8d939d,{metalness:0.4,roughness:0.55}),-XO+0.34,1.6,ZO+0.004,g,false);
   rk.mov=addMovable({kind:'rack',name:K.name,g,fw:BW+0.16,fd:2*ZO+0.14,ref:rk});
   rk.nr=racks.length; racks.push(rk); drawRackSchild(rk);
-  if(data&&data.slots) data.slots.forEach((sd,k)=>{ if(sd&&P[sd.type]&&rk.slots[k]) putInSlot(rk.slots[k],sd.type,sd.count,sd.q); });
+  if(data&&data.slots) data.slots.forEach((sd,k)=>{ if(sd&&P[sd.type]&&rk.slots[k]) putInSlot(rk.slots[k],sd.type,sd.count,sd.q,sd.kiste); });
   drawRackSchild(rk);
   return rk;
 }
@@ -1095,5 +1095,5 @@ function removeRack(rk){
   racks.forEach((x,k)=>{ x.nr=k; drawRackSchild(x); });
   return true;
 }
-function putInSlot(sl,type,count,q){ const m=new THREE.Mesh(kartonGeo,kartonMat[type]); m.position.set(sl.x,sl.y+0.2,0); m.rotation.y=rand(-0.05,0.05); if(HIQ){ m.castShadow=true; m.receiveShadow=true; } sl.rk.g.add(m); sl.box={type,count,q:q||1,mesh:m}; drawRackSchild(sl.rk); }
+function putInSlot(sl,type,count,q,kiste){ const m=new THREE.Mesh(kartonGeo,kiste?kisteMat():kartonMat[type]); m.position.set(sl.x,sl.y+0.2,0); m.rotation.y=rand(-0.05,0.05); if(HIQ){ m.castShadow=true; m.receiveShadow=true; } sl.rk.g.add(m); sl.box={type,count,q:q||1,mesh:m}; if(kiste) sl.box.kiste=true; drawRackSchild(sl.rk); }
 function findStoredBox(type){ for(const r of racks) for(const s of r.slots) if(s.box&&(!type||s.box.type===type)) return s; return null; }

@@ -32,7 +32,7 @@ function handbuchHTML(){
       schritte([`Karton mit ${E} aufheben – du trägst immer einen Karton (mit Karre mehr, siehe unten).`,
         `Ein Regalfach anschauen: unten steht „Einräumen: Name belegt/Platz“.`,
         `${EH}: Stück für Stück kommt ins Fach. Ist der Karton leer, wird er von selbst entsorgt.`])+
-      ab(`Jedes Fach nimmt nur eine Sorte. Kühlware (Sekt, Bier, Salate …) kommt in den Sekt-Kühlschrank, Kühlpflichtiges nur dorthin. Einen Karton stellst du mit ${Q} vor dir auf den Boden. Aus dem Regal zurücknehmen geht nicht.`)],
+      ab(`Jedes Fach nimmt nur eine Sorte. Kühlware (Sekt, Bier, Salate …) kommt in den Sekt-Kühlschrank, Kühlpflichtiges nur dorthin. Einen Karton stellst du mit ${Q} vor dir auf den Boden. Zurückholen aus dem Regal geht mit einer Mehrwegkiste (Laptop › Einrichtung, 5 Stück 10 €): ${COARSE?'Knopf „Kiste“':'X'} nimmt eine leere Kiste, Aktion auf ein Fach räumt Ware hinein. Mit ${COARSE?'„Kiste“':'X'} schaltest du eine volle Kiste zwischen ausräumen und einräumen um.`)],
     ['Sackkarre und Plattformwagen',
       ab(`Kaufen im Laptop unter Bestellen › Regale & Einrichtung: <b>Sackkarre</b> ab Level 3 für 350 € (4 Kartons), <b>Plattformwagen</b> ab Level 8 mit Lager für 1.400 € (8 Kartons, ersetzt die Sackkarre). Beide sind sofort da.`)+
       schritte([`${K} holt die Karre heraus. Trägst du gerade einen Karton, kommt er gleich mit drauf.`,

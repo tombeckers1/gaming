@@ -78,7 +78,7 @@ function refillGrav(quiet){
   if(!c||c.type!=='blanko'){ if(!quiet) toast('Dafür brauchst du Blanko-Raketen.','bad'); return; }
   if(gravBlanks>=GRAV_MAX){ if(!quiet) toast('Der Automat ist voll.'); return; }
   gravBlanks++; c.count--; sfx.pop();
-  if(c.count<=0){ S.carrying=null; toast('Karton leer.'); }
+  if(c.count<=0) kartonLeer(c,'Karton leer.');
   updateCarry(); drawGrav();
 }
 /* Kunde graviert selbst */

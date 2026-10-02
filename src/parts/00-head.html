@@ -89,6 +89,8 @@ body:has(.ov.show) #touch{display:none}
 #btnHandy{right:calc(24px + env(safe-area-inset-right));bottom:calc(284px + env(safe-area-inset-bottom));width:60px;height:60px;background:#9cc4ff;font-size:14px}
 #btnKarre{right:calc(24px + env(safe-area-inset-right));bottom:calc(354px + env(safe-area-inset-bottom));width:60px;height:60px;background:#ffb48a;font-size:14px}
 #btnKarre.on{box-shadow:0 0 0 3px rgba(255,180,138,.5)}
+#btnKiste{right:calc(24px + env(safe-area-inset-right));bottom:calc(424px + env(safe-area-inset-bottom));width:60px;height:60px;background:#7fb2ee;font-size:14px}
+#btnKiste.on{box-shadow:0 0 0 3px rgba(127,178,238,.55)}
 #btnMenu{left:max(12px,env(safe-area-inset-left));top:calc(max(12px,env(safe-area-inset-top)) + 82px);width:52px;height:52px;background:rgba(242,245,255,.88);font-size:13px}
 #btnPda.on{background:var(--mint);box-shadow:0 0 0 3px rgba(142,240,168,.4)}
 .tbtn.down{transform:translateY(3px);box-shadow:none}
@@ -444,6 +446,7 @@ body.compact #btnTool{width:42px;height:42px;font-size:11px;right:calc(14px + en
 body.compact #btnMove{width:42px;height:42px;font-size:11px;right:calc(80px + env(safe-area-inset-right));bottom:calc(66px + env(safe-area-inset-bottom))}
 body.compact #btnHandy{width:42px;height:42px;font-size:11px;right:calc(14px + env(safe-area-inset-right));bottom:calc(178px + env(safe-area-inset-bottom))}
 body.compact #btnKarre{width:42px;height:42px;font-size:11px;right:calc(14px + env(safe-area-inset-right));bottom:calc(226px + env(safe-area-inset-bottom))}
+body.compact #btnKiste{width:42px;height:42px;font-size:11px;right:calc(14px + env(safe-area-inset-right));bottom:calc(274px + env(safe-area-inset-bottom))}
 body.compact #btnPda{width:42px;height:42px;font-size:11px;right:calc(14px + env(safe-area-inset-right));bottom:calc(130px + env(safe-area-inset-bottom))}
 body.compact.coarse #carry{bottom:calc(10px + env(safe-area-inset-bottom));left:calc(50% - 60px);transform:none}
 body.compact.coarse #toasts{bottom:calc(48px + env(safe-area-inset-bottom))}
@@ -489,7 +492,7 @@ body.compact .pdahead2 b{font-size:16px}
   <div id="joy"></div>
   <div id="joyBase"><div id="joyKnob"></div></div>
   <button class="tbtn" id="btnMove" aria-label="Möbel aufnehmen, aus- und einpacken">Möbel</button>
-  <button class="tbtn" id="btnPda" aria-label="Preisgerät">Preis</button><button class="tbtn" id="btnHandy" aria-label="Handy">Handy</button><button class="tbtn" id="btnKarre" aria-label="Sackkarre" style="display:none">Karre</button>
+  <button class="tbtn" id="btnPda" aria-label="Preisgerät">Preis</button><button class="tbtn" id="btnHandy" aria-label="Handy">Handy</button><button class="tbtn" id="btnKarre" aria-label="Sackkarre" style="display:none">Karre</button><button class="tbtn" id="btnKiste" aria-label="Kiste" style="display:none">Kiste</button>
   <button class="tbtn" id="btnTool" aria-label="Pfefferspray">Spray</button>
   <button class="tbtn" id="btnDrop" aria-label="Karton abstellen">Ablegen</button>
   <button class="tbtn" id="btnAct" aria-label="Aktion">Aktion</button>

@@ -724,7 +724,7 @@ function placeOnStation(st){
   }
   st.items.push(it);
   c.count--; S.tut.build=true; sfx.pop();
-  if(c.count<=0){ S.carrying=null; toast('Karton leer.'); }
+  if(c.count<=0) kartonLeer(c,'Karton leer.');
   updateCarry(); drawPult();
   toast(`Kanal ${it.kanal}: ${P[it.type].short}`);
 }

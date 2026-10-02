@@ -8,10 +8,10 @@ const DSLOTS=[]; for(let r=0;r<2;r++) for(let c=0;c<4;c++) DSLOTS.push({x:-19.3+
 function freeSlot(){ const L=(typeof zoneOffen==='function'&&!zoneOffen('lager')&&typeof WA_SLOTS!=='undefined')?WA_SLOTS:DSLOTS; let best=L[0],bn=99; for(const s of L){ const n=floorBoxes.concat(einbauPakete).filter(b=>Math.abs(b.mesh.position.x-s.x)<0.25&&Math.abs(b.mesh.position.z-s.z)<0.25).length; if(n<bn){ bn=n; best=s; } } /* auf dem Gehweg (Warenannahme) steht der Karton auf den Platten, die zum Bord ansteigen */
   const gy=L!==DSLOTS&&typeof gehwegY==='function'?gehwegY(best.x,best.z):0;
   return {x:best.x,y:0.2+gy+bn*0.41,z:best.z,ry:rand(-0.08,0.08)}; }
-function spawnFloorBox(type,count,pos,q){
+function spawnFloorBox(type,count,pos,q,kiste){
   pos=pos||freeSlot();
-  const m=new THREE.Mesh(kartonGeo,kartonMat[type]); m.position.set(pos.x,pos.y,pos.z); m.rotation.y=pos.ry||0; if(HIQ){ m.castShadow=true; m.receiveShadow=true; } scene.add(m);
-  const b={type,count,q:q||1,mesh:m}; m.userData={kind:'box',ref:b}; floorBoxes.push(b); return b;
+  const m=new THREE.Mesh(kartonGeo,kiste?kisteMat():kartonMat[type]); m.position.set(pos.x,pos.y,pos.z); m.rotation.y=pos.ry||0; if(HIQ){ m.castShadow=true; m.receiveShadow=true; } scene.add(m);
+  const b={type,count,q:q||1,mesh:m}; if(kiste) b.kiste=true; m.userData={kind:'box',ref:b}; floorBoxes.push(b); return b;
 }
 function removeFloorBox(b){ const i=floorBoxes.indexOf(b); if(i<0) return false; floorBoxes.splice(i,1); scene.remove(b.mesh);
   const p=b.mesh.position;
@@ -22,8 +22,9 @@ carryMesh.position.set(0.34,-0.4,-0.82); carryMesh.rotation.set(0.12,-0.28,0); c
 let carryGrav=null;
 let carryRegal=null;
 function updateCarry(){
-  const c=S&&S.carrying, uniq=!!(c&&c.type==='gravur'), reg=!!(c&&(c.regal||c.einbau));
-  carryMesh.visible=!!c&&!uniq&&!reg&&!karreAn(); if(c&&!uniq&&!reg) carryMesh.material=kartonMat[c.type];
+  const c=S&&S.carrying, uniq=!!(c&&c.type==='gravur'), reg=!!(c&&(c.regal||c.einbau)), leer=!c&&!!(S&&S.kisteHand);
+  carryMesh.visible=(!!c||leer)&&!uniq&&!reg&&!karreAn(); if(leer||(c&&c.kiste)) carryMesh.material=kisteMat(); else if(c&&!uniq&&!reg) carryMesh.material=kartonMat[c.type];
+  if(leer){ $('carry').innerHTML=`Leere Kiste · Aktion auf ein Fach nimmt die Ware heraus`+(COARSE?'':`<span style="color:var(--muted)">, <kbd>X</kbd> wegstellen</span>`); updateKarre(); return; }
   if(carryGrav){ camera.remove(carryGrav); disposeEngraved(carryGrav); carryGrav=null; }
   if(uniq){ carryGrav=makeEngraved(c.text||''); carryGrav.position.set(0.3,-0.3,-0.65); carryGrav.rotation.set(0.1,-0.5,0.35); camera.add(carryGrav); }
   /* Das Regalpaket ist laenger als ein Karton und wird quer getragen */
@@ -45,22 +46,26 @@ function updateCarry(){
   $('carry').innerHTML=c?(
       reg?`Paket: ${paketName(c)} · ${COARSE?'„Auspacken“':'<kbd>F</kbd>'} auspacken`
     : uniq?`Gravur-Rakete: „${c.text}"`
+    : c.kiste?`Kiste ${c.raus?'ausräumen':'einräumen'}: ${P[c.type].short} ${c.count}/${kisteKap(c.type)}${COARSE?'':` <span style="color:var(--muted)">· <kbd>X</kbd> ${c.raus?'einräumen':'ausräumen'}</span>`}`
     : `${P[c.type].name}: noch ${c.count} im Karton${q&&q[0]?` <span class="${q[0]}">(${q[1]})</span>`:''}`)
     +(COARSE?'':`<span style="color:var(--muted)">, <kbd>Q</kbd>abstellen</span>`)
     +(karreAn()?` <span style="color:var(--muted)">· ${KARREN[karreArt()].name} ${karreLast()}/${KARREN[karreArt()].cap}</span>`:'')
     :(karreAn()?`${KARREN[karreArt()].name}: leer`+(COARSE?'':` <span style="color:var(--muted)">, <kbd>K</kbd> wegstellen</span>`):'');
   updateKarre();
 }
-function pickUp(b){ if(!removeFloorBox(b)) return; S.carrying={type:b.type,count:b.count,q:b.q||1}; S.tut.pick=true; sfx.pop(); updateCarry(); }
+function pickUp(b){ if(!removeFloorBox(b)) return; S.carrying={type:b.type,count:b.count,q:b.q||1}; if(b.kiste){ S.carrying.kiste=true; S.carrying.raus=false; } S.tut.pick=true; sfx.pop(); updateCarry(); }
 function dropBox(){
-  const c=S&&S.carrying; if(!c||paused) return;
+  const c=S&&S.carrying; if(paused) return;
+  /* leere Kiste: zurueck in den Vorrat */
+  if(!c&&S&&S.kisteHand){ kisteTaste(); return; }
+  if(!c) return;
   const p={x:pl.x-Math.sin(yaw)*0.9,z:pl.z-Math.cos(yaw)*0.9}; collide(p,0.36);
   if(c.regal||c.einbau){ paketAblegen(c,p); return; }
   if(c.type==='gravur'){ S.carrying=null; updateCarry(); toast('Die Gravur-Rakete gehört auf die Abschussrampe.'); return; }
-  spawnFloorBox(c.type,c.count,{x:p.x,y:0.2,z:p.z,ry:yaw},c.q);
+  spawnFloorBox(c.type,c.count,{x:p.x,y:0.2,z:p.z,ry:yaw},c.q,c.kiste);
   S.carrying=null; updateCarry(); sfx.pop();
 }
-function canStock(lv){ const c=S.carrying; return !!c&&canShelf(c.type)&&(!lv.type||lv.type===c.type)&&lv.count<capOf(lv,c.type)&&!pools[c.type].full(); }
+function canStock(lv){ const c=S.carrying; return !!c&&!(c.kiste&&c.raus)&&canShelf(c.type)&&(!lv.type||lv.type===c.type)&&lv.count<capOf(lv,c.type)&&!pools[c.type].full(); }
 function stockOne(lv,quiet){
   const c=S.carrying; if(!c) return;
   if(!canShelf(c.type)){ if(!quiet) toast(`${P[c.type].short} gehört nicht ins Regal.`,'bad'); return; }
@@ -69,7 +74,7 @@ function stockOne(lv,quiet){
   if(lv.count>=capOf(lv,c.type)){ if(!quiet) toast('Das Fach ist voll.'); return; }
   if(!addToLevel(lv,c.type,c.q||1)){ if(!quiet) toast('Kein Platz mehr.'); return; }
   c.count--; S.tut.stock=true; sfx.pop();
-  if(c.count<=0){ S.carrying=null; toast('Karton leer und entsorgt.'); }
+  if(c.count<=0) kartonLeer(c);
   updateCarry();
 }
 function stockOf(t){ let n=0; allLevels().forEach(l=>{ if(l.type===t) n+=l.count; }); floorBoxes.forEach(b=>{ if(b.type===t) n+=b.count; }); racks.forEach(r=>r.slots.forEach(s=>{ if(s.box&&s.box.type===t) n+=s.box.count; })); if(S.carrying&&S.carrying.type===t) n+=S.carrying.count; if(S.karre&&S.karre.stapel) S.karre.stapel.forEach(c=>{ if(c.type===t) n+=c.count; }); pending.forEach(p=>{ if(p.type===t) n+=P[t].box; }); return n; }

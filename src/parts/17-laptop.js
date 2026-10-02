@@ -1501,6 +1501,8 @@ function buyUp(id){
     toast(zoneOffen('lager')?`${u.name} bestellt. Das Paket kommt mit dem nächsten LKW an die Rampe.`:`${u.name} bestellt. Das Paket kommt vor die Ladentür.`,'money');
     save(); return;
   }
+  if(id==='kisten'){ S.kisten=(S.kisten|0)+KISTE_STUECK; sfx.cash();
+    toast(`${KISTE_STUECK} Mehrwegkisten gekauft – ${S.kisten} im Vorrat. ${COARSE?'Knopf „Kiste“':'X'} nimmt eine in die Hand.`,'money'); save(); return; }
   if(id.indexOf('shelf_')===0){ const k=id.slice(6); createShelf(shelves.length,{kind:k}); S.tut.shelf=true; toast(`${SHELFKIND[k].name} steht im Laden.`); }
   else if(id==='rack'||id.indexOf('rack_')===0){
     const k=id==='rack'?'standard':id.slice(5);

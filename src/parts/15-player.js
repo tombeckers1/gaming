@@ -317,6 +317,9 @@ function promptFor(t){
     case 'dirt': return {t:'Sauber machen (halten)',a:true};
     case 'window': { const v=Math.round(windowGrime()*100); return v<3?{t:'Schaufenster ist sauber',a:false}:{t:`Scheiben putzen (halten) · ${v} % blind`,a:true}; }
     case 'level': { const lv=t.ref;
+      if(kannRaus(lv)) return {t:`In die Kiste: ${P[lv.type].short} (${lv.count} im Fach)`,a:true};
+      if(!c&&S.kisteHand) return {t:lv.type?`${P[lv.type].short}`:'Leeres Fach',a:false};
+      if(c&&c.kiste&&c.raus) return {t:lv.type===c.type?`Kiste ist voll (${c.count})`:`Kiste: ausräumen · ${COARSE?'„Kiste“':'X'} schaltet auf einräumen`,a:false};
       if(c&&(c.regal||c.einbau)) return {t:'Paket: am Boden abstellen oder am Stellplatz auspacken',a:false};
       if(c){ if(lv.type&&lv.type!==c.type) return {t:`Fach mit ${P[lv.type].short}`,a:false};
         const cp=capOf(lv,c.type); if(!cp) return {t:'Produkt passt nicht ins Regal',a:false}; if(lv.count>=cp) return {t:'Fach ist voll',a:false};
@@ -378,16 +381,18 @@ function doAction(){
   if(k==='placing') placeGrab();
   else if(k==='movable') grab(r);
   else if(k==='paket') paketAufheben(r);
+  else if(S.kisteHand&&!S.carrying&&(k==='box'||k==='rslot'||k==='paket'||k==='tbox')){ toast(`Erst die leere Kiste wegstellen (${COARSE?'Knopf „Kiste“':'X'}).`,'bad'); }
   else if(S.carrying&&(S.carrying.regal||S.carrying.einbau)&&(k==='level'||k==='rslot'||k==='box')){ toast('Ein Paket stellt man auf den Boden: mit „Ablegen“ abstellen oder am Stellplatz auspacken.','bad'); }
   else if(k==='box'){ if(S.carrying&&!karreNimmt()){ toast(karreVoll()?'Die Karre ist voll. Erst etwas abladen.':'Du trägst schon einen Karton. Erst abstellen.','bad'); return; } pickUp(r); }
-  else if(k==='level'){ if(S.carrying) stockOne(r); }
+  /* Kiste: aus dem Fach nehmen, sonst wie gewohnt einraeumen */
+  else if(k==='level'){ if(kannRaus(r)) kisteRaus(r); else if(S.carrying&&S.carrying.kiste&&S.carrying.raus) kisteRaus(r); else if(S.carrying) stockOne(r); else if(S.kisteHand) toast('Das Fach ist leer.'); }
   else if(k==='dirt') cleanTick(r,true);
   else if(k==='window') cleanWindowTick(true);
   else if(k==='rslot'){
     /* Qualitaet (Restposten 86 %) geht mit ins Regal und wieder heraus -
        vorher kam jeder Karton als 100 %-Ware zurueck */
-    if(S.carrying&&!r.box){ putInSlot(r,S.carrying.type,S.carrying.count,S.carrying.q); S.carrying=null; S.tut.lager=true; sfx.pop(); updateCarry(); }
-    else if(r.box&&(!S.carrying||karreNimmt())){ S.carrying={type:r.box.type,count:r.box.count,q:r.box.q||1}; r.rk.g.remove(r.box.mesh); r.box=null; drawRackSchild(r.rk); sfx.pop(); updateCarry(); }
+    if(S.carrying&&!r.box){ putInSlot(r,S.carrying.type,S.carrying.count,S.carrying.q,S.carrying.kiste); S.carrying=null; S.tut.lager=true; sfx.pop(); updateCarry(); }
+    else if(r.box&&(!S.carrying||karreNimmt())){ S.carrying={type:r.box.type,count:r.box.count,q:r.box.q||1}; if(r.box.kiste){ S.carrying.kiste=true; S.carrying.raus=false; } r.rk.g.remove(r.box.mesh); r.box=null; drawRackSchild(r.rk); sfx.pop(); updateCarry(); }
   }
   else if(k==='belt') scanBelt(r);
   else if(k==='sbterm'){ if(r.busy&&r.busy.state==='sbHilfe') sbGeholfen(r,'spieler'); }
@@ -412,10 +417,10 @@ function pressAction(){ ac(); doAction(); repeatT=0.3; }
 function holdRepeat(dt){
   const holding=mouseDown||keys.KeyE||touchAct; if(!holding||!target) return;
   const k=target.kind;
-  const ok=(k==='level'&&canStock(target.ref))||k==='belt'||k==='dirt'||k==='window'||(k==='gravur'&&S.carrying&&S.carrying.type==='blanko'&&gravBlanks<GRAV_MAX)||(k==='station'&&S.carrying&&stationOf(S.carrying.type)===target.ref.id&&target.ref.items.length<target.ref.cap);
+  const ok=(k==='level'&&(kannRaus(target.ref)||canStock(target.ref)))||k==='belt'||k==='dirt'||k==='window'||(k==='gravur'&&S.carrying&&S.carrying.type==='blanko'&&gravBlanks<GRAV_MAX)||(k==='station'&&S.carrying&&stationOf(S.carrying.type)===target.ref.id&&target.ref.items.length<target.ref.cap);
   if(!ok) return;
   repeatT-=dt; if(repeatT<=0){
-    if(k==='level') stockOne(target.ref,true);
+    if(k==='level'){ if(kannRaus(target.ref)) kisteRaus(target.ref,true); else stockOne(target.ref,true); }
     else if(k==='dirt') cleanTick(target.ref);
     else if(k==='window') cleanWindowTick(false);
     else if(k==='gravur') refillGrav(true);

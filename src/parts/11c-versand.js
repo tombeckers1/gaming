@@ -405,11 +405,11 @@ function vsNimm(kind,ref,t){
   if(kind==='rack'){ const s=ref; if(!s.box||s.box.type!==t||s.box.count<=0) return null;
     s.rk.g.updateMatrixWorld(true); const p=s.box.mesh.getWorldPosition(new THREE.Vector3()); p.y+=0.12;
     const q=new THREE.Quaternion().setFromAxisAngle(_vY,s.rk.g.rotation.y);
-    s.box.count--; if(s.box.count<=0){ s.rk.g.remove(s.box.mesh); s.box=null; }
+    s.box.count--; if(s.box.count<=0){ kisteZurueck(s.box); s.rk.g.remove(s.box.mesh); s.box=null; }
     drawRackSchild(s.rk); return {p,q}; }
   const b=ref; if(floorBoxes.indexOf(b)<0||b.type!==t||b.count<=0) return null;
   const p=b.mesh.position.clone(); p.y+=0.12; const q=new THREE.Quaternion().setFromAxisAngle(_vY,b.mesh.rotation.y);
-  b.count--; if(b.count<=0) removeFloorBox(b);
+  b.count--; if(b.count<=0){ kisteZurueck(b); removeFloorBox(b); }
   return {p,q};
 }
 /* Sofort entnehmen (Spieler am Tisch, packOne) - Lager zuerst */

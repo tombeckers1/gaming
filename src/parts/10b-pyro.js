@@ -121,11 +121,11 @@ function shipOne(){
     if(it.loaded>=it.cartons) continue;
     for(const r of racks) for(const sl of r.slots){
       if(sl.box&&sl.box.type===it.type&&sl.box.count>=fullBox(it.type)){
-        sl.rk.g.remove(sl.box.mesh); sl.box=null; drawRackSchild(sl.rk); it.loaded++; return it;
+        kisteZurueck(sl.box); sl.rk.g.remove(sl.box.mesh); sl.box=null; drawRackSchild(sl.rk); it.loaded++; return it;
       }
     }
     for(const b of floorBoxes.slice()){
-      if(b.type===it.type&&b.count>=fullBox(it.type)&&b.mesh.position.x<-8){ removeFloorBox(b); it.loaded++; return it; }
+      if(b.type===it.type&&b.count>=fullBox(it.type)&&b.mesh.position.x<-8){ kisteZurueck(b); removeFloorBox(b); it.loaded++; return it; }
     }
   }
   return null;

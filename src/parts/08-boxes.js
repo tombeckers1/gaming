@@ -5,7 +5,9 @@
 const floorBoxes=[], pending=[];
 const DSLOTS=[]; for(let r=0;r<2;r++) for(let c=0;c<4;c++) DSLOTS.push({x:-19.3+c*0.95,z:-3.5+r*0.9});
 /* Ohne Lager kommen die Kartons auf die Warenannahme vor der Tuer */
-function freeSlot(){ const L=(typeof zoneOffen==='function'&&!zoneOffen('lager')&&typeof WA_SLOTS!=='undefined')?WA_SLOTS:DSLOTS; let best=L[0],bn=99; for(const s of L){ const n=floorBoxes.concat(einbauPakete).filter(b=>Math.abs(b.mesh.position.x-s.x)<0.25&&Math.abs(b.mesh.position.z-s.z)<0.25).length; if(n<bn){ bn=n; best=s; } } return {x:best.x,y:0.2+bn*0.41,z:best.z,ry:rand(-0.08,0.08)}; }
+function freeSlot(){ const L=(typeof zoneOffen==='function'&&!zoneOffen('lager')&&typeof WA_SLOTS!=='undefined')?WA_SLOTS:DSLOTS; let best=L[0],bn=99; for(const s of L){ const n=floorBoxes.concat(einbauPakete).filter(b=>Math.abs(b.mesh.position.x-s.x)<0.25&&Math.abs(b.mesh.position.z-s.z)<0.25).length; if(n<bn){ bn=n; best=s; } } /* auf dem Gehweg (Warenannahme) steht der Karton auf den Platten, die zum Bord ansteigen */
+  const gy=L!==DSLOTS&&typeof gehwegY==='function'?gehwegY(best.x,best.z):0;
+  return {x:best.x,y:0.2+gy+bn*0.41,z:best.z,ry:rand(-0.08,0.08)}; }
 function spawnFloorBox(type,count,pos,q){
   pos=pos||freeSlot();
   const m=new THREE.Mesh(kartonGeo,kartonMat[type]); m.position.set(pos.x,pos.y,pos.z); m.rotation.y=pos.ry||0; if(HIQ){ m.castShadow=true; m.receiveShadow=true; } scene.add(m);

@@ -318,12 +318,18 @@ function lagerSperre(){
   }
   zWandCol(Z,col(-8.3,-7.7,-3.25,-1.75));
   /* Warenannahme auf dem Gehweg: gelbe Markierung mit Schrift */
-  const m=new THREE.Mesh(new THREE.PlaneGeometry(2.7,1.75),new THREE.MeshBasicMaterial({transparent:true,depthWrite:false,
+  /* 02.10. (Tom, Foto): der Gehweg steigt zum Bord hin an (1 cm am Haus,
+     12 cm am Bord) - die flach auf 2 cm liegende Markierung verschwand zur
+     Strasse hin samt Schrift unter den Platten. Jetzt liegt sie Punkt fuer
+     Punkt auf der Gehwegflaeche. */
+  const wg=new THREE.PlaneGeometry(2.7,1.75,27,18); wg.rotateX(-Math.PI/2); wg.translate(WA.x,0,WA.z);
+  { const pa=wg.attributes.position; for(let i=0;i<pa.count;i++) pa.setY(i,(typeof gehwegY==='function'?gehwegY(pa.getX(i),pa.getZ(i)):0.012)+0.008); pa.needsUpdate=true; }
+  const m=new THREE.Mesh(wg,new THREE.MeshBasicMaterial({transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2,
     map:tex(540,350,(c,W,H)=>{ c.clearRect(0,0,W,H);
       c.strokeStyle='#ffd23f'; c.lineWidth=12; c.setLineDash([30,16]); c.strokeRect(10,10,W-20,H-20); c.setLineDash([]);
       c.fillStyle='rgba(255,210,63,.95)'; c.font=BUN(46); c.textAlign='center'; c.textBaseline='middle';
       c.fillText('WARENANNAHME',W/2,H-52); })}));
-  m.rotation.x=-Math.PI/2; m.position.set(WA.x,0.021,WA.z); m.renderOrder=2; scene.add(m);
+  m.renderOrder=2; scene.add(m);
   zWand(Z,m);
 }
 /* Warenannahme vor der Tuer: sechs Stellplaetze, gestapelt */

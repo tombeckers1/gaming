@@ -91,6 +91,11 @@ function buildFacade(){
   // --- Eingang
   {
     tuer=buildSchiebetuer(0);
+    /* Laibung des Haupteingangs in Alu verkleidet: die Tuer sitzt innen,
+       aussen sieht man die Wandstaerke (5,90-6,10), Oeffnung +-1,20, Sturz 2,50 */
+    { const la=std(0xc4cad3,{metalness:0,roughness:0.5});
+      for(const s of [-1,1]) bbox(0.025,2.5,0.21,la,s*1.1875,1.25,6.0,null,false);
+      bbox(2.4,0.025,0.21,la,0,2.4875,6.0,null,false); }
     /* Fussmatte: Gummirahmen mit eingefasster Buerstenflaeche */
     {
       const mt=tex(1024,540,(g,W,Hh)=>{
@@ -132,7 +137,7 @@ function buildFacade(){
        wie ein Loch (Tom, 01.10.). Jetzt ein echtes Ladenschild: Alu-Gehaeuse
        mit Rahmen, Acrylfront, an zwei Stangen von der Decke abgehaengt und
        vor der Wand - es sieht auf jeder Wandfarbe gleich aus. */
-    { const SW=1.56, SH=0.40, SD=0.09, sy=2.86, sz=5.74, fz=sz-SD/2-0.003;
+    { const SW=1.56, SH=0.40, SD=0.09, sy=2.95/* ueber dem Tuerantrieb */, sz=5.74, fz=sz-SD/2-0.003;
       const gehaeuse=std(0x2a2e35,{metalness:0.55,roughness:0.38}), alu=std(0xc9ced6,{metalness:0.85,roughness:0.25});
       bbox(SW-0.02,SH-0.02,SD-0.01,gehaeuse,0,sy,sz,null,false);
       for(const dy of [-1,1]) bbox(SW,0.034,SD+0.006,gehaeuse,0,sy+dy*(SH/2-0.017),sz,null,false);
@@ -218,7 +223,13 @@ function cleanWindowTick(first){
 /* =========================================================
    Automatische Schiebetür zum Ladenlokal
    ========================================================= */
-const TUER={z:6.14,y:2.44,w:1.24,hub:1.30, r:3.1};
+/* 02.10. (Tom, Foto von aussen): die Fluegel liefen aussen vor der
+   Fassade und fuhren beim Oeffnen in Sockel, Sohlbank und Fensterrahmen
+   der Nachbarfelder. Jetzt sitzt die Tuer wie eine echte Ladenschiebetuer
+   innen an der Wand: Antrieb und Laufschiene ueber der Oeffnung, die
+   Fluegel parken hinter dem Pfeiler bzw. hinter der Scheibe. Aussen sieht
+   man die verkleidete Laibung. Innenkante der Fassade: 5,90; das Tuerschild innen haengt bei 5,875. */
+const TUER={z:5.82,y:2.44,w:1.24,hub:1.30, r:3.1};
 let tuer=null;
 const TUEREN=[];
 /* Schiebetuer an der Stelle cx der Fassade. hb ist die Breite des
@@ -235,20 +246,21 @@ function buildSchiebetuer(cx,hb){
   const glass=new THREE.MeshStandardMaterial({color:LIN(0xd6ecff),transparent:true,opacity:0.17,roughness:0.05,metalness:0.1,depthWrite:false});
   const W=TUER.w, HH=TUER.y, Z=TUER.z;
   /* Antriebskasten über der Öffnung, reicht über beide Parktaschen */
-  bbox(HB,0.24,0.26,alu,0,HH+0.14,Z,g,false);
-  bbox(HB+0.04,0.05,0.3,aluD,0,HH+0.27,Z,g,false);
-  bbox(HB-0.1,0.05,0.2,dark,0,HH+0.005,Z,g,false);
+  bbox(HB,0.24,0.26,alu,0,HH+0.14,Z-0.05,g,false);
+  bbox(HB+0.04,0.05,0.3,aluD,0,HH+0.27,Z-0.05,g,false);
+  bbox(HB-0.1,0.05,0.2,dark,0,HH+0.005,Z-0.05,g,false);
   /* Laufschiene */
   bbox(HB-0.2,0.045,0.06,aluD,0,HH+0.05,Z-0.06,g,false);
   /* Bewegungsmelder innen und außen */
   for(const s of [-1,1]){
     const sIn=bbox(0.26,0.075,0.05,dark,s*0.78,HH+0.05,Z-0.15,g,false); sIn.rotation.x=0.42;
-    const sOut=bbox(0.26,0.075,0.05,dark,s*0.78,HH+0.05,Z+0.15,g,false); sOut.rotation.x=-0.42;
+    /* aussen an der Fassade ueber der Oeffnung */
+    const sOut=bbox(0.26,0.075,0.05,dark,s*0.78,HH+0.2,Z+0.31,g,false); sOut.rotation.x=-0.42;
   }
   /* Bodenführung */
   bbox(2.6,0.012,0.045,aluD,0,0.008,Z-0.02,g,false);
-  /* Seitliche Festfelder als Rahmen der Öffnung */
-  for(const s of [-1,1]) bbox(0.07,HH,0.09,alu,s*1.29,HH/2,Z,g,false);
+  /* Die Festfelder standen in der Laufbahn der Fluegel - die Oeffnung
+     rahmt jetzt die Laibung (Haupteingang) bzw. das Seitenfeld (Eingang 2) */
   /* Zwei Flügel */
   const leaves=[];
   for(const s of [-1,1]){

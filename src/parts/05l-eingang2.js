@@ -22,8 +22,9 @@ function eingangsAchse(go,a,b,zf,ST,glas,prof){
     bbox(bw,0.06,0.12,prof,bxc,ST-0.03,zf-0.1,go,false);
     bbox(bw,0.06,0.12,prof,bxc,0.03,zf-0.1,go,false);
   }
-  /* Sturzfeld ueber der Tuer bis zum Schaufenstersturz */
-  bbox(2.72,ST-TUER.y-0.3,0.06,prof,cx,(ST+TUER.y+0.3)/2,zf-0.1,go,false);
+  /* Pfosten zwischen Seitenfeld und Tuer: die Tuer laeuft innen, die
+     Seitenfelder brauchen hier ihren Rahmen (02.10.) */
+  for(const s of [-1,1]) bbox(0.06,ST,0.12,prof,cx+s*1.31,ST/2,zf-0.1,go,false);
 
   /* --- Zustand „noch nicht gekauft“: ganz normales Schaufenster ---
      Kein Hinweisschild, kein Bauzaun: der Laden soll schick
@@ -37,7 +38,8 @@ function eingangsAchse(go,a,b,zf,ST,glas,prof){
 
   /* --- Zustand „gekauft“: Tuer, Vordach, Matte --- */
   const auf=new THREE.Group(); go.add(auf); zAdd('eingang2',auf);
-  const d=buildSchiebetuer(cx,4.0);
+  /* Antrieb so breit, dass die Fluegel offen noch darunter haengen */
+  const d=buildSchiebetuer(cx,5.3);
   scene.remove(d.g); auf.add(d.g);
   EING2.tuer=d;
   const stahl=std(0x4a4f5a,{metalness:0.5,roughness:0.45});

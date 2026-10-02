@@ -518,6 +518,9 @@ const KUGEL={};
 function kugelSorte(o,k){
   const th=k.th||'bunt', [tA,tB]=themaPaar(th,0), [tC]=themaPaar(th,1);
   const A=farbe(k.A)||tA, B=farbe(k.B)||tB, C=farbe(k.C)||tC, kerne=k.kerne?k.kerne.map(farbe):null;
+  /* 02.10. (Tom: "breite Fontaenen ruhig beim Abschuss, mit Roemischen
+     Lichtern"): manche Kugeln zeigen schon am Moerser etwas (14p) */
+  if(k.abschuss&&typeof KUGEL_ABSCHUSS!=='undefined'&&KUGEL_ABSCHUSS[k.abschuss]) KUGEL_ABSCHUSS[k.abschuss](o,A,B,k.kal||1);
   return kugelbombe(o,k.kal||1,{A,B,C,eff:k.haupt,sz:k.sz,pw:k.pw,fuse:k.fuse,steig:k.steig,bruchOpt:k.bruchOpt,knall:k.ton,
     stufen:k.stufen||[],stufenRel:true,kobana:k.kobana,kerne,stehen:k.stehen,par:{drall:k.drall,kerne,C,dreh:k.dreh}});
 }

@@ -713,17 +713,31 @@ LICHT_MUSTER.forEach(([e,nm,form,F,txt],k)=>{ const nr=String(k+1).padStart(2,'0
   NEUWARE['lm_'+e]={name:'Licht '+nr+' · '+nm,short:nm,cat:2,lvl:10,shape:'battery',dims:ein?[0.3,0.3,0.3]:[0.56,0.3,0.36],grid:ein?[4,1,1]:[3,1,1],box:2,cost:9.00,market:20.99,weight:4,hype:30,risk:5,noOrder:true,
     desc:txt+'. Muster '+nr+(ein?' – eine einzige große Fontäne':' mit drei Schuss')+', nur zum Ansehen.',
     art:{title:nm.toUpperCase(),sub:'Licht '+nr+' · '+(ein?'1 Fontäne':'3 Schuss'),bg1:'#1c2440',bg2:'#05070f',ac:'#ffe08a',ac2:'#8ad8ff'}}; });
-/* 01.10. (Tom): 20 neue Kugelbomben und 20 neue Raketen (14n) - erst in
-   den Teststationen, nach Freigabe ins Sortiment */
-[['kn_perlenkranz75','Perlenkranz',75],['kn_geisterbluete75','Geisterblüte',75],['kn_kometenkranz100','Kometenkranz',100],['kn_blitzweide100','Blitzweide',100],
- ['kn_glitzerdom100','Glitzerdom',100],['kn_spritzbombe100','Sternspritzer',100],['kn_roemerkrone150','Römerkrone',150],['kn_crossettennetz150','Crossettennetz',150],
- ['kn_tigerkrone150','Tigerkrone',150],['kn_kiefernbombe150','Kiefernkrone',150],['kn_wasserkaskade150','Wasserkaskade',150],['kn_bluetenmeer150','Blütenmeer',150],
- ['kn_gewitterbombe200','Gewitterbombe',200],['kn_weidenkoenig200','Weidenkönig',200],['kn_faecherbombe200','Fächerbombe',200],['kn_vulkanherz200','Vulkanherz',200],
- ['kn_donnerkrone200','Donnerkrone',200],['kn_kronjuwel300','Kronjuwel',300],['kn_lichterdom300','Lichterdom',300],['kn_sternensturm300','Sternensturm',300]].forEach(([id,nm,mm],k)=>{
-  const nr=String(k+1).padStart(2,'0'), d={75:[0.09,0.115,0.09],100:[0.12,0.15,0.12],150:[0.165,0.2,0.165],200:[0.21,0.25,0.21],300:[0.3,0.34,0.3]}[mm], g={75:[8,2,1],100:[6,2,1],150:[4,1,1],200:[3,1,1],300:[2,1,1]}[mm];
-  NEUWARE[id]={name:nm+' · Kugelbombe '+mm+' mm',short:'Kugel '+mm+' '+nm,cat:2,lvl:{75:14,100:16,150:18,200:21,300:24}[mm],shape:'shell',dims:d,grid:g,box:{75:8,100:6,150:3,200:2,300:1}[mm],
-    cost:{75:6,100:12,150:30,200:44,300:70}[mm],market:{75:14.99,100:28.99,150:69.99,200:104.99,300:164.99}[mm],weight:4,hype:40+k*3,risk:9,noOrder:true,
-    desc:'Kugel '+nr+' – nur zum Ansehen.',art:{title:nm.toUpperCase(),sub:'Kugelbombe '+mm+' mm',bg1:'#2a1c40',bg2:'#07040f',ac:'#ffd23f',ac2:'#ff8ac8'}}; });
+/* 01.10. (Tom): 20 neue Raketen (14n) - erst in der Teststation.
+   02.10. (Tom, Kugeln): Crossettennetz, Tigerkrone, Weidenkoenig und
+   Sternensturm ins Sortiment, die anderen 16 Muster-Kugeln sind raus;
+   dazu zehn neue, richtig intensive Kugeln (14p) zum Testen. */
+const KUGEL_MASS={75:[0.09,0.115,0.09],100:[0.12,0.15,0.12],150:[0.165,0.2,0.165],200:[0.21,0.25,0.21],300:[0.3,0.34,0.3]};
+const KUGEL_GRID={75:[8,2,1],100:[6,2,1],150:[4,1,1],200:[3,1,1],300:[2,1,1]};
+const KUGEL_PREIS={75:[6,14.99],100:[12,28.99],150:[30,69.99],200:[44,104.99],300:[70,164.99]};
+const KUGEL_LVL={75:14,100:16,150:18,200:21,300:24};
+/* ins Sortiment: wie die anderen Kugeln, Lizenz nach Level */
+[['crossettennetz150','Crossettennetz',150,'Zwölf Crossetten zerspringen zu einem Netz aus goldenen und grünen Kometen.'],
+ ['tigerkrone150','Tigerkrone',150,'Tigerkometen mit breiten, glitzernden Goldbändern, die lange am Himmel stehen.'],
+ ['weidenkoenig200','Weidenkönig',200,'Eine riesige Goldweide mit roten Spitzen, die langsam herabsinkt.'],
+ ['sternensturm300','Sternensturm',300,'Crossetten, ein Regen aus Blinksternen und zum Schluss ein lauter Schlussschlag.']].forEach(([id,nm,mm,desc],k)=>{
+  NEUWARE[id]={name:nm+' · Kugelbombe '+mm+' mm',short:'Kugel '+mm+' '+nm,cat:2,lvl:KUGEL_LVL[mm],shape:'shell',dims:KUGEL_MASS[mm],grid:KUGEL_GRID[mm],box:2,
+    cost:KUGEL_PREIS[mm][0],market:KUGEL_PREIS[mm][1],weight:3,hype:70+k*8,risk:10,desc,art:{title:nm.toUpperCase(),sub:'Kugelbombe '+mm+' mm',bg1:'#2a1c40',bg2:'#07040f',ac:'#ffd23f',ac2:'#ff8ac8'}}; });
+NEU_GRUPPE.kugeln.push('crossettennetz150','tigerkrone150','weidenkoenig200','sternensturm300');
+NEU_LIZENZEN.find(l=>l.id==='goldklasse').items.push('crossettennetz150','tigerkrone150');
+NEU_LIZ_DAZU.grossfeuer.push('weidenkoenig200'); NEU_LIZ_DAZU.profi.push('sternensturm300');
+/* zehn neue intensive Kugeln - nur zum Ansehen */
+[['kn_farbkreuz100','Farbkreuz',100],['kn_goldsturm150','Goldsturm',150],['kn_roemerfeuer150','Römerfeuer',150],['kn_funkenbluete150','Funkenblüte',150],
+ ['kn_kronenkranz200','Kronenkranz',200],['kn_lavaglut200','Lavaglut',200],['kn_zwillingssonne200','Zwillingssonne',200],
+ ['kn_weidendom300','Weidendom',300],['kn_blitzkoenig300','Blitzkönig',300],['kn_finalfuerst300','Finalfürst',300]].forEach(([id,nm,mm],k)=>{
+  NEUWARE[id]={name:nm+' · Kugelbombe '+mm+' mm',short:'Kugel '+mm+' '+nm,cat:2,lvl:KUGEL_LVL[mm],shape:'shell',dims:KUGEL_MASS[mm],grid:KUGEL_GRID[mm],box:{75:8,100:6,150:3,200:2,300:1}[mm],
+    cost:KUGEL_PREIS[mm][0],market:KUGEL_PREIS[mm][1],weight:4,hype:60+k*3,risk:9,noOrder:true,
+    desc:'Intensive Kugel '+String(k+1).padStart(2,'0')+' – nur zum Ansehen.',art:{title:nm.toUpperCase(),sub:'Kugelbombe '+mm+' mm',bg1:'#401c1c',bg2:'#0f0404',ac:'#ffd23f',ac2:'#ff8a3a'}}; });
 [['rn_kometenstern','Kometenstern'],['rn_geisterkrone','Geisterkrone'],['rn_crossettenstern','Crossettenstern'],['rn_weidenregen','Weidenregen'],['rn_faecherstern','Fächerstern'],
  ['rn_wetterwolke','Wetterwolke'],['rn_glitzerbukett','Glitzerbukett'],['rn_bluetenstern','Blütenstern'],['rn_wasserring','Wasserring'],['rn_blitzweide','Blitzweide'],
  ['rn_tigerstern','Tigerstern'],['rn_kiefernstern','Kiefernstern'],['rn_lavastern','Lavastern'],['rn_spritzkrone','Spritzkrone'],['rn_perlenring','Perlenring'],

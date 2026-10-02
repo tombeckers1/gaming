@@ -12,7 +12,7 @@
    Enden erreichbar, jede Warenseite steht an einem Gang. Darin alle
    Moebeltypen: Hochregal, Verkaufsregal, Mittelgondel, kleines Regal,
    Kuehlschrank, Grossverbund-Regal, Tische, Gitterboxen, Eckregale.
-   Jedes Produkt fuellt genau ein Fach bis zum Rand.
+   Jedes Produkt fuellt genau ein Fach bis zum Rand, vorn steht sein Name.
    Die Moebel gehoeren nicht zum Laden: keine Kunden, kein Einraeumer,
    kein Speicherstand. Beenden: Knopf oben oder Taste B.
    ========================================================= */
@@ -145,6 +145,37 @@ function vpAufbauen(){
   const V=vpVerteilen(vpRegale); vpPlan=V.plan;
   return V;
 }
+/* Namensschilder (03.10., Tom: "an den Produkten soll der Name stehen,
+   sonst muss ich dich erst fragen, welches Produkt das ist - nur im
+   Testraum"): je Fach ein weisses Schild vorn an der Ware mit dem vollen
+   Produktnamen. Alle Namen liegen in EINEM Bild (Atlas), alle Schilder
+   sind EIN Mesh - kostet ein Bild und einen Zeichenaufruf. */
+let vpNamenM=null;
+const VP_NAME={sp:5,w:400,h:64};
+function vpNamenBauen(plan){
+  vpNamenWeg(); if(!plan.length) return;
+  const N=VP_NAME, zeilen=Math.ceil(plan.length/N.sp), W=N.sp*N.w, H=zeilen*N.h;
+  const tx=tex(W,H,(g)=>{ plan.forEach((e,i)=>{ const x=(i%N.sp)*N.w, y=Math.floor(i/N.sp)*N.h, nm=String(P[e.t].name||e.t);
+    g.fillStyle='#fbfbf7'; g.fillRect(x,y,N.w,N.h); g.fillStyle='#ffd23f'; g.fillRect(x,y,9,N.h);
+    g.fillStyle='#0e1226'; g.textAlign='left'; g.textBaseline='middle';
+    const k=nm.indexOf(' · '), a=k>0?nm.slice(0,k):nm, b=k>0?nm.slice(k+3):'';
+    const pass=(txt,px,bold)=>{ g.font=(bold?'700 ':'500 ')+px+'px Barlow, Arial, sans-serif'; const m=g.measureText(txt).width, max=N.w-26; if(m>max){ g.font=(bold?'700 ':'500 ')+Math.floor(px*max/m)+'px Barlow, Arial, sans-serif'; } };
+    if(b){ pass(a,29,true); g.fillText(a,x+17,y+20); g.fillStyle='#3a4160'; pass(b,23,false); g.fillText(b,x+17,y+47); }
+    else { pass(a,31,true); g.fillText(a,x+17,y+N.h/2+1); } }); });
+  tx.anisotropy=8;
+  const teile=[], v=new THREE.Vector3();
+  plan.forEach((e,i)=>{ const hit=e.lv.hit; if(!hit) return; hit.updateWorldMatrix(true,false);
+    const pa=hit.geometry.parameters||{}, bw=pa.width||0.8, bh=pa.height||0.3, bd=pa.depth||0.4;
+    const w=Math.min(bw*0.92,0.78), h=w*N.h/N.w;
+    const geo=new THREE.PlaneGeometry(w,h), uv=geo.attributes.uv;
+    const u0=(i%N.sp)/N.sp, u1=u0+1/N.sp, v1=1-Math.floor(i/N.sp)/zeilen, v0=v1-1/zeilen;
+    for(let j=0;j<uv.count;j++){ uv.setXY(j,uv.getX(j)?u1:u0,uv.getY(j)?v1:v0); }
+    const m=new THREE.Matrix4().makeTranslation(0,-bh/2+h/2+0.012,bd/2+0.014);
+    teile.push({geo,m:new THREE.Matrix4().multiplyMatrices(hit.matrixWorld,m)}); });
+  vpNamenM=new THREE.Mesh(merge(teile),new THREE.MeshBasicMaterial({map:tx,toneMapped:false}));
+  vpNamenM.name='vpNamen'; vpNamenM.renderOrder=2; scene.add(vpNamenM);
+}
+function vpNamenWeg(){ if(!vpNamenM) return; scene.remove(vpNamenM); vpNamenM.geometry.dispose(); if(vpNamenM.material.map) vpNamenM.material.map.dispose(); vpNamenM.material.dispose(); vpNamenM=null; }
 /* ein Produkt einraeumen; fehlt sein Modell noch, entsteht es sparsam */
 function vpEinraeumen(e){
   if(!poolDa(e.t)){ TEX_FAKTOR=VP_TEX; let pl; try{ pl=pools[e.t]; } finally { TEX_FAKTOR=1; }
@@ -169,6 +200,7 @@ function vpAbbauen(){
     sh.g.traverse(o=>{ if(!o.isMesh) return; const m=o.material;
       if(m&&m.map&&(sh.levels.some(lv=>lv.tex===m.map)||m.map===sh.headTex)){ m.map.dispose(); m.dispose(); }
       if((sh.gestelle||[]).includes(o)) o.geometry.dispose(); }); });
+  vpNamenWeg();
   vpRegale=[]; vpPlan=[];
   /* Modelle, die nur fuer die Vorfuehrung entstanden sind, wieder weg */
   vpNeu.forEach(t=>{ if(poolDa(t)&&pools[t].h.length===0) poolWeg(t); }); vpNeu=new Set();
@@ -182,6 +214,7 @@ function vpStart(){
   vpAn=true; vpRaumBauen(); SPIEL_RAUM=VP_FL;
   vpFertig=false; vpLauf++;
   const V=vpAufbauen(); vpV=V;
+  vpNamenBauen(V.plan);
   if(V.uebrig.length) console.warn('Verpackungs-Vorfuehrung: kein Platz fuer',V.uebrig.join(', '));
   /* im Hauptgang am Anfang des ersten Gangs, Blick hinein (nach Sueden) */
   pl.x=VP_FL.x0+VP_SEITE+vpZeilenMass(VP_ZEILEN[0]).t+VP_GANG/2; pl.z=VP_FL.z1-1.3; yaw=0; pitch=-0.05;

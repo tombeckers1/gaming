@@ -558,7 +558,11 @@ Object.keys(P).forEach(kartonWahl);
 const STEHER=0.03;
 function modBreite(K){ const n=K.mod||1; return (K.w-0.1-(n-1)*STEHER)/n; }
 function slotLocal(t,idx,sh,lv){
-  const L=layout(t,sh,lv), c=idx%L.cols, rest=Math.floor(idx/L.cols), layer=rest%L.st, row=Math.floor(rest/L.st);
+  /* 02.10. (Tom): eingeraeumt wird von hinten nach vorn - die erste Reihe
+     steht ganz hinten, die vorderste kommt zuletzt. Dann sieht man, wie
+     viel noch passt, und der Kunde nimmt vorn (removeFromLevel nimmt das
+     zuletzt eingeraeumte Stueck, also aus der vordersten Reihe). */
+  const L=layout(t,sh,lv), c=idx%L.cols, rest=Math.floor(idx/L.cols), layer=rest%L.st, row=L.rows-1-Math.floor(rest/L.st);
   const z=L.K.d/2-0.03-L.d/2-row*(L.d+L.g);
   /* Regal aus mehreren Modulen: je Modul mittig zwischen den Stehern */
   if(L.modCm){ const m=Math.floor(c/L.modCm), cc=c%L.modCm, mb=modBreite(L.K), iw=L.K.w-0.1, tw=L.modCm*(L.w+L.g)-L.g;
@@ -840,6 +844,7 @@ function addToLevel(lv,t,q){
   const h=pools[t].add(itemMatrix(lv.sh,{li:lv.li,type:t},lv.count,jit)); h.jit=jit;
   lv.items.push(h); lv.count++; updateLabel(lv); updateHead(lv.sh); return true;
 }
+/* der Kunde nimmt vorn: das zuletzt eingeraeumte Stueck steht am weitesten vorn */
 function removeFromLevel(lv){ const h=lv.items.pop(); if(h) h.pool.remove(h); lv.count--; if(lv.count<=0){ lv.count=0; lv.type=null; lv.q=1; } updateLabel(lv); updateHead(lv.sh); }
 function allLevels(){ const a=[]; shelves.forEach(s=>s.levels.forEach(l=>a.push(l))); return a; }
 function findLevel(t,from){ let best=null,bd=1e9; for(const l of allLevels()){ if(l.type===t&&l.count>0){ const d=from?from.distanceTo(shelfStand(l.sh,l)):0; if(d<bd){ bd=d; best=l; } } } return best; }

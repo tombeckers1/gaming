@@ -271,6 +271,7 @@ function schattenTakt(){
   if(GFX==='hoch'||schattenN>=3){ R.needsUpdate=true; schattenN=0; }
 }
 function renderFrame(dt){
+  kleinTakt(dt||0);
   sonneNachfuehren();
   gruppenTakt();
   buendelTakt();

@@ -493,7 +493,7 @@ function buildVerpackung(t){
          Nachthimmel - je Produkt ein eigenes Motiv */
       const y0=H*0.555, y1=H*0.885; wkBild(g,W*0.1,y0,W*0.8,y1-y0,t);
       g.strokeStyle='rgba(255,255,255,.9)'; g.lineWidth=Math.max(2,W*0.015); g.strokeRect(W*0.1,y0,W*0.8,y1-y0);
-      g.fillStyle=a.ac2; g.fillRect(0,H*0.91,W,H*0.09); g.fillStyle='#fff'; g.textAlign='center'; g.textBaseline='middle'; const stk=wkStueck(t)+' STÜCK'; fitFont(g,stk,W*0.8,Math.round(H*0.05),BAR); g.fillText(stk,W/2,H*0.955);
+      g.fillStyle=a.ac2; g.fillRect(0,H*0.91,W,H*0.09); { const c=hexRgb(a.ac2); g.fillStyle=(0.299*c[0]+0.587*c[1]+0.114*c[2])>165?'#141a30':'#fff'; } g.textAlign='center'; g.textBaseline='middle'; const stk=wkStueck(t)+' STÜCK'; fitFont(g,stk,W*0.8,Math.round(H*0.05),BAR); g.fillText(stk,W/2,H*0.955);
       g.fillStyle='#fff'; g.beginPath(); g.arc(W*0.84,H*0.05,W*0.1,0,Math.PI*2); g.fill(); g.fillStyle='#0e1226'; g.font=BUN(Math.round(W*0.09)); g.fillText('F'+p.cat,W*0.84,H*0.055); };
     const A=atlas(w,h,d,a,p.cat,{front}); boxPart(parts,w,h,d,A,tm(0,h/2,0));
     /* Aufhaengelasche (Euroloch) oben */

@@ -9,7 +9,15 @@ const renderer=new THREE.WebGLRenderer({canvas,antialias:GFX!=='niedrig',powerPr
 /* Aufloesung je Grafikstufe: hoch bis 1,9-fach (Retina), mittel 1-fach,
    niedrig 0,75-fach - das Bild wird hochgezogen, kostet aber nur gut die
    Haelfte der Pixel */
-function gfxPixel(){ const d=window.devicePixelRatio||1; return GFX==='hoch'?Math.min(d,COARSE?1.5:1.9):GFX==='mittel'?Math.min(d,1):0.75; }
+/* Dynamische Aufloesung (03.10., Tom: "fluessiger, hochaufloesend so gut
+   es geht"): die Stufe gibt die hoechste Pixeldichte vor (Hoch jetzt bis 2x,
+   auch am Handy), RES (0,55-1) regelt in der Automatik laufend nach - faellt
+   die Bildrate, wird intern mit weniger Pixeln gezeichnet, ist Luft, wieder
+   mit mehr. So bleibt es fluessig, ohne gleich eine ganze Stufe zu verlieren. */
+const RES_MIN=0.55;
+let RES=1; try{ const r=+localStorage.getItem('bb_res'); if(r) RES=clamp(r,RES_MIN,1); }catch(e){}
+function gfxPixelMax(){ const d=window.devicePixelRatio||1; return GFX==='hoch'?Math.min(d,2):GFX==='mittel'?Math.min(d,1):0.75; }
+function gfxPixel(){ return Math.max(0.5,gfxPixelMax()*(GFX_WAHL==='auto'?RES:1)); }
 renderer.setPixelRatio(gfxPixel());
 renderer.setSize(innerWidth,innerHeight,false);
 renderer.outputEncoding=THREE.sRGBEncoding;

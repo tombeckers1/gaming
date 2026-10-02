@@ -100,16 +100,31 @@ function gfxWaehlen(w){
    hintereinander unter 28 Bildern/s, eine Stufe tiefer (gemerkt fuer den
    naechsten Start). Nicht in Pause, Laptop oder verstecktem Tab, und
    nicht in den ersten 8 s nach dem Start oder nach einem Wechsel. */
-const gfxMess={t:0,n:0,schlecht:0,ruhe:8,fps:0};
+const gfxMess={t:0,n:0,schlecht:0,ruhe:8,fps:0,rt:0,rn:0,gut:0,vorher:0,sperre:0};
+function resSetzen(r){ RES=Math.round(clamp(r,RES_MIN,1)*100)/100; renderer.setPixelRatio(gfxPixel()); renderer.setSize(innerWidth,innerHeight,false); resizePost(); try{ localStorage.setItem('bb_res',String(RES)); }catch(e){} }
+/* Regler fuer RES: Fenster von 1 s. Unter 45 Bildern/s weniger Pixel,
+   ab 56 drei Fenster lang wieder mehr. Bringt eine Absenkung nichts (die
+   Bildrate ist gedeckelt, z. B. Stromsparmodus am iPhone mit 30 Bildern/s),
+   geht sie zurueck und der Regler wartet 20 s. */
+function resRegeln(roh){
+  const M=gfxMess; M.rt+=roh; M.rn++; if(M.rt<1) return;
+  const f=M.rn/M.rt; M.rt=0; M.rn=0; M.fps=f;
+  if(M.sperre>0){ M.sperre--; M.vorher=0; return; }
+  if(M.vorher){ const v=M.vorher; M.vorher=0; if(f<v+2&&f<45){ resSetzen(RES+M.schritt); M.sperre=20; return; } }
+  if(f<45&&RES>RES_MIN){ M.schritt=Math.min(RES-RES_MIN,f<30?0.15:0.08); M.vorher=f; M.gut=0; resSetzen(RES-M.schritt); return; }
+  if(f>=56){ if(++M.gut>=3&&RES<1){ M.gut=0; resSetzen(RES+0.05); } } else M.gut=0;
+}
 function gfxMessen(roh,aktiv){
   const M=gfxMess;
   if(!aktiv||document.hidden||roh>0.5){ M.t=0; M.n=0; return; }
   if(M.ruhe>0){ M.ruhe-=roh; return; }
+  if(GFX_WAHL==='auto'&&GFX!=='niedrig') resRegeln(roh);
   M.t+=roh; M.n++;
   if(M.t<2) return;
   M.fps=M.n/M.t; M.t=0; M.n=0;
   if(GFX_WAHL!=='auto'||GFX==='niedrig'){ M.schlecht=0; return; }
-  M.schlecht=M.fps<28?M.schlecht+1:0;
+  /* eine ganze Stufe tiefer erst, wenn auch die kleinste Aufloesung nicht reicht */
+  M.schlecht=M.fps<28&&RES<=RES_MIN+0.001?M.schlecht+1:0;
   if(M.schlecht>=3){ const st=GFX_STUFEN[GFX_STUFEN.indexOf(GFX)-1]; M.schlecht=0; M.ruhe=6;
     try{ localStorage.setItem('bb_gfx_auto',st); }catch(e){}
     gfxAnwenden(st); if(typeof toast==='function') toast('Grafik automatisch auf „'+st[0].toUpperCase()+st.slice(1)+'“ gestellt ('+Math.round(M.fps)+' Bilder/s). Ändern: Esc → Grafik.'); }

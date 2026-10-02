@@ -26,6 +26,8 @@ function updateAim(dt){
    nichts zu suchen, deshalb bleibt diese eine Grenze enger als das
    Navgitter. */
 const PLZ_MAX=10.8;
+/* gesetzt, solange der Spieler in einem Raum ausserhalb der Karte steht */
+let SPIEL_RAUM=null;
 const keys={}; const joy={x:0,y:0,id:null,ox:0,oy:0};
 let sprayOn=false, sprayCool=0, build=false, grabbed=null, grabRy=0, grabHome=null;
 function collide(p,R){
@@ -43,6 +45,8 @@ function collide(p,R){
      Westhalle und das halbe Testfeld waren ueberhaupt nicht zu
      betreten. Jetzt umschliessen sie die ganze bebaute Flaeche -
      dasselbe Rechteck, auf dem auch das Navgitter steht. */
+  /* Verpackungs-Vorfuehrung: eigener Raum ausserhalb der Karte */
+  if(SPIEL_RAUM){ p.x=clamp(p.x,SPIEL_RAUM.x0+0.4,SPIEL_RAUM.x1-0.4); p.z=clamp(p.z,SPIEL_RAUM.z0+0.4,SPIEL_RAUM.z1-0.4); return; }
   p.x=clamp(p.x,NAV.x0+0.4,NAV.x1-0.4); p.z=clamp(p.z,NAV.z0+0.4,PLZ_MAX);
 }
 function look(dx,dy,s){ aim=null; yaw-=dx*s; pitch=clamp(pitch-dy*s,-1.45,1.45); }

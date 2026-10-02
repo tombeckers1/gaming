@@ -3,7 +3,7 @@
    nicht halb ueber, die Sachen verschmelzen nicht ... wie im Supermarkt").
    Prueft nach vpStart():
    - PLATZ: jedes Produkt hat ein Fach, kein Fach bleibt leer, die Moebel
-     ueberschneiden sich nicht und stehen in der Halle
+     ueberschneiden sich nicht und stehen im Raum
    - VOLL: jedes Fach ist bis zur Fassung gefuellt
    - RAND: keine Packung ragt aus dem Fach (Breite zwischen den Stehern,
      Tiefe, Hoehe bis zum naechsten Boden)
@@ -12,7 +12,11 @@
      Seite (vorher landete sie auf der ersten)
    - LUECKE: in seinem Heimatregal fuellt jedes Produkt das Fach-Modul in
      der Breite zu mindestens 85 % und in der Tiefe zu mindestens 75 %
-   - AUS: nach dem Beenden ist alles wie vorher (Regale, Zonen, Kollision)
+   - AUS: nach dem Beenden ist alles wie vorher (Regale, Zonen, Kollision, Modelle)
+   - ERREICHBAR (03.10., Tom, Foto: "ich kann nur die erste Reihe sehen,
+     dahinter komme ich nicht hin"): eigener Ausstellungsraum; vom
+     Startpunkt aus kommt man zu Fuss (Rasterweg ueber die echten
+     Kollisionen, Spielerradius) vor jede Warenseite jedes Moebels.
    Aufruf: node -r ladezeit-preload.js verpackung.js real.html
    - SPEICHER / KNOPF (02.10. abends, Tom: "haengt sich auf, Fehler ist
      aufgetreten", PC und iPhone): gestartet wird ueber den Knopf im Laptop,
@@ -43,7 +47,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     bb.openLaptop(); bb.ltab='laden'; bb.renderLaptop(); const k=document.querySelector('[data-a="verpackung"]'); const t=performance.now(); if(k) k.click(); return {knopf:!!k,ms:Math.round(performance.now()-t)}; });
   console.log('Knopf',JSON.stringify(start));
   await p.waitForFunction('window.__bb.vpFertig',null,{timeout:1200000,polling:500});
-  const r=await p.evaluate((start)=>{ const bb=window.__bb, P=bb.P, o={platz:[],voll:[],rand:[],fuge:[],seite:[],luecke:[],aus:[]};
+  const r=await p.evaluate((start)=>{ const bb=window.__bb, P=bb.P, o={platz:[],voll:[],rand:[],fuge:[],seite:[],luecke:[],aus:[],erreichbar:[]};
     const vorher=window.__vorher;
     /* der Klick darf das Spiel nicht lange anhalten (vorher 10 s) */
     if(!start.knopf) o.aus.push('kein Knopf im Laptop'); if(start.ms>2500) o.aus.push('Knopf blockiert das Spiel '+start.ms+' ms');
@@ -83,6 +87,27 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
           const fw=L.cols*(L.w+L.g)/(R.B*R.MX), fd=L.rows*(L.d+L.g)/(R.T*R.MZ); if(!best||fw*fd>best.fw*best.fd) best={fw,fd}; });
         /* Kugelbomben sind rund und muessen ins Moerserrohr: nur die Breite zaehlt */
         if(best){ if(best.fw<0.85||(best.fd<0.75&&pp.shape!=='shell')) o.luecke.push(`${t} in ${k}: Breite ${Math.round(best.fw*100)} %, Tiefe ${Math.round(best.fd*100)} %`); break; } } });
+    /* ERREICHBAR (03.10., Tom: "ich kann nur die erste Reihe sehen, da
+       komme ich nicht hin"): vom Startpunkt aus zu Fuss (Spielerradius
+       0,32 m) vor jede Warenseite jedes Moebels kommen. Rasterweg ueber die
+       echten Kollisionen. */
+    { const F=bb.VP_FL, s0=0.1, R=0.34, nx=Math.ceil((F.x1-F.x0)/s0), nz=Math.ceil((F.z1-F.z0)/s0);
+      const cols=bb.colliders.filter(c=>c.maxX>F.x0-1&&c.minX<F.x1+1&&c.maxZ>F.z0-1&&c.minZ<F.z1+1);
+      const frei=new Uint8Array(nx*nz);
+      for(let i=0;i<nx;i++) for(let k=0;k<nz;k++){ const x=F.x0+(i+0.5)*s0, z=F.z0+(k+0.5)*s0; let ok=x>F.x0+R&&x<F.x1-R&&z>F.z0+R&&z<F.z1-R;
+        if(ok) for(const c of cols){ if(x>c.minX-R&&x<c.maxX+R&&z>c.minZ-R&&z<c.maxZ+R){ ok=false; break; } } frei[i*nz+k]=ok?1:0; }
+      const idx=(x,z)=>{ const i=Math.floor((x-F.x0)/s0), k=Math.floor((z-F.z0)/s0); return i<0||k<0||i>=nx||k>=nz?-1:i*nz+k; };
+      const p=bb.playerPos(), seen=new Uint8Array(nx*nz), q=[]; const st=idx(p.x,p.z);
+      if(st<0||!frei[st]) o.platz.push('Startpunkt nicht frei'); else { q.push(st); seen[st]=1; }
+      while(q.length){ const c=q.pop(), i=Math.floor(c/nz), k=c%nz;
+        for(const [di,dk] of [[1,0],[-1,0],[0,1],[0,-1]]){ const i2=i+di, k2=k+dk; if(i2<0||k2<0||i2>=nx||k2>=nz) continue; const n=i2*nz+k2; if(frei[n]&&!seen[n]){ seen[n]=1; q.push(n); } } }
+      o.seiten=0;
+      regale.forEach(sh=>{ const K=bb.kindOf(sh), fs=K.seiten||[{ry:0,ox:0,oz:0}];
+        fs.forEach((f,fi)=>{ o.seiten++; const a=sh.g.rotation.y, c=Math.cos(a), si=Math.sin(a);
+          /* 0,55 bis 1,8 m vor der Warenseite muss ein freier, erreichbarer Punkt liegen (das Eckregal stoesst als ganzes Quadrat - man steht davor wie im Laden) */
+          let ok=false; for(let d=0.55;d<=1.8&&!ok;d+=0.05){ const lx=f.ox+Math.sin(f.ry)*(K.d/2+d), lz=f.oz+Math.cos(f.ry)*(K.d/2+d);
+            const x=sh.g.position.x+lx*c+lz*si, z=sh.g.position.z-lx*si+lz*c, n=idx(x,z); if(n>=0&&seen[n]) ok=true; }
+          if(!ok) o.erreichbar.push(sh.kind+' Seite '+fi+' bei '+sh.g.position.x.toFixed(1)+'/'+sh.g.position.z.toFixed(1)); }); }); }
     /* SPEICHER: Verpackungsbilder der Vorfuehrung zusammen hoechstens 45
        Megapixel (vorher 124 - das iPhone stuerzte ab) */
     { const seen=new Set(); let px=0; for(const t of alle){ const pl=bb.pools[t]; if(!pl||!pl.vp) continue;
@@ -93,10 +118,10 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     if(JSON.stringify(vorher)!==JSON.stringify(nach)) o.aus.push(JSON.stringify(vorher)+' -> '+JSON.stringify(nach));
     if(bb.vpRegale.length) o.aus.push('Moebel bleiben stehen');
     o.n=plan.length; o.moebel=regale.length; return o; },start);
-  console.log('Produkte',r.n,'Moebel',r.moebel,'Verpackungsbilder',r.mp,'MP');
+  console.log('Produkte',r.n,'Moebel',r.moebel,'Warenseiten',r.seiten,'Verpackungsbilder',r.mp,'MP');
   if(!(r.mp<=45)) r.aus.push('SPEICHER: Verpackungsbilder '+r.mp+' Megapixel (hoechstens 45)');
   const m=[];
-  for(const k of ['platz','voll','rand','fuge','seite','luecke','aus']) if(r[k].length) m.push(k.toUpperCase()+' '+r[k].length+'x: '+r[k].slice(0,40).join(' | '));
+  for(const k of ['platz','voll','rand','fuge','seite','luecke','aus','erreichbar']) if(r[k].length) m.push(k.toUpperCase()+' '+r[k].length+'x: '+r[k].slice(0,40).join(' | '));
   console.log('MANGEL:',m.join('\n')||'keine');
   console.log('ERRORS:',errs.join(' | ')||'keine'); await b.close();
 })();

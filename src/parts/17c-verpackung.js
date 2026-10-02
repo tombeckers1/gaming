@@ -1,64 +1,92 @@
 /* =========================================================
    VERPACKUNGS-VORFUEHRUNG - NUR FUER DIE ENTWICKLUNG (Tom, 02.10.)
-   "keine Feuerwerksexplosion, sondern die Verpackung ... ein Testfeld,
-   wo nur Regale sind und die Produkte eingeraeumt, immer in einer Reihe
-   ein Produkt ... du kannst die Lagerflaeche nehmen ... dass ich alle
-   Regale mal sehe und wie die eingeraeumt sind ... wie im Supermarkt".
-   Laptop > Laden > Verpackungs-Vorfuehrung: die Halle Sued im Lager
-   steht solange offen (auch ungekauft), darin Gassen aus allen
-   Moebeltypen - Hochregal, Verkaufsregal, Mittelgondel, kleines Regal,
+   "keine Feuerwerksexplosion, sondern die Verpackung ... immer in einer
+   Reihe ein Produkt ... dass ich alle Regale mal sehe und wie die
+   eingeraeumt sind ... wie im Supermarkt".
+   03.10. (Tom, Foto vom iPhone: "ich kann nur die erste Reihe sehen,
+   dahinter stehen ganz viele, aber da komme ich nicht hin ... gerne einen
+   komplett neuen, leeren Raum"): die Vorfuehrung hat jetzt einen eigenen
+   Ausstellungsraum weit ab vom Laden, wie ein Supermarkt aufgeteilt:
+   vorn ein breiter Hauptgang, hinten ein Quergang, dazwischen sechs
+   Regalzeilen in die Tiefe mit 2,2-m-Gaengen - jede Zeile ist von beiden
+   Enden erreichbar, jede Warenseite steht an einem Gang. Darin alle
+   Moebeltypen: Hochregal, Verkaufsregal, Mittelgondel, kleines Regal,
    Kuehlschrank, Grossverbund-Regal, Tische, Gitterboxen, Eckregale.
    Jedes Produkt fuellt genau ein Fach bis zum Rand.
    Die Moebel gehoeren nicht zum Laden: keine Kunden, kein Einraeumer,
-   kein Speicherstand. Was in der Halle steht, ist so lange weggeraeumt
-   und kommt beim Beenden zurueck.
+   kein Speicherstand. Beenden: Knopf oben oder Taste B.
    ========================================================= */
-let vpAn=false, vpRegale=[], vpWeg=[], vpEl=null, vpPlan=[], vpVorher=null;
+let vpAn=false, vpRegale=[], vpEl=null, vpPlan=[], vpVorher=null;
 /* 02.10. (Tom: "beim Starten haengt sich das Spiel auf ... Fehler ist
    aufgetreten", PC und iPhone): alle 225 Verpackungen auf einmal kosteten
    124 Megapixel Texturen (660 MB Grafik- + 500 MB Zwischenspeicher) und
    blockierten den Start 10 s. Jetzt: Verpackungsbilder der Vorfuehrung in
-   halber Aufloesung, Leinwand nach dem Hochladen frei, keine Schatten,
-   Aufbau Stueck fuer Stueck mit Anzeige, beim Beenden alles wieder frei. */
-let vpFertig=false, vpLauf=0, vpNeu=new Set(), vpV=null;
-const VP_FL={x0:-19.9,x1:-8.1,z0:-29.9,z1:-5.9}, VP_RAND=0.25, VP_GANG=1.8;
-/* Reihen von Nord (Eingang) nach Sued. seite: wohin die Ware schaut
-   (n = zum Eingang, s = nach Sueden); paar: steht Ruecken an Ruecken
-   mit der vorigen Reihe. */
-const VP_REIHEN=[
-  {kinds:['hoch','hoch','hoch','hoch','hoch'],seite:'n'},
-  {kinds:['standard','standard','standard','standard','standard'],seite:'s',paar:true},
-  {kinds:['gondel','gondel','gondel','gondel','gondel']},
-  {kinds:['gondel','gondel','gondel','gondel','gondel']},
-  {kinds:['klein','klein','klein','klein','klein','klein','klein','klein','klein'],seite:'n'},
-  {kinds:['kuehl','kuehl','kuehl','kuehl','kuehl','kuehl','kuehl','kuehl','kuehl'],seite:'s',paar:true},
-  {kinds:['gross','gross','gross','gross','gross'],seite:'n'},
-  {kinds:['tisch','tischgross','gitter','gitter2','gitter3'],frei:true},
-  {kinds:['eck','eck'],seite:'n',wand:true}
+   reduzierter Aufloesung, keine Schatten, Aufbau Stueck fuer Stueck mit
+   Anzeige, beim Beenden alles wieder frei. */
+let vpFertig=false, vpLauf=0, vpNeu=new Set(), vpV=null, vpRaumG=null, vpRaumCols=[];
+/* Aufloesung der Verpackungsbilder in der Vorfuehrung. 03.10.: die
+   Leinwand wird nicht mehr nach dem Hochladen geleert - auf dem iPhone
+   kamen die Packungen dann grau an (Safari uebernimmt das Bild offenbar
+   erst spaeter). Dafuer etwas kleiner: 0,4 = rund 20 Megapixel. */
+const VP_TEX=0.4;
+/* Zeilen von West nach Ost. art: paar = zwei Regalreihen Ruecken an
+   Ruecken (links schaut nach Westen, rechts nach Osten), insel = Gondeln
+   (Ware auf beiden Seiten), einzeln = eine Reihe, frei = Tische und
+   Gitterboxen mit Luft rundum. */
+const VP_ZEILEN=[
+  {art:'paar',links:['hoch','hoch','hoch','hoch','hoch'],rechts:['standard','standard','standard','standard','standard']},
+  {art:'insel',kinds:['gondel','gondel','gondel','gondel','gondel']},
+  {art:'insel',kinds:['gondel','gondel','gondel','gondel','gondel']},
+  {art:'paar',links:['klein','klein','klein','klein','klein','klein','klein','klein','klein'],rechts:['kuehl','kuehl','kuehl','kuehl','kuehl','kuehl','kuehl','kuehl','kuehl']},
+  {art:'einzeln',kinds:['gross','gross','gross','gross','gross']},
+  {art:'frei',kinds:['tisch','tischgross','gitter','gitter2','gitter3']}
 ];
+const VP_GANG=2.2, VP_SEITE=2.5, VP_VORN=3.2, VP_HINTEN=3.0, VP_LUFT=1.0, VP_H=4.6;
+/* Lage des Raums: weit weg von allem anderen (die Stadt reicht nicht so weit) */
+const VP_URSPRUNG={x:230,z:-160};
+const _vpLang=K=>K.fw||K.w, _vpTief=K=>K.fd||K.d;
+function vpZeilenMass(Z){ const S=k=>SHELFKIND[k];
+  if(Z.art==='paar') return {t:_vpTief(S(Z.links[0]))+_vpTief(S(Z.rechts[0]))+0.04, l:Math.max(Z.links.reduce((a,k)=>a+_vpLang(S(k)),0),Z.rechts.reduce((a,k)=>a+_vpLang(S(k)),0))};
+  if(Z.art==='frei') return {t:Math.max(...Z.kinds.map(k=>_vpTief(S(k)))), l:Z.kinds.reduce((a,k)=>a+_vpLang(S(k)),0)+VP_LUFT*(Z.kinds.length-1)};
+  return {t:Math.max(...Z.kinds.map(k=>_vpTief(S(k)))), l:Z.kinds.reduce((a,k)=>a+_vpLang(S(k)),0)}; }
+/* Grundriss aus den Zeilen: Breite = Seitengaenge + Zeilen + Gaenge,
+   Tiefe = Hauptgang + laengste Zeile + Quergang */
+const VP_FL=(()=>{ const M=VP_ZEILEN.map(vpZeilenMass);
+  const B=2*VP_SEITE+M.reduce((a,m)=>a+m.t,0)+VP_GANG*(M.length-1), T=VP_VORN+Math.max(...M.map(m=>m.l))+VP_HINTEN;
+  return {x0:VP_URSPRUNG.x, x1:VP_URSPRUNG.x+B, z0:VP_URSPRUNG.z, z1:VP_URSPRUNG.z+T}; })();
 /* Alle Produkte, die im Laden im Regal stehen koennen */
 function vpProdukte(){ return ORDER.filter(t=>{ const p=P[t]; return p&&p.dims&&!p.noOrder&&!p.rezept; }); }
-/* Stellplaetze ausrechnen: je Moebel x, z, Drehung */
+/* Stellplaetze: die Zeilen laufen vom Hauptgang (Norden, +z) nach
+   Sueden. Ein Regal mit ry=+90 Grad schaut nach Osten, -90 nach Westen. */
 function vpStellplaetze(){
-  const out=[], X0=VP_FL.x0+VP_RAND, X1=VP_FL.x1-VP_RAND;
-  let z=VP_FL.z1-VP_RAND-VP_GANG, vorT=0;
-  VP_REIHEN.forEach((R,ri)=>{
-    const Ks=R.kinds.map(k=>SHELFKIND[k]), breite=k=>k.fw||k.w, tiefe=k=>k.fd||k.d;
-    const T=Math.max(...Ks.map(tiefe));
-    if(R.wand) z=VP_FL.z0+VP_RAND+T;   /* letzte Reihe an die Suedwand */
-    else if(ri>0) z-=R.paar?0.04:VP_GANG;
-    const zc=z-T/2;
-    /* gleichmaessig verteilen, Ecken an die Waende */
-    const summe=Ks.reduce((a,k)=>a+breite(k),0), luft=(X1-X0-summe)/Math.max(1,Ks.length-1);
-    let x=X0;
-    Ks.forEach((K,i)=>{ const b=breite(K); let cx=x+b/2, cz=R.frei?z-tiefe(K)/2:zc, ry=R.seite==='s'?Math.PI:0;
-      if(K.id==='eck'){ /* hintere Ecke in die Hallenecke */ cz=VP_FL.z0+VP_RAND+tiefe(K)/2; ry=i===0?0:-Math.PI/2; }
-      else if(!K.art&&!K.frei&&R.seite!=='s') cz=z-T+K.d/2;    /* Ruecken an die Reihe dahinter */
-      else if(!K.art&&!K.frei) cz=z-K.d/2;
-      out.push({kind:K.id,x:cx,z:cz,ry,reihe:ri}); x+=b+(R.kinds.length>1?luft:0); });
-    z-=T; vorT=T;
-  });
+  const out=[], F=VP_FL, zA=F.z1-VP_VORN;
+  let x=F.x0+VP_SEITE;
+  VP_ZEILEN.forEach((Z,zi)=>{ const M=vpZeilenMass(Z), xc=x+M.t/2;
+    const reihe=(kinds,cx,ry)=>{ let z=zA; kinds.forEach(k=>{ const K=SHELFKIND[k], l=_vpLang(K); out.push({kind:k,x:cx,z:z-l/2,ry,zeile:zi}); z-=l+(Z.art==='frei'?VP_LUFT:0); }); };
+    if(Z.art==='paar'){ const tl=_vpTief(SHELFKIND[Z.links[0]]), tr=_vpTief(SHELFKIND[Z.rechts[0]]);
+      reihe(Z.links,x+tl/2,-Math.PI/2); reihe(Z.rechts,x+M.t-tr/2,Math.PI/2); }
+    else if(Z.art==='einzeln') reihe(Z.kinds,xc,-Math.PI/2);
+    else reihe(Z.kinds,xc,Math.PI/2);
+    x+=M.t+VP_GANG; });
+  /* Eckregale in die beiden hinteren Ecken */
+  const E=SHELFKIND.eck, h=_vpTief(E)/2;
+  out.push({kind:'eck',x:F.x0+h,z:F.z0+h,ry:0,zeile:-1});
+  out.push({kind:'eck',x:F.x1-h,z:F.z0+h,ry:-Math.PI/2,zeile:-1});
   return out;
+}
+/* Der Raum selbst: einmal gebaut, danach nur ein- und ausgeblendet.
+   Wie die Lagerhallen (halle): Ladenboden, Ladenwand, Decke, Leuchten,
+   Dach; dazu Waende rundum mit Kollision. */
+function vpRaumBauen(){
+  if(vpRaumG){ vpRaumG.visible=true; vpRaumCols.forEach(c=>{ if(colliders.indexOf(c)<0) colliders.push(c); }); return; }
+  const vorher=scene.children.length, cv=colliders.length;
+  halle(null,VP_FL,{h:VP_H,aussen:{w:true,e:true,n:true,s:true},ax:3.4,az:3.4});
+  /* alles Neue in eine Gruppe, damit es beim Beenden verschwindet */
+  const neu=scene.children.slice(vorher); vpRaumG=new THREE.Group(); scene.add(vpRaumG); neu.forEach(o=>vpRaumG.add(o));
+  /* die Waende stossen nur, solange die Vorfuehrung laeuft */
+  vpRaumCols=colliders.slice(cv);
+  /* unter Dach: kein Schnee im Raum */
+  if(typeof dachBereiche==='function') dachBereiche().push({x0:VP_FL.x0-0.3,x1:VP_FL.x1+0.3,z0:VP_FL.z0-0.3,z1:VP_FL.z1+0.3,h:VP_H+0.4});
 }
 /* Fuellbild eines Fachs: Breite und Tiefe, wie viel davon Ware ist */
 function vpFuellung(t,sh,lv){
@@ -119,12 +147,11 @@ function vpAufbauen(){
 }
 /* ein Produkt einraeumen; fehlt sein Modell noch, entsteht es sparsam */
 function vpEinraeumen(e){
-  if(!poolDa(e.t)){ TEX_FAKTOR=0.5; let pl; try{ pl=pools[e.t]; } finally { TEX_FAKTOR=1; }
+  if(!poolDa(e.t)){ TEX_FAKTOR=VP_TEX; let pl; try{ pl=pools[e.t]; } finally { TEX_FAKTOR=1; }
     pl.vp=true; vpNeu.add(e.t);
     pl.meshes.forEach(m=>{ m.castShadow=false;
       const ms=Array.isArray(m.material)?m.material:[m.material];
-      /* nach dem Hochladen braucht das Bild keine Leinwand mehr */
-      ms.forEach(mt=>{ const tx=mt&&mt.map; if(tx&&tx.image&&tx.image.getContext&&!tx.onUpdate){ tx.__px=tx.image.width*tx.image.height; tx.onUpdate=()=>{ tx.image.width=1; tx.image.height=1; tx.onUpdate=null; }; } }); }); }
+      ms.forEach(mt=>{ const tx=mt&&mt.map; if(tx&&tx.image) tx.__px=tx.image.width*tx.image.height; }); }); }
   addViele(e.lv,e.t,layout(e.t,e.sh,e.lv).cap);
 }
 /* Stueck fuer Stueck: je Bild hoechstens ~25 ms, dann darf das Spiel zeichnen */
@@ -146,27 +173,18 @@ function vpAbbauen(){
   /* Modelle, die nur fuer die Vorfuehrung entstanden sind, wieder weg */
   vpNeu.forEach(t=>{ if(poolDa(t)&&pools[t].h.length===0) poolWeg(t); }); vpNeu=new Set();
 }
-/* Was sonst in der Halle steht, raeumen wir so lange beiseite */
-function vpImFeld(x,z){ return x>VP_FL.x0&&x<VP_FL.x1&&z>VP_FL.z0&&z<VP_FL.z1; }
-function vpWegraeumen(){
-  vpWeg=[];
-  movables.forEach(m=>{ if(m.g.visible!==false&&vpImFeld(m.g.position.x,m.g.position.z)){ m.g.visible=false; dropFootprint(m); vpWeg.push({m}); } });
-  floorBoxes.forEach(b=>{ if(b.mesh.visible&&vpImFeld(b.mesh.position.x,b.mesh.position.z)){ b.mesh.visible=false; vpWeg.push({b}); } });
-}
-function vpZurueck(){ vpWeg.forEach(w=>{ if(w.m){ w.m.g.visible=true; applyFootprint(w.m); } if(w.b) w.b.mesh.visible=true; }); vpWeg=[]; }
 function vpSchalten(){ if(!FW_DEV) return; if(vpAn) vpAus(); else vpStart(); }
 function vpStart(){
   if(vpAn) return;
   if(typeof vfAn!=='undefined'&&vfAn) vorfuehrungAus();
   if(fwTestAn) fwTestSchalten();
   vpVorher={x:pl.x,z:pl.z,yaw,pitch};
-  vpAn=true; VP_ZONEN=['lager','lager_gross','lager_sued','lager_sued2']; applyZonen();
-  vpWegraeumen();
+  vpAn=true; vpRaumBauen(); SPIEL_RAUM=VP_FL;
   vpFertig=false; vpLauf++;
   const V=vpAufbauen(); vpV=V;
   if(V.uebrig.length) console.warn('Verpackungs-Vorfuehrung: kein Platz fuer',V.uebrig.join(', '));
-  /* am Eingang der Halle, Blick in die erste Gasse */
-  pl.x=(VP_FL.x0+VP_FL.x1)/2; pl.z=VP_FL.z1-0.8; yaw=0; pitch=-0.08;
+  /* im Hauptgang am Anfang des ersten Gangs, Blick hinein (nach Sueden) */
+  pl.x=VP_FL.x0+VP_SEITE+vpZeilenMass(VP_ZEILEN[0]).t+VP_GANG/2; pl.z=VP_FL.z1-1.3; yaw=0; pitch=-0.05;
   if(laptopOpen) closeLaptop(true); if(typeof handyOpen!=='undefined'&&handyOpen) closeHandy();
   vpZeigen(V,0);
   const lauf=vpLauf; setTimeout(()=>vpFuellen(lauf,0),30);
@@ -174,17 +192,21 @@ function vpStart(){
 function vpAus(){
   if(!vpAn) return;
   vpLauf++; vpFertig=false;
-  vpAbbauen(); vpZurueck(); vpAn=false; VP_ZONEN=null; applyZonen();
+  vpAbbauen(); vpAn=false; SPIEL_RAUM=null; if(vpRaumG) vpRaumG.visible=false; vpRaumCols.forEach(dropCol);
   if(vpEl){ vpEl.remove(); vpEl=null; }
   /* zurueck, wo man vorher stand */
   if(vpVorher){ pl.x=vpVorher.x; pl.z=vpVorher.z; yaw=vpVorher.yaw; pitch=vpVorher.pitch; vpVorher=null; }
   toast('Verpackungs-Vorführung beendet.');
 }
+/* Anzeige oben: schmal, mit Knopf zum Beenden (am iPhone gibt es keine
+   Taste B). Nach dem Einraeumen schrumpft sie auf eine Zeile. */
 function vpZeigen(V,bis){
   if(!vpEl){ vpEl=document.createElement('div'); vpEl.id='vpInfo';
-    vpEl.style.cssText='position:fixed;left:50%;top:12px;transform:translateX(-50%);z-index:30;pointer-events:none;background:rgba(14,18,38,.82);color:#f2f5ff;border-radius:10px;padding:8px 16px;font:600 14px Barlow,Arial,sans-serif;text-align:center;border-top:3px solid #ffd23f';
+    vpEl.style.cssText='position:fixed;left:50%;top:max(10px,env(safe-area-inset-top));transform:translateX(-50%);z-index:30;max-width:min(92vw,560px);background:rgba(14,18,38,.84);color:#f2f5ff;border-radius:10px;padding:6px 10px 6px 14px;font:600 13px Barlow,Arial,sans-serif;display:flex;gap:10px;align-items:center;border-top:3px solid #ffd23f';
     document.body.appendChild(vpEl); }
-  if(bis!==undefined){ vpEl.innerHTML=`<b style="font-size:17px;letter-spacing:.04em">VERPACKUNGS-VORFÜHRUNG</b><br>Regale werden eingeräumt … ${bis} / ${V.plan.length}`; return; }
-  vpEl.innerHTML=`<b style="font-size:17px;letter-spacing:.04em">VERPACKUNGS-VORFÜHRUNG</b><br>${V.plan.length} Produkte · je Fach ein Produkt · Name und Preis am Fach${V.uebrig.length?` · <span style="color:#ff8a7a">${V.uebrig.length} ohne Platz</span>`:''} · B beendet`;
+  const txt=bis!==undefined?`Regale werden eingeräumt … ${bis} / ${V.plan.length}`:`${V.plan.length} Produkte · ${vpRegale.length} Möbel${V.uebrig.length?` · <span style="color:#ff8a7a">${V.uebrig.length} ohne Platz</span>`:''}`;
+  vpEl.innerHTML=`<span><b style="letter-spacing:.04em">VERPACKUNGS-VORFÜHRUNG</b> · ${txt}</span><button id="vpAusKnopf" style="pointer-events:auto;font:700 13px Barlow,Arial,sans-serif;background:#ffd23f;color:#0e1226;border:0;border-radius:7px;padding:6px 10px;cursor:pointer">Beenden (B)</button>`;
+  const k=vpEl.querySelector('#vpAusKnopf'); k.onclick=e=>{ e.stopPropagation(); vpAus(); };
+  k.addEventListener('touchend',e=>{ e.preventDefault(); e.stopPropagation(); vpAus(); },{passive:false});
 }
 function vpTaste(e){ if(e.code==='KeyB'&&!e.repeat){ vpAus(); return true; } return false; }

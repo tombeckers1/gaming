@@ -18,6 +18,8 @@
      Startpunkt aus kommt man zu Fuss (Rasterweg ueber die echten
      Kollisionen, Spielerradius) vor jede Warenseite jedes Moebels.
    Aufruf: node -r ladezeit-preload.js verpackung.js real.html
+   - NAME (03.10., Tom): vorn an jedem Fach ein Schild mit dem Produkt-
+     namen, nach dem Beenden weg. Gegenprobe: ohne vpNamenBauen -> NAME.
    - SPEICHER / KNOPF (02.10. abends, Tom: "haengt sich auf, Fehler ist
      aufgetreten", PC und iPhone): gestartet wird ueber den Knopf im Laptop,
      der Klick haelt das Spiel hoechstens 2,5 s an (vorher 10,4 s), die
@@ -113,15 +115,26 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     { const seen=new Set(); let px=0; for(const t of alle){ const pl=bb.pools[t]; if(!pl||!pl.vp) continue;
         pl.meshes.forEach(m=>{ (Array.isArray(m.material)?m.material:[m.material]).forEach(mt=>{ const tx=mt&&mt.map; if(tx&&!seen.has(tx)){ seen.add(tx); px+=(tx.__px||(tx.image?tx.image.width*tx.image.height:0)); } }); }); }
       o.mp=Math.round(px/1e5)/10; }
+    /* NAME (03.10., Tom: "an den Produkten soll der Name stehen - nur im
+       Testraum"): ein Schild je Fach, vorn an der Ware, mit seinem Bildfeld */
+    o.name=[]; { const M=bb.vpNamenM; if(!M) o.name.push('keine Namensschilder');
+      else { const pos=M.geometry.attributes.position, uv=M.geometry.attributes.uv, n=pos.count/6, sp=5, zl=Math.ceil(plan.length/sp);
+        if(n!==plan.length) o.name.push(n+' Schilder fuer '+plan.length+' Faecher');
+        const w=new THREE.Vector3(), c=new THREE.Vector3();
+        plan.forEach((e,i)=>{ if(i>=n) return; c.set(0,0,0); let u=0,v=0; for(let j=0;j<6;j++){ w.fromBufferAttribute(pos,i*6+j); c.add(w); u+=uv.getX(i*6+j); v+=uv.getY(i*6+j); } c.multiplyScalar(1/6); u/=6; v/=6;
+          const loc=e.lv.hit.worldToLocal(c.clone()), pa=e.lv.hit.geometry.parameters;
+          if(!(loc.z>pa.depth/2&&loc.z<pa.depth/2+0.05&&Math.abs(loc.x)<0.05&&Math.abs(loc.y)<pa.height/2)) o.name.push(e.t+': Schild nicht vorn am Fach '+[loc.x,loc.y,loc.z].map(q=>q.toFixed(2)).join('/'));
+          if(Math.floor(u*sp)!==i%sp||Math.floor((1-v)*zl)!==Math.floor(i/sp)) o.name.push(e.t+': falsches Namensfeld'); }); } }
     bb.vpAus();
     const nach={shelves:bb.shelves.length,cols:bb.colliders.length,lager:bb.ZONEN.lager_gross?bb.ZONEN.lager_gross.offen:null,pools:Object.keys(bb.pools).length};
     if(JSON.stringify(vorher)!==JSON.stringify(nach)) o.aus.push(JSON.stringify(vorher)+' -> '+JSON.stringify(nach));
     if(bb.vpRegale.length) o.aus.push('Moebel bleiben stehen');
+    if(bb.vpNamenM||bb.scene.getObjectByName('vpNamen')) o.name.push('Namensschilder bleiben nach dem Beenden');
     o.n=plan.length; o.moebel=regale.length; return o; },start);
   console.log('Produkte',r.n,'Moebel',r.moebel,'Warenseiten',r.seiten,'Verpackungsbilder',r.mp,'MP');
   if(!(r.mp<=45)) r.aus.push('SPEICHER: Verpackungsbilder '+r.mp+' Megapixel (hoechstens 45)');
   const m=[];
-  for(const k of ['platz','voll','rand','fuge','seite','luecke','aus','erreichbar']) if(r[k].length) m.push(k.toUpperCase()+' '+r[k].length+'x: '+r[k].slice(0,40).join(' | '));
+  for(const k of ['platz','voll','rand','fuge','seite','luecke','aus','erreichbar','name']) if(r[k].length) m.push(k.toUpperCase()+' '+r[k].length+'x: '+r[k].slice(0,40).join(' | '));
   console.log('MANGEL:',m.join('\n')||'keine');
   console.log('ERRORS:',errs.join(' | ')||'keine'); await b.close();
 })();

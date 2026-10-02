@@ -32141,7 +32141,8 @@ function vpNamenBauen(plan){
     for(let j=0;j<uv.count;j++){ uv.setXY(j,uv.getX(j)?u1:u0,uv.getY(j)?v1:v0); }
     const m=new THREE.Matrix4().makeTranslation(0,-bh/2+h/2+0.012,bd/2+0.014);
     teile.push({geo,m:new THREE.Matrix4().multiplyMatrices(hit.matrixWorld,m)}); });
-  vpNamenM=new THREE.Mesh(merge(teile),new THREE.MeshBasicMaterial({map:tx,toneMapped:false}));
+  /* gedaempftes Weiss: reines Weiss ueberstrahlt im Leuchthof */
+  vpNamenM=new THREE.Mesh(merge(teile),new THREE.MeshBasicMaterial({map:tx,color:0xc4c4c4,toneMapped:false}));
   vpNamenM.name='vpNamen'; vpNamenM.renderOrder=2; scene.add(vpNamenM);
 }
 function vpNamenWeg(){ if(!vpNamenM) return; scene.remove(vpNamenM); vpNamenM.geometry.dispose(); if(vpNamenM.material.map) vpNamenM.material.map.dispose(); vpNamenM.material.dispose(); vpNamenM=null; }

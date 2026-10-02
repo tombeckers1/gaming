@@ -68,9 +68,39 @@ function rohrLayout(t){
   /* Zuendfolge: die Zuendschnur laeuft fest durch die Rohre - Block fuer
      Block, darin Reihe fuer Reihe in Schlangenlinie (vorn links nach
      rechts, naechste Reihe zurueck ...) wie bei echten Batterien */
-  const folge=rohre.map((x,i)=>i).sort((a,b)=>{ const A=rohre[a], Bb=rohre[b];
-    if(A.blk!==Bb.blk) return A.blk-Bb.blk; if(A.row!==Bb.row) return A.row-Bb.row;
-    return A.row%2?Bb.col-A.col:A.col-Bb.col; });
+  /* 02.10. (Tom, Goldader: "nicht erst nur rechts und dann irgendwann
+     links, sondern verschiedene Richtungen"): jede Batterie kann ihre
+     eigene Verkabelung haben (p.zuendung) - wie bei echten Batterien,
+     deren Zuendschnur innen ganz verschieden laeuft:
+     schlange - Block fuer Block, Reihe fuer Reihe hin und zurueck
+     wechsel  - je Reihe abwechselnd ganz links, ganz rechts, nach innen
+     mitte    - je Reihe aus der Mitte nach aussen, abwechselnd die Seiten
+     spalte   - Spalte fuer Spalte: mehrere Schuss in dieselbe Richtung
+     reihe    - Reihe fuer Reihe ueber alle Bloecke (hin und zurueck)
+     diagonal - schraeg durch das Raster, abwechselnd von der vorderen
+                linken und der hinteren rechten Ecke zur Mitte
+     spirale  - von aussen im Kreis nach innen
+     zufall   - fest verdrahtet, aber kreuz und quer (feste Saat) */
+  const art=p.zuendung||'schlange';
+  /* Reihenfolge der Plaetze 0..n-1 einer Reihe */
+  const platz=(n,row)=>{ const o=[];
+    if(art==='wechsel') for(let i=0;o.length<n;i++){ o.push(i); if(o.length<n) o.push(n-1-i); }
+    else if(art==='mitte'){ const h=(n-1)/2, L=[], R=[]; for(let i=0;i<n;i++) (i<=h?L:R).push(i); L.reverse();
+      const a=row%2?R:L, b=row%2?L:R; for(let i=0;i<Math.max(a.length,b.length);i++){ if(i<a.length) o.push(a[i]); if(i<b.length) o.push(b[i]); } }
+    else for(let i=0;i<n;i++) o.push(row%2?n-1-i:i);
+    return o; };
+  const rang=x=>{ const R=rohre.filter(y=>y.row===x.row).map(y=>y.col).sort((a,b)=>a-b); return platz(R.length,x.row).indexOf(R.indexOf(x.col)); };
+  const spRang=c=>c<cols-1-c?2*c:2*(cols-1-c)+1;
+  let folge;
+  if(art==='zufall'){ folge=rohre.map((x,i)=>i); rohrSaat(saatZahl(t+':schnur'),()=>{ for(let i=folge.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [folge[i],folge[j]]=[folge[j],folge[i]]; } }); }
+  else folge=rohre.map((x,i)=>i).sort((a,b)=>{ const A=rohre[a], Bb=rohre[b];
+    if(art==='diagonal'){ const D=rows+cols-2, rg=d=>d<=D-d?2*d:2*(D-d)+1, da=rg(A.row+A.col), db=rg(Bb.row+Bb.col); if(da!==db) return da-db; return da%2?Bb.row-A.row:A.row-Bb.row; }
+    if(art==='spirale'){ const ring=x=>Math.min(x.row,x.col,rows-1-x.row,cols-1-x.col), w=x=>Math.atan2(x.row-(rows-1)/2,x.col-(cols-1)/2);
+      if(ring(A)!==ring(Bb)) return ring(A)-ring(Bb); return w(A)-w(Bb); }
+    if(art==='spalte'){ const ra=spRang(A.col), rb=spRang(Bb.col); if(ra!==rb) return ra-rb; return ra%2?Bb.row-A.row:A.row-Bb.row; }
+    if(art==='schlange'&&A.blk!==Bb.blk) return A.blk-Bb.blk;
+    if(A.row!==Bb.row) return A.row-Bb.row;
+    return rang(A)-rang(Bb); });
   /* Fontaenen-Module fuer die Boden-Effekte: eine Leiste vorn vor der
      Batterie, so viele wie Boden-Effekte */
   const nb=rohrBedarf(t).boden, module=[];
@@ -105,7 +135,10 @@ function zuendFolge(EV,prod,dauerAlt){
     return neu[neu.length-1]+Math.min(t-alt[alt.length-1],2.5); };
   EV.forEach(e=>{ if(e.art!=='s') e.tt=map(e.tt); });
   const letzter=neu.length?neu[neu.length-1]:0;
-  return {S,letzter,dauer:Math.max(letzter+0.6,map(dauerAlt||0)),ueber:Math.max(0,S.length-F.length),map};
+  /* was am Rohr haengt (breite Fontaenen, 02.10.), brennt bis zum Ende -
+     so lange bleibt auch das Modell stehen */
+  const brennt=S.reduce((a,e)=>Math.max(a,e.tt+(e.brenn||0)),0);
+  return {S,letzter,dauer:Math.max(letzter+0.6,map(dauerAlt||0),brennt),ueber:Math.max(0,S.length-F.length),map};
 }
 /* Der Plan einer Batterie (ohne etwas zu zuenden): je Rohr die Richtung
    (Welt, Einheitsvektor), je Schuss Zeit und Rohr. playShow rechnet mit
@@ -134,7 +167,10 @@ function zuendPlan(t){
   return (_zplan[t]={S:Z.S,neig,letzter:Z.letzter,dauer:Z.dauer,ueber:Z.ueber});
 }
 /* Neigung von Rohr k (rad, um die Tiefenachse, + = nach lokal +x) */
-function rohrNeigung(t,k){ const L=rohrLayout(t), r=L.rohre[k], h=(L.cols-1)/2; return h>0?(r.col-h)/h*zuendPlan(t).neig:0; }
+/* 02.10.: je Block (Verbund) eigener Faecher - vorher zaehlte die Spalte
+   ueber die ganze Breite, und der linke Block schoss nur nach links, der
+   rechte nur nach rechts (Goldader: erst alles rechts, dann alles links) */
+function rohrNeigung(t,k){ const L=rohrLayout(t), r=L.rohre[k], cpb=L.cols/L.B, h=(cpb-1)/2; return h>0?((r.col-r.blk*cpb)-h)/h*zuendPlan(t).neig:0; }
 /* Muendung von Rohr k im Produkt (lokal, y ab Tischplatte) */
 function rohrHoehe(t){ const p=P[t], h=p.dims[1], fan=p.shape==='fan'; return {bh:fan?h*0.72:h*0.94,lp:fan?h*0.26:Math.max(0.012,h*0.06)}; }
 function rohrMund(t,k){ const L=rohrLayout(t), r=L.rohre[k], H=rohrHoehe(t), n=rohrNeigung(t,k), u=[Math.sin(n),Math.cos(n),0];

@@ -26,7 +26,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   const SOLL={rb25:[25,'5x5'],rb49:[49,'7x7'],rb100:[100,'10x10'],rbfaecher:[30,'6x5']};
   const r=await p.evaluate(([SOLL])=>{ const bb=window.__bb, S=bb.S, P=bb.P, out=[];
     S.level=26; S.money=1e7;
-    bb.regalStellen('standard'); bb.regalStellen('standard'); bb.regalStellen('standard');
+    bb.regalStellen('standard'); bb.regalStellen('standard'); bb.regalStellen('standard'); bb.regalStellen('tisch');
     for(const t of Object.keys(SOLL)){
       const q=P[t], o={t};
       /* bestellbar, sobald das Lizenzpaket ihres Levels gekauft ist */
@@ -35,7 +35,9 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
       o.frei=bb.isUnlocked(t);
       const n0=bb.pendingListe().filter(x=>x.type===t).length; bb.orderBox(t,1,'fachhandel');
       o.bestellt=bb.pendingListe().filter(x=>x.type===t).length-n0;
-      const lv=bb.emptyLevel?bb.emptyLevel(t):bb.allLevels().find(l=>!l.type);
+      /* ein leeres Fach, in das sie passt (seit 02.10. kein Ueberstand
+         mehr: die 100er passt nur auf Tische und ins grosse Regal) */
+      const lv=bb.allLevels().find(l=>!l.type&&bb.capOf(l,t)>=2);
       o.regal=!!lv&&bb.addToLevel(lv,t,1)&&bb.addToLevel(lv,t,1)?lv.count:0;
       const L=bb.rohrLayout(t); o.rohre=L.rohre.length; o.raster=L.cols+'x'+L.rows; o.schuss=bb.rohrBedarf(t).schuss;
       o.packung=/(\d+) Schuss/.exec(q.name)[1]|0;

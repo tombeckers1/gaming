@@ -454,7 +454,7 @@ function playShowRoh(o,phases,prod,tag,PLAN){
           else shot(os,ausRohr?Object.assign({},opt,{ang:fa,dir:fd}):opt);
         }
         FW_TAG=alt;
-      },{art:'s',ang:sAng,dir:sDir,rv});
+      },{art:'s',ang:sAng,dir:sDir,rv,brenn:ph.licht&&typeof LICHT_BRENN!=='undefined'?LICHT_BRENN[ph.licht]||0:0});
     });
   });
   if(RS||PLAN){

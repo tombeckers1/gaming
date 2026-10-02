@@ -481,7 +481,11 @@ function layout(t,sh,lv){
   const rows=Math.max(1,K.frei?Math.floor((K.d-0.06+g)/(p.dims[2]+g)):Math.min(G[1],Math.floor((K.d-0.06+g)/(p.dims[2]+g))));
   /* ohne Fach: das hoechste, das dieses Regal hat */
   const lvH=lv?fachHoehe(K,lv.li):Math.max(...K.lv.map((_,i)=>fachHoehe(K,i)));
-  const st=p.dims[1]>lvH+0.001?0:Math.max(1,K.frei?Math.min(4,Math.floor(lvH/p.dims[1])):Math.min(G[2],Math.floor(lvH/p.dims[1])));
+  /* 02.10. (Tom: "dass alles passt - und wenn nicht, Meldung"): zu breit
+     oder zu tief fuer das Fach heisst ebenfalls "passt nicht" - vorher
+     stand so eine Packung einfach ueber die Kante hinaus */
+  const zuGross=p.dims[0]>K.w-0.1+0.001||p.dims[2]>K.d-0.06+0.001;
+  const st=zuGross||p.dims[1]>lvH+0.001?0:Math.max(1,K.frei?Math.min(4,Math.floor(lvH/p.dims[1])):Math.min(G[2],Math.floor(lvH/p.dims[1])));
   return {cols,rows,st,cap:cols*rows*st,w:p.dims[0],h:p.dims[1],d:p.dims[2],g,K};
 }
 function slotLocal(t,idx,sh,lv){

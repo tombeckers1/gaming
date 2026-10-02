@@ -491,10 +491,19 @@ function slotLocal(t,idx,sh,lv){
 }
 function slotFrei(sl){ return !sl.zone||zoneOffen(sl.zone); }
 /* Mittelgondeln und Eckregale brauchen den passenden Stellplatz */
+/* 02.10.: breite Moebel (Gitterbox XL, grosser Tisch) brauchen auch
+   Platz neben dem Stellplatz - kein Platz, an dem sie in ein Nachbarmoebel
+   ragen wuerden. Grundflaeche als achsparalleles Rechteck (Drehung in
+   Vierteln). */
+function moebelRect(K,x,z,ry){ const w=(K.fw||K.w)/2, d=(K.fd||K.d)/2, q=Math.abs(Math.round(Math.sin(ry||0)));
+  return q?{x0:x-d,x1:x+d,z0:z-w,z1:z+w}:{x0:x-w,x1:x+w,z0:z-d,z1:z+d}; }
 function slotPasst(K,sl){
   const art=K.art||'wand';
   if((sl.art||'wand')!==art) return false;
-  return !shelves.some(s=>Math.abs(s.g.position.x-sl.x)<0.05&&Math.abs(s.g.position.z-sl.z)<0.05);
+  if(shelves.some(s=>Math.abs(s.g.position.x-sl.x)<0.05&&Math.abs(s.g.position.z-sl.z)<0.05)) return false;
+  const a=moebelRect(K,sl.x,sl.z,sl.ry);
+  return !shelves.some(s=>{ const b=moebelRect(kindOf(s),s.g.position.x,s.g.position.z,s.g.rotation.y);
+    return a.x0<b.x1-0.02&&a.x1>b.x0+0.02&&a.z0<b.z1-0.02&&a.z1>b.z0+0.02; });
 }
 function slotsOffen(){ return SLOTS.filter(slotFrei); }
 /* Gibt es noch einen freien Stellplatz fuer diesen Regaltyp? */
@@ -528,6 +537,9 @@ function regalFarben(K){
   const hx=h=>parseInt(String(h).slice(1),16), ch=(c,k)=>(c>>k)&255, lum=c=>(0.2126*ch(c,16)+0.7152*ch(c,8)+0.0722*ch(c,0))/255;
   const mix=(a,b,t)=>(Math.round(ch(a,16)*(1-t)+ch(b,16)*t)<<16)|(Math.round(ch(a,8)*(1-t)+ch(b,8)*t)<<8)|Math.round(ch(a,0)*(1-t)+ch(b,0)*t);
   const wa=hx(w.a), hell=lum(wa)>0.42;
+  /* Verkaufstische (02.10., Tom: "nicht gelb, sondern weiss und so"):
+     weisse Schichtstoffplatte, Gestell in Alu bzw. Anthrazit zur Wand */
+  if(K&&K.bau==='tisch') return {rahmen:hell?0x3b3f47:0xc4c8ce, seite:0xc4c8ce, blende:0xc4c8ce, fuss:0x24272d, boden:0xd6d9de, preis:0xe9ebee, lippe:0xb4b9c1, kopf:hell?0x2b2f36:0x1d2026, platte:0xf1f0ec, rueck:0xe8e8e6};
   if(K&&K.cold) return {rahmen:0xc8ccd4,seite:0xc8ccd4,blende:0xc8ccd4,fuss:0x2a2e38,boden:0xd9dde4,preis:0xc8ccd4,lippe:0xe8ecf2,kopf:0x1b2340,platte:0xbf9a6c,rueck:0xeef4fa};
   return {rahmen:hell?0x3b3f47:0xb9bec6, seite:hell?mix(wa,0xf6f6f4,0.78):mix(wa,0x9da2aa,0.45), blende:hell?0x3b3f47:0xb9bec6, fuss:0x24272d,
     boden:0xd6d9de, preis:0xe9ebee, lippe:0xb4b9c1, kopf:hell?0x2b2f36:0x1d2026, platte:hell?0xbf9a6c:0x9c7a52, rueck:hell?mix(wa,0xf4f4f2,0.82):mix(wa,0xb4b8be,0.5)};
@@ -551,13 +563,13 @@ function gitterTex(){ if(_gitterT) return _gitterT;
    (Level), Preisschilder, Kopfschild und Treffer wie ein Regal - Kunden,
    Einraeumer und Speicherstand behandeln sie wie jedes andere Regal. */
 function bauMoebel(K,sh,g,RF){
-  const W=K.w, D=K.d, y=K.lv[0], fh=K.oben, iw=W-0.1, st=[];
+  const W=K.w, D=K.d, nL=K.lv.length, y=K.lv[nL-1], fh=K.oben, iw=W-0.1, st=[], kopf=[];
   const GB={}; const box=(w,h,d)=>GB[w+'|'+h+'|'+d]||(GB[w+'|'+h+'|'+d]=new THREE.BoxGeometry(w,h,d));
   const fg=new THREE.Group(); g.add(fg);
   let preisY, headY;
   if(K.bau==='tisch'){
-    /* Ladenbau-Tisch: Platte mit Kantenumleimer, vier Vierkantbeine,
-       Zarge und eine Ablage darunter fuer Nachschub */
+    /* Ladenbau-Tisch: weisse Platte mit Kantenumleimer, vier Vierkant-
+       beine, Zarge und eine Ablage darunter fuer Nachschub */
     st.push({geo:box(W,0.04,D),m:tm(0,y-0.02,0),rolle:'platte'});
     st.push({geo:box(W+0.01,0.02,D+0.01),m:tm(0,y-0.045,0),rolle:'rahmen'});
     for(const sx of [-1,1]) for(const sz of [-1,1]) st.push({geo:box(0.05,y-0.06,0.05),m:tm(sx*(W/2-0.06),(y-0.06)/2,sz*(D/2-0.06)),rolle:'rahmen'});
@@ -565,45 +577,58 @@ function bauMoebel(K,sh,g,RF){
     for(const sx of [-1,1]) st.push({geo:box(0.025,0.08,D-0.12),m:tm(sx*(W/2-0.06),y-0.1,0),rolle:'rahmen'});
     st.push({geo:box(W-0.14,0.02,D-0.14),m:tm(0,0.16,0),rolle:'platte'});
     for(const sx of [-1,1]) for(const sz of [-1,1]) st.push({geo:box(0.06,0.015,0.06),m:tm(sx*(W/2-0.06),0.008,sz*(D/2-0.06)),rolle:'fuss'});
-    /* Preisleiste vorn an der Zarge */
     st.push({geo:box(iw,0.05,0.014),m:tm(0,y-0.1,D/2-0.04),rolle:'preis'});
-    preisY=y-0.1; 
-    /* Aktionsschild auf einem Steckpfosten hinten in der Mitte */
-    st.push({geo:box(0.03,0.62,0.03),m:tm(0,y+fh+0.05,-D/2+0.08),rolle:'rahmen'});
+    preisY=[y-0.1];
+    /* Aktionsschild auf einem Steckpfosten hinten in der Mitte - eigenes
+       Teil, es verschwindet, solange der Tisch leer ist */
+    kopf.push({geo:box(0.03,0.62,0.03),m:tm(0,y+fh+0.05,-D/2+0.08),rolle:'rahmen'});
     headY=y+fh+0.42;
-    st.push({geo:box(1.0,0.2,0.03),m:tm(0,headY,-D/2+0.08),rolle:'kopf'});
+    kopf.push({geo:box(1.0,0.2,0.03),m:tm(0,headY,-D/2+0.08),rolle:'kopf'});
   } else {
-    /* Gitterbox: Bodenwanne, vier Eckpfosten, Drahtgitter rundum, oben
-       ein umlaufender Rohrrahmen; vorn etwas niedriger zum Hineingreifen */
-    const hw=0.62, hv=0.5;
+    /* Gitterbox: die Wanne steht auf einem Unterbau mit offenen Faechern
+       fuer Kleinartikel (Tom, 02.10.). Unterbau: Seitenwangen, Rueckwand,
+       Boeden mit Preisleiste. Wanne: Bodenblech, Eckpfosten, Drahtgitter
+       rundum, oben ein Rohrrahmen; vorn niedriger zum Hineingreifen. */
+    const hw=Math.min(0.62,fh+0.06), hv=Math.min(hw-0.1,fh-0.08);
+    for(const sx of [-1,1]) st.push({geo:box(0.03,y,D),m:tm(sx*(W/2-0.015),y/2,0),rolle:'seite'});
+    st.push({geo:box(W-0.06,y,0.02),m:tm(0,y/2,-D/2+0.01),rolle:'rueck'});
+    st.push({geo:box(W,0.08,D),m:tm(0,0.04,0),rolle:'rahmen'});
+    preisY=[];
+    for(let li=0;li<nL-1;li++){ const yl=K.lv[li];
+      st.push({geo:box(W-0.06,0.025,D-0.03),m:tm(0,yl-0.012,0),rolle:'boden'});
+      st.push({geo:box(iw,0.05,0.014),m:tm(0,yl-0.02,D/2-0.013),rolle:'preis'}); preisY.push(yl-0.02); }
     st.push({geo:box(W,0.04,D),m:tm(0,y-0.02,0),rolle:'boden'});
-    st.push({geo:box(W,0.08,D),m:tm(0,0.05,0),rolle:'rahmen'});
-    for(const sx of [-1,1]) for(const sz of [-1,1]) st.push({geo:box(0.035,hw+y,0.035),m:tm(sx*(W/2-0.018),(hw+y)/2,sz*(D/2-0.018)),rolle:'rahmen'});
+    for(const sx of [-1,1]) for(const sz of [-1,1]) st.push({geo:box(0.035,hw+0.02,0.035),m:tm(sx*(W/2-0.018),y+hw/2,sz*(D/2-0.018)),rolle:'rahmen'});
     st.push({geo:box(W,0.025,0.025),m:tm(0,y+hw,-D/2+0.012),rolle:'rahmen'});
     st.push({geo:box(W,0.025,0.025),m:tm(0,y+hv,D/2-0.012),rolle:'rahmen'});
     for(const sx of [-1,1]) st.push({geo:box(0.025,0.025,D),m:tm(sx*(W/2-0.012),y+hw,0),rolle:'rahmen'});
-    for(const sx of [-1,1]) for(const sz of [-1,1]) st.push({geo:box(0.08,0.04,0.08),m:tm(sx*(W/2-0.08),0.02,sz*(D/2-0.08)),rolle:'fuss'});
+    for(const sx of [-1,1]) for(const sz of [-1,1]) st.push({geo:box(0.08,0.02,0.08),m:tm(sx*(W/2-0.08),0.01,sz*(D/2-0.08)),rolle:'fuss'});
     const gm=new THREE.MeshStandardMaterial({map:gitterTex(),color:LIN(RF.rahmen),alphaTest:0.4,transparent:false,side:THREE.DoubleSide,metalness:0.5,roughness:0.45});
     sh.gitterM=gm;
-    const wand=(w,h,x,yy,z,ry)=>{ const t=gitterTex(); const m=plane(w,h,gm,x,yy,z,ry,fg); const uv=m.geometry.attributes.uv; for(let i=0;i<uv.count;i++) uv.setXY(i,uv.getX(i)*w/0.2,uv.getY(i)*h/0.2); uv.needsUpdate=true; return m; };
+    const wand=(w,h,x,yy,z,ry)=>{ const m=plane(w,h,gm,x,yy,z,ry,fg); const uv=m.geometry.attributes.uv; for(let i=0;i<uv.count;i++) uv.setXY(i,uv.getX(i)*w/0.2,uv.getY(i)*h/0.2); uv.needsUpdate=true; return m; };
     wand(W-0.04,hw,0,y+hw/2,-D/2+0.012,0); wand(W-0.04,hv,0,y+hv/2,D/2-0.012,0);
     for(const sx of [-1,1]) wand(D-0.04,hw,sx*(W/2-0.012),y+hw/2,0,Math.PI/2);
-    preisY=y+hv-0.04; headY=y+hv+0.13;
+    preisY.push(y+hv-0.04); headY=y+hv+0.13;
     /* Klappschild vorn am Rohrrahmen */
-    st.push({geo:box(0.9,0.2,0.02),m:tm(0,headY,D/2-0.004),rolle:'kopf'});
+    kopf.push({geo:box(0.9,0.2,0.02),m:tm(0,headY,D/2-0.004),rolle:'kopf'});
   }
-  st.forEach(x=>{ x.color=RF[x.rolle]; });
+  st.forEach(x=>{ x.color=RF[x.rolle]; }); kopf.forEach(x=>{ x.color=RF[x.rolle]; });
   const gest=new THREE.Mesh(merge(st),gestellMat());
-  gest.userData.rollen=st.map(x=>[x.rolle,x.geo.index?x.geo.index.count:x.geo.attributes.position.count]); gest.userData.regalK=K; sh.gestelle=[gest];
+  gest.userData.rollen=st.map(x=>[x.rolle,x._n]); gest.userData.regalK=K;
+  const kg=new THREE.Group(); fg.add(kg); sh.kopfG=kg;
+  const km=new THREE.Mesh(merge(kopf),gestellMat()); km.userData.rollen=kopf.map(x=>[x.rolle,x._n]); km.userData.regalK=K; kg.add(km);
+  sh.gestelle=[gest,km];
   if(HIQ){ gest.castShadow=true; gest.receiveShadow=true; } fg.add(gest);
   for(const k in GB) GB[k].dispose();
-  const lt=tex(700,80,()=>{}); lt.anisotropy=8;
-  plane(Math.min(0.46,iw*0.46),0.052,new THREE.MeshBasicMaterial({map:lt,toneMapped:false}),0,preisY,D/2+(K.bau==='tisch'?-0.032:0.003),0,fg);
-  const hit=bbox(iw,fh,D,hitM,0,y+fh/2,0.01,fg,false);
-  const lv={sh,li:0,face:0,type:null,count:0,q:1,items:[],tex:lt,hit}; hit.userData={kind:'level',ref:lv}; sh.levels.push(lv);
+  /* je Ebene Preisschild und Trefferflaeche (Unterbau-Faecher, Wanne bzw. Platte) */
+  K.lv.forEach((yl,li)=>{
+    const lt=tex(700,80,()=>{}); lt.anisotropy=8;
+    plane(Math.min(0.46,iw*0.46),0.052,new THREE.MeshBasicMaterial({map:lt,toneMapped:false}),0,preisY[li],D/2+(K.bau==='tisch'?-0.032:0.003),0,fg);
+    const h=fachHoehe(K,li), hit=bbox(iw,h,D,hitM,0,yl+h/2,0.01,fg,false);
+    const lv={sh,li,face:0,type:null,count:0,q:1,items:[],tex:lt,hit}; hit.userData={kind:'level',ref:lv}; sh.levels.push(lv); });
   sh.headTex=tex(1024,160,()=>{});
   const hz=K.bau==='tisch'?-D/2+0.08+0.016:D/2+0.008, hwid=K.bau==='tisch'?0.96:0.86;
-  plane(hwid,0.17,new THREE.MeshBasicMaterial({map:sh.headTex,toneMapped:false,side:THREE.DoubleSide}),0,headY,hz,0,fg);
+  plane(hwid,0.17,new THREE.MeshBasicMaterial({map:sh.headTex,toneMapped:false,side:THREE.DoubleSide}),0,headY,hz,0,kg);
   sh.headY=headY;
 }
 function createShelf(i,data){
@@ -699,7 +724,11 @@ function headArt(sh){
 function updateHead(sh){
   if(!sh.headTex) return;
   const best=headArt(sh);
-  const H=best!==null?HEADNAME[best]:['REGAL FREI','#39405a'];
+  /* 02.10. (Tom): kein "REGAL FREI" mehr - dass es leer ist, sieht man.
+     Tisch und Gitterbox zeigen leer gar kein Schild, Regale einen
+     schlichten Kopf ohne Schrift. */
+  if(sh.kopfG) sh.kopfG.visible=best!==null;
+  const H=best!==null?HEADNAME[best]:['','#39405a'];
   const bg=schildBg().c||H[1], fg=schildFg().c;
   redraw(sh.headTex,(g,W,Hh)=>{
     g.setTransform(1,0,0,1,0,0); g.scale(W/512,Hh/80); W=512; Hh=80;
@@ -707,7 +736,7 @@ function updateHead(sh){
     g.fillStyle='rgba(255,255,255,.16)'; g.fillRect(0,0,W,10);
     g.fillStyle='rgba(0,0,0,.2)'; g.fillRect(0,Hh-8,W,8);
     g.fillStyle=fg; g.textAlign='center'; g.textBaseline='middle';
-    fitFont(g,H[0],W-40,44,BUN); g.fillText(H[0],W/2,Hh/2+2);
+    if(H[0]){ fitFont(g,H[0],W-40,44,BUN); g.fillText(H[0],W/2,Hh/2+2); }
   });
 }
 /* Alle Kopfschilder neu drucken, nachdem die Farbe gewechselt wurde */

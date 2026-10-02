@@ -525,9 +525,18 @@ const SHELFKIND={
      nicht im Regal. frei: Ware wird auch in die Tiefe und aufeinander
      gestapelt, so weit Flaeche und Hoehe reichen. */
   tisch:{id:'tisch',name:'Verkaufstisch',w:2.2,d:1.3,lv:[0.76],oben:0.96,bau:'tisch',frei:true,lvl:8,cost:220,step:80,amb:2},
-  gitter:{id:'gitter',name:'Aktions-Gitterbox',w:1.24,d:0.84,lv:[0.14],oben:0.86,bau:'gitter',frei:true,lvl:5,cost:120,step:45,amb:1}
+  /* 02.10. (Tom: "auch groessere Verkaufstische"): der grosse Tisch steht
+     frei im Gang wie beim Discounter - auf den Inselplaetzen */
+  tischgross:{id:'tischgross',name:'Großer Verkaufstisch',w:2.8,d:1.6,lv:[0.78],oben:1.0,bau:'tisch',art:'insel',frei:true,lvl:12,cost:340,step:120,amb:3},
+  /* Gitterboxen (02.10., Tom: "hoeher, damit sich der Kunde nicht buecken
+     muss, verschiedene Groessen, darunter Mini-Regale fuer Kleinartikel"):
+     die Wanne steht auf 64 cm, darunter zwei offene Faecher. Die letzte
+     Ebene ist immer die Wanne. */
+  gitter:{id:'gitter',name:'Gitterbox',w:1.24,d:0.84,lv:[0.12,0.36,0.64],oben:0.66,bau:'gitter',frei:true,lvl:5,cost:140,step:50,amb:1},
+  gitter2:{id:'gitter2',name:'Gitterbox groß',w:1.7,d:1.0,lv:[0.12,0.36,0.64],oben:0.7,bau:'gitter',frei:true,lvl:9,cost:210,step:75,amb:2},
+  gitter3:{id:'gitter3',name:'Gitterbox XL',w:2.1,d:1.2,lv:[0.12,0.36,0.64],oben:0.76,bau:'gitter',frei:true,lvl:13,cost:290,step:100,amb:2}
 };
-const SHELFORDER=['klein','standard','hoch','kuehl','gondel','eck','gross','gitter','tisch'];
+const SHELFORDER=['klein','standard','hoch','kuehl','gondel','eck','gross','gitter','gitter2','gitter3','tisch','tischgross'];
 /* =========================================================
    Regalbau Stegemann. Regale stehen nicht mehr auf Knopfdruck im
    Laden - man bestellt sie wie Ware, der LKW bringt sie als
@@ -545,7 +554,10 @@ const REGALWARE=[
   {id:'eck',     art:'shelf',kind:'eck',     lvl:14,req:'shop_gross'},
   {id:'gross',   art:'shelf',kind:'gross',   lvl:18},
   {id:'gitter',  art:'shelf',kind:'gitter',  lvl:5},
+  {id:'gitter2', art:'shelf',kind:'gitter2', lvl:9},
+  {id:'gitter3', art:'shelf',kind:'gitter3', lvl:13},
   {id:'tisch',   art:'shelf',kind:'tisch',   lvl:8},
+  {id:'tischgross',art:'shelf',kind:'tischgross',lvl:12,req:'shop_gross'},
   {id:'rhoch',   art:'rack', kind:'hoch',    lvl:16,req:'lager_gross'},
   {id:'rschwer', art:'rack', kind:'schwer',  lvl:18,req:'lager_gross'}
 ];

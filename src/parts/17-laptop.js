@@ -843,13 +843,22 @@ function upPic(id){
           g.fillRect(48+k*24,y-13,18,13); g.fillRect(110+k*24,y-13,18,13); } }
       g.fillStyle='#1b2340'; g.fillRect(44,18,136,10); break;
     case 'shelf_gross': regal(2,128,'#5a6170'); break;
-    case 'shelf_tisch':
-      bg('#1b2540','#0d1326'); g.fillStyle='#c9ced8'; g.fillRect(40,74,140,10); g.fillStyle='#5a6170'; for(const x of [46,168]) g.fillRect(x,84,6,40);
-      for(let k=0;k<3;k++){ g.fillStyle=['#d8b468','#c05a4a','#6fa8d8'][k]; g.fillRect(50+k*42,44,36,30); } break;
-    case 'shelf_gitter':
-      bg('#1b2540','#0d1326'); g.strokeStyle='#aab1bd'; g.lineWidth=2; for(let x=50;x<=170;x+=12){ g.beginPath(); g.moveTo(x,62); g.lineTo(x,122); g.stroke(); }
-      for(let y=62;y<=122;y+=12){ g.beginPath(); g.moveTo(50,y); g.lineTo(170,y); g.stroke(); }
-      for(let k=0;k<4;k++){ g.fillStyle=['#d8b468','#c05a4a','#6fa8d8','#8fd6a8'][k]; g.fillRect(56+k*28,46+(k%2)*6,24,22); } break;
+    case 'shelf_tisch': case 'shelf_tischgross':
+      /* weisse Platte, Alu-Beine; der grosse Tisch breiter */
+      { const gr=id==='shelf_tischgross', x0=gr?26:40, x1=gr?194:180;
+        bg('#1b2540','#0d1326'); g.fillStyle='#f1f0ec'; g.fillRect(x0,74,x1-x0,10); g.fillStyle='#b9bec6'; for(const x of [x0+6,x1-12]) g.fillRect(x,84,6,40);
+        for(let k=0;k<(gr?4:3);k++){ g.fillStyle=['#d8b468','#c05a4a','#6fa8d8','#8fd6a8'][k]; g.fillRect(x0+10+k*40,44,34,30); } }
+      break;
+    case 'shelf_gitter': case 'shelf_gitter2': case 'shelf_gitter3':
+      /* Gitterwanne oben, darunter zwei Faecher fuer Kleinartikel */
+      { const b=id==='shelf_gitter3'?150:id==='shelf_gitter2'?126:100, x0=(W-b)/2;
+        bg('#1b2540','#0d1326'); g.strokeStyle='#aab1bd'; g.lineWidth=2;
+        for(let x=x0;x<=x0+b;x+=12){ g.beginPath(); g.moveTo(x,40); g.lineTo(x,82); g.stroke(); }
+        for(let y=40;y<=82;y+=10){ g.beginPath(); g.moveTo(x0,y); g.lineTo(x0+b,y); g.stroke(); }
+        for(let k=0;k<4;k++){ g.fillStyle=['#d8b468','#c05a4a','#6fa8d8','#8fd6a8'][k]; g.fillRect(x0+6+k*(b-12)/4,26+(k%2)*5,(b-24)/4,18); }
+        g.fillStyle='#5a6170'; g.fillRect(x0,84,b,4); g.fillRect(x0,104,b,3); g.fillRect(x0,124,b,3); g.fillRect(x0-3,84,3,44); g.fillRect(x0+b,84,3,44);
+        for(let k=0;k<6;k++){ g.fillStyle=['#e0a0c8','#ffd23f','#6fa8d8'][k%3]; g.fillRect(x0+6+k*(b-12)/6,94,(b-24)/6,10); g.fillRect(x0+6+k*(b-12)/6,114,(b-24)/6,10); } }
+      break;
     case 'shelf_eck':
       bg('#1b2540','#0d1326');
       /* Eckregal von oben: zwei Schenkel ueber Eck */

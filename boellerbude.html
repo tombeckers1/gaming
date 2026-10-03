@@ -11604,11 +11604,16 @@ function buildSchleuse(){
   /* Der Dachrand endet INNERHALB der beiden Gebaeudewaende. Lag seine
      Kante genau in der Wandebene, flimmerte die dunkle Platte durch
      den Sturz und stand als schwarzer Balken in der Lagerhalle. */
-  bbox(br,0.25,ti+LW*2,std(0x2b2f3a),mx,H+0.24,mz,null,true);
+  /* 03.10.: die Westwand der Halle Sued steht jetzt in der Flucht der
+     Rolltorwand (-20,1 bis -19,9). Dachrand und Laengswaende enden
+     darum in ihrer Mitte (x1 - LW/2), nicht an ihrer Innenseite - sonst
+     standen ihre Kanten als helle Streifen und dunkler Balken in der Halle. */
+  const xo=S2.x1-LW/2;
+  bbox(xo-S2.x0,0.25,ti+LW*2,std(0x2b2f3a),(S2.x0+xo)/2,H+0.24,mz,null,true);
   /* Laengswaende. Die Kopfenden sind die Gebaeudewaende selbst. */
   for(const [z0,z1] of [[S2.z0-LW,S2.z0],[S2.z1,S2.z1+LW]]){
-    wall(S2.x0,S2.x1,z0,z1,0,H,z0<mz?'+z':'-z',lagerWall);
-    col(S2.x0,S2.x1,z0,z1);
+    wall(S2.x0,xo,z0,z1,0,H,z0<mz?'+z':'-z',lagerWall);
+    col(S2.x0,xo,z0,z1);
   }
   leuchtenRaster(null,S2,H,3.0,3.0);
   roomAO(S2.x0+0.02,S2.x1-0.02,S2.z0+0.02,S2.z1-0.02);
@@ -11777,7 +11782,12 @@ function buildAusbau(){
   const ST=[[LAY.schleuse.z0+1.6,LAY.schleuse.z1-1.6]];
   /* Innenseite der Halle Sued liegt oestlich dieser Wand, also '+x' -
      mit dem Standardwert klebte die Aussenfassade innen im Lager. */
-  durchbruchWand('lager_west',false,LAY.lsued.x0,LAY.lsued.z0,LAY.lsued.z1,ST,lagerWall,undefined,3.0,HALLE_H,'+x');
+  /* 03.10. (Tom, Foto): die Wand stand mittig auf x0 und ragte damit
+     10 cm weiter in die Halle als die Westwand des Rolltor-Raums (05c,
+     -20,1 bis -19,9) - rechts neben dem Rolltor sprang sie sichtbar vor.
+     Jetzt dieselbe Flucht innen und aussen; sie endet dort, wo die
+     Rolltorwand beginnt (z -6,1), mit den ueblichen 6 mm Ueberlappung. */
+  durchbruchWand('lager_west',false,LAY.lsued.x0-LW/2,LAY.lsued.z0,-6.1+0.006,ST,lagerWall,undefined,3.0,HALLE_H,'+x');
   /* Nur das Stueck in der Schleuse zeigt nach aussen in den Gang -
      dort gehoert die Lagerwand hin, sonst stossen im Gang zwei
      verschiedene Waende aneinander. Der lange Rest steht im Hof und
@@ -11786,7 +11796,7 @@ function buildAusbau(){
   buildSchleuse();
   /* Die beiden Schleusentore und der Gang bekommen Streifenvorhaenge
      statt blanker Loecher. */
-  streifenvorhang('lager_west',false,LAY.lsued.x0,ST[0][0],ST[0][1],3.0);
+  streifenvorhang('lager_west',false,LAY.lsued.x0-LW/2,ST[0][0],ST[0][1],3.0);
   streifenvorhang('lager_west',false,LAY.lwest.x1,ST[0][0],ST[0][1],3.0);
 
   /* ---------- Packstation, Rampen, Logistikzentrum ---------- */
@@ -11816,7 +11826,9 @@ function buildAusbau(){
   /* Der Gang muendet in den ersten Abschnitt der Halle Sued, wird
      aber erst mit dem Grosshandel geoeffnet - vorher fuehrt er
      nirgendwohin. */
-  durchbruchWand('lager_west',false,-8.0,LAY.lsued.z0,LAY.lsued.z1,GT,lagerWall,undefined,2.5,HALLE_H,'-x');
+  /* endet wie die Westwand an der Rolltor-Raumwand (z -6,1) - vorher
+     lagen beide 20 cm deckungsgleich uebereinander */
+  durchbruchWand('lager_west',false,-8.0,LAY.lsued.z0,-6.1+0.006,GT,lagerWall,undefined,2.5,HALLE_H,'-x');
   streifenvorhang('lager_west',false,-8.0,GT[0][0],GT[0][1],2.5);
   buildLagergang();
   testfeldSperre();

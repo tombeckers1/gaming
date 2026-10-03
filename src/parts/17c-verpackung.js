@@ -38,6 +38,9 @@ const VP_ZEILEN=[
   {art:'paar',links:['hoch','hoch','hoch','hoch','hoch'],rechts:['standard','standard','standard','standard','standard']},
   {art:'insel',kinds:['gondel','gondel','gondel','gondel','gondel']},
   {art:'insel',kinds:['gondel','gondel','gondel','gondel','gondel']},
+  /* 03.10.: neue Raketen, Kugeln und Batterien - 24 Fächer mehr, sonst
+     blieben die Getraenke (sie kommen zuletzt dran) ohne Platz */
+  {art:'insel',kinds:['gondel','gondel','gondel']},
   {art:'paar',links:['klein','klein','klein','klein','klein','klein','klein','klein','klein'],rechts:['kuehl','kuehl','kuehl','kuehl','kuehl','kuehl','kuehl','hoch','klein']},
   {art:'einzeln',kinds:['gross','gross','gross','gross','gross']},
   {art:'frei',kinds:['tisch','tischgross','gitter','gitter2','gitter3']}

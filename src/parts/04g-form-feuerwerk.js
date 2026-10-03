@@ -1,1 +1,946 @@
 /* Verpackungsformen (feuerwerk) - siehe 04-models.js VP_FORM */
+/* 03.10. (Tom: "vieles ist einfach nur ein Karton, wo was draufsteht -
+   sieht scheisse aus"): jedes Feuerwerksprodukt bekommt seine eigene
+   Verpackungsart nach echtem Vorbild aus dem Handel - Hängepackung,
+   Streichholzschachtel, Folienschlauch, Munitionskiste, Netzbeutel,
+   Blechdose, Holzkiste, Raketenröhre, Alu-Koffer, Dreikant- und
+   Sechskantkarton ... Das Druckbild (drawFront, 04d) bleibt vorn lesbar.
+   Alles bleibt in p.dims (Ursprung unten Mitte, vorn = +z). */
+(()=>{
+const PI=Math.PI, HOLZ=0xc9a46a, I=s=>parseInt(String(s).slice(1),16);
+/* ---------------- Grundgeruest ---------------- */
+function G(t){ const p=P[t]; return {t,p,a:p.art,cat:p.cat,w:p.dims[0],h:p.dims[1],d:p.dims[2],vc:[],dr:[],fo:[],gl:[],ex:[],R:{},rnd:zufallAus(hashStr(t+'|vp'))}; }
+function fertig(o){ const parts=[];
+  if(o.dr.length) parts.push({geo:merge(o.dr),mat:o.drMat});
+  if(o.vc.length) parts.push({geo:merge(o.vc),mat:vcMat});
+  o.ex.forEach(q=>parts.push(q));
+  if(o.gl.length) parts.push({geo:merge(o.gl),mat:glassMat});
+  if(o.fo.length) parts.push({geo:merge(o.fo),mat:o.foMat||folieKlar});
+  return parts; }
+const box=(o,w,h,d,x,y,z,c,rx,ry,rz)=>o.vc.push({geo:new THREE.BoxGeometry(w,h,d),m:tm(x,y,z,rx,ry,rz),color:c});
+const zyl=(o,r1,r2,l,s,x,y,z,c,rx,ry,rz,sx,sy,sz)=>o.vc.push({geo:new THREE.CylinderGeometry(r1,r2,l,s),m:tm(x,y,z,rx,ry,rz,sx,sy,sz),color:c});
+const kugel=(o,r,x,y,z,c,sx,sy,sz,ws,hs)=>o.vc.push({geo:new THREE.SphereGeometry(r,ws||8,hs||6),m:tm(x,y,z,0,0,0,sx,sy,sz),color:c});
+const torus=(o,R,r,x,y,z,c,rx,ry,rz,seg,sx,sy,sz)=>o.vc.push({geo:new THREE.TorusGeometry(R,r,4,seg||16),m:tm(x,y,z,rx,ry,rz,sx,sy,sz),color:c});
+const fol=(o,geo,m)=>o.fo.push({geo,m});
+const glas=(o,geo,m)=>o.gl.push({geo,m});
+function uvR(geo,r){ if(!r) return geo; const uv=geo.attributes.uv; for(let i=0;i<uv.count;i++) uv.setXY(i,r[0]+uv.getX(i)*(r[2]-r[0]),r[1]+uv.getY(i)*(r[3]-r[1])); return geo; }
+const dr=(o,geo,m,r)=>o.dr.push({geo:uvR(geo,r),m});
+/* Quader mit eigenem Bildbereich je Seite: f vorn, b hinten, l/r Seiten (s beide), t oben, u unten */
+function kiste(w,h,d,R){ const g=new THREE.BoxGeometry(w,h,d), uv=g.attributes.uv, L=R.leer;
+  const fl=[R.r||R.s||L,R.l||R.s||L,R.t||L,R.u||R.t||L,R.f||L,R.b||R.f||L];
+  for(let f=0;f<6;f++){ const r=fl[f]; for(let i=0;i<4;i++){ const k=f*4+i; uv.setXY(k,r[0]+uv.getX(k)*(r[2]-r[0]),r[1]+uv.getY(k)*(r[3]-r[1])); } } return g; }
+/* Viereck p0 unten links, p1 unten rechts, p2 oben rechts, p3 oben links (von aussen gesehen) */
+function viereck(p0,p1,p2,p3){ const g=new THREE.BufferGeometry(), P4=[p0,p1,p2,p0,p2,p3], U=[0,0,1,0,1,1,0,0,1,1,0,1];
+  g.setAttribute('position',new THREE.Float32BufferAttribute(P4.flat(),3)); g.setAttribute('uv',new THREE.Float32BufferAttribute(U,2)); g.computeVertexNormals(); return g; }
+function dreieck(p0,p1,p2){ const g=new THREE.BufferGeometry();
+  g.setAttribute('position',new THREE.Float32BufferAttribute([p0,p1,p2].flat(),3)); g.setAttribute('uv',new THREE.Float32BufferAttribute([0,0,1,0,0.5,1],2)); g.computeVertexNormals(); return g; }
+/* Innenseite: Dreiecke umdrehen (fuer Einsaetze, in die man hineinsieht) */
+function umdrehen(geo){ const g=geo.index?geo.toNonIndexed():geo, p=g.attributes.position, n=g.attributes.normal, u=g.attributes.uv;
+  for(let i=0;i<p.count;i+=3){ for(const A of [p,n,u]){ if(!A) continue; const s=A.itemSize; for(let k=0;k<s;k++){ const t=A.array[(i+1)*s+k]; A.array[(i+1)*s+k]=A.array[(i+2)*s+k]; A.array[(i+2)*s+k]=t; } } }
+  for(let i=0;i<n.array.length;i++) n.array[i]=-n.array[i]; return g; }
+/* dunkler Einsatz hinter einem Fenster: Rueckwand, Seiten, Boden, Decke (innen sichtbar) */
+function einsatz(o,x0,x1,y0,y1,z0,z1,c){ const g=umdrehen(new THREE.BoxGeometry(x1-x0,y1-y0,z1-z0)); o.vc.push({geo:g,m:tm((x0+x1)/2,(y0+y1)/2,(z0+z1)/2),color:c}); }
+/* Teile in einem eigenen Koordinatensystem bauen und dann versetzen */
+function gruppe(o,M,fn){ const s={vc:[],dr:[],fo:[],gl:[],R:o.R,rnd:o.rnd}; fn(s);
+  for(const k of ['vc','dr','fo','gl']) s[k].forEach(q=>{ q.m=M.clone().multiply(q.m); o[k].push(q); }); }
+/* ---------------- Druckbogen: alle bedruckten Flaechen in einer Textur ---------------- */
+function bogen(o,teile,opt){ opt=opt||{};
+  const gap=0.003, area=teile.reduce((s,q)=>s+(q.w+gap)*(q.h+gap),0), maxw=Math.max(...teile.map(q=>q.w));
+  const Wm=Math.max(maxw,Math.sqrt(area)*1.12); let x=0,y=0,rh=0; const pos=[];
+  teile.forEach(q=>{ if(x>0&&x+q.w>Wm){ x=0; y+=rh+gap; rh=0; } pos.push([x,y]); x+=q.w+gap; rh=Math.max(rh,q.h); });
+  const Hm=y+rh, MAX=Math.min(opt.max||1100,1100)*TEX_FAKTOR, s=Math.min((opt.ppm||1700)*TEX_FAKTOR,MAX/Math.max(Wm,Hm));
+  const W=Math.max(8,Math.round(Wm*s)), H=Math.max(8,Math.round(Hm*s));
+  const px=teile.map((q,i)=>[Math.round(pos[i][0]*s),Math.round(pos[i][1]*s),Math.max(4,Math.round(q.w*s)),Math.max(4,Math.round(q.h*s))]);
+  teile.forEach((q,i)=>{ const [x0,y0,w0,h0]=px[i]; o.R[q.n]=[(x0+0.5)/W,1-(y0+h0-0.5)/H,(x0+w0-0.5)/W,1-(y0+0.5)/H]; });
+  const T=tex(W,H,g=>{ teile.forEach((q,i)=>{ const [x0,y0,w0,h0]=px[i]; g.save(); g.translate(x0,y0); g.beginPath(); g.rect(0,0,w0,h0); g.clip(); q.f(g,w0,h0); g.restore(); }); });
+  o.drMat=new THREE.MeshStandardMaterial({map:T,roughness:opt.rough||0.55,metalness:opt.metal||0,alphaTest:opt.alpha?0.5:0,side:opt.ds?THREE.DoubleSide:THREE.FrontSide});
+  return o.R; }
+const teil=(g,x,y,w,h,fn)=>{ g.save(); g.translate(x,y); g.beginPath(); g.rect(0,0,w,h); g.clip(); fn(g,w,h); g.restore(); };
+const flach=c=>(g,W,H)=>{ g.fillStyle=c; g.fillRect(0,0,W,H); };
+const verlauf=(c1,c2)=>(g,W,H)=>{ const gr=g.createLinearGradient(0,0,0,H); gr.addColorStop(0,c1); gr.addColorStop(1,c2); g.fillStyle=gr; g.fillRect(0,0,W,H); };
+const zweimal=fn=>(g,W,H)=>{ for(let k=0;k<2;k++) teil(g,k*W/2,0,W/2,H,fn); };
+/* Loecher (Fenster, Euroloch): durchsichtig, mit hellem Rand */
+function loch(g,L,rand){ g.save(); g.globalCompositeOperation='destination-out'; g.fillStyle='#000'; for(const q of L){ g.beginPath(); pfad(g,q); g.fill(); } g.restore();
+  if(rand===false) return; g.save(); g.strokeStyle=rand||'rgba(255,255,255,.9)'; for(const q of L){ g.lineWidth=Math.max(1.5,(q.r||Math.min(q.w,q.h))*0.06); g.beginPath(); pfad(g,q); g.stroke(); } g.restore(); }
+function pfad(g,q){ if(q.stern){ for(let i=0;i<10;i++){ const an=-PI/2+i*PI/5, rr=i%2?q.r*0.45:q.r; g.lineTo(q.x+Math.cos(an)*rr,q.y+Math.sin(an)*rr); } g.closePath(); }
+  else if(q.r) g.arc(q.x,q.y,q.r,0,PI*2); else if(q.ell) g.ellipse(q.x,q.y,q.ell[0],q.ell[1],0,0,PI*2); else g.rect(q.x,q.y,q.w,q.h); }
+function euroloch(g,cx,cy,s){ g.save(); g.globalCompositeOperation='destination-out'; g.fillStyle='#000'; g.beginPath(); g.arc(cx,cy,s*0.32,0,PI*2); g.fill();
+  g.beginPath(); g.ellipse(cx,cy+s*0.12,s*0.9,s*0.17,0,0,PI*2); g.fill(); g.restore();
+  g.strokeStyle='rgba(255,255,255,.7)'; g.lineWidth=Math.max(1,s*0.05); g.beginPath(); g.arc(cx,cy,s*0.32,PI*0.85,PI*2.15); g.stroke(); }
+/* ---------------- Druckbild ---------------- */
+function stil(t){ const l=typeof linieVon==='function'?linieVon(t):'sternwerk', a=P[t].art, hl=typeof heller==='function'?heller:(c=>c);
+  return {l, bg:l==='aurum'?'#0b0a09':l==='nordlicht'?'#c9a676':l==='titan'?'#121418':l==='funkenkind'?hl(a.bg1,0.15):a.bg2,
+    tf:l==='aurum'?'#e9c76a':l==='nordlicht'?'#2b1d10':l==='funkenkind'||l==='titan'||l==='blitz'?'#ffffff':a.ac,
+    ol:l==='nordlicht'||l==='aurum'?null:l==='funkenkind'?a.bg2:'rgba(0,0,0,.85)',
+    font:l==='aurum'?FNT.cin:l==='funkenkind'||l==='blitz'?FNT.bun:l==='sternwerk'?FNT.barIt:FNT.bar,
+    sf:l==='aurum'?'#d9b45a':l==='nordlicht'?'#5a4428':l==='titan'?'#ff7a00':'#ffffff', foto:l!=='aurum'&&l!=='nordlicht'&&l!=='funkenkind'}; }
+/* Druckbild in einen Bereich: breit -> Motivfeld + grosser Name, hoch ->
+   Motiv oben + Name hochkant, sonst die normale Vorderseite */
+function bild(g,W,H,t,o){ o=o||{}; const p=P[t], a=p.art;
+  if(o.mitte&&W>H*1.6){ const S=stil(t), pw=Math.min(W*0.26,H*0.9);
+    g.fillStyle=S.bg; g.fillRect(0,0,W,H);
+    if(S.foto&&typeof effektFoto==='function') effektFoto(g,0,0,W,H,t,a,zufallAus(hashStr(t+'bm')),{stadt:false});
+    for(const lx of [0,W-pw]) teil(g,lx,0,pw,H,(g2,w2,h2)=>drawFront(g2,w2,h2,a,p.cat));
+    const rw=W-2*pw; nameText(g,a.title,W/2,H*0.42,rw*0.94,Math.round(H*0.4),S.font,S.tf,S.ol,Math.max(2,H*0.045));
+    nameText(g,a.sub,W/2,H*0.78,rw*0.9,Math.round(H*0.15),FNT.bar,S.sf,S.foto?'rgba(0,0,0,.75)':null,2);
+  } else if(W>H*2.1){ const S=stil(t), pw=Math.min(W*0.4,H*1.25), lx=o.rechts?W-pw:0, rx0=o.rechts?0:pw, rw=W-pw;
+    g.fillStyle=S.bg; g.fillRect(0,0,W,H);
+    if(S.foto&&typeof effektFoto==='function') effektFoto(g,rx0,0,rw,H,t,a,zufallAus(hashStr(t+'bf')),{stadt:false});
+    teil(g,lx,0,pw,H,(g2,w2,h2)=>drawFront(g2,w2,h2,a,p.cat));
+    const cx=rx0+rw/2, sk=S.l==='blitz'||S.l==='sternwerk'?-0.12:0;
+    nameText(g,a.title,cx,H*(o.sub===false?0.5:0.42),rw*0.9,Math.round(H*0.46),S.font,S.tf,S.ol,Math.max(2,H*0.045),sk);
+    if(o.sub!==false) nameText(g,a.sub,cx,H*0.81,rw*0.86,Math.round(H*0.16),FNT.bar,S.sf,S.foto?'rgba(0,0,0,.75)':null,2);
+    g.fillStyle=a.ac2; g.fillRect(o.rechts?W-pw-2:pw,0,2,H);
+  } else if(H>W*1.75){ const S=stil(t), ph=Math.min(H*0.5,W*1.3);
+    g.fillStyle=S.bg; g.fillRect(0,0,W,H);
+    if(S.foto&&typeof effektFoto==='function') effektFoto(g,0,ph,W,H-ph,t,a,zufallAus(hashStr(t+'bh')),{stadt:false});
+    teil(g,0,0,W,ph,(g2,w2,h2)=>drawFront(g2,w2,h2,a,p.cat));
+    g.save(); g.translate(W/2,ph+(H-ph)*0.47); g.rotate(-PI/2); nameText(g,a.title,0,0,(H-ph)*0.88,Math.round(W*0.56),S.font,S.tf,S.ol,Math.max(2,W*0.05)); g.restore();
+    g.fillStyle=a.ac2; g.fillRect(0,H*0.955,W,H*0.045);
+  } else drawFront(g,W,H,a,p.cat);
+}
+const B=(t,o)=>(g,W,H)=>bild(g,W,H,t,o);
+const seite=t=>(g,W,H)=>drawSide(g,W,H,P[t].art);
+const oben=t=>(g,W,H)=>drawTop(g,W,H,P[t].art,P[t].cat);
+function titel(g,t,x,y,mw,sz,farbe,rand){ const S=stil(t); nameText(g,P[t].art.title,x,y,mw,Math.round(sz),S.font,farbe||S.tf,rand===undefined?S.ol:rand,Math.max(2,sz*0.1)); }
+function kraft(g,W,H,rnd,c){ g.fillStyle=c||'#b48a58'; g.fillRect(0,0,W,H);
+  for(let x=0;x<W;x+=3){ g.fillStyle=`rgba(80,52,24,${0.03+0.03*Math.sin(x*0.9)})`; g.fillRect(x,0,1.5,H); }
+  for(let i=0;i<W*H/90;i++){ g.fillStyle=`rgba(60,40,20,${rnd()*0.08})`; g.fillRect(rnd()*W,rnd()*H,2,1); } }
+function holz(g,W,H,rnd,c){ g.fillStyle=c||'#c89a60'; g.fillRect(0,0,W,H);
+  for(let i=0;i<H/3;i++){ const y=rnd()*H; g.strokeStyle=`rgba(120,74,30,${0.08+rnd()*0.14})`; g.lineWidth=1+rnd()*1.5; g.beginPath(); g.moveTo(0,y);
+    for(let x=0;x<=W;x+=W/8) g.lineTo(x,y+Math.sin(x*0.02+i)*2+rnd()*1.5); g.stroke(); }
+  for(let k=0;k<2;k++){ const x=rnd()*W, y=rnd()*H; g.fillStyle='rgba(110,64,24,.35)'; g.beginPath(); g.ellipse(x,y,W*0.012+2,H*0.06+2,0,0,PI*2); g.fill(); }
+  g.strokeStyle='rgba(70,40,15,.6)'; g.lineWidth=Math.max(2,Math.min(W,H)*0.03); g.strokeRect(0,0,W,H); }
+function blech(g,W,H,rnd,c,hell){ g.fillStyle=c; g.fillRect(0,0,W,H);
+  for(let y=0;y<H;y+=2){ g.fillStyle=`rgba(${hell?'255,255,255':'0,0,0'},${rnd()*0.06})`; g.fillRect(0,y,W,1); }
+  const gr=g.createLinearGradient(0,0,0,H); gr.addColorStop(0,'rgba(255,255,255,.18)'); gr.addColorStop(0.5,'rgba(255,255,255,0)'); gr.addColorStop(1,'rgba(0,0,0,.18)'); g.fillStyle=gr; g.fillRect(0,0,W,H); }
+function rahmen(g,x,y,w,h,c,lw){ g.strokeStyle=c||'rgba(255,255,255,.9)'; g.lineWidth=lw||Math.max(2,Math.min(w,h)*0.03); g.strokeRect(x,y,w,h); }
+function nacht(g,W,H,rnd){ const gr=g.createLinearGradient(0,0,0,H); gr.addColorStop(0,'#05071a'); gr.addColorStop(1,'#1a1438'); g.fillStyle=gr; g.fillRect(0,0,W,H);
+  g.fillStyle='rgba(255,255,255,.7)'; for(let i=0;i<W*H/700;i++) g.fillRect(rnd()*W,rnd()*H,1.2,1.2); }
+/* ---------------- Bauteile ---------------- */
+/* Rakete liegend: Spitze bei x, Kopf zeigt nach dir (+1 = +x), Stab endet bei ende */
+function rakete(o,x,y,z,r,L,c,q){ q=q||{}; const s=q.dir||1, seg=q.seg||8, kl=q.kl||r*3, rz=-s*PI/2;
+  zyl(o,0,r*1.04,kl,seg,x-s*kl/2,y,z,q.kc!==undefined?q.kc:c,0,0,rz);
+  if(q.c2!==undefined){ zyl(o,r,r,L/2,seg,x-s*(kl+L/4),y,z,c,0,0,PI/2); zyl(o,r,r,L/2,seg,x-s*(kl+L*0.75),y,z,q.c2,0,0,PI/2); }
+  else zyl(o,r,r,L,seg,x-s*(kl+L/2),y,z,c,0,0,PI/2);
+  if(q.ring!==false) zyl(o,r*1.05,r*1.05,Math.min(0.012,L*0.12),seg,x-s*(kl+L*0.2),y,z,q.ringC!==undefined?q.ringC:0xf2f2f2,0,0,PI/2);
+  zyl(o,r*0.72,r*0.86,r*0.6,seg,x-s*(kl+L+r*0.3),y,z,0x3a3a3a,0,0,PI/2);
+  if(q.ende!==undefined){ const st=q.st||Math.max(0.003,r*0.32), x0=x-s*(kl+L*0.35), len=Math.abs(x0-q.ende);
+    box(o,len,st,st,(x0+q.ende)/2,q.sy!==undefined?q.sy:y-r+st/2,z+(q.sz!==undefined?q.sz:r*0.75),q.sc||HOLZ); }
+  if(q.lunte!==false) zyl(o,0.0011,0.0011,r*1.4,4,x-s*(kl+L+r*1.2),y-r*0.3,z,0x2e8b3a,0,0,PI/2);
+}
+/* Folienschlauch entlang x, an den Enden zur Naht gequetscht */
+function quetsch(L,ry,rz,kopf,nR,nU){ nR=nR||12; nU=nU||12; const pos=[], idx=[];
+  for(let i=0;i<=nR;i++){ const u=i/nR, x=-L/2+u*L, e=Math.max(0,Math.abs(x)-(L/2-kopf))/kopf, fy=1-0.12*e, fz=Math.pow(1-e,0.7)*0.97+0.03;
+    for(let j=0;j<=nU;j++){ const a=j/nU*PI*2; pos.push(x,Math.cos(a)*ry*fy,Math.sin(a)*rz*fz); } }
+  for(let i=0;i<nR;i++) for(let j=0;j<nU;j++){ const a=i*(nU+1)+j, b=a+nU+1; idx.push(a,b,a+1,b,b+1,a+1); }
+  const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3)); g.setIndex(idx); g.computeVertexNormals(); return g; }
+/* Prisma entlang x: n Flaechen, Normale der Flaeche i unter Winkel a0+i*2pi/n (0 = vorn, pi/2 = oben) */
+function prismaX(o,n,R,L,x,yc,zc,a0,regs,ziel){ const ap=R*Math.cos(PI/n), sw=2*R*Math.sin(PI/n);
+  for(let i=0;i<n;i++){ const al=a0+i*2*PI/n, g=new THREE.PlaneGeometry(L,sw), m=tm(x,yc+Math.sin(al)*ap,zc+Math.cos(al)*ap,-al,0,0);
+    if(ziel==='fo') fol(o,g,m); else if(regs) dr(o,g,m,regs(i,al)); else o.vc.push({geo:g,m,color:0x888888}); } }
+/* stehendes Prisma (Achse y): Flaeche i hat Normale (sin a, 0, cos a) */
+function prismaY(o,n,R,H,y0,a0,regs){ const ap=R*Math.cos(PI/n), sw=2*R*Math.sin(PI/n);
+  for(let i=0;i<n;i++){ const al=a0+i*2*PI/n; dr(o,new THREE.PlaneGeometry(sw,H),tm(Math.sin(al)*ap,y0+H/2,Math.cos(al)*ap,0,al,0),regs(i,al)); } }
+/* bedruckter Zylindermantel: Druck vorn in der Mitte der vorderen Haelfte */
+function mantel(o,r1,r2,H,y,reg,seg,x,z){ dr(o,new THREE.CylinderGeometry(r1,r2,H,seg||28,1,true,-PI/2),tm(x||0,y+H/2,z||0),o.R[reg]); }
+/* offenes Band um x (vorn, oben, hinten, unten) */
+function bandX(o,w,h,d,x,y,z,R){ dr(o,new THREE.PlaneGeometry(w,h),tm(x,y,z+d/2),R.f); dr(o,new THREE.PlaneGeometry(w,h),tm(x,y,z-d/2,0,PI,0),R.b||R.f);
+  dr(o,new THREE.PlaneGeometry(w,d),tm(x,y+h/2,z,-PI/2,0,0),R.t||R.f); dr(o,new THREE.PlaneGeometry(w,d),tm(x,y-h/2,z,PI/2,0,0),R.u||R.t||R.f); }
+/* Zelt-Kopfkarte ueber dem Inhalt: Grat bei y1, Kanten bei y0, z = +-zk */
+function zeltkarte(o,w,y0,y1,zk,rf,rb){ const L=Math.hypot(y1-y0,zk), ph=Math.atan2(zk,y1-y0);
+  dr(o,new THREE.PlaneGeometry(w,L),tm(0,(y0+y1)/2,zk/2,-ph,0,0),rf); dr(o,new THREE.PlaneGeometry(w,L),tm(0,(y0+y1)/2,-zk/2,ph,PI,0),rb||rf); }
+/* Kegelfontaene stehend */
+function kegel(o,x,z,y0,R,H,c,q){ q=q||{}; zyl(o,R*0.34,R,H*0.82,q.seg||14,x,y0+H*0.41,z,c);
+  zyl(o,R*0.35,R*0.45,H*0.1,q.seg||14,x,y0+H*0.55,z,q.kragen!==undefined?q.kragen:0xf4f0e6);
+  zyl(o,R*0.12,R*0.33,H*0.12,10,x,y0+H*0.88,z,q.kappe!==undefined?q.kappe:0x3b3b3b);
+  zyl(o,0.0015,0.0015,H*0.08,4,x,y0+H*0.97,z,0x2e8b3a); }
+const hex=c=>typeof c==='number'?c:I(c);
+const ROT=0xd8352a, GOLD=0xd9b45a, SILBER=0xc9ccd2, DUNKEL=0x1b1d24;
+
+/* =================== WUNDERKERZEN =================== */
+/* Goldfunken: Faltschachtel mit Aufhaengelasche (Euroloch) und
+   Sichtfensterstreifen rechts - darin die grauen Staebe */
+VP_FORM.wunder=t=>{ const o=G(t), {w,h,d,a}=o, bh=h*0.88, th=h-bh;
+  const R=bogen(o,[{n:'f',w,h:bh,f:(g,W,H)=>{ g.fillStyle=a.bg2; g.fillRect(0,0,W,H); teil(g,0,0,W*0.7,H,B(t));
+      g.fillStyle=a.ac2; g.fillRect(W*0.7,H*0.92,W*0.3,H*0.08); g.fillStyle='#fff'; g.textAlign='center'; g.textBaseline='middle'; fitFont(g,'10×',W*0.25,Math.round(H*0.05),BUN); g.fillText('10×',W*0.85,H*0.96);
+      loch(g,[{x:W*0.74,y:H*0.07,w:W*0.21,h:H*0.82}]); }},
+    {n:'b',w,h:bh,f:seite(t)},{n:'s',w:d,h:bh,f:seite(t)},{n:'t',w,h:d,f:oben(t)},
+    {n:'tab',w:w*0.5,h:th,f:(g,W,H)=>{ g.fillStyle=a.bg2; g.fillRect(0,0,W,H); g.fillStyle=a.ac2; g.fillRect(0,H*0.85,W,H*0.15); euroloch(g,W/2,H*0.42,H*0.55); }}],{alpha:true});
+  dr(o,kiste(w,bh,d,R),tm(0,bh/2,0)); dr(o,kiste(w*0.5,th+0.002,0.003,{f:R.tab,leer:R.tab}),tm(0,bh+th/2-0.001,-d*0.1));
+  const x0=-w/2+w*0.74, x1=-w/2+w*0.95; einsatz(o,x0-0.002,x1+0.002,bh*0.08,bh*0.94,-d/2+0.003,d/2-0.002,0x0b0f2e);
+  for(let i=0;i<4;i++){ const x=x0+(x1-x0)*(i+0.5)/4, z=-d*0.15+i%2*d*0.18;
+    zyl(o,0.0013,0.0013,bh*0.32,5,x,bh*0.25,z,0x9aa0a8); zyl(o,0.0032,0.0032,bh*0.52,6,x,bh*0.66,z,0x6b6d70); }
+  fol(o,new THREE.PlaneGeometry(x1-x0,bh*0.82),tm((x0+x1)/2,bh*0.52,d/2-0.0015));
+  return fertig(o); };
+
+/* Bengalhoelzer: grosse Streichholz-Schiebeschachtel, Lade halb
+   herausgeschoben - oben schauen die roten und gruenen Koepfe heraus */
+VP_FORM.bengalholz=t=>{ const o=G(t), {w,h,d,a,rnd}=o, hs=h*0.76;
+  const R=bogen(o,[{n:'f',w,h:hs,f:B(t)},{n:'b',w,h:hs,f:seite(t)},
+    {n:'s',w:d,h:hs,f:(g,W,H)=>{ g.fillStyle='#5a3422'; g.fillRect(0,0,W,H); for(let i=0;i<W*H/6;i++){ g.fillStyle=rnd()<0.5?'rgba(20,10,5,.5)':'rgba(140,90,60,.4)'; g.fillRect(rnd()*W,rnd()*H,1.5,1.5); }
+      g.fillStyle=a.bg1; g.fillRect(0,0,W*0.12,H); g.fillRect(W*0.88,0,W*0.12,H); }},
+    {n:'t',w,h:d,f:flach(a.bg2)}]);
+  dr(o,kiste(w,hs,d,R),tm(0,hs/2,0));
+  /* Lade: Rueckwand, Seiten, Deckel - vorn offen */
+  const ly0=hs-0.03, lh=h-ly0, lw=w*0.96, ld=d*0.9, LC=0xc0221c;
+  box(o,lw,lh,0.0015,0,ly0+lh/2,-ld/2,0xf2ead8); for(const sx of [-1,1]) box(o,0.0015,lh,ld,sx*lw/2,ly0+lh/2,0,LC); box(o,lw,0.0015,ld,0,h-0.00075,0,LC);
+  for(let i=0;i<12;i++){ const x=-lw*0.44+i*lw*0.88/11, z=(i%2?0.25:-0.15)*ld, top=h-0.006-(i%3)*0.002;
+    box(o,0.0026,top-hs*0.5,0.0026,x,(top+hs*0.5)/2,z,0xe3c48f); kugel(o,0.0036,x,top,z,i%2?0x2f9e57:0xd8322a,1,1.5,1,6,4); }
+  return fertig(o); };
+
+/* Herz-Wunderkerzen: Blisterkarte mit Euroloch, herzfoermige
+   Klarsichtblase, darin zwei Drahtherzen */
+VP_FORM.wunderherz=t=>{ const o=G(t), {w,h,d,a,rnd}=o, kd=0.004;
+  const R=bogen(o,[{n:'f',w,h,f:(g,W,H)=>{ verlauf(a.bg1,a.bg2)(g,W,H); teil(g,0,H*0.09,W,H*0.47,B(t));
+      g.fillStyle='rgba(255,255,255,.18)'; for(let i=0;i<26;i++){ const x=rnd()*W, y=H*0.58+rnd()*H*0.34, s=W*0.03+rnd()*W*0.03; g.beginPath(); g.moveTo(x,y+s*0.5); g.bezierCurveTo(x-s*1.1,y-s*0.2,x-s*0.4,y-s*0.9,x,y-s*0.3); g.bezierCurveTo(x+s*0.4,y-s*0.9,x+s*1.1,y-s*0.2,x,y+s*0.5); g.fill(); }
+      g.fillStyle=a.ac2; g.fillRect(0,H*0.93,W,H*0.07); g.fillStyle='#4a0626'; g.textAlign='center'; g.textBaseline='middle'; fitFont(g,'6 STÜCK',W*0.8,Math.round(H*0.045),BAR); g.fillText('6 STÜCK',W/2,H*0.965);
+      g.fillStyle=a.bg2; g.fillRect(0,0,W,H*0.09); euroloch(g,W/2,H*0.045,H*0.05); }},
+    {n:'b',w,h,f:seite(t)},{n:'leer',w:0.02,h:0.02,f:flach(a.bg2)}],{alpha:true});
+  dr(o,kiste(w,h,kd,R),tm(0,h/2,-d/2+kd/2));
+  const S=w*0.37, cy=h*0.235, herz=k=>{ const s=new THREE.Shape(); s.moveTo(0,-k); s.bezierCurveTo(-0.2*k,-0.75*k,-k,-0.35*k,-k,0.25*k); s.bezierCurveTo(-k,0.75*k,-0.4*k,k,0,0.55*k); s.bezierCurveTo(0.4*k,k,k,0.75*k,k,0.25*k); s.bezierCurveTo(k,-0.35*k,0.2*k,-0.75*k,0,-k); return s; };
+  const bt=d-kd-0.006, bl=new THREE.ExtrudeGeometry(herz(S),{depth:bt*0.5,bevelEnabled:true,bevelThickness:bt*0.25,bevelSize:S*0.06,bevelSegments:2,curveSegments:8});
+  fol(o,bl,tm(0,cy,-d/2+kd+bt*0.25+0.001));
+  for(const [k,dz,c,rr] of [[0.72,0.006,0x6b6d70,0.0034],[0.6,0.011,0x7a7c80,0.003]]){
+    const pts=herz(S*k).getPoints(10).map(p=>new THREE.Vector3(p.x,p.y,0)); pts.pop();
+    o.vc.push({geo:new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts,true),44,rr,4,true),m:tm(0,cy+S*0.05,-d/2+kd+dz),color:c});
+    zyl(o,0.0012,0.0012,cy-S*k-0.012,4,0,(cy-S*k+0.012)/2+S*0.05-0.004,-d/2+kd+dz,0x9aa0a8); }
+  return fertig(o); };
+
+/* Jahreszahl: Haengekarte, die vier Zahlen-Wunderkerzen mit
+   Klarsichtclips auf die Karte geklemmt */
+VP_FORM.wunderzahl=t=>{ const o=G(t), {w,h,d,a,rnd}=o, kd=0.004;
+  const R=bogen(o,[{n:'f',w,h,f:(g,W,H)=>{ nacht(g,W,H,rnd); teil(g,0,H*0.12,W,H*0.3,B(t));
+      g.fillStyle='#0e1226'; g.fillRect(0,0,W,H*0.12); euroloch(g,W/2,H*0.06,H*0.07);
+      g.fillStyle=GOLD_TXT; g.fillRect(0,H*0.92,W,H*0.08); g.fillStyle='#0e1226'; g.textAlign='center'; g.textBaseline='middle'; fitFont(g,'4 ZAHLEN-WUNDERKERZEN · 2 0 2 7',W*0.9,Math.round(H*0.05),BAR); g.fillText('4 ZAHLEN-WUNDERKERZEN · 2 0 2 7',W/2,H*0.96);
+      g.strokeStyle='rgba(255,210,63,.35)'; g.lineWidth=2; g.strokeRect(W*0.03,H*0.45,W*0.94,H*0.44); }},
+    {n:'b',w,h,f:seite(t)},{n:'leer',w:0.02,h:0.02,f:flach('#0e1226')}],{alpha:true});
+  dr(o,kiste(w,h,kd,R),tm(0,h/2,-d/2+kd/2));
+  const zf=-d/2+kd+0.007, A=0.026, Bh=0.052, cy=h*0.33, segs={'2':'abged','0':'abcdef','7':'abc'}, rr=0.0034;
+  ['2','0','2','7'].forEach((z,i)=>{ const cx=(i-1.5)*w*0.22;
+    const S={a:[cx,cy+Bh,1],b:[cx+A,cy+Bh/2,0],c:[cx+A,cy-Bh/2,0],d:[cx,cy-Bh,1],e:[cx-A,cy-Bh/2,0],f:[cx-A,cy+Bh/2,0],g:[cx,cy,1]};
+    for(const s of segs[z]){ const [x,y,hz]=S[s]; zyl(o,rr,rr,hz?2*A:Bh,6,x,y,zf,0x6b6d70,0,0,hz?PI/2:0); }
+    zyl(o,0.0013,0.0013,0.04,4,cx,cy-Bh-0.02,zf,0x9aa0a8);
+    for(const yy of [cy+Bh*0.55,cy-Bh-0.012]) box(o,0.022,0.006,0.002,cx,yy,zf+0.0045,0xe8eef2);
+    fol(o,new THREE.BoxGeometry(0.024,0.008,0.009),tm(cx,cy+Bh*0.55,zf)); fol(o,new THREE.BoxGeometry(0.014,0.008,0.009),tm(cx,cy-Bh-0.012,zf)); });
+  return fertig(o); };
+const GOLD_TXT='#ffd23f';
+
+/* Riesenfunken: Folienbeutel mit geklammerter Kopfkarte (Euroloch),
+   darin die meterlangen Staebe vor einem bedruckten Einleger */
+VP_FORM.wunderkerzeXXL=t=>{ const o=G(t), {w,h,d,a}=o, hh=h*0.17, bH=h-hh+0.008;
+  const R=bogen(o,[{n:'k',w,h:hh,f:(g,W,H)=>{ verlauf(a.bg1,a.bg2)(g,W,H); euroloch(g,W/2,H*0.2,H*0.2);
+      titel(g,t,W/2,H*0.6,W*0.92,H*0.3); g.fillStyle=a.ac; g.textAlign='center'; g.textBaseline='middle'; fitFont(g,a.sub,W*0.9,Math.round(H*0.13),BAR); g.fillText(a.sub,W/2,H*0.86); }},
+    {n:'kb',w,h:hh,f:(g,W,H)=>{ verlauf(a.bg2,a.bg1)(g,W,H); euroloch(g,W/2,H*0.2,H*0.2); }},
+    {n:'e',w:w*0.86,h:bH*0.97,f:B(t)},{n:'leer',w:0.02,h:0.02,f:flach(a.bg2)}],{alpha:true});
+  dr(o,kiste(w,hh,0.005,{f:R.k,b:R.kb,leer:R.leer}),tm(0,h-hh/2,0));
+  for(const sx of [-1,1]) box(o,0.008,0.0025,0.007,sx*w*0.3,h-hh*0.82,0,0xb9bec6);
+  dr(o,kiste(w*0.86,bH*0.97,0.002,{f:R.e,leer:R.leer}),tm(0,bH*0.485+0.002,-d*0.2));
+  for(const x of [-0.052,-0.03,0.03,0.052]){ const xx=x*w/0.137; zyl(o,0.0014,0.0014,bH*0.3,4,xx,bH*0.16,0,0x9aa0a8); zyl(o,0.0036,0.0036,bH*0.66,6,xx,bH*0.63,0,0x6b6d70); }
+  fol(o,new THREE.BoxGeometry(w*0.94,bH,d*0.62),tm(0,bH/2,0));
+  return fertig(o); };
+
+/* =================== BOELLER =================== */
+/* Pupsalarm: Folienschlauch mit gequetschten Siegelnaehten an beiden
+   Enden, dazu eine bedruckte Papierbanderole */
+VP_FORM.boeller=t=>{ const o=G(t), {w,h,d,a}=o, Rq=Math.min(h,d)*0.47, r=Rq/3.15, L=w*0.66, cols=[0x8a5a2a,0x6b8a2a,0xa0702e];
+  for(let ly=-1;ly<=1;ly++) for(let iz=-1;iz<=1;iz++){ const y=h/2+ly*r*2.02, z=iz*r*2.02;
+    zyl(o,r,r,L,10,0,y,z,cols[(ly+iz+3)%3],0,0,PI/2); zyl(o,r*0.95,r*0.95,0.003,10,L/2+0.0015,y,z,0xd9cbb0,0,0,PI/2); zyl(o,0.0014,0.0014,0.012,4,L/2+0.007,y,z,0x2e8b3a,0,0,PI/2); }
+  fol(o,quetsch(w*0.98,Rq,Rq,(w*0.98-L)/2,16,14),tm(0,h/2,0));
+  for(const sx of [-1,1]) fol(o,new THREE.BoxGeometry(0.008,Rq*1.7,0.0015),tm(sx*(w/2-0.006),h/2,0));
+  const bw=w*0.4, bb=2*Rq+0.004;
+  const R=bogen(o,[{n:'f',w:bw,h:bb,f:B(t)},{n:'b',w:bw,h:bb,f:seite(t)},{n:'t',w:bw,h:bb,f:oben(t)}]);
+  bandX(o,bw,bb,bb,-w*0.03,h/2,0,R);
+  return fertig(o); };
+
+/* Monster: Munitionskiste aus Blech mit Klappbuegel, Verschluss und
+   aufgeklebtem Etikett */
+VP_FORM.monsterboeller=t=>{ const o=G(t), {w,h,d,a,rnd}=o, bw=w*0.93, bh=h*0.8, bd=d*0.86, OL='#2f3a26';
+  const R=bogen(o,[{n:'f',w:bw,h:bh,f:(g,W,H)=>{ blech(g,W,H,rnd,OL); teil(g,W*0.05,H*0.08,W*0.66,H*0.84,(g2,w2,h2)=>drawFront(g2,w2,h2,a,o.cat)); rahmen(g,W*0.05,H*0.08,W*0.66,H*0.84,'#e8e4d8',3);
+      g.save(); g.translate(W*0.86,H*0.5); g.rotate(-PI/2); g.fillStyle=a.ac; g.textAlign='center'; g.textBaseline='middle'; fitFont(g,'4 × EXTREM',H*0.8,Math.round(W*0.12),BUN); g.fillText('4 × EXTREM',0,0); g.restore(); }},
+    {n:'s',w:bd,h:bh,f:(g,W,H)=>{ blech(g,W,H,rnd,OL); g.fillStyle=a.ac; g.textAlign='center'; g.textBaseline='middle'; fitFont(g,'MONSTER',W*0.85,Math.round(H*0.3),BUN); g.fillText('MONSTER',W/2,H*0.45); g.font=BAR(Math.round(H*0.12)); g.fillStyle='#e8e4d8'; g.fillText('CAL. F2 · 4 STK',W/2,H*0.72); }},
+    {n:'b',w:bw,h:bh,f:(g,W,H)=>{ blech(g,W,H,rnd,OL); g.fillStyle='#e8e4d8'; g.textAlign='center'; g.textBaseline='middle'; fitFont(g,'MONSTER BÖLLER · NUR IM FREIEN',W*0.9,Math.round(H*0.14),BAR); g.fillText('MONSTER BÖLLER · NUR IM FREIEN',W/2,H/2); }},
+    {n:'d',w:bw,h:bd,f:(g,W,H)=>{ blech(g,W,H,rnd,'#28321f'); g.fillStyle='rgba(0,0,0,.35)'; for(let i=1;i<4;i++) g.fillRect(W*0.06,H*i/4,W*0.88,2); }}],{metal:0.35,rough:0.5});
+  dr(o,kiste(bw,bh,bd,{f:R.f,b:R.b,s:R.s,t:R.d}),tm(0,bh/2,0));
+  dr(o,kiste(w*0.97,h*0.12,d*0.92,{f:R.d,s:R.d,t:R.d}),tm(0,bh+h*0.06,0));
+  const DK=0x1c2216;
+  box(o,w*0.42,0.004,0.012,0,h-0.004,d*0.08,DK); for(const sx of [-1,1]) box(o,0.006,0.008,0.008,sx*w*0.22,h-0.006,d*0.08,DK);
+  box(o,0.006,h*0.34,d*0.32,bw/2+0.003,bh*0.95,0,DK); box(o,0.007,h*0.1,d*0.2,bw/2+0.0035,bh+h*0.03,0,0x3a4430);
+  zyl(o,0.004,0.004,w*0.9,8,0,bh+h*0.02,-d*0.46,DK,0,0,PI/2);
+  box(o,w*0.95,h*0.04,d*0.88,0,h*0.02,0,DK);
+  return fertig(o); };
+
+/* Blitzknaller: Sechskantroehre aus Klarsicht mit runden Kappen,
+   Papieretikett um die Mitte, drin die sechs Knaller */
+VP_FORM.blitzknaller=t=>{ const o=G(t), {w,h,d,a}=o, Rr=Math.min(h/2,d/(2*0.866))*0.96, yc=Rr*1.012, cl=w*0.055, L=w-2*cl-0.002, lw=w*0.44, sw=Rr;
+  const R=bogen(o,[{n:'f',w:lw,h:sw,f:B(t)},{n:'n',w:lw,h:sw,f:(g,W,H)=>{ g.fillStyle=a.bg1; g.fillRect(0,0,W,H); g.fillStyle=a.ac2; g.fillRect(0,H*0.82,W,H*0.18); titel(g,t,W/2,H*0.45,W*0.9,H*0.5,a.ac,null); }},
+    {n:'leer',w:lw,h:sw,f:(g,W,H)=>{ g.fillStyle=a.bg2; g.fillRect(0,0,W,H); g.fillStyle='#1b1b2e'; g.textAlign='center'; g.textBaseline='middle'; fitFont(g,'6 STÜCK · F2 · NUR IM FREIEN',W*0.9,Math.round(H*0.3),BAR); g.fillText('6 STÜCK · F2 · NUR IM FREIEN',W/2,H/2); }}]);
+  prismaX(o,6,Rr*1.012,lw,-w*0.04,yc,0,0,(i)=>i===0?R.f:i===1||i===5?R.n:R.leer);
+  prismaX(o,6,Rr,L,0,yc,0,0,null,'fo');
+  for(const sx of [-1,1]){ o.vc.push({geo:new THREE.CylinderGeometry(Rr*1.01,Rr*1.01,cl,6,1,false,PI/6),m:tm(sx*(w/2-cl/2),yc,0,0,0,PI/2),color:I(a.ac2)});
+    o.vc.push({geo:new THREE.CylinderGeometry(Rr*0.7,Rr*0.7,0.002,6,1,false,PI/6),m:tm(sx*(w/2-0.0005),yc,0,0,0,PI/2),color:0xf2f5ff}); }
+  for(let k=0;k<6;k++){ const al=PI/6+k*PI/3; zyl(o,0.0008,0.0008,L,4,0,yc+Math.sin(al)*Rr,Math.cos(al)*Rr,0xe8eef2,0,0,PI/2); }
+  const r=Rr*0.27;
+  [[-1,1],[0,1],[1,1],[-1,-1],[0,-1],[1,-1]].forEach(([iz,iy],i)=>{ const y=yc+iy*r*1.05, z=iz*r*2.05;
+    zyl(o,r,r,L*0.9,8,0,y,z,0xb9bec6,0,0,PI/2); zyl(o,r*1.03,r*1.03,L*0.12,8,L*0.18,y,z,ROT,0,0,PI/2); zyl(o,r*1.03,r*1.03,L*0.05,8,-L*0.3,y,z,0x1b1b2e,0,0,PI/2); });
+  return fertig(o); };
+
+/* =================== KLEINFEUERWERK =================== */
+/* Knallerbsen: ovale Weissblechdose mit Klarsichtdeckel - drin
+   Saegespaene und die Erbsen in Papier */
+VP_FORM.knallerbsen=t=>{ const o=G(t), {w,h,d,a,rnd}=o, rz=d/2*0.96, sx=(w/2*0.96)/rz, Hb=h*0.82;
+  const C=PI*(rz*(1+sx));
+  const R=bogen(o,[{n:'m',w:C,h:Hb,f:zweimal((g,W,H)=>{ bild(g,W,H,t,{mitte:true}); g.fillStyle='rgba(255,255,255,.35)'; g.fillRect(0,0,W,H*0.04); g.fillRect(0,H*0.96,W,H*0.04); })}],{metal:0.15});
+  dr(o,new THREE.CylinderGeometry(rz,rz,Hb,28,1,true,-PI/2),tm(0,Hb/2,0,0,0,0,sx,1,1),R.m);
+  zyl(o,rz*1.01,rz*1.01,0.004,28,0,0.002,0,0x8f949c,0,0,0,sx,1,1);
+  o.vc.push({geo:new THREE.CylinderGeometry(rz*1.03,rz*1.03,h-Hb+0.004,28,1,true),m:tm(0,(Hb+h)/2-0.002,0,0,0,0,sx,1,1),color:0x9aa1ab});
+  torus(o,rz*1.02,0.0022,0,h-0.002,0,0xd7dbe0,PI/2,0,0,28,sx,1,1);
+  zyl(o,rz*0.99,rz*0.99,0.003,24,0,h*0.78,0,0xd8b27a,0,0,0,sx,1,1);
+  for(let i=0;i<24;i++){ const an=rnd()*PI*2, rr=Math.sqrt(rnd())*0.82; kugel(o,0.0055,Math.cos(an)*rr*rz*sx,h*0.78+0.004+rnd()*0.004,Math.sin(an)*rr*rz,rnd()<0.5?0xf3e3c0:0xfff2d6,1,0.85,1,6,4); }
+  fol(o,new THREE.CylinderGeometry(rz*1.01,rz*1.01,0.002,28),tm(0,h-0.003,0,0,0,0,sx,1,1));
+  return fertig(o); };
+
+/* Hupfer: Klarsichtschachtel - drin liegen die Zickzack-Knallfroesche
+   gestapelt, unten eine bedruckte Papiermanschette */
+VP_FORM.knallfrosch=t=>{ const o=G(t), {w,h,d,a}=o, mh=h*0.42, th=0.0025;
+  const R=bogen(o,[{n:'f',w,h:mh,f:B(t)},{n:'b',w,h:mh,f:seite(t)},{n:'s',w:d,h:mh,f:flach(a.bg2)},
+    {n:'t',w,h:d,f:(g,W,H)=>{ g.fillStyle=a.bg1; g.fillRect(0,0,W,H); g.fillStyle=a.ac2; g.fillRect(0,0,W,H*0.12); g.fillRect(0,H*0.88,W,H*0.12); titel(g,t,W/2,H/2,W*0.86,H*0.34,a.ac); }}]);
+  dr(o,kiste(w,mh,d,{f:R.f,b:R.b,s:R.s,t:R.s}),tm(0,mh/2,0));
+  const n=7, L=w*0.84, dx=L/n, fh=Math.min(0.011,(h-mh-0.008)/2-0.002), fz=Math.min(0.017,d*0.27), sl=Math.hypot(dx,fh), an=Math.atan2(fh,dx);
+  for(const sx of [-1,1]) for(const sz of [-1,1]) box(o,0.0012,h-mh,0.0012,sx*(w/2-0.0006),mh+(h-mh)/2,sz*(d/2-0.0006),0xe8eef2);
+  [[0,-1],[0,0],[0,1],[1,-0.5],[1,0.5]].forEach(([ly,iz],k)=>{ const y0=mh+0.001+ly*(fh+0.003), z=iz*(fz+0.002);
+    for(let i=0;i<n;i++){ const up=i%2===0; box(o,sl,0.0022,fz,-L/2+dx*(i+0.5),y0+fh/2,z,up?0xd8352a:0xb8241c,0,0,up?an:-an); }
+    box(o,dx*0.6,0.0024,fz*1.02,-L/2+dx*3.5,y0+fh/2,z,0xffd23f,0,0,-an);
+    zyl(o,0.0012,0.0012,0.008,4,-L/2-0.002,y0+0.002,z,0x2e8b3a,0,0,PI/2); });
+  fol(o,new THREE.BoxGeometry(w,h-mh,d),tm(0,mh+(h-mh)/2,0));
+  dr(o,new THREE.PlaneGeometry(w,d),tm(0,h+0.0003,0,-PI/2,0,0),R.t);
+  return fertig(o); };
+
+/* Flitzer: Netzbeutel mit gefalteter Reiterkarte oben */
+VP_FORM.schwaermer=t=>{ const o=G(t), {w,h,d,a}=o, cy=h*0.42, ax=w*0.48, ay=h*0.41, az=d*0.43;
+  const nt=tex(128,128,(g,W,H)=>{ g.clearRect(0,0,W,H); g.strokeStyle=a.ac2; g.lineWidth=12; g.beginPath(); g.moveTo(0,0); g.lineTo(W,H); g.moveTo(W,0); g.lineTo(0,H); g.stroke(); g.fillStyle='#8a1410'; g.beginPath(); g.arc(W/2,H/2,9,0,PI*2); g.fill(); });
+  nt.wrapS=nt.wrapT=THREE.RepeatWrapping; nt.repeat.set(16,7);
+  o.ex.push({geo:merge([{geo:new THREE.SphereGeometry(1,18,10),m:tm(0,cy,0,0,0,0,ax,ay,az)}]),mat:new THREE.MeshStandardMaterial({map:nt,alphaTest:0.5,side:THREE.DoubleSide,roughness:0.8})});
+  const cols=[0xf2a01c,ROT,0x2f7fd0,0xffd23f,0x2f9e57,0xf2f5ff];
+  [[-0.5,-0.55],[-0.5,0],[-0.5,0.55],[0,-0.7],[0,-0.25],[0,0.25],[0,0.7],[0.5,-0.55],[0.5,0],[0.5,0.55],[0.25,-0.25],[0.25,0.3]].forEach(([fy,fz],i)=>{
+    const y=cy+fy*ay*0.85, z=fz*az*0.85, k=Math.max(0.2,1-fy*fy*0.72-fz*fz*0.72), len=2*ax*Math.sqrt(k)*0.86, r=0.0075;
+    zyl(o,r,r,len,8,(i%3-1)*0.006,y,z,cols[i%cols.length],0,0,PI/2); zyl(o,0.0012,0.0012,0.01,4,len/2+0.004,y,z,0x2e8b3a,0,0,PI/2); });
+  const y0=h*0.66, zk=d*0.36;
+  const R=bogen(o,[{n:'kf',w:w*0.96,h:Math.hypot(h-y0,zk),f:B(t)},{n:'kb',w:w*0.96,h:Math.hypot(h-y0,zk),f:seite(t)}]);
+  zeltkarte(o,w*0.96,y0,h-0.001,zk,R.kf,R.kb);
+  box(o,0.012,0.002,0.003,0,(y0+h)/2,zk*0.5+0.002,0xb9bec6);
+  return fertig(o); };
+
+/* Knallbonbons: Geschenkbox - bedruckter Boden, Klarsichtdeckel,
+   goldenes Satinband mit Schleife */
+VP_FORM.knallbonbon=t=>{ const o=G(t), {w,h,d,a}=o, hb=h*0.48, hl=h*0.84;
+  const R=bogen(o,[{n:'f',w,h:hb,f:B(t)},{n:'s',w:d,h:hb,f:seite(t)},{n:'t',w,h:d,f:(g,W,H)=>{ g.fillStyle=a.bg2; g.fillRect(0,0,W,H); for(let y=0;y<H;y+=3){ g.fillStyle=`rgba(255,255,255,${0.03+0.03*Math.sin(y*0.3)})`; g.fillRect(0,y,W,1.5); } }}]);
+  dr(o,kiste(w,hb,d,{f:R.f,s:R.s,t:R.t}),tm(0,hb/2,0));
+  const cols=[0xd8352a,0xffd23f,0xf2f5ff,0x2f9e57,0xe35aa8], r=0.0085, n=5;
+  for(let k=0;k<2;k++) for(let i=0;i<n;i++){ const x=(k?1:-1)*w*0.235, z=-d*0.4+i*d*0.8/(n-1), y=hb+r, c=cols[(i+k*2)%cols.length], bl=w*0.2;
+    zyl(o,r,r,bl,8,x,y,z,c,0,0,PI/2); for(const s of [-1,1]){ zyl(o,r*0.35,r,0.014,8,x+s*(bl/2+0.007),y,z,c,0,0,s*PI/2); zyl(o,r*1.1,r*0.4,0.012,8,x+s*(bl/2+0.019),y,z,c,0,0,s*PI/2); }
+    zyl(o,r*1.04,r*1.04,0.006,8,x,y,z,GOLD,0,0,PI/2); }
+  fol(o,new THREE.BoxGeometry(w,hl-hb,d),tm(0,(hb+hl)/2,0));
+  const bx=-w*0.3, BAND=0xe0b44a;
+  box(o,0.016,0.0015,d,bx,hl+0.0008,0,BAND); box(o,w,0.0015,0.016,0,hl+0.0008,0,BAND);
+  box(o,0.016,hl-hb,0.0015,bx,(hl+hb)/2,d/2+0.0008,BAND); box(o,0.016,hl-hb,0.0015,bx,(hl+hb)/2,-d/2-0.0008,BAND);
+  for(const s of [-1,1]){ torus(o,0.016,0.0045,bx+s*0.016,hl+0.006,0,BAND,PI/2,0,s*0.35,14,1,1,0.55); box(o,0.006,0.0015,0.03,bx+s*0.008,hl+0.002,s*0.02,BAND,0,s*0.5,0); }
+  kugel(o,0.006,bx,hl+0.006,0,0xc9982e,1,0.8,1);
+  return fertig(o); };
+
+/* Brummkreisel: Formfaser-Tray wie ein Eierkarton, sechs Kreisel in
+   den Mulden, darum eine bedruckte Manschette */
+VP_FORM.bodenkreisel=t=>{ const o=G(t), {w,h,d,a}=o, PU=0xb9b3a4, ty=h*0.36, mh=h*0.56;
+  box(o,w*0.97,ty,d*0.97,0,ty/2,0,PU);
+  for(const x of [-0.43,-0.155,0.155,0.43]) for(const z of [-0.4,0,0.4]) zyl(o,0.004,0.011,h*0.3,8,x*w,ty+h*0.15,z*d,PU);
+  const cols=[0x5cff9e,0xffd23f,0xe35aa8,0x2f7fd0,0xff7a3d,0x9b3bd6];
+  for(let i=0;i<6;i++){ const x=(i%3-1)*w*0.31, z=(i<3?-1:1)*d*0.235, y=ty+0.008;
+    zyl(o,0.024,0.024,0.011,14,x,y,z,cols[i]); zyl(o,0.016,0.02,0.006,14,x,y+0.008,z,0xf2f5ff); zyl(o,0.0015,0.0015,0.012,4,x+0.026,y,z,0x2e8b3a,0,0,PI/2); }
+  const R=bogen(o,[{n:'f',w,h:mh,f:B(t)},{n:'b',w,h:mh,f:seite(t)},{n:'u',w,h:d,f:flach(a.bg2)}]);
+  dr(o,new THREE.PlaneGeometry(w,mh),tm(0,mh/2,d/2),R.f); dr(o,new THREE.PlaneGeometry(w,mh),tm(0,mh/2,-d/2,0,PI,0),R.b); dr(o,new THREE.PlaneGeometry(w,d),tm(0,0.0005,0,PI/2,0,0),R.u);
+  return fertig(o); };
+
+/* Party-Popper: Displaykarton mit Ausreissfront - oben der Kopf mit
+   Namen, unten offen, die Popper stehen in zwei Reihen */
+VP_FORM.partypopper=t=>{ const o=G(t), {w,h,d,a}=o;
+  const R=bogen(o,[{n:'f',w,h,f:(g,W,H)=>{ g.fillStyle=a.bg1; g.fillRect(0,0,W,H); teil(g,0,0,W,H*0.37,B(t));
+      g.save(); g.globalCompositeOperation='destination-out'; g.fillStyle='#000'; g.beginPath(); g.moveTo(W*0.06,H*0.43); const n=14; for(let i=0;i<=n;i++) g.lineTo(W*(0.06+0.88*i/n),H*(0.43+(i%2?0.025:0)));
+      g.lineTo(W*0.94,H*0.95); g.lineTo(W*0.06,H*0.95); g.closePath(); g.fill(); g.restore();
+      g.strokeStyle='rgba(255,255,255,.9)'; g.lineWidth=3; g.beginPath(); for(let i=0;i<=14;i++) g.lineTo(W*(0.06+0.88*i/14),H*(0.43+(i%2?0.025:0))); g.stroke(); }},
+    {n:'b',w,h,f:seite(t)},{n:'s',w:d,h,f:seite(t)},{n:'t',w,h:d,f:oben(t)}],{alpha:true});
+  dr(o,kiste(w,h,d,R),tm(0,h/2,0));
+  einsatz(o,-w*0.47,w*0.47,0.004,h*0.6,-d/2+0.002,d/2-0.002,I(a.bg2));
+  box(o,w*0.9,0.03,d*0.45,0,0.019,-d*0.22,I(a.bg2));
+  const cols=[0xc01c6a,0x1557a8,0xffd23f,0x2f9e57,0xff7a3d];
+  for(let k=0;k<2;k++) for(let i=0;i<5;i++){ const x=(i-2)*w*0.17, z=k?d*0.17:-d*0.22, y0=k?0.004:0.034, c=cols[(i+k)%5];
+    zyl(o,0.0125,0.0125,0.012,10,x,y0+0.006,z,0xf2f5ff); zyl(o,0.004,0.0125,0.055,10,x,y0+0.012+0.0275,z,c); zyl(o,0.0045,0.0045,0.006,8,x,y0+0.071,z,GOLD);
+    box(o,0.003,0.016,0.0015,x+0.004,y0+0.08,z,0xf2f5ff); }
+  return fertig(o); };
+
+/* Niagara: lange Faltschachtel mit Sichtfenster - dahinter haengen die
+   Silberfontaenen an ihrer Lunte */
+VP_FORM.wasserfall=t=>{ const o=G(t), {w,h,d,a}=o, bh=h*0.97;
+  const R=bogen(o,[{n:'f',w,h:bh,f:(g,W,H)=>{ const S=stil(t); g.fillStyle=S.bg; g.fillRect(0,0,W,H); teil(g,0,0,W*0.45,H,(g2,w2,h2)=>drawFront(g2,w2,h2,a,o.cat));
+      titel(g,t,W*0.72,H*0.15,W*0.5,H*0.22); g.fillStyle=S.sf; g.textAlign='center'; g.textBaseline='middle'; fitFont(g,a.sub,W*0.5,Math.round(H*0.07),BAR); g.fillText(a.sub,W*0.72,H*0.29);
+      loch(g,[{x:W*0.48,y:H*0.35,w:W*0.49,h:H*0.58}]); }},{n:'b',w,h:bh,f:B(t)},{n:'s',w:d,h:bh,f:seite(t)},{n:'t',w,h:d,f:oben(t)}],{alpha:true,max:1500});
+  dr(o,kiste(w,bh,d,R),tm(0,bh/2,0));
+  const x0=-w/2+w*0.48, x1=-w/2+w*0.97, y0=bh*0.07, y1=bh*0.65;
+  einsatz(o,x0-0.003,x1+0.003,y0-0.003,y1+0.003,-d/2+0.003,d/2-0.002,0x10202e);
+  const cy=y1-0.025; zyl(o,0.0016,0.0016,x1-x0,4,(x0+x1)/2,cy,0,0xf2f2f2,0,0,PI/2);
+  for(let i=0;i<10;i++){ const x=x0+(x1-x0)*(i+0.5)/10, l=0.07+(i%3)*0.01; zyl(o,0.0075,0.0075,l,8,x,cy-l/2-0.004,0,0xc9ccd2); zyl(o,0.0078,0.0078,0.008,8,x,cy-l+0.002,0,0x5ce1ff); zyl(o,0.0012,0.0012,0.012,4,x,cy-0.002,0,0x2e8b3a); }
+  fol(o,new THREE.PlaneGeometry(x1-x0,y1-y0),tm((x0+x1)/2,(y0+y1)/2,d/2-0.0015));
+  return fertig(o); };
+
+/* Drehsonne: Blisterkarte mit Euroloch, davor eine runde
+   Klarsichtkuppel mit dem Feuerrad */
+VP_FORM.feuerrad=t=>{ const o=G(t), {w,h,d,a,rnd}=o, kd=0.005, cy=h*0.63;
+  const R=bogen(o,[{n:'f',w,h,f:(g,W,H)=>{ g.fillStyle=a.bg2; g.fillRect(0,0,W,H);
+      if(typeof effektFoto==='function') effektFoto(g,0,H*0.06,W,H*0.6,t,a,zufallAus(hashStr(t+'fr')),{stadt:false,einzeln:true});
+      teil(g,0,H*0.66,W,H*0.34,B(t)); g.fillStyle=a.ac2; g.fillRect(0,0,W,H*0.06); euroloch(g,W/2,H*0.03,H*0.04); }},
+    {n:'b',w,h,f:seite(t)},{n:'leer',w:0.02,h:0.02,f:flach(a.bg2)}],{alpha:true});
+  dr(o,kiste(w,h,kd,R),tm(0,h/2,-d/2+kd/2));
+  const Rr=0.11*w/0.44, Rd=Rr*1.32, dz=d-kd-0.003, zc=-d/2+kd;
+  fol(o,new THREE.SphereGeometry(Rd,22,8,0,PI*2,0,PI/2),tm(0,cy,zc,PI/2,0,0,1,dz/Rd,1));
+  fol(o,new THREE.RingGeometry(Rd,Rd*1.1,22),tm(0,cy,zc+0.0008));
+  const wz=zc+dz*0.45; torus(o,Rr,Rr*0.07,0,cy,wz,0x2f3a8c,0,0,0,24);
+  for(let i=0;i<8;i++){ const an=i/8*PI*2; zyl(o,Rr*0.075,Rr*0.075,Rr*0.5,8,Math.cos(an)*Rr,cy+Math.sin(an)*Rr,wz,[ROT,0xffd23f,0x2f9e57,0x2f7fd0][i%4],0,0,an); }
+  for(let i=0;i<4;i++) box(o,Rr*2,0.004,0.004,0,cy,wz,0x2a2a30,0,0,i*PI/4);
+  zyl(o,Rr*0.16,Rr*0.16,Rr*0.3,12,0,cy,wz,0xd9cbb0,PI/2,0,0);
+  return fertig(o); };
+
+/* =================== FONTAENEN EINZELN (Zylinder) =================== */
+/* Goldgeysir: Weissblech-Golddose mit Stuelpdeckel, Praegeringe */
+VP_FORM.goldgeysir=t=>{ const o=G(t), {w,h,d,a}=o, Rr=w/2*0.95, Hb=h*0.84;
+  const R=bogen(o,[{n:'m',w:PI*Rr*2,h:Hb,f:zweimal(B(t))},{n:'dk',w:Rr*2,h:Rr*2,f:(g,W,H)=>{ g.fillStyle='#c9a24a'; g.fillRect(0,0,W,H); teil(g,W*0.08,H*0.08,W*0.84,H*0.84,(g2,w2,h2)=>{ g2.beginPath(); g2.arc(w2/2,h2/2,w2/2,0,PI*2); g2.clip(); drawTop(g2,w2,h2,a,o.cat); }); }}],{metal:0.3,rough:0.4});
+  mantel(o,Rr,Rr,Hb,0,'m',32);
+  zyl(o,Rr,Rr,0.006,28,0,0.003,0,0x8a6a2a);
+  for(const y of [0.03,Hb-0.025]) torus(o,Rr*1.005,0.0035,0,y,0,GOLD,PI/2,0,0,28);
+  const ly=Hb-0.012, lh=h*0.15; o.vc.push({geo:new THREE.CylinderGeometry(Rr*1.045,Rr*1.045,lh,32,1,true),m:tm(0,ly+lh/2,0),color:0xd9b45a});
+  torus(o,Rr*1.045,0.003,0,ly+0.002,0,0xb8892f,PI/2,0,0,28); torus(o,Rr*1.03,0.004,0,ly+lh,0,0xe9c76a,PI/2,0,0,28);
+  zyl(o,Rr*1.04,Rr*1.04,0.003,32,0,ly+lh-0.0015,0,0xd9b45a);
+  dr(o,new THREE.CircleGeometry(Rr*0.9,32),tm(0,ly+lh+0.0002,0,-PI/2,0,0),R.dk);
+  return fertig(o); };
+
+/* Tischbombe: Papptrommel mit Krepppapier-Ruesche oben und unten und
+   Zugschnur mit Ring vorn */
+VP_FORM.tischbombe=t=>{ const o=G(t), {w,h,d,a,rnd}=o, Rr=w/2*0.86, Hb=h*0.8, y0=h*0.05;
+  const R=bogen(o,[{n:'m',w:PI*Rr*2,h:Hb,f:zweimal(B(t))},{n:'dk',w:Rr*2,h:Rr*2,f:(g,W,H)=>{ g.fillStyle=a.ac; g.fillRect(0,0,W,H); if(typeof stern==='function'){ stern(g,W/2,H/2,W*0.36,5,0.48); g.fillStyle='#fff'; g.fill(); } titel(g,t,W/2,H*0.5,W*0.7,H*0.13,a.bg2,null); }}]);
+  mantel(o,Rr,Rr,Hb,y0,'m',28);
+  dr(o,new THREE.CircleGeometry(Rr,28),tm(0,y0+Hb,0,-PI/2,0,0),R.dk);
+  const ruesche=(yy,hh,auf)=>{ const g=new THREE.CylinderGeometry(auf?w/2*0.985:Rr,auf?Rr:w/2*0.985,hh,48,1,true), p=g.attributes.position;
+    for(let i=0;i<p.count;i++){ const x=p.getX(i), z=p.getZ(i), an=Math.atan2(z,x), r0=Math.hypot(x,z), k=1+0.035*Math.sin(an*24); p.setX(i,Math.cos(an)*r0*k*0.985); p.setZ(i,Math.sin(an)*r0*k*0.985); }
+    g.computeVertexNormals(); o.vc.push({geo:g,m:tm(0,yy,0),color:I(a.ac2)}); };
+  ruesche(y0+Hb+h*0.055,h*0.11,true); ruesche(y0*0.5+0.002,y0+0.004,false);
+  zyl(o,0.0014,0.0014,Rr*0.95,4,0,y0+Hb+0.002,Rr*0.47,0xf2f2f2,PI/2,0,0);
+  zyl(o,0.0014,0.0014,Hb*0.3,4,0,y0+Hb*0.85,Rr+0.002,0xf2f2f2);
+  torus(o,0.0055,0.0016,0,y0+Hb*0.69,Rr+0.003,ROT,0,0,0,12);
+  return fertig(o); };
+
+/* Feuerteufel: Vierkantschachtel mit roter Hoernerkappe */
+VP_FORM.feuerteufel=t=>{ const o=G(t), {w,h,d,a}=o, bw=w*0.84, bh=h*0.78;
+  const R=bogen(o,[{n:'f',w:bw,h:bh,f:B(t)},{n:'b',w:bw,h:bh,f:B(t)},{n:'s',w:bw,h:bh,f:seite(t)},{n:'t',w:bw,h:bw,f:flach(a.bg2)}]);
+  dr(o,kiste(bw,bh,bw,R),tm(0,bh/2,0));
+  const kh=h*0.07; zyl(o,bw*0.62,bw*0.735,kh,4,0,bh+kh/2,0,0xb01a0a,0,PI/4,0);
+  const hl=h*0.14;
+  for(const s of [-1,1]){ zyl(o,0.0015,0.0105,hl,10,s*bw*0.3+s*Math.sin(0.4)*hl/2,bh+kh+Math.cos(0.4)*hl/2-0.004,0,0xd8322a,0,0,-s*0.4);
+    kugel(o,0.0108,s*bw*0.3,bh+kh-0.002,0,0x8a1408,1,0.6,1); }
+  zyl(o,0.0016,0.0016,h*0.06,4,0,bh+kh+h*0.03,0,0x2e8b3a);
+  for(const s of [-1,1]) kugel(o,0.006,s*bw*0.18,bh+kh*0.55,bw*0.34,0xffd23f,1,0.7,0.5,8,5);
+  return fertig(o); };
+
+/* Feuerkreis: achteckige Schachtel, im Deckel ein rundes Fenster auf
+   den Bodenring */
+VP_FORM.bodenfeuer=t=>{ const o=G(t), {w,h,d,a}=o, ap=w*0.49, Rc=ap/Math.cos(PI/8), sw=2*ap*Math.tan(PI/8), Hb=h*0.97;
+  const R=bogen(o,[{n:'v',w:sw*3,h:Hb,f:B(t)},{n:'s',w:sw,h:Hb,f:seite(t)},{n:'h',w:sw,h:Hb,f:(g,W,H)=>{ g.fillStyle=a.bg2; g.fillRect(0,0,W,H); g.fillStyle=a.ac; g.fillRect(0,H*0.9,W,H*0.1); }},
+    {n:'dk',w:Rc*2,h:Rc*2,f:(g,W,H)=>{ drawTop(g,W,H,a,o.cat); g.fillStyle='rgba(0,0,0,.25)'; g.fillRect(0,0,W,H); loch(g,[{x:W/2,y:H/2,r:W*0.3}]); g.strokeStyle=a.ac; g.lineWidth=W*0.02; g.beginPath(); g.arc(W/2,H/2,W*0.33,0,PI*2); g.stroke(); }}],{alpha:true});
+  const v=R.v, third=k=>[v[0]+(v[2]-v[0])*k/3,v[1],v[0]+(v[2]-v[0])*(k+1)/3,v[3]];
+  prismaY(o,8,Rc,Hb,0,0,(i)=>i===7?third(0):i===0?third(1):i===1?third(2):i===2||i===6?R.s:R.h);
+  dr(o,new THREE.CircleGeometry(Rc,8,PI/8),tm(0,Hb,0,-PI/2,0,0),R.dk);
+  const fy=Hb*0.55; o.vc.push({geo:umdrehen(new THREE.CylinderGeometry(Rc*0.97,Rc*0.97,Hb-fy,8,1,true,PI/8)),m:tm(0,(Hb+fy)/2,0),color:0x3a2414});
+  o.vc.push({geo:new THREE.CylinderGeometry(Rc*0.97,Rc*0.97,0.004,8,1,false,PI/8),m:tm(0,fy,0),color:0x8a6a44});
+  torus(o,ap*0.42,0.013,0,fy+0.013,0,0xc05a1a,PI/2,0,0,24);
+  for(let i=0;i<8;i++){ const an=i/8*PI*2; zyl(o,0.009,0.009,0.014,8,Math.cos(an)*ap*0.42,fy+0.027,Math.sin(an)*ap*0.42,i%2?ROT:0xffd23f); }
+  zyl(o,0.0016,0.0016,0.03,4,ap*0.42,fy+0.02,0.012,0x2e8b3a,PI/2,0,0);
+  fol(o,new THREE.CircleGeometry(Rc*0.6,24),tm(0,Hb-0.002,0,-PI/2,0,0));
+  return fertig(o); };
+
+/* Zauberbrunnen: konischer Becher, oben eine Klarsichtkuppel ueber der
+   goldenen Zuendspitze */
+VP_FORM.zauberbrunnen=t=>{ const o=G(t), {w,h,d,a}=o, Rt=w/2*0.96, Rb=w/2*0.76, Hb=h*0.7;
+  const R=bogen(o,[{n:'m',w:PI*(Rt+Rb),h:Hb,f:zweimal(B(t))}]);
+  mantel(o,Rt,Rb,Hb,0,'m',28);
+  zyl(o,Rb,Rb,0.004,24,0,0.002,0,0x1d1f24); torus(o,Rt,0.003,0,Hb,0,0xf2f5ff,PI/2,0,0,28);
+  zyl(o,Rt*0.98,Rt*0.98,0.003,24,0,Hb-0.003,0,0xf2f5ff);
+  zyl(o,Rt*0.12,Rt*0.42,h*0.13,16,0,Hb+h*0.065,0,GOLD); zyl(o,Rt*0.14,Rt*0.14,h*0.025,12,0,Hb+h*0.14,0,ROT); zyl(o,0.0015,0.0015,h*0.05,4,0,Hb+h*0.17,0,0x2e8b3a);
+  const dh=h-Hb-0.003; fol(o,new THREE.SphereGeometry(Rt*0.99,24,8,0,PI*2,0,PI/2),tm(0,Hb,0,0,0,0,1,dh/(Rt*0.99),1));
+  return fertig(o); };
+
+/* Feuerberg: Vulkankegel - bedruckter Kegel auf einem Lavasockel,
+   oben der Krater mit Lava und Zuendkappe */
+VP_FORM.feuerberg=t=>{ const o=G(t), {w,h,d,a,rnd}=o, Rb=w/2*0.95, Rt=Rb*0.34, y0=h*0.045, Hc=h*0.8;
+  const R=bogen(o,[{n:'m',w:PI*(Rb+Rt),h:Hc,f:zweimal(B(t))}]);
+  mantel(o,Rt,Rb,Hc,y0,'m',28);
+  const sg=new THREE.CylinderGeometry(Rb*1.0,Rb*1.04,y0+0.006,16), p=sg.attributes.position;
+  for(let i=0;i<p.count;i++){ const x=p.getX(i), z=p.getZ(i), r0=Math.hypot(x,z); if(r0>0.001){ const k=1-rnd()*0.05; p.setX(i,x*k); p.setZ(i,z*k); } }
+  sg.computeVertexNormals(); o.vc.push({geo:sg,m:tm(0,(y0+0.006)/2,0),color:0x2a1a14});
+  const ty=y0+Hc; torus(o,Rt*0.92,0.008,0,ty,0,0x3a1a10,PI/2,0,0,18); zyl(o,Rt*0.88,Rt*0.88,0.004,18,0,ty+0.002,0,0xff6a1a);
+  for(const an of [2.3,-2.3,3.1,1.7,-1.7]){ const yy=ty-Hc*(0.06+rnd()*0.12), rr=Rt+(Rb-Rt)*((ty-yy)/Hc)+0.002, sl=Math.atan2(Rb-Rt,Hc);
+    kugel(o,0.007,Math.sin(an)*rr,yy,Math.cos(an)*rr,0xff7a1c,1,2.6,0.8,6,5); }
+  zyl(o,0.008,0.012,h*0.035,10,0,ty+h*0.02,0,0xb01a0a); zyl(o,0.0015,0.0015,h*0.07,4,0,ty+h*0.05,0,0x2e8b3a);
+  return fertig(o); };
+
+/* Wendeltreppe: spiralgewickelte Pappwickelhuelse mit Etikett und
+   eisblauer Kappe mit Kristall */
+VP_FORM.eisblume=t=>{ const o=G(t), {w,h,d,a}=o, Rr=w/2*0.92, Hb=h*0.84, y0=0.006;
+  const R=bogen(o,[{n:'m',w:PI*Rr*2,h:Hb,f:(g,W,H)=>{ g.fillStyle='#b7c3cc'; g.fillRect(0,0,W,H);
+      g.strokeStyle='rgba(60,80,95,.45)'; g.lineWidth=Math.max(2,W*0.004); for(let x=-H;x<W+H;x+=W/7){ g.beginPath(); g.moveTo(x,H); g.lineTo(x+H*0.9,0); g.stroke(); }
+      for(let k=0;k<2;k++){ const x0=k*W/2+W*0.07, lw=W*0.36; teil(g,x0,H*0.05,lw,H*0.9,B(t)); rahmen(g,x0,H*0.05,lw,H*0.9,'#f2f5ff',3); } }}]);
+  mantel(o,Rr,Rr,Hb,y0,'m',28);
+  zyl(o,Rr*1.02,Rr*1.02,0.012,28,0,0.006,0,0xa9b2ba); torus(o,Rr*1.01,0.003,0,y0+Hb,0,0xa9b2ba,PI/2,0,0,28);
+  const ch=h*0.1; zyl(o,Rr*1.05,Rr*1.05,ch,28,0,y0+Hb+ch/2-0.004,0,I(a.ac2)); zyl(o,Rr*0.9,Rr*1.0,0.006,28,0,y0+Hb+ch-0.001,0,0x9ff0ff);
+  for(let i=0;i<3;i++){ box(o,Rr*1.1,0.004,0.006,0,y0+Hb+ch+0.002,0,0xf2f5ff,0,i*PI/3,0); }
+  kugel(o,0.008,0,y0+Hb+ch+0.004,0,0xf2f5ff,1,0.6,1);
+  return fertig(o); };
+
+/* Schlangenregen: Schraubglas mit rosa Deckel, drin bunte
+   Luftschlangenrollen und Konfetti, vorn das Etikett */
+VP_FORM.luftschlangentisch=t=>{ const o=G(t), {w,h,d,a,rnd}=o, Rr=w/2*0.94, Hj=h*0.74;
+  const R=bogen(o,[{n:'e',w:Rr*PI*0.8,h:Hj*0.6,f:B(t)},{n:'dk',w:Rr*1.6,h:Rr*1.6,f:oben(t)}]);
+  glas(o,new THREE.CylinderGeometry(Rr,Rr,Hj,24),tm(0,Hj/2,0)); glas(o,new THREE.CylinderGeometry(Rr*0.8,Rr,h*0.07,24,1,true),tm(0,Hj+h*0.035,0));
+  dr(o,new THREE.CylinderGeometry(Rr*1.004,Rr*1.004,Hj*0.6,24,1,true,-0.4*PI,0.8*PI),tm(0,Hj*0.45,0),R.e);
+  const cy=Hj+h*0.07, ch=h-cy; zyl(o,Rr*0.84,Rr*0.84,ch*0.98,24,0,cy+ch*0.49,0,I(a.ac));
+  for(let i=0;i<12;i++){ const an=i/12*PI*2; box(o,0.003,ch*0.8,0.002,Math.cos(an)*Rr*0.845,cy+ch*0.45,Math.sin(an)*Rr*0.845,I(a.ac),0,-an,0); }
+  dr(o,new THREE.CircleGeometry(Rr*0.8,24),tm(0,h-0.0005,0,-PI/2,0,0),R.dk);
+  const cols=[0xff4fa3,0xffe45c,0x5ce1ff,0x7dff8a,0xff7a3d,0xc78bff];
+  for(let i=0;i<13;i++){ const an=rnd()*PI*2, rr=rnd()*Rr*0.55, y=0.012+rnd()*(Hj*0.95-0.024);
+    o.vc.push({geo:new THREE.TorusGeometry(0.011,0.0035,4,10),m:tm(Math.cos(an)*rr,y,Math.sin(an)*rr,rnd()*3,rnd()*3,0),color:cols[i%cols.length]}); }
+  for(let i=0;i<30;i++) box(o,0.004,0.004,0.0006,(rnd()-0.5)*Rr*1.4,0.004+rnd()*Hj*0.9,(rnd()-0.5)*Rr*1.4,cols[i%cols.length],rnd()*3,rnd()*3,0);
+  return fertig(o); };
+
+/* =================== ROEMISCHE LICHTER =================== */
+/* Farbkanon: Folienbuendel, oben eine gefaltete Kopfkarte mit
+   Euroloch, unten eine Papierbanderole */
+VP_FORM.roemisch=t=>{ const o=G(t), {w,h,d,a}=o, Rr=w*0.18, HH=h*0.8, cols=[ROT,0x2f7fd0,0xffd23f,0x2f9e57,0x9b3bd6];
+  const spots=[[0,0.16],[0.29,-0.02],[-0.29,-0.02],[0.17,-0.28],[-0.17,-0.28]];
+  spots.forEach(([fx,fz],i)=>{ const x=fx*w, z=fz*d; zyl(o,Rr,Rr,HH,12,x,HH/2,z,cols[i]); zyl(o,Rr*1.01,Rr*1.01,h*0.03,12,x,HH*0.97,z,0xd9cbb0); zyl(o,0.0015,0.0015,h*0.06,4,x,HH+h*0.03,z,0x2e8b3a); });
+  fol(o,new THREE.CylinderGeometry(w*0.495,w*0.495,HH*1.02,18,1,true),tm(0,HH*0.51,0));
+  const y0=h*0.72, zk=d*0.47, Lk=Math.hypot(h-y0,zk), bh=h*0.16;
+  const R=bogen(o,[{n:'kf',w,h:Lk,f:(g,W,H)=>{ drawFront(g,W,H,a,o.cat); euroloch(g,W/2,H*0.07,H*0.06); }},{n:'kb',w,h:Lk,f:(g,W,H)=>{ drawSide(g,W,H,a); euroloch(g,W/2,H*0.07,H*0.06); }},
+    {n:'bd',w:PI*w*0.5*2,h:bh,f:zweimal(B(t,{sub:false}))}],{alpha:true});
+  zeltkarte(o,w,y0,h-0.001,zk,R.kf,R.kb);
+  dr(o,new THREE.CylinderGeometry(w*0.5,w*0.5,bh,22,1,true,-PI/2),tm(0,h*0.12,0),R.bd);
+  return fertig(o); };
+
+/* Feuerperlen: ein dickes Einzelrohr auf schwarzem Standfuss, oben eine
+   gerippte Schutzkappe mit Siegelstreifen */
+VP_FORM.feuerperlen=t=>{ const o=G(t), {w,h,d,a}=o, Rr=w*0.33, fh=0.014, Hb=h*0.83;
+  const R=bogen(o,[{n:'m',w:PI*Rr*2,h:Hb,f:zweimal(B(t))}]);
+  box(o,w*0.97,fh,0.026,0,fh/2,0,DUNKEL); box(o,0.026,fh,d*0.97,0,fh/2,0,DUNKEL); zyl(o,Rr*1.15,Rr*1.2,fh*1.2,20,0,fh*0.6,0,0x2a2c33);
+  mantel(o,Rr,Rr,Hb,fh,'m',24);
+  const cy=fh+Hb-0.01, ch=h-cy-0.012;
+  zyl(o,Rr*1.06,Rr*1.06,ch,24,0,cy+ch/2,0,ROT); for(let i=0;i<16;i++){ const an=i/16*PI*2; box(o,0.003,ch*0.85,0.003,Math.cos(an)*Rr*1.065,cy+ch/2,Math.sin(an)*Rr*1.065,0xa8180f,0,-an,0); }
+  zyl(o,Rr*0.45,Rr*0.6,0.012,16,0,h-0.006,0,0xa8180f);
+  box(o,0.014,0.002,Rr*2.16,0,cy+ch+0.001,0,0xf2f2f2); box(o,0.014,ch*0.6,0.002,0,cy+ch*0.7,Rr*1.075,0xf2f2f2);
+  return fertig(o); };
+
+/* Lichterkette: Vierkantsaeule mit einer Reihe Bullaugen, dahinter die
+   Glitzerkugeln */
+VP_FORM.lichterkugeln=t=>{ const o=G(t), {w,h,d,a}=o, bw=w*0.92;
+  const holes=W=>[0,1,2,3,4].map(i=>({x:W*0.83,y:0,r:W*0.105}));
+  const R=bogen(o,[{n:'f',w:bw,h,f:(g,W,H)=>{ bild(g,W*0.7,H,t); g.fillStyle=a.bg2; g.fillRect(W*0.7,0,W*0.3,H); g.fillStyle=a.ac; g.fillRect(W*0.7,0,W*0.012,H);
+      loch(g,[0,1,2,3,4].map(i=>({x:W*0.85,y:H*(0.52+i*0.095),r:W*0.1})),'#ffd23f'); }},
+    {n:'b',w:bw,h,f:B(t)},{n:'s',w:bw,h,f:seite(t)},{n:'t',w:bw,h:bw,f:oben(t)}],{alpha:true});
+  dr(o,kiste(bw,h,bw,R),tm(0,h/2,0));
+  const x=-bw/2+bw*0.85, cols=[0xffd23f,0xff4fa3,0x5ce1ff,0xffd23f,0xff4fa3];
+  einsatz(o,x-bw*0.12,x+bw*0.12,h*0.03,h*0.47,-bw*0.1,bw/2-0.002,0x0a1530);
+  for(let i=0;i<5;i++) kugel(o,bw*0.085,x,h*(1-0.52-i*0.095),bw*0.28,cols[i],1,1,1,10,8);
+  return fertig(o); };
+
+/* Goldene Zwillinge: zwei Rohre nebeneinander, von einer goldenen
+   Banderole in Achterform zusammengehalten, goldene Kappen */
+VP_FORM.goldregen22=t=>{ const o=G(t), {w,h,d,a}=o, Rr=w*0.243, cx=Rr*1.02, Hb=h*0.86, bh=h*0.24;
+  const R=bogen(o,[{n:'m',w:PI*Rr*2,h:Hb,f:zweimal((g,W,H)=>{ g.fillStyle='#0b0a09'; g.fillRect(0,0,W,H); const gold=g.createLinearGradient(0,0,W,0); gold.addColorStop(0,'#8a6a2a'); gold.addColorStop(0.5,'#f3d98b'); gold.addColorStop(1,'#8a6a2a');
+      g.fillStyle=gold; for(let i=0;i<9;i++) g.fillRect(0,H*(0.05+i*0.11),W,H*0.012); g.save(); g.translate(W/2,H*0.36); g.rotate(-PI/2); nameText(g,'ZWILLINGE',0,0,H*0.5,Math.round(W*0.24),FNT.cin,gold); g.restore(); })},
+    {n:'f',w:4*Rr,h:bh,f:B(t)},{n:'b',w:4*Rr,h:bh,f:seite(t)},{n:'r',w:PI*Rr,h:bh,f:flach('#0b0a09')}]);
+  for(const s of [-1,1]){ mantel(o,Rr,Rr,Hb,0,'m',22,s*cx,0); zyl(o,Rr*1.03,Rr*1.03,0.004,22,s*cx,0.002,0,0x111111);
+    zyl(o,Rr*1.04,Rr*1.04,h*0.08,22,s*cx,Hb+h*0.035,0,GOLD); zyl(o,Rr*0.3,Rr*0.3,h*0.03,10,s*cx,Hb+h*0.09,0,0xe9c76a); zyl(o,0.0015,0.0015,h*0.04,4,s*cx,Hb+h*0.11,0,0x2e8b3a); }
+  const by=Hb*0.8, br=Rr+0.0025;
+  dr(o,new THREE.PlaneGeometry(2*cx,bh),tm(0,by,br),R.f); dr(o,new THREE.PlaneGeometry(2*cx,bh),tm(0,by,-br,0,PI,0),R.b);
+  for(const s of [-1,1]) dr(o,new THREE.CylinderGeometry(br,br,bh,14,1,true,s>0?0:PI,PI),tm(s*cx,by,0),R.r);
+  return fertig(o); };
+
+/* =================== FONTAENEN-SETS =================== */
+/* Feuerquelle: Henkelkorb aus Karton - drei Faecher, die Stirnwaende
+   tragen einen Griffsteg mit Griffloch */
+VP_FORM.fontaene=t=>{ const o=G(t), {w,h,d,a}=o, hw=h*0.44, th=0.003, gs=h*0.17;
+  const R=bogen(o,[{n:'f',w,h:hw,f:B(t)},{n:'b',w,h:hw,f:seite(t)},{n:'in',w:0.05,h:0.05,f:(g,W,H)=>kraft(g,W,H,o.rnd,'#c9a676')},
+    {n:'e',w:d,h,f:(g,W,H)=>{ drawSide(g,W,H,a); }},{n:'g',w,h:gs,f:(g,W,H)=>{ g.fillStyle=a.bg1; g.fillRect(0,0,W,H); titel(g,t,W*0.22,H*0.52,W*0.36,H*0.6,a.ac); titel(g,t,W*0.78,H*0.52,W*0.36,H*0.6,a.ac);
+      g.save(); g.globalCompositeOperation='destination-out'; g.fillStyle='#000'; g.beginPath(); g.ellipse(W/2,H*0.5,W*0.11,H*0.24,0,0,PI*2); g.fill(); g.restore(); }}],{alpha:true});
+  dr(o,kiste(w,hw,th,{f:R.f,b:R.in,leer:R.in}),tm(0,hw/2,d/2-th/2)); dr(o,kiste(w,hw,th,{f:R.in,b:R.b,leer:R.in}),tm(0,hw/2,-d/2+th/2));
+  for(const s of [-1,1]) dr(o,kiste(th,h,d-2*th,{r:R.e,l:R.e,leer:R.in}),tm(s*(w/2-th/2),h/2,0));
+  dr(o,kiste(w-2*th,gs,th,{f:R.g,b:R.g,leer:R.in}),tm(0,h-gs/2,0));
+  box(o,w,0.003,d,0,0.0015,0,0xb48a58); for(const s of [-1,1]) box(o,0.002,hw*0.9,d-2*th,s*w/6,hw*0.45,0,0xb48a58);
+  const cols=[I(a.ac2),I(a.ac),0x5ce1ff], Rk=Math.min(w/6,d/2)*0.78;
+  for(let i=0;i<3;i++) kegel(o,(i-1)*w/3,0,0.003,Rk,h*0.66,cols[i]);
+  return fertig(o); };
+
+/* Gummibaerchen: Suessigkeiten-Kissenbeutel mit Quetschnaehten und
+   Sichtfenster, drin die vier Perlenfontaenen */
+VP_FORM.leuchtfontaene=t=>{ const o=G(t), {w,h,d,a,rnd}=o, sw=w*0.05, bw=w-2*sw, Dz=d/2*0.94;
+  const vorn=(g,W,H)=>{ verlauf(a.bg1,a.bg2)(g,W,H); teil(g,W*0.62,H*0.06,W*0.36,H*0.88,(g2,w2,h2)=>drawFront(g2,w2,h2,a,o.cat));
+    for(let i=0;i<14;i++){ const x=rnd()*W*0.6, y=rnd()*H; g.fillStyle=['#ff4a4a','#5cff9e','#ffd23f','#ff9a3a'][i%4]; g.globalAlpha=0.35; g.beginPath(); g.ellipse(x,y,W*0.012,H*0.06,rnd(),0,PI*2); g.fill(); g.globalAlpha=1; }
+    titel(g,t,W*0.31,H*0.17,W*0.56,H*0.24,a.ac); g.fillStyle='#fff'; g.textAlign='center'; g.textBaseline='middle'; fitFont(g,a.sub,W*0.56,Math.round(H*0.09),BAR); g.fillText(a.sub,W*0.31,H*0.32);
+    loch(g,[{x:W*0.31,y:H*0.66,ell:[W*0.27,H*0.27]}],'#fff3c4'); };
+  const R=bogen(o,[{n:'v',w:bw,h,f:vorn},{n:'h',w:bw,h,f:(g,W,H)=>{ verlauf(a.bg1,a.bg2)(g,W,H); titel(g,t,W/2,H/2,W*0.8,H*0.3,a.ac); }},
+    {n:'n',w:sw,h,f:(g,W,H)=>{ g.fillStyle=a.ac2; g.fillRect(0,0,W,H); g.fillStyle='rgba(0,0,0,.25)'; for(let y=0;y<H;y+=4) g.fillRect(0,y,W,2); }}],{alpha:true,ds:true,rough:0.3});
+  const flaeche=(seite)=>{ const nu=16, nv=10, pos=[], uv=[], idx=[];
+    for(let j=0;j<=nv;j++) for(let i=0;i<=nu;i++){ const u=i/nu, v=j/nv, z=Dz*Math.pow(Math.sin(PI*u),0.35)*Math.pow(Math.sin(PI*v),0.45)+0.0015;
+      pos.push(-bw/2+u*bw,0.002+v*(h-0.004),seite*z); uv.push(seite>0?u:1-u,v); }
+    for(let j=0;j<nv;j++) for(let i=0;i<nu;i++){ const p=j*(nu+1)+i, q=p+nu+1; if(seite>0) idx.push(p,p+1,q,p+1,q+1,q); else idx.push(p,q,p+1,p+1,q,q+1); }
+    const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3)); g.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2)); g.setIndex(idx); g.computeVertexNormals(); return g; };
+  dr(o,flaeche(1),tm(0,0,0),R.v); dr(o,flaeche(-1),tm(0,0,0),R.h);
+  for(const s of [-1,1]) dr(o,kiste(sw,h*0.99,0.003,{leer:R.n}),tm(s*(w/2-sw/2),h/2,0));
+  const cx=-bw/2+bw*0.31;
+  for(let i=0;i<4;i++) kegel(o,cx+(i-1.5)*bw*0.12,-Dz*0.15,0.006,0.019,h*0.6,i%2?0x2f9e57:ROT,{seg:10});
+  return fertig(o); };
+
+/* Dreiklang: Dreierpack - die drei Fontaenen in Schrumpffolie auf einer
+   bedruckten Pappmanschette */
+VP_FORM.dreiklang=t=>{ const o=G(t), {w,h,d,a}=o, hm=h*0.34, th=0.003;
+  const R=bogen(o,[{n:'f',w,h:hm,f:B(t)},{n:'b',w,h:hm,f:seite(t)},{n:'s',w:d,h:hm,f:flach(a.bg2)},{n:'in',w:0.05,h:0.05,f:flach(a.bg2)}]);
+  dr(o,kiste(w,hm,th,{f:R.f,b:R.in,leer:R.in}),tm(0,hm/2,d/2-th/2)); dr(o,kiste(w,hm,th,{f:R.in,b:R.b,leer:R.in}),tm(0,hm/2,-d/2+th/2));
+  for(const s of [-1,1]) dr(o,kiste(th,hm*0.7,d,{r:R.s,l:R.s,leer:R.in}),tm(s*(w/2-th/2),hm*0.35,0));
+  box(o,w,th,d,0,th/2,0,I(a.bg2));
+  const Rk=Math.min(d*0.44,w*0.13), cols=[0x2f7fd0,I(a.ac2),I(a.ac)];
+  for(let i=0;i<3;i++){ const x=(i-1)*w*0.31; kegel(o,x,0,th,Rk,h*0.93,cols[i],{seg:16}); torus(o,Rk*0.7,0.003,x,h*0.36,0,0xf2f5ff,PI/2,0,0,16); }
+  fol(o,new THREE.BoxGeometry(w*0.995,h*0.985,d*0.995,1,1,1),tm(0,h*0.4925,0));
+  return fertig(o); };
+
+/* Wasserorgel: Stufendisplay - die vier Fontaenen stehen wie
+   Orgelpfeifen auf Stufen, Rueckwand bedruckt, Folienhaube davor */
+VP_FORM.wasserspiel=t=>{ const o=G(t), {w,h,d,a}=o, hb=h*0.3, kd=0.004;
+  const R=bogen(o,[{n:'f',w,h:hb,f:B(t)},{n:'s',w:d,h:hb,f:seite(t)},{n:'t',w,h:d,f:flach(a.bg2)},
+    {n:'rw',w,h:h-hb,f:(g,W,H)=>{ if(typeof effektFoto==='function') effektFoto(g,0,0,W,H,t,a,zufallAus(hashStr(t+'rw')),{stadt:true}); else { g.fillStyle=a.bg2; g.fillRect(0,0,W,H); }
+      titel(g,t,W*0.5,H*0.16,W*0.6,H*0.24,a.ac); }}]);
+  dr(o,kiste(w,hb,d,{f:R.f,b:R.f,s:R.s,t:R.t}),tm(0,hb/2,0));
+  dr(o,kiste(w,h-hb,kd,{f:R.rw,b:R.rw,leer:R.t}),tm(0,hb+(h-hb)/2,-d/2+kd/2));
+  const st=[0,0.018,0.036,0.054], cols=[0x5ce1ff,0xf2f5ff,0x2f7fd0,0x39c4d8], Rk=0.034;
+  for(let i=0;i<4;i++){ const x=(i-1.5)*w*0.22, y0=hb+st[i]; if(st[i]) box(o,0.09,st[i],d*0.8,x,hb+st[i]/2,0.004,I(a.bg1));
+    kegel(o,x,0.004,y0,Rk,h-y0-0.01-(3-i)*0.004,cols[i]); }
+  fol(o,new THREE.BoxGeometry(w*0.995,h-hb,d-kd),tm(0,hb+(h-hb)/2,kd/2));
+  return fertig(o); };
+
+/* Feuerwand: brauner Wellpapp-Versandkarton mit aufgeklebtem
+   Produktetikett, Gefahrgutraute, Klebeband und Grifflöchern */
+VP_FORM.feuerwand=t=>{ const o=G(t), {w,h,d,a,rnd}=o;
+  const F=s=>`700 ${Math.round(s)}px "Barlow Condensed", Arial, sans-serif`;
+  const R=bogen(o,[{n:'f',w,h,f:(g,W,H)=>{ kraft(g,W,H,rnd); teil(g,W*0.03,H*0.08,W*0.55,H*0.84,(g2,w2,h2)=>drawFront(g2,w2,h2,a,o.cat)); rahmen(g,W*0.03,H*0.08,W*0.55,H*0.84,'#fff',3);
+      g.fillStyle='#1d1a16'; g.textAlign='left'; g.textBaseline='alphabetic'; g.font=F(H*0.13); g.fillText(a.title,W*0.62,H*0.3); g.font=F(H*0.075); g.fillText('5 FONTÄNEN · FÄCHER',W*0.62,H*0.45); g.fillText('KATEGORIE F2 · 1 STK',W*0.62,H*0.56);
+      g.font=F(H*0.06); g.fillStyle='#3a332a'; g.fillText('UN 0336 · 1.4G',W*0.62,H*0.68);
+      if(typeof gefahrRaute==='function') gefahrRaute(g,W*0.93,H*0.3,H*0.32,'1.4G');
+      g.fillStyle='#1d1a16'; for(const k of [0,1]){ const x=W*(0.885+k*0.05), y=H*0.85; g.beginPath(); g.moveTo(x,y-H*0.14); g.lineTo(x-W*0.012,y-H*0.07); g.lineTo(x+W*0.012,y-H*0.07); g.closePath(); g.fill(); g.fillRect(x-W*0.004,y-H*0.075,W*0.008,H*0.12); } }},
+    {n:'b',w,h,f:(g,W,H)=>{ kraft(g,W,H,rnd); g.fillStyle='#1d1a16'; g.textAlign='center'; g.textBaseline='middle'; g.font=F(H*0.22); g.fillText(a.title,W/2,H*0.45); g.font=F(H*0.08); g.fillText('VORSICHT · EXPLOSIVSTOFF · 1.4G',W/2,H*0.7); }},
+    {n:'s',w:d,h,f:(g,W,H)=>{ kraft(g,W,H,rnd); g.fillStyle='#2a2016'; g.beginPath(); g.ellipse(W/2,H*0.2,W*0.22,H*0.06,0,0,PI*2); g.fill(); if(typeof gefahrRaute==='function') gefahrRaute(g,W/2,H*0.65,Math.min(W,H)*0.4,'1.4G'); }},
+    {n:'t',w,h:d,f:(g,W,H)=>{ kraft(g,W,H,rnd); g.strokeStyle='rgba(60,40,20,.5)'; g.lineWidth=2; g.beginPath(); g.moveTo(0,H/2); g.lineTo(W,H/2); g.stroke(); }}],{rough:0.85,max:1500});
+  dr(o,kiste(w,h,d,R),tm(0,h/2,0));
+  const TP=0xc8a46a; box(o,w*1.002,0.0012,d*0.36,0,h+0.0006,0,TP);
+  for(const s of [-1,1]){ box(o,0.0012,h*0.25,d*0.36,s*(w/2+0.0006),h*0.875,0,TP); }
+  return fertig(o); };
+
+/* =================== RAKETEN =================== */
+/* gemeinsame Raketenreihe: n Raketen nebeneinander (z), Kopf nach +x */
+function reihe(o,n,q){ const {w,d}=o, step=(q.dz||d*0.84)/n, r=q.r||Math.min(o.h*0.3,step*0.42), cols=q.cols||[0xd8352a,0x2f7fd0,0xffc93a,0x2f9e57,0x9b3bd6,0xf2f5ff,0xff7a3d,0x39c4d8,0xe35aa8];
+  for(let i=0;i<n;i++){ const z=(q.z0!==undefined?q.z0:-(q.dz||d*0.84)/2)+step*(i+0.5), c=typeof cols==='function'?cols(i):cols[i%cols.length];
+    rakete(o,q.x!==undefined?q.x:w*0.46,(q.y!==undefined?q.y:0)+r+(q.stab===false?0:0.004),z,r,q.L||w*0.3,c,Object.assign({ende:q.stab===false?undefined:(q.ende!==undefined?q.ende:-w*0.47),sy:q.sy},q.opt||{},q.optI?q.optI(i):{})); }
+  return r; }
+
+/* Sternschnuppe: Karton, im Deckel sternfoermige Fenster genau ueber
+   den Raketenkoepfen */
+VP_FORM.raketenklein=t=>{ const o=G(t), {w,h,d,a,rnd}=o, n=5, dz=d*0.82, xs=0.36;
+  const sterne=(W,H)=>[...Array(n)].map((_,i)=>({stern:1,x:W*(0.83+(i%2)*0.08),y:H*(1-((i+0.5)/n*dz+(d-dz)/2)/d),r:H*0.13}));
+  const R=bogen(o,[{n:'f',w,h,f:B(t)},{n:'s',w:d,h,f:seite(t)},
+    {n:'t',w,h:d,f:(g,W,H)=>{ nacht(g,W,H,rnd); g.save(); g.globalCompositeOperation='lighter'; for(let i=0;i<5;i++){ const y=H*(0.15+i*0.17), gr=g.createLinearGradient(W*0.1,y,W*0.8,y-H*0.08); gr.addColorStop(0,'rgba(255,210,63,0)'); gr.addColorStop(1,'rgba(255,230,160,.8)'); g.strokeStyle=gr; g.lineWidth=H*0.02; g.beginPath(); g.moveTo(W*0.1,y+H*0.06); g.lineTo(W*0.78,y-H*0.02); g.stroke(); } g.restore();
+      titel(g,t,W*0.4,H*0.5,W*0.66,H*0.32,a.ac); loch(g,sterne(W,H),'#ffd23f'); }}],{alpha:true});
+  dr(o,kiste(w,h,d,R),tm(0,h/2,0));
+  einsatz(o,w*0.2,w*0.49,0.002,h-0.002,-d/2+0.002,d/2-0.002,0x0c0626);
+  reihe(o,n,{dz,r:Math.min(h*0.3,0.0105),x:w*(xs+0.1),L:w*0.3,cols:[0xc9ccd2,0xffd23f,0xc9ccd2,0xff4fa3,0xc9ccd2]});
+  return fertig(o); };
+
+/* Hasenjagd: der Klassiker - Karton mit grossem Deckelfenster, darunter
+   die Raketen mit Stab auf dunkler Einlage */
+VP_FORM.raketen=t=>{ const o=G(t), {w,h,d,a}=o;
+  const R=bogen(o,[{n:'f',w,h,f:B(t)},{n:'s',w:d,h,f:seite(t)},{n:'t',w,h:d,f:(g,W,H)=>{ drawFront(g,W,H,a,o.cat); loch(g,[{x:W*0.3,y:H*0.1,w:W*0.66,h:H*0.8}]); }}],{alpha:true});
+  dr(o,kiste(w,h,d,R),tm(0,h/2,0));
+  einsatz(o,-w*0.2,w*0.48,0.002,h-0.002,-d*0.42,d*0.42,0x1d2130);
+  reihe(o,o.p.stueck||10,{dz:d*0.78});
+  fol(o,new THREE.PlaneGeometry(w*0.66,d*0.8),tm(w*0.13,h-0.0015,0,-PI/2,0,0));
+  return fertig(o); };
+
+/* Korkenzieher: liegende Blisterkarte - jede Rakete unter ihrer
+   eigenen laenglichen Blase, vorn eine hochgeklappte Kopfleiste */
+VP_FORM.pfeifraketen=t=>{ const o=G(t), {w,h,d,a,rnd}=o, kd=0.004, lh=h*0.42, n=6;
+  const R=bogen(o,[{n:'f',w,h:lh,f:B(t)},{n:'k',w,h:d,f:(g,W,H)=>{ verlauf(a.bg1,a.bg2)(g,W,H); g.strokeStyle=rgba?rgba(a.ac,0.35):a.ac; g.lineWidth=H*0.01; for(let i=0;i<9;i++){ g.beginPath(); for(let x=0;x<W;x+=4) g.lineTo(x,H*(0.1+i*0.1)+Math.sin(x*0.05+i)*H*0.02); g.stroke(); } }},{n:'leer',w:0.02,h:0.02,f:flach(a.bg2)}]);
+  dr(o,kiste(w,kd,d,{t:R.k,leer:R.leer}),tm(0,kd/2,0));
+  dr(o,kiste(w,lh,kd,{f:R.f,leer:R.leer}),tm(0,lh/2,d/2-kd/2));
+  const dz=d*0.8, step=dz/n, r=Math.min(0.0095,step*0.36), bz0=-d/2+0.004;
+  for(let i=0;i<n;i++){ const z=-dz/2+step*(i+0.5)-d*0.04;
+    rakete(o,w*0.45,kd+r+0.004,z,r,w*0.28,[0x5cff9e,0xffd23f,0xf2f5ff][i%3],{ende:-w*0.46,seg:7,sz:0});
+    fol(o,new THREE.SphereGeometry(1,12,5,0,PI*2,0,PI/2),tm(0,kd,z,0,0,0,w*0.475,Math.min(h-kd-0.001,r*2.6+0.006),step*0.46)); }
+  fol(o,new THREE.BoxGeometry(w*0.99,0.001,d*0.95),tm(0,kd+0.0006,-d*0.02));
+  return fertig(o); };
+
+/* Goldbrokat: Geschenkbox mit goldenem Satinband und Schleife */
+VP_FORM.raketengold=t=>{ const o=G(t), {w,h,d,a}=o, bh=h*0.78;
+  const R=bogen(o,[{n:'f',w,h:bh,f:B(t)},{n:'s',w:d,h:bh,f:seite(t)},{n:'t',w,h:d,f:oben(t)}]);
+  dr(o,kiste(w,bh,d,R),tm(0,bh/2,0));
+  const bx=-w*0.305, BD=0xe0b44a, bw=0.018;
+  box(o,bw,0.0015,d+0.002,bx,bh+0.0007,0,BD); box(o,bw,bh,0.0015,bx,bh/2,d/2+0.0007,BD); box(o,bw,bh,0.0015,bx,bh/2,-d/2-0.0007,BD);
+  box(o,w+0.002,0.0015,bw,0,bh+0.0007,0,BD); for(const s of [-1,1]) box(o,0.0015,bh,bw,s*(w/2+0.0007),bh/2,0,BD);
+  for(const s of [-1,1]){ torus(o,0.022,0.006,bx+s*0.022,bh+0.007,0,BD,PI/2,0,s*0.3,14,1,1,0.5); box(o,0.008,0.0015,0.045,bx+s*0.012,bh+0.002,s*0.028,BD,0,s*0.45,0); }
+  kugel(o,0.008,bx,bh+0.007,0,0xc9982e,1,0.75,1);
+  return fertig(o); };
+
+/* Titan: Holzkiste aus Latten mit Brandstempel und Etikett - durch die
+   Luecken sieht man die drei dicken Ratterraketen */
+VP_FORM.titanraketen=t=>{ const o=G(t), {w,h,d,a,rnd}=o, th=0.008, ew=0.014;
+  const R=bogen(o,[{n:'h',w:w*0.5,h:0.05,f:(g,W,H)=>holz(g,W,H,rnd)},
+    {n:'lf',w,h:h*0.5,f:(g,W,H)=>{ holz(g,W,H,rnd); teil(g,W*0.2,H*0.08,W*0.6,H*0.84,B(t)); rahmen(g,W*0.2,H*0.08,W*0.6,H*0.84,'#f2f2f2',3);
+      g.fillStyle='rgba(40,20,8,.75)'; g.textAlign='center'; g.textBaseline='middle'; g.font=FNT.bar(Math.round(H*0.42)); g.fillText('TITAN',W*0.12,H*0.52); g.fillText('XXL',W*0.88,H*0.52); }},
+    {n:'e',w:d,h,f:(g,W,H)=>{ holz(g,W,H,rnd); g.fillStyle='rgba(40,20,8,.75)'; g.textAlign='center'; g.textBaseline='middle'; g.font=FNT.bar(Math.round(H*0.28)); g.fillText('TITAN',W/2,H*0.42); g.font=FNT.bar(Math.round(H*0.12)); g.fillText('1.4G · F2',W/2,H*0.7); }}]);
+  const hz=R.h, L=(ww,hh,dd,x,y,z,f)=>dr(o,kiste(ww,hh,dd,{f:f||hz,leer:hz}),tm(x,y,z));
+  L(w,th,d,0,th/2,0); for(const s of [-1,1]) dr(o,kiste(ew,h,d,{r:R.e,l:R.e,leer:hz}),tm(s*(w/2-ew/2),h/2,0));
+  L(w-2*ew,h*0.5,th,0,h*0.25,d/2-th/2,R.lf); L(w-2*ew,h*0.2,th,0,h*0.88,d/2-th/2);
+  L(w-2*ew,h*0.42,th,0,h*0.21,-d/2+th/2); L(w-2*ew,h*0.24,th,0,h*0.86,-d/2+th/2);
+  for(const z of [-0.33,0.02,0.36]) L(w-2*ew,th,d*0.22,0,h-th/2,z*d);
+  for(const s of [-1,1]) for(const z of [-1,1]) box(o,0.002,h*0.9,0.012,s*(w/2-ew-0.001),h*0.5,z*(d/2-0.006),0x3a3a3a);
+  const n=3, step=d*0.8/n, r=Math.min(h*0.3,step*0.38);
+  for(let i=0;i<n;i++){ const z=-d*0.4+step*(i+0.5); rakete(o,w*0.44,th+r+0.004,z,r,w*0.3,[0x26292f,0xd1e5ff,0x26292f][i],{kc:0xd1e5ff,ringC:0xffd23f,ende:-w*0.46,seg:10}); }
+  return fertig(o); };
+
+/* Juwelenpalme: langer Jumbo-Karton mit hochgeklappter Grifflasche */
+VP_FORM.jumbogold=t=>{ const o=G(t), {w,h,d,a}=o, bh=h*0.8, gh=h-bh, gw=w*0.34;
+  const R=bogen(o,[{n:'f',w,h:bh,f:B(t)},{n:'s',w:d,h:bh,f:seite(t)},{n:'t',w,h:d,f:oben(t)},
+    {n:'g',w:gw,h:gh,f:(g,W,H)=>{ g.fillStyle='#d9b45a'; g.fillRect(0,0,W,H); g.fillStyle='#0b0a09'; g.fillRect(0,H*0.82,W,H*0.18); g.textAlign='center'; g.textBaseline='middle'; g.font=FNT.cin(Math.round(H*0.16)); g.fillText('JUMBO',W*0.13,H*0.42); g.fillText('JUMBO',W*0.87,H*0.42); g.save(); g.globalCompositeOperation='destination-out'; g.fillStyle='#000'; g.beginPath(); g.ellipse(W/2,H*0.42,W*0.3,H*0.2,0,0,PI*2); g.fill(); g.restore(); g.strokeStyle='#d9b45a'; g.lineWidth=2; g.beginPath(); g.ellipse(W/2,H*0.42,W*0.3,H*0.2,0,0,PI*2); g.stroke(); }}],{alpha:true});
+  dr(o,kiste(w,bh,d,R),tm(0,bh/2,0));
+  dr(o,kiste(gw,gh+0.003,0.004,{f:R.g,leer:R.g}),tm(0,bh+gh/2-0.0015,0));
+  for(const s of [-1,1]) box(o,0.004,0.004,d*0.3,s*gw*0.45,bh+0.002,0,0x9a7a3a);
+  return fertig(o); };
+
+/* Polarstern: Raketenroehre aus Pappe mit Blechkappen auf zwei
+   Saetteln, Etikett ueber die Laenge */
+VP_FORM.jumboleiter=t=>{ const o=G(t), {w,h,d,a,rnd}=o, sh=0.012, Rr=Math.min(h/2-sh/2,d/2)*0.95, yc=sh+Rr, cl=0.024, L=w-2*cl;
+  const R=bogen(o,[{n:'m',w:2*PI*Rr,h:L,f:(g,W,H)=>{ for(let k=0;k<2;k++){ g.save(); g.translate(k*W/2,H); g.rotate(-PI/2); bild(g,H,W/2,t); g.restore(); } }}],{max:1500});
+  dr(o,new THREE.CylinderGeometry(Rr,Rr,L,28,1,true,-PI/2),tm(0,yc,0,0,0,-PI/2),R.m);
+  for(const s of [-1,1]){ zyl(o,Rr*1.03,Rr*1.03,cl,28,s*(w/2-cl/2),yc,0,SILBER,0,0,PI/2); torus(o,Rr*1.02,0.003,s*(L/2),yc,0,0x8f949c,0,PI/2,0,24);
+    box(o,0.03,sh+Rr*0.4,d*0.75,s*w*0.3,(sh+Rr*0.4)/2,0,0x26282e); }
+  return fertig(o); };
+
+/* Blanko: unbedruckte Kraftpapier-Steige mit Faechern, nur ein
+   Stempeletikett - die Rohlinge weiss */
+VP_FORM.blanko=t=>{ const o=G(t), {w,h,d,a,rnd}=o, hw=h*0.62, th=0.003, n=5;
+  const R=bogen(o,[{n:'f',w,h:hw,f:(g,W,H)=>{ kraft(g,W,H,rnd); g.fillStyle='#f4f1ea'; g.fillRect(W*0.32,H*0.12,W*0.36,H*0.76); g.strokeStyle='#999'; g.lineWidth=1; g.strokeRect(W*0.32,H*0.12,W*0.36,H*0.76);
+      g.fillStyle='#1b1b1b'; g.textAlign='center'; g.textBaseline='middle'; fitFont(g,a.title,W*0.3,Math.round(H*0.4),BUN); g.fillText(a.title,W*0.5,H*0.42); g.font=BAR(Math.round(H*0.16)); g.fillText('ROHLINGE · '+a.sub,W*0.5,H*0.72);
+      g.strokeStyle='rgba(180,30,30,.75)'; g.lineWidth=H*0.05; g.strokeRect(W*0.75,H*0.2,W*0.2,H*0.6); g.fillStyle='rgba(180,30,30,.75)'; g.font=BAR(Math.round(H*0.24)); g.fillText('5 STK',W*0.85,H*0.5);
+      g.fillStyle='#111'; for(let x=W*0.05,k=0;x<W*0.27;k++){ const b=1+(k*7%3); g.fillRect(x,H*0.3,b,H*0.4); x+=b+1.5; } }},
+    {n:'k',w:0.06,h:0.06,f:(g,W,H)=>kraft(g,W,H,rnd)}]);
+  dr(o,kiste(w,hw,th,{f:R.f,leer:R.k}),tm(0,hw/2,d/2-th/2)); dr(o,kiste(w,hw,th,{leer:R.k}),tm(0,hw/2,-d/2+th/2));
+  for(const s of [-1,1]) dr(o,kiste(th,hw,d,{leer:R.k}),tm(s*(w/2-th/2),hw/2,0));
+  dr(o,kiste(w,th,d,{leer:R.k}),tm(0,th/2,0));
+  const step=(d-2*th)/n; for(let i=1;i<n;i++) box(o,w-2*th,hw*0.42,0.002,0,hw*0.21,-d/2+th+step*i,0xa67c4c);
+  for(let i=0;i<n;i++){ const z=-d/2+th+step*(i+0.5), r=Math.min(0.0105,step*0.32); rakete(o,w*0.45,th+r+0.004,z,r,w*0.3,0xf8f8f8,{kc:0xd9dde2,ringC:0xd8d8d8,ende:-w*0.46,lunte:true,sz:0}); }
+  return fertig(o); };
+
+/* Donnerbalken: Kraftpapiertuete mit Blockboden, die Raketen stecken
+   kopfueber drin - die Staebe schauen oben heraus */
+const zacken=(g,W,H)=>{ g.save(); g.globalCompositeOperation='destination-out'; g.fillStyle='#000'; g.beginPath(); g.moveTo(0,0); const n=Math.max(6,Math.round(H/8)); for(let i=0;i<=n;i++) g.lineTo(i%2?W*0.025:W*0.005,H*i/n); g.lineTo(0,H); g.closePath(); g.fill(); g.restore(); };
+VP_FORM.furzrakete=t=>{ const o=G(t), {w,h,d,a,rnd}=o, x0=-w*0.12, x1=w/2-0.002, bl=x1-x0, bh=h*0.96, bd=d*0.9;
+  const R=bogen(o,[{n:'f',w:bl,h:bh,f:(g,W,H)=>{ kraft(g,W,H,rnd,'#a77b4a'); teil(g,W*0.08,H*0.1,W*0.88,H*0.8,B(t)); g.fillStyle='rgba(60,40,20,.35)'; g.fillRect(W*0.99,0,W*0.01,H); zacken(g,W,H); }},
+    {n:'k',w:bl,h:bd,f:(g,W,H)=>{ kraft(g,W,H,rnd,'#a77b4a'); g.strokeStyle='rgba(60,40,20,.35)'; g.lineWidth=2; g.beginPath(); g.moveTo(0,H*0.15); g.lineTo(W,H*0.15); g.moveTo(0,H*0.85); g.lineTo(W,H*0.85); g.stroke(); zacken(g,W,H); }},
+    {n:'e',w:bd,h:bh,f:(g,W,H)=>{ kraft(g,W,H,rnd,'#9a7042'); g.strokeStyle='rgba(60,40,20,.4)'; g.lineWidth=2; g.beginPath(); g.moveTo(0,0); g.lineTo(W/2,H*0.3); g.lineTo(W,0); g.moveTo(0,H); g.lineTo(W/2,H*0.7); g.lineTo(W,H); g.stroke(); }}],{ds:true,rough:0.9,alpha:true});
+  const cx=(x0+x1)/2;
+  dr(o,new THREE.PlaneGeometry(bl,bh),tm(cx,bh/2,bd/2),R.f); dr(o,new THREE.PlaneGeometry(bl,bh),tm(cx,bh/2,-bd/2,0,PI,0),R.f);
+  dr(o,new THREE.PlaneGeometry(bl,bd),tm(cx,bh,0,-PI/2,0,0),R.k); dr(o,new THREE.PlaneGeometry(bl,bd),tm(cx,0.0005,0,PI/2,0,0),R.k);
+  dr(o,new THREE.PlaneGeometry(bd,bh),tm(x1,bh/2,0,0,PI/2,0),R.e);
+  /* aufgeknitterter Rand an der Oeffnung */
+  const n=3, step=bd*0.8/n, r=Math.min(h*0.25,step*0.36);
+  for(let i=0;i<n;i++){ const z=-bd*0.4+step*(i+0.5); rakete(o,x1-0.004,h*0.5,z,r,bl*0.45,[0xc8e04a,0x8a5a2a,0xffd23f][i],{ende:-w*0.49,st:0.005,sy:h*0.5-r*0.4,sz:0}); }
+  return fertig(o); };
+
+/* Silberpfeil: Skinverpackung - die Raketen hauteng in Folie auf einer
+   schraeg stehenden Karte (Keilaufsteller) */
+VP_FORM.silberpfeil=t=>{ const o=G(t), {w,h,d,a,rnd}=o, Lk=Math.hypot(h,d)-0.004, al=Math.atan2(d,h);
+  const R=bogen(o,[{n:'k',w,h:Lk,f:(g,W,H)=>{ g.fillStyle='#202329'; g.fillRect(0,0,W,H); teil(g,0,0,W,H*0.44,B(t));
+      const gr=g.createLinearGradient(0,H*0.44,0,H); gr.addColorStop(0,'#9aa3ad'); gr.addColorStop(0.5,'#e6ebf0'); gr.addColorStop(1,'#7c858f'); g.fillStyle=gr; g.fillRect(0,H*0.44,W,H*0.56);
+      g.fillStyle='rgba(30,40,60,.18)'; for(let i=0;i<12;i++){ const x=W*i/12; g.beginPath(); g.moveTo(x,H*0.46); g.lineTo(x+W*0.04,H*0.72); g.lineTo(x,H*0.98); g.lineTo(x+W*0.02,H*0.98); g.lineTo(x+W*0.06,H*0.72); g.lineTo(x+W*0.02,H*0.46); g.fill(); } }},
+    {n:'s',w:d,h,f:flach('#202329')}]);
+  dr(o,new THREE.PlaneGeometry(w,Lk),tm(0,h/2,0,-al,0,0),R.k);
+  for(const s of [-1,1]) o.vc.push({geo:dreieck(s>0?[0,0,d/2]:[0,0,-d/2],s>0?[0,0,-d/2]:[0,0,d/2],[0,h,-d/2]),m:tm(s*w/2,0,0),color:0x202329});
+  o.vc.push({geo:new THREE.PlaneGeometry(w,h),m:tm(0,h/2,-d/2,0,PI,0),color:0x202329});
+  const n=4; gruppe(o,tm(0,h/2,0,-al,0,0),s=>{ for(let i=0;i<n;i++){ const yy=-Lk/2+Lk*(0.08+0.5*(i+0.5)/n), r=0.0072, c=[0xd1e5ff,0x5ce1ff,0xd1e5ff,0x5ce1ff][i];
+      gruppe(s,tm(0,yy,r+0.0005,PI/2,0,0),u=>rakete(u,w*0.46,0,0,r,w*0.3,c,{ende:-w*0.46,seg:7,sz:0,sy:-r*0.5}));
+      fol(s,new THREE.CylinderGeometry(r*1.35,r*1.35,w*0.93,8,1,true,0,PI),tm(0,yy,0.0004,0,0,PI/2)); } });
+  gruppe(o,tm(0,h/2,0,-al,0,0),s=>fol(s,new THREE.PlaneGeometry(w*0.99,Lk*0.99),tm(0,0,0.0008)));
+  return fertig(o); };
+
+/* Kometenkette: jede Rakete einzeln in Folie mit gequetschten Enden,
+   in einer Reihe auf einem bedruckten Papptraeger mit Kopfleiste */
+VP_FORM.kometenraketen=t=>{ const o=G(t), {w,h,d,a}=o, lh=h*0.62, th=0.003, n=7;
+  const R=bogen(o,[{n:'f',w,h:lh,f:B(t)},{n:'k',w,h:d,f:(g,W,H)=>{ if(typeof effektFoto==='function') effektFoto(g,0,0,W,H,t,a,zufallAus(hashStr(t+'k')),{stadt:false}); else { g.fillStyle=a.bg2; g.fillRect(0,0,W,H); } }},{n:'leer',w:0.02,h:0.02,f:flach(a.bg2)}]);
+  dr(o,kiste(w,th,d,{t:R.k,leer:R.leer}),tm(0,th/2,0)); dr(o,kiste(w,lh,th,{f:R.f,leer:R.leer}),tm(0,lh/2,d/2-th/2));
+  const dz=d*0.86, step=dz/n, r=Math.min(0.0085,step*0.3);
+  for(let i=0;i<n;i++){ const z=-d/2+0.004+step*(i+0.5), y=th+r+0.004;
+    rakete(o,w*0.44,y,z,r,w*0.28,[0x0c3d7a,0xffd23f,0x5ce1ff][i%3],{ende:-w*0.44,seg:7,sz:0,sy:y-r-0.0005});
+    fol(o,quetsch(w*0.97,r*1.5,step*0.46,0.03,8,8),tm(0,y-0.001,z)); }
+  return fertig(o); };
+
+/* Halbe-Halbe: halb Karton, halb Folie - links der bedruckte Karton,
+   rechts schauen die zweifarbigen Raketenkoepfe in Folie heraus */
+VP_FORM.farbenrausch=t=>{ const o=G(t), {w,h,d,a}=o, kw=w*0.56;
+  const R=bogen(o,[{n:'f',w:kw,h,f:B(t)},{n:'s',w:d,h,f:seite(t)},{n:'t',w:kw,h:d,f:oben(t)}]);
+  dr(o,kiste(kw,h,d,R),tm(-w/2+kw/2,h/2,0));
+  box(o,w-kw,0.003,d,w/2-(w-kw)/2,0.0015,0,I(a.bg2));
+  const c1=I(a.ac), c2=I(a.ac2);
+  reihe(o,7,{dz:d*0.84,x:w*0.47,L:w*0.3,y:0.003,cols:i=>i%2?c1:c2,optI:i=>({c2:i%2?c2:c1,kc:0xf2f5ff})});
+  fol(o,new THREE.BoxGeometry(w-kw,h*0.98,d*0.98),tm(w/2-(w-kw)/2,h*0.49,0));
+  return fertig(o); };
+
+/* Spaetzuender: in braunes Packpapier eingeschlagen, mit Bindfaden
+   verschnuert, Etikett aufgeklebt */
+VP_FORM.knisterstern=t=>{ const o=G(t), {w,h,d,a,rnd}=o, bh=h*0.96;
+  const knitter=(g,W,H)=>{ kraft(g,W,H,rnd,'#a9824f'); g.strokeStyle='rgba(255,240,210,.18)'; g.lineWidth=1.5; for(let i=0;i<W*H/2500;i++){ const x=rnd()*W, y=rnd()*H; g.beginPath(); g.moveTo(x,y); g.lineTo(x+(rnd()-0.5)*W*0.08,y+(rnd()-0.5)*H*0.3); g.stroke(); } };
+  const R=bogen(o,[{n:'f',w,h:bh,f:(g,W,H)=>{ knitter(g,W,H); teil(g,W*0.04,H*0.12,W*0.6,H*0.76,B(t)); rahmen(g,W*0.04,H*0.12,W*0.6,H*0.76,'#f2ead8',3);
+      g.save(); g.translate(W*0.85,H*0.5); g.rotate(-0.08); g.strokeStyle='rgba(170,30,30,.8)'; g.lineWidth=H*0.04; g.strokeRect(-W*0.1,-H*0.28,W*0.2,H*0.56); g.fillStyle='rgba(170,30,30,.8)'; g.textAlign='center'; g.textBaseline='middle'; fitFont(g,'KNISTERT!',W*0.18,Math.round(H*0.22),BUN); g.fillText('KNISTERT!',0,-H*0.06); g.font=BAR(Math.round(H*0.15)); g.fillText('10 STK',0,H*0.16); g.restore(); }},
+    {n:'s',w:d,h:bh,f:(g,W,H)=>{ knitter(g,W,H); g.strokeStyle='rgba(60,40,20,.5)'; g.lineWidth=2; g.beginPath(); g.moveTo(0,0); g.lineTo(W*0.5,H*0.45); g.lineTo(W,0); g.moveTo(0,H); g.lineTo(W*0.5,H*0.55); g.lineTo(W,H); g.stroke(); }},
+    {n:'t',w,h:d,f:(g,W,H)=>{ knitter(g,W,H); g.strokeStyle='rgba(60,40,20,.45)'; g.lineWidth=2; g.beginPath(); g.moveTo(0,H*0.6); g.lineTo(W,H*0.6); g.stroke(); }}],{rough:0.9});
+  dr(o,kiste(w,bh,d,R),tm(0,bh/2,0));
+  const SF=0xe8d8b0, s=0.0018, xs=w*0.3;
+  box(o,w+0.002,s,s,0,bh+s/2,0,SF); box(o,w+0.002,s,s,0,s/2,0,SF); for(const k of [-1,1]) box(o,s,bh,s,k*(w/2+s/2),bh/2,0,SF);
+  box(o,s,s,d+0.002,xs,bh+s/2,0,SF); box(o,s,bh,s,xs,bh/2,d/2+s/2,SF); box(o,s,bh,s,xs,bh/2,-d/2-s/2,SF);
+  kugel(o,0.004,xs,bh+0.002,0,SF,1,0.6,1); for(const k of [-1,1]){ torus(o,0.008,0.0012,xs+k*0.008,bh+0.002,0,SF,PI/2,0,0,10,1,1,0.4); box(o,0.02,s,s,xs+k*0.004,bh+0.001,k*0.01,SF,0,k*0.7,0); }
+  return fertig(o); };
+
+/* Smaragd: Schmuckkasten - gruenes Samtbett mit Goldrand, darauf die
+   sieben Raketen, Klarsichtdeckel mit Goldkante */
+VP_FORM.smaragd=t=>{ const o=G(t), {w,h,d,a,rnd}=o, hb=h*0.52;
+  const R=bogen(o,[{n:'f',w,h:hb,f:(g,W,H)=>{ g.fillStyle='#0b3a20'; g.fillRect(0,0,W,H); for(let i=0;i<W*H/30;i++){ g.fillStyle=`rgba(0,0,0,${rnd()*0.12})`; g.fillRect(rnd()*W,rnd()*H,2,2); }
+      const pw=Math.min(W*0.3,H*1.0); teil(g,W*0.03,H*0.12,pw,H*0.76,(g2,w2,h2)=>drawFront(g2,w2,h2,a,o.cat)); rahmen(g,W*0.03,H*0.12,pw,H*0.76,'#d9b45a',2);
+      const gold=g.createLinearGradient(0,H*0.2,0,H*0.7); gold.addColorStop(0,'#fff0b8'); gold.addColorStop(0.5,'#d9b45a'); gold.addColorStop(1,'#8a6a2a');
+      const cx=W*0.03+pw+(W*0.94-pw)/2; nameText(g,a.title,cx,H*0.44,(W*0.94-pw)*0.8,Math.round(H*0.42),FNT.cin,gold,'rgba(0,0,0,.6)',2);
+      nameText(g,a.sub,cx,H*0.76,(W*0.94-pw)*0.8,Math.round(H*0.14),FNT.bar,'#d9b45a');
+      rahmen(g,W*0.015,H*0.06,W*0.97,H*0.88,'#d9b45a',Math.max(2,H*0.025)); }},
+    {n:'s',w:d,h:hb,f:(g,W,H)=>{ g.fillStyle='#0b3a20'; g.fillRect(0,0,W,H); rahmen(g,W*0.08,H*0.15,W*0.84,H*0.7,'#d9b45a',2); }},
+    {n:'t',w,h:d,f:(g,W,H)=>{ g.fillStyle='#0f5a2e'; g.fillRect(0,0,W,H); for(let i=0;i<W*H/12;i++){ g.fillStyle=`rgba(${rnd()<0.5?'0,0,0':'120,255,170'},${rnd()*0.08})`; g.fillRect(rnd()*W,rnd()*H,2,2); }
+      for(let i=0;i<7;i++){ const y=H*(0.08+0.84*(i+0.5)/7); g.fillStyle='rgba(0,0,0,.28)'; g.fillRect(W*0.04,y-H*0.035,W*0.92,H*0.07); } }}]);
+  dr(o,kiste(w,hb,d,R),tm(0,hb/2,0));
+  for(const s of [-1,1]){ box(o,w,0.0025,0.0025,0,hb,s*(d/2-0.00125),GOLD); box(o,0.0025,0.0025,d,s*(w/2-0.00125),hb,0,GOLD);
+    box(o,w,0.0025,0.0025,0,h-0.00125,s*(d/2-0.00125),GOLD); box(o,0.0025,0.0025,d,s*(w/2-0.00125),h-0.00125,0,GOLD); }
+  for(const sx of [-1,1]) for(const sz of [-1,1]) box(o,0.0025,h-hb,0.0025,sx*(w/2-0.00125),(h+hb)/2,sz*(d/2-0.00125),GOLD);
+  reihe(o,7,{dz:d*0.84,y:hb-0.004,x:w*0.45,cols:[0x0f8a4a,0x0f8a4a],opt:{kc:GOLD,ringC:GOLD,seg:8},ende:-w*0.45});
+  fol(o,new THREE.BoxGeometry(w*0.995,h-hb,d*0.995),tm(0,(h+hb)/2,0));
+  return fertig(o); };
+
+/* Leuchtturm: Klarsicht-Klappbox (Clamshell) mit Scharnier hinten,
+   Rand und Druckknopf vorn - drin ein bedruckter Einleger */
+VP_FORM.blinkstern=t=>{ const o=G(t), {w,h,d,a}=o, bw=w*0.97, bd=d*0.94, hm=h/2;
+  const R=bogen(o,[{n:'e',w:bw*0.98,h:h*0.92,f:B(t)},{n:'u',w:bw*0.98,h:bd*0.9,f:(g,W,H)=>{ for(let i=0;i<12;i++){ g.fillStyle=i%2?'#f2f5ff':'#d8322a'; g.fillRect(W*i/12,0,W/12+1,H); } g.fillStyle='rgba(15,42,74,.55)'; g.fillRect(0,0,W,H); }},{n:'leer',w:0.02,h:0.02,f:flach(a.bg2)}]);
+  dr(o,kiste(bw*0.98,h*0.92,0.002,{f:R.e,leer:R.leer}),tm(0,h*0.47,-bd*0.45));
+  dr(o,kiste(bw*0.98,0.002,bd*0.9,{t:R.u,leer:R.leer}),tm(0,0.002,0));
+  for(const k of [0,1]) fol(o,new THREE.BoxGeometry(bw,hm-0.001,bd),tm(0,k?hm+hm/2:hm/2,0));
+  fol(o,new THREE.BoxGeometry(w,0.0025,d),tm(0,hm,0));
+  const ED=0xdfe8f0; for(const sx of [-1,1]) for(const sz of [-1,1]) box(o,0.0012,h*0.96,0.0012,sx*bw/2,h/2,sz*bd/2,ED);
+  zyl(o,0.0025,0.0025,w*0.9,6,0,hm,-d/2+0.0025,ED,0,0,PI/2);
+  kugel(o,0.006,0,hm,d/2-0.004,ED,1,0.6,0.6);
+  reihe(o,7,{dz:bd*0.62,z0:-bd*0.2,y:0.003,x:w*0.44,L:w*0.28,cols:[0xf2f5ff,0xd8322a],opt:{kc:0x5ce1ff,seg:7},ende:-w*0.44});
+  return fertig(o); };
+
+/* Silberregen: silbernes Blechetui mit runden Kanten, Deckelfalz und
+   Scharnier, der Druck direkt aufs Blech */
+VP_FORM.silberregen=t=>{ const o=G(t), {w,h,d,a,rnd}=o, rc=0.012, hb=h*0.97;
+  const R=bogen(o,[{n:'f',w:w-2*rc,h:hb,f:(g,W,H)=>{ blech(g,W,H,rnd,'#c4cad2',true); teil(g,W*0.03,H*0.14,W*0.94,H*0.72,B(t)); rahmen(g,W*0.03,H*0.14,W*0.94,H*0.72,'#8f969e',Math.max(2,H*0.03)); }},
+    {n:'m',w:0.08,h:0.08,f:(g,W,H)=>blech(g,W,H,rnd,'#c4cad2',true)},
+    {n:'t',w:w-2*rc,h:d-2*rc,f:(g,W,H)=>{ blech(g,W,H,rnd,'#c4cad2',true); g.strokeStyle='rgba(80,90,100,.5)'; g.lineWidth=3; g.strokeRect(W*0.04,H*0.12,W*0.92,H*0.76); titel(g,t,W/2,H/2,W*0.8,H*0.35,'#3a4048',null); }}],{metal:0.55,rough:0.32});
+  dr(o,kiste(w-2*rc,hb,d,{f:R.f,t:R.t,leer:R.m}),tm(0,hb/2,0)); dr(o,kiste(w,hb,d-2*rc,{leer:R.m,t:R.m}),tm(0,hb/2,0));
+  for(const sx of [-1,1]) for(const sz of [-1,1]) zyl(o,rc,rc,hb,10,sx*(w/2-rc),hb/2,sz*(d/2-rc),0xb9c0c8);
+  box(o,w*1.002,0.0018,d-2*rc,0,hb*0.62,0,0x6e757f); box(o,w-2*rc,0.0018,d*1.004,0,hb*0.62,0,0x6e757f);
+  zyl(o,0.003,0.003,w*0.8,8,0,hb*0.62,-d/2-0.001,0x8f969e,0,0,PI/2);
+  return fertig(o); };
+
+/* Glasbruch: liegender Sechskantkarton, das rechte Ende ist ein
+   Klarsichtfenster auf die Raketenkoepfe */
+VP_FORM.kristall=t=>{ const o=G(t), {w,h,d,a,rnd}=o, Rr=h/(2*0.866)*0.995, yc=h/2, sw=Rr, L=w-0.004;
+  const facette=(g,W,H)=>{ g.fillStyle=a.bg2; g.fillRect(0,0,W,H); for(let i=0;i<40;i++){ g.fillStyle=`rgba(${rnd()<0.5?'209,229,255':'120,170,230'},${0.06+rnd()*0.12})`; const x=rnd()*W, y=rnd()*H, s=H*(0.3+rnd()*0.6); g.beginPath(); g.moveTo(x,y); g.lineTo(x+s*0.8,y+s*0.2); g.lineTo(x+s*0.3,y+s); g.closePath(); g.fill(); } };
+  const R=bogen(o,[{n:'f',w:L,h:sw,f:B(t)},{n:'u',w:L,h:sw,f:(g,W,H)=>{ facette(g,W,H); g.fillStyle='#f2f5ff'; g.textAlign='center'; g.textBaseline='middle'; fitFont(g,a.sub+' · KRISTALLKLAR',W*0.8,Math.round(H*0.4),BAR); g.fillText(a.sub+' · KRISTALLKLAR',W/2,H/2); }},
+    {n:'t',w:L,h:sw,f:(g,W,H)=>{ facette(g,W,H); titel(g,t,W/2,H/2,W*0.6,H*0.6,a.ac); }},{n:'leer',w:L,h:sw,f:facette}]);
+  prismaX(o,6,Rr,L-0.02,-0.008,yc,0,PI/6,(i)=>i===0?R.f:i===1?R.t:i===5?R.u:R.leer);
+  zyl(o,Rr,Rr,0.003,6,-w/2+0.0035,yc,0,I(a.bg2),0,0,PI/2);
+  zyl(o,Rr*1.01,Rr*1.01,0.004,6,w/2-0.022,yc,0,0xd1e5ff,0,0,PI/2,1,1,1);
+  o.vc.push({geo:umdrehen(new THREE.CylinderGeometry(Rr*0.98,Rr*0.98,0.03,6,1,true)),m:tm(w/2-0.04,yc,0,0,0,-PI/2),color:0x02060f});
+  fol(o,new THREE.CylinderGeometry(Rr,Rr,0.02,6,1,true),tm(w/2-0.012,yc,0,0,0,-PI/2)); fol(o,new THREE.CircleGeometry(Rr,6,0),tm(w/2-0.002,yc,0,0,PI/2,0));
+  const r=Rr*0.2; [[0,0],[0,1.1],[0,-1.1],[0.95,0.55],[0.95,-0.55],[-0.95,0.55],[-0.95,-0.55]].forEach(([fy,fz],i)=>{
+    rakete(o,w/2-0.003,yc+fy*r*1.9,fz*r*1.9,r,w*0.3,[0xd1e5ff,0xf2f5ff,0x8fd0ff][i%3],{lunte:false,seg:6,kc:0xf2f5ff}); });
+  return fertig(o); };
+
+/* Saphirkrone: Schraegfrontkarton - die Vorderseite liegt schraeg
+   nach hinten wie ein Aufsteller, oben ein Saphir */
+VP_FORM.regenbogenkrone=t=>{ const o=G(t), {w,h,d,a}=o, dz=d*0.42, zf=d/2, zt=d/2-dz, Lf=Math.hypot(h,dz), al=Math.atan2(dz,h);
+  const R=bogen(o,[{n:'f',w,h:Lf,f:B(t)},{n:'b',w,h,f:seite(t)},{n:'t',w,h:d-dz,f:oben(t)},{n:'s',w:d,h,f:seite(t)}],{max:1500});
+  dr(o,new THREE.PlaneGeometry(w,Lf),tm(0,h/2,(zf+zt)/2,-al,0,0),R.f);
+  dr(o,new THREE.PlaneGeometry(w,h),tm(0,h/2,-d/2,0,PI,0),R.b);
+  dr(o,new THREE.PlaneGeometry(w,d-dz),tm(0,h,(zt-d/2)/2,-PI/2,0,0),R.t);
+  o.vc.push({geo:new THREE.PlaneGeometry(w,d),m:tm(0,0.0005,0,PI/2,0,0),color:0x040a1f});
+  for(const s of [-1,1]){ const p=s>0?[[w/2,0,zf],[w/2,0,-d/2],[w/2,h,-d/2],[w/2,h,zt]]:[[-w/2,0,-d/2],[-w/2,0,zf],[-w/2,h,zt],[-w/2,h,-d/2]];
+    dr(o,viereck(...p),tm(0,0,0),R.s); }
+  o.vc.push({geo:new THREE.OctahedronGeometry(0.014,0),m:tm(w*0.36,h+0.0005-0.012,zt-0.014,0,0.4,0,1,0.9,1),color:0x2f5fd0});
+  box(o,0.03,0.003,0.03,w*0.36,h+0.0015-0.003,zt-0.014,GOLD);
+  return fertig(o); };
+
+/* Mondfinsternis: schwarzer Karton mit Bullauge - durch das
+   Chromfenster sieht man den Kopf der Jumbo-Rakete vor dem Blutmond */
+VP_FORM.silbermond=t=>{ const o=G(t), {w,h,d,a}=o, hx=0.86, hr=0.36;
+  const R=bogen(o,[{n:'f',w,h,f:(g,W,H)=>{ g.fillStyle='#0b0b0e'; g.fillRect(0,0,W,H); teil(g,0,0,W*0.74,H,B(t)); loch(g,[{x:W*hx,y:H*0.5,r:H*hr}],false); }},{n:'s',w:d,h,f:seite(t)},{n:'t',w,h:d,f:oben(t)}],{alpha:true,max:1500});
+  dr(o,kiste(w,h,d,R),tm(0,h/2,0));
+  const px=-w/2+w*hx, pr=h*hr;
+  torus(o,pr*1.02,0.0045,px,h/2,d/2+0.0005,0xd7dbe0,0,0,0,28);
+  einsatz(o,px-pr*1.2,px+pr*1.2,h*0.05,h*0.95,-d/2+0.004,d/2-0.002,0x0a0a0c);
+  zyl(o,pr*0.75,pr*0.75,0.002,24,px+pr*0.3,h*0.62,-d/2+0.006,0xc0301c,PI/2,0,0);
+  const r=Math.min(h*0.18,d*0.2); rakete(o,w*0.47,h*0.36,0,r,w*0.32,0x2a2d33,{kc:0x9aa3ad,ringC:0xd1e5ff,ende:-w*0.46,seg:14,st:0.008,sz:0});
+  fol(o,new THREE.CircleGeometry(pr,24),tm(px,h/2,d/2-0.001));
+  return fertig(o); };
+
+/* Feuerdrache: Dreikantkarton mit Drachenzacken auf dem Grat */
+VP_FORM.feuerdrache=t=>{ const o=G(t), {w,h,d,a}=o, hg=h*0.9, Lf=Math.hypot(hg,d/2), al=Math.atan2(d/2,hg);
+  const R=bogen(o,[{n:'f',w,h:Lf,f:B(t)},{n:'b',w,h:Lf,f:(g,W,H)=>{ g.fillStyle=a.bg2; g.fillRect(0,0,W,H); for(let i=0;i<W/20;i++){ g.fillStyle='rgba(255,122,28,.12)'; g.beginPath(); g.arc(i*20+10,H*0.5+Math.sin(i)*H*0.2,H*0.18,0,PI); g.fill(); } titel(g,t,W/2,H/2,W*0.5,H*0.4,a.ac); }},{n:'s',w:d,h:hg,f:flach(a.bg2)}],{max:1500});
+  dr(o,new THREE.PlaneGeometry(w,Lf),tm(0,hg/2,d/4,-al,0,0),R.f);
+  dr(o,new THREE.PlaneGeometry(w,Lf),tm(0,hg/2,-d/4,al,PI,0),R.b);
+  o.vc.push({geo:new THREE.PlaneGeometry(w,d),m:tm(0,0.0005,0,PI/2,0,0),color:0x1a0202});
+  for(const s of [-1,1]){ const p=s>0?[[w/2,0,d/2],[w/2,0,-d/2],[w/2,hg,0]]:[[-w/2,0,-d/2],[-w/2,0,d/2],[-w/2,hg,0]]; dr(o,dreieck(...p),tm(0,0,0),R.s); }
+  for(let i=0;i<9;i++){ const x=-w*0.42+i*w*0.105, hz=(h-hg)*(0.7+0.3*Math.sin(i*1.3)); zyl(o,0,0.012,hz+0.006,4,x,hg+hz/2-0.003,0,i%2?0xff7a1c:0xb01a0a,0,PI/4,0,1.6,1,0.5); }
+  return fertig(o); };
+
+/* Supernova: Alu-Koffer mit Kantenprofilen, Eckkappen, Schnapp-
+   verschluessen und Tragegriff - vorn das Etikett */
+VP_FORM.supernova=t=>{ const o=G(t), {w,h,d,a,rnd}=o, bh=h*0.86, bw=w*0.99, bd=d*0.96, sy=bh*0.62;
+  const alu=(g,W,H)=>{ blech(g,W,H,rnd,'#b8bec6',true); g.strokeStyle='rgba(255,255,255,.25)'; g.lineWidth=1; for(let x=0;x<W;x+=6){ g.beginPath(); g.moveTo(x,0); g.lineTo(x+H*0.3,H); g.stroke(); } };
+  const R=bogen(o,[{n:'f',w:bw,h:bh,f:(g,W,H)=>{ alu(g,W,H); teil(g,W*0.12,H*0.08,W*0.76,H*0.5,B(t)); rahmen(g,W*0.12,H*0.08,W*0.76,H*0.5,'#2a2d33',3); }},{n:'m',w:0.1,h:0.1,f:alu}],{metal:0.6,rough:0.3,max:1500});
+  dr(o,kiste(bw,bh,bd,{f:R.f,leer:R.m}),tm(0,bh/2,0));
+  const PR=0x22252b, e=0.006;
+  for(const y of [e/2,bh-e/2,sy]) for(const s of [-1,1]){ box(o,bw+0.002,e,e,0,y,s*(bd/2),PR); box(o,e,e,bd,s*(bw/2),y,0,PR); }
+  for(const sx of [-1,1]) for(const sz of [-1,1]){ box(o,e,bh,e,sx*bw/2,bh/2,sz*bd/2,PR); for(const y of [0.0095,bh-0.008]) kugel(o,0.009,sx*(bw/2-0.002),y,sz*(bd/2-0.002),0xd7dbe0,1,1,1,6,4); }
+  for(const s of [-1,1]){ box(o,0.03,0.022,0.006,s*bw*0.36,sy,bd/2+0.002,0xd7dbe0); box(o,0.016,0.008,0.004,s*bw*0.36,sy-0.008,bd/2+0.0045,PR); }
+  const gw=w*0.18; box(o,gw,0.012,0.022,0,h-0.007,0,PR); for(const s of [-1,1]) box(o,0.016,h-bh,0.026,s*gw*0.55,bh+(h-bh)/2-0.002,0,0x6e757f);
+  return fertig(o); };
+
+/* Himmelsgarbe: wie eine Garbe gebunden - die Raketen im
+   Schrumpfschlauch, mittig eine breite Banderole, die Staebe gebuendelt */
+VP_FORM.glitzerraketen=t=>{ const o=G(t), {w,h,d,a}=o, r=Math.min(h/4.3,d*0.9/8.2), cols=[0xffd23f,0xf2f5ff,0x12406b,0xffd23f,0xf2f5ff,0x12406b,0xffd23f];
+  const pos=[[-1.5,0],[-0.5,0],[0.5,0],[1.5,0],[-1,1],[0,1],[1,1]];
+  pos.forEach(([fz,fy],i)=>rakete(o,w*0.47,r+0.003+fy*r*1.85,fz*r*2.05,r,w*0.26,cols[i],{seg:8}));
+  for(let i=0;i<7;i++) box(o,w*0.58,0.004,0.004,-w*0.2,h*0.38+(i%2)*0.006-0.003,(i-3)*0.0055,HOLZ);
+  for(const x of [-0.42,-0.3]) torus(o,0.024,0.0022,x*w,h*0.38,0,0xd8322a,0,PI/2,0,12,1,0.5,1);
+  fol(o,quetsch(w*0.6,h*0.5,d*0.47,0.05,12,12),tm(w*0.2,h*0.5,0));
+  const bw=w*0.3, bb=h*0.98, bd=d*0.97;
+  const R=bogen(o,[{n:'f',w:bw,h:bb,f:B(t)},{n:'b',w:bw,h:bb,f:seite(t)},{n:'t',w:bw,h:bd,f:oben(t)}]);
+  bandX(o,bw,bb,bd,w*0.05,bb/2+0.001,0,R);
+  return fertig(o); };
+
+})();

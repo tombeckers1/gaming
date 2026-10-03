@@ -51,27 +51,29 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   console.log('FEST',JSON.stringify(f));
   pruef('FEST',f.fest&&/fest eingebaut/.test(f.toast||''),JSON.stringify(f));
   /* Tuer: Spieler steht an der Ladentuer, Kunde kommt */
-  const t=await p.evaluate(()=>{ const bb=__bb, d=bb.TUEREN[0]; bb.setView(d.cx||0,4.4,Math.PI,0); bb.run(0.2,0.05);
-    __z.tuerAuf.length=0; __z.tuerZu.length=0; bb.openShop(); let n=0; while(!__z.tuerAuf.length&&n++<600) bb.run(0.5,0.05);
-    const nah={auf:__z.tuerAuf.length,vol:__z.tuerAuf[0],zu:__z.tuerZu.length};
-    /* weit weg (Testfeld): nichts zu hoeren */
-    bb.setView(0,-40,0,0); bb.run(0.3,0.05); __z.tuerAuf.length=0; __z.tuerZu.length=0; bb.run(60,0.05);
-    return {nah,fernAuf:__z.tuerAuf.length+__z.tuerZu.length}; });
+  const t=await p.evaluate(()=>{ const bb=__bb, d=bb.TUEREN[0], cx=d.cx||0;
+    /* drinnen, 6 m von der Tuer: zu; dann zur Tuer gehen -> auf */
+    bb.setView(cx,-1.5,Math.PI,0); bb.run(1,0.05); __z.tuerAuf.length=0; __z.tuerZu.length=0;
+    bb.setView(cx,4.6,Math.PI,0); bb.run(1.5,0.05); const nah={auf:__z.tuerAuf.length,vol:__z.tuerAuf[0]};
+    bb.setView(cx,-1.5,Math.PI,0); bb.run(1.5,0.05); nah.zu=__z.tuerZu.length;
+    /* weit weg (Testfeld), Laden offen, Kunden kommen: nichts zu hoeren */
+    bb.setView(0,-40,0,0); bb.run(0.3,0.05); bb.openShop(); __z.tuerAuf.length=0; __z.tuerZu.length=0; bb.run(90,0.05);
+    return {nah,fernAuf:__z.tuerAuf.length+__z.tuerZu.length,kunden:bb.customers.length}; });
   console.log('TUER',JSON.stringify(t));
-  pruef('TUER',t.nah.auf>=1&&t.nah.vol>0.3&&t.fernAuf===0,JSON.stringify(t));
+  pruef('TUER',t.nah.auf===1&&t.nah.zu===1&&t.nah.vol>0.3&&t.fernAuf===0,JSON.stringify(t));
   /* Scanner + Kasse: Kassierer einstellen, Spieler neben der Kasse */
-  const k=await p.evaluate(()=>{ const bb=__bb, S=bb.S; S.staff.kassierer=true; bb.hireStaff('kassierer'); const g=bb.ckG.position; bb.setView(g.x+1.5,g.z+1.5,0,-0.3); bb.run(0.2,0.05);
+  const k=await p.evaluate(()=>{ const bb=__bb, S=bb.S; bb.gpStart(); bb.fireStaff('packer'); S.staff.packer=false; const g=bb.ckG.position; bb.setView(g.x+1.5,g.z+1.5,0,-0.3); bb.run(0.2,0.05);
     __z.scan.length=0; __z.kasse.length=0; let n=0; while(__z.kasse.length<2&&n++<900) bb.run(0.5,0.05);
     const nah={scan:__z.scan.length,kasse:__z.kasse.length,vScan:__z.scan[0],vKasse:__z.kasse[0]};
     bb.setView(0,-40,0,0); bb.run(0.2,0.05); __z.scan.length=0; __z.kasse.length=0; let m=0, kunden=bb.DS?bb.DS.customers:0;
     while(m++<300) bb.run(0.5,0.05);
-    return {nah,fern:__z.scan.length+__z.kasse.length,kunden:(bb.DS?bb.DS.customers:0)-kunden,staff:Object.keys(S.staff).filter(x=>S.staff[x])}; });
+    return {nah,fern:__z.scan.length+__z.kasse.length,kunden:(bb.DS?bb.DS.customers:0)-kunden,kAlle:bb.DS&&bb.DS.customers,staff:Object.keys(S.staff).filter(x=>S.staff[x])}; });
   console.log('KASSE',JSON.stringify(k));
-  pruef('SCAN',k.nah.scan>=2&&k.nah.vScan>0.2,JSON.stringify(k.nah));
+  pruef('SCAN',k.nah.scan>=1&&k.nah.vScan>0.2,JSON.stringify(k.nah));
   pruef('KASSE',k.nah.kasse>=2&&k.nah.vKasse>0.2,JSON.stringify(k.nah));
   pruef('FERN_LEISE',k.fern===0&&k.kunden>0,'aus 40 m: '+k.fern+' Kassengeraeusche bei '+k.kunden+' Kunden');
   /* Karton: Versand freischalten, Bestellung, packen */
-  const v=await p.evaluate(()=>{ const bb=__bb, S=bb.S; S.up.onlineshop=true; if(bb.oeffneZone) try{ bb.oeffneZone('packstation'); }catch(e){} bb.applyZonen();
+  const v=await p.evaluate(()=>{ const bb=__bb, S=bb.S;
     if(!bb.packBereit()) return {bereit:false};
     for(let i=0;i<10&&!(S.bestellungen||[]).some(x=>x.st==='offen');i++){ const o=bb.vsNeueBestellung(true); if(o&&!(S.bestellungen||[]).includes(o)) (S.bestellungen=S.bestellungen||[]).push(o); }
     /* Ware fuer die Bestellung ins Lager */

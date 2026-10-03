@@ -2,7 +2,17 @@
 /* =========================================================
    Zeitgesteuerte Aufrufe & Sound
    ========================================================= */
-const timers=[]; function later(t,fn){ timers.push({t,fn}); }
+/* FW_KTX > 0: gerade laeuft Feuerwerk - was jetzt geplant wird, gehoert
+   dazu (fw) und laesst sich in der Vorfuehrung auf einen Schlag
+   abbrechen (03.10., Tom: "Taste druecken, dann beendet das Feuerwerk") */
+let FW_KTX=0;
+const timers=[]; function later(t,fn){ timers.push({t,fn,fw:FW_KTX>0}); }
+/* Ton sofort abschneiden: neuer Hauptregler, der alte blendet in 80 ms
+   aus und wird abgehaengt - alles, was gerade klingt, verstummt */
+function sfxSchnitt(){ if(!AC||!master) return; const alt=master, t=AC.currentTime;
+  master=AC.createGain(); master.gain.value=0.7*SFX_VOL; master.connect(AC.destination);
+  try{ alt.gain.cancelScheduledValues(t); alt.gain.setValueAtTime(alt.gain.value,t); alt.gain.linearRampToValueAtTime(0,t+0.08); }catch(e){}
+  setTimeout(()=>{ try{ alt.disconnect(); }catch(e){} },200); }
 let AC=null, master=null, noiseBuf=null;
 /* Lautstaerke aller Soundeffekte (Pausenmenue > Audio, 03.10.): 0..1,
    gemerkt; die Musik hat ihren eigenen Regler (13b) */

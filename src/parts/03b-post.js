@@ -6,6 +6,7 @@ let postOK=false, postOn=true, rtScene=null, rtA=null, rtB=null, matKopie=null;
 let quadScene=null, quadCam=null, quadMesh=null, matBright=null, matBlur=null, matComp=null;
 let postW=0, postH=0, postDiv=4, postHalf=false;
 const QUAD_V='varying vec2 vUv;\nvoid main(){ vUv=uv; gl_Position=vec4(position.xy,0.0,1.0); }';
+function gfxSamples(st){ const g=GFX_PROFIL[st]||GFX_PROFIL.hoch; let mx=4; try{ mx=renderer.capabilities.maxSamples||4; }catch(e){} return COARSE?2:Math.max(2,Math.min(g.ms,mx)); }
 function initPost(){
   try{
     if(localStorage.getItem('bb_post')==='0') postOn=false;
@@ -23,7 +24,7 @@ function initPost(){
     postHalf=half;
     const ms=renderer.capabilities&&renderer.capabilities.isWebGL2&&THREE.WebGLMultisampleRenderTarget;
     rtScene=ms?new THREE.WebGLMultisampleRenderTarget(2,2,opt):new THREE.WebGLRenderTarget(2,2,opt);
-    if(ms) rtScene.samples=COARSE?2:GFX==='hoch'?4:2;
+    if(ms) rtScene.samples=gfxSamples(GFX); postDiv=(GFX_PROFIL[GFX]||GFX_PROFIL.hoch).blur;
     const bopt={minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter,format:THREE.RGBAFormat,depthBuffer:false,stencilBuffer:false};
     rtA=new THREE.WebGLRenderTarget(2,2,bopt); rtB=new THREE.WebGLRenderTarget(2,2,bopt);
     matBright=new THREE.ShaderMaterial({
@@ -86,7 +87,8 @@ function gfxAnwenden(st){
   schattenWerte(st);
   let wunsch=true; try{ wunsch=localStorage.getItem('bb_post')!=='0'; }catch(e){}
   postOn=postOK&&wunsch&&st!=='niedrig';
-  if(rtScene&&rtScene.isWebGLMultisampleRenderTarget){ const n=COARSE?2:st==='hoch'?4:2; if(rtScene.samples!==n){ rtScene.samples=n; rtScene.dispose(); } }
+  if(rtScene&&rtScene.isWebGLMultisampleRenderTarget){ const n=gfxSamples(st); if(rtScene.samples!==n){ rtScene.samples=n; rtScene.dispose(); } }
+  postDiv=(GFX_PROFIL[st]||GFX_PROFIL.hoch).blur;
   resizePost();
   gfxMess.ruhe=Math.max(gfxMess.ruhe,4);
 }
@@ -268,7 +270,7 @@ function schattenTakt(){
   R.autoUpdate=false; schattenN++;
   /* niedrig: Schatten ausgeblendet (schattenWerte), nie neu zeichnen */
   if(GFX==='niedrig') return;
-  if(GFX==='hoch'||schattenN>=3){ R.needsUpdate=true; schattenN=0; }
+  if(GFX_STUFEN.indexOf(GFX)>=2||schattenN>=3){ R.needsUpdate=true; schattenN=0; }
 }
 function renderFrame(dt){
   kleinTakt(dt||0);

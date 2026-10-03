@@ -183,7 +183,7 @@ function vpNamenBauen(plan){
 function vpNamenWeg(){ if(!vpNamenM) return; scene.remove(vpNamenM); vpNamenM.geometry.dispose(); if(vpNamenM.material.map) vpNamenM.material.map.dispose(); vpNamenM.material.dispose(); vpNamenM=null; }
 /* ein Produkt einraeumen; fehlt sein Modell noch, entsteht es sparsam */
 function vpEinraeumen(e){
-  if(!poolDa(e.t)){ TEX_FAKTOR=VP_TEX; let pl; try{ pl=pools[e.t]; } finally { TEX_FAKTOR=1; }
+  if(!poolDa(e.t)){ TEX_FAKTOR=VP_TEX; let pl; try{ pl=pools[e.t]; } finally { TEX_FAKTOR=GFX_START.tex; }
     pl.vp=true; vpNeu.add(e.t);
     pl.meshes.forEach(m=>{ m.castShadow=false;
       const ms=Array.isArray(m.material)?m.material:[m.material];

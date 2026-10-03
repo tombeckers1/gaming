@@ -111,7 +111,8 @@ function fwTestSchalten(){
    Gezuendet wird auf einer eigenen grossen Anlage (Tisch, zwoelf Rohre,
    zwoelf Moerser) mit denselben Abschussorten wie im Spiel.
    Tasten: Leertaste/Enter zuenden (dann das naechste), Pfeil rechts
-   ueberspringen, Pfeil links zurueck, R nochmal, 1 gut, 2 aendern,
+   ueberspringen, Pfeil links zurueck, R nochmal, X stoppt alles, was
+   gerade brennt, 1 gut, 2 aendern,
    L Liste, B beenden (Esc nur ohne gefangenen Mauszeiger). Der Stand (Nummer, Notizen) bleibt gemerkt.
    ========================================================= */
 let vfIdx=0, vfListe=[], vfEl=null, vfLetzt=null, vfNoten={}, vfListeAuf=false;
@@ -196,7 +197,29 @@ function vfMuendung(t){
 /* ein Produkt auf seinen Platz der Anlage und sofort zuenden - wie auf
    der Station: Zuendschnur bei Rohr und Moerser, dann igniteType am
    Abschussort (Effekt und Klang wie im Spiel) */
-function vfZuenden(t){
+function vfZuenden(t){ FW_KTX++; try{ return vfZuendenRoh(t); } finally { FW_KTX--; } }
+/* was nach dem Abbrennen vom Tisch muss (Batterie, Kleinfeuerwerk) */
+let vfAufraeumen=[];
+/* 03.10. (Tom): "wenn das Feuerwerk laeuft, eine Taste druecken, dann
+   beendet das Feuerwerk sofort" - sonst stoert das alte das naechste.
+   Taste X: alle geplanten Schuesse und Brueche, Sterne, Raketen, Boden-
+   Emitter, Rauch, Lichtblitze und der Ton sind auf der Stelle weg; die
+   Produkte verschwinden vom Tisch. Testfeld und Nacht bleiben. */
+function vfStopp(){
+  let n=0;
+  for(let i=timers.length-1;i>=0;i--) if(timers[i].fw){ timers.splice(i,1); n++; }
+  if(typeof FAECHER!=='undefined') FAECHER.clear();
+  for(const ps of [psHuge,psBig,psMid,psSmall]) if(ps) for(let i=0;i<ps.max;i++) if(ps.life[i]>0){ ps.life[i]=1e-4; n++; }
+  n+=rockets.length+emitters.length; rockets.length=0; emitters.length=0;
+  if(typeof WOLKEN!=='undefined') for(const w of WOLKEN) w.t=w.dauer;
+  for(const f of FLASH){ f.t=0; f.max=0; if(f.l) f.l.intensity=0; }
+  for(const fn of vfAufraeumen.splice(0)) try{ fn(); }catch(e){}
+  vfBelegt={};
+  if(typeof sfxSchnitt==='function') sfxSchnitt();
+  vfZeigen();
+  return n;
+}
+function vfZuendenRoh(t){
   if(!t||!P[t]) return false;
   const o=vfMuendung(t), dauer=brennDauer(t), vor=o.sid==='moerser'?0.75:o.sid==='rampe'?0.4:0;
   vfBelegt[o.art]=FW_UHR+vor+dauer+0.5;
@@ -210,8 +233,9 @@ function vfZuenden(t){
      und Kugeln steil */
   { const sh=P[t].shape; pitch=o.sid==='tisch'?(SHOWS[t]||sh==='battery'||sh==='fan'?0.55:sh==='fountain'||sh==='cylinder'||sh==='fountainset'?0.35:0.1):o.sid==='rampe'?0.72:0.85;
     yaw=Math.atan2(-(o.x-pl.x),-(o.z-pl.z)); }
-  if(h) later(vor+dauer,()=>{ if(h.pool) h.pool.remove(h); });
-  if(bt) later(vor+dauer,()=>bt.weg());
+  if(h){ let weg=false; const fn=()=>{ if(weg) return; weg=true; if(h.pool) h.pool.remove(h); }; vfAufraeumen.push(fn); later(vor+dauer,fn); }
+  if(bt){ let weg=false; const fn=()=>{ if(weg) return; weg=true; bt.weg(); }; vfAufraeumen.push(fn); later(vor+dauer,fn); }
+  if(vfAufraeumen.length>40) vfAufraeumen.splice(0,vfAufraeumen.length-40);
   vfLetzt=t; return true;
 }
 function vfNaechstes(){ if(!vfListe.length) return; vfZuenden(vfListe[vfIdx]); vfIdx=Math.min(vfListe.length,vfIdx+1); vfMerken(); vfZeigen(); }
@@ -228,6 +252,7 @@ function vfTaste(e){
   if(c==='ArrowRight'){ e.preventDefault(); vfSpringen(1); return true; }
   if(c==='ArrowLeft'){ e.preventDefault(); vfSpringen(-1); return true; }
   if(c==='KeyR'){ if(vfLetzt) vfZuenden(vfLetzt); vfZeigen(); return true; }
+  if(c==='KeyX'||c==='Backspace'){ e.preventDefault(); vfStopp(); toast('Feuerwerk gestoppt.'); return true; }
   if(c==='Digit1'||c==='Numpad1'){ vfNote('gut'); return true; }
   if(c==='Digit2'||c==='Numpad2'){ vfNote('aendern'); return true; }
   if(c==='KeyL'){ vfListeAuf=!vfListeAuf; vfZeigen(); return true; }
@@ -252,6 +277,7 @@ function vfZeigen(){
       else if(a==='gut') vfNote('gut'); else if(a==='aendern') vfNote('aendern');
       else if(a==='liste'){ vfListeAuf=!vfListeAuf; vfZeigen(); }
       else if(a==='kopieren'){ try{ navigator.clipboard.writeText(vfText()); toast('Liste mit Notizen kopiert.'); }catch(err){} }
+      else if(a==='stopp'){ vfStopp(); toast('Feuerwerk gestoppt.'); }
       else if(a==='ende') vorfuehrungAus();
       else if(a.startsWith('i')){ vfIdx=+a.slice(1); vfMerken(); vfZeigen(); } });
     document.body.appendChild(vfEl); }
@@ -265,7 +291,7 @@ function vfZeigen(){
   else h+=`<div style="margin:6px 0;font:${BAR(20)}">Leertaste zündet das erste Feuerwerk.</div>`;
   h+=`<div style="margin-top:8px;padding-top:6px;border-top:1px solid rgba(242,197,48,.35);font:${BAR(17)}">`+
     (naechst?`ALS NÄCHSTES (${vfIdx+1}): <b>${vfEsc(P[naechst].short)}</b> &nbsp;${vfZeile(naechst,true)}`:'<b>Ende der Liste.</b> Mit Pfeil links zurück.')+`</div>`;
-  h+=`<div style="margin-top:6px">${btn('zuenden','␣ Zünden','#8a2a16')}${btn('zurueck','← Zurück')}${btn('vor','→ Weiter')}${btn('nochmal','R Nochmal')}${btn('gut','1 Gut')}${btn('aendern','2 Ändern')}${btn('liste','L Liste')}${btn('ende','B Beenden')}</div>`;
+  h+=`<div style="margin-top:6px">${btn('zuenden','␣ Zünden','#8a2a16')}${btn('zurueck','← Zurück')}${btn('vor','→ Weiter')}${btn('nochmal','R Nochmal')}${btn('stopp','X Stopp','#5a1020')}${btn('gut','1 Gut')}${btn('aendern','2 Ändern')}${btn('liste','L Liste')}${btn('ende','B Beenden')}</div>`;
   if(vfListeAuf){
     h+=`<div style="margin-top:6px;max-height:30vh;overflow:auto;border-top:1px solid rgba(242,197,48,.35)">`+
       vfListe.map((t,i)=>`<div data-vf="i${i}" style="cursor:pointer;padding:2px 4px;${i===vfIdx?'background:rgba(242,197,48,.22);':''}${t===akt?'outline:1px solid #f2c230;':''}">`+

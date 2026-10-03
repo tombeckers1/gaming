@@ -16,7 +16,7 @@ const renderer=new THREE.WebGLRenderer({canvas,antialias:GFX!=='niedrig',powerPr
    mit mehr. So bleibt es fluessig, ohne gleich eine ganze Stufe zu verlieren. */
 const RES_MIN=0.55;
 let RES=1; try{ const r=+localStorage.getItem('bb_res'); if(r) RES=clamp(r,RES_MIN,1); }catch(e){}
-function gfxPixelMax(){ const d=window.devicePixelRatio||1; return GFX==='hoch'?Math.min(d,2):GFX==='mittel'?Math.min(d,1):0.75; }
+function gfxPixelMax(){ const d=window.devicePixelRatio||1, g=GFX_PROFIL[GFX]||GFX_PROFIL.hoch; return GFX==='niedrig'?0.75:Math.min(g.pxMax,Math.max(d*(g.px>2?1.5:1),g.px)); }
 function gfxPixel(){ return Math.max(0.5,gfxPixelMax()*(GFX_WAHL==='auto'?RES:1)); }
 renderer.setPixelRatio(gfxPixel());
 renderer.setSize(innerWidth,innerHeight,false);
@@ -68,9 +68,9 @@ if(HIQ){ shopSpot.castShadow=true; shopSpot.shadow.mapSize.set(1024,1024); shopS
    und die Karte wird nicht mehr neu gezeichnet (schattenTakt). */
 function schattenWerte(st){
   if(!HIQ) return;
-  const gr=st==='hoch'?2048:st==='mittel'?1024:512, aus=st==='niedrig';
+  const g=GFX_PROFIL[st]||GFX_PROFIL.hoch, gr=Math.min(g.sch,renderer.capabilities.maxTextureSize||4096), aus=st==='niedrig';
   if(sun.shadow.mapSize.x!==gr){ sun.shadow.mapSize.set(gr,gr); if(sun.shadow.map){ sun.shadow.map.dispose(); sun.shadow.map=null; } }
-  sun.shadow.radius=st==='hoch'?2.2:1.2;
+  sun.shadow.radius=g.rad;
   sun.shadow.bias=aus?-10:-0.0006; shopSpot.shadow.bias=aus?-10:-0.0008;
   renderer.shadowMap.needsUpdate=true;
 }

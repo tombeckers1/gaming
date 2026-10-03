@@ -11,13 +11,32 @@ const HIQ=!COARSE;
    'niedrig', gewaehlt im Pausenmenue, oder 'auto': startet mit der zuletzt
    automatisch gefundenen Stufe und schaltet herunter, wenn die Bildrate
    laenger unter 28 faellt (20-loop, gfxMessen). */
-const GFX_STUFEN=['niedrig','mittel','hoch'];
+const GFX_STUFEN=['niedrig','mittel','hoch','max','ultra','extrem'];
+/* 03.10. (Tom: "Maximum, dann noch Ultra und Ultra Extrem - was ist
+   moeglich"): drei Stufen ueber Hoch, nur von Hand waehlbar (die
+   Automatik bleibt bei hoechstens Hoch). Je Stufe: Pixeldichte (px:
+   Mindestwert, pxMax: Obergrenze - ueber 1 heisst Supersampling auf
+   normalen Bildschirmen), Kantenglaettung (ms), Schattenkarte (sch, rad),
+   Texturschaerfe (tex Faktor, cap Obergrenze je Druckbogen, ani
+   Anisotropie), Feuerwerksfunken (qual), Leuchteffekt-Aufloesung (blur).
+   Texturen und Funkenpuffer entstehen beim Laden - dafuer zaehlt die
+   beim Start gewaehlte Stufe. */
+const GFX_PROFIL={
+  niedrig:{px:0,pxMax:0.75,ms:0,sch:512,rad:1.2,tex:1,cap:1120,ani:4,qual:0.55,blur:4},
+  mittel:{px:0,pxMax:1,ms:2,sch:1024,rad:1.2,tex:1,cap:1120,ani:4,qual:0.8,blur:4},
+  hoch:{px:0,pxMax:2,ms:4,sch:2048,rad:2.2,tex:1,cap:1120,ani:4,qual:1,blur:4},
+  max:{px:1.5,pxMax:2,ms:8,sch:4096,rad:2.6,tex:1.5,cap:1700,ani:8,qual:1.25,blur:3},
+  ultra:{px:2,pxMax:2.5,ms:8,sch:4096,rad:3,tex:2,cap:2300,ani:16,qual:1.5,blur:2},
+  extrem:{px:2.5,pxMax:3,ms:16,sch:8192,rad:3.2,tex:2.5,cap:3000,ani:16,qual:1.9,blur:2}};
+const GFX_NAME={niedrig:'Niedrig',mittel:'Mittel',hoch:'Hoch',max:'Maximum',ultra:'Ultra',extrem:'Ultra Extrem'};
 let GFX_WAHL='auto', GFX='hoch';
 try{ GFX_WAHL=localStorage.getItem('bb_gfx')||'auto'; GFX=GFX_WAHL==='auto'?(localStorage.getItem('bb_gfx_auto')||'hoch'):GFX_WAHL; }catch(e){}
 if(GFX_WAHL!=='auto'&&GFX_STUFEN.indexOf(GFX_WAHL)<0) GFX_WAHL='auto';
 if(GFX_STUFEN.indexOf(GFX)<0) GFX='hoch';
 /* Partikelmenge je Stufe (QUAL in 14-fireworks) */
-const GFX_QUAL={hoch:1,mittel:0.8,niedrig:0.55};
+const GFX_QUAL={}; for(const k in GFX_PROFIL) GFX_QUAL[k]=GFX_PROFIL[k].qual;
+/* beim Laden festgelegt: Texturschaerfe und Anisotropie der Startstufe */
+const GFX_START=GFX_PROFIL[GFX]||GFX_PROFIL.hoch;
 if(COARSE) document.body.classList.add('coarse');
 const KEY='boellerbude_v3';
 const LIN=h=>new THREE.Color(h).convertSRGBToLinear();
@@ -32,7 +51,7 @@ function std(hex,o){ const m=new THREE.MeshStandardMaterial(Object.assign({rough
 /* nur mit WebGL2: WebGL1 muesste Bilder ohne Zweierpotenz-Groesse ueber eine
    Canvas umrechnen - das geht mit ImageData nicht */
 function texSpar(c){ try{ if(!renderer.capabilities.isWebGL2) return c; const d=c.getContext('2d').getImageData(0,0,c.width,c.height); c.width=c.height=0; return d; }catch(e){ return c; } }
-function tex(w,h,draw,srgb){ const c=document.createElement('canvas'); c.width=w; c.height=h; draw(c.getContext('2d'),w,h); const t=new THREE.CanvasTexture(draw.length?texSpar(c):c); t.anisotropy=4; if(srgb!==false) t.encoding=THREE.sRGBEncoding; return t; }
+function tex(w,h,draw,srgb){ const c=document.createElement('canvas'); c.width=w; c.height=h; draw(c.getContext('2d'),w,h); const t=new THREE.CanvasTexture(draw.length?texSpar(c):c); t.anisotropy=GFX_START.ani; if(srgb!==false) t.encoding=THREE.sRGBEncoding; return t; }
 function texCanvas(t){ let c=t.image; if(c&&c.getContext) return c;
   const n=document.createElement('canvas'); n.width=c.width; n.height=c.height; if(c&&c.data) n.getContext('2d').putImageData(c,0,0); t.image=n; return n; }
 function redraw(t,draw){ const c=texCanvas(t); draw(c.getContext('2d'),c.width,c.height); t.needsUpdate=true; }

@@ -1074,6 +1074,7 @@ function renderLaptop(){
   lapZeichnen($('lbody'));
 }
 function lapZeichnen(body){
+  const _ae=document.activeElement, _fok=!!(_ae&&_ae.id==='lSuche'), _car=_fok?(_ae.selectionStart||0):0;
   $('lMoney').textContent=eur(S.money);
   $('lLevel').textContent=`Level ${S.level} · ${S.xp}/${xpFor(S.level)} XP`;
   document.querySelectorAll('#ltabs button').forEach(b=>b.classList.toggle('on',b.dataset.tab===ltab));
@@ -1148,16 +1149,18 @@ function lapZeichnen(body){
       const KF=['alle','f1','f2','zubehoer','essen','getraenke'];
       if(KF.indexOf(lkat)<0) lkat='alle';
       h+=`<div class="kfilter">`+KF.map(k=>`<button data-a="lkat" data-t="${k}" class="${k===lkat?'on':''}">${k==='alle'?'Alle':SPARTE_NAME[k]} <span style="opacity:.65">${ORDER.filter(t=>canOrder(t)&&(k==='alle'||sparteVon(t)===k)).length}</span></button>`).join('')+`</div>`;
-      const ware=ORDER.filter(t=>canOrder(t)&&(lkat==='alle'||sparteVon(t)===lkat)).sort((x,y)=>lizLevel(x)-lizLevel(y)||P[x].lvl-P[y].lvl||P[x].name.localeCompare(P[y].name));
+      h+=sucheFeld('Produkt suchen … z. B. „stu“ für Sturmfeuerzeug');
+      const ware=ORDER.filter(t=>canOrder(t)).sort((x,y)=>lizLevel(x)-lizLevel(y)||P[x].lvl-P[y].lvl||P[x].name.localeCompare(P[y].name));
       let gruppe=null;
       h+=`<div class="karten">`+ware.map(t=>{ const p=P[t], un=isUnlocked(t), cap=shelfCapOf(t), lz=lizenzOf(t), l=lz?lizenzDaten(lz):null;
         let kopf='';
         const g=l?l.id:'grund';
-        if(g!==gruppe){ gruppe=g; kopf=`<div class="kgruppe">${l?`${l.name} · Lizenz ab Level ${l.lvl}${hatLizenz(l.id)?' · freigeschaltet':''}`:'Grundsortiment'}</div>`; }
-        if(!un) return kopf+`<div class="karte locked"><img class="kbild" ${prodPicTag(t)} alt=""><b>${p.name} ${catPill(p)}</b><small>${l?`Lizenz „${l.name}“ ab Level ${l.lvl}. Unter Sortiment freischalten.`:`Ab Level ${p.lvl}.`}</small></div>`;
+        if(g!==gruppe){ gruppe=g; kopf=`<div class="kgruppe" data-gr="1">${l?`${l.name} · Lizenz ab Level ${l.lvl}${hatLizenz(l.id)?' · freigeschaltet':''}`:'Grundsortiment'}</div>`; }
+        const dw=`data-ware="${t}" data-sparte="${sparteVon(t)}"`;
+        if(!un) return kopf+`<div class="karte locked" ${dw}><img class="kbild" ${prodPicTag(t)} alt=""><b>${p.name} ${catPill(p)}</b><small>${l?`Lizenz „${l.name}“ ab Level ${l.lvl}. Unter Sortiment freischalten.`:`Ab Level ${p.lvl}.`}</small></div>`;
         const btns=tiers.map(tr=>{ const c=tierPrice(t,sup,tr);
           return `<button data-a="cart" data-t="${t}" data-n="${tr.n}" data-s="${sup.id}">+ ${tr.n}× ${eur(c)}${tr.d?` <span style="opacity:.7">−${Math.round(tr.d*100)}%</span>`:''}</button>`; }).join('');
-        return kopf+`<div class="karte"><img class="kbild" ${prodPicTag(t)} alt=""><b>${p.name} ${catPill(p)} ${ekPill(t)}</b><small>Karton mit ${p.box} Stück${canShelf(t)?(cap?` · Fach fasst ${cap}`:' · kein passendes Regal'):' · nur für den Automaten'}</small><small>Im Laden: ${shelfStockOf(t)} im Regal, ${stockOf(t)} insgesamt</small>`+
+        return kopf+`<div class="karte" ${dw}><img class="kbild" ${prodPicTag(t)} alt=""><b>${p.name} ${catPill(p)} ${ekPill(t)}</b><small>Karton mit ${p.box} Stück${canShelf(t)?(cap?` · Fach fasst ${cap}`:' · kein passendes Regal'):' · nur für den Automaten'}</small><small>Im Laden: ${shelfStockOf(t)} im Regal, ${stockOf(t)} insgesamt</small>`+
           `<div class="steps">${btns}</div></div>`; }).join('')+`</div>`;
     }
   } else if(ltab==='price'){
@@ -1168,11 +1171,12 @@ function lapZeichnen(body){
       `</div></div>`;
     h+=`<div class="row"><div class="rm"><b>Alle Preise nachziehen</b><small>Auf Marktniveau setzen, oder das ganze Sortiment in Ein-Prozent-Schritten teurer und billiger machen.</small></div>`+
       `<div class="steps"><button data-a="pall" data-d="1">auf Markt</button><button data-a="pstep" data-d="1.01">alle +1 %</button><button data-a="pstep" data-d="0.99">alle −1 %</button></div></div>`;
+    h+=sucheFeld('Preis suchen … Produkt eintippen');
     h+=ORDER.filter(t=>isUnlocked(t)&&t!=='blanko'&&!P[t].noOrder).map(t=>{
       const p=P[t], hi=priceHint(t), mp=marketOf(t), ek=r2(costOf(t)*ekFactor()), d=marktDelta(t),
             ph=marktPhase(t), sch=marktSchock(t), lab=marktLabel(t);
       const pill=d>0.4?`<span class="pill up">+${d.toFixed(1)} %</span>`:d<-0.4?`<span class="pill dn">${d.toFixed(1)} %</span>`:`<span class="pill fl">±0</span>`;
-      return `<div class="row"><div class="rm"><b>${p.name} ${pill}</b>`+
+      return `<div class="row" data-ware="${t}"><div class="rm"><b>${p.name} ${pill}</b>`+
         `<small>Markt ${eur(mp)} · Einkauf ${eur(ek)} ${ekPill(t)} · Gewinn je Stück ${eur(r2(S.prices[t]-ek))}</small>`+
         `<small class="${lab[0]}">${lab[1]} · Markt ${ph.name}${sch?(sch.k==='knapp'?' · Ware knapp':' · Ware im Überfluss'):''}</small>`+
         (marktLuecke(t)>=7?`<small class="ok">Günstige Gelegenheit: Einkauf liegt ${marktLuecke(t)} % unter dem, was die Kunden zahlen</small>`
@@ -1346,6 +1350,7 @@ function lapZeichnen(body){
       `<div class="row"><div class="rm"><b>Spielstand</b><small>Wird automatisch gespeichert.</small></div><button class="ghost" data-a="reset">${resetArm?'Wirklich löschen?':'Spielstand löschen'}</button></div>`;
   }
   body.innerHTML=h;
+  if(typeof sucheBinden==='function') sucheBinden(body,_fok,_car);
   if(korbOpen) renderKorb();
 }
 $('lKorb').addEventListener('click',()=>openKorb());
@@ -1387,7 +1392,9 @@ function lapKlick(e,imHandy){
   else if(a==='cartgo') cartOrder();
   else if(a==='cartclear') cartClear();
   else if(a==='sup'){ lsup=t; }
-  else if(a==='lkat'){ lkat=t; }
+  else if(a==='lkat'){ lkat=t; if(lsuche){ lsuche=''; } }
+  else if(a==='lsuchepick'){ sucheNimm(b.closest('#lbody,#hApp')||$('lbody'),t); return; }
+  else if(a==='lsuchex'){ lsuche=''; }
   else if(a==='rbuy') orderRegal(t);
   else if(a==='pack') cartAddPack(t);
   else if(a==='rkauf') buyAngebot(+t);

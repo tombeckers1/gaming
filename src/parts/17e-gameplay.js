@@ -107,7 +107,12 @@ function* gpAufbau(){
   if(ware.length>GP_KLEIN.sorten) ware=ware.slice().sort((a,b)=>P[b].weight-P[a].weight).slice(0,GP_KLEIN.sorten);
   const L=allLevels(); let k=0;
   for(let i=0;i<L.length;i++){ const lv=L[i]; if(lv.type&&lv.count>0) continue;
-    for(let j=0;j<ware.length;j++){ const t=ware[(k+j)%ware.length]; if(!pools[t]) continue; if(addToLevel(lv,t,1)){ let n=0; while(n++<400&&addToLevel(lv,t,1)); k=(k+j+1)%ware.length; break; } }
+    for(let j=0;j<ware.length;j++){ const t=ware[(k+j)%ware.length];
+      /* jede neue Sorte malt ihr Druckbild und baut ihre Form - das kostet
+         bis zu einige hundert ms: dafuer ein eigenes Bild */
+      if(typeof poolDa==='function'&&!poolDa(t)){ if(!pools[t]) continue; yield [0.55+0.3*i/L.length,'Ware einräumen ('+(i+1)+' / '+L.length+') · '+(P[t].short||t)]; }
+      else if(!pools[t]) continue;
+      if(addToLevel(lv,t,1)){ let n=0; while(n++<400&&addToLevel(lv,t,1)); k=(k+j+1)%ware.length; break; } }
     yield [0.55+0.3*i/L.length,'Ware einräumen ('+(i+1)+' / '+L.length+')']; }
   /* Lager: Kartons der meistverkauften Ware */
   const gut=ware.slice().sort((a,b)=>P[b].weight-P[a].weight);

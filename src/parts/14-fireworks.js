@@ -1408,7 +1408,13 @@ const EFF_SCHWEIF={kugel:0.07,chrys:0.75,wechsel:0.08,weide:1.9,palme:1.1,ring:0
   sternpalme:1.1,polarstern:0.12,
   smiley:0.06,bienen:0.3,drachenei:0.6,kokosnuss:1.3,schmetterling:0.06,blumenkranz:0.08,strobeweide:1.2,rossschweif:1.4,
   diadem:0.12,goldvorhang:1.3,krone:1.1,regenbogenring:0.08,pfeifsterne:0.9,nishiki:1.1,drachenblut:0.3,weltenbrand:0.3,himmelsbrecher:0.5};
-function mitSchweif(eff,fn){ const alt=SCHWEIF; SCHWEIF=EFF_SCHWEIF[eff]!==undefined?EFF_SCHWEIF[eff]:null; try{ fn(); } finally { SCHWEIF=alt; } }
+/* 03.10. (Tom, drei Feuerwerksfotos: "dass es einfach so schoen ist wie
+   da"): jeder Stern eines Bruchs zieht eine Leuchtspur von mindestens
+   SPUR_MIN s - so wie das Auge (und das Foto) brennende Sterne sieht;
+   reine Punktbrueche wirkten daneben wie Konfetti. 0 bleibt 0 (Effekte,
+   die bewusst ohne Spur sind, z. B. Fallschirm, Spaetzuender). */
+const SPUR_MIN=0.17;
+function mitSchweif(eff,fn){ const alt=SCHWEIF, w=EFF_SCHWEIF[eff]; SCHWEIF=w===undefined?SPUR_MIN:(w>0?Math.max(w,SPUR_MIN):w); try{ fn(); } finally { SCHWEIF=alt; } }
 const EFF_ALL=Object.keys(EFF);
 /* Was in welcher Groessenklasse geschossen wird */
 const EFF_KLEIN=['kugel','ring','knister','fische','kreisel','wechsel','spinne','strobe','tausend','regenbogen','ringring','spirale'];

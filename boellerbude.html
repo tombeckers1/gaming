@@ -2960,9 +2960,9 @@ const LB_SORTIMENT=[
  ['lb_glitzergarten','Glitzergarten','17 Schuss Glitzer',7,[0.5,0.22,0.32],'#5a1a4a','#12040e','#ffb8e0','#a8fff0','Glitzerkometen mit Farbspitzen, darüber leise Blütenglitzer und Blütenkränze in Pastell – eine Batterie für Kinder, die schön ist statt laut.','spirale','jugend'],
  ['lb_fontaenenballett','Kometenballett','24 Schuss Kometen & Kronen',13,[0.8,0.28,0.5],'#1a3a6a','#040a14','#5ce1ff','#ff6a8a','Farbkometen steigen paarweise im V links, rechts und in der Mitte; über jedem Fächer öffnet sich eine Farbkrone, dazwischen Farbcrossetten. Finale: drei Kometenfächer zugleich.','wechsel','feuerzauber'],
  ['lb_goldregen','Goldregen','22 Schuss Gold',15,[0.8,0.28,0.5],'#5a3a06','#140a02','#ffd23f','#fff3c4','Goldkometen mit Brokatschweif, aus denen am Ende ein goldener Regen sinkt, Goldfächer, Weidenfächer und ein Goldwasserfall – ganz in Gold.','mitte','verbund'],
- ['lb_blitzweiden','Blitzweiden','20 Schuss Blitzweiden',17,[0.85,0.3,0.55],'#1a1a2a','#040408','#f2f5ff','#ff6ad8','Zwei Blitzfontänen eröffnen, dann dunkle Aufstiege und oben Blitzweiden in Gold und in Farbe, Blitzkronen – zum Schluss fünf Weiden zugleich.','zufall','import'],
+ ['lb_blitzweiden','Blitzweiden','20 Schuss Blitzweiden',17,[0.85,0.3,0.55],'#1a1a2a','#040408','#f2f5ff','#ff6ad8','Zwei Blitzkometen-Fächer eröffnen, dann dunkle Aufstiege und oben Blitzweiden in Gold und in Farbe, Blitzkronen – zum Schluss fünf Weiden zugleich.','zufall','import'],
  ['lb_goldader','Goldader','86 Schuss Goldkometen',18,[0.9,0.3,0.6],'#5a3a06','#140a02','#ffd23f','#fff3c4','Goldkometen kreuz und quer – mal links, mal rechts –, Glitzerminen, Weidenkometen und zwei Goldregen-Kometenfächer; ein Finale aus sechzehn Goldkometen über einem großen Goldkometenfächer.','wechsel','goldklasse'],
- ['lb_silbergewitter','Silbergewitter','28 Schuss Silberweiden',20,[0.9,0.3,0.6],'#1a2a3a','#04080c','#c8e4ff','#7a5cff','Eine Silberfontäne, dann silberne Blitzweiden, in denen farbige Blitze zucken, Blitzblüten und Farbweiden – das Finale drei Silberweiden in der Mitte.','diagonal','grossfeuer'],
+ ['lb_silbergewitter','Silbergewitter','28 Schuss Silberweiden',20,[0.9,0.3,0.6],'#1a2a3a','#04080c','#c8e4ff','#7a5cff','Silberkometen kreuz und quer mit knisterndem Schweif, dann silberne Blitzweiden, in denen farbige Blitze zucken, Blitzblüten und Farbweiden – das Finale drei Silberweiden in der Mitte.','diagonal','grossfeuer'],
  ['lb_blitzpalmen','Blitzpalmen','25 Schuss Blitzpalmen',22,[0.9,0.3,0.6],'#3a2a06','#0a0602','#ffd23f','#ffffff','Zwei Goldregen-Kometenfächer eröffnen, dann jede Palme anders: Blitzpalme, Farbpalme, Königspalme mit Silberkrone, Palmenweide, Stufenpalme – Finale aus fünf Doppelpalmen.','mitte','profi'],
  ['lb_fontaenenpalast','Kometenpalast','41 Schuss Kometen & Kronen',24,[1.0,0.32,0.62],'#2a0a4a','#08020f','#ffd23f','#ff5ac8','Schwenkende Titan-Kometen mit Farbkopf außen, ein Kometentor mit Dreifachtor, Weidencrossetten, glühende Kometenfächer – Finale: sechs Kometenfächer zugleich, darüber Farbkronen und ein Weidenvorhang.','spalte','profi'],
  ['lb_weidenhain','Weidenhain','56 Schuss Weiden',24,[0.95,0.32,0.6],'#3a2a06','#0a0602','#ffb84a','#fff3c4','Weidenfächer, farbige Weiden, Weidencrossetten und ein Weidenfall, schräg durch die Batterie gezündet – das Finale ein Vorhang, der lange am Himmel hängt.','diagonal','profi'],
@@ -34423,6 +34423,12 @@ function kfZackSchweif(e,v,G,T,c,q,art){ art=art||KF_ART.faecher; const LL=art.L
         if(Math.random()<kn*q) kgSpaeter(rand(0.25,0.8),()=>psSmall.emit(x,y-0.2,z,rand(-.5,.5),rand(-.5,.3),rand(-.5,.5),1.6,1.5,1.3,rand(0.06,0.14),1,1)); }
       alt=p; SCHWEIF=sa; FW_TAG=at; }); }
 }
+/* Obergrenze (03.10., mblast: sieben Faecher zugleich im Finale der
+   Farbenpracht = ein Bild mit 129 ms): hoechstens KF_RATE Kometen je
+   Sekunde ueber alle Faecher zusammen - mehr sieht man ohnehin nicht
+   einzeln, der Funkenpuffer laeuft sonst ueber */
+const KF_RATE=40, KF_ZEIT=[];
+function kfFrei(){ const t=FW_UHR; while(KF_ZEIT.length&&KF_ZEIT[0]<t-1) KF_ZEIT.shift(); if(KF_ZEIT.length>=KF_RATE*Math.min(1,0.5+0.5*QUAL())) return false; KF_ZEIT.push(t); return true; }
 function lKometenFaecher(o,A,B,s,p){
   const m=lMund(o), D=p.D||6, G=7.5, Hk=Math.max(13,Math.min(44,(p.H||9)*3.3*Math.sqrt(s))), Q=lQuer({dir:FANDIR}),
     W=Math.min(0.8,(p.weit||0.6)*1.1), mu=p.muster||KF_MUSTER[(p.saat||0)%KF_MUSTER.length], plan=[], E=D-0.4;
@@ -34434,7 +34440,7 @@ function lKometenFaecher(o,A,B,s,p){
   const max=Math.round(28*Math.min(1,0.5+0.5*QUAL())), schritt=plan.length>max?plan.length/max:1;
   lStart(m,1.0,0.3);
   for(let i=0;i<plan.length;i+=schritt){ const z=plan[Math.floor(i)], u=z.t/D;
-    kgSpaeter(z.t,()=>{ kfKomet(m,Q,z.a,p.c(u,z.j),Hk,G,p.md,z.dx,KF_ART[mu]); const v=distVol(m); if(Math.random()<0.6) (sfx.rakPff?sfx.rakPff(v*0.5):sfx.thump(v*0.2)); }); }
+    kgSpaeter(z.t,()=>{ if(!kfFrei()) return; kfKomet(m,Q,z.a,p.c(u,z.j),Hk,G,p.md,z.dx,KF_ART[mu]); const v=distVol(m); if(Math.random()<0.6) (sfx.rakPff?sfx.rakPff(v*0.5):sfx.thump(v*0.2)); }); }
   later(0.4,()=>sfx.fauchen(distVol(m)*0.35,Math.min(4,D)));
   { const ton=(KF_ART[mu]||KF_ART.faecher).ton; for(let k=0;k<Math.floor(D/0.6);k++) later(0.9+k*0.6,()=>{ const v=distVol(m)*0.35, f=sfx[ton];
       if(ton==='zischen'||ton==='rieseln') f&&f(v,0.5); else if(ton==='pfeif') (sfx.pfeif||sfx.zischen)(v*0.6,0.4); else f&&f(v); }); }
@@ -34478,7 +34484,7 @@ function breitBoden(o,A,B,p){
 }
 /* Brenndauer am Rohr (s ab Zuendung bis der Himmelseffekt verloschen
    ist): so lange steht die Batterie auf dem Tisch (04c zuendFolge) */
-const LICHT_BRENN={breitfarbew:11,breitfarbef:11,breitsilber:11,breitbluete:11,breitkomet:11,breitblitz:11.5,breitwechsel:10,breitglut:10.5,breitfarbe:11,breitregen:11.5,breitcross:11,breittor:11.5,breitklein:6,breitglitzer:6.5};
+const LICHT_BRENN={breitgewitter:11,breitfarbew:11,breitfarbef:11,breitsilber:11,breitbluete:11,breitkomet:11,breitblitz:11.5,breitwechsel:10,breitglut:10.5,breitfarbe:11,breitregen:11.5,breitcross:11,breittor:11.5,breitklein:6,breitglitzer:6.5};
 /* Silberfaecher: weite Silberfontaene, zum Schluss drei Weidenkometen */
 LICHTYP.breitsilber=function(o,A,B,s,opt){ lBreit(o,A,B,s,opt,{schuss:true,muster:'wisch',D:5.5,H:8.5,weit:0.83,n:26,c:()=>[1.3,1.32,1.4],md:0,life:[0.6,1.1],
   ende:()=>[-0.25,0,0.25].forEach((a,k)=>kgSpaeter(k*0.25,()=>LICHTYP.weidenkomet(o,A,B,s,lHoch(a))))}); };
@@ -34587,6 +34593,9 @@ LICHTYP.breitfarbe=function(o,A,B,s,opt){ lBreit(o,A,B,s,opt,{schuss:true,muster
    mit Gold-Brokat und Farbkopf */
 LICHTYP.breitfarbew=function(o,A,B,s,opt){ lBreit(o,A,B,s,opt,{schuss:true,muster:'wisch',D:6,H:10,weit:0.7,n:24,md:0,c:(u,j)=>j%2?lHell(A,1.5):lHell(B,1.5),ende:()=>LICHTYP.farbkrone(o,A,B,s,lHoch())}); };
 LICHTYP.breitfarbef=function(o,A,B,s,opt){ lBreit(o,A,B,s,opt,{schuss:true,muster:'faecher',D:6,H:9.5,weit:0.75,n:24,md:4,c:(u,j)=>j%3===1?GOLDF:lHell(j%3?A:B,1.5),ende:()=>LICHTYP.farbcrossette(o,A,B,s,lHoch())}); };
+/* Silbergewitter: Silberkometen kreuz und quer mit knisterndem Schweif,
+   zum Schluss eine Silberblitzweide */
+LICHTYP.breitgewitter=function(o,A,B,s,opt){ lBreit(o,A,B,s,opt,{schuss:true,muster:'kreuz',D:6,H:9.6,weit:0.72,n:24,md:0,c:(u,j)=>j%5===4?lHell(A,1.5):[1.35,1.36,1.45],ende:()=>LICHTYP.silberblitzweide(o,A,B,s,lHoch())}); };
 LICHTYP.breitregen=function(o,A,B,s,opt){ lBreit(o,A,B,s,opt,{schuss:true,muster:'faecher',D:6.5,H:9.2,weit:0.6,n:24,md:4,c:()=>GOLDF,ende:()=>LICHTYP.weidenfaecher(o,A,B,s*1.05,lHoch())}); };
 /* Kreuzfontaene: Silber mit Farbspitzen, am Ende zwei Weidencrossetten */
 LICHTYP.breitcross=function(o,A,B,s,opt){ lBreit(o,A,B,s,opt,{schuss:true,muster:'kreuz',D:6,H:8.8,weit:0.66,n:24,md:0,life:[0.7,1.2],c:(u,j)=>j%4?[1.3,1.32,1.4]:lHell(A,1.5),
@@ -34713,7 +34722,7 @@ lbShow('lb_silbergewitter',[['tuerkis','silber'],['violett','weiss'],['blau','si
   {n:4,gap:1.3,muster:'x',ang:0.3,licht:'silberblitzweide',farbe:0},
   {n:6,gap:0.7,muster:'z',ang:0.3,licht:'blitzbluete',farbe:1,pause:1},
   {n:6,takt:[0.2,0.2,0.9],muster:'paar',ang:0.3,licht:'silberblitzweide',farbe:2},
-  {n:2,gap:0.4,rohrFolge:[-1,1],licht:'breitblitz',kal:'mittel',farbe:3,pause:1},
+  {n:2,gap:0.4,rohrFolge:[-1,1],licht:'breitgewitter',kal:'mittel',farbe:3,pause:1},
   {n:6,gap:0.25,muster:'kreis',ang:0.3,licht:'farbblitzweide',kal:'gross',farbe:1},
   {mit:true,n:3,gap:0.3,muster:'mitte',ang:0.15,licht:'silberblitzweide',kal:'gross',farbe:0,pause:7}]);
 /* Blitzpalmen: jede Palme anders - Gold, Farbe, Koenigspalme, Palmen-
@@ -34767,7 +34776,7 @@ Object.assign(SIGNATUR,{
   lb_fontaenenballett:{eff:'licht:breitfarbe',text:'Farbkometen paarweise im V, Wechselfächer in Stufen, darüber Farbkronen und Farbcrossetten'},
   lb_goldregen:{eff:'licht:breitregen',text:'Goldkometen-Fächer mit Brokatschweif, Goldfächer und Goldwasserfall'},
   lb_blitzweiden:{eff:'licht:farbblitzweide',text:'Blitzweiden in Gold und Farbe, Blitzkronen, dazu zwei Blitzfontänen'},
-  lb_silbergewitter:{eff:'licht:silberblitzweide',text:'Silberne Weiden mit farbigen Blitzen und Blitzblüten'},
+  lb_silbergewitter:{eff:'licht:silberblitzweide',text:'Knisternde Silberkometen kreuz und quer, silberne Weiden mit farbigen Blitzen und Blitzblüten'},
   lb_blitzpalmen:{eff:'licht:koenigspalme',text:'Blitzpalmen: Gold, Farbe, Königspalme, Palmenweide, Stufen- und Doppelpalme'},
   lb_fontaenenpalast:{eff:'licht:breitfarbew',text:'Schwenkende Titan-Kometen mit Farbkopf, Dreifachtor, Weidencrossetten, Finale aus sechs Kometenfächern'},
   lb_farbenpracht:{eff:'licht:breitfarbef',text:'Jede Farbe ein Kometenfächer mit Gold-Brokat, Blitzfächer, Farbkronen'}

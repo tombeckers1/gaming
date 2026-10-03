@@ -573,7 +573,7 @@ function breitBoden(o,A,B,p){
 }
 /* Brenndauer am Rohr (s ab Zuendung bis der Himmelseffekt verloschen
    ist): so lange steht die Batterie auf dem Tisch (04c zuendFolge) */
-const LICHT_BRENN={breitfarbew:11,breitfarbef:11,breitsilber:11,breitbluete:11,breitkomet:11,breitblitz:11.5,breitwechsel:10,breitglut:10.5,breitfarbe:11,breitregen:11.5,breitcross:11,breittor:11.5,breitklein:6,breitglitzer:6.5};
+const LICHT_BRENN={breitgewitter:11,breitfarbew:11,breitfarbef:11,breitsilber:11,breitbluete:11,breitkomet:11,breitblitz:11.5,breitwechsel:10,breitglut:10.5,breitfarbe:11,breitregen:11.5,breitcross:11,breittor:11.5,breitklein:6,breitglitzer:6.5};
 /* Silberfaecher: weite Silberfontaene, zum Schluss drei Weidenkometen */
 LICHTYP.breitsilber=function(o,A,B,s,opt){ lBreit(o,A,B,s,opt,{schuss:true,muster:'wisch',D:5.5,H:8.5,weit:0.83,n:26,c:()=>[1.3,1.32,1.4],md:0,life:[0.6,1.1],
   ende:()=>[-0.25,0,0.25].forEach((a,k)=>kgSpaeter(k*0.25,()=>LICHTYP.weidenkomet(o,A,B,s,lHoch(a))))}); };
@@ -682,6 +682,9 @@ LICHTYP.breitfarbe=function(o,A,B,s,opt){ lBreit(o,A,B,s,opt,{schuss:true,muster
    mit Gold-Brokat und Farbkopf */
 LICHTYP.breitfarbew=function(o,A,B,s,opt){ lBreit(o,A,B,s,opt,{schuss:true,muster:'wisch',D:6,H:10,weit:0.7,n:24,md:0,c:(u,j)=>j%2?lHell(A,1.5):lHell(B,1.5),ende:()=>LICHTYP.farbkrone(o,A,B,s,lHoch())}); };
 LICHTYP.breitfarbef=function(o,A,B,s,opt){ lBreit(o,A,B,s,opt,{schuss:true,muster:'faecher',D:6,H:9.5,weit:0.75,n:24,md:4,c:(u,j)=>j%3===1?GOLDF:lHell(j%3?A:B,1.5),ende:()=>LICHTYP.farbcrossette(o,A,B,s,lHoch())}); };
+/* Silbergewitter: Silberkometen kreuz und quer mit knisterndem Schweif,
+   zum Schluss eine Silberblitzweide */
+LICHTYP.breitgewitter=function(o,A,B,s,opt){ lBreit(o,A,B,s,opt,{schuss:true,muster:'kreuz',D:6,H:9.6,weit:0.72,n:24,md:0,c:(u,j)=>j%5===4?lHell(A,1.5):[1.35,1.36,1.45],ende:()=>LICHTYP.silberblitzweide(o,A,B,s,lHoch())}); };
 LICHTYP.breitregen=function(o,A,B,s,opt){ lBreit(o,A,B,s,opt,{schuss:true,muster:'faecher',D:6.5,H:9.2,weit:0.6,n:24,md:4,c:()=>GOLDF,ende:()=>LICHTYP.weidenfaecher(o,A,B,s*1.05,lHoch())}); };
 /* Kreuzfontaene: Silber mit Farbspitzen, am Ende zwei Weidencrossetten */
 LICHTYP.breitcross=function(o,A,B,s,opt){ lBreit(o,A,B,s,opt,{schuss:true,muster:'kreuz',D:6,H:8.8,weit:0.66,n:24,md:0,life:[0.7,1.2],c:(u,j)=>j%4?[1.3,1.32,1.4]:lHell(A,1.5),
@@ -808,7 +811,7 @@ lbShow('lb_silbergewitter',[['tuerkis','silber'],['violett','weiss'],['blau','si
   {n:4,gap:1.3,muster:'x',ang:0.3,licht:'silberblitzweide',farbe:0},
   {n:6,gap:0.7,muster:'z',ang:0.3,licht:'blitzbluete',farbe:1,pause:1},
   {n:6,takt:[0.2,0.2,0.9],muster:'paar',ang:0.3,licht:'silberblitzweide',farbe:2},
-  {n:2,gap:0.4,rohrFolge:[-1,1],licht:'breitblitz',kal:'mittel',farbe:3,pause:1},
+  {n:2,gap:0.4,rohrFolge:[-1,1],licht:'breitgewitter',kal:'mittel',farbe:3,pause:1},
   {n:6,gap:0.25,muster:'kreis',ang:0.3,licht:'farbblitzweide',kal:'gross',farbe:1},
   {mit:true,n:3,gap:0.3,muster:'mitte',ang:0.15,licht:'silberblitzweide',kal:'gross',farbe:0,pause:7}]);
 /* Blitzpalmen: jede Palme anders - Gold, Farbe, Koenigspalme, Palmen-
@@ -862,7 +865,7 @@ Object.assign(SIGNATUR,{
   lb_fontaenenballett:{eff:'licht:breitfarbe',text:'Farbkometen paarweise im V, Wechselfächer in Stufen, darüber Farbkronen und Farbcrossetten'},
   lb_goldregen:{eff:'licht:breitregen',text:'Goldkometen-Fächer mit Brokatschweif, Goldfächer und Goldwasserfall'},
   lb_blitzweiden:{eff:'licht:farbblitzweide',text:'Blitzweiden in Gold und Farbe, Blitzkronen, dazu zwei Blitzfontänen'},
-  lb_silbergewitter:{eff:'licht:silberblitzweide',text:'Silberne Weiden mit farbigen Blitzen und Blitzblüten'},
+  lb_silbergewitter:{eff:'licht:silberblitzweide',text:'Knisternde Silberkometen kreuz und quer, silberne Weiden mit farbigen Blitzen und Blitzblüten'},
   lb_blitzpalmen:{eff:'licht:koenigspalme',text:'Blitzpalmen: Gold, Farbe, Königspalme, Palmenweide, Stufen- und Doppelpalme'},
   lb_fontaenenpalast:{eff:'licht:breitfarbew',text:'Schwenkende Titan-Kometen mit Farbkopf, Dreifachtor, Weidencrossetten, Finale aus sechs Kometenfächern'},
   lb_farbenpracht:{eff:'licht:breitfarbef',text:'Jede Farbe ein Kometenfächer mit Gold-Brokat, Blitzfächer, Farbkronen'}

@@ -127,7 +127,7 @@ const NEU_RAKETEN=[
   ['faecherstern','faecherstern','stamm','gold','gruen',1.15,'Neun Kometen als Fächer nach oben'],
   /* 03.10. (Tom): "zwei aehnliche, dickere Raketen - nochmal groesser" */
   ['crossettenkrone','crossettenkrone','kometenkopf','rot','gold',1.6,'Zehn dicke Crossetten, jeder Arm wechselt im Flug die Farbe'],
-  ['faecherweide','faecherweide','goldregen','gold','limette',1.8,'Fünfzehn Kometen als Fächer, die als Goldweide sinken']
+  ['faecherweide','faecherweide','perlenschnur','gold','limette',1.8,'Fünfzehn Kometen als Fächer, die als Goldweide sinken']
 ];
 NEU_RAKETEN.forEach(([id,eff,steig,A,B,sz,txt],k)=>{
   RAKETEN_KL[id]={n:1,gap:0,sz,pw:-2+k*0.5,fuse:1.3,steig,A,B,eff:[eff],knall:k%3===0?'plopp':'rakPff',bruchOpt:{kern:false,nachglitzer:false,flash:0.35},dauer:5};

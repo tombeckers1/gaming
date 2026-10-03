@@ -76,7 +76,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     pruef('NEU',v.gruppe!=='sonstiges',t+' in keiner Warengruppe');
   }
   pruef('NEU',r.neu.feuerlilie200&&r.neu.feuerlilie200.st==='moerser','Kugel 200 Feuerlilie gehoert in den Moerser');
-  pruef('NEU',r.neu.titanraketen&&r.neu.titanraketen.st==='rampe'&&r.neu.pfeifraketen.st==='rampe'&&r.neu.jumbogold.st==='rampe'&&r.neu.jumboleiter.st==='rampe','Raketen gehoeren in die Roehren');
+  pruef('NEU',r.neu.titanraketen&&r.neu.titanraketen.st==='rampe'&&r.neu.jumbogold.st==='rampe'&&r.neu.jumboleiter.st==='rampe','Raketen gehoeren in die Roehren');
   for(const [t,[soll,ist]] of Object.entries(r.schuss))
     pruef('SCHUSS',Math.abs(ist-soll)<=Math.max(2,soll*0.05),t+': Name sagt '+soll+', Drehbuch hat '+ist);
   /* 27.09. (Tom: Anomalie): die Schusszahl muss weiter steigen, die Laenge darf
@@ -144,9 +144,10 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   const rk=await p.evaluate(()=>{
     const bb=window.__bb,o={};
     bb.run(10,0.1);
-    bb.igniteType('pfeifraketen',{x:3,y:1.3,z:-18,ab:0.1,jit:0});
+    /* 03.10.: Korkenzieher (pfeifraketen) entfernt - Pfeif-Test nur, wenn es sie noch gibt */
+    if(bb.P.pfeifraketen) bb.igniteType('pfeifraketen',{x:3,y:1.3,z:-18,ab:0.1,jit:0});
     bb.run(0.3,0.05);
-    const q=bb.rockets.find(x=>x.pfeif); o.pfeif=!!q;
+    const q=bb.rockets.find(x=>x.pfeif); o.pfeif=!!q||!bb.P.pfeifraketen;
     bb.run(10,0.1);
     const zeiten=[]; let uhr=0; const orig={};
     Object.keys(bb.EFF).forEach(k=>{ orig[k]=bb.EFF[k]; bb.EFF[k]=function(){ zeiten.push(k); return orig[k].apply(this,arguments); }; });

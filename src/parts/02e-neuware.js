@@ -39,9 +39,9 @@ const NEUWARE={
   pharao:{name:'Pharaoschlangen 12er',short:'Pharaoschlangen',cat:1,lvl:2,shape:'boxA',dims:[0.12,0.05,0.08],grid:[8,2,2],box:24,cost:0.50,market:1.29,weight:5,hype:2,risk:1,
     desc:'Vier schwarze Schlangen wachsen aus kleinen Tabletten und winden sich glimmend über den Boden. Eine davon hebt am Ende den Kopf.',
     art:{title:'PHARAO',sub:'12 Schlangen aus Asche',bg1:'#4a3a14',bg2:'#140e02',ac:'#ffd23f',ac2:'#c8e04a'}},
-  leuchtfontaene:{name:'Gummibärchen · 4 Perlenfontänen',short:'Gummibärchen',cat:1,lvl:4,shape:'fountainset',dims:[0.44,0.12,0.07],grid:[7,2,1],box:12,cost:1.50,market:3.79,weight:6,hype:6,risk:2,
+  leuchtfontaene:{name:'Perlenquartett · 4 Perlenfontänen',short:'Perlenquartett',cat:1,lvl:4,shape:'fountainset',dims:[0.44,0.12,0.07],grid:[7,2,1],box:12,cost:1.50,market:3.79,weight:6,hype:6,risk:2,
     desc:'Vier kleine Silberfontänen nacheinander, in denen rote und grüne Perlen aufsteigen. Zum Schluss sprühen alle vier und werfen einen Perlenschauer.',
-    art:{title:'GUMMIBÄRCHEN',sub:'4 Perlenfontänen · Rot und Grün',bg1:'#1f5d2a',bg2:'#06200c',ac:'#c8ff5c',ac2:'#ffd23f'}},
+    art:{title:'PERLENQUARTETT',sub:'4 Perlenfontänen · Rot und Grün',bg1:'#1f5d2a',bg2:'#06200c',ac:'#c8ff5c',ac2:'#ffd23f'}},
   feuerteufel:{name:'Feuerteufel · Zweihorn-Fontäne',short:'Feuerteufel',cat:1,lvl:4,shape:'cylinder',dims:[0.08,0.2,0.08],grid:[12,2,1],box:16,cost:0.90,market:2.29,weight:6,hype:5,risk:2,
     desc:'Aus der Glut wachsen zwei feurige Hörner, die fauchen und sich spreizen. Zum Schluss lacht der Teufel dreimal knisternd.',
     art:{title:'FEUERTEUFEL',sub:'Zweihorn-Fontäne · 9 s',bg1:'#8a1a08',bg2:'#240502',ac:'#ffd23f',ac2:'#ff7a1c'}},
@@ -572,7 +572,7 @@ const NEU_LIZ_DAZU={
 };
 const NEU_LIZENZEN=[
   {id:'jugend',lvl:2,cost:60,name:'Jugendfeuerwerk',
-   desc:'Feuerwerk, das auch Kinder zünden dürfen: Knallbonbons, Tischbomben, Bengalische Hölzer, Zahlen-Wunderkerzen, die Gummibärchen-Fontänen, der Zweihorn-Feuerteufel, die Pusteblume-Jugendbatterie und das Brausepulver-Sortiment.',
+   desc:'Feuerwerk, das auch Kinder zünden dürfen: Knallbonbons, Tischbomben, Bengalische Hölzer, Zahlen-Wunderkerzen, das Perlenquartett, der Zweihorn-Feuerteufel und die Pusteblume-Jugendbatterie.',
    items:['knallbonbon','tischbombe','bengalholz','wunderzahl','pharao','leuchtfontaene','feuerteufel','kinderbatterie','kinderparty','wunderkerzeXXL','tortenfontaene','luftschlangentisch','stroboblinker']},
   {id:'snacks',lvl:7,cost:260,name:'Snacks & Süßes',
    desc:'Popcorn, Salzgebäck, Erdnüsse, Fruchtgummi, Berliner-Nachschub und die Glücksbringer zum Naschen: Marzipanschweinchen und Schoko-Glückstaler.',
@@ -808,7 +808,9 @@ const ENTFERNT=['fontaene50','fontaene30','silberkaskade','feuerkaskade','jugend
   /* 30.09. (Tom): Farbzauber und Wunderkerzen-Box sollen weg */
   'wunderfarbe','wunderbox',
   /* 30.09. (Tom): Kugel 200 Bluetenkranz raus, dafuer drei neue 200-mm-Bomben */
-  'kugel200'];
+  'kugel200',
+  /* 03.10. (Tom): Brausepulver, Glitzergarten und Korkenzieher-Rakete sollen weg */
+  'kinderparty','lb_glitzergarten','pfeifraketen'];
 /* Ersatz fuer alte Spielstaende: jede gestrichene Sorte wird beim Laden
    zur naechsten verbliebenen - gleiche Kategorie, moeglichst gleiche Form,
    Level und Preis am naechsten (18-save.js, SORTE_NEU). Sonst stuende

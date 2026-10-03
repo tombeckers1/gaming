@@ -683,11 +683,12 @@ NEU_LIZ_DAZU.grossfeuer.push('weidenkoenig200'); NEU_LIZ_DAZU.profi.push('sterne
  ['kronenregen300','Kronenregen',300,'Eine große Krone aus violetten und rosa Sternen hängt am Himmel – dann rieselt aus ihr ein langer goldener Regen.'],
  ['dreifachkrone300','Dreifachkrone',300,'Drei Kronen nebeneinander wie ein Tor: links Rot, in der Mitte höher Gold, rechts Blau.'],
  ['crossettenweide300','Crossettenweide',300,'Aus Crossettenstern, Weidenregen und Fächerstern die extremste Kugel: zwei Goldkometen steigen mit, oben zerspringen sechzehn Crossetten, wechseln die Farbe und sinken als Goldweide – darunter öffnet sich ein Kometenfächer.']].forEach(([id,nm,mm,desc],k)=>{
-  NEUWARE[id]={name:nm+' · Kugelbombe '+mm+' mm',short:'Kugel '+mm+' '+nm,cat:2,lvl:KUGEL_LVL[mm],shape:'shell',dims:KUGEL_MASS[mm],grid:KUGEL_GRID[mm],box:{75:8,100:6,150:3,200:2,300:1}[mm],
+  NEUWARE[id]={name:nm+' · Kugelbombe '+mm+' mm',short:'Kugel '+mm+' '+nm,cat:2,lvl:id==='crossettenweide300'?25:KUGEL_LVL[mm],shape:'shell',dims:KUGEL_MASS[mm],grid:KUGEL_GRID[mm],box:{75:8,100:6,150:3,200:2,300:1}[mm],
     cost:KUGEL_PREIS[mm][0],market:KUGEL_PREIS[mm][1],weight:3,hype:72+k*4,risk:9,desc,art:{title:nm.toUpperCase(),sub:'Kugelbombe '+mm+' mm',bg1:'#2a1440',bg2:'#07040f',ac:'#ffd23f',ac2:'#ff8ac8'}}; });
 NEU_GRUPPE.kugeln.push('farbcrossette150','kronenkranz200','zwillingssonne200','blitzpalme200','goldweidenkreuz200','kronenregen300','dreifachkrone300','crossettenweide300');
 NEU_LIZENZEN.find(l=>l.id==='goldklasse').items.push('farbcrossette150');
 NEU_LIZ_DAZU.grossfeuer.push('kronenkranz200','zwillingssonne200','blitzpalme200','goldweidenkreuz200');
+/* Crossettenweide gehoert zur Meister-Lizenz (ab Level 25) - deshalb Level 25 statt 24 */
 NEU_LIZ_DAZU.profi.push('kronenregen300','dreifachkrone300'); NEU_LIZENZEN.find(l=>l.id==='meister').items.push('crossettenweide300');
 /* 03.10. (Tom, Raketen-Vorfuehrung): Crossettenstern, Weidenregen und
    Faecherstern ins Sortiment, die anderen 17 sind raus. Dazu zwei dicke

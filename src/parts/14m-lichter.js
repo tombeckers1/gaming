@@ -492,22 +492,22 @@ function kfKomet(m,Q,a,c,Hk,G,md,dx,art){ art=art||KF_ART.faecher;
      schlingert (Zufallsweg quer zur Flugbahn) */
   kfZackSchweif(e,v,G,T,kgMal(sch,1.35),q,art);
   /* darum der Brokat: langlebige Glitzerfunken, die absinken */
-  const bb=art.b; rkFunken(e,v,G,0.05,T,Math.round(45*q),sch,{ps:bb.ps==='klein'?psSmall:psMid,life:bb.life,g:bb.g,streu:bb.streu,mit:0.03,mode:silber?0:(md===undefined?bb.mode:md)});
+  const bb=art.b; rkFunken(e,v,G,0.05,T,Math.round(28*q),sch,{ps:bb.ps==='klein'?psSmall:psMid,life:bb.life,g:bb.g,streu:bb.streu,mit:0.03,mode:silber?0:(md===undefined?bb.mode:md)});
   muendungsblitz(e,e.y,0.55);
 }
 function kfZackSchweif(e,v,G,T,c,q,art){ art=art||KF_ART.faecher; const LL=art.L, kn=art.kn;
-  const [R,O]=rkBild(e), tag=FW_TAG, DT=1/30, A=rand(0.35,0.7), n=Math.max(2,Math.round(5*q));
+  const [R,O]=rkBild(e), tag=FW_TAG, DT=1/30, A=rand(0.35,0.7), n=q>0.9?2:1;
   let off=[0,0], vo=[0,0], alt=null;
   for(let t=DT;t<T;t+=DT){ const tt=t;
     vo=[vo[0]*0.6+rand(-1,1)*A*0.5,vo[1]*0.6+rand(-1,1)*A*0.5]; off=[clamp(off[0]+vo[0]*0.35,-A,A),clamp(off[1]+vo[1]*0.35,-A,A)];
     const o0=off.slice();
-    imBild(tt,()=>{ const at=FW_TAG, sa=SCHWEIF; FW_TAG=tag; SCHWEIF=0.3;
+    imBild(tt,()=>{ const at=FW_TAG, sa=SCHWEIF; FW_TAG=tag; SCHWEIF=0.42;
       /* jeder Punkt zieht eine kurze Spur in Flugrichtung - die Punkte
          ueberlappen zu einer durchgehenden Linie statt einer Perlenkette */
       const w=bahnTempo(v,G,tt), b=bahnOrt(e,v,G,tt), k=Math.min(1,tt/0.25), p={x:b.x+(R[0]*o0[0]+O[0]*o0[1])*k,y:b.y+(R[1]*o0[0]+O[1]*o0[1])*k,z:b.z+(R[2]*o0[0]+O[2]*o0[1])*k};
       const von=alt||p;
       for(let i=0;i<n;i++){ const f=(i+Math.random())/n, x=von.x+(p.x-von.x)*f, y=von.y+(p.y-von.y)*f, z=von.z+(p.z-von.z)*f, L=rand(LL[0],LL[1]);
-        psBig.emit(x,y,z,w[0]*0.1+rand(-.08,.08),w[1]*0.1+rand(-.15,.05),w[2]*0.1+rand(-.08,.08),c[0],c[1],c[2],L,0.35,0);
+        psBig.emit(x,y,z,w[0]*0.12+rand(-.06,.06),w[1]*0.12+rand(-.12,.04),w[2]*0.12+rand(-.06,.06),c[0],c[1],c[2],L,0.35,0);
         /* Knistern: einzelne Punkte im stehenden Schweif blitzen spaeter auf */
         if(Math.random()<kn*q) kgSpaeter(rand(0.25,0.8),()=>psSmall.emit(x,y-0.2,z,rand(-.5,.5),rand(-.5,.3),rand(-.5,.5),1.6,1.5,1.3,rand(0.06,0.14),1,1)); }
       alt=p; SCHWEIF=sa; FW_TAG=at; }); }
@@ -520,7 +520,7 @@ function lKometenFaecher(o,A,B,s,p){
   else if(mu==='v'){ for(let t=0,k=0;t<E;t+=0.2,k++){ const a=W*((k%5)+0.6)/5.2; plan.push({t,a,j:2*k},{t,a:-a,j:2*k+1}); } }
   else if(mu==='stufen'){ const K=Math.max(3,Math.floor(E/0.8)); for(let k=0;k<K;k++){ const nS=3+Math.min(5,k), w=W*(0.3+0.7*k/(K-1)); for(let j=0;j<nS;j++) plan.push({t:k*0.8,a:((j+0.5)/nS-0.5)*2*w,j:j+k*8}); } }
   else { for(let t=0,k=0;t<E;t+=0.24,k++){ const r=k%2?1:-1; plan.push({t,a:-r*rand(0.25,W),dx:r*0.35,j:k}); } }
-  const max=Math.round(42*Math.min(1,0.5+0.5*QUAL())), schritt=plan.length>max?plan.length/max:1;
+  const max=Math.round(28*Math.min(1,0.5+0.5*QUAL())), schritt=plan.length>max?plan.length/max:1;
   lStart(m,1.0,0.3);
   for(let i=0;i<plan.length;i+=schritt){ const z=plan[Math.floor(i)], u=z.t/D;
     kgSpaeter(z.t,()=>{ kfKomet(m,Q,z.a,p.c(u,z.j),Hk,G,p.md,z.dx,KF_ART[mu]); const v=distVol(m); if(Math.random()<0.6) (sfx.rakPff?sfx.rakPff(v*0.5):sfx.thump(v*0.2)); }); }

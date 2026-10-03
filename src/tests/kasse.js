@@ -48,7 +48,10 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     const e=g.getImageData(4,4,1,1).data; return {grund:[e[0],e[1],e[2]],n,mitte:+(sx/Math.max(1,n)/W).toFixed(2),rechts:+(rechts/W).toFixed(3)}; });
   console.log('BLENDE  ',JSON.stringify(blende));
   pruef('BLENDE',blende.grund[0]===0x2b&&blende.grund[1]===0x2e&&blende.grund[2]===0x34,'Grund nicht in Korpusfarbe: '+blende.grund);
-  pruef('BLENDE',blende.n>300&&blende.mitte>0.58&&blende.rechts>0.93,'helle Schrift steht nicht rechts: '+JSON.stringify(blende));
+  /* rechtsbuendig (rechter Rand >= 93 %), Schwerpunkt in der rechten Haelfte -
+     die Mitte haengt an der Namenslaenge: seit dem Standardnamen
+     'Feuerwerksladen' (03.10.) fuellt der Name die Blende fast ganz, Mitte 0,54 */
+  pruef('BLENDE',blende.n>300&&blende.mitte>0.5&&blende.rechts>0.93,'helle Schrift steht nicht rechts: '+JSON.stringify(blende));
 
   /* Kunden stehen an und zahlen beim Kassierer */
   const tag=await p.evaluate(()=>{ const bb=window.__bb, S=bb.S; S.money=50000; S.level=12;

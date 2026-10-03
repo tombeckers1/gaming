@@ -476,12 +476,29 @@ function kfKomet(m,Q,a,c,Hk,G,md,dx){
   const gold=c[0]>0.9&&c[1]>0.45&&c[2]<0.45, silber=c[0]+c[1]+c[2]>3.4&&!gold, sch=silber?[1.3,1.3,1.38]:GOLDF, mode=silber?0:(md===undefined?4:md);
   const q=Math.min(1,0.5+0.5*QUAL());
   lKopf(e,v,silber||gold?kgMal(c,1.3):lHell(c,1.7),T,G,0,0.5);
-  /* der helle Strich: dicht an dicht kurzlebige Funken, die fast an
-     ihrer Stelle stehen bleiben - so wird aus dem Kometen eine Linie */
-  rkFunken(e,v,G,0.02,T,Math.round(210*q),kgMal(sch,1.4),{ps:psBig,life:[0.22,0.5],g:0.25,streu:0.06,mit:0,mode:0});
+  /* der Schweif (03.10., Tom mit dem Defqon-Foto): der Kopf zieht eine
+     helle, zackige Linie, die stehen bleibt und knisternd verglueht -
+     die Zacken entstehen, weil der brennende Satz im Flug unruhig
+     schlingert (Zufallsweg quer zur Flugbahn) */
+  kfZackSchweif(e,v,G,T,kgMal(sch,1.35),q);
   /* darum der Brokat: langlebige Glitzerfunken, die absinken */
-  rkFunken(e,v,G,0.05,T,Math.round(75*q),sch,{ps:psMid,life:[0.8,1.5],g:1.1,streu:0.4,mit:0.03,mode});
+  rkFunken(e,v,G,0.05,T,Math.round(45*q),sch,{ps:psMid,life:[0.8,1.5],g:1.1,streu:0.4,mit:0.03,mode});
   muendungsblitz(e,e.y,0.55);
+}
+function kfZackSchweif(e,v,G,T,c,q){
+  const [R,O]=rkBild(e), tag=FW_TAG, DT=1/30, A=rand(0.35,0.7), n=Math.max(2,Math.round(5*q));
+  let off=[0,0], vo=[0,0], alt=null;
+  for(let t=DT;t<T;t+=DT){ const tt=t;
+    vo=[vo[0]*0.6+rand(-1,1)*A*0.5,vo[1]*0.6+rand(-1,1)*A*0.5]; off=[clamp(off[0]+vo[0]*0.35,-A,A),clamp(off[1]+vo[1]*0.35,-A,A)];
+    const o0=off.slice();
+    imBild(tt,()=>{ const at=FW_TAG, sa=SCHWEIF; FW_TAG=tag; SCHWEIF=0.03;
+      const b=bahnOrt(e,v,G,tt), k=Math.min(1,tt/0.25), p={x:b.x+(R[0]*o0[0]+O[0]*o0[1])*k,y:b.y+(R[1]*o0[0]+O[1]*o0[1])*k,z:b.z+(R[2]*o0[0]+O[2]*o0[1])*k};
+      const von=alt||p;
+      for(let i=0;i<n;i++){ const f=(i+Math.random())/n, x=von.x+(p.x-von.x)*f, y=von.y+(p.y-von.y)*f, z=von.z+(p.z-von.z)*f, L=rand(0.55,1.15);
+        psBig.emit(x,y,z,rand(-.08,.08),rand(-.15,.05),rand(-.08,.08),c[0],c[1],c[2],L,0.35,0);
+        /* Knistern: einzelne Punkte im stehenden Schweif blitzen spaeter auf */
+        if(Math.random()<0.05*q) kgSpaeter(rand(0.25,0.8),()=>psSmall.emit(x,y-0.2,z,rand(-.5,.5),rand(-.5,.3),rand(-.5,.5),1.6,1.5,1.3,rand(0.06,0.14),1,1)); }
+      alt=p; SCHWEIF=sa; FW_TAG=at; }); }
 }
 function lKometenFaecher(o,A,B,s,p){
   const m=lMund(o), D=p.D||6, G=7.5, Hk=Math.max(13,Math.min(44,(p.H||9)*3.3*Math.sqrt(s))), Q=lQuer({dir:FANDIR}),
@@ -496,6 +513,13 @@ function lKometenFaecher(o,A,B,s,p){
   for(let i=0;i<plan.length;i+=schritt){ const z=plan[Math.floor(i)], u=z.t/D;
     kgSpaeter(z.t,()=>{ kfKomet(m,Q,z.a,p.c(u,z.j),Hk,G,p.md,z.dx); const v=distVol(m); if(Math.random()<0.6) (sfx.rakPff?sfx.rakPff(v*0.5):sfx.thump(v*0.2)); }); }
   later(0.4,()=>sfx.fauchen(distVol(m)*0.35,Math.min(4,D)));
+  for(let k=0;k<Math.floor(D/0.6);k++) later(0.9+k*0.6,()=>sfx.crackle(distVol(m)*0.35));
+  /* Rauch, den die Kometen von innen anleuchten (Defqon-Foto): ein
+     Schein in Kopffarbe, darunter grauer Pulverrauch, der aufsteigt */
+  if(typeof wolke==='function'){ const sp=[wolkenSprite(true),wolkenSprite(true),wolkenSprite(false)], cc=mischF(p.c(0.3,1),[1,.45,.15],0.5);
+    wolke(D+3,sp,(w,t)=>{ const an=Math.min(1,t/1.2)*(1-glatt(D,D+3,t)), fl=0.8+0.2*Math.sin(t*9);
+      wSetz(sp[0],m.x,m.y+Hk*0.25,m.z,Hk*0.9,cc,0.05*an*fl); wSetz(sp[1],m.x,m.y+Hk*0.55,m.z,Hk*1.2,cc,0.03*an*fl);
+      wSetz(sp[2],m.x,m.y+3+t*0.7,m.z,8+t*1.6,[.3,.27,.26],0.16*an); }); }
   if(p.ende) kgSpaeter(D-(p.vorEnde||0.5),()=>p.ende(m));
 }
 /* Breite Bodenfontaene der Batterien (03.10., Tom: "die kleine Funken-

@@ -647,7 +647,7 @@ body.compact .pdahead2 b{font-size:16px}
     <div class="pmenu">
       <button id="pBtn">Weiterspielen</button>
       <button class="ghost" data-pseite="pSteuer">Steuerung</button>
-      <button class="ghost" data-pseite="pMusikSeite">Musik</button>
+      <button class="ghost" data-pseite="pMusikSeite">Audio</button>
       <button class="ghost" data-pseite="pGrafik">Grafik</button>
       <button class="ghost" id="pTut">Tutorial ausblenden</button>
       <button class="ghost" id="pHome">Zum Startbildschirm</button>
@@ -669,8 +669,9 @@ body.compact .pdahead2 b{font-size:16px}
     <small class="phint" id="gfxInfo"></small>
   </div>
   <div class="pseite" id="pMusikSeite">
-    <div class="pkopf"><button class="ghost pzur">‹ Zurück</button><h2>Musik</h2><span></span></div>
-    <div class="musikzeile"><button class="ghost" id="pMusikAn">Musik an</button><label>Lautstärke <input type="range" id="pMusikVol" min="0" max="100" step="5"></label><button class="ghost" id="pMusikWeiter">Nächstes Stück</button><small id="pMusikName"></small></div>
+    <div class="pkopf"><button class="ghost pzur">‹ Zurück</button><h2>Audio</h2><span></span></div>
+    <div class="musikzeile"><button class="ghost" id="pMusikAn">Musik an</button><label>Musik <input type="range" id="pMusikVol" min="0" max="100" step="5"></label><button class="ghost" id="pMusikWeiter">Nächstes Stück</button><small id="pMusikName"></small></div>
+    <div class="musikzeile"><label>Soundeffekte <input type="range" id="pSfxVol" min="0" max="100" step="5"></label><small id="pSfxWert"></small><small>Türen, Schritte, Kasse, Scanner, Pakete und Feuerwerk</small></div>
     <div class="titel" id="pTitel"></div>
   </div>
 </div></div>

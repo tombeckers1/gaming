@@ -345,7 +345,8 @@ class Customer{
     statAdd('kunden',1);
     let gain=Math.round(this.total*0.5)+4; if(over<=0.001&&this.method==='cash') gain+=3;
     addXP(gain);
-    rep(this.missed?0.2:0.8); sfx.cash(); toast('+'+eur(this.total),'money');
+    /* 03.10.: echte Kasse statt des Bestaetigungs-Tons (Schublade, Glocke) */
+    rep(this.missed?0.2:0.8); { const v=this.g?nahVol(this.g.position):1; if(v>0.02) sfx.kasse(v); } toast('+'+eur(this.total),'money');
     geldSchwebt(this.pos,this.total);
     if(this.missed) serieBricht(); else { serieZufrieden(); if(this.total>=60) kundenSymbol(this.g,'stern'); }
     if(over>0) toast(`${eur(over)} zu viel Rückgeld gegeben.`,'bad');

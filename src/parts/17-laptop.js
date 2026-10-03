@@ -1340,6 +1340,8 @@ function lapZeichnen(body){
         `</div><button class="${S.test?'red':''}" data-a="test">${S.test?'Testmodus aus':'Testmodus an'}</button></div>`+
       (FW_DEV?/* 03.10. (Tom): Teststation und alle "Neue ... testen" raus */
         `<div class="row"><div class="rm"><b>Feuerwerk-Vorführung <span class="warn">(nur Entwicklung)</span></b><small>Alle Feuerwerke nach Level, eins nach dem anderen: Leertaste zündet das nächste, der Name steht groß oben. Pfeile vor/zurück, R nochmal, 1 gut, 2 ändern, L Liste, B beenden.</small></div><button data-a="vorfuehrung">Starten</button></div>`+
+        /* 03.10. (Tom): das Spiel kurz vor dem Ende ansehen - alles gebaut, Personal, Kundschaft, Wirtschaft */
+        `<div class="row"><div class="rm"><b>Gameplay-Vorführung <span class="warn">(nur Entwicklung)</span></b><small>Ein fast durchgespielter Laden: alle Flächen ausgebaut, alle Lizenzen, das ganze Team, Regale voller Ware, der Laden läuft von selbst Tag für Tag, morgens wird nachbestellt. Unten siehst du Kontostand, Umsatz, Kunden und den Verlauf; 1–7 springen in die Bereiche, T schaltet den Zeitraffer, B beendet. Dein Spielstand wird vorher gesichert und danach zurückgeholt.</small></div><button data-a="gameplay">Starten</button></div>`+
         /* 02.10. (Tom): alle Verpackungen im Regal auf einen Blick */
         `<div class="row"><div class="rm"><b>Verpackungs-Vorführung <span class="warn">(nur Entwicklung)</span></b><small>Ein eigener Ausstellungsraum wie ein Supermarkt – Hauptgang, Quergang und Gänge zwischen allen Regalzeilen: Hochregal, Verkaufsregal, Mittelgondel, kleines Regal, Kühlschrank, Großverbund-Regal, Tische, Gitterboxen und Eckregale. Jedes Produkt füllt genau ein Fach – so sieht man jede Verpackung und wie sie im Regal steht. Beenden: Knopf oben oder B.</small></div><button data-a="verpackung">${vpAn?'Beenden':'Starten'}</button></div>`:'')+
       `<div class="row"><div class="rm"><b>Spielstand</b><small>Wird automatisch gespeichert.</small></div><button class="ghost" data-a="reset">${resetArm?'Wirklich löschen?':'Spielstand löschen'}</button></div>`;
@@ -1433,6 +1435,7 @@ function lapKlick(e,imHandy){
   else if(a==='ruhe'){ ruhetagBeenden(); return; }
   else if(a==='test'){ toggleTest(); }
   else if(a==='fwtest'){ fwTestSchalten(); return; }
+  else if(a==='gameplay'){ gpStart(); return; }
   else if(a==='vorfuehrung'){ vorfuehrungAn(); return; }
   else if(a==='verpackung'){ vpSchalten(); return; }
   else if(a==='fwtestneu'){ const n=fwTestStapeln(); toast(`${n} Kartons neu gestapelt.`); }

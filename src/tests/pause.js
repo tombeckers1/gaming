@@ -51,7 +51,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     return {auf:P.classList.contains('show'),knoepfe,steuerSichtbar:document.getElementById('steuer').getBoundingClientRect().height>0,musikSichtbar:document.getElementById('pMusikVol').getBoundingClientRect().width>0}; });
   console.log('HAUPT   ',JSON.stringify(haupt));
   pruef('HAUPT',haupt.auf&&haupt.knoepfe.length===6&&haupt.knoepfe.includes('Grafik'),'Hauptmaske: '+JSON.stringify(haupt.knoepfe));
-  pruef('HAUPT',/Weiterspielen/.test(haupt.knoepfe[0]||'')&&haupt.knoepfe.some(t=>t==='Steuerung')&&haupt.knoepfe.some(t=>t==='Musik')&&haupt.knoepfe.some(t=>/^Tutorial (ein|aus)blenden$/.test(t))&&haupt.knoepfe.some(t=>/Startbildschirm/.test(t)),'Punkte fehlen: '+JSON.stringify(haupt.knoepfe));
+  pruef('HAUPT',/Weiterspielen/.test(haupt.knoepfe[0]||'')&&haupt.knoepfe.some(t=>t==='Steuerung')&&haupt.knoepfe.some(t=>t==='Audio')&&haupt.knoepfe.some(t=>/^Tutorial (ein|aus)blenden$/.test(t))&&haupt.knoepfe.some(t=>/Startbildschirm/.test(t)),'Punkte fehlen: '+JSON.stringify(haupt.knoepfe));
   pruef('HAUPT',!haupt.steuerSichtbar&&!haupt.musikSichtbar,'Steuerung oder Musik stehen schon auf der Hauptmaske');
 
   /* Steuerung */
@@ -85,6 +85,12 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   await p.click('#pTitel [data-stueck="7"]');
   const mu2=await p.evaluate(()=>({stueck:window.__bb.MUSIK.stueck,laeuft:[...document.querySelectorAll('#pTitel .laeuft')].map(x=>x.dataset.stueck)}));
   const vol=await p.evaluate(()=>{ const r=document.getElementById('pMusikVol'); const s=r.getBoundingClientRect().width>0; r.value=30; r.dispatchEvent(new Event('input')); return {sicht:s,vol:window.__bb.MUSIK.vol}; });
+  /* 03.10. (Tom): Seite heisst Audio, zweiter Regler fuer alle Soundeffekte */
+  const sfxR=await p.evaluate(()=>{ const r=document.getElementById('pSfxVol'); const s=!!r&&r.getBoundingClientRect().width>0; r.value=40; r.dispatchEvent(new Event('input'));
+    const titel=document.querySelector('#pMusikSeite h2').textContent; const m=window.__bb.master; return {sicht:s,titel,gain:m?+m.gain.value.toFixed(3):null,ls:localStorage.getItem('bb_sfx')}; });
+  console.log('SFX',JSON.stringify(sfxR));
+  pruef('AUDIO',sfxR.sicht&&sfxR.titel==='Audio'&&sfxR.ls==='0.4'&&(sfxR.gain===null||Math.abs(sfxR.gain-0.28)<0.005),'Audio-Seite/Effektregler: '+JSON.stringify(sfxR));
+  await p.evaluate(()=>{ const r=document.getElementById('pSfxVol'); r.value=100; r.dispatchEvent(new Event('input')); });
   console.log('MUSIK   ',JSON.stringify({mu0,mu1,mu2,vol}));
   pruef('MUSIK',mu0.seite==='pMusikSeite'&&mu0.titel.length===mu0.n&&mu0.n>=10,'Titelliste: '+JSON.stringify(mu0));
   pruef('MUSIK',mu1.an&&mu1.stueck===3&&JSON.stringify(mu1.laeuft)==='["3"]'&&mu2.stueck===7&&JSON.stringify(mu2.laeuft)==='["7"]','Titelwahl: '+JSON.stringify([mu1,mu2]));

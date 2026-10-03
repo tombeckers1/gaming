@@ -615,7 +615,7 @@ function vsSpielerPacken(){
   pk.position.set(P0.x,P0.y,P0.z); pk.rotation.y=P0.ry; packTisch.add(pk);
   vsFuellung(pk,vsStueck(b)?vorher/vsStueck(b):0);
   vsTisch={pk,b,spieler:true,phase:'fuellen',t:0.2,fl:0,stueck:Math.max(1,vsStueck(b)-vorher)};
-  b.st='tisch'; S.tut.pack=true;
+  b.st='tisch'; S.tut.pack=true; sfx.karton();
   return true;
 }
 /* Sofort, ohne Bild: fuer Tests, Balance-Laeufe und alte Aufrufe */

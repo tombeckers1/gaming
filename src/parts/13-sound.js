@@ -4,7 +4,12 @@
    ========================================================= */
 const timers=[]; function later(t,fn){ timers.push({t,fn}); }
 let AC=null, master=null, noiseBuf=null;
-function ac(){ if(!AC){ try{ AC=new (window.AudioContext||window.webkitAudioContext)(); master=AC.createGain(); master.gain.value=0.7; master.connect(AC.destination); }catch(e){ AC=null; } } if(AC&&AC.state==='suspended') AC.resume(); return AC; }
+/* Lautstaerke aller Soundeffekte (Pausenmenue > Audio, 03.10.): 0..1,
+   gemerkt; die Musik hat ihren eigenen Regler (13b) */
+let SFX_VOL=1; try{ const v=parseFloat(localStorage.getItem('bb_sfx')); if(isFinite(v)) SFX_VOL=Math.max(0,Math.min(1,v)); }catch(e){}
+function sfxVol(v){ SFX_VOL=Math.max(0,Math.min(1,v)); try{ localStorage.setItem('bb_sfx',String(SFX_VOL)); }catch(e){} if(master) master.gain.value=0.7*SFX_VOL; sfxAnzeige(); }
+function sfxAnzeige(){ const el=typeof document!=='undefined'&&document.getElementById('pSfxVol'); if(el&&document.activeElement!==el) el.value=Math.round(SFX_VOL*100); const w=typeof document!=='undefined'&&document.getElementById('pSfxWert'); if(w) w.textContent=Math.round(SFX_VOL*100)+' %'; }
+function ac(){ if(!AC){ try{ AC=new (window.AudioContext||window.webkitAudioContext)(); master=AC.createGain(); master.gain.value=0.7*SFX_VOL; master.connect(AC.destination); }catch(e){ AC=null; } } if(AC&&AC.state==='suspended') AC.resume(); return AC; }
 function tone(f,dur,type,vol,f2){ if(!AC) return; const o=AC.createOscillator(), g=AC.createGain(), t=AC.currentTime; o.type=type||'square'; o.frequency.setValueAtTime(f,t); if(f2) o.frequency.exponentialRampToValueAtTime(f2,t+dur); g.gain.setValueAtTime(vol,t); g.gain.exponentialRampToValueAtTime(0.0001,t+dur); o.connect(g); g.connect(master); o.start(t); o.stop(t+dur+0.03); }
 function noise(dur,vol,freq){ if(!AC||vol<0.005) return; if(!noiseBuf){ noiseBuf=AC.createBuffer(1,AC.sampleRate*1.5,AC.sampleRate); const d=noiseBuf.getChannelData(0); for(let i=0;i<d.length;i++) d[i]=Math.random()*2-1; } const s=AC.createBufferSource(), f=AC.createBiquadFilter(), g=AC.createGain(), t=AC.currentTime; s.buffer=noiseBuf; f.type='lowpass'; f.frequency.value=freq; g.gain.setValueAtTime(vol,t); g.gain.exponentialRampToValueAtTime(0.0001,t+dur); s.connect(f); f.connect(g); g.connect(master); s.start(t,Math.random()*0.5); s.stop(t+dur+0.05); }
 /* Langes Grollen: Rauschen in Schleife, schwillt an und klingt langsam ab */
@@ -24,7 +29,27 @@ function flattern(f0,f1,dur,vol,rate){ if(!AC) return;
   g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(vol,t+0.03); g.gain.setValueAtTime(vol,t+dur*0.7); g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
   o.connect(lp); lp.connect(am); am.connect(g); g.connect(master); o.start(t); lfo.start(t); o.stop(t+dur+0.03); lfo.stop(t+dur+0.03); }
 const distVol=p=>clamp(1-camera.position.distanceTo(p)/70,0.08,1);
+/* Alltagsgeraeusche (Scanner, Kasse, Tuer) sind leise Nahgeraeusche:
+   nach gut 20 m hoert man sie nicht mehr. */
+const nahVol=p=>{ const d=camera.position.distanceTo(p); return d>22?0:Math.pow(1-d/22,1.5); };
 const sfx={
+  /* --- Alltagsgeraeusche (03.10., Tom: "dezent, man hoert es, aber nicht
+     zu laut, und realistisch") --- */
+  /* Scanner an der Kasse: kurzer, reiner Piepton um 2,7 kHz */
+  scan:v=>{ v=v===undefined?1:v; tone(2730,0.075,'sine',0.042*v); },
+  /* Kasse: Schublade rollt auf, eine kleine Glocke, Muenzen klimpern */
+  kasse:v=>{ v=v===undefined?1:v; noise(0.22,0.05*v,1400); later(0.05,()=>noise(0.12,0.03*v,3800));
+    later(0.18,()=>{ tone(2093,0.55,'sine',0.026*v); tone(2637,0.45,'sine',0.017*v); tone(4186,0.25,'sine',0.006*v); });
+    later(0.24,()=>{ for(let i=0;i<4;i++) later(i*0.045+Math.random()*0.02,()=>tone(rand(5200,6800),0.03,'triangle',0.008*v)); }); },
+  /* Automatische Schiebetuer: Motor surrt an, die Fluegel gleiten */
+  tuerAuf:v=>{ v=v===undefined?1:v; tone(118,0.95,'sawtooth',0.0045*v,96); noise(0.9,0.022*v,700); later(0.82,()=>noise(0.08,0.02*v,300)); },
+  tuerZu:v=>{ v=v===undefined?1:v; tone(104,0.85,'sawtooth',0.004*v,88); noise(0.8,0.018*v,620); later(0.78,()=>{ noise(0.06,0.03*v,240); tone(70,0.06,'sine',0.012*v,50); }); },
+  /* Schritte: drinnen ein weicher Absatz auf Fliesen, draussen Schnee */
+  schritt:(v,draussen)=>{ v=v===undefined?1:v;
+    if(draussen){ noise(0.13,0.028*v,850+Math.random()*250); later(0.03,()=>noise(0.07,0.016*v,2600)); }
+    else { noise(0.045,0.024*v,1300+Math.random()*500); tone(rand(95,125),0.05,'sine',0.010*v,60); } },
+  /* Paket: Karton zusammenfalten, Ware hineinlegen */
+  karton:v=>{ v=v===undefined?1:v; noise(0.16,0.045*v,650); later(0.2,()=>noise(0.12,0.035*v,900)); later(0.34,()=>tone(150,0.06,'sine',0.012*v,90)); },
   beep:()=>tone(1500,0.07,'square',0.045),
   pop:()=>tone(520,0.06,'triangle',0.08,300),
   cash:()=>{ tone(1046,0.09,'square',0.05); later(0.08,()=>tone(1568,0.22,'square',0.05)); },

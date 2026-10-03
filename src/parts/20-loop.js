@@ -95,6 +95,7 @@ function vorDieTuer(){
   if(regale) toast(`${regale} Paket${regale>1?'e':''} mit Einrichtung vor der Ladentür. Hinbringen, wo es stehen soll, und mit F auspacken.`,'money');
 }
 function step(dt){
+  if(typeof gpAn!=='undefined'&&gpAn) gpTick(dt);
   updatePlayer(dt);
   if(grabbed) updateGrab();
   moebelKnoepfe();
@@ -140,6 +141,8 @@ function frame(now){
   if(noLoop) return;
   let dt=(now-last)/1000; last=now; const roh=dt; if(dt>0.05) dt=0.05;
   if(typeof gfxMessen==='function') gfxMessen(roh,!!S&&!paused&&!overlayOpen());
-  if(S&&!paused) step(dt);
+  if(S&&!paused){ step(dt); if(typeof gpAn!=='undefined'&&gpAn) for(let i=1;i<gpTempo;i++) step(dt); }
+  /* Tagesabschluss pausiert das Spiel - die Vorfuehrung schliesst ihn selbst */
+  if(S&&paused&&typeof gpAn!=='undefined'&&gpAn&&(summaryOpen||levelOpen)) gpTick(0);
   renderFrame(dt);
 }

@@ -313,7 +313,10 @@ function updateSchiebetuer(dt){
        unsichtbaren Vorfahren hat. */
     let sicht=true; for(let o=t.g;o;o=o.parent) if(!o.visible) sicht=false;
     if(!sicht) continue;
-    t.target=tuerNahD(t)?1:0;
+    const ziel=tuerNahD(t)?1:0;
+    /* 03.10. (Tom): die Tuer hoert man - Motor und Gleiten, dezent */
+    if(ziel!==t.target&&typeof sfx!=='undefined'){ const w=t.g.getWorldPosition?t.g.getWorldPosition(new THREE.Vector3()):null, v=w?nahVol(w):0.5; if(v>0.03) (ziel?sfx.tuerAuf:sfx.tuerZu)(v); }
+    t.target=ziel;
     const d=t.target-t.t;
     if(Math.abs(d)<0.004){ if(t.t!==t.target) tuerSetD(t,t.target); t.moving=false; continue; }
     t.moving=true;

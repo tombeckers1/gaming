@@ -132,7 +132,7 @@ function tutKnopf(){ const b=$('pTut'); if(b) b.textContent=tutorialAn()?'Tutori
 function pauseSeite(id){
   document.querySelectorAll('#pause .pseite').forEach(el=>el.classList.toggle('on',el.id===id));
   if(id==='pSteuer'){ renderSteuer(); const sc=document.querySelector('#pSteuer .pscroll'); if(sc) sc.scrollTop=0; }
-  if(id==='pMusikSeite'){ musikAnzeige(); musikTitel(); }
+  if(id==='pMusikSeite'){ musikAnzeige(); musikTitel(); sfxAnzeige(); }
   if(id==='pHaupt') tutKnopf();
   if(id==='pGrafik') gfxAnzeige();
 }
@@ -165,6 +165,8 @@ $('pTitel').addEventListener('click',e=>{ const b=e.target.closest('[data-stueck
 $('pMusikAn').addEventListener('click',()=>{ ac(); musikAn(); });
 $('pMusikWeiter').addEventListener('click',()=>{ ac(); if(!MUSIK.an) musikAn(true); else musikWeiter(false); });
 $('pMusikVol').addEventListener('input',e=>{ ac(); musikVol(+e.target.value/100); });
+$('pSfxVol').addEventListener('input',e=>{ ac(); sfxVol(+e.target.value/100); });
+$('pSfxVol').addEventListener('change',()=>{ ac(); sfx.kasse(); });
 document.addEventListener('pointerlockchange',()=>{
   locked=document.pointerLockElement===canvas;
   if(locked) lockWorked=true;
@@ -197,6 +199,7 @@ addEventListener('keydown',e=>{
   if(gravOpen){ if(e.code==='Escape') closeGravInput(false); if(e.code==='Enter') closeGravInput(true); return; }
   if(dealOpen){ if(e.code==='Escape') declineDeal(); return; }
   /* Feuerwerk-Vorfuehrung (Entwicklung): Leertaste zuendet das naechste */
+  if(typeof gpAn!=='undefined'&&gpAn&&S&&!overlayOpen()&&gpTaste(e)) return;
   if(vfAn&&S&&!overlayOpen()&&vfTaste(e)) return;
   /* Verpackungs-Vorfuehrung (Entwicklung): B beendet */
   if(vpAn&&S&&!overlayOpen()&&vpTaste(e)) return;

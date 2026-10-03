@@ -2,7 +2,7 @@
 /* =========================================================
    Spieler
    ========================================================= */
-const pl={x:-2.5,z:1.5}; let yaw=Math.atan2(2.5,-3), pitch=-0.3, bobT=0;
+const pl={x:-2.5,z:1.5}; let yaw=Math.atan2(2.5,-3), pitch=-0.3, bobT=0, schrittAlt=0;
 /* Sanfte Blickfuehrung, z.B. beim Zuenden auf das Testfeld.
    Jede eigene Mausbewegung bricht sie sofort ab. */
 let aim=null;
@@ -57,8 +57,13 @@ function updatePlayer(dt){
   mx_+=joy.x; mz+=joy.y;
   const len=Math.hypot(mx_,mz); if(len>1){ mx_/=len; mz/=len; }
   const sp=((keys.ShiftLeft||keys.ShiftRight)?5.2:3.2)*karreTempo(), s=Math.sin(yaw), c=Math.cos(yaw);
+  const x0=pl.x, z0=pl.z;
   pl.x+=(mx_*c+mz*s)*sp*dt; pl.z+=(-mx_*s+mz*c)*sp*dt; collide(pl,0.32);
   if(len>0.1) bobT+=dt*sp*2.6;
+  /* 03.10. (Tom): leise Schritte - einer je Tiefpunkt des Kopfwippens,
+     nur wenn man wirklich vorankommt; draussen knirscht Schnee */
+  const schrittNr=Math.floor(bobT/Math.PI);
+  if(schrittNr!==schrittAlt){ schrittAlt=schrittNr; if(Math.hypot(pl.x-x0,pl.z-z0)>dt*0.8&&!paused) sfx.schritt(1,typeof unterDach==='function'?!unterDach(pl.x,1.0,pl.z):false); }
   const sx=shake>0?rand(-shake,shake)*0.15:0; shake=Math.max(0,shake-dt*1.5);
   camera.position.set(pl.x+sx,1.65+Math.sin(bobT)*0.035+sx,pl.z);
   updateAim(dt);

@@ -50,7 +50,7 @@ function scanBelt(bi){
   else { const h=pools[bi.type].add(mx(w.x,p.y,w.z,ckYaw()+jit)); bag.push({h,jit}); }
   c.scanned++; c.total=r2(c.total+bi.price); posLines.push({n:bi.text?('Gravur: '+bi.text):P[bi.type].short,p:bi.price});
   posStatus=c.scanned>=c.items.length&&c.ui>=c.items.length?'Alles gescannt':'Scannen …'; drawPOS();
-  sfx.beep(); S.tut.scan=true;
+  { const v=nahVol(new THREE.Vector3(w.x,p.y,w.z)); if(v>0.02) sfx.scan(v); } S.tut.scan=true;
 }
 function clearBag(){ while(bag.length){ const e=bag.pop(); if(e.h) e.h.pool.remove(e.h); if(e.mesh) disposeEngraved(e.mesh); } }
 

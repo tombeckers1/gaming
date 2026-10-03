@@ -2,8 +2,13 @@
    Jedes Motiv zeichnet in einem virtuellen Rahmen: Hoehe 100, Breite W
    (75..200 je nach Seitenverhaeltnis), zentriert eingepasst. Licht links oben. */
 function mg_f(h,k){ return '#'+hexRgb(h).map(v=>Math.max(0,Math.min(255,Math.round(k>=0?v+(255-v)*k:v*(1+k)))).toString(16).padStart(2,'0')).join(''); }
-function mg(fn){ return (g,x,y,w,h,rnd,a)=>{ const r=Math.max(0.75,Math.min(2,w/h)), W=100*r, s=Math.min(w/W,h/100);
-  g.save(); g.translate(x+(w-W*s)/2,y+(h-100*s)/2); g.scale(s,s); g.lineJoin='round'; g.lineCap='round'; fn(g,W,rnd,a); g.restore(); }; }
+/* hohe Rahmen: Breite 75, ex = Zusatzplatz oben und unten (y von -ex bis 100+ex) */
+function mg(fn){ return (g,x,y,w,h,rnd,a)=>{ const r=w/h, W=100*Math.max(0.75,Math.min(2,r)), H=r<0.75?W/r:100, s=Math.min(w/W,h/H), ex=(H-100)/2;
+  g.save(); g.translate(x+(w-W*s)/2,y+(h-H*s)/2+ex*s); g.scale(s,s); g.lineJoin='round'; g.lineCap='round'; fn(g,W,rnd,a,ex); g.restore(); }; }
+/* Schaumkrone: eine Wolke, kein Perlenkranz */
+function mg_schaum(g,cx,y,rx,h){ g.beginPath(); g.ellipse(cx,y,rx,h*0.35,0,0,Math.PI*2); for(let i=0;i<5;i++){ const t=(i+0.5)/5, bx=cx+(t-0.5)*rx*1.6, br=Math.min(rx*(0.27+0.07*Math.sin(i*2.3)),h*0.55), byy=y-Math.sin(t*Math.PI)*h*0.5; g.moveTo(bx+br,byy); g.arc(bx,byy,br,0,Math.PI*2); }
+  const gr=g.createRadialGradient(cx-rx*0.4,y-h*0.7,rx*0.1,cx,y,rx*1.3); gr.addColorStop(0,'#ffffff'); gr.addColorStop(0.55,'#fbf3e2'); gr.addColorStop(1,'#cdbb94'); g.fillStyle=gr; g.fill();
+  g.strokeStyle='rgba(190,170,130,.45)'; g.lineWidth=rx*0.025; for(let i=0;i<9;i++){ g.beginPath(); g.arc(cx+((i*0.37)%1-0.5)*rx*1.4,y-((i*0.61)%1)*h*0.6,rx*(0.04+(i%3)*0.02),0,Math.PI*2); g.stroke(); } }
 /* Komposition der Breite wn mittig, bei schmalem Rahmen verkleinert */
 function mg_mitte(g,W,wn,ya){ const k=Math.min(1,W/wn); g.translate(W/2,ya); g.scale(k,k); g.translate(-wn/2,-ya); return k; }
 /* bei breitem Rahmen: Platz links und rechts */
@@ -47,7 +52,7 @@ function mg_kelch(g,cx,by,h,typ,o){ o=o||{}; const k=MG_KELCH[typ], R=k.rw*h, bh
   g.save(); kelch(); g.clip(); mg_glanzband(g,cx-R*0.95,top+bh*0.05,R*0.62,bh*0.82,0.6); g.fillStyle='rgba(255,255,255,.16)'; g.fillRect(cx+R*0.58,top+bh*0.1,R*0.18,bh*0.55); g.restore();
   seite(); mg_kontur(g,lw);
   const R0=R*k.f(0); g.beginPath(); g.ellipse(cx,top,R0,Math.max(0.5,R0*0.15),0,0,Math.PI*2); mg_kontur(g,lw);
-  if(o.krone){ g.fillStyle='#fffaf0'; g.beginPath(); g.ellipse(cx,top,R0*1.04,R0*0.42,0,Math.PI,0); g.fill(); for(let i=0;i<7;i++) WZ.kugel(g,cx+(i/6-0.5)*R0*1.7,top-R0*0.08-Math.sin(i/6*Math.PI)*R0*0.22,R0*0.2,'#fff6e0'); }
+  if(o.krone) mg_schaum(g,cx,top,R0*1.05,R0*(o.krone<1?o.krone:0.6));
   return {top,R:R0,bot,fy,hwf};
 }
 function mg_becher(g,cx,by,w,h,o){ o=o||{}; const wu=w*(o.unten||0.86), top=by-h, bd=h*(o.boden||0.07), lw=Math.max(0.45,h*0.013), ry=w*0.1;
@@ -67,7 +72,7 @@ function mg_becher(g,cx,by,w,h,o){ o=o||{}; const wu=w*(o.unten||0.86), top=by-h
     if(o.innen) o.innen(fy,hw(fy));
     if(o.schaum){ const ys=fy-o.schaum; const sg=g.createLinearGradient(cx-w/2,0,cx+w/2,0); sg.addColorStop(0,'#e8dcc0'); sg.addColorStop(0.3,'#fffdf6'); sg.addColorStop(1,'#d8ccb0'); g.fillStyle=sg; g.fillRect(cx-w/2,ys,w,fy-ys+ry*0.5); }
     g.restore();
-    if(o.schaum&&fy-o.schaum<=top+1){ g.fillStyle='#fffaf0'; g.beginPath(); g.ellipse(cx,top,w*0.52,ry*1.3,0,0,Math.PI*2); g.fill(); for(let i=0;i<7;i++) WZ.kugel(g,cx+(i/6-0.5)*w*0.9,top-ry*0.6-Math.sin(i/6*Math.PI)*ry*1.2,w*0.1,'#fff6e0'); } }
+    if(o.schaum&&fy-o.schaum<=top+1) mg_schaum(g,cx,top,w*0.53,w*0.3); }
   g.save(); pfad(); g.clip(); g.fillStyle='rgba(255,255,255,.22)'; g.fillRect(cx-w/2,by-bd,w,bd); mg_glanzband(g,cx-w*0.45,top,w*0.3,h,0.55); g.fillStyle='rgba(255,255,255,.15)'; g.fillRect(cx+w*0.3,top+h*0.1,w*0.06,h*0.7); g.restore();
   seite(); mg_kontur(g,lw);
   if(!(o.schaum&&fy-o.schaum<=top+1)){ g.beginPath(); g.ellipse(cx,top,w/2,ry,0,0,Math.PI*2); mg_kontur(g,lw); }
@@ -190,9 +195,9 @@ function mg_feige(g,x,y,r,halb,rot){ g.save(); g.translate(x,y); g.rotate(rot||0
     g.fillStyle='#f6e8b0'; for(let i=0;i<22;i++){ const an=i*2.4, d=r*0.65*Math.sqrt((i+1)/23); WZ.ellipse(g,Math.cos(an)*d*0.8,r*0.15+Math.sin(an)*d,r*0.05,r*0.03,'#f6e8b0',an); } g.restore(); }
   else { g.strokeStyle='#4a6a2a'; g.lineWidth=r*0.14; g.beginPath(); g.moveTo(0,-r*1.2); g.lineTo(r*0.08,-r*1.45); g.stroke(); WZ.ellipse(g,-r*0.35,-r*0.35,r*0.12,r*0.3,'rgba(255,255,255,.3)',0.4); }
   g.restore(); }
-function mg_hopfen(g,x,y,r,rot){ g.save(); g.translate(x,y); g.rotate(rot||0); mg_blatt(g,0,-r*1.1,r*1.4,-0.5,'#3f7a2a');
-  for(let i=0;i<5;i++){ const n=i<3?3:2, yy=-r*0.8+i*r*0.42, hw=r*(0.62-i*0.08); for(let j=0;j<n;j++){ const xx=(j-(n-1)/2)*hw*0.85, gr=g.createLinearGradient(xx,yy-r*0.3,xx,yy+r*0.4); gr.addColorStop(0,'#c8e07a'); gr.addColorStop(1,'#5a8a2a'); g.fillStyle=gr;
-    g.beginPath(); g.moveTo(xx-r*0.3,yy-r*0.1); g.quadraticCurveTo(xx-r*0.25,yy+r*0.35,xx,yy+r*0.45); g.quadraticCurveTo(xx+r*0.25,yy+r*0.35,xx+r*0.3,yy-r*0.1); g.closePath(); g.fill(); } } g.restore(); }
+function mg_hopfen(g,x,y,r,rot){ g.save(); g.translate(x,y); g.rotate(rot||0); WZ.schatten(g,r*0.2,r*1.1,r*0.7,r*0.2,0.3); mg_blatt(g,0,-r*0.85,r*1.3,-0.7,'#3f7a2a');
+  for(let i=0;i<6;i++){ const t=i/5, yy=-r*0.75+t*r*1.45, hw=r*0.62*Math.sin(Math.PI*(0.18+0.72*t)), n=i%2?2:3; for(let j=0;j<n;j++){ const xx=n===1?0:(j/(n-1)-0.5)*hw*(n===3?1.3:0.8), bw=r*0.28, bh=r*0.32;
+    const gr=g.createLinearGradient(xx-bw,yy-bh,xx+bw,yy+bh); gr.addColorStop(0,'#d8f08a'); gr.addColorStop(1,'#5a8a2a'); g.fillStyle=gr; g.beginPath(); g.moveTo(xx-bw,yy); g.quadraticCurveTo(xx-bw,yy+bh,xx,yy+bh*1.35); g.quadraticCurveTo(xx+bw,yy+bh,xx+bw,yy); g.arc(xx,yy,bw,0,Math.PI,true); g.fill(); g.strokeStyle='rgba(60,90,20,.5)'; g.lineWidth=r*0.04; g.stroke(); } } g.restore(); }
 function mg_aehre(g,x,y,l,rot){ g.save(); g.translate(x,y); g.rotate(rot||0); g.strokeStyle='#b8902a'; g.lineWidth=l*0.025; g.beginPath(); g.moveTo(0,0); g.lineTo(0,-l); g.stroke();
   for(let i=0;i<7;i++){ const yy=-l*0.45-i*l*0.075; for(const s of [-1,1]){ WZ.ellipse(g,s*l*0.045,yy,l*0.04,l*0.07,i%2?'#e8c060':'#d4a83a',s*0.35); g.strokeStyle='rgba(220,180,90,.8)'; g.lineWidth=l*0.008; g.beginPath(); g.moveTo(s*l*0.05,yy-l*0.05); g.lineTo(s*l*0.15,yy-l*0.25); g.stroke(); } } g.restore(); }
 
@@ -222,8 +227,8 @@ wareReg('secco',mg((g,W,rnd,a)=>{
   mg_seiten(W,(x,s,d)=>{ for(let i=0;i<10;i++) WZ.kreis(g,x+(rnd()-0.5)*s,10+rnd()*80,0.8+rnd()*2,'rgba(200,162,58,.45)'); });
   g.save(); mg_mitte(g,W,96,55);
   for(let i=0;i<22;i++){ const yy=8+rnd()*40; WZ.kreis(g,48+(rnd()-0.5)*(26+yy*0.4),yy,0.6+rnd()*1.6,'rgba(200,162,58,.55)'); }
-  mg_kelch(g,48,94,62,'schale',{inhalt:'#f0dc96',oben:0.12,blasen:10,rnd,krone:1});
-  mg_apfelspalte(g,18,92,9,-0.15); mg_apfelspalte(g,80,93,8,0.25); mg_apfelspalte(g,70,95,7,-0.3); g.restore();
+  mg_kelch(g,48,92,62,'schale',{inhalt:'#f0dc96',oben:0.12,blasen:10,rnd,krone:0.32});
+  mg_apfelspalte(g,16,92,12,-0.15); mg_apfelspalte(g,82,92,11,0.25); mg_apfelspalte(g,70,96,9,-0.3); g.restore();
 }));
 /* Partyfass: Fass mit Zapfhahn und Bierkrug */
 wareReg('partyfass',mg((g,W,rnd,a)=>{
@@ -250,7 +255,8 @@ function mg_tasse(g,cx,by,w,h,f,inhalt,o){ o=o||{}; const top=by-h, ry=w*0.14;
   k(); g.fillStyle=mg_zyl(g,cx-w/2,cx+w/2,f); g.fill(); if(o.muster){ g.save(); k(); g.clip(); o.muster(); mg_glanzband(g,cx-w*0.42,top,w*0.22,h,0.4); g.restore(); }
   WZ.ellipse(g,cx,top,w/2,ry,mg_f(f,0.2)); WZ.ellipse(g,cx,top+ry*0.1,w*0.44,ry*0.78,mg_f(inhalt,-0.3)); WZ.ellipse(g,cx+w*0.03,top+ry*0.2,w*0.38,ry*0.6,inhalt);
   g.fillStyle='rgba(255,255,255,.35)'; g.beginPath(); g.ellipse(cx-w*0.12,top+ry*0.1,w*0.14,ry*0.2,0,0,Math.PI*2); g.fill(); return top; }
-wareReg('gluehwein',mg((g,W,rnd,a)=>{
+wareReg('gluehwein',mg((g,W,rnd,a,ex)=>{
+  if(ex>8){ mg_anis(g,W*0.32,-ex*0.5,Math.min(12,ex*0.3),0.2); mg_zimt(g,W*0.62,-ex*0.62,30,5,-0.5); mg_zimt(g,W*0.66,-ex*0.38,28,5,-0.25); mg_scheibe(g,W*0.35,100+ex*0.5,Math.min(13,ex*0.35),{schale:'#f28a1c',fleisch:'#ffa21c'}); mg_anis(g,W*0.72,100+ex*0.55,Math.min(9,ex*0.25),0.6); }
   mg_seiten(W,(x,s,d)=>{ const k=Math.min(1,s/36); mg_anis(g,x,40,8*k,rnd()); mg_zimt(g,x,70,s*0.8,5*k,d*0.3); });
   g.save(); mg_mitte(g,W,100,55);
   const top=mg_tasse(g,48,94,50,48,'#b0182c','#7a1020',{muster:()=>{ for(let i=0;i<7;i++) WZ.stern(g,30+(i%4)*12+(i>3?6:0),60+(i>3?16:0),3.2,'rgba(255,255,255,.85)',5); }});
@@ -328,10 +334,15 @@ wareReg('energy',mg((g,W,rnd,a)=>{
   g.restore();
 }));
 /* Orangensaft: Glas, Orangenhaelften, ganze Orange mit Blatt */
-wareReg('orangensaft',mg((g,W,rnd,a)=>{
+wareReg('orangensaft',mg((g,W,rnd,a,ex)=>{
+  if(ex>8){ const c=W/2, by=100+ex*0.55, gh=Math.min(74,56+ex*0.6), fr=Math.min(21,8+ex*0.5), gt=by-10-gh;
+    mg_frucht(g,c,Math.max(-ex+fr*1.5+3,(gt-ex)/2),fr,'#f28a1c',{blatt:'#2f7a2a',stiel:1});
+    const r=mg_becher(g,c+6,by-10,40,gh,{inhalt:'#ffa018',voll:0.86,blasen:10,rnd}); mg_scheibe(g,c+24,r.top+4,12,{schale:'#f28a1c',fleisch:'#ffa21c',n:11,rot:0.35});
+    mg_haelfte(g,c-20,by-2,14,{schale:'#f28a1c',ry:0.45}); mg_haelfte(g,c+16,by+4,11,{schale:'#ef7a10',ry:0.5}); return; }
+  const hoch=false;
   mg_seiten(W,(x,s)=>{ const k=Math.min(1,s/36); mg_frucht(g,x,70,12*k,'#f28a1c',{blatt:'#2f7a2a'}); });
   g.save(); mg_mitte(g,W,108,55);
-  mg_frucht(g,26,60,15,'#f28a1c',{blatt:'#2f7a2a',stiel:1});
+  if(!hoch) mg_frucht(g,26,60,15,'#f28a1c',{blatt:'#2f7a2a',stiel:1});
   const r=mg_becher(g,74,95,34,62,{inhalt:'#ffa018',voll:0.86,blasen:8,rnd});
   mg_scheibe(g,90,r.top+4,11,{schale:'#f28a1c',fleisch:'#ffa21c',n:11,rot:0.35});
   mg_haelfte(g,22,86,15,{schale:'#f28a1c',ry:0.45}); mg_haelfte(g,48,92,11,{schale:'#ef7a10',ry:0.5});
@@ -379,8 +390,8 @@ wareReg('rotwein',mg((g,W,rnd,a)=>{
 wareReg('weisswein',mg((g,W,rnd,a)=>{
   mg_seiten(W,(x,s)=>{ const k=Math.min(1,s/36); mg_weinblatt(g,x,30,14*k,rnd()*3,'#5a9a3a'); mg_traube(g,x,52,18*k,'#b8d468',rnd,{reihen:[3,4,3,2,1]}); });
   g.save(); mg_mitte(g,W,104,55);
-  mg_weinblatt(g,78,6,16,0.8,'#5a9a3a'); mg_weinblatt(g,96,14,12,2.2,'#4a8a2a');
-  mg_traube(g,80,12,32,'#b8d468',rnd,{reihen:[4,5,4,4,3,2,1]});
+  mg_weinblatt(g,76,10,15,0.8,'#5a9a3a'); mg_weinblatt(g,90,20,11,2.2,'#4a8a2a');
+  mg_traube(g,76,16,30,'#b8d468',rnd,{reihen:[4,5,4,4,3,2,1]});
   mg_kelch(g,38,96,80,'wein',{inhalt:'#ecd46a',oben:0.46});
   g.restore();
 }));
@@ -388,9 +399,12 @@ wareReg('weisswein',mg((g,W,rnd,a)=>{
 wareReg('eierlikoer',mg((g,W,rnd,a)=>{
   mg_seiten(W,(x,s)=>{ const k=Math.min(1,s/36); mg_ei(g,x,72,10*k,'#f4ece0',0.2); });
   g.save(); mg_mitte(g,W,104,55);
-  mg_ei(g,18,80,11,'#d8a070',-0.2); mg_ei(g,32,88,10,'#f4ece0',0.15);
-  const k=mg_kelch(g,62,96,66,'likoer',{inhalt:'#f5c818',oben:0.08});
-  g.fillStyle='#f5c818'; g.beginPath(); g.moveTo(62-k.R*0.4,k.top+1); g.quadraticCurveTo(62-k.R*0.95,k.top+6,62-k.R*0.98,k.top+12); g.lineTo(62-k.R*0.8,k.top+4); g.fill();
+  mg_ei(g,18,80,13,'#d8a070',-0.2); mg_ei(g,34,88,11,'#f4ece0',0.15);
+  WZ.schatten(g,62,48,44,40,0.45);
+  const k=mg_kelch(g,62,96,70,'likoer',{inhalt:'#ffc21a',oben:0.04});
+  const pg=g.createLinearGradient(58,0,66,0); pg.addColorStop(0,'#fff4b8'); pg.addColorStop(0.4,'#ffc21a'); pg.addColorStop(1,'#d89a10'); g.fillStyle=pg; g.beginPath(); g.moveTo(57,-60); g.lineTo(65,-60); g.bezierCurveTo(65,k.top-14,63.5,k.top-6,65,k.top); g.lineTo(59,k.top); g.bezierCurveTo(60.5,k.top-6,57,k.top-14,57,-60); g.fill();
+  const dg=g.createLinearGradient(62+k.R-4,0,62+k.R+3,0); dg.addColorStop(0,'#fff2b0'); dg.addColorStop(1,'#e8b820'); g.fillStyle=dg; g.beginPath(); g.moveTo(62+k.R*0.45,k.top-1); g.quadraticCurveTo(62+k.R*1.05,k.top-1,62+k.R*0.98,k.top+6); g.quadraticCurveTo(62+k.R*0.9,k.top+16,62+k.R*0.72,k.top+18); g.arc(62+k.R*0.72-1.6,k.top+18,1.6,0,Math.PI); g.quadraticCurveTo(62+k.R*0.7,k.top+8,62+k.R*0.3,k.top+1); g.closePath(); g.fill();
+  g.fillStyle='#ffc21a'; g.beginPath(); g.ellipse(62,k.top,k.R*0.98,k.R*0.24,0,Math.PI,0); g.fill(); g.strokeStyle='#e8b018'; g.lineWidth=0.8; g.beginPath(); g.ellipse(62,k.top-0.5,k.R*0.35,k.R*0.09,0,0,Math.PI*2); g.ellipse(62,k.top-0.5,k.R*0.6,k.R*0.15,0,0,Math.PI*2); g.stroke(); WZ.ellipse(g,62-k.R*0.3,k.top-k.R*0.06,k.R*0.3,k.R*0.07,'rgba(255,255,255,.7)');
   /* aufgeschlagene Schale mit Dotter */
   const sx=90, sy=88, r=9; WZ.schatten(g,sx+2,sy+6,r*1.1,2.5,0.35);
   g.beginPath(); g.ellipse(sx,sy,r*0.85,r*0.9,0,0,Math.PI); for(let i=0;i<=8;i++) g.lineTo(sx-r*0.85+i*r*0.2125,sy-(i%2?r*0.35:0)); g.closePath(); const sg=g.createRadialGradient(sx-3,sy-2,1,sx,sy,r); sg.addColorStop(0,'#fff8ee'); sg.addColorStop(1,'#c8b49a'); g.fillStyle=sg; g.fill();
@@ -401,11 +415,11 @@ wareReg('eierlikoer',mg((g,W,rnd,a)=>{
 wareReg('likoer',mg((g,W,rnd,a)=>{
   mg_seiten(W,(x,s)=>{ for(let i=0;i<5;i++) mg_bohne(g,x+(rnd()-0.5)*s*0.8,25+rnd()*60,3.5*Math.min(1,s/30),rnd()*3); });
   g.save(); mg_mitte(g,W,100,55);
-  const gx=50; mg_becher(g,gx,92,48,50,{inhalt:'#b88a5a',voll:0.66,unten:0.92,boden:0.16,innen:(fy,hw)=>{
+  const gx=50; mg_becher(g,gx,92,48,50,{inhalt:'#c08a58',voll:0.66,unten:0.92,boden:0.16,innen:(fy,hw)=>{
     g.strokeStyle='rgba(255,246,228,.85)'; g.lineWidth=3; g.beginPath(); g.moveTo(gx-hw*0.8,fy+6); g.bezierCurveTo(gx-hw*0.2,fy+18,gx+hw*0.3,fy-2,gx+hw*0.85,fy+12); g.stroke();
     g.lineWidth=1.8; g.beginPath(); g.moveTo(gx-hw*0.7,fy+20); g.bezierCurveTo(gx,fy+12,gx+hw*0.2,fy+26,gx+hw*0.8,fy+18); g.stroke();
     mg_eis(g,gx-9,fy-2,15,0.25,0.85); mg_eis(g,gx+9,fy+1,13,-0.3,0.8); }});
-  [[14,88,0.4],[22,95,2],[80,90,1.2],[88,96,-0.6],[74,97,2.6],[10,96,1]].forEach(([x,y,r])=>mg_bohne(g,x,y,4,r));
+  [[14,86,0.4],[22,95,2],[82,88,1.2],[90,96,-0.6],[76,97,2.6],[8,95,1]].forEach(([x,y,r])=>mg_bohne(g,x,y,5.2,r));
   g.restore();
 }));
 /* Magnum: Korken knallt, Fontaene in drei Floeten */
@@ -436,7 +450,9 @@ wareReg('wasser',mg((g,W,rnd,a)=>{
   g.save(); mg_mitte(g,W,100,55);
   const gx=54, r=mg_becher(g,gx,95,40,58,{inhalt:'#7cc8f0',voll:0.78,blasen:26,rnd,unten:0.84,boden:0.1});
   for(let i=0;i<12;i++){ const an=-Math.PI*(0.1+0.8*i/11), d=12+rnd()*12; const x=gx+Math.cos(an)*d*1.3, y=r.fy-4+Math.sin(an)*d; mg_tropfen(g,x,y,1+rnd()*1.2,'#bfe8ff'); }
-  g.strokeStyle='rgba(220,244,255,.85)'; g.lineWidth=1.6; g.beginPath(); g.moveTo(gx-16,r.fy); g.quadraticCurveTo(gx-12,r.fy-12,gx-6,r.fy-4); g.moveTo(gx+16,r.fy); g.quadraticCurveTo(gx+12,r.fy-12,gx+6,r.fy-4); g.stroke();
+  g.beginPath(); const hw=r.hw(r.fy)*0.85; for(let i=0;i<=9;i++){ const t=i/9, x=gx-hw+t*hw*2, sp=(i%2?14:8)*Math.sin(t*Math.PI)+3; g.lineTo(x-1.5,r.fy); g.lineTo(x,r.fy-sp); g.lineTo(x+1.5,r.fy); } g.closePath();
+  const kg=g.createLinearGradient(0,r.fy-16,0,r.fy); kg.addColorStop(0,'rgba(235,250,255,.95)'); kg.addColorStop(1,'rgba(150,210,245,.7)'); g.fillStyle=kg; g.fill();
+  for(let i=0;i<=9;i++){ const t=i/9, sp=(i%2?14:8)*Math.sin(t*Math.PI)+3; WZ.kreis(g,gx-hw+t*hw*2,r.fy-sp-2.5,1.3,'rgba(235,250,255,.95)'); }
   mg_tropfen(g,gx,r.fy-16,3,'#bfe8ff');
   mg_tropfen(g,18,72,10,'#5ab8ee'); mg_tropfen(g,84,86,4,'#5ab8ee');
   g.restore();
@@ -469,7 +485,7 @@ wareReg('prosecco',mg((g,W,rnd,a)=>{
   g.save(); mg_mitte(g,W,100,55);
   mg_traube(g,70,30,32,'#c8dc6a',rnd,{blatt:'#3f7a2a',blattX:0.4,blattY:-0.05,blattRot:0.3});
   const k=mg_kelch(g,38,95,84,'flute',{inhalt:'#e6e090',oben:0.14,blasen:22,rnd});
-  g.strokeStyle='#f2d21b'; g.lineWidth=2.2; g.beginPath(); for(let i=0;i<=24;i++){ const t=i/24; g.lineTo(38-k.R-2+Math.sin(t*12)*2.6,k.top-4+t*22); } g.stroke();
+  [[62,94],[69,96],[66,90]].forEach(([x,y])=>WZ.kugel(g,x,y,4,'#c8dc6a','#f4ffc8')); WZ.schatten(g,66,98,10,2,0.3);
   g.restore();
 }));
 /* Radler: Seidel halb Bier halb Zitrone, Zitronen */
@@ -526,7 +542,7 @@ wareReg('gintonic',mg((g,W,rnd,a)=>{
   g.save(); mg_mitte(g,W,104,55);
   const gx=52, k=mg_kelch(g,gx,96,82,'copa',{inhalt:'#dceefa',oben:0.14,blasen:30,rnd,innen:(fy,hw)=>{
     mg_eis(g,gx-12,fy+9,13,0.2,0.8); mg_eis(g,gx+11,fy+7,12,-0.35,0.8); mg_eis(g,gx,fy+20,12,0.6,0.7);
-    g.strokeStyle='#2a6a22'; g.lineWidth=4.5; g.beginPath(); for(let i=0;i<=30;i++){ const t=i/30; g.lineTo(gx-hw*0.65+t*hw*1.3,fy+6+t*30+Math.sin(t*9)*6); } g.stroke(); g.strokeStyle='#d8f0b0'; g.lineWidth=3; g.stroke();
+    mg_gurke(g,gx-hw*0.45,fy+24,8,0.3,0.9); mg_gurke(g,gx+hw*0.4,fy+20,7.5,-0.4,0.85);
     for(let i=0;i<4;i++) WZ.kugel(g,gx-12+i*8,fy+28+(i%2)*6,2.2,'#2a3a6a','#8aa0d8'); }});
   /* Limettenspalte am Rand */
   g.save(); g.translate(gx+k.R-3,k.top-1); g.rotate(0.5); g.beginPath(); g.arc(0,0,9,Math.PI,0); g.closePath(); g.fillStyle='#5aa02a'; g.fill(); g.beginPath(); g.arc(0,0,7.6,Math.PI,0); g.closePath(); g.fillStyle='#c8e88a'; g.fill(); g.strokeStyle='#f4fae0'; g.lineWidth=0.7; g.beginPath(); for(let i=1;i<5;i++){ g.moveTo(0,0); g.lineTo(Math.cos(Math.PI+i*Math.PI/5)*7,Math.sin(Math.PI+i*Math.PI/5)*7); } g.stroke(); g.restore();
@@ -534,15 +550,15 @@ wareReg('gintonic',mg((g,W,rnd,a)=>{
   g.restore();
 }));
 /* Whisky: Tumbler mit Eiswuerfel vor dem Fassboden */
-wareReg('whisky',mg((g,W,rnd,a)=>{
-  g.save(); mg_mitte(g,W,100,55);
-  const bx=50, byy=42, br=40; g.save(); g.beginPath(); g.arc(bx,byy,br,0,Math.PI*2); const hg=g.createRadialGradient(bx-12,byy-12,4,bx,byy,br); hg.addColorStop(0,'#a8683a'); hg.addColorStop(1,'#3a1a08'); g.fillStyle=hg; g.fill(); g.clip();
+wareReg('whisky',mg((g,W,rnd,a,ex)=>{
+  const dy=ex>8?ex*0.35:0; g.save(); mg_mitte(g,W,100,55);
+  const bx=50, byy=42-dy, br=40; g.save(); g.beginPath(); g.arc(bx,byy,br,0,Math.PI*2); const hg=g.createRadialGradient(bx-12,byy-12,4,bx,byy,br); hg.addColorStop(0,'#a8683a'); hg.addColorStop(1,'#3a1a08'); g.fillStyle=hg; g.fill(); g.clip();
   g.strokeStyle='rgba(30,12,2,.6)'; g.lineWidth=0.8; for(let i=-4;i<=4;i++){ g.beginPath(); g.moveTo(bx+i*9,byy-br); g.lineTo(bx+i*9,byy+br); g.stroke(); }
   g.strokeStyle='rgba(255,200,140,.12)'; for(let i=0;i<14;i++){ g.beginPath(); g.moveTo(bx-br+rnd()*br*2,byy-br); g.lineTo(bx-br+rnd()*br*2,byy+br); g.stroke(); } g.restore();
   g.strokeStyle='#22201e'; g.lineWidth=4; g.beginPath(); g.arc(bx,byy,br-2,0,Math.PI*2); g.stroke(); g.strokeStyle='rgba(255,255,255,.25)'; g.lineWidth=1; g.beginPath(); g.arc(bx,byy,br-3.5,Math.PI*1.05,Math.PI*1.55); g.stroke();
   WZ.ellipse(g,bx,byy-18,4.5,4.5,'#2a1406');
-  const gx=50; mg_becher(g,gx,96,50,42,{inhalt:'#c8701a',voll:0.5,unten:0.95,boden:0.2,innen:(fy)=>{ mg_eis(g,gx-4,fy-2,22,0.22,0.85); }});
-  mg_eis(g,86,92,12,-0.3,0.85);
+  const gx=50; mg_becher(g,gx,96+dy,50,42,{inhalt:'#b85a12',voll:0.56,unten:0.95,boden:0.2,innen:(fy)=>{ mg_eis(g,gx-4,fy-2,22,0.22,0.85); }});
+  mg_eis(g,86,92+dy,12,-0.3,0.85); if(dy) mg_eis(g,16,94+dy,10,0.4,0.8);
   g.restore();
 }));
 /* Eiswuerfel: Haufen Wuerfel, Frost, Kristalle */
@@ -554,3 +570,7 @@ wareReg('eiswuerfel',mg((g,W,rnd,a)=>{
   reihen.forEach(([y,n])=>{ for(let i=0;i<n;i++) mg_eis(g,W/2+(i-(n-1)/2)*s*0.95+(rnd()-0.5)*4,y+(rnd()-0.5)*4,s*(0.9+rnd()*0.2),(rnd()-0.5)*0.8,0.92); });
   for(let i=0;i<6;i++) mg_funkel(g,W*0.15+rnd()*W*0.7,30+rnd()*60,1.5+rnd()*2,'#ffffff');
 }));
+/* Vollbild-Variante der Vorderseite (04e wareFront, hashStr%3===1): unten liegt
+   das Namensband ueber dem Bild, also das Motiv nur darueber zeichnen */
+Object.keys(WARE_MOTIV).forEach(t=>{ if(!/^(secco|gluehwein|rosesekt|eierlikoer|likoer|kindersekt2|prosecco|limonade|kurze|whisky)$/.test(t)||hashStr(t)%3!==1) return;
+  const f=WARE_MOTIV[t]; WARE_MOTIV[t]=(g,x,y,w,h,rnd,a)=>{ const bh=x===0&&y===0&&w/h<2.1?Math.min(h*0.3,w*0.42):0; f(g,x,y,w,h-bh,rnd,a); }; });

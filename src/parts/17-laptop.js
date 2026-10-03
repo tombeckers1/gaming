@@ -1343,9 +1343,7 @@ function lapZeichnen(body){
         `<div class="row"><div class="rm"><b>Feuerwerk-Vorführung <span class="warn">(nur Entwicklung)</span></b><small>Alle Feuerwerke nach Level, eins nach dem anderen: Leertaste zündet das nächste, der Name steht groß oben. Pfeile vor/zurück, R nochmal, 1 gut, 2 ändern, L Liste, B beenden.</small></div><button data-a="vorfuehrung">Starten</button></div>`+
         /* 02.10. (Tom): alle Verpackungen im Regal auf einen Blick */
         `<div class="row"><div class="rm"><b>Verpackungs-Vorführung <span class="warn">(nur Entwicklung)</span></b><small>Ein eigener Ausstellungsraum wie ein Supermarkt – Hauptgang, Quergang und Gänge zwischen allen Regalzeilen: Hochregal, Verkaufsregal, Mittelgondel, kleines Regal, Kühlschrank, Großverbund-Regal, Tische, Gitterboxen und Eckregale. Jedes Produkt füllt genau ein Fach – so sieht man jede Verpackung und wie sie im Regal steht. Beenden: Knopf oben oder B.</small></div><button data-a="verpackung">${vpAn?'Beenden':'Starten'}</button></div>`+
-        /* 30.09. (Tom): eigene Testsektionen fuer die neuen Batterien und Kugeln */
-        `<div class="row"><div class="rm"><b>Neue Batterien testen <span class="warn">(nur Entwicklung)</span></b><small>${NEU_LB.length} Lichter-Batterien aus deinen Favoriten, danach ${LICHT_MUSTER.length} Lichter-Muster (deine Favoriten und 30 neue Effekte, darunter breite Einzelfontänen), nacheinander auf der großen Anlage: ${NEU_TEST.batterien.filter(t=>P[t]).map(t=>P[t].short).join(', ')}.</small></div><button data-a="vfbatt">Starten</button></div>`+
-        `<div class="row"><div class="rm"><b>Neue Kugelbomben testen <span class="warn">(nur Entwicklung)</span></b><small>${NEU_TEST.kugeln.length} neue, besonders intensive Kugelbomben von 100 bis 300 mm – Fontäne, Römische Lichter oder Kometen schon beim Abschuss, oben ein Feuerwerk in mehreren Stufen: ${NEU_TEST.kugeln.filter(t=>P[t]).map(t=>P[t].short).join(', ')}.</small></div><button data-a="vfkugel">Starten</button></div>`+
+        /* 30.09. (Tom): eigene Testsektionen; 03.10.: Batterien und Kugeln sind im Sortiment, nur noch die Raketen */
         `<div class="row"><div class="rm"><b>Neue Raketen testen <span class="warn">(nur Entwicklung)</span></b><small>${NEU_TEST.raketen.length} neue Raketen, jede mit eigenem Aufstieg und Bruch: ${NEU_TEST.raketen.filter(t=>P[t]).map(t=>P[t].short).join(', ')}.</small></div><button data-a="vfrakete">Starten</button></div>`:'')+
       `<div class="row"><div class="rm"><b>Spielstand</b><small>Wird automatisch gespeichert.</small></div><button class="ghost" data-a="reset">${resetArm?'Wirklich löschen?':'Spielstand löschen'}</button></div>`;
   }
@@ -1440,8 +1438,6 @@ function lapKlick(e,imHandy){
   else if(a==='fwtest'){ fwTestSchalten(); return; }
   else if(a==='vorfuehrung'){ vorfuehrungAn(); return; }
   else if(a==='verpackung'){ vpSchalten(); return; }
-  else if(a==='vfbatt'){ vorfuehrungAn(NEU_TEST.batterien); return; }
-  else if(a==='vfkugel'){ vorfuehrungAn(NEU_TEST.kugeln); return; }
   else if(a==='vfrakete'){ vorfuehrungAn(NEU_TEST.raketen); return; }
   else if(a==='fwtestneu'){ const n=fwTestStapeln(); toast(`${n} Kartons neu gestapelt.`); }
   else if(a==='reset'){ if(!resetArm) resetArm=true; else { try{ localStorage.removeItem(KEY); }catch(err){} location.reload(); return; } }

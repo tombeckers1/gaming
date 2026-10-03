@@ -118,6 +118,8 @@ function wareMarkeZeichnen(g,x,y,w,h,t,a){
   g.fillStyle=bg; g.fillRect(x,y,w,h);
   WZ.txt(g,M.name,x+w/2,y+h*0.54,w*0.9,h*0.7,M.fnt,fg);
 }
+/* relative Helligkeit 0..1 einer #rrggbb-Farbe */
+function wareLum(h){ const c=String(h||'#000').replace('#',''); if(c.length<6) return 0.5; const v=[0,2,4].map(i=>parseInt(c.slice(i,i+2),16)/255); return 0.2126*v[0]+0.7152*v[1]+0.0722*v[2]; }
 /* Vorderseite */
 function wareFront(g,W,H,t,a){
   const p=P[t], m=wareMarke(t), M=WARE_MARKE[m], rnd=zufallAus(hashStr(t+'front')), r=W/H;
@@ -140,9 +142,12 @@ function wareFront(g,W,H,t,a){
        einem Band, Marke als Ecke oben links */
     wareBild(g,0,0,W,H,t,a,rnd);
     const bh=Math.min(H*0.3,W*0.42), by=H-bh;
-    g.fillStyle=m==='krone'?'rgba(43,26,14,.86)':rgba(a.bg2,0.86); g.fillRect(0,by,W,bh);
+    /* das Band immer dunkel, der Name immer hell genug (03.10.: Popcorn
+       stand weiss auf hellem Band, Berliner rot auf braun) */
+    const bandC=m==='krone'?'#2b1a0e':wareLum(a.bg2)>0.3?'#1e1a24':a.bg2, nameC=m==='krone'?'#e2c27a':wareLum(a.ac)>0.45?a.ac:'#ffffff';
+    g.fillStyle=rgba(bandC,0.88); g.fillRect(0,by,W,bh);
     g.fillStyle=a.ac2||a.ac; g.fillRect(0,by,W,Math.max(2,bh*0.06));
-    WZ.txt(g,titel,W/2,by+bh*0.42,W*0.92,bh*0.46,m==='krone'?WFNT.serif:m==='suess'?WFNT.schreib:WFNT.rund,m==='krone'?'#e2c27a':a.ac,'center','rgba(0,0,0,.5)');
+    WZ.txt(g,titel,W/2,by+bh*0.42,W*0.92,bh*0.46,m==='krone'?WFNT.serif:m==='suess'?WFNT.schreib:WFNT.rund,nameC,'center','rgba(0,0,0,.5)');
     if(sub) WZ.txt(g,sub,W/2,by+bh*0.8,W*0.9,bh*0.24,WFNT.kond,'#ffffff');
     if(M.name){ const tw=Math.min(W*0.6,H*0.5), th=Math.min(H*0.09,tw*0.22); g.fillStyle=m==='krone'?'#2b1a0e':a.bg2; WZ.rr(g,-th*0.3,H*0.03,tw,th,th*0.3); g.fill(); WZ.txt(g,M.name,tw*0.45,H*0.03+th/2,tw*0.8,th*0.7,M.fnt,m==='krone'?'#e2c27a':'#ffffff'); }
   } else if(hashStr(t)%3===2&&m!=='frisch'&&m!=='krone'){
@@ -162,8 +167,8 @@ function wareFront(g,W,H,t,a){
     const bh=H*0.58; wareBild(g,0,mh,W,bh,t,a,rnd);
     const ty=mh+bh;
     if(m==='trink'){ g.fillStyle=rgba(a.bg2,0.92); g.fillRect(0,ty,W,H-ty); }
-    WZ.txt(g,titel,W/2,ty+(H-ty)*0.42,W*0.9,(H-ty)*0.48,m==='krone'?WFNT.serif:m==='suess'?WFNT.schreib:WFNT.rund,titelF,'center',umriss);
-    if(sub) WZ.txt(g,sub,W/2,ty+(H-ty)*0.8,W*0.88,(H-ty)*0.26,WFNT.kond,m==='krone'?'#3a3a4a':'#fff','center',m==='krone'?null:'rgba(0,0,0,.45)');
+    WZ.txt(g,titel,W/2,ty+(H-ty)*0.36,W*0.9,(H-ty)*0.4,m==='krone'?WFNT.serif:m==='suess'?WFNT.schreib:WFNT.rund,titelF,'center',umriss);
+    if(sub) WZ.txt(g,sub,W/2,ty+(H-ty)*0.78,m==='frisch'?W*0.56:W*0.88,(H-ty)*0.22,WFNT.kond,m==='krone'?'#3a3a4a':'#fff','center',m==='krone'?null:'rgba(0,0,0,.45)');
   } else {
     /* hoch: Marke, Bild, Name, Zusatz */
     const mh=m==='trink'?0:H*0.08;
@@ -176,7 +181,11 @@ function wareFront(g,W,H,t,a){
   }
   /* Siegel je Marke */
   const S=Math.min(W,H);
-  if(m==='frisch'){ WZ.rr(g,W-S*0.42,H-S*0.2,S*0.38,S*0.15,S*0.04); g.fillStyle='#e8f4ff'; g.fill(); WZ.txt(g,'GEKÜHLT',W-S*0.23,H-S*0.125,S*0.34,S*0.1,WFNT.kond,'#1d6fb8'); }
+  /* GEKUEHLT-Plakette: in der Bildecke, nicht ueber Name und Zusatz
+     (03.10.: Heringssalat, Nudelsalat - die Plakette lag auf dem Text) */
+  if(m==='frisch'){ const bx=r>=2.1?S*0.04:W-S*0.42, by=r>=2.1?H-S*0.2:(r>0.8?H*0.12:H*0.08)+S*0.04;
+    g.save(); g.shadowColor='rgba(0,0,0,.25)'; g.shadowOffsetY=S*0.01; WZ.rr(g,bx,by,S*0.38,S*0.15,S*0.04); g.fillStyle='#e8f4ff'; g.fill(); g.restore();
+    WZ.txt(g,'GEKÜHLT',bx+S*0.19,by+S*0.075,S*0.34,S*0.1,WFNT.kond,'#1d6fb8'); }
   if(m==='krone'&&r<=2.1){ siegel(g,W-S*0.16,S*0.3,S*0.11,'♛','#2b1a0e','#e2c27a'); }
   if(p.cold&&!p.kuehlpflicht&&m==='trink'&&r<=2.1){ WZ.txt(g,'❄ KÜHL GENIESSEN',W/2,H*0.04+S*0.04,W*0.8,S*0.07,WFNT.kond,'#e8f4ff'); }
 }

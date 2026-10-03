@@ -118,7 +118,8 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     const seq=ph.filter(x=>!x.mit).map(x=>x.m); for(let i=1;i<seq.length;i++) if(seq[i]===seq[i-1]&&seq[i]!=='perle'&&seq[i]!=='gerade'){ pruef('REGELN',false,t+': Muster '+seq[i]+' zweimal hintereinander'); break; }
     if(ph.length){ const a=ph[0].eff[0]+'/'+ph[0].m; (anf[a]=anf[a]||[]).push(t); const l=ph[ph.length-1]; const e=(l.gap<0.15?'salve:':'')+l.eff.join('+'); (ende[e]=ende[e]||[]).push(t); }
     if(s.lvl>=12&&ph.length>2) pruef('REGELN',s.ph.some(x=>x.mit||x.boden),t+' (L'+s.lvl+'): keine zweite Ebene');
-    if(s.lvl>=16&&ph.length>2) pruef('REGELN',s.ph.some(x=>x.boden)||PR[t]&&PR[t].emi.length>0,t+' (L'+s.lvl+'): kein Boden/Fontaene in der Show');
+    /* 03.10.: breite Fontaenen aus dem Rohr (licht:breit..., 14m) zaehlen als Fontaene */
+    if(s.lvl>=16&&ph.length>2) pruef('REGELN',s.ph.some(x=>x.boden||x.eff.some(e=>/^licht:breit/.test(e)))||PR[t]&&PR[t].emi.length>0,t+' (L'+s.lvl+'): kein Boden/Fontaene in der Show');
     /* Rhythmus-Takte (takt:[...]) zaehlen einzeln (engine-zusatz G3) */
     const kl=new Set([].concat(...ph.map(x=>x.takt||[x.gap])).map(g=>g<0.15?0:g<0.4?1:g<0.9?2:3)); if(ph.length>2) pruef('REGELN',kl.size>=(s.lvl>=14?3:2),t+': nur '+kl.size+' Tempoklassen');
   });

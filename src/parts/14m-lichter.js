@@ -287,10 +287,12 @@ LICHTYP.blitzbluete=function(o,A,B,s,opt){
 /* --- Bluetenkranz, Bluetenglitzer, Bluetendreiklang --- */
 /* Doppelkranz: zwei Tulpen ineinander, die Farben tauschen gegenlaeufig */
 LICHTYP.doppelkranz=function(o,A,B,s,opt){
-  const r1=lMine(o,s,opt,{n:30,H:[10,12],kegel:0.18,ring:true,md:0,nach:[0.3,0.5],spur:0.15,c:()=>kgMal(A,1.45)});
-  const r2=lMine(o,s,opt,{n:40,H:[12,14],kegel:0.42,ring:true,md:0,nach:[0.3,0.5],spur:0.15,c:()=>kgMal(B,1.45)});
-  r1.out.forEach(({h,T})=>kgSpaeter(T*0.62,()=>kgFarbe(h,kgMal(B,1.5))));
-  r2.out.forEach(({h,T})=>kgSpaeter(T*0.62,()=>kgFarbe(h,kgMal(A,1.5))));
+  /* 03.10. (Tom: "die Lichter nicht so hell am Himmel"): Sterne mit
+     0,85 statt 1,45 - satte Farbe statt weisser Lampen */
+  const r1=lMine(o,s,opt,{n:30,H:[10,12],kegel:0.18,ring:true,md:0,nach:[0.3,0.5],spur:0.15,c:()=>kgMal(A,0.85)});
+  const r2=lMine(o,s,opt,{n:40,H:[12,14],kegel:0.42,ring:true,md:0,nach:[0.3,0.5],spur:0.15,c:()=>kgMal(B,0.85)});
+  r1.out.forEach(({h,T})=>kgSpaeter(T*0.62,()=>kgFarbe(h,kgMal(B,0.9))));
+  r2.out.forEach(({h,T})=>kgSpaeter(T*0.62,()=>kgFarbe(h,kgMal(A,0.9))));
 };
 /* Kranzwelle: drei Kraenze kurz nacheinander, jeder hoeher und weiter */
 LICHTYP.kranzwelle=function(o,A,B,s,opt){
@@ -399,17 +401,6 @@ LICHTYP.drillingskomet=function(o,A,B,s,opt){
     lKopf(m,v,kgMal(c,1.5),T,G,0,0.35); lFunken(m,v,G,0.03,T,90,mischF(c,[1,.8,.4],0.5),{ps:psMid,life:[0.6,1.1],g:2.4,streu:0.2,mit:0.1,mode:4}); });
   lStart(m,1.7,1.0);
 };
-/* Zwillingsspirale: zwei Kometen winden sich umeinander nach oben (die
-   Achse ist die Bahn aus dem Rohr, sie kreisen quer dazu) */
-LICHTYP.zwillingsspirale=function(o,A,B,s,opt){
-  const m=lMund(o), G=6, v=lAbschuss(25*Math.sqrt(s),G,opt,0.2), T=lScheitel(v[1],G)+0.25, Q=lQuer({dir:FANDIR}), Z=[-Q[2],0,Q[0]], R=1.2*Math.sqrt(s), om=7, ph0=rand(0,Math.PI*2);
-  lStart(m,1.4,0.9); sfx.zischen(distVol(m)*0.35,T);
-  lLaufend(T,t=>{ const p=sternNach(m,v[0],v[1],v[2],G,t), w=bahnTempo(v,G,t), r=R*Math.min(1,t/0.35);
-    [0,Math.PI].forEach((d,k)=>{ const a=ph0+om*t+d, ca=Math.cos(a), sa=Math.sin(a), c=k?B:A;
-      const q={x:p.x+(Q[0]*ca+Z[0]*sa)*r,y:p.y,z:p.z+(Q[2]*ca+Z[2]*sa)*r}, tv=[w[0]+(-Q[0]*sa+Z[0]*ca)*r*om,w[1],w[2]+(-Q[2]*sa+Z[2]*ca)*r*om];
-      psHuge.emit(q.x,q.y,q.z,tv[0],tv[1],tv[2],c[0]*1.9,c[1]*1.9,c[2]*1.9,0.06,0,0); psBig.emit(q.x,q.y,q.z,tv[0],tv[1],tv[2],1.6,1.5,1.3,0.05,0,0);
-      for(let j=0;j<Math.round(6*QUAL());j++) (j%3?psMid:psBig).emit(q.x,q.y,q.z,w[0]*0.1+rand(-.3,.3),w[1]*0.1+rand(-.3,.3)-0.25,w[2]*0.1+rand(-.3,.3),c[0]*1.1+0.25,c[1]*1.1+0.2,c[2]*1.1+0.1,rand(0.8,1.3),2.2,4); }); },0.08);
-};
 /* --- Farbcrossette --- */
 /* Weidencrossette: das Kreuz aus vier Kometen sinkt als Goldweide herab */
 LICHTYP.weidencrossette=function(o,A,B,s,opt){
@@ -467,11 +458,39 @@ function lBreit(o,A,B,s,opt,p){
   if(p.ende) kgSpaeter(D-(p.vorEnde||0.5),()=>p.ende(m));
 }
 const lHoch=a=>({ang:a||0,dir:FANDIR});
+/* Breite Bodenfontaene der Batterien (03.10., Tom: "die kleine Funken-
+   fontaene am Anfang, die 1-3 m hoch geht, ersetzen durch grosse breite
+   Fontaenen ... auch in anderen Farben, nicht nur Gold"). Ersetzt in
+   playShow (14b bodenAn) die alten Boden-Emitter fountain, volcano,
+   torte, farbtorte und knisterbrunnen. Hoehe waechst mit dem Level
+   (Kinderbatterie ~5 m, Profi ~9 m), die Farbe kommt aus dem Thema der
+   Batterie - jede Batterie hat ihre eigene Fontaene (stil nach Saat):
+   0 Goldglitzer, 1 Farbsterne im Gold, 2 zwei Farben links/rechts,
+   3 Silber mit Farbspitzen; Knisterbrunnen knistert, Farbtorte farbig. */
+const BREIT_BODEN={fountain:1,volcano:1,torte:1,farbtorte:1,knisterbrunnen:1};
+const lHell=(c,k)=>kgMal(c,k/Math.max(0.6,Math.max(c[0],c[1],c[2])));
+function breitBoden(o,A,B,p){
+  const lvl=p.lvl||10, gross=p.k==='volcano', klein=p.k==='torte'||p.k==='farbtorte';
+  const H=Math.max(4.5,Math.min(9.6,3.6+lvl*0.23+(gross?1:0)-(klein?0.6:0))), D=Math.max(4,Math.min(9,p.D||5));
+  /* Goldfamilie (Gold, Orange, Bernstein, Zitrone) und Neutrales (Weiss, Silber) */
+  const gold=c=>!c||(c[0]>0.9&&c[1]>0.45&&c[2]<0.4), neutral=c=>c[0]+c[1]+c[2]>2.6, bunt=c=>c&&!gold(c)&&!neutral(c), silb=[1.3,1.32,1.4];
+  /* Farben: die Themenfarben der Batterie, wenn der Boden nur Gold/Weiss sagt */
+  const T=p.T||[A,B], L=[A,B,T[0],T[1]].filter(bunt), F1=L[0]||A, F2=L.find(c=>c!==F1)||F1;
+  const stil=p.k==='knisterbrunnen'?'knister':p.k==='farbtorte'?'farbe':p.k==='torte'?'silber':['gold','farbe','zwei','silber'][(p.saat||0)%4];
+  const fk=!L.length&&stil!=='knister'?(stil==='silber'?'silber':'gold'):stil;
+  const q={D,H,weit:gross?0.7:0.62,n:gross?24:20,md:4,life:[0.8,1.3]};
+  if(fk==='gold') q.c=(u,j)=>GOLDF;
+  else if(fk==='farbe'){ q.md=0; q.c=(u,j)=>j%3?lHell(F1,1.45):GOLDF; }
+  else if(fk==='zwei'){ q.md=0; q.c=(u,j)=>j%4===3?GOLDF:lHell(j%2?F1:F2,1.45); }
+  else if(fk==='silber'){ q.md=0; q.c=(u,j)=>j%4||!L.length?silb:lHell(F1,1.5); }
+  else { q.md=0; q.c=()=>silb; q.life=[0.6,1.0];
+    q.extra=(t,m,Q)=>{ if(Math.random()<0.6){ const a=rand(-0.5,0.5), h=rand(0.4,0.9)*H, d=randDir(); psSmall.emit(m.x+Q[0]*Math.sin(a)*h,m.y+Math.cos(a)*h,m.z+Q[2]*Math.sin(a)*h,d[0]*1.5,d[1]*1.5,d[2]*1.5,1.5,1.45,1.3,rand(0.05,0.12),1,3); } };
+    for(let k=0;k<Math.floor(D/0.7);k++) later(0.5+k*0.7,()=>sfx.prasseln(distVol(o)*0.6)); }
+  lBreit(o,A,B,1,{},q);
+}
 /* Brenndauer am Rohr (s ab Zuendung bis der Himmelseffekt verloschen
    ist): so lange steht die Batterie auf dem Tisch (04c zuendFolge) */
-const LICHT_BRENN={breitgold:12,breitsilber:11,breitbluete:11,breitfall:10.5,breitkomet:11,breitblitz:11.5,breitwechsel:10,breitglut:10.5};
-/* Goldene Wand: breite Goldfontaene, am Ende ein Goldkomet mit Krone */
-LICHTYP.breitgold=function(o,A,B,s,opt){ lBreit(o,A,B,s,opt,{D:6,H:9.8,weit:0.71,n:26,c:(u,j)=>j%7?GOLDF:kgMal(A,1.3),md:4,ende:()=>LICHTYP.kometenkrone(o,A,B,s*1.05,lHoch())}); };
+const LICHT_BRENN={breitsilber:11,breitbluete:11,breitkomet:11,breitblitz:11.5,breitwechsel:10,breitglut:10.5,breitfarbe:11,breitregen:11.5,breitcross:11,breittor:11.5,breitklein:6,breitglitzer:6.5};
 /* Silberfaecher: weite Silberfontaene, zum Schluss drei Weidenkometen */
 LICHTYP.breitsilber=function(o,A,B,s,opt){ lBreit(o,A,B,s,opt,{D:5.5,H:8.5,weit:0.83,n:26,c:()=>[1.3,1.32,1.4],md:0,life:[0.6,1.1],
   ende:()=>[-0.25,0,0.25].forEach((a,k)=>kgSpaeter(k*0.25,()=>LICHTYP.weidenkomet(o,A,B,s,lHoch(a))))}); };
@@ -481,10 +500,6 @@ LICHTYP.breitbluete=function(o,A,B,s,opt){ lBreit(o,A,B,s,opt,{D:6,H:8.5,weit:0.
   extra:(t,m,Q)=>{ if(Math.random()<0.08){ const c=Math.random()<0.5?A:B, a=rand(-0.4,0.4), w=vFuerHoehe(rand(9,13)*Math.sqrt(s),3.5), v=[Q[0]*Math.sin(a)*w,Math.cos(a)*w,Q[2]*Math.sin(a)*w];
     kgStern(psHuge,m,v,kgMal(c,1.5),lScheitel(v[1],3.5)+rand(0.3,0.6),3.5,0,0.05); } },
   ende:()=>LICHTYP.bluetenkranz(o,A,B,s*1.15,lHoch())}); };
-/* Fontaene mit Wasserfall: waehrend sie brennt, ziehen zwei Kometen
-   links und rechts einen Goldvorhang darueber */
-LICHTYP.breitfall=function(o,A,B,s,opt){ lBreit(o,A,B,s,opt,{D:6.5,H:9.1,weit:0.69,n:24,c:(u,j)=>j%2?GOLDF:[1.25,1.28,1.35],md:4,vorEnde:3.8,
-  ende:()=>{ LICHTYP.goldwasserfall(o,A,B,s*1.1,{ang:0,dir:FANDIR,i:0}); kgSpaeter(1.4,()=>LICHTYP.goldwasserfall(o,A,B,s*1.1,{ang:0,dir:FANDIR,i:1})); }}); };
 /* Kometenfontaene: aus der Fontaene steigen abwechselnd links und
    rechts Farbkometen, am Ende ein Zwillingskomet */
 LICHTYP.breitkomet=function(o,A,B,s,opt){
@@ -496,55 +511,125 @@ LICHTYP.breitblitz=function(o,A,B,s,opt){ lBreit(o,A,B,s,opt,{D:5.5,H:9.1,weit:0
 /* Farbwechsel-Fontaene: A, dann B, dann Gold - am Ende eine Farbcrossette */
 LICHTYP.breitwechsel=function(o,A,B,s,opt){ lBreit(o,A,B,s,opt,{D:6,H:9.1,weit:0.67,n:24,md:0,life:[0.7,1.2],
   c:u=>u<0.33?kgMal(A,1.35):u<0.66?kgMal(B,1.35):GOLDF,ende:()=>LICHTYP.farbcrossette(o,A,B,s*1.1,lHoch())}); };
-/* Glutvulkan: sehr breit und niedrig, schwere Glut, die abkuehlt, und
-   Knistern darin - danach zwei Crossetten */
+/* Glutvulkan (03.10., Tom: "nur die breiten Fontaenen, die hochgehen,
+   sind schoen - nicht das unten am Boden"): eine hohe Fontaene aus
+   Glut, die oben abkuehlt; das Knistern sitzt in der Krone, nichts
+   liegt mehr breit am Boden - danach zwei Crossetten */
 LICHTYP.breitglut=function(o,A,B,s,opt){
-  lBreit(o,A,B,s,opt,{D:6,H:6.5,G:5,weit:0.85,n:19,md:2,c:()=>[1.3,.62,.16],c2:[.35,.08,.02],life:[1.0,1.6],
-    extra:(t,m,Q)=>{ if(Math.random()<0.5){ const a=rand(-0.6,0.6), h=rand(1.5,4.5), d=randDir(); psSmall.emit(m.x+Q[0]*Math.sin(a)*h,m.y+Math.cos(a)*h,m.z+Q[2]*Math.sin(a)*h,d[0]*1.5,d[1]*1.5,d[2]*1.5,1.5,1.4,1.2,rand(0.05,0.12),1,3); } },
+  lBreit(o,A,B,s,opt,{D:6,H:9.4,G:4,weit:0.5,n:22,md:2,c:()=>[1.3,.62,.16],c2:[.35,.08,.02],life:[1.0,1.5],
+    extra:(t,m,Q)=>{ if(Math.random()<0.45){ const a=rand(-0.45,0.45), h=rand(6.5,9)*Math.sqrt(s), d=randDir(); psSmall.emit(m.x+Q[0]*Math.sin(a)*h,m.y+Math.cos(a)*h,m.z+Q[2]*Math.sin(a)*h,d[0]*1.5,d[1]*1.5,d[2]*1.5,1.5,1.4,1.2,rand(0.05,0.12),1,3); } },
     ende:()=>{ LICHTYP.crossette(o,A,B,s,lHoch(-0.2)); kgSpaeter(0.4,()=>LICHTYP.crossette(o,B,A,s,lHoch(0.2))); }});
-  for(let k=0;k<8;k++) later(0.8+k*0.6,()=>sfx.prasseln(distVol(o)*0.8));
+  for(let k=0;k<8;k++) later(0.8+k*0.6,()=>sfx.prasseln(distVol(o)*0.6));
 };
 
-/* Muster (Liste in 02e): drei Schuss je Muster - zwei links und rechts,
-   der dritte groesser in der Mitte. Minen stehen nebeneinander auf der
-   Batterie. Breite Fontaenen (02.10.): EIN Rohr, eine grosse Fontaene. */
-const L_LANG=['blitzregen','blitzkrone','blitzpalme','blitzbluete','kometenkrone','farbkrone','doppelkrone','weidencrossette','farbweidenfaecher','weidenfaecher','weidenfall','torbogen','kaskadenfall'];
-LICHT_MUSTER.forEach(([e,nm,form,F,txt])=>{ const id='lm_'+e;
-  THEMEN[id]=[[F[0],F[1]],[F[1],F[0]]];
-  const P0=L_LANG.includes(e)?6.5:4.5;
-  SHOWS[id]=()=>form==='fontaene'?show({},[
-      {n:1,licht:e,kal:'gross',th:id,farbe:0,pause:12}])
-    :form==='mine'?show({},[
-      {n:2,gap:1.4,x:[-0.3,0.3],muster:'v',ang:0.12,licht:e,kal:'mittel',th:id,farbe:0},
-      {n:1,x:[0],licht:e,kal:'gross',th:id,farbe:1,pause:4.5}])
-    :form==='quer'?show({},[
-      {n:2,gap:1.6,licht:e,kal:'mittel',th:id,farbe:0},
-      {n:1,licht:e,kal:'gross',th:id,farbe:1,pause:P0}])
-    :show({},[
-      {n:2,gap:1.5,muster:'v',ang:0.22,licht:e,kal:'mittel',th:id,farbe:0},
-      {n:1,licht:e,kal:'gross',th:id,farbe:1,pause:P0}]);
-  SIGNATUR[id]={eff:'licht:'+e,text:txt};
-});
+/* =========================================================
+   03.10. (Tom): "Blitzpalme finde ich geil - gerne mehrere Effekte
+   davon", "Blitzweide als Effekt gut", farbige breite Fontaenen,
+   Kinderfontaenen. Neue Lichter fuer die Sortiments-Batterien unten.
+   ========================================================= */
+/* Palme aus dem dunklen Aufstieg: n Arme, Kopf(k), Schweif(k), am Ende
+   ende(q,k,dv) kurz vor dem Verloeschen */
+function lPalme(e,s,p){
+  const a0=rand(0,Math.PI*2), n=p.n||8, G=p.G||3.0, L=p.L||2.8;
+  for(let k=0;k<n;k++){ const a=a0+k*2*Math.PI/n+(p.dreh||0), w=(p.w||8)*Math.sqrt(s)*(p.wk?p.wk(k):1), dv=[Math.cos(a)*w,p.hoch||3.2,Math.sin(a)*w];
+    lKopf(e,dv,p.kopf(k),L,G,0,p.spur||0.5);
+    lFunken(e,dv,G,0.05,L,p.rate||55,p.schweif(k),{ps:psMid,life:p.life||[0.9,1.5],g:p.g||1.4,streu:0.12,mit:0.05,mode:p.md===undefined?4:p.md,spur:p.fspur});
+    if(p.ende) kgSpaeter(L-0.7,()=>p.ende(sternNach(e,dv[0],dv[1],dv[2],G,L-0.7),k,dv)); }
+}
+const lZerstieb=(q,c,n,w)=>{ for(let j=0;j<n;j++){ const d=randDir(); kgStern(psHuge,q,[d[0]*w,d[1]*w,d[2]*w],c,rand(0.5,0.9),1.2,1,0); } };
+/* Farbpalme mit Blitzen: Farbkoepfe A an goldenen Wedeln, die Enden
+   zerstieben in B und Weiss */
+LICHTYP.farbblitzpalme=function(o,A,B,s,opt){
+  lDunkel(o,s,opt,25,e=>{ lPalme(e,s,{kopf:()=>kgMal(A,1.45),schweif:()=>GOLDF,ende:(q,k)=>lZerstieb(q,k%2?[1.9,1.9,2]:kgMal(B,1.9),5,1.6)});
+    schall(e,x=>{ sfx.plopp(x*0.5,0.9); later(1.8,()=>sfx.crackle(x*0.3)); }); });
+};
+/* Koenigspalme: zwoelf Wedel, in der Mitte haengt eine kleine Silber-
+   krone, die Enden blitzen nacheinander rundherum */
+LICHTYP.koenigspalme=function(o,A,B,s,opt){
+  lDunkel(o,s,opt,27,e=>{ lPalme(e,s,{n:12,w:8.6,L:3.0,kopf:()=>kgMal(A,1.3),schweif:()=>GOLDF,rate:45,
+      ende:(q,k)=>kgSpaeter(k*0.06,()=>lZerstieb(q,kgMal(B,1.9),4,1.5))});
+    for(let i=0;i<Math.round(24*QUAL());i++){ const a=rand(0,Math.PI*2), w=rand(1.8,2.8)*Math.sqrt(s); kgStern(psBig,e,[Math.cos(a)*w,rand(0.5,1.5),Math.sin(a)*w],[1.4,1.4,1.45],rand(2.4,3),1.6,4,0.3); }
+    schall(e,x=>{ sfx.plopp(x*0.55,0.85); later(0.3,()=>sfx.rieseln(x*0.45,3)); later(2.2,()=>sfx.crackle(x*0.35)); }); });
+};
+/* Palmenweide: die Wedel haengen lang wie eine Weide, an ihnen entlang
+   zucken Blitze (Blitzweide und Blitzpalme in einem) */
+LICHTYP.palmenweide=function(o,A,B,s,opt){
+  lDunkel(o,s,opt,26,e=>{ const arme=[];
+    lPalme(e,s,{n:9,w:7.2,hoch:3.6,L:4.2,G:1.9,g:0.7,md:0,fspur:0.22,life:[1.6,2.4],rate:40,kopf:()=>[1.3,.85,.4],schweif:()=>kgMal(A,0.95),ende:(q)=>lZerstieb(q,[1.9,1.9,2],3,1.2)});
+    const a0=rand(0,Math.PI*2); for(let k=0;k<9;k++){ const a=a0+k*2*Math.PI/9; arme.push([Math.cos(a)*7.2*Math.sqrt(s),3.6,Math.sin(a)*7.2*Math.sqrt(s)]); }
+    for(let t=0.6;t<3.8;t+=0.12){ const tt=t; kgSpaeter(tt,()=>{ const dv=arme[Math.floor(Math.random()*arme.length)], q=sternNach(e,dv[0],dv[1],dv[2],1.9,tt*rand(0.4,0.95)); lBlitz(q,kgMal(B,1.9)); }); }
+    schall(e,x=>{ sfx.plopp(x*0.45,1.0); later(0.5,()=>sfx.rieseln(x*0.5,4)); }); });
+};
+/* Stufenpalme: jeder Wedel teilt sich am Ende in drei Blinksterne, die
+   langsam fallen - eine Palme, die zweimal aufgeht */
+LICHTYP.stufenpalme=function(o,A,B,s,opt){
+  lDunkel(o,s,opt,25,e=>{ lPalme(e,s,{n:7,w:7.6,L:2.2,kopf:()=>kgMal(A,1.35),schweif:()=>GOLDF,
+      ende:(q,k,dv)=>kgSpaeter(0.5,()=>{ const b0=Math.atan2(dv[2],dv[0]); for(const d of [-0.5,0,0.5]){ const b=b0+d; kgStern(psBig,q,[Math.cos(b)*3,1.4,Math.sin(b)*3],kgMal(B,1.7),rand(1.6,2.1),1.4,1,0.2); } schall(q,x=>sfx.crack(x*0.25)); })});
+    schall(e,x=>sfx.plopp(x*0.5,0.95)); });
+};
+/* Doppelpalme: innen eine kleine Goldpalme, eine halbe Sekunde spaeter
+   aussen eine grosse in A, versetzt - die Enden blitzen */
+LICHTYP.doppelpalme=function(o,A,B,s,opt){
+  lDunkel(o,s,opt,26,e=>{ lPalme(e,s,{n:6,w:5,L:2.4,kopf:()=>[1.4,1.0,.45],schweif:()=>GOLDF,ende:q=>lZerstieb(q,[1.9,1.9,2],3,1.3)});
+    kgSpaeter(0.45,()=>{ const e2={x:e.x,y:e.y+0.8,z:e.z}; lPalme(e2,s,{n:10,w:9,L:3.0,dreh:0.3,kopf:()=>kgMal(A,1.45),schweif:()=>mischF(A,GOLDF,0.6),ende:q=>lZerstieb(q,kgMal(B,1.9),5,1.7)}); schall(e2,x=>sfx.plopp(x*0.45,0.8)); });
+    schall(e,x=>{ sfx.plopp(x*0.4,1.1); later(2.4,()=>sfx.crackle(x*0.4)); }); });
+};
+/* Blitzweide-Varianten fuer die Blitzweiden-Batterien */
+function lBlitzweide(e,s,gold,funk,blitz,n,dauer){
+  const arme=[], N=Math.round((n||34)*QUAL());
+  for(let i=0;i<N;i++){ const d=randDir(), w=rand(6,7.5)*Math.sqrt(s), dv=[d[0]*w,d[1]*w*0.5+1.2,d[2]*w], L=rand(3.8,4.6);
+    kgStern(psBig,e,dv,gold,L,1.8,0,0.45);
+    lFunken(e,dv,1.8,0.1,L,20,funk,{ps:psMid,life:[1.4,2.2],g:0.6,streu:0.08,mit:0.02,mode:0,spur:0.2}); arme.push(dv); }
+  for(let t=0.45;t<(dauer||3.4);t+=0.09){ const tt=t; kgSpaeter(tt,()=>{ const dv=arme[Math.floor(Math.random()*arme.length)], q=sternNach(e,dv[0],dv[1],dv[2],1.8,tt); lBlitz(q,typeof blitz==='function'?blitz():blitz); }); }
+  schall(e,x=>{ sfx.plopp(x*0.4,1.1); later(0.4,()=>sfx.rieseln(x*0.5,4)); });
+}
+/* Farbblitzweide: die Weide haengt in Farbe A, Blitze weiss und B */
+LICHTYP.farbblitzweide=function(o,A,B,s,opt){ lDunkel(o,s,opt,27,e=>lBlitzweide(e,s,kgMal(A,1.15),mischF(A,[.95,.6,.22],0.5),()=>Math.random()<0.6?[1.9,1.9,2]:kgMal(B,1.9))); };
+/* Silberblitzweide: eine silberne Weide, in der farbige Blitze zucken */
+LICHTYP.silberblitzweide=function(o,A,B,s,opt){ lDunkel(o,s,opt,28,e=>lBlitzweide(e,s,[1.15,1.18,1.25],[.7,.72,.8],()=>kgMal(Math.random()<0.5?A:B,1.9),38,3.8)); };
+
+/* --- Breite Fontaenen in Farbe (03.10., Tom: "die Fontaenen sind meistens
+   Gold - mach die auch in anderen Farben") --- */
+/* Farbfontaene: Farbsterne A im Goldglitzer, am Ende eine Farbkrone */
+LICHTYP.breitfarbe=function(o,A,B,s,opt){ lBreit(o,A,B,s,opt,{D:6,H:9,weit:0.64,n:24,md:0,life:[0.8,1.3],c:(u,j)=>j%3?lHell(A,1.45):GOLDF,ende:()=>LICHTYP.farbkrone(o,A,B,s*1.05,lHoch())}); };
+/* Goldregenfontaene: Goldglitzer, am Ende sinkt ein goldener Regen
+   (Weidenfaecher) */
+LICHTYP.breitregen=function(o,A,B,s,opt){ lBreit(o,A,B,s,opt,{D:6.5,H:9.2,weit:0.6,n:24,md:4,c:()=>GOLDF,ende:()=>LICHTYP.weidenfaecher(o,A,B,s*1.05,lHoch())}); };
+/* Kreuzfontaene: Silber mit Farbspitzen, am Ende zwei Weidencrossetten */
+LICHTYP.breitcross=function(o,A,B,s,opt){ lBreit(o,A,B,s,opt,{D:6,H:8.8,weit:0.66,n:24,md:0,life:[0.7,1.2],c:(u,j)=>j%4?[1.3,1.32,1.4]:lHell(A,1.5),
+  ende:()=>{ LICHTYP.weidencrossette(o,A,B,s,lHoch(-0.18)); kgSpaeter(0.35,()=>LICHTYP.weidencrossette(o,A,B,s,lHoch(0.18))); }}); };
+/* Torfontaene: zwei Farben links und rechts im Faecher, am Ende ein
+   Dreifachtor */
+LICHTYP.breittor=function(o,A,B,s,opt){ lBreit(o,A,B,s,opt,{D:6.5,H:9.2,weit:0.7,n:26,md:0,life:[0.8,1.3],vorEnde:1.5,c:(u,j)=>j%4===3?GOLDF:lHell(j%2?A:B,1.45),ende:()=>LICHTYP.dreifachtor(o,A,B,s,{ang:0,dir:FANDIR,i:0})}); };
+/* Kinderfontaenen: niedrig, weich, ohne Himmelseffekt - zwei Farben im
+   Wechsel bzw. Goldglitzer mit Farbspitzen */
+LICHTYP.breitklein=function(o,A,B,s,opt){ lBreit(o,A,B,s,opt,{D:5,H:4.6,G:4,weit:0.56,n:16,md:0,life:[0.7,1.1],c:(u,j)=>j%5===4?GOLDF:lHell(u<0.5===!(j%2)?A:B,1.4)}); };
+LICHTYP.breitglitzer=function(o,A,B,s,opt){ lBreit(o,A,B,s,opt,{D:5.5,H:5.2,G:4,weit:0.6,n:18,md:4,life:[0.8,1.2],c:(u,j)=>j%4?GOLDF:lHell(A,1.4)}); };
 
 /* =========================================================
-   Lichter-Batterien (01.10., Tom: "bau mir aus den guten Effekten acht
-   Batterien, ruhig auch Mix, ruhig groessere").
-   02.10. (Tom): Geisterstunde, Silberkaskade, Gewitterfront, Grande
-   Lumiere raus. Goldader bleibt (jetzt mit wechselnder Zuendschnur:
-   links, rechts, nach innen - und ohne Fontaene am Anfang), Kreuzfeuer
-   geht als Grosses Kreuzfeuer ins Sortiment, Bluetenzauber nur noch mit
-   den Bluetenformen, die gefallen. Fuenf neue aus den Favoriten - keine
-   faengt mit einer Fontaene an, jede hat ihre eigene Verkabelung (02e,
-   zuendung) und ihren eigenen Ablauf, Farben je Batterie aus einer
-   Familie.
+   Lichter-Batterien im Sortiment (03.10., Tom).
+   Geblieben: Goldader, Weidenhain (jetzt im Sortiment), Grosses
+   Kreuzfeuer. Raus: Bluetenzauber, Kronjuwelen, Wasserspiele,
+   Zwillingsreigen, Blitznacht, Glutstrom und die Lichter-Muster.
+   Neu, in drei Stufen ("nicht alles immer peng, peng, peng, sondern
+   auch einfach nur schoen"):
+   - Kinder: Regenbogenbrunnen, Glitzergarten - nur kleine Fontaenen
+     und leise Glitzerminen
+   - Mittel: Fontaenenballett, Goldregen
+   - High-End: Fontaenenpalast, Farbenpracht
+   - dazu zwei Blitzweiden-Batterien (Blitzweiden, Silbergewitter) und
+     eine Blitzpalmen-Batterie
+   Jede hat ihre eigene Verkabelung (02e zuendung), ihre eigene Folge
+   und ihre Farbfamilie.
    ========================================================= */
-const RF6=[-1,-0.6,-0.2,0.2,0.6,1], RF4=[-1,1,-0.4,0.4];
+const RF6=[-1,-0.6,-0.2,0.2,0.6,1], RF4=[-1,1,-0.4,0.4], RF3=[-1,0,1], RF7=[-1,1,-0.66,0.66,-0.33,0.33,0];
 const lbShow=(id,th,rampe,ph)=>{ THEMEN[id]=th; SHOWS[id]=()=>show({rampe},ph.map(p=>Object.assign({th:id},p))); };
 lbShow('lb_goldader',[['gold','orange'],['bernstein','gold'],['zitrone','gold']],{sz:[0.9,1.3],pw:[0,3],hell:[0.85,1.3],kurve:'spaet'},[
   {n:6,gap:0.9,muster:'aussen',ang:0.3,licht:'goldkomet',kal:'mittel',farbe:0},
   {n:10,gap:0.3,muster:'z',ang:0.35,licht:'goldkomet',farbe:1},
   {mit:true,n:4,gap:1.2,rohrFolge:RF4,licht:'glitzermine',farbe:0,pause:1},
   {n:8,takt:[0.15,0.15,0.7],muster:'welle',ang:0.35,licht:'weidenkomet',farbe:0,pause:0.8},
+  {n:2,gap:0.6,rohrFolge:[-1,1],licht:'breitregen',kal:'mittel',farbe:0,pause:1.5},
   {n:12,gap:0.12,muster:'wischer',ang:0.45,licht:'goldkomet',farbe:2},
   {mit:true,n:6,gap:0.5,rohrFolge:RF6,licht:'glitzermine',farbe:1,pause:1},
   {n:14,gap:0.2,muster:'w',ang:0.4,licht:'kometenfaecher',farbe:0,pause:0.6},
@@ -561,76 +646,6 @@ lbShow('kreuzfeuer90',[['gold','rot'],['silber','gruen'],['orange','weiss']],{sz
   {n:12,gap:0.08,muster:'schlag',ang:0.4,licht:'dreifachcrossette',kal:'gross',farbe:1},
   {mit:true,n:8,gap:0.08,muster:'w',ang:0.35,licht:'farbcrossette',kal:'gross',farbe:2},
   {mit:true,n:6,gap:0.2,muster:'mitte',ang:0.15,licht:'crossette',kal:'gross',farbe:2,pause:6}]);
-lbShow('lb_bluetenzauber',[['rose','gold'],['gruen','violett'],['tuerkis','magenta']],{sz:[0.9,1.3],pw:[0,2.5],hell:[0.85,1.3],kurve:'linear'},[
-  {n:6,gap:0.9,rohrFolge:RF6,licht:'bluetenkranz',farbe:0},
-  {n:8,gap:0.5,muster:'paar',ang:0.3,licht:'vierfarbbluete',farbe:1},
-  {mit:true,n:4,gap:1,muster:'mitte',ang:0.12,licht:'kranzwelle',farbe:2,pause:1},
-  {n:12,takt:[0.15,0.15,0.6],muster:'welle',ang:0.35,licht:'doppelkranz',farbe:1},
-  {n:10,gap:0.35,muster:'spirale',ang:0.35,licht:'goldschweifbluete',farbe:0,pause:0.8,boden:{k:'volcano',gt:5,A:'rose',B:'gold'}},
-  {n:14,gap:0.1,muster:'wischer',ang:0.4,licht:'bluetenglitzer',farbe:2},
-  {mit:true,n:6,gap:0.4,muster:'v',ang:0.3,licht:'bluetendreiklang',farbe:0,pause:1},
-  {n:12,gap:0.06,muster:'schlag',ang:0.4,licht:'funkelkranz',kal:'gross',farbe:1},
-  {mit:true,n:6,gap:0.25,muster:'mitte',ang:0.15,licht:'wechselbluete',kal:'gross',farbe:2,pause:6}]);
-/* Kronjuwelen: eine einzelne Krone eroeffnet in der Stille, dann Rubin
-   (rot), Smaragd (gruen) und Saphir (blau) um das Gold - Zuendschnur
-   aus der Mitte nach aussen */
-lbShow('lb_kronjuwelen',[['gold','rot'],['rot','gruen'],['gruen','gold'],['gold','blau']],{sz:[0.9,1.3],pw:[0,3],hell:[0.85,1.3],kurve:'spaet'},[
-  {n:1,licht:'kometenkrone',kal:'gross',farbe:0,pause:1.2},
-  {n:6,gap:0.7,muster:'v',ang:0.25,licht:'farbkrone',farbe:1},
-  {n:8,gap:0.3,muster:'aussen',ang:0.3,licht:'zwillingskomet',farbe:2},
-  {mit:true,n:4,gap:0.9,muster:'mitte',ang:0.15,licht:'doppelkrone',farbe:3,pause:1},
-  {n:10,takt:[0.12,0.12,0.5],muster:'welle',ang:0.3,licht:'farbkrone',farbe:2},
-  {n:8,gap:0.45,muster:'x',ang:0.3,licht:'kometenkrone',farbe:0,boden:{k:'volcano',gt:5,A:'gold',B:'rot'}},
-  {n:12,gap:0.1,muster:'wischer',ang:0.35,licht:'drillingskomet',farbe:1,pause:0.6},
-  {n:9,gap:0.08,muster:'schlag',ang:0.35,licht:'farbkrone',kal:'gross',farbe:3},
-  {mit:true,n:6,gap:0.2,muster:'kreis',ang:0.3,licht:'doppelkrone',kal:'gross',farbe:0,pause:6}]);
-/* Wasserspiele: nur Wasserfaelle in Gold und Silber - Spalte fuer
-   Spalte verkabelt, so faellt ein Vorhang nach dem anderen zur selben
-   Seite, dann zur anderen */
-lbShow('lb_wasserspiele',[['gold','orange'],['silber','gold'],['gold','rot'],['bernstein','gold']],{sz:[0.9,1.25],pw:[0,2],hell:[0.85,1.3],kurve:'spaet'},[
-  {n:2,gap:1.2,licht:'goldwasserfall',farbe:0},
-  {n:4,gap:0.8,licht:'doppelfall',farbe:0},
-  {mit:true,n:2,gap:1.5,licht:'torbogen',kal:'gross',farbe:1,pause:1},
-  {n:6,takt:[0.2,0.2,0.9],licht:'wassertor',farbe:2},
-  {n:8,gap:0.35,muster:'paar',ang:0.25,licht:'weidenfall',farbe:3},
-  {n:6,gap:0.12,licht:'kaskadenfall',farbe:0,pause:0.8,boden:{k:'volcano',gt:6,A:'gold',B:'silber'}},
-  {n:10,gap:0.5,muster:'v',ang:0.2,licht:'goldwasserfall',farbe:1},
-  {n:6,gap:0.1,muster:'mitte',ang:0.15,licht:'doppelfall',kal:'gross',farbe:0},
-  {mit:true,n:4,gap:0.3,licht:'dreifachtor',kal:'gross',farbe:2,pause:7}]);
-/* Zwillingsreigen: alles kommt doppelt - Blau, Tuerkis, Violett und Rot
-   je mit Gold; Reihe fuer Reihe ueber beide Bloecke */
-lbShow('lb_zwillingsreigen',[['blau','gold'],['tuerkis','gold'],['violett','silber'],['rot','gold']],{sz:[0.9,1.3],pw:[0,3],hell:[0.85,1.3],kurve:'linear'},[
-  {n:2,gap:1.0,muster:'v',ang:0.2,licht:'zwillingsspirale',farbe:1},
-  {n:8,gap:0.5,muster:'paar',ang:0.3,licht:'zwillingskomet',farbe:0},
-  {n:10,takt:[0.12,0.6],muster:'x',ang:0.35,licht:'drillingskomet',farbe:2},
-  {mit:true,n:4,gap:0.8,muster:'mitte',ang:0.15,licht:'kreuzbluete',farbe:3,pause:0.8},
-  {n:12,gap:0.25,muster:'aussen',ang:0.35,licht:'zwillingsspirale',farbe:0},
-  {n:12,gap:0.1,muster:'w',ang:0.35,licht:'zwillingskomet',farbe:1,boden:{k:'volcano',gt:5,A:'blau',B:'gold'}},
-  {n:8,gap:0.45,muster:'kreis',ang:0.3,licht:'farbcrossette',farbe:3,pause:0.6},
-  {n:14,gap:0.06,muster:'schlag',ang:0.4,licht:'drillingskomet',kal:'gross',farbe:2},
-  {mit:true,n:10,gap:0.15,muster:'v',ang:0.3,licht:'kreuzbluete',kal:'gross',farbe:0,pause:6}]);
-/* Blitznacht: die Aufstiege sieht man kaum, erst oben geht das Licht
-   an - Weiss, Silber und Gold, eine Spur Magenta; kreuz und quer
-   verdrahtet */
-lbShow('lb_blitznacht',[['weiss','gold'],['silber','himmel'],['magenta','weiss'],['gold','weiss']],{sz:[0.9,1.3],pw:[0,3],hell:[0.85,1.3],kurve:'spaet'},[
-  {n:3,gap:1.4,licht:'blitzregen',kal:'gross',farbe:0},
-  {n:6,gap:0.6,muster:'aussen',ang:0.25,licht:'blitzkrone',farbe:1},
-  {n:8,takt:[0.1,0.1,0.8],muster:'z',ang:0.3,licht:'blitzbluete',farbe:2},
-  {mit:true,n:4,gap:1.0,muster:'mitte',ang:0.12,licht:'blitzpalme',kal:'gross',farbe:3,pause:1},
-  {n:10,gap:0.3,muster:'welle',ang:0.3,licht:'blitzregen',farbe:3,boden:{k:'volcano',gt:5,A:'silber',B:'weiss'}},
-  {n:8,gap:0.45,muster:'x',ang:0.3,licht:'weidencrossette',farbe:0},
-  {n:12,gap:0.08,muster:'wischer',ang:0.35,licht:'blitzkrone',farbe:1,pause:0.6},
-  {mit:true,n:9,gap:0.15,muster:'kreis',ang:0.3,licht:'blitzpalme',kal:'gross',farbe:3,pause:6.5}]);
-lbShow('lb_glutstrom',[['gold','orange'],['orange','scharlach'],['bernstein','gold'],['scharlach','gold']],{sz:[0.85,1.35],pw:[-1,3],hell:[0.85,1.3],kurve:'spaet'},[
-  {n:6,gap:0.9,muster:'aussen',ang:0.3,licht:'goldkomet',farbe:0,boden:{k:'volcano',gt:6,A:'gold',B:'orange'}},
-  {n:8,gap:0.5,muster:'x',ang:0.35,licht:'goldfaecher',farbe:1},
-  {mit:true,n:4,gap:1.1,muster:'mitte',ang:0.12,licht:'weidenkomet',farbe:0,pause:1},
-  {n:10,takt:[0.15,0.15,0.6],muster:'welle',ang:0.35,eff:'lavaregen',kal:'mittel',farbe:3},
-  {n:14,gap:0.12,muster:'wischer',ang:0.45,licht:'goldkomet',farbe:2,pause:0.6},
-  {n:8,gap:0.3,muster:'paar',ang:0.3,licht:'goldwasserfall',kal:'gross',farbe:2},
-  {mit:true,n:6,gap:0.4,rohrFolge:RF6,licht:'glitzergold',farbe:0,pause:1},
-  {n:8,gap:0.06,muster:'schlag',ang:0.4,eff:'tigerschweif',kal:'gross',farbe:1},
-  {mit:true,n:6,gap:0.2,muster:'mitte',ang:0.15,licht:'weidenfaecher',kal:'gross',farbe:0,pause:6}]);
 /* Weidenhain: Gold und Bernstein mit einer Spur Rot; eine einzelne Weide
    eroeffnet, das Finale ist kein Knall, sondern ein Vorhang aus Weiden,
    der lange haengt */
@@ -643,14 +658,124 @@ lbShow('lb_weidenhain',[['gold','bernstein'],['rot','gold'],['bernstein','gold']
   {n:8,gap:0.5,muster:'x',ang:0.3,licht:'farbweidenfaecher',farbe:3,boden:{k:'volcano',gt:6,A:'gold',B:'bernstein'}},
   {n:10,gap:0.1,muster:'mitte',ang:0.25,licht:'weidencrossette',kal:'gross',farbe:1},
   {mit:true,n:9,gap:0.3,licht:'weidenfall',kal:'gross',farbe:0,pause:8}]);
+
+/* --- Kinder: nur kleine breite Fontaenen und leises Glitzern --- */
+/* Regenbogenbrunnen: sieben kleine Fontaenen, jede in ihrer Regenbogen-
+   farbe, von links nach rechts - zum Schluss drei zugleich */
+lbShow('lb_regenbogenbrunnen',[['rot','orange'],['orange','zitrone'],['zitrone','limette'],['gruen','tuerkis'],['tuerkis','blau'],['blau','violett'],['violett','rose'],['rose','zitrone']],{sz:[0.9,1.1],pw:[0,0],hell:[0.9,1.15],kurve:'linear'},[
+  {n:1,rohrFolge:[-1],licht:'breitklein',kal:'mittel',farbe:0,pause:0.5},
+  {n:1,rohrFolge:[-0.66],licht:'breitklein',kal:'mittel',farbe:1,pause:0.5},
+  {n:1,rohrFolge:[-0.33],licht:'breitklein',kal:'mittel',farbe:2,pause:0.5},
+  {n:1,rohrFolge:[0],licht:'breitklein',kal:'mittel',farbe:3,pause:0.5},
+  {n:1,rohrFolge:[0.33],licht:'breitklein',kal:'mittel',farbe:4,pause:0.5},
+  {n:1,rohrFolge:[0.66],licht:'breitklein',kal:'mittel',farbe:5,pause:0.5},
+  {n:1,rohrFolge:[1],licht:'breitklein',kal:'mittel',farbe:6,pause:1.2},
+  {n:3,gap:0.15,rohrFolge:[-1,1,0],licht:'breitklein',kal:'gross',farbe:7,pause:5}]);
+/* Glitzergarten: Goldglitzer-Fontaenen mit Farbspitzen, darueber leise
+   Bluetenglitzer-Minen in Pastell */
+lbShow('lb_glitzergarten',[['rose','gold'],['aqua','gold'],['limette','rose'],['himmel','rose']],{sz:[0.75,0.95],pw:[0,0],hell:[0.85,1.1],kurve:'linear'},[
+  {n:2,gap:1.2,rohrFolge:[-1,1],licht:'breitglitzer',kal:'mittel',farbe:0,pause:1},
+  {mit:true,n:3,gap:1.4,rohrFolge:RF3,licht:'bluetenglitzer',kal:'klein',farbe:1,pause:1.5},
+  {n:2,gap:0.8,rohrFolge:[-0.5,0.5],licht:'breitklein',kal:'mittel',farbe:2,pause:1},
+  {mit:true,n:4,gap:0.9,rohrFolge:RF4,licht:'bluetenkranz',kal:'klein',farbe:3,pause:1.5},
+  {n:3,gap:0.3,rohrFolge:RF3,licht:'breitglitzer',kal:'gross',farbe:1},
+  {mit:true,n:3,gap:0.6,rohrFolge:RF3,licht:'bluetenglitzer',kal:'klein',farbe:0,pause:5}]);
+
+/* --- Mittel --- */
+/* Fontaenenballett: farbige breite Fontaenen tanzen links, rechts, in
+   der Mitte; ueber jeder oeffnet sich eine Farbkrone, dazwischen
+   Farbcrossetten - Finale: drei Fontaenen zugleich */
+lbShow('lb_fontaenenballett',[['rot','gold'],['tuerkis','gold'],['violett','silber'],['gruen','gold']],{sz:[0.9,1.2],pw:[0,2],hell:[0.9,1.25],kurve:'linear'},[
+  {n:2,gap:2.2,rohrFolge:[-1,1],licht:'breitfarbe',kal:'mittel',farbe:0},
+  {mit:true,n:4,gap:1.0,muster:'v',ang:0.25,licht:'farbcrossette',farbe:1,pause:1.5},
+  {n:1,rohrFolge:[0],licht:'breitwechsel',kal:'gross',farbe:2},
+  {mit:true,n:6,gap:0.7,muster:'aussen',ang:0.3,licht:'farbkrone',farbe:3,pause:1.5},
+  {n:2,gap:0.5,rohrFolge:[-0.5,0.5],licht:'breitfarbe',kal:'mittel',farbe:1},
+  {mit:true,n:6,gap:0.5,muster:'x',ang:0.3,licht:'farbcrossette',farbe:0,pause:1.5},
+  {n:3,gap:0.2,rohrFolge:RF3,licht:'breitfarbe',kal:'gross',farbe:2,pause:9}]);
+/* Goldregen: Goldglitzer-Fontaenen, aus denen goldene Regen sinken,
+   Weidencrossetten und ein Weidenfall - ganz in Gold und Bernstein */
+lbShow('lb_goldregen',[['gold','bernstein'],['bernstein','gold'],['zitrone','gold']],{sz:[0.9,1.2],pw:[0,2],hell:[0.85,1.25],kurve:'spaet'},[
+  {n:1,rohrFolge:[0],licht:'breitregen',kal:'mittel',farbe:0,pause:1.5},
+  {n:6,gap:0.8,muster:'aussen',ang:0.3,licht:'weidencrossette',farbe:1},
+  {n:2,gap:0.4,rohrFolge:[-1,1],licht:'breitregen',kal:'mittel',farbe:2,pause:1},
+  {mit:true,n:6,gap:0.6,muster:'welle',ang:0.3,licht:'weidenfaecher',farbe:0,pause:1.5},
+  {n:4,gap:0.9,licht:'weidenfall',farbe:1},
+  {n:3,gap:0.25,rohrFolge:RF3,licht:'breitregen',kal:'gross',farbe:0,pause:9}]);
+
+/* --- Blitzweiden und Blitzpalmen --- */
+/* Blitzweiden: zwei Blitzfontaenen eroeffnen, dann Blitzweiden in Gold,
+   in Farbe und Blitzkronen, zum Schluss fuenf Weiden zugleich */
+lbShow('lb_blitzweiden',[['weiss','gold'],['magenta','weiss'],['silber','himmel'],['gold','weiss']],{sz:[0.9,1.25],pw:[0,3],hell:[0.85,1.25],kurve:'spaet'},[
+  {n:2,gap:0.8,rohrFolge:[-1,1],licht:'breitblitz',kal:'mittel',farbe:0,pause:1},
+  {n:3,gap:1.6,muster:'v',ang:0.2,licht:'blitzregen',farbe:0},
+  {n:4,gap:1.1,muster:'aussen',ang:0.3,licht:'farbblitzweide',farbe:1,pause:1},
+  {mit:true,n:6,gap:0.6,muster:'welle',ang:0.3,licht:'blitzkrone',farbe:2,pause:1},
+  {n:5,gap:0.15,muster:'mitte',ang:0.25,licht:'blitzregen',kal:'gross',farbe:3,pause:7}]);
+/* Silbergewitter: eine Silberfontaene, dann silberne Blitzweiden mit
+   farbigen Blitzen, Blitzblueten, und ein Finale aus Weiden in Silber
+   und Farbe */
+lbShow('lb_silbergewitter',[['tuerkis','silber'],['violett','weiss'],['blau','silber'],['silber','gold']],{sz:[0.9,1.3],pw:[0,3],hell:[0.85,1.3],kurve:'spaet'},[
+  {n:1,rohrFolge:[0],licht:'breitsilber',kal:'gross',farbe:3,pause:1},
+  {n:4,gap:1.3,muster:'x',ang:0.3,licht:'silberblitzweide',farbe:0},
+  {n:6,gap:0.7,muster:'z',ang:0.3,licht:'blitzbluete',farbe:1,pause:1},
+  {n:6,takt:[0.2,0.2,0.9],muster:'paar',ang:0.3,licht:'silberblitzweide',farbe:2},
+  {n:2,gap:0.4,rohrFolge:[-1,1],licht:'breitblitz',kal:'mittel',farbe:3,pause:1},
+  {n:6,gap:0.25,muster:'kreis',ang:0.3,licht:'farbblitzweide',kal:'gross',farbe:1},
+  {mit:true,n:3,gap:0.3,muster:'mitte',ang:0.15,licht:'silberblitzweide',kal:'gross',farbe:0,pause:7}]);
+/* Blitzpalmen: jede Palme anders - Gold, Farbe, Koenigspalme, Palmen-
+   weide, Stufenpalme -, zum Schluss Doppelpalmen. Eroeffnet von zwei
+   breiten Goldfontaenen */
+lbShow('lb_blitzpalmen',[['gold','weiss'],['rot','gold'],['tuerkis','weiss'],['magenta','gold'],['gruen','weiss']],{sz:[0.9,1.3],pw:[0,3],hell:[0.85,1.3],kurve:'spaet'},[
+  {n:2,gap:0.6,rohrFolge:[-1,1],licht:'breitregen',kal:'mittel',farbe:0,pause:0.5},
+  {n:3,gap:1.4,muster:'v',ang:0.2,licht:'blitzpalme',farbe:0},
+  {n:4,gap:1.0,muster:'aussen',ang:0.3,licht:'farbblitzpalme',farbe:1,pause:1},
+  {mit:true,n:1,rohrFolge:[0],licht:'koenigspalme',kal:'gross',farbe:2,pause:1.2},
+  {n:4,gap:1.0,muster:'x',ang:0.3,licht:'palmenweide',farbe:3,pause:1},
+  {n:6,gap:0.45,muster:'welle',ang:0.3,licht:'stufenpalme',farbe:4,pause:1},
+  {n:5,gap:0.2,muster:'mitte',ang:0.25,licht:'doppelpalme',kal:'gross',farbe:1,pause:7}]);
+
+/* --- High-End --- */
+/* Fontaenenpalast: zuerst zwei grosse Farbfontaenen aussen, dann ein
+   Dreifachtor ueber der Torfontaene, Weidencrossetten aus der Mitte,
+   eine Fontaenenreihe von links nach rechts in zwei Farben - Finale:
+   sechs breite Fontaenen zugleich, darueber Farbkronen und ein
+   Weidenvorhang */
+lbShow('lb_fontaenenpalast',[['rot','gold'],['blau','silber'],['gruen','gold'],['violett','gold'],['tuerkis','rose']],{sz:[0.95,1.3],pw:[0,3],hell:[0.9,1.3],kurve:'spaet'},[
+  {n:2,gap:0.4,rohrFolge:[-1,1],licht:'breitfarbe',kal:'gross',farbe:0,pause:2},
+  {n:1,rohrFolge:[0],licht:'breittor',kal:'gross',farbe:1,pause:1.5},
+  {n:6,gap:0.6,muster:'mitte',ang:0.3,licht:'weidencrossette',farbe:2},
+  {n:5,gap:0.9,rohrFolge:[-1,-0.5,0,0.5,1],licht:'breitcross',kal:'mittel',farbe:3,pause:1.5},
+  {mit:true,n:8,gap:0.5,muster:'w',ang:0.35,licht:'farbcrossette',farbe:4},
+  {n:2,gap:0.3,rohrFolge:[-0.5,0.5],licht:'breitwechsel',kal:'gross',farbe:0,pause:1},
+  {n:6,gap:0.12,rohrFolge:RF6,licht:'breitfarbe',kal:'gross',farbe:1},
+  {mit:true,n:6,gap:0.6,muster:'aussen',ang:0.3,licht:'farbkrone',kal:'gross',farbe:2},
+  {mit:true,n:5,gap:0.4,licht:'weidenfall',kal:'gross',farbe:0,pause:9}]);
+/* Farbenpracht: jede Farbe einmal als breite Fontaene, darueber ihre
+   Farbcrossette; ein Dreifachtor in der Mitte, Weidencrossetten aussen,
+   Farbkronen - Finale: sieben Fontaenen von aussen nach innen und ein
+   Kranz aus Weidencrossetten */
+lbShow('lb_farbenpracht',[['rot','gold'],['orange','tuerkis'],['zitrone','violett'],['gruen','rose'],['blau','gold'],['violett','zitrone'],['magenta','gruen']],{sz:[0.95,1.35],pw:[0,3],hell:[0.9,1.3],kurve:'spaet'},[
+  {n:1,rohrFolge:[-1],licht:'breitfarbe',kal:'mittel',farbe:0},
+  {n:1,rohrFolge:[1],licht:'breitfarbe',kal:'mittel',farbe:4,pause:1},
+  {mit:true,n:4,gap:1.0,muster:'paar',ang:0.3,licht:'farbcrossette',farbe:1},
+  {n:1,rohrFolge:[0],licht:'breittor',kal:'gross',farbe:3,pause:1},
+  {n:6,gap:0.5,muster:'aussen',ang:0.35,licht:'weidencrossette',farbe:2},
+  {n:3,gap:0.5,rohrFolge:RF3,licht:'breitwechsel',kal:'mittel',farbe:5},
+  {mit:true,n:6,gap:0.6,muster:'v',ang:0.3,licht:'farbkrone',farbe:6,pause:1.5},
+  {n:7,gap:0.12,rohrFolge:RF7,licht:'breitfarbe',kal:'gross',farbe:2},
+  {mit:true,n:8,gap:0.3,muster:'kreis',ang:0.35,licht:'weidencrossette',kal:'gross',farbe:3,pause:9}]);
 Object.assign(SIGNATUR,{
   lb_goldader:{eff:'licht:goldkomet',text:'Goldkometen, Glitzerminen und Weidenkometen – alles in Gold, mal links, mal rechts'},
   kreuzfeuer90:{eff:'licht:crossette',text:'Crossetten im Kreuz, farbige Zwillingskometen und Dreifach-Crossetten'},
-  lb_bluetenzauber:{eff:'licht:bluetenkranz',text:'Blütenminen: Kranz, Doppelkranz, Kranzwelle, Glitzer, Dreiklang'},
-  lb_kronjuwelen:{eff:'licht:farbkrone',text:'Kronen aus Gold, Rubin, Smaragd und Saphir'},
-  lb_wasserspiele:{eff:'licht:doppelfall',text:'Wasserfälle, Torbögen und Kaskaden in Gold und Silber'},
-  lb_zwillingsreigen:{eff:'licht:zwillingsspirale',text:'Alles doppelt: Zwillinge, Drillinge, Spiralen und Kreuzblüten'},
-  lb_blitznacht:{eff:'licht:blitzregen',text:'Unsichtbare Aufstiege, oben Blitzweiden, Blitzkronen und Blitzpalmen'},
-  lb_glutstrom:{eff:'licht:weidenkomet',text:'Goldkometen, Goldfächer und Goldwasserfall zwischen Tigerkometen und Lavabrocken'},
-  lb_weidenhain:{eff:'licht:weidencrossette',text:'Weiden in Gold und Bernstein, das Finale ein hängender Vorhang'}
+  lb_weidenhain:{eff:'licht:weidencrossette',text:'Weiden in Gold und Bernstein, das Finale ein hängender Vorhang'},
+  lb_regenbogenbrunnen:{eff:'licht:breitklein',text:'Sieben kleine Fontänen in den Regenbogenfarben, eine nach der anderen'},
+  lb_glitzergarten:{eff:'licht:breitglitzer',text:'Glitzerfontänen mit Farbspitzen und leise Blütenglitzer in Pastell'},
+  lb_fontaenenballett:{eff:'licht:breitfarbe',text:'Farbige breite Fontänen, darüber Farbkronen und Farbcrossetten'},
+  lb_goldregen:{eff:'licht:breitregen',text:'Goldfontänen, aus denen ein goldener Regen sinkt, Weidencrossetten'},
+  lb_blitzweiden:{eff:'licht:farbblitzweide',text:'Blitzweiden in Gold und Farbe, Blitzkronen, dazu zwei Blitzfontänen'},
+  lb_silbergewitter:{eff:'licht:silberblitzweide',text:'Silberne Weiden mit farbigen Blitzen und Blitzblüten'},
+  lb_blitzpalmen:{eff:'licht:koenigspalme',text:'Blitzpalmen: Gold, Farbe, Königspalme, Palmenweide, Stufen- und Doppelpalme'},
+  lb_fontaenenpalast:{eff:'licht:breittor',text:'Breite Fontänen in Farbe, Dreifachtor, Weidencrossetten, Finale aus sechs Fontänen'},
+  lb_farbenpracht:{eff:'licht:breitfarbe',text:'Jede Farbe eine Fontäne mit Farbcrossette, Dreifachtor, Farbkronen'}
 });

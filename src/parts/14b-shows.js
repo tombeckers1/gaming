@@ -309,6 +309,10 @@ function playShowRoh(o,phases,prod,tag,PLAN){
     const bodenAn=(b,st,ort)=>{ const [gA,gB]=paar(0), A=farbe(b.A)||(b.gA?K(b.gA):gA), B=farbe(b.B)||(b.gB?K(b.gB):gB);
       /* bis: Ziel des Lauffeuers (sonst 0,4 m weiter) - auch gestaucht */
       const offB=VM.nimm((ort||0)+(+b.x||0)), offZ=b.bis!==undefined?VM.nimm((ort||0)+(+b.bis||0)):b.k==='lauffeuer'?VM.nimm(offB+0.4):null;
+      /* 03.10. (Tom): statt der kleinen Funkenfontaenen eine grosse breite
+         Fontaene in den Farben der Batterie (14m breitBoden) */
+      if(typeof BREIT_BODEN!=='undefined'&&BREIT_BODEN[b.k]&&!b.alt){ const T=[gA,gB], lvl=P[prod]&&P[prod].lvl||10, saat=typeof saatZahl==='function'?saatZahl(prod||'x'):0;
+        plane(st,()=>{ const alt=FW_TAG; FW_TAG=tag; try{ breitBoden(RS?RS.modul(offB*VM.k()):ortAus(offB),A,B,{k:b.k,D:b.gt,lvl,saat,T}); } finally { FW_TAG=alt; } },{art:'b'}); return; }
       if(b.k==='monsterfont'){ plane(st,()=>monsterFontaene(RS?RS.modul(offB*VM.k()):ortAus(offB),b.gh||20,b.gt||8,b.farben||[A,B,FW.gold]),{art:'b'}); return; }
       /* spielraum: Platz vom Emitter bis zum Rand des Produkts - breite
          oder wandernde Boden-Emitter (Wasserfall, Kreisel, Kessel)

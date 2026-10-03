@@ -654,65 +654,6 @@ NEU_GRUPPE.kugeln.push('kanonade300','feuerlilie200');
 NEU_LIZ_DAZU.import.push('lichterprozession');
 NEU_LIZ_DAZU.grossfeuer.push('kometenreigen','glutschmiede'); NEU_LIZ_DAZU.profi.push('sternentor','feuerlilie200','kanonade300');
 NEU_LIZENZEN.find(l=>l.id==='meister').items.push('legion');
-/* 01.10. (Tom): 30 Lichter-Muster mit je 2-3 Schuss - jeder ein anderer
-   Lichtertyp ohne grossen Knall (14m). Nur fuer die Testsektion.
-   02.10. (Tom): zehn davon bleiben (Blitzweide mit neuem Bruch), zwanzig
-   sind raus; dazu 30 neue Effekte als Varianten der Favoriten und
-   breite Einzelfontaenen ("nicht so kleine, sondern eine grosse"), aus
-   denen am Ende ein Effekt in den Himmel steigt. */
-const LICHT_MUSTER=[
-  /* geblieben */
-  ['blitzregen','Blitzweide','luft',['weiss','gold'],'Dunkler Aufstieg wie gehabt – oben sinkt jetzt eine goldene Weide, in der weiße Blitze aufzucken'],
-  ['bluetenkranz','Blütenkranz','mine',['gold','rot'],'Hohle Tulpe auf einem Kegelmantel, die Farbe wechselt'],
-  ['bluetenglitzer','Blütenglitzer','mine',['tuerkis','rose'],'Farbsterne mit feinem Glitzerschweif'],
-  ['bluetendreiklang','Blütendreiklang','mine',['rot','blau'],'Drei Farben nacheinander: Rot, Blau, Weiß'],
-  ['goldwasserfall','Goldwasserfall','quer',['gold','orange'],'Goldglitzer-Vorhang aus dem Bogen'],
-  ['wassertor','Wassertor','quer',['rot','silber'],'Zwei Bögen zugleich von links und rechts – ein Tor'],
-  ['kometenkrone','Kometenkrone','luft',['gold','orange'],'Goldkomet, oben breitet sich lautlos eine Glitzerkrone aus'],
-  ['zwillingskomet','Zwillingskomet','luft',['blau','gold'],'Zwei Kometen aus einem Rohr, die auseinanderstreben'],
-  ['farbcrossette','Farbcrossette','luft',['rot','gruen'],'Das Kreuz aus vier Kometen wechselt im Flug die Farbe'],
-  ['weidenfaecher','Weidenfächer','luft',['gold','bernstein'],'Fünf Weidenkometen als goldener Vorhang'],
-  /* neu: Varianten der Blitzweide (derselbe dunkle Aufstieg) */
-  ['blitzkrone','Blitzkrone','luft',['silber','himmel'],'Dunkler Aufstieg, oben hängt eine silberne Krone, deren Spitzen blitzen'],
-  ['blitzpalme','Blitzpalme','luft',['gold','weiss'],'Dunkler Aufstieg, acht schwere Goldarme sinken wie eine Palme, an den Enden blitzt es'],
-  ['blitzbluete','Blitzblüte','luft',['magenta','weiss'],'Dunkler Aufstieg, eine Farbblüte öffnet sich leise und zerfällt in blitzende Sterne'],
-  /* neu: Varianten von Bluetenkranz, Bluetenglitzer, Bluetendreiklang */
-  ['doppelkranz','Doppelkranz','mine',['rot','gold'],'Zwei Tulpen ineinander, die Farben tauschen gegenläufig'],
-  ['kranzwelle','Kranzwelle','mine',['violett','rose'],'Drei Kränze kurz nacheinander aus einem Rohr, jeder höher und weiter'],
-  ['funkelkranz','Funkelkranz','mine',['tuerkis','gold'],'Hohler Kranz, jeder Stern zieht einen Goldglitzerschweif'],
-  ['goldschweifbluete','Goldschweif-Blüte','mine',['rot','gruen'],'Breiter Strauß Farbsterne mit langen Goldglitzer-Schweifen'],
-  ['vierfarbbluete','Vierfarb-Blüte','mine',['blau','orange'],'Vier Farben im Strauß, jeder Stern mit Silberglitzer'],
-  ['wechselbluete','Wechselblüte','mine',['gruen','magenta'],'Innen und außen wechseln die Farben gegenläufig – zweimal'],
-  ['glutbluete','Glutblüte','mine',['scharlach','gold'],'Rot, dann Gold, dann glimmt jeder Stern langsam als Glut aus'],
-  /* neu: Varianten von Goldwasserfall und Wassertor */
-  ['doppelfall','Doppelter Goldfall','quer',['gold','orange'],'Zwei Bögen übereinander, zwei Goldvorhänge in Stufen'],
-  ['weidenfall','Weidenfall','quer',['bernstein','gold'],'Der Vorhang hängt lange wie eine Trauerweide und sinkt langsam'],
-  ['kaskadenfall','Goldkaskade','quer',['gold','zitrone'],'Der Kopf springt dreimal weiter, bei jedem Sprung ein neuer Vorhang'],
-  ['torbogen','Torbogen','quer',['silber','gold'],'Zwei hohe Bögen, links Silber, rechts Gold, oben spannt sich ein glitzernder Querbalken – ein Tor'],
-  ['dreifachtor','Dreifachtor','quer',['gold','rot'],'Links, rechts und hoch in der Mitte – drei Vorhänge zugleich'],
-  /* neu: Varianten von Kometenkrone, Zwillingskomet, Farbcrossette, Weidenfaecher */
-  ['farbkrone','Farbkrone','luft',['rot','gruen'],'Goldkomet, oben hängt eine Krone aus Farbsternen'],
-  ['doppelkrone','Doppelkrone','luft',['gold','blau'],'Goldkomet mit zwei Kronen: eine kleine unterwegs, eine große oben'],
-  ['drillingskomet','Drillingskomet','luft',['blau','gold'],'Drei Kometen aus einem Rohr, außen farbig, in der Mitte Gold'],
-  ['zwillingsspirale','Zwillingsspirale','luft',['tuerkis','gold'],'Zwei Kometen winden sich umeinander nach oben'],
-  ['weidencrossette','Weidencrossette','luft',['gold','bernstein'],'Das Kreuz aus vier Kometen sinkt als Goldweide herab'],
-  ['kreuzbluete','Kreuzblüte','luft',['rot','gold'],'Crossette, an jedem der vier Enden öffnet sich ein kleiner Blütenkranz'],
-  ['farbweidenfaecher','Farbweidenfächer','luft',['rot','gold'],'Fünf Weiden mit farbigen Köpfen und goldenen Schweifen'],
-  /* neu: breite Einzelfontaenen - eine grosse statt mehrerer kleiner,
-     am Ende steigt ein Effekt in den Himmel */
-  ['breitgold','Goldene Wand','fontaene',['gold','orange'],'Eine breite Goldfontäne, am Ende steigt ein Goldkomet und öffnet oben eine Krone'],
-  ['breitsilber','Silberfächer','fontaene',['silber','gold'],'Breite Silberfontäne, zum Schluss drei Weidenkometen in den Himmel'],
-  ['breitbluete','Blütenfontäne','fontaene',['rose','gold'],'Breite Goldfontäne, aus der Farbsterne steigen – oben ein Blütenkranz'],
-  ['breitfall','Fontäne mit Wasserfall','fontaene',['gold','silber'],'Breite Fontäne, darüber zieht ein Komet einen Goldvorhang'],
-  ['breitkomet','Kometenfontäne','fontaene',['blau','gold'],'Breite Fontäne, aus der abwechselnd links und rechts Kometen steigen'],
-  ['breitblitz','Blitzfontäne','fontaene',['weiss','gold'],'Breite Fontäne aus Blinkfunken, zum Schluss eine Blitzweide'],
-  ['breitwechsel','Farbwechsel-Fontäne','fontaene',['gruen','violett'],'Die breite Fontäne wechselt die Farbe, am Ende eine Farbcrossette'],
-  ['breitglut','Glutvulkan','fontaene',['orange','gold'],'Breiter Vulkan aus Glut und Knistern, danach zwei Crossetten']
-];
-LICHT_MUSTER.forEach(([e,nm,form,F,txt],k)=>{ const nr=String(k+1).padStart(2,'0'), ein=form==='fontaene';
-  NEUWARE['lm_'+e]={name:'Licht '+nr+' · '+nm,short:nm,cat:2,lvl:10,shape:'battery',dims:ein?[0.3,0.3,0.3]:[0.56,0.3,0.36],grid:ein?[4,1,1]:[3,1,1],box:2,cost:9.00,market:20.99,weight:4,hype:30,risk:5,noOrder:true,
-    desc:txt+'. Muster '+nr+(ein?' – eine einzige große Fontäne':' mit drei Schuss')+', nur zum Ansehen.',
-    art:{title:nm.toUpperCase(),sub:'Licht '+nr+' · '+(ein?'1 Fontäne':'3 Schuss'),bg1:'#1c2440',bg2:'#05070f',ac:'#ffe08a',ac2:'#8ad8ff'}}; });
 /* 01.10. (Tom): 20 neue Raketen (14n) - erst in der Teststation.
    02.10. (Tom, Kugeln): Crossettennetz, Tigerkrone, Weidenkoenig und
    Sternensturm ins Sortiment, die anderen 16 Muster-Kugeln sind raus;
@@ -731,13 +672,22 @@ const KUGEL_LVL={75:14,100:16,150:18,200:21,300:24};
 NEU_GRUPPE.kugeln.push('crossettennetz150','tigerkrone150','weidenkoenig200','sternensturm300');
 NEU_LIZENZEN.find(l=>l.id==='goldklasse').items.push('crossettennetz150','tigerkrone150');
 NEU_LIZ_DAZU.grossfeuer.push('weidenkoenig200'); NEU_LIZ_DAZU.profi.push('sternensturm300');
-/* zehn neue intensive Kugeln - nur zum Ansehen */
-[['kn_farbkreuz100','Farbkreuz',100],['kn_goldsturm150','Goldsturm',150],['kn_roemerfeuer150','Römerfeuer',150],['kn_funkenbluete150','Funkenblüte',150],
- ['kn_kronenkranz200','Kronenkranz',200],['kn_lavaglut200','Lavaglut',200],['kn_zwillingssonne200','Zwillingssonne',200],
- ['kn_weidendom300','Weidendom',300],['kn_blitzkoenig300','Blitzkönig',300],['kn_finalfuerst300','Finalfürst',300]].forEach(([id,nm,mm],k)=>{
+/* 03.10. (Tom): Kronenkranz und Zwillingssonne ins Sortiment, die
+   anderen acht Muster-Kugeln sind raus; dazu fuenf neue aus dem, was
+   gefallen hat (14p) - alle direkt ins Sortiment */
+[['farbcrossette150','Farbcrossette',150,'Ein Ring Crossetten zum Zuschauer – jeder Arm wechselt im Flug von Rot zu Türkis, innen eine zweite Welle in den getauschten Farben.'],
+ ['kronenkranz200','Kronenkranz',200,'Zwei Goldkometen steigen mit, oben ein Kranz aus Goldkometen, an jedem Ende hängt eine glitzernde Krone.'],
+ ['zwillingssonne200','Zwillingssonne',200,'Zwei Sonnen nebeneinander – goldene Tigerkometen und farbige Sternspritzer –, dann fliegen Kometen über Kreuz.'],
+ ['blitzpalme200','Blitzpalme',200,'Dunkler Aufstieg, dann sinken zehn schwere Goldwedel wie eine Palme, an ihren Enden zerstieben Blitze.'],
+ ['goldweidenkreuz200','Goldweidenkreuz',200,'Acht Crossetten im Kranz, jede teilt sich in vier Goldweiden, die lange herabsinken.'],
+ ['kronenregen300','Kronenregen',300,'Eine große Krone aus violetten und rosa Sternen hängt am Himmel – dann rieselt aus ihr ein langer goldener Regen.'],
+ ['dreifachkrone300','Dreifachkrone',300,'Drei Kronen nebeneinander wie ein Tor: links Rot, in der Mitte höher Gold, rechts Blau.']].forEach(([id,nm,mm,desc],k)=>{
   NEUWARE[id]={name:nm+' · Kugelbombe '+mm+' mm',short:'Kugel '+mm+' '+nm,cat:2,lvl:KUGEL_LVL[mm],shape:'shell',dims:KUGEL_MASS[mm],grid:KUGEL_GRID[mm],box:{75:8,100:6,150:3,200:2,300:1}[mm],
-    cost:KUGEL_PREIS[mm][0],market:KUGEL_PREIS[mm][1],weight:4,hype:60+k*3,risk:9,noOrder:true,
-    desc:'Intensive Kugel '+String(k+1).padStart(2,'0')+' – nur zum Ansehen.',art:{title:nm.toUpperCase(),sub:'Kugelbombe '+mm+' mm',bg1:'#401c1c',bg2:'#0f0404',ac:'#ffd23f',ac2:'#ff8a3a'}}; });
+    cost:KUGEL_PREIS[mm][0],market:KUGEL_PREIS[mm][1],weight:3,hype:72+k*4,risk:9,desc,art:{title:nm.toUpperCase(),sub:'Kugelbombe '+mm+' mm',bg1:'#2a1440',bg2:'#07040f',ac:'#ffd23f',ac2:'#ff8ac8'}}; });
+NEU_GRUPPE.kugeln.push('farbcrossette150','kronenkranz200','zwillingssonne200','blitzpalme200','goldweidenkreuz200','kronenregen300','dreifachkrone300');
+NEU_LIZENZEN.find(l=>l.id==='goldklasse').items.push('farbcrossette150');
+NEU_LIZ_DAZU.grossfeuer.push('kronenkranz200','zwillingssonne200','blitzpalme200','goldweidenkreuz200');
+NEU_LIZ_DAZU.profi.push('kronenregen300','dreifachkrone300');
 [['rn_kometenstern','Kometenstern'],['rn_geisterkrone','Geisterkrone'],['rn_crossettenstern','Crossettenstern'],['rn_weidenregen','Weidenregen'],['rn_faecherstern','Fächerstern'],
  ['rn_wetterwolke','Wetterwolke'],['rn_glitzerbukett','Glitzerbukett'],['rn_bluetenstern','Blütenstern'],['rn_wasserring','Wasserring'],['rn_blitzweide','Blitzweide'],
  ['rn_tigerstern','Tigerstern'],['rn_kiefernstern','Kiefernstern'],['rn_lavastern','Lavastern'],['rn_spritzkrone','Spritzkrone'],['rn_perlenring','Perlenring'],
@@ -745,26 +695,30 @@ NEU_LIZ_DAZU.grossfeuer.push('weidenkoenig200'); NEU_LIZ_DAZU.profi.push('sterne
   NEUWARE[id]={name:nm+' · 6 Raketen',short:nm,cat:2,lvl:10+Math.floor(k/2),shape:'rocketset',dims:[0.44,0.06,0.13],grid:[4,2,2],box:8,cost:6+k*0.4,market:Math.round((6+k*0.4)*2.3*100)/100,weight:6,hype:16+k,risk:5,noOrder:true,
     desc:'Rakete '+String(k+1).padStart(2,'0')+' – nur zum Ansehen.',art:{title:nm.toUpperCase(),sub:'Rakete · Testmuster',bg1:'#0c2a4a',bg2:'#020a14',ac:'#ffd23f',ac2:'#9fd8ff'}}; });
 
-/* 01.10. (Tom): acht Lichter-Batterien aus den Favoriten - breit und lang
-   statt hoch ("die sind oft viel zu klein fuer das, was rauskommt").
-   Erst zum Testen, nicht bestellbar.
-   02.10. (Tom): Geisterstunde, Silberkaskade, Gewitterfront und Grande
-   Lumiere raus; Goldader, Bluetenzauber, Glutstrom bleiben; Kreuzfeuer
-   kommt ins Sortiment (unten). Dazu fuenf neue aus den Effekten, die
-   gefallen - ohne Fontaene am Anfang, jede mit eigener Verkabelung
-   (zuendung, 04c) und eigenem Ablauf. */
-[['lb_goldader','Goldader','84 Schuss Goldkometen',18,[0.9,0.3,0.6],'#5a3a06','#140a02','#ffd23f','#fff3c4','Goldkometen kreuz und quer – mal links, mal rechts –, Glitzerminen, Weidenkometen und Kometenfächer; ein Finale aus sechzehn Goldkometen und acht Weiden.','wechsel'],
- ['lb_bluetenzauber','Blütenzauber','78 Schuss Blütenminen',18,[0.9,0.3,0.58],'#5a1240','#12030c','#ff8ac8','#ffd23f','Blütenminen in vielen Formen: Kranz, Doppelkranz, Kranzwelle, Glitzer- und Goldschweif-Blüten, Dreiklang – von außen im Kreis nach innen gezündet.','spirale'],
- ['lb_kronjuwelen','Kronjuwelen','64 Schuss Kronen',19,[0.9,0.3,0.6],'#4a0a1a','#0c0206','#ffd23f','#ff3a4a','Eine einzelne Kometenkrone eröffnet, dann Farbkronen in Rubin und Smaragd, Doppelkronen und zum Schluss ein Kranz aus goldenen Kronen.','mitte'],
- ['lb_wasserspiele','Wasserspiele','48 Schuss Wasserfälle',20,[1.0,0.28,0.56],'#2a3a4a','#05080c','#ffd23f','#e8f2ff','Goldvorhänge aus Bögen: einzelne Wasserfälle, Torbögen, Doppelfälle und Kaskaden – das Finale ein Dreifachtor über einer Weide.','spalte'],
- ['lb_zwillingsreigen','Zwillingsreigen','80 Schuss Zwillingskometen',21,[0.95,0.3,0.6],'#0a1a4a','#02050f','#5ce1ff','#ffd23f','Alles kommt doppelt: Zwillingskometen, Drillinge, Spiralen, die sich umeinander winden, und Kreuzblüten.','reihe'],
- ['lb_blitznacht','Blitznacht','60 Schuss Blitzweiden',22,[0.9,0.3,0.6],'#1a1a2a','#040408','#f2f5ff','#ffd23f','Unsichtbare Aufstiege – erst oben geht das Licht an: Blitzweiden, Blitzkronen, Blitzpalmen und Blitzblüten, kreuz und quer verdrahtet.','zufall'],
- ['lb_glutstrom','Glutstrom','70 Schuss Glut und Gold',23,[0.95,0.32,0.62],'#6a2a06','#140602','#ffd23f','#ff5a1e','Goldkometen, Goldfächer und Goldwasserfall zwischen Tigerkometen und Lavabrocken, Weidenfächer zum Schluss.'],
- ['lb_weidenhain','Weidenhain','56 Schuss Weiden',24,[0.95,0.32,0.6],'#3a2a06','#0a0602','#ffb84a','#fff3c4','Weidenfächer, farbige Weiden, Weidencrossetten und ein Weidenfall, schräg durch die Batterie gezündet – das Finale ein Vorhang, der lange am Himmel hängt.','diagonal']
-].forEach(([id,nm,sub,lvl,dims,bg1,bg2,ac,ac2,desc,zuendung])=>{
-  NEUWARE[id]={name:nm+' · '+sub,short:nm,cat:2,lvl,shape:'battery',dims,grid:[2,1,1],box:1,cost:Math.round(lvl*2.6),market:Math.round(lvl*2.6*2.3)-0.01,weight:3,hype:70+lvl,risk:9,noOrder:true,desc,
-    art:{title:nm.toUpperCase(),sub,bg1,bg2,ac,ac2}};
-  if(zuendung) NEUWARE[id].zuendung=zuendung; });
+/* Lichter-Batterien (14m). 03.10. (Tom): Goldader und Weidenhain
+   kommen ins Sortiment, die anderen sechs sind raus. Neu, direkt ins
+   Sortiment: zwei Blitzweiden-Batterien, eine Blitzpalmen-Batterie und
+   Fontaenen-Batterien in drei Stufen - Kinder, mittel, High-End ("nicht
+   alles immer so peng, peng, peng, sondern auch einfach nur schoen").
+   Je: id, Name, Untertitel, Level, Masse, Farben, Text, Verkabelung, Lizenz */
+const LB_SORTIMENT=[
+ ['lb_regenbogenbrunnen','Regenbogenbrunnen','10 kleine Fontänen',5,[0.5,0.2,0.3],'#3a1a6a','#0a0614','#ffd23f','#5ce1ff','Sieben kleine breite Fontänen, jede in einer Regenbogenfarbe – Rot, Orange, Gelb, Grün, Türkis, Blau, Violett –, eine nach der anderen von links nach rechts; zum Schluss drei zugleich. Kein Knall, nur Farbe.','reihe','jugend'],
+ ['lb_glitzergarten','Glitzergarten','17 Schuss Glitzer',7,[0.5,0.22,0.32],'#5a1a4a','#12040e','#ffb8e0','#a8fff0','Glitzerfontänen mit Farbspitzen, darüber leise Blütenglitzer und Blütenkränze in Pastell – eine Batterie für Kinder, die schön ist statt laut.','spirale','jugend'],
+ ['lb_fontaenenballett','Fontänenballett','24 Schuss Fontänen & Kronen',13,[0.8,0.28,0.5],'#1a3a6a','#040a14','#5ce1ff','#ff6a8a','Breite Farbfontänen tanzen links, rechts und in der Mitte; über jeder öffnet sich eine Farbkrone, dazwischen Farbcrossetten. Finale: drei Fontänen zugleich.','wechsel','feuerzauber'],
+ ['lb_goldregen','Goldregen','22 Schuss Gold',15,[0.8,0.28,0.5],'#5a3a06','#140a02','#ffd23f','#fff3c4','Goldglitzer-Fontänen, aus denen am Ende ein goldener Regen sinkt, Weidencrossetten, Weidenfächer und ein Weidenfall – ganz in Gold.','mitte','verbund'],
+ ['lb_blitzweiden','Blitzweiden','20 Schuss Blitzweiden',17,[0.85,0.3,0.55],'#1a1a2a','#040408','#f2f5ff','#ff6ad8','Zwei Blitzfontänen eröffnen, dann dunkle Aufstiege und oben Blitzweiden in Gold und in Farbe, Blitzkronen – zum Schluss fünf Weiden zugleich.','zufall','import'],
+ ['lb_goldader','Goldader','86 Schuss Goldkometen',18,[0.9,0.3,0.6],'#5a3a06','#140a02','#ffd23f','#fff3c4','Goldkometen kreuz und quer – mal links, mal rechts –, Glitzerminen, Weidenkometen, zwei Goldregen-Fontänen und Kometenfächer; ein Finale aus sechzehn Goldkometen über einer breiten Goldfontäne.','wechsel','goldklasse'],
+ ['lb_silbergewitter','Silbergewitter','28 Schuss Silberweiden',20,[0.9,0.3,0.6],'#1a2a3a','#04080c','#c8e4ff','#7a5cff','Eine Silberfontäne, dann silberne Blitzweiden, in denen farbige Blitze zucken, Blitzblüten und Farbweiden – das Finale drei Silberweiden in der Mitte.','diagonal','grossfeuer'],
+ ['lb_blitzpalmen','Blitzpalmen','25 Schuss Blitzpalmen',22,[0.9,0.3,0.6],'#3a2a06','#0a0602','#ffd23f','#ffffff','Zwei Goldregen-Fontänen eröffnen, dann jede Palme anders: Blitzpalme, Farbpalme, Königspalme mit Silberkrone, Palmenweide, Stufenpalme – Finale aus fünf Doppelpalmen.','mitte','profi'],
+ ['lb_fontaenenpalast','Fontänenpalast','41 Schuss Fontänen & Kronen',24,[1.0,0.32,0.62],'#2a0a4a','#08020f','#ffd23f','#ff5ac8','Große Farbfontänen außen, eine Torfontäne mit Dreifachtor, Weidencrossetten, eine Fontänenreihe in zwei Farben – Finale: sechs breite Fontänen zugleich, darüber Farbkronen und ein Weidenvorhang.','spalte','profi'],
+ ['lb_weidenhain','Weidenhain','56 Schuss Weiden',24,[0.95,0.32,0.6],'#3a2a06','#0a0602','#ffb84a','#fff3c4','Weidenfächer, farbige Weiden, Weidencrossetten und ein Weidenfall, schräg durch die Batterie gezündet – das Finale ein Vorhang, der lange am Himmel hängt.','diagonal','profi'],
+ ['lb_farbenpracht','Farbenpracht','37 Schuss Farbe',26,[1.0,0.32,0.62],'#4a0a3a','#0f020c','#ff5a5a','#5cff9e','Jede Farbe einmal als breite Fontäne mit ihrer Farbcrossette, ein Dreifachtor in der Mitte, Weidencrossetten außen, Farbkronen – Finale: sieben Fontänen und ein Kranz aus Weidencrossetten.','spirale','meister']
+];
+LB_SORTIMENT.forEach(([id,nm,sub,lvl,dims,bg1,bg2,ac,ac2,desc,zuendung,liz])=>{
+  NEUWARE[id]={name:nm+' · '+sub,short:nm,cat:2,lvl,shape:'battery',dims,grid:lvl<10?[4,1,1]:[2,1,1],box:lvl<10?4:1,cost:Math.round(lvl*2.6),market:Math.round(lvl*2.6*2.3)-0.01,weight:lvl<10?6:3,hype:40+lvl*2,risk:lvl<10?3:8,desc,
+    art:{title:nm.toUpperCase(),sub,bg1,bg2,ac,ac2},zuendung};
+  NEU_GRUPPE.batterien.push(id);
+  const L=NEU_LIZENZEN.find(l=>l.id===liz); if(L) L.items.push(id); else NEU_LIZ_DAZU[liz].push(id); });
 /* 02.10. (Tom): "Kreuzfeuer kannst du mit ins Sortiment nehmen" - als
    Grosses Kreuzfeuer (das kleine Kreuzfeuer mit 42 Schuss gibt es schon),
    im Paket Grosskaliber (L20) */
@@ -772,10 +726,11 @@ NEUWARE.kreuzfeuer90={name:'Großes Kreuzfeuer · 90 Schuss Crossetten',short:'G
   desc:'Crossetten teilen sich im Kreuz, farbige Crossetten und Zwillingskometen, zum Schluss Dreifach-Crossetten – neunzig Schuss ohne großen Knall.',
   art:{title:'GROSSES KREUZFEUER',sub:'90 Schuss Crossetten',bg1:'#5a0e0a',bg2:'#140202',ac:'#ffd23f',ac2:'#ff4a3a'}};
 NEU_LIZ_DAZU.grossfeuer.push('kreuzfeuer90'); NEU_GRUPPE.batterien.push('kreuzfeuer90');
-/* Liste fuer die Testsektionen im Laden-Reiter (17-laptop) */
-const NEU_LB=Object.keys(NEUWARE).filter(t=>t.startsWith('lb_'));
-const NEU_TEST={batterien:NEU_LB.concat(LICHT_MUSTER.map(x=>'lm_'+x[0])),
-  kugeln:Object.keys(NEUWARE).filter(t=>t.startsWith('kn_')),
+/* Listen fuer Tests und die Raketen-Vorfuehrung im Laden-Reiter (17-laptop);
+   Batterien und Kugeln sind seit 03.10. im Sortiment (Vorfuehrung raus) */
+const NEU_LB=LB_SORTIMENT.map(x=>x[0]).concat(['kreuzfeuer90']);
+const NEU_TEST={batterien:NEU_LB,
+  kugeln:['farbcrossette150','kronenkranz200','zwillingssonne200','blitzpalme200','goldweidenkreuz200','kronenregen300','dreifachkrone300'],
   raketen:Object.keys(NEUWARE).filter(t=>t.startsWith('rn_'))};
 /* Fontaenen-Sets (Feuerquelle, Gummibaerchen, Farbenspiel, Farbmischer,
    Wasserorgel, Feuerwand, Feuerkaskade, Popcorn) sind so breit wie ihre

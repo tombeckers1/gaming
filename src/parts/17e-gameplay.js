@@ -38,7 +38,27 @@ const GP_ORTE=[
    Generator Stueck fuer Stueck, je Bild nur wenige Millisekunden, mit
    Fortschrittsanzeige; auf Handys (COARSE) kleiner: weniger Regale,
    Lagerregale und Sorten. */
-const GP_KLEIN=COARSE?{regale:22,lager:4,sorten:60}:{regale:90,lager:10,sorten:999};
+/* 03.10. abends (Tom, iPhone: "alles wird sichtbar, paar Sekunden spaeter
+   bricht alles zusammen"): gemessen hielt die Vorfuehrung am Handy 334 MB
+   Bildspeicher statt 168 MB beim Spielstart - und jedes Druckbild zusaetzlich
+   als Kopie im Arbeitsspeicher. Die App beendet die Seite dann. Am Handy
+   deshalb: Druckbilder der Vorfuehrungsware in halber Aufloesung (tex),
+   jedes Bild gleich beim Entstehen auf die Grafikkarte laden statt alle auf
+   einmal beim ersten Blick in den Laden, und die Kopie danach freigeben. */
+const GP_KLEIN=COARSE?{regale:22,lager:4,sorten:40,tex:0.5,regal:0.5,frei:true}:{regale:90,lager:10,sorten:999,tex:0,regal:1,frei:false};
+/* Platzhalter fuer freigegebene Druckbilder - wird nie gezeichnet, solange
+   niemand das Bild neu hochladen laesst (Ware wird nie neu bemalt) */
+let gpLeer=null;
+function gpBildFrei(t){ t.onUpdate=null; const im=t.image; if(!im) return; t.__gpPx=im.width*im.height;
+  if(im.getContext){ im.width=im.height=1; return; }
+  if(im.data){ try{ gpLeer=gpLeer||new ImageData(1,1); t.image=gpLeer; }catch(e){} } }
+/* neue Ware: Bilder sofort hochladen (verteilt die Last auf den Aufbau) */
+function gpHochladen(pl){
+  for(const m of pl.meshes){ for(const mt of [].concat(m.material)){ if(!mt) continue;
+    for(const k of ['map','emissiveMap','alphaMap','bumpMap']){ const tx=mt[k]; if(!tx||tx===gpLeer) continue;
+      if(GP_KLEIN.frei) tx.onUpdate=gpBildFrei;
+      try{ if(renderer&&renderer.initTexture) renderer.initTexture(tx); }catch(e){} } } }
+}
 let gpBau=null, gpFertig=false, gpBauEl=null;
 function gpStart(){
   if(gpAn||!S) return;
@@ -93,14 +113,16 @@ function* gpAufbau(){
   for(const s of STAFF){ if(S.staff[s.id]||(s.req&&!S.up[s.req])) continue; S.staff[s.id]=true; try{ hireStaff(s.id); }catch(e){} yield [0.27,'Personal: '+s.name]; }
   /* Verkaufsregale aller Arten, bis kein Platz mehr frei ist */
   const arten=['hoch','standard','gondel','standard','gross','tischgross','gitter3','hoch','kuehl','eck','tisch','gitter2','standard','gondel','hoch','gross','kuehl','gitter','klein'];
-  const altToast=window.toast; window.toast=()=>{};
+  /* Regal-Etiketten am Handy in halber Aufloesung (wie die Verpackungs-
+     Vorfuehrung): 22 Regale haben rund 130 Etiketten-Bilder */
+  const altToast=window.toast; window.toast=()=>{}; REGAL_TEX=GP_KLEIN.regal;
   try{
     let leer=0, n=0; for(let i=0;i<GP_KLEIN.regale&&leer<arten.length;i++){ const id=arten[i%arten.length]; if(!regalOf(id)){ leer++; continue; }
       if(regalAufbauen(id)){ leer=0; n++; } else leer++;
       yield [0.28+0.22*Math.min(1,i/GP_KLEIN.regale),'Regale aufstellen ('+n+')']; }
     /* Lagerregale */
     for(const id of ['rschwer','rhoch','rack']) for(let i=0;i<GP_KLEIN.lager;i++){ if(!regalOf(id)||!regalAufbauen(id)) break; yield [0.52,'Lagerregale']; }
-  } finally { window.toast=altToast; }
+  } finally { window.toast=altToast; REGAL_TEX=1; }
   /* Fuellen: jedes Fach ein Produkt, das Sortiment reihum (am Handy die
      beliebtesten Sorten - jede Sorte kostet ein Druckbild) */
   let ware=ORDER.filter(t=>P[t]&&isUnlocked(t)&&!P[t].noOrder&&!P[t].rezept);
@@ -110,7 +132,9 @@ function* gpAufbau(){
     for(let j=0;j<ware.length;j++){ const t=ware[(k+j)%ware.length];
       /* jede neue Sorte malt ihr Druckbild und baut ihre Form - das kostet
          bis zu einige hundert ms: dafuer ein eigenes Bild */
-      if(typeof poolDa==='function'&&!poolDa(t)){ if(!pools[t]) continue; yield [0.55+0.3*i/L.length,'Ware einräumen ('+(i+1)+' / '+L.length+') · '+(P[t].short||t)]; }
+      if(typeof poolDa==='function'&&!poolDa(t)){ let pl; if(GP_KLEIN.tex) TEX_FAKTOR=GP_KLEIN.tex;
+        try{ pl=pools[t]; } finally { TEX_FAKTOR=GFX_START.tex; }
+        if(!pl) continue; gpHochladen(pl); yield [0.55+0.3*i/L.length,'Ware einräumen ('+(i+1)+' / '+L.length+') · '+(P[t].short||t)]; }
       else if(!pools[t]) continue;
       if(addToLevel(lv,t,1)){ let n=0; while(n++<400&&addToLevel(lv,t,1)); k=(k+j+1)%ware.length; break; } }
     yield [0.55+0.3*i/L.length,'Ware einräumen ('+(i+1)+' / '+L.length+')']; }

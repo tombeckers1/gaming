@@ -3,6 +3,8 @@
    3D-Produktmodelle
    ========================================================= */
 const vcMat=new THREE.MeshStandardMaterial({vertexColors:true,roughness:0.45});
+/* eigene Verpackungsformen je Produkt (04g-form-*.js) */
+const VP_FORM={};
 const glassMat=new THREE.MeshStandardMaterial({color:0xffffff,transparent:true,opacity:0.22,roughness:0.05,metalness:0.1,depthWrite:false});
 const bottleGlass=new THREE.MeshStandardMaterial({color:LIN(0x1f4a35),transparent:true,opacity:0.82,roughness:0.15,metalness:0.15});
 function wrapTex(circ,hh,a,draw){
@@ -10,6 +12,10 @@ function wrapTex(circ,hh,a,draw){
 }
 function buildProduct(t,roh){
   /* roh: das Produkt selbst ohne Verpackung (Zuendtisch, Inhalt des Kartons) */
+  /* 03.10. (Tom: "jede Verpackung soll was Einzigartiges haben wie der
+     Atombomben-Boeller - nicht nur Karton mit Farbe"): eigene 3D-Form je
+     Produkt aus 04g (Tuete, Netz, Dose, Blister, Folie, Tray ...) */
+  if(!roh&&typeof VP_FORM!=='undefined'&&VP_FORM[t]){ try{ const r=VP_FORM[t](t); if(r&&r.length) return r; }catch(e){ if(typeof console!=='undefined') console.warn('VP_FORM',t,e); } }
   if(!roh&&typeof buildVerpackung==='function'){ const vp=buildVerpackung(t); if(vp) return vp; }
   const p=P[t], a=p.art, w=p.dims[0], h=p.dims[1], d=p.dims[2], parts=[], vc=[];
   const addAtlasBox=(bw,bh,bd,m,o)=>{ const A=atlas(bw,bh,bd,a,p.cat,o); parts.push({geo:merge([{geo:atlasBox(bw,bh,bd,A.R),m}]),mat:A.mat}); };

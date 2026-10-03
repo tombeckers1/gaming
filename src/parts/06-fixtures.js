@@ -192,7 +192,9 @@ function buildCheckout(){
     const wanne=std(0x141820,{roughness:0.55,metalness:0.1});
     const kb=rbox(0.44,0.026,0.175,0.006,wanne,-0.8,0.954,-0.32,ckG); kb.rotation.x=-0.06;
     const face=plane(0.4,0.15,new THREE.MeshStandardMaterial({map:kbT,roughness:0.42}),-0.8,0.9685,-0.32,0,ckG);
-    face.rotation.set(-Math.PI/2-0.06,0,0);
+    /* 03.10. (Tom, Foto): die Beschriftung stand fuer den Kassierer auf dem
+       Kopf - um 180 Grad in der Ebene gedreht, Funktionstasten rechts */
+    face.rotation.set(-Math.PI/2-0.06,0,Math.PI);
     /* Kabel zur Kasse */
     const kab=new THREE.Mesh(new THREE.CylinderGeometry(0.006,0.006,0.13,6),std(0x20242c,{roughness:0.9}));
     kab.position.set(-0.8,0.952,-0.4); kab.rotation.x=1.35; ckG.add(kab);

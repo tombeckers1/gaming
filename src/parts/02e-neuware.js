@@ -681,20 +681,28 @@ NEU_LIZ_DAZU.grossfeuer.push('weidenkoenig200'); NEU_LIZ_DAZU.profi.push('sterne
  ['blitzpalme200','Blitzpalme',200,'Dunkler Aufstieg, dann sinken zehn schwere Goldwedel wie eine Palme, an ihren Enden zerstieben Blitze.'],
  ['goldweidenkreuz200','Goldweidenkreuz',200,'Acht Crossetten im Kranz, jede teilt sich in vier Goldweiden, die lange herabsinken.'],
  ['kronenregen300','Kronenregen',300,'Eine große Krone aus violetten und rosa Sternen hängt am Himmel – dann rieselt aus ihr ein langer goldener Regen.'],
- ['dreifachkrone300','Dreifachkrone',300,'Drei Kronen nebeneinander wie ein Tor: links Rot, in der Mitte höher Gold, rechts Blau.']].forEach(([id,nm,mm,desc],k)=>{
+ ['dreifachkrone300','Dreifachkrone',300,'Drei Kronen nebeneinander wie ein Tor: links Rot, in der Mitte höher Gold, rechts Blau.'],
+ ['crossettenweide300','Crossettenweide',300,'Aus Crossettenstern, Weidenregen und Fächerstern die extremste Kugel: zwei Goldkometen steigen mit, oben zerspringen sechzehn Crossetten, wechseln die Farbe und sinken als Goldweide – darunter öffnet sich ein Kometenfächer.']].forEach(([id,nm,mm,desc],k)=>{
   NEUWARE[id]={name:nm+' · Kugelbombe '+mm+' mm',short:'Kugel '+mm+' '+nm,cat:2,lvl:KUGEL_LVL[mm],shape:'shell',dims:KUGEL_MASS[mm],grid:KUGEL_GRID[mm],box:{75:8,100:6,150:3,200:2,300:1}[mm],
     cost:KUGEL_PREIS[mm][0],market:KUGEL_PREIS[mm][1],weight:3,hype:72+k*4,risk:9,desc,art:{title:nm.toUpperCase(),sub:'Kugelbombe '+mm+' mm',bg1:'#2a1440',bg2:'#07040f',ac:'#ffd23f',ac2:'#ff8ac8'}}; });
-NEU_GRUPPE.kugeln.push('farbcrossette150','kronenkranz200','zwillingssonne200','blitzpalme200','goldweidenkreuz200','kronenregen300','dreifachkrone300');
+NEU_GRUPPE.kugeln.push('farbcrossette150','kronenkranz200','zwillingssonne200','blitzpalme200','goldweidenkreuz200','kronenregen300','dreifachkrone300','crossettenweide300');
 NEU_LIZENZEN.find(l=>l.id==='goldklasse').items.push('farbcrossette150');
 NEU_LIZ_DAZU.grossfeuer.push('kronenkranz200','zwillingssonne200','blitzpalme200','goldweidenkreuz200');
-NEU_LIZ_DAZU.profi.push('kronenregen300','dreifachkrone300');
-[['rn_kometenstern','Kometenstern'],['rn_geisterkrone','Geisterkrone'],['rn_crossettenstern','Crossettenstern'],['rn_weidenregen','Weidenregen'],['rn_faecherstern','Fächerstern'],
- ['rn_wetterwolke','Wetterwolke'],['rn_glitzerbukett','Glitzerbukett'],['rn_bluetenstern','Blütenstern'],['rn_wasserring','Wasserring'],['rn_blitzweide','Blitzweide'],
- ['rn_tigerstern','Tigerstern'],['rn_kiefernstern','Kiefernstern'],['rn_lavastern','Lavastern'],['rn_spritzkrone','Spritzkrone'],['rn_perlenring','Perlenring'],
- ['rn_zwillingsring','Zwillingsring'],['rn_goldkaskade','Goldkaskade'],['rn_farbglitzerregen','Farbglitzerregen'],['rn_mondtau','Mondtau'],['rn_sternenkrone','Sternenkrone']].forEach(([id,nm],k)=>{
-  NEUWARE[id]={name:nm+' · 6 Raketen',short:nm,cat:2,lvl:10+Math.floor(k/2),shape:'rocketset',dims:[0.44,0.06,0.13],grid:[4,2,2],box:8,cost:6+k*0.4,market:Math.round((6+k*0.4)*2.3*100)/100,weight:6,hype:16+k,risk:5,noOrder:true,
-    desc:'Rakete '+String(k+1).padStart(2,'0')+' – nur zum Ansehen.',art:{title:nm.toUpperCase(),sub:'Rakete · Testmuster',bg1:'#0c2a4a',bg2:'#020a14',ac:'#ffd23f',ac2:'#9fd8ff'}}; });
-
+NEU_LIZ_DAZU.profi.push('kronenregen300','dreifachkrone300'); NEU_LIZENZEN.find(l=>l.id==='meister').items.push('crossettenweide300');
+/* 03.10. (Tom, Raketen-Vorfuehrung): Crossettenstern, Weidenregen und
+   Faecherstern ins Sortiment, die anderen 17 sind raus. Dazu zwei dicke
+   Raketen im selben Stil, nur groesser (Crossettenkrone, Faecherweide) -
+   die Kugel daraus steht in 14p (Crossettenweide 300). */
+[['crossettenstern','Crossettenstern','6 Raketen',13,[0.44,0.08,0.21],[4,2,2],8,7.2,'himmel','Sechs Crossetten zerspringen oben zu vierundzwanzig roten Kometen – mit leisem Knacken statt Knall.','#3a1206','#0c0402','#ffd23f','#ff5a3a'],
+ ['weidenregen','Weidenregen','6 Raketen',14,[0.44,0.08,0.21],[4,2,2],8,7.8,'verbund','Eine goldene Trauerweide, die lange am Himmel hängt und langsam herabsinkt.','#3a2a06','#0a0602','#ffb84a','#fff3c4'],
+ ['faecherstern','Fächerstern','6 Raketen',16,[0.44,0.09,0.21],[4,2,2],8,8.6,'nachthimmel','Dreizehn Kometen öffnen sich als Fächer nach oben, abwechselnd Gold und Grün.','#0a2a14','#020a04','#5cff9e','#ffd23f'],
+ ['crossettenkrone','Crossettenkrone','4 Jumbo-Raketen',20,[0.89,0.13,0.21],[1,2,2],4,16.5,'sternklasse','Die dicke Schwester des Crossettensterns: zehn große Crossetten, jeder Arm wechselt im Flug von Rot zu Gold – eine Krone aus vierzig Kometen.','#4a0a0a','#120202','#ffd23f','#ff3a3a'],
+ ['faecherweide','Fächerweide','4 Jumbo-Raketen',23,[0.89,0.14,0.21],[1,2,2],4,21.0,'profi','Fächer und Weide in einer Rakete: fünfzehn dicke Kometen öffnen sich als Fächer und sinken dann als goldene Weide.','#2a2006','#080602','#ffd23f','#9fffb0']
+].forEach(([id,nm,sub,lvl,dims,grid,box,cost,liz,desc,bg1,bg2,ac,ac2],k)=>{
+  NEUWARE[id]={name:nm+' · '+sub,short:nm,cat:2,lvl,shape:'rocketset',dims,grid,box,cost,market:Math.round(cost*2.3)-0.01,weight:6,hype:30+lvl*2,risk:6,desc,
+    art:{title:nm.toUpperCase(),sub,bg1,bg2,ac,ac2}};
+  NEU_GRUPPE.raketen.push(id);
+  const L=NEU_LIZENZEN.find(l=>l.id===liz); if(L) L.items.push(id); else NEU_LIZ_DAZU[liz].push(id); });
 /* Lichter-Batterien (14m). 03.10. (Tom): Goldader und Weidenhain
    kommen ins Sortiment, die anderen sechs sind raus. Neu, direkt ins
    Sortiment: zwei Blitzweiden-Batterien, eine Blitzpalmen-Batterie und
@@ -730,8 +738,8 @@ NEU_LIZ_DAZU.grossfeuer.push('kreuzfeuer90'); NEU_GRUPPE.batterien.push('kreuzfe
    Batterien und Kugeln sind seit 03.10. im Sortiment (Vorfuehrung raus) */
 const NEU_LB=LB_SORTIMENT.map(x=>x[0]).concat(['kreuzfeuer90']);
 const NEU_TEST={batterien:NEU_LB,
-  kugeln:['farbcrossette150','kronenkranz200','zwillingssonne200','blitzpalme200','goldweidenkreuz200','kronenregen300','dreifachkrone300'],
-  raketen:Object.keys(NEUWARE).filter(t=>t.startsWith('rn_'))};
+  kugeln:['farbcrossette150','kronenkranz200','zwillingssonne200','blitzpalme200','goldweidenkreuz200','kronenregen300','dreifachkrone300','crossettenweide300'],
+  raketen:['crossettenstern','weidenregen','faecherstern','crossettenkrone','faecherweide']};
 /* Fontaenen-Sets (Feuerquelle, Gummibaerchen, Farbenspiel, Farbmischer,
    Wasserorgel, Feuerwand, Feuerkaskade, Popcorn) sind so breit wie ihre
    Duesenreihe - vorher 18-44 cm Karton, die Duesen standen aber bis

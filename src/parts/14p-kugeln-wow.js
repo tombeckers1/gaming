@@ -90,9 +90,24 @@ EFF.dreifachkrone=function(p,A,B,s){ const [u]=basisBlick(p,0.2), d=4.2*s;
     for(let i=0;i<Math.round(40*QUAL())+10;i++){ const a=rand(0,Math.PI*2), w=rand(3,5.2)*Math.sqrt(s); kgStern(psBig,e,[Math.cos(a)*w,rand(0.2,1.8),Math.sin(a)*w],i%4?kgMal(c,1.45):[1.5,1.15,.5],rand(3.0,3.6),1.5,i%4?0:4,0.35); }
     flash(e,c,1.6,0.2); schall(e,x=>{ sfx.plopp(x*0.7,0.8); later(0.3,()=>sfx.rieseln(x*0.5,3)); }); })); };
 
-const WOW=['kronenkranz','zwillingssonne','farbcrossette','blitzpalme','goldweidenkreuz','kronenregen','dreifachkrone'];
+/* Crossettenweide (300, 03.10., Tom: "aus den Raketen, die gut sind,
+   eine Kugelbombe, die nochmal extremer ist"): ein Faecher aus Kometen
+   steigt mit (Abschuss), oben zerspringen sechzehn Crossetten im Kranz,
+   jeder Arm wechselt die Farbe und sinkt dann als Goldweide - darunter
+   oeffnet sich noch einmal ein Kometenfaecher. Kein Knall. */
+EFF.crossettenweide=function(p,A,B,s){ const G=2.4;
+  nKranz(16,9.5*s,v=>{ nKomet(p,v,kgMal(A,1.6),0.8,G,[1,.8,.42],80);
+    kgSpaeter(0.8,()=>{ const e=sternNach(p,v[0],v[1],v[2],G,0.8), w=bahnTempo(v,G,0.8), a0=rand(0,Math.PI*2);
+      for(let k=0;k<4;k++){ const a=a0+k*Math.PI/2, sp=5*Math.sqrt(s), dv=[Math.cos(a)*sp+w[0]*0.3,1.4+w[1]*0.3,Math.sin(a)*sp+w[2]*0.3], L=4.2;
+        const h=kgStern(psHuge,e,dv,kgMal(A,1.6),L,1.3,0,0.4); kgSpaeter(0.6,()=>kgFarbe(h,kgMal(B,1.6)));
+        rkFunken(e,dv,1.3,0.05,L,26,[.95,.55,.2],{ps:psMid,life:[1.8,2.8],g:0.7,streu:0.1,mit:0.02,mode:0,spur:0.25}); }
+      psHuge.emit(e.x,e.y,e.z,0,0,0,1.3,1.2,1,0.06,0,0); }); },0.1);
+  kgSpaeter(0.5,()=>{ const q={x:p.x,y:p.y-3,z:p.z}; for(let k=0;k<13;k++){ const a=-1.2+k*0.2, d=[Math.sin(a),Math.cos(a)*0.9+0.2,rand(-0.15,0.15)], l=Math.hypot(...d);
+    nKomet(q,kgMal(d,9*s*0.5/l),kgMal(k%2?A:B,1.5),1.8,2.4,[1,.78,.38],45); } });
+  schall(p,x=>{ sfx.plopp(x*1.0,0.65); later(0.8,()=>{ sfx.crack(x*0.8); later(0.1,()=>sfx.crack(x*0.6)); later(0.25,()=>sfx.crackle(x*0.5)); }); later(1.5,()=>sfx.rieseln(x*0.8,5.5)); }); };
+const WOW=['crossettenweide','kronenkranz','zwillingssonne','farbcrossette','blitzpalme','goldweidenkreuz','kronenregen','dreifachkrone'];
 WOW.forEach(n=>{ const f=EFF[n]; EFF[n]=function(){ const alt=STERN_LEBEN; STERN_LEBEN=1.5; try{ return f.apply(this,arguments); } finally{ STERN_LEBEN=alt; } }; });
-Object.assign(EFF_FAMILIE,{kronenkranz:'komet',zwillingssonne:'komet',farbcrossette:'komet',blitzpalme:'haenger',goldweidenkreuz:'haenger',kronenregen:'haenger',dreifachkrone:'glitzer'});
+Object.assign(EFF_FAMILIE,{crossettenweide:'haenger',kronenkranz:'komet',zwillingssonne:'komet',farbcrossette:'komet',blitzpalme:'haenger',goldweidenkreuz:'haenger',kronenregen:'haenger',dreifachkrone:'glitzer'});
 /* Produkte (02e): id, Bruch, Kaliber, Farben, Aufstieg, Abschuss, Text */
 const WOW_KUGELN=[
   ['farbcrossette150','farbcrossette',3,'rot','tuerkis','kometenkopf',null,'Ein Ring Farbcrossetten, jeder Arm wechselt im Flug die Farbe'],
@@ -101,7 +116,8 @@ const WOW_KUGELN=[
   ['blitzpalme200','blitzpalme',4,'magenta','weiss','dunkel',null,'Dunkler Aufstieg, eine riesige Goldpalme, an den Enden blitzt es'],
   ['goldweidenkreuz200','goldweidenkreuz',4,'gruen','gold','kometenkopf','farbkometen','Acht Crossetten im Kranz, jede sinkt als Goldweide'],
   ['kronenregen300','kronenregen',5,'violett','rose','kometenkopf','goldfontaene','Eine Krone aus Farbsternen, aus der ein goldener Regen rieselt'],
-  ['dreifachkrone300','dreifachkrone',5,'rot','blau','kometenkopf','farbkometen','Drei Kronen nebeneinander - Farbe, Gold, Farbe']
+  ['dreifachkrone300','dreifachkrone',5,'rot','blau','kometenkopf','farbkometen','Drei Kronen nebeneinander - Farbe, Gold, Farbe'],
+  ['crossettenweide300','crossettenweide',5,'rot','gold','kometenkopf','kometen','Sechzehn Crossetten, die als Goldweide sinken, darunter ein Kometenfächer']
 ];
 WOW_KUGELN.forEach(([id,eff,kal,A,B,steig,abschuss,txt])=>{
   KUGEL[id]=Object.assign({kal,th:'silber',haupt:eff,A,B,steig,abschuss:abschuss||undefined,bruchOpt:{kern:false,nachglitzer:false,flash:0.6},stufen:[]},KAL_WERTE[kal]);

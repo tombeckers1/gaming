@@ -1338,13 +1338,10 @@ function lapZeichnen(body){
           ? `<small class="warn">Aktiv: Level ${testLevel()}, alle Lizenzpakete und Ausbauten offen.</small><small>Beim Ausschalten kommen dein altes Level (${S.test.lvl}), deine XP, dein Kontostand und dein altes Sortiment zurück. Gekaufte Regale, Deko und Personal bleiben im Laden.</small>`
           : `<small>Schaltet vorübergehend alles frei: Level ${testLevel()}, jedes Lizenzpaket und ein volles Konto zum Ausprobieren.</small><small>Dein jetziger Stand wird gemerkt und beim Ausschalten wiederhergestellt.</small>`)+
         `</div><button class="${S.test?'red':''}" data-a="test">${S.test?'Testmodus aus':'Testmodus an'}</button></div>`+
-      (FW_DEV?`<div class="row"><div class="rm"><b>Feuerwerk-Teststation <span class="warn">(nur Entwicklung)</span></b><small>Macht Nacht und stellt von jedem Feuerwerk einen Karton neben das Zündpult. Du stehst direkt davor.</small>${fwTestAn?'<small class="warn">Aktiv. Kartons neu stapeln füllt alles wieder auf.</small>':''}</div>`+
-        (fwTestAn?`<div class="steps"><button data-a="fwtestneu">Neu stapeln</button><button class="red" data-a="fwtest">Aus</button></div>`:`<button data-a="fwtest">Einschalten</button>`)+'</div>'+
+      (FW_DEV?/* 03.10. (Tom): Teststation und alle "Neue ... testen" raus */
         `<div class="row"><div class="rm"><b>Feuerwerk-Vorführung <span class="warn">(nur Entwicklung)</span></b><small>Alle Feuerwerke nach Level, eins nach dem anderen: Leertaste zündet das nächste, der Name steht groß oben. Pfeile vor/zurück, R nochmal, 1 gut, 2 ändern, L Liste, B beenden.</small></div><button data-a="vorfuehrung">Starten</button></div>`+
         /* 02.10. (Tom): alle Verpackungen im Regal auf einen Blick */
-        `<div class="row"><div class="rm"><b>Verpackungs-Vorführung <span class="warn">(nur Entwicklung)</span></b><small>Ein eigener Ausstellungsraum wie ein Supermarkt – Hauptgang, Quergang und Gänge zwischen allen Regalzeilen: Hochregal, Verkaufsregal, Mittelgondel, kleines Regal, Kühlschrank, Großverbund-Regal, Tische, Gitterboxen und Eckregale. Jedes Produkt füllt genau ein Fach – so sieht man jede Verpackung und wie sie im Regal steht. Beenden: Knopf oben oder B.</small></div><button data-a="verpackung">${vpAn?'Beenden':'Starten'}</button></div>`+
-        /* 30.09. (Tom): eigene Testsektionen; 03.10.: Batterien und Kugeln sind im Sortiment, nur noch die Raketen */
-        `<div class="row"><div class="rm"><b>Neue Raketen testen <span class="warn">(nur Entwicklung)</span></b><small>${NEU_TEST.raketen.length} neue Raketen, jede mit eigenem Aufstieg und Bruch: ${NEU_TEST.raketen.filter(t=>P[t]).map(t=>P[t].short).join(', ')}.</small></div><button data-a="vfrakete">Starten</button></div>`:'')+
+        `<div class="row"><div class="rm"><b>Verpackungs-Vorführung <span class="warn">(nur Entwicklung)</span></b><small>Ein eigener Ausstellungsraum wie ein Supermarkt – Hauptgang, Quergang und Gänge zwischen allen Regalzeilen: Hochregal, Verkaufsregal, Mittelgondel, kleines Regal, Kühlschrank, Großverbund-Regal, Tische, Gitterboxen und Eckregale. Jedes Produkt füllt genau ein Fach – so sieht man jede Verpackung und wie sie im Regal steht. Beenden: Knopf oben oder B.</small></div><button data-a="verpackung">${vpAn?'Beenden':'Starten'}</button></div>`:'')+
       `<div class="row"><div class="rm"><b>Spielstand</b><small>Wird automatisch gespeichert.</small></div><button class="ghost" data-a="reset">${resetArm?'Wirklich löschen?':'Spielstand löschen'}</button></div>`;
   }
   body.innerHTML=h;
@@ -1438,7 +1435,6 @@ function lapKlick(e,imHandy){
   else if(a==='fwtest'){ fwTestSchalten(); return; }
   else if(a==='vorfuehrung'){ vorfuehrungAn(); return; }
   else if(a==='verpackung'){ vpSchalten(); return; }
-  else if(a==='vfrakete'){ vorfuehrungAn(NEU_TEST.raketen); return; }
   else if(a==='fwtestneu'){ const n=fwTestStapeln(); toast(`${n} Kartons neu gestapelt.`); }
   else if(a==='reset'){ if(!resetArm) resetArm=true; else { try{ localStorage.removeItem(KEY); }catch(err){} location.reload(); return; } }
   renderLaptop();

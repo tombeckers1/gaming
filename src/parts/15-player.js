@@ -126,6 +126,15 @@ function moebelImBlick(){
   for(const h of hits){ const m=movableOf(h.object); if(m) return m; }
   return null;
 }
+/* Fest eingebaute Anlagen am Testfeld im Blick (bis 6 m)? */
+function festImBlick(){
+  const list=[]; for(const k in stations) if(stations[k]&&stations[k].g) list.push(stations[k].g);
+  if(pultHit) list.push(pultHit.parent||pultHit);
+  if(!list.length) return false;
+  scene.updateMatrixWorld(); ray.setFromCamera(center,camera); ray.far=6;
+  const hits=ray.intersectObjects(list,true); ray.far=3.3;
+  return hits.length>0;
+}
 /* Paket, Moebel und Einrichtungsart gehoeren zusammen */
 function regalIdVon(m){
   if(m.kind==='shelf'){ const r=REGALWARE.find(x=>x.art==='shelf'&&x.kind===m.ref.kind); return r&&r.id; }
@@ -140,6 +149,9 @@ function moebelTaste(){
   if(c){ toast('Du trägst einen Karton. Erst abstellen.','bad'); return; }
   const m=moebelImBlick();
   if(m){ grab(m); return; }
+  /* 03.10. (Tom): Zuendpult, Zuendtisch, Abschussrohre und Moerser samt
+     Feuerwerk darauf sind fest eingebaut - das soll man auch hoeren */
+  if(festImBlick()){ toast('Zündpult, Zündtisch, Abschussrohre und Mörser sind fest eingebaut – die lassen sich nicht verschieben.','bad'); return; }
   toast(COARSE?'Schau ein Möbel an und tippe „Möbel“, um es aufzunehmen.':'Schau ein Möbel an und drück F, um es aufzunehmen.');
 }
 /* Auspacken: das Paket verschwindet, das Moebel steht vor einem und

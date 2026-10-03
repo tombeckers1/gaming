@@ -444,6 +444,7 @@ LICHTYP.farbweidenfaecher=function(o,A,B,s,opt){
    2 Glut), extra(t,m) je Bild, ende(): was am Schluss aus demselben Rohr
    in den Himmel steigt (vorEnde s vor Schluss) */
 function lBreit(o,A,B,s,opt,p){
+  if(p.schuss) return lFaecherSchuss(o,A,B,s,p);
   const m=lMund(o), D=p.D||6, G=p.G||4, H=(p.H||9)*Math.sqrt(s), v0=vFuerHoehe(H,G), Q=lQuer({dir:FANDIR}), Z=[-Q[2],0,Q[0]], W=p.weit||0.6, n=p.n||14, L=p.life||[0.8,1.3], md=p.md===undefined?4:p.md, c2=p.c2||[];
   lStart(m,1.2,0.5); sfx.fauchen(distVol(m)*0.7,D,true); sfx.zischen(distVol(m)*0.35,D);
   lLaufend(D,t=>{ const k=Math.min(1,t/0.5)*Math.min(1,(D-t)/0.5), u=t/D;
@@ -458,6 +459,28 @@ function lBreit(o,A,B,s,opt,p){
   if(p.ende) kgSpaeter(D-(p.vorEnde||0.5),()=>p.ende(m));
 }
 const lHoch=a=>({ang:a||0,dir:FANDIR});
+/* Faecherschuss (03.10., Tom: "nicht die Fontaene am Boden - ich meine
+   die Schuesse nach oben, die ein bisschen wie Roemische Lichter
+   aussehen, breit"): aus EINEM Rohr steigt im Takt ein Faecher aus
+   Leuchtsternen mit Glitzerschweif quer zur Batterie nach oben, Salve
+   fuer Salve leicht versetzt, D Sekunden lang - wie eine breite
+   Fontaene, nur aus Schuessen. Farben aus c(u,j), Hoehe H (Scheitel
+   ca. 1,5 x H), am Schluss steigt ende() in den Himmel. Leise: ein
+   weiches Pffft je Salve statt Knall. */
+function lFaecherSchuss(o,A,B,s,p){
+  const m=lMund(o), D=p.D||6, G=p.G||4, Hs=(p.H||9)*1.5*Math.sqrt(s), Q=lQuer({dir:FANDIR}), W=Math.min(0.75,(p.weit||0.6)*0.95),
+    takt=p.takt||0.34, nS=Math.max(3,Math.round((p.nS||(p.n>20?7:6))*Math.min(1,0.6+0.4*QUAL()))), md=p.md===undefined?4:p.md;
+  lStart(m,1.0,0.35);
+  for(let t=0,k=0;t<D-0.2;t+=takt,k++){ const tt=t, kk=k;
+    kgSpaeter(tt,()=>{ const u=tt/D, ver=(kk%3-1)*0.09;
+      for(let j=0;j<nS;j++){ const a=((j+0.5)/nS-0.5)*2*W+ver+rand(-0.04,0.04), v0=vFuerHoehe(Hs*rand(0.82,1.04),G);
+        const v=[Q[0]*Math.sin(a)*v0+rand(-0.2,0.2),Math.cos(a)*v0,Q[2]*Math.sin(a)*v0+rand(-0.2,0.2)], T=lScheitel(v[1],G)+rand(0.15,0.45), c=p.c(u,j+kk*nS);
+        kgStern(psHuge,m,v,kgMal(c,1.25),T,G,0,0.05); kgStern(psBig,m,v,[1.5,1.45,1.35],T*0.9,G,0,0);
+        lFunken(m,v,G,0.04,T,26,mischF(c,GOLDF,0.55),{ps:psMid,life:[0.45,0.85],g:2.2,streu:0.15,mit:0.06,mode:md}); }
+      muendungsblitz(m,m.y,0.5); sfx.rakPff?sfx.rakPff(distVol(m)*0.55):sfx.thump(distVol(m)*0.18); });
+  }
+  if(p.ende) kgSpaeter(D-(p.vorEnde||0.5),()=>p.ende(m));
+}
 /* Breite Bodenfontaene der Batterien (03.10., Tom: "die kleine Funken-
    fontaene am Anfang, die 1-3 m hoch geht, ersetzen durch grosse breite
    Fontaenen ... auch in anderen Farben, nicht nur Gold"). Ersetzt in
@@ -486,37 +509,37 @@ function breitBoden(o,A,B,p){
   else { q.md=0; q.c=()=>silb; q.life=[0.6,1.0];
     q.extra=(t,m,Q)=>{ if(Math.random()<0.6){ const a=rand(-0.5,0.5), h=rand(0.4,0.9)*H, d=randDir(); psSmall.emit(m.x+Q[0]*Math.sin(a)*h,m.y+Math.cos(a)*h,m.z+Q[2]*Math.sin(a)*h,d[0]*1.5,d[1]*1.5,d[2]*1.5,1.5,1.45,1.3,rand(0.05,0.12),1,3); } };
     for(let k=0;k<Math.floor(D/0.7);k++) later(0.5+k*0.7,()=>sfx.prasseln(distVol(o)*0.6)); }
-  lBreit(o,A,B,1,{},q);
+  q.schuss=true; lBreit(o,A,B,1,{},q);
 }
 /* Brenndauer am Rohr (s ab Zuendung bis der Himmelseffekt verloschen
    ist): so lange steht die Batterie auf dem Tisch (04c zuendFolge) */
 const LICHT_BRENN={breitsilber:11,breitbluete:11,breitkomet:11,breitblitz:11.5,breitwechsel:10,breitglut:10.5,breitfarbe:11,breitregen:11.5,breitcross:11,breittor:11.5,breitklein:6,breitglitzer:6.5};
 /* Silberfaecher: weite Silberfontaene, zum Schluss drei Weidenkometen */
-LICHTYP.breitsilber=function(o,A,B,s,opt){ lBreit(o,A,B,s,opt,{D:5.5,H:8.5,weit:0.83,n:26,c:()=>[1.3,1.32,1.4],md:0,life:[0.6,1.1],
+LICHTYP.breitsilber=function(o,A,B,s,opt){ lBreit(o,A,B,s,opt,{schuss:true,D:5.5,H:8.5,weit:0.83,n:26,c:()=>[1.3,1.32,1.4],md:0,life:[0.6,1.1],
   ende:()=>[-0.25,0,0.25].forEach((a,k)=>kgSpaeter(k*0.25,()=>LICHTYP.weidenkomet(o,A,B,s,lHoch(a))))}); };
 /* Bluetenfontaene: aus der Goldfontaene steigen einzelne Farbsterne,
    oben am Schluss ein Bluetenkranz */
-LICHTYP.breitbluete=function(o,A,B,s,opt){ lBreit(o,A,B,s,opt,{D:6,H:8.5,weit:0.63,n:22,c:()=>GOLDF,md:4,
+LICHTYP.breitbluete=function(o,A,B,s,opt){ lBreit(o,A,B,s,opt,{schuss:true,D:6,H:8.5,weit:0.63,n:22,c:()=>GOLDF,md:4,
   extra:(t,m,Q)=>{ if(Math.random()<0.08){ const c=Math.random()<0.5?A:B, a=rand(-0.4,0.4), w=vFuerHoehe(rand(9,13)*Math.sqrt(s),3.5), v=[Q[0]*Math.sin(a)*w,Math.cos(a)*w,Q[2]*Math.sin(a)*w];
     kgStern(psHuge,m,v,kgMal(c,1.5),lScheitel(v[1],3.5)+rand(0.3,0.6),3.5,0,0.05); } },
   ende:()=>LICHTYP.bluetenkranz(o,A,B,s*1.15,lHoch())}); };
 /* Kometenfontaene: aus der Fontaene steigen abwechselnd links und
    rechts Farbkometen, am Ende ein Zwillingskomet */
 LICHTYP.breitkomet=function(o,A,B,s,opt){
-  lBreit(o,A,B,s,opt,{D:6.5,H:8.5,weit:0.63,n:22,c:()=>[1.15,.8,.34],md:4,ende:()=>LICHTYP.zwillingskomet(o,A,B,s*1.1,lHoch())});
+  lBreit(o,A,B,s,opt,{schuss:true,D:6.5,H:8.5,weit:0.63,n:22,c:()=>[1.15,.8,.34],md:4,ende:()=>LICHTYP.zwillingskomet(o,A,B,s*1.1,lHoch())});
   for(let k=0;k<6;k++) kgSpaeter(0.7+k*0.85,()=>LICHTYP.farbkomet(o,k%2?B:A,B,s*0.85,lHoch((k%2?1:-1)*0.32)));
 };
 /* Blitzfontaene: breite Fontaene aus Blinkfunken, am Ende eine Blitzweide */
-LICHTYP.breitblitz=function(o,A,B,s,opt){ lBreit(o,A,B,s,opt,{D:5.5,H:9.1,weit:0.69,n:24,c:(u,j)=>j%3?[1.7,1.7,1.75]:GOLDF,md:1,life:[0.7,1.2],ende:()=>LICHTYP.blitzregen(o,A,B,s*1.1,lHoch())}); };
+LICHTYP.breitblitz=function(o,A,B,s,opt){ lBreit(o,A,B,s,opt,{schuss:true,D:5.5,H:9.1,weit:0.69,n:24,c:(u,j)=>j%3?[1.7,1.7,1.75]:GOLDF,md:1,life:[0.7,1.2],ende:()=>LICHTYP.blitzregen(o,A,B,s*1.1,lHoch())}); };
 /* Farbwechsel-Fontaene: A, dann B, dann Gold - am Ende eine Farbcrossette */
-LICHTYP.breitwechsel=function(o,A,B,s,opt){ lBreit(o,A,B,s,opt,{D:6,H:9.1,weit:0.67,n:24,md:0,life:[0.7,1.2],
+LICHTYP.breitwechsel=function(o,A,B,s,opt){ lBreit(o,A,B,s,opt,{schuss:true,D:6,H:9.1,weit:0.67,n:24,md:0,life:[0.7,1.2],
   c:u=>u<0.33?kgMal(A,1.35):u<0.66?kgMal(B,1.35):GOLDF,ende:()=>LICHTYP.farbcrossette(o,A,B,s*1.1,lHoch())}); };
 /* Glutvulkan (03.10., Tom: "nur die breiten Fontaenen, die hochgehen,
    sind schoen - nicht das unten am Boden"): eine hohe Fontaene aus
    Glut, die oben abkuehlt; das Knistern sitzt in der Krone, nichts
    liegt mehr breit am Boden - danach zwei Crossetten */
 LICHTYP.breitglut=function(o,A,B,s,opt){
-  lBreit(o,A,B,s,opt,{D:6,H:9.4,G:4,weit:0.5,n:22,md:2,c:()=>[1.3,.62,.16],c2:[.35,.08,.02],life:[1.0,1.5],
+  lBreit(o,A,B,s,opt,{schuss:true,D:6,H:9.4,G:4,weit:0.5,n:22,md:2,c:()=>[1.3,.62,.16],c2:[.35,.08,.02],life:[1.0,1.5],
     extra:(t,m,Q)=>{ if(Math.random()<0.45){ const a=rand(-0.45,0.45), h=rand(6.5,9)*Math.sqrt(s), d=randDir(); psSmall.emit(m.x+Q[0]*Math.sin(a)*h,m.y+Math.cos(a)*h,m.z+Q[2]*Math.sin(a)*h,d[0]*1.5,d[1]*1.5,d[2]*1.5,1.5,1.4,1.2,rand(0.05,0.12),1,3); } },
     ende:()=>{ LICHTYP.crossette(o,A,B,s,lHoch(-0.2)); kgSpaeter(0.4,()=>LICHTYP.crossette(o,B,A,s,lHoch(0.2))); }});
   for(let k=0;k<8;k++) later(0.8+k*0.6,()=>sfx.prasseln(distVol(o)*0.6));
@@ -591,20 +614,20 @@ LICHTYP.silberblitzweide=function(o,A,B,s,opt){ lDunkel(o,s,opt,28,e=>lBlitzweid
 /* --- Breite Fontaenen in Farbe (03.10., Tom: "die Fontaenen sind meistens
    Gold - mach die auch in anderen Farben") --- */
 /* Farbfontaene: Farbsterne A im Goldglitzer, am Ende eine Farbkrone */
-LICHTYP.breitfarbe=function(o,A,B,s,opt){ lBreit(o,A,B,s,opt,{D:6,H:9,weit:0.64,n:24,md:0,life:[0.8,1.3],c:(u,j)=>j%3?lHell(A,1.45):GOLDF,ende:()=>LICHTYP.farbkrone(o,A,B,s*1.05,lHoch())}); };
+LICHTYP.breitfarbe=function(o,A,B,s,opt){ lBreit(o,A,B,s,opt,{schuss:true,D:6,H:9,weit:0.64,n:24,md:0,life:[0.8,1.3],c:(u,j)=>j%3?lHell(A,1.45):GOLDF,ende:()=>LICHTYP.farbkrone(o,A,B,s*1.05,lHoch())}); };
 /* Goldregenfontaene: Goldglitzer, am Ende sinkt ein goldener Regen
    (Weidenfaecher) */
-LICHTYP.breitregen=function(o,A,B,s,opt){ lBreit(o,A,B,s,opt,{D:6.5,H:9.2,weit:0.6,n:24,md:4,c:()=>GOLDF,ende:()=>LICHTYP.weidenfaecher(o,A,B,s*1.05,lHoch())}); };
+LICHTYP.breitregen=function(o,A,B,s,opt){ lBreit(o,A,B,s,opt,{schuss:true,D:6.5,H:9.2,weit:0.6,n:24,md:4,c:()=>GOLDF,ende:()=>LICHTYP.weidenfaecher(o,A,B,s*1.05,lHoch())}); };
 /* Kreuzfontaene: Silber mit Farbspitzen, am Ende zwei Weidencrossetten */
-LICHTYP.breitcross=function(o,A,B,s,opt){ lBreit(o,A,B,s,opt,{D:6,H:8.8,weit:0.66,n:24,md:0,life:[0.7,1.2],c:(u,j)=>j%4?[1.3,1.32,1.4]:lHell(A,1.5),
+LICHTYP.breitcross=function(o,A,B,s,opt){ lBreit(o,A,B,s,opt,{schuss:true,D:6,H:8.8,weit:0.66,n:24,md:0,life:[0.7,1.2],c:(u,j)=>j%4?[1.3,1.32,1.4]:lHell(A,1.5),
   ende:()=>{ LICHTYP.weidencrossette(o,A,B,s,lHoch(-0.18)); kgSpaeter(0.35,()=>LICHTYP.weidencrossette(o,A,B,s,lHoch(0.18))); }}); };
 /* Torfontaene: zwei Farben links und rechts im Faecher, am Ende ein
    Dreifachtor */
-LICHTYP.breittor=function(o,A,B,s,opt){ lBreit(o,A,B,s,opt,{D:6.5,H:9.2,weit:0.7,n:26,md:0,life:[0.8,1.3],vorEnde:1.5,c:(u,j)=>j%4===3?GOLDF:lHell(j%2?A:B,1.45),ende:()=>LICHTYP.dreifachtor(o,A,B,s,{ang:0,dir:FANDIR,i:0})}); };
+LICHTYP.breittor=function(o,A,B,s,opt){ lBreit(o,A,B,s,opt,{schuss:true,D:6.5,H:9.2,weit:0.7,n:26,md:0,life:[0.8,1.3],vorEnde:1.5,c:(u,j)=>j%4===3?GOLDF:lHell(j%2?A:B,1.45),ende:()=>LICHTYP.dreifachtor(o,A,B,s,{ang:0,dir:FANDIR,i:0})}); };
 /* Kinderfontaenen: niedrig, weich, ohne Himmelseffekt - zwei Farben im
    Wechsel bzw. Goldglitzer mit Farbspitzen */
-LICHTYP.breitklein=function(o,A,B,s,opt){ lBreit(o,A,B,s,opt,{D:5,H:4.6,G:4,weit:0.56,n:16,md:0,life:[0.7,1.1],c:(u,j)=>j%5===4?GOLDF:lHell(u<0.5===!(j%2)?A:B,1.4)}); };
-LICHTYP.breitglitzer=function(o,A,B,s,opt){ lBreit(o,A,B,s,opt,{D:5.5,H:5.2,G:4,weit:0.6,n:18,md:4,life:[0.8,1.2],c:(u,j)=>j%4?GOLDF:lHell(A,1.4)}); };
+LICHTYP.breitklein=function(o,A,B,s,opt){ lBreit(o,A,B,s,opt,{schuss:true,D:5,H:4.6,G:4,weit:0.56,n:16,md:0,life:[0.7,1.1],c:(u,j)=>j%5===4?GOLDF:lHell(u<0.5===!(j%2)?A:B,1.4)}); };
+LICHTYP.breitglitzer=function(o,A,B,s,opt){ lBreit(o,A,B,s,opt,{schuss:true,D:5.5,H:5.2,G:4,weit:0.6,n:18,md:4,life:[0.8,1.2],c:(u,j)=>j%4?GOLDF:lHell(A,1.4)}); };
 
 /* =========================================================
    Lichter-Batterien im Sortiment (03.10., Tom).

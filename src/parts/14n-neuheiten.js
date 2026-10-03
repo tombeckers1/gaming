@@ -40,6 +40,23 @@ EFF.weidenregen=function(p,A,B,s){ nKugel(Math.round(60*s*QUAL()),8.5*s,v=>{ kgS
   schall(p,v=>later(0.5,()=>sfx.rieseln(v*0.6,4))); };
 EFF.faecherstern=function(p,A,B,s){ for(let k=0;k<13;k++){ const a=-1.2+k*0.2, d=[Math.sin(a),Math.cos(a)*0.9+0.2,rand(-0.15,0.15)], l=Math.hypot(...d);
     nKomet(p,kgMal(d,11*s/l),kgMal(k%2?A:B,1.5),1.9,2.4,[1,.78,.38],50); } schall(p,v=>sfx.zischen(v*0.4,1.5)); };
+/* Crossettenkrone (Jumbo): zehn dicke Crossetten im Kranz, jeder der
+   vier Arme wechselt nach 0,6 s von A zu B und zieht Goldglitzer */
+EFF.crossettenkrone=function(p,A,B,s){
+  nKranz(10,8.5*s,v=>{ nKomet(p,v,kgMal(A,1.5),0.75,2.6,[1,.8,.42],70);
+    kgSpaeter(0.75,()=>{ const e=sternNach(p,v[0],v[1],v[2],2.6,0.75), w=bahnTempo(v,2.6,0.75), a0=rand(0,Math.PI*2);
+      for(let k=0;k<4;k++){ const a=a0+k*Math.PI/2, sp=6.2*Math.sqrt(s), dv=[Math.cos(a)*sp+w[0]*0.3,1.2+w[1]*0.3,Math.sin(a)*sp+w[2]*0.3];
+        const h=nKomet(e,dv,kgMal(A,1.6),1.7,3.0,[1,.8,.42],45); kgSpaeter(0.6,()=>kgFarbe(h,kgMal(B,1.7))); }
+      psHuge.emit(e.x,e.y,e.z,0,0,0,1.3,1.2,1,0.06,0,0); }); },0.25);
+  schall(p,v=>{ sfx.plopp(v*0.7,0.85); later(0.75,()=>{ sfx.crack(v*0.7); later(0.09,()=>sfx.crack(v*0.55)); later(0.2,()=>sfx.crackle(v*0.4)); }); }); };
+/* Faecherweide (Jumbo): fuenfzehn dicke Kometen als Faecher nach oben,
+   ihre Schweife werden zu einer haengenden Goldweide */
+EFF.faecherweide=function(p,A,B,s){
+  for(let k=0;k<15;k++){ const a=-1.3+k*(2.6/14), d=[Math.sin(a),Math.cos(a)*0.9+0.25,rand(-0.12,0.12)], l=Math.hypot(...d), v=kgMal(d,10.5*s/l);
+    nKomet(p,v,kgMal(k%3?A:B,1.5),1.6,2.2,[1,.78,.38],60);
+    kgStern(psBig,p,v,[1.1,.7,.28],rand(4.4,5.2),1.0,0,0.9);
+    rkFunken(p,v,1.0,0.3,4.6,22,[.95,.55,.2],{ps:psMid,life:[1.6,2.6],g:0.7,streu:0.1,mit:0.02,mode:0,spur:0.25}); }
+  schall(p,v=>{ sfx.zischen(v*0.45,1.6); later(0.8,()=>sfx.rieseln(v*0.7,5)); }); };
 EFF.wetterwolke=function(p,A,B,s){ for(let i=0;i<Math.round(30*QUAL());i++){ const d=randDir(), w=rand(1.5,3)*s; kgStern(psBig,p,kgMal(d,w),[.5,.5,.6],rand(0.4,0.7),0.5,0,0); }
   const t=lGewitter(p,A,s*0.8,null); schall(p,v=>later(t*0.6,()=>sfx.donner(v*0.2,true))); };
 EFF.glitzerbukett=function(p,A,B,s){ for(let i=0;i<Math.round(70*s*QUAL());i++){ const d=randDir(); d[1]=Math.abs(d[1])*0.8+0.3; const l=Math.hypot(...d), w=rand(6,9)*s/l;
@@ -82,10 +99,10 @@ EFF.sternensturm=function(p,A,B,s){ nKugel(Math.round(12*KQ(s))+2,8*s,v=>nCross(
     for(let i=0;i<4;i++) psHuge.emit(p.x,p.y,p.z,0,0,0,2,2,1.9,0.12,0,0); flash(p,[1,1,1],6,0.4); schall(p,v=>{ sfx.boom(v*1.4); sfx.crack(v*1.2); }); });
   schall(p,v=>{ sfx.boom(v*1.0); later(0.7,()=>sfx.crack(v*0.8)); }); };
 /* Alle neuen Raketen: Hauptsterne brennen 25 % laenger */
-['kometenstern','geisterkrone','crossettenstern','weidenregen','faecherstern','wetterwolke','glitzerbukett','bluetenstern','wasserring','blitzweide','tigerstern','kiefernstern','lavastern','spritzkrone','perlenring','zwillingsring','goldkaskade','farbglitzerregen','mondtau','sternenkrone'].forEach(n=>{ const f=EFF[n]; EFF[n]=function(){ const alt=STERN_LEBEN; STERN_LEBEN=1.25; try{ return f.apply(this,arguments); } finally{ STERN_LEBEN=alt; } }; });
+['crossettenkrone','faecherweide','kometenstern','geisterkrone','crossettenstern','weidenregen','faecherstern','wetterwolke','glitzerbukett','bluetenstern','wasserring','blitzweide','tigerstern','kiefernstern','lavastern','spritzkrone','perlenring','zwillingsring','goldkaskade','farbglitzerregen','mondtau','sternenkrone'].forEach(n=>{ const f=EFF[n]; EFF[n]=function(){ const alt=STERN_LEBEN; STERN_LEBEN=1.25; try{ return f.apply(this,arguments); } finally{ STERN_LEBEN=alt; } }; });
 /* Alle neuen Kugeln: Hauptsterne brennen 35 % laenger */
 ['crossettennetz','tigerkrone','weidenkoenig','sternensturm'].forEach(n=>{ const f=EFF[n]; EFF[n]=function(){ const alt=STERN_LEBEN; STERN_LEBEN=1.35; try{ return f.apply(this,arguments); } finally{ STERN_LEBEN=alt; } }; });
-Object.assign(EFF_FAMILIE,{kometenstern:'komet',geisterkrone:'kugel',crossettenstern:'komet',weidenregen:'haenger',faecherstern:'komet',wetterwolke:'figur',glitzerbukett:'glitzer',bluetenstern:'kugel',wasserring:'haenger',blitzweide:'glitzer',
+Object.assign(EFF_FAMILIE,{crossettenkrone:'komet',faecherweide:'haenger',kometenstern:'komet',geisterkrone:'kugel',crossettenstern:'komet',weidenregen:'haenger',faecherstern:'komet',wetterwolke:'figur',glitzerbukett:'glitzer',bluetenstern:'kugel',wasserring:'haenger',blitzweide:'glitzer',
   tigerstern:'komet',kiefernstern:'knister',lavastern:'flamme',spritzkrone:'glitzer',perlenring:'kugel',zwillingsring:'kugel',goldkaskade:'haenger',farbglitzerregen:'glitzer',mondtau:'haenger',sternenkrone:'kugel',
   crossettennetz:'komet',tigerkrone:'komet',weidenkoenig:'haenger',sternensturm:'knall'});
 
@@ -105,26 +122,12 @@ Object.assign(STEIG_ART,{
 
 /* ---------------- Die 20 Raketen und 20 Kugeln (Produkte in 02e) ---------------- */
 const NEU_RAKETEN=[
-  ['rn_kometenstern','kometenstern','kometenkopf','gold','weiss',1.0,'Neun Goldkometen mit Glitzerschweif als Stern'],
-  ['rn_geisterkrone','geisterkrone','geisterspur','magenta','tuerkis',1.05,'Ring, der kurz erlischt und in neuer Farbe weiterbrennt'],
-  ['rn_crossettenstern','crossettenstern','zickzack','gold','rot',1.1,'Sechs Crossetten zerspringen zu vierundzwanzig Kometen'],
-  ['rn_weidenregen','weidenregen','weidenspur','gold','bernstein',1.1,'Goldene Trauerweide, die lange hängt'],
-  ['rn_faecherstern','faecherstern','stamm','gold','gruen',1.15,'Neun Kometen als Fächer nach oben'],
-  ['rn_wetterwolke','wetterwolke','glasklang','violett','weiss',1.2,'Kein Knall – oben leuchtet eine Gewitterwolke auf'],
-  ['rn_glitzerbukett','glitzerbukett','glitzerspur','silber','himmel',1.2,'Ein Strauß Silberglitzer, der nach oben aufblüht'],
-  ['rn_bluetenstern','bluetenstern','farbspur','rot','blau',1.25,'Blüte in drei Farben nacheinander'],
-  ['rn_wasserring','wasserring','perlenschnur','silber','weiss',1.3,'Waagerechter Ring, aus dem silberne Vorhänge fallen'],
-  ['rn_blitzweide','blitzweide','blitzspur','weiss','silber',1.3,'Weide aus weiß blitzenden Fäden'],
-  ['rn_tigerstern','tigerstern','drachenschweif','orange','gold',1.35,'Tigerkometen mit breitem Goldband'],
-  ['rn_kiefernstern','kiefernstern','ratter','gold','bernstein',1.4,'Goldsterne zerspringen knisternd zu Tannennadeln'],
-  ['rn_lavastern','lavastern','silberdrache','orange','rot',1.45,'Glühende Tropfen kühlen im Fallen zu Dunkelrot ab'],
-  ['rn_spritzkrone','spritzkrone','ticktack','gold','weiss',1.5,'Sterne, die wie Wunderkerzen sprühen'],
-  ['rn_perlenring','perlenring','blasen','violett','gruen',1.55,'Ring aus runden Leuchtperlen in zwei Farben'],
-  ['rn_zwillingsring','zwillingsring','schleife','blau','gold',1.6,'Zwei Ringe über Kreuz in zwei Farben'],
-  ['rn_goldkaskade','goldkaskade','tonleiter','gold','zitrone',1.7,'Drei Goldbrüche übereinander, jeder kleiner'],
-  ['rn_farbglitzerregen','farbglitzerregen','spektralschweif','rot','violett',1.8,'Glitzerregen in allen Farben des Regenbogens'],
-  ['rn_mondtau','mondtau','wirbel','silber','himmel',1.9,'Langsame Silbersterne, von denen Tautropfen blitzen'],
-  ['rn_sternenkrone','sternenkrone','dreiklang','weiss','gold',2.0,'Weiße Sternkrone mit goldenem Glitzerkern']
+  ['crossettenstern','crossettenstern','zickzack','gold','rot',1.1,'Sechs Crossetten zerspringen zu vierundzwanzig Kometen'],
+  ['weidenregen','weidenregen','weidenspur','gold','bernstein',1.1,'Goldene Trauerweide, die lange hängt'],
+  ['faecherstern','faecherstern','stamm','gold','gruen',1.15,'Neun Kometen als Fächer nach oben'],
+  /* 03.10. (Tom): "zwei aehnliche, dickere Raketen - nochmal groesser" */
+  ['crossettenkrone','crossettenkrone','kometenkopf','rot','gold',1.6,'Zehn dicke Crossetten, jeder Arm wechselt im Flug die Farbe'],
+  ['faecherweide','faecherweide','goldregen','gold','limette',1.8,'Fünfzehn Kometen als Fächer, die als Goldweide sinken']
 ];
 NEU_RAKETEN.forEach(([id,eff,steig,A,B,sz,txt],k)=>{
   RAKETEN_KL[id]={n:1,gap:0,sz,pw:-2+k*0.5,fuse:1.3,steig,A,B,eff:[eff],knall:k%3===0?'plopp':'rakPff',bruchOpt:{kern:false,nachglitzer:false,flash:0.35},dauer:5};

@@ -29,18 +29,56 @@ const GP_ORTE=[
   ['Logistik',    -30.0,-16.0, Math.PI*0.62, -0.05],
   ['Testfeld',      0.3,-8.5, 0, 0.05]
 ];
+/* 03.10. (Tom: "die Gameplay-Vorfuehrung haengt, am Handy geht gar
+   nichts - massive Renderprobleme; mach, dass das langsam laedt"):
+   frueher entstand alles in einem einzigen Rechenschritt (rund 20
+   Ausbauten, 50 Regale, 210 Faecher mit 154 Sorten, 400 Kartons) - der
+   Browser stand Sekunden bis Minuten, am iPhone reichte der Canvas-
+   Speicher fuer die Druckbilder aller Sorten nicht. Jetzt baut ein
+   Generator Stueck fuer Stueck, je Bild nur wenige Millisekunden, mit
+   Fortschrittsanzeige; auf Handys (COARSE) kleiner: weniger Regale,
+   Lagerregale und Sorten. */
+const GP_KLEIN=COARSE?{regale:22,lager:4,sorten:60}:{regale:90,lager:10,sorten:999};
+let gpBau=null, gpFertig=false, gpBauEl=null;
 function gpStart(){
   if(gpAn||!S) return;
   try{ save(); localStorage.setItem(GP_KEY,localStorage.getItem(KEY)||''); }catch(e){}
-  gpAn=true;
+  gpAn=true; gpFertig=false;
   if(laptopOpen) closeLaptop(true);
   if(typeof vfAn!=='undefined'&&vfAn&&typeof vorfuehrungAus==='function') vorfuehrungAus();
   if(typeof vpAn!=='undefined'&&vpAn&&typeof vpAus==='function') vpAus();
   DEMO=false;
+  gpBau={gen:gpAufbau(),anteil:0,text:'Vorbereitung'};
+  gpBauAnzeige();
+  requestAnimationFrame(gpBauLauf);
+}
+/* ein Stueck Aufbau, hoechstens ms Millisekunden lang */
+function gpBauSchritt(ms){
+  if(!gpBau) return true;
+  const t0=performance.now();
+  while(performance.now()-t0<ms){ let r; try{ r=gpBau.gen.next(); }catch(e){ console.warn('GP Aufbau',e); r={done:true}; }
+    if(r.done){ gpBau=null; gpBauAnzeige(); return true; }
+    if(r.value){ gpBau.anteil=r.value[0]; gpBau.text=r.value[1]; } }
+  gpBauAnzeige(); return false;
+}
+function gpBauLauf(){ if(!gpBau) return; if(!gpBauSchritt(COARSE?6:12)) requestAnimationFrame(gpBauLauf); }
+function gpBauAnzeige(){
+  if(!gpBau){ if(gpBauEl){ gpBauEl.remove(); gpBauEl=null; } return; }
+  if(!gpBauEl){ gpBauEl=document.createElement('div'); gpBauEl.id='gpBau';
+    gpBauEl.style.cssText='position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:70;width:min(420px,86vw);background:rgba(10,13,28,.92);color:#f2f5ff;border:2px solid #f2c230;border-radius:14px;padding:16px 18px;font:600 16px Barlow,Arial,sans-serif;text-align:center';
+    document.body.appendChild(gpBauEl); }
+  const p=Math.round(gpBau.anteil*100);
+  gpBauEl.innerHTML=`<div style="font:700 20px 'Barlow Condensed',sans-serif;letter-spacing:.04em;color:#f2c230">GAMEPLAY-VORFÜHRUNG WIRD AUFGEBAUT</div>`+
+    `<div style="margin:10px 0 8px;height:10px;border-radius:6px;background:rgba(255,255,255,.12);overflow:hidden"><div style="height:100%;width:${p}%;background:#f2c230"></div></div>`+
+    `<div style="opacity:.8">${p} % · ${gpBau.text}</div>`;
+}
+/* Der Aufbau als Generator: jedes yield gibt dem Browser ein Bild */
+function* gpAufbau(){
   /* Spaete Spielphase */
   S.level=Math.max(S.level,typeof testLevel==='function'?testLevel():30); S.xp=0; S.money=Math.max(S.money,450000); S.rep=Math.max(S.rep,72);
   S.lic=LIZENZEN.map(l=>l.id);
   ORDER.forEach(t=>{ if(P[t]&&!(S.prices[t]>0)) S.prices[t]=r2(marketOf(t)*1.04); });
+  yield [0.02,'Lizenzen und Preise'];
   /* Ausbau in Level-Reihenfolge, so oft, bis nichts mehr dazukommt
      (Voraussetzungen). testKauf geht den normalen Kauf samt Aufbau. */
   const ups=UPGRADES.slice().sort((a,b)=>(a.lvl||0)-(b.lvl||0));
@@ -48,30 +86,39 @@ function gpStart(){
     for(const u of ups){ if(u.done()||(u.req&&!S.up[u.req])||(u.lvl||0)>S.level) continue;
       S.money=Math.max(S.money,450000);
       try{ testKauf(u.id); }catch(e){ console.warn('GP Ausbau',u.id,e); }
-      if(u.done()) neu++; }
+      if(u.done()) neu++;
+      yield [0.02+0.23*Math.min(1,ups.filter(x=>x.done()).length/ups.length),'Ausbau: '+(u.name||u.id)]; }
     if(!neu) break; }
   /* Alle Mitarbeiter */
-  STAFF.forEach(s=>{ if(S.staff[s.id]||(s.req&&!S.up[s.req])) return; S.staff[s.id]=true; try{ hireStaff(s.id); }catch(e){} });
+  for(const s of STAFF){ if(S.staff[s.id]||(s.req&&!S.up[s.req])) continue; S.staff[s.id]=true; try{ hireStaff(s.id); }catch(e){} yield [0.27,'Personal: '+s.name]; }
   /* Verkaufsregale aller Arten, bis kein Platz mehr frei ist */
   const arten=['hoch','standard','gondel','standard','gross','tischgross','gitter3','hoch','kuehl','eck','tisch','gitter2','standard','gondel','hoch','gross','kuehl','gitter','klein'];
   const altToast=window.toast; window.toast=()=>{};
   try{
-    let leer=0; for(let i=0;i<90&&leer<arten.length;i++){ const id=arten[i%arten.length]; if(!regalOf(id)) { leer++; continue; } if(regalAufbauen(id)) leer=0; else leer++; }
+    let leer=0, n=0; for(let i=0;i<GP_KLEIN.regale&&leer<arten.length;i++){ const id=arten[i%arten.length]; if(!regalOf(id)){ leer++; continue; }
+      if(regalAufbauen(id)){ leer=0; n++; } else leer++;
+      yield [0.28+0.22*Math.min(1,i/GP_KLEIN.regale),'Regale aufstellen ('+n+')']; }
     /* Lagerregale */
-    for(const id of ['rschwer','rhoch','rack']) for(let i=0;i<10;i++){ if(!regalOf(id)||!regalAufbauen(id)) break; }
+    for(const id of ['rschwer','rhoch','rack']) for(let i=0;i<GP_KLEIN.lager;i++){ if(!regalOf(id)||!regalAufbauen(id)) break; yield [0.52,'Lagerregale']; }
   } finally { window.toast=altToast; }
-  /* Fuellen: jedes Fach ein Produkt, das ganze Sortiment reihum */
-  const ware=ORDER.filter(t=>P[t]&&isUnlocked(t)&&!P[t].noOrder&&!P[t].rezept&&pools[t]);
-  let k=0;
-  allLevels().forEach(lv=>{ if(lv.type&&lv.count>0) return;
-    for(let j=0;j<ware.length;j++){ const t=ware[(k+j)%ware.length]; if(addToLevel(lv,t,1)){ let n=0; while(n++<400&&addToLevel(lv,t,1)); k=(k+j+1)%ware.length; return; } } });
+  /* Fuellen: jedes Fach ein Produkt, das Sortiment reihum (am Handy die
+     beliebtesten Sorten - jede Sorte kostet ein Druckbild) */
+  let ware=ORDER.filter(t=>P[t]&&isUnlocked(t)&&!P[t].noOrder&&!P[t].rezept);
+  if(ware.length>GP_KLEIN.sorten) ware=ware.slice().sort((a,b)=>P[b].weight-P[a].weight).slice(0,GP_KLEIN.sorten);
+  const L=allLevels(); let k=0;
+  for(let i=0;i<L.length;i++){ const lv=L[i]; if(lv.type&&lv.count>0) continue;
+    for(let j=0;j<ware.length;j++){ const t=ware[(k+j)%ware.length]; if(!pools[t]) continue; if(addToLevel(lv,t,1)){ let n=0; while(n++<400&&addToLevel(lv,t,1)); k=(k+j+1)%ware.length; break; } }
+    yield [0.55+0.3*i/L.length,'Ware einräumen ('+(i+1)+' / '+L.length+')']; }
   /* Lager: Kartons der meistverkauften Ware */
   const gut=ware.slice().sort((a,b)=>P[b].weight-P[a].weight);
-  let g=0; racks.forEach(r=>r.slots.forEach(sl=>{ if(sl.box) return; const t=gut[g++%gut.length]; try{ putInSlot(sl,t,P[t].box,1); }catch(e){} }));
+  let g=0, rn=0;
+  for(const r of racks){ for(const sl of r.slots){ if(sl.box) continue; const t=gut[g++%gut.length]; try{ putInSlot(sl,t,P[t].box,1); }catch(e){} }
+    yield [0.86+0.12*(++rn)/Math.max(1,racks.length),'Lager füllen']; }
   /* Laden auf, Spieler in den Verkauf */
   gpTagAlt=S.day; gpVerlauf=[{tag:S.day,geld:S.money}]; gpGestern=null;
   if(phase==='closed'){ if(typeof ruhetag==='function'&&ruhetag()) ruhetagBeenden(); else openShop(); }
   gpSpringe(0);
+  gpFertig=true;
   gpPanel(); gpZeichnen();
   toast('Gameplay-Vorführung: alles gebaut, Personal da, der Laden läuft. Tasten 1–7 springen in die Bereiche, T Zeitraffer, B beendet.','money');
 }
@@ -91,7 +138,7 @@ function gpSpringe(i){
 function gpTempoWechsel(){ gpTempo=gpTempo===1?3:gpTempo===3?6:1; gpZeichnen(); }
 /* Laeuft je Spielschritt: Tagesablauf ohne Klicks, Nachbestellen */
 function gpTick(dt){
-  if(!gpAn) return;
+  if(!gpAn||!gpFertig) return;
   /* Aufstieg und Tagesabschluss selbst wegklicken - wie der Spieler */
   if(typeof levelOpen!=='undefined'&&levelOpen){ const b=$('luBtn'); if(b) b.click(); return; }
   if(summaryOpen){

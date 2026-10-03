@@ -22,7 +22,8 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     S.money=1234.56; bb.renderLaptop&&0; bb.tuAktion; 
 
     o.knopf=(()=>{ bb.ltab='shop'; bb.renderLaptop&&bb.renderLaptop(); return !!document.querySelector('[data-a="gameplay"]'); })();
-    bb.gpStart(); o.vorher=localStorage.getItem('bb_gp_sicherung'); o.vorherLvl=o.vorher?JSON.parse(o.vorher).level:null;
+    /* 03.10.: der Aufbau laeuft schrittweise (Generator); hier am Stueck fertig bauen */
+    bb.gpStart(); o.sofort=bb.gpFertig; o.bauSchritte=0; while(!bb.gpFertig&&o.bauSchritte<5000){ bb.gpBauSchritt(50); o.bauSchritte++; } o.vorher=localStorage.getItem('bb_gp_sicherung'); o.vorherLvl=o.vorher?JSON.parse(o.vorher).level:null;
     o.an=bb.gpAn; o.lvl=S.level; o.offen=bb.UPGRADES.filter(u=>!u.done()&&u.kat==='flaeche').map(u=>u.id); o.lic=S.lic.length===bb.LIZENZEN.length;
     o.ups=bb.UPGRADES.filter(u=>u.kat==='flaeche').map(u=>u.done()?1:0).reduce((a,b)=>a+b,0)+'/'+bb.UPGRADES.filter(u=>u.kat==='flaeche').length;
     o.staff=Object.keys(S.staff).filter(k=>S.staff[k]).length+'/'+bb.STAFF?.length;
@@ -33,6 +34,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     return o; });
   console.log('START',JSON.stringify(Object.assign({},r,{vorher:undefined})));
   pruef('KNOPF',r.knopf,'kein Knopf im Laptop > Laden');
+  pruef('SCHRITTWEISE',!r.sofort&&r.bauSchritte>20,'Aufbau nicht schrittweise (haengt den Browser): '+JSON.stringify({sofort:r.sofort,schritte:r.bauSchritte}));
   pruef('AUFBAU',r.an&&r.lvl>=26&&!r.offen.length&&r.lic&&r.regale>=25&&r.voll>=r.faecher*0.9&&r.sorten>=150&&r.lagerKartons>=30&&r.panel,'Aufbau unvollstaendig: '+JSON.stringify(r));
   /* drei Spieltage laufen lassen */
   const tage=await p.evaluate(()=>{ const bb=__bb, S=bb.S, out=[]; const d0=S.day; let n=0;

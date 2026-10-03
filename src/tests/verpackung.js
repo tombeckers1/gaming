@@ -18,6 +18,7 @@
      Startpunkt aus kommt man zu Fuss (Rasterweg ueber die echten
      Kollisionen, Spielerradius) vor jede Warenseite jedes Moebels.
    Aufruf: node -r ladezeit-preload.js verpackung.js real.html
+   - GETRAENK (03.10.): Getraenke offen im Regal, hoechstens 2 im Kuehlschrank
    - NAME (03.10., Tom): vorn an jedem Fach ein Schild mit dem Produkt-
      namen, nach dem Beenden weg. Gegenprobe: ohne vpNamenBauen -> NAME.
    - SPEICHER / KNOPF (02.10. abends, Tom: "haengt sich auf, Fehler ist
@@ -115,6 +116,9 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     { const seen=new Set(); let px=0; for(const t of alle){ const pl=bb.pools[t]; if(!pl||!pl.vp) continue;
         pl.meshes.forEach(m=>{ (Array.isArray(m.material)?m.material:[m.material]).forEach(mt=>{ const tx=mt&&mt.map; if(tx&&!seen.has(tx)){ seen.add(tx); px+=(tx.__px||(tx.image?tx.image.width*tx.image.height:0)); } }); }); }
       o.mp=Math.round(px/1e5)/10; }
+    /* GETRAENK (03.10., Tom: "die Getraenke kannst du in normale Regale
+       raeumen"): hoechstens zwei Getraenke hinter Kuehlschrankglas */
+    o.getraenk=[]; { const k=plan.filter(e=>bb.kindOf(e.sh).cold&&bb.sparteVon(e.t)==='getraenke').map(e=>e.t); if(k.length>2) o.getraenk.push(k.length+' Getraenke im Kuehlschrank: '+k.join(', ')); }
     /* NAME (03.10., Tom: "an den Produkten soll der Name stehen - nur im
        Testraum"): ein Schild je Fach, vorn an der Ware, mit seinem Bildfeld */
     o.name=[]; { const M=bb.vpNamenM; if(!M) o.name.push('keine Namensschilder');
@@ -134,7 +138,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   console.log('Produkte',r.n,'Moebel',r.moebel,'Warenseiten',r.seiten,'Verpackungsbilder',r.mp,'MP');
   if(!(r.mp<=45)) r.aus.push('SPEICHER: Verpackungsbilder '+r.mp+' Megapixel (hoechstens 45)');
   const m=[];
-  for(const k of ['platz','voll','rand','fuge','seite','luecke','aus','erreichbar','name']) if(r[k].length) m.push(k.toUpperCase()+' '+r[k].length+'x: '+r[k].slice(0,40).join(' | '));
+  for(const k of ['platz','voll','rand','fuge','seite','luecke','aus','erreichbar','name','getraenk']) if(r[k].length) m.push(k.toUpperCase()+' '+r[k].length+'x: '+r[k].slice(0,40).join(' | '));
   console.log('MANGEL:',m.join('\n')||'keine');
   console.log('ERRORS:',errs.join(' | ')||'keine'); await b.close();
 })();

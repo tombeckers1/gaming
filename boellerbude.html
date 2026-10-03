@@ -32430,6 +32430,7 @@ function vfZeigen(){
    Moebeltypen: Hochregal, Verkaufsregal, Mittelgondel, kleines Regal,
    Kuehlschrank, Grossverbund-Regal, Tische, Gitterboxen, Eckregale.
    Jedes Produkt fuellt genau ein Fach bis zum Rand, vorn steht sein Name.
+   Sieben Kuehlschraenke fuer das Kuehlpflichtige, Getraenke offen im Regal.
    Die Moebel gehoeren nicht zum Laden: keine Kunden, kein Einraeumer,
    kein Speicherstand. Beenden: Knopf oben oder Taste B.
    ========================================================= */
@@ -32454,7 +32455,7 @@ const VP_ZEILEN=[
   {art:'paar',links:['hoch','hoch','hoch','hoch','hoch'],rechts:['standard','standard','standard','standard','standard']},
   {art:'insel',kinds:['gondel','gondel','gondel','gondel','gondel']},
   {art:'insel',kinds:['gondel','gondel','gondel','gondel','gondel']},
-  {art:'paar',links:['klein','klein','klein','klein','klein','klein','klein','klein','klein'],rechts:['kuehl','kuehl','kuehl','kuehl','kuehl','kuehl','kuehl','kuehl','kuehl']},
+  {art:'paar',links:['klein','klein','klein','klein','klein','klein','klein','klein','klein'],rechts:['kuehl','kuehl','kuehl','kuehl','kuehl','kuehl','kuehl','hoch','klein']},
   {art:'einzeln',kinds:['gross','gross','gross','gross','gross']},
   {art:'frei',kinds:['tisch','tischgross','gitter','gitter2','gitter3']}
 ];
@@ -32528,7 +32529,10 @@ function vpVerteilen(regale){
   const passtStandard=t=>layout(t,{kind:'standard',levels:[]},{li:0}).cap>0;
   const wunsch=[
     [x=>kindOf(x.sh).cold, t=>P[t].kuehlpflicht],
-    [x=>kindOf(x.sh).cold, t=>P[t].cold],
+    /* 03.10. (Tom: "die Getraenke kannst du in normale Regale raeumen"):
+       Getraenke stehen offen im Regal, im Kuehlschrank nur, was kuehl-
+       pflichtig ist - und was dort an Faechern uebrig bleibt */
+    [x=>kindOf(x.sh).cold, t=>P[t].cold&&sparteVon(t)!=='getraenke'],
     [x=>x.sh.kind==='gross', t=>!passtStandard(t)],
     [x=>kindOf(x.sh).bau==='tisch', t=>!passtStandard(t)],
     [x=>istWanne(x.sh,x.lv), t=>!passtStandard(t)],

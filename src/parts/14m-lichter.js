@@ -512,6 +512,12 @@ function kfZackSchweif(e,v,G,T,c,q,art){ art=art||KF_ART.faecher; const LL=art.L
         if(Math.random()<kn*q) kgSpaeter(rand(0.25,0.8),()=>psSmall.emit(x,y-0.2,z,rand(-.5,.5),rand(-.5,.3),rand(-.5,.5),1.6,1.5,1.3,rand(0.06,0.14),1,1)); }
       alt=p; SCHWEIF=sa; FW_TAG=at; }); }
 }
+/* Obergrenze (03.10., mblast: sieben Faecher zugleich im Finale der
+   Farbenpracht = ein Bild mit 129 ms): hoechstens KF_RATE Kometen je
+   Sekunde ueber alle Faecher zusammen - mehr sieht man ohnehin nicht
+   einzeln, der Funkenpuffer laeuft sonst ueber */
+const KF_RATE=40, KF_ZEIT=[];
+function kfFrei(){ const t=FW_UHR; while(KF_ZEIT.length&&KF_ZEIT[0]<t-1) KF_ZEIT.shift(); if(KF_ZEIT.length>=KF_RATE*Math.min(1,0.5+0.5*QUAL())) return false; KF_ZEIT.push(t); return true; }
 function lKometenFaecher(o,A,B,s,p){
   const m=lMund(o), D=p.D||6, G=7.5, Hk=Math.max(13,Math.min(44,(p.H||9)*3.3*Math.sqrt(s))), Q=lQuer({dir:FANDIR}),
     W=Math.min(0.8,(p.weit||0.6)*1.1), mu=p.muster||KF_MUSTER[(p.saat||0)%KF_MUSTER.length], plan=[], E=D-0.4;
@@ -523,7 +529,7 @@ function lKometenFaecher(o,A,B,s,p){
   const max=Math.round(28*Math.min(1,0.5+0.5*QUAL())), schritt=plan.length>max?plan.length/max:1;
   lStart(m,1.0,0.3);
   for(let i=0;i<plan.length;i+=schritt){ const z=plan[Math.floor(i)], u=z.t/D;
-    kgSpaeter(z.t,()=>{ kfKomet(m,Q,z.a,p.c(u,z.j),Hk,G,p.md,z.dx,KF_ART[mu]); const v=distVol(m); if(Math.random()<0.6) (sfx.rakPff?sfx.rakPff(v*0.5):sfx.thump(v*0.2)); }); }
+    kgSpaeter(z.t,()=>{ if(!kfFrei()) return; kfKomet(m,Q,z.a,p.c(u,z.j),Hk,G,p.md,z.dx,KF_ART[mu]); const v=distVol(m); if(Math.random()<0.6) (sfx.rakPff?sfx.rakPff(v*0.5):sfx.thump(v*0.2)); }); }
   later(0.4,()=>sfx.fauchen(distVol(m)*0.35,Math.min(4,D)));
   { const ton=(KF_ART[mu]||KF_ART.faecher).ton; for(let k=0;k<Math.floor(D/0.6);k++) later(0.9+k*0.6,()=>{ const v=distVol(m)*0.35, f=sfx[ton];
       if(ton==='zischen'||ton==='rieseln') f&&f(v,0.5); else if(ton==='pfeif') (sfx.pfeif||sfx.zischen)(v*0.6,0.4); else f&&f(v); }); }

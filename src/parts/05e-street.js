@@ -979,14 +979,20 @@ function hinterhaus(cx,zFront,o){
   hausDach(K,o);
 }
 /* =========================================================
-   Autos am Bordstein.
-   Die Masse sind echte Fahrzeugmasse, keine geschaetzten: eine
-   Limousine ist 4,62 m lang und 1,45 m hoch, nicht 1,84 m, und der
-   Radstand betraegt 2,76 m. Vorher stand da ein zu hoher Kasten mit
-   zu kurzem Radstand - das liest sich sofort als Spielzeug.
-   Entscheidend ist ausserdem das Rad: eine Felge ist innen offen und
-   dunkel, mit hellen Speichen und hellem Horn davor. Eine massive
-   helle Scheibe, wie sie hier vorher steckte, gibt es an keinem Auto.
+   Autos am Bordstein (Neubau 03.10., Tom: "Die Reifen sehen kacke aus,
+   die Autos haben Kruemmungen drin, das sieht alles nicht richtig aus").
+   Die Masse sind echte Fahrzeugmasse (Laenge, Breite, Hoehe, Radstand,
+   Ueberhaenge). Die Karosserie ist jetzt EINE glatte Flaeche: ein fein
+   gerasterter, rundum verrundeter Quader, dessen Raster auf Seiten-
+   linie (Haube, Scheibe, Dach, Heck), Bodenlinie mit Radlaeufen,
+   Querschnitt (Schulter, eingezogene Kanzel) und Grundriss gelegt wird.
+   Alles daran - Scheiben, Leuchten, Fugen - wird auf genau dieser
+   Flaeche abgetastet und liegt deshalb buendig auf. Vorher waren es
+   ein extrudiertes Profil, eine zweite Glaskanzel und viele Kloetze,
+   deren Kanten sich ueberschnitten (die "Kruemmungen").
+   Raeder: Reifen als Drehkoerper mit Flanke, runder Schulter und
+   Profil (Reliefkarte), Alufelge mit Felgenhorn, vertieften Speichen,
+   Nabe, Radmuttern, dahinter Bremsscheibe, Sattel, dunkles Radhaus.
    ========================================================= */
 const AUTOFORM={
   /* L/B/H und Radstand nach gaengigen Fahrzeugen der Klasse.
@@ -998,7 +1004,29 @@ const AUTOFORM={
   van  : {L:4.55,B:1.83,H:1.70,rad:0.330,kabL:2.70,kabZ:-0.22,vu:0.87,hu:0.96,stufe:false},
   klein: {L:4.05,B:1.74,H:1.46,rad:0.305,kabL:2.06,kabZ:-0.34,vu:0.72,hu:0.78,stufe:false}
 };
-let _lackM=null,_gummiM=null,_glasM=null,_chromM=null,_autoEnv=null;
+/* Gestaltung je Form. top: Dachlinie in der Wagenmitte als Eckpunkte
+   [Abstand von der Nase, Hoehe, Rundungsradius]; gurt: Fensterunter-
+   kante vorn/hinten; fenster: [vorn, hinten, Neigung der Hinterkante]
+   als Abstand von der Nase; felge: Felgenradius (17-19 Zoll). */
+const AUTOLINIE={
+  limo :{boden:0.15,krone:0.03,gurt:[0.94,0.99],heck:'stufe',lehne:0.05,th:0.17,planV:0.07,planH:0.07,felge:0.229,reifenB:0.225,
+    top:[[0,0.81],[0.72,0.905,1.6],[1.30,0.945,0.16],[2.24,1.425,0.34],[2.85,1.452,2.5],[3.36,1.415,0.45],[4.02,1.035,0.2],[4.62,1.005]],
+    fenster:[[0,2.38,0.04],[2.46,3.56,0.75]]},
+  kombi:{boden:0.15,krone:0.03,gurt:[0.95,0.99],heck:'klappe',lehne:0.17,th:0.17,planV:0.07,planH:0.06,felge:0.229,reifenB:0.225,reling:true,
+    top:[[0,0.82],[0.72,0.915,1.6],[1.32,0.955,0.16],[2.27,1.445,0.34],[3.2,1.488,3.5],[4.48,1.462,0.35],[4.76,1.44]],
+    fenster:[[0,2.40,0.04],[2.48,3.42,0.08],[3.52,4.38,0.5]]},
+  suv  :{boden:0.20,krone:0.035,gurt:[1.12,1.15],heck:'klappe',lehne:0.19,th:0.16,planV:0.07,planH:0.06,felge:0.241,reifenB:0.235,reling:true,planke:true,luft:0.08,
+    top:[[0,1.0],[0.66,1.09,1.6],[1.30,1.14,0.18],[2.12,1.635,0.34],[3.1,1.678,3.5],[4.30,1.645,0.35],[4.58,1.615]],
+    fenster:[[0,2.30,0.04],[2.38,3.28,0.08],[3.38,4.22,0.5]]},
+  van  :{boden:0.16,krone:0.035,gurt:[1.035,1.07],heck:'klappe',lehne:0.13,th:0.15,planV:0.07,planH:0.05,felge:0.216,reifenB:0.215,
+    top:[[0,0.92],[0.55,1.01,1.2],[1.02,1.07,0.3],[2.15,1.655,0.45],[3.1,1.698,3.5],[4.30,1.672,0.35],[4.55,1.645]],
+    fenster:[[0,2.26,0.04],[2.34,3.30,0.06],[3.40,4.28,0.35]]},
+  klein:{boden:0.14,krone:0.03,gurt:[0.93,0.99],heck:'klappe',lehne:0.30,th:0.17,planV:0.08,planH:0.07,felge:0.203,reifenB:0.195,
+    top:[[0,0.83],[0.55,0.915,1.2],[1.08,0.96,0.16],[1.95,1.42,0.3],[2.5,1.458,2.5],[3.55,1.41,0.5],[4.05,1.31]],
+    fenster:[[0,2.12,0.04],[2.20,2.92,0.12],[3.0,3.52,0.9]]}
+};
+const _aO={x:0,y:0,z:0};
+let _lackM=null,_gummiM=null,_glasM=null,_chromM=null,_autoEnv=null,_schildM=null,_schildNr=0;
 /* Umgebung zum Spiegeln (Tom, 26.09.: "Autos deutlich schoener und
    echter"). Ohne Umgebung spiegelt Lack nichts, und Lack und Scheiben
    verschwimmen zu einer dunklen Masse. Ein kleines Panorama - Himmel,
@@ -1023,38 +1051,67 @@ function autoUmgebung(){
   }catch(e){ _autoEnv=false; }
   return _autoEnv||null;
 }
+/* Reliefkarte fuer den Reifen: v 0..0.25 innere Flanke, 0.25..0.75
+   Laufflaeche (Laengsrillen, Querrillen an den Schultern, Lamellen),
+   0.75..1 aeussere Flanke. */
+function autoReifenRelief(){
+  return tex(512,128,(g,W,H)=>{
+    const Y=v=>(1-v)*H;
+    g.fillStyle='#808080'; g.fillRect(0,0,W,H);
+    g.fillStyle='#c8c8c8'; g.fillRect(0,Y(0.75),W,Y(0.25)-Y(0.75));
+    g.fillStyle='#2a2a2a';
+    for(const v of [0.37,0.5,0.63]) g.fillRect(0,Y(v+0.018),W,Y(v-0.018)-Y(v+0.018));
+    const n=56;
+    for(let k=0;k<n;k++){ const x=k/n*W;
+      g.fillStyle='#2a2a2a';
+      g.beginPath(); g.moveTo(x,Y(0.25)); g.lineTo(x+3,Y(0.25)); g.lineTo(x+6,Y(0.355)); g.lineTo(x+3,Y(0.355)); g.fill();
+      g.beginPath(); g.moveTo(x+4,Y(0.645)); g.lineTo(x+7,Y(0.645)); g.lineTo(x+10,Y(0.75)); g.lineTo(x+7,Y(0.75)); g.fill();
+      g.fillStyle='#6a6a6a'; g.fillRect(x+4,Y(0.48),1.5,Y(0.39)-Y(0.48)); g.fillRect(x+1,Y(0.61),1.5,Y(0.52)-Y(0.61)); }
+    /* aussen nur ein feiner Ring an der Felgenschulter */
+    g.fillStyle='#868686'; g.fillRect(0,Y(0.965),W,Y(0.955)-Y(0.965));
+  },false);
+}
 function autoMats(){
   if(!_lackM){
     const env=autoUmgebung();
     const Phys=THREE.MeshPhysicalMaterial||THREE.MeshStandardMaterial;
     /* Metalliclack mit Klarlack, Glas spiegelt stark, Chrom ganz */
-    _lackM=new Phys({vertexColors:true,roughness:0.42,metalness:0.45,envMap:env,envMapIntensity:1});
-    if('clearcoat' in _lackM){ _lackM.clearcoat=1; _lackM.clearcoatRoughness=0.07; }
+    _lackM=new Phys({vertexColors:true,roughness:0.36,metalness:0.5,envMap:env,envMapIntensity:1});
+    if('clearcoat' in _lackM){ _lackM.clearcoat=1; _lackM.clearcoatRoughness=0.06; }
     _glasM=new Phys({vertexColors:true,roughness:0.04,metalness:0.35,envMap:env,envMapIntensity:1.2});
     if('clearcoat' in _glasM){ _glasM.clearcoat=1; _glasM.clearcoatRoughness=0.02; }
     _chromM=new THREE.MeshStandardMaterial({vertexColors:true,roughness:0.16,metalness:1,envMap:env,envMapIntensity:1.1});
-    _gummiM=new THREE.MeshStandardMaterial({vertexColors:true,roughness:0.92,metalness:0.02});
+    /* Gummi, Kunststoff, Unterboden: matt. Nur der Reifen hat UV,
+       alle anderen Teile liegen auf UV 0/0 und bekommen kein Relief */
+    _gummiM=new THREE.MeshStandardMaterial({vertexColors:true,roughness:0.9,metalness:0.02,bumpMap:autoReifenRelief(),bumpScale:0.9});
   }
+}
+/* Kennzeichen: 16 deutsche Schilder auf einer Textur (Euro-Feld blau
+   mit Sternenkranz und "D", schwarze Schrift auf weiss) */
+function autoSchildMat(){
+  if(_schildM) return _schildM;
+  const orte=['B','M','HH','K','F','S','D','KA','HD','MZ','WI','DO','E','BO','AC','OS'], AZ='ABCDEFGHKLMNPRSTUVWXYZ';
+  const t=tex(512,512,(g)=>{
+    for(let n=0;n<16;n++){ const cx=(n%2)*256, y0=Math.floor(n/2)*64+4, w=256, h=55;
+      g.fillStyle='#1a1a1a'; g.fillRect(cx,y0,w,h);
+      g.fillStyle='#f3f3ee'; g.fillRect(cx+2,y0+2,w-4,h-4);
+      g.fillStyle='#1d43b0'; g.fillRect(cx+3,y0+3,22,h-6);
+      g.fillStyle='#ffd400'; for(let k=0;k<12;k++){ const a=k/12*Math.PI*2; g.fillRect(cx+13.5+Math.cos(a)*6.5,y0+17+Math.sin(a)*6.5,1.8,1.8); }
+      g.fillStyle='#fff'; g.font='bold 15px Arial, sans-serif'; g.textAlign='center'; g.fillText('D',cx+14,y0+h-8);
+      const nr=orte[n]+' '+AZ[(n*7+3)%AZ.length]+AZ[(n*5+11)%AZ.length]+' '+(100+((n*733+219)%8900));
+      g.fillStyle='#111'; g.textAlign='center';
+      fitFont(g,nr,w-40,44,s=>`600 ${s}px "Barlow Condensed","Arial Narrow",Arial,sans-serif`);
+      g.fillText(nr,cx+26+(w-30)/2,y0+h-12); }
+  });
+  _schildM=new THREE.MeshStandardMaterial({map:t,roughness:0.45,metalness:0});
+  return _schildM;
 }
 /* nachts spiegelt der Himmel nicht mehr hell */
 function autoNacht(f){ const k=1-0.85*f; if(typeof _wasserM!=='undefined'&&_wasserM) _wasserM.envMapIntensity=0.9*k; if(!_lackM) return; _lackM.envMapIntensity=k; _glasM.envMapIntensity=1.2*k; _chromM.envMapIntensity=1.1*k; }
-/* Seitenprofil als Form, ueber die Breite extrudiert und gerundet.
-   Profilkoordinaten: x = Laenge (vorn positiv), y = Hoehe. */
-function autoExtrude(shape,breite,bev,form){
-  /* genug Querschnitte, damit sich die Breite verformen laesst */
-  const geo=new THREE.ExtrudeGeometry(shape,{depth:Math.max(0.02,breite-2*bev),bevelEnabled:true,bevelThickness:bev,bevelSize:bev,bevelSegments:HIQ?4:2,curveSegments:HIQ?16:8,steps:HIQ?6:3});
-  geo.rotateY(-Math.PI/2);
-  geo.computeBoundingBox(); const bb=geo.boundingBox; geo.translate(-(bb.min.x+bb.max.x)/2,0,0);
-  /* form(x,y,z) -> Faktor auf die Breite: runde Ecken im Grundriss,
-     eingezogene Flanke, schraege Kanzel */
-  if(form){ const pa=geo.attributes.position; for(let i=0;i<pa.count;i++) pa.setX(i,pa.getX(i)*form(pa.getY(i),pa.getZ(i))); }
-  glatteNormalen(geo,50);
-  return geo;
-}
 /* Weiche Normalen fuer nicht indizierte Geometrie: Ecken an derselben
    Stelle mitteln ihre Flaechennormalen, solange der Knick unter der
    Grenze bleibt - runde Flaechen werden glatt, Kanten bleiben Kanten.
-   Ohne das sah die Karosserie facettiert aus wie ein Low-Poly-Modell. */
+   (Wird auch fuer die Schneehaufen benutzt.) */
 function glatteNormalen(geo,grad){
   const pa=geo.attributes.position, n=pa.count, fn=new Float32Array(n*3), cg=Math.cos(grad*Math.PI/180);
   const a=new THREE.Vector3(), b=new THREE.Vector3(), c=new THREE.Vector3();
@@ -1071,166 +1128,378 @@ function glatteNormalen(geo,grad){
   geo.setAttribute('normal',new THREE.BufferAttribute(out,3));
 }
 const glatt01=(a,b,x)=>{ const t=Math.min(1,Math.max(0,(x-a)/(b-a))); return t*t*(3-2*t); };
+/* Linienzug mit Kreisboegen an den Ecken (wie ein Designer die Seiten-
+   linie zieht), dicht abgetastet, z aufsteigend */
+function autoLinie(pts,L2){
+  const P=pts.map(p=>({z:L2-p[0],y:p[1],r:p[2]||0})), raw=[[P[0].z,P[0].y]];
+  for(let i=1;i<P.length-1;i++){ const A=P[i-1], M=P[i], C=P[i+1];
+    let ax=A.z-M.z, ay=A.y-M.y, cx=C.z-M.z, cy=C.y-M.y; const la=Math.hypot(ax,ay), lc=Math.hypot(cx,cy); ax/=la; ay/=la; cx/=lc; cy/=lc;
+    const th=Math.acos(clamp(ax*cx+ay*cy,-1,1)); let r=M.r, t=r/Math.tan(th/2); const tMax=0.45*Math.min(la,lc);
+    if(t>tMax){ t=tMax; r=t*Math.tan(th/2); }
+    if(r<=0||th>Math.PI-1e-3){ raw.push([M.z,M.y]); continue; }
+    let bx=ax+cx, by=ay+cy; const bl=Math.hypot(bx,by); bx/=bl; by/=bl; const dc=r/Math.sin(th/2), oz=M.z+bx*dc, oy=M.y+by*dc;
+    const a1=Math.atan2(M.y+ay*t-oy,M.z+ax*t-oz), a2=Math.atan2(M.y+cy*t-oy,M.z+cx*t-oz); let da=a2-a1;
+    while(da>Math.PI) da-=2*Math.PI; while(da<-Math.PI) da+=2*Math.PI;
+    for(let k=0;k<=16;k++){ const a=a1+da*k/16; raw.push([oz+r*Math.cos(a),oy+r*Math.sin(a)]); } }
+  raw.push([P[P.length-1].z,P[P.length-1].y]); raw.reverse();
+  const z=[], y=[];
+  for(let i=0;i<raw.length;i++){ if(i){ const [z0,y0]=raw[i-1], [z1,y1]=raw[i], n=Math.ceil((z1-z0)/0.01);
+      for(let k=1;k<n;k++){ z.push(z0+(z1-z0)*k/n); y.push(y0+(y1-y0)*k/n); } }
+    if(!z.length||raw[i][0]>z[z.length-1]+1e-6){ z.push(raw[i][0]); y.push(raw[i][1]); } }
+  return {z,y};
+}
+function autoLies(T,z){ const Z=T.z; if(z<=Z[0]) return T.y[0]; const n=Z.length-1; if(z>=Z[n]) return T.y[n];
+  let a=0,b=n; while(b-a>1){ const m=(a+b)>>1; if(Z[m]<=z) a=m; else b=m; } return T.y[a]+(T.y[b]-T.y[a])*(z-Z[a])/(Z[b]-Z[a]); }
+/* Kleines Netz mit Ausrichtung: jedes Viereck zeigt zur Referenzrichtung */
+function autoNetz(){ const pos=[], idx=[];
+  return { v(x,y,z){ pos.push(x,y,z); return pos.length/3-1; },
+    q(a,b,c,d,rx,ry,rz){ const P=i=>[pos[i*3],pos[i*3+1],pos[i*3+2]], A=P(a), B=P(b), C=P(c), Dd=P(d);
+      /* Diagonalen statt Kanten: bleibt eindeutig, wenn zwei Ecken zusammenfallen */
+      const u=[C[0]-A[0],C[1]-A[1],C[2]-A[2]], w=[Dd[0]-B[0],Dd[1]-B[1],Dd[2]-B[2]];
+      const n=[u[1]*w[2]-u[2]*w[1],u[2]*w[0]-u[0]*w[2],u[0]*w[1]-u[1]*w[0]];
+      if(n[0]*rx+n[1]*ry+n[2]*rz<0) idx.push(a,c,b,a,d,c); else idx.push(a,b,c,a,c,d); },
+    geo(){ const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3)); g.setIndex(idx); g.computeVertexNormals(); return g; } }; }
+/* Drehkoerper um die x-Achse (aussen = +x). Profil [[r,a],...]; die
+   Normale folgt aus dem Profil (rechnerisch, ohne Naht), Flaechen-
+   seite: links der Laufrichtung (r abnehmend -> Normale +a). */
+function autoDreh(prof,seg,uv){
+  const np=prof.length, pos=[], nor=[], uvs=[], idx=[], vs=[0];
+  for(let j=1;j<np;j++) vs.push(vs[j-1]+Math.hypot(prof[j][0]-prof[j-1][0],prof[j][1]-prof[j-1][1]));
+  for(let j=0;j<np;j++){ const p0=prof[Math.max(0,j-1)], p1=prof[Math.min(np-1,j+1)]; let na=-(p1[0]-p0[0]), nr=p1[1]-p0[1]; const l=Math.hypot(na,nr)||1; na/=l; nr/=l;
+    for(let i=0;i<=seg;i++){ const t=i/seg*Math.PI*2, c=Math.cos(t), s=Math.sin(t), r=prof[j][0];
+      pos.push(prof[j][1],r*c,r*s); nor.push(na,nr*c,nr*s); if(uv) uvs.push(i/seg,uv(j,vs[j]/vs[np-1])); } }
+  for(let j=0;j<np-1;j++) for(let i=0;i<seg;i++){ const a=j*(seg+1)+i, b=a+1, c=a+seg+1, d=c+1; idx.push(a,c,d,a,d,b); }
+  const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3)); g.setAttribute('normal',new THREE.Float32BufferAttribute(nor,3));
+  if(uv) g.setAttribute('uv',new THREE.Float32BufferAttribute(uvs,2));
+  /* Wicklung an der rechnerischen Normale ausrichten */
+  { const A=new THREE.Vector3(), B=new THREE.Vector3(), C=new THREE.Vector3(), N=new THREE.Vector3(); let s=0;
+    for(let k=0;k<idx.length;k+=3){ A.fromArray(pos,idx[k]*3); B.fromArray(pos,idx[k+1]*3); C.fromArray(pos,idx[k+2]*3);
+      B.sub(A); C.sub(A); B.cross(C); N.fromArray(nor,idx[k]*3); s+=B.dot(N); }
+    if(s<0) for(let k=0;k<idx.length;k+=3){ const t=idx[k+1]; idx[k+1]=idx[k+2]; idx[k+2]=t; } }
+  g.setIndex(idx); return g;
+}
+/* ---------- Karosserie als eine Flaeche ----------
+   Grundkoerper ist ein Wuerfel [-1,1]^3 mit elliptisch verrundeten
+   Kanten (Radien je Achse). Dessen Punkte werden abgebildet:
+   z = Laenge, t = (y+1)/2 Hoehenanteil zwischen Bodenlinie (mit
+   Radlaeufen) und Dachlinie, x = Anteil der halben Breite, die vom
+   Querschnitt (Schulter, Kanzel) und Grundriss abhaengt. Vorn und
+   hinten neigen sich Bug, Kinn und Heckklappe nach innen. */
+function autoKarosse(F,D,hq){
+  const L=F.L, L2=L/2, H=F.H, rad=F.rad, Ra=rad+(D.luft||0.07), EPS=0.006, TK=0.6;
+  const zV=L2-F.vu, zH=-(L2-F.hu), achsen=[zV,zH];
+  const TL=autoLinie(D.top.map(p=>[p[0],p[1]-D.krone,p[2]]),L2), TOP=z=>autoLies(TL,z);
+  const gurt=z=>D.gurt[0]+(D.gurt[1]-D.gurt[0])*clamp((L2-z)/L,0,1);
+  const sockel=z=>D.boden+0.07*glatt01(L2-0.5,L2,z)+0.05*glatt01(L2-0.55,L2,-z);
+  const BOT=z=>{ const s=sockel(z); let y=s; for(const zw of achsen){ const dz=Math.abs(z-zw);
+      if(dz<=Ra) y=Math.max(y,rad+Math.sqrt(Ra*Ra-dz*dz)); else if(dz<Ra+EPS) y=Math.max(y,rad+(s-rad)*(dz-Ra)/EPS); } return y; };
+  /* Knie: Zeilen liegen dicht an der Guertellinie, damit die Schulter scharf bleibt */
+  const knie=(z,b,tp)=>Math.min(gurt(z),b+0.75*(tp-b));
+  const Yt=(z,t)=>{ const b=BOT(z), tp=TOP(z), k=knie(z,b,tp); return t<TK?b+(k-b)*t/TK:k+(tp-k)*(t-TK)/(1-TK); };
+  const Ty=(z,y)=>{ const b=BOT(z), tp=TOP(z), k=knie(z,b,tp); return y<k?TK*(y-b)/Math.max(1e-6,k-b):TK+(1-TK)*(y-k)/Math.max(1e-6,tp-k); };
+  const flMax=D.planke?0.016:0.012, bh=F.B/2/(1+flMax);
+  /* halbe Breite: Grundriss vorn/hinten eingezogen, unten leicht
+     eingezogen, ueber der Guertellinie Schulter und schraege Kanzel,
+     ueber den Raedern ausgestellte Kotfluegel */
+  const HW=(z,y)=>{ const sf=clamp((z-(L2-0.75))/0.75,0,1), sr=clamp((-z-(L2-0.65))/0.65,0,1);
+    const pl=(1-D.planV*sf*sf)*(1-D.planH*sr*sr), bz=gurt(z), yS=bz-0.17;
+    let s=1; if(y<yS){ const q=(yS-y)/(yS-0.1); s-=0.04*q*q; }
+    s-=0.035*glatt01(bz-0.015,bz+0.045,y)+D.th*clamp((y-bz)/(H-bz),0,1);
+    let fl=0; for(const zw of achsen){ const q=(z-zw)/0.6; fl+=Math.exp(-q*q); }
+    fl*=flMax*(1-glatt01(bz-0.25,bz-0.05,y));
+    return bh*pl*s*(1+fl); };
+  const SHIFT=(z0,t,qx)=>{ const e=glatt01(L2-(z0>0?0.6:0.45),L2,Math.abs(z0)); if(e<=0) return 0; let s;
+    if(z0>0){ const a=Math.max(0,1-t/0.28), b=Math.max(0,(t-0.62)/0.38); s=0.085*a*a+0.05*b*b+0.04*qx*qx; }
+    else { const a=Math.max(0,1-t/0.25); s=0.07*a*a+0.03*qx*qx;
+      if(D.heck==='stufe'){ const b=Math.max(0,(t-0.7)/0.3); s+=0.05*b*b; }
+      else { const b=Math.max(0,(t-TK+0.05)/(1-TK+0.05)); s+=D.lehne*Math.pow(b,1.25); } }
+    return -Math.sign(z0)*e*s; };
+  const RX=0.095, RY=0.10, RZ=0.11/L2;
+  const S=(px,py,pz,o)=>{
+    const cx=clamp(px,-1+RX,1-RX), cy=clamp(py,-1+RY,1-RY), cz=clamp(pz,-1+RZ,1-RZ);
+    const dx=(px-cx)/RX, dy=(py-cy)/RY, dz=(pz-cz)/RZ, l=Math.hypot(dx,dy,dz);
+    if(l>1e-9){ px=cx+RX*dx/l; py=cy+RY*dy/l; pz=cz+RZ*dz/l; }
+    const z0=pz*L2, t=(py+1)/2;
+    const y=Yt(z0,t)+D.krone*(1-px*px)*glatt01(0.82,1,t);
+    o.x=px*HW(z0,y); o.y=y; o.z=z0+SHIFT(z0,t,px); return o; };
+  /* Normale aus der Flaeche: Ableitung in den beiden Flaechenrichtungen */
+  const _a={x:0,y:0,z:0}, _b={x:0,y:0,z:0}, _c={x:0,y:0,z:0}, _d={x:0,y:0,z:0};
+  const NS=(ax,sg,p,o)=>{ const ua=(ax+1)%3, va=(ax+2)%3, h=1.5e-3; const q=p.slice();
+    q[ua]+=h; S(q[0],q[1],q[2],_a); q[ua]-=2*h; S(q[0],q[1],q[2],_b); q[ua]+=h;
+    q[va]+=h; S(q[0],q[1],q[2],_c); q[va]-=2*h; S(q[0],q[1],q[2],_d);
+    const ux=_a.x-_b.x, uy=_a.y-_b.y, uz=_a.z-_b.z, vx=_c.x-_d.x, vy=_c.y-_d.y, vz=_c.z-_d.z;
+    let nx=uy*vz-uz*vy, ny=uz*vx-ux*vz, nz=ux*vy-uy*vx; const l=(Math.hypot(nx,ny,nz)||1)*sg;
+    o.x=nx/l; o.y=ny/l; o.z=nz/l; return o; };
+  /* Rasterlinien: Rundungszonen gleichmaessig im Winkel, Laengs-
+     stationen nach der Kruemmung der Dachlinie, Radlaeufe im Winkel */
+  const nR=hq?3:2, zone=r=>{ const a=[]; for(let k=0;k<=nR;k++) a.push(1-r+r*Math.tan(k/nR*Math.PI/4)); return a; };
+  const achse=(r,inner)=>{ const z=zone(r), a=z.map(v=>-v).reverse().concat(inner.filter(v=>Math.abs(v)<1-r-1e-4),z).sort((p,q)=>p-q);
+    return a.filter((v,i)=>!i||v-a[i-1]>1e-5); };
+  const GX=achse(RX,Array.from({length:hq?7:5},(_,i)=>(i+1)/(hq?8:6)*2*(1-RX)-(1-RX)));
+  const tIn=[]; { const n=hq?11:8; for(let i=0;i<=n;i++) tIn.push(RY/2+(1-RY)*i/n);
+    for(const t of hq?[0.578,0.592,0.604,0.616,0.632]:[0.59,0.612]) tIn.push(t); tIn.sort((a,b)=>a-b); }
+  const GY=achse(RY,tIn.filter((t,i)=>!i||t-tIn[i-1]>0.008).map(t=>2*t-1));
+  const fest=[];
+  for(const zw of achsen){ const na=hq?14:7; for(let k=0;k<=na;k++) fest.push(zw+Ra*Math.cos(k/na*Math.PI)); fest.push(zw+Ra+EPS,zw-Ra-EPS); }
+  const zi=[], ze=L2-RZ*L2, nP=hq?26:16; { const W=[0], Z=[]; let pz=-ze, py=TOP(-ze), ps=0;
+    for(let z=-ze;z<=ze+1e-9;z+=0.004){ const y=TOP(z), s=(y-py)/0.004; const k=Math.abs(s-ps)/0.004; Z.push(z);
+      if(Z.length>1) W.push(W[W.length-1]+Math.hypot(0.004,y-py)*(1+0.05*Math.min(k,60))); pz=z; py=y; ps=s; }
+    const tot=W[W.length-1]; let j=0;
+    for(let i=1;i<nP;i++){ const w=tot*i/nP; while(W[j+1]<w) j++; const z=Z[j];
+      if(fest.every(f=>Math.abs(f-z)>0.03)) zi.push(z); } }
+  const GZ=achse(RZ,zi.concat(fest).map(z=>z/L2));
+  /* Netz: sechs Flaechen, Kanten verschweisst */
+  const GA=[GX,GY,GZ], pos=[], key=new Map(), iO=[], iU=[], o={x:0,y:0,z:0};
+  const vid=(i,j,k)=>{ const kk=i+'|'+j+'|'+k; let v=key.get(kk); if(v===undefined){ v=pos.length/3; key.set(kk,v); S(GX[i],GY[j],GZ[k],o); pos.push(o.x,o.y,o.z); } return v; };
+  for(let ax=0;ax<3;ax++) for(const sg of [-1,1]){ const ua=(ax+1)%3, va=(ax+2)%3, fix=sg<0?0:GA[ax].length-1, U=GA[ua], V=GA[va], ziel=ax===1&&sg<0?iU:iO;
+    const id=(a,b)=>{ const r=[0,0,0]; r[ax]=fix; r[ua]=a; r[va]=b; return vid(r[0],r[1],r[2]); };
+    for(let a=0;a<U.length-1;a++) for(let b=0;b<V.length-1;b++){ const p00=id(a,b), p10=id(a+1,b), p11=id(a+1,b+1), p01=id(a,b+1);
+      if(sg>0) ziel.push(p00,p10,p11,p00,p11,p01); else ziel.push(p00,p11,p10,p00,p01,p11); } }
+  const voll=new THREE.BufferGeometry(); voll.setAttribute('position',new THREE.Float32BufferAttribute(pos,3)); voll.setIndex(iO.concat(iU)); voll.computeVertexNormals();
+  const teil=ix=>{ const g=new THREE.BufferGeometry(); g.setAttribute('position',voll.attributes.position); g.setAttribute('normal',voll.attributes.normal); g.setIndex(ix); return g; };
+  /* grobes Raster (Handy): Sehnen liegen weiter neben der Flaeche */
+  const offK=hq?1:2.5;
+  /* Teilflaeche auf der Karosserie: pt(u,v) -> Wuerfelpunkt; um off nach aussen versetzt */
+  const flaeche=(ax,sg,nu,nv,pt,off)=>{ off*=offK; const N=autoNetz(), n={x:0,y:0,z:0}, nor=[], ids=[];
+    for(let j=0;j<=nv;j++) for(let i=0;i<=nu;i++){ const p=pt(i/nu,j/nv); S(p[0],p[1],p[2],o); NS(ax,sg,p,n); ids.push(N.v(o.x+n.x*off,o.y+n.y*off,o.z+n.z*off)); nor.push(n.x,n.y,n.z); }
+    for(let j=0;j<nv;j++) for(let i=0;i<nu;i++){ const a=j*(nu+1)+i; N.q(ids[a],ids[a+1],ids[a+nu+2],ids[a+nu+1],nor[a*3],nor[a*3+1],nor[a*3+2]); }
+    const g=N.geo(); g.setAttribute('normal',new THREE.Float32BufferAttribute(nor,3)); return g; };
+  /* Linie (Fuge, Wischer) entlang Wuerfelpunkten, breite in Metern */
+  const linie=(ax,sg,pts,breite,off)=>{ off*=offK; const N=autoNetz(), P=[], Nn=[];
+    for(const p of pts){ S(p[0],p[1],p[2],o); const n=NS(ax,sg,p,{x:0,y:0,z:0}); P.push(new THREE.Vector3(o.x+n.x*off,o.y+n.y*off,o.z+n.z*off)); Nn.push(new THREE.Vector3(n.x,n.y,n.z)); }
+    const ids=[], T=new THREE.Vector3(), Sd=new THREE.Vector3();
+    for(let i=0;i<P.length;i++){ T.subVectors(P[Math.min(P.length-1,i+1)],P[Math.max(0,i-1)]).normalize(); Sd.crossVectors(Nn[i],T).normalize().multiplyScalar(breite/2);
+      ids.push(N.v(P[i].x+Sd.x,P[i].y+Sd.y,P[i].z+Sd.z),N.v(P[i].x-Sd.x,P[i].y-Sd.y,P[i].z-Sd.z)); }
+    for(let i=0;i<P.length-1;i++) N.q(ids[i*2],ids[i*2+1],ids[i*2+3],ids[i*2+2],Nn[i].x,Nn[i].y,Nn[i].z);
+    return N.geo(); };
+  /* Umrechnung aus Entwurfsmassen (d = Abstand von der Nase) */
+  const SP=(sg,d,y)=>{ const z=L2-d; return [sg,2*Ty(z,y)-1,z/L2]; };
+  const OP=(qx,d)=>[qx,1,(L2-d)/L2];
+  const FP=(qx,y)=>[qx,2*Ty(L2,y)-1,1];
+  const HP=(qx,y)=>[qx,2*Ty(-L2,y)-1,-1];
+  return {oben:teil(iO),unten:teil(iU),S,NS,flaeche,linie,SP,OP,FP,HP,TOP,BOT,gurt,HW,Ty,Yt,sockel,zV,zH,Ra,L2,GZ};
+}
+/* ---------- Rad ----------
+   Bauteile in Radkoordinaten: Achse x, aussen +x, Mitte im Ursprung */
+function autoRad(F,D,stil){
+  const R=F.rad, w=D.reifenB, rr=D.felge, sh=R-rr, seg=HIQ?28:20, s2=HIQ?18:12, out={reifen:null,felge:[],dunkel:[],stahl:[],sattel:null};
+  /* Reifen: innere Flanke, Schulter, Laufflaeche, aeussere Flanke */
+  const fl=[[rr+0.004,0.42],[rr+0.3*sh,0.475],[rr+0.55*sh,0.5],[rr+0.75*sh,0.497],[R-0.016,0.48],[R-0.006,0.455],[R-0.0015,0.42],[R,0.375]];
+  const prof=fl.map(p=>[p[0],-p[1]*w]).concat(fl.slice().reverse().map(p=>[p[0],p[1]*w]));
+  out.reifen=autoDreh(prof,seg,(j)=>j<=6?0.25*j/6:j===7?0.3:j===8?0.7:0.75+0.25*(j-9)/6);
+  /* Felgenhorn und Felgenbett (vorn, hell) */
+  const aF=0.37*w, rO=rr-0.024;
+  out.felge.push(autoDreh([[rr+0.012,0.40*w],[rr+0.011,0.445*w],[rr+0.003,0.462*w],[rr-0.007,0.452*w],[rr-0.015,aF+0.006],[rO-0.006,aF-0.002]],seg));
+  /* Felgenschuessel innen dunkel, Rueckwand schwarz */
+  out.dunkel.push(autoDreh([[rr-0.012,aF-0.004],[rr-0.014,-0.40*w]],s2));
+  out.dunkel.push(autoDreh([[rr-0.01,-0.30*w],[0.002,-0.30*w]],s2));
+  /* Speichen: Stern, zur Nabe hin vertieft, mit Seitenwaenden */
+  const rh=0.075*R/0.33, nr=4, tief=0.034, N=autoNetz();
+  const n=stil.n, paar=stil.doppel?[-1,1]:[0];
+  for(let s=0;s<n;s++) for(const pp of paar){ const th0=s/n*Math.PI*2+pp*(stil.spalt||0), ring=[];
+    for(let k=0;k<nr;k++){ const f=k/(nr-1), r=rh+(rO-rh)*f, hb=(stil.b1+(stil.b2-stil.b1)*f)/2, del=Math.asin(Math.min(0.95,hb/r)), a=aF-tief*Math.pow(1-f,1.4), z=[];
+      for(const m of [-1,0,1]){ const ph=th0+m*del; z.push(N.v(a+(m?0:0.002),r*Math.cos(ph),r*Math.sin(ph))); }
+      for(const m of [-1,1]){ const ph=th0+m*del; z.push(N.v(a-0.03,r*Math.cos(ph),r*Math.sin(ph))); }
+      /* eigene Ecken fuer die Seitenwaende: scharfe Gusskante statt runder Stange */
+      for(const m of [-1,1]){ const ph=th0+m*del; z.push(N.v(a,r*Math.cos(ph),r*Math.sin(ph))); }
+      ring.push(z); }
+    for(let k=0;k<nr-1;k++){ const A=ring[k], B=ring[k+1];
+      N.q(A[0],B[0],B[1],A[1],1,0,0); N.q(A[1],B[1],B[2],A[2],1,0,0);
+      N.q(A[5],B[5],B[3],A[3],0,Math.sin(th0),-Math.cos(th0)); N.q(A[6],B[6],B[4],A[4],0,-Math.sin(th0),Math.cos(th0)); } }
+  out.felge.push(N.geo());
+  /* Nabe mit Deckel und fuenf Radmuttern */
+  const aN=aF-tief;
+  out.felge.push(autoDreh([[rh+0.004,aN-0.004],[rh-0.004,aN+0.006],[0.05,aN+0.008],[0.044,aN+0.016],[0.03,aN+0.021],[0.001,aN+0.023]],s2));
+  for(let k=0;k<5;k++){ const a=k/5*Math.PI*2+0.3; const g=new THREE.CylinderGeometry(0.0095,0.0095,0.014,6); g.rotateZ(-Math.PI/2); g.translate(aN+0.012,Math.cos(a)*0.062,Math.sin(a)*0.062); out.stahl.push(g); }
+  /* Bremsscheibe hinter den Speichen, Sattel oben hinten */
+  const rd=rr-0.035, aD=aF-0.075;
+  out.stahl.push(autoDreh([[rd,aD-0.028],[rd,aD],[0.085,aD],[0.08,aD+0.022],[0.002,aD+0.024]],s2));
+  const sat=roundedBoxGeo(0.05,0.1,0.13,0.02,2).clone(); sat.translate(aD-0.014,0,0); sat.translate(0,rd-0.03,0); sat.rotateX(0.75); out.sattel=sat;
+  return out;
+}
 function makeAuto(col,form){
   form=AUTOFORM[form]?form:pick(['limo','kombi','suv','van','klein']);
   autoMats();
-  const F=AUTOFORM[form];
-  const L=F.L, B=F.B, rad=F.rad, kabL=F.kabL;
-  let kabZ=F.kabZ;
-  const schwelle=rad*0.92;                  /* Unterkante Tuer        */
-  const gurt=F.H*(F.stufe?0.655:0.640);     /* Unterkante Seitenfenster */
-  const dach=F.H;                           /* Dachhaut               */
-  const gh=dach-gurt;                       /* Hoehe der Fahrgastzelle */
-  const vA= L/2-F.vu, hA=-(L/2-F.hu);       /* Radmitten */
-  const RX=B/2-0.125;                       /* Rad buendig unter der Flanke */
-
+  const F=AUTOFORM[form], D=AUTOLINIE[form], L2=F.L/2, H=F.H, rad=F.rad;
+  const K=autoKarosse(F,D,HIQ), ID=new THREE.Matrix4();
   const lack=[], gummi=[], glasT=[], chromT=[];
-  const dunkel=0x15171d, glas=0x10161e, chrome=0xd6dae0, alu=0xb4bac4;
-  const SEG=HIQ?4:2;
-  const RB=(w,h,d,r)=>roundedBoxGeo(w,h,d,r,SEG);
-  const CY=(r1,r2,h,sg)=>new THREE.CylinderGeometry(r1,r2,h,sg||(HIQ?18:10));
-  const P=(a,geo,x,y,z,rx,ry,rz,c)=>a.push({geo,m:tm(x,y,z,rx||0,ry||0,rz||0),color:c});
-  /* Farbe entscheidet, welches Material ein Teil bekommt */
-  const K=(geo,x,y,z,rx,ry,rz,c)=>P(c===glas||c===0xcfdae8?glasT:(c===chrome||c===alu||c===0xf6f4ea)?chromT:lack,geo,x,y,z,rx,ry,rz,c);
-  const G=(geo,x,y,z,rx,ry,rz,c)=>P(gummi,geo,x,y,z,rx,ry,rz,c);
+  const ohneUV=g=>{ g=g.index?g.toNonIndexed():g.clone(); g.deleteAttribute('uv'); return g; };
+  const P=(a,geo,c,m)=>a.push({geo,m:m||ID,color:c});
+  const G=(geo,c,m)=>P(gummi,geo.attributes.uv?ohneUV(geo):geo,c,m);
+  const schwarz=0x0b0c0e, fuge=0x07080a;
+  P(lack,K.oben,col); G(K.unten,0x16171a);
+  const {flaeche,linie,SP,OP,FP,HP,TOP,BOT,gurt,HW,zV,zH,Ra}=K;
+  const zD=d=>L2-d, ende=(d)=>Math.abs(L2-d);
+  const smin=(a,b,k)=>{ const m=Math.min(a,b); return m-k*Math.log(Math.exp((m-a)/k)+Math.exp((m-b)/k)); };
+  const dV=F.vu, dH=F.L-F.hu;
 
-  /* ---------- Karosserie ----------
-     Ein Seitenprofil statt gestapelter Kaesten: Nase, fallende Haube,
-     Guertellinie, Heck und echte Radausschnitte, rundum gerundet. */
-  const y0=schwelle-0.08, lampY0=gurt-(gurt-schwelle)*0.30, nase=L/2, heck=-L/2;
-  const aF=0.60, aH=F.stufe?0.52:0.20;
-  const wsZ=gh*Math.tan(aF), rwZ=gh*Math.tan(aH);
-  /* Kombi, SUV, Van, Kleinwagen: die Kabine reicht bis ans Heck */
-  let zF=kabZ+kabL/2, zH=kabZ-kabL/2;
-  if(!F.stufe){ zH=heck+0.10+rwZ*0.35; }
-  /* Die Rundungskante legt bv rundum auf das Profil - deshalb liegt
-     die Kontur um bv innen, sonst verschwinden Scheinwerfer in der Nase
-     und die Radlaeufe werden zu eng */
-  const bv=0.09, nI=nase-bv, hI=heck+bv, yb=y0+bv;
-  const unten=new THREE.Shape();
-  const bogen=(z)=>{ const r=rad+0.075+bv; unten.lineTo(z-r,yb); unten.absarc(z,rad+0.01,r,Math.PI,0,true); };
-  unten.moveTo(hI+0.12,yb);
-  bogen(hA); bogen(vA);
-  unten.lineTo(nI-0.12,yb);
-  unten.quadraticCurveTo(nI,yb,nI,yb+0.12);
-  unten.lineTo(nI,lampY0+0.04);
-  const nasenH=gurt-bv-(form==='van'?0.06:0.13);
-  unten.quadraticCurveTo(nI,nasenH-0.02,nI-0.16,nasenH);
-  unten.quadraticCurveTo(zF+0.35,gurt+0.02-bv,zF,gurt+0.02-bv);
-  unten.lineTo(zH,gurt+0.02-bv);
-  if(F.stufe){ unten.quadraticCurveTo(hI+0.3,gurt+0.02-bv,hI+0.06,gurt-0.03-bv); }
-  else unten.lineTo(hI+0.06,gurt+0.02-bv);
-  unten.quadraticCurveTo(hI,gurt-0.05-bv,hI,lampY0);
-  unten.lineTo(hI,yb+0.12);
-  unten.quadraticCurveTo(hI,yb,hI+0.12,yb);
-  /* im Grundriss runde Front und Heck, oberhalb der Schulter eingezogen */
-  const rundZ=(z,r)=>1-r*Math.pow(glatt01(L/2-0.55,L/2,Math.abs(z)),2);
-  const flanke=(y,z)=>rundZ(z,0.07)*(1-0.05*glatt01(gurt-0.22,gurt+0.02,y))*(1-0.03*glatt01(schwelle+0.1,y0,y));
-  P(lack,autoExtrude(unten,B,0.09,flanke),0,0,0,0,0,0,col);
-  /* Glaskanzel: schmaler als die Flanke (Tumblehome), Dach gewoelbt */
-  const kz=new THREE.Shape(), dy=dach-0.035;
-  kz.moveTo(zF,gurt);
-  kz.lineTo(zF-wsZ,dy-0.03);
-  kz.quadraticCurveTo((zF-wsZ+zH+rwZ)/2,dy+0.05,zH+rwZ,dy-0.03);
-  kz.lineTo(zH,gurt);
-  kz.lineTo(zF,gurt);
-  /* Kanzel neigt sich nach innen (Tumblehome) */
-  const kanzel=(y,z)=>1-0.14*glatt01(gurt,dach,y);
-  P(glasT,autoExtrude(kz,B-0.2,0.07,kanzel),0,0,0,0,0,0,glas);
-  /* Dachhaut: die obere Kante der Kanzel, etwas breiter, in Wagenfarbe */
-  { const d0=new THREE.Shape(), a0=zF-wsZ-0.05, a1=zH+rwZ+0.05, m=(a0+a1)/2;
-    d0.moveTo(a0+0.02,dy-0.05); d0.quadraticCurveTo(m,dy+0.03,a1-0.02,dy-0.05);
-    d0.lineTo(a1,dy); d0.quadraticCurveTo(m,dy+0.09,a0,dy); d0.lineTo(a0+0.02,dy-0.05);
-    P(lack,autoExtrude(d0,(B-0.2)*0.87+0.05,0.05),0,0,0,0,0,0,col); }
-  const dachL=Math.max(0.42,(zF-wsZ)-(zH+rwZ)), dachZ=(zF-wsZ+zH+rwZ)/2;
-  const mY=(gurt+dach)/2;
-  /* A-, B- und C-Saeulen auf der Kanzel */
-  for(const s of [-1,1]){
-    const xs=(B/2-0.12)*0.93, neig=-s*0.14;
-    K(RB(0.07,gh/Math.cos(aF)+0.02,0.07,0.03), s*xs, mY, zF-wsZ/2, -aF,0,neig, col);
-    K(RB(0.07,gh/Math.cos(aH)+0.02,0.12,0.03), s*xs, mY, zH+rwZ/2,  aH,0,neig, col);
-    K(RB(0.05,gh*0.94,0.09,0.02), s*(xs+0.01), gurt+gh*0.49, kabZ+kabL*0.02, 0,0,neig, 0x15181e);
-    if(!F.stufe) K(RB(0.05,gh*0.9,0.09,0.02), s*(xs+0.01), gurt+gh*0.47, (zH+rwZ*0.5+kabZ-kabL*0.3)/2, 0,0,neig, 0x15181e);
-    /* Fensterbruestung und Dachreling in Chrom */
-    K(RB(0.03,0.028,(zF-wsZ*0.3)-(zH+rwZ*0.3),0.01), s*(B/2-0.095), gurt+0.03, (zF-wsZ*0.3+zH+rwZ*0.3)/2, 0,0,0, chrome);
-    if(form==='kombi'||form==='suv') K(RB(0.035,0.035,dachL*0.9,0.012), s*(B/2-0.2), dach+0.05, dachZ, 0,0,0, alu);
+  /* ---------- Scheiben ----------
+     Fensterflaeche (DLO) mit schwarzem Rahmen und schwarzer B-Saeule;
+     oben folgt sie Dachkante und A-Saeule, hinten der C-Saeule */
+  const holm=0.075, W=D.fenster;
+  const fOben=(d,fe,rand)=>{ const z=zD(d), g=gurt(z); let y=TOP(z)-holm+rand;
+    if(fe[2]>0.06) y=smin(y,g+(fe[1]+rand*fe[2]-d)/fe[2],0.02); else y=smin(y,g+(fe[1]+rand-d)/0.006,0.01);
+    if(fe[0]>0) y=smin(y,g+(d-fe[0]+rand)/0.006,0.01);
+    return y; };
+  const dA=(()=>{ for(let d=0.5;d<3;d+=0.005) if(TOP(zD(d))-holm>gurt(zD(d))+0.004) return d-0.01; return 1.2; })();
+  for(const sg of [-1,1]){
+    const alle=[Math.max(W[0][0],dA),W[W.length-1][1],W[W.length-1][2]];
+    const rahmen=[0,alle[1],alle[2]];
+    P(glasT,flaeche(0,sg,48,4,(u,v)=>{ u=0.5-0.5*Math.cos(Math.PI*u); const d=dA-0.02+(alle[1]+0.016-dA+0.02)*u, z=zD(d), lo=gurt(z)-0.006, hi=Math.max(lo,fOben(d,rahmen,0.014)); return SP(sg,d,lo+(hi-lo)*v); },0.003),schwarz);
+    for(const fe of W){ const d0=Math.max(fe[0],dA), d1=fe[1], nu=Math.max(10,Math.round((d1-d0)/0.04));
+      P(glasT,flaeche(0,sg,nu,4,(u,v)=>{ u=0.5-0.5*Math.cos(Math.PI*u); const d=d0+(d1-d0)*u, z=zD(d), lo=gurt(z)+0.012, hi=Math.max(lo,fOben(d,fe,0)); return SP(sg,d,lo+(hi-lo)*v); },0.006),0x141b24); }
+    /* Zierleiste an der Guertellinie */
+    P(chromT,flaeche(0,sg,24,1,(u,v)=>{ const d=dA+0.03+(alle[1]-0.01-dA-0.03)*u, z=zD(d), g=gurt(z); return SP(sg,d,g-0.012+0.011*v); },0.004),D.planke?0x2a2d32:0xc9ced6);
   }
-  const kh=gurt-schwelle;
-  /* Schweller matt */
-  G(RB(B-0.02,0.08,Math.abs(vA-hA)-2*rad-0.15,0.03), 0, y0+0.03, (vA+hA)/2, 0,0,0, 0x1b1e24);
+  /* Frontscheibe mit Siebdruckrand */
+  const dCowl=D.top[2][0], dHead=D.top[3][0];
+  P(glasT,flaeche(1,1,8,14,(u,v)=>OP(-0.93+1.86*v,dCowl+0.01+(dHead-dCowl-0.02)*u),0.003),schwarz);
+  P(glasT,flaeche(1,1,10,16,(u,v)=>OP(-0.885+1.77*v,dCowl+0.03+(dHead-dCowl-0.075)*u),0.005),0x1a222d);
+  /* Scheibenwischer in Ruhestellung */
+  for(const [q0,q1] of [[-0.8,0.02],[0.06,0.82]]){ const pts=[]; for(let k=0;k<=8;k++){ const q=q0+(q1-q0)*k/8; pts.push(OP(q,dCowl+0.07+0.035*(q-q0)/(q1-q0))); }
+    G(linie(1,1,pts,0.014,0.016),0x111214); }
+  /* Heckscheibe */
+  const dRoof=D.top[D.top.length-3][0];
+  if(D.heck==='stufe'){ const dDeck=D.top[D.top.length-2][0];
+    P(glasT,flaeche(1,1,8,14,(u,v)=>OP(-0.9+1.8*v,dRoof+0.03+(dDeck-dRoof-0.06)*u),0.003),schwarz);
+    P(glasT,flaeche(1,1,8,14,(u,v)=>OP(-0.85+1.7*v,dRoof+0.07+(dDeck-dRoof-0.14)*u),0.005),0x1a222d); }
+  else { const gR=gurt(-L2), yTop=TOP(-L2)-0.06;
+    const hs=(rand,off,c)=>P(glasT,flaeche(2,-1,14,8,(u,v)=>{ const y=gR+0.04-rand+(yTop-gR-0.04+2*rand)*v, e=Math.abs(2*v-1); return HP((-0.8-rand*1.5+0.05*Math.pow(e,6))*(1-2*u),y); },off),c);
+    hs(0.015,0.003,schwarz); hs(0,0.006,0x1a222d); }
 
-  /* ---------- Raeder ----------
-     Reifen mit Flanke, Felge innen dunkel und offen, davor Speichen
-     und Felgenhorn. Radlauf als halber Ring in Wagenfarbe. */
-  for(const sx of [-1,1]) for(const z of [vA,hA]){
-    const x=sx*RX;
-    /* Radlauf: der Bogen selbst und eine schmale, leicht ausgestellte
-       Kante davor - ohne die sitzt das Rad wie in einem Loch. */
-    /* dunkler Radkasten hinter dem Rad */
-    G(CY(rad+0.07,rad+0.07,0.05,HIQ?20:10), x-sx*0.2, rad+0.01, z, 0,0,Math.PI/2, 0x0c0d10);
-    G(CY(rad,rad,0.205),                 x, rad, z, 0,0,Math.PI/2, 0x16181c);
-    G(CY(rad*0.995,rad*0.995,0.215,HIQ?24:12), x, rad, z, 0,0,Math.PI/2, 0x1d2027);
-    /* dunkle Felgenschuessel - das Loch, durch das man die Bremse sieht */
-    G(CY(rad*0.63,rad*0.63,0.225),       x*1.004, rad, z, 0,0,Math.PI/2, 0x2a2e35);
-    K(new THREE.TorusGeometry(rad*0.615,0.026,6,HIQ?18:10),
-      x*1.018, rad, z, 0,Math.PI/2,0, alu);
-    for(let k=0;k<5;k++){ const a=k/5*Math.PI*2;
-      K(RB(0.045,rad*0.56,0.038,0.015),
-        x*1.016, rad+Math.cos(a)*rad*0.30, z+Math.sin(a)*rad*0.30, 0,0,a, alu); }
-    K(CY(rad*0.15,rad*0.15,0.235,10),    x*1.02, rad, z, 0,0,Math.PI/2, 0x8d939d);
-    K(CY(rad*0.055,rad*0.055,0.245,8),   x*1.03, rad, z, 0,0,Math.PI/2, chrome);
+  /* ---------- Leuchten ----------
+     Scheinwerfer und Rueckleuchten laufen um die Ecke: vorn/hinten auf
+     der Stirnflaeche (w 0.5..1), dann auf der Flanke (w 1..1.6) */
+  const nose=TOP(L2), dNase=0.05;
+    const leuchte=(vorn,sg,w0,w1,yLo,yHi,off,c,ziel)=>{
+    const front=[Math.max(0.0,Math.min(1,w0)),Math.min(1,w1)];
+    if(front[1]>front[0]) P(ziel,flaeche(2,vorn?1:-1,10,3,(u,v)=>{ const w=front[0]+(front[1]-front[0])*u, y=yLo(w)+(yHi(w)-yLo(w))*v; return vorn?FP(sg*w,y):HP(sg*w,y); },off),c);
+    if(w1>1){ const a=Math.max(1,w0); P(ziel,flaeche(0,sg,8,3,(u,v)=>{ const w=a+(w1-a)*u, d=(w-1)*0.4, y=yLo(w)+(yHi(w)-yLo(w))*v; return vorn?SP(sg,d,y):SP(sg,F.L-d,y); },off),c); } };
+  { const yT=w=>nose-0.032-0.04*Math.max(0,w-1), hS=w=>(0.1+0.045*clamp((w-0.45)/0.5,0,1))*Math.pow(clamp((1.6-w)/0.6,0,1),0.55), yB=w=>yT(w)-hS(w);
+    const kreis=(sg,qc,yc,rc,off,c,ziel)=>{ const hw=HW(L2,yc); P(ziel,flaeche(2,1,14,2,(u,v)=>{ const a=u*Math.PI*2; return FP(sg*(qc+v*rc*Math.cos(a)/hw),yc+v*rc*Math.sin(a)); },off),c); };
+    for(const sg of [-1,1]){
+      /* Gehaeuse schwarz, darin Reflektor, Tagfahrlicht als Lichtleiste,
+         zwei Projektionslinsen */
+      leuchte(true,sg,0.44,1.6,yB,yT,0.003,0x0b0c0e,glasT);
+      leuchte(true,sg,0.47,1.5,w=>yB(w)+0.008,w=>yT(w)-0.008,0.0045,0x76808b,lack);
+      leuchte(true,sg,0.47,1.42,w=>yT(w)-0.024,w=>yT(w)-0.013,0.006,0xf7f9fb,chromT);
+      for(const qc of [0.70,0.86]){ const yc=(yB(qc)+yT(qc))/2-0.006; kreis(sg,qc,yc,0.031,0.0055,0xd6dbe1,chromT); kreis(sg,qc,yc,0.022,0.0065,0x15171b,glasT); } }
+    /* Kuehlergrill zwischen den Scheinwerfern, unten Lufteinlass */
+    const gross=stilGrill()==='gross', gT=yT(0.45)-0.004, gB=gross?nose-0.31:yB(0.45)+0.004;
+    P(glasT,flaeche(2,1,10,4,(u,v)=>{ const q=(gross?0.44-0.04*(1-v):0.45)*(2*u-1); return FP(q,gB+(gT-gB)*v); },0.003),0x0a0b0d);
+    for(let k=1;k<(gross?6:3);k++){ const y=gB+(gT-gB)*k/(gross?6:3); P(chromT,flaeche(2,1,10,1,(u,v)=>FP((gross?0.4:0.43)*(2*u-1),y-0.003+0.006*v),0.0055),gross?0x5a6068:0xb8bdc5); }
+    P(chromT,flaeche(2,1,12,1,(u,v)=>FP(0.46*(2*u-1),gB-0.011+0.011*v),0.006),0xc9ced6);
+    const bF=BOT(L2);
+    G(flaeche(2,1,12,3,(u,v)=>FP(0.58*(1-0.1*v)*(2*u-1),bF+0.035+0.15*v),0.003),0x121315);
+    for(let k=1;k<4;k++){ const y=bF+0.035+0.15*k/4; G(flaeche(2,1,10,1,(u,v)=>FP(0.55*(2*u-1),y-0.004+0.008*v),0.005),0x2c2f34); }
+    for(const sg of [-1,1]){ G(flaeche(2,1,4,3,(u,v)=>FP(sg*(0.74+0.18*u),bF+0.05+0.12*v),0.003),0x121315); kreis(sg,0.83,bF+0.11,0.03,0.005,0xcfd4da,chromT); } }
+  /* Rueckleuchten */
+  { const gR=gurt(-L2), yTop=D.heck==='stufe'?TOP(-L2)-0.05:gR+0.01, yT=w=>yTop-0.03*Math.max(0,w-1), yB=w=>yTop-0.12+0.02*clamp((1-w)/0.5,0,1)+0.07*clamp((w-1)/0.55,0,1);
+    for(const sg of [-1,1]){
+      leuchte(false,sg,0.5,1.55,yB,yT,0.003,0x6e0b0d,glasT);
+      leuchte(false,sg,0.56,1.5,w=>yT(w)-0.03,w=>yT(w)-0.016,0.006,0xd0161c,glasT);
+      leuchte(false,sg,0.53,0.66,w=>yB(w)+0.015,w=>yB(w)+0.05,0.0055,0xd8d8d6,chromT); } }
+  /* Heckschuerze dunkel, Reflektoren, Endrohr */
+  { const bR=BOT(-L2);
+    G(flaeche(2,-1,12,2,(u,v)=>HP(-0.86+1.72*u,bR+0.005+0.1*v),0.003),0x141518);
+    for(const sg of [-1,1]) P(glasT,flaeche(2,-1,4,1,(u,v)=>HP(sg*(0.7+0.16*u),bR+0.13+0.03*v),0.004),0x7a0d10);
+    const qe=0.55, ye=bR+0.06, eh=new THREE.CylinderGeometry(0.036,0.036,0.12,14,1,true); eh.rotateX(Math.PI/2);
+    const pe=K.S(qe,2*K.Ty(-L2,ye)-1,-1,{x:0,y:0,z:0});
+    P(chromT,eh,0xd5d9de,tm(pe.x,ye,pe.z+0.02)); G(new THREE.CircleGeometry(0.03,12),0x050505,tm(pe.x,ye,pe.z-0.07,0,Math.PI,0)); }
+
+  /* ---------- Fugen, Griffe, Spiegel ---------- */
+  const dB=(W[0][1]+W[1][0])/2, dT=W[1][1], dF=dV+Ra+0.07, so=z=>K.sockel(z);
+  for(const sg of [-1,1]){
+    const L=(pts,b)=>G(linie(0,sg,pts.map(p=>SP(sg,p[0],p[1])),b||0.005,0.002),fuge);
+    const senk=(d,y0,y1)=>{ const a=[]; for(let k=0;k<=8;k++) a.push([d+0.012*k/8,y0+(y1-y0)*k/8]); return a; };
+    L(senk(dF,so(zD(dF))+0.05,gurt(zD(dF))-0.004));
+    L(senk(dB,so(zD(dB))+0.05,gurt(zD(dB))-0.004));
+    /* Hintertuer: von der C-Saeule hinunter und um den Radlauf */
+    { const pts=[], rr=Ra+0.05, yg=gurt(zD(dT))-0.004; const dx=dT-0.015-dH, ya=rad+Math.sqrt(Math.max(0,rr*rr-dx*dx));
+      for(let k=0;k<=6;k++) pts.push([dT-0.015,yg+(ya-yg)*k/6]);
+      const a0=Math.atan2(ya-rad,dx); for(let k=1;k<=10;k++){ const a=a0+(Math.PI-a0)*k/10; pts.push([dH+rr*Math.cos(a),rad+rr*Math.sin(a)]); }
+      pts.push([dH-rr,so(zD(dH-rr))+0.05]); L(pts); }
+    { const pts=[]; for(let k=0;k<=10;k++){ const d=dF+(dH-Ra-0.05-dF)*k/10; pts.push([d,so(zD(d))+0.05]); } L(pts); }
+    /* Tuergriffe */
+    for(const d of [dB-0.3,dT-0.28]){ const z=zD(d), y=gurt(z)-0.075, x=HW(z,y);
+      P(D.planke?lack:chromT,roundedBoxGeo(0.03,0.028,0.17,0.012,2),D.planke?col:0xc4c9d0,tm(sg*(x+0.004),y,z)); }
+    /* Aussenspiegel am Fuss der A-Saeule */
+    { const d=dA+0.12, z=zD(d), y=gurt(z)+0.075, x=HW(z,gurt(z)-0.02);
+      P(lack,roundedBoxGeo(0.06,0.035,0.08,0.015,2),col,tm(sg*(x+0.02),y-0.03,z));
+      P(lack,roundedBoxGeo(0.17,0.11,0.09,0.04,3),col,tm(sg*(x+0.1),y,z,0,sg*0.08,0));
+      P(glasT,roundedBoxGeo(0.145,0.085,0.012,0.006,2),0x5d6773,tm(sg*(x+0.105),y,z-0.042,0,sg*0.08,0));
+      P(glasT,roundedBoxGeo(0.06,0.012,0.035,0.005,2),0xd08a20,tm(sg*(x+0.14),y-0.032,z+0.028,0,sg*0.08,0)); }
+    /* Schweller/Beplankung dunkel, beim SUV auch um die Radlaeufe */
+    { const zs=K.GZ.map(q=>q*L2).filter(z=>Math.abs(z)<L2-0.12), hoch=D.planke?0.075:0.055;
+      const teil=zs.filter(z=>D.planke||(z<zV-Ra-0.02&&z>zH+Ra+0.02));
+      const N=autoNetz(), n={x:0,y:0,z:0}, nor=[], ids=[];
+      for(const z of teil) for(const t of [0,0.5,1]){ const y=BOT(z)+hoch*t, p=t?SP(sg,L2-z,y):[sg,-1,z/L2]; K.S(p[0],p[1],p[2],_aO); K.NS(0,sg,p,n);
+        ids.push(N.v(_aO.x+n.x*0.002,_aO.y+n.y*0.002,_aO.z+n.z*0.002)); nor.push(n.x,n.y,n.z); }
+      for(let i=0;i+1<teil.length;i++){ if(!D.planke&&Math.abs(teil[i+1]-teil[i])>0.5) continue;
+        for(let r=0;r<2;r++){ const a=i*3+r; N.q(ids[a],ids[a+3],ids[a+4],ids[a+1],nor[a*3],nor[a*3+1],nor[a*3+2]); } }
+      const g=N.geo(); g.setAttribute('normal',new THREE.Float32BufferAttribute(nor,3)); G(g,0x1a1b1e); }
+  }
+  /* Haubenfugen, Kofferraum-/Heckklappenfugen, Tankdeckel */
+  for(const sg of [-1,1]){ const pts=[]; for(let k=0;k<=12;k++) pts.push(OP(sg*0.875,0.1+(dCowl-0.14)*k/12)); G(linie(1,1,pts,0.005,0.002),fuge); }
+  { const pts=[]; for(let k=0;k<=16;k++) pts.push(FP(-0.95+1.9*k/16,nose-0.022)); G(linie(2,1,pts,0.005,0.002),fuge); }
+  if(D.heck==='stufe'){ const dDeck=D.top[D.top.length-2][0];
+    for(const sg of [-1,1]){ const pts=[]; for(let k=0;k<=8;k++) pts.push(OP(sg*0.84,dDeck-0.07+(F.L-0.04-dDeck+0.07)*k/8)); G(linie(1,1,pts,0.005,0.002),fuge); }
+    { const pts=[], y=TOP(-L2)-0.2; for(let k=0;k<=12;k++) pts.push(HP(-0.84+1.68*k/12,y)); G(linie(2,-1,pts,0.005,0.002),fuge); } }
+  else { const yb=gurt(-L2)-0.16, yt=TOP(-L2)-0.03;
+    { const pts=[]; for(let k=0;k<=12;k++) pts.push(HP(-0.87+1.74*k/12,yb)); G(linie(2,-1,pts,0.005,0.002),fuge); }
+    for(const sg of [-1,1]){ const pts=[]; for(let k=0;k<=10;k++) pts.push(HP(sg*0.87,yb+(yt-yb)*k/10)); G(linie(2,-1,pts,0.005,0.002),fuge); } }
+  { const dc=dH+0.17, yc=gurt(zD(dc))-0.11, pts=[]; for(let k=0;k<=20;k++){ const a=k/20*Math.PI*2; pts.push(SP(-1,dc+0.055*Math.cos(a),yc+0.055*Math.sin(a))); } G(linie(0,-1,pts,0.005,0.002),fuge); }
+
+  /* ---------- Dachreling, Antenne ---------- */
+  if(D.reling) for(const sg of [-1,1]){ const pts=[], d0=dHead+0.3, d1=F.L-0.3;
+    for(let k=0;k<=14;k++){ const d=d0+(d1-d0)*k/14, p=OP(sg*0.8,d); K.S(p[0],p[1],p[2],_aO); pts.push(new THREE.Vector3(_aO.x,_aO.y+0.045,_aO.z)); }
+    P(chromT,new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts),16,0.014,6,false),0x9ea4ac);
+    for(const k of [1,13]) P(chromT,roundedBoxGeo(0.03,0.05,0.08,0.012,2),0x24272c,tm(pts[k].x,pts[k].y-0.025,pts[k].z)); }
+  { const d=F.L-(D.heck==='stufe'?1.35:0.35), p=OP(0,d); K.S(p[0],p[1],p[2],_aO);
+    const g=new THREE.SphereGeometry(1,10,6,0,Math.PI*2,0,Math.PI/2); g.scale(0.035,0.055,0.11); P(glasT,g,0x101114,tm(0,_aO.y-0.004,_aO.z,-0.08,0,0)); }
+
+  /* ---------- Raeder ---------- */
+  const stil=pick([{n:5,doppel:false,b1:0.068,b2:0.05},{n:5,doppel:true,b1:0.036,b2:0.028,spalt:0.14},{n:10,doppel:false,b1:0.036,b2:0.027},{n:7,doppel:false,b1:0.052,b2:0.038},{n:6,doppel:true,b1:0.03,b2:0.024,spalt:0.12}]);
+  const fFarbe=pick([0x8e949c,0x8e949c,0x80868e,0x3d4147,0x2a2c30]), sFarbe=Math.random()<0.25?0xb01e1e:0x34373c;
+  const RT=autoRad(F,D,stil);
+  for(const z of [zV,zH]) for(const sg of [-1,1]){
+    const yw=rad, x=sg*(HW(z,rad+0.12)-D.reifenB/2-0.012);
+    const dreh=new THREE.Matrix4().makeRotationY(sg<0?Math.PI:0), spin=new THREE.Matrix4().makeRotationX(Math.random()*Math.PI*2);
+    const M=new THREE.Matrix4().makeTranslation(x,yw,z).multiply(dreh), Ms=M.clone().multiply(spin);
+    /* Reifen: Radmitte auf Radhoehe - die Laufflaeche beruehrt y=0 */
+    P(gummi,RT.reifen,0x1d1e21,Ms);
+    for(const g of RT.felge) P(lack,g,fFarbe,Ms);
+    for(const g of RT.dunkel) G(g,0x0d0e10,Ms);
+    for(const g of RT.stahl) G(g,0x6e7176,Ms);
+    P(lack,RT.sattel,sFarbe,M);
+    /* dunkles Radhaus: Innenwand bis an den Radlauf */
+    const sh=new THREE.Shape(), ra=Ra+0.01; sh.moveTo(ra+0.01,rad-0.04); sh.lineTo(ra+0.01,rad);
+    for(let k=0;k<=16;k++){ const a=k/16*Math.PI; sh.lineTo(Math.cos(a)*ra,rad+Math.sin(a)*ra); }
+    sh.lineTo(-ra-0.01,rad-0.04); sh.lineTo(ra+0.01,rad-0.04);
+    G(new THREE.ShapeGeometry(sh),0x0a0b0c,tm(sg*(Math.abs(x)-D.reifenB/2-0.03),0,z,0,sg*Math.PI/2,0));
   }
 
-  /* ---------- Front und Heck ---------- */
-  const lampY=gurt-kh*0.30;
-  /* Stossfaenger sind lackiert und schliessen buendig ab; dunkel
-     bleibt nur die Schuerze darunter. Vorher standen vorn und hinten
-     zwei schwarze Kloetze ueber die Karosserie hinaus. */
-  /* Stossfaenger sind Teil des Profils; darunter nur die dunkle Schuerze */
-  G(RB(B*0.82,0.11,0.12,0.05), 0, y0+0.05,  L/2-0.07, 0,0,0, 0x24282f);
-  G(RB(B*0.82,0.11,0.12,0.05), 0, y0+0.05, -L/2+0.07, 0,0,0, 0x24282f);
-  G(RB(B-0.42,0.06,0.10,0.02), 0, schwelle-0.03,  L/2-0.06, 0,0,0, 0x6f757e);
-  /* Kuehlergrill */
-  K(RB(B*0.52,0.17,0.08,0.03), 0, lampY+0.02, L/2-0.02, 0,0,0, 0x101319);
-  for(let k=0;k<3;k++) K(RB(B*0.50,0.018,0.05,0.008), 0, lampY-0.04+k*0.05, L/2+0.005, 0,0,0, chrome);
-  for(const s of [-1,1]){
-    /* Scheinwerfer: dunkles Gehaeuse, Glas, zwei Reflektoren */
-    K(RB(0.42,0.15,0.13,0.05), s*(B/2-0.33), lampY+0.02, L/2-0.07, 0,0,0, 0x191c22);
-    K(RB(0.39,0.12,0.06,0.03), s*(B/2-0.33), lampY+0.02, L/2-0.015, 0,0,0, 0xcfdae8);
-    for(const dx of [-0.085,0.085])
-      K(CY(0.048,0.048,0.05,10), s*(B/2-0.33)+dx, lampY+0.02, L/2+0.0, Math.PI/2,0,0, 0xf6f4ea);
-    /* Rueckleuchten */
-    K(RB(0.36,0.20,0.11,0.04), s*(B/2-0.27), lampY+0.06, -L/2+0.05, 0,0,0, 0x2a1214);
-    K(RB(0.32,0.16,0.05,0.02), s*(B/2-0.27), lampY+0.06, -L/2+0.005,0,0,0, 0x9a2a24);
-    K(RB(0.09,0.08,0.04,0.015),s*(B/2-0.42), lampY+0.06, -L/2-0.005,0,0,0, 0xe8b060);
-    K(RB(0.08,0.07,0.04,0.015),s*(B/2-0.13), lampY+0.06, -L/2-0.005,0,0,0, 0xf2f2ee);
-    /* Spiegel am Fuss der A-Saeule */
-    K(RB(0.07,0.04,0.07,0.02), s*(B/2-0.02), gurt+gh*0.20, kabZ+kabL/2-0.10, 0,0,0, col);
-    K(RB(0.17,0.10,0.07,0.03), s*(B/2+0.07), gurt+gh*0.22, kabZ+kabL/2-0.14, 0,0,0.10, col);
-    K(RB(0.13,0.075,0.02,0.008),s*(B/2+0.11),gurt+gh*0.22, kabZ+kabL/2-0.14, 0,0,0.10, 0x4e545e);
-    /* Tuergriffe und Fugen */
-    for(const dz of [kabZ+kabL*0.20, kabZ-kabL*0.24])
-      K(RB(0.035,0.038,0.17,0.014), s*(B/2+0.002), gurt-0.10, dz, 0,0,0, chrome);
-    K(RB(0.01,kh*0.80,0.016,0.004), s*(B/2+0.006), schwelle+kh*0.52, kabZ+kabL/2-0.16, 0,0,0, 0x0d0f14);
-    K(RB(0.01,kh*0.62,0.016,0.004), s*(B/2+0.006), schwelle+kh*0.52, kabZ-kabL*0.30, 0,0,0, 0x0d0f14);
-  }
-  /* Kennzeichen */
-  for(const sz of [1,-1]) K(RB(0.50,0.11,0.025,0.01), 0, schwelle+0.20, sz*(L/2+0.02), 0,0,0, 0xf2f2ee);
-  /* Tankklappe, Scheibenwischer, Auspuff, Antenne */
-  K(RB(0.012,0.16,0.16,0.015), B/2+0.006, gurt-kh*0.30, hA-0.22, 0,0,0, 0x0d0f14);
-  for(const s of [-1,1])
-    K(RB(0.38,0.018,0.018,0.007), s*0.28, gurt+0.03, kabZ+kabL/2+0.12, 0,0,s*0.22, 0x1b1e25);
-  G(CY(0.04,0.045,0.13,10), 0.40, schwelle-0.02, -L/2-0.02, Math.PI/2,0,0, 0x9aa1ac);
-  K(CY(0.009,0.014,0.24,6), 0, dach+0.09, kabZ-kabL/2+0.16, 0.22,0,0, 0x23272f);
+  /* ---------- Kennzeichen ---------- */
+  const SM=autoSchildMat(), nr=(_schildNr++)%16, cx=(nr%2)*256, cy=Math.floor(nr/2)*64+4;
+  const schild=new THREE.PlaneGeometry(0.52,0.11), uv=schild.attributes.uv;
+  for(let i=0;i<uv.count;i++){ uv.setXY(i,(cx+uv.getX(i)*256)/512,1-(cy+(1-uv.getY(i))*55)/512); }
+  const schilder=[];
+  { const y=BOT(L2)+0.2, p=K.S(0,2*K.Ty(L2,y)-1,1,{x:0,y:0,z:0}); schilder.push({geo:schild,m:tm(0,y,p.z+0.012),color:0xffffff}); G(roundedBoxGeo(0.54,0.125,0.014,0.005,2),0x111214,tm(0,y,p.z+0.004)); }
+  { const y=D.heck==='stufe'?TOP(-L2)-0.33:gurt(-L2)-0.24, p=K.S(0,2*K.Ty(-L2,y)-1,-1,{x:0,y:0,z:0});
+    schilder.push({geo:schild,m:tm(0,y,p.z-0.012,0,Math.PI,0),color:0xffffff}); G(roundedBoxGeo(0.54,0.125,0.014,0.005,2),0x111214,tm(0,y,p.z-0.004)); }
 
   const g=new THREE.Group();
   const m1=new THREE.Mesh(merge(lack),_lackM);
   const m2=new THREE.Mesh(merge(gummi),_gummiM);
   const m3=new THREE.Mesh(merge(glasT),_glasM);
   const m4=new THREE.Mesh(merge(chromT),_chromM);
+  const m5=new THREE.Mesh(merge(schilder),SM);
   if(HIQ){ m1.castShadow=true; m1.receiveShadow=true; m2.castShadow=true; m3.castShadow=true; }
-  g.add(m1); g.add(m2); g.add(m3); g.add(m4);
+  g.add(m1); g.add(m2); g.add(m3); g.add(m4); g.add(m5);
+  /* fuer den Test: die Karosseriehaut allein (teilt die Puffer, kostet nichts) */
+  g.userData.haut=K.oben;
   return g;
+  function stilGrill(){ return form==='suv'?'gross':'schmal'; }
 }
 /* =========================================================
    Strassenbaum im Winter (Tom, 24.09.: "sieht immer noch nicht gut

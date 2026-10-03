@@ -29,7 +29,7 @@ function buildProduct(t,roh){
   else if(sh==='cylinder'){
     const R=w/2, HH=h*0.86, C=2*Math.PI*R;
     const wt=wrapTex(C,HH,a,(g,W,Hh)=>{
-      if(p.cat&&typeof designZeichnen==='function'){ for(let k=0;k<2;k++){ g.save(); g.translate(k*W/2,0); g.beginPath(); g.rect(0,0,W/2,Hh); g.clip(); drawFront(g,W/2,Hh,a,p.cat); g.restore(); } return; }
+      if(typeof designZeichnen==='function'&&(p.cat||typeof wareZeichnen==='function')){ for(let k=0;k<2;k++){ g.save(); g.translate(k*W/2,0); g.beginPath(); g.rect(0,0,W/2,Hh); g.clip(); drawFront(g,W/2,Hh,a,p.cat); g.restore(); } return; }
       const gr=g.createLinearGradient(0,0,0,Hh); gr.addColorStop(0,a.bg1); gr.addColorStop(1,a.bg2); g.fillStyle=gr; g.fillRect(0,0,W,Hh);
       for(let i=0;i<30;i++){ g.fillStyle=pick([a.ac,a.ac2,'#fff','#8cff8c']); g.save(); g.translate(Math.random()*W,Math.random()*Hh*0.5); g.rotate(Math.random()*3); g.fillRect(-5,-2,10,4); g.restore(); }
       for(let k=0;k<2;k++){ const cx=W*(0.25+k*0.5);
@@ -51,6 +51,7 @@ function buildProduct(t,roh){
     vc.push({geo:new THREE.BoxGeometry(w*0.12,h*0.05,w*0.12),m:tm(0,h*0.2,R*1.02),color:0x2a2e36});
     vc.push({geo:new THREE.CylinderGeometry(w*0.03,w*0.03,h*0.12,8),m:tm(0,h*0.14,R*1.1),color:0xd8322a});
     const lt=wrapTex(C,lh,a,(g,W,Hh)=>{
+      if(!p.cat&&typeof wareZeichnen==='function'){ for(let k=0;k<2;k++){ g.save(); g.translate(k*W/2,0); g.beginPath(); g.rect(0,0,W/2,Hh); g.clip(); wareZeichnen('front',g,W/2,Hh,t,a); g.restore(); } return; }
       const gr=g.createLinearGradient(0,0,0,Hh); gr.addColorStop(0,a.bg1); gr.addColorStop(1,a.bg2); g.fillStyle=gr; g.fillRect(0,0,W,Hh);
       g.fillStyle=a.ac2; g.fillRect(0,0,W,Hh*0.08); g.fillRect(0,Hh*0.92,W,Hh*0.08);
       for(let k=0;k<2;k++){ const cx=W*(0.25+k*0.5); g.textAlign='center'; g.textBaseline='middle';
@@ -104,21 +105,47 @@ function buildProduct(t,roh){
     parts.push({geo:merge([{geo:new THREE.BoxGeometry(w*0.96,h-ph-0.004,d*0.96),m:tm(0,ph+(h-ph)/2,0)}]),mat:glassMat});
   }
   else if(sh==='bottle'){
-    const R=w/2, body=h*0.56, sho=h*0.18, neck=h*0.18;
-    vc.push({geo:new THREE.CylinderGeometry(R,R*0.96,body,20),m:tm(0,body/2,0),color:0x1f4a35});
-    vc.push({geo:new THREE.CylinderGeometry(R*0.38,R,sho,20),m:tm(0,body+sho/2,0),color:0x1f4a35});
-    vc.push({geo:new THREE.CylinderGeometry(R*0.34,R*0.38,neck,16),m:tm(0,body+sho+neck/2,0),color:0x1f4a35});
-    vc.push({geo:new THREE.CylinderGeometry(R*0.42,R*0.42,h*0.13,16),m:tm(0,body+sho+neck*0.72,0),color:parseInt(a.ac.slice(1),16)});
-    vc.push({geo:new THREE.SphereGeometry(R*0.42,14,8),m:tm(0,h*0.97,0,0,0,0,1,0.55,1),color:parseInt(a.ac.slice(1),16)});
-    const C=2*Math.PI*R*1.005, lh=body*0.62;
+    /* 03.10.: Glas, Form, Kapsel und Etikett je Produkt (04e WARE_FLASCHE);
+       vorher war jede Flasche gleich gruen mit gleichem Etikett */
+    const F=(typeof wareFlasche==='function'&&wareFlasche(t))||{}, R=w/2, form=F.form||'sekt';
+    const gl=F.glas!==undefined?F.glas:0x1f4a35, kap=parseInt(String(F.kapsel||a.ac).slice(1),16);
+    let lh, ly;
+    if(form==='glas'){
+      /* Schraubglas: gerader Koerper, Deckel */
+      const body=h*0.86; vc.push({geo:new THREE.CylinderGeometry(R,R,body,22),m:tm(0,body/2,0),color:gl});
+      vc.push({geo:new THREE.CylinderGeometry(R*0.9,R,h*0.04,22),m:tm(0,body+h*0.02,0),color:gl});
+      vc.push({geo:new THREE.CylinderGeometry(R*0.92,R*0.92,h*0.1,22),m:tm(0,body+h*0.08,0),color:kap});
+      lh=body*0.6; ly=body*0.45;
+    } else if(form==='spray'){
+      /* Spraydose: Zylinder, Schulter, Spruehkopf */
+      const body=h*0.76; vc.push({geo:new THREE.CylinderGeometry(R,R,body,22),m:tm(0,body/2,0),color:gl});
+      vc.push({geo:new THREE.CylinderGeometry(R*0.55,R,h*0.1,22),m:tm(0,body+h*0.05,0),color:0xc9ccd2});
+      vc.push({geo:new THREE.CylinderGeometry(R*0.4,R*0.45,h*0.12,16),m:tm(0,body+h*0.16,0),color:kap});
+      vc.push({geo:new THREE.BoxGeometry(R*0.5,h*0.03,R*0.3),m:tm(0,body+h*0.2,R*0.4),color:kap});
+      lh=body*0.7; ly=body*0.5;
+    } else {
+      /* Sekt (breite Folie), Wein (langer Hals, schmale Kapsel), Likoer (kurzer Hals, Schraubverschluss) */
+      const P3=form==='wein'?[0.6,0.1,0.26]:form==='likoer'?[0.52,0.14,0.22]:[0.56,0.18,0.18];
+      const body=h*P3[0], sho=h*P3[1], neck=h*P3[2];
+      vc.push({geo:new THREE.CylinderGeometry(R,R*0.96,body,20),m:tm(0,body/2,0),color:gl});
+      vc.push({geo:new THREE.CylinderGeometry(R*0.36,R,sho,20),m:tm(0,body+sho/2,0),color:gl});
+      vc.push({geo:new THREE.CylinderGeometry(R*0.32,R*0.36,neck,16),m:tm(0,body+sho+neck/2,0),color:gl});
+      if(form==='wein') vc.push({geo:new THREE.CylinderGeometry(R*0.35,R*0.35,neck*0.42,16),m:tm(0,body+sho+neck*0.79,0),color:kap});
+      else if(form==='likoer') vc.push({geo:new THREE.CylinderGeometry(R*0.4,R*0.4,h*0.07,16),m:tm(0,body+sho+neck+h*0.03,0),color:kap});
+      else { vc.push({geo:new THREE.CylinderGeometry(R*0.42,R*0.42,h*0.13,16),m:tm(0,body+sho+neck*0.72,0),color:kap});
+        vc.push({geo:new THREE.SphereGeometry(R*0.42,14,8),m:tm(0,h*0.97,0,0,0,0,1,0.55,1),color:kap}); }
+      lh=body*0.62; ly=body*0.45;
+    }
+    const C=2*Math.PI*R*1.005;
     const lt=wrapTex(C,lh,a,(g,W,Hh)=>{
+      if(!p.cat&&typeof wareZeichnen==='function'){ for(let k=0;k<2;k++){ g.save(); g.translate(k*W/2,0); g.beginPath(); g.rect(0,0,W/2,Hh); g.clip(); wareZeichnen('front',g,W/2,Hh,t,a); g.restore(); } return; }
       const gr=g.createLinearGradient(0,0,0,Hh); gr.addColorStop(0,a.bg1); gr.addColorStop(1,a.bg2); g.fillStyle=gr; g.fillRect(0,0,W,Hh);
       g.fillStyle=a.ac; g.fillRect(0,0,W,Hh*0.07); g.fillRect(0,Hh*0.93,W,Hh*0.07);
       for(let k=0;k<2;k++){ const cx=W*(0.25+k*0.5); g.textAlign='center'; g.textBaseline='middle';
         fitFont(g,a.title,W*0.44,Math.round(Hh*0.2),BUN); g.fillStyle=a.ac; g.fillText(a.title,cx,Hh*0.42);
         fitFont(g,a.sub,W*0.4,Math.round(Hh*0.12),BAR); g.fillStyle='#f2f5ff'; g.fillText(a.sub,cx,Hh*0.66); }
     });
-    parts.push({geo:merge([{geo:new THREE.CylinderGeometry(R*1.005,R*1.005,lh,20,1,true),m:tm(0,body*0.45,0)}]),mat:new THREE.MeshStandardMaterial({map:lt,roughness:0.6,side:THREE.DoubleSide})});
+    parts.push({geo:merge([{geo:new THREE.CylinderGeometry(R*1.005,R*1.005,lh,20,1,true),m:tm(0,ly,0)}]),mat:new THREE.MeshStandardMaterial({map:lt,roughness:0.6,side:THREE.DoubleSide})});
   }
   else if(sh==='rocketset'){
     /* stueck: Einzelraketen (Jumbo) - eine dicke statt vieler duenner */

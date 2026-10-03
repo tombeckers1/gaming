@@ -3646,7 +3646,7 @@ function buildProduct(t,roh){
   else if(sh==='cylinder'){
     const R=w/2, HH=h*0.86, C=2*Math.PI*R;
     const wt=wrapTex(C,HH,a,(g,W,Hh)=>{
-      if(p.cat&&typeof designZeichnen==='function'){ for(let k=0;k<2;k++){ g.save(); g.translate(k*W/2,0); g.beginPath(); g.rect(0,0,W/2,Hh); g.clip(); drawFront(g,W/2,Hh,a,p.cat); g.restore(); } return; }
+      if(typeof designZeichnen==='function'&&(p.cat||typeof wareZeichnen==='function')){ for(let k=0;k<2;k++){ g.save(); g.translate(k*W/2,0); g.beginPath(); g.rect(0,0,W/2,Hh); g.clip(); drawFront(g,W/2,Hh,a,p.cat); g.restore(); } return; }
       const gr=g.createLinearGradient(0,0,0,Hh); gr.addColorStop(0,a.bg1); gr.addColorStop(1,a.bg2); g.fillStyle=gr; g.fillRect(0,0,W,Hh);
       for(let i=0;i<30;i++){ g.fillStyle=pick([a.ac,a.ac2,'#fff','#8cff8c']); g.save(); g.translate(Math.random()*W,Math.random()*Hh*0.5); g.rotate(Math.random()*3); g.fillRect(-5,-2,10,4); g.restore(); }
       for(let k=0;k<2;k++){ const cx=W*(0.25+k*0.5);
@@ -3668,6 +3668,7 @@ function buildProduct(t,roh){
     vc.push({geo:new THREE.BoxGeometry(w*0.12,h*0.05,w*0.12),m:tm(0,h*0.2,R*1.02),color:0x2a2e36});
     vc.push({geo:new THREE.CylinderGeometry(w*0.03,w*0.03,h*0.12,8),m:tm(0,h*0.14,R*1.1),color:0xd8322a});
     const lt=wrapTex(C,lh,a,(g,W,Hh)=>{
+      if(!p.cat&&typeof wareZeichnen==='function'){ for(let k=0;k<2;k++){ g.save(); g.translate(k*W/2,0); g.beginPath(); g.rect(0,0,W/2,Hh); g.clip(); wareZeichnen('front',g,W/2,Hh,t,a); g.restore(); } return; }
       const gr=g.createLinearGradient(0,0,0,Hh); gr.addColorStop(0,a.bg1); gr.addColorStop(1,a.bg2); g.fillStyle=gr; g.fillRect(0,0,W,Hh);
       g.fillStyle=a.ac2; g.fillRect(0,0,W,Hh*0.08); g.fillRect(0,Hh*0.92,W,Hh*0.08);
       for(let k=0;k<2;k++){ const cx=W*(0.25+k*0.5); g.textAlign='center'; g.textBaseline='middle';
@@ -3721,21 +3722,47 @@ function buildProduct(t,roh){
     parts.push({geo:merge([{geo:new THREE.BoxGeometry(w*0.96,h-ph-0.004,d*0.96),m:tm(0,ph+(h-ph)/2,0)}]),mat:glassMat});
   }
   else if(sh==='bottle'){
-    const R=w/2, body=h*0.56, sho=h*0.18, neck=h*0.18;
-    vc.push({geo:new THREE.CylinderGeometry(R,R*0.96,body,20),m:tm(0,body/2,0),color:0x1f4a35});
-    vc.push({geo:new THREE.CylinderGeometry(R*0.38,R,sho,20),m:tm(0,body+sho/2,0),color:0x1f4a35});
-    vc.push({geo:new THREE.CylinderGeometry(R*0.34,R*0.38,neck,16),m:tm(0,body+sho+neck/2,0),color:0x1f4a35});
-    vc.push({geo:new THREE.CylinderGeometry(R*0.42,R*0.42,h*0.13,16),m:tm(0,body+sho+neck*0.72,0),color:parseInt(a.ac.slice(1),16)});
-    vc.push({geo:new THREE.SphereGeometry(R*0.42,14,8),m:tm(0,h*0.97,0,0,0,0,1,0.55,1),color:parseInt(a.ac.slice(1),16)});
-    const C=2*Math.PI*R*1.005, lh=body*0.62;
+    /* 03.10.: Glas, Form, Kapsel und Etikett je Produkt (04e WARE_FLASCHE);
+       vorher war jede Flasche gleich gruen mit gleichem Etikett */
+    const F=(typeof wareFlasche==='function'&&wareFlasche(t))||{}, R=w/2, form=F.form||'sekt';
+    const gl=F.glas!==undefined?F.glas:0x1f4a35, kap=parseInt(String(F.kapsel||a.ac).slice(1),16);
+    let lh, ly;
+    if(form==='glas'){
+      /* Schraubglas: gerader Koerper, Deckel */
+      const body=h*0.86; vc.push({geo:new THREE.CylinderGeometry(R,R,body,22),m:tm(0,body/2,0),color:gl});
+      vc.push({geo:new THREE.CylinderGeometry(R*0.9,R,h*0.04,22),m:tm(0,body+h*0.02,0),color:gl});
+      vc.push({geo:new THREE.CylinderGeometry(R*0.92,R*0.92,h*0.1,22),m:tm(0,body+h*0.08,0),color:kap});
+      lh=body*0.6; ly=body*0.45;
+    } else if(form==='spray'){
+      /* Spraydose: Zylinder, Schulter, Spruehkopf */
+      const body=h*0.76; vc.push({geo:new THREE.CylinderGeometry(R,R,body,22),m:tm(0,body/2,0),color:gl});
+      vc.push({geo:new THREE.CylinderGeometry(R*0.55,R,h*0.1,22),m:tm(0,body+h*0.05,0),color:0xc9ccd2});
+      vc.push({geo:new THREE.CylinderGeometry(R*0.4,R*0.45,h*0.12,16),m:tm(0,body+h*0.16,0),color:kap});
+      vc.push({geo:new THREE.BoxGeometry(R*0.5,h*0.03,R*0.3),m:tm(0,body+h*0.2,R*0.4),color:kap});
+      lh=body*0.7; ly=body*0.5;
+    } else {
+      /* Sekt (breite Folie), Wein (langer Hals, schmale Kapsel), Likoer (kurzer Hals, Schraubverschluss) */
+      const P3=form==='wein'?[0.6,0.1,0.26]:form==='likoer'?[0.52,0.14,0.22]:[0.56,0.18,0.18];
+      const body=h*P3[0], sho=h*P3[1], neck=h*P3[2];
+      vc.push({geo:new THREE.CylinderGeometry(R,R*0.96,body,20),m:tm(0,body/2,0),color:gl});
+      vc.push({geo:new THREE.CylinderGeometry(R*0.36,R,sho,20),m:tm(0,body+sho/2,0),color:gl});
+      vc.push({geo:new THREE.CylinderGeometry(R*0.32,R*0.36,neck,16),m:tm(0,body+sho+neck/2,0),color:gl});
+      if(form==='wein') vc.push({geo:new THREE.CylinderGeometry(R*0.35,R*0.35,neck*0.42,16),m:tm(0,body+sho+neck*0.79,0),color:kap});
+      else if(form==='likoer') vc.push({geo:new THREE.CylinderGeometry(R*0.4,R*0.4,h*0.07,16),m:tm(0,body+sho+neck+h*0.03,0),color:kap});
+      else { vc.push({geo:new THREE.CylinderGeometry(R*0.42,R*0.42,h*0.13,16),m:tm(0,body+sho+neck*0.72,0),color:kap});
+        vc.push({geo:new THREE.SphereGeometry(R*0.42,14,8),m:tm(0,h*0.97,0,0,0,0,1,0.55,1),color:kap}); }
+      lh=body*0.62; ly=body*0.45;
+    }
+    const C=2*Math.PI*R*1.005;
     const lt=wrapTex(C,lh,a,(g,W,Hh)=>{
+      if(!p.cat&&typeof wareZeichnen==='function'){ for(let k=0;k<2;k++){ g.save(); g.translate(k*W/2,0); g.beginPath(); g.rect(0,0,W/2,Hh); g.clip(); wareZeichnen('front',g,W/2,Hh,t,a); g.restore(); } return; }
       const gr=g.createLinearGradient(0,0,0,Hh); gr.addColorStop(0,a.bg1); gr.addColorStop(1,a.bg2); g.fillStyle=gr; g.fillRect(0,0,W,Hh);
       g.fillStyle=a.ac; g.fillRect(0,0,W,Hh*0.07); g.fillRect(0,Hh*0.93,W,Hh*0.07);
       for(let k=0;k<2;k++){ const cx=W*(0.25+k*0.5); g.textAlign='center'; g.textBaseline='middle';
         fitFont(g,a.title,W*0.44,Math.round(Hh*0.2),BUN); g.fillStyle=a.ac; g.fillText(a.title,cx,Hh*0.42);
         fitFont(g,a.sub,W*0.4,Math.round(Hh*0.12),BAR); g.fillStyle='#f2f5ff'; g.fillText(a.sub,cx,Hh*0.66); }
     });
-    parts.push({geo:merge([{geo:new THREE.CylinderGeometry(R*1.005,R*1.005,lh,20,1,true),m:tm(0,body*0.45,0)}]),mat:new THREE.MeshStandardMaterial({map:lt,roughness:0.6,side:THREE.DoubleSide})});
+    parts.push({geo:merge([{geo:new THREE.CylinderGeometry(R*1.005,R*1.005,lh,20,1,true),m:tm(0,ly,0)}]),mat:new THREE.MeshStandardMaterial({map:lt,roughness:0.6,side:THREE.DoubleSide})});
   }
   else if(sh==='rocketset'){
     /* stueck: Einzelraketen (Jumbo) - eine dicke statt vieler duenner */
@@ -4751,7 +4778,9 @@ function designTop(g,W,H,t,a,info,linie,rnd){
 }
 /* Einstieg aus reuse-pack: liefert true, wenn das Design gezeichnet hat */
 function designZeichnen(teil,g,W,H,a,cat){
-  const t=artProdukt(a); if(!t||!P[t]||!P[t].cat) return false;
+  const t=artProdukt(a); if(!t||!P[t]) return false;
+  /* Zubehoer, Essen, Getraenke: eigene Gestaltung (04e) */
+  if(!P[t].cat) return typeof wareZeichnen==='function'&&wareZeichnen(teil,g,W,H,t,a);
   const linie=linieVon(t), info=produktInfo(t), rnd=zufallAus(hashStr(t+teil));
   try{
     if(teil==='front') DESIGN_FRONT[linie](g,W,H,t,a,info,rnd);
@@ -4760,6 +4789,233 @@ function designZeichnen(teil,g,W,H,a,cat){
   }catch(e){ return false; }
   return true;
 }
+/* =========================================================
+   Verpackungen fuer Zubehoer, Essen und Getraenke (Tom, 03.10.: "die
+   Verpackungen sehen alle ultra aehnlich aus ... Cracker, Glueckskekse,
+   alle in einer aehnlichen Box ... bei Knicklichter ist gar kein Knicklicht
+   drauf ... dass man auf dem Bild sieht, was drin ist ... jede Verpackung
+   einzigartig wie beim Feuerwerk").
+   Bisher bekamen alle 109 Artikel dieselbe Schachtel (Konfetti, Titel,
+   Streifen) und alle Flaschen dasselbe gruene Glas. Jetzt:
+   - jedes Produkt hat ein eigenes Inhaltsbild (WARE_MOTIV, 04f-*)
+   - Marke und Aufbau je Sparte, mit Varianten (Zubehoer: PARTYZEIT,
+     Snacks: KNUSPERWERK, Suesses: ZUCKERGLUECK, Kuehltheke: FRISCHE-
+     THEKE, Feinkost: KRONE, Getraenke: je Getraenk eigene Marke)
+   - Aufbau nach Seitenverhaeltnis: flache Schalen zeigen das Essen oben
+     durch den Klarsichtdeckel, vorn eine Banderole; hohe Packungen Bild
+     oben, Name unten; breite Kartons Bild links, Name rechts
+   - Flaschen: Glasfarbe, Kapsel und Etikett je Produkt (04-models)
+   ========================================================= */
+const WARE_MOTIV={};
+function wareReg(t,fn){ WARE_MOTIV[t]=fn; }
+/* ---------- Zeichenhilfen fuer die Motive ---------- */
+const WZ={
+  rr(g,x,y,w,h,r){ r=Math.max(0,Math.min(r,w/2,h/2)); g.beginPath(); g.moveTo(x+r,y); g.arcTo(x+w,y,x+w,y+h,r); g.arcTo(x+w,y+h,x,y+h,r); g.arcTo(x,y+h,x,y,r); g.arcTo(x,y,x+w,y,r); g.closePath(); },
+  /* weicher Schatten unter einem Gegenstand */
+  schatten(g,cx,cy,rx,ry,a){ g.save(); const gr=g.createRadialGradient(cx,cy,0,cx,cy,rx); gr.addColorStop(0,`rgba(0,0,0,${a||0.35})`); gr.addColorStop(1,'rgba(0,0,0,0)'); g.fillStyle=gr; g.translate(cx,cy); g.scale(1,ry/rx); g.translate(-cx,-cy); g.beginPath(); g.arc(cx,cy,rx,0,Math.PI*2); g.fill(); g.restore(); },
+  /* Glanzlicht (weisser Verlauf) */
+  glanz(g,x,y,w,h,a){ const gr=g.createLinearGradient(x,y,x+w,y); gr.addColorStop(0,`rgba(255,255,255,0)`); gr.addColorStop(0.5,`rgba(255,255,255,${a||0.45})`); gr.addColorStop(1,'rgba(255,255,255,0)'); g.fillStyle=gr; g.fillRect(x,y,w,h); },
+  kreis(g,x,y,r,f){ g.fillStyle=f; g.beginPath(); g.arc(x,y,Math.max(0.5,r),0,Math.PI*2); g.fill(); },
+  ellipse(g,x,y,rx,ry,f,rot){ g.fillStyle=f; g.beginPath(); g.ellipse(x,y,Math.max(0.5,rx),Math.max(0.5,ry),rot||0,0,Math.PI*2); g.fill(); },
+  /* Kugel mit Licht von links oben */
+  kugel(g,x,y,r,f,hell){ const gr=g.createRadialGradient(x-r*0.35,y-r*0.4,r*0.08,x,y,r); gr.addColorStop(0,hell||'#ffffff'); gr.addColorStop(0.25,f); gr.addColorStop(1,WZ.dunkel(f,0.45)); g.fillStyle=gr; g.beginPath(); g.arc(x,y,Math.max(0.5,r),0,Math.PI*2); g.fill(); },
+  /* Farbe mischen: hex + Anteil Schwarz/Weiss */
+  dunkel(h,k){ const c=hexRgb(h).map(v=>Math.round(v*(1-k))); return `rgb(${c[0]},${c[1]},${c[2]})`; },
+  hell(h,k){ return heller(h,k); },
+  /* Teller oder Platte von schraeg oben */
+  teller(g,cx,cy,rx,ry,f,rand){ WZ.schatten(g,cx,cy+ry*0.25,rx*1.05,ry*1.05,0.3); WZ.ellipse(g,cx,cy,rx,ry,rand||'#f4f1ea'); WZ.ellipse(g,cx,cy+ry*0.04,rx*0.8,ry*0.76,f||'#ffffff'); },
+  /* Schale (Glas/Porzellan) */
+  schale(g,cx,cy,rx,ry,f,inhalt){ WZ.schatten(g,cx,cy+ry*1.1,rx*1.05,ry*0.6,0.3); g.fillStyle=f||'#f4f1ea'; g.beginPath(); g.ellipse(cx,cy,rx,ry,0,0,Math.PI); g.lineTo(cx+rx*0.7,cy+ry*1.8); g.lineTo(cx-rx*0.7,cy+ry*1.8); g.closePath(); g.ellipse(cx,cy,rx,ry,0,Math.PI,Math.PI*2); g.fill(); WZ.ellipse(g,cx,cy,rx*0.92,ry*0.8,inhalt||'#c9a46a'); },
+  /* Flasche, unten auf by stehend */
+  flasche(g,cx,by,h,o){ o=o||{}; const w=h*(o.breit||0.3), hb=h*0.58, hs=h*0.16, hn=h*0.2, glas=o.glas||'#2d5a3c';
+    g.save(); g.fillStyle=glas; g.beginPath(); g.moveTo(cx-w/2,by); g.lineTo(cx-w/2,by-hb); g.quadraticCurveTo(cx-w/2,by-hb-hs,cx-w*0.17,by-hb-hs); g.lineTo(cx-w*0.15,by-h); g.lineTo(cx+w*0.15,by-h); g.lineTo(cx+w*0.17,by-hb-hs); g.quadraticCurveTo(cx+w/2,by-hb-hs,cx+w/2,by-hb); g.lineTo(cx+w/2,by); g.closePath(); g.fill();
+    if(o.kapsel){ g.fillStyle=o.kapsel; g.fillRect(cx-w*0.18,by-h,w*0.36,hn*0.75); }
+    if(o.etikett){ g.fillStyle=o.etikett; g.fillRect(cx-w/2,by-hb*0.75,w,hb*0.5); if(o.etikett2){ g.fillStyle=o.etikett2; g.fillRect(cx-w/2,by-hb*0.75,w,hb*0.08); } }
+    WZ.glanz(g,cx-w*0.42,by-hb-hs*0.5,w*0.3,hb+hs*0.5,0.35); g.restore(); },
+  /* Getraenkedose */
+  dose(g,cx,by,h,f,band){ const w=h*0.55; g.save(); WZ.schatten(g,cx,by,w*0.6,w*0.15,0.3); g.fillStyle=f; WZ.rr(g,cx-w/2,by-h,w,h,w*0.08); g.fill(); g.fillStyle='#c9ccd2'; g.fillRect(cx-w*0.42,by-h-h*0.03,w*0.84,h*0.06); if(band){ g.fillStyle=band; g.fillRect(cx-w/2,by-h*0.62,w,h*0.22); } WZ.glanz(g,cx-w*0.4,by-h,w*0.35,h,0.4); g.restore(); },
+  /* Trinkglas: form 'sekt'|'wein'|'becher'|'tumbler'|'cocktail'|'krug' */
+  trinkglas(g,cx,by,h,form,inhalt,o){ o=o||{}; g.save(); g.strokeStyle='rgba(255,255,255,.75)'; g.lineWidth=Math.max(1,h*0.025); const glas='rgba(220,235,255,.22)';
+    if(form==='sekt'||form==='wein'||form==='cocktail'){ const kh=h*(form==='sekt'?0.55:0.45), kw=h*(form==='sekt'?0.16:form==='wein'?0.3:0.42), st=by-h*0.08;
+      g.beginPath(); g.moveTo(cx,st); g.lineTo(cx,by-h+kh); g.stroke(); WZ.ellipse(g,cx,by-h*0.02,h*0.15,h*0.035,'rgba(220,235,255,.5)');
+      g.beginPath(); if(form==='cocktail'){ g.moveTo(cx-kw/2,by-h); g.lineTo(cx+kw/2,by-h); g.lineTo(cx,by-h+kh); } else { g.moveTo(cx-kw/2,by-h); g.quadraticCurveTo(cx-kw/2,by-h+kh,cx,by-h+kh); g.quadraticCurveTo(cx+kw/2,by-h+kh,cx+kw/2,by-h); } g.closePath(); g.fillStyle=glas; g.fill(); g.stroke();
+      if(inhalt){ g.save(); g.clip(); g.fillStyle=inhalt; g.fillRect(cx-kw/2,by-h+kh*0.22,kw,kh); g.restore(); if(o.blasen){ g.fillStyle='rgba(255,255,255,.8)'; for(let i=0;i<6;i++) WZ.kreis(g,cx+(i%3-1)*kw*0.15,by-h+kh*(0.35+i*0.09),Math.max(0.6,h*0.012),'rgba(255,255,255,.85)'); } } }
+    else { const w=h*(form==='tumbler'?0.62:form==='krug'?0.6:0.5); g.beginPath(); g.moveTo(cx-w/2,by-h); g.lineTo(cx-w*0.42,by); g.lineTo(cx+w*0.42,by); g.lineTo(cx+w/2,by-h); g.closePath(); g.fillStyle=glas; g.fill();
+      if(inhalt){ g.save(); g.clip(); g.fillStyle=inhalt; g.fillRect(cx-w/2,by-h*(o.voll||0.8),w,h); if(o.schaum){ g.fillStyle='#fffaf0'; g.fillRect(cx-w/2,by-h*(o.voll||0.8)-h*0.12,w,h*0.14); } if(o.eis){ g.fillStyle='rgba(235,250,255,.7)'; g.fillRect(cx-w*0.25,by-h*0.65,w*0.22,w*0.22); g.fillRect(cx+w*0.02,by-h*0.55,w*0.2,w*0.2); } g.restore(); }
+      g.stroke(); if(form==='krug'){ g.beginPath(); g.arc(cx+w*0.55,by-h*0.5,h*0.18,-1.3,1.3); g.stroke(); } }
+    WZ.glanz(g,cx-h*0.12,by-h,h*0.08,h*0.9,0.35); g.restore(); },
+  ballon(g,cx,cy,r,f){ WZ.kugel(g,cx,cy,r,f); g.strokeStyle='rgba(255,255,255,.7)'; g.lineWidth=Math.max(0.6,r*0.04); g.beginPath(); g.moveTo(cx,cy+r); g.bezierCurveTo(cx-r*0.3,cy+r*1.6,cx+r*0.3,cy+r*2,cx,cy+r*2.6); g.stroke(); },
+  stern(g,x,y,r,f,z){ g.fillStyle=f; stern(g,x,y,r,z||5,0.45); g.fill(); },
+  herz(g,x,y,r,f){ g.fillStyle=f; g.beginPath(); g.moveTo(x,y+r*0.9); g.bezierCurveTo(x-r*1.6,y-r*0.2,x-r*0.6,y-r*1.3,x,y-r*0.45); g.bezierCurveTo(x+r*0.6,y-r*1.3,x+r*1.6,y-r*0.2,x,y+r*0.9); g.fill(); },
+  /* Krumen/Koerner/Gewuerz verstreuen */
+  streu(g,x,y,w,h,n,farben,gr,rnd){ for(let i=0;i<n;i++){ g.fillStyle=farben[i%farben.length]; const s=gr*(0.5+rnd()); g.fillRect(x+rnd()*w,y+rnd()*h,s,s*0.7); } },
+  konfetti(g,x,y,w,h,n,farben,gr,rnd){ for(let i=0;i<n;i++){ g.save(); g.translate(x+rnd()*w,y+rnd()*h); g.rotate(rnd()*3); g.fillStyle=farben[i%farben.length]; g.fillRect(-gr,-gr*0.35,gr*2,gr*0.7); g.restore(); } },
+  /* Text, auf Breite eingepasst */
+  txt(g,s,x,y,maxW,size,font,f,align,outline){ g.save(); g.textAlign=align||'center'; g.textBaseline='middle'; let z=Math.max(5,Math.round(size)); do{ g.font=font(z); if(g.measureText(s).width<=maxW) break; z--; }while(z>5);
+    if(outline){ g.lineJoin='round'; g.lineWidth=Math.max(2,z*0.16); g.strokeStyle=outline; g.strokeText(s,x,y); } g.fillStyle=f; g.fillText(s,x,y); g.restore(); return z; },
+  /* Leuchten (fuer Knicklichter, Kerzen, Lichterketten) */
+  leucht(g,x,y,r,f,a){ g.save(); g.globalCompositeOperation='lighter'; const gr=g.createRadialGradient(x,y,0,x,y,r); gr.addColorStop(0,rgba(f,a||0.7)); gr.addColorStop(1,rgba(f,0)); g.fillStyle=gr; g.beginPath(); g.arc(x,y,r,0,Math.PI*2); g.fill(); g.restore(); }
+};
+const WFNT={rund:s=>`${s}px Bungee, Impact, sans-serif`, kond:s=>`700 ${s}px "Barlow Condensed", "Arial Narrow", Arial, sans-serif`, kondIt:s=>`italic 700 ${s}px "Barlow Condensed", "Arial Narrow", Arial, sans-serif`, serif:s=>`700 ${s}px Cinzel, Georgia, serif`, schreib:s=>`italic 700 ${s}px Georgia, "Times New Roman", serif`, klar:s=>`600 ${s}px Arial, Helvetica, sans-serif`};
+
+/* ---------- Marken ---------- */
+/* Welche Marke traegt ein Produkt? Nach Sparte, Kuehlung und Art */
+const WARE_SUESS=new Set(['gummibaerchen','marzipanschwein','schokotaler','glueckskekse','berliner','neujahrstorte','tiramisu','schokofondue']);
+const WARE_SNACK=new Set(['chips','popcorn','salzstangen','erdnuesse','cracker','neujahrsbrezel','baguette']);
+function wareMarke(t){
+  const p=P[t], s=sparteVon(t);
+  if(s==='zubehoer') return 'party';
+  if(s==='getraenke') return 'trink';
+  if(WARE_SUESS.has(t)) return 'suess';
+  if(WARE_SNACK.has(t)) return 'snack';
+  if(p.kuehlpflicht) return 'frisch';
+  return 'krone';
+}
+const WARE_MARKE={
+  party:{name:'PARTYZEIT',fnt:WFNT.rund,sub:WFNT.kond,boden:['#fff6e0','#ffe2f0','#e6f6ff','#f0ffe6']},
+  snack:{name:'KNUSPERWERK',fnt:WFNT.rund,sub:WFNT.kondIt,boden:['#fff2d9']},
+  suess:{name:'Zuckerglück',fnt:WFNT.schreib,sub:WFNT.kond,boden:['#fff0f4']},
+  frisch:{name:'FRISCHETHEKE',fnt:WFNT.kond,sub:WFNT.klar,boden:['#f4f8fb']},
+  krone:{name:'KRONE Feinkost',fnt:WFNT.serif,sub:WFNT.schreib,boden:['#f3ead8']},
+  trink:{name:'',fnt:WFNT.rund,sub:WFNT.kond,boden:['#eef4f8']}
+};
+/* Untergrund hinter dem Inhaltsbild: Tisch, Tischdecke, Holz, Marmor */
+function wareUntergrund(g,x,y,w,h,t,a,rnd){
+  const m=wareMarke(t), k=hashStr(t)%4;
+  if(m==='party'){ const gr=g.createLinearGradient(x,y,x,y+h); gr.addColorStop(0,heller(a.bg1,0.55)); gr.addColorStop(1,heller(a.bg1,0.15)); g.fillStyle=gr; g.fillRect(x,y,w,h);
+    g.fillStyle='rgba(255,255,255,.18)'; for(let i=-h;i<w;i+=Math.max(6,w*0.08)){ g.beginPath(); g.moveTo(x+i,y+h); g.lineTo(x+i+h,y); g.lineTo(x+i+h+w*0.03,y); g.lineTo(x+i+w*0.03,y+h); g.fill(); } return; }
+  if(m==='trink'){ const gr=g.createRadialGradient(x+w*0.5,y+h*0.35,0,x+w*0.5,y+h*0.5,Math.max(w,h)*0.8); gr.addColorStop(0,heller(a.bg1,0.35)); gr.addColorStop(1,a.bg2); g.fillStyle=gr; g.fillRect(x,y,w,h);
+    for(let i=0;i<12;i++) WZ.leucht(g,x+rnd()*w,y+rnd()*h*0.6,Math.min(w,h)*(0.04+rnd()*0.05),a.ac,0.25); return; }
+  if(m==='frisch'){ g.fillStyle='#eef3f7'; g.fillRect(x,y,w,h); g.fillStyle='rgba(120,150,180,.12)'; for(let i=0;i<w;i+=Math.max(4,w*0.05)) g.fillRect(x+i,y,1,h); return; }
+  if(m==='krone'){ /* dunkles Holz */ g.fillStyle='#5a3a22'; g.fillRect(x,y,w,h); for(let i=0;i<14;i++){ g.fillStyle=`rgba(${30+rnd()*30|0},${15+rnd()*15|0},5,${0.15+rnd()*0.2})`; g.fillRect(x,y+rnd()*h,w,Math.max(1,h*0.02)); } return; }
+  if(m==='snack'){ /* kariertes Tuch */ g.fillStyle='#fff3dc'; g.fillRect(x,y,w,h); const q=Math.max(6,Math.min(w,h)*0.14); g.fillStyle=rgba(a.ac2||'#e63b2e',0.22); for(let i=0;i*q<w;i+=2) g.fillRect(x+i*q,y,q,h); for(let j=0;j*q<h;j+=2) g.fillRect(x,y+j*q,w,q); return; }
+  /* suess: rosa Marmor */ g.fillStyle='#fde8ef'; g.fillRect(x,y,w,h); g.strokeStyle='rgba(200,120,150,.25)'; g.lineWidth=Math.max(1,w*0.006); for(let i=0;i<6;i++){ g.beginPath(); g.moveTo(x+rnd()*w,y); g.bezierCurveTo(x+rnd()*w,y+h*0.3,x+rnd()*w,y+h*0.7,x+rnd()*w,y+h); g.stroke(); }
+}
+/* Inhaltsbild: Untergrund + Motiv (oder Platzhalter, falls keins da ist) */
+function wareBild(g,x,y,w,h,t,a,rnd,ohneGrund){
+  g.save(); g.beginPath(); g.rect(x,y,w,h); g.clip();
+  if(!ohneGrund) wareUntergrund(g,x,y,w,h,t,a,rnd);
+  const fn=WARE_MOTIV[t];
+  if(fn){ try{ fn(g,x,y,w,h,zufallAus(hashStr(t+'motiv')),a); }catch(e){ if(typeof console!=='undefined') console.warn('Motiv',t,e); } }
+  else { WZ.txt(g,P[t].short,x+w/2,y+h/2,w*0.9,h*0.3,WFNT.kond,a.ac||'#fff'); }
+  g.restore();
+}
+/* Markenleiste */
+function wareMarkeZeichnen(g,x,y,w,h,t,a){
+  const m=wareMarke(t), M=WARE_MARKE[m];
+  if(m==='trink'){ return; }
+  const bg=m==='party'?a.bg2:m==='frisch'?'#1d6fb8':m==='krone'?'#2b1a0e':m==='snack'?'#e63b2e':'#d6336c';
+  const fg=m==='krone'?'#e2c27a':'#ffffff';
+  g.fillStyle=bg; g.fillRect(x,y,w,h);
+  WZ.txt(g,M.name,x+w/2,y+h*0.54,w*0.9,h*0.7,M.fnt,fg);
+}
+/* Vorderseite */
+function wareFront(g,W,H,t,a){
+  const p=P[t], m=wareMarke(t), M=WARE_MARKE[m], rnd=zufallAus(hashStr(t+'front')), r=W/H;
+  const titel=a.title||p.short, sub=a.sub||'';
+  /* Grundflaeche */
+  if(m==='frisch'){ g.fillStyle='#ffffff'; g.fillRect(0,0,W,H); }
+  else if(m==='krone'){ const gr=g.createLinearGradient(0,0,0,H); gr.addColorStop(0,'#f3ead8'); gr.addColorStop(1,'#e3d3b2'); g.fillStyle=gr; g.fillRect(0,0,W,H); }
+  else { const gr=g.createLinearGradient(0,0,W,H); gr.addColorStop(0,a.bg1); gr.addColorStop(1,a.bg2); g.fillStyle=gr; g.fillRect(0,0,W,H); }
+  const titelF=m==='frisch'?'#12324f':m==='krone'?'#2b1a0e':a.ac, umriss=m==='frisch'||m==='krone'?null:'rgba(0,0,0,.55)';
+  if(r>=2.1){
+    /* Banderole: Bild links, Name rechts */
+    const bw=Math.min(W*0.42,H*1.5);
+    wareBild(g,0,0,bw,H,t,a,rnd);
+    const tx=bw+(W-bw)/2, tw=(W-bw)*0.9;
+    if(m!=='trink'){ g.fillStyle=m==='frisch'?'#1d6fb8':m==='krone'?'#2b1a0e':'rgba(0,0,0,.25)'; g.fillRect(bw,0,W-bw,H*0.24); WZ.txt(g,M.name,tx,H*0.12,tw,H*0.18,M.fnt,m==='krone'?'#e2c27a':'#fff'); }
+    WZ.txt(g,titel,tx,H*0.52,tw,H*0.3,m==='krone'?WFNT.serif:m==='suess'?WFNT.schreib:WFNT.rund,titelF,'center',umriss);
+    if(sub) WZ.txt(g,sub,tx,H*0.8,tw,H*0.18,WFNT.kond,m==='frisch'||m==='krone'?'#3a4a5a':'#fff','center',m==='frisch'||m==='krone'?null:'rgba(0,0,0,.45)');
+  } else if(hashStr(t)%3===1&&m!=='frisch'){
+    /* Variante Vollbild: das Inhaltsbild fuellt die ganze Seite, Name auf
+       einem Band, Marke als Ecke oben links */
+    wareBild(g,0,0,W,H,t,a,rnd);
+    const bh=Math.min(H*0.3,W*0.42), by=H-bh;
+    g.fillStyle=m==='krone'?'rgba(43,26,14,.86)':rgba(a.bg2,0.86); g.fillRect(0,by,W,bh);
+    g.fillStyle=a.ac2||a.ac; g.fillRect(0,by,W,Math.max(2,bh*0.06));
+    WZ.txt(g,titel,W/2,by+bh*0.42,W*0.92,bh*0.46,m==='krone'?WFNT.serif:m==='suess'?WFNT.schreib:WFNT.rund,m==='krone'?'#e2c27a':a.ac,'center','rgba(0,0,0,.5)');
+    if(sub) WZ.txt(g,sub,W/2,by+bh*0.8,W*0.9,bh*0.24,WFNT.kond,'#ffffff');
+    if(M.name){ const tw=Math.min(W*0.6,H*0.5), th=Math.min(H*0.09,tw*0.22); g.fillStyle=m==='krone'?'#2b1a0e':a.bg2; WZ.rr(g,-th*0.3,H*0.03,tw,th,th*0.3); g.fill(); WZ.txt(g,M.name,tw*0.45,H*0.03+th/2,tw*0.8,th*0.7,M.fnt,m==='krone'?'#e2c27a':'#ffffff'); }
+  } else if(hashStr(t)%3===2&&m!=='frisch'&&m!=='krone'){
+    /* Variante Rundfenster: Muster-Grund, Bild im runden Fenster */
+    g.fillStyle=rgba(a.ac,0.12); const q=Math.max(5,Math.min(W,H)*0.07); for(let yy=0;yy<H;yy+=q) for(let xx=(yy/q%2)*q/2;xx<W;xx+=q) { g.beginPath(); g.arc(xx,yy,q*0.18,0,Math.PI*2); g.fill(); }
+    const mh=m==='trink'?0:Math.min(H*0.1,W*0.16); wareMarkeZeichnen(g,0,0,W,mh,t,a);
+    const R=Math.min(W*0.44,(H-mh)*0.32), cx=W/2, cy=mh+R+H*0.04;
+    g.save(); g.beginPath(); g.arc(cx,cy,R,0,Math.PI*2); g.clip(); wareBild(g,cx-R,cy-R,R*2,R*2,t,a,rnd); g.restore();
+    g.strokeStyle=a.ac; g.lineWidth=Math.max(2,R*0.06); g.beginPath(); g.arc(cx,cy,R,0,Math.PI*2); g.stroke();
+    const ty=cy+R;
+    WZ.txt(g,titel,W/2,ty+(H-ty)*0.38,W*0.92,Math.min(W*0.2,(H-ty)*0.4),m==='suess'?WFNT.schreib:WFNT.rund,a.ac,'center','rgba(0,0,0,.55)');
+    if(sub) WZ.txt(g,sub,W/2,ty+(H-ty)*0.76,W*0.9,Math.min(W*0.12,(H-ty)*0.22),WFNT.kond,'#ffffff','center','rgba(0,0,0,.4)');
+  } else if(r>0.8){
+    /* quer/quadratisch: Markenleiste, grosses Bild, Namensband */
+    const mh=m==='trink'?0:H*0.12;
+    wareMarkeZeichnen(g,0,0,W,mh,t,a);
+    const bh=H*0.58; wareBild(g,0,mh,W,bh,t,a,rnd);
+    const ty=mh+bh;
+    if(m==='trink'){ g.fillStyle=rgba(a.bg2,0.92); g.fillRect(0,ty,W,H-ty); }
+    WZ.txt(g,titel,W/2,ty+(H-ty)*0.42,W*0.9,(H-ty)*0.48,m==='krone'?WFNT.serif:m==='suess'?WFNT.schreib:WFNT.rund,titelF,'center',umriss);
+    if(sub) WZ.txt(g,sub,W/2,ty+(H-ty)*0.8,W*0.88,(H-ty)*0.26,WFNT.kond,m==='krone'?'#3a3a4a':'#fff','center',m==='krone'?null:'rgba(0,0,0,.45)');
+  } else {
+    /* hoch: Marke, Bild, Name, Zusatz */
+    const mh=m==='trink'?0:H*0.08;
+    wareMarkeZeichnen(g,0,0,W,mh,t,a);
+    const bh=H*0.56; wareBild(g,W*0.06,mh+H*0.03,W*0.88,bh,t,a,rnd);
+    g.strokeStyle=m==='krone'?'#b08a3e':'rgba(255,255,255,.85)'; g.lineWidth=Math.max(1,W*0.012); g.strokeRect(W*0.06,mh+H*0.03,W*0.88,bh);
+    const ty=mh+H*0.03+bh;
+    WZ.txt(g,titel,W/2,ty+(H-ty)*0.35,W*0.92,Math.min(W*0.2,(H-ty)*0.34),m==='krone'?WFNT.serif:m==='suess'?WFNT.schreib:WFNT.rund,titelF,'center',umriss);
+    if(sub) WZ.txt(g,sub,W/2,ty+(H-ty)*0.72,W*0.9,Math.min(W*0.13,(H-ty)*0.2),WFNT.kond,m==='krone'||m==='frisch'?'#3a3a4a':'#fff','center',m==='krone'||m==='frisch'?null:'rgba(0,0,0,.45)');
+  }
+  /* Siegel je Marke */
+  const S=Math.min(W,H);
+  if(m==='frisch'){ WZ.rr(g,W-S*0.42,H-S*0.2,S*0.38,S*0.15,S*0.04); g.fillStyle='#e8f4ff'; g.fill(); WZ.txt(g,'GEKÜHLT',W-S*0.23,H-S*0.125,S*0.34,S*0.1,WFNT.kond,'#1d6fb8'); }
+  if(m==='krone'&&r<=2.1){ siegel(g,W-S*0.16,S*0.3,S*0.11,'♛','#2b1a0e','#e2c27a'); }
+  if(p.cold&&!p.kuehlpflicht&&m==='trink'&&r<=2.1){ WZ.txt(g,'❄ KÜHL GENIESSEN',W/2,H*0.04+S*0.04,W*0.8,S*0.07,WFNT.kond,'#e8f4ff'); }
+}
+/* Oberseite: flache Schalen zeigen den Inhalt durch den Deckel */
+function wareTop(g,W,H,t,a){
+  const p=P[t], m=wareMarke(t), rnd=zufallAus(hashStr(t+'top')), d=p.dims;
+  const flach=d&&d[1]<=0.13&&d[2]>=d[1]*1.4;
+  if(flach){
+    wareBild(g,0,0,W,H,t,a,rnd);
+    /* Klarsichtdeckel: Rand und Spiegelung */
+    g.strokeStyle='rgba(255,255,255,.7)'; g.lineWidth=Math.max(1.5,Math.min(W,H)*0.03); WZ.rr(g,g.lineWidth,g.lineWidth,W-2*g.lineWidth,H-2*g.lineWidth,Math.min(W,H)*0.08); g.stroke();
+    g.fillStyle='rgba(255,255,255,.16)'; g.beginPath(); g.moveTo(W*0.1,0); g.lineTo(W*0.35,0); g.lineTo(W*0.15,H); g.lineTo(0,H); g.lineTo(0,H*0.6); g.fill();
+    /* Aufkleber mit Name */
+    const sw=Math.min(W*0.5,H*1.4), sh=Math.min(H*0.24,sw*0.32);
+    WZ.rr(g,W-sw-W*0.05,H-sh-H*0.06,sw,sh,sh*0.2); g.fillStyle=m==='frisch'?'#1d6fb8':m==='krone'?'#2b1a0e':a.bg2; g.fill();
+    WZ.txt(g,a.title||p.short,W-sw/2-W*0.05,H-sh/2-H*0.06,sw*0.9,sh*0.6,m==='krone'?WFNT.serif:WFNT.kond,m==='krone'?'#e2c27a':'#ffffff');
+    return;
+  }
+  const gr=g.createLinearGradient(0,0,W,H); gr.addColorStop(0,m==='frisch'?'#ffffff':m==='krone'?'#efe2c6':a.bg1); gr.addColorStop(1,m==='frisch'?'#e4edf5':m==='krone'?'#d9c497':a.bg2); g.fillStyle=gr; g.fillRect(0,0,W,H);
+  WZ.txt(g,a.title||p.short,W/2,H/2,W*0.86,H*0.4,m==='krone'?WFNT.serif:WFNT.rund,m==='frisch'?'#12324f':m==='krone'?'#2b1a0e':a.ac);
+}
+/* Seite: Farbe, Name hochkant, Zutaten-Zeilen */
+function wareSeite(g,W,H,t,a){
+  const p=P[t], m=wareMarke(t);
+  const bg=m==='frisch'?'#ffffff':m==='krone'?'#e9dcc0':a.bg2; g.fillStyle=bg; g.fillRect(0,0,W,H);
+  const fg=m==='frisch'?'#1d6fb8':m==='krone'?'#2b1a0e':a.ac;
+  g.save(); g.translate(W/2,H*0.4); g.rotate(-Math.PI/2); WZ.txt(g,a.title||p.short,0,0,H*0.7,W*0.5,m==='krone'?WFNT.serif:WFNT.rund,fg); g.restore();
+  g.fillStyle=rgba(m==='frisch'||m==='krone'?'#3a3a4a':'#ffffff',0.35); for(let i=0;i<5;i++) g.fillRect(W*0.15,H*(0.76+i*0.04),W*(0.5+((i*37)%5)*0.06),Math.max(1,H*0.012));
+}
+/* Einstieg aus designZeichnen (04d) */
+function wareZeichnen(teil,g,W,H,t,a){
+  if(!P[t]||P[t].cat) return false;
+  if(teil==='front') wareFront(g,W,H,t,a); else if(teil==='side') wareSeite(g,W,H,t,a); else wareTop(g,W,H,t,a);
+  return true;
+}
+/* Flaschen je Produkt: Glas, Kapsel, Etikett */
+const WARE_FLASCHE={
+  sekt:{glas:0x1f4a35,kapsel:'#e8c35a'}, kindersekt:{glas:0x3a7a3a,kapsel:'#ff7ab0'}, secco:{glas:0x6f8f4a,kapsel:'#f2f2f2'},
+  rosesekt:{glas:0xe6a0a8,kapsel:'#c43a6a',klar:true}, champagner:{glas:0x14261b,kapsel:'#d4af37'}, rotwein:{glas:0x2a1418,kapsel:'#7a1022',form:'wein'},
+  weisswein:{glas:0x9ab27a,kapsel:'#e8e2c8',form:'wein',klar:true}, eierlikoer:{glas:0xf2d36b,kapsel:'#2b2b2b',form:'likoer',klar:true}, likoer:{glas:0x3b2416,kapsel:'#c9a46a',form:'likoer'},
+  magnum:{glas:0x101c14,kapsel:'#d4af37'}, kindersekt2:{glas:0xe05a7a,kapsel:'#ffffff',klar:true}, goldsekt:{glas:0x2a2a1a,kapsel:'#ffd700'},
+  jahrgang:{glas:0x0e1a12,kapsel:'#8a1c1c'}, prosecco:{glas:0x7d9a55,kapsel:'#1d4a8a'},
+  erdnuesse:{glas:0xd9c38a,kapsel:'#c0392b',form:'glas',klar:true}, rollmops:{glas:0xc8d8c0,kapsel:'#e8e8e8',form:'glas',klar:true}, feuerloescher:{glas:0xc0392b,kapsel:'#222222',form:'spray'}
+};
+function wareFlasche(t){ return WARE_FLASCHE[t]||null; }
+/* Inhaltsbilder: zubehoer (03.10.) - siehe 04e-ware.js */
+/* Inhaltsbilder: getraenke (03.10.) - siehe 04e-ware.js */
+/* Inhaltsbilder: essen (03.10.) - siehe 04e-ware.js */
 
 /* =========================================================
    Wände, Böden, Welt
@@ -33520,7 +33776,7 @@ fontsReady().then(()=>{
   setTimeout(()=>{ if(typeof shaderVorab==='function') shaderVorab(); },400);
   window.__bb={get S(){return S},get phase(){return phase},set phase(v){phase=v},set clock(v){clock=v},get clock(){return clock},pickUp,floorBoxes,shelves,racks,dekos,stockOne,openShop,step,customers,queue,belt,scanBelt,buyUp,buyDeko,get DS(){return DS},endDay,pending,save,openLaptop,closeLaptop,pl,addXP,hireStaff,fireStaff,staff,dirts,addDirt,movables,toggleBuild,setWall,setFloor,
     stations,firePult,placeOnStation,igniteType,get order(){return order},get phone(){return phone},makeCall,answerPhone,haggle,acceptDeal,declineDeal,get truck(){return truck},spawnTruck,takeFromTruck,takeBox,dropBox,updateTruck,get door(){return door},get tuer(){return tuer},tuerSet,tuerNah,updateSchiebetuer,doorOpen,doorIsOpen,trailerOccupied,LR,lrFront,TOR,orderReady,orderLeft,shipOne,removeFloorBox,prioOf,setPrio,racks,updateCarry,spawnFloorBox,staff,SHELFKIND,layout,shelfCapOf,shelfAccepts,emptyLevel,dateInfo,dateStr,dateShort,seasonInfo,isSunday,dayMult,ruhetag,wageOf,setWage,friendliness,inPause,setPause,windowGrime,addGrime,cleanWindowTick,ambienteScore,bildBoost,fixedCosts,dailyWages,dispoLimit,verfuegbar,dispoZins,takeLoan,loanTier,loanDaily,EVENTS,GOALS,CUSTTYPES,UPGRADES,STAFF,stockOf,spawnInterval,pools,todayEvent,evv,rollEvent,rollMarket,newGoal,goalAdd,goalTick,ekFactor,marktText,xpFor,rollCustType,priceTol,buyChance,regCustomer,makeWishes,nachfrageFaktor,shelfStockOf,buildGravur,refillGrav,openGravInput,closeGravInput,get gravBlanks(){return gravBlanks},set gravBlanks(v){gravBlanks=v},orderBox,buyPack,cartAdd,cartAddPack,cartOrder,cartClear,cartDel,cartGoods,cartFee,cartTotal,cartBoxes,cartLines,LIEFERZEIT_SEK,VERSAND,VERSANDFREI,lieferSek,
-    scene,camera,P,NEUWARE,NEU_SHOWS,NEU_FONT,NEU_KUGEL,neuZuenden,PARK,restWelle,restTick,restDruck,restDaten,buyAngebot,grossOffen,updatePark,parkWasser:()=>_wasserM,parkTannen:()=>PARK_TANNEN,parkLeben:()=>parkEnten.concat(parkLeute).map(e=>({x:e.g.position.x,z:e.g.position.z})),pendingListe:()=>pending,einbauPakete,spawnPaket,paketAblegen,paketAufheben,EINBAU,PAKET_MASS,vorDieTuer,setSB2,sbZiel,makeAuto,AUTOFORM,stadtInfo:()=>({warn:beacons.length,kronen:KRONEN.length,stufen:SKYLINE_INFO.stufen,skyStile:SKYLINE_INFO.stile.size,stile:Object.keys(STADT_MATS).length}),clearStations,fachHoehe,kindOf,packKartonWert,SUPPLIERS,supplierFor,supplierOf,tierPrice,isUnlocked,lizLevel,renderLaptop,get lsup(){return lsup},set lsup(v){lsup=v},get lkat(){return lkat},set lkat(v){lkat=v},SPARTE,SPARTE_NAME,sparteVon,HEADNAME,headArt,catPill,ekRoh,ekDelta,ekTag,ekNiveau,ekPill,get ltab(){return ltab},set ltab(v){ltab=v},EFF,EFF_ALL,EFF_KLEIN,EFF_GROSS,EFF_PRO,SHOWS,kugelbombe,shot,mine,FW,stations,stationOf,placedCount,togglePDA,openPDA,closePDA,setPost,get postOn(){return postOn},get pdaOn(){return pdaOn},showLength,psHuge,psBig,psMid,psSmall,rockets,emitters,timersLen:()=>timers.length,timersLeeren:()=>{timers.length=0;},setView:(x,z,y,p)=>{pl.x=x;pl.z=z;yaw=y;pitch=p;aim=null;},schiebe:(x,z)=>{pl.x=x;pl.z=z;collide(pl,0.32);return{x:pl.x,z:pl.z};},PLZ_MAX,camYaw:()=>yaw,camPitch:()=>pitch,playerPos:()=>({x:pl.x,z:pl.z}),pultYaw:()=>pultHit?pultHit.parent.rotation.y:null,get pultHit(){return pultHit},applyShopName,shopName,shopSlogan,signTexPx:()=>signTex&&signTex.image?texCanvas(signTex).getContext('2d').getImageData(0,0,signTex.image.width,40).data.join(''):null,lagerWall,fwShot:shot,KUGEL_R,ROHR_INNEN,MOERSER_R,moerserRohr,sfx,WOLKEN,get master(){return master},ac,SORTE_NEU,sortenUmstellen,get shakeWert(){return shake},get ckG(){return ckG},get ckNameTex(){return ckNameTex},get ckMovable(){return ckMov},CK_HOME,CK_ALT,spotPos,queueApproach,ckTexPx:()=>ckNameTex&&ckNameTex.image?texCanvas(ckNameTex).getContext('2d').getImageData(0,0,ckNameTex.image.width,60).data.join(''):null,testfeldMitte,STATION_POS,aimAt,UPGRADES,upPic,PLAN,planFlaechen,uhrZeiger:()=>({std:uhrStd?+uhrStd.rotation.z.toFixed(4):0,min:uhrMin?+uhrMin.rotation.z.toFixed(4):0}),drawRackSchild,get snowPts(){return snowPts},buildStadt,updateStadt,get stadtBoxen(){return stadtBoxen},get stadtBaeume(){return stadtBaeume},buildFernbaeume,schwaerme,beacons,silhouetten,get verkehrPts(){return verkehrPts},get rauchPts(){return rauchPts},get flieger(){return flieger},stadtFrei,STADT_FREI,WALLS,FLOORS,bodenMalen,wandMalen,oberflaechenMuster,oberflaechenAnwenden,BODEN_KACHEL,WAND_B,WAND_H,bodenPx,wandPx,innenUmgebung,sockelM,get wallTex(){return wallTex},get floorTexRef(){return floorTexRef},get floorMat(){return floorMat},get shopWall(){return shopWall},renderOnline,onlineHint,onlineStufe,onlineZahlen,onlineListe,updateOnline,SCHILDBG,SCHILDFG,setSchild,schildBg,schildFg,repaintSchilder,updateHead,allLevels,addToLevel,putInSlot,regCustomer,ZONEN,zoneOffen,oeffneZone,applyZonen,SLOTS,RACKS,slotsOffen,colliders,LAY,LOGI,WRAMPEN,WTORE,updateSnow,unterDach,dachBereiche,get lapHit2(){return lapHit2},buildLagerTerminal,toggleTest,testLevel,buyUp,get toastLast(){return toastLast},__floorBoxen:()=>floorBoxes.length,WBAY_UP,wbays,dockPlaetze,wbayFrei,wbayOffen,spawnWTruck,updateWBays,wbaysInit,wtorSet,GANG,GANGTUER,buildLagergang,flaeche,WTOR,RACKKIND,route,NAV,navFrei,navIdx,navBuild,shelfStand,shelves,sbLanes,buildSBKasse,sbFrei,sbOffen,sbNutzbar,EING2,eingaenge,naechsterEingang,setEingang2,buildSBKasse2,get sb2G(){return sb2G},TUEREN,tuerSetD,tuerNahD,packBereit,packOne,paketWert,bestellungenProTag,pakete,ddlAbholung,updateVersand,VS_GR,VS_FELD,WG_PARK,vsNeueBestellung,vsAbgleich,vsKlasse,vsQuellen,vsBestand,vsErfuellbar,vsPlan,vsStapel,vsSpielerPacken,vsSpielerBestellung,vsTischFrei,vsStatus,vsAufraeumen,vsLaden,vsBahn,vsPaketOffen,vsKlappen,vsFuellung,vsPaketZu,get vsTisch(){return vsTisch},get vsWagen(){return vsWagen},createShelf,createRack,regalStellen,testKauf,regalAufbauen,orderRegal,REGALWARE,regalOf,regalKind,regalPreis,regalPlatz,regalOffen,startGame,promptFor,ERFOLGE,erfOffen,erfStufe,erfStand,erfZiel,erfFertig,erfAnteil,erfGeschafft,erfGesamt,stat,statAdd,statRekord,statVerkauf,bruchGesehen,gruppeVon,GRUPPE,TRAEGER,BRUCH,BRUCH_IDS,REZ_FARBEN,ETIKETT,traegerVon,traegerOffen,bruchOffen,bruchListe,rezeptWow,rezeptKosten,rezeptMarkt,rezeptHype,rezeptDauer,rezeptEntwicklung,rezeptGueltig,eigeneListe,eigenesEintragen,rezepteTick,rezProto,rezBauen,renderRezeptur,get entwurf(){return entwurf},set entwurf(v){entwurf=v},entwurfInit,ORDER,LIZENZEN,lizenzOf,hatLizenz,lizenzDaten,naechsteLizenz,buyLizenz,VOLA,volaOf,REGIME,marketOf,costOf,marktZiel,marktLuecke,meOf,miOf,marktDelta,marktNiveau,marktPhase,marktSchock,marktLabel,marktSchnitt,marktExtrem,marktChance,sortimentBreite,sortimentZug,bekanntheit,spawnInterval,rollMarkt,marktInit,inflOf,inflText,setPreisAufMarkt,igniteType,get packHit(){return packHit},get packTisch(){return packTisch},get packMov(){return packMov},zuendeKanal,zuendeAlle,alleKanaele,get pultText(){return pultText},drawPult,kanalItem,openZuend,closeZuend,get zuendOpen(){return zuendOpen},overlayOpen,pultTaster,zuendTick,TISCH_X,RAMPE_X,KANAL_START,bereitCount,brennDauer,muendung,pultLamps,RAKETEN_LOOK,RAKETEN_KL,makePerson,applyTOD,updateHUD,renderer,renderFrame,get DEMO(){return DEMO},LHALLE,LOGI_STUFEN,TOR_STUFE,logiStufe,logiZeige,logiAnwenden,LOGI_G,TOR_G,WTORE,tuAktion:(kind,ref)=>{ const alt=target; target={kind,ref}; try{ doAction(); } finally { target=alt; } },promptFor,KARREN,karreArt,karreAn,karreStapel,karreLast,karreNimmt,toggleKarre,updateKarre,setTutorial,tutorialAn,zielFuer,get zielAktuell(){return zielAktuell},get tipKey(){return tipKey},updateZiel,set DEMO(v){DEMO=v},kapitelVon,kapitelVoll,openHandy,closeHandy,toggleHandy,get handyOpen(){return handyOpen},get happ(){return happ},HANDY_APPS,renderHandy,shaderVorab,SCHONER,schonerMalen,updateSchoner,makeWischer,stelleWischer,get wischer(){return wischer},updateWischen,wischerPersonal,cleanTick,updateFireworks,FLASH,spurEnden,LR_LAMPE,schweber,kundenSymbol,geldSchwebt,get serie(){return serie},serieZufrieden,serieBricht,KAPITEL,kapitel,kapitelNr,kapitelAufstieg,WA,WA_SLOTS,vorDieTuer,SB_KASSIERER,sbBesetzt,sbLaneVon,sbKassiererPlatz,sbBetreuer,sbHeimPlatz,sbHelferPlatz,sbGeholfen,sbFreiNah,sbZone,SB_SELBST,sbPos,MUSIK,STUECKE,musikAn,musikWeiter,musikVol,musikTick,spielSchritt,get mStep(){return mStep},set mStep(v){mStep=v;mTakte=0;},get mBus(){return mBus},get postHalf(){return postHalf},EFF_SCHWEIF,mitSchweif,KOEPFE,KLEID,UNIFORM,STAFFKOPF,faceCache,animPerson,PACKS,packPreis,packPool,packOffen,packContents,syncPakete,rotateGrab,cancelGrab,moebelTaste,moebelEinpacken,paketAuspacken,moebelImBlick,removeShelf,removeRack,PACK_FL,PACK_HOME,spotFree,rectOf,grab,placeGrab,updateGrab,get grabbed(){return grabbed},showPause,closePause,pauseSeite,pauseSeiteAktiv,zumStartbildschirm,fortsetzen,musikWahl,musikTitel,get startOpen(){return startOpen},get pauseOpen(){return pauseOpen},get target(){return target},einrOf,einrAktiv,einrHoch,einrRunter,einrSchalten,AUFGABEN,einrJob,kartonMat,pools,shelfStockOf,removeFromLevel,fwLog:(a)=>{FW_LOG=a;},moerserRohr,ROHR_KALIBER,effPassen,EFF_FAMILIE,basisBlick,fwTestSchalten,fwTestProdukte,fwTestStapeln,get fwTestAn(){return fwTestAn},get fwTestBoxen(){return fwTestBoxen},get fwTestMarken(){return fwTestMarken},fwStufe,sonne:()=>sun.intensity,get fwUhr(){return FW_UHR},THEMEN,SHOW_BASIS,EFF,emittersListe:()=>emitters,show,SIGNATUR,showZeiten,showDauer,phDauer,musterWinkel,feuertopf,playShow,KAL,get rohrStreu(){return ROHR_STREU},vorfuehrungAn,vorfuehrungAus,vfNaechstes,vfZuenden,vfSpringen,vfNote,vfText,vfTaste,get vfAn(){return vfAn},get vfGezuendet(){return vfGezuendet},get vfIdx(){return vfIdx},get vfLetzt(){return vfLetzt},get vfListe(){return vfListe},get vfEl(){return vfEl},set rohrStreu(v){ROHR_STREU=v},BUENDEL,bSammeln,bWaechter,buendelJetzt:()=>{ bSammeln(); bSammeln(); return BUENDEL.n; },NEU_TEST,get vfSonder(){return vfSonder},vpSchalten,vpStart,vpAus,vpStellplaetze,vpVerteilen,vpProdukte,vpFuellung,get vpAn(){return vpAn},get vpRegale(){return vpRegale},get vpPlan(){return vpPlan},get vpFertig(){return vpFertig},get SPIEL_RAUM(){return SPIEL_RAUM},vpZeilenMass,VP_ZEILEN,KAPPE,kleinTakt,texCanvas,get RES(){return RES},resSetzen,resRegeln,gfxMess,schildTaste,schildFertig,schildZiel,get schildOpen(){return schildOpen},get vpNamenM(){return vpNamenM},kisteTaste,kannRaus,kisteRaus,kisteMat,KISTE_STUECK,poolDa,poolWeg,VP_FL,modRaster,slotLocal,gfxAnwenden,gfxWaehlen,gfxMessen,gfxMess,gfxAnzeige,get GFX(){return GFX},get GFX_WAHL(){return GFX_WAHL},QUAL,rohrBedarf,rohrLayout,rohrSatz,istBatterie,batterieModell,zuendPlan,buildProduct,capOf,zuendFolge,rohrMund,korpusTeile,rohrGeometrie,stationsPool,poolsAus,istVerbundKarton,regalFarben,regaleFaerben,get ROHR_LOG(){return ROHR_LOG},set ROHR_LOG(v){ROHR_LOG=v},schattenSichtbar:()=>renderer.shadowMap.enabled&&sun.shadow.bias>-1,
+    scene,camera,P,NEUWARE,NEU_SHOWS,NEU_FONT,NEU_KUGEL,neuZuenden,PARK,restWelle,restTick,restDruck,restDaten,buyAngebot,grossOffen,updatePark,parkWasser:()=>_wasserM,parkTannen:()=>PARK_TANNEN,parkLeben:()=>parkEnten.concat(parkLeute).map(e=>({x:e.g.position.x,z:e.g.position.z})),pendingListe:()=>pending,einbauPakete,spawnPaket,paketAblegen,paketAufheben,EINBAU,PAKET_MASS,vorDieTuer,setSB2,sbZiel,makeAuto,AUTOFORM,stadtInfo:()=>({warn:beacons.length,kronen:KRONEN.length,stufen:SKYLINE_INFO.stufen,skyStile:SKYLINE_INFO.stile.size,stile:Object.keys(STADT_MATS).length}),clearStations,fachHoehe,kindOf,packKartonWert,SUPPLIERS,supplierFor,supplierOf,tierPrice,isUnlocked,lizLevel,renderLaptop,get lsup(){return lsup},set lsup(v){lsup=v},get lkat(){return lkat},set lkat(v){lkat=v},SPARTE,SPARTE_NAME,sparteVon,HEADNAME,headArt,catPill,ekRoh,ekDelta,ekTag,ekNiveau,ekPill,get ltab(){return ltab},set ltab(v){ltab=v},EFF,EFF_ALL,EFF_KLEIN,EFF_GROSS,EFF_PRO,SHOWS,kugelbombe,shot,mine,FW,stations,stationOf,placedCount,togglePDA,openPDA,closePDA,setPost,get postOn(){return postOn},get pdaOn(){return pdaOn},showLength,psHuge,psBig,psMid,psSmall,rockets,emitters,timersLen:()=>timers.length,timersLeeren:()=>{timers.length=0;},setView:(x,z,y,p)=>{pl.x=x;pl.z=z;yaw=y;pitch=p;aim=null;},schiebe:(x,z)=>{pl.x=x;pl.z=z;collide(pl,0.32);return{x:pl.x,z:pl.z};},PLZ_MAX,camYaw:()=>yaw,camPitch:()=>pitch,playerPos:()=>({x:pl.x,z:pl.z}),pultYaw:()=>pultHit?pultHit.parent.rotation.y:null,get pultHit(){return pultHit},applyShopName,shopName,shopSlogan,signTexPx:()=>signTex&&signTex.image?texCanvas(signTex).getContext('2d').getImageData(0,0,signTex.image.width,40).data.join(''):null,lagerWall,fwShot:shot,KUGEL_R,ROHR_INNEN,MOERSER_R,moerserRohr,sfx,WOLKEN,get master(){return master},ac,SORTE_NEU,sortenUmstellen,get shakeWert(){return shake},get ckG(){return ckG},get ckNameTex(){return ckNameTex},get ckMovable(){return ckMov},CK_HOME,CK_ALT,spotPos,queueApproach,ckTexPx:()=>ckNameTex&&ckNameTex.image?texCanvas(ckNameTex).getContext('2d').getImageData(0,0,ckNameTex.image.width,60).data.join(''):null,testfeldMitte,STATION_POS,aimAt,UPGRADES,upPic,PLAN,planFlaechen,uhrZeiger:()=>({std:uhrStd?+uhrStd.rotation.z.toFixed(4):0,min:uhrMin?+uhrMin.rotation.z.toFixed(4):0}),drawRackSchild,get snowPts(){return snowPts},buildStadt,updateStadt,get stadtBoxen(){return stadtBoxen},get stadtBaeume(){return stadtBaeume},buildFernbaeume,schwaerme,beacons,silhouetten,get verkehrPts(){return verkehrPts},get rauchPts(){return rauchPts},get flieger(){return flieger},stadtFrei,STADT_FREI,WALLS,FLOORS,bodenMalen,wandMalen,oberflaechenMuster,oberflaechenAnwenden,BODEN_KACHEL,WAND_B,WAND_H,bodenPx,wandPx,innenUmgebung,sockelM,get wallTex(){return wallTex},get floorTexRef(){return floorTexRef},get floorMat(){return floorMat},get shopWall(){return shopWall},renderOnline,onlineHint,onlineStufe,onlineZahlen,onlineListe,updateOnline,SCHILDBG,SCHILDFG,setSchild,schildBg,schildFg,repaintSchilder,updateHead,allLevels,addToLevel,putInSlot,regCustomer,ZONEN,zoneOffen,oeffneZone,applyZonen,SLOTS,RACKS,slotsOffen,colliders,LAY,LOGI,WRAMPEN,WTORE,updateSnow,unterDach,dachBereiche,get lapHit2(){return lapHit2},buildLagerTerminal,toggleTest,testLevel,buyUp,get toastLast(){return toastLast},__floorBoxen:()=>floorBoxes.length,WBAY_UP,wbays,dockPlaetze,wbayFrei,wbayOffen,spawnWTruck,updateWBays,wbaysInit,wtorSet,GANG,GANGTUER,buildLagergang,flaeche,WTOR,RACKKIND,route,NAV,navFrei,navIdx,navBuild,shelfStand,shelves,sbLanes,buildSBKasse,sbFrei,sbOffen,sbNutzbar,EING2,eingaenge,naechsterEingang,setEingang2,buildSBKasse2,get sb2G(){return sb2G},TUEREN,tuerSetD,tuerNahD,packBereit,packOne,paketWert,bestellungenProTag,pakete,ddlAbholung,updateVersand,VS_GR,VS_FELD,WG_PARK,vsNeueBestellung,vsAbgleich,vsKlasse,vsQuellen,vsBestand,vsErfuellbar,vsPlan,vsStapel,vsSpielerPacken,vsSpielerBestellung,vsTischFrei,vsStatus,vsAufraeumen,vsLaden,vsBahn,vsPaketOffen,vsKlappen,vsFuellung,vsPaketZu,get vsTisch(){return vsTisch},get vsWagen(){return vsWagen},createShelf,createRack,regalStellen,testKauf,regalAufbauen,orderRegal,REGALWARE,regalOf,regalKind,regalPreis,regalPlatz,regalOffen,startGame,promptFor,ERFOLGE,erfOffen,erfStufe,erfStand,erfZiel,erfFertig,erfAnteil,erfGeschafft,erfGesamt,stat,statAdd,statRekord,statVerkauf,bruchGesehen,gruppeVon,GRUPPE,TRAEGER,BRUCH,BRUCH_IDS,REZ_FARBEN,ETIKETT,traegerVon,traegerOffen,bruchOffen,bruchListe,rezeptWow,rezeptKosten,rezeptMarkt,rezeptHype,rezeptDauer,rezeptEntwicklung,rezeptGueltig,eigeneListe,eigenesEintragen,rezepteTick,rezProto,rezBauen,renderRezeptur,get entwurf(){return entwurf},set entwurf(v){entwurf=v},entwurfInit,ORDER,LIZENZEN,lizenzOf,hatLizenz,lizenzDaten,naechsteLizenz,buyLizenz,VOLA,volaOf,REGIME,marketOf,costOf,marktZiel,marktLuecke,meOf,miOf,marktDelta,marktNiveau,marktPhase,marktSchock,marktLabel,marktSchnitt,marktExtrem,marktChance,sortimentBreite,sortimentZug,bekanntheit,spawnInterval,rollMarkt,marktInit,inflOf,inflText,setPreisAufMarkt,igniteType,get packHit(){return packHit},get packTisch(){return packTisch},get packMov(){return packMov},zuendeKanal,zuendeAlle,alleKanaele,get pultText(){return pultText},drawPult,kanalItem,openZuend,closeZuend,get zuendOpen(){return zuendOpen},overlayOpen,pultTaster,zuendTick,TISCH_X,RAMPE_X,KANAL_START,bereitCount,brennDauer,muendung,pultLamps,RAKETEN_LOOK,RAKETEN_KL,makePerson,applyTOD,updateHUD,renderer,renderFrame,get DEMO(){return DEMO},LHALLE,LOGI_STUFEN,TOR_STUFE,logiStufe,logiZeige,logiAnwenden,LOGI_G,TOR_G,WTORE,tuAktion:(kind,ref)=>{ const alt=target; target={kind,ref}; try{ doAction(); } finally { target=alt; } },promptFor,KARREN,karreArt,karreAn,karreStapel,karreLast,karreNimmt,toggleKarre,updateKarre,setTutorial,tutorialAn,zielFuer,get zielAktuell(){return zielAktuell},get tipKey(){return tipKey},updateZiel,set DEMO(v){DEMO=v},kapitelVon,kapitelVoll,openHandy,closeHandy,toggleHandy,get handyOpen(){return handyOpen},get happ(){return happ},HANDY_APPS,renderHandy,shaderVorab,SCHONER,schonerMalen,updateSchoner,makeWischer,stelleWischer,get wischer(){return wischer},updateWischen,wischerPersonal,cleanTick,updateFireworks,FLASH,spurEnden,LR_LAMPE,schweber,kundenSymbol,geldSchwebt,get serie(){return serie},serieZufrieden,serieBricht,KAPITEL,kapitel,kapitelNr,kapitelAufstieg,WA,WA_SLOTS,vorDieTuer,SB_KASSIERER,sbBesetzt,sbLaneVon,sbKassiererPlatz,sbBetreuer,sbHeimPlatz,sbHelferPlatz,sbGeholfen,sbFreiNah,sbZone,SB_SELBST,sbPos,MUSIK,STUECKE,musikAn,musikWeiter,musikVol,musikTick,spielSchritt,get mStep(){return mStep},set mStep(v){mStep=v;mTakte=0;},get mBus(){return mBus},get postHalf(){return postHalf},EFF_SCHWEIF,mitSchweif,KOEPFE,KLEID,UNIFORM,STAFFKOPF,faceCache,animPerson,PACKS,packPreis,packPool,packOffen,packContents,syncPakete,rotateGrab,cancelGrab,moebelTaste,moebelEinpacken,paketAuspacken,moebelImBlick,removeShelf,removeRack,PACK_FL,PACK_HOME,spotFree,rectOf,grab,placeGrab,updateGrab,get grabbed(){return grabbed},showPause,closePause,pauseSeite,pauseSeiteAktiv,zumStartbildschirm,fortsetzen,musikWahl,musikTitel,get startOpen(){return startOpen},get pauseOpen(){return pauseOpen},get target(){return target},einrOf,einrAktiv,einrHoch,einrRunter,einrSchalten,AUFGABEN,einrJob,kartonMat,pools,shelfStockOf,removeFromLevel,fwLog:(a)=>{FW_LOG=a;},moerserRohr,ROHR_KALIBER,effPassen,EFF_FAMILIE,basisBlick,fwTestSchalten,fwTestProdukte,fwTestStapeln,get fwTestAn(){return fwTestAn},get fwTestBoxen(){return fwTestBoxen},get fwTestMarken(){return fwTestMarken},fwStufe,sonne:()=>sun.intensity,get fwUhr(){return FW_UHR},THEMEN,SHOW_BASIS,EFF,emittersListe:()=>emitters,show,SIGNATUR,showZeiten,showDauer,phDauer,musterWinkel,feuertopf,playShow,KAL,get rohrStreu(){return ROHR_STREU},vorfuehrungAn,vorfuehrungAus,vfNaechstes,vfZuenden,vfSpringen,vfNote,vfText,vfTaste,get vfAn(){return vfAn},get vfGezuendet(){return vfGezuendet},get vfIdx(){return vfIdx},get vfLetzt(){return vfLetzt},get vfListe(){return vfListe},get vfEl(){return vfEl},set rohrStreu(v){ROHR_STREU=v},BUENDEL,bSammeln,bWaechter,buendelJetzt:()=>{ bSammeln(); bSammeln(); return BUENDEL.n; },NEU_TEST,get vfSonder(){return vfSonder},vpSchalten,vpStart,vpAus,vpStellplaetze,vpVerteilen,vpProdukte,vpFuellung,get vpAn(){return vpAn},get vpRegale(){return vpRegale},get vpPlan(){return vpPlan},get vpFertig(){return vpFertig},get SPIEL_RAUM(){return SPIEL_RAUM},vpZeilenMass,VP_ZEILEN,drawFront,drawTop,drawSide,WARE_MOTIV,wareFront,wareTop,wareMarke,KAPPE,kleinTakt,texCanvas,get RES(){return RES},resSetzen,resRegeln,gfxMess,schildTaste,schildFertig,schildZiel,get schildOpen(){return schildOpen},get vpNamenM(){return vpNamenM},kisteTaste,kannRaus,kisteRaus,kisteMat,KISTE_STUECK,poolDa,poolWeg,VP_FL,modRaster,slotLocal,gfxAnwenden,gfxWaehlen,gfxMessen,gfxMess,gfxAnzeige,get GFX(){return GFX},get GFX_WAHL(){return GFX_WAHL},QUAL,rohrBedarf,rohrLayout,rohrSatz,istBatterie,batterieModell,zuendPlan,buildProduct,capOf,zuendFolge,rohrMund,korpusTeile,rohrGeometrie,stationsPool,poolsAus,istVerbundKarton,regalFarben,regaleFaerben,get ROHR_LOG(){return ROHR_LOG},set ROHR_LOG(v){ROHR_LOG=v},schattenSichtbar:()=>renderer.shadowMap.enabled&&sun.shadow.bias>-1,
     shot:()=>{ noLoop=true; camera.position.set(pl.x,1.65,pl.z); camera.rotation.set(pitch,yaw,0); camera.updateMatrixWorld(); updateTarget(); applyTOD(); renderFrame(0.016); return canvas.toDataURL('image/jpeg',0.85); },
     run:(sec,dt)=>{ noLoop=true; const n=Math.round(sec/(dt||0.05)); for(let i=0;i<n;i++) step(dt||0.05); }};
 });

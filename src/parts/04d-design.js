@@ -239,7 +239,9 @@ function designTop(g,W,H,t,a,info,linie,rnd){
 }
 /* Einstieg aus reuse-pack: liefert true, wenn das Design gezeichnet hat */
 function designZeichnen(teil,g,W,H,a,cat){
-  const t=artProdukt(a); if(!t||!P[t]||!P[t].cat) return false;
+  const t=artProdukt(a); if(!t||!P[t]) return false;
+  /* Zubehoer, Essen, Getraenke: eigene Gestaltung (04e) */
+  if(!P[t].cat) return typeof wareZeichnen==='function'&&wareZeichnen(teil,g,W,H,t,a);
   const linie=linieVon(t), info=produktInfo(t), rnd=zufallAus(hashStr(t+teil));
   try{
     if(teil==='front') DESIGN_FRONT[linie](g,W,H,t,a,info,rnd);

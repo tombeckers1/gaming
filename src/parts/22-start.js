@@ -7,25 +7,6 @@
    ========================================================= */
 /* Das Logo bringt einen schwarzen Hintergrund mit. Den schneiden wir
    beim Laden weg, damit es frei auf der Maske steht. */
-function logoFreistellen(src,cb){
-  const img=new Image();
-  img.onload=()=>{
-    try{
-      const c=document.createElement('canvas'); c.width=img.width; c.height=img.height;
-      const g=c.getContext('2d'); g.drawImage(img,0,0);
-      const d=g.getImageData(0,0,c.width,c.height), a=d.data;
-      for(let i=0;i<a.length;i+=4){
-        const m=Math.max(a[i],a[i+1],a[i+2]);
-        if(m<58){ a[i+3]=0; }                       /* fast schwarz: weg */
-        else if(m<108){ a[i+3]=Math.round(a[i+3]*(m-58)/50); }  /* Saum weich */
-      }
-      g.putImageData(d,0,0);
-      cb(c.toDataURL('image/png'));
-    }catch(e){ cb(src); }
-  };
-  img.onerror=()=>cb(src);
-  img.src=src;
-}
 /* Feuerwerk hinter dem Logo, reine 2D-Animation */
 let fxRaf=0;
 function startFx(){
@@ -124,7 +105,7 @@ setCompact();
 fontsReady().then(()=>{
   buildKartons();
   buildWorld();
-  { const li=$('logoImg'); if(li) logoFreistellen(LOGO,u=>{ li.src=u; }); }
+  { const li=$('logoImg'); if(li) li.src=LOGO; }
   initPost(); buildPDA();
   initFlash(); psHuge=new PS(COARSE?700:2000,0.95,COARSE?2:4,sternTex); psBig=new PS(COARSE?3600:10000,0.42,COARSE?3:5); psMid=new PS(COARSE?1800:9000,0.15,COARSE?2:3); psSmall=new PS(COARSE?900:1800,0.07);
   camera.position.set(pl.x,1.65,pl.z); camera.rotation.set(pitch,yaw,0);

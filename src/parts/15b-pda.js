@@ -65,7 +65,7 @@ function drawPDA(force){
     for(let y=0;y<H;y+=4){ g.fillStyle='rgba(0,0,0,.18)'; g.fillRect(0,y,W,1); }
     g.fillStyle='#123a26'; g.fillRect(0,0,W,30);
     g.fillStyle='#6cf2a8'; g.font=BAR(20); g.textAlign='left'; g.textBaseline='middle';
-    g.fillText('BÖLLERLADEN · PDA',8,15);
+    fitFont(g,'FEUERWERKSLADEN · PDA',W*0.56,20,BAR); g.fillText('FEUERWERKSLADEN · PDA',8,15); g.font=BAR(20);
     g.textAlign='right'; g.fillText(eur(S.money),W-8,15);
     if(!t){
       g.fillStyle='#8ef0a8'; g.font=BAR(22); g.textAlign='left';

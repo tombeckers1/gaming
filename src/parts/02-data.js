@@ -498,7 +498,7 @@ const OPEN_T=480, CLOSE_T=1320, MIN_PER_SEC=840/330;
 /* Jede Bestellung ist eine Lieferung: kurzer Vorlauf, bis der Lieferant
    an der Rampe steht, dazu eine kleine Liefergebuehr, die ab einem
    groesseren Warenwert entfaellt. */
-const SHOP_DEFAULT='Böllerladen', SLOGAN_DEFAULT='Feuerwerk · Silvester · seit 1998';
+const SHOP_DEFAULT='Feuerwerksladen', SLOGAN_DEFAULT='Feuerwerk · Silvester · seit 1998';
 function shopName(){ return (S&&S.shopName)||SHOP_DEFAULT; }
 function shopSlogan(){ return (S&&S.slogan!==undefined&&S.slogan!==null)?S.slogan:SLOGAN_DEFAULT; }
 const LIEFERZEIT_SEK=5, VERSAND=5.9, VERSANDFREI=150;

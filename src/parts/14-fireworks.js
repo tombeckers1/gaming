@@ -1413,7 +1413,7 @@ const EFF_SCHWEIF={kugel:0.07,chrys:0.75,wechsel:0.08,weide:1.9,palme:1.1,ring:0
    SPUR_MIN s - so wie das Auge (und das Foto) brennende Sterne sieht;
    reine Punktbrueche wirkten daneben wie Konfetti. 0 bleibt 0 (Effekte,
    die bewusst ohne Spur sind, z. B. Fallschirm, Spaetzuender). */
-const SPUR_MIN=0.17;
+const SPUR_MIN=0.22;
 function mitSchweif(eff,fn){ const alt=SCHWEIF, w=EFF_SCHWEIF[eff]; SCHWEIF=w===undefined?SPUR_MIN:(w>0?Math.max(w,SPUR_MIN):w); try{ fn(); } finally { SCHWEIF=alt; } }
 const EFF_ALL=Object.keys(EFF);
 /* Was in welcher Groessenklasse geschossen wird */

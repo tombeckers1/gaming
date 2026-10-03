@@ -491,11 +491,13 @@ function kfZackSchweif(e,v,G,T,c,q){
   for(let t=DT;t<T;t+=DT){ const tt=t;
     vo=[vo[0]*0.6+rand(-1,1)*A*0.5,vo[1]*0.6+rand(-1,1)*A*0.5]; off=[clamp(off[0]+vo[0]*0.35,-A,A),clamp(off[1]+vo[1]*0.35,-A,A)];
     const o0=off.slice();
-    imBild(tt,()=>{ const at=FW_TAG, sa=SCHWEIF; FW_TAG=tag; SCHWEIF=0.03;
-      const b=bahnOrt(e,v,G,tt), k=Math.min(1,tt/0.25), p={x:b.x+(R[0]*o0[0]+O[0]*o0[1])*k,y:b.y+(R[1]*o0[0]+O[1]*o0[1])*k,z:b.z+(R[2]*o0[0]+O[2]*o0[1])*k};
+    imBild(tt,()=>{ const at=FW_TAG, sa=SCHWEIF; FW_TAG=tag; SCHWEIF=0.3;
+      /* jeder Punkt zieht eine kurze Spur in Flugrichtung - die Punkte
+         ueberlappen zu einer durchgehenden Linie statt einer Perlenkette */
+      const w=bahnTempo(v,G,tt), b=bahnOrt(e,v,G,tt), k=Math.min(1,tt/0.25), p={x:b.x+(R[0]*o0[0]+O[0]*o0[1])*k,y:b.y+(R[1]*o0[0]+O[1]*o0[1])*k,z:b.z+(R[2]*o0[0]+O[2]*o0[1])*k};
       const von=alt||p;
       for(let i=0;i<n;i++){ const f=(i+Math.random())/n, x=von.x+(p.x-von.x)*f, y=von.y+(p.y-von.y)*f, z=von.z+(p.z-von.z)*f, L=rand(0.55,1.15);
-        psBig.emit(x,y,z,rand(-.08,.08),rand(-.15,.05),rand(-.08,.08),c[0],c[1],c[2],L,0.35,0);
+        psBig.emit(x,y,z,w[0]*0.1+rand(-.08,.08),w[1]*0.1+rand(-.15,.05),w[2]*0.1+rand(-.08,.08),c[0],c[1],c[2],L,0.35,0);
         /* Knistern: einzelne Punkte im stehenden Schweif blitzen spaeter auf */
         if(Math.random()<0.05*q) kgSpaeter(rand(0.25,0.8),()=>psSmall.emit(x,y-0.2,z,rand(-.5,.5),rand(-.5,.3),rand(-.5,.5),1.6,1.5,1.3,rand(0.06,0.14),1,1)); }
       alt=p; SCHWEIF=sa; FW_TAG=at; }); }
@@ -518,7 +520,7 @@ function lKometenFaecher(o,A,B,s,p){
      Schein in Kopffarbe, darunter grauer Pulverrauch, der aufsteigt */
   if(typeof wolke==='function'){ const sp=[wolkenSprite(true),wolkenSprite(true),wolkenSprite(false)], cc=mischF(p.c(0.3,1),[1,.45,.15],0.5);
     wolke(D+3,sp,(w,t)=>{ const an=Math.min(1,t/1.2)*(1-glatt(D,D+3,t)), fl=0.8+0.2*Math.sin(t*9);
-      wSetz(sp[0],m.x,m.y+Hk*0.25,m.z,Hk*0.9,cc,0.05*an*fl); wSetz(sp[1],m.x,m.y+Hk*0.55,m.z,Hk*1.2,cc,0.03*an*fl);
+      wSetz(sp[0],m.x,m.y+Hk*0.22,m.z,Hk*0.55,cc,0.032*an*fl); wSetz(sp[1],m.x,m.y+Hk*0.45,m.z,Hk*0.75,cc,0.016*an*fl);
       wSetz(sp[2],m.x,m.y+3+t*0.7,m.z,8+t*1.6,[.3,.27,.26],0.16*an); }); }
   if(p.ende) kgSpaeter(D-(p.vorEnde||0.5),()=>p.ende(m));
 }

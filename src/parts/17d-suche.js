@@ -16,25 +16,30 @@ const _sucheCache={};
 /* [Name/Kurzname/Packungstitel, Packungszusatz] - der Zusatz ("12 Stück")
    zaehlt nur nachrangig */
 function sucheText(t){ if(_sucheCache[t]) return _sucheCache[t]; const p=P[t]||{}, a=p.art||{}; return _sucheCache[t]=[sucheNorm([p.name,p.short,a.title].join(' · ')),sucheNorm(a.sub||'')]; }
-/* 0 = passt nicht; sonst Rang (hoeher = besser): Wortanfang vor Wortmitte,
-   Anfang des Namens am besten */
+/* 0 = passt nicht; sonst Rang (hoeher = besser): Anfang des Namens vor
+   Wortanfang, Packungszusatz nachrangig */
 function sucheRang(t,q){
   q=sucheNorm(q).trim(); if(!q) return 1;
   const [s,z]=sucheText(t); let r=0;
-  for(const w of q.split(/\s+/)){ const i=s.indexOf(w);
-    if(i<0){ if(z.indexOf(w)<0) return 0; r+=0.5; continue; }
-    r+=i===0?6:/[\s·\-»«(,&/]/.test(s[i-1])?4:1; }
+  /* 03.10. (Tom: "gebe ich ST ein, kommen die Sachen, die mit ST
+     anfangen"): nur Anfaenge zaehlen - der Name selbst zuerst, dann ein
+     Wort darin; Treffer mitten im Wort nicht mehr */
+  for(const w of q.split(/\s+/)){ let i=-1, beste=0;
+    for(let k=s.indexOf(w);k>=0;k=s.indexOf(w,k+1)){ const a=k===0?6:/[\s·\-»«(,&/]/.test(s[k-1])?4:0; if(a>beste){ beste=a; i=k; } if(beste===6) break; }
+    if(!beste){ const m=z.search(new RegExp('(^|[\\s·\\-])'+w.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'))); if(m<0) return 0; r+=0.5; continue; }
+    r+=beste; }
   return r;
 }
 function sucheEsc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;'); }
 /* Treffer fett: der Anfang, der zur Eingabe passt */
 function sucheFett(name,q){
-  const n=sucheNorm(name), w=sucheNorm(q).trim().split(/\s+/)[0]; const i=w?n.indexOf(w):-1;
+  const n=sucheNorm(name), w=sucheNorm(q).trim().split(/\s+/)[0]; let i=-1;
+  if(w) for(let k=n.indexOf(w);k>=0;k=n.indexOf(w,k+1)) if(k===0||/[\s·\-»«(,&/]/.test(n[k-1])){ i=k; break; }
   if(i<0) return sucheEsc(name);
   return sucheEsc(name.slice(0,i))+'<b>'+sucheEsc(name.slice(i,i+w.length))+'</b>'+sucheEsc(name.slice(i+w.length));
 }
 function sucheFeld(platzhalter){
-  return `<div class="lsuche"><span class="lslupe">⌕</span><input id="lSuche" type="search" enterkeyhint="search" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="${platzhalter}" value="${sucheEsc(lsuche)}">`+
+  return `<div class="lsuche"><span class="lslupe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/></svg></span><input id="lSuche" type="search" enterkeyhint="search" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="" aria-label="Produkt suchen" value="${sucheEsc(lsuche)}">`+
     `<button data-a="lsuchex" class="lsx" aria-label="Suche leeren"${lsuche?'':' style="display:none"'}>✕</button><div id="lVorschlag" class="lvorschlag"></div></div>`+
     `<div id="lKein" class="row" style="display:none"><div class="rm"><b>Nichts gefunden.</b><small>Anders schreiben oder weniger Buchstaben – gesucht wird in Name, Kurzname und Packungstext.</small></div></div>`;
 }

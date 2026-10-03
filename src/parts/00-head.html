@@ -157,11 +157,13 @@ button:focus-visible{outline:3px solid var(--spark);outline-offset:2px}
 .pill.getr{background:rgba(92,225,255,.16);color:#8fe8ff}
 .kfilter{display:flex;flex-wrap:wrap;gap:6px;padding:4px 0 8px}
 .kfilter button.aus{opacity:.45}
-.lsuche{position:sticky;top:0;z-index:6;margin:6px 0 4px;background:var(--panel-strong,#0e1226);padding:4px 0}
-.lsuche input{width:100%;box-sizing:border-box;font:600 16px Barlow,Arial,sans-serif;padding:11px 40px 11px 36px;border-radius:10px;border:2px solid rgba(255,255,255,.18);background:rgba(242,245,255,.08);color:var(--snow,#f2f5ff);outline:none}
+/* 03.10. (Tom): kein Text im Feld, Hintergrund wie das Laptop-Blau, nur Lupe und feiner Rahmen */
+.lsuche{position:sticky;top:0;z-index:6;margin:6px 0 4px;background:#0f1530;padding:4px 0}
+.lsuche input{width:100%;box-sizing:border-box;font:600 16px Barlow,Arial,sans-serif;padding:11px 40px 11px 42px;border-radius:10px;border:1px solid rgba(242,245,255,.22);background:#0f1530;color:var(--snow,#f2f5ff);outline:none}
 .lsuche input:focus{border-color:var(--signal,#ffd23f)}
 .lsuche input::-webkit-search-cancel-button{display:none}
-.lslupe{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:18px;opacity:.7;pointer-events:none}
+.lslupe{position:absolute;left:13px;top:50%;transform:translateY(-50%);width:19px;height:19px;opacity:.8;pointer-events:none;color:var(--snow,#f2f5ff)}
+.lslupe svg{display:block;width:100%;height:100%}
 .lsuche .lsx{position:absolute;right:6px;top:50%;transform:translateY(-50%);padding:4px 9px;background:transparent;border:0;color:var(--snow,#f2f5ff);font-size:16px;opacity:.75;cursor:pointer}
 .lvorschlag{display:none;position:absolute;left:0;right:0;top:100%;margin-top:2px;background:#0f1430;border:1px solid rgba(255,255,255,.18);border-radius:10px;box-shadow:0 12px 30px rgba(0,0,0,.55);overflow:hidden;max-height:60vh;overflow-y:auto}
 .lvorschlag.an{display:block}

@@ -22,7 +22,9 @@ let gpAn=false, gpEl=null, gpTempo=1, gpTagAlt=-1, gpVerlauf=[], gpUhr=0, gpGest
 /* Sprungpunkte: Name, x, z, Blickrichtung (yaw), Neigung */
 const GP_ORTE=[
   ['Verkauf',      14.0, 2.0, Math.PI*0.08, -0.12],
-  ['Kassen',        2.8, 4.6, Math.PI*0.55, -0.22],
+  /* 04.10.: frueher stand der Blick mitten in der Schlange - jetzt schraeg
+     von hinten auf die Kasse (CK_HOME 0,7 / 2,2) */
+  ['Kassen',        6.0, 5.4, 1.0, -0.2],
   ['Halle Süd',    22.0,-8.0, Math.PI*0.95, -0.10],
   ['Lager',       -10.5, 1.0, Math.PI*0.62, -0.10],
   ['Versand',     -12.0,-9.0, Math.PI*0.70, -0.15],
@@ -147,10 +149,39 @@ function* gpAufbau(){
   gpTagAlt=S.day; gpVerlauf=[{tag:S.day,geld:S.money}]; gpGestern=null;
   if(phase==='closed'){ if(typeof ruhetag==='function'&&ruhetag()) ruhetagBeenden(); else openShop(); }
   gpSpringe(0);
+  if(!HIQ) yield* gpStatisch();
   gpFertig=true;
-  gpPanel(); gpZeichnen();
+  gpPanel(); gpZeichnen(); requestAnimationFrame(gpFpsLauf);
   toast('Gameplay-Vorführung: alles gebaut, Personal da, der Laden läuft. Tasten 1–7 springen in die Bereiche, T Zeitraffer, B beendet.','money');
 }
+/* 04.10. (Tom: am Handy "maximal fluessig, 30 fps"): gemessen kostete der
+   Blick von den Kassen in den Laden rund 870 Zeichenaufrufe - allein die
+   Kassentische bestehen aus je rund 70 Einzelteilen. Am Handy werden nach
+   dem Aufbau in jedem Moebel die unbeweglichen Teile mit gleichem Material
+   zu einem Teil zusammengefasst. Nicht angefasst: Regale (Ware), Lager-
+   regale, Personen, Teile direkt in der Szene (Waende, Zonen), Teile mit
+   Kindern, eigenen Daten, Trefferflaechen, Durchsichtiges, Eckfarben,
+   Sichtschutz (occluders) und alles mit eigener Zeichenreihenfolge. */
+function* gpStatisch(){
+  const raus=new Set(); shelves.forEach(x=>raus.add(x.g)); racks.forEach(x=>raus.add(x.g));
+  const tops=scene.children.filter(o=>!o.isMesh&&!o.isSprite&&!o.isPoints&&!o.isLight&&!raus.has(o)&&!(o.userData&&o.userData.legs));
+  let weg=0, k=0;
+  for(const top of tops){
+    const gruppen=[]; top.traverse(o=>{ if(o.userData&&o.userData.legs) return; if(!o.isMesh&&o.children&&o.children.length) gruppen.push(o); });
+    for(const par of gruppen){ let p=par, person=false; while(p){ if(p.userData&&p.userData.legs){ person=true; break; } p=p.parent; } if(person) continue;
+      const nachMat=new Map();
+      for(const o of par.children){ const mt=o.material, gg=o.geometry;
+        if(!o.isMesh||o.isInstancedMesh||!mt||Array.isArray(mt)||mt.transparent||mt.vertexColors||mt===hitM||!o.visible||o.children.length||o.renderOrder) continue;
+        if(Object.keys(o.userData||{}).length||occluders.indexOf(o)>=0||!gg||!gg.attributes||!gg.attributes.position||!gg.attributes.normal||gg.attributes.position.count>6000) continue;
+        const l=nachMat.get(mt)||[]; l.push(o); nachMat.set(mt,l); }
+      for(const [mt,l] of nachMat){ if(l.length<2) continue; l.forEach(o=>o.updateMatrix());
+        const m=new THREE.Mesh(merge(l.map(o=>({geo:o.geometry,m:o.matrix}))),mt); m.castShadow=l.some(o=>o.castShadow); m.receiveShadow=l.some(o=>o.receiveShadow);
+        l.forEach(o=>par.remove(o)); par.add(m); weg+=l.length-1; } }
+    if(++k%4===0) yield [0.99,'Für das Handy zusammenfassen'];
+  }
+  gpStatischWeg=weg;
+}
+let gpStatischWeg=0;
 /* Beenden: den alten Spielstand zurueckschreiben und neu laden */
 function gpEnde(){
   if(!gpAn) return;
@@ -164,6 +195,10 @@ function gpSpringe(i){
   const o=GP_ORTE[i]; if(!o) return;
   pl.x=o[1]; pl.z=o[2]; yaw=o[3]; pitch=o[4]; aim=null; collide(pl,0.32);
 }
+/* Bildrate fuer Tom (04.10.: "Hauptsache es laeuft mit 30 fps") - in der
+   Leiste, gemessen ueber die echten Bilder des Browsers */
+let gpBilder=0, gpFps=0, gpFpsT=0;
+function gpFpsLauf(t){ if(!gpAn) return; gpBilder++; if(!gpFpsT) gpFpsT=t; if(t-gpFpsT>=1000){ gpFps=Math.round(gpBilder*1000/(t-gpFpsT)); gpBilder=0; gpFpsT=t; } requestAnimationFrame(gpFpsLauf); }
 function gpTempoWechsel(){ gpTempo=gpTempo===1?3:gpTempo===3?6:1; gpZeichnen(); }
 /* Laeuft je Spielschritt: Tagesablauf ohne Klicks, Nachbestellen */
 function gpTick(dt){
@@ -206,6 +241,7 @@ function gpZeichnen(){
     `<span>Tag ${S.day} · ${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')} · ${phase==='open'?'geöffnet':'geschlossen'}</span>`+
     `<span>Konto <b>${eur(S.money)}</b></span><span>heute ${eur(DS.revenue)} · ${DS.customers} Kunden</span>`+
     `<span>Ruf ${Math.round(S.rep)}</span>`+
+    (gpFps?`<span style="color:${gpFps>=28?'#6cf2a8':gpFps>=20?'#ffd23f':'#ff7a7a'}">${gpFps} fps</span>`:'')+
     (v.length>1?`<span style="color:${d>=0?'#6cf2a8':'#ff7a7a'}">seit gestern ${d>=0?'+':''}${eur(d)}</span>`:'')+
     (gpGestern?`<span>gestern ${eur(gpGestern.umsatz)} Umsatz</span>`:'')+spark+
     `<span style="flex-basis:100%;height:0"></span>`+

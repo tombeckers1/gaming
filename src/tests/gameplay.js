@@ -8,10 +8,12 @@ async function neuesSpiel(p){
   await p.click('#nameGo');
   await p.waitForFunction("!document.getElementById('start').classList.contains('show')",null,{timeout:30000});
 }
+const HANDY=process.env.HANDY==='1';
 const { chromium } = require('/opt/node22/lib/node_modules/playwright');
 (async()=>{
   const b=await chromium.launch({args:['--no-sandbox']});
-  const p=await b.newPage({viewport:{width:1100,height:700}}); p.setDefaultTimeout(900000);
+  /* HANDY=1: Handy-Profil (kleinerer Aufbau, Zusammenfassen, Blickfeldregel) */
+  const p=process.env.HANDY==='1'?await (await b.newContext({isMobile:true,hasTouch:true,viewport:{width:390,height:844}})).newPage():await b.newPage({viewport:{width:1100,height:700}}); p.setDefaultTimeout(900000);
   const errs=[]; p.on('pageerror',e=>errs.push('PAGEERROR: '+e.message));
   await p.goto('file://'+process.argv[2]);
   await p.waitForFunction('window.__bb!==undefined',null,{timeout:120000});
@@ -34,8 +36,8 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     return o; });
   console.log('START',JSON.stringify(Object.assign({},r,{vorher:undefined})));
   pruef('KNOPF',r.knopf,'kein Knopf im Laptop > Laden');
-  pruef('SCHRITTWEISE',!r.sofort&&r.bauSchritte>20,'Aufbau nicht schrittweise (haengt den Browser): '+JSON.stringify({sofort:r.sofort,schritte:r.bauSchritte}));
-  pruef('AUFBAU',r.an&&r.lvl>=26&&!r.offen.length&&r.lic&&r.regale>=25&&r.voll>=r.faecher*0.9&&r.sorten>=150&&r.lagerKartons>=30&&r.panel,'Aufbau unvollstaendig: '+JSON.stringify(r));
+  pruef('SCHRITTWEISE',!r.sofort&&r.bauSchritte>(HANDY?10:20),'Aufbau nicht schrittweise (haengt den Browser): '+JSON.stringify({sofort:r.sofort,schritte:r.bauSchritte}));
+  pruef('AUFBAU',r.an&&r.lvl>=26&&!r.offen.length&&r.lic&&r.regale>=(HANDY?15:25)&&r.voll>=r.faecher*0.9&&r.sorten>=(HANDY?35:150)&&r.lagerKartons>=30&&r.panel,'Aufbau unvollstaendig: '+JSON.stringify(r));
   /* drei Spieltage laufen lassen */
   const tage=await p.evaluate(()=>{ const bb=__bb, S=bb.S, out=[]; const d0=S.day; let n=0;
     while(S.day<d0+3&&n++<4000){ bb.run(3,0.1); if(n%30===0) out.push({tag:S.day,geld:Math.round(S.money),kunden:bb.DS?bb.DS.customers:null,phase:bb.phase}); }

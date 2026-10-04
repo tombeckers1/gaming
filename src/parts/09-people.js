@@ -157,6 +157,19 @@ function haare(k,h){
     teil(pbox(0.066,0.025,0.066),pmat(0xe63b2e),0,0.06,-0.12,h,false); }
   if(f==='dutt') teil(pbox(0.09,0.08,0.08),m,0,0.15,-0.08,h,false);
 }
+/* Kopf (04.10.): als Kasten mit sechs Materialien kostete jeder Kopf sechs
+   Zeichenaufrufe (fuenfmal Haut, einmal Gesicht) - bei 30 Personen 180.
+   Gleiche Form, die fuenf Hautseiten in einer Gruppe: zwei Aufrufe. */
+let _kopfGeo=null;
+function kopfGeo(){
+  if(_kopfGeo) return _kopfGeo;
+  const g=new THREE.BoxGeometry(0.2,0.24,0.21);
+  if(g.index&&g.groups&&g.groups.length===6){ const idx=g.index.array, v=g.groups[4], neu=[];
+    g.groups.forEach((q,i)=>{ if(i!==4) for(let k=q.start;k<q.start+q.count;k++) neu.push(idx[k]); });
+    for(let k=v.start;k<v.start+v.count;k++) neu.push(idx[k]);
+    g.setIndex(neu); g.clearGroups(); g.addGroup(0,neu.length-v.count,0); g.addGroup(neu.length-v.count,v.count,1); g.userData.zwei=true; }
+  return _kopfGeo=g;
+}
 function makePerson(opt){
   opt=opt||{};
   const K=opt.kopf?kopfVon(opt.kopf):opt.uniform?kopfVon(STAFFKOPF[opt.uniform]):kopfFuer(opt.ct);
@@ -229,7 +242,7 @@ function makePerson(opt){
   if(O.schalF){ const sm=pmat(O.schalF); teil(pbox(0.17,0.065,0.16),sm,0,1.5,0,g,false); teil(pbox(0.055,0.2,0.025),sm,0.05,1.38,fz(0.17)+0.01,g,false); }
   /* Kopf: Kasten mit Pixelgesicht vorn */
   const head=new THREE.Group(); head.position.set(0,1.66,0.005); g.add(head);
-  { const hm=new THREE.Mesh(pbox(0.2,0.24,0.21),[haut,haut,haut,haut,faceMat(K),haut]); if(HIQ) hm.castShadow=true; head.add(hm); }
+  { const kg=kopfGeo(), hm=new THREE.Mesh(kg,(kg.userData||{}).zwei?[haut,faceMat(K)]:[haut,haut,haut,haut,faceMat(K),haut]); if(HIQ) hm.castShadow=true; head.add(hm); }
   for(const sx of [-1,1]) teil(pbox(0.02,0.05,0.04),haut,sx*0.108,0,0,head,false);
   if(O.muetzeF){ const mm=pmat(O.muetzeF);
     teil(pbox(0.222,0.09,0.232),mm,0,0.13,0,head); teil(pbox(0.228,0.035,0.238),pmat(shade2(O.muetzeF,0.8)),0,0.09,0,head,false);
@@ -240,7 +253,34 @@ function makePerson(opt){
   const gross=K.alter==='teen'?0.92:w?0.96:1.0;
   g.scale.setScalar(gross*rand(0.97,1.03));
   g.userData={legs,arms,torso,head,ph:Math.random()*6,sway:Math.random()*6,gang:rock?0.55:mantel?0.75:1,kopf:K.id,kleid:O.id,oben:O.obenF};
+  if(!HIQ) personBuendeln(g);
   return g;
+}
+/* 04.10. (Tom, iPhone: Gameplay-Vorfuehrung ruckelt): jede Figur bestand
+   aus rund 30 Teilen - 20 Kunden und 10 Mitarbeiter sind 900
+   Zeichenaufrufe. Am Handy werden die starren Teile je Gelenk (Becken und
+   Rumpfdeko, jedes Bein, jeder Ober-/Unterarm, Kopf) zu einem Teil mit
+   Eckfarben zusammengefasst; die Gelenkgruppen bleiben, die Animation
+   und alles, was an Arm oder Kopf haengt, bleiben unveraendert. Der Kopf
+   mit Gesicht (eigene Textur) und der Schattenfleck bleiben einzeln. */
+let _pmVC=null;
+function personBuendeln(g){
+  const pm=new Set(Object.values(_pm)), gruppen=[];
+  g.traverse(o=>{ if(o===g||!o.isMesh&&!o.isSprite) gruppen.push(o); });
+  for(const par of gruppen){
+    const teile=par.children.filter(o=>o.isMesh&&!Array.isArray(o.material)&&pm.has(o.material)&&o.geometry&&o.geometry.attributes&&o.geometry.attributes.position);
+    if(teile.length<2) continue;
+    let n=0; const gs=teile.map(o=>{ o.updateMatrix(); const q=o.geometry.index?o.geometry.toNonIndexed():o.geometry.clone(); q.applyMatrix4(o.matrix); n+=q.attributes.position.count; return {q,c:o.material.color,s:o.castShadow}; });
+    const pos=new Float32Array(n*3), nor=new Float32Array(n*3), uv=new Float32Array(n*2), col=new Float32Array(n*3); let k=0;
+    for(const {q,c} of gs){ const m=q.attributes.position.count; pos.set(q.attributes.position.array,k*3);
+      if(q.attributes.normal) nor.set(q.attributes.normal.array,k*3); if(q.attributes.uv) uv.set(q.attributes.uv.array,k*2);
+      for(let i=0;i<m;i++){ col[(k+i)*3]=c.r; col[(k+i)*3+1]=c.g; col[(k+i)*3+2]=c.b; } k+=m; q.dispose(); }
+    const geo=new THREE.BufferGeometry(); geo.setAttribute('position',new THREE.BufferAttribute(pos,3)); geo.setAttribute('normal',new THREE.BufferAttribute(nor,3));
+    geo.setAttribute('uv',new THREE.BufferAttribute(uv,2)); geo.setAttribute('color',new THREE.BufferAttribute(col,3));
+    _pmVC=_pmVC||std(0xffffff,{map:PX_NOISE,roughness:0.9,flatShading:true,vertexColors:true});
+    const m=new THREE.Mesh(geo,_pmVC); m.castShadow=gs.some(x=>x.s);
+    teile.forEach(o=>par.remove(o)); par.add(m);
+  }
 }
 /* Lange Haare schauen unter der Muetze heraus */
 function haareUnterMuetze(k,h){

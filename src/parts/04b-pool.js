@@ -1,19 +1,19 @@
 class ItemPool{
   constructor(parts,cap){
     this.cap=cap; this.h=[];
-    this.meshes=parts.map(p=>{ const m=new THREE.InstancedMesh(p.geo,p.mat,cap); m.count=0; m.frustumCulled=false; m.castShadow=HIQ&&!p.mat.transparent; m.receiveShadow=HIQ; m.instanceMatrix.setUsage(THREE.DynamicDrawUsage); scene.add(m); return m; });
+    this.meshes=parts.map(p=>{ const m=new THREE.InstancedMesh(p.geo,p.mat,cap); m.count=0; m.visible=false; m.frustumCulled=false; m.castShadow=HIQ&&!p.mat.transparent; m.receiveShadow=HIQ; m.instanceMatrix.setUsage(THREE.DynamicDrawUsage); scene.add(m); return m; });
   }
   /* 02.10.: seit die Ware das Fach auch in die Tiefe fuellt, passt in ein
      Fach ein Vielfaches - der Vorrat waechst mit (doppelt), statt dass das
      Einraeumen mitten im Karton stehen bleibt. Obergrenze nur zur Sicherheit. */
   full(){ return this.h.length>=12000; }
   wachse(){ const neu=Math.min(12000,this.cap*2);
-    this.meshes=this.meshes.map(m=>{ const n=new THREE.InstancedMesh(m.geometry,m.material,neu); n.count=m.count; n.frustumCulled=false; n.castShadow=m.castShadow; n.receiveShadow=m.receiveShadow;
+    this.meshes=this.meshes.map(m=>{ const n=new THREE.InstancedMesh(m.geometry,m.material,neu); n.count=m.count; n.visible=m.visible; n.frustumCulled=false; n.castShadow=m.castShadow; n.receiveShadow=m.receiveShadow;
       n.instanceMatrix.setUsage(THREE.DynamicDrawUsage); n.instanceMatrix.array.set(m.instanceMatrix.array); n.instanceMatrix.needsUpdate=true;
       const par=m.parent||scene; par.remove(m); par.add(n); m.dispose&&m.dispose(); return n; });
     this.cap=neu; }
-  add(mx){ if(this.h.length>=this.cap) this.wachse(); const h={i:this.h.length,m:mx.clone(),pool:this}; this.h.push(h); for(const me of this.meshes){ me.setMatrixAt(h.i,mx); me.count=this.h.length; me.instanceMatrix.needsUpdate=true; } return h; }
-  remove(h){ if(!h||this.h[h.i]!==h) return; const last=this.h.pop(); if(last!==h){ this.h[h.i]=last; last.i=h.i; for(const me of this.meshes) me.setMatrixAt(h.i,last.m); } for(const me of this.meshes){ me.count=this.h.length; me.instanceMatrix.needsUpdate=true; } }
+  add(mx){ if(this.h.length>=this.cap) this.wachse(); const h={i:this.h.length,m:mx.clone(),pool:this}; this.h.push(h); for(const me of this.meshes){ me.setMatrixAt(h.i,mx); me.count=this.h.length; me.visible=true; me.instanceMatrix.needsUpdate=true; } return h; }
+  remove(h){ if(!h||this.h[h.i]!==h) return; const last=this.h.pop(); if(last!==h){ this.h[h.i]=last; last.i=h.i; for(const me of this.meshes) me.setMatrixAt(h.i,last.m); } for(const me of this.meshes){ me.count=this.h.length; me.visible=this.h.length>0; me.instanceMatrix.needsUpdate=true; } }
   /* 04.10. (Tom, iPhone: Gameplay-Vorfuehrung mit 5 Bildern je Sekunde -
      gemessen 9,4 Millionen Dreiecke Ware, weil jedes Fach bis ganz hinten
      voll ist): verdeckte Stuecke hinter vollen Reihen werden nicht
@@ -21,7 +21,7 @@ class ItemPool{
      Matrix bleibt am Griff; zeige stellt es wieder hinein. */
   verstecke(h){ if(!h||h.versteckt||this.h[h.i]!==h) return; this.remove(h); h.versteckt=true; }
   zeige(h){ if(!h||!h.versteckt) return; h.versteckt=false; if(this.h.length>=this.cap) this.wachse();
-    h.i=this.h.length; this.h.push(h); for(const me of this.meshes){ me.setMatrixAt(h.i,h.m); me.count=this.h.length; me.instanceMatrix.needsUpdate=true; } }
+    h.i=this.h.length; this.h.push(h); for(const me of this.meshes){ me.setMatrixAt(h.i,h.m); me.count=this.h.length; me.visible=true; me.instanceMatrix.needsUpdate=true; } }
   set(h,mx){ if(h.versteckt){ h.m.copy(mx); return; } if(this.h[h.i]!==h) return; h.m.copy(mx); for(const me of this.meshes){ me.setMatrixAt(h.i,mx); me.instanceMatrix.needsUpdate=true; } }
 }
 /* Pools entstehen erst, wenn die Ware zum ersten Mal gebraucht wird

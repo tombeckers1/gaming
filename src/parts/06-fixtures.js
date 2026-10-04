@@ -933,7 +933,10 @@ function lvSicht(lv){
   const it=lv.items; let weg=0;
   if(lv.type&&it.length){ const K=kindOf(lv.sh), L=layout(lv.type,lv.sh,lv), reihe=L.cols*L.st;
     const offen=lv.li===K.lv.length-1&&K.lv[lv.li]+fachHoehe(K,lv.li)<1.8;
-    if(!K.frei&&!offen&&reihe>0) weg=Math.max(0,Math.floor(it.length/reihe)-2)*reihe; }
+    /* am Handy (lv.nah gesetzt) reicht die vorderste volle Reihe - nur bei
+       nahen Faechern unter 0,6 m, in die man von oben hineinsieht, zwei */
+    const halten=lv.nah===undefined?2:lv.nah&&K.lv[lv.li]<0.6?2:1;
+    if(!K.frei&&!offen&&reihe>0) weg=Math.max(0,Math.floor(it.length/reihe)-halten)*reihe; }
   if(lv.imBlick===false) weg=it.length;
   let v=Math.min(lv.weg||0,it.length);
   while(v<weg){ const h=it[v++]; if(h&&h.pool) h.pool.verstecke(h); }
@@ -954,8 +957,30 @@ function regaleImBlick(){
     if(!lv.hit||!lv.items.length){ lv.imBlick=true; continue; }
     if(!lv.r){ const gp=lv.hit.geometry&&lv.hit.geometry.parameters; lv.r=gp?0.5*Math.hypot(gp.width,gp.height,gp.depth)+0.1:1.5; }
     lv.hit.getWorldPosition(_blickV); _blickS.set(_blickV,lv.r);
-    const da=_blickV.distanceTo(camera.position)<24+lv.r&&_blickF.intersectsSphere(_blickS);
-    if(da!==(lv.imBlick!==false)){ lv.imBlick=da; lvSicht(lv); } }
+    const ab=_blickV.distanceTo(camera.position), da=ab<24+lv.r&&_blickF.intersectsSphere(_blickS), nah=ab<8+lv.r;
+    if(da!==(lv.imBlick!==false)||nah!==(lv.nah!==false)){ lv.imBlick=da; lv.nah=nah; lvSicht(lv); } }
+  /* Preisschild je Fach (eigenes Bild, eigener Zeichenaufruf) ab 9 m: die
+     Schrift ist am Handy dort ohnehin nicht lesbar */
+  for(const sh of shelves) for(const lv of sh.levels){
+    if(lv.schildM===undefined){ lv.schildM=null; sh.g.traverse(o=>{ if(o.material&&o.material.map===lv.tex) lv.schildM=o; }); }
+    if(!lv.schildM) continue; lv.schildM.getWorldPosition(_blickV);
+    const zeig=_blickV.distanceTo(camera.position)<9;
+    if(zeig!==(lv.schildM.layers.mask===1)) lv.schildM.layers.set(zeig?0:1); }
+  /* Lagerregale mit Kartons (rund 40 Teile je Regal) weiter als 16 m weg:
+     von den Kassen sah man sie durch die Wand mitgezeichnet. Ausgeblendet
+     ueber die Ebene der Kamera (layers), nicht ueber visible - visible
+     nutzen Kollision und Umbau. */
+  /* Logistikhalle, ihre Tore und die LKW an den Rampen (35-60 m, hinter
+     Waenden): gemessen rund 280 Zeichenaufrufe beim Blick von der Kasse.
+     Ausgeblendet, solange die Kamera drinnen im Laden/Lager steht. */
+  const drin=camera.position.x>-24&&typeof unterDach==='function'&&unterDach(camera.position.x,camera.position.y,camera.position.z);
+  const fern=[]; if(typeof LOGI_G!=='undefined') fern.push(...LOGI_G, ...TOR_G); if(typeof wbays!=='undefined') wbays.forEach(b=>{ if(b&&b.g) fern.push(b.g); });
+  for(const g of fern){ if(!g) continue; if(drin===!!g._fernAus&&(!drin||g._fernN===g.children.length)) continue;
+    g._fernAus=drin; g._fernN=g.children.length; g.traverse(o=>o.layers.set(drin?1:0)); }
+  for(const rk of racks){ if(!rk.g) continue; rk.g.getWorldPosition(_blickV);
+    const an=_blickV.distanceTo(camera.position)<16;
+    if(an===!rk._fern&&(an||rk._n===rk.g.children.length)) continue;
+    rk._fern=!an; rk._n=rk.g.children.length; rk.g.traverse(o=>o.layers.set(an?0:1)); }
 }
 function removeFromLevel(lv){ const h=lv.items.pop(); if(h) h.pool.remove(h); lv.count--; lvSicht(lv); if(lv.count<=0){ lv.count=0; lv.type=null; lv.q=1; } if(!_ohneSchild){ updateLabel(lv); updateHead(lv.sh); } }
 function allLevels(){ const a=[]; shelves.forEach(s=>s.levels.forEach(l=>a.push(l))); return a; }

@@ -13,7 +13,8 @@ async function neuesSpiel(p){
 const { chromium } = require('/opt/node22/lib/node_modules/playwright');
 (async()=>{
   const b=await chromium.launch({args:['--no-sandbox']});
-  const p=await b.newPage({viewport:{width:1100,height:700}}); p.setDefaultTimeout(900000);
+  /* HANDY=1: Handy-Profil (Blickfeld- und Entfernungsregel, eine Reihe) */
+  const p=process.env.HANDY==='1'?await (await b.newContext({isMobile:true,hasTouch:true,viewport:{width:390,height:844}})).newPage():await b.newPage({viewport:{width:1100,height:700}}); p.setDefaultTimeout(900000);
   const errs=[]; p.on('pageerror',e=>errs.push('PAGEERROR: '+e.message));
   await p.goto('file://'+process.argv[2]);
   await p.waitForFunction('window.__bb!==undefined',null,{timeout:120000});
@@ -29,7 +30,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
         if(!h.versteckt&&h.pool.h[h.i]!==h) f.push('fehlt im Puffer '+lv.type+' #'+i);
         if(h.versteckt&&h.pool.h.indexOf(h)>=0) f.push('versteckt aber im Puffer '+lv.type+' #'+i); });
       /* die zwei vordersten vollen Reihen und die angebrochene sind sichtbar */
-      if(reihe>0&&lv.count-weg<Math.min(lv.count,2*reihe)) f.push('zu viel versteckt '+lv.type+' '+weg+'/'+lv.count+' Reihe '+reihe);
+      if(reihe>0&&lv.count-weg<Math.min(lv.count,(lv.nah===undefined?2:1)*reihe)) f.push('zu viel versteckt '+lv.type+' '+weg+'/'+lv.count+' Reihe '+reihe);
       if(!K.frei&&reihe>0&&L.rows>3&&lv.count===L.cap&&weg===0) f.push('nichts versteckt '+lv.type+' '+lv.count);
     }
     for(const t of Object.keys(bb.pools)){ const pl=bb.pools[t]; pl.h.forEach((h,i)=>{ if(h.i!==i) f.push('Index '+t); if(h.versteckt) f.push('versteckter Griff im Puffer '+t); });

@@ -39,7 +39,9 @@ function klFlaeche(o){ const g=klGrund(o.x,o.z); return o.y>=g-0.01?g:(o.y||0); 
 function klVorne(o,dz){ const s=klFlaeche(o); return s>0.5?{x:o.x,y:0,z:o.z+(dz||1.1)}:{x:o.x,y:s,z:o.z}; }
 function klMesh(e,m){ scene.add(m); (e.meshes=e.meshes||[]).push(m); return m; }
 function klWeg(e){
-  if(e.meshes) for(const m of e.meshes){ scene.remove(m); if(m.geometry&&!m.userData.geoFest) m.geometry.dispose(); }
+  /* eigene Materialien (userData.matEigen, z. B. der verkohlende Knallfrosch) gehen mit */
+  if(e.meshes) for(const m of e.meshes){ scene.remove(m); if(m.geometry&&!m.userData.geoFest) m.geometry.dispose();
+    m.traverse(c=>{ if(c.userData.matEigen&&c.material) c.material.dispose(); }); }
   e.meshes=null;
   if(e.toene) for(const h of e.toene) if(h) try{ h.stop(); }catch(x){}
   e.toene=null;
@@ -184,8 +186,10 @@ function klFunkTakt(dt){
     n++; }
   K.n=n;
   /* Eisen zerspritzt: kurze, hellere Aestchen um die Flugrichtung */
-  for(const q of ast){ const sp=Math.hypot(q[3],q[4],q[5]), dn=sp>0.05?[q[3]/sp,q[4]/sp,q[5]/sp]:randDir(), cc=[q[6]*1.15,q[7]*1.15,q[8]*1.15];
-    for(let b=0;b<q[9];b++){ const d=streu(dn,1.1), s=Math.max(0.8,sp*rand(0.5,0.9)); klFunke(q[0],q[1],q[2],d[0]*s,d[1]*s,d[2]*s,cc,rand(0.05,0.11),q[10],0,0); } }
+  /* ast: untere 4 Bit = Zahl der Aestchen, obere 4 Bit = Aestchen je
+     Aestchen (zweite Verzweigung, Riesen-Wunderkerze: Sternfunken) */
+  for(const q of ast){ const sp=Math.hypot(q[3],q[4],q[5]), dn=sp>0.05?[q[3]/sp,q[4]/sp,q[5]/sp]:randDir(), cc=[q[6]*1.15,q[7]*1.15,q[8]*1.15], na=q[9]&15, n2=q[9]>>4;
+    for(let b=0;b<na;b++){ const d=streu(dn,1.1), s=Math.max(0.8,sp*rand(0.5,0.9)); klFunke(q[0],q[1],q[2],d[0]*s,d[1]*s,d[2]*s,cc,n2?rand(0.04,0.08):rand(0.05,0.11),q[10],n2&&Math.random()<0.7?n2:0,0); } }
   m.geometry.setDrawRange(0,K.n*2); a.position.needsUpdate=true; a.color.needsUpdate=true; m.visible=K.n>0;
   return K.n>0;
 }
@@ -244,6 +248,12 @@ function klKerzeFunken(p,dt,z,m,A,B,rate,o){
       klFunke(x,y,zz,v[0],v[1],v[2],[A[0]*0.95,A[1]*0.95,A[2]*0.95],t1,3.5,0,0.25);
       imBild(t1,()=>{ const pp=bahnOrt(P0,v,3.5,t1), w=bahnTempo(v,3.5,t1);
         klFunke(pp.x,pp.y,pp.z,w[0],w[1],w[2],[B[0]*1.1,B[1]*1.1,B[2]*1.1],l-t1+0.04,3.5,Math.random()<0.4?2:0,0.5); });
+    } else if(m==='riesen'){
+      /* Riesen-Wunderkerze (03.10., Tom: "deutlich realistischer"): weissgelbe
+         Eisenfunken, schnell (3-6 m/s) und kurzlebig, die zweimal
+         verzweigen - die dichten Sternfunken einer echten 1-m-Kerze */
+      const s=rand(2.8,6.2)*(o.tempo?0.5+0.5*o.tempo:1), c=Math.random()<0.62?A:B, l=rand(0.12,0.3), k=1.15, br=Math.random();
+      klFunke(x,y,zz,d[0]*s,d[1]*s+0.4,d[2]*s,[c[0]*k,c[1]*k,c[2]*k],l,1.8,br<0.72?(Math.round(rand(2,4))|(br<0.45?(2+Math.round(Math.random()))<<4:0)):0,0.22);
     } else {
       /* Eisen: schiesst schnell heraus (2-4 m/s), lebt kurz und zerspritzt
          am Ende in 2-4 Aestchen - das typische Wunderkerzen-Sternchen */
@@ -257,8 +267,12 @@ function klKerzeFunken(p,dt,z,m,A,B,rate,o){
 function klGlutpunkt(p,m,st,hf,F){
   const alt=SCHWEIF; SCHWEIF=0; st=st||1; hf=hf===undefined?1:hf;
   /* F: Farbsatz (Farbwunderkerze) - der Kopf brennt in seiner Farbe mit weissem Kern */
-  const c=m==='titan'?[1.8,1.8,1.9]:F?klMisch(klSatt(F),[1,1,1],0.35).map(v=>v*1.6):[1.7,1.45,1.0];
-  const h=m==='titan'?[0.35,0.38,0.45]:F?klSatt(F).map(v=>v*0.45):[0.42,0.2,0.05];
+  const c=m==='titan'?[1.8,1.8,1.9]:m==='riesen'?[2.0,1.85,1.45]:F?klMisch(klSatt(F),[1,1,1],0.35).map(v=>v*1.6):[1.7,1.45,1.0];
+  const h=m==='titan'?[0.35,0.38,0.45]:m==='riesen'?[0.5,0.38,0.17]:F?klSatt(F).map(v=>v*0.45):[0.42,0.2,0.05];
+  /* Riesenkerze: weissgelber Kern 15 cm, Hof 42 cm, aber gedaempft - die Funken tragen das Bild */
+  if(m==='riesen'){ psMid.emit(p.x,p.y,p.z,0,0,0,c[0]*st,c[1]*st,c[2]*st,0.05,0,0); klFarbig(psMid);
+    psSmall.emit(p.x,p.y,p.z,0,0,0,2.2*st,2.1*st,1.9*st,0.05,0,0);
+    psBig.emit(p.x,p.y,p.z,0,0,0,h[0]*st*0.6,h[1]*st*0.6,h[2]*st*0.6,0.05,0,0); klFarbig(psBig); SCHWEIF=alt; return; }
   /* kleiner Hof (Formkerzen, und 29.09. alle Eisenkerzen): Kern 7 cm statt 15 cm, Hof 15 statt 42 cm -
      der 42-cm-Hof stand als Leuchtball an der Kerze */
   if(hf<1||m!=='titan'){
@@ -280,48 +294,87 @@ function klGlutperle(p,A,huepf,spritz,glimm){
     const qq=q; imBild(tt,()=>{ psMid.emit(qq.x,boden+0.012,qq.z,0,0,0,A[0]*0.9,A[1]*0.5,A[2]*0.2,glimm||1.0,0,0); klFarbig(psMid); });
     SCHWEIF=a; if(Math.random()<0.6) schall(q,v2=>sfx.zischen(v2*0.4,0.25)); });
 }
+/* Mantel (grauer Zuendsatz) als Rohr entlang eines Linienzugs pk
+   ([x,y,z]); die Abschnitte liegen in Pfadrichtung hintereinander, so
+   schneidet klRohrZeig den abgebrannten Teil ueber setDrawRange ab.
+   03.10. (Tom: "man sieht nur die Wunderkerzen"): vorher war die Kerze
+   ein 1-Pixel-Strich - jetzt ein grauer Stab, an dem die Glut frisst */
+function klRohrGeo(pk,r,rad){
+  rad=rad||5; const n=pk.length, pos=[], idx=[];
+  for(let i=0;i<n;i++){ const a=pk[Math.max(0,i-1)], b=pk[Math.min(n-1,i+1)]; let tx=b[0]-a[0], ty=b[1]-a[1], tz=b[2]-a[2]; const tl=Math.hypot(tx,ty,tz)||1; tx/=tl; ty/=tl; tz/=tl;
+    let n1=[ty,-tx,0], l1=Math.hypot(n1[0],n1[1]); if(l1<1e-3){ n1=[1,0,0]; l1=1; } n1=[n1[0]/l1,n1[1]/l1,0];
+    const n2=[ty*n1[2]-tz*n1[1],tz*n1[0]-tx*n1[2],tx*n1[1]-ty*n1[0]];
+    for(let k=0;k<rad;k++){ const w=k/rad*Math.PI*2, c=Math.cos(w), sn=Math.sin(w); pos.push(pk[i][0]+(n1[0]*c+n2[0]*sn)*r,pk[i][1]+(n1[1]*c+n2[1]*sn)*r,pk[i][2]+(n1[2]*c+n2[2]*sn)*r); } }
+  for(let i=0;i<n-1;i++) for(let k=0;k<rad;k++){ const a=i*rad+k, b=i*rad+(k+1)%rad, c=a+rad, d=b+rad; idx.push(a,b,c, b,d,c); }
+  const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3)); g.setIndex(idx); g.computeVertexNormals();
+  g.userData.rad=rad; g.userData.seg=n-1; return g; }
+/* nur die Abschnitte von Anteil a bis b (0..1 des Pfads) zeigen */
+function klRohrZeig(g,a,b){ const R=g.userData.rad*6, S=g.userData.seg, i0=Math.round(clamp(a,0,1)*S), i1=Math.round(clamp(b,0,1)*S); g.setDrawRange(i0*R,Math.max(0,i1-i0)*R); }
+/* Linienzug gleichmaessig neu abtasten (Abstand st m), 2D [x,y] */
+function klDicht(pk,st){ const P=klPfad(pk), n=Math.max(2,Math.ceil(P.L/(st||0.006))), r=[]; for(let i=0;i<=n;i++) r.push(klPfadOrt(P,i/n)); return r; }
+function klMantelMat(){ return klMat('mantel',()=>new THREE.MeshStandardMaterial({color:LIN(0x86888a),roughness:0.95,metalness:0.05,emissive:LIN(0x262626),side:THREE.DoubleSide})); }
+function klZoneMat(){ return klMat('glutzone',()=>new THREE.MeshBasicMaterial({color:new THREE.Color(1.7,0.95,0.45),toneMapped:false,fog:false})); }
+function klZone(e,r){ const m=new THREE.Mesh(klMat('glutkugel',()=>new THREE.SphereGeometry(1,8,6)),klZoneMat()); m.userData.geoFest=true; m.scale.setScalar(r); m.visible=false; return klMesh(e,m); }
 /* Eine Wunderkerze als Objekt (auch fuer den Funkenkranz) */
 function klKerze(e,basis,o){
-  /* basis: Fusspunkt; o: laenge, t, material, A, B, n, nachglut, endperle, glutperle, weite, dichte, spitze */
-  const L=o.laenge||0.5, m=o.material||'eisen', N=24, pk=[];
-  for(let i=0;i<=N;i++) pk.push([basis.x,basis.y+L*i/N,basis.z]);
+  /* basis: Fusspunkt; o: laenge, t, material, A, B, n, nachglut, endperle, glutperle, weite, dichte, spitze,
+     ang (Neigung in der Bildebene, rad), r (Mantelradius), mantel:false = nur Draht */
+  const L=o.laenge||0.5, m=o.material||'eisen', N=24, pk=[], ang=o.ang||0, ex=Math.sin(ang), ey=Math.cos(ang);
+  for(let i=0;i<=N;i++) pk.push([basis.x+ex*L*i/N,basis.y+ey*L*i/N,basis.z]);
   const K={L,m,draht:klDraht(e,pk),alter:0,T:o.t,aus:false,griff:Math.min(0.12,L*0.2),nach:o.nachglut===false?0.4:1.5,
-    rate:(o.n||7)*60*(o.dichte||1)*(m==='titan'?0.8:1),glut:m==='titan'?[1,0.55,0.25]:[1,0.24,0.05]};
+    rate:(o.n||7)*60*(o.dichte||1)*(m==='titan'?0.8:1),glut:m==='titan'?[1,0.55,0.25]:m==='riesen'?[1,0.42,0.12]:[1,0.24,0.05]};
+  const g0=K.griff/L;
+  if(o.mantel!==false){ const r=o.r||0.0042, mp=[]; for(let i=0;i<=32;i++){ const s=g0+(1-g0)*i/32; mp.push([basis.x+ex*L*s,basis.y+ey*L*s,basis.z]); }
+    const mg=klRohrGeo(mp,r,6); K.mantel=klMesh(e,new THREE.Mesh(mg,klMantelMat())); K.mantel.frustumCulled=false; K.zone=klZone(e,r*1.45); K.mr=r; }
   /* Glutfront: vom oberen Ende bis zum Griff */
-  K.front=()=>{ const u=clamp(K.alter/K.T,0,1), s=1-u*(1-K.griff/L); return {x:basis.x,y:basis.y+L*s,z:basis.z,s}; };
+  K.front=()=>{ const u=clamp(K.alter/K.T,0,1), s=1-u*(1-g0); return {x:basis.x+ex*L*s,y:basis.y+ey*L*s,z:basis.z,s}; };
   K.schritt=(dt)=>{
     if(K.aus&&K.alter>K.T+K.nach+0.2) return;
     K.alter+=dt;
     const f=K.front(), brennt=K.alter<K.T, H=klHell();
+    if(K.mantel){ klRohrZeig(K.mantel.geometry,0,brennt?(f.s-g0)/(1-g0):0);
+      /* die Abbrandzone: ein weissgelb gluehender Ring am Mantelende, flackernd */
+      K.zone.visible=brennt; if(brennt){ K.zone.position.set(f.x,f.y,f.z); K.zone.scale.setScalar(K.mr*rand(1.3,1.75)); } }
     if(brennt){
       /* 29.09., Tom: echt - Farbwunderkerze brennt mit farbigem Kopf (wie im Handel), nicht nur mit Farbspitzen */
       klGlutpunkt(f,m,m==='titan'?1.2:1,1,m==='farbspitze'?(o.B||o.A):null);
       if(m==='farbspitze') klFlamme(K.fl||(K.fl={}),f,dt,o.B||o.A,{h:0.04,r:0.006,st:0.45,rate:45,hof:0.1});
       klKerzeFunken(f,dt,K,m,o.A,o.B||o.A,K.rate,o);
       /* grosse Kerzen (XXL 1 m) leuchten mehr: Licht waechst mit der Laenge */
-      if(o.licht!==false){ const gl=Math.sqrt(Math.max(1,L/0.5)); licht('kz'+(o.key||'')+e.prod+(e.nr||0),f,m==='titan'?[0.9,0.92,1]:[1,0.72,0.35],(m==='titan'?1.4:0.7)*gl,{weite:(m==='titan'?7:4)*Math.sqrt(gl)}); }
+      if(o.licht!==false){ const gl=Math.sqrt(Math.max(1,L/0.5)), LC=m==='titan'?[0.9,0.92,1]:m==='riesen'?[1,0.9,0.68]:[1,0.72,0.35];
+        licht('kz'+(o.key||'')+e.prod+(e.nr||0),f,LC,(m==='titan'?1.4:m==='riesen'?1.9:0.7)*gl,{weite:(m==='titan'||m==='riesen'?7:4)*Math.sqrt(gl)}); }
       if(o.glutperle){ K.gp=(K.gp===undefined?rand(o.glutperle.alle[0],o.glutperle.alle[1]):K.gp)-dt;
         if(K.gp<=0){ K.gp=rand(o.glutperle.alle[0],o.glutperle.alle[1]); klGlutperle({x:f.x,y:f.y-0.008,z:f.z},klF(o.glutperle.A,FW.orange),o.glutperle.huepf||0,o.glutperle.spritz||6); } }
     } else if(!K.aus){ K.aus=true;
       if(o.endperle) klGlutperle({x:f.x,y:f.y-0.005,z:f.z},FW.orange,0,5); }
     /* Draht faerben: grau, an der Front hell, dahinter Glut, dann Asche */
     const col=K.draht.userData.col;
-    for(let i=0;i<=N;i++){ const s=i/N, tb=(1-s)/(1-K.griff/L)*K.T, al=s*L<K.griff?-1:K.alter-tb, nah=brennt?Math.exp(-Math.abs(s-f.s)*L/0.12):0;
+    for(let i=0;i<=N;i++){ const s=i/N, tb=(1-s)/(1-g0)*K.T, al=s*L<K.griff?-1:K.alter-tb, nah=brennt?Math.exp(-Math.abs(s-f.s)*L/0.12):0;
       klDrahtFarbe(col,i,al,K.glut,K.nach,H,nah*0.5); }
     klDrahtAuf(K.draht);
   };
   return K;
 }
-/* Wunderkerze (wunder, wunderfarbe, wunderkerzeXXL, Mittelkerze der wunderbox) */
+/* Wunderkerze (wunder, wunderkerzeXXL): eine oder mehrere Kerzen stecken
+   im Mini-Podest (kqWkLayout/kqPodestNimm in 14q, 03.10., Tom: "die
+   Verpackung kommt weg, man sieht nur die Wunderkerzen"). Mehrere
+   Kerzen zuenden nacheinander (versatz), jede an der vorigen. */
 klEmit('wunderkerze',(e,dt,o,t)=>{
-  if(!e.K){ e.T0=e.t; e.t=e.t+1.8+(e.endperle?1.2:0)+(e.glutperle?1.5:0);
-    const sf=klFlaeche(o);
-    e.K=klKerze(e,{x:o.x,y:Math.max(o.y,sf+0.02),z:o.z},{laenge:e.laenge,t:e.T0,material:e.material,A:e.A||FW.gold,B:e.B||e.A||FW.bernstein,n:e.n,
-      nachglut:e.nachglut,endperle:e.endperle,glutperle:e.glutperle,weite:e.weite,dichte:e.dichte,spitze:e.spitze,key:'w'});
-    if(e.aufflammen){ flash({x:o.x,y:o.y+e.laenge,z:o.z},FW.silber,1.6,0.3); schall(o,v=>sfx.zischen(v*0.8,0.5)); } }
-  e.K.schritt(dt);
-  if(t<e.T0){ zischBett(e,'wunderkerze',distVol(o)*(e.material==='titan'?1.0:0.6),dt);
-    if(e.material==='titan'){ e.kn=(e.kn||0)-dt; if(e.kn<=0){ e.kn=rand(0.8,2); sfx.crackle(distVol(o)*0.25); } } }
+  if(!e.KK){ const sf=klFlaeche(o), lay=typeof kqWkLayout==='function'?kqWkLayout(e.prod):null;
+    const pod=typeof kqPodestNimm==='function'?kqPodestNimm(e,o,e.prod):null;
+    const y0=pod?pod.y:Math.max(o.y,sf+0.02), KZ=(lay&&lay.kerzen)||[{x:0,ang:0,L:e.laenge}];
+    e.T0=e.t; let ende=0;
+    e.KK=KZ.map((kz,i)=>{ const st=(e.versatz||0)*i, T=e.T0*(kz.dauer||1); ende=Math.max(ende,st+T);
+      return {start:st,K:klKerze(e,{x:o.x+(kz.x||0),y:y0,z:o.z+(kz.z||0)},{laenge:kz.L||e.laenge,ang:kz.ang||0,r:kz.r,t:T,material:e.material,A:e.A||FW.gold,B:e.B||e.A||FW.bernstein,n:e.n,
+        nachglut:e.nachglut,endperle:e.endperle,glutperle:e.glutperle,weite:e.weite,dichte:e.dichte,spitze:e.spitze,key:'w'})}; });
+    e.t=ende+1.8+(e.endperle?1.2:0)+(e.glutperle?1.5:0);
+    if(e.aufflammen){ flash({x:o.x,y:y0+e.laenge,z:o.z},FW.silber,1.6,0.3); schall(o,v=>sfx.zischen(v*0.8,0.5)); } }
+  let an=0;
+  for(const k of e.KK){ if(t<k.start) continue;
+    if(!k.an){ k.an=1; if(k.start>0){ const f=k.K.front(); flash(f,FW.gold,0.35,0.08); schall(f,v=>sfx.zischen(v*0.35,0.3)); } }
+    k.K.schritt(dt); if(k.K.alter<k.K.T) an++; }
+  if(an){ zischBett(e,'wunderkerze',distVol(o)*(e.material==='titan'||e.material==='riesen'?1.0:0.6)*Math.min(1.4,0.8+0.2*an),dt);
+    if(e.material==='titan'||e.material==='riesen'){ e.kn=(e.kn||0)-dt; if(e.kn<=0){ e.kn=rand(0.5,1.4); sfx.crackle(distVol(o)*0.25); } } }
 });
 
 /* Varianten unter eigenem Namen (Material = eigener Effekt, katalog-klein
@@ -356,22 +409,35 @@ function klPfad(pk){ const s=[0]; for(let i=1;i<pk.length;i++) s.push(s[i-1]+Mat
   return {pk,s,L:s[s.length-1]}; }
 function klPfadOrt(P,u){ const z=u*P.L; let i=1; while(i<P.s.length-1&&P.s[i]<z) i++;
   const a=P.pk[i-1], b=P.pk[i], f=(z-P.s[i-1])/Math.max(1e-6,P.s[i]-P.s[i-1]); return [a[0]+(b[0]-a[0])*f,a[1]+(b[1]-a[1])*f]; }
+/* Formen der Formkerzen (Herz, Ziffern): je Teil die Pfade in Metern,
+   x relativ zur Mitte des Produkts, y ab dem Fuss der Form. Auch das
+   Mini-Podest (14q) baut daraus die noch nicht gezuendeten Kerzen. */
+function klFormTeile(formen,gr,abstand){
+  const nf=formen.length, pitch=Math.max(abstand||0.16,gr*0.72);
+  return formen.map((f,j)=>{ const herz=f==='herz', dx=(j-(nf-1)/2)*pitch;
+    const pf=herz?[klHerzHaelfte(-1,40),klHerzHaelfte(1,40)]:[KL_ZIFFER[f]||KL_ZIFFER['0']];
+    return {f,herz,dx,pfade:pf.map(pk=>pk.map(([x,y])=>[dx+(x-(herz?0:0.3))*gr,y*gr]))}; }); }
 klEmit('formkerze',(e,dt,o,t)=>{
   /* 28.09. (Tom): die Form brennt am Produkt - vorher 35 cm davor an der Tischkante */
   const Z=o.z;
   const H=klHell(), A=e.A||FW.gold, B=e.B||FW.rot, G=klF(e.glut,B), gl=[G[0]*0.9+0.1,G[1]*0.55,G[2]*0.45], NG=e.nachglut||1.8;
   if(!e.teile){
-    const sf=klFlaeche(o), gr=e.groesse||0.3, formen=Array.isArray(e.form)?e.form:[e.form], nf=formen.length;
-    const pitch=Math.max(e.abstand||0.16,gr*0.72), y0=Math.max(o.y,sf+0.02)+0.1;
-    e.teile=formen.map((f,j)=>{
-      const cx=o.x+(j-(nf-1)/2)*pitch, herz=f==='herz';
-      const pfade=herz?[klHerzHaelfte(-1,40),klHerzHaelfte(1,40)]:[KL_ZIFFER[f]||KL_ZIFFER['0']];
-      const P=pfade.map(pk=>{ const q=pk.map(([x,y])=>[cx+(x-(herz?0:0.3))*gr,y0+y*gr,Z]); const p=klPfad(q.map(p=>[p[0],p[1]])); p.p3=q; return p; });
+    const sf=klFlaeche(o), gr=e.groesse||0.3, formen=Array.isArray(e.form)?e.form:[e.form];
+    /* 03.10. (Tom): die Form steckt mit ihrem Stiel im Mini-Podest (14q) */
+    const pod=typeof kqPodestNimm==='function'?kqPodestNimm(e,o,e.prod):null, stiel=e.stiel||0.1;
+    const yp=pod?pod.y:Math.max(o.y,sf+0.02), y0=yp+stiel;
+    e.teile=klFormTeile(formen,gr,e.abstand).map((ft,j)=>{
+      const cx=o.x+ft.dx, herz=ft.herz;
+      const P=ft.pfade.map(pk=>{ const q=pk.map(([x,y])=>[o.x+x,y0+y,Z]); const p=klPfad(q.map(p=>[p[0],p[1]])); p.p3=q;
+        /* grauer Mantel ueber dem Draht: brennt von u bis 1 ab */
+        const md=klDicht(q.map(p=>[p[0],p[1]]),0.006).map(([x,y])=>[x,y,Z]);
+        p.mantel=klMesh(e,new THREE.Mesh(klRohrGeo(md,e.mantelR||0.0042,6),klMantelMat())); p.mantel.frustumCulled=false;
+        p.zone=klZone(e,(e.mantelR||0.0042)*1.45); return p; });
       P.forEach(p=>{ p.draht=klDraht(e,p.p3); });
-      /* Stiel bis auf den Halter */
-      const stiel=klDraht(e,[[cx,y0-0.1,Z],[cx,y0+(herz?0:0.01),Z]]);
-      const sc=stiel.userData.col; for(let i=0;i<6;i++) sc[i]=0.2*H; klDrahtAuf(stiel);
-      return {P,start:j*(e.versatz||0),f,fa:[{},{}]};
+      /* Stiel bis in den Halter: blanker Draht */
+      const st=klDraht(e,[[cx,yp-0.01,Z],[cx,y0+(herz?0:0.01),Z]]);
+      const sc=st.userData.col; for(let i=0;i<6;i++) sc[i]=0.45+0.2*H; klDrahtAuf(st);
+      return {P,start:j*(e.versatz||0),f:ft.f,fa:[{},{}]};
     });
     e.T0=e.t; e.t=e.t+(e.teile.length-1)*(e.versatz||0)+(e.schluss?e.schluss.funkeln+1:0)+NG+2.5;
   }
@@ -381,10 +447,12 @@ klEmit('formkerze',(e,dt,o,t)=>{
     const lt=t-tl.start, u=clamp(lt/T,0,1), brennt=lt>0&&lt<T;
     if(lt<T) alleFertig=false;
     tl.P.forEach((P,pi)=>{
+      if(P.mantel){ klRohrZeig(P.mantel.geometry,lt>0?u:0,1); if(lt>=T) P.mantel.visible=false;
+        P.zone.visible=brennt; if(brennt){ const [zx,zy]=klPfadOrt(P,u); P.zone.position.set(zx,zy,Z); P.zone.scale.setScalar(0.0042*rand(1.3,1.75)); } }
       if(brennt){ const [x,y]=klPfadOrt(P,u), f={x,y,z:Z};
         const MT=e.material||'eisen';
         klGlutpunkt(f,MT,1,0.5); /* halber Hof: der Draht bleibt lesbar */
-        klKerzeFunken(f,dt,tl.fa[pi],MT,A,B,(e.n||6)*60*(e.fronten===2?0.8:1),{tempo:0.62,weite:e.weite});
+        klKerzeFunken(f,dt,tl.fa[pi],MT,A,B,(e.n||6)*60*(e.fronten===2?0.8:1),{tempo:e.tempo||0.62,weite:e.weite});
         licht('fk'+e.prod+j+pi,f,[1,0.7,0.4],0.6,{weite:4}); }
       /* Glut: abgebrannte Punkte leuchten in B nach und bleiben als Schrift stehen */
       const col=P.draht.userData.col, n=P.p3.length, fertig=lt-T;
@@ -694,65 +762,6 @@ klEmit('ascheschlange',(e,dt,o,t)=>{
   e.zi=(e.zi||0)-dt; if(e.zi<=0&&t<e.T0){ e.zi=2.5; sfx.zischen(distVol(o)*0.08,2.2); }
 });
 
-/* Brummkreisel: Drehzahl 4 -> 14 U/s, der Brummton haengt an der
-   Drehzahl; zweimal harter Farbwechsel, Knisterfinale, Umkippen */
-klEmit('brummkreisel',(e,dt,o,t)=>{
-  const n=e.n||6, T=e.t0||(e.t0=e.t), U=e.umdreh||[4,14], TH=(e.ton&&e.ton.hz)||[90,320], FF=e.farbFolge||[['rot','gruen']], WB=e.wechselBei||[0.35,0.7], FIN=e.finale||{t:1.2};
-  if(!e.kr){ const sf=klFlaeche(o); e.kr=[];
-    /* 28.09., Tom: am Produkt - die Kreisel tanzen auf dem Karton-Feld
-       (2 x 3 Plaetze, 13 x 6 cm), vorher 22 x 16 cm Ring daneben */
-    const PL=e.plaetze||[[0,0],[-0.065,0.03],[0.065,-0.03],[0.065,0.03],[-0.065,-0.03],[0,0.03]];
-    for(let i=0;i<n;i++){ const q=PL[i%PL.length];
-      e.kr.push({x0:o.x+q[0],z0:o.z+q[1],x:0,z:0,dx:0,dz:0,zt:0,w:rand(0,6),start:i*(e.gap||0.4),
-        det:e.ton&&e.ton.groesse?rand(0.85,1.15):1,C:FF[i%FF.length].map(c=>klF(c)),z2:{},
-        /* 29.09. (Tom: "wirklich Kreise"): jeder Kreisel wandert vom
-           Karton weg ueber den Tisch - hoechstens 0,3 m - und zieht dort
-           seinen Feuerkreis. Vorher tanzten alle auf 13 x 6 cm und die
-           Funken standen als Wolke um die Verpackung. */
-        ziel:(()=>{ const a=rand(0,6.283), r=rand(0.14,0.3); return [Math.cos(a)*r,Math.sin(a)*r*0.6]; })()}); }
-    e.sf=sf; e.t=T+(n-1)*(e.gap||0.4)+1.2; }
-  const alt=SCHWEIF, q=QUAL();
-  let lx=0,lz=0,ln=0,lc=[0,0,0];
-  for(const k of e.kr){ const lt=t-k.start; if(lt<0) continue;
-    const u=lt/T;
-    if(u>=1){ if(!k.ende){ k.ende=1; if(k.ton){ k.ton.stop(); k.ton=null; } } continue; }
-    /* Weg: vom Karton zum eigenen Platz, dort leicht schlingernd */
-    k.zt-=dt; if(k.zt<=0){ k.zt=rand(0.4,0.8);
-      /* wandern: immer wieder ein neues Ziel auf der Tischplatte - der Ring zieht ueber den Tisch */
-      if(e.wandern&&lt>0.6){ const a=rand(0,6.283), r=rand(0.08,e.wandern); k.ziel=[Math.cos(a)*r,Math.sin(a)*r*0.55]; k.zt=rand(0.7,1.3); }
-      k.dx=k.ziel[0]+rand(-1,1)*(e.drift||0.02); k.dz=k.ziel[1]+rand(-1,1)*(e.drift||0.02)*0.7; }
-    k.x+=(k.dx-k.x)*Math.min(1,dt*0.9); k.z+=(k.dz-k.z)*Math.min(1,dt*0.9);
-    const rev=U[0]+(U[1]-U[0])*u, fin=lt>T-FIN.t, kipp=lt>T-0.3?(lt-(T-0.3))/0.3:0;
-    k.w+=2*Math.PI*rev*dt;
-    const x=k.x0+k.x, z=k.z0+k.z, y=e.sf+0.03+kipp*0.04;
-    /* Farbe: hart gewechselt bei den Anteilen wechselBei */
-    const stufe=WB.filter(w=>u>=w).length, C=fin?FW.silber:stufe===1?k.C[1]:k.C[0];
-    /* Feuerkreis: die Duese sitzt am Rand und laeuft mit der Drehung
-       um. Jeder Funke startet dort, wo die Duese gerade ist, und fliegt
-       tangential weiter - bei 4 bis 14 Umdrehungen pro Sekunde und
-       0,2 s Leuchtdauer schliesst sich die Spur zu einem Ring. Der Ring
-       waechst mit der Drehzahl (12 -> 22 cm Durchmesser). */
-    k.z2.f=(k.z2.f||0)+dt*420*q; SCHWEIF=0.07;
-    const nk=Math.cos(kipp*1.05), sk=Math.sin(kipp*1.05), R=0.06+0.05*u, vU=2*Math.PI*rev*R;
-    for(;k.z2.f>=1;k.z2.f--){ const a=k.w-Math.random()*0.5, cx=Math.cos(a), cz=Math.sin(a);
-      const s=vU*rand(0.45,0.7)+rand(0.2,0.5), ra=rand(0.15,0.45);
-      const vx=-cz*s+cx*ra, vz=cx*s+cz*ra, vy=rand(0.02,0.18)+vz*sk;
-      if(fin) psSmall.emit(x+cx*R,y,z+cz*R*nk,vx,vy,vz*nk,C[0],C[1],C[2],rand(0.14,0.22),1,3);
-      else klFunke(x+cx*R,y,z+cz*R*nk,vx,vy,vz*nk,C,rand(0.16,0.26),1.5,0,0.25); }
-    /* ein paar Funken reissen ab und fliegen weit ueber den Tisch */
-    if(!fin&&Math.random()<dt*25){ const a=k.w, cx=Math.cos(a), cz=Math.sin(a), s=rand(1.6,2.6);
-      klFunke(x+cx*R,y,z+cz*R,-cz*s,rand(0.2,0.6),cx*s,C,rand(0.3,0.5),3,0,0.3); }
-    psSmall.emit(x,y+0.01,z,0,0,0,1.5,1.4,1.2,0.05,0,0);
-    if(fin&&Math.random()<dt*30){ const a=Math.random()*6.283; knisterPop(x+Math.cos(a)*0.03,y+rand(0,0.08),z+Math.sin(a)*0.03,{c:FW.silber,laut:0.4}); }
-    if(lt>T-0.06&&!k.hops){ k.hops=1; psBig.emit(x,y+0.05,z,0,0,0,1.3,1.3,1.4,0.08,0,0); psMid.emit(x,y,z,rand(-.3,.3),1.2,rand(-.3,.3),1,1,1,0.25,9.8,0); }
-    lx+=x; lz+=z; ln++; lc=[lc[0]+C[0],lc[1]+C[1],lc[2]+C[2]];
-    /* Brummen: Tonhoehe folgt der Drehzahl */
-    if(!k.ton&&!k.ende) k.ton=klTon(e,sfx.brummen(distVol(o)*0.55,TH[0]*k.det,T+0.2));
-    if(k.ton){ k.tt=(k.tt||0)-dt; if(k.tt<=0){ k.tt=0.1; k.ton.f((TH[0]+(TH[1]-TH[0])*(rev-U[0])/(U[1]-U[0]))*k.det,0.08); } } }
-  SCHWEIF=alt;
-  if(ln) licht('bk'+e.prod,{x:lx/ln,y:e.sf+0.3,z:lz/ln},[lc[0]/ln,lc[1]/ln,lc[2]/ln],0.25+ln*0.07,{weite:3.5});
-});
-
 /* Flitzer: sechs Treiber rasen kreischend im Zickzack ueber den Boden,
    Goldspur mit Nachleuchten, jeder endet mit einem Knall */
 klEmit('bodenflitzer',(e,dt,o,t)=>{
@@ -829,62 +838,11 @@ klEmit('wurferbse',(e,dt,o,t)=>{
   SCHWEIF=alt;
 });
 
-/* Knallfrosch: jeder Knall wirft die gefaltete Kette in eine neue
-   Richtung; Funkenspur im Flug, Staub bei der Landung, am Schluss
-   Doppelknall und Ueberschlag */
-klEmit('huepfer',(e,dt,o,t)=>{
-  /* 28.09. (Tom): startet am Produkt und huepft auf dessen Flaeche (Tisch) */
-  if(!e.fr){ const g={x:o.x,y:klFlaeche(o),z:o.z+0.12}; e.g=g;
-    const grp=new THREE.Group();
-    const m1=new THREE.Mesh(klMat('froschgeo',()=>new THREE.BoxGeometry(0.06,0.022,0.035)),klMat('froschrot',()=>new THREE.MeshStandardMaterial({color:0xc41e1e,emissive:0x2a0404})));
-    const m2=new THREE.Mesh(klMat('froschband',()=>new THREE.BoxGeometry(0.062,0.008,0.012)),klMat('froschgelb',()=>new THREE.MeshStandardMaterial({color:0xf2c21b,emissive:0x2a2004})));
-    m2.position.y=0.012; grp.add(m1); grp.add(m2); m1.userData.geoFest=m2.userData.geoFest=true; grp.userData.geoFest=true;
-    grp.scale.setScalar(1.4); grp.position.set(g.x,g.y+0.015,g.z); klMesh(e,grp); e.grp=grp;
-    const TK=e.takt||[0.35], zeiten=[0]; for(let i=1;i<(e.knalle||9);i++) zeiten.push(zeiten[i-1]+TK[(i-1)%TK.length]);
-    e.fr={x:g.x,z:g.z,a:rand(0,6.28),zeiten,nr:0,flug:null,ry:0}; e.t=zeiten[zeiten.length-1]+2.6; }
-  const F=e.fr, g=e.g, alt=SCHWEIF, SP=klF(e.spur,FW.bernstein);
-  /* Knall */
-  if(F.nr<F.zeiten.length&&t>=F.zeiten[F.nr]){ const letzt=F.nr===F.zeiten.length-1, L=e.letzter||{};
-    const p={x:F.x,y:g.y+0.03,z:F.z};
-    const knall=()=>{ SCHWEIF=0; psBig.emit(p.x,p.y,p.z,0,0,0,1.6,1.4,1.0,0.05,0,0);
-      for(let k=0;k<8;k++){ const d=randDir(), s=rand(1.5,3); psSmall.emit(p.x,p.y,p.z,d[0]*s,Math.abs(d[1])*s,d[2]*s,1.3,1.1,0.6,rand(0.08,0.16),3,0); }
-      flash(p,FW.bernstein,0.4,0.06); schall(p,v=>sfx.crack(v*0.8)); SCHWEIF=alt; };
-    knall(); if(letzt&&L.doppel) later(0.06,knall);
-    rauchball({x:p.x,y:p.y+0.04,z:p.z},{r:0.15,n:1,dauer:1.6,steigen:0.2,c:[0.5*klHell()+0.12,0.5*klHell()+0.12,0.52*klHell()+0.12],a:0.35});
-    /* Sprung: Winkel zum vorigen +-60-150 Grad; nicht zu weit vom Start */
-    const SPR=e.sprung||[0.4,1.2], HO=e.hoehe||[0.15,0.45];
-    let a=F.a+(Math.random()<0.5?-1:1)*rand(1.05,2.6);
-    /* am Produkt bleiben: auf dem Tisch nicht weiter als 0,35 m vom Start
-       und nie ueber die Tischkante (28.09.), am Boden wie bisher 0,9 m */
-    const aufT=g.y>0.5, R=aufT?0.35:0.9;
-    if(Math.hypot(F.x-g.x,F.z-g.z)>R||F.z-g.z>(aufT?0.25:0.35)) a=Math.atan2(g.z-0.1-F.z,g.x-F.x)+rand(-0.5,0.5);
-    let D=letzt?0.3:rand(SPR[0],SPR[1])*(aufT?0.45:1);
-    if(aufT){ const zx=F.x+Math.cos(a)*D, zz=F.z+Math.sin(a)*D;
-      if(Math.abs(zx-KL_TI.x)>KL_TI.hx-0.1||Math.abs(zz-KL_TI.z)>KL_TI.hz-0.08||Math.hypot(zx-g.x,zz-g.z)>R){ a=Math.atan2(g.z-F.z,g.x-F.x); D=Math.min(D,Math.hypot(g.x-F.x,g.z-F.z)); } }
-    const h=letzt?(L.hoehe||1.1):rand(HO[0],HO[1]), vy=Math.sqrt(2*9.8*h), T=2*vy/9.8;
-    F.a=a; F.flug={t0:t,T,x0:F.x,z0:F.z,vx:Math.cos(a)*D/T,vz:Math.sin(a)*D/T,vy,dreh:(letzt?1:rand((e.dreh||[0.8,2.2])[0],(e.dreh||[0.8,2.2])[1]))*2*Math.PI/T,salto:letzt&&L.ueberschlag};
-    F.nr++; }
-  /* Flug */
-  if(F.flug){ const f=F.flug, lt=t-f.t0;
-    if(lt<f.T){ const x=f.x0+f.vx*lt, z=f.z0+f.vz*lt, y=g.y+0.015+f.vy*lt-4.9*lt*lt;
-      e.grp.position.set(x,y,z); e.grp.rotation.set(f.salto?lt/f.T*Math.PI*2:0,F.ry+f.dreh*lt,0);
-      F.z2=(F.z2||0)+dt*120*QUAL(); SCHWEIF=0.04;
-      for(;F.z2>=1;F.z2--) psSmall.emit(x,y,z,rand(-.3,.3),rand(-.1,.3),rand(-.3,.3),SP[0],SP[1],SP[2],rand(0.15,0.3),2,0);
-      SCHWEIF=alt; F.x=x; F.z=z; }
-    else { F.x=f.x0+f.vx*f.T; F.z=f.z0+f.vz*f.T; F.ry+=f.dreh*f.T; e.grp.position.set(F.x,g.y+0.015,F.z); e.grp.rotation.set(0,F.ry,0); F.flug=null;
-      rauchball({x:F.x,y:g.y+0.03,z:F.z},{r:0.18,n:2,dauer:1.2,steigen:0.05,c:[0.45*klHell()+0.1,0.42*klHell()+0.1,0.38*klHell()+0.1],a:0.35,form:'ring'});
-      schall({x:F.x,y:g.y,z:F.z},v=>sfx.poka(v*0.25)); } }
-  /* Zuendschnur glimmt, nach dem letzten Sprung raucht er noch 1 s */
-  const p=e.grp.position, fertig=F.nr>=F.zeiten.length&&!F.flug;
-  SCHWEIF=0;
-  if(!fertig) psSmall.emit(p.x,p.y+0.015,p.z,0,0,0,1.2,0.55,0.12,0.05,0,0);
-  else { F.rt=(F.rt||0)+dt; if(F.rt<1.2&&Math.random()<dt*8){ psMid.emit(p.x,p.y+0.03,p.z,rand(-.03,.03),rand(0.15,0.3),rand(-.03,.03),0.08,0.08,0.085,rand(1.5,2.2),-0.03,0); klFarbig(psMid); } }
-  SCHWEIF=alt;
-});
+/* Knallfrosch (froschsprung), Knallbonbon, Tischbombe und Brummkreisel
+   stehen seit dem 03.10. (Tom: "komplett neu, wie echt") in 14q-klein-neu.js */
 
 /* ---------------------------------------------------------
-   Party: Konfettistrahl, Papierkrone, Ueberraschung, Luftschlangen,
-   Funkenschirm
+   Party: Konfettistrahl, Luftschlangen, Funkenschirm
    --------------------------------------------------------- */
 /* Party-Popper: Plopp, ein gerichteter Kegel aus Schnipseln (Neigung
    neig gegen die Senkrechte, Azimut azi: 0 = zum Pult hin) */
@@ -900,107 +858,6 @@ klEmit('konfettistrahl',(e,dt,o,t)=>{
   schall(p,v=>{ sfx.plopp(v*1.1,1.8); sfx.snap(v*0.6); });
 });
 
-/* Knallbonbon: Riss-Knack, Konfettiwoelkchen links und rechts, eine
-   Papierkrone fliegt hoch und trudelt wie ein Blatt herab */
-function klKroneGeo(){ return klMat('kronegeo',()=>{
-  /* Papierkrone: Oe 24 cm (Katalog 12 cm; mit 16 cm vom Pult aus nur
-     ein paar Pixel - Art-Director 27.09.) */
-  const n=8, R=0.12, pos=[], idx=[];
-  for(let i=0;i<=n*2;i++){ const a=i/(n*2)*Math.PI*2, oben=i%2===0?0.1:0.042;
-    pos.push(Math.cos(a)*R,0,Math.sin(a)*R, Math.cos(a)*R,oben,Math.sin(a)*R); }
-  for(let i=0;i<n*2;i++){ const a=i*2; idx.push(a,a+1,a+2, a+1,a+3,a+2); }
-  const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3)); g.setIndex(idx); g.computeVertexNormals(); return g; }); }
-klEmit('papierkrone',(e,dt,o,t)=>{
-  const A=e.A||FW.gold, RT=(e.rest&&e.rest.t)||20;
-  if(!e.kr){ const sf=klFlaeche(o), p={x:o.x,y:Math.max(o.y,sf)+0.03,z:o.z};
-    /* das Bonbon reisst: zwei Haelften fliegen auseinander */
-    const bm=klMat('bonbon'+e.nr,()=>new THREE.MeshStandardMaterial({color:klFarbe3(A[0],A[1],A[2]).multiplyScalar(0.8),emissive:klFarbe3(A[0]*0.15,A[1]*0.15,A[2]*0.15)}));
-    e.haelften=[-1,1].map(sg=>{ const m=new THREE.Mesh(klMat('bonbongeo',()=>new THREE.CylinderGeometry(0.018,0.022,0.07,10)),bm); m.userData.geoFest=true; m.rotation.z=Math.PI/2; m.position.set(p.x+sg*0.035,p.y,p.z); klMesh(e,m); return {m,sg}; });
-    const km=new THREE.MeshStandardMaterial({color:klFarbe3(A[0],A[1],A[2]),metalness:0.55,roughness:0.3,emissive:klFarbe3(A[0]*0.45,A[1]*0.45,A[2]*0.45),side:THREE.DoubleSide});
-    const kr=new THREE.Mesh(klKroneGeo(),km); kr.userData.geoFest=true; kr.position.set(p.x,p.y,p.z); klMesh(e,kr);
-    const H=e.hoch||[2,3], h=rand(H[0],H[1]);
-    e.kr={m:kr,p0:p,vy:Math.sqrt(2*9.8*h),pend:rand(0,6),ww:rand(1.8,2.6),boden:null};
-    /* zwei Konfettiwoelkchen seitlich */
-    const F=KL_BUNT.map(c=>klF(c)), nk=Math.round((e.konfettiSeiten||40)*QUAL());
-    for(let i=0;i<nk;i++){ const sg=i%2?1:-1, s=rand(1.2,2.4); klPapier({x:p.x+sg*0.06,y:p.y,z:p.z},[sg*s,rand(0.8,2),rand(-0.6,0.6)],F[i%F.length],{art:'konfetti',dauer:RT}); }
-    const alt=SCHWEIF; SCHWEIF=0; psBig.emit(p.x,p.y,p.z,0,0,0,1.1,1,0.8,0.04,0,0); SCHWEIF=alt;
-    flash({x:p.x,y:p.y+0.2,z:p.z},FW.weiss,0.5,0.06);
-    schall(p,v=>{ sfx.crack(v*0.5); sfx.snap(v*0.8); });
-    e.t=4.5+RT; }
-  const K=e.kr, m=K.m;
-  e.haelften.forEach(h=>{ const u=Math.min(1,t/0.25); h.m.position.x=K.p0.x+h.sg*(0.035+0.09*u); h.m.rotation.y=h.sg*0.5*u; });
-  if(!K.boden){
-    if(K.vy>0||!K.oben){ /* Wurf: senkrecht, dreht 2 U/s */
-      K.vy-=9.8*dt; K.vy*=Math.exp(-0.4*dt); m.position.y+=K.vy*dt; if(K.vy<=0){ K.oben=true; K.to=t; K.x0=m.position.x; K.z0=m.position.z; }
-      m.rotation.y+=2*2*Math.PI*dt; }
-    else { /* Trudeln: sinkt 1,2 m/s, pendelt seitlich, kippt +-25 Grad */
-      const lt=t-K.to, sw=Math.sin(lt*K.ww+K.pend), sink=1.2*Math.min(1,lt*2);
-      m.position.y-=sink*dt;
-      m.position.x=K.x0+(e.pendel||0.6)*sw*Math.min(1,lt*1.5);
-      m.position.z=K.z0+0.25*Math.sin(lt*K.ww*0.5+1)*Math.min(1,lt);
-      m.rotation.z=0.44*Math.cos(lt*K.ww+K.pend); m.rotation.y+=2*2*Math.PI*dt*0.6;
-      const gy=klGrund(m.position.x,m.position.z);
-      if(m.position.y<=gy+0.002){ K.boden=t; m.position.y=gy+0.03; m.rotation.set(Math.PI/2*0.92,m.rotation.y,0); schall(m.position,v=>sfx.klick(v*0.3,0.7)); } } }
-  if(e.t<1){ const s=Math.max(0.001,e.t); m.scale.setScalar(s); e.haelften.forEach(h=>h.m.scale.setScalar(s)); }
-});
-
-/* Tischbombe: dumpfer Plopp, Spielzeug fliegt hoch und huepft
-   (Restitution rest), der Kreisel tanzt 2 s auf der Spitze */
-const KL_TEILGEO={
-  /* 8-10 cm: mit 5-7 cm vom Pult (4,2 m) aus nur Punkte (Art-Director 27.09.) */
-  wuerfel:()=>new THREE.BoxGeometry(0.075,0.075,0.075),
-  ring:()=>new THREE.TorusGeometry(0.045,0.015,6,16),
-  kreisel:()=>{ const g=new THREE.ConeGeometry(0.048,0.09,12); g.rotateX(Math.PI); g.translate(0,0.045,0); return g; },
-  kugel:()=>new THREE.SphereGeometry(0.042,12,9)
-};
-klEmit('ueberraschung',(e,dt,o,t)=>{
-  /* e.rest ist beim Produkt der Bodenrest {k,art,t} und ueberdeckt die
-     Phasenzahl rest:0.45 - vy*Objekt = NaN, das Spielzeug verschwand beim
-     ersten Aufprall (27.09.) */
-  const RT=(e.rest&&e.rest.t)||20, R=typeof e.rest==='number'?e.rest:0.45;
-  if(!e.tl){ const sf=klFlaeche(o), p={x:o.x,y:Math.max(o.y,sf)+0.02,z:o.z}, F=(e.farben||['rot','gold','blau','gruen']).map(c=>klF(c));
-    const H=e.hoch||[1.2,2.4];
-    e.tl=(e.teile||['wuerfel','ring','kreisel','kugel']).map((art,i)=>{
-      const C=F[i%F.length], mat=klMat('spiel'+i%F.length+(e.farben||[]).join(''),()=>new THREE.MeshStandardMaterial({color:klFarbe3(C[0],C[1],C[2]),roughness:0.3,metalness:0.1,emissive:klFarbe3(C[0]*0.5,C[1]*0.5,C[2]*0.5)}));
-      const m=new THREE.Mesh(klMat('teil'+art,KL_TEILGEO[art]||KL_TEILGEO.kugel),mat); m.userData.geoFest=true; m.position.set(p.x,p.y,p.z); klMesh(e,m);
-      /* Landepunkt auf dem Tisch (bis 0,8 m seitlich, 0,3 m tief) statt
-         bis 3,5 m weit ins Dunkle (Katalog: Streuung auf dem Tisch) */
-      const h=rand(H[0],H[1]), vy=Math.sqrt(2*9.8*h), T=2*vy/9.8, f=(e.streu||0.35)/0.35, auf=sf>0.5;
-      /* Ziel vorne auf der Platte (die Bombe steht hinten am Schild) */
-      const tx=auf?clamp(p.x+rand(-0.7,0.7)*f,KL_TI.x-KL_TI.hx+0.12,KL_TI.x+KL_TI.hx-0.12):p.x+rand(-0.7,0.7)*f;
-      const tz=auf?clamp(p.z+rand(0.1,0.5)*f,KL_TI.z-KL_TI.hz+0.12,KL_TI.z+KL_TI.hz-0.15):p.z+rand(-0.3,0.3)*f;
-      return {m,art,vx:(tx-p.x)/T,vz:(tz-p.z)/T,vy,ax:randDir(),w:rand(8,18),hops:0,ruhe:false,rad:art==='ring'?0.016:art==='kreisel'?0:0.038};
-    });
-    const alt=SCHWEIF; SCHWEIF=0; psBig.emit(p.x,p.y+0.05,p.z,0,0,0,1.2,1,0.7,0.06,0,0); SCHWEIF=alt;
-    rauchball({x:p.x,y:p.y+0.15,z:p.z},{r:0.3,n:2,dauer:2,steigen:0.3,c:[0.6*klHell()+0.1,0.6*klHell()+0.1,0.62*klHell()+0.1],a:0.35});
-    flash({x:p.x,y:p.y+0.3,z:p.z},FW.gold,0.8,0.12);
-    schall(p,v=>sfx.plopp(v*1.5,0.7));
-    e.t=5+RT; }
-  const q=new THREE.Quaternion(), ax=new THREE.Vector3();
-  for(const s of e.tl){ const m=s.m;
-    if(!s.ruhe){
-      s.vy-=9.8*dt; m.position.x+=s.vx*dt; m.position.y+=s.vy*dt; m.position.z+=s.vz*dt;
-      ax.set(s.ax[0],s.ax[1],s.ax[2]); q.setFromAxisAngle(ax,s.w*dt); m.quaternion.premultiply(q);
-      const gy=klGrund(m.position.x,m.position.z)+s.rad+0.001;
-      if(m.position.y<=gy&&s.vy<0){ m.position.y=gy;
-        if(s.hops<(e.huepf||3)&&-s.vy>0.6){ s.hops++; s.vy=-s.vy*R; s.vx*=0.35; s.vz*=0.35; s.w*=0.6; schall(m.position,v=>sfx.klick(v*0.35,0.5+Math.random()*0.4)); }
-        else { s.ruhe=t;
-          /* Ruhelage: Kreisel auf der Spitze, Ring flach, Wuerfel auf einer Seite */
-          if(s.art==='ring') m.rotation.set(Math.PI/2,rand(0,6),0); else m.rotation.set(0,rand(0,6),0);
-          if(s.art==='kreisel') m.position.y=klGrund(m.position.x,m.position.z)+0.001; } } }
-    else if(s.art==='kreisel'){ const lt=t-s.ruhe;
-      if(lt<2){ m.rotation.y+=dt*(30-lt*8); m.rotation.x=0.08*Math.sin(t*9); m.rotation.z=0.08*Math.cos(t*9); }
-      else if(lt<2.3) m.rotation.x=Math.min(1.15,(lt-2)/0.3*1.15); }
-    if(e.t<1) m.scale.setScalar(Math.max(0.001,e.t)); }
-});
-/* Konfettisaeule der Tischbombe: eng und senkrecht */
-klEmit('konfettisaeule',(e,dt,o,t)=>{
-  if(e.los) return; e.los=1; e.t=1;
-  const p={x:o.x,y:o.y+0.05,z:o.z}, n=Math.round((e.n||180)*QUAL());
-  for(let i=0;i<n;i++){ const d=streu([0,1,0],(e.eng||0.2)*Math.sqrt(Math.random())), s=rand(8,13.5);
-    klPapier(p,[d[0]*s,d[1]*s,d[2]*s],klF(KL_BUNT[i%KL_BUNT.length]),{art:'konfetti',dauer:(e.rest&&e.rest.t)||20,flatter:0.45}); }
-});
-
 /* Luftschlangen: Baender, die sich im Flug aus einer engen Locke zur
    lockeren Schraube entrollen, schwingend sinken und als Kringel liegen */
 klEmit('luftschlange',(e,dt,o,t)=>{
@@ -1014,14 +871,15 @@ klEmit('luftschlange',(e,dt,o,t)=>{
       /* 29.09., Tom: echt - Papier leuchtet nicht: Farbe gedeckt (vorher satt wie Neonroehren) */
       const C=klMisch(F[i%F.length],[0.45,0.45,0.45],0.3).map(c=>c*0.8), m=new THREE.Mesh(g,new THREE.MeshBasicMaterial({color:klFarbe3(C[0]*H,C[1]*H,C[2]*H),side:THREE.DoubleSide,toneMapped:false}));
       m.frustumCulled=false; klMesh(e,m);
-      const a=rand(0,6.283), ne=rand(0.05,0.4), v=rand(ST[0],ST[1])*1.22;
+      /* neig [a,b]: Neigung gegen die Senkrechte (Tischbombe: in alle Richtungen) */
+      const NG=e.neig||[0.05,0.4], a=rand(0,6.283), ne=rand(NG[0],NG[1]), v=rand(ST[0],ST[1])*1.22;
       e.bd.push({m,g,C,L:rand(LL[0],LL[1]),N:rand(LK[0],LK[1]),h:{x:p.x,y:p.y,z:p.z},v:[Math.sin(ne)*Math.cos(a)*v,Math.cos(ne)*v,Math.sin(ne)*Math.sin(a)*v],ph:rand(0,6),dreh:rand(-3,3),start:rand(0,0.12),liegt:null}); }
-    /* Knack mit einem kleinen Goldglitzer aus der Roehre */
-    const alt=SCHWEIF; SCHWEIF=0.06; psBig.emit(p.x,p.y,p.z,0,0,0,1.2,1.1,0.8,0.05,0,0);
+    /* Knack mit einem kleinen Goldglitzer aus der Roehre (still: der Knall kommt vom Traeger, z. B. Tischbombe) */
+    if(!e.still){ const alt=SCHWEIF; SCHWEIF=0.06; psBig.emit(p.x,p.y,p.z,0,0,0,1.2,1.1,0.8,0.05,0,0);
     for(let k=0;k<Math.round(40*QUAL());k++){ const d=streu([0,1,0],0.5), s=rand(2,4.5); glint(psSmall,p.x,p.y,p.z,d[0]*s,d[1]*s,d[2]*s,FW.gold,2,{t0:0.3,t1:0.9,dim:0.6}); }
     SCHWEIF=alt;
-    flash({x:p.x,y:p.y+0.3,z:p.z},FW.gold,0.6,0.08); schall(p,v=>{ sfx.crack(v*0.7); sfx.plopp(v*0.8,1.3); });
-    e.t=9+RT; }
+    flash({x:p.x,y:p.y+0.3,z:p.z},FW.gold,0.6,0.08); schall(p,v=>{ sfx.crack(v*0.7); sfx.plopp(v*0.8,1.3); }); }
+    e.t=e.liegen?e.liegen:9+RT; }
   const ax=[0,0,0];
   for(const b of e.bd){ const lt=t-b.start; if(lt<0) continue;
     const pos=b.g.attributes.position.array, u=clamp(lt/0.6,0,1), H=b.h;
@@ -1044,7 +902,7 @@ klEmit('luftschlange',(e,dt,o,t)=>{
       if(b.v[1]<0&&tief<=klGrund(H.x,H.z)+0.01){ b.liegt=t; b.von=Float32Array.from(pos); b.gy=klGrund(H.x,H.z); b.cx=H.x; b.cz=H.z; } }
     else { /* legt sich als Kringel flach auf den Boden */
       const w=clamp((t-b.liegt)/0.8,0,1), ww=w*w*(3-2*w);
-      for(let j=0;j<NP;j++){ const s=j/(NP-1), ph=2*Math.PI*b.N*0.8*s+b.ph, r=0.05+0.14*s, x=b.cx+Math.cos(ph)*r, z=b.cz+Math.sin(ph)*r, y=b.gy+0.004;
+      for(let j=0;j<NP;j++){ const s=j/(NP-1), ph=2*Math.PI*Math.min(1.7,0.6+b.N*0.2)*s+b.ph, r=(0.04+0.13*s)*clamp(b.L/1.8,0.35,1)*(1+0.22*Math.sin(s*9+b.ph)), /* lockerer, unregelmaessiger Kringel (03.10.: vorher ein glattes Achteck) */ x=b.cx+Math.cos(ph)*r, z=b.cz+Math.sin(ph)*r, y=b.gy+0.004;
         const dx=Math.cos(ph)*BR/2, dz=Math.sin(ph)*BR/2, k=j*6, Z=[x-dx,y,z-dz,x+dx,y,z+dz];
         for(let c=0;c<6;c++) pos[k+c]=b.von[k+c]+(Z[c]-b.von[k+c])*ww; } }
     b.g.attributes.position.needsUpdate=true;
@@ -1234,36 +1092,49 @@ Object.assign(KLEIN,{
     /* 28.09., Tom: echt - Goldschirm mit wenigen roten Sternchen, dann ein kleiner Goldschirm (vorher drei Farbringe) */
     phasen:[{k:'funkenschirm',at:0,h:1.3,n:170,A:'gold',B:'rot',anteil:0.14,t:2.4},
             {k:'funkenschirm',at:0.75,h:0.75,n:70,A:'gold',tt:0.8,t:1.6}]},
-  wunder:{stueck:1,lunte:0,dauer:22,
-    phasen:[{k:'wunderkerze',at:0,t:20,laenge:0.5,material:'eisen',A:'gold',B:'bernstein',verzweig:1,n:7,nachglut:true,endperle:true}]},
+  /* 03.10. (Tom: "Podest statt Verpackung, groesser, sichtbarer"): drei
+     Goldkerzen stecken gefaechert im Mini-Podest, jede zuendet an der
+     vorigen - drei Funkenbaelle statt einem; Funken weiter und dichter */
+  wunder:{stueck:1,lunte:0,dauer:23,
+    phasen:[{k:'wunderkerze',at:0,t:13,versatz:3.0,laenge:0.5,material:'eisen',A:'gold',B:'bernstein',verzweig:1,n:9,nachglut:true,endperle:true}]},
   wunderfarbe:{stueck:4,lunte:0,dauer:20,
     /* x leicht versetzt: die naechste Kerze uebernimmt neben der vorigen */
     phasen:[{k:'farbspitze',material:'farbspitze',laenge:0.35,t:5,A:'gold',spitze:0.3,
       /* 28.09., Tom: ein Farbthema - Rot und Gruen im Wechsel (vorher vier Farben), am Karton */
       folge:[{at:0,B:'rot',x:-0.05},{at:4.4,B:'gruen',x:-0.017},{at:8.8,B:'rot',x:0.017},{at:13.2,B:'gruen',x:0.05}]}]},
   /* L2 */
-  wunderherz:{stueck:1,lunte:0,dauer:10,
+  wunderherz:{stueck:1,lunte:0,dauer:13,
     /* 28.09., Tom: Herz 17 cm statt 35 (passt auf den Karton), Goldfunken wie eine echte Wunderkerze, das Herz glueht rot nach */
     /* 29.09., Tom: der Effekt soll sichtbar am Herz entlang laufen - die
        Funkenwolke (40 cm) deckte das 17-cm-Herz zu. Jetzt 24 cm Herz, kurze
        Funken (Reichweite ~15 cm) und weniger davon: man sieht die zwei
        Glutpunkte die Herzlinie hochwandern und das Herz rot nachgluehen. */
-    phasen:[{k:'herzdraht',form:'herz',at:0,t:7,groesse:0.22,start:'spitze',fronten:2,n:3,weite:0.8,A:'gold',B:'bernstein',glut:'rot',treffen:{flash:'weiss',funken:40},nachglut:2.4}]},
-  knallbonbon:{stueck:4,lunte:0,dauer:9,
-    phasen:[{k:'papierkrone',hoch:[2,3],pendel:0.6,konfettiSeiten:40,
-      folge:[{at:0.4,x:-0.3,A:'gold'},{at:2.2,x:0.3,A:'silber'},{at:4.0,x:-0.1,A:'rot'},{at:5.6,x:0.1,A:'blau'}]}],
-    rest:{k:'bodenrest',art:'krone',t:20}},
-  knallfrosch:{stueck:1,lunte:1.0,dauer:6,
-    phasen:[{k:'huepfer',at:0,knalle:9,takt:[0.35,0.3,0.45,0.25,0.3,0.5,0.28,0.35],sprung:[0.4,1.2],hoehe:[0.15,0.45],dreh:[0.8,2.2],spur:'bernstein',
-      letzter:{hoehe:1.1,doppel:true,ueberschlag:true}}]},
+    /* 03.10., Tom: "Herz groesser" - 36 cm Herz auf 12-cm-Stiel im Podest, grauer Mantel, der abbrennt */
+    phasen:[{k:'herzdraht',form:'herz',at:0,t:8,groesse:0.36,stiel:0.12,start:'spitze',fronten:2,n:4,tempo:0.32,weite:1.0,A:'gold',B:'bernstein',glut:'rot',treffen:{flash:'weiss',funken:70},nachglut:2.6}]},
+  /* 03.10. (Tom: "es kommen nur Kronen raus"): vier Bonbons reissen
+     nacheinander, aus jedem fliegen Papierkrone, Witzzettel, Spielzeug
+     und Konfetti - jedes Bonbon mit anderem Inhalt (14q, bonbonriss) */
+  knallbonbon:{stueck:4,lunte:0,dauer:17,
+    phasen:[{k:'bonbonriss',at:0,zeiten:[0.5,3.1,5.9,8.4],liegen:16}],
+    rest:{k:'bodenrest',art:'konfetti',t:20}},
+  /* 03.10. (Tom: "komplett neu, wie echt"): gefaltetes Zickzack-Paeckchen,
+     Zuendschnur glimmt, zehn Knalle im unregelmaessigen Takt, jeder wirft
+     es in eine neue Richtung, am Ende liegt es verkohlt da (14q) */
+  knallfrosch:{stueck:1,lunte:0,dauer:10,
+    phasen:[{k:'froschsprung',at:0,lunte:1.4,knalle:10,takt:[0.42,0.31,0.66,0.24,0.5,0.85,0.29,0.38,0.58],sprung:[0.12,0.5],hoehe:[0.05,0.38],
+      letzter:{hoehe:0.45,doppel:true}}]},
   pharao:{stueck:4,lunte:0,dauer:16,
     phasen:[{k:'ascheschlange',at:0,n:4,versatz:0.8,t:14,laenge:[0.25,0.45],dicke:0.035,winden:{amp:0.06,wellen:1.5},glut:'orange',rauch:true,anordnung:'rhombus',
       koenig:{nr:2,dicke:1.6,aufbaeumen:0.1}}]},
-  tischbombe:{stueck:1,lunte:1.0,dauer:7,
-    phasen:[{k:'ueberraschung',at:0,teile:['wuerfel','ring','kreisel','kugel','wuerfel','ring','kugel','kreisel'],hoch:[1.2,2.4],streu:0.35,huepf:3,rest:0.45,farben:['rot','gold','blau','gruen']},
-            /* Katalog: k:'konfetti' - eigener Name, weil konfetti() schon der alte Schwall ist */
-            {k:'konfettisaeule',at:0,n:180,h:5.5,eng:0.2}],
-    rest:{k:'bodenrest',art:'spielzeug',t:20}},
+  /* 03.10. (Tom: "was rauskommt ist irgendwas, landet immer an der
+     gleichen Stelle"): Inhalt wie eine echte Tischbombe - Papierhuetchen,
+     Luftruessel, Troeten, Masken, Pappnasen, Spielzeug, Konfetti und
+     Luftschlangen fliegen in alle Richtungen, verschieden weit und hoch,
+     bleiben auf Tisch und Boden liegen (14q, bombenwurf) */
+  tischbombe:{stueck:1,lunte:1.2,dauer:17,
+    phasen:[{k:'bombenwurf',at:0,liegen:15},
+            {k:'luftschlange',at:0.02,still:true,n:9,laenge:[0.7,1.5],steig:[2.4,4.2],neig:[0.3,1.05],locken:[3,5],schwing:0.35,liegen:15,farben:['rot','gold','gruen','blau','magenta','tuerkis']}],
+    rest:{k:'bodenrest',art:'konfetti',t:20}},
   bengalholz:{stueck:4,lunte:0,dauer:14,
     phasen:[{k:'zuendholz',t:4,stich:0.25,glimm:1.0,
       /* 28.09., Tom: am Produkt - die Hoelzer stecken im Karton (vorher bis 15 cm daneben) */
@@ -1276,7 +1147,8 @@ Object.assign(KLEIN,{
        Titanfunken flogen 30-50 cm weit und machten aus 13-cm-Ziffern vier
        Funkenbaelle. Jetzt kurze Funken (Reichweite ~12 cm) direkt an der
        Glutfront, Ziffern 16 cm: man sieht die 2027 Strich fuer Strich entstehen */
-    phasen:[{k:'glutschrift',form:['2','0','2','7'],abstand:0.105,groesse:0.16,at:0,t:6.5,versatz:0.4,start:'strich',fronten:1,material:'titan',weite:0.28,A:'silber',B:'weiss',glut:'gold',nachglut:3.0,n:3, /* weniger Funken: die Ziffern sollen schon beim Brennen lesbar sein */
+    /* 03.10., Tom: "groesser, sichtbarer" - Ziffern 26 cm im langen Podest */
+    phasen:[{k:'glutschrift',form:['2','0','2','7'],abstand:0.19,groesse:0.26,stiel:0.1,at:0,t:6.5,versatz:0.4,start:'strich',fronten:1,material:'titan',weite:0.4,A:'silber',B:'weiss',glut:'gold',nachglut:3.0,n:4, /* weniger Funken: die Ziffern sollen schon beim Brennen lesbar sein */
       schluss:{at:7.8,funkeln:1.0}}]},
   /* L4 */
   boeller:{stueck:1,lunte:1.2,dauer:5,phasen:[{k:'alt',fn:'furzboeller'}]},
@@ -1290,14 +1162,12 @@ Object.assign(KLEIN,{
   blitzknaller:{stueck:6,lunte:1.0,dauer:6.5,
     /* 28.09., Tom: echt - Blitz wie ein Fotoblitz, kein weisser Bildschirm, kein Nachbild */
     phasen:[{k:'weissblitz',hell:4.0,knall:'trocken',folge:[{at:0,bx:-0.35,bz:1.25},{at:0.85,bx:0.5,bz:1.7},{at:1.9,bx:-0.7,bz:2.1},{at:2.45,bx:0.15,bz:1.45},{at:3.7,bx:0.8,bz:2.3},{at:4.6,bx:-0.2,bz:2.6}]}]},
-  bodenkreisel:{stueck:6,lunte:0,dauer:9.5,
-    /* 28.09., Tom: echt - zwei Farbpaare statt zwoelf Farben, die Kreisel tanzen auf dem Karton-Feld, hoechstens drei zugleich */
-    /* 30.09., Tom: "mehrere Ringe, die sich auf dem Zuendtisch bewegen" -
-       dichter hintereinander (bis vier zugleich), laenger, und jeder
-       Kreisel wandert waehrend des Drehens ueber die Tischplatte */
-    phasen:[{k:'brummkreisel',at:0,n:6,zuend:'mitte',gap:0.7,t:4.6,umdreh:[4,14],drift:0.02,wandern:0.34,ton:{hz:[90,320],groesse:true},
-      farbFolge:[['gold','rot'],['silber','gruen']],
-      wechselBei:[0.35,0.7],finale:{k:'knistern',A:'silber',t:1.2,umfallen:true}}]},
+  /* 03.10. (Tom: "richtige Kreise, die sich drehen - und vom Tisch ein
+     bis zwei Meter nach oben"): sechs Feuerkreisel, jeder ein sichtbarer
+     Feuerring mit tangentialen Spiralfunken; vier heben surrend ab wie
+     ein Flying Saucer, zwei brummen auf dem Tisch aus (14q, feuerkreisel) */
+  bodenkreisel:{stueck:6,lunte:0,dauer:11,
+    phasen:[{k:'feuerkreisel',at:0,farbFolge:[['gold','rot'],['silber','gruen'],['gold','gruen'],['silber','rot'],['gold','rot'],['silber','gruen']]}]},
   leuchtstaebe:{stueck:6,lunte:0,dauer:16,
     /* 28.09., Tom: echt - Bengalstaebe je EINE Farbe (Gruen, Weiss), einzeln gezuendet, im Karton (vorher Faecher, synchroner Farbwechsel) */
     phasen:[{k:'bengalstab',at:0,n:6,farben:['gruen','weiss'],farbFolge:[0,1,1,0,1,0],zuend:[0,0.9,1.7,2.9,3.4,4.6],brenn:9,ang:0.1,breit:0.035}]},
@@ -1308,9 +1178,13 @@ Object.assign(KLEIN,{
     /* 28.09., Tom: echt - Strobe-Toepfe im Karton (a 5 cm), eigener unruhiger Takt je Topf, kein Dauerlicht-Endspurt, einzeln aus */
     phasen:[{k:'strobotopf',at:0,t:13,a:0.05,toepfe:[{A:'weiss',hz:6.5,at:0},{A:'weiss',hz:4.1,at:0.7,frueher:1.6},{A:'rot',hz:2.8,at:1.5,frueher:0.6},{A:'weiss',hz:5.3,at:2.1,frueher:2.4}]}]},
   /* L6 */
+  /* 03.10. (Tom: "deutlich realistischer"): grauer 1-m-Stab im Podest,
+     die weissgelbe Glutzone frisst sich hinab, dichte, zweimal verzweigte
+     Sternfunken mit kurzer Lebensdauer, warmweisses Licht, ab und zu
+     tropft Schlacke */
   wunderkerzeXXL:{stueck:1,lunte:0,dauer:32,
-    phasen:[{k:'wunderkerze',at:0,t:30,laenge:1.0,material:'titan',A:'weiss',B:'silber',weite:2.0,dichte:2.2,verzweig:0,
-      glutperle:{alle:[0.8,1.6],A:'orange',huepf:1,spritz:6}}]},
+    phasen:[{k:'wunderkerze',at:0,t:30,laenge:1.0,material:'riesen',A:'weiss',B:'gold',dichte:2.4,n:9,
+      glutperle:{alle:[1.4,2.8],A:'orange',huepf:1,spritz:6}}]},
   /* L8 */
   knallteppich:{stueck:1,lunte:1.2,dauer:9,
     phasen:[{k:'knallkette',at:0,form:'s',bx:0.14,bz:0.11,laenge:2.6,knalle:60,gap:0.12,gapEnde:0.045,papier:'rot',papierN:14,peitsche:[0.05,0.15],rauch:true,
@@ -1347,23 +1221,23 @@ Object.assign(SIGNATUR,{
   knallerbsen:{idee:'wurf',text:'Knall erst beim Aufprall, ein Nachzügler'},
   partypopper:{idee:'konfettistrahl',text:'gerichteter Schnipselstrahl, Teppich bleibt liegen'},
   tisch:{eff:'funkenschirm',text:'Goldschirm mit roten Sternchen, kleiner Nachschirm'},
-  wunder:{idee:'glutfront',text:'Glutfront wandert den Draht hinab, Perle tropft ab'},
+  wunder:{idee:'glutfront',text:'drei Goldkerzen im Podest, eine zündet die nächste, Perle tropft ab'},
   wunderfarbe:{eff:'farbspitze',text:'Goldfunken mit rotem oder grünem Saum im Wechsel'},
-  wunderherz:{idee:'herzdraht',text:'zwei Glutfronten laufen am Herz hoch und treffen sich'},
-  knallbonbon:{idee:'papierkrone',text:'Krone segelt trudelnd herab'},
-  knallfrosch:{idee:'huepfer',text:'jeder Knall ein Sprung, Überschlag am Schluss'},
+  wunderherz:{idee:'herzdraht',text:'großes Herz: zwei Glutfronten fressen den Mantel hoch und treffen sich'},
+  knallbonbon:{idee:'bonbonriss',text:'Bonbon reißt, Krone, Witzzettel und Spielzeug fliegen heraus - jedes Bonbon anders'},
+  knallfrosch:{idee:'froschsprung',text:'Zickzack-Päckchen springt bei jedem Knall weiter, liegt verkohlt da'},
   pharao:{idee:'ascheschlange',text:'wachsende, sich windende Ascheschlangen'},
-  tischbombe:{idee:'ueberraschung',text:'Spielzeug fliegt und hüpft'},
+  tischbombe:{idee:'bombenwurf',text:'Hütchen, Rüssel, Tröten, Masken, Nasen und Spielzeug fliegen in alle Richtungen'},
   bengalholz:{idee:'zuendholz',text:'Stichflamme, Kugelflamme, Rauchfaden'},
   wunderzahl:{idee:'glutschrift',text:'2027 schreibt sich Strich für Strich'},
   boeller:{idee:'pups',text:'Pups mit grünbrauner Wolke am Boden'},
   luftschlangentisch:{idee:'luftschlange',text:'Bänder entrollen sich im Flug'},
   blitzknaller:{eff:'weissblitz',text:'Weißblitz wie ein Fotoblitz, trockener Knall'},
-  bodenkreisel:{idee:'brummton',text:'Tonhöhe folgt der Drehzahl, Gold-Rot und Silber-Grün, Knisterfinale'},
+  bodenkreisel:{idee:'feuerkreisel',text:'drehende Feuerringe, vier steigen surrend 1-2 m auf, Farbwechsel, Knisterfinale'},
   leuchtstaebe:{idee:'bengalstab',text:'sechs Bengalstäbe grün und weiß, einzeln gezündet'},
   schwaermer:{eff:'bodenflitzer',text:'Bodenflitzer mit Haken und Kreischen'},
   stroboblinker:{idee:'strobotopf',text:'vier Strobe-Töpfe, jeder im eigenen unruhigen Takt, gehen einzeln aus'},
-  wunderkerzeXXL:{eff:'glutperle',text:'Titan-Silberregen mit tropfenden Glutperlen'},
+  wunderkerzeXXL:{eff:'sternfunken',text:'1-m-Kerze: Glutzone frisst sich hinab, dichte weißgelbe Sternfunken'},
   knallteppich:{idee:'chinakette',text:'Kette brennt in Schlaufen auf der Matte ab, rote Fetzen, drei Schlusskracher'},
   wunderbox:{idee:'kranzlauf',text:'Kranz zündet ringsum, Silberkerze in der Mitte'},
   bengalflamme:{eff:'bengaltopf',text:'drei blaue Bengaltöpfe nacheinander, blau angestrahlter Rauch'},

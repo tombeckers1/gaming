@@ -7,7 +7,7 @@
    ========================================================= */
 const P={
   wunder:{name:'Goldfunken · XXL-Wunderkerzen 50 cm',short:'Wunderkerzen',cat:1,lvl:1,shape:'sparkler',dims:[0.105,0.30,0.032],grid:[12,3,1],box:36,cost:0.55,market:1.49,weight:10,hype:3,risk:1,
-    desc:'Die klassische Goldwunderkerze: Der Funkenball wandert langsam den Draht hinunter, und zum Schluss tropft die letzte Glutperle ab.',
+    desc:'Die klassische Goldwunderkerze: Drei stecken im Podest, eine zündet an der anderen, die Funkenbälle wandern den Draht hinunter, und zum Schluss tropft die letzte Glutperle ab.',
     art:{title:'GOLDFUNKEN',sub:'XXL 50 cm',bg1:'#26307a',bg2:'#0b0f2e',ac:'#ffcf3a',ac2:'#ff6a3d'}},
   knallerbsen:{name:'Knallerbsen · 30 Stück',short:'Knallerbsen',cat:1,lvl:1,shape:'boxA',dims:[0.085,0.05,0.055],grid:[8,2,2],box:32,cost:0.35,market:0.99,weight:9,hype:2,risk:1,
     desc:'Werfen, knack! Kleine Papiererbsen, die beim Aufprall mit einem Blitzchen zerplatzen – und eine lässt sich immer Zeit.',

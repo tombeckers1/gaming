@@ -253,10 +253,18 @@ EFF.initiale=function(p,A,B,s,r){
    und in seine Richtung, und zieht einen Goldschweif; keiner fliegt im
    Takt mit einem anderen (28.09., Tom: echt - vorher schlugen alle
    zwoelf Sterne ihre zwei Haken im selben Augenblick). Tuerkis, Gold. */
+/* 03.10., Tom: "der Effekt bei der Explosion muss groesser sein" - mehr
+   Go-Getter (20 -> 30), schneller (10-13 m/s), laengerer Schub und
+   laengeres Leben: der Bruch fuellt gut 50 m statt 25 m. Dazu oeffnet er
+   mit einem Goldstoss, damit man den Bruchpunkt sieht. */
 EFF.hakenschlag=function(p,A,B,s){
-  const n=Math.max(12,Math.round(20*QUAL())), kopf=rkMal(A||FW.tuerkis,1.35), gold=[1,.78,.38];
+  const n=Math.max(18,Math.round(30*QUAL())), kopf=rkMal(A||FW.tuerkis,1.5), gold=[1,.78,.38];
+  /* Goldstoss: kurze Goldfunken als Kugel, Blitz */
+  for(let i=0;i<Math.round(70*QUAL());i++){ const d=randDir(), w=rand(9,12)*s; rkSchweif(0.12,()=>psMid.emit(p.x,p.y,p.z,d[0]*w,d[1]*w,d[2]*w,gold[0]*1.3,gold[1]*1.3,gold[2]*1.3,rand(0.35,0.55),2,0)); }
+  rkSchweif(0,()=>psHuge.emit(p.x,p.y,p.z,0,0,0,1.2,1.0,0.7,0.12,0,0));
+  flash(p,[1,.85,.55],2.4*s,0.16);
   for(let i=0;i<n;i++){
-    const d=randDir(), w=rand(6,8.5)*s, L=rand(1.4,2.0), nh=2+Math.floor(Math.random()*3), tk=[], schub=rand(5,7)*s;
+    const d=randDir(), w=rand(10,13)*s, L=rand(1.9,2.7), nh=2+Math.floor(Math.random()*3), tk=[], schub=rand(8,10)*s;
     for(let k=0;k<nh;k++) tk.push(rand(0.2,L-0.25)); tk.sort((a,b)=>a-b);
     rkStern(psBig,p,[d[0]*w,d[1]*w,d[2]*w],kopf,L,(st,dt)=>{
       const t=st.alter, dd=st.d, k=dd.k||0, v=st.v;
@@ -266,11 +274,11 @@ EFF.hakenschlag=function(p,A,B,s){
         let e=[x[0]-pr*dn[0],x[1]-pr*dn[1],x[2]-pr*dn[2]]; const le=Math.hypot(e[0],e[1],e[2])||1; e=[e[0]/le,e[1]/le,e[2]/le];
         const a=rand(45,120)*Math.PI/180, nd=[dn[0]*Math.cos(a)+e[0]*Math.sin(a),dn[1]*Math.cos(a)+e[1]*Math.sin(a),dn[2]*Math.cos(a)+e[2]*Math.sin(a)];
         v[0]=nd[0]*sp; v[1]=nd[1]*sp; v[2]=nd[2]*sp;
-        rkSchweif(0,()=>{ for(let j=0;j<Math.round(6*QUAL());j++){ const b=streu([-nd[0],-nd[1],-nd[2]],0.4), bw=rand(2,4); psSmall.emit(st.p[0],st.p[1],st.p[2],b[0]*bw,b[1]*bw,b[2]*bw,1.2,1,.6,rand(0.15,0.3),2,0); } }); }
+        rkSchweif(0,()=>{ for(let j=0;j<Math.round(9*QUAL());j++){ const b=streu([-nd[0],-nd[1],-nd[2]],0.4), bw=rand(2.5,5); psSmall.emit(st.p[0],st.p[1],st.p[2],b[0]*bw,b[1]*bw,b[2]*bw,1.2,1,.6,rand(0.15,0.3),2,0); } }); }
       /* Eigenantrieb: der Satz schiebt in Flugrichtung, die Luft bremst */
       const sp=Math.hypot(v[0],v[1],v[2])||1; v[0]+=v[0]/sp*schub*dt; v[1]+=v[1]/sp*schub*dt; v[2]+=v[2]/sp*schub*dt;
-      rkFlug(st,dt,0.9,1.4);
-      rkSpur(st,dt,55,(x,y,z)=>psMid.emit(x,y,z,rand(-.2,.2),rand(-.5,0),rand(-.2,.2),gold[0],gold[1],gold[2],rand(0.3,0.55),2.2,4));
+      rkFlug(st,dt,0.78,1.4);
+      rkSpur(st,dt,70,(x,y,z)=>psMid.emit(x,y,z,rand(-.2,.2),rand(-.5,0),rand(-.2,.2),gold[0],gold[1],gold[2],rand(0.35,0.65),2.2,4));
     },{spur:0.05});
   }
   schall(p,v=>{ sfx.zischen(v*0.5,1.6); later(0.3,()=>sfx.crackle(v*0.25)); });
@@ -759,7 +767,10 @@ Object.assign(RAKETEN_KL,{
   glitzerraketen :{n:1,gap:0,sz:0.92,pw:-4, fuse:1.2, steig:'tremolant',A:'limette',B:'gold',eff:['garbe'],knall:'rakPuff',bruchOpt:{kern:false,nachglitzer:false,flash:0.35},dauer:4.4},
   blanko         :{n:1,gap:0,sz:0.95,pw:-3.5,fuse:1.2,steig:'silber',   th:'gold',eff:['goldglitzer'],bruchOpt:{kern:false},dauer:4.5},
   gravur         :{n:1,gap:0,sz:0.98,pw:-3, fuse:1.25,steig:'goldregen',A:'gold',B:'rose',eff:['initiale'],bruchOpt:{kern:false,nachglitzer:false,flash:0.5},dauer:4.8},
-  raketen        :{n:1,gap:0,sz:1.0, pw:-3, fuse:1.25,steig:'hummel',   A:'tuerkis',B:'gold',eff:['hakenschlag'],bruchOpt:{kern:false,nachglitzer:false},dauer:4},
+  /* 03.10. (Tom: "viel, viel hoeher"): Hasenjagd bricht hoeher (pw -3 -> 0,5, gut 3 m),
+     so hoch es die Leiter erlaubt (steigerung.js: unter raketengold, L12, pw 0,8) - den
+     Rest bringt die allgemeine Hoehenanhebung aller Raketen */
+  raketen        :{n:1,gap:0,sz:1.0, pw:0.5,fuse:1.25,steig:'hummel',   A:'tuerkis',B:'gold',eff:['hakenschlag'],bruchOpt:{kern:false,nachglitzer:false},dauer:4},
   silberpfeil    :{n:1,gap:0,sz:1.02,pw:-2.5,fuse:0.95,steig:'pfeil',   A:'weiss',B:'silber',eff:['silberspinne'],bruchOpt:{kern:false,nachglitzer:false,flash:1.1},dauer:3},
   kometenraketen :{n:1,gap:0,sz:1.05,pw:-2, fuse:1.3, steig:'komet',    A:'gold',B:'blau',eff:['kometenkette'],bruchOpt:{kern:false,nachglitzer:false,flash:0.4},dauer:4.8},
   pfeifraketen   :{n:1,gap:0,sz:1.05,pw:-2, fuse:1.3, steig:'pfeif',    pfeif:true,A:'rot',B:'weiss',eff:['pfeifsterne'],bruchOpt:{kern:false,nachglitzer:false},dauer:3.8},

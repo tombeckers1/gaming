@@ -690,6 +690,9 @@ function stationsModell(st,it,sl){
      Luft ueber dem Karton). Eigenes Feld gestell: es bleibt beim Zuenden
      stehen und hat keine Zuendschnur-Vorlaufzeit wie ein Rohr. */
   if(st.id==='tisch'&&typeof fkGestell==='function'){ const g=fkGestell(t,sl); if(g){ scene.add(g); it.gestell=g; return true; } }
+  /* Wunderkerzen (03.10., Tom): ohne Verpackung - die Kerzen stecken in
+     einem Mini-Podest (14q). Als gestell: es bleibt beim Zuenden stehen. */
+  if(st.id==='tisch'&&typeof kqPodestAuf==='function'){ const g=kqPodestAuf(t,sl); if(g){ scene.add(g); it.gestell=g; return true; } }
   return false;
 }
 function placeOnStation(st){

@@ -132,18 +132,28 @@ EFF.glitterspur=function(p,A,B,s,r){
    herab und blitzen einzeln auf. 28.09., Tom: echt - vorher fuellten die
    Sterne die Kugel gleichmaessig und flackerten alle zugleich: eine
    Punktwolke, kein Bruch. */
+/* 03.10., Tom: "finde ich gut, aber die Lichter sehen nicht so echt aus -
+   hochaufloesender, zu wenig Pixel": gleicher Ablauf, aber feiner - statt
+   55 grosser weicher Leuchtballen (psBig) jetzt 90 Sterne als scharfer
+   weisser Kern (psSmall) mit kleinem Silberhof (psMid) und feinem Schweif;
+   jeder zerfaellt in sechs bis neun Flocken, die einzeln und zweimal
+   aufblitzen (Glitzer statt Lichtfleck). Flocken und Blitze in psMid -
+   psSmall (1800) lief sonst ueber (mblast). */
 EFF.pulverschnee=function(p,A,B,s,r){
   zutaten(r,{flash:0.55}); leise(r);
   schall(p,v=>{ rauschF({dur:0.34,vol:0.32*v,typ:'bandpass',f:800,f2:250,q:0.7,an:0.01}); sfx.plopp(v*0.55,0.65); later(0.9,()=>sfx.rieseln(v*0.6,1.6)); });
-  const q=QUAL(), n=Math.round(rand(50,62)*q*clamp(0.6+s*0.4,0.75,1.25)), G=2.4, alt=SCHWEIF, vw=6.6*(0.55+s*0.6);
+  const q=QUAL(), n=Math.round(rand(84,96)*q*clamp(0.6+s*0.4,0.75,1.25)), G=2.4, alt=SCHWEIF, vw=6.6*(0.55+s*0.6);
   const fl=[0.9,0.94,1];
-  SCHWEIF=0.1;
   for(let i=0;i<n;i++){ const d=randDir(), w=vw*rand(0.9,1.04), c=i%4?WEISS:FW.silber, L=rand(0.85,1.1), v=[d[0]*w,d[1]*w,d[2]*w];
-    psBig.emit(p.x,p.y,p.z,v[0],v[1],v[2],c[0],c[1],c[2],L,G,0);
+    /* Kern scharf und hell, Hof klein; beide auf derselben Bahn */
+    SCHWEIF=0.16; psSmall.emit(p.x,p.y,p.z,v[0],v[1],v[2],1.9,1.9,2.0,L,G,0);
+    SCHWEIF=0.1; psMid.emit(p.x,p.y,p.z,v[0],v[1],v[2],c[0]*0.85,c[1]*0.88,c[2]*0.95,L,G,0);
     const tz=L*rand(0.93,0.99);
-    imBild(tz,()=>{ const e=bahnOrt(p,v,G,tz), u=bahnTempo(v,G,tz), m=3+Math.floor(Math.random()*3);
-      for(let k=0;k<m;k++){ const h=randDir(), w2=rand(0.5,1.3);
-        glint(psSmall,e.x,e.y,e.z,u[0]*0.3+h[0]*w2,u[1]*0.3+h[1]*w2-0.2,u[2]*0.3+h[2]*w2,fl,0.7,{t0:0.15,t1:1.3,dim:0.3,blitz:2.4,glimm:0.25,rest:0.7,psBlitz:psMid}); } }); }
+    imBild(tz,()=>{ const e=bahnOrt(p,v,G,tz), u=bahnTempo(v,G,tz), m=6+Math.floor(Math.random()*4);
+      for(let k=0;k<m;k++){ const h=randDir(), w2=rand(0.4,1.4), vv=[u[0]*0.3+h[0]*w2,u[1]*0.3+h[1]*w2-0.2,u[2]*0.3+h[2]*w2];
+        glint(psMid,e.x,e.y,e.z,vv[0],vv[1],vv[2],fl,0.7,{t0:0.12,t1:0.9,dim:0.22,blitz:2.8,glimm:0.18,rest:0.6});
+        /* zweites Aufblitzen derselben Flocke spaeter: Glitzern */
+        if(k%2===0){ const t2=rand(0.95,1.6); imBild(t2,()=>{ const q2=bahnOrt(e,vv,0.7,t2), a=SCHWEIF; SCHWEIF=0; psMid.emit(q2.x,q2.y,q2.z,0,-0.3,0,2.4,2.4,2.5,rand(0.03,0.05),0.7,0); SCHWEIF=a; }); } } }); }
   SCHWEIF=alt;
 };
 

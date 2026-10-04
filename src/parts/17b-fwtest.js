@@ -210,6 +210,17 @@ function vfStopp(){
   for(let i=timers.length-1;i>=0;i--) if(timers[i].fw){ timers.splice(i,1); n++; }
   if(typeof FAECHER!=='undefined') FAECHER.clear();
   for(const ps of [psHuge,psBig,psMid,psSmall]) if(ps) for(let i=0;i<ps.max;i++) if(ps.life[i]>0){ ps.life[i]=1e-4; n++; }
+  /* Kleinfeuerwerk-Emitter haben eigene Gegenstaende (Frosch, Spielzeug,
+     Kerzen): mit wegraeumen, sonst lagen sie noch eine Minute herum */
+  if(typeof klWeg==='function') for(const e of emitters) if(e.meshes||e.toene) try{ klWeg(e); }catch(x){}
+  /* Hilfsdienst, Funkenstriche und fliegendes Papier zuruecksetzen: der
+     Dienst-Emitter ist mit weg, DIENST.e zeigte aber noch auf ihn - danach
+     lief er nie wieder an und alle Wunderkerzen-Funken standen still */
+  if(typeof DIENST!=='undefined') DIENST.e=null;
+  if(typeof KL_FK!=='undefined'&&KL_FK.mesh){ KL_FK.n=0; KL_FK.mesh.geometry.setDrawRange(0,0); KL_FK.mesh.visible=false; }
+  if(typeof KL_PAP!=='undefined'){ KL_PAP.liste.length=0; KL_PAP.e=null; if(KL_PAP.mesh){ KL_PAP.mesh.count=0; KL_PAP.mesh.visible=false; } }
+  /* liegengebliebenes Konfetti, Fetzen, Brandflecken (bodenrest) ebenfalls weg */
+  if(typeof REST!=='undefined'&&REST.mesh){ REST.dauer.fill(0); REST.n=0; REST.next=0; REST.mesh.count=0; REST.mesh.visible=false; }
   n+=rockets.length+emitters.length; rockets.length=0; emitters.length=0;
   if(typeof WOLKEN!=='undefined') for(const w of WOLKEN) w.t=w.dauer;
   for(const f of FLASH){ f.t=0; f.max=0; if(f.l) f.l.intensity=0; }
@@ -223,8 +234,10 @@ function vfZuendenRoh(t){
   if(!t||!P[t]) return false;
   const o=vfMuendung(t), dauer=brennDauer(t), vor=o.sid==='moerser'?0.75:o.sid==='rampe'?0.4:0;
   vfBelegt[o.art]=FW_UHR+vor+dauer+0.5;
-  let h=null, bt=null;
+  let h=null, bt=null, pg=null;
   if(o.sid==='tisch'&&istBatterie(t)){ bt=batterieModell(t,Math.PI); bt.g.position.set(o.x,o.boden,o.z); bt.g.rotation.y=Math.PI; scene.add(bt.g); o.batt=bt; }
+  /* Wunderkerzen: Mini-Podest statt Verpackung (03.10., Tom; 14q) */
+  else if(o.sid==='tisch'&&typeof kqPodestAuf==='function'&&(pg=kqPodestAuf(t,{x:o.x,y:o.boden,z:o.z}))) scene.add(pg);
   else if(o.sid==='tisch'&&stationsPool(t)&&!stationsPool(t).full()) h=stationsPool(t).add(mx(o.x,o.boden,o.z,Math.PI));
   if(vor){ emitters.push({t:vor,k:'fuse',o:{x:o.x,y:o.y,z:o.z}}); sfx.fizz(distVol(o)*0.5); }
   later(vor,()=>{ if(vfAn) igniteType(t,o); });
@@ -235,6 +248,7 @@ function vfZuendenRoh(t){
     yaw=Math.atan2(-(o.x-pl.x),-(o.z-pl.z)); }
   if(h){ let weg=false; const fn=()=>{ if(weg) return; weg=true; if(h.pool) h.pool.remove(h); }; vfAufraeumen.push(fn); later(vor+dauer,fn); }
   if(bt){ let weg=false; const fn=()=>{ if(weg) return; weg=true; bt.weg(); }; vfAufraeumen.push(fn); later(vor+dauer,fn); }
+  if(pg){ let weg=false; const fn=()=>{ if(weg) return; weg=true; if(pg.parent) pg.parent.remove(pg); }; vfAufraeumen.push(fn); later(vor+dauer,fn); }
   if(vfAufraeumen.length>40) vfAufraeumen.splice(0,vfAufraeumen.length-40);
   vfLetzt=t; return true;
 }

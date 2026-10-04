@@ -41,7 +41,11 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   const SL=[sa+1,html.findIndex((l,i)=>i>sa&&l.startsWith('};'))+1];
   /* knallfrosch: springt absichtlich vom Karton weg (28.09., klein) - der erste Knall zaehlt */
   /* bodenkreisel: die Kreisel laufen vom Karton weg und ziehen dort ihre Feuerkreise (29.09., Tom: "wirklich Kreise") */
-  const WEIT=['schwaermer','knallerbsen','goldstaubboeller','atomboeller','tisch','luftschlangentisch','knallfrosch','bodenkreisel','blitzknaller'];
+  /* 03.10. (Tom): Knallbonbons liegen vor dem Karton und reissen dort; Wunderkerzen stecken
+     ohne Verpackung im Mini-Podest (Kerzen gefaechert, Herz 36 cm, 2027 ueber 75 cm) - die
+     Packungsmasse sind dort nicht mehr der Ort; der erste Funke zaehlt */
+  const WEIT=['schwaermer','knallerbsen','goldstaubboeller','atomboeller','tisch','luftschlangentisch','knallfrosch','bodenkreisel','blitzknaller',
+    'knallbonbon','wunder','wunderherz','wunderzahl'];
   const r=await p.evaluate(([nur,WEIT,FZ,RL,SL])=>{ const bb=window.__bb, S=bb.S, P=bb.P, out={};
     S.up.testfeld=true; S.up.shop_halb=true;
     /* Funken, die unterwegs aus einem anderen Funken entstehen (Verzweigung,
@@ -112,7 +116,10 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   const mangel=[];
   for(const [t,v] of Object.entries(r)){
     if(v.fehler||v.leer){ mangel.push(t+': '+(v.fehler||'keine Funken')); continue; }
-    if(v.erst>0.03) mangel.push(`${t}: erster Funke ${v.erst} m neben der Oeffnung`);
+    /* 03.10. (Tom): Knallfrosch, Knallbonbons und Kreisel sind selbst das Feuerwerk - sie liegen
+       vor dem Karton auf dem Tisch (bis 0,45 m, sechs Kreisel in einer Reihe bis 0,6 m); die 2027 steckt im 80 cm langen Podest */
+    const NEBEN={knallfrosch:0.45,knallbonbon:0.45,bodenkreisel:0.6,wunderzahl:0.25};
+    if(v.erst>(NEBEN[t]||0.03)) mangel.push(`${t}: erster Funke ${v.erst} m neben der Oeffnung`);
     else if(!v.weit&&v.max>0.03) mangel.push(`${t}: ${v.raus}/${v.n} Ursprung bis ${v.max} m neben der Oeffnung (${v.st}, bei ${JSON.stringify(v.wo)})`);
     if(v.hoch&&(v.hoch[0]<-0.03||v.hoch[1]>0.2)) mangel.push(`${t}: Raketen starten ${v.hoch[0]} bis ${v.hoch[1]} m ueber der Oeffnung (${v.st})`);
     if(!v.weit&&v.em.length) mangel.push(`${t}: Emitter nicht an der Oeffnung [k,dx,dy,dz]: ${JSON.stringify(v.em)}`);

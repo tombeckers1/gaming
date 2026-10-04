@@ -144,5 +144,6 @@ function frame(now){
   if(S&&!paused){ step(dt); if(typeof gpAn!=='undefined'&&gpAn) for(let i=1;i<gpTempo;i++) step(dt); }
   /* Tagesabschluss pausiert das Spiel - die Vorfuehrung schliesst ihn selbst */
   if(S&&paused&&typeof gpAn!=='undefined'&&gpAn&&(summaryOpen||levelOpen)) gpTick(0);
+  regaleImBlick();
   renderFrame(dt);
 }

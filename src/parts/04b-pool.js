@@ -14,7 +14,15 @@ class ItemPool{
     this.cap=neu; }
   add(mx){ if(this.h.length>=this.cap) this.wachse(); const h={i:this.h.length,m:mx.clone(),pool:this}; this.h.push(h); for(const me of this.meshes){ me.setMatrixAt(h.i,mx); me.count=this.h.length; me.instanceMatrix.needsUpdate=true; } return h; }
   remove(h){ if(!h||this.h[h.i]!==h) return; const last=this.h.pop(); if(last!==h){ this.h[h.i]=last; last.i=h.i; for(const me of this.meshes) me.setMatrixAt(h.i,last.m); } for(const me of this.meshes){ me.count=this.h.length; me.instanceMatrix.needsUpdate=true; } }
-  set(h,mx){ if(this.h[h.i]!==h) return; h.m.copy(mx); for(const me of this.meshes){ me.setMatrixAt(h.i,mx); me.instanceMatrix.needsUpdate=true; } }
+  /* 04.10. (Tom, iPhone: Gameplay-Vorfuehrung mit 5 Bildern je Sekunde -
+     gemessen 9,4 Millionen Dreiecke Ware, weil jedes Fach bis ganz hinten
+     voll ist): verdeckte Stuecke hinter vollen Reihen werden nicht
+     gezeichnet. versteckt nimmt das Stueck aus dem Zeichenpuffer, die
+     Matrix bleibt am Griff; zeige stellt es wieder hinein. */
+  verstecke(h){ if(!h||h.versteckt||this.h[h.i]!==h) return; this.remove(h); h.versteckt=true; }
+  zeige(h){ if(!h||!h.versteckt) return; h.versteckt=false; if(this.h.length>=this.cap) this.wachse();
+    h.i=this.h.length; this.h.push(h); for(const me of this.meshes){ me.setMatrixAt(h.i,h.m); me.count=this.h.length; me.instanceMatrix.needsUpdate=true; } }
+  set(h,mx){ if(h.versteckt){ h.m.copy(mx); return; } if(this.h[h.i]!==h) return; h.m.copy(mx); for(const me of this.meshes){ me.setMatrixAt(h.i,mx); me.instanceMatrix.needsUpdate=true; } }
 }
 /* Pools entstehen erst, wenn die Ware zum ersten Mal gebraucht wird
    (Tom, 26.09.: Sortiment mal drei). Vorher baute der Start fuer jedes

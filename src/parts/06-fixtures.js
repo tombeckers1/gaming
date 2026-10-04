@@ -920,10 +920,44 @@ function addToLevel(lv,t,q){
   /* face mitgeben: sonst landete die Ware der zweiten Gondel- und
      Eckregalseite auf der ersten (02.10., Verpackungs-Vorfuehrung) */
   const h=pools[t].add(itemMatrix(lv.sh,{li:lv.li,type:t,face:lv.face},lv.count,jit)); h.jit=jit;
-  lv.items.push(h); lv.count++; if(!_ohneSchild){ updateLabel(lv); updateHead(lv.sh); } return true;
+  lv.items.push(h); lv.count++; lvSicht(lv); if(!_ohneSchild){ updateLabel(lv); updateHead(lv.sh); } return true;
 }
 /* der Kunde nimmt vorn: das zuletzt eingeraeumte Stueck steht am weitesten vorn */
-function removeFromLevel(lv){ const h=lv.items.pop(); if(h) h.pool.remove(h); lv.count--; if(lv.count<=0){ lv.count=0; lv.type=null; lv.q=1; } if(!_ohneSchild){ updateLabel(lv); updateHead(lv.sh); } }
+/* Verdeckte Ware (04.10.): eingeraeumt wird von hinten nach vorn, also
+   sind die vorderen Reihen die zuletzt eingeraeumten. Alles hinter den
+   zwei vordersten vollen Reihen sieht man nicht - es wird nicht
+   gezeichnet (Reihe = Breite x Stapel). Ausgenommen: Tische und
+   Gitterboxen (man sieht von oben hinein) und das oberste Fach, wenn es
+   unter Augenhoehe offen ist. */
+function lvSicht(lv){
+  const it=lv.items; let weg=0;
+  if(lv.type&&it.length){ const K=kindOf(lv.sh), L=layout(lv.type,lv.sh,lv), reihe=L.cols*L.st;
+    const offen=lv.li===K.lv.length-1&&K.lv[lv.li]+fachHoehe(K,lv.li)<1.8;
+    if(!K.frei&&!offen&&reihe>0) weg=Math.max(0,Math.floor(it.length/reihe)-2)*reihe; }
+  if(lv.imBlick===false) weg=it.length;
+  let v=Math.min(lv.weg||0,it.length);
+  while(v<weg){ const h=it[v++]; if(h&&h.pool) h.pool.verstecke(h); }
+  while(v>weg){ const h=it[--v]; if(h&&h.pool) h.pool.zeige(h); }
+  lv.weg=weg;
+}
+/* Am Handy (ohne Schatten) zusaetzlich: Faecher ausserhalb des Blickfelds
+   oder weiter als 24 m weg werden nicht gezeichnet - je Bild ein
+   Kugeltest je Fach, geaendert wird nur, wenn ein Fach rein- oder
+   rausfaellt. Am Rechner bleibt alles stehen (Schatten von Ware ausserhalb
+   des Bildes). */
+const _blickF=typeof THREE.Frustum==='function'?new THREE.Frustum():null, _blickM=new THREE.Matrix4(), _blickS=typeof THREE.Sphere==='function'?new THREE.Sphere():null, _blickV=new THREE.Vector3();
+function regaleImBlick(){
+  if(HIQ||!_blickF||!_blickS) return;
+  camera.updateMatrixWorld();
+  _blickM.multiplyMatrices(camera.projectionMatrix,camera.matrixWorldInverse); _blickF.setFromProjectionMatrix(_blickM);
+  for(const sh of shelves) for(const lv of sh.levels){
+    if(!lv.hit||!lv.items.length){ lv.imBlick=true; continue; }
+    if(!lv.r){ const gp=lv.hit.geometry&&lv.hit.geometry.parameters; lv.r=gp?0.5*Math.hypot(gp.width,gp.height,gp.depth)+0.1:1.5; }
+    lv.hit.getWorldPosition(_blickV); _blickS.set(_blickV,lv.r);
+    const da=_blickV.distanceTo(camera.position)<24+lv.r&&_blickF.intersectsSphere(_blickS);
+    if(da!==(lv.imBlick!==false)){ lv.imBlick=da; lvSicht(lv); } }
+}
+function removeFromLevel(lv){ const h=lv.items.pop(); if(h) h.pool.remove(h); lv.count--; lvSicht(lv); if(lv.count<=0){ lv.count=0; lv.type=null; lv.q=1; } if(!_ohneSchild){ updateLabel(lv); updateHead(lv.sh); } }
 function allLevels(){ const a=[]; shelves.forEach(s=>s.levels.forEach(l=>a.push(l))); return a; }
 function findLevel(t,from){ let best=null,bd=1e9; for(const l of allLevels()){ if(l.type===t&&l.count>0){ const d=from?from.distanceTo(shelfStand(l.sh,l)):0; if(d<bd){ bd=d; best=l; } } } return best; }
 /* Größtes Fach, das dieses Produkt überhaupt aufnehmen kann */

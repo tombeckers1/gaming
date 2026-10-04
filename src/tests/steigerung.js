@@ -65,7 +65,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
         brueche:Math.max(0,...alle.map(e=>e.brueche||1)),echt:log.brueche.length,fremd,n:bb.SHOWS[t]?bb.SHOWS[t]().reduce((a,ph)=>a+(ph.n===undefined?1:ph.n),0):sch.length /* 27.09.: Rohrzahl aus dem Drehbuch - ein Feuertopf kann einen Schuss begleiten */,gefeuert:log.filter(e=>e.art==='schuss'||e.art==='kugel'||e.art==='topf'||e.art==='perle').length,hoehe:+m(hoehen).toFixed(2),sz:+m(sz).toFixed(3),dichte,farben:farben.size,
         dauer:sch.length?+(sch[sch.length-1].t-sch[0].t).toFixed(1):0,eff:[...new Set(log.map(e=>e.eff).filter(Boolean))]}; };
     for(const t of ['batterie16','knatter','batterie49','faecher','batterie100','zfaecher','kometen','donnerwand','profi','finale','sortiment',
-      'raketenklein','raketen','raketengold','titanraketen','jumbogold','jumboleiter','furzrakete','roemisch','sternenbrunnen','vulkan','goldgeysir','feuersaeule','feuerbrunnen',
+      'raketenklein','raketen','jumbogold','jumboleiter','furzrakete','roemisch','sternenbrunnen','vulkan','goldgeysir','feuersaeule','feuerbrunnen',
       'kugel75','kugel100','kugel150','feuerlilie200','kugel300'].filter(t=>bb.P[t])) /* 29.09.: entfernte Produkte fallen weg */
       out[t]=messe(t);
     /* Feuerbrunnen: eigener Bodeneffekt */
@@ -118,25 +118,25 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   /* Jedes Feuerwerk ist einzigartig: mindestens ein Bruchbild, das kein
      anderes Produkt zeigt */
   /* roemisch (Farbkanon) hat kein eigenes Bruchbild, sondern eine eigene Idee - die Farbwelle ueber die Rohre; das prueft anomalie.js (SIGNATUR) */
-  const EINZ=L.concat(['sortiment'].filter(t=>r[t])).concat(['raketenklein','raketen','raketengold','titanraketen','jumbogold','jumboleiter','furzrakete','kugel75','kugel100','kugel150','feuerlilie200','kugel300']);
+  const EINZ=L.concat(['sortiment'].filter(t=>r[t])).concat(['raketenklein','raketen','jumbogold','jumboleiter','furzrakete','kugel75','kugel100','kugel150','feuerlilie200','kugel300']);
   EINZ.forEach(t=>{ const eigene=r[t].eff.filter(e=>!EINZ.some(x=>x!==t&&r[x].eff.includes(e)));
     pruef('EINZIGARTIG',eigene.length>0,`${t} hat kein eigenes Bruchbild: ${r[t].eff.join(',')}`); });
   /* Grosse Verbunde beginnen mit einer Fontaene */
   Object.keys(r.auftakt).forEach(t=>pruef('AUFTAKT',r.auftakt[t],t+' beginnt ohne Fontaene'));
   pruef('NUR_SCHUESSE',r.finaleBoden===0,'Weltuntergang hat noch '+r.finaleBoden+' Fontaenen');
   /* Eine Zuendung, eine Rakete */
-  ['raketenklein','raketen','raketengold','titanraketen','jumbogold','jumboleiter','furzrakete'].forEach(t=>
+  ['raketenklein','raketen','jumbogold','jumboleiter','furzrakete'].forEach(t=>
     pruef('EINE RAKETE',r[t].n===1,`${t}: ${r[t].n} Raketen je Zuendung`));
   /* Raketen steigen bis zum Polarstern stetig an */
-  const R=['raketenklein','raketen','raketengold','titanraketen','jumbogold','jumboleiter'];
+  const R=['raketenklein','raketen','jumbogold','jumboleiter'];   /* 03.10. abends: Goldbrokat ist eine Kugel, Titan ist raus */
   /* Einzelraketen und Raketensets: jede Rakete ein Schuss, ein Bruch -
      keine Nachladung, die spaeter noch einmal hochgeht (Toms PDF vom 25.09.) */
-  ['raketenklein','raketen','raketengold','titanraketen','jumbogold','jumboleiter','furzrakete'].forEach(t=>
+  ['raketenklein','raketen','jumbogold','jumboleiter','furzrakete'].forEach(t=>
     pruef('EINZELSCHUSS',r[t].brueche===1,`${t}: ${r[t].brueche} Brueche je Rakete`));
   leiter(R,'RAKETEN','hoehe',0.25); leiter(R,'RAKETEN','sz',0.01);
   const PROFI=['dahlie','pistill','kamuro','kronleuchter','titan','zehnfach','zeitregen','brokat','sternschnuppen','glitzerweide'];
   Object.keys(r.lvl).forEach(t=>{ if(r.lvl[t]<=15&&t!=='raketengold'){ const f=r[t].eff.filter(e=>PROFI.indexOf(e)>=0); pruef('FRUEH',!f.length,`${t} (Level ${r.lvl[t]}) zeigt schon ${f.join(',')}`); } });
-  L.concat(['sortiment'].filter(t=>r[t])).concat(['raketenklein','raketen','raketengold']).forEach(t=>{ const max=t==='finale'?18:t==='profi'?12:4;
+  L.concat(['sortiment'].filter(t=>r[t])).concat(['raketenklein','raketen']).forEach(t=>{ const max=t==='finale'?18:t==='profi'?12:4;
     pruef('FARBEN',r[t].farben<=max&&r[t].fremd===0,`${t}: ${r[t].farben} Farbpaare, ${r[t].fremd} ausserhalb der Themen - zu bunt`); });
   /* Kugelbomben: jede Stufe groesser, hoeher, mit mehr Bruechen - und
      groesser und hoeher als jeder Batterieschuss bis zu ihrem Level */
@@ -162,7 +162,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
      blutmond, nordstern, drachenpalme */
   const EXKL=['fallschirm','schnuppe','garbe','goldglitzer','initiale','hakenschlag','silberspinne','kometenkette','pfeifsterne','halbhalb','nishiki','spaetzuender',
     'achtblatt','blinkfeuer','silberregen','glasbruch','furz','pupswolke','saphirkrone','titan','titanschlag','juwelenpalme','blutmond','nordstern','drachenpalme','supernova'];
-  ['raketenklein','raketen','raketengold'].forEach(t=>pruef('RAKETE',r[t].eff.some(e=>EXKL.indexOf(e)>=0),`${t} ohne eigenes Raketen-Bruchbild: ${r[t].eff}`));
+  ['raketenklein','raketen'].forEach(t=>pruef('RAKETE',r[t].eff.some(e=>EXKL.indexOf(e)>=0),`${t} ohne eigenes Raketen-Bruchbild: ${r[t].eff}`));
   L.concat(['sortiment'].filter(t=>r[t])).forEach(t=>pruef('EXKLUSIV',!r[t].eff.some(e=>EXKL.indexOf(e)>=0),`${t} nutzt Raketen-Bruchbild`));
   Object.keys(r).forEach(t=>{ if(r[t]&&r[t].unpass) pruef('PASST',!r[t].unpass.length,`${t}: ${r[t].unpass.slice(0,6).join(', ')}`); });
   Object.keys(r.neu).forEach(e=>pruef('BRUCHBILD',typeof r.neu[e]==='number'&&r.neu[e]>=60,`${e}: ${r.neu[e]} Sterne`));

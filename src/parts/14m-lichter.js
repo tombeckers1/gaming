@@ -477,7 +477,7 @@ const KF_MUSTER=['faecher','wisch','v','stufen','kreuz'];
 const KF_ART={
   faecher:{L:[0.55,1.15],b:{life:[0.8,1.5],g:1.1,streu:0.4,mode:4},kn:0.05,ton:'rieseln'},
   wisch:{L:[0.25,0.5],b:{life:[0.25,0.5],g:3.2,streu:1.2,mode:0},kn:0.02,ton:'zischen'},
-  v:{L:[0.45,0.8],b:{life:[0.5,0.9],g:0.4,streu:0.25,mode:1},kn:0.03,ton:'pfeif'},
+  v:{L:[0.45,0.8],b:{life:[0.5,0.9],g:0.4,streu:0.25,mode:1},kn:0.03,ton:'prasseln'},   /* 03.10. abends: kein Pfeifen (Tom) */
   stufen:{L:[1.3,2.2],b:{life:[1.6,2.6],g:0.3,streu:0.15,mode:2},kn:0.02,ton:'thump'},
   kreuz:{L:[0.6,1.0],b:{life:[0.15,0.35],g:5,streu:2.5,mode:4,ps:'klein'},kn:0.22,ton:'crackle'}};
 function kfKomet(m,Q,a,c,Hk,G,md,dx,art){ art=art||KF_ART.faecher;
@@ -494,6 +494,7 @@ function kfKomet(m,Q,a,c,Hk,G,md,dx,art){ art=art||KF_ART.faecher;
   /* darum der Brokat: langlebige Glitzerfunken, die absinken */
   const bb=art.b; rkFunken(e,v,G,0.05,T,Math.round(28*q),sch,{ps:bb.ps==='klein'?psSmall:psMid,life:bb.life,g:bb.g,streu:bb.streu,mit:0.03,mode:silber?0:(md===undefined?bb.mode:md)});
   muendungsblitz(e,e.y,0.55);
+  return {e,v,T};
 }
 function kfZackSchweif(e,v,G,T,c,q,art){ art=art||KF_ART.faecher; const LL=art.L, kn=art.kn;
   const [R,O]=rkBild(e), tag=FW_TAG, DT=1/30, A=rand(0.35,0.7), n=q>0.9?2:1;
@@ -525,11 +526,17 @@ function lKometenFaecher(o,A,B,s,p){
   else if(mu==='wisch'){ const P=1.5; for(let t=0,k=0;t<E;t+=0.12,k++){ const f=(t/P)%1; plan.push({t,a:W*(1-4*Math.abs(f-0.5)),j:k}); } }
   else if(mu==='v'){ for(let t=0,k=0;t<E;t+=0.2,k++){ const a=W*((k%5)+0.6)/5.2; plan.push({t,a,j:2*k},{t,a:-a,j:2*k+1}); } }
   else if(mu==='stufen'){ const K=Math.max(3,Math.floor(E/0.8)); for(let k=0;k<K;k++){ const nS=3+Math.min(5,k), w=W*(0.3+0.7*k/(K-1)); for(let j=0;j<nS;j++) plan.push({t:k*0.8,a:((j+0.5)/nS-0.5)*2*w,j:j+k*8}); } }
+  else if(mu==='puls'){ for(let t=0,k=0;t<E;t+=1.1,k++){ const nS=9; for(let j=0;j<nS;j++) plan.push({t:t+Math.abs(j-4)*0.03,a:((j+0.5)/nS-0.5)*2*W,j:j+k*nS,H:Hk*(0.8+0.2*(1-Math.abs(j-4)/4))}); } }
+  else if(mu==='tor'){ for(let t=0,k=0;t<E;t+=0.3,k++){ const f=1-(k%5)/5; plan.push({t,a:W*f,j:2*k,dx:0.3},{t,a:-W*f,j:2*k+1,dx:-0.3}); } }
+  else if(mu==='welle'){ for(let t=0,k=0;t<E;t+=0.16,k++){ const ph=t/1.6*Math.PI*2; plan.push({t,a:W*Math.sin(ph),j:k,H:Hk*(0.78+0.22*Math.cos(ph*2))}); } }
   else { for(let t=0,k=0;t<E;t+=0.24,k++){ const r=k%2?1:-1; plan.push({t,a:-r*rand(0.25,W),dx:r*0.35,j:k}); } }
   const max=Math.round(28*Math.min(1,0.5+0.5*QUAL())), schritt=plan.length>max?plan.length/max:1;
   lStart(m,1.0,0.3);
   for(let i=0;i<plan.length;i+=schritt){ const z=plan[Math.floor(i)], u=z.t/D;
-    kgSpaeter(z.t,()=>{ if(!kfFrei()) return; kfKomet(m,Q,z.a,p.c(u,z.j),Hk,G,p.md,z.dx,KF_ART[mu]); const v=distVol(m); if(Math.random()<0.6) (sfx.rakPff?sfx.rakPff(v*0.5):sfx.thump(v*0.2)); }); }
+    kgSpaeter(z.t,()=>{ if(!kfFrei()) return; const k=kfKomet(m,Q,z.a,p.c(u,z.j),z.H||Hk,G,p.md,z.dx,KF_ART[mu]||KF_ART[p.art]||KF_ART.faecher); const v=distVol(m); if(Math.random()<0.6) (sfx.rakPff?sfx.rakPff(v*0.5):sfx.thump(v*0.2));
+      /* 03.10. abends (Tom: "Kometenfaecher nach oben und ganz weit oben
+         kleine Explosionen"): p.mini(e,u,j) am Ende des Kometen */
+      if(p.mini&&k) kgSpaeter(k.T,()=>p.mini(sternNach(k.e,k.v[0],k.v[1],k.v[2],G,k.T),u,z.j)); }); }
   later(0.4,()=>sfx.fauchen(distVol(m)*0.35,Math.min(4,D)));
   { const ton=(KF_ART[mu]||KF_ART.faecher).ton; for(let k=0;k<Math.floor(D/0.6);k++) later(0.9+k*0.6,()=>{ const v=distVol(m)*0.35, f=sfx[ton];
       if(ton==='zischen'||ton==='rieseln') f&&f(v,0.5); else if(ton==='pfeif') (sfx.pfeif||sfx.zischen)(v*0.6,0.4); else f&&f(v); }); }
@@ -569,7 +576,7 @@ function breitBoden(o,A,B,p){
   else { q.md=0; q.c=()=>silb; q.life=[0.6,1.0];
     q.extra=(t,m,Q)=>{ if(Math.random()<0.6){ const a=rand(-0.5,0.5), h=rand(0.4,0.9)*H, d=randDir(); psSmall.emit(m.x+Q[0]*Math.sin(a)*h,m.y+Math.cos(a)*h,m.z+Q[2]*Math.sin(a)*h,d[0]*1.5,d[1]*1.5,d[2]*1.5,1.5,1.45,1.3,rand(0.05,0.12),1,3); } };
     for(let k=0;k<Math.floor(D/0.7);k++) later(0.5+k*0.7,()=>sfx.prasseln(distVol(o)*0.6)); }
-  q.schuss=true; q.saat=p.saat; lBreit(o,A,B,1,{},q);
+  q.schuss=true; q.saat=p.saat; if(p.muster) q.muster=p.muster; lBreit(o,A,B,1,{},q);
 }
 /* Brenndauer am Rohr (s ab Zuendung bis der Himmelseffekt verloschen
    ist): so lange steht die Batterie auf dem Tisch (04c zuendFolge) */
@@ -714,7 +721,7 @@ LICHTYP.breitglitzer=function(o,A,B,s,opt){ lBreit(o,A,B,s,opt,{schuss:true,must
    und ihre Farbfamilie.
    ========================================================= */
 const RF6=[-1,-0.6,-0.2,0.2,0.6,1], RF4=[-1,1,-0.4,0.4], RF3=[-1,0,1], RF7=[-1,1,-0.66,0.66,-0.33,0.33,0];
-const lbShow=(id,th,rampe,ph)=>{ THEMEN[id]=th; SHOWS[id]=()=>show({rampe},ph.map(p=>Object.assign({th:id},p))); };
+const lbShow=(id,th,rampe,ph,kopf)=>{ THEMEN[id]=th; SHOWS[id]=()=>show(Object.assign({rampe},kopf||{}),ph.map(p=>Object.assign({th:id},p))); };
 lbShow('lb_goldader',[['gold','orange'],['bernstein','gold'],['zitrone','gold']],{sz:[0.9,1.3],pw:[0,3],hell:[0.85,1.3],kurve:'spaet'},[
   {n:6,gap:0.9,muster:'aussen',ang:0.3,licht:'goldkomet',kal:'mittel',farbe:0},
   {n:10,gap:0.3,muster:'z',ang:0.35,licht:'goldkomet',farbe:1},
@@ -782,7 +789,7 @@ lbShow('lb_fontaenenballett',[['rot','gold'],['tuerkis','gold'],['violett','silb
   {n:1,rohrFolge:[0],licht:'breitwechsel',kal:'gross',farbe:2},
   {mit:true,n:6,gap:0.7,muster:'aussen',ang:0.3,licht:'farbkrone',farbe:3,pause:1.5},
   {n:2,gap:0.5,rohrFolge:[-0.5,0.5],licht:'breitfarbe',kal:'mittel',farbe:1},
-  {mit:true,n:6,gap:0.5,muster:'x',ang:0.3,licht:'farbcrossette',farbe:0,pause:1.5},
+  {mit:true,n:6,gap:0.5,muster:'x',ang:0.3,licht:'doppelkranz',farbe:0,pause:1.5},
   {n:3,gap:0.2,rohrFolge:RF3,licht:'breitfarbe',kal:'gross',farbe:2,pause:9}]);
 /* Goldregen: Goldglitzer-Fontaenen, aus denen goldene Regen sinken,
    Weidencrossetten und ein Weidenfall - ganz in Gold und Bernstein */

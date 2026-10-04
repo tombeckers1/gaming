@@ -1194,7 +1194,9 @@ function perleSchuss(o,A,s,opt){
   /* die Kugel kommt oben aus dem Rohr (ab der Station), nicht 30 cm
      darueber aus der Luft (28.09., Tom: echt) */
   const y0=(o.y!==undefined?o.y:0.4)+(o.ab!==undefined?o.ab:0.3), alt=SCHWEIF; SCHWEIF=0.35;
-  const sp=rand(15,18)*Math.sqrt(s||1), ang=opt.ang||0, dir=opt.dir===undefined?Math.PI/2:opt.dir;
+  /* 03.10. abends (Tom: "Legion: Effekte hoeher", "viel zu niedrig"):
+     Kerzen aus Batterien (opt.hub) steigen mit gut 1,4facher Kraft */
+  const sp=rand(15,18)*Math.sqrt(s||1)*(opt.hub||1), ang=opt.ang||0, dir=opt.dir===undefined?Math.PI/2:opt.dir;
   const gerichtet=opt.ang!==undefined||opt.eff;
   const vx=gerichtet?Math.sin(dir)*Math.sin(ang)*sp+rand(-0.25,0.25):rand(-0.6,0.6),
         vy=gerichtet?Math.cos(ang)*sp:sp,
@@ -1301,8 +1303,10 @@ function perleSchuss(o,A,s,opt){
     /* Bombettenkerze: statt der Leuchtkugel steigt eine kleine Bombe, nur
        schwach glimmend, und zerlegt im Scheitel zu einer Paeonie in A und
        B - ein dumpfer Plopp statt eines Knalls */
-    bei(tS,q=>{ const n=Math.round(rand(46,56)*QUAL()), a2=SCHWEIF, g=Math.sqrt(s||1); SCHWEIF=0.08;
-      for(let i=0;i<n;i++){ const d=randDir(), sp=rand(5.5,6.8)*g, c=i%3?A:B; psBig.emit(q.x,q.y,q.z,d[0]*sp,d[1]*sp,d[2]*sp,c[0]*1.1,c[1]*1.1,c[2]*1.1,rand(1.1,1.5),2.6,0); }
+    bei(tS,q=>{ const n=Math.round(rand(46,56)*QUAL()), a2=SCHWEIF, g=Math.sqrt(s||1); SCHWEIF=0.22;
+      /* 03.10. abends (Tom: Punkt-Brueche raus): jeder vierte Stern zieht einen Glitzerschweif */
+      for(let i=0;i<n;i++){ const d=randDir(), sp=rand(5.5,6.8)*g, c=i%3?A:B; psBig.emit(q.x,q.y,q.z,d[0]*sp,d[1]*sp,d[2]*sp,c[0]*1.1,c[1]*1.1,c[2]*1.1,rand(1.1,1.5),2.6,0);
+        if(i%4===0&&typeof rkFunken==='function') rkFunken(q,[d[0]*sp,d[1]*sp,d[2]*sp],2.6,0.05,1.2,20,[Math.min(1.4,c[0]*0.4+0.9),Math.min(1.2,c[1]*0.4+0.6),Math.min(1,c[2]*0.4+0.25)],{ps:psMid,life:[0.3,0.6],g:1.6,streu:0.25,mit:0.05,mode:4}); }
       SCHWEIF=a2; flash(q,A,1.4,0.15);
       schall(q,v=>{ sfx.boom(v*0.5); sfx.crack(v*0.35); }); });
   }
@@ -1516,8 +1520,12 @@ function shot(o,opt){
   sfx.thump(distVol(o)*(1+(opt.dick||0)*0.5));
   const kl=STEIG_KLANG[sg];
   if(kl) kl(r,distVol(o));
-  else if(opt.pfeif) sfx.whistle(distVol(o));
-  else if(!sg&&Math.random()<0.45) sfx.whistle(distVol(o)*0.7);
+  /* 03.10. abends (Tom: "beim Abfeuern ein komisches Geraeusch", "ich
+     will keine Pfeif-Sachen"): kein zufaelliges Pfeifen mehr bei Schuessen
+     ohne eigenen Aufstieg - das war der Ton bei Goetterfunken und
+     Trommelfeuer. Pfeifen gibt es nur noch, wo eine Rakete es ausdruecklich
+     will (opt.pfeif ausserhalb einer Show). */
+  else if(opt.pfeif&&!opt.fein) sfx.whistle(distVol(o));
   if(SCHUSS_EFF[r.eff]){ SCHUSS_EFF[r.eff](r); return r; }
   rockets.push(r);
   return r;
@@ -1697,6 +1705,9 @@ function ringLage(n,r,kipp){
     out.push([(u[0]*Math.cos(a)+v[0]*Math.sin(a))*r,(u[1]*Math.cos(a)+v[1]*Math.sin(a))*r*(kipp||0.6),(u[2]*Math.cos(a)+v[2]*Math.sin(a))*r]); }
   return out;
 }
+/* Hoehe der Kugelbomben (03.10. abends, siehe kugelbombe): Faktor auf die
+   alte Bruchhoehe je Kaliber 75/100/150/200/300 mm, Steigzeit-Faktor */
+const KUGEL_HUB=[1.9,1.95,2.0,2.05,2.1], KUGEL_ZUEND=1.4;
 function kugelbombe(o,kal,opt){
   /* Neu am 25.09. (Toms PDF: "viel groessere Explosionen, von klein
      nach gross, die Effektladungen sollen zueinander passen").
@@ -1726,8 +1737,14 @@ function kugelbombe(o,kal,opt){
   const groesse=opt.sz||[2.1,2.7,3.3,4.0,4.8][K4-1];
   /* Bruchhoehe etwa 26, 30, 34, 38 und 45 m - ueber jeder Batterie,
      und hoch genug, dass der groessere Bruch nicht den Boden streift */
-  const steig=opt.pw!==undefined?opt.pw:[2,4,6,8,11][K4-1];
-  const zuend=opt.fuse||[1.7,1.85,2.0,2.15,2.3][K4-1];
+  const steig0=opt.pw!==undefined?opt.pw:[2,4,6,8,11][K4-1];
+  const zuend0=opt.fuse||[1.7,1.85,2.0,2.15,2.3][K4-1];
+  /* 03.10. abends (Tom: "die Kugelbomben explodieren viel zu niedrig, sie
+     muessen richtig hoch in den Himmel"): die Bruchhoehe aus Steigen und
+     Zuendzeit der Sorte mal KUGEL_HUB (je Kaliber), dazu mehr Steigzeit -
+     die Reihenfolge der Sorten bleibt, alles liegt weit ueber den Batterien */
+  const h0=(steig0+21)*STEIG*zuend0-3*zuend0*zuend0, hN=h0*KUGEL_HUB[K4-1];
+  const zuend=zuend0*KUGEL_ZUEND, steig=pwFuerHoehe(hN,zuend);
   /* Abschussknall und Muendungsfeuer im Rohr */
   const v0=distVol(o);
   sfx.boom(Math.min(1.5,v0*(0.6+0.2*K4)));
@@ -1828,6 +1845,28 @@ function leuchthof(p,c,s,hell){
   wolke(0.35,sp,(w,t)=>{ const a=(t<0.05?t/0.05:1)*(1-glatt(0.05,0.35,t))*0.04*hell, r=R*(0.45+0.35*(1-Math.exp(-t*5)));
     wSetz(sp[0],p.x,p.y,p.z,r*2.2,c,a); wSetz(sp[1],p.x,p.y,p.z,r*1.1,[1,1,1],a*0.6); });
 }
+/* Punktbrueche mit Funkenschweif (03.10. abends, Tom: "eine Explosion mit
+   kleinen Punkten, sieht aus wie leuchtende Punkte - sieht scheisse aus";
+   gefallen haben Goldader, Kometen, Palmen, Silbergewitter - Sterne, die
+   einen Schweif ziehen). Batterie-Schuesse (r.fein) und Kugelbomben mit
+   einem Bruch aus PUNKT_EFF behalten Form und Farben ihres Bruchs, aber
+   ein Teil der Sterne zieht einen glitzernden Funkenschweif: Farbsterne
+   einen goldenen, weisse und silberne einen silbernen. */
+const PUNKT_EFF={kugel:1,wechsel:1,ring:1,doppelring:1,dahlie:1,pistill:1,mehrring:1,tausend:1,saturn:1,strauss:1,zehnfach:1,
+  spektrum:1,regenbogen:1,ringring:1,doppel:1,dreifach:1,geist:1,kaleidoskop:1,einfarbbombette:1,farbmixbombe:1,chamaeleon:1,silberwelle:1,
+  lampare:1,tausendblueten:1,zeitsterne:1,falterlicht:1,blinkkugel:1,eiskristall:1,feuerreif:1,drachenblut:1};
+let SCHWEIF_ZIEH=true;
+function bruchMitSchweif(r,eff,run){
+  if(!SCHWEIF_ZIEH||!(r.fein||r.kugel)||!PUNKT_EFF[eff]) return mitSchweif(eff,run);
+  const st=[], pools=[psBig,psHuge], orig=pools.map(ps=>ps.emit);
+  pools.forEach((ps,i)=>{ ps.emit=function(x,y,z,vx,vy,vz,cr,cg,cb,life,grav){ if(life>0.7&&vx*vx+vy*vy+vz*vz>12) st.push([vx,vy,vz,cr,cg,cb,life,grav||0]); return orig[i].apply(this,arguments); }; });
+  try{ mitSchweif(eff,run); } finally { pools.forEach((ps,i)=>{ ps.emit=orig[i]; }); }
+  if(!st.length||typeof rkFunken!=='function') return;
+  const p=r.p, N=Math.min(st.length,Math.round(10+16*QUAL())), schritt=st.length/N;
+  for(let k=0;k<N;k++){ const s=st[Math.floor(k*schritt)], hell=Math.max(s[3],s[4],s[5])||1, weiss=Math.min(s[3],s[4],s[5])/hell>0.72;
+    const c=weiss?[1.2,1.22,1.3]:[Math.min(1.5,s[3]/hell*0.35+0.95),Math.min(1.3,s[4]/hell*0.35+0.62),Math.min(1.2,s[5]/hell*0.35+0.22)];
+    rkFunken(p,[s[0],s[1],s[2]],s[7],0.05,s[6]*0.85,24,c,{ps:psMid,life:[0.35,0.75],g:1.6,streu:0.28,mit:0.05,mode:4}); }
+}
 function fwBurst(r){
   if(r.eff==='atom'){ atompilz(r.p); return; }
   const tagAlt=FW_TAG; FW_TAG=r.tag||0;
@@ -1836,7 +1875,7 @@ function fwBurst(r){
   if(h!==1){ const k=c=>[c[0]*h,c[1]*h,c[2]*h]; r.A=k(r.A); r.B=k(r.B); }
   /* der Bruch bekommt die ganze Rakete mit (par, C, kerne, text, tag, v) */
   BASIS_LETZT=null;
-  mitSchweif(r.eff,()=>fn(p,r.A,r.B,r.size,r));
+  bruchMitSchweif(r,r.eff,()=>fn(p,r.A,r.B,r.size,r));
   r.ebene=BASIS_LETZT;
   /* bruchOpt: die Standard-Zutaten abschaltbar, damit nicht jeder
      Bruch gleich wirkt (Engine v2). flash: false oder Faktor. */
@@ -1853,7 +1892,9 @@ function fwBurst(r){
      beim Aufgehen weiss auf, das wirkte wie ein Scheinwerfer */
   if(bo.flash!==false) flash(p,mix,(1.2+1.9*r.size)*h*(typeof bo.flash==='number'?bo.flash:1),lang?1.2:0.6);
   /* knall: eigener Bruchklang (herzton, poka) statt des Knalls */
-  if(r.knall&&sfx[r.knall]) later(camera.position.distanceTo(p)/343,()=>sfx[r.knall](distVol(p)));
+  if(r.knall&&sfx[r.knall]) later(camera.position.distanceTo(p)/343,()=>sfx[r.knall](distVol(p),r.size));
+  /* 03.10. abends: Kugelbomben klingen nach ihrem Bild (Bruchklang-Palette), schwer */
+  else if(r.kugel&&typeof showKlang==='function'){ const k=showKlang('kugel'+r.kugel,r.eff,1.5+r.kugel*0.2); later(camera.position.distanceTo(p)/343,()=>sfx[k](Math.min(1.4,distVol(p)*1.3),r.size)); }
   else if(r.eff!=='salut') shellSound(p,r.size);
   if(FW_LOG&&FW_LOG.brueche) FW_LOG.brueche.push({t:FW_UHR,eff:r.eff,x:+p.x.toFixed(2),y:+p.y.toFixed(2),z:+p.z.toFixed(2),A:r.A,B:r.B,sz:r.size,tag:r.tag,ebene:r.ebene});
   /* Nachbrueche der Kugelbombe */
@@ -1881,10 +1922,11 @@ function stufeZuenden(r,st,mix){
   const bruch=(q,t,laut,erbe)=>later(t,()=>{
     const alt=FW_TAG; FW_TAG=tag; FW_ERBE=erbe||null;
     const rr={p:q,A,B,size:st.sz,eff:st.eff,par:Object.assign({},r.par||{},{dreh:st.dreh}),C:r.C,kerne:r.kerne,kugel:r.kugel,tag,stufe:true};
-    try{ mitSchweif(st.eff,()=>(EFF[st.eff]||EFF.kugel)(q,A,B,st.sz,rr)); } finally { FW_ERBE=null; }
+    try{ bruchMitSchweif(Object.assign(rr,{fein:r.fein}),st.eff,()=>(EFF[st.eff]||EFF.kugel)(q,A,B,st.sz,rr)); } finally { FW_ERBE=null; }
     const bo=st.bruchOpt||{};
     if(!st.leise&&bo.kern!==false) kern(q,A,st.sz);
-    if(st.eff!=='salut'&&laut){ if(bo.flash!==false) flash(q,A||mix,(1.6+2.2*st.sz)*(typeof bo.flash==='number'?bo.flash:1),0.5); shellSound(q,st.sz); }
+    if(st.eff!=='salut'&&laut){ if(bo.flash!==false) flash(q,A||mix,(1.6+2.2*st.sz)*(typeof bo.flash==='number'?bo.flash:1),0.5);
+      if((r.fein||r.kugel)&&typeof showKlang==='function'){ const k=showKlang('stufe'+(r.kugel||0),st.eff,st.sz); schall(q,v=>sfx[k](v,st.sz)); } else shellSound(q,st.sz); }
     if(FW_LOG&&FW_LOG.brueche) FW_LOG.brueche.push({t:FW_UHR,eff:st.eff,x:+q.x.toFixed(2),y:+q.y.toFixed(2),z:+q.z.toFixed(2),A,B,sz:st.sz,tag,stufe:true,erbe:erbe?erbe.map(x=>+x.toFixed(2)):null});
     FW_TAG=alt; });
   if(st.risse){

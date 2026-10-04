@@ -76,7 +76,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     pruef('NEU',v.gruppe!=='sonstiges',t+' in keiner Warengruppe');
   }
   pruef('NEU',r.neu.feuerlilie200&&r.neu.feuerlilie200.st==='moerser','Kugel 200 Feuerlilie gehoert in den Moerser');
-  pruef('NEU',r.neu.titanraketen&&r.neu.titanraketen.st==='rampe'&&r.neu.jumbogold.st==='rampe'&&r.neu.jumboleiter.st==='rampe','Raketen gehoeren in die Roehren');
+  pruef('NEU',r.neu.jumbogold.st==='rampe'&&r.neu.jumboleiter.st==='rampe','Raketen gehoeren in die Roehren');
   for(const [t,[soll,ist]] of Object.entries(r.schuss))
     pruef('SCHUSS',Math.abs(ist-soll)<=Math.max(2,soll*0.05),t+': Name sagt '+soll+', Drehbuch hat '+ist);
   /* 27.09. (Tom: Anomalie): die Schusszahl muss weiter steigen, die Laenge darf
@@ -112,7 +112,8 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   });
   console.log('GOETTERZORN',JSON.stringify(kz));
   pruef('GOETTERZORN',kz.maxGleichzeitig>=10,'nur '+kz.maxGleichzeitig+' Brueche gleichzeitig');
-  pruef('GOETTERZORN',kz.hoehe>22&&kz.hoehe<40,'Bruchhoehe '+kz.hoehe+' m');
+  /* 03.10. abends (Tom: "Kugelbomben viel, viel hoeher"): 200 mm jetzt um 75 m */
+  pruef('GOETTERZORN',kz.hoehe>55&&kz.hoehe<95,'Bruchhoehe '+kz.hoehe+' m');
 
   /* Jedes Feuerwerk: letzter Schuss vor dem Abraeumen, keine Fehler */
   const lauf=await p.evaluate(()=>{
@@ -151,15 +152,15 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     bb.run(10,0.1);
     const zeiten=[]; let uhr=0; const orig={};
     Object.keys(bb.EFF).forEach(k=>{ orig[k]=bb.EFF[k]; bb.EFF[k]=function(){ zeiten.push(k); return orig[k].apply(this,arguments); }; });
-    bb.igniteType('titanraketen',{x:3,y:1.3,z:-18,ab:0.1,jit:0});
-    bb.run(bb.brennDauer('titanraketen')+3,0.05);
+    bb.igniteType('jumbogold',{x:3,y:1.3,z:-18,ab:0.1,jit:0});   /* 03.10. abends: Titan ist raus (Tom) - die Jumbo-Rakete statt dessen */
+    bb.run(bb.brennDauer('jumbogold')+3,0.05);
     Object.keys(orig).forEach(k=>{ bb.EFF[k]=orig[k]; });
     o.titanBrueche=zeiten.length; o.titanArten=[...new Set(zeiten)];
     return o;
   });
   console.log('RAKETEN ',JSON.stringify(rk));
   pruef('RAKETEN',rk.pfeif,'Pfeifrakete ohne Spirale');
-  pruef('RAKETEN',rk.titanBrueche===1,'Titan: '+rk.titanBrueche+' Brueche statt einer Rakete mit einem Bruch');
+  pruef('RAKETEN',rk.titanBrueche===1,'Juwelenpalme: '+rk.titanBrueche+' Brueche statt einer Rakete mit einem Bruch');
 
   /* Pakete: Themenpakete nur mit Ware der Gruppe, Preis unter dem
      mittleren Einkaufswert; gesperrt, solange die Gruppe fehlt */

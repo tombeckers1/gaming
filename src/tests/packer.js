@@ -54,13 +54,13 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   /* 1. Groessen und Wagenkapazitaet */
   const kap=await p.evaluate(()=>{ const bb=window.__bb, S=bb.S, o={};
     const K=bb.vsKlasse;
-    o.klassen=[K([{t:'boeller',n:3}]),K([{t:'raketen',n:1}]),K([{t:'batterie49',n:1}]),K([{t:'batterie100',n:1}]),K([{t:'profi',n:1}])].join(',');
+    o.klassen=[K([{t:'boeller',n:3}]),K([{t:'raketen',n:1}]),K([{t:'batterie49',n:1}]),K([{t:'kometen',n:1}]),K([{t:'profi',n:1}])].join(',');
     const lager=(t,n)=>{ const s=bb.racks.flatMap(r=>r.slots).find(s=>!s.box); bb.putInSlot(s,t,n,1); };
-    lager('boeller',16); lager('boeller',16); lager('raketen',6); lager('batterie100',2); lager('batterie100',2);
+    lager('boeller',16); lager('boeller',16); lager('raketen',6); lager('kometen',2); lager('kometen',2);
     const plan=list=>{ S.bestellungen=[]; list.forEach(([pos,gr])=>window.__auf(pos,gr)); const pl=bb.vsPlan(); const r=pl?pl.auf.length:0; S.bestellungen=[]; S.offen=0; return r; };
     o.klein=plan(Array.from({length:8},()=>[[['boeller',1]],1]));
     o.gross=plan(Array.from({length:3},()=>[[['raketen',1]],3]));
-    o.riesig=plan(Array.from({length:2},()=>[[['batterie100',1]],6]));
+    o.riesig=plan(Array.from({length:2},()=>[[['kometen',1]],6]));
     o.misch=plan([[[['raketen',1]],3],[[['boeller',1]],1],[[['boeller',1]],1],[[['boeller',1]],1],[[['boeller',1]],1]]);
     /* ohne Ware wird nichts geplant */
     o.ohneWare=plan([[[['kugel300',1]],6]]);
@@ -78,9 +78,9 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     const s=bb.racks.flatMap(r=>r.slots).find(s=>!s.box); bb.putInSlot(s,'wunder',36,1);
     const lvW=bb.emptyLevel('wunder'); for(let i=0;i<10;i++) bb.addToLevel(lvW,'wunder',1);
     const lvS=bb.emptyLevel('kindersekt'); for(let i=0;i<8;i++) bb.addToLevel(lvS,'kindersekt',1);
-    const T=['boeller','raketen','batterie100','wunder','kindersekt'];
+    const T=['boeller','raketen','kometen','wunder','kindersekt'];
     const v0={}; T.forEach(t=>v0[t]={lager:window.__lager(t),laden:window.__laden(t)});
-    const B=[window.__auf([['boeller',3],['wunder',2]]),window.__auf([['kindersekt',2]]),window.__auf([['raketen',1],['boeller',2]]),window.__auf([['wunder',4]]),window.__auf([['batterie100',1]])];
+    const B=[window.__auf([['boeller',3],['wunder',2]]),window.__auf([['kindersekt',2]]),window.__auf([['raketen',1],['boeller',2]]),window.__auf([['wunder',4]]),window.__auf([['kometen',1]])];
     const soll={}; B.forEach(b=>b.pos.forEach(l=>soll[l.t]=(soll[l.t]||0)+l.n));
     /* das erste Stapelfeld ist schon voll: neue Pakete muessen daran vorbei */
     S.paketGr=Array(30).fill(1); S.pakete=30; bb.syncPakete();
@@ -156,7 +156,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   if(pre){
     await p.evaluate(()=>{ const bb=window.__bb, S=bb.S, w=bb.staff.packer;
       const s=bb.racks.flatMap(r=>r.slots).find(s=>!s.box); bb.putInSlot(s,'monsterboeller',20,1);
-      window.__auf([['monsterboeller',4]]); window.__auf([['monsterboeller',3]]); window.__auf([['batterie100',1]]);
+      window.__auf([['monsterboeller',4]]); window.__auf([['monsterboeller',3]]); window.__auf([['kometen',1]]);
       for(let i=0;i<6000&&!(w.vs==='greifen'&&w.flug&&w.flug.t>0.5);i++) bb.step(0.05);
       document.querySelectorAll('#hud,.tip,#tip,#zielPfeil').forEach(e=>e.style.display='none');
       const V=w.pos, ry=w.g.rotation.y, cx=V.x+Math.sin(ry+2.0)*2.3, cz=V.z+Math.cos(ry+2.0)*2.3;

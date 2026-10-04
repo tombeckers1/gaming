@@ -971,4 +971,49 @@ V.dreifachkrone300=t=>{ const k=neu(t), w=k.w-0.004, d=k.d*0.66, gh=0.075, h=k.h
   for(let i=0;i<7;i++){ const x=-w*0.36+i*w*0.12; vbox(k,0.06,0.05,0.004,x,h+0.012,(i%2-0.5)*d*0.3,i%2?'#f3d98b':'#d9b45a',0.4*(i%3-1),i*0.7,0.3*(i%2?1:-1)); }
   for(const s of [-1,1]) kordel(k,[[-w*0.18,h-0.01,s*(d/2+0.002)],[-w*0.14,k.h-0.008,s*(d/2+0.002)],[w*0.14,k.h-0.008,s*(d/2+0.002)],[w*0.18,h-0.01,s*(d/2+0.002)]],GOLD,0.0035);
   return fertig(k); };
+
+/* ---------------- 03.10. abends: neue Lichter-Batterien (14q) und die
+   Batterien, die vorher Kerzen waren (Feuerperlen, Lichterkette,
+   Zwillinge) - je ein eigener Block mit eigenem Zubehoer ---------------- */
+const nbForm=o=>t=>{ const k=neu(t), B=block(k,Object.assign({},o.block||{}));
+  if(o.ecken) ecken(k,B.w,B.h,B.d,o.ecken,o.eb||0.014);
+  (o.gurtZ||[]).forEach(s=>gurtZ(k,s*B.w*0.42,B.h,B.d,o.gc,o.gb||0.02,o.schnalle||null));
+  if(o.gurtX) gurtX(k,o.gurtX*B.d,B.w,B.h,o.gc,o.gb||0.018);
+  if(o.band) banderole(k,B,B.h*o.band[0],B.h*o.band[1],{farbe:o.bf,akzent:o.ba});
+  if(o.lasche) lascheSeite(k,B,0.045,o.lasche);
+  if(o.block&&o.block.folie) folie(k);
+  return fertig(k); };
+Object.assign(V,{
+  lb_gluehwuermchen:nbForm({block:{folie:true,deckel:{kappe:(i,j)=>(i+j)%2?'#c8ff5a':'#ffe08a'}},ecken:'#e8f0d8',lasche:'#5cff8a'}),
+  lb_sternschnuppen:nbForm({block:{huelle:'roh',rohr:'#1e2a4a',rohrO:{kopf:'#e8f0ff'},etikett:[0.1,0.16,0.8,0.62],deckel:{kappe:'#e8f0ff',wand:'#3a4a6a'}},band:[0.82,0.96],bf:'#0c1a3a',ba:'#e8f0ff'}),
+  lb_kirschbluete:nbForm({block:{folie:true,deckel:{kappe:(i,j)=>['#ffb8d8','#fff0f4'][(i*2+j)%2]}},gurtX:0,gc:'#ff7ab8',gb:0.016}),
+  lb_jadeader:nbForm({block:{huelle:'roh',rohr:'#0e3a1e',rohrO:{kopf:'#5cff8a'},etikett:[0.12,0.14,0.76,0.66],deckel:{kappe:'#5cff8a',wand:'#2a5a3a'}},ecken:'#d9b45a',lasche:'#ffd23f'}),
+  lb_eisvogel:nbForm({block:{folie:true,deckel:{kappe:(i,j)=>(i+j)%2?'#5ce1ff':'#3a6aff'}},gurtZ:[-1,1],gc:'#5ce1ff',gb:0.016}),
+  lb_glutpalmen:nbForm({block:{huelle:'roh',rohr:'#3a1a0a',rohrO:{kopf:'#ff8a2a'},etikett:[0.18,0.12,0.64,0.7],deckel:{kappe:'#ff8a2a',wand:'#5a2a10'}},band:[0.06,0.2],bf:'#100402',ba:'#ff8a2a',lasche:'#ff8a2a'}),
+  lb_saphirfaecher:nbForm({block:{folie:true,deckel:{kappe:'#5c8dff',wand:'#c8d8ff'}},ecken:'#5c8dff',gurtX:-0.25,gc:'#c8e4ff'}),
+  lb_smaragdfaecher:nbForm({block:{folie:true,deckel:{kappe:(i,j)=>(i%2)?'#5cff8a':'#d8ffb0'}},gurtZ:[0],gc:'#2a8a4a',gb:0.03,schnalle:'#d8ffb0'}),
+  lb_rubinpalmen:nbForm({block:{huelle:'roh',rohr:'#5a0a10',rohrO:{kopf:'#ff4a4a'},etikett:[0.08,0.1,0.84,0.72],deckel:{kappe:'#ff4a4a',wand:'#7a1a20'}},ecken:'#ffd23f',eb:0.02}),
+  lb_polarweiden:nbForm({block:{folie:true,deckel:{kappe:(i,j)=>['#5cffe8','#c85cff','#5ce1ff'][(i+j)%3]}},band:[0.3,0.62],bf:'#063a3a',ba:'#5cffe8'}),
+  lb_lilienfeld:nbForm({block:{folie:true,deckel:{kappe:(i,j)=>(i*j)%2?'#ffd23f':'#ff7ad8'}},gurtZ:[-1,1],gc:'#ff7ad8',gb:0.018,lasche:'#ffd23f'}),
+  lb_goldsaphir:nbForm({block:{huelle:'roh',rohr:'#0a1a4a',rohrO:{kopf:'#ffd23f'},etikett:[0.15,0.1,0.7,0.74],deckel:{kappe:(i,j)=>(i+j)%2?'#ffd23f':'#5c8dff',wand:'#2a3a6a'}},ecken:'#d9b45a'}),
+  lb_amethystregen:nbForm({block:{folie:true,deckel:{kappe:'#c85cff',wand:'#e8ecff'}},gurtX:0.2,gc:'#7a3aff',gb:0.022,ecken:'#e8ecff'}),
+  lb_doppelhelix:nbForm({block:{folie:true,deckel:{kappe:(i,j)=>(i+j)%2?'#ffd23f':'#5ce1ff'}},band:[0.1,0.34],bf:'#1a2a4a',ba:'#ffd23f',gurtZ:[1],gc:'#5ce1ff'}),
+  lb_farbtiger:nbForm({block:{huelle:'roh',rohr:'#0a2a1e',rohrO:{kopf:['#5cff9e','#5c8dff','#ff5ac8']},etikett:[0.1,0.2,0.8,0.6],deckel:{kappe:(i,j)=>['#5cff9e','#5c8dff','#ff5ac8','#5ce1ff'][(i+2*j)%4],wand:'#1a3a2a'}},gurtZ:[-1,1],gc:'#ff5ac8',gb:0.02,schnalle:'#3a3a3a'}),
+  lb_kronenfeuer:nbForm({block:{folie:true,deckel:{kappe:(i,j)=>['#ff4a4a','#5c8dff','#5cff8a','#c85cff'][(i+j)%4]}},ecken:'#ffd23f',eb:0.024,lasche:'#ffd23f'}),
+  lb_jadekoenig:nbForm({block:{huelle:'roh',rohr:'#0b0a09',rohrO:{kopf:'#5cff8a'},etikett:[0.2,0.12,0.6,0.7],deckel:{kappe:(i,j)=>(i+j)%2?'#ffd23f':'#5cff8a',wand:'#2a2a1a'}},band:[0.86,0.97],bf:'#0b0a09',ba:'#ffd23f',ecken:'#d9b45a'}),
+  lb_paradiesvogel:nbForm({block:{folie:true,huelle:'roh',bunt:['#ff5ac8','#9cff3a','#5ce1ff','#ff9a3d','#c85cff','#ffd23f'],etikett:[0.18,0.12,0.64,0.76],deckel:{kappe:(i,j,R)=>['#ff5ac8','#9cff3a','#5ce1ff','#ff9a3d','#c85cff'][(i*3+j*2)%5]}},lasche:'#9cff3a'}),
+  lb_sternenfeuer:nbForm({block:{folie:true,deckel:{kappe:(i,j)=>(i+j)%3?'#e8f0ff':'#7a5cff'}},gurtZ:[-1,0,1],gc:'#c9ced6',gb:0.014,ecken:'#7a5cff'}),
+  lb_himmelsfeuer:nbForm({block:{huelle:'roh',rohr:'#1a0a3a',rohrO:{kopf:['#ffd23f','#ff5ac8','#5ce1ff']},etikett:[0.12,0.08,0.76,0.8],deckel:{kappe:(i,j)=>['#ffd23f','#ff5ac8','#5ce1ff','#5cff8a'][(i+j)%4],wand:'#2a1a4a'}},ecken:'#d9b45a',eb:0.026,gurtX:0,gc:'#d9b45a',gb:0.02}),
+  /* frueher Kerzen, jetzt Batterien auf dem Tisch */
+  feuerperlen:nbForm({block:{folie:true,deckel:{kappe:(i,j)=>(i+j)%2?'#ff8a2a':'#ffd23f'}},gurtX:0,gc:'#ff3a1e',gb:0.016,lasche:'#ff3a1e'}),
+  lichterkugeln:nbForm({block:{huelle:'roh',rohr:'#2a2014',rohrO:{kopf:['#ffd23f','#ff4a4a','#5cff8a']},etikett:[0.14,0.16,0.72,0.64],deckel:{kappe:(i,j)=>['#ffd23f','#ff4a4a','#5cff8a'][(i+j)%3],wand:'#4a3a24'}},ecken:'#ffd23f'}),
+  goldregen22:nbForm({block:{folie:true,deckel:{kappe:'#ffd23f',wand:'#6a5020'}},band:[0.12,0.4],bf:'#140a02',ba:'#ffd23f',lasche:'#ffd23f'})
+});
+/* Goldbrokat 100 (frueher Rakete): bedruckter Koecher mit violetten
+   Kappen und zwei Goldringen */
+V.goldbrokat100=t=>{ const k=neu(t), R=Math.min(k.w,k.d)/2-0.003, h=k.h, kh=0.014;
+  mantel(k,R,h-2*kh,kh,'koker',pRund(k,pFront(k),0.36));
+  vzyl(k,R+0.002,R+0.002,kh,20,0,kh/2,0,'#3a0a4a'); vzyl(k,R+0.002,R+0.002,kh,20,0,h-kh/2,0,'#3a0a4a');
+  vring(k,R+0.002,0.0025,4,20,2*PI,0,h*0.2,0,GOLD,PI/2,0,0); vring(k,R+0.002,0.0025,4,20,2*PI,0,h*0.8,0,GOLD,PI/2,0,0);
+  return fertig(k); };
 })();

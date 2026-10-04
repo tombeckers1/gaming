@@ -33,13 +33,13 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   const pruef=(n,ok,was)=>{ if(!ok) mangel.push(n+': '+was); };
   const r=await p.evaluate(()=>{ const bb=window.__bb, S=bb.S, P=bb.P, o={};
     S.level=40; S.money=1e7; bb.LIZENZEN.forEach(l=>bb.buyLizenz(l.id));
-    const FH=bb.SUPPLIERS[0], T1={n:1,d:0}, W=['wunder','knallerbsen','knallfrosch','feuerzeug','batterie16','sekt','popcorn'];
+    const FH=bb.SUPPLIERS[0], T1={n:1,d:0}, W=['wunder','knallerbsen','knallfrosch','feuerzeug','goldpalmen','sekt','popcorn'];
     const p0={}, i0={}, last={}; o.wechsel={}; o.runter={};
     W.forEach(t=>{ p0[t]=bb.tierPrice(t,FH,T1); i0[t]=bb.ekRoh(t); last[t]=p0[t]; o.wechsel[t]=0; o.runter[t]=0; });
     for(let d=0;d<60;d++){ bb.rollMarkt(); W.forEach(t=>{ const q=bb.tierPrice(t,FH,T1); if(q!==last[t]) o.wechsel[t]++; if(q<last[t]) o.runter[t]++; last[t]=q; }); }
     o.folgt={}; W.forEach(t=>{ o.folgt[t]=+Math.abs(bb.tierPrice(t,FH,T1)/p0[t]-bb.ekRoh(t)/i0[t]).toFixed(4); });
     /* Delta gegen gestern */
-    const t='batterie16', vor=S.ekVor[t];
+    const t='goldpalmen', vor=S.ekVor[t];
     o.delta={soll:Math.round((S.mi[t]*S.infl/vor-1)*1000)/10, ist:bb.ekDelta(t)};
     const L=bb.ORDER.filter(x=>!P[x].noOrder&&bb.isUnlocked(x)), e=bb.ekTag();
     o.schnitt={soll:Math.round(L.reduce((a,x)=>a+bb.ekDelta(x),0)/L.length*10)/10, ist:e.schnitt};
@@ -55,10 +55,10 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     bb.closeLaptop&&bb.closeLaptop(false);
     /* Handscanner mit Tagesfaktor: Lizenz-Rabatt macht den Faktor 0,9 */
     S.up.lizenz=true;
-    bb.openPDA('batterie16');
+    bb.openPDA('goldpalmen');
     const zeile=[...document.querySelectorAll('#pdaBody .pdarow')].find(z=>/Einkauf \/ Marge/.test(z.textContent));
     const zahl=zeile?parseFloat(zeile.textContent.replace('Einkauf / Marge','').split('→')[0].replace(/[^\d,]/g,'').replace(',','.')):null;
-    o.pda={ist:zahl, soll:Math.round(bb.costOf('batterie16')*bb.ekFactor()*100)/100, ohne:bb.costOf('batterie16')};
+    o.pda={ist:zahl, soll:Math.round(bb.costOf('goldpalmen')*bb.ekFactor()*100)/100, ohne:bb.costOf('goldpalmen')};
     bb.closePDA();
     /* Speichern und Laden */
     bb.save(); const d=JSON.parse(localStorage.getItem(Object.keys(localStorage).find(k=>/boellerbude/.test(k))));

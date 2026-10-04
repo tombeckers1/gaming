@@ -244,7 +244,11 @@ function vfZuendenRoh(t){
   /* der Blick folgt dem Produkt: zur Seite auf seinen Platz, nach oben so
      weit, wie es steigt - Kleinfeuerwerk flach, Batterien halb, Raketen
      und Kugeln steil */
-  { const sh=P[t].shape; pitch=o.sid==='tisch'?(SHOWS[t]||sh==='battery'||sh==='fan'?0.55:sh==='fountain'||sh==='cylinder'||sh==='fountainset'?0.35:0.1):o.sid==='rampe'?0.72:0.85;
+  /* 03.10. (Tom: alle Brueche viel hoeher): Batterien 0,8 statt 0,55 -
+     oberer Bildrand bei ~70 m statt 25 m, Brueche (27-35 m) im oberen
+     Drittel statt am Rand (gemessen, Spieler 11 m vor dem Tisch); Rampe 0,85 statt 0,72 (Raketen bis ~75 m im Bild statt 35 m); Moerser 0,95 statt 0,85, sonst schneidet der Rand die 300er
+     (Bruch ~90 m) mittendurch */
+  { const sh=P[t].shape; pitch=o.sid==='tisch'?(SHOWS[t]||sh==='battery'||sh==='fan'?0.8:sh==='fountain'||sh==='cylinder'||sh==='fountainset'?0.35:0.1):o.sid==='rampe'?0.85:0.95;
     yaw=Math.atan2(-(o.x-pl.x),-(o.z-pl.z)); }
   if(h){ let weg=false; const fn=()=>{ if(weg) return; weg=true; if(h.pool) h.pool.remove(h); }; vfAufraeumen.push(fn); later(vor+dauer,fn); }
   if(bt){ let weg=false; const fn=()=>{ if(weg) return; weg=true; bt.weg(); }; vfAufraeumen.push(fn); later(vor+dauer,fn); }

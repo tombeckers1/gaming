@@ -50,10 +50,11 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
       /* Rohrfuss in der Grundflaeche (die Muendung schraeger Faecherrohre darf ueberstehen) */
       const aussen=sch.filter(e=>e.i>=0&&(Math.abs(e.bx-o.x)>d[0]/2+0.001||Math.abs(e.bz-o.z)>d[2]/2+0.001)).length;
       let folgeFehler=0; sch.forEach((e,k)=>{ if(e.i!==L.folge[k]) folgeFehler++; });
-      const gaps=[]; for(let k=1;k<sch.length;k++) gaps.push(sch[k].t-sch[k-1].t);
+      /* 03.10. abends: Verzoegerungssaetze (Abschnittspausen, Z.S[k].verz) zaehlen nicht zum Takt */
+      const gaps=[]; for(let k=1;k<sch.length;k++) if(!(Z.S[k]&&Z.S[k].verz)) gaps.push(sch[k].t-sch[k-1].t);
       const gmin=gaps.length?Math.min(...gaps):0.3, gmax=gaps.length?Math.max(...gaps):0.3;
       /* Plan exakt (die Messung oben ist auf den Rechenschritt 0,05 s genau) */
-      const pg=[]; for(let k=1;k<Z.S.length;k++) pg.push(Z.S[k].tt-Z.S[k-1].tt);
+      const pg=[]; for(let k=1;k<Z.S.length;k++) if(!Z.S[k].verz) pg.push(Z.S[k].tt-Z.S[k-1].tt);
       const pmin=pg.length?Math.min(...pg):0.3, pmax=pg.length?Math.max(...pg):0.3;
       const dunkel=[...Array(L.rohre.length).keys()].filter(k=>{ const c=m.farbe(k); return c&&c[0]<hell0[0]*0.3; }).length;
       m.weg();

@@ -223,6 +223,7 @@ function tonFuer(ton,i,q){
   switch(ton){ case 'akkord': return [0,4,7][q%3]; case 'stimmen': return Math.floor(rand(0,12))+rand(-0.4,0.4);
     case 'hoch': return 7; case 'tief': return -7; default: return ton; }
 }
+const PFEIF_ERSATZ={pfeif:'silber',heuler:'silber',dreiklang:'gold',tonleiter:'silber'};
 /* Phasenfelder in der einen Schreibweise (engine-zusatz.md) */
 function phNorm(ph){
   const p=Object.assign({},ph);
@@ -231,6 +232,10 @@ function phNorm(ph){
   if(typeof p.perle==='string'){ p.perleEff=p.perleEff||(p.perle.endsWith('perle')||p.perle==='zwilling'?p.perle:p.perle+'perle'); p.perle=true; }
   if(p.nurBoden&&(p.n===undefined?1:p.n)>0){ p.nurMine=true; }
   if(p.stufen&&p.bomb&&!p.bombStufen) p.bombStufen=p.stufen;
+  /* 03.10. abends (Tom: "Ich will keine Pfeif-Sachen"): keine Heuler und
+     Pfeifkerzen mehr in Batterien */
+  if(PFEIF_ERSATZ[p.steig]){ p.steig=PFEIF_ERSATZ[p.steig]; delete p.ton; }
+  p.pfeif=false; if(p.perleEff==='pfeifperle') p.perleEff='knisterperle';
   return p;
 }
 /* Show-Kennung: jeder Stern, jede Rakete und jeder Boden-Emitter einer
@@ -312,7 +317,7 @@ function playShowRoh(o,phases,prod,tag,PLAN){
       /* 03.10. (Tom): statt der kleinen Funkenfontaenen eine grosse breite
          Fontaene in den Farben der Batterie (14m breitBoden) */
       if(typeof BREIT_BODEN!=='undefined'&&BREIT_BODEN[b.k]&&!b.alt){ const T=[gA,gB], lvl=P[prod]&&P[prod].lvl||10, saat=typeof saatZahl==='function'?saatZahl(prod||'x'):0;
-        plane(st,()=>{ const alt=FW_TAG; FW_TAG=tag; try{ breitBoden(RS?RS.modul(offB*VM.k()):ortAus(offB),A,B,{k:b.k,D:b.gt,lvl,saat,T}); } finally { FW_TAG=alt; } },{art:'b'}); return; }
+        plane(st,()=>{ const alt=FW_TAG; FW_TAG=tag; try{ breitBoden(RS?RS.modul(offB*VM.k()):ortAus(offB),A,B,{k:b.k,D:b.gt,lvl,saat,T,muster:b.muster}); } finally { FW_TAG=alt; } },{art:'b'}); return; }
       if(b.k==='monsterfont'){ plane(st,()=>monsterFontaene(RS?RS.modul(offB*VM.k()):ortAus(offB),b.gh||20,b.gt||8,b.farben||[A,B,FW.gold]),{art:'b'}); return; }
       /* spielraum: Platz vom Emitter bis zum Rand des Produkts - breite
          oder wandernde Boden-Emitter (Wasserfall, Kreisel, Kessel)
@@ -385,7 +390,14 @@ function playShowRoh(o,phases,prod,tag,PLAN){
       let pw=BS.pw+(ph.pw||0)+Rz.pw+hAdd;
       /* nie tiefer als 6 m ueber dem Rohr brechen */
       if(steigHoehe(pw,fuseS)<6) pw=pwFuerHoehe(6,fuseS);
-      const sz=bruchKappe((ph.sz||1)*szK*BS.sz*SHOW_GROESSE*Rz.sz), hB=steigHoehe(pw,fuseS);
+      /* 03.10. abends (Tom: "die Effekte muessen alle ganz oben sein" -
+         mindestens so hoch wie Silbergewitter): jede Bruchhoehe der Show
+         um SHOW_HUB hoeher (was unter 16 m lag, noch etwas mehr), mit
+         laengerer Steigzeit. Alle Abstufungen
+         (Rampe, Hoehenmuster, Ebenen) bleiben erhalten. */
+      let fuseH=fuseS;
+      if(SHOW_HUB&&!ph.tief){ const h0=steigHoehe(pw,fuseS), hN=h0+SHOW_HUB+Math.max(0,16-h0)*0.4; fuseH=ph.fuse||clamp(1.05+hN/36,1.2,2.2); pw=pwFuerHoehe(hN,fuseH); }
+      const sz=bruchKappe((ph.sz||1)*szK*BS.sz*SHOW_GROESSE*Rz.sz), hB=steigHoehe(pw,fuseH);
       /* Abschussort: x in Metern (Liste je Schuss, in Gruppen je Gruppe),
          rohrFolge relativ zur Batteriebreite, rohre:'breit' nach Seite */
       let off=0;
@@ -422,8 +434,8 @@ function playShowRoh(o,phases,prod,tag,PLAN){
       /* Schussfarbe der Aufstiegsspur */
       const trail=ph.spurFarbe==='A'?A:ph.spurFarbe==='B'?B:ph.spurFarbe?farbe(ph.spurFarbe)||undefined:undefined;
       const par={art:ph.art,split:ph.split,modus:ph.modus,sync:ph.sync,splitDreh:ph.splitDreh,schlaege:ph.schlaege,gleit:ph.gleit,form:ph.form,treffen:ph.treffen,i,n,g:s.g,q};
-      const opt={eff,sz,pw,ang:sAng,dir:sDir,A,B,fuse:ziel?(bildT||ph.fuse||zielZeit(ziel.y-(o.y||0))):ph.fuse,dick:ph.dick,hell:Rz.hell,pfeif:ph.pfeif||ph.steig==='pfeif',steig:ph.steig,fein:true,bruchOpt:showBlitz(ph.bruchOpt),
-        trail,ton:tonFuer(ph.ton,i,q),par,tag,ziel};
+      const opt={eff,sz,pw,ang:sAng,dir:sDir,A,B,fuse:ziel?(bildT||ph.fuse||zielZeit(ziel.y-(o.y||0))):(ph.fuse||fuseH),dick:ph.dick,hell:Rz.hell,pfeif:ph.pfeif||ph.steig==='pfeif',steig:ph.steig,fein:true,bruchOpt:showBlitz(ph.bruchOpt),
+        trail,ton:tonFuer(ph.ton,i,q),par,tag,ziel,knall:ph.knall||showKlang(prod,eff,sz)};
       /* Boden je Gruppe am Gruppenort */
       if(q===0) boeden.forEach(b=>{ if(b.je) bodenAn(b,tt+(b.t||0),off); });
       const [mA,mB]=[A,B];
@@ -454,7 +466,7 @@ function playShowRoh(o,phases,prod,tag,PLAN){
             schlaege:ph.schlaege,steig:ph.steig,bruchOpt:showBlitz(ph.bruchOpt),par,tag,
             pw:ph.bombPw,sz:ph.bombSz,schlag:ph.schlag,dick:ph.dick,trail:ph.trail?K(ph.trail):undefined,fuse:ph.bombFuse}); } finally { BLITZ_K=1; } }
           /* perle: Roemisches Licht - eine Leuchtkugel direkt aus dem Rohr */
-          else if(ph.perle) perleSchuss(os,mA,sz,{eff:perleEff,ang:ausRohr?fa:mm&&mm!=='gerade'?ang:(perleEff||ph.rohrFolge?0:undefined),dir:ausRohr?fd:dir===undefined?FANDIR:dir,B:mB,i,kette,splitDreh:ph.splitDreh});
+          else if(ph.perle) perleSchuss(os,mA,sz,{hub:PERLE_HUB,eff:perleEff,ang:ausRohr?fa:mm&&mm!=='gerade'?ang:(perleEff||ph.rohrFolge?0:undefined),dir:ausRohr?fd:dir===undefined?FANDIR:dir,B:mB,i,kette,splitDreh:ph.splitDreh});
           else shot(os,ausRohr?Object.assign({},opt,{ang:fa,dir:fd}):opt);
         }
         FW_TAG=alt;
@@ -473,6 +485,33 @@ function playShowRoh(o,phases,prod,tag,PLAN){
 /* Rohrstreuung der Batterien in rad (siehe show): 0,05 rad = knapp 3 Grad,
    am Bruchpunkt in 20-25 m gut ein Meter */
 let ROHR_STREU=0.05;
+/* Hub aller Bruchhoehen einer Show in m (03.10. abends, Tom: "viel, viel,
+   viel hoeher") - gemessen an Silbergewitter (Lichter brechen bei 27-31 m) */
+let SHOW_HUB=13, PERLE_HUB=2.3;   /* Kerzen: Starttempo x 2,3 - mit Luftwiderstand gut 24 m statt 9 m */
+/* Bruchklang der Batterien (03.10. abends, Tom: "die Sounds machen es echt
+   aus ... verschiedene Toene, immer ein bisschen unterschiedlich, und darauf
+   passende Effekte"): statt des einen Standard-Knalls (Boom + zwei Cracks)
+   bekommt jeder Bruch einen Klang aus der Palette (13-sound BRUCH_KLAENGE),
+   der zu seinem Bild passt - leise Sterne puffen, Crossetten knacken in
+   Kaskade, Weiden rauschen, Knistersterne knistern nach. Welcher der
+   passenden Klaenge, waehlt das Produkt (jede Batterie klingt anders),
+   grosse Brueche nehmen den schwereren. */
+const BRUCH_ZU={
+  salut:['salut'], figur:['klack','puff','plopp'], kugel:['puff','doppel','crack','plopp'],
+  glanz:['rieseln','puff','knisterhall'], kern:['doppel','puff','kaskade'], weide:['brokat','donnerhall','wumms'],
+  palme:['wumms','brokat','puff'], komet:['zisch','kaskade','crack'], knister:['knisterhall','crack','kaskade'],
+  schwarm:['zisch','knisterhall'], flamme:['wumms','puff'], glitzer:['rieseln','knisterhall']};
+const BRUCH_ART={chrys:'glanz',goldglitzer:'glanz',farbregen:'glanz',sternspritzer:'glitzer',pistill:'kern',wechsel:'kern',drachenblut:'kern',kaleidoskop:'kern',
+  weide:'weide',glitzerweide:'weide',kamuro:'weide',brokat:'weide',zeitregen:'weide',kronleuchter:'weide',goldvorhang:'weide',nishiki:'weide',vorhang:'weide',polarlicht:'weide',
+  palme:'palme',kokosnuss:'palme',sternpalme:'palme',tigerschweif:'palme',lavaregen:'flamme',
+  komet:'komet',kaskade:'komet',sternschnuppen:'komet',titan:'komet',rossschweif:'komet',meteor:'komet',crossette:'komet',kreuzstern:'komet',
+  fische:'schwarm',bienen:'schwarm',fischschwarm:'schwarm',kiefernkrone:'knister'};
+const klangHash=s=>{ let h=7; for(let i=0;i<s.length;i++) h=(h*31+s.charCodeAt(i))>>>0; return h; };
+function bruchKlangArt(eff){ return BRUCH_ART[eff]||(EFF_FAMILIE[eff]==='haenger'?'weide':EFF_FAMILIE[eff])||'kugel'; }
+function showKlang(prod,eff,sz){ const L=BRUCH_ZU[bruchKlangArt(eff)]||BRUCH_ZU.kugel;
+  let i=(klangHash(prod||'x')+klangHash(eff||''))%L.length;
+  if(sz>1.45&&L.indexOf('wumms')>=0) i=L.indexOf('wumms'); else if(sz>1.45&&L.indexOf('donnerhall')>=0) i=L.indexOf('donnerhall');
+  const n=L[i]; return 'bk'+n[0].toUpperCase()+n.slice(1); }
 /* Feuertopf (mineEff). Sorten = Sternsaeule 10-15 m ohne Bombette:
    farbe, blink, knister, silber, gold, glut. Jeder andere Name ist ein
    Bruchbild: Tiefbruch 4-8 m ueber der Batterie in Groesse s. */
@@ -525,7 +564,7 @@ function kugelSorte(o,k){
   /* 02.10. (Tom: "breite Fontaenen ruhig beim Abschuss, mit Roemischen
      Lichtern"): manche Kugeln zeigen schon am Moerser etwas (14p) */
   if(k.abschuss&&typeof KUGEL_ABSCHUSS!=='undefined'&&KUGEL_ABSCHUSS[k.abschuss]) KUGEL_ABSCHUSS[k.abschuss](o,A,B,k.kal||1);
-  return kugelbombe(o,k.kal||1,{A,B,C,eff:k.haupt,sz:k.sz,pw:k.pw,fuse:k.fuse,steig:k.steig,bruchOpt:k.bruchOpt,knall:k.ton,
+  return kugelbombe(o,k.kal||1,{A,B,C,eff:k.haupt,sz:k.sz,pw:k.pw,fuse:k.fuse,steig:PFEIF_ERSATZ[k.steig]||k.steig,bruchOpt:k.bruchOpt,knall:k.ton,
     stufen:k.stufen||[],stufenRel:true,kobana:k.kobana,kerne,stehen:k.stehen,par:{drall:k.drall,kerne,C,dreh:k.dreh}});
 }
 /* =========================================================

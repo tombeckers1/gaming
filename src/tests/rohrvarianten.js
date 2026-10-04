@@ -23,7 +23,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   const errs=[]; p.on('pageerror',e=>errs.push('PAGEERROR: '+e.message));
   await p.goto('file://'+process.argv[2]); await p.waitForFunction('window.__bb!==undefined',{timeout:60000});
   await neuesSpiel(p);
-  const SOLL={rb25:[25,'5x5'],rb49:[49,'7x7'],rb100:[100,'10x10'],rbfaecher:[30,'6x5']};
+  const SOLL={rb25:[25,'5x5'],rbfaecher:[30,'6x5']};   /* 03.10. abends: Konfetti 49 und Stakkato 100 sind raus (Tom) */
   const r=await p.evaluate(([SOLL])=>{ const bb=window.__bb, S=bb.S, P=bb.P, out=[];
     S.level=26; S.money=1e7;
     bb.regalStellen('standard'); bb.regalStellen('standard'); bb.regalStellen('standard'); bb.regalStellen('tisch');
@@ -57,7 +57,8 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
       const log=bb.ROHR_LOG.filter(e=>e.i!==undefined); bb.ROHR_LOG=null;
       o.gefeuert=log.length; o.doppelt=log.length-new Set(log.map(e=>e.i)).size;
       o.folge=log.every((e,k)=>e.i===L.folge[k]);
-      const g=[]; for(let k=1;k<log.length;k++) g.push(log[k].t-log[k-1].t);
+      /* 03.10. abends: Verzoegerungssaetze (Abschnittspausen) zaehlen nicht zum Takt */
+      const Z=bb.zuendPlan(t), g=[]; for(let k=1;k<log.length;k++) if(!(Z&&Z.S[k]&&Z.S[k].verz)) g.push(log[k].t-log[k-1].t);
       o.gmin=+Math.min(...g).toFixed(3); o.gmax=+Math.max(...g).toFixed(3);
       o.verkohlt=it.batt.verkohlt.size;
       out.push(o);

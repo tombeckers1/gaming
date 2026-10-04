@@ -20,7 +20,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   const errs=[]; p.on('pageerror',e=>errs.push('PAGEERROR: '+e.message));
   await p.goto('file://'+process.argv[2]); await p.waitForFunction('window.__bb!==undefined',{timeout:120000});
   await neuesSpiel(p);
-  const nur=process.argv[3]&&process.argv[3].startsWith('[')?JSON.parse(process.argv[3]):['profi','finale','batterie100','miniverbund','glitzerregen12','feuerpfau','legion','kanonade300'];
+  const nur=process.argv[3]&&process.argv[3].startsWith('[')?JSON.parse(process.argv[3]):['profi','finale','zfaecher','miniverbund','glitzerregen12','feuerpfau','legion','kanonade300'];
   const ids=await p.evaluate(nur=>{ const bb=window.__bb,P=bb.P; bb.S.level=99; bb.clock=1300; bb.applyTOD();
     return Object.keys(P).filter(t=>P[t].cat>0&&bb.stationOf(t)&&(!nur||nur.includes(t))); },nur);
   const out=[];

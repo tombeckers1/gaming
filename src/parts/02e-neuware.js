@@ -186,7 +186,7 @@ const NEUWARE={
   nachtfalter:{name:'Nachtfalter · 36 Schuss Lichtertanz',short:'Nachtfalter 36',cat:2,lvl:12,shape:'battery',dims:[0.3,0.24,0.3],grid:[7,1,1],box:6,cost:11.00,market:25.99,weight:6,hype:26,risk:6,
     desc:'Eine kleine Goldfontäne zum Auftakt, dann gehen am Himmel violette Blüten auf – und ihre Falter flattern taumelnd herab, jeder in seinem eigenen Flügelschlag.',
     art:{title:'NACHTFALTER',sub:'36 Schuss Verbund',bg1:'#2a0f5a',bg2:'#0a0318',ac:'#ffd23f',ac2:'#c8a2ff'}},
-  feuerberg:{name:'Feuerberg · Lavavulkan 15 s',short:'Feuerberg',cat:2,lvl:12,shape:'cylinder',dims:[0.14,0.3,0.14],grid:[8,2,1],box:8,cost:6.80,market:15.99,weight:6,hype:22,risk:6,
+  feuerberg:{name:'Feuerberg · Lavavulkan 15 s',short:'Feuerberg',cat:2,lvl:8,shape:'cylinder',dims:[0.14,0.3,0.14],grid:[8,2,1],box:8,cost:5.20,market:12.49,weight:6,hype:22,risk:6,
     desc:'Erst schwelt und grollt der Krater, dann spuckt der Feuerberg Glutbrocken, die im Flug verglühen. Zum Schluss bricht er aus.',
     art:{title:'FEUERBERG',sub:'Lavavulkan · 15 s',bg1:'#7a1010',bg2:'#1a0202',ac:'#ffd23f',ac2:'#ff7a1c'}},
   raclettekaese:{name:'Raclettekäse in Scheiben 1 kg',short:'Raclettekäse',cat:0,lvl:12,cold:true,kuehlpflicht:true,shape:'boxA',dims:[0.26,0.06,0.18],grid:[4,2,3],box:8,cost:5.20,market:12.99,weight:6,hype:0,risk:5,
@@ -223,9 +223,9 @@ const NEUWARE={
     art:{title:'CRACKER',sub:'Mix für Käse',bg1:'#8a5a18',bg2:'#2a1a04',ac:'#f2ecd8',ac2:'#ffd23f'}},
 
   /* ---------- Level 14 ---------- */
-  feuerperlen:{name:'Feuerperlen · 16 Verwandlungskugeln',short:'Feuerperlen 16',cat:2,lvl:14,shape:'candle',dims:[0.11,0.38,0.11],grid:[8,2,1],box:6,cost:6.40,market:14.99,weight:6,hype:22,risk:6,
-    desc:'Ein Bündel aus vier Römischen Lichtern: Jede Kugel steigt rot auf, wird golden, dann weiß – und zerplatzt oben mit einem Knall. Zum Schluss alle vier auf einmal.',
-    art:{title:'FEUERPERLEN',sub:'Römisches Licht-Bündel · 16 Verwandlungskugeln',bg1:'#c01c20',bg2:'#3a0507',ac:'#ffd23f',ac2:'#ffffff'}},
+  feuerperlen:{name:'Feuerperlen · 16 Schuss Kometenfächer',short:'Feuerperlen 16',cat:2,lvl:10,shape:'battery',dims:[0.28,0.22,0.28],grid:[7,2,1],box:6,cost:7.20,market:16.99,weight:6,hype:22,risk:6,
+    desc:'Große Kometenfächer, deren Köpfe von Rot über Gold zu Weiß werden, dazwischen rote Zackenkometen und knisternde Crossetten – eine Batterie für den Tisch.',
+    art:{title:'FEUERPERLEN',sub:'16 Schuss · Kometenfächer',bg1:'#c01c20',bg2:'#3a0507',ac:'#ffd23f',ac2:'#ffffff'}},
   farbrauchboeller:{name:'Farbrauch · 6 Tagböller in sechs Farben',short:'Farbrauchböller',cat:2,lvl:14,shape:'tubepack',dims:[0.16,0.065,0.065],grid:[7,2,2],box:12,cost:3.60,market:8.49,weight:6,hype:14,risk:5,
     desc:'Kräftiger Schlag, dann quillt eine dicke Farbwolke auf – sechs Böller, sechs Farben der Reihe nach, von Rot bis Orange.',
     art:{title:'FARBRAUCH',sub:'6 Tagböller · 6 Farben',bg1:'#1557a8',bg2:'#8a1f6a',ac:'#5cff9e',ac2:'#ffe45c'}},
@@ -318,15 +318,17 @@ const NEUWARE={
   regenbogenkrone:{name:'Jumbo-Rakete »Saphirkrone«',short:'Jumbo Saphirkrone',cat:2,lvl:19,shape:'rocketset',stueck:1,dims:[0.8,0.1,0.15],grid:[2,1,1],box:4,cost:12.50,market:29.99,weight:4,hype:40,risk:9,
     desc:'Ein dicker Goldstamm wächst in den Himmel. Oben öffnet sich eine Krone aus saphirblauen Sternen, jeder zieht einen goldenen Funkenschweif, und in der Mitte glitzert Gold.',
     art:{title:'SAPHIRKRONE',sub:'Chrysanthemenkrone · Einzelrakete',bg1:'#12275e',bg2:'#040a1f',ac:'#ffd23f',ac2:'#5c8dff'}},
-  lichterkugeln:{name:'Lichterkette · 24 Glitzerkugeln',short:'Lichterkette',cat:2,lvl:19,shape:'candle',dims:[0.13,0.41,0.13],grid:[7,2,1],box:4,cost:10.50,market:24.49,weight:5,hype:34,risk:7,
+  lichterkugeln:{name:'Lichterkette · 24 Glitzerkugeln',short:'Lichterkette',cat:2,lvl:11,shape:'battery',dims:[0.34,0.3,0.34],grid:[6,1,1],box:4,cost:9.20,market:21.49,weight:5,hype:34,risk:7,
     desc:'Sechs Rohre legen eine Kette aus Leuchtkugeln quer über den Himmel – jede steigt mit Goldschweif, geht oben kurz aus und zerfällt in funkelnden Silberglitter.',
     art:{title:'LICHTERKETTE',sub:'24 Kugeln · Glitter',bg1:'#0c3d7a',bg2:'#020a1c',ac:'#ffd23f',ac2:'#ff4fa3'}},
   eisblume:{name:'Wendeltreppe · 12-m-Drehfontäne',short:'Wendeltreppe',cat:2,lvl:19,shape:'cylinder',dims:[0.22,0.38,0.22],grid:[6,1,1],box:3,cost:18.00,market:42.99,weight:4,hype:50,risk:8,
     desc:'Eine Silberfontäne schraubt sich wie eine Wendeltreppe zwölf Meter hoch, bekommt einen gegenläufigen Zwilling und öffnet sich zum Schluss zu einem wirbelnden Trichter. Dazwischen türkise Sterne.',
     art:{title:'WENDELTREPPE',sub:'12 m · Drehfontäne · 22 s',bg1:'#8a9299',bg2:'#2a2f36',ac:'#f2f5ff',ac2:'#5ce1ff'}},
-  donnerschlag:{name:'Donnerschlag · 20 Schlag Knallbombe',short:'Donnerschlag',cat:2,lvl:19,shape:'battery',dims:[0.34,0.3,0.34],grid:[6,1,1],box:4,cost:17.00,market:38.99,weight:5,hype:46,risk:9,
-    desc:'Kein Farbenzauber, sondern Wumms: Jeder Schuss wirft oben ein Dutzend Knallkörper aus, die kreuz und quer nacheinander detonieren – ta-ta-ta-ta-BUMM.',
-    art:{title:'DONNERSCHLAG',sub:'20 Schlag · Knallbombe',bg1:'#1c1c24',bg2:'#000000',ac:'#f2f5ff',ac2:'#ff3b2e'}},
+  /* 03.10. abends (Tom: die Donnerschlaege gefallen nicht, die Faecher und
+     alles drumherum 'mega schoen'): ohne Knallbomben, neuer Name */
+  donnerschlag:{name:'Silberknister · 20 Schuss Knisterkometen',short:'Silberknister',cat:2,lvl:19,shape:'battery',dims:[0.34,0.3,0.34],grid:[6,1,1],box:4,cost:17.00,market:38.99,weight:5,hype:46,risk:9,
+    desc:'Breite Silberfächer mit knisterndem Schweif, darüber silberne Zackenkometen, Knistercrossetten und knisternde Sterne – zum Schluss sechs Kometen auf Schlag über einem zweiten Fächer.',
+    art:{title:'SILBERKNISTER',sub:'20 Schuss · Knisterkometen',bg1:'#1c1c24',bg2:'#000000',ac:'#f2f5ff',ac2:'#ff3b2e'}},
 
   /* ---------- Level 20-21 ---------- */
   feuerpfau:{name:'Farbsäulen · 100 Schuss Dreistufen-Fächer',short:'Farbsäulen',cat:2,lvl:20,shape:'fan',dims:[0.76,0.34,0.42],grid:[3,1,1],box:2,cost:44.00,market:99.99,weight:4,hype:72,risk:9,
@@ -466,7 +468,7 @@ const NEUWARE={
   hochzeitsfaecher:{name:'Rosenherz · 36 Schuss Herzbomben',short:'Rosenherz',cat:2,lvl:20,shape:'fan',dims:[0.62,0.28,0.34],grid:[4,1,1],box:2,cost:26.00,market:59.99,weight:4,hype:50,risk:8,
     desc:'Rosenblätter schweben, dann gehen nacheinander vier rosa Herzen am Himmel auf, danach ein Rosenstrauß. Zum Schluss: zwei goldene Ringe.',
     art:{title:'ROSENHERZ',sub:'36 Schuss · Herzbomben',bg1:'#c01c6a',bg2:'#4a0626',ac:'#ffd23f',ac2:'#fff3c4'}},
-  goldregen22:{name:'Goldene Zwillinge · 22 Kugeln Splitlicht',short:'Zwillinge 22',cat:2,lvl:22,shape:'candle',dims:[0.14,0.41,0.14],grid:[6,2,1],box:4,cost:14.00,market:32.99,weight:4,hype:44,risk:8,
+  goldregen22:{name:'Goldene Zwillinge · 22 Kugeln Splitlicht',short:'Zwillinge 22',cat:2,lvl:22,shape:'battery',dims:[0.34,0.3,0.34],grid:[6,1,1],box:4,cost:14.00,market:32.99,weight:4,hype:44,risk:8,
     desc:'Jede goldene Leuchtkugel teilt sich im Gipfel mit einem Knacks in zwei, die in entgegengesetzte Richtungen davonziehen – von Schuss zu Schuss in eine andere Richtung, bis ein Stern aus Paaren entsteht.',
     art:{title:'GOLDENE ZWILLINGE',sub:'22 Kugeln · Split',bg1:'#4a3308',bg2:'#000000',ac:'#ffd23f',ac2:'#fff3c4',gold:true}},
   bengalduo:{name:'Hafenlichter · Bengalfeuer Rot & Grün 30 s',short:'Hafenlichter',cat:2,lvl:13,shape:'fountainset',dims:[0.18,0.2,0.08],grid:[7,2,1],box:8,cost:3.80,market:8.99,weight:6,hype:14,risk:4,
@@ -561,11 +563,11 @@ const NEU_LIZ_DAZU={
   zubehoer:['streichhoelzer','gehoerschutz','schutzbrille','feuerloescher','luftschlangenspray'],
   klassiker:['blitzknaller','bodenkreisel','rosesekt','berliner','glueckrakete','leuchtstaebe','neujahrsbrezel','prosecco'],
   partydeko:['kalender','sektglaeser','kerzen','servietten','haarreifen','fotobox','streukonfetti','lichterkette'],
-  krach:['knallteppich','farbfontaenen','bodenfeuer','roemisch','bengalfackel','glitzerregen12','miniverbund','glitzerraketen','wunderbox','bengalflamme'],
+  krach:['knallteppich','farbfontaenen','bodenfeuer','feuerberg','roemisch','bengalfackel','glitzerregen12','miniverbund','glitzerraketen','wunderbox','bengalflamme'],
   partynacht:['bier','cola','kinderpunsch','energy','orangensaft','wasser','karaoke','discokugel','eiswuerfel','radler','bierfrei','limonade','kurze'],
-  himmel:['nachtfalter','goldstaubboeller','kometenraketen','farbenrausch','feuerberg','vulkanfeld','glueckssymbole','glueckskekse','gluecksklee'],
+  himmel:['nachtfalter','goldstaubboeller','kometenraketen','farbenrausch','lichterkugeln','vulkanfeld','glueckssymbole','glueckskekse','gluecksklee'],
   genuss:['raclettekaese','raclettezubehoer','fonduesossen','kaeseplatte','lachs','cracker','kaesefondue','fondueoel','luxusfondue','schokofondue'],
-  verbund:['feuerperlen','farbrauchboeller','feuerrad','knisterfaecher','palmenkugel75','sternenmeer42','dreiklang','smaragd','farbenmeer75'],
+  verbund:['farbrauchboeller','feuerrad','knisterfaecher','palmenkugel75','sternenmeer42','dreiklang','smaragd','farbenmeer75'],
   import:['regenbogenfaecher','goldweide100','silberregen','glitzerkaskade','familienmix'],
   grossfeuer:['feuerpfau','goldvulkan','nordlicht','blitzgewitter60','feuerwand','sternkugel150','hochzeitsfaecher'],
   profi:['silbermond','pfeifkonzert','sternenkaiser','kometenwand','goldkrone200','silberkaskade','feuerdrache','goldregen22']
@@ -581,8 +583,8 @@ const NEU_LIZENZEN=[
    desc:'Heringssalat, Kartoffel- und Nudelsalat, gefüllte Eier, Würstchen, Mini-Frikadellen, Fingerfood, Baguette, Mett-Igel, Partypizza, Dips, die Mitternachts-Gulaschsuppe und das Katerfrühstück. Vieles davon gehört in den Kühlschrank.',
    items:['heringssalat','kartoffelsalat','wuerstchen','frikadellen','baguette','mettigel','partypizza','dips','rollmops','gefuellteeier','nudelsalat','gulaschsuppe','fingerfood']},
   {id:'kleinfeuer',lvl:10,cost:1800,name:'Kleinfeuerwerk',
-   desc:'Die ersten richtigen Batterien für den kleinen Geldbeutel: die Schneeballschlacht, die Tonleiter mit Heulschüssen und das Pfauenrad als erster Fächer. Dazu Silberpfeil-Raketen und der Zauberbrunnen.',
-   items:['sternstaub20','schneeballschlacht','heulbatterie','pfauenrad','silberpfeil','zauberbrunnen','zauberwald','jugendbox']},
+   desc:'Die ersten richtigen Batterien für den kleinen Geldbeutel: die Schneeballschlacht, die Feuerperlen mit großen Kometenfächern und das Pfauenrad als erster Fächer. Dazu Silberpfeil-Raketen und der Zauberbrunnen.',
+   items:['sternstaub20','schneeballschlacht','feuerperlen','pfauenrad','silberpfeil','zauberbrunnen','zauberwald','jugendbox']},
   {id:'feuerzauber',lvl:13,cost:4200,name:'Feuerzauber',
    desc:'Palmenhain mit 25 Schuss und die Spätzünder-Knisterraketen.',
    items:['goldpalmen','mondschein','funkenturm','knisterstern','bengalduo']},
@@ -590,14 +592,14 @@ const NEU_LIZENZEN=[
    desc:'Champagner, Rot- und Weißwein, Eierlikör, Sahnelikör, Hugo-Set, Gin & Tonic, Whisky, das Cocktail-Set, Kindersekt Erdbeere, die Magnumflasche, Goldsekt, Jahrgangs-Champagner, der Sektturm und Kaviar für den großen Moment.',
    items:['champagner','cocktailset','rotwein','weisswein','eierlikoer','likoer','kindersekt2','magnum','kaviar','champagnerturm','goldsekt','jahrgang','hugo','gintonic','whisky']},
   {id:'nachthimmel',lvl:16,cost:9000,name:'Nachthimmel',
-   desc:'Die Silberbrandung mit 80 Schuss, die 100-mm-Kugel Eiskristall, Leuchtturm-Blinkraketen und die tanzende Wasserorgel.',
+   desc:'Die Silberbrandung mit 80 Schuss, der Silberwirbel, das Lilienfeld und die tanzende Wasserorgel.',
    items:['sternenmeer80','silberwirbel','kristallkugel100','blinkstern','wasserspiel']},
   {id:'goldklasse',lvl:18,cost:15000,name:'Goldklasse',
-   desc:'Kreuzfeuer mit gekreuzten Kometen, Glasbruch-Raketen und die 150-mm-Kugel Milchstraße.',
+   desc:'Kreuzfeuer mit gekreuzten Kometen, Glasbruch-Raketen und der Amethystregen.',
    items:['kreuzfeuer','kristall','sternenstaub150']},
   {id:'sternklasse',lvl:19,cost:18000,name:'Sternklasse',
-   desc:'Vorhang auf! mit 70 Schuss Goldvorhang, die Jumbo-Rakete »Regenbogenkrone«, die Lichterkette aus 24 Glitzerkugeln, die Wendeltreppe, die sich zwölf Meter hochschraubt, der Donnerschlag mit 20 Knallbomben und die 150-mm-Kugel Pfauenkrone.',
-   items:['goldenerregen','regenbogenkrone','lichterkugeln','eisblume','donnerschlag']},
+   desc:'Die Jumbo-Rakete »Regenbogenkrone«, die Wendeltreppe, die sich zwölf Meter hochschraubt, das Silberknistern mit Knisterkometen über breiten Silberfächern, die Doppelhelix und die 150-mm-Kugel Pfauenkrone.',
+   items:['regenbogenkrone','eisblume','donnerschlag']},
   {id:'festtafel',lvl:15,cost:6500,name:'Festtafel',
    desc:'Silvesterkarpfen, Tiramisu, die Neujahrstorte und die Sushi-Platte. Alles gehört in den Kühlschrank.',
    items:['karpfen','tiramisu','neujahrstorte','sushi']},
@@ -670,6 +672,13 @@ const KUGEL_LVL={75:14,100:16,150:18,200:21,300:24};
   NEUWARE[id]={name:nm+' · Kugelbombe '+mm+' mm',short:'Kugel '+mm+' '+nm,cat:2,lvl:KUGEL_LVL[mm],shape:'shell',dims:KUGEL_MASS[mm],grid:KUGEL_GRID[mm],box:2,
     cost:KUGEL_PREIS[mm][0],market:KUGEL_PREIS[mm][1],weight:3,hype:70+k*8,risk:10,desc,art:{title:nm.toUpperCase(),sub:'Kugelbombe '+mm+' mm',bg1:'#2a1c40',bg2:'#07040f',ac:'#ffd23f',ac2:'#ff8ac8'}}; });
 NEU_GRUPPE.kugeln.push('crossettennetz150','tigerkrone150','weidenkoenig200','sternensturm300');
+/* 03.10. abends (Tom: "Goldbrokat sieht eher wie eine Kugelbombe aus -
+   zu einer Kugelbombe umwandeln"): das Brokat-Bruchbild der Rakete als
+   100-mm-Kugel (KUGEL in 14r) */
+NEUWARE.goldbrokat100={name:'Goldbrokat · Kugelbombe 100 mm',short:'Kugel 100 Goldbrokat',cat:2,lvl:15,shape:'shell',dims:KUGEL_MASS[100],grid:KUGEL_GRID[100],box:6,
+  cost:11.50,market:26.99,weight:3,hype:60,risk:9,desc:'Flimmernder Brokat-Aufstieg, oben eine schwere Brokatkugel mit violetten Spitzen, aus der Goldglitzer nachrieselt.',
+  art:{title:'GOLDBROKAT',sub:'Kugelbombe 100 mm',bg1:'#4a3308',bg2:'#0f0802',ac:'#ffd23f',ac2:'#c85cff',gold:true}};
+NEU_GRUPPE.kugeln.push('goldbrokat100'); NEU_LIZ_DAZU.verbund.push('goldbrokat100');
 NEU_LIZENZEN.find(l=>l.id==='goldklasse').items.push('crossettennetz150','tigerkrone150');
 NEU_LIZ_DAZU.grossfeuer.push('weidenkoenig200'); NEU_LIZ_DAZU.profi.push('sternensturm300');
 /* 03.10. (Tom): Kronenkranz und Zwillingssonne ins Sortiment, die
@@ -713,15 +722,40 @@ NEU_LIZ_DAZU.profi.push('kronenregen300','dreifachkrone300'); NEU_LIZENZEN.find(
 const LB_SORTIMENT=[
  ['lb_regenbogenbrunnen','Regenbogenkometen','10 kleine Kometenfächer',5,[0.5,0.2,0.3],'#3a1a6a','#0a0614','#ffd23f','#5ce1ff','Sieben kleine Kometenfächer, jeder in einer Regenbogenfarbe – Rot, Orange, Gelb, Grün, Türkis, Blau, Violett –, einer nach dem anderen von links nach rechts; zum Schluss drei zugleich. Kein Knall, nur Farbe.','reihe','jugend'],
  ['lb_glitzergarten','Glitzergarten','17 Schuss Glitzer',7,[0.5,0.22,0.32],'#5a1a4a','#12040e','#ffb8e0','#a8fff0','Glitzerkometen mit Farbspitzen, darüber leise Blütenglitzer und Blütenkränze in Pastell – eine Batterie für Kinder, die schön ist statt laut.','spirale','jugend'],
- ['lb_fontaenenballett','Kometenballett','24 Schuss Kometen & Kronen',13,[0.8,0.28,0.5],'#1a3a6a','#040a14','#5ce1ff','#ff6a8a','Farbkometen steigen paarweise im V links, rechts und in der Mitte; über jedem Fächer öffnet sich eine Farbkrone, dazwischen Farbcrossetten. Finale: drei Kometenfächer zugleich.','wechsel','feuerzauber'],
- ['lb_goldregen','Goldregen','22 Schuss Gold',15,[0.8,0.28,0.5],'#5a3a06','#140a02','#ffd23f','#fff3c4','Goldkometen mit Brokatschweif, aus denen am Ende ein goldener Regen sinkt, Goldfächer, Weidenfächer und ein Goldwasserfall – ganz in Gold.','mitte','verbund'],
+ /* 03.10. abends (Tom: "24 Schuss stimmt nicht"): gezaehlt - 24 Rohre, davon acht Kometenfaecher mit zusammen gut 220 Kometen (mess.js) */
+ ['lb_fontaenenballett','Kometenballett','24 Rohre · über 200 Kometen',13,[0.8,0.28,0.5],'#1a3a6a','#040a14','#5ce1ff','#ff6a8a','24 Rohre, davon acht Kometenfächer mit zusammen über 200 Kometen: Farbkometen steigen paarweise im V links, rechts und in der Mitte; über jedem Fächer öffnet sich eine Farbkrone, dazwischen Farbcrossetten. Finale: drei Kometenfächer zugleich.','wechsel','feuerzauber'],
+ ['lb_goldregen','Goldregen','22 Schuss Gold',15,[0.8,0.28,0.5],'#5a3a06','#140a02','#ffd23f','#fff3c4','Ein Goldregen-Kometenfächer eröffnet, dann Goldfächer über zwei Glitzersäulen, Kometenkronen, Weidencrossetten und Goldwasserfälle – zum Schluss drei Doppelkronen. Ganz in Gold, aber jeder Abschnitt anders.','mitte','verbund'],
  ['lb_blitzweiden','Blitzweiden','20 Schuss Blitzweiden',17,[0.85,0.3,0.55],'#1a1a2a','#040408','#f2f5ff','#ff6ad8','Zwei Blitzkometen-Fächer eröffnen, dann dunkle Aufstiege und oben Blitzweiden in Gold und in Farbe, Blitzkronen – zum Schluss fünf Weiden zugleich.','zufall','import'],
  ['lb_goldader','Goldader','86 Schuss Goldkometen',18,[0.9,0.3,0.6],'#5a3a06','#140a02','#ffd23f','#fff3c4','Goldkometen kreuz und quer – mal links, mal rechts –, Glitzerminen, Weidenkometen und zwei Goldregen-Kometenfächer; ein Finale aus sechzehn Goldkometen über einem großen Goldkometenfächer.','wechsel','goldklasse'],
  ['lb_silbergewitter','Silbergewitter','28 Schuss Silberweiden',20,[0.9,0.3,0.6],'#1a2a3a','#04080c','#c8e4ff','#7a5cff','Silberkometen kreuz und quer mit knisterndem Schweif, dann silberne Blitzweiden, in denen farbige Blitze zucken, Blitzblüten und Farbweiden – das Finale drei Silberweiden in der Mitte.','diagonal','grossfeuer'],
  ['lb_blitzpalmen','Blitzpalmen','25 Schuss Blitzpalmen',22,[0.9,0.3,0.6],'#3a2a06','#0a0602','#ffd23f','#ffffff','Zwei Goldregen-Kometenfächer eröffnen, dann jede Palme anders: Blitzpalme, Farbpalme, Königspalme mit Silberkrone, Palmenweide, Stufenpalme – Finale aus fünf Doppelpalmen.','mitte','profi'],
  ['lb_fontaenenpalast','Kometenpalast','41 Schuss Kometen & Kronen',24,[1.0,0.32,0.62],'#2a0a4a','#08020f','#ffd23f','#ff5ac8','Schwenkende Titan-Kometen mit Farbkopf außen, ein Kometentor mit Dreifachtor, Weidencrossetten, glühende Kometenfächer – Finale: sechs Kometenfächer zugleich, darüber Farbkronen und ein Weidenvorhang.','spalte','profi'],
  ['lb_weidenhain','Weidenhain','56 Schuss Weiden',24,[0.95,0.32,0.6],'#3a2a06','#0a0602','#ffb84a','#fff3c4','Weidenfächer, farbige Weiden, Weidencrossetten und ein Weidenfall, schräg durch die Batterie gezündet – das Finale ein Vorhang, der lange am Himmel hängt.','diagonal','profi'],
- ['lb_farbenpracht','Farbenpracht','37 Schuss Farbe',26,[1.0,0.32,0.62],'#4a0a3a','#0f020c','#ff5a5a','#5cff9e','Jede Farbe einmal als Kometenfächer mit ihrer Farbcrossette, ein Dreifachtor in der Mitte, Weidencrossetten außen, Farbkronen – Finale: sieben Kometenfächer und ein Kranz aus Weidencrossetten.','spirale','meister']
+ ['lb_farbenpracht','Farbenpracht','37 Schuss Farbe',26,[1.0,0.32,0.62],'#4a0a3a','#0f020c','#ff5a5a','#5cff9e','Jede Farbe einmal als Kometenfächer mit ihrer Farbcrossette, ein Dreifachtor in der Mitte, Weidencrossetten außen, Farbkronen – Finale: sieben Kometenfächer und ein Kranz aus Weidencrossetten.','spirale','meister'],
+ /* 03.10. abends (Tom: "Goldader in anderen Farben, leichtere Geschosse
+    mit kleinem Sound, auch Sachen, die komplett anders aussehen; farbige
+    Faecherkometen - eine gruene, eine blaue, Gold mit Farbe"): zwanzig
+    neue Lichter-Batterien von Level 3 bis 26 (Lichter in 14q) */
+ ['lb_gluehwuermchen','Glühwürmchen','12 Schuss Kinderkometen',3,[0.5,0.2,0.3],'#1a3a10','#050c03','#c8ff5a','#ffe08a','Kleine grüne und gelbe Kometen mit feinem Glitzer; ganz oben zerstiebt jeder leise in eine Handvoll Funken. Erst einzeln, dann im V, zum Schluss vier zugleich.','wechsel','jugend'],
+ ['lb_sternschnuppen','Sternschnuppen','14 Schuss Fallkometen',5,[0.5,0.2,0.3],'#0c1a3a','#02050f','#e8f0ff','#8ab8ff','Silberne Kometen fliegen schräg hinauf, ziehen oben einen Bogen und fallen mit langem Schweif wie Sternschnuppen – dazwischen zwei Glitzersäulen.','zufall','klassiker'],
+ ['lb_kirschbluete','Kirschblüte','15 Schuss Blütenkränze',6,[0.5,0.2,0.3],'#4a1030','#12030c','#ffb8d8','#fff0f4','Rosa Blütenkränze mit hellem Glitzerschweif, deren Spitzen oben weiß werden, und Lilienkometen, die sich wie Blütenblätter öffnen – leise und zart.','spirale','klassiker'],
+ ['lb_jadeader','Jadeader','20 Schuss grüne Kometen',8,[0.5,0.22,0.32],'#0a3a1a','#020c05','#5cff8a','#ffd23f','Die Goldader in Grün: hängende Jadeweiden, knisternde Zackenkometen im Zickzack und zwei grüne Glitzersäulen – das Finale eine Welle aus acht Kometen.','diagonal','krach'],
+ ['lb_eisvogel','Eisvogel','22 Schuss Zweigkometen',9,[0.5,0.22,0.32],'#063a4a','#010c10','#5ce1ff','#3a6aff','Türkise Kometen, die sich zweimal teilen wie ein Zweig, blaue Sternschnuppen über Kreuz und Glitzersäulen in Himmelblau.','mitte','krach'],
+ ['lb_glutpalmen','Glutpalmen','20 Schuss Glutpalmen',10,[0.8,0.28,0.5],'#4a1a06','#100402','#ff8a2a','#ffd23f','Dunkler Aufstieg, dann glühende Palmen, deren Wedel im Fallen zu dunklem Rot abkühlen; dazwischen knisternde Crossetten und orange Weiden.','reihe','kleinfeuer'],
+ ['lb_saphirfaecher','Ozean','16 Schuss Wellen & Gischt',11,[0.8,0.28,0.5],'#0a1a5a','#02040f','#5c8dff','#c8e4ff','Blau, Türkis und Silber: Kometenfächer schwingen wie Wellen hin und her, ganz oben zerplatzt die Gischt in kleinen weißen und blauen Explosionen; dazwischen Zackenkometen und Wechselblüten, die wie Schaumkronen die Farbe tauschen.','spalte','himmel'],
+ ['lb_smaragdfaecher','Smaragdfächer','18 Schuss grüne Kometenfächer',13,[0.8,0.28,0.5],'#0a4a1a','#020f05','#5cff8a','#d8ffb0','Grüne Kometenfächer auf Schlag, ganz weit oben zerstieben grüne Mini-Explosionen – dazu Drillingskometen im V – außen grün, in der Mitte Gold – und Glühwürmchen.','mitte','feuerzauber'],
+ ['lb_rubinpalmen','Rubinpalmen','22 Schuss rote Palmen',14,[0.8,0.28,0.5],'#5a0a10','#120203','#ff4a4a','#ffd23f','Rote Palmen mit rot-goldenen Wedeln, deren Enden in kleinen Explosionen zerstieben, knisternde Crossetten und ein roter Kometenfächer in Stufen.','wechsel','verbund'],
+ ['lb_polarweiden','Polarnacht','20 Schuss Farbweiden',15,[0.85,0.3,0.55],'#063a3a','#010c0c','#5cffe8','#c85cff','Türkise Weiden, deren Fäden im Sinken violett werden, mit weißen Blitzen darin; Sternschnuppen im Wischer und Farbschirme in Aqua.','zufall','verbund'],
+ ['lb_lilienfeld','Lilienfeld','24 Schuss Lilien & Helix',16,[0.85,0.3,0.55],'#4a0a3a','#0f020c','#ff7ad8','#ffd23f','Lilienkometen öffnen sich wie Blüten, zwei Farbköpfe umkreisen einander als Helix, rosa Blütenkränze – über einem breiten Blütenfächer.','spirale','nachthimmel'],
+ ['lb_goldsaphir','Goldsaphir','26 Schuss Gold & Blau',17,[0.9,0.3,0.6],'#0a1a4a','#02040f','#ffd23f','#5c8dff','Gold mit Blau: Kometenfächer von außen nach innen, Kronenkometen, die von Blau zu Gold wechseln, Zackenkometen in der Welle und blaue Weiden.','mitte','import'],
+ ['lb_amethystregen','Amethystregen','28 Schuss Violett & Silber',18,[0.9,0.3,0.6],'#2a0a4a','#08020f','#c85cff','#e8ecff','Violette Glitzerschirme hängen wie Weiden, Kaskaden springen über Kreuz, Polarweiden in Indigo und silberne Kometenfächer – das Finale neun Schirme.','diagonal','goldklasse'],
+ ['lb_doppelhelix','Doppelhelix','30 Schuss Helixkometen',19,[0.9,0.3,0.6],'#1a2a4a','#04060f','#ffd23f','#5ce1ff','Je zwei Farbköpfe winden sich umeinander nach oben und trennen sich in zwei kleinen Explosionen – einzeln, als Spirale, zum Schluss paarweise; dazwischen Zweigkometen.','spirale','sternklasse'],
+ ['lb_farbtiger','Farbtiger','30 Schuss Tigerkometen',20,[0.9,0.3,0.6],'#0a3a2a','#020c08','#5cff9e','#ff5ac8','Dunkler Aufstieg, dann schwere Tigerkometen in Grün, Blau und Magenta mit breitem Glitzerband, knisternde Crossetten und Farbweiden.','zufall','grossfeuer'],
+ ['lb_kronenfeuer','Kronenfeuer','32 Schuss Kronen',21,[0.95,0.32,0.6],'#4a0a0a','#120202','#ffd23f','#ff4a4a','Kronenkometen wie die Crossettenkrone: sechs Arme wechseln die Farbe, an jedem Ende hängt eine Glitzerkrone – in Rot, Blau, Grün und Violett mit Gold.','wechsel','grossfeuer'],
+ ['lb_jadekoenig','Urwald','34 Schuss Palmen & Lianen',22,[0.95,0.32,0.6],'#0a3a1a','#020c05','#ffd23f','#5cff8a','Grün in allen Tönen: Blütenkreuze, lang hängende Lianen-Weiden, knisternde Zackenkometen wie schwirrende Insekten und grüne Glitzersäulen; Finale: zehn Urwaldpalmen im W.','reihe','profi'],
+ ['lb_paradiesvogel','Paradiesvogel','36 Schuss bunt gemischt',23,[0.95,0.32,0.6],'#3a0a4a','#0a020f','#ff5ac8','#9cff3a','Bunt gemischt: Vierfarbblüten, Farbpalmen im Kreis, Helixkometen und bunte Kometenfächer – das Finale elf Tigerkometen in allen Farben.','spirale','profi'],
+ ['lb_sternenfeuer','Sternenhimmel','40 Schuss Silber & Blau',24,[1.0,0.32,0.62],'#0a1a3a','#02040c','#e8f0ff','#7a5cff','Silber, Blau und Violett: Polarweiden, Sternschnuppen im Wischer, silberne Blitzweiden und Zweigkometen über Kreuz – das Finale vierzehn Weiden von außen nach innen.','diagonal','profi'],
+ ['lb_himmelsfeuer','Himmelsfeuer','48 Schuss Meisterwerk',26,[1.0,0.32,0.62],'#1a0a3a','#05020c','#ffd23f','#ff5ac8','Das Meisterwerk der Lichter: Gold-Saphir-Fächer, Kronenkometen, Farbpalmen, Schirme, Lilien, Tigerkometen, bunte Fächer und ein Finale aus sechzehn Polarweiden im Kreis.','spirale','meister']
 ];
 LB_SORTIMENT.forEach(([id,nm,sub,lvl,dims,bg1,bg2,ac,ac2,desc,zuendung,liz])=>{
   NEUWARE[id]={name:nm+' · '+sub,short:nm,cat:2,lvl,shape:'battery',dims,grid:lvl<10?[4,1,1]:[2,1,1],box:lvl<10?4:1,cost:Math.round(lvl*2.6),market:Math.round(lvl*2.6*2.3)-0.01,weight:lvl<10?6:3,hype:40+lvl*2,risk:lvl<10?3:8,desc,
@@ -752,9 +786,9 @@ const NEU_TEST={batterien:NEU_LB,
    Rohr-Raster - die Rohre stehen genau so (raster), wie es draufsteht.
    Drehbuecher und Effekte in 14o-rohrbatterien.js. */
 Object.assign(NEUWARE,{
-  rb25:{name:'Farbreihen · 25 Schuss Einfarb-Bombetten',short:'Farbreihen 25',cat:2,lvl:12,shape:'battery',raster:[5,5],dims:[0.26,0.2,0.26],grid:[7,2,1],box:6,cost:8.20,market:18.99,weight:6,hype:22,risk:6,
-    desc:'5 × 5 Rohre, jede Reihe eine Farbe: fünf rote Bombetten, fünf grüne, fünf blaue, fünf goldene, fünf weiße – jede Kugel einfarbig und klar wie ein Glasstein.',
-    art:{title:'FARBREIHEN',sub:'25 Schuss · 5×5 · Einfarb-Bombetten',bg1:'#1a2a6a',bg2:'#070a1e',ac:'#ff4a4a',ac2:'#5cff9e'}},
+  rb25:{name:'Farbreihen · 25 Schuss Kometenfächer',short:'Farbreihen 25',cat:2,lvl:12,shape:'battery',raster:[5,5],dims:[0.26,0.2,0.26],grid:[7,2,1],box:6,cost:8.20,market:18.99,weight:6,hype:22,risk:6,
+    desc:'5 × 5 Rohre, jede Reihe eine Farbe: aus jedem Rohr steigt ein Kometenfächer – erst rot, dann grün, blau, gold und weiß, jede Reihe schneller –, ganz oben zerplatzen kleine Sterne in derselben Farbe.',
+    art:{title:'FARBREIHEN',sub:'25 Schuss · 5×5 · Kometenfächer',bg1:'#1a2a6a',bg2:'#070a1e',ac:'#ff4a4a',ac2:'#5cff9e'}},
   rb49:{name:'Konfetti · 49 Schuss Farbmix',short:'Konfetti 49',cat:2,lvl:15,shape:'battery',raster:[7,7],dims:[0.34,0.26,0.34],grid:[5,1,1],box:4,cost:15.50,market:36.99,weight:5,hype:38,risk:7,
     desc:'7 × 7 Rohre voller Farbmix-Bomben: in jeder Kugel stecken vier Farben durcheinander wie Konfetti, Reihe für Reihe aus einer anderen Farbkiste.',
     art:{title:'KONFETTI',sub:'49 Schuss · 7×7 · gemischte Farben',bg1:'#6a1a5a',bg2:'#14031a',ac:'#ffd23f',ac2:'#5ce1ff'}},
@@ -810,7 +844,17 @@ const ENTFERNT=['fontaene50','fontaene30','silberkaskade','feuerkaskade','jugend
   /* 30.09. (Tom): Kugel 200 Bluetenkranz raus, dafuer drei neue 200-mm-Bomben */
   'kugel200',
   /* 03.10. (Tom): Brausepulver, Glitzergarten und Korkenzieher-Rakete sollen weg */
-  'kinderparty','lb_glitzergarten','pfeifraketen'];
+  'kinderparty','lb_glitzergarten','pfeifraketen',
+  /* 03.10. abends (Tom, Sortiments-Durchsicht): Funkenflug, Konfetti,
+     Leuchtturm, Kugel 100 Kristall, Achterbahn, Rummelplatz, Niagara,
+     Stakkato, Kugel 150 Sternenstaub, Vorhang auf! ("zu gleich zu den
+     anderen"), Titan ("Sound gefaellt nicht"), Kometenreigen ("wieder nur
+     Gold"), Pfeifkonzert ("fuerchterlich"), Tonleiter (Heuler); Goldbrokat ist jetzt eine
+     Kugelbombe (goldbrokat100) */
+  'batterie16','rb49','blinkstern','kristallkugel100','batterie100','familienmix','wasserfall',
+  'rb100','sternenstaub150','goldenerregen','titanraketen','kometenreigen','pfeifkonzert','raketengold',
+  /* Tom: "Ich will keine Pfeif-Sachen" - die Tonleiter war eine reine Heuler-Batterie */
+  'heulbatterie'];
 /* Ersatz fuer alte Spielstaende: jede gestrichene Sorte wird beim Laden
    zur naechsten verbliebenen - gleiche Kategorie, moeglichst gleiche Form,
    Level und Preis am naechsten (18-save.js, SORTE_NEU). Sonst stuende

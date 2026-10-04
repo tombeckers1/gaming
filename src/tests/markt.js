@@ -56,7 +56,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     const band=t=>{ const a=idx[t]; const lo=Math.min(...a),hi=Math.max(...a); return +((hi/lo-1)*100).toFixed(0); };
     o.bandbreite={
       feuerzeug:band('feuerzeug'), knicklichter:band('knicklichter'), wunder:band('wunder'),
-      sekt:band('sekt'), boeller:band('boeller'), batterie100:band('batterie100'),
+      sekt:band('sekt'), boeller:band('boeller'), zfaecher:band('zfaecher'),
       atomboeller:band('atomboeller'), profi:band('profi'), furzrakete:band('furzrakete')
     };
     o.schnitt=+bb.marktSchnitt().toFixed(3);

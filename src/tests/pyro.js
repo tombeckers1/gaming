@@ -132,12 +132,12 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   const bat=await p.evaluate(()=>{
     const bb=window.__bb,o={};
     o.laenge={};
-    ['batterie16','knatter','faecher','batterie49','kometen','batterie100','profi','finale'].forEach(t=>{ o.laenge[t]=bb.showLength(t); });
+    ['goldpalmen','knatter','faecher','batterie49','kometen','zfaecher','profi','finale'].forEach(t=>{ o.laenge[t]=bb.showLength(t); });
     const wachsend=(a)=>a.every((v,i)=>i===0||v>=a[i-1]);
     o.laengeSteigt=wachsend(Object.values(o.laenge));
     /* Schusszahl je Drehbuch */
     o.schuesse={};
-    ['batterie16','knatter','faecher','batterie49','kometen','batterie100','profi','finale'].forEach(t=>{
+    ['goldpalmen','knatter','faecher','batterie49','kometen','zfaecher','profi','finale'].forEach(t=>{
       o.schuesse[t]=bb.SHOWS[t]().reduce((a,ph)=>a+(ph.n||1),0); });
     o.schuesseSteigen=wachsend(Object.values(o.schuesse));
     /* Profi nutzt die Profi-Effekte und Kugelbomben */
@@ -145,7 +145,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     bb.SHOWS.profi().forEach(ph=>{ if(ph.bomb) bomben++; const e=ph.eff; (Array.isArray(e)?e:[e]).forEach(x=>x&&pe.add(x)); });
     o.profiBomben=bomben;
     o.profiHatKamuro=pe.has('kamuro'); o.profiHatSalut=pe.has('salut'); o.profiHatZeitregen=pe.has('zeitregen');
-    o.kleineOhneKamuro=!bb.SHOWS.batterie16().some(ph=>String(ph.eff).indexOf('kamuro')>=0);
+    o.kleineOhneKamuro=!bb.SHOWS.goldpalmen().some(ph=>String(ph.eff).indexOf('kamuro')>=0);
     /* eine ganze Profishow durchlaufen lassen */
     const t0=bb.timersLen();
     bb.igniteType('profi');
@@ -169,7 +169,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     o.einraeumbar=['kugel75','kugel100','kugel150','goldgeysir'].map(t=>!!bb.emptyLevel(t));
     o.produkte=Object.keys(bb.P).length;
     o.ohnePaket=Object.keys(bb.P).filter(t=>!bb.lizenzOf(t));
-    o.namen=['batterie16','batterie49','batterie100','profi','kugel150'].map(t=>bb.P[t].name);
+    o.namen=['goldpalmen','batterie49','zfaecher','profi','kugel150'].map(t=>bb.P[t].name);
     return o;
   });
   console.log('PRODUKTE',JSON.stringify(pr));

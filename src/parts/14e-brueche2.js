@@ -321,7 +321,7 @@ const FEUERTOPF_SORTEN={farbe:1,blink:1,knister:1,silber:1,gold:1,glut:1};
    Saeule 10..15 m), opt {ang, dir} Neigung wie shot() (nurMine), hell */
 function feuertopfSorte(o,sorte,A,B,s,opt){
   opt=opt||{}; s=s||0.8; A=A||FW.gold; B=B||A;
-  const q=QUAL(), y0=(o.y!==undefined?o.y:0.3)+(o.ab!==undefined?o.ab:0.05), h=10+5*clamp((s-0.4)/0.9,0,1), hl=opt.hell||1;
+  const q=QUAL(), y0=(o.y!==undefined?o.y:0.3)+(o.ab!==undefined?o.ab:0.05), h=14+6*clamp((s-0.4)/0.9,0,1), hl=opt.hell||1;   /* 03.10. abends (Tom: "viel zu niedrig"): 14-20 m statt 10-15 m */
   const ang=opt.ang||0, dir=opt.dir===undefined?rand(0,Math.PI*2):opt.dir;
   const D=[Math.sin(dir)*Math.sin(ang),Math.cos(ang),Math.cos(dir)*Math.sin(ang)];
   const G={farbe:6.5,blink:5,knister:6.5,silber:7,gold:3.2,glut:6}[sorte]||6.5;
@@ -388,7 +388,9 @@ function feuertopfSorte(o,sorte,A,B,s,opt){
    eff, Groesse s (mineSz). Ohne Aufstiegsspur, ohne Kern/Nachglitzern. */
 function tiefbruch(o,eff,A,B,s,opt){
   opt=opt||{}; s=s||0.6;
-  const h=clamp(4+s*3,4,8), f=0.5, pw=(h+3*f*f)/(f*STEIG)-21;
+  /* 03.10. abends (Tom: "die Effekte sind viel zu niedrig"): die untere
+     Ebene bricht bei 9-14 m statt 4-8 m - nicht mehr auf Kopfhoehe */
+  const h=clamp(8+s*5,9,14), f=0.85, pw=(h+3*f*f)/(f*STEIG)-21;
   shot(o,{eff,A,B,sz:s,pw,fest:true,fuse:f,ang:opt.ang!==undefined?opt.ang:rand(-0.05,0.05),dir:opt.dir,steig:'keiner',hell:opt.hell,tief:true,bruchOpt:{nachglitzer:false,kern:false}});
   return h;
 }

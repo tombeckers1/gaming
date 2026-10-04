@@ -121,6 +121,7 @@ function rohrSaat(seed,fn){ const alt=Math.random; Math.random=saatZufall(seed);
    bis 0,4 s (ab 0,6 s Pause). Das Tempo des Drehbuchs bleibt als
    schnell/langsam erhalten, jeder Schuss hat seinen eigenen Takt. */
 const ZUEND_MIN=0.2, ZUEND_MAX=0.4;
+const VERZ_MIN=1.2;
 function zuendAbstand(d){ return ZUEND_MIN+(ZUEND_MAX-ZUEND_MIN)*clamp(d/0.6,0,1); }
 /* Zuendfolge einer Batterie aus den geplanten Ereignissen von playShow:
    Schuss i (nach Zeit) kommt aus Rohr folge[i], neue Zeiten im Takt
@@ -129,7 +130,14 @@ function zuendFolge(EV,prod,dauerAlt){
   const L=rohrLayout(prod), F=L.folge;
   const S=EV.filter(e=>e.art==='s'); S.forEach((e,i)=>e.nr=i); S.sort((a,b)=>a.tt-b.tt||a.nr-b.nr);
   const alt=S.map(e=>e.tt), neu=[]; let T=alt.length?alt[0]:0;
-  S.forEach((e,i)=>{ if(i) T+=zuendAbstand(alt[i]-alt[i-1]); e.tt=T; neu.push(T); e.k=F[i%F.length]; e.zw=i; });
+  /* Verzoegerungssatz (03.10. abends, Tom: "es macht keinen Sinn, eine
+     Riesenfontaene abzufeuern und in der Fontaene dann eine grosse
+     Explosion - die Anordnung, wann was kommt, wie viel kommt"): Batterien
+     mit verzoegerung im Drehbuch halten ihre Abschnittspausen (ab
+     VERZ_MIN s) wie eine echte Verbundbatterie mit Verzoegerungszuender,
+     hoechstens 6 s; im Abschnitt bleibt der Takt 0,2-0,4 s */
+  const verz=typeof SHOWS!=='undefined'&&SHOWS[prod]&&SHOWS[prod]().verzoegerung;
+  S.forEach((e,i)=>{ if(i){ const d=alt[i]-alt[i-1]; if(verz&&d>=VERZ_MIN){ T+=Math.min(d,6); e.verz=true; } else T+=zuendAbstand(d); } e.tt=T; neu.push(T); e.k=F[i%F.length]; e.zw=i; });
   const map=t=>{ if(!alt.length||t<=alt[0]) return t;
     for(let i=1;i<alt.length;i++) if(t<=alt[i]){ const u=alt[i]-alt[i-1]; return neu[i-1]+(u>0?(t-alt[i-1])/u:1)*(neu[i]-neu[i-1]); }
     return neu[neu.length-1]+Math.min(t-alt[alt.length-1],2.5); };

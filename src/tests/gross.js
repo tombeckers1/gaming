@@ -27,10 +27,10 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   const r=await p.evaluate(()=>{ const bb=window.__bb, S=bb.S, P=bb.P, o={};
     S.level=40; S.money=1e6; bb.LIZENZEN.forEach(l=>bb.buyLizenz(l.id)); bb.testKauf('testfeld');
     const vol=t=>P[t].dims[0]*P[t].dims[1]*P[t].dims[2];
-    const BATT=['batterie16','knatter','batterie49','kometen','batterie100','donnerwand','profi','finale'];
+    const BATT=['goldpalmen','knatter','batterie49','kometen','zfaecher','donnerwand','profi','finale'];
     o.batt=BATT.map(t=>({t,preis:P[t].market,vol:+vol(t).toFixed(4),h:P[t].dims[1]}));
     o.leiter=BATT.slice(1).filter((t,i)=>!(vol(t)>vol(BATT[i]))).map(t=>t);
-    o.gross=['donnerwand','profi','finale'].map(t=>+(vol(t)/vol('batterie16')).toFixed(1));
+    o.gross=['donnerwand','profi','finale'].map(t=>+(vol(t)/vol('goldpalmen')).toFixed(1));
     o.atom={form:P.atomboeller.shape,teile:bb.pools.atomboeller.meshes.length};
     /* Faecher: was Kapazitaet hat, passt in die Hoehe. Jede Ware findet
        ein Regal, das es spaetestens mit ihr gibt; Kuehlpflichtiges passt
@@ -57,7 +57,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     /* 28.09.: Plaetze 1,1 m auseinander, alles steht mit der Breite quer
        (auch die Fontaenen-Sets bis 1 m) */
     o.abstand=+(bb.TISCH_X[1]-bb.TISCH_X[0]).toFixed(2);
-    for(const t of ['finale','profi','donnerwand','faecher','zfaecher','batterie100','atomboeller','feuerkaskade','wasserspiel'].filter(t=>P[t])){
+    for(const t of ['finale','profi','donnerwand','faecher','zfaecher','zfaecher','atomboeller','feuerkaskade','wasserspiel'].filter(t=>P[t])){
       bb.clearStations(); for(let k=0;k<3;k++){ S.carrying={type:t,count:1,q:1}; bb.placeOnStation(st); }
       /* 01.10. abends: Batterien stehen als eigenes Modell (it.batt.g), sonst im Pool (it.h.m) */
       const fp=st.items.map(it=>{ const M=it.batt?(it.batt.g.updateMatrixWorld(true),it.batt.g.matrixWorld):it.h.m; const e=M.elements, cx=Math.hypot(e[0],e[2]), sx=Math.hypot(e[8],e[10]);

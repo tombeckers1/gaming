@@ -34,9 +34,9 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     bb.S.level=99; bb.S.money=9e6; bb.LIZENZEN.forEach(l=>bb.buyLizenz(l.id));
     ['shop_halb','testfeld'].forEach(id=>bb.testKauf(id));
     const stell=(t,st)=>{ bb.S.carrying={type:t,count:1,q:1}; bb.placeOnStation(bb.stations[st]); };
-    stell('batterie49','tisch'); stell('batterie16','tisch'); stell('boeller','tisch');
-    o.tischVoll=(()=>{ bb.S.carrying={type:'batterie16',count:1,q:1}; bb.placeOnStation(bb.stations.tisch); const n=bb.stations.tisch.items.length; bb.S.carrying=null; return n; })();
-    stell('raketengold','rampe'); stell('raketenklein','rampe');
+    stell('batterie49','tisch'); stell('goldpalmen','tisch'); stell('boeller','tisch');
+    o.tischVoll=(()=>{ bb.S.carrying={type:'goldpalmen',count:1,q:1}; bb.placeOnStation(bb.stations.tisch); const n=bb.stations.tisch.items.length; bb.S.carrying=null; return n; })();
+    stell('knisterstern','rampe'); stell('raketenklein','rampe');
     stell('kugel300','moerser'); stell('kugel100','moerser');
     const k=bb.alleKanaele();
     o.nummern=k.filter(e=>e.it).map(e=>e.kanal+':'+e.it.type);
@@ -62,7 +62,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     const it8=bb.kanalItem(8);
     /* 01.10. abends: Batterien stehen als eigenes Modell (it.batt) auf dem Tisch, nicht mehr im Pool */
     o.stehtNoch=!!(it8&&(it8.h||(it8.batt&&it8.batt.g.parent)));
-    o.dauer8=bb.brennDauer('batterie16');
+    o.dauer8=bb.brennDauer('goldpalmen');
     bb.run(2.6,0.05);
     o.tasterOben=+(bb.pultTaster[7].userData.y0-bb.pultTaster[7].position.y).toFixed(4);
     /* Funkenflug (batterie16) beginnt seit dem 26.09. mit 3,5 s
@@ -71,12 +71,12 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
        (28.09.: Zuendschnur + 3,5 s Brunnen, rockets noch leer) - also in
        0,1-s-Schritten weiter, bis der erste Stern steigt (hoechstens 4 s) */
     for(let k=0;k<40&&!bb.rockets.length;k++) bb.run(0.1,0.05);
-    const m8=bb.muendung(bb.stations.tisch,1,'batterie16');
+    const m8=bb.muendung(bb.stations.tisch,1,'goldpalmen');
     o.muendung8={x:+m8.x.toFixed(2),y:+m8.y.toFixed(2),z:+m8.z.toFixed(2)};
     o.raketenStart=bb.rockets.map(q=>+q.p.x.toFixed(2));
     o.stehtWaehrend=!!(bb.kanalItem(8)&&bb.kanalItem(8).state==='brennt');
     /* Kanal 4: Goldrakete verlaesst ihr Rohr */
-    const m4=bb.muendung(bb.stations.rampe,0,'raketengold');
+    const m4=bb.muendung(bb.stations.rampe,0,'knisterstern');
     o.muendung4=+m4.x.toFixed(2);
     bb.zuendeKanal(4);
     o.vorStart4=r4.modell.visible;
@@ -86,8 +86,8 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     o.scharf=[1,3,5,7].map(n=>bb.kanalItem(n)&&bb.kanalItem(n).state);
     bb.run(o.dauer8+1,0.1);
     o.platz8frei=!bb.kanalItem(8);
-    stell('batterie16','tisch');
-    o.neuAuf8=!!(bb.kanalItem(8)&&bb.kanalItem(8).type==='batterie16');
+    stell('goldpalmen','tisch');
+    o.neuAuf8=!!(bb.kanalItem(8)&&bb.kanalItem(8).type==='goldpalmen');
     return o;
   });
   console.log('KANAELE  ',JSON.stringify({nummern:r.nummern,anzahl:r.anzahl,reihe:r.reihe,tischVoll:r.tischVoll}));
@@ -97,7 +97,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   console.log('MODELLE  ',JSON.stringify({rakete:r.raketeSichtbar,vor:r.vorStart4,nach:r.nachStart4,kugel:r.kugelModell}));
   console.log('PULT     ',JSON.stringify({lampen:r.lampen,leer:r.lampLeer,scharf:r.lampScharf,brennt:r.lampBrennt,taster:r.taster,unten:r.tasterUnten,oben:r.tasterOben}));
   pruef('KANAELE',r.anzahl===9&&r.reihe==='mmmrrrttt','erwartet 9 Kanaele Moerser-Raketen-Tisch, sind '+r.anzahl+' '+r.reihe);
-  pruef('KANAELE',JSON.stringify(r.nummern)===JSON.stringify(['1:kugel100','3:kugel300','4:raketengold','5:raketenklein','7:batterie49','8:batterie16','9:boeller']),'Nummern stimmen nicht: '+r.nummern);
+  pruef('KANAELE',JSON.stringify(r.nummern)===JSON.stringify(['1:kugel100','3:kugel300','4:knisterstern','5:raketenklein','7:batterie49','8:goldpalmen','9:boeller']),'Nummern stimmen nicht: '+r.nummern);
   pruef('KANAELE',r.tischVoll===3,'auf den Tisch passen nicht genau drei: '+r.tischVoll);
   pruef('RAMPE',r.rohre===3&&r.rampeBreit<1.5&&r.tischBreit>2.4,'Rampe nicht auf drei Rohre verkleinert oder Tisch veraendert: '+JSON.stringify({rohre:r.rohre,rampe:r.rampeBreit,tisch:r.tischBreit}));
   pruef('ZUENDEN',r.nach8[0]==='bereit'&&r.nach8[1]==='brennt'&&r.nach8[2]==='bereit','Kanal 8 zuendet nicht allein: '+r.nach8);
@@ -152,7 +152,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   await p.mouse.move(640,400); await p.mouse.down(); await p.mouse.up();
   const klick2=await p.evaluate(()=>{ const bb=window.__bb; const an=bb.zuendOpen; if(an) bb.closeZuend(); return an; });
   /* ohne Zuendmodus zuenden die Ziffern nichts */
-  await p.evaluate(()=>{ const bb=window.__bb; bb.S.carrying={type:'raketengold',count:1,q:1}; bb.placeOnStation(bb.stations.rampe); bb.S.carrying=null; });
+  await p.evaluate(()=>{ const bb=window.__bb; bb.S.carrying={type:'knisterstern',count:1,q:1}; bb.placeOnStation(bb.stations.rampe); bb.S.carrying=null; });
   const ohne=await p.evaluate(()=>{ const bb=window.__bb; const k=bb.alleKanaele().find(e=>e.st.id==='rampe'&&e.it&&e.it.state==='bereit'); return k?k.kanal:0; });
   await p.keyboard.press('Digit'+ohne);
   const ohneSt=await p.evaluate(k=>{ const it=window.__bb.kanalItem(k); return it&&it.state; },ohne);

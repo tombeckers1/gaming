@@ -211,3 +211,59 @@ Object.assign(sfx,{
   prasseln:v=>{ for(let i=0;i<4;i++) later(Math.random()*0.3,()=>rauschF({dur:0.015,vol:0.06*v,typ:'highpass',f:rand(2500,5000)})); },
   wumms:v=>{ tone(48,0.6,'sine',0.35*v,28); noise(0.5,0.5*v,180); }
 });
+/* =========================================================
+   Bruchklaenge (03.10. abends, Tom: "Du kannst auch verschiedene
+   Explosionssounds waehlen - die Sounds machen es echt aus ... es soll
+   schon eine Explosion sein, aber verschiedene Toene, immer ein bisschen
+   unterschiedlich, und darauf passende Effekte. Kein Pfeifen.")
+   Jeder Klang ist ein Bruch nach echtem Vorbild (30-mm-Batterie,
+   75-150-mm-Kugel aus 30-80 m): ein Knall aus gefiltertem Rauschen plus
+   Tiefton, danach - je nach Satz - Nachhall, Knistern oder Rieseln.
+   Alle Teile werden auf der Audio-Uhr geplant (bkR/bkT mit at), nicht mit
+   later - so laesst sich jeder Klang in einem OfflineAudioContext messen.
+   Jeder Aufruf variiert Tonhoehe und Laenge um etwa 10-15 Prozent.
+   ========================================================= */
+const bkV=(a,b)=>a+Math.random()*(b-a);
+/* gefiltertes Rauschen ab jetzt+at: dur, vol, typ, f(->f2), q, an, rosa */
+function bkR(at,o){ if(!AC||!(o.vol>=0.003)) return; const s=AC.createBufferSource(), f=AC.createBiquadFilter(), g=AC.createGain(), t=AC.currentTime+at, d=o.dur;
+  s.buffer=o.rosa?rosaRausch():weissBuf(); s.loop=d>1.2; f.type=o.typ||'lowpass'; f.frequency.setValueAtTime(o.f,t); if(o.f2) f.frequency.exponentialRampToValueAtTime(o.f2,t+d); if(o.q) f.Q.value=o.q;
+  g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(o.vol,t+(o.an||0.004)); g.gain.exponentialRampToValueAtTime(0.0001,t+d);
+  s.connect(f); f.connect(g); g.connect(master); s.start(t,Math.random()*0.4); s.stop(t+d+0.05); }
+/* Sinus-Tiefton ab jetzt+at, f -> f2 */
+function bkT(at,f,f2,dur,vol){ if(!AC||vol<0.003) return; const o=AC.createOscillator(), g=AC.createGain(), t=AC.currentTime+at;
+  o.type='sine'; o.frequency.setValueAtTime(f,t); o.frequency.exponentialRampToValueAtTime(f2,t+dur); g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(vol,t+0.005); g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+  o.connect(g); g.connect(master); o.start(t); o.stop(t+dur+0.03); }
+/* Knister-Folge: n trockene Mini-Knacke zwischen t0 und t1 */
+function bkKn(t0,t1,n,vol){ for(let i=0;i<n;i++) bkR(bkV(t0,t1),{dur:bkV(0.012,0.03),vol:vol*bkV(0.5,1),typ:'highpass',f:bkV(2800,6500)}); }
+const BRUCH_KLAENGE={
+  /* dumpfer Bass-Wumms: grosse Kugel, schwere Weide - Druck mehr als Knall */
+  wumms(v){ const k=bkV(0.85,1.15); bkR(0,{dur:0.9*k,vol:0.75*v,f:200*k,f2:80}); bkT(0,58*k,30,0.55*k,0.32*v); bkR(0,{dur:0.08,vol:0.25*v,typ:'bandpass',f:900*k,q:0.8}); },
+  /* trockener Crack: scharfe, schnelle Brueche (Crossette, Kreuzstern) */
+  crack(v){ const k=bkV(0.85,1.2); bkR(0,{dur:0.06*k,vol:0.55*v,typ:'highpass',f:2600*k}); bkR(0,{dur:0.03,vol:0.35*v,typ:'bandpass',f:5200*k,q:1.5}); bkR(0.16*k,{dur:0.05,vol:0.12*v,typ:'highpass',f:2400}); },
+  /* weicher Puff: leichte, schwebende Sterne (Paeonie, Bluete) */
+  puff(v){ const k=bkV(0.85,1.15); bkR(0,{dur:0.28*k,vol:0.42*v,f:520*k,f2:220,an:0.012}); bkT(0,95*k,60,0.14,0.12*v); },
+  /* doppelter Schlag: Kern und Schale (Pistill, Wechsler) */
+  doppel(v){ const k=bkV(0.85,1.15), d=bkV(0.11,0.17); bkR(0,{dur:0.35,vol:0.5*v,f:420*k,f2:200}); bkR(0,{dur:0.05,vol:0.25*v,typ:'highpass',f:3000}); bkR(d,{dur:0.3,vol:0.38*v,f:300*k,f2:150}); bkT(d,70*k,40,0.2,0.15*v); },
+  /* ferner Donnerhall mit Echo: Riesenbruch, Kamuro - der Knall rollt nach */
+  donnerhall(v){ const k=bkV(0.85,1.1); bkR(0,{dur:0.7,vol:0.62*v,f:380*k,f2:120}); bkR(0,{dur:0.06,vol:0.3*v,typ:'highpass',f:2800});
+    bkR(0.08,{dur:2.4*k,vol:0.22*v,f:160*k,f2:70,an:0.25}); bkR(0.42*k,{dur:0.4,vol:0.16*v,f:300,f2:120}); bkR(0.95*k,{dur:0.5,vol:0.08*v,f:260,f2:100}); },
+  /* gedaempfter Plopp: leichte Geschosse, kleine Lichter */
+  plopp(v){ const k=bkV(0.8,1.25); bkT(0,120*k,62*k,0.09,0.16*v); bkR(0,{dur:0.09,vol:0.16*v,f:450*k}); },
+  /* Knister-Nachhall: Knall, dann knistern die Sterne nach */
+  knisterhall(v){ const k=bkV(0.85,1.15); bkR(0,{dur:0.3,vol:0.4*v,f:450*k,f2:200}); bkR(0,{dur:0.04,vol:0.28*v,typ:'highpass',f:3000}); bkKn(bkV(0.28,0.45),bkV(1.0,1.5),Math.round(bkV(14,22)),0.14*v); },
+  /* Brokat-Rauschen: goldener Brokat, Weide - ein langes, weiches Rauschen */
+  brokat(v){ const k=bkV(0.85,1.15); bkR(0,{dur:0.4,vol:0.45*v,f:350*k,f2:160}); bkR(0.1,{dur:2.6*k,vol:0.07*v,typ:'bandpass',f:1700*k,q:0.6,rosa:true,an:0.35}); },
+  /* Glitzer-Rieseln: Glitzersterne, Chrysantheme */
+  rieseln(v){ const k=bkV(0.85,1.15); bkR(0,{dur:0.25,vol:0.38*v,f:600*k,f2:250}); bkR(0.15,{dur:2.2*k,vol:0.06*v,typ:'highpass',f:5200*k,rosa:true,an:0.3}); bkKn(0.6,2.0,6,0.05*v); },
+  /* Salut-Crack: der harte Kanonenschlag */
+  salut(v){ const k=bkV(0.9,1.1); bkR(0,{dur:0.12,vol:0.85*v,typ:'bandpass',f:2100*k,q:0.7}); bkR(0,{dur:0.8,vol:0.7*v,f:420*k,f2:110}); bkT(0,48,28,0.4,0.3*v); },
+  /* Sternplatzen in Kaskade: Kranz, Zehnfach, Crossetten - viele kleine Schlaege nacheinander */
+  kaskade(v){ const k=bkV(0.85,1.15); bkR(0,{dur:0.25,vol:0.35*v,f:500*k,f2:220}); let t=bkV(0.18,0.3); const n=Math.round(bkV(4,7));
+    for(let i=0;i<n;i++){ bkR(t,{dur:0.05,vol:0.3*v*(1-i/n*0.6),typ:'highpass',f:bkV(2200,3800)}); bkT(t,bkV(140,200),90,0.06,0.05*v); t+=bkV(0.05,0.13); } },
+  /* zischendes Aufplatzen: Fische, Kometen, Schwaerme */
+  zisch(v){ const k=bkV(0.85,1.15); bkR(0,{dur:0.12,vol:0.3*v,f:600*k}); bkR(0.05,{dur:1.1*k,vol:0.09*v,typ:'highpass',f:3600*k,an:0.08}); },
+  /* Klack: Ringe und Figuren - kurz, hoelzern */
+  klack(v){ const k=bkV(0.85,1.2); bkR(0,{dur:0.07,vol:0.35*v,typ:'bandpass',f:950*k,q:2.5}); bkT(0,160*k,110,0.07,0.1*v); }
+};
+/* als sfx fuer r.knall: bkWumms, bkCrack ... */
+Object.keys(BRUCH_KLAENGE).forEach(n=>{ sfx['bk'+n[0].toUpperCase()+n.slice(1)]=(v,s)=>BRUCH_KLAENGE[n](v,s||1); });

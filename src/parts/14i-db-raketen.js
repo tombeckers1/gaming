@@ -772,9 +772,9 @@ Object.assign(RAKETEN_KL,{
      Rest bringt die allgemeine Hoehenanhebung aller Raketen */
   raketen        :{n:1,gap:0,sz:1.0, pw:0.5,fuse:1.25,steig:'hummel',   A:'tuerkis',B:'gold',eff:['hakenschlag'],bruchOpt:{kern:false,nachglitzer:false},dauer:4},
   silberpfeil    :{n:1,gap:0,sz:1.02,pw:-2.5,fuse:0.95,steig:'pfeil',   A:'weiss',B:'silber',eff:['silberspinne'],bruchOpt:{kern:false,nachglitzer:false,flash:1.1},dauer:3},
-  kometenraketen :{n:1,gap:0,sz:1.05,pw:-2, fuse:1.3, steig:'komet',    A:'gold',B:'blau',eff:['kometenkette'],bruchOpt:{kern:false,nachglitzer:false,flash:0.4},dauer:4.8},
+  kometenraketen :{n:1,gap:0,sz:1.05,pw:0.7,fuse:1.3, steig:'komet',    A:'gold',B:'blau',eff:['kometenkette'],bruchOpt:{kern:false,nachglitzer:false,flash:0.4},dauer:4.8},
   pfeifraketen   :{n:1,gap:0,sz:1.05,pw:-2, fuse:1.3, steig:'pfeif',    pfeif:true,A:'rot',B:'weiss',eff:['pfeifsterne'],bruchOpt:{kern:false,nachglitzer:false},dauer:3.8},
-  farbenrausch   :{n:1,gap:0,sz:1.1, pw:-1, fuse:1.25,steig:'farbflamme',A:'rot',B:'gruen',eff:['halbhalb'],bruchOpt:{kern:false,nachglitzer:false},dauer:4.4},
+  farbenrausch   :{n:1,gap:0,sz:1.1, pw:0.9,fuse:1.25,steig:'farbflamme',A:'rot',B:'gruen',eff:['halbhalb'],bruchOpt:{kern:false,nachglitzer:false},dauer:4.4},
   raketengold    :{n:1,gap:0,sz:1.3, pw:0.8,fuse:1.3, steig:'brokat',   th:'koenig',dick:1,eff:['nishiki'],bruchOpt:{kern:false},dauer:5},
   knisterstern   :{n:1,gap:0,sz:1.34,pw:1.2,fuse:1.25,steig:'knister',  A:'silber',B:'gold',eff:['spaetzuender'],knall:'rakPff',bruchOpt:{kern:false,nachglitzer:false,flash:0.15},dauer:5.6},
   smaragd        :{n:1,gap:0,sz:1.38,pw:1.6,fuse:1.3, steig:'farbkomet',A:'gruen',B:'mint',eff:['achtblatt'],bruchOpt:{kern:false,nachglitzer:false,flash:0.35},dauer:4.4},

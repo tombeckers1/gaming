@@ -512,6 +512,10 @@ EFF.blinkregen=function(p,A,B,s,r){
    Punkte mit Lichthof (sah immer noch nach Lichtshow aus). */
 SCHUSS_EFF.blinkkugel=function(r){
   const A=r.A, q=QUAL(), P0={x:r.p.x,y:r.p.y,z:r.p.z}, v=[r.v.x,r.v.y,r.v.z], G=6, tag=r.tag||FW_TAG;
+  /* 03.10. abends (Tom: "viel zu niedrig"): die Kugel fliegt mit Luft-
+     widerstand - das Tempo so, dass sie die geplante Bruchhoehe erreicht
+     (vorher brach sie bei 9 m statt bei der Planhoehe) */
+  if(r.hZiel>P0.y+2&&v[1]>0.5){ const f=vFuerHoehe(r.hZiel-P0.y,G)/v[1]; v[0]*=f; v[1]*=f; v[2]*=f; }
   const tS=Math.log(1+ZIEH*Math.max(0.1,v[1])/G)/ZIEH, t1=tS*rand(0.93,0.98), t2=t1+rand(0.07,0.1), c=grWeiss(A,0.1), fu=[1,.75,.35];
   grSpur(0.35,()=>{ for(let k=0;k<2;k++) psBig.emit(P0.x,P0.y,P0.z,v[0],v[1],v[2],c[0]*1.6,c[1]*1.6,c[2]*1.6,t1,G,0); });
   grSpur(0.3,()=>{ for(let i=0;i<Math.round(30*q);i++) psMid.emit(P0.x,P0.y,P0.z,v[0]*0.9+rand(-.3,.3),v[1]*rand(0.45,0.95),v[2]*0.9+rand(-.3,.3),1,.8,.4,rand(0.6,1.2),6,4); });

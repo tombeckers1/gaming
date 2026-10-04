@@ -112,12 +112,25 @@ function fwTestSchalten(){
    zwoelf Moerser) mit denselben Abschussorten wie im Spiel.
    Tasten: Leertaste/Enter zuenden (dann das naechste), Pfeil rechts
    ueberspringen, Pfeil links zurueck, R nochmal, X stoppt alles, was
-   gerade brennt, 1 gut, 2 aendern,
+   gerade brennt, 1 gut, 2 aendern, 3 raus,
    L Liste, B beenden (Esc nur ohne gefangenen Mauszeiger). Der Stand (Nummer, Notizen) bleibt gemerkt.
    ========================================================= */
 let vfIdx=0, vfListe=[], vfEl=null, vfLetzt=null, vfNoten={}, vfListeAuf=false;
 const VF_KEY='bb_vorfuehrung', VF_ART={tisch:'Tisch',rampe:'Rohre',moerser:'Mörser'};
-function vfLaden(){ try{ const d=JSON.parse(localStorage.getItem(VF_KEY)||'{}'); vfIdx=d.i|0; vfNoten=d.n||{}; }catch(e){ vfIdx=0; vfNoten={}; } }
+function vfLaden(){ try{ const d=JSON.parse(localStorage.getItem(VF_KEY)||'{}'); vfIdx=d.i|0; vfNoten=d.n||{}; }catch(e){ vfIdx=0; vfNoten={}; } vfDbLaden(); }
+/* 04.10. (Tom: "wenn ich die Sachen als gut markiere, siehst du das dann?
+   ... die guten nimmst du als Referenz, die schlechten kommen raus"):
+   jede Bewertung (gut / aendern / raus) geht zusaetzlich in die Datenbank
+   des Artefakts (Sammlung "bewertungen", ein Dokument je Produkt) - dort
+   liest Claude sie aus. Ohne Datenbank (lokal, Test) bleibt es beim
+   Speicher des Geraets. */
+let _vfDbP=null;
+function vfDb(){ if(!_vfDbP) _vfDbP=(typeof window!=='undefined'&&window.claude&&window.claude.use?window.claude.use('db'):Promise.resolve(null)).catch(()=>null); return _vfDbP; }
+function vfDbLaden(){ vfDb().then(db=>{ if(!db) return; return db.collection('bewertungen').get().then(q=>{ let neu=0;
+  q.docs.forEach(d=>{ const x=d.data(); if(x&&P[d.id]&&['gut','aendern','raus'].includes(x.note)&&vfNoten[d.id]!==x.note){ vfNoten[d.id]=x.note; neu++; } });
+  if(neu){ try{ localStorage.setItem(VF_KEY,JSON.stringify({i:vfIdx,n:vfNoten})); }catch(e){} if(vfAn) vfZeigen(); } }); }).catch(()=>{}); }
+function vfDbSchreiben(t){ const w=vfNoten[t]; vfDb().then(db=>{ if(!db) return; const ref=db.doc('bewertungen/'+t);
+  return w?ref.set({note:w,name:P[t].name,lvl:P[t].lvl,art:P[t].shape||'',zeit:new Date().toISOString()}):ref.delete(); }).catch(()=>{}); }
 /* vfSonder: eine Testsektion (nur die neuen Batterien oder Kugeln) - ihr
    Platz in der Liste ersetzt nicht den der ganzen Vorfuehrung */
 let vfSonder=null;
@@ -258,9 +271,9 @@ function vfZuendenRoh(t){
 }
 function vfNaechstes(){ if(!vfListe.length) return; vfZuenden(vfListe[vfIdx]); vfIdx=Math.min(vfListe.length,vfIdx+1); vfMerken(); vfZeigen(); }
 function vfSpringen(d){ vfIdx=clamp(vfIdx+d,0,vfListe.length); vfMerken(); vfZeigen(); }
-function vfNote(w){ const t=vfLetzt||vfListe[vfIdx]; if(!t) return; vfNoten[t]=vfNoten[t]===w?undefined:w; if(!vfNoten[t]) delete vfNoten[t]; vfMerken(); vfZeigen(); }
+function vfNote(w){ const t=vfLetzt||vfListe[vfIdx]; if(!t) return; vfNoten[t]=vfNoten[t]===w?undefined:w; if(!vfNoten[t]) delete vfNoten[t]; vfMerken(); vfDbSchreiben(t); vfZeigen(); }
 function vfText(){
-  return vfListe.map((t,i)=>`${String(i+1).padStart(3)}  L${String(P[t].lvl).padStart(2)}  ${P[t].short.padEnd(22)} ${vfNoten[t]==='gut'?'gut':vfNoten[t]==='aendern'?'ÄNDERN':''}`).join('\n');
+  return vfListe.map((t,i)=>`${String(i+1).padStart(3)}  L${String(P[t].lvl).padStart(2)}  ${P[t].short.padEnd(22)} ${vfNoten[t]==='gut'?'gut':vfNoten[t]==='aendern'?'ÄNDERN':vfNoten[t]==='raus'?'RAUS':''}`).join('\n');
 }
 /* Tasten - true: verbraucht */
 function vfTaste(e){
@@ -273,6 +286,7 @@ function vfTaste(e){
   if(c==='KeyX'||c==='Backspace'){ e.preventDefault(); vfStopp(); toast('Feuerwerk gestoppt.'); return true; }
   if(c==='Digit1'||c==='Numpad1'){ vfNote('gut'); return true; }
   if(c==='Digit2'||c==='Numpad2'){ vfNote('aendern'); return true; }
+  if(c==='Digit3'||c==='Numpad3'){ vfNote('raus'); return true; }
   if(c==='KeyL'){ vfListeAuf=!vfListeAuf; vfZeigen(); return true; }
   /* Beenden mit B - Esc faengt bei gefangenem Mauszeiger der Browser ab (dann Pause) */
   if(c==='KeyB'||(c==='Escape'&&!locked)){ vorfuehrungAus(); return true; }
@@ -283,7 +297,7 @@ function vfZeile(t,klein){
   const p=P[t], s=FW_STUFEN[fwStufe(p.lvl)], n=vfNoten[t];
   return `<span style="background:${s.farbe};color:#0e1226;border-radius:6px;padding:1px 8px;font:${BUN(klein?13:18)}">L${p.lvl}</span> `+
     `<span style="color:${s.farbe};font:${BAR(klein?14:18)};letter-spacing:.06em">${s.name}</span> · <span style="opacity:.8">${VF_ART[stationOf(t)]||''}</span>`+
-    (n?` <b style="color:${n==='gut'?'#5fe07a':'#ff6a55'}">${n==='gut'?'✓ gut':'✗ ändern'}</b>`:'');
+    (n?` <b style="color:${n==='gut'?'#5fe07a':n==='raus'?'#ff3a3a':'#ffb03a'}">${n==='gut'?'✓ gut':n==='raus'?'✗ raus':'✎ ändern'}</b>`:'');
 }
 function vfZeigen(){
   if(!vfAn) return;
@@ -292,7 +306,7 @@ function vfZeigen(){
     vfEl.addEventListener('click',e=>{ const b=e.target.closest('[data-vf]'); if(!b) return; const a=b.dataset.vf;
       if(a==='zuenden') vfNaechstes(); else if(a==='vor') vfSpringen(1); else if(a==='zurueck') vfSpringen(-1);
       else if(a==='nochmal'){ if(vfLetzt) vfZuenden(vfLetzt); vfZeigen(); }
-      else if(a==='gut') vfNote('gut'); else if(a==='aendern') vfNote('aendern');
+      else if(a==='gut') vfNote('gut'); else if(a==='aendern') vfNote('aendern'); else if(a==='raus') vfNote('raus');
       else if(a==='liste'){ vfListeAuf=!vfListeAuf; vfZeigen(); }
       else if(a==='kopieren'){ try{ navigator.clipboard.writeText(vfText()); toast('Liste mit Notizen kopiert.'); }catch(err){} }
       else if(a==='stopp'){ vfStopp(); toast('Feuerwerk gestoppt.'); }
@@ -309,7 +323,7 @@ function vfZeigen(){
   else h+=`<div style="margin:6px 0;font:${BAR(20)}">Leertaste zündet das erste Feuerwerk.</div>`;
   h+=`<div style="margin-top:8px;padding-top:6px;border-top:1px solid rgba(242,197,48,.35);font:${BAR(17)}">`+
     (naechst?`ALS NÄCHSTES (${vfIdx+1}): <b>${vfEsc(P[naechst].short)}</b> &nbsp;${vfZeile(naechst,true)}`:'<b>Ende der Liste.</b> Mit Pfeil links zurück.')+`</div>`;
-  h+=`<div style="margin-top:6px">${btn('zuenden','␣ Zünden','#8a2a16')}${btn('zurueck','← Zurück')}${btn('vor','→ Weiter')}${btn('nochmal','R Nochmal')}${btn('stopp','X Stopp','#5a1020')}${btn('gut','1 Gut')}${btn('aendern','2 Ändern')}${btn('liste','L Liste')}${btn('ende','B Beenden')}</div>`;
+  h+=`<div style="margin-top:6px">${btn('zuenden','␣ Zünden','#8a2a16')}${btn('zurueck','← Zurück')}${btn('vor','→ Weiter')}${btn('nochmal','R Nochmal')}${btn('stopp','X Stopp','#5a1020')}${btn('gut','1 Gut')}${btn('aendern','2 Ändern')}${btn('raus','3 Raus','#5a1020')}${btn('liste','L Liste')}${btn('ende','B Beenden')}</div>`;
   if(vfListeAuf){
     h+=`<div style="margin-top:6px;max-height:30vh;overflow:auto;border-top:1px solid rgba(242,197,48,.35)">`+
       vfListe.map((t,i)=>`<div data-vf="i${i}" style="cursor:pointer;padding:2px 4px;${i===vfIdx?'background:rgba(242,197,48,.22);':''}${t===akt?'outline:1px solid #f2c230;':''}">`+

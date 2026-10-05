@@ -88,7 +88,8 @@ function vorDieTuer(){
       /* Regale und Kassen kommen als Paket vor die Tuer - aufbauen
          muss man selbst (Tom, 26.09.) */
       const s=freeSlot(); spawnPaket(pd,{x:s.x,z:s.z,ry:Math.PI/2+rand(-0.1,0.1)}); regale++;
-    } else { spawnFloorBox(pd.type,P[pd.type].box,null,pd.q||1); n++; } });
+    } else if(pd.vm) vmEinlagern(-1,pd.vm);
+    else { spawnFloorBox(pd.type,P[pd.type].box,null,pd.q||1); n++; } });
   statAdd('lkw',1); S.tut.lkw=true;
   sfx.thump(0.8);
   if(n) toast(`Lieferung: ${n} Karton${n>1?'s':''} vor der Ladentür abgestellt.`,'xp');
@@ -118,10 +119,12 @@ function step(dt){
     const frei=!truck?-1:wbayFrei();
     if(truck&&frei<0) break;
     const wave=[];
-    for(let i=0;i<pending.length&&wave.length<32;i++) if(pending[i].t<=16) wave.push(pending[i]);
+    /* Versandmaterial kommt nur an die Basisrampe - dort holen es die
+       Einraeumer fuer das Packmaterial-Regal ab */
+    for(let i=0;i<pending.length&&wave.length<32;i++) if(pending[i].t<=16&&!(frei>=0&&pending[i].vm)) wave.push(pending[i]);
     if(!wave.length) break;
     wave.forEach(w=>pending.splice(pending.indexOf(w),1));
-    const sid=wave[0].sup||'mertens', ladung=wave.map(w=>w.regal?{regal:w.regal}:w.einbau?{einbau:w.einbau}:{type:w.type,q:w.q||1});
+    const sid=wave[0].sup||'mertens', ladung=wave.map(w=>w.regal?{regal:w.regal}:w.einbau?{einbau:w.einbau}:w.vm?{vm:w.vm}:{type:w.type,q:w.q||1});
     if(frei<0) spawnTruck(ladung,sid,supplierOf(sid).name);
     else if(!spawnWTruck(frei,ladung,sid,supplierOf(sid).name)) break;
   }

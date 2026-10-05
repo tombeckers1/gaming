@@ -640,6 +640,9 @@ const UP_MOTIV={
     /* Klebebandrolle */
     g.strokeStyle='#d9c08a'; g.lineWidth=5; g.beginPath(); g.arc(196,76,5,0,Math.PI*2); g.stroke();
     h.schild('VERSAND',112,24,'#6cf2a8'); },
+  /* Ausbau der Packstation: Packplaetze am Band, Portal ueber Paletten */
+  packstation2(g,W,H,h){ upPackLinie(g,W,H,h,2); },
+  packstation3(g,W,H,h){ upPackLinie(g,W,H,h,3); },
   eingang2(g,W,H,h){ h.grund('#18223c','#0b1120'); h.boden(124);
     /* zweite Glastuer mit Rahmen und daneben die eigene Kasse */
     g.fillStyle='#2b3140'; g.fillRect(24,20,96,108); g.fillStyle='#39414d'; g.fillRect(30,26,84,100);
@@ -774,6 +777,31 @@ const UP_MOTIV={
     g.strokeStyle='#e63b2e'; g.lineWidth=2.5; for(let k=0;k<3;k++){ g.globalAlpha=1-k*0.28; g.beginPath(); g.arc(112,74,12+k*10,-Math.PI*0.35,Math.PI*0.35); g.stroke(); g.beginPath(); g.arc(112,74,12+k*10,Math.PI*0.65,Math.PI*1.35); g.stroke(); } g.globalAlpha=1;
     g.fillStyle='#e63b2e'; g.beginPath(); g.arc(112,74,5,0,Math.PI*2); g.fill(); }
 };
+/* Packplaetze am Foerderband, rechts das gelbe Portal ueber den Paletten */
+function upPackLinie(g,W,H,h,n){
+  h.grund('#1b2540','#0c1222'); h.boden(120);
+  /* Band mit Beinen */
+  g.fillStyle='#2a2e36'; g.fillRect(6,96,150,7); g.fillStyle='#80868f'; for(let x=12;x<156;x+=28) g.fillRect(x,103,4,19);
+  for(let x=10;x<150;x+=9){ g.fillStyle='rgba(255,255,255,.08)'; g.fillRect(x,96,4,2); }
+  /* Packtische mit Kartons und Regal */
+  const bx=n===3?[8,52,96]:[20,80];
+  bx.forEach((x,i)=>{ g.fillStyle='#2a5a9e'; g.fillRect(x+30,52,3,44); g.fillRect(x+44,52,3,44);
+    for(const y of [60,72,84]){ g.fillStyle='#b9bec6'; g.fillRect(x+30,y,17,2); g.fillStyle='#c49a62'; g.fillRect(x+32,y-4,13,4); }
+    g.fillStyle='#aeb5c0'; g.fillRect(x,84,30,5); g.fillStyle='#4a515c'; g.fillRect(x+2,89,3,10); g.fillRect(x+25,89,3,10);
+    h.karton(x+6,70,16,14,5); });
+  /* Pakete auf dem Band */
+  h.karton(100+(n===3?30:0),84,14,12,4); h.karton(124+(n===3?16:0),86,12,10,4);
+  /* Portal, Greifer und Paletten */
+  const px=n===3?150:146, pw=W-px-8;
+  g.fillStyle='#e7a91c'; g.fillRect(px,30,5,92); g.fillRect(px+pw-5,30,5,92); g.fillRect(px-8,28,pw+8,6);
+  g.fillStyle='#2a2e36'; g.fillRect(px+pw*0.45,34,10,8); g.fillStyle='#b9bec6'; g.fillRect(px+pw*0.45+3,42,4,20); g.fillStyle='#2a2e36'; g.fillRect(px+pw*0.45-4,62,18,4);
+  h.karton(px+pw*0.45-2,66,14,11,4);
+  const pal=n===3?3:2;
+  for(let k=0;k<pal;k++){ const x=px+6+k*(pw-12)/pal, w=(pw-12)/pal-4;
+    g.fillStyle='#c49a62'; g.fillRect(x,116,w,5); g.fillStyle='#a9814e'; g.fillRect(x+2,121,3,3); g.fillRect(x+w-5,121,3,3);
+    for(let j=0;j<(k%2?3:2);j++) h.karton(x+1,104-j*11,w-2,11,3); }
+  h.schild(n===3?'VERSANDSTRASSE':'2 PACKPLÄTZE',W/2-14,20,'#6cf2a8');
+}
 function upPic(id){
   if(_picCache[id]) return _picCache[id];
   const c=document.createElement('canvas'); c.width=224; c.height=152;
@@ -970,6 +998,8 @@ function updateOnline(){
   const li=document.getElementById('onListe'); if(li){ const h=onlineListe(); if(li.dataset.h!==h){ li.innerHTML=h; li.dataset.h=h; } }
   const w=document.getElementById('onWarn');
   if(w) w.textContent=z.offen>8?`${z.offen} offene Bestellungen - über acht kostet dich das heute Abend Ruf.`:'';
+  const vw=document.getElementById('onVm'); if(vw){ const t=vmWarnung(); if(vw.textContent!==t) vw.textContent=t; }
+  const vs=document.getElementById('onVmStand'); if(vs){ const t=vmZeile(); if(vs.dataset.h!==t){ vs.innerHTML=t; vs.dataset.h=t; } }
 }
 function renderOnline(){
   const st=onlineStufe(), z=onlineZahlen();
@@ -996,6 +1026,15 @@ function renderOnline(){
       `</div>`;
     return h;
   }
+  /* Versandkosten und Freigrenze stellt der Spieler ein (05.10.) */
+  { const c=vsCfg(), nf=vsNachfrage();
+    h+=`<div class="row"><div class="rm"><b>Versandkosten</b><small>Was der Kunde für den Versand zahlt und ab welchem Bestellwert es nichts kostet. Hohe Versandkosten schrecken ab, eine niedrige Freigrenze lockt mehr Bestellungen – und mancher legt noch etwas dazu, um sie zu erreichen. Das Porto an DDL zahlst du für jedes Paket: klein ${eur(VS_PORTO[1])}, groß ${eur(VS_PORTO[3])}, riesig ${eur(VS_PORTO[6])}.</small>`+
+      `<small class="${nf<0.8?'warn':'ok'}">Nachfrage ${Math.round(nf*100)} % · rund ${z.proTag} Bestellungen an einem vollen Verkaufstag</small></div></div>`;
+    h+=`<div class="row"><div class="rm"><b>Versand je Bestellung</b><small>0 bis 12,90 €</small></div><div class="steps"><button data-a="vsk" data-d="-0.5">−</button><b style="min-width:64px;text-align:center">${eur(c.kosten)}</b><button data-a="vsk" data-d="0.5">+</button></div></div>`;
+    h+=`<div class="row"><div class="rm"><b>Versandkostenfrei ab</b><small>Bestellwert 15 bis 200 € – oder nie</small></div><div class="steps"><button data-a="vsf" data-d="-5"${c.frei?'':' disabled'}>−</button><b style="min-width:64px;text-align:center">${c.frei?eur(c.frei):'nie'}</b><button data-a="vsf" data-d="5"${c.frei?'':' disabled'}>+</button><button data-a="vsf" data-d="aus">${c.frei?'nie frei':'Grenze an'}</button></div></div>`; }
+  /* Packmaterial (11d): fehlt der Karton, bleibt die Bestellung liegen */
+  h+=`<div class="row"><div class="rm"><b>Packmaterial</b><small id="onVmStand">${vmZeile()}</small><small class="warn" id="onVm">${vmWarnung()}</small></div>`+
+    `<div class="steps"><button data-a="vmtab">nachkaufen</button></div></div>`;
   /* Gepackt wird am Packtisch, nicht per Knopf: die Ware muss erst
      aus dem Lager oder dem Laden in den Karton */
   h+=`<div class="row"><div class="rm"><b>Offene Bestellungen</b>`+
@@ -1003,15 +1042,15 @@ function renderOnline(){
       `<small class="warn" id="onWarn">${z.offen>8?`${z.offen} offene Bestellungen - über acht kostet dich das heute Abend Ruf.`:''}</small></div>`+
     `<div class="mkcol"><small>offen</small><b style="font-family:var(--display);font-size:24px" id="onOffen">${z.offen}</b></div></div>`;
   h+=`<div class="row"><div class="rm onListe" id="onListe">${onlineListe()}</div></div>`;
-  h+=`<div class="row"><div class="rm"><b>Pakete auf der Ablage</b>`+
-      `<small>Sie stapeln sich neben der Rollenbahn. Ist die Ablage voll, fährt DDL zwischendurch vor, am Abend wird ohnehin alles abgeholt.</small></div>`+
-    `<div class="mkcol"><small>Ablage</small><b style="font-family:var(--display);font-size:20px" id="onPak">${z.pak}</b></div></div>`;
+  h+=`<div class="row"><div class="rm"><b>Pakete zur Abholung</b>`+
+      `<small>Das Band bringt sie zur Palettierstation, der Portalgreifer stapelt sie auf die Paletten. Sind alle voll, fährt DDL zwischendurch vor, am Abend wird ohnehin alles abgeholt.</small></div>`+
+    `<div class="mkcol"><small>Paletten</small><b style="font-family:var(--display);font-size:20px" id="onPak">${z.pak}</b></div></div>`;
   h+=`<div class="row"><div class="rm"><b>Versand heute</b>`+
       `<small>Was der Onlineshop heute schon eingebracht hat. Der Betrag steckt bereits im Tagesumsatz.</small></div>`+
     `<div class="mkcol"><small>Umsatz</small><b style="font-family:var(--display);font-size:20px" id="onHeute">${eur(z.heute)}</b></div></div>`;
   const pk=staff&&staff.packer;
   h+=`<div class="row${pk?'':' locked'}"><div class="rm"><b>Versandmitarbeiter</b>`+
-      `<small>${pk?'Holt die Ware mit dem Kommissionierwagen und packt selbstständig.':'Ohne ihn packst du selbst am Packtisch (E) - einstellen kannst du ihn im Handy unter Team.'}</small>`+
+      `<small>${pk?'Holt die Ware mit dem Kommissionierwagen und packt selbstständig.':'Ohne ihn packst du selbst am Packtisch (E) - einstellen kannst du ihn im Handy unter Team.'}${packStufe()>1?` Packplätze: ${packStufe()}, Versandmitarbeiter: ${VS_PACKER.filter(id=>staff[id]).length}.`:''}</small>`+
       `<small class="${pk?'ok':''}" id="onStatus">${pk?z.status:'nicht eingestellt'}</small></div></div>`;
   return h;
 }
@@ -1085,7 +1124,8 @@ function lapZeichnen(body){
        Einrichtung, Ware beim Fachhandel (Standard, einzelne Kartons),
        Ware beim Grosshandel (Zehner/Zwanziger mit Rabatt, ab Level 8
        mit Lager), Restposten (ab Level 14, wechselndes Angebot). */
-    if(['regal','ware','gross','rest'].indexOf(lsup)<0) lsup='ware';
+    if(['regal','ware','gross','rest','vm'].indexOf(lsup)<0) lsup='ware';
+    if(lsup==='vm'&&!zoneOffen('packstation')) lsup='ware';
     const rest=supplierOf('ratzke'), restOffen=supOffen(rest), gh=SUPPLIERS[1], gross=grossOffen();
     if(lsup==='rest'&&!restOffen) lsup='ware';
     if(lsup==='gross'&&!gross) lsup='ware';
@@ -1097,7 +1137,25 @@ function lapZeichnen(body){
     const knoepfe=`<div class="row" style="padding-top:6px"><div class="steps" style="justify-content:flex-start">`+
       knopf('regal','Regale &amp; Einrichtung',true)+knopf('ware','Ware · Fachhandel',true)+
       knopf('gross',gross?'Ware · Großhandel':S.level<gh.lvl?`Großhandel · Lvl ${gh.lvl}`:'Großhandel · eigenes Lager',gross)+
-      knopf('rest',restOffen?`Restposten${nRest?` (${nRest})`:''}`:`Restposten · Lvl ${rest.lvl}`,restOffen)+`</div></div>`;
+      knopf('rest',restOffen?`Restposten${nRest?` (${nRest})`:''}`:`Restposten · Lvl ${rest.lvl}`,restOffen)+
+      knopf('vm',zoneOffen('packstation')?'Versandmaterial':'Versandmaterial · Packstation',zoneOffen('packstation'))+`</div></div>`;
+    /* Versandmaterial (05.10.): Kartons, Folie, Klebeband fuer die
+       Packmaterial-Regale - Kauf sofort, kommt mit dem LKW */
+    if(lsup==='vm'){
+      h=`<div class="row"><div class="rm"><b>Versandmaterial</b><small>Kartons in drei Größen, Luftpolsterfolie und Klebeband für die Packmaterial-Regale an der Packstation. Ohne passenden Karton wird nicht gepackt. Kauf sofort, ohne Warenkorb; es kommt mit dem LKW an die Rampe, die Einräumer bringen es ins Regal (Aufgabe „Versandmaterial einräumen“) – oder du trägst es selbst hin.</small>`+
+        `<small>Im Regal: ${vmZeile()}</small></div>`+
+        `<div class="steps"><button data-a="vmfill">Alles auffüllen</button></div></div>`+knoepfe;
+      h+=`<div class="karten">`+VM_IDS.map(id=>{ const v=VM[id], n=vmGesamt(id), k=vmKapGesamt(id), u=vmUnterwegs(id), frei=vmBestellbar(id);
+        return `<div class="karte"><img class="kbild" src="${vmPic(id)}" alt=""><b>${v.name}</b><small>${v.einheit}: ${v.text}</small>`+
+          `<small class="${n/k<0.15?'no':n/k<0.35?'warn':'ok'}">Im Regal ${n} von ${k}${u?` · ${u} ${v.einheit==='Rolle'?'Rolle(n)':v.einheit==='Bündel'?'Bündel':'Karton(s)'} unterwegs`:''}</small>`+
+          `<div class="kpreis">${eur(v.preis)}</div><div class="steps">`+
+          `<button data-a="vmbuy" data-t="${id}" data-n="1"${verfuegbar()<v.preis?' disabled':''}>+ 1 ${v.einheit}</button>`+
+          (frei>1?`<button data-a="vmbuy" data-t="${id}" data-n="${frei}"${verfuegbar()<v.preis*frei?' disabled':''}>auffüllen · ${frei}× ${eur(r2(v.preis*frei))}</button>`:'')+
+          `</div></div>`; }).join('')+`</div>`;
+      body.innerHTML=h;
+      if(korbOpen) renderKorb();
+      return;
+    }
     if(lsup==='regal'){
       h=`<div class="row"><div class="rm"><b>Regale &amp; Einrichtung</b><small>Regale, Kühlschränke, Kassen und Technik für den Laden. Nichts davon muss man freikaufen – manches gibt es erst ab einem bestimmten Level.</small>`+
         `<small>Regale, Kühlschränke und Kassen kommen als Paket mit dem LKW – ${zoneOffen('lager')?'an die Rampe':'ohne Lager vor die Ladentür'}. Paket dorthin tragen, wo es stehen soll, und mit F (am Handy „Auspacken“) auspacken – dann steht es vor dir und du stellst es mit E ab. Mit „Ablegen“ bleibt es ein Paket und lässt sich lagern. Technik wie Kameras oder Heizstrahler wird sofort eingebaut.</small></div></div>`+knoepfe;
@@ -1393,6 +1451,14 @@ function lapKlick(e,imHandy){
   else if(a==='lsuchepick'){ sucheNimm(b.closest('#lbody,#hApp')||$('lbody'),t); return; }
   else if(a==='lsuchex'){ lsuche=''; }
   else if(a==='rbuy') orderRegal(t);
+  else if(a==='vmbuy') vmBestellen(t,+b.dataset.n||1);
+  else if(a==='vmfill') vmAuffuellen();
+  else if(a==='vsk'){ const c=vsCfg(); c.kosten=clamp(r2(c.kosten+parseFloat(b.dataset.d)),0,12.9); save(); }
+  else if(a==='vsf'){ const c=vsCfg();
+    if(b.dataset.d==='aus') c.frei=c.frei?0:VS_CFG_STD.frei;
+    else c.frei=c.frei?clamp(c.frei+parseFloat(b.dataset.d),15,200):VS_CFG_STD.frei;
+    save(); }
+  else if(a==='vmtab'){ if(imHandy){ toast('Versandmaterial bestellst du am Laptop im Büro (Bestellen › Versandmaterial).'); return; } ltab='order'; lsup='vm'; }
   else if(a==='pack') cartAddPack(t);
   else if(a==='rkauf') buyAngebot(+t);
   else if(a==='p'){ S.prices[t]=Math.max(0.1,r2(S.prices[t]+parseFloat(b.dataset.d))); allLevels().forEach(l=>{ if(l.type===t) updateLabel(l); }); }

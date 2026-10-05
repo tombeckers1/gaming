@@ -313,7 +313,7 @@ function updateTarget(){
   if(lapHit2&&lapHit2.parent&&lapHit2.parent.visible) list.push(lapHit2);
   if(pultHit) list.push(pultHit);
   if(gravHit) list.push(gravHit);
-  if(packHit&&zoneOffen('packstation')) list.push(packHit);
+  if(packHit&&zoneOffen('packstation')&&nahDran(packTisch.position,12)) list.push(...vsHits());
   if(tfHit&&tfHit.visible) list.push(tfHit);
   if(truck&&truck.state==='docked') truck.boxes.forEach(m=>list.push(m));
   list.push(...windowHits);
@@ -324,6 +324,7 @@ function updateTarget(){
 function promptFor(t){
   if(!t) return null; const c=S.carrying, reg=regCustomer();
   if(pdaOn&&!grabbed){ const pt=pdaTargetType(); if(pt) return {t:`Preisgerät: ${P[pt].short} · ${eur(S.prices[pt])}`,a:true}; }
+  if(c&&c.vm&&['level','rslot','box','station','gravur'].indexOf(t.kind)>=0) return {t:'Versandmaterial gehört ins Packmaterial-Regal an der Packstation',a:false};
   switch(t.kind){
     case 'placing': { const frei=spotFree(grabbed,grabbed.g.position.x,grabbed.g.position.z,grabRy), pk=!!(regalIdVon(grabbed)||grabbed.kind==='sb2');
       return {t:(frei?`Absetzen: ${grabbed.name}`:'Hier ist kein Platz')+(COARSE?'':` · R drehen · ${pk?'F einpacken':'Q zurück'}`),a:frei}; }
@@ -359,12 +360,14 @@ function promptFor(t){
       if(!zoneOffen('packstation')) return {t:'Packstation — im Laptop unter Ausbau freischalten',a:false};
       if(!S.up.onlineshop) return {t:'Onlineshop muss noch freigeschaltet werden',a:false};
       vsAbgleich();
-      const o=S.offen|0;
-      if(o<=0) return {t:`Packstation: keine offenen Bestellungen · ${S.pakete|0} Pakete auf der Ablage`,a:false};
-      if(!vsTischFrei()) return {t:'Am Packtisch wird gerade verpackt',a:false};
-      const b=vsSpielerBestellung();
-      if(!b) return {t:(S.bestellungen||[]).some(x=>x.st==='offen')?`${o} Bestellung${o===1?'':'en'} offen · die Ware fehlt im Lager und im Laden`:'Alle offenen Bestellungen sind beim Versandmitarbeiter',a:false};
+      const o=S.offen|0, pi=vsPlatzAus(t.ref);
+      if(o<=0) return {t:`Packstation: keine offenen Bestellungen · ${S.pakete|0} Pakete auf den Paletten`,a:false};
+      if(!vsTischFrei(pi)) return {t:'Am Packtisch wird gerade verpackt',a:false};
+      const b=vsSpielerBestellung(pi);
+      if(!b){ const offen=(S.bestellungen||[]).some(x=>x.st==='offen');
+        return {t:!offen?'Alle offenen Bestellungen sind beim Versandmitarbeiter':vsSpielerBestellung()?vsWarumNicht(pi):`${o} Bestellung${o===1?'':'en'} offen · die Ware fehlt im Lager und im Laden`,a:false}; }
       return {t:`Paket packen #${b.id} (${VS_GR[b.gr].name}): ${vsText(b)} · +${eur(b.wert)}`,a:true}; }
+    case 'vmregal': return vmPrompt(t.ref);
     case 'station': { const st=t.ref, nm=STATION_POS[st.id].name;
       if(c){ const want=stationOf(c.type);
         if(!want) return {t:`${nm}: damit kann man nichts zünden`,a:false};
@@ -381,6 +384,7 @@ function promptFor(t){
       return gravBlanks>0?{t:'Eigene Rakete beschriften',a:true}:{t:'Automat leer: Blanko nachfüllen',a:false}; }
     case 'tbox': {
       const it=t.ref, n=truckLeft();
+      if(it.vm) return c?{t:`Noch ${n} Karton${n>1?'e':''} im Laderaum`,a:false}:{t:`Aufheben: ${VM[it.vm].name} (${VM[it.vm].einheit})`,a:true};
       const pk=it.regal||it.einbau;
       if(c&&karreAn()&&!c.regal&&!c.einbau&&!pk) return karreVoll()?{t:'Die Karre ist voll',a:false}:{t:`Auf die Karre: ${P[it.type].name} (${karreLast()}/${KARREN[karreArt()].cap})`,a:true};
       if(c) return {t:`Noch ${n} Karton${n>1?'e':''} im Laderaum`,a:false};
@@ -399,6 +403,7 @@ function doAction(){
   else if(k==='movable') grab(r);
   else if(k==='paket') paketAufheben(r);
   else if(S.kisteHand&&!S.carrying&&(k==='box'||k==='rslot'||k==='paket'||k==='tbox')){ toast(`Erst die leere Kiste wegstellen (${COARSE?'Knopf „Kiste“':'X'}).`,'bad'); }
+  else if(S.carrying&&S.carrying.vm&&(k==='level'||k==='rslot'||k==='box'||k==='station'||k==='gravur')){ toast('Versandmaterial gehört ins Packmaterial-Regal an der Packstation.','bad'); }
   else if(S.carrying&&(S.carrying.regal||S.carrying.einbau)&&(k==='level'||k==='rslot'||k==='box')){ toast('Ein Paket stellt man auf den Boden: mit „Ablegen“ abstellen oder am Stellplatz auspacken.','bad'); }
   else if(k==='box'){ if(S.carrying&&!karreNimmt()){ toast(karreVoll()?'Die Karre ist voll. Erst etwas abladen.':'Du trägst schon einen Karton. Erst abstellen.','bad'); return; } pickUp(r); }
   /* Kiste: aus dem Fach nehmen, sonst wie gewohnt einraeumen */
@@ -415,7 +420,8 @@ function doAction(){
   else if(k==='sbterm'){ if(r.busy&&r.busy.state==='sbHilfe') sbGeholfen(r,'spieler'); }
   else if(k==='card'){ if(reg&&reg.state==='pay'){ if(reg.method==='card') reg.finishCard(); else toast('Der Kunde zahlt bar. Klick die Kasse an.'); } }
   else if(k==='pos'){ if(reg&&reg.state==='pay'){ if(reg.method==='cash') openCash(reg); else reg.finishCard(); } }
-  else if(k==='pack') vsSpielerPacken();
+  else if(k==='pack') vsSpielerPacken(r);
+  else if(k==='vmregal'){ if(S.carrying&&S.carrying.vm) vmSpielerEinraeumen(r); }
   else if(k==='laptop') openLaptop();
   else if(k==='laptop2') openLaptop('order');
   else if(k==='station'){ if(S.carrying) placeOnStation(r); }

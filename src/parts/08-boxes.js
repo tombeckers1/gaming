@@ -23,7 +23,7 @@ let carryGrav=null;
 let carryRegal=null;
 function updateCarry(){
   const c=S&&S.carrying, uniq=!!(c&&c.type==='gravur'), reg=!!(c&&(c.regal||c.einbau)), leer=!c&&!!(S&&S.kisteHand);
-  carryMesh.visible=(!!c||leer)&&!uniq&&!reg&&!karreAn(); if(leer||(c&&c.kiste)) carryMesh.material=kisteMat(); else if(c&&!uniq&&!reg) carryMesh.material=kartonMat[c.type];
+  carryMesh.visible=(!!c||leer)&&!uniq&&!reg&&!karreAn(); if(leer||(c&&c.kiste)) carryMesh.material=kisteMat(); else if(c&&c.vm) carryMesh.material=vmTraegerMat(c.vm); else if(c&&!uniq&&!reg) carryMesh.material=kartonMat[c.type];
   if(leer){ $('carry').innerHTML=`Leere Kiste · Aktion auf ein Fach nimmt die Ware heraus`+(COARSE?'':`<span style="color:var(--muted)">, <kbd>X</kbd> wegstellen</span>`); updateKarre(); return; }
   if(carryGrav){ camera.remove(carryGrav); disposeEngraved(carryGrav); carryGrav=null; }
   if(uniq){ carryGrav=makeEngraved(c.text||''); carryGrav.position.set(0.3,-0.3,-0.65); carryGrav.rotation.set(0.1,-0.5,0.35); camera.add(carryGrav); }
@@ -44,7 +44,8 @@ function updateCarry(){
   }
   const q=c?qualityLabel(c.q||1):null;
   $('carry').innerHTML=c?(
-      reg?`Paket: ${paketName(c)} · ${COARSE?'„Auspacken“':'<kbd>F</kbd>'} auspacken`
+      c.vm?`${VM[c.vm].name} · ins Packmaterial-Regal an der Packstation (${COARSE?'Aktion':'<kbd>E</kbd>'} am Regal)`
+    : reg?`Paket: ${paketName(c)} · ${COARSE?'„Auspacken“':'<kbd>F</kbd>'} auspacken`
     : uniq?`Gravur-Rakete: „${c.text}"`
     : c.kiste?`Kiste ${c.raus?'ausräumen':'einräumen'}: ${P[c.type].short} ${c.count}/${kisteKap(c.type)}${COARSE?'':` <span style="color:var(--muted)">· <kbd>X</kbd> ${c.raus?'einräumen':'ausräumen'}</span>`}`
     : `${P[c.type].name}: noch ${c.count} im Karton${q&&q[0]?` <span class="${q[0]}">(${q[1]})</span>`:''}`)
@@ -60,12 +61,13 @@ function dropBox(){
   if(!c&&S&&S.kisteHand){ kisteTaste(); return; }
   if(!c) return;
   const p={x:pl.x-Math.sin(yaw)*0.9,z:pl.z-Math.cos(yaw)*0.9}; collide(p,0.36);
+  if(c.vm){ vmAbstellen(); return; }
   if(c.regal||c.einbau){ paketAblegen(c,p); return; }
   if(c.type==='gravur'){ S.carrying=null; updateCarry(); toast('Die Gravur-Rakete gehört auf die Abschussrampe.'); return; }
   spawnFloorBox(c.type,c.count,{x:p.x,y:0.2,z:p.z,ry:yaw},c.q,c.kiste);
   S.carrying=null; updateCarry(); sfx.pop();
 }
-function canStock(lv){ const c=S.carrying; return !!c&&!(c.kiste&&c.raus)&&canShelf(c.type)&&(!lv.type||lv.type===c.type)&&lv.count<capOf(lv,c.type)&&!pools[c.type].full(); }
+function canStock(lv){ const c=S.carrying; return !!c&&!c.vm&&!(c.kiste&&c.raus)&&canShelf(c.type)&&(!lv.type||lv.type===c.type)&&lv.count<capOf(lv,c.type)&&!pools[c.type].full(); }
 function stockOne(lv,quiet){
   const c=S.carrying; if(!c) return;
   if(!canShelf(c.type)){ if(!quiet) toast(`${P[c.type].short} gehört nicht ins Regal.`,'bad'); return; }

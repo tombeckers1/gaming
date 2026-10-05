@@ -57,7 +57,7 @@ function save(){
   if(typeof gpAn!=='undefined'&&gpAn) return;
   try{
     const d={v:3,money:S.money,rep:S.rep,level:S.level,xp:S.xp,season:S.season,day:S.day,loan:S.loan,prices:S.prices,up:S.up,staff:S.staff,prio:S.prio||{},einr:S.einr||{},wage:S.wage||{},pause:S.pause||{},ev:S.ev||null,goal:S.goal||null,mkt:r2(S.mkt||1),comp:r2(S.comp||1),lic:S.lic||['start'],stat:S.stat||{},erf:S.erf||{},gesehen:S.gesehen||[],eigene:S.eigene||[],gutschrift:r2(S.gutschrift||0),fwZaehler:S.fwZaehler||{},mi:S.mi||{},me:S.me||{},reg:S.reg||{},mh:S.mh||{},schock:S.schock||{},news:S.news||[],infl:S.infl||1,
-      wall:S.wall,floor:S.floor,schildBg:S.schildBg||'auto',schildFg:S.schildFg||'weiss',paint:S.paint,test:S.test,stamm:S.stamm,blanks:gravBlanks,grav:gravG?mpos(gravG):null,grime:r2(S.grime||0),tut:S.tut,tutAus:!!S.tutAus,karre:S.karre||null,seasonRevenue:S.seasonRevenue,carrying:S.carrying,kisten:S.kisten|0,kisteHand:!!S.kisteHand,cart:S.cart||[],rest:S.rest||null,ekVor:S.ekVor||{},offen:S.offen|0,pakete:S.pakete|0,bestellungen:(S.bestellungen||[]).map(b=>({id:b.id,pos:b.pos.map(l=>({t:l.t,n:l.n,g:l.g})),gr:b.gr,wert:b.wert,st:b.st,tag:b.tag})),paketGr:(S.paketGr||[]).slice(),bestNr:S.bestNr|0,shopName:S.shopName||SHOP_DEFAULT,slogan:S.slogan||'',
+      wall:S.wall,floor:S.floor,schildBg:S.schildBg||'auto',schildFg:S.schildFg||'weiss',paint:S.paint,test:S.test,stamm:S.stamm,blanks:gravBlanks,grav:gravG?mpos(gravG):null,grime:r2(S.grime||0),tut:S.tut,tutAus:!!S.tutAus,karre:S.karre||null,seasonRevenue:S.seasonRevenue,carrying:S.carrying,kisten:S.kisten|0,kisteHand:!!S.kisteHand,cart:S.cart||[],rest:S.rest||null,ekVor:S.ekVor||{},offen:S.offen|0,pakete:S.pakete|0,bestellungen:(S.bestellungen||[]).map(b=>({id:b.id,pos:b.pos.map(l=>({t:l.t,n:l.n,g:l.g})),gr:b.gr,wert:b.wert,versand:b.versand||0,st:b.st,tag:b.tag})),vm:S.vm||null,versandCfg:S.versandCfg||null,paketGr:(S.paketGr||[]).slice(),bestNr:S.bestNr|0,shopName:S.shopName||SHOP_DEFAULT,slogan:S.slogan||'',
       deko:dekos.map(d2=>Object.assign({id:d2.id},mpos(d2.g))),
       ck:mpos(ckG),desk:mpos(deskG),sb2:mpos(sb2G),pack:mpos(packTisch),
       shelves:shelves.map(s=>Object.assign(mpos(s.g),{kind:s.kind,schild:s.schild||undefined,levels:s.levels.map(l=>({type:l.type,count:l.count,q:l.q||1}))})),
@@ -71,9 +71,15 @@ function save(){
       einbauUnterwegs:pending.filter(p=>p.einbau).map(p=>p.einbau)
         .concat((typeof truck!=='undefined'&&truck?truck.cargo:[]).filter(c=>c.einbau).map(c=>c.einbau))
         .concat(S.carrying&&S.carrying.einbau?[S.carrying.einbau]:[]),
+      /* Versandmaterial unterwegs, im LKW oder in der Hand kommt nach dem
+         Laden mit der naechsten Lieferung (wie die Regale) */
+      vmUnterwegs:pending.filter(p=>p.vm).map(p=>p.vm)
+        .concat((typeof truck!=='undefined'&&truck?truck.cargo:[]).filter(c=>c.vm).map(c=>c.vm))
+        .concat(S.carrying&&S.carrying.vm?[S.carrying.vm]:[])
+        .concat(Object.values(staff).filter(w=>w&&w.carry&&w.carry.vm).map(w=>w.carry.vm)),
       paketeBoden:einbauPakete.map(b=>Object.assign({regal:b.regal,einbau:b.einbau},mpos(b.mesh))),
       einbauBestellt:S.einbauBestellt||{},
-      boxes:floorBoxes.filter(b=>!b.test).map(b=>({type:b.type,count:b.count,q:b.q||1,kiste:b.kiste?1:0,x:+b.mesh.position.x.toFixed(2),y:+b.mesh.position.y.toFixed(2),z:+b.mesh.position.z.toFixed(2),ry:+b.mesh.rotation.y.toFixed(2)})).concat(pending.filter(p=>!p.regal).map(p=>({type:p.type,count:P[p.type].box,q:p.q||1}))).concat((typeof truck!=='undefined'&&truck?truck.cargo:[]).filter(c=>!c.regal).map(c=>({type:c.type,count:P[c.type].box,q:c.q||1})))};
+      boxes:floorBoxes.filter(b=>!b.test).map(b=>({type:b.type,count:b.count,q:b.q||1,kiste:b.kiste?1:0,x:+b.mesh.position.x.toFixed(2),y:+b.mesh.position.y.toFixed(2),z:+b.mesh.position.z.toFixed(2),ry:+b.mesh.rotation.y.toFixed(2)})).concat(pending.filter(p=>p.type&&P[p.type]).map(p=>({type:p.type,count:P[p.type].box,q:p.q||1}))).concat((typeof truck!=='undefined'&&truck?truck.cargo:[]).filter(c=>c.type&&P[c.type]).map(c=>({type:c.type,count:P[c.type].box,q:c.q||1})))};
     localStorage.setItem(KEY,JSON.stringify(d));
   }catch(e){}
 }
@@ -146,7 +152,7 @@ function startGame(fresh){
   if(d&&d.sb2&&sb2Mov) placeMovable(sb2Mov,d.sb2.x,d.sb2.z,d.sb2.ry);
   /* Die Versandecke steht, wo man sie hingeschoben hat. Ein neues
      Spiel stellt sie an ihren Platz hinter dem Rolltor zurueck. */
-  if(packMov){ const q=d&&d.pack?d.pack:PACK_HOME; placeMovable(packMov,q.x,q.z,q.ry); }
+  if(packMov){ const q=d&&d.pack?d.pack:PACK_HOME; placeMovable(packMov,q.x,q.z,q.ry); packPlatzPruefen(false); }
   (S.shelves||F.shelves).slice(0,SLOTS.length).forEach((sd,i)=>createShelf(i,sd));
   (S.racks||F.racks).slice(0,RACKS.length).forEach((rd,i)=>createRack(i,rd));
 
@@ -156,6 +162,7 @@ function startGame(fresh){
      bringen - sie kommen mit der naechsten Lieferung. */
   (S.regale||[]).forEach(id=>{ if(regalOf(id)) pending.push({regal:id,t:lieferSek(),sup:'fachhandel'}); });
   (S.einbauUnterwegs||[]).forEach(id=>{ if(EINBAU[id]&&!S.up[id]) pending.push({einbau:id,t:lieferSek(),sup:'fachhandel'}); });
+  (Array.isArray(S.vmUnterwegs)?S.vmUnterwegs:[]).slice(0,60).forEach(id=>{ if(VM[id]) pending.push({vm:id,t:lieferSek(),sup:'fachhandel'}); });
   (S.paketeBoden||[]).forEach(b=>{ if((b.regal&&regalOf(b.regal))||(b.einbau&&EINBAU[b.einbau]&&!S.up[b.einbau])) spawnPaket(b,{x:b.x,z:b.z,ry:b.ry}); });
   if(S.up.gravur){ buildGravur(d&&d.grav?d.grav:null); gravBlanks=Math.max(0,Math.min(GRAV_MAX,(d&&d.blanks)|0)); drawGrav(); }
   STAFF.forEach(s=>{ if(S.staff[s.id]&&!inPause(s.id)) hireStaff(s.id); });

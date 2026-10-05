@@ -55,7 +55,7 @@ function repayLoan(v){
 /* =========================================================
    Tagesablauf
    ========================================================= */
-function newDayStats(){ DS={revenue:0,customers:0,sold:0,f2:0,missed:0,angry:0,goods:0,upgrades:0,interest:0,changeLoss:0,stolen:0,caught:0,burned:0,orders:0,gravur:0,versand:0,sb:0,praemien:0,rep0:S.rep,xpGained:0}; }
+function newDayStats(){ DS={revenue:0,customers:0,sold:0,f2:0,missed:0,angry:0,goods:0,upgrades:0,interest:0,changeLoss:0,stolen:0,caught:0,burned:0,orders:0,gravur:0,versand:0,versandGeb:0,porto:0,vm:0,sb:0,praemien:0,rep0:S.rep,xpGained:0}; }
 /* Marktlage: die Preise pro Produkt bewegen sich in 02b-markt.js,
    hier kommt nur noch die Konkurrenz dazu. */
 function rollMarket(){
@@ -201,7 +201,7 @@ function endDay(){
     if(S.loan.remaining<=0.01){ S.loan=null; toast('Kredit vollständig abbezahlt.','money'); } }
   DS.interest=pay;
   S.money=r2(S.money-wages-fix-pay-dispo+extra);
-  const out=r2(DS.goods+DS.upgrades+pay+dispo+DS.changeLoss+wages+fix+DS.burned), profit=r2(DS.revenue+extra-out), dr=S.rep-DS.rep0;
+  const out=r2(DS.goods+DS.upgrades+pay+dispo+DS.changeLoss+wages+fix+DS.burned+(DS.porto||0)+(DS.vm||0)), profit=r2(DS.revenue+extra-out), dr=S.rep-DS.rep0;
   const dayXP=60+Math.round(DS.revenue*0.05)+(DS.angry===0?40:0);
   addXP(dayXP);
   if(S.money<0){ rep(-3); toast('Konto im Minus. Das kostet Ruf.','bad'); }
@@ -210,10 +210,11 @@ function endDay(){
   if(hasDeko('automat')) rows.push(['Getränkeautomat',eur(45)]);
   if(online) rows.push(['Onlineshop',eur(online)]);
   if(DS.versand) rows.push(['Versand (Pakete)',eur(DS.versand)]);
+  if(DS.versandGeb) rows.push(['Davon Versandkosten der Kunden',eur(DS.versandGeb)]);
   if(DS.sb) rows.push(['Davon an den SB-Kassen',`${DS.sb} Kunden`]);
   if(packBereit()&&(S.offen|0)>0) rows.push(['Nicht gepackte Bestellungen',String(S.offen|0)]);
   if(S.goal) rows.push(['Wochenziel',`${S.goal.name}: ${Math.round(S.goal.have)}/${S.goal.need} ${S.goal.unit}`]);
-  rows.push({head:'Ausgaben'},['Wareneinkauf',eur(DS.goods)],['Ausbau und Deko',eur(DS.upgrades)],['Löhne',eur(wages)],['Fixkosten',eur(fix)],['Kreditrate',eur(pay)],['Dispozinsen',eur(dispo)],['Zu viel Rückgeld',eur(DS.changeLoss)],['Selbst gezündet',eur(DS.burned)],
+  rows.push({head:'Ausgaben'},['Wareneinkauf',eur(DS.goods)],['Ausbau und Deko',eur(DS.upgrades)],['Löhne',eur(wages)],['Fixkosten',eur(fix)],['Kreditrate',eur(pay)],['Dispozinsen',eur(dispo)],['Zu viel Rückgeld',eur(DS.changeLoss)],['Selbst gezündet',eur(DS.burned)],...(DS.porto?[['Porto an DDL',eur(DS.porto)]]:[]),...(DS.vm?[['Versandmaterial',eur(DS.vm)]]:[]),
     ['Gewinn des Tages',(profit>=0?'+':'')+eur(profit),true],
     {head:'Laden'},['Kunden bedient',DS.customers],['Verkaufte Artikel',DS.sold],['Verpasst, weil Fach leer',DS.missed],['Genervt gegangen',DS.angry],['Diebstahl',eur(DS.stolen)],['Diebe gestellt',DS.caught],['Großaufträge',DS.orders||0],['Gravuren verkauft',DS.gravur||0],
     ['Ruf',(dr>=0?'+':'')+dr.toFixed(1).replace('.',',')],['Erfahrung',`+${DS.xpGained} XP`],

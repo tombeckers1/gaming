@@ -43,18 +43,20 @@ function einrZiel(lv,t){ const m=itemMatrix(lv.sh,{li:lv.li,type:t,face:lv.face}
 function einrJob(w){
   /* auch der Versandmitarbeiter: den Karton, zu dem er gerade
      mit dem Wagen faehrt, raeumt ihm keiner unter der Nase weg */
-  const andere=[staff.auffueller,staff.auffueller2,staff.packer].filter(o=>o&&o!==w);
+  const andere=[staff.auffueller,staff.auffueller2,staff.packer,staff.packer2,staff.packer3].filter(o=>o&&o!==w);
   const belegt=x=>andere.some(o=>o.src&&(o.src.box===x||o.src.slot===x));
   const res=t=>typeof reservedType==='function'&&reservedType(t);
-  const lkwDa=typeof truck!=='undefined'&&truck&&truck.state==='docked'&&truck.cargo.some(c=>!c.regal&&!c.einbau);
+  const lkwDa=typeof truck!=='undefined'&&truck&&truck.state==='docked'&&truck.cargo.some(c=>!c.regal&&!c.einbau&&!c.vm);
   for(const a of einrAktiv(w.id)){
     if(a==='regal'){
       for(const b of floorBoxes){ if(!b.test&&!belegt(b)&&!res(b.type)&&emptyLevel(b.type)) return {box:b,kind:'floor'}; }
       for(const r of racks) for(const s of r.slots){ if(s.box&&!belegt(s)&&!res(s.box.type)&&emptyLevel(s.box.type)) return {slot:s,kind:'rack'}; }
     } else if(a==='direkt'&&lkwDa){
-      const c=truck.cargo.find(c=>!c.regal&&!c.einbau&&emptyLevel(c.type));
+      const c=truck.cargo.find(c=>!c.regal&&!c.einbau&&!c.vm&&emptyLevel(c.type));
       if(c) return {kind:'truck',direkt:true,typ:c.type};
     } else if(a==='lager'&&lkwDa) return {kind:'truck'};
+    /* Versandmaterial ins Packmaterial-Regal (11d) */
+    else if(a==='vm'){ const j=vmLkwJob(w); if(j) return j; }
   }
   return null;
 }
@@ -67,7 +69,7 @@ function pullFromTruckTyp(t){
 /* Haltung und Karton jedes Bild nach animPerson */
 function einrPose(w,dt){
   if(!w.kiste){ w.kiste=einrKiste(); w.kiste.position.set(0,1.0,0.42); w.g.add(w.kiste); }
-  const k=w.kiste, u=w.g.userData, c=w.carry;
+  const k=w.kiste, u=w.g.userData, c=w.carry&&!w.carry.vm?w.carry:null;
   const zeigen=!!c&&w.state!=='store';
   k.visible=zeigen||w.state==='falten';
   if(zeigen) einrKisteTyp(k,c.type);

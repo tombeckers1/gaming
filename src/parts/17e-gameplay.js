@@ -27,7 +27,9 @@ const GP_ORTE=[
   ['Kassen',        6.0, 5.4, 1.0, -0.2],
   ['Halle Süd',    22.0,-8.0, Math.PI*0.95, -0.10],
   ['Lager',       -10.5, 1.0, Math.PI*0.62, -0.10],
-  ['Versand',     -12.0,-9.0, Math.PI*0.70, -0.15],
+  /* 05.10.: schraeg von Nordosten auf die Versandstrasse - drei Packplaetze,
+     Band und Palettierstation in einem Blick */
+  ['Versand',     -10.9,-6.3, 1.03, -0.16],
   ['Logistik',    -30.0,-16.0, Math.PI*0.62, -0.05],
   ['Testfeld',      0.3,-8.5, 0, 0.05]
 ];
@@ -145,6 +147,8 @@ function* gpAufbau(){
   let g=0, rn=0;
   for(const r of racks){ for(const sl of r.slots){ if(sl.box) continue; const t=gut[g++%gut.length]; try{ putInSlot(sl,t,P[t].box,1); }catch(e){} }
     yield [0.86+0.12*(++rn)/Math.max(1,racks.length),'Lager füllen']; }
+  /* Packmaterial-Regale voll (Erstausstattung) */
+  if(typeof vmStand==='function'){ vmStand(0); for(let i=0;i<3;i++) VM_IDS.forEach(id=>{ S.vm[i][id]=VM[id].kap; }); vmRegalZeichnen(); }
   /* Laden auf, Spieler in den Verkauf */
   gpTagAlt=S.day; gpVerlauf=[{tag:S.day,geld:S.money}]; gpGestern=null;
   if(phase==='closed'){ if(typeof ruhetag==='function'&&ruhetag()) ruhetagBeenden(); else openShop(); }
@@ -221,6 +225,10 @@ function gpBestellen(){
   let n=0;
   for(const t of ware){ if(n>=24) break; if(stockOf(t)<P[t].box*0.6){ try{ cartAdd(t,1,(supplierFor(t)||{}).id); n++; }catch(e){} } }
   if(n){ try{ S.money=Math.max(S.money,0); cartOrder(); }catch(e){ console.warn('GP Bestellung',e); } }
+  /* Versandmaterial: was unter die Haelfte faellt, wird aufgefuellt -
+     der LKW bringt es, die Einraeumer raeumen es ins Packmaterial-Regal */
+  if(typeof vmBestellbar==='function'&&zoneOffen('packstation')){ const alt=window.toast; window.toast=()=>{};
+    try{ VM_IDS.forEach(id=>{ const k=vmBestellbar(id); if(k>0&&vmGesamt(id)<vmKapGesamt(id)*0.5) vmBestellen(id,k); }); } finally { window.toast=alt; } }
 }
 function gpPanel(){
   if(gpEl) return;

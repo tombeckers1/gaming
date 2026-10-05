@@ -33,16 +33,21 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     o.sorten=new Set(L.filter(l=>l.type).map(l=>l.type)).size;
     o.lagerKartons=bb.racks.reduce((a,r)=>a+r.slots.filter(s=>s.box).length,0);
     o.phase=bb.phase; o.panel=!!document.getElementById('gameplayVf');
+    /* 05.10.: Versand in der hoechsten Stufe, Packmaterial-Regale voll */
+    o.pack=bb.packStufe(); o.packer=['packer','packer2','packer3'].filter(id=>bb.staff[id]).length;
+    o.vmVoll=[0,1,2].every(i=>bb.VM_IDS.every(id=>S.vm[i][id]>=bb.VM[id].kap));
     return o; });
   console.log('START',JSON.stringify(Object.assign({},r,{vorher:undefined})));
   pruef('KNOPF',r.knopf,'kein Knopf im Laptop > Laden');
   pruef('SCHRITTWEISE',!r.sofort&&r.bauSchritte>(HANDY?10:20),'Aufbau nicht schrittweise (haengt den Browser): '+JSON.stringify({sofort:r.sofort,schritte:r.bauSchritte}));
+  pruef('VERSAND',r.pack===3&&r.packer===3&&r.vmVoll,'Versand nicht in der hoechsten Stufe: '+JSON.stringify({stufe:r.pack,packer:r.packer,vm:r.vmVoll}));
   pruef('AUFBAU',r.an&&r.lvl>=26&&!r.offen.length&&r.lic&&r.regale>=(HANDY?15:25)&&r.voll>=r.faecher*0.9&&r.sorten>=(HANDY?35:150)&&r.lagerKartons>=30&&r.panel,'Aufbau unvollstaendig: '+JSON.stringify(r));
   /* drei Spieltage laufen lassen */
   const tage=await p.evaluate(()=>{ const bb=__bb, S=bb.S, out=[]; const d0=S.day; let n=0;
     while(S.day<d0+3&&n++<4000){ bb.run(3,0.1); if(n%30===0) out.push({tag:S.day,geld:Math.round(S.money),kunden:bb.DS?bb.DS.customers:null,phase:bb.phase}); }
-    return {out:out.slice(-12),verlauf:bb.gpVerlauf.map(v=>({t:v.tag,g:Math.round(v.geld)})),tag:S.day,d0,schritte:n,gespeichert:localStorage.getItem('boellerbude_v3')}; });
+    return {vm:{verbraucht:S.stat.vmVerbraucht||0,eingelagert:S.stat.vmEingelagert||0,pakete:S.stat.pakete||0},out:out.slice(-12),verlauf:bb.gpVerlauf.map(v=>({t:v.tag,g:Math.round(v.geld)})),tag:S.day,d0,schritte:n,gespeichert:localStorage.getItem('boellerbude_v3')}; });
   console.log('TAGE',JSON.stringify(Object.assign({},tage,{gespeichert:undefined})).slice(0,1500));
+  pruef('PACKMATERIAL',tage.vm.verbraucht>20&&tage.vm.eingelagert>0,'Packmaterial wird nicht verbraucht oder nachgefuellt: '+JSON.stringify(tage.vm));
   pruef('LAEUFT',tage.tag>=tage.d0+3,'Tage laufen nicht weiter: '+tage.tag+' (Start '+tage.d0+')');
   pruef('KEIN_SPEICHERN',tage.gespeichert===r.vorher&&!!r.vorher,'die Vorfuehrung hat den Spielstand ueberschrieben');
   /* Beenden: alter Stand zurueck */

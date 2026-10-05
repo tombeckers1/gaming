@@ -2,7 +2,7 @@
 /* =========================================================
    Personal
    ========================================================= */
-const staff={reinigung:null,auffueller:null,auffueller2:null,kassierer:null,kassierer2:null,kassierer3:null,kassierer4:null,kassierer5:null,security:null,packer:null};
+const staff={reinigung:null,auffueller:null,auffueller2:null,kassierer:null,kassierer2:null,kassierer3:null,kassierer4:null,kassierer5:null,security:null,packer:null,packer2:null,packer3:null};
 /* SB-Betreuer (Tom, 29.09.): an SB-Kassen kassiert niemand. Der Kunde
    scannt und zahlt selbst; etwa jeder dritte bis fuenfte kommt nicht
    weiter (Artikel wird nicht erkannt, Alterspruefung, Karte zickt).
@@ -47,10 +47,12 @@ function sbHeimPlatz(id){
 function sbLaneVon(id){ return -1; }
 function sbBesetzt(i){ const l=sbLanes[i]; return l&&l.helfer||null; }
 function sbKassiererPlatz(i){ return sbHelferPlatz(i); }
-/* Platz vor dem Packtisch, in Weltkoordinaten, mit Blick zum Tisch */
-function packerPlatz(){
+/* Platz vor dem Packtisch, in Weltkoordinaten, mit Blick zum Tisch.
+   Jeder Versandmitarbeiter hat seinen eigenen Packplatz (11c). */
+function packerPlatz(id){
   if(typeof packTisch==='undefined'||!packTisch) return {p:IDLE.packer,ry:-Math.PI/2};
-  return {p:localToWorld(packTisch,0,0.9),ry:packTisch.rotation.y+Math.PI};
+  const i=id==='packer3'?2:id==='packer2'?1:0;
+  return {p:vsWelt(i,VS_HEIM.x,VS_HEIM.z),ry:packTisch.rotation.y+Math.PI};
 }
 const IDLE={kassierer2:V(10.6,0,6.3),reinigung:V(-6.6,0,4.2),auffueller:V(-7.0,0,1.0),auffueller2:V(-7.0,0,-0.4),kassierer:V(0,0,0),security:V(1.4,0,4.6),packer:V(-16.3,0,3.4)};
 const PRIO={lkw:'LKW zuerst',regal:'Regale zuerst'};
@@ -99,7 +101,9 @@ function friendliness(){
    ========================================================= */
 const AUFGABEN={regal:{name:'Verkaufsregale auffüllen',kurz:'Regale',desc:'aus dem Lager in die Verkaufsregale'},
   direkt:{name:'LKW direkt ins Regal',kurz:'Direkt',desc:'vom LKW direkt ins Verkaufsregal, wo Platz ist'},
-  lager:{name:'LKW ins Lager',kurz:'Lager',desc:'Kartons vom LKW ins Lagerregal'}};
+  lager:{name:'LKW ins Lager',kurz:'Lager',desc:'Kartons vom LKW ins Lagerregal'},
+  /* Versandmaterial (05.10.): vom LKW ins Packmaterial-Regal (11d) */
+  vm:{name:'Versandmaterial einräumen',kurz:'Packmittel',desc:'Kartons, Folie und Klebeband vom LKW ins Packmaterial-Regal an der Packstation'}};
 const AUFG_IDS=Object.keys(AUFGABEN);
 function einrStd(id,alt){ return (alt||(id==='auffueller'?'lkw':'regal'))==='lkw'?['direkt','lager','regal']:['regal','direkt','lager']; }
 function einrOf(id){
@@ -120,8 +124,8 @@ function setPrio(id,v){ S.prio=S.prio||{}; S.prio[id]=v; S.einr=S.einr||{}; S.ei
 function freeRackSlot(){ for(const r of racks) for(const sl of r.slots) if(!sl.box) return sl; return null; }
 class Worker{
   constructor(id){
-    this.id=id; this.kind=id==='auffueller2'?'auffueller':SB_KASSIERER.indexOf(id)>=0?'sbkasse':id; this.g=makePerson({uniform:id});
-    const st=id==='packer'?packerPlatz().p:this.kind==='sbkasse'?sbHeimPlatz(id).p:freiePos(IDLE[id]); this.g.position.copy(id==='kassierer'?ck(-0.25,-0.85):st); scene.add(this.g);
+    this.id=id; this.kind=id==='auffueller2'?'auffueller':SB_KASSIERER.indexOf(id)>=0?'sbkasse':id.indexOf('packer')===0?'packer':id; this.g=makePerson({uniform:id});
+    const st=this.kind==='packer'?packerPlatz(id).p:this.kind==='sbkasse'?sbHeimPlatz(id).p:freiePos(IDLE[id]); this.g.position.copy(id==='kassierer'?ck(-0.25,-0.85):st); scene.add(this.g);
     this.path=[]; this.base=id==='security'?1.9:1.45; this.speed=this.base; this.state='idle'; this.t=0; this.carry=null; this.chase=null; this.moving=false; this.applyWage();
   }
   get pos(){ return this.g.position; }
@@ -144,7 +148,7 @@ class Worker{
     else if(this.kind==='packer') this.packLoop(dt);
     animPerson(this.g,this.moving,dt,this.speed);
     if(this.kind==='reinigung') wischerPersonal(this,dt);
-    if(this.kind==='auffueller') einrPose(this,dt);
+    if(this.kind==='auffueller'){ einrPose(this,dt); vmEinrZeigen(this); }
     if(this.kind==='packer') vsPose(this,dt);
   }
   cleanLoop(dt){
@@ -160,7 +164,8 @@ class Worker{
       /* Reihenfolge und an/aus stellt der Spieler je Einraeumer ein */
       const src=einrJob(this);
       this.src=src;
-      if(src&&src.kind==='truck'){ this.goTo(DOCK.stand.clone()); this.state='atTruck'; }
+      if(src&&src.kind==='vm') vmEinrStart(this,src);
+      else if(src&&src.kind==='truck'){ this.goTo(DOCK.stand.clone()); this.state='atTruck'; }
       else if(src){ const p=src.kind==='floor'?src.box.mesh.position:localToWorld(src.slot.rk.g,src.slot.x,0.8);
         this.goTo(V(p.x,0,p.z+(src.kind==='floor'?0.7:0.8))); this.state='fetch'; }
       else { const home=freiePos(IDLE[this.id]||IDLE.auffueller);
@@ -199,6 +204,7 @@ class Worker{
     else if(this.state==='toShelf'){ if(this.walk(dt)){ this.state='fill'; this.offen=0; } }
     else if(this.state==='fill') einrFill(this,dt);
     else if(this.state==='falten') einrFalten(this,dt);
+    else if(this.state.indexOf('vm')===0) vmEinrLoop(this,dt);
   }
   pickStore(){
     const sl=freeRackSlot();
@@ -254,7 +260,7 @@ class Worker{
     if(this.path.length===0){ if(Math.random()<0.5) this.goTo(V(rand(-5,5),0,rand(-4,4))); else this.goTo(IDLE.security); }
     this.walk(dt);
   }
-  remove(){ if(this.job&&this.job.helfer===this) this.job.helfer=null; einrAufraeumen(this); if(this.kind==='packer') vsAufraeumen(this); scene.remove(this.g); if(this.carry&&this.carry.count>0) spawnFloorBox(this.carry.type,this.carry.count,null,this.carry.q||1); }
+  remove(){ if(this.job&&this.job.helfer===this) this.job.helfer=null; einrAufraeumen(this); if(this.kind==='packer') vsAufraeumen(this); if(this.carry&&this.carry.vm){ vmEinlagern(this.carry.pi===undefined?-1:this.carry.pi,this.carry.vm); this.carry=null; } scene.remove(this.g); if(this.carry&&this.carry.count>0) spawnFloorBox(this.carry.type,this.carry.count,null,this.carry.q||1); }
 }
 function hireStaff(id){ if(staff[id]) return; staff[id]=new Worker(id); }
 function fireStaff(id){ if(!staff[id]) return; staff[id].remove(); staff[id]=null; }

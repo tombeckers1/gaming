@@ -198,10 +198,11 @@ function fillCargo(){
     /* Ein Regal kommt flach verpackt: ein langes schmales Paket,
        kein Karton. So sieht man im Laderaum sofort, was drin ist. */
     const pk=c.regal||c.einbau, M=pk?paketMass(c):null;
-    const m=pk
+    /* Versandmaterial (11d): Kartonbuendel, Folienrolle, Klebeband */
+    const m=c.vm?vmLadungMesh(c.vm):pk
       ? new THREE.Mesh(new THREE.BoxGeometry(M[0],M[1],M[2]),regalPaketMat())
       : new THREE.Mesh(kartonGeo,kartonMat[c.type]);
-    m.position.set(s.x,pk?M[1]/2+0.02+Math.floor(i/16)*0.42:s.y,s.z);
+    m.position.set(s.x,c.vm?m.userData.h/2+0.02+Math.floor(i/16)*0.42:pk?M[1]/2+0.02+Math.floor(i/16)*0.42:s.y,s.z);
     m.rotation.y=rand(-0.07,0.07);
     if(HIQ){ m.castShadow=true; m.receiveShadow=true; }
     m.userData={kind:'tbox',ref:c};
@@ -327,6 +328,7 @@ function regalPaketMat(){
 function takeBox(item){ statAdd('kartons',1);
 
   if(!truck||truck.state!=='docked') return;
+  if(item.vm){ vmTakeBox(item); return; }
   if(S.carrying&&!karreNimmt(!!(item.regal||item.einbau))){ toast(karreVoll()?'Die Karre ist voll. Erst abladen.':'Du hast schon etwas auf dem Arm.'); return; }
   const i=truck.cargo.indexOf(item); if(i<0) return;
   truck.cargo.splice(i,1);
@@ -345,15 +347,16 @@ function regalAusladen(c){
 }
 function pullFromTruck(){
   if(!truck||truck.state!=='docked'||!truck.cargo.length) return null;
-  while(truck.cargo.length&&(truck.cargo[0].regal||truck.cargo[0].einbau)){ regalAusladen(truck.cargo.shift()); fillCargo(); }
-  if(!truck.cargo.length) return null;
-  const c=truck.cargo.shift(); fillCargo();
+  for(let k=0;k<truck.cargo.length;k++) if(truck.cargo[k].regal||truck.cargo[k].einbau){ regalAusladen(truck.cargo.splice(k,1)[0]); k--; fillCargo(); }
+  /* Versandmaterial bleibt fuer die Aufgabe "Versandmaterial einraeumen" liegen */
+  const i=truck.cargo.findIndex(c=>!c.vm&&!c.regal&&!c.einbau); if(i<0) return null;
+  const c=truck.cargo.splice(i,1)[0]; fillCargo();
   return {type:c.type,count:P[c.type].box,q:c.q||1};
 }
 function dumpTruck(){
   if(!truck) return;
   const n=truck.cargo.length;
-  truck.cargo.forEach(c=>{ if(c.regal||c.einbau) regalAusladen(c); else spawnFloorBox(c.type,P[c.type].box,null,c.q||1); });
+  truck.cargo.forEach(c=>{ if(c.vm) vmEinlagern(-1,c.vm); else if(c.regal||c.einbau) regalAusladen(c); else spawnFloorBox(c.type,P[c.type].box,null,c.q||1); });
   truck.cargo.length=0;
   if(n) toast(`Der Fahrer hat ${n} Karton${n>1?'s':''} im Lager abgestellt.`);
   if(truck.state==='docked') leaveTruck(); else removeTruck();

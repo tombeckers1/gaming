@@ -78,7 +78,9 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     const cVor=window.__cols();
     bb.toggleBuild(true);
     o.mode=document.getElementById('mode').textContent;
-    bb.setView(-13.0,-10.5,0,0);
+    /* seit 05.10. ist die Station mit Palettierstation tiefer (4,6 m) - weiter
+       noerdlich greifen, damit sie in den ersten Hallenabschnitt passt */
+    bb.setView(-13.0,-9.0,0,0);
     bb.grab(bb.packMov); bb.updateGrab();
     o.greifbar=bb.spotFree(bb.packMov,g.position.x,g.position.z,g.rotation.y);
     bb.placeGrab();

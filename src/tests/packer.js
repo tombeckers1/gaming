@@ -84,12 +84,14 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     const soll={}; B.forEach(b=>b.pos.forEach(l=>soll[l.t]=(soll[l.t]||0)+l.n));
     /* das erste Stapelfeld ist schon voll: neue Pakete muessen daran vorbei */
     S.paketGr=Array(30).fill(1); S.pakete=30; bb.syncPakete();
-    const tischRect=[[-1.32,1.32,-0.47,0.47],[1.3,3.62,-0.34,0.34]];
+    /* seit 05.10.: Packplaetze (Tisch und Packmaterial-Regal) und das Band */
+    const tischRect=bb.VS_PP.slice(0,bb.packStufe()).map(q=>[q.x-0.7,q.x+1.3,bb.VS_PZ-0.39,bb.VS_PZ+0.38]).concat([[bb.BAND.x0,bb.BAND.x1,bb.BAND.z-bb.BAND.b/2,bb.BAND.z+bb.BAND.b/2]]);
     const imTisch=(x,z)=>{ const g=bb.packTisch, sn=Math.sin(g.rotation.y), cs=Math.cos(g.rotation.y), dx=x-g.position.x, dz=z-g.position.z;
       const lx=dx*cs-dz*sn, lz=dx*sn+dz*cs; return tischRect.some(r=>lx>r[0]&&lx<r[1]&&lz>r[2]&&lz<r[3]); };
     let wagenTisch=0, handMax=0, handN=0, durchStapel=0, stapelInfo=[], handL=[];
     const hand=new THREE.Vector3(), bx=new THREE.Box3(), by=new THREE.Box3();
-    const wert=+B.reduce((a,b)=>a+b.wert,0).toFixed(2), geld0=S.money;
+    /* seit 05.10.: gebucht wird Ware plus Versandkosten, das Porto an DDL geht ab */
+    const wert=+B.reduce((a,b)=>a+b.wert+(b.versand||0)-bb.VS_PORTO[b.gr],0).toFixed(2), geld0=S.money;
     S.staff.packer=true; bb.hireStaff('packer'); const w=bb.staff.packer;
     let maxWagen=0, felder=0, offenAufWagen=false, griffe=[], weitMax=0, wandTreffer=[], wagenWand=0, zu=null, stapelHoch=0, flugSeen=new Set(), zustand=new Set(), ladenGriff=null, lagerGriffe=0;
     for(let i=0;i<24000;i++){
@@ -113,7 +115,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
         for(const arm of w.g.userData.arms){ const fa=arm.children.find(c=>c.isGroup); hand.set(0,-0.26,0); fa.localToWorld(hand); bb.vsWagen.worldToLocal(hand);
           const d=Math.hypot(hand.y-(0.78+0.32),hand.z+0.49); handMax=Math.max(handMax,d); handN++; if(handL.length<3) handL.push([+hand.x.toFixed(3),+hand.y.toFixed(3),+hand.z.toFixed(3)]); } }
       /* kein Paket fliegt durch einen fertigen Stapel */
-      for(const e of bb.vsBahn) if(e.phase==='heben'){ bx.setFromObject(e.m).expandByScalar(-0.01);
+      for(const e of bb.vsBahn) if(e.phase==='greifer'){ /* seit 05.10. traegt der Portalgreifer */ bx.setFromObject(e.m).expandByScalar(-0.01);
         for(const m of bb.pakete){ by.setFromObject(m); if(bx.intersectsBox(by)){ durchStapel++; if(stapelInfo.length<4) stapelInfo.push({t:+e.t.toFixed(2),gr:e.gr,von:[+bx.min.x.toFixed(2),+bx.min.y.toFixed(2),+bx.min.z.toFixed(2),+bx.max.x.toFixed(2),+bx.max.y.toFixed(2),+bx.max.z.toFixed(2)],mit:[+by.min.x.toFixed(2),+by.min.y.toFixed(2),+by.min.z.toFixed(2),+by.max.x.toFixed(2),+by.max.y.toFixed(2),+by.max.z.toFixed(2)]}); break; } } }
       if(bb.vsTisch&&bb.vsTisch.phase==='etikett'&&!zu){ const u=bb.vsTisch.pk.userData;
         zu={klappe:Math.max(...u.klappen.map(k=>Math.abs(k.pv.rotation.x)+Math.abs(k.pv.rotation.z))),band:u.band.visible?+u.band.scale.z.toFixed(2):0}; }
@@ -131,7 +133,8 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     o.zustaende=[...zustand].join(',');
     o.wagenTisch=wagenTisch; o.handMax=+handMax.toFixed(3); o.handN=handN; o.durchStapel=durchStapel; o.stapelInfo=stapelInfo; o.handL=handL;
     /* Pakete liegen in den Stapelfeldern */
-    const F=bb.VS_FELD; o.aufFeld=bb.pakete.every(m=>F.some(f=>Math.abs(m.position.x-f.x)<0.5&&Math.abs(m.position.z-f.z)<0.36));
+    /* auf den Paletten (0,8 x 1,2 m, Pakete duerfen 3 cm ueberstehen) */
+    const F=bb.VS_FELD; o.aufFeld=bb.pakete.every(m=>F.some(f=>Math.abs(m.position.x-f.x)<0.45&&Math.abs(m.position.z-f.z)<0.65));
     o.imTisch=bb.pakete.every(m=>m.parent===bb.packTisch);
     return o; });
   console.log('TOUR     ',JSON.stringify(tour));
@@ -224,7 +227,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     o.tisch=!!bb.vsTisch; o.lagerWeg=vor-window.__lager('wunder');
     let zu=false;
     for(let i=0;i<400&&(bb.vsTisch||bb.vsBahn.length);i++){ bb.step(0.05); if(bb.vsTisch&&bb.vsTisch.phase==='kleben') zu=true; }
-    o.zu=zu; o.geld=+(S.money-geld).toFixed(2); o.wert=b?b.wert:null; o.rest=S.bestellungen.length;
+    o.zu=zu; o.geld=+(S.money-geld).toFixed(2); o.wert=b?+(b.wert+(b.versand||0)-bb.VS_PORTO[b.gr]).toFixed(2):null; o.rest=S.bestellungen.length;
     return o; });
   console.log('SPIELER  ',JSON.stringify(sp2));
   pruef('SPIELER',/Paket packen/.test(sp2.prompt||'')&&sp2.tisch&&sp2.lagerWeg===3&&sp2.zu&&Math.abs(sp2.geld-sp2.wert)<0.02&&sp2.rest===0,'Spieler packt am Tisch nicht richtig: '+JSON.stringify(sp2));

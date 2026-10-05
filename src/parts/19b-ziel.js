@@ -23,6 +23,7 @@ function zielFuer(k){
       return null;
     case 'pick': return naechstes(floorBoxes.map(b=>({x:b.mesh.position.x,y:b.mesh.position.y+0.3,z:b.mesh.position.z})));
     case 'stock': {
+      if(S.carrying&&S.carrying.vm) return vmZielPos();
       if(S.carrying){ const l=emptyLevel(S.carrying.type); return l?weltPos(l.hit):null; }
       return naechstes(floorBoxes.map(b=>({x:b.mesh.position.x,y:b.mesh.position.y+0.3,z:b.mesh.position.z})));
     }

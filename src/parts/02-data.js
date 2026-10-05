@@ -9,7 +9,7 @@ const P={
   wunder:{name:'Goldfunken · XXL-Wunderkerzen 50 cm',short:'Wunderkerzen',cat:1,lvl:1,shape:'sparkler',dims:[0.105,0.30,0.032],grid:[12,3,1],box:36,cost:0.55,market:1.49,weight:10,hype:3,risk:1,
     desc:'Die klassische Goldwunderkerze: Drei stecken im Podest, eine zündet an der anderen, die Funkenbälle wandern den Draht hinunter, und zum Schluss tropft die letzte Glutperle ab.',
     art:{title:'GOLDFUNKEN',sub:'XXL 50 cm',bg1:'#26307a',bg2:'#0b0f2e',ac:'#ffcf3a',ac2:'#ff6a3d'}},
-  knallerbsen:{name:'Knallerbsen · 30 Stück',short:'Knallerbsen',cat:1,lvl:1,shape:'boxA',dims:[0.085,0.05,0.055],grid:[8,2,2],box:32,cost:0.35,market:0.99,weight:9,hype:2,risk:1,
+  knallerbsen:{name:'Knallerbsen · 30 Stück',short:'Knallerbsen',cat:1,kasse:'gern',lvl:1,shape:'boxA',dims:[0.085,0.05,0.055],grid:[8,2,2],box:32,cost:0.35,market:0.99,weight:9,hype:2,risk:1,
     desc:'Werfen, knack! Kleine Papiererbsen, die beim Aufprall mit einem Blitzchen zerplatzen – und eine lässt sich immer Zeit.',
     art:{title:'KNALLERBSEN',sub:'30 Stück',bg1:'#3d9be8',bg2:'#1557a8',ac:'#ffffff',ac2:'#ffd23f',peas:true}},
   tisch:{name:'Partyzauber · Tischfeuerwerk Funkenschirm',short:'Tischfeuerwerk',cat:1,lvl:1,shape:'cylinder',dims:[0.10,0.21,0.10],grid:[8,2,1],box:16,cost:1.10,market:2.99,weight:8,hype:5,risk:2,
@@ -18,7 +18,7 @@ const P={
   knallfrosch:{name:'Knallfrosch · Hüpfer 20er',short:'Knallfrösche',cat:1,lvl:2,shape:'boxA',dims:[0.075,0.045,0.05],grid:[8,2,2],box:20,cost:0.60,market:1.69,weight:8,hype:4,risk:1,
     desc:'Der Frosch springt bei jedem Knall weiter – kreuz und quer über den Boden – und macht zum Schluss einen Riesensatz.',
     art:{title:'HÜPFER',sub:'20er Kette',bg1:'#2f9e57',bg2:'#0d3a20',ac:'#ffd23f',ac2:'#ff7a3d'}},
-  feuerzeug:{name:'Sturmfeuerzeuge',short:'Feuerzeuge',cat:0,lvl:3,shape:'lighter',dims:[0.032,0.075,0.022],grid:[12,2,1],box:24,cost:0.45,market:1.29,weight:9,hype:0,risk:3,
+  feuerzeug:{name:'Sturmfeuerzeuge',short:'Feuerzeuge',cat:0,kasse:'nur',lvl:3,shape:'lighter',dims:[0.032,0.075,0.022],grid:[12,2,1],box:24,cost:0.45,market:1.29,weight:9,hype:0,risk:3,
     art:{title:'STURM',sub:'Windfest',bg1:'#c01c20',bg2:'#3a0507',ac:'#ffd23f',ac2:'#f2f5ff'}},
   luftschlangen:{name:'Partyset Luftschlangen',short:'Partyset',cat:0,lvl:3,shape:'boxA',dims:[0.115,0.16,0.05],grid:[10,2,1],box:20,cost:1.20,market:3.29,weight:7,hype:0,risk:1,
     art:{title:'PARTY',sub:'Schlangen & Tröten',bg1:'#ff4fa3',bg2:'#8a1f6a',ac:'#ffe45c',ac2:'#5ce1ff'}},
@@ -71,7 +71,7 @@ const P={
   batterie100:{name:'Achterbahn · 100 Schuss Höhenverbund',short:'Achterbahn',cat:2,lvl:17,shape:'battery',dims:[0.6,0.44,0.48],grid:[4,1,1],box:2,cost:32.00,market:74.99,weight:4,hype:60,risk:9,
     desc:'Erst tickt der Kettenaufzug Schuss für Schuss nach oben, dann stürzt die Batterie kreischend in die Tiefe – Buckel, Steilkurve, Tunnel, Schlussbremse. Drei Kaliber, drei Höhen.',
     art:{title:'ACHTERBAHN',sub:'100 Schuss · 3 Höhen',bg1:'#2a0f5a',bg2:'#0a0318',ac:'#ff4fa3',ac2:'#ffd23f'}},
-  knicklichter:{name:'Knicklichter 50er',short:'Knicklichter',cat:0,lvl:4,shape:'boxA',dims:[0.10,0.14,0.05],grid:[10,2,1],box:20,cost:0.80,market:2.29,weight:7,hype:0,risk:2,
+  knicklichter:{name:'Knicklichter 50er',short:'Knicklichter',cat:0,kasse:'gern',lvl:4,shape:'boxA',dims:[0.10,0.14,0.05],grid:[10,2,1],box:20,cost:0.80,market:2.29,weight:7,hype:0,risk:2,
     art:{title:'GLOW',sub:'50 Knicklichter',bg1:'#1b1b2e',bg2:'#070712',ac:'#5cff9e',ac2:'#ff4fd8'}},
   schwaermer:{name:'Flitzer · 12 Bodenschwärmer',short:'Flitzer',cat:2,lvl:5,shape:'boxA',dims:[0.115,0.06,0.075],grid:[8,2,2],box:16,cost:1.40,market:3.49,weight:8,hype:6,risk:3,
     desc:'Sechs Schwärmer flitzen kreischend im Zickzack über den Platz, ziehen Goldspuren und enden jeder mit einem Knall.',
@@ -308,11 +308,13 @@ const UPGRADES=[
      dem Portal. Mehr Plaetze heisst auch mehr Bestellungen am Tag. */
   {id:'packstation2',kat:'flaeche',lvl:22,req:'packstation',name:'Packstation – zweiter Packplatz',desc:'Ein zweiter Packplatz am selben Förderband, mit eigenem Packmaterial-Regal und Kommissionierwagen. Die Palettierstation wächst auf vier Paletten. Der Shop nimmt deutlich mehr Bestellungen am Tag an – einen zweiten Versandmitarbeiter stellst du im Handy ein.',cost:()=>14000,done:()=>S.up.packstation2},
   {id:'packstation3',kat:'flaeche',lvl:27,req:'packstation2',name:'Packstation – Versandstraße',desc:'Der dritte Packplatz macht aus der Ecke eine kleine Versandstraße: drei Packer, ein Band, sechs Paletten unter dem Portal. Noch einmal mehr Bestellungen am Tag.',cost:()=>26000,done:()=>S.up.packstation3},
-  {id:'eingang2',kat:'flaeche',lvl:25,req:'shop_ost',name:'Ladenerweiterung 5 – zweite Tür mit Kasse',desc:'Im Eckhaus ist die mittlere Achse bis zum Boden offen und wartet auf eine Tür. Der Ausbau setzt dieselbe Schiebetür wie am Haupteingang hinein, mit Vordach und Matte, und stellt dahinter eine eigene SB-Kassenzeile auf. Kunden nehmen ab jetzt den Eingang, der näher liegt, und die Schlange am Band wird spürbar kürzer. Die Kassenzeile lässt sich mit F in die Hand nehmen und verschieben.',cost:()=>11500,done:()=>S.up.eingang2},
+  {id:'eingang2',kat:'flaeche',lvl:25,req:'shop_ost',name:'Ladenerweiterung 5 – zweite Tür',desc:'Im Eckhaus ist die mittlere Achse bis zum Boden offen und wartet auf eine Tür. Der Ausbau setzt dieselbe Schiebetür wie am Haupteingang hinein, mit Vordach und Matte. Kunden nehmen ab jetzt den Eingang, der näher liegt – wer hinten in der Erweiterung einkauft, spart sich den Weg quer durch den Laden.',cost:()=>11500,done:()=>S.up.eingang2},
   {id:'kasse2',kat:'einr',lvl:16,req:'shop_gross',name:'SB-Kassen',desc:'Zwei Selbstbedienungsterminals in der neuen Verkaufsfläche. Kunden mit wenig Ware zahlen dort selbst, das entlastet deine Schlange spürbar.',cost:()=>3400,done:()=>S.up.kasse2},
-  /* Die Kassenzeile am zweiten Eingang kam frueher mit der Tuer mit.
-     Jetzt ist sie ein eigener Kauf ab Level 25 und kommt als Paket. */
-  {id:'kasse3',kat:'einr',lvl:25,req:'eingang2',name:'SB-Kassen Eingang 2',desc:'Zwei Selbstbedienungsterminals mit Kassenzeile direkt am zweiten Eingang. Kommt als Paket - an den Eingang tragen und auspacken.',cost:()=>3800,done:()=>S.up.kasse3},
+  /* Die SB-Kassen am zweiten Eingang (kasse3) gibt es seit 05.10. nicht
+     mehr (Tom: "machen keinen Sinn - die muessen weg"): direkt hinter der
+     Tuer standen sie im Weg, und bezahlt wird an der Kasse oder an den
+     SB-Kassen der Erweiterung. Alte Staende bekommen den Preis zurueck
+     (18-save). */
   {id:'labor',kat:'flaeche',lvl:20,req:'shop_gross',kap:5,name:'Entwicklungslabor',desc:'Ein Labortisch im Lager. Ab hier entwickelst du eigene Rezepturen: Träger, Bruchbild und Farben aussuchen, Prototyp auf dem Testfeld zünden, in Produktion geben. Verbauen darfst du nur Bruchbilder, die du selbst schon am Himmel gesehen hast.',cost:()=>9800,done:()=>S.up.labor},
   {id:'labor2',kat:'einr',lvl:28,req:'labor',name:'Zweite Zündstufe',desc:'Erweitert das Labor um eine zweite Stufe im Rezept: Nach dem Hauptbruch geht ein zweites Bruchbild auf. Der größte einzelne Sprung im Wert einer Rezeptur.',cost:()=>16500,done:()=>S.up.labor2},
   {id:'gravur',kat:'einr',lvl:9,name:'Gravur-Automat',desc:'Kunden beschriften ihre eigene Rakete. Hohe Marge, du musst nur Blanko-Ware nachfüllen.',cost:()=>1200,done:()=>S.up.gravur}
@@ -344,8 +346,8 @@ const STAFF=[
      die alten Kassierer-Ids, damit Spielstaende passen. */
   {id:'kassierer2',kurz:'SB 1',lvl:16,req:'kasse2',name:'SB-Betreuer',desc:'Steht bei den SB-Kassen. Etwa jeder dritte bis fünfte Kunde kommt beim Selberzahlen nicht weiter – dann geht er hin und hilft. Einer schafft alle SB-Kassen, und mit Betreuer nehmen Kunden auch mit vollerem Korb die SB-Kasse.',hire:600,wage:140},
   {id:'kassierer3',kurz:'SB 2',lvl:17,req:'kasse2',name:'Zweiter SB-Betreuer',desc:'Für viel Betrieb: Hängen zwei Kunden gleichzeitig, muss keiner warten. Lohnt sich erst, wenn es an den SB-Kassen voll wird.',hire:600,wage:140},
-  {id:'kassierer4',kurz:'SB 3',lvl:25,req:'kasse3',name:'SB-Betreuer Eingang 2',desc:'Steht bei den SB-Kassen am zweiten Eingang. Ohne ihn läuft der Betreuer aus der Erweiterung quer durch den Laden, wenn dort jemand hängt.',hire:650,wage:145},
-  {id:'kassierer5',kurz:'SB 4',lvl:25,req:'kasse3',name:'Vierter SB-Betreuer',desc:'Für die Stoßzeiten mit beiden SB-Zeilen voll: geht immer dorthin, wo gerade jemand Hilfe braucht.',hire:650,wage:145},
+  /* SB-Betreuer 3 und 4 gehoerten zur Kassenzeile am zweiten Eingang -
+     mit ihr sind sie weg (05.10.); zwei Betreuer schaffen beide SB-Kassen */
   {id:'security',lvl:13,name:'Sicherheitsdienst',desc:'Hält Diebe im Laden auf, bevor sie rauskommen.',hire:800,wage:190},
   {id:'packer',lvl:18,req:'packstation',name:'Versandmitarbeiter',desc:'Schiebt einen Kommissionierwagen mit sechs Fächern durchs Lager – fehlt dort etwas, durch den Laden –, legt jede Onlinebestellung Stück für Stück in ihren Karton, klebt am Packtisch zu und schickt das Paket aufs Band zur Palettierstation.',hire:700,wage:165},
   {id:'packer2',kurz:'Packer 2',lvl:22,req:'packstation2',name:'Zweiter Versandmitarbeiter',desc:'Arbeitet am zweiten Packplatz mit eigenem Wagen und eigenem Packmaterial-Regal.',hire:750,wage:170},
@@ -558,9 +560,20 @@ const SHELFKIND={
      Ebene ist immer die Wanne. */
   gitter:{id:'gitter',name:'Gitterbox',w:1.0,d:0.94,modX:1,modZ:2,lv:[0.12,0.36,0.64],oben:0.76,bau:'gitter',frei:true,lvl:5,cost:140,step:50,amb:1},
   gitter2:{id:'gitter2',name:'Gitterbox groß',w:1.9,d:0.94,modX:2,modZ:2,lv:[0.12,0.36,0.64],oben:0.76,bau:'gitter',frei:true,lvl:9,cost:210,step:75,amb:2},
-  gitter3:{id:'gitter3',name:'Gitterbox XL',w:1.9,d:1.86,modX:2,modZ:4,lv:[0.12,0.36,0.64],oben:0.76,bau:'gitter',frei:true,lvl:13,cost:290,step:100,amb:2}
+  gitter3:{id:'gitter3',name:'Gitterbox XL',w:1.9,d:1.86,modX:2,modZ:4,lv:[0.12,0.36,0.64],oben:0.76,bau:'gitter',frei:true,lvl:13,cost:290,step:100,amb:2},
+  /* Kassenregal (05.10., Tom: "Sturmfeuerzeug im Regal macht keinen Sinn.
+     Sowas an der Kasse platzieren - ein extra Regal fuer die Kasse, das
+     optisch zur Kasse passt, fuer kleine Artikel"): niedriger Aufsteller
+     am Kassengang, Korpus Anthrazit und Edelstahlleiste wie die Kasse,
+     fuenf flache Faecher in zwei Modulen. Er steht auf seinem eigenen
+     Platz neben dem Band - die Schlange laeuft daran vorbei. Hinein darf
+     nur Kleinkram (P[t].kasse): 'nur' gibt es ausschliesslich hier
+     (Feuerzeuge, Streichhoelzer, Gehoerschutz), 'gern' kommt bevorzugt
+     hierher und sonst ins Regal (Knicklichter, Knallerbsen, Glueckstaler,
+     Marzipanschwein). */
+  kasse:{id:'kasse',name:'Kassenregal',w:2.0,d:0.5,mod:2,lv:[0.18,0.48,0.78,1.08,1.38],oben:0.26,lvl:3,cost:120,step:60,amb:2,art:'kasse',kasse:true}
 };
-const SHELFORDER=['klein','standard','hoch','kuehl','gondel','eck','gross','gitter','gitter2','gitter3','tisch','tischgross'];
+const SHELFORDER=['klein','standard','hoch','kuehl','gondel','eck','gross','gitter','gitter2','gitter3','tisch','tischgross','kasse'];
 /* =========================================================
    Regalbau Stegemann. Regale stehen nicht mehr auf Knopfdruck im
    Laden - man bestellt sie wie Ware, der LKW bringt sie als
@@ -570,6 +583,7 @@ const SHELFORDER=['klein','standard','hoch','kuehl','gondel','eck','gross','gitt
    ========================================================= */
 const REGALWARE=[
   {id:'klein',   art:'shelf',kind:'klein',   lvl:1},
+  {id:'kasse',   art:'shelf',kind:'kasse',   lvl:3},
   {id:'rack',    art:'rack', kind:'standard',lvl:6,req:'lager'},
   {id:'standard',art:'shelf',kind:'standard',lvl:4},
   {id:'kuehl',   art:'shelf',kind:'kuehl',   lvl:6},
@@ -621,6 +635,9 @@ function mkSlots(){
          Spalte liegt hinter der Trennwand und kommt mit ihr. --- */
   reihe(-6.4,4,2.2,-5.5);
   reihe(-6.4,4,2.2,-1.2);
+  /* Kassenregal: laengs am Kassengang, Front zum Band (Kasse CK_HOME
+     0,7 / 2,2, Schlange bei x -1) - wer ansteht, hat es vor Augen */
+  add(-1.75,1.3,{ry:Math.PI/2,art:'kasse'});
   add(2.4,-5.5,{zone:'shop_halb'});
   add(2.4,-1.2,{zone:'shop_halb'});
   /* --- Ost I: Wandreihe, zwei Gondelreihen. Vorn bleibt der

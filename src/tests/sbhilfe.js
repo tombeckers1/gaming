@@ -98,7 +98,9 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     bb.fireStaff('kassierer2'); S.staff.kassierer2=false;
     c.items=korb(6); c.state='shop'; c.joinQueue(); o.ohneBetreuer=c.state;
     /* 7. Team-Liste: keine "Kassierer an SB-Kasse" mehr */
-    o.namen=['kassierer2','kassierer3','kassierer4','kassierer5'].map(id=>bb.STAFF.find(s=>s.id===id).name);
+    o.namen=['kassierer2','kassierer3'].map(id=>bb.STAFF.find(s=>s.id===id).name);
+    /* 05.10.: die Betreuer der Zeile am zweiten Eingang sind mit ihr weg */
+    o.e2=bb.STAFF.filter(s=>s.id==='kassierer4'||s.id==='kassierer5').length;
     return o; });
   console.log('SB',JSON.stringify(r));
   if(r.fehler){ console.log('ERRORS: '+r.fehler); await b.close(); return; }
@@ -113,7 +115,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   pruef('EINER_FUER_ZWEI',r.zweiStart[0]==='sbHilfe'&&r.zweiStart[1]==='sbHilfe'&&r.zwei.c!=='sbHilfe'&&r.zwei.d!=='sbHilfe','zwei Probleme: '+JSON.stringify(r.zweiStart)+' '+JSON.stringify(r.zwei));
   pruef('KORB_MIT_BETREUER',r.mitBetreuer==='sbGo','6er-Korb mit Betreuer: '+r.mitBetreuer);
   pruef('KORB_OHNE_BETREUER',r.ohneBetreuer==='queue','6er-Korb ohne Betreuer: '+r.ohneBetreuer);
-  pruef('NAMEN',r.namen.every(n=>/Betreuer/.test(n)),'Team: '+r.namen.join(', '));
+  pruef('NAMEN',r.namen.every(n=>/Betreuer/.test(n))&&r.e2===0,'Team: '+r.namen.join(', ')+' / Eingang 2: '+r.e2);
   console.log('MANGEL:',mangel.length?mangel.join(' | '):'keine');
   console.log('ERRORS:',errs.length||mangel.length?errs.concat(mangel).join('\n'):'keine');
   await b.close();

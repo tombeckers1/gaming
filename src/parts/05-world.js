@@ -277,6 +277,7 @@ const FACE={'+x':0,'-x':1,'+z':4,'-z':5}, OPP={'+x':'-x','-x':'+x','+z':'-z','-z
    flimmern gegeneinander - das sind die senkrechten Streifen, die
    ueberall dort standen, wo eine Wand aus Abschnitten gebaut wird.
    Solche Abschnitte setzen ue auf 0. */
+const WAENDE=[];
 function wall(x0,x1,z0,z1,y0,y1,inFace,inMat,exMat,ue,randMat){
   const u=ue===undefined?0.006:ue;
   if(x1-x0>z1-z0){ x0-=u; x1+=u; } else { z0-=u; z1+=u; }
@@ -290,5 +291,9 @@ function wall(x0,x1,z0,z1,y0,y1,inFace,inMat,exMat,ue,randMat){
   const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mats); m.position.set((x0+x1)/2,(y0+y1)/2,(z0+z1)/2);
   meterUV(m);
   m.userData.aabb={x0:Math.min(x0,x1),x1:Math.max(x0,x1),z0:Math.min(z0,z1),z1:Math.max(z0,z1)};
-  if(HIQ){ m.castShadow=true; m.receiveShadow=true; } scene.add(m); occluders.push(m); return m;
+  if(HIQ){ m.castShadow=true; m.receiveShadow=true; } scene.add(m); occluders.push(m);
+  /* Grundriss fuer die Moebelplaetze (wandRechtecke in 06-fixtures):
+     nur, was am Boden steht - Stuerze ueber Tueren zaehlen nicht */
+  if(Math.min(y0,y1)<0.9) WAENDE.push(m);
+  return m;
 }

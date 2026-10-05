@@ -96,6 +96,108 @@ function gpBauAnzeige(){
     `<div style="margin:10px 0 8px;height:10px;border-radius:6px;background:rgba(255,255,255,.12);overflow:hidden"><div style="height:100%;width:${p}%;background:#f2c230"></div></div>`+
     `<div style="opacity:.8">${p} % · ${gpBau.text}</div>`;
 }
+/* Abteilungen (05.10., Tom: "die Produkte in die Regale, die dafuer
+   vorgesehen sind - manchmal stehen in grossen Regalen kleine Produkte und
+   darueber ist super viel Platz ... eine Abteilung Essen/Trinken, eine
+   kleines Zubehoer, eine Kleinfeuerwerk, eine Grossfeuerwerk"). Frueher
+   kamen die Regalarten reihum auf den naechsten freien Platz und jedes
+   Fach bekam die naechste Sorte, die hineinpasste: gemessen 72 % der
+   Fachhoehe genutzt, im Grossverbund-Regal 48 %, 5 der 6 grossen
+   Verbundbatterien fehlten ganz, und nur die Haelfte der Nachbarregale
+   gehoerte zur selben Warengruppe.
+   Jetzt: die Stellplaetze werden vom Eingang nach hinten durchgegangen
+   (Basis, Erweiterung, Ostteil, Halle Sued), jede Abteilung bekommt
+   einen zusammenhaengenden Abschnitt, so gross wie ihr Sortiment; die
+   Regalart richtet sich nach der Ware (Kuehlpflichtiges in Kuehlschraenke,
+   was nicht ins Verkaufsregal passt ins Grossverbund-Regal oder auf den
+   grossen Tisch). Beim Einraeumen bekommt jede Sorte das Fach, dessen
+   Hoehe sie am besten ausnutzt - die schwierigen (gross, wenige passende
+   Faecher) zuerst. */
+const GP_ABT=['et','zub','f1','f2'];
+const GP_ABT_NAME={kasse:'Kassenregal',et:'Essen & Trinken',zub:'Zubehör',f1:'Kleinfeuerwerk',f2:'Großfeuerwerk'};
+const GP_ZONEN=[[null,'shop_halb'],['shop_gross'],['shop_ost'],['shop_sued']];
+const GP_FAECHER={hoch:5,standard:4,kuehl:4,gross:2,gondel:8,eck:8,tischgross:1,gitter2:3,kasse:5};
+/* Hoehe genutzt: Packungshoehe mal Stapel durch Fachhoehe (0 = passt nicht) */
+function gpNutz(t,kind,li){ const K=SHELFKIND[kind], la=layout(t,{kind,levels:[]},{li}); return la.cap?Math.min(1,la.h*la.st/fachHoehe(K,li)):0; }
+function gpAbtVon(t){ const s=sparteVon(t); return s==='essen'||s==='getraenke'?'et':s==='zubehoer'?'zub':s==='f1'?'f1':'f2'; }
+function gpPasstStd(t){ return layout(t,{kind:'standard',levels:[]},{li:0}).cap>0; }
+/* was am Handy auf jeden Fall dabei ist */
+function gpMuss(ware){
+  const kug=ware.filter(t=>P[t].shape==='shell').sort((a,b)=>P[b].dims[0]-P[a].dims[0]).slice(0,4);
+  return ware.filter(t=>P[t].kasse||!gpPasstStd(t)).concat(kug.filter(t=>!P[t].kasse&&gpPasstStd(t)));
+}
+/* Stellplaetze vom Eingang nach hinten: Zone fuer Zone, vorn vor hinten */
+function gpSlotFolge(){
+  const zi=sl=>GP_ZONEN.findIndex(z=>z.indexOf(sl.zone||null)>=0);
+  return slotsOffen().filter(sl=>sl.art!=='kasse'&&zi(sl)>=0).sort((a,b)=>(zi(a)-zi(b))||(b.z-a.z)||(a.x-b.x));
+}
+function gpPlan(ware){
+  const regale=[];
+  const ks=SLOTS.find(sl=>sl.art==='kasse'&&slotFrei(sl));
+  if(ks&&ware.some(t=>P[t].kasse)) regale.push({kind:'kasse',slot:ks,abt:'kasse'});
+  /* Bedarf je Abteilung: Sorten, davon kuehlpflichtig, davon zu gross fuers Regal */
+  /* flach: im Regalfach (52 cm) bliebe viel Luft - besser im niedrigen
+     Fach unter der Gitterwanne. Nur dafuer Gitterboxen: in ihnen wird
+     nichts verdeckt ausgeblendet (man sieht von oben hinein), jede Box
+     mehr kostet gezeichnete Stuecke */
+  const B={}; GP_ABT.forEach(a=>B[a]={n:0,kuehl:0,gross:0,flach:0});
+  for(const t of ware){ if(P[t].kasse==='nur') continue; const b=B[gpAbtVon(t)]; b.n++;
+    if(P[t].kuehlpflicht){ b.kuehl++; continue; } if(!gpPasstStd(t)){ b.gross++; continue; }
+    const qr=gpNutz(t,'hoch',0);
+    if(qr<0.45&&gpNutz(t,'gitter2',0)>=qr+0.2) b.flach++; }
+  const folge=gpSlotFolge().slice(0,Math.max(0,GP_KLEIN.regale-regale.length)), N=GP_ABT.reduce((a,k)=>a+B[k].n,0)||1;
+  /* Abschnitte: jede Abteilung bekommt Plaetze, bis ihre Faecher ihren
+     Anteil am Sortiment decken. Wie viele Faecher es insgesamt werden,
+     haengt an den Regalarten - darum zweimal gerechnet, das zweite Mal
+     mit der echten Zahl aus dem ersten. */
+  const verteile=gesamt=>{ const out=[]; let ai=0, fa=0, summe=0;
+    const wunsch=GP_ABT.map(a=>({kuehl:Math.ceil(B[a].kuehl/4),gross:B[a].gross,flach:B[a].flach}));
+    for(const sl of folge){
+      while(ai<GP_ABT.length-1&&(B[GP_ABT[ai]].n===0||fa>=B[GP_ABT[ai]].n/N*gesamt)){ ai++; fa=0; }
+      const a=GP_ABT[ai], w=wunsch[ai], art=sl.art||'wand';
+      let kind;
+      if(art==='insel'){ if(w.gross>0){ kind='tischgross'; w.gross--; } else kind='gondel'; }
+      else if(art==='ecke') kind='eck';
+      else if(w.kuehl>0){ kind='kuehl'; w.kuehl--; }
+      else if(w.gross>0){ kind='gross'; w.gross-=2; }
+      else if(w.flach>0){ kind='gitter2'; w.flach-=2; }
+      else kind='hoch';
+      /* passt die Art nicht an diesen Platz (Wand), die naechstkleinere */
+      const alt=art==='insel'?[kind,'gondel']:art==='ecke'?['eck']:[kind,'hoch','standard','klein'];
+      const k=alt.find(k=>SHELFKIND[k]&&stellPlatz(SHELFKIND[k],sl)); if(!k) continue;
+      out.push({kind:k,slot:sl,abt:a}); fa+=GP_FAECHER[k]||4; summe+=GP_FAECHER[k]||4; }
+    return {out,summe}; };
+  let v=verteile(folge.reduce((a,sl)=>a+((sl.art||'wand')==='wand'?4:8),0));
+  for(let n=0;n<2;n++) v=verteile(v.summe);
+  regale.push(...v.out);
+  return {regale};
+}
+/* Einraeumen nach Abteilung: Liste {lv,t} fuer die leeren Faecher */
+function gpVerteilen(ware){
+  const out=[], abtLv={};
+  allLevels().forEach(l=>{ if(l.type||!l.sh.gpAbt) return; (abtLv[l.sh.gpAbt]||(abtLv[l.sh.gpAbt]=[])).push(l); });
+  const nutz=(t,l)=>{ if(!shelfAccepts(l.sh,t)) return -1; const la=layout(t,l.sh,l); if(!la.cap) return -1;
+    return Math.min(1,la.h*la.st/fachHoehe(kindOf(l.sh),l.li)); };
+  const zuteilen=(levels,prods)=>{
+    const offen=new Set(levels), weg=new Set();
+    const passend=new Map(prods.map(t=>[t,levels.filter(l=>nutz(t,l)>0).length]));
+    const reihe=prods.filter(t=>passend.get(t)>0).sort((a,b)=>(passend.get(a)-passend.get(b))||(P[b].dims[1]-P[a].dims[1])||(P[b].weight-P[a].weight));
+    for(const t of reihe){ let best=null, bq=0; for(const l of offen){ const q=nutz(t,l); if(q>bq){ bq=q; best=l; } }
+      if(best){ out.push({lv:best,t}); offen.delete(best); weg.add(t); } }
+    /* uebrige Faecher: eine Sorte zum zweiten Mal - die das Fach gut
+       ausnutzt und noch am seltensten doppelt steht */
+    const oft=new Map();
+    for(const l of offen){ let best=null, bw=-1; for(const t of prods){ const q=nutz(t,l); if(q<=0) continue; const w=q-0.12*(oft.get(t)||0);
+        if(w>bw+1e-6||(best&&Math.abs(w-bw)<1e-6&&P[t].weight>P[best].weight)){ bw=w; best=t; } }
+      if(best){ out.push({lv:l,t:best}); oft.set(best,(oft.get(best)||0)+1); } }
+    return weg;
+  };
+  /* Kassenregal zuerst: was nur dorthin darf, dann Kleinkram */
+  const kasse=ware.filter(t=>P[t].kasse==='nur').concat(ware.filter(t=>P[t].kasse==='gern'));
+  const imKassenregal=abtLv.kasse?zuteilen(abtLv.kasse,kasse):new Set();
+  for(const a of GP_ABT) if(abtLv[a]) zuteilen(abtLv[a],ware.filter(t=>gpAbtVon(t)===a&&P[t].kasse!=='nur'&&!imKassenregal.has(t)));
+  return out;
+}
 /* Der Aufbau als Generator: jedes yield gibt dem Browser ein Bild */
 function* gpAufbau(){
   /* Spaete Spielphase */
@@ -115,33 +217,37 @@ function* gpAufbau(){
     if(!neu) break; }
   /* Alle Mitarbeiter */
   for(const s of STAFF){ if(S.staff[s.id]||(s.req&&!S.up[s.req])) continue; S.staff[s.id]=true; try{ hireStaff(s.id); }catch(e){} yield [0.27,'Personal: '+s.name]; }
-  /* Verkaufsregale aller Arten, bis kein Platz mehr frei ist */
-  const arten=['hoch','standard','gondel','standard','gross','tischgross','gitter3','hoch','kuehl','eck','tisch','gitter2','standard','gondel','hoch','gross','kuehl','gitter','klein'];
-  /* Regal-Etiketten am Handy in halber Aufloesung (wie die Verpackungs-
-     Vorfuehrung): 22 Regale haben rund 130 Etiketten-Bilder */
+  /* Sortiment der Vorfuehrung: alles Freigeschaltete; am Handy die
+     beliebtesten Sorten (jede Sorte kostet ein Druckbild) - dabei immer
+     die Ware fuers Kassenregal, die grossen Batterien und die groessten
+     Kugelbomben (05.10., Tom: "dass ich die genau im Regal sehe") */
+  let ware=ORDER.filter(t=>P[t]&&isUnlocked(t)&&!P[t].noOrder&&!P[t].rezept);
+  if(ware.length>GP_KLEIN.sorten){ const muss=gpMuss(ware);
+    ware=muss.concat(ware.filter(t=>muss.indexOf(t)<0).sort((a,b)=>P[b].weight-P[a].weight)).slice(0,Math.max(GP_KLEIN.sorten,muss.length)); }
+  /* Regale nach Abteilungen aufstellen (gpPlan), dann Lagerregale */
+  const plan=gpPlan(ware);
   const altToast=window.toast; window.toast=()=>{}; REGAL_TEX=GP_KLEIN.regal;
   try{
-    let leer=0, n=0; for(let i=0;i<GP_KLEIN.regale&&leer<arten.length;i++){ const id=arten[i%arten.length]; if(!regalOf(id)){ leer++; continue; }
-      if(regalAufbauen(id)){ leer=0; n++; } else leer++;
-      yield [0.28+0.22*Math.min(1,i/GP_KLEIN.regale),'Regale aufstellen ('+n+')']; }
+    let n=0;
+    for(const e of plan.regale){ const sl=e.slot, K=SHELFKIND[e.kind], q=stellPlatz(K,sl);
+      if(!q||!slotPasst(K,sl)) continue;
+      const sh=createShelf(shelves.length,{kind:e.kind,x:q.x,z:q.z,ry:q.ry}); sh.gpAbt=e.abt; n++;
+      yield [0.28+0.22*n/plan.regale.length,'Regale aufstellen ('+n+') · '+GP_ABT_NAME[e.abt]]; }
+    S.tut.shelf=true;
     /* Lagerregale */
     for(const id of ['rschwer','rhoch','rack']) for(let i=0;i<GP_KLEIN.lager;i++){ if(!regalOf(id)||!regalAufbauen(id)) break; yield [0.52,'Lagerregale']; }
   } finally { window.toast=altToast; REGAL_TEX=1; }
-  /* Fuellen: jedes Fach ein Produkt, das Sortiment reihum (am Handy die
-     beliebtesten Sorten - jede Sorte kostet ein Druckbild) */
-  let ware=ORDER.filter(t=>P[t]&&isUnlocked(t)&&!P[t].noOrder&&!P[t].rezept);
-  if(ware.length>GP_KLEIN.sorten) ware=ware.slice().sort((a,b)=>P[b].weight-P[a].weight).slice(0,GP_KLEIN.sorten);
-  const L=allLevels(); let k=0;
-  for(let i=0;i<L.length;i++){ const lv=L[i]; if(lv.type&&lv.count>0) continue;
-    for(let j=0;j<ware.length;j++){ const t=ware[(k+j)%ware.length];
-      /* jede neue Sorte malt ihr Druckbild und baut ihre Form - das kostet
-         bis zu einige hundert ms: dafuer ein eigenes Bild */
-      if(typeof poolDa==='function'&&!poolDa(t)){ let pl; if(GP_KLEIN.tex) TEX_FAKTOR=GP_KLEIN.tex;
-        try{ pl=pools[t]; } finally { TEX_FAKTOR=GFX_START.tex; }
-        if(!pl) continue; gpHochladen(pl); yield [0.55+0.3*i/L.length,'Ware einräumen ('+(i+1)+' / '+L.length+') · '+(P[t].short||t)]; }
-      else if(!pools[t]) continue;
-      if(addToLevel(lv,t,1)){ let n=0; while(n++<400&&addToLevel(lv,t,1)); k=(k+j+1)%ware.length; break; } }
-    yield [0.55+0.3*i/L.length,'Ware einräumen ('+(i+1)+' / '+L.length+')']; }
+  /* Einraeumen: jede Abteilung fuellt ihre Regale (gpVerteilen) */
+  const zuteilung=gpVerteilen(ware);
+  for(let i=0;i<zuteilung.length;i++){ const {lv,t}=zuteilung[i];
+    /* jede neue Sorte malt ihr Druckbild und baut ihre Form - das kostet
+       bis zu einige hundert ms: dafuer ein eigenes Bild */
+    if(typeof poolDa==='function'&&!poolDa(t)){ let pl; if(GP_KLEIN.tex) TEX_FAKTOR=GP_KLEIN.tex;
+      try{ pl=pools[t]; } finally { TEX_FAKTOR=GFX_START.tex; }
+      if(!pl) continue; gpHochladen(pl); yield [0.55+0.3*i/zuteilung.length,'Ware einräumen ('+(i+1)+' / '+zuteilung.length+') · '+(P[t].short||t)]; }
+    else if(!pools[t]) continue;
+    let k=0; while(k++<600&&addToLevel(lv,t,1));
+    if(i%6===5) yield [0.55+0.3*i/zuteilung.length,'Ware einräumen ('+(i+1)+' / '+zuteilung.length+')']; }
   /* Lager: Kartons der meistverkauften Ware */
   const gut=ware.slice().sort((a,b)=>P[b].weight-P[a].weight);
   let g=0, rn=0;

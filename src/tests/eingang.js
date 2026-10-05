@@ -57,18 +57,15 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     }
     return {eing:bb.eingaenge().length, offen:bb.sbOffen(), wand,
       tuerAuf:+bb.EING2.tuer.t.toFixed(2), halt:+cur.z.toFixed(2),
-      tuerSichtbar:sicht(bb.EING2.tuer.g), sb2:!!bb.sb2G&&bb.sb2G.visible!==false, durch};
+      tuerSichtbar:sicht(bb.EING2.tuer.g), sb2:bb.UPGRADES.some(u=>u.id==='kasse3')||bb.sbLanes.length>2, durch};
   });
   sag('nach dem Kauf zwei Eingaenge',nach.eing===2);
   sag('zweite Tuer sichtbar',nach.tuerSichtbar===true);
   sag('feste Scheibe verschwunden',nach.wand===0);
-  /* Seit 26.09. kommen die SB-Kassen nicht mehr mit der Tuer (Tom:
-     "sollen nicht spawnen"), sondern sind ein eigener Kauf. */
-  sag('ohne kasse3 keine zweite Kassenzeile',nach.sb2===false&&nach.offen===0);
-  const k3=await p.evaluate(()=>{ const bb=window.__bb; bb.testKauf('kasse3');
-    return {sb2:!!bb.sb2G&&bb.sb2G.visible!==false, offen:bb.sbOffen()}; });
-  sag('zweite Kassenzeile steht',k3.sb2===true);
-  sag('zwei SB-Spuren offen',k3.offen===2);
+  /* Seit 05.10. gibt es am zweiten Eingang gar keine SB-Kassen mehr
+     (Tom: "machen keinen Sinn - die muessen weg"): kein Ausbau, keine
+     Kassenzeile, keine offenen SB-Spuren durch die Tuer. */
+  sag('keine Kassenzeile am zweiten Eingang',nach.sb2===false&&nach.offen===0);
   /* Ab 0,3 faellt der Kollisionsquader - das ist die Schwelle, auf
      die es ankommt. Wie weit die Fluegel in den paar Bildern des
      Tests darueber hinaus fahren, haengt an der Bildrate. */

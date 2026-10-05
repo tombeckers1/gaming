@@ -1,11 +1,10 @@
 /* =========================================================
-   Zweiter Eingang mit eigener Kasse.
+   Zweiter Eingang.
 
    Das Eckhaus hat eine Achse, die bis zum Boden offen ist.
    Solange der Eingang nicht gekauft ist, steht dort eine feste
    Scheibe mit einem Hinweis; danach sitzt darin dieselbe
-   Schiebetuer wie am Haupteingang, mit Vordach, Fussmatte und
-   einer eigenen SB-Kassenzeile dahinter.
+   Schiebetuer wie am Haupteingang, mit Vordach und Fussmatte.
    ========================================================= */
 const EING2={x:null, tuer:null};
 /* Die Eingangsachse im Schaufenstergrundriss. Wird aus 05e heraus
@@ -63,52 +62,16 @@ function eingangsAchse(go,a,b,zf,ST,glas,prof){
   plane(2.2,0.4,new THREE.MeshBasicMaterial({map:sch,toneMapped:false}),cx,TUER.y+0.42,zf+0.09,0,auf);
 }
 
-/* --------------------------------------------------------
-   SB-Kassenzeile am zweiten Eingang
-   -------------------------------------------------------- */
-let sb2G=null, sb2Mov=null;
-function buildSBKasse2(){
-  if(sb2G||EING2.x===null) return sb2G;
-  sb2G=new THREE.Group(); sb2G.position.set(EING2.x,0,3.5); scene.add(sb2G);
-  const w=std(0x1b2340,{roughness:0.7});
-  bbox(3.6,0.34,0.12,w,0,2.35,-0.6,sb2G,false);
-  const schild=tex(1024,140,(g,W,H)=>{
-    g.fillStyle='#1b2340'; g.fillRect(0,0,W,H);
-    g.fillStyle='#ffd23f'; g.font=BUN(60); g.textAlign='center'; g.textBaseline='middle';
-    g.fillText('KASSE EINGANG 2',W/2,H/2+4);
-    g.strokeStyle='#2f3a5e'; g.lineWidth=6; g.strokeRect(3,3,W-6,H-6);
-  });
-  /* Das Schild gehoert auf die Kundenseite der Rueckwand, also
-     nach +z - von hinten liest es ohnehin niemand. */
-  plane(3.4,0.3,new THREE.MeshBasicMaterial({map:schild,toneMapped:false}),0,2.35,-0.53,0,sb2G);
-  for(const sx of [-1.6,1.6]) bbox(0.07,2.2,0.07,std(0x8d939d,{metalness:0.6,roughness:0.4}),sx,1.15,-0.6,sb2G,false);
-  /* Die beiden Terminals gehoeren zur Gruppe und wandern beim
-     Verschieben mit; sbPos() fragt spaeter die Weltposition ab. */
-  for(const x of [-0.9,0.9]){
-    const l=sbTerminal(sb2G,x,0.0); l.up='kasse3'; sbLanes.push(l);
-  }
-  /* Die Kollision der ganzen Zeile setzt addMovable selbst und
-     zieht sie beim Verschieben nach. */
-  sb2Mov=addMovable({kind:'sb2',name:'Kasse Eingang 2',g:sb2G,fw:3.8,fd:1.7,ref:null});
-  return sb2G;
-}
-/* Die SB-Kassen am zweiten Eingang kommen nicht mehr mit der Tuer:
-   sie werden eigens gekauft, als Paket geliefert und aufgestellt
-   (Tom, 26.09.) */
-function setSB2(an){
-  if(an){ buildSBKasse2(); if(sb2G) sb2G.visible=true; if(sb2Mov) applyFootprint(sb2Mov); }
-  else if(sb2G){ sb2G.visible=false; if(sb2Mov&&sb2Mov.col){ dropCol(sb2Mov.col); sb2Mov.col=null; } }
-  sbLanes.forEach(l=>{ if(l.up==='kasse3'){ l.busy=null; sbLampe(l,true); } });
-  if(typeof navDirty==='function') navDirty();
-}
+/* Die SB-Kassenzeile, die hier hinter der Tuer stand (sb2G, Ausbau
+   kasse3), ist seit 05.10. abgeschafft (Tom: "die Selbstbezahlerkassen am
+   zweiten Eingang machen keinen Sinn - die muessen weg"). Bezahlt wird an
+   der Kasse vorn und an den SB-Kassen der Erweiterung. */
 function setEingang2(an){
-  setSB2(!!(an&&S&&S.up&&S.up.kasse3));
   if(typeof navDirty==='function') navDirty();
 }
 /* Wie viele SB-Terminals stehen dem Kunden gerade offen? */
 function sbNutzbar(i){
   const l=sbLanes[i]; if(!l) return false;
-  if(l.up) return !!(S&&S.up&&S.up[l.up]);
   return !!(S&&S.up&&S.up.kasse2);
 }
 /* Die Eingaenge, die Kunden benutzen duerfen */

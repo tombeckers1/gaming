@@ -4,7 +4,7 @@
    ========================================================= */
 function freshState(){ const prices={}; ORDER.forEach(t=>prices[t]=P[t].market);
   return {v:3,money:500,rep:50,level:1,xp:0,season:1,day:0,loan:null,prices,grime:0,
-    up:{lager:false,plakat:false,terminal:false,tag4:false,heizung:false,musik:false,radio:false,cams:false,regallicht:false,alarm:false,shop_halb:false,testfeld:false,shop_gross:false,lager_nord:false,lager_gross:false,packstation:false,kasse2:false,kasse3:false,labor:false,labor2:false},
+    up:{lager:false,plakat:false,terminal:false,tag4:false,heizung:false,musik:false,radio:false,cams:false,regallicht:false,alarm:false,shop_halb:false,testfeld:false,shop_gross:false,lager_nord:false,lager_gross:false,packstation:false,kasse2:false,labor:false,labor2:false},
     staff:{},prio:{},wage:{},pause:{},ev:null,goal:null,mkt:1,comp:1,deko:[],wall:'creme',floor:'grau',schildBg:'auto',schildFg:'weiss',paint:[],test:null,stamm:{},
     /* Der Laden startet leer: kein Verkaufsregal, kein Lagerregal.
        Beides bestellt man bei Regalbau Stegemann, und der LKW
@@ -59,7 +59,7 @@ function save(){
     const d={v:3,money:S.money,rep:S.rep,level:S.level,xp:S.xp,season:S.season,day:S.day,loan:S.loan,prices:S.prices,up:S.up,staff:S.staff,prio:S.prio||{},einr:S.einr||{},wage:S.wage||{},pause:S.pause||{},ev:S.ev||null,goal:S.goal||null,mkt:r2(S.mkt||1),comp:r2(S.comp||1),lic:S.lic||['start'],stat:S.stat||{},erf:S.erf||{},gesehen:S.gesehen||[],eigene:S.eigene||[],gutschrift:r2(S.gutschrift||0),fwZaehler:S.fwZaehler||{},mi:S.mi||{},me:S.me||{},reg:S.reg||{},mh:S.mh||{},schock:S.schock||{},news:S.news||[],infl:S.infl||1,
       wall:S.wall,floor:S.floor,schildBg:S.schildBg||'auto',schildFg:S.schildFg||'weiss',paint:S.paint,test:S.test,stamm:S.stamm,blanks:gravBlanks,grav:gravG?mpos(gravG):null,grime:r2(S.grime||0),tut:S.tut,tutAus:!!S.tutAus,karre:S.karre||null,seasonRevenue:S.seasonRevenue,carrying:S.carrying,kisten:S.kisten|0,kisteHand:!!S.kisteHand,cart:S.cart||[],rest:S.rest||null,ekVor:S.ekVor||{},offen:S.offen|0,pakete:S.pakete|0,bestellungen:(S.bestellungen||[]).map(b=>({id:b.id,pos:b.pos.map(l=>({t:l.t,n:l.n,g:l.g})),gr:b.gr,wert:b.wert,versand:b.versand||0,st:b.st,tag:b.tag})),vm:S.vm||null,versandCfg:S.versandCfg||null,paketGr:(S.paketGr||[]).slice(),bestNr:S.bestNr|0,shopName:S.shopName||SHOP_DEFAULT,slogan:S.slogan||'',
       deko:dekos.map(d2=>Object.assign({id:d2.id},mpos(d2.g))),
-      ck:mpos(ckG),desk:mpos(deskG),sb2:mpos(sb2G),pack:mpos(packTisch),
+      ck:mpos(ckG),desk:mpos(deskG),pack:mpos(packTisch),sb2weg:1,
       shelves:shelves.map(s=>Object.assign(mpos(s.g),{kind:s.kind,schild:s.schild||undefined,levels:s.levels.map(l=>({type:l.type,count:l.count,q:l.q||1}))})),
       racks:racks.map(r=>Object.assign(mpos(r.g),{kind:r.kind,slots:r.slots.map(s=>s.box?{type:s.box.type,count:s.box.count,q:s.box.q||1,kiste:s.box.kiste?1:0}:null)})),
       /* Unterwegs bestellte Regale gehen beim Speichern nicht
@@ -93,9 +93,28 @@ function startGame(fresh){
      Ladenlokal, das ganze Basislager und den Zugang zum Testfeld -
      das wird nachgetragen, sonst stuenden ploetzlich Waende mitten
      im eingerichteten Laden. */
-  /* Bis 26.09. kam die Kassenzeile am zweiten Eingang mit der Tuer -
-     wer sie hatte, behaelt sie */
-  if(d&&d.up&&d.up.eingang2&&d.up.kasse3===undefined) S.up.kasse3=true;
+  /* 05.10.: die SB-Kassen am zweiten Eingang sind abgeschafft (Tom: "machen
+     keinen Sinn - die muessen weg"). Wer sie hatte - aufgestellt, als Paket
+     unterwegs, abgestellt oder in der Hand; bis 26.09. kamen sie mit der
+     Tuer -, bekommt den Kaufpreis zurueck, dazu die Einstellung der beiden
+     SB-Betreuer, die nur fuer diese Zeile da waren. Einmal: danach steht
+     davon nichts mehr im Spielstand. */
+  if(d){ let zurueck=0, k3=false;
+    /* sb2weg steht in jedem Stand ab heute: ohne die Marke saehe ein neuer
+       Stand mit zweiter Tuer (kasse3 fehlt) aus wie einer von vor dem 26.09.
+       und bekaeme bei jedem Laden Geld */
+    if(!d.sb2weg&&d.up&&(d.up.kasse3||(d.up.eingang2&&d.up.kasse3===undefined))) k3=true;
+    if(S.einbauBestellt&&S.einbauBestellt.kasse3){ k3=true; delete S.einbauBestellt.kasse3; }
+    if(Array.isArray(S.einbauUnterwegs)&&S.einbauUnterwegs.includes('kasse3')){ k3=true; S.einbauUnterwegs=S.einbauUnterwegs.filter(id=>id!=='kasse3'); }
+    if(Array.isArray(S.paketeBoden)&&S.paketeBoden.some(b=>b&&b.einbau==='kasse3')){ k3=true; S.paketeBoden=S.paketeBoden.filter(b=>!(b&&b.einbau==='kasse3')); }
+    if(S.carrying&&S.carrying.einbau==='kasse3'){ k3=true; S.carrying=null; }
+    if(k3) zurueck+=3800;
+    for(const id of ['kassierer4','kassierer5']){
+      if(S.staff&&S.staff[id]) zurueck+=650;
+      for(const k of ['staff','wage','pause','prio','einr']) if(S[k]&&typeof S[k]==='object') delete S[k][id]; }
+    if(S.up) delete S.up.kasse3;
+    if(zurueck>0){ S.money=r2((+S.money||0)+zurueck);
+      later(2.5,()=>toast(`Die SB-Kassen am zweiten Eingang sind abgebaut – ${eur(zurueck)} gutgeschrieben.`,'money')); } }
   /* Staende von vor den Kapiteln hatten das Lager von Anfang an */
   if(d&&d.up&&d.up.lager===undefined) S.up.lager=true;
   /* Vor dem 24.09. gab es die Logistikhalle nur in voller Groesse. Wer
@@ -148,13 +167,13 @@ function startGame(fresh){
      Platz rechts vom Eingang - sie zieht an den neuen mit um. */
   { const c=d&&d.ck, alt=c&&Math.abs(c.x-CK_ALT.x)<0.01&&Math.abs(c.z-CK_ALT.z)<0.01&&Math.abs(c.ry-CK_ALT.ry)<0.01;
     const q=c&&!alt?c:CK_HOME; placeMovable(ckMov,q.x,q.z,q.ry); }
-  if(d&&d.desk){ const m=movables.find(m=>m.kind==='desk'); if(m) placeMovable(m,d.desk.x,d.desk.z,d.desk.ry); }
-  if(d&&d.sb2&&sb2Mov) placeMovable(sb2Mov,d.sb2.x,d.sb2.z,d.sb2.ry);
+  if(d&&d.desk){ const m=movables.find(m=>m.kind==='desk'); if(m) placeMovable(m,Math.abs(d.desk.x+7.35)<0.01?-7.3:d.desk.x,d.desk.z,d.desk.ry); }
   /* Die Versandecke steht, wo man sie hingeschoben hat. Ein neues
      Spiel stellt sie an ihren Platz hinter dem Rolltor zurueck. */
   if(packMov){ const q=d&&d.pack?d.pack:PACK_HOME; placeMovable(packMov,q.x,q.z,q.ry); packPlatzPruefen(false); }
   (S.shelves||F.shelves).slice(0,SLOTS.length).forEach((sd,i)=>createShelf(i,sd));
   (S.racks||F.racks).slice(0,RACKS.length).forEach((rd,i)=>createRack(i,rd));
+  racksEntwirren();
 
   (S.deko||[]).forEach(dk=>{ if(DEKO.some(x=>x.id===dk.id)) createDeko(dk.id,dk); });
   (S.boxes||F.boxes).forEach(fb=>{ if(P[fb.type]&&fb.count>0) spawnFloorBox(fb.type,fb.count,fb.x!==undefined?{x:fb.x,y:fb.y,z:fb.z,ry:fb.ry}:null,fb.q||1,!!fb.kiste); });

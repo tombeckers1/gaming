@@ -67,11 +67,14 @@ function dropBox(){
   spawnFloorBox(c.type,c.count,{x:p.x,y:0.2,z:p.z,ry:yaw},c.q,c.kiste);
   S.carrying=null; updateCarry(); sfx.pop();
 }
-function canStock(lv){ const c=S.carrying; return !!c&&!c.vm&&!(c.kiste&&c.raus)&&canShelf(c.type)&&(!lv.type||lv.type===c.type)&&lv.count<capOf(lv,c.type)&&!pools[c.type].full(); }
+function canStock(lv){ const c=S.carrying; return !!c&&!c.vm&&!(c.kiste&&c.raus)&&canShelf(c.type)&&shelfAccepts(lv.sh,c.type)&&(!lv.type||lv.type===c.type)&&lv.count<capOf(lv,c.type)&&!pools[c.type].full(); }
 function stockOne(lv,quiet){
   const c=S.carrying; if(!c) return;
   if(!canShelf(c.type)){ if(!quiet) toast(`${P[c.type].short} gehört nicht ins Regal.`,'bad'); return; }
   if(lv.type&&lv.type!==c.type){ if(!quiet) toast(`In dem Fach liegen ${P[lv.type].short}.`,'bad'); return; }
+  /* falsches Regal (Kassenregal, Kuehlschrank): sagen, wohin es gehoert -
+     frueher hiess es hier nur "Kein Platz mehr" */
+  { const nein=regalNein(lv.sh,c.type); if(nein){ if(!quiet) toast(nein,'bad'); return; } }
   if(!capOf(lv,c.type)){ if(!quiet) toast(`${P[c.type].short} passt nicht ins Regal – zu groß für dieses Fach.`,'bad'); return; }
   if(lv.count>=capOf(lv,c.type)){ if(!quiet) toast('Das Fach ist voll.'); return; }
   if(!addToLevel(lv,c.type,c.q||1)){ if(!quiet) toast('Kein Platz mehr.'); return; }
@@ -100,6 +103,9 @@ function regalAufbauen(id,x,z){
   const ax=x===undefined?pl.x:x, az=z===undefined?pl.z:z;
   let best=liste[0], bd=1e9;
   for(const sl of liste){ const d=(sl.x-ax)**2+(sl.z-az)**2; if(d<bd){ bd=d; best=sl; } }
+  /* Lagerregale: der naechste Platz, der keinen Gang zumacht (rackZugang) */
+  if(r.art==='rack'){ best=liste.slice().sort((a,b)=>((a.x-ax)**2+(a.z-az)**2)-((b.x-ax)**2+(b.z-az)**2)).find(sl=>rackZugang(K,rackStellPlatz(K,sl)));
+    if(!best){ toast(`Für das ${K.name} ist kein Platz frei, der keinen Gang zustellt.`,'bad'); return false; } }
   if(r.art==='rack') createRack(racks.length,{kind:r.kind,x:best.x,z:best.z,ry:best.ry||0});
   else createShelf(shelves.length,{kind:r.kind,x:best.x,z:best.z,ry:best.ry||0,art:best.art});
   sfx.cash(); S.tut.shelf=true;
@@ -122,11 +128,10 @@ const einbauPakete=[];
 /* 02.10.: Masse an die Modul-Moebel angepasst (Hochregal und Kuehlschrank
    hoeher, Tische und Gitterboxen im Modulraster) */
 const PAKET_MASS={klein:[1.7,0.26,0.6],standard:[2.1,0.3,0.6],hoch:[2.95,0.36,0.62],kuehl:[1.15,2.4,0.7],
-  gondel:[2.1,0.4,0.62],eck:[1.9,0.36,0.62],gross:[2.2,0.42,0.74],gitter:[1.06,0.5,1.0],gitter2:[1.96,0.5,1.0],gitter3:[1.96,0.55,1.92],tisch:[2.1,0.3,1.0],tischgross:[2.1,0.32,1.92],rack:[2.4,0.3,0.55],rhoch:[2.6,0.36,0.6],rschwer:[2.8,0.42,0.66],
-  kasse2:[1.0,1.25,0.8],kasse3:[1.0,1.25,0.8]};
+  gondel:[2.1,0.4,0.62],eck:[1.9,0.36,0.62],gross:[2.2,0.42,0.74],gitter:[1.06,0.5,1.0],gitter2:[1.96,0.5,1.0],gitter3:[1.96,0.55,1.92],tisch:[2.1,0.3,1.0],tischgross:[2.1,0.32,1.92],rack:[2.4,0.3,0.55],rhoch:[2.6,0.36,0.6],rschwer:[2.8,0.42,0.66],kasse:[2.1,0.3,0.56],
+  kasse2:[1.0,1.25,0.8]};
 const EINBAU={
-  kasse2:{name:'SB-Kassen',ziel:()=>typeof sbZiel==='function'?sbZiel():null,weit:5},
-  kasse3:{name:'SB-Kassen Eingang 2',ziel:()=>EING2.x!==null?{x:EING2.x,z:3.5}:null,weit:5}
+  kasse2:{name:'SB-Kassen',ziel:()=>typeof sbZiel==='function'?sbZiel():null,weit:5}
 };
 function paketName(p){ return p.einbau?EINBAU[p.einbau].name:regalName(p.regal); }
 function paketMass(p){ return PAKET_MASS[p.einbau||p.regal]||[1.2,0.25,0.55]; }
@@ -154,7 +159,6 @@ function paketAblegen(c,p){
 function einbauAufstellen(id){
   S.up[id]=true; if(S.einbauBestellt) delete S.einbauBestellt[id];
   if(id==='kasse2'){ setSB(true); toast('Die SB-Kassen stehen. Kunden mit wenig Ware bedienen sich jetzt selbst.','money'); }
-  if(id==='kasse3'){ setSB2(true); toast('Die SB-Kassen am zweiten Eingang stehen.','money'); }
   sfx.cash(); addXP(20,'Einbau'); save();
 }
 /* Ein Regal ohne Lieferung aufstellen. Diesen Weg nimmt das Spiel

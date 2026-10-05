@@ -47,7 +47,7 @@ function handbuchHTML(){
         `Das Regal kommt als Paket (vor die Tür oder mit dem LKW). Mit leeren Händen ${E}: Paket aufheben. ${Q} stellt es wieder ab – so lässt es sich auch lagern.`,
         `Dort, wo es stehen soll, ${F}: Das Paket geht auf und das Regal steht vor dir in der Hand. ${R} dreht es, ${E} stellt es ab.`,
         `Zu viel oder falsch? Ein leeres Regal mit ${F} in die Hand nehmen und noch mal ${F}: Es wandert zurück ins Paket.`])+
-      ab(`Die SB-Kassen der Erweiterung haben einen festen Platz: dort auspacken. Die Kassenzeile am zweiten Eingang packst du aus wie ein Regal. Technik wie Kameras, Heizstrahler, Soundanlage, Kartenterminal, Gravur-Automat und die Karren ist sofort nach dem Kauf eingebaut.`)],
+      ab(`Die SB-Kassen der Erweiterung haben einen festen Platz: dort auspacken. Das Kassenregal (ab Level 3) steht am Kassengang neben dem Band: Sturmfeuerzeuge, Sturm-Streichhölzer und Gehörschutz gibt es nur dort, Knicklichter, Knallerbsen und Glücksbringer bevorzugt – wer ansteht, greift gern noch zu. Technik wie Kameras, Heizstrahler, Soundanlage, Kartenterminal, Gravur-Automat und die Karren ist sofort nach dem Kauf eingebaut.`)],
     ['Kasse',
       schritte([`Ein Kunde legt seine Ware aufs Band. Jeden Artikel anschauen und ${E} (halten scannt am Stück).`,
         `Zahlt er mit Karte: Kasse oder Kartenterminal anschauen und ${E}.`,

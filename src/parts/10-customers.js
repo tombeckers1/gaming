@@ -32,7 +32,37 @@ function navBuild(){
     for(let i=i0;i<=i1;i++) for(let k=k0;k<=k1;k++) NAV.g[k*NAV.w+i]=1;
   }
   navTueren(R);
+  NAV.waende=typeof wandRechtecke==='function'?wandRechtecke():[];
   NAV.dirty=false;
+}
+/* Keine Figur in der Wand (05.10., Tom: Einraeumer und Packer
+   "verschwinden halb in der Wand"): gemessen standen Haltepunkte direkt
+   an oder in Waenden (Karton an der Lagerwand, Lagerregal in der Mauer),
+   und die naechste freie Rasterzelle lag manchmal auf der anderen Seite
+   der Wand (Betreuer vor dem Schaufenster draussen).
+   wandKreuzt: schneidet die Strecke a-b eine Wand?
+   ausWand: Punkt so weit aus jeder Wand schieben, dass ein Koerper
+   (Radius r) frei steht - zu der Seite, auf der er schon liegt. */
+const KOERPER_R=0.24;
+function wandKreuzt(ax,az,bx,bz,m){
+  m=m||0; const lx=Math.min(ax,bx)-m, hx=Math.max(ax,bx)+m, lz=Math.min(az,bz)-m, hz=Math.max(az,bz)+m;
+  for(const w of NAV.waende||[]){
+    if(w.x1<lx||w.x0>hx||w.z1<lz||w.z0>hz) continue;
+    let t0=0, t1=1; const dx=bx-ax, dz=bz-az, x0=w.x0-m, x1=w.x1+m, z0=w.z0-m, z1=w.z1+m;
+    const cl=(p,q)=>{ if(Math.abs(p)<1e-9) return q>=0; const r=q/p; if(p<0){ if(r>t1) return false; if(r>t0) t0=r; } else { if(r<t0) return false; if(r<t1) t1=r; } return true; };
+    if(cl(-dx,ax-x0)&&cl(dx,x1-ax)&&cl(-dz,az-z0)&&cl(dz,z1-az)&&t0<=t1) return true; }
+  return false;
+}
+function ausWand(p,r){
+  if(NAV.dirty) navBuild();
+  for(let n=0;n<3;n++){ let ok=true;
+    for(const w of NAV.waende||[]){
+      const dx=Math.max(w.x0-p.x,0,p.x-w.x1), dz=Math.max(w.z0-p.z,0,p.z-w.z1); if(Math.hypot(dx,dz)>=r) continue;
+      ok=false;
+      /* raus auf der naeheren Seite der duennen Richtung */
+      if(w.x1-w.x0<w.z1-w.z0) p.x=p.x<(w.x0+w.x1)/2?w.x0-r:w.x1+r; else p.z=p.z<(w.z0+w.z1)/2?w.z0-r:w.z1+r; }
+    if(ok) break; }
+  return p;
 }
 /* Tueroeffnungen wieder aufmachen. Das Raster sperrt jede Zelle, die
    eine gepolsterte Wand auch nur streift - in einer Tuer von 1,4 m
@@ -88,7 +118,8 @@ function navNah(x,z){
     for(let dx=-r;dx<=r;dx++) for(let dz=-r;dz<=r;dz++){
       if(Math.max(Math.abs(dx),Math.abs(dz))!==r) continue;
       const c=navIdx(x+dx*NAV.s,z+dz*NAV.s);
-      if(navFrei(c)){ const d=dx*dx+dz*dz; if(d<bd){ bd=d; best=c; } }
+      /* nicht durch die Wand: die Zelle muss auf derselben Seite liegen */
+      if(navFrei(c)){ const d=dx*dx+dz*dz; if(d<bd){ const q=navPos(c); if(wandKreuzt(x,z,q.x,q.z)) continue; bd=d; best=c; } }
     }
     if(best>=0) return best;
   }
@@ -99,11 +130,13 @@ function navSicht(ax,az,bx,bz){
   const d=Math.hypot(bx-ax,bz-az), n=Math.ceil(d/(NAV.s*0.6));
   for(let i=1;i<n;i++){ const t=i/n;
     if(!navFrei(navIdx(ax+(bx-ax)*t,az+(bz-az)*t))) return false; }
-  return true;
+  /* 05.10.: die Rasterprobe allein schnitt Ecken an Tuerlaibungen - die
+     Strecke muss auch einen Koerper breit an jeder Wand vorbeigehen */
+  return !wandKreuzt(ax,az,bx,bz,0.2);
 }
 const _navQ=[];
 /* Breitensuche vom Ziel aus, danach die Kette glaetten */
-function navPfad(from,to){
+function navPfad(from,to,nah){
   const start=navNah(from.x,from.z), ziel=navNah(to.x,to.z);
   if(start<0||ziel<0) return null;
   if(start===ziel||navSicht(from.x,from.z,to.x,to.z)) return [to.clone?to.clone():V(to.x,0,to.z)];
@@ -118,7 +151,18 @@ function navPfad(from,to){
     if(k>0)   { const n2=c-W; if(!NAV.g[n2]&&D[n2]<0){ D[n2]=d; _navQ.push(n2); } }
     if(k<H-1) { const n2=c+W; if(!NAV.g[n2]&&D[n2]<0){ D[n2]=d; _navQ.push(n2); } }
   }
-  if(D[start]<0) return null;
+  /* Ziel nicht erreichbar (Lagergang zwischen vollen Regalreihen): frueher
+     ging es dann auf dem Notweg geradeaus - quer durch die Lagerwand.
+     Jetzt bis zur erreichbaren Stelle, die dem Ziel am naechsten ist. */
+  if(D[start]<0){ if(nah) return null;
+    const E=NAV.dist2&&NAV.dist2.length===D.length?NAV.dist2:(NAV.dist2=new Int32Array(D.length)); E.fill(-1); E[start]=0;
+    let h=0, best=start, bd=1e9; const Q=[start];
+    while(h<Q.length){ const c=Q[h++], i=c%W, k=(c-i)/W, p=navPos(c), dd=(p.x-to.x)**2+(p.z-to.z)**2; if(dd<bd){ bd=dd; best=c; }
+      for(const n2 of [i>0?c-1:-1,i<W-1?c+1:-1,k>0?c-W:-1,k<H-1?c+W:-1]) if(n2>=0&&!NAV.g[n2]&&E[n2]<0){ E[n2]=0; Q.push(n2); } }
+    const weg=navPfad(from,navPos(best),true)||[navPos(best)];
+    /* das letzte Stueck zum Ziel nur, wenn keine Wand dazwischen ist */
+    if(!wandKreuzt(weg[weg.length-1].x,weg[weg.length-1].z,to.x,to.z,0.2)) weg.push(to.clone?to.clone():V(to.x,0,to.z));
+    return weg; }
   /* absteigend zum Ziel laufen */
   const roh=[]; let c=start;
   while(c!==ziel&&roh.length<4000){
@@ -140,6 +184,7 @@ function navPfad(from,to){
 }
 function route(from,to){
   if(NAV.dirty) navBuild();
+  to=ausWand(V(to.x,0,to.z),KOERPER_R);
   const p=navPfad(from,to);
   if(p) return p;
   /* Ausserhalb des Rasters - Strasse, Hof, geschlossenes Rolltor -
@@ -156,6 +201,7 @@ function route(from,to){
   if(zoneOf(from)===zoneOf(to)) return [to];
   return zoneOf(from)==='front'?[A.clone(),B.clone(),to]:[B.clone(),A.clone(),to];
 }
+const KASSE_GRIFF=0.35;
 function spotPos(i){ return i===0?ck(1.05,1.05):ck(0.1-(i-1)*0.8,1.68); }
 function queueApproach(){ return ck(-4.0,1.7); }
 function priceTol(){ return (0.95+ambienteScore()/450+S.rep/900+bildBoost()+(friendliness()-1)*0.12)*evv('tol')*(S.comp||1); }
@@ -282,7 +328,7 @@ class Customer{
     toast(what==='spray'?'Erwischt! Ware zurück im Regal.':'Der Sicherheitsdienst hat ihn gestoppt.','money');
     this.say('Schon gut, schon gut!');
     { const e=naechsterEingang(this.pos.x);
-      this.speed=2.4; this.state='leave'; this.path=[V(e+rand(-1.2,1.2),0,8),V(e+rand(-5,5),0,15)]; }
+      this.speed=2.4; this.state='leave'; this.path=[...route(this.pos,V(e,0,4.9)),V(e+rand(-1.2,1.2),0,8),V(e+rand(-5,5),0,15)]; }
     if(staff.security&&staff.security.chase===this) staff.security.chase=null;
   }
   escaped(){
@@ -302,6 +348,18 @@ class Customer{
         this.state='sbGo'; this.path=[...route(this.pos,sbPos(i))]; DS.sb=(DS.sb||0)+1; return; }
     }
     queue.push(this); this.state='queue'; this.path=[...route(this.pos,queueApproach()),spotPos(queue.length-1)];
+  }
+  /* Spontankauf am Kassenregal (05.10.): wer in der Schlange daran
+     vorbeikommt, greift ab und zu noch zu - ein Feuerzeug, Knicklichter,
+     ein Marzipanschwein. Einmal je Kunde, zum ausgezeichneten Preis. */
+  kassenGriff(){
+    const sh=shelves.find(s=>kindOf(s).kasse&&!s.weg&&Math.hypot(shelfStand(s).x-this.pos.x,shelfStand(s).z-this.pos.z)<1.7); if(!sh) return;
+    this.spontan=true; if(this.thief||Math.random()>=KASSE_GRIFF) return;
+    const lvs=sh.levels.filter(l=>l.type&&l.count>0); if(!lvs.length) return;
+    const lv=pick(lvs), t=lv.type, price=S.prices[t]||marketOf(t);
+    if(Math.random()>=buyChance(t,price,lv.q,false,this.ct)) return;
+    removeFromLevel(lv); this.items.push({type:t,price}); DS.spontan=(DS.spontan||0)+1;
+    this.say(pick(['Ach, das nehm ich noch mit.','Fast vergessen!',`Und noch ${P[t].short}.`]));
   }
   sbStart(){
     this.state='sbPay';
@@ -392,6 +450,7 @@ class Customer{
         } break;
       case 'queue': {
         const i=queue.indexOf(this), spot=spotPos(i);
+        if(!this.spontan) this.kassenGriff();
         if(this.path.length){ this.path[this.path.length-1]=spot; this.walk(dt); }
         else if(Math.hypot(spot.x-this.pos.x,spot.z-this.pos.z)>0.08) this.path=[spot];
         else { this.face(ckYaw()+(i===0?Math.PI:Math.PI/2)); if(i===0) this.atRegister(); }

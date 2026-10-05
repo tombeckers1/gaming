@@ -171,8 +171,6 @@ function paketAuspacken(){
     if(r.art==='rack') m=createRack(racks.length,{kind:r.kind,x,z,ry}).mov;
     else m=createShelf(shelves.length,{kind:r.kind,x,z,ry}).mov;
     S.tut.shelf=true;
-  } else if(c.einbau==='kasse3'){
-    einbauAufstellen('kasse3'); m=typeof sb2Mov!=='undefined'?sb2Mov:null;
   } else if(c.einbau){
     /* die SB-Kassenzeile der Erweiterung hat ihren festen Platz */
     const zl=EINBAU[c.einbau].ziel();
@@ -197,13 +195,6 @@ function moebelEinpacken(){
     S.carrying={regal:id}; updateCarry(); sfx.pop(); moebelKnoepfe(); save();
     toast(`${regalName(id)} eingepackt. Paket mit Q abstellen oder woanders mit F auspacken.`);
     return;
-  }
-  if(m.kind==='sb2'){
-    if(sbLanes.some(l=>l.up==='kasse3'&&l.busy)){ toast('An der Kasse zahlt gerade jemand. Gleich noch mal.','bad'); return; }
-    grabbed=null; grabHome=null;
-    S.up.kasse3=false; setSB2(false); (S.einbauBestellt||(S.einbauBestellt={})).kasse3=true;
-    S.carrying={einbau:'kasse3'}; updateCarry(); sfx.pop(); moebelKnoepfe(); save();
-    toast('SB-Kassen Eingang 2 eingepackt.'); return;
   }
   toast(`${m.name} lässt sich nur verschieben: mit E abstellen, mit Q zurück.`);
 }
@@ -239,7 +230,7 @@ function cancelGrab(){
   if(!grabbed) return;
   const m=grabbed;
   if(!grabHome){ const k=m.kind;
-    if(k==='shelf'||k==='rack'||k==='sb2'){ moebelEinpacken(); if(!grabbed) return; }
+    if(k==='shelf'||k==='rack'){ moebelEinpacken(); if(!grabbed) return; }
     return; }
   m.g.position.x=grabHome.x; m.g.position.z=grabHome.z; m.g.rotation.y=grabHome.ry;
   applyFootprint(m); if(m.onPlace) m.onPlace();
@@ -252,7 +243,7 @@ function moebelKnoepfe(){
   if(typeof document==='undefined') return;
   const bm=$('btnMove'), bt=$('btnTool'); if(!bm||!bt) return;
   const c=S&&S.carrying;
-  const t=grabbed?(regalIdVon(grabbed)||grabbed.kind==='sb2'?'Einpacken':'Möbel'):(c&&(c.regal||c.einbau))?'Auspacken':'Möbel';
+  const t=grabbed?(regalIdVon(grabbed)?'Einpacken':'Möbel'):(c&&(c.regal||c.einbau))?'Auspacken':'Möbel';
   const k=t+'|'+!!grabbed; if(k===_mkTxt) return; _mkTxt=k;
   bm.textContent=t; bm.classList.toggle('on',!!grabbed);
   bt.textContent=grabbed?'Drehen':'Spray';
@@ -326,7 +317,7 @@ function promptFor(t){
   if(pdaOn&&!grabbed){ const pt=pdaTargetType(); if(pt) return {t:`Preisgerät: ${P[pt].short} · ${eur(S.prices[pt])}`,a:true}; }
   if(c&&c.vm&&['level','rslot','box','station','gravur'].indexOf(t.kind)>=0) return {t:'Versandmaterial gehört ins Packmaterial-Regal an der Packstation',a:false};
   switch(t.kind){
-    case 'placing': { const frei=spotFree(grabbed,grabbed.g.position.x,grabbed.g.position.z,grabRy), pk=!!(regalIdVon(grabbed)||grabbed.kind==='sb2');
+    case 'placing': { const frei=spotFree(grabbed,grabbed.g.position.x,grabbed.g.position.z,grabRy), pk=!!regalIdVon(grabbed);
       return {t:(frei?`Absetzen: ${grabbed.name}`:'Hier ist kein Platz')+(COARSE?'':` · R drehen · ${pk?'F einpacken':'Q zurück'}`),a:frei}; }
     case 'movable': return {t:`Verschieben: ${t.ref.name}`,a:true};
     case 'box': if(c&&karreAn()&&!c.regal&&!c.einbau) return karreVoll()?{t:'Die Karre ist voll',a:false}:{t:`Auf die Karre: ${P[t.ref.type].name} (${karreLast()}/${KARREN[karreArt()].cap})`,a:true};
@@ -340,6 +331,7 @@ function promptFor(t){
       if(c&&c.kiste&&c.raus) return {t:lv.type===c.type?`Kiste ist voll (${c.count})`:`Kiste: ausräumen · ${COARSE?'„Kiste“':'X'} schaltet auf einräumen`,a:false};
       if(c&&(c.regal||c.einbau)) return {t:'Paket: am Boden abstellen oder am Stellplatz auspacken',a:false};
       if(c){ if(lv.type&&lv.type!==c.type) return {t:`Fach mit ${P[lv.type].short}`,a:false};
+        if(!shelfAccepts(lv.sh,c.type)) return {t:P[c.type].kasse==='nur'?'Passt nicht ins Regal – gehört ins Kassenregal':kindOf(lv.sh).kasse?'Passt nicht ins Kassenregal – nur Kleinkram':'Passt nicht in dieses Regal',a:false};
         const cp=capOf(lv,c.type); if(!cp) return {t:'Produkt passt nicht ins Regal',a:false}; if(lv.count>=cp) return {t:'Fach ist voll',a:false};
         return {t:`Einräumen: ${P[c.type].short} ${lv.count}/${cp}`,a:true}; }
       return {t:lv.type?`${P[lv.type].short}: ${lv.count}/${capOf(lv)} für ${eur(S.prices[lv.type])}`:'Leeres Fach',a:false}; }

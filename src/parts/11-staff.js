@@ -2,17 +2,15 @@
 /* =========================================================
    Personal
    ========================================================= */
-const staff={reinigung:null,auffueller:null,auffueller2:null,kassierer:null,kassierer2:null,kassierer3:null,kassierer4:null,kassierer5:null,security:null,packer:null,packer2:null,packer3:null};
+const staff={reinigung:null,auffueller:null,auffueller2:null,kassierer:null,kassierer2:null,kassierer3:null,security:null,packer:null,packer2:null,packer3:null};
 /* SB-Betreuer (Tom, 29.09.): an SB-Kassen kassiert niemand. Der Kunde
    scannt und zahlt selbst; etwa jeder dritte bis fuenfte kommt nicht
    weiter (Artikel wird nicht erkannt, Alterspruefung, Karte zickt).
    Dann blinkt die Lampe rot, und ein Betreuer geht hin und hilft. Einer
    schafft mehrere Kassen - je mehr Kassen und Kunden, desto eher
    braucht es einen zweiten. Die Ids bleiben die alten (Spielstaende). */
-const SB_KASSIERER=['kassierer2','kassierer3','kassierer4','kassierer5'];
+const SB_KASSIERER=['kassierer2','kassierer3'];
 function sbBetreuer(){ return SB_KASSIERER.map(id=>staff[id]).filter(Boolean); }
-/* Zeile einer Spur: die der Erweiterung (e1) oder die am zweiten Eingang (e2) */
-function sbZone(i){ const l=sbLanes[i]; return l&&l.up?'e2':'e1'; }
 function sbWelt(i,x,z){
   const l=sbLanes[i], g=l.g, p=g.parent;
   return (p&&p!==scene)?localToWorld(p,g.position.x+x,g.position.z+z):V(g.position.x+x,0,g.position.z+z);
@@ -24,16 +22,12 @@ function sbHelferPlatz(i){
   const pr=l.g.parent, ry=(pr&&pr!==scene?pr.rotation.y:0);
   return {p:sbWelt(i,0.66,0.95),ry:ry+Math.atan2(-0.66,-0.95)};
 }
-/* Warteplatz einer Zeile: hinter den Terminals auf der Ladenseite (vor
-   der ersten Zeile ist gleich die Fensterfront), mit Blick zu den Kassen. Betreuer 1 und 2 gehoeren zur Erweiterung,
-   3 und 4 an den zweiten Eingang - gibt es die Zeile nicht, zur anderen. */
-function sbHeimZone(id){
-  const k=SB_KASSIERER.indexOf(id), e1=!!(S&&S.up&&S.up.kasse2), e2=!!(S&&S.up&&S.up.kasse3);
-  if(k>=2) return e2?'e2':'e1';
-  return e1?'e1':'e2';
-}
+/* Warteplatz: hinter den Terminals auf der Ladenseite (vor der Zeile
+   ist gleich die Fensterfront), mit Blick zu den Kassen. Seit 05.10.
+   gibt es nur noch die SB-Zeile der Erweiterung (die am zweiten Eingang
+   ist weg) und zwei Betreuer. */
 function sbHeimPlatz(id){
-  const z=sbHeimZone(id), idx=[]; sbLanes.forEach((l,i)=>{ if(sbZone(i)===z) idx.push(i); });
+  const idx=[]; sbLanes.forEach((l,i)=>idx.push(i));
   if(!idx.length) return {p:freiePos(IDLE.kassierer2||V(10.6,0,6)),ry:Math.PI};
   const k=SB_KASSIERER.indexOf(id)%2;
   const a=sbWelt(idx[0],0,0), b=sbWelt(idx[idx.length-1],0,0);
@@ -166,8 +160,11 @@ class Worker{
       this.src=src;
       if(src&&src.kind==='vm') vmEinrStart(this,src);
       else if(src&&src.kind==='truck'){ this.goTo(DOCK.stand.clone()); this.state='atTruck'; }
-      else if(src){ const p=src.kind==='floor'?src.box.mesh.position:localToWorld(src.slot.rk.g,src.slot.x,0.8);
-        this.goTo(V(p.x,0,p.z+(src.kind==='floor'?0.7:0.8))); this.state='fetch'; }
+      /* 05.10.: vor dem Lagerregal steht er auf dessen Vorderseite - frueher
+         kamen zu dieser Stelle noch 0,8 m nach +z dazu, bei den Regalen mit
+         Front nach -z (Nordreihe am Rolltor) stand er damit mitten im Regal */
+      else if(src){ const p=src.kind==='floor'?V(src.box.mesh.position.x,0,src.box.mesh.position.z+0.7):localToWorld(src.slot.rk.g,src.slot.x,rackKindOf(src.slot.rk).zo+0.55);
+        this.goTo(V(p.x,0,p.z)); this.state='fetch'; }
       else { const home=freiePos(IDLE[this.id]||IDLE.auffueller);
         if(this.path.length===0&&this.pos.distanceTo(home)>0.6) this.goTo(home); else this.walk(dt); }
     }
@@ -252,7 +249,11 @@ class Worker{
   }
   guardLoop(dt){
     if(this.chase&&customers.indexOf(this.chase)>=0&&!this.chase.caught){
-      this.path=[V(this.chase.pos.x,0,this.chase.pos.z)]; this.walk(dt);
+      /* 05.10.: hinterher auf dem Wegnetz, nicht geradeaus durch die Wand -
+         neu gesucht alle 0,4 s, der Dieb laeuft ja weiter */
+      this.jagdT=(this.jagdT||0)-dt;
+      if(this.jagdT<=0||!this.path.length){ this.jagdT=0.4; this.path=route(this.pos,V(this.chase.pos.x,0,this.chase.pos.z)); }
+      this.walk(dt);
       if(this.pos.distanceTo(this.chase.pos)<1.3) this.chase.caughtBy('security');
       return;
     }

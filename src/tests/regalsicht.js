@@ -33,7 +33,9 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
       /* ausserhalb des Blickfelds (Handy) ist das ganze Fach versteckt */
       if(lv.imBlick===false){ if(weg!==lv.count) f.push('nicht im Blick, aber sichtbar '+lv.type+' '+weg+'/'+lv.count); }
       else if(reihe>0&&lv.count-weg<Math.min(lv.count,(lv.nah===undefined?2:1)*reihe)) f.push('zu viel versteckt '+lv.type+' '+weg+'/'+lv.count+' Reihe '+reihe);
-      if(!K.frei&&reihe>0&&L.rows>3&&lv.count===L.cap&&weg===0) f.push('nichts versteckt '+lv.type+' '+lv.count);
+      /* oberstes Fach unter Augenhoehe (Kassenregal): man sieht von oben hinein - wie in lvSicht */
+      const offen=lv.li===K.lv.length-1&&K.lv[lv.li]+bb.fachHoehe(K,lv.li)<1.8;
+      if(!K.frei&&!offen&&reihe>0&&L.rows>3&&lv.count===L.cap&&weg===0) f.push('nichts versteckt '+lv.type+' '+lv.count);
     }
     for(const t of Object.keys(bb.pools)){ const pl=bb.pools[t]; pl.h.forEach((h,i)=>{ if(h.i!==i) f.push('Index '+t); if(h.versteckt) f.push('versteckter Griff im Puffer '+t); });
       for(const m of pl.meshes) if(m.count!==pl.h.length){ f.push('Mesh-Anzahl '+t); break; } }

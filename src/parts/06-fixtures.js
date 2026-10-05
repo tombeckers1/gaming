@@ -14,6 +14,37 @@ function rectWelt(x,z,ry,r){
   }
   return {minX:a,maxX:b,minZ:e,maxZ:f};
 }
+/* Moebel nie in der Wand (05.10., Tom, Gameplay-Vorfuehrung: "das
+   Lagerregal war halb in der Wand drin - beim Eingang zum Verkaufsladen",
+   die Einraeumer davor "verschwinden halb in der Wand"): die Stellplaetze
+   sind fuer die schmalen Regale gerechnet. Das Schwerlastregal (3,3 m)
+   ragte am Platz neben der Lagertuer einen halben Meter durch die Wand,
+   tiefe Tische und Gitterboxen an der Wandreihe 7 bis 50 cm, und der
+   Halteplatz vor dem letzten Fach lag mitten in der Mauer.
+   wandRechtecke: Grundriss aller sichtbaren Waende am Boden.
+   wandSchub: wie weit ein Moebel-Rechteck aus den Waenden heraus muss -
+   nach vorn (Tiefe) bis maxT, seitlich (Laenge) bis maxL; mehr ist kein
+   Nachruecken mehr, dann passt das Moebel an diesen Platz nicht (null). */
+function wandRechtecke(){
+  const out=[];
+  for(const m of WAENDE){ let o=m, an=true; while(o){ if(!o.visible){ an=false; break; } o=o.parent; } if(an) out.push(m.userData.aabb); }
+  return out;
+}
+function wandSchub(r,ry,maxT,maxL){
+  const W=wandRechtecke(), tx=Math.abs(Math.sin(ry||0))>0.5; let dx=0, dz=0;
+  for(let n=0;n<8;n++){
+    let hit=null;
+    for(const w of W){ const ox=Math.min(r.x1+dx,w.x1)-Math.max(r.x0+dx,w.x0), oz=Math.min(r.z1+dz,w.z1)-Math.max(r.z0+dz,w.z0);
+      if(ox>0.004&&oz>0.004){ hit={w,ox,oz}; break; } }
+    if(!hit){ const t=tx?Math.abs(dx):Math.abs(dz), l=tx?Math.abs(dz):Math.abs(dx);
+      return t<=maxT+1e-6&&l<=maxL+1e-6?{dx:Math.round(dx*1000)/1000,dz:Math.round(dz*1000)/1000}:null; }
+    const {w,ox,oz}=hit;
+    if(ox<oz) dx+=((r.x0+r.x1)/2+dx<(w.x0+w.x1)/2?-1:1)*(ox+0.01);
+    else dz+=((r.z0+r.z1)/2+dz<(w.z0+w.z1)/2?-1:1)*(oz+0.01);
+  }
+  return null;
+}
+const SCHUB_T=0.6, SCHUB_L=0.15;
 function dropFootprint(m){
   if(m.col){ dropCol(m.col); m.col=null; }
   if(m.cols){ m.cols.forEach(dropCol); m.cols=null; }
@@ -334,20 +365,19 @@ function setSB(an){
   if(an){ buildSBKasse(); sbG.visible=true;
     sbCols.forEach(c=>{ if(colliders.indexOf(c)<0) colliders.push(c); }); }
   else if(sbG){ sbG.visible=false; sbCols.forEach(c=>dropCol(c)); }
-  sbLanes.forEach(l=>{ if(!l.up){ l.busy=null; sbLampe(l,true); } });
+  sbLanes.forEach(l=>{ l.busy=null; sbLampe(l,true); });
 }
 /* Wohin das SB-Kassenpaket getragen wird: vor die Kassenzeile */
 function sbZiel(){ return {x:10.6,z:2.8}; }
-/* Anlaufpunkt vor einem SB-Terminal. Die Zeile am zweiten Eingang
-   haengt in einer verschobenen und drehbaren Gruppe - die lokale
-   Position des Terminals ist dort nicht die Weltposition. */
+/* Anlaufpunkt vor einem SB-Terminal (haengt das Terminal in einer
+   verschobenen oder gedrehten Gruppe, ist seine lokale Position nicht
+   die Weltposition) */
 function sbPos(i){
   const g=sbLanes[i].g, p=g.parent;
   if(p&&p!==scene) return localToWorld(p,g.position.x,g.position.z+0.95);
   return V(g.position.x,0,g.position.z+0.95);
 }
-/* Seit dem zweiten Eingang gibt es zwei Kassenzeilen. Eine Spur
-   zaehlt nur, wenn ihr Ausbau auch gekauft ist. */
+/* Eine Spur zaehlt nur, wenn die SB-Kassen gekauft sind */
 function sbFrei(){ for(let i=0;i<sbLanes.length;i++) if(!sbLanes[i].busy&&sbNutzbar(i)) return i; return -1; }
 function sbOffen(){ let n=0; for(let i=0;i<sbLanes.length;i++) if(sbNutzbar(i)) n++; return n; }
 let deskG=null;
@@ -355,7 +385,9 @@ function buildDesk(){
   /* Die Bueroecke mit dem Laptop haengt an der Westwand, gleich
      neben der Lagertuer. Vorher stand sie an der Ostwand - die
      liegt jetzt hinter der Trennwand. */
-  deskG=new THREE.Group(); deskG.position.set(-7.35,0,0.9); deskG.rotation.y=Math.PI; scene.add(deskG);
+  /* 05.10.: 5 cm von der Wand weg - die Tischplatte (1,17 m mit Kante)
+     ragte bei x -7,35 drei Zentimeter in die Westwand */
+  deskG=new THREE.Group(); deskG.position.set(-7.3,0,0.9); deskG.rotation.y=Math.PI; scene.add(deskG);
   /* Hochwertiger Schreibtisch: Nussbaum-Furnier auf Stahlwangen */
   const furnierT=(()=>{ const t=tex(768,768,(g,W,H)=>{
         const base=g.createLinearGradient(0,0,W,H);
@@ -466,6 +498,11 @@ const pegMat=new THREE.MeshStandardMaterial({roughness:0.62,metalness:0.12,map:(
   for(let x=16;x<W;x+=32) for(let y=16;y<H;y+=32){ g.fillStyle='rgba(255,255,255,.7)'; g.fillRect(x-3,y-4,7,9); g.fillStyle='#3a3d43'; g.fillRect(x-3,y-5,6,9); g.fillStyle='#6a6e76'; g.fillRect(x-3,y-5,6,2); } });
   t.wrapS=t.wrapT=THREE.RepeatWrapping; t.repeat.set(5,5); return t; })()});
 function kindOf(sh){ return SHELFKIND[sh&&sh.kind]||SHELFKIND.standard; }
+/* Kassenregal: dunkles Lochblech (dieselbe Textur wie die Regale, nur
+   Anthrazit) und Edelstahl wie die Zierleiste der Kasse */
+let _kasseRueck=null, _kasseStahl=null;
+function kasseRueckMat(){ return _kasseRueck||(_kasseRueck=new THREE.MeshStandardMaterial({roughness:0.6,metalness:0.15,map:pegMat.map,color:LIN(0x50555e)})); }
+function kasseStahlMat(){ return _kasseStahl||(_kasseStahl=std(0xc9ced6,{metalness:0.85,roughness:0.22})); }
 function shelfCount(k){ return shelves.filter(s=>s.kind===k).length; }
 /* Fassungsvermögen richtet sich nach Regalbreite und -tiefe */
 /* Freie Hoehe ueber einem Fach: bis zum naechsten Boden; das oberste
@@ -545,7 +582,7 @@ function kartonWahl(t){
   const p=P[t]; if(!p||!p.dims||!p.grid) return;
   if(p.box0===undefined) p.box0=p.box;
   const b0=Math.max(1,p.box0|0);
-  const heim=p.kuehlpflicht?['kuehl','tisch']:['standard','gross','tisch'];
+  const heim=p.kuehlpflicht?['kuehl','tisch']:p.kasse==='nur'?['kasse']:['standard','gross','tisch'];
   for(const kid of heim){ const K=SHELFKIND[kid], H=Math.max(...K.lv.map((_,i)=>fachHoehe(K,i))), R=layoutRoh(t,K,H);
     const [c,r,s]=R.cm!==undefined?[R.cm,R.rm,R.st]:[R.cols,R.rows,R.st];
     if(!(c*r*s)) continue;
@@ -637,11 +674,17 @@ function slotFrei(sl){ return !sl.zone||zoneOffen(sl.zone); }
    Vierteln). */
 function moebelRect(K,x,z,ry){ const w=(K.fw||K.w)/2, d=(K.fd||K.d)/2, q=Math.abs(Math.round(Math.sin(ry||0)));
   return q?{x0:x-d,x1:x+d,z0:z-w,z1:z+w}:{x0:x-w,x1:x+w,z0:z-d,z1:z+d}; }
+/* Wo ein Moebel an einem Stellplatz wirklich steht: tiefe Tische und
+   Gitterboxen ruecken von der Wand ab nach vorn (05.10.); passt es auch
+   so nicht, ist der Platz fuer diese Art nichts (null) */
+function stellPlatz(K,sl){ const ry=sl.ry||0, sb=wandSchub(moebelRect(K,sl.x,sl.z,ry),ry,SCHUB_T,SCHUB_L);
+  return sb?{x:sl.x+sb.dx,z:sl.z+sb.dz,ry}:null; }
 function slotPasst(K,sl){
   const art=K.art||'wand';
   if((sl.art||'wand')!==art) return false;
   if(shelves.some(s=>Math.abs(s.g.position.x-sl.x)<0.05&&Math.abs(s.g.position.z-sl.z)<0.05)) return false;
-  const a=moebelRect(K,sl.x,sl.z,sl.ry);
+  const p=stellPlatz(K,sl); if(!p) return false;
+  const a=moebelRect(K,p.x,p.z,p.ry);
   return !shelves.some(s=>{ const b=moebelRect(kindOf(s),s.g.position.x,s.g.position.z,s.g.rotation.y);
     return a.x0<b.x1-0.02&&a.x1>b.x0+0.02&&a.z0<b.z1-0.02&&a.z1>b.z0+0.02; });
 }
@@ -680,6 +723,9 @@ function regalFarben(K){
   /* Verkaufstische (02.10., Tom: "nicht gelb, sondern weiss und so"):
      weisse Schichtstoffplatte, Gestell in Alu bzw. Anthrazit zur Wand */
   if(K&&K.bau==='tisch') return {rahmen:hell?0x3b3f47:0xc4c8ce, seite:0xc4c8ce, blende:0xc4c8ce, fuss:0x24272d, boden:0xd6d9de, preis:0xe9ebee, lippe:0xb4b9c1, kopf:hell?0x2b2f36:0x1d2026, platte:0xf1f0ec, rueck:0xe8e8e6};
+  /* Kassenregal: Farben der Kasse (Korpus und Blende Anthrazit, Platte
+     und Boeden hellgrau, Leisten Edelstahl) - unabhaengig von der Wand */
+  if(K&&K.kasse) return {rahmen:0x2b2e34, seite:0x2b2e34, blende:0x2b2e34, fuss:0x14171f, boden:0xd6dae2, preis:0xe9ebee, lippe:0xc9ced6, kopf:0x2b2e34, platte:0xd6dae2, rueck:0x3a3e46};
   if(K&&K.cold) return {rahmen:0xc8ccd4,seite:0xc8ccd4,blende:0xc8ccd4,fuss:0x2a2e38,boden:0xd9dde4,preis:0xc8ccd4,lippe:0xe8ecf2,kopf:0x1b2340,platte:0xbf9a6c,rueck:0xeef4fa};
   return {rahmen:hell?0x3b3f47:0xb9bec6, seite:hell?mix(wa,0xf6f6f4,0.78):mix(wa,0x9da2aa,0.45), blende:hell?0x3b3f47:0xb9bec6, fuss:0x24272d,
     boden:0xd6d9de, preis:0xe9ebee, lippe:0xb4b9c1, kopf:hell?0x2b2f36:0x1d2026, platte:hell?0xbf9a6c:0x9c7a52, rueck:hell?mix(wa,0xf4f4f2,0.82):mix(wa,0xb4b8be,0.5)};
@@ -783,6 +829,9 @@ function createShelf(i,data){
   const g=new THREE.Group(); const frei=slotsOffen().filter(sl=>slotPasst(K,sl));
   const s=data&&data.x!==undefined?data:(frei[0]||slotsOffen()[0]||SLOTS[0]);
   g.position.set(s.x,0,s.z); g.rotation.y=s.ry||0; scene.add(g);
+  /* nie in der Wand: ein wenig nachruecken, wo das reicht (auch fuer
+     alte Spielstaende mit Tischen an der Wandreihe) */
+  { const sb=wandSchub(moebelRect(K,s.x,s.z,s.ry||0),s.ry||0,SCHUB_T,SCHUB_L); if(sb){ g.position.x+=sb.dx; g.position.z+=sb.dz; } }
   const W=K.w, D=K.d, top=K.lv[K.lv.length-1]+fachHoehe(K,K.lv.length-1)+0.04, hw=W/2, iw=W-0.1;
   const sh={i,g,kind,levels:[],W,D};
   if(data&&typeof data.schild==='string'&&data.schild.trim()) sh.schild=data.schild.trim().slice(0,24);
@@ -809,7 +858,12 @@ function createShelf(i,data){
     for(const sx of [-1,1]) for(const sz of [-1,1])
       st.push({geo:box(0.09,0.04,0.09),m:tm(sx*(hw-0.1),0.02,sz*(D/2-0.1)),rolle:'fuss'});
     /* Rueckwand bleibt eigenes Mesh: Lochblech beziehungsweise Kuehlschrankwand */
-    bbox(iw,top-0.1,0.02,K.cold?std(0xeef4fa,{roughness:0.5}):pegMat,0,top/2,-D/2+0.03,fg);
+    bbox(iw,top-0.1,0.02,K.cold?std(0xeef4fa,{roughness:0.5}):K.kasse?kasseRueckMat():pegMat,0,top/2,-D/2+0.03,fg);
+    /* Kassenregal: Edelstahlleisten wie an der Kasse - vorn an der
+       Deckplatte und ueber der Sockelblende */
+    if(K.kasse){ const ed=kasseStahlMat();
+      bbox(W+0.012,0.03,0.02,ed,0,top+0.045,D/2+0.004,fg,false);
+      bbox(W-0.04,0.022,0.02,ed,0,0.19,D/2+0.006,fg,false); }
     K.lv.forEach((y,li)=>{
       st.push({geo:box(iw,0.03,D-0.04),m:tm(0,y-0.015,0),rolle:'boden'});
       st.push({geo:box(iw,0.05,0.014),m:tm(0,y-0.02,D/2-0.013),rolle:'preis'});
@@ -872,6 +926,16 @@ function headArt(sh){
   return best; }
 function updateHead(sh){
   if(!sh.headTex) return;
+  /* Kassenregal: Schild wie das Namensschild der Kasse - Anthrazit,
+     helle Serifenschrift, feine Edelstahllinie */
+  if(kindOf(sh).kasse){ const t=(sh.schild||'Nicht vergessen').toUpperCase();
+    redraw(sh.headTex,(g,W,Hh)=>{ g.setTransform(1,0,0,1,0,0); g.scale(W/512,Hh/80); W=512; Hh=80;
+      g.fillStyle=CK_BLENDE; g.fillRect(0,0,W,Hh);
+      g.fillStyle='#9aa1ac'; g.fillRect(0,Hh-5,W,2);
+      g.textAlign='center'; g.textBaseline='middle'; if('letterSpacing' in g) g.letterSpacing='3px';
+      fitFont(g,t,W-60,40,CK_SCHRIFT); g.fillStyle='#eef0f4'; g.fillText(t,W/2,Hh/2+2);
+      if('letterSpacing' in g) g.letterSpacing='0px'; });
+    return; }
   const best=headArt(sh);
   /* 02.10. (Tom): kein "REGAL FREI" mehr - dass es leer ist, sieht man.
      Tisch und Gitterbox zeigen leer gar kein Schild, Regale einen
@@ -989,11 +1053,31 @@ function findLevel(t,from){ let best=null,bd=1e9; for(const l of allLevels()){ i
 function shelfCapOf(t){ let m=0; shelves.forEach(sh=>{ if(shelfAccepts(sh,t)) m=Math.max(m,layout(t,sh).cap); }); return m; }
 /* Ins Kuehlregal kommt nur Gekuehltes; frische Lebensmittel (Fondue-
    und Raclette-Platten) nur ins Kuehlregal */
-function shelfAccepts(sh,t){ const K=kindOf(sh); return K.cold?!!P[t].cold:!P[t].kuehlpflicht; }
+/* Kassenregal (05.10.): nimmt nur Kleinkram (P[t].kasse); was 'nur' dorthin
+   gehoert (Sturmfeuerzeuge ...), nimmt kein anderes Regal */
+function shelfAccepts(sh,t){ const K=kindOf(sh), p=P[t];
+  if(K.kasse) return !!p.kasse&&!p.kuehlpflicht;
+  if(p.kasse==='nur') return false;
+  return K.cold?!!p.cold:!p.kuehlpflicht; }
+/* Warum ein Produkt nicht in dieses Fach darf - fuer Meldung und Anzeige */
+function regalNein(sh,t){
+  if(shelfAccepts(sh,t)) return null;
+  const K=kindOf(sh), p=P[t];
+  if(K.kasse) return `${p.short}: Ins Kassenregal kommt nur Kleinkram wie Feuerzeuge und Knicklichter.`;
+  if(p.kasse==='nur') return `${p.short} gehören ins Kassenregal an der Kasse.`;
+  if(K.cold) return `${p.short}: Im Kühlschrank steht nur Gekühltes.`;
+  return `${p.short} müssen in den Kühlschrank.`; }
+/* Freie Faecher im Kassenregal, die die 'nur'-Ware noch braucht: dorthin
+   kommt Kleinkram, der auch ins Regal darf, erst, wenn genug frei ist */
+function kasseReserve(){
+  const fehlt=ORDER.filter(t=>P[t]&&P[t].kasse==='nur'&&isUnlocked(t)&&!allLevels().some(l=>l.type===t&&kindOf(l.sh).kasse)).length;
+  const leer=allLevels().filter(l=>!l.type&&kindOf(l.sh).kasse).length;
+  return leer>fehlt; }
 function emptyLevel(t){ if(!canShelf(t)) return null;
-  const pool=allLevels().filter(l=>shelfAccepts(l.sh,t));
-  /* Kühlware kommt bevorzugt in den Kühlschrank */
-  const pref=P[t].cold?pool.filter(l=>kindOf(l.sh).cold):[];
+  let pool=allLevels().filter(l=>shelfAccepts(l.sh,t));
+  if(P[t].kasse==='gern'&&!kasseReserve()) pool=pool.filter(l=>!kindOf(l.sh).kasse||l.type===t);
+  /* Kühlware kommt bevorzugt in den Kühlschrank, Kleinkram ins Kassenregal */
+  const pref=P[t].cold?pool.filter(l=>kindOf(l.sh).cold):P[t].kasse?pool.filter(l=>kindOf(l.sh).kasse):[];
   for(const list of [pref,pool]){
     for(const l of list) if(l.type===t&&l.count<capOf(l,t)) return l;
     /* nur Faecher, in die die Ware auch passt - sonst lief der Einraeumer
@@ -1019,7 +1103,69 @@ function rackCount(k){ return racks.filter(r=>r.kind===k).length; }
 /* Ein Stellplatz nimmt nur Regale, die unter die Decke passen */
 function rackPasst(K,sl){ return K.hoch+0.5<=(sl.h||WH); }
 function racksOffen(){ return RACKS.filter(x=>!x.zone||zoneOffen(x.zone)); }
-function rackPlatzFrei(K){ return racksOffen().filter(sl=>rackPasst(K,sl)&&!racks.some(r=>Math.abs(r.g.position.x-sl.x)<0.05&&Math.abs(r.g.position.z-sl.z)<0.05)); }
+/* Grundriss eines Lagerregals: Traversen und Stuetzen samt Fussplatten */
+function rackRect(K,x,z,ry){ const w=K.w/2+0.05, d=K.zo+0.09, q=Math.abs(Math.round(Math.sin(ry||0)));
+  return q?{x0:x-d,x1:x+d,z0:z-w,z1:z+w}:{x0:x-w,x1:x+w,z0:z-d,z1:z+d}; }
+/* 05.10.: ein Platz nimmt ein Lagerregal nur, wenn es nicht in eine Wand
+   und nicht ins Nachbarregal ragt - das Schwerlastregal (3,3 m) ist
+   breiter als der Abstand der Plaetze (3,1 m) und stand neben der
+   Lagertuer einen halben Meter in der Mauer */
+function rackStellPlatz(K,sl){ const ry=sl.ry||0, sb=wandSchub(rackRect(K,sl.x,sl.z,ry),ry,SCHUB_T,SCHUB_L);
+  return sb?{x:sl.x+sb.dx,z:sl.z+sb.dz,ry}:null; }
+function rackPlatzFrei(K,ohne){ return racksOffen().filter(sl=>{
+  if(!rackPasst(K,sl)) return false;
+  if(racks.some(r=>r!==ohne&&Math.abs(r.g.position.x-sl.x)<0.05&&Math.abs(r.g.position.z-sl.z)<0.05)) return false;
+  const p=rackStellPlatz(K,sl); if(!p) return false;
+  const a=rackRect(K,p.x,p.z,p.ry);
+  return !racks.some(r=>{ if(r===ohne) return false; const b=rackRect(rackKindOf(r),r.g.position.x,r.g.position.z,r.g.rotation.y);
+    return a.x0<b.x1-0.02&&a.x1>b.x0+0.02&&a.z0<b.z1-0.02&&a.z1>b.z0+0.02; }); }); }
+/* Kein Regal macht einen Gang zu (05.10.): in der Lagererweiterung Nord
+   stand die Reihe am Rolltor Ruecken an Ruecken mit der Nordreihe - voll
+   besetzt war der Gang davor von nirgends mehr zu erreichen, und Einraeumer
+   und Packer liefen auf dem Notweg geradeaus durch die Lagerwand. Ein
+   neues Lagerregal kommt nur dorthin, wo danach jedes Lagerfach von der
+   Lagertuer aus erreichbar bleibt. */
+function rackErreichbar(g){
+  const out=new Uint8Array(g.length), start=navNah(-8.9,-2.5); if(start<0) return out;
+  const W=NAV.w, H=NAV.h; out[start]=1; const Q=[start]; let h=0;
+  while(h<Q.length){ const k=Q[h++], i=k%W, r=(k-i)/W;
+    for(const n of [i>0?k-1:-1,i<W-1?k+1:-1,r>0?k-W:-1,r<H-1?k+W:-1]) if(n>=0&&!g[n]&&!out[n]){ out[n]=1; Q.push(n); } }
+  return out;
+}
+/* Haltepunkte vor allen Faechern: die vorhandenen Lagerregale und das neue */
+function rackHaltepunkte(K,p){
+  const pts=[], stand=(gx,gz,ry,KK)=>{ const sn=Math.sin(ry), cs=Math.cos(ry), lz=KK.zo+0.55; KK.sp.forEach(x=>pts.push([gx+x*cs+lz*sn, gz-x*sn+lz*cs])); };
+  racks.forEach(rk=>stand(rk.g.position.x,rk.g.position.z,rk.g.rotation.y,rackKindOf(rk)));
+  if(K) stand(p.x,p.z,p.ry||0,K);
+  return pts;
+}
+/* Abgelehnt wird, wenn ein Haltepunkt, der ohne das neue Regal erreichbar
+   ist, es mit ihm nicht mehr ist - Bereiche, die ohnehin abseits liegen
+   (Logistikhalle hinter dem Tor), zaehlen nicht dagegen. Das Raster wird
+   einmal gebaut, das neue Regal nur hineingezeichnet. */
+function rackZugang(K,p){
+  if(NAV.dirty) navBuild();
+  const G=NAV.g, roh=rackHaltepunkte(K,p), vorher=rackErreichbar(G);
+  const a=roh.map(([x,z])=>{ const n=navNah(x,z); return n>=0&&!!vorher[n]; });
+  const fw=K.w+0.16, fd=2*K.zo+0.14, q=Math.abs(Math.round(Math.sin(p.ry||0))), hw=(q?fd:fw)/2+0.3, hd=(q?fw:fd)/2+0.3;
+  const g2=G.slice();
+  const i0=Math.max(0,Math.floor((p.x-hw-NAV.x0)/NAV.s)), i1=Math.min(NAV.w-1,Math.floor((p.x+hw-NAV.x0)/NAV.s));
+  const k0=Math.max(0,Math.floor((p.z-hd-NAV.z0)/NAV.s)), k1=Math.min(NAV.h-1,Math.floor((p.z+hd-NAV.z0)/NAV.s));
+  for(let i=i0;i<=i1;i++) for(let k=k0;k<=k1;k++) g2[k*NAV.w+i]=1;
+  NAV.g=g2;
+  try{ const nach=rackErreichbar(g2);
+    return roh.every(([x,z],i)=>{ if(!a[i]) return true; const m=navNah(x,z); return m>=0&&!!nach[m]; });
+  } finally { NAV.g=G; }
+}
+/* Alte Spielstaende: ein Lagerregal, das in der Wand steht, zieht auf
+   den naechsten freien Platz, der es nimmt (sonst bleibt es stehen) */
+function racksEntwirren(){
+  for(const rk of racks.slice()){ const K=rackKindOf(rk), g=rk.g;
+    if(wandSchub(rackRect(K,g.position.x,g.position.z,g.rotation.y),g.rotation.y,0,0)) continue;
+    const frei=rackPlatzFrei(K,rk); if(!frei.length) continue;
+    let best=frei[0], bd=1e9; for(const sl of frei){ const d=(sl.x-g.position.x)**2+(sl.z-g.position.z)**2; if(d<bd){ bd=d; best=sl; } }
+    const p=rackStellPlatz(K,best); placeMovable(rk.mov,p.x,p.z,p.ry); rk.slot=best; }
+}
 function rackFreiFuer(kindId){ const K=RACKKIND[kindId]; return K?rackPlatzFrei(K).length>0:false; }
 function rackAlleBelegt(kindId){
   const K=RACKKIND[kindId]; if(!K) return true;
@@ -1094,6 +1240,7 @@ function createRack(i,data){
   if(!(data&&data.x!==undefined)){ const frei=rackPlatzFrei(K); slot=frei[0]||racksOffen().filter(sl=>rackPasst(K,sl))[0]||RACKS[0]; }
   const r=data&&data.x!==undefined?data:slot, g=new THREE.Group();
   g.position.set(r.x,0,r.z); g.rotation.y=r.ry||0; scene.add(g);
+  { const sb=wandSchub(rackRect(K,r.x,r.z,r.ry||0),r.ry||0,SCHUB_T,SCHUB_L); if(sb){ g.position.x+=sb.dx; g.position.z+=sb.dz; } }
   const HT=K.hoch, XO=K.w/2, ZO=K.zo, BW=K.w;
   rackMats();
   const GB={}; const box=(w,h,d)=>GB[w+'|'+h+'|'+d]||(GB[w+'|'+h+'|'+d]=new THREE.BoxGeometry(w,h,d));

@@ -47,9 +47,9 @@ const NEUWARE={
     art:{title:'FEUERTEUFEL',sub:'Zweihorn-Fontäne · 9 s',bg1:'#8a1a08',bg2:'#240502',ac:'#ffd23f',ac2:'#ff7a1c'}},
 
   /* ---------- Zubehoer: Sicherheit und Anzuenden ---------- */
-  streichhoelzer:{name:'Sturm-Streichhölzer 10 Schachteln',short:'Streichhölzer',cat:0,lvl:3,shape:'boxA',dims:[0.16,0.06,0.11],grid:[8,2,2],box:20,cost:0.90,market:2.29,weight:7,hype:0,risk:2,
+  streichhoelzer:{name:'Sturm-Streichhölzer 10 Schachteln',short:'Streichhölzer',cat:0,kasse:'nur',lvl:3,shape:'boxA',dims:[0.16,0.06,0.11],grid:[8,2,2],box:20,cost:0.90,market:2.29,weight:7,hype:0,risk:2,
     art:{title:'STURMHOLZ',sub:'windfest · 10 Schachteln',bg1:'#c8322a',bg2:'#4a0a06',ac:'#fff3c4',ac2:'#ffd23f'}},
-  gehoerschutz:{name:'Gehörschutz-Stöpsel 10 Paar',short:'Gehörschutz',cat:0,lvl:3,shape:'boxA',dims:[0.12,0.2,0.05],grid:[10,2,1],box:20,cost:1.00,market:2.49,weight:6,hype:0,risk:1,
+  gehoerschutz:{name:'Gehörschutz-Stöpsel 10 Paar',short:'Gehörschutz',cat:0,kasse:'nur',lvl:3,shape:'boxA',dims:[0.12,0.2,0.05],grid:[10,2,1],box:20,cost:1.00,market:2.49,weight:6,hype:0,risk:1,
     art:{title:'LEISE',sub:'Gehörschutz 10 Paar',bg1:'#f28a1c',bg2:'#8a3d06',ac:'#0e1226',ac2:'#ffffff',light:true}},
   schutzbrille:{name:'Schutzbrille klar',short:'Schutzbrille',cat:0,lvl:4,shape:'boxA',dims:[0.18,0.08,0.1],grid:[8,2,2],box:12,cost:1.60,market:3.99,weight:5,hype:0,risk:1,
     art:{title:'KLARSICHT',sub:'Schutzbrille',bg1:'#2a6a9a',bg2:'#0a2236',ac:'#f2f5ff',ac2:'#ffd23f'}},
@@ -174,9 +174,9 @@ const NEUWARE={
     art:{title:'GLÜCKSKEKSE',sub:'20 Stück · Neujahr',bg1:'#c8322a',bg2:'#4a0a06',ac:'#ffd23f',ac2:'#fff3c4'}},
   gluecksklee:{name:'Glücksklee im Topf',short:'Glücksklee',cat:0,lvl:11,shape:'cylinder',dims:[0.1,0.14,0.1],grid:[10,2,1],box:12,cost:1.00,market:2.49,weight:7,hype:0,risk:3,
     art:{title:'GLÜCKSKLEE',sub:'im Topf',bg1:'#2f9e57',bg2:'#0d3a20',ac:'#ffd23f',ac2:'#ff4a4a'}},
-  marzipanschwein:{name:'Glücksschweinchen aus Marzipan 6er',short:'Marzipanschwein',cat:0,lvl:11,shape:'boxA',dims:[0.18,0.06,0.12],grid:[8,2,2],box:16,cost:1.60,market:3.99,weight:6,hype:0,risk:3,
+  marzipanschwein:{name:'Glücksschweinchen aus Marzipan 6er',short:'Marzipanschwein',cat:0,kasse:'gern',lvl:11,shape:'boxA',dims:[0.18,0.06,0.12],grid:[8,2,2],box:16,cost:1.60,market:3.99,weight:6,hype:0,risk:3,
     art:{title:'GLÜCKSSCHWEIN',sub:'Marzipan · 6 Stück',bg1:'#e58ca5',bg2:'#7a2a44',ac:'#fff3c4',ac2:'#1b5a2a'}},
-  schokotaler:{name:'Schoko-Glückstaler 30er',short:'Glückstaler',cat:0,lvl:11,shape:'boxA',dims:[0.16,0.18,0.05],grid:[10,2,1],box:16,cost:1.20,market:2.99,weight:6,hype:0,risk:3,
+  schokotaler:{name:'Schoko-Glückstaler 30er',short:'Glückstaler',cat:0,kasse:'gern',lvl:11,shape:'boxA',dims:[0.16,0.18,0.05],grid:[10,2,1],box:16,cost:1.20,market:2.99,weight:6,hype:0,risk:3,
     art:{title:'GLÜCKSTALER',sub:'Schokolade · 30 Stück',bg1:'#4a3308',bg2:'#150e02',ac:'#ffd23f',ac2:'#f2ecd8',gold:true}},
 
   /* ---------- Level 12 ---------- */

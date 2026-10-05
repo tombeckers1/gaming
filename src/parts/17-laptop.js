@@ -591,8 +591,7 @@ const UP_MOTIV={
       g.fillStyle='#d7dbe3'; g.fillRect(28,y+36,168,5);
       g.fillStyle='#fffbe6'; g.fillRect(34,y+41,156,2);
       if(i<2){ const gr=g.createLinearGradient(0,y+43,0,y+64); gr.addColorStop(0,'rgba(255,246,210,.45)'); gr.addColorStop(1,'rgba(255,246,210,0)'); g.fillStyle=gr; g.fillRect(34,y+43,156,21); } } },
-  /* SB-Kassen: zwei Selbstbedienungskassen mit Scanner und Ablage;
-     fuer den zweiten Eingang dazu die Tuer mit Schild */
+  /* SB-Kassen: zwei Selbstbedienungskassen mit Scanner und Ablage */
   kasse2(g,W,H,h,eingang){ h.grund(); h.boden(126);
     const xs=eingang?[96,160]:[40,138];
     if(eingang){ g.fillStyle='#2a3350'; g.fillRect(8,30,62,98); g.fillStyle='#8fb4d8'; g.fillRect(14,40,24,88); g.fillRect(42,40,24,88);
@@ -606,7 +605,6 @@ const UP_MOTIV={
       g.fillStyle='#fff'; g.font='700 7px sans-serif'; g.textAlign='center'; g.fillText('SCANNEN',x+12,42); g.fillStyle='#6cf2a8'; g.fillRect(x-2,47,28,5);
       g.fillStyle='#ffd23f'; g.fillRect(x+22,74,8,12); }
     if(!eingang) h.schild('SB',112,20); },
-  kasse3(g,W,H,h){ UP_MOTIV.kasse2(g,W,H,h,true); },
   sackkarre(g,W,H,h){ h.grund(); h.boden(128); h.schatten(112,130,46,6);
     /* Karre leicht nach hinten gekippt: Holme, Schaufel, zwei Raeder, vier Kartons */
     g.save(); g.translate(112,128); g.rotate(-0.16);
@@ -648,10 +646,10 @@ const UP_MOTIV={
     g.fillStyle='#2b3140'; g.fillRect(24,20,96,108); g.fillStyle='#39414d'; g.fillRect(30,26,84,100);
     for(const x of [34,74]){ const gr=g.createLinearGradient(x,30,x+36,120); gr.addColorStop(0,'rgba(170,215,255,.55)'); gr.addColorStop(1,'rgba(90,130,190,.35)'); g.fillStyle=gr; g.fillRect(x,30,36,94); g.fillStyle='#c9ced8'; g.fillRect(x+(x<60?30:3),66,3,18); }
     g.fillStyle='#f2c230'; g.fillRect(24,14,96,8); g.fillStyle='#10152a'; g.font='700 8px sans-serif'; g.textAlign='center'; g.fillText('EINGANG 2',72,21);
-    /* Kasse */
-    g.fillStyle='#1b2340'; g.fillRect(134,86,76,40); g.fillStyle='#d6dae2'; g.fillRect(130,80,84,8);
-    g.fillStyle='#2b3140'; g.fillRect(166,52,6,30); g.fillStyle='#10152a'; g.fillRect(150,40,40,26); g.fillStyle='#2f6bb8'; g.fillRect(153,43,34,20);
-    g.fillStyle='#6cf2a8'; g.fillRect(156,55,16,4); g.fillStyle='#c8322a'; g.fillRect(134,100,76,4);
+    /* Fussmatte und ein Pfeil hinein - die SB-Kassen dahinter gibt es
+       seit 05.10. nicht mehr */
+    g.fillStyle='#232830'; g.fillRect(28,124,88,6);
+    g.fillStyle='#f2c230'; g.fillRect(140,80,44,12); g.beginPath(); g.moveTo(140,72); g.lineTo(122,86); g.lineTo(140,100); g.closePath(); g.fill();
     h.nummer(2); },
   rampe(g,W,H,h,n){ h.grund('#16203a','#0a1020'); h.boden(118,'rgba(20,22,28,.7)');
     /* Hallenwand mit Rolltor, davor ein LKW-Auflieger rueckwaerts angedockt */
@@ -847,7 +845,7 @@ function upPic(id){
       for(let i=0;i<3;i++){ const y=44+i*34; g.fillStyle='#e06a1f'; g.fillRect(28,y,168,7);
         for(let k=0;k<3;k++){ g.fillStyle='#c9a978'; g.fillRect(40+k*54,y-20,44,20); } }
       break;
-    case 'kasse2': case 'kasse3':
+    case 'kasse2':
       bg('#16203a','#0b1222');
       /* zwei SB-Terminals nebeneinander */
       for(const bx of [26,120]){
@@ -888,6 +886,20 @@ function upPic(id){
         g.fillStyle='#5a6170'; g.fillRect(x0,84,b,4); g.fillRect(x0,104,b,3); g.fillRect(x0,124,b,3); g.fillRect(x0-3,84,3,44); g.fillRect(x0+b,84,3,44);
         for(let k=0;k<6;k++){ g.fillStyle=['#e0a0c8','#ffd23f','#6fa8d8'][k%3]; g.fillRect(x0+6+k*(b-12)/6,94,(b-24)/6,10); g.fillRect(x0+6+k*(b-12)/6,114,(b-24)/6,10); } }
       break;
+    case 'shelf_kasse':
+      /* Kassenregal neben dem Kassenband: niedrig, Anthrazit, Edelstahlleiste */
+      bg('#1b2540','#0d1326');
+      g.fillStyle='#2b2e34'; g.fillRect(122,96,88,38); g.fillStyle='#d6dae2'; g.fillRect(118,90,96,7);
+      g.fillStyle='#17181d'; g.fillRect(124,92,70,4); g.fillStyle='#c9ced6'; g.fillRect(122,108,88,3);
+      { const x0=24, bw=82, y0=30, h=104;
+        g.fillStyle='#2b2e34'; g.fillRect(x0-5,y0,5,h); g.fillRect(x0+bw,y0,5,h); g.fillRect(x0-5,y0-16,bw+10,14);
+        g.fillStyle='#eef0f4'; g.font='700 8px Georgia, serif'; g.textAlign='center'; g.fillText('NICHT VERGESSEN',x0+bw/2,y0-6);
+        g.fillStyle='#3a3e46'; g.fillRect(x0,y0,bw,h);
+        for(let i=0;i<5;i++){ const y=y0+8+i*(h-10)/5+12;
+          g.fillStyle='#d6dae2'; g.fillRect(x0,y,bw,4); g.fillStyle='#ffd23f'; g.fillRect(x0+bw/2-8,y+4,16,3);
+          for(let k=0;k<5;k++){ g.fillStyle=['#c8322a','#2f6bb8','#e8a23a','#3aa36b','#c9ced6'][(k+i)%5]; g.fillRect(x0+4+k*15.5,y-9,12,9); } }
+        g.fillStyle='#c9ced6'; g.fillRect(x0-5,y0+h-12,bw+10,3); }
+      g.fillStyle='rgba(0,0,0,.35)'; g.fillRect(0,H-18,W,18); break;
     case 'shelf_eck':
       bg('#1b2540','#0d1326');
       /* Eckregal von oben: zwei Schenkel ueber Eck */
@@ -1218,7 +1230,7 @@ function lapZeichnen(body){
         if(!un) return kopf+`<div class="karte locked" ${dw}><img class="kbild" ${prodPicTag(t)} alt=""><b>${p.name} ${catPill(p)}</b><small>${l?`Lizenz „${l.name}“ ab Level ${l.lvl}. Unter Sortiment freischalten.`:`Ab Level ${p.lvl}.`}</small></div>`;
         const btns=tiers.map(tr=>{ const c=tierPrice(t,sup,tr);
           return `<button data-a="cart" data-t="${t}" data-n="${tr.n}" data-s="${sup.id}">+ ${tr.n}× ${eur(c)}${tr.d?` <span style="opacity:.7">−${Math.round(tr.d*100)}%</span>`:''}</button>`; }).join('');
-        return kopf+`<div class="karte" ${dw}><img class="kbild" ${prodPicTag(t)} alt=""><b>${p.name} ${catPill(p)} ${ekPill(t)}</b><small>Karton mit ${p.box} Stück${canShelf(t)?(cap?` · Fach fasst ${cap}`:' · kein passendes Regal'):' · nur für den Automaten'}</small><small>Im Laden: ${shelfStockOf(t)} im Regal, ${stockOf(t)} insgesamt</small>`+
+        return kopf+`<div class="karte" ${dw}><img class="kbild" ${prodPicTag(t)} alt=""><b>${p.name} ${catPill(p)} ${ekPill(t)}</b><small>Karton mit ${p.box} Stück${canShelf(t)?(cap?` · Fach fasst ${cap}`:p.kasse==='nur'?' · gehört ins Kassenregal':' · kein passendes Regal'):' · nur für den Automaten'}${p.kasse&&cap?' · Kassenregal':''}</small><small>Im Laden: ${shelfStockOf(t)} im Regal, ${stockOf(t)} insgesamt</small>`+
           `<div class="steps">${btns}</div></div>`; }).join('')+`</div>`;
     }
   } else if(ltab==='price'){
@@ -1593,7 +1605,7 @@ function buyUp(id){
       else if(id==='lager_sued') toast('Der zweite Abschnitt ist offen. Die Wand dazwischen ist ganz weg.','money');
       else if(id==='lager_sued2') toast('Die Halle Süd ist komplett: 283 Quadratmeter am Stück.','money');
       else if(id==='lager_west') toast('Die Logistikhalle gehört dir: hinter der Schleuse, die Tore rechts an der Südwand. Mit jeder Stufe wird sie größer.','money');
-      else if(id==='eingang2'){ setEingang2(true); toast('Der zweite Eingang ist offen. Die Kassenzeile dahinter kannst du mit F in die Hand nehmen und verschieben.','money'); }
+      else if(id==='eingang2'){ setEingang2(true); toast('Der zweite Eingang ist offen. Kunden nehmen ab jetzt die Tür, die näher liegt.','money'); }
       else if(id.indexOf('rampe')===0) toast(`${u.name.split(' ')[0]} Andockstation geht in Betrieb. Das Tor ist frei.`,'money');
       else if(id==='packstation'){ drawPackSchild(); toast(S.up.onlineshop?'Die Packstation steht. Ab jetzt kommen Onlinebestellungen als Pakete herein.':'Die Packstation steht. Für den Versand brauchst du noch den Onlineshop.','money'); }
       addXP(Math.round(cost/12),'Ausbau'); sfx.cash(); save(); return;

@@ -2,8 +2,9 @@
    Kassen kommen als Paket - ohne Lager vor die Tuer -, werden am
    Stellplatz ausgepackt oder als Paket abgestellt (lagerbar). Pakete
    sind so gross wie ihr Inhalt (29.09.) - Pruefung der Groesse und der
-   Moebeltaste in moebel.js. Die SB-Kassen am zweiten Eingang
-   kommen nicht mehr mit der Tuer, sondern sind ein eigener Kauf. */
+   Moebeltaste in moebel.js. Die SB-Kassen kommen als Paket und werden
+   an ihrem festen Platz ausgepackt; am zweiten Eingang gibt es seit
+   05.10. keine (Tom: "machen keinen Sinn - die muessen weg"). */
 async function neuesSpiel(p){
   await p.waitForFunction("!!document.querySelector('#startBtns button:not([disabled])')",{timeout:60000});
   await p.click('#startBtns button:last-child');
@@ -47,26 +48,25 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     bb.setView(sl.x,sl.z+2.6,0,-0.1); bb.run(0.05,0.05);
     bb.paketAuspacken(); if(bb.grabbed){ bb.updateGrab(); bb.placeGrab(); }
     o.aufgebaut={pakete:bb.einbauPakete.length,regale:bb.shelves.length-basis,tragen:!!S.carrying};
-    /* 4. Zweiter Eingang ohne Kassen */
+    /* 4. Zweiter Eingang ohne Kassen - und keinen Ausbau mehr dafuer */
     ['shop_halb','lager','lager_nord','shop_gross','shop_ost','eingang2'].forEach(id=>bb.testKauf(id));
-    const lanes2=()=>bb.sbLanes.map((l,i)=>l.up==='kasse3'?bb.sbNutzbar(i):null).filter(v=>v!==null);
-    o.eingang2={kasse3:!!S.up.kasse3,nutzbar:lanes2().filter(Boolean).length,sichtbar:!!(bb.sb2G&&bb.sb2G.visible)};
-    /* 5. Kassen kaufen: erst Paket, dann aufstellen */
-    bb.buyUp('kasse3');
-    o.bestellt={kasse3:!!S.up.kasse3,unterwegs:bb.pendingListe().filter(pd=>pd.einbau==='kasse3').length};
-    S.carrying={einbau:'kasse3'}; const z=bb.EINBAU.kasse3.ziel();
-    bb.setView(z.x,z.z+3,0,-0.1); bb.run(0.05,0.05);
-    bb.paketAuspacken(); o.kasseInHand=!!bb.grabbed; if(bb.grabbed){ bb.updateGrab(); bb.placeGrab(); if(bb.grabbed) bb.cancelGrab(); }
-    o.aufgestellt={kasse3:!!S.up.kasse3,nutzbar:lanes2().filter(Boolean).length,sichtbar:!!(bb.sb2G&&bb.sb2G.visible)};
+    o.eingang2={kasse3:bb.UPGRADES.some(u=>u.id==='kasse3')||!!bb.EINBAU.kasse3,nutzbar:bb.sbOffen(),spuren:bb.sbLanes.length};
+    /* 5. SB-Kassen kaufen: erst Paket, dann an ihrem Platz aufstellen */
+    bb.buyUp('kasse2');
+    o.bestellt={kasse2:!!S.up.kasse2,unterwegs:bb.pendingListe().filter(pd=>pd.einbau==='kasse2').length};
+    S.carrying={einbau:'kasse2'}; const z=bb.EINBAU.kasse2.ziel();
+    bb.setView(z.x,z.z+1,0,-0.1); bb.run(0.05,0.05);
+    bb.paketAuspacken(); if(bb.grabbed){ bb.updateGrab(); bb.placeGrab(); if(bb.grabbed) bb.cancelGrab(); }
+    o.aufgestellt={kasse2:!!S.up.kasse2,nutzbar:bb.sbOffen(),tragen:!!S.carrying};
     return o; });
   console.log('PAKETE',JSON.stringify(r));
   pruef('VOR_DIE_TUER',r.ohneLager.pakete===1&&r.ohneLager.regale===0,'ohne Lager: '+JSON.stringify(r.ohneLager));
   pruef('GROESSE',r.gross<=3&&r.klein>=1,'Pakete '+r.klein+' bis '+r.gross+' m');
   pruef('LAGERN',r.gelagert.pakete===1&&r.gelagert.regale===0&&!r.gelagert.tragen,'weit weg abgestellt: '+JSON.stringify(r.gelagert));
   pruef('AUSPACKEN',r.aufgebaut.pakete===0&&r.aufgebaut.regale===1&&!r.aufgebaut.tragen,'am Stellplatz ausgepackt: '+JSON.stringify(r.aufgebaut));
-  pruef('EINGANG2_OHNE_KASSEN',!r.eingang2.kasse3&&r.eingang2.nutzbar===0&&!r.eingang2.sichtbar,'Kassen kommen mit der Tuer: '+JSON.stringify(r.eingang2));
-  pruef('KASSE_ALS_PAKET',!r.bestellt.kasse3&&r.bestellt.unterwegs===1,'Kauf stellt Kassen sofort auf: '+JSON.stringify(r.bestellt));
-  pruef('KASSE_AUFSTELLEN',r.aufgestellt.kasse3&&r.aufgestellt.nutzbar===2&&r.aufgestellt.sichtbar,'Aufstellen: '+JSON.stringify(r.aufgestellt));
+  pruef('EINGANG2_OHNE_KASSEN',!r.eingang2.kasse3&&r.eingang2.nutzbar===0,'Kassen am zweiten Eingang: '+JSON.stringify(r.eingang2));
+  pruef('KASSE_ALS_PAKET',!r.bestellt.kasse2&&r.bestellt.unterwegs===1,'Kauf stellt Kassen sofort auf: '+JSON.stringify(r.bestellt));
+  pruef('KASSE_AUFSTELLEN',r.aufgestellt.kasse2&&r.aufgestellt.nutzbar===2&&!r.aufgestellt.tragen,'Aufstellen: '+JSON.stringify(r.aufgestellt));
   console.log('MANGEL:',mangel.length?mangel.join(' | '):'keine');
   console.log('ERRORS:',errs.length||mangel.length?errs.concat(mangel).join('\n'):'keine');
   await b.close();

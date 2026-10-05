@@ -44,7 +44,10 @@ const VP_ZEILEN=[
   /* 05.10.: Kleinfeuerwerk und neue Batterien - 252 Produkte, 3 mehr als
      Faecher; ein zehntes kleines Regal (3 Faecher), die Zeile wird dadurch
      nicht laenger als die rechte Seite */
-  {art:'paar',links:['klein','klein','klein','klein','klein','klein','klein','klein','klein','klein'],rechts:['kuehl','kuehl','kuehl','kuehl','kuehl','kuehl','kuehl','hoch','klein']},
+  /* 05.10.: das letzte kleine Regal links ist jetzt das Kassenregal (fuenf
+     Faecher) - Sturmfeuerzeuge, Streichhoelzer und Gehoerschutz duerfen
+     nur dorthin */
+  {art:'paar',links:['klein','klein','klein','klein','klein','klein','klein','klein','klein','kasse'],rechts:['kuehl','kuehl','kuehl','kuehl','kuehl','kuehl','kuehl','hoch','klein']},
   {art:'einzeln',kinds:['gross','gross','gross','gross','gross']},
   {art:'frei',kinds:['tisch','tischgross','gitter','gitter2','gitter3']}
 ];
@@ -117,6 +120,8 @@ function vpVerteilen(regale){
   const alle=[]; regale.forEach(sh=>sh.levels.forEach(lv=>alle.push({sh,lv})));
   const passtStandard=t=>layout(t,{kind:'standard',levels:[]},{li:0}).cap>0;
   const wunsch=[
+    [x=>kindOf(x.sh).kasse, t=>P[t].kasse==='nur'],
+    [x=>kindOf(x.sh).kasse, t=>!!P[t].kasse],
     [x=>kindOf(x.sh).cold, t=>P[t].kuehlpflicht],
     /* 03.10. (Tom: "die Getraenke kannst du in normale Regale raeumen"):
        Getraenke stehen offen im Regal, im Kuehlschrank nur, was kuehl-

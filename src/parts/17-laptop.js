@@ -1571,6 +1571,8 @@ function buyUp(id){
   const cost=u.cost();
   if(S.money<cost){ toast(`${u.name} kostet ${eur(cost)} — dir fehlen ${eur(r2(cost-S.money))}.`,'bad'); return; }
   if(S.einbauBestellt&&S.einbauBestellt[id]){ toast(`${u.name} ist schon bestellt und kommt mit der nächsten Lieferung.`); return; }
+  /* Die groessere Palettierstation braucht den Regalplatz an der Westwand */
+  if(id==='packstation2'&&typeof packRegalImWeg==='function'&&packRegalImWeg(2)){ toast(`${u.name}: Erst das Lagerregal an der Westwand neben der Packstation umstellen – dort wächst die Palettierstation hin.`,'bad'); return; }
   S.money=r2(S.money-cost); DS.upgrades=r2(DS.upgrades+cost);
   /* Kassen kommen wie Regale als Paket: erst wenn man sie aufstellt,
      sind sie da (Tom, 26.09.) */

@@ -33,6 +33,8 @@ function navBuild(){
   }
   navTueren(R);
   NAV.waende=typeof wandRechtecke==='function'?wandRechtecke():[];
+  /* Zaehler: wer Erreichbarkeit zwischenspeichert, sieht so den Neubau (11c) */
+  NAV.nr=(NAV.nr|0)+1;
   NAV.dirty=false;
 }
 /* Keine Figur in der Wand (05.10., Tom: Einraeumer und Packer

@@ -42,7 +42,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     bb.closeHandy&&bb.closeHandy();
     return o; });
   console.log('HANDY   ',JSON.stringify(ui));
-  pruef('HANDY',ui.knoepfe&&ui.text&&ui.danach.reihe.join()==='regal,direkt,lager'&&ui.danach.aktiv.join()==='regal,direkt','Einstellen am Handy: '+JSON.stringify(ui));
+  pruef('HANDY',ui.knoepfe&&ui.text&&/* seit 05.10. gibt es die vierte Aufgabe Versandmaterial (vm) */ ui.danach.reihe.slice(0,3).join()==='regal,direkt,lager'&&ui.danach.aktiv.filter(x=>x!=='vm').join()==='regal,direkt','Einstellen am Handy: '+JSON.stringify(ui));
 
   /* 2. Direkt vom LKW ins Regal, Stueck fuer Stueck, Karton sichtbar */
   const d=await p.evaluate(()=>{ const bb=window.__bb, S=bb.S, o={}, w=bb.staff.auffueller;
@@ -137,7 +137,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   await p.waitForFunction("!document.getElementById('start').classList.contains('show')",{timeout:15000});
   const nl=await p.evaluate(()=>window.__bb.einrOf('auffueller'));
   console.log('LADEN   ',JSON.stringify(nl));
-  pruef('LADEN',nl.reihe.join()==='regal,direkt,lager'&&nl.aus.regal&&nl.aus.lager,'Einstellung nach dem Neuladen weg: '+JSON.stringify(nl));
+  pruef('LADEN',nl.reihe.filter(x=>x!=='vm').join()==='regal,direkt,lager'&&nl.aus.regal&&nl.aus.lager,'Einstellung nach dem Neuladen weg: '+JSON.stringify(nl));
 
   console.log('MANGEL:',mangel.length?mangel.join(' | '):'keine');
   console.log('ERRORS:',errs.length||mangel.length?errs.concat(mangel).join('\n'):'keine');

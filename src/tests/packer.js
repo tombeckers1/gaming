@@ -85,7 +85,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     /* das erste Stapelfeld ist schon voll: neue Pakete muessen daran vorbei */
     S.paketGr=Array(30).fill(1); S.pakete=30; bb.syncPakete();
     /* seit 05.10.: Packplaetze (Tisch und Packmaterial-Regal) und das Band */
-    const tischRect=bb.VS_PP.slice(0,bb.packStufe()).map(q=>[q.x-0.7,q.x+1.3,bb.VS_PZ-0.39,bb.VS_PZ+0.38]).concat([[bb.BAND.x0,bb.BAND.x1,bb.BAND.z-bb.BAND.b/2,bb.BAND.z+bb.BAND.b/2]]);
+    const tischRect=bb.VS_PP.slice(0,bb.packStufe()).map(q=>[q.x-1.22,q.x+0.6,q.z-0.38,q.z+0.38]).concat([[bb.BAND.x0,bb.BAND.x1,bb.BAND.z-bb.BAND.b/2,bb.BAND.z+bb.BAND.b/2]]);
     const imTisch=(x,z)=>{ const g=bb.packTisch, sn=Math.sin(g.rotation.y), cs=Math.cos(g.rotation.y), dx=x-g.position.x, dz=z-g.position.z;
       const lx=dx*cs-dz*sn, lz=dx*sn+dz*cs; return tischRect.some(r=>lx>r[0]&&lx<r[1]&&lz>r[2]&&lz<r[3]); };
     let wagenTisch=0, handMax=0, handN=0, durchStapel=0, stapelInfo=[], handL=[];
@@ -133,8 +133,8 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     o.zustaende=[...zustand].join(',');
     o.wagenTisch=wagenTisch; o.handMax=+handMax.toFixed(3); o.handN=handN; o.durchStapel=durchStapel; o.stapelInfo=stapelInfo; o.handL=handL;
     /* Pakete liegen in den Stapelfeldern */
-    /* auf den Paletten (0,8 x 1,2 m, Pakete duerfen 3 cm ueberstehen) */
-    const F=bb.VS_FELD; o.aufFeld=bb.pakete.every(m=>F.some(f=>Math.abs(m.position.x-f.x)<0.45&&Math.abs(m.position.z-f.z)<0.65));
+    /* auf den Paletten (quer: 1,2 m in x, 0,8 m in z; Pakete duerfen 3 cm ueberstehen) */
+    const F=bb.VS_FELD; o.aufFeld=bb.pakete.every(m=>F.some(f=>Math.abs(m.position.x-f.x)<0.65&&Math.abs(m.position.z-f.z)<0.45));
     o.imTisch=bb.pakete.every(m=>m.parent===bb.packTisch);
     return o; });
   console.log('TOUR     ',JSON.stringify(tour));

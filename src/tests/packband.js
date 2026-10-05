@@ -40,7 +40,8 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
       const drin=(m,G,x,z)=>{ const c=Math.cos(m.rotation.y), s=Math.sin(m.rotation.y), dx=x-m.position.x, dz=z-m.position.z;
         const lx=dx*c-dz*s, lz=dx*s+dz*c; return Math.abs(lx)<=G.x/2+1e-4&&Math.abs(lz)<=G.z/2+1e-4; };
       /* Tisch samt Uebergabeblech bis an die Bandkante */
-      const aufTisch=(x,z)=>bb.VS_PP.slice(0,bb.packStufe()).some(q=>Math.abs(x-q.x)<=0.7&&z>=B.z+B.b/2-0.01&&z<=bb.VS_PZ+0.39);
+      const aufTisch=(x,z)=>bb.VS_PP.slice(0,bb.packStufe()).some(q=>{ const kante=B.z+q.s*(B.b/2-0.01), z0=Math.min(q.z-0.39,kante), z1=Math.max(q.z+0.39,kante);
+        return Math.abs(x-q.x)<=bb.VS_TB/2+0.01&&z>=z0&&z<=z1; });
       const aufBand=(x,z)=>x>=B.x0&&x<=B.x1&&Math.abs(z-B.z)<=B.b/2;
       /* Tisch und Band */
       for(const e of bb.vsBahn){ const G=VG[e.gr], m=e.m, unten=m.position.y-G.h/2;
@@ -58,11 +59,12 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
         if(Math.abs(unten-TOP)>0.01) out.push(`Tisch ${i+1}: Karton schwebt (${unten.toFixed(3)})`); });
       /* Paletten */
       const L=bb.pakete;
+      /* Europaletten quer: 1,2 m in x, 0,8 m in z */
       for(const m of L){ const G=VG[m.userData.gr], unten=m.position.y-G.h/2, pt=rechteck(m,G);
         let ok=0, mitte=false;
         const pts=[[0,0]]; for(const u of [-0.7,0,0.7]) for(const v of [-0.7,0,0.7]) if(u||v) pts.push([u,v]);
         pts.forEach(([u,v],k)=>{ const q=pt(u,v); let flaeche=-1;
-          for(const pa of bb.VS_FELD) if(Math.abs(q.x-pa.x)<=0.4&&Math.abs(q.z-pa.z)<=0.6) flaeche=Math.max(flaeche,bb.PAL_H);
+          for(const pa of bb.VS_FELD) if(Math.abs(q.x-pa.x)<=0.6&&Math.abs(q.z-pa.z)<=0.4) flaeche=Math.max(flaeche,bb.PAL_H);
           for(const n of L){ if(n===m) continue; const Gn=VG[n.userData.gr], on=n.position.y+Gn.h/2; if(on<=unten+0.011&&drin(n,Gn,q.x,q.z)) flaeche=Math.max(flaeche,on); }
           const tr=flaeche>=0&&Math.abs(flaeche-unten)<=0.01; if(tr){ ok++; if(!k) mitte=true; } });
         if(!mitte||ok<8) out.push(`Palette: Paket ${m.userData.gr} bei y ${unten.toFixed(3)} getragen an ${ok}/9 Punkten${mitte?'':' (Mitte frei)'}`);
@@ -76,7 +78,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
       /* nichts ragt aus der Palettierstation */
       const C=bb.ZELLE[bb.packStufe()];
       for(const m of L){ const G=VG[m.userData.gr], pt=rechteck(m,G);
-        for(const [u,v] of [[-1,-1],[1,-1],[-1,1],[1,1]]){ const q=pt(u,v); if(q.x<C.x0+0.05||q.x>C.x1-0.05||q.z<C.z0+0.05||q.z>bb.ZELLE_Z1-0.05){ out.push('Palette: Paket ragt in den Zaun'); break; } } }
+        for(const [u,v] of [[-1,-1],[1,-1],[-1,1],[1,1]]){ const q=pt(u,v); if(q.x<C.x0+0.05||q.x>C.x1-0.05||q.z<C.z0+0.05||q.z>C.z1-0.05){ out.push('Palette: Paket ragt in den Zaun'); break; } } }
       return out; };
     window.__wand=(x,z)=>bb.colliders.filter(c=>x>c.minX+0.06&&x<c.maxX-0.06&&z>c.minZ+0.06&&z<c.maxZ-0.06);
   });
@@ -123,13 +125,39 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     pruef('WEG'+st,!r.wand.length,'Mitarbeiter laeuft durch die Station: '+r.wand.join(' '));
     pruef('ABHOLUNG'+st,r.abgeholt>0&&r.nachAbholung.pak===0&&r.nachAbholung.band===0&&r.nachAbholung.mesh===0&&!r.nachAbholung.greifer,'DDL holt nicht alles ab: '+JSON.stringify({vor:r.vorAbholung,nach:r.nachAbholung,n:r.abgeholt}));
   }
+  /* Gesperrtes Lagerfach (06.10.: in der Vorfuehrung liefen alle Packer
+     endlos gegen ein Fach, an das kein Weg fuehrte): die Ware dort zaehlt
+     nicht, der Packer bleibt nicht haengen */
+  const sp0=await p.evaluate(()=>{ const bb=window.__bb, S=bb.S, o={};
+    S.bestellungen=[]; S.offen=0; bb.ddlAbholung();
+    bb.racks.forEach(r=>r.slots.forEach(s=>{ if(s.box&&s.box.type==='kometen'){ r.g.remove(s.box.mesh); s.box=null; } }));
+    bb.allLevels().forEach(l=>{ if(l.type==='kometen') while(l.count>0) bb.removeFromLevel(l); });
+    bb.floorBoxes.filter(x=>x.type==='kometen').forEach(x=>bb.removeFloorBox(x));
+    /* ein Regal mit freiem Fach, davor eine unsichtbare Sperre bis an die Nachbarn */
+    const rk=bb.racks.find(r=>r.slots.some(s=>!s.box)&&Math.abs(r.g.rotation.y)<0.01)||bb.racks[0]; const sl=rk.slots.find(s=>!s.box)||rk.slots[0];
+    if(sl.box){ rk.g.remove(sl.box.mesh); sl.box=null; }
+    bb.putInSlot(sl,'kometen',2,1);
+    const K=bb.RACKKIND[rk.kind]||bb.RACKKIND.standard, gx=rk.g.position.x, gz=rk.g.position.z;
+    const sperre={minX:gx-K.w/2-1.4,maxX:gx+K.w/2+1.4,minZ:gz+K.zo+0.05,maxZ:gz+K.zo+1.7,ref:null}; bb.colliders.push(sperre);
+    bb.NAV.dirty=true; bb.navBuild();
+    o.bestand=bb.vsBestand('kometen');
+    S.bestNr=(S.bestNr|0)+1; S.bestellungen.push({id:S.bestNr,pos:[{t:'kometen',n:1,g:0}],gr:6,wert:20,versand:0,st:'offen',tag:S.day}); S.offen=1;
+    const w=bb.staff.packer; let lang=0, am=0, zust={};
+    for(let i=0;i<2400;i++){ bb.step(0.05); zust[w.vs]=(zust[w.vs]||0)+1;
+      if(w.vs==='fahren'||w.vs==='greifen'){ am+=0.05; lang=Math.max(lang,am); } else am=0; }
+    o.lang=+lang.toFixed(1); o.vs=w.vs; o.zust=zust; o.offen=S.bestellungen.length;
+    const i=bb.colliders.indexOf(sperre); if(i>=0) bb.colliders.splice(i,1); bb.NAV.dirty=true;
+    S.bestellungen=[]; S.offen=0;
+    return o; });
+  console.log('GESPERRT',JSON.stringify(sp0));
+  pruef('GESPERRT',sp0.bestand===0&&sp0.lang<45,'der Packer laeuft endlos gegen ein gesperrtes Fach: '+JSON.stringify(sp0));
   /* Spieler laeuft nicht durch Band und Zaun: quer durch die Station schieben */
   const sp=await p.evaluate(()=>{ const bb=window.__bb, g=bb.packTisch, o={};
     const W=(x,z)=>{ const s=Math.sin(g.rotation.y), c=Math.cos(g.rotation.y); return {x:g.position.x+x*c+z*s,z:g.position.z-x*s+z*c}; };
     const durch=[];
     /* von Norden nach Sueden an mehreren Stellen: Band und Zaun halten auf */
     const d0=W(0,0), d1=W(0,-0.08), dx=d1.x-d0.x, dz2=d1.z-d0.z;
-    for(const lx of [-1.2,0.6,2.5,4.6]){ const a=W(lx,1.6); bb.setView(a.x,a.z,Math.PI,0); bb.schiebe(a.x,a.z);
+    for(const lx of [-1.0,0.6,2.5,3.6]){ const a=W(lx,1.6); bb.setView(a.x,a.z,Math.PI,0); bb.schiebe(a.x,a.z);
       for(let i=0;i<60;i++){ const q=bb.playerPos(); bb.schiebe(q.x+dx,q.z+dz2); }
       const pp=bb.playerPos(), dz=(pp.z-g.position.z); if(dz<bb.BAND.z-0.2) durch.push(lx+':'+dz.toFixed(2)); }
     o.durch=durch; return o; });

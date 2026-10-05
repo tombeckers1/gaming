@@ -109,7 +109,8 @@ function vmAuffuellen(){ let n=0; VM_IDS.forEach(id=>{ const k=vmBestellbar(id);
    Karton obendrauf. Der Stapel waechst und schrumpft mit dem Bestand.
    --------------------------------------------------------- */
 const VM_RB=0.55, VM_RT=0.58, VM_BOEDEN=[0.08,0.5,0.92,1.34], VM_RH=1.76;
-function vmRegalLage(i){ return {x:VS_PP[i].x+1.025,z:VS_PZ-0.1}; }
+/* links neben dem Tisch, die Front zum Packer (gespiegelte Plaetze: nach Sueden) */
+function vmRegalLage(i){ const p=ppW(i,-0.95,-0.1); return {x:p.x,z:p.z,ry:VS_PP[i].s>0?0:Math.PI}; }
 let _vmTex=null;
 function vmTexturen(){
   if(_vmTex) return _vmTex;
@@ -131,8 +132,12 @@ function vmTexturen(){
   return _vmTex;
 }
 /* B: Vertexfarben-Helfer der Station, reg: zur Stufe anmelden */
-function vmRegalBauen(g,i,reg,B,k){
-  const L=vmRegalLage(i), x=L.x, z=L.z, w=VM_RB, d=VM_RT, T=vmTexturen();
+function vmRegalBauen(g,i,reg,B0,k){
+  /* in Regalkoordinaten bauen (Front nach +z), dann an den Platz drehen */
+  const L=vmRegalLage(i), w=VM_RB, d=VM_RT, T=vmTexturen(), sn=Math.sin(L.ry), cs=Math.cos(L.ry);
+  const P=(lx,lz)=>({x:L.x+lx*cs+lz*sn,z:L.z-lx*sn+lz*cs}), x=0, z=0;
+  const B=(k2,bw,bh,bd,c,lx,y,lz,rx,ry,rz)=>{ const p=P(lx,lz); B0(k2,bw,bh,bd,c,p.x,y,p.z,cs<0?-(rx||0):(rx||0),(ry||0)+L.ry,rz); };
+  const setz=(m,lx,y,lz)=>{ const p=P(lx,lz); m.position.set(p.x,y,p.z); m.rotation.y+=L.ry; return m; };
   const BLAU=0x2a5a9e, ZINK=0xb9bec6;
   for(const sx of [-1,1]) for(const sz of [-1,1]) B(k,0.035,VM_RH,0.035,BLAU,x+sx*(w/2-0.018),VM_RH/2,z+sz*(d/2-0.018));
   for(const sx of [-1,1]) for(const y of [0.3,1.1]) B(k,0.02,0.02,d-0.04,BLAU,x+sx*(w/2-0.018),y,z,0.6*(y>1?1:-1),0,0);
@@ -145,25 +150,26 @@ function vmRegalBauen(g,i,reg,B,k){
   for(const id of ['kl','km','ks']){
     const mat=new THREE.MeshStandardMaterial({map:T.kante.clone(),roughness:0.9}); mat.map.needsUpdate=true;
     const m=new THREE.Mesh(new THREE.BoxGeometry(w-0.08,1,d-0.1),mat);
-    m.position.set(x,VM_BOEDEN[boden[id]]+0.5,z+0.01); g.add(m); reg(m);
+    setz(m,x,VM_BOEDEN[boden[id]]+0.5,z+0.01); g.add(m); reg(m);
     if(HIQ){ m.castShadow=true; m.receiveShadow=true; }
     R.stapel[id]={m,dicke:dicke[id],y0:VM_BOEDEN[boden[id]]};
-    const sm=plane(0.2,0.05,new THREE.MeshBasicMaterial({map:T.schild[id],toneMapped:false}),x,VM_BOEDEN[boden[id]]-0.035,z+d/2+0.006,0,g); reg(sm);
+    const sm=setz(plane(0.2,0.05,new THREE.MeshBasicMaterial({map:T.schild[id],toneMapped:false}),0,0,0,0,g),x,VM_BOEDEN[boden[id]]-0.035,z+d/2+0.006); reg(sm);
   }
   /* Folienrollen liegen laengs, bis zu drei */
   const fm=new THREE.MeshStandardMaterial({map:T.folie,roughness:0.35,metalness:0,transparent:true,opacity:0.92});
   const fg=new THREE.CylinderGeometry(0.085,0.085,w-0.1,18);
-  for(let j=0;j<3;j++){ const m=new THREE.Mesh(fg,fm); m.rotation.z=Math.PI/2; m.position.set(x,VM_BOEDEN[3]+0.085,z-0.18+j*0.18); g.add(m); reg(m); R.folie.push(m); }
-  const sm=plane(0.24,0.05,new THREE.MeshBasicMaterial({map:T.schild.folie,toneMapped:false}),x,VM_BOEDEN[3]-0.035,z+d/2+0.006,0,g); reg(sm);
+  /* Rollen laengs in Regal-x: im gedrehten Regal zeigt die Achse in Welt-x genauso */
+  for(let j=0;j<3;j++){ const m=new THREE.Mesh(fg,fm); m.rotation.z=Math.PI/2; const p=P(x,z-0.18+j*0.18); m.position.set(p.x,VM_BOEDEN[3]+0.085,p.z); g.add(m); reg(m); R.folie.push(m); }
+  const sm=setz(plane(0.24,0.05,new THREE.MeshBasicMaterial({map:T.schild.folie,toneMapped:false}),0,0,0,0,g),x,VM_BOEDEN[3]-0.035,z+d/2+0.006); reg(sm);
   /* Klebeband: offener Karton auf dem Regal, bis zu zwoelf Rollen */
   B(k,0.5,0.004,0.24,0xc49a62,x,VM_RH+0.002,z); for(const s of [-1,1]){ B(k,0.5,0.06,0.006,0xc49a62,x,VM_RH+0.03,z+s*0.12); B(k,0.006,0.06,0.24,0xc49a62,x+s*0.25,VM_RH+0.03,z); }
   const bm=std(0xd8b46a,{roughness:0.55}), bg=new THREE.CylinderGeometry(0.038,0.038,0.045,14);
-  for(let j=0;j<12;j++){ const m=new THREE.Mesh(bg,bm); m.position.set(x-0.2+(j%6)*0.08,VM_RH+0.027,z+(j<6?-0.055:0.055)); g.add(m); reg(m); R.band.push(m); }
+  for(let j=0;j<12;j++){ const m=new THREE.Mesh(bg,bm); setz(m,x-0.2+(j%6)*0.08,VM_RH+0.027,z+(j<6?-0.055:0.055)); g.add(m); reg(m); R.band.push(m); }
   /* Kopfschild */
-  const km=plane(0.5,0.12,new THREE.MeshBasicMaterial({map:T.schild.kopf,toneMapped:false}),x,VM_RH+0.16,z+0.02,0,g); reg(km);
+  const km=setz(plane(0.5,0.12,new THREE.MeshBasicMaterial({map:T.schild.kopf,toneMapped:false}),0,0,0,0,g),x,VM_RH+0.16,z+0.02); reg(km);
   B(k,0.52,0.14,0.02,0x1b2340,x,VM_RH+0.16,z+0.005);
   for(const s of [-1,1]) B(k,0.02,0.16,0.02,BLAU,x+s*0.2,VM_RH+0.08,z);
-  const hit=bbox(w+0.06,VM_RH+0.2,d+0.06,hitM,x,(VM_RH+0.2)/2,z,g,false);
+  const hit=setz(bbox(w+0.06,VM_RH+0.2,d+0.06,hitM,0,0,0,g,false),x,(VM_RH+0.2)/2,z);
   hit.userData={kind:'vmregal',ref:i}; reg(hit); R.hit=hit;
   vmRegale[i]=R;
 }
@@ -184,7 +190,7 @@ function vmRegalZeichnen(i){
   R.band.forEach((m,j)=>{ m.visible=sichtbar&&j<br; });
 }
 /* Wo der Einraeumer am Regal steht und wohin er schaut */
-function vmStandPunkt(i){ const L=vmRegalLage(i); return {stand:localToWorld(packTisch,L.x,VS_PZ+0.86),look:localToWorld(packTisch,L.x,L.z)}; }
+function vmStandPunkt(i){ const L=vmRegalLage(i), st=ppW(i,-0.95,0.86); return {stand:localToWorld(packTisch,st.x,st.z),look:localToWorld(packTisch,L.x,L.z)}; }
 
 /* ---------------------------------------------------------
    LKW, Einraeumer, Spieler

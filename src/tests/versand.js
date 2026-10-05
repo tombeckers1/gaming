@@ -134,7 +134,8 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     const fake={fw:1.0,fd:0.5,g:{visible:true,position:{x:0,z:0},rotation:{y:0}}};
     const welt=(lx,lz)=>{ const s=Math.sin(g.rotation.y), c=Math.cos(g.rotation.y);
       return {x:g.position.x+lx*c+lz*s,z:g.position.z-lx*s+lz*c}; };
-    const w1=welt(4.95,0.0), w2=welt(0.0,0.85);
+    /* seit 06.10. stehen die Paletten an der Westwand der Station */
+    const w1=welt(-0.9,0.2), w2=welt(0.0,0.85);
     o.aufAblage=bb.spotFree(fake,w1.x,w1.z,0);
     o.vorTisch=bb.spotFree(fake,w2.x,w2.z,0);
     const fl=bb.rectOf(bb.packMov,g.position.x,g.position.z,g.rotation.y);

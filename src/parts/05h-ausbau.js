@@ -741,34 +741,52 @@ function buildAusbau(){
    in der Luft hingen.
    Drei Stufen: 1, 2 oder 3 Packplaetze (je mit Packmaterial-Regal und
    Wagen), 2, 4 oder 6 Paletten unter dem Portal.
-   Gruppenkoordinaten: x nach Osten, z nach Norden. Der Packer steht
-   noerdlich seines Tisches, das Band laeuft suedlich dahinter.
+   Gruppenkoordinaten: x nach Osten, z nach Norden. Das Band laeuft von
+   Osten nach Westen; die Palettierstation steht an der Westwand.
+   06.10.: Die Station haelt den Weg in die Halle frei. Vorher reichte
+   sie bis an das erste Lagerregal im Osten und mit der Palettierstation
+   mitten in den Mittelgang - in der Vorfuehrung war die ganze hintere
+   Halle samt Logistikhalle abgeschnitten, und die Packer liefen ewig
+   gegen die Wand. Jetzt bleiben oestlich der Station 1,7 m Gang frei,
+   und nach Sueden waechst sie nur an der Westwand, auf dem Stellplatz
+   des Lagerregals dort (ab Stufe 2).
    ========================================================= */
 let packHit=null, packTisch=null, packMov=null;
 const PACK_HOME={x:-18.0,z:-8.6,ry:0};
-/* Tischmitten der Packplaetze in x; Tisch 1,4 x 0,78 m, Platte 0,95 m */
-const VS_PP=[{x:-0.75},{x:1.65},{x:4.05}];
-const VS_PZ=-0.19, VS_TOP=0.95;
-/* Foerderband: Gurt bis stau, dann Staurollenbahn bis zum Endanschlag.
-   Oberkante wie die Tischplatte - das Paket wird eben hinueber-
-   geschoben. */
-const BAND={x0:-1.7,x1:5.62,z:-0.98,b:0.7,y:VS_TOP,stau:3.9};
-/* Palettierstation je Stufe; die Nordseite liegt am Band */
-const ZELLE=[null,{x0:3.85,x1:5.78,z0:-3.0},{x0:3.85,x1:5.78,z0:-4.3},{x0:2.92,x1:5.78,z0:-4.3}];
-const ZELLE_Z1=-1.45, PORTAL_Y=2.55;
-/* Europaletten 0,8 x 1,2 m, die lange Seite quer zum Band */
-const PALETTEN=[{x:5.28,z:-2.21},{x:4.38,z:-2.21},{x:5.28,z:-3.5},{x:4.38,z:-3.5},{x:3.48,z:-2.21},{x:3.48,z:-3.5}];
+/* Packplaetze: Tischmitte und Seite. s 1: Tisch noerdlich am Band, der
+   Packer steht noerdlich davor; s -1: gespiegelt suedlich des Bandes.
+   Platzkoordinaten (px,pz): Tischmitte 0/0, +pz zeigt zum Packer. */
+const VS_PP=[{x:3.25,z:-0.19,s:1},{x:3.25,z:-1.77,s:-1},{x:1.3,z:-0.19,s:1}];
+const VS_PZ=-0.19, VS_TOP=0.95, VS_TB=1.2;
+function ppW(i,px,pz){ const q=VS_PP[i]; return {x:q.x+px,z:q.z+q.s*pz}; }
+function ppRy(i,ry){ return VS_PP[i].s>0?ry:Math.PI-ry; }
+/* Foerderband: Gurt von x1 (Osten) bis stau, dann Staurollenbahn bis
+   zum Endanschlag bei x0. Oberkante wie die Tischplatte - das Paket wird
+   eben hinuebergeschoben. */
+const BAND={x0:0.0,x1:4.05,z:-0.98,b:0.7,y:VS_TOP,stau:1.2};
+/* Palettierstation je Stufe, an der Westwand */
+const ZELLE=[null,{x0:-1.75,x1:-0.05,z0:-1.45,z1:1.2},{x0:-1.75,x1:-0.05,z0:-2.55,z1:1.2},{x0:-1.75,x1:-0.05,z0:-4.35,z1:1.2}];
+const ZELLE_Z1=1.2, PORTAL_Y=2.55;
+/* Europaletten 1,2 x 0,8 m, die lange Seite quer zur Wand, Reihen nach Sueden */
+const PALETTEN=[0.65,-0.25,-1.15,-2.05,-2.95,-3.85].map(z=>({x:-0.9,z}));
 const PAL_N=[0,2,4,6], PAL_H=0.144;
 /* Belegte Flaeche - waechst mit der Stufe (packStufeAnwenden) */
-const PACK_FL={x0:-1.75,x1:5.8,z0:-3.0,z1:1.25};
+const PACK_FL={x0:-1.75,x1:4.15,z0:-1.5,z1:1.25};
+const PACK_FL_Z0=[0,-1.5,-3.25,-4.42];
 function packStufe(){ return !S||!S.up?1:S.up.packstation3?3:S.up.packstation2?2:1; }
+/* Ab Stufe 2 steht die Palettierstation auf dem Stellplatz des
+   Lagerregals an der Westwand (02-data: RACKS mit pack) */
+function packRegalImWeg(st){
+  for(const sl of RACKS){ if(!sl.pack||sl.pack>st) continue;
+    const r=racks.find(rk=>Math.hypot(rk.g.position.x-sl.x,rk.g.position.z-sl.z)<1.2); if(r) return r; }
+  return null;
+}
 /* Teile je Stufe: ab[s] gilt ab Stufe s, nur[s] genau in Stufe s */
 const packTeile={ab:[null,[],[],[]],nur:[null,[],[],[]],hits:[],portal:null};
 function buildPackstation(){
   /* Die Packstation steht im ersten Abschnitt der Halle Sued, gleich
-     hinter dem Rolltor; die Westkante an der Wand, im Osten bleibt der
-     Stellplatz fuer das erste Lagerregal frei. Sie steht von Anfang an
-     da - bis zum Kauf haengt ein Absperrband davor. */
+     hinter dem Rolltor, die Westkante an der Wand. Sie steht von Anfang
+     an da - bis zum Kauf haengt ein Absperrband davor. */
   const id='packstation', PX=PACK_HOME.x, PZ=PACK_HOME.z;
   const g=new THREE.Group(); g.position.set(PX,0,PZ); scene.add(g);
   packTisch=g;
@@ -792,61 +810,61 @@ function buildPackstation(){
     }); t.anisotropy=8; return t; })()});
 
   /* ---- Packplaetze: Tisch, Waage, Drucker, Abroller, Ablage ---- */
-  for(let i=0;i<3;i++){ const k='ab'+(i+1), X=VS_PP[i].x, Z=VS_PZ;
-    reg(rbox(1.4,0.06,0.78,0.012,platte,X,0.92,Z,g),k);
-    B(k,1.44,0.05,0.8,DUNKEL,X,0.87,Z);
-    for(const sx of [-0.62,0.62]) for(const sz of [-0.32,0.32]){ B(k,0.06,0.85,0.06,STAHL,X+sx,0.425,Z+sz); B(k,0.12,0.02,0.12,DUNKEL,X+sx,0.01,Z+sz); }
-    for(const sz of [-0.32,0.32]) B(k,1.18,0.05,0.04,STAHL,X,0.28,Z+sz);
-    B(k,1.24,0.03,0.68,DUNKEL,X,0.31,Z);
+  for(let i=0;i<3;i++){ const k='ab'+(i+1), W=(px,pz)=>ppW(i,px,pz);
+    /* in Platzkoordinaten bauen; gespiegelte Plaetze spiegeln z */
+    const Bp=(w,h,d,c,px,y,pz,rx,ry,rz)=>{ const p=W(px,pz); B(k,w,h,d,c,p.x,y,p.z,rx,ry,rz); };
+    const Cp=(r,h,c,px,y,pz,rx,ry,rz,seg)=>{ const p=W(px,pz); Cy(k,r,h,c,p.x,y,p.z,rx,ry,rz,seg); };
+    const M=W(0,0), hb=VS_TB/2;
+    reg(rbox(VS_TB,0.06,0.78,0.012,platte,M.x,0.92,M.z,g),k);
+    Bp(VS_TB+0.04,0.05,0.8,DUNKEL,0,0.87,0);
+    for(const sx of [-hb+0.08,hb-0.08]) for(const sz of [-0.32,0.32]){ Bp(0.06,0.85,0.06,STAHL,sx,0.425,sz); Bp(0.12,0.02,0.12,DUNKEL,sx,0.01,sz); }
+    for(const sz of [-0.32,0.32]) Bp(VS_TB-0.22,0.05,0.04,STAHL,0,0.28,sz);
+    Bp(VS_TB-0.16,0.03,0.68,DUNKEL,0,0.31,0);
     /* gefaltete Kartons auf der unteren Ablage */
-    B(k,0.56,0.05,0.5,0xc9a978,X-0.28,0.35,Z); B(k,0.5,0.04,0.46,0xbf9d6c,X-0.26,0.395,Z+0.01);
-    B(k,0.4,0.05,0.36,0xc9a978,X+0.33,0.35,Z-0.02);
+    Bp(0.5,0.05,0.5,0xc9a978,-0.24,0.35,0); Bp(0.44,0.04,0.46,0xbf9d6c,-0.22,0.395,0.01);
+    Bp(0.36,0.05,0.36,0xc9a978,0.3,0.35,-0.02);
     /* Waage vorn links, Etikettendrucker hinten links, Abroller rechts -
-       die Mitte bleibt frei: dort steht der Karton, und nach hinten wird
-       er aufs Band geschoben */
-    B(k,0.2,0.04,0.2,DUNKEL,X-0.55,0.97,Z+0.24); B(k,0.17,0.01,0.17,ZINK,X-0.55,0.995,Z+0.24);
-    B(k,0.2,0.18,0.2,DUNKEL,X-0.58,1.04,Z-0.25); B(k,0.16,0.01,0.12,0xf2f0e8,X-0.58,1.135,Z-0.25);
+       die Mitte bleibt frei: dort steht der Karton, und zum Band hin wird
+       er hinuebergeschoben */
+    Bp(0.2,0.04,0.2,DUNKEL,-0.46,0.97,0.24); Bp(0.17,0.01,0.17,ZINK,-0.46,0.995,0.24);
+    Bp(0.18,0.18,0.2,DUNKEL,-0.48,1.04,-0.25); Bp(0.14,0.01,0.12,0xf2f0e8,-0.48,1.135,-0.25);
     /* Uebergabeblech: Tischkante bis Bandkante, buendig mit der Platte */
-    B(k,1.2,0.012,0.1,0xb4bac2,X,VS_TOP-0.006,Z-0.43);
-    B(k,0.1,0.07,0.22,0x23262c,X+0.6,0.985,Z-0.24); Cy(k,0.065,0.05,0xd8b46a,X+0.6,1.06,Z-0.26,0,0,Math.PI/2,14);
-    const hit=bbox(1.5,1.3,0.95,hitM,X,0.65,Z,g,false);
+    Bp(VS_TB-0.2,0.012,0.12,0xb4bac2,0,VS_TOP-0.006,-0.45);
+    Bp(0.1,0.07,0.22,0x23262c,0.5,0.985,-0.24); Cp(0.065,0.05,0xd8b46a,0.5,1.06,-0.26,0,0,Math.PI/2,14);
+    const hit=bbox(VS_TB+0.1,1.3,0.95,hitM,M.x,0.65,M.z,g,false);
     hit.userData={kind:'pack',ref:i}; T.hits[i]=hit; reg(hit,k);
     if(i===0) packHit=hit;
-    /* Packmaterial-Regal rechts neben dem Tisch (11d-packmaterial.js) */
+    /* Packmaterial-Regal links neben dem Tisch (11d-packmaterial.js) */
     vmRegalBauen(g,i,(o)=>reg(o,k),B,k);
   }
 
   /* ---- Foerderband: Gurt, Rollen, Gestell auf eigenen Fuessen ---- */
-  { const k='ab1', z=BAND.z, b=BAND.b, L=BAND.x1-BAND.x0, Ls=BAND.stau-BAND.x0, Y=BAND.y;
-    /* Seitenprofile; das noerdliche bleibt unter der Oberkante, damit das
-       Paket vom Tisch eben herueberrutscht. Suedlich eine Fuehrung. */
-    B(k,L,0.14,0.04,STAHL,(BAND.x0+BAND.x1)/2,Y-0.075,z+b/2+0.02);
-    B(k,L,0.14,0.04,STAHL,(BAND.x0+BAND.x1)/2,Y-0.075,z-b/2-0.02);
-    B(k,L,0.03,0.025,ZINK,(BAND.x0+BAND.x1)/2,Y+0.07,z-b/2-0.015);
-    for(let x=BAND.x0+0.3;x<BAND.x1;x+=0.9) B(k,0.03,0.07,0.025,ZINK,x,Y+0.03,z-b/2-0.015);
+  { const k='ab1', z=BAND.z, b=BAND.b, L=BAND.x1-BAND.x0, Ls=BAND.x1-BAND.stau, Y=BAND.y, xm=(BAND.x0+BAND.x1)/2;
+    /* Seitenprofile bleiben unter der Oberkante, damit das Paket von den
+       Tischen eben herueberrutscht - Tische gibt es auf beiden Seiten */
+    for(const s of [-1,1]) B(k,L,0.14,0.04,STAHL,xm,Y-0.075,z+s*(b/2+0.02));
     /* Beine mit Fussplatten und Querstreben, etwa alle 1,2 m */
     const nB=Math.round(L/1.2);
     for(let j=0;j<=nB;j++){ const x=BAND.x0+0.12+(L-0.24)*j/nB;
       for(const s of [-1,1]){ B(k,0.05,Y-0.1,0.05,STAHL,x,(Y-0.1)/2,z+s*(b/2-0.02)); B(k,0.13,0.015,0.11,DUNKEL,x,0.008,z+s*(b/2-0.02)); }
       B(k,0.04,0.04,b-0.04,STAHL,x,0.24,z); B(k,0.04,0.04,b-0.04,STAHL,x,Y-0.17,z); }
-    B(k,L-0.2,0.035,0.035,STAHL,(BAND.x0+BAND.x1)/2,0.24,z+b/2-0.02);
-    B(k,L-0.2,0.035,0.035,STAHL,(BAND.x0+BAND.x1)/2,0.24,z-b/2+0.02);
-    /* Gurt: Unterseite, Umlenktrommeln, Antrieb */
-    B(k,Ls,0.02,b-0.02,0x1d2026,BAND.x0+Ls/2,Y-0.12,z);
-    for(const x of [BAND.x0+0.04,BAND.stau-0.04]) Cy(k,0.045,b-0.02,0x5c626b,x,Y-0.045,z,Math.PI/2,0,0,12);
-    B(k,0.3,0.22,0.24,0x2a5a9e,BAND.x0+0.4,Y-0.32,z-b/2-0.15); Cy(k,0.07,0.16,0x2a5a9e,BAND.x0+0.62,Y-0.32,z-b/2-0.15,0,0,Math.PI/2,12);
+    for(const s of [-1,1]) B(k,L-0.2,0.035,0.035,STAHL,xm,0.24,z+s*(b/2-0.02));
+    /* Gurt: Unterseite, Umlenktrommeln, Antrieb am Anfang im Osten */
+    B(k,Ls,0.02,b-0.02,0x1d2026,BAND.stau+Ls/2,Y-0.12,z);
+    for(const x of [BAND.stau+0.04,BAND.x1-0.04]) Cy(k,0.045,b-0.02,0x5c626b,x,Y-0.045,z,Math.PI/2,0,0,12);
+    B(k,0.3,0.22,0.24,0x2a5a9e,BAND.x1-0.4,Y-0.42,z); Cy(k,0.07,0.16,0x2a5a9e,BAND.x1-0.62,Y-0.42,z,0,0,Math.PI/2,12);
     /* Staurollenbahn bis zum Endanschlag */
-    for(let x=BAND.stau+0.04;x<BAND.x1-0.02;x+=0.075) Cy(k,0.03,b-0.03,ZINK,x,Y-0.03,z,Math.PI/2,0,0,10);
+    for(let x=BAND.x0+0.06;x<BAND.stau-0.02;x+=0.075) Cy(k,0.03,b-0.03,ZINK,x,Y-0.03,z,Math.PI/2,0,0,10);
     /* Endanschlag mit Gummipuffer und Lichtschranke */
-    B(k,0.04,0.2,b+0.08,GELB,BAND.x1+0.02,Y+0.06,z); B(k,0.02,0.1,b-0.1,0x1b1d22,BAND.x1-0.005,Y+0.05,z);
-    B(k,0.05,0.08,0.05,DUNKEL,BAND.x1-0.25,Y+0.09,z-b/2-0.05); B(k,0.05,0.08,0.05,DUNKEL,BAND.x1-0.25,Y+0.09,z+b/2+0.05);
+    B(k,0.04,0.2,b+0.08,GELB,BAND.x0-0.02,Y+0.06,z); B(k,0.02,0.1,b-0.1,0x1b1d22,BAND.x0+0.005,Y+0.05,z);
+    for(const s of [-1,1]) B(k,0.05,0.08,0.05,DUNKEL,BAND.x0+0.25,Y+0.09,z+s*(b/2+0.05));
     /* Gurt mit Laufrichtung: das Muster wandert mit (11c) */
     const gt=tex(512,64,(c,W,H)=>{ c.fillStyle='#24272d'; c.fillRect(0,0,W,H);
       for(let x=0;x<W;x+=16){ c.fillStyle='rgba(255,255,255,.05)'; c.fillRect(x,0,8,H); }
       for(let i=0;i<500;i++){ c.fillStyle=`rgba(255,255,255,${Math.random()*0.05})`; c.fillRect(Math.random()*W,Math.random()*H,2,1); } });
     gt.wrapS=THREE.RepeatWrapping; gt.repeat&&gt.repeat.set(Ls/1.0,1);
     const gurt=new THREE.Mesh(new THREE.PlaneGeometry(Ls,b-0.02),new THREE.MeshStandardMaterial({map:gt,roughness:0.85}));
-    gurt.rotation.x=-Math.PI/2; gurt.position.set(BAND.x0+Ls/2,Y-0.002,z); g.add(gurt);
+    gurt.rotation.x=-Math.PI/2; gurt.position.set(BAND.stau+Ls/2,Y-0.002,z); g.add(gurt);
     if(HIQ) gurt.receiveShadow=true;
     T.gurt=gt;
   }
@@ -865,19 +883,18 @@ function buildPackstation(){
     c.fillStyle='#ffffff'; c.font=BUN(72); c.fillText('DDL',W/2,142);
     c.fillStyle='#bcd0ea'; c.font=BAR(34); c.fillText('täglich ab 18:00 Uhr',W/2,212); });
   const ddlM=new THREE.MeshStandardMaterial({map:ddlTex,roughness:0.6});
-  for(let s=1;s<=3;s++){ const k='nur'+s, C=ZELLE[s], x0=C.x0, x1=C.x1, z0=C.z0, z1=ZELLE_Z1;
-    const px0=x0+0.06, px1=x1-0.06, pz0=z0+0.06, pz1=z1-0.06, zN=BAND.z+0.26;
-    /* vier Stuetzen, zwei Laengstraeger bis ueber das Band, Querriegel */
+  const brX1=BAND.x0+0.65;   /* die Portalbruecke ragt im Osten ueber das Bandende */
+  for(let s=1;s<=3;s++){ const k='nur'+s, C=ZELLE[s], x0=C.x0, x1=C.x1, z0=C.z0, z1=C.z1;
+    const px0=x0+0.06, px1=x1-0.06, pz0=z0+0.06, pz1=z1-0.06;
+    /* vier Stuetzen, zwei Laengstraeger an West- und Ostseite, Querriegel */
     for(const px of [px0,px1]) for(const pz of [pz0,pz1]){ B(k,0.12,PORTAL_Y,0.12,GELB,px,PORTAL_Y/2,pz); B(k,0.24,0.02,0.24,DUNKEL,px,0.01,pz); }
-    for(const px of [px0,px1]){ B(k,0.12,0.16,zN-pz0,GELB,px,PORTAL_Y+0.08,(zN+pz0)/2); B(k,0.04,0.03,zN-pz0,ZINK,px,PORTAL_Y+0.175,(zN+pz0)/2); }
-    B(k,px1-px0,0.12,0.1,GELB,(px0+px1)/2,PORTAL_Y-0.02,pz0);
-    B(k,px1-px0,0.12,0.1,GELB,(px0+px1)/2,PORTAL_Y-0.02,pz1);
-    /* Energiekette am oestlichen Traeger */
-    B(k,0.08,0.06,zN-pz0-0.2,0x1b1d22,px1+0.1,PORTAL_Y+0.05,(zN+pz0)/2);
-    /* Schaltschrank aussen an der Suedostecke */
-    B(k,0.5,0.9,0.25,0xd9dde3,x0+0.42,0.85,z0-0.16); B(k,0.06,0.06,0.02,0x2fd06a,x0+0.3,1.15,z0-0.29); B(k,0.06,0.06,0.02,0xff4433,x0+0.42,1.15,z0-0.29);
-    /* Zaun: 2 m hoch an West, Sued und Ost, zum Band hin ein niedriges
-       Gelaender - darueber hebt der Greifer die Pakete */
+    for(const px of [px0,px1]){ B(k,0.12,0.16,pz1-pz0,GELB,px,PORTAL_Y+0.08,(pz0+pz1)/2); B(k,0.04,0.03,pz1-pz0,ZINK,px,PORTAL_Y+0.175,(pz0+pz1)/2); }
+    for(const pz of [pz0,pz1]) B(k,px1-px0,0.12,0.1,GELB,(px0+px1)/2,PORTAL_Y-0.02,pz);
+    /* Energiekette am westlichen Traeger, Schaltkasten mit Leuchten an der Stuetze */
+    B(k,0.08,0.06,pz1-pz0-0.2,0x1b1d22,px0-0.1,PORTAL_Y+0.05,(pz0+pz1)/2);
+    B(k,0.22,0.36,0.14,0xd9dde3,px1,1.5,pz1-0.13); B(k,0.05,0.05,0.02,0x2fd06a,px1-0.05,1.6,pz1-0.205); B(k,0.05,0.05,0.02,0xff4433,px1+0.05,1.6,pz1-0.205);
+    /* Zaun: 2 m hoch an West, Nord und Sued, zum Band hin im Osten ein
+       niedriges Gelaender - darueber hebt der Greifer die Pakete */
     const zaun=(ax,az,bx,bz,h)=>{ const L=Math.hypot(bx-ax,bz-az), n=Math.max(1,Math.round(L/1.2)), ry=Math.atan2(bz-az,bx-ax);
       for(let j=0;j<=n;j++){ const x=ax+(bx-ax)*j/n, z=az+(bz-az)*j/n; B(k,0.05,h,0.05,GELB,x,h/2,z); B(k,0.12,0.015,0.12,DUNKEL,x,0.008,z); }
       B(k,L,0.04,0.04,GELB,(ax+bx)/2,h-0.02,(az+bz)/2,0,-ry,0); B(k,L,0.04,0.04,GELB,(ax+bx)/2,0.12,(az+bz)/2,0,-ry,0);
@@ -885,11 +902,11 @@ function buildPackstation(){
         m.material.map.repeat&&m.material.map.repeat.set(L/0.5,(h-0.2)/0.5);
         m.position.set((ax+bx)/2,h/2+0.02,(az+bz)/2); m.rotation.y=-ry; g.add(m); reg(m,k); }
       else B(k,L,0.04,0.04,GELB,(ax+bx)/2,h*0.55,(az+bz)/2,0,-ry,0); };
-    zaun(x0,z1,x0,z0,2.0); zaun(x0,z0,x1,z0,2.0); zaun(x1,z0,x1,z1,2.0); zaun(x0+0.15,z1,x1-0.15,z1,1.1);
-    /* DDL-Abholschild aussen am Suedzaun */
-    const sx=(x0+x1)/2+0.25;
-    B(k,1.06,0.56,0.04,0x2f343d,sx,1.45,z0-0.035);
-    const sm=plane(1.0,0.5,ddlM,sx,1.45,z0-0.058,Math.PI,g); reg(sm,k);
+    zaun(x0,z1,x0,z0,2.0); zaun(x0,z0,x1,z0,2.0); zaun(x0,z1,x1,z1,2.0); zaun(x1,z1-0.15,x1,z0+0.15,1.1);
+    /* DDL-Abholschild aussen am Nordzaun - dort kommt man vom Rolltor her */
+    const sx=(x0+x1)/2;
+    B(k,1.06,0.56,0.04,0x2f343d,sx,1.45,z1+0.035);
+    const sm=plane(1.0,0.5,ddlM,sx,1.45,z1+0.058,0,g); reg(sm,k);
     /* Boden: Warnstreifen am Rand, Eckmarken der Palettenplaetze */
     const PXM=200, W=Math.round((x1-x0)*PXM), H=Math.round((z1-z0)*PXM);
     const ft=tex(W,H,(c)=>{ c.clearRect(0,0,W,H);
@@ -898,28 +915,28 @@ function buildPackstation(){
       for(let d=-H;d<W+H;d+=34){ c.beginPath(); c.moveTo(d,0); c.lineTo(d+17,0); c.lineTo(d+17-H,H); c.lineTo(d-H,H); c.closePath(); c.fill(); }
       c.restore();
       c.strokeStyle='rgba(242,194,48,.9)'; c.lineWidth=6;
-      for(let j=0;j<PAL_N[s];j++){ const p=PALETTEN[j], a=(p.x-0.45-x0)*PXM, b=(p.x+0.45-x0)*PXM, o=(p.z-0.65-z0)*PXM, u=(p.z+0.65-z0)*PXM, L=26;
+      /* Bildzeile 0 liegt im Sueden (z0) */
+      for(let j=0;j<PAL_N[s];j++){ const p=PALETTEN[j], a=(p.x-0.65-x0)*PXM, b=(p.x+0.65-x0)*PXM, o=(p.z-0.45-z0)*PXM, u=(p.z+0.45-z0)*PXM, L=24;
         c.beginPath(); c.moveTo(a,o+L); c.lineTo(a,o); c.lineTo(a+L,o); c.moveTo(b-L,o); c.lineTo(b,o); c.lineTo(b,o+L);
         c.moveTo(b,u-L); c.lineTo(b,u); c.lineTo(b-L,u); c.moveTo(a+L,u); c.lineTo(a,u); c.lineTo(a,u-L); c.stroke(); } });
     const fm=new THREE.Mesh(new THREE.PlaneGeometry(x1-x0,z1-z0),new THREE.MeshStandardMaterial({map:ft,transparent:true,depthWrite:false,roughness:0.6,
       polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2}));
     fm.rotation.x=-Math.PI/2; fm.position.set((x0+x1)/2,0.021,(z0+z1)/2); g.add(fm); reg(fm,k);
   }
-  /* Paletten: zwei je Stufe */
+  /* Paletten: zwei je Stufe; Bretter laengs (x), Kufen quer */
   for(let j=0;j<6;j++){ const k='ab'+(1+Math.floor(j/2)), p=PALETTEN[j];
-    for(const dz of [-0.55,0,0.55]) for(const dx of [-0.34,0,0.34]) B(k,0.12,0.078,0.12,HOLZ2,p.x+dx,0.061,p.z+dz);
-    for(const dx of [-0.34,0,0.34]) B(k,0.12,0.022,1.2,HOLZ,p.x+dx,0.011,p.z);
-    for(const dz of [-0.55,0,0.55]) B(k,0.8,0.022,0.14,HOLZ,p.x,0.111,p.z+dz);
-    for(const dx of [-0.34,-0.17,0,0.17,0.34]) B(k,dx===0||Math.abs(dx)>0.3?0.14:0.1,0.022,1.2,dx===0||Math.abs(dx)>0.3?HOLZ:0xcfa66d,p.x+dx,PAL_H-0.011,p.z);
+    for(const dx of [-0.55,0,0.55]) for(const dz of [-0.34,0,0.34]) B(k,0.12,0.078,0.12,HOLZ2,p.x+dx,0.061,p.z+dz);
+    for(const dz of [-0.34,0,0.34]) B(k,1.2,0.022,0.12,HOLZ,p.x,0.011,p.z+dz);
+    for(const dx of [-0.55,0,0.55]) B(k,0.14,0.022,0.8,HOLZ,p.x+dx,0.111,p.z);
+    for(const dz of [-0.34,-0.17,0,0.17,0.34]) B(k,1.2,0.022,dz===0||Math.abs(dz)>0.3?0.14:0.1,dz===0||Math.abs(dz)>0.3?HOLZ:0xcfa66d,p.x,PAL_H-0.011,p.z+dz);
   }
-  /* bewegliche Portalteile: Bruecke je Stufe, Laufwagen, Hubachse, Greifer */
-  { const Pt={bruecke:[null]}, gelb=std(GELB,{roughness:0.5,metalness:0.25}), dunkel=std(0x2a2e36,{roughness:0.55,metalness:0.4}), zink=std(ZINK,{metalness:0.6,roughness:0.35});
-    for(let s=1;s<=3;s++){ const C=ZELLE[s], L=C.x1-C.x0-0.02;
-      const br=new THREE.Group(); br.position.set((C.x0+C.x1)/2,PORTAL_Y+0.27,BAND.z); g.add(br);
-      bbox(L,0.14,0.14,gelb,0,0,0,br); bbox(L-0.1,0.03,0.05,zink,0,0.085,0,br,false);
-      for(const sx of [-L/2+0.06,L/2-0.06]) bbox(0.16,0.12,0.24,dunkel,sx,-0.09,0,br,false);
-      Pt.bruecke[s]=br; T.nur[s].push(br); }
-    const wg=new THREE.Group(); wg.position.set(BAND.x1-0.4,PORTAL_Y+0.27,BAND.z); g.add(wg);
+  /* bewegliche Portalteile: Bruecke (faehrt in z), Laufwagen, Hubachse, Greifer */
+  { const Pt={}, gelb=std(GELB,{roughness:0.5,metalness:0.25}), dunkel=std(0x2a2e36,{roughness:0.55,metalness:0.4}), zink=std(ZINK,{metalness:0.6,roughness:0.35});
+    const bx0=ZELLE[1].x0+0.01, L=brX1-bx0;
+    const br=new THREE.Group(); br.position.set((bx0+brX1)/2,PORTAL_Y+0.27,BAND.z); g.add(br);
+    bbox(L,0.14,0.14,gelb,0,0,0,br); bbox(L-0.1,0.03,0.05,zink,0,0.085,0,br,false);
+    for(const sx of [ZELLE[1].x0+0.06,ZELLE[1].x1-0.06]) bbox(0.16,0.12,0.24,dunkel,sx-(bx0+brX1)/2,-0.09,0,br,false);
+    const wg=new THREE.Group(); wg.position.set(BAND.x0+0.4,PORTAL_Y+0.27,BAND.z); g.add(wg);
     bbox(0.28,0.24,0.3,dunkel,0,0,0,wg); bbox(0.16,0.12,0.12,std(0x2a5a9e,{roughness:0.5}),0.05,0.18,0,wg,false);
     const mast=bbox(0.08,1,0.08,zink,0,0,0,g,false), mast2=bbox(0.11,0.5,0.11,dunkel,0,0,0,g,false);
     const gr=new THREE.Group(); g.add(gr);
@@ -927,20 +944,20 @@ function buildPackstation(){
     bbox(0.3,0.04,0.26,dunkel,0,0.045,0,gr); bbox(0.12,0.07,0.12,dunkel,0,0.1,0,gr,false);
     const saugM=std(0x1b1d22,{roughness:0.9}), saugG=new THREE.CylinderGeometry(0.035,0.028,0.025,12);
     for(const sx of [-0.09,0.09]) for(const sz of [-0.08,0.08]){ const c=new THREE.Mesh(saugG,saugM); c.position.set(sx,0.0125,sz); gr.add(c); }
-    Pt.wagen=wg; Pt.mast=mast; Pt.mast2=mast2; Pt.greifer=gr;
-    [wg,mast,mast2,gr].forEach(o=>T.ab[1].push(o));
+    Pt.bruecke=br; Pt.wagen=wg; Pt.mast=mast; Pt.mast2=mast2; Pt.greifer=gr;
+    [br,wg,mast,mast2,gr].forEach(o=>T.ab[1].push(o));
     T.portal=Pt;
   }
   /* Statische Teile zusammenfassen */
   for(const k in VC){ const m=new THREE.Mesh(merge(VC[k]),vcMat); if(HIQ){ m.castShadow=true; m.receiveShadow=true; } g.add(m); reg(m,k); }
 
   /* Hinweisschild ueber dem ersten Packplatz, von beiden Seiten lesbar */
-  { const X=VS_PP[0].x, st=std(0x7d838c,{metalness:0.6,roughness:0.4});
-    for(const sx of [-0.66,0.66]) bbox(0.05,1.5,0.05,st,X+sx,1.72,VS_PZ-0.36,g,false);
-    bbox(1.5,0.4,0.05,std(0x1b2340,{roughness:0.7}),X,2.3,VS_PZ-0.36,g,false);
+  { const P=ppW(0,0,-0.36), st=std(0x7d838c,{metalness:0.6,roughness:0.4});
+    for(const sx of [-0.56,0.56]) bbox(0.05,1.5,0.05,st,P.x+sx,1.72,P.z,g,false);
+    bbox(1.3,0.36,0.05,std(0x1b2340,{roughness:0.7}),P.x,2.3,P.z,g,false);
     packSchildTex=tex(1024,256,()=>{});
     const sm=new THREE.MeshBasicMaterial({map:packSchildTex,toneMapped:false});
-    plane(1.42,0.35,sm,X,2.3,VS_PZ-0.33,0,g); plane(1.42,0.35,sm,X,2.3,VS_PZ-0.39,Math.PI,g);
+    plane(1.24,0.31,sm,P.x,2.3,P.z+0.03,0,g); plane(1.24,0.31,sm,P.x,2.3,P.z-0.03,Math.PI,g);
     drawPackSchild(); }
   versandFlaeche(g);
   packSperre(id,g);
@@ -948,12 +965,14 @@ function buildPackstation(){
   packMov=addMovable({kind:'pack',name:'Versandecke',g,flaeche:PACK_FL,
     teile:()=>{
       const st=packStufe(), C=ZELLE[st], t=[];
-      t.push({x0:BAND.x0-0.04,x1:BAND.x1+0.06,z0:BAND.z-BAND.b/2-0.05,z1:BAND.z+BAND.b/2+0.03});   /* Band */
-      for(let i=0;i<st;i++){ const X=VS_PP[i].x; t.push({x0:X-0.72,x1:X+1.32,z0:VS_PZ-0.4,z1:VS_PZ+0.4}); }  /* Tisch und Regal */
-      t.push({x0:C.x0-0.04,x1:C.x1+0.04,z0:C.z0-0.3,z1:ZELLE_Z1+0.02});                            /* Palettierstation */
+      t.push({x0:BAND.x0-0.06,x1:BAND.x1+0.06,z0:BAND.z-BAND.b/2-0.04,z1:BAND.z+BAND.b/2+0.04});   /* Band */
+      /* Tisch und Packmaterial-Regal je Platz */
+      for(let i=0;i<st;i++){ const a=ppW(i,-1.27,-0.41), b=ppW(i,VS_TB/2+0.04,0.41);
+        t.push({x0:Math.min(a.x,b.x),x1:Math.max(a.x,b.x),z0:Math.min(a.z,b.z),z1:Math.max(a.z,b.z)}); }
+      t.push({x0:C.x0-0.02,x1:C.x1+0.04,z0:C.z0-0.04,z1:C.z1+0.08});                                 /* Palettierstation */
       if(!zoneOffen(id)) t.push({x0:PACK_FL.x0,x1:PACK_FL.x1,z0:1.06,z1:PACK_FL.z1});
       /* die geparkten Kommissionierwagen (solange sie nicht unterwegs sind) */
-      else for(let i=0;i<st;i++){ const w=vsPlaetze[i]&&vsPlaetze[i].wagen; if(w&&w.parent===g){ const X=VS_PP[i].x+WG_PARK.x; t.push({x0:X-0.48,x1:X+0.48,z0:WG_PARK.z-0.36,z1:WG_PARK.z+0.36}); } }
+      else for(let i=0;i<st;i++){ const w=vsPlaetze[i]&&vsPlaetze[i].wagen; if(w&&w.parent===g){ const p=ppW(i,WG_PARK.x,WG_PARK.z); t.push({x0:p.x-0.48,x1:p.x+0.48,z0:p.z-0.36,z1:p.z+0.36}); } }
       return t;
     }});
   zHook(id,()=>{ packStufeAnwenden(); });
@@ -965,7 +984,7 @@ function buildPackstation(){
 function packStufeAnwenden(){
   const st=packStufe(), T=packTeile;
   for(let s=1;s<=3;s++){ T.ab[s].forEach(o=>{ o.visible=st>=s; }); T.nur[s].forEach(o=>{ o.visible=st===s; }); }
-  PACK_FL.z0=ZELLE[st].z0-0.36;
+  PACK_FL.z0=PACK_FL_Z0[st];
   VS_FELD.length=0; for(let j=0;j<PAL_N[st];j++) VS_FELD.push(PALETTEN[j]);
   if(typeof vsStufeGeaendert==='function') vsStufeGeaendert();
   if(packMov&&grabbed!==packMov) applyFootprint(packMov);
@@ -986,7 +1005,7 @@ function packPlatzPruefen(laut){
    darueber hinweg, kommt aber nicht heran. Es haengt in der Gruppe der
    Station und wandert beim Umbau mit. */
 function packSperre(id,g){
-  const zb=1.17, xs=[-1.7,0.8,3.3,5.75];
+  const zb=1.17, xs=[-1.7,0.3,2.2,4.1];
   const bandM=new THREE.MeshStandardMaterial({map:sperrbandTex('NOCH NICHT FREIGESCHALTET'),
     roughness:0.72,side:THREE.DoubleSide});
   const halt=std(0x3d4450,{metalness:0.5,roughness:0.5});
@@ -1000,29 +1019,32 @@ function packSperre(id,g){
   }
 }
 /* Die Packplaetze stehen auf einer eigenen, markierten Flaeche: grauer
-   Boden mit gelbem Rand und Schraffur an den Schmalseiten, die Schrift
-   im Gang vor den Tischen - dort, wo man vom Rolltor herkommt. */
+   Boden mit gelbem Rand und Schraffur an den Schmalseiten. Der zweite
+   Packplatz suedlich des Bandes bekommt ein eigenes Stueck. */
 function versandFlaeche(g){
-  const x0=-1.75, x1=5.8, z0=BAND.z-BAND.b/2-0.12, z1=1.22, BW=x1-x0, BT=z1-z0;
-  const t=tex(1510,Math.round(BT/BW*1510),(c,W,H)=>{
-    c.fillStyle='#57606c'; c.fillRect(0,0,W,H);
-    for(let i=0;i<9000;i++){ c.fillStyle=`rgba(255,255,255,${Math.random()*0.03})`; c.fillRect(Math.random()*W,Math.random()*H,2,2); }
-    c.strokeStyle='#f2c230'; c.lineWidth=12; c.strokeRect(6,6,W-12,H-12);
-    c.save(); c.beginPath(); c.rect(0,0,W,H); c.clip();
-    c.strokeStyle='rgba(242,194,48,.75)'; c.lineWidth=9;
-    for(const xx of [0,W-50]) for(let y=-H;y<H*2;y+=30){ c.beginPath(); c.moveTo(xx,y); c.lineTo(xx+50,y-50); c.stroke(); }
-    c.restore();
-  });
-  const bo=new THREE.Mesh(new THREE.PlaneGeometry(BW,BT),new THREE.MeshStandardMaterial({map:t,roughness:0.62}));
-  bo.rotation.x=-Math.PI/2; bo.position.set((x0+x1)/2,0.02,(z0+z1)/2); g.add(bo);
-  /* Schrift im Gang vor jedem Packplatz - nur fuer die Plaetze, die es
-     in der Stufe schon gibt, lesbar fuer den, der von Norden kommt */
+  const flaeche=(x0,x1,z0,z1,k)=>{ const BW=x1-x0, BT=z1-z0;
+    const t=tex(Math.round(BW*200),Math.round(BT*200),(c,W,H)=>{
+      c.fillStyle='#57606c'; c.fillRect(0,0,W,H);
+      for(let i=0;i<W*H/100;i++){ c.fillStyle=`rgba(255,255,255,${Math.random()*0.03})`; c.fillRect(Math.random()*W,Math.random()*H,2,2); }
+      c.strokeStyle='#f2c230'; c.lineWidth=12; c.strokeRect(6,6,W-12,H-12);
+      c.save(); c.beginPath(); c.rect(0,0,W,H); c.clip();
+      c.strokeStyle='rgba(242,194,48,.75)'; c.lineWidth=9;
+      for(let y=-H;y<H*2;y+=30){ c.beginPath(); c.moveTo(W-50,y); c.lineTo(W,y-50); c.stroke(); }
+      c.restore(); });
+    const bo=new THREE.Mesh(new THREE.PlaneGeometry(BW,BT),new THREE.MeshStandardMaterial({map:t,roughness:0.62}));
+    bo.rotation.x=-Math.PI/2; bo.position.set((x0+x1)/2,0.02,(z0+z1)/2); g.add(bo);
+    if(k) packTeile.ab[k].push(bo); };
+  flaeche(-0.05,4.15,BAND.z-BAND.b/2-0.1,1.22,0);
+  flaeche(1.6,4.15,-3.25,BAND.z-BAND.b/2-0.1,2);
+  /* Schrift vor jedem Packplatz - nur fuer die Plaetze, die es in der
+     Stufe schon gibt, lesbar fuer den, der davor steht */
   for(let i=0;i<3;i++){
     const lt=tex(512,96,(c,W,H)=>{ c.clearRect(0,0,W,H); c.fillStyle='rgba(242,194,48,.88)'; c.textAlign='center'; c.textBaseline='middle';
       fitFont(c,'PACKPLATZ '+(i+1),W-24,64,BUN); c.fillText('PACKPLATZ '+(i+1),W/2,H/2+3); });
-    const m=new THREE.Mesh(new THREE.PlaneGeometry(1.5,0.28),new THREE.MeshStandardMaterial({map:lt,transparent:true,depthWrite:false,roughness:0.6,
+    const m=new THREE.Mesh(new THREE.PlaneGeometry(1.2,0.22),new THREE.MeshStandardMaterial({map:lt,transparent:true,depthWrite:false,roughness:0.6,
       polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2}));
-    m.rotation.x=-Math.PI/2; m.position.set(VS_PP[i].x+0.5,0.021,1.0); g.add(m);
+    const p=ppW(i,0,1.32);
+    m.rotation.x=-Math.PI/2; if(VS_PP[i].s<0) m.rotation.z=Math.PI; m.position.set(p.x,0.021,p.z); g.add(m);
     packTeile.ab[i+1].push(m);
   }
 }

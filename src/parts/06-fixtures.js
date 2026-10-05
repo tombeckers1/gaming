@@ -1102,7 +1102,8 @@ function rackKindOf(rk){ return RACKKIND[rk&&rk.kind]||RACKKIND.standard; }
 function rackCount(k){ return racks.filter(r=>r.kind===k).length; }
 /* Ein Stellplatz nimmt nur Regale, die unter die Decke passen */
 function rackPasst(K,sl){ return K.hoch+0.5<=(sl.h||WH); }
-function racksOffen(){ return RACKS.filter(x=>!x.zone||zoneOffen(x.zone)); }
+/* pack: den Stellplatz belegt ab dieser Stufe die Palettierstation (05h) */
+function racksOffen(){ return RACKS.filter(x=>(!x.zone||zoneOffen(x.zone))&&!(x.pack&&typeof packStufe==='function'&&packStufe()>=x.pack)); }
 /* Grundriss eines Lagerregals: Traversen und Stuetzen samt Fussplatten */
 function rackRect(K,x,z,ry){ const w=K.w/2+0.05, d=K.zo+0.09, q=Math.abs(Math.round(Math.sin(ry||0)));
   return q?{x0:x-d,x1:x+d,z0:z-w,z1:z+w}:{x0:x-w,x1:x+w,z0:z-d,z1:z+d}; }

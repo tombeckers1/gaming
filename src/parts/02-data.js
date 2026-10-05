@@ -306,7 +306,7 @@ const UPGRADES=[
   /* Ausbau der Packstation (Tom, 05.10.): weitere Packplaetze am selben
      Band, je mit Packmaterial-Regal und Wagen, und mehr Paletten unter
      dem Portal. Mehr Plaetze heisst auch mehr Bestellungen am Tag. */
-  {id:'packstation2',kat:'flaeche',lvl:22,req:'packstation',name:'Packstation – zweiter Packplatz',desc:'Ein zweiter Packplatz am selben Förderband, mit eigenem Packmaterial-Regal und Kommissionierwagen. Die Palettierstation wächst auf vier Paletten. Der Shop nimmt deutlich mehr Bestellungen am Tag an – einen zweiten Versandmitarbeiter stellst du im Handy ein.',cost:()=>14000,done:()=>S.up.packstation2},
+  {id:'packstation2',kat:'flaeche',lvl:22,req:'packstation',name:'Packstation – zweiter Packplatz',desc:'Ein zweiter Packplatz gegenüber am selben Förderband, mit eigenem Packmaterial-Regal und Kommissionierwagen. Die Palettierstation wächst an der Westwand nach Süden auf vier Paletten – dafür braucht sie den Stellplatz des vorderen Lagerregals dort. Der Shop nimmt deutlich mehr Bestellungen am Tag an; einen zweiten Versandmitarbeiter stellst du im Handy ein.',cost:()=>14000,done:()=>S.up.packstation2},
   {id:'packstation3',kat:'flaeche',lvl:27,req:'packstation2',name:'Packstation – Versandstraße',desc:'Der dritte Packplatz macht aus der Ecke eine kleine Versandstraße: drei Packer, ein Band, sechs Paletten unter dem Portal. Noch einmal mehr Bestellungen am Tag.',cost:()=>26000,done:()=>S.up.packstation3},
   {id:'eingang2',kat:'flaeche',lvl:25,req:'shop_ost',name:'Ladenerweiterung 5 – zweite Tür',desc:'Im Eckhaus ist die mittlere Achse bis zum Boden offen und wartet auf eine Tür. Der Ausbau setzt dieselbe Schiebetür wie am Haupteingang hinein, mit Vordach und Matte. Kunden nehmen ab jetzt den Eingang, der näher liegt – wer hinten in der Erweiterung einkauft, spart sich den Weg quer durch den Laden.',cost:()=>11500,done:()=>S.up.eingang2},
   {id:'kasse2',kat:'einr',lvl:16,req:'shop_gross',name:'SB-Kassen',desc:'Zwei Selbstbedienungsterminals in der neuen Verkaufsfläche. Kunden mit wenig Ware zahlen dort selbst, das entlastet deine Schlange spürbar.',cost:()=>3400,done:()=>S.up.kasse2},
@@ -686,6 +686,8 @@ function mkRacks(){
      Westrand die ersten Meter frei. */
   [-8.6,-12.2].forEach(z=>{ add(-10.4,z,0,5.0,'lager_gross'); });
   [-12.2,-14.8].forEach(z=>{ add(-17.8,z,0,5.0,'lager_gross'); });
+  /* ab Packstation Stufe 2 steht dort die Palettierstation (05h) */
+  A[A.length-2].pack=2;
   add(-10.4,-14.8,0,5.0,'lager_gross');
   /* Halle Sued II */
   [-17.4,-20.6].forEach(z=>{ add(-10.4,z,0,5.0,'lager_sued'); add(-17.8,z,0,5.0,'lager_sued'); });

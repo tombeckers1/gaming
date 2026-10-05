@@ -1081,7 +1081,7 @@ const UPGRADES=[
   /* Ausbau der Packstation (Tom, 05.10.): weitere Packplaetze am selben
      Band, je mit Packmaterial-Regal und Wagen, und mehr Paletten unter
      dem Portal. Mehr Plaetze heisst auch mehr Bestellungen am Tag. */
-  {id:'packstation2',kat:'flaeche',lvl:22,req:'packstation',name:'Packstation – zweiter Packplatz',desc:'Ein zweiter Packplatz am selben Förderband, mit eigenem Packmaterial-Regal und Kommissionierwagen. Die Palettierstation wächst auf vier Paletten. Der Shop nimmt deutlich mehr Bestellungen am Tag an – einen zweiten Versandmitarbeiter stellst du im Handy ein.',cost:()=>14000,done:()=>S.up.packstation2},
+  {id:'packstation2',kat:'flaeche',lvl:22,req:'packstation',name:'Packstation – zweiter Packplatz',desc:'Ein zweiter Packplatz gegenüber am selben Förderband, mit eigenem Packmaterial-Regal und Kommissionierwagen. Die Palettierstation wächst an der Westwand nach Süden auf vier Paletten – dafür braucht sie den Stellplatz des vorderen Lagerregals dort. Der Shop nimmt deutlich mehr Bestellungen am Tag an; einen zweiten Versandmitarbeiter stellst du im Handy ein.',cost:()=>14000,done:()=>S.up.packstation2},
   {id:'packstation3',kat:'flaeche',lvl:27,req:'packstation2',name:'Packstation – Versandstraße',desc:'Der dritte Packplatz macht aus der Ecke eine kleine Versandstraße: drei Packer, ein Band, sechs Paletten unter dem Portal. Noch einmal mehr Bestellungen am Tag.',cost:()=>26000,done:()=>S.up.packstation3},
   {id:'eingang2',kat:'flaeche',lvl:25,req:'shop_ost',name:'Ladenerweiterung 5 – zweite Tür',desc:'Im Eckhaus ist die mittlere Achse bis zum Boden offen und wartet auf eine Tür. Der Ausbau setzt dieselbe Schiebetür wie am Haupteingang hinein, mit Vordach und Matte. Kunden nehmen ab jetzt den Eingang, der näher liegt – wer hinten in der Erweiterung einkauft, spart sich den Weg quer durch den Laden.',cost:()=>11500,done:()=>S.up.eingang2},
   {id:'kasse2',kat:'einr',lvl:16,req:'shop_gross',name:'SB-Kassen',desc:'Zwei Selbstbedienungsterminals in der neuen Verkaufsfläche. Kunden mit wenig Ware zahlen dort selbst, das entlastet deine Schlange spürbar.',cost:()=>3400,done:()=>S.up.kasse2},
@@ -1461,6 +1461,8 @@ function mkRacks(){
      Westrand die ersten Meter frei. */
   [-8.6,-12.2].forEach(z=>{ add(-10.4,z,0,5.0,'lager_gross'); });
   [-12.2,-14.8].forEach(z=>{ add(-17.8,z,0,5.0,'lager_gross'); });
+  /* ab Packstation Stufe 2 steht dort die Palettierstation (05h) */
+  A[A.length-2].pack=2;
   add(-10.4,-14.8,0,5.0,'lager_gross');
   /* Halle Sued II */
   [-17.4,-20.6].forEach(z=>{ add(-10.4,z,0,5.0,'lager_sued'); add(-17.8,z,0,5.0,'lager_sued'); });
@@ -17328,34 +17330,52 @@ function buildAusbau(){
    in der Luft hingen.
    Drei Stufen: 1, 2 oder 3 Packplaetze (je mit Packmaterial-Regal und
    Wagen), 2, 4 oder 6 Paletten unter dem Portal.
-   Gruppenkoordinaten: x nach Osten, z nach Norden. Der Packer steht
-   noerdlich seines Tisches, das Band laeuft suedlich dahinter.
+   Gruppenkoordinaten: x nach Osten, z nach Norden. Das Band laeuft von
+   Osten nach Westen; die Palettierstation steht an der Westwand.
+   06.10.: Die Station haelt den Weg in die Halle frei. Vorher reichte
+   sie bis an das erste Lagerregal im Osten und mit der Palettierstation
+   mitten in den Mittelgang - in der Vorfuehrung war die ganze hintere
+   Halle samt Logistikhalle abgeschnitten, und die Packer liefen ewig
+   gegen die Wand. Jetzt bleiben oestlich der Station 1,7 m Gang frei,
+   und nach Sueden waechst sie nur an der Westwand, auf dem Stellplatz
+   des Lagerregals dort (ab Stufe 2).
    ========================================================= */
 let packHit=null, packTisch=null, packMov=null;
 const PACK_HOME={x:-18.0,z:-8.6,ry:0};
-/* Tischmitten der Packplaetze in x; Tisch 1,4 x 0,78 m, Platte 0,95 m */
-const VS_PP=[{x:-0.75},{x:1.65},{x:4.05}];
-const VS_PZ=-0.19, VS_TOP=0.95;
-/* Foerderband: Gurt bis stau, dann Staurollenbahn bis zum Endanschlag.
-   Oberkante wie die Tischplatte - das Paket wird eben hinueber-
-   geschoben. */
-const BAND={x0:-1.7,x1:5.62,z:-0.98,b:0.7,y:VS_TOP,stau:3.9};
-/* Palettierstation je Stufe; die Nordseite liegt am Band */
-const ZELLE=[null,{x0:3.85,x1:5.78,z0:-3.0},{x0:3.85,x1:5.78,z0:-4.3},{x0:2.92,x1:5.78,z0:-4.3}];
-const ZELLE_Z1=-1.45, PORTAL_Y=2.55;
-/* Europaletten 0,8 x 1,2 m, die lange Seite quer zum Band */
-const PALETTEN=[{x:5.28,z:-2.21},{x:4.38,z:-2.21},{x:5.28,z:-3.5},{x:4.38,z:-3.5},{x:3.48,z:-2.21},{x:3.48,z:-3.5}];
+/* Packplaetze: Tischmitte und Seite. s 1: Tisch noerdlich am Band, der
+   Packer steht noerdlich davor; s -1: gespiegelt suedlich des Bandes.
+   Platzkoordinaten (px,pz): Tischmitte 0/0, +pz zeigt zum Packer. */
+const VS_PP=[{x:3.25,z:-0.19,s:1},{x:3.25,z:-1.77,s:-1},{x:1.3,z:-0.19,s:1}];
+const VS_PZ=-0.19, VS_TOP=0.95, VS_TB=1.2;
+function ppW(i,px,pz){ const q=VS_PP[i]; return {x:q.x+px,z:q.z+q.s*pz}; }
+function ppRy(i,ry){ return VS_PP[i].s>0?ry:Math.PI-ry; }
+/* Foerderband: Gurt von x1 (Osten) bis stau, dann Staurollenbahn bis
+   zum Endanschlag bei x0. Oberkante wie die Tischplatte - das Paket wird
+   eben hinuebergeschoben. */
+const BAND={x0:0.0,x1:4.05,z:-0.98,b:0.7,y:VS_TOP,stau:1.2};
+/* Palettierstation je Stufe, an der Westwand */
+const ZELLE=[null,{x0:-1.75,x1:-0.05,z0:-1.45,z1:1.2},{x0:-1.75,x1:-0.05,z0:-2.55,z1:1.2},{x0:-1.75,x1:-0.05,z0:-4.35,z1:1.2}];
+const ZELLE_Z1=1.2, PORTAL_Y=2.55;
+/* Europaletten 1,2 x 0,8 m, die lange Seite quer zur Wand, Reihen nach Sueden */
+const PALETTEN=[0.65,-0.25,-1.15,-2.05,-2.95,-3.85].map(z=>({x:-0.9,z}));
 const PAL_N=[0,2,4,6], PAL_H=0.144;
 /* Belegte Flaeche - waechst mit der Stufe (packStufeAnwenden) */
-const PACK_FL={x0:-1.75,x1:5.8,z0:-3.0,z1:1.25};
+const PACK_FL={x0:-1.75,x1:4.15,z0:-1.5,z1:1.25};
+const PACK_FL_Z0=[0,-1.5,-3.25,-4.42];
 function packStufe(){ return !S||!S.up?1:S.up.packstation3?3:S.up.packstation2?2:1; }
+/* Ab Stufe 2 steht die Palettierstation auf dem Stellplatz des
+   Lagerregals an der Westwand (02-data: RACKS mit pack) */
+function packRegalImWeg(st){
+  for(const sl of RACKS){ if(!sl.pack||sl.pack>st) continue;
+    const r=racks.find(rk=>Math.hypot(rk.g.position.x-sl.x,rk.g.position.z-sl.z)<1.2); if(r) return r; }
+  return null;
+}
 /* Teile je Stufe: ab[s] gilt ab Stufe s, nur[s] genau in Stufe s */
 const packTeile={ab:[null,[],[],[]],nur:[null,[],[],[]],hits:[],portal:null};
 function buildPackstation(){
   /* Die Packstation steht im ersten Abschnitt der Halle Sued, gleich
-     hinter dem Rolltor; die Westkante an der Wand, im Osten bleibt der
-     Stellplatz fuer das erste Lagerregal frei. Sie steht von Anfang an
-     da - bis zum Kauf haengt ein Absperrband davor. */
+     hinter dem Rolltor, die Westkante an der Wand. Sie steht von Anfang
+     an da - bis zum Kauf haengt ein Absperrband davor. */
   const id='packstation', PX=PACK_HOME.x, PZ=PACK_HOME.z;
   const g=new THREE.Group(); g.position.set(PX,0,PZ); scene.add(g);
   packTisch=g;
@@ -17379,61 +17399,61 @@ function buildPackstation(){
     }); t.anisotropy=8; return t; })()});
 
   /* ---- Packplaetze: Tisch, Waage, Drucker, Abroller, Ablage ---- */
-  for(let i=0;i<3;i++){ const k='ab'+(i+1), X=VS_PP[i].x, Z=VS_PZ;
-    reg(rbox(1.4,0.06,0.78,0.012,platte,X,0.92,Z,g),k);
-    B(k,1.44,0.05,0.8,DUNKEL,X,0.87,Z);
-    for(const sx of [-0.62,0.62]) for(const sz of [-0.32,0.32]){ B(k,0.06,0.85,0.06,STAHL,X+sx,0.425,Z+sz); B(k,0.12,0.02,0.12,DUNKEL,X+sx,0.01,Z+sz); }
-    for(const sz of [-0.32,0.32]) B(k,1.18,0.05,0.04,STAHL,X,0.28,Z+sz);
-    B(k,1.24,0.03,0.68,DUNKEL,X,0.31,Z);
+  for(let i=0;i<3;i++){ const k='ab'+(i+1), W=(px,pz)=>ppW(i,px,pz);
+    /* in Platzkoordinaten bauen; gespiegelte Plaetze spiegeln z */
+    const Bp=(w,h,d,c,px,y,pz,rx,ry,rz)=>{ const p=W(px,pz); B(k,w,h,d,c,p.x,y,p.z,rx,ry,rz); };
+    const Cp=(r,h,c,px,y,pz,rx,ry,rz,seg)=>{ const p=W(px,pz); Cy(k,r,h,c,p.x,y,p.z,rx,ry,rz,seg); };
+    const M=W(0,0), hb=VS_TB/2;
+    reg(rbox(VS_TB,0.06,0.78,0.012,platte,M.x,0.92,M.z,g),k);
+    Bp(VS_TB+0.04,0.05,0.8,DUNKEL,0,0.87,0);
+    for(const sx of [-hb+0.08,hb-0.08]) for(const sz of [-0.32,0.32]){ Bp(0.06,0.85,0.06,STAHL,sx,0.425,sz); Bp(0.12,0.02,0.12,DUNKEL,sx,0.01,sz); }
+    for(const sz of [-0.32,0.32]) Bp(VS_TB-0.22,0.05,0.04,STAHL,0,0.28,sz);
+    Bp(VS_TB-0.16,0.03,0.68,DUNKEL,0,0.31,0);
     /* gefaltete Kartons auf der unteren Ablage */
-    B(k,0.56,0.05,0.5,0xc9a978,X-0.28,0.35,Z); B(k,0.5,0.04,0.46,0xbf9d6c,X-0.26,0.395,Z+0.01);
-    B(k,0.4,0.05,0.36,0xc9a978,X+0.33,0.35,Z-0.02);
+    Bp(0.5,0.05,0.5,0xc9a978,-0.24,0.35,0); Bp(0.44,0.04,0.46,0xbf9d6c,-0.22,0.395,0.01);
+    Bp(0.36,0.05,0.36,0xc9a978,0.3,0.35,-0.02);
     /* Waage vorn links, Etikettendrucker hinten links, Abroller rechts -
-       die Mitte bleibt frei: dort steht der Karton, und nach hinten wird
-       er aufs Band geschoben */
-    B(k,0.2,0.04,0.2,DUNKEL,X-0.55,0.97,Z+0.24); B(k,0.17,0.01,0.17,ZINK,X-0.55,0.995,Z+0.24);
-    B(k,0.2,0.18,0.2,DUNKEL,X-0.58,1.04,Z-0.25); B(k,0.16,0.01,0.12,0xf2f0e8,X-0.58,1.135,Z-0.25);
+       die Mitte bleibt frei: dort steht der Karton, und zum Band hin wird
+       er hinuebergeschoben */
+    Bp(0.2,0.04,0.2,DUNKEL,-0.46,0.97,0.24); Bp(0.17,0.01,0.17,ZINK,-0.46,0.995,0.24);
+    Bp(0.18,0.18,0.2,DUNKEL,-0.48,1.04,-0.25); Bp(0.14,0.01,0.12,0xf2f0e8,-0.48,1.135,-0.25);
     /* Uebergabeblech: Tischkante bis Bandkante, buendig mit der Platte */
-    B(k,1.2,0.012,0.1,0xb4bac2,X,VS_TOP-0.006,Z-0.43);
-    B(k,0.1,0.07,0.22,0x23262c,X+0.6,0.985,Z-0.24); Cy(k,0.065,0.05,0xd8b46a,X+0.6,1.06,Z-0.26,0,0,Math.PI/2,14);
-    const hit=bbox(1.5,1.3,0.95,hitM,X,0.65,Z,g,false);
+    Bp(VS_TB-0.2,0.012,0.12,0xb4bac2,0,VS_TOP-0.006,-0.45);
+    Bp(0.1,0.07,0.22,0x23262c,0.5,0.985,-0.24); Cp(0.065,0.05,0xd8b46a,0.5,1.06,-0.26,0,0,Math.PI/2,14);
+    const hit=bbox(VS_TB+0.1,1.3,0.95,hitM,M.x,0.65,M.z,g,false);
     hit.userData={kind:'pack',ref:i}; T.hits[i]=hit; reg(hit,k);
     if(i===0) packHit=hit;
-    /* Packmaterial-Regal rechts neben dem Tisch (11d-packmaterial.js) */
+    /* Packmaterial-Regal links neben dem Tisch (11d-packmaterial.js) */
     vmRegalBauen(g,i,(o)=>reg(o,k),B,k);
   }
 
   /* ---- Foerderband: Gurt, Rollen, Gestell auf eigenen Fuessen ---- */
-  { const k='ab1', z=BAND.z, b=BAND.b, L=BAND.x1-BAND.x0, Ls=BAND.stau-BAND.x0, Y=BAND.y;
-    /* Seitenprofile; das noerdliche bleibt unter der Oberkante, damit das
-       Paket vom Tisch eben herueberrutscht. Suedlich eine Fuehrung. */
-    B(k,L,0.14,0.04,STAHL,(BAND.x0+BAND.x1)/2,Y-0.075,z+b/2+0.02);
-    B(k,L,0.14,0.04,STAHL,(BAND.x0+BAND.x1)/2,Y-0.075,z-b/2-0.02);
-    B(k,L,0.03,0.025,ZINK,(BAND.x0+BAND.x1)/2,Y+0.07,z-b/2-0.015);
-    for(let x=BAND.x0+0.3;x<BAND.x1;x+=0.9) B(k,0.03,0.07,0.025,ZINK,x,Y+0.03,z-b/2-0.015);
+  { const k='ab1', z=BAND.z, b=BAND.b, L=BAND.x1-BAND.x0, Ls=BAND.x1-BAND.stau, Y=BAND.y, xm=(BAND.x0+BAND.x1)/2;
+    /* Seitenprofile bleiben unter der Oberkante, damit das Paket von den
+       Tischen eben herueberrutscht - Tische gibt es auf beiden Seiten */
+    for(const s of [-1,1]) B(k,L,0.14,0.04,STAHL,xm,Y-0.075,z+s*(b/2+0.02));
     /* Beine mit Fussplatten und Querstreben, etwa alle 1,2 m */
     const nB=Math.round(L/1.2);
     for(let j=0;j<=nB;j++){ const x=BAND.x0+0.12+(L-0.24)*j/nB;
       for(const s of [-1,1]){ B(k,0.05,Y-0.1,0.05,STAHL,x,(Y-0.1)/2,z+s*(b/2-0.02)); B(k,0.13,0.015,0.11,DUNKEL,x,0.008,z+s*(b/2-0.02)); }
       B(k,0.04,0.04,b-0.04,STAHL,x,0.24,z); B(k,0.04,0.04,b-0.04,STAHL,x,Y-0.17,z); }
-    B(k,L-0.2,0.035,0.035,STAHL,(BAND.x0+BAND.x1)/2,0.24,z+b/2-0.02);
-    B(k,L-0.2,0.035,0.035,STAHL,(BAND.x0+BAND.x1)/2,0.24,z-b/2+0.02);
-    /* Gurt: Unterseite, Umlenktrommeln, Antrieb */
-    B(k,Ls,0.02,b-0.02,0x1d2026,BAND.x0+Ls/2,Y-0.12,z);
-    for(const x of [BAND.x0+0.04,BAND.stau-0.04]) Cy(k,0.045,b-0.02,0x5c626b,x,Y-0.045,z,Math.PI/2,0,0,12);
-    B(k,0.3,0.22,0.24,0x2a5a9e,BAND.x0+0.4,Y-0.32,z-b/2-0.15); Cy(k,0.07,0.16,0x2a5a9e,BAND.x0+0.62,Y-0.32,z-b/2-0.15,0,0,Math.PI/2,12);
+    for(const s of [-1,1]) B(k,L-0.2,0.035,0.035,STAHL,xm,0.24,z+s*(b/2-0.02));
+    /* Gurt: Unterseite, Umlenktrommeln, Antrieb am Anfang im Osten */
+    B(k,Ls,0.02,b-0.02,0x1d2026,BAND.stau+Ls/2,Y-0.12,z);
+    for(const x of [BAND.stau+0.04,BAND.x1-0.04]) Cy(k,0.045,b-0.02,0x5c626b,x,Y-0.045,z,Math.PI/2,0,0,12);
+    B(k,0.3,0.22,0.24,0x2a5a9e,BAND.x1-0.4,Y-0.42,z); Cy(k,0.07,0.16,0x2a5a9e,BAND.x1-0.62,Y-0.42,z,0,0,Math.PI/2,12);
     /* Staurollenbahn bis zum Endanschlag */
-    for(let x=BAND.stau+0.04;x<BAND.x1-0.02;x+=0.075) Cy(k,0.03,b-0.03,ZINK,x,Y-0.03,z,Math.PI/2,0,0,10);
+    for(let x=BAND.x0+0.06;x<BAND.stau-0.02;x+=0.075) Cy(k,0.03,b-0.03,ZINK,x,Y-0.03,z,Math.PI/2,0,0,10);
     /* Endanschlag mit Gummipuffer und Lichtschranke */
-    B(k,0.04,0.2,b+0.08,GELB,BAND.x1+0.02,Y+0.06,z); B(k,0.02,0.1,b-0.1,0x1b1d22,BAND.x1-0.005,Y+0.05,z);
-    B(k,0.05,0.08,0.05,DUNKEL,BAND.x1-0.25,Y+0.09,z-b/2-0.05); B(k,0.05,0.08,0.05,DUNKEL,BAND.x1-0.25,Y+0.09,z+b/2+0.05);
+    B(k,0.04,0.2,b+0.08,GELB,BAND.x0-0.02,Y+0.06,z); B(k,0.02,0.1,b-0.1,0x1b1d22,BAND.x0+0.005,Y+0.05,z);
+    for(const s of [-1,1]) B(k,0.05,0.08,0.05,DUNKEL,BAND.x0+0.25,Y+0.09,z+s*(b/2+0.05));
     /* Gurt mit Laufrichtung: das Muster wandert mit (11c) */
     const gt=tex(512,64,(c,W,H)=>{ c.fillStyle='#24272d'; c.fillRect(0,0,W,H);
       for(let x=0;x<W;x+=16){ c.fillStyle='rgba(255,255,255,.05)'; c.fillRect(x,0,8,H); }
       for(let i=0;i<500;i++){ c.fillStyle=`rgba(255,255,255,${Math.random()*0.05})`; c.fillRect(Math.random()*W,Math.random()*H,2,1); } });
     gt.wrapS=THREE.RepeatWrapping; gt.repeat&&gt.repeat.set(Ls/1.0,1);
     const gurt=new THREE.Mesh(new THREE.PlaneGeometry(Ls,b-0.02),new THREE.MeshStandardMaterial({map:gt,roughness:0.85}));
-    gurt.rotation.x=-Math.PI/2; gurt.position.set(BAND.x0+Ls/2,Y-0.002,z); g.add(gurt);
+    gurt.rotation.x=-Math.PI/2; gurt.position.set(BAND.stau+Ls/2,Y-0.002,z); g.add(gurt);
     if(HIQ) gurt.receiveShadow=true;
     T.gurt=gt;
   }
@@ -17452,19 +17472,18 @@ function buildPackstation(){
     c.fillStyle='#ffffff'; c.font=BUN(72); c.fillText('DDL',W/2,142);
     c.fillStyle='#bcd0ea'; c.font=BAR(34); c.fillText('täglich ab 18:00 Uhr',W/2,212); });
   const ddlM=new THREE.MeshStandardMaterial({map:ddlTex,roughness:0.6});
-  for(let s=1;s<=3;s++){ const k='nur'+s, C=ZELLE[s], x0=C.x0, x1=C.x1, z0=C.z0, z1=ZELLE_Z1;
-    const px0=x0+0.06, px1=x1-0.06, pz0=z0+0.06, pz1=z1-0.06, zN=BAND.z+0.26;
-    /* vier Stuetzen, zwei Laengstraeger bis ueber das Band, Querriegel */
+  const brX1=BAND.x0+0.65;   /* die Portalbruecke ragt im Osten ueber das Bandende */
+  for(let s=1;s<=3;s++){ const k='nur'+s, C=ZELLE[s], x0=C.x0, x1=C.x1, z0=C.z0, z1=C.z1;
+    const px0=x0+0.06, px1=x1-0.06, pz0=z0+0.06, pz1=z1-0.06;
+    /* vier Stuetzen, zwei Laengstraeger an West- und Ostseite, Querriegel */
     for(const px of [px0,px1]) for(const pz of [pz0,pz1]){ B(k,0.12,PORTAL_Y,0.12,GELB,px,PORTAL_Y/2,pz); B(k,0.24,0.02,0.24,DUNKEL,px,0.01,pz); }
-    for(const px of [px0,px1]){ B(k,0.12,0.16,zN-pz0,GELB,px,PORTAL_Y+0.08,(zN+pz0)/2); B(k,0.04,0.03,zN-pz0,ZINK,px,PORTAL_Y+0.175,(zN+pz0)/2); }
-    B(k,px1-px0,0.12,0.1,GELB,(px0+px1)/2,PORTAL_Y-0.02,pz0);
-    B(k,px1-px0,0.12,0.1,GELB,(px0+px1)/2,PORTAL_Y-0.02,pz1);
-    /* Energiekette am oestlichen Traeger */
-    B(k,0.08,0.06,zN-pz0-0.2,0x1b1d22,px1+0.1,PORTAL_Y+0.05,(zN+pz0)/2);
-    /* Schaltschrank aussen an der Suedostecke */
-    B(k,0.5,0.9,0.25,0xd9dde3,x0+0.42,0.85,z0-0.16); B(k,0.06,0.06,0.02,0x2fd06a,x0+0.3,1.15,z0-0.29); B(k,0.06,0.06,0.02,0xff4433,x0+0.42,1.15,z0-0.29);
-    /* Zaun: 2 m hoch an West, Sued und Ost, zum Band hin ein niedriges
-       Gelaender - darueber hebt der Greifer die Pakete */
+    for(const px of [px0,px1]){ B(k,0.12,0.16,pz1-pz0,GELB,px,PORTAL_Y+0.08,(pz0+pz1)/2); B(k,0.04,0.03,pz1-pz0,ZINK,px,PORTAL_Y+0.175,(pz0+pz1)/2); }
+    for(const pz of [pz0,pz1]) B(k,px1-px0,0.12,0.1,GELB,(px0+px1)/2,PORTAL_Y-0.02,pz);
+    /* Energiekette am westlichen Traeger, Schaltkasten mit Leuchten an der Stuetze */
+    B(k,0.08,0.06,pz1-pz0-0.2,0x1b1d22,px0-0.1,PORTAL_Y+0.05,(pz0+pz1)/2);
+    B(k,0.22,0.36,0.14,0xd9dde3,px1,1.5,pz1-0.13); B(k,0.05,0.05,0.02,0x2fd06a,px1-0.05,1.6,pz1-0.205); B(k,0.05,0.05,0.02,0xff4433,px1+0.05,1.6,pz1-0.205);
+    /* Zaun: 2 m hoch an West, Nord und Sued, zum Band hin im Osten ein
+       niedriges Gelaender - darueber hebt der Greifer die Pakete */
     const zaun=(ax,az,bx,bz,h)=>{ const L=Math.hypot(bx-ax,bz-az), n=Math.max(1,Math.round(L/1.2)), ry=Math.atan2(bz-az,bx-ax);
       for(let j=0;j<=n;j++){ const x=ax+(bx-ax)*j/n, z=az+(bz-az)*j/n; B(k,0.05,h,0.05,GELB,x,h/2,z); B(k,0.12,0.015,0.12,DUNKEL,x,0.008,z); }
       B(k,L,0.04,0.04,GELB,(ax+bx)/2,h-0.02,(az+bz)/2,0,-ry,0); B(k,L,0.04,0.04,GELB,(ax+bx)/2,0.12,(az+bz)/2,0,-ry,0);
@@ -17472,11 +17491,11 @@ function buildPackstation(){
         m.material.map.repeat&&m.material.map.repeat.set(L/0.5,(h-0.2)/0.5);
         m.position.set((ax+bx)/2,h/2+0.02,(az+bz)/2); m.rotation.y=-ry; g.add(m); reg(m,k); }
       else B(k,L,0.04,0.04,GELB,(ax+bx)/2,h*0.55,(az+bz)/2,0,-ry,0); };
-    zaun(x0,z1,x0,z0,2.0); zaun(x0,z0,x1,z0,2.0); zaun(x1,z0,x1,z1,2.0); zaun(x0+0.15,z1,x1-0.15,z1,1.1);
-    /* DDL-Abholschild aussen am Suedzaun */
-    const sx=(x0+x1)/2+0.25;
-    B(k,1.06,0.56,0.04,0x2f343d,sx,1.45,z0-0.035);
-    const sm=plane(1.0,0.5,ddlM,sx,1.45,z0-0.058,Math.PI,g); reg(sm,k);
+    zaun(x0,z1,x0,z0,2.0); zaun(x0,z0,x1,z0,2.0); zaun(x0,z1,x1,z1,2.0); zaun(x1,z1-0.15,x1,z0+0.15,1.1);
+    /* DDL-Abholschild aussen am Nordzaun - dort kommt man vom Rolltor her */
+    const sx=(x0+x1)/2;
+    B(k,1.06,0.56,0.04,0x2f343d,sx,1.45,z1+0.035);
+    const sm=plane(1.0,0.5,ddlM,sx,1.45,z1+0.058,0,g); reg(sm,k);
     /* Boden: Warnstreifen am Rand, Eckmarken der Palettenplaetze */
     const PXM=200, W=Math.round((x1-x0)*PXM), H=Math.round((z1-z0)*PXM);
     const ft=tex(W,H,(c)=>{ c.clearRect(0,0,W,H);
@@ -17485,28 +17504,28 @@ function buildPackstation(){
       for(let d=-H;d<W+H;d+=34){ c.beginPath(); c.moveTo(d,0); c.lineTo(d+17,0); c.lineTo(d+17-H,H); c.lineTo(d-H,H); c.closePath(); c.fill(); }
       c.restore();
       c.strokeStyle='rgba(242,194,48,.9)'; c.lineWidth=6;
-      for(let j=0;j<PAL_N[s];j++){ const p=PALETTEN[j], a=(p.x-0.45-x0)*PXM, b=(p.x+0.45-x0)*PXM, o=(p.z-0.65-z0)*PXM, u=(p.z+0.65-z0)*PXM, L=26;
+      /* Bildzeile 0 liegt im Sueden (z0) */
+      for(let j=0;j<PAL_N[s];j++){ const p=PALETTEN[j], a=(p.x-0.65-x0)*PXM, b=(p.x+0.65-x0)*PXM, o=(p.z-0.45-z0)*PXM, u=(p.z+0.45-z0)*PXM, L=24;
         c.beginPath(); c.moveTo(a,o+L); c.lineTo(a,o); c.lineTo(a+L,o); c.moveTo(b-L,o); c.lineTo(b,o); c.lineTo(b,o+L);
         c.moveTo(b,u-L); c.lineTo(b,u); c.lineTo(b-L,u); c.moveTo(a+L,u); c.lineTo(a,u); c.lineTo(a,u-L); c.stroke(); } });
     const fm=new THREE.Mesh(new THREE.PlaneGeometry(x1-x0,z1-z0),new THREE.MeshStandardMaterial({map:ft,transparent:true,depthWrite:false,roughness:0.6,
       polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2}));
     fm.rotation.x=-Math.PI/2; fm.position.set((x0+x1)/2,0.021,(z0+z1)/2); g.add(fm); reg(fm,k);
   }
-  /* Paletten: zwei je Stufe */
+  /* Paletten: zwei je Stufe; Bretter laengs (x), Kufen quer */
   for(let j=0;j<6;j++){ const k='ab'+(1+Math.floor(j/2)), p=PALETTEN[j];
-    for(const dz of [-0.55,0,0.55]) for(const dx of [-0.34,0,0.34]) B(k,0.12,0.078,0.12,HOLZ2,p.x+dx,0.061,p.z+dz);
-    for(const dx of [-0.34,0,0.34]) B(k,0.12,0.022,1.2,HOLZ,p.x+dx,0.011,p.z);
-    for(const dz of [-0.55,0,0.55]) B(k,0.8,0.022,0.14,HOLZ,p.x,0.111,p.z+dz);
-    for(const dx of [-0.34,-0.17,0,0.17,0.34]) B(k,dx===0||Math.abs(dx)>0.3?0.14:0.1,0.022,1.2,dx===0||Math.abs(dx)>0.3?HOLZ:0xcfa66d,p.x+dx,PAL_H-0.011,p.z);
+    for(const dx of [-0.55,0,0.55]) for(const dz of [-0.34,0,0.34]) B(k,0.12,0.078,0.12,HOLZ2,p.x+dx,0.061,p.z+dz);
+    for(const dz of [-0.34,0,0.34]) B(k,1.2,0.022,0.12,HOLZ,p.x,0.011,p.z+dz);
+    for(const dx of [-0.55,0,0.55]) B(k,0.14,0.022,0.8,HOLZ,p.x+dx,0.111,p.z);
+    for(const dz of [-0.34,-0.17,0,0.17,0.34]) B(k,1.2,0.022,dz===0||Math.abs(dz)>0.3?0.14:0.1,dz===0||Math.abs(dz)>0.3?HOLZ:0xcfa66d,p.x,PAL_H-0.011,p.z+dz);
   }
-  /* bewegliche Portalteile: Bruecke je Stufe, Laufwagen, Hubachse, Greifer */
-  { const Pt={bruecke:[null]}, gelb=std(GELB,{roughness:0.5,metalness:0.25}), dunkel=std(0x2a2e36,{roughness:0.55,metalness:0.4}), zink=std(ZINK,{metalness:0.6,roughness:0.35});
-    for(let s=1;s<=3;s++){ const C=ZELLE[s], L=C.x1-C.x0-0.02;
-      const br=new THREE.Group(); br.position.set((C.x0+C.x1)/2,PORTAL_Y+0.27,BAND.z); g.add(br);
-      bbox(L,0.14,0.14,gelb,0,0,0,br); bbox(L-0.1,0.03,0.05,zink,0,0.085,0,br,false);
-      for(const sx of [-L/2+0.06,L/2-0.06]) bbox(0.16,0.12,0.24,dunkel,sx,-0.09,0,br,false);
-      Pt.bruecke[s]=br; T.nur[s].push(br); }
-    const wg=new THREE.Group(); wg.position.set(BAND.x1-0.4,PORTAL_Y+0.27,BAND.z); g.add(wg);
+  /* bewegliche Portalteile: Bruecke (faehrt in z), Laufwagen, Hubachse, Greifer */
+  { const Pt={}, gelb=std(GELB,{roughness:0.5,metalness:0.25}), dunkel=std(0x2a2e36,{roughness:0.55,metalness:0.4}), zink=std(ZINK,{metalness:0.6,roughness:0.35});
+    const bx0=ZELLE[1].x0+0.01, L=brX1-bx0;
+    const br=new THREE.Group(); br.position.set((bx0+brX1)/2,PORTAL_Y+0.27,BAND.z); g.add(br);
+    bbox(L,0.14,0.14,gelb,0,0,0,br); bbox(L-0.1,0.03,0.05,zink,0,0.085,0,br,false);
+    for(const sx of [ZELLE[1].x0+0.06,ZELLE[1].x1-0.06]) bbox(0.16,0.12,0.24,dunkel,sx-(bx0+brX1)/2,-0.09,0,br,false);
+    const wg=new THREE.Group(); wg.position.set(BAND.x0+0.4,PORTAL_Y+0.27,BAND.z); g.add(wg);
     bbox(0.28,0.24,0.3,dunkel,0,0,0,wg); bbox(0.16,0.12,0.12,std(0x2a5a9e,{roughness:0.5}),0.05,0.18,0,wg,false);
     const mast=bbox(0.08,1,0.08,zink,0,0,0,g,false), mast2=bbox(0.11,0.5,0.11,dunkel,0,0,0,g,false);
     const gr=new THREE.Group(); g.add(gr);
@@ -17514,20 +17533,20 @@ function buildPackstation(){
     bbox(0.3,0.04,0.26,dunkel,0,0.045,0,gr); bbox(0.12,0.07,0.12,dunkel,0,0.1,0,gr,false);
     const saugM=std(0x1b1d22,{roughness:0.9}), saugG=new THREE.CylinderGeometry(0.035,0.028,0.025,12);
     for(const sx of [-0.09,0.09]) for(const sz of [-0.08,0.08]){ const c=new THREE.Mesh(saugG,saugM); c.position.set(sx,0.0125,sz); gr.add(c); }
-    Pt.wagen=wg; Pt.mast=mast; Pt.mast2=mast2; Pt.greifer=gr;
-    [wg,mast,mast2,gr].forEach(o=>T.ab[1].push(o));
+    Pt.bruecke=br; Pt.wagen=wg; Pt.mast=mast; Pt.mast2=mast2; Pt.greifer=gr;
+    [br,wg,mast,mast2,gr].forEach(o=>T.ab[1].push(o));
     T.portal=Pt;
   }
   /* Statische Teile zusammenfassen */
   for(const k in VC){ const m=new THREE.Mesh(merge(VC[k]),vcMat); if(HIQ){ m.castShadow=true; m.receiveShadow=true; } g.add(m); reg(m,k); }
 
   /* Hinweisschild ueber dem ersten Packplatz, von beiden Seiten lesbar */
-  { const X=VS_PP[0].x, st=std(0x7d838c,{metalness:0.6,roughness:0.4});
-    for(const sx of [-0.66,0.66]) bbox(0.05,1.5,0.05,st,X+sx,1.72,VS_PZ-0.36,g,false);
-    bbox(1.5,0.4,0.05,std(0x1b2340,{roughness:0.7}),X,2.3,VS_PZ-0.36,g,false);
+  { const P=ppW(0,0,-0.36), st=std(0x7d838c,{metalness:0.6,roughness:0.4});
+    for(const sx of [-0.56,0.56]) bbox(0.05,1.5,0.05,st,P.x+sx,1.72,P.z,g,false);
+    bbox(1.3,0.36,0.05,std(0x1b2340,{roughness:0.7}),P.x,2.3,P.z,g,false);
     packSchildTex=tex(1024,256,()=>{});
     const sm=new THREE.MeshBasicMaterial({map:packSchildTex,toneMapped:false});
-    plane(1.42,0.35,sm,X,2.3,VS_PZ-0.33,0,g); plane(1.42,0.35,sm,X,2.3,VS_PZ-0.39,Math.PI,g);
+    plane(1.24,0.31,sm,P.x,2.3,P.z+0.03,0,g); plane(1.24,0.31,sm,P.x,2.3,P.z-0.03,Math.PI,g);
     drawPackSchild(); }
   versandFlaeche(g);
   packSperre(id,g);
@@ -17535,12 +17554,14 @@ function buildPackstation(){
   packMov=addMovable({kind:'pack',name:'Versandecke',g,flaeche:PACK_FL,
     teile:()=>{
       const st=packStufe(), C=ZELLE[st], t=[];
-      t.push({x0:BAND.x0-0.04,x1:BAND.x1+0.06,z0:BAND.z-BAND.b/2-0.05,z1:BAND.z+BAND.b/2+0.03});   /* Band */
-      for(let i=0;i<st;i++){ const X=VS_PP[i].x; t.push({x0:X-0.72,x1:X+1.32,z0:VS_PZ-0.4,z1:VS_PZ+0.4}); }  /* Tisch und Regal */
-      t.push({x0:C.x0-0.04,x1:C.x1+0.04,z0:C.z0-0.3,z1:ZELLE_Z1+0.02});                            /* Palettierstation */
+      t.push({x0:BAND.x0-0.06,x1:BAND.x1+0.06,z0:BAND.z-BAND.b/2-0.04,z1:BAND.z+BAND.b/2+0.04});   /* Band */
+      /* Tisch und Packmaterial-Regal je Platz */
+      for(let i=0;i<st;i++){ const a=ppW(i,-1.27,-0.41), b=ppW(i,VS_TB/2+0.04,0.41);
+        t.push({x0:Math.min(a.x,b.x),x1:Math.max(a.x,b.x),z0:Math.min(a.z,b.z),z1:Math.max(a.z,b.z)}); }
+      t.push({x0:C.x0-0.02,x1:C.x1+0.04,z0:C.z0-0.04,z1:C.z1+0.08});                                 /* Palettierstation */
       if(!zoneOffen(id)) t.push({x0:PACK_FL.x0,x1:PACK_FL.x1,z0:1.06,z1:PACK_FL.z1});
       /* die geparkten Kommissionierwagen (solange sie nicht unterwegs sind) */
-      else for(let i=0;i<st;i++){ const w=vsPlaetze[i]&&vsPlaetze[i].wagen; if(w&&w.parent===g){ const X=VS_PP[i].x+WG_PARK.x; t.push({x0:X-0.48,x1:X+0.48,z0:WG_PARK.z-0.36,z1:WG_PARK.z+0.36}); } }
+      else for(let i=0;i<st;i++){ const w=vsPlaetze[i]&&vsPlaetze[i].wagen; if(w&&w.parent===g){ const p=ppW(i,WG_PARK.x,WG_PARK.z); t.push({x0:p.x-0.48,x1:p.x+0.48,z0:p.z-0.36,z1:p.z+0.36}); } }
       return t;
     }});
   zHook(id,()=>{ packStufeAnwenden(); });
@@ -17552,7 +17573,7 @@ function buildPackstation(){
 function packStufeAnwenden(){
   const st=packStufe(), T=packTeile;
   for(let s=1;s<=3;s++){ T.ab[s].forEach(o=>{ o.visible=st>=s; }); T.nur[s].forEach(o=>{ o.visible=st===s; }); }
-  PACK_FL.z0=ZELLE[st].z0-0.36;
+  PACK_FL.z0=PACK_FL_Z0[st];
   VS_FELD.length=0; for(let j=0;j<PAL_N[st];j++) VS_FELD.push(PALETTEN[j]);
   if(typeof vsStufeGeaendert==='function') vsStufeGeaendert();
   if(packMov&&grabbed!==packMov) applyFootprint(packMov);
@@ -17573,7 +17594,7 @@ function packPlatzPruefen(laut){
    darueber hinweg, kommt aber nicht heran. Es haengt in der Gruppe der
    Station und wandert beim Umbau mit. */
 function packSperre(id,g){
-  const zb=1.17, xs=[-1.7,0.8,3.3,5.75];
+  const zb=1.17, xs=[-1.7,0.3,2.2,4.1];
   const bandM=new THREE.MeshStandardMaterial({map:sperrbandTex('NOCH NICHT FREIGESCHALTET'),
     roughness:0.72,side:THREE.DoubleSide});
   const halt=std(0x3d4450,{metalness:0.5,roughness:0.5});
@@ -17587,29 +17608,32 @@ function packSperre(id,g){
   }
 }
 /* Die Packplaetze stehen auf einer eigenen, markierten Flaeche: grauer
-   Boden mit gelbem Rand und Schraffur an den Schmalseiten, die Schrift
-   im Gang vor den Tischen - dort, wo man vom Rolltor herkommt. */
+   Boden mit gelbem Rand und Schraffur an den Schmalseiten. Der zweite
+   Packplatz suedlich des Bandes bekommt ein eigenes Stueck. */
 function versandFlaeche(g){
-  const x0=-1.75, x1=5.8, z0=BAND.z-BAND.b/2-0.12, z1=1.22, BW=x1-x0, BT=z1-z0;
-  const t=tex(1510,Math.round(BT/BW*1510),(c,W,H)=>{
-    c.fillStyle='#57606c'; c.fillRect(0,0,W,H);
-    for(let i=0;i<9000;i++){ c.fillStyle=`rgba(255,255,255,${Math.random()*0.03})`; c.fillRect(Math.random()*W,Math.random()*H,2,2); }
-    c.strokeStyle='#f2c230'; c.lineWidth=12; c.strokeRect(6,6,W-12,H-12);
-    c.save(); c.beginPath(); c.rect(0,0,W,H); c.clip();
-    c.strokeStyle='rgba(242,194,48,.75)'; c.lineWidth=9;
-    for(const xx of [0,W-50]) for(let y=-H;y<H*2;y+=30){ c.beginPath(); c.moveTo(xx,y); c.lineTo(xx+50,y-50); c.stroke(); }
-    c.restore();
-  });
-  const bo=new THREE.Mesh(new THREE.PlaneGeometry(BW,BT),new THREE.MeshStandardMaterial({map:t,roughness:0.62}));
-  bo.rotation.x=-Math.PI/2; bo.position.set((x0+x1)/2,0.02,(z0+z1)/2); g.add(bo);
-  /* Schrift im Gang vor jedem Packplatz - nur fuer die Plaetze, die es
-     in der Stufe schon gibt, lesbar fuer den, der von Norden kommt */
+  const flaeche=(x0,x1,z0,z1,k)=>{ const BW=x1-x0, BT=z1-z0;
+    const t=tex(Math.round(BW*200),Math.round(BT*200),(c,W,H)=>{
+      c.fillStyle='#57606c'; c.fillRect(0,0,W,H);
+      for(let i=0;i<W*H/100;i++){ c.fillStyle=`rgba(255,255,255,${Math.random()*0.03})`; c.fillRect(Math.random()*W,Math.random()*H,2,2); }
+      c.strokeStyle='#f2c230'; c.lineWidth=12; c.strokeRect(6,6,W-12,H-12);
+      c.save(); c.beginPath(); c.rect(0,0,W,H); c.clip();
+      c.strokeStyle='rgba(242,194,48,.75)'; c.lineWidth=9;
+      for(let y=-H;y<H*2;y+=30){ c.beginPath(); c.moveTo(W-50,y); c.lineTo(W,y-50); c.stroke(); }
+      c.restore(); });
+    const bo=new THREE.Mesh(new THREE.PlaneGeometry(BW,BT),new THREE.MeshStandardMaterial({map:t,roughness:0.62}));
+    bo.rotation.x=-Math.PI/2; bo.position.set((x0+x1)/2,0.02,(z0+z1)/2); g.add(bo);
+    if(k) packTeile.ab[k].push(bo); };
+  flaeche(-0.05,4.15,BAND.z-BAND.b/2-0.1,1.22,0);
+  flaeche(1.6,4.15,-3.25,BAND.z-BAND.b/2-0.1,2);
+  /* Schrift vor jedem Packplatz - nur fuer die Plaetze, die es in der
+     Stufe schon gibt, lesbar fuer den, der davor steht */
   for(let i=0;i<3;i++){
     const lt=tex(512,96,(c,W,H)=>{ c.clearRect(0,0,W,H); c.fillStyle='rgba(242,194,48,.88)'; c.textAlign='center'; c.textBaseline='middle';
       fitFont(c,'PACKPLATZ '+(i+1),W-24,64,BUN); c.fillText('PACKPLATZ '+(i+1),W/2,H/2+3); });
-    const m=new THREE.Mesh(new THREE.PlaneGeometry(1.5,0.28),new THREE.MeshStandardMaterial({map:lt,transparent:true,depthWrite:false,roughness:0.6,
+    const m=new THREE.Mesh(new THREE.PlaneGeometry(1.2,0.22),new THREE.MeshStandardMaterial({map:lt,transparent:true,depthWrite:false,roughness:0.6,
       polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2}));
-    m.rotation.x=-Math.PI/2; m.position.set(VS_PP[i].x+0.5,0.021,1.0); g.add(m);
+    const p=ppW(i,0,1.32);
+    m.rotation.x=-Math.PI/2; if(VS_PP[i].s<0) m.rotation.z=Math.PI; m.position.set(p.x,0.021,p.z); g.add(m);
     packTeile.ab[i+1].push(m);
   }
 }
@@ -21575,7 +21599,8 @@ function rackKindOf(rk){ return RACKKIND[rk&&rk.kind]||RACKKIND.standard; }
 function rackCount(k){ return racks.filter(r=>r.kind===k).length; }
 /* Ein Stellplatz nimmt nur Regale, die unter die Decke passen */
 function rackPasst(K,sl){ return K.hoch+0.5<=(sl.h||WH); }
-function racksOffen(){ return RACKS.filter(x=>!x.zone||zoneOffen(x.zone)); }
+/* pack: den Stellplatz belegt ab dieser Stufe die Palettierstation (05h) */
+function racksOffen(){ return RACKS.filter(x=>(!x.zone||zoneOffen(x.zone))&&!(x.pack&&typeof packStufe==='function'&&packStufe()>=x.pack)); }
 /* Grundriss eines Lagerregals: Traversen und Stuetzen samt Fussplatten */
 function rackRect(K,x,z,ry){ const w=K.w/2+0.05, d=K.zo+0.09, q=Math.abs(Math.round(Math.sin(ry||0)));
   return q?{x0:x-d,x1:x+d,z0:z-w,z1:z+w}:{x0:x-w,x1:x+w,z0:z-d,z1:z+d}; }
@@ -23408,6 +23433,8 @@ function navBuild(){
   }
   navTueren(R);
   NAV.waende=typeof wandRechtecke==='function'?wandRechtecke():[];
+  /* Zaehler: wer Erreichbarkeit zwischenspeichert, sieht so den Neubau (11c) */
+  NAV.nr=(NAV.nr|0)+1;
   NAV.dirty=false;
 }
 /* Keine Figur in der Wand (05.10., Tom: Einraeumer und Packer
@@ -24091,7 +24118,7 @@ function sbKassiererPlatz(i){ return sbHelferPlatz(i); }
 function packerPlatz(id){
   if(typeof packTisch==='undefined'||!packTisch) return {p:IDLE.packer,ry:-Math.PI/2};
   const i=id==='packer3'?2:id==='packer2'?1:0;
-  return {p:vsWelt(i,VS_HEIM.x,VS_HEIM.z),ry:packTisch.rotation.y+Math.PI};
+  return {p:vsWelt(i,VS_HEIM.x,VS_HEIM.z),ry:vsRy(i,Math.PI)};
 }
 const IDLE={kassierer2:V(10.6,0,6.3),reinigung:V(-6.6,0,4.2),auffueller:V(-7.0,0,1.0),auffueller2:V(-7.0,0,-0.4),kassierer:V(0,0,0),security:V(1.4,0,4.6),packer:V(-16.3,0,3.4)};
 const PRIO={lkw:'LKW zuerst',regal:'Regale zuerst'};
@@ -24458,35 +24485,39 @@ const VS_GR={
   1:{id:1,name:'klein', felder:1,x:0.28,z:0.26,h:0.20,vmax:8,  mass:0.30,zeilen:2,stueck:4,lage:12},
   3:{id:3,name:'groß',  felder:3,x:0.29,z:0.86,h:0.28,vmax:35, mass:0.86,zeilen:3,stueck:6,lage:4},
   6:{id:6,name:'riesig',felder:6,x:0.62,z:0.86,h:0.40,vmax:120,mass:0.86,zeilen:2,stueck:3,lage:2}};
-/* Platzkoordinaten: x relativ zur Tischmitte VS_PP[i].x, z wie in der
-   Station. Der Wagen parkt links vor dem Tisch, der Griff zeigt zum
-   Packer; der Packer steht rechts davor. */
-const WG_PARK={x:-0.5,z:0.8,ry:-Math.PI/2}, WG_Y=0.78, WG_ABST=0.845, WG_GRIFF={x:-0.5+0.845,z:0.8};
-const VS_HEIM={x:0.5,z:0.64};
+/* Platzkoordinaten (05h ppW): Tischmitte 0/0, +z zum Packer. Der Wagen
+   parkt links vor dem Tisch, der Griff zeigt zum Packer; der Packer
+   steht rechts davor. */
+const WG_PARK={x:-0.5,z:0.99,ry:-Math.PI/2}, WG_Y=0.78, WG_ABST=0.845, WG_GRIFF={x:-0.5+0.845,z:0.99};
+const VS_HEIM={x:0.5,z:0.83};
 /* Wo das Paket auf dem Tisch zugeklebt wird */
-const VS_TISCH={x:0,z:VS_PZ};
+const VS_TISCH={x:0,z:0};
 /* Paletten der aktuellen Stufe (packStufeAnwenden) und Stapelhoehe */
 const VS_FELD=[], VS_HMAX=1.1;
-/* Lagenbilder auf der Palette (0,8 x 1,2 m), Pakete laengs zum Band:
-   in x liegt die lange Kante (G.z), in z die kurze (G.x) */
+/* Lagenbilder fuer eine Palette mit 0,8 m in x und 1,2 m in z; die
+   Paletten der Station liegen quer (1,2 m in x) - vsStapel tauscht x
+   und z, die lange Paketkante (G.z) liegt dann in z */
 const VS_MUSTER={
   1:{n:12,pos:k=>({x:(k%3-1)*0.27,z:(Math.floor(k/3)-1.5)*0.295})},
   3:{n:4, pos:k=>({x:0,z:(k-1.5)*0.3})},
   6:{n:2, pos:k=>({x:0,z:(k-0.5)*0.625})}};
 /* Band und Portal */
-const VS_V=0.6, VS_YFREI=1.42, VS_YRUHE=1.9;
+/* VS_YFREI: Unterkante beim Ueberfahren - ueber das Packmaterial-Regal am Bandende */
+const VS_V=0.6, VS_YFREI=2.02, VS_YRUHE=2.1;
 let versandT=0;
 const vsBahn=[];      /* Pakete auf dem Band, am Tisch und im Greifer */
 const vsPlaetze=[];   /* je Packplatz: {i,wagen,tisch} */
-const vsPortal={phase:'ruhe',x:BAND.x1-0.4,y:VS_YRUHE,z:BAND.z,t:0,von:null,nach:null,e:null,ziel:null};
+const vsPortal={phase:'ruhe',x:BAND.x0+0.4,y:VS_YRUHE,z:BAND.z,t:0,von:null,nach:null,e:null,ziel:null};
 const _vp=new THREE.Vector3(), _vq=new THREE.Quaternion(), _vq2=new THREE.Quaternion(), _vs=new THREE.Vector3(), _vY=new THREE.Vector3(0,1,0);
 const vsGlatt=t=>{ t=Math.max(0,Math.min(1,t)); return t*t*(3-2*t); };
 function vsWinkel(a,b,t){ let d=b-a; while(d>Math.PI) d-=Math.PI*2; while(d<-Math.PI) d+=Math.PI*2; return a+d*t; }
 function vsAktiv(){ return packStufe(); }
 function vsPlatzVon(w){ return w&&w.id==='packer3'?2:w&&w.id==='packer2'?1:0; }
 const VS_PACKER=['packer','packer2','packer3'];
-/* Punkt am Packplatz i in Weltkoordinaten */
-function vsWelt(i,x,z){ return localToWorld(packTisch,VS_PP[i].x+x,z); }
+/* Punkt am Packplatz i (Platzkoordinaten) in Weltkoordinaten, und ein
+   Winkel am Platz als Weltwinkel */
+function vsWelt(i,x,z){ const p=ppW(i,x,z); return localToWorld(packTisch,p.x,p.z); }
+function vsRy(i,ry){ return packTisch.rotation.y+ppRy(i,ry); }
 
 /* ---------------------------------------------------------
    Versandkosten (Tom, 05.10.): der Spieler stellt im Onlineshop ein,
@@ -24552,11 +24583,44 @@ function vsOnline(t){ return !!P[t]&&!P[t].noShelf&&!P[t].noOrder&&isUnlocked(t)
 /* Alles, woraus der Versand ein Stueck nehmen darf: Lagerregal und
    Karton am Boden zuerst, dann das Verkaufsregal. Kartons fuer einen
    laufenden Grossauftrag bleiben unangetastet. */
+/* Erreichbarkeit (06.10.): in der Vorfuehrung standen Lagerfaecher, an
+   die kein Weg fuehrte - der Packer lief bis an die naechste Stelle davor
+   und blieb dort fuer immer stehen ("pickt im Lager 1/2"). Jetzt zaehlt
+   nur, wovor er sich auch stellen kann. Einmal je Neubau des Wegrasters
+   wird ab dem Packplatz geflutet. */
+let _vsZugang=null;
+function vsZugang(){
+  if(typeof NAV==='undefined'||!packTisch) return null;
+  if(NAV.dirty) navBuild();
+  if(_vsZugang&&_vsZugang.nr===NAV.nr&&_vsZugang.px===packTisch.position.x&&_vsZugang.pz===packTisch.position.z&&_vsZugang.st===packStufe()) return _vsZugang.g;
+  const W=NAV.w, H=NAV.h, out=new Uint8Array(W*H), h=vsWelt(0,VS_HEIM.x,VS_HEIM.z), s0=navNah(h.x,h.z);
+  if(s0>=0){ out[s0]=1; const Q=[s0]; let k=0;
+    while(k<Q.length){ const c=Q[k++], i=c%W, r=(c-i)/W;
+      for(const n of [i>0?c-1:-1,i<W-1?c+1:-1,r>0?c-W:-1,r<H-1?c+W:-1]) if(n>=0&&!NAV.g[n]&&!out[n]){ out[n]=1; Q.push(n); } } }
+  _vsZugang={nr:NAV.nr,px:packTisch.position.x,pz:packTisch.position.z,st:packStufe(),g:out};
+  return out;
+}
+function vsErreicht(x,z){ const g=vsZugang(); if(!g) return true; const id=navIdx(x,z); return id>=0&&!NAV.g[id]&&!!g[id]; }
+/* Stand vor einem Lagerfach: zuerst mittig 0,62 m vor der Front, sonst
+   etwas weiter weg oder seitlich versetzt - null, wenn nichts davon
+   erreichbar ist */
+function vsRackStand(s){
+  const K=rackKindOf(s.rk);
+  for(const lz of [0.62,0.85,1.1]) for(const dx of [0,-0.35,0.35]){
+    const p=localToWorld(s.rk.g,s.x+dx,K.zo+lz); if(vsErreicht(p.x,p.z)) return p; }
+  return null;
+}
+function vsBodenStand(b,T){
+  const m=b.mesh.position; let best=null,bd=1e9;
+  for(const r of [0.75,1.05]) for(let k=0;k<8;k++){ const a=k*Math.PI/4, x=m.x+Math.sin(a)*r, z=m.z+Math.cos(a)*r;
+    if(!vsErreicht(x,z)) continue; const d=T?Math.hypot(x-T.x,z-T.z):r; if(d<bd){ bd=d; best=V(x,0,z); } }
+  return best;
+}
 function vsQuellen(t){
   const L=[];
   if(!(typeof reservedType==='function'&&reservedType(t))){
-    for(const r of racks) for(const s of r.slots) if(s.box&&s.box.type===t&&s.box.count>0&&!vsBelegt(s)) L.push({kind:'rack',ref:s,n:s.box.count,lager:true});
-    for(const b of floorBoxes) if(b.type===t&&b.count>0&&!vsTestKarton(b)&&!vsBelegt(b)) L.push({kind:'floor',ref:b,n:b.count,lager:true});
+    for(const r of racks) for(const s of r.slots) if(s.box&&s.box.type===t&&s.box.count>0&&!vsBelegt(s)&&vsRackStand(s)) L.push({kind:'rack',ref:s,n:s.box.count,lager:true});
+    for(const b of floorBoxes) if(b.type===t&&b.count>0&&!vsTestKarton(b)&&!vsBelegt(b)&&vsBodenStand(b)) L.push({kind:'floor',ref:b,n:b.count,lager:true});
   }
   for(const lv of allLevels()) if(lv.type===t&&lv.count>0) L.push({kind:'level',ref:lv,n:lv.count,lager:false});
   return L;
@@ -24784,7 +24848,7 @@ function vsWagenVon(w){ const P_=vsPlaetze[w.pp|0]; return P_&&P_.wagen; }
 function vsParken(pi,sofort,parent){
   const P_=vsPlaetze[pi], g=P_&&P_.wagen, T=parent||packTisch; if(!g||!T) return;
   if(g.parent!==T){ if(g.parent) g.parent.remove(g); T.add(g); }
-  g.position.set(VS_PP[pi].x+WG_PARK.x,0,WG_PARK.z); g.rotation.set(0,WG_PARK.ry,0);
+  const p=ppW(pi,WG_PARK.x,WG_PARK.z); g.position.set(p.x,0,p.z); g.rotation.set(0,ppRy(pi,WG_PARK.ry),0);
   const u=g.userData; u.modus='park'; u.t=1; u.von=null;
   /* geparkt ist der Wagen ein Hindernis wie der Tisch */
   if(typeof packMov!=='undefined'&&packMov&&grabbed!==packMov) applyFootprint(packMov);
@@ -24804,7 +24868,7 @@ function vsWagenModus(g,m,pose){
 }
 function vsWagenZiel(w,g){
   const u=g.userData;
-  if(u.modus==='park') return {p:vsWelt(u.pp,WG_PARK.x,WG_PARK.z),ry:packTisch.rotation.y+WG_PARK.ry};
+  if(u.modus==='park') return {p:vsWelt(u.pp,WG_PARK.x,WG_PARK.z),ry:vsRy(u.pp,WG_PARK.ry)};
   if(u.modus==='stehen'&&u.pose) return u.pose;
   const ry=w.g.rotation.y;
   return {p:V(w.pos.x+Math.sin(ry)*WG_ABST,0,w.pos.z+Math.cos(ry)*WG_ABST),ry};
@@ -24872,11 +24936,9 @@ function vsBedarf(tour){ const need={}; for(const a of tour.auf) for(const l of 
 function vsQuellPunkt(q,T){
   if(q.kind==='rack'){ const s=q.ref, K=rackKindOf(s.rk);
     const look=localToWorld(s.rk.g,s.x,0); look.y=s.y+0.2;
-    return {stand:localToWorld(s.rk.g,s.x,K.zo+0.62),look}; }
+    return {stand:vsRackStand(s)||localToWorld(s.rk.g,s.x,K.zo+0.62),look}; }
   if(q.kind==='floor'){ const m=q.ref.mesh.position;
-    let best=null,bd=1e9;
-    for(let k=0;k<8;k++){ const a=k*Math.PI/4, x=m.x+Math.sin(a)*0.75, z=m.z+Math.cos(a)*0.75;
-      if(!navFrei(navIdx(x,z))) continue; const d=Math.hypot(x-T.x,z-T.z); if(d<bd){ bd=d; best=V(x,0,z); } }
+    let best=vsBodenStand(q.ref,T);
     if(!best){ const id=navNah(m.x,m.z); best=id>=0?navPos(id):V(m.x,0,m.z+0.75); }
     return {stand:best,look:V(m.x,m.y,m.z)}; }
   const lv=q.ref, h=lv.items[lv.items.length-1];
@@ -24965,7 +25027,9 @@ function vsStapel(liste){
      angefangenen Lage, soweit die Pakete darunter tragen. So stand die
      Station frueher nach sieben Paketen "voll" da. */
   const F=VS_FELD, st=F.map(()=>[]), out=[];
-  const rect=(gr,x,z)=>{ const G=VS_GR[gr]; return {x0:x-G.z/2,x1:x+G.z/2,z0:z-G.x/2,z1:z+G.x/2}; };
+  /* Paletten quer: Muster mit getauschtem x/z, die lange Paketkante in z */
+  const rect=(gr,x,z)=>{ const G=VS_GR[gr]; return {x0:x-G.x/2,x1:x+G.x/2,z0:z-G.z/2,z1:z+G.z/2}; };
+  const mpos=(gr,k)=>{ const o=VS_MUSTER[gr].pos(k); return {x:o.z,z:o.x}; };
   const traegt=(f,lag,r)=>{
     if(!lag) return true;
     for(const u of [-0.85,0,0.85]) for(const v of [-0.85,0,0.85]){
@@ -24973,7 +25037,7 @@ function vsStapel(liste){
       if(!lag.boxen.some(q=>px>=q.x0&&px<=q.x1&&pz>=q.z0&&pz<=q.z1)) return false; }
     return true; };
   const frei=(f,lag,unten,gr)=>{ const M=VS_MUSTER[gr], P0=F[f];
-    for(let k=0;k<M.n;k++){ if(lag&&lag.belegt[k]) continue; const o=M.pos(k), r=rect(gr,P0.x+o.x,P0.z+o.z);
+    for(let k=0;k<M.n;k++){ if(lag&&lag.belegt[k]) continue; const o=mpos(gr,k), r=rect(gr,P0.x+o.x,P0.z+o.z);
       if(traegt(f,unten,r)) return {k,r}; }
     return null; };
   for(let i=0;i<liste.length;i++){
@@ -24988,9 +25052,9 @@ function vsStapel(liste){
       const w=frei(f,null,top,G.id); if(w){ fi=f; wahl=w; lag={gr:G.id,y0:H,h:G.h,belegt:{},boxen:[]}; L.push(lag); } }
     if(fi<0){ out.push(null); continue; }
     lag.belegt[wahl.k]=true; lag.boxen.push(wahl.r);
-    const P0=F[fi], o=VS_MUSTER[G.id].pos(wahl.k);
+    const P0=F[fi], o=mpos(G.id,wahl.k);
     const j=Math.sin((i+1)*12.9898)*43758.5453, jr=j-Math.floor(j)-0.5;
-    out.push({x:P0.x+o.x+jr*0.006,y:PAL_H+lag.y0+G.h/2,z:P0.z+o.z-jr*0.004,ry:Math.PI/2+jr*0.016,gr:G.id,f:fi});
+    out.push({x:P0.x+o.x+jr*0.004,y:PAL_H+lag.y0+G.h/2,z:P0.z+o.z-jr*0.006,ry:jr*0.016,gr:G.id,f:fi});
   }
   return out;
 }
@@ -25041,36 +25105,37 @@ function vsBandFrei(x,L,selbst){
   for(const e of vsBahn){ if(e===selbst||e.phase==='warten') continue;
     if(e.phase==='greifer'&&!e.amBand) continue;
     const l=vsLaenge(e), a=e.x-l/2, b=e.x+l/2;
-    /* was von hinten kommt, braucht Abstand: es laeuft waehrend des Schiebens weiter */
+    /* was von hinten (Osten) kommt, braucht Abstand: es laeuft waehrend
+       des Schiebens weiter nach Westen */
     const vor=e.phase==='rollen'&&e.laeuft?0.5:0.06;
-    if(b+vor>x-L/2&&a-0.06<x+L/2) return false; }
+    if(b+0.06>x-L/2&&a-vor<x+L/2) return false; }
   return true;
 }
 function vsBahnUpdate(dt){
   const T=packTeile;
-  /* Gurt laeuft durchgehend */
-  if(T.gurt&&T.gurt.offset) T.gurt.offset.x-=dt*VS_V/1.0;
-  /* vorne zuerst: jedes Paket rueckt bis an das davor */
-  const auf=vsBahn.filter(e=>e.phase==='rollen'||e.phase==='schieben'||(e.phase==='greifer'&&e.amBand)).sort((a,b)=>b.x-a.x);
-  let vorne=1e9;
+  /* Gurt laeuft durchgehend nach Westen */
+  if(T.gurt&&T.gurt.offset) T.gurt.offset.x+=dt*VS_V/1.0;
+  /* vorne (Westen) zuerst: jedes Paket rueckt bis an das davor */
+  const auf=vsBahn.filter(e=>e.phase==='rollen'||e.phase==='schieben'||(e.phase==='greifer'&&e.amBand)).sort((a,b)=>a.x-b.x);
+  let vorne=-1e9;
   for(const e of auf){
     const L=vsLaenge(e), G=VS_GR[e.gr], m=e.m;
     if(e.phase==='rollen'){
-      const ende=Math.min(BAND.x1-L/2,vorne-0.03-L/2);
-      const nx=Math.min(ende,e.x+dt*VS_V); e.laeuft=nx>e.x+1e-5; e.x=Math.max(e.x,nx);
+      const ende=Math.max(BAND.x0+L/2,vorne+0.03+L/2);
+      const nx=Math.max(ende,e.x-dt*VS_V); e.laeuft=nx<e.x-1e-5; e.x=Math.min(e.x,nx);
       m.position.set(e.x,BAND.y+G.h/2,BAND.z); m.rotation.y=Math.PI/2;
     }
-    vorne=e.x-L/2;
+    vorne=e.x+L/2;
   }
   for(let i=0;i<vsBahn.length;i++){
     const e=vsBahn[i], G=VS_GR[e.gr], m=e.m;
     if(e.phase==='warten'){
       /* liegt fertig auf dem Tisch; erst schieben, wenn das Band dort frei ist */
-      m.position.set(VS_PP[e.pp].x+VS_TISCH.x,VS_TOP+G.h/2,VS_TISCH.z); m.rotation.y=Math.PI/2;
+      const tp=ppW(e.pp,VS_TISCH.x,VS_TISCH.z); m.position.set(tp.x,VS_TOP+G.h/2,tp.z); m.rotation.y=Math.PI/2;
       if(vsBandFrei(e.x,vsLaenge(e),e)){ e.phase='schieben'; e.t=0; }
     } else if(e.phase==='schieben'){
       e.t+=dt/0.7; const k=vsGlatt(e.t);
-      m.position.set(e.x,VS_TOP+G.h/2,VS_TISCH.z+(BAND.z-VS_TISCH.z)*k);
+      const tz=ppW(e.pp,VS_TISCH.x,VS_TISCH.z).z; m.position.set(e.x,VS_TOP+G.h/2,tz+(BAND.z-tz)*k);
       if(e.t>=1){ e.phase='rollen'; e.laeuft=true; if(sfx.karton) sfx.karton(); }
     }
   }
@@ -25100,12 +25165,12 @@ function vsPortalUpdate(dt){
     case 'ruhe': {
       /* das vorderste Paket am Endanschlag, wenn es steht */
       /* erst wenn die letzte Fahrt (nach oben) zu Ende ist */
-      const v=fertig?vsBahn.filter(x=>x.phase==='rollen').sort((a,b)=>b.x-a.x)[0]:null;
-      if(v&&!v.laeuft&&v.x>=BAND.x1-vsLaenge(v)/2-0.002){
+      const v=fertig?vsBahn.filter(x=>x.phase==='rollen').sort((a,b)=>a.x-b.x)[0]:null;
+      if(v&&!v.laeuft&&v.x<=BAND.x0+vsLaenge(v)/2+0.002){
         const G=VS_GR[v.gr];
         P_.e=v; vsPortalFahrt({x:v.x,y:Math.max(VS_YRUHE*0.9,BAND.y+G.h+0.3),z:BAND.z},'hin');
-      } else if(fertig&&(Math.abs(P_.y-VS_YRUHE)>0.01||Math.abs(P_.x-(BAND.x1-0.4))>0.01||Math.abs(P_.z-BAND.z)>0.01)&&!P_.zurueck){
-        P_.zurueck=true; vsPortalFahrt({x:BAND.x1-0.4,y:VS_YRUHE,z:BAND.z},'ruhe'); }
+      } else if(fertig&&(Math.abs(P_.y-VS_YRUHE)>0.01||Math.abs(P_.x-(BAND.x0+0.4))>0.01||Math.abs(P_.z-BAND.z)>0.01)&&!P_.zurueck){
+        P_.zurueck=true; vsPortalFahrt({x:BAND.x0+0.4,y:VS_YRUHE,z:BAND.z},'ruhe'); }
       else if(fertig) P_.zurueck=false;
       break; }
     case 'hin': if(fertig){ const G=VS_GR[e.gr]; vsPortalFahrt({x:e.x,y:BAND.y+G.h,z:BAND.z},'runter'); } break;
@@ -25144,9 +25209,9 @@ function vsPortalUpdate(dt){
 /* Bruecke, Laufwagen, Hubachse und Greifer an die Greiferlage stellen */
 function vsPortalZeigen(){
   const Pt=packTeile.portal, P_=vsPortal; if(!Pt) return;
-  const st=packStufe(), C=ZELLE[st];
-  const x=clamp(P_.x,C.x0+0.1,C.x1-0.1);
-  for(let s=1;s<=3;s++) if(Pt.bruecke[s]) Pt.bruecke[s].position.z=P_.z;
+  /* die Bruecke ragt im Osten ueber das Bandende - so weit faehrt der Wagen */
+  const x=clamp(P_.x,ZELLE[1].x0+0.15,BAND.x0+0.6);
+  Pt.bruecke.position.z=P_.z;
   Pt.wagen.position.set(x,PORTAL_Y+0.27,P_.z);
   Pt.greifer.position.set(x,P_.y,P_.z);
   const oben=PORTAL_Y+0.15, unten=P_.y+0.14, L=Math.max(0.05,oben-unten);
@@ -25200,7 +25265,7 @@ function vsTischEinzel(P_,dt,wf){
     if(f.t>=1){ scene.remove(f.m); T.flug=null; T.fl++; T.t=0.05; vsFuellung(pk,Math.min(1,T.fl/Math.min(8,T.stueck))); if(T.fl%2) sfx.pop(); }
   } else if(T.phase==='zu'){
     T.t+=dt*wf/0.7; vsKlappen(pk,1-Math.min(1,T.t));
-    if(T.t>=1){ T.phase='kleben'; T.t=0; u.band.visible=true; u.band.scale.z=0.001; if(sfx.klebe) sfx.klebe(distVol(vsWelt(pi,0,VS_PZ))); }
+    if(T.t>=1){ T.phase='kleben'; T.t=0; u.band.visible=true; u.band.scale.z=0.001; if(sfx.klebe) sfx.klebe(distVol(vsWelt(pi,0,0))); }
   } else if(T.phase==='kleben'){
     T.t+=dt*wf/0.4; const s=Math.min(1,T.t);
     u.band.scale.z=Math.max(0.001,s); u.band.position.z=-(G.z+0.004)/2*(1-s);
@@ -25285,11 +25350,24 @@ function packOne(auto){
 /* ---------------------------------------------------------
    Der Versandmitarbeiter - einer je Packplatz
    --------------------------------------------------------- */
+/* Gehen mit Wachhund: fuehrt der Weg nicht bis ans Ziel (das Raster
+   endet vorher), meldet w.vsWeg 'fern'; nach 40 s am selben Ziel 'zeit'.
+   Wer gehen laesst, entscheidet dann - nie wieder endlos im Kreis. */
 function vsGehen(w,ziel,dt){
-  if(!w.vsZiel||w.vsZiel.distanceTo(ziel)>0.25||(!w.path.length&&w.pos.distanceTo(ziel)>0.3)){ w.goTo(ziel); w.vsZiel=ziel.clone(); }
+  const neu=!w.vsZiel||w.vsZiel.distanceTo(ziel)>0.25;
+  if(neu){ w.vsZielT=0; w.vsWeg=null; }
+  if(neu||(!w.path.length&&w.pos.distanceTo(ziel)>0.3&&!w.vsWeg)){ w.goTo(ziel); w.vsZiel=ziel.clone();
+    const e=w.path.length?w.path[w.path.length-1]:w.pos; w.vsFern=Math.hypot(e.x-ziel.x,e.z-ziel.z)>0.35; }
+  w.vsZielT=(w.vsZielT||0)+dt;
   const da=w.walk(dt);
-  return da&&w.pos.distanceTo(ziel)<0.35;
+  if(da&&w.pos.distanceTo(ziel)<0.35) return true;
+  if(da&&w.vsFern) w.vsWeg='fern';
+  else if(w.vsZielT>40) w.vsWeg='zeit';
+  return false;
 }
+/* Ziel nicht erreichbar: aufs Ziel setzen - fuer die Wege zurueck an den
+   eigenen Tisch, die es immer geben muss */
+function vsNotfalls(w,ziel){ if(!w.vsWeg) return false; w.pos.x=ziel.x; w.pos.z=ziel.z; w.path=[]; w.vsWeg=null; w.vsZiel=null; return true; }
 function vsDrehen(w,ry,dt){
   let df=ry-w.g.rotation.y; while(df>Math.PI) df-=Math.PI*2; while(df<-Math.PI) df+=Math.PI*2;
   w.g.rotation.y+=df*Math.min(1,dt*7); return Math.abs(df)<0.12;
@@ -25314,11 +25392,11 @@ function vsLoopZustand(w,dt,wf,tour,g){
     default: w.vs='heim';
     case 'heim': {
       if(g.userData.modus!=='park'&&!tour) vsWagenModus(g,'park');
-      if(vsGehen(w,vsHeim(w),dt)){ w.vs='bereit'; w.t=0.3; }
+      if(vsGehen(w,vsHeim(w),dt)||vsNotfalls(w,vsHeim(w))){ w.vs='bereit'; w.t=0.3; }
       break; }
     case 'bereit': {
       if(w.pos.distanceTo(vsHeim(w))>0.5){ w.vs='heim'; break; }
-      vsDrehen(w,packTisch.rotation.y+Math.PI,dt);
+      vsDrehen(w,vsRy(pi,Math.PI),dt);
       w.t-=dt; if(w.t>0) break; w.t=0.8;
       if(P_.tisch&&P_.tisch.spieler) break;
       const plan=vsPlan(pi); if(!plan) break;
@@ -25342,15 +25420,19 @@ function vsLoopZustand(w,dt,wf,tour,g){
       tour.stops=vsStopsBauen(vsBedarf(tour),vsWelt(pi,WG_GRIFF.x,WG_GRIFF.z)); tour.si=0;
       w.vs='ankoppeln'; break; }
     case 'ankoppeln': {
-      if(!vsGehen(w,vsWelt(pi,WG_GRIFF.x,WG_GRIFF.z),dt)) break;
-      if(!vsDrehen(w,packTisch.rotation.y+WG_PARK.ry,dt)) break;
+      if(!vsGehen(w,vsWelt(pi,WG_GRIFF.x,WG_GRIFF.z),dt)&&!vsNotfalls(w,vsWelt(pi,WG_GRIFF.x,WG_GRIFF.z))) break;
+      if(!vsDrehen(w,vsRy(pi,WG_PARK.ry),dt)) break;
       vsWagenModus(g,'schieben'); w.vs='fahren'; break; }
     case 'fahren': {
       const s=tour.stops[tour.si];
       if(!s){ vsNachplanen(w); break; }
       w.src=s.kind==='rack'?{slot:s.ref}:s.kind==='floor'?{box:s.ref}:null;
       if(!vsWagenFertig(g)) { vsBlick(w,s.stand,dt); break; }
-      if(!vsGehen(w,s.stand,dt)) break;
+      if(!vsGehen(w,s.stand,dt)){
+        /* der Stand ist nicht (mehr) erreichbar - etwa weil ein Regal
+           umgestellt wurde: diese Stelle auslassen, nachgeplant wird am Ende */
+        if(w.vsWeg){ w.vsWeg=null; w.vsZiel=null; tour.si++; w.src=null; }
+        break; }
       const nx=tour.stops[tour.si+1], weiter=nx?nx.stand:vsWelt(pi,WG_GRIFF.x,WG_GRIFF.z);
       vsWagenModus(g,'stehen',vsWagenStand(w.pos,s.look,weiter)); w.vs='greifen'; w.t=0.3; break; }
     case 'greifen': {
@@ -25376,14 +25458,14 @@ function vsLoopZustand(w,dt,wf,tour,g){
          Wagen am Griffpunkt und schwenkte ihn quer durch den Tisch */
       const G=vsWelt(pi,WG_GRIFF.x,WG_GRIFF.z);
       if(w.pos.distanceTo(G)<1.4){ vsWagenModus(g,'park'); w.vs='parken'; break; }
-      vsGehen(w,G,dt); break; }
+      if(!vsGehen(w,G,dt)) vsNotfalls(w,G); break; }
     case 'parken': {
-      if(!vsGehen(w,vsHeim(w),dt)) break;
+      if(!vsGehen(w,vsHeim(w),dt)&&!vsNotfalls(w,vsHeim(w))) break;
       if(g.parent!==packTisch) break;
-      if(!vsDrehen(w,packTisch.rotation.y+Math.PI,dt)) break;
+      if(!vsDrehen(w,vsRy(pi,Math.PI),dt)) break;
       w.k=0; w.t=0.2; w.vs='abladen'; break; }
     case 'abladen': {
-      vsDrehen(w,packTisch.rotation.y+Math.PI,dt);
+      vsDrehen(w,vsRy(pi,Math.PI),dt);
       w.t-=dt; if(w.t>0) break;
       const a=tour.auf[w.k];
       if(!a){ w.tour=null; w.vs='bereit'; w.t=0.5; break; }
@@ -25639,7 +25721,8 @@ function vmAuffuellen(){ let n=0; VM_IDS.forEach(id=>{ const k=vmBestellbar(id);
    Karton obendrauf. Der Stapel waechst und schrumpft mit dem Bestand.
    --------------------------------------------------------- */
 const VM_RB=0.55, VM_RT=0.58, VM_BOEDEN=[0.08,0.5,0.92,1.34], VM_RH=1.76;
-function vmRegalLage(i){ return {x:VS_PP[i].x+1.025,z:VS_PZ-0.1}; }
+/* links neben dem Tisch, die Front zum Packer (gespiegelte Plaetze: nach Sueden) */
+function vmRegalLage(i){ const p=ppW(i,-0.95,-0.1); return {x:p.x,z:p.z,ry:VS_PP[i].s>0?0:Math.PI}; }
 let _vmTex=null;
 function vmTexturen(){
   if(_vmTex) return _vmTex;
@@ -25661,8 +25744,12 @@ function vmTexturen(){
   return _vmTex;
 }
 /* B: Vertexfarben-Helfer der Station, reg: zur Stufe anmelden */
-function vmRegalBauen(g,i,reg,B,k){
-  const L=vmRegalLage(i), x=L.x, z=L.z, w=VM_RB, d=VM_RT, T=vmTexturen();
+function vmRegalBauen(g,i,reg,B0,k){
+  /* in Regalkoordinaten bauen (Front nach +z), dann an den Platz drehen */
+  const L=vmRegalLage(i), w=VM_RB, d=VM_RT, T=vmTexturen(), sn=Math.sin(L.ry), cs=Math.cos(L.ry);
+  const P=(lx,lz)=>({x:L.x+lx*cs+lz*sn,z:L.z-lx*sn+lz*cs}), x=0, z=0;
+  const B=(k2,bw,bh,bd,c,lx,y,lz,rx,ry,rz)=>{ const p=P(lx,lz); B0(k2,bw,bh,bd,c,p.x,y,p.z,cs<0?-(rx||0):(rx||0),(ry||0)+L.ry,rz); };
+  const setz=(m,lx,y,lz)=>{ const p=P(lx,lz); m.position.set(p.x,y,p.z); m.rotation.y+=L.ry; return m; };
   const BLAU=0x2a5a9e, ZINK=0xb9bec6;
   for(const sx of [-1,1]) for(const sz of [-1,1]) B(k,0.035,VM_RH,0.035,BLAU,x+sx*(w/2-0.018),VM_RH/2,z+sz*(d/2-0.018));
   for(const sx of [-1,1]) for(const y of [0.3,1.1]) B(k,0.02,0.02,d-0.04,BLAU,x+sx*(w/2-0.018),y,z,0.6*(y>1?1:-1),0,0);
@@ -25675,25 +25762,26 @@ function vmRegalBauen(g,i,reg,B,k){
   for(const id of ['kl','km','ks']){
     const mat=new THREE.MeshStandardMaterial({map:T.kante.clone(),roughness:0.9}); mat.map.needsUpdate=true;
     const m=new THREE.Mesh(new THREE.BoxGeometry(w-0.08,1,d-0.1),mat);
-    m.position.set(x,VM_BOEDEN[boden[id]]+0.5,z+0.01); g.add(m); reg(m);
+    setz(m,x,VM_BOEDEN[boden[id]]+0.5,z+0.01); g.add(m); reg(m);
     if(HIQ){ m.castShadow=true; m.receiveShadow=true; }
     R.stapel[id]={m,dicke:dicke[id],y0:VM_BOEDEN[boden[id]]};
-    const sm=plane(0.2,0.05,new THREE.MeshBasicMaterial({map:T.schild[id],toneMapped:false}),x,VM_BOEDEN[boden[id]]-0.035,z+d/2+0.006,0,g); reg(sm);
+    const sm=setz(plane(0.2,0.05,new THREE.MeshBasicMaterial({map:T.schild[id],toneMapped:false}),0,0,0,0,g),x,VM_BOEDEN[boden[id]]-0.035,z+d/2+0.006); reg(sm);
   }
   /* Folienrollen liegen laengs, bis zu drei */
   const fm=new THREE.MeshStandardMaterial({map:T.folie,roughness:0.35,metalness:0,transparent:true,opacity:0.92});
   const fg=new THREE.CylinderGeometry(0.085,0.085,w-0.1,18);
-  for(let j=0;j<3;j++){ const m=new THREE.Mesh(fg,fm); m.rotation.z=Math.PI/2; m.position.set(x,VM_BOEDEN[3]+0.085,z-0.18+j*0.18); g.add(m); reg(m); R.folie.push(m); }
-  const sm=plane(0.24,0.05,new THREE.MeshBasicMaterial({map:T.schild.folie,toneMapped:false}),x,VM_BOEDEN[3]-0.035,z+d/2+0.006,0,g); reg(sm);
+  /* Rollen laengs in Regal-x: im gedrehten Regal zeigt die Achse in Welt-x genauso */
+  for(let j=0;j<3;j++){ const m=new THREE.Mesh(fg,fm); m.rotation.z=Math.PI/2; const p=P(x,z-0.18+j*0.18); m.position.set(p.x,VM_BOEDEN[3]+0.085,p.z); g.add(m); reg(m); R.folie.push(m); }
+  const sm=setz(plane(0.24,0.05,new THREE.MeshBasicMaterial({map:T.schild.folie,toneMapped:false}),0,0,0,0,g),x,VM_BOEDEN[3]-0.035,z+d/2+0.006); reg(sm);
   /* Klebeband: offener Karton auf dem Regal, bis zu zwoelf Rollen */
   B(k,0.5,0.004,0.24,0xc49a62,x,VM_RH+0.002,z); for(const s of [-1,1]){ B(k,0.5,0.06,0.006,0xc49a62,x,VM_RH+0.03,z+s*0.12); B(k,0.006,0.06,0.24,0xc49a62,x+s*0.25,VM_RH+0.03,z); }
   const bm=std(0xd8b46a,{roughness:0.55}), bg=new THREE.CylinderGeometry(0.038,0.038,0.045,14);
-  for(let j=0;j<12;j++){ const m=new THREE.Mesh(bg,bm); m.position.set(x-0.2+(j%6)*0.08,VM_RH+0.027,z+(j<6?-0.055:0.055)); g.add(m); reg(m); R.band.push(m); }
+  for(let j=0;j<12;j++){ const m=new THREE.Mesh(bg,bm); setz(m,x-0.2+(j%6)*0.08,VM_RH+0.027,z+(j<6?-0.055:0.055)); g.add(m); reg(m); R.band.push(m); }
   /* Kopfschild */
-  const km=plane(0.5,0.12,new THREE.MeshBasicMaterial({map:T.schild.kopf,toneMapped:false}),x,VM_RH+0.16,z+0.02,0,g); reg(km);
+  const km=setz(plane(0.5,0.12,new THREE.MeshBasicMaterial({map:T.schild.kopf,toneMapped:false}),0,0,0,0,g),x,VM_RH+0.16,z+0.02); reg(km);
   B(k,0.52,0.14,0.02,0x1b2340,x,VM_RH+0.16,z+0.005);
   for(const s of [-1,1]) B(k,0.02,0.16,0.02,BLAU,x+s*0.2,VM_RH+0.08,z);
-  const hit=bbox(w+0.06,VM_RH+0.2,d+0.06,hitM,x,(VM_RH+0.2)/2,z,g,false);
+  const hit=setz(bbox(w+0.06,VM_RH+0.2,d+0.06,hitM,0,0,0,g,false),x,(VM_RH+0.2)/2,z);
   hit.userData={kind:'vmregal',ref:i}; reg(hit); R.hit=hit;
   vmRegale[i]=R;
 }
@@ -25714,7 +25802,7 @@ function vmRegalZeichnen(i){
   R.band.forEach((m,j)=>{ m.visible=sichtbar&&j<br; });
 }
 /* Wo der Einraeumer am Regal steht und wohin er schaut */
-function vmStandPunkt(i){ const L=vmRegalLage(i); return {stand:localToWorld(packTisch,L.x,VS_PZ+0.86),look:localToWorld(packTisch,L.x,L.z)}; }
+function vmStandPunkt(i){ const L=vmRegalLage(i), st=ppW(i,-0.95,0.86); return {stand:localToWorld(packTisch,st.x,st.z),look:localToWorld(packTisch,L.x,L.z)}; }
 
 /* ---------------------------------------------------------
    LKW, Einraeumer, Spieler
@@ -41248,6 +41336,8 @@ function buyUp(id){
   const cost=u.cost();
   if(S.money<cost){ toast(`${u.name} kostet ${eur(cost)} — dir fehlen ${eur(r2(cost-S.money))}.`,'bad'); return; }
   if(S.einbauBestellt&&S.einbauBestellt[id]){ toast(`${u.name} ist schon bestellt und kommt mit der nächsten Lieferung.`); return; }
+  /* Die groessere Palettierstation braucht den Regalplatz an der Westwand */
+  if(id==='packstation2'&&typeof packRegalImWeg==='function'&&packRegalImWeg(2)){ toast(`${u.name}: Erst das Lagerregal an der Westwand neben der Packstation umstellen – dort wächst die Palettierstation hin.`,'bad'); return; }
   S.money=r2(S.money-cost); DS.upgrades=r2(DS.upgrades+cost);
   /* Kassen kommen wie Regale als Paket: erst wenn man sie aufstellt,
      sind sie da (Tom, 26.09.) */
@@ -43755,7 +43845,7 @@ fontsReady().then(()=>{
   setTimeout(()=>{ if(typeof shaderVorab==='function') shaderVorab(); },400);
   window.__bb={get S(){return S},get phase(){return phase},set phase(v){phase=v},set clock(v){clock=v},get clock(){return clock},pickUp,floorBoxes,shelves,racks,dekos,stockOne,openShop,step,customers,queue,belt,scanBelt,buyUp,buyDeko,get DS(){return DS},endDay,pending,save,openLaptop,closeLaptop,pl,addXP,hireStaff,fireStaff,staff,dirts,addDirt,movables,toggleBuild,setWall,setFloor,
     stations,firePult,placeOnStation,igniteType,get order(){return order},get phone(){return phone},makeCall,answerPhone,haggle,acceptDeal,declineDeal,get truck(){return truck},spawnTruck,takeFromTruck,takeBox,dropBox,updateTruck,get door(){return door},get tuer(){return tuer},tuerSet,tuerNah,updateSchiebetuer,doorOpen,doorIsOpen,trailerOccupied,LR,lrFront,TOR,orderReady,orderLeft,shipOne,removeFloorBox,prioOf,setPrio,racks,updateCarry,spawnFloorBox,staff,SHELFKIND,layout,shelfCapOf,shelfAccepts,emptyLevel,dateInfo,dateStr,dateShort,seasonInfo,isSunday,dayMult,ruhetag,wageOf,setWage,friendliness,inPause,setPause,windowGrime,addGrime,cleanWindowTick,ambienteScore,bildBoost,fixedCosts,dailyWages,dispoLimit,verfuegbar,dispoZins,takeLoan,loanTier,loanDaily,EVENTS,GOALS,CUSTTYPES,UPGRADES,STAFF,stockOf,spawnInterval,pools,todayEvent,evv,rollEvent,rollMarket,newGoal,goalAdd,goalTick,ekFactor,marktText,xpFor,rollCustType,priceTol,buyChance,regCustomer,makeWishes,nachfrageFaktor,shelfStockOf,buildGravur,refillGrav,openGravInput,closeGravInput,get gravBlanks(){return gravBlanks},set gravBlanks(v){gravBlanks=v},orderBox,buyPack,cartAdd,cartAddPack,cartOrder,cartClear,cartDel,cartGoods,cartFee,cartTotal,cartBoxes,cartLines,LIEFERZEIT_SEK,VERSAND,VERSANDFREI,lieferSek,
-    scene,camera,P,NEUWARE,NEU_SHOWS,NEU_FONT,NEU_KUGEL,neuZuenden,PARK,restWelle,restTick,restDruck,restDaten,buyAngebot,grossOffen,updatePark,parkWasser:()=>_wasserM,parkTannen:()=>PARK_TANNEN,parkLeben:()=>parkEnten.concat(parkLeute).map(e=>({x:e.g.position.x,z:e.g.position.z})),pendingListe:()=>pending,einbauPakete,spawnPaket,paketAblegen,paketAufheben,EINBAU,PAKET_MASS,vorDieTuer,sbZiel,makeAuto,AUTOFORM,stadtInfo:()=>({warn:beacons.length,kronen:KRONEN.length,stufen:SKYLINE_INFO.stufen,skyStile:SKYLINE_INFO.stile.size,stile:Object.keys(STADT_MATS).length}),clearStations,fachHoehe,kindOf,packKartonWert,SUPPLIERS,supplierFor,supplierOf,tierPrice,isUnlocked,lizLevel,renderLaptop,get lsup(){return lsup},set lsup(v){lsup=v},get lkat(){return lkat},set lkat(v){lkat=v},SPARTE,SPARTE_NAME,sparteVon,HEADNAME,headArt,catPill,ekRoh,ekDelta,ekTag,ekNiveau,ekPill,get ltab(){return ltab},set ltab(v){ltab=v},EFF,EFF_ALL,EFF_KLEIN,EFF_GROSS,EFF_PRO,SHOWS,kugelbombe,shot,mine,FW,stations,stationOf,placedCount,togglePDA,openPDA,closePDA,setPost,get postOn(){return postOn},get pdaOn(){return pdaOn},showLength,psHuge,psBig,psMid,psSmall,rockets,emitters,timersLen:()=>timers.length,timersLeeren:()=>{timers.length=0;},setView:(x,z,y,p)=>{pl.x=x;pl.z=z;yaw=y;pitch=p;aim=null;},schiebe:(x,z)=>{pl.x=x;pl.z=z;collide(pl,0.32);return{x:pl.x,z:pl.z};},PLZ_MAX,camYaw:()=>yaw,camPitch:()=>pitch,playerPos:()=>({x:pl.x,z:pl.z}),pultYaw:()=>pultHit?pultHit.parent.rotation.y:null,get pultHit(){return pultHit},applyShopName,shopName,shopSlogan,signTexPx:()=>signTex&&signTex.image?texCanvas(signTex).getContext('2d').getImageData(0,0,signTex.image.width,40).data.join(''):null,lagerWall,fwShot:shot,KUGEL_R,ROHR_INNEN,MOERSER_R,moerserRohr,sfx,WOLKEN,get master(){return master},ac,SORTE_NEU,sortenUmstellen,get shakeWert(){return shake},get ckG(){return ckG},get ckNameTex(){return ckNameTex},get ckMovable(){return ckMov},CK_HOME,CK_ALT,spotPos,queueApproach,ckTexPx:()=>ckNameTex&&ckNameTex.image?texCanvas(ckNameTex).getContext('2d').getImageData(0,0,ckNameTex.image.width,60).data.join(''):null,testfeldMitte,STATION_POS,aimAt,UPGRADES,upPic,PLAN,planFlaechen,uhrZeiger:()=>({std:uhrStd?+uhrStd.rotation.z.toFixed(4):0,min:uhrMin?+uhrMin.rotation.z.toFixed(4):0}),drawRackSchild,get snowPts(){return snowPts},buildStadt,updateStadt,get stadtBoxen(){return stadtBoxen},get stadtBaeume(){return stadtBaeume},buildFernbaeume,schwaerme,beacons,silhouetten,get verkehrPts(){return verkehrPts},get rauchPts(){return rauchPts},get flieger(){return flieger},stadtFrei,STADT_FREI,WALLS,FLOORS,bodenMalen,wandMalen,oberflaechenMuster,oberflaechenAnwenden,BODEN_KACHEL,WAND_B,WAND_H,bodenPx,wandPx,innenUmgebung,sockelM,get wallTex(){return wallTex},get floorTexRef(){return floorTexRef},get floorMat(){return floorMat},get shopWall(){return shopWall},renderOnline,onlineHint,onlineStufe,onlineZahlen,onlineListe,updateOnline,SCHILDBG,SCHILDFG,setSchild,schildBg,schildFg,repaintSchilder,updateHead,allLevels,addToLevel,putInSlot,regCustomer,ZONEN,zoneOffen,oeffneZone,applyZonen,SLOTS,RACKS,slotsOffen,colliders,LAY,LOGI,WRAMPEN,WTORE,updateSnow,unterDach,dachBereiche,get lapHit2(){return lapHit2},buildLagerTerminal,toggleTest,testLevel,buyUp,get toastLast(){return toastLast},__floorBoxen:()=>floorBoxes.length,WBAY_UP,wbays,dockPlaetze,wbayFrei,wbayOffen,spawnWTruck,updateWBays,wbaysInit,wtorSet,GANG,GANGTUER,buildLagergang,flaeche,WTOR,RACKKIND,route,NAV,navFrei,navIdx,navBuild,shelfStand,shelves,sbLanes,buildSBKasse,sbFrei,sbOffen,sbNutzbar,EING2,eingaenge,naechsterEingang,setEingang2,TUEREN,tuerSetD,tuerNahD,packBereit,packOne,paketWert,bestellungenProTag,pakete,ddlAbholung,updateVersand,VS_GR,VS_FELD,WG_PARK,vsNeueBestellung,vsAbgleich,vsKlasse,vsQuellen,vsBestand,vsErfuellbar,vsPlan,vsStapel,vsSpielerPacken,vsSpielerBestellung,vsTischFrei,vsStatus,vsAufraeumen,vsLaden,vsBahn,vsPaketOffen,vsKlappen,vsFuellung,vsPaketZu,get vsTisch(){return vsPlaetze[0]?vsPlaetze[0].tisch:null},get vsWagen(){return vsPlaetze[0]?vsPlaetze[0].wagen:null},vsPlaetze,vsPortal,vsStufeGeaendert,packStufe,packStufeAnwenden,packTeile,VS_PP,VS_PZ,VS_TOP,BAND,ZELLE,ZELLE_Z1,PALETTEN,PAL_H,VS_MUSTER,vsKapazitaet,vsGelandet,vsCfg,vsNachfrage,vsGebuehr,VS_PORTO,VS_CFG_STD,vsBuchen,vsHits,vsPlatzAus,VM,VM_IDS,vmStand,vmReicht,vmVerbrauchen,vmEinlagern,vmBestellen,vmAuffuellen,vmBestellbar,vmGesamt,vmKapGesamt,vmUnterwegs,vmRegale,vmRegalZeichnen,vmWarnung,vmPlatzMit,vmLkwJob,vmStandPunkt,pullFromTruck,dumpTruck,createShelf,createRack,regalStellen,testKauf,regalAufbauen,orderRegal,REGALWARE,regalOf,regalKind,regalPreis,regalPlatz,regalOffen,startGame,promptFor,ERFOLGE,erfOffen,erfStufe,erfStand,erfZiel,erfFertig,erfAnteil,erfGeschafft,erfGesamt,stat,statAdd,statRekord,statVerkauf,bruchGesehen,gruppeVon,GRUPPE,TRAEGER,BRUCH,BRUCH_IDS,REZ_FARBEN,ETIKETT,traegerVon,traegerOffen,bruchOffen,bruchListe,rezeptWow,rezeptKosten,rezeptMarkt,rezeptHype,rezeptDauer,rezeptEntwicklung,rezeptGueltig,eigeneListe,eigenesEintragen,rezepteTick,rezProto,rezBauen,renderRezeptur,get entwurf(){return entwurf},set entwurf(v){entwurf=v},entwurfInit,ORDER,LIZENZEN,lizenzOf,hatLizenz,lizenzDaten,naechsteLizenz,buyLizenz,VOLA,volaOf,REGIME,marketOf,costOf,marktZiel,marktLuecke,meOf,miOf,marktDelta,marktNiveau,marktPhase,marktSchock,marktLabel,marktSchnitt,marktExtrem,marktChance,sortimentBreite,sortimentZug,bekanntheit,spawnInterval,rollMarkt,marktInit,inflOf,inflText,setPreisAufMarkt,igniteType,get packHit(){return packHit},get packTisch(){return packTisch},get packMov(){return packMov},zuendeKanal,zuendeAlle,alleKanaele,get pultText(){return pultText},drawPult,kanalItem,openZuend,closeZuend,get zuendOpen(){return zuendOpen},overlayOpen,pultTaster,zuendTick,TISCH_X,RAMPE_X,KANAL_START,bereitCount,brennDauer,muendung,pultLamps,RAKETEN_LOOK,RAKETEN_KL,makePerson,applyTOD,updateHUD,renderer,renderFrame,get DEMO(){return DEMO},LHALLE,LOGI_STUFEN,TOR_STUFE,logiStufe,logiZeige,logiAnwenden,LOGI_G,TOR_G,WTORE,tuAktion:(kind,ref)=>{ const alt=target; target={kind,ref}; try{ doAction(); } finally { target=alt; } },promptFor,KARREN,karreArt,karreAn,karreStapel,karreLast,karreNimmt,toggleKarre,updateKarre,setTutorial,tutorialAn,zielFuer,get zielAktuell(){return zielAktuell},get tipKey(){return tipKey},updateZiel,set DEMO(v){DEMO=v},kapitelVon,kapitelVoll,openHandy,closeHandy,toggleHandy,get handyOpen(){return handyOpen},get happ(){return happ},HANDY_APPS,renderHandy,shaderVorab,SCHONER,schonerMalen,updateSchoner,makeWischer,stelleWischer,get wischer(){return wischer},updateWischen,wischerPersonal,cleanTick,updateFireworks,FLASH,spurEnden,LR_LAMPE,schweber,kundenSymbol,geldSchwebt,get serie(){return serie},serieZufrieden,serieBricht,KAPITEL,kapitel,kapitelNr,kapitelAufstieg,WA,WA_SLOTS,vorDieTuer,SB_KASSIERER,sbBesetzt,sbLaneVon,sbKassiererPlatz,sbBetreuer,sbHeimPlatz,sbHelferPlatz,sbGeholfen,sbFreiNah,SB_SELBST,sbPos,MUSIK,STUECKE,musikAn,musikWeiter,musikVol,musikTick,spielSchritt,get mStep(){return mStep},set mStep(v){mStep=v;mTakte=0;},get mBus(){return mBus},get postHalf(){return postHalf},EFF_SCHWEIF,mitSchweif,KOEPFE,KLEID,UNIFORM,STAFFKOPF,faceCache,animPerson,PACKS,packPreis,packPool,packOffen,packContents,syncPakete,rotateGrab,cancelGrab,moebelTaste,moebelEinpacken,paketAuspacken,moebelImBlick,removeShelf,removeRack,PACK_FL,PACK_HOME,spotFree,rectOf,grab,placeGrab,updateGrab,get grabbed(){return grabbed},showPause,closePause,pauseSeite,pauseSeiteAktiv,zumStartbildschirm,fortsetzen,musikWahl,musikTitel,get startOpen(){return startOpen},get pauseOpen(){return pauseOpen},get target(){return target},einrOf,einrAktiv,einrHoch,einrRunter,einrSchalten,AUFGABEN,einrJob,kartonMat,pools,shelfStockOf,removeFromLevel,fwLog:(a)=>{FW_LOG=a;},moerserRohr,ROHR_KALIBER,effPassen,EFF_FAMILIE,basisBlick,fwTestSchalten,fwTestProdukte,fwTestStapeln,get fwTestAn(){return fwTestAn},get fwTestBoxen(){return fwTestBoxen},get fwTestMarken(){return fwTestMarken},fwStufe,sonne:()=>sun.intensity,get fwUhr(){return FW_UHR},THEMEN,SHOW_BASIS,EFF,emittersListe:()=>emitters,show,SIGNATUR,showZeiten,showDauer,phDauer,musterWinkel,feuertopf,playShow,KAL,get rohrStreu(){return ROHR_STREU},vorfuehrungAn,vorfuehrungAus,vfNaechstes,vfZuenden,vfStopp,get vfAufraeumen(){return vfAufraeumen},vfSpringen,vfNote,vfText,vfTaste,get vfAn(){return vfAn},get vfGezuendet(){return vfGezuendet},get vfIdx(){return vfIdx},get vfLetzt(){return vfLetzt},get vfListe(){return vfListe},get vfEl(){return vfEl},set rohrStreu(v){ROHR_STREU=v},BUENDEL,bSammeln,bWaechter,buendelJetzt:()=>{ bSammeln(); bSammeln(); return BUENDEL.n; },NEU_TEST,get vfSonder(){return vfSonder},vpSchalten,vpStart,vpAus,vpStellplaetze,vpVerteilen,vpProdukte,vpFuellung,get vpAn(){return vpAn},get vpRegale(){return vpRegale},get vpPlan(){return vpPlan},get vpFertig(){return vpFertig},get SPIEL_RAUM(){return SPIEL_RAUM},vpZeilenMass,VP_ZEILEN,sucheText,sucheRang,drawFront,drawTop,drawSide,WARE_MOTIV,wareFront,wareTop,wareMarke,KAPPE,kleinTakt,texCanvas,get RES(){return RES},resSetzen,resRegeln,gfxMess,schildTaste,schildFertig,schildZiel,get schildOpen(){return schildOpen},get vpNamenM(){return vpNamenM},kisteTaste,kannRaus,kisteRaus,kisteMat,KISTE_STUECK,poolDa,poolWeg,VP_FL,modRaster,slotLocal,gfxAnwenden,gfxWaehlen,gfxMessen,gfxMess,gfxAnzeige,get GFX(){return GFX},get GFX_WAHL(){return GFX_WAHL},QUAL,rohrBedarf,rohrLayout,rohrSatz,istBatterie,batterieModell,zuendPlan,buildProduct,capOf,zuendFolge,rohrMund,korpusTeile,rohrGeometrie,stationsPool,poolsAus,istVerbundKarton,regalFarben,regaleFaerben,get ROHR_LOG(){return ROHR_LOG},set ROHR_LOG(v){ROHR_LOG=v},schattenSichtbar:()=>renderer.shadowMap.enabled&&sun.shadow.bias>-1,sfxVol,get SFX_VOL(){return SFX_VOL},GFX_PROFIL,GFX_START,GFX_NAME,PR,PRACHT,prUmgebung,prMaterialien,gfxPixel,gfxSamples,schattenGr:()=>sun.shadow.mapSize.x,get postDiv(){return postDiv},festImBlick,makeWishes,VP_FORM,gpStart,gpEnde,gpSpringe,gpBauSchritt,gpTick,gpBestellen,gpBauSchritt,get gpFertig(){return gpFertig},get gpAn(){return gpAn},get gpVerlauf(){return gpVerlauf},GP_ORTE,wandRechtecke,wandSchub,moebelRect,rackRect,rackKindOf,stellPlatz,rackStellPlatz,rackPlatzFrei,racksEntwirren,regalNein,kasseReserve,gpPlan,gpVerteilen,GP_ABT,gpAbtVon,
+    scene,camera,P,NEUWARE,NEU_SHOWS,NEU_FONT,NEU_KUGEL,neuZuenden,PARK,restWelle,restTick,restDruck,restDaten,buyAngebot,grossOffen,updatePark,parkWasser:()=>_wasserM,parkTannen:()=>PARK_TANNEN,parkLeben:()=>parkEnten.concat(parkLeute).map(e=>({x:e.g.position.x,z:e.g.position.z})),pendingListe:()=>pending,einbauPakete,spawnPaket,paketAblegen,paketAufheben,EINBAU,PAKET_MASS,vorDieTuer,sbZiel,makeAuto,AUTOFORM,stadtInfo:()=>({warn:beacons.length,kronen:KRONEN.length,stufen:SKYLINE_INFO.stufen,skyStile:SKYLINE_INFO.stile.size,stile:Object.keys(STADT_MATS).length}),clearStations,fachHoehe,kindOf,packKartonWert,SUPPLIERS,supplierFor,supplierOf,tierPrice,isUnlocked,lizLevel,renderLaptop,get lsup(){return lsup},set lsup(v){lsup=v},get lkat(){return lkat},set lkat(v){lkat=v},SPARTE,SPARTE_NAME,sparteVon,HEADNAME,headArt,catPill,ekRoh,ekDelta,ekTag,ekNiveau,ekPill,get ltab(){return ltab},set ltab(v){ltab=v},EFF,EFF_ALL,EFF_KLEIN,EFF_GROSS,EFF_PRO,SHOWS,kugelbombe,shot,mine,FW,stations,stationOf,placedCount,togglePDA,openPDA,closePDA,setPost,get postOn(){return postOn},get pdaOn(){return pdaOn},showLength,psHuge,psBig,psMid,psSmall,rockets,emitters,timersLen:()=>timers.length,timersLeeren:()=>{timers.length=0;},setView:(x,z,y,p)=>{pl.x=x;pl.z=z;yaw=y;pitch=p;aim=null;},schiebe:(x,z)=>{pl.x=x;pl.z=z;collide(pl,0.32);return{x:pl.x,z:pl.z};},PLZ_MAX,camYaw:()=>yaw,camPitch:()=>pitch,playerPos:()=>({x:pl.x,z:pl.z}),pultYaw:()=>pultHit?pultHit.parent.rotation.y:null,get pultHit(){return pultHit},applyShopName,shopName,shopSlogan,signTexPx:()=>signTex&&signTex.image?texCanvas(signTex).getContext('2d').getImageData(0,0,signTex.image.width,40).data.join(''):null,lagerWall,fwShot:shot,KUGEL_R,ROHR_INNEN,MOERSER_R,moerserRohr,sfx,WOLKEN,get master(){return master},ac,SORTE_NEU,sortenUmstellen,get shakeWert(){return shake},get ckG(){return ckG},get ckNameTex(){return ckNameTex},get ckMovable(){return ckMov},CK_HOME,CK_ALT,spotPos,queueApproach,ckTexPx:()=>ckNameTex&&ckNameTex.image?texCanvas(ckNameTex).getContext('2d').getImageData(0,0,ckNameTex.image.width,60).data.join(''):null,testfeldMitte,STATION_POS,aimAt,UPGRADES,upPic,PLAN,planFlaechen,uhrZeiger:()=>({std:uhrStd?+uhrStd.rotation.z.toFixed(4):0,min:uhrMin?+uhrMin.rotation.z.toFixed(4):0}),drawRackSchild,get snowPts(){return snowPts},buildStadt,updateStadt,get stadtBoxen(){return stadtBoxen},get stadtBaeume(){return stadtBaeume},buildFernbaeume,schwaerme,beacons,silhouetten,get verkehrPts(){return verkehrPts},get rauchPts(){return rauchPts},get flieger(){return flieger},stadtFrei,STADT_FREI,WALLS,FLOORS,bodenMalen,wandMalen,oberflaechenMuster,oberflaechenAnwenden,BODEN_KACHEL,WAND_B,WAND_H,bodenPx,wandPx,innenUmgebung,sockelM,get wallTex(){return wallTex},get floorTexRef(){return floorTexRef},get floorMat(){return floorMat},get shopWall(){return shopWall},renderOnline,onlineHint,onlineStufe,onlineZahlen,onlineListe,updateOnline,SCHILDBG,SCHILDFG,setSchild,schildBg,schildFg,repaintSchilder,updateHead,allLevels,addToLevel,putInSlot,regCustomer,ZONEN,zoneOffen,oeffneZone,applyZonen,SLOTS,RACKS,slotsOffen,colliders,LAY,LOGI,WRAMPEN,WTORE,updateSnow,unterDach,dachBereiche,get lapHit2(){return lapHit2},buildLagerTerminal,toggleTest,testLevel,buyUp,get toastLast(){return toastLast},__floorBoxen:()=>floorBoxes.length,WBAY_UP,wbays,dockPlaetze,wbayFrei,wbayOffen,spawnWTruck,updateWBays,wbaysInit,wtorSet,GANG,GANGTUER,buildLagergang,flaeche,WTOR,RACKKIND,route,NAV,navFrei,navIdx,navBuild,shelfStand,shelves,sbLanes,buildSBKasse,sbFrei,sbOffen,sbNutzbar,EING2,eingaenge,naechsterEingang,setEingang2,TUEREN,tuerSetD,tuerNahD,packBereit,packOne,paketWert,bestellungenProTag,pakete,ddlAbholung,updateVersand,VS_GR,VS_FELD,WG_PARK,vsNeueBestellung,vsAbgleich,vsKlasse,vsQuellen,vsBestand,vsErfuellbar,vsPlan,vsStapel,vsSpielerPacken,vsSpielerBestellung,vsTischFrei,vsStatus,vsAufraeumen,vsLaden,vsBahn,vsPaketOffen,vsKlappen,vsFuellung,vsPaketZu,get vsTisch(){return vsPlaetze[0]?vsPlaetze[0].tisch:null},get vsWagen(){return vsPlaetze[0]?vsPlaetze[0].wagen:null},vsPlaetze,vsPortal,vsStufeGeaendert,packStufe,packStufeAnwenden,packTeile,VS_PP,VS_PZ,VS_TOP,VS_TB,ppW,BAND,ZELLE,ZELLE_Z1,PALETTEN,PAL_H,VS_MUSTER,vsKapazitaet,vsGelandet,vsCfg,vsNachfrage,vsGebuehr,VS_PORTO,VS_CFG_STD,vsBuchen,vsHits,vsPlatzAus,VM,VM_IDS,vmStand,vmReicht,vmVerbrauchen,vmEinlagern,vmBestellen,vmAuffuellen,vmBestellbar,vmGesamt,vmKapGesamt,vmUnterwegs,vmRegale,vmRegalZeichnen,vmWarnung,vmPlatzMit,vmLkwJob,vmStandPunkt,pullFromTruck,dumpTruck,createShelf,createRack,regalStellen,testKauf,regalAufbauen,orderRegal,REGALWARE,regalOf,regalKind,regalPreis,regalPlatz,regalOffen,startGame,promptFor,ERFOLGE,erfOffen,erfStufe,erfStand,erfZiel,erfFertig,erfAnteil,erfGeschafft,erfGesamt,stat,statAdd,statRekord,statVerkauf,bruchGesehen,gruppeVon,GRUPPE,TRAEGER,BRUCH,BRUCH_IDS,REZ_FARBEN,ETIKETT,traegerVon,traegerOffen,bruchOffen,bruchListe,rezeptWow,rezeptKosten,rezeptMarkt,rezeptHype,rezeptDauer,rezeptEntwicklung,rezeptGueltig,eigeneListe,eigenesEintragen,rezepteTick,rezProto,rezBauen,renderRezeptur,get entwurf(){return entwurf},set entwurf(v){entwurf=v},entwurfInit,ORDER,LIZENZEN,lizenzOf,hatLizenz,lizenzDaten,naechsteLizenz,buyLizenz,VOLA,volaOf,REGIME,marketOf,costOf,marktZiel,marktLuecke,meOf,miOf,marktDelta,marktNiveau,marktPhase,marktSchock,marktLabel,marktSchnitt,marktExtrem,marktChance,sortimentBreite,sortimentZug,bekanntheit,spawnInterval,rollMarkt,marktInit,inflOf,inflText,setPreisAufMarkt,igniteType,get packHit(){return packHit},get packTisch(){return packTisch},get packMov(){return packMov},zuendeKanal,zuendeAlle,alleKanaele,get pultText(){return pultText},drawPult,kanalItem,openZuend,closeZuend,get zuendOpen(){return zuendOpen},overlayOpen,pultTaster,zuendTick,TISCH_X,RAMPE_X,KANAL_START,bereitCount,brennDauer,muendung,pultLamps,RAKETEN_LOOK,RAKETEN_KL,makePerson,applyTOD,updateHUD,renderer,renderFrame,get DEMO(){return DEMO},LHALLE,LOGI_STUFEN,TOR_STUFE,logiStufe,logiZeige,logiAnwenden,LOGI_G,TOR_G,WTORE,tuAktion:(kind,ref)=>{ const alt=target; target={kind,ref}; try{ doAction(); } finally { target=alt; } },promptFor,KARREN,karreArt,karreAn,karreStapel,karreLast,karreNimmt,toggleKarre,updateKarre,setTutorial,tutorialAn,zielFuer,get zielAktuell(){return zielAktuell},get tipKey(){return tipKey},updateZiel,set DEMO(v){DEMO=v},kapitelVon,kapitelVoll,openHandy,closeHandy,toggleHandy,get handyOpen(){return handyOpen},get happ(){return happ},HANDY_APPS,renderHandy,shaderVorab,SCHONER,schonerMalen,updateSchoner,makeWischer,stelleWischer,get wischer(){return wischer},updateWischen,wischerPersonal,cleanTick,updateFireworks,FLASH,spurEnden,LR_LAMPE,schweber,kundenSymbol,geldSchwebt,get serie(){return serie},serieZufrieden,serieBricht,KAPITEL,kapitel,kapitelNr,kapitelAufstieg,WA,WA_SLOTS,vorDieTuer,SB_KASSIERER,sbBesetzt,sbLaneVon,sbKassiererPlatz,sbBetreuer,sbHeimPlatz,sbHelferPlatz,sbGeholfen,sbFreiNah,SB_SELBST,sbPos,MUSIK,STUECKE,musikAn,musikWeiter,musikVol,musikTick,spielSchritt,get mStep(){return mStep},set mStep(v){mStep=v;mTakte=0;},get mBus(){return mBus},get postHalf(){return postHalf},EFF_SCHWEIF,mitSchweif,KOEPFE,KLEID,UNIFORM,STAFFKOPF,faceCache,animPerson,PACKS,packPreis,packPool,packOffen,packContents,syncPakete,rotateGrab,cancelGrab,moebelTaste,moebelEinpacken,paketAuspacken,moebelImBlick,removeShelf,removeRack,PACK_FL,PACK_HOME,spotFree,rectOf,grab,placeGrab,updateGrab,get grabbed(){return grabbed},showPause,closePause,pauseSeite,pauseSeiteAktiv,zumStartbildschirm,fortsetzen,musikWahl,musikTitel,get startOpen(){return startOpen},get pauseOpen(){return pauseOpen},get target(){return target},einrOf,einrAktiv,einrHoch,einrRunter,einrSchalten,AUFGABEN,einrJob,kartonMat,pools,shelfStockOf,removeFromLevel,fwLog:(a)=>{FW_LOG=a;},moerserRohr,ROHR_KALIBER,effPassen,EFF_FAMILIE,basisBlick,fwTestSchalten,fwTestProdukte,fwTestStapeln,get fwTestAn(){return fwTestAn},get fwTestBoxen(){return fwTestBoxen},get fwTestMarken(){return fwTestMarken},fwStufe,sonne:()=>sun.intensity,get fwUhr(){return FW_UHR},THEMEN,SHOW_BASIS,EFF,emittersListe:()=>emitters,show,SIGNATUR,showZeiten,showDauer,phDauer,musterWinkel,feuertopf,playShow,KAL,get rohrStreu(){return ROHR_STREU},vorfuehrungAn,vorfuehrungAus,vfNaechstes,vfZuenden,vfStopp,get vfAufraeumen(){return vfAufraeumen},vfSpringen,vfNote,vfText,vfTaste,get vfAn(){return vfAn},get vfGezuendet(){return vfGezuendet},get vfIdx(){return vfIdx},get vfLetzt(){return vfLetzt},get vfListe(){return vfListe},get vfEl(){return vfEl},set rohrStreu(v){ROHR_STREU=v},BUENDEL,bSammeln,bWaechter,buendelJetzt:()=>{ bSammeln(); bSammeln(); return BUENDEL.n; },NEU_TEST,get vfSonder(){return vfSonder},vpSchalten,vpStart,vpAus,vpStellplaetze,vpVerteilen,vpProdukte,vpFuellung,get vpAn(){return vpAn},get vpRegale(){return vpRegale},get vpPlan(){return vpPlan},get vpFertig(){return vpFertig},get SPIEL_RAUM(){return SPIEL_RAUM},vpZeilenMass,VP_ZEILEN,sucheText,sucheRang,drawFront,drawTop,drawSide,WARE_MOTIV,wareFront,wareTop,wareMarke,KAPPE,kleinTakt,texCanvas,get RES(){return RES},resSetzen,resRegeln,gfxMess,schildTaste,schildFertig,schildZiel,get schildOpen(){return schildOpen},get vpNamenM(){return vpNamenM},kisteTaste,kannRaus,kisteRaus,kisteMat,KISTE_STUECK,poolDa,poolWeg,VP_FL,modRaster,slotLocal,gfxAnwenden,gfxWaehlen,gfxMessen,gfxMess,gfxAnzeige,get GFX(){return GFX},get GFX_WAHL(){return GFX_WAHL},QUAL,rohrBedarf,rohrLayout,rohrSatz,istBatterie,batterieModell,zuendPlan,buildProduct,capOf,zuendFolge,rohrMund,korpusTeile,rohrGeometrie,stationsPool,poolsAus,istVerbundKarton,regalFarben,regaleFaerben,get ROHR_LOG(){return ROHR_LOG},set ROHR_LOG(v){ROHR_LOG=v},schattenSichtbar:()=>renderer.shadowMap.enabled&&sun.shadow.bias>-1,sfxVol,get SFX_VOL(){return SFX_VOL},GFX_PROFIL,GFX_START,GFX_NAME,PR,PRACHT,prUmgebung,prMaterialien,gfxPixel,gfxSamples,schattenGr:()=>sun.shadow.mapSize.x,get postDiv(){return postDiv},festImBlick,makeWishes,VP_FORM,gpStart,gpEnde,gpSpringe,gpBauSchritt,gpTick,gpBestellen,gpBauSchritt,get gpFertig(){return gpFertig},get gpAn(){return gpAn},get gpVerlauf(){return gpVerlauf},GP_ORTE,wandRechtecke,wandSchub,moebelRect,rackRect,rackKindOf,stellPlatz,rackStellPlatz,rackPlatzFrei,racksEntwirren,regalNein,kasseReserve,gpPlan,gpVerteilen,GP_ABT,gpAbtVon,
     shot:()=>{ noLoop=true; camera.position.set(pl.x,1.65,pl.z); camera.rotation.set(pitch,yaw,0); camera.updateMatrixWorld(); updateTarget(); applyTOD(); renderFrame(0.016); return canvas.toDataURL('image/jpeg',0.85); },
     run:(sec,dt)=>{ noLoop=true; const n=Math.round(sec/(dt||0.05)); for(let i=0;i<n;i++) step(dt||0.05); }};
 });

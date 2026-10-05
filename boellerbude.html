@@ -8219,20 +8219,108 @@ VP_FORM.blanko=t=>{ const o=G(t), {w,h,d,a,rnd}=o, hw=h*0.62, th=0.003, n=5;
   for(let i=0;i<n;i++){ const z=-d/2+th+step*(i+0.5), r=Math.min(0.0105,step*0.32); rakete(o,w*0.45,th+r+0.004,z,r,w*0.3,0xf8f8f8,{kc:0xd9dde2,ringC:0xd8d8d8,ende:-w*0.46,lunte:true,sz:0}); }
   return fertig(o); };
 
-/* Donnerbalken: Kraftpapiertuete mit Blockboden, die Raketen stecken
-   kopfueber drin - die Staebe schauen oben heraus */
-const zacken=(g,W,H)=>{ g.save(); g.globalCompositeOperation='destination-out'; g.fillStyle='#000'; g.beginPath(); g.moveTo(0,0); const n=Math.max(6,Math.round(H/8)); for(let i=0;i<=n;i++) g.lineTo(i%2?W*0.025:W*0.005,H*i/n); g.lineTo(0,H); g.closePath(); g.fill(); g.restore(); };
-VP_FORM.furzrakete=t=>{ const o=G(t), {w,h,d,a,rnd}=o, x0=-w*0.12, x1=w/2-0.002, bl=x1-x0, bh=h*0.96, bd=d*0.9;
-  const R=bogen(o,[{n:'f',w:bl,h:bh,f:(g,W,H)=>{ kraft(g,W,H,rnd,'#a77b4a'); teil(g,W*0.08,H*0.1,W*0.88,H*0.8,B(t)); g.fillStyle='rgba(60,40,20,.35)'; g.fillRect(W*0.99,0,W*0.01,H); zacken(g,W,H); }},
-    {n:'k',w:bl,h:bd,f:(g,W,H)=>{ kraft(g,W,H,rnd,'#a77b4a'); g.strokeStyle='rgba(60,40,20,.35)'; g.lineWidth=2; g.beginPath(); g.moveTo(0,H*0.15); g.lineTo(W,H*0.15); g.moveTo(0,H*0.85); g.lineTo(W,H*0.85); g.stroke(); zacken(g,W,H); }},
-    {n:'e',w:bd,h:bh,f:(g,W,H)=>{ kraft(g,W,H,rnd,'#9a7042'); g.strokeStyle='rgba(60,40,20,.4)'; g.lineWidth=2; g.beginPath(); g.moveTo(0,0); g.lineTo(W/2,H*0.3); g.lineTo(W,0); g.moveTo(0,H); g.lineTo(W/2,H*0.7); g.lineTo(W,H); g.stroke(); }}],{ds:true,rough:0.9,alpha:true});
-  const cx=(x0+x1)/2;
-  dr(o,new THREE.PlaneGeometry(bl,bh),tm(cx,bh/2,bd/2),R.f); dr(o,new THREE.PlaneGeometry(bl,bh),tm(cx,bh/2,-bd/2,0,PI,0),R.f);
-  dr(o,new THREE.PlaneGeometry(bl,bd),tm(cx,bh,0,-PI/2,0,0),R.k); dr(o,new THREE.PlaneGeometry(bl,bd),tm(cx,0.0005,0,PI/2,0,0),R.k);
-  dr(o,new THREE.PlaneGeometry(bd,bh),tm(x1,bh/2,0,0,PI/2,0),R.e);
-  /* aufgeknitterter Rand an der Oeffnung */
-  const n=3, step=bd*0.8/n, r=Math.min(h*0.25,step*0.36);
-  for(let i=0;i<n;i++){ const z=-bd*0.4+step*(i+0.5); rakete(o,x1-0.004,h*0.5,z,r,bl*0.45,[0xc8e04a,0x8a5a2a,0xffd23f][i],{ende:-w*0.49,st:0.005,sy:h*0.5-r*0.4,sz:0}); }
+/* Donnerbalken (05.10., Tom: "komische Staebe, die da rausgehen, und man
+   kann in die Verpackung reingucken"): vorher eine oben offene
+   Kraftpapiertuete, die Raketenstaebe ragten ein Drittel der Packungs-
+   laenge hinaus und durch die offene Tuete sah man ins Leere. Jetzt ein
+   geschlossener Achtkant-Karton im Look eines Holzbalkens (gefaste Kanten,
+   Maserung, an den Stirnseiten Jahresringe) - der Donnerbalken vom
+   Plumpsklo. Vorn rechts das Plumpsklo-Herz als Sichtfenster mit Folie,
+   dahinter gucken die drei gruenen Raketenkoepfe heraus; die Staebe
+   liegen innen. Druck: gemalter Name, Plumpsklo-Aufkleber mit startender
+   Furzrakete, "3 Furzraketen", F2. */
+function herzPfad(g,x,y,s){ g.moveTo(x,y+s*0.95);
+  g.bezierCurveTo(x-s*0.2,y+s*0.7,x-s,y+s*0.35,x-s,y-s*0.25); g.bezierCurveTo(x-s,y-s*0.78,x-s*0.38,y-s*1.02,x,y-s*0.52);
+  g.bezierCurveTo(x+s*0.38,y-s*1.02,x+s,y-s*0.78,x+s,y-s*0.25); g.bezierCurveTo(x+s,y+s*0.35,x+s*0.2,y+s*0.7,x,y+s*0.95); g.closePath(); }
+/* Holzbalken: Maserung laengs, ein, zwei Aeste */
+function balkenHolz(g,W,H,rnd,dunkel){ const gr=g.createLinearGradient(0,0,0,H); gr.addColorStop(0,dunkel?'#6a4019':'#86552a'); gr.addColorStop(1,dunkel?'#55321a':'#6c4220'); g.fillStyle=gr; g.fillRect(0,0,W,H);
+  for(let i=0;i<Math.max(6,H/5);i++){ const y=rnd()*H, a=1+rnd()*2.5, f=0.004+rnd()*0.01, ph=rnd()*9; g.strokeStyle=`rgba(${rnd()<0.7?'45,22,6':'190,140,80'},${0.12+rnd()*0.22})`; g.lineWidth=0.8+rnd()*1.8; g.beginPath();
+    for(let x=0;x<=W;x+=W/40) g.lineTo(x,y+Math.sin(x*f+ph)*a*(H/60)); g.stroke(); }
+  for(let k=0;k<(W>H*3?2:1);k++){ const x=W*(0.15+rnd()*0.7), y=H*(0.25+rnd()*0.5), r=Math.min(H*0.09,W*0.02)+2;
+    for(let j=4;j>=1;j--){ g.strokeStyle=`rgba(70,38,12,${0.15+j*0.06})`; g.lineWidth=1.2; g.beginPath(); g.ellipse(x,y,r*j*1.9,r*j*0.55,0,0,PI*2); g.stroke(); }
+    g.fillStyle='rgba(60,30,8,.75)'; g.beginPath(); g.ellipse(x,y,r*1.2,r*0.6,0,0,PI*2); g.fill(); } }
+/* gruene Pupswolke aus Kringeln */
+function pupsWolke(g,x,y,r,rnd,c){ g.fillStyle=c||'#a8cc2e'; g.strokeStyle='rgba(60,70,10,.85)'; g.lineWidth=Math.max(1,r*0.08);
+  const K=[[0,0,1],[-0.8,0.25,0.7],[0.8,0.2,0.75],[-0.35,-0.5,0.7],[0.4,-0.45,0.65],[1.4,-0.1,0.45]].map(([dx,dy,s])=>[x+dx*r,y+dy*r,r*s*(0.9+rnd()*0.2)]);
+  for(const [a,b,s] of K){ g.beginPath(); g.arc(a,b,s,0,PI*2); g.stroke(); } for(const [a,b,s] of K){ g.beginPath(); g.arc(a,b,s,0,PI*2); g.fill(); } }
+/* Comic: Plumpsklo mit Herz in der Tuer, die Furzrakete schiesst durchs Dach */
+function plumpsklo(g,x,y,s,rnd,a){ const L=Math.max(1,s*0.035), DK='#2b1608';
+  const bw=s*0.5, bh=s*0.62, x0=x-bw/2, y0=y-bh;
+  g.save(); g.lineJoin='round'; g.fillStyle='#9a6532'; g.fillRect(x0,y0,bw,bh); g.strokeStyle='rgba(43,22,8,.6)'; g.lineWidth=L*0.7;
+  for(let i=1;i<4;i++){ g.beginPath(); g.moveTo(x0+bw*i/4,y0); g.lineTo(x0+bw*i/4,y); g.stroke(); }
+  g.fillStyle='#b5793e'; g.fillRect(x0+bw*0.2,y0+bh*0.12,bw*0.6,bh*0.88); g.strokeStyle=DK; g.lineWidth=L; g.strokeRect(x0+bw*0.2,y0+bh*0.12,bw*0.6,bh*0.88);
+  g.fillStyle=DK; g.beginPath(); herzPfad(g,x,y0+bh*0.32,bw*0.12); g.fill();
+  g.fillStyle='#1b1b1b'; g.beginPath(); g.arc(x+bw*0.2,y0+bh*0.6,L*1.2,0,PI*2); g.fill();
+  g.strokeStyle=DK; g.lineWidth=L; g.strokeRect(x0,y0,bw,bh);
+  /* Dach: aufgeplatzt, die Bretter fliegen */
+  g.fillStyle='#4a3420'; g.beginPath(); g.moveTo(x0-bw*0.12,y0+L); g.lineTo(x-bw*0.12,y0-s*0.14); g.lineTo(x0+bw*0.3,y0+L); g.closePath(); g.fill(); g.stroke();
+  g.beginPath(); g.moveTo(x+bw*0.62,y0+L); g.lineTo(x+bw*0.2,y0-s*0.12); g.lineTo(x+bw*0.1,y0+L); g.closePath(); g.fill(); g.stroke();
+  for(const [dx,dy,r] of [[-0.55,-0.55,-0.6],[0.7,-0.62,0.5]]){ g.save(); g.translate(x+bw*dx,y0+s*dy*0.6); g.rotate(r); g.fillStyle='#4a3420'; g.fillRect(-bw*0.16,-L*1.5,bw*0.32,L*3); g.strokeRect(-bw*0.16,-L*1.5,bw*0.32,L*3); g.restore(); }
+  /* Pupswolke und Rakete */
+  pupsWolke(g,x+bw*0.02,y0-s*0.08,s*0.13,rnd);
+  g.save(); g.translate(x+bw*0.12,y0-s*0.42); g.rotate(0.35); const rr=s*0.07;
+  g.fillStyle=a.ac; g.fillRect(-rr,-rr*1.4,rr*2,rr*3.4); g.strokeStyle=DK; g.lineWidth=L; g.strokeRect(-rr,-rr*1.4,rr*2,rr*3.4);
+  g.fillStyle=a.ac2; g.beginPath(); g.moveTo(-rr,-rr*1.4); g.lineTo(0,-rr*3.2); g.lineTo(rr,-rr*1.4); g.closePath(); g.fill(); g.stroke();
+  g.fillStyle='#fff'; g.beginPath(); g.arc(-rr*0.3,-rr*0.4,rr*0.42,0,PI*2); g.arc(rr*0.45,-rr*0.4,rr*0.42,0,PI*2); g.fill(); g.fillStyle='#111'; g.beginPath(); g.arc(-rr*0.15,-rr*0.45,rr*0.18,0,PI*2); g.arc(rr*0.6,-rr*0.45,rr*0.18,0,PI*2); g.fill();
+  g.strokeStyle=DK; g.lineWidth=L*0.9; g.beginPath(); g.arc(rr*0.1,rr*0.5,rr*0.45,0.3,PI-0.3); g.stroke(); g.restore();
+  g.restore(); }
+VP_FORM.furzrakete=t=>{ const o=G(t), {w,h,d,a,rnd}=o, c=Math.min(h,d)*0.14, hf=h-2*c, df=d-2*c, ks=c*Math.SQRT2;
+  /* Herzfenster vorn rechts (Anteil der Breite), Groesse relativ zur Flaechenhoehe */
+  const hx=0.875, hs=0.46, DK='#2b1608', GELB=a.ac2, GRUEN=a.ac;
+  const schild=(g,txt,x,y,mw,sz)=>{ nameText(g,txt,x+sz*0.05,y+sz*0.07,mw,sz,FNT.bun,'rgba(25,10,0,.55)',null,0); return nameText(g,txt,x,y,mw,sz,FNT.bun,GELB,DK,Math.max(2,sz*0.16)); };
+  const aufkleber=(g,x,y,W,H,rot,fn)=>{ g.save(); g.translate(x+W/2,y+H/2); g.rotate(rot); g.fillStyle='rgba(0,0,0,.28)'; g.fillRect(-W/2+2,-H/2+3,W,H);
+    g.fillStyle='#f3ead2'; g.fillRect(-W/2,-H/2,W,H); g.strokeStyle='#c9b98f'; g.lineWidth=Math.max(1,H*0.02); g.strokeRect(-W/2+H*0.04,-H/2+H*0.04,W-H*0.08,H-H*0.08); fn(g,W,H); g.restore(); };
+  const R=bogen(o,[
+    {n:'f',w,h:hf,f:(g,W,H)=>{ balkenHolz(g,W,H,rnd);
+      aufkleber(g,W*0.012,H*0.08,W*0.19,H*0.84,-0.035,(g,w2,h2)=>{ plumpsklo(g,-w2*0.24,h2*0.42,h2*0.72,rnd,a);
+        nameText(g,'PFFRRT!',w2*0.2,-h2*0.12,w2*0.5,Math.round(h2*0.3),FNT.bun,GRUEN,DK,Math.max(2,h2*0.05),-0.15);
+        nameText(g,'KATEGORIE F2',w2*0.2,h2*0.28,w2*0.5,Math.round(h2*0.15),FNT.bar,DK); });
+      schild(g,a.title,W*0.47,H*0.4,W*0.5,Math.round(H*0.56));
+      g.fillStyle='rgba(30,14,2,.85)'; g.fillRect(W*0.26,H*0.73,W*0.42,H*0.21);
+      nameText(g,'3 FURZRAKETEN · STEIGEN MIT RÜCKENWIND',W*0.47,H*0.835,W*0.4,Math.round(H*0.17),FNT.bar,GRUEN);
+      /* Fenster: Herz ausgestanzt, Rand eingebrannt */
+      const cx=W*hx, cy=H*0.5, s=H*hs; g.save(); g.globalCompositeOperation='destination-out'; g.fillStyle='#000'; g.beginPath(); herzPfad(g,cx,cy,s); g.fill(); g.restore();
+      g.strokeStyle=DK; g.lineWidth=Math.max(2,H*0.05); g.beginPath(); herzPfad(g,cx,cy,s*1.04); g.stroke();
+      siegel(g,W*0.965,H*0.72,H*0.2,'F2','#fff','#1b1b1b'); }},
+    {n:'t',w,h:df,f:(g,W,H)=>{ balkenHolz(g,W,H,rnd);
+      schild(g,a.title,W*0.39,H*0.36,W*0.56,Math.round(H*0.34));
+      g.fillStyle='rgba(30,14,2,.85)'; g.fillRect(W*0.13,H*0.62,W*0.52,H*0.18);
+      nameText(g,'3 FURZRAKETEN · MIT PUPS-ANTRIEB',W*0.39,H*0.71,W*0.49,Math.round(H*0.13),FNT.bar,GRUEN);
+      aufkleber(g,W*0.69,H*0.08,W*0.28,H*0.84,0.04,(g,w2,h2)=>{ plumpsklo(g,-w2*0.27,h2*0.4,h2*0.74,rnd,a);
+        nameText(g,'PFFRRT!',w2*0.2,-h2*0.2,w2*0.5,Math.round(h2*0.2),FNT.bun,GRUEN,DK,Math.max(2,h2*0.035),-0.15);
+        nameText(g,'Kommt nur mühsam hoch,',w2*0.2,h2*0.08,w2*0.56,Math.round(h2*0.11),FNT.bar,DK);
+        nameText(g,'aber mit Nachdruck.',w2*0.2,h2*0.22,w2*0.56,Math.round(h2*0.11),FNT.bar,DK); });
+      siegel(g,W*0.06,H*0.5,H*0.2,'F2','#fff','#1b1b1b');
+      nameText(g,'NUR IM FREIEN',W*0.06,H*0.79,W*0.09,Math.round(H*0.08),FNT.bar,'#f3ead2'); }},
+    {n:'b',w,h:hf,f:(g,W,H)=>{ balkenHolz(g,W,H,rnd);
+      aufkleber(g,W*0.3,H*0.1,W*0.4,H*0.8,0,(g,w2,h2)=>{ g.fillStyle=DK; g.textAlign='left'; g.textBaseline='middle';
+        ['Kategorie F2 · Nur im Freien verwenden','Sicherheitsabstand 8 m · Rakete nur aus Rohr','oder Flasche starten · nicht in der Hand zünden'].forEach((s,i)=>{ fitFont(g,s,w2*0.66,Math.round(h2*0.15),FNT.bar); g.fillText(s,-w2*0.44,-h2*0.24+i*h2*0.22); });
+        siegel(g,w2*0.36,0,h2*0.26,'F2','#fff','#1b1b1b'); });
+      g.fillStyle='#111'; for(let x=W*0.76,k=0;x<W*0.86;k++){ const b=1+(k*7%3); g.fillRect(x,H*0.25,b,H*0.5); x+=b+1.5; } }},
+    {n:'k',w,h:ks,f:(g,W,H)=>balkenHolz(g,W,H,rnd,true)},
+    {n:'e',w:d,h,f:(g,W,H)=>{ g.fillStyle='#b07a45'; g.fillRect(0,0,W,H); const cx=W*0.46, cy=H*0.56;
+      for(let i=14;i>=1;i--){ g.strokeStyle=`rgba(110,64,26,${0.25+(i%3)*0.12})`; g.lineWidth=1+(i%2); g.beginPath(); g.ellipse(cx,cy,W*0.045*i,H*0.07*i,0,0,PI*2); g.stroke(); }
+      g.fillStyle='#7a4a1e'; g.beginPath(); g.arc(cx,cy,Math.min(W,H)*0.03,0,PI*2); g.fill();
+      g.strokeStyle='rgba(50,25,8,.7)'; g.lineWidth=1.5; for(const an of [0.4,2.5,4.4]){ g.beginPath(); g.moveTo(cx+Math.cos(an)*W*0.05,cy+Math.sin(an)*H*0.08); g.lineTo(cx+Math.cos(an)*W*0.3,cy+Math.sin(an)*H*0.42); g.stroke(); }
+      g.strokeStyle='rgba(170,30,30,.8)'; g.lineWidth=Math.max(1.5,H*0.03); g.strokeRect(W*0.62,H*0.1,W*0.32,H*0.3); g.fillStyle='rgba(170,30,30,.8)'; g.textAlign='center'; g.textBaseline='middle'; g.font=FNT.bar(Math.round(H*0.2)); g.fillText('3 STK',W*0.78,H*0.26); }}],{alpha:true,ppm:2200});
+  /* Achtkant: vier Seiten, vier Fasen, zwei Stirnseiten */
+  dr(o,new THREE.PlaneGeometry(w,hf),tm(0,h/2,d/2),R.f);
+  dr(o,new THREE.PlaneGeometry(w,hf),tm(0,h/2,-d/2,0,PI,0),R.b);
+  dr(o,new THREE.PlaneGeometry(w,df),tm(0,h,0,-PI/2,0,0),R.t);
+  o.vc.push({geo:new THREE.PlaneGeometry(w,df),m:tm(0,0,0,PI/2,0,0),color:0x6b4520});
+  for(const [sy,sz] of [[1,1],[1,-1],[-1,-1],[-1,1]]) dr(o,new THREE.PlaneGeometry(w,ks),tm(0,h/2+sy*(h/2-c/2),sz*(d/2-c/2),-Math.atan2(sy,sz),0,0),R.k);
+  const s8=new THREE.Shape(), A=d/2, Bh=h/2; [[-A+c,-Bh],[A-c,-Bh],[A,-Bh+c],[A,Bh-c],[A-c,Bh],[-A+c,Bh],[-A,Bh-c],[-A,-Bh+c]].forEach(([x,y],i)=>i?s8.lineTo(x,y):s8.moveTo(x,y));
+  for(const s of [-1,1]){ const g8=new THREE.ShapeGeometry(s8), uv=g8.attributes.uv, P8=g8.attributes.position;
+    for(let i=0;i<uv.count;i++) uv.setXY(i,(P8.getX(i)+A)/d,(P8.getY(i)+Bh)/h);
+    dr(o,g8,tm(s*w/2,h/2,0,0,s*PI/2,0),R.e); }
+  /* hinter dem Herz: dunkler Einsatz, drei Raketenkoepfe (die Staebe liegen innen, unsichtbar) */
+  const fx=-w/2+w*hx, fr=hf*hs; einsatz(o,fx-fr*2.2,w/2-0.003,c,h-c,-d/2+c,d/2-0.0015,0x3a2814);
+  const r=Math.min(h*0.22,d*0.13), kl=r*3, xs=fx+fr*0.95, L=fr*2.2;
+  for(let i=0;i<3;i++){ const z=d/2-0.004-r-i*(2*r+0.004), y=h/2-(i===1?0:0.002);
+    zyl(o,0,r,kl,10,xs-kl/2,y,z,hexMix(GRUEN,-0.25),0,0,-PI/2);
+    zyl(o,r*1.02,r*1.02,0.008,10,xs-kl-0.004,y,z,I(GELB),0,0,PI/2);
+    zyl(o,r,r,L,10,xs-kl-0.008-L/2,y,z,0xe8dcc0,0,0,PI/2); }
+  fol(o,new THREE.PlaneGeometry(fr*2.2,fr*2.1),tm(fx,h/2,d/2-0.0012));
   return fertig(o); };
 
 /* Silberpfeil: Skinverpackung - die Raketen hauteng in Folie auf einer

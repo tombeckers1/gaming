@@ -6,11 +6,103 @@ const vcMat=new THREE.MeshStandardMaterial({vertexColors:true,roughness:0.45});
 /* eigene Verpackungsformen je Produkt (04g-form-*.js) */
 const VP_FORM={};
 const glassMat=new THREE.MeshStandardMaterial({color:0xffffff,transparent:true,opacity:0.22,roughness:0.05,metalness:0.1,depthWrite:false});
+/* 03.10.: Folie/Glas gewinnt bei gleicher Tiefe gegen den Druck darunter -
+   vorher flimmerten Schraegmuster, wo Folie genau auf einer Flaeche lag (Z-Fighting) */
+glassMat.polygonOffset=true; glassMat.polygonOffsetFactor=-1; glassMat.polygonOffsetUnits=-2;
 const bottleGlass=new THREE.MeshStandardMaterial({color:LIN(0x1f4a35),transparent:true,opacity:0.82,roughness:0.15,metalness:0.15});
 function wrapTex(circ,hh,a,draw){
   return tex(Math.max(32,Math.round(circ*1400*TEX_FAKTOR)),Math.max(32,Math.round(hh*1400*TEX_FAKTOR)),draw);
 }
+/* 04.10. Handy-Leistung (gemessen in der Gameplay-Vorfuehrung, COARSE: die
+   Ware ist der Hauptkostenfaktor - Hunderte Packungen gleichzeitig im Bild,
+   kleine Produkte hatten 600-2300 Dreiecke): am Handy (!HIQ) baut jede
+   Verkaufspackung sparsam - weniger Segmente an Rundungen (Zylinder,
+   Kugeln, Ringe, Drehkoerper), winzige Innendetails (Draehte,
+   Zuendschnuere, Kappen, Schnipsel) fallen weg, Fuellgut wird ausgeduennt.
+   Ziel je Packung: Kleinpackungen rund 300 Dreiecke, Grossbatterien,
+   Kugelbomben und Sortimentskisten 500. Wer mit Stufe 1 darueber liegt,
+   wird mit Stufe 2 bzw. 3 gebaut (die Stufe wird einmal je Produkt mit
+   einem Probeaufbau ohne Druckbilder bestimmt). Am PC bleibt alles.
+   Zum Messen: window.__wareSpar=true/false erzwingt den Handy-Aufbau. */
+const _SPAR_GEO={Cylinder:1, Cone:1, Sphere:1, Torus:1, Circle:1, Ring:1, Lathe:1, Icosahedron:1, Tube:1, Extrude:1, Plane:1};
+function wareSpar(){ try{ if(typeof window!=='undefined'&&window.__wareSpar!==undefined) return !!window.__wareSpar; }catch(e){} return typeof HIQ!=='undefined'&&!HIQ; }
+function sparSeg(n,min){ return n===undefined?n:Math.max(min,Math.round(n*(n>12?0.4:0.5))); }
+/* waehrend eines sparsamen Aufbaus true: die Formen (04g) nehmen dann auch
+   fuer ihre eigenen Gitter (Beutel, Schalen, Profile) weniger Unterteilungen */
+let WARE_SPAR_AN=false, WARE_SPAR_F=0.5, WARE_PROBE=false;
+const sparN=(n,min)=>WARE_SPAR_AN?Math.max(min||2,Math.round(n*WARE_SPAR_F)):n;
+/* Stufen: s = Segmentfaktor, kl = Grenzen fuer "winzig" (zweitgroesste,
+   groesste Ausdehnung), du = ab wie vielen gleichen Kleinteilen
+   ausgeduennt wird und jedes wievielte bleibt */
+const WARE_STUFEN=[null,
+  {s:0.5, rTab:[0.005,3,0.012,4,0.025,5,0.05,6,0.09,8,1,12], kl:[0.0035,0.006], du:[16,2], lim:1},
+  {s:0.38,rTab:[0.008,3,0.02,4,0.04,5,0.08,6,1,8],          kl:[0.0045,0.008],  du:[10,2], lim:1.3},
+  {s:0.28,rTab:[0.012,3,0.03,4,0.07,5,1,6],                 kl:[0.0055,0.011], du:[6,3],  lim:2}];
+const WARE_STUFE={};
+function wareBudget(t){ const p=P[t]||{}, sh=p.shape, dm=p.dims||[0,0,0];
+  const gross=(typeof istBatterie==='function'&&istBatterie(t))||sh==='battery'||sh==='fan'||sh==='shell'||sh==='assort'||Math.max(dm[0],dm[1],dm[2])>0.6;
+  return gross?500:300; }
+const _dreiecke=parts=>parts.reduce((n,q)=>n+(q.geo.index?q.geo.index.count:q.geo.attributes.position.count)/3,0);
 function buildProduct(t,roh){
+  if(roh||!wareSpar()) return buildProduct0(t,roh);
+  let st=(typeof window!=='undefined'&&window.__wareStufe)||WARE_STUFE[t];
+  if(!st){ const ziel=wareBudget(t)*1.1, altTex=tex, stub=new THREE.Texture();
+    /* Probeaufbau ohne Druckbilder: nur die Dreiecke zaehlen */
+    /* WARE_PROBE: Zwischenspeicher (z. B. Netz-Material) nichts aus dem Probeaufbau merken lassen */
+    tex=()=>stub; WARE_PROBE=true;
+    try{ for(st=1;st<3;st++){ const r=wareSparBau(t,st); const n=_dreiecke(r); r.forEach(q=>q.geo.dispose()); if(n<=ziel) break; } }
+    catch(e){ st=1; }
+    finally{ tex=altTex; WARE_PROBE=false; }
+    WARE_STUFE[t]=st; }
+  return wareSparBau(t,st);
+}
+function wareSparBau(t,stufe){
+  const S=WARE_STUFEN[stufe], alt={}, altMerge=merge;
+  const sparS=(n,min)=>n===undefined?n:Math.max(min,Math.round(n*(n>12?S.s*0.8:S.s)));
+  /* Segmente nach Groesse: ein 8-mm-Knallbonbon braucht keine 14 Seiten */
+  const nachR=(r,n,min)=>{ if(n===undefined) return n; let z=S.rTab[S.rTab.length-1]; for(let i=0;i<S.rTab.length;i+=2) if(r<S.rTab[i]){ z=S.rTab[i+1]; break; } return Math.max(min,Math.min(n,z,sparS(n,min))); };
+  const voll=l=>l===undefined||l>=Math.PI*2-1e-3;
+  for(const k of Object.keys(_SPAR_GEO)){ const nm=k+'Geometry', O=THREE[nm]; if(!O) continue; alt[nm]=O;
+    THREE[nm]=function(...a){
+      if(k==='Cylinder'){ const r=Math.max(a[0]||0,a[1]||0); a[3]=voll(a[7])?nachR(r,a[3]===undefined?8:a[3],3):sparS(a[3],4); a[4]=1; if(stufe>1&&r<0.008&&(a[2]||1)>6*r) a[5]=true; /* duenne Staebe: Deckel sieht man nicht */ }
+      else if(k==='Cone'){ a[2]=nachR(a[0]||0,a[2]===undefined?8:a[2],3); }
+      else if(k==='Sphere'){ const r=a[0]||1; a[1]=nachR(r,a[1]===undefined?32:a[1],4); a[2]=Math.max(2,Math.min(a[2]===undefined?16:a[2],Math.round(a[1]*(stufe>1?0.55:0.65)))); }
+      else if(k==='Torus'){ a[2]=(a[1]||0)<0.004||stufe>2?3:Math.max(3,Math.round((a[2]||8)*0.6)); a[3]=nachR(a[0]||0,a[3]===undefined?48:a[3],4); }
+      else if(k==='Icosahedron'){ a[1]=Math.max(0,(a[1]||0)-stufe); if(stufe>2&&a[1]===0) return new THREE.OctahedronGeometry(a[0]===undefined?1:a[0],0); }
+      else if(k==='Tube'){ a[1]=Math.max(3,Math.round((a[1]||64)*S.s*0.8)); a[3]=3; }
+      else if(k==='Extrude'&&a[1]){ a[1]=Object.assign({},a[1],{curveSegments:Math.max(1,Math.round((a[1].curveSegments||12)*S.s*0.8)),bevelEnabled:false}); }
+      else if(k==='Plane'){ a[2]=1; a[3]=1; }
+      else if(k==='Circle'){ a[1]=voll(a[3])?nachR(a[0]||0,a[1]===undefined?8:a[1],4):sparS(a[1],3); }
+      else if(k==='Ring'){ a[2]=nachR(a[1]||0,a[2]===undefined?8:a[2],4); }
+      else if(k==='Lathe'){ const P0=a[0]; let rm=0; if(P0) P0.forEach(q=>rm=Math.max(rm,q.x||0));
+        /* geschlossene Drehkoerper (Flaschen, Glaeser) nach Groesse, Profil ausduennen */
+        a[1]=voll(a[3])?nachR(rm,a[1]===undefined?12:a[1],stufe>1?3:4):Math.max(3,Math.round((a[1]===undefined?12:a[1])*S.s*0.8));
+        const st=stufe>2?3:2; if(P0&&P0.length>(stufe>1?4:7)) a[0]=P0.filter((q,i)=>i===0||i===P0.length-1||i%st===0); }
+      return new O(...a); }; }
+  /* winzige Teile weglassen: zweitgroesste Ausdehnung unter kl[0] (Draht,
+     Schnur, Halm) oder groesste unter kl[1] (Schnipsel, Kappen) */
+  const bb=new THREE.Box3(), sz=new THREE.Vector3();
+  const mass=p=>{ const g=p.geo; if(!g.boundingBox) g.computeBoundingBox(); bb.copy(g.boundingBox).applyMatrix4(p.m||new THREE.Matrix4()); bb.getSize(sz); return [sz.x,sz.y,sz.z].sort((x,y)=>x-y); };
+  const klein=p=>{ try{ const g=p.geo; const pa=g.parameters||{}, sk=p.m?p.m.getMaxScaleOnAxis():1;
+    if(g.type==='TorusGeometry'&&pa.tube*sk<S.kl[0]*0.35) return true; /* Drahtringe, Raender */
+    if((g.type==='CylinderGeometry'||g.type==='ConeGeometry')&&2*Math.max(pa.radiusTop||0,pa.radiusBottom||0,pa.radius||0)*sk<Math.min(S.kl[0],0.0045)) return true; /* Draht, Schnur, Halm - auch schraeg */
+    const e=mass(p); return e[1]<S.kl[0]||e[2]<S.kl[1]; }catch(e){ return false; } };
+  /* Fuellgut ausduennen: viele gleiche Kleinteile (Popcorn, Erbsen,
+     Knallerbsen, Konfetti ...) - am Handy nur jedes zweite bzw. dritte */
+  const gross=p=>{ try{ return mass(p)[2]; }catch(e){ return 1; } };
+  const duenn=list=>{ const G={}; list.forEach(p=>{ const k=p.geo.type||'?', lim=(/Icosa|Octa|Sphere|Box/.test(k)?0.04:0.025)*S.lim; if(gross(p)>=lim) return; (G[k]=G[k]||[]).push(p); }); const weg=new Set();
+    for(const k in G){ const L=G[k]; if(L.length>S.du[0]) L.forEach((p,i)=>{ if(i%S.du[1]) weg.add(p); }); }
+    return weg.size?list.filter(p=>!weg.has(p)):list; };
+  /* besteht eine Gruppe nur aus Kleinteilen (Konfetti, Fuellung), bleibt sie - ausgeduennt */
+  merge=list=>{ const f=duenn(list.filter(p=>!klein(p))), L=f.length?f:duenn(list);
+    /* Messhilfe: window.__wareLog=[] sammelt jedes Teil (Typ, Dreiecke, Masse) */
+    if(typeof window!=='undefined'&&Array.isArray(window.__wareLog)) L.forEach(p=>{ const g=p.geo; window.__wareLog.push([g.type,(g.index?g.index.count:g.attributes.position.count)/3,mass(p).map(v=>+v.toFixed(4))]); });
+    return altMerge(L); };
+  WARE_SPAR_AN=true; WARE_SPAR_F=S.s;
+  try{ return buildProduct0(t,false); }
+  finally{ WARE_SPAR_AN=false; WARE_SPAR_F=0.5; merge=altMerge; for(const nm of Object.keys(alt)) THREE[nm]=alt[nm]; }
+}
+function buildProduct0(t,roh){
   /* roh: das Produkt selbst ohne Verpackung (Zuendtisch, Inhalt des Kartons) */
   /* 03.10. (Tom: "jede Verpackung soll was Einzigartiges haben wie der
      Atombomben-Boeller - nicht nur Karton mit Farbe"): eigene 3D-Form je
@@ -144,6 +236,7 @@ function buildProduct(t,roh){
     }
     const C=2*Math.PI*R*1.005;
     const lt=wrapTex(C,lh,a,(g,W,Hh)=>{
+      if(!p.cat&&typeof flaschenEtikett==='function'&&flaschenEtikett(g,W,Hh,t,a)) return;
       if(!p.cat&&typeof wareZeichnen==='function'){ for(let k=0;k<2;k++){ g.save(); g.translate(k*W/2,0); g.beginPath(); g.rect(0,0,W/2,Hh); g.clip(); wareZeichnen('front',g,W/2,Hh,t,a); g.restore(); } return; }
       const gr=g.createLinearGradient(0,0,0,Hh); gr.addColorStop(0,a.bg1); gr.addColorStop(1,a.bg2); g.fillStyle=gr; g.fillRect(0,0,W,Hh);
       g.fillStyle=a.ac; g.fillRect(0,0,W,Hh*0.07); g.fillRect(0,Hh*0.93,W,Hh*0.07);

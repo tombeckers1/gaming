@@ -402,6 +402,9 @@ function buildBatterieVerpackung(t){
   return parts;
 }
 const folieMat=new THREE.MeshStandardMaterial({color:0xffffff,transparent:true,opacity:0.1,roughness:0.08,metalness:0.0,depthWrite:false});
+/* 03.10.: Folie/Glas gewinnt bei gleicher Tiefe gegen den Druck darunter -
+   vorher flimmerten Schraegmuster, wo Folie genau auf einer Flaeche lag (Z-Fighting) */
+folieMat.polygonOffset=true; folieMat.polygonOffsetFactor=-1; folieMat.polygonOffsetUnits=-2;
 
 /* ---------------- Verpackungen der uebrigen Feuerwerksarten ----------------
    Nach echten Vorbildern (Recherche 01.10.): Wunderkerzen in der flachen
@@ -410,7 +413,13 @@ const folieMat=new THREE.MeshStandardMaterial({color:0xffffff,transparent:true,o
    rundem Fenster, Fontaenen-Sets im Karton mit Fenster, Boeller als
    "Schinken" in Schrumpffolie, Roemische Lichter im Folienbuendel mit
    Kopfkarte, Sonnenraeder als Blisterkarte. */
-const folieKlar=new THREE.MeshStandardMaterial({color:0xffffff,transparent:true,opacity:0.16,roughness:0.06,metalness:0,depthWrite:false});
+/* 04.10.: 0,16 -> 0,1 - im hellen Laden legte die Folie einen grauen
+   Schleier ueber dunkle Drucke (Batterien in Schrumpffolie sahen
+   verwaschen aus); Glanzlichter zeigen die Folie weiterhin */
+const folieKlar=new THREE.MeshStandardMaterial({color:0xffffff,transparent:true,opacity:0.1,roughness:0.06,metalness:0,depthWrite:false});
+/* 03.10.: Folie/Glas gewinnt bei gleicher Tiefe gegen den Druck darunter -
+   vorher flimmerten Schraegmuster, wo Folie genau auf einer Flaeche lag (Z-Fighting) */
+folieKlar.polygonOffset=true; folieKlar.polygonOffsetFactor=-1; folieKlar.polygonOffsetUnits=-2;
 /* Atlas mit Fenster: o.loch(W,H) liefert die Ausschnitte (Rechtecke oder
    Kreise) der Vorderseite bzw. Oberseite, die durchsichtig bleiben. */
 function lochAtlas(w,h,d,a,cat,o){
@@ -422,6 +431,10 @@ function lochAtlas(w,h,d,a,cat,o){
   const A=atlas(w,h,d,a,cat,{front:wrap(o.front||((g,W,H)=>drawFront(g,W,H,a,cat)),o.lochFront),side:o.side,top:wrap(o.top||((g,W,H)=>drawTop(g,W,H,a,cat)),o.lochTop)});
   A.mat.alphaTest=0.5; A.mat.side=THREE.FrontSide; return A;
 }
+/* Quader, dessen Flaechen nach innen zeigen (Einsatz hinter einem Fenster) */
+function innenBox(w,h,d){ const g=new THREE.BoxGeometry(w,h,d).toNonIndexed(), p=g.attributes.position, n=g.attributes.normal;
+  for(let i=0;i<p.count;i+=3) for(const A of [p,n,g.attributes.uv]){ const s=A.itemSize; for(let k=0;k<s;k++){ const t=A.array[(i+1)*s+k]; A.array[(i+1)*s+k]=A.array[(i+2)*s+k]; A.array[(i+2)*s+k]=t; } }
+  for(let i=0;i<n.array.length;i++) n.array[i]=-n.array[i]; return g; }
 function boxPart(parts,w,h,d,A,m){ parts.push({geo:merge([{geo:atlasBox(w,h,d,A.R),m}]),mat:A.mat}); }
 /* Stueckzahl aus dem Namen ("6 Herz-Wunderkerzen", "5er"); Laengen wie
    "50 cm" oder "1-m" zaehlen nicht */
@@ -510,15 +523,20 @@ function buildVerpackung(t){
   else if(sh==='rocketset'){
     /* lange Schachtel, oben ein Fenster: darunter liegen die Raketen mit Stab */
     const n=p.stueck||clamp(Math.round(d/0.026),3,9), cols=[0xd8352a,0x2f7fd0,0xffc93a,0x2f9e57,0x9b3bd6,0xf2f5ff,0xff7a3d,0x39c4d8,0xe35aa8];
-    const A=lochAtlas(w,h,d,a,p.cat,{top:(g,W,H)=>drawFront(g,W,H,a,p.cat),lochTop:(W,H)=>[{x:W*0.34,y:H*0.12,w:W*0.62,h:H*0.76}]});
+    /* Fensterform je Produkt (03.10.: die neuen Raketen sahen sonst alle gleich aus) */
+    const fv=hashStr(t)%3, fenster=(W,H)=>fv===1?[0,1,2].map(i=>({x:W*(0.45+i*0.19),y:H*0.5,r:Math.min(W*0.085,H*0.36)})):fv===2?[{x:W*0.3,y:H*0.3,w:W*0.66,h:H*0.4}]:[{x:W*0.34,y:H*0.12,w:W*0.62,h:H*0.76}];
+    const A=lochAtlas(w,h,d,a,p.cat,{top:(g,W,H)=>drawFront(g,W,H,a,p.cat),lochTop:fenster});
     boxPart(parts,w,h,d,A,tm(0,h/2,0));
-    vc.push({geo:new THREE.BoxGeometry(w*0.98,0.004,d*0.96),m:tm(0,0.006,0),color:0x1d2130});
-    const step=d*0.8/n, rr=p.stueck?Math.min(h*0.34,step*0.42):Math.min(h*0.3,0.0115,step*0.44);
-    for(let i=0;i<n;i++){ const z=-d*0.4+step*(i+0.5), y=0.008+rr, c=cols[i%cols.length];
+    /* 03.10. (Tom: Fenster zeigte schraeg von oben nur Weiss - man sah
+       durch die offene Schachtel hindurch): dunkler Einsatz innen */
+    const step=d*0.8/n, rr=p.stueck?Math.min(h*0.34,step*0.42):Math.min(h*0.3,0.0115,step*0.44), fy=Math.max(0.006,h-0.006-2*rr-0.004);
+    /* Einlage: die Raketen liegen knapp unter dem Fenster */
+    vc.push({geo:innenBox(w*0.99,h-0.002-fy,d*0.98),m:tm(0,(fy+h-0.002)/2,0),color:0x1d2130});
+    for(let i=0;i<n;i++){ const z=-d*0.4+step*(i+0.5), y=fy+rr, c=cols[i%cols.length];
       vc.push({geo:new THREE.CylinderGeometry(rr,rr,w*0.3,10),m:tm(w*0.2,y,z,0,0,Math.PI/2),color:c});
       vc.push({geo:new THREE.ConeGeometry(rr,w*0.07,10),m:tm(w*0.385,y,z,0,0,-Math.PI/2),color:c});
       vc.push({geo:new THREE.CylinderGeometry(rr*1.02,rr*1.02,0.012,10),m:tm(w*0.07,y,z,0,0,Math.PI/2),color:0xf2f2f2});
-      vc.push({geo:new THREE.CylinderGeometry(Math.max(0.0025,rr*0.22),Math.max(0.0025,rr*0.22),w*0.52,4),m:tm(-w*0.2,0.012,z+rr*0.4,0,0,Math.PI/2),color:0xc9a46a}); }
+      vc.push({geo:new THREE.CylinderGeometry(Math.max(0.0025,rr*0.22),Math.max(0.0025,rr*0.22),w*0.52,4),m:tm(-w*0.2,fy+0.004,z+rr*0.4,0,0,Math.PI/2),color:0xc9a46a}); }
     parts.push({geo:merge([{geo:new THREE.BoxGeometry(w*0.62,0.002,d*0.76),m:tm(w*0.15,h-0.003,0)}]),mat:folieKlar});
   }
   else if(sh==='shell'){

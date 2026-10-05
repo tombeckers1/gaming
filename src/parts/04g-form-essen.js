@@ -44,7 +44,7 @@ function boxOhne(w,h,d,F,ohne){ const g=boxU(w,h,d,F), ks=['px','nx','py','ny','
 function innen(g){ g=g.index?g:g; const ix=g.index.array; for(let i=0;i<ix.length;i+=3){ const q=ix[i+1]; ix[i+1]=ix[i+2]; ix[i+2]=q; } const n=g.attributes.normal; for(let i=0;i<n.array.length;i++) n.array[i]=-n.array[i]; return g; }
 function geoAus(pos,uv,idx){ const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3)); g.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2)); g.setIndex(idx); g.computeVertexNormals(); return g; }
 /* Flaeche aus fn(u,v)->[x,y,z]; u nach rechts, v nach oben -> Normale nach vorn */
-function flaeche(nu,nv,fn){ const pos=[],uv=[],idx=[];
+function flaeche(nu,nv,fn){ nu=sparN(nu,3); nv=sparN(nv,3); const pos=[],uv=[],idx=[];
   for(let j=0;j<=nv;j++) for(let i=0;i<=nu;i++){ const u=i/nu,v=j/nv, p=fn(u,v); pos.push(p[0],p[1],p[2]); uv.push(u,v); }
   for(let j=0;j<nv;j++) for(let i=0;i<nu;i++){ const a=j*(nu+1)+i,b=a+1,c=a+nu+2,d=a+nu+1; idx.push(a,b,c,a,c,d); }
   return geoAus(pos,uv,idx); }
@@ -52,7 +52,7 @@ function flaeche(nu,nv,fn){ const pos=[],uv=[],idx=[];
 function quad(p0,p1,p2,p3){ return geoAus([...p0,...p1,...p2,...p3],[0,0,1,0,1,1,0,1],[0,1,2,0,2,3]); }
 /* Ringpunkte: abgerundetes Rechteck (hw,hd,r) oder Ellipse (ell), ab hinten Mitte
    ueber links nach vorn (u=0.5 vorn Mitte) */
-function ringPts(R,k){ const pts=[];
+function ringPts(R,k){ k=sparN(k,1); const pts=[];
   if(R.ell){ const n=4*k; for(let i=0;i<=n;i++){ const an=-PI+i/n*T2; pts.push([R.hw*Math.sin(an),R.hd*Math.cos(an)]); } return pts; }
   const r=Math.min(R.r||0,R.hw,R.hd), cx=R.hw-r, cz=R.hd-r; pts.push([0,-R.hd]);
   for(const [x0,z0,a0] of [[-cx,-cz,-PI],[-cx,cz,-PI/2],[cx,cz,0],[cx,-cz,PI/2]]) for(let i=0;i<=k;i++){ const an=a0+i/k*PI/2; pts.push([x0+r*Math.sin(an),z0+r*Math.cos(an)]); }
@@ -123,16 +123,30 @@ function fEtikett(c,rand,rund){ return (g,W,H)=>{ g.fillStyle=rand||'#ffffff'; g
 function stanz(g,fn){ g.save(); g.globalCompositeOperation='destination-out'; g.fillStyle='#000'; g.globalAlpha=1; g.beginPath(); fn(g); g.fill(); g.restore(); }
 function euroloch(g,cx,cy,s){ stanz(g,g2=>{ g2.ellipse(cx-s*0.55,cy,s*0.35,s*0.35,0,0,T2); g2.moveTo(cx+s*0.9,cy); g2.ellipse(cx+s*0.55,cy,s*0.35,s*0.35,0,0,T2); g2.rect(cx-s*0.55,cy-s*0.2,s*1.1,s*0.4); }); }
 /* Siegelnaht mit Riffelung (Beutel) */
-function riffel(g,y,h,W,f){ g.fillStyle=f; g.fillRect(0,y,W,h); const s=Math.max(2,h*0.18); for(let x=0;x<W;x+=s){ g.fillStyle='rgba(0,0,0,.18)'; g.fillRect(x,y,s*0.45,h); g.fillStyle='rgba(255,255,255,.14)'; g.fillRect(x+s*0.5,y,s*0.2,h); } }
+function riffel(g,y,h,W,f){ g.fillStyle=f; g.fillRect(0,y,W,h);
+  /* 03.10.: breite, weiche Praegerillen statt 1-Pixel-Raster (Moiré im Regal) */
+  const s=Math.max(6,Math.round(W/48)); for(let x=0;x<W;x+=s){ const gr=g.createLinearGradient(x,0,x+s,0); gr.addColorStop(0,'rgba(255,255,255,.1)'); gr.addColorStop(0.5,'rgba(0,0,0,.14)'); gr.addColorStop(1,'rgba(255,255,255,.1)'); g.fillStyle=gr; g.fillRect(x,y,s,h); } }
 
 /* =================== Knabberzeug und Suesses =================== */
 
 /* Kissenbeutel (Chipstuete): zwei gewoelbte Folienhaelften, oben und
    unten gequetschte Siegelnaht mit Riffelung, glaenzende Metallfolie */
 function kissenForm(w,h,d,sn,o){ o=o||{};
-  const body=v=>{ const y=v*h; if(y<sn||y>h-sn) return 0; return Math.pow(Math.sin(PI*(y-sn)/(h-2*sn)),o.ex||0.5); };
-  const fn=s=>(u,v)=>{ const b=body(v), q=Math.pow(Math.sin(PI*u),0.42); return [(u-0.5)*w*(1-0.07*b*(1-Math.abs(2*u-1)*0.3)),v*h,s*(d/2)*0.985*q*b]; };
-  return {vorn:flaeche(o.nu||14,o.nv||18,fn(1)),hinten:flaeche(o.nu||14,o.nv||18,(u,v)=>{ const p=fn(-1)(1-u,v); return p; })}; }
+  const body=y=>{ if(y<=sn||y>=h-sn) return 0; return Math.pow(Math.sin(PI*(y-sn)/(h-2*sn)),o.ex||0.5); };
+  const fn=s=>(u,y)=>{ const b=body(y), q=Math.pow(Math.sin(PI*u),0.42); return [(u-0.5)*w*(1-0.07*b*(1-Math.abs(2*u-1)*0.3)),y,s*(d/2)*0.985*q*b]; };
+  /* 03.10.: Zeilen genau auf den Siegelkanten, dicht an der Schulter;
+     der Druck folgt der Bogenlaenge (vorher zog ein steiles Viereck an
+     der Naht den Aufdruck lang - von oben sah man gestreckte Streifen) */
+  const nu=sparN(o.nu||14,5), nb=sparN(Math.max(6,(o.nv||18)-2),4), Y=[0]; for(let k=0;k<=nb;k++) Y.push(sn+(h-2*sn)*(1-Math.cos(PI*k/nb))/2); Y.push(h);
+  const seite=(s,spiegel)=>{ const P3=[], pos=[], uv=[], idx=[];
+    for(let j=0;j<Y.length;j++) for(let i=0;i<=nu;i++){ const u=i/nu; P3.push(fn(s)(spiegel?1-u:u,Y[j])); }
+    const V=new Array(P3.length);
+    for(let i=0;i<=nu;i++){ const Ls=[0]; let L=0; for(let j=1;j<Y.length;j++){ const a=P3[(j-1)*(nu+1)+i], c=P3[j*(nu+1)+i]; if(j>1&&j<Y.length-1) L+=Math.hypot(c[0]-a[0],c[1]-a[1],c[2]-a[2]); Ls.push(L); }
+      for(let j=0;j<Y.length;j++) V[j*(nu+1)+i]=j===0?0:j===Y.length-1?1:(sn+(L>0?Ls[j]/L:0)*(h-2*sn))/h; }
+    P3.forEach((p,k)=>{ pos.push(p[0],p[1],p[2]); uv.push((k%(nu+1))/nu,V[k]); });
+    for(let j=0;j<Y.length-1;j++) for(let i=0;i<nu;i++){ const a=j*(nu+1)+i,b=a+1,c=a+nu+2,e=a+nu+1; idx.push(a,b,c,a,c,e); }
+    return geoAus(pos,uv,idx); };
+  return {vorn:seite(1,false),hinten:seite(-1,true)}; }
 VP_FORM.chips=t=>{ const c=C(t), a=c.a, {w,h,d}=c, sn=h*0.075;
   const naht=(g,W,H)=>{ const s=H*sn/h; riffel(g,0,s,W,a.ac2); riffel(g,H-s,s,W,a.ac2); };
   const A=mkAtlas([
@@ -152,9 +166,9 @@ VP_FORM.salzstangen=t=>{ const c=C(t), a=c.a, {w,h,d}=c, r=Math.min(d/2*0.97,w/4
   const kh=h*0.07;
   for(const x of xs){
     gl(c,new THREE.CylinderGeometry(r*0.97,r*0.97,h-2*kh,16,1,true),tm(x,h/2,0));
-    for(const [y,s] of [[kh/2,1],[h-kh/2,-1]]){ zyl(c,x,y,0,r,r,kh,0xd8322a,16); zyl(c,x,y-s*kh*0.52,0,r*0.9,r*0.9,0.002,0xb02018,16); }
+    for(const [y,s] of [[kh/2,1],[h-kh/2,-1]]){ zyl(c,x,y,0,r,r,kh,0xd8322a,16); if(!WARE_SPAR_AN) zyl(c,x,y-s*kh*0.52,0,r*0.9,r*0.9,0.002,0xb02018,16); }
     /* Stangen und ein paar Brezeln */
-    for(let i=0;i<9;i++){ const an=i/9*T2+c.rnd()*0.4, rr=i?r*0.55:0; zyl(c,x+Math.cos(an)*rr,h/2,Math.sin(an)*rr,0.0042,0.0042,h-2*kh-0.006,i%3?0xc98a3c:0xb87430,5,(c.rnd()-0.5)*0.05,0,(c.rnd()-0.5)*0.05); }
+    for(let i=0;i<(WARE_SPAR_AN?5:9);i++){ const an=i/(WARE_SPAR_AN?5:9)*T2+c.rnd()*0.4, rr=i?r*0.55:0; zyl(c,x+Math.cos(an)*rr,h/2,Math.sin(an)*rr,0.0042,0.0042,h-2*kh-0.006,i%3?0xc98a3c:0xb87430,5,(c.rnd()-0.5)*0.05,0,(c.rnd()-0.5)*0.05); }
   }
   return fertig(c,A); };
 
@@ -359,7 +373,7 @@ VP_FORM.marzipanschwein=t=>{ const c=C(t), a=c.a, {w,h,d}=c;
 /* Heringssalat: runder Feinkostbecher mit Rundum-Etikett und gewoelbtem
    Klarsichtdeckel - oben sieht man den roten Salat */
 VP_FORM.heringssalat=t=>{ const c=C(t), a=c.a, {w,h,d}=c, R=Math.min(w,d)/2*0.995, bh=h*0.82;
-  const A=mkAtlas([{k:'m',w:T2*R*0.92,h:bh,draw:fRund(c,0.34,(g,W,H)=>{ g.fillStyle='#ffffff'; g.fillRect(0,0,W,H); g.fillStyle='#1d6fb8'; g.fillRect(0,H*0.92,W,H*0.08); },{hell:true}),max:900}],{rough:0.4});
+  const A=mkAtlas([{k:'m',w:T2*R*0.92,h:bh,draw:fRund(c,0.34,(g,W,H)=>{ g.fillStyle='#ffffff'; g.fillRect(0,0,W,H); g.fillStyle=frischStil(c.t).k; g.fillRect(0,H*0.92,W,H*0.08); },{hell:true}),max:900}],{rough:0.4});
   pr(c,uvR(dreh([[R*0.86,0.004],[R*0.965,bh]],28),A.uv.m));
   vc(c,dreh([[0,0],[R*0.82,0],[R*0.86,0.004]],28),tm(0,0,0),0xe8ecf0);
   ring(c,0,bh,0,R*0.972,0.0035,0xf4f6f8,PI/2,0,0,28);
@@ -391,14 +405,14 @@ VP_FORM.kartoffelsalat=t=>{ const c=C(t), a=c.a, {w,h,d}=c, R=Math.min(w,d)/2*0.
 VP_FORM.nudelsalat=t=>{ const c=C(t), a=c.a, {w,h,d}=c, bh=h*0.86, B={hw:w*0.44,hd:d*0.44,r:0.03}, T={hw:w*0.485,hd:d*0.485,r:0.034};
   const lerp=(q)=>({hw:B.hw+(T.hw-B.hw)*q+0.0018,hd:B.hd+(T.hd-B.hd)*q+0.0018,r:B.r+(T.r-B.r)*q});
   const s0=0.14, s1=0.74, S0=lerp(s0), S1=lerp(s1), per=4*(S1.hw-S1.r)+4*(S1.hd-S1.r)+T2*S1.r;
-  const A=mkAtlas([{k:'m',w:per,h:(s1-s0)*bh,draw:fRund(c,(2*S1.hw)/per*0.98,(g,W,H)=>{ g.fillStyle='#fff'; g.fillRect(0,0,W,H); g.fillStyle='#1d6fb8'; g.fillRect(0,0,W,H*0.1); g.fillStyle=a.bg1; g.fillRect(0,H*0.9,W,H*0.1); },{rueck:true,hell:true})}],{rough:0.6});
+  const A=mkAtlas([{k:'m',w:per,h:(s1-s0)*bh,draw:fRund(c,(2*S1.hw)/per*0.98,(g,W,H)=>{ g.fillStyle='#fff'; g.fillRect(0,0,W,H); g.fillStyle=frischStil(c.t).k; g.fillRect(0,0,W,H*0.1); g.fillStyle=a.bg1; g.fillRect(0,H*0.9,W,H*0.1); },{rueck:true,hell:true})}],{rough:0.6});
   pr(c,uvR(loft([Object.assign({y:s0*bh},S0),Object.assign({y:s1*bh},S1)],4),A.uv.m));
   fo(c,loft([Object.assign({y:0},B),Object.assign({y:bh},T)],4)); fo(c,kappe(T,bh+0.004,true,4));
   vc(c,loft([Object.assign({y:bh},T),{y:bh,hw:w*0.499,hd:d*0.499,r:0.038},{y:bh+0.004,hw:w*0.499,hd:d*0.499,r:0.038},Object.assign({y:bh+0.004},T)],4),tm(0,0,0),0xf2f4f6);
   /* Salat im Becher */
   const I0={hw:B.hw*0.97,hd:B.hd*0.97,r:0.028}, I1={hw:T.hw*0.97,hd:T.hd*0.97,r:0.032}, yi=bh*0.9;
   vc(c,loft([Object.assign({y:0.002},I0),Object.assign({y:yi},I1)],4),tm(0,0,0),0xe2b85a); vc(c,kappe(I1,yi,true,4),tm(0,0,0),0xe8c46a);
-  for(let i=0;i<46;i++){ const x=(c.rnd()-0.5)*I1.hw*1.8, z=(c.rnd()-0.5)*I1.hd*1.8, y=yi+0.003+c.rnd()*0.004, k=i%6;
+  for(let i=0;i<(WARE_SPAR_AN?18:46);i++){ const x=(c.rnd()-0.5)*I1.hw*1.8, z=(c.rnd()-0.5)*I1.hd*1.8, y=yi+0.003+c.rnd()*0.004, k=i%6;
     if(k<3) vc(c,new THREE.TorusGeometry(0.006,0.0028,4,8,PI),tm(x,y,z,c.rnd()*3,c.rnd()*3,0),0xf0cf6a);
     else if(k===3) ico(c,x,y,z,0.0045,0x5aa83a); else if(k===4) kiste(c,x,y,z,0.008,0.004,0.008,0xe08a8a,0,c.rnd()*3,0); else kiste(c,x,y,z,0.006,0.004,0.006,0xf4efe0,0,c.rnd()*3,0); }
   for(let i=0;i<10;i++){ const an=i/10*T2; kiste(c,Math.sin(an)*I1.hw*0.98,bh*0.3+((i*37)%7)*0.012,Math.cos(an)*I1.hd*0.98,0.012,0.006,0.006,i%2?0xf0cf6a:0x5aa83a,0,an,0.5); }
@@ -407,9 +421,9 @@ VP_FORM.nudelsalat=t=>{ const c=C(t), a=c.a, {w,h,d}=c, bh=h*0.86, B={hw:w*0.44,
 /* Wiener Wuerstchen: Vakuum-Tiefziehpackung, die Folie liegt eng um die
    zehn Wuerstchen; vorn der bedruckte Kartonstreifen, oben ein Etikett */
 VP_FORM.wuerstchen=t=>{ const c=C(t), a=c.a, {w,h,d}=c, r=Math.min(d/10.6,h/4.3), L=w*0.92, fh=h*0.64;
-  const A=mkAtlas([{k:'v',w,h:fh,draw:fVorn(c)},{k:'b',w,h:d,q:0.3,draw:(g,W,H)=>{ g.fillStyle='#1d6fb8'; g.fillRect(0,0,W,H); }},
-    {k:'o',w:w*0.42,h:d*0.42,draw:(g,W,H)=>{ g.fillStyle='#fff'; g.fillRect(0,0,W,H); g.fillStyle='#1d6fb8'; g.fillRect(0,0,W,H*0.3); WZ.txt(g,'FRISCHETHEKE',W/2,H*0.15,W*0.86,H*0.2,WFNT.kond,'#fff');
-      WZ.txt(g,a.title,W/2,H*0.5,W*0.86,H*0.24,WFNT.rund,'#12324f'); WZ.txt(g,'❄ 2–7 °C · '+a.sub,W/2,H*0.78,W*0.86,H*0.14,WFNT.kond,'#1d6fb8'); }}],{rough:0.5});
+  const A=mkAtlas([{k:'v',w,h:fh,draw:fVorn(c)},{k:'b',w,h:d,q:0.3,draw:(g,W,H)=>{ g.fillStyle=frischStil(c.t).k; g.fillRect(0,0,W,H); }},
+    {k:'o',w:w*0.42,h:d*0.42,draw:(g,W,H)=>{ g.fillStyle='#fff'; g.fillRect(0,0,W,H); g.fillStyle=frischStil(c.t).k; g.fillRect(0,0,W,H*0.3); WZ.txt(g,frischStil(c.t).n,W/2,H*0.15,W*0.86,H*0.2,WFNT.kond,'#fff');
+      WZ.txt(g,a.title,W/2,H*0.5,W*0.86,H*0.24,WFNT.rund,'#12324f'); WZ.txt(g,'❄ 2–7 °C · '+a.sub,W/2,H*0.78,W*0.86,H*0.14,WFNT.kond,frischStil(c.t).k); }}],{rough:0.5});
   pr(c,uvR(new THREE.PlaneGeometry(w*0.995,fh),A.uv.v),tm(0,fh/2,d*0.497)); pr(c,boxU(w*0.995,0.002,d*0.99,{alle:A.uv.b}),tm(0,0.001,0));
   const prof=[[0,-0.5],[0.55,-0.49],[0.88,-0.46],[1,-0.42],[1,0.42],[0.88,0.46],[0.55,0.49],[0,0.5]];
   for(let ly=0;ly<2;ly++) for(let iz=0;iz<5;iz++){ const z=(iz-2)*r*2.04, y=0.002+r*(1+ly*2.02);
@@ -439,7 +453,7 @@ VP_FORM.frikadellen=t=>{ const c=C(t), a=c.a, {w,h,d}=c, th=h*0.55, B={hw:w*0.43
    Kuppelhaube, Zwiebelstacheln, Oliven als Augen; vorn auf der Haube das
    Etikett */
 VP_FORM.mettigel=t=>{ const c=C(t), a=c.a, {w,h,d}=c, pb=0.012, HA=w*0.497, HB=h-pb-0.001, HC=d*0.497;
-  const A=mkAtlas([{k:'e',w:w*0.42,h:h*0.42,draw:fEtikett(c,'#1d6fb8',true)}],{rough:0.4});
+  const A=mkAtlas([{k:'e',w:w*0.42,h:h*0.42,draw:fEtikett(c,frischStil(c.t).k,true)}],{rough:0.4});
   vc(c,loft([{y:0,hw:w*0.47,hd:d*0.47,ell:true},{y:pb*0.6,hw:w*0.499,hd:d*0.499,ell:true},{y:pb,hw:w*0.495,hd:d*0.495,ell:true}],5),tm(0,0,0),0x1d1d22);
   vc(c,kappe({hw:w*0.495,hd:d*0.495,ell:true},pb,true,5),tm(0,0,0),0x2a2a30);
   /* Salatblaetter rund um den Igel */
@@ -464,7 +478,7 @@ VP_FORM.mettigel=t=>{ const c=C(t), a=c.a, {w,h,d}=c, pb=0.012, HA=w*0.497, HB=h
    gehalten von einem Kartonsleeve */
 VP_FORM.dips=t=>{ const c=C(t), a=c.a, {w,h,d}=c, r=Math.min(w/6.3,d/2*0.98), ch=h*0.86, xs=[-w*0.332,0,w*0.332];
   const sorten=[['KRÄUTER','#3f8a2a','#eef6e4'],['KNOBLAUCH','#f4f1e6','#6a6a72'],['CURRY','#e8a21b','#fff6dc']];
-  const regs=[{k:'v',w,h:h*0.68,draw:fVorn(c)},{k:'s',w:d,h:h*0.68,draw:(g,W,H)=>{ g.fillStyle='#fff'; g.fillRect(0,0,W,H); g.fillStyle='#1d6fb8'; g.fillRect(0,0,W,H*0.25); g.fillStyle=a.bg1; g.fillRect(0,H*0.8,W,H*0.2); }}];
+  const regs=[{k:'v',w,h:h*0.68,draw:fVorn(c)},{k:'s',w:d,h:h*0.68,draw:(g,W,H)=>{ g.fillStyle='#fff'; g.fillRect(0,0,W,H); g.fillStyle=frischStil(c.t).k; g.fillRect(0,0,W,H*0.25); g.fillStyle=a.bg1; g.fillRect(0,H*0.8,W,H*0.2); }}];
   sorten.forEach(([n,f,b],i)=>regs.push({k:'l'+i,w:r*2,h:r*2,draw:(g,W,H)=>{ g.fillStyle=f; g.fillRect(0,0,W,H); g.fillStyle=b; g.beginPath(); g.arc(W/2,H/2,W*0.36,0,T2); g.fill(); WZ.txt(g,n,W/2,H*0.5,W*0.66,H*0.16,WFNT.kond,f==='#f4f1e6'?'#6a6a72':f);
     WZ.txt(g,'DIP',W/2,H*0.3,W*0.4,H*0.12,WFNT.rund,f==='#f4f1e6'?'#9a9aa2':f); g.strokeStyle='rgba(255,255,255,.6)'; g.lineWidth=W*0.02; g.beginPath(); g.arc(W/2,H/2,W*0.46,0,T2); g.stroke(); }}));
   const A=mkAtlas(regs,{rough:0.4,metal:0.2});
@@ -506,9 +520,9 @@ VP_FORM.partypizza=t=>{ const c=C(t), a=c.a, {w,h,d}=c, R=Math.min(w,d)*0.31;
   pr(c,boxU(w,h,d,{pz:A.uv.v,nz:A.uv.h,px:A.uv.s,nx:A.uv.s,py:A.uv.o,ny:A.uv.s}),tm(0,h/2,0));
   vc(c,innen(new THREE.BoxGeometry(w*0.985,h*0.97,d*0.985)),tm(0,h/2,0),0xcbb48a);
   const rp=Math.min(w,d)*0.46, ph=h*0.2;
-  for(let i=0;i<3;i++) zyl(c,0,0.004+ph*(i+0.5),0,rp,rp,ph*0.95,0xe0b070,24);
+  if(WARE_SPAR_AN) zyl(c,0,0.004+ph*1.5,0,rp,rp,ph*2.95,0xe0b070,24); else for(let i=0;i<3;i++) zyl(c,0,0.004+ph*(i+0.5),0,rp,rp,ph*0.95,0xe0b070,24);
   const y=0.004+ph*3; zyl(c,0,y+0.006,0,rp,rp*0.98,0.012,0xd9a050,28); zyl(c,0,y+0.0125,0,rp*0.88,rp*0.88,0.002,0xc23a1e,28);
-  for(let i=0;i<40;i++){ const an=c.rnd()*T2, q=Math.sqrt(c.rnd())*rp*0.82; zyl(c,Math.sin(an)*q,y+0.0138,Math.cos(an)*q,0.012,0.012,0.0012,0xf4d77a,6); }
+  for(let i=0;i<(WARE_SPAR_AN?14:40);i++){ const an=c.rnd()*T2, q=Math.sqrt(c.rnd())*rp*0.82; zyl(c,Math.sin(an)*q,y+0.0138,Math.cos(an)*q,0.012,0.012,0.0012,0xf4d77a,6); }
   for(let i=0;i<13;i++){ const an=i*2.4, q=(0.25+0.6*((i*7)%10)/10)*rp*0.85; zyl(c,Math.sin(an)*q,y+0.0148,Math.cos(an)*q,0.017,0.017,0.002,0x9a1c1c,12); }
   for(let i=0;i<8;i++){ const an=i*1.7+0.5, q=(0.3+0.5*((i*3)%5)/5)*rp*0.8; kugel(c,Math.sin(an)*q,y+0.016,Math.cos(an)*q,0.008,0.0012,0.005,0x2f8a2a,6,3,[0,an,0]); }
   fo(c,new THREE.CircleGeometry(R,28),tm(0,h-0.0012,0,-PI/2,0,0));
@@ -555,7 +569,7 @@ VP_FORM.lachs=t=>{ const c=C(t), a=c.a, {w,h,d}=c;
 /* Fingerfood: Catering-Karton mit bedruckten Waenden und Klarsicht-
    deckel - Mini-Quiches, Spiesschen, Wraps */
 VP_FORM.fingerfood=t=>{ const c=C(t), a=c.a, {w,h,d}=c, th=h*0.62;
-  const A=mkAtlas([{k:'v',w,h:th,draw:fVorn(c)},{k:'s',w:d,h:th,draw:(g,W,H)=>{ g.fillStyle='#fff'; g.fillRect(0,0,W,H); g.fillStyle='#1d6fb8'; g.fillRect(0,0,W,H*0.22); g.fillStyle=a.ac; g.fillRect(0,H*0.85,W,H*0.15); }},{k:'h',w,h:th,draw:rueck(c,true)}],{rough:0.6});
+  const A=mkAtlas([{k:'v',w,h:th,draw:fVorn(c)},{k:'s',w:d,h:th,draw:(g,W,H)=>{ g.fillStyle='#fff'; g.fillRect(0,0,W,H); g.fillStyle=frischStil(c.t).k; g.fillRect(0,0,W,H*0.22); g.fillStyle=a.ac; g.fillRect(0,H*0.85,W,H*0.15); }},{k:'h',w,h:th,draw:rueck(c,true)}],{rough:0.6});
   pr(c,boxOhne(w,th,d,{pz:A.uv.v,nz:A.uv.h,px:A.uv.s,nx:A.uv.s,ny:A.uv.s},['py']),tm(0,th/2,0));
   vc(c,innen(boxOhne(w*0.99,th,d*0.99,{},['py'])),tm(0,th/2,0),0xf4f2ee); vc(c,new THREE.PlaneGeometry(w*0.98,d*0.98),tm(0,0.006,0,-PI/2,0,0),0x1b1d22);
   const fl=[0xd8322a,0x2f7fd0,0xffc21a,0x2f9e57];
@@ -588,10 +602,10 @@ VP_FORM.sushi=t=>{ const c=C(t), a=c.a, {w,h,d}=c, th=h*0.6, B={hw:w*0.48,hd:d*0
 /* Silvesterkarpfen: weisse Fischschale, der Karpfen auf Crushed Ice mit
    Zitrone, stramm in Frischhaltefolie; vorn das Thekenetikett */
 VP_FORM.karpfen=t=>{ const c=C(t), a=c.a, {w,h,d}=c, th=h*0.32, B={hw:w*0.47,hd:d*0.45,r:0.015}, T={hw:w*0.497,hd:d*0.495,r:0.02};
-  const A=mkAtlas([{k:'st',w:2*(w+d),h:th,q:0.4,draw:styro},{k:'e',w:w*0.5,h:h*0.55,draw:fEtikett(c,'#1d6fb8',true)}],{rough:0.8});
+  const A=mkAtlas([{k:'st',w:2*(w+d),h:th,q:0.4,draw:styro},{k:'e',w:w*0.5,h:h*0.55,draw:fEtikett(c,frischStil(c.t).k,true)}],{rough:0.8});
   pr(c,uvR(loft([Object.assign({y:0},B),Object.assign({y:th},T)],3),A.uv.st)); vc(c,kappe(B,0.003,true,3),tm(0,0,0),0xeef0ee);
   vc(c,flaeche(14,6,(u,v)=>[(u-0.5)*w*0.92,th*0.75+0.006*Math.sin(u*41+v*17)*Math.cos(u*23-v*11)+0.004,(0.5-v)*d*0.86]),tm(0,0,0),0xdcecf6);
-  for(let i=0;i<24;i++) ico(c,(c.rnd()-0.5)*w*0.9,th*0.78+0.004,(c.rnd()-0.5)*d*0.84,0.007+c.rnd()*0.004,0xeaf6ff);
+  for(let i=0;i<(WARE_SPAR_AN?9:24);i++) ico(c,(c.rnd()-0.5)*w*0.9,th*0.78+0.004,(c.rnd()-0.5)*d*0.84,0.007+c.rnd()*0.004,0xeaf6ff);
   /* Karpfen auf der Seite: Koerper, heller Bauch, Kopf links, Flossen, Auge */
   const L=w*0.6, fy=th*0.78+0.016, fx=0.01, R0=[0.1,0.13,0.28,0.52,0.75,0.9,0.98,1,0.96,0.86,0.66,0.0], prof=R0.map((r,i)=>[r,i/(R0.length-1)-0.5]);
   vc(c,dreh(prof,12),tm(fx,fy,0,0,0,PI/2,0.02,L,0.062),0x8a6a2e);
@@ -602,7 +616,7 @@ VP_FORM.karpfen=t=>{ const c=C(t), a=c.a, {w,h,d}=c, th=h*0.32, B={hw:w*0.47,hd:
   vc(c,new THREE.ConeGeometry(0.02,0.025,3),tm(fx-L*0.15,fy-0.004,0.062,PI/2,0,0,1,1,0.15),0x8a6a2e);
   kugel(c,fx-L*0.39,fy+0.012,-0.006,0.008,0.005,0.008,0xf4f0e0,8,4); kugel(c,fx-L*0.39,fy+0.016,-0.006,0.0042,0.002,0.0042,0x101010,6,3);
   vc(c,new THREE.TorusGeometry(0.03,0.0015,3,10,PI*0.8),tm(fx-L*0.3,fy+0.016,0,PI/2,0,PI*0.6,1,1,1),0x4a3416);
-  for(let i=0;i<12;i++) kugel(c,fx-L*0.15+(i%6)*L*0.09,fy+0.0175,-0.02+Math.floor(i/6)*0.03,0.006,0.0012,0.005,0x9a7a3a,5,2);
+  if(!WARE_SPAR_AN) for(let i=0;i<12;i++) kugel(c,fx-L*0.15+(i%6)*L*0.09,fy+0.0175,-0.02+Math.floor(i/6)*0.03,0.006,0.0012,0.005,0x9a7a3a,5,2);
   for(const x of [-w*0.4,-w*0.33]){ zyl(c,x,th*0.8+0.01,d*0.3,0.02,0.02,0.004,0xf2d21b,14,0.3,0,0); zyl(c,x,th*0.8+0.0122,d*0.3,0.016,0.016,0.0012,0xfaf2c0,12,0.3,0,0); }
   for(let i=0;i<5;i++) kugel(c,w*0.38+(i%2)*0.012,th*0.85,d*0.28+i*0.01,0.01,0.004,0.008,0x3f8a2a,6,3);
   const F=[{y:th,hw:T.hw*1.002,hd:T.hd*1.002,r:0.02},{y:h*0.7,hw:w*0.47,hd:d*0.44,r:0.04},{y:h*0.995,hw:w*0.38,hd:d*0.26,r:0.05}];
@@ -614,7 +628,7 @@ VP_FORM.karpfen=t=>{ const c=C(t), a=c.a, {w,h,d}=c, th=h*0.32, B={hw:w*0.47,hd:
    Hummer auf Algen und Eis; vorn der Aufkleber */
 VP_FORM.hummer=t=>{ const c=C(t), a=c.a, {w,h,d}=c, th=h*0.72, wd=0.014;
   const A=mkAtlas([{k:'v',w,h:th,draw:(g,W,H)=>{ styro(g,W,H); g.save(); g.translate(W*0.05,H*0.12); g.fillStyle='#fff'; g.fillRect(-W*0.008,-H*0.03,W*0.6+W*0.016,H*0.82); drawFront(g,W*0.6,H*0.76,a,0); g.restore();
-      g.fillStyle='#1d6fb8'; g.fillRect(W*0.7,H*0.2,W*0.26,H*0.6); WZ.txt(g,'❄',W*0.83,H*0.4,W*0.2,H*0.24,WFNT.klar,'#fff'); WZ.txt(g,'FRISCH',W*0.83,H*0.62,W*0.22,H*0.14,WFNT.kond,'#fff'); }},
+      g.fillStyle=frischStil(c.t).k; g.fillRect(W*0.7,H*0.2,W*0.26,H*0.6); WZ.txt(g,'❄',W*0.83,H*0.4,W*0.2,H*0.24,WFNT.klar,'#fff'); WZ.txt(g,'FRISCH',W*0.83,H*0.62,W*0.22,H*0.14,WFNT.kond,'#fff'); }},
     {k:'st',w:d,h:th,q:0.5,draw:styro}],{rough:0.85});
   pr(c,boxOhne(w,th,d,{pz:A.uv.v,nz:A.uv.st,px:A.uv.st,nx:A.uv.st,ny:A.uv.st},['py']),tm(0,th/2,0));
   for(const [x,z,bw,bd] of [[0,d/2-wd/2,w,wd],[0,-d/2+wd/2,w,wd],[w/2-wd/2,0,wd,d],[-w/2+wd/2,0,wd,d]]) kiste(c,x,th-0.001,z,bw*0.999,0.002,bd*0.999,0xf2f3ef);
@@ -652,7 +666,7 @@ VP_FORM.austern=t=>{ const c=C(t), a=c.a, {w,h,d}=c, kh=h*0.74, lt=0.006, ph=kh/
   for(let i=0;i<26;i++) zyl(c,(c.rnd()-0.5)*w*0.8,kh*0.84+c.rnd()*0.008,(c.rnd()-0.5)*d*0.45,0.0012,0.0012,0.05+c.rnd()*0.03,c.rnd()<0.5?0xe2c488:0xc9a462,3,PI/2+(c.rnd()-0.5)*0.4,c.rnd()*3,0);
   [[-0.32,-0.25],[-0.1,-0.28],[0.12,-0.24],[0.33,-0.22],[-0.3,0.05],[-0.06,0.02],[0.18,0.06],[0.34,0.2],[-0.2,0.28],[0.06,0.3]].forEach(([fx,fz],i)=>{ const x=fx*w, z=fz*d, ry=c.rnd()*3, y=kh*0.86+0.006;
     if(i%4===1){ kugel(c,x,y,z,0.036,0.011,0.026,0x6e6658,8,4,[0.1,ry,0]); kugel(c,x,y+0.006,z,0.03,0.004,0.021,0xe8e4dc,8,3,[0.1,ry,0]); kugel(c,x,y+0.009,z,0.02,0.004,0.014,0xbdb2a0,6,3,[0.1,ry,0]); return; }
-    kugel(c,x,y,z,0.038,0.011,0.026,i%2?0x6e6658:0x7a7466,8,4,[0.15,ry,0.1]); kugel(c,x-0.003,y+0.006,z,0.032,0.008,0.022,i%3?0x9a9a88:0x8c8a7a,8,3,[0.1,ry,0.12]); kugel(c,x-0.006,y+0.009,z,0.022,0.005,0.015,0xa8a898,6,3,[0.1,ry,0.12]); });
+    kugel(c,x,y,z,0.038,0.011,0.026,i%2?0x6e6658:0x7a7466,8,4,[0.15,ry,0.1]); if(!WARE_SPAR_AN) kugel(c,x-0.003,y+0.006,z,0.032,0.008,0.022,i%3?0x9a9a88:0x8c8a7a,8,3,[0.1,ry,0.12]); kugel(c,x-0.006,y+0.009,z,0.022,0.005,0.015,0xa8a898,6,3,[0.1,ry,0.12]); });
   kugel(c,w*0.36,kh*0.86+0.012,-d*0.02,0.022,0.018,0.022,0xf2d21b,8,6); 
   /* Etikett vorn auf den Latten */
   pr(c,uvR(new THREE.PlaneGeometry(w*0.62,h*0.4),A.uv.e),tm(-w*0.06,kh*0.42,d/2+0.0008));
@@ -710,7 +724,7 @@ VP_FORM.neujahrstorte=t=>{ const c=C(t), a=c.a, {w,h,d}=c, bh=h-0.016, rx=w*0.3,
   const cx=-0.05*w, R=Math.min(w*0.4,d*0.3), ty=bh*0.6;
   zyl(c,cx,0.003,0,R*1.06,R*1.06,0.004,0xd9b45a,28);
   zyl(c,cx,0.005+ty/2,0,R,R,ty,0xfbf6ec,28); ring(c,cx,0.009,0,R*1.0,0.006,0x6a3a1a,PI/2,0,0,28);
-  for(let i=0;i<14;i++){ const an=i/14*T2, x=cx+Math.sin(an)*R*0.82, z=Math.cos(an)*R*0.82; vc(c,new THREE.ConeGeometry(0.012,0.018,7),tm(x,0.005+ty+0.009,z),0xf6eedd); kugel(c,x,0.005+ty+0.02,z,0.006,0.006,0.006,i%2?0xc8102a:0xd9b45a,6,4); }
+  const nT=WARE_SPAR_AN?8:14; for(let i=0;i<nT;i++){ const an=i/nT*T2, x=cx+Math.sin(an)*R*0.82, z=Math.cos(an)*R*0.82; vc(c,new THREE.ConeGeometry(0.012,0.018,7),tm(x,0.005+ty+0.009,z),0xf6eedd); kugel(c,x,0.005+ty+0.02,z,0.006,0.006,0.006,i%2?0xc8102a:0xd9b45a,6,4); }
   for(let i=0;i<4;i++) kiste(c,cx-0.03+i*0.02,0.005+ty+0.002,0,0.014,0.003,0.022,0x3a1a0a);
   /* Band und Schleife */
   const bx=w*0.33; kiste(c,bx,bh+0.0008,0,ex,0.0016,d*0.999,0xd9a521); kiste(c,bx,bh/2,d/2+0.0008,ex,bh,0.0016,0xd9a521); kiste(c,bx,bh/2,-d/2-0.0008,ex,bh,0.0016,0xd9a521);
@@ -805,10 +819,10 @@ VP_FORM.wasser=t=>{ const c=C(t), a=c.a, {w,h,d}=c, rb=Math.min(w/6,d/4)*0.97, h
   const A=mkAtlas([{k:'et',w:T2*rb*0.6,h:hb*0.14,q:0.8,draw:(g,W,H)=>{ g.fillStyle='#1d6fd8'; g.fillRect(0,0,W,H); g.fillStyle='#fff'; g.fillRect(0,H*0.1,W,H*0.06); g.fillRect(0,H*0.84,W,H*0.06); WZ.txt(g,a.title,W/2,H*0.5,W*0.9,H*0.42,WFNT.rund,'#fff'); }},
     {k:'fp',w:w*0.7,h:hb*0.34,draw:(g,W,H)=>{ g.clearRect(0,0,W,H); g.save(); WZ.rr(g,0,0,W,H,H*0.08); g.clip(); drawFront(g,W,H,a,0); g.restore(); }},
     {k:'hg',w:w*0.45,h:h-hb*0.78,draw:(g,W,H)=>{ g.fillStyle='rgba(235,245,255,.9)'; g.fillRect(0,0,W,H); WZ.txt(g,'TRAGEGRIFF',W/2,H*0.82,W*0.7,H*0.14,WFNT.kond,'#1d6fd8'); const gw=W*0.55, gh=H*0.3; stanz(g,g2=>WZ.rr(g2,W/2-gw/2,H*0.25,gw,gh,gh/2)); }}],{rough:0.3,alpha:true,double:true});
-  const pf=[[0,0],[rb*0.7,0],[rb*0.95,0.01],[rb,0.025]]; for(let i=0;i<3;i++){ const y=0.03+i*hb*0.17; pf.push([rb,y],[rb*0.93,y+hb*0.07],[rb,y+hb*0.14]); }
+  const pf=[[0,0],[rb*0.7,0],[rb*0.95,0.01],[rb,0.025]]; for(let i=0;i<(WARE_SPAR_AN?0:3);i++){ const y=0.03+i*hb*0.17; pf.push([rb,y],[rb*0.93,y+hb*0.07],[rb,y+hb*0.14]); }
   pf.push([rb,hb*0.6],[rb*0.6,hb*0.82],[rb*0.3,hb*0.9],[rb*0.3,hb*0.93],[0,hb*0.93]);
   for(let ix=0;ix<3;ix++) for(const sz of [-1,1]){ const x=(ix-1)*w/3, z=sz*d/4;
-    gl(c,dreh(pf,8),tm(x,0,z)); vc(c,dreh([[0,0.004],[rb*0.92,0.004],[rb*0.92,hb*0.72],[rb*0.65,hb*0.8],[0,hb*0.8]],8),tm(x,0,z),0xd8ecf8);
+    gl(c,dreh(pf,8),tm(x,0,z)); if(!WARE_SPAR_AN) vc(c,dreh([[0,0.004],[rb*0.92,0.004],[rb*0.92,hb*0.72],[rb*0.65,hb*0.8],[0,hb*0.8]],8),tm(x,0,z),0xd8ecf8);
     zyl(c,x,hb*0.95,z,rb*0.34,rb*0.34,hb*0.045,0x1d6fd8,10); pr(c,uvR(etikett(rb*1.01,hb*0.14,PI*1.2,10),A.uv.et),tm(x,hb*0.62,z,0,sz>0?0:PI,0)); }
   fo(c,loft([Object.assign({y:0.002},F),Object.assign({y:hb*0.6},F),{y:hb*0.8,hw:w*0.46,hd:d*0.42,r:rb*0.7}],4));
   pr(c,uvR(new THREE.PlaneGeometry(w*0.7,hb*0.34),A.uv.fp),tm(0,hb*0.32,F.hd+0.0008));
@@ -822,7 +836,8 @@ VP_FORM.limonade=t=>{ const c=C(t), a=c.a, {w,h,d}=c, rb=Math.min(w/6,d/4)*0.9, 
     {k:'v',w:tw,h:tg,draw:(g,W,H)=>{ fEtikett(c,'#1b5a2a',true)(g,W,H); g.fillStyle='#fff'; g.beginPath(); g.arc(W/2,H*0.06,W*0.04,0,T2); g.fill(); }}],{rough:0.5});
   const pf=PROF.buegel(rb,hb), inh=pf.slice(0,6).map(([r,y])=>[r*0.9,y+0.002]).concat([[0,hb*0.67]]);
   for(let ix=0;ix<3;ix++) for(const sz of [-1,1]){ const x=(ix-1)*w/3, z=sz*d/4;
-    gl(c,dreh(pf,8),tm(x,0,z)); vc(c,dreh(inh,7),tm(x,0,z),0xf2d548);
+    /* Handy: nur die gelbe Fuellung, ohne Glashuelle darueber */
+    if(!WARE_SPAR_AN) gl(c,dreh(pf,8),tm(x,0,z)); vc(c,dreh(inh,7),tm(x,0,z),0xf2d548);
     kugel(c,x,hb*0.92,z,rb*0.42,rb*0.3,rb*0.42,0xf4f2ec,6,4); zyl(c,x,hb*0.895,z,rb*0.43,rb*0.43,0.004,0xd8322a,8);
         pr(c,uvR(etikett(rb*1.012,hb*0.2,PI,8),A.uv.et),tm(x,hb*0.32,z,0,sz>0?0:PI,0)); }
   /* Drahttraeger: Bodenrahmen, Ecken, oberer Rahmen, Mittelbuegel mit Holzgriff */
@@ -912,7 +927,7 @@ VP_FORM.eiswuerfel=t=>{ const c=C(t), a=c.a, {w,h,d}=c, sn=h*0.07, l0=0.34, l1=0
   const K2=kissenForm(w,h,d,sn,{ex:0.35,nu:12,nv:14}); fo(c,K2.vorn,tm(0,0,0.0006)); fo(c,K2.hinten,tm(0,0,-0.0006));
   /* Eiswuerfel in der Tuete */
   const zb=v=>{ const y=v*h; return (y<sn||y>h-sn)?0:Math.pow(Math.sin(PI*(y-sn)/(h-2*sn)),0.35); };
-  for(let i=0;i<46;i++){ const v=0.12+c.rnd()*0.76, u=0.16+c.rnd()*0.68, q=zb(v)*Math.pow(Math.sin(PI*u),0.42)*(d/2)*0.62, s=0.022+c.rnd()*0.008;
+  for(let i=0;i<(WARE_SPAR_AN?18:46);i++){ const v=0.12+c.rnd()*0.76, u=0.16+c.rnd()*0.68, q=zb(v)*Math.pow(Math.sin(PI*u),0.42)*(d/2)*0.62, s=0.022+c.rnd()*0.008;
     const qz=Math.max(0,q*1.5-s*0.8); kiste(c,(u-0.5)*w*0.88,v*h,(c.rnd()*2-1)*qz,s,s,s,[0xcfeefc,0xb8e2f8,0xe2f6ff][i%3],c.rnd()*3,c.rnd()*3,c.rnd()*3); }
   return fertig(c,A); };
 
@@ -945,9 +960,9 @@ VP_FORM.gintonic=t=>{ const c=C(t), a=c.a, {w,h,d}=c, fy0=0.06, fy1=0.56;
     {k:'tl',w:0.05,h:0.04,draw:(g,W,H)=>{ g.fillStyle='#e8c35a'; g.fillRect(0,0,W,H); WZ.txt(g,'TONIC',W/2,H/2,W*0.86,H*0.5,WFNT.kond,'#12406b'); }}],{rough:0.5,alpha:true});
   pr(c,boxU(w,h,d,{pz:A.uv.v,nz:A.uv.h,px:A.uv.s,nx:A.uv.s,py:A.uv.o,ny:A.uv.s}),tm(0,h/2,0));
   vc(c,innen(new THREE.BoxGeometry(w*0.985,h*0.99,d*0.98)),tm(0,h/2,0),0x0e2a4a);
-  const gx=-w*0.2, gR=0.04, gH=h*0.9; gl(c,dreh(PROF.gin(gR,gH),12),tm(gx,0.004,-d*0.05)); vc(c,dreh(PROF.gin(gR*0.92,gH*0.72),10),tm(gx,0.006,-d*0.05),0xdcecf4);
+  const gx=-w*0.2, gR=0.04, gH=h*0.9; gl(c,dreh(PROF.gin(gR,gH),12),tm(gx,0.004,-d*0.05)); if(!WARE_SPAR_AN) vc(c,dreh(PROF.gin(gR*0.92,gH*0.72),10),tm(gx,0.006,-d*0.05),0xdcecf4);
   zyl(c,gx,gH*0.96,-d*0.05,gR*0.36,gR*0.36,gH*0.06,0x12406b,10); pr(c,uvR(etikett(gR*1.01,0.09,PI*0.8,8),A.uv.gl),tm(gx,gH*0.4,-d*0.05));
-  for(let i=0;i<4;i++){ const x=w*0.08+(i%2)*w*0.2, z=(i<2?d*0.2:-d*0.18), tR=0.024, tH=h*0.5; gl(c,dreh(PROF.bier(tR,tH),8),tm(x,0.004,z)); vc(c,dreh(PROF.bier(tR*0.9,tH*0.7),8),tm(x,0.006,z),0xeef4e0);
+  for(let i=0;i<4;i++){ const x=w*0.08+(i%2)*w*0.2, z=(i<2?d*0.2:-d*0.18), tR=0.024, tH=h*0.5; gl(c,dreh(PROF.bier(tR,tH),8),tm(x,0.004,z)); if(!WARE_SPAR_AN) vc(c,dreh(PROF.bier(tR*0.9,tH*0.7),8),tm(x,0.006,z),0xeef4e0);
     zyl(c,x,tH*0.98,z,tR*0.42,tR*0.42,tH*0.03,0xe8c35a,8); pr(c,uvR(etikett(tR*1.01,0.04,PI*0.9,8),A.uv.tl),tm(x,tH*0.36,z)); }
   fo(c,new THREE.PlaneGeometry(w*0.88,h*(fy1-fy0)),tm(0,h*(1-(fy0+fy1)/2),d/2-0.0015));
   return fertig(c,A); };
@@ -958,14 +973,18 @@ VP_FORM.cocktailset=t=>{ const c=C(t), a=c.a, {w,h,d}=c, sh=h*0.17;
   const A=mkAtlas([{k:'v',w,h:sh,draw:fVorn(c)},{k:'s',w:d,h:sh,q:0.6,draw:fFarbe(a.bg2)},
     {k:'k',w:w*0.98,h:h-sh,draw:(g,W,H)=>{ verlauf(g,W,H,a.bg1,a.bg2); const r=zufallAus(9); g.fillStyle='rgba(255,255,255,.7)'; for(let i=0;i<60;i++) g.fillRect(r()*W,r()*H*0.6,1.5,1.5);
       g.save(); g.shadowColor=a.ac; g.shadowBlur=W*0.04; WZ.txt(g,a.title,W/2,H*0.12,W*0.9,H*0.12,WFNT.rund,a.ac); g.restore(); WZ.txt(g,a.sub,W/2,H*0.22,W*0.7,H*0.06,WFNT.kond,a.ac2);
-      g.strokeStyle=a.ac2; g.lineWidth=W*0.006; for(let i=0;i<3;i++){ g.beginPath(); g.arc(W/2,H*1.05,W*(0.3+i*0.12),PI*1.15,PI*1.85); g.stroke(); } }}],{rough:0.5});
+      g.strokeStyle=a.ac2; g.lineWidth=W*0.006; for(let i=0;i<3;i++){ g.beginPath(); g.arc(W/2,H*1.05,W*(0.3+i*0.12),PI*1.15,PI*1.85); g.stroke(); } }},
+    /* 03.10.: Flaschenetiketten (vorher nackte Farbflaschen) */
+    ...[['WHITE RUM','#f4efe2','#1b1b1b','Caribbean'],['VIOLETTA','#2a0a3a','#e8c35a','Likör 20 %'],['BLUE CURAÇAO','#e8f4ff','#1d6fd8','Likör 21 %']].map(([n,bg,fg,u],i)=>({k:'e'+i,w:0.06,h:0.05,draw:(g,W,H)=>{ g.fillStyle=bg; g.fillRect(0,0,W,H); g.strokeStyle=fg; g.lineWidth=Math.max(1,W*0.02); g.strokeRect(W*0.06,H*0.08,W*0.88,H*0.84);
+      WZ.txt(g,n,W/2,H*0.42,W*0.8,H*0.26,WFNT.serif,fg); WZ.txt(g,u,W/2,H*0.72,W*0.7,H*0.14,WFNT.kond,fg); }}))],{rough:0.5});
   pr(c,boxU(w,sh,d,{pz:A.uv.v,nz:A.uv.s,px:A.uv.s,nx:A.uv.s,py:A.uv.s,ny:A.uv.s}),tm(0,sh/2,0));
   pr(c,uvR(new THREE.PlaneGeometry(w*0.98,h-sh),A.uv.k),tm(0,sh+(h-sh)/2,-d*0.47));
   const y=sh;
-  vc(c,dreh([[0,0],[0.03,0],[0.032,0.11],[0.026,0.13],[0.018,0.15],[0.012,0.17],[0,0.175]],14),tm(-w*0.3,y,-d*0.12),0x8e959e);
+  vc(c,dreh([[0,0],[0.03,0],[0.032,0.11],[0.026,0.13],[0.018,0.15],[0.012,0.17],[0,0.175]],12),tm(-w*0.3,y,-d*0.12),0x8e959e);
   vc(c,dreh(PROF.likoer?PROF.likoer(0.03,0.2):PROF.gin(0.03,0.2),10),tm(-w*0.08,y,-d*0.2),0x6a1a8a);
   vc(c,dreh(PROF.sekt(0.028,0.21),10),tm(w*0.12,y,-d*0.24),0x1d6fd8);
-  for(const [x,col] of [[w*0.02,0xff4fd8],[w*0.3,0x5ce1ff]]){ gl(c,dreh([[0.026,0],[0.028,0.003],[0.004,0.008],[0.004,0.07],[0.04,0.11],[0.042,0.112]],12),tm(x,y,d*0.18)); vc(c,new THREE.ConeGeometry(0.034,0.034,12),tm(x,y+0.093,d*0.18,PI,0,0),col); }
+  [[-w*0.3,-d*0.12,0.0312,0.04],[-w*0.08,-d*0.2,0.0312,0.05],[w*0.12,-d*0.24,0.0292,0.05]].forEach(([x,z,r,ly],i)=>pr(c,uvR(etikett(r,0.042,PI*0.85,5),A.uv['e'+i]),tm(x,y+ly,z)));
+  for(const [x,col] of [[w*0.02,0xff4fd8],[w*0.3,0x5ce1ff]]){ gl(c,dreh([[0.026,0],[0.028,0.003],[0.004,0.008],[0.004,0.07],[0.04,0.11],[0.042,0.112]],11),tm(x,y,d*0.18)); vc(c,new THREE.ConeGeometry(0.034,0.034,12),tm(x,y+0.093,d*0.18,PI,0,0),col); }
   fo(c,new THREE.BoxGeometry(w*0.995,h-sh,d*0.995),tm(0,sh+(h-sh)/2,0));
   return fertig(c,A); };
 
@@ -981,7 +1000,7 @@ VP_FORM.kurze=t=>{ const c=C(t), a=c.a, {w,h,d}=c, fh=h*0.3, lt=0.003;
   vc(c,new THREE.PlaneGeometry(w,d),tm(0,0.002,0,-PI/2,0,0),0x3a0a2a);
   const pf=PROF.mini(0.0155,h*0.6);
   for(let ix=0;ix<5;ix++) for(let iz=0;iz<4;iz++){ const x=(ix-2)*w*0.19, z=-d*0.32+iz*d*0.2;
-    vc(c,dreh(pf,6),tm(x,0.002,z),0x5a1a3a); zyl(c,x,0.002+h*0.6*0.9,z,0.0068,0.0068,h*0.08,0xd9b45a,6); vc(c,etikett(0.0157,h*0.14,T2,6),tm(x,h*0.19,z),0xf2e6c4); }
+    vc(c,dreh(pf,6),tm(x,0.002,z),0x5a1a3a); if(!WARE_SPAR_AN) zyl(c,x,0.002+h*0.6*0.9,z,0.0068,0.0068,h*0.08,0xd9b45a,6); vc(c,etikett(0.0157,h*0.14,T2,6),tm(x,h*0.19,z),0xf2e6c4); }
   return fertig(c,A); };
 
 /* Feuerzangenbowle: bedruckter Sockelkarton mit Klarsichthaube - darin
@@ -1010,7 +1029,7 @@ VP_FORM.bowle=t=>{ const c=C(t), a=c.a, {w,h,d}=c, bh=h*0.46;
    bedruckt */
 VP_FORM.racletteessen=t=>{ const c=C(t), a=c.a, {w,h,d}=c, bh=h*0.74, gw=w*0.46, gh=h-bh;
   const A=mkAtlas([{k:'v',w,h:bh,draw:fVorn(c)},{k:'s',w:d,h:bh,draw:fSeite(c)},{k:'h',w,h:bh,draw:rueck(c)},{k:'o',w,h:d,q:0.6,draw:fOben(c)},
-    {k:'g',w:gw,h:gh+0.012,draw:(g,W,H)=>{ verlauf(g,W,H,a.bg1,a.bg2); WZ.txt(g,'FRISCHETHEKE',W/2,H*0.8,W*0.7,H*0.16,WFNT.kond,'#fff'); const lw=W*0.55, lh=H*0.3; stanz(g,g2=>WZ.rr(g2,W/2-lw/2,H*0.2,lw,lh,lh/2)); }}],{rough:0.6,alpha:true,double:true});
+    {k:'g',w:gw,h:gh+0.012,draw:(g,W,H)=>{ verlauf(g,W,H,a.bg1,a.bg2); WZ.txt(g,frischStil(c.t).n,W/2,H*0.8,W*0.7,H*0.16,WFNT.kond,'#fff'); const lw=W*0.55, lh=H*0.3; stanz(g,g2=>WZ.rr(g2,W/2-lw/2,H*0.2,lw,lh,lh/2)); }}],{rough:0.6,alpha:true,double:true});
   pr(c,boxU(w,bh,d,{pz:A.uv.v,nz:A.uv.h,px:A.uv.s,nx:A.uv.s,py:A.uv.o,ny:A.uv.s}),tm(0,bh/2,0));
   pr(c,uvR(new THREE.PlaneGeometry(gw,gh+0.012),A.uv.g),tm(0,bh+(gh+0.012)/2-0.012,0.0012)); pr(c,uvR(new THREE.PlaneGeometry(gw,gh+0.012),A.uv.g),tm(0,bh+(gh+0.012)/2-0.012,-0.0012,0,PI,0));
   /* Faltkanten der Griffklappen auf dem Deckel */
@@ -1039,7 +1058,7 @@ VP_FORM.raclettekaese=t=>{ const c=C(t), a=c.a, {w,h,d}=c, th=h*0.86;
   const A=mkAtlas([{k:'o',w,h:d,draw:(g,W,H)=>{ g.fillStyle='#fff8dc'; g.fillRect(0,0,W,H); g.save(); WZ.rr(g,W*0.42,H*0.12,W*0.52,H*0.76,H*0.06); g.clip(); g.clearRect(0,0,W,H); g.restore();
       g.fillStyle=a.bg1; g.fillRect(0,0,W*0.4,H); WZ.txt(g,a.title,W*0.2,H*0.3,W*0.36,H*0.1,WFNT.rund,a.ac); WZ.txt(g,a.sub,W*0.2,H*0.45,W*0.34,H*0.07,WFNT.kond,'#1b1b1b');
       siegel(g,W*0.2,H*0.72,H*0.13,'1kg',a.ac2,'#fff'); }},
-    {k:'e',w:w*0.7,h:th*0.7,draw:fEtikett(c,'#1d6fb8',true)},{k:'ec',w:0.06,h:0.05,q:0.6,draw:(g,W,H)=>{ g.fillStyle='#fff8dc'; g.fillRect(0,0,W,H); WZ.txt(g,'↗ ÖFFNEN',W/2,H/2,W*0.9,H*0.3,WFNT.kond,'#c8322a'); }}],{rough:0.4,alpha:true,double:true});
+    {k:'e',w:w*0.7,h:th*0.7,draw:fEtikett(c,frischStil(c.t).k,true)},{k:'ec',w:0.06,h:0.05,q:0.6,draw:(g,W,H)=>{ g.fillStyle='#fff8dc'; g.fillRect(0,0,W,H); WZ.txt(g,'↗ ÖFFNEN',W/2,H/2,W*0.9,H*0.3,WFNT.kond,'#c8322a'); }}],{rough:0.4,alpha:true,double:true});
   const B={hw:w*0.47,hd:d*0.46,r:0.012}, T={hw:w*0.497,hd:d*0.495,r:0.014};
   fo(c,loft([Object.assign({y:0},B),Object.assign({y:th},T)],3)); fo(c,kappe(B,0.001,false,3));
   pr(c,uvR(kappe(T,th+0.0008,true,3),A.uv.o));
@@ -1054,7 +1073,10 @@ VP_FORM.raclettekaese=t=>{ const c=C(t), a=c.a, {w,h,d}=c, th=h*0.86;
 VP_FORM.fonduesossen=t=>{ const c=C(t), a=c.a, {w,h,d}=c, fh=h*0.4, lt=0.003;
   const sorten=[['Cocktail',0xe88a8a,0xc8322a],['Curry',0xe8b02a,0x1b5a2a],['Knoblauch',0xf2ece0,0x6a6a72],['Kräuter',0x8ab04a,0xd9b45a],['BBQ',0x7a2a10,0x1b1b1b]];
   const A=mkAtlas([{k:'v',w,h:fh,draw:fVorn(c)},{k:'r',w,h,draw:(g,W,H)=>{ verlauf(g,W,H,a.bg1,a.bg2); WZ.txt(g,a.title,W/2,H*0.14,W*0.9,H*0.16,WFNT.serif,a.ac); WZ.txt(g,sorten.map(q=>q[0]).join(' · '),W/2,H*0.3,W*0.9,H*0.07,WFNT.kond,a.ac2); }},
-    {k:'h',w,h,draw:rueck(c)},{k:'s',w:d,h:fh,q:0.5,draw:fFarbe(a.bg2)}],{rough:0.6});
+    {k:'h',w,h,draw:rueck(c)},{k:'s',w:d,h:fh,q:0.5,draw:fFarbe(a.bg2)},
+    /* 03.10.: bedruckte Glas-Etiketten je Sorte statt leerer Streifen */
+    ...sorten.map(([n,f,l],i)=>({k:'g'+i,w:0.06,h:0.035,draw:(g,W,H)=>{ g.fillStyle='#f6f1e4'; g.fillRect(0,0,W,H); const fc='#'+f.toString(16).padStart(6,'0'), lc='#'+l.toString(16).padStart(6,'0');
+      g.fillStyle=lc; g.fillRect(0,0,W,H*0.18); g.fillRect(0,H*0.82,W,H*0.18); WZ.kreis(g,W*0.2,H*0.5,H*0.22,fc); WZ.txt(g,n.toUpperCase(),W*0.6,H*0.44,W*0.66,H*0.28,WFNT.serif,lc); WZ.txt(g,'Fondue-Soße',W*0.6,H*0.7,W*0.6,H*0.16,WFNT.kond,'#5a4a3a'); }}))],{rough:0.6});
   pr(c,boxU(w,h,lt,{pz:A.uv.r,nz:A.uv.h,alle:A.uv.s}),tm(0,h/2,-d/2+lt/2)); pr(c,boxU(w,fh,lt,{pz:A.uv.v,nz:A.uv.s,alle:A.uv.s}),tm(0,fh/2,d/2-lt/2));
   for(const sx of [-1,1]) pr(c,boxU(lt,fh,d,{alle:A.uv.s}),tm(sx*(w/2-lt/2),fh/2,0));
   vc(c,new THREE.PlaneGeometry(w,d),tm(0,0.002,0,-PI/2,0,0),0x3a0606);
@@ -1062,7 +1084,7 @@ VP_FORM.fonduesossen=t=>{ const c=C(t), a=c.a, {w,h,d}=c, fh=h*0.4, lt=0.003;
   pos.forEach(([x,z],i)=>{ const [n,f,l]=sorten[i];
     gl(c,dreh([[0,0],[jr*0.9,0],[jr,0.006],[jr,jh*0.82],[jr*0.86,jh*0.9],[jr*0.86,jh*0.93]],10),tm(x,0.002,z));
     vc(c,dreh([[0,0.004],[jr*0.9,0.004],[jr*0.92,jh*0.78],[0,jh*0.78]],8),tm(x,0.002,z),f);
-    zyl(c,x,0.002+jh*0.96,z,jr*0.9,jr*0.9,jh*0.1,l,12); vc(c,etikett(jr*1.01,jh*0.25,PI*0.9,8),tm(x,jh*0.45,z),0xf6f1e4); });
+    zyl(c,x,0.002+jh*0.96,z,jr*0.9,jr*0.9,jh*0.1,l,12); pr(c,uvR(etikett(jr*1.01,jh*0.25,PI*0.9,8),A.uv['g'+i]),tm(x,jh*0.45,z)); });
   return fertig(c,A); };
 
 /* Kaesefondue: ovale Spanschachtel aus Holz mit Stuelpdeckel, vorn das

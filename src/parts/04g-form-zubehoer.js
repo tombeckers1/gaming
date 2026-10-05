@@ -57,7 +57,7 @@ function rohr(pts,y0,y1,R){
   for(let i=0;i<n;i++){ const b=2*i; idx.push(b,b+2,b+3,b,b+3,b+1); }
   const g=new T.BufferGeometry(); g.setAttribute('position',new T.Float32BufferAttribute(pos,3)); g.setAttribute('normal',new T.Float32BufferAttribute(nor,3)); g.setAttribute('uv',new T.Float32BufferAttribute(uv,2)); g.setIndex(idx);
   return R?reg(g,R):g; }
-function stadion(wx,dz,n){ n=n||8; const r=dz/2, f=Math.max(0,wx/2-r), P2=[];
+function stadion(wx,dz,n){ n=sparN(n||8,3); const r=dz/2, f=Math.max(0,wx/2-r), P2=[];
   const add=(x,z)=>{ const l=P2[P2.length-1]; if(!l||Math.hypot(l[0]-x,l[1]-z)>1e-7) P2.push([x,z]); };
   add(0,-r); for(let i=0;i<=n;i++){ const th=-PI+i/n*PI; add(-f+r*Math.sin(th),r*Math.cos(th)); }
   for(let i=0;i<=n;i++){ const th=i/n*PI; add(f+r*Math.sin(th),r*Math.cos(th)); }
@@ -71,15 +71,27 @@ const rundum=(vf,hf)=>(g,W,H)=>{ hf=hf||vf;
   for(const x0 of [-W/4,3*W/4]){ g.save(); g.beginPath(); g.rect(Math.max(0,x0),0,W/4,H); g.clip(); g.translate(x0,0); hf(g,W/2,H); g.restore(); } };
 /* Kissenbeutel: Vorder- und Rueckseite gewoelbt, Siegelnaehte oben/unten
    flach; o.boden: Standbodenbeutel (unten offen, volle Woelbung) */
-function kissen(w,h,dz,o){ o=o||{}; const nx=o.nx||10, ny=o.ny||14, so=o.oben||0, su=o.unten||0, ein=o.ein===undefined?0.06:o.ein, ex=o.ex||0.5;
+function kissen(w,h,dz,o){ o=o||{}; const nx=sparN(o.nx||10,4), ny=sparN(o.ny||14,5), so=o.oben||0, su=o.unten||0, ein=o.ein===undefined?0.06:o.ein, ex=o.ex||0.5;
   const fy=y=>{ if(o.boden){ const t=y/(h-so); return t>=1?0:Math.pow(Math.max(0,1-t*t*t),0.5); } const t=(y-su)/(h-su-so); return t<=0||t>=1?0:Math.pow(Math.sin(PI*t),o.py||0.45); };
   const fx=x=>Math.pow(Math.max(0,1-Math.pow(2*x/w,2)),ex);
-  const pos=[],uv=[],idx=[];
-  for(const s of [1,-1]){ const base=pos.length/3, Rr=s>0?o.Rf:(o.Rb||o.Rf);
-    for(let j=0;j<=ny;j++) for(let i=0;i<=nx;i++){ const u=i/nx, x0=(u-0.5)*w, y=j/ny*h, b=fy(y);
-      pos.push(x0*(1-ein*b),y,s*(0.0004+dz*fx(x0)*b));
-      let uu=s>0?u:1-u, vv=j/ny; if(Rr){ uu=Rr[0]+uu*(Rr[2]-Rr[0]); vv=Rr[1]+vv*(Rr[3]-Rr[1]); } uv.push(uu,vv); }
-    for(let j=0;j<ny;j++) for(let i=0;i<nx;i++){ const a=base+j*(nx+1)+i, b=a+1, c=a+nx+2, e=a+nx+1; if(s>0) idx.push(a,b,c,a,c,e); else idx.push(a,c,b,a,e,c); } }
+  /* 03.10. (Tom, Foto: hintereinander stehende Beutel zeigten oben
+     gestreckte Schrift- und Streifenreste): die Zeilen liegen jetzt genau
+     auf den Siegelkanten und dicht an der Schulter, und der Druck folgt
+     der Bogenlaenge der Woelbung - vorher lief ein einziges steiles
+     Viereck von der Naht in den Bauch und zog den Aufdruck lang. */
+  const yb0=o.boden?0:su, yb1=h-so, nb=Math.max(4,ny-(su&&!o.boden?1:0)-(so?1:0)), Y=[];
+  if(su&&!o.boden) Y.push(0);
+  for(let k=0;k<=nb;k++){ const q=k/nb; Y.push(yb0+(yb1-yb0)*(o.boden?Math.sin(PI/2*q):(1-Math.cos(PI*q))/2)); }
+  if(so) Y.push(h);
+  const NY=Y.length-1, pos=[],uv=[],idx=[];
+  for(const s of [1,-1]){ const base=pos.length/3, Rr=s>0?o.Rf:(o.Rb||o.Rf), P3=[];
+    for(let j=0;j<=NY;j++) for(let i=0;i<=nx;i++){ const u=i/nx, x0=(u-0.5)*w, y=Y[j], b=fy(y); P3.push([x0*(1-ein*b),y,s*((o.off||0.0004)+dz*fx(x0)*b)]); }
+    for(let i=0;i<=nx;i++){ /* Bogenlaenge je Spalte im Bauch */
+      let L=0; const Ls=[0]; for(let j=1;j<=NY;j++){ const a=P3[(j-1)*(nx+1)+i], c=P3[j*(nx+1)+i]; const inB=Y[j-1]>=yb0-1e-9&&Y[j]<=yb1+1e-9; L+=inB?Math.hypot(c[0]-a[0],c[1]-a[1],c[2]-a[2]):0; Ls.push(L); }
+      for(let j=0;j<=NY;j++){ const y=Y[j]; let v=y/h; if(L>0&&y>=yb0-1e-9&&y<=yb1+1e-9) v=(yb0+Ls[j]/L*(yb1-yb0))/h; P3[j*(nx+1)+i].v=v; } }
+    for(let j=0;j<=NY;j++) for(let i=0;i<=nx;i++){ const p=P3[j*(nx+1)+i], u=i/nx; pos.push(p[0],p[1],p[2]);
+      let uu=s>0?u:1-u, vv=p.v; if(Rr){ uu=Rr[0]+uu*(Rr[2]-Rr[0]); vv=Rr[1]+vv*(Rr[3]-Rr[1]); } uv.push(uu,vv); }
+    for(let j=0;j<NY;j++) for(let i=0;i<nx;i++){ const a=base+j*(nx+1)+i, b=a+1, c=a+nx+2, e=a+nx+1; if(s>0) idx.push(a,b,c,a,c,e); else idx.push(a,c,b,a,e,c); } }
   const g=new T.BufferGeometry(); g.setAttribute('position',new T.Float32BufferAttribute(pos,3)); g.setAttribute('uv',new T.Float32BufferAttribute(uv,2)); g.setIndex(idx); g.computeVertexNormals(); return g; }
 /* Stern als Flaeche/Koerper */
 function sternForm(r,ri,z,loch){ const s=new T.Shape(); for(let i=0;i<10;i++){ const an=PI/2+i*PI/5, rr=i%2?ri:r; const x=Math.cos(an)*rr, y=Math.sin(an)*rr; i?s.lineTo(x,y):s.moveTo(x,y); } s.closePath();
@@ -105,7 +117,12 @@ function loch(g,fn){ g.save(); g.globalCompositeOperation='destination-out'; g.f
 /* Euroloch (Sombrero-Form) ausstanzen */
 function euroloch(g,cx,cy,r){ loch(g,()=>{ g.arc(cx,cy,r,0,TAU); WZ.rr(g,cx-r*2.6,cy+r*0.1,r*5.2,r*0.95,r*0.45); }); }
 /* Siegelnaht: feine Riffel */
-function riffel(g,x,y,W,H,f){ g.fillStyle=f||'rgba(0,0,0,.18)'; const st=Math.max(2,Math.round(H*0.18)); for(let i=x;i<x+W;i+=st) g.fillRect(i,y,Math.max(1,st*0.4),H); }
+/* 03.10. (Tom, Foto: Streifenreste oben auf den Beuteln): die Riffelung
+   war 1 Pixel breit im 2-Pixel-Raster - verkleinert im Regal ergab das
+   Moiré-Streifen. Jetzt breite, weiche Praegerillen und eine Kante. */
+function riffel(g,x,y,W,H,f){ const st=Math.max(6,Math.round(W/48)); g.save(); g.beginPath(); g.rect(x,y,W,H); g.clip();
+  for(let i=x;i<x+W;i+=st){ const gr=g.createLinearGradient(i,0,i+st,0); gr.addColorStop(0,'rgba(255,255,255,.07)'); gr.addColorStop(0.5,f||'rgba(0,0,0,.12)'); gr.addColorStop(1,'rgba(255,255,255,.07)'); g.fillStyle=gr; g.fillRect(i,y,st,H); }
+  g.fillStyle='rgba(0,0,0,.22)'; g.fillRect(x,y+H-Math.max(1,H*0.06),W,Math.max(1,H*0.06)); g.restore(); }
 function holz(g,x,y,W,H,r,hell){ g.fillStyle=hell?'#d9b07a':'#b98a52'; g.fillRect(x,y,W,H);
   for(let i=0;i<Math.max(8,H/3);i++){ g.fillStyle=`rgba(${90+r()*40|0},${55+r()*25|0},${20+r()*15|0},${0.12+r()*0.18})`; const yy=y+r()*H; g.fillRect(x,yy,W,Math.max(1,H*0.008+r()*H*0.01)); }
   for(let i=0;i<3;i++){ g.strokeStyle='rgba(90,55,25,.35)'; g.lineWidth=Math.max(1,H*0.01); g.beginPath(); g.ellipse(x+r()*W,y+r()*H,W*0.02+r()*W*0.03,H*0.05,0,0,TAU); g.stroke(); } }
@@ -147,7 +164,7 @@ VP_FORM.luftschlangen=t=>{ const k=S(t), {w,h,d,a}=k, R=k.R, lh=h*0.27, hn=h*0.8
   for(const y of [0.03,0.062,0.094,0.122]) for(const x of [-0.042,0,0.042]){ if(y>0.12&&x!==0) continue;
     const zz=(i%2?-1:1)*0.006, rr=0.0105+R()*0.002, steh=i%4===3;
     v(k,Cy(rr,rr,0.009,12),tm(x+(R()-0.5)*0.008,hn*y/0.16,zz,steh?0:PI/2,0,(R()-0.5)*0.6),hx(F[i%F.length]));
-    v(k,Cy(rr*0.35,rr*0.35,0.0095,8),tm(x,hn*y/0.16,zz,steh?0:PI/2),0xffffff); i++; }
+    if(!WARE_SPAR_AN) v(k,Cy(rr*0.35,rr*0.35,0.0095,8),tm(x,hn*y/0.16,zz,steh?0:PI/2),0xffffff); i++; }
   for(const s of [-1,1]){ const an=s*0.55, cx=s*0.022, cy=hn*0.5;
     v(k,Cy(0.0035,0.0035,0.07,6),tm(cx,cy,0.012*s,0,0,an),0xe8c35a);
     v(k,Cy(0.009,0.0035,0.016,8),tm(cx+Math.sin(-an)*0.043,cy+Math.cos(an)*0.043,0.012*s,0,0,an),hx(s>0?'#ff4d6d':'#3ec1ff')); }
@@ -212,17 +229,22 @@ VP_FORM.knicklichter=t=>{ const k=S(t), {w,h,d,a}=k, R=k.R, kap=0.016;
   const pr=stadion(w*0.97,d*0.97,8), pk=stadion(w,d,8);
   teil(k,{geo:rohr(pr,kap*0.6,h-kap*0.6),m:M0()},folieKlar);
   const kc=hx(a.ac2&&a.ac2!==a.bg2?a.ac2:'#3ec1ff');
-  for(const [y0,y1] of [[0,kap],[h-kap,h]]){ v(k,rohr(pk,y0,y1),M0(),kc); v(k,profilDeckel(pk,y0===0),tm(0,y0===0?0.0003:h-0.0003,0),kc); }
+  for(const [y0,y1] of [[0,kap],[h-kap,h]]){ v(k,rohr(pk,y0,y1),M0(),kc); if(y0===0) v(k,profilDeckel(pk,true),tm(0,0.0003,0),kc); }
   v(k,rohr(stadion(w*0.985,d*0.985,8),kap,kap+0.0025),M0(),0xffffff); v(k,rohr(stadion(w*0.985,d*0.985,8),h-kap-0.0025,h-kap),M0(),0xffffff);
   /* Staebe im Koecher */
   const F=['#39ff6a','#ff3df2','#3dd8ff','#fff23d','#ff8a3d','#b46cff'], f=(w*0.97-d*0.97)/2, rr=d*0.97/2-0.004; let n=0;
-  for(let x=-w*0.44;x<=w*0.44;x+=0.0082) for(let z=-rr;z<=rr;z+=0.0082){ const dx=Math.max(0,Math.abs(x)-f); if(Math.hypot(dx,z)>rr-0.001) continue;
+  const st=WARE_SPAR_AN?0.0125:0.0082; for(let x=-w*0.44;x<=w*0.44;x+=st) for(let z=-rr;z<=rr;z+=st){ const dx=Math.max(0,Math.abs(x)-f); if(Math.hypot(dx,z)>rr-0.001) continue;
     le(k,Cy(0.0029,0.0029,h-kap*2-0.004,5,true),tm(x+(R()-0.5)*0.002,h/2,z,(R()-0.5)*0.03,0,(R()-0.5)*0.03),hx(F[n++%F.length])); }
   /* Banderole mit dem Druck */
   const pb=stadion(w*0.99,d*0.99,8), bh=h*0.38, by=h*0.33;
   let L=0; for(let i=0;i<pb.length;i++){ const a2=pb[i], b2=pb[(i+1)%pb.length]; L+=Math.hypot(b2[0]-a2[0],b2[1]-a2[1]); }
-  const B=bogen([{w:L,h:bh,draw:rundum(vorne(k))}]);
-  teil(k,{geo:rohr(pb,by,by+bh,B.R[0]),m:M0()},B.mat);
+  /* 03.10.: Deckel bedruckt (vorher einfarbig) - Leuchtstaebe-Motiv und Name */
+  const B=bogen([{w:L,h:bh,draw:rundum(vorne(k))},{w,h:d,draw:(g,W,H)=>{ g.fillStyle=a.ac2&&a.ac2!==a.bg2?a.ac2:'#3ec1ff'; g.fillRect(0,0,W,H); g.fillStyle='rgba(0,0,0,.35)'; WZ.rr(g,W*0.08,H*0.12,W*0.84,H*0.76,H*0.36); g.fill();
+    for(let i=0;i<9;i++){ const x=W*(0.2+i*0.075), c=F[i%F.length]; WZ.leucht(g,x,H/2,H*0.3,c,0.6); g.strokeStyle=c; g.lineWidth=Math.max(2,H*0.07); g.lineCap='round'; g.beginPath(); g.moveTo(x-H*0.12,H*0.72); g.lineTo(x+H*0.12,H*0.28); g.stroke(); }
+    titel(g,W/2,H*0.5,W*0.6,H*0.32,k,'#ffffff'); }}]);
+  const dk=profilDeckel(pk,false), du=dk.attributes.uv, dp=dk.attributes.position, Rt=B.R[1];
+  for(let i=0;i<du.count;i++) du.setXY(i,Rt[0]+(dp.getX(i)/w+0.5)*(Rt[2]-Rt[0]),Rt[1]+(0.5-dp.getZ(i)/d)*(Rt[3]-Rt[1]));
+  teil(k,[{geo:rohr(pb,by,by+bh,B.R[0]),m:M0()},{geo:dk,m:tm(0,h-0.0003,0)}],B.mat);
   return fertig(k); };
 
 /* ================= 7 Stabfeuerzeug: langer Clamshell-Blister auf
@@ -263,7 +285,8 @@ VP_FORM.ballons=t=>{ const k=S(t), {w,h,d,a}=k, R=k.R, so=0.04, su=0.018;
     {w,h,draw:(g,W,H)=>{ g.fillStyle=a.bg2; g.fillRect(0,0,W,H); g.fillStyle='rgba(255,255,255,.35)'; for(let i=0;i<7;i++) g.fillRect(W*0.15,H*(0.55+i*0.045),W*(0.4+(i%3)*0.15),H*0.012); euroloch(g,W/2,H*0.045,W*0.035); }}],Object.assign({roughness:0.32},AUS));
   const K={nx:10,ny:14,oben:so,unten:su,ein:0.05,Rf:B.R[0],Rb:B.R[1]};
   teil(k,{geo:kissen(w,h,d*0.42,K),m:M0()},B.mat);
-  teil(k,{geo:kissen(w,h,d*0.43,{nx:6,ny:8,oben:so,unten:su,ein:0.05}),m:M0()},folieKlar);
+  /* Folie 0,8 mm vor dem Druck - vorher lag sie an den Naehten genau auf ihm (Z-Fighting: dunkle Schraegmuster oben auf den Beuteln) */
+  teil(k,{geo:kissen(w,h,d*0.43,{nx:6,ny:8,oben:so,unten:su,ein:0.05,off:0.0012}),m:M0()},folieKlar);
   /* lose Luftballons hinter dem Fenster */
   const F=['#ffd23f','#d9dde3','#ff4d6d','#3ec1ff','#c77dff','#e8c35a','#7cff6b'];
   for(let i=0;i<13;i++){ const x=(i%5-2)*w*0.15+(R()-0.5)*0.02, y=h*(1-fen[1]-fen[3]*(0.2+0.6*((i*7)%13)/12)), an=(R()-0.5)*2.4, z=(R()-0.5)*0.016;
@@ -346,10 +369,12 @@ VP_FORM.folienvorhang=t=>{ const k=S(t), {w,h,d,a}=k, R=k.R, lh=h*0.23, hb=h-lh+
   teil(k,{geo:kissen(w*0.96,hb,0.012,{nx:6,ny:8,oben:0.006,unten:0.008,ein:0.02}),m:M0()},folieKlar);
   /* Fransenbuendel: schmale Metallstreifen, leicht gewellt */
   const gold=0xd4a017, silber=0xaab3bf, top=hb-0.03, len=top-0.02;
-  for(const [zz,off] of [[0.0065,0],[0.0015,0.003],[-0.004,0.0015]]) for(let x=-w*0.43+off;x<=w*0.43;x+=0.0062){
-    const g=new T.PlaneGeometry(0.0056,len,1,4), p=g.attributes.position, ph=R()*TAU;
+  /* Handy: zwei Lagen mit breiteren Streifen, ungewellt in einem Stueck */
+  const ST=WARE_SPAR_AN?0.0124:0.0062;
+  for(const [zz,off] of (WARE_SPAR_AN?[[0.0065,0],[-0.002,0.006]]:[[0.0065,0],[0.0015,0.003],[-0.004,0.0015]])) for(let x=-w*0.43+off;x<=w*0.43;x+=ST){
+    const g=new T.PlaneGeometry(ST*0.9,len,1,WARE_SPAR_AN?1:4), p=g.attributes.position, ph=R()*TAU;
     for(let i=0;i<p.count;i++) p.setZ(i,Math.sin(p.getY(i)/len*TAU*1.3+ph)*0.0018);
-    g.computeVertexNormals(); gl(k,g,tm(x,0.02+len/2,zz,0,(R()-0.5)*1.4,(R()-0.5)*0.03),Math.floor(x/0.0062)%2?gold:silber); }
+    g.computeVertexNormals(); gl(k,g,tm(x,0.02+len/2,zz,0,(R()-0.5)*1.4,(R()-0.5)*0.03),Math.floor(x/ST)%2?gold:silber); }
   v(k,Bx(w*0.88,0.012,0.012),tm(0,top+0.004,0),0x2a2a30);
   return fertig(k); };
 
@@ -385,16 +410,20 @@ VP_FORM.geschirr=t=>{ const k=S(t), {w,h,d,a}=k, tl=h*0.2, pr=Math.min(h*0.42,w*
       for(let i=0;i<24;i++){ const an=i/24*TAU; WZ.stern(g,W/2+Math.cos(an)*W*0.46,H/2+Math.sin(an)*W*0.46,W*0.018,'#e8c35a'); }
       g.save(); g.beginPath(); g.arc(W/2,H/2,W*0.33,0,TAU); g.clip(); bild(g,W*0.17,H*0.17,W*0.66,H*0.66,k); g.restore(); g.strokeStyle='#e8c35a'; g.lineWidth=W*0.012; g.beginPath(); g.arc(W/2,H/2,W*0.33,0,TAU); g.stroke(); }},
     {w:0.2,h:0.04,draw:(g,W,H)=>{ for(let i=0;i<H;i+=2){ g.fillStyle=i%4?'#f4f4f4':'#d6d6d6'; g.fillRect(0,i,W,2); } }},
-    {w:0.02,h:0.02,draw:(g,W,H)=>grund(g,0,0,W,H,k,true)}]);
-  const td=d-0.004, zt=0, Sd=B.R[3];
+    {w:0.02,h:0.02,draw:(g,W,H)=>grund(g,0,0,W,H,k,true)},
+    {w:0.2,h:0.2,draw:(g,W,H)=>{ g.fillStyle='#ffffff'; g.fillRect(0,0,W,H); g.fillStyle=a.ac; g.fillRect(0,H*0.06,W,H*0.08); g.fillStyle='#e8c35a'; g.fillRect(0,H*0.14,W,H*0.02);
+      const rn=zufallAus(77); for(let i=0;i<40;i++) WZ.stern(g,rn()*W,H*0.25+rn()*H*0.65,W*(0.01+rn()*0.012),i%3?'#e8c35a':a.ac);
+      for(const cx of [W*0.25,W*0.75]) WZ.txt(g,'2027',cx,H*0.5,W*0.3,H*0.16,WFNT.rund,a.ac,'center','rgba(0,0,0,.25)'); }}]);
+  const td=d-0.004, zt=0, Sd=B.R[3], bx=w/2-0.04, cups=[];
+  /* 03.10.: bedruckte Partybecher (vorher nackt weiss) */
+  for(const bz of [d*0.22,-d*0.18]) cups.push({geo:reg(new T.CylinderGeometry(0.034,0.026,h*0.8,14,1,true),B.R[4]),m:tm(bx,h*0.4+0.003,bz)});
   teil(k,[{geo:kbox(w,tl,0.003,{f:B.R[0],s:Sd}),m:tm(0,tl/2,d/2-0.0015)},{geo:kbox(w,tl*0.6,0.003,{f:Sd}),m:tm(0,tl*0.3,-d/2+0.0015)},
           {geo:kbox(0.003,tl*0.6,td,{f:Sd}),m:tm(-w/2+0.0015,tl*0.3,0)},{geo:kbox(0.003,tl*0.6,td,{f:Sd}),m:tm(w/2-0.0015,tl*0.3,0)},{geo:kbox(w,0.003,d,{f:Sd}),m:tm(0,0.0015,0)},
           /* Tellerstapel hochkant, oberster Teller zeigt das Dekor */
           {geo:reg(new T.CircleGeometry(pr,28),B.R[1]),m:tm(-w/2+pr+0.004,pr+0.004,-d/2+0.05)},
-          {geo:reg(new T.CylinderGeometry(pr,pr,0.04,28,1,true),B.R[2]),m:tm(-w/2+pr+0.004,pr+0.004,-d/2+0.03,PI/2)}],B.mat);
+          {geo:reg(new T.CylinderGeometry(pr,pr,0.04,28,1,true),B.R[2]),m:tm(-w/2+pr+0.004,pr+0.004,-d/2+0.03,PI/2)},...cups],B.mat);
   /* Becherstapel */
-  const bx=w/2-0.04;
-  for(const bz of [d*0.22,-d*0.18]){ v(k,Cy(0.034,0.026,h*0.8,14,true),tm(bx,h*0.4+0.003,bz),0xffffff);
+  for(const bz of [d*0.22,-d*0.18]){
     for(let i=0;i<8;i++) v(k,Cy(0.0352,0.0352,0.003,14,true),tm(bx,h*0.8-i*0.012,bz),i?0xf0f0f0:hx(a.ac));
     v(k,Cy(0.034,0.034,0.004,14),tm(bx,h*0.8+0.003,bz),hx(a.bg2)); }
   /* Besteckbuendel mit Papierband */
@@ -533,7 +562,8 @@ VP_FORM.feuerloescher=t=>{ const k=S(t), {w,h,d,a}=k, R=w/2*0.9, hb=h*0.69;
 VP_FORM.luftschlangenspray=t=>{ const k=S(t), {w,h,d,a}=k, r=Math.min(d/2*0.92,w/6.4), hb=h*0.7, ys=h*0.38;
   const C=['#ff4d6d','#7cff6b','#3ec1ff'];
   const dose=c=>(g,W,H)=>{ g.fillStyle=c; g.fillRect(0,0,W,H); g.fillStyle='rgba(255,255,255,.85)'; for(let i=0;i<6;i++){ g.save(); g.translate(W*(i+0.5)/6,H*0.3); g.rotate(0.5); g.fillRect(-W*0.02,-H*0.2,W*0.04,H*0.4); g.restore(); }
-    for(let x=0;x<W;x+=W/2){ WZ.txt(g,'SPRAY',x+W/4,H*0.62,W*0.4,H*0.2,WFNT.rund,'#ffffff','center','rgba(0,0,0,.35)'); } };
+    /* 03.10.: Schrift mittig vorn (u 0,5) und hinten - vorher sass sie auf der Seite und war vorn abgeschnitten ("SP") */
+    for(const cx of [W*0.5,0,W]){ WZ.txt(g,'SPRAY',cx,H*0.6,W*0.42,H*0.2,WFNT.rund,'#ffffff','center','rgba(0,0,0,.35)'); WZ.txt(g,'Luftschlangen',cx,H*0.8,W*0.4,H*0.1,WFNT.kond,'#ffffff','center','rgba(0,0,0,.35)'); } };
   const pb=stadion(w*0.995,2*r+0.004,8); let L=0; for(let i=0;i<pb.length;i++){ const p1=pb[i], p2=pb[(i+1)%pb.length]; L+=Math.hypot(p2[0]-p1[0],p2[1]-p1[1]); }
   const B=bogen([{w:L,h:ys,draw:rundum(vorne(k))},...C.map(c=>({w:TAU*r,h:hb-ys,draw:dose(c)}))],{roughness:0.4});
   const geo=[{geo:rohr(pb,0,ys,B.R[0]),m:M0()}];
@@ -669,7 +699,7 @@ VP_FORM.streukonfetti=t=>{ const k=S(t), {w,h,d,a}=k, R=k.R, so=0.024, dz=d*0.48
       loch(g,()=>g.ellipse(W/2,H*(fen[1]+fen[3]/2),W*fen[2]/2,H*fen[3]/2,0,0,TAU)); }},
     {w,h,draw:(g,W,H)=>{ grund(g,0,0,W,H,k,true); g.fillStyle='rgba(255,255,255,.4)'; for(let i=0;i<6;i++) g.fillRect(W*0.15,H*(0.5+i*0.05),W*0.6,H*0.01); }}],Object.assign({roughness:0.3},AUS));
   teil(k,{geo:kissen(w,h,dz,{boden:true,oben:so,ein:0.04,ex:0.45,Rf:B.R[0],Rb:B.R[1],nx:10,ny:12}),m:M0()},B.mat);
-  teil(k,{geo:kissen(w,h,dz+0.0006,{boden:true,oben:so,ein:0.04,ex:0.45,nx:6,ny:8}),m:M0()},folieKlar);
+  teil(k,{geo:kissen(w,h,dz+0.0006,{off:0.0012,boden:true,oben:so,ein:0.04,ex:0.45,nx:6,ny:8}),m:M0()},folieKlar);
   v(k,new T.CircleGeometry(1,16),tm(0,0.0006,0,PI/2,0,0,w/2*0.96,dz,1),hx(a.bg2));
   const F=['#e8c35a','#dfe4ea','#ff4d6d','#3ec1ff','#ffd23f','#c77dff'];
   for(let i=0;i<110;i++){ const yy=0.004+Math.pow(R(),1.4)*h*0.5, b=Math.sqrt(Math.max(0,1-Math.pow(yy/(h-so),3))), x=(R()-0.5)*w*0.82*b, z=(R()-0.5)*1.5*dz*b*Math.sqrt(Math.max(0,1-Math.pow(2*x/w,2)));
@@ -703,7 +733,7 @@ VP_FORM.glueckssymbole=t=>{ const k=S(t), {w,h,d,a}=k, R=k.R, hk=h*0.44, bt=0.00
   teil(k,[{geo:kbox(w,hk,bt,F),m:tm(0,hk/2,d/2-bt/2)},{geo:kbox(w,hk,bt,Sd),m:tm(0,hk/2,-d/2+bt/2)},{geo:kbox(bt,hk,d-2*bt,Sd),m:tm(-w/2+bt/2,hk/2,0)},{geo:kbox(bt,hk,d-2*bt,Sd),m:tm(w/2-bt/2,hk/2,0)},{geo:kbox(w,0.006,d,Sd),m:tm(0,0.003,0)}],B.mat);
   for(const sx of [-1,1]) for(const sz of [-1,1]) v(k,Bx(0.012,hk*0.98,0.012),tm(sx*(w/2-bt-0.006),hk*0.49,sz*(d/2-bt-0.006)),0x8a5a2e);
   /* Holzwolle */
-  for(let i=0;i<46;i++) v(k,Bx(0.03+R()*0.02,0.0016,0.0022),tm((R()-0.5)*(w-0.07),hk-0.012+R()*0.012,(R()-0.5)*(d-0.05),R()*0.4,R()*PI,(R()-0.5)*0.4),R()<0.5?0xd8b77a:0xc9a15a);
+  for(let i=0;i<(WARE_SPAR_AN?12:46);i++) v(k,Bx(0.03+R()*0.02,0.0016,0.0022),tm((R()-0.5)*(w-0.07),hk-0.012+R()*0.012,(R()-0.5)*(d-0.05),R()*0.4,R()*PI,(R()-0.5)*0.4),R()<0.5?0xd8b77a:0xc9a15a);
   const yb=hk-0.01;
   /* Schornsteinfeger mit Leiter */
   const sx=-w*0.3; v(k,Cy(0.013,0.016,0.06,10),tm(sx,yb+0.03,0),0x1b1b1f); v(k,Sp(0.012,10,8),tm(sx,yb+0.072,0),0xf1c9a5);
@@ -750,8 +780,8 @@ VP_FORM.raclettezubehoer=t=>{ const k=S(t), {w,h,d,a}=k, R=k.R, pw=w*0.46, pd=d*
   const sd=pd*1.25, Sd=B.R[2];
   teil(k,[{geo:kbox(w,sh,0.002,{f:B.R[0],s:Sd}),m:tm(0,sh/2,zc+sd/2)},{geo:kbox(w,0.002,sd,{f:Sd,t:B.R[1]}),m:tm(0,sh,zc)},{geo:kbox(w,sh,0.002,{f:Sd}),m:tm(0,sh/2,zc-sd/2)},{geo:kbox(w,0.002,sd,{f:Sd}),m:tm(0,0.001,zc)}],B.mat);
   for(const s of [-1,1]) for(let i=0;i<4;i++){ const x=s*w*0.245, y=0.003+i*st;
-    v(k,Bx(pw,ph,pd),tm(x,y+ph/2,zc),0x2a2a2e); v(k,Bx(pw*0.9,0.001,pd*0.88),tm(x,y+ph+0.0002,zc),0x16161a);
-    v(k,Bx(0.012,0.008,d/2-zc+pd/2-pd-0.016),tm(x,y+ph*0.7,(-d/2+0.016+zc-pd/2)/2),0x1e1e22); v(k,Cy(0.008,0.008,0.03,8),tm(x,y+ph*0.7,-d/2+0.016,PI/2),0x6b4a2e); }
+    v(k,Bx(pw,ph,pd),tm(x,y+ph/2,zc),0x2a2a2e); if(!WARE_SPAR_AN) v(k,Bx(pw*0.9,0.001,pd*0.88),tm(x,y+ph+0.0002,zc),0x16161a);
+    v(k,Bx(0.012,0.008,d/2-zc+pd/2-pd-0.016),tm(x,y+ph*0.7,(-d/2+0.016+zc-pd/2)/2),0x1e1e22); if(!WARE_SPAR_AN) v(k,Cy(0.008,0.008,0.03,8),tm(x,y+ph*0.7,-d/2+0.016,PI/2),0x6b4a2e); }
   for(let i=0;i<4;i++) v(k,Bx(0.022,0.003,0.12),tm(-w*0.3+i*w*0.2,sh+0.003+i*0.0004,zc,0,(i-1.5)*0.12,0),0xd9b07a);
   return fertig(k); };
 

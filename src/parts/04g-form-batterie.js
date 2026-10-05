@@ -80,6 +80,10 @@ const vzyl=(k,r1,r2,h,seg,x,y,z,c,rx,ry,rz,sx,sy,sz)=>k.vc.push({geo:new THREE.C
 const vkugel=(k,r,ws,hs,x,y,z,c,sx,sy,sz)=>k.vc.push({geo:new THREE.SphereGeometry(r,ws,hs),m:tm(x,y,z,0,0,0,sx,sy,sz),color:num(c)});
 const vring=(k,R,r,rs,ts,arc,x,y,z,c,rx,ry,rz,sx,sy,sz)=>k.vc.push({geo:new THREE.TorusGeometry(R,r,rs,ts,arc),m:tm(x,y,z,rx,ry,rz,sx,sy,sz),color:num(c)});
 const klar=(k,geo,m)=>k.klar.push({geo,m});
+/* Quader mit Flaechen nach innen (dunkler Einsatz hinter Fenstern) */
+function vInnen(k,w,h,d,x,y,z,c){ const g=new THREE.BoxGeometry(w,h,d).toNonIndexed(), p=g.attributes.position, n=g.attributes.normal;
+  for(let i=0;i<p.count;i+=3) for(const A of [p,n,g.attributes.uv]){ const s=A.itemSize; for(let q=0;q<s;q++){ const t=A.array[(i+1)*s+q]; A.array[(i+1)*s+q]=A.array[(i+2)*s+q]; A.array[(i+2)*s+q]=t; } }
+  for(let i=0;i<n.array.length;i++) n.array[i]=-n.array[i]; k.vc.push({geo:g,m:tm(x,y,z),color:num(c)}); }
 /* Teile, die waehrend fn() entstehen, mit Matrix M verschieben/drehen */
 function mit(k,M,fn){ const L=[k.vc,k.druck,k.klar,k.extra], n=L.map(x=>x.length); fn(); L.forEach((x,i)=>{ for(let j=n[i];j<x.length;j++) x[j].m=M.clone().multiply(x[j].m); }); }
 
@@ -231,7 +235,8 @@ function kugel(k,R,x,y,z,o){ o=o||{};
 }
 /* Netz (gemeinsames Material je Farbe, Ausschnitt per alphaTest) */
 const _netz={};
-function netzMat(c,lw){ c=css(c); lw=lw||2.4; const key=c+lw; if(_netz[key]) return _netz[key];
+function netzMat(c,lw){ if(typeof WARE_PROBE!=='undefined'&&WARE_PROBE) return vcMat; /* Probeaufbau am Handy: nichts zwischenspeichern */
+  c=css(c); lw=lw||2.4; const key=c+lw; if(_netz[key]) return _netz[key];
   const t=tex(256,128,(g,W,H)=>{ g.clearRect(0,0,W,H); g.strokeStyle=c; g.lineWidth=lw; g.lineCap='round'; const s=W/16;
     for(let x=-H;x<=W+H;x+=s){ g.beginPath(); g.moveTo(x,0); g.lineTo(x+H,H); g.stroke(); g.beginPath(); g.moveTo(x+H,0); g.lineTo(x,H); g.stroke(); }
     g.fillStyle=c; for(let x=0;x<=W;x+=s) for(let y=0;y<=H;y+=s){ g.beginPath(); g.arc(x+((y/s)%2?s/2:0),y,lw*0.9,0,2*PI); g.fill(); } });
@@ -352,7 +357,9 @@ V.sternenmeer42=t=>{ const k=neu(t);
   lascheSeite(k,{w:k.w,d:k.d},0.05,'#c8ff5c'); return fertig(k); };
 /* Sternblinken: Eckfenster ueber die vordere Oberkante */
 V.blitzgewitter60=t=>{ const k=neu(t);
-  fensterKarton(k,{vornL:[{x:0.4,y:0,w:0.32,h:0.36}],topL:[{x:0.4,y:0.55,w:0.32,h:0.45}],rahmen:'#5ce1ff',rohr:'#26324a',deckel:{kappe:'#f2f5ff',wand:'#8aa0c0'}});
+  fensterKarton(k,{vornL:[{x:0.4,y:0,w:0.32,h:0.36}],topL:[{x:0.4,y:0.55,w:0.32,h:0.45}],rahmen:'#5ce1ff',rohr:'#26324a',deckel:{kappe:'#f2f5ff',wand:'#8aa0c0'},
+    /* 03.10.: Name oben nicht mehr vom Eckfenster zerschnitten */
+    top:(g,W,H)=>{ effektFoto(g,0,0,W,H,k.t,k.a,zufallAus(hashStr(k.t+'top')),{stadt:false}); nameText(g,k.a.title,W/2,H*0.24,W*0.86,Math.round(H*0.17),FNT.bar,'#fff','rgba(0,0,0,.7)',3); }});
   return fertig(k); };
 /* Vorhang auf!: Buehnen-Displaybox - rote Vorhaenge um das Fenster */
 V.goldenerregen=t=>{ const k=neu(t);
@@ -426,11 +433,18 @@ V.legion=t=>{ const k=neu(t), ex=0.03;
   schild(k,'schild',K.W*0.5,K.H*0.5,-K.W*0.12,K.H*0.48,K.D/2,pFront(k));
   schild(k,'schab',K.W*0.28,K.H*0.3,K.W*0.33,K.H*0.62,K.D/2,(g,W,H)=>{ g.fillStyle='#55603a'; g.fillRect(0,0,W,H); schablone(g,'LEGION',W/2,H*0.32,W*0.9,H*0.42,'#e8e2c8'); schablone(g,'240 SCHUSS · 1.4G',W/2,H*0.72,W*0.9,H*0.22,'#e8e2c8'); },0.001);
   for(const s of [-1,1]) seilgriff(k,s,s*K.W/2,K.H*0.62,'#c8b48a',0.04);
-  for(const s of [-1,1]){ vbox(k,0.04,0.06,0.004,s*K.W*0.3,K.H-0.04,K.D/2+0.002,'#3a3a32'); vbox(k,0.016,0.02,0.006,s*K.W*0.3,K.H-0.05,K.D/2+0.003,'#9aa0a8'); }
+  /* 03.10.: Deckel mit Schablonenschrift statt leerem Oliv */
+  druck(k,new THREE.PlaneGeometry(K.W*0.8,K.D*0.6),tm(0,K.H+0.0012,0,-PI/2,0,0),reg(k,'deckSchab',K.W*0.8,K.D*0.6,(g,W,H)=>{ g.clearRect(0,0,W,H); schablone(g,'LEGION',W/2,H*0.36,W*0.7,H*0.36,'rgba(232,226,200,.9)'); schablone(g,'240 SCHUSS · KERZEN-HEER · 1.4G',W/2,H*0.72,W*0.8,H*0.12,'rgba(232,226,200,.85)');
+    g.strokeStyle='rgba(232,226,200,.8)'; g.lineWidth=Math.max(2,W*0.008); g.strokeRect(W*0.04,H*0.08,W*0.92,H*0.84); }));
+  k.alpha=true;
+  for(const s of [-1,1]){ vbox(k,0.04,0.06,0.004,s*K.W*0.3,K.H-0.04,K.D/2+0.002,'#3a3a32'); }
   return fertig(k); };
 /* Silbergewitter: Alukiste mit Riffeln, Kantenprofilen und Spannverschluessen */
 V.lb_silbergewitter=t=>{ const k=neu(t), e=0.006, W=k.w-2*e, D=k.d-2*e, H=k.h-0.004; k.metall=0.35; k.rauh=0.4;
-  const alu=reg(k,'alu',0.5,0.15,pMetall({farbe:'#c4c9d0',riffel:7})), deckel=reg(k,'aluT',0.5,0.25,pMetall({farbe:'#c9ced6'}));
+  const alu=reg(k,'alu',0.5,0.15,pMetall({farbe:'#c4c9d0',riffel:7})), deckel=reg(k,'aluT',0.5,0.25,(g,W,H)=>{ pMetall({farbe:'#c9ced6'})(g,W,H);
+    /* 03.10.: Deckel nicht mehr blank - aufgeklebtes Etikett und Gefahrgutraute */
+    const ew=W*0.56, eh=H*0.6; g.save(); g.translate(W*0.06,H*0.2); drawTop(g,ew,eh,k.a,k.cat); g.restore(); g.strokeStyle='#f2f5ff'; g.lineWidth=Math.max(2,W*0.006); g.strokeRect(W*0.06,H*0.2,ew,eh);
+    g.save(); g.translate(W*0.82,H*0.5); g.rotate(PI/4); g.fillStyle='#ff9a1f'; g.fillRect(-H*0.16,-H*0.16,H*0.32,H*0.32); g.restore(); nameText(g,'1.4G',W*0.82,H*0.5,H*0.25,Math.round(H*0.1),FNT.bar,'#1b1b1b'); });
   kasten(k,W,H,D,tm(0,H/2,0),{pz:alu,nz:alu,px:alu,nx:alu,py:deckel,ny:alu});
   schild(k,'schild',W*0.62,H*0.68,-W*0.04,H*0.45,D/2,pFront(k));
   const p='#9aa1ab'; for(const sx of [-1,1]) for(const sz of [-1,1]) vbox(k,0.014,H,0.014,sx*(W/2-0.003),H/2,sz*(D/2-0.003),p);
@@ -511,8 +525,8 @@ V.heulbatterie=t=>{ const k=neu(t), w=k.w, d=k.d, h=k.h, hb=h*0.66, gh=h*0.2, a=
   return fertig(k); };
 /* Dreisprung: drei Stufenbloecke (Hop, Step, Jump) in Folie, Banderole */
 V.miniverbund=t=>{ const k=neu(t), e=0.003, bw=(k.w-2*e)/3, d=k.d-2*e, H=k.h-0.003, hs=[0.6,0.8,1];
-  hs.forEach((f,i)=>{ const x=-k.w/2+e+bw*(i+0.5), h=H*f, rv=reg(k,'rv'+i,bw,h,pRohrSeite({n:3,farbe:['#f28a1c','#ffd23f','#ffffff'][i]}));
-    kasten(k,bw-0.001,h,d,tm(x,h/2,0),{pz:rv,nz:rv,px:reg(k,'rs'+i,d,h,pRohrSeite({n:3,farbe:['#f28a1c','#ffd23f','#ffffff'][i]})),nx:'rs'+i,py:reg(k,'rd'+i,bw,d,pRohrDeckel({cols:1,rows:3,kappe:['#5a1a02','#f28a1c','#ffd23f'][i],schnur:false})),ny:farbe(k,'#2a2018')});
+  hs.forEach((f,i)=>{ const x=-k.w/2+e+bw*(i+0.5), h=H*f, rv=reg(k,'rv'+i,bw,h,pRohrSeite({n:3,farbe:['#f28a1c','#ffd23f','#d8322a'][i],kopf:'#f2f5ff'}));
+    kasten(k,bw-0.001,h,d,tm(x,h/2,0),{pz:rv,nz:rv,px:reg(k,'rs'+i,d,h,pRohrSeite({n:3,farbe:['#f28a1c','#ffd23f','#d8322a'][i],kopf:'#f2f5ff'})),nx:'rs'+i,py:reg(k,'rd'+i,bw,d,pRohrDeckel({cols:1,rows:3,kappe:['#5a1a02','#f28a1c','#ffd23f'][i],wand:['#f28a1c','#ffd23f','#d8322a'][i],schnur:false})),ny:farbe(k,'#2a2018')});
     klar(k,new THREE.BoxGeometry(bw,h+0.002,d+2*e),tm(x,(h+0.002)/2,0)); });
   banderole(k,{w:k.w-2*e,d,x:0,z:0},0.008,H*0.58);
   return fertig(k); };
@@ -577,7 +591,7 @@ V.hochzeitsfaecher=t=>{ const k=neu(t), e=0.004, sh=0.045, H=k.h-sh, dh=H*0.24, 
   return fertig(k); };
 /* Pusteblume (Kinder): Klarsicht-Clamshell mit Einlegekarte und Aufhaengelasche */
 V.kinderbatterie=t=>{ const k=neu(t), w=k.w, h=k.h, d=k.d, a=k.a, th=0.018, H=h-th; k.alpha=true;
-  const B=block(k,{bw:w*0.72,bd:d*0.62,hb:H*0.72,z:-d*0.12,y0:0.004,huelle:'roh',rohr:'#2f9e57',deckel:{kappe:(i,j)=>(i+j)%2?'#ffd23f':'#ff4fa3'}});
+  const B=block(k,{bw:w*0.72,bd:d*0.62,hb:H*0.72,z:-d*0.12,y0:0.004,huelle:'roh',rohr:'#2f9e57',rohrO:{bunt:['#2f9e57','#ff4fa3','#ffd23f','#3ec1ff','#b47cff'],kopf:'#ffffff'},etikett:[0.06,0.08,0.88,0.3],deckel:{kappe:(i,j)=>(i+j)%2?'#ffd23f':'#ff4fa3'}});
   /* L-foermige Einlegekarte: vorn bedruckt, unten Boden */
   const kh=H*0.62; kasten(k,w-0.006,kh,0.002,tm(0,kh/2+0.003,d/2-0.007),{pz:reg(k,'front',w,kh,pFront(k)),rest:farbe(k,'#ffffff')});
   kasten(k,w-0.006,0.002,d-0.008,tm(0,0.002,0),{rest:farbe(k,a.bg1)});
@@ -616,12 +630,44 @@ V.familienmix=t=>{ const k=neu(t), gh=0.03, h=k.h-gh;
   griff(k,0,h,k.h,0.16,'#c8407a',-k.d*0.38);
   return fertig(k); };
 /* Finale Grande (Nordlicht): Holzsteige mit fuenf italienischen
-   Zylinderbomben in Gruen, Weiss, Rot */
+   Zylinderbomben. 03.10. (Tom: "so eintoenig"): jede Bombe traegt jetzt
+   ihr eigenes Rundum-Etikett - Packpapier in ihrer Farbe, kreuzweise
+   verschnuert, vorn das Etikett mit Effektbild, Effektname und Kaliber,
+   oben der Kopf mit Bindfaden und Zuendlitze. */
+function pBombe(k,i,c,nm,mm){ return (g,W,H)=>{ const rnd=zufallAus(hashStr(k.t+'bomba'+i));
+  g.fillStyle=c; g.fillRect(0,0,W,H);
+  for(let n=0;n<W*H/30;n++){ g.fillStyle=rnd()<0.5?'rgba(0,0,0,.06)':'rgba(255,255,255,.06)'; g.fillRect(rnd()*W,rnd()*H,2,1); }
+  /* Verschnuerung: Schraeglinien kreuzweise */
+  g.strokeStyle='rgba(235,220,180,.85)'; g.lineWidth=Math.max(1,W*0.006);
+  for(let x=-H;x<W+H;x+=W/9){ g.beginPath(); g.moveTo(x,0); g.lineTo(x+H*0.8,H); g.stroke(); g.beginPath(); g.moveTo(x,H); g.lineTo(x+H*0.8,0); g.stroke(); }
+  /* Etikett vorn und hinten */
+  for(const cx of [W*0.25,W*0.75]){ const ew=W*0.36, eh=H*0.62, ex=cx-ew/2, ey=H*0.2, hinten=cx>W/2;
+    g.fillStyle='#f6efdc'; g.fillRect(ex,ey,ew,eh); g.strokeStyle='#1b1b1b'; g.lineWidth=Math.max(1,W*0.004); g.strokeRect(ex+ew*0.04,ey+eh*0.03,ew*0.92,eh*0.94);
+    /* Trikolore-Streifen */
+    ['#2f9e57','#f6efdc','#d8322a'].forEach((q,j)=>{ g.fillStyle=q; g.fillRect(ex+ew*0.04+j*ew*0.92/3,ey+eh*0.03,ew*0.92/3,eh*0.07); });
+    nameText(g,'BOMBA',cx,ey+eh*0.17,ew*0.85,Math.round(eh*0.1),FNT.cin,'#1b1b1b');
+    /* Effektbild rund */
+    const fr=Math.min(ew*0.36,eh*0.2); g.save(); g.beginPath(); g.arc(cx,ey+eh*0.42,fr,0,PI*2); g.clip(); g.fillStyle='#07081a'; g.fillRect(cx-fr,ey+eh*0.42-fr,fr*2,fr*2);
+    g.globalCompositeOperation='lighter'; const ac=i===1?'#fff3c4':c; for(let n=0;n<30;n++){ const an=n/30*PI*2, rr=fr*(0.6+rnd()*0.35); g.strokeStyle=rgba(ac,0.8); g.lineWidth=Math.max(1,fr*0.05); g.beginPath(); g.moveTo(cx,ey+eh*0.42); g.lineTo(cx+Math.cos(an)*rr,ey+eh*0.42+Math.sin(an)*rr*(i===2?1.25:1)); g.stroke(); }
+    g.restore(); g.strokeStyle='#b8902a'; g.lineWidth=Math.max(1,fr*0.08); g.beginPath(); g.arc(cx,ey+eh*0.42,fr,0,PI*2); g.stroke();
+    nameText(g,nm,cx,ey+eh*0.7,ew*0.86,Math.round(eh*0.075),FNT.cin,'#7a1a12');
+    nameText(g,hinten?'F4 · CE 0589':'Ø '+mm+' mm',cx,ey+eh*0.83,ew*0.8,Math.round(eh*0.07),FNT.bar,'#1b1b1b');
+    g.fillStyle='#1b1b1b'; for(let n=0;n<4;n++) g.fillRect(ex+ew*0.18,ey+eh*(0.9+n*0.018),ew*0.64*(0.6+0.4*rnd()),Math.max(1,eh*0.006)); }
+  /* Kopfbinde oben, Naht unten */
+  g.fillStyle='#e8dcc0'; g.fillRect(0,0,W,H*0.06); g.fillStyle='rgba(0,0,0,.25)'; g.fillRect(0,H*0.06,W,Math.max(1,H*0.006));
+  g.fillStyle='rgba(0,0,0,.2)'; g.fillRect(0,H*0.96,W,H*0.04); }; }
 V.kugelfinale=t=>{ const k=neu(t), H=k.h*0.5;
   const K=kiste(k,{latten:true,H,holz:'#d8b888',bretter:3,gap:0.022,deckel:false,kern:farbe(k,'#3a2a18')});
   vbox(k,K.W-0.02,0.01,K.D-0.02,0,0.005,0,'#c8a87a');
-  const R=0.046, pos=[[-0.13,-0.1],[0,-0.11],[0.13,-0.1],[-0.07,0.06],[0.07,0.06]], cols=['#2f9e57','#f2f0e6','#d8322a','#2f9e57','#d8322a'], hs=[0.27,0.29,0.31,0.25,0.33];
-  pos.forEach(([x,z],i)=>{ const hh=hs[i]; vzyl(k,R,R,hh,14,x,0.01+hh/2,z,cols[i]); vzyl(k,R*1.01,R*1.01,0.018,14,x,0.01+hh*0.7,z,'#e8dcc0'); vzyl(k,R*1.02,R*1.02,0.008,14,x,0.01+hh,z,'#3a3026');
+  const R=0.046, pos=[[-0.13,-0.1],[0,-0.11],[0.13,-0.1],[-0.07,0.06],[0.07,0.06]], hs=[0.27,0.29,0.31,0.25,0.33];
+  const B=[['#3f8a4e','CRISANTEMO VERDE',100],['#e9e2cf','PEONIA BIANCA',100],['#b8322a','SALICE ROSSO',125],['#2f6a8a','PALMA BLU',100],['#8a2f6a','COLPI FINALE',125]];
+  pos.forEach(([x,z],i)=>{ const hh=hs[i], [c,nm,mm]=B[i], ry=(i-2)*0.18;
+    mantel(k,R,hh,0.01,'bomba'+i,pBombe(k,i,c,nm,mm),{x,z,seg:18});
+    /* um die Bombe gedreht: Etikett zeigt leicht nach aussen */
+    k.druck[k.druck.length-1].m=tm(x,0.01+hh/2,z,0,ry,0);
+    vzyl(k,R*0.96,R*0.96,0.004,14,x,0.01+hh+0.002,z,'#3a3026');
+    /* Kopf: Bindfaden-Knoten und Zuendlitze mit Papierkappe */
+    vzyl(k,R*0.32,R*0.42,0.016,10,x,0.01+hh+0.01,z,'#e8dcc0');
     vzyl(k,0.004,0.004,k.h-0.012-hh,5,x+0.01,0.01+hh+(k.h-0.012-hh)/2,z,'#2e5a8a'); vzyl(k,0.007,0.007,0.02,6,x+0.01,k.h-0.012,z,'#d8322a'); });
   schild(k,'schild',K.W*0.8,H*0.8,0,H*0.5,K.D/2+0.0005);
   return fertig(k); };
@@ -629,7 +675,9 @@ V.kugelfinale=t=>{ const k=neu(t), H=k.h*0.5;
    die zehn kleinen Kegelfontaenen in Regenbogenfarben */
 V.lb_regenbogenbrunnen=t=>{ const k=neu(t);
   fensterKarton(k,{vornL:[{form:'rund',x:0.03,y:0.05,w:0.94,h:0.52,r:0.2}],topL:[{x:0.03,y:0.05,w:0.94,h:0.9}],rahmen:'#ffd23f',innen:false});
-  vbox(k,k.w-0.01,0.006,k.d-0.01,0,0.003,0,'#1a0a30');
+  /* 03.10.: dunkler Einsatz - vorher sah man schraeg von oben durch die
+     Schachtel hindurch (weisse Flaechen) */
+  vInnen(k,k.w-0.004,k.h-0.008,k.d-0.004,0,(k.h+0.004)/2,0,'#1a0a30');
   const rb=['#ff3b3b','#ff8a2a','#ffd23f','#5cd65c','#3ad6d6','#3a6aff','#a24aff'];
   for(let r=0;r<2;r++) for(let i=0;i<5;i++){ const x=-k.w/2+k.w*(i+0.5)/5, z=(r-0.5)*k.d*0.45, c=rb[(i+r*5)%7], hh=k.h*0.62;
     vzyl(k,0.012,0.03,hh,12,x,0.006+hh/2,z,c); vzyl(k,0.013,0.016,0.012,10,x,0.006+hh,z,'#f4f0e6'); }
@@ -663,7 +711,14 @@ V.lb_blitzpalmen=t=>{ const k=neu(t), B=block(k,{folie:true,deckel:{kappe:(i,j)=
   folie(k); return fertig(k); };
 /* Schimmelreiter: schwarze nackte Rohre, silberne Banderole, Folie */
 V.kometen=t=>{ const k=neu(t), B=block(k,{folie:true,huelle:'roh',rohr:'#2a2c32',rohrO:{kopf:'#f2f5ff'},deckel:{kappe:'#f2f5ff',wand:'#5a5c64'}});
-  banderole(k,B,B.h*0.14,B.h*0.78,{seite:(g,W,H)=>{ const gr=g.createLinearGradient(0,0,W,H); gr.addColorStop(0,'#e8ecf2'); gr.addColorStop(0.5,'#9aa2ae'); gr.addColorStop(1,'#e8ecf2'); g.fillStyle=gr; g.fillRect(0,0,W,H); g.save(); g.translate(W/2,H/2); g.rotate(-PI/2); nameText(g,k.a.title,0,0,H*0.84,Math.round(W*0.3),FNT.bun,'#26292f'); g.restore(); },farbe:'#c9ced6'});
+  banderole(k,B,B.h*0.14,B.h*0.78,{seite:(g,W,H)=>{ const gr=g.createLinearGradient(0,0,W,H); gr.addColorStop(0,'#e8ecf2'); gr.addColorStop(0.5,'#9aa2ae'); gr.addColorStop(1,'#e8ecf2'); g.fillStyle=gr; g.fillRect(0,0,W,H);
+    /* 03.10.: Seite nicht mehr leer - Pferdeschweif-Motiv, Name, Warnfeld */
+    g.save(); g.beginPath(); g.rect(W*0.06,H*0.05,W*0.88,H*0.42); g.clip(); effektFoto(g,W*0.06,H*0.05,W*0.88,H*0.42,k.t,k.a,zufallAus(hashStr(k.t+'s')),{stadt:false,einzeln:true}); g.restore();
+    g.strokeStyle='#26292f'; g.lineWidth=Math.max(1.5,W*0.01); g.strokeRect(W*0.06,H*0.05,W*0.88,H*0.42);
+    nameText(g,k.a.title,W/2,H*0.55,W*0.86,Math.round(H*0.1),FNT.bun,'#26292f'); nameText(g,k.a.sub||'',W/2,H*0.64,W*0.86,Math.round(H*0.05),FNT.bar,'#3a3f48');
+    g.fillStyle='rgba(255,255,255,.85)'; g.fillRect(W*0.1,H*0.7,W*0.8,H*0.24); g.fillStyle='#1b1b1b'; g.font=`700 ${Math.max(6,Math.round(H*0.035))}px Arial`; g.textAlign='left'; g.textBaseline='top'; g.fillText('ACHTUNG',W*0.14,H*0.715);
+    for(let i=0;i<5;i++){ g.fillStyle='rgba(30,30,30,.5)'; g.fillRect(W*0.14,H*(0.76+i*0.03),W*0.5,Math.max(1,H*0.008)); }
+    for(let i=0;i<3;i++){ const cx=W*(0.72+i*0.0), cy=H*(0.77+i*0.055); g.fillStyle='#fff'; g.beginPath(); g.arc(cx,cy,H*0.022,0,2*PI); g.fill(); g.strokeStyle='#c8322a'; g.lineWidth=Math.max(1,H*0.006); g.stroke(); } },farbe:'#c9ced6'});
   lascheSeite(k,B,0.04,'#5c8dff'); folie(k); return fertig(k); };
 /* Goldregen (Aurum): schwarze Rohre, breite schwarz-goldene Banderole,
    goldene Kantenwinkel, Siegel */
@@ -818,7 +873,9 @@ V.goldweide100=t=>{ const k=neu(t), R=Math.min(k.w,k.d)/2-0.003, h=k.h, kh=0.016
   mantel(k,R,h-2*kh,kh,'koker',pKraft({farbe:'#a87a48'}));
   mantel(k,R+0.001,(h-2*kh)*0.72,kh+(h-2*kh)*0.14,'band',pRund(k,pFront(k),0.32));
   vzyl(k,R+0.002,R+0.002,kh,20,0,kh/2,0,'#141414'); vzyl(k,R+0.002,R+0.002,kh,20,0,h-kh/2,0,'#141414');
-  vring(k,R*0.4,0.002,4,12,PI,0,h-0.001,0,GOLD,0,0,0,1,0.0001+0.0,1);
+  druck(k,new THREE.CircleGeometry(R+0.0015,20),tm(0,h+0.0006,0,-PI/2,0,0),reg(k,'koecherdeckel',0.1,0.1,(g,W,H)=>{ g.fillStyle='#141414'; g.fillRect(0,0,W,H); g.strokeStyle=GOLD; g.lineWidth=W*0.02; g.beginPath(); g.arc(W/2,H/2,W*0.44,0,2*PI); g.stroke(); g.beginPath(); g.arc(W/2,H/2,W*0.38,0,2*PI); g.stroke();
+    g.strokeStyle='rgba(217,180,90,.85)'; g.lineWidth=W*0.012; for(let i=0;i<9;i++){ const an=-PI/2+(i-4)*0.3; g.beginPath(); g.moveTo(W/2,H*0.3); g.quadraticCurveTo(W/2+Math.cos(an)*W*0.22,H*0.3+Math.sin(an)*W*0.1,W/2+Math.cos(an)*W*0.26,H*0.62); g.stroke(); }
+    nameText(g,k.a.title,W/2,H*0.74,W*0.6,Math.round(H*0.09),FNT.cin,GOLD); }));
   return fertig(k); };
 /* Eiskristall 100 (Aurum): Klarsichtschachtel auf schwarzem Sockel mit
    goldenem Etikett, Schneeflocken-Aufdruck auf der Scheibe */
@@ -854,7 +911,11 @@ V.sternenstaub150=t=>{ const k=neu(t), Rl=Math.min(k.w,k.d)/2-0.002, R=Rl-0.004,
 V.sternkugel150=t=>{ const k=neu(t), w=k.w, h=k.h, d=k.d, a=k.a, cx=0, Ro=Math.min(w/2/Math.cos(PI/10)*0.99,h/1.81), Ri=Ro*0.5, cy=Ro*Math.sin(PI*0.3)+0.001;
   const sh=new THREE.Shape(); for(let i=0;i<10;i++){ const an=PI/2+i*PI/5, r=i%2?Ri:Ro; const x=cx+Math.cos(an)*r, y=Math.sin(an)*r; if(i) sh.lineTo(x,y); else sh.moveTo(x,y); } sh.closePath();
   const geo=new THREE.ExtrudeGeometry(sh,{depth:d*0.86,bevelEnabled:false,curveSegments:1}); geo.translate(0,0,-d*0.43);
-  const kr=reg(k,'kraft',0.3,0.3,pKraft({farbe:'#c49a62',fn:(g,W,H)=>{ g.strokeStyle='rgba(60,40,20,.25)'; g.lineWidth=W*0.01; g.strokeRect(W*0.04,H*0.04,W*0.92,H*0.92); }})), fr=reg(k,'stern',0.2,0.2,(g,W,H)=>{ pKraft({farbe:'#c9a676'})(g,W,H);
+  const kr=reg(k,'kraft',0.3,0.3,pKraft({farbe:'#c49a62',fn:(g,W,H)=>{ g.strokeStyle='rgba(60,40,20,.25)'; g.lineWidth=W*0.01; g.strokeRect(W*0.04,H*0.04,W*0.92,H*0.92);
+    /* 03.10.: Stempeldruck statt leerer Kraftflaechen - Sterne und Name */
+    const Rn=zufallAus(31); g.fillStyle='rgba(43,29,16,.55)'; for(let i=0;i<9;i++){ stern(g,W*(0.1+Rn()*0.8),H*(0.1+Rn()*0.8),W*(0.02+Rn()*0.025),5,0.45); g.fill(); }
+    g.fillStyle='rgba(150,30,20,.7)'; stern(g,W*0.5,H*0.32,W*0.12,5,0.45); g.fill();
+    g.strokeStyle='rgba(43,29,16,.5)'; g.lineWidth=W*0.012; g.beginPath(); g.arc(W*0.5,H*0.32,W*0.17,0,2*PI); g.stroke(); }})), fr=reg(k,'stern',0.2,0.2,(g,W,H)=>{ pKraft({farbe:'#c9a676'})(g,W,H);
     const r=W*0.19, cy=H*0.42; effektFoto(g,W/2-r,cy-r,r*2,r*2,k.t,a,zufallAus(3),{rund:true,einzeln:true,stadt:false}); g.strokeStyle='#2b1d10'; g.lineWidth=W*0.012; g.beginPath(); g.arc(W/2,cy,r,0,2*PI); g.stroke();
     nameText(g,a.title,W/2,H*0.66,W*0.58,Math.round(H*0.08),FNT.bar,'#2b1d10'); nameText(g,'KUGELBOMBE 150 mm · NORDLICHT',W/2,H*0.73,W*0.4,Math.round(H*0.03),FNT.bar,'#5a4428'); });
   k.druck.push({geo,m:tm(0,cy,0),fn:S=>{ const p=geo.attributes.position, n=geo.attributes.normal, uv=geo.attributes.uv, A=S[fr], B=S[kr];
@@ -864,7 +925,15 @@ V.sternkugel150=t=>{ const k=neu(t), w=k.w, h=k.h, d=k.d, a=k.a, cx=0, Ro=Math.m
    Abschussrohr mit roter Kappe ragt */
 V.farbcrossette150=t=>{ const k=neu(t), w=k.w, h=k.h, d=k.d, hb=h*0.66, Rr=Math.min(w,d)/2-0.012;
   kasten(k,w,hb,d,tm(0,hb/2,0),{pz:reg(k,'front',w,hb,pFront(k)),nz:'front',px:reg(k,'seite',d,hb,pSeite(k)),nx:'seite',py:reg(k,'top',w,d,(g,W,H)=>{ drawTop(g,W,H,k.a,k.cat); g.fillStyle='#0a0a0a'; g.beginPath(); g.arc(W/2,H/2,W*0.42,0,2*PI); g.fill(); }),ny:farbe(k,'#2a2018')});
-  vzyl(k,Rr,Rr,h-hb-0.012,22,0,hb+(h-hb-0.012)/2,0,'#1c1c20'); vzyl(k,Rr+0.003,Rr+0.003,0.014,22,0,h-0.007,0,'#d8322a'); vzyl(k,Rr*0.5,Rr*0.5,0.003,16,0,h-0.0005,0,'#a81e1a');
+  /* 03.10.: Moerserrohr mit Warnetikett, Kappe mit Druck (vorher nackt schwarz/rot) */
+  const rh=h-hb-0.012;
+  mantel(k,Rr,rh,hb,'moerser',(g,W,H)=>{ g.fillStyle='#1c1c20'; g.fillRect(0,0,W,H); g.fillStyle='rgba(255,255,255,.05)'; for(let y=0;y<H;y+=3) g.fillRect(0,y,W,1);
+    for(const cx of [W*0.25,W*0.75]){ const ew=W*0.3; g.fillStyle='#ffd23f'; g.fillRect(cx-ew/2,H*0.1,ew,H*0.8); g.fillStyle='#1c1c20'; g.fillRect(cx-ew/2,H*0.1,ew,H*0.16);
+      nameText(g,'MÖRSER',cx,H*0.18,ew*0.9,Math.round(H*0.12),FNT.bar,'#ffd23f'); nameText(g,'150 mm',cx,H*0.42,ew*0.9,Math.round(H*0.2),FNT.bar,'#1c1c20');
+      nameText(g,'ABSCHUSSROHR',cx,H*0.62,ew*0.86,Math.round(H*0.1),FNT.bar,'#1c1c20'); for(let q=0;q<3;q++){ g.fillStyle='#1c1c20'; g.fillRect(cx-ew*0.4,H*(0.76+q*0.04),ew*0.8,Math.max(1,H*0.015)); } } },{seg:22});
+  vzyl(k,Rr+0.003,Rr+0.003,0.014,22,0,h-0.007,0,'#d8322a');
+  druck(k,new THREE.CircleGeometry(Rr+0.0025,22),tm(0,h-0.0002,0,-PI/2,0,0),reg(k,'kappe',0.1,0.1,(g,W,H)=>{ g.fillStyle='#d8322a'; g.fillRect(0,0,W,H); g.strokeStyle='#a81e1a'; g.lineWidth=W*0.03; for(const r of [0.46,0.3]){ g.beginPath(); g.arc(W/2,H/2,W*r,0,2*PI); g.stroke(); }
+    nameText(g,'150',W/2,H*0.46,W*0.5,Math.round(H*0.22),FNT.bun,'#fff'); nameText(g,'KALIBER mm',W/2,H*0.66,W*0.5,Math.round(H*0.08),FNT.bar,'#fff'); }));
   vbox(k,0.05,0.02,0.002,0,hb+0.03,Rr+0.0005,'#ffd23f');
   return fertig(k); };
 /* Feuerlilie 200: rot lackierte Blechdose mit Rollraendern und
@@ -872,7 +941,10 @@ V.farbcrossette150=t=>{ const k=neu(t), w=k.w, h=k.h, d=k.d, hb=h*0.66, Rr=Math.
 V.feuerlilie200=t=>{ const k=neu(t), R=Math.min(k.w,k.d)/2-0.004, h=k.h, dh=0.03, H=h-dh;
   mantel(k,R,H-0.006,0.003,'mantel',pRund(k,pFront(k),0.3),{seg:28});
   vring(k,R,0.003,5,28,2*PI,0,0.003,0,'#8a1010',PI/2,0,0); vring(k,R,0.003,5,28,2*PI,0,H-0.003,0,'#8a1010',PI/2,0,0);
-  vzyl(k,R+0.003,R+0.003,dh,28,0,H+dh/2,0,'#c81818'); vzyl(k,R*0.7,R*0.75,0.003,24,0,h-0.0005,0,'#e8c35a'); vring(k,R*0.86,0.002,4,24,2*PI,0,h,0,'#e8c35a',PI/2,0,0);
+  vzyl(k,R+0.003,R+0.003,dh,28,0,H+dh/2,0,'#c81818');
+  druck(k,new THREE.CircleGeometry(R*0.78,28),tm(0,h+0.0006,0,-PI/2,0,0),reg(k,'liliendeckel',0.15,0.15,(g,W,H)=>{ const gr=g.createRadialGradient(W*0.4,H*0.4,0,W/2,H/2,W*0.6); gr.addColorStop(0,'#f6d77a'); gr.addColorStop(1,'#b8892f'); g.fillStyle=gr; g.fillRect(0,0,W,H);
+    g.fillStyle='#c81818'; for(let i=0;i<6;i++){ g.save(); g.translate(W/2,H*0.46); g.rotate(i*PI/3); g.beginPath(); g.ellipse(0,-H*0.15,W*0.06,H*0.15,0,0,2*PI); g.fill(); g.restore(); }
+    g.fillStyle='#ffd23f'; g.beginPath(); g.arc(W/2,H*0.46,W*0.05,0,2*PI); g.fill(); nameText(g,k.a.title,W/2,H*0.8,W*0.6,Math.round(H*0.1),FNT.cin,'#5a0808'); })); vring(k,R*0.86,0.002,4,24,2*PI,0,h,0,'#e8c35a',PI/2,0,0);
   vzyl(k,R,R,0.003,24,0,0.0015,0,'#5a0808');
   return fertig(k); };
 /* Leuchtqualle 200 (Aurum): Glaskugel auf schwarz-goldenem Sockel */
@@ -899,7 +971,7 @@ V.kronenkranz200=t=>{ const k=neu(t), w=k.w, h=k.h, d=k.d, hb=h*0.82, a=k.a; k.a
    Deckelring */
 V.zwillingssonne200=t=>{ const k=neu(t), R=Math.min(k.w,k.d)/2-0.003, h=k.h, hb=h*0.56;
   mantel(k,R,hb,0,'mantel',pRund(k,pFront(k),0.34));
-  vzyl(k,R+0.002,R+0.002,0.008,26,0,hb,0,GOLD); vzyl(k,R+0.002,R+0.002,0.01,26,0,h-0.005,0,GOLD);
+  vzyl(k,R+0.002,R+0.002,0.008,26,0,hb,0,GOLD); k.vc.push({geo:new THREE.CylinderGeometry(R+0.002,R+0.002,0.012,26,1,true),m:tm(0,h-0.006,0),color:num(GOLD)}); k.vc.push({geo:new THREE.RingGeometry(R-0.004,R+0.002,26,1),m:tm(0,h,0,-PI/2,0,0),color:num(GOLD)});
   druck(k,new THREE.CircleGeometry(R*0.98,24),tm(0,hb-0.002,0,-PI/2,0,0),reg(k,'boden',0.1,0.1,(g,W,H)=>{ g.fillStyle='#1a1a2a'; g.fillRect(0,0,W,H); for(let i=0;i<2;i++){ g.fillStyle=i?'#ff8ac8':'#ffd23f'; g.beginPath(); g.arc(W*(0.3+i*0.4),H/2,W*0.12,0,2*PI); g.fill(); } }));
   const Rk=R*0.78; kugel(k,Rk,0,hb+Rk*0.25,0,{zuender:false}); k.klarMat=glassMat;
   klar(k,new THREE.CylinderGeometry(R,R,h-hb-0.01,26,1,true),tm(0,hb+(h-hb-0.01)/2,0)); klar(k,new THREE.CircleGeometry(R,26),tm(0,h-0.0005,0,-PI/2,0,0));
@@ -926,7 +998,9 @@ V.goldweidenkreuz200=t=>{ const k=neu(t), e=0.003, rh=0.022, w=k.w-2*e, d=k.d-2*
 V.kugel300=t=>{ const k=neu(t), R=Math.min(k.w,k.d)/2-0.006, h=k.h, bh=0.035, H=h-bh;
   mantel(k,R,H,0,'mantel',(g,W,H2)=>{ pKraft({farbe:'#9a7448'})(g,W,H2); for(let q=0;q<2;q++){ const x=q*W/2+W*0.06, ew=W*0.38; g.save(); g.translate(x,H2*0.12); drawFront(g,ew,H2*0.76,k.a,k.cat); g.restore(); g.strokeStyle='#f2efe6'; g.lineWidth=3; g.strokeRect(x,H2*0.12,ew,H2*0.76); } },{seg:28});
   for(const y of [0.004,H*0.5,H-0.006]) vring(k,R+0.001,0.004,5,28,2*PI,0,y,0,'#7a8088',PI/2,0,0);
-  vzyl(k,R+0.004,R+0.004,0.012,28,0,H-0.006,0,'#8a9098'); vzyl(k,R,R,0.004,28,0,H+0.002,0,'#5a6068');
+  vzyl(k,R+0.004,R+0.004,0.012,28,0,H-0.006,0,'#8a9098'); k.vc.push({geo:new THREE.CylinderGeometry(R,R,0.004,28,1,true),m:tm(0,H+0.002,0),color:num('#5a6068')});
+  druck(k,new THREE.CircleGeometry(R*0.97,28),tm(0,H+0.0048,0,-PI/2,0,0),reg(k,'fassdeckel',0.2,0.2,(g,W,H)=>{ pKraft({farbe:'#8a6a42'})(g,W,H); g.strokeStyle='rgba(30,20,10,.5)'; g.lineWidth=W*0.012; for(const r of [0.47,0.42]){ g.beginPath(); g.arc(W/2,H/2,W*r,0,2*PI); g.stroke(); }
+    schablone(g,'HIMMELS-',W/2,H*0.36,W*0.7,H*0.13,'rgba(25,18,10,.85)'); schablone(g,'BRECHER',W/2,H*0.5,W*0.7,H*0.13,'rgba(25,18,10,.85)'); schablone(g,'300 MM · 1.4G',W/2,H*0.66,W*0.6,H*0.08,'rgba(150,20,10,.85)'); }));
   vbox(k,0.06,0.012,0.006,R*0.35,H-0.006,R*0.95,'#9aa1ab',0,-0.35,0);
   vring(k,R*0.82,0.0035,5,16,PI,0,H+0.002,0,'#9aa1ab',0,0,0,1,bh/(R*0.82)*0.92,1);
   for(const s of [-1,1]) vbox(k,0.016,0.016,0.012,s*R*0.82,H+0.004,0,'#7a8088');
@@ -971,15 +1045,54 @@ V.dreifachkrone300=t=>{ const k=neu(t), w=k.w-0.004, d=k.d*0.66, gh=0.075, h=k.h
   for(let i=0;i<7;i++){ const x=-w*0.36+i*w*0.12; vbox(k,0.06,0.05,0.004,x,h+0.012,(i%2-0.5)*d*0.3,i%2?'#f3d98b':'#d9b45a',0.4*(i%3-1),i*0.7,0.3*(i%2?1:-1)); }
   for(const s of [-1,1]) kordel(k,[[-w*0.18,h-0.01,s*(d/2+0.002)],[-w*0.14,k.h-0.008,s*(d/2+0.002)],[w*0.14,k.h-0.008,s*(d/2+0.002)],[w*0.18,h-0.01,s*(d/2+0.002)]],GOLD,0.0035);
   return fertig(k); };
+/* Crossettenweide 300 (03.10.: hatte keine eigene Verpackung - weisse
+   Standard-Dose mit nacktem Deckel): Samtbeutel mit Zugkordel, wie ein
+   Geschenk. Dunkelvioletter Samt mit goldenem Crossetten-Druck, vorn der
+   Name in Gold, oben gerafft mit Kordel und Quasten, Anhaenger vorn. */
+V.crossettenweide300=t=>{ const k=neu(t), w=k.w, h=k.h, d=k.d, a=k.a, R=Math.min(w,d)/2*0.97;
+  const prof=[[R*0.82,0.002],[R*0.97,h*0.08],[R,h*0.32],[R*0.86,h*0.6],[R*0.4,h*0.76],[R*0.32,h*0.82],[R*0.5,h*0.94],[0.001,h*0.99]].map(p=>new THREE.Vector2(p[0],p[1]));
+  const geo=new THREE.LatheGeometry(prof,14,-PI);
+  const samt=(g,W,H)=>{ const gr=g.createLinearGradient(0,0,W,0); for(let q=0;q<=8;q++) gr.addColorStop(q/8,q%2?'#2a0d3a':'#3d1652'); g.fillStyle=gr; g.fillRect(0,0,W,H);
+    const Rn=zufallAus(hashStr(k.t+'samt')); for(let i=0;i<W*H/12;i++){ g.fillStyle=Rn()<0.5?'rgba(0,0,0,.12)':'rgba(255,255,255,.04)'; g.fillRect(Rn()*W,Rn()*H,1,1); }
+    /* goldene Sternbluetenmuster (kleine Funkenkraenze mit Punkten), verstreut */
+    g.strokeStyle='rgba(217,180,90,.7)'; g.fillStyle='rgba(240,214,140,.85)'; g.lineWidth=Math.max(1,W*0.002);
+    for(let i=0;i<30;i++){ const x=Rn()*W, y=H*0.12+Rn()*H*0.62, r=W*(0.008+Rn()*0.008); if(Math.abs(x-W/2)<W*0.16&&y>H*0.24&&y<H*0.64) continue;
+      for(let q=0;q<10;q++){ const an=q*PI/5; g.beginPath(); g.moveTo(x+Math.cos(an)*r*0.3,y+Math.sin(an)*r*0.3); g.lineTo(x+Math.cos(an)*r,y+Math.sin(an)*r); g.stroke(); g.beginPath(); g.arc(x+Math.cos(an)*r*1.2,y+Math.sin(an)*r*1.2,Math.max(0.8,r*0.12),0,2*PI); g.fill(); } }
+    /* Name vorn (u 0,5 = vorn), in Gold mit Rahmen */
+    const cx=W/2, bw=W*0.28; g.strokeStyle=GOLD; g.lineWidth=Math.max(1.5,W*0.003); g.strokeRect(cx-bw/2,H*0.26,bw,H*0.36);
+    g.save(); g.beginPath(); g.arc(cx,H*0.36,bw*0.2,0,2*PI); g.clip(); effektFoto(g,cx-bw*0.2,H*0.36-bw*0.2,bw*0.4,bw*0.4,k.t,a,zufallAus(5),{rund:true,einzeln:true,stadt:false}); g.restore();
+    g.strokeStyle=GOLD; g.beginPath(); g.arc(cx,H*0.36,bw*0.2,0,2*PI); g.stroke();
+    nameText(g,a.title,cx,H*0.5,bw*0.92,Math.round(H*0.055),FNT.cin,GOLD); nameText(g,'KUGELBOMBE 300 mm',cx,H*0.56,bw*0.8,Math.round(H*0.028),FNT.cin,'#e8d8a8');
+    /* Rueckseite: Warnfeld */ g.fillStyle='rgba(240,232,210,.9)'; g.fillRect(W*0.02,H*0.3,W*0.1,H*0.25); g.fillRect(W*0.88,H*0.3,W*0.1,H*0.25);
+    g.fillStyle=GOLD; g.fillRect(0,H*0.18,W,H*0.008); g.fillRect(0,H*0.7,W,H*0.008); };
+  druck(k,geo,tm(0,0,0),reg(k,'beutel',2*PI*R,h*1.1,samt));
+  k.rauh=0.85;
+  /* Zugkordel um den Hals, zwei Enden mit Quasten */
+  const yk=h*0.79; vring(k,R*0.36,0.0045,3,10,2*PI,0,yk,0,GOLD,PI/2,0,0);
+  for(const s of [-1,1]){ kordel(k,[[s*R*0.1,yk,R*0.3],[s*R*0.22,yk-h*0.08,R*0.48],[s*R*0.3,yk-h*0.18,R*0.62]],GOLD,0.0025);
+    k.vc.push({geo:new THREE.ConeGeometry(0.009,0.03,5,1,true),m:tm(s*R*0.3,yk-h*0.18-0.015,R*0.62),color:num(GOLD)}); }
+  /* Anhaenger an der Kordel */
+  const aw=0.07, ah=0.05; kasten(k,aw,ah,0.0015,tm(-R*0.32,yk-h*0.24,R*0.66,0.15,0,0.12),{pz:reg(k,'tag',aw,ah,(g,W,H)=>{ g.fillStyle='#0b0a09'; g.fillRect(0,0,W,H); g.strokeStyle=GOLD; g.lineWidth=Math.max(1,W*0.03); g.strokeRect(W*0.06,H*0.08,W*0.88,H*0.84);
+    nameText(g,'AURUM',W/2,H*0.32,W*0.7,Math.round(H*0.18),FNT.cin,GOLD); nameText(g,'Meisterstück',W/2,H*0.62,W*0.7,Math.round(H*0.15),FNT.cin,'#e8d8a8'); }),rest:farbe(k,GOLD)});
+  return fertig(k); };
 
 /* ---------------- 03.10. abends: neue Lichter-Batterien (14q) und die
    Batterien, die vorher Kerzen waren (Feuerperlen, Lichterkette,
    Zwillinge) - je ein eigener Block mit eigenem Zubehoer ---------------- */
-const nbForm=o=>t=>{ const k=neu(t), B=block(k,Object.assign({},o.block||{}));
+/* 04.10. (Kontaktbogen): Gurte und Banderolen lagen auf dem bedruckten
+   Vorderbild - "SMARAGDF|CHER" vom Mittelgurt zerschnitten, die
+   Polarnacht-Banderole verdeckte Name und Schusszahl, beim Farbtiger
+   schnitt der Gurt das Etikett. Jetzt: ein Mittelgurt ueber bedruckter
+   Front laeuft quer (Seite-oben-Seite), Seitengurte sitzen an den
+   Kanten ausserhalb von Druckbild und Etikett, eine Banderole liegt bei
+   bedruckter Front oben ueber der Warnleiste. */
+const nbForm=o=>t=>{ const k=neu(t), B=block(k,Object.assign({},o.block||{})), druckVorn=!(o.block&&o.block.huelle==='roh');
   if(o.ecken) ecken(k,B.w,B.h,B.d,o.ecken,o.eb||0.014);
-  (o.gurtZ||[]).forEach(s=>gurtZ(k,s*B.w*0.42,B.h,B.d,o.gc,o.gb||0.02,o.schnalle||null));
+  (o.gurtZ||[]).forEach(s=>{ const gb=o.gb||0.02;
+    if(druckVorn&&!s) gurtX(k,0,B.w,B.h,o.gc,gb);
+    else gurtZ(k,Math.sign(s||1)*(B.w/2-gb/2-0.004),B.h,B.d,o.gc,gb,druckVorn?null:(o.schnalle||null)); });
   if(o.gurtX) gurtX(k,o.gurtX*B.d,B.w,B.h,o.gc,o.gb||0.018);
-  if(o.band) banderole(k,B,B.h*o.band[0],B.h*o.band[1],{farbe:o.bf,akzent:o.ba});
+  if(o.band){ const b=druckVorn&&o.band[1]>0.3?[0.84,0.97]:o.band; banderole(k,B,B.h*b[0],B.h*b[1],{farbe:o.bf,akzent:o.ba}); }
   if(o.lasche) lascheSeite(k,B,0.045,o.lasche);
   if(o.block&&o.block.folie) folie(k);
   return fertig(k); };

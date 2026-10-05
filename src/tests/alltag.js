@@ -62,7 +62,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   console.log('TUER',JSON.stringify(t));
   pruef('TUER',t.nah.auf===1&&t.nah.zu===1&&t.nah.vol>0.3&&t.fernAuf===0,JSON.stringify(t));
   /* Scanner + Kasse: Kassierer einstellen, Spieler neben der Kasse */
-  const k=await p.evaluate(()=>{ const bb=__bb, S=bb.S; bb.gpStart(); bb.fireStaff('packer'); S.staff.packer=false; const g=bb.ckG.position; bb.setView(g.x+1.5,g.z+1.5,0,-0.3); bb.run(0.2,0.05);
+  const k=await p.evaluate(()=>{ const bb=__bb, S=bb.S; bb.gpStart(); let gb=0; while(!bb.gpFertig&&gb++<20000) bb.gpBauSchritt(50); bb.fireStaff('packer'); S.staff.packer=false; const g=bb.ckG.position; bb.setView(g.x+1.5,g.z+1.5,0,-0.3); bb.run(0.2,0.05);
     __z.scan.length=0; __z.kasse.length=0; let n=0; while(__z.kasse.length<2&&n++<900) bb.run(0.5,0.05);
     const nah={scan:__z.scan.length,kasse:__z.kasse.length,vScan:__z.scan[0],vKasse:__z.kasse[0]};
     bb.setView(0,-40,0,0); bb.run(0.2,0.05); __z.scan.length=0; __z.kasse.length=0; let m=0, kunden=bb.DS?bb.DS.customers:0;

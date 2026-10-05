@@ -70,7 +70,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
        Ort (PAD) zaehlen nicht. */
     const EM=bb.emittersListe(), emPush=EM.push, EM_OHNE=/^(fuse|gb_|dienst|rest|bodenrest|rauch|papierflug)/;
     EM.push=function(...a){ if(window.__em&&bb.fwUhr>=O.ab) for(const e of a) if(e&&e.o&&e.o.x!==undefined&&!EM_OHNE.test(e.k||''))
-      window.__em.push([e.k,+(e.o.x-O.x).toFixed(2),+((e.o.y!==undefined?e.o.y:0)-O.y).toFixed(2),+(e.o.z-O.z).toFixed(2),neben(e.o.x,e.o.z)]);
+      window.__em.push([e.k,+(e.o.x-O.x).toFixed(2),+((e.o.y!==undefined?e.o.y:0)-O.y).toFixed(2),+(e.o.z-O.z).toFixed(2),neben(e.o.x,e.o.z),e.o.modul]);
       return emPush.apply(this,a); };
     const ids=(nur||Object.keys(P)).filter(t=>P[t]&&bb.stationOf(t));
     for(const t of ids){
@@ -96,7 +96,11 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
       const rk=log.filter(e=>e.y!==undefined&&(e.art==='schuss'||e.art==='kugel'||e.art==='perle')).map(e=>+(e.y-O.y).toFixed(3));
       const hoch=rk.length?[Math.min(...rk),Math.max(...rk)]:null;
       /* Emitter neben der Oeffnung oder unter ihr (am Boden statt auf dem Tisch) */
-      const emRaus=[]; for(const q of em) if((q[4]>0.03||q[2]<-0.3)&&!emRaus.some(x=>x[0]===q[0])) emRaus.push(q.slice(0,4));
+      /* 05.10.: Boden-Effekte von Batterien kommen aus den Fontaenen-Modulen
+         unten vorn am Produkt (04c rohrSatz.modul) - bei hohen Batterien
+         mehr als 0,3 m unter dem Deckel, aber auf dem Tisch, nicht darunter */
+      const amModul=q=>q[5]!==undefined&&q[4]<=0.03&&q[2]>=-(d[1]+0.02);
+      const emRaus=[]; for(const q of em) if((q[4]>0.03||q[2]<-0.3)&&!amModul(q)&&!emRaus.some(x=>x[0]===q[0])) emRaus.push(q.slice(0,4));
       /* Ursprung: Funken auf Hoehe der Oeffnung (bis 0,5 m darueber);
          im Protokoll steht nach jedem Funken daneben sein Ort und Aufrufer */
       const dn=pk.filter(v=>typeof v==='number');
@@ -118,9 +122,12 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     if(v.fehler||v.leer){ mangel.push(t+': '+(v.fehler||'keine Funken')); continue; }
     /* 03.10. (Tom): Knallfrosch, Knallbonbons und Kreisel sind selbst das Feuerwerk - sie liegen
        vor dem Karton auf dem Tisch (bis 0,45 m, sechs Kreisel in einer Reihe bis 0,6 m); die 2027 steckt im 80 cm langen Podest */
-    const NEBEN={knallfrosch:0.45,knallbonbon:0.45,bodenkreisel:0.6,wunderzahl:0.25};
+    /* 05.10.: Feuerrad - das 54-cm-Rad dreht am Gestell, jeder Funke ist
+       beim Erscheinen schon um seinen Flugweg im Bild vorgerueckt (14k
+       saxon, Spirale statt Speichen): bis 10 cm neben dem Karton */
+    const NEBEN={knallfrosch:0.45,knallbonbon:0.45,bodenkreisel:0.6,wunderzahl:0.25,feuerrad:0.1};
     if(v.erst>(NEBEN[t]||0.03)) mangel.push(`${t}: erster Funke ${v.erst} m neben der Oeffnung`);
-    else if(!v.weit&&v.max>0.03) mangel.push(`${t}: ${v.raus}/${v.n} Ursprung bis ${v.max} m neben der Oeffnung (${v.st}, bei ${JSON.stringify(v.wo)})`);
+    else if(!v.weit&&v.max>(NEBEN[t]||0.03)) mangel.push(`${t}: ${v.raus}/${v.n} Ursprung bis ${v.max} m neben der Oeffnung (${v.st}, bei ${JSON.stringify(v.wo)})`);
     if(v.hoch&&(v.hoch[0]<-0.03||v.hoch[1]>0.2)) mangel.push(`${t}: Raketen starten ${v.hoch[0]} bis ${v.hoch[1]} m ueber der Oeffnung (${v.st})`);
     if(!v.weit&&v.em.length) mangel.push(`${t}: Emitter nicht an der Oeffnung [k,dx,dy,dz]: ${JSON.stringify(v.em)}`);
   }

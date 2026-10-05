@@ -30,7 +30,9 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
         if(!h.versteckt&&h.pool.h[h.i]!==h) f.push('fehlt im Puffer '+lv.type+' #'+i);
         if(h.versteckt&&h.pool.h.indexOf(h)>=0) f.push('versteckt aber im Puffer '+lv.type+' #'+i); });
       /* die zwei vordersten vollen Reihen und die angebrochene sind sichtbar */
-      if(reihe>0&&lv.count-weg<Math.min(lv.count,(lv.nah===undefined?2:1)*reihe)) f.push('zu viel versteckt '+lv.type+' '+weg+'/'+lv.count+' Reihe '+reihe);
+      /* ausserhalb des Blickfelds (Handy) ist das ganze Fach versteckt */
+      if(lv.imBlick===false){ if(weg!==lv.count) f.push('nicht im Blick, aber sichtbar '+lv.type+' '+weg+'/'+lv.count); }
+      else if(reihe>0&&lv.count-weg<Math.min(lv.count,(lv.nah===undefined?2:1)*reihe)) f.push('zu viel versteckt '+lv.type+' '+weg+'/'+lv.count+' Reihe '+reihe);
       if(!K.frei&&reihe>0&&L.rows>3&&lv.count===L.cap&&weg===0) f.push('nichts versteckt '+lv.type+' '+lv.count);
     }
     for(const t of Object.keys(bb.pools)){ const pl=bb.pools[t]; pl.h.forEach((h,i)=>{ if(h.i!==i) f.push('Index '+t); if(h.versteckt) f.push('versteckter Griff im Puffer '+t); });

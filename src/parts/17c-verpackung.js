@@ -41,7 +41,10 @@ const VP_ZEILEN=[
   /* 03.10.: neue Raketen, Kugeln und Batterien - 24 Fächer mehr, sonst
      blieben die Getraenke (sie kommen zuletzt dran) ohne Platz */
   {art:'insel',kinds:['gondel','gondel','gondel']},
-  {art:'paar',links:['klein','klein','klein','klein','klein','klein','klein','klein','klein'],rechts:['kuehl','kuehl','kuehl','kuehl','kuehl','kuehl','kuehl','hoch','klein']},
+  /* 05.10.: Kleinfeuerwerk und neue Batterien - 252 Produkte, 3 mehr als
+     Faecher; ein zehntes kleines Regal (3 Faecher), die Zeile wird dadurch
+     nicht laenger als die rechte Seite */
+  {art:'paar',links:['klein','klein','klein','klein','klein','klein','klein','klein','klein','klein'],rechts:['kuehl','kuehl','kuehl','kuehl','kuehl','kuehl','kuehl','hoch','klein']},
   {art:'einzeln',kinds:['gross','gross','gross','gross','gross']},
   {art:'frei',kinds:['tisch','tischgross','gitter','gitter2','gitter3']}
 ];

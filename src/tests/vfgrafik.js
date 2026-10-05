@@ -27,7 +27,8 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   const r=await p.evaluate(()=>{ const bb=__bb, o={};
     const lebend=()=>[bb.psHuge,bb.psBig,bb.psMid,bb.psSmall].reduce((a,ps)=>{ let n=0; for(let i=0;i<ps.max;i++) if(ps.life[i]>0) n++; return a+n; },0);
     bb.S.level=99; bb.vorfuehrungAn(); bb.run(0.5,0.05);
-    const bat=bb.vfListe.find(t=>bb.istBatterie(t)&&bb.SHOWS[t]), kugel=bb.vfListe.find(t=>bb.P[t].shape==='shell'||/^kugel/.test(t));
+    /* eine volle Batterie - die lb_-Lichterbatterien brennen mit Absicht leise */
+    const bat=bb.vfListe.find(t=>bb.istBatterie(t)&&bb.SHOWS[t]&&!/^lb_/.test(t)), kugel=bb.vfListe.find(t=>bb.P[t].shape==='shell'||/^kugel/.test(t));
     const kinder=bb.scene.children.length;
     bb.vfZuenden(bat); bb.vfZuenden(kugel); bb.run(3,0.05);
     o.vorher={sterne:lebend(),raketen:bb.rockets.length,emitter:bb.emittersListe().length,plaene:bb.timersLen(),tisch:bb.vfAufraeumen.length,kinder:bb.scene.children.length-kinder};

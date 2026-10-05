@@ -137,9 +137,9 @@ function pauseSeite(id){
   if(id==='pGrafik') gfxAnzeige();
 }
 /* Grafik-Seite: gewaehlter Knopf hervorgehoben, darunter was die Stufe tut */
-const GFX_TEXT={extrem:'Alles, was geht: Supersampling bis 3-fach, 16-fache Kantenglättung, Schattenkarte 8192, 2,5-fach scharfe Verpackungen, fast doppelt so viele Funken. Nur für sehr starke Grafikkarten.',
-  ultra:'Supersampling bis 2,5-fach, 8-fache Kantenglättung, Schattenkarte 4096, doppelt scharfe Verpackungen, 1,5-fach Funken.',
-  max:'Mindestens 1,5-fache Auflösung, 8-fache Kantenglättung, Schattenkarte 4096, 1,5-fach scharfe Verpackungen, mehr Funken.',
+const GFX_TEXT={extrem:'Alles, was geht: Supersampling bis 3-fach, 16-fache Kantenglättung, Schattenkarte 8192, Spiegelungen am Boden in voller Auflösung, Umgebungsverschattung in hoher Auflösung, Oberflächenrelief in 2048 Pixeln je Kachel, Wände in doppelter Auflösung, fast doppelt so viele Funken. Nur für sehr starke Grafikkarten.',
+  ultra:'Supersampling bis 2,5-fach, 8-fache Kantenglättung, Schattenkarte 4096, schärfere Spiegelungen am Boden, Umgebungsverschattung, Oberflächenrelief in 1024 Pixeln, Wände in doppelter Auflösung, 1,5-fach Funken.',
+  max:'Mindestens 1,5-fache Auflösung, 8-fache Kantenglättung, Schattenkarte 4096, echte Spiegelungen: Ladenboden, nasse Fahrbahn und Pfützen spiegeln Kunden, Autos und Feuerwerk; Umgebungsverschattung (dunkle Ecken und Spalten), Spiegelbild des Ladens auf Lack und Metall, feines Oberflächenrelief, mehr Funken.',
   hoch:'Volle Auflösung, weiche Schatten, Kantenglättung, Leuchteffekte, alle Funken.',
   mittel:'Normale Auflösung, einfache Schatten, halbe Kantenglättung, 80 % der Funken.',
   niedrig:'Dreiviertel-Auflösung, keine Schatten, keine Leuchteffekte, gut die Hälfte der Funken – für ältere Laptops und PCs.'};
@@ -147,7 +147,7 @@ function gfxAnzeige(){
   document.querySelectorAll('#gfxWahl [data-gfx]').forEach(b=>b.classList.toggle('an',b.dataset.gfx===GFX_WAHL));
   const i=$('gfxInfo'); if(!i) return;
   i.textContent=(GFX_WAHL==='auto'?'Automatisch – zurzeit „'+GFX_NAME[GFX]+'“. Läuft das Spiel länger unter 28 Bildern pro Sekunde, schaltet es eine Stufe tiefer. ':'')+GFX_TEXT[GFX]+
-    (gfxMess.fps?' Zuletzt '+Math.round(gfxMess.fps)+' Bilder/s.':'')+(GFX==='niedrig'?' Kantenglättung aus ab dem nächsten Laden.':'')+(GFX_START!==GFX_PROFIL[GFX]?' Texturschärfe und Funkenmenge dieser Stufe gelten ab dem nächsten Laden (F5).':'');
+    (gfxMess.fps?' Zuletzt '+Math.round(gfxMess.fps)+' Bilder/s.':'')+(GFX==='niedrig'?' Kantenglättung aus ab dem nächsten Laden.':'')+(GFX_START!==GFX_PROFIL[GFX]?(GFX_STUFEN.indexOf(GFX)>=3?' Spiegelungen, Relief, Texturschärfe und Funkenmenge dieser Stufe gelten ab dem nächsten Laden (F5).':' Texturschärfe und Funkenmenge dieser Stufe gelten ab dem nächsten Laden (F5).'):'');
 }
 $('gfxWahl').addEventListener('click',e=>{ const b=e.target.closest('[data-gfx]'); if(!b) return; gfxWaehlen(b.dataset.gfx); gfxAnzeige(); });
 

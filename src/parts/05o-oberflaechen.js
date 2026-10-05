@@ -435,8 +435,9 @@ const WAND_MALER={
 /* ---------- Leinwände, Relief, Glanz ---------- */
 const BODEN_KACHEL=4;                 /* Meter je Bodenkachel */
 const WAND_B=2.6, WAND_H=3.6;         /* Meter je Wandkachel (Hoehe = Raumhoehe) */
+/* Ultra und Extrem (03d, Pracht): Wand in doppelter Aufloesung */
 function bodenPx(){ return HIQ?2048:1024; }
-function wandPx(){ return HIQ?[1024,1418]:[512,709]; }
+function wandPx(){ return HIQ?(PRACHT>=1?[2048,2836]:[1024,1418]):[512,709]; }
 function bodenMalen(g,W,H,f,hoehe){
   g.setTransform(1,0,0,1,0,0); g.clearRect(0,0,W,H); g.fillStyle='#808080'; g.fillRect(0,0,W,H);
   const pxm=W/BODEN_KACHEL, M=malKontext(g,W,H,hoehe,f.saat||(f.id.length*977+f.id.charCodeAt(0)*31),pxm);
@@ -456,6 +457,8 @@ function reliefAus(w,h,zeichnen,staerke){
    Wandton, dunkler Boden. Ohne sie spiegeln Marmor und Beton nichts. */
 let _innenEnv=null, _innenTon='';
 function innenUmgebung(wand){
+  /* Pracht: das echte Spiegelbild des Ladens */
+  if(PR.env) return PR.env;
   const key=wand||'';
   if(_innenEnv!==null&&_innenTon===key) return _innenEnv||null;
   try{
@@ -482,17 +485,17 @@ let _bodenRelief=null, _wandRelief=null;
 /* Neu streichen und neu verlegen */
 function oberflaechenAnwenden(){
   const w=wallSet(), f=floorSet();
-  if(wallTex){ redraw(wallTex,(g,W,H)=>wandMalen(g,W,H,w,false)); wallTex.anisotropy=8; }
-  if(floorTexRef){ redraw(floorTexRef,(g,W,H)=>bodenMalen(g,W,H,f,false)); floorTexRef.anisotropy=8; }
+  if(wallTex){ redraw(wallTex,(g,W,H)=>wandMalen(g,W,H,w,false)); wallTex.anisotropy=Math.max(8,GFX_START.ani); }
+  if(floorTexRef){ redraw(floorTexRef,(g,W,H)=>bodenMalen(g,W,H,f,false)); floorTexRef.anisotropy=Math.max(8,GFX_START.ani); }
   if(shopWall){
-    const [pw,ph]=wandPx(), n=reliefAus(pw>>1,ph>>1,(g,W,H)=>wandMalen(g,W,H,w,true),w.relief||2.2);
+    const [pw,ph]=wandPx(), rs=PRACHT>=1?0:1, n=reliefAus(pw>>rs,ph>>rs,(g,W,H)=>wandMalen(g,W,H,w,true),(w.relief||2.2)*(rs?1:1.6));
     if(_wandRelief) _wandRelief.dispose(); _wandRelief=n;
     if(n){ n.wrapT=THREE.ClampToEdgeWrapping; shopWall.normalMap=n; shopWall.normalScale=new THREE.Vector2(0.7,0.7); }
     shopWall.roughness=w.rau!==undefined?w.rau:0.9; shopWall.metalness=w.metall||0;
     const env=w.glanz?innenUmgebung(w.a):null;
     shopWall.envMap=env; shopWall.envMapIntensity=(w.glanz||0)*0.6; shopWall.needsUpdate=true; }
   if(floorMat){
-    const P0=bodenPx(), n=reliefAus(P0>>1,P0>>1,(g,W,H)=>bodenMalen(g,W,H,f,true),f.relief||2.4);
+    const P0=bodenPx(), rs=PRACHT>=1?0:1, n=reliefAus(P0>>rs,P0>>rs,(g,W,H)=>bodenMalen(g,W,H,f,true),(f.relief||2.4)*(rs?1:1.6));
     if(_bodenRelief) _bodenRelief.dispose(); _bodenRelief=n;
     if(n){ floorMat.normalMap=n; floorMat.normalScale=new THREE.Vector2(0.6,0.6); }
     floorMat.roughness=f.rau!==undefined?f.rau:0.6; floorMat.metalness=0;
@@ -501,7 +504,11 @@ function oberflaechenAnwenden(){
        Albedo daempfen, je heller der Belag, desto mehr. */
     const hl=f.hell||0.86; floorMat.color.setRGB(hl,hl,hl);
     const env=f.glanz?innenUmgebung(w.a):null;
-    floorMat.envMap=env; floorMat.envMapIntensity=(f.glanz||0)*0.6; floorMat.needsUpdate=true; }
+    floorMat.envMap=env; floorMat.envMapIntensity=(f.glanz||0)*0.6;
+    /* Pracht (03d): jeder Boden glaenzt ein wenig - der echte Raum spiegelt sich, je rauer, desto matter */
+    if(PR.env&&f.art!=='velours'){ floorMat.envMap=PR.env; floorMat.envMapIntensity=Math.max((f.glanz||0)*0.9,1.0); floorMat.roughness=Math.max(0.12,floorMat.roughness*0.5); }
+    if(PR.an) prBodenGlanz();
+    floorMat.needsUpdate=true; }
   /* Sockelleiste im dunklen Ton der Wand */
   if(typeof regaleFaerben==='function') regaleFaerben();
   if(typeof sockelM==='function'){ const c=hx(w.sockel||w.a), s=w.sockel?c:ton(c,0.7); sockelM().color.setRGB(s[0]/255,s[1]/255,s[2]/255).convertSRGBToLinear(); }

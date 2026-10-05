@@ -25,6 +25,8 @@ function initPost(){
     const ms=renderer.capabilities&&renderer.capabilities.isWebGL2&&THREE.WebGLMultisampleRenderTarget;
     rtScene=ms?new THREE.WebGLMultisampleRenderTarget(2,2,opt):new THREE.WebGLRenderTarget(2,2,opt);
     if(ms) rtScene.samples=gfxSamples(GFX); postDiv=(GFX_PROFIL[GFX]||GFX_PROFIL.hoch).blur;
+    /* Pracht (03d): Tiefentextur fuer die Verschattung - nur ab Maximum */
+    if(typeof prachtRT==='function') prachtRT(rtScene);
     const bopt={minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter,format:THREE.RGBAFormat,depthBuffer:false,stencilBuffer:false};
     rtA=new THREE.WebGLRenderTarget(2,2,bopt); rtB=new THREE.WebGLRenderTarget(2,2,bopt);
     matBright=new THREE.ShaderMaterial({
@@ -50,6 +52,7 @@ function initPost(){
     quadCam=new THREE.OrthographicCamera(-1,1,1,-1,0,1);
     quadMesh=new THREE.Mesh(new THREE.PlaneGeometry(2,2),matBright);
     quadMesh.frustumCulled=false; quadScene.add(quadMesh);
+    if(typeof prachtPost==='function') prachtPost();
     resizePost();
     /* den Kopier-Shader gleich mit uebersetzen - sonst entsteht er erst
        beim ersten Wechsel auf niedrig */
@@ -65,6 +68,7 @@ function resizePost(){
   rtScene.setSize(postW,postH);
   const bw=Math.max(2,Math.floor(postW/postDiv)), bh=Math.max(2,Math.floor(postH/postDiv));
   rtA.setSize(bw,bh); rtB.setSize(bw,bh);
+  if(typeof prachtGroesse==='function') prachtGroesse();
 }
 function setPost(on){
   postOn=!!on&&postOK;
@@ -278,6 +282,7 @@ function renderFrame(dt){
   gruppenTakt();
   buendelTakt();
   schattenTakt();
+  if(PR.an) prachtTakt();
   if(skyMesh){ skyMesh.position.set(camera.position.x,0,camera.position.z); starPts.position.copy(skyMesh.position); }
   if(!postOK){ if(renderer.setRenderTarget) renderer.setRenderTarget(null); renderer.render(scene,camera); return; }
   /* Ohne Nachbearbeitung (niedrig oder abgeschaltet) trotzdem ueber das
@@ -290,7 +295,9 @@ function renderFrame(dt){
     catch(e){ postOK=false; if(renderer.setRenderTarget) renderer.setRenderTarget(null); renderer.render(scene,camera); return; } }
   try{
     postT+=dt||0.016;
+    if(PR.spRT) prachtSpiegel();
     renderer.setRenderTarget(rtScene); renderer.render(scene,camera);
+    if(PR.aoRT) prachtAO();
     const bw=rtA.width, bh=rtA.height;
     quadMesh.material=matBright; matBright.uniforms.tDiffuse.value=rtScene.texture;
     renderer.setRenderTarget(rtA); renderer.render(quadScene,quadCam);

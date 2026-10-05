@@ -44,10 +44,11 @@ const VP_ZEILEN=[
   /* 05.10.: Kleinfeuerwerk und neue Batterien - 252 Produkte, 3 mehr als
      Faecher; ein zehntes kleines Regal (3 Faecher), die Zeile wird dadurch
      nicht laenger als die rechte Seite */
-  /* 05.10.: das letzte kleine Regal links ist jetzt das Kassenregal (fuenf
-     Faecher) - Sturmfeuerzeuge, Streichhoelzer und Gehoerschutz duerfen
-     nur dorthin */
-  {art:'paar',links:['klein','klein','klein','klein','klein','klein','klein','klein','klein','kasse'],rechts:['kuehl','kuehl','kuehl','kuehl','kuehl','kuehl','kuehl','hoch','klein']},
+  /* 05.10.: die letzten zwei kleinen Regale links sind jetzt das
+     Kassenregal (fuenf Faecher) - Sturmfeuerzeuge, Streichhoelzer und
+     Gehoerschutz duerfen nur dorthin; rechts statt des kleinen ein
+     Verkaufsregal, damit es wieder genau ein Fach je Produkt sind */
+  {art:'paar',links:['klein','klein','klein','klein','klein','klein','klein','klein','kasse'],rechts:['kuehl','kuehl','kuehl','kuehl','kuehl','kuehl','kuehl','hoch','standard']},
   {art:'einzeln',kinds:['gross','gross','gross','gross','gross']},
   {art:'frei',kinds:['tisch','tischgross','gitter','gitter2','gitter3']}
 ];

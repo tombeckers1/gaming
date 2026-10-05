@@ -35,6 +35,9 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   },{von,nach});
 
   const RAMPE=[-14.0,-1.0];
+  /* Halle Sued I: der Gang oestlich der Packstation (seit 06.10. bleibt er
+     frei; bei x -14 steht das Bandende der Station) */
+  const HS1=[-13.0,-9.0];
   const kauf=id=>p.evaluate(i=>{ const bb=window.__bb; bb.S.level=99; bb.S.money=5e6; bb.testKauf(i);
     return !!bb.S.up[i]; },id);
 
@@ -47,19 +50,19 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   r=await lauf(RAMPE,[-14.0,4.2]);
   sag(`Lager Nord begehbar (bis ${r.x}/${r.z})`,r.an);
 
-  r=await lauf(RAMPE,[-14.0,-9.0]);
+  r=await lauf(RAMPE,HS1);
   sag(`Halle Sued I vor dem Kauf zu (bis ${r.x}/${r.z})`,!r.an);
   sag('Halle Sued I gekauft',await kauf('lager_gross'));
-  r=await lauf(RAMPE,[-14.0,-9.0]);
+  r=await lauf(RAMPE,HS1);
   sag(`Halle Sued I begehbar (bis ${r.x}/${r.z})`,r.an);
-  r=await lauf([-14.0,-9.0],[-14.0,-19.0]);
+  r=await lauf(HS1,[-13.0,-19.0]);
   sag(`Halle Sued II vor dem Kauf zu (bis ${r.x}/${r.z})`,!r.an);
 
   sag('Halle Sued II gekauft',await kauf('lager_sued'));
-  r=await lauf([-14.0,-9.0],[-14.0,-19.0]);
+  r=await lauf(HS1,[-13.0,-19.0]);
   sag(`Halle Sued II begehbar (bis ${r.x}/${r.z})`,r.an);
   sag('Halle Sued III gekauft',await kauf('lager_sued2'));
-  r=await lauf([-14.0,-9.0],[-14.0,-26.5]);
+  r=await lauf(HS1,[-13.0,-26.5]);
   sag(`Halle Sued III begehbar (bis ${r.x}/${r.z})`,r.an);
 
   /* Keine Wand mehr zwischen den Abschnitten */

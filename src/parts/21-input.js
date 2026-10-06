@@ -77,6 +77,8 @@ const STEUER_PC=[
   ['Handeln',[
     [['E','Klick'],'Aktion – halten wiederholt (einräumen, scannen, putzen)'],
     [['Q','Rechts'],'Karton oder Paket abstellen'],
+    [['C'],'Karton in der Hand öffnen / schließen'],
+    [['R'],'Packung aus dem Fach zurück in den offenen Karton'],
     [['K'],'Sackkarre / Wagen holen, wegstellen (nach Kauf)'],
     [['X'],'Mehrwegkiste: leere nehmen / wegstellen, volle aus- oder einräumen'],
     [['L'],'Regalschild beschriften (vor dem Regal)'],
@@ -108,6 +110,7 @@ const STEUER_TOUCH=[
   ['Knöpfe',[
     [['Aktion'],'Aktion – halten zum Putzen'],
     [['Ablegen'],'Karton oder Paket abstellen, Möbel zurück'],
+    [['Öffnen'],'Karton in der Hand öffnen / schließen'],
     [['Möbel'],'Möbel aufnehmen, Paket aus- und einpacken'],
     [['Drehen'],'Möbel in der Hand drehen (statt Spray)'],
     [['Handy'],'Onlineshop, Team, Werbung, Bank, Bericht, Ziele'],

@@ -66,7 +66,9 @@ function kartonInhalt(t){
    zurueck in den Karton sind noch nicht drin */
 function kartonAnzeige(){ const c=S&&S.carrying; if(!kartonWare(c)) return 0; return Math.max(0,c.count-KH.flug.filter(f=>f.rein).length); }
 function kartonInhaltZeigen(n){
-  const L=KH.lay; if(!L) return; let k=0;
+  const L=KH.lay; if(!L) return;
+  /* nur neu setzen, wenn sich die Zahl oder die Ware aendert */
+  if(KH.nZeig===n&&KH.lZeig===L) return; KH.nZeig=n; KH.lZeig=L; let k=0;
   for(let i=Math.max(0,n-L.pro);i<n;i++){ kartonStueckM(L,i,_km); for(const m of KH.ims) m.setMatrixAt(k,_km); k++; }
   for(const m of KH.ims){ m.count=k; m.instanceMatrix.needsUpdate=true; }
   KH.gezeigt=k;
@@ -112,7 +114,7 @@ function kartonFlugEnde(f){
 }
 /* Alle Fluege sofort beenden (Karton weg, Spiel geladen) */
 function kartonFluegeAus(){ for(const f of KH.flug) kartonFlugEnde(f); KH.flug.length=0; }
-const _kA=new THREE.Vector3(), _kB=new THREE.Vector3(), _kQa=new THREE.Quaternion(), _kQb=new THREE.Quaternion(), _kSa=new THREE.Vector3(), _kSb=new THREE.Vector3(), _kM2=new THREE.Matrix4();
+const _kA=new THREE.Vector3(), _kB=new THREE.Vector3(), _kQa=new THREE.Quaternion(), _kQb=new THREE.Quaternion(), _kSa=new THREE.Vector3(), _kSb=new THREE.Vector3();
 function kartonTick(dt){
   if(!S) return;
   kartonHandBau();
@@ -170,3 +172,5 @@ function kartonTasten(){
   const h=(c.offen?z('C','Schließen')+z('E','Einräumen')+z('R','Zurücknehmen'):z('C','Öffnen')+z('E','Öffnen &amp; einräumen'))+z('Q','Abstellen');
   if(el.innerHTML!==h) el.innerHTML=h;
 }
+/* Fuer Tests und Bilder (kartonauf.js) - eigenes Objekt, window.__bb bleibt unberuehrt */
+window.__karton={KH,kartonOeffnen,kartonZurueck,kartonLayout,kartonWare,kartonTaste,itemMatrix,faceOf,get carryMesh(){return carryMesh},get karreKisten(){return karreKisten}};

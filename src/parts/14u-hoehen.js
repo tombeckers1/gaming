@@ -52,11 +52,11 @@ const KG_RAUM_KAL=[2.0,1.8,1.6,1.55,1.5];
    durch den gemessenen Durchmesser vorher (90 % der Sterne, Vorfuehrung,
    06.10.) - so waechst die Groesse mit dem Kaliber, nicht mit der Laune
    des Bruchbilds. Die Kaiserkrone (L26) war schon gross (92 m). */
-const KG_RAUM={kugel75:2.7,palmenkugel75:2.7,farbenmeer75:2.0,
-  goldbrokat100:1.85,kugel100:1.45,goldweide100:2.15,kristallkugel100:2.0,
-  kugel150:1.6,crossettennetz150:2.3,tigerkrone150:1.4,farbcrossette150:2.25,sternkugel150:1.85,sternenstaub150:1.8,
-  weidenkoenig200:1.7,kronenkranz200:1.55,zwillingssonne200:1.5,blitzpalme200:2.0,goldweidenkreuz200:1.95,feuerlilie200:1.9,goldkrone200:2.2,kugel200:1.7,
-  kugel300:2.0,kanonade300:2.8,sternensturm300:2.2,kronenregen300:2.25,dreifachkrone300:2.15,crossettenweide300:1.6,kaiserkrone:1.3};
+const KG_RAUM={kugel75:2.7,palmenkugel75:2.7,farbenmeer75:1.85,
+  goldbrokat100:2.3,kugel100:1.4,goldweide100:2.1,kristallkugel100:2.0,
+  kugel150:1.6,crossettennetz150:2.3,tigerkrone150:1.45,farbcrossette150:2.3,sternkugel150:1.9,sternenstaub150:1.8,
+  weidenkoenig200:1.65,kronenkranz200:1.55,zwillingssonne200:1.45,blitzpalme200:3.2,goldweidenkreuz200:2.0,feuerlilie200:1.85,goldkrone200:2.2,kugel200:1.7,
+  kugel300:1.95,kanonade300:2.6,sternensturm300:2.15,kronenregen300:2.25,dreifachkrone300:2.2,crossettenweide300:1.6,kaiserkrone:1.3};
 for(const id of Object.keys(KG_RAUM)) if(KUGEL[id]) KUGEL[id].raum=KG_RAUM[id];
 function kgRaum(k){ const K4=Math.max(1,Math.min(5,k.kal|0)); return k.raum||KG_RAUM_KAL[K4-1]; }
 { const ks=kugelSorte;
@@ -71,6 +71,21 @@ function kgRaum(k){ const K4=Math.max(1,Math.min(5,k.kal|0)); return k.raum||KG_
   };
 }
 
+/* Herzschlag (Kugel 75): auf 86 m las sich das Herz aus 64 Sternen ohne
+   Spur nur noch als lockerer Punkthaufen (Render 06.10.) - jetzt 140
+   Sterne mit kurzer Leuchtspur, das Herz steht als Linie am Himmel */
+EFF.herzschlag=function(p,A,B,s){
+  const q=QUAL(), [u0,v0]=basisBlick(p,0.45), dr=rand(-0.3,0.3), cd=Math.cos(dr), sd=Math.sin(dr), n=Math.round(140*q), G=2.6;
+  const u=[u0[0]*cd+v0[0]*sd,u0[1]*cd+v0[1]*sd,u0[2]*cd+v0[2]*sd], v=[v0[0]*cd-u0[0]*sd,v0[1]*cd-u0[1]*sd,v0[2]*cd-u0[2]*sd];
+  for(let i=0;i<n;i++){
+    const t=rand(0,Math.PI*2), hx=Math.pow(Math.sin(t),3)+rand(-.05,.05), hy=(13*Math.cos(t)-5*Math.cos(2*t)-2*Math.cos(3*t)-Math.cos(4*t))/16+rand(-.05,.05);
+    const sp=8.5*s*rand(0.95,1.04), c=i%4?A:B, x=rand(-.06,.06);
+    const w=[(u[0]*hx+v[0]*hy)*sp+x,(u[1]*hx+v[1]*hy)*sp,(u[2]*hx+v[2]*hy)*sp-x];
+    psBig.emit(p.x,p.y,p.z,w[0],w[1],w[2],c[0]*1.5,c[1]*1.5,c[2]*1.5,rand(1.8,2.5),G,0); }
+  for(let i=0;i<Math.round(5*q);i++){ const d=randDir(), w=rand(3,7)*s; psBig.emit(p.x,p.y,p.z,d[0]*w,d[1]*w,d[2]*w,A[0],A[1],A[2],rand(1.2,1.8),G,0); }
+};
+EFF_SCHWEIF.herzschlag=0.24;
+
 /* ---------- FW_RAUM: ein Bruch, raeumlich gestreckt ----------
    {p:[x,y,z] Bruchmitte, f Massstab}. Solange er gilt, setzt jeder neue
    Stern um p gestreckt auf (Ort), fliegt f-mal so schnell und faellt
@@ -80,8 +95,16 @@ function kgRaum(k){ const K4=Math.max(1,Math.min(5,k.kal|0)); return k.raum||KG_
    den Ort eines fliegenden Sterns liest (kgOrt), bekommt ihn in der
    ungestreckten Welt des Bruchs zurueck. */
 let FW_RAUM=null;
+/* Sterne (psBig, psHuge) haben eine Groesse in Metern; auf 90 m wurde ein
+   Stern 1,4 Pixel klein und der ganze Kugelbruch zu Staub (Render 06.10.).
+   Ein echter Stern ist eine Lichtquelle und schrumpft nicht unter einen
+   sichtbaren Punkt: mindestens 2,4 Pixel. Unter ~50 m Entfernung (alle
+   Batterien, die Raketen vom Pult aus) aendert sich nichts. Funken und
+   Glitzer (psMid, psSmall) bleiben fein. */
+function sternMindestPx(m,px){ m.onBeforeCompile=sh=>{ sh.vertexShader=sh.vertexShader.replace('#include <fog_vertex>','gl_PointSize = max( gl_PointSize, '+px.toFixed(1)+' );\n#include <fog_vertex>'); }; m.needsUpdate=true; }
 { const em=PS.prototype.emit;
   PS.prototype.emit=function(x,y,z,vx,vy,vz,r,g,b,life,grav,mode,r2,g2,b2){
+    if(!this._mpx){ this._mpx=1; if((this===psBig||this===psHuge)&&this.pts&&this.pts.material) sternMindestPx(this.pts.material,2.4); }
     const R=FW_RAUM;
     if(R&&R.f!==1){ const f=R.f, p=R.p; x=p[0]+(x-p[0])*f; y=p[1]+(y-p[1])*f; z=p[2]+(z-p[2])*f; vx*=f; vy*=f; vz*=f; if(grav) grav*=f; }
     return em.call(this,x,y,z,vx,vy,vz,r,g,b,life,grav,mode,r2,g2,b2);
@@ -221,10 +244,13 @@ EFF.smaragdkrone=function(p,A,B,s){
     kgSpaeter(T*0.97,()=>{ const e=sternNach(p,v[0],v[1],v[2],G,T*0.97), a=SCHWEIF; SCHWEIF=0.02;
       for(let k=0;k<Math.round(9*q);k++){ const d=randDir(), w=rand(0.6,1.6); psMid.emit(e.x,e.y,e.z,d[0]*w,d[1]*w-0.4,d[2]*w,1.15,.95,.5,rand(0.9,1.5),1.1,4); }
       SCHWEIF=a; }); },0.4);
-  /* gruene Chrysantheme zwischen den Blaettern */
-  nKugel(Math.round(56*q),6.2*s,(v,i)=>kgStern(psBig,p,v,i%3?kgMal(smaragd,1.35):kgMal(mint,1.2),rand(2.1,2.7),2.0,0,0.45));
+  /* smaragdgruene Chrysantheme zwischen den Blaettern: jeder Stern zieht
+     einen feinen gruengoldenen Glitzerschweif und sinkt zum Schluss wie
+     eine Weide */
+  nKugel(Math.round(38*q),7.2*s,(v,i)=>{ kgStern(psBig,p,v,i%3?kgMal(smaragd,1.4):kgMal(mint,1.25),rand(2.4,2.9),1.7,0,0.4);
+    rkFunken(p,v,1.7,0.08,2.6,14,[0.7,1,0.45],{ps:psMid,life:[0.9,1.5],g:0.9,streu:0.12,mit:0.04,mode:4}); });
   /* Glitzerkern: die Facetten funkeln */
-  nKugel(Math.round(60*q),2.6*s,v=>kgStern(psMid,p,v,[1.3,1.2,0.85],rand(1.4,2.0),0.9,4,0.03));
+  nKugel(Math.round(70*q),3.4*s,v=>kgStern(psMid,p,v,[1.6,1.45,1.0],rand(1.5,2.1),0.9,4,0.04));
   schall(p,v=>{ sfx.plopp(v*0.45,1); later(0.25,()=>sfx.rieseln(v*0.55,2.4)); });
 };
 EFF_SCHWEIF.smaragdkrone=0.45; EFF_FAMILIE.smaragdkrone='kugel'; RK_RAUM_EFF.smaragdkrone=1.45;

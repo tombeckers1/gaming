@@ -1,306 +1,399 @@
 /* =========================================================
-   Figuren im Low-Poly-Stil: kantige Koerper, Pixelgesichter.
-   Wenige Koepfe, viele Kleider. Ein Kopf ist eine feste Person
-   (Alter, Geschlecht, Haut, Frisur); die Kleidung wird bei jedem
-   Auftritt neu gewuerfelt. So bleiben es zwoelf Gesichter, aber
-   kaum ein Kunde sieht aus wie der vorige.
+   Menschen (06.10., Tom: "Menschen realistisch statt Minecraft-Figuren",
+   Referenzbild Supermarkt-Kunden): echte Figuren mit Haut, Gesicht,
+   Haaren und Kleidung aus dem Microsoft-Rocketbox-Satz (MIT-Lizenz,
+   Daten und Lizenztext in 09a-figuren.js). Jede Figur ist ein
+   Skinned Mesh mit 27 Knochen und EINEM Material (Atlas aus Koerper,
+   Kopf und Haar) - ein Zeichenaufruf je Person statt rund zehn.
+   Gehen und Stehen kommen aus Bewegungsaufnahmen (Rocketbox), alles
+   andere (Karton tragen, Wischen, Wagen schieben) steuert der Spielcode
+   wie bisher ueber unsichtbare Gelenkgruppen (legs, arms, Unterarm,
+   torso, head); die Arme der Figur folgen dann per Zwei-Knochen-IK der
+   Hand der Steuergruppe.
+   Vorher (23.09.-05.10.): Low-Poly-Figuren aus Kaesten mit Pixelgesicht.
+   Kleidung: jede Figur traegt ihre eigene Kleidung; Oberteil und Hose
+   lassen sich im Shader umfaerben (Maske im Alphakanal des Atlas) -
+   so gibt es viele Farbvarianten und die Personal-Uniform (rotes Polo,
+   schwarze Hose) auf jeder Figur.
    ========================================================= */
-/* Feines Pixelrauschen fuer alle Stoffe - gibt den gemalten Look */
-const PX_NOISE=(()=>{ const t=tex(16,16,(g,W,H)=>{
-  for(let y=0;y<H;y++) for(let x=0;x<W;x++){ const v=Math.round(228+Math.random()*27); g.fillStyle=`rgb(${v},${v},${v})`; g.fillRect(x,y,1,1); } });
-  t.magFilter=THREE.NearestFilter; t.minFilter=THREE.NearestFilter; return t; })();
-const _pm={}, _pg={};
-function pmat(hex){ return _pm[hex]||(_pm[hex]=std(hex,{map:PX_NOISE,roughness:0.9,flatShading:true})); }
-function pbox(w,h,d){ const k=w+'|'+h+'|'+d; return _pg[k]||(_pg[k]=new THREE.BoxGeometry(w,h,d)); }
-function pcyl(rt,rb,h,n){ const k='c'+rt+'|'+rb+'|'+h+'|'+n; return _pg[k]||(_pg[k]=new THREE.CylinderGeometry(rt,rb,h,n)); }
-function teil(geo,m,x,y,z,parent,schatten){ const o=new THREE.Mesh(geo,m); o.position.set(x,y,z); if(HIQ&&schatten!==false) o.castShadow=true; parent.add(o); return o; }
-function shade2(hex,k){ const c=new THREE.Color(hex); c.multiplyScalar(k); return c.getHex(); }
-const hexCss=h=>'#'+('000000'+h.toString(16)).slice(-6);
-
-/* Die zwoelf Koepfe */
+const FIG_TINT_ROT=0xb3261e, FIG_TINT_SCHWARZ=0x1d1f24;
+/* Die Figuren. alter: teen | jung | mittel | alt. kleid: Stil (KLEID).
+   oben/unten: erlaubte Umfaerbungen (leer = nur Originalfarbe) */
 const KOEPFE=[
-  {id:'teen_m',  sex:'m',alter:'teen',  haut:0xe8b890,haar:0x4a2f1c,frisur:'strubbel'},
-  {id:'teen_w',  sex:'w',alter:'teen',  haut:0xf0c8a4,haar:0xc9a15a,frisur:'zopf'},
-  {id:'jung_m',  sex:'m',alter:'jung',  haut:0xe2ad84,haar:0x2b1d14,frisur:'kurz'},
-  {id:'jung_w',  sex:'w',alter:'jung',  haut:0xecbe98,haar:0x6b4423,frisur:'bob'},
-  {id:'jung_m2', sex:'m',alter:'jung',  haut:0x7a4c30,haar:0x1a1a1a,frisur:'kurz',stoppel:1},
-  {id:'jung_w2', sex:'w',alter:'jung',  haut:0xf4d0b4,haar:0x1f1a18,frisur:'dutt'},
-  {id:'mitte_m', sex:'m',alter:'mittel',haut:0xdcaa82,haar:0x8f8f96,frisur:'kurz',brille:1},
-  {id:'mitte_m2',sex:'m',alter:'mittel',haut:0xb1794c,haar:0x24201c,frisur:'kurz',bart:1},
-  {id:'mitte_w', sex:'w',alter:'mittel',haut:0xd09a6c,haar:0x2b1d14,frisur:'lang'},
-  {id:'mitte_m3',sex:'m',alter:'mittel',haut:0xf0c8a4,haar:0x9c4a26,frisur:'kurz',stoppel:1},
-  {id:'alt_w',   sex:'w',alter:'alt',   haut:0xecc4a2,haar:0xb8b8b8,frisur:'bob',falten:1},
-  {id:'alt_m',   sex:'m',alter:'alt',   haut:0xe0b08a,haar:0xc8c8c8,frisur:'glatze',brille:2,falten:1}
+  {id:'F01', sex:'w',alter:'jung',  kleid:'bluse',  oben:[0xd88ca8,0x7aa0d8,0xe8e2d6,0x9ac08a],unten:[]},
+  {id:'F02', sex:'w',alter:'mittel',kleid:'pulli',  oben:[0xe8e2d6,0xc8b89a,0x9ab0c8],unten:[]},
+  {id:'F05', sex:'w',alter:'mittel',kleid:'blazer', oben:[0xe8b8c0,0xd8d0c0,0x9ab0c8,0x2a2c33],unten:[],schick:1},
+  {id:'F08', sex:'w',alter:'jung',  kleid:'shirt',  oben:[0x8a8f96,0x2f5d8a,0x7a1f2a,0x3f6b3a,0xe8e2d6],unten:[]},
+  {id:'F09', sex:'w',alter:'alt',   kleid:'pulli',  oben:[0x6a6058,0x5a3a4a,0x3a4a5a],unten:[]},
+  {id:'F13', sex:'w',alter:'jung',  kleid:'shirt',  oben:[0x5a5f6a,0x2a2c33,0x6a4a7a],unten:[]},
+  {id:'F14', sex:'w',alter:'mittel',kleid:'jacke',  oben:[0xc8b89a,0x3a3228,0x5a4a3a,0x6a2a2a],unten:[]},
+  {id:'F15', sex:'w',alter:'mittel',kleid:'bluse',  oben:[0x3a4ab0,0x7a1f2a,0xe8e2d6,0x3a6a5a],unten:[],schick:1},
+  {id:'F17', sex:'w',alter:'jung',  kleid:'shirt',  oben:[0x3f8a4a,0xe0a030,0x2f7fd0,0xf2f2ee,0x6a4a7a],unten:[]},
+  {id:'BF01',sex:'w',alter:'mittel',kleid:'anzug',  oben:[],unten:[],schick:1},
+  {id:'BF03',sex:'w',alter:'alt',   kleid:'kostuem',oben:[],unten:[],schick:1},
+  {id:'FC01',sex:'w',alter:'teen',  kleid:'shirt',  oben:[0xd040b0,0x2f7fd0,0xe63b2e,0x3f6b3a],unten:[]},
+  {id:'M02', sex:'m',alter:'mittel',kleid:'pulli',  oben:[0xc8b89a,0x5a5f6a,0x2f5d8a,0x3f6b3a],unten:[]},
+  {id:'M03', sex:'m',alter:'alt',   kleid:'blazer', oben:[],unten:[],schick:1},
+  {id:'M04', sex:'m',alter:'jung',  kleid:'hoodie', oben:[0x2a2e38,0x7a1f2a,0x2f5d8a,0x5a3a7a],unten:[]},
+  {id:'M05', sex:'m',alter:'alt',   kleid:'jacke',  oben:[],unten:[],arbeit:1},
+  {id:'M06', sex:'m',alter:'jung',  kleid:'shirt',  oben:[0xb83a30,0x2f5d8a,0x3f6b3a,0x5a5f6a],unten:[]},
+  {id:'M08', sex:'m',alter:'mittel',kleid:'hemd',   oben:[0xa8c4e8,0xe8e2d6,0xd8b0b0],unten:[]},
+  {id:'M09', sex:'m',alter:'jung',  kleid:'shirt',  oben:[0x1b2a4a,0x3a3a40,0x6a2a2a],unten:[]},
+  {id:'M12', sex:'m',alter:'jung',  kleid:'jacke',  oben:[],unten:[],arbeit:1},
+  {id:'M13', sex:'m',alter:'mittel',kleid:'pulli',  oben:[],unten:[]},
+  {id:'M14', sex:'m',alter:'alt',   kleid:'hemd',   oben:[0x8a8f96,0xa8c4e8,0xc8b89a],unten:[]},
+  {id:'M16', sex:'m',alter:'jung',  kleid:'shirt',  oben:[0x2f7fd0,0x3f6b3a,0x8a8f96,0xe0a030,0x1b1d24],unten:[]},
+  {id:'M20', sex:'m',alter:'mittel',kleid:'pulli',  oben:[0x5a3a22,0x2f5d8a,0x3a3a40,0x6a2a2a],unten:[]},
+  {id:'BM01',sex:'m',alter:'mittel',kleid:'anzug',  oben:[],unten:[],schick:1},
+  {id:'BM04',sex:'m',alter:'alt',   kleid:'weste',  oben:[],unten:[],schick:1},
+  {id:'BM06',sex:'m',alter:'jung',  kleid:'hemd',   oben:[0xf2f2ee,0xa8c4e8],unten:[],schick:1},
+  {id:'BM07',sex:'m',alter:'mittel',kleid:'krawatte',oben:[],unten:[],schick:1},
+  {id:'MC01',sex:'m',alter:'teen',  kleid:'pulli',  oben:[0x2f7fd0,0x3f6b3a,0xb83a30,0x5a5f6a],unten:[]},
+  {id:'CM07',sex:'m',alter:'mittel',kleid:'warnweste',oben:[],unten:[],arbeit:1,nurPersonal:1}
 ];
-/* Kleidung: welche Teile zusammengehoeren und wer sie traegt */
+/* Kleidungsstile (je Figur fest) */
 const KLEID=[
-  {id:'jogger', wer:['teen','jung'],                   oben:'hoodie',unten:'jogging',schuh:'sneaker'},
-  {id:'laessig',wer:['teen','jung','mittel'],          oben:'hoodie',unten:'jeans',  schuh:'sneaker'},
-  {id:'shirt',  wer:['teen','jung'],                   oben:'tshirt',unten:'jeans',  schuh:'sneaker'},
-  {id:'winter', wer:['teen','jung','mittel','alt'],    oben:'stepp', unten:'jeans',  schuh:'boot',muetze:0.55},
-  {id:'blouson',wer:['jung','mittel','alt'],sex:'m',   oben:'jacke', unten:'chino',  schuh:'boot'},
-  {id:'pulli',  wer:['jung','mittel','alt'],           oben:'pulli', unten:'stoff',  schuh:'halb'},
-  {id:'schick', wer:['jung','mittel'],sex:'m',         oben:'weste', unten:'stoff',  schuh:'halb',schick:1},
-  {id:'bluse',  wer:['jung','mittel'],sex:'w',         oben:'bluse', unten:'stoff',  schuh:'ballerina',schick:1},
-  {id:'rock',   wer:['mittel','alt'],sex:'w',          oben:'pulli', unten:'rock',   schuh:'pumps'},
-  {id:'mantel', wer:['jung','mittel','alt'],           oben:'mantel',unten:'stoff',  schuh:'halb',schick:1,schal:0.6},
-  {id:'arbeit', wer:['jung','mittel'],                 oben:'polo',  unten:'cargo',  schuh:'boot',arbeit:1}
-];
-const KFARBE={
-  hoodie:[0x8a8f96,0x2a2e38,0x7a1f2a,0x2f5d8a,0x3f6b3a,0xc8a23a,0x5a3a7a],
-  tshirt:[0xf2f2ee,0x1b1d24,0x2f7fd0,0x3f6b3a,0xe0a030,0x6a4a7a],
-  polo:[0x2f5a3a,0x1f3a6b,0xd8d4c8,0x3a3a44,0x5a6a7a],
-  weste:[0x2a2c33,0x3a3226,0x1c2438],
-  jacke:[0x1f2a4a,0x3a4a2a,0x5a3a22,0x2a2a30],
-  pulli:[0x7a6090,0x2f5d8a,0xc8b89a,0x3f6b3a,0x5a5f6a,0x8a4a3a],
-  bluse:[0x7a1f2a,0xe8e2d6,0x2f5d8a,0x6a4a7a,0x3a6a5a],
-  stepp:[0x1b1d24,0x2f7fd0,0x3f6b3a,0xc8a23a,0x5a3a7a,0xd07f2f,0x8a8f96],
-  mantel:[0x3a3228,0x2a2c33,0x5a4a3a,0x6a2a2a,0x2a3a4a],
-  jeans:[0x2f4a7a,0x243a5f,0x3a5a8a,0x1f2a3a],
-  jogging:[0x5a5f66,0x1b1d24,0x2a3048,0x3a3f4a],
-  chino:[0xb8a47a,0x8a7a5a,0x5a5a4a,0x3a3f4a],
-  stoff:[0x1d1f24,0x2a2c33,0x3a3a40,0x2a3048],
-  rock:[0x2a2a30,0x3a2a3a,0x2a3048,0x4a3a2a],
-  cargo:[0x2a2c28,0x4a4a3a,0x1d1f24]
-};
-const SCHUHFARBE={sneaker:[0xe8e8e4,0x8a8f96,0x2a2e38],boot:[0x5a3a22,0x2a2420,0x7a5a3a],halb:[0x1b1b1f,0x3a2618],ballerina:[0x1b1b1f,0x6a2a2a],pumps:[0x1b1b1f,0x3a2618]};
-const MUETZE=[0xe63b2e,0xffd23f,0x2f7fd0,0xf2f5ff,0x2f9e57,0x222634,0x8a5ab8];
-/* Einheitliche Arbeitskleidung: rotes Polo mit gelbem Logo, schwarze
-   Hose, schwarze Schuhe. Jeder Posten hat seinen festen Kopf, damit
-   man die Leute wiedererkennt. */
-const UNIFORM={oben:'polo',unten:'stoff',schuh:'halb',obenF:0xb3261e,untenF:0x1d1f24,schuhF:0x1b1b1f,logo:1,id:'uniform'};
-const STAFFKOPF={kassierer:'jung_w',auffueller:'jung_m',auffueller2:'mitte_m2',reinigung:'mitte_w',security:'mitte_m3',packer:'jung_m2',
-  kassierer2:'jung_w2',kassierer3:'mitte_m',packer2:'teen_m',packer3:'alt_m'};
-const kopfVon=id=>KOEPFE.find(k=>k.id===id)||KOEPFE[2];
+  {id:'bluse',schick:1},{id:'pulli'},{id:'blazer',schick:1},{id:'shirt'},{id:'jacke'},{id:'anzug',schick:1},{id:'kostuem',schick:1},
+  {id:'hoodie'},{id:'hemd'},{id:'weste',schick:1},{id:'krawatte',schick:1},{id:'warnweste',arbeit:1},{id:'uniform'}];
+/* Einheitliche Arbeitskleidung: rotes Oberteil, schwarze Hose, gelbes
+   Logo auf der Brust. Jeder Posten hat seine feste Figur, damit man die
+   Leute wiedererkennt. */
+const UNIFORM={id:'uniform',obenF:FIG_TINT_ROT,untenF:FIG_TINT_SCHWARZ,logo:1};
+const STAFFKOPF={kassierer:'F08',auffueller:'M16',auffueller2:'M09',reinigung:'F13',security:'BM06',packer:'M04',
+  kassierer2:'F17',kassierer3:'M08',packer2:'MC01',packer3:'M14'};
+/* alte Kopf-Namen (bis 05.10.) auf die neuen Figuren */
+const FIG_ALIAS={teen_m:'MC01',teen_w:'FC01',jung_m:'M16',jung_w:'F08',jung_m2:'M04',jung_w2:'F17',mitte_m:'M08',mitte_m2:'CM07',mitte_w:'F13',mitte_m3:'BM06',alt_w:'F09',alt_m:'M14'};
+const kopfVon=id=>KOEPFE.find(k=>k.id===(FIG_ALIAS[id]||id))||KOEPFE[0];
 function kopfFuer(ct){
-  const teen=KOEPFE.filter(k=>k.alter==='teen'), rest=KOEPFE.filter(k=>k.alter!=='teen');
-  if(ct&&ct.id==='jugend') return pick(teen);
-  if(ct&&(ct.id==='profi'||ct.id==='angeber'||ct.id==='stamm')) return pick(rest);
-  return Math.random()<0.12?pick(teen):pick(rest);
-}
-function kleidFuer(k,ct){
-  let l=KLEID.filter(o=>o.wer.indexOf(k.alter)>=0&&(!o.sex||o.sex===k.sex));
+  const kunden=KOEPFE.filter(k=>!k.nurPersonal&&FIG_DATEN[k.id]);
+  const teen=kunden.filter(k=>k.alter==='teen'), rest=kunden.filter(k=>k.alter!=='teen');
   const id=ct&&ct.id;
-  if(id==='angeber'){ const s=l.filter(o=>o.schick); if(s.length) l=s; }
-  else if(id==='profi'){ const s=l.filter(o=>o.arbeit||o.id==='winter'||o.id==='blouson'); if(s.length) l=s; }
-  else if(id==='spar') l=l.filter(o=>!o.schick);
-  const o=Object.assign({},pick(l));
-  o.obenF=pick(KFARBE[o.oben]); o.untenF=pick(KFARBE[o.unten]); o.schuhF=pick(SCHUHFARBE[o.schuh]);
-  if(o.muetze&&Math.random()<o.muetze) o.muetzeF=pick(MUETZE);
-  if(o.schal&&Math.random()<o.schal) o.schalF=pick(MUETZE);
-  if(o.unten==='rock') o.strumpf=Math.random()<0.5?0x1d1d22:k.haut;
+  if(id==='jugend') return pick(teen);
+  if(id==='angeber'){ const s=rest.filter(k=>k.schick); if(s.length) return pick(s); }
+  if(id==='profi'){ const s=rest.filter(k=>k.arbeit||k.kleid==='jacke'||k.kleid==='hoodie'); if(s.length) return pick(s); }
+  if(id==='spar'){ const s=rest.filter(k=>!k.schick); if(s.length) return pick(s); }
+  if(id==='profi'||id==='angeber'||id==='stamm') return pick(rest);
+  return Math.random()<0.1?pick(teen):pick(rest);
+}
+/* Kleidung: Stil der Figur, Oberteil in einer ihrer Farben (oder Original) */
+function kleidFuer(k,ct){
+  const o={id:k.kleid,schick:k.schick,arbeit:k.arbeit};
+  if(k.oben.length&&Math.random()<0.75) o.obenF=pick(k.oben);
+  if(k.unten.length&&Math.random()<0.6) o.untenF=pick(k.unten);
   return o;
 }
-/* Pixelgesicht: 20 x 24 Pixel auf 20 x 24 cm Kopfvorderseite */
-const faceCache={};
-function faceTex(k){
-  if(faceCache[k.id]) return faceCache[k.id];
-  const t=tex(20,24,(g,W,H)=>{
-    const px=(x,y,c,w,h)=>{ g.fillStyle=c; g.fillRect(x,y,w||1,h||1); };
-    const haut=hexCss(k.haut), dunkel=hexCss(shade2(k.haut,0.86)), dunkler=hexCss(shade2(k.haut,0.74));
-    const haar=hexCss(k.haar);
-    px(0,0,haut,W,H);
-    px(0,21,dunkel,W,3);
-    /* Haaransatz */
-    const f=k.frisur;
-    if(f==='kurz'||f==='strubbel'){ px(0,0,haar,W,3); px(0,3,haar,2,5); px(18,3,haar,2,5);
-      if(f==='strubbel') for(const x of [2,5,6,9,13,14,17]) px(x,3,haar); }
-    else if(f==='zopf'||f==='dutt'){ px(0,0,haar,W,2); px(0,2,haar,2,5); px(18,2,haar,2,5); px(9,2,haut,2,1); }
-    else if(f==='bob'||f==='lang'){ px(0,0,haar,W,3); px(0,3,haar,12,1); px(0,3,haar,3,f==='lang'?21:13); px(17,3,haar,3,f==='lang'?21:13); }
-    else if(f==='glatze'){ px(0,7,haar,1,5); px(19,7,haar,1,5); }
-    /* Brauen, Augen */
-    const braue=hexCss(shade2(k.haar,k.haar>0xa0a0a0?0.7:0.85));
-    px(4,8,braue,4,1); px(12,8,braue,4,1);
-    px(5,10,'#15161c',2,2); px(13,10,'#15161c',2,2);
-    px(4,10,'#f2f2ee',1,2); px(15,10,'#f2f2ee',1,2);
-    /* Nase, Mund */
-    px(9,12,dunkel,2,3); px(9,14,dunkler,2,1);
-    px(7,17,k.sex==='w'?'#b4524e':hexCss(shade2(k.haut,0.62)),6,1);
-    if(k.falten){ px(6,15,dunkel,1,2); px(13,15,dunkel,1,2); px(4,12,dunkel,3,1); px(13,12,dunkel,3,1); }
-    /* Bart */
-    if(k.bart){ px(3,15,haar,14,8); px(7,14,haar,6,1); px(7,17,dunkler,6,1); px(8,18,dunkler,4,1); }
-    else if(k.stoppel){ g.globalAlpha=0.35; px(3,15,haar,14,8); px(7,14,haar,6,1); g.globalAlpha=1; px(7,17,hexCss(shade2(k.haut,0.62)),6,1); }
-    /* Brille */
-    if(k.brille){ const r=k.brille===2?'#6b4a2c':'#2a2e38';
-      for(const x0 of [3,11]){ px(x0,9,r,6,1); px(x0,12,r,6,1); px(x0,9,r,1,4); px(x0+5,9,r,1,4); }
-      px(9,10,r,2,1); }
-  });
-  t.magFilter=THREE.NearestFilter; t.minFilter=THREE.NearestFilter; t.generateMipmaps=false;
-  faceCache[k.id]=t; return t;
-}
-const _faceMat={};
-function faceMat(k){ return _faceMat[k.id]||(_faceMat[k.id]=new THREE.MeshStandardMaterial({map:faceTex(k),roughness:0.8,flatShading:true})); }
 
-function schuh(O,pv){
-  const m=pmat(O.schuhF), sohle=pmat(O.schuh==='sneaker'?0xf2f2ee:0x1a1816);
-  if(O.schuh==='sneaker'){ teil(pbox(0.135,0.065,0.25),m,0,-0.83,0.04,pv); teil(pbox(0.14,0.025,0.26),sohle,0,-0.868,0.04,pv,false); }
-  else if(O.schuh==='boot'){ teil(pbox(0.14,0.12,0.25),m,0,-0.81,0.035,pv); teil(pbox(0.145,0.025,0.26),sohle,0,-0.868,0.035,pv,false); }
-  else if(O.schuh==='ballerina'){ teil(pbox(0.11,0.05,0.21),m,0,-0.855,0.03,pv); }
-  else if(O.schuh==='pumps'){ teil(pbox(0.11,0.055,0.2),m,0,-0.845,0.035,pv); teil(pbox(0.04,0.04,0.04),m,0,-0.86,-0.055,pv,false); }
-  else { teil(pbox(0.13,0.07,0.24),m,0,-0.845,0.04,pv); }
+/* ---------- Daten entpacken (einmal je Figur, geteilt) ---------- */
+const faceCache={};   /* Atlas-Texturen je Figur (Name aus der Zeit der Pixelgesichter) */
+const _figGeo={}, _figBind={};
+function figB64(s){ const b=atob(s), u=new Uint8Array(b.length); for(let i=0;i<b.length;i++) u[i]=b.charCodeAt(i); return u; }
+function figGeometrie(id){
+  if(_figGeo[id]) return _figGeo[id];
+  const D=FIG_DATEN[id], u8=figB64(D.v), dv=new DataView(u8.buffer), n=D.nV, st=22;
+  const pos=new Float32Array(n*3), nor=new Float32Array(n*3), uv=new Float32Array(n*2), si=new Uint8Array(n*4), sw=new Uint8Array(n*4);
+  for(let i=0;i<n;i++){ const o=i*st;
+    for(let c=0;c<3;c++){ pos[i*3+c]=D.min[c]+dv.getUint16(o+c*2,true)/65535*(D.max[c]-D.min[c]); nor[i*3+c]=dv.getInt8(o+6+c)/127; }
+    uv[i*2]=dv.getUint16(o+10,true)/65535; uv[i*2+1]=dv.getUint16(o+12,true)/65535;
+    for(let c=0;c<4;c++){ si[i*4+c]=dv.getUint8(o+14+c); sw[i*4+c]=dv.getUint8(o+18+c); } }
+  const g=new THREE.BufferGeometry();
+  g.setAttribute('position',new THREE.BufferAttribute(pos,3)); g.setAttribute('normal',new THREE.BufferAttribute(nor,3));
+  g.setAttribute('uv',new THREE.BufferAttribute(uv,2)); g.setAttribute('skinIndex',new THREE.BufferAttribute(si,4));
+  g.setAttribute('skinWeight',new THREE.BufferAttribute(sw,4,true));
+  /* Handy: vereinfachtes Netz (dieselben Ecken, weniger Dreiecke) */
+  const ix=figB64(HIQ?D.iD:D.iH); g.setIndex(new THREE.BufferAttribute(new Uint16Array(ix.buffer,ix.byteOffset,ix.byteLength/2),1));
+  g.computeBoundingSphere(); g.boundingSphere.radius*=1.25;
+  return _figGeo[id]=g;
 }
-function haare(k,h){
-  const m=pmat(k.haar), f=k.frisur;
-  if(f==='glatze'){ for(const sx of [-1,1]) teil(pbox(0.02,0.06,0.16),m,sx*0.105,0.02,-0.02,h,false);
-    teil(pbox(0.212,0.07,0.03),m,0,0.01,-0.1,h,false); return; }
-  teil(pbox(0.214,0.05,0.224),m,0,0.125,0,h);
-  if(f==='bob'||f==='lang'){
-    const L=f==='lang'?0.34:0.22;
-    for(const sx of [-1,1]) teil(pbox(0.03,L,0.2),m,sx*0.112,0.1-L/2,-0.012,h,false);
-    teil(pbox(0.224,L+0.06,0.04),m,0,0.13-(L+0.06)/2,-0.112,h,false);
-    return;
-  }
-  for(const sx of [-1,1]) teil(pbox(0.02,0.08,0.18),m,sx*0.106,0.07,-0.015,h,false);
-  teil(pbox(0.214,0.17,0.03),m,0,0.05,-0.1,h,false);
-  if(f==='strubbel') for(const [x,z] of [[-0.06,0.04],[0.03,-0.03],[0.07,0.05],[-0.02,-0.07]]) teil(pbox(0.06,0.03,0.06),m,x,0.155,z,h,false);
-  if(f==='zopf'){ const z=teil(pbox(0.06,0.2,0.06),m,0,-0.03,-0.14,h,false); z.rotation.x=0.28;
-    teil(pbox(0.066,0.025,0.066),pmat(0xe63b2e),0,0.06,-0.12,h,false); }
-  if(f==='dutt') teil(pbox(0.09,0.08,0.08),m,0,0.15,-0.08,h,false);
+function figAtlas(id){
+  if(faceCache[id]) return faceCache[id];
+  const t=new THREE.Texture(); const img=new Image();
+  img.onload=()=>{ let src=img;
+    /* Handy: halbe Aufloesung spart drei Viertel des Grafikspeichers */
+    if(!HIQ){ const c=document.createElement('canvas'); c.width=img.width>>1; c.height=img.height>>1; c.getContext('2d').drawImage(img,0,0,c.width,c.height); src=c; }
+    t.image=src; t.needsUpdate=true; };
+  img.src=FIG_DATEN[id].atlas;
+  t.encoding=THREE.sRGBEncoding; t.anisotropy=Math.min(4,GFX_START.ani); t.flipY=true;
+  return faceCache[id]=t;
 }
-/* Kopf (04.10.): als Kasten mit sechs Materialien kostete jeder Kopf sechs
-   Zeichenaufrufe (fuenfmal Haut, einmal Gesicht) - bei 30 Personen 180.
-   Gleiche Form, die fuenf Hautseiten in einer Gruppe: zwei Aufrufe. */
-let _kopfGeo=null;
-function kopfGeo(){
-  if(_kopfGeo) return _kopfGeo;
-  const g=new THREE.BoxGeometry(0.2,0.24,0.21);
-  if(g.index&&g.groups&&g.groups.length===6){ const idx=g.index.array, v=g.groups[4], neu=[];
-    g.groups.forEach((q,i)=>{ if(i!==4) for(let k=q.start;k<q.start+q.count;k++) neu.push(idx[k]); });
-    for(let k=v.start;k<v.start+v.count;k++) neu.push(idx[k]);
-    g.setIndex(neu); g.clearGroups(); g.addGroup(0,neu.length-v.count,0); g.addGroup(neu.length-v.count,v.count,1); g.userData.zwei=true; }
-  return _kopfGeo=g;
+/* Ruhelage der Knochen und ihre inversen Bindungsmatrizen (je Figur) */
+function figBindung(id){
+  if(_figBind[id]) return _figBind[id];
+  const D=FIG_DATEN[id], bones=figKnochen(id), inv=[];
+  bones[0].updateMatrixWorld(true);
+  for(const b of bones) inv.push(b.matrixWorld.clone().invert());
+  const animIdx=FIG_KNOCHEN.map(n=>D.knochen.findIndex(k=>k.n===n));
+  const r=D.knochen[0].pos;
+  return _figBind[id]={inv,animIdx,wurzel:r.slice(),hand:['R_Hand','L_Hand'].map(n=>D.knochen.findIndex(k=>k.n===n))};
 }
+function figKnochen(id){
+  const D=FIG_DATEN[id], bones=D.knochen.map(k=>{ const b=new THREE.Bone(); b.name=k.n; b.position.fromArray(k.pos); b.quaternion.fromArray(k.q); return b; });
+  D.knochen.forEach((k,i)=>{ if(k.p>=0) bones[k.p].add(bones[i]); });
+  return bones;
+}
+/* Bewegungsaufnahmen: Quaternionen je Bild und Knochen */
+const _figAnim={};
+function figAnim(id){
+  if(_figAnim[id]) return _figAnim[id];
+  const A=FIG_ANIM[id], u=figB64(A.q), q16=new Int16Array(u.buffer,u.byteOffset,u.byteLength/2), q=new Float32Array(q16.length);
+  for(let i=0;i<q16.length;i++) q[i]=q16[i]/32767;
+  /* Wurzelhoehe relativ zum Mittel (Auf und Ab beim Gehen) */
+  const n=A.n, w=A.w; let my=0, mx=0, mz=0, z0=1e9, z1=-1e9; for(let f=0;f<n;f++){ mx+=w[f*3]; my+=w[f*3+1]; mz+=w[f*3+2]; z0=Math.min(z0,w[f*3+2]); z1=Math.max(z1,w[f*3+2]); } mx/=n; my/=n; mz/=n;
+  /* Gehaufnahmen laufen vorwaerts (z): das ist die Schrittlaenge je Zyklus; die Figur geht auf der Stelle */
+  const schritt=(z1-z0)*n/Math.max(1,n-1)/100;
+  return _figAnim[id]={n,fps:A.fps,dauer:A.dauer,q,w,mitte:[mx,my,mz],nb:FIG_KNOCHEN.length,schritt,huefte:my};
+}
+
+/* ---------- Material: Atlas mit Umfaerbung von Oberteil und Hose ---------- */
+function figMaterial(id,O){
+  const L=FIG_DATEN[id].lum, lin=h=>new THREE.Color(h).convertSRGBToLinear();
+  const m=new THREE.MeshStandardMaterial({map:figAtlas(id),skinning:true,roughness:0.82,metalness:0,alphaTest:0.5,side:THREE.DoubleSide});
+  const U={fOben:{value:lin(O.obenF!==undefined?O.obenF:0xffffff)},fUnten:{value:lin(O.untenF!==undefined?O.untenF:0xffffff)},
+    fAn:{value:new THREE.Vector2(O.obenF!==undefined&&L.oben>0?1:0,O.untenF!==undefined&&L.unten>0?1:0)},fLum:{value:new THREE.Vector2(Math.max(0.02,L.obenLin||0.2),Math.max(0.02,L.untenLin||0.2))}};
+  m.userData.tint=U;
+  m.onBeforeCompile=sh=>{ Object.assign(sh.uniforms,U);
+    sh.fragmentShader='uniform vec3 fOben;\nuniform vec3 fUnten;\nuniform vec2 fAn;\nuniform vec2 fLum;\n'+sh.fragmentShader.replace('#include <map_fragment>',
+`vec4 texelColor = texture2D( map, vUv );
+texelColor = mapTexelToLinear( texelColor );
+if( vUv.x < 0.5 ){
+  float a = texelColor.a;
+  float to = clamp( ( a - 0.8 ) * 5.0, 0.0, 1.0 ) * fAn.x;
+  float tu = clamp( ( 0.8 - a ) * 5.0, 0.0, 1.0 ) * fAn.y;
+  float l = dot( texelColor.rgb, vec3( 0.2126, 0.7152, 0.0722 ) );
+  texelColor.rgb = mix( texelColor.rgb, fOben * min( pow( l / fLum.x, 0.65 ), 1.8 ), to );
+  texelColor.rgb = mix( texelColor.rgb, fUnten * min( pow( l / fLum.y, 0.65 ), 1.8 ), tu );
+  texelColor.a = 1.0;
+}
+diffuseColor *= texelColor;`); };
+  m.customProgramCacheKey=()=>'figur1';
+  return m;
+}
+/* Logo auf der Personal-Uniform und Papiertuete: ein Material fuer alle */
+let _figLogoM=null, _figLogoG=null, _figTueteM=null, _figTueteG=null, _figBlobM=null, _figBlobG=null;
+function figLogo(){
+  if(!_figLogoM){ _figLogoM=new THREE.MeshStandardMaterial({map:tex(64,48,(g,W,H)=>{ g.fillStyle='#ffd23f'; g.fillRect(0,0,W,H); g.fillStyle='#b3261e'; g.font='900 26px sans-serif'; g.textAlign='center'; g.textBaseline='middle'; g.fillText('★',W/2,H/2+2); }),roughness:0.7});
+    _figLogoG=new THREE.PlaneGeometry(7,5); }
+  return new THREE.Mesh(_figLogoG,_figLogoM);
+}
+/* Papiertuete (Kraftpapier, Henkel aus gedrehtem Papier), in cm wie die Figur */
+function figTuete(){
+  if(!_figTueteM){
+    const t=tex(128,128,(g,W,H)=>{ g.fillStyle='#b98c5a'; g.fillRect(0,0,W,H);
+      for(let i=0;i<900;i++){ const v=Math.random(); g.fillStyle=`rgba(${v<0.5?90:240},${v<0.5?60:210},${v<0.5?30:170},${Math.random()*0.12})`; g.fillRect(Math.random()*W,Math.random()*H,2,1); }
+      g.fillStyle='rgba(60,40,20,.25)'; g.fillRect(0,0,W,6); g.fillRect(W/2-1,0,2,H); });
+    _figTueteM=new THREE.MeshStandardMaterial({map:t,roughness:0.92});
+    const box=new THREE.BoxGeometry(26,32,13); box.translate(0,-22,0);
+    const henkel=new THREE.TorusGeometry(5,0.7,4,10,Math.PI); henkel.translate(0,-6.5,0);
+    _figTueteG=merge([box,henkel]); }
+  const m=new THREE.Mesh(_figTueteG,_figTueteM); if(HIQ) m.castShadow=true; return m;
+}
+
+/* ---------- Person bauen ---------- */
+const FIG_PERSONEN=new Set();
+const FIG_GRUPPE=new THREE.Euler();
 function makePerson(opt){
   opt=opt||{};
   const K=opt.kopf?kopfVon(opt.kopf):opt.uniform?kopfVon(STAFFKOPF[opt.uniform]):kopfFuer(opt.ct);
-  const O=opt.outfit||(opt.uniform?UNIFORM:kleidFuer(K,opt.ct));
+  const O=opt.uniform?UNIFORM:opt.outfit&&!FIG_DATEN[K.id]?opt.outfit:kleidFuer(K,opt.ct);
   const g=new THREE.Group();
-  const haut=pmat(K.haut), w=K.sex==='w';
-  const obenM=pmat(O.obenF), untenM=pmat(O.untenF);
+  /* Steuergelenke wie bei den alten Figuren - unsichtbar. Spielcode
+     (Einraeumer, Packer, Reinigung) dreht Arme und Unterarme, die
+     Figur folgt per IK. */
   const legs=[], arms=[];
-  const rock=O.unten==='rock', mantel=O.oben==='mantel';
-  /* Beine */
-  const beinM=rock?pmat(O.strumpf||K.haut):untenM;
+  for(const sx of [-1,1]){ const pv=new THREE.Group(); pv.position.set(sx*0.085,0.88,0); g.add(pv); legs.push(pv); }
+  const torso=new THREE.Group(); torso.position.y=1.21; g.add(torso);
   for(const sx of [-1,1]){
-    const pv=new THREE.Group(); pv.position.set(sx*0.085,0.88,0); g.add(pv);
-    teil(pbox(rock?0.11:0.145,0.8,rock?0.12:0.16),beinM,0,-0.4,0,pv);
-    if(O.unten==='jogging'){ teil(pbox(0.012,0.7,0.03),pmat(0xe8e8e8),sx*0.075,-0.38,0,pv,false);
-      teil(pbox(0.135,0.06,0.15),pmat(shade2(O.untenF,0.78)),0,-0.77,0,pv,false); }
-    if(O.unten==='cargo') teil(pbox(0.02,0.14,0.1),pmat(shade2(O.untenF,0.82)),sx*0.08,-0.32,0,pv,false);
-    if(O.unten==='jeans') teil(pbox(0.15,0.03,0.165),pmat(shade2(O.untenF,0.8)),0,-0.77,0,pv,false);
-    schuh(O,pv);
-    legs.push(pv);
-  }
-  /* Becken, Rock, Mantelschoss */
-  teil(pbox(0.33,0.13,0.2),rock?obenM:untenM,0,0.9,0,g);
-  if(rock){ const r=teil(pcyl(0.2,0.27,0.44,8),untenM,0,0.74,0,g); r.scale.z=0.74; }
-  if(mantel){ const r=teil(pcyl(0.21,0.25,0.4,8),obenM,0,0.76,0,g); r.scale.z=0.72; }
-  /* Rumpf: nach oben breiter, eckig */
-  const stepp=O.oben==='stepp';
-  const hwT=(w?0.182:0.205)+(stepp?0.018:0), hwB=(w?0.165:0.178)+(stepp?0.018:0), s=0.55, tH=0.56, tY=1.21;
-  const torso=new THREE.Group(); torso.position.y=tY; torso.scale.z=s; g.add(torso);
-  { const tm=new THREE.Mesh(pcyl(hwT/0.7071,hwB/0.7071,tH,4),obenM); tm.rotation.y=Math.PI/4; if(HIQ) tm.castShadow=true; torso.add(tm); }
-  /* Vorderseite des Rumpfs auf Hoehe y (relativ zur Rumpfmitte) */
-  const fz=y=>(hwB+(hwT-hwB)*((y+tH/2)/tH))*s+0.004;
-  const vorn=(bw,bh,y,m,x)=>teil(pbox(bw,bh,0.012),m,x||0,tY+y,fz(y),g,false);
-  const rundum=(y,h,m)=>{ const hw=hwB+(hwT-hwB)*((y+tH/2)/tH)+0.006; teil(pbox(hw*2,h,hw*2*s),m,0,tY+y,0,g,false); };
-  const dunkel=pmat(shade2(O.obenF,0.72)), weiss=pmat(0xf2f2ee);
-  let armM=obenM, lang=true, bund=false;
-  const ob=O.oben;
-  if(ob==='hoodie'){ vorn(0.22,0.1,-0.16,dunkel); vorn(0.012,0.11,0.19,weiss,-0.04); vorn(0.012,0.11,0.19,weiss,0.04);
-    teil(pbox(0.26,0.12,0.08),obenM,0,tY+tH/2+0.01,-hwT*s+0.01,g,false); rundum(-tH/2+0.025,0.05,dunkel); bund=true; }
-  else if(ob==='tshirt'){ lang=false; vorn(0.1,0.035,0.265,haut); }
-  else if(ob==='polo'){ lang=false; vorn(0.022,0.1,0.22,dunkel);
-    for(const sx of [-1,1]){ const c=teil(pbox(0.075,0.035,0.03),dunkel,sx*0.045,tY+tH/2-0.005,fz(tH/2),g,false); c.rotation.z=-sx*0.35; }
-    if(O.logo) vorn(0.055,0.04,0.15,pmat(0xffd23f),0.09); }
-  else if(ob==='weste'){ armM=weiss; vorn(0.075,0.2,0.18,weiss); for(let i=0;i<3;i++) vorn(0.018,0.018,0.02-i*0.08,pmat(0x111114));
-    for(const sx of [-1,1]){ const c=teil(pbox(0.06,0.035,0.03),weiss,sx*0.04,tY+tH/2,fz(tH/2),g,false); c.rotation.z=-sx*0.4; } }
-  else if(ob==='jacke'){ vorn(0.06,0.11,0.225,pmat(0xa8c4e8)); vorn(0.01,0.44,-0.03,pmat(0x15161a));
-    for(const sx of [-1,1]){ const c=teil(pbox(0.09,0.05,0.04),dunkel,sx*0.07,tY+tH/2,fz(tH/2)-0.01,g,false); c.rotation.z=-sx*0.3; }
-    rundum(-tH/2+0.03,0.06,dunkel); bund=true; }
-  else if(ob==='pulli'){ vorn(0.12,0.03,0.265,dunkel); rundum(-tH/2+0.02,0.04,dunkel); bund=true; }
-  else if(ob==='bluse'){ for(const sx of [-1,1]){ const c=teil(pbox(0.07,0.04,0.03),dunkel,sx*0.045,tY+tH/2-0.01,fz(tH/2),g,false); c.rotation.z=-sx*0.4; }
-    for(let i=0;i<4;i++) vorn(0.014,0.014,0.17-i*0.1,pmat(0xf2f2ee)); }
-  else if(ob==='stepp'){ for(const y of [-0.13,0.01,0.15]) rundum(y,0.014,dunkel);
-    teil(pbox(0.2,0.08,0.17),obenM,0,tY+tH/2+0.03,0,g,false); vorn(0.01,0.46,-0.02,dunkel); bund=true; }
-  else if(ob==='mantel'){ for(const sx of [-1,1]){ const c=vorn(0.05,0.2,0.16,dunkel,sx*0.05); c.rotation.z=sx*0.35; }
-    vorn(0.07,0.12,0.22,weiss); for(let i=0;i<3;i++) vorn(0.02,0.02,0.0-i*0.1,pmat(0x111114),0.03); }
-  else if(ob==='warnweste'){ armM=pmat(0x2a2e38); rundum(0.08,0.035,pmat(0xd8dde4)); rundum(-0.1,0.035,pmat(0xd8dde4)); vorn(0.1,0.035,0.265,armM); }
-  /* Arme */
-  for(const sx of [-1,1]){
-    const pv=new THREE.Group(); pv.position.set(sx*(hwT+0.05),1.45,0); g.add(pv);
-    if(lang) teil(pbox(0.1,0.31,0.11),armM,0,-0.14,0,pv);
-    else { teil(pbox(0.112,0.15,0.12),obenM,0,-0.06,0,pv); teil(pbox(0.085,0.2,0.09),haut,0,-0.2,0,pv); }
+    const pv=new THREE.Group(); pv.position.set(sx*0.255,1.45,0); g.add(pv);
     const fa=new THREE.Group(); fa.position.y=-0.3; fa.rotation.x=-0.18; pv.add(fa);
-    teil(pbox(lang?0.095:0.08,0.26,lang?0.1:0.085),lang?armM:haut,0,-0.13,0,fa);
-    if(lang&&bund) teil(pbox(0.1,0.035,0.105),dunkel,0,-0.25,0,fa,false);
-    teil(pbox(0.07,0.1,0.05),haut,0,-0.31,0.005,fa);
     pv.rotation.z=sx*0.05; arms.push(pv);
   }
-  /* Hals, Schal */
-  teil(pbox(0.09,0.08,0.09),haut,0,1.52,0,g);
-  if(O.schalF){ const sm=pmat(O.schalF); teil(pbox(0.17,0.065,0.16),sm,0,1.5,0,g,false); teil(pbox(0.055,0.2,0.025),sm,0.05,1.38,fz(0.17)+0.01,g,false); }
-  /* Kopf: Kasten mit Pixelgesicht vorn */
   const head=new THREE.Group(); head.position.set(0,1.66,0.005); g.add(head);
-  { const kg=kopfGeo(), hm=new THREE.Mesh(kg,(kg.userData||{}).zwei?[haut,faceMat(K)]:[haut,haut,haut,haut,faceMat(K),haut]); if(HIQ) hm.castShadow=true; head.add(hm); }
-  for(const sx of [-1,1]) teil(pbox(0.02,0.05,0.04),haut,sx*0.108,0,0,head,false);
-  if(O.muetzeF){ const mm=pmat(O.muetzeF);
-    teil(pbox(0.222,0.09,0.232),mm,0,0.13,0,head); teil(pbox(0.228,0.035,0.238),pmat(shade2(O.muetzeF,0.8)),0,0.09,0,head,false);
-    if(K.frisur==='bob'||K.frisur==='lang'||K.frisur==='zopf') haareUnterMuetze(K,head);
-    teil(pbox(0.05,0.045,0.05),pmat(0xf2f5ff),0,0.195,0,head,false);
-  } else haare(K,head);
-  const blob=new THREE.Mesh(new THREE.CircleGeometry(0.33,18),new THREE.MeshBasicMaterial({color:0x000000,transparent:true,opacity:0.28,depthWrite:false})); blob.rotation.x=-Math.PI/2; blob.position.y=0.024; g.add(blob);
-  const gross=K.alter==='teen'?0.92:w?0.96:1.0;
-  g.scale.setScalar(gross*rand(0.97,1.03));
-  g.userData={legs,arms,torso,head,ph:Math.random()*6,sway:Math.random()*6,gang:rock?0.55:mantel?0.75:1,kopf:K.id,kleid:O.id,oben:O.obenF};
-  if(!HIQ) personBuendeln(g);
+  /* Figur */
+  let fig=null;
+  if(FIG_DATEN[K.id]){
+    const id=K.id, B=figBindung(id), bones=figKnochen(id);
+    const root=new THREE.Group(); root.scale.setScalar(0.01); root.add(bones[0]); g.add(root);
+    const mesh=new THREE.SkinnedMesh(figGeometrie(id),figMaterial(id,O));
+    mesh.bind(new THREE.Skeleton(bones,B.inv),new THREE.Matrix4());
+    if(HIQ) mesh.castShadow=true;
+    root.add(mesh);
+    fig={id,root,mesh,bones,B,ruhe:bones.map(b=>b.quaternion.clone()),
+      arm:[['R_UpperArm','R_Forearm','R_Hand','R_Clavicle'],['L_UpperArm','L_Forearm','L_Hand','L_Clavicle']].map(a=>a.map(n=>bones.find(b=>b.name===n))),
+      qBasis:new Float32Array(bones.length*4),geh:0,tw:Math.random(),ti:Math.random()*20,ov:[0,0],ovZiel:[0,0]};
+    /* Uniform: Logo vorn auf der Brust (am obersten Rueckenknochen) */
+    if(O.logo){ const sp=bones.find(b=>b.name==='Spine2'); if(sp){ const l=figLogo(); fig.logo=l; sp.add(l); } }
+  }
+  /* Schattenfleck (geteilt) */
+  if(!_figBlobM){ _figBlobG=new THREE.CircleGeometry(0.33,18); _figBlobM=new THREE.MeshBasicMaterial({color:0x000000,transparent:true,opacity:0.28,depthWrite:false}); }
+  const blob=new THREE.Mesh(_figBlobG,_figBlobM); blob.rotation.x=-Math.PI/2; blob.position.y=0.024; g.add(blob);
+  /* Groesse: die Rocketbox-Frauen sind alle 1,74 m, die Maenner 1,80 m,
+     die Kinder 1,43 m - Jugendliche etwas groesser, Frauen etwas kleiner */
+  g.scale.setScalar((K.alter==='teen'?1.1:K.sex==='w'?0.95:0.99)*rand(0.97,1.03));
+  g.userData={legs,arms,torso,head,ph:Math.random()*6,sway:Math.random()*6,gang:1,kopf:K.id,kleid:O.id,oben:O.obenF,fig};
+  if(fig){ figPose(g.userData,0); FIG_PERSONEN.add(g); if(fig.logo) figLogoSetzen(fig); }
   return g;
 }
-/* 04.10. (Tom, iPhone: Gameplay-Vorfuehrung ruckelt): jede Figur bestand
-   aus rund 30 Teilen - 20 Kunden und 10 Mitarbeiter sind 900
-   Zeichenaufrufe. Am Handy werden die starren Teile je Gelenk (Becken und
-   Rumpfdeko, jedes Bein, jeder Ober-/Unterarm, Kopf) zu einem Teil mit
-   Eckfarben zusammengefasst; die Gelenkgruppen bleiben, die Animation
-   und alles, was an Arm oder Kopf haengt, bleiben unveraendert. Der Kopf
-   mit Gesicht (eigene Textur) und der Schattenfleck bleiben einzeln. */
-let _pmVC=null;
-function personBuendeln(g){
-  const pm=new Set(Object.values(_pm)), gruppen=[];
-  g.traverse(o=>{ if(o===g||!o.isMesh&&!o.isSprite) gruppen.push(o); });
-  for(const par of gruppen){
-    const teile=par.children.filter(o=>o.isMesh&&!Array.isArray(o.material)&&pm.has(o.material)&&o.geometry&&o.geometry.attributes&&o.geometry.attributes.position);
-    if(teile.length<2) continue;
-    let n=0; const gs=teile.map(o=>{ o.updateMatrix(); const q=o.geometry.index?o.geometry.toNonIndexed():o.geometry.clone(); q.applyMatrix4(o.matrix); n+=q.attributes.position.count; return {q,c:o.material.color,s:o.castShadow}; });
-    const pos=new Float32Array(n*3), nor=new Float32Array(n*3), uv=new Float32Array(n*2), col=new Float32Array(n*3); let k=0;
-    for(const {q,c} of gs){ const m=q.attributes.position.count; pos.set(q.attributes.position.array,k*3);
-      if(q.attributes.normal) nor.set(q.attributes.normal.array,k*3); if(q.attributes.uv) uv.set(q.attributes.uv.array,k*2);
-      for(let i=0;i<m;i++){ col[(k+i)*3]=c.r; col[(k+i)*3+1]=c.g; col[(k+i)*3+2]=c.b; } k+=m; q.dispose(); }
-    const geo=new THREE.BufferGeometry(); geo.setAttribute('position',new THREE.BufferAttribute(pos,3)); geo.setAttribute('normal',new THREE.BufferAttribute(nor,3));
-    geo.setAttribute('uv',new THREE.BufferAttribute(uv,2)); geo.setAttribute('color',new THREE.BufferAttribute(col,3));
-    _pmVC=_pmVC||std(0xffffff,{map:PX_NOISE,roughness:0.9,flatShading:true,vertexColors:true});
-    const m=new THREE.Mesh(geo,_pmVC); m.castShadow=gs.some(x=>x.s);
-    teile.forEach(o=>par.remove(o)); par.add(m);
-  }
+/* Logo: Lage auf der Brust aus der Ruhelage des Rumpfs */
+function figLogoSetzen(fig){
+  const sp=fig.logo.parent; fig.root.updateMatrixWorld(true);
+  /* vorn = +z der Figur, Brusthoehe etwa 18 cm unter dem Hals */
+  const w=new THREE.Vector3(9,128,13.5);
+  const nk=fig.bones.find(b=>b.name==='Neck'); if(nk){ const p=new THREE.Vector3(); nk.getWorldPosition(p); fig.root.worldToLocal(p); w.y=p.y-20; }
+  const brust=figBrustZ(fig,w.y); w.z=brust+0.6;
+  fig.root.localToWorld(w); sp.worldToLocal(w); fig.logo.position.copy(w);
+  const q=new THREE.Quaternion(); sp.getWorldQuaternion(q); const qr=new THREE.Quaternion(); fig.root.getWorldQuaternion(qr);
+  fig.logo.quaternion.copy(q.invert().multiply(qr));
 }
-/* Lange Haare schauen unter der Muetze heraus */
-function haareUnterMuetze(k,h){
-  const m=pmat(k.haar);
-  if(k.frisur==='zopf'){ const z=teil(pbox(0.06,0.2,0.06),m,0,-0.03,-0.14,h,false); z.rotation.x=0.28; return; }
-  const L=k.frisur==='lang'?0.3:0.18;
-  for(const sx of [-1,1]) teil(pbox(0.03,L,0.2),m,sx*0.112,0.08-L/2,-0.012,h,false);
-  teil(pbox(0.224,L,0.04),m,0,0.08-L/2,-0.112,h,false);
+/* vorderste Ecke des Rumpfs auf Hoehe y (Ruhelage, cm) */
+function figBrustZ(fig,y){
+  const p=fig.mesh.geometry.attributes.position; let z=10;
+  for(let i=0;i<p.count;i++){ const x=p.getX(i), yy=p.getY(i); if(Math.abs(yy-y)<3&&x>3&&x<15) z=Math.max(z,p.getZ(i)); }
+  return z;
+}
+
+/* ---------- Bewegung ---------- */
+/* Grundhaltung aus den Aufnahmen: Gehen und Stehen, je nach Tempo
+   ueberblendet. Phase aus dem zurueckgelegten Weg - die Fuesse
+   rutschen nicht. */
+const _fq=new Float32Array(4), _fq2=new Float32Array(4);
+function figPose(u,dt,moving,speed){
+  const F=u.fig, B=F.B, man=FIG_DATEN[F.id].sex!=='w';
+  const AG=figAnim(man?'m_gehen':'w_gehen'), AS=figAnim(man?'m_stehen':'w_stehen');
+  F.geh+=((moving?1:0)-F.geh)*Math.min(1,dt*7);
+  /* Doppelschritt der Aufnahme, auf die Beinlaenge der Figur umgerechnet */
+  if(moving){ const sch=AG.schritt*B.wurzel[1]/AG.huefte*(F.root.parent?F.root.parent.scale.x:1); F.tw=(F.tw+dt*Math.max(0.6,speed||1.3)/sch)%1; }
+  F.ti=(F.ti+dt)%AS.dauer;
+  for(const k of [0,1]) F.ov[k]+=(F.ovZiel[k]-F.ov[k])*Math.min(1,dt*10);
+  if(u.greif){ u.greif.t+=dt; if(u.greif.t>=u.greif.dauer) u.greif=null; }
+  const fg=F.tw*AG.n, g0=Math.floor(fg)%AG.n, g1=(g0+1)%AG.n, ag=fg-Math.floor(fg);
+  const fs=F.ti*AS.fps, s0=Math.min(AS.n-1,Math.floor(fs)), s1=Math.min(AS.n-1,s0+1), as=fs-Math.floor(fs);
+  const nb=AG.nb, w=F.geh;
+  for(let a=0;a<nb;a++){ const bi=B.animIdx[a]; if(bi<0) continue;
+    THREE.Quaternion.slerpFlat(_fq,0,AG.q,(g0*nb+a)*4,AG.q,(g1*nb+a)*4,ag);
+    THREE.Quaternion.slerpFlat(_fq2,0,AS.q,(s0*nb+a)*4,AS.q,(s1*nb+a)*4,as);
+    THREE.Quaternion.slerpFlat(_fq,0,_fq2,0,_fq,0,w);
+    F.bones[bi].quaternion.fromArray(_fq); }
+  /* Wurzel: Auf und Ab und Seitpendeln der Aufnahme, auf die Figur skaliert */
+  const r=F.bones[0], k=B.wurzel[1]/AG.mitte[1];
+  const wy=(AG.w[g0*3+1]*(1-ag)+AG.w[g1*3+1]*ag-AG.mitte[1])*w+(AS.w[s0*3+1]-AS.mitte[1])*(1-w);
+  const wx=(AS.w[s0*3]-AS.mitte[0])*(1-w), wz=(AS.w[s0*3+2]-AS.mitte[2])*(1-w);
+  r.position.set(B.wurzel[0]+wx*k,B.wurzel[1]+wy*k,B.wurzel[2]+wz*k);
 }
 function animPerson(g,moving,dt,speed){
   const u=g.userData; if(moving) u.ph+=dt*speed*5.0; u.sway+=dt;
   const a=moving?Math.sin(u.ph)*0.52:0, k=Math.min(1,dt*12);
-  /* im Rock oder Mantel kleinere Schritte, sonst stossen die Beine durch */
   const b=a*(u.gang||1);
   u.legs[0].rotation.x+=(b-u.legs[0].rotation.x)*k; u.legs[1].rotation.x+=(-b-u.legs[1].rotation.x)*k;
   u.arms[0].rotation.x+=(-a*0.8-u.arms[0].rotation.x)*k; u.arms[1].rotation.x+=(a*0.8-u.arms[1].rotation.x)*k;
   const idle=moving?0:Math.sin(u.sway*1.6)*0.02;
   u.torso.rotation.z+=(idle-u.torso.rotation.z)*k;
   if(u.head) u.head.rotation.y+=((moving?0:Math.sin(u.sway*0.7)*0.25)-u.head.rotation.y)*k*0.5;
+  if(u.fig){
+    /* was animPerson an den Armen gesetzt hat - weicht der Spielcode
+       danach davon ab, uebernimmt die IK den Arm */
+    u._ax=[u.arms[0].rotation.x,u.arms[1].rotation.x];
+    figPose(u,dt,moving,speed); FIG_PERSONEN.add(g);
+  }
 }
+
+/* ---------- Arme nach den Steuergelenken (vor jedem Bild) ---------- */
+const _fv=[0,1,2,3,4,5,6].map(()=>new THREE.Vector3()), _fqa=new THREE.Quaternion(), _fqb=new THREE.Quaternion(), _fqc=new THREE.Quaternion(), _fm=new THREE.Matrix4();
+/* Knochen so drehen, dass seine Achse (zum Kind) von 'von' nach 'nach' zeigt (Welt) */
+function figDrehe(bone,von,nach){
+  _fqa.setFromUnitVectors(von,nach);
+  bone.getWorldQuaternion(_fqb); _fqb.premultiply(_fqa);
+  bone.parent.getWorldQuaternion(_fqc); bone.quaternion.copy(_fqc.invert().multiply(_fqb));
+  bone.updateMatrixWorld(true);
+}
+function figArmIK(g,u,i){
+  const F=u.fig, [ob,un,ha]=F.arm[i]; if(!ob||!un||!ha) return;
+  const G=u.greif&&u.greif.arm===i?u.greif:null;
+  const wg=G?Math.pow(Math.sin(Math.PI*clamp(G.t/G.dauer,0,1)),0.6):0;
+  const w=Math.max(F.ov[i],wg); if(w<0.01) return;
+  const S=ob.getWorldPosition(_fv[0]), E0=un.getWorldPosition(_fv[1]), H0=ha.getWorldPosition(_fv[2]);
+  const L1=S.distanceTo(E0), L2=E0.distanceTo(H0);
+  let dl, dn;
+  if(wg>F.ov[i]){
+    /* Greifen: Hand zum Ziel in der Welt (Fach, Band) */
+    const d=_fv[3].subVectors(G.ziel,S); dl=d.length(); dn=d.normalize().clone();
+  } else {
+    /* Ziel: Hand der Steuergruppe, von deren Schulter aus auf die
+       Armlaenge der Figur umgerechnet (die alten Figuren hatten 0,61 m
+       lange, weit aussen sitzende Arme) */
+    const fa=u.arms[i].children[0]; const T=_fv[3].set(0,-0.31,0.02); fa.localToWorld(T);
+    const SA=u.arms[i].getWorldPosition(_fv[4]); const d=T.sub(SA); const sk=g.getWorldScale(_fv[5]).x;
+    dl=d.length()/sk*(L1+L2)/0.61; dn=d.normalize().clone();
+  }
+  /* nie ganz gestreckt */
+  dl=clamp(dl,Math.abs(L1-L2)+0.01,(L1+L2)*0.93);
+  /* Beuge-Richtung: nach unten, hinten und etwas nach aussen */
+  const sx=i===0?-1:1; const pol=_fv[5].set(sx*0.35,-1,-0.55).applyQuaternion(g.getWorldQuaternion(_fqa));
+  pol.addScaledVector(dn,-pol.dot(dn)).normalize();
+  const ca=clamp((L1*L1+dl*dl-L2*L2)/(2*L1*dl),-1,1), sa=Math.sqrt(1-ca*ca);
+  const E=_fv[6].copy(S).addScaledVector(dn,L1*ca).addScaledVector(pol,L1*sa);
+  const von=new THREE.Vector3().subVectors(E0,S).normalize(), nach=new THREE.Vector3().subVectors(E,S).normalize();
+  if(w<1) nach.lerp(von,1-w).normalize();
+  figDrehe(ob,von,nach);
+  const E1=un.getWorldPosition(new THREE.Vector3()), H1=ha.getWorldPosition(new THREE.Vector3());
+  const T2=S.clone().addScaledVector(dn,dl);
+  const von2=H1.clone().sub(E1).normalize(), nach2=T2.sub(E1).normalize();
+  if(w<1) nach2.lerp(von2,1-w).normalize();
+  figDrehe(un,von2,nach2);
+}
+function figVorBild(){
+  for(const g of FIG_PERSONEN){
+    if(!g.parent){ FIG_PERSONEN.delete(g); continue; }
+    const u=g.userData, F=u.fig; if(!F||!g.visible) continue;
+    /* Steuerarme abweichend von animPerson? Dann IK */
+    let ik=false;
+    for(const i of [0,1]){ const a=u.arms[i], sx=i===0?-1:1, fa=a.children[0];
+      const ab=(u._ax?Math.abs(a.rotation.x-u._ax[i]):0)>0.03||Math.abs(a.rotation.z-sx*0.05)>0.03||(fa&&Math.abs(fa.rotation.x+0.18)>0.03);
+      F.ovZiel[i]=ab?1:0; if(F.ov[i]>0.01) ik=true; }
+    if(F.tuete||u.greif) ik=true;
+    if(!ik) continue;
+    F.root.updateMatrixWorld(true);
+    for(const i of [0,1]) figArmIK(g,u,i);
+    if(F.tuete) figTueteHaengen(F);
+  }
+}
+if(typeof scene!=='undefined'){ const _vor=scene.onBeforeRender; scene.onBeforeRender=function(){ try{ figVorBild(); }catch(e){} if(_vor) _vor.apply(this,arguments); }; }
+
+/* ---------- Greifen: eine Hand reicht kurz zum Ziel (Fach, Band, Terminal) ---------- */
+function personGreif(g,ziel,dauer){
+  const u=g&&g.userData; if(!u||!u.fig) return;
+  const p=new THREE.Vector3();
+  if(ziel&&ziel.isObject3D) ziel.getWorldPosition(p); else if(ziel&&ziel.isVector3) p.copy(ziel); else { p.set(0.12,1.0,0.62); g.localToWorld(p); }
+  const l=g.worldToLocal(p.clone());
+  /* die Hand auf der Seite des Ziels; die Tuete bleibt in ihrer Hand */
+  let arm=l.x<0?0:1; if(u.fig.tuete&&u.fig.arm[arm][2]===u.fig.tuete.parent) arm=1-arm;
+  u.greif={t:0,dauer:Math.max(0.35,dauer||0.6),ziel:p,arm};
+}
+/* Hand der Figur (Handflaeche) in Koordinaten der Person - fuer Wischer und Co. */
+const _fh=new THREE.Vector3();
+function personHand(g,i){
+  const F=g.userData.fig; if(!F) return null; const ha=F.arm[i][2]; if(!ha) return null;
+  _fh.set(0,0,0); ha.localToWorld(_fh);
+  const f=F.arm[i][1].getWorldPosition(new THREE.Vector3()); _fh.addScaledVector(_fh.clone().sub(f).normalize(),0.06);
+  g.worldToLocal(_fh); return _fh;
+}
+/* ---------- Papiertuete in der Hand (nach dem Bezahlen) ---------- */
+function personTuete(g,an){
+  const F=g&&g.userData.fig; if(!F) return;
+  if(!an){ if(F.tuete){ F.tuete.parent.remove(F.tuete); F.tuete=null; } return; }
+  if(F.tuete) return;
+  const ha=F.arm[Math.random()<0.5?0:1][2]; if(!ha) return;
+  const t=figTuete(); F.tuete=t; ha.add(t); t.userData.hand=ha;
+}
+/* Die Tuete haengt senkrecht an der Hand, Front in Laufrichtung */
+function figTueteHaengen(F){
+  const t=F.tuete, ha=t.parent; ha.updateMatrixWorld(true);
+  const p=_fv[0].set(0,0,0); ha.localToWorld(p);
+  /* etwas unterhalb des Handgelenks (Finger) */
+  const q=F.root.getWorldQuaternion(_fqa); const off=_fv[1].set(0,-7,0).multiplyScalar(F.root.getWorldScale(_fv[2]).x); p.add(off);
+  ha.worldToLocal(p); t.position.copy(p);
+  ha.getWorldQuaternion(_fqb); t.quaternion.copy(_fqb.invert().multiply(q));
+  const s=ha.getWorldScale(_fv[3]).x, sr=F.root.getWorldScale(_fv[2]).x; t.scale.setScalar(sr/s);
+}
+
 function bubble(text,bad){
   const t=tex(360,84,(g,W,H)=>{ g.fillStyle=bad?'#ffd7cf':'#f2f5ff'; g.beginPath(); if(g.roundRect) g.roundRect(4,4,W-8,H-8,26); else g.rect(4,4,W-8,H-8); g.fill(); g.fillStyle='#0e1226'; fitFont(g,text,W-30,34,BAR); g.textAlign='center'; g.textBaseline='middle'; g.fillText(text,W/2,H/2+2); });
   const s=new THREE.Sprite(new THREE.SpriteMaterial({map:t,depthTest:false,transparent:true,toneMapped:false})); s.scale.set(1.7,0.4,1); s.position.y=2.25; s.renderOrder=10; return s;

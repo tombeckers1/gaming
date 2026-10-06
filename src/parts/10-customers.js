@@ -412,6 +412,8 @@ class Customer{
     if(over>0) toast(`${eur(over)} zu viel Rückgeld gegeben.`,'bad');
     this.say(this.missed?'Wenigstens etwas.':pick(['Guten Rutsch!','Danke!','Frohes Neues!','Bis nächstes Jahr!']));
     S.tut.pay=true; this.cleanupRegister(); this.leave();
+    /* 06.10. (Toms Referenzbild): mit der Papiertuete in der Hand hinaus */
+    if(this.items.length) personTuete(this.g,true);
   }
   cleanupRegister(){
     if(this.prop){ scene.remove(this.prop); this.prop=null; }
@@ -439,7 +441,9 @@ class Customer{
     this.moving=false;
     switch(this.state){
       case 'enter': if(this.walk(dt)) this.nextWish(); break;
-      case 'toShelf': if(this.walk(dt)){ this.state='browse'; this.wait=rand(0.8,1.6); this.face(this.lv?shelfFace(this.lv.sh):Math.PI); } break;
+      case 'toShelf': if(this.walk(dt)){ this.state='browse'; this.wait=rand(0.8,1.6); this.face(this.lv?shelfFace(this.lv.sh):Math.PI);
+          /* 06.10.: die Hand greift ins Fach */
+          if(this.lv&&this.lv.hit) later(this.wait*0.35,()=>{ if(this.state==='browse'&&this.g) personGreif(this.g,this.lv.hit,0.8); }); } break;
       case 'toGrav': if(this.walk(dt)){ this.state='graving'; this.wait=rand(3.5,6); if(gravG) this.face(gravG.rotation.y+Math.PI); this.say('Mal sehen …'); } break;
       case 'graving': this.wait-=dt; if(this.wait<=0){ this.gravDone=true;
           if(customerEngraves(this)) this.say('Sehr schön!'); else this.say('Kein Rohling drin?',true);
@@ -461,7 +465,7 @@ class Customer{
       case 'unload':
         this.patience-=dt*0.4; this.unT-=dt;
         if(this.unT<=0){
-          if(this.ui<this.items.length){ const it=this.items[this.ui]; if(beltRoom(P[it.type].dims[0])){ beltAdd(it,this); this.ui++; this.unT=0.45; } else this.unT=0.25; }
+          if(this.ui<this.items.length){ const it=this.items[this.ui]; if(beltRoom(P[it.type].dims[0])){ beltAdd(it,this); personGreif(this.g,null,0.42); this.ui++; this.unT=0.45; } else this.unT=0.25; }
           else this.state='scan';
         }
         if(this.patience<=0) this.giveUp(); break;

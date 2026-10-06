@@ -73,10 +73,15 @@ function localToWorld(g,x,z){ const s=Math.sin(g.rotation.y), c=Math.cos(g.rotat
    ========================================================= */
 const BELT_A=1.45, BELT_B=0.12, BELT_Y=0.972;
 let ckG=null, ckMov=null, ckNameTex=null;
-/* Die Blende hat dieselbe Farbe wie der Korpus, die Schrift ist hell
-   und steht rechts (Tom, 25.09.). Vorher hellgraue Blende mit
-   Anthrazit-Schrift in Bungee, mittig. */
-const CK_BLENDE='#2b2e34';
+/* Die Blende hat dieselbe Farbe wie der Korpus, die Schrift steht
+   rechts (Tom, 25.09.). Vorher hellgraue Blende mit Anthrazit-Schrift
+   in Bungee, mittig.
+   06.10. (Tom: "Mache die Kassen standardmaessig weiss."): Korpus und
+   Blende weiss wie im Supermarkt, Schrift Anthrazit; dunkel bleiben nur
+   Sockel, Bedienfeld und Bildschirm. Vorher Korpus und Blende Anthrazit
+   mit heller Schrift. */
+const CK_KORPUS=0xe9ebee, CK_SOCKEL=0x2a2d33;
+const CK_BLENDE='#e9ebee', CK_TEXT='#2b2e34';
 const CK_SCHRIFT=s=>`700 ${s}px Cinzel, Georgia, "Times New Roman", serif`;
 function drawCkName(g,W,H){
   g.fillStyle=CK_BLENDE; g.fillRect(0,0,W,H);
@@ -85,7 +90,7 @@ function drawCkName(g,W,H){
   if('letterSpacing' in g) g.letterSpacing='6px';
   fitFont(g,t,W-150,74,CK_SCHRIFT);
   const bw=g.measureText(t).width;
-  g.fillStyle='#eef0f4'; g.fillText(t,rechts,H/2+4);
+  g.fillStyle=CK_TEXT; g.fillText(t,rechts,H/2+4);
   /* feine Edelstahllinie links vom Namen */
   g.fillStyle='#9aa1ac'; g.fillRect(Math.max(20,rechts-bw-120),H/2+2,90,3);
   if('letterSpacing' in g) g.letterSpacing='0px';
@@ -104,18 +109,20 @@ function ck(x,z){ return localToWorld(ckG,x,z); }
 function ckYaw(){ return ckG.rotation.y; }
 function buildCheckout(){
   ckG=new THREE.Group(); ckG.position.set(CK_HOME.x,0,CK_HOME.z); ckG.rotation.y=CK_HOME.ry; scene.add(ckG);
-  /* Aussen neutral: Korpus und Blende Anthrazit, Zierleiste
-     Edelstahl. Vorher Marineblau mit roter Leiste und gelber Schrift. */
-  const corpus=std(0x2b2e34,{roughness:0.48,metalness:0.12}),
+  /* Aussen neutral: Korpus und Blende weiss (06.10., vorher Anthrazit),
+     Sockel dunkel, Zierleiste Edelstahl. Davor Marineblau mit roter
+     Leiste und gelber Schrift. */
+  const corpus=std(CK_KORPUS,{roughness:0.42,metalness:0.05}),
         panel=std(parseInt(CK_BLENDE.slice(1),16),{roughness:0.34,metalness:0.03}),
         laminat=std(0xd6dae2,{roughness:0.38,metalness:0.05}),
         steel=std(0xb8bec8,{metalness:0.72,roughness:0.28}),
         dark=std(0x14171f,{roughness:0.5}),
+        sockel=std(CK_SOCKEL,{roughness:0.6}),
         rubber=std(0x1c1d22,{roughness:0.95}),
         accent=std(0xc9ced6,{metalness:0.85,roughness:0.22});
   /* Korpus mit Sockelrücksprung */
   const c=rbox(3.2,0.74,0.8,0.02,corpus,0,0.5,0,ckG); occluders.push(c);
-  bbox(3.08,0.14,0.68,dark,0,0.07,0,ckG);
+  bbox(3.08,0.14,0.68,sockel,0,0.07,0,ckG);
   bbox(3.22,0.04,0.82,steel,0,0.15,0,ckG,false);
   /* Frontblende zum Kunden */
   bbox(3.12,0.5,0.03,panel,0,0.56,0.405,ckG,false);
@@ -266,7 +273,8 @@ function sbScreenTex(){
   });
 }
 function sbTerminal(parent,x,z){
-  const korpus=std(0x2b2e34,{roughness:0.48,metalness:0.12}),
+  /* 06.10.: weiss wie die Bedienkasse, Bildschirmrahmen und Sockel dunkel */
+  const korpus=std(CK_KORPUS,{roughness:0.42,metalness:0.05}),
         blende=std(0xe4e8ef,{roughness:0.42,metalness:0.06}),
         stahl=std(0xb4bac4,{metalness:0.7,roughness:0.3}),
         dunkel=std(0x14171f,{roughness:0.5}),
@@ -498,10 +506,11 @@ const pegMat=new THREE.MeshStandardMaterial({roughness:0.62,metalness:0.12,map:(
   for(let x=16;x<W;x+=32) for(let y=16;y<H;y+=32){ g.fillStyle='rgba(255,255,255,.7)'; g.fillRect(x-3,y-4,7,9); g.fillStyle='#3a3d43'; g.fillRect(x-3,y-5,6,9); g.fillStyle='#6a6e76'; g.fillRect(x-3,y-5,6,2); } });
   t.wrapS=t.wrapT=THREE.RepeatWrapping; t.repeat.set(5,5); return t; })()});
 function kindOf(sh){ return SHELFKIND[sh&&sh.kind]||SHELFKIND.standard; }
-/* Kassenregal: dunkles Lochblech (dieselbe Textur wie die Regale, nur
-   Anthrazit) und Edelstahl wie die Zierleiste der Kasse */
+/* Kassenregal: helles Lochblech (dieselbe Textur wie die Regale) und
+   Edelstahl wie die Zierleiste der Kasse. 06.10.: hell zur weissen
+   Kasse, vorher Anthrazit. */
 let _kasseRueck=null, _kasseStahl=null;
-function kasseRueckMat(){ return _kasseRueck||(_kasseRueck=new THREE.MeshStandardMaterial({roughness:0.6,metalness:0.15,map:pegMat.map,color:LIN(0x50555e)})); }
+function kasseRueckMat(){ return _kasseRueck||(_kasseRueck=new THREE.MeshStandardMaterial({roughness:0.6,metalness:0.1,map:pegMat.map,color:LIN(0xdcdfe3)})); }
 function kasseStahlMat(){ return _kasseStahl||(_kasseStahl=std(0xc9ced6,{metalness:0.85,roughness:0.22})); }
 function shelfCount(k){ return shelves.filter(s=>s.kind===k).length; }
 /* Fassungsvermögen richtet sich nach Regalbreite und -tiefe */
@@ -723,9 +732,10 @@ function regalFarben(K){
   /* Verkaufstische (02.10., Tom: "nicht gelb, sondern weiss und so"):
      weisse Schichtstoffplatte, Gestell in Alu bzw. Anthrazit zur Wand */
   if(K&&K.bau==='tisch') return {rahmen:hell?0x3b3f47:0xc4c8ce, seite:0xc4c8ce, blende:0xc4c8ce, fuss:0x24272d, boden:0xd6d9de, preis:0xe9ebee, lippe:0xb4b9c1, kopf:hell?0x2b2f36:0x1d2026, platte:0xf1f0ec, rueck:0xe8e8e6};
-  /* Kassenregal: Farben der Kasse (Korpus und Blende Anthrazit, Platte
-     und Boeden hellgrau, Leisten Edelstahl) - unabhaengig von der Wand */
-  if(K&&K.kasse) return {rahmen:0x2b2e34, seite:0x2b2e34, blende:0x2b2e34, fuss:0x14171f, boden:0xd6dae2, preis:0xe9ebee, lippe:0xc9ced6, kopf:0x2b2e34, platte:0xd6dae2, rueck:0x3a3e46};
+  /* Kassenregal: Farben der Kasse (Korpus und Blende weiss, Sockel
+     dunkel, Platte und Boeden hellgrau, Leisten Edelstahl) - unabhaengig
+     von der Wand. 06.10.: weiss wie die Kasse, vorher Anthrazit. */
+  if(K&&K.kasse) return {rahmen:CK_KORPUS, seite:CK_KORPUS, blende:CK_KORPUS, fuss:CK_SOCKEL, boden:0xd6dae2, preis:0xe9ebee, lippe:0xc9ced6, kopf:CK_KORPUS, platte:0xd6dae2, rueck:0xdcdfe3};
   if(K&&K.cold) return {rahmen:0xc8ccd4,seite:0xc8ccd4,blende:0xc8ccd4,fuss:0x2a2e38,boden:0xd9dde4,preis:0xc8ccd4,lippe:0xe8ecf2,kopf:0x1b2340,platte:0xbf9a6c,rueck:0xeef4fa};
   return {rahmen:hell?0x3b3f47:0xb9bec6, seite:hell?mix(wa,0xf6f6f4,0.78):mix(wa,0x9da2aa,0.45), blende:hell?0x3b3f47:0xb9bec6, fuss:0x24272d,
     boden:0xd6d9de, preis:0xe9ebee, lippe:0xb4b9c1, kopf:hell?0x2b2f36:0x1d2026, platte:hell?0xbf9a6c:0x9c7a52, rueck:hell?mix(wa,0xf4f4f2,0.82):mix(wa,0xb4b8be,0.5)};
@@ -926,14 +936,14 @@ function headArt(sh){
   return best; }
 function updateHead(sh){
   if(!sh.headTex) return;
-  /* Kassenregal: Schild wie das Namensschild der Kasse - Anthrazit,
-     helle Serifenschrift, feine Edelstahllinie */
+  /* Kassenregal: Schild wie das Namensschild der Kasse - weiss (06.10.,
+     vorher Anthrazit), dunkle Serifenschrift, feine Edelstahllinie */
   if(kindOf(sh).kasse){ const t=(sh.schild||'Nicht vergessen').toUpperCase();
     redraw(sh.headTex,(g,W,Hh)=>{ g.setTransform(1,0,0,1,0,0); g.scale(W/512,Hh/80); W=512; Hh=80;
       g.fillStyle=CK_BLENDE; g.fillRect(0,0,W,Hh);
       g.fillStyle='#9aa1ac'; g.fillRect(0,Hh-5,W,2);
       g.textAlign='center'; g.textBaseline='middle'; if('letterSpacing' in g) g.letterSpacing='3px';
-      fitFont(g,t,W-60,40,CK_SCHRIFT); g.fillStyle='#eef0f4'; g.fillText(t,W/2,Hh/2+2);
+      fitFont(g,t,W-60,40,CK_SCHRIFT); g.fillStyle=CK_TEXT; g.fillText(t,W/2,Hh/2+2);
       if('letterSpacing' in g) g.letterSpacing='0px'; });
     return; }
   const best=headArt(sh);

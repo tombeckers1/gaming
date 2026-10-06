@@ -597,8 +597,9 @@ const UP_MOTIV={
     if(eingang){ g.fillStyle='#2a3350'; g.fillRect(8,30,62,98); g.fillStyle='#8fb4d8'; g.fillRect(14,40,24,88); g.fillRect(42,40,24,88);
       g.fillStyle='rgba(255,255,255,.3)'; g.fillRect(16,42,4,84); g.fillRect(44,42,4,84); h.schild('EINGANG 2',50,22); }
     for(const x of xs){ h.schatten(x,130,34,5);
-      g.fillStyle='#d9dde5'; g.fillRect(x-30,86,60,44); g.fillStyle='#b7bcc7'; g.fillRect(x-30,86,60,6);
-      g.fillStyle='#c8322a'; g.fillRect(x-30,100,60,4);
+      /* 06.10.: weiss mit dunklem Sockel wie die SB-Kassen im Laden */
+      g.fillStyle='#eceef1'; g.fillRect(x-30,86,60,44); g.fillStyle='#c9ced6'; g.fillRect(x-30,86,60,6);
+      g.fillStyle='#2a2d33'; g.fillRect(x-30,122,60,8);
       g.fillStyle='#1a2130'; g.fillRect(x-24,78,26,8); g.fillStyle='rgba(120,220,255,.8)'; g.fillRect(x-22,80,22,3);
       g.fillStyle='#39425c'; g.fillRect(x+8,56,6,30);
       g.fillStyle='#1b2130'; h.rund(x-8,30,40,30,3); g.fill(); g.fillStyle='#2f6bb8'; g.fillRect(x-5,33,34,22);
@@ -887,14 +888,15 @@ function upPic(id){
         for(let k=0;k<6;k++){ g.fillStyle=['#e0a0c8','#ffd23f','#6fa8d8'][k%3]; g.fillRect(x0+6+k*(b-12)/6,94,(b-24)/6,10); g.fillRect(x0+6+k*(b-12)/6,114,(b-24)/6,10); } }
       break;
     case 'shelf_kasse':
-      /* Kassenregal neben dem Kassenband: niedrig, Anthrazit, Edelstahlleiste */
+      /* Kassenregal neben dem Kassenband: niedrig, weiss wie die Kasse
+         (06.10., vorher Anthrazit), Edelstahlleiste */
       bg('#1b2540','#0d1326');
-      g.fillStyle='#2b2e34'; g.fillRect(122,96,88,38); g.fillStyle='#d6dae2'; g.fillRect(118,90,96,7);
+      g.fillStyle='#e9ebee'; g.fillRect(122,96,88,38); g.fillStyle='#2a2d33'; g.fillRect(122,128,88,6); g.fillStyle='#d6dae2'; g.fillRect(118,90,96,7);
       g.fillStyle='#17181d'; g.fillRect(124,92,70,4); g.fillStyle='#c9ced6'; g.fillRect(122,108,88,3);
       { const x0=24, bw=82, y0=30, h=104;
-        g.fillStyle='#2b2e34'; g.fillRect(x0-5,y0,5,h); g.fillRect(x0+bw,y0,5,h); g.fillRect(x0-5,y0-16,bw+10,14);
-        g.fillStyle='#eef0f4'; g.font='700 8px Georgia, serif'; g.textAlign='center'; g.fillText('NICHT VERGESSEN',x0+bw/2,y0-6);
-        g.fillStyle='#3a3e46'; g.fillRect(x0,y0,bw,h);
+        g.fillStyle='#e9ebee'; g.fillRect(x0-5,y0,5,h); g.fillRect(x0+bw,y0,5,h); g.fillRect(x0-5,y0-16,bw+10,14);
+        g.fillStyle='#2b2e34'; g.font='700 8px Georgia, serif'; g.textAlign='center'; g.fillText('NICHT VERGESSEN',x0+bw/2,y0-6);
+        g.fillStyle='#d4d7dc'; g.fillRect(x0,y0,bw,h);
         for(let i=0;i<5;i++){ const y=y0+8+i*(h-10)/5+12;
           g.fillStyle='#d6dae2'; g.fillRect(x0,y,bw,4); g.fillStyle='#ffd23f'; g.fillRect(x0+bw/2-8,y+4,16,3);
           for(let k=0;k<5;k++){ g.fillStyle=['#c8322a','#2f6bb8','#e8a23a','#3aa36b','#c9ced6'][(k+i)%5]; g.fillRect(x0+4+k*15.5,y-9,12,9); } }

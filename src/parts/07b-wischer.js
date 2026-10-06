@@ -88,6 +88,8 @@ function updateWischen(dt){
    aus Schulter, Unterarm und Handkasten ausgerechnet, nicht geraten */
 const _wl=new THREE.Vector3(), _wh=new THREE.Vector3();
 function handVon(w,arm){
+  /* 06.10.: echte Figur - die Hand, wo sie nach der Arm-IK wirklich ist */
+  if(w.g.userData.fig&&typeof personHand==='function'){ const h=personHand(w.g,w.g.userData.arms.indexOf(arm)); if(h) return {x:h.x,y:h.y,z:h.z}; }
   const fa=arm.children.find(c=>c.isGroup)||arm;
   _wh.set(0,-0.33,0.02); w.g.updateMatrixWorld(); fa.localToWorld(_wh); w.g.worldToLocal(_wh);
   return {x:_wh.x,y:_wh.y,z:_wh.z};

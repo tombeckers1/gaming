@@ -1,5 +1,7 @@
 /* Kasse (Toms PDF vom 25.09.): steht links vom Eingang an der
-   Trennwand, Blende in Korpusfarbe mit heller Schrift rechts,
+   Trennwand, Blende in Korpusfarbe mit Schrift rechts; seit 06.10.
+   (Tom: "Mache die Kassen standardmaessig weiss.") Korpus, Blende,
+   SB-Kassen und Kassenregal weiss, Schrift dunkel,
    Kunden stehen an und zahlen, alte Spielstaende mit der nie
    verschobenen Kasse ziehen an den neuen Platz um, verschobene
    bleiben, wo sie sind. */
@@ -41,17 +43,23 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   pruef('LAGE',lage.schlange.z<lage.kunde.z&&lage.weg.z<lage.schlange.z,'Schlange laeuft nicht von hinten auf die Tuer zu');
   pruef('LAGE',!lage.fuss||lage.fuss.z1<5.0,'Kasse steht in der Tuer: '+JSON.stringify(lage.fuss));
 
-  /* Blende: Grund in Korpusfarbe, helle Schrift in der rechten Haelfte */
+  /* Blende: Grund in Korpusfarbe (weiss), dunkle Schrift in der rechten Haelfte */
   const blende=await p.evaluate(()=>{ const bb=window.__bb, c=bb.ckNameTex.image, g=c.getContext('2d'), W=c.width, H=c.height;
     const d=g.getImageData(0,0,W,H).data; let n=0, sx=0, rechts=0;
-    for(let y=0;y<H;y+=2) for(let x=0;x<W;x+=2){ const i=(y*W+x)*4, l=d[i]+d[i+1]+d[i+2]; if(l>600){ n++; sx+=x; rechts=Math.max(rechts,x); } }
-    const e=g.getImageData(4,4,1,1).data; return {grund:[e[0],e[1],e[2]],n,mitte:+(sx/Math.max(1,n)/W).toFixed(2),rechts:+(rechts/W).toFixed(3)}; });
+    for(let y=0;y<H;y+=2) for(let x=0;x<W;x+=2){ const i=(y*W+x)*4, l=d[i]+d[i+1]+d[i+2]; if(l<240){ n++; sx+=x; rechts=Math.max(rechts,x); } }
+    const e=g.getImageData(4,4,1,1).data;
+    /* Korpusfarbe aus dem Material der groessten Flaeche der Kasse */
+    let korpus=null, gr=0; bb.ckG.traverse(o=>{ if(!o.isMesh||!o.material||!o.material.color) return; const s=new THREE.Box3().setFromObject(o).getSize(new THREE.Vector3()); const f=s.x*s.y+s.y*s.z;
+      if(f>gr){ gr=f; korpus=o.material.color.clone().convertLinearToSRGB().getHex(); } });
+    return {grund:[e[0],e[1],e[2]],korpus:korpus===null?null:'#'+korpus.toString(16).padStart(6,'0'),n,mitte:+(sx/Math.max(1,n)/W).toFixed(2),rechts:+(rechts/W).toFixed(3)}; });
   console.log('BLENDE  ',JSON.stringify(blende));
-  pruef('BLENDE',blende.grund[0]===0x2b&&blende.grund[1]===0x2e&&blende.grund[2]===0x34,'Grund nicht in Korpusfarbe: '+blende.grund);
+  const kh=blende.korpus?parseInt(blende.korpus.slice(1),16):0, kr=kh>>16&255, kg=kh>>8&255, kb=kh&255;
+  pruef('BLENDE',blende.grund.every(c=>c>215)&&Math.max(...blende.grund)-Math.min(...blende.grund)<12,'Blende nicht weiss: '+blende.grund);
+  pruef('BLENDE',Math.min(kr,kg,kb)>200&&Math.abs(kr-blende.grund[0])<16&&Math.abs(kb-blende.grund[2])<16,'Korpus nicht weiss oder Blende nicht in Korpusfarbe: '+blende.korpus+' / '+blende.grund);
   /* rechtsbuendig (rechter Rand >= 93 %), Schwerpunkt in der rechten Haelfte -
      die Mitte haengt an der Namenslaenge: seit dem Standardnamen
      'Feuerwerksladen' (03.10.) fuellt der Name die Blende fast ganz, Mitte 0,54 */
-  pruef('BLENDE',blende.n>300&&blende.mitte>0.5&&blende.rechts>0.93,'helle Schrift steht nicht rechts: '+JSON.stringify(blende));
+  pruef('BLENDE',blende.n>300&&blende.mitte>0.5&&blende.rechts>0.93,'dunkle Schrift steht nicht rechts: '+JSON.stringify(blende));
 
   /* Kunden stehen an und zahlen beim Kassierer */
   const tag=await p.evaluate(()=>{ const bb=window.__bb, S=bb.S; S.money=50000; S.level=12;

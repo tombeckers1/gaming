@@ -76,7 +76,7 @@ function kartonInhaltZeigen(n){
 /* Haltung: unten mittig, etwas zum Spieler gekippt - man sieht hinein */
 function kartonHaltung(dt){
   const g=KH.g, st=KH.stoss;
-  g.position.set(0.02,-0.37+st*0.03,-0.74-st*0.05);
+  g.position.set(0.02,-0.33+st*0.03,-0.74-st*0.05);
   /* zu: leicht gedreht, man sieht den Aufdruck; offen: zum Spieler gekippt */
   g.rotation.set(0.22+KH.auf*0.5,-0.22*(1-KH.auf),0);
   g.scale.setScalar(0.9);
@@ -133,7 +133,8 @@ function kartonTick(dt){
   if(zeigen){
     kartonHaltung(dt);
     /* Klappen: beim Falten zuerst flach zusammen */
-    einrKlappen(KH.k,KH.falt>0?0:KH.auf);
+    /* ganz herunter (rund 170 Grad): sonst stuende die hintere Klappe vor dem Regal */
+    einrKlappen(KH.k,KH.falt>0?0:KH.auf*1.32);
     KH.k.scale.set(1,KH.falt>0?Math.max(0.05,KH.falt):1,1);
     KH.inh.visible=inHand&&KH.auf>0.05;
     if(KH.inh.visible) kartonInhaltZeigen(kartonAnzeige());

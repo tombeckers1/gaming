@@ -66,7 +66,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
       if(!f||f.h!==h) o.flug=false;
       /* im Fach waehrend des Flugs nicht gezeichnet */
       bb.run(0.08,1/60); const m=h.pool.meshes[0], a=new THREE.Matrix4(); m.getMatrixAt(h.i,a); if(a.determinant()!==0) o.versteckt=false;
-      if(!f.m||!f.m.parent) o.flug=false;
+      if(!f||!f.m||!f.m.parent) o.flug=false;
       bb.run(0.3,1/60); m.getMatrixAt(h.i,a); if(Math.abs(a.determinant())<1e-9) o.landet=false; }
     bb.run(0.2,1/60);
     o.fach=lv.count-o.fach0; o.karton=c.count-o.karton0; o.N=N; o.rest=__karton.KH.flug.length; return o; });

@@ -209,9 +209,10 @@ LICHTYP.jademine=function(o,A,B,s,opt){ lMine(o,s,opt,{H:[13,20],kegel:0.13,md:4
 /* Gruener Knaller hoch oben: kurzer gruener Sternball mit weissem
    Knistersaum und einem trockenen Knall (Bruchklang salut) */
 EFF.jadeknall=function(p,A,B,s){ const q=QUAL();
-  for(let i=0;i<Math.round(70*s*q);i++){ const d=randDir(), w=rand(10,14)*s; kgStern(psBig,p,[d[0]*w,d[1]*w,d[2]*w],lHell(A,1.5),rand(0.55,0.85),2.4,0,0.12); }
-  for(let i=0;i<Math.round(40*q);i++){ const d=randDir(), w=rand(6,11)*s; psSmall.emit(p.x,p.y,p.z,d[0]*w,d[1]*w,d[2]*w,1.6,1.6,1.5,rand(0.12,0.3),1.5,1); }
-  flash(p,A,5*s,0.2); later(0.5,()=>schall(p,v=>sfx.crackle(v*0.5))); };
+  for(let i=0;i<Math.round(110*s*q);i++){ const d=randDir(), w=rand(12,16)*s; kgStern(psBig,p,[d[0]*w,d[1]*w,d[2]*w],lHell(i%4?A:B,1.6),rand(0.6,0.95),2.4,0,0.16); }
+  for(let i=0;i<3;i++) psHuge.emit(p.x,p.y,p.z,0,0,0,1.6,1.8,1.6,0.08,0,0);
+  for(let i=0;i<Math.round(70*q);i++){ const d=randDir(), w=rand(6,12)*s; psSmall.emit(p.x,p.y,p.z,d[0]*w,d[1]*w,d[2]*w,1.6,1.6,1.5,rand(0.12,0.3),1.5,1); }
+  flash(p,A,7*s,0.22); later(0.5,()=>schall(p,v=>sfx.crackle(v*0.5))); };
 EFF_FAMILIE.jadeknall='salut';
 
 /* Regenbogenkomet (Regenbogenkometen L5, PDF: "zehn oder so ... viel zu
@@ -233,20 +234,6 @@ LICHTYP.ozeankomet=function(o,A,B,s,opt){ const m=lMund(o), [Q,a]=lQuerWinkel(op
   const k=lochOhneKopf(()=>kfKometF(m,Q,a,A,lHell(A,1.05),28*Math.sqrt(s),7.5,KF_ART.welle,1.2));
   lStart(m,1.1,0.5); sfx.zischen(distVol(m)*0.35,1.2);
   kgSpaeter(k.T,()=>qMini(sternNach(k.e,k.v[0],k.v[1],k.v[2],7.5,k.T),B,s*0.6,7,'plopp')); };
-/* Polarlicht-Vorhang (Polarnacht): dunkler Aufstieg, oben spannt sich
-   quer ein Band aus gruenen Glitzersternen, das langsam als Vorhang
-   herabsinkt und unten violett ausfranst - wie ein Nordlicht */
-LICHTYP.polarvorhang=function(o,A,B,s,opt){
-  lDunkel(o,s,opt,31,e=>{ const Q=lQuer({dir:FANDIR}), n=14+Math.round(8*QUAL()), W=rand(6,8)*Math.sqrt(s), ph=rand(0,6.3);
-    /* senkrechte Lichtstrahlen nebeneinander, kurz nacheinander gezuendet:
-       der Vorhang laeuft quer ueber den Himmel; jeder Strahl sinkt und
-       zieht eine stehende Lichtspur, unten wird er violett */
-    for(let i=0;i<n;i++){ const u=i/(n-1)-0.5; kgSpaeter(i*0.045,()=>{ const x=u*W, q={x:e.x+Q[0]*x,y:e.y+Math.sin(u*4+ph),z:e.z+Q[2]*x};
-      const dv=[Q[0]*u*0.4,-rand(1.2,2.0),Q[2]*u*0.4], L=rand(2.6,3.4);
-      const h=kgStern(psBig,q,dv,lHell(A,1.15),L,0.2,0,0.9); kgSpaeter(L*0.6,()=>kgFarbe(h,lHell(B,1.05)));
-      lFunken(q,dv,0.2,0.05,L,26,lHell(A,0.8),{ps:psMid,life:[0.9,1.5],g:-0.3,streu:0.04,mit:0,mode:0,spur:0.35}); }); }
-    schall(e,x=>{ sfx.plopp(x*0.3,1.1); later(0.3,()=>sfx.rieseln(x*0.5,4)); }); });
-};
 
 /* ---------- 5. Die Batterien aus Toms PDF (05.10.) ---------- */
 
@@ -378,25 +365,24 @@ nbShow('lb_jadeader',[['gruen','jade'],['jade','limette'],['limette','gruen'],['
   {n:4,gap:0.5,muster:'z',ang:0.35,licht:'jadeweide',farbe:1},
   {mit:true,n:2,gap:1.2,rohrFolge:[-1,1],licht:'jademine',farbe:2,pause:0.8},
   {n:7,gap:0.12,muster:'welle',ang:0.4,licht:'jadekomet',kal:'gross',farbe:3,pause:1.2},
-  {n:3,gap:0.45,muster:'v',ang:0.15,eff:'jadeknall',A:'gruen',B:'jade',kal:'mittel',pw:7,steig:'farbspur',knall:'bkSalut',pause:4}]);
+  {n:3,gap:0.45,muster:'v',ang:0.15,eff:'jadeknall',A:'gruen',B:'jade',kal:'gross',pw:7,steig:'farbspur',knall:'bkSalut',pause:4}]);
 lochName('lb_jadeader',{desc:'Ganz in Grün: Jadekometen mit grünem Funkenschweif, hängende Jadeweiden, zwei grüne Glitzersäulen und eine Welle aus sieben Kometen – zum Schluss drei grüne Knaller hoch oben.'});
 SIGNATUR.lb_jadeader={eff:'licht:jadekomet',text:'Gruene Kometen mit gruenen Funken, Jadeweiden, zum Schluss drei gruene Knaller'};
 
 /* Polarnacht, L15. PDF: "noch kohaerenter machen und paar mehr Schuesse
    hinzufuegen". Eine Farbfamilie: Polarlicht-Gruen und Tuerkis, nur die
-   Saeume werden violett. Neu ein Abschnitt Polarlicht-Vorhaenge (quer
-   haengende Lichtbaender, die langsam sinken). 26 Schuss. */
+   Saeume werden violett. Neu ein Abschnitt gruener Weidenkometen, deren
+   Schweife lange wie Lichtvorhaenge haengen. 26 Schuss. */
 nbShow('lb_polarweiden',[['polargruen','tuerkis'],['mint','aqua'],['tuerkis','violett'],['gruen','tuerkis']],{sz:[0.9,1.25],pw:[0,2],hell:[0.85,1.25],kurve:'spaet'},[
   {n:3,gap:1.6,muster:'v',ang:0.2,licht:'polarweide',farbe:2},
   {n:6,gap:0.35,muster:'wischer',ang:0.4,licht:'fallkomet',farbe:1},
   {mit:true,n:3,gap:1.0,rohrFolge:RF3,licht:'farbschirm',farbe:1,pause:1},
-  {n:6,gap:0.7,muster:'aussen',ang:0.3,licht:'polarvorhang',farbe:0,pause:1},
+  {n:6,gap:0.7,muster:'aussen',ang:0.3,licht:'farbweidenkomet',farbe:0,pause:1},
   {n:8,gap:0.13,muster:'kreis',ang:0.3,licht:'polarweide',kal:'gross',farbe:3,pause:6}]);
-LICHT_BRENN.polarvorhang=6;
 lochName('lb_polarweiden',{name:'Polarnacht · 26 Schuss Polarlichter',sub:'26 Schuss Polarlichter',
-  desc:'Polarlicht in Grün und Türkis: Weiden, deren Fäden im Sinken türkis und violett werden, Sternschnuppen, Glitzerschirme und quer hängende Lichtvorhänge, die langsam sinken – zum Schluss acht Polarweiden im Kreis.'});
+  desc:'Polarlicht in Grün und Türkis: Weiden, deren Fäden im Sinken türkis und violett werden, Sternschnuppen, Glitzerschirme und grüne Weidenkometen, die wie Lichtvorhänge hängen – zum Schluss acht Polarweiden im Kreis.'});
 lochGroesser('lb_polarweiden',20,26);
-SIGNATUR.lb_polarweiden={eff:'licht:polarvorhang',text:'Polarlicht: gruene Weiden und quer haengende Lichtvorhaenge, die violett ausfransen'};
+SIGNATUR.lb_polarweiden={eff:'licht:polarweide',text:'Polarlicht in Gruen und Tuerkis: Weiden, deren Faeden violett ausfransen, haengende gruene Kometen'};
 
 /* Sonnenaufgang, L16 (Tom nennt sie "Rakete"; es ist die Faecherbatterie
    faecher). PDF: "von Anfang bis 80-90 Prozent ist gut und dann am Ende
@@ -410,7 +396,7 @@ SIGNATUR.lb_polarweiden={eff:'licht:polarvorhang',text:'Polarlicht: gruene Weide
 { const alt=SHOWS.faecher; SHOWS.faecher=()=>{ const s=alt(), k=show({basis:s.basis,rampe:s.rampe},s.map(ph=>Object.assign({},ph)));
   const tag=k.findIndex(ph=>ph.boden&&ph.muster==='v'); if(tag>=0){ delete k[tag].boden; k.splice(tag+1,0,{mit:0,n:6,gap:0.9,licht:'strahlgold',kal:'mittel'}); }
   const L=k.length-1; if(k[L].mit&&k[L].eff==='pistill'){
-    k[L]={mit:0.25,n:3,gap:0.3,muster:'mitte',ang:0.08,eff:'kamuro',A:'gold',B:'bernstein',kal:'gross',pw:9,steig:'brokat',bruchOpt:{nachglitzer:false},knall:'bkBrokat',pause:5}; }
+    k[L]={mit:0.25,n:3,gap:0.3,muster:'mitte',ang:0.08,eff:'kamuro',A:'gold',B:'bernstein',kal:'gross',pw:5,steig:'brokat',bruchOpt:{nachglitzer:false,kern:false},knall:'bkBrokat',pause:5}; }
   return k; }; }
 lochName('faecher',{name:'Sonnenaufgang · 44 Schuss Halbkreisfächer',sub:'44 Schuss Halbkreisfächer',
   desc:'Erst glüht die Morgenröte tiefrot am Himmel, dann schießen goldene Strahlen bis flach über den Boden hinaus – zum Schluss geht mit dem Strahlenkranz in der Mitte die Sonne auf und sinkt als goldener Glitzerregen.'});
@@ -604,7 +590,7 @@ function rohrZone(t,r){ const F=ROHR_FORM[t]; if(!F) return null; const p=P[t], 
   /* Ozean 30: ein Block, zwei Kaliber - vorn 16 schmale Rohre fuer
      Kometen und Gischt, hinten 14 dicke (Brandung, Knalle) - wie auf dem
      Zuendtisch (ROHR_FORM) */
-  V.lb_saphirfaecher=t=>{ const k=neu(t); kuchen(k,{gruppen:[{x0:0.03,x1:0.97,y0:0,y1:0.5,cols:7,rows:2,wand:'#d8e4f2'},{x0:0.06,x1:0.94,y0:0.56,y1:1,cols:8,rows:2}],kc:'#2a5aff'}); return fertig(k); };
+  V.lb_saphirfaecher=t=>{ const k=neu(t); kuchen(k,{gruppen:[{x0:0.03,x1:0.97,y0:0,y1:0.5,cols:7,rows:2,wand:'#d8e4f2'},{x0:0.12,x1:0.88,y0:0.6,y1:0.92,cols:8,rows:2}],kc:'#2a5aff'}); return fertig(k); };
   /* Knattersturm 36 "Doppeldeck": zwei Decks auf einer Platte - vorn ein
      flacher Block mit 24 schmalen Rohren, dahinter ein hoher mit 12
      dicken (Feuertoepfe, Bomben) */

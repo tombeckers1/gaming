@@ -354,8 +354,11 @@ function figArmIK(g,u,i){
        Armlaenge der Figur umgerechnet (die alten Figuren hatten 0,61 m
        lange, weit aussen sitzende Arme) */
     const fa=u.arms[i].children[0]; const T=_fv[3].set(0,-0.31,0.02); fa.localToWorld(T);
-    const SA=u.arms[i].getWorldPosition(_fv[4]); const d=T.sub(SA); const sk=g.getWorldScale(_fv[5]).x;
-    dl=d.length()/sk*(L1+L2)/0.61; dn=d.normalize().clone();
+    /* erreichbar (Wagenbuegel, Wischerstiel): genau dorthin */
+    const dA=_fv[5].subVectors(T,S);
+    if(dA.length()<=(L1+L2)*0.93){ dl=dA.length(); dn=dA.normalize().clone(); }
+    else { const SA=u.arms[i].getWorldPosition(_fv[4]); const d=T.sub(SA); const sk=g.getWorldScale(_fv[5]).x;
+      dl=d.length()/sk*(L1+L2)/0.61; dn=d.normalize().clone(); }
   }
   /* nie ganz gestreckt */
   dl=clamp(dl,Math.abs(L1-L2)+0.01,(L1+L2)*0.93);
@@ -380,7 +383,8 @@ function figVorBild(){
     /* Steuerarme abweichend von animPerson? Dann IK */
     let ik=false;
     for(const i of [0,1]){ const a=u.arms[i], sx=i===0?-1:1, fa=a.children[0];
-      const ab=(u._ax?Math.abs(a.rotation.x-u._ax[i]):0)>0.03||Math.abs(a.rotation.z-sx*0.05)>0.03||(fa&&Math.abs(fa.rotation.x+0.18)>0.03);
+      /* Seitwaerts bis 0,06 gilt noch als Grundhaltung (Packer setzen nach dem Schieben 0) */
+      const ab=(u._ax?Math.abs(a.rotation.x-u._ax[i]):0)>0.03||Math.abs(a.rotation.z)>0.065||(fa&&Math.abs(fa.rotation.x+0.18)>0.03);
       F.ovZiel[i]=ab?1:0; if(F.ov[i]>0.01) ik=true; }
     if(F.tuete||u.greif) ik=true;
     if(!ik) continue;

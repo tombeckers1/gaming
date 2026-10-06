@@ -133,12 +133,12 @@ function mitRaum(R,fn){ const a=FW_RAUM; FW_RAUM=R; try{ return fn(); } finally 
 /* Raketen: ihr Bruch liegt jetzt gut doppelt so weit weg wie vorher
    (20 m -> 38-68 m) und wuerde vom Pult aus nur noch halb so gross
    wirken - er wird um 1,45 gestreckt (Sternzahl gleich). Die schon
-   grossen (Hakenschlag, Mondfinsternis, Supernova: 40-50 m Durchmesser)
+   grossen (Mondfinsternis, Supernova: 40-50 m Durchmesser; die Hakenschlag-Go-Getter der Hasenjagd schwirren schon 45 m weit - sie bleiben ungestreckt)
    weniger, damit keine Rakete an eine Kugel heranreicht. Gilt nur fuer
    die Raketenbrueche selbst (eigene Bruchbilder, die keine Batterie
    nutzt: steigerung.js EXKLUSIV); der Fallschirm haengt an einem Modell
    und bleibt, wie er ist. */
-const RK_RAUM={raketen:1.25,silbermond:1.25,supernova:1.15,jumboleiter:1.3,faecherweide:1.3}, RK_RAUM_EFF={};
+const RK_RAUM={raketen:1,silbermond:1.25,supernova:1.15,jumboleiter:1.3,faecherweide:1.3}, RK_RAUM_EFF={};
 for(const t of Object.keys(RAKETEN_KL)){ const k=RAKETEN_KL[t], p=P[t]||(typeof NEUWARE!=='undefined'?NEUWARE[t]:null);
   if(!p||p.shape!=='rocketset'||!k.eff) continue;
   for(const e of k.eff) if(e!=='fallschirm') RK_RAUM_EFF[e]=RK_RAUM[t]||1.45; }

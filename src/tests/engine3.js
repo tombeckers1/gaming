@@ -382,7 +382,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     pruef('FONT',r.fontRiesen!==null&&Math.abs(r.fontRiesen-12/10.2)<0.01&&r.fontIgnite===1,'riesen hm / igniteType: '+J([r.fontRiesen,r.fontIgnite])); }
   /* SPEICHER */
   { const d=r.speicher, typen=[...d.shelves[0].levels.map(l=>l.type),...d.racks[0].slots.filter(Boolean).map(s=>s.type),...d.boxes.map(x=>x.type),d.carrying.type,...d.cart.map(x=>x.t),...d.bestellungen[0].pos.map(x=>x.t)];
-    pruef('SPEICHER',J(typen)===J(['roemisch','titanraketen','dreiklang','feuerberg','knallbonbon','tischbombe','partypopper','kometen','donnerschlag']) /* 29.09.: bengalduo, sternenbrunnen, tisch gestrichen - Ersatz nach Form/Level (02e ENTFERNT_ERSATZ) */&&d.prices.goldperlen===undefined&&d.prices.roemisch===5&&d.fwZaehler.titanraketen===3&&d.fwZaehler.raketen50===undefined,'Umbuchung: '+J(d)); }
+    pruef('SPEICHER',J(typen)===J(['roemisch','titanraketen','dreiklang','feuerberg','knallbonbon','tischbombe','partypopper','hexenkessel','hexenkessel']) /* 29.09.: bengalduo, sternenbrunnen, tisch gestrichen - Ersatz nach Form/Level (02e ENTFERNT_ERSATZ); 06.10.: Schimmelreiter und Silberknister raus (Toms PDF) - beide werden zum Hexenkessel */&&d.prices.goldperlen===undefined&&d.prices.roemisch===5&&d.fwZaehler.titanraketen===3&&d.fwZaehler.raketen50===undefined,'Umbuchung: '+J(d)); }
   /* TAG */
   pruef('TAG',r.tag.vor>20&&r.tag.nach===0&&r.tag.andere1>=r.tag.andere0*0.8&&r.tag.andere0>20,'showLoeschen: '+J(r.tag));
   /* HAKEN */

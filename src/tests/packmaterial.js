@@ -41,7 +41,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     ['shop_halb','lager','lager_nord','lager_gross','packstation','onlineshop'].forEach(id=>bb.testKauf(id)); S.up.onlineshop=true;
     for(let i=0;i<4;i++) bb.regalStellen('rack');
     o.erst=JSON.stringify(bb.vmStand(0)); o.voll=bb.VM_IDS.every(id=>bb.vmStand(0)[id]===bb.VM[id].kap);
-    window.__lagern('boeller'); window.__lagern('raketen'); window.__lagern('kometen'); window.__lagern('kometen');
+    window.__lagern('boeller'); window.__lagern('raketen'); window.__lagern('lb_goldader'); window.__lagern('lb_goldader');
     S.bestellungen=[];
     const R=bb.vmRegale[0], h0=R.stapel.ks.m.scale.y, v0=Object.assign({},bb.vmStand(0));
     window.__auf([['boeller',2]],1);
@@ -52,7 +52,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     o.stapelKleiner=R.stapel.ks.m.scale.y<h0-1e-6;
     /* riesig: ein L-Karton, drei Folie, zwei Band */
     const v2=Object.assign({},bb.vmStand(0));
-    window.__auf([['kometen',1]],6); o.packen6=bb.packOne(true);
+    window.__auf([['lb_goldader',1]],6); o.packen6=bb.packOne(true);
     const v3=bb.vmStand(0); o.dRiesig={ks:v2.ks-v3.ks,km:v2.km-v3.km,kl:v2.kl-v3.kl,folie:v2.folie-v3.folie,band:v2.band-v3.band};
     return o; });
   console.log('VERBRAUCH',JSON.stringify(v));

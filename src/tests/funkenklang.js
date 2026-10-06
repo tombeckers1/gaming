@@ -22,7 +22,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   const mangel=[];
   const pruef=(n,ok,was)=>{ if(!ok) mangel.push(n+': '+was); };
   const WUNDER=['wunder','wunderfarbe','wunderherz','wunderzahl','wunderkerzeXXL','wunderbox'];
-  const RAUSCH=['leuchtfontaene','fontaene','goldgeysir','wasserfall','zauberbrunnen','eisblume','wasserspiel','bengalholz'];
+  const RAUSCH=['leuchtfontaene','fontaene','goldgeysir','wasserfall','feuerteufel','eisblume','wasserspiel','bengalholz'];
   const r=await p.evaluate(([WUNDER,RAUSCH])=>{ const bb=window.__bb, K=window.__fontklang; try{ bb.ac(); }catch(e){}
     if(!K) return {fehler:'kein __fontklang'};
     let T=0, fz=[]; const f0=bb.sfx.fizz; bb.sfx.fizz=function(){ fz.push(T); return f0.apply(this,arguments); };

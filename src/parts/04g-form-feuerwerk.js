@@ -10,7 +10,7 @@
    Produkts - Fuss (fussX quer, fussY hoch), Laenge, Neigung in Grad nach
    aussen, Radius am Fuss (r0) und an der Muendung (r1). Gemeinsam fuer
    die Form (unten) und den Effekt (14k hoerner, ftMuendungen). */
-const FT_DUESE={fussX:0.016,fussY:0.145,len:0.058,neig:32,r0:0.0085,r1:0.0068};
+const FT_DUESE={fussX:0.02,fussY:0.181,len:0.0725,neig:32,r0:0.0106,r1:0.0085};
 /* Muendungen in Weltlage: o = Oberkante des Produkts (wie muendung()) */
 function ftMuendungen(o,prod){ const D=FT_DUESE, h=(P[prod]&&P[prod].dims?P[prod].dims[1]:0.2), sn=Math.sin(D.neig*Math.PI/180), cs=Math.cos(D.neig*Math.PI/180);
   return [-1,1].map(s=>({x:o.x+s*(D.fussX+sn*D.len),y:o.y-h+D.fussY+cs*D.len,z:o.z,d:[s*sn,cs,0],s})); }
@@ -391,10 +391,10 @@ VP_FORM.knallfrosch=t=>{ const o=G(t), {w,h,d,a,rnd}=o, n=WARE_SPAR_AN?6:10, fw=
     /* Seerosenblatt-Tupfen im Hintergrund */
     g.fillStyle='rgba(255,255,255,.12)'; for(let i=0;i<9;i++){ const r=Math.min(W,H)*(0.05+0.04*(i%3)); g.beginPath(); g.arc(W*((i*0.37)%1),H*((i*0.61)%1),r,0.3,PI*2-0.3); g.lineTo(W*((i*0.37)%1),H*((i*0.61)%1)); g.fill(); } };
   const R=bogen(o,[{n:'f',w,h,f:(g,W,H)=>{ grund(g,W,H);
-      froschBild(g,W*0.25,H*0.5,H*0.78);
-      nameText(g,a.title,W*0.67,H*0.33,W*0.6,Math.round(H*0.3),FNT.bun,'#ffffff','#0d3f14',Math.max(2,H*0.04));
-      nameText(g,'KNALLFRÖSCHE',W*0.67,H*0.6,W*0.58,Math.round(H*0.17),FNT.bar,'#0d3f14',null);
-      froschPaeckchen(g,W*0.6,H*0.73,W*0.1,H*0.2); nameText(g,'20×',W*0.84,H*0.83,W*0.2,Math.round(H*0.2),FNT.bun,'#ffd23f','#0d3f14',2); }},
+      froschBild(g,W*0.25,H*0.54,H*0.58);
+      nameText(g,a.title,W*0.73,H*0.3,W*0.46,Math.round(H*0.26),FNT.bun,'#ffffff','#0d3f14',Math.max(2,H*0.04));
+      nameText(g,'KNALLFRÖSCHE',W*0.73,H*0.56,W*0.44,Math.round(H*0.15),FNT.bar,'#0d3f14',null);
+      froschPaeckchen(g,W*0.58,H*0.72,W*0.09,H*0.2); nameText(g,'20×',W*0.82,H*0.82,W*0.2,Math.round(H*0.2),FNT.bun,'#ffd23f','#0d3f14',2); }},
     {n:'b',w,h,f:(g,W,H)=>{ grund(g,W,H); froschPaeckchen(g,W*0.1,H*0.2,W*0.22,H*0.5);
       nameText(g,'SPRINGT UND KNALLT',W*0.62,H*0.32,W*0.62,Math.round(H*0.15),FNT.bar,'#0d3f14',null);
       nameText(g,'Auf festem Boden zünden,',W*0.62,H*0.55,W*0.62,Math.round(H*0.11),FNT.bar,'#ffffff',null);

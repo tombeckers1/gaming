@@ -53,7 +53,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
       return {schuesse:log.length,raketen,hoch:+hoch.toFixed(1),dauer,farben,toene:summe}; };
     /* 29.09. (Tom): Zuckerhut, Blütenbrunnen, Feuersäule, Feuerbrunnen und die
        Monsterfontaenen 30/50 m sind aus dem Sortiment - es bleiben diese */
-    for(const t of ['fontaene','goldgeysir','wasserfall','zauberbrunnen','eisblume']) if(bb.P[t]) out[t]=miss(t);
+    for(const t of ['fontaene','goldgeysir','wasserfall','feuerteufel','eisblume']) if(bb.P[t]) out[t]=miss(t); /* 06.10.: Feuerteufel statt Zauberbrunnen (Toms PDF) */
     /* Bild der Monsterfontaenen (Tom, 25.09.): "sieht aus wie
        Laserstrahlen" und "30 und 50 m sahen fast gleich aus".
        spur: 90-%-Wert der Leuchtspurlaenge im Strahl (Laser = lange Striche)
@@ -78,7 +78,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     out.weg=['fontaene30','fontaene50','feuersaeule','vulkan','sternenbrunnen','feuerbrunnen'].filter(t=>bb.P[t]);
     return out; });
   for(const t of Object.keys(r)) console.log(t.padEnd(15),JSON.stringify(r[t]));
-  const F=['fontaene','goldgeysir','wasserfall','zauberbrunnen','eisblume'].filter(t=>r[t]);
+  const F=['fontaene','goldgeysir','wasserfall','feuerteufel','eisblume'].filter(t=>r[t]);
   F.forEach(t=>pruef('LADUNG',r[t].schuesse===0&&r[t].raketen===0,`${t} wirft ${r[t].schuesse} Ladungen aus`));
   pruef('STIMMIG',F.every(t=>r[t].farben<=2),'mehr als zwei Farben zugleich: '+F.map(t=>t+' '+r[t].farben).join(', '));
   pruef('KEIN_LASER',r.sigGeysir.spur<3.5,'Leuchtspuren im Strahl bis '+r.sigGeysir.spur+' m lang');

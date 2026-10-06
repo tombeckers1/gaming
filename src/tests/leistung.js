@@ -45,7 +45,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     bb.igniteType('finale',{x:P.moerser.x,y:0.95,z:P.moerser.z});
     bb.igniteType('donnerwand',{x:P.rampe.x,y:0.95,z:P.rampe.z});
     bb.igniteType('goldgeysir',{x:P.tisch.x-1,y:0.95,z:P.tisch.z});
-    bb.igniteType('zauberbrunnen',{x:P.tisch.x+1,y:0.95,z:P.tisch.z}); /* 29.09.: statt Feuersaeule (entfernt) */
+    bb.igniteType('goldgeysir',{x:P.tisch.x+1,y:0.95,z:P.tisch.z}); /* 29.09.: statt Feuersaeule (entfernt); 06.10.: Goldgeysir statt Zauberbrunnen (Toms PDF) */
     bb.kugelbombe({x:5,y:1.7,z:-23},5); bb.kugelbombe({x:2,y:1.7,z:-25},5);
     const feuer=[], lebend=[]; let upl=0, maxUpl=0, maxProg=prog0, blitzWarAn=false;
     for(let i=0;i<400;i++){ bytes=0; feuer.push(bild()); upl+=bytes; maxUpl=Math.max(maxUpl,bytes);

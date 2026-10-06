@@ -21,7 +21,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   const mangel=[];
   const pruef=(n,ok,was)=>{ if(!ok) mangel.push(n+': '+was); };
   const out={};
-  for(const t of ['wunder','wunderzahl','zauberbrunnen']){
+  for(const t of ['wunder','wunderzahl','goldgeysir']){ /* 06.10.: Zauberbrunnen raus (Toms PDF) */
     out[t]=await p.evaluate(async t=>{ const bb=window.__bb; if(!bb.P[t]) return null; bb.ac(); const AC=bb.master.context; await AC.resume();
       const sp=AC.createScriptProcessor(2048,1,1), rms=[];
       sp.onaudioprocess=ev=>{ const d=ev.inputBuffer.getChannelData(0); let s=0; for(let i=0;i<d.length;i++) s+=d[i]*d[i]; rms.push(Math.sqrt(s/d.length)); };

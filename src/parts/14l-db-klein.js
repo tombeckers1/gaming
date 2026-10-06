@@ -607,12 +607,11 @@ klEmit('bengalstab',(e,dt,o,t)=>{
 /* 06.10. (Toms PDF: Bengalhoelzer "in so eine Halterung", wie die
    Wunderkerze im Podest, Farben Rot, Gruen, Gelb, Blau nacheinander): die
    Hoelzer stecken im Halter (kqWkLayout/kqHolzPodest, 14q). Jede Phase
-   (e.holz = Nummer in der Zuendfolge) zuendet ihr Holz an der Spitze; die
+   (e.holzNr = Nummer in der Zuendfolge) zuendet ihr Holz an der Spitze; die
    Flamme sitzt immer auf dem noch nicht verbrannten Satz und frisst sich
    den farbigen Kopf hinab bis zum Holzstiel. Dahinter bleibt ein
    verkohlter Rest stehen. Ohne Halter (alte Aufrufe) brennt das Holz wie
    frueher senkrecht ueber dem Ort. */
-const _klHV=new THREE.Vector3();
 klEmit('zuendholz',(e,dt,o,t)=>{
   const A=e.A||FW.rot, st=e.stich||0.25, T=e.T0||(e.T0=e.t), gl=e.glimm||1;
   if(!e.holz){ const sf=klFlaeche(o); e.t=st+T+gl+1.5;

@@ -205,7 +205,12 @@ NEU_EMIT.vfModell=function(e,dt,o){
     else if(e.alter>8) e.weg();
   }
   const r=e.r;
-  if(r){ if(rockets.indexOf(r)<0){ e.weg(); return; }
+  /* Bruch: das Modell ist weg, der Blick legt sich noch 1,5 s auf die
+     Bruchmitte (sonst stand eine Rakete am oberen Bildrand und wuchs hinaus) */
+  if(r&&e.bruch===undefined&&rockets.indexOf(r)<0){ if(e.g.parent) e.g.parent.remove(e.g);
+    e.bruch=vfHoehenWinkel(r.p.x,r.p.y,r.p.z)-(e.kugel?0.06:0.1); e.nach=1.5; }
+  if(e.bruch!==undefined){ e.nach-=dt; if(e.nach<=0){ e.weg(); return; } }
+  else if(r){
     e.g.position.set(r.p.x,r.p.y,r.p.z);
     if(!e.kugel){ _vfD.set(r.v.x,r.v.y,r.v.z); if(_vfD.lengthSq()>0.01){ _vfD.normalize(); e.g.quaternion.setFromUnitVectors(_vfY,_vfD); } } }
   /* Blick: erst aufs Rohr, dann mit dem Aufstieg nach oben */
@@ -217,7 +222,7 @@ NEU_EMIT.vfModell=function(e,dt,o){
      folgt nach oben - der Bruch soll ganz ins Bild, die Kugel (doppelt so
      gross) steht hoeher im Bild */
   const rohr=vfHoehenWinkel(o.x,o.y+0.12,o.z);
-  const ziel=r?Math.max(rohr+0.42,vfHoehenWinkel(r.p.x,r.p.y,r.p.z)-(e.kugel?0.12:0.3)):rohr;
+  const ziel=e.bruch!==undefined?e.bruch:r?Math.max(rohr+0.42,vfHoehenWinkel(r.p.x,r.p.y,r.p.z)-(e.kugel?0.12:0.3)):rohr;
   const fov=r?VF_FOV0:VF_FOV_NAH, k=1-Math.exp(-dt*3.2);
   if(c.letzt===null){ pitch=ziel; camera.fov=fov; }
   else { pitch+=(ziel-pitch)*k; camera.fov+=(fov-camera.fov)*(r?1-Math.exp(-dt*2.2):k); }
@@ -232,8 +237,8 @@ NEU_EMIT.vfModell=function(e,dt,o){
    acht Punkthaufen. Jetzt ein geschliffener Smaragd: acht schwere
    smaragdgruene Kometen als Blaetter (ein Kranz, leicht zum Zuschauer
    gekippt), jeder mit koernigem Funkenschweif, sie biegen sich unter der
-   Schwere wie Blaetter; dazwischen eine zarte Chrysantheme aus gruenen
-   Sternen mit kurzer Spur, in der Mitte ein funkelnder weissgoldener
+   Schwere wie Blaetter; dazwischen eine Krone aus gruenen
+   Sternen mit dichtem Glitzerschweif (Brokat), in der Mitte ein funkelnder weissgoldener
    Glitzerkern (die Facetten). Zum Schluss funkeln die Blattspitzen golden
    auf und rieseln. Eine Farbfamilie: Smaragdgruen, Mint, ein Hauch Gold. */
 EFF.smaragdkrone=function(p,A,B,s){
@@ -247,12 +252,14 @@ EFF.smaragdkrone=function(p,A,B,s){
   /* smaragdgruene Chrysantheme zwischen den Blaettern: jeder Stern zieht
      einen feinen gruengoldenen Glitzerschweif und sinkt zum Schluss wie
      eine Weide */
-  nKugel(Math.round(38*q),7.2*s,(v,i)=>{ kgStern(psBig,p,v,i%3?kgMal(smaragd,1.4):kgMal(mint,1.25),rand(2.4,2.9),1.7,0,0.4);
-    rkFunken(p,v,1.7,0.08,2.6,14,[0.7,1,0.45],{ps:psMid,life:[0.9,1.5],g:0.9,streu:0.12,mit:0.04,mode:4}); });
+  /* Render 06.10.: mit 38 Sternen blieb es ein lockerer Stern aus Strichen -
+     jetzt eine dichte Brokatkrone: 70 Sterne, jeder mit dichtem Glitzerschweif */
+  nKugel(Math.round(70*q),7.4*s,(v,i)=>{ kgStern(psBig,p,v,i%3?kgMal(smaragd,1.5):kgMal(mint,1.3),rand(2.5,3.0),1.5,0,0.25);
+    rkFunken(p,v,1.5,0.05,2.7,22,[0.6,1.1,0.5],{ps:psMid,life:[0.8,1.4],g:0.8,streu:0.15,mit:0.05,mode:4}); });
   /* Glitzerkern: die Facetten funkeln */
-  nKugel(Math.round(70*q),3.4*s,v=>kgStern(psMid,p,v,[1.6,1.45,1.0],rand(1.5,2.1),0.9,4,0.04));
+  nKugel(Math.round(45*q),3.0*s,v=>kgStern(psMid,p,v,[1.6,1.45,1.0],rand(1.5,2.1),0.9,4,0.04));
   schall(p,v=>{ sfx.plopp(v*0.45,1); later(0.25,()=>sfx.rieseln(v*0.55,2.4)); });
 };
 EFF_SCHWEIF.smaragdkrone=0.45; EFF_FAMILIE.smaragdkrone='kugel'; RK_RAUM_EFF.smaragdkrone=1.45;
 if(RAKETEN_KL.smaragd) RAKETEN_KL.smaragd.eff=['smaragdkrone'];
-SIGNATUR.smaragd={eff:'smaragdkrone',steig:'farbkomet',text:'Acht smaragdgruene Kometenblaetter um einen funkelnden Glitzerkern - geschliffen wie ein Smaragd.'};
+SIGNATUR.smaragd={eff:'smaragdkrone',steig:'farbkomet',text:'Smaragdgruene Brokatkrone mit acht hellen Kometenblaettern um einen funkelnden Glitzerkern - geschliffen wie ein Smaragd.'};

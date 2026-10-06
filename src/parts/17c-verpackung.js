@@ -35,7 +35,9 @@ const VP_TEX=0.4;
    (Ware auf beiden Seiten), einzeln = eine Reihe, frei = Tische und
    Gitterboxen mit Luft rundum. */
 const VP_ZEILEN=[
-  {art:'paar',links:['hoch','hoch','hoch','hoch','hoch'],rechts:['standard','standard','standard','standard','standard']},
+  /* 06.10.: zehn Themen-Batterien (02f) - je ein Hochregal mehr links und
+     rechts (2 x 5 Faecher), sonst bleiben die Getraenke ohne Fach */
+  {art:'paar',links:['hoch','hoch','hoch','hoch','hoch','hoch'],rechts:['standard','standard','standard','standard','standard','hoch']},
   {art:'insel',kinds:['gondel','gondel','gondel','gondel','gondel']},
   {art:'insel',kinds:['gondel','gondel','gondel','gondel','gondel']},
   /* 03.10.: neue Raketen, Kugeln und Batterien - 24 Fächer mehr, sonst

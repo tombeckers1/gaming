@@ -18,7 +18,8 @@
    Aufruf: node -r ./ladezeit-preload.js themen.js real.html
    GEGEN=1: Gegenprobe - Lavendelfeld bekommt einen Kometenfaecher aus
    einem Rohr und Vollmond einen Fontaenen-Opener; LOCH und OPENER muessen
-   anschlagen. */
+   anschlagen (06.10.: Lavendelfeld Name 18 / Rohre 19 / breitjade,
+   Vollmond 2 Module und Opener - angeschlagen). */
 const { chromium } = require('/opt/node22/lib/node_modules/playwright');
 const PLAN={lb_tautropfen:4,lb_zitronenfalter:7,lb_lavendelfeld:9,lb_herbstlaub:12,lb_kolibri:14,lb_vollmond:16,lb_lagune:18,lb_sonnenblumen:20,lb_gletscher:22,lb_vulkan:25};
 const MEHRFACH=['kometenfaecher','zwillingskomet','drillingskomet','weidenfaecher','goldfaecher','farbweidenfaecher','wassertor','dreifachtor','torbogen'];
@@ -43,7 +44,10 @@ async function neuesSpiel(p){
   const VGL=(process.env.VGL||'').split(',').filter(Boolean);
   const r=await p.evaluate(({PLAN,MEHRFACH,VGL})=>{ const bb=window.__bb, P=bb.P, out={prod:{},folgen:{}};
     bb.S.level=99;
-    /* Zaehler fuer Kometenfaecher und Fontaenen-Module (globale Funktionen) */
+    /* Zaehler fuer Kometenfaecher und Fontaenen-Module: greift nur, wenn die
+       Funktionen ueber window erreichbar sind (im Bau sind sie es nicht -
+       Gegenprobe 06.10.: 0 gezaehlt). Darum zusaetzlich die Drehbuch-Pruefung
+       unten (breit*-Lichter, Boden ohne alt = BREIT_BODEN-Faecher) */
     const Z={kff:0,bb:0,kf:0};
     for(const [f,k] of [['lKometenFaecher','kff'],['breitBoden','bb'],['kfKomet','kf']]){ const alt=window[f]; if(typeof alt==='function') window[f]=function(){ Z[k]++; return alt.apply(this,arguments); }; }
     const vf=bb.fwTestProdukte();
@@ -72,6 +76,10 @@ async function neuesSpiel(p){
       const L2=log.filter(e=>e.art==='perle'&&/^licht:/.test(e.eff||'')); o.lichter=L2.length; o.lichtTypen=[...new Set(L2.map(e=>e.eff.slice(6)))];
       o.mehrfach=o.lichtTypen.filter(e=>MEHRFACH.indexOf(e)>=0||/^breit/.test(e));
       o.kff=Z.kff; o.bb=Z.bb; o.kf=Z.kf;
+      /* Drehbuch: breite Fontaene aus dem Modul (Boden ohne alt wird per
+         BREIT_BODEN zum Kometenfaecher) oder breit*-Licht aus einem Rohr */
+      o.bb+=ph.filter(q=>[].concat(q.boden||[]).some(x=>['fountain','volcano','torte','farbtorte','knisterbrunnen'].indexOf(x.k)>=0&&!x.alt)).length;
+      o.kff+=ph.filter(q=>q.licht&&/^breit/.test(q.licht)).length;
       hs.sort((a,c)=>a-c); ws.sort((a,c)=>a-c);
       o.h90=hs.length?+hs[Math.floor(hs.length*0.9)].toFixed(1):0; o.hMax=hs.length?+hs[hs.length-1].toFixed(1):0;
       o.breite=ws.length?+(2*ws[Math.floor(ws.length*0.9)]).toFixed(1):0; o.peak=peak; o.dauer=+bb.showLength(t).toFixed(1);

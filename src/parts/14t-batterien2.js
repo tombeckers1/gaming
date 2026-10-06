@@ -32,6 +32,7 @@ try{ window.__lochschuss={
   start(boden){ LOCH.z={boden:boden||3,lk:0,frei:0,kf:0,licht:0,je:{},inLicht:false,inKf:false,lkf:false}; },
   stop(){ const z=LOCH.z; LOCH.z=null; return z&&{koepfeFrei:z.frei,kometen:z.kf,lichter:z.licht,je:z.je}; },
   phasen(t){ return SHOWS[t]?JSON.parse(JSON.stringify(showNorm(SHOWS[t]()))):null; },
+  stufe(t){ const F=typeof ROHR_FORM!=='undefined'&&ROHR_FORM[t]; return F?+(rohrHoehe(t).bh*(1-Math.min(...F.zonen.map(z=>z.hf||1)))).toFixed(3):0; },
   breitBoden(an){ if(an) Object.assign(BREIT_BODEN,{fountain:1,volcano:1,torte:1,farbtorte:1,knisterbrunnen:1}); else for(const k in BREIT_BODEN) delete BREIT_BODEN[k]; return Object.keys(BREIT_BODEN).length; }
 }; }catch(e){}
 
@@ -111,7 +112,7 @@ function lochTopfTeilen(ph){
   const n=ph.n===undefined?1:ph.n; if(!(ph.mine||ph.mineEff)||ph.nurMine||n<1) return [ph];
   const nt=n>=2?Math.max(1,Math.floor(n/3)):0, a=Object.assign({},ph,{n:n-nt}); delete a.mine; delete a.mineEff; delete a.mineSz;
   if(!nt) return [a];
-  const b={mit:0,n:nt,nurMine:true,mineEff:ph.mineEff||'farbe',mineSz:ph.mineSz,muster:ph.muster==='schlag'?'schlag':'gerade',rohre:ph.rohre,x:ph.x,
+  const b={mit:typeof ph.mit==='number'||ph.at!==undefined?0:true,n:nt,nurMine:true,mineEff:ph.mineEff||'farbe',mineSz:ph.mineSz,muster:ph.muster==='schlag'?'schlag':'gerade',rohre:ph.rohre,x:ph.x,
     gap:ph.gap,gapEnde:ph.gapEnde,takt:ph.takt,je:ph.je&&Math.max(1,Math.round(ph.je*nt/n)),bogenGap:ph.bogenGap,farbe:ph.farbe,th:ph.th,A:ph.A,B:ph.B};
   for(const k in b) if(b[k]===undefined) delete b[k];
   return [a,b];
@@ -337,22 +338,37 @@ SHOWS.knatter=()=>show({basis:{pw:-4,sz:0.90,th:'eis'}, rampe:{sz:[0.85,1.3],pw:
   {n:6,mit:true,gap:0.4,muster:'mitte',ang:0.3,eff:'tausend',steig:'knister',knall:'bkKnatter',pause:1.0},
   {n:8,gap:0.15,muster:'wischer',seg:2,ang:0.35,eff:'knister',kal:'klein',steig:'silber',knall:'bkKnatter',boden:{k:'knisterbrunnen',gt:4,gh:0.8,A:'silber',B:'weiss'},pause:1.2},
   {n:6,gap:0,muster:'schlag',ang:0.4,eff:'tausend',kal:'mittel',pw:2,steig:'knister',knall:'bkKnatter'},
-  {n:6,mit:0,gap:0,muster:'schlag',rohre:'breit',mineEff:'knister',mineSz:0.8,nurMine:true,pause:3.5}]);
+  {n:6,mit:true,gap:0,muster:'gerade',rohre:'breit',mineEff:'knister',mineSz:0.8,nurMine:true,pause:3.5}]);
 SHOW_BASIS.knatter={pw:-4,sz:0.90,th:'eis'};
 lochName('knatter',{name:'Knattersturm · 36 Schuss Doppeldeck',short:'Knatter 36',sub:'36 Schuss Crackling'});
 lochGroesser('knatter',30,36);
 
+/* Rubinpalme: dunkler Aufstieg, dann eine grosse karminrote Palme, deren
+   Wedel golden nachgluehen; an den Spitzen funkeln weisse Glanzlichter
+   wie geschliffene Rubine. Rubinweide: rote Weide mit Glitzerschweif */
+LICHTYP.rubinpalme=function(o,A,B,s,opt){
+  lDunkel(o,s,opt,30,e=>{ lPalme(e,s,{n:11,w:9,L:3.3,kopf:()=>lHell(A,1.5),schweif:()=>mischF(lHell(A,1.05),GOLDF,0.3),rate:60,
+      ende:(q,k)=>kgSpaeter(0.1+k*0.03,()=>{ for(let j=0;j<4;j++) lBlitz({x:q.x+rand(-0.6,0.6),y:q.y+rand(-0.6,0.4),z:q.z+rand(-0.6,0.6)},[1.9,1.8,1.8],rand(0.25,0.5)); })});
+    schall(e,x=>{ sfx.wumms(x*0.4); later(2.4,()=>sfx.crackle(x*0.35)); }); });
+};
+LICHTYP.rubinweide=function(o,A,B,s,opt){
+  const m=lMund(o), G=5, v=lAbschuss(27*Math.sqrt(s),G,opt,0.4), T=lScheitel(v[1],G)+1.3;
+  lKopf(m,v,lHell(A,1.45),T,G,0,0.4);
+  lFunken(m,v,G,0.05,T,85,mischF(lHell(A,1.0),[1,.75,.5],0.25),{ps:psMid,life:[2.0,3.0],g:0.7,streu:0.12,mit:0.03,mode:4,spur:0.25});
+  lStart(m,1.1,0.6); sfx.zischen(distVol(m)*0.3,T); later(1.2,()=>sfx.rieseln(distVol(m)*0.45,3)); };
+Object.assign(LICHT_BRENN,{rubinpalme:6,rubinweide:6});
+
 /* Rubinpalmen, L14. PDF: "am Anfang wieder diese gleichen Fontaenen ...
    zu eintoenig. Das muss geaendert werden". Statt des Kometenfaechers
-   eroeffnet jetzt eine einzelne grosse rote Koenigspalme mit goldener
-   Krone - danach alles wie bisher. */
+   eroeffnet jetzt eine einzelne grosse Rubinpalme - danach alles wie
+   bisher (die roten Weiden glitzern jetzt). */
 nbShow('lb_rubinpalmen',[['rot','gold'],['scharlach','weiss'],['rose','gold']],{sz:[0.9,1.25],pw:[0,2],hell:[0.9,1.25],kurve:'spaet'},[
-  {n:1,licht:'koenigspalme',kal:'gross',farbe:0,pause:2.5},
+  {n:1,licht:'rubinpalme',kal:'gross',farbe:0,pause:2.5},
   {n:4,gap:1.2,muster:'aussen',ang:0.25,licht:'farbpalme',farbe:0},
   {n:6,gap:0.3,muster:'paar',ang:0.35,licht:'knistercrossette',farbe:1},
-  {mit:true,n:4,gap:0.8,muster:'gerade',licht:'farbweidenkomet',farbe:2,pause:0.8},
+  {mit:true,n:4,gap:0.8,muster:'gerade',licht:'rubinweide',farbe:2,pause:0.8},
   {n:7,gap:0.12,muster:'mitte',ang:0.3,licht:'farbpalme',kal:'gross',farbe:1,pause:5.5}]);
-lochName('lb_rubinpalmen',{desc:'Eine große rote Königspalme eröffnet, dann rote Palmen mit rot-goldenen Wedeln, deren Enden in kleinen Explosionen zerstieben, knisternde Crossetten und rote Weiden.'});
+lochName('lb_rubinpalmen',{desc:'Eine große Rubinpalme mit funkelnden Spitzen eröffnet, dann rote Palmen mit rot-goldenen Wedeln, deren Enden in kleinen Explosionen zerstieben, knisternde Crossetten und rote Weiden.'});
 
 /* Jadeader, L8. PDF: "diese gruenen Kometen am Anfang echt schoen, aber
    dann wird's halt auch verschiedene Farben ... dass das bei Gruen
@@ -396,7 +412,7 @@ SIGNATUR.lb_polarweiden={eff:'licht:polarweide',text:'Polarlicht in Gruen und Tu
 { const alt=SHOWS.faecher; SHOWS.faecher=()=>{ const s=alt(), k=show({basis:s.basis,rampe:s.rampe},s.map(ph=>Object.assign({},ph)));
   const tag=k.findIndex(ph=>ph.boden&&ph.muster==='v'); if(tag>=0){ delete k[tag].boden; k.splice(tag+1,0,{mit:0,n:6,gap:0.9,licht:'strahlgold',kal:'mittel'}); }
   const L=k.length-1; if(k[L].mit&&k[L].eff==='pistill'){
-    k[L]={mit:0.25,n:3,gap:0.3,muster:'mitte',ang:0.08,eff:'kamuro',A:'gold',B:'bernstein',kal:'gross',pw:5,steig:'brokat',bruchOpt:{nachglitzer:false,kern:false},knall:'bkBrokat',pause:5}; }
+    k[L]={mit:0.25,n:3,gap:0.3,muster:'mitte',ang:0.08,eff:'kamuro',A:'gold',B:'bernstein',kal:'riesig',pw:5,steig:'brokat',bruchOpt:{nachglitzer:false,kern:false},knall:'bkBrokat',pause:5}; }
   return k; }; }
 lochName('faecher',{name:'Sonnenaufgang · 44 Schuss Halbkreisfächer',sub:'44 Schuss Halbkreisfächer',
   desc:'Erst glüht die Morgenröte tiefrot am Himmel, dann schießen goldene Strahlen bis flach über den Boden hinaus – zum Schluss geht mit dem Strahlenkranz in der Mitte die Sonne auf und sinkt als goldener Glitzerregen.'});
@@ -422,7 +438,7 @@ SHOWS.hexenkessel=()=>show({verzoegerung:true,basis:{pw:2.15,sz:1.175,th:'hexe2'
   {n:14,gap:0.25,muster:'aussen',ang:0.40,licht:'zackkomet',farbe:3,pause:0.8},
   {n:16,gap:0.35,muster:'spirale',ang:0.35,eff:['kiefernkrone','lavaregen'],farbe:3,pause:1.0},
   {n:48,je:8,takt:[0.35],muster:'kreis',ang:0.50,rohre:'breit',kal:'gross',eff:['palme','wechsel','sternspritzer','tigerschweif'],farbe:0},
-  {mit:0,n:16,je:2,takt:[1.05],muster:'gerade',rohre:'breit',mineEff:'farbe',mineSz:0.9,nurMine:true,farbe:3,pause:4.5}]);
+  {mit:true,n:16,je:2,takt:[1.05],muster:'gerade',rohre:'breit',mineEff:'farbe',mineSz:0.9,nurMine:true,farbe:3,pause:4.5}]);
 lochName('hexenkessel',{name:'Hexenkessel · 180 Schuss Walpurgisnacht',sub:'180 Schuss · Walpurgisnacht',
   desc:'Erst brodelt der Kessel: knisternde Feuertöpfe, darüber Weiden, die von Limette zu Violett werden. Dann Hexenringe aus acht Rohren, Irrlichter, Hexenbesen kreuz und quer, violette Schirme, ein Hexentanz aus Kiefern und Lava – das Finale eine Walpurgisnacht aus Ringen und Feuertöpfen.'});
 SIGNATUR.hexenkessel={idee:'Walpurgisnacht',eff:'tigerschweif',text:'Brodelnder Kessel aus Feuertoepfen, Hexenringe, Irrlichter, Hexenbesen und Walpurgisnacht'};
@@ -437,13 +453,13 @@ SIGNATUR.hexenkessel={idee:'Walpurgisnacht',eff:'tigerschweif',text:'Brodelnder 
 SHOWS.feuerpfau=()=>show({verzoegerung:true,basis:{pw:2.10,sz:1.170,th:'saeulen'},rampe:{sz:[0.90,1.25],pw:[-1,2],hell:[0.95,1.35],kurve:'frueh'}},[
   {n:8,gap:0.7,muster:'gerade',rohre:'breit',mineEff:'farbe',mineSz:1.0,nurMine:true,farbVert:'wechsel',pause:1.2},
   {n:12,gap:0.55,muster:'aussen',ang:0.50,steig:'farbkomet',eff:'pistill',farbVert:'wechsel'},
-  {mit:0,n:6,gap:1.1,muster:'gerade',rohre:'breit',mineEff:'farbe',mineSz:0.9,nurMine:true,farbe:1,pause:1.2},
+  {mit:true,n:6,gap:1.1,muster:'gerade',rohre:'breit',mineEff:'farbe',mineSz:0.9,nurMine:true,farbe:1,pause:1.2},
   {n:12,gap:0.9,muster:'v',ang:0.35,licht:'kronenkomet',farbe:1},
-  {mit:0,n:6,gap:1.8,nurMine:true,mineEff:'blink',muster:'gerade',farbe:0,pause:0.8},
+  {mit:true,n:6,gap:1.8,nurMine:true,mineEff:'blink',muster:'gerade',farbe:0,pause:0.8},
   {n:16,gap:0.30,muster:'paar',ang:0.45,licht:'farbpalme',farbe:0,pause:1.2},
   {n:14,gap:0.14,muster:'mitte',ang:0.55,licht:'zackkomet',kal:'gross',farbe:2,pause:1.0},
   {n:16,je:8,takt:[0.8],muster:'schlag',ang:0.60,steig:'farbkomet',eff:['dahlie','kronleuchter'],kal:'riesig',farbe:2,farbVert:'mitte'},
-  {mit:0,n:10,gap:0.25,muster:'gerade',rohre:'breit',mineEff:'farbe',mineSz:1.1,nurMine:true,farbe:2,pause:4.5}]);
+  {mit:true,n:10,gap:0.25,muster:'gerade',rohre:'breit',mineEff:'farbe',mineSz:1.1,nurMine:true,farbe:2,pause:4.5}]);
 lochName('feuerpfau',{desc:'Erst ein Säulengang aus Farbe: Feuertöpfe stellen Säulen aus Magenta und Limette auf, darüber Pistillbomben mit farbigem Aufstieg. Dann Kronenkometen über blinkenden Säulen, Farbpalmen, Zackenkometen – das Finale Dahlien und Kronleuchter über zehn Säulen.'});
 SIGNATUR.feuerpfau={idee:'Saeulengang',eff:'pistill',text:'Saeulen aus Farbe: Feuertoepfe, Pistille, Kronenkometen ueber Blinksaeulen'};
 

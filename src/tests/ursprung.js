@@ -113,7 +113,9 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
       let wo=null; if(max>0.03){ const k=alle.indexOf(max);
         if(k<dn.length){ let j=-1; for(let i=0,c=0;i<pk.length;i++){ if(typeof pk[i]==='number'){ if(c===k){ j=i; break; } c++; } } wo=pk[j+1]; }
         else { const q=schuesse[k-dn.length]; wo=[+(q[0]-O.x).toFixed(2),+(q[1]-O.z).toFixed(2),'log:'+q[2]]; } }
-      out[t]={st:sid,dims:d,erst:+erst.toFixed(3),max:+max.toFixed(3),raus,n:alle.length,schuss:ds.length,wo,weit:WEIT.includes(t),em:emRaus,hoch};
+      /* 06.10.: Stufen- und Doppeldeck-Batterien (14t ROHR_FORM) haben Muendungen unterhalb des Deckels */
+      const stufe=window.__lochschuss&&window.__lochschuss.stufe?window.__lochschuss.stufe(t):0;
+      out[t]={st:sid,dims:d,erst:+erst.toFixed(3),max:+max.toFixed(3),raus,n:alle.length,schuss:ds.length,wo,weit:WEIT.includes(t),em:emRaus,hoch,stufe};
       bb.clearStations();
     }
     return out; },[nur,WEIT,FZ,RL,SL]);
@@ -128,7 +130,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     const NEBEN={knallfrosch:0.45,knallbonbon:0.45,bodenkreisel:0.6,wunderzahl:0.25,feuerrad:0.1};
     if(v.erst>(NEBEN[t]||0.03)) mangel.push(`${t}: erster Funke ${v.erst} m neben der Oeffnung`);
     else if(!v.weit&&v.max>(NEBEN[t]||0.03)) mangel.push(`${t}: ${v.raus}/${v.n} Ursprung bis ${v.max} m neben der Oeffnung (${v.st}, bei ${JSON.stringify(v.wo)})`);
-    if(v.hoch&&(v.hoch[0]<-0.03||v.hoch[1]>0.2)) mangel.push(`${t}: Raketen starten ${v.hoch[0]} bis ${v.hoch[1]} m ueber der Oeffnung (${v.st})`);
+    if(v.hoch&&(v.hoch[0]<-0.03-(v.stufe||0)||v.hoch[1]>0.2)) mangel.push(`${t}: Raketen starten ${v.hoch[0]} bis ${v.hoch[1]} m ueber der Oeffnung (${v.st})`);
     if(!v.weit&&v.em.length) mangel.push(`${t}: Emitter nicht an der Oeffnung [k,dx,dy,dz]: ${JSON.stringify(v.em)}`);
   }
   const kurz={}; for(const [t,v] of Object.entries(r)) kurz[t]=v.leer||v.fehler?v:[v.st,v.max,v.raus+'/'+v.n,v.wo,v.em,v.hoch];

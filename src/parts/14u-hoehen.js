@@ -48,12 +48,12 @@ const KG_HOEHE=[86,87,88,89,90], KG_STEIG=[2.9,3.0,3.1,3.2,3.35];
 /* Raeumlicher Massstab des Bruchs je Kaliber (Vorgabe) und je Sorte
    (gemessen: Durchmesser vorher -> Ziel 62/72/86/100/118 m) */
 const KG_RAUM_KAL=[2.0,1.8,1.6,1.55,1.5];
-/* Je Sorte: Ziel-Durchmesser 70/80/92/105/120 m (75...300 mm) geteilt
+/* Je Sorte: Ziel-Durchmesser 75/82/92/105/120 m (jede Kugel ueber der groessten Rakete, 65 m) (75...300 mm) geteilt
    durch den gemessenen Durchmesser vorher (90 % der Sterne, Vorfuehrung,
    06.10.) - so waechst die Groesse mit dem Kaliber, nicht mit der Laune
    des Bruchbilds. Die Kaiserkrone (L26) war schon gross (92 m). */
-const KG_RAUM={kugel75:2.7,palmenkugel75:2.7,farbenmeer75:1.85,
-  goldbrokat100:2.3,kugel100:1.4,goldweide100:2.1,kristallkugel100:2.0,
+const KG_RAUM={kugel75:2.9,palmenkugel75:2.9,farbenmeer75:2.0,
+  goldbrokat100:2.4,kugel100:1.5,goldweide100:2.35,kristallkugel100:2.0,
   kugel150:1.6,crossettennetz150:2.3,tigerkrone150:1.45,farbcrossette150:2.3,sternkugel150:1.9,sternenstaub150:1.8,
   weidenkoenig200:1.65,kronenkranz200:1.55,zwillingssonne200:1.45,blitzpalme200:3.2,goldweidenkreuz200:2.0,feuerlilie200:1.85,goldkrone200:2.2,kugel200:1.7,
   kugel300:1.95,kanonade300:2.6,sternensturm300:2.15,kronenregen300:2.25,dreifachkrone300:2.2,crossettenweide300:1.6,kaiserkrone:1.3};

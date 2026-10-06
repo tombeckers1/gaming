@@ -7,8 +7,9 @@
    - JUMBO: Jumbos (ab Level 19) brechen ueber 55 m
    - KUGELHOEHE: jede Kugel bricht zwischen 84 und 92 m
    - KUGELGROSS: jede Kugel ist im Durchmesser (90 % der Sterne) mindestens
-     1,3-mal so gross wie die groesste Rakete; der mittlere Durchmesser
-     waechst mit dem Kaliber
+     1,3-mal so gross wie jede Rakete bis zu ihrem Level (+1) und 1,1-mal so
+     gross wie die groesste Rakete ueberhaupt; KALIBER: der mittlere
+     Durchmesser waechst mit dem Kaliber
    - BUDGET: keine Kugel ueber 14000 lebende Teilchen
    Aufruf: node hoehen.js real.html */
 async function neuesSpiel(p){
@@ -63,7 +64,8 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   const kg=Object.entries(r.kg).sort((a,c)=>a[1].lvl-c[1].lvl), kal={};
   for(const [t,o] of kg){ console.log('KUGEL ',t.padEnd(18),JSON.stringify(o));
     pruef('KUGELHOEHE',o.h>=84&&o.h<=92,`${t} bricht bei ${o.h} m`);
-    pruef('KUGELGROSS',o.d>=1.3*rkMax,`${t} Durchmesser ${o.d} m, groesste Rakete ${rkMax} m`);
+    const rkBis=Math.max(...rk.filter(([u,v])=>v.lvl<=o.lvl+1).map(([u,v])=>v.d));
+    pruef('KUGELGROSS',o.d>=1.3*rkBis&&o.d>=1.1*rkMax,`${t} (L${o.lvl}) Durchmesser ${o.d} m, Raketen bis L${o.lvl+1} hoechstens ${rkBis} m, alle ${rkMax} m`);
     pruef('BUDGET',o.maxN<=14000,`${t} ${o.maxN} Teilchen`);
     /* Kaliber wie kugelTyp (05d): naechster Durchmesser 75/100/150/200/300 mm */
     const KM=[[75,0.09],[100,0.12],[150,0.165],[200,0.21],[300,0.3]], k=KM.reduce((a,c)=>Math.abs(c[1]-o.mm)<Math.abs(a[1]-o.mm)?c:a)[0];

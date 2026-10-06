@@ -184,6 +184,8 @@ window.konvAvatar=async(cfg)=>{
     /* Farbe passt zum Oberteil, liegt aber klar am Bein (helle Jeansstellen) - und umgekehrt */
     if(a==='oben'&&regTB[p]/n>0.5) a='unten'; else if(a==='unten'&&regT[p*2]/n>0.6) a='oben';
     else if((a==='nichts'||a==='akzent')&&!cl[best].haut&&regTB[p]/n>0.7) a='unten';
+    /* Schuhe, Haende, Hals: weder Rumpf/Arm noch Bein - bleiben, wie sie sind */
+    if(regT[p*2]/n<0.25&&regT[p*2+1]/n<0.25) a='nichts';
     if(a==='oben'||a==='unten'){ maske[p]=a==='oben'?1.0:0.6; const l=0.2126*px[p*4]+0.7152*px[p*4+1]+0.0722*px[p*4+2]; lumS[a][0]+=l; lumS[a][1]++; lumS[a][2]+=0.2126*linF(px[p*4])+0.7152*linF(px[p*4+1])+0.0722*linF(px[p*4+2]); } }
   info.lum={oben:lumS.oben[1]?+(lumS.oben[0]/lumS.oben[1]/255).toFixed(3):0,unten:lumS.unten[1]?+(lumS.unten[0]/lumS.unten[1]/255).toFixed(3):0,
     obenLin:lumS.oben[1]?+(lumS.oben[2]/lumS.oben[1]).toFixed(4):0,untenLin:lumS.unten[1]?+(lumS.unten[2]/lumS.unten[1]).toFixed(4):0,

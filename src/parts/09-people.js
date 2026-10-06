@@ -24,7 +24,7 @@ const hexCss=h=>'#'+('000000'+h.toString(16)).slice(-6);
 const KOEPFE=[
   {id:'F01', sex:'w',alter:'jung',  kleid:'bluse',  oben:[0xd88ca8,0x7aa0d8,0xe8e2d6,0x9ac08a],unten:[]},
   {id:'F02', sex:'w',alter:'mittel',kleid:'pulli',  oben:[0xe8e2d6,0xc8b89a,0x9ab0c8],unten:[]},
-  {id:'F05', sex:'w',alter:'mittel',kleid:'blazer', oben:[0xe8b8c0,0xd8d0c0,0x9ab0c8,0x2a2c33],unten:[],schick:1},
+  {id:'F05', sex:'w',alter:'mittel',kleid:'blazer', oben:[],unten:[],schick:1},
   {id:'F08', sex:'w',alter:'jung',  kleid:'shirt',  oben:[0x8a8f96,0x2f5d8a,0x7a1f2a,0x3f6b3a,0xe8e2d6],unten:[]},
   {id:'F09', sex:'w',alter:'alt',   kleid:'pulli',  oben:[0x6a6058,0x5a3a4a,0x3a4a5a],unten:[]},
   {id:'F13', sex:'w',alter:'jung',  kleid:'shirt',  oben:[0x5a5f6a,0x2a2c33,0x6a4a7a],unten:[]},
@@ -34,7 +34,7 @@ const KOEPFE=[
   {id:'BF01',sex:'w',alter:'mittel',kleid:'anzug',  oben:[],unten:[],schick:1},
   {id:'BF03',sex:'w',alter:'alt',   kleid:'kostuem',oben:[],unten:[],schick:1},
   {id:'FC01',sex:'w',alter:'teen',  kleid:'shirt',  oben:[0xd040b0,0x2f7fd0,0xe63b2e,0x3f6b3a],unten:[]},
-  {id:'M02', sex:'m',alter:'mittel',kleid:'pulli',  oben:[0xc8b89a,0x5a5f6a,0x2f5d8a,0x3f6b3a],unten:[]},
+  {id:'M02', sex:'m',alter:'mittel',kleid:'pulli',  oben:[],unten:[]},
   {id:'M03', sex:'m',alter:'alt',   kleid:'blazer', oben:[],unten:[],schick:1},
   {id:'M04', sex:'m',alter:'jung',  kleid:'hoodie', oben:[0x2a2e38,0x7a1f2a,0x2f5d8a,0x5a3a7a],unten:[]},
   {id:'M05', sex:'m',alter:'alt',   kleid:'jacke',  oben:[],unten:[],arbeit:1},
@@ -143,7 +143,9 @@ function figAtlas(id){
   const t=new THREE.Texture(); const img=new Image();
   img.onload=()=>{ let src=img;
     /* Handy: halbe Aufloesung spart drei Viertel des Grafikspeichers */
-    if(!HIQ){ const c=document.createElement('canvas'); c.width=img.width>>1; c.height=img.height>>1; c.getContext('2d').drawImage(img,0,0,c.width,c.height); src=c; }
+    if(!HIQ){ const c=document.createElement('canvas'); c.width=img.width>>1; c.height=img.height>>1; c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+      /* als ImageData behalten - Safari zaehlt Canvas-Speicher knapp (siehe texSpar) */
+      src=typeof texSpar==='function'?texSpar(c):c; }
     t.image=src; t.needsUpdate=true; };
   img.src=FIG_DATEN[id].atlas;
   t.encoding=THREE.sRGBEncoding; t.anisotropy=Math.min(4,GFX_START.ani); t.flipY=true;

@@ -92,7 +92,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
       else { const R=bb.MOERSER_R[it.slot%3]; O={x:m.x,z:m.z,hx:R,hz:R,rund:true,y:m.y,y0:m.y-0.4}; }
       neben=(x,z)=>O.rund?Math.max(0,Math.hypot(x-O.x,z-O.z)-O.hx):Math.hypot(Math.max(0,Math.abs(x-O.x)-O.hx),Math.max(0,Math.abs(z-O.z)-O.hz));
       window.__pk=[]; window.__em=[]; const log=[]; bb.fwLog(log);
-      window.__ft=t==='feuerteufel'&&typeof ftMuendungen==='function'?{M:ftMuendungen({x:m.x,y:O.y,z:m.z},t),d:[]}:null;
+      window.__ft=t==='feuerteufel'&&typeof window.__ftMuendungen==='function'?{M:window.__ftMuendungen({x:m.x,y:O.y,z:m.z},t),d:[]}:null;
       O.ab=bb.fwUhr+(sid==='moerser'?0.76:0); bb.zuendeAlle();
       const T=Math.min(90,bb.brennDauer(t)+1);
       for(let s=0;s<T;s+=0.1) bb.run(0.1,0.05);

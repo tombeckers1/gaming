@@ -14,6 +14,7 @@ const FT_DUESE={fussX:0.02,fussY:0.181,len:0.0725,neig:32,r0:0.0106,r1:0.0085};
 /* Muendungen in Weltlage: o = Oberkante des Produkts (wie muendung()) */
 function ftMuendungen(o,prod){ const D=FT_DUESE, h=(P[prod]&&P[prod].dims?P[prod].dims[1]:0.2), sn=Math.sin(D.neig*Math.PI/180), cs=Math.cos(D.neig*Math.PI/180);
   return [-1,1].map(s=>({x:o.x+s*(D.fussX+sn*D.len),y:o.y-h+D.fussY+cs*D.len,z:o.z,d:[s*sn,cs,0],s})); }
+if(typeof window!=='undefined') window.__ftMuendungen=ftMuendungen;
 (()=>{
 const PI=Math.PI, HOLZ=0xc9a46a, I=s=>parseInt(String(s).slice(1),16);
 /* ---------------- Grundgeruest ---------------- */
@@ -388,8 +389,7 @@ function froschPaeckchen(g,x,y,w,h){ const n=6, dh=h/n;
 VP_FORM.knallfrosch=t=>{ const o=G(t), {w,h,d,a,rnd}=o, n=WARE_SPAR_AN?6:10, fw=w*0.84/n, L=d*0.78, nf=WARE_SPAR_AN?5:9, amp=Math.min(0.005,h*0.09), yb=h-0.0035-amp;
   const fen={x:0.07,y:0.12,w:0.86,h:0.66};
   const grund=(g,W,H)=>{ const gr=g.createLinearGradient(0,0,0,H); gr.addColorStop(0,'#cdea55'); gr.addColorStop(0.55,'#7cc443'); gr.addColorStop(1,'#2f8d35'); g.fillStyle=gr; g.fillRect(0,0,W,H);
-    /* Seerosenblatt-Tupfen im Hintergrund */
-    g.fillStyle='rgba(255,255,255,.12)'; for(let i=0;i<9;i++){ const r=Math.min(W,H)*(0.05+0.04*(i%3)); g.beginPath(); g.arc(W*((i*0.37)%1),H*((i*0.61)%1),r,0.3,PI*2-0.3); g.lineTo(W*((i*0.37)%1),H*((i*0.61)%1)); g.fill(); } };
+  };
   const R=bogen(o,[{n:'f',w,h,f:(g,W,H)=>{ grund(g,W,H);
       froschBild(g,W*0.25,H*0.54,H*0.58);
       nameText(g,a.title,W*0.73,H*0.3,W*0.46,Math.round(H*0.26),FNT.bun,'#ffffff','#0d3f14',Math.max(2,H*0.04));
@@ -551,13 +551,18 @@ VP_FORM.tischbombe=t=>{ const o=G(t), {w,h,d,a,rnd}=o, Rr=w/2*0.86, Hb=h*0.8, y0
    Doppel- bzw. Zweistrahl-Fontaenen; jede Duese hat ihre eigene
    Lehmpfropf-Oeffnung, die man von vorn als dunkles Loch sieht. */
 VP_FORM.feuerteufel=t=>{ const o=G(t), {w,h,d,a}=o, D=FT_DUESE, Rb=d/2*0.96, Hb=D.fussY-0.02;
-  const teufel=(g,W,H)=>{ B(t)(g,W,H);
-    /* Teufelsgesicht vorn: Hoerner, schraege Augen, Grinsen */
-    const cx=W*0.25, cy=H*0.3, r=Math.min(W*0.1,H*0.13);
-    g.fillStyle='#c81c0c'; g.beginPath(); g.arc(cx,cy,r,0,PI*2); g.fill();
-    for(const s of [-1,1]){ g.beginPath(); g.moveTo(cx+s*r*0.55,cy-r*0.7); g.quadraticCurveTo(cx+s*r*1.25,cy-r*1.1,cx+s*r*1.15,cy-r*1.75); g.quadraticCurveTo(cx+s*r*0.9,cy-r*1.1,cx+s*r*0.2,cy-r*0.9); g.fill();
-      g.fillStyle='#ffd23f'; g.beginPath(); g.moveTo(cx+s*r*0.15,cy-r*0.25); g.lineTo(cx+s*r*0.6,cy-r*0.4); g.lineTo(cx+s*r*0.5,cy-r*0.05); g.closePath(); g.fill(); g.fillStyle='#c81c0c'; }
-    g.strokeStyle='#ffd23f'; g.lineWidth=Math.max(1,r*0.12); g.beginPath(); g.arc(cx,cy+r*0.1,r*0.55,0.15*PI,0.85*PI); g.stroke(); };
+  const teufel=(g,W,H)=>{ const gr=g.createLinearGradient(0,0,0,H); gr.addColorStop(0,'#2a0603'); gr.addColorStop(0.55,'#8a1a08'); gr.addColorStop(1,'#d8400c'); g.fillStyle=gr; g.fillRect(0,0,W,H);
+    /* Flammenzungen unten */
+    g.fillStyle='#ffb21c'; for(let i=0;i<7;i++){ const x=W*(i+0.5)/7, hh=H*(0.1+0.06*((i*5)%3)); g.beginPath(); g.moveTo(x-W*0.08,H); g.quadraticCurveTo(x-W*0.02,H-hh*0.6,x,H-hh); g.quadraticCurveTo(x+W*0.02,H-hh*0.6,x+W*0.08,H); g.fill(); }
+    /* Teufelskopf: rot, zwei Hoerner, schraege gelbe Augen, Grinsen, Spitzbart */
+    const cx=W/2, cy=H*0.33, r=Math.min(W*0.3,H*0.15);
+    g.fillStyle='#e0261a'; g.strokeStyle='#1a0302'; g.lineWidth=Math.max(1.5,r*0.07);
+    for(const s of [-1,1]){ g.beginPath(); g.moveTo(cx+s*r*0.45,cy-r*0.75); g.quadraticCurveTo(cx+s*r*1.3,cy-r*1.0,cx+s*r*1.1,cy-r*1.8); g.quadraticCurveTo(cx+s*r*0.85,cy-r*1.15,cx+s*r*0.12,cy-r*0.95); g.closePath(); g.fill(); g.stroke(); }
+    g.beginPath(); g.moveTo(cx-r,cy-r*0.3); g.quadraticCurveTo(cx-r,cy-r,cx,cy-r); g.quadraticCurveTo(cx+r,cy-r,cx+r,cy-r*0.3); g.quadraticCurveTo(cx+r*0.9,cy+r*0.7,cx,cy+r*1.35); g.quadraticCurveTo(cx-r*0.9,cy+r*0.7,cx-r,cy-r*0.3); g.fill(); g.stroke();
+    g.fillStyle='#ffd23f'; for(const s of [-1,1]){ g.beginPath(); g.moveTo(cx+s*r*0.12,cy-r*0.22); g.lineTo(cx+s*r*0.68,cy-r*0.48); g.lineTo(cx+s*r*0.55,cy-r*0.05); g.closePath(); g.fill(); g.stroke(); }
+    g.fillStyle='#1a0302'; g.beginPath(); g.moveTo(cx-r*0.55,cy+r*0.25); g.quadraticCurveTo(cx,cy+r*0.95,cx+r*0.55,cy+r*0.25); g.quadraticCurveTo(cx,cy+r*0.55,cx-r*0.55,cy+r*0.25); g.fill();
+    nameText(g,a.title,W/2,H*0.66,W*0.92,Math.round(H*0.1),FNT.bun,'#ffd23f','#1a0302',Math.max(2,H*0.012));
+    nameText(g,a.sub,W/2,H*0.76,W*0.9,Math.round(H*0.055),FNT.bar,'#ffffff','rgba(0,0,0,.6)',2); };
   const R=bogen(o,[{n:'m',w:2*PI*Rb,h:Hb,f:zweimal(teufel)}]);
   mantel(o,Rb,Rb,Hb,0,'m',28);
   zyl(o,Rb*1.01,Rb*1.01,0.004,24,0,0.002,0,0x1d1f24);

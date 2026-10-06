@@ -571,4 +571,4 @@ function kqHolzPodest(o){
   const gg=g; later(kleinDauer('bengalholz')+4,()=>{ if(gg.parent) gg.parent.remove(gg); });
   return g; }
 
-if(typeof window!=='undefined') window.__kleinNeu={kqWkLayout,kqPodest,KQ_PODESTE,KQ_TEILE:Object.keys(KQ_TEILE)};
+if(typeof window!=='undefined') window.__kleinNeu={kqWkLayout,kqPodest,KQ_PODESTE,KQ_TEILE:Object.keys(KQ_TEILE),KQ_PH,kqFroschGeo};

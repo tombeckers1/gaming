@@ -27,7 +27,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     o.halter=!!(g&&g.userData&&g.userData.t==='bengalholz'&&g.userData.hoelzer&&g.userData.hoelzer.length===4)&&!it.h;
     const HZ=g&&g.userData.hoelzer||[];
     /* Holz nach Zuendfolge: Fuss und Richtung, Kopf von s0 bis s1 */
-    const holz=nr=>{ const q=HZ.find(x=>x.h.nr===nr); if(!q) return null; const h=q.h; return {x:g.position.x+h.x,y:g.position.y+KQ_PH,z:g.position.z,d:[Math.sin(h.ang),Math.cos(h.ang)],s0:h.L-h.kopf,s1:h.L}; };
+    const holz=nr=>{ const q=HZ.find(x=>x.h.nr===nr); if(!q) return null; const h=q.h; return {x:g.position.x+h.x,y:g.position.y+window.__kleinNeu.KQ_PH,z:g.position.z,d:[Math.sin(h.ang),Math.cos(h.ang)],s0:h.L-h.kopf,s1:h.L}; };
     const gesehen=new Map(), abw=[]; o.anfang=[];
     bb.zuendeAlle();
     for(let s=0;s<18;s+=0.05){ bb.run(0.05,0.05);
@@ -44,7 +44,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     o.abw=abw.slice(0,6); o.abwN=abw.length;
     o.rest=HZ.filter(q=>q.rest.visible&&!q.kopf.visible).length;
     /* Knallfrosch: Farbe des Paeckchens */
-    if(typeof kqFroschGeo==='function'){ const c=kqFroschGeo().attributes.color; let rr=0, gg=0; for(let i=0;i<c.count;i++){ rr+=c.getX(i); gg+=c.getY(i); } o.frosch={r:+(rr/c.count).toFixed(3),g:+(gg/c.count).toFixed(3)}; }
+    const KN=window.__kleinNeu||{}; if(typeof KN.kqFroschGeo==='function'){ const c=KN.kqFroschGeo().attributes.color; let rr=0, gg=0; for(let i=0;i<c.count;i++){ rr+=c.getX(i); gg+=c.getY(i); } o.frosch={r:+(rr/c.count).toFixed(3),g:+(gg/c.count).toFixed(3)}; }
     return o; });
   console.log(JSON.stringify(r));
   const m=[], pruef=(n,ok,was)=>{ if(!ok) m.push(n+': '+was); };

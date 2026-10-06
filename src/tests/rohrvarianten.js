@@ -23,7 +23,10 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   const errs=[]; p.on('pageerror',e=>errs.push('PAGEERROR: '+e.message));
   await p.goto('file://'+process.argv[2]); await p.waitForFunction('window.__bb!==undefined',{timeout:60000});
   await neuesSpiel(p);
-  const SOLL={rb25:[25,'5x5'],rbfaecher:[30,'6x5']};   /* 03.10. abends: Konfetti 49 und Stakkato 100 sind raus (Tom) */
+  /* 03.10. abends: Konfetti 49 und Stakkato 100 sind raus (Tom); 06.10.: auch
+     Farbreihen 25 und Pfauenschweif 30 (Toms PDF) - geprueft werden jetzt die
+     Kirschbluete (Toms Referenz) und das Grosse Kreuzfeuer */
+  const SOLL={lb_kirschbluete:[15,'5x3'],kreuzfeuer90:[90,'14x7']};
   const r=await p.evaluate(([SOLL])=>{ const bb=window.__bb, S=bb.S, P=bb.P, out=[];
     S.level=26; S.money=1e7;
     bb.regalStellen('standard'); bb.regalStellen('standard'); bb.regalStellen('standard'); bb.regalStellen('tisch');

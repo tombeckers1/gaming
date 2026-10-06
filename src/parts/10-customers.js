@@ -496,7 +496,7 @@ class Customer{
     }
     animPerson(this.g,this.moving,dt,this.speed);
   }
-  remove(){ this.clearBub(); scene.remove(this.g); const i=customers.indexOf(this); if(i>=0) customers.splice(i,1); }
+  remove(){ this.clearBub(); scene.remove(this.g); personWeg(this.g); const i=customers.indexOf(this); if(i>=0) customers.splice(i,1); }
 }
 function shelfFace(sh){ return sh.g.rotation.y+Math.PI; }
 function regCustomer(){ const c=queue[0]; return c&&['unload','scan','pay'].includes(c.state)?c:null; }

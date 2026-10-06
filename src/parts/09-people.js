@@ -17,6 +17,8 @@
    schwarze Hose) auf jeder Figur.
    ========================================================= */
 const FIG_TINT_ROT=0xb3261e, FIG_TINT_SCHWARZ=0x1d1f24;
+/* Farbe als CSS-Text (auch fuer die Strassenschilder in 05e) */
+const hexCss=h=>'#'+('000000'+h.toString(16)).slice(-6);
 /* Die Figuren. alter: teen | jung | mittel | alt. kleid: Stil (KLEID).
    oben/unten: erlaubte Umfaerbungen (leer = nur Originalfarbe) */
 const KOEPFE=[
@@ -60,9 +62,9 @@ const KLEID=[
    Leute wiedererkennt. */
 const UNIFORM={id:'uniform',obenF:FIG_TINT_ROT,untenF:FIG_TINT_SCHWARZ,logo:1};
 const STAFFKOPF={kassierer:'F08',auffueller:'M16',auffueller2:'M09',reinigung:'F13',security:'BM06',packer:'M04',
-  kassierer2:'F17',kassierer3:'M08',packer2:'MC01',packer3:'M14'};
+  kassierer2:'F17',kassierer3:'M08',packer2:'MC01',packer3:'BM04'};
 /* alte Kopf-Namen (bis 05.10.) auf die neuen Figuren */
-const FIG_ALIAS={teen_m:'MC01',teen_w:'FC01',jung_m:'M16',jung_w:'F08',jung_m2:'M04',jung_w2:'F17',mitte_m:'M08',mitte_m2:'CM07',mitte_w:'F13',mitte_m3:'BM06',alt_w:'F09',alt_m:'M14'};
+const FIG_ALIAS={teen_m:'MC01',teen_w:'FC01',jung_m:'M16',jung_w:'F08',jung_m2:'M04',jung_w2:'F17',mitte_m:'M08',mitte_m2:'CM07',mitte_w:'F13',mitte_m3:'BM06',alt_w:'F09',alt_m:'BM04'};
 const kopfVon=id=>KOEPFE.find(k=>k.id===(FIG_ALIAS[id]||id))||KOEPFE[0];
 function kopfFuer(ct){
   const kunden=KOEPFE.filter(k=>!k.nurPersonal&&FIG_DATEN[k.id]);
@@ -87,9 +89,40 @@ function kleidFuer(k,ct){
 const faceCache={};   /* Atlas-Texturen je Figur (Name aus der Zeit der Pixelgesichter) */
 const _figGeo={}, _figBind={};
 function figB64(s){ const b=atob(s), u=new Uint8Array(b.length); for(let i=0;i<b.length;i++) u[i]=b.charCodeAt(i); return u; }
+/* Kleiner Inflate (DEFLATE ohne Kopf, RFC 1951) fuer die gepackten
+   Netze und Aufnahmen - spart gut 1 MB in der Datei; synchron, damit
+   makePerson sofort bauen kann */
+const FIG_LB=[3,4,5,6,7,8,9,10,11,13,15,17,19,23,27,31,35,43,51,59,67,83,99,115,131,163,195,227,258], FIG_LE=[0,0,0,0,0,0,0,0,1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5,0];
+const FIG_DB=[1,2,3,4,5,7,9,13,17,25,33,49,65,97,129,193,257,385,513,769,1025,1537,2049,3073,4097,6145,8193,12289,16385,24577], FIG_DE=[0,0,0,0,1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10,11,11,12,12,13,13];
+function figInflate(src,n){
+  const out=new Uint8Array(n); let op=0, pos=0, bit=0;
+  const bits=k=>{ let v=0; for(let i=0;i<k;i++){ v|=((src[pos]>>bit)&1)<<i; if(++bit===8){ bit=0; pos++; } } return v; };
+  const baue=(lens,m)=>{ const cnt=new Uint16Array(16), off=new Uint16Array(16), sym=new Uint16Array(m);
+    for(let i=0;i<m;i++) cnt[lens[i]]++; cnt[0]=0; for(let i=1;i<16;i++) off[i]=off[i-1]+cnt[i-1];
+    for(let i=0;i<m;i++) if(lens[i]) sym[off[lens[i]]++]=i; return {cnt,sym}; };
+  const lies=h=>{ let code=0, first=0, idx=0; for(let l=1;l<16;l++){ code|=bits(1); const c=h.cnt[l]; if(code-c<first) return h.sym[idx+code-first]; idx+=c; first=(first+c)<<1; code<<=1; } throw new Error('inflate'); };
+  let fixL=null, fixD=null, last=0;
+  while(!last){ last=bits(1); const typ=bits(2);
+    if(typ===0){ if(bit){ bit=0; pos++; } const len=src[pos]|src[pos+1]<<8; pos+=4; out.set(src.subarray(pos,pos+len),op); pos+=len; op+=len; continue; }
+    let L, D;
+    if(typ===1){ if(!fixL){ const l=new Uint8Array(288); l.fill(8,0,144); l.fill(9,144,256); l.fill(7,256,280); l.fill(8,280,288); fixL=baue(l,288); fixD=baue(new Uint8Array(30).fill(5),30); } L=fixL; D=fixD; }
+    else { const nl=bits(5)+257, nd=bits(5)+1, nc=bits(4)+4, ord=[16,17,18,0,8,7,9,6,10,5,11,4,12,3,13,2,14,1,15], cl=new Uint8Array(19);
+      for(let i=0;i<nc;i++) cl[ord[i]]=bits(3);
+      const C=baue(cl,19), lens=new Uint8Array(nl+nd);
+      for(let i=0;i<nl+nd;){ const sy=lies(C);
+        if(sy<16) lens[i++]=sy;
+        else if(sy===16){ const p=lens[i-1]; for(let r=3+bits(2);r>0;r--) lens[i++]=p; }
+        else if(sy===17){ for(let r=3+bits(3);r>0;r--) lens[i++]=0; }
+        else { for(let r=11+bits(7);r>0;r--) lens[i++]=0; } }
+      L=baue(lens.subarray(0,nl),nl); D=baue(lens.subarray(nl),nd); }
+    for(;;){ let sy=lies(L); if(sy<256){ out[op++]=sy; continue; } if(sy===256) break;
+      sy-=257; const len=FIG_LB[sy]+bits(FIG_LE[sy]); const ds=lies(D), dist=FIG_DB[ds]+bits(FIG_DE[ds]);
+      for(let k=0;k<len;k++,op++) out[op]=out[op-dist]; } }
+  return out;
+}
 function figGeometrie(id){
   if(_figGeo[id]) return _figGeo[id];
-  const D=FIG_DATEN[id], u8=figB64(D.v), dv=new DataView(u8.buffer), n=D.nV, st=22;
+  const D=FIG_DATEN[id], u8=figInflate(figB64(D.z),D.n), dv=new DataView(u8.buffer), n=D.nV, st=22;
   const pos=new Float32Array(n*3), nor=new Float32Array(n*3), uv=new Float32Array(n*2), si=new Uint8Array(n*4), sw=new Uint8Array(n*4);
   for(let i=0;i<n;i++){ const o=i*st;
     for(let c=0;c<3;c++){ pos[i*3+c]=D.min[c]+dv.getUint16(o+c*2,true)/65535*(D.max[c]-D.min[c]); nor[i*3+c]=dv.getInt8(o+6+c)/127; }
@@ -100,7 +133,8 @@ function figGeometrie(id){
   g.setAttribute('uv',new THREE.BufferAttribute(uv,2)); g.setAttribute('skinIndex',new THREE.BufferAttribute(si,4));
   g.setAttribute('skinWeight',new THREE.BufferAttribute(sw,4,true));
   /* Handy: vereinfachtes Netz (dieselben Ecken, weniger Dreiecke) */
-  const ix=figB64(HIQ?D.iD:D.iH); g.setIndex(new THREE.BufferAttribute(new Uint16Array(ix.buffer,ix.byteOffset,ix.byteLength/2),1));
+  const o0=n*st+(HIQ?0:D.nD*2), ix=new Uint16Array(HIQ?D.nD:D.nH); for(let i=0;i<ix.length;i++) ix[i]=dv.getUint16(o0+i*2,true);
+  g.setIndex(new THREE.BufferAttribute(ix,1));
   g.computeBoundingSphere(); g.boundingSphere.radius*=1.25;
   return _figGeo[id]=g;
 }
@@ -134,7 +168,7 @@ function figKnochen(id){
 const _figAnim={};
 function figAnim(id){
   if(_figAnim[id]) return _figAnim[id];
-  const A=FIG_ANIM[id], u=figB64(A.q), q16=new Int16Array(u.buffer,u.byteOffset,u.byteLength/2), q=new Float32Array(q16.length);
+  const A=FIG_ANIM[id], u=figInflate(figB64(A.q),A.nq), q16=new Int16Array(u.buffer,u.byteOffset,u.byteLength/2), q=new Float32Array(q16.length);
   for(let i=0;i<q16.length;i++) q[i]=q16[i]/32767;
   /* Wurzelhoehe relativ zum Mittel (Auf und Ab beim Gehen) */
   const n=A.n, w=A.w; let my=0, mx=0, mz=0, z0=1e9, z1=-1e9; for(let f=0;f<n;f++){ mx+=w[f*3]; my+=w[f*3+1]; mz+=w[f*3+2]; z0=Math.min(z0,w[f*3+2]); z1=Math.max(z1,w[f*3+2]); } mx/=n; my/=n; mz/=n;
@@ -183,7 +217,7 @@ function figTuete(){
     _figTueteM=new THREE.MeshStandardMaterial({map:t,roughness:0.92});
     const box=new THREE.BoxGeometry(26,32,13); box.translate(0,-22,0);
     const henkel=new THREE.TorusGeometry(5,0.7,4,10,Math.PI); henkel.translate(0,-6.5,0);
-    _figTueteG=merge([box,henkel]); }
+    _figTueteG=merge([{geo:box,m:new THREE.Matrix4()},{geo:henkel,m:new THREE.Matrix4()}]); }
   const m=new THREE.Mesh(_figTueteG,_figTueteM); if(HIQ) m.castShadow=true; return m;
 }
 
@@ -209,7 +243,7 @@ function makePerson(opt){
   const head=new THREE.Group(); head.position.set(0,1.66,0.005); g.add(head);
   /* Figur */
   let fig=null;
-  if(FIG_DATEN[K.id]){
+  if(FIG_DATEN[K.id]&&THREE.SkinnedMesh&&THREE.Bone){ /* ohne Skinning (Logik-Stub der Tests) nur die Steuergelenke */
     const id=K.id, B=figBindung(id), bones=figKnochen(id);
     const root=new THREE.Group(); root.scale.setScalar(0.01); root.add(bones[0]); g.add(root);
     const mesh=new THREE.SkinnedMesh(figGeometrie(id),figMaterial(id,O));
@@ -357,6 +391,13 @@ function figVorBild(){
 }
 if(typeof scene!=='undefined'){ const _vor=scene.onBeforeRender; scene.onBeforeRender=function(){ try{ figVorBild(); }catch(e){} if(_vor) _vor.apply(this,arguments); }; }
 
+/* Person endgueltig weg (Kunde gegangen, Personal entlassen): Knochen-
+   Textur und Material freigeben - Netz und Atlas sind geteilt und bleiben */
+function personWeg(g){
+  const F=g&&g.userData&&g.userData.fig; if(!F) return;
+  FIG_PERSONEN.delete(g);
+  try{ if(F.mesh.skeleton&&F.mesh.skeleton.dispose) F.mesh.skeleton.dispose(); F.mesh.material.dispose(); }catch(e){}
+}
 /* ---------- Greifen: eine Hand reicht kurz zum Ziel (Fach, Band, Terminal) ---------- */
 function personGreif(g,ziel,dauer){
   const u=g&&g.userData; if(!u||!u.fig) return;
@@ -400,3 +441,9 @@ function bubble(text,bad){
 }
 const alertTex=tex(128,128,(g,W,H)=>{ g.clearRect(0,0,W,H); g.fillStyle='#e63b2e'; g.beginPath(); g.moveTo(64,6); g.lineTo(122,116); g.lineTo(6,116); g.closePath(); g.fill(); g.fillStyle='#fff'; g.fillRect(56,40,16,44); g.fillRect(56,92,16,16); });
 function alertSprite(){ const s=new THREE.Sprite(new THREE.SpriteMaterial({map:alertTex,depthTest:false,transparent:true,toneMapped:false})); s.scale.set(0.45,0.45,1); s.position.y=2.25; s.renderOrder=11; return s; }
+/* Figuren im Hintergrund vorbereiten (Netz entpacken, Atlas dekodieren),
+   eine je 80 ms - sonst ruckelt es, wenn eine Figur zum ersten Mal kommt,
+   und ihr Atlas fehlt in den ersten Bildern */
+(function figVorladen(){ if(!THREE.SkinnedMesh) return; const ids=Object.keys(FIG_DATEN); let i=0;
+  const t=()=>{ if(i>=ids.length) return; try{ figGeometrie(ids[i]); figAtlas(ids[i]); figBindung(ids[i]); }catch(e){} i++; setTimeout(t,80); };
+  setTimeout(t,300); })();

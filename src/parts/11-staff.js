@@ -261,7 +261,7 @@ class Worker{
     if(this.path.length===0){ if(Math.random()<0.5) this.goTo(V(rand(-5,5),0,rand(-4,4))); else this.goTo(IDLE.security); }
     this.walk(dt);
   }
-  remove(){ if(this.job&&this.job.helfer===this) this.job.helfer=null; einrAufraeumen(this); if(this.kind==='packer') vsAufraeumen(this); if(this.carry&&this.carry.vm){ vmEinlagern(this.carry.pi===undefined?-1:this.carry.pi,this.carry.vm); this.carry=null; } scene.remove(this.g); if(this.carry&&this.carry.count>0) spawnFloorBox(this.carry.type,this.carry.count,null,this.carry.q||1); }
+  remove(){ if(this.job&&this.job.helfer===this) this.job.helfer=null; einrAufraeumen(this); if(this.kind==='packer') vsAufraeumen(this); if(this.carry&&this.carry.vm){ vmEinlagern(this.carry.pi===undefined?-1:this.carry.pi,this.carry.vm); this.carry=null; } scene.remove(this.g); personWeg(this.g); if(this.carry&&this.carry.count>0) spawnFloorBox(this.carry.type,this.carry.count,null,this.carry.q||1); }
 }
 function hireStaff(id){ if(staff[id]) return; staff[id]=new Worker(id); }
 function fireStaff(id){ if(!staff[id]) return; staff[id].remove(); staff[id]=null; }

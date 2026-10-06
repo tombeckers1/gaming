@@ -1,0 +1,7 @@
+{"avatare":[
+ {"id":"F01","fbx":"../rb/repo/Assets/Avatars/Adults/Female_Adult_01/Export/Female_Adult_01.fbx","tex":"../arbeit/Female_Adult_01","desk":3500,"handy":1300},
+ {"id":"BM01","fbx":"../rb/repo/Assets/Avatars/Professions/Business_Male_01/Export/Business_Male_01.fbx","tex":"../arbeit/Business_Male_01","desk":3500,"handy":1300}],
+ "anims":[{"id":"m_gehen","fbx":"../rb/dl/Assets/Animations/all_animations_max_motextr_xy/m_walk_neutral_01.max.fbx","fps":30},
+  {"id":"m_stehen","fbx":"../rb/dl/Assets/Animations/all_animations_max_motextr_static/m_idle_neutral_01.max.fbx","fps":10},
+  {"id":"w_gehen","fbx":"../rb/dl/Assets/Animations/all_animations_max_motextr_xy/f_walk_neutral_01.max.fbx","fps":30},
+  {"id":"w_stehen","fbx":"../rb/dl/Assets/Animations/all_animations_max_motextr_static/f_idle_neutral_01.max.fbx","fps":10}]}

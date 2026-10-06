@@ -15,8 +15,7 @@
    - KARRE: zu steht er auf der Karre, offen ist er in der Hand
    - HANDY: Knopf "Öffnen"/"Zu" nur mit Warenkarton
    Aufruf: node kartonauf.js real.html
-   Gegenprobe (06.10.): ohne kartonFlug in stockOne -> FLUG und LEER schlagen an;
-   ohne Inhaltsanzeige -> AUF und EINRAEUMEN schlagen an. */
+   Gegenprobe (06.10.): ohne kartonFlug in stockOne -> FLUG und LEER schlagen an. */
 async function neuesSpiel(p){
   await p.waitForFunction("!!document.querySelector('#startBtns button:not([disabled])')",null,{timeout:120000});
   await p.click('#startBtns button:last-child');

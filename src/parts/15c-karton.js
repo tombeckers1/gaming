@@ -133,8 +133,9 @@ function kartonTick(dt){
   if(zeigen){
     kartonHaltung(dt);
     /* Klappen: beim Falten zuerst flach zusammen */
-    /* ganz herunter (rund 170 Grad): sonst stuende die hintere Klappe vor dem Regal */
-    einrKlappen(KH.k,KH.falt>0?0:KH.auf*1.32);
+    /* ganz herunter an die Aussenwand (rund 250 Grad): flach nach hinten
+       aufgeklappt stuende die hintere Klappe im Bild vor dem Regal */
+    einrKlappen(KH.k,KH.falt>0?0:KH.auf*1.95);
     KH.k.scale.set(1,KH.falt>0?Math.max(0.05,KH.falt):1,1);
     KH.inh.visible=inHand&&KH.auf>0.05;
     if(KH.inh.visible) kartonInhaltZeigen(kartonAnzeige());

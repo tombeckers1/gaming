@@ -310,6 +310,8 @@ class Customer{
     else if(pricey) this.say('Hm, ganz schön teuer.');
     /* Wunsch gefunden und gekauft: ein Herz, nicht bei jedem Griff */
     else if(Math.random()<0.45){ kundenSymbol(this.g,'herz'); if(Math.random()<0.4) this.say(pick(['Genau das hab ich gesucht!','Endlich!','Perfekt.','Die nehm ich!'])); }
+    /* 06.10.: wer etwas genommen hat, traegt einen Einkaufskorb (Diebe nicht) */
+    if(got>0&&!this.thief) personTraegt(this.g,'korb');
     this.nextWish();
   }
   startSteal(){
@@ -364,7 +366,7 @@ class Customer{
     this.say(pick(['Ach, das nehm ich noch mit.','Fast vergessen!',`Und noch ${P[t].short}.`]));
   }
   sbStart(){
-    this.state='sbPay';
+    this.state='sbPay'; personTraegt(this.g,null);
     this.total=r2(this.items.reduce((a,it)=>a+it.price,0));
     this.sbT=1.1+this.items.length*1.25;
     this.method='card';
@@ -386,7 +388,7 @@ class Customer{
     const l=sbLanes[this.sb]; if(l&&l.busy===this){ l.busy=null; sbLampe(l,true); }
     this.sb=null;
   }
-  atRegister(){ this.state='unload'; this.ui=0; this.unT=0.5; this.scanned=0; this.sum=0; posReset(); posStatus='Kunde legt Ware aufs Band'; drawPOS(); }
+  atRegister(){ personTraegt(this.g,null); this.state='unload'; this.ui=0; this.unT=0.5; this.scanned=0; this.sum=0; posReset(); posStatus='Kunde legt Ware aufs Band'; drawPOS(); }
   startPay(){
     this.state='pay'; this.method=Math.random()<0.6?'card':'cash';
     this.autoT=this.method==='card'?(S.up.terminal?0.6:1.0):2.2;
@@ -425,7 +427,7 @@ class Customer{
   giveUp(){
     this.say('Dauert mir zu lange!',true); rep(-2); DS.angry++; kundenSymbol(this.g,'sauer'); serieBricht();
     if(['unload','scan','pay','sbPay','sbHilfe'].includes(this.state)) this.cleanupRegister();
-    this.items=[]; this.leave();
+    this.items=[]; personTraegt(this.g,null); this.leave();
   }
   leave(){
     const qi=queue.indexOf(this); if(qi>=0) queue.splice(qi,1);

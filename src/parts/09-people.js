@@ -217,10 +217,29 @@ function figTuete(){
       for(let i=0;i<900;i++){ const v=Math.random(); g.fillStyle=`rgba(${v<0.5?90:240},${v<0.5?60:210},${v<0.5?30:170},${Math.random()*0.12})`; g.fillRect(Math.random()*W,Math.random()*H,2,1); }
       g.fillStyle='rgba(60,40,20,.25)'; g.fillRect(0,0,W,6); g.fillRect(W/2-1,0,2,H); });
     _figTueteM=new THREE.MeshStandardMaterial({map:t,roughness:0.92});
-    const box=new THREE.BoxGeometry(26,32,13); box.translate(0,-22,0);
-    const henkel=new THREE.TorusGeometry(5,0.7,4,10,Math.PI); henkel.translate(0,-6.5,0);
+    /* breite Seite in Gehrichtung (z), damit sie neben dem Bein haengt */
+    const box=new THREE.BoxGeometry(13,32,26); box.translate(0,-22,0);
+    const henkel=new THREE.TorusGeometry(5,0.7,4,10,Math.PI); henkel.rotateY(Math.PI/2); henkel.translate(0,-6.5,0);
     _figTueteG=merge([{geo:box,m:new THREE.Matrix4()},{geo:henkel,m:new THREE.Matrix4()}]); }
   const m=new THREE.Mesh(_figTueteG,_figTueteM); if(HIQ) m.castShadow=true; return m;
+}
+/* Einkaufskorb (rotes Kunststoffgitter, am Buegel getragen), in cm */
+let _figKorbM=null, _figKorbG=null;
+function figKorb(){
+  if(!_figKorbM){
+    const t=tex(128,64,(g,W,H)=>{ g.fillStyle='#b8241c'; g.fillRect(0,0,W,H);
+      g.fillStyle='rgba(40,6,4,.75)'; for(let x=6;x<W-4;x+=12) for(let y=10;y<H-8;y+=12) g.fillRect(x,y,7,6);
+      g.fillStyle='rgba(255,255,255,.18)'; g.fillRect(0,0,W,4); });
+    _figKorbM=new THREE.MeshStandardMaterial({map:t,roughness:0.55,side:THREE.DoubleSide});
+    /* Korb 28 breit, 20 hoch, 40 lang - die Laengsseite in Gehrichtung,
+       damit er neben dem Bein haengt; Buegel laengs, oben an der Hand */
+    const I=new THREE.Matrix4(), y0=-30, teile=[];
+    for(const sx of [-1,1]){ const l=new THREE.PlaneGeometry(40,20); l.rotateY(Math.PI/2); l.translate(sx*14,y0,0); teile.push({geo:l,m:I});
+      const k=new THREE.PlaneGeometry(28,20); k.translate(0,y0,sx*20); teile.push({geo:k,m:I}); }
+    const boden=new THREE.PlaneGeometry(28,40); boden.rotateX(-Math.PI/2); boden.translate(0,y0-10,0); teile.push({geo:boden,m:I});
+    const buegel=new THREE.TorusGeometry(14,0.8,4,12,Math.PI); buegel.scale(1,1.3,1); buegel.rotateY(Math.PI/2); buegel.translate(0,y0+10,0); teile.push({geo:buegel,m:I});
+    _figKorbG=merge(teile); }
+  const m=new THREE.Mesh(_figKorbG,_figKorbM); if(HIQ) m.castShadow=true; return m;
 }
 
 /* ---------- Person bauen ---------- */
@@ -421,20 +440,24 @@ function personHand(g,i){
   const f=F.arm[i][1].getWorldPosition(new THREE.Vector3()); _fh.addScaledVector(_fh.clone().sub(f).normalize(),0.06);
   g.worldToLocal(_fh); return _fh;
 }
-/* ---------- Papiertuete in der Hand (nach dem Bezahlen) ---------- */
-function personTuete(g,an){
+/* ---------- Tragen: Einkaufskorb beim Einkaufen, Papiertuete nach dem Bezahlen ---------- */
+/* art: 'korb' | 'tuete' | null (nichts mehr in der Hand) */
+function personTraegt(g,art){
   const F=g&&g.userData.fig; if(!F) return;
-  if(!an){ if(F.tuete){ F.tuete.parent.remove(F.tuete); F.tuete=null; } return; }
-  if(F.tuete) return;
-  const ha=F.arm[Math.random()<0.5?0:1][2]; if(!ha) return;
-  const t=figTuete(); F.tuete=t; ha.add(t); t.userData.hand=ha;
+  if(F.tuete&&F.tueteArt===art) return;
+  if(F.tuete){ F.tuete.parent.remove(F.tuete); F.tuete=null; F.tueteArt=null; }
+  if(!art) return;
+  const i=Math.random()<0.5?0:1, ha=F.arm[i][2]; if(!ha) return;
+  const t=art==='korb'?figKorb():figTuete(); F.tuete=t; F.tueteArt=art; F.tueteSeite=i===0?-1:1; ha.add(t);
 }
-/* Die Tuete haengt senkrecht an der Hand, Front in Laufrichtung */
+function personTuete(g,an){ personTraegt(g,an?'tuete':null); }
+/* Korb und Tuete haengen senkrecht an der Hand, etwas neben dem Bein */
 function figTueteHaengen(F){
   const t=F.tuete, ha=t.parent; ha.updateMatrixWorld(true);
   const p=_fv[0].set(0,0,0); ha.localToWorld(p);
-  /* etwas unterhalb des Handgelenks (Finger) */
-  const q=F.root.getWorldQuaternion(_fqa); const off=_fv[1].set(0,-7,0).multiplyScalar(F.root.getWorldScale(_fv[2]).x); p.add(off);
+  /* etwas unterhalb des Handgelenks (Finger), der Korb nach aussen */
+  const q=F.root.getWorldQuaternion(_fqa);
+  const off=_fv[1].set(F.tueteSeite*(F.tueteArt==='korb'?11:2),-7,0).applyQuaternion(q).multiplyScalar(F.root.getWorldScale(_fv[2]).x); p.add(off);
   ha.worldToLocal(p); t.position.copy(p);
   ha.getWorldQuaternion(_fqb); t.quaternion.copy(_fqb.invert().multiply(q));
   const s=ha.getWorldScale(_fv[3]).x, sr=F.root.getWorldScale(_fv[2]).x; t.scale.setScalar(sr/s);

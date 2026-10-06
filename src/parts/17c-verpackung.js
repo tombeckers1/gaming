@@ -161,6 +161,11 @@ function vpAufbauen(){
     const m=movables.indexOf(sh.mov); if(m>=0) movables.splice(m,1);
     sh.vp=true; return sh; }); } finally { REGAL_TEX=1; }
   const V=vpVerteilen(vpRegale); vpPlan=V.plan;
+  /* 06.10. (Toms PDF: 34 Feuerwerksprodukte aus dem Sortiment): Moebel, in
+     die kein einziges Produkt kam, bleiben nicht leer im Raum stehen -
+     sonst passt die Halle nur zu genau einer Sortimentsgroesse */
+  const belegt=new Set(V.plan.map(e=>e.sh));
+  vpRegale=vpRegale.filter(sh=>{ if(belegt.has(sh)) return true; dropFootprint(sh.mov); scene.remove(sh.g); return false; });
   return V;
 }
 /* Namensschilder (03.10., Tom: "an den Produkten soll der Name stehen,

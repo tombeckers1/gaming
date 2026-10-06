@@ -31,9 +31,8 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
         if(passt[fu]&&!['still','blubb','grollen','brummen','fauchen','knistern_laut'].includes(ph.ton)&&a!==passt[fu]) falsch.push(id+'#'+i+':'+fu+'->'+a); }); }
     o.zuordnung={phasen,falsch};
     /* 06.10.: der Zauberbrunnen ist aus dem Sortiment (Toms PDF) - seine
-       Zuordnung (Glitter, Kohle, Knister) prueft Teil 1 weiter; abgebrannt
+       Phasen fallen mit ihm weg; abgebrannt
        wird jetzt der Goldgeysir (Kohle rauscht, dann zwei Knisterphasen) */
-    o.zauber=K.FONT.zauberbrunnen.phasen.map(ph=>K.fkTonArt(ph));
     o.geysir=K.FONT.goldgeysir.phasen.map(ph=>K.fkTonArt(ph));
     /* 2. Goldgeysir abbrennen: wie viele Klangbetten entstehen? */
     try{ bb.ac(); }catch(e){}
@@ -46,7 +45,6 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   console.log('KLANG',JSON.stringify(r));
   if(r.fehler){ console.log('ERRORS: '+r.fehler); await b.close(); return; }
   pruef('ZUORDNUNG',r.zuordnung.phasen>20&&!r.zuordnung.falsch.length,'Klang passt nicht zur Funkenart: '+r.zuordnung.falsch.slice(0,8).join(', '));
-  pruef('ZAUBERBRUNNEN',r.zauber[0]==='glitzer'&&r.zauber[1]==='rauschen'&&r.zauber[2]==='knistern','Zauberbrunnen-Klaenge: '+r.zauber.join(', '));
   pruef('GOLDGEYSIR',r.geysir[1]==='rauschen'&&r.geysir[2]==='knistern'&&r.geysir[3]==='knistern','Goldgeysir-Klaenge: '+r.geysir.join(', '));
   /* durchgehend: je klingender Phase ein Bett (3 Saetze), nicht alle Sekunde ein neues */
   pruef('DURCHGEHEND',r.lauf.betten>=3&&r.lauf.betten<=6,'Klangbetten beim Goldgeysir: '+r.lauf.betten+' '+JSON.stringify(r.lauf.arten));

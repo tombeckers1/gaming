@@ -87,12 +87,17 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
       out.blick={dot:+Math.abs((n[0]*d[0]+n[1]*d[1]+n[2]*d[2])/l).toFixed(3),auf:+v[1].toFixed(3)}; }
     out.lvl={}; Object.keys(out).forEach(t=>{ if(bb.P[t]) out.lvl[t]=bb.P[t].lvl; });
     /* Auftakt: beginnt die Show mit einer Fontaene, bevor geschossen wird? */
-    out.auftakt={}; for(const t of ['sortiment','batterie100','kometen','donnerwand','profi'].filter(t=>bb.SHOWS[t])){ const ph=bb.SHOWS[t]()[0]; out.auftakt[t]=!!((ph.ground||ph.boden)&&!ph.n); }  // 27.09.: Drehbuch v2 schreibt die Bodenphase als boden:{...} (Familienfest: Vulkan + Lauffeuer)
+    /* 06.10. (Tom 02.10.: "Du machst oft immer so eine Fontaene am Anfang ... Ich will den Ablauf gerne ein bisschen
+       anders haben"; PDF: "am Anfang wieder diese Fontaenen ... Das muss weg"): umgekehrt zu 27.09. - keine
+       Batterie beginnt mit einer Bodenfontaene (Phasen so, wie playShow sie liest, 14t) */
+    out.auftakt={}; for(const t of Object.keys(bb.SHOWS).filter(t=>bb.P[t]&&bb.istBatterie(t))){ const ph=window.__lochschuss?window.__lochschuss.phasen(t):bb.SHOWS[t](), z=bb.showZeiten(ph);
+      out.auftakt[t]=ph.some((x,i)=>z[i]<3&&(x.ground||(Array.isArray(x.boden)?x.boden:x.boden?[x.boden]:[]).some(b=>b.k!=='lauffeuer'&&z[i]+(+b.t||0)<3))); }
     /* Weltuntergang nur mit Schuessen (Tom, 25.09.) */
     out.finaleBoden=bb.SHOWS.finale().filter(ph=>ph.ground).length;
     return out; });
   const L=['batterie16','knatter','batterie49','faecher','batterie100','zfaecher','kometen','donnerwand','profi','finale'].filter(t=>r[t]);
-  const SOLL={batterie16:16,knatter:30,batterie49:49,faecher:36,batterie100:100,zfaecher:48,kometen:64,donnerwand:120,profi:200,finale:300};
+  /* 06.10. (PDF, ein Loch = ein Schuss, 14t): Knattersturm 36 (Feuertoepfe aus eigenen Rohren), Sonnenaufgang 44 */
+  const SOLL={batterie16:16,knatter:36,batterie49:49,faecher:44,batterie100:100,zfaecher:48,kometen:64,donnerwand:120,profi:200,finale:300};
   for(const t of Object.keys(r).filter(k=>r[k]&&r[k].n!==undefined))
     console.log(t.padEnd(14),'lvl',String(r.lvl[t]).padStart(2),'n',String(r[t].n).padStart(3),'hoehe',String(r[t].hoehe).padStart(6),'sz',String(r[t].sz).padStart(6),'dichte',String(r[t].dichte).padStart(2),'farben',String(r[t].farben).padStart(2),'dauer',String(r[t].dauer).padStart(6));
   /* Leiter: nur mit dem letzten Produkt NIEDRIGEREN Levels vergleichen */
@@ -122,7 +127,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   EINZ.forEach(t=>{ const eigene=r[t].eff.filter(e=>!EINZ.some(x=>x!==t&&r[x].eff.includes(e)));
     pruef('EINZIGARTIG',eigene.length>0,`${t} hat kein eigenes Bruchbild: ${r[t].eff.join(',')}`); });
   /* Grosse Verbunde beginnen mit einer Fontaene */
-  Object.keys(r.auftakt).forEach(t=>pruef('AUFTAKT',r.auftakt[t],t+' beginnt ohne Fontaene'));
+  Object.keys(r.auftakt).forEach(t=>pruef('AUFTAKT',!r.auftakt[t],t+' beginnt mit einer Bodenfontaene'));
   pruef('NUR_SCHUESSE',r.finaleBoden===0,'Weltuntergang hat noch '+r.finaleBoden+' Fontaenen');
   /* Eine Zuendung, eine Rakete */
   ['raketenklein','raketen','jumbogold','jumboleiter','furzrakete'].forEach(t=>

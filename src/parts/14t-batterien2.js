@@ -117,10 +117,32 @@ function lochTopfTeilen(ph){
 /* Drehbuch-Umbau beim Lesen: showNorm rufen rohrBedarf, playShow,
    zuendPlan und showDauer - alle sehen dieselben Phasen */
 const LOCH_UMBAU=[lochTopfTeilen];
+/* ---------- Keine Fontaene als Auftakt ----------
+   02.10. (Tom): "Du machst oft immer so eine Fontaene am Anfang, wo ganz
+   viele Funken kommen und dann kommen die Effekte. Ich will den Ablauf
+   gerne ein bisschen anders haben"; PDF (Rubinpalmen, Hexenkessel,
+   Farbsaeulen): "am Anfang wieder diese ... Fontaenen ... Das muss weg".
+   Boden-Fontaenen, die in den ersten 3 s einer Batterie starten, fallen
+   weg (eine reine Boden-Phase ganz); spaeter im Ablauf bleiben die
+   kleinen Funkenfontaenen als Akzent. */
+const LOCH_AUFTAKT=3;
+function lochOhneAuftakt(out){
+  const z=showZeiten(out);
+  out.forEach((ph,i)=>{ if(z[i]>=LOCH_AUFTAKT||!(ph.boden||ph.ground)) return;
+    const bo=(Array.isArray(ph.boden)?ph.boden:ph.boden?[ph.boden]:[]).filter(b=>b.k==='lauffeuer'||z[i]+(+b.t||0)>=LOCH_AUFTAKT);
+    const n=ph.n===undefined?1:ph.n, x=Object.assign({},ph); delete x.ground;
+    if(bo.length) x.boden=bo.length===1?bo[0]:bo; else delete x.boden;
+    /* reine Boden-Phase: bleibt als leere Phase ohne Pause stehen (die
+       Bezuege mit:true der folgenden Phasen bleiben gleich) */
+    if(n===0&&!x.boden) x.pause=0;
+    out[i]=x; });
+}
 { const sn=showNorm; showNorm=function(s){ const a=sn(s); if(!a||a.__loch) return a;
     const out=[]; a.forEach(ph=>{ let L=[ph]; for(const f of LOCH_UMBAU) L=[].concat(...L.map(f)); out.push(...L); });
     for(const k of Object.keys(a)) if(isNaN(+k)) out[k]=a[k];
-    Object.defineProperty(out,'__loch',{value:true}); return out; }; }
+    Object.defineProperty(out,'__loch',{value:true});
+    lochOhneAuftakt(out);
+    return out; }; }
 
 /* ---------- 4. Werkzeuge fuer die einzelnen Batterien ---------- */
 /* Mehr Schuss -> groessere Batterie (PDF: "die Batterie ist dann einfach

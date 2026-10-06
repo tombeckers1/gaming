@@ -44,7 +44,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     /* nach jeder Zuendung Funken und Emitter abraeumen - sonst ueberlagern
        sich im Test 180 Shows und die Simulation dauert Viertelstunden */
     const leer=()=>{ [bb.psHuge,bb.psBig,bb.psMid,bb.psSmall].forEach(ps=>ps.life.fill(0)); bb.rockets.length=0; bb.emittersListe().length=0; bb.timersLeeren(); };
-    let n=0; while(bb.vfIdx<L.length&&n++<L.length+5){ const t=L[bb.vfIdx], g=bb.vfGezuendet; taste('Space'); bb.run(0.9,0.3); zeit+=0.9; if(bb.vfGezuendet<=g) fehlt.push(t); leer(); }
+    let n=0; while(bb.vfIdx<L.length&&n++<L.length+5){ const t=L[bb.vfIdx], g=bb.vfGezuendet; taste('Space'); bb.run(1.5,0.3); zeit+=1.5; /* 06.10.: Raketen und Kugeln brennen in der Vorfuehrung 0,9 bzw. 1,2 s Zuendschnur (14u) */ if(bb.vfGezuendet<=g) fehlt.push(t); leer(); }
     o.xp={level:bb.S.level,xp:bb.S.xp};
     o.durch={fehlt,idx:bb.vfIdx,minuten:+(zeit/60).toFixed(1),ende:bb.vfEl.innerText.indexOf('Ende der Liste')>=0};
     /* drei gleich grosse Kugelbomben kurz hintereinander: drei Rohre */

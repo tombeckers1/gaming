@@ -247,7 +247,7 @@ function vfZuendenRoh(t){
   if(!t||!P[t]) return false;
   /* 06.10. (Toms PDF: Raketen und Kugeln sichtbar im Rohr): die Zuendschnur
      brennt etwas laenger als an der Station, damit man das Modell sieht (14u) */
-  const o=vfMuendung(t), dauer=brennDauer(t), vor=o.sid==='moerser'?1.2:o.sid==='rampe'?0.9:0;
+  const o=vfMuendung(t), dauer=brennDauer(t), vor=o.sid==='moerser'?1.2:o.sid==='rampe'?(P[t].shape==='rocketset'?0.9:0.4):0;
   vfBelegt[o.art]=FW_UHR+vor+dauer+0.5;
   let h=null, bt=null, pg=null;
   if(o.sid==='tisch'&&istBatterie(t)){ bt=batterieModell(t,Math.PI); bt.g.position.set(o.x,o.boden,o.z); bt.g.rotation.y=Math.PI; scene.add(bt.g); o.batt=bt; }

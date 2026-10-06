@@ -481,6 +481,67 @@ lochName('lb_jadekoenig',{desc:'Grün in allen Tönen: Blütenkreuze, lang häng
 lochName('lb_goldader',{desc:'Goldkometen kreuz und quer – mal links, mal rechts –, Glitzerminen, Weidenkometen und Goldkometen im W; ein Finale aus sechzehn Goldkometen über einer kleinen Goldfontäne, zum Schluss acht Weiden.'});
 lochName('kreuzfeuer90',{desc:'Crossetten teilen sich im Kreuz, farbige Crossetten und Farbkometen im Wischer, zum Schluss Dreifach-Crossetten – neunzig Schuss ohne großen Knall.'});
 
+/* Weidenhain (03.10. gelobt): seine Weidenfaecher hatten je fuenf Weiden
+   aus einem Rohr - 125 Weiden aus 25 Rohren. Jetzt eine Weide je Rohr;
+   damit der Hain dicht bleibt, haben die Faecher-Abschnitte mehr Rohre
+   (Eroeffnung 3, Farbweiden im V 10, Welle 16, Kreuz 12): 72 Schuss. */
+{ const alt=SHOWS.lb_weidenhain, N={0:3,1:10,4:16,5:12}; if(alt) SHOWS.lb_weidenhain=()=>{ const s=alt(), k=show({rampe:s.rampe,basis:s.basis,verzoegerung:s.verzoegerung},s.map((ph,i)=>N[i]?Object.assign({},ph,{n:N[i]},i===0?{gap:0.25,rohrFolge:undefined}:{}):Object.assign({},ph)));
+  return k; }; }
+lochName('lb_weidenhain',{name:'Weidenhain · 72 Schuss Weiden',sub:'72 Schuss Weiden',
+  desc:'Drei Weiden eröffnen, dann farbige Weiden im V, Weidencrossetten, ein Weidenfall und eine Welle aus sechzehn Goldweiden, schräg durch die Batterie gezündet – das Finale ein Vorhang, der lange am Himmel hängt.'});
+lochGroesser('lb_weidenhain',56,72);
+
+/* ---------- 6b. Die Batterie auf dem Zuendtisch in ihrer echten Form ----------
+   06.10. (Tom zu den Fotos: "teils unterschiedliche Roehren-Groessen
+   wegen verschiedener Effektgroessen"): Zonen mit eigener Hoehe (hf,
+   Treppe/Doppeldeck) und eigenem Kaliber (kf). x0..x1 von links nach
+   rechts, z0..z1 von vorn (0) nach hinten (1), Anteile der Grundflaeche.
+   Die Muendung (rohrMund) liegt auf der Zone - der Effekt kommt aus dem
+   Loch, wo es wirklich ist. */
+const ROHR_FORM={
+  /* Dreisprung: drei Stufen von links nach rechts (Hop, Step, Jump) */
+  miniverbund:{zonen:[{x0:0,x1:1/3,z0:0,z1:1,hf:0.62},{x0:1/3,x1:2/3,z0:0,z1:1,hf:0.81},{x0:2/3,x1:1,z0:0,z1:1,hf:1}]},
+  /* Knattersturm Doppeldeck: vorn flach mit schmalen Rohren, hinten hoch und dick */
+  knatter:{zonen:[{x0:0,x1:1,z0:0,z1:0.56,hf:0.6,kf:0.72},{x0:0,x1:1,z0:0.56,z1:1,hf:1,kf:1}]},
+  /* Ozean: vorn die schmalen Rohre (Kometen, Gischt), hinten die dicken (Brandung, Knalle) */
+  lb_saphirfaecher:{zonen:[{x0:0,x1:1,z0:0,z1:0.5,hf:1,kf:0.68},{x0:0,x1:1,z0:0.5,z1:1,hf:1,kf:1}]}
+};
+function rohrZone(t,r){ const F=ROHR_FORM[t]; if(!F) return null; const p=P[t], w=p.dims[0], d=p.dims[2], xf=(r.x+w/2)/w, zf=(d/2-r.z)/d;
+  return F.zonen.find(z=>xf>=z.x0-1e-6&&xf<=z.x1+1e-6&&zf>=z.z0-1e-6&&zf<=z.z1+1e-6)||F.zonen[F.zonen.length-1]; }
+{ const rm=rohrMund; rohrMund=function(t,k){ const m=rm(t,k); if(!ROHR_FORM[t]) return m; const z=rohrZone(t,rohrLayout(t).rohre[k]);
+    if(z&&z.hf!==undefined) m.y+=rohrHoehe(t).bh*(z.hf-1); return m; }; }
+{ const bk=buildKorpus; buildKorpus=function(t){ const F=ROHR_FORM[t]; if(!F) return bk(t);
+    const p=P[t], a=p.art, w=p.dims[0], d=p.dims[2], bh=rohrHoehe(t).bh, parts=[], vc=[];
+    F.zonen.forEach(z=>{ const zw=(z.x1-z.x0)*w, zd=(z.z1-z.z0)*d, zh=bh*(z.hf||1), cx=-w/2+(z.x0+z.x1)/2*w, cz=d/2-(z.z0+z.z1)/2*d;
+      /* vorn das Stueck des durchgehenden Druckbilds, hinten eine Zone ohne Front: Grund in der Packungsfarbe */
+      const o2={top:kraftTop}; if(z.z0<1e-6) o2.front=(g,W,H)=>{ const FW=W/(z.x1-z.x0), FH=H/(z.hf||1); g.save(); g.translate(-z.x0*FW,-(FH-H)); drawFront(g,FW,FH,a,p.cat); g.restore(); };
+      else o2.front=(g,W,H)=>{ g.fillStyle=a.bg2; g.fillRect(0,0,W,H); g.fillStyle=a.ac; g.fillRect(0,0,W,H*0.06); nameText(g,a.title,W/2,H*0.2,W*0.86,Math.round(H*0.16),FNT.bun,a.ac,'rgba(0,0,0,.6)'); };
+      const A=atlas(zw,zh,zd,a,p.cat,o2);
+      parts.push({geo:merge([{geo:atlasBox(zw-0.0006,zh,zd-0.0006,A.R),m:tm(cx,zh/2,cz)}]),mat:A.mat});
+      vc.push({geo:new THREE.BoxGeometry(zw*1.005,0.012,zd*1.005),m:tm(cx,zh-0.004,cz),color:0x9c7a4c}); });
+    vc.push({geo:new THREE.BoxGeometry(w*1.02,Math.min(0.03,p.dims[1]*0.08),d*1.02),m:tm(0,Math.min(0.015,p.dims[1]*0.04),0),color:0x7d6440});
+    vc.push({geo:new THREE.CylinderGeometry(0.0035,0.0035,0.09,6),m:tm(w/2+0.035,bh*0.18,d*0.3,0,0,Math.PI/2.4),color:0x2e8b3a});
+    vc.push({geo:new THREE.BoxGeometry(0.004,bh*0.16,d*0.34),m:tm(w/2+0.003,bh*0.3,-d*0.1),color:0xf2f0e6});
+    parts.push({geo:merge(vc),mat:vcMat}); return parts; }; }
+{ const rg=rohrGeometrie; rohrGeometrie=function(t,ry){ if(!ROHR_FORM[t]) return rg(t,ry); if(_rohrGeo[t]) return _rohrGeo[t];
+    const p=P[t], L=rohrLayout(t), H=rohrHoehe(t), fan=p.shape==='fan', parts=[], rohr=[], modul=[];
+    const wand=new THREE.CylinderGeometry(1,1,1,12), scheibe=new THREE.CylinderGeometry(1,1,1,12), tief=Math.min(0.02,H.bh*0.3);
+    L.rohre.forEach((r,k)=>{ const z=rohrZone(t,r)||{}, bh=H.bh*(z.hf||1), rr=r.r*(z.kf||1), m=rohrMund(t,k), q=new THREE.Quaternion().setFromUnitVectors(V(0,1,0),V(m.u[0],m.u[1],m.u[2]));
+      const M=(sx,sy,sz,along)=>{ const mm=new THREE.Matrix4(); mm.compose(V(r.x+m.u[0]*along,bh+m.u[1]*along,r.z+m.u[2]*along),q,V(sx,sy,sz)); return mm; };
+      const len=H.lp+tief, mitte=(H.lp-tief)/2, i0=parts.length;
+      parts.push({geo:wand,m:M(rr,len,rr,mitte),color:fan?ROHR_FARBE.fanWand:ROHR_FARBE.wand,rolle:'wand'});
+      parts.push({geo:scheibe,m:M(rr*0.97,0.002,rr*0.97,H.lp+0.0008),color:fan?ROHR_FARBE.fanRing:ROHR_FARBE.ring,rolle:'ring'});
+      parts.push({geo:scheibe,m:M(rr*0.74,0.002,rr*0.74,H.lp+0.0019),color:ROHR_FARBE.loch,rolle:'loch'});
+      rohr.push([i0,parts.length]); });
+    L.module.forEach(M0=>{ const i0=parts.length;
+      parts.push({geo:new THREE.CylinderGeometry(M0.r,M0.r*1.08,M0.h,10),m:tm(M0.x,M0.h/2,M0.z),color:ROHR_FARBE.modul,rolle:'wand'});
+      parts.push({geo:scheibe,m:tm(M0.x,M0.h+0.001,M0.z,0,0,0,M0.r,0.002,M0.r),color:ROHR_FARBE.modulRing,rolle:'ring'});
+      parts.push({geo:scheibe,m:tm(M0.x,M0.h+0.0026,M0.z,0,0,0,M0.r*0.5,0.002,M0.r*0.5),color:ROHR_FARBE.loch,rolle:'loch'});
+      modul.push([i0,parts.length]); });
+    const geo=merge(parts);
+    const bereich=([a,b])=>({von:parts[a]._o,bis:parts[b-1]._o+parts[b-1]._n,teile:parts.slice(a,b).map(x=>({von:x._o,n:x._n,rolle:x.rolle}))});
+    return (_rohrGeo[t]={geo,rohr:rohr.map(bereich),modul:modul.map(bereich)}); }; }
+
 /* ---------- 7. Verpackungen der umgebauten Batterien ----------
    06.10. (Tom, mit Fotos echter Batterien: "nicht nur wie die Batterien
    von der Form aussehen koennten - teils unterschiedliche Roehren-
@@ -501,9 +562,10 @@ lochName('kreuzfeuer90',{desc:'Crossetten teilen sich im Kreuz, farbige Crossett
     g.lineWidth=Math.max(1.5,s*0.045); g.strokeStyle=c; g.stroke();
     nameText(g,String(n),x+w/2,y+h*0.42,w*0.84,Math.round(h*0.5),FNT.bun,c);
     nameText(g,'SCHUSS',x+w/2,y+h*0.8,w*0.8,Math.round(h*0.2),FNT.bar,'#1b1b1b'); g.restore(); }
-  /* Vorderseite: Druckbild der Produktlinie (Effektfoto, Name, Eckdaten)
-     und die Schusskarte oben links */
-  const pDruck=(k,o)=>(g,W,H)=>{ o=o||{}; pFront(k)(g,W,H); if(o.karte===false) return;
+  /* Vorderseite: Druckbild der Produktlinie (Effektfoto, grosser Name,
+     Schussangabe, Eckdaten); o.karte: zusaetzlich die Schusskarte oben
+     links (fuer Flaechen ohne eigene Schussangabe) */
+  const pDruck=(k,o)=>(g,W,H)=>{ o=o||{}; pFront(k)(g,W,H); if(!o.karte) return;
     const s=Math.min(W*0.2,H*0.34); karte(g,W*0.03,H*0.05,s,nS(k.t),o.kc||k.a.ac2||'#d8322a'); };
   /* offene Oberseite: bedruckter Rand, darin die Rohrmuendungen (grauer
      Pappring, dunkle Muendung); gruppen fuer zwei Kaliber in einem Block */
@@ -539,9 +601,10 @@ lochName('kreuzfeuer90',{desc:'Crossetten teilen sich im Kreuz, farbige Crossett
     kuchen(k,{gruppen:[{x0:0.08,x1:0.92,y0:0.1,y1:0.9,cols:5,rows:2,wand:'#e8e4da'}],kc:'#a04aff'});
     F.forEach((c,i)=>vbox(k,k.w/7,0.006,0.002,-k.w/2+k.w/14+i*k.w/7,k.h-0.008,k.d/2+0.001,c));
     return fertig(k); };
-  /* Ozean 30: ein Block, zwei Kaliber - links 20 Rohre fuer Kometen und
-     Gischt, rechts 10 dicke Rohre (Brandung, Quallen) */
-  V.lb_saphirfaecher=t=>{ const k=neu(t); kuchen(k,{gruppen:[{x0:0,x1:0.6,y0:0,y1:1,cols:5,rows:4},{x0:0.62,x1:1,y0:0,y1:1,cols:2,rows:5,wand:'#d8e4f2'}],kc:'#2a5aff'}); return fertig(k); };
+  /* Ozean 30: ein Block, zwei Kaliber - vorn 16 schmale Rohre fuer
+     Kometen und Gischt, hinten 14 dicke (Brandung, Knalle) - wie auf dem
+     Zuendtisch (ROHR_FORM) */
+  V.lb_saphirfaecher=t=>{ const k=neu(t); kuchen(k,{gruppen:[{x0:0.03,x1:0.97,y0:0,y1:0.5,cols:7,rows:2,wand:'#d8e4f2'},{x0:0.06,x1:0.94,y0:0.56,y1:1,cols:8,rows:2}],kc:'#2a5aff'}); return fertig(k); };
   /* Knattersturm 36 "Doppeldeck": zwei Decks auf einer Platte - vorn ein
      flacher Block mit 24 schmalen Rohren, dahinter ein hoher mit 12
      dicken (Feuertoepfe, Bomben) */
@@ -553,22 +616,25 @@ lochName('kreuzfeuer90',{desc:'Crossetten teilen sich im Kreuz, farbige Crossett
         nameText(g,'DOPPELDECK',W/2,Hh*0.2,W*0.86,Math.round(Hh*0.17),FNT.bun,k.a.ac,'rgba(0,0,0,.6)'); }),
       nz:reg(k,'hh',w,H,pEtikett(k,{sub:''})),px:reg(k,'sh',dh,H,pSeite(k)),nx:'sh',py:reg(k,'oh',w,dh,pOffen(k,[{x0:0,x1:1,y0:0,y1:1,cols:6,rows:2,wand:'#d6d0c0'}])),ny:farbe(k,'#2a2018')});
     return fertig(k); };
-  /* Polarnacht 26: Verbund aus zwei Karbonbloecken (14 + 12) auf einer
-     Platte, darum eine bedruckte Banderole mit dem Polarlicht */
-  V.lb_polarweiden=t=>{ const k=neu(t), p0=0.008, H=k.h-p0, g0=0.006, bw=(k.w-g0)/2, d=k.d;
+  /* Verbund aus Karbonbloecken auf einer Platte, darum eine bedruckte
+     Banderole (Polarnacht 26: 14 + 12) */
+  const verbund=(bl,ak)=>t=>{ const k=neu(t), p0=0.008, H=k.h-p0, g0=0.006, n=bl.length, bw=(k.w-g0*(n-1))/n, d=k.d;
     vbox(k,k.w,p0,d,0,p0/2,0,'#101012');
-    [[14,7,2],[12,6,2]].forEach(([n,c,r],i)=>{ const x=-k.w/2+bw/2+i*(bw+g0);
-      kasten(k,bw,H,d,tm(x,p0+H/2,0),{pz:reg(k,'k'+i,bw,H,pKarbon(k,n,'#2ad8b0')),nz:'k'+i,px:reg(k,'ks'+i,d,H,pKarbon(k,0)),nx:'ks'+i,
-        py:reg(k,'o'+i,bw,d,pOffen(k,[{x0:0,x1:1,y0:0,y1:1,cols:c,rows:r}],{rand:'#202024',akzent:'#2ad8b0'})),ny:farbe(k,'#2a2018')}); });
+    bl.forEach(([z,c,r],i)=>{ const x=-k.w/2+bw/2+i*(bw+g0);
+      kasten(k,bw,H,d,tm(x,p0+H/2,0),{pz:reg(k,'k'+i,bw,H,pKarbon(k,z,ak)),nz:'k'+i,px:reg(k,'ks'+i,d,H,pKarbon(k,0)),nx:'ks'+i,
+        py:reg(k,'o'+i,bw,d,pOffen(k,[{x0:0,x1:1,y0:0,y1:1,cols:c,rows:r}],{rand:'#202024',akzent:ak})),ny:farbe(k,'#2a2018')}); });
     const bh=H*0.46, t2=0.0015;
-    kasten(k,k.w+2*t2,bh,d+2*t2,tm(0,p0+H*0.52,0),{pz:reg(k,'band',k.w,bh,pDruck(k,{kc:'#2ad8b0'})),nz:'band',px:reg(k,'bs',d,bh,pEtikett(k,{sub:''})),nx:'bs',py:farbe(k,'#101012'),ny:farbe(k,'#101012')});
+    kasten(k,k.w+2*t2,bh,d+2*t2,tm(0,p0+H*0.52,0),{pz:reg(k,'band',k.w,bh,pDruck(k,{kc:ak})),nz:'band',px:reg(k,'bs',d,bh,pEtikett(k,{sub:''})),nx:'bs',py:farbe(k,'#101012'),ny:farbe(k,'#101012')});
     return fertig(k); };
+  V.lb_polarweiden=verbund([[14,7,2],[12,6,2]],'#2ad8b0');
+  /* Weidenhain 72: drei Bloecke zu je 24 Rohren auf einer Platte */
+  V.lb_weidenhain=verbund([[24,6,4],[24,6,4],[24,6,4]],'#e8b04a');
   /* Oase 29 (Faecher): Kartonmanschette mit Druck, darueber die
      gefaecherten Rohrkoepfe offen - 15 + 14 Rohre */
   V.pfauenrad=t=>{ const k=neu(t), w=k.w, h=k.h, d=k.d, hb=h*0.66, N=nS(t)||18, tr=Math.min(0.016,w*0.8/Math.ceil(N/2)*0.46);
     kasten(k,w,hb,d,tm(0,hb/2,0),{pz:reg(k,'front',w,hb,pDruck(k,{kc:'#1aa8a0'})),nz:reg(k,'hinten',w,hb,pEtikett(k,{sub:''})),px:reg(k,'seite',d,hb,pSeite(k)),nx:'seite',py:farbe(k,'#1a1410'),ny:farbe(k,'#2a2018')});
     const L=h-hb+0.03; for(let r=0;r<2;r++){ const n=r?Math.floor(N/2):Math.ceil(N/2); for(let i=0;i<n;i++){ const f=n>1?i/(n-1)-0.5:0, til=f*0.7, x=f*w*0.8, z=(r-0.5)*d*0.45, cy=hb-0.03+L/2*Math.cos(til);
-      vzyl(k,tr,tr,L,10,x-Math.sin(til)*L/2,cy,z,'#c9c9c4',0,0,-til); vzyl(k,tr*0.8,tr*0.8,0.004,10,x-Math.sin(til)*L,hb-0.03+L*Math.cos(til)+0.001,z,'#1d1d1f',0,0,-til); } }
+      vzyl(k,tr,tr,L,10,x-Math.sin(til)*L/2,cy,z,'#b8925f',0,0,-til); vzyl(k,tr*0.8,tr*0.8,0.004,10,x-Math.sin(til)*L,hb-0.03+L*Math.cos(til)+0.001,z,'#1d1d1f',0,0,-til); } }
     return fertig(k); };
   /* Sonnenaufgang 44 (Halbkreisfaecher): Sockel mit Sonnendach wie
      bisher, Aufdruck mit der neuen Schusszahl und Schusskarte */

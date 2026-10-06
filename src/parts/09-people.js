@@ -225,7 +225,6 @@ function figTuete(){
 
 /* ---------- Person bauen ---------- */
 const FIG_PERSONEN=new Set();
-const FIG_GRUPPE=new THREE.Euler();
 function makePerson(opt){
   opt=opt||{};
   const K=opt.kopf?kopfVon(opt.kopf):opt.uniform?kopfVon(STAFFKOPF[opt.uniform]):kopfFuer(opt.ct);
@@ -252,9 +251,9 @@ function makePerson(opt){
     mesh.bind(new THREE.Skeleton(bones,B.inv),new THREE.Matrix4());
     if(HIQ) mesh.castShadow=true;
     root.add(mesh);
-    fig={id,root,mesh,bones,B,ruhe:bones.map(b=>b.quaternion.clone()),
+    fig={id,root,mesh,bones,B,
       arm:[['R_UpperArm','R_Forearm','R_Hand','R_Clavicle'],['L_UpperArm','L_Forearm','L_Hand','L_Clavicle']].map(a=>a.map(n=>bones.find(b=>b.name===n))),
-      qBasis:new Float32Array(bones.length*4),geh:0,tw:Math.random(),ti:Math.random()*20,ov:[0,0],ovZiel:[0,0]};
+      geh:0,tw:Math.random(),ti:Math.random()*20,ov:[0,0],ovZiel:[0,0]};
     /* Uniform: Logo vorn auf der Brust (am obersten Rueckenknochen) */
     if(O.logo){ const sp=bones.find(b=>b.name==='Spine2'); if(sp){ const l=figLogo(); fig.logo=l; sp.add(l); } }
   }
@@ -332,7 +331,7 @@ function animPerson(g,moving,dt,speed){
 }
 
 /* ---------- Arme nach den Steuergelenken (vor jedem Bild) ---------- */
-const _fv=[0,1,2,3,4,5,6].map(()=>new THREE.Vector3()), _fqa=new THREE.Quaternion(), _fqb=new THREE.Quaternion(), _fqc=new THREE.Quaternion(), _fm=new THREE.Matrix4();
+const _fv=[0,1,2,3,4,5,6].map(()=>new THREE.Vector3()), _fqa=new THREE.Quaternion(), _fqb=new THREE.Quaternion(), _fqc=new THREE.Quaternion();
 /* Knochen so drehen, dass seine Achse (zum Kind) von 'von' nach 'nach' zeigt (Welt) */
 function figDrehe(bone,von,nach){
   _fqa.setFromUnitVectors(von,nach);

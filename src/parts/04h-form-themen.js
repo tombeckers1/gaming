@@ -89,7 +89,7 @@ function thFront(k,motiv,o){ o=o||{}; return (g,W,H)=>{ const a=k.a, rnd=zufallA
   MOTIV[motiv](g,W,H,rnd);
   const vg=g.createLinearGradient(0,H*0.45,0,H); vg.addColorStop(0,'rgba(0,0,0,0)'); vg.addColorStop(1,'rgba(0,0,0,.55)'); g.fillStyle=vg; g.fillRect(0,0,W,H);
   const gr=g.createLinearGradient(0,H*0.45,0,H*0.75); gr.addColorStop(0,'#ffffff'); gr.addColorStop(0.5,hellC(a.ac,0.45)); gr.addColorStop(0.52,a.ac); gr.addColorStop(1,hellC(a.ac,0.2));
-  nameText(g,a.title,W*0.52,H*0.6,W*0.84,Math.round(H*(o.gross||0.27)),FNT.bun,gr,'rgba(10,6,4,.9)',Math.max(3,H*0.035),-0.06);
+  nameText(g,a.title,W*0.52,H*0.57,W*0.9,Math.round(H*(o.gross||0.33)),FNT.bun,gr,'rgba(10,6,4,.9)',Math.max(3,H*0.035),-0.06);
   nameText(g,(info.schuss?info.schuss+' SCHUSS · ':'')+(o.zeile||'THEMEN-BATTERIE'),W*0.52,H*0.78,W*0.7,Math.round(H*0.07),FNT.bar,'#ffffff','rgba(0,0,0,.7)',2);
   if(info.schuss&&o.badge!==false){ const bw=H*0.22, bx=W-bw*1.25, by=H*0.06; g.fillStyle='#ffffff'; g.fillRect(bx,by,bw,bw*1.05); g.fillStyle=o.badgeFarbe||'#d8282a'; g.fillRect(bx+bw*0.06,by+bw*0.06,bw*0.88,bw*0.6);
     g.fillStyle='#ffffff'; g.textAlign='center'; g.textBaseline='middle'; g.font=FNT.bar(Math.round(bw*0.5)); g.fillText(String(info.schuss),bx+bw/2,by+bw*0.37);
@@ -119,7 +119,8 @@ function thDeckelRaster(g,W,H,n,kappe,gross){
   const {c,r}=best, cw=W/c, ch=H/r, rr=Math.min(cw,ch)*0.46; let k=0;
   for(let j=0;j<r;j++){ const inR=Math.min(c,n-k), x0=(W-inR*cw)/2; for(let i=0;i<inR;i++,k++){ const x=x0+cw*(i+0.5), y=ch*(j+0.5);
     const rg=g.createRadialGradient(x-rr*0.3,y-rr*0.3,rr*0.2,x,y,rr); rg.addColorStop(0,'#d8d8d8'); rg.addColorStop(1,'#8a8a8e'); g.fillStyle=rg; g.beginPath(); g.arc(x,y,rr,0,2*PI); g.fill();
-    const kc=typeof kappe==='function'?kappe(k+(gross?500:0)):kappe; g.fillStyle=kc; g.beginPath(); g.arc(x,y,rr*0.72,0,2*PI); g.fill();
+    const kc=typeof kappe==='function'?kappe(k+(gross?500:0)):kappe; g.fillStyle='#1c1a1a'; g.beginPath(); g.arc(x,y,rr*0.74,0,2*PI); g.fill();
+    const tg=g.createRadialGradient(x-rr*0.12,y-rr*0.12,rr*0.05,x,y,rr*0.5); tg.addColorStop(0,'#ffffff'); tg.addColorStop(0.35,kc); tg.addColorStop(1,'rgba(0,0,0,.6)'); g.fillStyle=tg; g.beginPath(); g.arc(x,y,rr*0.5,0,2*PI); g.fill();
     g.fillStyle='rgba(0,0,0,.35)'; g.beginPath(); g.arc(x+rr*0.08,y+rr*0.08,rr*0.3,0,2*PI); g.fill(); } }
 }
 /* bedruckter Block (Rohrbatterie): x/z Mitte, w/h/d, n Muendungen oben */

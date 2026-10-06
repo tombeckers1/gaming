@@ -362,7 +362,7 @@ LICHTYP.luftblasen=function(o,A,B,s,opt){
    Reihe nach auf, in der Spirale der Sonnenblume (Goldener Winkel) */
 LICHTYP.sonnenblume=function(o,A,B,s,opt){
   thDunkel(o,s,opt,30.5,A,e=>{ const [r1,r2]=rkBild(e), n=Math.round(20*QUAL())+6, nk=Math.round(34*QUAL())+10, PHI=2.39996;
-    for(let i=0;i<n;i++){ const a=i/n*Math.PI*2, w=6.8*Math.sqrt(s)*rand(0.96,1.04), dv=[(r1[0]*Math.cos(a)+r2[0]*Math.sin(a))*w,(r2[1]*Math.sin(a))*w+0.4,(r1[2]*Math.cos(a)+r2[2]*Math.sin(a))*w], L=rand(2.2,2.6);
+    for(let i=0;i<n;i++){ const a=i/n*Math.PI*2, w=7.8*Math.sqrt(s)*rand(0.96,1.04), dv=[(r1[0]*Math.cos(a)+r2[0]*Math.sin(a))*w,(r2[1]*Math.sin(a))*w+0.4,(r1[2]*Math.cos(a)+r2[2]*Math.sin(a))*w], L=rand(2.2,2.6);
       kgStern(psHuge,e,dv,lHell(A,1.45),L,1.4,0,0.25); lFunken(e,dv,1.4,0.05,L*0.8,28,mischF(lHell(A,1.05),[1,.75,.3],0.4),{ps:psMid,life:[0.5,0.9],g:1.4,streu:0.1,mit:0.04,mode:4}); }
     for(let i=0;i<nk;i++){ const a=i*PHI, rr=Math.sqrt((i+0.5)/nk)*2.6*Math.sqrt(s), dv=[(r1[0]*Math.cos(a)+r2[0]*Math.sin(a))*rr,(r2[1]*Math.sin(a))*rr+0.3,(r1[2]*Math.cos(a)+r2[2]*Math.sin(a))*rr];
       const h=kgStern(psBig,e,dv,kgMal(lHell(B,1.0),0.55),3.0,0.5,0,0.05), tp=0.45+i*0.045;

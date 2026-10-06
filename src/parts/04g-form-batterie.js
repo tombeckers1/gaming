@@ -1129,4 +1129,9 @@ V.goldbrokat100=t=>{ const k=neu(t), R=Math.min(k.w,k.d)/2-0.003, h=k.h, kh=0.01
   vzyl(k,R+0.002,R+0.002,kh,20,0,kh/2,0,'#3a0a4a'); vzyl(k,R+0.002,R+0.002,kh,20,0,h-kh/2,0,'#3a0a4a');
   vring(k,R+0.002,0.0025,4,20,2*PI,0,h*0.2,0,GOLD,PI/2,0,0); vring(k,R+0.002,0.0025,4,20,2*PI,0,h*0.8,0,GOLD,PI/2,0,0);
   return fertig(k); };
+/* 06.10. (14t-batterien2): Werkzeug fuer die neuen Verpackungen der
+   umgebauten Batterien - nicht aufzaehlbar, VP_FORM bleibt eine reine
+   Produktliste */
+Object.defineProperty(V,'__wz',{value:{neu,reg,farbe,kasten,druck,fertig,vbox,vzyl,vring,klar,mit,block,banderole,folie,ecken,gurtX,gurtZ,lasche,lascheSeite,
+  pFront,pSeite,pTop,pEtikett,pBild,pRohrSeite,pRohrDeckel,pLoch,pMetall,pKraft,lay,schild,hell,dunkel,css,mix,GOLD,SILBER}});
 })();

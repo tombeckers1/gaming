@@ -64,12 +64,14 @@ function lStrahl(o,A,B,s,opt,p){ p=p||{}; opt=opt||{};
 /* Strahl-Lichter (je Rohr ein Komet): Gold-Brokat, Silber-Titan,
    Farbkopf mit Goldschweif, Farbe im Wechsel A/B, schwere Glut, knisternd */
 LICHTYP.strahlgold=function(o,A,B,s,opt){ lStrahl(o,A,B,s,opt,{c:GOLDF,art:'faecher',md:4,H:24}); };
+/* Glitzerkomet: Goldkopf, der Schweif blinkt (Glitzerregen) */
+LICHTYP.strahlglitzer=function(o,A,B,s,opt){ lStrahl(o,A,B,s,opt,{c:GOLDF,art:'v',md:1,H:24}); };
 LICHTYP.strahlsilber=function(o,A,B,s,opt){ lStrahl(o,A,B,s,opt,{c:[1.3,1.32,1.4],art:'wisch',H:25}); };
 LICHTYP.strahlfarbe=function(o,A,B,s,opt){ lStrahl(o,A,B,s,opt,{c:A,art:'welle',md:0,H:25}); };
 LICHTYP.strahlwechsel=function(o,A,B,s,opt){ lStrahl(o,A,B,s,opt,{c:(opt.i||0)%2?B:A,art:'puls',md:0,H:25}); };
 LICHTYP.strahlglut=function(o,A,B,s,opt){ lStrahl(o,A,B,s,opt,{c:[1.3,.62,.16],art:'stufen',md:2,H:22}); };
 LICHTYP.strahlknister=function(o,A,B,s,opt){ lStrahl(o,A,B,s,opt,{c:A,art:'kreuz',md:0,H:24}); };
-Object.assign(LICHT_BRENN,{strahlgold:4,strahlsilber:4,strahlfarbe:4,strahlwechsel:4,strahlglut:4.5,strahlknister:4});
+Object.assign(LICHT_BRENN,{strahlglitzer:4,strahlgold:4,strahlsilber:4,strahlfarbe:4,strahlwechsel:4,strahlglut:4.5,strahlknister:4});
 
 /* Alle alten Faecher-Lichter (LICHTYP.breit*, auch die aus 14q/14r und
    jedes spaetere lBreit mit schuss): aus EINEM Rohr steigt jetzt genau
@@ -162,11 +164,11 @@ function lochFrisch(t){ [_rohrBedarf,_rohrLayout,_zplan,_korpus,_rohrGeo].forEac
 
 /* Komet mit eigener Schweiffarbe (kfKomet gibt Farbkoepfen immer einen
    Goldschweif - Tom fuer Jadeader: "gruene Funken") */
-function kfKometF(m,Q,a,c,sch,Hk,G,art){ art=art||KF_ART.faecher;
+function kfKometF(m,Q,a,c,sch,Hk,G,art,hell){ art=art||KF_ART.faecher;
   const v0=vFuerHoehe(Hk*rand(0.92,1.03)*(1-Math.abs(a)*0.3),G), tf=rand(-0.06,0.06);
   const v=[Q[0]*Math.sin(a)*v0-Q[2]*tf*v0,Math.cos(a)*v0,Q[2]*Math.sin(a)*v0+Q[0]*tf*v0], T=lScheitel(v[1],G)*rand(0.84,0.94), q=Math.min(1,0.5+0.5*QUAL());
   const Z=LOCH.z; if(Z){ Z.kf++; if(Z.inLicht) Z.lkf=true; }
-  lKopf(m,v,lHell(c,1.7),T,G,0,0.5);
+  lKopf(m,v,lHell(c,hell||1.7),T,G,0,0.5);
   kfZackSchweif(m,v,G,T,kgMal(sch,1.3),q,art);
   const bb=art.b; rkFunken(m,v,G,0.05,T,Math.round(28*q),sch,{ps:bb.ps==='klein'?psSmall:psMid,life:bb.life,g:bb.g,streu:bb.streu,mit:0.03,mode:4});
   muendungsblitz(m,m.y,0.55);
@@ -221,19 +223,28 @@ LICHTYP.regenbogenkomet=function(o,A,B,s,opt){ const m=lMund(o), [Q,a]=lQuerWink
 /* Ozeankomet (Ozean, PDF: "blaue breite Fontaenen, aber ohne Faecher-
    Effekt, sondern einzelne schoene helle"): ein heller blauer Komet je
    Rohr, Schweif blau-silber wie Gischt; oben zerstaeubt er leise weiss */
+/* Gischtkomet: hellblauer Kopf, knisternder blau-weisser Schweif, oben
+   zerstaeubt er in weisse Gischt */
+LICHTYP.gischtkomet=function(o,A,B,s,opt){ const m=lMund(o), [Q,a]=lQuerWinkel(opt);
+  const k=lochOhneKopf(()=>kfKometF(m,Q,a,A,mischF(lHell(A,1.1),[1.3,1.32,1.4],0.35),27*Math.sqrt(s),7.5,KF_ART.tor,1.35));
+  lStart(m,1.0,0.5); sfx.zischen(distVol(m)*0.3,1.0);
+  kgSpaeter(k.T,()=>qMini(sternNach(k.e,k.v[0],k.v[1],k.v[2],7.5,k.T),[1,1,1],s*0.8,11)); };
 LICHTYP.ozeankomet=function(o,A,B,s,opt){ const m=lMund(o), [Q,a]=lQuerWinkel(opt);
-  const k=lochOhneKopf(()=>kfKometF(m,Q,a,A,mischF(lHell(A,1.05),[1.3,1.32,1.4],0.45),28*Math.sqrt(s),7.5,KF_ART.welle));
+  const k=lochOhneKopf(()=>kfKometF(m,Q,a,A,lHell(A,1.05),28*Math.sqrt(s),7.5,KF_ART.welle,1.2));
   lStart(m,1.1,0.5); sfx.zischen(distVol(m)*0.35,1.2);
   kgSpaeter(k.T,()=>qMini(sternNach(k.e,k.v[0],k.v[1],k.v[2],7.5,k.T),B,s*0.6,7,'plopp')); };
 /* Polarlicht-Vorhang (Polarnacht): dunkler Aufstieg, oben spannt sich
    quer ein Band aus gruenen Glitzersternen, das langsam als Vorhang
    herabsinkt und unten violett ausfranst - wie ein Nordlicht */
 LICHTYP.polarvorhang=function(o,A,B,s,opt){
-  lDunkel(o,s,opt,31,e=>{ const Q=lQuer({dir:FANDIR}), n=Math.round(30*QUAL())+8, W=rand(5,7)*Math.sqrt(s), ph=rand(0,6.3);
-    for(let i=0;i<n;i++){ const u=i/(n-1)-0.5, x=u*W, y=Math.sin(u*5+ph)*1.2, q={x:e.x+Q[0]*x,y:e.y+y,z:e.z+Q[2]*x};
-      const dv=[Q[0]*u*1.6+rand(-.15,.15),rand(-0.4,0.2),Q[2]*u*1.6+rand(-.15,.15)], L=rand(3.6,4.4);
-      const h=kgStern(psBig,q,dv,lHell(A,1.25),L,0.55,4,0.9); kgSpaeter(L*rand(0.55,0.7),()=>kgFarbe(h,lHell(B,1.2)));
-      lFunken(q,dv,0.55,0.2,L,10,mischF(lHell(A,0.75),lHell(B,0.75),0.4),{ps:psMid,life:[1.4,2.2],g:0.35,streu:0.05,mit:0.02,mode:4,spur:0.3}); }
+  lDunkel(o,s,opt,31,e=>{ const Q=lQuer({dir:FANDIR}), n=14+Math.round(8*QUAL()), W=rand(6,8)*Math.sqrt(s), ph=rand(0,6.3);
+    /* senkrechte Lichtstrahlen nebeneinander, kurz nacheinander gezuendet:
+       der Vorhang laeuft quer ueber den Himmel; jeder Strahl sinkt und
+       zieht eine stehende Lichtspur, unten wird er violett */
+    for(let i=0;i<n;i++){ const u=i/(n-1)-0.5; kgSpaeter(i*0.045,()=>{ const x=u*W, q={x:e.x+Q[0]*x,y:e.y+Math.sin(u*4+ph),z:e.z+Q[2]*x};
+      const dv=[Q[0]*u*0.4,-rand(1.2,2.0),Q[2]*u*0.4], L=rand(2.6,3.4);
+      const h=kgStern(psBig,q,dv,lHell(A,1.15),L,0.2,0,0.9); kgSpaeter(L*0.6,()=>kgFarbe(h,lHell(B,1.05)));
+      lFunken(q,dv,0.2,0.05,L,26,lHell(A,0.8),{ps:psMid,life:[0.9,1.5],g:-0.3,streu:0.04,mit:0,mode:0,spur:0.35}); }); }
     schall(e,x=>{ sfx.plopp(x*0.3,1.1); later(0.3,()=>sfx.rieseln(x*0.5,4)); }); });
 };
 
@@ -245,8 +256,8 @@ LICHTYP.polarvorhang=function(o,A,B,s,opt){
    (Rot, Orange, Gelb, Gruen, Tuerkis, Blau, Violett), aus der Mitte nach
    aussen verdrahtet; zum Schluss Rosa, Gelb und Hellblau zugleich. */
 lbShow('lb_regenbogenbrunnen',[['rot','rot'],['orange','orange'],['zitrone','zitrone'],['gruen','gruen'],['tuerkis','tuerkis'],['blau','blau'],['violett','violett']],{sz:[0.85,1.0],pw:[0,0],hell:[0.9,1.1],kurve:'linear'},
-  [0,1,2,3,4,5,6].map(f=>({n:1,licht:'regenbogenkomet',kal:'mittel',farbe:f,pause:f===6?1.6:0.55}))
-  .concat([{n:3,gap:0.15,licht:'regenbogenkomet',kal:'mittel',A:['rose','zitrone','himmel'],pause:4.5}]),{verzoegerung:false});
+  [0,1,2,3,4,5,6].map(f=>({n:1,licht:'regenbogenkomet',kal:'mittel',farbe:f,pause:f===6?1.6:0.75}))
+  .concat([{n:3,gap:0.15,licht:'regenbogenkomet',kal:'mittel',A:['rose','zitrone','himmel'],pause:4.5}]),{verzoegerung:true});
 LICHT_BRENN.regenbogenkomet=4;
 lochName('lb_regenbogenbrunnen',{name:'Regenbogenkometen · 10 Schuss Farbkometen',sub:'10 Schuss Farbkometen',
   desc:'Zehn helle Kometen, jeder in einer Regenbogenfarbe – Rot, Orange, Gelb, Grün, Türkis, Blau, Violett –, einer nach dem anderen, aus der Mitte nach außen; zum Schluss drei zugleich. Leise, ohne Knall.'});
@@ -264,20 +275,13 @@ SIGNATUR.lb_regenbogenbrunnen={eff:'licht:regenbogenkomet',text:'Zehn Farbkomete
 lochName('miniverbund',{name:'Dreisprung · 24 Schuss Stufenbatterie',short:'Dreisprung 24',
   desc:'Hop, Step, Jump: dreimal drei Schuss, jeder Sprung landet höher als der letzte. Der dritte Satz endet mit einer Goldpalme, darunter steigen fünfzehn Goldkometen aus fünfzehn Rohren.'});
 lochGroesser('miniverbund',9,24);
-/* Verpackung: drei Stufenbloecke mit je acht statt drei Rohren (2 x 4) */
-VP_FORM.miniverbund=t=>{ const k=neu(t), e=0.003, bw=(k.w-2*e)/3, d=k.d-2*e, H=k.h-0.003, hs=[0.6,0.8,1], nb=Math.ceil(rohrBedarf(t).schuss/3), cols=2, rows=Math.ceil(nb/2);
-  hs.forEach((f,i)=>{ const x=-k.w/2+e+bw*(i+0.5), h=H*f, F=['#f28a1c','#ffd23f','#d8322a'][i], rv=reg(k,'rv'+i,bw,h,pRohrSeite({n:cols,farbe:F,kopf:'#f2f5ff'}));
-    kasten(k,bw-0.001,h,d,tm(x,h/2,0),{pz:rv,nz:rv,px:reg(k,'rs'+i,d,h,pRohrSeite({n:rows,farbe:F,kopf:'#f2f5ff'})),nx:'rs'+i,py:reg(k,'rd'+i,bw,d,pRohrDeckel({cols,rows,kappe:['#5a1a02','#f28a1c','#ffd23f'][i],wand:F,schnur:false})),ny:farbe(k,'#2a2018')});
-    klar(k,new THREE.BoxGeometry(bw,h+0.002,d+2*e),tm(x,(h+0.002)/2,0)); });
-  banderole(k,{w:k.w-2*e,d,x:0,z:0},0.008,H*0.58);
-  return fertig(k); };
 
 /* Glitzerregen, L9. PDF: "ahnlich wie bei der anderen Batterie ... mehr
    Schuss ... die Batterie muss ein bisschen groesser sein". Gezaehlt:
    12 + 29 Modul-Kometen. Jetzt 12 Goldbuketts + 16 Glitzerkometen aus
    eigenen Rohren = 28 */
 { const alt=SHOWS.glitzerregen12; SHOWS.glitzerregen12=()=>{ const s=alt(), k=show({basis:s.basis,rampe:s.rampe},s.map(ph=>Object.assign({},ph)));
-  delete k[2].boden; k.push({mit:0,n:16,gap:0.18,licht:'strahlgold',kal:'mittel'}); return k; }; }
+  delete k[2].boden; k.push({mit:0,n:16,gap:0.18,licht:'strahlglitzer',kal:'mittel'}); return k; }; }
 lochName('glitzerregen12',{name:'Glitzerregen · 28 Schuss',short:'Glitzerregen 28',
   desc:'Zwölf Goldbuketts, die hinter sich einen funkelnden Regen herziehen. Zum Schluss wird der Glitzerregen immer dichter: sechzehn Glitzerkometen steigen aus sechzehn Rohren.'});
 lochGroesser('glitzerregen12',12,28);
@@ -292,7 +296,7 @@ lochGroesser('glitzerregen12',12,28);
 SHOWS.schneeballschlacht=()=>show({basis:{pw:-7.5,sz:0.60,th:'silber'}, rampe:{sz:[0.9,1.2],pw:[-1,1.5],hell:[0.9,1.2],kurve:'linear'}}, [
   {n:2,gap:1.4,muster:'gerade',eff:'pulverschnee',kal:'klein',steig:'silber',pause:0.8},
   {n:6,gap:0.9,muster:'x',ang:0.38,rohre:'breit',eff:'pulverschnee',steig:'silber',pause:1.4},
-  {n:2,gap:0.6,muster:'v',ang:0.2,eff:'silberregen',A:'silber',B:'weiss',kal:'mittel',steig:'silber',pause:0.5},
+  {n:2,gap:0.6,muster:'v',ang:0.2,eff:'silberregen',A:'silber',B:'weiss',kal:'mittel',steig:'silber',bruchOpt:{kern:false,nachglitzer:false},pause:0.5},
   {n:2,gap:0.3,muster:'paar',ang:0.3,eff:'pulverschnee',kal:'mittel',pw:2,steig:'silber',pause:4.0}]);
 SHOW_BASIS.schneeballschlacht={pw:-7.5,sz:0.60,th:'silber'};
 if(P.schneeballschlacht) P.schneeballschlacht.zuendung='wechsel';
@@ -303,19 +307,12 @@ SIGNATUR.schneeballschlacht={idee:'kreuzwurf',eff:'pulverschnee',text:'Schneebae
    top". Das Bild: Goldpalmen, an deren Wedelspitzen tuerkise Augen
    aufgehen, dazu Goldkometen - Palmen ueber tuerkisem Wasser: Oase.
    Ablauf bleibt; die Faecher-Fontaene im Finale (29 Kometen aus einem
-   Modul) kommt jetzt als zehn Goldkometen aus zehn Rohren: 19 + 10 = 29. */
+   Modul) kommt jetzt als zehn Goldkometen aus zehn Rohren - tuerkis wie das Wasser der Oase: 19 + 10 = 29. */
 { const alt=SHOWS.pfauenrad; SHOWS.pfauenrad=()=>{ const s=alt(), k=show({basis:s.basis,rampe:s.rampe},s.map(ph=>Object.assign({},ph)));
-  delete k[3].boden; k.push({mit:0,n:10,gap:0.2,licht:'strahlgold',kal:'mittel'}); return k; }; }
+  delete k[3].boden; k.push({mit:0,n:10,gap:0.2,licht:'strahlfarbe',A:'tuerkis',B:'gold',kal:'mittel'}); return k; }; }
 lochName('pfauenrad',{name:'Oase · 29 Schuss Goldpalmen',short:'Oase 29',titel:'OASE',sub:'29 Schuss Goldpalmen',
-  desc:'Goldene Palmen, an deren Wedelspitzen türkise Lichter aufgehen wie Wasser zwischen den Palmen – erst einzeln, dann fünf auf einmal, zum Schluss sieben Palmen über zehn Goldkometen.'});
+  desc:'Goldene Palmen, an deren Wedelspitzen türkise Lichter aufgehen wie Wasser zwischen den Palmen – erst einzeln, dann fünf auf einmal, zum Schluss sieben Palmen über zehn türkisen Kometen.'});
 lochGroesser('pfauenrad',19,29);
-/* Verpackung: zwei Reihen Faecherrohre wie bisher, jetzt 15 + 14 statt 9 + 9 */
-VP_FORM.pfauenrad=t=>{ const k=neu(t), w=k.w, h=k.h, d=k.d, hb=h*0.7, N=rohrBedarf(t).schuss||18, tr=Math.min(0.017,w*0.78/Math.ceil(N/2)*0.45);
-  kasten(k,w,hb,d,tm(0,hb/2,0),{pz:reg(k,'front',w,hb,pFront(k)),nz:'front',px:reg(k,'seite',d,hb,pSeite(k)),nx:'seite',py:farbe(k,'#b8925f'),ny:farbe(k,'#2a2018')});
-  const L=h-hb+0.03; for(let r=0;r<2;r++){ const n=r?Math.floor(N/2):Math.ceil(N/2); for(let i=0;i<n;i++){ const f=n>1?i/(n-1)-0.5:0, til=f*0.7, x=f*w*0.78, z=(r-0.5)*d*0.45, cy=hb-0.03+L/2*Math.cos(til);
-    vzyl(k,tr,tr,L,10,x-Math.sin(til)*L/2,cy,z,'#b8925f',0,0,-til); vzyl(k,tr*0.85,tr*0.85,0.004,10,x-Math.sin(til)*L,hb-0.03+L*Math.cos(til)+0.001,z,['#5cff9e','#ffd23f'][(i+r)%2],0,0,-til); } }
-  vbox(k,w*0.9,0.03,0.003,0,hb+0.005,d/2-0.004,'#c9a676');
-  return fertig(k); };
 SIGNATUR.pfauenrad={eff:'pfauenauge',text:'Goldpalmen mit tuerkisen Spitzen, als Faecher auf Schlag - eine Oase'};
 
 /* Ozean, L11. PDF: "Ozean Produkt bitte neu. Will hier schoene blaue
@@ -328,13 +325,13 @@ SIGNATUR.pfauenrad={eff:'pfauenauge',text:'Goldpalmen mit tuerkisen Spitzen, als
    Schluss sechs hohe Knalle: Quallen, Gischtkronen, Silberwellen. */
 nbShow('lb_saphirfaecher',[['blau','himmel'],['himmel','weiss'],['tuerkis','blau'],['blau','silber']],{sz:[0.9,1.2],pw:[0,1],hell:[0.9,1.25],kurve:'linear'},[
   {n:4,gap:1.1,muster:'mitte',ang:0.25,licht:'ozeankomet',kal:'mittel',farbe:0},
-  {n:6,gap:0.45,muster:'w',ang:0.3,licht:'zackkomet',farbe:1,pause:1.0},
+  {n:6,gap:0.45,muster:'w',ang:0.3,licht:'gischtkomet',farbe:1,pause:1.0},
   {n:10,gap:0.12,muster:'welle',ang:0.35,licht:'ozeankomet',kal:'gross',farbe:2,pause:1.2},
   {n:4,gap:0.4,muster:'aussen',ang:0.35,licht:'wechselbluete',farbe:3,pause:1.0},
   {n:6,gap:0.35,muster:'mitte',ang:0.2,eff:['qualle','spritzkrone','wasserring'],A:['blau','himmel','silber'],B:['silber','weiss','blau'],kal:'gross',pw:6,steig:'silber',knall:'bkDonnerhall',pause:6}]);
-LICHT_BRENN.ozeankomet=4.5;
+LICHT_BRENN.ozeankomet=4.5; LICHT_BRENN.gischtkomet=4;
 lochName('lb_saphirfaecher',{name:'Ozean · 30 Schuss Wellen & Gischt',sub:'30 Schuss Wellen & Gischt',
-  desc:'Blau, Türkis und Silber: helle blaue Kometen steigen einzeln wie Wellen, Zackenkometen zerstäuben oben zu weißer Gischt, dann eine Brandung aus zehn blauen Kometen, Wechselblüten wie Meeresleuchten – zum Schluss sechs hohe Knalle: Quallen, Gischtkronen und Silberwellen.'});
+  desc:'Blau, Türkis und Silber: helle blaue Kometen steigen einzeln wie Wellen, Gischtkometen zerstäuben oben zu weißer Gischt, dann eine Brandung aus zehn blauen Kometen, Wechselblüten wie Meeresleuchten – zum Schluss sechs hohe Knalle: Quallen, Gischtkronen und Silberwellen.'});
 lochGroesser('lb_saphirfaecher',16,30);
 SIGNATUR.lb_saphirfaecher={idee:'Ozean',eff:'licht:ozeankomet',text:'Helle blaue Kometen je Rohr wie Wellen, Gischt, Brandung, hohe Quallen und Gischtkronen'};
 
@@ -390,11 +387,11 @@ SIGNATUR.lb_jadeader={eff:'licht:jadekomet',text:'Gruene Kometen mit gruenen Fun
    Saeume werden violett. Neu ein Abschnitt Polarlicht-Vorhaenge (quer
    haengende Lichtbaender, die langsam sinken). 26 Schuss. */
 nbShow('lb_polarweiden',[['polargruen','tuerkis'],['mint','aqua'],['tuerkis','violett'],['gruen','tuerkis']],{sz:[0.9,1.25],pw:[0,2],hell:[0.85,1.25],kurve:'spaet'},[
-  {n:3,gap:1.6,muster:'v',ang:0.2,licht:'polarweide',farbe:0},
+  {n:3,gap:1.6,muster:'v',ang:0.2,licht:'polarweide',farbe:2},
   {n:6,gap:0.35,muster:'wischer',ang:0.4,licht:'fallkomet',farbe:1},
-  {mit:true,n:3,gap:1.0,rohrFolge:RF3,licht:'farbschirm',farbe:3,pause:1},
-  {n:6,gap:0.7,muster:'aussen',ang:0.3,licht:'polarvorhang',farbe:2,pause:1},
-  {n:8,gap:0.13,muster:'kreis',ang:0.3,licht:'polarweide',kal:'gross',farbe:2,pause:6}]);
+  {mit:true,n:3,gap:1.0,rohrFolge:RF3,licht:'farbschirm',farbe:1,pause:1},
+  {n:6,gap:0.7,muster:'aussen',ang:0.3,licht:'polarvorhang',farbe:0,pause:1},
+  {n:8,gap:0.13,muster:'kreis',ang:0.3,licht:'polarweide',kal:'gross',farbe:3,pause:6}]);
 LICHT_BRENN.polarvorhang=6;
 lochName('lb_polarweiden',{name:'Polarnacht · 26 Schuss Polarlichter',sub:'26 Schuss Polarlichter',
   desc:'Polarlicht in Grün und Türkis: Weiden, deren Fäden im Sinken türkis und violett werden, Sternschnuppen, Glitzerschirme und quer hängende Lichtvorhänge, die langsam sinken – zum Schluss acht Polarweiden im Kreis.'});
@@ -413,7 +410,7 @@ SIGNATUR.lb_polarweiden={eff:'licht:polarvorhang',text:'Polarlicht: gruene Weide
 { const alt=SHOWS.faecher; SHOWS.faecher=()=>{ const s=alt(), k=show({basis:s.basis,rampe:s.rampe},s.map(ph=>Object.assign({},ph)));
   const tag=k.findIndex(ph=>ph.boden&&ph.muster==='v'); if(tag>=0){ delete k[tag].boden; k.splice(tag+1,0,{mit:0,n:6,gap:0.9,licht:'strahlgold',kal:'mittel'}); }
   const L=k.length-1; if(k[L].mit&&k[L].eff==='pistill'){
-    k[L]={mit:0.25,n:3,gap:0.3,muster:'mitte',ang:0.08,eff:'kamuro',A:'gold',B:'bernstein',kal:'gross',pw:13,steig:'brokat',bruchOpt:{nachglitzer:false},knall:'bkBrokat',pause:5}; }
+    k[L]={mit:0.25,n:3,gap:0.3,muster:'mitte',ang:0.08,eff:'kamuro',A:'gold',B:'bernstein',kal:'gross',pw:9,steig:'brokat',bruchOpt:{nachglitzer:false},knall:'bkBrokat',pause:5}; }
   return k; }; }
 lochName('faecher',{name:'Sonnenaufgang · 44 Schuss Halbkreisfächer',sub:'44 Schuss Halbkreisfächer',
   desc:'Erst glüht die Morgenröte tiefrot am Himmel, dann schießen goldene Strahlen bis flach über den Boden hinaus – zum Schluss geht mit dem Strahlenkranz in der Mitte die Sonne auf und sinkt als goldener Glitzerregen.'});
@@ -483,3 +480,105 @@ lochName('lb_blitzpalmen',{desc:'Jede Palme anders: Blitzpalme, Farbpalme, Köni
 lochName('lb_jadekoenig',{desc:'Grün in allen Tönen: Blütenkreuze, lang hängende Lianen-Weiden, knisternde Zackenkometen wie schwirrende Insekten und grüne Glitzersäulen; Finale: zwölf Urwaldpalmen im W.'});
 lochName('lb_goldader',{desc:'Goldkometen kreuz und quer – mal links, mal rechts –, Glitzerminen, Weidenkometen und Goldkometen im W; ein Finale aus sechzehn Goldkometen über einer kleinen Goldfontäne, zum Schluss acht Weiden.'});
 lochName('kreuzfeuer90',{desc:'Crossetten teilen sich im Kreuz, farbige Crossetten und Farbkometen im Wischer, zum Schluss Dreifach-Crossetten – neunzig Schuss ohne großen Knall.'});
+
+/* ---------- 7. Verpackungen der umgebauten Batterien ----------
+   06.10. (Tom, mit Fotos echter Batterien: "nicht nur wie die Batterien
+   von der Form aussehen koennten - teils unterschiedliche Roehren-
+   Groessen wegen verschiedener Effektgroessen - sondern auch die
+   Verpackungen. Grafisch wie hier ... einige Batterien sehen immer noch
+   0815 aus"). Vorbilder: bedruckter Karton mit offenen Rohrmuendungen
+   oben (grauer Rand, dunkle Muendung), grosser Schriftzug, Effektfoto,
+   Schussangabe als Karte; Stufenbatterie (Treppe), zwei Kaliber in
+   einem Block, Verbund aus Bloecken auf einer Platte. Gilt hier nur
+   fuer die Batterien, die in 14t eine neue Rohrzahl bekommen. */
+(function(){ const WZ=VP_FORM&&VP_FORM.__wz; if(!WZ) return;
+  const {neu,reg,farbe,kasten,druck,fertig,vbox,vzyl,pFront,pSeite,pEtikett,pRohrDeckel,lay}=WZ, PI=Math.PI;
+  const nS=t=>rohrBedarf(t).schuss;
+  /* Schusskarte: weisse Karte mit Rand, grosse Zahl, darunter SCHUSS */
+  function karte(g,x,y,s,n,c){ const w=s, h=s*0.82, r=s*0.08;
+    g.save(); g.fillStyle='rgba(0,0,0,.35)'; g.fillRect(x+s*0.03,y+s*0.04,w,h);
+    g.fillStyle='#fbfaf6'; g.beginPath(); g.moveTo(x+r,y); g.arcTo(x+w,y,x+w,y+h,r); g.arcTo(x+w,y+h,x,y+h,r); g.arcTo(x,y+h,x,y,r); g.arcTo(x,y,x+w,y,r); g.closePath(); g.fill();
+    g.lineWidth=Math.max(1.5,s*0.045); g.strokeStyle=c; g.stroke();
+    nameText(g,String(n),x+w/2,y+h*0.42,w*0.84,Math.round(h*0.5),FNT.bun,c);
+    nameText(g,'SCHUSS',x+w/2,y+h*0.8,w*0.8,Math.round(h*0.2),FNT.bar,'#1b1b1b'); g.restore(); }
+  /* Vorderseite: Druckbild der Produktlinie (Effektfoto, Name, Eckdaten)
+     und die Schusskarte oben links */
+  const pDruck=(k,o)=>(g,W,H)=>{ o=o||{}; pFront(k)(g,W,H); if(o.karte===false) return;
+    const s=Math.min(W*0.2,H*0.34); karte(g,W*0.03,H*0.05,s,nS(k.t),o.kc||k.a.ac2||'#d8322a'); };
+  /* offene Oberseite: bedruckter Rand, darin die Rohrmuendungen (grauer
+     Pappring, dunkle Muendung); gruppen fuer zwei Kaliber in einem Block */
+  const pOffen=(k,gruppen,o)=>(g,W,H)=>{ o=o||{}; g.fillStyle=o.rand||k.a.bg2; g.fillRect(0,0,W,H);
+    const m=Math.min(W,H)*0.045; g.fillStyle=o.akzent||k.a.ac; g.fillRect(0,0,W,m*0.35); g.fillRect(0,H-m*0.35,W,m*0.35);
+    for(const q of gruppen){ const x=m+(W-2*m)*q.x0, y=m+(H-2*m)*q.y0, w=(W-2*m)*(q.x1-q.x0), h=(H-2*m)*(q.y1-q.y0);
+      g.save(); g.beginPath(); g.rect(x,y,w,h); g.clip(); g.translate(x,y);
+      pRohrDeckel({cols:q.cols,rows:q.rows,wand:q.wand||'#c9c9c4',kappe:q.kappe||'#1d1d1f',grund:'#121212',schnur:false,saat:hashStr(k.t)+q.cols})(g,w,h); g.restore(); } };
+  /* Karbon-Druck der Verbundbloecke, unten links die Schusszahl */
+  const pKarbon=(k,n,c)=>(g,W,H)=>{ g.fillStyle='#26272b'; g.fillRect(0,0,W,H); const s=Math.max(4,Math.min(W,H)/18);
+    for(let y=0;y<H;y+=s) for(let x=0;x<W;x+=s){ g.fillStyle=((x+y)/s)%2?'rgba(255,255,255,.06)':'rgba(0,0,0,.25)'; g.fillRect(x,y,s*0.92,s*0.46); }
+    if(n){ const b=Math.min(W*0.18,H*0.3); g.fillStyle='#fbfaf6'; g.fillRect(W*0.06,H-b*1.1,b*1.3,b*0.8); nameText(g,String(n),W*0.06+b*0.65,H-b*0.7,b*1.1,Math.round(b*0.55),FNT.bun,c||k.a.ac2); } };
+  /* Grundform Kuchen: bedruckter Karton, Muendungen oben */
+  function kuchen(k,o){ o=o||{}; const L=lay(k), w=k.w, h=k.h, d=k.d;
+    kasten(k,w,h,d,tm(0,h/2,0),{pz:reg(k,'vorn',w,h,pDruck(k,o)),nz:reg(k,'hinten',w,h,pDruck(k,{karte:false})),px:reg(k,'seite',d,h,pSeite(k)),nx:'seite',
+      py:reg(k,'oben',w,d,pOffen(k,o.gruppen||[{x0:0,x1:1,y0:0,y1:1,cols:L.cols,rows:L.rows}],o)),ny:farbe(k,'#2a2018')}); }
+  /* Ausschnitt eines grossen Druckbilds (Treppe: jede Stufe zeigt ihren Teil) */
+  const pTeil=(maler,x0,x1,y0)=>(g,W,H)=>{ const FW=W/(x1-x0), FH=H/(1-y0); g.save(); g.translate(-x0*FW,-y0*FH); maler(g,FW,FH); g.restore(); };
+  const V=VP_FORM;
+  /* Dreisprung 24: Stufenbatterie aus drei Bloecken (Hop, Step, Jump),
+     das Druckbild laeuft ueber alle drei Stufen */
+  V.miniverbund=t=>{ const k=neu(t), n=nS(t), hs=[0.62,0.81,1], bw=k.w/3, d=k.d, druckV=pDruck(k,{kc:'#d8322a'});
+    hs.forEach((f,i)=>{ const h=k.h*f, x=-k.w/2+bw*(i+0.5), nb=Math.round(n/3);
+      kasten(k,bw-0.0008,h,d,tm(x,h/2,0),{pz:reg(k,'v'+i,bw,h,pTeil(druckV,i/3,(i+1)/3,1-f)),nz:reg(k,'h'+i,bw,h,pEtikett(k,{sub:''})),
+        px:reg(k,'s'+i,d,h,i===2?pSeite(k):(g,W,H)=>{ g.fillStyle=k.a.bg2; g.fillRect(0,0,W,H); g.fillStyle=k.a.ac; g.fillRect(0,0,W,H*0.08); }),nx:i===0?reg(k,'s0l',d,h,pSeite(k)):'s'+i,
+        py:reg(k,'o'+i,bw,d,pOffen(k,[{x0:0,x1:1,y0:0,y1:1,cols:2,rows:Math.ceil(nb/2)}])),ny:farbe(k,'#2a2018')}); });
+    return fertig(k); };
+  /* Glitzerregen 28: klassischer Karton, offene Muendungen */
+  V.glitzerregen12=t=>{ const k=neu(t); kuchen(k,{kc:'#c9971e'}); return fertig(k); };
+  /* Regenbogenkometen 10: kleiner Karton, zehn Muendungen, vorn ein
+     Regenbogenstreifen */
+  V.lb_regenbogenbrunnen=t=>{ const k=neu(t), F=['#ff3a2a','#ff8a1c','#ffe23f','#3ad25a','#2ad8e8','#3a6aff','#a04aff'];
+    kuchen(k,{gruppen:[{x0:0.08,x1:0.92,y0:0.1,y1:0.9,cols:5,rows:2,wand:'#e8e4da'}],kc:'#a04aff'});
+    F.forEach((c,i)=>vbox(k,k.w/7,0.006,0.002,-k.w/2+k.w/14+i*k.w/7,k.h-0.008,k.d/2+0.001,c));
+    return fertig(k); };
+  /* Ozean 30: ein Block, zwei Kaliber - links 20 Rohre fuer Kometen und
+     Gischt, rechts 10 dicke Rohre (Brandung, Quallen) */
+  V.lb_saphirfaecher=t=>{ const k=neu(t); kuchen(k,{gruppen:[{x0:0,x1:0.6,y0:0,y1:1,cols:5,rows:4},{x0:0.62,x1:1,y0:0,y1:1,cols:2,rows:5,wand:'#d8e4f2'}],kc:'#2a5aff'}); return fertig(k); };
+  /* Knattersturm 36 "Doppeldeck": zwei Decks auf einer Platte - vorn ein
+     flacher Block mit 24 schmalen Rohren, dahinter ein hoher mit 12
+     dicken (Feuertoepfe, Bomben) */
+  V.knatter=t=>{ const k=neu(t), w=k.w, d=k.d, p0=0.008, H=k.h-p0, dv=d*0.56, dh=d-dv-0.004, hv=H*0.6;
+    vbox(k,w,p0,d,0,p0/2,0,'#141414');
+    kasten(k,w,hv,dv,tm(0,p0+hv/2,d/2-dv/2),{pz:reg(k,'vorn',w,hv,pDruck(k,{kc:'#1a8ad8'})),px:reg(k,'sv',dv,hv,pSeite(k)),nx:'sv',nz:farbe(k,'#2a2018'),
+      py:reg(k,'ov',w,dv,pOffen(k,[{x0:0,x1:1,y0:0,y1:1,cols:8,rows:3}])),ny:farbe(k,'#2a2018')});
+    kasten(k,w,H,dh,tm(0,p0+H/2,-d/2+dh/2),{pz:reg(k,'hv',w,H,(g,W,Hh)=>{ g.fillStyle=k.a.bg2; g.fillRect(0,0,W,Hh); g.fillStyle=k.a.ac; g.fillRect(0,0,W,Hh*0.05);
+        nameText(g,'DOPPELDECK',W/2,Hh*0.2,W*0.86,Math.round(Hh*0.17),FNT.bun,k.a.ac,'rgba(0,0,0,.6)'); }),
+      nz:reg(k,'hh',w,H,pEtikett(k,{sub:''})),px:reg(k,'sh',dh,H,pSeite(k)),nx:'sh',py:reg(k,'oh',w,dh,pOffen(k,[{x0:0,x1:1,y0:0,y1:1,cols:6,rows:2,wand:'#d6d0c0'}])),ny:farbe(k,'#2a2018')});
+    return fertig(k); };
+  /* Polarnacht 26: Verbund aus zwei Karbonbloecken (14 + 12) auf einer
+     Platte, darum eine bedruckte Banderole mit dem Polarlicht */
+  V.lb_polarweiden=t=>{ const k=neu(t), p0=0.008, H=k.h-p0, g0=0.006, bw=(k.w-g0)/2, d=k.d;
+    vbox(k,k.w,p0,d,0,p0/2,0,'#101012');
+    [[14,7,2],[12,6,2]].forEach(([n,c,r],i)=>{ const x=-k.w/2+bw/2+i*(bw+g0);
+      kasten(k,bw,H,d,tm(x,p0+H/2,0),{pz:reg(k,'k'+i,bw,H,pKarbon(k,n,'#2ad8b0')),nz:'k'+i,px:reg(k,'ks'+i,d,H,pKarbon(k,0)),nx:'ks'+i,
+        py:reg(k,'o'+i,bw,d,pOffen(k,[{x0:0,x1:1,y0:0,y1:1,cols:c,rows:r}],{rand:'#202024',akzent:'#2ad8b0'})),ny:farbe(k,'#2a2018')}); });
+    const bh=H*0.46, t2=0.0015;
+    kasten(k,k.w+2*t2,bh,d+2*t2,tm(0,p0+H*0.52,0),{pz:reg(k,'band',k.w,bh,pDruck(k,{kc:'#2ad8b0'})),nz:'band',px:reg(k,'bs',d,bh,pEtikett(k,{sub:''})),nx:'bs',py:farbe(k,'#101012'),ny:farbe(k,'#101012')});
+    return fertig(k); };
+  /* Oase 29 (Faecher): Kartonmanschette mit Druck, darueber die
+     gefaecherten Rohrkoepfe offen - 15 + 14 Rohre */
+  V.pfauenrad=t=>{ const k=neu(t), w=k.w, h=k.h, d=k.d, hb=h*0.66, N=nS(t)||18, tr=Math.min(0.016,w*0.8/Math.ceil(N/2)*0.46);
+    kasten(k,w,hb,d,tm(0,hb/2,0),{pz:reg(k,'front',w,hb,pDruck(k,{kc:'#1aa8a0'})),nz:reg(k,'hinten',w,hb,pEtikett(k,{sub:''})),px:reg(k,'seite',d,hb,pSeite(k)),nx:'seite',py:farbe(k,'#1a1410'),ny:farbe(k,'#2a2018')});
+    const L=h-hb+0.03; for(let r=0;r<2;r++){ const n=r?Math.floor(N/2):Math.ceil(N/2); for(let i=0;i<n;i++){ const f=n>1?i/(n-1)-0.5:0, til=f*0.7, x=f*w*0.8, z=(r-0.5)*d*0.45, cy=hb-0.03+L/2*Math.cos(til);
+      vzyl(k,tr,tr,L,10,x-Math.sin(til)*L/2,cy,z,'#c9c9c4',0,0,-til); vzyl(k,tr*0.8,tr*0.8,0.004,10,x-Math.sin(til)*L,hb-0.03+L*Math.cos(til)+0.001,z,'#1d1d1f',0,0,-til); } }
+    return fertig(k); };
+  /* Sonnenaufgang 44 (Halbkreisfaecher): Sockel mit Sonnendach wie
+     bisher, Aufdruck mit der neuen Schusszahl und Schusskarte */
+  V.faecher=t=>{ const k=neu(t), w=k.w, h=k.h, d=k.d, hb=h*0.6, ry=h-hb, rx=w/2, n=nS(t);
+    kasten(k,w,hb,d,tm(0,hb/2,0),{pz:reg(k,'front',w,hb,pDruck(k,{kc:'#e2561c'})),nz:'front',px:reg(k,'seite',d,hb,pSeite(k)),nx:'seite',py:farbe(k,k.a.bg2),ny:farbe(k,'#2a2018')});
+    const sonne=reg(k,'sonne',w,w,(g,W,H)=>{ const gr=g.createLinearGradient(0,0,0,H/2); gr.addColorStop(0,'#2a0802'); gr.addColorStop(0.6,'#c2410c'); gr.addColorStop(1,'#ff9a3d'); g.fillStyle=gr; g.fillRect(0,0,W,H);
+      g.save(); g.translate(W/2,H/2); for(let i=0;i<19;i++){ const an=PI+i*PI/18; g.fillStyle=i%2?'rgba(255,210,63,.55)':'rgba(255,154,61,.25)'; g.beginPath(); g.moveTo(0,0); g.arc(0,0,W*0.6,an-0.06,an+0.06); g.closePath(); g.fill(); }
+      const sg=g.createRadialGradient(0,0,0,0,0,W*0.2); sg.addColorStop(0,'#fff6c8'); sg.addColorStop(0.5,'#ffd23f'); sg.addColorStop(1,'#ff9a3d'); g.fillStyle=sg; g.beginPath(); g.arc(0,0,W*0.18,PI,2*PI); g.fill(); g.restore();
+      nameText(g,n+' SCHUSS · HALBKREISFÄCHER',W/2,H*0.43,W*0.6,Math.round(H*0.04),FNT.bar,'#fff3c4'); });
+    for(const s of [-1,1]) druck(k,new THREE.CircleGeometry(rx,28,0,PI),tm(0,hb,s*d/2,0,s>0?0:PI,0,1,ry/rx,1),sonne);
+    druck(k,new THREE.CylinderGeometry(rx,rx,d,28,1,true,-PI/2,PI),tm(0,hb,0,-PI/2,0,0,1,1,ry/rx),reg(k,'dach',PI*rx,d,(g,W,H)=>{ g.fillStyle='#c2410c'; g.fillRect(0,0,W,H); for(let i=0;i<12;i++){ g.fillStyle=i%2?'#ff9a3d':'#ffd23f'; g.fillRect(i*W/12,0,W/24,H); } }));
+    return fertig(k); };
+})();

@@ -34,7 +34,7 @@
 
 /* ---------- Farben der Themen ---------- */
 Object.assign(FW,{
-  lavendel:[.66,.5,1], rost:[1,.34,.06], mond:[1,.93,.72], eisblau:[.62,.86,1],
+  lavendel:[.6,.32,1], rost:[1,.34,.06], mond:[1,.93,.72], eisblau:[.62,.86,1],
   smaragd:[.1,1,.5], sonnengelb:[1,.84,.16], lava:[1,.2,.03]
 });
 Object.assign(THEMEN,{
@@ -81,38 +81,52 @@ function thFallen(h,g,c,spur){ if(!kgLebt(h)) return; h.ps.grav[h.i]=g; if(c) kg
 /* Leuchtpunkt an einer Stelle (ein Bild lang), mit kurzer Spur in Richtung w */
 function thPunkt(ps,q,w,c,L){ ps.emit(q.x,q.y,q.z,w[0],w[1],w[2],c[0],c[1],c[2],L||0.07,0,0); }
 const thAdd=(p,a,k)=>({x:p.x+a[0]*k,y:p.y+a[1]*k,z:p.z+a[2]*k});
+/* Dunkler Aufstieg wie lDunkel (14m), aber das schwache Glimmen hat die
+   Farbe des Themas statt Orange - Eis steigt blaeulich, Lava rot */
+function thDunkel(o,s,opt,H,A,fn){
+  const m=lMund(o), G=6, v=lAbschuss((H||27)*Math.sqrt(s),G,opt,0.3), T=lScheitel(v[1],G);
+  kgStern(psBig,m,v,kgMal(lHell(A,1),0.4),T,G,0,0.2); lStart(m,0.8,0.7);
+  kgSpaeter(T,()=>fn(sternNach(m,v[0],v[1],v[2],G,T),bahnTempo(v,G,T)));
+}
 /* Laub taumelt: jedes Blatt pendelt quer, dreht sich (flackert) und
    sinkt langsam; der Wind schiebt alle in eine Richtung */
 function thTaumeln(blaetter,dauer,Q,wind){
   thJeBild(dauer,t=>{ for(const b of blaetter){ const h=b.h; if(t<b.los||!kgLebt(h)) continue; const j=h.i*3, V=h.ps.vel, sw=Math.cos(b.ph+t*b.om)*b.amp+wind;
     V[j]=Q[0]*sw+b.z*0.2; V[j+2]=Q[2]*sw-b.x*0.2; if(V[j+1]<-1.2) V[j+1]=-1.2;
-    kgFarbe(h,kgMal(b.c,0.25+1.0*Math.abs(Math.sin(b.ph2+t*b.om2)))); } });
+    const hl=0.25+1.0*Math.abs(Math.sin(b.ph2+t*b.om2)); kgFarbe(h,kgMal(b.c,hl));
+    if(t<dauer-0.8){ const P=h.ps.pos; psMid.emit(P[j],P[j+1],P[j+2],rand(-.1,.1),rand(-.3,-.1),rand(-.1,.1),b.c[0]*0.75,b.c[1]*0.6,b.c[2]*0.5,rand(0.7,1.2),0.4,4); } } });
 }
 
 /* =========================================================
    1 TAUTROPFEN (L4, 10 Schuss) - Silber und Mint, Plink
    ========================================================= */
-/* Tauperle: ein zarter Silberkomet; oben haengt ein Haeufchen Perlen
-   fast still in der Luft, dann tropft eine nach der anderen gerade
-   herab (Time-Rain), im Fallen mint - ab und zu ein leises Plink */
+/* Tauperle: ein zarter Silberkomet; oben oeffnet sich eine kleine
+   Krone aus Tauperlen, die einen Atemzug lang fast stillstehen und dann
+   als silberne Faeden herabtropfen (Time-Rain) - jeder Faden glitzert
+   und endet in einem mintfarbenen Tropfen; dazu ein leises Plink */
 LICHTYP.tauperle=function(o,A,B,s,opt){
   const m=lMund(o), G=6, v=lAbschuss(22*Math.sqrt(s),G,opt,0.3), T=lScheitel(v[1],G);
-  kgStern(psBig,m,v,lHell(A,1.2),T,G,0,0.25); lFunken(m,v,G,0.03,T,45,mischF(lHell(A,1),[1,1,1],0.4),{ps:psMid,life:[0.3,0.6],g:2,streu:0.15,mit:0.1,mode:4}); lStart(m,0.7,0.3);
-  kgSpaeter(T,()=>{ const e=sternNach(m,v[0],v[1],v[2],G,T), n=Math.round(18*QUAL())+5;
-    for(let i=0;i<n;i++){ const d=randDir(), w=rand(1.8,2.8)*Math.sqrt(s), dv=[d[0]*w,d[1]*w*0.7+0.4,d[2]*w], hang=rand(0.6,1.7);
-      const h=kgStern(psBig,e,dv,lHell(i%4?A:[1,1,1],1.35),hang+rand(1.1,1.6),0.35,4,0.05);
-      kgSpaeter(hang,()=>{ thFallen(h,5.5,lHell(B,1.25),0.35); if(i%4===0&&kgLebt(h)){ const [q]=kgOrt(h); schall(q,x=>sfx.tropf(x*0.7)); } }); }
+  kgStern(psBig,m,v,lHell(A,1.2),T,G,0,0.3); lFunken(m,v,G,0.03,T,60,mischF(lHell(A,1),[1,1,1],0.4),{ps:psMid,life:[0.35,0.7],g:2,streu:0.15,mit:0.1,mode:4}); lStart(m,0.7,0.3);
+  kgSpaeter(T,()=>{ const e=sternNach(m,v[0],v[1],v[2],G,T), n=Math.round(14*QUAL())+5;
+    for(let i=0;i<n;i++){ const a=i/n*Math.PI*2+rand(-0.2,0.2), w=rand(3.2,4.0)*Math.sqrt(s), dv=[Math.cos(a)*w,rand(0.8,1.8),Math.sin(a)*w], hang=rand(0.5,1.2), L=hang+rand(1.6,2.1);
+      const h=kgStern(psBig,e,dv,lHell(i%3?A:[1,1,1],1.3),L,0.8,4,0.25);
+      lFunken(e,dv,0.8,0.05,hang,26,lHell(A,0.95),{ps:psMid,life:[0.5,0.9],g:0.6,streu:0.06,mit:0.05,mode:4});
+      kgSpaeter(hang,()=>{ thFallen(h,4.5,lHell(B,1.15),0.55); if(!kgLebt(h)) return; const [q,w2]=kgOrt(h);
+        lFunken(q,w2,4.5,0.02,L-hang-0.2,34,mischF(lHell(A,1),lHell(B,1),0.5),{ps:psMid,life:[0.45,0.8],g:0.9,streu:0.05,mit:0.1,mode:4});
+        if(i%4===0) schall(q,x=>sfx.tropf(x*0.7)); }); }
     schall(e,x=>sfx.rieseln(x*0.3,2)); });
 };
 /* Tropfenkette: der Komet laesst auf dem letzten Stueck alle Handbreit
    einen Tropfen haengen - wie Tau an einem Spinnfaden -, die Tropfen
-   fallen von unten nach oben ab */
+   fallen von unten nach oben ab und ziehen Glitzerfaeden */
 LICHTYP.tropfenkette=function(o,A,B,s,opt){
   const m=lMund(o), G=6, v=lAbschuss(23*Math.sqrt(s),G,opt,0.3), T=lScheitel(v[1],G)+0.15;
-  lKopf(m,v,lHell(A,1.25),T,G,0,0.2); lStart(m,0.8,0.3);
-  let k=0; for(let t=T*0.4;t<T;t+=0.11){ const tt=t, nr=k++; kgSpaeter(tt,()=>{ const q=sternNach(m,v[0],v[1],v[2],G,tt), u=bahnTempo(v,G,tt);
-    const h=kgStern(psBig,q,[u[0]*0.08,0.15,u[2]*0.08],lHell(nr%3?A:[1,1,1],1.3),3.2,0.25,4,0.04);
-    kgSpaeter(0.9+nr*0.12+(T-tt)*0.3,()=>{ thFallen(h,5,lHell(B,1.2),0.3); if(nr%3===1&&kgLebt(h)) schall(q,x=>sfx.tropf(x*0.6)); }); }); }
+  lKopf(m,v,lHell(A,1.25),T,G,0,0.3); lFunken(m,v,G,0.03,T,50,lHell(A,0.9),{ps:psMid,life:[0.4,0.8],g:1.5,streu:0.08,mit:0.05,mode:4}); lStart(m,0.8,0.3);
+  let k=0; for(let t=T*0.35;t<T;t+=0.1){ const tt=t, nr=k++; kgSpaeter(tt,()=>{ const q=sternNach(m,v[0],v[1],v[2],G,tt), u=bahnTempo(v,G,tt), dv=[u[0]*0.08,0.15,u[2]*0.08], hang=0.8+nr*0.1+(T-tt)*0.3;
+    const h=kgStern(psBig,q,dv,lHell(nr%3?A:[1,1,1],1.35),hang+1.9,0.25,4,0.04);
+    kgSpaeter(hang,()=>{ thFallen(h,4.5,lHell(B,1.2),0.55); if(!kgLebt(h)) return; const [q2,w2]=kgOrt(h);
+      lFunken(q2,w2,4.5,0.02,1.6,30,mischF(lHell(A,1),lHell(B,1),0.5),{ps:psMid,life:[0.4,0.75],g:0.9,streu:0.05,mit:0.1,mode:4});
+      if(nr%3===1) schall(q2,x=>sfx.tropf(x*0.6)); }); }); }
 };
 
 /* =========================================================
@@ -134,7 +148,8 @@ LICHTYP.flatterkomet=function(o,A,B,s,opt){
     const wf=Math.sin(ph+t*f*2*Math.PI), lat=wf*amp*Math.min(1,t/0.4), q={x:b.x+Q[0]*lat,y:b.y+Math.abs(wf)*0.18,z:b.z+Q[2]*lat};
     const aus=t>T?Math.max(0,1-(t-T)/(D-T))*0.6+0.4:1, k=(0.5+0.75*Math.abs(Math.cos(ph+t*f*2*Math.PI)))*aus;
     SCHWEIF=0.2; thPunkt(psHuge,q,kgMal(w0,0.12),kgMal(cA,k),0.07);
-    for(let i=0;i<Math.round(2*QUAL());i++) psMid.emit(q.x,q.y,q.z,rand(-.25,.25),rand(-.5,0),rand(-.25,.25),cG[0],cG[1],cG[2],rand(0.35,0.7)*aus,1.2,4);
+    for(let i=0;i<Math.round(4*QUAL())+1;i++) psMid.emit(q.x,q.y,q.z,rand(-.2,.2),rand(-.4,0),rand(-.2,.2),cG[0],cG[1],cG[2],rand(0.6,1.1)*aus,0.8,4);
+    if(Math.random()<0.5) psBig.emit(q.x,q.y,q.z,rand(-.15,.15),rand(-.3,0),rand(-.15,.15),cG[0],cG[1],cG[2],rand(0.4,0.7)*aus,0.8,4);
   });
 };
 /* Falterpaar: oben trennt sich der Komet in zwei kleine Falter, die
@@ -143,12 +158,13 @@ LICHTYP.flatterkomet=function(o,A,B,s,opt){
 LICHTYP.falterpaar=function(o,A,B,s,opt){
   const m=lMund(o), G=6, v=lAbschuss(24*Math.sqrt(s),G,opt,0.3), T=lScheitel(v[1],G);
   kgStern(psBig,m,v,lHell(A,1.2),T,G,0,0.2); lFunken(m,v,G,0.03,T,40,mischF(lHell(A,1),[1,1,.8],0.4),{ps:psMid,life:[0.3,0.6],g:2,streu:0.15,mit:0.1,mode:4}); lStart(m,0.8,0.3);
-  kgSpaeter(T,()=>{ const e=sternNach(m,v[0],v[1],v[2],G,T), Q=lQuer({dir:FANDIR}), drift=(Math.random()<0.5?-1:1)*rand(0.7,1.1)*Math.sqrt(s), R=0.75*Math.sqrt(s), om=rand(5,6.5), ph=rand(0,6.3), D=2.4;
+  kgSpaeter(T,()=>{ const e=sternNach(m,v[0],v[1],v[2],G,T), Q=lQuer({dir:FANDIR}), drift=(Math.random()<0.5?-1:1)*rand(0.7,1.1)*Math.sqrt(s), R=0.95*Math.sqrt(s), om=rand(5,6.5), ph=rand(0,6.3), D=2.4;
     const cA=lHell(A,1.45), cB=lHell(B,1.4); sfx.fluegel(distVol(e)*0.5,1.2);
     thJeBild(D,t=>{ const c={x:e.x+Q[0]*drift*t,y:e.y-0.35*t*t,z:e.z+Q[2]*drift*t}, aus=t>D-0.6?(D-t)/0.6:1;
       [0,Math.PI].forEach((d,k)=>{ const a=ph+om*t+d, wf=Math.abs(Math.sin(t*22+k)), q={x:c.x+Q[0]*Math.cos(a)*R,y:c.y+Math.sin(a)*R*0.7,z:c.z+Q[2]*Math.cos(a)*R};
         SCHWEIF=0.15; thPunkt(psHuge,q,[0,0,0],kgMal(k?cB:cA,(0.55+0.6*wf)*aus),0.07);
-        if(Math.random()<0.6*QUAL()) psMid.emit(q.x,q.y,q.z,rand(-.2,.2),rand(-.4,0),rand(-.2,.2),cA[0]*0.8,cA[1]*0.8,cA[2]*0.7,rand(0.3,0.6)*aus,1,4); });
+        for(let j=0;j<Math.round(3*QUAL())+1;j++) psMid.emit(q.x,q.y,q.z,rand(-.2,.2),rand(-.4,0),rand(-.2,.2),cA[0]*0.85,cA[1]*0.85,cA[2]*0.7,rand(0.6,1.0)*aus,0.7,4);
+        if(Math.random()<0.4) psBig.emit(q.x,q.y,q.z,rand(-.15,.15),rand(-.3,0),rand(-.15,.15),cA[0],cA[1],cA[2]*0.8,rand(0.4,0.7)*aus,0.7,4); });
       if(Math.abs(t-(D-0.5))<1/60) for(let j=0;j<Math.round(10*QUAL());j++){ const dd=randDir(); psSmall.emit(c.x,c.y,c.z,dd[0]*1.6,dd[1]*1.6,dd[2]*1.6,1.5,1.5,1.3,rand(0.2,0.5),1,1); } });
     schall(e,x=>sfx.rieseln(x*0.3,1.6)); });
 };
@@ -162,20 +178,20 @@ LICHTYP.falterpaar=function(o,A,B,s,opt){
 LICHTYP.lavendelrispe=function(o,A,B,s,opt){
   const m=lMund(o), G=6, v=lAbschuss(24*Math.sqrt(s),G,opt,0.25), T=lScheitel(v[1],G)+0.1, Q=lQuer({dir:FANDIR}), wind=(Math.random()<0.5?-1:1)*rand(0.4,0.7);
   kgStern(psBig,m,v,lHell(B,1.15),T,G,0,0.3); lFunken(m,v,G,0.03,T*0.6,40,lHell(B,0.9),{ps:psMid,life:[0.3,0.5],g:2,streu:0.12,mit:0.1,mode:4}); lStart(m,0.8,0.4);
-  const t0=T*0.5, nq=Math.round(13*Math.min(1.2,QUAL()+0.3));
-  for(let k=0;k<nq;k++){ const tt=t0+(T-t0)*k/(nq-1); kgSpaeter(tt,()=>{ const q=sternNach(m,v[0],v[1],v[2],G,tt), u=bahnTempo(v,G,tt), nb=Math.max(2,Math.round((5-k*0.25)*QUAL()+1));
+  const t0=T*0.3, nq=Math.round(19*Math.min(1.2,QUAL()+0.3));
+  for(let k=0;k<nq;k++){ const tt=t0+(T-t0)*k/(nq-1); kgSpaeter(tt,()=>{ const q=sternNach(m,v[0],v[1],v[2],G,tt), u=bahnTempo(v,G,tt), nb=Math.max(2,Math.round((6-k*0.22)*QUAL()+1));
     for(let i=0;i<nb;i++){ const a=rand(0,Math.PI*2), w=rand(0.35,0.8)*Math.sqrt(s)*(1-k*0.03), dv=[Math.cos(a)*w+Q[0]*wind+u[0]*0.1,rand(-0.1,0.25)+u[1]*0.05,Math.sin(a)*w+Q[2]*wind+u[2]*0.1];
-      const h=kgStern(psBig,q,dv,lHell(i%4?A:B,i%4?1.3:1.2),rand(2.2,3.0),0.35,0,0.1); kgSpaeter(rand(1.2,1.8),()=>kgFarbe(h,mischF(lHell(A,1.2),[1.2,1.2,1.3],0.35))); } }); }
+      const h=kgStern(psBig,q,dv,lHell(i%4?A:B,i%4?1.25:1.1),rand(2.6,3.4),0.35,0,0.12); kgSpaeter(rand(1.2,1.8),()=>kgFarbe(h,mischF(lHell(A,1.2),[1.2,1.2,1.3],0.35))); } }); }
   kgSpaeter(T,()=>{ const e=sternNach(m,v[0],v[1],v[2],G,T); schall(e,x=>sfx.wind(x*0.8,2.6)); });
 };
 /* Duftwolke: dunkler Aufstieg, dann oeffnet sich eine weiche, haengende
    Wolke aus lila Sternen mit Silberglitzer-Schweifen - wie Duft, der
    ueber dem Feld liegt */
 LICHTYP.duftwolke=function(o,A,B,s,opt){
-  lDunkel(o,s,opt,25,e=>{ const n=Math.round(46*QUAL())+10, Q=lQuer({dir:FANDIR}), wind=rand(-0.6,0.6);
+  thDunkel(o,s,opt,25,A,e=>{ const n=Math.round(46*QUAL())+10, Q=lQuer({dir:FANDIR}), wind=rand(-0.6,0.6);
     for(let i=0;i<n;i++){ const d=randDir(), w=rand(4.6,5.8)*Math.sqrt(s), dv=[d[0]*w+Q[0]*wind,d[1]*w*0.85+0.6,d[2]*w+Q[2]*wind], L=rand(2.6,3.3);
-      kgStern(psBig,e,dv,lHell(i%3?A:B,i%3?1.25:1.1),L,1.3,0,0.3);
-      if(i%3===0) lFunken(e,dv,1.3,0.1,L*0.8,12,lHell(B,1.0),{ps:psMid,life:[0.6,1.1],g:0.8,streu:0.1,mit:0.05,mode:4}); }
+      kgStern(psBig,e,dv,lHell(i%3?A:B,i%3?1.05:0.9),L,1.3,0,0.3);
+      if(i%3===0) lFunken(e,dv,1.3,0.1,L*0.8,12,lHell(A,0.85),{ps:psMid,life:[0.6,1.1],g:0.8,streu:0.1,mit:0.05,mode:4}); }
     schall(e,x=>{ sfx.plopp(x*0.3,1.1); later(0.3,()=>sfx.wind(x*0.7,3)); }); });
 };
 
@@ -187,7 +203,7 @@ LICHTYP.duftwolke=function(o,A,B,s,opt){
    dreht sich (flackert hell-dunkel) und sinkt langsam, der Wind traegt
    alle ein Stueck zur Seite */
 LICHTYP.blaetterfall=function(o,A,B,s,opt){
-  lDunkel(o,s,opt,25,e=>{ const n=Math.round(24*QUAL())+6, Q=lQuer({dir:FANDIR}), wind=(Math.random()<0.5?-1:1)*rand(0.3,0.7), bl=[], F=[A,B,mischF(A,B,0.5)];
+  thDunkel(o,s,opt,25,A,e=>{ const n=Math.round(15*QUAL())+5, Q=lQuer({dir:FANDIR}), wind=(Math.random()<0.5?-1:1)*rand(0.3,0.7), bl=[], F=[A,B,mischF(A,B,0.5)];
     for(let i=0;i<n;i++){ const d=randDir(), w=rand(3.5,5.2)*Math.sqrt(s), dv=[d[0]*w,d[1]*w*0.7+1,d[2]*w], c=lHell(F[i%3],1.3);
       const h=kgStern(psBig,e,dv,c,rand(4.2,5.2),0.9,0,0.12);
       bl.push({h,c,los:rand(0.5,0.8),ph:rand(0,6.3),om:rand(2.2,3.4),amp:rand(0.7,1.3)*Math.sqrt(s),ph2:rand(0,6.3),om2:rand(3,6),x:d[0],z:d[2]}); }
@@ -200,15 +216,15 @@ LICHTYP.blaetterfall=function(o,A,B,s,opt){
 LICHTYP.laubwirbel=function(o,A,B,s,opt){
   const m=lMund(o), G=6, v=lAbschuss(25*Math.sqrt(s),G,opt,0.3), T=lScheitel(v[1],G);
   lKopf(m,v,lHell(A,1.35),T,G,0,0.25); lFunken(m,v,G,0.03,T,70,mischF(lHell(A,1),[1,.7,.3],0.4),{ps:psMid,life:[0.4,0.8],g:2.2,streu:0.2,mit:0.1,mode:4}); lStart(m,1,0.5);
-  kgSpaeter(T,()=>{ const e=sternNach(m,v[0],v[1],v[2],G,T), [r1,r2]=rkBild(e), Q=lQuer({dir:FANDIR}), n=Math.round(16*QUAL())+4, D=1.6, F=[A,B,mischF(A,B,0.5)];
-    const a0=rand(0,6.3), dreh=Math.random()<0.5?-1:1, R=t=>4.2*Math.sqrt(s)*(1-Math.exp(-2.2*t)), wv=t=>dreh*(5.5-2.5*t/D);
-    const winkel=(i,t)=>a0+i*2*Math.PI/n+dreh*(5.5*t-1.25*t*t/D);
-    thJeBild(D,t=>{ for(let i=0;i<n;i++){ const a=winkel(i,t), r=R(t), ys=-0.4*t*t; const q={x:e.x+(r1[0]*Math.cos(a)+r2[0]*Math.sin(a)*0.45)*r,y:e.y+ys+r2[1]*Math.sin(a)*0.45*r,z:e.z+(r1[2]*Math.cos(a)+r2[2]*Math.sin(a)*0.45)*r};
-      const fl=0.4+0.9*Math.abs(Math.sin(t*9+i)); SCHWEIF=0.12; thPunkt(psBig,q,[0,0,0],kgMal(lHell(F[i%3],1.35),fl),0.07); } });
+  kgSpaeter(T,()=>{ const e=sternNach(m,v[0],v[1],v[2],G,T), [r1,r2]=rkBild(e), Q=lQuer({dir:FANDIR}), n=Math.round(10*QUAL())+5, D=1.7, F=[A,B,mischF(A,B,0.5)];
+    const a0=rand(0,6.3), dreh=Math.random()<0.5?-1:1, R=t=>4.6*Math.sqrt(s)*(1-Math.exp(-1.8*t));
+    /* jedes Blatt auf seinem eigenen Radius - eine Spirale, kein Ring */
+    const ort=(i,t)=>{ const a=a0+i*2.39996+dreh*(5*t-1.2*t*t/D), r=R(t)*(0.3+0.7*((i*0.618)%1)); return {x:e.x+(r1[0]*Math.cos(a)+r2[0]*Math.sin(a)*0.6)*r,y:e.y-0.4*t*t+r2[1]*Math.sin(a)*0.6*r,z:e.z+(r1[2]*Math.cos(a)+r2[2]*Math.sin(a)*0.6)*r}; };
+    thJeBild(D,t=>{ for(let i=0;i<n;i++){ const q=ort(i,t), p0=ort(i,Math.max(0,t-1/30)), w=[(q.x-p0.x)*30,(q.y-p0.y)*30,(q.z-p0.z)*30], c=lHell(F[i%3],1.35), fl=0.5+0.8*Math.abs(Math.sin(t*8+i));
+      SCHWEIF=0.5; thPunkt(psBig,q,w,kgMal(c,fl),0.07); if(i%2===Math.round(t*30)%2) psMid.emit(q.x,q.y,q.z,rand(-.1,.1),rand(-.3,-.1),rand(-.1,.1),c[0]*0.7,c[1]*0.6,c[2]*0.5,rand(0.5,0.9),0.5,4); } });
     kgSpaeter(D,()=>{ const bl=[];
-      for(let i=0;i<n;i++){ const a=winkel(i,D), r=R(D), q={x:e.x+(r1[0]*Math.cos(a)+r2[0]*Math.sin(a)*0.45)*r,y:e.y-0.4*D*D+r2[1]*Math.sin(a)*0.45*r,z:e.z+(r1[2]*Math.cos(a)+r2[2]*Math.sin(a)*0.45)*r};
-        const tg=wv(D)*r*0.4, dv=[(-r1[0]*Math.sin(a))*tg,-0.3,(-r1[2]*Math.sin(a))*tg], c=lHell(F[i%3],1.3);
-        bl.push({h:kgStern(psBig,q,dv,c,rand(3.2,4.0),0.9,0,0.12),c,los:0.3,ph:rand(0,6.3),om:rand(2.2,3.4),amp:rand(0.6,1.1)*Math.sqrt(s),ph2:rand(0,6.3),om2:rand(3,6),x:0,z:0}); }
+      for(let i=0;i<n;i++){ const q=ort(i,D), p0=ort(i,D-1/30), dv=[(q.x-p0.x)*20,(q.y-p0.y)*20-0.3,(q.z-p0.z)*20], c=lHell(F[i%3],1.3);
+        bl.push({h:kgStern(psBig,q,dv,c,rand(3.2,4.0),0.9,0,0.2),c,los:0.3,ph:rand(0,6.3),om:rand(2.2,3.4),amp:rand(0.6,1.1)*Math.sqrt(s),ph2:rand(0,6.3),om2:rand(3,6),x:0,z:0}); }
       thTaumeln(bl,4,Q,dreh*0.5); });
     schall(e,x=>{ sfx.wind(x*0.6,1.6); later(1.4,()=>sfx.rascheln(x*0.6,2.6)); }); });
 };
@@ -222,17 +238,23 @@ LICHTYP.laubwirbel=function(o,A,B,s,opt){
    rubinrote Kehle, dann ist er weg */
 LICHTYP.schwirrkomet=function(o,A,B,s,opt){
   const m=lMund(o), G=6, v=lAbschuss(26*Math.sqrt(s),G,opt,0.3), T=lScheitel(v[1],G), Q=lQuer({dir:FANDIR});
-  kgStern(psBig,m,v,lHell(A,0.9),T,G,0,0.35); lFunken(m,v,G,0.03,T,50,lHell(A,0.8),{ps:psMid,life:[0.3,0.6],g:2,streu:0.12,mit:0.1,mode:4}); lStart(m,0.8,0.4);
+  lKopf(m,v,lHell(A,1.2),T,G,0,0.3); lFunken(m,v,G,0.03,T,90,lHell(A,0.9),{ps:psMid,life:[0.4,0.8],g:2,streu:0.12,mit:0.1,mode:4}); lStart(m,0.8,0.4);
   const nS=4+(Math.random()<0.5?1:0), P=[bahnOrt(m,v,G,T)], DASH=0.11, HALT=0.26;
   for(let k=0;k<nS;k++){ const a=rand(-0.6,0.6)+(Math.random()<0.5?0:Math.PI), l=rand(2.2,3.6)*Math.sqrt(s), p=P[k], up=k===nS-1?2.5:rand(-0.7,0.9);
     P.push({x:p.x+Q[0]*Math.cos(a)*l,y:p.y+up+Math.sin(a)*0.6,z:p.z+Q[2]*Math.cos(a)*l}); }
   const RUBIN=[1.5,.18,.35], cA=lHell(A,1.5), cB=lHell(B,1.5), D=nS*(DASH+HALT);
-  kgSpaeter(T,()=>{ thJeBild(D,t=>{ const k=Math.min(nS-1,Math.floor(t/(DASH+HALT))), u=t-k*(DASH+HALT), a=P[k], c=P[k+1];
-      if(u<DASH){ const f=u/DASH, q={x:a.x+(c.x-a.x)*f,y:a.y+(c.y-a.y)*f,z:a.z+(c.z-a.z)*f}, w=[(c.x-a.x)/DASH,(c.y-a.y)/DASH,(c.z-a.z)/DASH];
-        SCHWEIF=0.08; thPunkt(psHuge,q,kgMal(w,0.3),cA,0.06);
-        for(let i=0;i<Math.round(3*QUAL())+1;i++) psMid.emit(q.x,q.y,q.z,rand(-.15,.15),rand(-.3,0),rand(-.15,.15),cA[0]*0.8,cA[1]*0.8,cA[2]*0.8,rand(0.25,0.5),0.8,4); }
-      else { const sch=Math.floor(t*30)%3, kehle=k===nS-2&&u>DASH+0.08, c2=kehle&&sch===0?RUBIN:sch===1?cB:cA, q={x:c.x+rand(-.06,.06),y:c.y+rand(-.06,.06),z:c.z};
-        SCHWEIF=0; thPunkt(psHuge,q,[0,0,0],c2,0.06); if(Math.random()<0.4) psSmall.emit(q.x,q.y,q.z,rand(-1,1),rand(-1,1),rand(-1,1),c2[0],c2[1],c2[2],0.2,0,1); } });
+  kgSpaeter(T,()=>{ const [r1,r2]=rkBild(P[0]); let halt=-1;
+    thJeBild(D,t=>{ const k=Math.min(nS-1,Math.floor(t/(DASH+HALT))), u=t-k*(DASH+HALT), a=P[k], c=P[k+1];
+      if(u<DASH){ const f=u/DASH, f0=Math.max(0,(u-1/30)/DASH), q={x:a.x+(c.x-a.x)*f,y:a.y+(c.y-a.y)*f,z:a.z+(c.z-a.z)*f}, w=[(c.x-a.x)/DASH,(c.y-a.y)/DASH,(c.z-a.z)/DASH];
+        SCHWEIF=0.12; thPunkt(psHuge,q,kgMal(w,0.5),cA,0.06);
+        /* der Sprung zieht eine feine Glitzerspur, die noch eine Sekunde steht */
+        for(let i=0;i<Math.round(6*QUAL())+2;i++){ const g2=f0+(f-f0)*Math.random(), p={x:a.x+(c.x-a.x)*g2,y:a.y+(c.y-a.y)*g2,z:a.z+(c.z-a.z)*g2};
+          psMid.emit(p.x,p.y,p.z,rand(-.08,.08),rand(-.2,0),rand(-.08,.08),cA[0]*0.85,cA[1]*0.85,cA[2]*0.85,rand(0.8,1.3),0.5,4); } }
+      else { const kehle=k===nS-2, c2=kehle?RUBIN:cB;
+        if(halt!==k){ halt=k; /* Halt: die Fluegel schillern - ein kurzer Kranz aus Federfunken */
+          for(let i=0;i<Math.round(12*QUAL())+4;i++){ const b=i/16*Math.PI*2+rand(-.2,.2), w=rand(2.2,3.2)*Math.sqrt(s), dv=[(r1[0]*Math.cos(b)+r2[0]*Math.sin(b))*w,(r2[1]*Math.sin(b))*w,(r1[2]*Math.cos(b)+r2[2]*Math.sin(b))*w];
+            kgStern(psBig,c,dv,i%2?c2:cA,rand(0.5,0.8),1,0,0.3); } }
+        SCHWEIF=0; thPunkt(psHuge,c,[0,0,0],Math.floor(t*30)%2?cB:cA,0.06); } });
     for(let k=0;k<nS;k++) later(k*(DASH+HALT)+DASH,()=>sfx.schwirren(distVol(P[k+1])*0.8,HALT)); });
 };
 /* Federkrone: dunkler Aufstieg, oben spreizt sich ein Faecher aus
@@ -240,7 +262,7 @@ LICHTYP.schwirrkomet=function(o,A,B,s,opt){
    dichtem Glitzer; nach einer Sekunde schillern die Federn von Gruen
    nach Tuerkis, die Spitzen glimmen rubinrot */
 LICHTYP.federkrone=function(o,A,B,s,opt){
-  lDunkel(o,s,opt,26,e=>{ const n=Math.round(20*QUAL())+6, [r1,r2,r3]=rkBild(e);
+  thDunkel(o,s,opt,26,A,e=>{ const n=Math.round(20*QUAL())+6, [r1,r2,r3]=rkBild(e);
     for(let i=0;i<n;i++){ const a=-0.25*Math.PI+1.5*Math.PI*(i/(n-1))+rand(-0.06,0.06), w=rand(6.6,7.6)*Math.sqrt(s), up=Math.sin(a)>-0.2?1:0.7;
       const dv=[(r1[0]*Math.cos(a)+r2[0]*Math.sin(a)*up)*w+r3[0]*rand(-1,1),(r2[1]*Math.sin(a)*up)*w+1.2,(r1[2]*Math.cos(a)+r2[2]*Math.sin(a)*up)*w+r3[2]*rand(-1,1)], L=rand(2.1,2.5);
       const h=kgStern(psHuge,e,dv,lHell(A,1.4),L,2.2,0,0.3);
@@ -257,17 +279,18 @@ LICHTYP.federkrone=function(o,A,B,s,opt){
    Silberring (der Hof, wie der 22-Grad-Ring um den Mond); die Scheibe
    verblasst zuerst, der Hof bleibt noch einen Atemzug */
 LICHTYP.mondhof=function(o,A,B,s,opt){
-  lDunkel(o,s,opt,27,e=>{ const [r1,r2,r3]=rkBild(e), n=Math.round(60*QUAL())+14, nr=Math.round(44*QUAL())+12;
-    for(let i=0;i<n;i++){ const d=randDir(), w=rand(2.0,2.5)*Math.sqrt(s); kgStern(psBig,e,[d[0]*w,d[1]*w+0.15,d[2]*w],lHell(A,1.3),rand(2.2,2.7),0.35,0,0.08); }
+  thDunkel(o,s,opt,27,A,e=>{ const [r1,r2,r3]=rkBild(e), n=Math.round(60*QUAL())+14, nr=Math.round(64*QUAL())+16;
+    for(let i=0;i<n;i++){ const d=randDir(), w=rand(2.2,2.7)*Math.sqrt(s), dv=[d[0]*w,d[1]*w+0.15,d[2]*w], L=rand(2.2,2.7); kgStern(psBig,e,dv,lHell(A,1.15),L,0.35,0,0.3);
+      if(i%2===0) lFunken(e,dv,0.35,0.1,L*0.85,10,lHell(A,0.8),{ps:psMid,life:[0.5,0.9],g:0.5,streu:0.06,mit:0.05,mode:4}); }
     for(let i=0;i<nr;i++){ const a=i/nr*Math.PI*2, w=7.2*Math.sqrt(s)*rand(0.98,1.02), dv=[(r1[0]*Math.cos(a)+r2[0]*Math.sin(a))*w,(r2[1]*Math.sin(a))*w+0.2,(r1[2]*Math.cos(a)+r2[2]*Math.sin(a))*w];
-      kgStern(psBig,e,dv,lHell(B,1.0),rand(3.2,3.6),0.35,4,0.06); }
+      kgStern(psBig,e,dv,lHell(B,1.0),rand(3.2,3.6),0.35,4,0.35); }
     schall(e,x=>{ sfx.pochen(x*0.9); later(0.4,()=>sfx.rieseln(x*0.3,3)); }); });
 };
 /* Wolkenschleier: oben zieht ein breiter Schleier aus haengenden
    Silberfaeden quer - wie eine duenne Wolke vor dem Mond -, er treibt im
    Wind und sinkt langsam */
 LICHTYP.wolkenschleier=function(o,A,B,s,opt){
-  lDunkel(o,s,opt,26,e=>{ const Q=lQuer({dir:FANDIR}), Z=[-Q[2],0,Q[0]], n=Math.round(38*QUAL())+10, wind=(Math.random()<0.5?-1:1)*rand(0.8,1.2);
+  thDunkel(o,s,opt,26,A,e=>{ const Q=lQuer({dir:FANDIR}), Z=[-Q[2],0,Q[0]], n=Math.round(38*QUAL())+10, wind=(Math.random()<0.5?-1:1)*rand(0.8,1.2);
     for(let i=0;i<n;i++){ const x=rand(-1,1), w=7*Math.sqrt(s), dv=[Q[0]*(x*w+wind)+Z[0]*rand(-1.2,1.2),rand(0.2,1.8),Q[2]*(x*w+wind)+Z[2]*rand(-1.2,1.2)], L=rand(3.2,3.9);
       kgStern(psBig,e,dv,lHell(i%3?B:A,1.05),L,0.6,4,0.55);
       if(i%2===0) lFunken(e,dv,0.6,0.15,L*0.8,10,lHell(B,0.8),{ps:psMid,life:[0.8,1.4],g:0.4,streu:0.08,mit:0.05,mode:4}); }
@@ -277,7 +300,7 @@ LICHTYP.wolkenschleier=function(o,A,B,s,opt){
    ein Bogen, innen ein versetzter Bogen, die Spitzen laufen spitz aus;
    die Sichel oeffnet sich im Wechsel nach links und nach rechts */
 LICHTYP.mondsichel=function(o,A,B,s,opt){
-  lDunkel(o,s,opt,27,e=>{ const [r1,r2]=rkBild(e), sd=(opt.i||0)%2?1:-1, w=6.6*Math.sqrt(s), n=Math.round(30*QUAL())+8;
+  thDunkel(o,s,opt,27,A,e=>{ const [r1,r2]=rkBild(e), sd=(opt.i||0)%2?1:-1, w=6.6*Math.sqrt(s), n=Math.round(30*QUAL())+8;
     const vom=(x,y)=>[(r1[0]*x*sd+r2[0]*y)*w,(r2[1]*y)*w+0.2,(r1[2]*x*sd+r2[2]*y)*w];
     for(let i=0;i<n;i++){ const a=-1.45+2.9*i/(n-1), dv=vom(Math.cos(a),Math.sin(a));
       kgStern(psBig,e,dv,lHell(A,1.35),rand(2.6,3.0),0.35,0,0.08); if(i%2===0) kgStern(psMid,e,dv,lHell(B,1.2),rand(2.4,2.9),0.35,4,0.05); }
@@ -294,14 +317,14 @@ LICHTYP.mondsichel=function(o,A,B,s,opt){
    einen zappelnden Glitzerschwanz -, sie werden langsamer und flitzen
    zum Schluss noch einmal davon */
 LICHTYP.fischschwarm=function(o,A,B,s,opt){
-  lDunkel(o,s,opt,27,e=>{ const [r1,r2,r3]=rkBild(e), n=Math.round(12*QUAL())+4, D=2.4, F=[];
+  thDunkel(o,s,opt,27,A,e=>{ const [r1,r2,r3]=rkBild(e), n=Math.round(12*QUAL())+4, D=2.4, F=[];
     for(let i=0;i<n;i++){ const a=i/n*Math.PI*2+rand(-0.25,0.25), tief=rand(-0.35,0.35), d=[r1[0]*Math.cos(a)+r2[0]*Math.sin(a)+r3[0]*tief,r2[1]*Math.sin(a)+r3[1]*tief,r1[2]*Math.cos(a)+r2[2]*Math.sin(a)+r3[2]*tief];
       const quer=[-r1[0]*Math.sin(a)+r2[0]*Math.cos(a),r2[1]*Math.cos(a),-r1[2]*Math.sin(a)+r2[2]*Math.cos(a)];
       F.push({d,quer,v0:rand(6,7.5)*Math.sqrt(s),td:rand(1.2,1.6),vd:rand(7,9)*Math.sqrt(s),ph:rand(0,6.3),om:rand(13,17),c:lHell(i%3?A:B,1.45)}); }
     const S=(f,t)=>t<f.td?f.v0*(1-Math.exp(-1.7*t))/1.7:f.v0*(1-Math.exp(-1.7*f.td))/1.7+f.vd*(t-f.td)*(1-Math.exp(-6*(t-f.td)));
     thJeBild(D,t=>{ for(const f of F){ const st=S(f,t), wg=Math.sin(f.ph+t*f.om)*0.35*Math.sqrt(s), aus=t>D-0.5?(D-t)/0.5:1;
       const q={x:e.x+f.d[0]*st+f.quer[0]*wg,y:e.y+f.d[1]*st+f.quer[1]*wg-0.3*t*t,z:e.z+f.d[2]*st+f.quer[2]*wg};
-      SCHWEIF=0.06; thPunkt(psBig,q,kgMal(f.d,1.5),kgMal(f.c,aus),0.07);
+      SCHWEIF=0.1; thPunkt(psHuge,q,kgMal(f.d,2),kgMal(f.c,aus*0.85),0.07);
       for(let i=0;i<Math.round(2*QUAL())+1;i++) psMid.emit(q.x,q.y,q.z,rand(-.15,.15),rand(-.25,0.05),rand(-.15,.15),f.c[0]*0.75,f.c[1]*0.8,f.c[2]*0.8,rand(0.25,0.45)*aus,0.5,4); } });
     schall(e,x=>{ sfx.plopp(x*0.35,1.3); later(0.2,()=>sfx.blubbern(x*0.7,6)); later(1.3,()=>sfx.zischen(x*0.12,0.5)); }); });
 };
@@ -309,10 +332,10 @@ LICHTYP.fischschwarm=function(o,A,B,s,opt){
    aquafarbener Fangfaeden nach oben und aussen, die sich gemeinsam in
    der Stroemung hin und her wiegen; die Spitzen werden mint */
 LICHTYP.seeanemone=function(o,A,B,s,opt){
-  lDunkel(o,s,opt,26,e=>{ const Q=lQuer({dir:FANDIR}), n=Math.round(30*QUAL())+8, hs=[], ph=rand(0,6.3);
+  thDunkel(o,s,opt,26,A,e=>{ const Q=lQuer({dir:FANDIR}), n=Math.round(30*QUAL())+8, hs=[], ph=rand(0,6.3);
     for(let i=0;i<n;i++){ const d=randDir(); d[1]=Math.abs(d[1])*0.9+0.25; const l=Math.hypot(d[0],d[1],d[2]), w=rand(5.2,6.2)*Math.sqrt(s)/l, dv=[d[0]*w,d[1]*w,d[2]*w], L=rand(3.0,3.6);
       const h=kgStern(psBig,e,dv,lHell(A,1.3),L,1.2,0,0.6); hs.push(h); kgSpaeter(L*0.55,()=>kgFarbe(h,lHell(B,1.35)));
-      if(i%3===0) lFunken(e,dv,1.2,0.1,L*0.7,10,lHell(A,0.9),{ps:psMid,life:[0.5,0.9],g:0.6,streu:0.08,mit:0.05,mode:4}); }
+      lFunken(e,dv,1.2,0.1,L*0.75,16,mischF(lHell(A,0.9),lHell(B,0.9),0.4),{ps:psMid,life:[0.7,1.2],g:0.5,streu:0.06,mit:0.05,mode:4}); }
     thJeBild(3.4,t=>{ if(t<0.6) return; const sw=Math.sin(ph+t*2.2)*1.3*Math.sqrt(s); for(const h of hs){ if(!kgLebt(h)) continue; const j=h.i*3; h.ps.vel[j]=h.ps.vel[j]*0.9+Q[0]*sw*0.1; h.ps.vel[j+2]=h.ps.vel[j+2]*0.9+Q[2]*sw*0.1; } });
     schall(e,x=>{ sfx.plopp(x*0.3,0.9); later(0.4,()=>sfx.blubbern(x*0.5,4)); }); });
 };
@@ -336,7 +359,7 @@ LICHTYP.luftblasen=function(o,A,B,s,opt){
    innen ein dunkles Herz aus braunen Kernen - die Kerne knacken der
    Reihe nach auf, in der Spirale der Sonnenblume (Goldener Winkel) */
 LICHTYP.sonnenblume=function(o,A,B,s,opt){
-  lDunkel(o,s,opt,28,e=>{ const [r1,r2]=rkBild(e), n=Math.round(20*QUAL())+6, nk=Math.round(34*QUAL())+10, PHI=2.39996;
+  thDunkel(o,s,opt,28,A,e=>{ const [r1,r2]=rkBild(e), n=Math.round(20*QUAL())+6, nk=Math.round(34*QUAL())+10, PHI=2.39996;
     for(let i=0;i<n;i++){ const a=i/n*Math.PI*2, w=6.8*Math.sqrt(s)*rand(0.96,1.04), dv=[(r1[0]*Math.cos(a)+r2[0]*Math.sin(a))*w,(r2[1]*Math.sin(a))*w+0.4,(r1[2]*Math.cos(a)+r2[2]*Math.sin(a))*w], L=rand(2.2,2.6);
       kgStern(psHuge,e,dv,lHell(A,1.45),L,1.4,0,0.25); lFunken(e,dv,1.4,0.05,L*0.8,28,mischF(lHell(A,1.05),[1,.75,.3],0.4),{ps:psMid,life:[0.5,0.9],g:1.4,streu:0.1,mit:0.04,mode:4}); }
     for(let i=0;i<nk;i++){ const a=i*PHI, rr=Math.sqrt((i+0.5)/nk)*2.6*Math.sqrt(s), dv=[(r1[0]*Math.cos(a)+r2[0]*Math.sin(a))*rr,(r2[1]*Math.sin(a))*rr+0.3,(r1[2]*Math.cos(a)+r2[2]*Math.sin(a))*rr];
@@ -368,7 +391,7 @@ LICHTYP.eiskristall=function(o,A,B,s,opt){
    einem halben Atemzug faellt jeder Stern senkrecht und zieht eine
    lange eisblaue Linie - ein Vorhang aus Eiszapfen */
 LICHTYP.eiszapfen=function(o,A,B,s,opt){
-  lDunkel(o,s,opt,28,e=>{ const n=Math.round(22*QUAL())+6, a0=rand(0,6.3);
+  thDunkel(o,s,opt,28,A,e=>{ const n=Math.round(22*QUAL())+6, a0=rand(0,6.3);
     for(let i=0;i<n;i++){ const a=a0+i/n*Math.PI*2, w=rand(5.8,6.4)*Math.sqrt(s), dv=[Math.cos(a)*w,rand(0.6,1.2),Math.sin(a)*w];
       const h=kgStern(psBig,e,dv,[1.45,1.5,1.55],rand(2.6,3.0),0.3,0,0.05);
       kgSpaeter(rand(0.5,0.75),()=>{ thFallen(h,7,lHell(A,1.35),0.75); }); }
@@ -378,7 +401,7 @@ LICHTYP.eiszapfen=function(o,A,B,s,opt){
    nach einer Sekunde bricht sie: alles stuerzt silbern glitzernd in die
    Tiefe, mit Knacken und dumpfem Donnern */
 LICHTYP.kalben=function(o,A,B,s,opt){
-  lDunkel(o,s,opt,30,e=>{ const n=Math.round(70*QUAL())+16;
+  thDunkel(o,s,opt,30,A,e=>{ const n=Math.round(70*QUAL())+16;
     for(let i=0;i<n;i++){ const d=randDir(), w=rand(7.4,8.4)*Math.sqrt(s), dv=[d[0]*w,d[1]*w+0.6,d[2]*w];
       const h=kgStern(psBig,e,dv,i%4?[1.45,1.5,1.55]:lHell(A,1.4),rand(3.0,3.4),0.6,0,0.15);
       kgSpaeter(rand(0.9,1.15),()=>{ thFallen(h,9,lHell(i%2?A:B,1.3),0.4); if(i%3===0&&kgLebt(h)){ const [q,w2]=kgOrt(h); lFunken(q,w2,9,0.02,1.2,14,[1.2,1.25,1.35],{ps:psMid,life:[0.3,0.6],g:2,streu:0.1,mit:0.1,mode:4}); } }); }
@@ -392,7 +415,7 @@ LICHTYP.kalben=function(o,A,B,s,opt){
    einer dunkelroten Wolke auf, durchzuckt von violett-weissen Blitzen
    (Vulkangewitter) - mit tiefem Grollen */
 LICHTYP.aschewolke=function(o,A,B,s,opt){
-  lDunkel(o,s,opt,29,e=>{ let t=0; const glut=lHell(A,0.9);
+  thDunkel(o,s,opt,29,A,e=>{ let t=0; const glut=lHell(A,0.9);
     for(let k=0;k<9;k++){ t+=rand(0.15,0.4); const tt=t; kgSpaeter(tt,()=>{ const d=randDir(), r=rand(1,6)*Math.sqrt(s), q={x:e.x+d[0]*r,y:e.y+d[1]*r*0.3,z:e.z+d[2]*r};
       lWolke(q,glut,s,Math.round(30*QUAL())); if(k%2===0){ flash(q,[1.4,1.2,1.6],1.2,0.12); lBlitzfaden(q,[1.6,1.5,1.9],s); } }); }
     schall(e,x=>sfx.vulkangrollen(x)); });
@@ -404,7 +427,7 @@ LICHTYP.aschewolke=function(o,A,B,s,opt){
 LICHTYP.lavastrahl=function(o,A,B,s,opt){
   const m=lMund(o), G=7, v=lAbschuss(22*Math.sqrt(s),G,opt,0.3), T=lScheitel(v[1],G)+0.2;
   lKopf(m,v,[1.6,1.1,.45],T,G,0,0.45); kgStern(psHuge,m,v,lHell(B,1.4),T,G,0,0.6);
-  rkFunken(m,v,G,0.02,T,220,[1.5,.9,.3],{ps:psBig,life:[0.6,1.1],g:2.2,streu:0.3,mit:0.12,mode:2});
+  rkFunken(m,v,G,0.02,T,220,[1.5,.55,.12],{ps:psBig,life:[0.6,1.1],g:2.2,streu:0.3,mit:0.12,mode:2});
   lFunken(m,v,G,0.02,T,120,lHell(A,1.1),{ps:psMid,life:[0.7,1.3],g:1.8,streu:0.35,mit:0.1,mode:4});
   lStart(m,1.6,1.0); sfx.fauchen(distVol(m)*0.5,T*0.8);
   kgSpaeter(T,()=>{ const e=sternNach(m,v[0],v[1],v[2],G,T); for(let j=0;j<5;j++){ const d=randDir(), w=rand(1,2.5);
@@ -415,17 +438,17 @@ LICHTYP.lavastrahl=function(o,A,B,s,opt){
    Dunkelrot abkuehlt; aus den Schweifen knistert Asche - Wumms und
    Knistern */
 LICHTYP.lavabombe=function(o,A,B,s,opt){
-  lDunkel(o,s,opt,29,e=>{ const n=Math.round(9*QUAL())+4;
+  thDunkel(o,s,opt,29,A,e=>{ const n=Math.round(9*QUAL())+4;
     for(let i=0;i<n;i++){ const d=randDir(); d[1]=d[1]*0.6+0.45; const l=Math.hypot(d[0],d[1],d[2]), w=rand(8,9.5)*Math.sqrt(s)/l, dv=[d[0]*w,d[1]*w,d[2]*w], L=rand(2.6,3.1);
-      kgStern(psHuge,e,dv,lHell(B,1.5),L,3.2,0,0.4);
-      rkFunken(e,dv,3.2,0.03,L,70,[1.5,.75,.2],{ps:psBig,life:[0.8,1.4],g:1.6,streu:0.35,mit:0.06,mode:2});
+      kgStern(psHuge,e,dv,mischF(lHell(A,1.45),lHell(B,1.45),0.35),L,3.2,0,0.4);
+      rkFunken(e,dv,3.2,0.03,L,70,[1.5,.42,.08],{ps:psBig,life:[0.8,1.4],g:1.6,streu:0.35,mit:0.06,mode:2});
       lFunken(e,dv,3.2,0.3,L,25,lHell(A,1.0),{ps:psMid,life:[0.4,0.9],g:2,streu:0.4,mit:0.05,mode:3}); }
     schall(e,x=>{ sfx.wumms(x*0.7); later(0.8,()=>sfx.crackle(x*0.6)); later(1.6,()=>sfx.crackle(x*0.4)); }); });
 };
 /* Ascheregen: oben verteilt sich ein Schwarm winziger Glutfunken, sie
    sinken langsam, kuehlen ab und knistern einzeln auf */
 LICHTYP.ascheregen=function(o,A,B,s,opt){
-  lDunkel(o,s,opt,28,e=>{ const n=Math.round(70*QUAL())+16;
+  thDunkel(o,s,opt,28,A,e=>{ const n=Math.round(70*QUAL())+16;
     for(let i=0;i<n;i++){ const d=randDir(), w=rand(3,6.5)*Math.sqrt(s), L=rand(2.8,3.8);
       psBig.emit(e.x,e.y,e.z,d[0]*w,d[1]*w*0.8+0.5,d[2]*w,...lHell(i%3?B:A,1.3),L,0.8,i%4?2:3,.45,.08,.02); }
     schall(e,x=>{ sfx.plopp(x*0.4,0.7); later(0.6,()=>sfx.crackle(x*0.5)); later(1.4,()=>sfx.crackle(x*0.35)); later(2.2,()=>sfx.crackle(x*0.25)); }); });

@@ -27,7 +27,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   const r=await p.evaluate(()=>{ const bb=window.__bb, S=bb.S, P=bb.P, o={};
     S.level=40; S.money=1e6; bb.LIZENZEN.forEach(l=>bb.buyLizenz(l.id)); bb.testKauf('testfeld');
     const vol=t=>P[t].dims[0]*P[t].dims[1]*P[t].dims[2];
-    const BATT=['goldpalmen','knatter','batterie49','kometen','zfaecher','donnerwand','profi','finale'];
+    const BATT=['goldpalmen','knatter','lb_polarweiden','lb_goldader','donnerwand','profi','finale']; /* 06.10.: Feuersturm, Schimmelreiter und Z-Faecher sind raus */
     o.batt=BATT.map(t=>({t,preis:P[t].market,vol:+vol(t).toFixed(4),h:P[t].dims[1]}));
     o.leiter=BATT.slice(1).filter((t,i)=>!(vol(t)>vol(BATT[i]))).map(t=>t);
     o.gross=['donnerwand','profi','finale'].map(t=>+(vol(t)/vol('goldpalmen')).toFixed(1));

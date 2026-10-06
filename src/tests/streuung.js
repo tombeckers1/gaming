@@ -24,7 +24,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   const mangel=[];
   const pruef=(n,ok,was)=>{ if(!ok) mangel.push(n+': '+was); };
   const r=await p.evaluate(()=>{ const bb=window.__bb, streu0=bb.rohrStreu;
-    const IDS=['donnerwand','profi','hexenkessel','finale','sternenkaiser','kometenwand','batterie100'].filter(t=>bb.P[t]&&bb.SHOWS[t]);
+    const IDS=['donnerwand','profi','hexenkessel','finale','sternenkaiser','kreuzfeuer90','batterie100'].filter(t=>bb.P[t]&&bb.SHOWS[t]);
     const miss=(streu)=>{ bb.rohrStreu=streu; let n=0, dopp=0; const v=[];
       for(const t of IDS){ const log=[]; log.brueche=[]; bb.fwLog(log);
         bb.igniteType(t,{x:0,y:0.4,z:-20}); const d=bb.showLength(t)+6; for(let s=0;s<d;s+=1) bb.run(1,0.1); bb.fwLog(null);

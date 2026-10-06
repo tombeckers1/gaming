@@ -25,7 +25,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   await neuesSpiel(p);
   const r=await p.evaluate(()=>{ const bb=window.__bb, S=bb.S, out=[];
     S.level=26; S.money=1e7;
-    for(const [kind,t] of [['standard','wunder'],['klein','sekt'],['tisch','batterie49']]){
+    for(const [kind,t] of [['standard','wunder'],['klein','sekt'],['tisch','knatter']]){
       bb.regalStellen(kind); const sh=bb.shelves[bb.shelves.length-1], lv=sh.levels[0], L=bb.layout(t,sh,lv);
       if(L.rows<2){ out.push({kind,t,fehler:'nur eine Reihe'}); continue; }
       /* Tiefe eines Stuecks im Fach: Abstand zur Vorderkante (lokal, ueber die Weltmatrix zurueckgerechnet) */

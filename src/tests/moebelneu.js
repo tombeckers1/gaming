@@ -30,7 +30,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     /* Fassungsvermoegen der Wanne fuer eine mittlere Batterie */
     o.cap={};
     for(const k of kinds){ const n0=bb.shelves.length; bb.regalStellen(k); const sh=bb.shelves[bb.shelves.length-1]; if(bb.shelves.length===n0) continue;
-      const lv=sh.levels[sh.levels.length-1]; let n=0; while(n<400&&bb.addToLevel(lv,'batterie49',1)) n++; o.cap[k]=n;
+      const lv=sh.levels[sh.levels.length-1]; let n=0; while(n<400&&bb.addToLevel(lv,'knatter',1)) n++; o.cap[k]=n;
       /* wieder leeren: Kopfschild muss verschwinden */
       while(lv.count>0) bb.removeFromLevel(lv);
       o['kopf_'+k]=sh.kopfG?sh.kopfG.visible:'kein kopfG'; }

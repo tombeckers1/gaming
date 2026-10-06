@@ -583,7 +583,7 @@ const NEU_LIZENZEN=[
    desc:'Heringssalat, Kartoffel- und Nudelsalat, gefüllte Eier, Würstchen, Mini-Frikadellen, Fingerfood, Baguette, Mett-Igel, Partypizza, Dips, die Mitternachts-Gulaschsuppe und das Katerfrühstück. Vieles davon gehört in den Kühlschrank.',
    items:['heringssalat','kartoffelsalat','wuerstchen','frikadellen','baguette','mettigel','partypizza','dips','rollmops','gefuellteeier','nudelsalat','gulaschsuppe','fingerfood']},
   {id:'kleinfeuer',lvl:10,cost:1800,name:'Kleinfeuerwerk',
-   desc:'Die ersten richtigen Batterien für den kleinen Geldbeutel: die Schneeballschlacht, die Feuerperlen mit großen Kometenfächern und das Pfauenrad als erster Fächer. Dazu Silberpfeil-Raketen und der Zauberbrunnen.',
+   desc:'Die ersten richtigen Batterien für den kleinen Geldbeutel: die Schneeballschlacht, die Glutpalmen und der erste Fächer.',
    items:['sternstaub20','schneeballschlacht','feuerperlen','pfauenrad','silberpfeil','zauberbrunnen','zauberwald','jugendbox']},
   {id:'feuerzauber',lvl:13,cost:4200,name:'Feuerzauber',
    desc:'Palmenhain mit 25 Schuss und die Spätzünder-Knisterraketen.',
@@ -592,13 +592,13 @@ const NEU_LIZENZEN=[
    desc:'Champagner, Rot- und Weißwein, Eierlikör, Sahnelikör, Hugo-Set, Gin & Tonic, Whisky, das Cocktail-Set, Kindersekt Erdbeere, die Magnumflasche, Goldsekt, Jahrgangs-Champagner, der Sektturm und Kaviar für den großen Moment.',
    items:['champagner','cocktailset','rotwein','weisswein','eierlikoer','likoer','kindersekt2','magnum','kaviar','champagnerturm','goldsekt','jahrgang','hugo','gintonic','whisky']},
   {id:'nachthimmel',lvl:16,cost:9000,name:'Nachthimmel',
-   desc:'Die Silberbrandung mit 80 Schuss, der Silberwirbel, das Lilienfeld und die tanzende Wasserorgel.',
+   desc:'Die tanzende Wasserorgel und die Fächerstern-Raketen.',
    items:['sternenmeer80','silberwirbel','kristallkugel100','blinkstern','wasserspiel']},
   {id:'goldklasse',lvl:18,cost:15000,name:'Goldklasse',
-   desc:'Kreuzfeuer mit gekreuzten Kometen, Glasbruch-Raketen und der Amethystregen.',
+   desc:'Glasbruch-Raketen, die Goldader und die 150-mm-Kugeln Crossettennetz, Tigerkrone und Farbcrossette.',
    items:['kreuzfeuer','kristall','sternenstaub150']},
   {id:'sternklasse',lvl:19,cost:18000,name:'Sternklasse',
-   desc:'Die Jumbo-Rakete »Regenbogenkrone«, die Wendeltreppe, die sich zwölf Meter hochschraubt, das Silberknistern mit Knisterkometen über breiten Silberfächern, die Doppelhelix und die 150-mm-Kugel Pfauenkrone.',
+   desc:'Die Jumbo-Rakete »Saphirkrone«, die Wendeltreppe, die sich zwölf Meter hochschraubt, und die Crossettenkrone.',
    items:['regenbogenkrone','eisblume','donnerschlag']},
   {id:'festtafel',lvl:15,cost:6500,name:'Festtafel',
    desc:'Silvesterkarpfen, Tiramisu, die Neujahrstorte und die Sushi-Platte. Alles gehört in den Kühlschrank.',
@@ -854,7 +854,30 @@ const ENTFERNT=['fontaene50','fontaene30','silberkaskade','feuerkaskade','jugend
   'batterie16','rb49','blinkstern','kristallkugel100','batterie100','familienmix','wasserfall',
   'rb100','sternenstaub150','goldenerregen','titanraketen','kometenreigen','pfeifkonzert','raketengold',
   /* Tom: "Ich will keine Pfeif-Sachen" - die Tonleiter war eine reine Heuler-Batterie */
-  'heulbatterie'];
+  'heulbatterie',
+  /* 05.10. (Toms PDF "Alles wichtige zum Feuerwerk": "kann weg" /
+     "entfernen"): Tisch Schlangen, Zauberbrunnen, Feuerperlen 16,
+     Silberpfeil, Lichterkette, Farbreihen 25, Kometenballett,
+     Smaragdfaecher, Feuersturm 49, Tausendblueten 42, Goldregen,
+     Brandung 80, Lilienfeld, Pfauenschweif 30, Blitzweiden, Goldsaphir,
+     Amethystregen, Schimmelreiter, Silberknister, Doppelhelix */
+  'luftschlangentisch','zauberbrunnen','feuerperlen','silberpfeil','lichterkugeln','rb25','lb_fontaenenballett',
+  'lb_smaragdfaecher','batterie49','sternenmeer42','lb_goldregen','sternenmeer80','lb_lilienfeld','rbfaecher',
+  'lb_blitzweiden','lb_goldsaphir','lb_amethystregen','kometen','donnerschlag','lb_doppelhelix',
+  /* 06.10. Kuratierung auf ~120 Feuerwerksprodukte (PDF: "Dass wir so auf
+     100, 120 Produkte kommen", dazu zehn neue Themen-Batterien). Nichts
+     davon hat Tom gelobt: Kreuzfeuer 42 (doppelt zum Grossen Kreuzfeuer,
+     das er am 02.10. ins Sortiment nahm), Sternblinken ("am Ende nur
+     eintoenig"), Weidenwand ("viel zu niedrig, viel zu eintoenig"),
+     Geysirfeld ("komische Punkte ... eintoenig"), Lichterprozession
+     ("Lichter bleiben am Himmel stehen"), Goldene Zwillinge (wieder Gold),
+     Paradiesvogel, Kometenpalast, Farbenpracht, Himmelsfeuer (Faecher-
+     Sammelsurien, mehr Kometen als Rohre), Sternenhimmel (Silber/Blau
+     doppelt zu Ozean und Silbergewitter), Kugel 75 Suedsee ("viel zu klein
+     ... eher eine Rakete"), Kugel 100 Weide (dritte 100er) und die
+     Dreifachkrone 300 (Kronen wie Kronenregen 300 und Kronenkranz 200) */
+  'kreuzfeuer','blitzgewitter60','kometenwand','geysirfeld','lichterprozession','goldregen22','lb_paradiesvogel',
+  'lb_fontaenenpalast','lb_farbenpracht','lb_himmelsfeuer','lb_sternenfeuer','palmenkugel75','goldweide100','dreifachkrone300'];
 /* Ersatz fuer alte Spielstaende: jede gestrichene Sorte wird beim Laden
    zur naechsten verbliebenen - gleiche Kategorie, moeglichst gleiche Form,
    Level und Preis am naechsten (18-save.js, SORTE_NEU). Sonst stuende
@@ -871,4 +894,6 @@ const ENTFERNT_ERSATZ={};
   for(let i=ORDER.length-1;i>=0;i--) if(weg.has(ORDER[i])) ORDER.splice(i,1);
   LIZENZEN.forEach(l=>{ l.items=l.items.filter(t=>!weg.has(t)); });
   for(const g in GRUPPE) GRUPPE[g]=GRUPPE[g].filter(t=>!weg.has(t));
+  /* 06.10.: auch die Prueflisten der neuen Ware (mblast, richtung) */
+  for(const k in NEU_TEST) if(Array.isArray(NEU_TEST[k])) NEU_TEST[k]=NEU_TEST[k].filter(t=>!weg.has(t));
 })();

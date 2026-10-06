@@ -44,7 +44,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   /* 03.10. (Tom): Knallbonbons liegen vor dem Karton und reissen dort; Wunderkerzen stecken
      ohne Verpackung im Mini-Podest (Kerzen gefaechert, Herz 36 cm, 2027 ueber 75 cm) - die
      Packungsmasse sind dort nicht mehr der Ort; der erste Funke zaehlt */
-  const WEIT=['schwaermer','knallerbsen','goldstaubboeller','atomboeller','tisch','luftschlangentisch','knallfrosch','bodenkreisel','blitzknaller',
+  const WEIT=['schwaermer','knallerbsen','goldstaubboeller','atomboeller','tisch','knallfrosch','bodenkreisel','blitzknaller',
     'knallbonbon','wunder','wunderherz','wunderzahl'];
   const r=await p.evaluate(([nur,WEIT,FZ,RL,SL])=>{ const bb=window.__bb, S=bb.S, P=bb.P, out={};
     S.up.testfeld=true; S.up.shop_halb=true;
@@ -57,6 +57,11 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
       return (m&&+m[1]>=RL[0]&&+m[1]<=RL[1])||(n&&+n[1]>=SL[0]&&+n[1]<=SL[1]); };
     let O=null, neben=null;
     [bb.psHuge,bb.psBig,bb.psMid,bb.psSmall].forEach(ps=>{ const f=ps.emit.bind(ps); ps.emit=function(x,y,z){
+      /* 06.10. (Toms PDF, Feuerteufel: "der Effekt soll aus diesen Loechern
+         rauskommen"): jeder Funke aus Strahl oder Duesenflamme - Abstand zur
+         naechsten der beiden Duesenmuendungen (3D) und welche es ist */
+      if(window.__ft&&bb.fwUhr>=O.ab){ const st=new Error().stack;
+        if(/at (fkStrahl|fkFlamme) /.test(st)){ let b=1e9, k=-1; window.__ft.M.forEach((q,i)=>{ const dd=Math.hypot(x-q.x,y-q.y,z-q.z); if(dd<b){ b=dd; k=i; } }); window.__ft.d.push([+b.toFixed(4),k]); } }
       if(window.__pk&&bb.fwUhr>=O.ab&&y>=O.y0&&y<=O.y+0.5){ const dn=neben(x,z);
         if(dn<=0.03) window.__pk.push(dn);
         else { const st=new Error().stack; if(st.includes(FZ)||flug(st.split('\n')[2])) return f.apply(null,arguments);
@@ -87,10 +92,13 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
       else { const R=bb.MOERSER_R[it.slot%3]; O={x:m.x,z:m.z,hx:R,hz:R,rund:true,y:m.y,y0:m.y-0.4}; }
       neben=(x,z)=>O.rund?Math.max(0,Math.hypot(x-O.x,z-O.z)-O.hx):Math.hypot(Math.max(0,Math.abs(x-O.x)-O.hx),Math.max(0,Math.abs(z-O.z)-O.hz));
       window.__pk=[]; window.__em=[]; const log=[]; bb.fwLog(log);
+      window.__ft=t==='feuerteufel'&&typeof ftMuendungen==='function'?{M:ftMuendungen({x:m.x,y:O.y,z:m.z},t),d:[]}:null;
       O.ab=bb.fwUhr+(sid==='moerser'?0.76:0); bb.zuendeAlle();
       const T=Math.min(90,bb.brennDauer(t)+1);
       for(let s=0;s<T;s+=0.1) bb.run(0.1,0.05);
-      const pk=window.__pk, em=window.__em; window.__pk=null; window.__em=null; bb.fwLog(null);
+      const pk=window.__pk, em=window.__em, ft=window.__ft; window.__pk=null; window.__em=null; window.__ft=null; bb.fwLog(null);
+      /* Feuerteufel: Funken je Muendung und weitester Abstand zur Muendung */
+      const duesen=ft?{n:[0,1].map(i=>ft.d.filter(q=>q[1]===i&&q[0]<=0.012).length),max:+Math.max(0,...ft.d.map(q=>q[0])).toFixed(4),alle:ft.d.length}:null;
       /* Starthoehe jedes Schusses, jeder Kugel und Perle (Mitschnitt):
          3 cm unter bis 20 cm ueber der Oeffnung */
       const rk=log.filter(e=>e.y!==undefined&&(e.art==='schuss'||e.art==='kugel'||e.art==='perle')).map(e=>+(e.y-O.y).toFixed(3));
@@ -115,7 +123,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
         else { const q=schuesse[k-dn.length]; wo=[+(q[0]-O.x).toFixed(2),+(q[1]-O.z).toFixed(2),'log:'+q[2]]; } }
       /* 06.10.: Stufen- und Doppeldeck-Batterien (14t ROHR_FORM) haben Muendungen unterhalb des Deckels */
       const stufe=window.__lochschuss&&window.__lochschuss.stufe?window.__lochschuss.stufe(t):0;
-      out[t]={st:sid,dims:d,erst:+erst.toFixed(3),max:+max.toFixed(3),raus,n:alle.length,schuss:ds.length,wo,weit:WEIT.includes(t),em:emRaus,hoch,stufe};
+      out[t]={st:sid,dims:d,erst:+erst.toFixed(3),max:+max.toFixed(3),raus,n:alle.length,schuss:ds.length,wo,weit:WEIT.includes(t),em:emRaus,hoch,stufe,duesen};
       bb.clearStations();
     }
     return out; },[nur,WEIT,FZ,RL,SL]);
@@ -132,8 +140,11 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     else if(!v.weit&&v.max>(NEBEN[t]||0.03)) mangel.push(`${t}: ${v.raus}/${v.n} Ursprung bis ${v.max} m neben der Oeffnung (${v.st}, bei ${JSON.stringify(v.wo)})`);
     if(v.hoch&&(v.hoch[0]<-0.03-(v.stufe||0)||v.hoch[1]>0.2)) mangel.push(`${t}: Raketen starten ${v.hoch[0]} bis ${v.hoch[1]} m ueber der Oeffnung (${v.st})`);
     if(!v.weit&&v.em.length) mangel.push(`${t}: Emitter nicht an der Oeffnung [k,dx,dy,dz]: ${JSON.stringify(v.em)}`);
+    /* Feuerteufel: Strahl und Flamme kommen aus BEIDEN Duesenmuendungen
+       (je mindestens 200 Funken), keiner weiter als 1,2 cm daneben */
+    if(t==='feuerteufel'&&(!v.duesen||v.duesen.max>0.012||Math.min(...v.duesen.n)<200)) mangel.push(`feuerteufel: Funken nicht aus den zwei Duesen ${JSON.stringify(v.duesen)}`);
   }
-  const kurz={}; for(const [t,v] of Object.entries(r)) kurz[t]=v.leer||v.fehler?v:[v.st,v.max,v.raus+'/'+v.n,v.wo,v.em,v.hoch];
+  const kurz={}; for(const [t,v] of Object.entries(r)) kurz[t]=v.leer||v.fehler?v:[v.st,v.max,v.raus+"/"+v.n,v.wo,v.em,v.hoch].concat(v.duesen?[v.duesen]:[]);
   console.log(JSON.stringify(kurz));
   console.log('PRODUKTE:',Object.keys(r).length,'MANGEL:',mangel.length);
   console.log('ERRORS:',errs.length||mangel.length?errs.concat(mangel).join('\n'):'keine');

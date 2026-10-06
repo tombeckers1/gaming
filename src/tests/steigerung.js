@@ -64,7 +64,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
       return {steig,unpass:[...new Set(unpass)],maxSz:+Math.max(0,...alle.map(e=>e.groesste||e.sz)).toFixed(3),maxHoehe:+Math.max(0,...alle.map(e=>e.hoehe)).toFixed(2),p95Hoehe:(()=>{ const h=alle.map(e=>e.hoehe).sort((a,b)=>a-b); return h.length?+h[Math.floor(h.length*0.95)-(h.length>1?0:0)>=h.length?h.length-1:Math.floor(h.length*0.95)].toFixed(2):0; })(),
         brueche:Math.max(0,...alle.map(e=>e.brueche||1)),echt:log.brueche.length,fremd,n:bb.SHOWS[t]?bb.SHOWS[t]().reduce((a,ph)=>a+(ph.n===undefined?1:ph.n),0):sch.length /* 27.09.: Rohrzahl aus dem Drehbuch - ein Feuertopf kann einen Schuss begleiten */,gefeuert:log.filter(e=>e.art==='schuss'||e.art==='kugel'||e.art==='topf'||e.art==='perle').length,hoehe:+m(hoehen).toFixed(2),sz:+m(sz).toFixed(3),dichte,farben:farben.size,
         dauer:sch.length?+(sch[sch.length-1].t-sch[0].t).toFixed(1):0,eff:[...new Set(log.map(e=>e.eff).filter(Boolean))]}; };
-    for(const t of ['batterie16','knatter','batterie49','faecher','batterie100','zfaecher','kometen','donnerwand','profi','finale','sortiment',
+    for(const t of ['batterie16','knatter','batterie49','faecher','batterie100','zfaecher','kometen','lb_goldader','donnerwand','profi','finale','sortiment',
       'raketenklein','raketen','jumbogold','jumboleiter','furzrakete','roemisch','sternenbrunnen','vulkan','goldgeysir','feuersaeule','feuerbrunnen',
       'kugel75','kugel100','kugel150','feuerlilie200','kugel300'].filter(t=>bb.P[t])) /* 29.09.: entfernte Produkte fallen weg */
       out[t]=messe(t);
@@ -95,9 +95,9 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     /* Weltuntergang nur mit Schuessen (Tom, 25.09.) */
     out.finaleBoden=bb.SHOWS.finale().filter(ph=>ph.ground).length;
     return out; });
-  const L=['batterie16','knatter','batterie49','faecher','batterie100','zfaecher','kometen','donnerwand','profi','finale'].filter(t=>r[t]);
+  const L=['batterie16','knatter','batterie49','faecher','batterie100','zfaecher','kometen','lb_goldader','donnerwand','profi','finale'].filter(t=>r[t]); /* 06.10.: Goldader statt Feuersturm/Schimmelreiter (Toms PDF) */
   /* 06.10. (PDF, ein Loch = ein Schuss, 14t): Knattersturm 36 (Feuertoepfe aus eigenen Rohren), Sonnenaufgang 44 */
-  const SOLL={batterie16:16,knatter:36,batterie49:49,faecher:44,batterie100:100,zfaecher:48,kometen:64,donnerwand:120,profi:200,finale:300};
+  const SOLL={batterie16:16,knatter:36,batterie49:49,faecher:44,batterie100:100,zfaecher:48,kometen:64,lb_goldader:86,donnerwand:120,profi:200,finale:300};
   for(const t of Object.keys(r).filter(k=>r[k]&&r[k].n!==undefined))
     console.log(t.padEnd(14),'lvl',String(r.lvl[t]).padStart(2),'n',String(r[t].n).padStart(3),'hoehe',String(r[t].hoehe).padStart(6),'sz',String(r[t].sz).padStart(6),'dichte',String(r[t].dichte).padStart(2),'farben',String(r[t].farben).padStart(2),'dauer',String(r[t].dauer).padStart(6));
   /* Leiter: nur mit dem letzten Produkt NIEDRIGEREN Levels vergleichen */

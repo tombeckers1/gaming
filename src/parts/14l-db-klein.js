@@ -604,13 +604,42 @@ klEmit('bengalstab',(e,dt,o,t)=>{
 });
 
 /* Bengalhoelzer: Ratsch mit weisser Stichflamme, Kugelflamme, Glimmen mit Rauchfaden */
+/* 06.10. (Toms PDF: Bengalhoelzer "in so eine Halterung", wie die
+   Wunderkerze im Podest, Farben Rot, Gruen, Gelb, Blau nacheinander): die
+   Hoelzer stecken im Halter (kqWkLayout/kqHolzPodest, 14q). Jede Phase
+   (e.holz = Nummer in der Zuendfolge) zuendet ihr Holz an der Spitze; die
+   Flamme sitzt immer auf dem noch nicht verbrannten Satz und frisst sich
+   den farbigen Kopf hinab bis zum Holzstiel. Dahinter bleibt ein
+   verkohlter Rest stehen. Ohne Halter (alte Aufrufe) brennt das Holz wie
+   frueher senkrecht ueber dem Ort. */
+const _klHV=new THREE.Vector3();
 klEmit('zuendholz',(e,dt,o,t)=>{
   const A=e.A||FW.rot, st=e.stich||0.25, T=e.T0||(e.T0=e.t), gl=e.glimm||1;
-  if(!e.holz){ const sf=klFlaeche(o); e.kopf={x:o.x,y:Math.max(o.y,sf)+0.1,z:o.z}; e.t=st+T+gl+1.5;
-    e.holz=klDraht(e,[[o.x,e.kopf.y-0.1,o.z],[o.x,e.kopf.y,o.z]]); const c=e.holz.userData.col; c[0]=0.25;c[1]=0.16;c[2]=0.08;c[3]=0.35;c[4]=0.2;c[5]=0.1; klDrahtAuf(e.holz);
+  if(!e.holz){ const sf=klFlaeche(o); e.t=st+T+gl+1.5;
+    const lay=e.holzNr!==undefined&&typeof kqWkLayout==='function'?kqWkLayout(e.prod):null, pod=lay&&lay.hoelzer&&typeof kqHolzPodest==='function'?kqHolzPodest(o):null;
+    const H=pod&&pod.userData.hoelzer?pod.userData.hoelzer.find(q=>q.h.nr===e.holzNr):null;
+    if(H){ const h=H.h, L=kqHolzLage(h,pod.position.x,pod.position.y,pod.position.z);
+      e.hz={H,fuss:L,d:L.d,s0:h.L-h.kopf,s1:h.L};
+      /* der eigene, abbrennende Kopf ersetzt den im Halter */
+      H.kopf.visible=false; H.rest.visible=false;
+      const kopf=kqM(kqGeo('bh_kopf',()=>{ const c=new THREE.CylinderGeometry(0.0043,0.0043,1,8); c.translate(0,0.5,0); return c; }),kqMat(h.c,{e:0.3,r:0.9}),L.x+L.d[0]*e.hz.s0,L.y+L.d[1]*e.hz.s0,L.z,0,0,-h.ang);
+      kopf.scale.y=h.kopf; e.hz.kopf=klMesh(e,kopf);
+      /* verkohlter Satz hinter der Flamme: duenner, dunkler, mit Glut */
+      const asche=kqM(kqGeo('bh_asche',()=>{ const c=new THREE.CylinderGeometry(0.0026,0.0034,1,6); c.translate(0,0.5,0); return c; }),kqMat(0x34302c,{e:0.05,r:0.95}),0,0,0,0,0,-h.ang);
+      asche.visible=false; e.hz.asche=klMesh(e,asche);
+      e.kopf={x:L.x+L.d[0]*h.L,y:L.y+L.d[1]*h.L,z:L.z}; e.holz=true; }
+    else { e.kopf={x:o.x,y:Math.max(o.y,sf)+0.1,z:o.z};
+      e.holz=klDraht(e,[[o.x,e.kopf.y-0.1,o.z],[o.x,e.kopf.y,o.z]]); const c=e.holz.userData.col; c[0]=0.25;c[1]=0.16;c[2]=0.08;c[3]=0.35;c[4]=0.2;c[5]=0.1; klDrahtAuf(e.holz); }
     const p=e.kopf, alt=SCHWEIF; SCHWEIF=0.08; flash(p,FW.weiss,1.0,0.2);
     for(let k=0;k<15;k++){ const d=streu([rand(-0.4,0.4),1,rand(-0.3,0.3)],0.5), v=rand(1.5,3); psSmall.emit(p.x,p.y,p.z,d[0]*v,d[1]*v,d[2]*v,1.5,1.4,1.2,rand(0.15,0.3),3,0); }
     SCHWEIF=alt; schall(p,v=>{ sfx.ratsch(v*1.2); later(0.06,()=>sfx.zischen(v*0.9,0.35)); }); }
+  /* Front: am Anfang die Spitze, dann den Kopf hinab bis zum Stiel */
+  if(e.hz){ const Z=e.hz, u=clamp((t-st)/T,0,1), s=Z.s1-(Z.s1-Z.s0)*u, F=Z.fuss;
+    e.kopf.x=F.x+Z.d[0]*s; e.kopf.y=F.y+Z.d[1]*s;
+    Z.kopf.scale.y=Math.max(0.001,s-Z.s0); Z.kopf.visible=s-Z.s0>0.002;
+    if(t>=st){ Z.asche.visible=true; const a0=s; Z.asche.position.set(F.x+Z.d[0]*a0,F.y+Z.d[1]*a0,F.z); Z.asche.scale.y=Math.max(0.001,(Z.s1-a0)*0.55); }
+    /* ausgebrannt: der Rest im Halter zeigt den verkohlten Kopf, die eigenen Teile gehen */
+    if(t>st+T+gl&&!Z.fertig){ Z.fertig=true; Z.H.rest.visible=true; Z.asche.visible=false; Z.kopf.visible=false; } }
   const p=e.kopf, alt=SCHWEIF; SCHWEIF=0;
   if(t<st){ const k=1-t/st; psMid.emit(p.x,p.y+0.03,p.z,0,0.6,0,2*k+0.4,2*k+0.4,1.9*k+0.4,0.05,0,0);
     psBig.emit(p.x,p.y+0.04,p.z,0,0,0,0.9*k,0.9*k,0.85*k,0.05,0,0); licht('zh'+e.prod+e.nr,p,[1,1,0.95],2.2*k+0.5,{weite:4}); }
@@ -620,7 +649,9 @@ klEmit('zuendholz',(e,dt,o,t)=>{
     /* 30.09., Tom: "Lichter heller machen, ist so schwach" - Flamme groesser
        und dichter, Leuchthof breiter, Raumlicht 0,3 -> 1,1 und 4 m weit
        (29.09. war es auf 2,5 m gedrosselt, weil es den Platz flutete) */
-    SCHWEIF=alt; klBengal(e.bz||(e.bz={}),{x:p.x,y:p.y+0.01,z:p.z},dt,A,{st:s,h:0.095,r:0.013,rate:150,hof:0.28,funken:2.5,
+    /* 06.10.: Blau wirkt additiv dunkel - dichtere Flamme (wie der Bengaltopf) */
+    const blau=A[2]>0.8&&A[0]<0.5;
+    SCHWEIF=alt; klBengal(e.bz||(e.bz={}),{x:p.x,y:p.y+0.005,z:p.z},dt,A,{st:s,h:0.095,r:0.013,rate:blau?220:150,hof:0.28,funken:2.5,
       rauch:{rate:1.2,gr:0.45,licht:0.8,h:0.06,dauer:4},licht:{key:'zh'+e.prod+e.nr,st:1.1,h:0.25,weite:4}}); SCHWEIF=0;
     zischBett(e,'bengal',distVol(o)*0.7*s,dt); }
   else if(t<st+T+gl+1.2){ const u=(t-st-T)/gl, k=Math.max(0,1-u);
@@ -1135,10 +1166,12 @@ Object.assign(KLEIN,{
     phasen:[{k:'bombenwurf',at:0,liegen:15},
             {k:'luftschlange',at:0.02,still:true,n:9,laenge:[0.7,1.5],steig:[2.4,4.2],neig:[0.3,1.05],locken:[3,5],schwing:0.35,liegen:15,farben:['rot','gold','gruen','blau','magenta','tuerkis']}],
     rest:{k:'bodenrest',art:'konfetti',t:20}},
-  bengalholz:{stueck:4,lunte:0,dauer:14,
+  bengalholz:{stueck:4,lunte:0,dauer:16,
     phasen:[{k:'zuendholz',t:4,stich:0.25,glimm:1.0,
       /* 28.09., Tom: am Produkt - die Hoelzer stecken im Karton (vorher bis 15 cm daneben) */
-      folge:[{at:0,x:-0.03,A:'rot'},{at:3.2,x:0.01,A:'gruen'},{at:6.1,x:-0.01,A:'rot'},{at:9.3,x:0.03,A:'gruen'}]}]},
+      /* 06.10. (Toms PDF): vier Hoelzer im Halter (14q), Rot, Gruen, Gelb, Blau
+         nacheinander, jedes aus seiner Spitze; holzNr = Platz in der Zuendfolge */
+      folge:[{at:0,holzNr:0,A:'rot'},{at:3.3,holzNr:1,A:'gruen'},{at:6.6,holzNr:2,A:'zitrone'},{at:9.9,holzNr:3,A:'blau'}]}]},
   /* L3 */
   wunderzahl:{stueck:4,lunte:0,dauer:12,
     /* 28.09., Tom: Ziffern 13 cm hoch dicht an dicht - die Schrift steht ueber dem 32-cm-Karton (vorher 60 cm breit) */
@@ -1228,7 +1261,7 @@ Object.assign(SIGNATUR,{
   knallfrosch:{idee:'froschsprung',text:'Zickzack-Päckchen springt bei jedem Knall weiter, liegt verkohlt da'},
   pharao:{idee:'ascheschlange',text:'wachsende, sich windende Ascheschlangen'},
   tischbombe:{idee:'bombenwurf',text:'Hütchen, Rüssel, Tröten, Masken, Nasen und Spielzeug fliegen in alle Richtungen'},
-  bengalholz:{idee:'zuendholz',text:'Stichflamme, Kugelflamme, Rauchfaden'},
+  bengalholz:{idee:'zuendholz',text:'vier Hoelzer im Halter: Rot, Gruen, Gelb, Blau nacheinander, Stichflamme, Bengalflamme, Rauchfaden'},
   wunderzahl:{idee:'glutschrift',text:'2027 schreibt sich Strich für Strich'},
   boeller:{idee:'pups',text:'Pups mit grünbrauner Wolke am Boden'},
   luftschlangentisch:{idee:'luftschlange',text:'Bänder entrollen sich im Flug'},

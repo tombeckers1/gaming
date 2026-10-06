@@ -97,23 +97,25 @@ function kqTempo(a,d,h){ const vy=Math.sqrt(2*9.8*Math.max(0.02,h)), T=vy/9.8+Ma
 
 /* =========================================================
    1. Knallfrosch
-   Echt: rotes Papierroehrchen mit Schwarzpulver, zickzackfoermig zu
+   Echt: gruenes Papierroehrchen mit Schwarzpulver, zickzackfoermig zu
    einem Paeckchen von etwa 5 x 2 x 2 cm gefaltet, mit Faden gebunden,
    Zuendschnur am Ende. Jeder Knick ist eine Kammer: sie knallt, das
    Paeckchen springt 10-50 cm in eine zufaellige Richtung, kleines
    Rauchwoelkchen, Funkenspritzer, Papierfetzen. Am Ende liegt der
    verkohlte Rest da und raucht.
+   06.10. (Toms PDF: "Die Knallfroesche sind in echt aber gruen"): das
+   Paeckchen ist gruen wie im Handel (vorher rot), die Fetzen auch.
    ========================================================= */
 const KQ_FR={L:0.07,W:0.026,th:0.0052,n:7};
 function kqFroschGeo(){ return kqGeo('frosch',()=>{
   const {L,W,th,n}=KQ_FR, parts=[];
   for(let i=0;i<n;i++){ const y=th/2+i*th;
     /* eine Lage: flachgedruecktes Roehrchen, abwechselnd heller und dunkler (die Falten sind zu sehen) */
-    parts.push({geo:new THREE.BoxGeometry(L-th,th*0.8,W),m:tm(0,y,0),color:i%2?0xa8141a:0xd42a22});
+    parts.push({geo:new THREE.BoxGeometry(L-th,th*0.8,W),m:tm(0,y,0),color:i%2?0x2a8a30:0x45ad42});
     if(i<n-1){ const sx=i%2?-1:1;
       /* Knick: halbes Roehrchen am Ende, verbindet Lage i und i+1 */
-      parts.push({geo:new THREE.CylinderGeometry(th*0.72,th*0.72,W,8,1,false,0,Math.PI),m:tm(sx*(L-th)/2,y+th/2,0,Math.PI/2,0,sx>0?0:Math.PI),color:0xbf1d1f}); } }
-  /* Bindfaden um die Mitte, gelbes Etikett obenauf */
+      parts.push({geo:new THREE.CylinderGeometry(th*0.72,th*0.72,W,8,1,false,0,Math.PI),m:tm(sx*(L-th)/2,y+th/2,0,Math.PI/2,0,sx>0?0:Math.PI),color:0x379c3a}); } }
+  /* Garn um die Mitte, kleines gelbes Etikett obenauf */
   parts.push({geo:new THREE.BoxGeometry(0.004,n*th+0.003,W+0.003),m:tm(0.006,n*th/2,0),color:0xeee6cc});
   parts.push({geo:new THREE.BoxGeometry(0.022,0.0015,W*0.8),m:tm(-0.014,n*th+0.0005,0),color:0xf2c21b});
   const g=merge(parts); g.translate(0,-n*th/2,0); return g; }); }
@@ -122,9 +124,9 @@ klEmit('froschsprung',(e,dt,o,t)=>{
   if(!e.fr){
     /* er liegt vor dem Karton auf dem Tisch (zum Pult hin) */
     const sf=klFlaeche(o), x0=o.x+0.07, z0=o.z+((P[e.prod]&&P[e.prod].dims)?P[e.prod].dims[2]/2:0.03)+0.09;
-    const mat=new THREE.MeshStandardMaterial({vertexColors:true,roughness:0.8,emissive:new THREE.Color(0.09,0.02,0.02)});
+    const mat=new THREE.MeshStandardMaterial({vertexColors:true,roughness:0.8,emissive:new THREE.Color(0.02,0.08,0.025)});
     const body=new THREE.Mesh(kqFroschGeo(),mat); body.userData.geoFest=true; body.userData.matEigen=true;
-    const lunte=kqM(kqGeo('froschlunte',()=>{ const g=new THREE.CylinderGeometry(0.0012,0.0012,0.032,5); g.translate(0,0.016,0); return g; }),kqMat(0x3f8f3a,{e:0.3}),KQ_FR.L/2,KQ_FR.n*KQ_FR.th/2-KQ_FR.th,0,0,0,-1.1);
+    const lunte=kqM(kqGeo('froschlunte',()=>{ const g=new THREE.CylinderGeometry(0.0012,0.0012,0.032,5); g.translate(0,0.016,0); return g; }),kqMat(0x8a8a4a,{e:0.3}),KQ_FR.L/2,KQ_FR.n*KQ_FR.th/2-KQ_FR.th,0,0,0,-1.1);
     const grp=kqGruppe(body,lunte); grp.scale.setScalar(S); grp.rotation.y=rand(-0.6,0.6);
     grp.position.set(x0,sf+H/2,z0); klMesh(e,grp);
     const TK=e.takt||[0.4], zeiten=[e.lunte||1.4];
@@ -154,8 +156,8 @@ klEmit('froschsprung',(e,dt,o,t)=>{
     schall(p,vv=>{ sfx.crack(vv*(0.55+Math.random()*0.25)); if(Math.random()<0.5) sfx.snap(vv*0.6); });
     /* Rauchwoelkchen und rote Papierfetzen */
     const Hh=klHell(); rauchball({x:p.x,y:p.y+0.03,z:p.z},{r:rand(0.1,0.16),n:2,dauer:1.8,quellen:0.4,steigen:0.22,c:[0.55*Hh+0.12,0.54*Hh+0.12,0.55*Hh+0.13],a:0.42,wind:[0.06,0.02]});
-    /* ein, zwei kleine Papierfetzen (rot bedruckt, innen grau) */
-    for(let j=0;j<Math.round(rand(1,2.6)*QUAL());j++){ const d=randDir(), s=rand(0.8,2); klPapier({x:p.x,y:p.y,z:p.z},[d[0]*s,Math.abs(d[1])*s+0.8,d[2]*s],j%2?[0.3,0.27,0.25]:[0.7,0.08,0.06],{gr:[0.008,0.011],art:'konfetti',dauer:12,flatter:0.25}); }
+    /* ein, zwei kleine Papierfetzen (gruen bedruckt, innen grau) */
+    for(let j=0;j<Math.round(rand(1,2.6)*QUAL());j++){ const d=randDir(), s=rand(0.8,2); klPapier({x:p.x,y:p.y,z:p.z},[d[0]*s,Math.abs(d[1])*s+0.8,d[2]*s],j%2?[0.3,0.27,0.25]:[0.16,0.52,0.15],{gr:[0.008,0.011],art:'konfetti',dauer:12,flatter:0.25}); }
     bodenrest('fleck',p.x,klGrund(p.x,p.z),p.z,{dauer:12,gr:0.3});
     /* Sprung: Richtung zufaellig, eher weg von der knallenden Seite; auf dem Tisch bleiben */
     const T=kqTisch(g.position.x,g.position.z), d0=rand((e.sprung||[0.12,0.5])[0],(e.sprung||[0.12,0.5])[1])*(letzt?0.7:1);
@@ -172,7 +174,7 @@ klEmit('froschsprung',(e,dt,o,t)=>{
     /* eine Kammer weniger: das Paeckchen wird flacher und dunkler */
     F.rest=(n-1-i)/(n-1);
     F.body.scale.y=0.35+0.65*F.rest;
-    const c=0.09*F.rest; F.mat.emissive.setRGB(c,c*0.2,c*0.2); F.mat.color.setRGB(0.25+0.75*F.rest,0.22+0.78*F.rest,0.2+0.8*F.rest); }
+    const c=0.08*F.rest; F.mat.emissive.setRGB(c*0.25,c,c*0.3); F.mat.color.setRGB(0.25+0.75*F.rest,0.22+0.78*F.rest,0.2+0.8*F.rest); }
   /* Flug und Landung */
   const hb=Math.max(0.006,H*(0.35+0.65*F.rest)/2);
   if(F.fliegt){ F.v[1]-=9.8*dt; g.position.x+=F.v[0]*dt; g.position.y+=F.v[1]*dt; g.position.z+=F.v[2]*dt;
@@ -487,8 +489,22 @@ function kqWkLayout(t){
     case 'wunderkerzeXXL': return {b:0.17,d:0.11,schwer:true,kerzen:[{x:0,ang:0,L:1.0,r:0.0055}]};
     case 'wunderherz': return {b:0.12,d:0.065,form:['herz'],gr:0.36,stiel:0.12};
     case 'wunderzahl': return {b:0.8,d:0.065,form:['2','0','2','7'],gr:0.26,abstand:0.19,stiel:0.1};
+    /* 06.10. (Toms PDF, Bengalhoelzer: "in so eine Halterung ... du siehst
+       nur die Staebe ... und gerne da auch noch einen Gelben ... vielleicht
+       auch Blau, diese vier Farben so nacheinander"): vier Hoelzer leicht
+       gefaechert im Steckblock, Holzstiel unten, oben der farbige Satz.
+       Gezuendet wird Rot, Gruen, Gelb, Blau (Feld nr) - nicht der Reihe
+       nach von links: Rot steckt links innen, dann aussen rechts, aussen
+       links, innen rechts. Spitzen bleiben ueber dem 9-cm-Karton. */
+    case 'bengalholz': return {b:0.11,d:0.045,hoelzer:[
+      {x:-0.036,ang:-0.14,L:0.2,kopf:0.075,F:'zitrone',c:0xe0b020,nr:2},
+      {x:-0.012,ang:-0.05,L:0.2,kopf:0.075,F:'rot',c:0xc8322a,nr:0},
+      {x:0.012,ang:0.05,L:0.2,kopf:0.075,F:'blau',c:0x2f5fc0,nr:3},
+      {x:0.036,ang:0.14,L:0.2,kopf:0.075,F:'gruen',c:0x2f9a4a,nr:1}]};
   }
   return null; }
+/* Bengalholz i im Steckblock: Fuss (Lochmitte oben) und Richtung */
+function kqHolzLage(h,px,py,pz){ return {x:px+h.x,y:py+KQ_PH,z:pz,d:[Math.sin(h.ang),Math.cos(h.ang),0]}; }
 const KQ_PODESTE=[];
 /* Formen je Produkt einmal (geteilt von allen Podesten dieser Sorte) */
 function kqPodest(t){
@@ -509,6 +525,19 @@ function kqPodest(t){
     kz.add(kqM(kqGeo('pod_k'+t+i,()=>{ const mp=[]; for(let j=0;j<=8;j++){ const s=gr/Lk+(1-gr/Lk)*j/8; mp.push([k.x+ex*Lk*s,KQ_PH+ey*Lk*s,0]); } return klRohrGeo(mp,r,6); }),mantel));
     kz.add(kqM(kqGeo('pod_d'+t+i,()=>{ const c=new THREE.CylinderGeometry(0.0011,0.0011,gr+0.02,5); c.rotateZ(-ang); c.translate(k.x+ex*(gr-0.02)/2,KQ_PH+ey*(gr-0.02)/2,0); return c; }),draht));
     g.add(kqM(lochGeo,loch,k.x,KQ_PH+0.0005,0)); });
+  /* Bengalhoelzer: Holzstiel, oben der farbige Satz mit runder Kuppe;
+     dazu je ein verkohlter Rest (unsichtbar, bis das Holz abgebrannt ist) */
+  if(L.hoelzer){ const HZ=[]; g.userData.hoelzer=HZ;
+    const stiel=kqMat(0xd8b884,{e:0.22,r:0.85}), asche=kqMat(0x34302c,{e:0.05,r:0.95});
+    L.hoelzer.forEach((h,i)=>{ const gh=new THREE.Group(); gh.position.set(h.x,KQ_PH,0); gh.rotation.z=-h.ang; g.add(gh);
+      const lw=h.L-h.kopf+0.004;
+      gh.add(kqM(kqGeo('bh_stiel',()=>{ const c=new THREE.CylinderGeometry(0.0022,0.0022,1,6); c.translate(0,0.5,0); return c; }),stiel,0,-0.012,0)); gh.children[0].scale.y=lw+0.012;
+      const kopf=kqGruppe(kqM(kqGeo('bh_kopf',()=>{ const c=new THREE.CylinderGeometry(0.0043,0.0043,1,8); c.translate(0,0.5,0); return c; }),kqMat(h.c,{e:0.3,r:0.9}),0,0,0),
+        kqM(kqGeo('bh_kuppe',()=>new THREE.SphereGeometry(0.0043,8,5,0,Math.PI*2,0,Math.PI/2)),kqMat(h.c,{e:0.3,r:0.9}),0,h.kopf,0));
+      kopf.children[0].scale.y=h.kopf; kopf.position.y=h.L-h.kopf; gh.add(kopf);
+      const rest=kqM(kqGeo('bh_asche',()=>{ const c=new THREE.CylinderGeometry(0.0026,0.0034,1,6); c.translate(0,0.5,0); return c; }),asche,0,h.L-h.kopf,0); rest.scale.y=h.kopf*0.55; rest.visible=false; gh.add(rest);
+      g.add(kqM(lochGeo,loch,h.x,KQ_PH+0.0005,0));
+      HZ.push({kopf,rest,h}); }); }
   if(L.form){ const st=L.stiel||0.1;
     klFormTeile(L.form,L.gr,L.abstand).forEach((ft,j)=>{
       ft.pfade.forEach((pk,pi)=>kz.add(kqM(kqGeo('pod_f'+t+j+'_'+pi,()=>klRohrGeo(klDicht(pk,0.008).map(([x,y])=>[x,KQ_PH+st+y,0]),0.0042,6)),mantel)));
@@ -531,5 +560,15 @@ function kqPodestNimm(e,o,t){
   if(g){ g.userData.kerzen.visible=false; return {y:g.position.y+KQ_PH,g}; }
   g=kqPodest(t); if(!g) return null; g.position.set(o.x,sf,o.z); g.userData.kerzen.visible=false; klMesh(e,g);
   return {y:sf+KQ_PH,g}; }
+
+/* Bengalhoelzer: der Halter, in dem die Hoelzer stecken - auf der Station
+   (kqPodestAuf) oder, ohne Station, ein eigener fuer die Brenndauer, den
+   alle vier Hoelzer derselben Zuendung finden */
+function kqHolzPodest(o){
+  let g=KQ_PODESTE.find(p=>p.parent&&p.userData.t==='bengalholz'&&Math.hypot(p.position.x-o.x,p.position.z-o.z)<0.12)||null;
+  if(g) return g;
+  g=kqPodestAuf('bengalholz',{x:o.x,y:klFlaeche(o),z:o.z}); if(!g) return null; scene.add(g);
+  const gg=g; later(kleinDauer('bengalholz')+4,()=>{ if(gg.parent) gg.parent.remove(gg); });
+  return g; }
 
 if(typeof window!=='undefined') window.__kleinNeu={kqWkLayout,kqPodest,KQ_PODESTE,KQ_TEILE:Object.keys(KQ_TEILE)};

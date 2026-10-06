@@ -6,6 +6,14 @@
    Blechdose, Holzkiste, Raketenröhre, Alu-Koffer, Dreikant- und
    Sechskantkarton ... Das Druckbild (drawFront, 04d) bleibt vorn lesbar.
    Alles bleibt in p.dims (Ursprung unten Mitte, vorn = +z). */
+/* Feuerteufel (06.10.): Lage der beiden Duesen, in m ab Boden-Mitte des
+   Produkts - Fuss (fussX quer, fussY hoch), Laenge, Neigung in Grad nach
+   aussen, Radius am Fuss (r0) und an der Muendung (r1). Gemeinsam fuer
+   die Form (unten) und den Effekt (14k hoerner, ftMuendungen). */
+const FT_DUESE={fussX:0.016,fussY:0.145,len:0.058,neig:32,r0:0.0085,r1:0.0068};
+/* Muendungen in Weltlage: o = Oberkante des Produkts (wie muendung()) */
+function ftMuendungen(o,prod){ const D=FT_DUESE, h=(P[prod]&&P[prod].dims?P[prod].dims[1]:0.2), sn=Math.sin(D.neig*Math.PI/180), cs=Math.cos(D.neig*Math.PI/180);
+  return [-1,1].map(s=>({x:o.x+s*(D.fussX+sn*D.len),y:o.y-h+D.fussY+cs*D.len,z:o.z,d:[s*sn,cs,0],s})); }
 (()=>{
 const PI=Math.PI, HOLZ=0xc9a46a, I=s=>parseInt(String(s).slice(1),16);
 /* ---------------- Grundgeruest ---------------- */
@@ -193,7 +201,8 @@ VP_FORM.wunder=t=>{ const o=G(t), {w,h,d,a}=o, bh=h*0.88, th=h-bh;
   return fertig(o); };
 
 /* Bengalhoelzer: grosse Streichholz-Schiebeschachtel, Lade halb
-   herausgeschoben - oben schauen die roten und gruenen Koepfe heraus */
+   herausgeschoben - oben schauen die Koepfe heraus (06.10.: Rot, Gruen,
+   Gelb, Blau wie im Halter beim Abbrennen, 14q) */
 VP_FORM.bengalholz=t=>{ const o=G(t), {w,h,d,a,rnd}=o, hs=h*0.76;
   const R=bogen(o,[{n:'f',w,h:hs,f:B(t)},{n:'b',w,h:hs,f:seite(t)},
     {n:'s',w:d,h:hs,f:(g,W,H)=>{ g.fillStyle='#5a3422'; g.fillRect(0,0,W,H); for(let i=0;i<W*H/6;i++){ g.fillStyle=rnd()<0.5?'rgba(20,10,5,.5)':'rgba(140,90,60,.4)'; g.fillRect(rnd()*W,rnd()*H,1.5,1.5); }
@@ -204,7 +213,7 @@ VP_FORM.bengalholz=t=>{ const o=G(t), {w,h,d,a,rnd}=o, hs=h*0.76;
   const ly0=hs-0.03, lh=h-ly0, lw=w*0.96, ld=d*0.9, LC=0xc0221c;
   box(o,lw,lh,0.0015,0,ly0+lh/2,-ld/2,0xf2ead8); for(const sx of [-1,1]) box(o,0.0015,lh,ld,sx*lw/2,ly0+lh/2,0,LC); box(o,lw,0.0015,ld,0,h-0.00075,0,LC);
   for(let i=0;i<12;i++){ const x=-lw*0.44+i*lw*0.88/11, z=(i%2?0.25:-0.15)*ld, top=h-0.006-(i%3)*0.002;
-    box(o,0.0026,top-hs*0.5,0.0026,x,(top+hs*0.5)/2,z,0xe3c48f); kugel(o,0.0036,x,top,z,i%2?0x2f9e57:0xd8322a,1,1.5,1,6,4); }
+    box(o,0.0026,top-hs*0.5,0.0026,x,(top+hs*0.5)/2,z,0xe3c48f); kugel(o,0.0036,x,top,z,[0xc8322a,0x2f9a4a,0xe0b020,0x2f5fc0][i%4],1,1.5,1,6,4); }
   return fertig(o); };
 
 /* Herz-Wunderkerzen: Blisterkarte mit Euroloch, herzfoermige
@@ -324,30 +333,79 @@ VP_FORM.knallerbsen=t=>{ const o=G(t), {w,h,d,a,rnd}=o, rz=d/2*0.96, sx=(w/2*0.9
   return fertig(o); };
 
 /* Knallfrosch (03.10., Tom: "sieht nicht aus wie echte Knallfroesche"):
-   wie im Handel - bedruckte Faltschachtel mit Comic-Frosch, oben ein
-   Sichtfenster. Darunter liegen die Froesche nebeneinander: schmale,
-   im Zickzack gefaltete Papierstreifen (rot-weiss, gruen-gelb,
-   blau-weiss bedruckt), in der Mitte eine Papierbinde, vorn ragt die
-   gruene Zuendschnur heraus. */
-function froschDruck(g,W,H,c1,c2,rnd){ g.fillStyle=c1; g.fillRect(0,0,W,H);
-  g.fillStyle=c2; for(let x=0;x<W;x+=W/9){ g.fillRect(x,0,W/30,H); }
-  g.fillStyle='rgba(0,0,0,.18)'; for(let k=0;k<W*H/40;k++) g.fillRect(rnd()*W,rnd()*H,1,1);
-  g.save(); g.translate(W/2,H/2); g.rotate(0); nameText(g,'KNALL',0,0,W*0.4,Math.round(H*0.55),FNT.bun,'#fff','rgba(0,0,0,.6)',2); g.restore(); }
-function comicFrosch(g,cx,cy,r){ g.fillStyle='#3fae3a'; g.beginPath(); g.ellipse(cx,cy,r,r*0.75,0,0,PI*2); g.fill();
-  for(const s of [-1,1]){ g.fillStyle='#3fae3a'; g.beginPath(); g.arc(cx+s*r*0.45,cy-r*0.65,r*0.32,0,PI*2); g.fill(); g.fillStyle='#fff'; g.beginPath(); g.arc(cx+s*r*0.45,cy-r*0.67,r*0.22,0,PI*2); g.fill(); g.fillStyle='#111'; g.beginPath(); g.arc(cx+s*r*0.4,cy-r*0.64,r*0.1,0,PI*2); g.fill(); }
-  g.strokeStyle='#14501a'; g.lineWidth=Math.max(1,r*0.08); g.beginPath(); g.arc(cx,cy,r*0.5,0.2*PI,0.8*PI); g.stroke();
-  g.fillStyle='#e8322a'; g.beginPath(); g.ellipse(cx,cy+r*0.42,r*0.2,r*0.1,0,0,PI*2); g.fill(); }
+   wie im Handel - bedruckte Faltschachtel, oben ein Sichtfenster, darunter
+   liegen die Froesche nebeneinander: schmale, im Zickzack gefaltete
+   Papierroehrchen, in der Mitte mit Garn gebunden, vorn ragt die
+   Zuendschnur heraus.
+   06.10. (Toms PDF: "Die Knallfroesche sind in echt aber gruen" und die
+   Verpackung "sieht aus wie schlecht gezeichnete Voegel"): echte
+   Knallfroesche (Nico, Weco, Funke) sind gruenes Papier - "gruen wie echte
+   Laubfroesche aus dem Bilderbuch" (Haendlertext). Jetzt alle Froesche
+   gruen mit dunkelgruenem Feindruck und weissem Garn (vorher rot-weiss,
+   gruen-gelb, blau-weiss mit KNALL-Schrift). Das Druckmotiv ist ein
+   sitzender Frosch von vorn - breiter Kopf, Glubschaugen oben, breites
+   Maul, Schwimmfuesse mit Haftballen; die lachenden Sterne und der kleine
+   Kopf ohne Koerper (las sich wie ein Kueken) sind weg. */
+function froschDruck(g,W,H,rnd){ g.fillStyle='#3c9a3a'; g.fillRect(0,0,W,H);
+  /* Feindruck: dunkelgruene Schraegschraffur, wie auf dem echten Papier */
+  g.strokeStyle='rgba(12,60,18,.45)'; g.lineWidth=Math.max(1,H*0.06);
+  for(let x=-H;x<W+H;x+=Math.max(3,H*0.45)){ g.beginPath(); g.moveTo(x,H); g.lineTo(x+H,0); g.stroke(); }
+  g.fillStyle='rgba(0,0,0,.14)'; for(let k=0;k<W*H/40;k++) g.fillRect(rnd()*W,rnd()*H,1,1);
+  g.fillStyle='rgba(255,255,255,.12)'; g.fillRect(0,0,W,H*0.25); }
+/* sitzender Frosch von vorn, Mitte (cx,cy), Hoehe s */
+function froschBild(g,cx,cy,s){ const K='#34a33c', Kd='#258a2f', D='#0d3f14', Hb='#c9ec7a', lw=Math.max(1.2,s*0.04);
+  g.save(); g.lineJoin='round'; g.lineCap='round'; g.strokeStyle=D; g.lineWidth=lw;
+  const X=v=>cx+v*s, Y=v=>cy+v*s;
+  const ell=(x,y,rx,ry,rot,f,ohne)=>{ g.beginPath(); g.ellipse(X(x),Y(y),rx*s,ry*s,rot||0,0,PI*2); g.fillStyle=f; g.fill(); if(!ohne) g.stroke(); };
+  /* Zehen mit Haftballen: von (x,y) in Richtung a0..a1 */
+  const zehen=(x,y,a0,a1,l,n)=>{ for(let i=0;i<n;i++){ const a=a0+(a1-a0)*i/(n-1), ex=x+Math.cos(a)*l, ey=y+Math.sin(a)*l;
+      g.strokeStyle=D; g.lineWidth=s*0.075; g.beginPath(); g.moveTo(X(x),Y(y)); g.lineTo(X(ex),Y(ey)); g.stroke();
+      g.strokeStyle=K; g.lineWidth=s*0.04; g.beginPath(); g.moveTo(X(x),Y(y)); g.lineTo(X(ex),Y(ey)); g.stroke();
+      g.strokeStyle=D; g.lineWidth=lw; ell(ex,ey,0.035,0.035,0,K); } };
+  /* Hinterbeine: angewinkelte Schenkel links und rechts, Fuesse nach aussen gespreizt */
+  for(const sx of [-1,1]){ ell(sx*0.4,0.2,0.2,0.3,sx*0.55,Kd); zehen(sx*0.52,0.44,sx>0?-0.25:PI+0.25,sx>0?0.55:PI-0.55,0.17,3); ell(sx*0.47,0.44,0.13,0.06,0,Kd); }
+  /* Koerper mit hellem Bauch */
+  ell(0,0.12,0.36,0.36,0,K); ell(0,0.2,0.22,0.22,0,Hb,true);
+  /* Vorderbeine gerade nach unten, Finger gespreizt */
+  for(const sx of [-1,1]){ g.strokeStyle=D; g.lineWidth=s*0.13; g.beginPath(); g.moveTo(X(sx*0.17),Y(0.16)); g.lineTo(X(sx*0.2),Y(0.44)); g.stroke();
+    g.strokeStyle=K; g.lineWidth=s*0.08; g.beginPath(); g.moveTo(X(sx*0.17),Y(0.16)); g.lineTo(X(sx*0.2),Y(0.44)); g.stroke();
+    zehen(sx*0.2,0.45,PI/2+sx*0.9,PI/2-sx*0.2,0.1,3); }
+  /* breiter, flacher Kopf */
+  ell(0,-0.2,0.44,0.25,0,K);
+  /* Glubschaugen oben auf dem Kopf */
+  for(const sx of [-1,1]){ ell(sx*0.23,-0.4,0.15,0.14,0,K); ell(sx*0.23,-0.41,0.1,0.095,0,'#ffffff',true); ell(sx*0.21,-0.4,0.05,0.06,0,'#111111',true); ell(sx*0.19,-0.43,0.017,0.017,0,'#ffffff',true); }
+  /* Nasenloecher und das breite Froschmaul */
+  g.fillStyle=D; for(const sx of [-1,1]){ g.beginPath(); g.arc(X(sx*0.06),Y(-0.24),s*0.016,0,PI*2); g.fill(); }
+  g.strokeStyle=D; g.lineWidth=lw*1.3; g.beginPath(); g.moveTo(X(-0.33),Y(-0.15)); g.quadraticCurveTo(X(0),Y(-0.02),X(0.33),Y(-0.15)); g.stroke();
+  g.restore(); }
+/* Knallfrosch als Zeichnung: gruenes Zickzack-Paeckchen mit Garn und Zuendschnur */
+function froschPaeckchen(g,x,y,w,h){ const n=6, dh=h/n;
+  g.save(); g.lineJoin='round'; g.strokeStyle='#0d3f14'; g.lineWidth=Math.max(1,h*0.035);
+  for(let i=0;i<n;i++){ g.fillStyle=i%2?'#2f8d35':'#46ad44'; g.beginPath(); g.rect(x,y+i*dh,w,dh*0.98); g.fill(); g.stroke(); }
+  g.fillStyle='#f4f0e2'; g.fillRect(x+w*0.46,y-h*0.02,w*0.08,h*1.04);
+  g.strokeStyle='#5a6a2a'; g.lineWidth=Math.max(1,h*0.05); g.beginPath(); g.moveTo(x+w,y+dh*0.5); g.quadraticCurveTo(x+w*1.25,y-h*0.05,x+w*1.15,y-h*0.25); g.stroke();
+  g.restore(); }
 VP_FORM.knallfrosch=t=>{ const o=G(t), {w,h,d,a,rnd}=o, n=WARE_SPAR_AN?6:10, fw=w*0.84/n, L=d*0.78, nf=WARE_SPAR_AN?5:9, amp=Math.min(0.005,h*0.09), yb=h-0.0035-amp;
-  const FR=[['#d8322a','#ffffff'],['#2f9e57','#ffd23f'],['#2f6fd0','#ffffff']];
   const fen={x:0.07,y:0.12,w:0.86,h:0.66};
-  const R=bogen(o,[{n:'f',w,h,f:(g,W,H)=>{ B(t)(g,W,H); comicFrosch(g,W*0.84,H*0.74,Math.min(W,H)*0.13); }},{n:'b',w,h,f:seite(t)},
-    {n:'s',w:d,h,f:(g,W,H)=>{ g.fillStyle=a.bg2; g.fillRect(0,0,W,H); comicFrosch(g,W/2,H*0.42,Math.min(W,H)*0.26); g.fillStyle=a.ac2; g.fillRect(0,H*0.82,W,H*0.18); nameText(g,'20 STÜCK',W/2,H*0.91,W*0.86,Math.round(H*0.13),FNT.bar,'#fff'); }},
-    {n:'t',w,h:d,f:(g,W,H)=>{ g.fillStyle=a.bg1; g.fillRect(0,0,W,H); g.fillStyle=a.ac2; g.fillRect(0,0,W,H*fen.y); g.fillRect(0,H*(fen.y+fen.h),W,H*(1-fen.y-fen.h));
-      titel(g,t,W*0.42,H*0.9,W*0.7,H*0.15,'#fff','rgba(0,0,0,.6)'); comicFrosch(g,W*0.88,H*0.89,H*0.09);
-      nameText(g,'KLASSE F1 · 20 HÜPFER',W/2,H*0.06,W*0.8,Math.round(H*0.08),FNT.bar,'#fff');
-      loch(g,[{x:W*fen.x,y:H*fen.y,w:W*fen.w,h:H*fen.h}],'#ffd23f'); }},
-    ...FR.map((c,k)=>({n:'fr'+k,w:L,h:fw,f:(g,W,H)=>froschDruck(g,W,H,c[0],c[1],rnd)})),
-    {n:'u',w,h:d,f:flach('#2a2018')}],{alpha:true});
+  const grund=(g,W,H)=>{ const gr=g.createLinearGradient(0,0,0,H); gr.addColorStop(0,'#cdea55'); gr.addColorStop(0.55,'#7cc443'); gr.addColorStop(1,'#2f8d35'); g.fillStyle=gr; g.fillRect(0,0,W,H);
+    /* Seerosenblatt-Tupfen im Hintergrund */
+    g.fillStyle='rgba(255,255,255,.12)'; for(let i=0;i<9;i++){ const r=Math.min(W,H)*(0.05+0.04*(i%3)); g.beginPath(); g.arc(W*((i*0.37)%1),H*((i*0.61)%1),r,0.3,PI*2-0.3); g.lineTo(W*((i*0.37)%1),H*((i*0.61)%1)); g.fill(); } };
+  const R=bogen(o,[{n:'f',w,h,f:(g,W,H)=>{ grund(g,W,H);
+      froschBild(g,W*0.25,H*0.5,H*0.78);
+      nameText(g,a.title,W*0.67,H*0.33,W*0.6,Math.round(H*0.3),FNT.bun,'#ffffff','#0d3f14',Math.max(2,H*0.04));
+      nameText(g,'KNALLFRÖSCHE',W*0.67,H*0.6,W*0.58,Math.round(H*0.17),FNT.bar,'#0d3f14',null);
+      froschPaeckchen(g,W*0.6,H*0.73,W*0.1,H*0.2); nameText(g,'20×',W*0.84,H*0.83,W*0.2,Math.round(H*0.2),FNT.bun,'#ffd23f','#0d3f14',2); }},
+    {n:'b',w,h,f:(g,W,H)=>{ grund(g,W,H); froschPaeckchen(g,W*0.1,H*0.2,W*0.22,H*0.5);
+      nameText(g,'SPRINGT UND KNALLT',W*0.62,H*0.32,W*0.62,Math.round(H*0.15),FNT.bar,'#0d3f14',null);
+      nameText(g,'Auf festem Boden zünden,',W*0.62,H*0.55,W*0.62,Math.round(H*0.11),FNT.bar,'#ffffff',null);
+      nameText(g,'sofort entfernen.',W*0.62,H*0.7,W*0.62,Math.round(H*0.11),FNT.bar,'#ffffff',null); }},
+    {n:'s',w:d,h,f:(g,W,H)=>{ grund(g,W,H); froschBild(g,W/2,H*0.42,H*0.62); g.fillStyle='#0d3f14'; g.fillRect(0,H*0.8,W,H*0.2); nameText(g,'20 STÜCK',W/2,H*0.9,W*0.86,Math.round(H*0.14),FNT.bar,'#ffd23f'); }},
+    {n:'t',w,h:d,f:(g,W,H)=>{ g.fillStyle='#2f8d35'; g.fillRect(0,0,W,H); g.fillStyle='#0d3f14'; g.fillRect(0,0,W,H*fen.y); g.fillStyle='#cdea55'; g.fillRect(0,H*(fen.y+fen.h),W,H*(1-fen.y-fen.h));
+      nameText(g,a.title,W*0.4,H*0.89,W*0.62,Math.round(H*0.15),FNT.bun,'#ffffff','#0d3f14',2); froschBild(g,W*0.86,H*0.89,H*0.19);
+      nameText(g,'20 KNALLFRÖSCHE',W/2,H*0.06,W*0.8,Math.round(H*0.08),FNT.bar,'#cdea55');
+      loch(g,[{x:W*fen.x,y:H*fen.y,w:W*fen.w,h:H*fen.h}],'#cdea55'); }},
+    {n:'fr',w:L,h:fw,f:(g,W,H)=>froschDruck(g,W,H,rnd)},
+    {n:'u',w,h:d,f:flach('#2a2018')}],{alpha:true,ppm:5000});
   dr(o,kiste(w,h,d,{f:R.f,b:R.b,s:R.s,t:R.t,u:R.u}),tm(0,h/2,0));
   einsatz(o,-w/2+0.001,w/2-0.001,0.001,h-0.0015,-d/2+0.001,d/2-0.001,0x2a1a10);
   /* gefalteter Streifen: Zickzack laengs z, Oberseite bedruckt */
@@ -355,10 +413,11 @@ VP_FORM.knallfrosch=t=>{ const o=G(t), {w,h,d,a,rnd}=o, n=WARE_SPAR_AN?6:10, fw=
     for(let i=0;i<nf;i++){ const b=2*i; idx.push(b,b+3,b+1,b,b+2,b+3); }
     const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3)); g.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2)); g.setIndex(idx); g.computeVertexNormals(); return g; };
   box(o,w*0.96,0.003,d*0.96,0,yb-0.004,0,0x2a1a10);
-  for(let i=0;i<n;i++){ const x=-w*0.42+fw*(i+0.5), dz=(rnd()-0.5)*0.004, k=i%3;
-    dr(o,zick(),tm(x,yb,dz,0,(rnd()-0.5)*0.06,0),R['fr'+k]);
-    if(!WARE_SPAR_AN) box(o,fw*0.92,amp+0.0016,0.004,x,yb+amp/2,dz,0xf4f0e6);
-    zyl(o,0.0009,0.0009,0.008,4,x,yb+amp*0.3,dz+L/2+0.003,0x2e8b3a,PI/2,0,0); }
+  for(let i=0;i<n;i++){ const x=-w*0.42+fw*(i+0.5), dz=(rnd()-0.5)*0.004;
+    dr(o,zick(),tm(x,yb,dz,0,(rnd()-0.5)*0.06,0),R.fr);
+    /* weisses Garn um die Mitte */
+    if(!WARE_SPAR_AN) box(o,fw*0.92,amp+0.0016,0.003,x,yb+amp/2,dz,0xf4f0e2);
+    zyl(o,0.0009,0.0009,0.008,4,x,yb+amp*0.3,dz+L/2+0.003,0x6a7a2e,PI/2,0,0); }
   /* Klarsichtfolie im Fenster */
   fol(o,new THREE.PlaneGeometry(w*fen.w,d*fen.h),tm(0,h-0.0006,-d/2+d*(fen.y+fen.h/2),-PI/2,0,0));
   return fertig(o); };
@@ -483,16 +542,39 @@ VP_FORM.tischbombe=t=>{ const o=G(t), {w,h,d,a,rnd}=o, Rr=w/2*0.86, Hb=h*0.8, y0
   torus(o,0.0055,0.0016,0,y0+Hb*0.69,Rr+0.003,ROT,0,0,0,12);
   return fertig(o); };
 
-/* Feuerteufel: Vierkantschachtel mit roter Hoernerkappe */
-VP_FORM.feuerteufel=t=>{ const o=G(t), {w,h,d,a}=o, bw=w*0.84, bh=h*0.78;
-  const R=bogen(o,[{n:'f',w:bw,h:bh,f:B(t)},{n:'b',w:bw,h:bh,f:B(t)},{n:'s',w:bw,h:bh,f:seite(t)},{n:'t',w:bw,h:bw,f:flach(a.bg2)}]);
-  dr(o,kiste(bw,bh,bw,R),tm(0,bh/2,0));
-  const kh=h*0.07; zyl(o,bw*0.62,bw*0.735,kh,4,0,bh+kh/2,0,0xb01a0a,0,PI/4,0);
-  const hl=h*0.14;
-  for(const s of [-1,1]){ zyl(o,0.0015,0.0105,hl,10,s*bw*0.3+s*Math.sin(0.4)*hl/2,bh+kh+Math.cos(0.4)*hl/2-0.004,0,0xd8322a,0,0,-s*0.4);
-    kugel(o,0.0108,s*bw*0.3,bh+kh-0.002,0,0x8a1408,1,0.6,1); }
-  zyl(o,0.0016,0.0016,h*0.06,4,0,bh+kh+h*0.03,0,0x2e8b3a);
-  for(const s of [-1,1]) kugel(o,0.006,s*bw*0.18,bh+kh*0.55,bw*0.34,0xffd23f,1,0.7,0.5,8,5);
+/* Feuerteufel (06.10., Toms PDF: "Verpackung/Form passt nicht ... die
+   Fontaene soll aus zwei Loechern oben nach links und rechts kommen ...
+   der Effekt soll aus diesen Loechern rauskommen"): runde Papphuelse mit
+   Teufelsdruck, oben eine schwarze Kappe mit zwei schraegen Duesen wie
+   Hoerner - eine nach links, eine nach rechts (FT_DUESE, ausserhalb des
+   Blocks: 14k hoerner setzt die Funken genau in die Muendungen). Vorbild:
+   Doppel- bzw. Zweistrahl-Fontaenen; jede Duese hat ihre eigene
+   Lehmpfropf-Oeffnung, die man von vorn als dunkles Loch sieht. */
+VP_FORM.feuerteufel=t=>{ const o=G(t), {w,h,d,a}=o, D=FT_DUESE, Rb=d/2*0.96, Hb=D.fussY-0.02;
+  const teufel=(g,W,H)=>{ B(t)(g,W,H);
+    /* Teufelsgesicht vorn: Hoerner, schraege Augen, Grinsen */
+    const cx=W*0.25, cy=H*0.3, r=Math.min(W*0.1,H*0.13);
+    g.fillStyle='#c81c0c'; g.beginPath(); g.arc(cx,cy,r,0,PI*2); g.fill();
+    for(const s of [-1,1]){ g.beginPath(); g.moveTo(cx+s*r*0.55,cy-r*0.7); g.quadraticCurveTo(cx+s*r*1.25,cy-r*1.1,cx+s*r*1.15,cy-r*1.75); g.quadraticCurveTo(cx+s*r*0.9,cy-r*1.1,cx+s*r*0.2,cy-r*0.9); g.fill();
+      g.fillStyle='#ffd23f'; g.beginPath(); g.moveTo(cx+s*r*0.15,cy-r*0.25); g.lineTo(cx+s*r*0.6,cy-r*0.4); g.lineTo(cx+s*r*0.5,cy-r*0.05); g.closePath(); g.fill(); g.fillStyle='#c81c0c'; }
+    g.strokeStyle='#ffd23f'; g.lineWidth=Math.max(1,r*0.12); g.beginPath(); g.arc(cx,cy+r*0.1,r*0.55,0.15*PI,0.85*PI); g.stroke(); };
+  const R=bogen(o,[{n:'m',w:2*PI*Rb,h:Hb,f:zweimal(teufel)}]);
+  mantel(o,Rb,Rb,Hb,0,'m',28);
+  zyl(o,Rb*1.01,Rb*1.01,0.004,24,0,0.002,0,0x1d1f24);
+  /* Kappe: schwarzer Kunststoff, oben gewoelbt, darauf der Duesenkopf */
+  zyl(o,Rb*1.02,Rb*1.02,0.012,24,0,Hb+0.006,0,0x1b1b1e);
+  kugel(o,Rb*0.92,0,Hb+0.012,0,0x24221f,1,0.32,1,20,8);
+  const sn=Math.sin(D.neig*PI/180), cs=Math.cos(D.neig*PI/180);
+  for(const s of [-1,1]){
+    /* Duese: rote Pappduese, leicht verjuengt, Fuss im Kopf versenkt */
+    const fx=s*D.fussX, fy=D.fussY, mx=fx+s*sn*D.len, my=fy+cs*D.len;
+    zyl(o,D.r1,D.r0,D.len+0.008,14,(fx+mx)/2-s*sn*0.004,(fy+my)/2-cs*0.004,0,0xa8180c,0,0,-s*D.neig*PI/180);
+    /* zwei schwarze Ringe wie auf einer echten Duese */
+    for(const k of [0.35,0.7]){ const rr=D.r0+(D.r1-D.r0)*k+0.0006; zyl(o,rr,rr,0.002,14,fx+s*sn*D.len*k,fy+cs*D.len*k,0,0x141414,0,0,-s*D.neig*PI/180); }
+    /* Muendung: dunkles Loch (Lehmpfropf mit Bohrung), senkrecht zur Duesenachse */
+    zyl(o,D.r1*0.62,D.r1*0.62,0.0012,12,mx+s*sn*0.0002,my+cs*0.0002,0,0x050505,0,0,-s*D.neig*PI/180); }
+  /* Zuendschnur seitlich aus der Kappe */
+  zyl(o,0.0014,0.0014,0.04,5,Rb*0.2,Hb+0.03,Rb*0.75,0x2e8b3a,-0.6,0,0);
   return fertig(o); };
 
 /* Feuerkreis: achteckige Schachtel, im Deckel ein rundes Fenster auf

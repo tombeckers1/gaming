@@ -2,6 +2,8 @@
    fluessig, auf niedriger Grafikstufe weniger Partikel"). Nachts auf dem
    Zuendtisch: Stakkato 100 (rb100) mit Modell, Rauchwoelkchen und
    Nachrauch, einmal auf Grafikstufe hoch, einmal auf niedrig.
+   (06.10.: alle Rohrbatterien rb* sind raus - jetzt das Grosse
+   Kreuzfeuer mit 90 Schuss)
    Gemessen je Bild: Spiellogik (step) und Zeichnen, lebende Partikel,
    Rauch-Sprites, neue Shader.
    - RUCKLER: kein Einzelbild ueber dem doppelten Median
@@ -30,11 +32,11 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     const T=bb.STATION_POS.tisch; bb.setView(T.x,T.z+9,0,0.55);
     /* Logik in jedem Bild (15/s), gezeichnet jedes dritte (Software-Grafik im Test ist langsam) */
     let zaehl=0; const bild=()=>{ const t0=performance.now(); bb.step(1/15); const t1=performance.now(); if(zaehl++%3) return [t1-t0,null]; bb.renderFrame(1/15); gl.readPixels(0,0,1,1,gl.RGBA,gl.UNSIGNED_BYTE,px); return [t1-t0,performance.now()-t1]; };
-    bb.S.carrying={type:'rbfaecher',count:1,q:1}; bb.placeOnStation(bb.stations.tisch); bb.S.carrying=null;
+    bb.S.carrying={type:'kreuzfeuer90',count:1,q:1}; bb.placeOnStation(bb.stations.tisch); bb.S.carrying=null;
     for(let i=0;i<10;i++) bild();
     const prog0=R.info.programs.length, it=bb.stations.tisch.items[0];
     bb.zuendeKanal(it.kanal);
-    const n=Math.ceil((bb.brennDauer('rbfaecher')+0.5)*15), fr=[]; let teile=0, wolken=0;
+    const n=Math.ceil((bb.brennDauer('kreuzfeuer90')+0.5)*15), fr=[]; let teile=0, wolken=0;
     for(let i=0;i<n;i++){ fr.push(bild()); if(i%95===0) console.log('bild',st,i,n);
       if(i%3===0){ let c=0; for(const ps of [bb.psHuge,bb.psBig,bb.psMid,bb.psSmall]) for(let k=0;k<ps.max;k++) if(ps.life[k]>0) c++; teile=Math.max(teile,c); wolken=Math.max(wolken,bb.WOLKEN.reduce((a,w)=>a+w.teile.length,0)); } }
     const s=a=>{ const x=a.slice().sort((u,v)=>u-v); return {mittel:+(a.reduce((u,v)=>u+v,0)/a.length).toFixed(2),p50:+x[Math.floor(x.length/2)].toFixed(1),max:+x[x.length-1].toFixed(1)}; };

@@ -330,17 +330,28 @@ NEU_EMIT.torte=(e,dt,o)=>{
 /* hoerner (Feuerteufel): zwei Strahlen aus einer Duese, +/- spreiz Grad
    quer zum Blick; Kohlefunken, die zur Spitze rot abkuehlen.
    28.09., Tom: echt - die roten Flammenzungen an den Hornspitzen (Leucht-
-   baelle in der Luft) sind weg; die Flamme brennt an der Duese. */
+   baelle in der Luft) sind weg; die Flamme brennt an der Duese.
+   06.10. (Toms PDF: "die Fontaene soll aus zwei Loechern oben nach links
+   und rechts kommen ... der Effekt soll aus diesen Loechern rauskommen"):
+   Mit duesenKopf:'ft' hat das Produkt zwei schraege Duesen (FT_DUESE,
+   04g). Jeder Strahl, seine Flamme und sein Rauch sitzen in der Muendung
+   seiner Duese und folgen ihrer Achse - die Hoerner koennen sich nicht
+   mehr spreizen, sie wachsen nur (hm). */
 NEU_EMIT.hoerner=(e,dt,o)=>{
   const ph=e.ph, Z=fkZ(e), q=QUAL(), st=e.staerke, h=Math.max(0.2,e.hAkt||1.5);
-  const ziel=(ph.spreiz||0)*Math.PI/180; if(Z.sp===undefined) Z.sp=ziel; Z.sp+=(ziel-Z.sp)*Math.min(1,dt*5.5);
+  const M=ph.duesenKopf==='ft'&&typeof ftMuendungen==='function'?ftMuendungen(o,e.prod):null;
+  const ziel=(M?FT_DUESE.neig:(ph.spreiz||0))*Math.PI/180; if(Z.sp===undefined) Z.sp=ziel; Z.sp+=(ziel-Z.sp)*Math.min(1,dt*5.5);
   fkKlang(e,o,dt);
-  e.kohleB=e.B; const p={x:o.x,y:o.y+0.03,z:o.z};
+  e.kohleB=e.B;
   Z.spitzen=Z.spitzen||[];
-  fkFlamme(e,dt,o,null,0.9);
+  if(M){ const sr=e.spielraum; e.spielraum=FT_DUESE.r1*0.9;
+    for(const m of M) fkFlamme(e,dt,{x:m.x,y:m.y-0.012,z:m.z},null,0.55,m.s<0?'flL':'flR');
+    e.spielraum=sr; }
+  else fkFlamme(e,dt,o,null,0.9);
   const tAh=fkTA(fkV0(h,6),6); if(Z.hg===undefined) Z.hg=h; Z.hg+=(h-Z.hg)*Math.min(1,dt/Math.max(0.2,tAh));
-  for(const s of [-1,1]){ const a=Z.sp*s, d=[Math.sin(a),Math.cos(a),0];
-    fkStrahl(e,dt,p,d,h,0.06,190*q*st,ph.funke||'kohle',e.A,e.B,ph.mischB||0,s<0?'hL':'hR',0.3);
+  for(const s of [-1,1]){ const m=M?M[s<0?0:1]:null, a=Z.sp*s, d=m?m.d:[Math.sin(a),Math.cos(a),0], p=m?{x:m.x,y:m.y,z:m.z}:{x:o.x,y:o.y+0.03,z:o.z};
+    /* aus der engen Duese: schmaler Kegel (0,05 statt 0,06 rad) */
+    fkStrahl(e,dt,p,d,h,m?0.05:0.06,190*q*st,ph.funke||'kohle',e.A,e.B,ph.mischB||0,s<0?'hL':'hR',0.3);
     /* Spitze = Gipfel der Bahn eines mittleren Funkens (fuers Lachen) */
     const w=fkV0(Z.hg,6)/Math.max(0.35,d[1])*0.93, tA=fkTA(w*d[1],6), sp=bahnOrt(p,[d[0]*w,d[1]*w,0],6,tA); Z.spitzen[s<0?0:1]={x:sp.x,y:sp.y,z:o.z}; }
   fkRauch(e,dt,o,h,0.8);
@@ -976,11 +987,13 @@ Object.assign(FONT,{
      Spitze rot abkuehlen; zum Schluss lacht er (Glut: Orange/Rot). 28.09.,
      Tom: echt - kaum reinrote Funken (mischB 0,3-0,4 -> 0,1): sie standen
      als rote Punkte um die Hoerner; rot wird ein Funke erst beim Abkuehlen */
-  feuerteufel:{phasen:[
-    {k:'hoerner',t:1.5,hm:0.3,spreiz:0,funke:'kohle',A:'orange',B:'rot',ton:'zischen'},
-    {k:'hoerner',t:5.0,hm:1.5,spreiz:25,funke:'kohle',A:'gold',B:'rot',mischB:0.08,ton:'fauchen'},
-    {k:'hoerner',t:2.0,hm:1.8,spreiz:40,funke:'kohle',A:'orange',B:'rot',mischB:0.12,ton:'fauchen'},
-    {k:'hoerner',t:0.5,hm:1.8,spreiz:40,funke:'kohle',A:'orange',B:'rot',mischB:0.12,ende:'teufelslachen'}]},
+  /* 06.10. (Toms PDF): zwei schraege Duesen (duesenKopf 'ft', Form 04g) -
+     die Hoerner kommen aus ihren Muendungen und wachsen, statt sich zu spreizen */
+  feuerteufel:{duesenKopf:'ft',phasen:[
+    {k:'hoerner',t:1.5,hm:0.3,funke:'kohle',A:'orange',B:'rot',ton:'zischen'},
+    {k:'hoerner',t:5.0,hm:1.5,funke:'kohle',A:'gold',B:'rot',mischB:0.08,ton:'fauchen'},
+    {k:'hoerner',t:2.0,hm:1.8,funke:'kohle',A:'orange',B:'rot',mischB:0.12,ton:'fauchen'},
+    {k:'hoerner',t:0.5,hm:1.8,funke:'kohle',A:'orange',B:'rot',mischB:0.12,ende:'teufelslachen'}]},
   /* Gummibaerchen (L4): vier kleine Silberfontaenen, eine nach der anderen,
      mit roten bzw. gruenen Perlen; zum Schluss alle vier und ein Schauer */
   leuchtfontaene:{phasen:[

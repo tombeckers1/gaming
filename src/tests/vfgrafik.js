@@ -59,7 +59,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     pruef('STUFE_'+k[i],c.knopf&&c.px>=a.px&&c.schatten>=a.schatten&&c.ms>=a.ms&&c.blur<=a.blur&&c.qual>a.qual&&(c.px>a.px||c.schatten>a.schatten||c.ms>a.ms||c.blur<a.blur),JSON.stringify([a,c])); }
   pruef('PIXEL',st.ultra.px>=2&&st.extrem.px>=2.5,'Supersampling fehlt: '+JSON.stringify(st));
   /* Laden mit Ultra Extrem: groessere Puffer und Texturen */
-  const groesse=async()=>p.evaluate(()=>{ const bb=__bb, t='batterie49'; const pl=bb.pools[t]; let w=0; bb.scene.traverse(()=>{});
+  const groesse=async()=>p.evaluate(()=>{ const bb=__bb, t='knatter'; const pl=bb.pools[t]; let w=0; bb.scene.traverse(()=>{});
     const parts=bb.buildProduct(t); let mx=0; for(const q of parts){ const m=q.mat||q.material||q[1]; const mp=m&&m.map; if(mp&&mp.image) mx=Math.max(mx,mp.image.width||0); }
     return {psBig:bb.psBig.max,tex:mx,start:bb.GFX_START.tex}; });
   const g1=await groesse();

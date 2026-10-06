@@ -47,9 +47,18 @@ function rkHoeheZiel(t,L){
 const KG_HOEHE=[86,87,88,89,90], KG_STEIG=[2.9,3.0,3.1,3.2,3.35];
 /* Raeumlicher Massstab des Bruchs je Kaliber (Vorgabe) und je Sorte
    (gemessen: Durchmesser vorher -> Ziel 62/72/86/100/118 m) */
-const KG_RAUM_KAL=[2.0,1.8,1.6,1.55,1.5], KG_RAUM={};
-const KG_DURCHM=[62,72,86,100,118];
-function kgRaum(k){ const K4=Math.max(1,Math.min(5,k.kal|0)); return k.raum||KG_RAUM[k.haupt]||KG_RAUM_KAL[K4-1]; }
+const KG_RAUM_KAL=[2.0,1.8,1.6,1.55,1.5];
+/* Je Sorte: Ziel-Durchmesser 70/80/92/105/120 m (75...300 mm) geteilt
+   durch den gemessenen Durchmesser vorher (90 % der Sterne, Vorfuehrung,
+   06.10.) - so waechst die Groesse mit dem Kaliber, nicht mit der Laune
+   des Bruchbilds. Die Kaiserkrone (L26) war schon gross (92 m). */
+const KG_RAUM={kugel75:2.7,palmenkugel75:2.7,farbenmeer75:2.0,
+  goldbrokat100:1.85,kugel100:1.45,goldweide100:2.15,kristallkugel100:2.0,
+  kugel150:1.6,crossettennetz150:2.3,tigerkrone150:1.4,farbcrossette150:2.25,sternkugel150:1.85,sternenstaub150:1.8,
+  weidenkoenig200:1.7,kronenkranz200:1.55,zwillingssonne200:1.5,blitzpalme200:2.0,goldweidenkreuz200:1.95,feuerlilie200:1.9,goldkrone200:2.2,kugel200:1.7,
+  kugel300:2.0,kanonade300:2.8,sternensturm300:2.2,kronenregen300:2.25,dreifachkrone300:2.15,crossettenweide300:1.6,kaiserkrone:1.3};
+for(const id of Object.keys(KG_RAUM)) if(KUGEL[id]) KUGEL[id].raum=KG_RAUM[id];
+function kgRaum(k){ const K4=Math.max(1,Math.min(5,k.kal|0)); return k.raum||KG_RAUM_KAL[K4-1]; }
 { const ks=kugelSorte;
   kugelSorte=function(o,k){
     const K4=Math.max(1,Math.min(5,k.kal|0)), zuend=KG_STEIG[K4-1], z0=zuend/KUGEL_ZUEND;
@@ -98,8 +107,20 @@ function mitRaum(R,fn){ const a=FW_RAUM; FW_RAUM=R; try{ return fn(); } finally 
     const s=fu(ps,x,y,z,vx,vy,vz,c,life,(s,dt)=>{ auf(s); let r; try{ r=mitRaum(R,()=>fn(s,dt)); } finally { ab(s); } return r; },o2);
     ab(s); return s;
   }; }
+/* Raketen: ihr Bruch liegt jetzt gut doppelt so weit weg wie vorher
+   (20 m -> 38-68 m) und wuerde vom Pult aus nur noch halb so gross
+   wirken - er wird um 1,45 gestreckt (Sternzahl gleich). Die schon
+   grossen (Hakenschlag, Mondfinsternis, Supernova: 40-50 m Durchmesser)
+   weniger, damit keine Rakete an eine Kugel heranreicht. Gilt nur fuer
+   die Raketenbrueche selbst (eigene Bruchbilder, die keine Batterie
+   nutzt: steigerung.js EXKLUSIV); der Fallschirm haengt an einem Modell
+   und bleibt, wie er ist. */
+const RK_RAUM={raketen:1.25,silbermond:1.25,supernova:1.15,jumboleiter:1.3,faecherweide:1.3}, RK_RAUM_EFF={};
+for(const t of Object.keys(RAKETEN_KL)){ const k=RAKETEN_KL[t], p=P[t]||(typeof NEUWARE!=='undefined'?NEUWARE[t]:null);
+  if(!p||p.shape!=='rocketset'||!k.eff) continue;
+  for(const e of k.eff) if(e!=='fallschirm') RK_RAUM_EFF[e]=RK_RAUM[t]||1.45; }
 { const fb=fwBurst;
-  fwBurst=function(r){ const f=r&&r.raum; if(!f||FW_RAUM) return fb(r);
+  fwBurst=function(r){ const f=r&&(r.raum||(!r.kugel&&!r.fein&&!r.stufe&&RK_RAUM_EFF[r.eff])); if(!f||FW_RAUM) return fb(r);
     return mitRaum({p:[r.p.x,r.p.y,r.p.z],f},()=>fb(r)); }; }
 
 /* ---------- Finale Grande: die fuenf Mehrschlagbomben ----------
@@ -125,7 +146,14 @@ if(SHOWS.kugelfinale){ const alt=SHOWS.kugelfinale;
    Flugrichtung, die Kugel ohne Schnur) und ist mit dem Bruch weg. Der
    Blick beginnt am Rohr - man sieht die Zuendschnur brennen - und folgt
    dem Aufstieg bis zum Bruch; wer die Maus bewegt, uebernimmt. */
+/* Der Blick gehoert der juengsten Zuendung; Blickwinkel der Kamera
+   (Zoom aufs Rohr) kommt danach immer auf den Normalwert zurueck */
+let vfBlickE=null, VF_FOV0=null;
+const VF_FOV_NAH=16;
+function vfBlickFrei(e){ if(e&&e!==vfBlickE) return; if(vfBlickE) vfBlickE.cam.an=false; vfBlickE=null;
+  if(VF_FOV0!==null&&camera.fov!==VF_FOV0){ camera.fov=VF_FOV0; camera.updateProjectionMatrix(); } }
 function vfImRohr(t,o){
+  vfBlickFrei();
   const p=P[t]; if(!p) return null;
   let g=null, kugel=null;
   if(o.sid==='rampe'&&p.shape==='rocketset'&&t!=='gravur'){ g=raketeModell(t); g.position.set(o.x,o.y-0.01,o.z); }
@@ -134,11 +162,14 @@ function vfImRohr(t,o){
   g.userData.vfModell=t; scene.add(g);
   const e={t:30,k:'vfModell',o:{x:o.x,y:o.y,z:o.z},ab:o.ab||0,g,kugel,sid:o.sid,alter:0,r:null,fertig:false,
     cam:{an:true,letzt:null}};
-  e.weg=()=>{ if(g.parent) g.parent.remove(g); e.fertig=true; e.t=0; };
-  emitters.push(e); vfAufraeumen.push(e.weg);
+  e.weg=()=>{ if(g.parent) g.parent.remove(g); e.fertig=true; e.t=0; vfBlickFrei(e); };
+  if(VF_FOV0===null) VF_FOV0=camera.fov;
+  vfBlickE=e; emitters.push(e); vfAufraeumen.push(e.weg);
   return e;
 }
-const _vfQ=new THREE.Quaternion(), _vfY=new THREE.Vector3(0,1,0), _vfD=new THREE.Vector3();
+/* beim Beenden der Vorfuehrung gehoert der Blick wieder dem Spieler */
+{ const aus=vorfuehrungAus; vorfuehrungAus=function(){ vfBlickFrei(); return aus.apply(this,arguments); }; }
+const _vfY=new THREE.Vector3(0,1,0), _vfD=new THREE.Vector3();
 /* Hoehenwinkel vom Auge zu einem Punkt */
 function vfHoehenWinkel(x,y,z){ const c=camera.position; return Math.atan2(y-c.y,Math.hypot(x-c.x,z-c.z)); }
 NEU_EMIT.vfModell=function(e,dt,o){
@@ -155,12 +186,20 @@ NEU_EMIT.vfModell=function(e,dt,o){
     e.g.position.set(r.p.x,r.p.y,r.p.z);
     if(!e.kugel){ _vfD.set(r.v.x,r.v.y,r.v.z); if(_vfD.lengthSq()>0.01){ _vfD.normalize(); e.g.quaternion.setFromUnitVectors(_vfY,_vfD); } } }
   /* Blick: erst aufs Rohr, dann mit dem Aufstieg nach oben */
-  const c=e.cam; if(!c.an||typeof pitch==='undefined') return;
-  if(c.letzt!==null&&Math.abs(pitch-c.letzt)>0.02){ c.an=false; return; }
-  const unten=vfHoehenWinkel(o.x,o.y,o.z)+0.42;
-  /* der Bruch soll ganz ins Bild: die Kugel (doppelt so gross) steht hoeher im Bild */
-  const ziel=r?Math.max(unten,vfHoehenWinkel(r.p.x,r.p.y,r.p.z)-(e.kugel?0.12:0.3)):unten;
-  pitch=c.letzt===null?unten:pitch+(ziel-pitch)*(1-Math.exp(-dt*3.2)); pitch=clamp(pitch,-1.4,1.4); c.letzt=pitch;
+  const c=e.cam; if(!c.an||vfBlickE!==e||typeof pitch==='undefined') return;
+  if(!vfAn){ vfBlickFrei(e); return; }
+  if(c.letzt!==null&&Math.abs(pitch-c.letzt)>0.02){ vfBlickFrei(e); return; }
+  /* vor dem Start: nah aufs Rohr gezoomt (16 Grad), die Rakete steht im
+     Bild, die Zuendschnur brennt; mit dem Start zoomt der Blick auf und
+     folgt nach oben - der Bruch soll ganz ins Bild, die Kugel (doppelt so
+     gross) steht hoeher im Bild */
+  const rohr=vfHoehenWinkel(o.x,o.y+0.12,o.z);
+  const ziel=r?Math.max(rohr+0.42,vfHoehenWinkel(r.p.x,r.p.y,r.p.z)-(e.kugel?0.12:0.3)):rohr;
+  const fov=r?VF_FOV0:VF_FOV_NAH, k=1-Math.exp(-dt*3.2);
+  if(c.letzt===null){ pitch=ziel; camera.fov=fov; }
+  else { pitch+=(ziel-pitch)*k; camera.fov+=(fov-camera.fov)*(r?1-Math.exp(-dt*2.2):k); }
+  camera.updateProjectionMatrix();
+  pitch=clamp(pitch,-1.4,1.4); c.letzt=pitch;
 };
 
 /* ---------- Smaragd (Rakete, L15): Achtblatt neu ----------
@@ -175,19 +214,19 @@ NEU_EMIT.vfModell=function(e,dt,o){
    Glitzerkern (die Facetten). Zum Schluss funkeln die Blattspitzen golden
    auf und rieseln. Eine Farbfamilie: Smaragdgruen, Mint, ein Hauch Gold. */
 EFF.smaragdkrone=function(p,A,B,s){
-  const q=QUAL(), smaragd=[0.1,1,0.42], mint=FW.mint, G=2.3, T=2.1;
+  const q=QUAL(), smaragd=[0.1,1,0.42], mint=FW.mint, G=2.3, T=2.4;
   /* acht Blaetter */
-  nRing(p,8,8.6*s,(v,i)=>{ const c=i%2?kgMal(smaragd,1.45):kgMal(mint,1.25);
-    nKomet(p,v,c,T,G,[0.55,1,0.5],46,{life:[0.6,1.1],g:1.6});
+  nRing(p,8,8.6*s,(v,i)=>{ const c=i%2?kgMal(smaragd,1.5):kgMal(mint,1.3);
+    nKomet(p,v,c,T,G,[0.5,1,0.55],70,{life:[0.7,1.3],g:1.6});
     kgSpaeter(T*0.97,()=>{ const e=sternNach(p,v[0],v[1],v[2],G,T*0.97), a=SCHWEIF; SCHWEIF=0.02;
       for(let k=0;k<Math.round(9*q);k++){ const d=randDir(), w=rand(0.6,1.6); psMid.emit(e.x,e.y,e.z,d[0]*w,d[1]*w-0.4,d[2]*w,1.15,.95,.5,rand(0.9,1.5),1.1,4); }
       SCHWEIF=a; }); },0.4);
   /* gruene Chrysantheme zwischen den Blaettern */
-  nKugel(Math.round(46*q),6.2*s,(v,i)=>kgStern(psBig,p,v,i%3?kgMal(smaragd,1.2):kgMal(mint,1.1),rand(1.6,2.1),2.0,0,0.32));
+  nKugel(Math.round(56*q),6.2*s,(v,i)=>kgStern(psBig,p,v,i%3?kgMal(smaragd,1.35):kgMal(mint,1.2),rand(2.1,2.7),2.0,0,0.45));
   /* Glitzerkern: die Facetten funkeln */
-  nKugel(Math.round(40*q),2.3*s,v=>kgStern(psMid,p,v,[1.25,1.15,0.8],rand(1.1,1.6),0.9,4,0.03));
+  nKugel(Math.round(60*q),2.6*s,v=>kgStern(psMid,p,v,[1.3,1.2,0.85],rand(1.4,2.0),0.9,4,0.03));
   schall(p,v=>{ sfx.plopp(v*0.45,1); later(0.25,()=>sfx.rieseln(v*0.55,2.4)); });
 };
-EFF_SCHWEIF.smaragdkrone=0.32; EFF_FAMILIE.smaragdkrone='kugel';
+EFF_SCHWEIF.smaragdkrone=0.45; EFF_FAMILIE.smaragdkrone='kugel'; RK_RAUM_EFF.smaragdkrone=1.45;
 if(RAKETEN_KL.smaragd) RAKETEN_KL.smaragd.eff=['smaragdkrone'];
 SIGNATUR.smaragd={eff:'smaragdkrone',steig:'farbkomet',text:'Acht smaragdgruene Kometenblaetter um einen funkelnden Glitzerkern - geschliffen wie ein Smaragd.'};

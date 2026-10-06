@@ -254,7 +254,7 @@ function vfZuendenRoh(t){
   /* Wunderkerzen: Mini-Podest statt Verpackung (03.10., Tom; 14q) */
   else if(o.sid==='tisch'&&typeof kqPodestAuf==='function'&&(pg=kqPodestAuf(t,{x:o.x,y:o.boden,z:o.z}))) scene.add(pg);
   else if(o.sid==='tisch'&&stationsPool(t)&&!stationsPool(t).full()) h=stationsPool(t).add(mx(o.x,o.boden,o.z,Math.PI));
-  if(o.sid!=='tisch'&&typeof vfImRohr==='function') vfImRohr(t,o);
+  if(typeof vfImRohr==='function') vfImRohr(t,o);
   if(vor){ emitters.push({t:vor,k:'fuse',o:{x:o.x,y:o.y,z:o.z}}); sfx.fizz(distVol(o)*0.5); }
   later(vor,()=>{ if(vfAn) igniteType(t,o); });
   /* der Blick folgt dem Produkt: zur Seite auf seinen Platz, nach oben so

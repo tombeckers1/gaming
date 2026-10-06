@@ -40,7 +40,9 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
       for(let s=0;s<D;s+=0.1){ bb.run(0.1,0.05); let n=0; PS.forEach(ps=>n+=ps.n||0); maxN=Math.max(maxN,n);
         if(!br) br=log.brueche.find(x=>!x.stufe)||null;
         if(br&&bb.fwUhr-br.t>0.3&&bb.fwUhr-br.t<4.5){ const d=[];
-          for(const ps of PS) for(let k=0;k<ps.max;k++){ if(ps.life[k]<=0) continue; const j=k*3; if(Math.max(ps.col[j],ps.col[j+1],ps.col[j+2])<0.12) continue;
+          for(const ps of PS) for(let k=0;k<ps.max;k++){ if(ps.life[k]<=0) continue; const j=k*3;
+            /* Helligkeit ohne Flackern/Blinken: Grundfarbe mal Restbrenndauer */
+            if(Math.max(ps.base[j],ps.base[j+1],ps.base[j+2])*ps.life[k]/ps.maxl[k]<0.12) continue;
             const y=ps.pos[j+1]; if(y<br.y*0.55) continue; d.push(Math.hypot(ps.pos[j]-br.x,y-br.y,ps.pos[j+2]-br.z)); }
           if(d.length>30){ d.sort((a,c)=>a-c); rad=Math.max(rad,d[Math.floor(d.length*0.9)]); } } }
       bb.fwLog(null);

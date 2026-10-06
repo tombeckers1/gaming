@@ -76,8 +76,9 @@ function kartonInhaltZeigen(n){
 /* Haltung: unten mittig, etwas zum Spieler gekippt - man sieht hinein */
 function kartonHaltung(dt){
   const g=KH.g, st=KH.stoss;
-  g.position.set(0.02,-0.5+st*0.04,-0.78-st*0.06);
-  g.rotation.set(0.62-KH.auf*0.12,0,0);
+  g.position.set(0.02,-0.37+st*0.03,-0.74-st*0.05);
+  /* zu: leicht gedreht, man sieht den Aufdruck; offen: zum Spieler gekippt */
+  g.rotation.set(0.22+KH.auf*0.5,-0.22*(1-KH.auf),0);
   g.scale.setScalar(0.9);
 }
 function kartonOeffnen(an){

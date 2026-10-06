@@ -102,9 +102,12 @@ let FW_RAUM=null;
    Batterien, die Raketen vom Pult aus) aendert sich nichts. Funken und
    Glitzer (psMid, psSmall) bleiben fein. */
 function sternMindestPx(m,px){ m.onBeforeCompile=sh=>{ sh.vertexShader=sh.vertexShader.replace('#include <fog_vertex>','gl_PointSize = max( gl_PointSize, '+px.toFixed(1)+' );\n#include <fog_vertex>'); }; m.needsUpdate=true; }
+/* gleich beim Anlegen (psBig 0,42 m, psHuge 0,95 m): so kennt shaderVorab den
+   Shader schon - erst beim ersten Stern gesetzt, wurde er mitten im Feuerwerk
+   neu uebersetzt (leistung.js SHADER, 06.10.) */
+{ const PS0=PS; PS=class extends PS0{ constructor(max,size,seg,map){ super(max,size,seg,map); if(size>=0.4&&this.pts&&this.pts.material) sternMindestPx(this.pts.material,2.4); } }; }
 { const em=PS.prototype.emit;
   PS.prototype.emit=function(x,y,z,vx,vy,vz,r,g,b,life,grav,mode,r2,g2,b2){
-    if(!this._mpx){ this._mpx=1; if((this===psBig||this===psHuge)&&this.pts&&this.pts.material) sternMindestPx(this.pts.material,2.4); }
     const R=FW_RAUM;
     if(R&&R.f!==1){ const f=R.f, p=R.p; x=p[0]+(x-p[0])*f; y=p[1]+(y-p[1])*f; z=p[2]+(z-p[2])*f; vx*=f; vy*=f; vz*=f; if(grav) grav*=f; }
     return em.call(this,x,y,z,vx,vy,vz,r,g,b,life,grav,mode,r2,g2,b2);

@@ -333,6 +333,7 @@ function promptFor(t){
       if(c){ if(lv.type&&lv.type!==c.type) return {t:`Fach mit ${P[lv.type].short}`,a:false};
         if(!shelfAccepts(lv.sh,c.type)) return {t:P[c.type].kasse==='nur'?'Passt nicht ins Regal – gehört ins Kassenregal':kindOf(lv.sh).kasse?'Passt nicht ins Kassenregal – nur Kleinkram':'Passt nicht in dieses Regal',a:false};
         const cp=capOf(lv,c.type); if(!cp) return {t:'Produkt passt nicht ins Regal',a:false}; if(lv.count>=cp) return {t:'Fach ist voll',a:false};
+        if(kartonZu()) return {t:`Karton öffnen · ${P[c.type].short} ${lv.count}/${cp}`,a:true};
         return {t:`Einräumen: ${P[c.type].short} ${lv.count}/${cp}`,a:true}; }
       return {t:lv.type?`${P[lv.type].short}: ${lv.count}/${capOf(lv)} für ${eur(S.prices[lv.type])}`:'Leeres Fach',a:false}; }
     case 'rslot': { const sl=t.ref;
@@ -399,7 +400,7 @@ function doAction(){
   else if(S.carrying&&(S.carrying.regal||S.carrying.einbau)&&(k==='level'||k==='rslot'||k==='box')){ toast('Ein Paket stellt man auf den Boden: mit „Ablegen“ abstellen oder am Stellplatz auspacken.','bad'); }
   else if(k==='box'){ if(S.carrying&&!karreNimmt()){ toast(karreVoll()?'Die Karre ist voll. Erst etwas abladen.':'Du trägst schon einen Karton. Erst abstellen.','bad'); return; } pickUp(r); }
   /* Kiste: aus dem Fach nehmen, sonst wie gewohnt einraeumen */
-  else if(k==='level'){ if(kannRaus(r)) kisteRaus(r); else if(S.carrying&&S.carrying.kiste&&S.carrying.raus) kisteRaus(r); else if(S.carrying) stockOne(r); else if(S.kisteHand) toast('Das Fach ist leer.'); }
+  else if(k==='level'){ if(kannRaus(r)) kisteRaus(r); else if(S.carrying&&S.carrying.kiste&&S.carrying.raus) kisteRaus(r); else if(S.carrying&&kartonZu()&&canStock(r)) kartonOeffnen(true); else if(S.carrying) stockOne(r); else if(S.kisteHand) toast('Das Fach ist leer.'); }
   else if(k==='dirt') cleanTick(r,true);
   else if(k==='window') cleanWindowTick(true);
   else if(k==='rslot'){
@@ -441,5 +442,6 @@ function holdRepeat(dt){
     else if(k==='gravur') refillGrav(true);
     else if(k==='station') placeOnStation(target.ref);
     else scanBelt(target.ref);
-    repeatT=k==='dirt'?0.16:k==='station'?0.3:0.12; }
+    /* Einraeumen im Takt des Kartons (06.10.): jede Packung fliegt sichtbar */
+    repeatT=k==='dirt'||k==='level'?0.16:k==='station'?0.3:0.12; }
 }

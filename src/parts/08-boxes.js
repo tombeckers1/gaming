@@ -23,7 +23,7 @@ let carryGrav=null;
 let carryRegal=null;
 function updateCarry(){
   const c=S&&S.carrying, uniq=!!(c&&c.type==='gravur'), reg=!!(c&&(c.regal||c.einbau)), leer=!c&&!!(S&&S.kisteHand);
-  carryMesh.visible=(!!c||leer)&&!uniq&&!reg&&!karreAn(); if(leer||(c&&c.kiste)) carryMesh.material=kisteMat(); else if(c&&c.vm) carryMesh.material=vmTraegerMat(c.vm); else if(c&&!uniq&&!reg) carryMesh.material=kartonMat[c.type];
+  carryMesh.visible=(!!c||leer)&&!uniq&&!reg&&!karreAn()&&!kartonInHand(); kartonTasten(); if(leer||(c&&c.kiste)) carryMesh.material=kisteMat(); else if(c&&c.vm) carryMesh.material=vmTraegerMat(c.vm); else if(c&&!uniq&&!reg) carryMesh.material=kartonMat[c.type];
   if(leer){ $('carry').innerHTML=`Leere Kiste · Aktion auf ein Fach nimmt die Ware heraus`+(COARSE?'':`<span style="color:var(--muted)">, <kbd>X</kbd> wegstellen</span>`); updateKarre(); return; }
   if(carryGrav){ camera.remove(carryGrav); disposeEngraved(carryGrav); carryGrav=null; }
   if(uniq){ carryGrav=makeEngraved(c.text||''); carryGrav.position.set(0.3,-0.3,-0.65); carryGrav.rotation.set(0.1,-0.5,0.35); camera.add(carryGrav); }
@@ -49,7 +49,7 @@ function updateCarry(){
     : uniq?`Gravur-Rakete: „${c.text}"`
     : c.kiste?`Kiste ${c.raus?'ausräumen':'einräumen'}: ${P[c.type].short} ${c.count}/${kisteKap(c.type)}${COARSE?'':` <span style="color:var(--muted)">· <kbd>X</kbd> ${c.raus?'einräumen':'ausräumen'}</span>`}`
     : `${P[c.type].name}: noch ${c.count} im Karton${q&&q[0]?` <span class="${q[0]}">(${q[1]})</span>`:''}`)
-    +(COARSE?'':`<span style="color:var(--muted)">, <kbd>Q</kbd>abstellen</span>`)
+    +(COARSE||kartonWare(c)?'':`<span style="color:var(--muted)">, <kbd>Q</kbd>abstellen</span>`)
     +(karreAn()?` <span style="color:var(--muted)">· ${KARREN[karreArt()].name} ${karreLast()}/${KARREN[karreArt()].cap}</span>`:'')
     :(karreAn()?`${KARREN[karreArt()].name}: leer`+(COARSE?'':` <span style="color:var(--muted)">, <kbd>K</kbd> wegstellen</span>`):'');
   updateKarre();
@@ -79,6 +79,8 @@ function stockOne(lv,quiet){
   if(lv.count>=capOf(lv,c.type)){ if(!quiet) toast('Das Fach ist voll.'); return; }
   if(!addToLevel(lv,c.type,c.q||1)){ if(!quiet) toast('Kein Platz mehr.'); return; }
   c.count--; S.tut.stock=true; sfx.pop();
+  /* offener Karton in der Hand (15c): die Packung fliegt sichtbar ins Fach */
+  kartonFlug(lv,c.type);
   if(c.count<=0) kartonLeer(c);
   updateCarry();
 }

@@ -187,7 +187,7 @@ function startGame(fresh){
   STAFF.forEach(s=>{ if(S.staff[s.id]&&!inPause(s.id)) hireStaff(s.id); });
   if(S.up.regallicht){ shelfLight.intensity=0.8; shelfStrips.forEach(m=>m.emissiveIntensity=1.5); }
   if(!S.goal) newGoal();
-  phase='closed'; clock=OPEN_T; newDayStats(); updateSign(); updateCarry(); updateTool(); paused=false;
+  phase='closed'; clock=OPEN_T; newDayStats(); updateSign(); kartonFluegeAus(); updateCarry(); updateTool(); paused=false;
   /* Shader fuer Laden und Feuerwerk jetzt uebersetzen, nicht beim ersten Schuss */
   if(typeof shaderVorab==="function") shaderVorab();
 }

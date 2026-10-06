@@ -240,6 +240,9 @@ addEventListener('keydown',e=>{
   /* H: klingelt es, geht man ran - sonst kommt das Handy heraus */
   if(e.code==='KeyH'&&!e.repeat){ if(typeof phone!=='undefined'&&phone.state==='ringing') answerPhone(); else openHandy(); }
   if(e.code==='KeyR'&&!e.repeat&&grabbed) rotateGrab();
+  /* Karton (15c): C oeffnet/schliesst, R nimmt eine Packung aus dem Fach zurueck */
+  if(e.code==='KeyC'&&!e.repeat) kartonTaste();
+  if(e.code==='KeyR'&&!e.repeat&&!grabbed&&target&&target.kind==='level'&&kartonWare(S.carrying)){ kartonZurueck(target.ref); KH.rT=0.3; }
   /* Tab holt das Handy heraus. Der Laptop steht im Buero - dafuer geht man hin. */
   if(e.code==='Tab'&&!e.repeat){ e.preventDefault(); openHandy(); }
   if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code)) e.preventDefault();
@@ -278,6 +281,8 @@ $('btnSchild').addEventListener('touchstart',e=>{ e.preventDefault(); if(!S||ove
 $('btnSchild').addEventListener('click',e=>{ if(COARSE) return; ac(); schildTaste(); });
 $('schildIn').addEventListener('keydown',e=>{ e.stopPropagation(); if(e.key==='Enter') schildFertig('ok'); if(e.key==='Escape') schildFertig(null); });
 $('schildOk').onclick=()=>schildFertig('ok'); $('schildAuto').onclick=()=>schildFertig('auto'); $('schildAbbr').onclick=()=>schildFertig(null);
+$('btnKarton').addEventListener('touchstart',e=>{ e.preventDefault(); if(!S||overlayOpen()) return; ac(); kartonTaste(); },{passive:false});
+$('btnKarton').addEventListener('click',e=>{ if(COARSE) return; ac(); kartonTaste(); });
 $('btnKiste').addEventListener('touchstart',e=>{ e.preventDefault(); if(!S||overlayOpen()) return; ac(); kisteTaste(); },{passive:false});
 $('btnKiste').addEventListener('click',e=>{ if(COARSE) return; ac(); kisteTaste(); });
 $('btnHandy').addEventListener('touchstart',e=>{ e.preventDefault(); if(!S||(overlayOpen()&&!handyOpen)) return; ac(); toggleHandy(); },{passive:false});

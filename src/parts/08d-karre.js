@@ -99,7 +99,7 @@ function updateKarre(){
     karreFolgen();
   }
   /* Kartons auf der Karre: der Stapel plus der oberste */
-  const liste=karreStapel().concat(S.carrying&&S.carrying.type&&kartonMat[S.carrying.type]?[S.carrying]:[]);
+  const liste=karreStapel().concat(S.carrying&&S.carrying.type&&kartonMat[S.carrying.type]&&!kartonInHand()?[S.carrying]:[]);
   const m=karreG.userData.m;
   while(karreKisten.length>liste.length){ m.remove(karreKisten.pop()); }
   liste.forEach((c,i)=>{

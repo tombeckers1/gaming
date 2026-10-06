@@ -176,7 +176,7 @@ LICHTYP.falterpaar=function(o,A,B,s,opt){
    er dicht an dicht kleine lila Bluetenquirle - eine Aehre, oben
    schmaler; der Wind wiegt die ganze Rispe zur Seite */
 LICHTYP.lavendelrispe=function(o,A,B,s,opt){
-  const m=lMund(o), G=6, v=lAbschuss(27.5*Math.sqrt(s),G,opt,0.25), T=lScheitel(v[1],G)+0.1, Q=lQuer({dir:FANDIR}), wind=(Math.random()<0.5?-1:1)*rand(0.4,0.7);
+  const m=lMund(o), G=6, v=lAbschuss(29.5*Math.sqrt(s),G,opt,0.25), T=lScheitel(v[1],G)+0.1, Q=lQuer({dir:FANDIR}), wind=(Math.random()<0.5?-1:1)*rand(0.4,0.7);
   kgStern(psBig,m,v,lHell(B,1.15),T,G,0,0.3); lFunken(m,v,G,0.03,T*0.6,40,lHell(B,0.9),{ps:psMid,life:[0.3,0.5],g:2,streu:0.12,mit:0.1,mode:4}); lStart(m,0.8,0.4);
   const t0=T*0.3, nq=Math.round(19*Math.min(1.2,QUAL()+0.3));
   for(let k=0;k<nq;k++){ const tt=t0+(T-t0)*k/(nq-1); kgSpaeter(tt,()=>{ const q=sternNach(m,v[0],v[1],v[2],G,tt), u=bahnTempo(v,G,tt), nb=Math.max(2,Math.round((6-k*0.22)*QUAL()+1));
@@ -188,7 +188,7 @@ LICHTYP.lavendelrispe=function(o,A,B,s,opt){
    Wolke aus lila Sternen mit Silberglitzer-Schweifen - wie Duft, der
    ueber dem Feld liegt */
 LICHTYP.duftwolke=function(o,A,B,s,opt){
-  thDunkel(o,s,opt,28,A,e=>{ const n=Math.round(46*QUAL())+10, Q=lQuer({dir:FANDIR}), wind=rand(-0.6,0.6);
+  thDunkel(o,s,opt,30,A,e=>{ const n=Math.round(46*QUAL())+10, Q=lQuer({dir:FANDIR}), wind=rand(-0.6,0.6);
     for(let i=0;i<n;i++){ const d=randDir(), w=rand(4.6,5.8)*Math.sqrt(s), dv=[d[0]*w+Q[0]*wind,d[1]*w*0.85+0.6,d[2]*w+Q[2]*wind], L=rand(2.6,3.3);
       kgStern(psBig,e,dv,lHell(i%3?A:B,i%3?1.05:0.9),L,1.3,0,0.3);
       if(i%3===0) lFunken(e,dv,1.3,0.1,L*0.8,12,lHell(A,0.85),{ps:psMid,life:[0.6,1.1],g:0.8,streu:0.1,mit:0.05,mode:4}); }
@@ -220,7 +220,7 @@ LICHTYP.laubwirbel=function(o,A,B,s,opt){
   const ort=t=>{ const b=bahnOrt(m,v,G,t), r=(0.25+1.4*t/T)*Math.sqrt(s), a=ph+dreh*9*t, Z=[-Q[2],0,Q[0]]; return {x:b.x+(Q[0]*Math.cos(a)+Z[0]*Math.sin(a))*r,y:b.y,z:b.z+(Q[2]*Math.cos(a)+Z[2]*Math.sin(a))*r}; };
   let naechstes=0.35*T, nr=0;
   thJeBild(T,t=>{ const q=ort(t), p0=ort(Math.max(0,t-1/30)), w=[(q.x-p0.x)*30,(q.y-p0.y)*30,(q.z-p0.z)*30], c=lHell(F[nr%3],1.35);
-    SCHWEIF=0.45; thPunkt(psBig,q,kgMal(w,0.6),c,0.07);
+    SCHWEIF=0.45; thPunkt(psHuge,q,kgMal(w,0.6),kgMal(c,0.9),0.07);
     psMid.emit(q.x,q.y,q.z,rand(-.1,.1),rand(-.3,-.1),rand(-.1,.1),c[0]*0.7,c[1]*0.55,c[2]*0.4,rand(0.6,1.0),0.6,4);
     if(t>=naechstes){ naechstes+=0.16; nr++; const cl=lHell(F[nr%3],1.3);
       bl.push({h:kgStern(psBig,q,[w[0]*0.15,0.3,w[2]*0.15],cl,rand(3.4,4.2),0.9,0,0.2),c:cl,los:0.2,ph:rand(0,6.3),om:rand(2.2,3.4),amp:rand(0.6,1.1)*Math.sqrt(s),ph2:rand(0,6.3),om2:rand(3,6),x:0,z:0}); } });
@@ -382,7 +382,7 @@ LICHTYP.eiskristall=function(o,A,B,s,opt){
   const m=lMund(o), G=6, v=lAbschuss(30*Math.sqrt(s),G,opt,0.3), tS=lScheitel(v[1],G)*0.8;
   lKopf(m,v,lHell(B,1.4),tS,G,0,0.25); lFunken(m,v,G,0.03,tS,80,[1.2,1.25,1.35],{ps:psMid,life:[0.4,0.8],g:2.2,streu:0.18,mit:0.1,mode:4}); lStart(m,1,0.6);
   kgSpaeter(tS,()=>{ const e=sternNach(m,v[0],v[1],v[2],G,tS), [r1,r2]=rkBild(e), a0=rand(0,Math.PI/3), L1=0.55;
-    for(let k=0;k<6;k++){ const a=a0+k*Math.PI/3, sp=8.2*Math.sqrt(s), dv=[(r1[0]*Math.cos(a)+r2[0]*Math.sin(a))*sp,(r2[1]*Math.sin(a))*sp+0.6,(r1[2]*Math.cos(a)+r2[2]*Math.sin(a))*sp];
+    for(let k=0;k<6;k++){ const a=a0+k*Math.PI/3, sp=9*Math.sqrt(s), dv=[(r1[0]*Math.cos(a)+r2[0]*Math.sin(a))*sp,(r2[1]*Math.sin(a))*sp+0.6,(r1[2]*Math.cos(a)+r2[2]*Math.sin(a))*sp];
       lKopf(e,dv,lHell(A,1.45),1.6,2.5,0,0.3); lFunken(e,dv,2.5,0.02,1.4,45,[1.2,1.3,1.45],{ps:psMid,life:[0.4,0.8],g:1.6,streu:0.12,mit:0.08,mode:4});
       kgSpaeter(L1,()=>{ const e2=sternNach(e,dv[0],dv[1],dv[2],2.5,L1);
         for(const sd of [-1,1]){ const b=a+sd*Math.PI/3, w=3.4*Math.sqrt(s), d2=[(r1[0]*Math.cos(b)+r2[0]*Math.sin(b))*w,(r2[1]*Math.sin(b))*w+0.3,(r1[2]*Math.cos(b)+r2[2]*Math.sin(b))*w];
@@ -394,7 +394,7 @@ LICHTYP.eiskristall=function(o,A,B,s,opt){
    lange eisblaue Linie - ein Vorhang aus Eiszapfen */
 LICHTYP.eiszapfen=function(o,A,B,s,opt){
   thDunkel(o,s,opt,30.5,A,e=>{ const n=Math.round(22*QUAL())+6, a0=rand(0,6.3);
-    for(let i=0;i<n;i++){ const a=a0+i/n*Math.PI*2, w=rand(6.8,7.4)*Math.sqrt(s), dv=[Math.cos(a)*w,rand(0.6,1.2),Math.sin(a)*w];
+    for(let i=0;i<n;i++){ const a=a0+i/n*Math.PI*2, w=rand(8,8.6)*Math.sqrt(s), dv=[Math.cos(a)*w,rand(0.6,1.2),Math.sin(a)*w];
       const h=kgStern(psBig,e,dv,[1.45,1.5,1.55],rand(2.6,3.0),0.3,0,0.05);
       kgSpaeter(rand(0.5,0.75),()=>{ thFallen(h,7,lHell(A,1.35),0.75); }); }
     schall(e,x=>{ sfx.klirren(x*0.7); later(0.6,()=>sfx.eisknistern(x*0.6)); }); });
@@ -404,7 +404,7 @@ LICHTYP.eiszapfen=function(o,A,B,s,opt){
    Tiefe, mit Knacken und dumpfem Donnern */
 LICHTYP.kalben=function(o,A,B,s,opt){
   thDunkel(o,s,opt,31,A,e=>{ const n=Math.round(70*QUAL())+16;
-    for(let i=0;i<n;i++){ const d=randDir(), w=rand(8,9)*Math.sqrt(s), dv=[d[0]*w,d[1]*w+0.6,d[2]*w];
+    for(let i=0;i<n;i++){ const d=randDir(), w=rand(9.6,10.6)*Math.sqrt(s), dv=[d[0]*w,d[1]*w+0.6,d[2]*w];
       const h=kgStern(psBig,e,dv,i%4?[1.45,1.5,1.55]:lHell(A,1.4),rand(3.0,3.4),0.6,0,0.15);
       kgSpaeter(rand(0.9,1.15),()=>{ thFallen(h,9,lHell(i%2?A:B,1.3),0.4); if(i%3===0&&kgLebt(h)){ const [q,w2]=kgOrt(h); lFunken(q,w2,9,0.02,1.2,14,[1.2,1.25,1.35],{ps:psMid,life:[0.3,0.6],g:2,streu:0.1,mit:0.1,mode:4}); } }); }
     schall(e,x=>{ sfx.crack(x*0.5); later(0.95,()=>sfx.kalben(x)); }); });
@@ -560,7 +560,7 @@ thShow('lb_lagune',{sz:[0.9,1.3],pw:[0,2],hell:[0.9,1.3],kurve:'spaet'},[
    neun Sonnenblumen in der Spirale */
 thShow('lb_sonnenblumen',{sz:[0.9,1.3],pw:[0,2],hell:[0.9,1.3],kurve:'spaet'},[
   {n:1,rohrFolge:[0],licht:'sonnenblume',kal:'gross',farbe:0,pause:2},
-  {n:6,gap:0.6,muster:'v',ang:0.4,licht:'farbkomet',farbe:1},
+  {n:6,gap:0.85,muster:'v',ang:0.4,licht:'farbkomet',farbe:1},
   {n:4,gap:1.1,muster:'paar',ang:0.3,licht:'sonnenblume',farbe:0,pause:0.8},
   {mit:true,n:4,gap:0.9,muster:'gerade',licht:'farbpalme',farbe:2,pause:1},
   {n:6,gap:0.45,muster:'x',ang:0.4,licht:'farbkomet',farbe:1,boden:{k:'fountain',alt:true,gt:4,gh:1.0,A:'zitrone',B:'gold'}},

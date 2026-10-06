@@ -473,5 +473,7 @@ function alertSprite(){ const s=new THREE.Sprite(new THREE.SpriteMaterial({map:a
    eine je 80 ms - sonst ruckelt es, wenn eine Figur zum ersten Mal kommt,
    und ihr Atlas fehlt in den ersten Bildern */
 (function figVorladen(){ if(!THREE.SkinnedMesh) return; const ids=Object.keys(FIG_DATEN); let i=0;
-  const t=()=>{ if(i>=ids.length) return; try{ figGeometrie(ids[i]); figAtlas(ids[i]); figBindung(ids[i]); }catch(e){} i++; setTimeout(t,80); };
-  setTimeout(t,300); })();
+  /* erst nach dem Start und nur in Leerlaufzeiten - das Laden selbst bleibt so schnell wie vorher */
+  const weiter=()=>{ if(i>=ids.length) return; if(window.requestIdleCallback) requestIdleCallback(t,{timeout:1500}); else setTimeout(t,120); };
+  const t=()=>{ if(i>=ids.length) return; try{ figGeometrie(ids[i]); figAtlas(ids[i]); figBindung(ids[i]); }catch(e){} i++; weiter(); };
+  setTimeout(weiter,5000); })();

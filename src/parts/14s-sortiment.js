@@ -30,6 +30,8 @@ if(P.bengalholz) Object.assign(P.bengalholz,{name:'Bengalhölzer · 12 Zündhöl
 /* Feuerteufel (Toms PDF: "die Fontaene soll aus zwei Loechern oben nach
    links und rechts kommen"): runde Huelse 8,4 cm mit zwei schraegen Duesen
    (Form 04g, FT_DUESE) - 12,5 cm breit ueber die Duesenmuendungen, 25 cm
-   hoch (wie alle neuen Bodenprodukte 1,25-fach, GROESSER) */
-if(P.feuerteufel) Object.assign(P.feuerteufel,{dims:[0.125,0.25,0.0875],
+   hoch (wie alle neuen Bodenprodukte 1,25-fach, GROESSER). Im Regal passen
+   davon 6 x 4 nebeneinander: Karton zu 24 Stueck (vorher 16 - mit den
+   breiten Duesen blieb das Fach sonst zu 39 % leer, verpackung.js LUECKE) */
+if(P.feuerteufel) Object.assign(P.feuerteufel,{dims:[0.125,0.25,0.0875],box:24,grid:[6,4,1],
   desc:'Aus den zwei schrägen Düsen auf seinem Kopf wachsen zwei feurige Hörner, eins nach links, eins nach rechts, und fauchen immer höher. Zum Schluss lacht der Teufel dreimal knisternd.'});

@@ -245,13 +245,16 @@ function vfStopp(){
 }
 function vfZuendenRoh(t){
   if(!t||!P[t]) return false;
-  const o=vfMuendung(t), dauer=brennDauer(t), vor=o.sid==='moerser'?0.75:o.sid==='rampe'?0.4:0;
+  /* 06.10. (Toms PDF: Raketen und Kugeln sichtbar im Rohr): die Zuendschnur
+     brennt etwas laenger als an der Station, damit man das Modell sieht (14u) */
+  const o=vfMuendung(t), dauer=brennDauer(t), vor=o.sid==='moerser'?1.2:o.sid==='rampe'?0.9:0;
   vfBelegt[o.art]=FW_UHR+vor+dauer+0.5;
   let h=null, bt=null, pg=null;
   if(o.sid==='tisch'&&istBatterie(t)){ bt=batterieModell(t,Math.PI); bt.g.position.set(o.x,o.boden,o.z); bt.g.rotation.y=Math.PI; scene.add(bt.g); o.batt=bt; }
   /* Wunderkerzen: Mini-Podest statt Verpackung (03.10., Tom; 14q) */
   else if(o.sid==='tisch'&&typeof kqPodestAuf==='function'&&(pg=kqPodestAuf(t,{x:o.x,y:o.boden,z:o.z}))) scene.add(pg);
   else if(o.sid==='tisch'&&stationsPool(t)&&!stationsPool(t).full()) h=stationsPool(t).add(mx(o.x,o.boden,o.z,Math.PI));
+  if(o.sid!=='tisch'&&typeof vfImRohr==='function') vfImRohr(t,o);
   if(vor){ emitters.push({t:vor,k:'fuse',o:{x:o.x,y:o.y,z:o.z}}); sfx.fizz(distVol(o)*0.5); }
   later(vor,()=>{ if(vfAn) igniteType(t,o); });
   /* der Blick folgt dem Produkt: zur Seite auf seinen Platz, nach oben so
@@ -261,7 +264,8 @@ function vfZuendenRoh(t){
      oberer Bildrand bei ~70 m statt 25 m, Brueche (27-35 m) im oberen
      Drittel statt am Rand (gemessen, Spieler 11 m vor dem Tisch); Rampe 0,85 statt 0,72 (Raketen bis ~75 m im Bild statt 35 m); Moerser 0,95 statt 0,85, sonst schneidet der Rand die 300er
      (Bruch ~90 m) mittendurch */
-  { const sh=P[t].shape; pitch=o.sid==='tisch'?(SHOWS[t]||sh==='battery'||sh==='fan'?0.8:sh==='fountain'||sh==='cylinder'||sh==='fountainset'?0.35:0.1):o.sid==='rampe'?0.85:0.95;
+  /* 06.10.: Finale Grande schiesst ihre Kugeln auf Kugelhoehe (14u) - Blick wie am Moerser */
+  { const sh=P[t].shape; pitch=t==='kugelfinale'?1.0:o.sid==='tisch'?(SHOWS[t]||sh==='battery'||sh==='fan'?0.8:sh==='fountain'||sh==='cylinder'||sh==='fountainset'?0.35:0.1):o.sid==='rampe'?0.85:0.95;
     yaw=Math.atan2(-(o.x-pl.x),-(o.z-pl.z)); }
   if(h){ let weg=false; const fn=()=>{ if(weg) return; weg=true; if(h.pool) h.pool.remove(h); }; vfAufraeumen.push(fn); later(vor+dauer,fn); }
   if(bt){ let weg=false; const fn=()=>{ if(weg) return; weg=true; bt.weg(); }; vfAufraeumen.push(fn); later(vor+dauer,fn); }

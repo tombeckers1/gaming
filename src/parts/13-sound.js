@@ -38,7 +38,12 @@ function flattern(f0,f1,dur,vol,rate){ if(!AC) return;
   am.gain.value=0.5; tiefe.gain.value=0.5; lfo.connect(tiefe); tiefe.connect(am.gain);
   g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(vol,t+0.03); g.gain.setValueAtTime(vol,t+dur*0.7); g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
   o.connect(lp); lp.connect(am); am.connect(g); g.connect(master); o.start(t); lfo.start(t); o.stop(t+dur+0.03); lfo.stop(t+dur+0.03); }
-const distVol=p=>clamp(1-camera.position.distanceTo(p)/70,0.08,1);
+/* 06.10.: was hoch am Himmel knallt (Raketen ab 38 m, Kugeln auf 86-90 m,
+   Toms PDF vom 05.10.), hoert man weit - kein Haus, kein Baum dazwischen.
+   Ueber 35 m zaehlt die Hoehe nur noch zu 40 %; darunter wie bisher. Die
+   Kugel auf 88 m klang sonst mit dem Mindestwert 0,08 (jetzt ~0,2). */
+const distVol=p=>{ const c=camera.position, dy=p.y-c.y, ve=dy>35?35+(dy-35)*0.4:dy;
+  return clamp(1-Math.hypot(p.x-c.x,ve,p.z-c.z)/70,0.08,1); };
 /* Alltagsgeraeusche (Scanner, Kasse, Tuer) sind leise Nahgeraeusche:
    nach gut 20 m hoert man sie nicht mehr. */
 const nahVol=p=>{ const d=camera.position.distanceTo(p); return d>22?0:Math.pow(1-d/22,1.5); };

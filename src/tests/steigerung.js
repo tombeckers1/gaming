@@ -158,6 +158,9 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     for(const t of L){ if(r.lvl[t]>r.lvl[KG[i]]+1) continue;
       /* 27.09.: gegen das 95. Perzentil der Batterie - ein einzelner zufaellig hoher Schuss (19-23 m Streuung) kippte sonst die Regel */
       pruef('KUGEL',k.maxSz>r[t].maxSz&&k.maxHoehe>r[t].p95Hoehe,`${KG[i]} (Lvl ${r.lvl[KG[i]]}) nicht ueber ${t} (Lvl ${r.lvl[t]}): Groesse ${k.maxSz}/${r[t].maxSz}, Hoehe ${k.maxHoehe}/${r[t].maxHoehe}`); } }
+  /* 06.10. (Toms PDF: "dass die auf der gleichen Hoehe explodieren"): alle
+     Kugeln brechen auf einer Hoehe - hoechstens 6 m Unterschied, alle ueber 80 m */
+  { const h=KG.map(t=>r[t].maxHoehe); pruef('KUGELHOEHE',Math.max(...h)-Math.min(...h)<=6&&Math.min(...h)>80,'Kugeln nicht auf einer Hoehe: '+KG.map((t,i)=>t+' '+h[i]).join(', ')); }
   /* Raketen haben eigene Bruchbilder, die es in Batterien nicht gibt */
   /* 26.09. (Tom: Anomalie): jede Rakete hat ihren eigenen Bruch - die Liste
      sind jetzt die Raketenbrueche aus katalog-raketen.md (spektrum und
@@ -166,7 +169,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
      silberspinne, blinkfeuer, silberregen, saphirkrone, juwelenpalme,
      blutmond, nordstern, drachenpalme */
   const EXKL=['fallschirm','schnuppe','garbe','goldglitzer','initiale','hakenschlag','silberspinne','kometenkette','pfeifsterne','halbhalb','nishiki','spaetzuender',
-    'achtblatt','blinkfeuer','silberregen','glasbruch','furz','pupswolke','saphirkrone','titan','titanschlag','juwelenpalme','blutmond','nordstern','drachenpalme','supernova'];
+    'achtblatt','smaragdkrone','blinkfeuer','silberregen','glasbruch','furz','pupswolke','saphirkrone','titan','titanschlag','juwelenpalme','blutmond','nordstern','drachenpalme','supernova'];
   ['raketenklein','raketen'].forEach(t=>pruef('RAKETE',r[t].eff.some(e=>EXKL.indexOf(e)>=0),`${t} ohne eigenes Raketen-Bruchbild: ${r[t].eff}`));
   L.concat(['sortiment'].filter(t=>r[t])).forEach(t=>pruef('EXKLUSIV',!r[t].eff.some(e=>EXKL.indexOf(e)>=0),`${t} nutzt Raketen-Bruchbild`));
   Object.keys(r).forEach(t=>{ if(r[t]&&r[t].unpass) pruef('PASST',!r[t].unpass.length,`${t}: ${r[t].unpass.slice(0,6).join(', ')}`); });

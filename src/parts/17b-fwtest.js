@@ -133,14 +133,32 @@ function vfDbSchreiben(t){ const w=vfNoten[t]; vfDb().then(db=>{ if(!db) return;
   return w?ref.set({note:w,name:P[t].name,lvl:P[t].lvl,art:P[t].shape||'',zeit:new Date().toISOString()}):ref.delete(); }).catch(()=>{}); }
 /* vfSonder: eine Testsektion (nur die neuen Batterien oder Kugeln) - ihr
    Platz in der Liste ersetzt nicht den der ganzen Vorfuehrung */
-let vfSonder=null;
+let vfSonder=null, vfSonderName=null;
+/* =========================================================
+   Zwei weitere Vorfuehrungen (07.10., Tom: "Vorfuehrung (Aenderungen)
+   zusaetzlich zur bestehenden: alle geaenderten Produkte + die neuen
+   Batterien" und "eine eigene Kugelbomben-Vorfuehrung mit ALLEN
+   Kugelbomben, einzeln abfeuerbar").
+   SO KOMMT EIN PRODUKT HINEIN:
+   - Aenderungen: die Kennung in VF_AENDERUNG eintragen ODER im Katalog
+     P[id].aenderung=true setzen (z. B. in der Datei des neuen Produkts).
+     Reihenfolge immer nach Level wie die grosse Vorfuehrung.
+   - Kugelbomben: kommt von selbst - jedes Produkt mit shape 'shell' bzw.
+     Station Moerser steht drin, auch jede neue Kugel.
+   ========================================================= */
+const VF_AENDERUNG=['lb_jadekoenig','lb_saphirfaecher','lb_goldader','profi','lb_vulkan','zwillingssonne200','goldweidenkreuz200',
+  'lb_zitronenfalter','lb_kolibri','faecher','donnerwand','hochzeitsfaecher','kinderbatterie','lb_gluehwuermchen','lb_tautropfen','glutschmiede','eisblume','lb_weidenhain'];
+function vfAenderungListe(){ return fwTestProdukte().filter(t=>P[t]&&(P[t].aenderung||VF_AENDERUNG.indexOf(t)>=0)); }
+function vfKugelListe(){ return fwTestProdukte().filter(t=>P[t]&&(P[t].shape==='shell'||stationOf(t)==='moerser'))
+  .sort((a,b)=>moerserRohr(a)-moerserRohr(b)||(P[a].lvl-P[b].lvl)); }
+try{ window.__vf2={vfAenderungListe,vfKugelListe,VF_AENDERUNG,name:()=>vfSonderName}; }catch(e){}
 function vfMerken(){ try{ let i=vfIdx; if(vfSonder){ const d=JSON.parse(localStorage.getItem(VF_KEY)||'{}'); i=d.i|0; }
   localStorage.setItem(VF_KEY,JSON.stringify({i,n:vfNoten})); }catch(e){} }
 function vorfuehrungSchalten(){ if(!FW_DEV) return; if(vfAn) vorfuehrungAus(); else vorfuehrungAn(); }
-function vorfuehrungAn(nur){
+function vorfuehrungAn(nur,name){
   if(fwTestAn) fwTestSchalten();
   if(!S.up.testfeld){ S.up.shop_halb=true; S.up.testfeld=true; if(typeof applyZonen==='function') applyZonen(); }
-  vfSonder=Array.isArray(nur)?nur.filter(t=>P[t]&&stationOf(t)):null;
+  vfSonder=Array.isArray(nur)?nur.filter(t=>P[t]&&stationOf(t)):null; vfSonderName=vfSonder?(name||'VORFÜHRUNG'):null;
   vfListe=vfSonder||fwTestProdukte(); vfLaden(); if(vfSonder) vfIdx=0; vfIdx=clamp(vfIdx,0,Math.max(0,vfListe.length-1)); vfLetzt=null;
   vfAn=true; lastF=-1; applyTOD(); clearStations(); vfAnlageBauen(); vfBelegt={};
   for(const sid of ['tisch','rampe','moerser']) if(stations[sid]&&stations[sid].g) stations[sid].g.visible=false;
@@ -319,7 +337,7 @@ function vfZeigen(){
     document.body.appendChild(vfEl); }
   const N=vfListe.length, akt=vfLetzt, naechst=vfListe[vfIdx];
   const btn=(a,txt,f)=>`<button data-vf="${a}" style="font:700 15px 'Barlow Condensed',sans-serif;padding:5px 10px;margin:2px;border-radius:8px;border:1px solid #f2c230;background:${f||'#1b2140'};color:#f2f5ff;cursor:pointer">${txt}</button>`;
-  let h=`<div style="display:flex;justify-content:space-between;align-items:center;font:${BAR(15)};opacity:.85"><span>FEUERWERK-VORFÜHRUNG</span><span>${Math.min(vfIdx,N)} / ${N} gezündet</span></div>`;
+  let h=`<div style="display:flex;justify-content:space-between;align-items:center;font:${BAR(15)};opacity:.85"><span>${vfSonderName||'FEUERWERK-VORFÜHRUNG'}</span><span>${Math.min(vfIdx,N)} / ${N} gezündet</span></div>`;
   if(akt){ const p=P[akt];
     h+=`<div style="margin-top:4px;font:${BAR(14)};color:#f2c230">BRENNT JETZT</div>`+
       `<div style="font:${BUN(40)};line-height:1.05;margin:2px 0;word-break:break-word">${vfEsc(p.short)}</div>`+

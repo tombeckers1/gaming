@@ -1412,6 +1412,9 @@ function lapZeichnen(body){
         `</div><button class="${S.test?'red':''}" data-a="test">${S.test?'Testmodus aus':'Testmodus an'}</button></div>`+
       (FW_DEV?/* 03.10. (Tom): Teststation und alle "Neue ... testen" raus */
         `<div class="row"><div class="rm"><b>Feuerwerk-Vorführung <span class="warn">(nur Entwicklung)</span></b><small>Alle Feuerwerke nach Level, eins nach dem anderen: Leertaste zündet das nächste, der Name steht groß oben. Pfeile vor/zurück, R nochmal, X stoppt das laufende Feuerwerk sofort, 1 gut, 2 ändern, L Liste, B beenden.</small></div><button data-a="vorfuehrung">Starten</button></div>`+
+        /* 07.10. (Tom): zwei weitere Vorfuehrungen - nur was sich geaendert hat, und alle Kugelbomben */
+        `<div class="row"><div class="rm"><b>Vorführung (Änderungen) <span class="warn">(nur Entwicklung)</span></b><small>Nur die Feuerwerke, die in der letzten Korrekturrunde geändert oder neu gebaut wurden (${vfAenderungListe().length} Stück), nach Level. Tasten wie in der Feuerwerk-Vorführung.</small></div><button data-a="vfaenderung">Starten</button></div>`+
+        `<div class="row"><div class="rm"><b>Kugelbomben-Vorführung <span class="warn">(nur Entwicklung)</span></b><small>Alle Kugelbomben (${vfKugelListe().length} Stück) nach Kaliber und Level, jede einzeln aus dem Mörser. Tasten wie in der Feuerwerk-Vorführung.</small></div><button data-a="vfkugeln">Starten</button></div>`+
         /* 03.10. (Tom): das Spiel kurz vor dem Ende ansehen - alles gebaut, Personal, Kundschaft, Wirtschaft */
         `<div class="row"><div class="rm"><b>Gameplay-Vorführung <span class="warn">(nur Entwicklung)</span></b><small>Ein fast durchgespielter Laden: alle Flächen ausgebaut, alle Lizenzen, das ganze Team, Regale voller Ware, der Laden läuft von selbst Tag für Tag, morgens wird nachbestellt. Unten siehst du Kontostand, Umsatz, Kunden und den Verlauf; 1–7 springen in die Bereiche, T schaltet den Zeitraffer, B beendet. Dein Spielstand wird vorher gesichert und danach zurückgeholt.</small></div><button data-a="gameplay">Starten</button></div>`+
         /* 02.10. (Tom): alle Verpackungen im Regal auf einen Blick */
@@ -1517,6 +1520,8 @@ function lapKlick(e,imHandy){
   else if(a==='fwtest'){ fwTestSchalten(); return; }
   else if(a==='gameplay'){ gpStart(); return; }
   else if(a==='vorfuehrung'){ vorfuehrungAn(); return; }
+  else if(a==='vfaenderung'){ vorfuehrungAn(vfAenderungListe(),'VORFÜHRUNG (ÄNDERUNGEN)'); return; }
+  else if(a==='vfkugeln'){ vorfuehrungAn(vfKugelListe(),'KUGELBOMBEN-VORFÜHRUNG'); return; }
   else if(a==='verpackung'){ vpSchalten(); return; }
   else if(a==='fwtestneu'){ const n=fwTestStapeln(); toast(`${n} Kartons neu gestapelt.`); }
   else if(a==='reset'){ if(!resetArm) resetArm=true; else { try{ localStorage.removeItem(KEY); }catch(err){} location.reload(); return; } }

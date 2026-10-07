@@ -126,7 +126,10 @@ function bodenRausAlle(){ Object.keys(SHOWS).forEach(t=>{ const f=SHOWS[t]; if(t
 /* Masse setzen (Karton und Raster ziehen mit, Rohr-Caches leeren) */
 function r3Masse(t,dims){ const p=P[t]; if(!p) return; p.dims=dims.slice(); delete p.dims0;
   if(typeof massRaster==='function') massRaster(t); if(typeof kartonWahl==='function') kartonWahl(t); if(typeof lochFrisch==='function') lochFrisch(t); }
-/* Drehbuch neu, mit Thema (Farbpaare) und Verzoegerungssatz wie die Lichter */
+/* Drehbuch neu, mit Thema (Farbpaare) und Verzoegerungssatz wie die Lichter.
+   kopf.basis: Grundstufe (Hoehe pw, Bruchgroesse sz) wie Produkte gleichen
+   Levels - ohne basis brach Ozean auf 37 m, hoeher als jede Batterie
+   (gerendert 07.10.: die ersten Brueche am oberen Bildrand) */
 function r3Show(id,th,rampe,ph,kopf){ THEMEN[id]=th; SHOWS[id]=()=>show(Object.assign({rampe,verzoegerung:true},kopf||{}),ph.map(p=>Object.assign({th:id},p))); if(typeof lochFrisch==='function') lochFrisch(id); }
 const ODE_TEIL=(a,b)=>({ton:ODE.ton.slice(a,b),dauer:ODE.dauer.slice(a,b)});
 
@@ -155,7 +158,7 @@ r3Show('lb_jadekoenig',[['gruen','gold'],['limette','gold'],['jade','gold'],['go
   {n:10,gap:0.32,muster:'v',ang:0.3,eff:'zeitregen',kal:'gross',farbe:3,steig:'brokat',knall:'bkRieseln',pause:1.6},
   {n:24,gap:0.09,muster:'w',ang:0.34,eff:['sternpalme','kiefernkrone','kokosnuss'],kal:'gross',pw:2,farbe:4,steig:'gold'},
   {mit:true,n:3,gap:0.55,muster:'mitte',ang:0.1,eff:'salut',kal:'gross',pw:4,farbe:0,knall:'bkSalut'},
-  {n:10,gap:0.16,muster:'kreis',ang:0.3,eff:'kamuro',kal:'riesig',pw:4,farbe:3,steig:'brokat',knall:'bkDonnerhall',pause:7}]);
+  {n:10,gap:0.16,muster:'kreis',ang:0.3,eff:'kamuro',kal:'riesig',pw:4,farbe:3,steig:'brokat',knall:'bkDonnerhall',pause:7}],{basis:{pw:3.2,sz:1.22,th:'lb_jadekoenig'}});
 lochName('lb_jadekoenig',{name:'Urwald · 100 Schuss Dschungelverbund',sub:'100 Schuss Dschungelverbund',
   desc:'Ein Tag im Regenwald: drei schwere Urwaldpalmen, Lianen aus grün-goldenen Hängeweiden, ein summender Insektenschwarm, rote Tropenblüten zwischen Donnerschlägen, ein langer Tropenregen – und als Finale 24 Palmen auf Schlag unter einem Blätterdach aus riesigen Goldkamuro.'});
 r3Masse('lb_jadekoenig',[1.25,0.4,0.78]);
@@ -169,13 +172,13 @@ SIGNATUR.lb_jadekoenig={idee:'Urwald',eff:'kokosnuss',text:'Urwaldpalmen, Lianen
    leuchten - Silberbrokat mit blauen Spitzen, Gischt - weisse Sternspritzer
    knisternd im Scheibenwischer, Brandung - blaue Pistille mit weissem
    Kern paarweise. Das Finale (Quallen, Gischtkronen, Silberwellen) bleibt. */
-nbShow('lb_saphirfaecher',[['silber','tuerkis'],['blau','silber'],['silber','blau'],['weiss','himmel'],['blau','weiss']],{sz:[0.95,1.25],pw:[0,1.5],hell:[0.9,1.25],kurve:'linear'},[
-  {n:3,gap:1.4,muster:'aussen',ang:0.32,eff:'silberwelle',kal:'gross',farbe:0,steig:'silber',knall:'bkRieseln'},
-  {n:6,gap:0.55,muster:'welle',ang:0.28,hoehe:'welle',hSpanne:5,eff:'chrys',kal:'gross',farbe:1,steig:'silber',pause:1.0},
-  {n:5,gap:0.9,muster:'zufall',ang:0.24,eff:'nishiki',kal:'gross',farbe:2,steig:'brokat',knall:'bkBrokat',pause:0.8},
+r3Show('lb_saphirfaecher',[['silber','tuerkis'],['blau','silber'],['silber','blau'],['weiss','himmel'],['blau','weiss']],{sz:[0.95,1.25],pw:[0,1.5],hell:[0.9,1.25],kurve:'linear'},[
+  {n:3,gap:2.0,muster:'aussen',ang:0.32,eff:'silberwelle',kal:'gross',farbe:0,steig:'silber',knall:'bkRieseln'},
+  {n:6,gap:0.8,muster:'welle',ang:0.28,hoehe:'welle',hSpanne:5,eff:'chrys',kal:'gross',farbe:1,steig:'silber',pause:1.0},
+  {n:5,gap:1.3,muster:'zufall',ang:0.24,eff:'nishiki',kal:'gross',farbe:2,steig:'brokat',knall:'bkBrokat',pause:0.8},
   {n:6,gap:0.16,muster:'wischer',ang:0.36,eff:'sternspritzer',kal:'mittel',pw:2,farbe:3,steig:'silber',knall:'bkKnisterhall',pause:1.0},
   {n:4,gap:0.6,muster:'paar',ang:0.26,eff:'pistill',kal:'gross',farbe:4,steig:'silber',pause:1.0},
-  {n:6,gap:0.35,muster:'mitte',ang:0.2,eff:['qualle','spritzkrone','wasserring'],A:['blau','himmel','silber'],B:['silber','weiss','blau'],kal:'gross',pw:6,steig:'silber',knall:'bkDonnerhall',pause:6}]);
+  {n:6,gap:0.35,muster:'mitte',ang:0.2,eff:['qualle','spritzkrone','wasserring'],A:['blau','himmel','silber'],B:['silber','weiss','blau'],kal:'gross',pw:6,steig:'silber',knall:'bkDonnerhall',pause:6}],{basis:{pw:-5,sz:0.78,th:'lb_saphirfaecher'}});
 lochName('lb_saphirfaecher',{desc:'Blau, Türkis und Silber: drei Silberwellen weit auseinander, die nach einem Atemzug türkis weiterleuchten, blaue Chrysanthemen im Wellengang, Meeresleuchten aus Silberbrokat mit blauen Spitzen, knisternde weiße Gischt – zum Schluss sechs hohe Knalle: Quallen, Gischtkronen und Silberwellen.'});
 SIGNATUR.lb_saphirfaecher={idee:'Ozean',eff:'silberwelle',text:'Silberwellen, blaue Chrysanthemen im Wellengang, Meeresleuchten, Gischt, hohe Quallen und Gischtkronen'};
 
@@ -186,16 +189,16 @@ SIGNATUR.lb_saphirfaecher={idee:'Ozean',eff:'silberwelle',text:'Silberwellen, bl
    Quallen (Krone, deren Faeden pulsierend herabsinken), Weidenkometen,
    ein kompletter Goldregen (Kamuro, Goldvorhang und Zeitregen auf Schlag,
    der den Himmel fuellt), knisternde Dracheneier - Finale: zehn Quallen. */
-nbShow('lb_goldader',[['gold','orange'],['bernstein','gold'],['zitrone','gold'],['gold','weiss']],{sz:[0.95,1.35],pw:[0,3],hell:[0.85,1.3],kurve:'spaet'},[
-  {n:6,gap:0.45,muster:'aussen',ang:0.3,licht:'goldkomet',farbe:0},
+r3Show('lb_goldader',[['gold','orange'],['bernstein','gold'],['zitrone','gold'],['gold','weiss']],{sz:[0.95,1.35],pw:[0,3],hell:[0.85,1.3],kurve:'spaet'},[
+  {n:6,gap:0.65,muster:'aussen',ang:0.3,licht:'goldkomet',farbe:0},
   {n:4,gap:0.8,muster:'mitte',ang:0.2,eff:'qualle',A:'gold',B:'zitrone',kal:'gross',pw:2,steig:'brokat',pause:1.0},
   {n:8,gap:0.35,muster:'x',ang:0.3,eff:'goldglitzer',kal:'gross',farbe:1,steig:'gold',knall:'bkRieseln'},
-  {n:12,takt:[0.16,0.16,0.65],muster:'welle',ang:0.3,licht:'weidenkomet',farbe:0},
+  {n:12,takt:[0.24,0.24,0.95],muster:'welle',ang:0.3,licht:'weidenkomet',farbe:0,pause:1.5},
   {n:10,gap:0.07,muster:'schlag',ang:0.34,eff:['kamuro','goldvorhang','zeitregen'],kal:'gross',pw:2,farbe:3,steig:'brokat',knall:'bkBrokat',pause:2.0},
-  {n:14,gap:0.13,muster:'wischer',ang:0.38,licht:'goldkomet',farbe:2},
+  {n:14,gap:0.2,muster:'wischer',ang:0.38,licht:'goldkomet',farbe:2},
   {mit:true,n:6,gap:0.5,muster:'v',ang:0.25,eff:'drachenei',kal:'gross',farbe:1,steig:'knister',knall:'bkKnisterhall',pause:1.0},
   {n:16,gap:0.08,muster:'w',ang:0.32,eff:['goldglitzer','kamuro'],kal:'gross',farbe:0,steig:'gold'},
-  {mit:true,n:10,gap:0.18,muster:'mitte',ang:0.16,eff:'qualle',A:'gold',B:'bernstein',kal:'riesig',pw:4,steig:'brokat',knall:'bkDonnerhall',pause:6}]);
+  {mit:true,n:10,gap:0.18,muster:'mitte',ang:0.16,eff:'qualle',A:'gold',B:'bernstein',kal:'riesig',pw:4,steig:'brokat',knall:'bkDonnerhall',pause:6}],{basis:{pw:0.5,sz:1.05,th:'lb_goldader'}});
 lochName('lb_goldader',{desc:'Goldkometen wie Adern im Gestein, Goldglitzer über Kreuz, goldene Quallen, deren Fäden langsam pulsierend sinken, Weidenkometen, ein Goldregen, der den ganzen Himmel füllt, knisternde Dracheneier – das Finale zehn goldene Quallen über einem Goldwald.'});
 SIGNATUR.lb_goldader={eff:'qualle',text:'Goldkometen, Goldglitzer, goldene Quallen, ein kompletter Goldregen und knisternde Dracheneier'};
 
@@ -229,8 +232,9 @@ EFF.zwillingssonne=function(p,A,B,s){ const [u]=basisBlick(p,0.2), d=4.0*s, T=0.
   const sonne=(sd,fn)=>{ const v=[u[0]*sd*d/T,1.0,u[2]*sd*d/T]; nKomet(p,v,[1.6,1.3,.8],T,G,[1,.8,.42],120);
     kgSpaeter(T,()=>fn(sternNach(p,v[0],v[1],v[2],G,T))); };
   let L=null, R=null;
-  sonne(-1,q=>{ L=q; EFF.tigerschweif(q,FW.gold,FW.orange,s*0.66); EFF.lavaregen(q,FW.gold,FW.orange,s*0.4); flash(q,[1,.8,.4],4,0.25); schall(q,x=>sfx.boom(x*1.1)); });
-  sonne(1,q=>{ R=q; EFF.sternspritzer(q,A,B,s*0.66); EFF.sternspritzer(q,B,FW.gold,s*0.45); flash(q,kgMal(A,1),4,0.25); schall(q,x=>sfx.boom(x*0.95)); });
+  /* gerendert 07.10.: die Sonnen waren klein und nach 3 s weg - groesser */
+  sonne(-1,q=>{ L=q; EFF.tigerschweif(q,FW.gold,FW.orange,s*0.9); EFF.lavaregen(q,FW.gold,FW.orange,s*0.55); flash(q,[1,.8,.4],2.2,0.25); schall(q,x=>sfx.boom(x*1.1)); });
+  sonne(1,q=>{ R=q; EFF.sternspritzer(q,A,B,s*0.95); EFF.sternspritzer(q,B,FW.gold,s*0.6); flash(q,kgMal(A,1),2.2,0.25); schall(q,x=>sfx.boom(x*0.95)); });
   kgSpaeter(T+0.9,()=>{ if(!L||!R) return; for(const [von,zu,c] of [[L,R,A],[R,L,B]]) for(let k=0;k<5;k++){ const dx=zu.x-von.x, dz=zu.z-von.z, l=Math.hypot(dx,dz)||1, w=5.5*Math.sqrt(s)*(0.8+0.2*k), v=[dx/l*w,1.5+k*1.2,dz/l*w];
       nKomet(von,v,kgMal(c,1.6),2.4,2.0,[1,.8,.42],60); } schall(p,x=>sfx.zischen(x*0.5,1.6)); });
   kgSpaeter(T+1.9,()=>{ EFF.kiefernkrone({x:p.x,y:p.y+0.5,z:p.z},FW.gold,A,s*0.5); });
@@ -246,7 +250,7 @@ EFF.goldweidenkreuz=function(p,A,B,s){ const G=2.4, t=0.8;
   const kranz=(n,w,el,cK,L,funken)=>nKranz(n,w,v=>{ nKomet(p,v,kgMal(cK,1.5),t,G,[1,.8,.42],55);
     kgSpaeter(t,()=>{ const e=sternNach(p,v[0],v[1],v[2],G,t), wv=bahnTempo(v,G,t), a0=rand(0,Math.PI*2);
       for(let k=0;k<4;k++){ const a=a0+k*Math.PI/2, sp=4.6*Math.sqrt(s), dv=[Math.cos(a)*sp+wv[0]*0.3,1.3+wv[1]*0.3,Math.sin(a)*sp+wv[2]*0.3];
-        kgStern(psHuge,e,dv,[1.6,1.05,.48],L,1.5,0,0.5); rkFunken(e,dv,1.5,0.05,L,funken,[1.25,.82,.32],{ps:psMid,life:[2.2,3.2],g:0.7,streu:0.12,mit:0.03,mode:0,spur:0.3});
+        kgStern(psBig,e,dv,[1.7,1.12,.5],L,1.5,0,0.5);   /* psHuge: weiche Ballen am Weidenende (gerendert) */ rkFunken(e,dv,1.5,0.05,L,funken,[1.25,.82,.32],{ps:psMid,life:[2.2,3.2],g:0.7,streu:0.12,mit:0.03,mode:0,spur:0.3});
         rkFunken(e,dv,1.5,0.1,L,funken*0.4,[1.35,1.05,.5],{ps:psBig,life:[1.6,2.4],g:0.6,streu:0.15,mit:0.03,mode:4});
         kgSpaeter(L*0.85,()=>{ const q=sternNach(e,dv[0],dv[1],dv[2],1.5,L*0.85); for(let j=0;j<Math.round(5*QUAL());j++){ const d=randDir(); psSmall.emit(q.x,q.y,q.z,d[0]*1.6,d[1]*1.6,d[2]*1.6,1.5,1.3,.9,rand(0.1,0.25),1,3); } }); }
       psHuge.emit(e.x,e.y,e.z,0,0,0,1.4,1.25,1,0.06,0,0); }); },el);
@@ -271,19 +275,30 @@ if(KUGEL.goldweidenkreuz200){ KUGEL.goldweidenkreuz200.raum=2.15; if(P.goldweide
    bis dreimal nachschlaegt und dabei die Wolke von innen anleuchtet. */
 function r3Blitz(q,c,s){ const pfad=[], aeste=[];
   let p={x:q.x,y:q.y,z:q.z}; const n=Math.round(rand(5,8)), [u]=basisBlick(q,0.2), quer=rand(-1,1);
-  for(let k=0;k<n;k++){ const l=rand(1.0,1.7)*Math.sqrt(s), sw=rand(-0.9,0.9)+quer*0.4, z={x:p.x+u[0]*sw*l,y:p.y-l*rand(0.6,1.0),z:p.z+u[2]*sw*l+rand(-0.3,0.3)};
+  for(let k=0;k<n;k++){ const l=rand(1.4,2.3)*Math.sqrt(s), sw=rand(-0.9,0.9)+quer*0.4, z={x:p.x+u[0]*sw*l,y:p.y-l*rand(0.6,1.0),z:p.z+u[2]*sw*l+rand(-0.3,0.3)};
     pfad.push([p,z]); if(k>0&&k<n-1&&Math.random()<0.45){ let a=z; for(let j=0;j<2;j++){ const sw2=(Math.random()<0.5?-1:1)*rand(0.6,1.2), b={x:a.x+u[0]*sw2*l*0.7,y:a.y-l*rand(0.3,0.6),z:a.z+u[2]*sw2*l*0.7}; aeste.push([a,b]); a=b; } }
     p=z; }
   const schlag=(t,k)=>kgSpaeter(t,()=>{ const alt=SCHWEIF; SCHWEIF=0;
     for(const [a,b] of pfad.concat(k>0.6?aeste:[])){ const L=Math.hypot(b.x-a.x,b.y-a.y,b.z-a.z), m=Math.max(2,Math.round(L/0.06));
       for(let i=0;i<=m;i++){ const f=i/m; psMid.emit(a.x+(b.x-a.x)*f,a.y+(b.y-a.y)*f,a.z+(b.z-a.z)*f,0,0,0,c[0]*k,c[1]*k,c[2]*k,0.07,0,0); }
-      psBig.emit((a.x+b.x)/2,(a.y+b.y)/2,(a.z+b.z)/2,0,0,0,c[0]*0.35*k,c[1]*0.35*k,c[2]*0.4*k,0.09,0,0); }
+      /* gerendert 07.10.: als reine Funkenlinie zu duenn - dazu ein Glimmen
+         um den Kanal (grosse, schwache Sterne alle 20 cm) */
+      const mg=Math.max(2,Math.round(L/0.2));
+      for(let i=0;i<=mg;i++){ const f=i/mg; psBig.emit(a.x+(b.x-a.x)*f,a.y+(b.y-a.y)*f,a.z+(b.z-a.z)*f,0,0,0,c[0]*0.55*k,c[1]*0.55*k,c[2]*0.65*k,0.08,0,0); } }
     SCHWEIF=alt; flash(q,[0.8,0.8,1],1.6*k,0.1); });
   schlag(0,1); schlag(0.07,0.55); schlag(rand(0.16,0.26),0.85); }
+/* gluehende Aschewolke: weiche, schwach leuchtende Ballen, die langsam
+   treiben, darin einzelne Glutfunken - statt stehender Leuchtpunkte */
+function r3Wolke(e,c,s,n){ const alt=SCHWEIF; SCHWEIF=0;
+  for(let j=0;j<Math.max(6,Math.round(n/2));j++){ const a=rand(0,Math.PI*2), r=Math.sqrt(Math.random())*5.5*Math.sqrt(s);
+    psHuge.emit(e.x+Math.cos(a)*r,e.y+rand(-1,1),e.z+Math.sin(a)*r,rand(-.3,.3),rand(-.1,.25),rand(-.3,.3),c[0]*0.3,c[1]*0.22,c[2]*0.2,rand(0.6,1.0),0,0); }
+  for(let j=0;j<n;j++){ const a=rand(0,Math.PI*2), r=Math.sqrt(Math.random())*6*Math.sqrt(s);
+    psMid.emit(e.x+Math.cos(a)*r,e.y+rand(-1.2,1.2),e.z+Math.sin(a)*r,rand(-.4,.4),rand(-.6,.2),rand(-.4,.4),c[0]*0.9,c[1]*0.5,c[2]*0.3,rand(0.4,0.9),0.6,2); }
+  SCHWEIF=alt; }
 LICHTYP.aschewolke=function(o,A,B,s,opt){
   thDunkel(o,s,opt,29,A,e=>{ let t=0; const glut=lHell(A,0.9);
     for(let k=0;k<9;k++){ t+=rand(0.18,0.45); const tt=t; kgSpaeter(tt,()=>{ const d=randDir(), r=rand(1,6)*Math.sqrt(s), q={x:e.x+d[0]*r,y:e.y+d[1]*r*0.3,z:e.z+d[2]*r};
-      lWolke(q,glut,s,Math.round(30*QUAL())); if(k%3===1){ r3Blitz({x:q.x,y:q.y+2,z:q.z},[1.5,1.5,1.8],s); schall(q,x=>sfx.crack(x*0.5)); } }); }
+      r3Wolke(q,glut,s,Math.round(24*QUAL())); if(k%3===1){ r3Blitz({x:q.x,y:q.y+2,z:q.z},[1.5,1.5,1.8],s); schall(q,x=>sfx.crack(x*0.5)); } }); }
     schall(e,x=>sfx.vulkangrollen(x)); });
 };
 /* Krater (nur der Vulkanausbruch, ein Fontaenen-Modul): staerker als die
@@ -333,7 +348,7 @@ lochGroesser('lb_vulkan',44,52);
    - Falterpaar: zwei grosse helle Falter, die gegenlaeufig pendelnd
      nebeneinander herabsegeln. */
 function r3Falter(e,A,B,s,n,gross){ const Q=lQuer({dir:FANDIR}), wind=rand(-0.3,0.3), bl=[];
-  for(let i=0;i<n;i++){ const d=randDir(), w=(gross?rand(1.6,2.2):rand(2.2,3.4))*Math.sqrt(s), dv=gross?[Q[0]*(i%2?1:-1)*w,rand(0.6,1.0),Q[2]*(i%2?1:-1)*w]:[d[0]*w,Math.abs(d[1])*w*0.5+0.8,d[2]*w];
+  for(let i=0;i<n;i++){ const d=randDir(), w=(gross?rand(1.8,2.4):rand(2.8,4.2))*Math.sqrt(s), dv=gross?[Q[0]*(i%2?1:-1)*w,rand(0.6,1.0),Q[2]*(i%2?1:-1)*w]:[d[0]*w,Math.abs(d[1])*w*0.5+0.8,d[2]*w];
     /* gerendert 07.10.: mit Helligkeit 1,35 waren die Falter aus 30 m nur
        Staubkoerner, ein zusaetzlicher grosser Stern (psHuge) eine weiche Scheibe -
        jetzt heller, mit Glitzerhauch beim Oeffnen, ohne Scheibe */
@@ -346,7 +361,7 @@ LICHTYP.flatterkomet=function(o,A,B,s,opt){
   lKopf(m,v,lHell(A,1.3),T,G,0,0.25);
   lFunken(m,v,G,0.03,T,70,mischF(lHell(A,1),[1,1,.8],0.4),{ps:psMid,life:[0.35,0.7],g:2,streu:0.4,mit:0.1,mode:4});
   lStart(m,0.8,0.6); sfx.fluegel(distVol(m)*0.5,Math.min(1.2,T));
-  kgSpaeter(T,()=>{ const e=sternNach(m,v[0],v[1],v[2],G,T); r3Falter(e,A,B,s,Math.round(5*QUAL())+4,false);
+  kgSpaeter(T,()=>{ const e=sternNach(m,v[0],v[1],v[2],G,T); r3Falter(e,A,B,s,Math.round(6*QUAL())+6,false);
     schall(e,x=>{ sfx.plopp(x*0.3,1.3); later(0.3,()=>sfx.fluegel(x*0.6,1.6)); }); });
 };
 LICHTYP.falterpaar=function(o,A,B,s,opt){
@@ -411,18 +426,19 @@ lochName('donnerwand',{desc:'Zwanzig Salven aus sechs Rohren im Takt eines Tromm
    Farben; mehr Richtung Rosa, goldene Elemente ok aber mehr andere,
    stimmiger"). Ein Rosenstrauss in Rosa, Weiss und Rot, Gold nur als
    Hauch: Rosenknospen (rosa Pistille mit weissem Kern) paarweise, ein
-   Schleier aus rosa Glitzerweiden, vier Herzbomben in Rosa mit rotem
-   Rand, ein Strauss aus rosa Chrysanthemen mit Glitzerschweif und weissen
-   Sternspritzern, zum Schluss zwei Ringe in Rosa und Weiss, darunter ein
-   Regen aus rosa Rosenblaettern (Brokat mit rosa Spitzen). 36 Schuss. */
+   Schleier aus rosa und weissem Rieselregen, vier Herzbomben in Rosa mit
+   rotem Rand, ein Strauss aus rosa Chrysanthemen mit Glitzerschweif und
+   weissen Sternspritzern, zum Schluss zwei Ringe in Rosa und Weiss,
+   darunter oeffnen sich rosa Blueten, die weiss verbluehen. Kein Gold
+   mehr ausser im Aufstieg. 36 Schuss. */
 r3Show('hochzeitsfaecher',[['rose','weiss'],['magenta','rose'],['weiss','rose'],['rot','rose']],{sz:[0.95,1.15],pw:[0,1.5],hell:[0.9,1.25],kurve:'flach'},[
   {n:8,gap:0.75,muster:'paar',ang:0.25,eff:'pistill',kal:'klein',farbe:0,steig:'glut',knall:'bkPuff',pause:1.0},
-  {n:6,gap:1.1,muster:'mitte',ang:0.4,eff:'glitzerweide',A:'rose',B:'weiss',kal:'mittel',steig:'silber',knall:'bkRieseln',pause:1.0},
+  {n:6,gap:1.1,muster:'mitte',ang:0.4,eff:'farbregen',A:'rose',B:'weiss',kal:'gross',steig:'silber',knall:'bkRieseln',pause:1.0},
   {n:4,gap:1.8,muster:'v',ang:0.18,eff:'herz',kal:'gross',A:'rose',B:'rot',steig:'silber',bruchOpt:{nachglitzer:false},pause:1.2},
   {n:10,gap:0.3,muster:'w',ang:0.35,eff:['chrys','sternspritzer'],farbe:1,steig:'glut',knall:'bkKnisterhall',pause:1.2},
   {n:2,gap:0,muster:'v',ang:0.2,eff:'ring',kal:'gross',A:'rose',B:'weiss',steig:'silber'},
-  {mit:true,n:6,gap:0.18,muster:'zufall',ang:0.4,kal:'mittel',pw:-1,eff:'nishiki',A:'rose',B:'weiss',steig:'brokat',knall:'bkBrokat',pause:4.5}],{basis:{pw:2.0,sz:1.16,th:'hochzeitsfaecher'}});
-lochName('hochzeitsfaecher',{desc:'Ein Rosenstrauß in Rosa, Weiß und Rot: Rosenknospen paarweise, ein Schleier aus rosa Glitzerweiden, vier Herzbomben in Rosa, ein Strauß aus rosa Chrysanthemen und weißen Sternspritzern – zum Schluss zwei Ringe, unter denen rosa Rosenblätter niedergehen.'});
+  {mit:true,n:6,gap:0.18,muster:'zufall',ang:0.4,kal:'mittel',pw:-1,eff:'bluetenstern',A:'rose',B:'weiss',steig:'silber',knall:'bkPuff',pause:4.5}],{basis:{pw:2.0,sz:1.16,th:'hochzeitsfaecher'}});
+lochName('hochzeitsfaecher',{desc:'Ein Rosenstrauß in Rosa, Weiß und Rot: Rosenknospen paarweise, ein Schleier aus rosa und weißem Rieselregen, vier Herzbomben in Rosa, ein Strauß aus rosa Chrysanthemen und weißen Sternspritzern – zum Schluss zwei Ringe, unter denen rosa Blüten aufgehen und weiß verblühen.'});
 
 /* SONNENAUFGANG (Tom: "Explosionen teils nicht schoen, goldene/gelbe Sterne
    schlechte Textur -> ueberarbeiten"). Die goldenen Buketts waren

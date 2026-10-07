@@ -9,7 +9,7 @@
    - WEG: nach dem Bruch ist das Modell aus der Szene
    - BLICK: beim Zuenden ist das Rohr im Bild, beim Bruch der Bruchpunkt
    - PIXEL (07.10., Tom sah trotz gruenem Test nichts): nach leichtem
-     Mauszittern (6 x 0,012 rad) wird das Bild
+     Mauszittern (6 x 0,03 rad je Bild) wird das Bild
      wirklich gerendert - einmal mit, einmal ohne Modell; mindestens
      PIXEL_MIN Bildpunkte muessen sich unterscheiden (Rakete bzw. Kugel
      und Zuendschnur sind im Bild zu sehen, nicht verdeckt, nicht winzig)
@@ -47,7 +47,7 @@ const PIXEL_MIN=80;
       const log=[]; log.brueche=[]; bb.fwLog(log);
       bb.vfZuenden(t); bb.run(0.1,0.05);
       /* eine Hand auf der Maus: der Blick zittert um gut 4 Grad (Tom) */
-      for(let k=0;k<6;k++){ const pp=bb.playerPos(); bb.setView(pp.x,pp.z,bb.camYaw(),bb.camPitch()+0.012); bb.run(0.05,0.05); }
+      for(let k=0;k<6;k++){ const pp=bb.playerPos(); bb.setView(pp.x,pp.z,bb.camYaw(),bb.camPitch()+0.03); bb.run(0.05,0.05); }
       bb.renderFrame(1/60);
       const g=modell(t), sid=bb.stationOf(t);
       const o={t,sid,lvl:P[t].lvl,da:!!g,sicht:!!g&&g.visible};

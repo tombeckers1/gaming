@@ -190,7 +190,7 @@ function vfImRohr(t,o){
        Vorfuehrung nicht sieht. Hier sitzt die Kugel oben in der Muendung (die
        obere Haelfte schaut heraus) und die Schnur haengt zum Zuschauer hin
        ueber den Rand. */
-    const rk=kugel.geometry&&kugel.geometry.parameters?kugel.geometry.parameters.radius:0.06; kugel.position.y=-rk*0.4;
+    const rk=kugel.geometry&&kugel.geometry.parameters?kugel.geometry.parameters.radius:0.06; kugel.position.y=rk*0.25;   /* gerendert: mit -0,4 rk verdeckte der Muendungswulst die Kugel */
     const c=camera.position; g.rotation.y=-Math.atan2(c.z-o.z,c.x-o.x); }
   if(!g) return null;
   g.userData.vfModell=t; scene.add(g);

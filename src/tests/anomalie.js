@@ -122,7 +122,9 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     /* 06.10. (PDF: breite Fontaenen - "das macht auch jetzt keinen Sinn, das ueberall einzusetzen"; 02.10.: keine
        Fontaene am Anfang): Lichter-Batterien (jede Phase ein Licht aus dem Rohr) brauchen keinen Boden mehr */
     const nurLicht=s.ph.every(x=>x.eff.every(e=>/^licht:/.test(e)));
-    if(s.lvl>=16&&ph.length>2&&!nurLicht) pruef('REGELN',s.ph.some(x=>x.boden||x.eff.some(e=>/^licht:breit/.test(e)))||PR[t]&&PR[t].emi.length>0,t+' (L'+s.lvl+'): kein Boden/Fontaene in der Show');
+    /* 07.10. (Toms Test V117: "ALLE Batterien: Bodenfontaenen raus", bodenfontaene.js)
+       - die Regel "ab Level 16 Boden/Fontaene in der Show" gilt nicht mehr */
+    if(false&&s.lvl>=16&&ph.length>2&&!nurLicht) pruef('REGELN',s.ph.some(x=>x.boden||x.eff.some(e=>/^licht:breit/.test(e)))||PR[t]&&PR[t].emi.length>0,t+' (L'+s.lvl+'): kein Boden/Fontaene in der Show');
     /* Rhythmus-Takte (takt:[...]) zaehlen einzeln (engine-zusatz G3) */
     const kl=new Set([].concat(...ph.map(x=>x.takt||[x.gap])).map(g=>g<0.15?0:g<0.4?1:g<0.9?2:3)); if(ph.length>2) pruef('REGELN',kl.size>=(s.lvl>=14?3:2),t+': nur '+kl.size+' Tempoklassen');
   });

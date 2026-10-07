@@ -350,6 +350,130 @@ LICHTYP.schwirrkomet=function(o,A,B,s,opt){
     schall(e,x=>{ sfx.plopp(x*0.35,1.2); sfx.schwirren(x*0.9,D*0.9); later(D-0.15,()=>sfx.snap(x*0.4)); }); });
 };
 
+/* TROMMELFEUER (Tom: "mehr Sounds; alle Effekte texturell ueberarbeiten -
+   Lichter sehen billig/'schlecht grafisches Spiel' aus, nicht echt (bei
+   viel gleichzeitig am Himmel)"). Die Salven bestanden aus sechs gleichen
+   Paeonien/Kugeln - sechs runde Punktbaelle nebeneinander. Jetzt hat jede
+   Salve Sterne mit Schweif und Glitzer (Goldglitzer, Sternspritzer,
+   Brokat, Palmen mit Glitzerschweif) und jede Trommelfigur ihren eigenen
+   Schlag: Viertel wummern, die Synkope schlaegt doppelt, der Pauken-
+   schlag ist ein echter Salut (Knall), die Triolen knistern nach, der
+   Wirbel knackt in Kaskaden, der Tusch rollt als Donner nach. */
+{ const alt=SHOWS.donnerwand; if(alt) SHOWS.donnerwand=()=>{ const s=alt(), k=s.map(ph=>Object.assign({},ph));
+  const tausch={kugel:'goldglitzer',chrys:'sternspritzer',weide:'glitzerweide',palme:'sternpalme'};
+  const klang=[null,'bkWumms','bkDoppel','bkSalut','bkKnisterhall',null,'bkKaskade','bkDonnerhall'];
+  let salve=0;
+  k.forEach((ph,i)=>{ if(!ph.n) return; salve++;
+    if(Array.isArray(ph.eff)) ph.eff=ph.eff.map(e=>tausch[e]||e); else if(tausch[ph.eff]) ph.eff=tausch[ph.eff];
+    const kl=klang[Math.min(klang.length-1,salve)]; if(kl&&!ph.knall) ph.knall=kl;
+    /* Paukenschlag: zwei der sechs Rohre sind Salute */
+    if(ph.n===6&&ph.muster==='gerade'&&ph.eff!=='kamuro') ph.eff=['glitzerweide','salut','glitzerweide','glitzerweide','salut','glitzerweide']; });
+  return show({basis:s.basis,rampe:s.rampe,verzoegerung:s.verzoegerung},k); }; }
+lochName('donnerwand',{desc:'Zwanzig Salven aus sechs Rohren im Takt eines Trommelsolos: wummernde Goldpalmen, Kokospalmen auf der Synkope, ein Paukenschlag mit zwei Saluten, knisternde Triolen aus Goldglitzer und Sternspritzern, ein knackender Wirbel – und als Tusch sechs riesige Kamuro.'});
+
+/* ROSENHERZ (Tom: "neu ausbalancieren - Effektkombination, Texturqualitaet,
+   Farben; mehr Richtung Rosa, goldene Elemente ok aber mehr andere,
+   stimmiger"). Ein Rosenstrauss in Rosa, Weiss und Rot, Gold nur als
+   Hauch: Rosenknospen (rosa Pistille mit weissem Kern) paarweise, ein
+   Schleier aus rosa Glitzerweiden, vier Herzbomben in Rosa mit rotem
+   Rand, ein Strauss aus rosa Chrysanthemen mit Glitzerschweif und weissen
+   Sternspritzern, zum Schluss zwei Ringe in Rosa und Weiss, darunter ein
+   Regen aus rosa Rosenblaettern (Brokat mit rosa Spitzen). 36 Schuss. */
+r3Show('hochzeitsfaecher',[['rose','weiss'],['magenta','rose'],['weiss','rose'],['rot','rose']],{sz:[0.95,1.15],pw:[0,1.5],hell:[0.9,1.25],kurve:'flach'},[
+  {n:8,gap:0.75,muster:'paar',ang:0.25,eff:'pistill',kal:'klein',farbe:0,steig:'glut',knall:'bkPuff',pause:1.0},
+  {n:6,gap:1.1,muster:'mitte',ang:0.4,eff:'glitzerweide',A:'rose',B:'weiss',kal:'mittel',steig:'silber',knall:'bkRieseln',pause:1.0},
+  {n:4,gap:1.8,muster:'v',ang:0.18,eff:'herz',kal:'gross',A:'rose',B:'rot',steig:'silber',bruchOpt:{nachglitzer:false},pause:1.2},
+  {n:10,gap:0.3,muster:'w',ang:0.35,eff:['chrys','sternspritzer'],farbe:1,steig:'glut',knall:'bkKnisterhall',pause:1.2},
+  {n:2,gap:0,muster:'v',ang:0.2,eff:'ring',kal:'gross',A:'rose',B:'weiss',steig:'silber'},
+  {mit:true,n:6,gap:0.18,muster:'zufall',ang:0.4,kal:'mittel',pw:-1,eff:'nishiki',A:'rose',B:'weiss',steig:'brokat',knall:'bkBrokat',pause:4.5}],{basis:{pw:2.0,sz:1.16,th:'hochzeitsfaecher'}});
+lochName('hochzeitsfaecher',{desc:'Ein Rosenstrauß in Rosa, Weiß und Rot: Rosenknospen paarweise, ein Schleier aus rosa Glitzerweiden, vier Herzbomben in Rosa, ein Strauß aus rosa Chrysanthemen und weißen Sternspritzern – zum Schluss zwei Ringe, unter denen rosa Rosenblätter niedergehen.'});
+
+/* GLUTSCHMIEDE: die Bodenfontaenen sind raus (Tom: "z. B. Glutschmiede").
+   Dafuer schlaegt der Schmied: in der Schlag-Salve sind zwei der sechs
+   Rohre Salute (Hammer auf dem Amboss), und die Lavabrocken wummern. */
+{ const alt=SHOWS.glutschmiede; if(alt) SHOWS.glutschmiede=()=>{ const s=alt(), k=s.map(ph=>Object.assign({},ph));
+  k.forEach(ph=>{ if(ph.muster==='schlag'&&ph.n===6) ph.eff=['tigerschweif','salut','kiefernkrone','lavaregen','salut','tigerschweif'];
+    if(ph.eff==='lavaregen'&&!ph.knall) ph.knall='bkWumms'; });
+  return show({basis:s.basis,rampe:s.rampe,verzoegerung:s.verzoegerung},k); }; }
+
+/* ---------- Vorfuehrung: dieselben Abschussrohre wie im Spiel ----------
+   Tom 07.10.: "Abschussrohre in der Vorfuehrung sehen anders aus als im
+   echten Spiel -> dieselben Rohre wie im Spiel nehmen". Die Vorfuehranlage
+   hatte glatte graue Zylinder ohne Innenseite (0,62 m Rohr, Moerser 0,6-
+   1 m hoch). Jetzt wie an den Stationen (05d): Abschussrohr aus dunklem
+   Stahl mit schwarzer Innenwand, Boden, Muendungsring, Schelle und
+   schwerer Fussplatte mit zwei Stuetzen auf einem Lochblechtisch; Moerser
+   wie die Moerserbatterie - Rohre 1,30/1,55/1,85 m auf 0,18 m, Muendungs-
+   wulst, zwei Verstaerkungsringe, Boden, Schellen, Riffelblech-Platte. */
+const VF_MOERSER_H=[1.30,1.55,1.85], VF_MOERSER_FUSS=0.18;
+vfAnlageBauen=function(){
+  if(vfAnlage){ vfAnlage.visible=true; return; }
+  const g=new THREE.Group(), steel=std(0x8a929e,{metalness:0.65,roughness:0.38}), steelDark=std(0x3a4049,{metalness:0.6,roughness:0.45}), holz=std(0xa8844f,{roughness:0.8});
+  const perf=std(0x5d646e,{metalness:0.55,roughness:0.5}), tubeM=std(0x3e4652,{metalness:0.72,roughness:0.34}), innenM=std(0x14161b,{roughness:0.9,side:THREE.DoubleSide});
+  tubeM.side=THREE.DoubleSide;
+  const box=(w,h,d,m,x,y,z)=>{ const b=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m); b.position.set(x,y,z); b.castShadow=b.receiveShadow=true; g.add(b); return b; };
+  const ring=(r,t,m,x,y,z)=>{ const o=new THREE.Mesh(new THREE.TorusGeometry(r,t,8,20),m); o.rotation.x=Math.PI/2; o.position.set(x,y,z); g.add(o); return o; };
+  /* Tisch fuer Batterien und Kleinfeuerwerk wie bisher */
+  const T=VF_TISCH, tw=T.n*T.dx+0.2, tx=T.x0+(T.n-1)*T.dx/2;
+  box(tw,0.06,0.9,holz,tx,T.y-0.03,VF_Z);
+  for(const sx of [-1,1]) for(const sz of [-1,1]) box(0.08,T.y-0.06,0.08,steel,tx+sx*(tw/2-0.1),(T.y-0.06)/2,VF_Z+sz*0.35);
+  /* Abschussrohre: Lochblechtisch in 0,76 m, Rohre 0,62 m, Muendung 1,38 m */
+  const R=VF_ROHR, TT=RAMPE_TISCH, rw=(R.n-1)*R.dx+0.4, rx=R.x0+(R.n-1)*R.dx/2, H=0.62, yc=TT+0.012+H/2;
+  box(rw,0.04,0.74,perf,rx,TT-0.02,VF_Z);
+  box(rw+0.06,0.05,0.05,steelDark,rx,TT-0.025,VF_Z+0.37); box(rw+0.06,0.05,0.05,steelDark,rx,TT-0.025,VF_Z-0.37);
+  for(const sx of [-1,1]) for(const sz of [-1,1]) box(0.06,TT-0.05,0.06,steelDark,rx+sx*(rw/2-0.08),(TT-0.05)/2,VF_Z+sz*0.3);
+  box(rw-0.2,0.03,0.12,steelDark,rx,0.26,VF_Z+0.3); box(rw-0.2,0.03,0.12,steelDark,rx,0.26,VF_Z-0.3);
+  for(let i=0;i<R.n;i++){ const x=R.x0+i*R.dx;
+    const t=new THREE.Mesh(new THREE.CylinderGeometry(0.062,0.062,H,20,1,true),tubeM); t.position.set(x,yc,VF_Z); t.castShadow=true; g.add(t);
+    const inn=new THREE.Mesh(new THREE.CylinderGeometry(0.056,0.056,H-0.03,16,1,true),innenM); inn.position.copy(t.position); g.add(inn);
+    const bo=new THREE.Mesh(new THREE.CylinderGeometry(0.06,0.06,0.012,20),steelDark); bo.position.set(x,yc-H/2,VF_Z); g.add(bo);
+    ring(0.064,0.013,steel,x,yc+H/2,VF_Z); ring(0.066,0.012,steelDark,x,yc-H/2*0.55,VF_Z);
+    box(0.24,0.022,0.24,steelDark,x,TT+0.011,VF_Z);
+    for(const sx of [-1,1]){ const st=box(0.014,0.2,0.014,steelDark,x+sx*0.085,TT+0.1,VF_Z+0.02); st.rotation.z=-sx*0.32; } }
+  /* Moerser: je Kaliber vier Rohre wie an der Moerserbatterie */
+  const M=VF_MOERSER, rohrM=std(0x2f353f,{metalness:0.78,roughness:0.3}), wulstM=std(0x454d59,{metalness:0.7,roughness:0.35}), bodenM=std(0x15171c,{roughness:1}), schwarz=std(0x0b0c10,{roughness:1,side:THREE.DoubleSide});
+  rohrM.side=THREE.DoubleSide;
+  for(let k=0;k<3;k++){ const gx=M.x0+k*M.gdx, hh=VF_MOERSER_H[k], r=MOERSER_R[k], y0=VF_MOERSER_FUSS;
+    box(M.n*M.dx+0.16,0.05,0.62,perf,gx+(M.n-1)*M.dx/2,0.055,VF_Z);
+    for(let i=0;i<M.n;i++){ const x=gx+i*M.dx;
+      const t=new THREE.Mesh(new THREE.CylinderGeometry(r,r,hh,22,1,true),rohrM); t.position.set(x,y0+hh/2,VF_Z); t.castShadow=true; g.add(t);
+      const inn=new THREE.Mesh(new THREE.CylinderGeometry(r*0.9,r*0.9,hh-0.04,16,1,true),schwarz); inn.position.copy(t.position); g.add(inn);
+      const bo=new THREE.Mesh(new THREE.CircleGeometry(r*0.9,16),bodenM); bo.rotation.x=-Math.PI/2; bo.position.set(x,y0+0.02,VF_Z); g.add(bo);
+      ring(r*1.03,r*0.17,wulstM,x,y0+hh,VF_Z);
+      for(const f of [0.3,0.62]) ring(r*1.02,r*0.1,rohrM,x,y0+hh*f,VF_Z);
+      for(const y of [0.42,0.66]) ring(r+0.03,0.022,steel,x,y,VF_Z); } }
+  scene.add(g); vfAnlage=g;
+};
+/* Muendungen passend zu den neuen Moersern (Rohrhoehe 1,48/1,73/2,03 m) */
+{ const vm=vfMuendung; vfMuendung=function(t){ const o=vm.apply(this,arguments);
+    if(o&&o.sid==='moerser'){ const k=moerserRohr(t)%3; o.y=VF_MOERSER_FUSS+VF_MOERSER_H[k]; }
+    return o; }; }
+
+/* ---------- 4. Level-Ordnung ----------
+   Tom 07.10.: "Weltuntergang hebt sich in der Koenigsklasse stark ab ->
+   Batterien nach Volumen/Wucht vergleichen und andere auf passende Level
+   verschieben"; "Blitzpilz [Blitzpalmen] und Urwald nicht Koenigsklasse-
+   wuerdig, es gibt kraessere davor"; "Jumbo Drache eher niedriger";
+   Wunsch: stetige Steigerung von unten nach oben. Gemessen (wucht.js:
+   Rohre, Dauer, Summe der Bruchflaechen, Spitzendichte in 3 s, Partikel)
+   - die Reihenfolge folgt der Wucht. Lizenz je Level: Sternklasse (19),
+   Grossfeuer (20), Profi (22), Meister (25). */
+const R3_LEVEL={lb_blitzpalmen:[19,'sternklasse'],donnerwand:[21,'grossfeuer'],hexenkessel:[22,'profi'],profi:[23,'profi'],
+  glutschmiede:[22,'profi'],lb_weidenhain:[24,'profi'],lb_jadekoenig:[25,'meister'],lb_vulkan:[25,'meister'],finale:[26,'meister'],feuerdrache:[21,'grossfeuer']};
+function r3Level(t,lvl,liz){ const p=P[t]; if(!p) return; p.lvl=lvl;
+  if(!liz) return; const L=LIZENZEN.find(l=>l.id===liz); if(!L) return;
+  LIZENZEN.forEach(l=>{ const i=l.items.indexOf(t); if(i>=0&&l!==L) l.items.splice(i,1); });
+  if(L.items.indexOf(t)<0) L.items.push(t); LIZ_VON[t]=liz;
+  /* Preis und Hype wandern mit dem Level (Lichter-Batterien: Level x 2,6) */
+  if(/^lb_/.test(t)){ p.cost=Math.round(lvl*2.6); p.market=Math.round(lvl*2.6*2.3)-0.01; p.hype=40+lvl*2; } }
+for(const [t,[l,z]] of Object.entries(R3_LEVEL)) r3Level(t,l,z);
+/* Texte der Lizenzpakete zu den neuen Inhalten */
+{ const d=(id,txt)=>{ const L=LIZENZEN.find(l=>l.id===id); if(L) L.desc=txt; };
+  d('profi','Der Götterfunken-Verbund: zweihundert Schuss, und der halbe Ort steht auf der Straße. Dazu der Hexenkessel, die Glutschmiede, der Weidenhain und die Jumbo-Rakete »Polarstern«; die 200-mm-Kugel Feuerlilie und die 300-mm-Kugel Himmelsbrecher.');
+  d('meister','Das Ende der Leiter: der Weltuntergang mit 300 Schuss, der Urwald mit hundert, der Vulkanausbruch, die Jumbo-Rakete »Supernova« und die 300-mm-Kaiserkrone.');
+  d('grossfeuer','Die Jumbo-Raketen »Juwelenpalme« und »Feuerdrache«, der Farbtiger, das Kronenfeuer, das Trommelfeuer mit zwanzig Salven aus sechs Rohren und die 200-mm-Kugelbomben.');
+  d('sternklasse','Die Jumbo-Rakete »Saphirkrone«, die Wendeltreppe, die sich zwölf Meter hochschraubt, die Blitzpalmen und die Crossettenkrone.'); }
+
 /* ---------- Testzugang ---------- */
 let ABSCHUSS_AUS=false;
 { const roh=ABSCHUSS; for(const n of Object.keys(roh)){ const f=roh[n]; roh[n]=function(){ if(!ABSCHUSS_AUS) return f.apply(this,arguments); }; } }
@@ -358,5 +482,9 @@ try{ window.__r3={
   klangLog:()=>KLANG_LOG, abschussLog:()=>ABSCHUSS_LOG,
   /* Gegenprobe: der neue Abschussklang aus, lStart wieder wie vorher */
   abschussAus(aus){ ABSCHUSS_AUS=!!aus; },
+  /* Gegenprobe Bodenfontaenen: aus = die alten Boden-Ebenen laufen wieder */
+  bodenAus(an){ BODEN_AUS=!!an; }, BODEN_ERLAUBT,
   TAG_PROD
 }; }catch(e){}
+/* zuletzt: jedes Drehbuch (auch die oben neu geschriebenen) ohne Bodenfontaene */
+bodenRausAlle();

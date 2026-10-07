@@ -183,7 +183,15 @@ function vfImRohr(t,o){
   const p=P[t]; if(!p) return null;
   let g=null, kugel=null;
   if(o.sid==='rampe'&&p.shape==='rocketset'&&t!=='gravur'){ g=raketeModell(t); g.position.set(o.x,o.y-0.01,o.z); }
-  else if(o.sid==='moerser'&&p.shape==='shell'){ g=kugelModell(t,moerserRohr(t)); g.position.set(o.x,o.y,o.z); g.rotation.y=-Math.PI*0.5; kugel=g.children[0]; }
+  else if(o.sid==='moerser'&&p.shape==='shell'){ g=kugelModell(t,moerserRohr(t)); g.position.set(o.x,o.y,o.z); kugel=g.children[0];
+    /* 07.10. (Tom: "Kugelbomben NICHT sichtbar im Rohr, ohne heraushaengende
+       Zuendschnur"): an der Station liegt die Kugel 14 cm tief im Rohr - vom
+       Pult aus unsichtbar - und die Schnur hing zur Seite, die der Blick in der
+       Vorfuehrung nicht sieht. Hier sitzt die Kugel oben in der Muendung (die
+       obere Haelfte schaut heraus) und die Schnur haengt zum Zuschauer hin
+       ueber den Rand. */
+    const rk=kugel.geometry&&kugel.geometry.parameters?kugel.geometry.parameters.radius:0.06; kugel.position.y=-rk*0.4;
+    const c=camera.position; g.rotation.y=-Math.atan2(c.z-o.z,c.x-o.x); }
   if(!g) return null;
   g.userData.vfModell=t; scene.add(g);
   const e={t:30,k:'vfModell',o:{x:o.x,y:o.y,z:o.z},ab:o.ab||0,g,kugel,sid:o.sid,alter:0,r:null,fertig:false,

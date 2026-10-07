@@ -55,6 +55,18 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     o.rohre={n:kug.length,x:[...new Set(xs)].slice(0,6),alle:xs.length};
     /* Beenden mit B (Esc greift bei gefangenem Mauszeiger der Browser ab) */
     taste('KeyB'); o.aus={an:bb.vfAn,el:!!document.getElementById('vorfuehrung')};
+    /* 07.10.: zwei weitere Vorfuehrungen - Aenderungen und Kugelbomben */
+    const V2=window.__vf2;
+    if(V2){ const A=V2.vfAenderungListe(), K=V2.vfKugelListe();
+      bb.vorfuehrungAn(A,'VORFÜHRUNG (ÄNDERUNGEN)'); bb.run(0.1,0.05);
+      const kopf=bb.vfEl.innerText.slice(0,80), g=bb.vfGezuendet; taste('Space'); bb.run(0.1,0.05);
+      o.aend={n:A.length,liste:bb.vfListe.length,kopf,erst:bb.vfLetzt===A[0],gez:bb.vfGezuendet-g,
+        eintrag:V2.VF_AENDERUNG.filter(t=>P[t]).every(t=>A.includes(t)),sortiert:A.every((t,i)=>!i||P[A[i-1]].lvl<=P[t].lvl)};
+      taste('KeyB');
+      const alleK=Object.keys(P).filter(t=>P[t].shape==='shell'&&bb.stationOf(t));
+      bb.vorfuehrungAn(K,'KUGELBOMBEN-VORFÜHRUNG'); bb.run(0.1,0.05);
+      o.kug={n:K.length,alle:alleK.length,fehlt:alleK.filter(t=>!K.includes(t)),nurMoerser:K.every(t=>bb.stationOf(t)==='moerser'),kopf:bb.vfEl.innerText.slice(0,80),liste:bb.vfListe.length};
+      taste('KeyB'); }
     return o; });
   console.log('VORF',JSON.stringify(r).slice(0,1500));
   pruef('START',r.start.an&&r.start.el&&r.start.n===r.alle&&r.start.n>100,'Start/Liste: '+JSON.stringify(r.start)+' alle '+r.alle);
@@ -70,6 +82,8 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   pruef('KEINE_XP',r.xp.level===1,'Level steigt in der Vorfuehrung: '+JSON.stringify(r.xp));
   pruef('ROHRE',r.rohre.n===3&&r.rohre.x.length>=3,'gleiche Kugelbomben aus demselben Rohr: '+JSON.stringify(r.rohre));
   pruef('ESC',!r.aus.an&&!r.aus.el,'Esc: '+JSON.stringify(r.aus));
+  pruef('AENDERUNGEN',r.aend&&r.aend.n>=10&&r.aend.liste===r.aend.n&&/ÄNDERUNGEN/.test(r.aend.kopf)&&r.aend.erst&&r.aend.gez===1&&r.aend.eintrag&&r.aend.sortiert,'Vorfuehrung (Aenderungen): '+JSON.stringify(r.aend));
+  pruef('KUGELN',r.kug&&r.kug.n===r.kug.alle&&r.kug.n>=15&&!r.kug.fehlt.length&&r.kug.nurMoerser&&/KUGELBOMBEN/.test(r.kug.kopf)&&r.kug.liste===r.kug.n,'Kugelbomben-Vorfuehrung: '+JSON.stringify(r.kug));
   console.log('MANGEL:',mangel.length?mangel.join(' | '):'keine');
   console.log('ERRORS:',errs.length||mangel.length?errs.concat(mangel).join('\n'):'keine');
   await b.close();

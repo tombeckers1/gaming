@@ -13,7 +13,7 @@
    aus:true schaltet den neuen Abschussklang ab (Gegenprobe: dann muss der
    Test bei den Lichter-Batterien anschlagen). */
 const { chromium } = require('/opt/node22/lib/node_modules/playwright');
-const HOERBAR=0.06;
+const HOERBAR=0.12;   /* nur der alte Bass-Abschuss (sfx.thump) misst 0,07 - aus einem Laptop kaum zu hoeren */
 (async()=>{
   const b=await chromium.launch({args:['--use-gl=swiftshader','--enable-unsafe-swiftshader','--no-sandbox','--autoplay-policy=no-user-gesture-required']});
   const p=await b.newPage({viewport:{width:640,height:400}}); p.setDefaultTimeout(1500000);

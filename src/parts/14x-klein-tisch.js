@@ -68,7 +68,7 @@ const kfV=new THREE.Vector3(), kfY=new THREE.Vector3(0,1,0);
 function kfAchsM(x,y,z,d){ const q=new THREE.Quaternion().setFromUnitVectors(kfY,kfV.set(d[0],d[1],d[2]).normalize()); return new THREE.Matrix4().compose(new THREE.Vector3(x,y,z),q,new THREE.Vector3(1,1,1)); }
 function kfFarbMat(){ return klMat('kf_vc',()=>new THREE.MeshStandardMaterial({vertexColors:true,roughness:0.7,emissive:new THREE.Color(0.06,0.06,0.06)})); }
 function kfMetMat(){ return klMat('kf_vcm',()=>new THREE.MeshStandardMaterial({vertexColors:true,roughness:0.35,metalness:0.55,emissive:new THREE.Color(0.08,0.08,0.08)})); }
-function kfMesh(geo,mat,m){ const x=new THREE.Mesh(geo,mat); if(m) x.applyMatrix4(m); x.userData.geoFest=true; x.castShadow=true; x.receiveShadow=true; return x; }
+function kfMesh(geo,mat,m){ const x=new THREE.Mesh(geo,mat); if(m) m.decompose(x.position,x.quaternion,x.scale); x.userData.geoFest=true; x.castShadow=true; x.receiveShadow=true; return x; }
 /* Huelse mit Druck, liegend: Achse in der Waagerechten (Drehung ry um y),
    Mitte (x,r,z); dazu Endkappen und Zuendschnur am hinteren Ende */
 function kfHuelse(g,key,druck,r,L,x,z,ry,o){ o=o||{};

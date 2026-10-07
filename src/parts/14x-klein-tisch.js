@@ -16,13 +16,11 @@
      weg mit dem Knall
    - Flitzer, Blitzknaller: sechs Stueck nebeneinander, jeder verschwindet,
      wenn er losfliegt bzw. geworfen wird
-   - Finale Grande: fuenf HDPE-Moerser auf dem Brett, die Bomben stecken
-     mit der Zuendlitze ueber dem Rand, davor der Kometenblock
    kfTischZuenden (aus kleinZuenden, 14l) setzt die Hoehe des Ursprungs
    auf die Oberkante des Produkts und plant, was wann verschwindet.
    ========================================================= */
 const KF_AUF=[], KF_HAND=[4,5,3,4,5,3,4,2];
-const KF_ARTEN=['knallerbsen','partypopper','knallfrosch','knallbonbon','boeller','schwaermer','blitzknaller','bodenkreisel','monsterboeller','kugelfinale'];
+const KF_ARTEN=['knallerbsen','partypopper','knallfrosch','knallbonbon','boeller','schwaermer','blitzknaller','bodenkreisel','monsterboeller'];
 /* feste Lage der Teile relativ zum Platz (Weltachsen: +z zum Pult) -
    dieselben Zahlen nutzen die Emitter in 14l/14q */
 function kfFroschLage(o){ return {x:o.x+0.005,z:o.z+0.01,ry:0.38}; }
@@ -136,36 +134,8 @@ const KF_BAU={
     g.userData.hoehe=0.009; },
   bodenkreisel(g){ const mat=klMat('kf_kreisel',()=>new THREE.MeshStandardMaterial({vertexColors:true,roughness:0.5,emissive:new THREE.Color(0.12,0.12,0.12)}));
     for(let i=0;i<6;i++){ const L=kfKreiselLage({x:0,z:0},i); g.add(kfMesh(kqKreiselGeo(),mat,tm(L.x,0.004,L.z,0,i*1.1,0))); }
-    g.userData.hoehe=0.02; },
-  /* Finale Grande: Brett, fuenf HDPE-Moerser (die Bomben stecken darin,
-     die blauen Zuendlitzen haengen mit roter Kappe ueber den Rand),
-     davor der Kometenblock */
-  kugelfinale(g){
-    const POS=[[-0.15,-0.105],[0,-0.115],[0.15,-0.105],[-0.17,0.055],[0.17,0.055]], HS=[0.285,0.3,0.285,0.27,0.27], BC=[0x3f8a4e,0xe9e2cf,0xb8322a,0x2f6a8a,0x8a2f6a];
-    const p=[{geo:new THREE.BoxGeometry(0.5,0.018,0.36),m:tm(0,0.009,0),color:0xc8a070},{geo:new THREE.BoxGeometry(0.5,0.004,0.02),m:tm(0,0.02,0.15),color:0x8a6a3a}];
-    POS.forEach(([x,z],i)=>{ const h=HS[i];
-      p.push({geo:new THREE.CylinderGeometry(0.05,0.05,h,14,1,true),m:tm(x,0.018+h/2,z),color:0x1c1c1e});
-      p.push({geo:new THREE.RingGeometry(0.044,0.05,14),m:tm(x,0.018+h,z,-Math.PI/2,0,0),color:0x2c2c30});
-      p.push({geo:new THREE.CircleGeometry(0.044,12),m:tm(x,0.018+h-0.05,z,-Math.PI/2,0,0),color:BC[i]});
-      /* Litze: aus der Bombe hoch, ueber den Rand, aussen herab */
-      const s=x<0?-1:1, a=[x,0.018+h-0.05,z], b=[x+s*0.03,0.018+h+0.035,z+0.01], c=[x+s*0.055,0.018+h-0.02,z+0.02], d=[x+s*0.06,0.018+h-0.09,z+0.025];
-      p.push({geo:klRohrGeo([a,b,c,d],0.0028,4),m:tm(0,0,0),color:0x2e5a8a});
-      p.push({geo:new THREE.SphereGeometry(0.0065,6,4),m:tm(d[0],d[1]-0.004,d[2]),color:0xd8322a}); });
-    g.add(kfMesh(kqGeo('kf_finale',()=>merge(p)),kfFarbMat()));
-    /* Kometenblock: Tricolore-Druck, oben die Rohre (je Komet ein Loch) */
-    const n=kfFinaleKometen(), cols=Math.ceil(Math.sqrt(n*1.6)), rows=Math.ceil(n/cols), bw=0.2, bd=0.16, bh=0.27, rr=Math.min(bw/cols,bd/rows)*0.4;
-    const blk=kqBildMat('kf_finblk',128,256,(c,W,H)=>{ c.fillStyle='#14161a'; c.fillRect(0,0,W,H); ['#2f9e57','#f4f0e4','#d8322a'].forEach((f,i)=>{ c.fillStyle=f; c.fillRect(i*W/3,H*0.08,W/3,H*0.05); });
-      nameText(c,'FINALE',W/2,H*0.36,W*0.9,Math.round(W*0.2),FNT.cin,'#d9b45a'); nameText(c,'GRANDE',W/2,H*0.46,W*0.9,Math.round(W*0.2),FNT.cin,'#d9b45a');
-      nameText(c,n+' COMETE',W/2,H*0.6,W*0.8,Math.round(W*0.15),FNT.bar,'#ffffff'); c.fillStyle='#f4f0e4'; c.fillRect(W*0.1,H*0.8,W*0.8,H*0.1); nameText(c,'F2 · CE · 1.4G',W/2,H*0.85,W*0.7,Math.round(W*0.1),FNT.bar,'#1b1b1b'); });
-    const bg=kqGeo('kf_finbox',()=>{ const c=new THREE.BoxGeometry(bw,bh,bd); c.translate(0,0.018+bh/2,0.07); return c; });
-    g.add(kfMesh(bg,blk));
-    const q=[]; for(let i=0;i<n;i++){ const cx=i%cols, cz=Math.floor(i/cols), x=-bw/2+(cx+0.5)*bw/cols, z=0.07-bd/2+(cz+0.5)*bd/rows;
-      q.push({geo:new THREE.CircleGeometry(rr,8),m:tm(x,0.018+bh+0.0006,z,-Math.PI/2,0,0),color:[0x2f9e57,0xf4f0e4,0xd8322a][i%3]}); q.push({geo:new THREE.RingGeometry(rr,rr*1.3,8),m:tm(x,0.018+bh+0.0004,z,-Math.PI/2,0,0),color:0xb8b8b8}); }
-    g.add(kfMesh(kqGeo('kf_finloch',()=>merge(q)),kfFarbMat()));
-    g.userData.hoehe=0.3; }
+    g.userData.hoehe=0.02; }
 };
-/* Zahl der Kometen der Finale Grande (alles ausser den fuenf Bomben) */
-function kfFinaleKometen(){ try{ const s=SHOWS.kugelfinale(); let n=0; for(const ph of s) if(ph&&!ph.bomb&&!ph.boden) n+=ph.n===undefined?1:ph.n; return Math.max(6,n); }catch(e){ return 46; } }
 
 function kfModell(t){ const f=KF_BAU[t]; if(!f) return null; const g=new THREE.Group(); f(g,t); g.userData.t=t; g.userData.geoFest=true; g.userData.kf=true; return g; }
 /* Station / Vorfuehrung: Produkt auf den Platz sl (Tischoberkante sl.y) */
@@ -190,4 +160,4 @@ function kfTischZuenden(t,o){
   }
   return Object.assign({},o,{y:g.position.y+(g.userData.hoehe||0),kf:g});
 }
-if(typeof window!=='undefined') window.__kfTisch={KF_ARTEN,KF_AUF,kfModell,kfTischAuf,kfFinaleKometen};
+if(typeof window!=='undefined') window.__kfTisch={KF_ARTEN,KF_AUF,kfModell,kfTischAuf};

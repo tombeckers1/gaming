@@ -133,6 +133,8 @@ function druckBlock(k,o){ const id=o.id||'', w=o.w, h=o.h, d=o.d;
 function teile(n,fl){ const s=fl.reduce((a,b)=>a+b,0), out=fl.map(f=>Math.floor(n*f/s)); let r=n-out.reduce((a,b)=>a+b,0); for(let i=0;r>0;i=(i+1)%out.length,r--) out[i]++; return out; }
 const N=t=>rohrBedarf(t).schuss;
 const NG=t=>{ try{ return SHOWS[t]().reduce((a,p)=>a+(p.kal==='gross'?(p.n===undefined?1:p.n):0),0); }catch(e){ return 0; } };
+/* 07.10.: Druck der Themen auch fuer den Koerper auf dem Zuendtisch (14w) */
+window.VP_TH={thFront,thSeite};
 const V=VP_FORM;
 Object.assign(V,{
   /* Tautropfen: kleiner Block in Klarsichtfolie, mint Seidenpapier, am Gurt ein Tropfen-Anhaenger */

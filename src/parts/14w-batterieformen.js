@@ -76,14 +76,46 @@ const BAU={
   lb_kronenfeuer:{zonen:[{z0:0,z1:0.52,n:22,hf:0.76,kal:0.72,ord:0},{z0:0.52,n:10,hf:0.76,ord:1}],ty:0.56},
   /* Urwald: Stufentempel - aussen der niedrige Ring, in der Mitte der
      hohe Tempel mit den zwoelf Palmen (Finale) */
-  lb_jadekoenig:{zonen:[{z1:0.3,n:8,hf:0.62,kal:0.74,ord:0},{x1:0.3,z0:0.3,z1:0.7,n:3,hf:0.8,kal:0.8,ord:1},{z0:0.7,n:8,hf:0.62,kal:0.74,ord:2},{x0:0.7,z0:0.3,z1:0.7,n:3,hf:0.8,kal:0.8,ord:3},{x0:0.3,x1:0.7,z0:0.3,z1:0.7,n:12,hf:1,ord:4}],ty:0.66,ts:0.24}
+  lb_jadekoenig:{zonen:[{z1:0.3,n:8,hf:0.62,kal:0.74,ord:0},{x1:0.3,z0:0.3,z1:0.7,n:3,hf:0.8,kal:0.8,ord:1},{z0:0.7,n:8,hf:0.62,kal:0.74,ord:2},{x0:0.7,z0:0.3,z1:0.7,n:3,hf:0.8,kal:0.8,ord:3},{x0:0.3,x1:0.7,z0:0.3,z1:0.7,n:12,hf:1,ord:4}],ty:0.66,ts:0.24},
+  /* Weltuntergang (07.10., Tom: "viel zu klein - ~300 Schuss, Verpackung
+     und Koerper muessen entsprechend gross und glaubwuerdig sein"):
+     Grossverbund aus drei Bloecken auf der Platte - aussen je ~90 schlanke
+     Rohre, in der Mitte der hohe Block mit den 125 dicken Rohren fuer die
+     grossen Effekte; im Laden steht dahinter der Displaykarton */
+  finale:{fuge:0.012,platte:[0.014,'#140606'],zonen:[{x1:0.3,z1:0.95,n:88,hf:0.72,kal:0.6,ord:0},{x0:0.3,x1:0.7,z1:0.95,n:125,hf:1,ord:2},{x0:0.7,z1:0.95,n:87,hf:0.72,kal:0.6,ord:1}],ty:0.5,ts:0.2},
+  /* ---- nur Zuendtisch (07.10.): die Verkaufsverpackung bleibt, der
+     Koerper auf dem Tisch bekommt dieselbe Bauform und zwei Kaliber -
+     die dicken Rohre fuer die grossen Effekte (kal:'gross' im Drehbuch) */
+  lb_tautropfen:{nurTisch:1,zonen:[{z1:0.55,n:7,kal:0.68,ord:0},{z0:0.55,n:3,ord:1}]},
+  lb_zitronenfalter:{nurTisch:1,zonen:[{z1:0.58,n:12,kal:0.7,ord:0},{z0:0.58,n:4,ord:1}]},
+  lb_lavendelfeld:{nurTisch:1,zonen:[{z1:0.6,n:13,hf:0.88,kal:0.7,ord:0},{z0:0.6,n:5,ord:1}]},
+  lb_herbstlaub:{nurTisch:1,zonen:[{z1:0.6,n:15,hf:0.86,kal:0.7,ord:0},{z0:0.6,n:7,ord:1}]},
+  /* Kolibri: Treppe wie die Packung - vorn niedrig, hinten hoch mit den dicken Rohren */
+  lb_kolibri:{nurTisch:1,zonen:[{z1:0.5,n:12,hf:0.58,kal:0.7,ord:0},{z0:0.5,x1:0.42,n:5,kal:0.72,ord:1},{z0:0.5,x0:0.42,n:7,ord:1}]},
+  lb_sonnenblumen:{nurTisch:1,zonen:[{x1:0.45,n:10,ord:1},{x0:0.45,n:20,kal:0.68,ord:0}]},
+  /* Vulkan: drei Bloecke auf der Platte, der Krater in der Mitte am hoechsten */
+  lb_vulkan:{nurTisch:1,fuge:0.008,platte:[0.014,'#0c0808'],zonen:[{x1:1/3,n:13,hf:0.62,kal:0.72,ord:0},{x0:1/3,x1:2/3,n:18,hf:1,ord:2},{x0:2/3,n:13,hf:0.62,kal:0.72,ord:1}]},
+  profi:{nurTisch:1,fuge:0.01,platte:[0.012,'#141414'],zonen:[{x1:0.34,n:72,hf:0.8,kal:0.7,ord:0},{x0:0.34,x1:0.66,n:55,ord:2},{x0:0.66,n:73,hf:0.8,kal:0.7,ord:1}]},
+  donnerwand:{nurTisch:1,zonen:[{z1:0.55,n:90,hf:0.82,kal:0.72,ord:0},{z0:0.55,n:30,ord:1}]},
+  hexenkessel:{nurTisch:1,zonen:[{z1:0.6,n:132,hf:0.88,kal:0.68,ord:0},{z0:0.6,n:48,ord:1}]},
+  glutschmiede:{nurTisch:1,zonen:[{x1:0.33,n:16,kal:0.72,hf:0.85,ord:0},{x0:0.33,x1:0.67,n:19,ord:1},{x0:0.67,n:16,kal:0.72,hf:0.85,ord:0}]},
+  lb_silbergewitter:{nurTisch:1,zonen:[{x1:0.32,n:9,kal:0.7,ord:0},{x0:0.32,x1:0.68,n:10,ord:1},{x0:0.68,n:9,kal:0.7,ord:0}]},
+  lb_goldader:{nurTisch:1,fuge:0.01,zonen:[{x1:0.5,z1:0.62,n:31,kal:0.66,hf:0.86,ord:0},{x1:0.5,z0:0.62,n:12,ord:2},{x0:0.5,z1:0.62,n:31,kal:0.66,hf:0.86,ord:1},{x0:0.5,z0:0.62,n:12,ord:2}]},
+  kreuzfeuer90:{nurTisch:1,fuge:0.01,zonen:[{x1:0.5,z1:0.55,n:30,kal:0.7,hf:0.85,ord:0},{x1:0.5,z0:0.55,n:15,ord:1},{x0:0.5,z1:0.55,n:30,kal:0.7,hf:0.85,ord:0},{x0:0.5,z0:0.55,n:15,ord:1}]},
+  goldpalmen:{nurTisch:1,zonen:[{z1:0.62,n:21,kal:0.7,hf:0.9,ord:0},{z0:0.62,n:4,ord:1}]}
 };
+/* Druck der nur-Tisch-Koerper: Themen im Themen-Druck (04h), sonst der Packungsdruck */
+{ const TH={lb_tautropfen:['tau',{zeile:'KINDERFEUERWERK',badgeFarbe:'#1e9a6a'}],lb_zitronenfalter:['falter',{badgeFarbe:'#e0a000'}],lb_lavendelfeld:['lavendel',{badgeFarbe:'#7a3aff'}],
+    lb_herbstlaub:['herbst',{zeile:'BLÄTTERFALL',badgeFarbe:'#b84a10'}],lb_kolibri:['kolibri',{zeile:'STUFENBATTERIE',gross:0.22}],lb_sonnenblumen:['sonne',{badgeFarbe:'#c87a00'}],lb_vulkan:['vulkan',{zeile:'3 BLÖCKE · VERBUND',gross:0.24}]};
+  for(const t in BAU){ const S=BAU[t]; if(!S.nurTisch) continue;
+    if(TH[t]){ S.front=k=>window.VP_TH?window.VP_TH.thFront(k,TH[t][0],TH[t][1]):(g,W,H)=>drawFront(g,W,H,k.a,k.cat); S.seite=(k,id)=>window.VP_TH?window.VP_TH.thSeite(k,TH[t][0],id):(g,W,H)=>drawSide(g,W,H,k.a); }
+    else { S.front=k=>(g,W,H)=>drawFront(g,W,H,k.a,k.cat); S.seite=k=>(g,W,H)=>drawSide(g,W,H,k.a); } } }
 /* Seidenpapier je Zone/Rohr und Farbe der Oberseite */
 { const RB=['#ff3a2a','#ffe23f','#3ad25a','#2ad8e8','#a04aff'];
   BAU.lb_regenbogenbrunnen.kappe=(j,q)=>RB[q.zone]; BAU.lb_kronenfeuer.kappe=(j,q)=>q.zone?'#ffd23f':['#ff4a4a','#5c8dff','#5cff8a','#c85cff'][j%4];
   BAU.lb_farbtiger.kappe=(j,q)=>q.zone===1?'#ffd23f':['#5cff9e','#5c8dff','#ff5ac8'][j%3]; BAU.lb_polarweiden.kappe=(j,q)=>['#5cffe8','#3aff8a','#c85cff','#5c8dff'][q.zone];
   BAU.lb_jadeader.kappe=(j,q)=>q.r>0.03?'#d8ffb0':'#5cff8a'; BAU.lb_jadeader.oben='#123a22'; BAU.lb_kirschbluete.kappe=['#ffb8d8','#fff0f4']; BAU.lb_rubinpalmen.oben='#2a0a0e';
-  BAU.lb_eisvogel.kappe=(j,q)=>q.ring?'#3a6aff':'#5ce1ff'; BAU.lb_gluehwuermchen.kappe=(j,q)=>q.zone?'#ffe08a':'#c8ff5a'; }
+  BAU.lb_eisvogel.kappe=(j,q)=>q.ring?'#3a6aff':'#5ce1ff'; BAU.lb_gluehwuermchen.kappe=(j,q)=>q.zone?'#ffe08a':'#c8ff5a';  BAU.finale.kappe=(j,q)=>q.zone===1?['#ff3a1a','#ffd23f','#ff8a1c'][j%3]:['#ff5a3a','#ffffff'][j%2]; BAU.finale.oben='#1e0a08'; }
 for(const t in BAU) BAU[t].zonen.forEach(z=>{ for(const [k,v] of [['x0',0],['x1',1],['z0',0],['z1',1],['hf',1],['ord',0]]) if(z[k]===undefined) z[k]=v; });
 
 /* Zone in Metern (mit Fuge zwischen Nachbarzonen) */
@@ -234,6 +266,14 @@ const MOT={
     const cx=W/2, cy=H*0.3, kw=H*0.5, kh=H*0.28; g.fillStyle=lin(g,0,cy-kh,0,cy+kh*0.4,['#fff3c4','#d9b45a','#8a6a1a']); g.beginPath(); g.moveTo(cx-kw/2,cy+kh*0.3);
     for(let i=0;i<=4;i++){ const x=cx-kw/2+i*kw/4; g.lineTo(x,cy-(i%2?kh*0.55:kh)); if(i<4) g.lineTo(x+kw/8,cy-kh*0.1); } g.lineTo(cx+kw/2,cy+kh*0.3); g.closePath(); g.fill();
     ['#ff2a3a','#3a6aff','#3aff6a','#c85cff','#ff2a3a'].forEach((c,i)=>{ const x=cx-kw/2+i*kw/4; g.fillStyle=c; g.beginPath(); g.arc(x,cy-(i%2?kh*0.55:kh),kh*0.08,0,2*PI); g.fill(); g.beginPath(); g.arc(cx-kw*0.36+i*kw*0.18,cy+kh*0.12,kh*0.07,0,2*PI); g.fill(); }); },
+  /* Weltuntergang: gluehender Himmel, Meteore, die Stadt brennt */
+  finale(g,W,H,r){ g.fillStyle=lin(g,0,0,0,H,['#120202','#5a0c04','#c8360a','#2a0602']); g.fillRect(0,0,W,H); sterne(g,W,H,r,120,0.35);
+    fotoBurst(g,W*0.22,H*0.3,H*0.3,'#ff3a1a','#ffd23f','dahlie',r); fotoBurst(g,W*0.78,H*0.26,H*0.34,'#ffd23f','#ff8a1c','weide',r); fotoBurst(g,W*0.52,H*0.16,H*0.22,'#ffffff','#ff5a3a','palme',r);
+    g.save(); g.globalCompositeOperation='lighter'; for(let i=0;i<9;i++){ const x1=W*(0.05+r()*0.9), y1=H*(0.2+r()*0.4), l=H*(0.2+r()*0.3); komet(g,x1-l*0.8,y1-l,x1,y1,i%2?'#ff8a1c':'#ffd23f',Math.max(2,H*(0.01+r()*0.012))); } g.restore();
+    const fg=g.createLinearGradient(0,H*0.6,0,H); fg.addColorStop(0,'rgba(255,90,20,0)'); fg.addColorStop(1,'rgba(255,120,30,.7)'); g.fillStyle=fg; g.fillRect(0,H*0.6,W,H*0.4);
+    g.fillStyle='#0a0302'; let x=0; while(x<W){ const bw=H*(0.05+r()*0.1), bh=H*(0.12+r()*0.3); g.fillRect(x,H-bh,bw,bh); if(r()<0.3){ g.fillRect(x+bw*0.4,H-bh-H*0.06,bw*0.2,H*0.06); }
+      for(let j=0;j<8;j++) if(r()<0.5){ g.fillStyle=r()<0.5?'#ff8a1c':'#ffd23f'; g.fillRect(x+bw*(0.15+r()*0.6),H-bh*(0.15+r()*0.75),Math.max(1,bw*0.12),Math.max(1,bw*0.12)); g.fillStyle='#0a0302'; } x+=bw+H*0.01; }
+    g.save(); g.globalCompositeOperation='lighter'; for(let i=0;i<14;i++){ const fx=r()*W, R=H*(0.05+r()*0.08), rg=g.createRadialGradient(fx,H*0.9,0,fx,H*0.9,R); rg.addColorStop(0,'rgba(255,200,80,.8)'); rg.addColorStop(1,'rgba(255,60,10,0)'); g.fillStyle=rg; g.fillRect(fx-R,H*0.9-R,2*R,2*R); } g.restore(); },
   lb_jadekoenig(g,W,H,r){ g.fillStyle=lin(g,0,0,0,H,['#03140a','#06240e','#010603']); g.fillRect(0,0,W,H);
     fotoBurst(g,W*0.5,H*0.24,H*0.26,'#ffd23f','#5cff8a','palme',r);
     g.fillStyle='rgba(20,30,20,.85)'; for(let s=0;s<4;s++){ const bw=W*(0.3-s*0.06), bh=H*0.08; g.fillRect(W/2-bw/2,H*(0.9-s*0.08),bw,bh); }
@@ -286,7 +326,7 @@ function oben(k,S,zi,Z,o){ o=o||{}; return (g,W,H)=>{ const L=rohrLayout(k.t), a
 
 /* ---------- Bloecke bauen (Verpackung und Zuendtisch) ---------- */
 function bloecke(t,o){ const S=BAU[t], k=neu(t), tisch=!!o.tisch, Htot=tisch?rohrHoehe(t).bh:k.h-(o.oben||0), pl=S.platte?S.platte[0]:0;
-  const front=vorne(k,S), Z=[];
+  const front=S.front?S.front(k):vorne(k,S), Z=[];
   if(pl) vbox(k,k.w,pl,k.d,0,pl/2,0,S.platte[1]);
   S.zonen.forEach((z,zi)=>{ const B=zbox(t,z,S), h=Htot*z.hf-pl, id='z'+zi; B.h=h; B.y0=pl; Z.push(B);
     if(z.ringe){ const R=Math.min(B.w,B.d)/2, mant=reg(k,'mant'+id,2*PI*R,h,(g,W,H)=>{ MOT[t](g,W,H,zufallAus(hashStr(t+'mant')),k); for(const q of [0.25,0.75]){ const bw=W*0.3; g.save(); g.translate(W*q-bw/2,0); g.beginPath(); g.rect(0,0,bw,H); g.clip(); overlay(k,S,true)(g,bw,H); g.restore(); } });
@@ -295,7 +335,7 @@ function bloecke(t,o){ const S=BAU[t], k=neu(t), tisch=!!o.tisch, Htot=tisch?roh
       vring(k,R+0.001,0.004,3,24,2*PI,B.x,pl+h-0.003,B.z,k.a.ac,PI/2,0,0);
       return; }
     const xl=B.x-B.w/2+k.w/2, vorn=S.karbon?reg(k,'v'+id,B.w,h,karbon(k,zi,S)):S.eigen?reg(k,'v'+id,B.w,h,vorne(k,S,true)):reg(k,'v'+id,B.w,h,ausschnitt(front,k.w,Htot,xl,B.w,pl,h));
-    const randL=z.x0<1e-6||S.fuge, randR=z.x1>1-1e-6||S.fuge, sei=S.karbon?reg(k,'s'+id,B.d,h,karbon(k,-1,S)):reg(k,'s'+id,B.d,h,seite(k,id)), grund=farbe(k,dx(k.a.bg2||'#202020',0.1));
+    const randL=z.x0<1e-6||S.fuge, randR=z.x1>1-1e-6||S.fuge, sei=S.karbon?reg(k,'s'+id,B.d,h,karbon(k,-1,S)):reg(k,'s'+id,B.d,h,S.seite?S.seite(k,id):seite(k,id)), grund=farbe(k,dx(k.a.bg2||'#202020',0.1));
     kasten(k,B.w,h,B.d,tm(B.x,pl+h/2,B.z),{pz:vorn,nz:z.z1>1-1e-6||S.fuge?vorn:grund,px:randR?sei:grund,nx:randL?sei:grund,
       py:tisch?farbe(k,o.deck||'#2b2b2e'):reg(k,'o'+id,B.w,B.d,oben(k,S,zi,B,o)),ny:farbe(k,'#2a2018')}); });
   return {k,S,Z,Htot,pl,front}; }
@@ -391,6 +431,15 @@ Object.assign(V,{
     const kv=reg(k,'krV',k.w,kh,kr(k.w)), ks=reg(k,'krS',k.d,kh,kr(k.d)), lr=leer(k), gd=farbe(k,'#d9b45a');
     kasten(k,k.w,kh,t2,tm(0,top+kh/2-0.004,k.d/2-t2/2),{pz:kv,nz:kv,px:gd,nx:gd,py:lr,ny:gd}); kasten(k,k.w,kh,t2,tm(0,top+kh/2-0.004,-k.d/2+t2/2),{pz:kv,nz:kv,px:gd,nx:gd,py:lr,ny:gd});
     for(const s of [-1,1]) kasten(k,t2,kh,k.d-2*t2,tm(s*(k.w/2-t2/2),top+kh/2-0.004,0),{px:ks,nx:ks,pz:gd,nz:gd,py:lr,ny:gd}); }),
+  /* Weltuntergang: drei bedruckte Bloecke auf schwarzer Platte, hinten der
+     volle Displaykarton mit dem Motiv, gelb-schwarze Kantenschoner,
+     Tragegurt ueber den hohen Block */
+  finale:t=>{ try{ const R=bloecke(t,{oben:P[t].dims[1]*0.4}), {k,front,Z}=R, ch=k.h, cz=-k.d/2+0.012, B=Z[1], top=B.y0+B.h;
+      kasten(k,k.w,ch,0.006,tm(0,ch/2,cz),{pz:reg(k,'disp',k.w,ch,front),nz:reg(k,'dispH',k.w,ch,seite(k,'h')),rest:farbe(k,'#1a0604')});
+      for(const s of [-1,1]) vbox(k,0.006,ch*0.45,0.08,s*(k.w/2-0.003),ch*0.225,cz+0.04,'#ffd23f');
+      ecken(k,k.w,R.pl+0.04,k.d,'#ffd23f',0.04);
+      vbox(k,B.w+0.004,0.002,0.03,B.x,top+0.001,B.z,'#ffd23f'); for(const s of [-1,1]) vbox(k,0.002,top-R.pl,0.03,B.x+s*(B.w/2+0.001),R.pl+(top-R.pl)/2,B.z,'#ffd23f');
+      return fertig(k); }catch(e){ if(typeof console!=='undefined') console.warn('BAU finale',e); return null; } },
   /* Urwald: Lianen haengen von den Tempelstufen */
   lb_jadekoenig:fx('lb_jadekoenig',R=>{ const {k,Z}=R, B=Z[4], top=B.y0+B.h;
     [[-1,1],[1,1],[-1,-1],[1,-1]].forEach(([sx,sz],i)=>{ const x=B.x+sx*B.w/2, z=B.z+sz*B.d/2, x2=sx*(k.w/2-0.01);

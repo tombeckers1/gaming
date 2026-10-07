@@ -282,13 +282,37 @@ LICHTYP.aschewolke=function(o,A,B,s,opt){
       lWolke(q,glut,s,Math.round(30*QUAL())); if(k%3===1){ r3Blitz({x:q.x,y:q.y+2,z:q.z},[1.5,1.5,1.8],s); schall(q,x=>sfx.crack(x*0.5)); } }); }
     schall(e,x=>sfx.vulkangrollen(x)); });
 };
+/* Krater (nur der Vulkanausbruch, ein Fontaenen-Modul): staerker als die
+   alte kleine Vulkan-Fontaene - ein dichter Lavakegel bis 6-9 m, der in
+   Stoessen pumpt; bei jedem Stoss fliegen schwere gluehende Lavabrocken
+   im Bogen heraus und kuehlen im Fallen ab, der Krater leuchtet rot und
+   grollt. Er brennt ueber beide Ausbrueche (gt). */
+NEU_EMIT.krater=(e,dt,o)=>{
+  const A=e.A||FW.orange, B=e.B||FW.rot, H=e.h||1, q=QUAL(), y0=emY(o,0.05);
+  if(e.alter===undefined){ e.alter=0; e.T=e.t+dt; e.stoss=0; e.fl=0; }
+  const t=(e.alter+=dt), k=Math.min(1,t/0.8)*Math.min(1,Math.max(0,e.t)/1.2);
+  /* Pumpen: alle 0,5-1,1 s ein Stoss, dazwischen brodelt es */
+  e.stoss-=dt; let schub=0.55;
+  if(e.stoss<=0){ e.stoss=rand(0.5,1.1); schub=1.6;
+    const n=Math.round(rand(4,7)*q*k)+1;
+    for(let i=0;i<n;i++){ const a=rand(0,Math.PI*2), w=rand(1.2,3.2)*H, vy=rand(9,14)*Math.sqrt(H);
+      const c=mischF(A,[1.5,1.2,.5],0.4); kgStern(psBig,{x:o.x,y:y0,z:o.z},[Math.cos(a)*w,vy,Math.sin(a)*w],kgMal(c,1.5),rand(1.6,2.2),9,0,0.5);
+      rkFunken({x:o.x,y:y0,z:o.z},[Math.cos(a)*w,vy,Math.sin(a)*w],9,0.02,1.8,22,[1.4,.42,.08],{ps:psMid,life:[0.5,0.9],g:2,streu:0.3,mit:0.05,mode:2}); }
+    flash({x:o.x,y:o.y+2,z:o.z},[1,.45,.12],2.4*k*emLicht(e),0.35); schall(o,v=>{ sfx.wumms(v*0.5*k); sfx.prasseln(v*0.7); }); }
+  e.fl-=dt; if(e.fl<=0){ e.fl=0.28; flash({x:o.x,y:o.y+1.5,z:o.z},A,1.6*k*emLicht(e),0.3); }
+  zischBett(e,'rauschen',distVol(o)*1.6*k,dt);
+  const alt=SCHWEIF; SCHWEIF=0.08;
+  for(let i=0;i<Math.round(34*q*k*schub);i++){ const a=Math.random()*Math.PI*2, s=rand(0.3,2.2)*H, c=Math.random()<0.7?A:Math.random()<0.5?B:[1.5,1.25,.6];
+    psMid.emit(o.x,y0,o.z,Math.cos(a)*s,rand(5,11)*Math.sqrt(H)*(schub>1?1.15:1),Math.sin(a)*s,c[0],c[1],c[2],rand(0.9,1.6),5.5,2); }
+  SCHWEIF=alt;
+};
 thShow('lb_vulkan',{sz:[0.95,1.35],pw:[0,3],hell:[0.9,1.35],kurve:'spaet'},[
   {n:2,gap:1.8,muster:'v',ang:0.15,licht:'aschewolke',farbe:2,pause:1.5},
-  {n:8,gap:0.18,muster:'mitte',ang:0.35,licht:'lavastrahl',farbe:0,boden:{k:'volcano',alt:true,gt:4,gh:1.2,A:'orange',B:'gold'}},
+  {n:8,gap:0.18,muster:'mitte',ang:0.35,licht:'lavastrahl',farbe:0,boden:{k:'krater',alt:true,gt:22,gh:1.0,A:'orange',B:'rot'}},
   {n:6,gap:1.2,muster:'aussen',ang:0.3,licht:'lavabombe',farbe:1,pause:0.5},
-  {mit:true,n:4,gap:1.4,muster:'zufall',ang:0.3,licht:'ascheregen',farbe:3,pause:1,boden:[{k:'volcano',alt:true,gt:8,gh:1.4,A:'rot',B:'orange'},{k:'riesen',alt:true,gt:4.5,gh:0.55,A:'orange',B:'rot',t:1.2}]},
+  {mit:true,n:4,gap:1.4,muster:'zufall',ang:0.3,licht:'ascheregen',farbe:3,pause:1},
   {n:2,gap:0.6,muster:'paar',ang:0.2,licht:'aschewolke',farbe:2,pause:0.8},
-  {n:14,gap:0.2,muster:'w',ang:0.4,licht:'lavastrahl',farbe:1,boden:[{k:'volcano',alt:true,gt:5,gh:1.5,A:'gold',B:'rot'},{k:'riesen',alt:true,gt:3,gh:0.7,A:'gold',B:'orange',t:0.6}]},
+  {n:14,gap:0.2,muster:'w',ang:0.4,licht:'lavastrahl',farbe:1},
   {n:16,gap:0.11,muster:'kreis',ang:0.35,licht:'lavabombe',kal:'gross',farbe:0,pause:6}]);
 lochName('lb_vulkan',{name:'Vulkanausbruch · 52 Schuss Lavabomben',sub:'52 Schuss Lavabomben',
   desc:'Erst grollt es in einer glühenden Aschewolke, in der echte Blitze zucken, dann bricht der Vulkan aus: aus dem Krater auf dem Tisch schießt glühende Lava, Lavastrahlen steigen, schwere Lavabomben mit glühenden Schweifen und knisternder Ascheregen – zweimal, das zweite Mal größer.'});
@@ -387,6 +411,21 @@ r3Show('hochzeitsfaecher',[['rose','weiss'],['magenta','rose'],['weiss','rose'],
   {n:2,gap:0,muster:'v',ang:0.2,eff:'ring',kal:'gross',A:'rose',B:'weiss',steig:'silber'},
   {mit:true,n:6,gap:0.18,muster:'zufall',ang:0.4,kal:'mittel',pw:-1,eff:'nishiki',A:'rose',B:'weiss',steig:'brokat',knall:'bkBrokat',pause:4.5}],{basis:{pw:2.0,sz:1.16,th:'hochzeitsfaecher'}});
 lochName('hochzeitsfaecher',{desc:'Ein Rosenstrauß in Rosa, Weiß und Rot: Rosenknospen paarweise, ein Schleier aus rosa Glitzerweiden, vier Herzbomben in Rosa, ein Strauß aus rosa Chrysanthemen und weißen Sternspritzern – zum Schluss zwei Ringe, unter denen rosa Rosenblätter niedergehen.'});
+
+/* SONNENAUFGANG (Tom: "Explosionen teils nicht schoen, goldene/gelbe Sterne
+   schlechte Textur -> ueberarbeiten"). Die goldenen Buketts waren
+   Chrysanthemen und Kamuro aus glatten gelben Sternen ohne Schweif, das
+   Hitzeflimmern kleine Brokat-Kugeln. Jetzt hat jeder goldene Stern
+   Struktur: Nishiki (Brokatgold mit orangen Spitzen) und Goldglitzer
+   (Sterne, die im Fallen Glitzer abwerfen) fuer den anbrechenden Tag,
+   knisternde Sternspritzer in Gold und Orange als Hitzeflimmern, die
+   Morgenroete als rote Brokatkronen (Nishiki mit scharlachroten Spitzen). */
+{ const alt=SHOWS.faecher; if(alt) SHOWS.faecher=()=>{ const s=alt(), k=s.map(ph=>Object.assign({},ph));
+  k.forEach(ph=>{ const e=Array.isArray(ph.eff)?ph.eff.join(','):ph.eff;
+    if(e==='chrys,kamuro'){ ph.eff=['nishiki','goldglitzer']; ph.A='gold'; ph.B='orange'; ph.knall='bkBrokat'; }
+    else if(e==='brokat'&&ph.kal==='klein'){ ph.eff='sternspritzer'; ph.A='gold'; ph.B='orange'; ph.knall='bkKnisterhall'; }
+    else if(e==='wechsel'){ ph.eff='nishiki'; ph.A='bernstein'; ph.B='scharlach'; ph.knall='bkPuff'; } });
+  return show({basis:s.basis,rampe:s.rampe,verzoegerung:s.verzoegerung},k); }; }
 
 /* GLUTSCHMIEDE: die Bodenfontaenen sind raus (Tom: "z. B. Glutschmiede").
    Dafuer schlaegt der Schmied: in der Schlag-Salve sind zwei der sechs

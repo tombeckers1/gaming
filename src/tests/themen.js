@@ -17,11 +17,12 @@
    - VERPACKUNG: eigene Form je Produkt, am Handy hoechstens 550 Dreiecke
    Aufruf: node -r ./ladezeit-preload.js themen.js real.html
    GEGEN=1: Gegenprobe - Lavendelfeld bekommt einen Kometenfaecher aus
-   einem Rohr und Vollmond einen Fontaenen-Opener; LOCH und OPENER muessen
+   einem Rohr und Herbstlaub (bis 07.10. Vollmond) einen Fontaenen-Opener; LOCH und OPENER muessen
    anschlagen (06.10.: Lavendelfeld Name 18 / Rohre 19 / breitjade,
    Vollmond 2 Module und Opener - angeschlagen). */
 const { chromium } = require('/opt/node22/lib/node_modules/playwright');
-const PLAN={lb_tautropfen:4,lb_zitronenfalter:7,lb_lavendelfeld:9,lb_herbstlaub:12,lb_kolibri:14,lb_vollmond:16,lb_lagune:18,lb_sonnenblumen:20,lb_gletscher:22,lb_vulkan:25};
+/* 07.10. (Toms Test V117): Vollmond, Lagune und Gletscher sind gestrichen */
+const PLAN={lb_tautropfen:4,lb_zitronenfalter:7,lb_lavendelfeld:9,lb_herbstlaub:12,lb_kolibri:14,lb_sonnenblumen:20,lb_vulkan:25};
 const MEHRFACH=['kometenfaecher','zwillingskomet','drillingskomet','weidenfaecher','goldfaecher','farbweidenfaecher','wassertor','dreifachtor','torbogen'];
 async function neuesSpiel(p){
   await p.waitForFunction("!!document.querySelector('#startBtns button:not([disabled])')",{timeout:240000});
@@ -38,9 +39,9 @@ async function neuesSpiel(p){
   await neuesSpiel(p);
   const mangel=[]; const pruef=(n,ok,was)=>{ if(!ok) mangel.push(n+': '+was); };
   if(process.env.GEGEN) await p.evaluate(()=>{ const S=window.__bb.SHOWS;
-    const a=S.lb_lavendelfeld, b=S.lb_vollmond;
+    const a=S.lb_lavendelfeld, b=S.lb_herbstlaub;
     S.lb_lavendelfeld=()=>{ const x=a(); const y=x.slice(); Object.assign(y,x); y.splice(1,0,{n:1,rohrFolge:[0],licht:'breitjade',th:'lb_lavendelfeld',farbe:0,pause:2}); return y; };
-    S.lb_vollmond=()=>{ const x=b(); const y=x.slice(); Object.assign(y,x); y.unshift({n:0,boden:{k:'fountain',gt:4,gh:1}}); return y; }; });
+    S.lb_herbstlaub=()=>{ const x=b(); const y=x.slice(); Object.assign(y,x); y.unshift({n:0,boden:{k:'fountain',gt:4,gh:1}}); return y; }; });
   const VGL=(process.env.VGL||'').split(',').filter(Boolean);
   const r=await p.evaluate(({PLAN,MEHRFACH,VGL})=>{ const bb=window.__bb, P=bb.P, out={prod:{},folgen:{}};
     bb.S.level=99;

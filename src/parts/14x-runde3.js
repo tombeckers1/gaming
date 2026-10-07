@@ -391,7 +391,12 @@ LICHTYP.schwirrkomet=function(o,A,B,s,opt){
     if(Array.isArray(ph.eff)) ph.eff=ph.eff.map(e=>tausch[e]||e); else if(tausch[ph.eff]) ph.eff=tausch[ph.eff];
     const kl=klang[Math.min(klang.length-1,salve)]; if(kl&&!ph.knall) ph.knall=kl;
     /* Paukenschlag: zwei der sechs Rohre sind Salute */
-    if(ph.n===6&&ph.muster==='gerade'&&ph.eff!=='kamuro') ph.eff=['glitzerweide','salut','glitzerweide','glitzerweide','salut','glitzerweide']; });
+    if(ph.n===6&&ph.muster==='gerade'&&ph.eff!=='kamuro') ph.eff=['glitzerweide','salut','glitzerweide','glitzerweide','salut','glitzerweide'];
+    /* gerendert 07.10.: jede Palme hatte einen weissen runden Kern (Leucht-
+       scheibe) und die Salven lagen uebereinander - ohne Kern, etwas
+       weiter gefaechert, damit jeder Stern fuer sich steht */
+    ph.bruchOpt=Object.assign({},ph.bruchOpt||{},{kern:false,nachglitzer:false});
+    if(ph.ang) ph.ang=+(ph.ang*1.2).toFixed(3); });
   return show({basis:s.basis,rampe:s.rampe,verzoegerung:s.verzoegerung},k); }; }
 lochName('donnerwand',{desc:'Zwanzig Salven aus sechs Rohren im Takt eines Trommelsolos: wummernde Goldpalmen, Kokospalmen auf der Synkope, ein Paukenschlag mit zwei Saluten, knisternde Triolen aus Goldglitzer und Sternspritzern, ein knackender Wirbel – und als Tusch sechs riesige Kamuro.'});
 
@@ -424,7 +429,10 @@ lochName('hochzeitsfaecher',{desc:'Ein Rosenstrauß in Rosa, Weiß und Rot: Rose
   k.forEach(ph=>{ const e=Array.isArray(ph.eff)?ph.eff.join(','):ph.eff;
     if(e==='chrys,kamuro'){ ph.eff=['nishiki','goldglitzer']; ph.A='gold'; ph.B='orange'; ph.knall='bkBrokat'; }
     else if(e==='brokat'&&ph.kal==='klein'){ ph.eff='sternspritzer'; ph.A='gold'; ph.B='orange'; ph.knall='bkKnisterhall'; }
-    else if(e==='wechsel'){ ph.eff='nishiki'; ph.A='bernstein'; ph.B='scharlach'; ph.knall='bkPuff'; } });
+    else if(e==='wechsel'){ ph.eff='nishiki'; ph.A='bernstein'; ph.B='scharlach'; ph.knall='bkPuff'; }
+    /* gerendert 07.10.: neben den Goldbruechen stand eine weisse runde
+       Leuchtscheibe (Kern) - ohne Kern und Nachglitzern */
+    if(ph.eff) ph.bruchOpt=Object.assign({},ph.bruchOpt||{},{kern:false,nachglitzer:false}); });
   return show({basis:s.basis,rampe:s.rampe,verzoegerung:s.verzoegerung},k); }; }
 
 /* GLUTSCHMIEDE: die Bodenfontaenen sind raus (Tom: "z. B. Glutschmiede").
@@ -434,6 +442,14 @@ lochName('hochzeitsfaecher',{desc:'Ein Rosenstrauß in Rosa, Weiß und Rot: Rose
   k.forEach(ph=>{ if(ph.muster==='schlag'&&ph.n===6) ph.eff=['tigerschweif','salut','kiefernkrone','lavaregen','salut','tigerschweif'];
     if(ph.eff==='lavaregen'&&!ph.knall) ph.knall='bkWumms'; });
   return show({basis:s.basis,rampe:s.rampe,verzoegerung:s.verzoegerung},k); }; }
+
+/* Ohne weissen Kern (runde Leuchtscheibe in der Bruchmitte, gerendert
+   07.10. bei Sonnenaufgang und Trommelfeuer gesehen): alle in dieser
+   Runde neu geschriebenen Batterien */
+function r3OhneKern(id){ const alt=SHOWS[id]; if(!alt) return; SHOWS[id]=()=>{ const s=alt();
+  s.forEach((ph,i)=>{ if(ph&&ph.eff&&!(ph.bruchOpt&&ph.bruchOpt.kern===false)) s[i]=Object.assign({},ph,{bruchOpt:Object.assign({},ph.bruchOpt||{},{kern:false,nachglitzer:false})}); });
+  return s; }; }
+['lb_jadekoenig','lb_saphirfaecher','lb_goldader','hochzeitsfaecher','profi','glutschmiede'].forEach(r3OhneKern);
 
 /* ---------- Vorfuehrung: dieselben Abschussrohre wie im Spiel ----------
    Tom 07.10.: "Abschussrohre in der Vorfuehrung sehen anders aus als im
@@ -497,8 +513,16 @@ vfAnlageBauen=function(){
    Rohre, Dauer, Summe der Bruchflaechen, Spitzendichte in 3 s, Partikel)
    - die Reihenfolge folgt der Wucht. Lizenz je Level: Sternklasse (19),
    Grossfeuer (20), Profi (22), Meister (25). */
-const R3_LEVEL={lb_blitzpalmen:[19,'sternklasse'],donnerwand:[21,'grossfeuer'],hexenkessel:[22,'profi'],profi:[23,'profi'],
-  glutschmiede:[22,'profi'],lb_weidenhain:[24,'profi'],lb_jadekoenig:[25,'meister'],lb_vulkan:[25,'meister'],finale:[26,'meister'],feuerdrache:[21,'grossfeuer']};
+/* Gemessen 07.10. (Partikel je Abbrand, Rohre, Dauer): Weltuntergang 540k
+   (300 Schuss, 84 s), Hexenkessel 242k (180), Goetterfunken 176k (200),
+   Glutschmiede 151k (51), Trommelfeuer 107k (120), Farbsaeulen 101k (100),
+   Vulkan 57k (44), Blitzpalmen 52k (25 Schuss in 8 s), Weidenhain 42k (72),
+   Urwald alt 35k (34), Kronenfeuer 19k (32). Daraus die Leiter (Urwald neu
+   mit 100 Schuss, Vulkan mit 52 und Krater): */
+const R3_LEVEL={lb_kronenfeuer:[19,'sternklasse'],lb_blitzpalmen:[19,'sternklasse'],
+  donnerwand:[21,'grossfeuer'],feuerpfau:[21,'grossfeuer'],lb_weidenhain:[21,'grossfeuer'],feuerdrache:[21,'grossfeuer'],
+  glutschmiede:[22,'profi'],lb_vulkan:[22,'profi'],profi:[23,'profi'],hexenkessel:[24,'profi'],
+  lb_jadekoenig:[25,'meister'],finale:[26,'meister']};
 function r3Level(t,lvl,liz){ const p=P[t]; if(!p) return; p.lvl=lvl;
   if(!liz) return; const L=LIZENZEN.find(l=>l.id===liz); if(!L) return;
   LIZENZEN.forEach(l=>{ const i=l.items.indexOf(t); if(i>=0&&l!==L) l.items.splice(i,1); });
@@ -508,10 +532,10 @@ function r3Level(t,lvl,liz){ const p=P[t]; if(!p) return; p.lvl=lvl;
 for(const [t,[l,z]] of Object.entries(R3_LEVEL)) r3Level(t,l,z);
 /* Texte der Lizenzpakete zu den neuen Inhalten */
 { const d=(id,txt)=>{ const L=LIZENZEN.find(l=>l.id===id); if(L) L.desc=txt; };
-  d('profi','Der Götterfunken-Verbund: zweihundert Schuss, und der halbe Ort steht auf der Straße. Dazu der Hexenkessel, die Glutschmiede, der Weidenhain und die Jumbo-Rakete »Polarstern«; die 200-mm-Kugel Feuerlilie und die 300-mm-Kugel Himmelsbrecher.');
-  d('meister','Das Ende der Leiter: der Weltuntergang mit 300 Schuss, der Urwald mit hundert, der Vulkanausbruch, die Jumbo-Rakete »Supernova« und die 300-mm-Kaiserkrone.');
-  d('grossfeuer','Die Jumbo-Raketen »Juwelenpalme« und »Feuerdrache«, der Farbtiger, das Kronenfeuer, das Trommelfeuer mit zwanzig Salven aus sechs Rohren und die 200-mm-Kugelbomben.');
-  d('sternklasse','Die Jumbo-Rakete »Saphirkrone«, die Wendeltreppe, die sich zwölf Meter hochschraubt, die Blitzpalmen und die Crossettenkrone.'); }
+  d('profi','Der Götterfunken-Verbund: zweihundert Schuss, und der halbe Ort steht auf der Straße. Dazu der Hexenkessel mit 180 Schuss, die Glutschmiede, der Vulkanausbruch und die Jumbo-Rakete »Polarstern«; die 200-mm-Kugel Feuerlilie und die 300-mm-Kugel Himmelsbrecher.');
+  d('meister','Das Ende der Leiter: der Weltuntergang mit 300 Schuss, der Urwald mit hundert, die Jumbo-Rakete »Supernova« und die 300-mm-Kaiserkrone.');
+  d('grossfeuer','Die Jumbo-Raketen »Juwelenpalme« und »Feuerdrache«, der Farbtiger, die Farbsäulen, der Weidenhain, das Trommelfeuer mit zwanzig Salven aus sechs Rohren und die 200-mm-Kugelbomben.');
+  d('sternklasse','Die Jumbo-Rakete »Saphirkrone«, die Wendeltreppe, die sich zwölf Meter hochschraubt, die Blitzpalmen, das Kronenfeuer und die Crossettenkrone.'); }
 
 /* ---------- Testzugang ---------- */
 let ABSCHUSS_AUS=false;

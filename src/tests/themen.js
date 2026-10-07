@@ -22,7 +22,7 @@
    Vollmond 2 Module und Opener - angeschlagen). */
 const { chromium } = require('/opt/node22/lib/node_modules/playwright');
 /* 07.10. (Toms Test V117): Vollmond, Lagune und Gletscher sind gestrichen */
-const PLAN={lb_tautropfen:4,lb_zitronenfalter:7,lb_lavendelfeld:9,lb_herbstlaub:12,lb_kolibri:14,lb_sonnenblumen:20,lb_vulkan:25};
+const PLAN={lb_tautropfen:4,lb_zitronenfalter:7,lb_lavendelfeld:9,lb_herbstlaub:12,lb_kolibri:14,lb_sonnenblumen:20,lb_vulkan:22}; /* 07.10.: Vulkan nach Wucht L22 (14x R3_LEVEL) */
 const MEHRFACH=['kometenfaecher','zwillingskomet','drillingskomet','weidenfaecher','goldfaecher','farbweidenfaecher','wassertor','dreifachtor','torbogen'];
 async function neuesSpiel(p){
   await p.waitForFunction("!!document.querySelector('#startBtns button:not([disabled])')",{timeout:240000});

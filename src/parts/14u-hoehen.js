@@ -227,7 +227,12 @@ NEU_EMIT.vfModell=function(e,dt,o){
   /* Blick: erst aufs Rohr, dann mit dem Aufstieg nach oben */
   const c=e.cam; if(!c.an||vfBlickE!==e||typeof pitch==='undefined') return;
   if(!vfAn){ vfBlickFrei(e); return; }
-  if(c.letzt!==null&&Math.abs(pitch-c.letzt)>0.02){ vfBlickFrei(e); return; }
+  /* 07.10. (Tom sah trotz gruenem Test keine Rakete und keine Kugel im
+     Rohr): schon ein Grad Mausbewegung (0,02 rad) gab den Blick frei - der
+     Zoom sprang zurueck, der Blick stand auf dem Himmel (Pitch 0,85 aus der
+     Zuendung) und das Rohr war nicht mehr im Bild. Eine Hand auf der Maus
+     reicht dafuer. Jetzt erst bei deutlicher Bewegung (0,15 rad, gut 8 Grad) */
+  if(c.letzt!==null&&Math.abs(pitch-c.letzt)>0.15){ vfBlickFrei(e); return; }
   /* vor dem Start: nah aufs Rohr gezoomt (16 Grad), die Rakete steht im
      Bild, die Zuendschnur brennt; mit dem Start zoomt der Blick auf und
      folgt nach oben - der Bruch soll ganz ins Bild, die Kugel (doppelt so

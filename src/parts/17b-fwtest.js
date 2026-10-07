@@ -147,7 +147,7 @@ let vfSonder=null, vfSonderName=null;
      Station Moerser steht drin, auch jede neue Kugel.
    ========================================================= */
 const VF_AENDERUNG=['lb_jadekoenig','lb_saphirfaecher','lb_goldader','profi','lb_vulkan','zwillingssonne200','goldweidenkreuz200',
-  'lb_zitronenfalter','lb_kolibri','faecher','donnerwand','hochzeitsfaecher','kinderbatterie','lb_gluehwuermchen','lb_tautropfen','glutschmiede','eisblume','lb_weidenhain'];
+  'lb_zitronenfalter','lb_kolibri','faecher','donnerwand','hochzeitsfaecher','kinderbatterie','lb_gluehwuermchen','lb_tautropfen','glutschmiede','lb_weidenhain'];
 function vfAenderungListe(){ return fwTestProdukte().filter(t=>P[t]&&(P[t].aenderung||VF_AENDERUNG.indexOf(t)>=0)); }
 function vfKugelListe(){ return fwTestProdukte().filter(t=>P[t]&&(P[t].shape==='shell'||stationOf(t)==='moerser'))
   .sort((a,b)=>moerserRohr(a)-moerserRohr(b)||(P[a].lvl-P[b].lvl)); }

@@ -158,7 +158,7 @@ r3Show('lb_jadekoenig',[['gruen','gold'],['limette','gold'],['jade','gold'],['go
   {n:10,gap:0.32,muster:'v',ang:0.3,eff:'zeitregen',kal:'gross',farbe:3,steig:'brokat',knall:'bkRieseln',pause:1.6},
   {n:24,gap:0.09,muster:'w',ang:0.34,eff:['sternpalme','kiefernkrone','kokosnuss'],kal:'gross',pw:2,farbe:4,steig:'gold'},
   {mit:true,n:3,gap:0.55,muster:'mitte',ang:0.1,eff:'salut',kal:'gross',pw:4,farbe:0,knall:'bkSalut'},
-  {n:10,gap:0.16,muster:'kreis',ang:0.3,eff:'kamuro',kal:'riesig',pw:4,farbe:3,steig:'brokat',knall:'bkDonnerhall',pause:7}],{basis:{pw:3.2,sz:1.22,th:'lb_jadekoenig'}});
+  {n:10,gap:0.16,muster:'kreis',ang:0.3,eff:'kamuro',kal:'riesig',pw:4,farbe:3,steig:'brokat',knall:'bkDonnerhall',pause:7}],{basis:{pw:3.2,sz:1.27,th:'lb_jadekoenig'}});
 lochName('lb_jadekoenig',{name:'Urwald · 100 Schuss Dschungelverbund',sub:'100 Schuss Dschungelverbund',
   desc:'Ein Tag im Regenwald: drei schwere Urwaldpalmen, Lianen aus grün-goldenen Hängeweiden, ein summender Insektenschwarm, rote Tropenblüten zwischen Donnerschlägen, ein langer Tropenregen – und als Finale 24 Palmen auf Schlag unter einem Blätterdach aus riesigen Goldkamuro.'});
 r3Masse('lb_jadekoenig',[1.25,0.4,0.78]);
@@ -169,38 +169,38 @@ SIGNATUR.lb_jadekoenig={idee:'Urwald',eff:'kokosnuss',text:'Urwaldpalmen, Lianen
    Neu: Duenung - drei Silberwellen ganz aussen und weit auseinander (die
    Silberchrysantheme wird nach einer Dunkelphase tuerkis), Wellengang -
    blaue Chrysanthemen im Wellenmuster mit wechselnder Hoehe, Meeres-
-   leuchten - Silberbrokat mit blauen Spitzen, Gischt - weisse Sternspritzer
+   leuchten - Silberglitzer mit blauen Spitzen, Gischt - weisse Sternspritzer
    knisternd im Scheibenwischer, Brandung - blaue Pistille mit weissem
    Kern paarweise. Das Finale (Quallen, Gischtkronen, Silberwellen) bleibt. */
 r3Show('lb_saphirfaecher',[['silber','tuerkis'],['blau','silber'],['silber','blau'],['weiss','himmel'],['blau','weiss']],{sz:[0.95,1.25],pw:[0,1.5],hell:[0.9,1.25],kurve:'linear'},[
   {n:3,gap:2.0,muster:'aussen',ang:0.32,eff:'silberwelle',kal:'gross',farbe:0,steig:'silber',knall:'bkRieseln'},
   {n:6,gap:0.8,muster:'welle',ang:0.28,hoehe:'welle',hSpanne:5,eff:'chrys',kal:'gross',farbe:1,steig:'silber',pause:1.0},
-  {n:5,gap:1.3,muster:'zufall',ang:0.24,eff:'nishiki',kal:'gross',farbe:2,steig:'brokat',knall:'bkBrokat',pause:0.8},
+  {n:5,gap:1.3,muster:'zufall',ang:0.24,eff:'glitzerbukett',kal:'gross',farbe:2,steig:'brokat',knall:'bkRieseln',pause:0.8},
   {n:6,gap:0.16,muster:'wischer',ang:0.36,eff:'sternspritzer',kal:'mittel',pw:2,farbe:3,steig:'silber',knall:'bkKnisterhall',pause:1.0},
   {n:4,gap:0.6,muster:'paar',ang:0.26,eff:'pistill',kal:'gross',farbe:4,steig:'silber',pause:1.0},
   {n:6,gap:0.35,muster:'mitte',ang:0.2,eff:['qualle','spritzkrone','wasserring'],A:['blau','himmel','silber'],B:['silber','weiss','blau'],kal:'gross',pw:6,steig:'silber',knall:'bkDonnerhall',pause:6}],{basis:{pw:-5,sz:0.78,th:'lb_saphirfaecher'}});
-lochName('lb_saphirfaecher',{desc:'Blau, Türkis und Silber: drei Silberwellen weit auseinander, die nach einem Atemzug türkis weiterleuchten, blaue Chrysanthemen im Wellengang, Meeresleuchten aus Silberbrokat mit blauen Spitzen, knisternde weiße Gischt – zum Schluss sechs hohe Knalle: Quallen, Gischtkronen und Silberwellen.'});
+lochName('lb_saphirfaecher',{desc:'Blau, Türkis und Silber: drei Silberwellen weit auseinander, die nach einem Atemzug türkis weiterleuchten, blaue Chrysanthemen im Wellengang, Meeresleuchten aus Silberglitzer mit blauen Spitzen, knisternde weiße Gischt – zum Schluss sechs hohe Knalle: Quallen, Gischtkronen und Silberwellen.'});
 SIGNATUR.lb_saphirfaecher={idee:'Ozean',eff:'silberwelle',text:'Silberwellen, blaue Chrysanthemen im Wellengang, Meeresleuchten, Gischt, hohe Quallen und Gischtkronen'};
 
 /* GOLDADER (Tom: "zu viele goldene Fontaenen -> mehr/andere Effekte,
    spektakulaerer; z. B. kompletter goldener Regen, Funken mit Quallen-
    Bewegung (natuerlich)"). Keine Glitzerminen und Faecher mehr. Die Adern
-   sind einzelne Goldkometen; dazwischen Goldglitzer ueber Kreuz, goldene
+   sind einzelne Goldkometen; dazwischen Goldkaskaden ueber Kreuz, goldene
    Quallen (Krone, deren Faeden pulsierend herabsinken), Weidenkometen,
    ein kompletter Goldregen (Kamuro, Goldvorhang und Zeitregen auf Schlag,
    der den Himmel fuellt), knisternde Dracheneier - Finale: zehn Quallen. */
 r3Show('lb_goldader',[['gold','orange'],['bernstein','gold'],['zitrone','gold'],['gold','weiss']],{sz:[0.95,1.35],pw:[0,3],hell:[0.85,1.3],kurve:'spaet'},[
   {n:6,gap:0.65,muster:'aussen',ang:0.3,licht:'goldkomet',farbe:0},
-  {n:4,gap:0.8,muster:'mitte',ang:0.2,eff:'qualle',A:'gold',B:'zitrone',kal:'gross',pw:2,steig:'brokat',pause:1.0},
-  {n:8,gap:0.35,muster:'x',ang:0.3,eff:'goldglitzer',kal:'gross',farbe:1,steig:'gold',knall:'bkRieseln'},
+  {n:4,gap:0.8,muster:'mitte',ang:0.2,eff:'qualle',farbe:2,kal:'gross',pw:2,steig:'brokat',pause:1.0},
+  {n:8,gap:0.35,muster:'x',ang:0.3,eff:'goldkaskade',kal:'gross',farbe:1,steig:'gold',knall:'bkRieseln'},
   {n:12,takt:[0.24,0.24,0.95],muster:'welle',ang:0.3,licht:'weidenkomet',farbe:0,pause:1.5},
   {n:10,gap:0.07,muster:'schlag',ang:0.34,eff:['kamuro','goldvorhang','zeitregen'],kal:'gross',pw:2,farbe:3,steig:'brokat',knall:'bkBrokat',pause:2.0},
   {n:14,gap:0.2,muster:'wischer',ang:0.38,licht:'goldkomet',farbe:2},
   {mit:true,n:6,gap:0.5,muster:'v',ang:0.25,eff:'drachenei',kal:'gross',farbe:1,steig:'knister',knall:'bkKnisterhall',pause:1.0},
-  {n:16,gap:0.08,muster:'w',ang:0.32,eff:['goldglitzer','kamuro'],kal:'gross',farbe:0,steig:'gold'},
-  {mit:true,n:10,gap:0.18,muster:'mitte',ang:0.16,eff:'qualle',A:'gold',B:'bernstein',kal:'riesig',pw:4,steig:'brokat',knall:'bkDonnerhall',pause:6}],{basis:{pw:0.5,sz:1.05,th:'lb_goldader'}});
-lochName('lb_goldader',{desc:'Goldkometen wie Adern im Gestein, Goldglitzer über Kreuz, goldene Quallen, deren Fäden langsam pulsierend sinken, Weidenkometen, ein Goldregen, der den ganzen Himmel füllt, knisternde Dracheneier – das Finale zehn goldene Quallen über einem Goldwald.'});
-SIGNATUR.lb_goldader={eff:'qualle',text:'Goldkometen, Goldglitzer, goldene Quallen, ein kompletter Goldregen und knisternde Dracheneier'};
+  {n:16,gap:0.08,muster:'w',ang:0.32,eff:['goldkaskade','kamuro'],kal:'gross',farbe:0,steig:'gold'},
+  {mit:true,n:10,gap:0.18,muster:'mitte',ang:0.16,eff:'qualle',farbe:1,kal:'riesig',pw:4,steig:'brokat',knall:'bkDonnerhall',pause:6}],{basis:{pw:0.5,sz:1.05,th:'lb_goldader'}});
+lochName('lb_goldader',{desc:'Goldkometen wie Adern im Gestein, Goldkaskaden über Kreuz, goldene Quallen, deren Fäden langsam pulsierend sinken, Weidenkometen, ein Goldregen, der den ganzen Himmel füllt, knisternde Dracheneier – das Finale zehn goldene Quallen über einem Goldwald.'});
+SIGNATUR.lb_goldader={eff:'qualle',text:'Goldkometen, Goldkaskaden, goldene Quallen, ein kompletter Goldregen und knisternde Dracheneier'};
 
 /* GOETTERFUNKEN (Tom: "zu langweilig/eintoenig v. a. am Anfang; Mitte
    besser"). Strophe 1 war eine senkrechte Reihe aus 30 kleinen Pistillen.
@@ -400,13 +400,13 @@ LICHTYP.schwirrkomet=function(o,A,B,s,opt){
    Lichter sehen billig/'schlecht grafisches Spiel' aus, nicht echt (bei
    viel gleichzeitig am Himmel)"). Die Salven bestanden aus sechs gleichen
    Paeonien/Kugeln - sechs runde Punktbaelle nebeneinander. Jetzt hat jede
-   Salve Sterne mit Schweif und Glitzer (Goldglitzer, Sternspritzer,
+   Salve Sterne mit Schweif und Glitzer (Goldkaskaden, Sternspritzer,
    Brokat, Palmen mit Glitzerschweif) und jede Trommelfigur ihren eigenen
    Schlag: Viertel wummern, die Synkope schlaegt doppelt, der Pauken-
    schlag ist ein echter Salut (Knall), die Triolen knistern nach, der
    Wirbel knackt in Kaskaden, der Tusch rollt als Donner nach. */
 { const alt=SHOWS.donnerwand; if(alt) SHOWS.donnerwand=()=>{ const s=alt(), k=s.map(ph=>Object.assign({},ph));
-  const tausch={kugel:'goldglitzer',chrys:'sternspritzer',weide:'glitzerweide',palme:'sternpalme'};
+  const tausch={kugel:'goldkaskade',chrys:'sternspritzer',weide:'glitzerweide',palme:'sternpalme'};
   const klang=[null,'bkWumms','bkDoppel','bkSalut','bkKnisterhall',null,'bkKaskade','bkDonnerhall'];
   let salve=0;
   k.forEach((ph,i)=>{ if(!ph.n) return; salve++;
@@ -420,7 +420,7 @@ LICHTYP.schwirrkomet=function(o,A,B,s,opt){
     ph.bruchOpt=Object.assign({},ph.bruchOpt||{},{kern:false,nachglitzer:false});
     if(ph.ang) ph.ang=+(ph.ang*1.2).toFixed(3); });
   return show({basis:s.basis,rampe:s.rampe,verzoegerung:s.verzoegerung},k); }; }
-lochName('donnerwand',{desc:'Zwanzig Salven aus sechs Rohren im Takt eines Trommelsolos: wummernde Goldpalmen, Kokospalmen auf der Synkope, ein Paukenschlag mit zwei Saluten, knisternde Triolen aus Goldglitzer und Sternspritzern, ein knackender Wirbel – und als Tusch sechs riesige Kamuro.'});
+lochName('donnerwand',{desc:'Zwanzig Salven aus sechs Rohren im Takt eines Trommelsolos: wummernde Goldpalmen, Kokospalmen auf der Synkope, ein Paukenschlag mit zwei Saluten, knisternde Triolen aus Goldkaskaden und Sternspritzern, ein knackender Wirbel – und als Tusch sechs riesige Kamuro.'});
 
 /* ROSENHERZ (Tom: "neu ausbalancieren - Effektkombination, Texturqualitaet,
    Farben; mehr Richtung Rosa, goldene Elemente ok aber mehr andere,
@@ -431,7 +431,7 @@ lochName('donnerwand',{desc:'Zwanzig Salven aus sechs Rohren im Takt eines Tromm
    weissen Sternspritzern, zum Schluss zwei Ringe in Rosa und Weiss,
    darunter oeffnen sich rosa Blueten, die weiss verbluehen. Kein Gold
    mehr ausser im Aufstieg. 36 Schuss. */
-r3Show('hochzeitsfaecher',[['rose','weiss'],['magenta','rose'],['weiss','rose'],['rot','rose']],{sz:[0.95,1.15],pw:[0,1.5],hell:[0.9,1.25],kurve:'flach'},[
+r3Show('hochzeitsfaecher',[['rose','weiss'],['magenta','rose'],['weiss','rose'],['rot','rose'],['rose','rot']],{sz:[0.95,1.15],pw:[0,1.5],hell:[0.9,1.25],kurve:'flach'},[
   {n:8,gap:0.75,muster:'paar',ang:0.25,eff:'pistill',kal:'klein',farbe:0,steig:'glut',knall:'bkPuff',pause:1.0},
   {n:6,gap:1.1,muster:'mitte',ang:0.4,eff:'farbregen',A:'rose',B:'weiss',kal:'gross',steig:'silber',knall:'bkRieseln',pause:1.0},
   {n:4,gap:1.8,muster:'v',ang:0.18,eff:'herz',kal:'gross',A:'rose',B:'rot',steig:'silber',bruchOpt:{nachglitzer:false},pause:1.2},
@@ -444,19 +444,25 @@ lochName('hochzeitsfaecher',{desc:'Ein Rosenstrauß in Rosa, Weiß und Rot: Rose
    schlechte Textur -> ueberarbeiten"). Die goldenen Buketts waren
    Chrysanthemen und Kamuro aus glatten gelben Sternen ohne Schweif, das
    Hitzeflimmern kleine Brokat-Kugeln. Jetzt hat jeder goldene Stern
-   Struktur: Nishiki (Brokatgold mit orangen Spitzen) und Goldglitzer
-   (Sterne, die im Fallen Glitzer abwerfen) fuer den anbrechenden Tag,
-   knisternde Sternspritzer in Gold und Orange als Hitzeflimmern, die
-   Morgenroete als rote Brokatkronen (Nishiki mit scharlachroten Spitzen). */
+   Struktur: Goldkaskaden (drei Goldglocken uebereinander) und Brokat
+   fuer den anbrechenden Tag, knisternde Sternspritzer in Gold und Orange
+   als Hitzeflimmern, die Morgenroete als Zeitregen in Scharlach und Gold
+   (grosse Sterne, die nach und nach Glitzer abwerfen). Nishiki und
+   Goldglitzer bleiben den Raketen vorbehalten (steigerung.js EXKLUSIV). */
 { const alt=SHOWS.faecher; if(alt) SHOWS.faecher=()=>{ const s=alt(), k=s.map(ph=>Object.assign({},ph));
   k.forEach(ph=>{ const e=Array.isArray(ph.eff)?ph.eff.join(','):ph.eff;
-    if(e==='chrys,kamuro'){ ph.eff=['nishiki','goldglitzer']; ph.A='gold'; ph.B='orange'; ph.knall='bkBrokat'; }
-    else if(e==='brokat'&&ph.kal==='klein'){ ph.eff='sternspritzer'; ph.A='gold'; ph.B='orange'; ph.knall='bkKnisterhall'; }
-    else if(e==='wechsel'){ ph.eff='nishiki'; ph.A='bernstein'; ph.B='scharlach'; ph.knall='bkPuff'; }
+    if(e==='chrys,kamuro'){ ph.eff=['goldkaskade','brokat']; ph.farbe=3; ph.knall='bkBrokat'; }
+    else if(e==='brokat'&&ph.kal==='klein'){ ph.eff='sternspritzer'; ph.farbe=3; ph.knall='bkKnisterhall'; }
+    else if(e==='wechsel'){ ph.eff='zeitregen'; ph.farbe=2; ph.knall='bkPuff'; }
     /* gerendert 07.10.: neben den Goldbruechen stand eine weisse runde
        Leuchtscheibe (Kern) - ohne Kern und Nachglitzern */
     if(ph.eff) ph.bruchOpt=Object.assign({},ph.bruchOpt||{},{kern:false,nachglitzer:false}); });
   return show({basis:s.basis,rampe:s.rampe,verzoegerung:s.verzoegerung},k); }; }
+
+/* KNATTERSTURM: ohne die Knisterfontaene (Boden raus) stieg das Ende nur
+   0,5 m ueber den Anfang (steigerung.js verlangt 1,5 m) - die Schlag-Salve
+   geht 2 m hoeher auf */
+{ const alt=SHOWS.knatter; if(alt) SHOWS.knatter=()=>{ const s=alt(); s.forEach((ph,i)=>{ if(ph&&ph.muster==='schlag'&&ph.eff==='tausend') s[i]=Object.assign({},ph,{pw:(ph.pw||0)+2}); }); return s; }; }
 
 /* GLUTSCHMIEDE: die Bodenfontaenen sind raus (Tom: "z. B. Glutschmiede").
    Dafuer schlaegt der Schmied: in der Schlag-Salve sind zwei der sechs
@@ -543,8 +549,8 @@ vfAnlageBauen=function(){
    Urwald alt 35k (34), Kronenfeuer 19k (32). Daraus die Leiter (Urwald neu
    mit 100 Schuss, Vulkan mit 52 und Krater): */
 const R3_LEVEL={lb_kronenfeuer:[19,'sternklasse'],lb_blitzpalmen:[19,'sternklasse'],
-  donnerwand:[21,'grossfeuer'],feuerpfau:[21,'grossfeuer'],lb_weidenhain:[21,'grossfeuer'],feuerdrache:[21,'grossfeuer'],
-  glutschmiede:[22,'profi'],lb_vulkan:[22,'profi'],profi:[23,'profi'],hexenkessel:[24,'profi'],
+  donnerwand:[21,'grossfeuer'],feuerpfau:[21,'grossfeuer'],lb_weidenhain:[21,'grossfeuer'],
+  glutschmiede:[22,'profi'],lb_vulkan:[22,'profi'],hexenkessel:[23,'profi'],profi:[24,'profi'],feuerdrache:[23,'profi'],
   lb_jadekoenig:[25,'meister'],finale:[26,'meister']};
 function r3Level(t,lvl,liz){ const p=P[t]; if(!p) return; p.lvl=lvl;
   if(!liz) return; const L=LIZENZEN.find(l=>l.id===liz); if(!L) return;
@@ -555,9 +561,9 @@ function r3Level(t,lvl,liz){ const p=P[t]; if(!p) return; p.lvl=lvl;
 for(const [t,[l,z]] of Object.entries(R3_LEVEL)) r3Level(t,l,z);
 /* Texte der Lizenzpakete zu den neuen Inhalten */
 { const d=(id,txt)=>{ const L=LIZENZEN.find(l=>l.id===id); if(L) L.desc=txt; };
-  d('profi','Der Götterfunken-Verbund: zweihundert Schuss, und der halbe Ort steht auf der Straße. Dazu der Hexenkessel mit 180 Schuss, die Glutschmiede, der Vulkanausbruch und die Jumbo-Rakete »Polarstern«; die 200-mm-Kugel Feuerlilie und die 300-mm-Kugel Himmelsbrecher.');
+  d('profi','Der Götterfunken-Verbund: zweihundert Schuss, und der halbe Ort steht auf der Straße. Dazu der Hexenkessel mit 180 Schuss, die Glutschmiede, der Vulkanausbruch und die Jumbo-Raketen »Polarstern« und »Feuerdrache«; die 200-mm-Kugel Feuerlilie und die 300-mm-Kugel Himmelsbrecher.');
   d('meister','Das Ende der Leiter: der Weltuntergang mit 300 Schuss, der Urwald mit hundert, die Jumbo-Rakete »Supernova« und die 300-mm-Kaiserkrone.');
-  d('grossfeuer','Die Jumbo-Raketen »Juwelenpalme« und »Feuerdrache«, der Farbtiger, die Farbsäulen, der Weidenhain, das Trommelfeuer mit zwanzig Salven aus sechs Rohren und die 200-mm-Kugelbomben.');
+  d('grossfeuer','Die Jumbo-Rakete »Juwelenpalme«, der Farbtiger, die Farbsäulen, der Weidenhain, das Trommelfeuer mit zwanzig Salven aus sechs Rohren und die 200-mm-Kugelbomben.');
   d('sternklasse','Die Jumbo-Rakete »Saphirkrone«, die Wendeltreppe, die sich zwölf Meter hochschraubt, die Blitzpalmen, das Kronenfeuer und die Crossettenkrone.'); }
 
 /* ---------- Testzugang ---------- */

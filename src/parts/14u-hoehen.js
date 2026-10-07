@@ -52,7 +52,7 @@ const KG_RAUM_KAL=[2.0,1.8,1.6,1.55,1.5];
    durch den gemessenen Durchmesser vorher (90 % der Sterne, Vorfuehrung,
    06.10.) - so waechst die Groesse mit dem Kaliber, nicht mit der Laune
    des Bruchbilds. Die Kaiserkrone (L26) war schon gross (92 m). */
-const KG_RAUM={kugel75:2.9,palmenkugel75:2.9,farbenmeer75:2.0,
+const KG_RAUM={kugel75:2.9,palmenkugel75:2.9,farbenmeer75:2.1 /* 07.10.: 70,8 m lag knapp unter 1,1 x groesste Rakete (hoehen.js) */,
   goldbrokat100:2.4,kugel100:1.5,goldweide100:2.35,kristallkugel100:2.0,
   kugel150:1.6,crossettennetz150:2.3,tigerkrone150:1.45,farbcrossette150:2.3,sternkugel150:1.9,sternenstaub150:1.8,
   weidenkoenig200:1.65,kronenkranz200:1.55,zwillingssonne200:1.45,blitzpalme200:3.2,goldweidenkreuz200:2.0,feuerlilie200:1.85,goldkrone200:2.2,kugel200:1.7,
@@ -233,6 +233,9 @@ NEU_EMIT.vfModell=function(e,dt,o){
      Zuendung) und das Rohr war nicht mehr im Bild. Eine Hand auf der Maus
      reicht dafuer. Jetzt erst bei deutlicher Bewegung (0,15 rad, gut 8 Grad) */
   if(c.letzt!==null&&Math.abs(pitch-c.letzt)>0.15){ vfBlickFrei(e); return; }
+  /* kleines Zittern wird verworfen - sonst wanderte der Blick in Schritten
+     nach oben und das Rohr fiel unten aus dem engen Zoom (vfrohr.js BLICK) */
+  if(c.letzt!==null) pitch=c.letzt;
   /* vor dem Start: nah aufs Rohr gezoomt (16 Grad), die Rakete steht im
      Bild, die Zuendschnur brennt; mit dem Start zoomt der Blick auf und
      folgt nach oben - der Bruch soll ganz ins Bild, die Kugel (doppelt so

@@ -253,6 +253,8 @@ function vfZuendenRoh(t){
   if(o.sid==='tisch'&&istBatterie(t)){ bt=batterieModell(t,Math.PI); bt.g.position.set(o.x,o.boden,o.z); bt.g.rotation.y=Math.PI; scene.add(bt.g); o.batt=bt; }
   /* Wunderkerzen: Mini-Podest statt Verpackung (03.10., Tom; 14q) */
   else if(o.sid==='tisch'&&typeof kqPodestAuf==='function'&&(pg=kqPodestAuf(t,{x:o.x,y:o.boden,z:o.z}))) scene.add(pg);
+  /* Kleinfeuerwerk ausgepackt statt Ladenverpackung (07.10., Tom; 14x) */
+  else if(o.sid==='tisch'&&typeof kfTischAuf==='function'&&(pg=kfTischAuf(t,{x:o.x,y:o.boden,z:o.z}))) scene.add(pg);
   else if(o.sid==='tisch'&&stationsPool(t)&&!stationsPool(t).full()) h=stationsPool(t).add(mx(o.x,o.boden,o.z,Math.PI));
   if(typeof vfImRohr==='function') vfImRohr(t,o);
   if(vor){ emitters.push({t:vor,k:'fuse',o:{x:o.x,y:o.y,z:o.z}}); sfx.fizz(distVol(o)*0.5); }

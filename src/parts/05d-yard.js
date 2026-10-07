@@ -693,6 +693,10 @@ function stationsModell(st,it,sl){
   /* Wunderkerzen (03.10., Tom): ohne Verpackung - die Kerzen stecken in
      einem Mini-Podest (14q). Als gestell: es bleibt beim Zuenden stehen. */
   if(st.id==='tisch'&&typeof kqPodestAuf==='function'){ const g=kqPodestAuf(t,sl); if(g){ scene.add(g); it.gestell=g; return true; } }
+  /* Kleinfeuerwerk (07.10., Tom: "beim Zuenden steht die Verpackung auf
+     dem Tisch, nicht das Produkt"): ausgepackt - Popper im Halter, Boeller
+     mit Zuendschnur, Frosch, Bonbons, Kreisel ... (14x) */
+  if(st.id==='tisch'&&typeof kfTischAuf==='function'){ const g=kfTischAuf(t,sl); if(g){ scene.add(g); it.gestell=g; return true; } }
   return false;
 }
 function placeOnStation(st){

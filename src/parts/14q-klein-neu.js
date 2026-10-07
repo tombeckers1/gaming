@@ -123,11 +123,12 @@ klEmit('froschsprung',(e,dt,o,t)=>{
   const S=1.35, H=KQ_FR.n*KQ_FR.th*S;
   if(!e.fr){
     /* er liegt vor dem Karton auf dem Tisch (zum Pult hin) */
-    const sf=klFlaeche(o), x0=o.x+0.07, z0=o.z+((P[e.prod]&&P[e.prod].dims)?P[e.prod].dims[2]/2:0.03)+0.09;
+    /* 07.10.: ausgepackt liegt er auf dem Platz selbst (14x kfFroschLage) */
+    const sf=klFlaeche(o), FL=kfFroschLage(o), x0=FL.x, z0=FL.z;
     const mat=new THREE.MeshStandardMaterial({vertexColors:true,roughness:0.8,emissive:new THREE.Color(0.02,0.08,0.025)});
     const body=new THREE.Mesh(kqFroschGeo(),mat); body.userData.geoFest=true; body.userData.matEigen=true;
     const lunte=kqM(kqGeo('froschlunte',()=>{ const g=new THREE.CylinderGeometry(0.0012,0.0012,0.032,5); g.translate(0,0.016,0); return g; }),kqMat(0x8a8a4a,{e:0.3}),KQ_FR.L/2,KQ_FR.n*KQ_FR.th/2-KQ_FR.th,0,0,0,-1.1);
-    const grp=kqGruppe(body,lunte); grp.scale.setScalar(S); grp.rotation.y=rand(-0.6,0.6);
+    const grp=kqGruppe(body,lunte); grp.scale.setScalar(S); grp.rotation.y=FL.ry;
     grp.position.set(x0,sf+H/2,z0); klMesh(e,grp);
     const TK=e.takt||[0.4], zeiten=[e.lunte||1.4];
     for(let i=1;i<(e.knalle||10);i++) zeiten.push(zeiten[i-1]+TK[(i-1)%TK.length]*rand(0.85,1.2));
@@ -302,7 +303,8 @@ klEmit('bonbonriss',(e,dt,o,t)=>{
   if(!e.bb){ const sf=klFlaeche(o), D=(P[e.prod]&&P[e.prod].dims)||[0.22,0.07,0.1], Z=e.zeiten||[0.5,3,5.5,8];
     /* die Bonbons liegen in zwei Reihen vor dem Karton, leicht schraeg */
     const plaetze=[[-0.17,0.1],[0.17,0.13],[-0.15,0.27],[0.18,0.3]];
-    e.bb=KQ_BONBON.map((B,i)=>{ const q=plaetze[i%4], x=o.x+q[0], z=o.z+D[2]/2+q[1], ry=rand(-0.25,0.25);
+    /* 07.10.: ausgepackt liegen sie auf dem Platz selbst (14x kfBonbonLage) */
+    e.bb=KQ_BONBON.map((B,i)=>{ const BL=kfBonbonLage(o,i), x=BL.x, z=BL.z, ry=BL.ry;
       const mat=kqMat(B.farbe,{m:0.45,r:0.32,e:0.3}), band=kqMat(B.band,{e:0.35,m:0.3,r:0.4});
       const haelften=[-1,1].map(sg=>{ const h=kqGruppe(kqM(kqBonbonGeo(),mat,0,0,0,0,sg<0?Math.PI:0,0),kqM(kqGeo('bonbonband',()=>{ const g=new THREE.TorusGeometry(0.0212,0.0028,4,16); g.rotateY(Math.PI/2); return g; }),band,sg*0.035,0,0));
         h.position.set(x,sf+0.021,z); h.rotation.y=ry; klMesh(e,h); return {g:h,sg}; });
@@ -404,7 +406,8 @@ klEmit('feuerkreisel',(e,dt,o,t)=>{
     /* Zuendfolge unregelmaessig; Boden-Brummer (flug 0) und Flieger (Hoehe m) im Wechsel */
     const plan=[{at:0,boden:1.6,flug:1.25},{at:0.9,boden:4.2,flug:0},{at:1.7,boden:1.3,flug:1.85},{at:2.9,boden:1.8,flug:1.05},{at:3.6,boden:3.8,flug:0},{at:4.7,boden:1.4,flug:1.6}];
     const mat=new THREE.MeshStandardMaterial({vertexColors:true,roughness:0.5,emissive:new THREE.Color(0.12,0.12,0.12)});
-    e.kr=plan.map((q,i)=>{ const x=o.x+(-0.36+i*0.145)+rand(-0.03,0.03), z=o.z+D[2]/2+rand(0.1,0.3);
+    /* 07.10.: die Kreisel liegen ausgepackt auf dem Platz (14x kfKreiselLage) */
+    e.kr=plan.map((q,i)=>{ const KL=kfKreiselLage(o,i), x=KL.x, z=KL.z;
       const m=new THREE.Mesh(kqKreiselGeo(),mat); m.userData.geoFest=true; if(i===0) m.userData.matEigen=true;
       const g=kqGruppe(m); g.position.set(x,sf+0.004,z); klMesh(e,g);
       return Object.assign({g,x,z,y:sf+0.004,sf,w:rand(0,6),rev:0,C:FF[i%FF.length].map(c=>klF(c)),z2:{},ph:rand(0,6),dx:rand(-1,1),dz:rand(-1,1),kipp:rand(0.35,0.55),aus:false},q); });

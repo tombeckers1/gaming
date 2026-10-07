@@ -8,12 +8,14 @@
    die eine vorhandene doppelt (Silber/Blau = Ozean/Silbergewitter,
    Gold = Goldader, Rosa = Kirschbluete/Rosenherz, Gruen/Gold = Urwald):
      Kornblumen   L2   9 Schuss   Kornblau und Weizengold
-     Bienenweide  L5  12 Schuss   Bernstein (Bienen) und Kleeviolett
-     Weinlese     L8  16 Schuss   Traubenviolett, Rebengruen, Wein-Gold
-     Mohnfeld     L11 22 Schuss   Mohnrot und Limette
-     Winterwald   L14 28 Schuss   Tannengruen, Raureif-Weiss, Ilexrot
-     Fuchsien     L17 36 Schuss   Magenta und Violett
-     Korallenriff L20 48 Schuss   Koralle und Tuerkis
+     Bienenweide  L6  12 Schuss   Bernstein (Bienen) und Kleeviolett
+     Weinlese     L7  16 Schuss   Traubenviolett, Rebengruen, Wein-Gold
+     Mohnfeld     L12 22 Schuss   Mohnrot und Limette
+     Winterwald   L13 28 Schuss   Tannengruen, Raureif-Weiss, Ilexrot
+     Fuchsien     L16 36 Schuss   Magenta und Violett
+     Korallenriff L18 48 Schuss   Koralle und Tuerkis
+   Level dort, wo das Sortiment Luecken hat (gezaehlt 07.10.: vorher keine
+   Batterie auf L1-2, L17, je eine auf L6, L7, L12, L13, L15, L16, L18).
      Schwarzer Samt  L23 120 Schuss  Samtblau, Gold, Silberblinker
      Meteorschauer   L24 160 Schuss  Weiss und Limettengruen
      Phoenix         L25 200 Schuss  Scharlach, Gold, Glutorange
@@ -24,18 +26,18 @@ const R4_BATTERIEN=[
  /* id, Name, Untertitel, Level, Masse, Preis EK/VK, Farben (bg1,bg2,ac,ac2), Text, Lizenz, Kat */
  ['kornblumen','Kornblumen','9 Schuss Sommerwiese',2,[0.18,0.13,0.18],3.10,6.99,'#0e1e4a','#03061a','#5c8dff','#ffd23f',
   'Blaue Kornblumen mit gefransten Blütenblättern blühen über reifem Weizen – drei einzeln, dazwischen goldene Ähren, zum Schluss zwei zugleich.','jugend',2],
- ['bienenweide','Bienenweide','12 Schuss Summen & Klee',5,[0.22,0.16,0.2],4.60,10.99,'#2a1a3a','#0a0610','#ffb03a','#b89cff',
+ ['bienenweide','Bienenweide','12 Schuss Summen & Klee',6,[0.22,0.16,0.2],4.60,10.99,'#2a1a3a','#0a0610','#ffb03a','#b89cff',
   'Runde violett-weiße Kleeblüten, dazwischen summende Bienenschwärme in Bernstein, die kreuz und quer schwirren – mit leisem Summen.','klassiker',2],
- ['weinlese','Weinlese','16 Schuss Traubenbuketts',8,[0.3,0.18,0.24],6.30,14.49,'#2a0a3a','#08020c','#b85cff','#9cff3a',
-  'Violette Trauben hängen in dichten Büscheln am Himmel, grüne Weinblätter rascheln im Zickzack, und zum Schluss fließt goldener Wein.','krach',2],
- ['mohnfeld','Mohnfeld','22 Schuss Mohnkapseln',11,[0.36,0.2,0.26],9.20,20.99,'#3a0606','#0c0202','#ff2a1a','#9cff3a',
+ ['weinlese','Weinlese','16 Schuss Traubenbuketts',7,[0.3,0.18,0.24],6.30,14.49,'#2a0a3a','#08020c','#b85cff','#9cff3a',
+  'Violette Trauben hängen in dichten Büscheln am Himmel, grüne Weinblätter rascheln im Zickzack, und zum Schluss fließt goldener Wein.','klassiker',2],
+ ['mohnfeld','Mohnfeld','22 Schuss Mohnkapseln',12,[0.36,0.2,0.26],9.20,20.99,'#3a0606','#0c0202','#ff2a1a','#9cff3a',
   'Rote Mohnblüten mit grünem Herz, aus dem die Samen silbern herausrieseln; ein Windstoß wiegt das Feld, knisternde Kapseln platzen.','himmel',2],
- ['winterwald','Winterwald','28 Schuss Raureif & Tannen',14,[0.42,0.22,0.3],12.80,28.99,'#0a2a1a','#020a06','#e8f4ff','#2ec85a',
-  'Weißer Raureif glitzert und rieselt, Tannenzweige knistern grün, rote Ilexbeeren werden weiß wie Schnee – eine stille Winternacht im Wald.','verbund',2],
- ['fuchsien','Fuchsien','36 Schuss Hängeblüten',17,[0.5,0.26,0.34],19.50,44.99,'#3a0630','#0c020a','#ff3ad8','#9a4aff',
-  'Magenta und Violett: Fuchsienblüten öffnen sich wie Glocken, ihre Staubgefäße hängen tief herab, violette Chrysanthemen drehen sich, magentafarbene Weiden hängen lang am Himmel.','import',2],
- ['korallenriff','Korallenriff','48 Schuss Korallen & Fische',20,[0.62,0.28,0.4],27.50,62.99,'#063a3a','#010c0c','#ff7a5a','#3affe0',
-  'Korallen wachsen verzweigt in den Himmel, Fischschwärme flitzen silbern, türkise Seeanemonen und weißes Plankton – im Finale das ganze Riff auf einmal.','grossfeuer',2],
+ ['winterwald','Winterwald','28 Schuss Raureif & Tannen',13,[0.42,0.22,0.3],12.80,28.99,'#0a2a1a','#020a06','#e8f4ff','#2ec85a',
+  'Weißer Raureif glitzert und rieselt, Tannenzweige knistern grün, rote Ilexbeeren werden weiß wie Schnee – eine stille Winternacht im Wald.','feuerzauber',2],
+ ['fuchsien','Fuchsien','36 Schuss Hängeblüten',16,[0.5,0.26,0.34],19.50,44.99,'#3a0630','#0c020a','#ff3ad8','#9a4aff',
+  'Magenta und Violett: Fuchsienblüten öffnen sich wie Glocken, ihre Staubgefäße hängen tief herab, violette Chrysanthemen drehen sich, magentafarbene Weiden hängen lang am Himmel.','nachthimmel',2],
+ ['korallenriff','Korallenriff','48 Schuss Korallen & Fische',18,[0.62,0.28,0.4],27.50,62.99,'#063a3a','#010c0c','#ff7a5a','#3affe0',
+  'Korallen wachsen verzweigt in den Himmel, Fischschwärme flitzen silbern, türkise Seeanemonen und weißes Plankton – im Finale das ganze Riff auf einmal.','goldklasse',2],
  ['schwarzersamt','Schwarzer Samt','120 Schuss Samt & Gold',23,[0.86,0.36,0.56],58.00,129.99,'#0a0a14','#020204','#ffd23f','#3a5cff',
   'Dunkle Aufstiege, schwere Goldpalmen, samtblaue Dahlien, Silberblinker, die wie Strass funkeln – und Samtkronen, deren Goldbrokat in Blinksterne zerfällt. Ein Finale aus 36 Schuss.','profi',2],
  ['meteorschauer','Meteorschauer','160 Schuss Feuerkugeln',24,[0.96,0.38,0.6],72.00,159.99,'#0a1a10','#020604','#e8ffe0','#9cff3a',

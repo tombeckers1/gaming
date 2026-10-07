@@ -171,7 +171,11 @@ const kEtikett=(k,motiv,mm,o)=>(g,W,H)=>{ o=o||{}; MOTIV[motiv](g,W,H,zufallAus(
   nameText(g,k.a.title,W/2,H*0.62,W*0.9,Math.round(Math.min(H*0.2,W*0.16)),o.font||FNT.bun,o.fg||'#ffffff','rgba(0,0,0,.8)',Math.max(2,H*0.02));
   nameText(g,'KUGELBOMBE '+mm+' mm',W/2,H*0.8,W*0.8,Math.round(Math.min(H*0.07,W*0.06)),FNT.bar,k.a.ac,'rgba(0,0,0,.7)',1.5);
   g.fillStyle='rgba(255,255,255,.9)'; g.font=`700 ${Math.max(5,Math.round(H*0.05))}px Arial`; g.textAlign='center'; g.textBaseline='middle'; g.fillText('F4 · CE · NUR FÜR FACHKUNDIGE',W/2,H*0.93); };
-const rundDruck=(k,motiv,mm)=>(g,W,H)=>{ for(let q=0;q<2;q++){ g.save(); g.translate(q*W/2,0); g.beginPath(); g.rect(0,0,W/2,H); g.clip(); kEtikett(k,motiv,mm)(g,W/2,H); g.restore(); } };
+/* rundum: das Etikett vorn und hinten nur ueber den sichtbaren Bogen (ein
+   Drittel), dazwischen das Motiv ohne Schrift - sonst laeuft der Name um
+   die Rundung (gerendert 07.10.: "ERDISTEL", "UREGEN") */
+const rundDruck=(k,motiv,mm)=>(g,W,H)=>{ MOTIV[motiv](g,W,H,zufallAus(hashStr(k.t+'r'))); const vg=g.createLinearGradient(0,H*0.4,0,H); vg.addColorStop(0,'rgba(0,0,0,0)'); vg.addColorStop(1,'rgba(0,0,0,.6)'); g.fillStyle=vg; g.fillRect(0,0,W,H);
+  const bw=W*0.3; for(let q=0;q<2;q++){ const x=W*(0.25+q*0.5)-bw/2; g.save(); g.beginPath(); g.rect(x,0,bw,H); g.clip(); g.translate(x,0); kEtikett(k,motiv,mm)(g,bw,H); g.restore(); } };
 Object.assign(MOTIV,{
   distel(g,W,H,r){ himmel(g,W,H,'#1a1a3a','#06060f'); bruch(g,W*0.5,H*0.3,H*0.25,40,'rgba(230,236,255,.95)','rgba(184,92,255,.9)',1.2); g.fillStyle='#b85cff'; g.beginPath(); g.arc(W*0.5,H*0.3,H*0.06,0,2*PI); g.fill(); },
   hummel(g,W,H,r){ himmel(g,W,H,'#3a2a06','#0c0802'); g.save(); g.globalCompositeOperation='lighter'; for(let i=0;i<14;i++){ let x=W*0.5, y=H*0.32; g.strokeStyle=i%2?'rgba(255,210,60,.9)':'rgba(240,240,255,.8)'; g.lineWidth=1.3; g.beginPath(); g.moveTo(x,y); const a0=i/14*2*PI;
@@ -221,7 +225,7 @@ Object.assign(V,{
   kometenschlag150:t=>{ const k=neu(t), w=k.w-0.004, h=k.h-0.004, d=k.d-0.004;
     const kr=reg(k,'kraft',w,h,(g,W,H)=>{ pKraft({farbe:'#c49a62'})(g,W,H); g.save(); g.translate(W*0.1,H*0.1); kEtikett(k,'kometen',150)(g,W*0.8,H*0.8); g.restore(); g.strokeStyle='#2b1d10'; g.lineWidth=3; g.strokeRect(W*0.1,H*0.1,W*0.8,H*0.8); });
     kasten(k,w,h,d,tm(0,h/2,0),{pz:kr,nz:kr,px:reg(k,'s',d,h,pKraft({farbe:'#b8925f'})),nx:'s',py:reg(k,'top',w,d,pKraft({farbe:'#b8925f'})),ny:farbe(k,'#6a5030')});
-    W_.seilgriff(k,1,0,h+0.004,'#c8a870',0.04); return fertig(k); },
+    kordel(k,[[-w*0.3,h,0],[-w*0.22,h+0.05,0],[w*0.22,h+0.05,0],[w*0.3,h,0]],'#c8a870',0.003); gurtX(k,0,w,h,'#2b1d10',0.008); return fertig(k); },
   /* Seerose 200: flache runde Dose, Deckel wie ein Seerosenblatt */
   seerose200:t=>{ const k=neu(t), R=Math.min(k.w,k.d)/2-0.004, h=k.h-0.02;
     mantel(k,R,h,0,'dose',rundDruck(k,'seerose',200),{seg:22});

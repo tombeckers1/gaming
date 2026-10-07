@@ -70,6 +70,8 @@ function klLunte(o,s){ if(s>0) emitters.push({t:s,k:'fuse',o}); }
 const KLEIN_ALT={};
 function kleinZuenden(t,o,it){
   const K=KLEIN[t]; if(!K) return false;
+  /* 07.10.: ausgepacktes Produkt auf dem Tisch (14x) - Ursprung auf seine Oberkante */
+  if(typeof kfTischZuenden==='function') o=kfTischZuenden(t,o);
   const lu=K.lunte||0; klLunte(o,lu);
   /* 28.09. (Tom: "die Zuendung wirklich am Produkt"): Versatz der Teile
      hoechstens so weit wie das Produkt breit/tief ist - vorher lagen
@@ -82,7 +84,9 @@ function kleinZuenden(t,o,it){
     const liste=ph.folge?ph.folge.map((f,i)=>Object.assign({},ph,f,{folge:null,nr:i,anzahl:ph.folge.length})):[ph];
     liste.forEach(q=>later(lu+(q.at||0),()=>{
       if(q.k==='alt'){ KLEIN_ALT[q.fn](o,t); return; }
-      const e=Object.assign({},q,{k:q.k,o:{x:o.x+(q.x||0)*fx,y:o.y,z:o.z+(q.z||0)*fz},t:typeof q.t==='number'?q.t:K.dauer,tt:q.t,prod:t,pi,rest:K.rest});
+      const e=Object.assign({},q,{k:q.k,o:{x:o.x+(q.x||0)*fx,y:o.y,z:o.z+(q.z||0)*fz,kf:o.kf},t:typeof q.t==='number'?q.t:K.dauer,tt:q.t,prod:t,pi,rest:K.rest});
+      /* Party-Popper auf dem Tisch: das Konfetti kommt aus der Oeffnung des jeweiligen Poppers */
+      if(o.kf&&q.k==='konfettistrahl'&&typeof kfPopperMund==='function') e.mund=kfPopperMund(o,q.nr||0);
       /* Farben: Namen -> RGB (A, B), Listen bleiben Namen */
       if(typeof q.A==='string') e.A=klF(q.A); if(typeof q.B==='string') e.B=klF(q.B);
       emitters.push(e);
@@ -802,11 +806,13 @@ klEmit('bodenflitzer',(e,dt,o,t)=>{
       ts+=TK[i%TK.length]; }
     /* 28.09. (Tom): sie zuenden am Produkt und springen vom Tisch auf den Boden */
     const sf=klFlaeche(o); e.ab=sf>0.5?0.4:0; e.src={x:o.x,y:sf+0.04,z:o.z};
+    /* 07.10.: jeder Flitzer startet da, wo er auf dem Tisch liegt (14x) */
+    if(o.kf&&typeof kfFlitzerLage==='function') e.fl.forEach((f,i)=>{ const L=kfFlitzerLage(o,i); f.sx=L.x; f.sz=L.z; });
     e.t=ts+Math.max(...e.fl.map(f=>f.T))+1+e.ab; }
   const alt=SCHWEIF, q=QUAL(), S=klF(e.spur,FW.gold), g=e.g, X0=g.x-4.5, X1=g.x+4.5, Z0=g.z-0.4, Z1=g.z+3.2;  /* Feld vor dem Tisch, gut 3 m Abstand zum Pult */
   e.fl.forEach((f,i)=>{ let lt=t-f.start; if(lt<0) return;
     if(e.ab){ if(f.x0===undefined){ f.x0=f.x; f.z0=f.z; }
-      if(lt<e.ab){ const u=lt/e.ab, x=e.src.x+(f.x0-e.src.x)*u, z=e.src.z+(f.z0-e.src.z)*u, y=e.src.y+(g.y+f.h-e.src.y)*u+0.35*Math.sin(Math.PI*u);
+      if(lt<e.ab){ const u=lt/e.ab, sx=f.sx!==undefined?f.sx:e.src.x, sz=f.sz!==undefined?f.sz:e.src.z, x=sx+(f.x0-sx)*u, z=sz+(f.z0-sz)*u, y=e.src.y+(g.y+f.h-e.src.y)*u+0.35*Math.sin(Math.PI*u);
         if(!f.zisch){ f.zisch=1; schall(e.src,v=>sfx.zischen(v*0.5,0.3)); }
         SCHWEIF=0.05; psSmall.emit(x,y,z,rand(-.3,.3),rand(0,.3),rand(-.3,.3),S[0],S[1],S[2],rand(0.2,0.4),2,0);
         SCHWEIF=0; psBig.emit(x,y,z,0,0,0,f.kopf[0]*1.2,f.kopf[1]*1.2,f.kopf[2]*1.2,0.05,0,0); SCHWEIF=alt; return; }
@@ -878,7 +884,7 @@ klEmit('wurferbse',(e,dt,o,t)=>{
    neig gegen die Senkrechte, Azimut azi: 0 = zum Pult hin) */
 klEmit('konfettistrahl',(e,dt,o,t)=>{
   if(e.los) return; e.los=1; e.t=1;
-  const p={x:o.x,y:o.y+0.06,z:o.z}, ne=e.neig||0.3, az=e.azi||0, dir=[Math.sin(ne)*Math.sin(az),Math.cos(ne),Math.sin(ne)*Math.cos(az)];
+  const p=e.mund||{x:o.x,y:o.y+0.06,z:o.z}, ne=e.neig||0.3, az=e.azi||0, dir=[Math.sin(ne)*Math.sin(az),Math.cos(ne),Math.sin(ne)*Math.cos(az)];
   const F=(e.farben||KL_BUNT).map(c=>klF(c)), n=Math.round((e.n||160)*QUAL()), W=e.weite||3;
   for(let i=0;i<n;i++){ const d=streu(dir,(e.oeffnung||0.45)*Math.sqrt(Math.random())), s=W*rand(2.2,3.6);
     klPapier(p,[d[0]*s,d[1]*s,d[2]*s],F[i%F.length],{gr:[0.016,0.022],art:'konfetti',dauer:(e.rest&&e.rest.t)||25}); }

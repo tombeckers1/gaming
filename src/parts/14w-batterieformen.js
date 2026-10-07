@@ -175,9 +175,9 @@ function bauLayout(t,L0){
     const L0=roh(t); if(!L0) return L0; let L=L0; try{ L=bauLayout(t,L0); }catch(e){ if(typeof console!=='undefined') console.warn('BAU',t,e); }
     _rohrLayout[t]=L; return L; }; }
 /* Rohre stehen buendig im Block wie bei echten Batterien (Vorbild Hamburg,
-   Caipirinha): nur 1,6 cm Rand ueber dem Deckel statt 6 % der Hoehe - bei
+   Caipirinha): nur knapp 1 cm Rand ueber dem Deckel statt 6 % der Hoehe - bei
    hohen Verbunden ragten sonst 5 cm Pappe heraus wie ein Rohrwald */
-{ const rh=rohrHoehe; rohrHoehe=function(t){ const S=BAU[t], p=P[t]; if(!S||!p||p.shape==='fan') return rh(t); const h=p.dims[1], lp=Math.min(0.016,h*0.06); return {bh:h*0.94+(h*0.06-lp),lp}; }; }
+{ const rh=rohrHoehe; rohrHoehe=function(t){ const S=BAU[t], p=P[t]; if(!S||!p||p.shape==='fan') return rh(t); const h=p.dims[1], lp=Math.min(0.009,h*0.06); return {bh:h*0.94+(h*0.06-lp),lp}; }; }
 /* Stufen fuer Muendung und Rohrlaenge (14t ROHR_FORM): Zonen ohne Fuge */
 for(const t in BAU) ROHR_FORM[t]={zonen:BAU[t].zonen.map(z=>({x0:z.x0,x1:z.x1,z0:z.z0,z1:z.z1,hf:z.hf}))};
 

@@ -877,7 +877,11 @@ const ENTFERNT=['fontaene50','fontaene30','silberkaskade','feuerkaskade','jugend
      ... eher eine Rakete"), Kugel 100 Weide (dritte 100er) und die
      Dreifachkrone 300 (Kronen wie Kronenregen 300 und Kronenkranz 200) */
   'kreuzfeuer','blitzgewitter60','kometenwand','geysirfeld','lichterprozession','goldregen22','lb_paradiesvogel',
-  'lb_fontaenenpalast','lb_farbenpracht','lb_himmelsfeuer','lb_sternenfeuer','palmenkugel75','goldweide100','dreifachkrone300'];
+  'lb_fontaenenpalast','lb_farbenpracht','lb_himmelsfeuer','lb_sternenfeuer','palmenkugel75','goldweide100','dreifachkrone300',
+  /* 07.10. (Toms Test V117 in der Vorfuehrung): Vollmond ("unnatuerlich"),
+     Lagune ("das Produkt kannst du komplett wegmachen"), Gletscher,
+     Kaleidoskop, Sterntor, Legion, Finale Grande, Kugel 300 Kronenregen */
+  'lb_vollmond','lb_lagune','lb_gletscher','sternenkaiser','sternentor','legion','kugelfinale','kronenregen300'];
 /* Ersatz fuer alte Spielstaende: jede gestrichene Sorte wird beim Laden
    zur naechsten verbliebenen - gleiche Kategorie, moeglichst gleiche Form,
    Level und Preis am naechsten (18-save.js, SORTE_NEU). Sonst stuende

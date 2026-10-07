@@ -26,6 +26,10 @@ const THEMEN_SORTIMENT=[
 (function(){
   THEMEN_SORTIMENT.forEach(([id,nm,sub,lvl,dims,bg1,bg2,ac,ac2,desc,zuendung,liz])=>{
     if(P[id]) return;
+    /* 07.10.: gestrichene Themen-Batterien (ENTFERNT, 02e) kommen nicht
+       wieder - alte Spielstaende bekommen die naechste Themen-Batterie */
+    if(ENTFERNT.indexOf(id)>=0){ const n=THEMEN_SORTIMENT.filter(x=>ENTFERNT.indexOf(x[0])<0).sort((a,b)=>Math.abs(a[3]-lvl)-Math.abs(b[3]-lvl))[0];
+      if(n) ENTFERNT_ERSATZ[id]=n[0]; return; }
     const q={name:nm+' · '+sub,short:nm,cat:2,lvl,shape:'battery',dims,grid:lvl<10?[4,1,1]:[2,1,1],box:lvl<10?4:1,cost:Math.round(lvl*2.6),market:Math.round(lvl*2.6*2.3)-0.01,weight:lvl<10?6:3,hype:40+lvl*2,risk:lvl<10?3:8,desc,
       art:{title:nm.toUpperCase(),sub,bg1,bg2,ac,ac2},zuendung};
     NEUWARE[id]=q; P[id]=q; ORDER.push(id);

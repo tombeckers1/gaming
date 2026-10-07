@@ -35,6 +35,7 @@ function karreNachziehen(){
 }
 function toggleKarre(){
   if(!S) return;
+  if(typeof hubAn==='function'&&hubAn()){ toast('Mit dem Hubwagen geht keine Karre.','bad'); return; }
   const art=karreArt();
   if(!art){ toast('Eine Sackkarre gibt es am Laptop unter Bestellen › Regale & Einrichtung.'); return; }
   karreStapel();

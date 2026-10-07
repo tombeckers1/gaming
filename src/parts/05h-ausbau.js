@@ -129,6 +129,7 @@ function leuchtenRaster(id,r,y,ax,az){
   const korpus=[], diff=[];
   for(let i=0;i<nx;i++) for(let k=0;k<nz;k++){
     const x=r.x0+(i+0.5)*(r.x1-r.x0)/nx, z=r.z0+(k+0.5)*(r.z1-r.z0)/nz;
+    LAMPEN.push({x,y,z,id});
     korpus.push({geo:gRev,m:tm(x,y-0.008*f,z),color:0x252932});
     korpus.push({geo:gFix,m:tm(x,y-0.026*f,z),color:0xdfe3e9});
     diff.push({geo:gDif,m:tm(x,y-0.043*f,z,Math.PI/2,0,0)});
@@ -173,11 +174,15 @@ function halle(id,r,opt){
   if(au.w) wall(r.x0-LW,r.x0,r.z0,r.z1,0,H,'+x',innen,ex);
   if(au.e) wall(r.x1,r.x1+LW,r.z0,r.z1,0,H,'-x',innen,ex);
   if(au.n) wall(r.x0-LW,r.x1+LW,r.z1,r.z1+LW,0,H,'-z',innen,ex);
-  if(au.s) wall(r.x0-LW,r.x1+LW,r.z0-LW,r.z0,0,H,'+z',innen,ex);
+  if(au.s&&opt.torS){ const T=opt.torS;
+    wall(r.x0-LW,T.x0,r.z0-LW,r.z0,0,H,'+z',innen,ex); wall(T.x1,r.x1+LW,r.z0-LW,r.z0,0,H,'+z',innen,ex);
+    wall(T.x0,T.x1,r.z0-LW,r.z0,T.h,H,'+z',innen,ex); }
+  else if(au.s) wall(r.x0-LW,r.x1+LW,r.z0-LW,r.z0,0,H,'+z',innen,ex);
   if(au.w) col(r.x0-LW,r.x0,r.z0,r.z1);
   if(au.e) col(r.x1,r.x1+LW,r.z0,r.z1);
   if(au.n) col(r.x0-LW,r.x1+LW,r.z1,r.z1+LW);
-  if(au.s) col(r.x0-LW,r.x1+LW,r.z0-LW,r.z0);
+  if(au.s&&opt.torS){ const T=opt.torS; col(r.x0-LW,T.x0,r.z0-LW,r.z0); col(T.x1,r.x1+LW,r.z0-LW,r.z0); }
+  else if(au.s) col(r.x0-LW,r.x1+LW,r.z0-LW,r.z0);
   /* Sockelleisten nur im Laden */
   if(!lager){
     const base=sockelM();
@@ -649,7 +654,9 @@ function buildAusbau(){
      hoch, damit zwischen ihnen keine Wand stehen bleiben muss. */
   halle('lager_gross',LAY.ls1,{art:'lager',ao:{w:true,e:true},h:HALLE_H});
   halle('lager_sued', LAY.ls2,{art:'lager',ao:{w:true,e:true},h:HALLE_H});
-  halle('lager_sued2',LAY.ls3,{art:'lager',aussen:{s:true},ao:{s:true,w:true,e:true},h:HALLE_H});
+  halle('lager_sued2',LAY.ls3,{art:'lager',aussen:{s:true},ao:{s:true,w:true,e:true},h:HALLE_H,
+    /* Versandtor V1 in der Rueckwand (11e): 3,26 m breit, 3 m hoch */
+    torS:{x0:V1.x-V1.w/2,x1:V1.x+V1.w/2,h:V1.h}});
   /* Der Grosshandel ist ein eigenes Gebaeude: 1520 m2 und zwoelf
      Meter licht, damit Palettenregale und ein Hubwagen hineinpassen.
      Die Westwand mit den Ladetoren baut westWand(). */
@@ -726,6 +733,7 @@ function buildAusbau(){
   lagerSperre();
   buildLagerTerminal();
   buildPackstation();
+  buildVersandhof();
   buildLogistikHalle();
   buildLogistik();
 }
@@ -752,7 +760,9 @@ function buildAusbau(){
    des Lagerregals dort (ab Stufe 2).
    ========================================================= */
 let packHit=null, packTisch=null, packMov=null;
-const PACK_HOME={x:-18.0,z:-8.6,ry:0};
+/* 07.10. (Tom, Ausbauplan): die Versandecke steht am hinteren Ende von Lager Sued 3,
+   gedreht - die offene Seite der gelben Box zeigt zum Rolltor V1 in der Rueckwand */
+const PACK_HOME={x:-11.1,z:-28.5,ry:Math.PI};
 /* Packplaetze: Tischmitte und Seite. s 1: Tisch noerdlich am Band, der
    Packer steht noerdlich davor; s -1: gespiegelt suedlich des Bandes.
    Platzkoordinaten (px,pz): Tischmitte 0/0, +pz zeigt zum Packer. */
@@ -875,14 +885,6 @@ function buildPackstation(){
       for(let x=2;x<W;x+=16){ c.beginPath(); c.moveTo(x,0); c.lineTo(x,H); c.stroke(); }
       for(let y=2;y<H;y+=16){ c.beginPath(); c.moveTo(0,y); c.lineTo(W,y); c.stroke(); } });
     t.wrapS=t.wrapT=THREE.RepeatWrapping; return t; })(),transparent:true,alphaTest:0.4,side:THREE.DoubleSide,roughness:0.6,metalness:0.3});
-  const ddlTex=tex(520,260,(c,W,H)=>{
-    c.fillStyle='#1b2340'; c.fillRect(0,0,W,H);
-    c.strokeStyle='#ffd23f'; c.lineWidth=10; c.strokeRect(8,8,W-16,H-16);
-    c.textAlign='center'; c.textBaseline='middle';
-    c.fillStyle='#ffd23f'; c.font=BUN(58); c.fillText('ABHOLUNG',W/2,66);
-    c.fillStyle='#ffffff'; c.font=BUN(72); c.fillText('DDL',W/2,142);
-    c.fillStyle='#bcd0ea'; c.font=BAR(34); c.fillText('täglich ab 18:00 Uhr',W/2,212); });
-  const ddlM=new THREE.MeshStandardMaterial({map:ddlTex,roughness:0.6});
   const brX1=BAND.x0+0.65;   /* die Portalbruecke ragt im Osten ueber das Bandende */
   for(let s=1;s<=3;s++){ const k='nur'+s, C=ZELLE[s], x0=C.x0, x1=C.x1, z0=C.z0, z1=C.z1;
     const px0=x0+0.06, px1=x1-0.06, pz0=z0+0.06, pz1=z1-0.06;
@@ -902,11 +904,10 @@ function buildPackstation(){
         m.material.map.repeat&&m.material.map.repeat.set(L/0.5,(h-0.2)/0.5);
         m.position.set((ax+bx)/2,h/2+0.02,(az+bz)/2); m.rotation.y=-ry; g.add(m); reg(m,k); }
       else B(k,L,0.04,0.04,GELB,(ax+bx)/2,h*0.55,(az+bz)/2,0,-ry,0); };
-    zaun(x0,z1,x0,z0,2.0); zaun(x0,z0,x1,z0,2.0); zaun(x0,z1,x1,z1,2.0); zaun(x1,z1-0.15,x1,z0+0.15,1.1);
-    /* DDL-Abholschild aussen am Nordzaun - dort kommt man vom Rolltor her */
-    const sx=(x0+x1)/2;
-    B(k,1.06,0.56,0.04,0x2f343d,sx,1.45,z1+0.035);
-    const sm=plane(1.0,0.5,ddlM,sx,1.45,z1+0.058,0,g); reg(sm,k);
+    /* Die Seite zum Rolltor V1 (Norden der Gruppe) ist offen: dort fahren die Paletten
+       mit dem Hubwagen hinaus. Zaun nur an Wand, Suedende und zum Band. */
+    zaun(x0,z1,x0,z0,2.0); zaun(x0,z0,x1,z0,2.0); zaun(x1,z1-0.15,x1,z0+0.15,1.1);
+    B(k,0.5,0.03,0.04,GELB,x0+0.3,0.02,z1-0.05); B(k,0.5,0.03,0.04,GELB,x1-0.3,0.02,z1-0.05);
     /* Boden: Warnstreifen am Rand, Eckmarken der Palettenplaetze */
     const PXM=200, W=Math.round((x1-x0)*PXM), H=Math.round((z1-z0)*PXM);
     const ft=tex(W,H,(c)=>{ c.clearRect(0,0,W,H);
@@ -923,13 +924,7 @@ function buildPackstation(){
       polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2}));
     fm.rotation.x=-Math.PI/2; fm.position.set((x0+x1)/2,0.021,(z0+z1)/2); g.add(fm); reg(fm,k);
   }
-  /* Paletten: zwei je Stufe; Bretter laengs (x), Kufen quer */
-  for(let j=0;j<6;j++){ const k='ab'+(1+Math.floor(j/2)), p=PALETTEN[j];
-    for(const dx of [-0.55,0,0.55]) for(const dz of [-0.34,0,0.34]) B(k,0.12,0.078,0.12,HOLZ2,p.x+dx,0.061,p.z+dz);
-    for(const dz of [-0.34,0,0.34]) B(k,1.2,0.022,0.12,HOLZ,p.x,0.011,p.z+dz);
-    for(const dx of [-0.55,0,0.55]) B(k,0.14,0.022,0.8,HOLZ,p.x+dx,0.111,p.z);
-    for(const dz of [-0.34,-0.17,0,0.17,0.34]) B(k,1.2,0.022,dz===0||Math.abs(dz)>0.3?0.14:0.1,dz===0||Math.abs(dz)>0.3?HOLZ:0xcfa66d,p.x,PAL_H-0.011,p.z+dz);
-  }
+  /* Paletten sind eigene Objekte (11e-palette.js): die Box zeigt sie dort. */
   /* bewegliche Portalteile: Bruecke (faehrt in z), Laufwagen, Hubachse, Greifer */
   { const Pt={}, gelb=std(GELB,{roughness:0.5,metalness:0.25}), dunkel=std(0x2a2e36,{roughness:0.55,metalness:0.4}), zink=std(ZINK,{metalness:0.6,roughness:0.35});
     const bx0=ZELLE[1].x0+0.01, L=brX1-bx0;
@@ -969,8 +964,14 @@ function buildPackstation(){
       /* Tisch und Packmaterial-Regal je Platz */
       for(let i=0;i<st;i++){ const a=ppW(i,-1.27,-0.41), b=ppW(i,VS_TB/2+0.04,0.41);
         t.push({x0:Math.min(a.x,b.x),x1:Math.max(a.x,b.x),z0:Math.min(a.z,b.z),z1:Math.max(a.z,b.z)}); }
-      t.push({x0:C.x0-0.02,x1:C.x1+0.04,z0:C.z0-0.04,z1:C.z1+0.08});                                 /* Palettierstation */
-      if(!zoneOffen(id)) t.push({x0:PACK_FL.x0,x1:PACK_FL.x1,z0:1.06,z1:PACK_FL.z1});
+      /* Palettierstation: Zaun an Wand, Suedende und zum Band; die Seite zu V1 ist offen,
+         innen stehen nur die Paletten, die wirklich da sind (11e) */
+      t.push({x0:C.x0-0.02,x1:C.x0+0.1,z0:C.z0-0.04,z1:C.z1+0.04});
+      t.push({x0:C.x0-0.02,x1:C.x1+0.04,z0:C.z0-0.04,z1:C.z0+0.08});
+      t.push({x0:C.x1-0.06,x1:C.x1+0.04,z0:C.z0-0.04,z1:C.z1+0.04});
+      if(typeof S!=='undefined'&&S&&Array.isArray(S.paletten)&&zoneOffen(id)) for(const p of S.paletten){ if(p.ort!=='z') continue; const c=PALETTEN[Math.min(PALETTEN.length-1,p.idx)];
+        if(p.idx>=PAL_N[st]) continue; t.push({x0:c.x-0.6,x1:c.x+0.6,z0:c.z-0.4,z1:c.z+0.4}); }
+      if(!zoneOffen(id)) t.push({x0:PACK_FL.x0,x1:PACK_FL.x1,z0:-1.7,z1:-1.35});
       /* die geparkten Kommissionierwagen (solange sie nicht unterwegs sind) */
       else for(let i=0;i<st;i++){ const w=vsPlaetze[i]&&vsPlaetze[i].wagen; if(w&&w.parent===g){ const p=ppW(i,WG_PARK.x,WG_PARK.z); t.push({x0:p.x-0.48,x1:p.x+0.48,z0:p.z-0.36,z1:p.z+0.36}); } }
       return t;
@@ -1005,7 +1006,7 @@ function packPlatzPruefen(laut){
    darueber hinweg, kommt aber nicht heran. Es haengt in der Gruppe der
    Station und wandert beim Umbau mit. */
 function packSperre(id,g){
-  const zb=1.17, xs=[-1.7,0.3,2.2,4.1];
+  const zb=-1.62, xs=[-1.7,0.3,2.2,4.1];
   const bandM=new THREE.MeshStandardMaterial({map:sperrbandTex('NOCH NICHT FREIGESCHALTET'),
     roughness:0.72,side:THREE.DoubleSide});
   const halt=std(0x3d4450,{metalness:0.5,roughness:0.5});

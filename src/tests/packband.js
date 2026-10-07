@@ -30,7 +30,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
 
   await p.evaluate(()=>{ const bb=window.__bb, S=bb.S;
     S.level=40; S.money=9e6; S.lic=bb.LIZENZEN.map(l=>l.id);
-    ['shop_halb','lager','lager_nord','lager_gross','lager_sued','packstation','onlineshop'].forEach(id=>bb.testKauf(id)); S.up.onlineshop=true;
+    ['shop_halb','lager','lager_nord','lager_gross','lager_sued','lager_sued2','packstation','onlineshop'].forEach(id=>bb.testKauf(id)); S.up.onlineshop=true;
     for(let i=0;i<6;i++) bb.regalStellen('rack');
     /* Messung je Bild: liefert eine Liste von Befunden */
     window.__messe=()=>{ const bb=window.__bb, out=[], VG=bb.VS_GR, B=bb.BAND, TOP=bb.VS_TOP;

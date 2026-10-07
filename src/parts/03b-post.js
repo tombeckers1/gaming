@@ -10,7 +10,7 @@ function gfxSamples(st){ const g=GFX_PROFIL[st]||GFX_PROFIL.hoch; let mx=4; try{
 function initPost(){
   try{
     if(localStorage.getItem('bb_post')==='0') postOn=false;
-    if(GFX==='niedrig') postOn=false;
+    if(gfxNiedrig(GFX)) postOn=false;
   }catch(e){}
   try{
     const opt={minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter,format:THREE.RGBAFormat,stencilBuffer:false,depthBuffer:true};
@@ -90,7 +90,7 @@ function gfxAnwenden(st){
      sich nur Zahlen: Aufloesung, Schattenwerte, Abtastzahl - kein Shader. */
   schattenWerte(st);
   let wunsch=true; try{ wunsch=localStorage.getItem('bb_post')!=='0'; }catch(e){}
-  postOn=postOK&&wunsch&&st!=='niedrig';
+  postOn=postOK&&wunsch&&!gfxNiedrig(st);
   if(rtScene&&rtScene.isWebGLMultisampleRenderTarget){ const n=gfxSamples(st); if(rtScene.samples!==n){ rtScene.samples=n; rtScene.dispose(); } }
   postDiv=(GFX_PROFIL[st]||GFX_PROFIL.hoch).blur;
   resizePost();
@@ -99,8 +99,11 @@ function gfxAnwenden(st){
 /* Wahl im Pausenmenue: 'auto' oder eine feste Stufe */
 function gfxWaehlen(w){
   GFX_WAHL=w; try{ localStorage.setItem('bb_gfx',w); }catch(e){}
-  if(w==='auto'){ let st='hoch'; try{ st=localStorage.getItem('bb_gfx_auto')||'hoch'; }catch(e){} gfxAnwenden(st); gfxMess.ruhe=4; }
-  else gfxAnwenden(w);
+  let st=w;
+  if(w==='auto'){ st='hoch'; try{ st=localStorage.getItem('bb_gfx_auto')||'hoch'; }catch(e){} }
+  /* Ultra Low legt Schatten und Materialien beim Laden fest: Wechsel von und nach Ultra Low laedt neu */
+  if((st==='ultralow')!==(GFX==='ultralow')){ if(typeof save==='function') save(); toast('Grafik wird neu geladen …'); setTimeout(()=>location.reload(),350); return; }
+  gfxAnwenden(st); if(w==='auto') gfxMess.ruhe=4;
 }
 /* Automatik: Bildrate ueber Fenster von 2 s; liegt sie drei Fenster
    hintereinander unter 28 Bildern/s, eine Stufe tiefer (gemerkt fuer den
@@ -124,15 +127,16 @@ function gfxMessen(roh,aktiv){
   const M=gfxMess;
   if(!aktiv||document.hidden||roh>0.5){ M.t=0; M.n=0; return; }
   if(M.ruhe>0){ M.ruhe-=roh; return; }
-  if(GFX_WAHL==='auto'&&GFX!=='niedrig') resRegeln(roh);
+  if(GFX_WAHL==='auto'&&!gfxNiedrig(GFX)) resRegeln(roh);
   M.t+=roh; M.n++;
   if(M.t<2) return;
   M.fps=M.n/M.t; M.t=0; M.n=0;
-  if(GFX_WAHL!=='auto'||GFX==='niedrig'){ M.schlecht=0; return; }
+  if(GFX_WAHL!=='auto'||GFX==='ultralow'){ M.schlecht=0; return; }
   /* eine ganze Stufe tiefer erst, wenn auch die kleinste Aufloesung nicht reicht */
-  M.schlecht=M.fps<28&&RES<=RES_MIN+0.001?M.schlecht+1:0;
+  M.schlecht=(GFX==='niedrig'?M.fps<20:M.fps<28&&RES<=RES_MIN+0.001)?M.schlecht+1:0;
   if(M.schlecht>=3){ const st=GFX_STUFEN[GFX_STUFEN.indexOf(GFX)-1]; M.schlecht=0; M.ruhe=6;
     try{ localStorage.setItem('bb_gfx_auto',st); }catch(e){}
+    if(st==='ultralow'){ toast('Zu langsam: ab dem nächsten Start läuft die Automatik auf „Ultra Low“ (Esc → Grafik: sofort).'); return; }
     gfxAnwenden(st); if(typeof toast==='function') toast('Grafik automatisch auf „'+st[0].toUpperCase()+st.slice(1)+'“ gestellt ('+Math.round(M.fps)+' Bilder/s). Ändern: Esc → Grafik.'); }
 }
 let postT=0;
@@ -273,8 +277,8 @@ function schattenTakt(){
   const R=renderer.shadowMap; if(!R.enabled){ return; }
   R.autoUpdate=false; schattenN++;
   /* niedrig: Schatten ausgeblendet (schattenWerte), nie neu zeichnen */
-  if(GFX==='niedrig') return;
-  if(GFX_STUFEN.indexOf(GFX)>=2||schattenN>=3){ R.needsUpdate=true; schattenN=0; }
+  if(gfxNiedrig(GFX)) return;
+  if(gfxRang(GFX)>=2||schattenN>=3){ R.needsUpdate=true; schattenN=0; }
 }
 function renderFrame(dt){
   kleinTakt(dt||0);

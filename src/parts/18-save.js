@@ -11,7 +11,7 @@ function freshState(){ const prices={}; ORDER.forEach(t=>prices[t]=P[t].market);
        bringt es an die Rampe. */
     shelves:[],racks:[],
     boxes:[],regale:[],
-    carrying:null,tut:{},fwZaehler:{},seasonRevenue:0,cart:[],offen:0,pakete:0,bestellungen:[],paketGr:[],bestNr:0,lic:['start'],stat:{},erf:{},gesehen:[],eigene:[],gutschrift:0,mi:{},me:{},reg:{},mh:{},schock:{},news:[],infl:1,shopName:SHOP_DEFAULT,slogan:SLOGAN_DEFAULT}; }
+    carrying:null,tut:{},fwZaehler:{},seasonRevenue:0,cart:[],offen:0,pakete:0,bestellungen:[],paketGr:[],paketP:[],paletten:[],palNr:0,ddlTag:0,bestNr:0,lic:['start'],stat:{},erf:{},gesehen:[],eigene:[],gutschrift:0,mi:{},me:{},reg:{},mh:{},schock:{},news:[],infl:1,shopName:SHOP_DEFAULT,slogan:SLOGAN_DEFAULT}; }
 /* Sorten, die es nicht mehr gibt (Toms PDF vom 25.09.): die alten
    Boeller werden beim Laden zu den neuen, der Heuler zum Furzboeller.
    Preise und Marktdaten der alten Sorten fallen weg - die neuen
@@ -57,7 +57,7 @@ function save(){
   if(typeof gpAn!=='undefined'&&gpAn) return;
   try{
     const d={v:3,money:S.money,rep:S.rep,level:S.level,xp:S.xp,season:S.season,day:S.day,loan:S.loan,prices:S.prices,up:S.up,staff:S.staff,prio:S.prio||{},einr:S.einr||{},wage:S.wage||{},pause:S.pause||{},ev:S.ev||null,goal:S.goal||null,mkt:r2(S.mkt||1),comp:r2(S.comp||1),lic:S.lic||['start'],stat:S.stat||{},erf:S.erf||{},gesehen:S.gesehen||[],eigene:S.eigene||[],gutschrift:r2(S.gutschrift||0),fwZaehler:S.fwZaehler||{},mi:S.mi||{},me:S.me||{},reg:S.reg||{},mh:S.mh||{},schock:S.schock||{},news:S.news||[],infl:S.infl||1,
-      wall:S.wall,floor:S.floor,schildBg:S.schildBg||'auto',schildFg:S.schildFg||'weiss',paint:S.paint,test:S.test,stamm:S.stamm,blanks:gravBlanks,grav:gravG?mpos(gravG):null,grime:r2(S.grime||0),tut:S.tut,tutAus:!!S.tutAus,karre:S.karre||null,seasonRevenue:S.seasonRevenue,carrying:S.carrying,kisten:S.kisten|0,kisteHand:!!S.kisteHand,cart:S.cart||[],rest:S.rest||null,ekVor:S.ekVor||{},offen:S.offen|0,pakete:S.pakete|0,bestellungen:(S.bestellungen||[]).map(b=>({id:b.id,pos:b.pos.map(l=>({t:l.t,n:l.n,g:l.g})),gr:b.gr,wert:b.wert,versand:b.versand||0,st:b.st,tag:b.tag})),vm:S.vm||null,versandCfg:S.versandCfg||null,paketGr:(S.paketGr||[]).slice(),bestNr:S.bestNr|0,shopName:S.shopName||SHOP_DEFAULT,slogan:S.slogan||'',
+      wall:S.wall,floor:S.floor,schildBg:S.schildBg||'auto',schildFg:S.schildFg||'weiss',paint:S.paint,test:S.test,stamm:S.stamm,blanks:gravBlanks,grav:gravG?mpos(gravG):null,grime:r2(S.grime||0),tut:S.tut,tutAus:!!S.tutAus,karre:S.karre||null,seasonRevenue:S.seasonRevenue,carrying:S.carrying,kisten:S.kisten|0,kisteHand:!!S.kisteHand,cart:S.cart||[],rest:S.rest||null,ekVor:S.ekVor||{},offen:S.offen|0,pakete:S.pakete|0,bestellungen:(S.bestellungen||[]).map(b=>({id:b.id,pos:b.pos.map(l=>({t:l.t,n:l.n,g:l.g})),gr:b.gr,wert:b.wert,versand:b.versand||0,st:b.st,tag:b.tag})),vm:S.vm||null,versandCfg:S.versandCfg||null,paketGr:(S.paketGr||[]).slice(),paketP:(S.paketP||[]).slice(),paletten:(S.paletten||[]).map(p=>({id:p.id,ort:p.ort,idx:p.idx})),palNr:S.palNr|0,ddlTag:S.ddlTag|0,bestNr:S.bestNr|0,shopName:S.shopName||SHOP_DEFAULT,slogan:S.slogan||'',
       deko:dekos.map(d2=>Object.assign({id:d2.id},mpos(d2.g))),
       ck:mpos(ckG),desk:mpos(deskG),pack:mpos(packTisch),sb2weg:1,
       shelves:shelves.map(s=>Object.assign(mpos(s.g),{kind:s.kind,schild:s.schild||undefined,levels:s.levels.map(l=>({type:l.type,count:l.count,q:l.q||1}))})),
@@ -115,6 +115,16 @@ function startGame(fresh){
     if(S.up) delete S.up.kasse3;
     if(zurueck>0){ S.money=r2((+S.money||0)+zurueck);
       later(2.5,()=>toast(`Die SB-Kassen am zweiten Eingang sind abgebaut – ${eur(zurueck)} gutgeschrieben.`,'money')); } }
+  /* 07.10.: die Packstation steht jetzt am hinteren Ende von Lager Sued 3 (Tom, Ausbauplan) und
+     setzt die Halle voraus. Wer sie vorher hatte, ohne die letzte Hallenstufe, bekommt den Kaufpreis
+     zurueck und kann sie dort neu bauen; wer die Halle hat, dessen Station zieht an die neue Stelle
+     (PACK_HOME beim Laden). */
+  if(d&&d.up&&d.up.packstation&&!d.up.lager_sued2){ let z=0;
+    for(const [id,k] of [['packstation',6400],['packstation2',14000],['packstation3',26000]]) if(S.up[id]){ z+=k; delete S.up[id]; }
+    for(const [id,k] of [['packer',700],['packer2',750],['packer3',800]]){ if(S.staff&&S.staff[id]) z+=k;
+      for(const m of ['staff','wage','pause','prio','einr']) if(S[m]&&typeof S[m]==='object') delete S[m][id]; }
+    S.paketGr=[]; S.paketP=[]; S.paletten=[]; S.pakete=0; S.pack=null;
+    if(z>0){ S.money=r2((+S.money||0)+z); later(2.5,()=>toast(`Die Packstation zieht ans Hallenende (Lager Süd 4) – ${eur(z)} gutgeschrieben.`,'money')); } }
   /* Staende von vor den Kapiteln hatten das Lager von Anfang an */
   if(d&&d.up&&d.up.lager===undefined) S.up.lager=true;
   /* Vor dem 24.09. gab es die Logistikhalle nur in voller Groesse. Wer
@@ -170,7 +180,7 @@ function startGame(fresh){
   if(d&&d.desk){ const m=movables.find(m=>m.kind==='desk'); if(m) placeMovable(m,Math.abs(d.desk.x+7.35)<0.01?-7.3:d.desk.x,d.desk.z,d.desk.ry); }
   /* Die Versandecke steht, wo man sie hingeschoben hat. Ein neues
      Spiel stellt sie an ihren Platz hinter dem Rolltor zurueck. */
-  if(packMov){ const q=d&&d.pack?d.pack:PACK_HOME; placeMovable(packMov,q.x,q.z,q.ry); packPlatzPruefen(false); }
+  if(packMov){ const q=d&&d.pack&&d.pack.z<-22.9&&d.pack.x<-8.6&&d.pack.x>-19.9?d.pack:PACK_HOME; placeMovable(packMov,q.x,q.z,q.ry); packPlatzPruefen(false); }
   (S.shelves||F.shelves).slice(0,SLOTS.length).forEach((sd,i)=>createShelf(i,sd));
   (S.racks||F.racks).slice(0,RACKS.length).forEach((rd,i)=>createRack(i,rd));
   racksEntwirren();

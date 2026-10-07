@@ -27,7 +27,9 @@ const VS_HEIM={x:0.5,z:0.83};
 /* Wo das Paket auf dem Tisch zugeklebt wird */
 const VS_TISCH={x:0,z:0};
 /* Paletten der aktuellen Stufe (packStufeAnwenden) und Stapelhoehe */
-const VS_FELD=[], VS_HMAX=1.1;
+/* 07.10. (Tom: "Paletten hoeher stapeln"): 1,75 m Stapel ueber der Palette, oben 1,89 m - unter dem
+   Greifer (Unterkante beim Ueberfahren 2,02 m) und durch Tor und LKW (3 m) */
+const VS_FELD=[], VS_HMAX=1.75;
 /* Lagenbilder fuer eine Palette mit 0,8 m in x und 1,2 m in z; die
    Paletten der Station liegen quer (1,2 m in x) - vsStapel tauscht x
    und z, die lange Paketkante (G.z) liegt dann in z */
@@ -215,6 +217,8 @@ function vsAbgleich(){
   const p=Math.max(0,S.pakete|0);
   if(p!==S.paketGr.length){ while(S.paketGr.length<p) S.paketGr.push(1); if(S.paketGr.length>p) S.paketGr.length=Math.max(p,vsBahn.length); }
   S.pakete=S.paketGr.length;
+  if(!Array.isArray(S.paketP)) S.paketP=[];
+  while(S.paketP.length<S.paketGr.length) S.paketP.push(-1); S.paketP.length=S.paketGr.length;
 }
 /* Was die laufenden Wagentouren noch holen muessen - das darf der
    Spieler am Tisch nicht wegpacken */
@@ -546,82 +550,10 @@ function vsBuchen(b,spieler){
   if(spieler){ addXP(3); sfx.cash(); toast(`Paket #${b.id} fertig: +${eur(w)}${porto?` · Porto ${eur(porto)}`:''}`,'money'); }
 }
 
-/* ---------------------------------------------------------
-   Palettenplatz jedes Pakets. Je Palette Lage fuer Lage, jede Lage nur
-   eine Groesse. Eine neue Lage kommt nur auf eine volle - sonst hing
-   ein grosses Paket halb ueber einer angefangenen Lage in der Luft.
-   Angefangene Lagen werden zuerst aufgefuellt.
-   --------------------------------------------------------- */
-function vsStapel(liste){
-  /* Je Palette die Lagen; eine Lage hat eine Groesse und belegt Plaetze
-     ihres Musters. Ein Platz zaehlt nur, wenn die Unterseite des Pakets
-     an allen neun Messpunkten auf Palette oder Paketen der Lage darunter
-     aufliegt. Erst wird eine angefangene Lage gleicher Groesse
-     aufgefuellt, dann eine neue Lage begonnen - auch auf einer
-     angefangenen Lage, soweit die Pakete darunter tragen. So stand die
-     Station frueher nach sieben Paketen "voll" da. */
-  const F=VS_FELD, st=F.map(()=>[]), out=[];
-  /* Paletten quer: Muster mit getauschtem x/z, die lange Paketkante in z */
-  const rect=(gr,x,z)=>{ const G=VS_GR[gr]; return {x0:x-G.x/2,x1:x+G.x/2,z0:z-G.z/2,z1:z+G.z/2}; };
-  const mpos=(gr,k)=>{ const o=VS_MUSTER[gr].pos(k); return {x:o.z,z:o.x}; };
-  const traegt=(f,lag,r)=>{
-    if(!lag) return true;
-    for(const u of [-0.85,0,0.85]) for(const v of [-0.85,0,0.85]){
-      const px=(r.x0+r.x1)/2+u*(r.x1-r.x0)/2, pz=(r.z0+r.z1)/2+v*(r.z1-r.z0)/2;
-      if(!lag.boxen.some(q=>px>=q.x0&&px<=q.x1&&pz>=q.z0&&pz<=q.z1)) return false; }
-    return true; };
-  const frei=(f,lag,unten,gr)=>{ const M=VS_MUSTER[gr], P0=F[f];
-    for(let k=0;k<M.n;k++){ if(lag&&lag.belegt[k]) continue; const o=mpos(gr,k), r=rect(gr,P0.x+o.x,P0.z+o.z);
-      if(traegt(f,unten,r)) return {k,r}; }
-    return null; };
-  for(let i=0;i<liste.length;i++){
-    const G=VS_GR[liste[i]]||VS_GR[1];
-    let fi=-1, lag=null, wahl=null;
-    /* 1. angefangene Lage gleicher Groesse */
-    for(let f=0;f<F.length&&fi<0;f++){ const L=st[f], top=L[L.length-1];
-      if(top&&top.gr===G.id){ const w=frei(f,top,L[L.length-2],G.id); if(w){ fi=f; lag=top; wahl=w; } } }
-    /* 2. neue Lage obendrauf */
-    for(let f=0;f<F.length&&fi<0;f++){ const L=st[f], top=L[L.length-1], H=top?top.y0+top.h:0;
-      if(H+G.h>VS_HMAX+1e-6) continue;
-      const w=frei(f,null,top,G.id); if(w){ fi=f; wahl=w; lag={gr:G.id,y0:H,h:G.h,belegt:{},boxen:[]}; L.push(lag); } }
-    if(fi<0){ out.push(null); continue; }
-    lag.belegt[wahl.k]=true; lag.boxen.push(wahl.r);
-    const P0=F[fi], o=mpos(G.id,wahl.k);
-    const j=Math.sin((i+1)*12.9898)*43758.5453, jr=j-Math.floor(j)-0.5;
-    out.push({x:P0.x+o.x+jr*0.004,y:PAL_H+lag.y0+G.h/2,z:P0.z+o.z-jr*0.006,ry:jr*0.016,gr:G.id,f:fi});
-  }
-  return out;
-}
-/* Wie viele Pakete einer Groesse auf die leeren Paletten passen */
-function vsKapazitaet(gr){ const G=VS_GR[gr||1]; return VS_FELD.length*VS_MUSTER[G.id].n*Math.floor((VS_HMAX+1e-6)/G.h); }
+/* Palettenplaetze, Stapeln, Zwischenabholung und Abholung stehen seit 07.10. in
+   11e-palette.js (jede Palette ist ein eigenes Objekt). Hier bleibt, was das
+   Band braucht: wie viele Pakete schon auf Paletten liegen. */
 function vsGelandet(){ return Math.max(0,(S.paketGr||[]).length-vsBahn.length); }
-function syncPakete(){
-  if(!packTisch||!S) return;
-  S.paketGr=Array.isArray(S.paketGr)?S.paketGr:[];
-  if((S.pakete|0)!==S.paketGr.length) vsAbgleich();
-  while(pakete.length){ const m=pakete.pop(); if(m.parent) m.parent.remove(m); }
-  const n=vsGelandet();
-  vsStapel(S.paketGr.slice(0,n)).forEach(p=>{ if(!p) return;
-    const m=vsPaketZu(p.gr); m.position.set(p.x,p.y,p.z); m.rotation.y=p.ry; packTisch.add(m); pakete.push(m); });
-}
-/* Paletten voll: DDL faehrt zwischendurch vor und nimmt mit, was liegt */
-function vsZwischenabholung(){
-  const n=vsGelandet(); if(n<=0) return 0;
-  S.paketGr.splice(0,n); S.pakete=S.paketGr.length; statAdd('ddl',n);
-  syncPakete(); drawPackSchild();
-  toast('Die Paletten waren voll - DDL hat zwischendurch abgeholt.');
-  return n;
-}
-/* Tagesende: DDL holt alles ab, auch was noch auf dem Band laeuft */
-function ddlAbholung(){
-  vsBahn.forEach(e=>{ if(e.m.parent) e.m.parent.remove(e.m); }); vsBahn.length=0;
-  vsPortalRuhe();
-  S.paketGr=Array.isArray(S.paketGr)?S.paketGr:[];
-  const n=S.paketGr.length; if(n<=0){ S.pakete=0; return 0; }
-  statAdd('ddl',n);
-  S.paketGr=[]; S.pakete=0; syncPakete(); drawPackSchild();
-  return n;
-}
 
 /* ---------------------------------------------------------
    Band: vom Tisch eben aufs Band geschoben, dann bis zum Endanschlag
@@ -630,7 +562,7 @@ function ddlAbholung(){
    --------------------------------------------------------- */
 function vsLaenge(e){ return VS_GR[e.gr].z; }
 function vsAufDieBahn(pi,m,gr){
-  S.paketGr.push(gr); S.pakete=S.paketGr.length;
+  S.paketGr.push(gr); S.paketP.push(-1); S.pakete=S.paketGr.length;
   vsBahn.push({m,gr,pp:pi,phase:'warten',t:0,x:VS_PP[pi].x});
   drawPackSchild();
 }
@@ -713,8 +645,8 @@ function vsPortalUpdate(dt){
       P_.t+=dt/0.25; if(P_.t<1) break;
       /* Platz auf der Palette; alles voll: DDL kommt zwischendurch */
       /* e liegt noch auf dem Band und zaehlt nicht zu den gelandeten */
-      let liste=S.paketGr.slice(0,vsGelandet()).concat([e.gr]), pl=vsStapel(liste)[liste.length-1];
-      if(!pl){ vsZwischenabholung(); liste=S.paketGr.slice(0,vsGelandet()).concat([e.gr]); pl=vsStapel(liste)[liste.length-1]; }
+      let pl=vsPalZiel(e.gr);
+      if(!pl){ vsZwischenabholung(); pl=vsPalZiel(e.gr); }
       if(!pl){ P_.t=0; break; }
       e.phase='greifer'; e.amBand=true; P_.ziel=pl;
       const G=VS_GR[e.gr]; vsPortalFahrt({x:P_.x,y:VS_YFREI+G.h,z:P_.z},'heben'); break; }
@@ -731,8 +663,8 @@ function vsPortalUpdate(dt){
          hinter die schon gelandeten, damit der Stapel beim naechsten
          Aufbau gleich aussieht */
       const i=vsBahn.indexOf(e); if(i>=0) vsBahn.splice(i,1);
-      const n=vsGelandet(), L=S.paketGr, j=L.indexOf(e.gr,n-1);
-      if(j>=n-1&&j>=0){ L.splice(j,1); L.splice(n-1,0,e.gr); }
+      const n=vsGelandet(), L=S.paketGr, PP=S.paketP, j=L.indexOf(e.gr,n-1);
+      if(j>=n-1&&j>=0){ L.splice(j,1); PP.splice(j,1); L.splice(n-1,0,e.gr); PP.splice(n-1,0,P_.ziel?P_.ziel.p:-1); }
       if(e.m.parent) e.m.parent.remove(e.m);
       syncPakete(); if(typeof sfx!=='undefined'&&sfx.thump) sfx.thump(0.22);
       P_.e=null; P_.ziel=null; vsPortalFahrt({x:P_.x,y:VS_YFREI+0.45,z:P_.z},'ruhe'); P_.zurueck=false;
@@ -874,9 +806,9 @@ function packOne(auto){
   const pi=vmPlatzMit(b.gr);
   if(!vsEntnehmen(b)) return false;
   vmVerbrauchen(pi,b.gr);
-  if(!vsStapel(S.paketGr.concat([b.gr]))[S.paketGr.length]) vsZwischenabholung();
+  let pz=vsPalZiel(b.gr); if(!pz){ vsZwischenabholung(); pz=vsPalZiel(b.gr); }
   vsBuchen(b,!auto);
-  S.paketGr.push(b.gr); S.pakete=S.paketGr.length;
+  S.paketGr.splice(vsGelandet(),0,b.gr); S.paketP.splice(vsGelandet()-1,0,pz?pz.p:-1); S.pakete=S.paketGr.length;
   syncPakete(); drawPackSchild();
   return true;
 }
@@ -1132,6 +1064,7 @@ function vsLaden(){
   S.paketGr=(Array.isArray(S.paketGr)?S.paketGr:[]).map(g=>[1,3,6].indexOf(g)>=0?g:1).slice(0,300);
   if(!S.paketGr.length&&(S.pakete|0)>0) for(let i=0;i<Math.min(300,S.pakete|0);i++) S.paketGr.push(1);
   S.pakete=S.paketGr.length;
+  if(typeof vsPalLaden==='function') vsPalLaden();
   vsCfg();
   /* alter Spielstand kannte nur eine Zahl: vsAbgleich gibt ihr Inhalt */
   if(S.bestellungen.length||!(S.offen|0)) S.offen=S.bestellungen.length;

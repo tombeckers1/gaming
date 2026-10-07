@@ -1,6 +1,7 @@
 /* Jedes Stadtmesh wird markiert: so laesst sich im Test pruefen, dass
    nichts davon in den begehbaren Bereich ragt. */
-function stadtAdd(m){ m.userData.stadt=true; scene.add(m); return m; }
+/* Ultra Low: die Stadt entfaellt (Himmel und Nebel bleiben) */
+function stadtAdd(m){ m.userData.stadt=true; if(GFX==='ultralow') m.visible=false; scene.add(m); return m; }
 /* =========================================================
    Stadt hinter dem Laden.
    Gebaut in Ringen, wie es Spiele mit grosser Sichtweite machen:
@@ -1063,7 +1064,7 @@ function buildHochstrasse(){
   });
   stadtAdd(new THREE.Mesh(merge(teile),new THREE.MeshStandardMaterial({vertexColors:true,roughness:0.92})));
   stadtAdd(new THREE.Mesh(merge(pfeiler),new THREE.MeshStandardMaterial({vertexColors:true,roughness:0.95})));
-  if(lampen.length){ const m=new THREE.Mesh(merge(lampen),lm); m.userData.stadt=true; scene.add(m); }
+  if(lampen.length){ const m=new THREE.Mesh(merge(lampen),lm); m.userData.stadt=true; if(GFX==='ultralow') m.visible=false; scene.add(m); }
 }
 /* --- Verkehr: auf der Hochstrasse und die eigene Strasse hinunter --- */
 let verkehrPts=null, verkehrDat=[];

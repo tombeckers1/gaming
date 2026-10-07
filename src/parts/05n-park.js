@@ -14,7 +14,8 @@
    Wiese bis an die Suedhallenwand (z -22.2). Ausgespart bleiben das
    Testfeld selbst und die Ecke, in der das Lager steht (PARK_LOCH). */
 const PARK={x0:-19, x1:41.5, z0:-53.6, z1:-22.3};
-const PARK_LOCH=[{x0:-19, x1:-7.7, z0:-30.4, z1:-22.3},{x0:-7.7, x1:8.15, z0:-28.1, z1:-22.3}];
+/* dritte Aussparung: der Versandhof hinter dem Rolltor V1 (11e, V1_HOF) */
+const PARK_LOCH=[{x0:-19, x1:-7.7, z0:-30.4, z1:-22.3},{x0:-7.7, x1:8.15, z0:-28.1, z1:-22.3},{x0:-16.0, x1:-4.4, z0:-46.0, z1:-30.4}];
 const SEE={x:13, z:-42, rx:8.5, rz:4.6};
 /* Rundweg: Ellipse um den See */
 const RUNDWEG={x:13, z:-42, rx:13.5, rz:8.2};
@@ -87,7 +88,7 @@ function buildPark(){
     stadtAddPark(new THREE.Mesh(merge(T),new THREE.MeshStandardMaterial({vertexColors:true,roughness:0.9})));
   }
   /* --- Baeume: kahle Laubbaeume und verschneite Tannen --- */
-  const laub=[[-14,-34],[-9,-49],[1,-33],[4,-51],[27,-33],[31,-50],[37,-38],[-3,-44],[22,-52]];
+  const laub=[[-18,-36],[-9,-49],[1,-33],[4,-51],[27,-33],[31,-50],[37,-38],[-2,-44],[22,-52]];
   laub.forEach(([x,z],i)=>{ if(typeof makeBaum!=='function') return; const b=makeBaum(); b.position.set(x,0,z); b.scale.setScalar(0.95+parkRauschen(i)*0.3); b.rotation.y=parkRauschen(i+7)*6; b.userData.baum=true; b.userData.park=true; scene.add(b); });
   const T=[];
   /* Tanne: sechs leicht versetzte, schraege Etagen statt vier sauberer
@@ -102,10 +103,10 @@ function buildPark(){
          auf, statt als Ring abzustehen */
       T.push({geo:new THREE.ConeGeometry(r*0.45*1.06,hh*0.45,11),m:tm(x+ox,y+hh*(0.55+0.225)+0.015,z+oz,kip,q()*6,kip),color:0xd9e1ea}); }
     T.push({geo:new THREE.ConeGeometry(h*0.05,h*0.14,7),m:tm(x,h*0.86,z),color:0x2a4a33}); };
-  [[13,-24.8],[22,-25.4],[31,-24.9],[39,-25.6],[-17,-40],[-16,-51],[-11,-38],[-6,-52],[6,-36],[19,-31.5],[33,-44],[38,-52],[39,-32],[-1,-50],[25,-49],[-18,-46]]
+  [[13,-24.8],[22,-25.4],[31,-24.9],[39,-25.6],[-17.8,-40],[-16,-51],[-17.2,-33.5],[-6,-52],[6,-36],[19,-31.5],[33,-44],[38,-52],[39,-32],[-1,-50],[25,-49],[-18,-46]]
     .forEach(([x,z],i)=>{ tanne(x,z,4+parkRauschen(i+3)*3.5); PARK_TANNEN++; });
   /* Buesche mit Schneehauben */
-  [[-8,-40],[0,-39],[26,-44],[29,-36],[5,-47],[20,-49],[-13,-45],[35,-47]].forEach(([x,z],i)=>{
+  [[-2.5,-41],[0,-39],[26,-44],[29,-36],[5,-47],[20,-49],[-18,-47],[35,-47]].forEach(([x,z],i)=>{
     for(let k=0;k<3;k++){ const r=rand(0.5,0.8), dx=rand(-0.6,0.6), dz=rand(-0.5,0.5);
       T.push({geo:new THREE.SphereGeometry(r,9,7),m:tm(x+dx,r*0.7,z+dz,0,0,0,1,0.8,1),color:pick([0x33502f,0x3c5a36])});
       T.push({geo:new THREE.SphereGeometry(r*0.8,9,5,0,Math.PI*2,0,Math.PI*0.35),m:tm(x+dx,r*0.9,z+dz),color:0xe8edf3}); } });

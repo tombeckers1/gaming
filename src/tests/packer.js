@@ -42,7 +42,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   /* Aufbau: Hallen, Packstation, Onlineshop, drei Lagerregale, Ladenregale */
   await p.evaluate(()=>{ const bb=window.__bb, S=bb.S;
     S.level=30; S.money=9e6; S.lic=bb.LIZENZEN.map(l=>l.id);
-    ['shop_halb','lager','lager_nord','lager_gross','packstation','onlineshop'].forEach(id=>bb.testKauf(id)); S.up.onlineshop=true;
+    ['shop_halb','lager','lager_nord','lager_gross','lager_sued','lager_sued2','packstation','onlineshop'].forEach(id=>bb.testKauf(id)); S.up.onlineshop=true;
     for(let i=0;i<3;i++) bb.regalStellen('rack');
     while(bb.shelves.length<2) bb.regalStellen('standard');
     bb.floorBoxes.slice().forEach(x=>bb.removeFloorBox(x));

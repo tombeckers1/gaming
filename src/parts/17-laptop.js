@@ -975,7 +975,7 @@ function onlineHint(){
   const st=onlineStufe();
   if(st==='zu') return 'Der Onlineshop ist noch nicht freigeschaltet. Du findest ihn unter Ausbau (Kapitel 4).';
   if(st==='pauschal') return 'Der Shop läuft, aber ohne Packstation bleibt es bei einer Tagespauschale. Mit Packstation kommen echte Bestellungen herein, die du hier packst - das bringt deutlich mehr.';
-  return 'Bestellungen laufen den ganzen Verkaufstag über ein. Jedes gepackte Paket wird sofort gutgeschrieben; DDL holt am Abend alles von der Rampe ab.';
+  return 'Bestellungen laufen den ganzen Verkaufstag über ein. Jedes gepackte Paket wird sofort gutgeschrieben; DDL holt um 22 Uhr alles an Tor V1 ab; ab 18 Uhr kannst du die Paletten selbst mit dem Hubwagen verladen.';
 }
 /* Nur Zahlen, kein Neuaufbau: so springt die Liste beim Tippen nicht. */
 function onlineZahlen(){
@@ -1057,7 +1057,7 @@ function renderOnline(){
     `<div class="mkcol"><small>offen</small><b style="font-family:var(--display);font-size:24px" id="onOffen">${z.offen}</b></div></div>`;
   h+=`<div class="row"><div class="rm onListe" id="onListe">${onlineListe()}</div></div>`;
   h+=`<div class="row"><div class="rm"><b>Pakete zur Abholung</b>`+
-      `<small>Das Band bringt sie zur Palettierstation, der Portalgreifer stapelt sie auf die Paletten. Sind alle voll, fährt DDL zwischendurch vor, am Abend wird ohnehin alles abgeholt.</small></div>`+
+      `<small>Das Band bringt sie zur Palettierstation, der Kran-Greifer stapelt sie in die gelbe Box an der Rückwand. Um 22 Uhr kommt DDL an Tor V1; ab 18 Uhr kannst du die Paletten selbst mit dem Hubwagen in den LKW fahren. Sind alle Paletten voll, fährt DDL zwischendurch vor.</small></div>`+
     `<div class="mkcol"><small>Paletten</small><b style="font-family:var(--display);font-size:20px" id="onPak">${z.pak}</b></div></div>`;
   h+=`<div class="row"><div class="rm"><b>Versand heute</b>`+
       `<small>Was der Onlineshop heute schon eingebracht hat. Der Betrag steckt bereits im Tagesumsatz.</small></div>`+

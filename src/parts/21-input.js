@@ -145,12 +145,13 @@ const GFX_TEXT={extrem:'Alles, was geht: Supersampling bis 3-fach, 16-fache Kant
   max:'Mindestens 1,5-fache Auflösung, 8-fache Kantenglättung, Schattenkarte 4096, echte Spiegelungen: Ladenboden, nasse Fahrbahn und Pfützen spiegeln Kunden, Autos und Feuerwerk; Umgebungsverschattung (dunkle Ecken und Spalten), Spiegelbild des Ladens auf Lack und Metall, feines Oberflächenrelief, mehr Funken.',
   hoch:'Volle Auflösung, weiche Schatten, Kantenglättung, Leuchteffekte, alle Funken.',
   mittel:'Normale Auflösung, einfache Schatten, halbe Kantenglättung, 80 % der Funken.',
+  ultralow:'Alles aufs Minimum: halbe Auflösung, keine Schatten, nur ein Innenlicht, einfache Materialien, kurze Sichtweite ohne Stadt, wenig Funken – für sehr schwache PCs. Beim Wechsel lädt das Spiel neu.',
   niedrig:'Dreiviertel-Auflösung, keine Schatten, keine Leuchteffekte, gut die Hälfte der Funken – für ältere Laptops und PCs.'};
 function gfxAnzeige(){
   document.querySelectorAll('#gfxWahl [data-gfx]').forEach(b=>b.classList.toggle('an',b.dataset.gfx===GFX_WAHL));
   const i=$('gfxInfo'); if(!i) return;
   i.textContent=(GFX_WAHL==='auto'?'Automatisch – zurzeit „'+GFX_NAME[GFX]+'“. Läuft das Spiel länger unter 28 Bildern pro Sekunde, schaltet es eine Stufe tiefer. ':'')+GFX_TEXT[GFX]+
-    (gfxMess.fps?' Zuletzt '+Math.round(gfxMess.fps)+' Bilder/s.':'')+(GFX==='niedrig'?' Kantenglättung aus ab dem nächsten Laden.':'')+(GFX_START!==GFX_PROFIL[GFX]?(GFX_STUFEN.indexOf(GFX)>=3?' Spiegelungen, Relief, Texturschärfe und Funkenmenge dieser Stufe gelten ab dem nächsten Laden (F5).':' Texturschärfe und Funkenmenge dieser Stufe gelten ab dem nächsten Laden (F5).'):'');
+    (gfxMess.fps?' Zuletzt '+Math.round(gfxMess.fps)+' Bilder/s.':'')+(GFX==='niedrig'?' Kantenglättung aus ab dem nächsten Laden.':'')+(GFX_START!==GFX_PROFIL[GFX]?(gfxRang(GFX)>=3?' Spiegelungen, Relief, Texturschärfe und Funkenmenge dieser Stufe gelten ab dem nächsten Laden (F5).':' Texturschärfe und Funkenmenge dieser Stufe gelten ab dem nächsten Laden (F5).'):'');
 }
 $('gfxWahl').addEventListener('click',e=>{ const b=e.target.closest('[data-gfx]'); if(!b) return; gfxWaehlen(b.dataset.gfx); gfxAnzeige(); });
 

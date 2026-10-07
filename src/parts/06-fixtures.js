@@ -1158,6 +1158,7 @@ function rackZugang(K,p){
   if(NAV.dirty) navBuild();
   const G=NAV.g, roh=rackHaltepunkte(K,p), vorher=rackErreichbar(G);
   const a=roh.map(([x,z])=>{ const n=navNah(x,z); return n>=0&&!!vorher[n]; });
+  const r1v=rackR1Pack(G);
   const fw=K.w+0.16, fd=2*K.zo+0.14, q=Math.abs(Math.round(Math.sin(p.ry||0))), hw=(q?fd:fw)/2+0.3, hd=(q?fw:fd)/2+0.3;
   const g2=G.slice();
   const i0=Math.max(0,Math.floor((p.x-hw-NAV.x0)/NAV.s)), i1=Math.min(NAV.w-1,Math.floor((p.x+hw-NAV.x0)/NAV.s));
@@ -1165,8 +1166,23 @@ function rackZugang(K,p){
   for(let i=i0;i<=i1;i++) for(let k=k0;k<=k1;k++) g2[k*NAV.w+i]=1;
   NAV.g=g2;
   try{ const nach=rackErreichbar(g2);
+    /* 07.10. (Tom, Vorfuehrung): zwischen Packstation und Rolltor 1 kam man nicht durch -
+       die Regalreihe vor der Halle-Sued-Oeffnung stand die ganze Breite zu. Der Weg vom
+       Rolltor zum Packplatz bleibt frei, solange er frei war. */
+    if(r1v&&!rackR1Pack(g2)) return false;
     return roh.every(([x,z],i)=>{ if(!a[i]) return true; const m=navNah(x,z); return m>=0&&!!nach[m]; });
   } finally { NAV.g=G; }
+}
+/* Rolltor 1 (Innenseite) und der Platz vor dem ersten Packtisch */
+const R1_INNEN={x:-19.0,z:-2.0};
+function rackR1Pack(g){
+  if(typeof packTisch==='undefined'||!packTisch||typeof zoneOffen!=='function'||!zoneOffen('packstation')||typeof vsHeim!=='function') return true;
+  const start=navNah(R1_INNEN.x,R1_INNEN.z), h=vsHeim({pp:0}), ziel=navNah(h.x,h.z); if(start<0||ziel<0) return true;
+  const W=NAV.w, H=NAV.h, out=new Uint8Array(g.length); out[start]=1; const Q=[start]; let k0=0;
+  if(start===ziel) return true;
+  while(k0<Q.length){ const k=Q[k0++], i=k%W, r=(k-i)/W;
+    for(const n of [i>0?k-1:-1,i<W-1?k+1:-1,r>0?k-W:-1,r<H-1?k+W:-1]) if(n>=0&&!g[n]&&!out[n]){ if(n===ziel) return true; out[n]=1; Q.push(n); } }
+  return false;
 }
 /* Alte Spielstaende: ein Lagerregal, das in der Wand steht, zieht auf
    den naechsten freien Platz, der es nimmt (sonst bleibt es stehen) */

@@ -342,6 +342,9 @@ function animPerson(g,moving,dt,speed){
   u.torso.rotation.z+=(idle-u.torso.rotation.z)*k;
   if(u.head) u.head.rotation.y+=((moving?0:Math.sin(u.sway*0.7)*0.25)-u.head.rotation.y)*k*0.5;
   if(u.fig){
+    /* Ultra Low: Figuren weiter als 14 m weg werden weder gezeichnet noch bewegt */
+    if(GFX==='ultralow'){ const dx=g.position.x-camera.position.x, dz=g.position.z-camera.position.z, fern=dx*dx+dz*dz>196;
+      u.fig.mesh.visible=!fern; if(fern){ FIG_PERSONEN.delete(g); return; } }
     /* was animPerson an den Armen gesetzt hat - weicht der Spielcode
        danach davon ab, uebernimmt die IK den Arm */
     u._ax=[u.arms[0].rotation.x,u.arms[1].rotation.x];

@@ -4,7 +4,7 @@
    der Laderaum ist begehbar.
    ========================================================= */
 let truck=null, truckDriver=null;
-const TRUCKCOL={mertens:0x2f6bb8,kowalski:0xc8322a,ratzke:0x6f7684,import:0x3f8a5a,premium:0x1b2340,direkt:0x8a6ab8,pack:0xd08a2f};
+const TRUCKCOL={mertens:0x2f6bb8,kowalski:0xc8322a,ratzke:0x6f7684,import:0x3f8a5a,premium:0x1b2340,direkt:0x8a6ab8,pack:0xd08a2f,ddl:0xffcc00};
 /* Laderaum: Heck bündig an der Wand, Innenmaße begehbar */
 const LR={rear:-20.05,len:9.4,w:3.0,h:2.88,z:-2};
 function lrFront(){ return LR.rear-LR.len; }
@@ -13,6 +13,16 @@ const BRUECKE_X=-20.1, FLAP_MAX=1.5, FLAP_T=1.1;
 
 function liveryTex(name,col,innen){
   const hex='#'+new THREE.Color(col).getHexString();
+  /* DDL (Paketdienst, 07.10.): gelber Kasten, roter Streifen, wie man es von Paketautos kennt */
+  if(name==='DDL') return tex(512,256,(g,W,H)=>{
+    g.fillStyle=innen?'#e9e3cc':'#ffcc00'; g.fillRect(0,0,W,H);
+    for(let x=0;x<W;x+=14){ g.fillStyle='rgba(0,0,0,.07)'; g.fillRect(x,0,3,H); g.fillStyle='rgba(255,255,255,.28)'; g.fillRect(x+4,0,3,H); }
+    g.fillStyle='#d40511'; g.fillRect(0,H*0.62,W,H*0.14); g.fillStyle='rgba(0,0,0,.18)'; g.fillRect(0,H*0.76,W,5);
+    g.textAlign='center'; g.textBaseline='middle';
+    g.fillStyle='#d40511'; fitFont(g,'DDL',W*0.5,innen?64:112,BUN); g.fillText('DDL',W/2,H*0.32);
+    g.fillStyle='#ffffff'; g.font=BAR(innen?24:30); g.fillText('PAKETDIENST · EXPRESS',W/2,H*0.69);
+    g.fillStyle='rgba(60,50,20,.25)'; for(let i=0;i<160;i++) g.fillRect(Math.random()*W,H*0.8+Math.random()*H*0.2,4,3);
+  });
   return tex(512,256,(g,W,H)=>{
     if(innen){
       g.fillStyle='#d8d4c8'; g.fillRect(0,0,W,H);
@@ -114,9 +124,11 @@ function makeTruck(name,col){
    three.js alle Shader neu uebersetzen - das Bild stand beim Andocken
    jedes Mal (15 Shader). Es gibt nur einen begehbaren Laderaum. */
 const LR_LAMPE=[new THREE.PointLight(0xffeccf,0,11,1.4),new THREE.PointLight(0xffeccf,0,9,1.4)];
-LR_LAMPE.forEach(l=>scene.add(l));
-function makeLaderaum(name,col){
-  const g=new THREE.Group(); g.position.set(LR.rear,0,LR.z); scene.add(g);
+if(GFX!=='ultralow') LR_LAMPE.forEach(l=>scene.add(l));
+function makeLaderaum(name,col,rahmen){
+  /* rahmen: ein anderer Anlegeplatz (DDL an V1) - Koordinaten wie an der Basisrampe, nur in der Gruppe */
+  const g=new THREE.Group();
+  if(rahmen) rahmen.add(g); else { g.position.set(LR.rear,0,LR.z); scene.add(g); }
   const L=LR.len, W=LR.w, HH=LR.h;
   /* Boden: Siebdruckplatte mit zwei Laufspuren */
   const plank=tex(512,256,(c,Wc,Hc)=>{
@@ -167,8 +179,12 @@ function makeLaderaum(name,col){
   dach.rotation.x=Math.PI/2; dach.position.set(-L/2,HH-0.012,0); g.add(dach);
   const led=new THREE.MeshBasicMaterial({color:0xfff6e2,toneMapped:false});
   for(const s of [-1,1]) bbox(L-0.8,0.03,0.07,led,-L/2,HH-0.07,s*(W/2-0.22),g,false);
+  if(rahmen){ rahmen.updateMatrixWorld(true);
+    const l0=rahmen.localToWorld(new THREE.Vector3(-L*0.45,HH-0.3,0)), l1=rahmen.localToWorld(new THREE.Vector3(-L*0.85,HH-0.3,0));
+    LR_LAMPE[0].position.copy(l0); LR_LAMPE[0].intensity=0.85; LR_LAMPE[1].position.copy(l1); LR_LAMPE[1].intensity=0.6; }
+  else {
   LR_LAMPE[0].position.set(g.position.x-L*0.45,HH-0.3,g.position.z); LR_LAMPE[0].intensity=0.85;
-  LR_LAMPE[1].position.set(g.position.x-L*0.85,HH-0.3,g.position.z); LR_LAMPE[1].intensity=0.6;
+  LR_LAMPE[1].position.set(g.position.x-L*0.85,HH-0.3,g.position.z); LR_LAMPE[1].intensity=0.6; }
   /* Stirnwand mit Lieferantenschrift */
   const fm=new THREE.MeshStandardMaterial({map:liveryTex(name,col,true),roughness:0.78});
   const front=new THREE.Mesh(new THREE.PlaneGeometry(W,HH),fm);
@@ -221,11 +237,11 @@ function spawnTruck(cargo,supId,supName){
 }
 /* Ueberladebruecke = die heruntergeklappte Klappe des LKW.
    Existiert nur, solange der LKW an der Rampe steht. */
-function makeBruecke(){
+function makeBruecke(rahmen){
   /* Scharnier sitzt an der Heckkante des LKW, die Platte reicht ins
      Lager hinein. Ein Drehen um z klappt sie hoch wie eine echte
      Ladebordwand. */
-  const g=new THREE.Group(); g.position.set(BRUECKE_X,0.035,LR.z);
+  const g=new THREE.Group(); if(rahmen) g.position.set(BRUECKE_X-LR.rear,0.035,0); else g.position.set(BRUECKE_X,0.035,LR.z);
   const plate=tex(128,128,(c,W,H)=>{ c.fillStyle='#8f959e'; c.fillRect(0,0,W,H);
     for(let y=0;y<H;y+=22) for(let x=0;x<W;x+=22){ c.save(); c.translate(x+11,y+11); c.rotate((x/22+y/22)%2?0.7:-0.7);
       c.fillStyle='#a8aeb8'; c.fillRect(-8,-2.5,16,5); c.fillStyle='rgba(0,0,0,.25)'; c.fillRect(-8,2.5,16,1.5); c.restore(); }
@@ -237,7 +253,7 @@ function makeBruecke(){
   /* Scharniere zum Laderaum hin */
   const hg=std(0x6f757e,{metalness:0.7,roughness:0.4});
   for(const dz of [-1.1,0,1.1]) bbox(0.12,0.08,0.34,hg,0.08,0.015,dz,g,false);
-  scene.add(g);
+  (rahmen||scene).add(g);
   return g;
 }
 /* Klappenstellung: 0 liegt flach als Bruecke, 1 steht senkrecht am Heck */

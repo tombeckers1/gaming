@@ -302,12 +302,12 @@ const UPGRADES=[
   {id:'rampe4',kat:'flaeche',lvl:30,req:'lager_west2',name:'Andockstation 4',desc:'Das Tor in der erweiterten Halle. Vier Lieferungen gleichzeitig.',cost:()=>20000,done:()=>S.up.rampe4},
   {id:'lager_west3',kat:'flaeche',lvl:30,req:'lager_west2',name:'Logistikhalle – Stufe 3',desc:'Die volle Halle: 40 mal 27 Meter und 11 Meter hoch, Platz für Hochregale bis unters Dach und das letzte Tor.',cost:()=>42000,done:()=>S.up.lager_west3},
   {id:'rampe5',kat:'flaeche',lvl:31,req:'lager_west3',name:'Andockstation 5',desc:'Das letzte Tor der Logistikhalle. Zusammen mit der Basisrampe rollen dann fünf Lieferungen gleichzeitig an — mehr gibt das Grundstück nicht her.',cost:()=>26000,done:()=>S.up.rampe5},
-  {id:'packstation',kat:'flaeche',lvl:16,req:'lager_gross',name:'Packstation für den Versand',desc:'Ein Packplatz mit Packmaterial-Regal im ersten Abschnitt der großen Halle, gleich hinter dem Rolltor. Das fertige Paket läuft über ein Förderband zur Palettierstation: ein Portalgreifer stapelt es auf eine von zwei Paletten, DDL holt am Abend ab. Zusammen mit dem Onlineshop kommen Bestellungen als echte Pakete herein.',cost:()=>6400,done:()=>S.up.packstation},
+  {id:'packstation',kat:'flaeche',lvl:25,req:'lager_sued2',name:'Packstation für den Versand',desc:'Ein Packplatz mit Packmaterial-Regal am hinteren Ende der großen Halle, direkt an der Rückwand. Das fertige Paket läuft über ein Förderband zur Palettierstation: ein Kran-Greifer stapelt es auf die Paletten in der gelben Box, deren offene Seite zum Rolltor V1 zeigt. Um 22 Uhr kommt DDL rückwärts an V1, ein Mitarbeiter fährt die Paletten mit dem Hubwagen in den LKW – ab 18 Uhr darfst du das selbst. Zusammen mit dem Onlineshop kommen Bestellungen als echte Pakete herein.',cost:()=>6400,done:()=>S.up.packstation},
   /* Ausbau der Packstation (Tom, 05.10.): weitere Packplaetze am selben
      Band, je mit Packmaterial-Regal und Wagen, und mehr Paletten unter
      dem Portal. Mehr Plaetze heisst auch mehr Bestellungen am Tag. */
-  {id:'packstation2',kat:'flaeche',lvl:22,req:'packstation',name:'Packstation – zweiter Packplatz',desc:'Ein zweiter Packplatz gegenüber am selben Förderband, mit eigenem Packmaterial-Regal und Kommissionierwagen. Die Palettierstation wächst an der Westwand nach Süden auf vier Paletten – dafür braucht sie den Stellplatz des vorderen Lagerregals dort. Der Shop nimmt deutlich mehr Bestellungen am Tag an; einen zweiten Versandmitarbeiter stellst du im Handy ein.',cost:()=>14000,done:()=>S.up.packstation2},
-  {id:'packstation3',kat:'flaeche',lvl:27,req:'packstation2',name:'Packstation – Versandstraße',desc:'Der dritte Packplatz macht aus der Ecke eine kleine Versandstraße: drei Packer, ein Band, sechs Paletten unter dem Portal. Noch einmal mehr Bestellungen am Tag.',cost:()=>26000,done:()=>S.up.packstation3},
+  {id:'packstation2',kat:'flaeche',lvl:27,req:'packstation',name:'Packstation – zweiter Packplatz',desc:'Ein zweiter Packplatz gegenüber am selben Förderband, mit eigenem Packmaterial-Regal und Kommissionierwagen. Die gelbe Box wächst auf vier Paletten – hinten an der Rückwand, ohne dass etwas im Weg steht. Der Shop nimmt deutlich mehr Bestellungen am Tag an; einen zweiten Versandmitarbeiter stellst du im Handy ein. Ab hier fährt statt eines Mitarbeiters ein Hubwagen-Roboter die Paletten in den LKW.',cost:()=>14000,done:()=>S.up.packstation2},
+  {id:'packstation3',kat:'flaeche',lvl:29,req:'packstation2',name:'Packstation – Versandstraße',desc:'Der dritte Packplatz macht aus der Ecke eine kleine Versandstraße: drei Packer, ein Band, sechs Paletten in der Box. Noch einmal mehr Bestellungen am Tag.',cost:()=>26000,done:()=>S.up.packstation3},
   {id:'eingang2',kat:'flaeche',lvl:25,req:'shop_ost',name:'Ladenerweiterung 5 – zweite Tür',desc:'Im Eckhaus ist die mittlere Achse bis zum Boden offen und wartet auf eine Tür. Der Ausbau setzt dieselbe Schiebetür wie am Haupteingang hinein, mit Vordach und Matte. Kunden nehmen ab jetzt den Eingang, der näher liegt – wer hinten in der Erweiterung einkauft, spart sich den Weg quer durch den Laden.',cost:()=>11500,done:()=>S.up.eingang2},
   {id:'kasse2',kat:'einr',lvl:16,req:'shop_gross',name:'SB-Kassen',desc:'Zwei Selbstbedienungsterminals in der neuen Verkaufsfläche. Kunden mit wenig Ware zahlen dort selbst, das entlastet deine Schlange spürbar.',cost:()=>3400,done:()=>S.up.kasse2},
   /* Die SB-Kassen am zweiten Eingang (kasse3) gibt es seit 05.10. nicht
@@ -349,9 +349,9 @@ const STAFF=[
   /* SB-Betreuer 3 und 4 gehoerten zur Kassenzeile am zweiten Eingang -
      mit ihr sind sie weg (05.10.); zwei Betreuer schaffen beide SB-Kassen */
   {id:'security',lvl:13,name:'Sicherheitsdienst',desc:'Hält Diebe im Laden auf, bevor sie rauskommen.',hire:800,wage:190},
-  {id:'packer',lvl:18,req:'packstation',name:'Versandmitarbeiter',desc:'Schiebt einen Kommissionierwagen mit sechs Fächern durchs Lager – fehlt dort etwas, durch den Laden –, legt jede Onlinebestellung Stück für Stück in ihren Karton, klebt am Packtisch zu und schickt das Paket aufs Band zur Palettierstation.',hire:700,wage:165},
-  {id:'packer2',kurz:'Packer 2',lvl:22,req:'packstation2',name:'Zweiter Versandmitarbeiter',desc:'Arbeitet am zweiten Packplatz mit eigenem Wagen und eigenem Packmaterial-Regal.',hire:750,wage:170},
-  {id:'packer3',kurz:'Packer 3',lvl:27,req:'packstation3',name:'Dritter Versandmitarbeiter',desc:'Der dritte Packplatz der Versandstraße. Lohnt sich, wenn täglich viele Bestellungen offen bleiben.',hire:800,wage:175}
+  {id:'packer',lvl:25,req:'packstation',name:'Versandmitarbeiter',desc:'Schiebt einen Kommissionierwagen mit sechs Fächern durchs Lager – fehlt dort etwas, durch den Laden –, legt jede Onlinebestellung Stück für Stück in ihren Karton, klebt am Packtisch zu und schickt das Paket aufs Band zur Palettierstation.',hire:700,wage:165},
+  {id:'packer2',kurz:'Packer 2',lvl:27,req:'packstation2',name:'Zweiter Versandmitarbeiter',desc:'Arbeitet am zweiten Packplatz mit eigenem Wagen und eigenem Packmaterial-Regal.',hire:750,wage:170},
+  {id:'packer3',kurz:'Packer 3',lvl:29,req:'packstation3',name:'Dritter Versandmitarbeiter',desc:'Der dritte Packplatz der Versandstraße. Lohnt sich, wenn täglich viele Bestellungen offen bleiben.',hire:800,wage:175}
 ];
 /* Einkauf (Tom, 25.09., zweite Runde; 26.09. nachgeschaerft): keine
    Lieferanten mit eigenem Sortiment mehr. Drei Stufen, jede mit eigenem
@@ -692,7 +692,9 @@ function mkRacks(){
   /* Halle Sued II */
   [-17.4,-20.6].forEach(z=>{ add(-10.4,z,0,5.0,'lager_sued'); add(-17.8,z,0,5.0,'lager_sued'); });
   /* Halle Sued III */
-  [-24.4,-27.6].forEach(z=>{ add(-10.4,z,0,5.0,'lager_sued2'); add(-17.8,z,0,5.0,'lager_sued2'); });
+  /* 07.10.: im hinteren Ende steht jetzt die Versandecke (Packstation, Box vor dem Rolltor V1) -
+     die beiden Plaetze an der Ostseite gibt es nicht mehr */
+  [-24.4,-27.6].forEach(z=>{ add(-17.8,z,0,5.0,'lager_sued2'); });
   /* Logistikhalle in drei Stufen (seit 24.09.). Die Tore liegen an
      der Suedwand (z -34), davor bleiben vier Meter frei; der Weg von
      der Schleuse (z -22,4 bis -18,6) laeuft zwischen den Reihen. */

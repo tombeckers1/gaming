@@ -17,6 +17,28 @@ function applyTOD(){
   starsMat.opacity=clamp((f-0.6)/0.4,0,1);
   houseMats.forEach(m=>m.emissiveIntensity=f*0.9); if(typeof autoNacht==='function') autoNacht(f); lampMats.forEach(m=>m.emissiveIntensity=f*3); yardLight.intensity=f*1.4;
 }
+/* Innenlicht: die Punktlichter sitzen unter den Leuchten, die dem Blickpunkt am naechsten sind */
+let innenT=0;
+function updateInnenlicht(dt){
+  if(!innenLichter.length||!LAMPEN.length) return;
+  const drin=typeof unterDach==='function'&&unterDach(camera.position.x,1.0,camera.position.z);
+  const nacht=clamp((todUhr()-960)/100,0,1), soll=drin?0.62+0.5*nacht:0;
+  innenT-=dt;
+  if(innenT<=0){ innenT=0.18;
+    const fx=-Math.sin(yaw), fz=-Math.cos(yaw), px=pl.x+fx*2.5, pz=pl.z+fz*2.5;
+    const kand=[]; for(let i=0;i<LAMPEN.length;i++){ const L=LAMPEN[i]; if(L.id&&!zoneOffen(L.id)) continue;
+      const d=Math.hypot(L.x-px,L.z-pz), dk=Math.hypot(L.x-pl.x,L.z-pl.z); if(d>16&&dk>16) continue;
+      kand.push({i,d:Math.min(d,dk*1.15)}); }
+    kand.sort((a,b)=>a.d-b.d);
+    const gew=[]; for(const k of kand){ if(gew.length>=innenLichter.length) break; const L=LAMPEN[k.i]; if(gew.some(q=>Math.hypot(LAMPEN[q].x-L.x,LAMPEN[q].z-L.z)<3.4)) continue; gew.push(k.i); }
+    /* eine Leuchte, die schon ein Licht hat, behaelt es - sonst springen die Lichter */
+    const frei=gew.filter(i=>!innenLichter.some(q=>q.lampe===i)), hat=innenLichter.filter(q=>gew.indexOf(q.lampe)<0);
+    hat.forEach((q,n)=>{ const i=frei[n]; if(i===undefined){ q.lampe=-1; return; } q.lampe=i; const L=LAMPEN[i]; q.tx=L.x; q.ty=L.y-0.35; q.tz=L.z; });
+  }
+  for(const q of innenLichter){ const l=q.l, an=q.lampe>=0?soll:0;
+    q.an+=(an-q.an)*Math.min(1,dt*4); l.intensity=q.an;
+    const k=Math.min(1,dt*5); l.position.x+=(q.tx-l.position.x)*k; l.position.y+=(q.ty-l.position.y)*k; l.position.z+=(q.tz-l.position.z)*k; }
+}
 /* Wanduhr laeuft nach der Spielzeit: clock sind Minuten seit Mitternacht */
 function updateUhr(){
   if(!uhrStd) return;
@@ -129,7 +151,7 @@ function step(dt){
     else if(!spawnWTruck(frei,ladung,sid,supplierOf(sid).name)) break;
   }
   updateSonne(pl.x,pl.z);
-  updateTruck(dt); updateWBays(dt); updateSchiebetuer(dt); updateVersand(dt); updateSchweber(dt); updateWischen(dt); updateSchoner(dt); updateZiel(dt); karreNachziehen(); karreFolgen(); kartonTick(dt);
+  updateInnenlicht(dt); updateTruck(dt); updateWBays(dt); updateSchiebetuer(dt); updateVersand(dt); updatePaletten(dt); updateSchweber(dt); updateWischen(dt); updateSchoner(dt); updateZiel(dt); karreNachziehen(); karreFolgen(); kartonTick(dt);
   for(let i=timers.length-1;i>=0;i--){ timers[i].t-=dt; if(timers[i].t<=0){ const tm=timers[i]; timers.splice(i,1); if(tm.fw){ FW_KTX++; try{ tm.fn(); } finally { FW_KTX--; } } else tm.fn(); } }
   if(phase==='open') addGrime(dt*0.0016*(1+customers.length*0.05));
   hype=Math.max(0,hype-dt*1.1);

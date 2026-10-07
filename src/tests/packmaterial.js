@@ -38,7 +38,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   /* 1. Erstausstattung und Verbrauch beim Packen */
   const v=await p.evaluate(()=>{ const bb=window.__bb, S=bb.S, o={};
     S.level=30; S.money=9e6; S.lic=bb.LIZENZEN.map(l=>l.id);
-    ['shop_halb','lager','lager_nord','lager_gross','packstation','onlineshop'].forEach(id=>bb.testKauf(id)); S.up.onlineshop=true;
+    ['shop_halb','lager','lager_nord','lager_gross','lager_sued','lager_sued2','packstation','onlineshop'].forEach(id=>bb.testKauf(id)); S.up.onlineshop=true;
     for(let i=0;i<4;i++) bb.regalStellen('rack');
     o.erst=JSON.stringify(bb.vmStand(0)); o.voll=bb.VM_IDS.every(id=>bb.vmStand(0)[id]===bb.VM[id].kap);
     window.__lagern('boeller'); window.__lagern('raketen'); window.__lagern('lb_goldader'); window.__lagern('lb_goldader');

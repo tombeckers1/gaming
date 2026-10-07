@@ -6,11 +6,13 @@
    waehrend des Abbrennens entsteht (alles ausser Zuendschnur und Modell),
    zaehlt. Daneben wird jedes Drehbuch (SHOWS) auf boden/ground gelesen.
    - BODEN: keine Batterie ausser lb_vulkan hat einen Boden-Emitter
-   - VULKAN: der Vulkanausbruch hat seinen Krater (mind. 2 Boden-Emitter)
+   - VULKAN: der Vulkanausbruch hat seinen Krater (Boden-Emitter krater)
    Aufruf: node bodenfontaene.js real.html ['{"nur":["id"],"gegen":true}']
    gegen:true schaltet das Entfernen ab (dann muss der Test anschlagen). */
 const { chromium } = require('/opt/node22/lib/node_modules/playwright');
-const KEIN_BODEN=new Set(['fuse','vfModell']);
+/* keine Bodenfontaenen: Zuendschnur, Modell im Rohr, der Hilfsdienst der
+   Bruchbilder (dienst2) und die Taktgeber der Bruchbilder am Himmel (gb_*) */
+const KEIN_BODEN=new Set(['fuse','vfModell','dienst2']);
 (async()=>{
   const b=await chromium.launch({args:['--use-gl=swiftshader','--enable-unsafe-swiftshader','--no-sandbox']});
   const p=await b.newPage({viewport:{width:640,height:400}}); p.setDefaultTimeout(1500000);
@@ -37,12 +39,12 @@ const KEIN_BODEN=new Set(['fuse','vfModell']);
       window.__bo=[]; bb.vfZuenden(t);
       const D=bb.brennDauer(t);
       for(let s=0;s<D+2;s+=0.25) bb.run(0.25,0.05);
-      const k=window.__bo.filter(x=>!KB.includes(x)); window.__bo=null;
+      const k=window.__bo.filter(x=>!KB.includes(x)&&!/^gb_/.test(x)); window.__bo=null;
       const buch=(bb.SHOWS[t]?bb.SHOWS[t]():[]).filter(ph=>ph&&(ph.boden||ph.ground)).length;
       return {lvl:P[t].lvl,k,buch}; },[t,[...KEIN_BODEN]]);
     const anz={}; r.k.forEach(x=>{ anz[x]=(anz[x]||0)+1; });
     zeilen.push(`${t.padEnd(22)} L${String(r.lvl).padStart(2)}  Boden-Emitter ${String(r.k.length).padStart(3)} ${JSON.stringify(anz)}  Drehbuch-Phasen mit Boden ${r.buch}`);
-    if(t==='lb_vulkan'){ if(r.k.length<2) mangel.push(`VULKAN: der Vulkanausbruch hat keinen Krater mehr (${r.k.length} Boden-Emitter)`); }
+    if(t==='lb_vulkan'){ if(!r.k.includes('krater')) mangel.push(`VULKAN: der Vulkanausbruch hat keinen Krater mehr (${JSON.stringify(anz)})`); }
     else if(r.k.length||r.buch) mangel.push(`BODEN ${t}: ${r.k.length} Boden-Emitter ${JSON.stringify(anz)}, ${r.buch} Drehbuch-Phasen mit Boden`);
   }
   console.log(zeilen.join('\n'));

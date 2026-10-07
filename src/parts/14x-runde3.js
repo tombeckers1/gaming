@@ -147,13 +147,13 @@ const ODE_TEIL=(a,b)=>({ton:ODE.ton.slice(a,b),dauer:ODE.dauer.slice(a,b)});
    100 Schuss, ~50 s. */
 r3Show('lb_jadekoenig',[['gruen','gold'],['limette','gold'],['jade','gold'],['gold','gruen'],['smaragd','orange'],['rot','limette']],
   {sz:[0.95,1.35],pw:[0,3],hell:[0.9,1.35],kurve:'spaet'},[
-  {n:3,gap:1.7,muster:'mitte',ang:0.12,eff:'kokosnuss',kal:'gross',pw:2,farbe:0,steig:'gold',knall:'bkWumms',pause:1.4},
-  {n:14,takt:[0.2,0.2,0.2,0.7],muster:'welle',ang:0.36,eff:'haengeweide',kal:'mittel',farbe:2,steig:'brokat',knall:'bkBrokat',pause:1.0},
-  {n:20,gap:0.12,muster:'wischer',ang:0.45,eff:['bienen','fischschwarm'],kal:'mittel',farbe:1,steig:'knister',pause:1.2},
+  {n:3,gap:1.7,muster:'mitte',ang:0.16,eff:'kokosnuss',kal:'riesig',pw:0,farbe:0,steig:'gold',knall:'bkWumms',pause:1.4},
+  {n:14,takt:[0.2,0.2,0.2,0.7],muster:'welle',ang:0.3,eff:'haengeweide',kal:'mittel',farbe:2,steig:'brokat',knall:'bkBrokat',pause:1.0},
+  {n:20,gap:0.12,muster:'wischer',ang:0.36,eff:['bienen','fischschwarm'],kal:'mittel',farbe:1,steig:'knister',pause:1.2},
   {n:12,gap:0.5,muster:'paar',ang:0.3,eff:'pistill',kal:'mittel',farbe:5,steig:'glut'},
   {mit:true,n:4,gap:1.3,muster:'aussen',ang:0.32,eff:'salut',kal:'mittel',pw:2,farbe:0,knall:'bkSalut',pause:1.4},
   {n:10,gap:0.32,muster:'v',ang:0.3,eff:'zeitregen',kal:'gross',farbe:3,steig:'brokat',knall:'bkRieseln',pause:1.6},
-  {n:24,gap:0.09,muster:'w',ang:0.42,eff:['sternpalme','kiefernkrone','kokosnuss'],kal:'gross',pw:2,farbe:4,steig:'gold'},
+  {n:24,gap:0.09,muster:'w',ang:0.34,eff:['sternpalme','kiefernkrone','kokosnuss'],kal:'gross',pw:2,farbe:4,steig:'gold'},
   {mit:true,n:3,gap:0.55,muster:'mitte',ang:0.1,eff:'salut',kal:'gross',pw:4,farbe:0,knall:'bkSalut'},
   {n:10,gap:0.16,muster:'kreis',ang:0.3,eff:'kamuro',kal:'riesig',pw:4,farbe:3,steig:'brokat',knall:'bkDonnerhall',pause:7}]);
 lochName('lb_jadekoenig',{name:'Urwald · 100 Schuss Dschungelverbund',sub:'100 Schuss Dschungelverbund',
@@ -169,12 +169,12 @@ SIGNATUR.lb_jadekoenig={idee:'Urwald',eff:'kokosnuss',text:'Urwaldpalmen, Lianen
    leuchten - Silberbrokat mit blauen Spitzen, Gischt - weisse Sternspritzer
    knisternd im Scheibenwischer, Brandung - blaue Pistille mit weissem
    Kern paarweise. Das Finale (Quallen, Gischtkronen, Silberwellen) bleibt. */
-nbShow('lb_saphirfaecher',[['silber','tuerkis'],['blau','silber'],['silber','blau'],['weiss','himmel'],['blau','weiss']],{sz:[0.9,1.2],pw:[0,1.5],hell:[0.9,1.25],kurve:'linear'},[
-  {n:3,gap:1.6,muster:'aussen',ang:0.48,eff:'silberwelle',kal:'mittel',farbe:0,steig:'silber',knall:'bkRieseln'},
-  {n:6,gap:0.55,muster:'welle',ang:0.38,hoehe:'welle',hSpanne:5,eff:'chrys',kal:'mittel',farbe:1,steig:'silber',pause:1.0},
-  {n:5,gap:0.9,muster:'zufall',ang:0.34,eff:'nishiki',kal:'mittel',farbe:2,steig:'brokat',knall:'bkBrokat',pause:0.8},
-  {n:6,gap:0.16,muster:'wischer',ang:0.45,eff:'sternspritzer',kal:'klein',pw:2,farbe:3,steig:'silber',knall:'bkKnisterhall',pause:1.0},
-  {n:4,gap:0.6,muster:'paar',ang:0.32,eff:'pistill',kal:'mittel',farbe:4,steig:'silber',pause:1.0},
+nbShow('lb_saphirfaecher',[['silber','tuerkis'],['blau','silber'],['silber','blau'],['weiss','himmel'],['blau','weiss']],{sz:[0.95,1.25],pw:[0,1.5],hell:[0.9,1.25],kurve:'linear'},[
+  {n:3,gap:1.4,muster:'aussen',ang:0.32,eff:'silberwelle',kal:'gross',farbe:0,steig:'silber',knall:'bkRieseln'},
+  {n:6,gap:0.55,muster:'welle',ang:0.28,hoehe:'welle',hSpanne:5,eff:'chrys',kal:'gross',farbe:1,steig:'silber',pause:1.0},
+  {n:5,gap:0.9,muster:'zufall',ang:0.24,eff:'nishiki',kal:'gross',farbe:2,steig:'brokat',knall:'bkBrokat',pause:0.8},
+  {n:6,gap:0.16,muster:'wischer',ang:0.36,eff:'sternspritzer',kal:'mittel',pw:2,farbe:3,steig:'silber',knall:'bkKnisterhall',pause:1.0},
+  {n:4,gap:0.6,muster:'paar',ang:0.26,eff:'pistill',kal:'gross',farbe:4,steig:'silber',pause:1.0},
   {n:6,gap:0.35,muster:'mitte',ang:0.2,eff:['qualle','spritzkrone','wasserring'],A:['blau','himmel','silber'],B:['silber','weiss','blau'],kal:'gross',pw:6,steig:'silber',knall:'bkDonnerhall',pause:6}]);
 lochName('lb_saphirfaecher',{desc:'Blau, Türkis und Silber: drei Silberwellen weit auseinander, die nach einem Atemzug türkis weiterleuchten, blaue Chrysanthemen im Wellengang, Meeresleuchten aus Silberbrokat mit blauen Spitzen, knisternde weiße Gischt – zum Schluss sechs hohe Knalle: Quallen, Gischtkronen und Silberwellen.'});
 SIGNATUR.lb_saphirfaecher={idee:'Ozean',eff:'silberwelle',text:'Silberwellen, blaue Chrysanthemen im Wellengang, Meeresleuchten, Gischt, hohe Quallen und Gischtkronen'};
@@ -186,16 +186,16 @@ SIGNATUR.lb_saphirfaecher={idee:'Ozean',eff:'silberwelle',text:'Silberwellen, bl
    Quallen (Krone, deren Faeden pulsierend herabsinken), Weidenkometen,
    ein kompletter Goldregen (Kamuro, Goldvorhang und Zeitregen auf Schlag,
    der den Himmel fuellt), knisternde Dracheneier - Finale: zehn Quallen. */
-nbShow('lb_goldader',[['gold','orange'],['bernstein','gold'],['zitrone','gold'],['gold','weiss']],{sz:[0.9,1.3],pw:[0,3],hell:[0.85,1.3],kurve:'spaet'},[
-  {n:4,gap:1.2,muster:'aussen',ang:0.36,licht:'goldkomet',farbe:0},
-  {n:8,gap:0.4,muster:'x',ang:0.38,eff:'goldglitzer',kal:'mittel',farbe:1,steig:'gold',knall:'bkRieseln'},
-  {n:6,gap:0.95,muster:'zufall',ang:0.3,eff:'qualle',A:'gold',B:'zitrone',kal:'mittel',steig:'brokat',pause:1.0},
-  {n:12,takt:[0.16,0.16,0.65],muster:'welle',ang:0.35,licht:'weidenkomet',farbe:0},
-  {n:10,gap:0.07,muster:'schlag',ang:0.42,eff:['kamuro','goldvorhang','zeitregen'],kal:'gross',pw:2,farbe:3,steig:'brokat',knall:'bkBrokat',pause:2.0},
-  {n:14,gap:0.13,muster:'wischer',ang:0.45,licht:'goldkomet',farbe:2},
-  {mit:true,n:6,gap:0.5,muster:'v',ang:0.3,eff:'drachenei',kal:'mittel',farbe:1,steig:'knister',knall:'bkKnisterhall',pause:1.0},
-  {n:16,gap:0.08,muster:'w',ang:0.4,eff:['goldglitzer','kamuro'],kal:'gross',farbe:0,steig:'gold'},
-  {mit:true,n:10,gap:0.18,muster:'mitte',ang:0.18,eff:'qualle',A:'gold',B:'bernstein',kal:'gross',pw:4,steig:'brokat',knall:'bkDonnerhall',pause:6}]);
+nbShow('lb_goldader',[['gold','orange'],['bernstein','gold'],['zitrone','gold'],['gold','weiss']],{sz:[0.95,1.35],pw:[0,3],hell:[0.85,1.3],kurve:'spaet'},[
+  {n:6,gap:0.45,muster:'aussen',ang:0.3,licht:'goldkomet',farbe:0},
+  {n:4,gap:0.8,muster:'mitte',ang:0.2,eff:'qualle',A:'gold',B:'zitrone',kal:'gross',pw:2,steig:'brokat',pause:1.0},
+  {n:8,gap:0.35,muster:'x',ang:0.3,eff:'goldglitzer',kal:'gross',farbe:1,steig:'gold',knall:'bkRieseln'},
+  {n:12,takt:[0.16,0.16,0.65],muster:'welle',ang:0.3,licht:'weidenkomet',farbe:0},
+  {n:10,gap:0.07,muster:'schlag',ang:0.34,eff:['kamuro','goldvorhang','zeitregen'],kal:'gross',pw:2,farbe:3,steig:'brokat',knall:'bkBrokat',pause:2.0},
+  {n:14,gap:0.13,muster:'wischer',ang:0.38,licht:'goldkomet',farbe:2},
+  {mit:true,n:6,gap:0.5,muster:'v',ang:0.25,eff:'drachenei',kal:'gross',farbe:1,steig:'knister',knall:'bkKnisterhall',pause:1.0},
+  {n:16,gap:0.08,muster:'w',ang:0.32,eff:['goldglitzer','kamuro'],kal:'gross',farbe:0,steig:'gold'},
+  {mit:true,n:10,gap:0.18,muster:'mitte',ang:0.16,eff:'qualle',A:'gold',B:'bernstein',kal:'riesig',pw:4,steig:'brokat',knall:'bkDonnerhall',pause:6}]);
 lochName('lb_goldader',{desc:'Goldkometen wie Adern im Gestein, Goldglitzer über Kreuz, goldene Quallen, deren Fäden langsam pulsierend sinken, Weidenkometen, ein Goldregen, der den ganzen Himmel füllt, knisternde Dracheneier – das Finale zehn goldene Quallen über einem Goldwald.'});
 SIGNATUR.lb_goldader={eff:'qualle',text:'Goldkometen, Goldglitzer, goldene Quallen, ein kompletter Goldregen und knisternde Dracheneier'};
 
@@ -224,7 +224,7 @@ SIGNATUR.lb_goldader={eff:'qualle',text:'Goldkometen, Goldglitzer, goldene Quall
    punkt nach links und rechts (wie bei einer echten Zwillingsbombe) und
    oeffnen sich dort als Sonnen - danach die Kometen ueber Kreuz und die
    Kiefernkrone genau ueber dem Spurende. */
-EFF.zwillingssonne=function(p,A,B,s){ const [u]=basisBlick(p,0.2), d=2.6*s, T=0.42, G=1.2;
+EFF.zwillingssonne=function(p,A,B,s){ const [u]=basisBlick(p,0.2), d=4.0*s, T=0.5, G=1.2;   /* gerendert: mit 2,6 lagen die Sonnen ineinander */
   flash(p,[1,.9,.7],3,0.18); muendungsblitz(p,p.y,2);
   const sonne=(sd,fn)=>{ const v=[u[0]*sd*d/T,1.0,u[2]*sd*d/T]; nKomet(p,v,[1.6,1.3,.8],T,G,[1,.8,.42],120);
     kgSpaeter(T,()=>fn(sternNach(p,v[0],v[1],v[2],G,T))); };
@@ -246,11 +246,15 @@ EFF.goldweidenkreuz=function(p,A,B,s){ const G=2.4, t=0.8;
   const kranz=(n,w,el,cK,L,funken)=>nKranz(n,w,v=>{ nKomet(p,v,kgMal(cK,1.5),t,G,[1,.8,.42],55);
     kgSpaeter(t,()=>{ const e=sternNach(p,v[0],v[1],v[2],G,t), wv=bahnTempo(v,G,t), a0=rand(0,Math.PI*2);
       for(let k=0;k<4;k++){ const a=a0+k*Math.PI/2, sp=4.6*Math.sqrt(s), dv=[Math.cos(a)*sp+wv[0]*0.3,1.3+wv[1]*0.3,Math.sin(a)*sp+wv[2]*0.3];
-        kgStern(psHuge,e,dv,[1.4,.92,.42],L,1.5,0,0.5); rkFunken(e,dv,1.5,0.05,L,funken,[.98,.62,.24],{ps:psMid,life:[2.2,3.2],g:0.7,streu:0.12,mit:0.03,mode:0,spur:0.3});
+        kgStern(psHuge,e,dv,[1.6,1.05,.48],L,1.5,0,0.5); rkFunken(e,dv,1.5,0.05,L,funken,[1.25,.82,.32],{ps:psMid,life:[2.2,3.2],g:0.7,streu:0.12,mit:0.03,mode:0,spur:0.3});
+        rkFunken(e,dv,1.5,0.1,L,funken*0.4,[1.35,1.05,.5],{ps:psBig,life:[1.6,2.4],g:0.6,streu:0.15,mit:0.03,mode:4});
         kgSpaeter(L*0.85,()=>{ const q=sternNach(e,dv[0],dv[1],dv[2],1.5,L*0.85); for(let j=0;j<Math.round(5*QUAL());j++){ const d=randDir(); psSmall.emit(q.x,q.y,q.z,d[0]*1.6,d[1]*1.6,d[2]*1.6,1.5,1.3,.9,rand(0.1,0.25),1,3); } }); }
       psHuge.emit(e.x,e.y,e.z,0,0,0,1.4,1.25,1,0.06,0,0); }); },el);
-  kranz(12,8.6*s,0.15,A,4.4,38);
-  kgSpaeter(0.5,()=>kranz(8,6*s,-0.1,B,3.6,30));
+  kranz(12,8.6*s,0.15,A,4.4,70);
+  kgSpaeter(0.5,()=>kranz(8,6*s,-0.1,B,3.6,55));
+  /* gerendert 07.10.: die Weiden waren duenne Striche - dazu ein goldener
+     Kamuro-Schleier in der Mitte, der die Weiden zu einem Vorhang schliesst */
+  kgSpaeter(0.95,()=>EFF.kamuro(p,FW.gold,FW.bernstein,s*0.55));
   nKugel(Math.round(26*KQ(s)),3.2*s,v=>kgStern(psBig,p,v,kgMal(A,1.45),2.0,2.2,0,0.12));
   schall(p,x=>{ sfx.boom(x*1.0); later(0.8,()=>{ sfx.crack(x*0.8); later(0.07,()=>sfx.crack(x*0.6)); later(0.5,()=>sfx.crack(x*0.6)); later(0.58,()=>sfx.crack(x*0.45)); });
     later(1.4,()=>sfx.rieseln(x*0.8,5)); later(3.6,()=>sfx.crackle(x*0.5)); }); };
@@ -330,8 +334,11 @@ lochGroesser('lb_vulkan',44,52);
      nebeneinander herabsegeln. */
 function r3Falter(e,A,B,s,n,gross){ const Q=lQuer({dir:FANDIR}), wind=rand(-0.3,0.3), bl=[];
   for(let i=0;i<n;i++){ const d=randDir(), w=(gross?rand(1.6,2.2):rand(2.2,3.4))*Math.sqrt(s), dv=gross?[Q[0]*(i%2?1:-1)*w,rand(0.6,1.0),Q[2]*(i%2?1:-1)*w]:[d[0]*w,Math.abs(d[1])*w*0.5+0.8,d[2]*w];
-    const c=lHell(i%3===2?mischF(A,[1,1,1],0.5):(gross&&i%2?B:A),gross?1.5:1.35), h=kgStern(psBig,e,dv,c,gross?rand(4.2,4.8):rand(3.2,4.0),0.7,0,0.15);
-    if(gross) kgStern(psHuge,e,dv,kgMal(c,0.8),rand(4.0,4.5),0.7,0,0.1);
+    /* gerendert 07.10.: mit Helligkeit 1,35 waren die Falter aus 30 m nur
+       Staubkoerner, ein zusaetzlicher grosser Stern (psHuge) eine weiche Scheibe -
+       jetzt heller, mit Glitzerhauch beim Oeffnen, ohne Scheibe */
+    const c=lHell(i%3===2?mischF(A,[1,1,1],0.5):(gross&&i%2?B:A),gross?1.85:1.7), h=kgStern(psBig,e,dv,c,gross?rand(4.2,4.8):rand(3.2,4.0),0.7,0,0.25);
+    for(let j=0;j<Math.round(4*QUAL())+2;j++) psMid.emit(e.x,e.y,e.z,dv[0]*rand(0.3,0.9),dv[1]*rand(0.3,0.9),dv[2]*rand(0.3,0.9),c[0],c[1],c[2]*0.8,rand(0.5,0.9),1.2,4);
     bl.push({h,c,los:rand(0.3,0.5),ph:gross?(i%2?0:Math.PI):rand(0,6.3),om:gross?2.4:rand(2.6,3.6),amp:(gross?1.1:rand(0.5,0.9))*Math.sqrt(s),ph2:rand(0,6.3),om2:rand(5,8),x:dv[0]*0.15,z:dv[2]*0.15}); }
   thTaumeln(bl,gross?4.6:4.0,Q,wind); }
 LICHTYP.flatterkomet=function(o,A,B,s,opt){
@@ -367,7 +374,7 @@ LICHTYP.schwirrkomet=function(o,A,B,s,opt){
     const [u1,u2]=basisBlick(e,0.2);
     thJeBild(D,t=>{ for(const z of S){ const b=sternNach(e,z.v[0],z.v[1],z.v[2],3,t), w=bahnTempo(z.v,3,t), r=z.r*(1-0.5*t/D), a=z.ph+z.om*t;
         const q={x:b.x+(u1[0]*Math.cos(a)+u2[0]*Math.sin(a))*r,y:b.y+(u1[1]*Math.cos(a)+u2[1]*Math.sin(a))*r,z:b.z+(u1[2]*Math.cos(a)+u2[2]*Math.sin(a))*r};
-        const k=t>D-0.3?(D-t)/0.3:1, sch=0.5+0.5*Math.sin(t*7+z.ph), c=mischF(lHell(A,1.45),lHell(B,1.45),sch);
+        const k=t>D-0.3?(D-t)/0.3:1, sch=0.5+0.5*Math.sin(t*7+z.ph), c=mischF(lHell(A,1.75),lHell(B,1.75),sch);
         SCHWEIF=0.12; thPunkt(psHuge,q,kgMal(w,0.1),kgMal(c,k),0.07);
         for(let i=0;i<Math.round(3*QUAL())+1;i++) psMid.emit(q.x,q.y,q.z,rand(-.3,.3),rand(-.5,0),rand(-.3,.3),c[0]*0.8,c[1]*0.85,c[2]*0.8,rand(0.4,0.8)*k,1,4);
         if(Math.abs(t-(D-0.12))<1/60) lBlitz(q,rubin,0.25); } });

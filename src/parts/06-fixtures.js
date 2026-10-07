@@ -1023,8 +1023,11 @@ function lvSicht(lv){
    rausfaellt. Am Rechner bleibt alles stehen (Schatten von Ware ausserhalb
    des Bildes). */
 const _blickF=typeof THREE.Frustum==='function'?new THREE.Frustum():null, _blickM=new THREE.Matrix4(), _blickS=typeof THREE.Sphere==='function'?new THREE.Sphere():null, _blickV=new THREE.Vector3();
+/* 07.10. (Tom: auf Niedrig 10-11 Bilder/s): gemessen 9,8 Millionen Dreiecke je Bild in der Vorfuehrung -
+   die Sichtregel gilt auch in Niedrig und Ultra Low (ohne Schattenkarte gibt es keinen Grund, Ware
+   ausserhalb des Bildes zu zeichnen) */
 function regaleImBlick(){
-  if(HIQ||!_blickF||!_blickS) return;
+  if((HIQ&&!gfxNiedrig(GFX))||!_blickF||!_blickS) return;
   camera.updateMatrixWorld();
   _blickM.multiplyMatrices(camera.projectionMatrix,camera.matrixWorldInverse); _blickF.setFromProjectionMatrix(_blickM);
   for(const sh of shelves) for(const lv of sh.levels){

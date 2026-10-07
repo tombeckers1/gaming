@@ -258,7 +258,7 @@ function* gpAufbau(){
   gpTagAlt=S.day; gpVerlauf=[{tag:S.day,geld:S.money}]; gpGestern=null;
   if(phase==='closed'){ if(typeof ruhetag==='function'&&ruhetag()) ruhetagBeenden(); else openShop(); }
   gpSpringe(0);
-  if(!HIQ) yield* gpStatisch();
+  if(!HIQ||gfxNiedrig(GFX)) yield* gpStatisch();
   gpFertig=true;
   gpPanel(); gpZeichnen(); requestAnimationFrame(gpFpsLauf);
   toast('Gameplay-Vorführung: alles gebaut, Personal da, der Laden läuft. Tasten 1–7 springen in die Bereiche, T Zeitraffer, B beendet.','money');

@@ -37,8 +37,8 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   });
   const ZIELE = {
     'Platz vor Packtisch 1': () => { const h = window.__bb.vsHeim({pp: 0}); return {x: h.x, z: h.z}; },
-    'Packmaterial-Regal (Sued 3)': () => { const h = window.__bb.vsWelt(0, -0.95, 0.86); return {x: h.x, z: h.z}; },
-    'vor der Box am Tor V1': () => { const c = window.__bb.vf(0.6, 0); return {x: c.x, z: c.z}; },
+    'Sued 3 vorn': () => ({x: -12.5, z: -22.0}),
+    'Hof vor Tor V1 (Tor auf)': () => { const bb = window.__bb; bb.vdOffen(true); bb.run(5, 0.1); const c = bb.vf(-0.8, 0.45); return {x: c.x, z: c.z}; },
     'Halle Sued 1': () => ({x: -14.0, z: -10.5}),
     'Halle Sued 2': () => ({x: -14.0, z: -19.0}),
     'Logistikhalle': () => ({x: -40.0, z: -21.0})
@@ -54,7 +54,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   const mit = await p.evaluate(() => { const bb = window.__bb, o = {};
     for (const id of ['packer', 'packer2', 'packer3']) { if (!bb.S.staff[id]) { bb.S.staff[id] = true; bb.hireStaff(id); } }
     for (const id of ['packer', 'packer2', 'packer3', 'auffueller']) { const w = bb.staff[id]; if (!w) continue;
-      const h = bb.vsHeim(w); const rt = bb.route({x: -19.0, z: -2.0}, {x: h.x, z: h.z}); const e = rt[rt.length - 1];
+      const h = bb.vsHeim({pp: ['packer','packer2','packer3'].indexOf(id)}); const rt = bb.route({x: -19.0, z: -2.0}, {x: h.x, z: h.z}); const e = rt[rt.length - 1];
       o[id] = {punkte: rt.length, ende: Math.hypot(e.x - h.x, e.z - h.z) < 0.8}; }
     o.rackR1Pack = bb.rackR1Pack(bb.NAV.g);
     return o; });

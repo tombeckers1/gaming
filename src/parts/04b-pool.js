@@ -71,10 +71,10 @@ function kartonVariante(t){
   const abs=KARTON_ABS[sp]||KARTON_ABS.zubehoer;
   return {
     pappe:['#c89b5c','#bf9150','#d0a46a','#b88a4e'][h%4],
-    band:[{c:'#b58a4f',n:'braun'},{c:'#efece2',n:'weiss'},{c:'#c4342a',n:'rot'},{c:'#e2b92e',n:'gelb'}][(h>>3)%4],
+    band:[{c:'#b58a4f',n:'braun'},{c:'#efece2',n:'weiss'},{c:'#c4342a',n:'rot'},{c:'#e2b92e',n:'gelb'}][(h>>>3)%4],
     quer:((h>>6)&3)===0,                 /* Klebeband quer statt laengs */
-    absender:abs[(h>>8)%abs.length],
-    logo:['rund','eck','strich'][(h>>12)%3],
+    absender:abs[(h>>>8)%abs.length],
+    logo:['rund','eck','strich'][(h>>>12)%3],
     griff:((h>>14)&1)===1,
     barcode:((h>>15)&1)===0
   };

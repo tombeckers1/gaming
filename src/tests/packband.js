@@ -58,7 +58,8 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
       bb.vsPlaetze.forEach((P_,i)=>{ const T=P_&&P_.tisch; if(!T||T.phase==='heben') return; const G=VG[T.pk.userData.gr], unten=T.pk.position.y-G.h/2;
         if(Math.abs(unten-TOP)>0.01) out.push(`Tisch ${i+1}: Karton schwebt (${unten.toFixed(3)})`); });
       /* Paletten */
-      const L=bb.pakete;
+      /* seit 07.10. liegen die Pakete je Palette in einem Mesh - die Lage kommt aus vsStapelLage (Stationskoordinaten) */
+      const L=bb.vsStapelLage().map(e=>({position:{x:e.x,y:e.y,z:e.z},rotation:{y:e.ry},userData:{gr:e.gr}}));
       /* Europaletten quer: 1,2 m in x, 0,8 m in z */
       for(const m of L){ const G=VG[m.userData.gr], unten=m.position.y-G.h/2, pt=rechteck(m,G);
         let ok=0, mitte=false;
@@ -88,7 +89,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     const r=await p.evaluate(({st,T})=>{ const bb=window.__bb, S=bb.S, o={st};
       if(st>1) bb.testKauf('packstation'+st);
       o.stufe=bb.packStufe(); o.paletten=bb.VS_FELD.length; o.plaetze=bb.vsHits().filter(h=>h.userData.kind==='pack').length;
-      o.upLvl=st>1?bb.UPGRADES.find(u=>u.id==='packstation'+st).lvl:16;
+      o.upLvl=st>1?bb.UPGRADES.find(u=>u.id==='packstation'+st).lvl:25;
       for(const id of ['packer','packer2','packer3'].slice(0,st)) if(!S.staff[id]){ S.staff[id]=true; bb.hireStaff(id); }
       o.packer=['packer','packer2','packer3'].filter(id=>bb.staff[id]).length;
       /* Station passt in den Raum, nichts liegt im Weg */
@@ -106,7 +107,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
         const m=window.__messe(); if(m.length&&befunde.length<12) befunde.push(...m.slice(0,3).map(x=>'t='+(i*0.05).toFixed(1)+' '+x)); n+=m.length;
         if(bb.vsBahn.some(e=>e.phase==='greifer')) greifer++;
         if(bb.vsBahn.some(e=>e.phase==='rollen')) rollen++;
-        maxPal=Math.max(maxPal,bb.pakete.length);
+        maxPal=Math.max(maxPal,bb.vsStapelLage().length);
         for(const id of ['packer','packer2','packer3','auffueller']){ const w=bb.staff[id]; if(!w) continue; const c=window.__wand(w.pos.x,w.pos.z).filter(c=>c.ref===bb.packMov);
           if(c.length&&wand.length<6) wand.push(id+'@'+w.pos.x.toFixed(2)+','+w.pos.z.toFixed(2)+' '+w.vs); }
       }

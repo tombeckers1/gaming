@@ -51,7 +51,7 @@ const fs = require('fs');
   });
 
   /* ---------- 1. Lage der Versandecke ---------- */
-  const l = await p.evaluate(() => { const bb = window.__bb, o = {}, g = bb.packTisch();
+  const l = await p.evaluate(() => { const bb = window.__bb, o = {}, g = bb.packTisch;
     o.pos = [g.position.x, g.position.z, g.rotation.y]; o.home = bb.PACK_HOME;
     const c = bb.palZentrumWelt(0), f = bb.vfRueck(c.x, c.z); o.cell0 = {lx: +f.lx.toFixed(2), lz: +f.lz.toFixed(2)};
     /* alle Kollisionsrechtecke der Station liegen in Sued 3 */
@@ -62,7 +62,7 @@ const fs = require('fs');
     return o; });
   console.log('LAGE', JSON.stringify(l));
   pruef('STATION_HINTEN', Math.abs(l.pos[0] - l.home.x) < 0.01 && Math.abs(l.pos[1] - l.home.z) < 0.01 && l.pos[1] < -26, 'Station nicht am hinteren Ende von Sued 3: ' + JSON.stringify(l.pos));
-  pruef('BOX_AM_TOR', Math.abs(l.cell0.lx - 0.9) < 0.1 && Math.abs(l.cell0.lz) < 0.1, 'vorderste Palette nicht direkt vor V1: ' + JSON.stringify(l.cell0));
+  pruef('BOX_AM_TOR', Math.abs(l.cell0.lx - 0.9) < 0.1 && Math.abs(l.cell0.lz - 0.45) < 0.1, 'vorderste Palette nicht direkt vor V1: ' + JSON.stringify(l.cell0));
   pruef('NUR_SUED3', l.aus === 0 && l.cols > 5, l.aus + ' von ' + l.cols + ' Kollisionsflaechen der Station ausserhalb von Sued 3');
   pruef('TOR_ZU', l.torZu, 'V1 ist zu, aber ohne Kollision');
 
@@ -104,7 +104,7 @@ const fs = require('fs');
       for (let r = 0; r < runden; r++) {
         const R = {r};
         const pal = bb.vsPalZelle()[0]; R.pakete = bb.vsPalZahl(pal); R.hoeheVor = +window.__hoehe(pal).toFixed(2);
-        window.__steh(-0.6, 0);
+        window.__steh(-0.6, 0.45);
         R.pruef = bb.hubAufnehmenPruefen(pal);
         R.ok = bb.hubAktion({kind: 'palette', ref: {idx: pal.idx}});
         R.getragen = !!bb.HUB.pal;
@@ -112,7 +112,7 @@ const fs = require('fs');
         /* rueckwaerts durch das Tor, ins Fahrgasse, dann auf den Platz */
         const slot = bb.ddlSlot(S.paletten.filter(q => q.ort === 'l').length);
         const ziel = slot.lx - 1.3;
-        const f1 = window.__fahre(-3.0, 0); R.amTor = +f1.lx.toFixed(2);
+        const f1 = window.__fahre(-3.0, 0.45); R.amTor = +f1.lx.toFixed(2);
         const f2 = window.__fahre(ziel, slot.lz); R.imLkw = {lx: +f2.lx.toFixed(2), lz: +f2.lz.toFixed(2), ziel: +ziel.toFixed(2)};
         R.platz = bb.hubAbstellPlatz().text;
         R.abgestellt = bb.hubAktion(null);
@@ -123,7 +123,7 @@ const fs = require('fs');
         const w = {x: o2.g.position.x, z: o2.g.position.z}, ff = bb.vfRueck(w.x, w.z);
         R.pal = {lx: +ff.lx.toFixed(2), lz: +ff.lz.toFixed(2), y: +o2.g.position.y.toFixed(2)};
         /* zurueck zum Tor fuer die naechste Runde (vorwaerts, ohne Palette) */
-        window.__fahre(-0.6, 0); R.zurueck = !bb.HUB.pal;
+        window.__fahre(-0.6, 0.45); R.zurueck = !bb.HUB.pal;
         o.runden.push(R);
       }
       o.imLkw = S.paletten.filter(q => q.ort === 'l').length;
@@ -192,11 +192,11 @@ const fs = require('fs');
     bb.ddlAbholung(); S.day = 12; bb.phase = 'after'; bb.clock = 1320; window.__fuell(40, 1);
     /* Tor zu, kein LKW: Palette aufnehmen und durch die Wand fahren wollen */
     bb.vdOffen(false);
-    window.__steh(-0.6, 0);
+    window.__steh(-0.6, 0.45);
     const p0 = bb.vsPalZelle()[0]; bb.clock = 1200; o.nimmt = bb.hubAufnehmen(p0);
     bb.run(0.8, 0.05);
     /* gegen das geschlossene Tor: rueckwaerts auf lx -3 */
-    const f = window.__fahre(-3.0, 0, 300); o.lxZu = +f.lx.toFixed(2);
+    const f = window.__fahre(-3.0, 0.45, 300); o.lxZu = +f.lx.toFixed(2);
     /* Hof und Tor ohne LKW: Bediener steht draussen im Hof? */
     bb.hubAktion(null); o.zurueck = S.paletten.some(q => q.ort === 'z' && q.idx === 0 && bb.vsPalZahl(q) > 0);
     return o; });
@@ -214,7 +214,7 @@ const fs = require('fs');
     await p.reload(); await p.waitForFunction('window.__bb!==undefined', null, {timeout:300000});
     await p.waitForFunction("!!document.querySelector('#startBtns button:not([disabled])')", null, {timeout:300000});
     await p.click('#startBtns button'); await p.waitForFunction("!document.getElementById('start').classList.contains('show')");
-    const al = await p.evaluate(() => { const bb = window.__bb, S = bb.S, g = bb.packTisch();
+    const al = await p.evaluate(() => { const bb = window.__bb, S = bb.S, g = bb.packTisch;
       bb.run(1, 0.05);
       return {money: Math.round(S.money), packstation: !!S.up.packstation, staffPacker: !!S.staff.packer, pos: [+g.position.x.toFixed(1), +g.position.z.toFixed(1)], rot: +g.rotation.y.toFixed(2),
         pak: S.paketGr.length, pal: S.paletten.length, proPal: S.paletten.map(q => bb.vsPalZahl(q))}; });

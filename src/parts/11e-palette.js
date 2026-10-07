@@ -20,11 +20,14 @@
 const PAL_LG=1.2, PAL_BR=0.8, PAL_Y=0.09;          /* Europalette; PAL_Y: Hub am Hubwagen */
 const HUB_AB=1080;                                  /* 18:00 */
 const DDL_AUTO=4, DDL_RUF=25;                       /* Sekunden bis der Fahrer selbst laedt: 22 Uhr / vom Spieler gerufen */
-const V1={x:-10.2,w:3.26,h:3.0,wz:-30.0,rz:-30.05};   /* Mitte des Tors, Wandmitte, Heck des LKW */
+/* Mitte des Tors (0,45 m ostwaerts der Box-Mitte: so bleibt neben der Box eine Gasse von 1,2 m zum Tor), Wandmitte, Heck des LKW */
+const V1={x:-10.25,w:3.26,h:3.0,wz:-30.0,rz:-30.05};
 const V1_HOF={x0:-15.7,x1:-4.7,z0:-45.6,z1:-30.1};
 function vf(lx,lz){ return {x:V1.x-lz,z:V1.rz+lx}; }
 function vfRueck(x,z){ return {lx:z-V1.rz,lz:V1.x-x}; }
 /* Platz im Laderaum: tiefste Reihe zuerst, zwei Plaetze nebeneinander mit Fahrgasse dazwischen */
+/* Die Box steht 0,45 m seitlich der Torachse (lz = V1.x - Box-Mitte) */
+const BOX_LZ=0.45;
 const DDL_SLOTS=6;
 function ddlSlot(i){ const r=i>>1; return {lx:-7.7+r*1.3,lz:(i&1)?0.85:-0.85}; }
 
@@ -33,7 +36,7 @@ const palHits=[];           /* Trefferflaechen der Boxplaetze (Station) */
 const HUB={pal:null,g:null,park:null,t:0,von:null};
 const DDL={tag:-1,autoTag:-1,ruf:false,warte:false,t:0,lad:0};
 const VT={g:null,rahmen:null,raum:null,bruecke:null,state:null,t:0,flap:0,cols:[],fahrer:null,flapCol:null};
-const LD={ph:'idle',t:0,pal:null,fig:null,jack:null,lx:-0.6,lz:0,ziel:null,agv:false};
+const LD={ph:'idle',t:0,pal:null,fig:null,jack:null,lx:-0.4,lz:0,ziel:null,agv:false};
 const VD={g:null,panels:[],t:0,target:0,col:null,lampG:null,lampR:null,warn:null,sign:null,signHit:null};
 
 /* ---------------------------------------------------------
@@ -42,7 +45,9 @@ const VD={g:null,panels:[],t:0,target:0,col:null,lampG:null,lampR:null,warn:null
 function vsPalInit(){
   if(!S) return;
   S.paketGr=Array.isArray(S.paketGr)?S.paketGr:[];
-  S.paletten=(Array.isArray(S.paletten)?S.paletten:[]).filter(p=>p&&['z','h','l'].indexOf(p.ort)>=0).map(p=>({id:p.id|0,ort:p.ort,idx:p.idx|0}));
+  /* dieselben Objekte behalten: Hubwagen und Fahrer halten Verweise auf sie */
+  S.paletten=(Array.isArray(S.paletten)?S.paletten:[]).filter(p=>p&&['z','h','l'].indexOf(p.ort)>=0);
+  S.paletten.forEach(p=>{ p.id=p.id|0; p.idx=p.idx|0; });
   S.palNr=Math.max(S.palNr|0,...S.paletten.map(p=>p.id),0);
   if(!Array.isArray(S.paketP)) S.paketP=[];
   while(S.paketP.length<S.paketGr.length) S.paketP.push(-1);
@@ -579,12 +584,12 @@ function ldBauen(){
   LD.fig=makePerson({kopf:'CM07'}); LD.fig.visible=false; scene.add(LD.fig);
 }
 function ldAgv(){ return packStufe()>=2; }
-function ldPose(){
+function ldPose(dt){
   /* Bediener bei (lx,lz) im Rahmen, blickt in die Halle (+lx = Welt +z): Rotation 0 */
   const w=vf(LD.lx,LD.lz);
   LD.fig.position.set(w.x,0,w.z); LD.fig.rotation.y=0; LD.fig.visible=!LD.agv&&LD.ph!=='idle'&&LD.ph!=='fertig';
   LD.jack.position.set(w.x,0,w.z); LD.jack.rotation.y=0; LD.jack.visible=LD.ph!=='idle'&&LD.ph!=='fertig';
-  if(LD.pal){ const q=vf(LD.lx+1.3,LD.lz); const o=vsPalObj[LD.pal.id]; if(o){ o.g.position.set(q.x,PAL_Y,q.z); o.g.rotation.y=Math.PI/2; LD.pal.wx=q.x; LD.pal.wz=q.z; LD.pal.vt=1; } }
+  if(LD.pal){ const q=vf(LD.lx+1.3,LD.lz); palFolgen(LD.pal,{x:q.x,z:q.z,ry:Math.PI/2},dt||0.016); }
 }
 function ldNaechste(){
   const p=vsPalZelle()[0];
@@ -603,27 +608,27 @@ function ldUpdate(dt){
       const warte=DDL.ruf?DDL_RUF:DDL_AUTO;
       if(DDL.t<warte||HUB.pal||vsPalGleitet()||roboterBusy()) break;
       const p=ldNaechste(), slot=ldFreierPlatz(); if(!p||slot<0) break;
-      LD.ziel=ddlSlot(slot); LD.slot=slot; LD.pal=null; LD.lx=-0.6; LD.lz=0; LD.ph='hin'; LD.t=0; ldPose(); break; }
+      LD.ziel=ddlSlot(slot); LD.slot=slot; LD.pal=null; LD.lx=-0.4; LD.lz=BOX_LZ; LD.lz0=BOX_LZ; LD.ph='hin'; LD.t=0; ldPose(dt); break; }
     case 'hin': {
       /* ans Tor stellen und die Gabeln unter die vorderste Palette schieben */
-      LD.t+=dt; ldPose(); if(LD.t<0.9) break;
+      LD.t+=dt; ldPose(dt); if(LD.t<0.9) break;
       const p=ldNaechste(); if(!p||HUB.pal){ LD.ph='idle'; break; }
       palAufnehmen(p); p.lader=true; LD.pal=p; LD.ph='fahren'; LD.t=0; break; }
     case 'fahren': {
       /* rueckwaerts in den Laderaum; zum Schluss seitlich auf den Platz einlenken */
       const ziel=LD.ziel.lx-1.3;
       LD.lx=Math.max(ziel,LD.lx-v*dt);
-      const rest=LD.lx-ziel, ein=clamp(1-rest/2.2,0,1); LD.lz=LD.ziel.lz*vsGlatt(ein);
-      ldPose(); if(LD.lx<=ziel+1e-6&&Math.abs(LD.lz-LD.ziel.lz)<0.02){ LD.ph='absetzen'; LD.t=0; } break; }
+      const rest=LD.lx-ziel, ein=clamp(1-rest/2.2,0,1); LD.lz=LD.lz0+(LD.ziel.lz-LD.lz0)*vsGlatt(ein);
+      ldPose(dt); if(LD.lx<=ziel+1e-6&&Math.abs(LD.lz-LD.ziel.lz)<0.02){ LD.ph='absetzen'; LD.t=0; } break; }
     case 'absetzen': {
-      LD.t+=dt; ldPose(); if(LD.t<0.7) break;
+      LD.t+=dt; ldPose(dt); if(LD.t<0.7) break;
       const p=LD.pal; LD.pal=null; p.ort='l'; p.idx=LD.slot; p.lader=false; vsPalStellen(p,vsPalObj[p.id],true);
       statAdd('paletten',1); sfx.thump(0.3); syncPakete(); LD.ph='zurueck'; LD.t=0; break; }
     case 'zurueck': {
       /* erst in die Fahrgasse, dann vorwaerts zum Tor */
       if(Math.abs(LD.lz)>0.01){ LD.lz+=Math.sign(-LD.lz)*Math.min(Math.abs(LD.lz),dt*0.9); }
-      else LD.lx=Math.min(-0.6,LD.lx+1.7*dt);
-      ldPose(); if(LD.lx>=-0.6-1e-6&&Math.abs(LD.lz)<0.02){ LD.ph='idle'; LD.t=0; LD.jack.visible=false; LD.fig.visible=false; } break; }
+      else LD.lx=Math.min(-0.4,LD.lx+1.7*dt);
+      ldPose(dt); if(LD.lx>=-0.4-1e-6&&Math.abs(LD.lz)<0.02){ LD.ph='idle'; LD.t=0; LD.jack.visible=false; LD.fig.visible=false; } break; }
   }
   if(LD.fig&&LD.fig.visible) animPerson(LD.fig,LD.ph==='fahren'||LD.ph==='zurueck',dt,0.9);
 }

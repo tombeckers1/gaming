@@ -762,7 +762,7 @@ function buildAusbau(){
 let packHit=null, packTisch=null, packMov=null;
 /* 07.10. (Tom, Ausbauplan): die Versandecke steht am hinteren Ende von Lager Sued 3,
    gedreht - die offene Seite der gelben Box zeigt zum Rolltor V1 in der Rueckwand */
-const PACK_HOME={x:-11.1,z:-28.5,ry:Math.PI};
+const PACK_HOME={x:-11.6,z:-28.5,ry:Math.PI};
 /* Packplaetze: Tischmitte und Seite. s 1: Tisch noerdlich am Band, der
    Packer steht noerdlich davor; s -1: gespiegelt suedlich des Bandes.
    Platzkoordinaten (px,pz): Tischmitte 0/0, +pz zeigt zum Packer. */

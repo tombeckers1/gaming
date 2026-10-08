@@ -22,7 +22,11 @@
    Vollmond 2 Module und Opener - angeschlagen). */
 const { chromium } = require('/opt/node22/lib/node_modules/playwright');
 /* 07.10. (Toms Test V117): Vollmond, Lagune und Gletscher sind gestrichen */
-const PLAN={lb_tautropfen:4,lb_zitronenfalter:7,lb_lavendelfeld:9,lb_herbstlaub:12,lb_kolibri:14,lb_sonnenblumen:20,lb_vulkan:22}; /* 07.10.: Vulkan nach Wucht L22 (14x R3_LEVEL) */
+/* 07.10. Runde 4: R4=1 prueft die zehn neuen Themen-Batterien (02g/14y/04i)
+   als eigene Leiter. Sie feuern Bomben (shot) statt Lichter - LOCH zaehlt
+   dann jeden sichtbaren Start (Schuss, Kugel, Licht). */
+const R4=!!process.env.R4;
+const PLAN=R4?{kornblumen:2,bienenweide:6,weinlese:7,mohnfeld:12,winterwald:13,fuchsien:16,korallenriff:18,schwarzersamt:23,meteorschauer:24,phoenix:25}:{lb_tautropfen:4,lb_zitronenfalter:7,lb_lavendelfeld:9,lb_herbstlaub:12,lb_kolibri:14,lb_sonnenblumen:20,lb_vulkan:22}; /* 07.10.: Vulkan nach Wucht L22 (14x R3_LEVEL) */
 const MEHRFACH=['kometenfaecher','zwillingskomet','drillingskomet','weidenfaecher','goldfaecher','farbweidenfaecher','wassertor','dreifachtor','torbogen'];
 async function neuesSpiel(p){
   await p.waitForFunction("!!document.querySelector('#startBtns button:not([disabled])')",{timeout:240000});
@@ -43,7 +47,7 @@ async function neuesSpiel(p){
     S.lb_lavendelfeld=()=>{ const x=a(); const y=x.slice(); Object.assign(y,x); y.splice(1,0,{n:1,rohrFolge:[0],licht:'breitjade',th:'lb_lavendelfeld',farbe:0,pause:2}); return y; };
     S.lb_herbstlaub=()=>{ const x=b(); const y=x.slice(); Object.assign(y,x); y.unshift({n:0,boden:{k:'fountain',gt:4,gh:1}}); return y; }; });
   const VGL=(process.env.VGL||'').split(',').filter(Boolean);
-  const r=await p.evaluate(({PLAN,MEHRFACH,VGL})=>{ const bb=window.__bb, P=bb.P, out={prod:{},folgen:{}};
+  const r=await p.evaluate(({PLAN,MEHRFACH,VGL,R4})=>{ const bb=window.__bb, P=bb.P, out={prod:{},folgen:{}};
     bb.S.level=99;
     /* Zaehler fuer Kometenfaecher und Fontaenen-Module: greift nur, wenn die
        Funktionen ueber window erreichbar sind (im Bau sind sie es nicht -
@@ -74,7 +78,7 @@ async function neuesSpiel(p){
       const RL=bb.ROHR_LOG||[]; bb.ROHR_LOG=null; bb.fwLog(null);
       const ri=RL.filter(e=>e.prod===t&&e.i>=0).map(e=>e.i);
       o.gezuendet=ri.length; o.rohreEinzig=new Set(ri).size; o.ohneRohr=RL.filter(e=>e.prod===t&&e.i<0).length; o.modulEv=RL.filter(e=>e.prod===t&&e.modul!==undefined).length;
-      const L2=log.filter(e=>e.art==='perle'&&/^licht:/.test(e.eff||'')); o.lichter=L2.length; o.lichtTypen=[...new Set(L2.map(e=>e.eff.slice(6)))];
+      const L2=log.filter(e=>e.art==='perle'&&/^licht:/.test(e.eff||'')); o.lichter=R4?log.filter(e=>['schuss','kugel','topf','perle'].indexOf(e.art)>=0).length:L2.length; o.lichtTypen=[...new Set(L2.map(e=>e.eff.slice(6)))];
       o.mehrfach=o.lichtTypen.filter(e=>MEHRFACH.indexOf(e)>=0||/^breit/.test(e));
       o.kff=Z.kff; o.bb=Z.bb; o.kf=Z.kf;
       /* Drehbuch: breite Fontaene aus dem Modul (Boden ohne alt wird per
@@ -89,7 +93,7 @@ async function neuesSpiel(p){
       window.__wareSpar=true; window.__wareStufe=undefined; try{ const q=bb.buildProduct(t); o.triHandy=Math.round(q.reduce((n,x)=>n+(x.geo.index?x.geo.index.count:x.geo.attributes.position.count)/3,0)); }catch(e){ o.triHandy='Fehler '+e.message; } window.__wareSpar=undefined;
       try{ const q=bb.buildProduct(t); o.triPC=Math.round(q.reduce((n,x)=>n+(x.geo.index?x.geo.index.count:x.geo.attributes.position.count)/3,0)); }catch(e){ o.triPC='Fehler '+e.message; }
     }
-    bb.vfStopp(); return out; },{PLAN,MEHRFACH,VGL});
+    bb.vfStopp(); return out; },{PLAN,MEHRFACH,VGL,R4});
   const ids=Object.keys(PLAN);
   console.log('id                 L  Schuss Rohre Lichter Modul H90  Hmax Breite Peak Dauer Std  Handy  PC   Lichter');
   for(const t of ids){ const o=r.prod[t]; if(o.fehlt){ pruef('PRODUKT',false,t+' fehlt'); continue; }

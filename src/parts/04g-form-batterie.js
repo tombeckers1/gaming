@@ -1135,5 +1135,5 @@ V.goldbrokat100=t=>{ const k=neu(t), R=Math.min(k.w,k.d)/2-0.003, h=k.h, kh=0.01
 Object.defineProperty(V,'__wz',{value:{neu,reg,farbe,kasten,druck,fertig,vbox,vzyl,vring,klar,mit,block,banderole,folie,ecken,gurtX,gurtZ,lasche,lascheSeite,
   pFront,pSeite,pTop,pEtikett,pBild,pRohrSeite,pRohrDeckel,pLoch,pMetall,pKraft,lay,schild,hell,dunkel,css,mix,GOLD,SILBER}});
 /* 06.10.: Werkzeug fuer die Themen-Batterien (04h-form-themen.js) */
-window.VP_WERK={neu,reg,farbe,kasten,druck,fertig,block,banderole,folie,ecken,gurtX,gurtZ,lasche,lascheSeite,vbox,vzyl,vkugel,vring,klar,mit,pFront,pSeite,pTop,pEtikett,pBild,pRohrSeite,pRohrDeckel,schild,kiste,fensterKarton,mantel,kordel,schleife,lay,nbForm,hell,dunkel,mix,pKraft,pHolz,pLoch,pMetall,griff,seilgriff,vInnen};
+window.VP_WERK={neu,reg,farbe,kasten,druck,fertig,block,banderole,folie,ecken,gurtX,gurtZ,lasche,lascheSeite,vbox,vzyl,vkugel,vring,klar,mit,pFront,pSeite,pTop,pEtikett,pBild,pRohrSeite,pRohrDeckel,schild,kiste,fensterKarton,mantel,kordel,schleife,lay,nbForm,hell,dunkel,mix,pKraft,pHolz,pLoch,pMetall,griff,seilgriff,vInnen,kugel,pRund,pSamt,pZweimal};
 })();

@@ -29,7 +29,7 @@ const VS_HEIM={x:0.5,z:0.83};
    der anderen Seite - sonst schwenkt der Wagen beim Losfahren durch den Tisch (Tom 08.10., Test TISCH). */
 function vsPK(i){
   const rot=typeof packTisch!=='undefined'&&packTisch?packTisch.rotation.y:0, flip=VS_PP[i|0].s>0&&Math.cos(rot)<0, d=flip?-1:1;
-  return {px:flip?0.5:-0.5,pz:0.99,pry:flip?Math.PI/2:-Math.PI/2,gx:(flip?0.5:-0.5)+d*WG_ABST,gz:0.99,hx:flip?-0.5:0.5,hz:0.83};
+  return {px:flip?0.5:-0.5,pz:0.99,pry:flip?Math.PI/2:-Math.PI/2,gx:(flip?0.5:-0.5)+d*WG_ABST,gz:0.99,hx:flip?-0.5:0.5,hz:0.83,ax:flip?0.5+0.95:(-0.5+WG_ABST),az:0.99};   /* ax/az: ab hier (vom Lager kommend) rollt der Wagen auf seinen Platz */
 }
 /* Wo das Paket auf dem Tisch zugeklebt wird */
 const VS_TISCH={x:0,z:0};
@@ -1005,7 +1005,8 @@ function vsLoopZustand(w,dt,wf,tour,g){
       const G=vsWelt(pi,vsPK(pi).gx,vsPK(pi).gz);
       if(VS_PP[pi].s>0&&w.tour&&!w.tour.gasseZu&&w.pos.distanceTo(G)>3.5){ const Gp=vsGassePunkt();
         if(w.pos.distanceTo(Gp)>0.9){ if(!vsGehen(w,Gp,dt)) vsNotfalls(w,Gp); break; } w.tour.gasseZu=true; }
-      if(w.pos.distanceTo(G)<1.4){ vsWagenModus(g,'park'); w.vs='parken'; break; }
+      const A=vsWelt(pi,vsPK(pi).ax,vsPK(pi).az);
+      if(w.pos.distanceTo(A)<1.4||w.pos.distanceTo(G)<1.4){ vsWagenModus(g,'park'); w.vs='parken'; break; }
       if(!vsGehen(w,G,dt)) vsNotfalls(w,G); break; }
     case 'parken': {
       if(!vsGehen(w,vsHeim(w),dt)&&!vsNotfalls(w,vsHeim(w))) break;

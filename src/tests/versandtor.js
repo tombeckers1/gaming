@@ -147,6 +147,7 @@ const fs = require('fs');
     const ab = await p.evaluate(st => { const bb = window.__bb, S = bb.S, o = {st};
       bb.DDL.t = 0; bb.DDL.ruf = false;
       /* Gegenprobe Sicherheit: steht der Spieler noch im Tor, faehrt der LKW nicht los (Klappe/Tor bleiben) */
+      window.__steh(0.2, 0.45);   /* im Tor, an der Schwelle */
       bb.run(40, 0.05); o.blockiert = bb.VT.state === 'docked';
       /* der Spieler geht aus dem Weg; fuer den Mitarbeiter/Roboter liegen neue Pakete in der Box */
       const wg = bb.vf(3.5, 0.45); bb.schiebe(wg.x, wg.z); bb.setView(wg.x, wg.z, 0, 0);

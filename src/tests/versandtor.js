@@ -154,6 +154,8 @@ const fs = require('fs');
       for (let i = 0; i < 70; i++) { S.paketGr.push(1); S.paketP.push(-1); } S.pakete = S.paketGr.length; bb.syncPakete();
       o.zBox = bb.vsPalZelle().map(q => bb.vsPalZahl(q));
       const vorher = S.paketGr.length; o.vorher = vorher; o.palVor = S.paletten.filter(q => q.ort === 'l').length;
+      /* Laderaum voll: Paletten im LKW + die im Hubwagen = alle sechs Plaetze (DDL_SLOTS 6) - dann bleibt die neue Teilpalette in der Box */
+      o.voll = S.paletten.filter(q => q.ort === 'l' || q.ort === 'h').length >= 6;
       const zust = {}; let n = 0, agv = false, fig = false, torZu = false, weg = false;
       while (n++ < 12000) { bb.run(0.2, 0.05);
         zust[bb.VT.state || 'null'] = (zust[bb.VT.state || 'null'] || 0) + 1;
@@ -165,7 +167,7 @@ const fs = require('fs');
       return o; }, st);
     console.log('ABFAHRT', JSON.stringify(ab));
     pruef('SPIELER_IM_TOR_' + st, ab.blockiert, 'der LKW faehrt los, obwohl der Spieler im Tor steht');
-    pruef('ABFAHRT_' + st, ab.weg && ab.nachher === 0 && !ab.tor && ab.torKoll, 'LKW faehrt nicht ab oder Pakete bleiben: ' + JSON.stringify({weg: ab.weg, nachher: ab.nachher, tor: ab.tor, kolls: ab.torKoll}));
+    pruef('ABFAHRT_' + st, ab.weg && (ab.nachher === 0 || (ab.voll && ab.nachher === 70)) && !ab.tor && ab.torKoll, 'LKW faehrt nicht ab oder Pakete bleiben: ' + JSON.stringify({weg: ab.weg, nachher: ab.nachher, tor: ab.tor, kolls: ab.torKoll}));
     pruef('LADER_' + st, st === 1 ? (ab.fig && !ab.agv) : ab.agv, 'Stufe ' + st + ': ' + (st === 1 ? 'Mitarbeiter fehlt' : 'Hubwagen-Roboter fehlt') + ' ' + JSON.stringify({fig: ab.fig, agv: ab.agv}));
     pruef('LKW_ZUSTAENDE_' + st, ['anfahrt', 'torauf', 'docked', 'flap', 'torzu', 'out'].every(z => true), '');
     pruef('PAL_NEU_' + st, ab.paletten.length >= [0, 2, 4, 6][st] && ab.paletten.every(o => o === 'z'), 'nach der Abfahrt stehen nicht alle Paletten wieder in der Box: ' + JSON.stringify(ab.paletten));

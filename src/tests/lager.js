@@ -62,7 +62,8 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   r=await lauf(HS1,[-13.0,-19.0]);
   sag(`Halle Sued II begehbar (bis ${r.x}/${r.z})`,r.an);
   sag('Halle Sued III gekauft',await kauf('lager_sued2'));
-  r=await lauf(HS1,[-13.0,-26.5]);
+  /* 08.10.: ab z -22 steht die Versandecke (11e, x -16..-8,6, z -26..-29,6) - Ziel davor, noch in Sued III (Sued II endet bei -19) */
+  r=await lauf(HS1,[-13.0,-21.0]);
   sag(`Halle Sued III begehbar (bis ${r.x}/${r.z})`,r.an);
 
   /* Keine Wand mehr zwischen den Abschnitten */

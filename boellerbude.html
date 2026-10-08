@@ -678,6 +678,7 @@ body.compact .pdahead2 b{font-size:16px}
       <button class="ghost" data-gfx="hoch">Hoch</button>
       <button class="ghost" data-gfx="mittel">Mittel</button>
       <button class="ghost" data-gfx="niedrig">Niedrig</button>
+      <button class="ghost" data-gfx="ultralow">Ultra Low</button>
     </div>
     <small class="phint" id="gfxInfo"></small>
   </div>
@@ -711,7 +712,15 @@ const HIQ=!COARSE;
    'niedrig', gewaehlt im Pausenmenue, oder 'auto': startet mit der zuletzt
    automatisch gefundenen Stufe und schaltet herunter, wenn die Bildrate
    laenger unter 28 faellt (20-loop, gfxMessen). */
-const GFX_STUFEN=['niedrig','mittel','hoch','max','ultra','extrem'];
+/* 07.10. (Tom: auf "Niedrig" nur 10-11 Bilder/s am schwachen PC): darunter gibt es "Ultra Low" -
+   alles aufs Minimum, nur Zahlen und Verzicht: halbe Aufloesung, keine Schattenkarte (auch nicht im
+   Shader), nur ein Innenlicht, einfache Materialien (Lambert statt PBR), kurze Sichtweite, keine
+   Stadt, wenig Funken. Schatten und Materialien stehen beim Laden fest - ein Wechsel von und nach
+   Ultra Low laedt das Spiel neu. */
+const GFX_STUFEN=['ultralow','niedrig','mittel','hoch','max','ultra','extrem'];
+/* Rang ohne Ultra Low: niedrig=0, mittel=1, hoch=2, max=3 ... (so zaehlten die Vergleiche vorher) */
+function gfxRang(st){ return GFX_STUFEN.indexOf(st)-1; }
+const gfxNiedrig=st=>st==='niedrig'||st==='ultralow';
 /* 03.10. (Tom: "Maximum, dann noch Ultra und Ultra Extrem - was ist
    moeglich"): drei Stufen ueber Hoch, nur von Hand waehlbar (die
    Automatik bleibt bei hoechstens Hoch). Je Stufe: Pixeldichte (px:
@@ -722,13 +731,14 @@ const GFX_STUFEN=['niedrig','mittel','hoch','max','ultra','extrem'];
    Texturen und Funkenpuffer entstehen beim Laden - dafuer zaehlt die
    beim Start gewaehlte Stufe. */
 const GFX_PROFIL={
+  ultralow:{px:0,pxMax:0.5,ms:0,sch:256,rad:1,tex:0.5,cap:512,ani:1,qual:0.25,blur:4},
   niedrig:{px:0,pxMax:0.75,ms:0,sch:512,rad:1.2,tex:1,cap:1120,ani:4,qual:0.55,blur:4},
   mittel:{px:0,pxMax:1,ms:2,sch:1024,rad:1.2,tex:1,cap:1120,ani:4,qual:0.8,blur:4},
   hoch:{px:0,pxMax:2,ms:4,sch:2048,rad:2.2,tex:1,cap:1120,ani:4,qual:1,blur:4},
   max:{px:1.5,pxMax:2,ms:8,sch:4096,rad:2.6,tex:1.5,cap:1700,ani:8,qual:1.25,blur:3},
   ultra:{px:2,pxMax:2.5,ms:8,sch:4096,rad:3,tex:2,cap:2300,ani:16,qual:1.5,blur:2},
   extrem:{px:2.5,pxMax:3,ms:16,sch:8192,rad:3.2,tex:2.5,cap:3000,ani:16,qual:1.9,blur:2}};
-const GFX_NAME={niedrig:'Niedrig',mittel:'Mittel',hoch:'Hoch',max:'Maximum',ultra:'Ultra',extrem:'Ultra Extrem'};
+const GFX_NAME={ultralow:'Ultra Low',niedrig:'Niedrig',mittel:'Mittel',hoch:'Hoch',max:'Maximum',ultra:'Ultra',extrem:'Ultra Extrem'};
 let GFX_WAHL='auto', GFX='hoch';
 try{ GFX_WAHL=localStorage.getItem('bb_gfx')||'auto'; GFX=GFX_WAHL==='auto'?(localStorage.getItem('bb_gfx_auto')||'hoch'):GFX_WAHL; }catch(e){}
 if(GFX_WAHL!=='auto'&&GFX_STUFEN.indexOf(GFX_WAHL)<0) GFX_WAHL='auto';
@@ -739,6 +749,13 @@ const GFX_QUAL={}; for(const k in GFX_PROFIL) GFX_QUAL[k]=GFX_PROFIL[k].qual;
 const GFX_START=GFX_PROFIL[GFX]||GFX_PROFIL.hoch;
 if(COARSE) document.body.classList.add('coarse');
 const KEY='boellerbude_v3';
+/* Ultra Low: einfache Materialien. Lambert statt PBR - ohne Glanz, Relief und Umgebungsbild; Farbe,
+   Bild, Leuchtfarbe, Transparenz und Vertexfarben bleiben. */
+if(GFX==='ultralow'&&THREE.MeshLambertMaterial&&!THREE.__lambertStd){
+  const WEG=['roughness','metalness','roughnessMap','metalnessMap','bumpMap','bumpScale','normalMap','normalScale','envMapIntensity','displacementMap','displacementScale','displacementBias','flatShading','clearcoat','clearcoatRoughness','transmission','thickness','ior','sheen'];
+  THREE.__lambertStd=true;
+  THREE.MeshStandardMaterial=function(o){ const q=Object.assign({},o||{}); for(const k of WEG) delete q[k]; return new THREE.MeshLambertMaterial(q); };
+}
 const LIN=h=>new THREE.Color(h).convertSRGBToLinear();
 function std(hex,o){ const m=new THREE.MeshStandardMaterial(Object.assign({roughness:0.85,metalness:0},o||{})); m.color=LIN(hex); return m; }
 /* Canvas-Speicher (03.10., Tom, iPhone: im Testraum blieben ganze Regale
@@ -1085,12 +1102,12 @@ const UPGRADES=[
   {id:'rampe4',kat:'flaeche',lvl:30,req:'lager_west2',name:'Andockstation 4',desc:'Das Tor in der erweiterten Halle. Vier Lieferungen gleichzeitig.',cost:()=>20000,done:()=>S.up.rampe4},
   {id:'lager_west3',kat:'flaeche',lvl:30,req:'lager_west2',name:'Logistikhalle – Stufe 3',desc:'Die volle Halle: 40 mal 27 Meter und 11 Meter hoch, Platz für Hochregale bis unters Dach und das letzte Tor.',cost:()=>42000,done:()=>S.up.lager_west3},
   {id:'rampe5',kat:'flaeche',lvl:31,req:'lager_west3',name:'Andockstation 5',desc:'Das letzte Tor der Logistikhalle. Zusammen mit der Basisrampe rollen dann fünf Lieferungen gleichzeitig an — mehr gibt das Grundstück nicht her.',cost:()=>26000,done:()=>S.up.rampe5},
-  {id:'packstation',kat:'flaeche',lvl:16,req:'lager_gross',name:'Packstation für den Versand',desc:'Ein Packplatz mit Packmaterial-Regal im ersten Abschnitt der großen Halle, gleich hinter dem Rolltor. Das fertige Paket läuft über ein Förderband zur Palettierstation: ein Portalgreifer stapelt es auf eine von zwei Paletten, DDL holt am Abend ab. Zusammen mit dem Onlineshop kommen Bestellungen als echte Pakete herein.',cost:()=>6400,done:()=>S.up.packstation},
+  {id:'packstation',kat:'flaeche',lvl:25,req:'lager_sued2',name:'Packstation für den Versand',desc:'Ein Packplatz mit Packmaterial-Regal am hinteren Ende der großen Halle, direkt an der Rückwand. Das fertige Paket läuft über ein Förderband zur Palettierstation: ein Kran-Greifer stapelt es auf die Paletten in der gelben Box, deren offene Seite zum Rolltor V1 zeigt. Um 22 Uhr kommt DDL rückwärts an V1, ein Mitarbeiter fährt die Paletten mit dem Hubwagen in den LKW – ab 18 Uhr darfst du das selbst. Zusammen mit dem Onlineshop kommen Bestellungen als echte Pakete herein.',cost:()=>6400,done:()=>S.up.packstation},
   /* Ausbau der Packstation (Tom, 05.10.): weitere Packplaetze am selben
      Band, je mit Packmaterial-Regal und Wagen, und mehr Paletten unter
      dem Portal. Mehr Plaetze heisst auch mehr Bestellungen am Tag. */
-  {id:'packstation2',kat:'flaeche',lvl:22,req:'packstation',name:'Packstation – zweiter Packplatz',desc:'Ein zweiter Packplatz gegenüber am selben Förderband, mit eigenem Packmaterial-Regal und Kommissionierwagen. Die Palettierstation wächst an der Westwand nach Süden auf vier Paletten – dafür braucht sie den Stellplatz des vorderen Lagerregals dort. Der Shop nimmt deutlich mehr Bestellungen am Tag an; einen zweiten Versandmitarbeiter stellst du im Handy ein.',cost:()=>14000,done:()=>S.up.packstation2},
-  {id:'packstation3',kat:'flaeche',lvl:27,req:'packstation2',name:'Packstation – Versandstraße',desc:'Der dritte Packplatz macht aus der Ecke eine kleine Versandstraße: drei Packer, ein Band, sechs Paletten unter dem Portal. Noch einmal mehr Bestellungen am Tag.',cost:()=>26000,done:()=>S.up.packstation3},
+  {id:'packstation2',kat:'flaeche',lvl:27,req:'packstation',name:'Packstation – zweiter Packplatz',desc:'Ein zweiter Packplatz gegenüber am selben Förderband, mit eigenem Packmaterial-Regal und Kommissionierwagen. Die gelbe Box wächst auf vier Paletten – hinten an der Rückwand, ohne dass etwas im Weg steht. Der Shop nimmt deutlich mehr Bestellungen am Tag an; einen zweiten Versandmitarbeiter stellst du im Handy ein. Ab hier fährt statt eines Mitarbeiters ein Hubwagen-Roboter die Paletten in den LKW.',cost:()=>14000,done:()=>S.up.packstation2},
+  {id:'packstation3',kat:'flaeche',lvl:29,req:'packstation2',name:'Packstation – Versandstraße',desc:'Der dritte Packplatz macht aus der Ecke eine kleine Versandstraße: drei Packer, ein Band, sechs Paletten in der Box. Noch einmal mehr Bestellungen am Tag.',cost:()=>26000,done:()=>S.up.packstation3},
   {id:'eingang2',kat:'flaeche',lvl:25,req:'shop_ost',name:'Ladenerweiterung 5 – zweite Tür',desc:'Im Eckhaus ist die mittlere Achse bis zum Boden offen und wartet auf eine Tür. Der Ausbau setzt dieselbe Schiebetür wie am Haupteingang hinein, mit Vordach und Matte. Kunden nehmen ab jetzt den Eingang, der näher liegt – wer hinten in der Erweiterung einkauft, spart sich den Weg quer durch den Laden.',cost:()=>11500,done:()=>S.up.eingang2},
   {id:'kasse2',kat:'einr',lvl:16,req:'shop_gross',name:'SB-Kassen',desc:'Zwei Selbstbedienungsterminals in der neuen Verkaufsfläche. Kunden mit wenig Ware zahlen dort selbst, das entlastet deine Schlange spürbar.',cost:()=>3400,done:()=>S.up.kasse2},
   /* Die SB-Kassen am zweiten Eingang (kasse3) gibt es seit 05.10. nicht
@@ -1132,9 +1149,9 @@ const STAFF=[
   /* SB-Betreuer 3 und 4 gehoerten zur Kassenzeile am zweiten Eingang -
      mit ihr sind sie weg (05.10.); zwei Betreuer schaffen beide SB-Kassen */
   {id:'security',lvl:13,name:'Sicherheitsdienst',desc:'Hält Diebe im Laden auf, bevor sie rauskommen.',hire:800,wage:190},
-  {id:'packer',lvl:18,req:'packstation',name:'Versandmitarbeiter',desc:'Schiebt einen Kommissionierwagen mit sechs Fächern durchs Lager – fehlt dort etwas, durch den Laden –, legt jede Onlinebestellung Stück für Stück in ihren Karton, klebt am Packtisch zu und schickt das Paket aufs Band zur Palettierstation.',hire:700,wage:165},
-  {id:'packer2',kurz:'Packer 2',lvl:22,req:'packstation2',name:'Zweiter Versandmitarbeiter',desc:'Arbeitet am zweiten Packplatz mit eigenem Wagen und eigenem Packmaterial-Regal.',hire:750,wage:170},
-  {id:'packer3',kurz:'Packer 3',lvl:27,req:'packstation3',name:'Dritter Versandmitarbeiter',desc:'Der dritte Packplatz der Versandstraße. Lohnt sich, wenn täglich viele Bestellungen offen bleiben.',hire:800,wage:175}
+  {id:'packer',lvl:25,req:'packstation',name:'Versandmitarbeiter',desc:'Schiebt einen Kommissionierwagen mit sechs Fächern durchs Lager – fehlt dort etwas, durch den Laden –, legt jede Onlinebestellung Stück für Stück in ihren Karton, klebt am Packtisch zu und schickt das Paket aufs Band zur Palettierstation.',hire:700,wage:165},
+  {id:'packer2',kurz:'Packer 2',lvl:27,req:'packstation2',name:'Zweiter Versandmitarbeiter',desc:'Arbeitet am zweiten Packplatz mit eigenem Wagen und eigenem Packmaterial-Regal.',hire:750,wage:170},
+  {id:'packer3',kurz:'Packer 3',lvl:29,req:'packstation3',name:'Dritter Versandmitarbeiter',desc:'Der dritte Packplatz der Versandstraße. Lohnt sich, wenn täglich viele Bestellungen offen bleiben.',hire:800,wage:175}
 ];
 /* Einkauf (Tom, 25.09., zweite Runde; 26.09. nachgeschaerft): keine
    Lieferanten mit eigenem Sortiment mehr. Drei Stufen, jede mit eigenem
@@ -1475,7 +1492,9 @@ function mkRacks(){
   /* Halle Sued II */
   [-17.4,-20.6].forEach(z=>{ add(-10.4,z,0,5.0,'lager_sued'); add(-17.8,z,0,5.0,'lager_sued'); });
   /* Halle Sued III */
-  [-24.4,-27.6].forEach(z=>{ add(-10.4,z,0,5.0,'lager_sued2'); add(-17.8,z,0,5.0,'lager_sued2'); });
+  /* 07.10.: im hinteren Ende steht jetzt die Versandecke (Packstation, Box vor dem Rolltor V1) -
+     die beiden Plaetze an der Ostseite gibt es nicht mehr */
+  [-24.4,-27.6].forEach(z=>{ add(-17.8,z,0,5.0,'lager_sued2'); });
   /* Logistikhalle in drei Stufen (seit 24.09.). Die Tore liegen an
      der Suedwand (z -34), davor bleiben vier Meter frei; der Weg von
      der Schleuse (z -22,4 bis -18,6) laeuft zwischen den Reihen. */
@@ -3162,7 +3181,9 @@ const ENTFERNT=['fontaene50','fontaene30','silberkaskade','feuerkaskade','jugend
   /* 07.10. (Toms Test V117 in der Vorfuehrung): Vollmond ("unnatuerlich"),
      Lagune ("das Produkt kannst du komplett wegmachen"), Gletscher,
      Kaleidoskop, Sterntor, Legion, Finale Grande, Kugel 300 Kronenregen */
-  'lb_vollmond','lb_lagune','lb_gletscher','sternenkaiser','sternentor','legion','kugelfinale','kronenregen300'];
+  'lb_vollmond','lb_lagune','lb_gletscher','sternenkaiser','sternentor','legion','kugelfinale','kronenregen300',
+  /* 07.10. (Tom, Gameplay-Vorfuehrung): "Eiswuerfel raus - keine Gefriertruhe, im Kuehlschrank macht das keinen Sinn" */
+  'eiswuerfel'];
 /* Ersatz fuer alte Spielstaende: jede gestrichene Sorte wird beim Laden
    zur naechsten verbliebenen - gleiche Kategorie, moeglichst gleiche Form,
    Level und Preis am naechsten (18-save.js, SORTE_NEU). Sonst stuende
@@ -3307,7 +3328,7 @@ const R4_KUGELN=[
 const canvas=$('c');
 /* Kantenglaettung des Bildschirms laesst sich nur beim Start festlegen:
    in 'niedrig' ohne (Wechsel wirkt nach dem Neuladen) */
-const renderer=new THREE.WebGLRenderer({canvas,antialias:GFX!=='niedrig',powerPreference:'high-performance'});
+const renderer=new THREE.WebGLRenderer({canvas,antialias:!gfxNiedrig(GFX),powerPreference:'high-performance'});
 /* Aufloesung je Grafikstufe: hoch bis 1,9-fach (Retina), mittel 1-fach,
    niedrig 0,75-fach - das Bild wird hochgezogen, kostet aber nur gut die
    Haelfte der Pixel */
@@ -3318,7 +3339,7 @@ const renderer=new THREE.WebGLRenderer({canvas,antialias:GFX!=='niedrig',powerPr
    mit mehr. So bleibt es fluessig, ohne gleich eine ganze Stufe zu verlieren. */
 const RES_MIN=0.55;
 let RES=1; try{ const r=+localStorage.getItem('bb_res'); if(r) RES=clamp(r,RES_MIN,1); }catch(e){}
-function gfxPixelMax(){ const d=window.devicePixelRatio||1, g=GFX_PROFIL[GFX]||GFX_PROFIL.hoch; return GFX==='niedrig'?0.75:Math.min(g.pxMax,Math.max(d*(g.px>2?1.5:1),g.px)); }
+function gfxPixelMax(){ const d=window.devicePixelRatio||1, g=GFX_PROFIL[GFX]||GFX_PROFIL.hoch; return GFX==='ultralow'?0.5:GFX==='niedrig'?0.75:Math.min(g.pxMax,Math.max(d*(g.px>2?1.5:1),g.px)); }
 function gfxPixel(){ return Math.max(0.5,gfxPixelMax()*(GFX_WAHL==='auto'?RES:1)); }
 renderer.setPixelRatio(gfxPixel());
 renderer.setSize(innerWidth,innerHeight,false);
@@ -3330,13 +3351,13 @@ renderer.toneMappingExposure=1.05;
    aller Materialien neu (Hunderte auf einmal). Die Stufen unterscheiden
    sich nur in Werten (schattenWerte): Kartengroesse, Weichheit (radius),
    wie oft neu gerechnet wird; niedrig blendet sie per Versatz aus. */
-renderer.shadowMap.enabled=HIQ;
+renderer.shadowMap.enabled=HIQ&&GFX!=='ultralow';
 renderer.shadowMap.type=THREE.PCFShadowMap;
 const scene=new THREE.Scene();
 scene.background=new THREE.Color(0x0b1030);
 /* Die Sichtweite reicht jetzt bis in die Stadt. Der Nebel bleibt, aber
    als Dunst ueber die Distanz statt als Wand bei hundert Metern. */
-scene.fog=new THREE.Fog(0xcfe3f3,55,520);
+scene.fog=GFX==='ultralow'?new THREE.Fog(0xcfe3f3,28,95):new THREE.Fog(0xcfe3f3,55,520);
 /* Die nahe Ebene lag auf 5 cm. Bei 300 m Sichtweite bleibt dem
    Tiefenpuffer damit so wenig Genauigkeit, dass Flaechen, die nur
    wenige Millimeter uebereinanderliegen - Estrich ueber Fuellplatte
@@ -3345,7 +3366,7 @@ scene.fog=new THREE.Fog(0xcfe3f3,55,520);
    Naeher als 20 cm kommt die Kamera ohnehin an nichts heran: der
    Spieler hat 32 cm Kollisionsradius, und was er traegt, haengt
    35 cm oder weiter vor der Linse. */
-const camera=new THREE.PerspectiveCamera(70,innerWidth/innerHeight,0.2,300);
+const camera=new THREE.PerspectiveCamera(70,innerWidth/innerHeight,0.2,GFX==='ultralow'?100:300);
 camera.rotation.order='YXZ';
 scene.add(camera);
 const hemi=new THREE.HemisphereLight(0xdde8ff,0x4a4034,0.72); scene.add(hemi);
@@ -3363,25 +3384,33 @@ function updateSonne(x,z){
   sun.position.set(x+SONNE_OFF.x,SONNE_OFF.y,z+SONNE_OFF.z);
   sun.target.updateMatrixWorld();
 }
-const shopSpot=new THREE.SpotLight(0xfff1dc,1.35,24,1.2,0.8,1.1); shopSpot.position.set(-0.5,3.45,-0.3); shopSpot.target.position.set(-0.5,0,-0.3); scene.add(shopSpot); scene.add(shopSpot.target);
-if(HIQ){ shopSpot.castShadow=true; shopSpot.shadow.mapSize.set(1024,1024); shopSpot.shadow.camera.near=0.5; shopSpot.shadow.camera.far=9; shopSpot.shadow.bias=-0.0008; shopSpot.shadow.normalBias=0.02; }
+const shopSpot=new THREE.SpotLight(0xfff1dc,1.35,24,1.2,0.8,1.1); shopSpot.position.set(-0.5,3.45,-0.3); shopSpot.target.position.set(-0.5,0,-0.3); if(GFX!=='ultralow'){ scene.add(shopSpot); scene.add(shopSpot.target); }
+if(HIQ&&GFX!=='ultralow'){ shopSpot.castShadow=true; shopSpot.shadow.mapSize.set(1024,1024); shopSpot.shadow.camera.near=0.5; shopSpot.shadow.camera.far=9; shopSpot.shadow.bias=-0.0008; shopSpot.shadow.normalBias=0.02; }
 /* Schattenwerte je Grafikstufe - nur Zahlen, keine Shader-Aenderung.
    niedrig: Versatz -10 laesst jeden Punkt beleuchtet (keine Schatten)
    und die Karte wird nicht mehr neu gezeichnet (schattenTakt). */
 function schattenWerte(st){
   if(!HIQ) return;
-  const g=GFX_PROFIL[st]||GFX_PROFIL.hoch, gr=Math.min(g.sch,renderer.capabilities.maxTextureSize||4096), aus=st==='niedrig';
+  const g=GFX_PROFIL[st]||GFX_PROFIL.hoch, gr=Math.min(g.sch,renderer.capabilities.maxTextureSize||4096), aus=gfxNiedrig(st);
   if(sun.shadow.mapSize.x!==gr){ sun.shadow.mapSize.set(gr,gr); if(sun.shadow.map){ sun.shadow.map.dispose(); sun.shadow.map=null; } }
   sun.shadow.radius=g.rad;
   sun.shadow.bias=aus?-10:-0.0006; shopSpot.shadow.bias=aus?-10:-0.0008;
   renderer.shadowMap.needsUpdate=true;
 }
 schattenWerte(GFX);
-const shopFill=new THREE.PointLight(0xffe9cf,0.75,15,1.4); shopFill.position.set(4.5,3.2,2.5); scene.add(shopFill);
-const shopFill2=new THREE.PointLight(0xe9f0ff,0.5,14,1.5); shopFill2.position.set(-4.5,3.2,-2.5); scene.add(shopFill2);
-const lagerLight=new THREE.PointLight(0xe8f0ff,1.0,13,1.3); lagerLight.position.set(-13.5,3.2,-2); lagerLight.distance=17; scene.add(lagerLight);
-const yardLight=new THREE.PointLight(0xffc98a,0,16,1.6); yardLight.position.set(3,3.6,-9.5); scene.add(yardLight);
-const shelfLight=new THREE.PointLight(0xfff4e0,0,11,1.6); shelfLight.position.set(-2.5,2.3,-4.6); scene.add(shelfLight);
+/* Innenlicht (07.10., Tom: "Laden-Erweiterung teils extrem dunkel, obwohl Lampen da"): die drei
+   festen Punktlichter standen im Basisladen - schon im Eckhaus, in der Suedhalle und im Lager
+   erreichte kein Licht mehr die Raeume, ihre Deckenleuchten waren nur leuchtende Flaechen.
+   Jetzt haengt das Licht an den Leuchten: ein kleiner Satz echter Punktlichter (gleich viele wie
+   vorher, also keine Shader-Neuuebersetzung, kein Mehrpreis) sitzt unter den Deckenleuchten, die dem
+   Spieler am naechsten liegen, und wandert mit ihm. Die Leuchten melden sich in LAMPEN an. */
+const LAMPEN=[];
+const INNEN_N=GFX==='ultralow'?1:GFX==='niedrig'?2:3;
+const innenLichter=[];
+for(let i=0;i<INNEN_N;i++){ const l=new THREE.PointLight(0xffe9cf,0,12.5,1.35); l.position.set(0,3,0); scene.add(l); innenLichter.push({l,tx:0,ty:3,tz:0,lampe:-1,an:0}); }
+/* Ultra Low: Hof- und Regallicht haengen nicht in der Szene (jedes Licht kostet in jedem Pixel) */
+const yardLight=new THREE.PointLight(0xffc98a,0,16,1.6); yardLight.position.set(3,3.6,-9.5); if(GFX!=='ultralow') scene.add(yardLight);
+const shelfLight=new THREE.PointLight(0xfff4e0,0,11,1.6); shelfLight.position.set(-2.5,2.3,-4.6); if(GFX!=='ultralow') scene.add(shelfLight);
 addEventListener('resize',()=>{ renderer.setPixelRatio(gfxPixel()); renderer.setSize(innerWidth,innerHeight,false); camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix(); setCompact(); if(typeof resizePost==='function') resizePost(); });
 
 function box(w,h,d,m,x,y,z,parent,shadow){ const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m); o.position.set(x,y,z); if(HIQ&&shadow!==false){ o.castShadow=true; o.receiveShadow=true; } (parent||scene).add(o); return o; }
@@ -3440,7 +3469,7 @@ function gfxSamples(st){ const g=GFX_PROFIL[st]||GFX_PROFIL.hoch; let mx=4; try{
 function initPost(){
   try{
     if(localStorage.getItem('bb_post')==='0') postOn=false;
-    if(GFX==='niedrig') postOn=false;
+    if(gfxNiedrig(GFX)) postOn=false;
   }catch(e){}
   try{
     const opt={minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter,format:THREE.RGBAFormat,stencilBuffer:false,depthBuffer:true};
@@ -3520,7 +3549,7 @@ function gfxAnwenden(st){
      sich nur Zahlen: Aufloesung, Schattenwerte, Abtastzahl - kein Shader. */
   schattenWerte(st);
   let wunsch=true; try{ wunsch=localStorage.getItem('bb_post')!=='0'; }catch(e){}
-  postOn=postOK&&wunsch&&st!=='niedrig';
+  postOn=postOK&&wunsch&&!gfxNiedrig(st);
   if(rtScene&&rtScene.isWebGLMultisampleRenderTarget){ const n=gfxSamples(st); if(rtScene.samples!==n){ rtScene.samples=n; rtScene.dispose(); } }
   postDiv=(GFX_PROFIL[st]||GFX_PROFIL.hoch).blur;
   resizePost();
@@ -3529,8 +3558,11 @@ function gfxAnwenden(st){
 /* Wahl im Pausenmenue: 'auto' oder eine feste Stufe */
 function gfxWaehlen(w){
   GFX_WAHL=w; try{ localStorage.setItem('bb_gfx',w); }catch(e){}
-  if(w==='auto'){ let st='hoch'; try{ st=localStorage.getItem('bb_gfx_auto')||'hoch'; }catch(e){} gfxAnwenden(st); gfxMess.ruhe=4; }
-  else gfxAnwenden(w);
+  let st=w;
+  if(w==='auto'){ st='hoch'; try{ st=localStorage.getItem('bb_gfx_auto')||'hoch'; }catch(e){} }
+  /* Ultra Low legt Schatten und Materialien beim Laden fest: Wechsel von und nach Ultra Low laedt neu */
+  if((st==='ultralow')!==(GFX==='ultralow')){ if(typeof save==='function') save(); toast('Grafik wird neu geladen …'); setTimeout(()=>location.reload(),350); return; }
+  gfxAnwenden(st); if(w==='auto') gfxMess.ruhe=4;
 }
 /* Automatik: Bildrate ueber Fenster von 2 s; liegt sie drei Fenster
    hintereinander unter 28 Bildern/s, eine Stufe tiefer (gemerkt fuer den
@@ -3554,15 +3586,16 @@ function gfxMessen(roh,aktiv){
   const M=gfxMess;
   if(!aktiv||document.hidden||roh>0.5){ M.t=0; M.n=0; return; }
   if(M.ruhe>0){ M.ruhe-=roh; return; }
-  if(GFX_WAHL==='auto'&&GFX!=='niedrig') resRegeln(roh);
+  if(GFX_WAHL==='auto'&&!gfxNiedrig(GFX)) resRegeln(roh);
   M.t+=roh; M.n++;
   if(M.t<2) return;
   M.fps=M.n/M.t; M.t=0; M.n=0;
-  if(GFX_WAHL!=='auto'||GFX==='niedrig'){ M.schlecht=0; return; }
+  if(GFX_WAHL!=='auto'||GFX==='ultralow'){ M.schlecht=0; return; }
   /* eine ganze Stufe tiefer erst, wenn auch die kleinste Aufloesung nicht reicht */
-  M.schlecht=M.fps<28&&RES<=RES_MIN+0.001?M.schlecht+1:0;
+  M.schlecht=(GFX==='niedrig'?M.fps<20:M.fps<28&&RES<=RES_MIN+0.001)?M.schlecht+1:0;
   if(M.schlecht>=3){ const st=GFX_STUFEN[GFX_STUFEN.indexOf(GFX)-1]; M.schlecht=0; M.ruhe=6;
     try{ localStorage.setItem('bb_gfx_auto',st); }catch(e){}
+    if(st==='ultralow'){ toast('Zu langsam: ab dem nächsten Start läuft die Automatik auf „Ultra Low“ (Esc → Grafik: sofort).'); return; }
     gfxAnwenden(st); if(typeof toast==='function') toast('Grafik automatisch auf „'+st[0].toUpperCase()+st.slice(1)+'“ gestellt ('+Math.round(M.fps)+' Bilder/s). Ändern: Esc → Grafik.'); }
 }
 let postT=0;
@@ -3703,8 +3736,8 @@ function schattenTakt(){
   const R=renderer.shadowMap; if(!R.enabled){ return; }
   R.autoUpdate=false; schattenN++;
   /* niedrig: Schatten ausgeblendet (schattenWerte), nie neu zeichnen */
-  if(GFX==='niedrig') return;
-  if(GFX_STUFEN.indexOf(GFX)>=2||schattenN>=3){ R.needsUpdate=true; schattenN=0; }
+  if(gfxNiedrig(GFX)) return;
+  if(gfxRang(GFX)>=2||schattenN>=3){ R.needsUpdate=true; schattenN=0; }
 }
 function renderFrame(dt){
   kleinTakt(dt||0);
@@ -3788,7 +3821,7 @@ function renderFrame(dt){
    ========================================================= */
 /* 0 = Maximum, 1 = Ultra, 2 = Ultra Extrem, -1 = aus (Hoch und darunter,
    Handys: dort ist Canvas- und Grafikspeicher knapp) */
-const PRACHT=(()=>{ const i=GFX_STUFEN.indexOf(GFX); let aus=false; try{ aus=localStorage.getItem('bb_pracht')==='0'; }catch(e){} return (HIQ&&!aus&&i>=3)?i-3:-1; })();
+const PRACHT=(()=>{ const i=gfxRang(GFX); let aus=false; try{ aus=localStorage.getItem('bb_pracht')==='0'; }catch(e){} return (HIQ&&!aus&&i>=3)?i-3:-1; })();
 const PR={an:PRACHT>=0, det:[512,1024,2048][PRACHT]||0, env:null, envAussen:null, mats:new WeakSet(), liste:[], tex:{}, makro:null,
   sondeK:0.4, hemiK:0.55, aoRT:null, aoRT2:null, spRT:null, spCam:null, nSp:0, spGesehen:new WeakSet(), aoMat:null, aoBlur:null, weiss:null, n:0, takt:0, sig:'', envT:-1, fehler:''};
 /* weiche Schatten: Filterart nur beim Laden (Shader), Werte je Stufe */
@@ -4115,7 +4148,7 @@ function prachtAufbau(){
    bei groesseren Umbauten neu (Regale gekauft, Bereiche geoeffnet) */
 function prachtTakt(){
   if(!PR.an) return;
-  PR_U.an.value=GFX_STUFEN.indexOf(GFX)>=3?1:0;
+  PR_U.an.value=gfxRang(GFX)>=3?1:0;
   if(PR.sonde) PR.sonde.intensity=PR_U.an.value*PR.sondeK;
   /* Die Sonde ersetzt einen Teil des Himmelslichts (applyTOD setzt es neu,
      hier wird jeder neue Wert einmal gedaempft) */
@@ -4204,7 +4237,7 @@ let _spV,_spZ,_spL,_spN,_spR,_spE,_spC,_spQ,_spP;
 function prSpHilfen(){ _spV=new THREE.Vector3(); _spZ=new THREE.Vector3(); _spL=new THREE.Vector3(); _spN=new THREE.Vector3(0,1,0); _spR=new THREE.Matrix4();
   _spE=new THREE.Plane(); _spC=new THREE.Vector4(); _spQ=new THREE.Vector4(); _spP=new THREE.Vector3(0,PR_SP_H,0); }
 function prachtSpiegel(){
-  const an=GFX_STUFEN.indexOf(GFX)>=3;
+  const an=gfxRang(GFX)>=3;
   PR_SP.k.value=0; PR_SP.t.value=PR.schwarz;
   if(!an||camera.position.y<PR_SP_H+0.05) return;
   const C=PR.spCam; camera.updateMatrixWorld();
@@ -4232,17 +4265,17 @@ function prachtSpiegel(){
   finally{ if(skyMesh&&altSky) skyMesh.position.copy(altSky); }
   PR_SP.t.value=PR.spRT.texture; PR_SP.k.value=1;
   /* je hoeher die Stufe, desto klarer das Spiegelbild (Bild ist dort auch schaerfer) */
-  PR_SP.s.value=[1,0.8,0.65][Math.max(0,Math.min(GFX_STUFEN.indexOf(GFX)-3,PRACHT))];
+  PR_SP.s.value=[1,0.8,0.65][Math.max(0,Math.min(gfxRang(GFX)-3,PRACHT))];
 }
 /* nach dem Zeichnen der Szene in rtScene: Verschattung rechnen */
 function prachtAO(){
-  const an=PR.aoRT&&GFX_STUFEN.indexOf(GFX)>=3;
+  const an=PR.aoRT&&gfxRang(GFX)>=3;
   if(!PR.aoRT){ return; }
   if(!an){ matComp.uniforms.aoAn.value=0; matComp.uniforms.tAO.value=PR.weiss; return; }
   if(PR.aoRT.width!==Math.max(2,Math.floor(postW*(PRACHT>=2?0.66:0.5)))) prachtGroesse();
   const M=PR.aoMat.uniforms, w=PR.aoRT.width, h=PR.aoRT.height, P=camera.projectionMatrix.elements;
   M.px.value.set(1/w,1/h); M.pInv.value.set(1/P[0],1/P[5]); M.p11.value=P[5]; M.near.value=camera.near; M.far.value=camera.far;
-  const st=Math.min(GFX_STUFEN.indexOf(GFX)-3,PRACHT); M.rad.value=[0.8,0.9,1.0][st]; M.staerke.value=[4.0,4.4,4.8][st];
+  const st=Math.min(gfxRang(GFX)-3,PRACHT); M.rad.value=[0.8,0.9,1.0][st]; M.staerke.value=[4.0,4.4,4.8][st];
   quadMesh.material=PR.aoMat; renderer.setRenderTarget(PR.aoRT); renderer.render(quadScene,quadCam);
   const B=PR.aoBlur.uniforms; B.far.value=camera.far;
   quadMesh.material=PR.aoBlur; B.tA.value=PR.aoRT.texture; B.dir.value.set(1/w,0); renderer.setRenderTarget(PR.aoRT2); renderer.render(quadScene,quadCam);
@@ -4389,7 +4422,7 @@ function wrapTex(circ,hh,a,draw){
    einem Probeaufbau ohne Druckbilder bestimmt). Am PC bleibt alles.
    Zum Messen: window.__wareSpar=true/false erzwingt den Handy-Aufbau. */
 const _SPAR_GEO={Cylinder:1, Cone:1, Sphere:1, Torus:1, Circle:1, Ring:1, Lathe:1, Icosahedron:1, Tube:1, Extrude:1, Plane:1};
-function wareSpar(){ try{ if(typeof window!=='undefined'&&window.__wareSpar!==undefined) return !!window.__wareSpar; }catch(e){} return typeof HIQ!=='undefined'&&!HIQ; }
+function wareSpar(){ try{ if(typeof window!=='undefined'&&window.__wareSpar!==undefined) return !!window.__wareSpar; }catch(e){} return (typeof GFX!=='undefined'&&GFX==='ultralow')||(typeof HIQ!=='undefined'&&!HIQ); }
 function sparSeg(n,min){ return n===undefined?n:Math.max(min,Math.round(n*(n>12?0.4:0.5))); }
 /* waehrend eines sparsamen Aufbaus true: die Formen (04g) nehmen dann auch
    fuer ihre eigenen Gitter (Beutel, Schalen, Profile) weniger Unterteilungen */
@@ -4798,22 +4831,74 @@ function poolCap(t){ const p=P[t], g=p.grid, gap=0.012;
 /* Kartons */
 const kartonGeo=new THREE.BoxGeometry(0.6,0.4,0.45);
 const kartonMat={};
+/* Absender nach Sparte - bei jedem Produkt steht einer drauf, je nach
+   Hash der Sorte (nicht jeder Karton ist einzigartig, aber sie sehen
+   nicht mehr alle gleich aus) */
+const KARTON_ABS={
+  feuerwerk:['Pyro-Fachhandel Brandt','Feuerwerk-Großhandel Kowalski','Import Feuerwerk GmbH','Premium Pyrotechnik','Restposten-Ratzke'],
+  essen:['Frisch & Fein Großmarkt','Kantinen-Service Nord','Feinkost Hartmann','Gourmet-Lieferdienst'],
+  getraenke:['Getränkehandel Ostmann','Sekt- & Weinkontor','Brauhaus-Vertrieb Süd'],
+  zubehoer:['Party-Zubehör Lang','Festartikel Becker','Silvester-Bedarf Roth','Dekor-Großhandel Weiß']};
+/* Nur Feuerwerk (Kategorie F1/F2) ist Gefahrgut: UN 0336, Klasse 1.4,
+   Vertraeglichkeitsgruppe G. Essen, Getraenke, Zubehoer und Einrichtung
+   tragen kein Gefahrgutzeichen (Tom, 07.10.). */
+function kartonGefahrgut(t){ const p=P[t]; return !!p&&(p.cat===1||p.cat===2); }
+function kartonVariante(t){
+  const p=P[t], h=hashStr('karton'+t), sp=p.cat?'feuerwerk':(p.sparte||'zubehoer');
+  const abs=KARTON_ABS[sp]||KARTON_ABS.zubehoer;
+  return {
+    pappe:['#c89b5c','#bf9150','#d0a46a','#b88a4e'][h%4],
+    band:[{c:'#b58a4f',n:'braun'},{c:'#efece2',n:'weiss'},{c:'#c4342a',n:'rot'},{c:'#e2b92e',n:'gelb'}][(h>>>3)%4],
+    quer:((h>>6)&3)===0,                 /* Klebeband quer statt laengs */
+    absender:abs[(h>>>8)%abs.length],
+    logo:['rund','eck','strich'][(h>>>12)%3],
+    griff:((h>>14)&1)===1,
+    barcode:((h>>15)&1)===0
+  };
+}
 function buildKartons(){
-  ORDER.forEach(t=>{ const p=P[t];
+  ORDER.forEach(t=>{ const p=P[t], v=kartonVariante(t), gefahr=kartonGefahrgut(t);
     kartonMat[t]=new THREE.MeshStandardMaterial({roughness:0.9,map:tex(256,256,(g,W,H)=>{
-      g.fillStyle='#c89b5c'; g.fillRect(0,0,W,H);
+      g.fillStyle=v.pappe; g.fillRect(0,0,W,H);
       for(let i=0;i<500;i++){ g.fillStyle=`rgba(90,60,20,${Math.random()*0.06})`; g.fillRect(Math.random()*W,Math.random()*H,2,2); }
       g.fillStyle='rgba(120,80,30,.25)'; g.fillRect(0,0,W,6); g.fillRect(0,H-6,W,6); g.fillRect(0,0,6,H); g.fillRect(W-6,0,6,H);
-      g.fillStyle='#b58a4f'; g.fillRect(W*0.44,0,W*0.12,H);
+      /* Klebeband: laengs ueber die Mitte oder quer unter dem Etikett */
+      if(v.quer){ g.fillStyle=v.band.c; g.fillRect(0,H*0.5,W,H*0.075); g.fillStyle='rgba(255,255,255,.14)'; g.fillRect(0,H*0.5,W,H*0.015); }
+      else { g.fillStyle=v.band.c; g.fillRect(W*0.44,0,W*0.12,H); g.fillStyle='rgba(255,255,255,.14)'; g.fillRect(W*0.44,0,W*0.02,H); }
+      /* Absender oben links (klein, auf dem Band-freien Streifen) */
+      g.fillStyle='rgba(30,24,16,.78)'; g.textAlign='left'; g.textBaseline='middle';
+      const lg=(x,y,r)=>{ g.save(); g.translate(x,y); g.fillStyle='rgba(30,24,16,.78)';
+        if(v.logo==='rund'){ g.beginPath(); g.arc(0,0,r,0,Math.PI*2); g.fill(); g.fillStyle=v.pappe; g.beginPath(); g.arc(0,0,r*0.55,0,Math.PI*2); g.fill(); }
+        else if(v.logo==='eck'){ g.rotate(Math.PI/4); g.fillRect(-r*0.8,-r*0.8,r*1.6,r*1.6); g.fillStyle=v.pappe; g.fillRect(-r*0.4,-r*0.4,r*0.8,r*0.8); }
+        else { g.fillRect(-r,-r*0.7,r*2,r*0.4); g.fillRect(-r,r*0.3,r*2,r*0.4); }
+        g.restore(); };
+      lg(W*0.1,H*0.07,6); g.font=BAR(13); g.fillText(v.absender,W*0.16,H*0.07+1);
+      /* Etikett mit Produkt */
       g.fillStyle='#f7f3ea'; g.fillRect(W*0.08,H*0.14,W*0.84,H*0.34);
       g.fillStyle=p.art.bg1; g.fillRect(W*0.08,H*0.14,W*0.84,H*0.07);
       g.fillStyle='#16181f'; g.textAlign='center'; g.textBaseline='middle';
       fitFont(g,p.name,W*0.78,34,BAR); g.fillText(p.name,W/2,H*0.3);
       g.font=BAR(20); g.fillText(`${p.box} Stück, ${p.cat?'Kategorie F'+p.cat:SPARTE_NAME[p.sparte||'zubehoer']}`,W/2,H*0.42);
-      if(p.cat){ g.save(); g.translate(W*0.24,H*0.72); g.rotate(Math.PI/4); g.fillStyle='#f28a1c'; g.fillRect(-26,-26,52,52); g.strokeStyle='#16181f'; g.lineWidth=3; g.strokeRect(-22,-22,44,44); g.restore();
-        g.fillStyle='#16181f'; g.font=BUN(16); g.fillText('1.4G',W*0.24,H*0.73);
-        g.font=BAR(20); g.textAlign='left'; g.fillText('Vorsicht,',W*0.42,H*0.68); g.fillText('explosiv',W*0.42,H*0.77); }
-      else { g.fillStyle='#16181f'; g.font=BAR(22); g.textAlign='left'; g.fillText(p.cold?'Kühl lagern':p.sparte==='essen'?'Lebensmittel · trocken lagern':'Bitte trocken lagern',W*0.16,H*0.73); }
+      const unten=v.quer?H*0.68:H*0.72;
+      if(gefahr){
+        /* UN 0336, Klasse 1.4, Vertraeglichkeitsgruppe G */
+        g.save(); g.translate(W*0.24,unten+(v.quer?H*0.1:0)); g.rotate(Math.PI/4); g.fillStyle='#f28a1c'; g.fillRect(-26,-26,52,52); g.strokeStyle='#16181f'; g.lineWidth=3; g.strokeRect(-22,-22,44,44); g.restore();
+        g.fillStyle='#16181f'; g.textAlign='center'; g.font=BUN(16); g.fillText('1.4G',W*0.24,unten+(v.quer?H*0.1:0)+1);
+        g.font=BAR(20); g.textAlign='left'; g.fillText('Vorsicht,',W*0.42,unten+(v.quer?H*0.1:0)-H*0.04); g.fillText('explosiv',W*0.42,unten+(v.quer?H*0.1:0)+H*0.05);
+        g.font=BAR(13); g.fillText('UN 0336',W*0.42,unten+(v.quer?H*0.1:0)+H*0.12);
+      } else {
+        g.fillStyle='#16181f'; g.font=BAR(22); g.textAlign='left';
+        const sp=p.sparte||'zubehoer', x0=W*0.16, yy=unten+(v.quer?H*0.1:0);
+        g.fillText(p.cold?'Kühl lagern':sp==='essen'?'Lebensmittel · trocken lagern':sp==='getraenke'?'Vorsicht Glas':'Bitte trocken lagern',x0,yy);
+        if(p.cold){ g.fillStyle='#1f5fae'; g.fillRect(W*0.08,H*0.5,W*0.84,H*0.03); }
+        if(sp==='getraenke'){ g.strokeStyle='#16181f'; g.lineWidth=2; g.beginPath(); g.moveTo(W*0.9,yy-8); g.lineTo(W*0.84,yy+8); g.lineTo(W*0.96,yy+8); g.closePath(); g.stroke(); }
+      }
+      /* Pfeile oben und Barcode */
+      g.strokeStyle='rgba(30,24,16,.7)'; g.lineWidth=3;
+      for(const x of [W*0.82,W*0.88]){ g.beginPath(); g.moveTo(x,H*0.97); g.lineTo(x,H*0.88); g.moveTo(x-5,H*0.91); g.lineTo(x,H*0.87); g.lineTo(x+5,H*0.91); g.stroke(); }
+      if(v.barcode){ g.fillStyle='#f7f3ea'; g.fillRect(W*0.06,H*0.86,W*0.3,H*0.1); g.fillStyle='#16181f'; const bh=hashStr(t);
+        for(let x=W*0.075,k=0;x<W*0.34;k++){ const bw=1+((bh>>(k%24))&1)*1.6; g.fillRect(x,H*0.87,bw,H*0.08); x+=bw+1.1; } }
+      if(v.griff){ g.fillStyle='rgba(40,28,14,.7)'; g.beginPath(); g.ellipse(W*0.5,H*0.045,W*0.1,H*0.014,0,0,Math.PI*2); g.fill(); }
     })});
   });
 }
@@ -12898,6 +12983,7 @@ function buildWorld(){
      Verkaufsraums - das Lager ist hoeher. Und der Anbau nach Norden
      bekommt jetzt auch welche, er gehoert zum selben Raum. */
   for(const x of [-17.95,-15.3,-12.7,-10.05]) for(const z of [-4,0,4]) leuchten.push([x,LAGER_H,z]);
+  for(const [x,hy,z] of leuchten) LAMPEN.push({x,y:hy,z,id:null});
   for(const [x,hy,z] of leuchten){
     bbox(1.44,0.03,0.42,rev,x,hy-0.008,z,null,false);          // Schattenfuge
     bbox(1.36,0.028,0.36,fixM,x,hy-0.026,z,null,false);        // Rahmen
@@ -15396,11 +15482,15 @@ function makeBaum(){
   const V3=THREE.Vector3, Q=THREE.Quaternion, UP=new V3(0,1,0);
   /* Parameter je Astordnung: 0 Stamm, 1 Hauptaeste, 2 Seitenaeste,
      3 Zweige, 4 Feinreisig (nur HIQ) */
-  const L=HIQ?4:3;
+  /* 08.10.: gemessen 17000 Dreiecke je Baum, 14 Baeume im Bild (Park, Strasse) = knapp ein Viertel aller
+     Dreiecke der Gameplay-Vorfuehrung. Niedrig und Ultra Low bekommen gröbere Baeume (weniger Astordnungen
+     und Segmente), die Krone bleibt erkennbar. */
+  const HQ=HIQ&&!gfxNiedrig(GFX), UL=GFX==='ultralow';
+  const L=HQ?4:UL?2:3;
   const P={
     kinder:[7,4,4,3], winkel:[52,42,38,34], start:[0.40,0.25,0.2,0.25],
     laenge:[4.2,3.0,1.4,0.62,0.3], radius:[0.25,0.5,0.5,0.52,0.55],
-    ringe:[12,8,5,3,2], seg:[HIQ?14:9,HIQ?9:6,6,4,3], verj:[0.72,0.8,0.82,0.88,0.92],
+    ringe:[12,8,5,3,2], seg:[HQ?14:UL?6:9,HQ?9:UL?4:6,UL?4:6,4,3], verj:[0.72,0.8,0.82,0.88,0.92],
     krumm:[0.035,0.13,0.2,0.26,0.3], auf:[0,0.018,0.014,0.01,0.006]
   };
   const pos=[], nor=[], uv=[], sch=[], idx=[];
@@ -17425,6 +17515,7 @@ function leuchtenRaster(id,r,y,ax,az){
   const korpus=[], diff=[];
   for(let i=0;i<nx;i++) for(let k=0;k<nz;k++){
     const x=r.x0+(i+0.5)*(r.x1-r.x0)/nx, z=r.z0+(k+0.5)*(r.z1-r.z0)/nz;
+    LAMPEN.push({x,y,z,id});
     korpus.push({geo:gRev,m:tm(x,y-0.008*f,z),color:0x252932});
     korpus.push({geo:gFix,m:tm(x,y-0.026*f,z),color:0xdfe3e9});
     diff.push({geo:gDif,m:tm(x,y-0.043*f,z,Math.PI/2,0,0)});
@@ -17469,11 +17560,15 @@ function halle(id,r,opt){
   if(au.w) wall(r.x0-LW,r.x0,r.z0,r.z1,0,H,'+x',innen,ex);
   if(au.e) wall(r.x1,r.x1+LW,r.z0,r.z1,0,H,'-x',innen,ex);
   if(au.n) wall(r.x0-LW,r.x1+LW,r.z1,r.z1+LW,0,H,'-z',innen,ex);
-  if(au.s) wall(r.x0-LW,r.x1+LW,r.z0-LW,r.z0,0,H,'+z',innen,ex);
+  if(au.s&&opt.torS){ const T=opt.torS;
+    wall(r.x0-LW,T.x0,r.z0-LW,r.z0,0,H,'+z',innen,ex); wall(T.x1,r.x1+LW,r.z0-LW,r.z0,0,H,'+z',innen,ex);
+    wall(T.x0,T.x1,r.z0-LW,r.z0,T.h,H,'+z',innen,ex); }
+  else if(au.s) wall(r.x0-LW,r.x1+LW,r.z0-LW,r.z0,0,H,'+z',innen,ex);
   if(au.w) col(r.x0-LW,r.x0,r.z0,r.z1);
   if(au.e) col(r.x1,r.x1+LW,r.z0,r.z1);
   if(au.n) col(r.x0-LW,r.x1+LW,r.z1,r.z1+LW);
-  if(au.s) col(r.x0-LW,r.x1+LW,r.z0-LW,r.z0);
+  if(au.s&&opt.torS){ const T=opt.torS; col(r.x0-LW,T.x0,r.z0-LW,r.z0); col(T.x1,r.x1+LW,r.z0-LW,r.z0); }
+  else if(au.s) col(r.x0-LW,r.x1+LW,r.z0-LW,r.z0);
   /* Sockelleisten nur im Laden */
   if(!lager){
     const base=sockelM();
@@ -17945,7 +18040,9 @@ function buildAusbau(){
      hoch, damit zwischen ihnen keine Wand stehen bleiben muss. */
   halle('lager_gross',LAY.ls1,{art:'lager',ao:{w:true,e:true},h:HALLE_H});
   halle('lager_sued', LAY.ls2,{art:'lager',ao:{w:true,e:true},h:HALLE_H});
-  halle('lager_sued2',LAY.ls3,{art:'lager',aussen:{s:true},ao:{s:true,w:true,e:true},h:HALLE_H});
+  halle('lager_sued2',LAY.ls3,{art:'lager',aussen:{s:true},ao:{s:true,w:true,e:true},h:HALLE_H,
+    /* Versandtor V1 in der Rueckwand (11e): 3,26 m breit, 3 m hoch */
+    torS:{x0:V1.x-V1.w/2,x1:V1.x+V1.w/2,h:V1.h}});
   /* Der Grosshandel ist ein eigenes Gebaeude: 1520 m2 und zwoelf
      Meter licht, damit Palettenregale und ein Hubwagen hineinpassen.
      Die Westwand mit den Ladetoren baut westWand(). */
@@ -18022,6 +18119,7 @@ function buildAusbau(){
   lagerSperre();
   buildLagerTerminal();
   buildPackstation();
+  buildVersandhof();
   buildLogistikHalle();
   buildLogistik();
 }
@@ -18048,7 +18146,11 @@ function buildAusbau(){
    des Lagerregals dort (ab Stufe 2).
    ========================================================= */
 let packHit=null, packTisch=null, packMov=null;
-const PACK_HOME={x:-18.0,z:-8.6,ry:0};
+/* 07.10. (Tom, Ausbauplan): die Versandecke steht am hinteren Ende von Lager Sued 3,
+   gedreht - die offene Seite der gelben Box zeigt zum Rolltor V1 in der Rueckwand */
+/* 1,2 m von der Rueckwand weg: zwischen Rollwagen und Wand blieb sonst nur eine Gasse von 0,4 m, die Packer
+   und ihre Wagen quetschte (Wagen drehte durch den Tisch, Packer 3 lief durch den Parkplatz) */
+const PACK_HOME={x:-11.6,z:-27.3,ry:Math.PI};
 /* Packplaetze: Tischmitte und Seite. s 1: Tisch noerdlich am Band, der
    Packer steht noerdlich davor; s -1: gespiegelt suedlich des Bandes.
    Platzkoordinaten (px,pz): Tischmitte 0/0, +pz zeigt zum Packer. */
@@ -18171,14 +18273,6 @@ function buildPackstation(){
       for(let x=2;x<W;x+=16){ c.beginPath(); c.moveTo(x,0); c.lineTo(x,H); c.stroke(); }
       for(let y=2;y<H;y+=16){ c.beginPath(); c.moveTo(0,y); c.lineTo(W,y); c.stroke(); } });
     t.wrapS=t.wrapT=THREE.RepeatWrapping; return t; })(),transparent:true,alphaTest:0.4,side:THREE.DoubleSide,roughness:0.6,metalness:0.3});
-  const ddlTex=tex(520,260,(c,W,H)=>{
-    c.fillStyle='#1b2340'; c.fillRect(0,0,W,H);
-    c.strokeStyle='#ffd23f'; c.lineWidth=10; c.strokeRect(8,8,W-16,H-16);
-    c.textAlign='center'; c.textBaseline='middle';
-    c.fillStyle='#ffd23f'; c.font=BUN(58); c.fillText('ABHOLUNG',W/2,66);
-    c.fillStyle='#ffffff'; c.font=BUN(72); c.fillText('DDL',W/2,142);
-    c.fillStyle='#bcd0ea'; c.font=BAR(34); c.fillText('täglich ab 18:00 Uhr',W/2,212); });
-  const ddlM=new THREE.MeshStandardMaterial({map:ddlTex,roughness:0.6});
   const brX1=BAND.x0+0.65;   /* die Portalbruecke ragt im Osten ueber das Bandende */
   for(let s=1;s<=3;s++){ const k='nur'+s, C=ZELLE[s], x0=C.x0, x1=C.x1, z0=C.z0, z1=C.z1;
     const px0=x0+0.06, px1=x1-0.06, pz0=z0+0.06, pz1=z1-0.06;
@@ -18198,11 +18292,10 @@ function buildPackstation(){
         m.material.map.repeat&&m.material.map.repeat.set(L/0.5,(h-0.2)/0.5);
         m.position.set((ax+bx)/2,h/2+0.02,(az+bz)/2); m.rotation.y=-ry; g.add(m); reg(m,k); }
       else B(k,L,0.04,0.04,GELB,(ax+bx)/2,h*0.55,(az+bz)/2,0,-ry,0); };
-    zaun(x0,z1,x0,z0,2.0); zaun(x0,z0,x1,z0,2.0); zaun(x0,z1,x1,z1,2.0); zaun(x1,z1-0.15,x1,z0+0.15,1.1);
-    /* DDL-Abholschild aussen am Nordzaun - dort kommt man vom Rolltor her */
-    const sx=(x0+x1)/2;
-    B(k,1.06,0.56,0.04,0x2f343d,sx,1.45,z1+0.035);
-    const sm=plane(1.0,0.5,ddlM,sx,1.45,z1+0.058,0,g); reg(sm,k);
+    /* Die Seite zum Rolltor V1 (Norden der Gruppe) ist offen: dort fahren die Paletten
+       mit dem Hubwagen hinaus. Zaun nur an Wand, Suedende und zum Band. */
+    zaun(x0,z1,x0,z0,2.0); zaun(x0,z0,x1,z0,2.0); zaun(x1,z1-0.15,x1,z0+0.15,1.1);
+    B(k,0.5,0.03,0.04,GELB,x0+0.3,0.02,z1-0.05); B(k,0.5,0.03,0.04,GELB,x1-0.3,0.02,z1-0.05);
     /* Boden: Warnstreifen am Rand, Eckmarken der Palettenplaetze */
     const PXM=200, W=Math.round((x1-x0)*PXM), H=Math.round((z1-z0)*PXM);
     const ft=tex(W,H,(c)=>{ c.clearRect(0,0,W,H);
@@ -18219,13 +18312,7 @@ function buildPackstation(){
       polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2}));
     fm.rotation.x=-Math.PI/2; fm.position.set((x0+x1)/2,0.021,(z0+z1)/2); g.add(fm); reg(fm,k);
   }
-  /* Paletten: zwei je Stufe; Bretter laengs (x), Kufen quer */
-  for(let j=0;j<6;j++){ const k='ab'+(1+Math.floor(j/2)), p=PALETTEN[j];
-    for(const dx of [-0.55,0,0.55]) for(const dz of [-0.34,0,0.34]) B(k,0.12,0.078,0.12,HOLZ2,p.x+dx,0.061,p.z+dz);
-    for(const dz of [-0.34,0,0.34]) B(k,1.2,0.022,0.12,HOLZ,p.x,0.011,p.z+dz);
-    for(const dx of [-0.55,0,0.55]) B(k,0.14,0.022,0.8,HOLZ,p.x+dx,0.111,p.z);
-    for(const dz of [-0.34,-0.17,0,0.17,0.34]) B(k,1.2,0.022,dz===0||Math.abs(dz)>0.3?0.14:0.1,dz===0||Math.abs(dz)>0.3?HOLZ:0xcfa66d,p.x,PAL_H-0.011,p.z+dz);
-  }
+  /* Paletten sind eigene Objekte (11e-palette.js): die Box zeigt sie dort. */
   /* bewegliche Portalteile: Bruecke (faehrt in z), Laufwagen, Hubachse, Greifer */
   { const Pt={}, gelb=std(GELB,{roughness:0.5,metalness:0.25}), dunkel=std(0x2a2e36,{roughness:0.55,metalness:0.4}), zink=std(ZINK,{metalness:0.6,roughness:0.35});
     const bx0=ZELLE[1].x0+0.01, L=brX1-bx0;
@@ -18265,10 +18352,16 @@ function buildPackstation(){
       /* Tisch und Packmaterial-Regal je Platz */
       for(let i=0;i<st;i++){ const a=ppW(i,-1.27,-0.41), b=ppW(i,VS_TB/2+0.04,0.41);
         t.push({x0:Math.min(a.x,b.x),x1:Math.max(a.x,b.x),z0:Math.min(a.z,b.z),z1:Math.max(a.z,b.z)}); }
-      t.push({x0:C.x0-0.02,x1:C.x1+0.04,z0:C.z0-0.04,z1:C.z1+0.08});                                 /* Palettierstation */
-      if(!zoneOffen(id)) t.push({x0:PACK_FL.x0,x1:PACK_FL.x1,z0:1.06,z1:PACK_FL.z1});
+      /* Palettierstation: Zaun an Wand, Suedende und zum Band; die Seite zu V1 ist offen,
+         innen stehen nur die Paletten, die wirklich da sind (11e) */
+      t.push({x0:C.x0-0.02,x1:C.x0+0.1,z0:C.z0-0.04,z1:C.z1+0.04});
+      t.push({x0:C.x0-0.02,x1:C.x1+0.04,z0:C.z0-0.04,z1:C.z0+0.08});
+      t.push({x0:C.x1-0.06,x1:C.x1+0.04,z0:C.z0-0.04,z1:C.z1+0.04});
+      if(typeof S!=='undefined'&&S&&Array.isArray(S.paletten)&&zoneOffen(id)) for(const p of S.paletten){ if(p.ort!=='z') continue; const c=PALETTEN[Math.min(PALETTEN.length-1,p.idx)];
+        if(p.idx>=PAL_N[st]) continue; t.push({x0:c.x-0.6,x1:c.x+0.6,z0:c.z-0.4,z1:c.z+0.4}); }
+      if(!zoneOffen(id)) t.push({x0:PACK_FL.x0,x1:PACK_FL.x1,z0:-1.7,z1:-1.35});
       /* die geparkten Kommissionierwagen (solange sie nicht unterwegs sind) */
-      else for(let i=0;i<st;i++){ const w=vsPlaetze[i]&&vsPlaetze[i].wagen; if(w&&w.parent===g){ const p=ppW(i,WG_PARK.x,WG_PARK.z); t.push({x0:p.x-0.48,x1:p.x+0.48,z0:p.z-0.36,z1:p.z+0.36}); } }
+      else for(let i=0;i<st;i++){ const w=vsPlaetze[i]&&vsPlaetze[i].wagen; if(w&&w.parent===g){ const p=ppW(i,vsPK(i).px,vsPK(i).pz); t.push({x0:p.x-0.48,x1:p.x+0.48,z0:p.z-0.36,z1:p.z+0.36}); } }
       return t;
     }});
   zHook(id,()=>{ packStufeAnwenden(); });
@@ -18301,7 +18394,7 @@ function packPlatzPruefen(laut){
    darueber hinweg, kommt aber nicht heran. Es haengt in der Gruppe der
    Station und wandert beim Umbau mit. */
 function packSperre(id,g){
-  const zb=1.17, xs=[-1.7,0.3,2.2,4.1];
+  const zb=-1.62, xs=[-1.7,0.3,2.2,4.1];
   const bandM=new THREE.MeshStandardMaterial({map:sperrbandTex('NOCH NICHT FREIGESCHALTET'),
     roughness:0.72,side:THREE.DoubleSide});
   const halt=std(0x3d4450,{metalness:0.5,roughness:0.5});
@@ -18873,7 +18966,8 @@ function normalMapFrom(w,h,draw,strength){
 
 /* Jedes Stadtmesh wird markiert: so laesst sich im Test pruefen, dass
    nichts davon in den begehbaren Bereich ragt. */
-function stadtAdd(m){ m.userData.stadt=true; scene.add(m); return m; }
+/* Ultra Low: die Stadt entfaellt (Himmel und Nebel bleiben) */
+function stadtAdd(m){ m.userData.stadt=true; if(GFX==='ultralow') m.visible=false; scene.add(m); return m; }
 /* =========================================================
    Stadt hinter dem Laden.
    Gebaut in Ringen, wie es Spiele mit grosser Sichtweite machen:
@@ -19936,7 +20030,7 @@ function buildHochstrasse(){
   });
   stadtAdd(new THREE.Mesh(merge(teile),new THREE.MeshStandardMaterial({vertexColors:true,roughness:0.92})));
   stadtAdd(new THREE.Mesh(merge(pfeiler),new THREE.MeshStandardMaterial({vertexColors:true,roughness:0.95})));
-  if(lampen.length){ const m=new THREE.Mesh(merge(lampen),lm); m.userData.stadt=true; scene.add(m); }
+  if(lampen.length){ const m=new THREE.Mesh(merge(lampen),lm); m.userData.stadt=true; if(GFX==='ultralow') m.visible=false; scene.add(m); }
 }
 /* --- Verkehr: auf der Hochstrasse und die eigene Strasse hinunter --- */
 let verkehrPts=null, verkehrDat=[];
@@ -20527,7 +20621,8 @@ function logiAnwenden(){
    Wiese bis an die Suedhallenwand (z -22.2). Ausgespart bleiben das
    Testfeld selbst und die Ecke, in der das Lager steht (PARK_LOCH). */
 const PARK={x0:-19, x1:41.5, z0:-53.6, z1:-22.3};
-const PARK_LOCH=[{x0:-19, x1:-7.7, z0:-30.4, z1:-22.3},{x0:-7.7, x1:8.15, z0:-28.1, z1:-22.3}];
+/* dritte Aussparung: der Versandhof hinter dem Rolltor V1 (11e, V1_HOF) */
+const PARK_LOCH=[{x0:-19, x1:-7.7, z0:-30.4, z1:-22.3},{x0:-7.7, x1:8.15, z0:-28.1, z1:-22.3},{x0:-16.0, x1:-4.4, z0:-46.0, z1:-30.4}];
 const SEE={x:13, z:-42, rx:8.5, rz:4.6};
 /* Rundweg: Ellipse um den See */
 const RUNDWEG={x:13, z:-42, rx:13.5, rz:8.2};
@@ -20600,7 +20695,7 @@ function buildPark(){
     stadtAddPark(new THREE.Mesh(merge(T),new THREE.MeshStandardMaterial({vertexColors:true,roughness:0.9})));
   }
   /* --- Baeume: kahle Laubbaeume und verschneite Tannen --- */
-  const laub=[[-14,-34],[-9,-49],[1,-33],[4,-51],[27,-33],[31,-50],[37,-38],[-3,-44],[22,-52]];
+  const laub=[[-18,-36],[-9,-49],[1,-33],[4,-51],[27,-33],[31,-50],[37,-38],[-2,-44],[22,-52]];
   laub.forEach(([x,z],i)=>{ if(typeof makeBaum!=='function') return; const b=makeBaum(); b.position.set(x,0,z); b.scale.setScalar(0.95+parkRauschen(i)*0.3); b.rotation.y=parkRauschen(i+7)*6; b.userData.baum=true; b.userData.park=true; scene.add(b); });
   const T=[];
   /* Tanne: sechs leicht versetzte, schraege Etagen statt vier sauberer
@@ -20615,10 +20710,10 @@ function buildPark(){
          auf, statt als Ring abzustehen */
       T.push({geo:new THREE.ConeGeometry(r*0.45*1.06,hh*0.45,11),m:tm(x+ox,y+hh*(0.55+0.225)+0.015,z+oz,kip,q()*6,kip),color:0xd9e1ea}); }
     T.push({geo:new THREE.ConeGeometry(h*0.05,h*0.14,7),m:tm(x,h*0.86,z),color:0x2a4a33}); };
-  [[13,-24.8],[22,-25.4],[31,-24.9],[39,-25.6],[-17,-40],[-16,-51],[-11,-38],[-6,-52],[6,-36],[19,-31.5],[33,-44],[38,-52],[39,-32],[-1,-50],[25,-49],[-18,-46]]
+  [[13,-24.8],[22,-25.4],[31,-24.9],[39,-25.6],[-17.8,-40],[-16,-51],[-17.2,-33.5],[-6,-52],[6,-36],[19,-31.5],[33,-44],[38,-52],[39,-32],[-1,-50],[25,-49],[-18,-46]]
     .forEach(([x,z],i)=>{ tanne(x,z,4+parkRauschen(i+3)*3.5); PARK_TANNEN++; });
   /* Buesche mit Schneehauben */
-  [[-8,-40],[0,-39],[26,-44],[29,-36],[5,-47],[20,-49],[-13,-45],[35,-47]].forEach(([x,z],i)=>{
+  [[-2.5,-41],[0,-39],[26,-44],[29,-36],[5,-47],[20,-49],[-18,-47],[35,-47]].forEach(([x,z],i)=>{
     for(let k=0;k<3;k++){ const r=rand(0.5,0.8), dx=rand(-0.6,0.6), dz=rand(-0.5,0.5);
       T.push({geo:new THREE.SphereGeometry(r,9,7),m:tm(x+dx,r*0.7,z+dz,0,0,0,1,0.8,1),color:pick([0x33502f,0x3c5a36])});
       T.push({geo:new THREE.SphereGeometry(r*0.8,9,5,0,Math.PI*2,0,Math.PI*0.35),m:tm(x+dx,r*0.9,z+dz),color:0xe8edf3}); } });
@@ -22227,8 +22322,11 @@ function lvSicht(lv){
    rausfaellt. Am Rechner bleibt alles stehen (Schatten von Ware ausserhalb
    des Bildes). */
 const _blickF=typeof THREE.Frustum==='function'?new THREE.Frustum():null, _blickM=new THREE.Matrix4(), _blickS=typeof THREE.Sphere==='function'?new THREE.Sphere():null, _blickV=new THREE.Vector3();
+/* 07.10. (Tom: auf Niedrig 10-11 Bilder/s): gemessen 9,8 Millionen Dreiecke je Bild in der Vorfuehrung -
+   die Sichtregel gilt auch in Niedrig und Ultra Low (ohne Schattenkarte gibt es keinen Grund, Ware
+   ausserhalb des Bildes zu zeichnen) */
 function regaleImBlick(){
-  if(HIQ||!_blickF||!_blickS) return;
+  if((HIQ&&!gfxNiedrig(GFX))||!_blickF||!_blickS) return;
   camera.updateMatrixWorld();
   _blickM.multiplyMatrices(camera.projectionMatrix,camera.matrixWorldInverse); _blickF.setFromProjectionMatrix(_blickM);
   for(const sh of shelves) for(const lv of sh.levels){
@@ -22362,6 +22460,7 @@ function rackZugang(K,p){
   if(NAV.dirty) navBuild();
   const G=NAV.g, roh=rackHaltepunkte(K,p), vorher=rackErreichbar(G);
   const a=roh.map(([x,z])=>{ const n=navNah(x,z); return n>=0&&!!vorher[n]; });
+  const r1v=rackR1Pack(G);
   const fw=K.w+0.16, fd=2*K.zo+0.14, q=Math.abs(Math.round(Math.sin(p.ry||0))), hw=(q?fd:fw)/2+0.3, hd=(q?fw:fd)/2+0.3;
   const g2=G.slice();
   const i0=Math.max(0,Math.floor((p.x-hw-NAV.x0)/NAV.s)), i1=Math.min(NAV.w-1,Math.floor((p.x+hw-NAV.x0)/NAV.s));
@@ -22369,8 +22468,23 @@ function rackZugang(K,p){
   for(let i=i0;i<=i1;i++) for(let k=k0;k<=k1;k++) g2[k*NAV.w+i]=1;
   NAV.g=g2;
   try{ const nach=rackErreichbar(g2);
+    /* 07.10. (Tom, Vorfuehrung): zwischen Packstation und Rolltor 1 kam man nicht durch -
+       die Regalreihe vor der Halle-Sued-Oeffnung stand die ganze Breite zu. Der Weg vom
+       Rolltor zum Packplatz bleibt frei, solange er frei war. */
+    if(r1v&&!rackR1Pack(g2)) return false;
     return roh.every(([x,z],i)=>{ if(!a[i]) return true; const m=navNah(x,z); return m>=0&&!!nach[m]; });
   } finally { NAV.g=G; }
+}
+/* Rolltor 1 (Innenseite) und der Platz vor dem ersten Packtisch */
+const R1_INNEN={x:-19.0,z:-2.0};
+function rackR1Pack(g){
+  if(typeof packTisch==='undefined'||!packTisch||typeof zoneOffen!=='function'||!zoneOffen('packstation')||typeof vsHeim!=='function') return true;
+  const start=navNah(R1_INNEN.x,R1_INNEN.z), h=vsHeim({pp:0}), ziel=navNah(h.x,h.z); if(start<0||ziel<0) return true;
+  const W=NAV.w, H=NAV.h, out=new Uint8Array(g.length); out[start]=1; const Q=[start]; let k0=0;
+  if(start===ziel) return true;
+  while(k0<Q.length){ const k=Q[k0++], i=k%W, r=(k-i)/W;
+    for(const n of [i>0?k-1:-1,i<W-1?k+1:-1,r>0?k-W:-1,r<H-1?k+W:-1]) if(n>=0&&!g[n]&&!out[n]){ if(n===ziel) return true; out[n]=1; Q.push(n); } }
+  return false;
 }
 /* Alte Spielstaende: ein Lagerregal, das in der Wand steht, zieht auf
    den naechsten freien Platz, der es nimmt (sonst bleibt es stehen) */
@@ -23082,7 +23196,7 @@ function testKauf(id){
    der Laderaum ist begehbar.
    ========================================================= */
 let truck=null, truckDriver=null;
-const TRUCKCOL={mertens:0x2f6bb8,kowalski:0xc8322a,ratzke:0x6f7684,import:0x3f8a5a,premium:0x1b2340,direkt:0x8a6ab8,pack:0xd08a2f};
+const TRUCKCOL={mertens:0x2f6bb8,kowalski:0xc8322a,ratzke:0x6f7684,import:0x3f8a5a,premium:0x1b2340,direkt:0x8a6ab8,pack:0xd08a2f,ddl:0xffcc00};
 /* Laderaum: Heck bündig an der Wand, Innenmaße begehbar */
 const LR={rear:-20.05,len:9.4,w:3.0,h:2.88,z:-2};
 function lrFront(){ return LR.rear-LR.len; }
@@ -23091,6 +23205,16 @@ const BRUECKE_X=-20.1, FLAP_MAX=1.5, FLAP_T=1.1;
 
 function liveryTex(name,col,innen){
   const hex='#'+new THREE.Color(col).getHexString();
+  /* DDL (Paketdienst, 07.10.): gelber Kasten, roter Streifen, wie man es von Paketautos kennt */
+  if(name==='DDL') return tex(512,256,(g,W,H)=>{
+    g.fillStyle=innen?'#e9e3cc':'#ffcc00'; g.fillRect(0,0,W,H);
+    for(let x=0;x<W;x+=14){ g.fillStyle='rgba(0,0,0,.07)'; g.fillRect(x,0,3,H); g.fillStyle='rgba(255,255,255,.28)'; g.fillRect(x+4,0,3,H); }
+    g.fillStyle='#d40511'; g.fillRect(0,H*0.62,W,H*0.14); g.fillStyle='rgba(0,0,0,.18)'; g.fillRect(0,H*0.76,W,5);
+    g.textAlign='center'; g.textBaseline='middle';
+    g.fillStyle='#d40511'; fitFont(g,'DDL',W*0.5,innen?64:112,BUN); g.fillText('DDL',W/2,H*0.32);
+    g.fillStyle='#ffffff'; g.font=BAR(innen?24:30); g.fillText('PAKETDIENST · EXPRESS',W/2,H*0.69);
+    g.fillStyle='rgba(60,50,20,.25)'; for(let i=0;i<160;i++) g.fillRect(Math.random()*W,H*0.8+Math.random()*H*0.2,4,3);
+  });
   return tex(512,256,(g,W,H)=>{
     if(innen){
       g.fillStyle='#d8d4c8'; g.fillRect(0,0,W,H);
@@ -23192,9 +23316,11 @@ function makeTruck(name,col){
    three.js alle Shader neu uebersetzen - das Bild stand beim Andocken
    jedes Mal (15 Shader). Es gibt nur einen begehbaren Laderaum. */
 const LR_LAMPE=[new THREE.PointLight(0xffeccf,0,11,1.4),new THREE.PointLight(0xffeccf,0,9,1.4)];
-LR_LAMPE.forEach(l=>scene.add(l));
-function makeLaderaum(name,col){
-  const g=new THREE.Group(); g.position.set(LR.rear,0,LR.z); scene.add(g);
+if(GFX!=='ultralow') LR_LAMPE.forEach(l=>scene.add(l));
+function makeLaderaum(name,col,rahmen){
+  /* rahmen: ein anderer Anlegeplatz (DDL an V1) - Koordinaten wie an der Basisrampe, nur in der Gruppe */
+  const g=new THREE.Group();
+  if(rahmen) rahmen.add(g); else { g.position.set(LR.rear,0,LR.z); scene.add(g); }
   const L=LR.len, W=LR.w, HH=LR.h;
   /* Boden: Siebdruckplatte mit zwei Laufspuren */
   const plank=tex(512,256,(c,Wc,Hc)=>{
@@ -23245,8 +23371,12 @@ function makeLaderaum(name,col){
   dach.rotation.x=Math.PI/2; dach.position.set(-L/2,HH-0.012,0); g.add(dach);
   const led=new THREE.MeshBasicMaterial({color:0xfff6e2,toneMapped:false});
   for(const s of [-1,1]) bbox(L-0.8,0.03,0.07,led,-L/2,HH-0.07,s*(W/2-0.22),g,false);
+  if(rahmen){ rahmen.updateMatrixWorld(true);
+    const l0=rahmen.localToWorld(new THREE.Vector3(-L*0.45,HH-0.3,0)), l1=rahmen.localToWorld(new THREE.Vector3(-L*0.85,HH-0.3,0));
+    LR_LAMPE[0].position.copy(l0); LR_LAMPE[0].intensity=0.85; LR_LAMPE[1].position.copy(l1); LR_LAMPE[1].intensity=0.6; }
+  else {
   LR_LAMPE[0].position.set(g.position.x-L*0.45,HH-0.3,g.position.z); LR_LAMPE[0].intensity=0.85;
-  LR_LAMPE[1].position.set(g.position.x-L*0.85,HH-0.3,g.position.z); LR_LAMPE[1].intensity=0.6;
+  LR_LAMPE[1].position.set(g.position.x-L*0.85,HH-0.3,g.position.z); LR_LAMPE[1].intensity=0.6; }
   /* Stirnwand mit Lieferantenschrift */
   const fm=new THREE.MeshStandardMaterial({map:liveryTex(name,col,true),roughness:0.78});
   const front=new THREE.Mesh(new THREE.PlaneGeometry(W,HH),fm);
@@ -23299,11 +23429,11 @@ function spawnTruck(cargo,supId,supName){
 }
 /* Ueberladebruecke = die heruntergeklappte Klappe des LKW.
    Existiert nur, solange der LKW an der Rampe steht. */
-function makeBruecke(){
+function makeBruecke(rahmen){
   /* Scharnier sitzt an der Heckkante des LKW, die Platte reicht ins
      Lager hinein. Ein Drehen um z klappt sie hoch wie eine echte
      Ladebordwand. */
-  const g=new THREE.Group(); g.position.set(BRUECKE_X,0.035,LR.z);
+  const g=new THREE.Group(); if(rahmen) g.position.set(BRUECKE_X-LR.rear,0.035,0); else g.position.set(BRUECKE_X,0.035,LR.z);
   const plate=tex(128,128,(c,W,H)=>{ c.fillStyle='#8f959e'; c.fillRect(0,0,W,H);
     for(let y=0;y<H;y+=22) for(let x=0;x<W;x+=22){ c.save(); c.translate(x+11,y+11); c.rotate((x/22+y/22)%2?0.7:-0.7);
       c.fillStyle='#a8aeb8'; c.fillRect(-8,-2.5,16,5); c.fillStyle='rgba(0,0,0,.25)'; c.fillRect(-8,2.5,16,1.5); c.restore(); }
@@ -23315,7 +23445,7 @@ function makeBruecke(){
   /* Scharniere zum Laderaum hin */
   const hg=std(0x6f757e,{metalness:0.7,roughness:0.4});
   for(const dz of [-1.1,0,1.1]) bbox(0.12,0.08,0.34,hg,0.08,0.015,dz,g,false);
-  scene.add(g);
+  (rahmen||scene).add(g);
   return g;
 }
 /* Klappenstellung: 0 liegt flach als Bruecke, 1 steht senkrecht am Heck */
@@ -23628,6 +23758,7 @@ function karreNachziehen(){
 }
 function toggleKarre(){
   if(!S) return;
+  if(typeof hubAn==='function'&&hubAn()){ toast('Mit dem Hubwagen geht keine Karre.','bad'); return; }
   const art=karreArt();
   if(!art){ toast('Eine Sackkarre gibt es am Laptop unter Bestellen › Regale & Einrichtung.'); return; }
   karreStapel();
@@ -23741,6 +23872,7 @@ function kisteKap(t){ return Math.max(1,(P[t]&&P[t].box)|0); }
 /* Taste X / Knopf: leere Kiste nehmen oder wegstellen, volle umschalten */
 function kisteTaste(){
   if(!S) return;
+  if(typeof hubAn==='function'&&hubAn()){ toast('Beide Hände am Hubwagen.','bad'); return; }
   if(S.kisteHand){ S.kisteHand=false; S.kisten=(S.kisten|0)+1; sfx.pop(); toast(`Leere Kiste weggestellt (${S.kisten} im Vorrat).`); updateCarry(); return; }
   const c=S.carrying;
   if(c&&c.kiste){ c.raus=!c.raus; sfx.pop(); toast(c.raus?'Kiste: ausräumen – Aktion nimmt Ware aus dem Fach.':'Kiste: einräumen – Aktion legt Ware ins Fach.'); updateCarry(); return; }
@@ -24229,6 +24361,9 @@ function animPerson(g,moving,dt,speed){
   u.torso.rotation.z+=(idle-u.torso.rotation.z)*k;
   if(u.head) u.head.rotation.y+=((moving?0:Math.sin(u.sway*0.7)*0.25)-u.head.rotation.y)*k*0.5;
   if(u.fig){
+    /* Ultra Low: Figuren weiter als 14 m weg werden weder gezeichnet noch bewegt */
+    if(GFX==='ultralow'){ const dx=g.position.x-camera.position.x, dz=g.position.z-camera.position.z, fern=dx*dx+dz*dz>196;
+      u.fig.mesh.visible=!fern; if(fern){ FIG_PERSONEN.delete(g); return; } }
     /* was animPerson an den Armen gesetzt hat - weicht der Spielcode
        danach davon ab, uebernimmt die IK den Arm */
     u._ax=[u.arms[0].rotation.x,u.arms[1].rotation.x];
@@ -25090,7 +25225,7 @@ function sbKassiererPlatz(i){ return sbHelferPlatz(i); }
 function packerPlatz(id){
   if(typeof packTisch==='undefined'||!packTisch) return {p:IDLE.packer,ry:-Math.PI/2};
   const i=id==='packer3'?2:id==='packer2'?1:0;
-  return {p:vsWelt(i,VS_HEIM.x,VS_HEIM.z),ry:vsRy(i,Math.PI)};
+  return {p:vsWelt(i,vsPK(i).hx,vsPK(i).hz),ry:vsRy(i,Math.PI)};
 }
 const IDLE={kassierer2:V(10.6,0,6.3),reinigung:V(-6.6,0,4.2),auffueller:V(-7.0,0,1.0),auffueller2:V(-7.0,0,-0.4),kassierer:V(0,0,0),security:V(1.4,0,4.6),packer:V(-16.3,0,3.4)};
 const PRIO={lkw:'LKW zuerst',regal:'Regale zuerst'};
@@ -25462,10 +25597,19 @@ const VS_GR={
    steht rechts davor. */
 const WG_PARK={x:-0.5,z:0.99,ry:-Math.PI/2}, WG_Y=0.78, WG_ABST=0.845, WG_GRIFF={x:-0.5+0.845,z:0.99};
 const VS_HEIM={x:0.5,z:0.83};
+/* Park- und Standpunkte je Packplatz. Der Wagen steht auf der Seite, zu der der Packer ihn schieben will:
+   liegen die Regale (Lager) hinter dem Ostende der Station (Station um 180 Grad gedreht), parkt er auf
+   der anderen Seite - sonst schwenkt der Wagen beim Losfahren durch den Tisch (Tom 08.10., Test TISCH). */
+function vsPK(i){
+  const rot=typeof packTisch!=='undefined'&&packTisch?packTisch.rotation.y:0, flip=VS_PP[i|0].s>0&&Math.cos(rot)<0, d=flip?-1:1;
+  return {px:flip?0.5:-0.5,pz:1.08,pry:flip?Math.PI/2:-Math.PI/2,gx:(flip?0.5:-0.5)+d*WG_ABST,gz:1.08,hx:flip?-0.5:0.5,hz:0.83,ax:flip?0.5+0.95:(-0.5+WG_ABST),az:1.08,fl:flip};   /* ax/az: ab hier (vom Lager kommend) rollt der Wagen auf seinen Platz */
+}
 /* Wo das Paket auf dem Tisch zugeklebt wird */
 const VS_TISCH={x:0,z:0};
 /* Paletten der aktuellen Stufe (packStufeAnwenden) und Stapelhoehe */
-const VS_FELD=[], VS_HMAX=1.1;
+/* 07.10. (Tom: "Paletten hoeher stapeln"): 1,75 m Stapel ueber der Palette, oben 1,89 m - unter dem
+   Greifer (Unterkante beim Ueberfahren 2,02 m) und durch Tor und LKW (3 m) */
+const VS_FELD=[], VS_HMAX=1.75;
 /* Lagenbilder fuer eine Palette mit 0,8 m in x und 1,2 m in z; die
    Paletten der Station liegen quer (1,2 m in x) - vsStapel tauscht x
    und z, die lange Paketkante (G.z) liegt dann in z */
@@ -25565,7 +25709,7 @@ function vsZugang(){
   if(typeof NAV==='undefined'||!packTisch) return null;
   if(NAV.dirty) navBuild();
   if(_vsZugang&&_vsZugang.nr===NAV.nr&&_vsZugang.px===packTisch.position.x&&_vsZugang.pz===packTisch.position.z&&_vsZugang.st===packStufe()) return _vsZugang.g;
-  const W=NAV.w, H=NAV.h, out=new Uint8Array(W*H), h=vsWelt(0,VS_HEIM.x,VS_HEIM.z), s0=navNah(h.x,h.z);
+  const W=NAV.w, H=NAV.h, out=new Uint8Array(W*H), h=vsWelt(0,vsPK(0).hx,vsPK(0).hz), s0=navNah(h.x,h.z);
   if(s0>=0){ out[s0]=1; const Q=[s0]; let k=0;
     while(k<Q.length){ const c=Q[k++], i=c%W, r=(c-i)/W;
       for(const n of [i>0?c-1:-1,i<W-1?c+1:-1,r>0?c-W:-1,r<H-1?c+W:-1]) if(n>=0&&!NAV.g[n]&&!out[n]){ out[n]=1; Q.push(n); } } }
@@ -25653,6 +25797,8 @@ function vsAbgleich(){
   const p=Math.max(0,S.pakete|0);
   if(p!==S.paketGr.length){ while(S.paketGr.length<p) S.paketGr.push(1); if(S.paketGr.length>p) S.paketGr.length=Math.max(p,vsBahn.length); }
   S.pakete=S.paketGr.length;
+  if(!Array.isArray(S.paketP)) S.paketP=[];
+  while(S.paketP.length<S.paketGr.length) S.paketP.push(-1); S.paketP.length=S.paketGr.length;
 }
 /* Was die laufenden Wagentouren noch holen muessen - das darf der
    Spieler am Tisch nicht wegpacken */
@@ -25820,7 +25966,7 @@ function vsWagenVon(w){ const P_=vsPlaetze[w.pp|0]; return P_&&P_.wagen; }
 function vsParken(pi,sofort,parent){
   const P_=vsPlaetze[pi], g=P_&&P_.wagen, T=parent||packTisch; if(!g||!T) return;
   if(g.parent!==T){ if(g.parent) g.parent.remove(g); T.add(g); }
-  const p=ppW(pi,WG_PARK.x,WG_PARK.z); g.position.set(p.x,0,p.z); g.rotation.set(0,ppRy(pi,WG_PARK.ry),0);
+  const K=vsPK(pi), p=ppW(pi,K.px,K.pz); g.position.set(p.x,0,p.z); g.rotation.set(0,ppRy(pi,K.pry),0);
   const u=g.userData; u.modus='park'; u.t=1; u.von=null;
   /* geparkt ist der Wagen ein Hindernis wie der Tisch */
   if(typeof packMov!=='undefined'&&packMov&&grabbed!==packMov) applyFootprint(packMov);
@@ -25840,7 +25986,7 @@ function vsWagenModus(g,m,pose){
 }
 function vsWagenZiel(w,g){
   const u=g.userData;
-  if(u.modus==='park') return {p:vsWelt(u.pp,WG_PARK.x,WG_PARK.z),ry:vsRy(u.pp,WG_PARK.ry)};
+  if(u.modus==='park') return {p:vsWelt(u.pp,vsPK(u.pp).px,vsPK(u.pp).pz),ry:vsRy(u.pp,vsPK(u.pp).pry)};
   if(u.modus==='stehen'&&u.pose) return u.pose;
   const ry=w.g.rotation.y;
   return {p:V(w.pos.x+Math.sin(ry)*WG_ABST,0,w.pos.z+Math.cos(ry)*WG_ABST),ry};
@@ -25887,19 +26033,67 @@ function vsFelderFuer(belegt,gr){
   for(let i=0;i<6;i++) if(!belegt[i]) return [i];
   return null;
 }
+/* Tourplanung (Tom 08.10.: "Es gibt kein Versand-Pickregal - der Packer pickt mit dem Rollwagen aus dem
+   gesamten Kartonlager und nimmt mehrere Bestellungen pro Tour, so effizient wie moeglich"):
+   - Anker ist die aelteste passende Bestellung, danach kommt jeweils die, deren Ware am dichtesten an
+     schon geplanten Stopps liegt (kein Weg, wenn dieselbe Quelle schon dabei ist)
+   - keine Bestellung bleibt liegen: wer dreimal uebergangen wurde, ist beim naechsten Mal der Anker
+   - VS_OPT.an=false ist die alte Reihenfolge (Eingang) - fuer den Vergleich im Test */
+const VS_OPT={an:true, fenster:60, geduld:3};
+function vsDist(a,b){ return Math.hypot(a.x-b.x,a.z-b.z); }
+/* Standpunkte der Quellen je Ware (Lager zuerst, Laden nur wenn im Lager nichts liegt), einmal je Planung */
+function vsPunkteVon(t,von,cache){
+  let c=cache[t]; if(c) return c;
+  const Q=vsQuellen(t), L=Q.filter(q=>q.lager), nutz=L.length?L:Q;
+  c=nutz.map(q=>({q,p:vsQuellPunkt(q,von).stand})); cache[t]=c; return c;
+}
+/* Mehrweg einer Bestellung: Summe der Wege von schon geplanten Punkten zur naechsten Quelle jeder Ware */
+function vsMehrweg(b,pts,von,cache){
+  let sum=0; const neu=[];
+  for(const l of b.pos){ if(l.n-l.g<=0) continue;
+    const Q=vsPunkteVon(l.t,von,cache); if(!Q.length) return 1e9;
+    const alle=pts.concat(neu); let best=1e9, bp=null;
+    for(const c of Q){ let d=1e9; for(const p of alle){ const dd=vsDist(p,c.p); if(dd<d) d=dd; } if(d<best){ best=d; bp=c.p; } }
+    if(best>0.6){ sum+=best; neu.push(bp); } }
+  return sum;
+}
 /* pi: Packplatz - jeder Karton braucht Material aus seinem Regal */
 function vsPlan(pi){
   pi=pi|0;
   const belegt=[null,null,null,null,null,null], auf=[], schon={}, mat={};
-  for(const b of S.bestellungen||[]){
-    if(b.st!=='offen') continue;
-    if(!vsErfuellbar(b,schon)) continue;
-    if(!vmReicht(pi,b.gr,mat)) continue;
-    const f=vsFelderFuer(belegt,b.gr); if(!f) continue;
+  const kand=(S.bestellungen||[]).filter(b=>b.st==='offen');
+  const taugt=b=>vsErfuellbar(b,schon)&&vmReicht(pi,b.gr,mat)&&!!vsFelderFuer(belegt,b.gr);
+  const nimm=b=>{
+    const f=vsFelderFuer(belegt,b.gr);
     f.forEach(i=>belegt[i]=b); auf.push({b,felder:f,pk:null});
     vmVormerken(b.gr,mat);
     for(const l of b.pos) schon[l.t]=(schon[l.t]||0)+Math.max(0,l.n-l.g);
-    if(belegt.every(Boolean)) break;
+    kand.splice(kand.indexOf(b),1); };
+  if(!VS_OPT.an){
+    for(const b of kand.slice()){ if(!taugt(b)) continue; nimm(b); if(belegt.every(Boolean)) break; }
+  } else {
+    const heim=vsWelt(pi,vsPK(pi).gx,vsPK(pi).gz), pts=[heim], cache={}, alt=kand.slice();
+    let maxIdx=-1;
+    while(kand.length&&!belegt.every(Boolean)){
+      let wahl=null;
+      if(!auf.length) wahl=kand.find(taugt)||null;                          /* Anker: die aelteste */
+      else {
+        wahl=kand.find(b=>(b.skip|0)>=VS_OPT.geduld&&taugt(b))||null;       /* zu lange liegengeblieben */
+        if(!wahl){ let bw=1e9, n=0;
+          for(const b of kand){ if(n>=VS_OPT.fenster) break; if(!taugt(b)) continue; n++;
+            const w=vsMehrweg(b,pts,heim,cache); if(w<bw-1e-6){ bw=w; wahl=b; } } }
+      }
+      if(!wahl) break;
+      maxIdx=Math.max(maxIdx,alt.indexOf(wahl));
+      /* seine Quellen zaehlen ab jetzt als "schon unterwegs" */
+      for(const l of wahl.pos){ if(l.n-l.g<=0) continue; const Q=vsPunkteVon(l.t,heim,cache); let best=1e9, bp=null;
+        for(const c of Q){ let d=1e9; for(const p of pts){ const dd=vsDist(p,c.p); if(dd<d) d=dd; } if(d<best){ best=d; bp=c.p; } }
+        if(bp) pts.push(bp); }
+      nimm(wahl);
+    }
+    /* uebergangene (aeltere als die zuletzt gewaehlte) Bestellungen werden ungeduldiger */
+    alt.forEach((b,i)=>{ if(i<maxIdx&&auf.every(a=>a.b!==b)&&b.st==='offen') b.skip=(b.skip|0)+1; });
+    auf.forEach(a=>{ a.b.skip=0; });
   }
   if(!auf.length) return null;
   return {auf,stops:[],runde:0};
@@ -25917,21 +26111,40 @@ function vsQuellPunkt(q,T){
   const mm=itemMatrix(lv.sh,lv,Math.max(0,lv.count-1),h?h.jit||0:0); mm.decompose(_vp,_vq,_vs);
   return {stand:shelfStand(lv.sh,lv),look:_vp.clone()};
 }
-function vsStopsBauen(need,von){
+/* 2-opt: Weg von "von" ueber alle Stopps und zurueck zu "ende" so lange verbessern, bis kein Tausch mehr kuerzt */
+function vsZweiOpt(L,von,ende){
+  if(L.length<3) return L;
+  const P=i=>i<0?von:i>=L.length?ende:L[i].stand;
+  let besser=true, n=0;
+  while(besser&&n++<40){ besser=false;
+    for(let i=0;i<L.length-1;i++) for(let j=i+1;j<L.length;j++){
+      const a=P(i-1), b=P(i), c=P(j), d=P(j+1);
+      if(vsDist(a,c)+vsDist(b,d)<vsDist(a,b)+vsDist(c,d)-1e-6){ const mid=L.slice(i,j+1).reverse(); L.splice(i,j-i+1,...mid); besser=true; } } }
+  return L;
+}
+function vsRouteLaenge(stops,von,ende){
+  let p=von, sum=0; for(const s of stops){ sum+=vsDist(p,s.stand); p=s.stand; } return sum+vsDist(p,ende||von);
+}
+function vsStopsBauen(need,von,ende){
+  ende=ende||von;
   const stops=[];
   for(const t in need){
     let n=need[t];
-    /* Lager vor Laden; ein Karton, der allein reicht, vor mehreren */
-    const Q=vsQuellen(t).sort((a,b)=>(b.lager-a.lager)||((b.n>=n)-(a.n>=n))||(a.n-b.n));
+    /* Lager vor Laden; ein Karton, der allein reicht, vor mehreren; dann der naechste am Weg */
+    const Q=vsQuellen(t).sort((a,b)=>(b.lager-a.lager)||((b.n>=n)-(a.n>=n))||(VS_OPT.an?0:(a.n-b.n)));
+    if(VS_OPT.an) Q.forEach(q=>{ q._pt=vsQuellPunkt(q,von); });
+    if(VS_OPT.an) Q.sort((a,b)=>(b.lager-a.lager)||((b.n>=n)-(a.n>=n))||(vsDist(a._pt.stand,von)-vsDist(b._pt.stand,von)));
     for(const q of Q){ if(n<=0) break; const k=Math.min(n,q.n); n-=k;
-      const pt=vsQuellPunkt(q,von); stops.push({kind:q.kind,ref:q.ref,t,k,done:0,stand:pt.stand,look:pt.look,lager:q.lager}); }
+      const pt=q._pt||vsQuellPunkt(q,von); stops.push({kind:q.kind,ref:q.ref,t,k,done:0,stand:pt.stand,look:pt.look,lager:q.lager}); }
   }
-  /* naechster Nachbar ab dem Tisch, Lager vor Laden */
+  /* naechster Nachbar ab dem Tisch, Lager vor Laden; danach 2-opt */
   const out=[]; let p=von;
   for(const lag of [true,false]){
-    const L=stops.filter(s=>s.lager===lag);
-    while(L.length){ let bi=0,bd=1e9; L.forEach((s,i)=>{ const d=Math.hypot(s.stand.x-p.x,s.stand.z-p.z); if(d<bd){ bd=d; bi=i; } });
-      const s=L.splice(bi,1)[0]; out.push(s); p=s.stand; }
+    const L=stops.filter(s=>s.lager===lag), start=p, ordnung=[];
+    while(L.length){ let bi=0,bd=1e9; L.forEach((s,i)=>{ const d=vsDist(s.stand,p); if(d<bd){ bd=d; bi=i; } });
+      const s=L.splice(bi,1)[0]; ordnung.push(s); p=s.stand; }
+    if(VS_OPT.an) vsZweiOpt(ordnung,start,ende);
+    ordnung.forEach(s=>out.push(s)); if(ordnung.length) p=ordnung[ordnung.length-1].stand;
   }
   return out;
 }
@@ -25984,82 +26197,10 @@ function vsBuchen(b,spieler){
   if(spieler){ addXP(3); sfx.cash(); toast(`Paket #${b.id} fertig: +${eur(w)}${porto?` · Porto ${eur(porto)}`:''}`,'money'); }
 }
 
-/* ---------------------------------------------------------
-   Palettenplatz jedes Pakets. Je Palette Lage fuer Lage, jede Lage nur
-   eine Groesse. Eine neue Lage kommt nur auf eine volle - sonst hing
-   ein grosses Paket halb ueber einer angefangenen Lage in der Luft.
-   Angefangene Lagen werden zuerst aufgefuellt.
-   --------------------------------------------------------- */
-function vsStapel(liste){
-  /* Je Palette die Lagen; eine Lage hat eine Groesse und belegt Plaetze
-     ihres Musters. Ein Platz zaehlt nur, wenn die Unterseite des Pakets
-     an allen neun Messpunkten auf Palette oder Paketen der Lage darunter
-     aufliegt. Erst wird eine angefangene Lage gleicher Groesse
-     aufgefuellt, dann eine neue Lage begonnen - auch auf einer
-     angefangenen Lage, soweit die Pakete darunter tragen. So stand die
-     Station frueher nach sieben Paketen "voll" da. */
-  const F=VS_FELD, st=F.map(()=>[]), out=[];
-  /* Paletten quer: Muster mit getauschtem x/z, die lange Paketkante in z */
-  const rect=(gr,x,z)=>{ const G=VS_GR[gr]; return {x0:x-G.x/2,x1:x+G.x/2,z0:z-G.z/2,z1:z+G.z/2}; };
-  const mpos=(gr,k)=>{ const o=VS_MUSTER[gr].pos(k); return {x:o.z,z:o.x}; };
-  const traegt=(f,lag,r)=>{
-    if(!lag) return true;
-    for(const u of [-0.85,0,0.85]) for(const v of [-0.85,0,0.85]){
-      const px=(r.x0+r.x1)/2+u*(r.x1-r.x0)/2, pz=(r.z0+r.z1)/2+v*(r.z1-r.z0)/2;
-      if(!lag.boxen.some(q=>px>=q.x0&&px<=q.x1&&pz>=q.z0&&pz<=q.z1)) return false; }
-    return true; };
-  const frei=(f,lag,unten,gr)=>{ const M=VS_MUSTER[gr], P0=F[f];
-    for(let k=0;k<M.n;k++){ if(lag&&lag.belegt[k]) continue; const o=mpos(gr,k), r=rect(gr,P0.x+o.x,P0.z+o.z);
-      if(traegt(f,unten,r)) return {k,r}; }
-    return null; };
-  for(let i=0;i<liste.length;i++){
-    const G=VS_GR[liste[i]]||VS_GR[1];
-    let fi=-1, lag=null, wahl=null;
-    /* 1. angefangene Lage gleicher Groesse */
-    for(let f=0;f<F.length&&fi<0;f++){ const L=st[f], top=L[L.length-1];
-      if(top&&top.gr===G.id){ const w=frei(f,top,L[L.length-2],G.id); if(w){ fi=f; lag=top; wahl=w; } } }
-    /* 2. neue Lage obendrauf */
-    for(let f=0;f<F.length&&fi<0;f++){ const L=st[f], top=L[L.length-1], H=top?top.y0+top.h:0;
-      if(H+G.h>VS_HMAX+1e-6) continue;
-      const w=frei(f,null,top,G.id); if(w){ fi=f; wahl=w; lag={gr:G.id,y0:H,h:G.h,belegt:{},boxen:[]}; L.push(lag); } }
-    if(fi<0){ out.push(null); continue; }
-    lag.belegt[wahl.k]=true; lag.boxen.push(wahl.r);
-    const P0=F[fi], o=mpos(G.id,wahl.k);
-    const j=Math.sin((i+1)*12.9898)*43758.5453, jr=j-Math.floor(j)-0.5;
-    out.push({x:P0.x+o.x+jr*0.004,y:PAL_H+lag.y0+G.h/2,z:P0.z+o.z-jr*0.006,ry:jr*0.016,gr:G.id,f:fi});
-  }
-  return out;
-}
-/* Wie viele Pakete einer Groesse auf die leeren Paletten passen */
-function vsKapazitaet(gr){ const G=VS_GR[gr||1]; return VS_FELD.length*VS_MUSTER[G.id].n*Math.floor((VS_HMAX+1e-6)/G.h); }
+/* Palettenplaetze, Stapeln, Zwischenabholung und Abholung stehen seit 07.10. in
+   11e-palette.js (jede Palette ist ein eigenes Objekt). Hier bleibt, was das
+   Band braucht: wie viele Pakete schon auf Paletten liegen. */
 function vsGelandet(){ return Math.max(0,(S.paketGr||[]).length-vsBahn.length); }
-function syncPakete(){
-  if(!packTisch||!S) return;
-  S.paketGr=Array.isArray(S.paketGr)?S.paketGr:[];
-  if((S.pakete|0)!==S.paketGr.length) vsAbgleich();
-  while(pakete.length){ const m=pakete.pop(); if(m.parent) m.parent.remove(m); }
-  const n=vsGelandet();
-  vsStapel(S.paketGr.slice(0,n)).forEach(p=>{ if(!p) return;
-    const m=vsPaketZu(p.gr); m.position.set(p.x,p.y,p.z); m.rotation.y=p.ry; packTisch.add(m); pakete.push(m); });
-}
-/* Paletten voll: DDL faehrt zwischendurch vor und nimmt mit, was liegt */
-function vsZwischenabholung(){
-  const n=vsGelandet(); if(n<=0) return 0;
-  S.paketGr.splice(0,n); S.pakete=S.paketGr.length; statAdd('ddl',n);
-  syncPakete(); drawPackSchild();
-  toast('Die Paletten waren voll - DDL hat zwischendurch abgeholt.');
-  return n;
-}
-/* Tagesende: DDL holt alles ab, auch was noch auf dem Band laeuft */
-function ddlAbholung(){
-  vsBahn.forEach(e=>{ if(e.m.parent) e.m.parent.remove(e.m); }); vsBahn.length=0;
-  vsPortalRuhe();
-  S.paketGr=Array.isArray(S.paketGr)?S.paketGr:[];
-  const n=S.paketGr.length; if(n<=0){ S.pakete=0; return 0; }
-  statAdd('ddl',n);
-  S.paketGr=[]; S.pakete=0; syncPakete(); drawPackSchild();
-  return n;
-}
 
 /* ---------------------------------------------------------
    Band: vom Tisch eben aufs Band geschoben, dann bis zum Endanschlag
@@ -26068,7 +26209,7 @@ function ddlAbholung(){
    --------------------------------------------------------- */
 function vsLaenge(e){ return VS_GR[e.gr].z; }
 function vsAufDieBahn(pi,m,gr){
-  S.paketGr.push(gr); S.pakete=S.paketGr.length;
+  S.paketGr.push(gr); S.paketP.push(-1); S.pakete=S.paketGr.length;
   vsBahn.push({m,gr,pp:pi,phase:'warten',t:0,x:VS_PP[pi].x});
   drawPackSchild();
 }
@@ -26151,8 +26292,8 @@ function vsPortalUpdate(dt){
       P_.t+=dt/0.25; if(P_.t<1) break;
       /* Platz auf der Palette; alles voll: DDL kommt zwischendurch */
       /* e liegt noch auf dem Band und zaehlt nicht zu den gelandeten */
-      let liste=S.paketGr.slice(0,vsGelandet()).concat([e.gr]), pl=vsStapel(liste)[liste.length-1];
-      if(!pl){ vsZwischenabholung(); liste=S.paketGr.slice(0,vsGelandet()).concat([e.gr]); pl=vsStapel(liste)[liste.length-1]; }
+      let pl=vsPalZiel(e.gr);
+      if(!pl){ vsZwischenabholung(); pl=vsPalZiel(e.gr); }
       if(!pl){ P_.t=0; break; }
       e.phase='greifer'; e.amBand=true; P_.ziel=pl;
       const G=VS_GR[e.gr]; vsPortalFahrt({x:P_.x,y:VS_YFREI+G.h,z:P_.z},'heben'); break; }
@@ -26169,8 +26310,8 @@ function vsPortalUpdate(dt){
          hinter die schon gelandeten, damit der Stapel beim naechsten
          Aufbau gleich aussieht */
       const i=vsBahn.indexOf(e); if(i>=0) vsBahn.splice(i,1);
-      const n=vsGelandet(), L=S.paketGr, j=L.indexOf(e.gr,n-1);
-      if(j>=n-1&&j>=0){ L.splice(j,1); L.splice(n-1,0,e.gr); }
+      const n=vsGelandet(), L=S.paketGr, PP=S.paketP, j=L.indexOf(e.gr,n-1);
+      if(j>=n-1&&j>=0){ L.splice(j,1); PP.splice(j,1); L.splice(n-1,0,e.gr); PP.splice(n-1,0,P_.ziel?P_.ziel.p:-1); }
       if(e.m.parent) e.m.parent.remove(e.m);
       syncPakete(); if(typeof sfx!=='undefined'&&sfx.thump) sfx.thump(0.22);
       P_.e=null; P_.ziel=null; vsPortalFahrt({x:P_.x,y:VS_YFREI+0.45,z:P_.z},'ruhe'); P_.zurueck=false;
@@ -26312,9 +26453,9 @@ function packOne(auto){
   const pi=vmPlatzMit(b.gr);
   if(!vsEntnehmen(b)) return false;
   vmVerbrauchen(pi,b.gr);
-  if(!vsStapel(S.paketGr.concat([b.gr]))[S.paketGr.length]) vsZwischenabholung();
+  let pz=vsPalZiel(b.gr); if(!pz){ vsZwischenabholung(); pz=vsPalZiel(b.gr); }
   vsBuchen(b,!auto);
-  S.paketGr.push(b.gr); S.pakete=S.paketGr.length;
+  S.paketGr.splice(vsGelandet(),0,b.gr); S.paketP.splice(vsGelandet()-1,0,pz?pz.p:-1); S.pakete=S.paketGr.length;
   syncPakete(); drawPackSchild();
   return true;
 }
@@ -26345,7 +26486,7 @@ function vsDrehen(w,ry,dt){
   w.g.rotation.y+=df*Math.min(1,dt*7); return Math.abs(df)<0.12;
 }
 function vsBlick(w,p,dt){ return vsDrehen(w,Math.atan2(p.x-w.pos.x,p.z-w.pos.z),dt); }
-function vsHeim(w){ return vsWelt(w.pp,VS_HEIM.x,VS_HEIM.z); }
+function vsHeim(w){ return vsWelt(w.pp,vsPK(w.pp).hx,vsPK(w.pp).hz); }
 function vsLoop(w,dt){
   w.pp=vsPlatzVon(w);
   const g=vsWagenVon(w);
@@ -26358,6 +26499,9 @@ function vsLoop(w,dt){
      Bild hinterher und in Kurven rutschten die Haende vom Buegel */
   vsWagenUpdate(w,dt);
 }
+/* Ostende der Gasse vor den Tischen (Stationskoordinaten): hier faedelt der Wagen ein und aus */
+const VS_GASSE={x:4.6,z:1.6};
+function vsGassePunkt(){ const q=localToWorld(packTisch,VS_GASSE.x,VS_GASSE.z); return V(q.x,0,q.z); }
 function vsLoopZustand(w,dt,wf,tour,g){
   const pi=w.pp, P_=vsPlaetze[pi];
   switch(w.vs){
@@ -26378,7 +26522,7 @@ function vsLoopZustand(w,dt,wf,tour,g){
     case 'aufbauen': {
       /* fuer jede Bestellung einen Karton aus dem Regal nehmen, auf dem
          Wagen aufstellen, Klappen offen */
-      vsBlick(w,vsWelt(pi,WG_PARK.x,WG_PARK.z),dt);
+      vsBlick(w,vsWelt(pi,vsPK(pi).px,vsPK(pi).pz),dt);
       w.t-=dt*wf; if(w.t>0) break;
       const a=tour.auf[w.k];
       if(a){
@@ -26389,23 +26533,26 @@ function vsLoopZustand(w,dt,wf,tour,g){
         g.add(pk); a.pk=pk; w.k++; w.t=0.32; sfx.pop(); break; }
       if(!tour.auf.length){ w.tour=null; w.vs='bereit'; w.t=0.5; break; }
       /* Wege erst jetzt planen: die Ware kann sich bewegt haben */
-      tour.stops=vsStopsBauen(vsBedarf(tour),vsWelt(pi,WG_GRIFF.x,WG_GRIFF.z)); tour.si=0;
+      tour.stops=vsStopsBauen(vsBedarf(tour),vsWelt(pi,vsPK(pi).gx,vsPK(pi).gz)); tour.si=0;
       w.vs='ankoppeln'; break; }
     case 'ankoppeln': {
-      if(!vsGehen(w,vsWelt(pi,WG_GRIFF.x,WG_GRIFF.z),dt)&&!vsNotfalls(w,vsWelt(pi,WG_GRIFF.x,WG_GRIFF.z))) break;
-      if(!vsDrehen(w,vsRy(pi,WG_PARK.ry),dt)) break;
+      if(!vsGehen(w,vsWelt(pi,vsPK(pi).gx,vsPK(pi).gz),dt)&&!vsNotfalls(w,vsWelt(pi,vsPK(pi).gx,vsPK(pi).gz))) break;
+      if(!vsDrehen(w,vsRy(pi,vsPK(pi).pry),dt)) break;
       vsWagenModus(g,'schieben'); w.vs='fahren'; break; }
     case 'fahren': {
       const s=tour.stops[tour.si];
       if(!s){ vsNachplanen(w); break; }
       w.src=s.kind==='rack'?{slot:s.ref}:s.kind==='floor'?{box:s.ref}:null;
-      if(!vsWagenFertig(g)) { vsBlick(w,s.stand,dt); break; }
+      if(!vsWagenFertig(g)) { vsBlick(w,vsPK(pi).fl&&tour&&!tour.gasse?vsGassePunkt():s.stand,dt); break; }
+      /* erst durch die Gasse vor der Tischreihe zum Ostende (Waypoint): sonst schneidet der Wagen beim Anfahren die Tischecke */
+      if(vsPK(pi).fl&&tour&&!tour.gasse){ const Gp=vsGassePunkt();
+        if(!vsGehen(w,Gp,dt)&&!vsNotfalls(w,Gp)&&w.pos.distanceTo(Gp)>0.8) break; tour.gasse=true; }
       if(!vsGehen(w,s.stand,dt)){
         /* der Stand ist nicht (mehr) erreichbar - etwa weil ein Regal
            umgestellt wurde: diese Stelle auslassen, nachgeplant wird am Ende */
         if(w.vsWeg){ w.vsWeg=null; w.vsZiel=null; tour.si++; w.src=null; }
         break; }
-      const nx=tour.stops[tour.si+1], weiter=nx?nx.stand:vsWelt(pi,WG_GRIFF.x,WG_GRIFF.z);
+      const nx=tour.stops[tour.si+1], weiter=nx?nx.stand:vsWelt(pi,vsPK(pi).gx,vsPK(pi).gz);
       vsWagenModus(g,'stehen',vsWagenStand(w.pos,s.look,weiter)); w.vs='greifen'; w.t=0.3; break; }
     case 'greifen': {
       const s=tour.stops[tour.si];
@@ -26428,8 +26575,11 @@ function vsLoopZustand(w,dt,wf,tour,g){
       /* kurz vor dem Tisch rollt der Wagen auf seinen Platz, der
          Mitarbeiter geht allein weiter - vorher drehte er sich mit dem
          Wagen am Griffpunkt und schwenkte ihn quer durch den Tisch */
-      const G=vsWelt(pi,WG_GRIFF.x,WG_GRIFF.z);
-      if(w.pos.distanceTo(G)<1.4){ vsWagenModus(g,'park'); w.vs='parken'; break; }
+      const G=vsWelt(pi,vsPK(pi).gx,vsPK(pi).gz);
+      if(vsPK(pi).fl&&w.tour&&!w.tour.gasseZu&&w.pos.distanceTo(G)>3.5){ const Gp=vsGassePunkt();
+        if(w.pos.distanceTo(Gp)>0.9){ if(!vsGehen(w,Gp,dt)) vsNotfalls(w,Gp); break; } w.tour.gasseZu=true; }
+      const A=vsWelt(pi,vsPK(pi).ax,vsPK(pi).az);
+      if(w.pos.distanceTo(A)<1.4||w.pos.distanceTo(G)<1.4){ vsWagenModus(g,'park'); w.vs='parken'; break; }
       if(!vsGehen(w,G,dt)) vsNotfalls(w,G); break; }
     case 'parken': {
       if(!vsGehen(w,vsHeim(w),dt)&&!vsNotfalls(w,vsHeim(w))) break;
@@ -26465,7 +26615,7 @@ function vsNachplanen(w){
   const need=vsBedarf(tour);
   if(Object.keys(need).length&&tour.runde<2){
     tour.runde++;
-    const neu=vsStopsBauen(need,w.pos).filter(s=>s.k>0);
+    const neu=vsStopsBauen(need,w.pos,vsWelt(w.pp,vsPK(w.pp).gx,vsPK(w.pp).gz)).filter(s=>s.k>0);
     if(neu.length){ tour.stops=tour.stops.concat(neu); return; }
   }
   w.vs='zurueck';
@@ -26570,6 +26720,7 @@ function vsLaden(){
   S.paketGr=(Array.isArray(S.paketGr)?S.paketGr:[]).map(g=>[1,3,6].indexOf(g)>=0?g:1).slice(0,300);
   if(!S.paketGr.length&&(S.pakete|0)>0) for(let i=0;i<Math.min(300,S.pakete|0);i++) S.paketGr.push(1);
   S.pakete=S.paketGr.length;
+  if(typeof vsPalLaden==='function') vsPalLaden();
   vsCfg();
   /* alter Spielstand kannte nur eine Zahl: vsAbgleich gibt ihr Inhalt */
   if(S.bestellungen.length||!(S.offen|0)) S.offen=S.bestellungen.length;
@@ -26902,6 +27053,763 @@ function vmPic(id){
   }
   g.strokeStyle='rgba(242,245,255,.18)'; g.lineWidth=2; g.strokeRect(1,1,W-2,H-2);
   return _vmPic[id]=c.toDataURL('image/png');
+}
+/* =========================================================
+   Paletten, Hubwagen und die Abholung durch DDL (Tom, 07.10.:
+   "Die Versandecke zieht ans hintere Ende von Lager Sued, dort ein
+   Rolltor V1 mit eigenem Versandhof. Um 22 Uhr kommt der
+   Paketdienst-LKW rueckwaerts an V1, das Rolltor faehrt hoch, ein
+   Mitarbeiter faehrt die Paletten mit dem Hubwagen in den LKW, Tor
+   zu, LKW weg. Ab 18 Uhr darf der Spieler das auch selbst.")
+
+   Die Versandecke (Packtische, Band, Roboter-Kran, gelbe Box) steht an
+   der Rueckwand von Lager Sued 3; die Oeffnung der Box zeigt zum
+   Rolltor V1. Jede Palette ist ein eigenes Ding (S.paletten): sie
+   steht in der Box ('z', idx = Platz in der Schlange, 0 am Tor), haengt
+   am Hubwagen ('h') oder steht im LKW ('l'). Ihr Inhalt sind die
+   Pakete in S.paketGr, deren Eintrag in S.paketP auf die Palette zeigt.
+   Nimmt man die vorderste Palette heraus, ruecken die anderen nach und
+   hinten steht eine neue, leere.
+   Frame V1: lx laeuft vom Tor in den LKW (negativ = im Laderaum, positiv
+   = in der Halle), lz seitlich; Welt = (V1.x - lz, V1.rz + lx).
+   ========================================================= */
+const PAL_LG=1.2, PAL_BR=0.8, PAL_Y=0.09;          /* Europalette; PAL_Y: Hub am Hubwagen */
+const HUB_AB=1080;                                  /* 18:00 */
+const DDL_AUTO=4, DDL_RUF=25;                       /* Sekunden bis der Fahrer selbst laedt: 22 Uhr / vom Spieler gerufen */
+/* Mitte des Tors (0,45 m ostwaerts der Box-Mitte: so bleibt neben der Box eine Gasse von 1,2 m zum Tor), Wandmitte, Heck des LKW */
+const V1={x:-10.25,w:3.26,h:3.0,wz:-30.0,rz:-30.05};
+const V1_HOF={x0:-15.7,x1:-4.7,z0:-45.6,z1:-30.1};
+function vf(lx,lz){ return {x:V1.x-lz,z:V1.rz+lx}; }
+function vfRueck(x,z){ return {lx:z-V1.rz,lz:V1.x-x}; }
+/* Platz im Laderaum: tiefste Reihe zuerst, zwei Plaetze nebeneinander mit Fahrgasse dazwischen */
+/* Die Box steht 0,45 m seitlich der Torachse (lz = V1.x - Box-Mitte) */
+const BOX_LZ=0.45;
+const DDL_SLOTS=6;
+/* Stand des Bedieners vor der vordersten Palette: Palette liegt 1,3 m voraus */
+function boxStandLx(){ const c=palZentrumWelt(0), f=vfRueck(c.x,c.z); return f.lx-1.3; }
+function ddlSlot(i){ const r=i>>1; return {lx:-7.7+r*1.3,lz:(i&1)?1.0:-1.0}; }   /* zwei Spalten, in der Mitte bleibt eine Gasse (+-0.6) fuer den Hubwagen */
+
+const vsPalObj={};          /* id -> {g,holz,pk,sig,cx,cz} */
+const palHits=[];           /* Trefferflaechen der Boxplaetze (Station) */
+const HUB={pal:null,g:null,park:null,t:0,von:null};
+const DDL={tag:-1,autoTag:-1,ruf:false,warte:false,t:0,lad:0};
+const VT={g:null,rahmen:null,raum:null,bruecke:null,state:null,t:0,flap:0,cols:[],fahrer:null,flapCol:null};
+const LD={ph:'idle',t:0,pal:null,fig:null,jack:null,lx:-0.4,lz:0,ziel:null,agv:false};
+const VD={g:null,panels:[],t:0,target:0,col:null,lampG:null,lampR:null,warn:null,sign:null,signHit:null};
+
+/* ---------------------------------------------------------
+   Daten
+   --------------------------------------------------------- */
+function vsPalInit(){
+  if(!S) return;
+  S.paketGr=Array.isArray(S.paketGr)?S.paketGr:[];
+  /* dieselben Objekte behalten: Hubwagen und Fahrer halten Verweise auf sie */
+  S.paletten=(Array.isArray(S.paletten)?S.paletten:[]).filter(p=>p&&['z','h','l'].indexOf(p.ort)>=0);
+  S.paletten.forEach(p=>{ p.id=p.id|0; p.idx=p.idx|0; });
+  S.palNr=Math.max(S.palNr|0,...S.paletten.map(p=>p.id),0);
+  if(!Array.isArray(S.paketP)) S.paketP=[];
+  while(S.paketP.length<S.paketGr.length) S.paketP.push(-1);
+  S.paketP.length=S.paketGr.length;
+  for(let i=0;i<S.paketP.length;i++) if(!S.paletten.some(p=>p.id===S.paketP[i])) S.paketP[i]=-1;
+}
+function vsPalNeu(ort,idx){ S.palNr=(S.palNr|0)+1; const p={id:S.palNr,ort,idx}; S.paletten.push(p); return p; }
+function vsPalById(id){ return S.paletten.find(p=>p.id===id)||null; }
+/* Mittelpunkt eines Boxplatzes in Stationskoordinaten und in der Welt */
+function palZentrum(idx){ return PALETTEN[Math.max(0,Math.min(PALETTEN.length-1,idx))]; }
+function palZentrumWelt(idx){ const c=palZentrum(idx); return localToWorld(packTisch,c.x,c.z); }
+/* Wie viele Palettenplaetze hat die Box in dieser Stufe? */
+function palPlaetze(){ return zoneOffen('packstation')?PAL_N[packStufe()]:0; }
+/* Inhalt einer Palette: Indizes in S.paketGr */
+function vsPalPakete(p){ const out=[]; const n=vsGelandet(); for(let i=0;i<n;i++) if(S.paketP[i]===p.id) out.push(i); return out; }
+function vsPalZahl(p){ return vsPalPakete(p).length; }
+function vsPalZelle(){ return S.paletten.filter(p=>p.ort==='z').sort((a,b)=>a.idx-b.idx); }
+/* Schlange in der Box: lueckenlos von 0 am Tor an, hinten kommen leere Paletten nach */
+function vsPalAbgleich(){
+  if(!S||!packTisch) return;
+  vsPalInit();
+  const N=palPlaetze(), z=vsPalZelle();
+  z.forEach((p,i)=>{ p.idx=i; });
+  while(z.length<N){ z.push(vsPalNeu('z',z.length)); }
+  /* zu viele (Stufenwechsel nach unten gibt es nicht) - ueberzaehlige leere weg */
+  for(let i=z.length-1;i>=N&&i>=0;i--){ if(vsPalZahl(z[i])===0){ const p=z.pop(); S.paletten.splice(S.paletten.indexOf(p),1); } }
+}
+/* Nimmt die Palette neue Pakete an? */
+function vsPalAufnehmend(p){ return p.ort==='z'; }
+
+/* ---------------------------------------------------------
+   Stapeln: Lage fuer Lage, jede Lage nur eine Groesse. Gerechnet in
+   Palettenkoordinaten (Mitte 0/0, lange Seite in x). Ein Paket mit
+   festem Eintrag in S.paketP bleibt auf seiner Palette; die anderen
+   suchen sich die erste Palette in der Box, auf die es passt.
+   Ergebnis: {lage:[...] je Eintrag (null = passt nirgends), pro:{palId:[...]}}
+   --------------------------------------------------------- */
+function vsStapelP(neuGr){
+  vsPalInit();
+  const n=vsGelandet();
+  const rect=(gr,x,z)=>{ const G=VS_GR[gr]; return {x0:x-G.x/2,x1:x+G.x/2,z0:z-G.z/2,z1:z+G.z/2}; };
+  const mpos=(gr,k)=>{ const o=VS_MUSTER[gr].pos(k); return {x:o.z,z:o.x}; };
+  const traegt=(lag,r)=>{
+    if(!lag) return true;
+    for(const u of [-0.85,0,0.85]) for(const v of [-0.85,0,0.85]){
+      const px=(r.x0+r.x1)/2+u*(r.x1-r.x0)/2, pz=(r.z0+r.z1)/2+v*(r.z1-r.z0)/2;
+      if(!lag.boxen.some(q=>px>=q.x0&&px<=q.x1&&pz>=q.z0&&pz<=q.z1)) return false; }
+    return true; };
+  const frei=(lag,unten,gr)=>{ const M=VS_MUSTER[gr];
+    for(let k=0;k<M.n;k++){ if(lag&&lag.belegt[k]) continue; const o=mpos(gr,k), r=rect(gr,o.x,o.z);
+      if(traegt(unten,r)) return {k,r,o}; }
+    return null; };
+  const st={}; S.paletten.forEach(p=>{ st[p.id]=[]; });
+  const aufnehmend=vsPalZelle();
+  const liste=[]; for(let i=0;i<n;i++) liste.push({gr:S.paketGr[i],p:S.paketP[i],i});
+  if(neuGr) liste.push({gr:neuGr,p:-1,i:n,neu:true});
+  const lage=[], pro={}; S.paletten.forEach(p=>{ pro[p.id]=[]; });
+  for(const it of liste){
+    const G=VS_GR[it.gr]||VS_GR[1];
+    const fest=it.p>=0&&st[it.p]?vsPalById(it.p):null;
+    const versuche=[fest?[fest]:aufnehmend];
+    if(fest) versuche.push(aufnehmend);
+    let pal=null, lag=null, wahl=null;
+    for(const kand of versuche){
+      /* 1. angefangene Lage gleicher Groesse */
+      for(const q of kand){ const L=st[q.id], top=L[L.length-1];
+        if(top&&top.gr===G.id){ const w=frei(top,L[L.length-2],G.id); if(w){ pal=q; lag=top; wahl=w; break; } } }
+      /* 2. neue Lage obendrauf */
+      if(!pal) for(const q of kand){ const L=st[q.id], top=L[L.length-1], H=top?top.y0+top.h:0;
+        if(H+G.h>VS_HMAX+1e-6) continue;
+        const w=frei(null,top,G.id); if(w){ pal=q; wahl=w; lag={gr:G.id,y0:H,h:G.h,belegt:{},boxen:[]}; L.push(lag); break; } }
+      if(pal) break;
+    }
+    if(!pal){ lage.push(null); continue; }
+    lag.belegt[wahl.k]=true; lag.boxen.push(wahl.r);
+    const j=Math.sin((it.i+1)*12.9898)*43758.5453, jr=j-Math.floor(j)-0.5;
+    const e={x:wahl.o.x+jr*0.004,y:PAL_H+lag.y0+G.h/2,z:wahl.o.z-jr*0.006,ry:jr*0.016,gr:G.id,p:pal.id,i:it.i,neu:!!it.neu};
+    lage.push(e); pro[pal.id].push(e);
+    if(!it.neu) S.paketP[it.i]=pal.id;
+  }
+  return {lage,pro};
+}
+/* Platz fuer das naechste Paket in Stationskoordinaten (absolut) oder null */
+function vsPalZiel(gr){
+  vsPalAbgleich();
+  const R=vsStapelP(gr), e=R.lage[R.lage.length-1];
+  if(!e||!e.neu) return null;
+  const p=vsPalById(e.p), c=palZentrum(p.idx);
+  return {x:c.x+e.x,y:e.y,z:c.z+e.z,ry:e.ry,gr:e.gr,p:p.id,f:p.idx};
+}
+/* Alle Pakete der Box in Stationskoordinaten - fuer Tests */
+function vsStapelLage(){
+  vsPalAbgleich();
+  const R=vsStapelP(0), out=[];
+  for(const p of S.paletten){ if(p.ort!=='z') continue; const c=palZentrum(p.idx);
+    for(const e of R.pro[p.id]) out.push({x:c.x+e.x,y:e.y,z:c.z+e.z,ry:e.ry,gr:e.gr,p:p.id,f:p.idx}); }
+  return out;
+}
+/* Wie viele Pakete einer Groesse auf die leeren Paletten der Box passen */
+function vsKapazitaet(gr){ const G=VS_GR[gr||1]; return Math.max(1,palPlaetze())*VS_MUSTER[G.id].n*Math.floor((VS_HMAX+1e-6)/G.h); }
+
+/* ---------------------------------------------------------
+   Modelle
+   --------------------------------------------------------- */
+let _holzGeo=null;
+function vsHolzGeo(){
+  if(_holzGeo) return _holzGeo;
+  const HOLZ=0xc49a62, HOLZ2=0xa9814e, HELL=0xcfa66d, vc=[];
+  const B=(w,h,d,c,x,y,z)=>vc.push({geo:roundedBoxGeo(w,h,d,Math.min(0.01,Math.min(w,h,d)*0.2),2),m:tm(x,y,z),color:c});
+  for(const dx of [-0.55,0,0.55]) for(const dz of [-0.34,0,0.34]) B(0.12,0.078,0.12,HOLZ2,dx,0.061,dz);
+  for(const dz of [-0.34,0,0.34]) B(1.2,0.022,0.12,HOLZ,0,0.011,dz);
+  for(const dx of [-0.55,0,0.55]) B(0.14,0.022,0.8,HOLZ,dx,0.111,0);
+  for(const dz of [-0.34,-0.17,0,0.17,0.34]){ const k=dz===0||Math.abs(dz)>0.3; B(1.2,0.022,k?0.14:0.1,k?HOLZ:HELL,0,PAL_H-0.011,dz); }
+  _holzGeo=merge(vc);
+  return _holzGeo;
+}
+/* Pakete einer Palette zu einem Mesh: Seiten ein Material, Deckel je
+   Groesse - so kostet auch ein hoher Stapel nur wenige Zeichenaufrufe */
+function vsPaketMeshe(items){
+  const M=vsMat(), mats=[M.seite,M.deckel[1],M.deckel[3],M.deckel[6]];
+  const pos=[], nor=[], uv=[], idx=[[],[],[],[]]; let v0=0;
+  const m4=new THREE.Matrix4(), q=new THREE.Quaternion(), e=new THREE.Euler(), s1=new THREE.Vector3(1,1,1), p3=new THREE.Vector3();
+  const n3=new THREE.Matrix3(), vv=new THREE.Vector3();
+  for(const it of items){
+    const geo=M.geo[it.gr], P_=geo.attributes.position, N_=geo.attributes.normal, U_=geo.attributes.uv, ix=geo.index.array;
+    e.set(0,it.ry||0,0); q.setFromEuler(e); p3.set(it.x,it.y,it.z); m4.compose(p3,q,s1); n3.getNormalMatrix(m4);
+    for(let k=0;k<P_.count;k++){ vv.fromBufferAttribute(P_,k).applyMatrix4(m4); pos.push(vv.x,vv.y,vv.z);
+      vv.fromBufferAttribute(N_,k).applyMatrix3(n3).normalize(); nor.push(vv.x,vv.y,vv.z); uv.push(U_.getX(k),U_.getY(k)); }
+    for(const g of geo.groups){ const b=(g.materialIndex===2)?(it.gr===1?1:it.gr===3?2:3):0;
+      for(let k=g.start;k<g.start+g.count;k++) idx[b].push(ix[k]+v0); }
+    v0+=P_.count;
+  }
+  const geo=new THREE.BufferGeometry();
+  geo.setAttribute('position',new THREE.Float32BufferAttribute(pos,3)); geo.setAttribute('normal',new THREE.Float32BufferAttribute(nor,3)); geo.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));
+  const all=[]; let start=0;
+  idx.forEach((a,mi)=>{ if(a.length){ geo.addGroup(start,a.length,mi); start+=a.length; for(const k of a) all.push(k); } });
+  geo.setIndex(all);
+  const m=new THREE.Mesh(geo,mats);
+  if(HIQ){ m.castShadow=true; m.receiveShadow=true; }
+  return m;
+}
+function vsPalObjekt(p){
+  let o=vsPalObj[p.id];
+  if(o) return o;
+  const g=new THREE.Group(), holz=new THREE.Mesh(vsHolzGeo(),vcMat);
+  if(HIQ){ holz.castShadow=true; holz.receiveShadow=true; }
+  g.add(holz); g.userData.pal=p.id;
+  o=vsPalObj[p.id]={g,holz,pk:null,sig:'',cx:null,cz:null,id:p.id};
+  return o;
+}
+function vsPalVerwerfen(p){
+  const o=vsPalObj[p.id];
+  if(o){ if(o.g.parent) o.g.parent.remove(o.g); if(o.pk) o.pk.geometry.dispose(); delete vsPalObj[p.id]; }
+  if(p.col){ dropCol(p.col); p.col=null; }
+}
+
+/* ---------------------------------------------------------
+   Zeichnen: Paletten samt Paketen aufbauen und an ihren Ort stellen
+   --------------------------------------------------------- */
+function syncPakete(){
+  if(!packTisch||!S) return;
+  S.paketGr=Array.isArray(S.paketGr)?S.paketGr:[];
+  if((S.pakete|0)!==S.paketGr.length) vsAbgleich();
+  vsPalAbgleich();
+  const R=vsStapelP(0);
+  const lebend=new Set(S.paletten.map(p=>p.id));
+  for(const id of Object.keys(vsPalObj)) if(!lebend.has(+id)){ const o=vsPalObj[id]; if(o.g.parent) o.g.parent.remove(o.g); if(o.pk) o.pk.geometry.dispose(); delete vsPalObj[id]; }
+  pakete.length=0;
+  for(const p of S.paletten){
+    const o=vsPalObjekt(p), items=R.pro[p.id]||[];
+    const sig=items.map(e=>e.gr+'@'+e.x.toFixed(3)+','+e.y.toFixed(3)+','+e.z.toFixed(3)).join(';');
+    if(sig!==o.sig){
+      o.sig=sig;
+      if(o.pk){ o.g.remove(o.pk); o.pk.geometry.dispose(); o.pk=null; }
+      if(items.length){ o.pk=vsPaketMeshe(items); o.g.add(o.pk); }
+    }
+    if(o.pk) pakete.push(o.pk);
+    vsPalStellen(p,o,false);
+  }
+  vsPalKollision();
+}
+/* Ort der Palette: Box (Station), Hubwagen oder LKW */
+function vsPalStellen(p,o,sofort){
+  const g=o.g;
+  if(p.ort==='z'){
+    if(g.parent!==packTisch){ if(g.parent) g.parent.remove(g); packTisch.add(g); g.position.y=0; g.rotation.y=0; sofort=true; }
+    const c=palZentrum(p.idx);
+    if(sofort||o.cx===null){ o.cx=c.x; o.cz=c.z; }
+    g.position.set(o.cx,0,o.cz);
+  } else if(p.ort==='l'){
+    if(g.parent!==scene){ if(g.parent) g.parent.remove(g); scene.add(g); }
+    const s=ddlSlot(p.idx), w=vf(s.lx,s.lz); g.position.set(w.x,0.03,w.z); g.rotation.y=Math.PI/2; o.cx=null;
+  } else if(p.ort==='h'){
+    if(g.parent!==scene){ if(g.parent) g.parent.remove(g); scene.add(g); }
+    o.cx=null;
+  }
+}
+/* Kollision: die Box (Zaun, Pfosten, Paletten) haengt an der Versandecke,
+   Paletten im LKW sind Hindernisse in der Welt */
+function vsPalKollision(){
+  if(typeof packMov!=='undefined'&&packMov&&grabbed!==packMov) applyFootprint(packMov);
+  for(const p of S.paletten){
+    if(p.ort==='l'){ if(!p.col){ const s=ddlSlot(p.idx), w=vf(s.lx,s.lz); p.col=col(w.x-0.4,w.x+0.4,w.z-0.6,w.z+0.6,'palette'); if(typeof navDirty==='function') navDirty(); } }
+    else if(p.col){ dropCol(p.col); p.col=null; if(typeof navDirty==='function') navDirty(); }
+  }
+}
+/* gleitende Anzeige der Boxplaetze, wenn die Schlange nachrueckt */
+function vsPalZeichnen(dt){
+  for(const p of S.paletten){ if(p.ort!=='z') continue; const o=vsPalObj[p.id]; if(!o||o.cx===null) continue;
+    const c=palZentrum(p.idx), d=Math.hypot(c.x-o.cx,c.z-o.cz);
+    if(d>0.001){ const k=Math.min(1,dt*1.2/d); o.cx+=(c.x-o.cx)*k; o.cz+=(c.z-o.cz)*k; o.g.position.set(o.cx,0,o.cz); }
+  }
+}
+function vsPalGleitet(){ for(const p of S.paletten){ if(p.ort!=='z') continue; const o=vsPalObj[p.id]; if(o&&o.cx!==null){ const c=palZentrum(p.idx); if(Math.hypot(c.x-o.cx,c.z-o.cz)>0.02) return true; } } return false; }
+/* Trefferflaechen: ein Kasten ueber jeder Palette in der Box */
+function vsPalHitsBauen(){
+  if(!packTisch||palHits.length) return;
+  for(let i=0;i<PAL_N[3];i++){ const c=palZentrum(i), h=bbox(PAL_LG+0.1,1.9,PAL_BR+0.1,hitM,c.x,0.95,c.z,packTisch,false);
+    h.userData={kind:'palette',ref:{idx:i}}; h.visible=false; palHits.push(h); }
+}
+function vsPalHits(){
+  vsPalHitsBauen();
+  const L=[];
+  for(const h of palHits){ const p=S.paletten.find(q=>q.ort==='z'&&q.idx===h.userData.ref.idx); if(p&&vsPalZahl(p)>0) L.push(h); }
+  if(VD.signHit) L.push(VD.signHit);
+  return L;
+}
+
+/* ---------------------------------------------------------
+   Hubwagen
+   --------------------------------------------------------- */
+function hubDa(){ return zoneOffen('packstation'); }
+function hubZeit(){ return clock>=HUB_AB; }
+function hubAn(){ return !!HUB.pal; }
+function hubTempo(){ return HUB.pal?0.62:1; }
+function hubModell(){
+  const g=new THREE.Group(), rot=std(0xd23a2a,{metalness:0.3,roughness:0.5}), stahl=std(0x9ba2ad,{metalness:0.75,roughness:0.32});
+  const gummi=std(0x18191d,{roughness:0.95}), griff=std(0x22252c,{roughness:0.7});
+  /* Gabeln zeigen nach vorn (-z), unter die Palette */
+  for(const sx of [-0.27,0.27]){ rbox(0.16,0.055,1.1,0.012,stahl,sx,0.05,-0.78,g); rbox(0.16,0.05,0.2,0.01,stahl,sx,0.045,-1.42,g);
+    const r=new THREE.Mesh(new THREE.CylinderGeometry(0.04,0.04,0.07,12),gummi); r.rotation.z=Math.PI/2; r.position.set(sx,0.04,-1.3); g.add(r);
+    const r2=new THREE.Mesh(new THREE.CylinderGeometry(0.08,0.08,0.05,14),gummi); r2.rotation.z=Math.PI/2; r2.position.set(sx*0.9,0.08,-0.28); g.add(r2); }
+  rbox(0.7,0.14,0.2,0.02,rot,0,0.14,-0.24,g);
+  /* Deichsel mit Handgriff, schraeg zum Bediener */
+  const t=new THREE.Mesh(new THREE.CylinderGeometry(0.018,0.018,0.95,8),griff); t.position.set(0,0.52,-0.05); t.rotation.x=-0.62; g.add(t);
+  rbox(0.34,0.05,0.07,0.015,griff,0,0.93,0.2,g);
+  g.traverse(o=>{ if(o.isMesh&&HIQ) o.castShadow=true; });
+  return g;
+}
+/* Zum Aufnehmen gebraucht: nichts anderes in der Hand */
+function hubFrei(){
+  if(!S) return 'Spiel nicht bereit.';
+  if(S.carrying||S.kisteHand) return 'Du trägst schon etwas. Erst abstellen.';
+  if(typeof karreAn==='function'&&karreAn()) return 'Erst die Karre wegstellen (K).';
+  if(grabbed) return 'Du hast ein Möbel in der Hand.';
+  return null;
+}
+function roboterBusy(){ return vsPortal.phase!=='ruhe'||vsBahn.some(e=>e.phase==='greifer')||vsBahn.some(e=>e.phase==='rollen'&&e.laeuft); }
+function hubAufnehmenPruefen(p){
+  if(!hubDa()) return 'Der Hubwagen gehört zur Packstation.';
+  if(!hubZeit()) return 'Palettenabholung: DDL holt ab 18 Uhr – vorher bleibt alles in der Box.';
+  if(!vdIstOffen()) return 'Das Rolltor V1 ist zu – es fährt hoch, sobald der DDL-LKW steht.';
+  if(LD.pal) return 'Der Mitarbeiter fährt gerade eine Palette.';
+  const f=hubFrei(); if(f) return f;
+  if(p.ort!=='z') return 'Diese Palette ist schon weg.';
+  if(p.idx!==0) return 'Erst die vordere Palette – sie steht am Tor.';
+  if(vsPalZahl(p)===0) return 'Die Palette ist noch leer.';
+  if(roboterBusy()||vsPalGleitet()) return 'Der Roboter arbeitet gerade an den Paletten – kurz warten.';
+  return null;
+}
+function hubAufnehmen(p){
+  const why=hubAufnehmenPruefen(p); if(why){ toast(why,'bad'); return false; }
+  palAufnehmen(p,{x:null});
+  HUB.pal=p; p.lader=false;
+  if(!HUB.g){ HUB.g=hubModell(); scene.add(HUB.g); }
+  HUB.g.visible=true; if(HUB.park) HUB.park.visible=false;
+  sfx.pop(); toast(`Hubwagen: Palette mit ${vsPalZahl(p)} Paketen. Rückwärts durch das Tor in den LKW fahren, dann Aktion zum Abstellen.`);
+  return true;
+}
+/* Palette aus der Schlange nehmen: sie gleitet an den Hubwagen */
+function palAufnehmen(p){
+  const o=vsPalObjekt(p);
+  o.g.updateMatrixWorld(true); const w=new THREE.Vector3(); o.g.getWorldPosition(w);
+  const ry=o.g.rotation.y+(o.g.parent===packTisch?packTisch.rotation.y:0);
+  p.wx=w.x; p.wz=w.z; p.wry=ry; p.von={x:w.x,z:w.z,ry}; p.vt=0;
+  p.ort='h'; p.idx=0;
+  vsPalStellen(p,o,true); o.g.position.set(w.x,PAL_Y,w.z); o.g.rotation.y=ry;
+  vsPalAbgleich(); syncPakete();
+}
+/* Wo steht die getragene Palette (Welt)? Die lange Seite zeigt in Fahrtrichtung. */
+function hubZiel(){
+  const fx=-Math.sin(yaw), fz=-Math.cos(yaw);
+  return {x:pl.x+fx*1.3,z:pl.z+fz*1.3,ry:yaw+Math.PI/2};
+}
+function palFolgen(p,z,dt){
+  const o=vsPalObj[p.id]; if(!o) return;
+  p.vt=Math.min(1,(p.vt||0)+dt/0.55);
+  const k=p.von&&p.vt<1?vsGlatt(p.vt):1, a=p.von||z;
+  const x=a.x+(z.x-a.x)*k, zz=a.z+(z.z-a.z)*k;
+  o.g.position.set(x,PAL_Y,zz); o.g.rotation.y=vsWinkel(a.ry,z.ry,k);
+  p.wx=x; p.wz=zz;
+}
+function hubUpdate(dt){
+  if(HUB.park){ HUB.park.visible=!HUB.pal&&hubDa(); }
+  const p=HUB.pal; if(!p){ if(HUB.g) HUB.g.visible=false; return; }
+  if(!vsPalObj[p.id]){ HUB.pal=null; return; }
+  palFolgen(p,hubZiel(),dt);
+  HUB.g.position.set(pl.x,0,pl.z); HUB.g.rotation.y=yaw; HUB.g.visible=true;
+}
+/* Die getragene Palette darf nicht durch Zaun, Waende und stehende Paletten */
+function hubKollision(){
+  if(!HUB.pal) return;
+  if((HUB.pal.vt||0)<1) return;
+  for(let n=0;n<2;n++){
+    const fx=-Math.sin(yaw), fz=-Math.cos(yaw);
+    for(const d of [0.8,1.3,1.8]){
+      const q={x:pl.x+fx*d,z:pl.z+fz*d}, ox=q.x, oz=q.z;
+      collide(q,0.4);
+      pl.x+=q.x-ox; pl.z+=q.z-oz;
+    }
+  }
+  collide(pl,0.32);
+}
+/* Wohin mit der Palette? Im Laderaum der naechste freie Platz, sonst zurueck in die Box. */
+function hubAbstellPlatz(){
+  const z=hubZiel(), f=vfRueck(z.x,z.z);
+  if(VT.state==='docked'){
+    let best=-1, bd=1e9;
+    for(let i=0;i<DDL_SLOTS;i++){ if(S.paletten.some(q=>q.ort==='l'&&q.idx===i)) continue;
+      const s=ddlSlot(i), d=Math.hypot(s.lx-f.lx,s.lz-f.lz); if(d<bd){ bd=d; best=i; } }
+    if(best>=0&&bd<1.25) return {ort:'l',idx:best,text:`Palette in den LKW stellen (Platz ${best+1})`};
+    if(f.lx<-0.3&&f.lx>-9.4&&Math.abs(f.lz)<1.6) return {ort:null,text:'Hier kann die Palette im LKW nicht stehen – tiefer hinein, rückwärts fahren'};
+  }
+  /* zurueck an den Anfang der Schlange, wenn man noch vor der Box steht */
+  const c=palZentrumWelt(0);
+  if(Math.hypot(z.x-c.x,z.z-c.z)<3.4) return {ort:'z',idx:0,text:'Palette zurück in die Box stellen'};
+  return {ort:null,text:VT.state==='docked'?'In den LKW fahren und dort abstellen':'Der LKW ist nicht da – Palette zurück zur Box bringen'};
+}
+function hubAbstellen(){
+  const p=HUB.pal; if(!p) return false;
+  const t=hubAbstellPlatz();
+  if(!t.ort){ toast(t.text,'bad'); return false; }
+  const o=vsPalObj[p.id];
+  HUB.pal=null; if(HUB.g) HUB.g.visible=false;
+  if(t.ort==='l'){ p.ort='l'; p.idx=t.idx; vsPalStellen(p,o,true); sfx.thump(0.3);
+    statAdd('paletten',1); addXP(6,'Palette verladen'); toast(`Palette mit ${vsPalZahl(p)} Paketen im LKW.`,'money'); }
+  else { /* an den Anfang der Schlange */
+    p.ort='z'; vsPalZelle().forEach(q=>{ if(q!==p) q.idx++; }); p.idx=0; vsPalStellen(p,o,true); o.cx=null; vsPalAbgleich(); sfx.pop(); toast('Palette steht wieder in der Box.'); }
+  syncPakete();
+  return true;
+}
+/* Aktion: getragene Palette abstellen, sonst die angesehene aufnehmen */
+function hubAktion(ziel){
+  if(HUB.pal) return hubAbstellen();
+  if(ziel&&ziel.kind==='palette'){ const p=S.paletten.find(q=>q.ort==='z'&&q.idx===ziel.ref.idx); if(p) return hubAufnehmen(p); }
+  return false;
+}
+function hubPrompt(t){
+  if(HUB.pal){ const h=hubAbstellPlatz(); return {t:h.text,a:!!h.ort}; }
+  if(t&&t.kind==='palette'){ const p=S.paletten.find(q=>q.ort==='z'&&q.idx===t.ref.idx); if(!p) return null;
+    const n=vsPalZahl(p), why=hubAufnehmenPruefen(p);
+    return why?{t:`Palette (${n} Pakete) – ${why}`,a:false}:{t:`Palette mit ${n} Paketen aufnehmen (Hubwagen)`,a:true}; }
+  if(t&&t.kind==='ddlschild') return ddlSchildPrompt();
+  return null;
+}
+function hubAufbauPark(){
+  if(HUB.park||!packTisch) return;
+  /* der Hubwagen steht im Versandhof neben dem Tor, die Gabeln zeigen vom Tor weg */
+  HUB.park=hubModell(); HUB.park.position.set(V1.x+3.6,0.036,V1.wz-1.5); HUB.park.rotation.y=0; scene.add(HUB.park);
+}
+
+/* ---------------------------------------------------------
+   Versandhof und Rolltor V1
+   --------------------------------------------------------- */
+function vdSetzen(t){
+  VD.t=clamp(t,0,1);
+  VD.panels.forEach((pn,i)=>{ const zu=(i+0.5)*(V1.h/VD.panels.length), auf=V1.h+0.14+i*0.1; pn.position.y=zu+(auf-zu)*VD.t; });
+  if(VD.t>0.12){ if(VD.col){ dropCol(VD.col); VD.col=null; if(typeof navDirty==='function') navDirty(); } }
+  else if(!VD.col){ VD.col=col(V1.x-V1.w/2,V1.x+V1.w/2,V1.wz-0.08,V1.wz+0.08); if(typeof navDirty==='function') navDirty(); }
+  const offen=VD.t>=0.98;
+  if(VD.lampG) VD.lampG.emissiveIntensity=offen?1.6:0;
+  if(VD.lampR) VD.lampR.emissiveIntensity=offen?0:1.4;
+}
+function vdOffen(v){ VD.target=v?1:0; }
+function vdIstOffen(){ return VD.t>=0.98; }
+function vdUpdate(dt){
+  if(!VD.g) return;
+  const d=VD.target-VD.t;
+  if(Math.abs(d)<0.002){ if(VD.warn) VD.warn.emissiveIntensity=0; return; }
+  if(VD.warn) VD.warn.emissiveIntensity=(Math.sin(performance.now()*0.012)>0?1.8:0.05);
+  VD.snd=(VD.snd||0)-dt; if(VD.snd<=0){ VD.snd=0.42; sfx.rolltor(distVol(V(V1.x,1.5,V1.wz))); }
+  vdSetzen(VD.t+(d>0?1:-1)*Math.min(Math.abs(d),dt/3.4));
+}
+function buildVersandhof(){
+  if(VD.g) return;
+  const g=new THREE.Group(); scene.add(g); VD.g=g;
+  const steel=std(0x8d939d,{metalness:0.6,roughness:0.42}), dark=std(0x2a2e38,{metalness:0.5,roughness:0.45}), gelb=std(0xf2c230,{roughness:0.7});
+  /* Torblatt: Rolltor aus sechs Panelen, laeuft nach oben in den Sturz */
+  const N=6, ph=V1.h/N;
+  for(let i=0;i<N;i++){ const pn=new THREE.Mesh(new THREE.BoxGeometry(V1.w-0.06,ph-0.01,0.07),torPanelMat()); pn.position.set(V1.x,(i+0.5)*ph,V1.wz); if(HIQ){ pn.castShadow=true; } g.add(pn); VD.panels.push(pn); }
+  /* Zarge: zwei Pfosten und der Sturzbalken, an beiden Seiten */
+  for(const s of [-1,1]) for(const zz of [V1.wz-0.13,V1.wz+0.13]) bbox(0.16,V1.h+0.1,0.07,steel,V1.x+s*(V1.w/2+0.05),(V1.h+0.1)/2,zz,g,false);
+  for(const zz of [V1.wz-0.13,V1.wz+0.13]) bbox(V1.w+0.4,0.2,0.07,steel,V1.x,V1.h+0.1,zz,g,false);
+  /* Ampel: rot zu, gruen offen */
+  VD.lampR=new THREE.MeshStandardMaterial({color:LIN(0x401010),emissive:LIN(0xff3a22),emissiveIntensity:1.4});
+  VD.lampG=new THREE.MeshStandardMaterial({color:LIN(0x104018),emissive:LIN(0x33ff77),emissiveIntensity:0});
+  VD.warn=new THREE.MeshStandardMaterial({color:LIN(0x403010),emissive:LIN(0xffa820),emissiveIntensity:0});
+  bbox(0.2,0.5,0.14,dark,V1.x+V1.w/2+0.55,2.2,V1.wz+0.2,g,false);
+  const lamp=(m,y)=>{ const l=new THREE.Mesh(new THREE.SphereGeometry(0.06,10,8),m); l.position.set(V1.x+V1.w/2+0.55,y,V1.wz+0.29); g.add(l); };
+  lamp(VD.lampR,2.36); lamp(VD.lampG,2.2);
+  const wl=new THREE.Mesh(new THREE.SphereGeometry(0.1,10,8),VD.warn); wl.position.set(V1.x,V1.h+0.35,V1.wz+0.2); g.add(wl);
+  /* Beschriftung ueber dem Tor, innen und aussen */
+  const schild=tex(640,128,(c,W,H)=>{ c.fillStyle='#1b2340'; c.fillRect(0,0,W,H); c.strokeStyle='#ffd23f'; c.lineWidth=8; c.strokeRect(6,6,W-12,H-12);
+    c.fillStyle='#ffd23f'; c.font=BUN(58); c.textAlign='center'; c.textBaseline='middle'; c.fillText('V1 · VERSAND',W/2,H*0.52); });
+  const sm=new THREE.MeshStandardMaterial({map:schild,roughness:0.6});
+  plane(1.9,0.38,sm,V1.x,V1.h+0.62,V1.wz+0.12,0,g); plane(1.9,0.38,sm,V1.x,V1.h+0.62,V1.wz-0.12,Math.PI,g);
+  /* Abholschild an der Hallenwand: von hier ruft man DDL ab 18 Uhr */
+  const dt=tex(520,260,(c,W,H)=>{ c.fillStyle='#1b2340'; c.fillRect(0,0,W,H); c.strokeStyle='#ffd23f'; c.lineWidth=10; c.strokeRect(8,8,W-16,H-16);
+    c.textAlign='center'; c.textBaseline='middle'; c.fillStyle='#ffd23f'; c.font=BUN(54); c.fillText('ABHOLUNG',W/2,66);
+    c.fillStyle='#ffffff'; c.font=BUN(76); c.fillText('DDL',W/2,140); c.fillStyle='#bcd0ea'; c.font=BAR(32); c.fillText('täglich 22 Uhr · ab 18 Uhr selbst fahren',W/2,214); });
+  const dm=new THREE.MeshStandardMaterial({map:dt,roughness:0.6});
+  VD.sign=plane(1.2,0.6,dm,V1.x-V1.w/2-1.0,1.7,V1.wz+0.115,0,g);
+  VD.signHit=bbox(1.3,0.7,0.2,hitM,V1.x-V1.w/2-1.0,1.7,V1.wz+0.25,g,false); VD.signHit.userData={kind:'ddlschild',ref:null};
+  /* Versandhof: Betonplatte, Fahrspur, Zaun, Poller */
+  const hof=V1_HOF, W=hof.x1-hof.x0, D=hof.z1-hof.z0;
+  const bt=concreteTex(); bt.repeat.set(W/2.2,D/2.2);
+  const fl=new THREE.Mesh(new THREE.PlaneGeometry(W,D),new THREE.MeshStandardMaterial({map:bt,roughness:0.92,color:LIN(0xa8acb2)}));
+  fl.rotation.x=-Math.PI/2; fl.position.set((hof.x0+hof.x1)/2,0.036,(hof.z0+hof.z1)/2); if(HIQ) fl.receiveShadow=true; g.add(fl);
+  const mark=(w,d,x,z)=>{ const m=new THREE.Mesh(new THREE.PlaneGeometry(w,d),new THREE.MeshBasicMaterial({color:0xf2c230})); m.rotation.x=-Math.PI/2; m.position.set(x,0.04,z); g.add(m); };
+  for(let z2=hof.z1-0.8;z2>hof.z0+1;z2-=1.1){ mark(0.12,0.6,V1.x-1.75,z2); mark(0.12,0.6,V1.x+1.75,z2); }
+  const zm=new THREE.Mesh(new THREE.PlaneGeometry(4.6,1.3),new THREE.MeshBasicMaterial({transparent:true,depthWrite:false,map:tex(920,260,(c2,Wc,Hc)=>{ c2.clearRect(0,0,Wc,Hc);
+    c2.fillStyle='rgba(18,20,26,.62)'; c2.fillRect(0,0,Wc,Hc); c2.strokeStyle='#ffd23f'; c2.lineWidth=10; c2.strokeRect(5,5,Wc-10,Hc-10);
+    c2.textAlign='center'; c2.textBaseline='middle'; c2.font=BUN(104); c2.fillStyle='#ffd23f'; c2.fillText('VERSANDHOF',Wc/2,Hc/2+3); })}));
+  zm.rotation.x=-Math.PI/2; zm.rotation.z=0; zm.position.set(V1.x,0.045,hof.z1-2.4); zm.renderOrder=2; g.add(zm);
+  const zaunM=std(0x4a5260,{metalness:0.6,roughness:0.5});
+  const zaun=(x0,z0,x1,z1)=>{ const quer=Math.abs(x1-x0)>Math.abs(z1-z0), L=quer?Math.abs(x1-x0):Math.abs(z1-z0), n=Math.max(1,Math.round(L/2));
+    for(let j=0;j<=n;j++){ const x=x0+(x1-x0)*j/n, z=z0+(z1-z0)*j/n; bbox(0.08,2.0,0.08,zaunM,x,1.0,z,g,false); }
+    const m=new THREE.Mesh(new THREE.BoxGeometry(quer?L:0.03,1.7,quer?0.03:L),std(0x707886,{metalness:0.5,roughness:0.5,transparent:true,opacity:0.55}));
+    m.position.set((x0+x1)/2,1.0,(z0+z1)/2); g.add(m);
+    for(const yy of [0.15,1.95]) bbox(quer?L:0.05,0.05,quer?0.05:L,zaunM,(x0+x1)/2,yy,(z0+z1)/2,g,false); };
+  zaun(hof.x0,hof.z1,hof.x0,hof.z0); zaun(hof.x1,hof.z1,hof.x1,hof.z0); zaun(hof.x0,hof.z0,hof.x1,hof.z0);
+  col(hof.x0-0.1,hof.x0+0.05,hof.z0,hof.z1); col(hof.x1-0.05,hof.x1+0.1,hof.z0,hof.z1); col(hof.x0,hof.x1,hof.z0-0.1,hof.z0+0.05);
+  /* Poller vor dem Tor */
+  for(const s of [-1,1]){ const x=V1.x+s*(V1.w/2+0.55); bbox(0.18,0.9,0.18,gelb,x,0.45,V1.wz-0.9,g,false); col(x-0.14,x+0.14,V1.wz-1.04,V1.wz-0.76); }
+  /* Flutlicht ueber dem Tor */
+  bbox(0.5,0.12,0.2,dark,V1.x,V1.h+1.15,V1.wz-0.25,g,false);
+  VD.fluter=new THREE.MeshStandardMaterial({color:LIN(0x23262e),emissive:LIN(0xfff2d6),emissiveIntensity:0}); if(typeof lampMats!=='undefined') lampMats.push(VD.fluter);
+  const fl2=new THREE.Mesh(new THREE.BoxGeometry(0.42,0.06,0.12),VD.fluter); fl2.position.set(V1.x,V1.h+1.07,V1.wz-0.3); g.add(fl2);
+  vdSetzen(0);
+}
+
+/* ---------------------------------------------------------
+   Der LKW von DDL: rueckwaerts an V1, Tor auf, Brueckenklappe, laden, zu, weg
+   --------------------------------------------------------- */
+function vtRahmen(){
+  if(VT.rahmen) return VT.rahmen;
+  const r=new THREE.Group(); r.position.set(V1.x,0,V1.rz); r.rotation.y=-Math.PI/2; scene.add(r); VT.rahmen=r; return r;
+}
+function vtStart(){
+  const r=vtRahmen();
+  VT.g=makeTruck('DDL',TRUCKCOL.ddl); VT.g.position.set(-9.5,0,0); r.add(VT.g);
+  VT.state='anfahrt'; VT.t=0; VT.flap=0; DDL.t=0; DDL.lad=0;
+  toast('DDL rollt an Tor V1 – der Paketdienst holt ab.');
+}
+function vtLaderaumOeffnen(){
+  if(VT.raum) return;
+  const r=vtRahmen();
+  VT.g.visible=false;
+  VT.raum=makeLaderaum('DDL',TRUCKCOL.ddl,r);
+  VT.bruecke=makeBruecke(r); VT.flap=0; vtFlap();
+  /* Seitenwaende und Stirnwand des Laderaums, in Weltkoordinaten */
+  const a=vf(-LR.len-0.05,0), L=(lz0,lz1,lx0,lx1)=>{ const p=vf(lx0,lz0), q=vf(lx1,lz1); return col(Math.min(p.x,q.x),Math.max(p.x,q.x),Math.min(p.z,q.z),Math.max(p.z,q.z)); };
+  VT.cols=[L(-LR.w/2-0.2,-LR.w/2+0.02,-LR.len-0.3,0.2),L(LR.w/2-0.02,LR.w/2+0.2,-LR.len-0.3,0.2),L(-LR.w/2,LR.w/2,-LR.len-0.25,-LR.len-0.02)];
+  void a;
+  if(typeof navDirty==='function') navDirty();
+  if(!VT.fahrer){ VT.fahrer=makePerson({kopf:'CM07'}); VT.fahrer.visible=false; scene.add(VT.fahrer); }
+  { const w=vf(-LR.len+2.4,-LR.w/2-1.4); VT.fahrer.position.set(w.x,0,w.z); VT.fahrer.rotation.y=1.2; VT.fahrer.visible=true; }
+}
+function vtFlap(){ if(VT.bruecke) VT.bruecke.rotation.z=VT.flap*FLAP_MAX; }
+function vtRaumWeg(){
+  if(VT.raum){ if(VT.raum.parent) VT.raum.parent.remove(VT.raum); VT.raum=null; LR_LAMPE.forEach(l=>{ l.intensity=0; }); }
+  if(VT.bruecke){ if(VT.bruecke.parent) VT.bruecke.parent.remove(VT.bruecke); VT.bruecke=null; }
+  VT.cols.forEach(c=>dropCol(c)); VT.cols=[];
+  if(VT.flapCol){ dropCol(VT.flapCol); VT.flapCol=null; }
+  if(VT.fahrer) VT.fahrer.visible=false;
+  if(typeof navDirty==='function') navDirty();
+}
+function vtEntfernen(){
+  vtRaumWeg();
+  if(VT.g){ if(VT.g.parent) VT.g.parent.remove(VT.g); VT.g=null; }
+  VT.state=null; vdOffen(false);
+}
+/* Steht noch jemand im Laderaum (Spieler, Mitarbeiter)? */
+function vtBesetzt(){
+  const inn=(x,z)=>{ const f=vfRueck(x,z); return f.lx<0.4&&f.lx>-LR.len-0.4&&Math.abs(f.lz)<LR.w/2+0.3; };
+  if(inn(pl.x,pl.z)) return true;
+  if(LD.ph!=='idle'&&LD.ph!=='fertig') return true;
+  for(const k in staff){ const w=staff[k]; if(w&&inn(w.pos.x,w.pos.z)) return true; }
+  return false;
+}
+function vtUpdate(dt){
+  if(VT.fahrer&&VT.fahrer.visible) animPerson(VT.fahrer,false,dt,1);
+  if(!VT.state) return;
+  const g=VT.g;
+  if(VT.state==='anfahrt'){
+    /* Rueckwaerts an V1, das Tor bleibt dabei zu */
+    const d=0-g.position.x, sp=clamp(d*0.9,0.5,2.6);
+    g.position.x+=sp*dt;
+    if(d<=0.03){ g.position.x=0; VT.state='torauf'; vdOffen(true); vtLaderaumOeffnen(); toast('Der Fahrer steht an V1. Das Tor fährt hoch.'); }
+  } else if(VT.state==='torauf'){
+    if(vdIstOffen()){ VT.state='docked'; VT.t=0; DDL.t=0; toast(`DDL ist da: Paletten mit dem Hubwagen in den LKW fahren – oder der Mitarbeiter übernimmt in ${DDL.ruf?DDL_RUF:DDL_AUTO} s.`,COARSE?'':'xp'); }
+  } else if(VT.state==='docked'){
+    ddlTruckUpdate(dt);
+  } else if(VT.state==='flap'){
+    if(vtBesetzt()){ VT.flap=Math.max(0,VT.flap-dt/FLAP_T); vtFlap(); if(VT.flapCol&&VT.flap<0.6){ dropCol(VT.flapCol); VT.flapCol=null; } if(VT.flap<=0) VT.state='docked'; return; }
+    VT.flap=Math.min(1,VT.flap+dt/FLAP_T); vtFlap();
+    if(VT.flap>=0.6&&!VT.flapCol){ const p=vf(0.3,-1.6), q=vf(0.05,1.6); VT.flapCol=col(Math.min(p.x,q.x),Math.max(p.x,q.x),Math.min(p.z,q.z),Math.max(p.z,q.z)); }
+    if(VT.flap>=1){ VT.state='torzu'; VT.t=0; vdOffen(false); }
+  } else if(VT.state==='torzu'){
+    if(VD.t<=0.05){ vtRaumWeg(); g.visible=true; VT.state='out'; VT.t=0; }
+  } else if(VT.state==='out'){
+    VT.t+=dt; g.position.x-=Math.min(7,VT.t*5)*dt;
+    if(g.position.x<-LR.len-14){ vtEntfernen(); DDL.warte=false; }
+  }
+}
+
+/* ---------------------------------------------------------
+   Der Mitarbeiter am Hubwagen (in der hoeheren Stufe ein
+   Hubwagen-Roboter ohne Person): holt die vorderste Palette aus
+   der Box, faehrt sie rueckwaerts in den Laderaum und stellt sie ab
+   --------------------------------------------------------- */
+function ldBauen(){
+  if(LD.jack) return;
+  LD.jack=hubModell(); LD.jack.visible=false; scene.add(LD.jack);
+  LD.fig=makePerson({kopf:'CM07'}); LD.fig.visible=false; scene.add(LD.fig);
+}
+function ldAgv(){ return packStufe()>=2; }
+function ldPose(dt){
+  /* Bediener bei (lx,lz) im Rahmen, blickt in die Halle (+lx = Welt +z): Rotation 0 */
+  const w=vf(LD.lx,LD.lz);
+  LD.fig.position.set(w.x,0,w.z); LD.fig.rotation.y=0; LD.fig.visible=!LD.agv&&LD.ph!=='idle'&&LD.ph!=='fertig';
+  LD.jack.position.set(w.x,0,w.z); LD.jack.rotation.y=0; LD.jack.visible=LD.ph!=='idle'&&LD.ph!=='fertig';
+  if(LD.pal){ const q=vf(LD.lx+1.3,LD.lz+(LD.ph==='fahren'||LD.ph==='absetzen'?(LD.sw||0):0)); palFolgen(LD.pal,{x:q.x,z:q.z,ry:Math.PI/2},dt||0.016); }
+}
+function ldNaechste(){
+  const p=vsPalZelle()[0];
+  return p&&vsPalZahl(p)>0?p:null;
+}
+function ldFreierPlatz(){ for(let i=0;i<DDL_SLOTS;i++) if(!S.paletten.some(q=>q.ort==='l'&&q.idx===i)) return i; return -1; }
+function ldUpdate(dt){
+  if(!LD.jack) ldBauen();
+  const aktiv=VT.state==='docked'&&vdIstOffen();
+  if(!aktiv){ if(LD.ph!=='idle'){ ldAbbruch(); } return; }
+  LD.agv=ldAgv();
+  const v=1.0;
+  switch(LD.ph){
+    case 'idle': {
+      /* wartet, bis der Fahrer losfahren darf; faehrt nicht, solange der Spieler eine Palette hat */
+      const warte=DDL.ruf?DDL_RUF:DDL_AUTO;
+      if(DDL.t<warte||HUB.pal||vsPalGleitet()||roboterBusy()) break;
+      const p=ldNaechste(), slot=ldFreierPlatz(); if(!p||slot<0) break;
+      LD.ziel=ddlSlot(slot); LD.slot=slot; LD.pal=null; LD.x0=boxStandLx(); LD.lx=LD.x0; LD.lz=BOX_LZ; LD.lz0=BOX_LZ; LD.sw=0; LD.ph='hin'; LD.t=0; ldPose(dt); break; }
+    case 'hin': {
+      /* ans Tor stellen und die Gabeln unter die vorderste Palette schieben */
+      LD.t+=dt; ldPose(dt); if(LD.t<0.9) break;
+      const p=ldNaechste(); if(!p||HUB.pal){ LD.ph='idle'; break; }
+      palAufnehmen(p); p.lader=true; LD.pal=p; LD.ph='fahren'; LD.t=0; break; }
+    case 'fahren': {
+      /* rueckwaerts durch die Gasse in der Mitte des Laderaums; die Palette schwenkt erst zum Schluss
+         seitlich auf ihren Platz - der Fahrer kommt so nie an stehenden Paletten vorbei */
+      const ziel=LD.ziel.lx-1.3;
+      LD.lx=Math.max(ziel,LD.lx-v*dt);
+      const rest=LD.lx-ziel;
+      LD.lz=LD.lz0*(1-vsGlatt(clamp((LD.x0-LD.lx)/1.6,0,1)));
+      LD.sw=LD.ziel.lz*vsGlatt(clamp(1-rest/1.3,0,1));
+      ldPose(dt); if(LD.lx<=ziel+1e-6){ LD.ph='absetzen'; LD.t=0; } break; }
+    case 'absetzen': {
+      LD.t+=dt; ldPose(dt); if(LD.t<0.7) break;
+      const p=LD.pal; LD.pal=null; p.ort='l'; p.idx=LD.slot; p.lader=false; vsPalStellen(p,vsPalObj[p.id],true);
+      statAdd('paletten',1); sfx.thump(0.3); syncPakete(); LD.ph='zurueck'; LD.t=0; break; }
+    case 'zurueck': {
+      /* erst in die Fahrgasse, dann vorwaerts zum Tor */
+      if(Math.abs(LD.lz)>0.01){ LD.lz+=Math.sign(-LD.lz)*Math.min(Math.abs(LD.lz),dt*0.9); }
+      else LD.lx=Math.min(LD.x0,LD.lx+1.7*dt);
+      ldPose(dt); if(LD.lx>=LD.x0-1e-6&&Math.abs(LD.lz)<0.02){ LD.ph='idle'; LD.t=0; LD.jack.visible=false; LD.fig.visible=false; } break; }
+  }
+  if(LD.fig&&LD.fig.visible) animPerson(LD.fig,LD.ph==='fahren'||LD.ph==='zurueck',dt,0.9);
+}
+/* Truck weg oder Tor zu: der Mitarbeiter lässt die Palette stehen, wo sie ist */
+function ldAbbruch(){
+  if(LD.pal){ const p=LD.pal; LD.pal=null; p.lader=false; p.ort='z'; vsPalZelle().forEach(q=>{ if(q!==p) q.idx++; }); p.idx=0; const o=vsPalObj[p.id]; if(o){ vsPalStellen(p,o,true); o.cx=null; } vsPalAbgleich(); syncPakete(); }
+  LD.ph='idle'; LD.t=0; if(LD.jack) LD.jack.visible=false; if(LD.fig) LD.fig.visible=false;
+}
+
+/* ---------------------------------------------------------
+   DDL: wann kommt der LKW, wann faehrt er
+   --------------------------------------------------------- */
+function ddlLaeuft(){ return !!VT.state||DDL.warte; }
+function ddlHatLadung(){ return (S.paketGr||[]).length>0||S.paletten.some(p=>p.ort!=='z'); }
+function ddlSchildPrompt(){
+  if(VT.state||DDL.warte) return {t:'DDL ist da oder unterwegs',a:false};
+  if(!packBereit()) return {t:'Abholung DDL – die Packstation ist noch nicht in Betrieb',a:false};
+  if(!hubZeit()) return {t:'Abholung DDL: ab 18 Uhr kannst du den LKW rufen und selbst verladen',a:false};
+  if(!ddlHatLadung()) return {t:'Abholung DDL: noch keine Pakete zur Abholung',a:false};
+  return {t:'DDL jetzt rufen und selbst verladen',a:true};
+}
+function ddlRufen(){
+  const p=ddlSchildPrompt(); if(!p.a){ toast(p.t,'bad'); return false; }
+  DDL.warte=true; DDL.ruf=true; DDL.tag=S.day; sfx.pop(); toast('DDL ist unterwegs.'); return true;
+}
+function ddlStart(){
+  /* 22 Uhr, Ladenschluss: DDL rollt an. Gerufen wurde schon? Dann nur, wenn wieder etwas da ist. */
+  if(!packBereit()||DDL.warte||VT.state) return;
+  if(!(phase==='closing'||phase==='after')) return;
+  if(DDL.autoTag===S.day||(S.ddlTag|0)===S.day) return;
+  DDL.autoTag=S.day; S.ddlTag=S.day;
+  if(!ddlHatLadung()) return;
+  DDL.warte=true; DDL.ruf=false; DDL.tag=S.day;
+}
+function ddlTruckUpdate(dt){
+  DDL.t+=dt;
+  ldUpdate(dt);
+  /* fertig: nichts mehr zu holen, keiner im Laderaum, nichts in der Hand */
+  const mehr=(ldNaechste()&&ldFreierPlatz()>=0)||HUB.pal||LD.pal||roboterBusy();
+  if(!mehr&&!vtBesetzt()){ DDL.lad+=dt; if(DDL.lad>2.2&&DDL.t>5) ddlAbfahrt(); } else DDL.lad=0;
+}
+/* Alles weg: Pakete der Paletten im LKW, bei Zwang auch der Rest */
+function ddlAbholen(alle){
+  vsPalInit();
+  let n=0;
+  const weg=S.paletten.filter(p=>p.ort==='l'||(alle&&p.ort!=='l'));
+  const ids=new Set(weg.map(p=>p.id));
+  const gr=[], pp=[], gel=vsGelandet();
+  for(let i=0;i<S.paketGr.length;i++){
+    if(i<gel&&ids.has(S.paketP[i])){ n++; continue; }
+    gr.push(S.paketGr[i]); pp.push(S.paketP[i]); }
+  S.paketGr=gr; S.paketP=pp; S.pakete=gr.length;
+  weg.forEach(p=>vsPalVerwerfen(p));
+  S.paletten=S.paletten.filter(p=>!ids.has(p.id));
+  if(HUB.pal&&ids.has(HUB.pal.id)){ HUB.pal=null; if(HUB.g) HUB.g.visible=false; }
+  if(LD.pal&&ids.has(LD.pal.id)){ LD.pal=null; LD.ph='idle'; }
+  if(n) statAdd('ddl',n);
+  return n;
+}
+function ddlAbfahrt(){
+  const n=ddlAbholen(false);
+  DDL.t=0; DDL.lad=0; DDL.ruf=false;
+  vsPalAbgleich(); syncPakete(); drawPackSchild();
+  if(n) toast(`DDL hat ${n} Paket${n===1?'':'e'} abgeholt.`,'money');
+  VT.state='flap'; VT.t=0;
+}
+/* Paletten voll: DDL faehrt zwischendurch vor und nimmt mit, was in der Box liegt */
+function vsZwischenabholung(){
+  const n=vsGelandet(); if(n<=0) return 0;
+  const gr=[], pp=[]; let k=0;
+  const ids=new Set(vsPalZelle().map(p=>p.id));
+  for(let i=0;i<S.paketGr.length;i++){ if(i<n&&ids.has(S.paketP[i])){ k++; continue; } gr.push(S.paketGr[i]); pp.push(S.paketP[i]); }
+  S.paketGr=gr; S.paketP=pp; S.pakete=gr.length; if(k) statAdd('ddl',k);
+  syncPakete(); drawPackSchild();
+  toast('Die Paletten waren voll – DDL hat zwischendurch abgeholt.');
+  return k;
+}
+/* Tagesende: alles geht mit, auch was noch auf dem Band laeuft */
+function ddlAbholung(){
+  vsBahn.forEach(e=>{ if(e.m.parent) e.m.parent.remove(e.m); }); vsBahn.length=0;
+  vsPortalRuhe();
+  vsPalInit();
+  HUB.pal=null; if(HUB.g) HUB.g.visible=false;
+  if(LD.ph!=='idle') ldAbbruch();
+  let n=ddlAbholen(true);
+  /* was noch auf dem Band lag (noch nicht gelandet), faehrt ebenfalls mit */
+  const rest=S.paketGr.length; if(rest){ statAdd('ddl',rest); n+=rest; }
+  S.paketGr=[]; S.paketP=[]; S.pakete=0;
+  DDL.warte=false; DDL.t=0; DDL.lad=0; DDL.ruf=false;
+  if(VT.state) vtEntfernen();
+  if(packTisch){ vsPalAbgleich(); syncPakete(); drawPackSchild(); }
+  return n;
+}
+/* Takt: Hubwagen, gleitende Paletten, DDL, Tor */
+function updatePaletten(dt){
+  if(!S||!packTisch) return;
+  if(!VD.g) buildVersandhof();
+  if(!HUB.park&&zoneOffen('packstation')) hubAufbauPark();
+  vsPalZeichnen(dt);
+  hubUpdate(dt);
+  vdUpdate(dt);
+  if(VD.fluter) { /* Flutlicht brennt nachts mit den anderen Leuchten */ }
+  if(packBereit()){
+    ddlStart();
+    if(DDL.warte&&!VT.state){ DDL.warte=false; vtStart(); }
+  }
+  vtUpdate(dt);
+}
+/* Nach dem Laden: Paletten und Kartons zusammenfuehren */
+function vsPalLaden(){
+  vsPalInit();
+  /* LKW und Hubwagen gibt es nach dem Laden nicht mehr: die Paletten stehen wieder in der Box */
+  for(const p of S.paletten){ if(p.ort!=='z') p.ort='z'; }
+  vsPalZelle();
+  const z=S.paletten.slice().sort((a,b)=>a.idx-b.idx); z.forEach((p,i)=>{ p.idx=i; });
+  Object.keys(vsPalObj).forEach(id=>{ const o=vsPalObj[id]; if(o.g.parent) o.g.parent.remove(o.g); if(o.pk) o.pk.geometry.dispose(); delete vsPalObj[id]; });
+  S.paletten.forEach(p=>{ if(p.col){ dropCol(p.col); p.col=null; } });
+  HUB.pal=null; LD.pal=null; LD.ph='idle'; if(VT.state) vtEntfernen();
+  DDL.autoTag=S.ddlTag|0; DDL.warte=false;
 }
 
 /* =========================================================
@@ -27842,7 +28750,7 @@ const FLASH=[];
 let flashAn=true, flashRuhe=0;
 function flashSchalten(an){ if(flashAn===an) return; flashAn=an; for(const f of FLASH) f.l.visible=an; }
 function initFlash(){
-  for(let i=0;i<(COARSE?2:4);i++){ const l=new THREE.PointLight(0xffffff,0,95,1); scene.add(l); FLASH.push({l,t:0,d:0.6,max:0}); }
+  for(let i=0;i<(GFX==='ultralow'?1:COARSE?2:4);i++){ const l=new THREE.PointLight(0xffffff,0,95,1); scene.add(l); FLASH.push({l,t:0,d:0.6,max:0}); }
   flashSchalten(false);
 }
 /* beide Lichtzustaende vorab uebersetzen - in das Ziel, in das auch
@@ -43255,9 +44163,10 @@ function updatePlayer(dt){
   if(keys.KeyA||keys.ArrowLeft) mx_-=1; if(keys.KeyD||keys.ArrowRight) mx_+=1;
   mx_+=joy.x; mz+=joy.y;
   const len=Math.hypot(mx_,mz); if(len>1){ mx_/=len; mz/=len; }
-  const sp=((keys.ShiftLeft||keys.ShiftRight)?5.2:3.2)*karreTempo(), s=Math.sin(yaw), c=Math.cos(yaw);
+  const sp=((keys.ShiftLeft||keys.ShiftRight)?5.2:3.2)*karreTempo()*(typeof hubTempo==='function'?hubTempo():1), s=Math.sin(yaw), c=Math.cos(yaw);
   const x0=pl.x, z0=pl.z;
   pl.x+=(mx_*c+mz*s)*sp*dt; pl.z+=(-mx_*s+mz*c)*sp*dt; collide(pl,0.32);
+  if(typeof hubKollision==='function') hubKollision();
   if(len>0.1) bobT+=dt*sp*2.6;
   /* 03.10. (Tom): leise Schritte - einer je Tiefpunkt des Kopfwippens,
      nur wenn man wirklich vorankommt; draussen knirscht Schnee */
@@ -43316,6 +44225,7 @@ function spotFree(m,x,z,ry){
    sie mit F wieder ins Paket. Die Funktion bleibt fuer alte Aufrufe. */
 function toggleBuild(on){ if(on===false&&grabbed) cancelGrab(); }
 function grab(m,neu){
+  if(typeof hubAn==='function'&&hubAn()){ toast('Beide Hände am Hubwagen.','bad'); return; }
   S.tut.move=true; grabbed=m; grabRy=m.g.rotation.y; grabHome=neu?null:{x:m.g.position.x,z:m.g.position.z,ry:grabRy};
   dropFootprint(m);
   sfx.pop(); moebelKnoepfe();
@@ -43504,6 +44414,7 @@ function updateTarget(){
   if(pultHit) list.push(pultHit);
   if(gravHit) list.push(gravHit);
   if(packHit&&zoneOffen('packstation')&&nahDran(packTisch.position,12)) list.push(...vsHits());
+  if(packHit&&zoneOffen('packstation')&&typeof vsPalHits==='function'&&(nahDran(packTisch.position,14)||nahDran({x:V1.x,z:V1.rz},12))) list.push(...vsPalHits());
   if(tfHit&&tfHit.visible) list.push(tfHit);
   if(truck&&truck.state==='docked') truck.boxes.forEach(m=>list.push(m));
   list.push(...windowHits);
@@ -43512,6 +44423,7 @@ function updateTarget(){
   if(hits.length){ const ud=hits[0].object.userData; if(ud&&ud.kind) target={kind:ud.kind,ref:ud.ref,obj:hits[0].object}; }
 }
 function promptFor(t){
+  if(typeof hubPrompt==='function'){ const h=hubPrompt(t); if(h) return h; }
   if(!t) return null; const c=S.carrying, reg=regCustomer();
   if(pdaOn&&!grabbed){ const pt=pdaTargetType(); if(pt) return {t:`Preisgerät: ${P[pt].short} · ${eur(S.prices[pt])}`,a:true}; }
   if(c&&c.vm&&['level','rslot','box','station','gravur'].indexOf(t.kind)>=0) return {t:'Versandmaterial gehört ins Packmaterial-Regal an der Packstation',a:false};
@@ -43588,7 +44500,10 @@ function promptFor(t){
 function doAction(){
   if(paused) return;
   if(sprayOn&&!grabbed){ doSpray(); return; }
+  if(typeof hubAn==='function'&&hubAn()){ hubAktion(target); return; }
   if(!target) return;
+  if(target.kind==='palette'){ hubAktion(target); return; }
+  if(target.kind==='ddlschild'){ ddlRufen(); return; }
   if(pdaOn&&!grabbed){ const t=pdaTargetType(); if(t){ openPDA(t); return; } }
   const k=target.kind, r=target.ref, reg=regCustomer();
   if(k==='placing') placeGrab();
@@ -45217,7 +46132,7 @@ function onlineHint(){
   const st=onlineStufe();
   if(st==='zu') return 'Der Onlineshop ist noch nicht freigeschaltet. Du findest ihn unter Ausbau (Kapitel 4).';
   if(st==='pauschal') return 'Der Shop läuft, aber ohne Packstation bleibt es bei einer Tagespauschale. Mit Packstation kommen echte Bestellungen herein, die du hier packst - das bringt deutlich mehr.';
-  return 'Bestellungen laufen den ganzen Verkaufstag über ein. Jedes gepackte Paket wird sofort gutgeschrieben; DDL holt am Abend alles von der Rampe ab.';
+  return 'Bestellungen laufen den ganzen Verkaufstag über ein. Jedes gepackte Paket wird sofort gutgeschrieben; DDL holt um 22 Uhr alles an Tor V1 ab; ab 18 Uhr kannst du die Paletten selbst mit dem Hubwagen verladen.';
 }
 /* Nur Zahlen, kein Neuaufbau: so springt die Liste beim Tippen nicht. */
 function onlineZahlen(){
@@ -45299,7 +46214,7 @@ function renderOnline(){
     `<div class="mkcol"><small>offen</small><b style="font-family:var(--display);font-size:24px" id="onOffen">${z.offen}</b></div></div>`;
   h+=`<div class="row"><div class="rm onListe" id="onListe">${onlineListe()}</div></div>`;
   h+=`<div class="row"><div class="rm"><b>Pakete zur Abholung</b>`+
-      `<small>Das Band bringt sie zur Palettierstation, der Portalgreifer stapelt sie auf die Paletten. Sind alle voll, fährt DDL zwischendurch vor, am Abend wird ohnehin alles abgeholt.</small></div>`+
+      `<small>Das Band bringt sie zur Palettierstation, der Kran-Greifer stapelt sie in die gelbe Box an der Rückwand. Um 22 Uhr kommt DDL an Tor V1; ab 18 Uhr kannst du die Paletten selbst mit dem Hubwagen in den LKW fahren. Sind alle Paletten voll, fährt DDL zwischendurch vor.</small></div>`+
     `<div class="mkcol"><small>Paletten</small><b style="font-family:var(--display);font-size:20px" id="onPak">${z.pak}</b></div></div>`;
   h+=`<div class="row"><div class="rm"><b>Versand heute</b>`+
       `<small>Was der Onlineshop heute schon eingebracht hat. Der Betrag steckt bereits im Tagesumsatz.</small></div>`+
@@ -46879,9 +47794,8 @@ const GP_ORTE=[
   ['Kassen',        6.0, 5.4, 1.0, -0.2],
   ['Halle Süd',    22.0,-8.0, Math.PI*0.95, -0.10],
   ['Lager',       -10.5, 1.0, Math.PI*0.62, -0.10],
-  /* 05.10.: schraeg von Nordosten auf die Versandstrasse - drei Packplaetze,
-     Band und Palettierstation in einem Blick */
-  ['Versand',     -10.9,-6.3, 1.03, -0.16],
+  /* 07.10.: die Versandecke steht am Hallenende hinter Sued 3 (Tor V1) - Blick von vorn in die Ecke */
+  ['Versand',     -13.0,-19.0, 0.1, -0.1],
   ['Logistik',    -30.0,-16.0, Math.PI*0.62, -0.05],
   ['Testfeld',      0.3,-8.5, 0, 0.05]
 ];
@@ -46915,7 +47829,7 @@ function gpHochladen(pl){
       if(GP_KLEIN.frei) tx.onUpdate=gpBildFrei;
       try{ if(renderer&&renderer.initTexture) renderer.initTexture(tx); }catch(e){} } } }
 }
-let gpBau=null, gpFertig=false, gpBauEl=null;
+let gpBau=null, gpFertig=false, gpBauEl=null, gpWarteDdl=0;
 function gpStart(){
   if(gpAn||!S) return;
   try{ save(); localStorage.setItem(GP_KEY,localStorage.getItem(KEY)||''); }catch(e){}
@@ -47111,7 +48025,7 @@ function* gpAufbau(){
   gpTagAlt=S.day; gpVerlauf=[{tag:S.day,geld:S.money}]; gpGestern=null;
   if(phase==='closed'){ if(typeof ruhetag==='function'&&ruhetag()) ruhetagBeenden(); else openShop(); }
   gpSpringe(0);
-  if(!HIQ) yield* gpStatisch();
+  if(!HIQ||gfxNiedrig(GFX)) yield* gpStatisch();
   gpFertig=true;
   gpPanel(); gpZeichnen(); requestAnimationFrame(gpFpsLauf);
   toast('Gameplay-Vorführung: alles gebaut, Personal da, der Laden läuft. Tasten 1–7 springen in die Bereiche, T Zeitraffer, B beendet.','money');
@@ -47171,7 +48085,8 @@ function gpTick(dt){
     /* Bilanz des Tages fuer den Verlauf merken, dann "Naechster Tag" */
     if(!gpGestern||gpGestern.tag!==S.day) gpGestern={tag:S.day,umsatz:DS.revenue,kunden:DS.customers};
     const b=$('sBtn'); if(b&&b.onclick) b.onclick(); else closeSummary(); return; }
-  if(phase==='after'){ endDay(); return; }
+  /* DDL fuehrt die Abholung zu Ende (LKW, Tor, Mitarbeiter am Hubwagen), dann Tagesabschluss */
+  if(phase==='after'){ if(typeof ddlLaeuft==='function'&&ddlLaeuft()&&gpWarteDdl<240){ gpWarteDdl+=dt; return; } gpWarteDdl=0; endDay(); return; }
   if(phase==='closed'){ if(typeof ruhetag==='function'&&ruhetag()) ruhetagBeenden(); else openShop(); }
   if(S.day!==gpTagAlt){ gpTagAlt=S.day; gpVerlauf.push({tag:S.day,geld:S.money}); if(gpVerlauf.length>14) gpVerlauf.shift(); gpBestellen(); }
   gpUhr-=dt; if(gpUhr<=0){ gpUhr=0.5; gpZeichnen(); }
@@ -47235,7 +48150,7 @@ function freshState(){ const prices={}; ORDER.forEach(t=>prices[t]=P[t].market);
        bringt es an die Rampe. */
     shelves:[],racks:[],
     boxes:[],regale:[],
-    carrying:null,tut:{},fwZaehler:{},seasonRevenue:0,cart:[],offen:0,pakete:0,bestellungen:[],paketGr:[],bestNr:0,lic:['start'],stat:{},erf:{},gesehen:[],eigene:[],gutschrift:0,mi:{},me:{},reg:{},mh:{},schock:{},news:[],infl:1,shopName:SHOP_DEFAULT,slogan:SLOGAN_DEFAULT}; }
+    carrying:null,tut:{},fwZaehler:{},seasonRevenue:0,cart:[],offen:0,pakete:0,bestellungen:[],paketGr:[],paketP:[],paletten:[],palNr:0,ddlTag:0,bestNr:0,lic:['start'],stat:{},erf:{},gesehen:[],eigene:[],gutschrift:0,mi:{},me:{},reg:{},mh:{},schock:{},news:[],infl:1,shopName:SHOP_DEFAULT,slogan:SLOGAN_DEFAULT}; }
 /* Sorten, die es nicht mehr gibt (Toms PDF vom 25.09.): die alten
    Boeller werden beim Laden zu den neuen, der Heuler zum Furzboeller.
    Preise und Marktdaten der alten Sorten fallen weg - die neuen
@@ -47281,7 +48196,7 @@ function save(){
   if(typeof gpAn!=='undefined'&&gpAn) return;
   try{
     const d={v:3,money:S.money,rep:S.rep,level:S.level,xp:S.xp,season:S.season,day:S.day,loan:S.loan,prices:S.prices,up:S.up,staff:S.staff,prio:S.prio||{},einr:S.einr||{},wage:S.wage||{},pause:S.pause||{},ev:S.ev||null,goal:S.goal||null,mkt:r2(S.mkt||1),comp:r2(S.comp||1),lic:S.lic||['start'],stat:S.stat||{},erf:S.erf||{},gesehen:S.gesehen||[],eigene:S.eigene||[],gutschrift:r2(S.gutschrift||0),fwZaehler:S.fwZaehler||{},mi:S.mi||{},me:S.me||{},reg:S.reg||{},mh:S.mh||{},schock:S.schock||{},news:S.news||[],infl:S.infl||1,
-      wall:S.wall,floor:S.floor,schildBg:S.schildBg||'auto',schildFg:S.schildFg||'weiss',paint:S.paint,test:S.test,stamm:S.stamm,blanks:gravBlanks,grav:gravG?mpos(gravG):null,grime:r2(S.grime||0),tut:S.tut,tutAus:!!S.tutAus,karre:S.karre||null,seasonRevenue:S.seasonRevenue,carrying:S.carrying,kisten:S.kisten|0,kisteHand:!!S.kisteHand,cart:S.cart||[],rest:S.rest||null,ekVor:S.ekVor||{},offen:S.offen|0,pakete:S.pakete|0,bestellungen:(S.bestellungen||[]).map(b=>({id:b.id,pos:b.pos.map(l=>({t:l.t,n:l.n,g:l.g})),gr:b.gr,wert:b.wert,versand:b.versand||0,st:b.st,tag:b.tag})),vm:S.vm||null,versandCfg:S.versandCfg||null,paketGr:(S.paketGr||[]).slice(),bestNr:S.bestNr|0,shopName:S.shopName||SHOP_DEFAULT,slogan:S.slogan||'',
+      wall:S.wall,floor:S.floor,schildBg:S.schildBg||'auto',schildFg:S.schildFg||'weiss',paint:S.paint,test:S.test,stamm:S.stamm,blanks:gravBlanks,grav:gravG?mpos(gravG):null,grime:r2(S.grime||0),tut:S.tut,tutAus:!!S.tutAus,karre:S.karre||null,seasonRevenue:S.seasonRevenue,carrying:S.carrying,kisten:S.kisten|0,kisteHand:!!S.kisteHand,cart:S.cart||[],rest:S.rest||null,ekVor:S.ekVor||{},offen:S.offen|0,pakete:S.pakete|0,bestellungen:(S.bestellungen||[]).map(b=>({id:b.id,pos:b.pos.map(l=>({t:l.t,n:l.n,g:l.g})),gr:b.gr,wert:b.wert,versand:b.versand||0,st:b.st,tag:b.tag})),vm:S.vm||null,versandCfg:S.versandCfg||null,paketGr:(S.paketGr||[]).slice(),paketP:(S.paketP||[]).slice(),paletten:(S.paletten||[]).map(p=>({id:p.id,ort:p.ort,idx:p.idx})),palNr:S.palNr|0,ddlTag:S.ddlTag|0,bestNr:S.bestNr|0,shopName:S.shopName||SHOP_DEFAULT,slogan:S.slogan||'',
       deko:dekos.map(d2=>Object.assign({id:d2.id},mpos(d2.g))),
       ck:mpos(ckG),desk:mpos(deskG),pack:mpos(packTisch),sb2weg:1,
       shelves:shelves.map(s=>Object.assign(mpos(s.g),{kind:s.kind,schild:s.schild||undefined,levels:s.levels.map(l=>({type:l.type,count:l.count,q:l.q||1}))})),
@@ -47339,6 +48254,16 @@ function startGame(fresh){
     if(S.up) delete S.up.kasse3;
     if(zurueck>0){ S.money=r2((+S.money||0)+zurueck);
       later(2.5,()=>toast(`Die SB-Kassen am zweiten Eingang sind abgebaut – ${eur(zurueck)} gutgeschrieben.`,'money')); } }
+  /* 07.10.: die Packstation steht jetzt am hinteren Ende von Lager Sued 3 (Tom, Ausbauplan) und
+     setzt die Halle voraus. Wer sie vorher hatte, ohne die letzte Hallenstufe, bekommt den Kaufpreis
+     zurueck und kann sie dort neu bauen; wer die Halle hat, dessen Station zieht an die neue Stelle
+     (PACK_HOME beim Laden). */
+  if(d&&d.up&&d.up.packstation&&!d.up.lager_sued2){ let z=0;
+    for(const [id,k] of [['packstation',6400],['packstation2',14000],['packstation3',26000]]) if(S.up[id]){ z+=k; delete S.up[id]; }
+    for(const [id,k] of [['packer',700],['packer2',750],['packer3',800]]){ if(S.staff&&S.staff[id]) z+=k;
+      for(const m of ['staff','wage','pause','prio','einr']) if(S[m]&&typeof S[m]==='object') delete S[m][id]; }
+    S.paketGr=[]; S.paketP=[]; S.paletten=[]; S.pakete=0; S.pack=null;
+    if(z>0){ S.money=r2((+S.money||0)+z); later(2.5,()=>toast(`Die Packstation zieht ans Hallenende (Lager Süd 4) – ${eur(z)} gutgeschrieben.`,'money')); } }
   /* Staende von vor den Kapiteln hatten das Lager von Anfang an */
   if(d&&d.up&&d.up.lager===undefined) S.up.lager=true;
   /* Vor dem 24.09. gab es die Logistikhalle nur in voller Groesse. Wer
@@ -47394,7 +48319,7 @@ function startGame(fresh){
   if(d&&d.desk){ const m=movables.find(m=>m.kind==='desk'); if(m) placeMovable(m,Math.abs(d.desk.x+7.35)<0.01?-7.3:d.desk.x,d.desk.z,d.desk.ry); }
   /* Die Versandecke steht, wo man sie hingeschoben hat. Ein neues
      Spiel stellt sie an ihren Platz hinter dem Rolltor zurueck. */
-  if(packMov){ const q=d&&d.pack?d.pack:PACK_HOME; placeMovable(packMov,q.x,q.z,q.ry); packPlatzPruefen(false); }
+  if(packMov){ const q=d&&d.pack&&d.pack.z<-22.9&&d.pack.x<-8.6&&d.pack.x>-19.9?d.pack:PACK_HOME; placeMovable(packMov,q.x,q.z,q.ry); packPlatzPruefen(false); }
   (S.shelves||F.shelves).slice(0,SLOTS.length).forEach((sd,i)=>createShelf(i,sd));
   (S.racks||F.racks).slice(0,RACKS.length).forEach((rd,i)=>createRack(i,rd));
   racksEntwirren();
@@ -47711,6 +48636,28 @@ function applyTOD(){
   starsMat.opacity=clamp((f-0.6)/0.4,0,1);
   houseMats.forEach(m=>m.emissiveIntensity=f*0.9); if(typeof autoNacht==='function') autoNacht(f); lampMats.forEach(m=>m.emissiveIntensity=f*3); yardLight.intensity=f*1.4;
 }
+/* Innenlicht: die Punktlichter sitzen unter den Leuchten, die dem Blickpunkt am naechsten sind */
+let innenT=0;
+function updateInnenlicht(dt){
+  if(!innenLichter.length||!LAMPEN.length) return;
+  const drin=typeof unterDach==='function'&&unterDach(camera.position.x,1.0,camera.position.z);
+  const nacht=clamp((todUhr()-960)/100,0,1), soll=drin?0.62+0.5*nacht:0;
+  innenT-=dt;
+  if(innenT<=0){ innenT=0.18;
+    const fx=-Math.sin(yaw), fz=-Math.cos(yaw), px=pl.x+fx*2.5, pz=pl.z+fz*2.5;
+    const kand=[]; for(let i=0;i<LAMPEN.length;i++){ const L=LAMPEN[i]; if(L.id&&!zoneOffen(L.id)) continue;
+      const d=Math.hypot(L.x-px,L.z-pz), dk=Math.hypot(L.x-pl.x,L.z-pl.z); if(d>16&&dk>16) continue;
+      kand.push({i,d:Math.min(d,dk*1.15)}); }
+    kand.sort((a,b)=>a.d-b.d);
+    const gew=[]; for(const k of kand){ if(gew.length>=innenLichter.length) break; const L=LAMPEN[k.i]; if(gew.some(q=>Math.hypot(LAMPEN[q].x-L.x,LAMPEN[q].z-L.z)<3.4)) continue; gew.push(k.i); }
+    /* eine Leuchte, die schon ein Licht hat, behaelt es - sonst springen die Lichter */
+    const frei=gew.filter(i=>!innenLichter.some(q=>q.lampe===i)), hat=innenLichter.filter(q=>gew.indexOf(q.lampe)<0);
+    hat.forEach((q,n)=>{ const i=frei[n]; if(i===undefined){ q.lampe=-1; return; } q.lampe=i; const L=LAMPEN[i]; q.tx=L.x; q.ty=L.y-0.35; q.tz=L.z; });
+  }
+  for(const q of innenLichter){ const l=q.l, an=q.lampe>=0?soll:0;
+    q.an+=(an-q.an)*Math.min(1,dt*4); l.intensity=q.an;
+    const k=Math.min(1,dt*5); l.position.x+=(q.tx-l.position.x)*k; l.position.y+=(q.ty-l.position.y)*k; l.position.z+=(q.tz-l.position.z)*k; }
+}
 /* Wanduhr laeuft nach der Spielzeit: clock sind Minuten seit Mitternacht */
 function updateUhr(){
   if(!uhrStd) return;
@@ -47823,7 +48770,7 @@ function step(dt){
     else if(!spawnWTruck(frei,ladung,sid,supplierOf(sid).name)) break;
   }
   updateSonne(pl.x,pl.z);
-  updateTruck(dt); updateWBays(dt); updateSchiebetuer(dt); updateVersand(dt); updateSchweber(dt); updateWischen(dt); updateSchoner(dt); updateZiel(dt); karreNachziehen(); karreFolgen(); kartonTick(dt);
+  updateInnenlicht(dt); updateTruck(dt); updateWBays(dt); updateSchiebetuer(dt); updateVersand(dt); updatePaletten(dt); updateSchweber(dt); updateWischen(dt); updateSchoner(dt); updateZiel(dt); karreNachziehen(); karreFolgen(); kartonTick(dt);
   for(let i=timers.length-1;i>=0;i--){ timers[i].t-=dt; if(timers[i].t<=0){ const tm=timers[i]; timers.splice(i,1); if(tm.fw){ FW_KTX++; try{ tm.fn(); } finally { FW_KTX--; } } else tm.fn(); } }
   if(phase==='open') addGrime(dt*0.0016*(1+customers.length*0.05));
   hype=Math.max(0,hype-dt*1.1);
@@ -47991,12 +48938,13 @@ const GFX_TEXT={extrem:'Alles, was geht: Supersampling bis 3-fach, 16-fache Kant
   max:'Mindestens 1,5-fache Auflösung, 8-fache Kantenglättung, Schattenkarte 4096, echte Spiegelungen: Ladenboden, nasse Fahrbahn und Pfützen spiegeln Kunden, Autos und Feuerwerk; Umgebungsverschattung (dunkle Ecken und Spalten), Spiegelbild des Ladens auf Lack und Metall, feines Oberflächenrelief, mehr Funken.',
   hoch:'Volle Auflösung, weiche Schatten, Kantenglättung, Leuchteffekte, alle Funken.',
   mittel:'Normale Auflösung, einfache Schatten, halbe Kantenglättung, 80 % der Funken.',
+  ultralow:'Alles aufs Minimum: halbe Auflösung, keine Schatten, nur ein Innenlicht, einfache Materialien, kurze Sichtweite ohne Stadt, wenig Funken – für sehr schwache PCs. Beim Wechsel lädt das Spiel neu.',
   niedrig:'Dreiviertel-Auflösung, keine Schatten, keine Leuchteffekte, gut die Hälfte der Funken – für ältere Laptops und PCs.'};
 function gfxAnzeige(){
   document.querySelectorAll('#gfxWahl [data-gfx]').forEach(b=>b.classList.toggle('an',b.dataset.gfx===GFX_WAHL));
   const i=$('gfxInfo'); if(!i) return;
   i.textContent=(GFX_WAHL==='auto'?'Automatisch – zurzeit „'+GFX_NAME[GFX]+'“. Läuft das Spiel länger unter 28 Bildern pro Sekunde, schaltet es eine Stufe tiefer. ':'')+GFX_TEXT[GFX]+
-    (gfxMess.fps?' Zuletzt '+Math.round(gfxMess.fps)+' Bilder/s.':'')+(GFX==='niedrig'?' Kantenglättung aus ab dem nächsten Laden.':'')+(GFX_START!==GFX_PROFIL[GFX]?(GFX_STUFEN.indexOf(GFX)>=3?' Spiegelungen, Relief, Texturschärfe und Funkenmenge dieser Stufe gelten ab dem nächsten Laden (F5).':' Texturschärfe und Funkenmenge dieser Stufe gelten ab dem nächsten Laden (F5).'):'');
+    (gfxMess.fps?' Zuletzt '+Math.round(gfxMess.fps)+' Bilder/s.':'')+(GFX==='niedrig'?' Kantenglättung aus ab dem nächsten Laden.':'')+(GFX_START!==GFX_PROFIL[GFX]?(gfxRang(GFX)>=3?' Spiegelungen, Relief, Texturschärfe und Funkenmenge dieser Stufe gelten ab dem nächsten Laden (F5).':' Texturschärfe und Funkenmenge dieser Stufe gelten ab dem nächsten Laden (F5).'):'');
 }
 $('gfxWahl').addEventListener('click',e=>{ const b=e.target.closest('[data-gfx]'); if(!b) return; gfxWaehlen(b.dataset.gfx); gfxAnzeige(); });
 
@@ -48231,10 +49179,10 @@ function handbuchHTML(){
     ['Laptop',
       ab(`${E} am Schreibtisch öffnet den Laptop (in der Logistikhalle zusätzlich das Lagerterminal). Reiter: <b>Bestellen</b>, <b>Preise &amp; Markt</b>, <b>Sortiment</b> (Lizenzpakete), <b>Ausbau</b> (neue Flächen nach Kapiteln), <b>Deko</b> (Wände, Böden, Schilder, Deko-Stücke), <b>Entwicklung</b> (Labor) und <b>Laden</b> (öffnen, Tag beenden). „Laptop zuklappen“ bringt dich zurück ins Spiel.`)],
     ['Personal',
-      ab(`Im Handy unter Team stellst du ein: Reinigungskraft (ab Level 6), Einräumer (ab Level 9 und 12, mit Lager – die Reihenfolge seiner Aufgaben legst du mit ▲ ▼ fest), Kassierer (ab Level 11), SB-Betreuer (helfen an den SB-Kassen, einer schafft mehrere), Sicherheitsdienst (ab Level 13) und Versand (ab Level 18, mit Packstation).`)+
+      ab(`Im Handy unter Team stellst du ein: Reinigungskraft (ab Level 6), Einräumer (ab Level 9 und 12, mit Lager – die Reihenfolge seiner Aufgaben legst du mit ▲ ▼ fest), Kassierer (ab Level 11), SB-Betreuer (helfen an den SB-Kassen, einer schafft mehrere), Sicherheitsdienst (ab Level 13) und Versand (ab Level 25, mit Packstation).`)+
       ab(`Der Lohn entscheidet über Tempo und Freundlichkeit: Mindestlohn (×0,75, sie kündigen öfter), Normal, Gut (×1,3) oder Top (×1,65). In der Saisonpause bekommen sie 30 % und arbeiten nicht.`)],
     ['Versand',
-      ab(`Der Onlineshop (ab Level 15) bringt eine Tagespauschale. Mit der Packstation (ab Level 16, nach Lagererweiterung 2) kommen echte Bestellungen: Packtisch anschauen und ${E} packt die älteste Bestellung, deren Ware und Packmaterial da sind. Das Paket läuft übers Band zur Palettierstation, ein Portalgreifer stapelt es auf die Paletten, DDL holt am Abend ab. Kartons, Folie und Klebeband stehen im Packmaterial-Regal neben dem Tisch und werden verbraucht – Nachschub gibt es am Laptop unter Bestellen › Versandmaterial. Ab Level 22 und 27 kommen ein zweiter und dritter Packplatz dazu. Versandkosten und die Grenze für kostenlosen Versand stellst du im Onlineshop ein. Mehr als 8 offene Bestellungen am Abend kosten Ruf.`)],
+      ab(`Der Onlineshop (ab Level 15) bringt eine Tagespauschale. Mit der Packstation (ab Level 25, am hinteren Ende der großen Halle nach Lagererweiterung 4) kommen echte Bestellungen: Packtisch anschauen und ${E} packt die älteste Bestellung, deren Ware und Packmaterial da sind. Das Paket läuft übers Band zur Palettierstation, der Kran-Greifer stapelt es auf die Paletten in der gelben Box vor dem Rolltor V1. Um 22 Uhr kommt DDL und ein Mitarbeiter fährt die Paletten mit dem Hubwagen in den LKW; ab 18 Uhr kannst du das selbst tun (Aktion auf die vorderste Palette, rückwärts in den LKW fahren, Aktion zum Abstellen). Kartons, Folie und Klebeband stehen im Packmaterial-Regal neben dem Tisch und werden verbraucht – Nachschub gibt es am Laptop unter Bestellen › Versandmaterial. Ab Level 22 und 27 kommen ein zweiter und dritter Packplatz dazu. Versandkosten und die Grenze für kostenlosen Versand stellst du im Onlineshop ein. Mehr als 8 offene Bestellungen am Abend kosten Ruf.`)],
     ['Entwicklungslabor',
       ab(`Ab Level 20 (Kapitel 5) im Laptop unter Entwicklung: Träger, Bruchbild, zwei Farben, Etikett und Name wählen. Du kannst nur Bruchbilder verbauen, die du schon am Himmel gesehen hast. „Prototyp zünden“ ist kostenlos, „In Produktion“ bringt dein Produkt nach ein paar Tagen in den Katalog. Die zweite Zündstufe gibt es ab Level 28.`)],
     ['Musik, Bild und Pause',
@@ -48368,8 +49316,11 @@ fontsReady().then(()=>{
   setTimeout(()=>{ if(typeof shaderVorab==='function') shaderVorab(); },400);
   window.__bb={get S(){return S},get phase(){return phase},set phase(v){phase=v},set clock(v){clock=v},get clock(){return clock},pickUp,floorBoxes,shelves,racks,dekos,stockOne,openShop,step,customers,queue,belt,scanBelt,buyUp,buyDeko,get DS(){return DS},endDay,pending,save,openLaptop,closeLaptop,pl,addXP,hireStaff,fireStaff,staff,dirts,addDirt,movables,toggleBuild,setWall,setFloor,
     stations,firePult,placeOnStation,igniteType,get order(){return order},get phone(){return phone},makeCall,answerPhone,haggle,acceptDeal,declineDeal,get truck(){return truck},spawnTruck,takeFromTruck,takeBox,dropBox,updateTruck,get door(){return door},get tuer(){return tuer},tuerSet,tuerNah,updateSchiebetuer,doorOpen,doorIsOpen,trailerOccupied,LR,lrFront,TOR,orderReady,orderLeft,shipOne,removeFloorBox,prioOf,setPrio,racks,updateCarry,spawnFloorBox,staff,SHELFKIND,layout,shelfCapOf,shelfAccepts,emptyLevel,dateInfo,dateStr,dateShort,seasonInfo,isSunday,dayMult,ruhetag,wageOf,setWage,friendliness,inPause,setPause,windowGrime,addGrime,cleanWindowTick,ambienteScore,bildBoost,fixedCosts,dailyWages,dispoLimit,verfuegbar,dispoZins,takeLoan,loanTier,loanDaily,EVENTS,GOALS,CUSTTYPES,UPGRADES,STAFF,stockOf,spawnInterval,pools,todayEvent,evv,rollEvent,rollMarket,newGoal,goalAdd,goalTick,ekFactor,marktText,xpFor,rollCustType,priceTol,buyChance,regCustomer,makeWishes,nachfrageFaktor,shelfStockOf,buildGravur,refillGrav,openGravInput,closeGravInput,get gravBlanks(){return gravBlanks},set gravBlanks(v){gravBlanks=v},orderBox,buyPack,cartAdd,cartAddPack,cartOrder,cartClear,cartDel,cartGoods,cartFee,cartTotal,cartBoxes,cartLines,LIEFERZEIT_SEK,VERSAND,VERSANDFREI,lieferSek,
-    scene,camera,P,NEUWARE,NEU_SHOWS,NEU_FONT,NEU_KUGEL,neuZuenden,PARK,restWelle,restTick,restDruck,restDaten,buyAngebot,grossOffen,updatePark,parkWasser:()=>_wasserM,parkTannen:()=>PARK_TANNEN,parkLeben:()=>parkEnten.concat(parkLeute).map(e=>({x:e.g.position.x,z:e.g.position.z})),pendingListe:()=>pending,einbauPakete,spawnPaket,paketAblegen,paketAufheben,EINBAU,PAKET_MASS,vorDieTuer,sbZiel,makeAuto,AUTOFORM,stadtInfo:()=>({warn:beacons.length,kronen:KRONEN.length,stufen:SKYLINE_INFO.stufen,skyStile:SKYLINE_INFO.stile.size,stile:Object.keys(STADT_MATS).length}),clearStations,fachHoehe,kindOf,packKartonWert,SUPPLIERS,supplierFor,supplierOf,tierPrice,isUnlocked,lizLevel,renderLaptop,get lsup(){return lsup},set lsup(v){lsup=v},get lkat(){return lkat},set lkat(v){lkat=v},SPARTE,SPARTE_NAME,sparteVon,HEADNAME,headArt,catPill,ekRoh,ekDelta,ekTag,ekNiveau,ekPill,get ltab(){return ltab},set ltab(v){ltab=v},EFF,EFF_ALL,EFF_KLEIN,EFF_GROSS,EFF_PRO,SHOWS,kugelbombe,shot,mine,FW,stations,stationOf,placedCount,togglePDA,openPDA,closePDA,setPost,get postOn(){return postOn},get pdaOn(){return pdaOn},showLength,psHuge,psBig,psMid,psSmall,rockets,emitters,timersLen:()=>timers.length,timersLeeren:()=>{timers.length=0;},setView:(x,z,y,p)=>{pl.x=x;pl.z=z;yaw=y;pitch=p;aim=null;},schiebe:(x,z)=>{pl.x=x;pl.z=z;collide(pl,0.32);return{x:pl.x,z:pl.z};},PLZ_MAX,camYaw:()=>yaw,camPitch:()=>pitch,playerPos:()=>({x:pl.x,z:pl.z}),pultYaw:()=>pultHit?pultHit.parent.rotation.y:null,get pultHit(){return pultHit},applyShopName,shopName,shopSlogan,signTexPx:()=>signTex&&signTex.image?texCanvas(signTex).getContext('2d').getImageData(0,0,signTex.image.width,40).data.join(''):null,lagerWall,fwShot:shot,KUGEL_R,ROHR_INNEN,MOERSER_R,moerserRohr,sfx,WOLKEN,get master(){return master},ac,SORTE_NEU,sortenUmstellen,get shakeWert(){return shake},get ckG(){return ckG},get ckNameTex(){return ckNameTex},get ckMovable(){return ckMov},CK_HOME,CK_ALT,spotPos,queueApproach,ckTexPx:()=>ckNameTex&&ckNameTex.image?texCanvas(ckNameTex).getContext('2d').getImageData(0,0,ckNameTex.image.width,60).data.join(''):null,testfeldMitte,STATION_POS,aimAt,UPGRADES,upPic,PLAN,planFlaechen,uhrZeiger:()=>({std:uhrStd?+uhrStd.rotation.z.toFixed(4):0,min:uhrMin?+uhrMin.rotation.z.toFixed(4):0}),drawRackSchild,get snowPts(){return snowPts},buildStadt,updateStadt,get stadtBoxen(){return stadtBoxen},get stadtBaeume(){return stadtBaeume},buildFernbaeume,schwaerme,beacons,silhouetten,get verkehrPts(){return verkehrPts},get rauchPts(){return rauchPts},get flieger(){return flieger},stadtFrei,STADT_FREI,WALLS,FLOORS,bodenMalen,wandMalen,oberflaechenMuster,oberflaechenAnwenden,BODEN_KACHEL,WAND_B,WAND_H,bodenPx,wandPx,innenUmgebung,sockelM,get wallTex(){return wallTex},get floorTexRef(){return floorTexRef},get floorMat(){return floorMat},get shopWall(){return shopWall},renderOnline,onlineHint,onlineStufe,onlineZahlen,onlineListe,updateOnline,SCHILDBG,SCHILDFG,setSchild,schildBg,schildFg,repaintSchilder,updateHead,allLevels,addToLevel,putInSlot,regCustomer,ZONEN,zoneOffen,oeffneZone,applyZonen,SLOTS,RACKS,slotsOffen,colliders,LAY,LOGI,WRAMPEN,WTORE,updateSnow,unterDach,dachBereiche,get lapHit2(){return lapHit2},buildLagerTerminal,toggleTest,testLevel,buyUp,get toastLast(){return toastLast},__floorBoxen:()=>floorBoxes.length,WBAY_UP,wbays,dockPlaetze,wbayFrei,wbayOffen,spawnWTruck,updateWBays,wbaysInit,wtorSet,GANG,GANGTUER,buildLagergang,flaeche,WTOR,RACKKIND,route,NAV,navFrei,navIdx,navBuild,shelfStand,shelves,sbLanes,buildSBKasse,sbFrei,sbOffen,sbNutzbar,EING2,eingaenge,naechsterEingang,setEingang2,TUEREN,tuerSetD,tuerNahD,packBereit,packOne,paketWert,bestellungenProTag,pakete,ddlAbholung,updateVersand,VS_GR,VS_FELD,WG_PARK,vsNeueBestellung,vsAbgleich,vsKlasse,vsQuellen,vsBestand,vsErfuellbar,vsPlan,vsStapel,vsSpielerPacken,vsSpielerBestellung,vsTischFrei,vsStatus,vsAufraeumen,vsLaden,vsBahn,vsPaketOffen,vsKlappen,vsFuellung,vsPaketZu,get vsTisch(){return vsPlaetze[0]?vsPlaetze[0].tisch:null},get vsWagen(){return vsPlaetze[0]?vsPlaetze[0].wagen:null},vsPlaetze,vsPortal,vsStufeGeaendert,packStufe,packStufeAnwenden,packTeile,VS_PP,VS_PZ,VS_TOP,VS_TB,ppW,BAND,ZELLE,ZELLE_Z1,PALETTEN,PAL_H,VS_MUSTER,vsKapazitaet,vsGelandet,vsCfg,vsNachfrage,vsGebuehr,VS_PORTO,VS_CFG_STD,vsBuchen,vsHits,vsPlatzAus,VM,VM_IDS,vmStand,vmReicht,vmVerbrauchen,vmEinlagern,vmBestellen,vmAuffuellen,vmBestellbar,vmGesamt,vmKapGesamt,vmUnterwegs,vmRegale,vmRegalZeichnen,vmWarnung,vmPlatzMit,vmLkwJob,vmStandPunkt,pullFromTruck,dumpTruck,createShelf,createRack,regalStellen,testKauf,regalAufbauen,orderRegal,REGALWARE,regalOf,regalKind,regalPreis,regalPlatz,regalOffen,startGame,promptFor,ERFOLGE,erfOffen,erfStufe,erfStand,erfZiel,erfFertig,erfAnteil,erfGeschafft,erfGesamt,stat,statAdd,statRekord,statVerkauf,bruchGesehen,gruppeVon,GRUPPE,TRAEGER,BRUCH,BRUCH_IDS,REZ_FARBEN,ETIKETT,traegerVon,traegerOffen,bruchOffen,bruchListe,rezeptWow,rezeptKosten,rezeptMarkt,rezeptHype,rezeptDauer,rezeptEntwicklung,rezeptGueltig,eigeneListe,eigenesEintragen,rezepteTick,rezProto,rezBauen,renderRezeptur,get entwurf(){return entwurf},set entwurf(v){entwurf=v},entwurfInit,ORDER,LIZENZEN,lizenzOf,hatLizenz,lizenzDaten,naechsteLizenz,buyLizenz,VOLA,volaOf,REGIME,marketOf,costOf,marktZiel,marktLuecke,meOf,miOf,marktDelta,marktNiveau,marktPhase,marktSchock,marktLabel,marktSchnitt,marktExtrem,marktChance,sortimentBreite,sortimentZug,bekanntheit,spawnInterval,rollMarkt,marktInit,inflOf,inflText,setPreisAufMarkt,igniteType,get packHit(){return packHit},get packTisch(){return packTisch},get packMov(){return packMov},zuendeKanal,zuendeAlle,alleKanaele,get pultText(){return pultText},drawPult,kanalItem,openZuend,closeZuend,get zuendOpen(){return zuendOpen},overlayOpen,pultTaster,zuendTick,TISCH_X,RAMPE_X,KANAL_START,bereitCount,brennDauer,muendung,pultLamps,RAKETEN_LOOK,RAKETEN_KL,makePerson,applyTOD,updateHUD,renderer,renderFrame,get DEMO(){return DEMO},LHALLE,LOGI_STUFEN,TOR_STUFE,logiStufe,logiZeige,logiAnwenden,LOGI_G,TOR_G,WTORE,tuAktion:(kind,ref)=>{ const alt=target; target={kind,ref}; try{ doAction(); } finally { target=alt; } },promptFor,KARREN,karreArt,karreAn,karreStapel,karreLast,karreNimmt,toggleKarre,updateKarre,setTutorial,tutorialAn,zielFuer,get zielAktuell(){return zielAktuell},get tipKey(){return tipKey},updateZiel,set DEMO(v){DEMO=v},kapitelVon,kapitelVoll,openHandy,closeHandy,toggleHandy,get handyOpen(){return handyOpen},get happ(){return happ},HANDY_APPS,renderHandy,shaderVorab,SCHONER,schonerMalen,updateSchoner,makeWischer,stelleWischer,get wischer(){return wischer},updateWischen,wischerPersonal,cleanTick,updateFireworks,FLASH,spurEnden,LR_LAMPE,schweber,kundenSymbol,geldSchwebt,get serie(){return serie},serieZufrieden,serieBricht,KAPITEL,kapitel,kapitelNr,kapitelAufstieg,WA,WA_SLOTS,vorDieTuer,SB_KASSIERER,sbBesetzt,sbLaneVon,sbKassiererPlatz,sbBetreuer,sbHeimPlatz,sbHelferPlatz,sbGeholfen,sbFreiNah,SB_SELBST,sbPos,MUSIK,STUECKE,musikAn,musikWeiter,musikVol,musikTick,spielSchritt,get mStep(){return mStep},set mStep(v){mStep=v;mTakte=0;},get mBus(){return mBus},get postHalf(){return postHalf},EFF_SCHWEIF,mitSchweif,KOEPFE,KLEID,UNIFORM,STAFFKOPF,faceCache,animPerson,personTuete,personTraegt,personGreif,FIG_DATEN,FIG_PERSONEN,PACKS,packPreis,packPool,packOffen,packContents,syncPakete,rotateGrab,cancelGrab,moebelTaste,moebelEinpacken,paketAuspacken,moebelImBlick,removeShelf,removeRack,PACK_FL,PACK_HOME,spotFree,rectOf,grab,placeGrab,updateGrab,get grabbed(){return grabbed},showPause,closePause,pauseSeite,pauseSeiteAktiv,zumStartbildschirm,fortsetzen,musikWahl,musikTitel,get startOpen(){return startOpen},get pauseOpen(){return pauseOpen},get target(){return target},einrOf,einrAktiv,einrHoch,einrRunter,einrSchalten,AUFGABEN,einrJob,kartonMat,pools,shelfStockOf,removeFromLevel,fwLog:(a)=>{FW_LOG=a;},moerserRohr,ROHR_KALIBER,effPassen,EFF_FAMILIE,basisBlick,fwTestSchalten,fwTestProdukte,fwTestStapeln,get fwTestAn(){return fwTestAn},get fwTestBoxen(){return fwTestBoxen},get fwTestMarken(){return fwTestMarken},fwStufe,sonne:()=>sun.intensity,get fwUhr(){return FW_UHR},THEMEN,SHOW_BASIS,EFF,emittersListe:()=>emitters,show,SIGNATUR,showZeiten,showDauer,phDauer,musterWinkel,feuertopf,playShow,KAL,get rohrStreu(){return ROHR_STREU},vorfuehrungAn,vorfuehrungAus,vfNaechstes,vfZuenden,vfStopp,get vfAufraeumen(){return vfAufraeumen},vfSpringen,vfNote,vfText,vfTaste,get vfAn(){return vfAn},get vfGezuendet(){return vfGezuendet},get vfIdx(){return vfIdx},get vfLetzt(){return vfLetzt},get vfListe(){return vfListe},get vfEl(){return vfEl},set rohrStreu(v){ROHR_STREU=v},BUENDEL,bSammeln,bWaechter,buendelJetzt:()=>{ bSammeln(); bSammeln(); return BUENDEL.n; },NEU_TEST,get vfSonder(){return vfSonder},vpSchalten,vpStart,vpAus,vpStellplaetze,vpVerteilen,vpProdukte,vpFuellung,get vpAn(){return vpAn},get vpRegale(){return vpRegale},get vpPlan(){return vpPlan},get vpFertig(){return vpFertig},get SPIEL_RAUM(){return SPIEL_RAUM},vpZeilenMass,VP_ZEILEN,sucheText,sucheRang,drawFront,drawTop,drawSide,WARE_MOTIV,wareFront,wareTop,wareMarke,KAPPE,kleinTakt,texCanvas,get RES(){return RES},resSetzen,resRegeln,gfxMess,schildTaste,schildFertig,schildZiel,get schildOpen(){return schildOpen},get vpNamenM(){return vpNamenM},kisteTaste,kannRaus,kisteRaus,kisteMat,KISTE_STUECK,poolDa,poolWeg,VP_FL,modRaster,slotLocal,gfxAnwenden,gfxWaehlen,gfxMessen,gfxMess,gfxAnzeige,get GFX(){return GFX},get GFX_WAHL(){return GFX_WAHL},QUAL,rohrBedarf,rohrLayout,rohrSatz,istBatterie,batterieModell,zuendPlan,buildProduct,capOf,zuendFolge,rohrMund,korpusTeile,rohrGeometrie,stationsPool,poolsAus,istVerbundKarton,regalFarben,regaleFaerben,get ROHR_LOG(){return ROHR_LOG},set ROHR_LOG(v){ROHR_LOG=v},schattenSichtbar:()=>renderer.shadowMap.enabled&&sun.shadow.bias>-1,sfxVol,get SFX_VOL(){return SFX_VOL},GFX_PROFIL,GFX_START,GFX_NAME,PR,PRACHT,prUmgebung,prMaterialien,gfxPixel,gfxSamples,schattenGr:()=>sun.shadow.mapSize.x,get postDiv(){return postDiv},festImBlick,makeWishes,VP_FORM,gpStart,gpEnde,gpSpringe,gpBauSchritt,gpTick,gpBestellen,gpBauSchritt,get gpFertig(){return gpFertig},get gpAn(){return gpAn},get gpVerlauf(){return gpVerlauf},GP_ORTE,wandRechtecke,wandSchub,moebelRect,rackRect,rackKindOf,stellPlatz,rackStellPlatz,rackPlatzFrei,racksEntwirren,regalNein,kasseReserve,gpPlan,gpVerteilen,GP_ABT,gpAbtVon,
-    shot:()=>{ noLoop=true; camera.position.set(pl.x,1.65,pl.z); camera.rotation.set(pitch,yaw,0); camera.updateMatrixWorld(); updateTarget(); applyTOD(); renderFrame(0.016); return canvas.toDataURL('image/jpeg',0.85); },
+    regaleImBlick,vsPK,VS_OPT,vsRouteLaenge,vsStopsBauen,vsBedarf,vsPQ:vsPunkteVon,scene,camera,P,NEUWARE,NEU_SHOWS,NEU_FONT,NEU_KUGEL,neuZuenden,PARK,restWelle,restTick,restDruck,restDaten,buyAngebot,grossOffen,updatePark,parkWasser:()=>_wasserM,parkTannen:()=>PARK_TANNEN,parkLeben:()=>parkEnten.concat(parkLeute).map(e=>({x:e.g.position.x,z:e.g.position.z})),pendingListe:()=>pending,einbauPakete,spawnPaket,paketAblegen,paketAufheben,EINBAU,PAKET_MASS,vorDieTuer,sbZiel,makeAuto,AUTOFORM,stadtInfo:()=>({warn:beacons.length,kronen:KRONEN.length,stufen:SKYLINE_INFO.stufen,skyStile:SKYLINE_INFO.stile.size,stile:Object.keys(STADT_MATS).length}),clearStations,fachHoehe,kindOf,packKartonWert,SUPPLIERS,supplierFor,supplierOf,tierPrice,isUnlocked,lizLevel,renderLaptop,get lsup(){return lsup},set lsup(v){lsup=v},get lkat(){return lkat},set lkat(v){lkat=v},SPARTE,SPARTE_NAME,sparteVon,HEADNAME,headArt,catPill,ekRoh,ekDelta,ekTag,ekNiveau,ekPill,get ltab(){return ltab},set ltab(v){ltab=v},EFF,EFF_ALL,EFF_KLEIN,EFF_GROSS,EFF_PRO,SHOWS,kugelbombe,shot,mine,FW,stations,stationOf,placedCount,togglePDA,openPDA,closePDA,setPost,get postOn(){return postOn},get pdaOn(){return pdaOn},showLength,psHuge,psBig,psMid,psSmall,rockets,emitters,timersLen:()=>timers.length,timersLeeren:()=>{timers.length=0;},setView:(x,z,y,p)=>{pl.x=x;pl.z=z;yaw=y;pitch=p;aim=null;},schiebe:(x,z)=>{pl.x=x;pl.z=z;collide(pl,0.32);return{x:pl.x,z:pl.z};},PLZ_MAX,camYaw:()=>yaw,camPitch:()=>pitch,playerPos:()=>({x:pl.x,z:pl.z}),pultYaw:()=>pultHit?pultHit.parent.rotation.y:null,get pultHit(){return pultHit},applyShopName,shopName,shopSlogan,signTexPx:()=>signTex&&signTex.image?texCanvas(signTex).getContext('2d').getImageData(0,0,signTex.image.width,40).data.join(''):null,lagerWall,fwShot:shot,KUGEL_R,ROHR_INNEN,MOERSER_R,moerserRohr,sfx,WOLKEN,get master(){return master},ac,SORTE_NEU,sortenUmstellen,get shakeWert(){return shake},get ckG(){return ckG},get ckNameTex(){return ckNameTex},get ckMovable(){return ckMov},CK_HOME,CK_ALT,spotPos,queueApproach,ckTexPx:()=>ckNameTex&&ckNameTex.image?texCanvas(ckNameTex).getContext('2d').getImageData(0,0,ckNameTex.image.width,60).data.join(''):null,testfeldMitte,STATION_POS,aimAt,UPGRADES,upPic,PLAN,planFlaechen,uhrZeiger:()=>({std:uhrStd?+uhrStd.rotation.z.toFixed(4):0,min:uhrMin?+uhrMin.rotation.z.toFixed(4):0}),drawRackSchild,get snowPts(){return snowPts},buildStadt,updateStadt,get stadtBoxen(){return stadtBoxen},get stadtBaeume(){return stadtBaeume},buildFernbaeume,schwaerme,beacons,silhouetten,get verkehrPts(){return verkehrPts},get rauchPts(){return rauchPts},get flieger(){return flieger},stadtFrei,STADT_FREI,WALLS,FLOORS,bodenMalen,wandMalen,oberflaechenMuster,oberflaechenAnwenden,BODEN_KACHEL,WAND_B,WAND_H,bodenPx,wandPx,innenUmgebung,sockelM,get wallTex(){return wallTex},get floorTexRef(){return floorTexRef},get floorMat(){return floorMat},get shopWall(){return shopWall},renderOnline,onlineHint,onlineStufe,onlineZahlen,onlineListe,updateOnline,SCHILDBG,SCHILDFG,setSchild,schildBg,schildFg,repaintSchilder,updateHead,allLevels,addToLevel,putInSlot,regCustomer,ZONEN,zoneOffen,oeffneZone,applyZonen,SLOTS,RACKS,slotsOffen,colliders,LAY,LOGI,WRAMPEN,WTORE,updateSnow,unterDach,dachBereiche,get lapHit2(){return lapHit2},buildLagerTerminal,toggleTest,testLevel,buyUp,get toastLast(){return toastLast},__floorBoxen:()=>floorBoxes.length,WBAY_UP,wbays,dockPlaetze,wbayFrei,wbayOffen,spawnWTruck,updateWBays,wbaysInit,wtorSet,GANG,GANGTUER,buildLagergang,flaeche,WTOR,RACKKIND,route,NAV,navFrei,navIdx,navBuild,shelfStand,shelves,sbLanes,buildSBKasse,sbFrei,sbOffen,sbNutzbar,EING2,eingaenge,naechsterEingang,setEingang2,TUEREN,tuerSetD,tuerNahD,packBereit,packOne,paketWert,bestellungenProTag,pakete,ddlAbholung,updateVersand,VS_GR,VS_FELD,WG_PARK,vsNeueBestellung,vsAbgleich,vsKlasse,vsQuellen,vsBestand,vsErfuellbar,vsPlan,vsStapelP,vsPalZiel,vsSpielerPacken,vsSpielerBestellung,vsTischFrei,vsStatus,vsAufraeumen,vsLaden,vsBahn,vsPaketOffen,vsKlappen,vsFuellung,vsPaketZu,get vsTisch(){return vsPlaetze[0]?vsPlaetze[0].tisch:null},get vsWagen(){return vsPlaetze[0]?vsPlaetze[0].wagen:null},vsPlaetze,vsPortal,vsStufeGeaendert,packStufe,packStufeAnwenden,packTeile,VS_PP,VS_PZ,VS_TOP,VS_TB,ppW,BAND,ZELLE,ZELLE_Z1,PALETTEN,PAL_H,VS_MUSTER,vsKapazitaet,vsGelandet,vsCfg,vsNachfrage,vsGebuehr,VS_PORTO,VS_CFG_STD,vsBuchen,vsHits,vsPlatzAus,VM,VM_IDS,vmStand,vmReicht,vmVerbrauchen,vmEinlagern,vmBestellen,vmAuffuellen,vmBestellbar,vmGesamt,vmKapGesamt,vmUnterwegs,vmRegale,vmRegalZeichnen,vmWarnung,vmPlatzMit,vmLkwJob,vmStandPunkt,pullFromTruck,dumpTruck,createShelf,createRack,regalStellen,testKauf,regalAufbauen,orderRegal,REGALWARE,regalOf,regalKind,regalPreis,regalPlatz,regalOffen,startGame,promptFor,ERFOLGE,erfOffen,erfStufe,erfStand,erfZiel,erfFertig,erfAnteil,erfGeschafft,erfGesamt,stat,statAdd,statRekord,statVerkauf,bruchGesehen,gruppeVon,GRUPPE,TRAEGER,BRUCH,BRUCH_IDS,REZ_FARBEN,ETIKETT,traegerVon,traegerOffen,bruchOffen,bruchListe,rezeptWow,rezeptKosten,rezeptMarkt,rezeptHype,rezeptDauer,rezeptEntwicklung,rezeptGueltig,eigeneListe,eigenesEintragen,rezepteTick,rezProto,rezBauen,renderRezeptur,get entwurf(){return entwurf},set entwurf(v){entwurf=v},entwurfInit,ORDER,LIZENZEN,lizenzOf,hatLizenz,lizenzDaten,naechsteLizenz,buyLizenz,VOLA,volaOf,REGIME,marketOf,costOf,marktZiel,marktLuecke,meOf,miOf,marktDelta,marktNiveau,marktPhase,marktSchock,marktLabel,marktSchnitt,marktExtrem,marktChance,sortimentBreite,sortimentZug,bekanntheit,spawnInterval,rollMarkt,marktInit,inflOf,inflText,setPreisAufMarkt,igniteType,get packHit(){return packHit},get packTisch(){return packTisch},get packMov(){return packMov},zuendeKanal,zuendeAlle,alleKanaele,get pultText(){return pultText},drawPult,kanalItem,openZuend,closeZuend,get zuendOpen(){return zuendOpen},overlayOpen,pultTaster,zuendTick,TISCH_X,RAMPE_X,KANAL_START,bereitCount,brennDauer,muendung,pultLamps,RAKETEN_LOOK,RAKETEN_KL,makePerson,applyTOD,updateHUD,renderer,renderFrame,get DEMO(){return DEMO},LHALLE,LOGI_STUFEN,TOR_STUFE,logiStufe,logiZeige,logiAnwenden,LOGI_G,TOR_G,WTORE,tuAktion:(kind,ref)=>{ const alt=target; target={kind,ref}; try{ doAction(); } finally { target=alt; } },promptFor,KARREN,karreArt,karreAn,karreStapel,karreLast,karreNimmt,toggleKarre,updateKarre,setTutorial,tutorialAn,zielFuer,get zielAktuell(){return zielAktuell},get tipKey(){return tipKey},updateZiel,set DEMO(v){DEMO=v},kapitelVon,kapitelVoll,openHandy,closeHandy,toggleHandy,get handyOpen(){return handyOpen},get happ(){return happ},HANDY_APPS,renderHandy,shaderVorab,SCHONER,schonerMalen,updateSchoner,makeWischer,stelleWischer,get wischer(){return wischer},updateWischen,wischerPersonal,cleanTick,updateFireworks,FLASH,spurEnden,LR_LAMPE,schweber,kundenSymbol,geldSchwebt,get serie(){return serie},serieZufrieden,serieBricht,KAPITEL,kapitel,kapitelNr,kapitelAufstieg,WA,WA_SLOTS,vorDieTuer,SB_KASSIERER,sbBesetzt,sbLaneVon,sbKassiererPlatz,sbBetreuer,sbHeimPlatz,sbHelferPlatz,sbGeholfen,sbFreiNah,SB_SELBST,sbPos,MUSIK,STUECKE,musikAn,musikWeiter,musikVol,musikTick,spielSchritt,get mStep(){return mStep},set mStep(v){mStep=v;mTakte=0;},get mBus(){return mBus},get postHalf(){return postHalf},EFF_SCHWEIF,mitSchweif,KOEPFE,KLEID,UNIFORM,STAFFKOPF,faceCache,animPerson,personTuete,personTraegt,personGreif,FIG_DATEN,FIG_PERSONEN,PACKS,packPreis,packPool,packOffen,packContents,syncPakete,rotateGrab,cancelGrab,moebelTaste,moebelEinpacken,paketAuspacken,moebelImBlick,removeShelf,removeRack,PACK_FL,PACK_HOME,spotFree,rectOf,grab,placeGrab,updateGrab,get grabbed(){return grabbed},showPause,closePause,pauseSeite,pauseSeiteAktiv,zumStartbildschirm,fortsetzen,musikWahl,musikTitel,get startOpen(){return startOpen},get pauseOpen(){return pauseOpen},get target(){return target},einrOf,einrAktiv,einrHoch,einrRunter,einrSchalten,AUFGABEN,einrJob,kartonMat,pools,shelfStockOf,removeFromLevel,fwLog:(a)=>{FW_LOG=a;},moerserRohr,ROHR_KALIBER,effPassen,EFF_FAMILIE,basisBlick,fwTestSchalten,fwTestProdukte,fwTestStapeln,get fwTestAn(){return fwTestAn},get fwTestBoxen(){return fwTestBoxen},get fwTestMarken(){return fwTestMarken},fwStufe,sonne:()=>sun.intensity,get fwUhr(){return FW_UHR},THEMEN,SHOW_BASIS,EFF,emittersListe:()=>emitters,show,SIGNATUR,showZeiten,showDauer,phDauer,musterWinkel,feuertopf,playShow,KAL,get rohrStreu(){return ROHR_STREU},vorfuehrungAn,vorfuehrungAus,vfNaechstes,vfZuenden,vfStopp,get vfAufraeumen(){return vfAufraeumen},vfSpringen,vfNote,vfText,vfTaste,get vfAn(){return vfAn},get vfGezuendet(){return vfGezuendet},get vfIdx(){return vfIdx},get vfLetzt(){return vfLetzt},get vfListe(){return vfListe},get vfEl(){return vfEl},set rohrStreu(v){ROHR_STREU=v},BUENDEL,bSammeln,bWaechter,buendelJetzt:()=>{ bSammeln(); bSammeln(); return BUENDEL.n; },NEU_TEST,get vfSonder(){return vfSonder},vpSchalten,vpStart,vpAus,vpStellplaetze,vpVerteilen,vpProdukte,vpFuellung,get vpAn(){return vpAn},get vpRegale(){return vpRegale},get vpPlan(){return vpPlan},get vpFertig(){return vpFertig},get SPIEL_RAUM(){return SPIEL_RAUM},vpZeilenMass,VP_ZEILEN,sucheText,sucheRang,drawFront,drawTop,drawSide,WARE_MOTIV,wareFront,wareTop,wareMarke,KAPPE,kleinTakt,texCanvas,get RES(){return RES},resSetzen,resRegeln,gfxMess,schildTaste,schildFertig,schildZiel,get schildOpen(){return schildOpen},get vpNamenM(){return vpNamenM},kisteTaste,kannRaus,kisteRaus,kisteMat,KISTE_STUECK,poolDa,poolWeg,VP_FL,modRaster,slotLocal,gfxAnwenden,gfxWaehlen,gfxMessen,gfxMess,gfxAnzeige,get GFX(){return GFX},get GFX_WAHL(){return GFX_WAHL},QUAL,rohrBedarf,rohrLayout,rohrSatz,istBatterie,batterieModell,zuendPlan,buildProduct,capOf,zuendFolge,rohrMund,korpusTeile,rohrGeometrie,stationsPool,poolsAus,istVerbundKarton,regalFarben,regaleFaerben,get ROHR_LOG(){return ROHR_LOG},set ROHR_LOG(v){ROHR_LOG=v},schattenSichtbar:()=>renderer.shadowMap.enabled&&sun.shadow.bias>-1,sfxVol,get SFX_VOL(){return SFX_VOL},GFX_PROFIL,GFX_START,GFX_NAME,PR,PRACHT,prUmgebung,prMaterialien,gfxPixel,gfxSamples,schattenGr:()=>sun.shadow.mapSize.x,get postDiv(){return postDiv},festImBlick,makeWishes,VP_FORM,gpStart,gpEnde,gpSpringe,gpBauSchritt,gpTick,gpBestellen,gpBauSchritt,get gpFertig(){return gpFertig},get gpAn(){return gpAn},get gpVerlauf(){return gpVerlauf},GP_ORTE,wandRechtecke,wandSchub,moebelRect,rackRect,rackKindOf,stellPlatz,rackStellPlatz,rackPlatzFrei,racksEntwirren,regalNein,kasseReserve,gpPlan,gpVerteilen,GP_ABT,gpAbtVon,
+    vsWelt,vdOffen,vdSetzen,ddlAbfahrt,hubAufbauPark,V1,VT,VD,LD,HUB,DDL,vf,vfRueck,ddlSlot,vsStapelLage,vsPalZelle,vsPalZahl,hubAufnehmen,hubAbstellen,hubAktion,hubZiel,hubAbstellPlatz,hubAufnehmenPruefen,ddlRufen,ddlAbholung,ddlLaeuft,updatePaletten,vsPalAbgleich,vsPalById,palZentrumWelt,vsPalObj,vsPalHits,vdIstOffen,vtBesetzt,vsPalGleitet,roboterBusy,hubKollision,DDL_SLOTS,rackR1Pack,vsHeim,vsKapazitaet,PACK_HOME,V1_HOF,PAL_N,ZELLE,PALETTEN,palPlaetze,vsPalNeu,
+    kameraSetzen:()=>{ camera.position.set(pl.x,1.65,pl.z); camera.rotation.set(pitch,yaw,0); camera.updateMatrixWorld(); updateTarget(); applyTOD(); },
+    stoppSchleife:()=>{ noLoop=true; },
+    shot:()=>{ noLoop=true; camera.position.set(pl.x,1.65,pl.z); camera.rotation.set(pitch,yaw,0); camera.updateMatrixWorld(); updateTarget(); applyTOD(); updateInnenlicht(1); updateInnenlicht(1); renderFrame(0.016); return canvas.toDataURL('image/jpeg',0.85); },
     run:(sec,dt)=>{ noLoop=true; const n=Math.round(sec/(dt||0.05)); for(let i=0;i<n;i++) step(dt||0.05); }};
 });
 })();

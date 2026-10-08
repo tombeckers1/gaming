@@ -139,7 +139,8 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   console.log('EINRICHTUNG',JSON.stringify(moebel));
   pruef('EINRICHTUNG',moebel.kasse[0]<2,'die Kasse steht hinter der Trennwand');
   pruef('EINRICHTUNG',moebel.laptop&&moebel.laptop[0]<2,'der Laptop steht hinter der Trennwand');
-  pruef('EINRICHTUNG',moebel.slotsOffen===8,'die Starthaelfte hat nicht acht Regalplaetze, sondern '+moebel.slotsOffen);
+  /* 08.10.: acht Wand-Plaetze + das Kassenregal (02-data mkSlots, seit 05.10.) = 9 */
+  pruef('EINRICHTUNG',moebel.slotsOffen===9,'die Starthaelfte hat nicht neun Regalplaetze (8 + Kassenregal), sondern '+moebel.slotsOffen);
   pruef('EINRICHTUNG',moebel.racksOffen===8,'das Startlager hat nicht acht Stellplaetze, sondern '+moebel.racksOffen);
 
   const lVor=await leuchten();
@@ -182,7 +183,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
             racks:bb.RACKS.filter(r=>!r.zone||bb.zoneOffen(r.zone)).length};
   });
   console.log('AUSGEBAUT  ',JSON.stringify(voll));
-  pruef('AUSGEBAUT',voll.slots===10,'nach dem Kauf sind nicht zehn Regalplaetze frei, sondern '+voll.slots);
+  pruef('AUSGEBAUT',voll.slots===11,'nach dem Kauf sind nicht elf Regalplaetze frei (10 + Kassenregal), sondern '+voll.slots);
   pruef('AUSGEBAUT',voll.racks===14,'nach dem Kauf sind nicht vierzehn Stellplaetze frei, sondern '+voll.racks);
 
   const lNach=await leuchten();

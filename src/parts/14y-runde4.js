@@ -118,9 +118,9 @@ EFF.feuerkugel=function(p,A,B,s,r){ grOhneZutaten(r,0.5);
   for(let j=0;j<k;j++){ const a=a0+j/k*Math.PI*2+rand(-0.35,0.35), el=rand(-0.35,0.45), w=rand(11,14)*s, vv=[Math.cos(a)*Math.cos(el)*w,Math.sin(el)*w,Math.sin(a)*Math.cos(el)*w];
     kgStern(psHuge,p,vv,kgMal(A,1.5),T,G,0,0.45); rkFunken(p,vv,G,0.03,T,120,kgMal(A,1.1),{ps:psMid,life:[0.45,0.9],g:2,streu:0.25,mit:0.08,mode:4});
     kgSpaeter(T,()=>{ const e=sternNach(p,vv[0],vv[1],vv[2],G,T), w=bahnTempo(vv,G,T);
-      for(let i=0;i<Math.round(18*QUAL())+6;i++){ const d=randDir(), dv=[w[0]*0.8+d[0]*3,w[1]*0.8+d[1]*3,w[2]*0.8+d[2]*3], L=rand(0.6,1.2);
-        kgStern(psBig,e,dv,kgMal(B,1.8),L,2.4,0,0.25); if(i%3===0) kgSpaeter(L,()=>r4Knack(sternNach(e,dv[0],dv[1],dv[2],2.4,L),2,0.5)); }
-      flash(e,A,1.2,0.12); }); }
+      for(let i=0;i<Math.round(18*QUAL())+6;i++){ const d=randDir(), dv=[w[0]*0.8+d[0]*4.5,w[1]*0.8+d[1]*4.5,w[2]*0.8+d[2]*4.5], L=rand(0.6,1.2);
+        kgStern(psBig,e,dv,kgMal(B,1.3),L,2.4,0,0.3); if(i%3===0) kgSpaeter(L,()=>r4Knack(sternNach(e,dv[0],dv[1],dv[2],2.4,L),2,0.5)); }
+      }); }
   schall(p,x=>{ sfx.zischen(x*0.5,0.8); later(T,()=>{ sfx.crack(x*0.6); later(0.6,()=>sfx.crackle(x*0.45)); }); }); };
 /* Phoenixfeder: zwoelf schwere scharlachrote Kometen steigen schraeg nach
    oben aus; nach einer Sekunde faechert jeder in fuenf goldene Federaeste

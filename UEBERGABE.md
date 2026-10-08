@@ -139,6 +139,10 @@ ROADMAP.md: Die Demo-Idee mit Kapitel 1–6 ist inzwischen durch den Release-Pla
   - Tests: `versandtor.js`, `packband.js`, `packer.js`.
   - In der Gameplay-Vorführung sichtbar machen.
 
+### 5.0b NEUE RICHTUNG (Tom, 08.10. nachts)
+- Ausbauplan v7 (5.4) wird in die Zukunft verschoben. Zuerst den aktuellen Stand auf sehr hohes Niveau: Texturen, Gameplay-Performance, Gameplay, Flow, Wirtschaft. Schritt für Schritt, Tom bespricht jeden Schritt.
+- Über Nacht 08./09.10.: Läden gegenüber, Innenräume hinter den Schaufenstern realistisch (gameplay.md 14, `05e-street.js` `ladenInnen`).
+
 ### 5.1 Tests beschleunigen (Vorschlag, etwa ½ Tag)
 - Jeder Test lädt das Spiel ~50 s im Software-Renderer. Idee: einmal laden und den Spielstand per Hook zurücksetzen, oder mehrere Tests in einer Seite.
 - Spart geschätzt 30–40 % Testzeit für alles Weitere. Erst Tom fragen, ob er das will.

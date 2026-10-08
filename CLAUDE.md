@@ -5,6 +5,11 @@
 > Neueste Entscheidung (Tom, 08.10. abends): Versandecke **Stufe 1 ohne Roboter-Kran**,
 > der Spieler legt das Paket selbst auf die Palette (UEBERGABE.md 5.0) – erledigt 08.10., V120.
 
+> **Neue Richtung (Tom, 08.10. nachts):** Ausbauplan v7 (große Halle, Hochregal, Produktion)
+> wird **in die Zukunft verschoben**. Erst den heutigen Stand auf sehr hohes Niveau bringen:
+> Texturen, Performance, Gameplay, Flow, Wirtschaft. Schritt für Schritt mit Tom. Erste Aufgabe:
+> Läden gegenüber – Innenräume hinter den Schaufenstern realistisch (gameplay.md Punkt 14).
+
 Die folgenden Regeln sind eine Kopie von Toms globalen Anweisungen (Stand 08.10.2026),
 damit sie auch in einem frischen Container gelten.
 

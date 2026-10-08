@@ -975,7 +975,7 @@ function buildPackstation(){
         if(p.idx>=PAL_N[st]) continue; t.push({x0:c.x-0.6,x1:c.x+0.6,z0:c.z-0.4,z1:c.z+0.4}); }
       if(!zoneOffen(id)) t.push({x0:PACK_FL.x0,x1:PACK_FL.x1,z0:-1.7,z1:-1.35});
       /* die geparkten Kommissionierwagen (solange sie nicht unterwegs sind) */
-      else for(let i=0;i<st;i++){ const w=vsPlaetze[i]&&vsPlaetze[i].wagen; if(w&&w.parent===g){ const p=ppW(i,WG_PARK.x,WG_PARK.z); t.push({x0:p.x-0.48,x1:p.x+0.48,z0:p.z-0.36,z1:p.z+0.36}); } }
+      else for(let i=0;i<st;i++){ const w=vsPlaetze[i]&&vsPlaetze[i].wagen; if(w&&w.parent===g){ const p=ppW(i,vsPK(i).px,vsPK(i).pz); t.push({x0:p.x-0.48,x1:p.x+0.48,z0:p.z-0.36,z1:p.z+0.36}); } }
       return t;
     }});
   zHook(id,()=>{ packStufeAnwenden(); });

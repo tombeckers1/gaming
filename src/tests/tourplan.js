@@ -40,7 +40,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     /* fester Bestellsatz (LCG), 48 Bestellungen mit 1-3 Positionen */
     let z=12345; const rnd=()=>{ z=(z*1103515245+12345)&0x7fffffff; return z/0x7fffffff; };
     const satz=[]; for(let i=0;i<48;i++){ const np=1+Math.floor(rnd()*3), pos=[]; for(let j=0;j<np;j++){ const t=belegt[Math.floor(rnd()*belegt.length)]; if(!pos.some(q=>q.t===t)) pos.push({t,n:1+Math.floor(rnd()*2),g:0}); } satz.push(pos); }
-    const heim=bb.vsWelt(0,-0.5+0.845,0.99);   /* WG_GRIFF: dort steht der Wagen am Tisch */
+    const heim=bb.vsWelt(0,bb.vsPK(0).gx,bb.vsPK(0).gz);   /* dort steht der Wagen am Tisch */
     const messen=(an)=>{
       bb.VS_OPT.an=an;
       S.bestellungen=satz.map((pos,i)=>({id:i+1,pos:pos.map(q=>Object.assign({},q)),gr:1,st:'offen',tag:S.day,wert:5,versand:0}));

@@ -24,6 +24,13 @@ const VS_GR={
    steht rechts davor. */
 const WG_PARK={x:-0.5,z:0.99,ry:-Math.PI/2}, WG_Y=0.78, WG_ABST=0.845, WG_GRIFF={x:-0.5+0.845,z:0.99};
 const VS_HEIM={x:0.5,z:0.83};
+/* Park- und Standpunkte je Packplatz. Der Wagen steht auf der Seite, zu der der Packer ihn schieben will:
+   liegen die Regale (Lager) hinter dem Ostende der Station (Station um 180 Grad gedreht), parkt er auf
+   der anderen Seite - sonst schwenkt der Wagen beim Losfahren durch den Tisch (Tom 08.10., Test TISCH). */
+function vsPK(i){
+  const rot=typeof packTisch!=='undefined'&&packTisch?packTisch.rotation.y:0, flip=VS_PP[i|0].s>0&&Math.cos(rot)<0, d=flip?-1:1;
+  return {px:flip?0.5:-0.5,pz:0.99,pry:flip?Math.PI/2:-Math.PI/2,gx:(flip?0.5:-0.5)+d*WG_ABST,gz:0.99,hx:flip?-0.5:0.5,hz:0.83};
+}
 /* Wo das Paket auf dem Tisch zugeklebt wird */
 const VS_TISCH={x:0,z:0};
 /* Paletten der aktuellen Stufe (packStufeAnwenden) und Stapelhoehe */
@@ -129,7 +136,7 @@ function vsZugang(){
   if(typeof NAV==='undefined'||!packTisch) return null;
   if(NAV.dirty) navBuild();
   if(_vsZugang&&_vsZugang.nr===NAV.nr&&_vsZugang.px===packTisch.position.x&&_vsZugang.pz===packTisch.position.z&&_vsZugang.st===packStufe()) return _vsZugang.g;
-  const W=NAV.w, H=NAV.h, out=new Uint8Array(W*H), h=vsWelt(0,VS_HEIM.x,VS_HEIM.z), s0=navNah(h.x,h.z);
+  const W=NAV.w, H=NAV.h, out=new Uint8Array(W*H), h=vsWelt(0,vsPK(0).hx,vsPK(0).hz), s0=navNah(h.x,h.z);
   if(s0>=0){ out[s0]=1; const Q=[s0]; let k=0;
     while(k<Q.length){ const c=Q[k++], i=c%W, r=(c-i)/W;
       for(const n of [i>0?c-1:-1,i<W-1?c+1:-1,r>0?c-W:-1,r<H-1?c+W:-1]) if(n>=0&&!NAV.g[n]&&!out[n]){ out[n]=1; Q.push(n); } } }
@@ -386,7 +393,7 @@ function vsWagenVon(w){ const P_=vsPlaetze[w.pp|0]; return P_&&P_.wagen; }
 function vsParken(pi,sofort,parent){
   const P_=vsPlaetze[pi], g=P_&&P_.wagen, T=parent||packTisch; if(!g||!T) return;
   if(g.parent!==T){ if(g.parent) g.parent.remove(g); T.add(g); }
-  const p=ppW(pi,WG_PARK.x,WG_PARK.z); g.position.set(p.x,0,p.z); g.rotation.set(0,ppRy(pi,WG_PARK.ry),0);
+  const K=vsPK(pi), p=ppW(pi,K.px,K.pz); g.position.set(p.x,0,p.z); g.rotation.set(0,ppRy(pi,K.pry),0);
   const u=g.userData; u.modus='park'; u.t=1; u.von=null;
   /* geparkt ist der Wagen ein Hindernis wie der Tisch */
   if(typeof packMov!=='undefined'&&packMov&&grabbed!==packMov) applyFootprint(packMov);
@@ -406,7 +413,7 @@ function vsWagenModus(g,m,pose){
 }
 function vsWagenZiel(w,g){
   const u=g.userData;
-  if(u.modus==='park') return {p:vsWelt(u.pp,WG_PARK.x,WG_PARK.z),ry:vsRy(u.pp,WG_PARK.ry)};
+  if(u.modus==='park') return {p:vsWelt(u.pp,vsPK(u.pp).px,vsPK(u.pp).pz),ry:vsRy(u.pp,vsPK(u.pp).pry)};
   if(u.modus==='stehen'&&u.pose) return u.pose;
   const ry=w.g.rotation.y;
   return {p:V(w.pos.x+Math.sin(ry)*WG_ABST,0,w.pos.z+Math.cos(ry)*WG_ABST),ry};
@@ -492,7 +499,7 @@ function vsPlan(pi){
   if(!VS_OPT.an){
     for(const b of kand.slice()){ if(!taugt(b)) continue; nimm(b); if(belegt.every(Boolean)) break; }
   } else {
-    const heim=vsWelt(pi,WG_GRIFF.x,WG_GRIFF.z), pts=[heim], cache={}, alt=kand.slice();
+    const heim=vsWelt(pi,vsPK(pi).gx,vsPK(pi).gz), pts=[heim], cache={}, alt=kand.slice();
     let maxIdx=-1;
     while(kand.length&&!belegt.every(Boolean)){
       let wahl=null;
@@ -906,7 +913,7 @@ function vsDrehen(w,ry,dt){
   w.g.rotation.y+=df*Math.min(1,dt*7); return Math.abs(df)<0.12;
 }
 function vsBlick(w,p,dt){ return vsDrehen(w,Math.atan2(p.x-w.pos.x,p.z-w.pos.z),dt); }
-function vsHeim(w){ return vsWelt(w.pp,VS_HEIM.x,VS_HEIM.z); }
+function vsHeim(w){ return vsWelt(w.pp,vsPK(w.pp).hx,vsPK(w.pp).hz); }
 function vsLoop(w,dt){
   w.pp=vsPlatzVon(w);
   const g=vsWagenVon(w);
@@ -942,7 +949,7 @@ function vsLoopZustand(w,dt,wf,tour,g){
     case 'aufbauen': {
       /* fuer jede Bestellung einen Karton aus dem Regal nehmen, auf dem
          Wagen aufstellen, Klappen offen */
-      vsBlick(w,vsWelt(pi,WG_PARK.x,WG_PARK.z),dt);
+      vsBlick(w,vsWelt(pi,vsPK(pi).px,vsPK(pi).pz),dt);
       w.t-=dt*wf; if(w.t>0) break;
       const a=tour.auf[w.k];
       if(a){
@@ -953,11 +960,11 @@ function vsLoopZustand(w,dt,wf,tour,g){
         g.add(pk); a.pk=pk; w.k++; w.t=0.32; sfx.pop(); break; }
       if(!tour.auf.length){ w.tour=null; w.vs='bereit'; w.t=0.5; break; }
       /* Wege erst jetzt planen: die Ware kann sich bewegt haben */
-      tour.stops=vsStopsBauen(vsBedarf(tour),vsWelt(pi,WG_GRIFF.x,WG_GRIFF.z)); tour.si=0;
+      tour.stops=vsStopsBauen(vsBedarf(tour),vsWelt(pi,vsPK(pi).gx,vsPK(pi).gz)); tour.si=0;
       w.vs='ankoppeln'; break; }
     case 'ankoppeln': {
-      if(!vsGehen(w,vsWelt(pi,WG_GRIFF.x,WG_GRIFF.z),dt)&&!vsNotfalls(w,vsWelt(pi,WG_GRIFF.x,WG_GRIFF.z))) break;
-      if(!vsDrehen(w,vsRy(pi,WG_PARK.ry),dt)) break;
+      if(!vsGehen(w,vsWelt(pi,vsPK(pi).gx,vsPK(pi).gz),dt)&&!vsNotfalls(w,vsWelt(pi,vsPK(pi).gx,vsPK(pi).gz))) break;
+      if(!vsDrehen(w,vsRy(pi,vsPK(pi).pry),dt)) break;
       vsWagenModus(g,'schieben'); w.vs='fahren'; break; }
     case 'fahren': {
       const s=tour.stops[tour.si];
@@ -972,7 +979,7 @@ function vsLoopZustand(w,dt,wf,tour,g){
            umgestellt wurde: diese Stelle auslassen, nachgeplant wird am Ende */
         if(w.vsWeg){ w.vsWeg=null; w.vsZiel=null; tour.si++; w.src=null; }
         break; }
-      const nx=tour.stops[tour.si+1], weiter=nx?nx.stand:vsWelt(pi,WG_GRIFF.x,WG_GRIFF.z);
+      const nx=tour.stops[tour.si+1], weiter=nx?nx.stand:vsWelt(pi,vsPK(pi).gx,vsPK(pi).gz);
       vsWagenModus(g,'stehen',vsWagenStand(w.pos,s.look,weiter)); w.vs='greifen'; w.t=0.3; break; }
     case 'greifen': {
       const s=tour.stops[tour.si];
@@ -995,7 +1002,7 @@ function vsLoopZustand(w,dt,wf,tour,g){
       /* kurz vor dem Tisch rollt der Wagen auf seinen Platz, der
          Mitarbeiter geht allein weiter - vorher drehte er sich mit dem
          Wagen am Griffpunkt und schwenkte ihn quer durch den Tisch */
-      const G=vsWelt(pi,WG_GRIFF.x,WG_GRIFF.z);
+      const G=vsWelt(pi,vsPK(pi).gx,vsPK(pi).gz);
       if(VS_PP[pi].s>0&&w.tour&&!w.tour.gasseZu&&w.pos.distanceTo(G)>3.5){ const Gp=vsGassePunkt();
         if(w.pos.distanceTo(Gp)>0.9){ if(!vsGehen(w,Gp,dt)) vsNotfalls(w,Gp); break; } w.tour.gasseZu=true; }
       if(w.pos.distanceTo(G)<1.4){ vsWagenModus(g,'park'); w.vs='parken'; break; }
@@ -1034,7 +1041,7 @@ function vsNachplanen(w){
   const need=vsBedarf(tour);
   if(Object.keys(need).length&&tour.runde<2){
     tour.runde++;
-    const neu=vsStopsBauen(need,w.pos,vsWelt(w.pp,WG_GRIFF.x,WG_GRIFF.z)).filter(s=>s.k>0);
+    const neu=vsStopsBauen(need,w.pos,vsWelt(w.pp,vsPK(w.pp).gx,vsPK(w.pp).gz)).filter(s=>s.k>0);
     if(neu.length){ tour.stops=tour.stops.concat(neu); return; }
   }
   w.vs='zurueck';

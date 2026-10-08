@@ -1,0 +1,40 @@
+# Toms Testbefunde V117 (07.10.)
+- [an Verpackungs-Agent gegeben] Kleinfeuerwerk auf dem Zuendtisch zeigt Verpackung statt Produkt: knallerbsen, partypopper, knallfrosch, knallbonbon, boeller, schwaermer, blitzknaller, bodenkreisel, monsterboeller.
+- Lichter-Batterien ohne Abschussgeraeusch: Gluehwuermchen (Platz 10), Pusteblume (6), Tautropfen (15) - "generell pruefen, vermutlich ein Fehler". Leichte Abschussgeraeusche wie bei Batterien; bei Fontaenen-Anteilen passendes Fontaenengeraeusch.
+- Pusteblume (6): kleine Mini-Fontaene unten entfernen.
+- Lob: "Ada"(?) sehr schoen geaendert; Schneeball (12): verschiedene, passende Sounds = Vorbild.
+- Zitronenfalter (25): gut, wirkt aber etwas unnatuerlich -> ueberarbeiten.
+- Vorfuehrung: Raketen (z. B. Farbkanon-Umfeld) und Kugelbomben NICHT sichtbar im Rohr; Kugelbomben ohne heraushaengende Zuendschnur. Abschussrohre in der Vorfuehrung sehen anders aus als im echten Spiel -> dieselben Rohre wie im Spiel nehmen. (Agent C hat das angeblich gebaut, vfrohr-Test gruen -> pruefen, warum Tom es nicht sieht.)
+- "Wendel..."(Wendeltreppe? Weidenwand?): nach der Fontaene fehlt der Sound bei den grossen Abschuessen.
+- Generell Batterien: einige Knalle sind wichtig, wo es zum Effekt passt (bunte Mischung); verschiedene Knallsounds, nicht immer derselbe; nie Abschuesse ganz ohne Ton.
+- Ozean: erste Schuesse zu nah beieinander -> weiter auseinander; Effekt der ersten ~2/3 gefaellt nicht -> neu; Ende (verschiedene Sachen ineinander) bleibt so.
+- Kolibri (52, bestaetigt): erster Effekt, der nach links und rechts oben am Himmel geht, wirkt unnatuerlich/unphysikalisch -> natuerlicher. Sonst "echt schoen". Mehr auf Sounds achten.
+- Sonnenaufgang: Explosionen teils nicht schoen, goldene/gelbe Sterne schlechte Textur -> ueberarbeiten.
+- Vollmond: KOMPLETT LOESCHEN (unnatuerlich).
+- Goldader: zu viele goldene Fontaenen -> mehr/andere Effekte, spektakulaerer; z. B. kompletter goldener Regen, Funken mit Quallen-Bewegung (natuerlich).
+- Lagune: erster Effekt gefaellt nicht; "das Produkt kannst du komplett wegmachen" -> LAGUNE KOMPLETT LOESCHEN (bestaetigt).
+- NEU: 5 weitere Themen-Batterien, ebenso spezifisch, nach Toms Geschmack.
+- Sounds generell: fehlen teilweise -> ueberall pruefen.
+- Trommelfeuer: mehr Sounds; alle Effekte texturell ueberarbeiten - Lichter sehen billig/"schlecht grafisches Spiel" aus, nicht echt (bei viel gleichzeitig am Himmel). Andere Effekte wirken viel realistischer -> dieses Niveau.
+- Hexenkessel: teils sehr gute Sounds = Referenz, aber nicht ueberall dieselben. Sounds sollen einzigartig/vielfaeltig sein (viele verschiedene Sounds, nicht pro Batterie zwingend eigene).
+- Rosenherz: neu ausbalancieren - Effektkombination, Texturqualitaet, Farben; mehr Richtung Rosa, goldene Elemente ok aber mehr andere, stimmiger.
+- Lob/Referenz: Silbergewitter und Farbtiger sehr schoen; "F5" als Referenz. Trotzdem Variation: aehnliche Qualitaet, aber andere Sounds/Effekte/Farben/Themen, alles kohaerent.
+- Kugel 200 Zwillingssonne: 3 Schuesse (links/rechts/Mitte), Explosion aber ganz woanders -> Bruch muss am Schussende sitzen.
+- Kugel 200 Goldweidenkreuz: kraesser.
+- Goetterfunken: zu langweilig/eintoenig v. a. am Anfang; Mitte besser -> mehr einfallen lassen.
+- ALLE Batterien: Bodenfontaenen (2-3 m hoch, am Tisch beginnend, viele kleine Funken, "random") RAUS. Nicht gemeint: aufsteigende Geschosse/Kometen. Beispiel: Glutschmiede.
+- Blitzpilz: nicht Koenigsklasse - es gibt kraessere davor -> Reihenfolge/Level neu ordnen.
+- Urwald: Kreis-Effekt unnatuerlich; nicht Koenigsklasse -> Batterie KOMPLETT NEU, deutlich intensiver, schoene realistische Effekte, viele passende Effekte, Creme de la Creme ohne Schoenheit zu verlieren.
+- Generell: keine Effekte, die es in echt nicht gibt; realistisch bleiben.
+- LOESCHEN: Gletscher, Kaleidoskop, Sterntor, Kugel 300 Kronenregen, Legion, Finale Grande (zusaetzlich zu Vollmond, Lagune).
+- Lob: Himmelsbrecher (Kugelbombe) "krass"; Weidenhain schoen.
+- Weltuntergang bleibt (an sich schoen), aber Produkt viel zu klein fuer ~300 Schuss -> Verpackung/Groesse (an Verpackungs-Agent). Und: Weltuntergang hebt sich in der Koenigsklasse stark ab -> Batterien nach Volumen/Wucht vergleichen und andere auf passende Level verschieben.
+- Sterntor: wieder Bodenfontaene unten (-> raus, Produkt sowieso weg).
+- Jumbo Drache (Rakete) in Koenigsklasse fraglich -> eher niedriger; Raketen bekommen spaeter eine eigene Runde (noch nicht jetzt).
+- Kugelbomben bekommen spaeter noch eine Runde; JETZT: eigene "Kugelbomben-Vorfuehrung" mit ALLEN Kugelbomben + 10 NEUEN Kugelbomben, einzeln abfeuerbar.
+- Vulkanausbruch: gut; die am Tisch beginnende Fontaene DARF bleiben, ruhig doller; Blitze am Anfang realistischer (sehen aus wie 1-Pixel-Drohnen); etwas mehr Schuss (Koenigsklasse), nicht viel.
+- NEU: 10 neue thematisierte Batterien (ersetzt die zuvor genannten 5), davon 2-3 extreme fuer die Koenigsklasse; schoene, realistische Effekte, themenbasiert.
+- NEU: Vorfuehrung "(Aenderungen)" zusaetzlich zur bestehenden: alle geaenderten Produkte + die 10 neuen Batterien. Kugelbomben-Vorfuehrung separat.
+- Leitlinie: Stueck fuer Stueck besser; Richtung der gelobten Sachen, aber Individualitaet behalten.
+- NUR LOCKERE INSPIRATION, KEINE VORLAGE (Tom ausdruecklich): Bild fuer die 10 neuen Batterien + 10 Kugelbomben: tom-test/referenz-10-batterien.png (von GPT generiert). Nicht kopieren, sondern als Richtung: klares Thema je Batterie, Untertitel, Effekt-Mischung (Brokatkronen, Silberweiden, Crackling, Chrysanthemen, Palmen, Kometen, Faecherfinale), starke Finale, hochwertige Verpackungsgrafik. ABER: keine Bildeffekte, die real unmoeglich sind (z. B. Drachen-Form am Himmel) - Feuerwerk kann keine Figuren zeichnen.
+- Tom zum GPT-Bild: NICHT nachbauen, nur "mal drauf schielen". Massgeblich bleiben Toms gelobte Produkte und alle Befunde: natuerlich/realistisch, einzigartig, kohaerent, gute und passende vielfaeltige Sounds.

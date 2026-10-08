@@ -146,6 +146,12 @@ const fs = require('fs');
     /* ---------- 4. Abfahrt: Mitarbeiter/Roboter laedt den Rest, Tor zu, LKW weg ---------- */
     const ab = await p.evaluate(st => { const bb = window.__bb, S = bb.S, o = {st};
       bb.DDL.t = 0; bb.DDL.ruf = false;
+      /* Gegenprobe Sicherheit: steht der Spieler noch im Tor, faehrt der LKW nicht los (Klappe/Tor bleiben) */
+      bb.run(40, 0.05); o.blockiert = bb.VT.state === 'docked';
+      /* der Spieler geht aus dem Weg; fuer den Mitarbeiter/Roboter liegen neue Pakete in der Box */
+      const wg = bb.vf(3.5, 0.45); bb.schiebe(wg.x, wg.z); bb.setView(wg.x, wg.z, 0, 0);
+      for (let i = 0; i < 70; i++) { S.paketGr.push(1); S.paketP.push(-1); } S.pakete = S.paketGr.length; bb.syncPakete();
+      o.zBox = bb.vsPalZelle().map(q => bb.vsPalZahl(q));
       const vorher = S.paketGr.length; o.vorher = vorher; o.palVor = S.paletten.filter(q => q.ort === 'l').length;
       const zust = {}; let n = 0, agv = false, fig = false, torZu = false, weg = false;
       while (n++ < 12000) { bb.run(0.2, 0.05);
@@ -157,6 +163,7 @@ const fs = require('fs');
       o.torKoll = bb.colliders.some(c => c.minX <= bb.V1.x - 1 && c.maxX >= bb.V1.x + 1 && c.minZ < bb.V1.wz && c.maxZ > bb.V1.wz);
       return o; }, st);
     console.log('ABFAHRT', JSON.stringify(ab));
+    pruef('SPIELER_IM_TOR_' + st, ab.blockiert, 'der LKW faehrt los, obwohl der Spieler im Tor steht');
     pruef('ABFAHRT_' + st, ab.weg && ab.nachher === 0 && !ab.tor && ab.torKoll, 'LKW faehrt nicht ab oder Pakete bleiben: ' + JSON.stringify({weg: ab.weg, nachher: ab.nachher, tor: ab.tor, kolls: ab.torKoll}));
     pruef('LADER_' + st, st === 1 ? (ab.fig && !ab.agv) : ab.agv, 'Stufe ' + st + ': ' + (st === 1 ? 'Mitarbeiter fehlt' : 'Hubwagen-Roboter fehlt') + ' ' + JSON.stringify({fig: ab.fig, agv: ab.agv}));
     pruef('LKW_ZUSTAENDE_' + st, ['anfahrt', 'torauf', 'docked', 'flap', 'torzu', 'out'].every(z => true), '');

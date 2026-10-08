@@ -33,7 +33,8 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
       if (im && im.data) { d = im.data; W = im.width; H = im.height; }
       else if (im && im.getContext) { W = im.width; H = im.height; d = im.getContext('2d').getImageData(0, 0, W, H).data; } else return null;
       return {d, W, H}; };
-    const raute = x => { let n = 0; for (let i = 0; i < x.d.length; i += 4) if (Math.abs(x.d[i] - 242) <= 6 && Math.abs(x.d[i + 1] - 138) <= 6 && Math.abs(x.d[i + 2] - 28) <= 8) n++; return n; };
+    /* nur das untere Drittel links (dort sitzt das Zeichen) - der Etikettkopf kann orange sein */
+    const raute = x => { let n = 0; for (let i = 0; i < x.d.length; i += 4) if (Math.floor(i / 4 / x.W) > x.H * 0.55 && Math.floor(i / 4 / x.W) < x.H * 0.95 && (i / 4) % x.W < x.W * 0.45 && Math.abs(x.d[i] - 242) <= 6 && Math.abs(x.d[i + 1] - 138) <= 6 && Math.abs(x.d[i + 2] - 28) <= 8) n++; return n; };
     const sig = x => { let h = 0; for (let i = 0; i < x.d.length; i += 97) h = (h * 31 + x.d[i]) | 0; return h; };
     const F = [], N = [], sigs = new Set(); let ohne = 0; o.fehlerF = []; o.fehlerN = [];
     for (const t of bb.ORDER) { const x = pix(t); if (!x) { ohne++; continue; }
@@ -53,8 +54,8 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   /* Gegenprobe: Raute auf einen Essenskarton malen */
   const gp = await p.evaluate(() => { const bb = window.__bb, t = bb.ORDER.find(x => bb.P[x].sparte === 'essen'), m = bb.kartonMat[t], im = m.map.image;
     let cv = im; if (im.data) { cv = document.createElement('canvas'); cv.width = im.width; cv.height = im.height; cv.getContext('2d').putImageData(im, 0, 0); }
-    const g = cv.getContext('2d'); g.fillStyle = '#f28a1c'; g.fillRect(40, 40, 60, 60);
-    const d = g.getImageData(0, 0, cv.width, cv.height).data; let n = 0; for (let i = 0; i < d.length; i += 4) if (Math.abs(d[i] - 242) <= 6 && Math.abs(d[i + 1] - 138) <= 6 && Math.abs(d[i + 2] - 28) <= 8) n++;
+    const g = cv.getContext('2d'); g.fillStyle = '#f28a1c'; g.fillRect(40, 180, 60, 60);
+    const d = g.getImageData(0, 0, cv.width, cv.height).data; let n = 0; for (let i = 0; i < d.length; i += 4) if (Math.floor(i / 4 / cv.width) > cv.height * 0.55 && Math.abs(d[i] - 242) <= 6 && Math.abs(d[i + 1] - 138) <= 6 && Math.abs(d[i + 2] - 28) <= 8) n++;
     return {t, n}; });
   console.log('GEGENPROBE', JSON.stringify(gp));
   pruef('GEGENPROBE', gp.n > 40, 'die Messung erkennt eine aufgemalte Raute nicht: ' + JSON.stringify(gp));

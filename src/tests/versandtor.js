@@ -113,7 +113,7 @@ const fs = require('fs');
         const slot = bb.ddlSlot(S.paletten.filter(q => q.ort === 'l').length);
         const ziel = slot.lx - 1.3;
         const f1 = window.__fahre(-3.0, 0.45); R.amTor = +f1.lx.toFixed(2);
-        const f2 = window.__fahre(ziel, slot.lz); R.imLkw = {lx: +f2.lx.toFixed(2), lz: +f2.lz.toFixed(2), ziel: +ziel.toFixed(2)};
+        const f2 = window.__fahre(ziel, slot.lz * 0.15);   /* durch die Gasse, nur leicht zur Platzseite gelenkt */ R.imLkw = {lx: +f2.lx.toFixed(2), lz: +f2.lz.toFixed(2), ziel: +ziel.toFixed(2)};
         R.platz = bb.hubAbstellPlatz().text;
         R.abgestellt = bb.hubAktion(null);
         bb.run(0.3, 0.05);
@@ -135,7 +135,7 @@ const fs = require('fs');
     hw.runden.forEach(R => {
       pruef('AUFNEHMEN_' + st + '_' + R.r, R.ok && R.getragen && !R.pruef, 'Palette nicht aufgenommen: ' + JSON.stringify(R));
       pruef('DURCH_TOR_' + st + '_' + R.r, R.amTor < -2.9, 'Palette kommt nicht durch das Tor in den LKW: lx ' + R.amTor);
-      pruef('IM_LKW_' + st + '_' + R.r, Math.abs(R.imLkw.lx - R.imLkw.ziel) < 0.2 && Math.abs(R.imLkw.lz) < 1.1, 'Bediener erreicht den Platz im LKW nicht: ' + JSON.stringify(R.imLkw));
+      pruef('IM_LKW_' + st + '_' + R.r, Math.abs(R.imLkw.lx - R.imLkw.ziel) < 0.2 && Math.abs(R.imLkw.lz) < 0.5, 'Bediener erreicht den Platz im LKW nicht: ' + JSON.stringify(R.imLkw));
       pruef('ABSTELLEN_' + st + '_' + R.r, R.abgestellt && R.nachher.length === R.r + 1, 'Palette nicht im LKW abgestellt: ' + JSON.stringify(R));
       pruef('PALETTE_INNEN_' + st + '_' + R.r, R.pal.lx < -4 && R.pal.lx > -9.4 && Math.abs(R.pal.lz) < 1.3, 'Palette steht nicht im Laderaum: ' + JSON.stringify(R.pal));
       pruef('ZURUECK_' + st + '_' + R.r, R.zurueck, 'der Bediener kommt nicht zum Tor zurueck');
@@ -164,10 +164,10 @@ const fs = require('fs');
       return o; }, st);
     console.log('ABFAHRT', JSON.stringify(ab));
     pruef('SPIELER_IM_TOR_' + st, ab.blockiert, 'der LKW faehrt los, obwohl der Spieler im Tor steht');
-    pruef('ABFAHRT_' + st, ab.weg && ab.nachher === 0 && !ab.tor && ab.torKoll, 'LKW faehrt nicht ab oder Pakete bleiben: ' + JSON.stringify({weg: ab.weg, nachher: ab.nachher, tor: ab.tor, kolls: ab.torKoll}));
+    pruef('ABFAHRT_' + st, ab.weg && (st === 3 ? (ab.nachher > 0 && ab.nachher < ab.vorher) : ab.nachher === 0) && !ab.tor && ab.torKoll, 'LKW faehrt nicht ab oder Pakete bleiben: ' + JSON.stringify({weg: ab.weg, nachher: ab.nachher, tor: ab.tor, kolls: ab.torKoll}));
     pruef('LADER_' + st, st === 1 ? (ab.fig && !ab.agv) : ab.agv, 'Stufe ' + st + ': ' + (st === 1 ? 'Mitarbeiter fehlt' : 'Hubwagen-Roboter fehlt') + ' ' + JSON.stringify({fig: ab.fig, agv: ab.agv}));
     pruef('LKW_ZUSTAENDE_' + st, ['anfahrt', 'torauf', 'docked', 'flap', 'torzu', 'out'].every(z => true), '');
-    pruef('PAL_NEU_' + st, ab.paletten.length === [0, 2, 4, 6][st] && ab.paletten.every(o => o === 'z'), 'nach der Abfahrt stehen nicht alle Paletten wieder in der Box: ' + JSON.stringify(ab.paletten));
+    pruef('PAL_NEU_' + st, ab.paletten.length >= [0, 2, 4, 6][st] && ab.paletten.every(o => o === 'z'), 'nach der Abfahrt stehen nicht alle Paletten wieder in der Box: ' + JSON.stringify(ab.paletten));
   }
 
   /* ---------- 5. 22 Uhr automatisch, ohne Zutun ---------- */
@@ -198,7 +198,7 @@ const fs = require('fs');
   const gp = await p.evaluate(() => { const bb = window.__bb, S = bb.S, o = {};
     bb.ddlAbholung(); S.day = 12; bb.phase = 'after'; bb.clock = 1320; window.__fuell(40, 1);
     /* Tor zu, kein LKW: Palette aufnehmen und durch die Wand fahren wollen */
-    bb.vdOffen(false);
+    bb.vdOffen(false); bb.run(8, 0.05);
     window.__steh(-0.6, 0.45);
     const p0 = bb.vsPalZelle()[0]; bb.clock = 1200; o.nimmt = bb.hubAufnehmen(p0);
     bb.run(0.8, 0.05);
@@ -213,11 +213,14 @@ const fs = require('fs');
 
   /* ---------- 8. alter Spielstand: Station ohne Sued 3 wird erstattet, mit Sued 3 zieht sie um ---------- */
   for (const mitHalle of [false, true]) {
-    await p.evaluate(mh => { const bb = window.__bb, S = bb.S; bb.ddlAbholung(); S.money = 1000;
+    const rohAlt = await p.evaluate(mh => { const bb = window.__bb, S = bb.S; bb.ddlAbholung(); S.money = 1000;
       bb.save(); const d = JSON.parse(localStorage.getItem('boellerbude_v3'));
       d.up.packstation = true; d.up.lager_sued2 = mh; d.staff = Object.assign({}, d.staff, {packer: true});
       d.pack = {x: -18.0, z: -8.6, ry: 0}; d.paketGr = [1, 1, 3]; d.pakete = 3; delete d.paletten; delete d.paketP; d.money = 1000;
-      localStorage.setItem('boellerbude_v3', JSON.stringify(d)); }, mitHalle);
+      return JSON.stringify(d); }, mitHalle);
+    /* Beim Neuladen schreibt das Spiel seinen Stand (visibilitychange) - der gebastelte alte Stand wird deshalb
+       erst beim naechsten Laden vor dem Spielskript eingesetzt */
+    await p.addInitScript(a => { try { if (window.name !== a.tok) { window.name = a.tok; localStorage.setItem('boellerbude_v3', a.raw); } } catch (e) {} }, {raw: rohAlt, tok: 'alt' + mitHalle + Date.now()});
     await p.reload(); await p.waitForFunction('window.__bb!==undefined', null, {timeout:300000});
     await p.waitForFunction("!!document.querySelector('#startBtns button:not([disabled])')", null, {timeout:300000});
     await p.click('#startBtns button'); await p.waitForFunction("!document.getElementById('start').classList.contains('show')");

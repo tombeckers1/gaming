@@ -29,7 +29,7 @@ function vfRueck(x,z){ return {lx:z-V1.rz,lz:V1.x-x}; }
 /* Die Box steht 0,45 m seitlich der Torachse (lz = V1.x - Box-Mitte) */
 const BOX_LZ=0.45;
 const DDL_SLOTS=6;
-function ddlSlot(i){ const r=i>>1; return {lx:-7.7+r*1.3,lz:(i&1)?0.85:-0.85}; }
+function ddlSlot(i){ const r=i>>1; return {lx:-7.7+r*1.3,lz:(i&1)?1.0:-1.0}; }   /* zwei Spalten, in der Mitte bleibt eine Gasse (+-0.6) fuer den Hubwagen */
 
 const vsPalObj={};          /* id -> {g,holz,pk,sig,cx,cz} */
 const palHits=[];           /* Trefferflaechen der Boxplaetze (Station) */
@@ -377,7 +377,7 @@ function hubAbstellPlatz(){
     let best=-1, bd=1e9;
     for(let i=0;i<DDL_SLOTS;i++){ if(S.paletten.some(q=>q.ort==='l'&&q.idx===i)) continue;
       const s=ddlSlot(i), d=Math.hypot(s.lx-f.lx,s.lz-f.lz); if(d<bd){ bd=d; best=i; } }
-    if(best>=0&&bd<1.0) return {ort:'l',idx:best,text:`Palette in den LKW stellen (Platz ${best+1})`};
+    if(best>=0&&bd<1.25) return {ort:'l',idx:best,text:`Palette in den LKW stellen (Platz ${best+1})`};
     if(f.lx<-0.3&&f.lx>-9.4&&Math.abs(f.lz)<1.6) return {ort:null,text:'Hier kann die Palette im LKW nicht stehen – tiefer hinein, rückwärts fahren'};
   }
   /* zurueck an den Anfang der Schlange, wenn man noch vor der Box steht */
@@ -589,7 +589,7 @@ function ldPose(dt){
   const w=vf(LD.lx,LD.lz);
   LD.fig.position.set(w.x,0,w.z); LD.fig.rotation.y=0; LD.fig.visible=!LD.agv&&LD.ph!=='idle'&&LD.ph!=='fertig';
   LD.jack.position.set(w.x,0,w.z); LD.jack.rotation.y=0; LD.jack.visible=LD.ph!=='idle'&&LD.ph!=='fertig';
-  if(LD.pal){ const q=vf(LD.lx+1.3,LD.lz); palFolgen(LD.pal,{x:q.x,z:q.z,ry:Math.PI/2},dt||0.016); }
+  if(LD.pal){ const q=vf(LD.lx+1.3,LD.lz+(LD.ph==='fahren'||LD.ph==='absetzen'?(LD.sw||0):0)); palFolgen(LD.pal,{x:q.x,z:q.z,ry:Math.PI/2},dt||0.016); }
 }
 function ldNaechste(){
   const p=vsPalZelle()[0];
@@ -608,18 +608,21 @@ function ldUpdate(dt){
       const warte=DDL.ruf?DDL_RUF:DDL_AUTO;
       if(DDL.t<warte||HUB.pal||vsPalGleitet()||roboterBusy()) break;
       const p=ldNaechste(), slot=ldFreierPlatz(); if(!p||slot<0) break;
-      LD.ziel=ddlSlot(slot); LD.slot=slot; LD.pal=null; LD.lx=-0.4; LD.lz=BOX_LZ; LD.lz0=BOX_LZ; LD.ph='hin'; LD.t=0; ldPose(dt); break; }
+      LD.ziel=ddlSlot(slot); LD.slot=slot; LD.pal=null; LD.lx=-0.4; LD.lz=BOX_LZ; LD.lz0=BOX_LZ; LD.sw=0; LD.ph='hin'; LD.t=0; ldPose(dt); break; }
     case 'hin': {
       /* ans Tor stellen und die Gabeln unter die vorderste Palette schieben */
       LD.t+=dt; ldPose(dt); if(LD.t<0.9) break;
       const p=ldNaechste(); if(!p||HUB.pal){ LD.ph='idle'; break; }
       palAufnehmen(p); p.lader=true; LD.pal=p; LD.ph='fahren'; LD.t=0; break; }
     case 'fahren': {
-      /* rueckwaerts in den Laderaum; zum Schluss seitlich auf den Platz einlenken */
+      /* rueckwaerts durch die Gasse in der Mitte des Laderaums; die Palette schwenkt erst zum Schluss
+         seitlich auf ihren Platz - der Fahrer kommt so nie an stehenden Paletten vorbei */
       const ziel=LD.ziel.lx-1.3;
       LD.lx=Math.max(ziel,LD.lx-v*dt);
-      const rest=LD.lx-ziel, ein=clamp(1-rest/2.2,0,1); LD.lz=LD.lz0+(LD.ziel.lz-LD.lz0)*vsGlatt(ein);
-      ldPose(dt); if(LD.lx<=ziel+1e-6&&Math.abs(LD.lz-LD.ziel.lz)<0.02){ LD.ph='absetzen'; LD.t=0; } break; }
+      const rest=LD.lx-ziel;
+      LD.lz=LD.lz0*(1-vsGlatt(clamp((-0.4-LD.lx)/1.6,0,1)));
+      LD.sw=LD.ziel.lz*vsGlatt(clamp(1-rest/1.3,0,1));
+      ldPose(dt); if(LD.lx<=ziel+1e-6){ LD.ph='absetzen'; LD.t=0; } break; }
     case 'absetzen': {
       LD.t+=dt; ldPose(dt); if(LD.t<0.7) break;
       const p=LD.pal; LD.pal=null; p.ort='l'; p.idx=LD.slot; p.lader=false; vsPalStellen(p,vsPalObj[p.id],true);
@@ -667,7 +670,7 @@ function ddlTruckUpdate(dt){
   DDL.t+=dt;
   ldUpdate(dt);
   /* fertig: nichts mehr zu holen, keiner im Laderaum, nichts in der Hand */
-  const mehr=ldNaechste()||HUB.pal||LD.pal||roboterBusy();
+  const mehr=(ldNaechste()&&ldFreierPlatz()>=0)||HUB.pal||LD.pal||roboterBusy();
   if(!mehr&&!vtBesetzt()){ DDL.lad+=dt; if(DDL.lad>2.2&&DDL.t>5) ddlAbfahrt(); } else DDL.lad=0;
 }
 /* Alles weg: Pakete der Paletten im LKW, bei Zwang auch der Rest */

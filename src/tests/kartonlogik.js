@@ -61,14 +61,15 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   pruef('GEGENPROBE', gp.n > 40, 'die Messung erkennt eine aufgemalte Raute nicht: ' + JSON.stringify(gp));
 
   /* alter Spielstand mit Eiswuerfeln */
-  await p.evaluate(() => { const bb = window.__bb, S = bb.S; S.level = 30; S.money = 9e6; S.lic = bb.LIZENZEN.map(l => l.id);
+  const rohAlt = await p.evaluate(() => { const bb = window.__bb, S = bb.S; S.level = 30; S.money = 9e6; S.lic = bb.LIZENZEN.map(l => l.id);
     ['shop_halb', 'lager', 'lager_nord'].forEach(id => bb.testKauf(id));
     for (let i = 0; i < 2; i++) bb.regalStellen('kuehl'); bb.regalStellen('rack');
     const lv = bb.allLevels()[0]; if (lv) bb.addToLevel(lv, 'bier', 1);
     bb.spawnFloorBox('bier', 6, {x: -3, y: 0.2, z: 3, ry: 0}, 1);
     bb.save(); let raw = localStorage.getItem('boellerbude_v3');
-    raw = raw.replace(/"bier"/g, '"eiswuerfel"').replace(/"type":"cola"/g, '"type":"eiswuerfel"'); localStorage.setItem('boellerbude_v3', raw);
-    window.__roh = raw.length; });
+    raw = raw.replace(/"bier"/g, '"eiswuerfel"').replace(/"type":"cola"/g, '"type":"eiswuerfel"'); return raw; });
+  /* Beim Neuladen schreibt das Spiel seinen Stand (visibilitychange) - der alte Stand wird deshalb vor dem Spielskript eingesetzt */
+  await p.addInitScript(a => { try { if (window.name !== a.tok) { window.name = a.tok; localStorage.setItem('boellerbude_v3', a.raw); } } catch (e) {} }, {raw: rohAlt, tok: 'altstand' + Date.now()});
   await p.reload(); await p.waitForFunction('window.__bb!==undefined', null, {timeout:300000});
   await p.waitForFunction("!!document.querySelector('#startBtns button:not([disabled])')", null, {timeout:300000});
   await p.click('#startBtns button'); await p.waitForFunction("!document.getElementById('start').classList.contains('show')");

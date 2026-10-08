@@ -62,7 +62,7 @@ const fs = require('fs');
     return o; });
   console.log('LAGE', JSON.stringify(l));
   pruef('STATION_HINTEN', Math.abs(l.pos[0] - l.home.x) < 0.01 && Math.abs(l.pos[1] - l.home.z) < 0.01 && l.pos[1] < -26, 'Station nicht am hinteren Ende von Sued 3: ' + JSON.stringify(l.pos));
-  pruef('BOX_AM_TOR', Math.abs(l.cell0.lx - 0.9) < 0.1 && Math.abs(l.cell0.lz - 0.45) < 0.1, 'vorderste Palette nicht direkt vor V1: ' + JSON.stringify(l.cell0));
+  pruef('BOX_AM_TOR', Math.abs(l.cell0.lx - 1.6) < 0.1 && Math.abs(l.cell0.lz - 0.45) < 0.1, 'vorderste Palette nicht direkt vor V1: ' + JSON.stringify(l.cell0));
   pruef('NUR_SUED3', l.aus === 0 && l.cols > 5, l.aus + ' von ' + l.cols + ' Kollisionsflaechen der Station ausserhalb von Sued 3');
   pruef('TOR_ZU', l.torZu, 'V1 ist zu, aber ohne Kollision');
 
@@ -104,7 +104,7 @@ const fs = require('fs');
       for (let r = 0; r < runden; r++) {
         const R = {r};
         const pal = bb.vsPalZelle()[0]; R.pakete = bb.vsPalZahl(pal); R.hoeheVor = +window.__hoehe(pal).toFixed(2);
-        window.__steh(-0.6, 0.45);
+        window.__steh(0.1, 0.45);
         R.pruef = bb.hubAufnehmenPruefen(pal);
         R.ok = bb.hubAktion({kind: 'palette', ref: {idx: pal.idx}});
         R.getragen = !!bb.HUB.pal;
@@ -123,7 +123,7 @@ const fs = require('fs');
         const w = {x: o2.g.position.x, z: o2.g.position.z}, ff = bb.vfRueck(w.x, w.z);
         R.pal = {lx: +ff.lx.toFixed(2), lz: +ff.lz.toFixed(2), y: +o2.g.position.y.toFixed(2)};
         /* zurueck zum Tor fuer die naechste Runde (vorwaerts, ohne Palette) */
-        window.__fahre(-0.6, 0.45); R.zurueck = !bb.HUB.pal;
+        window.__fahre(0.1, 0.45); R.zurueck = !bb.HUB.pal;
         o.runden.push(R);
       }
       o.imLkw = S.paletten.filter(q => q.ort === 'l').length;

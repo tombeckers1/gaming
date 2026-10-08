@@ -29,6 +29,8 @@ function vfRueck(x,z){ return {lx:z-V1.rz,lz:V1.x-x}; }
 /* Die Box steht 0,45 m seitlich der Torachse (lz = V1.x - Box-Mitte) */
 const BOX_LZ=0.45;
 const DDL_SLOTS=6;
+/* Stand des Bedieners vor der vordersten Palette: Palette liegt 1,3 m voraus */
+function boxStandLx(){ const c=palZentrumWelt(0), f=vfRueck(c.x,c.z); return f.lx-1.3; }
 function ddlSlot(i){ const r=i>>1; return {lx:-7.7+r*1.3,lz:(i&1)?1.0:-1.0}; }   /* zwei Spalten, in der Mitte bleibt eine Gasse (+-0.6) fuer den Hubwagen */
 
 const vsPalObj={};          /* id -> {g,holz,pk,sig,cx,cz} */
@@ -609,7 +611,7 @@ function ldUpdate(dt){
       const warte=DDL.ruf?DDL_RUF:DDL_AUTO;
       if(DDL.t<warte||HUB.pal||vsPalGleitet()||roboterBusy()) break;
       const p=ldNaechste(), slot=ldFreierPlatz(); if(!p||slot<0) break;
-      LD.ziel=ddlSlot(slot); LD.slot=slot; LD.pal=null; LD.lx=-0.4; LD.lz=BOX_LZ; LD.lz0=BOX_LZ; LD.sw=0; LD.ph='hin'; LD.t=0; ldPose(dt); break; }
+      LD.ziel=ddlSlot(slot); LD.slot=slot; LD.pal=null; LD.x0=boxStandLx(); LD.lx=LD.x0; LD.lz=BOX_LZ; LD.lz0=BOX_LZ; LD.sw=0; LD.ph='hin'; LD.t=0; ldPose(dt); break; }
     case 'hin': {
       /* ans Tor stellen und die Gabeln unter die vorderste Palette schieben */
       LD.t+=dt; ldPose(dt); if(LD.t<0.9) break;
@@ -621,7 +623,7 @@ function ldUpdate(dt){
       const ziel=LD.ziel.lx-1.3;
       LD.lx=Math.max(ziel,LD.lx-v*dt);
       const rest=LD.lx-ziel;
-      LD.lz=LD.lz0*(1-vsGlatt(clamp((-0.4-LD.lx)/1.6,0,1)));
+      LD.lz=LD.lz0*(1-vsGlatt(clamp((LD.x0-LD.lx)/1.6,0,1)));
       LD.sw=LD.ziel.lz*vsGlatt(clamp(1-rest/1.3,0,1));
       ldPose(dt); if(LD.lx<=ziel+1e-6){ LD.ph='absetzen'; LD.t=0; } break; }
     case 'absetzen': {
@@ -631,8 +633,8 @@ function ldUpdate(dt){
     case 'zurueck': {
       /* erst in die Fahrgasse, dann vorwaerts zum Tor */
       if(Math.abs(LD.lz)>0.01){ LD.lz+=Math.sign(-LD.lz)*Math.min(Math.abs(LD.lz),dt*0.9); }
-      else LD.lx=Math.min(-0.4,LD.lx+1.7*dt);
-      ldPose(dt); if(LD.lx>=-0.4-1e-6&&Math.abs(LD.lz)<0.02){ LD.ph='idle'; LD.t=0; LD.jack.visible=false; LD.fig.visible=false; } break; }
+      else LD.lx=Math.min(LD.x0,LD.lx+1.7*dt);
+      ldPose(dt); if(LD.lx>=LD.x0-1e-6&&Math.abs(LD.lz)<0.02){ LD.ph='idle'; LD.t=0; LD.jack.visible=false; LD.fig.visible=false; } break; }
   }
   if(LD.fig&&LD.fig.visible) animPerson(LD.fig,LD.ph==='fahren'||LD.ph==='zurueck',dt,0.9);
 }

@@ -453,19 +453,67 @@ function vsFelderFuer(belegt,gr){
   for(let i=0;i<6;i++) if(!belegt[i]) return [i];
   return null;
 }
+/* Tourplanung (Tom 08.10.: "Es gibt kein Versand-Pickregal - der Packer pickt mit dem Rollwagen aus dem
+   gesamten Kartonlager und nimmt mehrere Bestellungen pro Tour, so effizient wie moeglich"):
+   - Anker ist die aelteste passende Bestellung, danach kommt jeweils die, deren Ware am dichtesten an
+     schon geplanten Stopps liegt (kein Weg, wenn dieselbe Quelle schon dabei ist)
+   - keine Bestellung bleibt liegen: wer dreimal uebergangen wurde, ist beim naechsten Mal der Anker
+   - VS_OPT.an=false ist die alte Reihenfolge (Eingang) - fuer den Vergleich im Test */
+const VS_OPT={an:true, fenster:14, geduld:3};
+function vsDist(a,b){ return Math.hypot(a.x-b.x,a.z-b.z); }
+/* Standpunkte der Quellen je Ware (Lager zuerst, Laden nur wenn im Lager nichts liegt), einmal je Planung */
+function vsPunkteVon(t,von,cache){
+  let c=cache[t]; if(c) return c;
+  const Q=vsQuellen(t), L=Q.filter(q=>q.lager), nutz=L.length?L:Q;
+  c=nutz.map(q=>({q,p:vsQuellPunkt(q,von).stand})); cache[t]=c; return c;
+}
+/* Mehrweg einer Bestellung: Summe der Wege von schon geplanten Punkten zur naechsten Quelle jeder Ware */
+function vsMehrweg(b,pts,von,cache){
+  let sum=0; const neu=[];
+  for(const l of b.pos){ if(l.n-l.g<=0) continue;
+    const Q=vsPunkteVon(l.t,von,cache); if(!Q.length) return 1e9;
+    const alle=pts.concat(neu); let best=1e9, bp=null;
+    for(const c of Q){ let d=1e9; for(const p of alle){ const dd=vsDist(p,c.p); if(dd<d) d=dd; } if(d<best){ best=d; bp=c.p; } }
+    if(best>0.6){ sum+=best; neu.push(bp); } }
+  return sum;
+}
 /* pi: Packplatz - jeder Karton braucht Material aus seinem Regal */
 function vsPlan(pi){
   pi=pi|0;
   const belegt=[null,null,null,null,null,null], auf=[], schon={}, mat={};
-  for(const b of S.bestellungen||[]){
-    if(b.st!=='offen') continue;
-    if(!vsErfuellbar(b,schon)) continue;
-    if(!vmReicht(pi,b.gr,mat)) continue;
-    const f=vsFelderFuer(belegt,b.gr); if(!f) continue;
+  const kand=(S.bestellungen||[]).filter(b=>b.st==='offen');
+  const taugt=b=>vsErfuellbar(b,schon)&&vmReicht(pi,b.gr,mat)&&!!vsFelderFuer(belegt,b.gr);
+  const nimm=b=>{
+    const f=vsFelderFuer(belegt,b.gr);
     f.forEach(i=>belegt[i]=b); auf.push({b,felder:f,pk:null});
     vmVormerken(b.gr,mat);
     for(const l of b.pos) schon[l.t]=(schon[l.t]||0)+Math.max(0,l.n-l.g);
-    if(belegt.every(Boolean)) break;
+    kand.splice(kand.indexOf(b),1); };
+  if(!VS_OPT.an){
+    for(const b of kand.slice()){ if(!taugt(b)) continue; nimm(b); if(belegt.every(Boolean)) break; }
+  } else {
+    const heim=vsWelt(pi,WG_GRIFF.x,WG_GRIFF.z), pts=[heim], cache={}, alt=kand.slice();
+    let maxIdx=-1;
+    while(kand.length&&!belegt.every(Boolean)){
+      let wahl=null;
+      if(!auf.length) wahl=kand.find(taugt)||null;                          /* Anker: die aelteste */
+      else {
+        wahl=kand.find(b=>(b.skip|0)>=VS_OPT.geduld&&taugt(b))||null;       /* zu lange liegengeblieben */
+        if(!wahl){ let bw=1e9, n=0;
+          for(const b of kand){ if(n>=VS_OPT.fenster) break; if(!taugt(b)) continue; n++;
+            const w=vsMehrweg(b,pts,heim,cache); if(w<bw-1e-6){ bw=w; wahl=b; } } }
+      }
+      if(!wahl) break;
+      maxIdx=Math.max(maxIdx,alt.indexOf(wahl));
+      /* seine Quellen zaehlen ab jetzt als "schon unterwegs" */
+      for(const l of wahl.pos){ if(l.n-l.g<=0) continue; const Q=vsPunkteVon(l.t,heim,cache); let best=1e9, bp=null;
+        for(const c of Q){ let d=1e9; for(const p of pts){ const dd=vsDist(p,c.p); if(dd<d) d=dd; } if(d<best){ best=d; bp=c.p; } }
+        if(bp) pts.push(bp); }
+      nimm(wahl);
+    }
+    /* uebergangene (aeltere als die zuletzt gewaehlte) Bestellungen werden ungeduldiger */
+    alt.forEach((b,i)=>{ if(i<maxIdx&&auf.every(a=>a.b!==b)&&b.st==='offen') b.skip=(b.skip|0)+1; });
+    auf.forEach(a=>{ a.b.skip=0; });
   }
   if(!auf.length) return null;
   return {auf,stops:[],runde:0};
@@ -483,21 +531,40 @@ function vsQuellPunkt(q,T){
   const mm=itemMatrix(lv.sh,lv,Math.max(0,lv.count-1),h?h.jit||0:0); mm.decompose(_vp,_vq,_vs);
   return {stand:shelfStand(lv.sh,lv),look:_vp.clone()};
 }
-function vsStopsBauen(need,von){
+/* 2-opt: Weg von "von" ueber alle Stopps und zurueck zu "ende" so lange verbessern, bis kein Tausch mehr kuerzt */
+function vsZweiOpt(L,von,ende){
+  if(L.length<3) return L;
+  const P=i=>i<0?von:i>=L.length?ende:L[i].stand;
+  let besser=true, n=0;
+  while(besser&&n++<40){ besser=false;
+    for(let i=0;i<L.length-1;i++) for(let j=i+1;j<L.length;j++){
+      const a=P(i-1), b=P(i), c=P(j), d=P(j+1);
+      if(vsDist(a,c)+vsDist(b,d)<vsDist(a,b)+vsDist(c,d)-1e-6){ const mid=L.slice(i,j+1).reverse(); L.splice(i,j-i+1,...mid); besser=true; } } }
+  return L;
+}
+function vsRouteLaenge(stops,von,ende){
+  let p=von, sum=0; for(const s of stops){ sum+=vsDist(p,s.stand); p=s.stand; } return sum+vsDist(p,ende||von);
+}
+function vsStopsBauen(need,von,ende){
+  ende=ende||von;
   const stops=[];
   for(const t in need){
     let n=need[t];
-    /* Lager vor Laden; ein Karton, der allein reicht, vor mehreren */
-    const Q=vsQuellen(t).sort((a,b)=>(b.lager-a.lager)||((b.n>=n)-(a.n>=n))||(a.n-b.n));
+    /* Lager vor Laden; ein Karton, der allein reicht, vor mehreren; dann der naechste am Weg */
+    const Q=vsQuellen(t).sort((a,b)=>(b.lager-a.lager)||((b.n>=n)-(a.n>=n))||(VS_OPT.an?0:(a.n-b.n)));
+    if(VS_OPT.an) Q.forEach(q=>{ q._pt=vsQuellPunkt(q,von); });
+    if(VS_OPT.an) Q.sort((a,b)=>(b.lager-a.lager)||((b.n>=n)-(a.n>=n))||(vsDist(a._pt.stand,von)-vsDist(b._pt.stand,von)));
     for(const q of Q){ if(n<=0) break; const k=Math.min(n,q.n); n-=k;
-      const pt=vsQuellPunkt(q,von); stops.push({kind:q.kind,ref:q.ref,t,k,done:0,stand:pt.stand,look:pt.look,lager:q.lager}); }
+      const pt=q._pt||vsQuellPunkt(q,von); stops.push({kind:q.kind,ref:q.ref,t,k,done:0,stand:pt.stand,look:pt.look,lager:q.lager}); }
   }
-  /* naechster Nachbar ab dem Tisch, Lager vor Laden */
+  /* naechster Nachbar ab dem Tisch, Lager vor Laden; danach 2-opt */
   const out=[]; let p=von;
   for(const lag of [true,false]){
-    const L=stops.filter(s=>s.lager===lag);
-    while(L.length){ let bi=0,bd=1e9; L.forEach((s,i)=>{ const d=Math.hypot(s.stand.x-p.x,s.stand.z-p.z); if(d<bd){ bd=d; bi=i; } });
-      const s=L.splice(bi,1)[0]; out.push(s); p=s.stand; }
+    const L=stops.filter(s=>s.lager===lag), start=p, ordnung=[];
+    while(L.length){ let bi=0,bd=1e9; L.forEach((s,i)=>{ const d=vsDist(s.stand,p); if(d<bd){ bd=d; bi=i; } });
+      const s=L.splice(bi,1)[0]; ordnung.push(s); p=s.stand; }
+    if(VS_OPT.an) vsZweiOpt(ordnung,start,ende);
+    ordnung.forEach(s=>out.push(s)); if(ordnung.length) p=ordnung[ordnung.length-1].stand;
   }
   return out;
 }
@@ -959,7 +1026,7 @@ function vsNachplanen(w){
   const need=vsBedarf(tour);
   if(Object.keys(need).length&&tour.runde<2){
     tour.runde++;
-    const neu=vsStopsBauen(need,w.pos).filter(s=>s.k>0);
+    const neu=vsStopsBauen(need,w.pos,vsWelt(w.pp,WG_GRIFF.x,WG_GRIFF.z)).filter(s=>s.k>0);
     if(neu.length){ tour.stops=tour.stops.concat(neu); return; }
   }
   w.vs='zurueck';

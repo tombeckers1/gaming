@@ -153,7 +153,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   const k=await p.evaluate(()=>{
     const bb=window.__bb, g=bb.packTisch, o={};
     bb.toggleBuild(false);
-    bb.testKauf('packstation');
+    bb.S.level=Math.max(bb.S.level,40); bb.S.money=Math.max(bb.S.money,9e6); ['lager','lager_nord','lager_gross','lager_sued','lager_sued2'].forEach(id=>bb.testKauf(id)); bb.testKauf('packstation');
     o.gekauft=!!bb.S.up.packstation;
     o.cols=window.__cols().length;
     let sicht=0; g.traverse(q=>{ if(q.userData&&q.userData.sperrband){ let v=q.visible; for(let a=q.parent;a;a=a.parent) if(!a.visible) v=false; if(v) sicht++; } });

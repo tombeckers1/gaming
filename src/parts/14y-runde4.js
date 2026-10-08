@@ -245,7 +245,7 @@ EFF.himmelstreppe=function(p,A,B,s,r){
   const weiter=(von,dy,T,fn)=>{ const v=[rand(-0.5,0.5),dy,rand(-0.5,0.5)]; nKomet(von,v,[1.6,1.3,.75],T,2.6,[1,.75,.35],70); kgSpaeter(T,()=>fn(sternNach(von,v[0],v[1],v[2],2.6,T))); };
   kgSpaeter(0.05,()=>weiter(p,9,0.6,e2=>{ stufe(e2,B,2.8*s,Math.round(18*k)+12,1.7); schall(e2,x=>sfx.boom(x*0.9));
     weiter(e2,9,0.6,e3=>{ stufe(e3,C,3.0*s,Math.round(18*k)+12,1.8); schall(e3,x=>sfx.boom(x*1.0));
-      weiter(e3,9,0.65,e4=>{ flash(e4,[1,1,1],3,0.25);
+      weiter(e3,9,0.65,e4=>{ flash(e4,[1,1,1],1.4,0.2);
         for(let i=0;i<Math.round(60*k)+30;i++){ const d=randDir(), v=kgMal(d,rand(4.4,5.0)*s), T=rand(3.2,3.8);
           r4KS(e4,v,[1.6,1.65,1.75],T,1.6,0,0.6); rkFunken(e4,v,1.6,0.1,T*0.85,20,[1.25,1.3,1.4],{ps:psMid,life:[0.9,1.5],g:0.8,streu:0.1,mit:0.03,mode:4}); }
         schall(e4,x=>{ sfx.boom(x*1.3); later(0.6,()=>sfx.rieseln(x*0.8,4.5)); }); }); }); }));

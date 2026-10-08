@@ -177,7 +177,7 @@ r3Show('lb_saphirfaecher',[['silber','tuerkis'],['blau','silber'],['silber','bla
   {n:6,gap:0.8,muster:'welle',ang:0.28,hoehe:'welle',hSpanne:5,eff:'chrys',kal:'gross',farbe:1,steig:'silber',pause:1.0},
   {n:5,gap:1.3,muster:'zufall',ang:0.24,eff:'glitzerbukett',kal:'gross',farbe:2,steig:'brokat',knall:'bkRieseln',pause:0.8},
   {n:6,gap:0.16,muster:'wischer',ang:0.36,eff:'sternspritzer',kal:'mittel',pw:2,farbe:3,steig:'silber',knall:'bkKnisterhall',pause:1.0},
-  {n:4,gap:0.6,muster:'paar',ang:0.26,eff:'pistill',kal:'gross',farbe:4,steig:'silber',pause:1.0},
+  {n:4,gap:0.6,muster:'paar',ang:0.26,eff:'chrys',kal:'gross',farbe:4,steig:'silber',pause:1.0},
   {n:6,gap:0.35,muster:'mitte',ang:0.2,eff:['qualle','spritzkrone','wasserring'],A:['blau','himmel','silber'],B:['silber','weiss','blau'],kal:'gross',pw:6,steig:'silber',knall:'bkDonnerhall',pause:6}],{basis:{pw:-5,sz:0.78,th:'lb_saphirfaecher'}});
 lochName('lb_saphirfaecher',{desc:'Blau, Türkis und Silber: drei Silberwellen weit auseinander, die nach einem Atemzug türkis weiterleuchten, blaue Chrysanthemen im Wellengang, Meeresleuchten aus Silberglitzer mit blauen Spitzen, knisternde weiße Gischt – zum Schluss sechs hohe Knalle: Quallen, Gischtkronen und Silberwellen.'});
 SIGNATUR.lb_saphirfaecher={idee:'Ozean',eff:'silberwelle',text:'Silberwellen, blaue Chrysanthemen im Wellengang, Meeresleuchten, Gischt, hohe Quallen und Gischtkronen'};
@@ -259,7 +259,7 @@ EFF.goldweidenkreuz=function(p,A,B,s){ const G=2.4, t=0.8;
   /* gerendert 07.10.: die Weiden waren duenne Striche - dazu ein goldener
      Kamuro-Schleier in der Mitte, der die Weiden zu einem Vorhang schliesst */
   kgSpaeter(0.95,()=>EFF.kamuro(p,FW.gold,FW.bernstein,s*0.55));
-  nKugel(Math.round(26*KQ(s)),3.2*s,v=>kgStern(psBig,p,v,kgMal(A,1.45),2.0,2.2,0,0.12));
+  nKugel(Math.round(22*KQ(s)),3.2*s,v=>kgStern(psBig,p,v,kgMal(A,1.45),2.0,2.2,0,0.12));
   schall(p,x=>{ sfx.boom(x*1.0); later(0.8,()=>{ sfx.crack(x*0.8); later(0.07,()=>sfx.crack(x*0.6)); later(0.5,()=>sfx.crack(x*0.6)); later(0.58,()=>sfx.crack(x*0.45)); });
     later(1.4,()=>sfx.rieseln(x*0.8,5)); later(3.6,()=>sfx.crackle(x*0.5)); }); };
 ['zwillingssonne','goldweidenkreuz'].forEach(n=>{ const f=EFF[n]; EFF[n]=function(){ const alt=STERN_LEBEN; STERN_LEBEN=1.5; try{ return f.apply(this,arguments); } finally{ STERN_LEBEN=alt; } }; });

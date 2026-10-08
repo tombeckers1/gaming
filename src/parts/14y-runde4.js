@@ -272,7 +272,7 @@ for(const id of Object.keys(KUGEL)) if(/^(silberdistel75|hummelschwarm75|blaureg
 /* Raeumlicher Massstab (14u KG_RAUM): gemessen in der Vorfuehrung, Ziel
    wie die anderen Kugeln gleichen Kalibers (hoehen.js KUGELGROSS) */
 /* 07.10. gemessen (Durchmesser 90 % der Sterne) und auf 75/82/92/105/120 m je Kaliber gestellt */
-const R4_RAUM={silberdistel75:3.0,hummelschwarm75:2.6,blauregen100:3.4,smaragdring100:3.0,abendrot150:2.8,kometenschlag150:2.6,seerose200:3.2,granatapfel200:3.1,riesenpalme300:1.85,himmelstreppe300:2.2};
+const R4_RAUM={silberdistel75:3.3,hummelschwarm75:2.6,blauregen100:3.4,smaragdring100:3.0,abendrot150:2.8,kometenschlag150:2.6,seerose200:3.2,granatapfel200:3.1,riesenpalme300:1.85,himmelstreppe300:2.2};
 for(const id of Object.keys(R4_RAUM)) if(KUGEL[id]) KUGEL[id].raum=R4_RAUM[id];
 Object.assign(SIGNATUR,{
   silberdistel75:{eff:'silberdistel',text:'Silberne Stachel-Chrysantheme mit violettem Kopf, knisternde Spitzen'},

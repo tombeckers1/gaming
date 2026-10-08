@@ -173,6 +173,8 @@ function bauLayout(t,L0){
 }
 { const roh=rohrLayout; rohrLayout=function(t){ if(!BAU[t]) return roh(t); const c=_rohrLayout[t]; if(c&&c.bau) return c;
     const L0=roh(t); if(!L0) return L0; let L=L0; try{ L=bauLayout(t,L0); }catch(e){ if(typeof console!=='undefined') console.warn('BAU',t,e); }
+    /* die Zuendfolge der Themen-Batterien (TH_FOLGE, 14v) gilt auch fuer die Bauform: sie ist auf Breite/Hoehe der Show abgestimmt (themen-Test STEIGERUNG) */
+    if(L!==L0&&typeof TH_FOLGE!=='undefined'&&TH_FOLGE[t]){ try{ const f=TH_FOLGE[t](L,t); if(f&&f.length===L.rohre.length&&new Set(f).size===f.length) L.folge=f; }catch(e){} }
     _rohrLayout[t]=L; return L; }; }
 /* Rohre stehen buendig im Block wie bei echten Batterien (Vorbild Hamburg,
    Caipirinha): nur knapp 1 cm Rand ueber dem Deckel statt 6 % der Hoehe - bei

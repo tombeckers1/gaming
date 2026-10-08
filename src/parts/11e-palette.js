@@ -385,7 +385,7 @@ function hubAbstellPlatz(){
   }
   /* zurueck an den Anfang der Schlange, wenn man noch vor der Box steht */
   const c=palZentrumWelt(0);
-  if(Math.hypot(z.x-c.x,z.z-c.z)<2.2) return {ort:'z',idx:0,text:'Palette zurück in die Box stellen'};
+  if(Math.hypot(z.x-c.x,z.z-c.z)<3.4) return {ort:'z',idx:0,text:'Palette zurück in die Box stellen'};
   return {ort:null,text:VT.state==='docked'?'In den LKW fahren und dort abstellen':'Der LKW ist nicht da – Palette zurück zur Box bringen'};
 }
 function hubAbstellen(){
@@ -719,7 +719,9 @@ function ddlAbholung(){
   vsPalInit();
   HUB.pal=null; if(HUB.g) HUB.g.visible=false;
   if(LD.ph!=='idle') ldAbbruch();
-  const n=ddlAbholen(true);
+  let n=ddlAbholen(true);
+  /* was noch auf dem Band lag (noch nicht gelandet), faehrt ebenfalls mit */
+  const rest=S.paketGr.length; if(rest){ statAdd('ddl',rest); n+=rest; }
   S.paketGr=[]; S.paketP=[]; S.pakete=0;
   DDL.warte=false; DDL.t=0; DDL.lad=0; DDL.ruf=false;
   if(VT.state) vtEntfernen();

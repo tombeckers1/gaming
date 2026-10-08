@@ -1057,7 +1057,7 @@ function renderOnline(){
     `<div class="mkcol"><small>offen</small><b style="font-family:var(--display);font-size:24px" id="onOffen">${z.offen}</b></div></div>`;
   h+=`<div class="row"><div class="rm onListe" id="onListe">${onlineListe()}</div></div>`;
   h+=`<div class="row"><div class="rm"><b>Pakete zur Abholung</b>`+
-      `<small>Das Band bringt sie zur Palettierstation, der Kran-Greifer stapelt sie in die gelbe Box an der Rückwand. Um 22 Uhr kommt DDL an Tor V1; ab 18 Uhr kannst du die Paletten selbst mit dem Hubwagen in den LKW fahren. Sind alle Paletten voll, fährt DDL zwischendurch vor.</small></div>`+
+      `<small>Das Band bringt sie zur Palettierstation. ${packStufe()<2?'Am Bandende legst du oder der Versandmitarbeiter sie selbst auf die Paletten in der gelben Box (Kran-Greifer ab dem zweiten Packplatz).':'Der Kran-Greifer stapelt sie in die gelbe Box an der Rückwand.'} Um 22 Uhr kommt DDL an Tor V1; ab 18 Uhr kannst du die Paletten selbst mit dem Hubwagen in den LKW fahren. Sind alle Paletten voll, fährt DDL zwischendurch vor.</small></div>`+
     `<div class="mkcol"><small>Paletten</small><b style="font-family:var(--display);font-size:20px" id="onPak">${z.pak}</b></div></div>`;
   h+=`<div class="row"><div class="rm"><b>Versand heute</b>`+
       `<small>Was der Onlineshop heute schon eingebracht hat. Der Betrag steckt bereits im Tagesumsatz.</small></div>`+

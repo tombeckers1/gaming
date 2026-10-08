@@ -643,7 +643,7 @@ function vsAufDieBahn(pi,m,gr){
 /* Ist auf dem Band an der Stelle x Platz fuer ein Paket der Laenge L? */
 function vsBandFrei(x,L,selbst){
   for(const e of vsBahn){ if(e===selbst||e.phase==='warten') continue;
-    if(e.phase==='greifer'&&!e.amBand) continue;
+    if((e.phase==='greifer'&&!e.amBand)||e.phase==='hand') continue;
     const l=vsLaenge(e), a=e.x-l/2, b=e.x+l/2;
     /* was von hinten (Osten) kommt, braucht Abstand: es laeuft waehrend
        des Schiebens weiter nach Westen */
@@ -679,6 +679,7 @@ function vsBahnUpdate(dt){
       if(e.t>=1){ e.phase='rollen'; e.laeuft=true; if(sfx.karton) sfx.karton(); }
     }
   }
+  vsHandFlugUpdate(dt);
   vsPortalUpdate(dt);
 }
 
@@ -695,7 +696,7 @@ function vsPortalFahrt(nach,phase){
 }
 function vsPortalUpdate(dt){
   const P_=vsPortal;
-  if(!packTisch) return;
+  if(!packTisch||vsHandStufe()) return;
   if(P_.von){ P_.t+=dt/P_.dauer; const k=vsGlatt(P_.t), a=P_.von, b=P_.nach;
     P_.x=a.x+(b.x-a.x)*k; P_.y=a.y+(b.y-a.y)*k; P_.z=a.z+(b.z-a.z)*k; }
   const fertig=!P_.von||P_.t>=1; if(fertig) P_.von=null;
@@ -736,16 +737,112 @@ function vsPortalUpdate(dt){
       /* abgesetzt: das Paket zaehlt jetzt zur Ablage - an die Stelle
          hinter die schon gelandeten, damit der Stapel beim naechsten
          Aufbau gleich aussieht */
-      const i=vsBahn.indexOf(e); if(i>=0) vsBahn.splice(i,1);
-      const n=vsGelandet(), L=S.paketGr, PP=S.paketP, j=L.indexOf(e.gr,n-1);
-      if(j>=n-1&&j>=0){ L.splice(j,1); PP.splice(j,1); L.splice(n-1,0,e.gr); PP.splice(n-1,0,P_.ziel?P_.ziel.p:-1); }
-      if(e.m.parent) e.m.parent.remove(e.m);
-      syncPakete(); if(typeof sfx!=='undefined'&&sfx.thump) sfx.thump(0.22);
+      vsAbgelegt(e,P_.ziel);
       P_.e=null; P_.ziel=null; vsPortalFahrt({x:P_.x,y:VS_YFREI+0.45,z:P_.z},'ruhe'); P_.zurueck=false;
       break; }
   }
   vsPortalZeigen();
 }
+/* Paket liegt auf der Palette: zaehlt jetzt zur Ablage - an die Stelle hinter
+   die schon gelandeten, damit der Stapel beim naechsten Aufbau gleich aussieht */
+function vsAbgelegt(e,ziel){
+  const i=vsBahn.indexOf(e); if(i>=0) vsBahn.splice(i,1);
+  const n=vsGelandet(), L=S.paketGr, PP=S.paketP, j=L.indexOf(e.gr,n-1);
+  if(j>=n-1&&j>=0){ L.splice(j,1); PP.splice(j,1); L.splice(n-1,0,e.gr); PP.splice(n-1,0,ziel?ziel.p:-1); }
+  if(e.m.parent) e.m.parent.remove(e.m);
+  syncPakete(); if(typeof sfx!=='undefined'&&sfx.thump) sfx.thump(0.22);
+}
+
+/* ---------------------------------------------------------
+   Stufe 1 ohne Roboter-Kran (Tom, 08.10.): das Paket laeuft bis an den
+   Endanschlag. Dort nimmt es der Packer ab, traegt es zur Palette und
+   legt es selbst ab - oder der Spieler legt es mit einem Griff hinueber.
+   Das Portal kommt erst mit Stufe 2.
+   Phase 'hand': das Paket ist vom Band genommen (Packer traegt, Spieler-Flug).
+   --------------------------------------------------------- */
+function vsHandStufe(){ return packStufe()<2; }
+/* Stand des Packers am Bandende und vor der Palette (Stationskoordinaten) */
+const VS_HAND={x:0.3,z:-0.25}, VS_HAND_PAL=0.95;
+let vsHandFlug=null;
+function vsGP(x,z){ const q=localToWorld(packTisch,x,z); return V(q.x,0,q.z); }
+function vsAmAnschlag(){ const v=vsBahn.filter(x=>x.phase==='rollen').sort((a,b)=>a.x-b.x)[0]; return v&&!v.laeuft&&v.x<=BAND.x0+vsLaenge(v)/2+0.002?v:null; }
+function vsHandBelegt(){ return vsBahn.some(e=>e.phase==='hand'); }
+function vsHandArbeit(){ return vsHandStufe()&&vsBahn.some(e=>e.phase==='rollen'||e.phase==='schieben'); }
+/* Platz auf der Palette; alles voll: DDL kommt zwischendurch */
+function vsHandZiel(gr){ let pl=vsPalZiel(gr); if(!pl){ vsZwischenabholung(); pl=vsPalZiel(gr); } return pl; }
+/* Paket in den Haenden des Packers (k: 0 = Band, 1 = Haende) */
+function vsHandHalten(w,e,k){
+  const G=VS_GR[e.gr], ry=w.g.rotation.y;
+  _vp.set(w.pos.x+Math.sin(ry)*0.42,1.02,w.pos.z+Math.cos(ry)*0.42); packTisch.worldToLocal(_vp);
+  const a=e.von, kk=vsGlatt(k);
+  e.m.position.set(a.x+(_vp.x-a.x)*kk,a.y+(_vp.y-a.y)*kk+Math.sin(Math.PI*Math.min(1,k))*0.08,a.z+(_vp.z-a.z)*kk);
+  e.m.rotation.y=vsWinkel(a.ry,ry-packTisch.rotation.y+Math.PI/2,kk);
+  e.hand={x:e.m.position.x,y:e.m.position.y,z:e.m.position.z,ry:e.m.rotation.y};
+  void G;
+}
+/* von a (Lage) nach Ziel z auf der Palette, im Bogen von oben */
+function vsHandBogen(e,a,z,k){
+  const kk=vsGlatt(k), hoch=Math.max(0,Math.max(a.y,z.y)+0.12-(a.y+(z.y-a.y)*kk));
+  e.m.position.set(a.x+(z.x-a.x)*kk,a.y+(z.y-a.y)*kk+Math.sin(Math.PI*Math.min(1,k))*Math.max(0.12,hoch),a.z+(z.z-a.z)*kk);
+  e.m.rotation.y=vsWinkel(a.ry,z.ry,kk);
+}
+function vsHandPrompt(){
+  if(!vsHandStufe()) return null;
+  const v=vsAmAnschlag();
+  if(!v) return {t:vsBahn.some(e=>e.phase==='rollen'||e.phase==='schieben')?'Paket läuft noch aufs Bandende zu':'Bandende: hier nimmst du die Pakete ab und legst sie auf die Palette',a:false};
+  if(vsHandBelegt()) return {t:'Gerade wird ein Paket auf die Palette gelegt',a:false};
+  return {t:`Paket (${VS_GR[v.gr].name}) auf die Palette legen`,a:true};
+}
+function vsSpielerAblegen(){
+  const v=vsHandStufe()&&vsAmAnschlag(); if(!v||vsHandBelegt()) return false;
+  if(typeof HUB!=='undefined'&&HUB.pal){ toast('Erst den Hubwagen abstellen.'); return false; }
+  const pl=vsHandZiel(v.gr); if(!pl){ toast('Auf den Paletten ist kein Platz mehr.'); return false; }
+  v.phase='hand'; vsHandFlug={e:v,z:pl,t:0,a:{x:v.m.position.x,y:v.m.position.y,z:v.m.position.z,ry:v.m.rotation.y}};
+  if(sfx.karton) sfx.karton();
+  return true;
+}
+function vsHandFlugUpdate(dt){
+  const f=vsHandFlug; if(!f) return;
+  if(vsBahn.indexOf(f.e)<0){ vsHandFlug=null; return; }
+  f.t+=dt/0.6; vsHandBogen(f.e,f.a,f.z,f.t);
+  if(f.t>=1){ vsAbgelegt(f.e,f.z); vsHandFlug=null; }
+}
+/* Packer: Pakete vom Bandende auf die Palette, bis das Band leer ist */
+function vsStapeln(w,dt){
+  const e=w.hand, wf=w.wf||1;
+  if(!e){
+    const v=vsAmAnschlag(), A=vsGP(VS_HAND.x,VS_HAND.z);
+    if(!v||vsHandBelegt()){
+      /* laeuft noch etwas heran: kurz am Bandende warten */
+      w.t-=dt;
+      if(vsHandArbeit()&&w.t>-8){ if(vsGehen(w,A,dt)||vsNotfalls(w,A)) vsBlick(w,vsGP(BAND.x0+0.3,BAND.z),dt); return; }
+      w.vs=w.vsNach||'heim'; w.vsNach=null; w.t=0.3; return; }
+    if(!vsGehen(w,A,dt)&&!vsNotfalls(w,A)) return;
+    if(!vsBlick(w,vsGP(v.x,BAND.z),dt)) return;
+    const pl=vsHandZiel(v.gr); if(!pl){ w.vs=w.vsNach||'heim'; w.vsNach=null; return; }
+    v.phase='hand'; v.ziel=pl; v.k=0; v.von={x:v.m.position.x,y:v.m.position.y,z:v.m.position.z,ry:v.m.rotation.y};
+    w.hand=v; w.vsHp='nehmen'; sfx.karton&&sfx.karton(); return;
+  }
+  /* DDL hat alles mitgenommen (auch das Paket in der Hand) */
+  if(vsBahn.indexOf(e)<0){ if(e.m.parent) e.m.parent.remove(e.m); w.hand=null; w.vsHp=null; w.t=0; return; }
+  const z=e.ziel, c=palZentrum(z.f);
+  if(w.vsHp==='nehmen'){ e.k=Math.min(1,e.k+dt*wf/0.35); vsHandHalten(w,e,e.k); if(e.k>=1) w.vsHp='tragen'; return; }
+  if(w.vsHp==='tragen'){
+    const B=vsGP(c.x+VS_HAND_PAL,c.z), da=vsGehen(w,B,dt)||vsNotfalls(w,B);
+    e.k=1; vsHandHalten(w,e,1);
+    if(!da||!vsBlick(w,vsGP(c.x,c.z),dt)) return;
+    w.vsHp='ablegen'; e.k=0; e.a=e.hand; return; }
+  /* ablegen */
+  e.k+=dt*wf/0.45; vsHandBogen(e,e.a,z,e.k);
+  if(e.k>=1){ vsAbgelegt(e,z); w.hand=null; w.vsHp=null; w.t=0; }
+}
+/* Abbruch (Pause, Kuendigung): das Paket geht zurueck ans Bandende */
+function vsHandZurueck(w){
+  const e=w.hand; w.hand=null; w.vsHp=null; if(!e||vsBahn.indexOf(e)<0) return;
+  e.phase='rollen'; e.laeuft=true; e.x=Math.max(e.x,BAND.x0+vsLaenge(e)/2);
+  const G=VS_GR[e.gr]; e.m.position.set(e.x,BAND.y+G.h/2,BAND.z); e.m.rotation.y=Math.PI/2;
+}
+
 /* Bruecke, Laufwagen, Hubachse und Greifer an die Greiferlage stellen */
 function vsPortalZeigen(){
   const Pt=packTeile.portal, P_=vsPortal; if(!Pt) return;
@@ -941,6 +1038,8 @@ function vsLoopZustand(w,dt,wf,tour,g){
       if(w.pos.distanceTo(vsHeim(w))>0.5){ w.vs='heim'; break; }
       vsDrehen(w,vsRy(pi,Math.PI),dt);
       w.t-=dt; if(w.t>0) break; w.t=0.8;
+      /* Stufe 1: erst das Band leer machen (Pakete selbst auf die Palette) */
+      if(vsHandArbeit()&&!vsHandBelegt()){ w.vs='stapeln'; w.vsNach=null; w.t=0; break; }
       if(P_.tisch&&P_.tisch.spieler) break;
       const plan=vsPlan(pi); if(!plan) break;
       plan.auf.forEach(a=>{ a.b.st='wagen'; });
@@ -996,6 +1095,7 @@ function vsLoopZustand(w,dt,wf,tour,g){
       w.flug={m:einrStueck(s.t),von:von.p,q:von.q,t:0,a,l,s};
       w.flug.m.matrix.compose(von.p,von.q,_vs.setScalar(1)); w.flug.m.matrixWorldNeedsUpdate=true;
       break; }
+    case 'stapeln': vsStapeln(w,dt); break;
     case 'zurueck': {
       w.src=null;
       if(!vsWagenFertig(g)) break;
@@ -1025,7 +1125,10 @@ function vsLoopZustand(w,dt,wf,tour,g){
            die Bestellung wartet mit dem, was schon drin ist; der Karton
            geht zurueck ins Regal */
         a.pk.parent.remove(a.pk); a.pk=null; a.b.st='offen'; vmZurueck(pi,a.b.gr); w.k++; w.t=0.25; break; }
-      if(!vsTischFrei(pi)) break;
+      if(!vsTischFrei(pi)){
+        /* Stufe 1: das Band staut bis zum Tisch - erst ablegen, dann weiter auspacken */
+        if(vsHandStufe()&&!P_.tisch&&vsAmAnschlag()&&!vsHandBelegt()){ w.vsNach='parken'; w.vs='stapeln'; w.t=0; }
+        break; }
       vsTischStart(pi,a.pk,a.b,false); a.pk=null; w.k++; w.t=0.3;
       break; }
   }
@@ -1078,7 +1181,7 @@ function vsPose(w,dt){
     const reich=-Math.atan2(Math.max(0.15,_vp.z),1.45-_vp.y);
     z=[-0.35,-0.35+(reich+0.35)*gg,0.07,-0.07]; k=Math.min(1,dt*16);
   }
-  else if(w.vs==='aufbauen'||(w.vs==='abladen'&&w.tour)) z=[-1.05,-1.05,0.07,-0.07];
+  else if(w.vs==='aufbauen'||(w.vs==='abladen'&&w.tour)||(w.vs==='stapeln'&&w.hand)) z=[-1.05,-1.05,0.07,-0.07];
   /* animPerson zieht jedes Bild zur Schrittbewegung - deshalb hier
      setzen statt nur anzustossen, sonst haengen die Arme halb */
   const unterarm=i=>u.arms[i].children.find(c=>c.isGroup);
@@ -1092,6 +1195,7 @@ function vsPose(w,dt){
 function vsAufraeumen(w){
   const pi=vsPlatzVon(w);
   if(w.flug){ scene.remove(w.flug.m); w.flug=null; }
+  vsHandZurueck(w);
   /* Kartons, die schon auf dem Wagen standen, gehen zurueck ins Regal */
   if(w.tour) w.tour.auf.forEach(a=>{ if(a.pk){ if(a.pk.parent) a.pk.parent.remove(a.pk); vmZurueck(pi,a.b.gr); } a.pk=null; if(a.b.st==='wagen') a.b.st='offen'; });
   w.tour=null; w.src=null; w.vs='heim';
@@ -1106,6 +1210,7 @@ function vsStatusVon(w){
       return `pickt ${s?(s.lager?'im Lager':'im Laden'):''} · ${tour?Math.min(tour.si+1,tour.stops.length):0}/${tour?tour.stops.length:0} Stellen`; }
     case 'zurueck': case 'parken': return 'bringt den Wagen zum Packtisch';
     case 'abladen': return 'verpackt am Tisch';
+    case 'stapeln': return 'legt die Pakete auf die Palette';
     default: {
       if((S.offen|0)<=0) return 'wartet auf Bestellungen';
       const wb=vsWagenBedarf(), mitWare=(S.bestellungen||[]).filter(b=>b.st==='offen'&&vsErfuellbar(b,wb));
@@ -1152,7 +1257,7 @@ function vsLaden(){
   /* alter Spielstand kannte nur eine Zahl: vsAbgleich gibt ihr Inhalt */
   if(S.bestellungen.length||!(S.offen|0)) S.offen=S.bestellungen.length;
   VS_PACKER.forEach(id=>{ if(staff[id]) vsAufraeumen(staff[id]); });
-  vsBahn.forEach(e=>{ if(e.m.parent) e.m.parent.remove(e.m); }); vsBahn.length=0;
+  vsBahn.forEach(e=>{ if(e.m.parent) e.m.parent.remove(e.m); }); vsBahn.length=0; vsHandFlug=null;
   vsPortalRuhe();
   vsPlaetze.forEach((P_,i)=>{ if(!P_) return;
     const T=P_.tisch; if(T){ if(T.pk.parent) T.pk.parent.remove(T.pk); if(T.flug) scene.remove(T.flug.m); P_.tisch=null; }

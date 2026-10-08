@@ -276,7 +276,7 @@ function vmPrompt(i){
   return {t:`Packmaterial${pl}: S ${s.ks} · M ${s.km} · L ${s.kl} · Folie ${s.folie} · Band ${s.band}`,a:false};
 }
 /* Treffer fuer den Blickstrahl: Packtische und Regale der Stufe */
-function vsHits(){ const L=[], st=packStufe(); for(let i=0;i<st;i++){ if(packTeile.hits[i]) L.push(packTeile.hits[i]); if(vmRegale[i]&&vmRegale[i].hit) L.push(vmRegale[i].hit); } return L; }
+function vsHits(){ const L=[], st=packStufe(); for(let i=0;i<st;i++){ if(packTeile.hits[i]) L.push(packTeile.hits[i]); if(vmRegale[i]&&vmRegale[i].hit) L.push(vmRegale[i].hit); } if(st<2&&packTeile.handHit) L.push(packTeile.handHit); return L; }
 function vmZielPos(){ const i=Math.max(0,vmPlatzFuer(S.carrying&&S.carrying.vm||'ks')), L=vmRegalLage(i); const p=localToWorld(packTisch,L.x,L.z); return {x:p.x,y:1.2,z:p.z}; }
 /* Kurzstand fuer Laptop und Handy */
 function vmZeile(){

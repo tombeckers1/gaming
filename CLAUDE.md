@@ -3,7 +3,7 @@
 > **Neuer Chat? Zuerst `UEBERGABE.md` komplett lesen** – dort stehen Stand, offene
 > Aufgaben (Abschnitt 5), Ausbauplan v7, Testrezept und alle Entscheidungen.
 > Neueste Entscheidung (Tom, 08.10. abends): Versandecke **Stufe 1 ohne Roboter-Kran**,
-> der Spieler legt das Paket selbst auf die Palette (UEBERGABE.md 5.0).
+> der Spieler legt das Paket selbst auf die Palette (UEBERGABE.md 5.0) – erledigt 08.10., V120.
 
 Die folgenden Regeln sind eine Kopie von Toms globalen Anweisungen (Stand 08.10.2026),
 damit sie auch in einem frischen Container gelten.
@@ -127,4 +127,4 @@ damit sie auch in einem frischen Container gelten.
   Chatwechsel erinnern, vorher laufende Aufgaben fertig machen und
   UEBERGABE.md aktualisieren. Tom sagt selbst, wann gewechselt wird.
 - **Versandecke Stufe 1 ohne Roboter-Kran** (Tom, 08.10.2026 abends): Auf Stufe 1
-  legt man das Paket selbst auf die Palette; Kran erst ab Ausbau. Offen, s. UEBERGABE.md 5.0.
+  legt man das Paket selbst auf die Palette; Kran erst ab Ausbau. Erledigt (V120), s. UEBERGABE.md 5.0.

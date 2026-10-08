@@ -132,7 +132,8 @@ ROADMAP.md: Die Demo-Idee mit Kapitel 1–6 ist inzwischen durch den Release-Pla
 
 ## 5. OFFENE AUFGABEN (Reihenfolge = Vorschlag; Tom entscheidet, wann gestartet wird)
 
-### 5.0 Neu von Tom am 08.10. (abends) – als Erstes einplanen
+### 5.0 Neu von Tom am 08.10. (abends) – ERLEDIGT 08.10. (V120)
+- Umgesetzt: Stufe 1 ohne Portal/Geländer; Packer (Zustand `stapeln`, `vsStapeln`) bzw. Spieler (Trefferfläche `bandende`, `vsSpielerAblegen`) legen das Paket am Bandende selbst auf die Palette. Kran ab Stufe 2. Tests packband (neu: KRAN1–3, SPIELER1), packer, versandtor grün; Gegenprobe schlägt an. Nicht in der Gameplay-Vorführung (die zeigt Stufe 3).
 - **Versandecke Stufe 1 OHNE Roboter-Kran.** Auf Stufe 1 legt der Spieler (bzw. der Packer) das fertige Paket **selbst auf die Palette** in der gelben Box. Der Kran kommt erst mit dem Ausbau (Stufe 2/3).
   - Code: `05h-ausbau.js` (Packstation-Stufen), `11c-versand.js`, `11e-palette.js`.
   - Tests: `versandtor.js`, `packband.js`, `packer.js`.

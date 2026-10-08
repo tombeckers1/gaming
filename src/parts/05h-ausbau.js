@@ -881,6 +881,9 @@ function buildPackstation(){
     T.gurt=gt;
   }
 
+  /* Stufe 1: Trefferflaeche am Endanschlag - der Spieler legt das Paket selbst auf die Palette */
+  { const h=bbox(0.95,0.6,BAND.b+0.1,hitM,BAND.x0+0.47,BAND.y+0.2,BAND.z,g,false); h.userData={kind:'bandende'}; T.handHit=h; }
+
   /* ---- Palettierstation je Stufe: Portal, Zaun, Bodenmarkierung ---- */
   const zaunM=new THREE.MeshStandardMaterial({map:(()=>{ const t=tex(128,128,(c,W,H)=>{ c.clearRect(0,0,W,H);
       c.strokeStyle='rgba(30,33,38,.95)'; c.lineWidth=3;
@@ -890,6 +893,9 @@ function buildPackstation(){
   const brX1=BAND.x0+0.65;   /* die Portalbruecke ragt im Osten ueber das Bandende */
   for(let s=1;s<=3;s++){ const k='nur'+s, C=ZELLE[s], x0=C.x0, x1=C.x1, z0=C.z0, z1=C.z1;
     const px0=x0+0.06, px1=x1-0.06, pz0=z0+0.06, pz1=z1-0.06;
+    /* 08.10. (Tom): Stufe 1 ohne Roboter-Kran - kein Portal, kein Gelaender zum Band;
+       der Packer legt das Paket selbst auf die Palette (11c vsHand*) */
+    if(s>=2){
     /* vier Stuetzen, zwei Laengstraeger an West- und Ostseite, Querriegel */
     for(const px of [px0,px1]) for(const pz of [pz0,pz1]){ B(k,0.12,PORTAL_Y,0.12,GELB,px,PORTAL_Y/2,pz); B(k,0.24,0.02,0.24,DUNKEL,px,0.01,pz); }
     for(const px of [px0,px1]){ B(k,0.12,0.16,pz1-pz0,GELB,px,PORTAL_Y+0.08,(pz0+pz1)/2); B(k,0.04,0.03,pz1-pz0,ZINK,px,PORTAL_Y+0.175,(pz0+pz1)/2); }
@@ -897,6 +903,7 @@ function buildPackstation(){
     /* Energiekette am westlichen Traeger, Schaltkasten mit Leuchten an der Stuetze */
     B(k,0.08,0.06,pz1-pz0-0.2,0x1b1d22,px0-0.1,PORTAL_Y+0.05,(pz0+pz1)/2);
     B(k,0.22,0.36,0.14,0xd9dde3,px1,1.5,pz1-0.13); B(k,0.05,0.05,0.02,0x2fd06a,px1-0.05,1.6,pz1-0.205); B(k,0.05,0.05,0.02,0xff4433,px1+0.05,1.6,pz1-0.205);
+    }
     /* Zaun: 2 m hoch an West, Nord und Sued, zum Band hin im Osten ein
        niedriges Gelaender - darueber hebt der Greifer die Pakete */
     const zaun=(ax,az,bx,bz,h)=>{ const L=Math.hypot(bx-ax,bz-az), n=Math.max(1,Math.round(L/1.2)), ry=Math.atan2(bz-az,bx-ax);
@@ -908,7 +915,7 @@ function buildPackstation(){
       else B(k,L,0.04,0.04,GELB,(ax+bx)/2,h*0.55,(az+bz)/2,0,-ry,0); };
     /* Die Seite zum Rolltor V1 (Norden der Gruppe) ist offen: dort fahren die Paletten
        mit dem Hubwagen hinaus. Zaun nur an Wand, Suedende und zum Band. */
-    zaun(x0,z1,x0,z0,2.0); zaun(x0,z0,x1,z0,2.0); zaun(x1,z1-0.15,x1,z0+0.15,1.1);
+    zaun(x0,z1,x0,z0,2.0); zaun(x0,z0,x1,z0,2.0); if(s>=2) zaun(x1,z1-0.15,x1,z0+0.15,1.1);
     B(k,0.5,0.03,0.04,GELB,x0+0.3,0.02,z1-0.05); B(k,0.5,0.03,0.04,GELB,x1-0.3,0.02,z1-0.05);
     /* Boden: Warnstreifen am Rand, Eckmarken der Palettenplaetze */
     const PXM=200, W=Math.round((x1-x0)*PXM), H=Math.round((z1-z0)*PXM);
@@ -942,7 +949,7 @@ function buildPackstation(){
     const saugM=std(0x1b1d22,{roughness:0.9}), saugG=new THREE.CylinderGeometry(0.035,0.028,0.025,12);
     for(const sx of [-0.09,0.09]) for(const sz of [-0.08,0.08]){ const c=new THREE.Mesh(saugG,saugM); c.position.set(sx,0.0125,sz); gr.add(c); }
     Pt.bruecke=br; Pt.wagen=wg; Pt.mast=mast; Pt.mast2=mast2; Pt.greifer=gr;
-    [br,wg,mast,mast2,gr].forEach(o=>T.ab[1].push(o));
+    [br,wg,mast,mast2,gr].forEach(o=>T.ab[2].push(o));   /* Kran erst ab Stufe 2 */
     T.portal=Pt;
   }
   /* Statische Teile zusammenfassen */
@@ -970,7 +977,7 @@ function buildPackstation(){
          innen stehen nur die Paletten, die wirklich da sind (11e) */
       t.push({x0:C.x0-0.02,x1:C.x0+0.1,z0:C.z0-0.04,z1:C.z1+0.04});
       t.push({x0:C.x0-0.02,x1:C.x1+0.04,z0:C.z0-0.04,z1:C.z0+0.08});
-      t.push({x0:C.x1-0.06,x1:C.x1+0.04,z0:C.z0-0.04,z1:C.z1+0.04});
+      if(st>=2) t.push({x0:C.x1-0.06,x1:C.x1+0.04,z0:C.z0-0.04,z1:C.z1+0.04});
       if(typeof S!=='undefined'&&S&&Array.isArray(S.paletten)&&zoneOffen(id)) for(const p of S.paletten){ if(p.ort!=='z') continue; const c=PALETTEN[Math.min(PALETTEN.length-1,p.idx)];
         if(p.idx>=PAL_N[st]) continue; t.push({x0:c.x-0.6,x1:c.x+0.6,z0:c.z-0.4,z1:c.z+0.4}); }
       if(!zoneOffen(id)) t.push({x0:PACK_FL.x0,x1:PACK_FL.x1,z0:-1.7,z1:-1.35});

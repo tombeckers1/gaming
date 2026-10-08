@@ -307,7 +307,7 @@ function hubFrei(){
   if(grabbed) return 'Du hast ein Möbel in der Hand.';
   return null;
 }
-function roboterBusy(){ return vsPortal.phase!=='ruhe'||vsBahn.some(e=>e.phase==='greifer')||vsBahn.some(e=>e.phase==='rollen'&&e.laeuft); }
+function roboterBusy(){ return vsPortal.phase!=='ruhe'||vsBahn.some(e=>e.phase==='hand')||vsBahn.some(e=>e.phase==='greifer')||vsBahn.some(e=>e.phase==='rollen'&&e.laeuft); }
 function hubAufnehmenPruefen(p){
   if(!hubDa()) return 'Der Hubwagen gehört zur Packstation.';
   if(!hubZeit()) return 'Palettenabholung: DDL holt ab 18 Uhr – vorher bleibt alles in der Box.';
@@ -317,7 +317,7 @@ function hubAufnehmenPruefen(p){
   if(p.ort!=='z') return 'Diese Palette ist schon weg.';
   if(p.idx!==0) return 'Erst die vordere Palette – sie steht am Tor.';
   if(vsPalZahl(p)===0) return 'Die Palette ist noch leer.';
-  if(roboterBusy()||vsPalGleitet()) return 'Der Roboter arbeitet gerade an den Paletten – kurz warten.';
+  if(roboterBusy()||vsPalGleitet()) return packStufe()<2?'Gerade wird ein Paket auf die Palette gelegt – kurz warten.':'Der Roboter arbeitet gerade an den Paletten – kurz warten.';
   return null;
 }
 function hubAufnehmen(p){

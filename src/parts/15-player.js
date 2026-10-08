@@ -318,6 +318,7 @@ function updateTarget(){
 function promptFor(t){
   if(typeof hubPrompt==='function'){ const h=hubPrompt(t); if(h) return h; }
   if(!t) return null; const c=S.carrying, reg=regCustomer();
+  if(t.kind==='bandende'){ const h=vsHandPrompt(); if(h) return h; }
   if(pdaOn&&!grabbed){ const pt=pdaTargetType(); if(pt) return {t:`Preisgerät: ${P[pt].short} · ${eur(S.prices[pt])}`,a:true}; }
   if(c&&c.vm&&['level','rslot','box','station','gravur'].indexOf(t.kind)>=0) return {t:'Versandmaterial gehört ins Packmaterial-Regal an der Packstation',a:false};
   switch(t.kind){
@@ -397,6 +398,7 @@ function doAction(){
   if(!target) return;
   if(target.kind==='palette'){ hubAktion(target); return; }
   if(target.kind==='ddlschild'){ ddlRufen(); return; }
+  if(target.kind==='bandende'){ if(S.carrying) toast('Erst den Karton abstellen.'); else vsSpielerAblegen(); return; }
   if(pdaOn&&!grabbed){ const t=pdaTargetType(); if(t){ openPDA(t); return; } }
   const k=target.kind, r=target.ref, reg=regCustomer();
   if(k==='placing') placeGrab();

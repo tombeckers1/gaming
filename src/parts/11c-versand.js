@@ -29,7 +29,7 @@ const VS_HEIM={x:0.5,z:0.83};
    der anderen Seite - sonst schwenkt der Wagen beim Losfahren durch den Tisch (Tom 08.10., Test TISCH). */
 function vsPK(i){
   const rot=typeof packTisch!=='undefined'&&packTisch?packTisch.rotation.y:0, flip=VS_PP[i|0].s>0&&Math.cos(rot)<0, d=flip?-1:1;
-  return {px:flip?0.5:-0.5,pz:0.99,pry:flip?Math.PI/2:-Math.PI/2,gx:(flip?0.5:-0.5)+d*WG_ABST,gz:0.99,hx:flip?-0.5:0.5,hz:0.83,ax:flip?0.5+0.95:(-0.5+WG_ABST),az:0.99,fl:flip};   /* ax/az: ab hier (vom Lager kommend) rollt der Wagen auf seinen Platz */
+  return {px:flip?0.5:-0.5,pz:1.08,pry:flip?Math.PI/2:-Math.PI/2,gx:(flip?0.5:-0.5)+d*WG_ABST,gz:1.08,hx:flip?-0.5:0.5,hz:0.83,ax:flip?0.5+0.95:(-0.5+WG_ABST),az:1.08,fl:flip};   /* ax/az: ab hier (vom Lager kommend) rollt der Wagen auf seinen Platz */
 }
 /* Wo das Paket auf dem Tisch zugeklebt wird */
 const VS_TISCH={x:0,z:0};

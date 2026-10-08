@@ -196,7 +196,7 @@ const fs = require('fs');
 
   /* ---------- 7. Gegenprobe: Tor zu - die Palette kommt nicht durch; Stapel zu hoch ---------- */
   const gp = await p.evaluate(() => { const bb = window.__bb, S = bb.S, o = {};
-    bb.ddlAbholung(); S.day = 12; bb.phase = 'after'; bb.clock = 1320; window.__fuell(40, 1);
+    bb.ddlAbholung(); S.day = 12; bb.phase = 'open'; bb.clock = 1200; S.ddlTag = 12; window.__fuell(40, 1);   /* kein 22-Uhr-LKW unterwegs */
     /* Tor zu, kein LKW: Palette aufnehmen und durch die Wand fahren wollen */
     bb.vdOffen(false); bb.run(8, 0.05); o.torZu = bb.VD.t <= 0.05;
     /* der Fahrer steht in der Halle, die Palette vor sich, und will rueckwaerts durch das Tor */

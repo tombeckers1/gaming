@@ -55,7 +55,7 @@ EFF.kornblume=function(p,A,B,s,r){ grOhneZutaten(r,0.5);
 EFF.kleebluete=function(p,A,B,s,r){ grOhneZutaten(r,0.4);
   const q=QUAL(), n=Math.round(70*s*q)+14, G=1.6;
   for(let i=0;i<n;i++){ const d=randDir(), v=kgMal(d,rand(5.2,6.4)*s), T=rand(1.3,1.6);
-    const h=kgStern(psMid,p,v,kgMal(i%4?A:B,1.5),T,G,0,0.08); kgSpaeter(T*0.6,()=>kgFarbe(h,kgMal(mischF(A,B,0.6),1.4))); } };
+    const h=kgStern(psBig,p,v,kgMal(i%4?A:B,1.5),T,G,0,0.08); kgSpaeter(T*0.6,()=>kgFarbe(h,kgMal(mischF(A,B,0.6),1.4))); } };
 /* Traube (Weinlese): sieben bis neun kleine violette Paeonien dicht
    beieinander, nach unten spitz zulaufend wie eine Weintraube - eine
    echte Bukett-Bombe, deren Kugeln kurz nacheinander aufgehen */
@@ -104,10 +104,10 @@ EFF.korallenast=function(p,A,B,s,r){ grOhneZutaten(r,0.5);
    Stern zieht einen dichten Goldbrokat-Schweif und zerfaellt am Ende in
    einen silbernen Blinkstern (Paeonie mit Brokatschweif zu Strobe) */
 EFF.samtkrone=function(p,A,B,s,r){ grOhneZutaten(r,0.6);
-  const q=QUAL(), n=Math.round(30*s*q)+8, G=2.0, T=1.9;
+  const q=QUAL(), n=Math.round(24*s*q)+8, G=2.0, T=1.9;
   for(let i=0;i<n;i++){ const d=randDir(), v=kgMal(d,rand(10,11.2)*s);
     kgStern(psBig,p,v,kgMal(A,1.4),T,G,0,0.2);
-    rkFunken(p,v,G,0.08,T,40,[1.25,.9,.38],{ps:psMid,life:[0.9,1.5],g:0.9,streu:0.25,mit:0.04,mode:4,spur:0.12});
+    rkFunken(p,v,G,0.08,T,15,[1.25,.9,.38],{ps:psBig,life:[0.9,1.5],g:0.9,streu:0.25,mit:0.04,mode:4,spur:0.12});
     if(i%2===0) kgSpaeter(T,()=>{ const e=sternNach(p,v[0],v[1],v[2],G,T), w=bahnTempo(v,G,T); psMid.emit(e.x,e.y,e.z,w[0]*0.3,w[1]*0.3,w[2]*0.3,B[0]*1.7,B[1]*1.7,B[2]*1.7,rand(1.2,1.8),2.2,1); }); }
   schall(p,x=>{ later(T*0.6,()=>sfx.rieseln(x*0.4,1.5)); later(T,()=>sfx.crackle(x*0.35)); }); };
 /* Feuerkugel (Meteorschauer): ein grosser, gruen leuchtender Kopf fliegt
@@ -128,11 +128,11 @@ EFF.feuerkugel=function(p,A,B,s,r){ grOhneZutaten(r,0.5);
 EFF.phoenixfeder=function(p,A,B,s,r){ grOhneZutaten(r,0.6);
   const n=Math.round(6*QUAL())+5, G=2.6, T=rand(0.9,1.15);
   for(let i=0;i<n;i++){ const a=rand(0,Math.PI*2), el=rand(-0.15,0.85), w=rand(10,13)*s, v=[Math.cos(a)*Math.cos(el)*w,Math.sin(el)*w,Math.sin(a)*Math.cos(el)*w];
-    nKomet(p,v,kgMal(A,1.6),T,G,[1.1,.7,.25],70);
+    nKomet(p,v,kgMal(A,1.6),T,G,[1.1,.7,.25],40);
     kgSpaeter(T,()=>{ const e=sternNach(p,v[0],v[1],v[2],G,T), wv=bahnTempo(v,G,T);
       for(let k=0;k<5;k++){ const b=(k-2)*0.42+rand(-0.1,0.1), ca=Math.cos(b), sa=Math.sin(b), f=rand(0.5,0.75), dv=[(wv[0]*ca-wv[2]*sa)*f,wv[1]*0.4+rand(0.4,1.4),(wv[0]*sa+wv[2]*ca)*f], L=rand(2.6,3.4);
         const h=kgStern(psBig,e,dv,[1.5,1.05,.4],L,1.6,0,0.45); kgSpaeter(L*0.75,()=>kgFarbe(h,kgMal(A,1.4)));
-        rkFunken(e,dv,1.6,0.05,L,24,[1.2,.78,.3],{ps:psMid,life:[1.2,1.9],g:0.7,streu:0.1,mit:0.03,mode:0,spur:0.25}); } }); }
+        rkFunken(e,dv,1.6,0.05,L,9,[1.2,.78,.3],{ps:psBig,life:[1.0,1.6],g:0.7,streu:0.1,mit:0.03,mode:0,spur:0.25}); } }); }
   schall(p,x=>{ sfx.fauchen(x*0.5,1.0); later(T,()=>{ sfx.schwingen(x*0.9); sfx.rieseln(x*0.55,3); }); }); };
 Object.assign(EFF_SCHWEIF,{kornblume:0.12,kleebluete:0.08,traube:0.06,mohnkapsel:0.14,raureif:0.18,fuchsie:0.3,korallenast:0.25,samtkrone:0.2,feuerkugel:0.2,phoenixfeder:0.45});
 Object.assign(EFF_FAMILIE,{kornblume:'kugel',kleebluete:'kugel',traube:'kugel',mohnkapsel:'kugel',raureif:'kugel',fuchsie:'haenger',korallenast:'knister',samtkrone:'kugel',feuerkugel:'komet',phoenixfeder:'haenger'});
@@ -285,7 +285,19 @@ Object.assign(SIGNATUR,{
    gleichen Levels (SHOW_BASIS: roemisch L2 -9/0,45 ... profi L22
    2,5/1,22, Weltuntergang 3,5/1,3).
    ========================================================= */
-const r4Basis=(id,l)=>({pw:+(l<=20?-9+(l-2)*11/18:2+(l-20)*0.4).toFixed(2),sz:+(0.45+(l-2)*0.036).toFixed(3),th:id});
+/* anomalie.js STEIGERUNG: die Grundstufe darf nie unter einem Produkt
+   niedrigeren Levels und nie ueber einem hoeheren liegen - gemessen an
+   allen vorhandenen Batterien: Mitte zwischen dem Groessten darunter und
+   dem Kleinsten darueber (gezaehlt 07.10.: Schwarzer Samt L23 lag mit der
+   Formel ueber Goetterfunken L24) */
+function r4Basis(id,l){ const f0={pw:+(l<=20?-9+(l-2)*11/18:2+(l-20)*0.4).toFixed(2),sz:+(0.45+(l-2)*0.036).toFixed(3)};
+  let lo=null, hi=null;
+  for(const t of Object.keys(SHOWS)){ const q=P[t]; if(t===id||!q||(q.shape!=='battery'&&q.shape!=='fan')||ENTFERNT.indexOf(t)>=0) continue;
+    let b=null; try{ const sh=SHOWS[t](); b=sh&&(sh.basis||SHOW_BASIS[t]); }catch(e){} if(!b||typeof b.pw!=='number') continue;
+    if(q.lvl<l){ lo=lo?{pw:Math.max(lo.pw,b.pw),sz:Math.max(lo.sz,b.sz)}:{pw:b.pw,sz:b.sz}; }
+    else if(q.lvl>l){ hi=hi?{pw:Math.min(hi.pw,b.pw),sz:Math.min(hi.sz,b.sz)}:{pw:b.pw,sz:b.sz}; } }
+  const k=(a,b,f)=>lo&&hi?(a+b)/2:lo?Math.max(a+0.05,f):hi?Math.min(b-0.05,f):f;
+  return {pw:+k(lo&&lo.pw,hi&&hi.pw,f0.pw).toFixed(3),sz:+k(lo&&lo.sz,hi&&hi.sz,f0.sz).toFixed(4),th:id}; }
 function r4Show(id,th,rampe,ph){ r3Show(id,th,rampe,ph,{basis:r4Basis(id,P[id]?P[id].lvl:10)}); r3OhneKern(id);
   if(R4_ABSCHUSS[id]&&P[id]) P[id].abschuss=R4_ABSCHUSS[id]; }
 
@@ -318,7 +330,7 @@ SIGNATUR.weinlese={idee:'Weinlese',eff:'traube',text:'violette Traubenbuketts, g
 r4Show('mohnfeld',[['mohnrot','limette'],['scharlach','mohnrot'],['rot','zitrone']],{sz:[0.9,1.3],pw:[0,2.4],hell:[0.9,1.3],kurve:'linear'},[
   {n:4,gap:0.95,muster:'zufall',ang:0.3,eff:'mohnkapsel',kal:'mittel',farbe:0,steig:'glut',knall:'bkDoppel',pause:0.9},
   {n:6,gap:0.35,muster:'welle',ang:0.32,hoehe:'welle',hSpanne:3,eff:'chrys',kal:'klein',farbe:1,steig:'silber',knall:'bkRieseln',pause:1.0},
-  {n:4,gap:0.6,muster:'x',ang:0.3,eff:'drachenei',kal:'mittel',farbe:2,steig:'knister',knall:'bkKnisterhall',pause:1.0},
+  {mit:true,n:4,gap:0.6,muster:'x',ang:0.3,eff:'drachenei',kal:'mittel',farbe:2,steig:'knister',knall:'bkKnisterhall',pause:1.0},
   {n:8,gap:0.18,muster:'w',ang:0.34,eff:['mohnkapsel','chrys'],kal:'mittel',farbe:0,steig:'glut',knall:'bkDoppel',pause:3.5}]);
 SIGNATUR.mohnfeld={idee:'Mohnfeld',eff:'mohnkapsel',text:'rote Mohnblueten mit gruenem Herz, aus dem silberne Samen rieseln'};
 /* 5 WINTERWALD (L14, 28): Raureif aussen, Tannenzweige im Zickzack,
@@ -386,7 +398,7 @@ SIGNATUR.meteorschauer={idee:'Meteorschauer',eff:'feuerkugel',text:'gruene Feuer
    Wischer, rote Dahlien in der Hoehenwelle, Salute aussen, Federn und
    Glut ueber Kreuz, Funkenregen (Zeitregen) in der Spirale, grosse
    Federn paarweise, Finale aus 60 Schuss, zuletzt die Glutkrone */
-r4Show('phoenix',[['scharlach','gold'],['gold','scharlach'],['rot','orange'],['bernstein','rot']],{sz:[0.92,1.38],pw:[0,3.4],hell:[0.88,1.34],kurve:'spaet'},[
+r4Show('phoenix',[['scharlach','gold'],['gold','scharlach'],['rot','orange'],['bernstein','rot']],{sz:[0.92,1.38],pw:[1.2,4.6],hell:[0.88,1.34],kurve:'spaet'},[
   {n:6,gap:0.9,muster:'zufall',ang:0.3,eff:'kiefernkrone',kal:'mittel',farbe:2,steig:'glut',knall:'bkKnisterhall',pause:1.2},
   {n:14,gap:0.5,muster:'v',ang:0.3,eff:'phoenixfeder',kal:'gross',farbe:0,steig:'glut',knall:'bkBrokat',pause:1.0},
   {n:24,gap:0.15,muster:'wischer',ang:0.38,eff:'tigerschweif',kal:'mittel',farbe:1,steig:'gold',knall:'bkZisch',pause:1.0},
@@ -395,7 +407,7 @@ r4Show('phoenix',[['scharlach','gold'],['gold','scharlach'],['rot','orange'],['b
   {n:30,gap:0.15,muster:'x',ang:0.34,eff:['phoenixfeder','kiefernkrone'],kal:'gross',farbe:0,steig:'glut',knall:'bkBrokat',pause:1.2},
   {n:20,gap:0.3,muster:'spirale',ang:0.34,eff:'zeitregen',kal:'gross',farbe:3,steig:'glut',knall:'bkRieseln',pause:1.5},
   {n:12,gap:0.5,muster:'paar',ang:0.3,eff:'phoenixfeder',kal:'riesig',farbe:1,steig:'glut',knall:'bkBrokat',pause:1.0},
-  {n:60,gap:0.06,muster:'w',ang:0.38,eff:['phoenixfeder','kamuro','tigerschweif','salut','dahlie','phoenixfeder'],kal:'riesig',farbe:0,steig:'glut',knall:'bkDonnerhall',pause:0.5},
+  {n:60,gap:0.06,muster:'w',ang:0.38,eff:['phoenixfeder','kamuro','dahlie','salut','kamuro','phoenixfeder'],kal:'riesig',farbe:0,steig:'glut',knall:'bkDonnerhall',pause:0.5},
   {n:10,gap:0.12,muster:'mitte',ang:0.12,eff:'kamuro',kal:'riesig',pw:4,farbe:1,steig:'glut',knall:'bkDonnerhall',pause:8}]);
 SIGNATUR.phoenix={idee:'Phoenix',eff:'phoenixfeder',text:'scharlachrote Kometen faechern in goldene Federn, Tigerschweife, rote Dahlien und eine Glutkrone'};
 
@@ -403,7 +415,7 @@ SIGNATUR.phoenix={idee:'Phoenix',eff:'phoenixfeder',text:'scharlachrote Kometen 
 const r4Saat=(t,fn)=>rohrSaat(saatZahl(t+':r4'),fn);
 Object.assign(TH_FOLGE,{
   /* Wiese: von vorn links schraeg nach hinten rechts, Halm fuer Halm */
-  kornblumen:L=>{ const R=L.rohre; return R.map((x,i)=>i).sort((a,b)=>(R[a].x-R[a].z*1.4)-(R[b].x-R[b].z*1.4)); },
+  kornblumen:L=>{ const R=L.rohre, w=x=>Math.round(Math.hypot(x.x,x.z)*40)+((Math.atan2(x.z,x.x)+Math.PI*1.25)%(2*Math.PI))/(2*Math.PI); return R.map((x,i)=>i).sort((a,b)=>w(R[a])-w(R[b])); },
   /* Bienen: von der Mitte aus in kleinen Spruengen zu einem Nachbarn, dann weiter */
   bienenweide:(L,t)=>r4Saat(t,()=>{ const R=L.rohre, frei=R.map((x,i)=>i); let c={x:0,z:0}; const out=[];
     while(frei.length){ frei.sort((a,b)=>thAbst(R[a],c)-thAbst(R[b],c)); const j=Math.min(frei.length-1,Math.floor(Math.random()*2)+1), k=frei.splice(j,1)[0]; out.push(k); c=R[k]; } return out; }),

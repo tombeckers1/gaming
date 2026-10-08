@@ -164,7 +164,7 @@ const fs = require('fs');
       return o; }, st);
     console.log('ABFAHRT', JSON.stringify(ab));
     pruef('SPIELER_IM_TOR_' + st, ab.blockiert, 'der LKW faehrt los, obwohl der Spieler im Tor steht');
-    pruef('ABFAHRT_' + st, ab.weg && (st === 3 ? (ab.nachher > 0 && ab.nachher < ab.vorher) : ab.nachher === 0) && !ab.tor && ab.torKoll, 'LKW faehrt nicht ab oder Pakete bleiben: ' + JSON.stringify({weg: ab.weg, nachher: ab.nachher, tor: ab.tor, kolls: ab.torKoll}));
+    pruef('ABFAHRT_' + st, ab.weg && ab.nachher === 0 && !ab.tor && ab.torKoll, 'LKW faehrt nicht ab oder Pakete bleiben: ' + JSON.stringify({weg: ab.weg, nachher: ab.nachher, tor: ab.tor, kolls: ab.torKoll}));
     pruef('LADER_' + st, st === 1 ? (ab.fig && !ab.agv) : ab.agv, 'Stufe ' + st + ': ' + (st === 1 ? 'Mitarbeiter fehlt' : 'Hubwagen-Roboter fehlt') + ' ' + JSON.stringify({fig: ab.fig, agv: ab.agv}));
     pruef('LKW_ZUSTAENDE_' + st, ['anfahrt', 'torauf', 'docked', 'flap', 'torzu', 'out'].every(z => true), '');
     pruef('PAL_NEU_' + st, ab.paletten.length >= [0, 2, 4, 6][st] && ab.paletten.every(o => o === 'z'), 'nach der Abfahrt stehen nicht alle Paletten wieder in der Box: ' + JSON.stringify(ab.paletten));
@@ -198,17 +198,22 @@ const fs = require('fs');
   const gp = await p.evaluate(() => { const bb = window.__bb, S = bb.S, o = {};
     bb.ddlAbholung(); S.day = 12; bb.phase = 'after'; bb.clock = 1320; window.__fuell(40, 1);
     /* Tor zu, kein LKW: Palette aufnehmen und durch die Wand fahren wollen */
-    bb.vdOffen(false); bb.run(8, 0.05);
-    window.__steh(-0.6, 0.45);
+    bb.vdOffen(false); bb.run(8, 0.05); o.torZu = bb.VD.t <= 0.05;
+    /* der Fahrer steht in der Halle, die Palette vor sich, und will rueckwaerts durch das Tor */
+    window.__steh(2.5, 0.45);
     const p0 = bb.vsPalZelle()[0]; bb.clock = 1200; o.nimmt = bb.hubAufnehmen(p0);
     bb.run(0.8, 0.05);
-    /* gegen das geschlossene Tor: rueckwaerts auf lx -3 */
-    const f = window.__fahre(-3.0, 0.45, 300); o.lxZu = +f.lx.toFixed(2);
-    /* Hof und Tor ohne LKW: Bediener steht draussen im Hof? */
+    const f = window.__fahre(-3.0, 0.45, 400); o.lxZu = +f.lx.toFixed(2);
     bb.hubAktion(null); o.zurueck = S.paletten.some(q => q.ort === 'z' && q.idx === 0 && bb.vsPalZahl(q) > 0);
+    /* Gegenprobe zur Gegenprobe: dasselbe bei offenem Tor kommt durch */
+    bb.vdSetzen(1); bb.vdOffen(true); bb.run(1, 0.05);
+    window.__steh(2.5, 0.45); const p1 = bb.vsPalZelle()[0]; bb.hubAufnehmen(p1); bb.run(0.8, 0.05);
+    const f2 = window.__fahre(-3.0, 0.45, 400); o.lxAuf = +f2.lx.toFixed(2);
+    bb.hubAktion(null); bb.vdSetzen(0); bb.vdOffen(false);
     return o; });
   console.log('GEGENPROBE', JSON.stringify(gp));
-  pruef('GEGENPROBE_TOR_ZU', gp.nimmt && gp.lxZu > -1.0, 'bei geschlossenem Tor kam die Palette durch: lx ' + gp.lxZu);
+  pruef('GEGENPROBE_TOR_OFFEN', gp.lxAuf < -2.9, 'bei offenem Tor kommt die Palette nicht durch (Test taugt nicht): lx ' + gp.lxAuf);
+  pruef('GEGENPROBE_TOR_ZU', gp.torZu && gp.nimmt && gp.lxZu > -0.2, 'bei geschlossenem Tor kam die Palette durch: lx ' + gp.lxZu);
   pruef('GEGENPROBE_ZURUECK', gp.zurueck, 'ohne LKW laesst sich die Palette nicht zurueckstellen');
 
   /* ---------- 8. alter Spielstand: Station ohne Sued 3 wird erstattet, mit Sued 3 zieht sie um ---------- */

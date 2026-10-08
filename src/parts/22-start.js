@@ -128,7 +128,7 @@ fontsReady().then(()=>{
     vsWelt,vdOffen,vdSetzen,ddlAbfahrt,hubAufbauPark,V1,VT,VD,LD,HUB,DDL,vf,vfRueck,ddlSlot,vsStapelLage,vsPalZelle,vsPalZahl,hubAufnehmen,hubAbstellen,hubAktion,hubZiel,hubAbstellPlatz,hubAufnehmenPruefen,ddlRufen,ddlAbholung,ddlLaeuft,updatePaletten,vsPalAbgleich,vsPalById,palZentrumWelt,vsPalObj,vsPalHits,vdIstOffen,vtBesetzt,vsPalGleitet,roboterBusy,hubKollision,DDL_SLOTS,rackR1Pack,vsHeim,vsKapazitaet,PACK_HOME,V1_HOF,PAL_N,ZELLE,PALETTEN,palPlaetze,vsPalNeu,
     kameraSetzen:()=>{ camera.position.set(pl.x,1.65,pl.z); camera.rotation.set(pitch,yaw,0); camera.updateMatrixWorld(); updateTarget(); applyTOD(); },
     stoppSchleife:()=>{ noLoop=true; },
-    shot:()=>{ noLoop=true; camera.position.set(pl.x,1.65,pl.z); camera.rotation.set(pitch,yaw,0); camera.updateMatrixWorld(); updateTarget(); applyTOD(); renderFrame(0.016); return canvas.toDataURL('image/jpeg',0.85); },
+    shot:()=>{ noLoop=true; camera.position.set(pl.x,1.65,pl.z); camera.rotation.set(pitch,yaw,0); camera.updateMatrixWorld(); updateTarget(); applyTOD(); updateInnenlicht(1); updateInnenlicht(1); renderFrame(0.016); return canvas.toDataURL('image/jpeg',0.85); },
     run:(sec,dt)=>{ noLoop=true; const n=Math.round(sec/(dt||0.05)); for(let i=0;i<n;i++) step(dt||0.05); }};
 });
 })();

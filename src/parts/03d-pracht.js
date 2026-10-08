@@ -43,7 +43,7 @@
    ========================================================= */
 /* 0 = Maximum, 1 = Ultra, 2 = Ultra Extrem, -1 = aus (Hoch und darunter,
    Handys: dort ist Canvas- und Grafikspeicher knapp) */
-const PRACHT=(()=>{ const i=GFX_STUFEN.indexOf(GFX); let aus=false; try{ aus=localStorage.getItem('bb_pracht')==='0'; }catch(e){} return (HIQ&&!aus&&i>=3)?i-3:-1; })();
+const PRACHT=(()=>{ const i=gfxRang(GFX); let aus=false; try{ aus=localStorage.getItem('bb_pracht')==='0'; }catch(e){} return (HIQ&&!aus&&i>=3)?i-3:-1; })();
 const PR={an:PRACHT>=0, det:[512,1024,2048][PRACHT]||0, env:null, envAussen:null, mats:new WeakSet(), liste:[], tex:{}, makro:null,
   sondeK:0.4, hemiK:0.55, aoRT:null, aoRT2:null, spRT:null, spCam:null, nSp:0, spGesehen:new WeakSet(), aoMat:null, aoBlur:null, weiss:null, n:0, takt:0, sig:'', envT:-1, fehler:''};
 /* weiche Schatten: Filterart nur beim Laden (Shader), Werte je Stufe */
@@ -370,7 +370,7 @@ function prachtAufbau(){
    bei groesseren Umbauten neu (Regale gekauft, Bereiche geoeffnet) */
 function prachtTakt(){
   if(!PR.an) return;
-  PR_U.an.value=GFX_STUFEN.indexOf(GFX)>=3?1:0;
+  PR_U.an.value=gfxRang(GFX)>=3?1:0;
   if(PR.sonde) PR.sonde.intensity=PR_U.an.value*PR.sondeK;
   /* Die Sonde ersetzt einen Teil des Himmelslichts (applyTOD setzt es neu,
      hier wird jeder neue Wert einmal gedaempft) */
@@ -459,7 +459,7 @@ let _spV,_spZ,_spL,_spN,_spR,_spE,_spC,_spQ,_spP;
 function prSpHilfen(){ _spV=new THREE.Vector3(); _spZ=new THREE.Vector3(); _spL=new THREE.Vector3(); _spN=new THREE.Vector3(0,1,0); _spR=new THREE.Matrix4();
   _spE=new THREE.Plane(); _spC=new THREE.Vector4(); _spQ=new THREE.Vector4(); _spP=new THREE.Vector3(0,PR_SP_H,0); }
 function prachtSpiegel(){
-  const an=GFX_STUFEN.indexOf(GFX)>=3;
+  const an=gfxRang(GFX)>=3;
   PR_SP.k.value=0; PR_SP.t.value=PR.schwarz;
   if(!an||camera.position.y<PR_SP_H+0.05) return;
   const C=PR.spCam; camera.updateMatrixWorld();
@@ -487,17 +487,17 @@ function prachtSpiegel(){
   finally{ if(skyMesh&&altSky) skyMesh.position.copy(altSky); }
   PR_SP.t.value=PR.spRT.texture; PR_SP.k.value=1;
   /* je hoeher die Stufe, desto klarer das Spiegelbild (Bild ist dort auch schaerfer) */
-  PR_SP.s.value=[1,0.8,0.65][Math.max(0,Math.min(GFX_STUFEN.indexOf(GFX)-3,PRACHT))];
+  PR_SP.s.value=[1,0.8,0.65][Math.max(0,Math.min(gfxRang(GFX)-3,PRACHT))];
 }
 /* nach dem Zeichnen der Szene in rtScene: Verschattung rechnen */
 function prachtAO(){
-  const an=PR.aoRT&&GFX_STUFEN.indexOf(GFX)>=3;
+  const an=PR.aoRT&&gfxRang(GFX)>=3;
   if(!PR.aoRT){ return; }
   if(!an){ matComp.uniforms.aoAn.value=0; matComp.uniforms.tAO.value=PR.weiss; return; }
   if(PR.aoRT.width!==Math.max(2,Math.floor(postW*(PRACHT>=2?0.66:0.5)))) prachtGroesse();
   const M=PR.aoMat.uniforms, w=PR.aoRT.width, h=PR.aoRT.height, P=camera.projectionMatrix.elements;
   M.px.value.set(1/w,1/h); M.pInv.value.set(1/P[0],1/P[5]); M.p11.value=P[5]; M.near.value=camera.near; M.far.value=camera.far;
-  const st=Math.min(GFX_STUFEN.indexOf(GFX)-3,PRACHT); M.rad.value=[0.8,0.9,1.0][st]; M.staerke.value=[4.0,4.4,4.8][st];
+  const st=Math.min(gfxRang(GFX)-3,PRACHT); M.rad.value=[0.8,0.9,1.0][st]; M.staerke.value=[4.0,4.4,4.8][st];
   quadMesh.material=PR.aoMat; renderer.setRenderTarget(PR.aoRT); renderer.render(quadScene,quadCam);
   const B=PR.aoBlur.uniforms; B.far.value=camera.far;
   quadMesh.material=PR.aoBlur; B.tA.value=PR.aoRT.texture; B.dir.value.set(1/w,0); renderer.setRenderTarget(PR.aoRT2); renderer.render(quadScene,quadCam);

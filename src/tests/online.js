@@ -32,7 +32,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
 
   /* 3. Mit Packstation */
   await p.evaluate(()=>{ const bb=window.__bb;
-    ['lager_gross','packstation'].forEach(id=>{ bb.S.up[id]=true; if(bb.ZONEN[id]) bb.oeffneZone(id,false); });
+    ['lager_gross','lager_sued','lager_sued2','packstation'].forEach(id=>{ bb.S.up[id]=true; if(bb.ZONEN[id]) bb.oeffneZone(id,false); });
     bb.applyZonen(); bb.S.offen=11; bb.S.pakete=0;
     bb.openHandy('online'); });
   await zeig('VERSAND   ');

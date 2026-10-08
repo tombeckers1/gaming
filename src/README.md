@@ -46,6 +46,9 @@ Die wichtigsten:
 | `kauf.js`   | Testmodus und die Begruendung fehlgeschlagener Kaeufe      |
 | `bal.js`    | Wirtschaftssimulation ueber beliebig viele Tage            |
 | `blick.js`  | Standbilder aus dem Laden (braucht echtes three.js)        |
+| `versandtor.js` | Versandecke an Tor V1: Lage, hohe Stapel, Hubwagen von Hand mehrfach, DDL um 22 Uhr, Abfahrt, alter Spielstand (echtes three.js) |
+| `durchgang.js`  | Weg von Rolltor 1 zur Versandecke und in die Hallen bei vollen Lagerregalen, Gegenprobe (echtes three.js) |
+| `kartonlogik.js`| Eiswuerfel raus, 1.4G-Raute nur auf Feuerwerkskartons, Kartonvarianten (echtes three.js) |
 
 `bal.js`, `blick.js`, `gangfrei.js` und `leer.js` brauchen ein echtes three.js. Fuer `blick.js`:
 

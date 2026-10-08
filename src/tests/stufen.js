@@ -203,7 +203,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     bb.S.up.packstation=false; bb.applyZonen();
     o.tischVorKauf=tisch(); o.bandVorKauf=sicht();
     bb.S.level=99; bb.S.money=9e6;
-    ['lager','lager_nord','lager_gross','packstation'].forEach(id=>bb.testKauf(id));
+    ['lager','lager_nord','lager_gross','lager_sued','lager_sued2','packstation'].forEach(id=>bb.testKauf(id));
     o.gekauft=!!bb.S.up.packstation;
     o.tischNachKauf=tisch(); o.bandNachKauf=sicht();
     return o;

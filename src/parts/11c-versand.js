@@ -24,10 +24,19 @@ const VS_GR={
    steht rechts davor. */
 const WG_PARK={x:-0.5,z:0.99,ry:-Math.PI/2}, WG_Y=0.78, WG_ABST=0.845, WG_GRIFF={x:-0.5+0.845,z:0.99};
 const VS_HEIM={x:0.5,z:0.83};
+/* Park- und Standpunkte je Packplatz. Der Wagen steht auf der Seite, zu der der Packer ihn schieben will:
+   liegen die Regale (Lager) hinter dem Ostende der Station (Station um 180 Grad gedreht), parkt er auf
+   der anderen Seite - sonst schwenkt der Wagen beim Losfahren durch den Tisch (Tom 08.10., Test TISCH). */
+function vsPK(i){
+  const rot=typeof packTisch!=='undefined'&&packTisch?packTisch.rotation.y:0, flip=VS_PP[i|0].s>0&&Math.cos(rot)<0, d=flip?-1:1;
+  return {px:flip?0.5:-0.5,pz:1.08,pry:flip?Math.PI/2:-Math.PI/2,gx:(flip?0.5:-0.5)+d*WG_ABST,gz:1.08,hx:flip?-0.5:0.5,hz:0.83,ax:flip?0.5+0.95:(-0.5+WG_ABST),az:1.08,fl:flip};   /* ax/az: ab hier (vom Lager kommend) rollt der Wagen auf seinen Platz */
+}
 /* Wo das Paket auf dem Tisch zugeklebt wird */
 const VS_TISCH={x:0,z:0};
 /* Paletten der aktuellen Stufe (packStufeAnwenden) und Stapelhoehe */
-const VS_FELD=[], VS_HMAX=1.1;
+/* 07.10. (Tom: "Paletten hoeher stapeln"): 1,75 m Stapel ueber der Palette, oben 1,89 m - unter dem
+   Greifer (Unterkante beim Ueberfahren 2,02 m) und durch Tor und LKW (3 m) */
+const VS_FELD=[], VS_HMAX=1.75;
 /* Lagenbilder fuer eine Palette mit 0,8 m in x und 1,2 m in z; die
    Paletten der Station liegen quer (1,2 m in x) - vsStapel tauscht x
    und z, die lange Paketkante (G.z) liegt dann in z */
@@ -127,7 +136,7 @@ function vsZugang(){
   if(typeof NAV==='undefined'||!packTisch) return null;
   if(NAV.dirty) navBuild();
   if(_vsZugang&&_vsZugang.nr===NAV.nr&&_vsZugang.px===packTisch.position.x&&_vsZugang.pz===packTisch.position.z&&_vsZugang.st===packStufe()) return _vsZugang.g;
-  const W=NAV.w, H=NAV.h, out=new Uint8Array(W*H), h=vsWelt(0,VS_HEIM.x,VS_HEIM.z), s0=navNah(h.x,h.z);
+  const W=NAV.w, H=NAV.h, out=new Uint8Array(W*H), h=vsWelt(0,vsPK(0).hx,vsPK(0).hz), s0=navNah(h.x,h.z);
   if(s0>=0){ out[s0]=1; const Q=[s0]; let k=0;
     while(k<Q.length){ const c=Q[k++], i=c%W, r=(c-i)/W;
       for(const n of [i>0?c-1:-1,i<W-1?c+1:-1,r>0?c-W:-1,r<H-1?c+W:-1]) if(n>=0&&!NAV.g[n]&&!out[n]){ out[n]=1; Q.push(n); } } }
@@ -215,6 +224,8 @@ function vsAbgleich(){
   const p=Math.max(0,S.pakete|0);
   if(p!==S.paketGr.length){ while(S.paketGr.length<p) S.paketGr.push(1); if(S.paketGr.length>p) S.paketGr.length=Math.max(p,vsBahn.length); }
   S.pakete=S.paketGr.length;
+  if(!Array.isArray(S.paketP)) S.paketP=[];
+  while(S.paketP.length<S.paketGr.length) S.paketP.push(-1); S.paketP.length=S.paketGr.length;
 }
 /* Was die laufenden Wagentouren noch holen muessen - das darf der
    Spieler am Tisch nicht wegpacken */
@@ -382,7 +393,7 @@ function vsWagenVon(w){ const P_=vsPlaetze[w.pp|0]; return P_&&P_.wagen; }
 function vsParken(pi,sofort,parent){
   const P_=vsPlaetze[pi], g=P_&&P_.wagen, T=parent||packTisch; if(!g||!T) return;
   if(g.parent!==T){ if(g.parent) g.parent.remove(g); T.add(g); }
-  const p=ppW(pi,WG_PARK.x,WG_PARK.z); g.position.set(p.x,0,p.z); g.rotation.set(0,ppRy(pi,WG_PARK.ry),0);
+  const K=vsPK(pi), p=ppW(pi,K.px,K.pz); g.position.set(p.x,0,p.z); g.rotation.set(0,ppRy(pi,K.pry),0);
   const u=g.userData; u.modus='park'; u.t=1; u.von=null;
   /* geparkt ist der Wagen ein Hindernis wie der Tisch */
   if(typeof packMov!=='undefined'&&packMov&&grabbed!==packMov) applyFootprint(packMov);
@@ -402,7 +413,7 @@ function vsWagenModus(g,m,pose){
 }
 function vsWagenZiel(w,g){
   const u=g.userData;
-  if(u.modus==='park') return {p:vsWelt(u.pp,WG_PARK.x,WG_PARK.z),ry:vsRy(u.pp,WG_PARK.ry)};
+  if(u.modus==='park') return {p:vsWelt(u.pp,vsPK(u.pp).px,vsPK(u.pp).pz),ry:vsRy(u.pp,vsPK(u.pp).pry)};
   if(u.modus==='stehen'&&u.pose) return u.pose;
   const ry=w.g.rotation.y;
   return {p:V(w.pos.x+Math.sin(ry)*WG_ABST,0,w.pos.z+Math.cos(ry)*WG_ABST),ry};
@@ -449,19 +460,67 @@ function vsFelderFuer(belegt,gr){
   for(let i=0;i<6;i++) if(!belegt[i]) return [i];
   return null;
 }
+/* Tourplanung (Tom 08.10.: "Es gibt kein Versand-Pickregal - der Packer pickt mit dem Rollwagen aus dem
+   gesamten Kartonlager und nimmt mehrere Bestellungen pro Tour, so effizient wie moeglich"):
+   - Anker ist die aelteste passende Bestellung, danach kommt jeweils die, deren Ware am dichtesten an
+     schon geplanten Stopps liegt (kein Weg, wenn dieselbe Quelle schon dabei ist)
+   - keine Bestellung bleibt liegen: wer dreimal uebergangen wurde, ist beim naechsten Mal der Anker
+   - VS_OPT.an=false ist die alte Reihenfolge (Eingang) - fuer den Vergleich im Test */
+const VS_OPT={an:true, fenster:60, geduld:3};
+function vsDist(a,b){ return Math.hypot(a.x-b.x,a.z-b.z); }
+/* Standpunkte der Quellen je Ware (Lager zuerst, Laden nur wenn im Lager nichts liegt), einmal je Planung */
+function vsPunkteVon(t,von,cache){
+  let c=cache[t]; if(c) return c;
+  const Q=vsQuellen(t), L=Q.filter(q=>q.lager), nutz=L.length?L:Q;
+  c=nutz.map(q=>({q,p:vsQuellPunkt(q,von).stand})); cache[t]=c; return c;
+}
+/* Mehrweg einer Bestellung: Summe der Wege von schon geplanten Punkten zur naechsten Quelle jeder Ware */
+function vsMehrweg(b,pts,von,cache){
+  let sum=0; const neu=[];
+  for(const l of b.pos){ if(l.n-l.g<=0) continue;
+    const Q=vsPunkteVon(l.t,von,cache); if(!Q.length) return 1e9;
+    const alle=pts.concat(neu); let best=1e9, bp=null;
+    for(const c of Q){ let d=1e9; for(const p of alle){ const dd=vsDist(p,c.p); if(dd<d) d=dd; } if(d<best){ best=d; bp=c.p; } }
+    if(best>0.6){ sum+=best; neu.push(bp); } }
+  return sum;
+}
 /* pi: Packplatz - jeder Karton braucht Material aus seinem Regal */
 function vsPlan(pi){
   pi=pi|0;
   const belegt=[null,null,null,null,null,null], auf=[], schon={}, mat={};
-  for(const b of S.bestellungen||[]){
-    if(b.st!=='offen') continue;
-    if(!vsErfuellbar(b,schon)) continue;
-    if(!vmReicht(pi,b.gr,mat)) continue;
-    const f=vsFelderFuer(belegt,b.gr); if(!f) continue;
+  const kand=(S.bestellungen||[]).filter(b=>b.st==='offen');
+  const taugt=b=>vsErfuellbar(b,schon)&&vmReicht(pi,b.gr,mat)&&!!vsFelderFuer(belegt,b.gr);
+  const nimm=b=>{
+    const f=vsFelderFuer(belegt,b.gr);
     f.forEach(i=>belegt[i]=b); auf.push({b,felder:f,pk:null});
     vmVormerken(b.gr,mat);
     for(const l of b.pos) schon[l.t]=(schon[l.t]||0)+Math.max(0,l.n-l.g);
-    if(belegt.every(Boolean)) break;
+    kand.splice(kand.indexOf(b),1); };
+  if(!VS_OPT.an){
+    for(const b of kand.slice()){ if(!taugt(b)) continue; nimm(b); if(belegt.every(Boolean)) break; }
+  } else {
+    const heim=vsWelt(pi,vsPK(pi).gx,vsPK(pi).gz), pts=[heim], cache={}, alt=kand.slice();
+    let maxIdx=-1;
+    while(kand.length&&!belegt.every(Boolean)){
+      let wahl=null;
+      if(!auf.length) wahl=kand.find(taugt)||null;                          /* Anker: die aelteste */
+      else {
+        wahl=kand.find(b=>(b.skip|0)>=VS_OPT.geduld&&taugt(b))||null;       /* zu lange liegengeblieben */
+        if(!wahl){ let bw=1e9, n=0;
+          for(const b of kand){ if(n>=VS_OPT.fenster) break; if(!taugt(b)) continue; n++;
+            const w=vsMehrweg(b,pts,heim,cache); if(w<bw-1e-6){ bw=w; wahl=b; } } }
+      }
+      if(!wahl) break;
+      maxIdx=Math.max(maxIdx,alt.indexOf(wahl));
+      /* seine Quellen zaehlen ab jetzt als "schon unterwegs" */
+      for(const l of wahl.pos){ if(l.n-l.g<=0) continue; const Q=vsPunkteVon(l.t,heim,cache); let best=1e9, bp=null;
+        for(const c of Q){ let d=1e9; for(const p of pts){ const dd=vsDist(p,c.p); if(dd<d) d=dd; } if(d<best){ best=d; bp=c.p; } }
+        if(bp) pts.push(bp); }
+      nimm(wahl);
+    }
+    /* uebergangene (aeltere als die zuletzt gewaehlte) Bestellungen werden ungeduldiger */
+    alt.forEach((b,i)=>{ if(i<maxIdx&&auf.every(a=>a.b!==b)&&b.st==='offen') b.skip=(b.skip|0)+1; });
+    auf.forEach(a=>{ a.b.skip=0; });
   }
   if(!auf.length) return null;
   return {auf,stops:[],runde:0};
@@ -479,21 +538,40 @@ function vsQuellPunkt(q,T){
   const mm=itemMatrix(lv.sh,lv,Math.max(0,lv.count-1),h?h.jit||0:0); mm.decompose(_vp,_vq,_vs);
   return {stand:shelfStand(lv.sh,lv),look:_vp.clone()};
 }
-function vsStopsBauen(need,von){
+/* 2-opt: Weg von "von" ueber alle Stopps und zurueck zu "ende" so lange verbessern, bis kein Tausch mehr kuerzt */
+function vsZweiOpt(L,von,ende){
+  if(L.length<3) return L;
+  const P=i=>i<0?von:i>=L.length?ende:L[i].stand;
+  let besser=true, n=0;
+  while(besser&&n++<40){ besser=false;
+    for(let i=0;i<L.length-1;i++) for(let j=i+1;j<L.length;j++){
+      const a=P(i-1), b=P(i), c=P(j), d=P(j+1);
+      if(vsDist(a,c)+vsDist(b,d)<vsDist(a,b)+vsDist(c,d)-1e-6){ const mid=L.slice(i,j+1).reverse(); L.splice(i,j-i+1,...mid); besser=true; } } }
+  return L;
+}
+function vsRouteLaenge(stops,von,ende){
+  let p=von, sum=0; for(const s of stops){ sum+=vsDist(p,s.stand); p=s.stand; } return sum+vsDist(p,ende||von);
+}
+function vsStopsBauen(need,von,ende){
+  ende=ende||von;
   const stops=[];
   for(const t in need){
     let n=need[t];
-    /* Lager vor Laden; ein Karton, der allein reicht, vor mehreren */
-    const Q=vsQuellen(t).sort((a,b)=>(b.lager-a.lager)||((b.n>=n)-(a.n>=n))||(a.n-b.n));
+    /* Lager vor Laden; ein Karton, der allein reicht, vor mehreren; dann der naechste am Weg */
+    const Q=vsQuellen(t).sort((a,b)=>(b.lager-a.lager)||((b.n>=n)-(a.n>=n))||(VS_OPT.an?0:(a.n-b.n)));
+    if(VS_OPT.an) Q.forEach(q=>{ q._pt=vsQuellPunkt(q,von); });
+    if(VS_OPT.an) Q.sort((a,b)=>(b.lager-a.lager)||((b.n>=n)-(a.n>=n))||(vsDist(a._pt.stand,von)-vsDist(b._pt.stand,von)));
     for(const q of Q){ if(n<=0) break; const k=Math.min(n,q.n); n-=k;
-      const pt=vsQuellPunkt(q,von); stops.push({kind:q.kind,ref:q.ref,t,k,done:0,stand:pt.stand,look:pt.look,lager:q.lager}); }
+      const pt=q._pt||vsQuellPunkt(q,von); stops.push({kind:q.kind,ref:q.ref,t,k,done:0,stand:pt.stand,look:pt.look,lager:q.lager}); }
   }
-  /* naechster Nachbar ab dem Tisch, Lager vor Laden */
+  /* naechster Nachbar ab dem Tisch, Lager vor Laden; danach 2-opt */
   const out=[]; let p=von;
   for(const lag of [true,false]){
-    const L=stops.filter(s=>s.lager===lag);
-    while(L.length){ let bi=0,bd=1e9; L.forEach((s,i)=>{ const d=Math.hypot(s.stand.x-p.x,s.stand.z-p.z); if(d<bd){ bd=d; bi=i; } });
-      const s=L.splice(bi,1)[0]; out.push(s); p=s.stand; }
+    const L=stops.filter(s=>s.lager===lag), start=p, ordnung=[];
+    while(L.length){ let bi=0,bd=1e9; L.forEach((s,i)=>{ const d=vsDist(s.stand,p); if(d<bd){ bd=d; bi=i; } });
+      const s=L.splice(bi,1)[0]; ordnung.push(s); p=s.stand; }
+    if(VS_OPT.an) vsZweiOpt(ordnung,start,ende);
+    ordnung.forEach(s=>out.push(s)); if(ordnung.length) p=ordnung[ordnung.length-1].stand;
   }
   return out;
 }
@@ -546,82 +624,10 @@ function vsBuchen(b,spieler){
   if(spieler){ addXP(3); sfx.cash(); toast(`Paket #${b.id} fertig: +${eur(w)}${porto?` · Porto ${eur(porto)}`:''}`,'money'); }
 }
 
-/* ---------------------------------------------------------
-   Palettenplatz jedes Pakets. Je Palette Lage fuer Lage, jede Lage nur
-   eine Groesse. Eine neue Lage kommt nur auf eine volle - sonst hing
-   ein grosses Paket halb ueber einer angefangenen Lage in der Luft.
-   Angefangene Lagen werden zuerst aufgefuellt.
-   --------------------------------------------------------- */
-function vsStapel(liste){
-  /* Je Palette die Lagen; eine Lage hat eine Groesse und belegt Plaetze
-     ihres Musters. Ein Platz zaehlt nur, wenn die Unterseite des Pakets
-     an allen neun Messpunkten auf Palette oder Paketen der Lage darunter
-     aufliegt. Erst wird eine angefangene Lage gleicher Groesse
-     aufgefuellt, dann eine neue Lage begonnen - auch auf einer
-     angefangenen Lage, soweit die Pakete darunter tragen. So stand die
-     Station frueher nach sieben Paketen "voll" da. */
-  const F=VS_FELD, st=F.map(()=>[]), out=[];
-  /* Paletten quer: Muster mit getauschtem x/z, die lange Paketkante in z */
-  const rect=(gr,x,z)=>{ const G=VS_GR[gr]; return {x0:x-G.x/2,x1:x+G.x/2,z0:z-G.z/2,z1:z+G.z/2}; };
-  const mpos=(gr,k)=>{ const o=VS_MUSTER[gr].pos(k); return {x:o.z,z:o.x}; };
-  const traegt=(f,lag,r)=>{
-    if(!lag) return true;
-    for(const u of [-0.85,0,0.85]) for(const v of [-0.85,0,0.85]){
-      const px=(r.x0+r.x1)/2+u*(r.x1-r.x0)/2, pz=(r.z0+r.z1)/2+v*(r.z1-r.z0)/2;
-      if(!lag.boxen.some(q=>px>=q.x0&&px<=q.x1&&pz>=q.z0&&pz<=q.z1)) return false; }
-    return true; };
-  const frei=(f,lag,unten,gr)=>{ const M=VS_MUSTER[gr], P0=F[f];
-    for(let k=0;k<M.n;k++){ if(lag&&lag.belegt[k]) continue; const o=mpos(gr,k), r=rect(gr,P0.x+o.x,P0.z+o.z);
-      if(traegt(f,unten,r)) return {k,r}; }
-    return null; };
-  for(let i=0;i<liste.length;i++){
-    const G=VS_GR[liste[i]]||VS_GR[1];
-    let fi=-1, lag=null, wahl=null;
-    /* 1. angefangene Lage gleicher Groesse */
-    for(let f=0;f<F.length&&fi<0;f++){ const L=st[f], top=L[L.length-1];
-      if(top&&top.gr===G.id){ const w=frei(f,top,L[L.length-2],G.id); if(w){ fi=f; lag=top; wahl=w; } } }
-    /* 2. neue Lage obendrauf */
-    for(let f=0;f<F.length&&fi<0;f++){ const L=st[f], top=L[L.length-1], H=top?top.y0+top.h:0;
-      if(H+G.h>VS_HMAX+1e-6) continue;
-      const w=frei(f,null,top,G.id); if(w){ fi=f; wahl=w; lag={gr:G.id,y0:H,h:G.h,belegt:{},boxen:[]}; L.push(lag); } }
-    if(fi<0){ out.push(null); continue; }
-    lag.belegt[wahl.k]=true; lag.boxen.push(wahl.r);
-    const P0=F[fi], o=mpos(G.id,wahl.k);
-    const j=Math.sin((i+1)*12.9898)*43758.5453, jr=j-Math.floor(j)-0.5;
-    out.push({x:P0.x+o.x+jr*0.004,y:PAL_H+lag.y0+G.h/2,z:P0.z+o.z-jr*0.006,ry:jr*0.016,gr:G.id,f:fi});
-  }
-  return out;
-}
-/* Wie viele Pakete einer Groesse auf die leeren Paletten passen */
-function vsKapazitaet(gr){ const G=VS_GR[gr||1]; return VS_FELD.length*VS_MUSTER[G.id].n*Math.floor((VS_HMAX+1e-6)/G.h); }
+/* Palettenplaetze, Stapeln, Zwischenabholung und Abholung stehen seit 07.10. in
+   11e-palette.js (jede Palette ist ein eigenes Objekt). Hier bleibt, was das
+   Band braucht: wie viele Pakete schon auf Paletten liegen. */
 function vsGelandet(){ return Math.max(0,(S.paketGr||[]).length-vsBahn.length); }
-function syncPakete(){
-  if(!packTisch||!S) return;
-  S.paketGr=Array.isArray(S.paketGr)?S.paketGr:[];
-  if((S.pakete|0)!==S.paketGr.length) vsAbgleich();
-  while(pakete.length){ const m=pakete.pop(); if(m.parent) m.parent.remove(m); }
-  const n=vsGelandet();
-  vsStapel(S.paketGr.slice(0,n)).forEach(p=>{ if(!p) return;
-    const m=vsPaketZu(p.gr); m.position.set(p.x,p.y,p.z); m.rotation.y=p.ry; packTisch.add(m); pakete.push(m); });
-}
-/* Paletten voll: DDL faehrt zwischendurch vor und nimmt mit, was liegt */
-function vsZwischenabholung(){
-  const n=vsGelandet(); if(n<=0) return 0;
-  S.paketGr.splice(0,n); S.pakete=S.paketGr.length; statAdd('ddl',n);
-  syncPakete(); drawPackSchild();
-  toast('Die Paletten waren voll - DDL hat zwischendurch abgeholt.');
-  return n;
-}
-/* Tagesende: DDL holt alles ab, auch was noch auf dem Band laeuft */
-function ddlAbholung(){
-  vsBahn.forEach(e=>{ if(e.m.parent) e.m.parent.remove(e.m); }); vsBahn.length=0;
-  vsPortalRuhe();
-  S.paketGr=Array.isArray(S.paketGr)?S.paketGr:[];
-  const n=S.paketGr.length; if(n<=0){ S.pakete=0; return 0; }
-  statAdd('ddl',n);
-  S.paketGr=[]; S.pakete=0; syncPakete(); drawPackSchild();
-  return n;
-}
 
 /* ---------------------------------------------------------
    Band: vom Tisch eben aufs Band geschoben, dann bis zum Endanschlag
@@ -630,7 +636,7 @@ function ddlAbholung(){
    --------------------------------------------------------- */
 function vsLaenge(e){ return VS_GR[e.gr].z; }
 function vsAufDieBahn(pi,m,gr){
-  S.paketGr.push(gr); S.pakete=S.paketGr.length;
+  S.paketGr.push(gr); S.paketP.push(-1); S.pakete=S.paketGr.length;
   vsBahn.push({m,gr,pp:pi,phase:'warten',t:0,x:VS_PP[pi].x});
   drawPackSchild();
 }
@@ -713,8 +719,8 @@ function vsPortalUpdate(dt){
       P_.t+=dt/0.25; if(P_.t<1) break;
       /* Platz auf der Palette; alles voll: DDL kommt zwischendurch */
       /* e liegt noch auf dem Band und zaehlt nicht zu den gelandeten */
-      let liste=S.paketGr.slice(0,vsGelandet()).concat([e.gr]), pl=vsStapel(liste)[liste.length-1];
-      if(!pl){ vsZwischenabholung(); liste=S.paketGr.slice(0,vsGelandet()).concat([e.gr]); pl=vsStapel(liste)[liste.length-1]; }
+      let pl=vsPalZiel(e.gr);
+      if(!pl){ vsZwischenabholung(); pl=vsPalZiel(e.gr); }
       if(!pl){ P_.t=0; break; }
       e.phase='greifer'; e.amBand=true; P_.ziel=pl;
       const G=VS_GR[e.gr]; vsPortalFahrt({x:P_.x,y:VS_YFREI+G.h,z:P_.z},'heben'); break; }
@@ -731,8 +737,8 @@ function vsPortalUpdate(dt){
          hinter die schon gelandeten, damit der Stapel beim naechsten
          Aufbau gleich aussieht */
       const i=vsBahn.indexOf(e); if(i>=0) vsBahn.splice(i,1);
-      const n=vsGelandet(), L=S.paketGr, j=L.indexOf(e.gr,n-1);
-      if(j>=n-1&&j>=0){ L.splice(j,1); L.splice(n-1,0,e.gr); }
+      const n=vsGelandet(), L=S.paketGr, PP=S.paketP, j=L.indexOf(e.gr,n-1);
+      if(j>=n-1&&j>=0){ L.splice(j,1); PP.splice(j,1); L.splice(n-1,0,e.gr); PP.splice(n-1,0,P_.ziel?P_.ziel.p:-1); }
       if(e.m.parent) e.m.parent.remove(e.m);
       syncPakete(); if(typeof sfx!=='undefined'&&sfx.thump) sfx.thump(0.22);
       P_.e=null; P_.ziel=null; vsPortalFahrt({x:P_.x,y:VS_YFREI+0.45,z:P_.z},'ruhe'); P_.zurueck=false;
@@ -874,9 +880,9 @@ function packOne(auto){
   const pi=vmPlatzMit(b.gr);
   if(!vsEntnehmen(b)) return false;
   vmVerbrauchen(pi,b.gr);
-  if(!vsStapel(S.paketGr.concat([b.gr]))[S.paketGr.length]) vsZwischenabholung();
+  let pz=vsPalZiel(b.gr); if(!pz){ vsZwischenabholung(); pz=vsPalZiel(b.gr); }
   vsBuchen(b,!auto);
-  S.paketGr.push(b.gr); S.pakete=S.paketGr.length;
+  S.paketGr.splice(vsGelandet(),0,b.gr); S.paketP.splice(vsGelandet()-1,0,pz?pz.p:-1); S.pakete=S.paketGr.length;
   syncPakete(); drawPackSchild();
   return true;
 }
@@ -907,7 +913,7 @@ function vsDrehen(w,ry,dt){
   w.g.rotation.y+=df*Math.min(1,dt*7); return Math.abs(df)<0.12;
 }
 function vsBlick(w,p,dt){ return vsDrehen(w,Math.atan2(p.x-w.pos.x,p.z-w.pos.z),dt); }
-function vsHeim(w){ return vsWelt(w.pp,VS_HEIM.x,VS_HEIM.z); }
+function vsHeim(w){ return vsWelt(w.pp,vsPK(w.pp).hx,vsPK(w.pp).hz); }
 function vsLoop(w,dt){
   w.pp=vsPlatzVon(w);
   const g=vsWagenVon(w);
@@ -920,6 +926,9 @@ function vsLoop(w,dt){
      Bild hinterher und in Kurven rutschten die Haende vom Buegel */
   vsWagenUpdate(w,dt);
 }
+/* Ostende der Gasse vor den Tischen (Stationskoordinaten): hier faedelt der Wagen ein und aus */
+const VS_GASSE={x:4.6,z:1.6};
+function vsGassePunkt(){ const q=localToWorld(packTisch,VS_GASSE.x,VS_GASSE.z); return V(q.x,0,q.z); }
 function vsLoopZustand(w,dt,wf,tour,g){
   const pi=w.pp, P_=vsPlaetze[pi];
   switch(w.vs){
@@ -940,7 +949,7 @@ function vsLoopZustand(w,dt,wf,tour,g){
     case 'aufbauen': {
       /* fuer jede Bestellung einen Karton aus dem Regal nehmen, auf dem
          Wagen aufstellen, Klappen offen */
-      vsBlick(w,vsWelt(pi,WG_PARK.x,WG_PARK.z),dt);
+      vsBlick(w,vsWelt(pi,vsPK(pi).px,vsPK(pi).pz),dt);
       w.t-=dt*wf; if(w.t>0) break;
       const a=tour.auf[w.k];
       if(a){
@@ -951,23 +960,26 @@ function vsLoopZustand(w,dt,wf,tour,g){
         g.add(pk); a.pk=pk; w.k++; w.t=0.32; sfx.pop(); break; }
       if(!tour.auf.length){ w.tour=null; w.vs='bereit'; w.t=0.5; break; }
       /* Wege erst jetzt planen: die Ware kann sich bewegt haben */
-      tour.stops=vsStopsBauen(vsBedarf(tour),vsWelt(pi,WG_GRIFF.x,WG_GRIFF.z)); tour.si=0;
+      tour.stops=vsStopsBauen(vsBedarf(tour),vsWelt(pi,vsPK(pi).gx,vsPK(pi).gz)); tour.si=0;
       w.vs='ankoppeln'; break; }
     case 'ankoppeln': {
-      if(!vsGehen(w,vsWelt(pi,WG_GRIFF.x,WG_GRIFF.z),dt)&&!vsNotfalls(w,vsWelt(pi,WG_GRIFF.x,WG_GRIFF.z))) break;
-      if(!vsDrehen(w,vsRy(pi,WG_PARK.ry),dt)) break;
+      if(!vsGehen(w,vsWelt(pi,vsPK(pi).gx,vsPK(pi).gz),dt)&&!vsNotfalls(w,vsWelt(pi,vsPK(pi).gx,vsPK(pi).gz))) break;
+      if(!vsDrehen(w,vsRy(pi,vsPK(pi).pry),dt)) break;
       vsWagenModus(g,'schieben'); w.vs='fahren'; break; }
     case 'fahren': {
       const s=tour.stops[tour.si];
       if(!s){ vsNachplanen(w); break; }
       w.src=s.kind==='rack'?{slot:s.ref}:s.kind==='floor'?{box:s.ref}:null;
-      if(!vsWagenFertig(g)) { vsBlick(w,s.stand,dt); break; }
+      if(!vsWagenFertig(g)) { vsBlick(w,vsPK(pi).fl&&tour&&!tour.gasse?vsGassePunkt():s.stand,dt); break; }
+      /* erst durch die Gasse vor der Tischreihe zum Ostende (Waypoint): sonst schneidet der Wagen beim Anfahren die Tischecke */
+      if(vsPK(pi).fl&&tour&&!tour.gasse){ const Gp=vsGassePunkt();
+        if(!vsGehen(w,Gp,dt)&&!vsNotfalls(w,Gp)&&w.pos.distanceTo(Gp)>0.8) break; tour.gasse=true; }
       if(!vsGehen(w,s.stand,dt)){
         /* der Stand ist nicht (mehr) erreichbar - etwa weil ein Regal
            umgestellt wurde: diese Stelle auslassen, nachgeplant wird am Ende */
         if(w.vsWeg){ w.vsWeg=null; w.vsZiel=null; tour.si++; w.src=null; }
         break; }
-      const nx=tour.stops[tour.si+1], weiter=nx?nx.stand:vsWelt(pi,WG_GRIFF.x,WG_GRIFF.z);
+      const nx=tour.stops[tour.si+1], weiter=nx?nx.stand:vsWelt(pi,vsPK(pi).gx,vsPK(pi).gz);
       vsWagenModus(g,'stehen',vsWagenStand(w.pos,s.look,weiter)); w.vs='greifen'; w.t=0.3; break; }
     case 'greifen': {
       const s=tour.stops[tour.si];
@@ -990,8 +1002,11 @@ function vsLoopZustand(w,dt,wf,tour,g){
       /* kurz vor dem Tisch rollt der Wagen auf seinen Platz, der
          Mitarbeiter geht allein weiter - vorher drehte er sich mit dem
          Wagen am Griffpunkt und schwenkte ihn quer durch den Tisch */
-      const G=vsWelt(pi,WG_GRIFF.x,WG_GRIFF.z);
-      if(w.pos.distanceTo(G)<1.4){ vsWagenModus(g,'park'); w.vs='parken'; break; }
+      const G=vsWelt(pi,vsPK(pi).gx,vsPK(pi).gz);
+      if(vsPK(pi).fl&&w.tour&&!w.tour.gasseZu&&w.pos.distanceTo(G)>3.5){ const Gp=vsGassePunkt();
+        if(w.pos.distanceTo(Gp)>0.9){ if(!vsGehen(w,Gp,dt)) vsNotfalls(w,Gp); break; } w.tour.gasseZu=true; }
+      const A=vsWelt(pi,vsPK(pi).ax,vsPK(pi).az);
+      if(w.pos.distanceTo(A)<1.4||w.pos.distanceTo(G)<1.4){ vsWagenModus(g,'park'); w.vs='parken'; break; }
       if(!vsGehen(w,G,dt)) vsNotfalls(w,G); break; }
     case 'parken': {
       if(!vsGehen(w,vsHeim(w),dt)&&!vsNotfalls(w,vsHeim(w))) break;
@@ -1027,7 +1042,7 @@ function vsNachplanen(w){
   const need=vsBedarf(tour);
   if(Object.keys(need).length&&tour.runde<2){
     tour.runde++;
-    const neu=vsStopsBauen(need,w.pos).filter(s=>s.k>0);
+    const neu=vsStopsBauen(need,w.pos,vsWelt(w.pp,vsPK(w.pp).gx,vsPK(w.pp).gz)).filter(s=>s.k>0);
     if(neu.length){ tour.stops=tour.stops.concat(neu); return; }
   }
   w.vs='zurueck';
@@ -1132,6 +1147,7 @@ function vsLaden(){
   S.paketGr=(Array.isArray(S.paketGr)?S.paketGr:[]).map(g=>[1,3,6].indexOf(g)>=0?g:1).slice(0,300);
   if(!S.paketGr.length&&(S.pakete|0)>0) for(let i=0;i<Math.min(300,S.pakete|0);i++) S.paketGr.push(1);
   S.pakete=S.paketGr.length;
+  if(typeof vsPalLaden==='function') vsPalLaden();
   vsCfg();
   /* alter Spielstand kannte nur eine Zahl: vsAbgleich gibt ihr Inhalt */
   if(S.bestellungen.length||!(S.offen|0)) S.offen=S.bestellungen.length;

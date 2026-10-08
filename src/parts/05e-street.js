@@ -1544,11 +1544,15 @@ function makeBaum(){
   const V3=THREE.Vector3, Q=THREE.Quaternion, UP=new V3(0,1,0);
   /* Parameter je Astordnung: 0 Stamm, 1 Hauptaeste, 2 Seitenaeste,
      3 Zweige, 4 Feinreisig (nur HIQ) */
-  const L=HIQ?4:3;
+  /* 08.10.: gemessen 17000 Dreiecke je Baum, 14 Baeume im Bild (Park, Strasse) = knapp ein Viertel aller
+     Dreiecke der Gameplay-Vorfuehrung. Niedrig und Ultra Low bekommen gröbere Baeume (weniger Astordnungen
+     und Segmente), die Krone bleibt erkennbar. */
+  const HQ=HIQ&&!gfxNiedrig(GFX), UL=GFX==='ultralow';
+  const L=HQ?4:UL?2:3;
   const P={
     kinder:[7,4,4,3], winkel:[52,42,38,34], start:[0.40,0.25,0.2,0.25],
     laenge:[4.2,3.0,1.4,0.62,0.3], radius:[0.25,0.5,0.5,0.52,0.55],
-    ringe:[12,8,5,3,2], seg:[HIQ?14:9,HIQ?9:6,6,4,3], verj:[0.72,0.8,0.82,0.88,0.92],
+    ringe:[12,8,5,3,2], seg:[HQ?14:UL?6:9,HQ?9:UL?4:6,UL?4:6,4,3], verj:[0.72,0.8,0.82,0.88,0.92],
     krumm:[0.035,0.13,0.2,0.26,0.3], auf:[0,0.018,0.014,0.01,0.006]
   };
   const pos=[], nor=[], uv=[], sch=[], idx=[];

@@ -881,7 +881,9 @@ const ENTFERNT=['fontaene50','fontaene30','silberkaskade','feuerkaskade','jugend
   /* 07.10. (Toms Test V117 in der Vorfuehrung): Vollmond ("unnatuerlich"),
      Lagune ("das Produkt kannst du komplett wegmachen"), Gletscher,
      Kaleidoskop, Sterntor, Legion, Finale Grande, Kugel 300 Kronenregen */
-  'lb_vollmond','lb_lagune','lb_gletscher','sternenkaiser','sternentor','legion','kugelfinale','kronenregen300'];
+  'lb_vollmond','lb_lagune','lb_gletscher','sternenkaiser','sternentor','legion','kugelfinale','kronenregen300',
+  /* 07.10. (Tom, Gameplay-Vorfuehrung): "Eiswuerfel raus - keine Gefriertruhe, im Kuehlschrank macht das keinen Sinn" */
+  'eiswuerfel'];
 /* Ersatz fuer alte Spielstaende: jede gestrichene Sorte wird beim Laden
    zur naechsten verbliebenen - gleiche Kategorie, moeglichst gleiche Form,
    Level und Preis am naechsten (18-save.js, SORTE_NEU). Sonst stuende

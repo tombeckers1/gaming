@@ -313,7 +313,7 @@ const FLASH=[];
 let flashAn=true, flashRuhe=0;
 function flashSchalten(an){ if(flashAn===an) return; flashAn=an; for(const f of FLASH) f.l.visible=an; }
 function initFlash(){
-  for(let i=0;i<(COARSE?2:4);i++){ const l=new THREE.PointLight(0xffffff,0,95,1); scene.add(l); FLASH.push({l,t:0,d:0.6,max:0}); }
+  for(let i=0;i<(GFX==='ultralow'?1:COARSE?2:4);i++){ const l=new THREE.PointLight(0xffffff,0,95,1); scene.add(l); FLASH.push({l,t:0,d:0.6,max:0}); }
   flashSchalten(false);
 }
 /* beide Lichtzustaende vorab uebersetzen - in das Ziel, in das auch

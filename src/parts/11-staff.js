@@ -46,7 +46,7 @@ function sbKassiererPlatz(i){ return sbHelferPlatz(i); }
 function packerPlatz(id){
   if(typeof packTisch==='undefined'||!packTisch) return {p:IDLE.packer,ry:-Math.PI/2};
   const i=id==='packer3'?2:id==='packer2'?1:0;
-  return {p:vsWelt(i,VS_HEIM.x,VS_HEIM.z),ry:vsRy(i,Math.PI)};
+  return {p:vsWelt(i,vsPK(i).hx,vsPK(i).hz),ry:vsRy(i,Math.PI)};
 }
 const IDLE={kassierer2:V(10.6,0,6.3),reinigung:V(-6.6,0,4.2),auffueller:V(-7.0,0,1.0),auffueller2:V(-7.0,0,-0.4),kassierer:V(0,0,0),security:V(1.4,0,4.6),packer:V(-16.3,0,3.4)};
 const PRIO={lkw:'LKW zuerst',regal:'Regale zuerst'};

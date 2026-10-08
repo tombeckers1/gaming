@@ -27,9 +27,8 @@ const GP_ORTE=[
   ['Kassen',        6.0, 5.4, 1.0, -0.2],
   ['Halle Süd',    22.0,-8.0, Math.PI*0.95, -0.10],
   ['Lager',       -10.5, 1.0, Math.PI*0.62, -0.10],
-  /* 05.10.: schraeg von Nordosten auf die Versandstrasse - drei Packplaetze,
-     Band und Palettierstation in einem Blick */
-  ['Versand',     -10.9,-6.3, 1.03, -0.16],
+  /* 07.10.: die Versandecke steht am Hallenende hinter Sued 3 (Tor V1) - Blick von vorn in die Ecke */
+  ['Versand',     -13.0,-19.0, 0.1, -0.1],
   ['Logistik',    -30.0,-16.0, Math.PI*0.62, -0.05],
   ['Testfeld',      0.3,-8.5, 0, 0.05]
 ];
@@ -63,7 +62,7 @@ function gpHochladen(pl){
       if(GP_KLEIN.frei) tx.onUpdate=gpBildFrei;
       try{ if(renderer&&renderer.initTexture) renderer.initTexture(tx); }catch(e){} } } }
 }
-let gpBau=null, gpFertig=false, gpBauEl=null;
+let gpBau=null, gpFertig=false, gpBauEl=null, gpWarteDdl=0;
 function gpStart(){
   if(gpAn||!S) return;
   try{ save(); localStorage.setItem(GP_KEY,localStorage.getItem(KEY)||''); }catch(e){}
@@ -259,7 +258,7 @@ function* gpAufbau(){
   gpTagAlt=S.day; gpVerlauf=[{tag:S.day,geld:S.money}]; gpGestern=null;
   if(phase==='closed'){ if(typeof ruhetag==='function'&&ruhetag()) ruhetagBeenden(); else openShop(); }
   gpSpringe(0);
-  if(!HIQ) yield* gpStatisch();
+  if(!HIQ||gfxNiedrig(GFX)) yield* gpStatisch();
   gpFertig=true;
   gpPanel(); gpZeichnen(); requestAnimationFrame(gpFpsLauf);
   toast('Gameplay-Vorführung: alles gebaut, Personal da, der Laden läuft. Tasten 1–7 springen in die Bereiche, T Zeitraffer, B beendet.','money');
@@ -319,7 +318,8 @@ function gpTick(dt){
     /* Bilanz des Tages fuer den Verlauf merken, dann "Naechster Tag" */
     if(!gpGestern||gpGestern.tag!==S.day) gpGestern={tag:S.day,umsatz:DS.revenue,kunden:DS.customers};
     const b=$('sBtn'); if(b&&b.onclick) b.onclick(); else closeSummary(); return; }
-  if(phase==='after'){ endDay(); return; }
+  /* DDL fuehrt die Abholung zu Ende (LKW, Tor, Mitarbeiter am Hubwagen), dann Tagesabschluss */
+  if(phase==='after'){ if(typeof ddlLaeuft==='function'&&ddlLaeuft()&&gpWarteDdl<240){ gpWarteDdl+=dt; return; } gpWarteDdl=0; endDay(); return; }
   if(phase==='closed'){ if(typeof ruhetag==='function'&&ruhetag()) ruhetagBeenden(); else openShop(); }
   if(S.day!==gpTagAlt){ gpTagAlt=S.day; gpVerlauf.push({tag:S.day,geld:S.money}); if(gpVerlauf.length>14) gpVerlauf.shift(); gpBestellen(); }
   gpUhr-=dt; if(gpUhr<=0){ gpUhr=0.5; gpZeichnen(); }

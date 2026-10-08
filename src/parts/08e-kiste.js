@@ -35,6 +35,7 @@ function kisteKap(t){ return Math.max(1,(P[t]&&P[t].box)|0); }
 /* Taste X / Knopf: leere Kiste nehmen oder wegstellen, volle umschalten */
 function kisteTaste(){
   if(!S) return;
+  if(typeof hubAn==='function'&&hubAn()){ toast('Beide Hände am Hubwagen.','bad'); return; }
   if(S.kisteHand){ S.kisteHand=false; S.kisten=(S.kisten|0)+1; sfx.pop(); toast(`Leere Kiste weggestellt (${S.kisten} im Vorrat).`); updateCarry(); return; }
   const c=S.carrying;
   if(c&&c.kiste){ c.raus=!c.raus; sfx.pop(); toast(c.raus?'Kiste: ausräumen – Aktion nimmt Ware aus dem Fach.':'Kiste: einräumen – Aktion legt Ware ins Fach.'); updateCarry(); return; }

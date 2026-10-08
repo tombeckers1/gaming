@@ -25,7 +25,7 @@ function wrapTex(circ,hh,a,draw){
    einem Probeaufbau ohne Druckbilder bestimmt). Am PC bleibt alles.
    Zum Messen: window.__wareSpar=true/false erzwingt den Handy-Aufbau. */
 const _SPAR_GEO={Cylinder:1, Cone:1, Sphere:1, Torus:1, Circle:1, Ring:1, Lathe:1, Icosahedron:1, Tube:1, Extrude:1, Plane:1};
-function wareSpar(){ try{ if(typeof window!=='undefined'&&window.__wareSpar!==undefined) return !!window.__wareSpar; }catch(e){} return typeof HIQ!=='undefined'&&!HIQ; }
+function wareSpar(){ try{ if(typeof window!=='undefined'&&window.__wareSpar!==undefined) return !!window.__wareSpar; }catch(e){} return (typeof GFX!=='undefined'&&GFX==='ultralow')||(typeof HIQ!=='undefined'&&!HIQ); }
 function sparSeg(n,min){ return n===undefined?n:Math.max(min,Math.round(n*(n>12?0.4:0.5))); }
 /* waehrend eines sparsamen Aufbaus true: die Formen (04g) nehmen dann auch
    fuer ihre eigenen Gitter (Beutel, Schalen, Profile) weniger Unterteilungen */

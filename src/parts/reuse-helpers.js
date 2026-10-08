@@ -11,7 +11,15 @@ const HIQ=!COARSE;
    'niedrig', gewaehlt im Pausenmenue, oder 'auto': startet mit der zuletzt
    automatisch gefundenen Stufe und schaltet herunter, wenn die Bildrate
    laenger unter 28 faellt (20-loop, gfxMessen). */
-const GFX_STUFEN=['niedrig','mittel','hoch','max','ultra','extrem'];
+/* 07.10. (Tom: auf "Niedrig" nur 10-11 Bilder/s am schwachen PC): darunter gibt es "Ultra Low" -
+   alles aufs Minimum, nur Zahlen und Verzicht: halbe Aufloesung, keine Schattenkarte (auch nicht im
+   Shader), nur ein Innenlicht, einfache Materialien (Lambert statt PBR), kurze Sichtweite, keine
+   Stadt, wenig Funken. Schatten und Materialien stehen beim Laden fest - ein Wechsel von und nach
+   Ultra Low laedt das Spiel neu. */
+const GFX_STUFEN=['ultralow','niedrig','mittel','hoch','max','ultra','extrem'];
+/* Rang ohne Ultra Low: niedrig=0, mittel=1, hoch=2, max=3 ... (so zaehlten die Vergleiche vorher) */
+function gfxRang(st){ return GFX_STUFEN.indexOf(st)-1; }
+const gfxNiedrig=st=>st==='niedrig'||st==='ultralow';
 /* 03.10. (Tom: "Maximum, dann noch Ultra und Ultra Extrem - was ist
    moeglich"): drei Stufen ueber Hoch, nur von Hand waehlbar (die
    Automatik bleibt bei hoechstens Hoch). Je Stufe: Pixeldichte (px:
@@ -22,13 +30,14 @@ const GFX_STUFEN=['niedrig','mittel','hoch','max','ultra','extrem'];
    Texturen und Funkenpuffer entstehen beim Laden - dafuer zaehlt die
    beim Start gewaehlte Stufe. */
 const GFX_PROFIL={
+  ultralow:{px:0,pxMax:0.5,ms:0,sch:256,rad:1,tex:0.5,cap:512,ani:1,qual:0.25,blur:4},
   niedrig:{px:0,pxMax:0.75,ms:0,sch:512,rad:1.2,tex:1,cap:1120,ani:4,qual:0.55,blur:4},
   mittel:{px:0,pxMax:1,ms:2,sch:1024,rad:1.2,tex:1,cap:1120,ani:4,qual:0.8,blur:4},
   hoch:{px:0,pxMax:2,ms:4,sch:2048,rad:2.2,tex:1,cap:1120,ani:4,qual:1,blur:4},
   max:{px:1.5,pxMax:2,ms:8,sch:4096,rad:2.6,tex:1.5,cap:1700,ani:8,qual:1.25,blur:3},
   ultra:{px:2,pxMax:2.5,ms:8,sch:4096,rad:3,tex:2,cap:2300,ani:16,qual:1.5,blur:2},
   extrem:{px:2.5,pxMax:3,ms:16,sch:8192,rad:3.2,tex:2.5,cap:3000,ani:16,qual:1.9,blur:2}};
-const GFX_NAME={niedrig:'Niedrig',mittel:'Mittel',hoch:'Hoch',max:'Maximum',ultra:'Ultra',extrem:'Ultra Extrem'};
+const GFX_NAME={ultralow:'Ultra Low',niedrig:'Niedrig',mittel:'Mittel',hoch:'Hoch',max:'Maximum',ultra:'Ultra',extrem:'Ultra Extrem'};
 let GFX_WAHL='auto', GFX='hoch';
 try{ GFX_WAHL=localStorage.getItem('bb_gfx')||'auto'; GFX=GFX_WAHL==='auto'?(localStorage.getItem('bb_gfx_auto')||'hoch'):GFX_WAHL; }catch(e){}
 if(GFX_WAHL!=='auto'&&GFX_STUFEN.indexOf(GFX_WAHL)<0) GFX_WAHL='auto';
@@ -39,6 +48,13 @@ const GFX_QUAL={}; for(const k in GFX_PROFIL) GFX_QUAL[k]=GFX_PROFIL[k].qual;
 const GFX_START=GFX_PROFIL[GFX]||GFX_PROFIL.hoch;
 if(COARSE) document.body.classList.add('coarse');
 const KEY='boellerbude_v3';
+/* Ultra Low: einfache Materialien. Lambert statt PBR - ohne Glanz, Relief und Umgebungsbild; Farbe,
+   Bild, Leuchtfarbe, Transparenz und Vertexfarben bleiben. */
+if(GFX==='ultralow'&&THREE.MeshLambertMaterial&&!THREE.__lambertStd){
+  const WEG=['roughness','metalness','roughnessMap','metalnessMap','bumpMap','bumpScale','normalMap','normalScale','envMapIntensity','displacementMap','displacementScale','displacementBias','flatShading','clearcoat','clearcoatRoughness','transmission','thickness','ior','sheen'];
+  THREE.__lambertStd=true;
+  THREE.MeshStandardMaterial=function(o){ const q=Object.assign({},o||{}); for(const k of WEG) delete q[k]; return new THREE.MeshLambertMaterial(q); };
+}
 const LIN=h=>new THREE.Color(h).convertSRGBToLinear();
 function std(hex,o){ const m=new THREE.MeshStandardMaterial(Object.assign({roughness:0.85,metalness:0},o||{})); m.color=LIN(hex); return m; }
 /* Canvas-Speicher (03.10., Tom, iPhone: im Testraum blieben ganze Regale

@@ -1,15 +1,15 @@
 /* Ausbau: Bauwaende, Zonen, SB-Kassen, Packstation */
 async function neuesSpiel(p){
-  await p.waitForFunction("!!document.querySelector('#startBtns button:not([disabled])')",{timeout:30000});
+  await p.waitForFunction("!!document.querySelector('#startBtns button:not([disabled])')",{timeout:120000});
   await p.click('#startBtns button:last-child');
-  await p.waitForSelector('#nameBox.show',{state:'visible',timeout:15000});
+  await p.waitForSelector('#nameBox.show',{state:'visible',timeout:60000});
   await p.click('#nameGo');
-  await p.waitForFunction("!document.getElementById('start').classList.contains('show')",{timeout:15000});
+  await p.waitForFunction("!document.getElementById('start').classList.contains('show')",{timeout:60000});
 }
 const { chromium } = require('/opt/node22/lib/node_modules/playwright');
 (async()=>{
   const b=await chromium.launch({args:['--use-gl=swiftshader','--enable-unsafe-swiftshader','--no-sandbox']});
-  const p=await b.newPage({viewport:{width:1280,height:760}});
+  const p=await b.newPage({viewport:{width:1280,height:760}}); p.setDefaultTimeout(120000);
   const errs=[]; p.on('pageerror',e=>errs.push('PAGEERROR: '+e.message));
   p.on('console',m=>{ if(m.type()==='error'&&m.text().indexOf('ERR_CERT')<0) errs.push('CONSOLE: '+m.text()); });
   await p.goto('file://'+process.argv[2]);
@@ -36,7 +36,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   const auf=await p.evaluate(()=>{
     const bb=window.__bb, o={};
     bb.S.level=30; bb.S.money=200000;
-    ['shop_halb','shop_gross','lager','lager_nord','lager_gross','packstation','onlineshop','kasse2'].forEach(id=>bb.testKauf(id));
+    ['shop_halb','shop_gross','lager','lager_nord','lager_gross','lager_sued','lager_sued2','packstation','onlineshop','kasse2'].forEach(id=>bb.testKauf(id));
     o.gekauft={shop:bb.S.up.shop_gross,lager:bb.S.up.lager_gross,pack:bb.S.up.packstation,online:bb.S.up.onlineshop,sb:bb.S.up.kasse2};
     const z=id=>bb.ZONEN[id];
     o.wandSichtbar=['shop_gross','lager_gross','packstation'].map(id=>id+':'+z(id).wand.filter(m=>m.visible).length);

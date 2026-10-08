@@ -160,6 +160,7 @@ function buildWorld(){
      Verkaufsraums - das Lager ist hoeher. Und der Anbau nach Norden
      bekommt jetzt auch welche, er gehoert zum selben Raum. */
   for(const x of [-17.95,-15.3,-12.7,-10.05]) for(const z of [-4,0,4]) leuchten.push([x,LAGER_H,z]);
+  for(const [x,hy,z] of leuchten) LAMPEN.push({x,y:hy,z,id:null});
   for(const [x,hy,z] of leuchten){
     bbox(1.44,0.03,0.42,rev,x,hy-0.008,z,null,false);          // Schattenfuge
     bbox(1.36,0.028,0.36,fixM,x,hy-0.026,z,null,false);        // Rahmen

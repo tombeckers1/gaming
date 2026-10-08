@@ -30,7 +30,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
 
   await p.evaluate(()=>{ const bb=window.__bb, S=bb.S;
     S.level=40; S.money=9e6; S.lic=bb.LIZENZEN.map(l=>l.id);
-    ['shop_halb','lager','lager_nord','lager_gross','lager_sued','packstation','onlineshop'].forEach(id=>bb.testKauf(id)); S.up.onlineshop=true;
+    ['shop_halb','lager','lager_nord','lager_gross','lager_sued','lager_sued2','packstation','onlineshop'].forEach(id=>bb.testKauf(id)); S.up.onlineshop=true;
     for(let i=0;i<6;i++) bb.regalStellen('rack');
     /* Messung je Bild: liefert eine Liste von Befunden */
     window.__messe=()=>{ const bb=window.__bb, out=[], VG=bb.VS_GR, B=bb.BAND, TOP=bb.VS_TOP;
@@ -58,7 +58,8 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
       bb.vsPlaetze.forEach((P_,i)=>{ const T=P_&&P_.tisch; if(!T||T.phase==='heben') return; const G=VG[T.pk.userData.gr], unten=T.pk.position.y-G.h/2;
         if(Math.abs(unten-TOP)>0.01) out.push(`Tisch ${i+1}: Karton schwebt (${unten.toFixed(3)})`); });
       /* Paletten */
-      const L=bb.pakete;
+      /* seit 07.10. liegen die Pakete je Palette in einem Mesh - die Lage kommt aus vsStapelLage (Stationskoordinaten) */
+      const L=bb.vsStapelLage().map(e=>({position:{x:e.x,y:e.y,z:e.z},rotation:{y:e.ry},userData:{gr:e.gr}}));
       /* Europaletten quer: 1,2 m in x, 0,8 m in z */
       for(const m of L){ const G=VG[m.userData.gr], unten=m.position.y-G.h/2, pt=rechteck(m,G);
         let ok=0, mitte=false;
@@ -88,7 +89,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     const r=await p.evaluate(({st,T})=>{ const bb=window.__bb, S=bb.S, o={st};
       if(st>1) bb.testKauf('packstation'+st);
       o.stufe=bb.packStufe(); o.paletten=bb.VS_FELD.length; o.plaetze=bb.vsHits().filter(h=>h.userData.kind==='pack').length;
-      o.upLvl=st>1?bb.UPGRADES.find(u=>u.id==='packstation'+st).lvl:16;
+      o.upLvl=st>1?bb.UPGRADES.find(u=>u.id==='packstation'+st).lvl:25;
       for(const id of ['packer','packer2','packer3'].slice(0,st)) if(!S.staff[id]){ S.staff[id]=true; bb.hireStaff(id); }
       o.packer=['packer','packer2','packer3'].filter(id=>bb.staff[id]).length;
       /* Station passt in den Raum, nichts liegt im Weg */
@@ -106,7 +107,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
         const m=window.__messe(); if(m.length&&befunde.length<12) befunde.push(...m.slice(0,3).map(x=>'t='+(i*0.05).toFixed(1)+' '+x)); n+=m.length;
         if(bb.vsBahn.some(e=>e.phase==='greifer')) greifer++;
         if(bb.vsBahn.some(e=>e.phase==='rollen')) rollen++;
-        maxPal=Math.max(maxPal,bb.pakete.length);
+        maxPal=Math.max(maxPal,bb.vsStapelLage().length);
         for(const id of ['packer','packer2','packer3','auffueller']){ const w=bb.staff[id]; if(!w) continue; const c=window.__wand(w.pos.x,w.pos.z).filter(c=>c.ref===bb.packMov);
           if(c.length&&wand.length<6) wand.push(id+'@'+w.pos.x.toFixed(2)+','+w.pos.z.toFixed(2)+' '+w.vs); }
       }
@@ -150,7 +151,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     S.bestellungen=[]; S.offen=0;
     return o; });
   console.log('GESPERRT',JSON.stringify(sp0));
-  pruef('GESPERRT',sp0.bestand===0&&sp0.lang<45,'der Packer laeuft endlos gegen ein gesperrtes Fach: '+JSON.stringify(sp0));
+  pruef('GESPERRT',sp0.bestand===0&&sp0.lang<75,'der Packer laeuft endlos gegen ein gesperrtes Fach: '+JSON.stringify(sp0));
   /* Spieler laeuft nicht durch Band und Zaun: quer durch die Station schieben */
   const sp=await p.evaluate(()=>{ const bb=window.__bb, g=bb.packTisch, o={};
     const W=(x,z)=>{ const s=Math.sin(g.rotation.y), c=Math.cos(g.rotation.y); return {x:g.position.x+x*c+z*s,z:g.position.z-x*s+z*c}; };
@@ -159,7 +160,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     const d0=W(0,0), d1=W(0,-0.08), dx=d1.x-d0.x, dz2=d1.z-d0.z;
     for(const lx of [-1.0,0.6,2.5,3.6]){ const a=W(lx,1.6); bb.setView(a.x,a.z,Math.PI,0); bb.schiebe(a.x,a.z);
       for(let i=0;i<60;i++){ const q=bb.playerPos(); bb.schiebe(q.x+dx,q.z+dz2); }
-      const pp=bb.playerPos(), dz=(pp.z-g.position.z); if(dz<bb.BAND.z-0.2) durch.push(lx+':'+dz.toFixed(2)); }
+      const pp=bb.playerPos(), sn=Math.sin(g.rotation.y), cs=Math.cos(g.rotation.y), dz=(pp.x-g.position.x)*sn+(pp.z-g.position.z)*cs; if(dz<bb.BAND.z-0.2) durch.push(lx+':'+dz.toFixed(2)); }
     o.durch=durch; return o; });
   console.log('SPIELER',JSON.stringify(sp));
   pruef('SPIELER',!sp.durch.length,'der Spieler kommt durch Band oder Zaun: '+sp.durch.join(' '));

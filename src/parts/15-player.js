@@ -56,9 +56,10 @@ function updatePlayer(dt){
   if(keys.KeyA||keys.ArrowLeft) mx_-=1; if(keys.KeyD||keys.ArrowRight) mx_+=1;
   mx_+=joy.x; mz+=joy.y;
   const len=Math.hypot(mx_,mz); if(len>1){ mx_/=len; mz/=len; }
-  const sp=((keys.ShiftLeft||keys.ShiftRight)?5.2:3.2)*karreTempo(), s=Math.sin(yaw), c=Math.cos(yaw);
+  const sp=((keys.ShiftLeft||keys.ShiftRight)?5.2:3.2)*karreTempo()*(typeof hubTempo==='function'?hubTempo():1), s=Math.sin(yaw), c=Math.cos(yaw);
   const x0=pl.x, z0=pl.z;
   pl.x+=(mx_*c+mz*s)*sp*dt; pl.z+=(-mx_*s+mz*c)*sp*dt; collide(pl,0.32);
+  if(typeof hubKollision==='function') hubKollision();
   if(len>0.1) bobT+=dt*sp*2.6;
   /* 03.10. (Tom): leise Schritte - einer je Tiefpunkt des Kopfwippens,
      nur wenn man wirklich vorankommt; draussen knirscht Schnee */
@@ -117,6 +118,7 @@ function spotFree(m,x,z,ry){
    sie mit F wieder ins Paket. Die Funktion bleibt fuer alte Aufrufe. */
 function toggleBuild(on){ if(on===false&&grabbed) cancelGrab(); }
 function grab(m,neu){
+  if(typeof hubAn==='function'&&hubAn()){ toast('Beide Hände am Hubwagen.','bad'); return; }
   S.tut.move=true; grabbed=m; grabRy=m.g.rotation.y; grabHome=neu?null:{x:m.g.position.x,z:m.g.position.z,ry:grabRy};
   dropFootprint(m);
   sfx.pop(); moebelKnoepfe();
@@ -305,6 +307,7 @@ function updateTarget(){
   if(pultHit) list.push(pultHit);
   if(gravHit) list.push(gravHit);
   if(packHit&&zoneOffen('packstation')&&nahDran(packTisch.position,12)) list.push(...vsHits());
+  if(packHit&&zoneOffen('packstation')&&typeof vsPalHits==='function'&&(nahDran(packTisch.position,14)||nahDran({x:V1.x,z:V1.rz},12))) list.push(...vsPalHits());
   if(tfHit&&tfHit.visible) list.push(tfHit);
   if(truck&&truck.state==='docked') truck.boxes.forEach(m=>list.push(m));
   list.push(...windowHits);
@@ -313,6 +316,7 @@ function updateTarget(){
   if(hits.length){ const ud=hits[0].object.userData; if(ud&&ud.kind) target={kind:ud.kind,ref:ud.ref,obj:hits[0].object}; }
 }
 function promptFor(t){
+  if(typeof hubPrompt==='function'){ const h=hubPrompt(t); if(h) return h; }
   if(!t) return null; const c=S.carrying, reg=regCustomer();
   if(pdaOn&&!grabbed){ const pt=pdaTargetType(); if(pt) return {t:`Preisgerät: ${P[pt].short} · ${eur(S.prices[pt])}`,a:true}; }
   if(c&&c.vm&&['level','rslot','box','station','gravur'].indexOf(t.kind)>=0) return {t:'Versandmaterial gehört ins Packmaterial-Regal an der Packstation',a:false};
@@ -389,7 +393,10 @@ function promptFor(t){
 function doAction(){
   if(paused) return;
   if(sprayOn&&!grabbed){ doSpray(); return; }
+  if(typeof hubAn==='function'&&hubAn()){ hubAktion(target); return; }
   if(!target) return;
+  if(target.kind==='palette'){ hubAktion(target); return; }
+  if(target.kind==='ddlschild'){ ddlRufen(); return; }
   if(pdaOn&&!grabbed){ const t=pdaTargetType(); if(t){ openPDA(t); return; } }
   const k=target.kind, r=target.ref, reg=regCustomer();
   if(k==='placing') placeGrab();

@@ -919,6 +919,9 @@ function vsLoop(w,dt){
      Bild hinterher und in Kurven rutschten die Haende vom Buegel */
   vsWagenUpdate(w,dt);
 }
+/* Ostende der Gasse vor den Tischen (Stationskoordinaten): hier faedelt der Wagen ein und aus */
+const VS_GASSE={x:4.6,z:1.6};
+function vsGassePunkt(){ const q=localToWorld(packTisch,VS_GASSE.x,VS_GASSE.z); return V(q.x,0,q.z); }
 function vsLoopZustand(w,dt,wf,tour,g){
   const pi=w.pp, P_=vsPlaetze[pi];
   switch(w.vs){
@@ -961,6 +964,9 @@ function vsLoopZustand(w,dt,wf,tour,g){
       if(!s){ vsNachplanen(w); break; }
       w.src=s.kind==='rack'?{slot:s.ref}:s.kind==='floor'?{box:s.ref}:null;
       if(!vsWagenFertig(g)) { vsBlick(w,s.stand,dt); break; }
+      /* erst durch die Gasse vor der Tischreihe zum Ostende (Waypoint): sonst schneidet der Wagen beim Anfahren die Tischecke */
+      if(VS_PP[pi].s>0&&tour&&!tour.gasse){ const Gp=vsGassePunkt();
+        if(!vsGehen(w,Gp,dt)&&!vsNotfalls(w,Gp)&&w.pos.distanceTo(Gp)>0.8) break; tour.gasse=true; }
       if(!vsGehen(w,s.stand,dt)){
         /* der Stand ist nicht (mehr) erreichbar - etwa weil ein Regal
            umgestellt wurde: diese Stelle auslassen, nachgeplant wird am Ende */
@@ -990,6 +996,8 @@ function vsLoopZustand(w,dt,wf,tour,g){
          Mitarbeiter geht allein weiter - vorher drehte er sich mit dem
          Wagen am Griffpunkt und schwenkte ihn quer durch den Tisch */
       const G=vsWelt(pi,WG_GRIFF.x,WG_GRIFF.z);
+      if(VS_PP[pi].s>0&&w.tour&&!w.tour.gasseZu&&w.pos.distanceTo(G)>3.5){ const Gp=vsGassePunkt();
+        if(w.pos.distanceTo(Gp)>0.9){ if(!vsGehen(w,Gp,dt)) vsNotfalls(w,Gp); break; } w.tour.gasseZu=true; }
       if(w.pos.distanceTo(G)<1.4){ vsWagenModus(g,'park'); w.vs='parken'; break; }
       if(!vsGehen(w,G,dt)) vsNotfalls(w,G); break; }
     case 'parken': {

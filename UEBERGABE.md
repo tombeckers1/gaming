@@ -142,6 +142,7 @@ ROADMAP.md: Die Demo-Idee mit Kapitel 1–6 ist inzwischen durch den Release-Pla
 ### 5.0b NEUE RICHTUNG (Tom, 08.10. nachts)
 - Ausbauplan v7 (5.4) wird in die Zukunft verschoben. Zuerst den aktuellen Stand auf sehr hohes Niveau: Texturen, Gameplay-Performance, Gameplay, Flow, Wirtschaft. Schritt für Schritt, Tom bespricht jeden Schritt.
 - Über Nacht 08./09.10.: Läden gegenüber, Innenräume hinter den Schaufenstern realistisch (gameplay.md 14, `05e-street.js` `ladenInnen`).
+  - ERLEDIGT 08./09.10.: `ladenInnen` jetzt in `05e2-laeden-innen.js` mit einem gemalten Textur-Atlas (2048², Niedrig/Handy 1024²) für alle 14 Ladenarten (Sichtwahl, Brotregal, Fleischtheke, Brillenwand, Bücher, Waschmaschinen …), weiter 1 Material/1 Mesh je Laden; Dreiecke der 6 Innenräume 23 776 → 8 452, Zeichenaufrufe gleich (12 Meshes). Eigener Zufall + `_altZufall` hält die Straße wie vorher (Test `laeden` STRASSE/TEXTUR). Bilder: `docs/bilder/laeden-innen/`.
 
 ### 5.1 Tests beschleunigen (Vorschlag, etwa ½ Tag)
 - Jeder Test lädt das Spiel ~50 s im Software-Renderer. Idee: einmal laden und den Spielstand per Hook zurücksetzen, oder mehrere Tests in einer Seite.

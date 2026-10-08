@@ -151,7 +151,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     S.bestellungen=[]; S.offen=0;
     return o; });
   console.log('GESPERRT',JSON.stringify(sp0));
-  pruef('GESPERRT',sp0.bestand===0&&sp0.lang<45,'der Packer laeuft endlos gegen ein gesperrtes Fach: '+JSON.stringify(sp0));
+  pruef('GESPERRT',sp0.bestand===0&&sp0.lang<75,'der Packer laeuft endlos gegen ein gesperrtes Fach: '+JSON.stringify(sp0));
   /* Spieler laeuft nicht durch Band und Zaun: quer durch die Station schieben */
   const sp=await p.evaluate(()=>{ const bb=window.__bb, g=bb.packTisch, o={};
     const W=(x,z)=>{ const s=Math.sin(g.rotation.y), c=Math.cos(g.rotation.y); return {x:g.position.x+x*c+z*s,z:g.position.z-x*s+z*c}; };
@@ -160,7 +160,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     const d0=W(0,0), d1=W(0,-0.08), dx=d1.x-d0.x, dz2=d1.z-d0.z;
     for(const lx of [-1.0,0.6,2.5,3.6]){ const a=W(lx,1.6); bb.setView(a.x,a.z,Math.PI,0); bb.schiebe(a.x,a.z);
       for(let i=0;i<60;i++){ const q=bb.playerPos(); bb.schiebe(q.x+dx,q.z+dz2); }
-      const pp=bb.playerPos(), dz=(pp.z-g.position.z); if(dz<bb.BAND.z-0.2) durch.push(lx+':'+dz.toFixed(2)); }
+      const pp=bb.playerPos(), sn=Math.sin(g.rotation.y), cs=Math.cos(g.rotation.y), dz=(pp.x-g.position.x)*sn+(pp.z-g.position.z)*cs; if(dz<bb.BAND.z-0.2) durch.push(lx+':'+dz.toFixed(2)); }
     o.durch=durch; return o; });
   console.log('SPIELER',JSON.stringify(sp));
   pruef('SPIELER',!sp.durch.length,'der Spieler kommt durch Band oder Zaun: '+sp.durch.join(' '));

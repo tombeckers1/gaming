@@ -309,6 +309,7 @@ function roboterBusy(){ return vsPortal.phase!=='ruhe'||vsBahn.some(e=>e.phase==
 function hubAufnehmenPruefen(p){
   if(!hubDa()) return 'Der Hubwagen gehört zur Packstation.';
   if(!hubZeit()) return 'Palettenabholung: DDL holt ab 18 Uhr – vorher bleibt alles in der Box.';
+  if(!vdIstOffen()) return 'Das Rolltor V1 ist zu – es fährt hoch, sobald der DDL-LKW steht.';
   if(LD.pal) return 'Der Mitarbeiter fährt gerade eine Palette.';
   const f=hubFrei(); if(f) return f;
   if(p.ort!=='z') return 'Diese Palette ist schon weg.';

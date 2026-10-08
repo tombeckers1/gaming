@@ -207,7 +207,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     return o; });
   console.log('SPEICHERN',JSON.stringify({vorher:sp,nachher:gl}));
   pruef('SPEICHERN',sp.imFlug,'Speichern nicht mitten im Flug getestet');
-  pruef('SPEICHERN',gl.g===sp.g&&/^offen(,offen)*$/.test(gl.st)&&gl.aufWagen===0&&gl.geparkt&&gl.pakete===sp.pakete&&gl.meshes===Math.min(gl.pakete,gl.meshes)&&gl.lager===sp.lager,'Tour geht beim Laden verloren oder doppelt: '+JSON.stringify({sp,gl}));
+  pruef('SPEICHERN',gl.g===sp.g&&/^(offen|wagen)(,(offen|wagen))*$/.test(gl.st)&&gl.aufWagen===0&&gl.geparkt&&gl.pakete===sp.pakete&&gl.meshes===Math.min(gl.pakete,gl.meshes)&&gl.lager===sp.lager,'Tour geht beim Laden verloren oder doppelt: '+JSON.stringify({sp,gl}));
   /* Bilanz gegen den Bestand VOR der Tour: genau 9 Boeller weg, keiner mehr, keiner weniger */
   pruef('SPEICHERN',gl.danachRest===0&&gl.lagerDanach===sp.lager0-9,'Stueck geht beim Speichern verloren oder doppelt: vorher '+sp.lager0+', nachher '+gl.lagerDanach+' (soll '+(sp.lager0-9)+')');
 

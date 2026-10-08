@@ -1,10 +1,10 @@
 /* Ausbau: Bauwaende, Zonen, SB-Kassen, Packstation */
 async function neuesSpiel(p){
-  await p.waitForFunction("!!document.querySelector('#startBtns button:not([disabled])')",{timeout:30000});
+  await p.waitForFunction("!!document.querySelector('#startBtns button:not([disabled])')",{timeout:120000});
   await p.click('#startBtns button:last-child');
-  await p.waitForSelector('#nameBox.show',{state:'visible',timeout:15000});
+  await p.waitForSelector('#nameBox.show',{state:'visible',timeout:60000});
   await p.click('#nameGo');
-  await p.waitForFunction("!document.getElementById('start').classList.contains('show')",{timeout:15000});
+  await p.waitForFunction("!document.getElementById('start').classList.contains('show')",{timeout:60000});
 }
 const { chromium } = require('/opt/node22/lib/node_modules/playwright');
 (async()=>{

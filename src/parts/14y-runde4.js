@@ -116,7 +116,7 @@ EFF.samtkrone=function(p,A,B,s,r){ grOhneZutaten(r,0.6);
 EFF.feuerkugel=function(p,A,B,s,r){ grOhneZutaten(r,0.5);
   const G=2.6, T=0.8, k=Math.round(4+QUAL()*3), a0=rand(0,Math.PI*2);
   for(let j=0;j<k;j++){ const a=a0+j/k*Math.PI*2+rand(-0.35,0.35), el=rand(-0.35,0.45), w=rand(11,14)*s, vv=[Math.cos(a)*Math.cos(el)*w,Math.sin(el)*w,Math.sin(a)*Math.cos(el)*w];
-    nKomet(p,vv,kgMal(A,2.0),T,G,kgMal(A,1.2),110);
+    kgStern(psHuge,p,vv,kgMal(A,1.5),T,G,0,0.45); rkFunken(p,vv,G,0.03,T,120,kgMal(A,1.1),{ps:psMid,life:[0.45,0.9],g:2,streu:0.25,mit:0.08,mode:4});
     kgSpaeter(T,()=>{ const e=sternNach(p,vv[0],vv[1],vv[2],G,T), w=bahnTempo(vv,G,T);
       for(let i=0;i<Math.round(18*QUAL())+6;i++){ const d=randDir(), dv=[w[0]*0.8+d[0]*3,w[1]*0.8+d[1]*3,w[2]*0.8+d[2]*3], L=rand(0.6,1.2);
         kgStern(psBig,e,dv,kgMal(B,1.8),L,2.4,0,0.25); kgSpaeter(L,()=>r4Knack(sternNach(e,dv[0],dv[1],dv[2],2.4,L),2,0.7)); }
@@ -151,7 +151,7 @@ EFF.silberdistel=function(p,A,B,s,r){
   const n=Math.round(52*KQ(s))+20, G=2.4, T=1.8;
   for(let i=0;i<n;i++){ const d=randDir(), v=kgMal(d,rand(5.6,6.1)*s);
     r4KS(p,v,kgMal(A,1.7),T,G,0,0.3);
-    rkFunken(p,v,G,0.05,T*0.8,26,[1.35,1.35,1.45],{ps:psSmall,life:[0.25,0.5],g:1.5,streu:0.6,mit:0.15,mode:4,spur:0.05});
+    rkFunken(p,v,G,0.05,T*0.8,26,[1.35,1.35,1.45],{ps:psMid,life:[0.3,0.6],g:1.5,streu:0.6,mit:0.15,mode:4,spur:0.05});
     if(i%3===0) kgSpaeter(T,()=>r4Knack(sternNach(p,v[0],v[1],v[2],G,T),4,0.8)); }
   for(let i=0;i<Math.round(18*KQ(s))+8;i++){ const d=randDir(); r4KS(p,kgMal(d,rand(2.2,2.6)*s),kgMal(B,1.7),rand(1.6,1.9),2.2,0,0.15); }
   schall(p,x=>later(T,()=>{ sfx.crackle(x*0.5); later(0.25,()=>sfx.crackle(x*0.35)); })); };
@@ -187,7 +187,8 @@ EFF.smaragdring=function(p,A,B,s,r){
 EFF.abendrot=function(p,A,B,s,r){
   const k=KQ(s), C=(r&&r.C)||FW.rot, G=2.3;
   [[A,5.5,2.0,44],[B,3.9,2.3,30],[C,2.35,2.6,20]].forEach(([c,w,T,n0])=>{ const n=Math.round(n0*k)+10;
-    for(let i=0;i<n;i++){ const d=randDir(), v=kgMal(d,rand(0.96,1.04)*w*s); const h=r4KS(p,v,kgMal(c,1.65),T,G,0,0.3); kgSpaeter(T*0.65,()=>kgFarbe(h,kgMal(c,1.1))); } });
+    for(let i=0;i<n;i++){ const d=randDir(), v=kgMal(d,rand(0.96,1.04)*w*s); const h=r4KS(p,v,kgMal(c,1.65),T,G,0,0.3); kgSpaeter(T*0.65,()=>kgFarbe(h,kgMal(c,1.1)));
+      if(c===A&&i%2===0) rkFunken(p,v,G,0.05,T*0.8,24,kgMal(c,0.95),{ps:psBig,life:[0.6,1.1],g:1.6,streu:0.2,mit:0.05,mode:4}); } });
   schall(p,x=>later(1.6,()=>sfx.rieseln(x*0.6,2.5))); };
 /* Kometenschlag 150: sechsunddreissig weisse Kometen mit Goldschweif
    fliegen weit hinaus - am Ende jeder Bahn ein kleiner, harter Knall */
@@ -212,7 +213,7 @@ EFF.seerose=function(p,A,B,s,r){
 EFF.granatapfel=function(p,A,B,s,r){
   const n=Math.round(30*KQ(s))+16, G=2.3, T=1.15;
   for(let i=0;i<n;i++){ const d=randDir(), v=kgMal(d,rand(4.7,5.2)*s);
-    r4KS(p,v,kgMal(A,1.7),T,G,0,0.3);
+    r4KS(p,v,kgMal(A,1.7),T,G,0,0.3); rkFunken(p,v,G,0.04,T,30,kgMal(A,0.9),{ps:psBig,life:[0.5,0.9],g:1.8,streu:0.2,mit:0.05,mode:0});
     kgSpaeter(T,()=>{ const e=sternNach(p,v[0],v[1],v[2],G,T), w=bahnTempo(v,G,T);
       for(let k=0;k<4;k++){ const dd=randDir(), dv=[w[0]*0.35+dd[0]*2.6,w[1]*0.35+dd[1]*2.6,w[2]*0.35+dd[2]*2.6];
         kgStern(psBig,e,dv,kgMal(B,1.6),rand(1.4,1.9),2.6,4,0.15); } }); }
@@ -220,8 +221,10 @@ EFF.granatapfel=function(p,A,B,s,r){
 /* Riesenpalme 300: zwanzig schwere Goldwedel mit dickem Stamm sinken als
    riesige Palme, dazwischen ein Ring blauer Leuchtsterne */
 EFF.riesenpalme=function(p,A,B,s,r){
-  const z=s*0.75;
-  for(let w=0;w<2;w++) lPalme(p,z,{n:10,w:7.4,hoch:3.0,L:4.2,G:2.6,rate:120,kopf:()=>[1.8,1.3,.55],schweif:()=>GOLDF,spur:0.7,dreh:w*0.31});
+    const n=Math.round(8*QUAL())+12, a0=rand(0,Math.PI*2), G=2.4, T=4.2;
+  for(let i=0;i<n;i++){ const a=a0+i/n*Math.PI*2+rand(-0.12,0.12), el=rand(0.15,0.55), w=rand(4.4,5.0)*s, v=[Math.cos(a)*Math.cos(el)*w,Math.sin(el)*w,Math.sin(a)*Math.cos(el)*w];
+    kgStern(psHuge,p,v,[1.7,1.2,.5],T,G,0,0.7); kgStern(psHuge,p,kgMal(v,0.97),[1.4,1.0,.42],T*0.95,G,0,0.7);
+    rkFunken(p,v,G,0.04,T*0.9,110,GOLDF,{ps:psBig,life:[1.0,1.8],g:1.3,streu:0.2,mit:0.04,mode:4,spur:0.15}); }
   nRing(p,Math.round(14*KQ(s))+12,2.4*s,v=>{ r4KS(p,v,kgMal(B,1.7),2.6,1.8,0,0.3); },0.4);
   schall(p,x=>{ sfx.wumms(x*0.8); later(0.6,()=>sfx.bkBrokat(x*0.9)); }); };
 /* Himmelstreppe 300: Mehrschlagbombe - die Kugel bricht viermal und
@@ -333,9 +336,9 @@ SIGNATUR.winterwald={idee:'Winterwald',eff:'raureif',text:'Raureif-Chrysanthemen
 r4Show('fuchsien',[['magenta','violett'],['violett','magenta'],['magenta','lavendel'],['rose','magenta']],{sz:[0.92,1.32],pw:[0,2.8],hell:[0.9,1.3],kurve:'welle'},[
   {n:3,gap:1.4,muster:'mitte',ang:0.15,eff:'fuchsie',kal:'gross',farbe:0,steig:'glut',knall:'bkPuff',pause:1.0},
   {n:8,gap:0.3,muster:'spirale',ang:0.3,eff:'chrys',kal:'mittel',farbe:1,steig:'silber',knall:'bkRieseln',pause:1.0},
-  {n:6,gap:0.55,muster:'paar',ang:0.3,eff:'pistill',kal:'mittel',farbe:2,steig:'glut',knall:'bkDoppel',pause:1.0},
-  {mit:true,n:7,gap:0.35,muster:'welle',ang:0.32,eff:'glitzerweide',kal:'gross',farbe:3,steig:'glut',knall:'bkBrokat',pause:1.2},
-  {n:12,gap:0.14,muster:'w',ang:0.34,eff:['fuchsie','pistill','fuchsie','glitzerweide'],kal:'gross',farbe:0,steig:'glut',knall:'bkDonnerhall',pause:4.5}]);
+  {n:6,gap:0.55,muster:'paar',ang:0.3,eff:'wechsel',kal:'mittel',farbe:2,steig:'glut',knall:'bkDoppel',pause:1.0},
+  {mit:true,n:7,gap:0.35,muster:'welle',ang:0.32,eff:'farbregen',kal:'gross',farbe:3,steig:'glut',knall:'bkRieseln',pause:1.2},
+  {n:12,gap:0.14,muster:'w',ang:0.34,eff:['fuchsie','wechsel','fuchsie','farbregen'],kal:'gross',farbe:0,steig:'glut',knall:'bkDonnerhall',pause:4.5}]);
 SIGNATUR.fuchsien={idee:'Fuchsien',eff:'fuchsie',text:'magenta Bluetenglocken mit haengenden violetten Staubfaeden'};
 /* 7 KORALLENRIFF (L20, 48): Korallen wachsen aussen, Fischschwaerme im
    Wischer, tuerkise Anemonen (Dahlien) paarweise, Plankton im Zickzack,

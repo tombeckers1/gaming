@@ -115,8 +115,11 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
         for(const arm of w.g.userData.arms){ const fa=arm.children.find(c=>c.isGroup); hand.set(0,-0.26,0); fa.localToWorld(hand); bb.vsWagen.worldToLocal(hand);
           const d=Math.hypot(hand.y-(0.78+0.32),hand.z+0.49); handMax=Math.max(handMax,d); handN++; if(handL.length<3) handL.push([+hand.x.toFixed(3),+hand.y.toFixed(3),+hand.z.toFixed(3)]); } }
       /* kein Paket fliegt durch einen fertigen Stapel */
+      /* seit 08.10. liegt jede Palette als ein Mesh: geprueft wird gegen jedes einzelne Paket der Stapel (Lage in Stationskoordinaten) */
+      const stapel=bb.vsBahn.some(e=>e.phase==='greifer')?bb.vsStapelLage().map(q=>{ const G=bb.VS_GR[q.gr], c=new THREE.Vector3(q.x,0,q.z); bb.packTisch.localToWorld(c);
+        const turn=Math.abs(Math.sin(q.ry))>0.7, hx=(turn?G.z:G.x)/2, hz=(turn?G.x:G.z)/2, bxx=new THREE.Box3(); bxx.min.set(c.x-hx,q.y-G.h/2,c.z-hz); bxx.max.set(c.x+hx,q.y+G.h/2,c.z+hz); return bxx; }):[];
       for(const e of bb.vsBahn) if(e.phase==='greifer'){ /* seit 05.10. traegt der Portalgreifer */ bx.setFromObject(e.m).expandByScalar(-0.01);
-        for(const m of bb.pakete){ by.setFromObject(m); if(bx.intersectsBox(by)){ durchStapel++; if(stapelInfo.length<4) stapelInfo.push({t:+e.t.toFixed(2),gr:e.gr,von:[+bx.min.x.toFixed(2),+bx.min.y.toFixed(2),+bx.min.z.toFixed(2),+bx.max.x.toFixed(2),+bx.max.y.toFixed(2),+bx.max.z.toFixed(2)],mit:[+by.min.x.toFixed(2),+by.min.y.toFixed(2),+by.min.z.toFixed(2),+by.max.x.toFixed(2),+by.max.y.toFixed(2),+by.max.z.toFixed(2)]}); break; } } }
+        for(const m of stapel){ by.copy(m); if(bx.intersectsBox(by)){ durchStapel++; if(stapelInfo.length<4) stapelInfo.push({t:+e.t.toFixed(2),gr:e.gr,von:[+bx.min.x.toFixed(2),+bx.min.y.toFixed(2),+bx.min.z.toFixed(2),+bx.max.x.toFixed(2),+bx.max.y.toFixed(2),+bx.max.z.toFixed(2)],mit:[+by.min.x.toFixed(2),+by.min.y.toFixed(2),+by.min.z.toFixed(2),+by.max.x.toFixed(2),+by.max.y.toFixed(2),+by.max.z.toFixed(2)]}); break; } } }
       if(bb.vsTisch&&bb.vsTisch.phase==='etikett'&&!zu){ const u=bb.vsTisch.pk.userData;
         zu={klappe:Math.max(...u.klappen.map(k=>Math.abs(k.pv.rotation.x)+Math.abs(k.pv.rotation.z))),band:u.band.visible?+u.band.scale.z.toFixed(2):0}; }
       stapelHoch=Math.max(stapelHoch,...bb.pakete.map(m=>m.position.y));
@@ -134,8 +137,10 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     o.wagenTisch=wagenTisch; o.handMax=+handMax.toFixed(3); o.handN=handN; o.durchStapel=durchStapel; o.stapelInfo=stapelInfo; o.handL=handL;
     /* Pakete liegen in den Stapelfeldern */
     /* auf den Paletten (quer: 1,2 m in x, 0,8 m in z; Pakete duerfen 3 cm ueberstehen) */
-    const F=bb.VS_FELD; o.aufFeld=bb.pakete.every(m=>F.some(f=>Math.abs(m.position.x-f.x)<0.65&&Math.abs(m.position.z-f.z)<0.45));
-    o.imTisch=bb.pakete.every(m=>m.parent===bb.packTisch);
+    const F=bb.VS_FELD, lage=bb.vsStapelLage(); o.stapelN=lage.length;
+    o.aufFeld=lage.length>0&&lage.every(q=>F.some(f=>Math.abs(q.x-f.x)<0.65&&Math.abs(q.z-f.z)<0.45));
+    /* jede Palette mit Paketen ist ein Mesh und haengt (ueber ihre Palette) an der Station */
+    o.imTisch=bb.pakete.length>0&&bb.pakete.every(m=>{ let a=m.parent; while(a&&a!==bb.packTisch) a=a.parent; return a===bb.packTisch; });
     return o; });
   console.log('TOUR     ',JSON.stringify(tour));
   const summe=Object.values(tour.soll).reduce((a,n)=>a+n,0);
@@ -151,7 +156,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   pruef('TISCH',tour.wagenTisch===0,'der Wagen faehrt durch Tisch oder Rollenbahn ('+tour.wagenTisch+' Bilder)');
   pruef('HAENDE',tour.handN>0&&tour.handMax<0.1,'die Haende liegen beim Schieben nicht am Buegel: '+tour.handMax+' m daneben');
   pruef('FLUG',tour.durchStapel===0,'Pakete fliegen durch den fertigen Stapel ('+tour.durchStapel+' Bilder)');
-  pruef('STAPEL',tour.pakete===35&&tour.meshes===35&&tour.aufFeld&&tour.imTisch,'Pakete nicht auf der Ablage gestapelt: '+JSON.stringify({p:tour.pakete,m:tour.meshes,feld:tour.aufFeld,tisch:tour.imTisch}));
+  pruef('STAPEL',tour.pakete===35&&tour.stapelN===35&&tour.meshes>=1&&tour.meshes<=6&&tour.aufFeld&&tour.imTisch,'Pakete nicht auf der Ablage gestapelt: '+JSON.stringify({p:tour.pakete,n:tour.stapelN,m:tour.meshes,feld:tour.aufFeld,tisch:tour.imTisch}));
   pruef('GELD',Math.abs(tour.geld-tour.wert)<0.02,'gebucht '+tour.geld+' statt '+tour.wert);
   pruef('FERTIG',tour.rest===0,'Bestellungen bleiben liegen: '+tour.rest);
 

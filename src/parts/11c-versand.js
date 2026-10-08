@@ -459,7 +459,7 @@ function vsFelderFuer(belegt,gr){
      schon geplanten Stopps liegt (kein Weg, wenn dieselbe Quelle schon dabei ist)
    - keine Bestellung bleibt liegen: wer dreimal uebergangen wurde, ist beim naechsten Mal der Anker
    - VS_OPT.an=false ist die alte Reihenfolge (Eingang) - fuer den Vergleich im Test */
-const VS_OPT={an:true, fenster:14, geduld:3};
+const VS_OPT={an:true, fenster:60, geduld:3};
 function vsDist(a,b){ return Math.hypot(a.x-b.x,a.z-b.z); }
 /* Standpunkte der Quellen je Ware (Lager zuerst, Laden nur wenn im Lager nichts liegt), einmal je Planung */
 function vsPunkteVon(t,von,cache){

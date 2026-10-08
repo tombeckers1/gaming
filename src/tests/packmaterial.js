@@ -139,7 +139,8 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     c.kosten=5.9; c.frei=0;
     let x=bb.vsNeueBestellung(false); S.bestellungen.push(x); S.offen=1;
     o.gebuehr=x.versand; let g=S.money; bb.packOne(true); o.mitGeb=+(S.money-g).toFixed(2); o.sollMit=+(x.wert+5.9-bb.VS_PORTO[x.gr]).toFixed(2);
-    c.frei=15; x=bb.vsNeueBestellung(false); S.bestellungen.push(x); S.offen=1;
+    /* Freigrenze niedrig genug, dass jede Bestellung darueber liegt (Bestellwerte sind zufaellig) */
+    c.frei=3; x=bb.vsNeueBestellung(false); S.bestellungen.push(x); S.offen=1;
     o.gebuehrFrei=x.versand; g=S.money; bb.packOne(true); o.ohneGeb=+(S.money-g).toFixed(2); o.sollOhne=+(x.wert-bb.VS_PORTO[x.gr]).toFixed(2); o.wertFrei=x.wert;
     c.kosten=4.9; c.frei=50;
     return o; });
@@ -147,7 +148,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   pruef('NACHFRAGE',Math.abs(kf.std.f1-1)<0.05&&kf.std.k===4.9&&kf.std.f===50,'Standard nicht 4,90 EUR / frei ab 50 EUR mit Faktor 1: '+JSON.stringify(kf.std));
   pruef('NACHFRAGE',kf.teuer.n<kf.std.n&&kf.billig.n>kf.std.n&&kf.niedrigeGrenze.n>kf.hoheGrenze.n,'Versandkosten wirken nicht auf die Bestellzahl: '+JSON.stringify(kf));
   pruef('EINNAHMEN',kf.gebuehr===5.9&&Math.abs(kf.mitGeb-kf.sollMit)<0.01,'Versandkosten des Kunden nicht gebucht oder Porto fehlt: '+JSON.stringify(kf));
-  pruef('EINNAHMEN',kf.gebuehrFrei===0&&kf.wertFrei>=15&&Math.abs(kf.ohneGeb-kf.sollOhne)<0.01,'kostenloser Versand: Porto nicht abgezogen: '+JSON.stringify(kf));
+  pruef('EINNAHMEN',kf.gebuehrFrei===0&&kf.wertFrei>=3&&Math.abs(kf.ohneGeb-kf.sollOhne)<0.01,'kostenloser Versand: Porto nicht abgezogen: '+JSON.stringify(kf));
 
   /* 5. Laptop: Versandmaterial bestellen, Einstellung am Onlineshop */
   const lap=await p.evaluate(()=>{ const bb=window.__bb, S=bb.S, o={};

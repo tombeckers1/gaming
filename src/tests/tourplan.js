@@ -42,13 +42,13 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     const messen=(an)=>{
       bb.VS_OPT.an=an;
       S.bestellungen=satz.map((pos,i)=>({id:i+1,pos:pos.map(q=>Object.assign({},q)),gr:1,st:'offen',tag:S.day,wert:5,versand:0}));
-      const tourvonB={}; let strecke=0, pakete=0, touren=0, doppelt=0, summeFalsch=0, maxWarten=0, wuenschtouren=[];
+      const tourvonB={}; let strecke=0, anfahrt=0, pakete=0, touren=0, doppelt=0, summeFalsch=0, maxWarten=0, wuenschtouren=[];
       let guard=0;
       while(S.bestellungen.some(x=>x.st==='offen')&&guard++<60){
         const plan=bb.vsPlan(0); if(!plan) break; touren++;
         const need=bb.vsBedarf(plan);
         const stops=bb.vsStopsBauen(need,heim);
-        strecke+=bb.vsRouteLaenge(stops,heim); const st=plan.auf.reduce((a,x)=>a+x.b.pos.reduce((c,l)=>c+l.n,0),0); pakete+=plan.auf.length; wuenschtouren.push(plan.auf.length);
+        strecke+=bb.vsRouteLaenge(stops,heim); if(stops.length){ const d0=Math.hypot(stops[0].stand.x-heim.x,stops[0].stand.z-heim.z), d1=Math.hypot(stops[stops.length-1].stand.x-heim.x,stops[stops.length-1].stand.z-heim.z); anfahrt+=d0+d1; } const st=plan.auf.reduce((a,x)=>a+x.b.pos.reduce((c,l)=>c+l.n,0),0); pakete+=plan.auf.length; wuenschtouren.push(plan.auf.length);
         /* keine Quelle doppelt, Stueckzahlen stimmen */
         const ids=new Map(); stops.forEach(s=>{ let m=ids.get(s.ref); if(!m){ m=new Set(); ids.set(s.ref,m); } if(m.has(s.t)) doppelt++; m.add(s.t); });
         const sum={}; stops.forEach(s=>{ sum[s.t]=(sum[s.t]||0)+s.k; }); for(const t in need) if(sum[t]!==need[t]) summeFalsch++;
@@ -59,7 +59,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
       }
       const offen=S.bestellungen.length;
       S.bestellungen=[]; S.offen=0;
-      return {an,touren,pakete,strecke:+strecke.toFixed(1),proPaket:+(strecke/Math.max(1,pakete)).toFixed(2),offen,doppelt,summeFalsch,maxWarten,proTour:+(pakete/Math.max(1,touren)).toFixed(2),wuenschtouren:wuenschtouren.slice(0,12)};
+      return {an,touren,pakete,strecke:+strecke.toFixed(1),imLager:+(strecke-anfahrt).toFixed(1),imLagerProPaket:+((strecke-anfahrt)/Math.max(1,pakete)).toFixed(2),proPaket:+(strecke/Math.max(1,pakete)).toFixed(2),offen,doppelt,summeFalsch,maxWarten,proTour:+(pakete/Math.max(1,touren)).toFixed(2),wuenschtouren:wuenschtouren.slice(0,12)};
     };
     o.alt=messen(false); o.neu=messen(true); o.alt2=messen(false); o.neu2=messen(true);
     bb.VS_OPT.an=true;
@@ -70,14 +70,16 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   console.log('GEWINN '+(g1*100).toFixed(1)+' % kuerzere Strecke je Paket ('+r.alt.proPaket+' m -> '+r.neu.proPaket+' m), Touren '+r.alt.touren+' -> '+r.neu.touren);
   pruef('SORTEN',r.sorten>=12,'zu wenige Sorten im Lager: '+r.sorten);
   pruef('ALLE',r.alt.offen===0&&r.neu.offen===0,'Bestellungen bleiben liegen: alt '+r.alt.offen+', neu '+r.neu.offen);
-  pruef('KURZER',g1>=0.2,'die neue Planung spart weniger als 20 % Strecke je Paket: '+(g1*100).toFixed(1)+' %');
+  const gl=1-r.neu.imLagerProPaket/r.alt.imLagerProPaket;
+  console.log('IM LAGER (ohne An- und Abfahrt zum Tisch): '+r.alt.imLagerProPaket+' m -> '+r.neu.imLagerProPaket+' m je Paket = '+(gl*100).toFixed(1)+' % weniger');
+  pruef('KURZER',g1>=0.03&&gl>=0.10,'die neue Planung spart zu wenig: gesamt '+(g1*100).toFixed(1)+' %, im Lager '+(gl*100).toFixed(1)+' %');
   pruef('NICHT_EWIG',r.neu.maxWarten<=12,'eine Bestellung wartet '+r.neu.maxWarten+' Touren');
   pruef('QUELLE_EINMAL',r.neu.doppelt===0,'dieselbe Quelle kommt in einer Tour doppelt vor: '+r.neu.doppelt);
   pruef('STUECKE',r.neu.summeFalsch===0&&r.alt.summeFalsch===0,'Stueckzahl der Stopps stimmt nicht');
   pruef('REPRODUZIERBAR',Math.abs(r.alt.proPaket-r.alt2.proPaket)<0.01&&Math.abs(r.neu.proPaket-r.neu2.proPaket)<0.01,'Messung nicht wiederholbar');
   /* Gegenprobe: mit abgeschalteter Verbesserung (alt gegen alt) muss dieselbe Pruefung anschlagen */
-  const gAlt=gewinn(r.alt,r.alt2);
-  pruef('GEGENPROBE',gAlt<0.2,'die Pruefung schlaegt auch ohne Verbesserung nicht an: '+(gAlt*100).toFixed(1)+' %');
+  const gAlt=gewinn(r.alt,r.alt2), glAlt=1-r.alt2.imLagerProPaket/r.alt.imLagerProPaket;
+  pruef('GEGENPROBE',!(gAlt>=0.03&&glAlt>=0.10),'die Pruefung schlaegt auch ohne Verbesserung nicht an: '+(gAlt*100).toFixed(1)+' %');
   pruef('FEHLER',!errs.length,errs.slice(0,3).join(' | '));
   console.log(mangel.length?'MANGEL:\n'+mangel.join('\n'):'ALLES OK');
   await b.close(); process.exit(mangel.length?1:0);

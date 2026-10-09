@@ -45,9 +45,11 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   /* drei Spieltage laufen lassen */
   const tage=await p.evaluate(()=>{ const bb=__bb, S=bb.S, out=[]; const d0=S.day; let n=0;
     while(S.day<d0+3&&n++<4000){ bb.run(3,0.1); if(n%30===0) out.push({tag:S.day,geld:Math.round(S.money),kunden:bb.DS?bb.DS.customers:null,phase:bb.phase}); }
-    return {vm:{verbraucht:S.stat.vmVerbraucht||0,eingelagert:S.stat.vmEingelagert||0,pakete:S.stat.pakete||0},out:out.slice(-12),verlauf:bb.gpVerlauf.map(v=>({t:v.tag,g:Math.round(v.geld)})),tag:S.day,d0,schritte:n,gespeichert:localStorage.getItem('boellerbude_v3')}; });
+    return {ddl:{rufe:S.stat.ddlRuf||0,abgeholt:S.stat.ddl||0,log:(S.onlineLog||[]).length},vm:{verbraucht:S.stat.vmVerbraucht||0,eingelagert:S.stat.vmEingelagert||0,pakete:S.stat.pakete||0},out:out.slice(-12),verlauf:bb.gpVerlauf.map(v=>({t:v.tag,g:Math.round(v.geld)})),tag:S.day,d0,schritte:n,gespeichert:localStorage.getItem('boellerbude_v3')}; });
   console.log('TAGE',JSON.stringify(Object.assign({},tage,{gespeichert:undefined})).slice(0,1500));
   pruef('PACKMATERIAL',tage.vm.verbraucht>20&&tage.vm.eingelagert>0,'Packmaterial wird nicht verbraucht oder nachgefuellt: '+JSON.stringify(tage.vm));
+  /* 09.10.: DDL nur auf Anruf - der Versand-Disponent der Vorfuehrung ruft am Wandtelefon an */
+  pruef('DDL_ANRUF',tage.ddl.rufe>=1&&tage.ddl.abgeholt>0&&tage.ddl.log>=2,'in der Vorfuehrung wird DDL nicht gerufen oder nichts abgeholt: '+JSON.stringify(tage.ddl));
   pruef('LAEUFT',tage.tag>=tage.d0+3,'Tage laufen nicht weiter: '+tage.tag+' (Start '+tage.d0+')');
   pruef('KEIN_SPEICHERN',tage.gespeichert===r.vorher&&!!r.vorher,'die Vorfuehrung hat den Spielstand ueberschrieben');
   /* Beenden: alter Stand zurueck */

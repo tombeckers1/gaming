@@ -918,7 +918,14 @@ function buildPackstation(){
     Bp(0.18,0.18,0.2,DUNKEL,-0.48,1.04,-0.25); Bp(0.14,0.01,0.12,0xf2f0e8,-0.48,1.135,-0.25);
     /* Uebergabeblech: Tischkante bis Bandkante, buendig mit der Platte */
     Bp(VS_TB-0.2,0.012,0.12,0xb4bac2,0,VS_TOP-0.006,-0.45);
-    Bp(0.1,0.07,0.22,0x23262c,0.5,0.985,-0.24); Cp(0.065,0.05,0xd8b46a,0.5,1.06,-0.26,0,0,Math.PI/2,14);
+    /* Handabroller (Tom 09.10.: "Klebebandrolle ist zwei Pixel"): Pistolengriff, Rahmen,
+       Andrueckrolle, Messer - und eine echte Rolle (Lathe, 50 mm aussen, 38 mm Huelse) */
+    { const q=W(0.47,-0.22), ry=VS_PP[i].s>0?0:Math.PI, R=(lx,lz)=>{ const a=W(0.47+lx,-0.22+lz); return a; };
+      const T2=(w,h,d,c,lx,y,lz,rx,rz)=>{ const a=R(lx,lz); B(k,w,h,d,c,a.x,y,a.z,rx||0,ry,rz||0); };
+      T2(0.035,0.11,0.03,0xc4302b,0.0,0.99,0.07,0.5,0); T2(0.03,0.02,0.16,0x2b2f36,0.0,1.045,0.0); T2(0.03,0.07,0.02,0x2b2f36,0.0,1.03,-0.08);
+      T2(0.03,0.012,0.05,0x9aa1ac,0.0,1.012,-0.1); Cy(k,0.012,0.05,0x1c1f24,R(0,-0.085).x,0.998,R(0,-0.085).z,0,0,Math.PI/2,10);
+      vc(k).push({geo:vmBandGeo(),m:tm(q.x,1.05+0.02,q.z,0,0,Math.PI/2),color:0xd6a560});
+      Cy(k,0.037,0.052,0xb79a6c,q.x,1.07,q.z,0,0,Math.PI/2,14); void ry; }
     const hit=bbox(VS_TB+0.1,1.3,0.95,hitM,M.x,0.65,M.z,g,false);
     hit.userData={kind:'pack',ref:i}; T.hits[i]=hit; reg(hit,k);
     if(i===0) packHit=hit;
@@ -965,7 +972,7 @@ function buildPackstation(){
     const px0=x0+0.06, px1=x1-0.06, pz0=PORTAL_Z0[s]+0.06, pz1=z1-0.06;
     /* vier Stuetzen, zwei Laengstraeger an West- und Ostseite, Querriegel */
     for(const px of [px0,px1]) for(const pz of [pz0,pz1]){ B(k,0.12,PORTAL_Y,0.12,GELB,px,PORTAL_Y/2,pz); B(k,0.24,0.02,0.24,DUNKEL,px,0.01,pz);
-      for(const sx of [-0.08,0.08]) for(const sz of [-0.08,0.08]) Cy(k,0.012,0.03,ZINK,px+sx,0.03,pz+sz,0,0,0,6); }
+      if(GFX!=='ultralow') for(const sx of [-0.08,0.08]) for(const sz of [-0.08,0.08]) Cy(k,0.012,0.03,ZINK,px+sx,0.03,pz+sz,0,0,0,6); }
     for(const px of [px0,px1]){ B(k,0.12,0.16,pz1-pz0,GELB,px,PORTAL_Y+0.08,(pz0+pz1)/2); B(k,0.04,0.03,pz1-pz0,ZINK,px,PORTAL_Y+0.175,(pz0+pz1)/2); }
     for(const pz of [pz0,pz1]) B(k,px1-px0,0.12,0.1,GELB,(px0+px1)/2,PORTAL_Y-0.02,pz);
     /* Energiekette am westlichen Traeger, Schaltkasten mit Leuchten an der Stuetze */

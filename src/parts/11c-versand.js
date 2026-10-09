@@ -307,6 +307,11 @@ function vsMat(){
     g.fillStyle=gr; g.fillRect(0,0,W,H);
     for(let y=0;y<H;y+=5){ g.fillStyle=`rgba(118,88,52,${0.04+Math.random()*0.07})`; g.fillRect(0,y,W,2); }
     for(let i=0;i<W*H/60;i++){ g.fillStyle=`rgba(255,240,215,${Math.random()*0.06})`; g.fillRect(Math.random()*W,Math.random()*H,2,2); }
+    /* 09.10.: Welle scheint durch, Kanten dunkler (gestossen) - echte Wellpappe */
+    for(let x=0;x<W;x+=7){ g.fillStyle='rgba(255,236,200,.035)'; g.fillRect(x,0,3,H); }
+    const vg=g.createRadialGradient(W/2,H/2,Math.min(W,H)*0.3,W/2,H/2,Math.max(W,H)*0.75); vg.addColorStop(0,'rgba(60,35,10,0)'); vg.addColorStop(1,'rgba(60,35,10,.22)');
+    g.fillStyle=vg; g.fillRect(0,0,W,H);
+    g.strokeStyle='rgba(70,45,18,.35)'; g.lineWidth=3; g.strokeRect(1.5,1.5,W-3,H-3);
   };
   const seite=tex(256,256,(g,W,H)=>{ pappe(g,W,H);
     /* Aufdruck: Pfeile "oben" und das DDL-Logo */

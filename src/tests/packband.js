@@ -8,10 +8,10 @@
    - auf den Paletten: Unterkante auf Palette oder Paket darunter, unter
      der Mitte und unter mindestens 7 von 9 Messpunkten; keine zwei
      Pakete stecken ineinander, keins ragt aus dem Zaun
-   - Stufen 1-3: 1/2/3 Packplaetze und Packer, 2/4/6 Paletten, die
-     Station passt in den Raum, Mitarbeiter laufen nicht durch Band,
-     Tisch oder Zaun
-   - DDL holt am Abend alles ab, auch was auf dem Band liegt
+   - Stufen 1-3: 1/2/3 Packplaetze und Packer, 1/2/3 Paletten und der
+     Kran schon ab Stufe 1 (Tom 09.10.), die Station passt in den Raum,
+     Mitarbeiter laufen nicht durch Band, Tisch oder Zaun
+   - die Testhilfe ddlAbholung raeumt alles ab, auch was auf dem Band liegt
    Braucht echtes three.js (real.html). Aufruf: node packband.js real.html */
 const { chromium } = require('/opt/node22/lib/node_modules/playwright');
 (async()=>{
@@ -48,11 +48,6 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
         if(e.phase==='greifer'){ const oben=m.position.y+G.h/2, P_=bb.vsPortal, gy=bb.packTeile.portal.greifer.position.y;
           if(Math.abs(oben-P_.y)>0.01||Math.abs(gy-P_.y)>0.01) out.push(`Greifer: Paket ${e.gr} oben ${oben.toFixed(3)}, Greifer ${P_.y.toFixed(3)}/${gy.toFixed(3)}`);
           if(Math.abs(m.position.x-bb.packTeile.portal.greifer.position.x)>0.01||Math.abs(m.position.z-bb.packTeile.portal.greifer.position.z)>0.01) out.push('Greifer: Paket nicht unter dem Greifer');
-          continue; }
-        /* Stufe 1 ohne Kran (08.10.): das Paket ist in der Hand des Packers oder fliegt vom Spieler auf die Palette */
-        if(e.phase==='hand'){ if(bb.vsHandFlug&&bb.vsHandFlug.e===e) continue;
-          const w=bb.staff.packer, q=m.getWorldPosition(new THREE.Vector3());
-          if(!w||w.hand!==e||Math.hypot(q.x-w.pos.x,q.z-w.pos.z)>1.6) out.push('Hand: Paket ohne Packer ('+(w?Math.hypot(q.x-w.pos.x,q.z-w.pos.z).toFixed(2):'-')+' m)');
           continue; }
         if(Math.abs(unten-TOP)>0.01) out.push(`${e.phase}: Unterkante ${unten.toFixed(3)} statt ${TOP}`);
         const pt=rechteck(m,G); let frei=0;
@@ -98,17 +93,19 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
       for(const id of ['packer','packer2','packer3'].slice(0,st)) if(!S.staff[id]){ S.staff[id]=true; bb.hireStaff(id); }
       o.packer=['packer','packer2','packer3'].filter(id=>bb.staff[id]).length;
       /* Station passt in den Raum, nichts liegt im Weg */
-      o.frei=bb.spotFree(bb.packMov,bb.packMov.g.position.x,bb.packMov.g.position.z,bb.packMov.g.rotation.y);
+      /* 09.10.: die Station ist fest eingebaut (spotFree gilt nur fuer verschiebbare Moebel) - keines ihrer
+         Kollisionsrechtecke ueberdeckt mehr als 3 cm von etwas anderem (Wand, Regal, Lager-PC) */
+      { const ov=(a,c)=>Math.min(a.maxX,c.maxX)-Math.max(a.minX,c.minX)>0.03&&Math.min(a.maxZ,c.maxZ)-Math.max(a.minZ,c.minZ)>0.03;
+        o.frei=(bb.packMov.cols||[]).every(a=>!bb.colliders.some(c=>c.ref!==bb.packMov&&c.ref!=='palette'&&ov(a,c))); }
       let k=0; bb.racks.forEach(r=>r.slots.forEach(s=>{ if(s.box) { r.g.remove(s.box.mesh); s.box=null; } const t=T[k++%T.length]; bb.putInSlot(s,t,bb.P[t].box,1); }));
       bb.vmStand(0); for(let i=0;i<3;i++) bb.VM_IDS.forEach(id=>{ S.vm[i][id]=bb.VM[id].kap; }); bb.vmRegalZeichnen();
       S.bestellungen=[]; S.offen=0; S.paketGr=[]; S.pakete=0; bb.ddlAbholung();
-      /* Stufe 1 (08.10.): der Spieler packt allein und legt das Paket am Bandende selbst auf die Palette */
+      /* Stufe 1 (09.10.: Kran ab Stufe 1): der Spieler packt allein, der Kran setzt das Paket auf die eine Palette */
       if(st===1){ const w=bb.staff.packer; delete bb.staff.packer; const sp={};
         const x=bb.vsNeueBestellung(false); if(x){ S.bestellungen.push(x); S.offen=S.bestellungen.length; }
-        sp.gepackt=bb.vsSpielerPacken(0);
-        for(let i=0;i<1600&&!bb.vsAmAnschlag();i++) bb.step(0.05);
-        sp.amEnde=!!bb.vsAmAnschlag(); const pr=bb.vsHandPrompt(); sp.prompt=pr&&pr.a; sp.vor=bb.vsGelandet();
-        sp.ab=bb.vsSpielerAblegen(); for(let i=0;i<30;i++) bb.step(0.05);
+        sp.vor=bb.vsGelandet(); sp.gepackt=bb.vsSpielerPacken(0); sp.kran=0;
+        for(let i=0;i<2400&&bb.vsGelandet()<=sp.vor;i++){ bb.step(0.05); if(bb.vsPortal.phase!=='ruhe') sp.kran++; }
+        for(let i=0;i<30;i++) bb.step(0.05);
         sp.nach=bb.vsGelandet(); sp.band=bb.vsBahn.length; sp.lage=bb.vsStapelLage().length;
         bb.staff.packer=w; o.spieler=sp;
         S.bestellungen=[]; S.offen=0; bb.ddlAbholung(); }
@@ -120,7 +117,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
         bb.step(0.05);
         if(i%2) continue; bilder++;
         const m=window.__messe(); if(m.length&&befunde.length<12) befunde.push(...m.slice(0,3).map(x=>'t='+(i*0.05).toFixed(1)+' '+x)); n+=m.length;
-        if(bb.vsBahn.some(e=>e.phase==='greifer'||e.phase==='hand')) greifer++;
+        if(bb.vsBahn.some(e=>e.phase==='greifer')) greifer++;
         if(bb.vsPortal.phase!=='ruhe') portalLief++;
         if(bb.vsBahn.some(e=>e.phase==='rollen')) rollen++;
         maxPal=Math.max(maxPal,bb.vsStapelLage().length);
@@ -135,12 +132,12 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
       o.nachAbholung={pak:S.pakete,band:bb.vsBahn.length,mesh:bb.pakete.length,greifer:bb.vsPortal.e?1:0};
       return o; },{st,T});
     console.log('STUFE',JSON.stringify(r));
-    pruef('STUFE'+st,r.stufe===st&&r.paletten===[0,2,4,6][st]&&r.plaetze===st&&r.packer===st,'Stufe, Paletten, Packplaetze oder Packer stimmen nicht: '+JSON.stringify({stufe:r.stufe,pal:r.paletten,pl:r.plaetze,packer:r.packer}));
+    pruef('STUFE'+st,r.stufe===st&&r.paletten===[0,1,2,3][st]&&r.plaetze===st&&r.packer===st,'Stufe, Paletten, Packplaetze oder Packer stimmen nicht: '+JSON.stringify({stufe:r.stufe,pal:r.paletten,pl:r.plaetze,packer:r.packer}));
     pruef('RAUM'+st,r.frei,'die Station passt in Stufe '+st+' nicht in den Raum oder liegt auf etwas');
     pruef('SCHWEBT'+st,r.befunde===0,r.befunde+' Befunde in '+r.bilder+' Bildern: '+r.liste.join(' | '));
     pruef('LAEUFT'+st,r.greifer>20&&r.rollen>20&&r.maxPal>=5&&r.gepackt>=10,'zu wenig Betrieb gemessen: '+JSON.stringify({greifer:r.greifer,rollen:r.rollen,maxPal:r.maxPal,gepackt:r.gepackt}));
-    pruef('KRAN'+st,st===1?(!r.portalSicht&&r.portalLief===0):(r.portalSicht&&r.portalLief>20),'Stufe 1 ohne Kran, ab Stufe 2 mit: '+JSON.stringify({sicht:r.portalSicht,lief:r.portalLief}));
-    if(st===1) pruef('SPIELER1',r.spieler&&r.spieler.gepackt&&r.spieler.amEnde&&r.spieler.prompt&&r.spieler.ab&&r.spieler.nach===r.spieler.vor+1&&r.spieler.band===0&&r.spieler.lage===1,'Spieler legt das Paket nicht selbst ab: '+JSON.stringify(r.spieler));
+    pruef('KRAN'+st,r.portalSicht&&r.portalLief>20,'Kran fehlt oder arbeitet nicht (seit 09.10. ab Stufe 1): '+JSON.stringify({sicht:r.portalSicht,lief:r.portalLief}));
+    if(st===1) pruef('SPIELER1',r.spieler&&r.spieler.gepackt&&r.spieler.kran>10&&r.spieler.nach===r.spieler.vor+1&&r.spieler.band===0&&r.spieler.lage===1,'Paket des Spielers kommt nicht per Kran auf die Palette: '+JSON.stringify(r.spieler));
     pruef('WEG'+st,!r.wand.length,'Mitarbeiter laeuft durch die Station: '+r.wand.join(' '));
     pruef('ABHOLUNG'+st,r.abgeholt>0&&r.nachAbholung.pak===0&&r.nachAbholung.band===0&&r.nachAbholung.mesh===0&&!r.nachAbholung.greifer,'DDL holt nicht alles ab: '+JSON.stringify({vor:r.vorAbholung,nach:r.nachAbholung,n:r.abgeholt}));
   }

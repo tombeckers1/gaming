@@ -55,6 +55,28 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   console.log('TICK       ',JSON.stringify(tick));
   if(tick.offen!=='4'||tick.eintraege!==4||tick.S!==4) fehler.push('TICK: '+JSON.stringify(tick));
 
+  /* 6. Nachfrage (Tom 09.10.): hohe Versandkosten senken die Bestellungen stark (echte Abbrueche
+        beim Bestellen), Gratisversand hebt sie. Gegenprobe: "heute versandkostenfrei" bei 20 EUR -
+        dann darf die Zahl nicht fallen (zeigt, dass der Test die Wirkung misst). */
+  const nf=await p.evaluate(()=>{ const bb=window.__bb, S=bb.S, o={};
+    bb.closeHandy(false);
+    const tag=(cfg,gratis)=>{ Object.assign(bb.vsCfg(),cfg); bb.vsAktion().frei=gratis?S.day:-1; let n=0, ab=0;
+      for(let r=0;r<6;r++){ S.bestellungen=[]; S.offen=0; const a0=bb.DS.onAbbr|0; bb.phase='open';
+        for(let t=0;t<330;t+=0.5) bb.updateVersand(0.5); n+=S.bestellungen.length; ab+=(bb.DS.onAbbr|0)-a0; }
+      S.bestellungen=[]; S.offen=0; return {n:n/6,abbr:ab/6}; };
+    o.std=tag({kosten:4.9,frei:50,nie:false},false); o.teuer=tag({kosten:20,frei:50,nie:true},false); o.frei=tag({kosten:0,frei:50,nie:false},false);
+    o.gegen=tag({kosten:20,frei:50,nie:true},true);
+    Object.assign(bb.vsCfg(),{kosten:4.9,frei:50,nie:false}); bb.vsAktion().frei=-1;
+    /* Anzeige: Statistik, Aktionen und Versandbox im Onlineshop */
+    bb.openHandy('online'); const h=document.getElementById('hApp');
+    o.ui={stat:!!h.querySelector('table.onstat'),sale:h.querySelectorAll('[data-a="sale"]').length,gratis:!!h.querySelector('[data-a="gratis"]'),psale:!!h.querySelector('[data-a="psale"]'),box:!!h.querySelector('#onDdl'),ergebnis:/Ergebnis Online/.test(h.textContent)};
+    bb.closeHandy(false);
+    return o; });
+  console.log('NACHFRAGE  ',JSON.stringify(nf));
+  if(!(nf.teuer.n<nf.std.n*0.35&&nf.frei.n>nf.std.n*1.15&&nf.teuer.abbr>nf.std.abbr)) fehler.push('NACHFRAGE: Versandkosten wirken nicht auf die Bestellungen '+JSON.stringify(nf));
+  if(!(nf.gegen.n>nf.teuer.n*2)) fehler.push('NACHFRAGE_GEGENPROBE: Test misst die Wirkung nicht '+JSON.stringify(nf));
+  if(!(nf.ui.stat&&nf.ui.sale>=4&&nf.ui.gratis&&nf.ui.psale&&nf.ui.box&&nf.ui.ergebnis)) fehler.push('ONLINESHOP_UI: Statistik/Aktionen/Box fehlen '+JSON.stringify(nf.ui));
+
   console.log(fehler.length?fehler.slice(0,5).join('\n'):'ERRORS: keine');
   await b.close();
 })();

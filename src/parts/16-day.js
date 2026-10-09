@@ -194,8 +194,11 @@ function endDay(){
   /* Ohne Packstation kommt der Onlineumsatz pauschal herein. Mit Packstation
      laeuft das meiste ueber echte Pakete, ein Sockel bleibt aber stehen,
      damit die Packstation nie eine Verschlechterung ist. */
+  /* 09.10.: die Pauschale bleibt mit Packstation ganz stehen (Marktplatz-Verkaeufe,
+     die der Marktplatz selbst verschickt) - die Packstation kommt obendrauf und
+     ihre Rechnung (Statistik im Onlineshop) bleibt sauber fuer sich */
   const onlineBasis=S.up.onlineshop?Math.round(40+S.rep*1.6+S.level*4):0;
-  const online=packBereit()?Math.round(onlineBasis*0.4):onlineBasis;
+  const online=onlineBasis;
   const dispo=dispoZins();
   if(packBereit()&&(S.offen|0)>8){ rep(-Math.min(2,0.12*(S.offen-8))); }
   const wages=dailyWages(), fix=fixedCosts(), extra=(hasDeko('automat')?45:0)+online;
@@ -213,7 +216,7 @@ function endDay(){
   const rows=[
     {head:'Einnahmen'},['Verkäufe',eur(DS.revenue)]];
   if(hasDeko('automat')) rows.push(['Getränkeautomat',eur(45)]);
-  if(online) rows.push(['Onlineshop',eur(online)]);
+  if(online) rows.push(['Onlineshop (Marktplatz-Pauschale)',eur(online)]);
   if(DS.versand) rows.push(['Versand (Pakete)',eur(DS.versand)]);
   if(DS.versandGeb) rows.push(['Davon Versandkosten der Kunden',eur(DS.versandGeb)]);
   if(DS.onRabatt) rows.push(['Online-Rabatte (schon abgezogen)',eur(DS.onRabatt)]);

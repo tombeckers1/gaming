@@ -407,8 +407,8 @@ function buildVersandhof(){
   B(0.12,0.2,0.08,0xe7a91c,V1.x+V1.w/2+0.38,V1.h+0.06,V1.wz+0.3);
   /* Steuerkasten mit Tastern und Not-Halt links neben dem Tor (ausserhalb der Ladezone) */
   const TX=V1.x-V1.w/2-0.42;
-  B(0.26,0.36,0.12,0xd9dde3,TX,1.35,V1.wz+0.07); for(const [dy,c] of [[0.08,0x2fd06a],[-0.02,0xff4433],[-0.12,0x1b1d22]]) Cy(0.022,0.02,c,TX-0.05,1.35+dy,V1.wz+0.14,Math.PI/2,0,0,10);
-  Cy(0.04,0.03,0xd21d1d,TX+0.07,1.38,V1.wz+0.14,Math.PI/2,0,0,12); Cy(0.05,0.012,0xf2c230,TX+0.07,1.38,V1.wz+0.13,Math.PI/2,0,0,12);
+  B(0.26,0.36,0.12,0xd9dde3,TX,1.35,V1.wz+0.16); for(const [dy,c] of [[0.08,0x2fd06a],[-0.02,0xff4433],[-0.12,0x1b1d22]]) Cy(0.022,0.02,c,TX-0.05,1.35+dy,V1.wz+0.23,Math.PI/2,0,0,10);
+  Cy(0.04,0.03,0xd21d1d,TX+0.07,1.38,V1.wz+0.24,Math.PI/2,0,0,12); Cy(0.05,0.012,0xf2c230,TX+0.07,1.38,V1.wz+0.225,Math.PI/2,0,0,12);
   /* Warnmarkierung: Schienen unten gelb-schwarz, Bodendichtung - als ein Mesh mit Textur */
   { const parts=[]; for(const sx of [-1,1]) for(const zz of [V1.wz-0.12,V1.wz+0.12]) parts.push({geo:new THREE.BoxGeometry(0.15,1.0,0.105),m:tm(V1.x+sx*(V1.w/2+0.04),0.5,zz),color:0xffffff});
     const w=new THREE.Mesh(merge(parts),new THREE.MeshStandardMaterial({map:vsWarnTex(),roughness:0.6})); g.add(w); }
@@ -417,28 +417,29 @@ function buildVersandhof(){
   VD.lampG=new THREE.MeshStandardMaterial({color:LIN(0x104018),emissive:LIN(0x33ff77),emissiveIntensity:0});
   VD.warn=new THREE.MeshStandardMaterial({color:LIN(0x403010),emissive:LIN(0xffa820),emissiveIntensity:0});
   const AX=V1.x-V1.w/2-0.42;
-  B(0.2,0.5,0.14,ANTH,AX,2.25,V1.wz+0.09);
-  const lamp=(m,y)=>{ const l=new THREE.Mesh(new THREE.SphereGeometry(0.06,10,8),m); l.position.set(AX,y,V1.wz+0.17); g.add(l); };
+  B(0.2,0.5,0.14,ANTH,AX,2.25,V1.wz+0.17);
+  const lamp=(m,y)=>{ const l=new THREE.Mesh(new THREE.SphereGeometry(0.06,10,8),m); l.position.set(AX,y,V1.wz+0.25); g.add(l); };
   lamp(VD.lampR,2.38); lamp(VD.lampG,2.2);
   const wl=new THREE.Mesh(new THREE.SphereGeometry(0.08,10,8),VD.warn); wl.position.set(V1.x+V1.w/2+0.38,V1.h+0.55,V1.wz+0.35); g.add(wl);
   /* Schwanenhalslampe links ueber dem Tor (Zielbild), Licht nach unten */
   { const LX=V1.x-V1.w/2-0.7, LY=V1.h+0.9;
-    B(0.16,0.22,0.04,ANTH,LX,LY,V1.wz+0.02);
+    B(0.16,0.22,0.04,ANTH,LX,LY,V1.wz+0.12);
     /* Schwanenhals als Bogen aus kurzen Rohrstuecken (Ebene x = LX) */
-    { let py=LY, pz=V1.wz+0.04; for(let i=1;i<=8;i++){ const t=i/8, a=t*Math.PI*0.95, ny=LY+Math.sin(a)*0.26, nz=V1.wz+0.04+(1-Math.cos(a))*0.25+t*0.02;
+    { let py=LY, pz=V1.wz+0.13; for(let i=1;i<=8;i++){ const t=i/8, a=t*Math.PI*0.95, ny=LY+Math.sin(a)*0.26, nz=V1.wz+0.13+(1-Math.cos(a))*0.25+t*0.02;
       const dy=ny-py, dz=nz-pz, L=Math.hypot(dy,dz); Cy(0.016,L+0.01,ANTH,LX,(py+ny)/2,(pz+nz)/2,Math.atan2(dz,dy),0,0,6); py=ny; pz=nz; } }
     const kopf=new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.2,0.18,20,1,true),std(0x1c1f24,{metalness:0.5,roughness:0.4,side:THREE.DoubleSide}));
-    kopf.position.set(LX,LY-0.1,V1.wz+0.54); g.add(kopf);
+    kopf.position.set(LX,LY-0.1,V1.wz+0.63); g.add(kopf);
     VD.schwan=new THREE.MeshStandardMaterial({color:LIN(0xfff4dc),emissive:LIN(0xfff0d0),emissiveIntensity:0.6});
     if(typeof lampMats!=='undefined') lampMats.push(VD.schwan);
-    const glas=new THREE.Mesh(new THREE.CircleGeometry(0.19,20),VD.schwan); glas.rotation.x=Math.PI/2; glas.position.set(LX,LY-0.185,V1.wz+0.54); g.add(glas); }
+    const glas=new THREE.Mesh(new THREE.CircleGeometry(0.19,20),VD.schwan); glas.rotation.x=Math.PI/2; glas.position.set(LX,LY-0.185,V1.wz+0.63); g.add(glas); }
   /* Schild "DDL Abholung" ueber dem Tor, innen und aussen (vorher "V1 · VERSAND") */
   { const sm=new THREE.MeshStandardMaterial({map:ddlSchildTex(),roughness:0.55}), SY=V1.h+1.25;
-    B(1.96,0.84,0.04,0xc9ced6,V1.x,SY,V1.wz+0.03); B(1.96,0.84,0.04,0xc9ced6,V1.x,SY,V1.wz-0.03);
-    VD.sign=plane(1.9,0.78,sm,V1.x,SY,V1.wz+0.055,0,g); plane(1.9,0.78,sm,V1.x,SY,V1.wz-0.055,Math.PI,g); }
+    /* die Wand ist 0,2 m dick (Innenseite z = wz + 0,1) */
+    B(1.96,0.84,0.04,0xc9ced6,V1.x,SY,V1.wz+0.12); B(1.96,0.84,0.04,0xc9ced6,V1.x,SY,V1.wz-0.12);
+    VD.sign=plane(1.9,0.78,sm,V1.x,SY,V1.wz+0.145,0,g); plane(1.9,0.78,sm,V1.x,SY,V1.wz-0.145,Math.PI,g); }
   /* Wandtelefon (Tom 09.10.: "DDL nur auf Anruf - Telefon an der Wand"): links neben der
      Ladezone, vom Gang hinter den Packtischen aus erreichbar */
-  { const PX=V1.x-V1.w/2-1.25, PY=1.38, PZ=V1.wz+0.04;
+  { const PX=V1.x-V1.w/2-1.25, PY=1.38, PZ=V1.wz+0.1;
     B(0.26,0.36,0.1,0xe7a91c,PX,PY,PZ+0.05); B(0.2,0.12,0.02,0x2a2e36,PX,PY+0.07,PZ+0.105);
     for(let r=0;r<4;r++) for(let c=0;c<3;c++) B(0.034,0.024,0.012,0xd9dde3,PX-0.045+c*0.045,PY-0.04-r*0.032,PZ+0.105);
     B(0.06,0.3,0.06,0x1c1f24,PX+0.17,PY+0.01,PZ+0.08); B(0.08,0.06,0.07,0x1c1f24,PX+0.17,PY+0.15,PZ+0.08); B(0.08,0.06,0.07,0x1c1f24,PX+0.17,PY-0.13,PZ+0.08);

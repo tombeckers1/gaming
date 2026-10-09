@@ -29,6 +29,8 @@ const GP_ORTE=[
   ['Lager',       -10.5, 1.0, Math.PI*0.62, -0.10],
   /* 07.10.: die Versandecke steht am Hallenende hinter Sued 3 (Tor V1) - Blick von vorn in die Ecke */
   ['Versand',     -13.0,-19.0, 0.1, -0.1],
+  /* 09.10.: DDL auf Anruf - Blick vom Wandtelefon auf Ladezone und Rolltor V1 */
+  ['DDL-Tor',     -14.6,-27.4, -0.62, -0.05],
   ['Logistik',    -30.0,-16.0, Math.PI*0.62, -0.05],
   ['Testfeld',      0.3,-8.5, 0, 0.05]
 ];
@@ -318,7 +320,10 @@ function gpTick(dt){
     /* Bilanz des Tages fuer den Verlauf merken, dann "Naechster Tag" */
     if(!gpGestern||gpGestern.tag!==S.day) gpGestern={tag:S.day,umsatz:DS.revenue,kunden:DS.customers};
     const b=$('sBtn'); if(b&&b.onclick) b.onclick(); else closeSummary(); return; }
-  /* DDL fuehrt die Abholung zu Ende (LKW, Tor, Mitarbeiter am Hubwagen), dann Tagesabschluss */
+  /* Versand-Disponent (09.10.): DDL kommt nur auf Anruf - er ruft am Wandtelefon an, wenn die
+     Box voll ist oder zum Feierabend Pakete warten (wie ein Spieler, mit Pauschale) */
+  if(typeof ddlRufen==='function'&&packBereit()&&!ddlLaeuft()&&vsGelandet()>0&&(DDL.voll||phase==='closing'||phase==='after'||vsGelandet()>=palPlaetze()*22)) ddlRufen();
+  /* DDL fuehrt die Abholung zu Ende (LKW, Tor, DDL-Fahrer am Hubwagen), dann Tagesabschluss */
   if(phase==='after'){ if(typeof ddlLaeuft==='function'&&ddlLaeuft()&&gpWarteDdl<240){ gpWarteDdl+=dt; return; } gpWarteDdl=0; endDay(); return; }
   if(phase==='closed'){ if(typeof ruhetag==='function'&&ruhetag()) ruhetagBeenden(); else openShop(); }
   if(S.day!==gpTagAlt){ gpTagAlt=S.day; gpVerlauf.push({tag:S.day,geld:S.money}); if(gpVerlauf.length>14) gpVerlauf.shift(); gpBestellen(); }
@@ -365,7 +370,7 @@ function gpZeichnen(){
 /* Tasten waehrend der Vorfuehrung */
 function gpTaste(e){
   if(!gpAn) return false;
-  if(/^Digit[1-7]$/.test(e.code)){ gpSpringe(+e.code.slice(5)-1); return true; }
+  if(/^Digit[1-8]$/.test(e.code)){ gpSpringe(+e.code.slice(5)-1); return true; }
   if(e.code==='KeyT'){ gpTempoWechsel(); return true; }
   if(e.code==='KeyB'){ gpEnde(); return true; }
   return false;

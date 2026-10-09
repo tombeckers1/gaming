@@ -129,18 +129,19 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   /* 4. Versandkosten und Freigrenze: Nachfrage und Einnahmen */
   const kf=await p.evaluate(()=>{ const bb=window.__bb, S=bb.S, o={};
     const c=bb.vsCfg(); o.std={k:c.kosten,f:c.frei,n:bb.bestellungenProTag(),f1:+bb.vsNachfrage().toFixed(3)};
-    c.kosten=9.9; c.frei=0; o.teuer={n:bb.bestellungenProTag(),f:+bb.vsNachfrage().toFixed(3)};
-    c.kosten=0; c.frei=20; o.billig={n:bb.bestellungenProTag(),f:+bb.vsNachfrage().toFixed(3)};
+    /* seit 09.10.: frei 0 = immer versandfrei, nie = c.nie */
+    c.kosten=9.9; c.nie=true; o.teuer={n:bb.bestellungenProTag(),f:+bb.vsNachfrage().toFixed(3)};
+    c.nie=false; c.kosten=0; c.frei=20; o.billig={n:bb.bestellungenProTag(),f:+bb.vsNachfrage().toFixed(3)};
     c.kosten=4.9; c.frei=150; o.hoheGrenze={n:bb.bestellungenProTag()};
     c.kosten=4.9; c.frei=25; o.niedrigeGrenze={n:bb.bestellungenProTag()};
     /* Einnahmen: Kunde zahlt Versand, du zahlst Porto */
     for(let i=0;i<3;i++) bb.VM_IDS.forEach(id=>{ S.vm[i][id]=bb.VM[id].kap; });
     window.__lagern('boeller'); S.bestellungen=[];
-    c.kosten=5.9; c.frei=0;
+    c.kosten=5.9; c.nie=true;
     let x=bb.vsNeueBestellung(false); S.bestellungen.push(x); S.offen=1;
     o.gebuehr=x.versand; let g=S.money; bb.packOne(true); o.mitGeb=+(S.money-g).toFixed(2); o.sollMit=+(x.wert+5.9-bb.VS_PORTO[x.gr]).toFixed(2);
     /* Freigrenze niedrig genug, dass jede Bestellung darueber liegt (Bestellwerte sind zufaellig) */
-    c.frei=3; x=bb.vsNeueBestellung(false); S.bestellungen.push(x); S.offen=1;
+    c.nie=false; c.frei=3; x=bb.vsNeueBestellung(false); S.bestellungen.push(x); S.offen=1;
     o.gebuehrFrei=x.versand; g=S.money; bb.packOne(true); o.ohneGeb=+(S.money-g).toFixed(2); o.sollOhne=+(x.wert-bb.VS_PORTO[x.gr]).toFixed(2); o.wertFrei=x.wert;
     c.kosten=4.9; c.frei=50;
     return o; });
@@ -157,12 +158,13 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     const vor=bb.pendingListe().filter(x=>x.vm).length; const k=body.querySelector('[data-a="vmbuy"][data-t="kl"]'); if(k) k.click();
     o.bestellt=bb.pendingListe().filter(x=>x.vm).length-vor;
     bb.closeLaptop(false); bb.openHandy('online');
-    const kn=document.querySelector('#hApp [data-a="vsk"][data-d="0.5"]'); const k0=bb.vsCfg().kosten; if(kn) kn.click(); o.plus=+(bb.vsCfg().kosten-k0).toFixed(2);
-    const fr=document.querySelector('#hApp [data-a="vsf"][data-d="aus"]'); if(fr) fr.click(); o.nie=bb.vsCfg().frei;
-    const fr2=document.querySelector('#hApp [data-a="vsf"][data-d="aus"]'); if(fr2) fr2.click(); o.wieder=bb.vsCfg().frei;
+    const kn=document.querySelector('#hApp [data-a="vsk"][data-d="1"]'); const k0=bb.vsCfg().kosten; if(kn) kn.click(); o.plus=+(bb.vsCfg().kosten-k0).toFixed(2);
+    const fr=document.querySelector('#hApp [data-a="vsf"][data-d="nie"]'); if(fr) fr.click(); o.nie=bb.vsCfg().nie;
+    const fr1=document.querySelector('#hApp [data-a="vsf"][data-d="immer"]'); if(fr1) fr1.click(); o.immer=!bb.vsCfg().nie&&bb.vsCfg().frei===0;
+    for(let i=0;i<5;i++){ const fr2=document.querySelector('#hApp [data-a="vsf"][data-d="10"]'); if(fr2) fr2.click(); } o.wieder=bb.vsCfg().frei;
     bb.closeHandy(false); if(bb.pauseOpen) bb.closePause(); return o; });
   console.log('LAPTOP',JSON.stringify(lap));
-  pruef('LAPTOP',lap.karten>=5&&lap.bestellt===1&&lap.plus===0.5&&lap.nie===0&&lap.wieder===50,'Bestellen oder Einstellen im Laptop geht nicht: '+JSON.stringify(lap));
+  pruef('LAPTOP',lap.karten>=5&&lap.bestellt===1&&lap.plus===1&&lap.nie===true&&lap.immer===true&&lap.wieder===50,'Bestellen oder Einstellen im Laptop geht nicht: '+JSON.stringify(lap));
 
   /* 6. Speichern und Laden; alter Stand ohne Packmaterial */
   await p.evaluate(()=>{ const bb=window.__bb, S=bb.S; S.vm[0].ks=7; S.vm[0].band=33; bb.vsCfg().kosten=3.5; bb.vsCfg().frei=80; bb.save(); });

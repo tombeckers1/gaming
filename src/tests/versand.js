@@ -1,7 +1,8 @@
-/* Versandecke als ein Moebel: Packtisch, Rollenbahn, Bodenflaeche,
-   Paketablage, DDL-Schild und Absperrband gehoeren in eine Gruppe
-   und wandern im Umbaumodus gemeinsam. Dazu die Pause mit der
-   Steuerung: Esc haelt an, im Spielbild stehen keine Tastenlisten.
+/* Versandecke als eine Gruppe: Packtisch, Band, Box, Ladezone und Absperrband
+   gehoeren zusammen. Seit 09.10. (Tom) ist die Ecke fest eingebaut (Box und
+   Ladezone gehoeren zu Rolltor V1) und der ganze Versandbereich ist fuer Regale
+   und Moebel gesperrt - auch in alten Spielstaenden (dort zieht, was im Bereich
+   steht, beim Laden um). Dazu die Pause mit der Steuerung.
    Braucht echtes three.js (Box3). */
 const { chromium } = require('/opt/node22/lib/node_modules/playwright');
 (async()=>{
@@ -44,8 +45,9 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     o.flaeche=fl;
     /* Kleine Teile in der Flaeche, die nicht in der Gruppe haengen */
     o.fremd=[];
+    const fremdOk=q=>{ for(let a=q;a;a=a.parent){ if(a===bb.VD.g||(a.userData&&a.userData.inventar)) return true; } return false; };   /* Rolltor/Telefon und Lager-PC stehen bewusst dort */
     bb.scene.traverse(q=>{
-      if(!q.isMesh||window.__inG(q)) return;
+      if(!q.isMesh||window.__inG(q)||fremdOk(q)) return;
       const x=new THREE.Box3().setFromObject(q);
       if(x.isEmpty()) return;
       if(x.max.x-x.min.x>3||x.max.z-x.min.z>3) return;      /* Boden, Waende */
@@ -58,8 +60,9 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     o.band=band; o.bandDrin=bandDrin;
     o.cols=window.__cols();
     o.pos={x:g.position.x,z:g.position.z};
-    /* Die Flaeche passt in den ersten Hallenabschnitt */
-    o.frei=bb.spotFree(bb.packMov,g.position.x,g.position.z,g.rotation.y);
+    /* nichts anderes ueberdeckt die Station (fest eingebaut: kein spotFree) */
+    { const ov=(a,c)=>Math.min(a.maxX,c.maxX)-Math.max(a.minX,c.minX)>0.03&&Math.min(a.maxZ,c.maxZ)-Math.max(a.minZ,c.minZ)>0.03;
+      o.frei=(bb.packMov.cols||[]).every(a=>!bb.colliders.some(c=>c.ref!==bb.packMov&&ov(a,c))); }
     return o;
   });
   console.log('GRUPPE    ',JSON.stringify({fremd:a.fremd,band:a.band,bandDrin:a.bandDrin,cols:a.cols.length,frei:a.frei}));
@@ -68,75 +71,22 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   pruef('GRUPPE',a.cols.length>=4,'vor dem Kauf erwartet: Tisch, Zaun, Band - gefunden '+a.cols.length);
   pruef('GRUPPE',a.frei===true,'die Ecke steht am Startplatz nicht frei im Raum');
 
-  /* 2 - greifen und woanders absetzen */
+  /* 2 - fest eingebaut (09.10.): F auf die Ecke greift nichts, sondern sagt warum.
+         Gegenprobe: als normales Moebel waere sie greifbar. */
   const v=await p.evaluate(()=>{
     const bb=window.__bb, g=bb.packTisch, o={};
-    const teile={};
-    g.traverse(q=>{ if(q.isMesh&&q.userData&&q.userData.sperrband&&!teile.band) teile.band=q; });
-    teile.tisch=g.children[0];
-    const vor={}; for(const k in teile) vor[k]=window.__box(teile[k]);
-    const cVor=window.__cols();
-    bb.toggleBuild(true);
-    o.mode=document.getElementById('mode').textContent;
-    const p0={x:g.position.x,z:g.position.z};
-    /* seit 08.10. steht die Station am Ende von Sued 3: von mehreren Standpunkten aus greifen und neben dem Startplatz absetzen */
-    o.greifbar=false;
-    for(const off of [0.9,-0.9,1.6,-1.6]) for(const d of [2.5,3.0,2.0,3.5,1.5]){
-      bb.setView(p0.x+off,p0.z+d,0,0);
-      bb.grab(bb.packMov); bb.updateGrab();
-      const frei=bb.spotFree(bb.packMov,g.position.x,g.position.z,g.rotation.y);
-      if(frei&&Math.hypot(g.position.x-p0.x,g.position.z-p0.z)>0.3){ o.greifbar=true; break; }
-      bb.cancelGrab&&bb.cancelGrab(); if(bb.grabbed){ bb.placeGrab(); }
-    }
-    if(!bb.grabbed){ bb.grab(bb.packMov); bb.updateGrab(); }
-    bb.placeGrab();
-    o.abgesetzt=bb.grabbed===null;
-    o.dx=+(g.position.x-p0.x).toFixed(2); o.dz=+(g.position.z-p0.z).toFixed(2);
-    o.teile={};
-    for(const k in teile){ const n=window.__box(teile[k]);
-      o.teile[k]={dx:+(n.x0-vor[k].x0).toFixed(2),dz:+(n.z0-vor[k].z0).toFixed(2)}; }
-    const cNach=window.__cols();
-    o.cols=cNach.length;
-    o.colDx=cNach.length?+(cNach[0].x0-cVor[0].x0).toFixed(2):null;
-    o.colDz=cNach.length?+(cNach[0].z0-cVor[0].z0).toFixed(2):null;
-    /* Am alten Platz blockiert nichts mehr */
-    o.altBlock=bb.colliders.filter(c=>c.ref===bb.packMov&&c.minX<p0.x-3.5&&c.maxX>p0.x-3.0&&c.minZ<p0.z-5&&c.maxZ>p0.z-4.9).length;
-    return o;
+    const tisch=bb.ppW(0,0,0), w=bb.vsWelt(0,0,0);
+    bb.setView(w.x-1.6,w.z,-Math.PI/2,-0.35);
+    o.imBlick=!!bb.moebelImBlick(); bb.moebelTaste(); o.gegriffen=!!bb.grabbed; o.toast=bb.toastLast;
+    if(bb.grabbed) bb.cancelGrab();
+    bb.packMov.fest=false; const m=bb.moebelImBlick(); o.gegenprobe=m===bb.packMov; bb.packMov.fest=true;
+    o.pos={x:g.position.x,z:g.position.z,ry:g.rotation.y}; o.home=bb.PACK_HOME;
+    void tisch; return o;
   });
-  console.log('VERSCHIEBEN',JSON.stringify(v));
-  pruef('VERSCHIEBEN',v.abgesetzt===true,'die Ecke laesst sich nicht absetzen');
-  pruef('VERSCHIEBEN',v.greifbar===true&&Math.abs(v.dx)+Math.abs(v.dz)>0.3,'die Ecke hat sich nicht bewegt: '+JSON.stringify({dx:v.dx,dz:v.dz,greifbar:v.greifbar}));
-  for(const k in v.teile)
-    pruef('VERSCHIEBEN',Math.abs(v.teile[k].dx-v.dx)<0.02&&Math.abs(v.teile[k].dz-v.dz)<0.02,`${k} wandert nicht mit (${JSON.stringify(v.teile[k])})`);
-  pruef('VERSCHIEBEN',v.cols>=4&&Math.abs(v.colDx-v.dx)<0.02&&Math.abs(v.colDz-v.dz)<0.02,'die Kollision bleibt am alten Platz');
-  pruef('VERSCHIEBEN',v.altBlock===0,'am alten Platz steht noch eine unsichtbare Wand');
-  /* 29.09.: kein Umbaumodus mehr - mit Moebel in der Hand steht nur das, keine Tastenliste */
-  pruef('UMBAU',v.mode===''||v.mode==='Möbel in der Hand','im Bild steht noch eine Tastenliste: '+v.mode);
-
-  /* 3 - drehen: die Kollision dreht mit */
-  await p.evaluate(()=>{ const bb=window.__bb; bb.toggleBuild(true); bb.setView(bb.packTisch.position.x,bb.packTisch.position.z+2.5,Math.PI/2,0); bb.grab(bb.packMov); bb.rotateGrab(); });
-  const dr2=await p.evaluate(()=>{
-    const bb=window.__bb, g=bb.packTisch, o={};
-    bb.updateGrab();
-    o.ry=+g.rotation.y.toFixed(3);
-    o.frei=bb.spotFree(bb.packMov,g.position.x,g.position.z,g.rotation.y);
-    /* seit 08.10.: Sued 3 ist enger - von mehreren Standpunkten aus einen freien Platz fuer die gedrehte Ecke suchen */
-    const home={x:g.position.x,z:g.position.z};
-    for(let i=0;i<24&&!o.frei;i++){ const off=[0,1.2,-1.2,2.4,-2.4,3.6][i%6], d=[0.5,1.5,2.5,3.5][Math.floor(i/6)];
-      bb.setView(home.x+off,home.z+d,Math.PI/2,0); bb.updateGrab();
-      o.frei=bb.spotFree(bb.packMov,g.position.x,g.position.z,g.rotation.y); }
-    bb.placeGrab();
-    o.abgesetzt=bb.grabbed===null;
-    const c=window.__cols();
-    o.tisch=c[0]; o.tiefer=c[0]?(c[0].z1-c[0].z0)>(c[0].x1-c[0].x0):null;
-    const fl=bb.rectOf(bb.packMov,g.position.x,g.position.z,g.rotation.y);
-    o.flaeche={minX:+fl.minX.toFixed(2),maxX:+fl.maxX.toFixed(2),minZ:+fl.minZ.toFixed(2),maxZ:+fl.maxZ.toFixed(2)};
-    return o;
-  });
-  console.log('DREHEN    ',JSON.stringify(dr2));
-  pruef('DREHEN',dr2.abgesetzt===true,'gedrehte Ecke laesst sich nicht absetzen');
-  pruef('DREHEN',dr2.tiefer!==false,'die Tischkollision hat sich nicht mitgedreht');
-  pruef('DREHEN',dr2.frei===true,'die gedrehte Ecke passt nirgends in den Hallenabschnitt: '+JSON.stringify(dr2.flaeche));
+  console.log('FEST      ',JSON.stringify(v));
+  pruef('FEST',!v.imBlick&&!v.gegriffen&&/fest eingebaut/.test(v.toast||''),'die Versandecke laesst sich greifen: '+JSON.stringify(v));
+  pruef('FEST_GEGENPROBE',v.gegenprobe,'Test taugt nicht: auch ohne fest waere die Ecke nicht im Blick');
+  pruef('FEST',Math.abs(v.pos.x-v.home.x)<0.01&&Math.abs(v.pos.z-v.home.z)<0.01,'die Ecke steht nicht an ihrem festen Platz');
 
   /* 4 - die Flaeche ist belegt: kein Regal auf die Paketablage oder
          zwischen Tisch und Band. Und daneben geht es. */
@@ -149,6 +99,9 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     const w1=welt(-0.9,0.2), w2=welt(0.0,0.85);
     o.aufAblage=bb.spotFree(fake,w1.x,w1.z,0);
     o.vorTisch=bb.spotFree(fake,w2.x,w2.z,0);
+    /* 09.10.: Versandbereich - wohin die Box bis Stufe 3 waechst, die Ladezone vor V1 und der Gang hinter den Tischen */
+    const w3=welt(-0.9,-1.6), w4=welt(-2.4,2.6), w5=welt(3.0,2.6);
+    o.reserve=bb.spotFree(fake,w3.x,w3.z,0); o.ladezone=bb.spotFree(fake,w4.x,w4.z,0); o.gang=bb.spotFree(fake,w5.x,w5.z,0);
     const fl=bb.rectOf(bb.packMov,g.position.x,g.position.z,g.rotation.y);
     /* ein Stueck neben der Flaeche, noch im Hallenabschnitt */
     const cand=[[fl.maxX+0.9,(fl.minZ+fl.maxZ)/2],[fl.minX-0.9,(fl.minZ+fl.maxZ)/2],[(fl.minX+fl.maxX)/2,fl.minZ-0.6],[(fl.minX+fl.maxX)/2,fl.maxZ+0.6]];
@@ -159,6 +112,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   pruef('BELEGT',f.aufAblage===false,'ein Regal passt auf die Paketablage');
   pruef('BELEGT',f.vorTisch===false,'ein Regal passt zwischen Tisch und Absperrband');
   pruef('BELEGT',f.daneben===true,'neben der Ecke passt gar nichts - Pruefung zu streng');
+  pruef('VERSANDBEREICH',f.reserve===false&&f.ladezone===false&&f.gang===false,'im Versandbereich laesst sich ein Regal abstellen: '+JSON.stringify({reserve:f.reserve,ladezone:f.ladezone,gang:f.gang}));
 
   /* 5 - Kauf: Band weg, seine Kollision auch; Pakete stehen auf der Ablage */
   const k=await p.evaluate(()=>{
@@ -178,18 +132,25 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   pruef('KAUF',k.bandSichtbar===0,'das Band haengt nach dem Kauf noch');
 
   /* 6 - Speichern und Laden: die Ecke bleibt, wo sie steht */
-  const vorher=await p.evaluate(()=>{ const bb=window.__bb, g=bb.packTisch; bb.save(); return {x:g.position.x,z:g.position.z,ry:+g.rotation.y.toFixed(3),cols:bb.colliders.filter(c=>c.ref===bb.packMov).length}; });
+  /* alter Spielstand: ein Verkaufsregal steht mitten im (neuen) Versandbereich - beim Laden zieht es um */
+  const vorher=await p.evaluate(()=>{ const bb=window.__bb, g=bb.packTisch; const s=Math.sin(g.rotation.y), c=Math.cos(g.rotation.y), W=(lx,lz)=>({x:g.position.x+lx*c+lz*s,z:g.position.z-lx*s+lz*c});
+    const q=W(-0.9,-1.6); const sh=bb.createShelf(bb.shelves.length,{kind:'standard',x:q.x,z:q.z,ry:0}); bb.placeMovable(sh.mov,q.x,q.z,0);
+    const A=bb.versandBereich(), r=bb.rectOf(sh.mov,sh.g.position.x,sh.g.position.z,0);
+    const drin=r.minX<A.maxX&&r.maxX>A.minX&&r.minZ<A.maxZ&&r.maxZ>A.minZ;
+    bb.save(); return {x:g.position.x,z:g.position.z,ry:+g.rotation.y.toFixed(3),cols:bb.colliders.filter(c=>c.ref===bb.packMov).length,regalDrin:drin,regale:bb.shelves.length}; });
   await p.reload(); await p.waitForFunction('window.__bb!==undefined',{timeout:90000});
   await p.waitForFunction("!!document.querySelector('#startBtns button:not([disabled])')",{timeout:90000});
   await p.click('#startBtns button:first-child');
   await p.waitForFunction("!document.getElementById('start').classList.contains('show')",{timeout:20000});
   await p.waitForTimeout(300);
-  const nach=await p.evaluate(()=>{ const bb=window.__bb, g=bb.packTisch;
+  const nach=await p.evaluate(()=>{ const bb=window.__bb, g=bb.packTisch, A=bb.versandBereich();
+    const drin=bb.shelves.filter(sh=>{ const r=bb.rectOf(sh.mov,sh.g.position.x,sh.g.position.z,sh.g.rotation.y); return r.minX<A.maxX-0.02&&r.maxX>A.minX+0.02&&r.minZ<A.maxZ-0.02&&r.maxZ>A.minZ+0.02; }).length;
     return {x:g.position.x,z:g.position.z,ry:+g.rotation.y.toFixed(3),
-      cols:bb.colliders.filter(c=>c.ref===bb.packMov).length}; });
+      cols:bb.colliders.filter(c=>c.ref===bb.packMov).length,regaleDrin:drin,regale:bb.shelves.length}; });
   console.log('LADEN     ',JSON.stringify({vorher,nach}));
   pruef('LADEN',Math.abs(nach.x-vorher.x)<0.02&&Math.abs(nach.z-vorher.z)<0.02&&Math.abs(nach.ry-vorher.ry)<0.01,'nach dem Laden steht die Ecke woanders');
   pruef('LADEN',nach.cols===vorher.cols,'nach dem Laden stimmt die Kollision nicht ('+nach.cols+' statt '+vorher.cols+')');
+  pruef('ALTSTAND_REGAL',vorher.regalDrin&&nach.regaleDrin===0&&nach.regale===vorher.regale,'Regal im Versandbereich zieht beim Laden nicht um (oder geht verloren): '+JSON.stringify({vorher:vorher.regalDrin,nachDrin:nach.regaleDrin,regale:[vorher.regale,nach.regale]}));
 
   /* 7 - Pause: Esc haelt an und zeigt die Steuerung */
   const tool0=await p.evaluate(()=>document.getElementById('tool').textContent);

@@ -191,6 +191,19 @@ button:focus-visible{outline:3px solid var(--spark);outline-offset:2px}
 .best:last-child{border-bottom:0}
 .best em{font-style:normal;font-family:var(--display);color:var(--mint)}
 .best small{grid-column:1/-1}
+/* Onlineshop-Statistik (09.10.) */
+.onstat{width:100%;border-collapse:collapse;font-size:15px;margin-top:4px}
+.onstat th,.onstat td{padding:3px 6px;text-align:right;border-bottom:1px solid rgba(255,255,255,.07);white-space:nowrap}
+.onstat th:first-child,.onstat td:first-child{text-align:left;color:var(--muted)}
+.onstat tr.sum td{font-family:var(--display);font-size:17px;border-top:1px solid rgba(255,255,255,.25)}
+.onstat .neg{color:#ff9d92} .onstat .pos{color:var(--mint)}
+.onbox{border-radius:10px;padding:10px 12px;margin:10px 0;background:rgba(242,245,255,.07)}
+.onbox.voll{background:rgba(230,59,46,.22);border:1px solid rgba(255,120,100,.5)}
+.onbox b{font-size:19px}
+.onverlauf{display:flex;align-items:flex-end;gap:3px;height:44px;margin-top:6px}
+.onverlauf i{flex:1;min-width:6px;border-radius:2px 2px 0 0;background:var(--mint)}
+.onverlauf i.neg{background:#ff7a6a}
+.onsel{font:600 15px Barlow,Arial,sans-serif;padding:7px;border-radius:8px;background:#0f1530;color:var(--snow);border:1px solid rgba(242,245,255,.22);max-width:220px}
 .lizrow{align-items:flex-start}
 .lizitems{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px}
 .lizitems span{background:rgba(242,245,255,.10);border-radius:5px;padding:2px 7px;font-size:14px;color:var(--snow)}
@@ -568,12 +581,12 @@ body.compact .pdahead2 b{font-size:16px}
 </div>
 
 <div class="ov" id="laptop"><div class="card">
-  <div class="lhead"><b>Feuerwerksladen OS</b><em id="lLevel"></em><span id="lMoney"></span></div>
+  <div class="lhead"><b id="lGeraet">Feuerwerksladen OS</b><em id="lLevel"></em><span id="lMoney"></span></div>
   <div class="tabs" id="ltabs">
-    <button data-tab="order">Bestellen</button><button data-tab="price">Preise &amp; Markt</button><button data-tab="liz">Sortiment</button><button data-tab="up">Ausbau</button><button data-tab="deko">Deko</button><button data-tab="rez">Entwicklung</button><button data-tab="shop">Laden</button>
+    <button data-tab="order">Bestellen</button><button data-tab="price">Preise &amp; Markt</button><button data-tab="liz">Sortiment</button><button data-tab="up">Ausbau</button><button data-tab="deko">Deko</button><button data-tab="rez">Entwicklung</button><button data-tab="shop">Laden</button><button data-tab="online">Onlineshop</button><button data-tab="staff">Team</button>
   </div>
   <div class="lbody" id="lbody"></div>
-  <div class="lfoot lfoot-r"><button class="ghost" id="lclose">Laptop zuklappen</button><button id="lKorb">Warenkorb anzeigen</button></div>
+  <div class="lfoot lfoot-r"><button class="ghost" id="lclose">Zuklappen</button><button id="lKorb">Warenkorb anzeigen</button></div>
 </div></div>
 <div class="ov" id="handy"><div class="geraet"><div class="schirm">
   <div class="kerbe"></div>

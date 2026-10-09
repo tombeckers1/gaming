@@ -128,7 +128,7 @@ function moebelImBlick(){
   /* frisch verschobene Moebel: Weltmatrix erst beim naechsten Bild -
      beim Tastendruck lieber gleich nachziehen */
   scene.updateMatrixWorld(); ray.setFromCamera(center,camera); ray.far=4;
-  const list=movables.filter(m=>m.g.visible!==false&&nahDran(m.g.position,8)).map(m=>m.g);
+  const list=movables.filter(m=>!m.fest&&m.g.visible!==false&&nahDran(m.g.position,8)).map(m=>m.g);
   const hits=ray.intersectObjects(list,true); ray.far=3.3;
   for(const h of hits){ const m=movableOf(h.object); if(m) return m; }
   return null;
@@ -159,6 +159,10 @@ function moebelTaste(){
   /* 03.10. (Tom): Zuendpult, Zuendtisch, Abschussrohre und Moerser samt
      Feuerwerk darauf sind fest eingebaut - das soll man auch hoeren */
   if(festImBlick()){ toast('Zündpult, Zündtisch, Abschussrohre und Mörser sind fest eingebaut – die lassen sich nicht verschieben.','bad'); return; }
+  /* 09.10.: die Versandecke gehoert zu Rolltor V1 */
+  if(typeof packTisch!=='undefined'&&packTisch&&nahDran(packTisch.position,9)){ scene.updateMatrixWorld(); ray.setFromCamera(center,camera); ray.far=5;
+    const h=ray.intersectObject(packTisch,true); ray.far=3.3;
+    if(h.length){ toast('Die Versandecke ist fest eingebaut – Box, Kran und Ladezone gehören zu Rolltor V1.','bad'); return; } }
   toast(COARSE?'Schau ein Möbel an und tippe „Möbel“, um es aufzunehmen.':'Schau ein Möbel an und drück F, um es aufzunehmen.');
 }
 /* Auspacken: das Paket verschwindet, das Moebel steht vor einem und
@@ -304,10 +308,11 @@ function updateTarget(){
   for(const k in stations) if(nahDran(stations[k].g.position,R)) list.push(stations[k].hit);
   list.push(lapHit,doorSign,posHit,cardHit);
   if(lapHit2&&lapHit2.parent&&lapHit2.parent.visible) list.push(lapHit2);
+  if(typeof tabHit!=='undefined'&&tabHit) list.push(tabHit);
   if(pultHit) list.push(pultHit);
   if(gravHit) list.push(gravHit);
   if(packHit&&zoneOffen('packstation')&&nahDran(packTisch.position,12)) list.push(...vsHits());
-  if(packHit&&zoneOffen('packstation')&&typeof vsPalHits==='function'&&(nahDran(packTisch.position,14)||nahDran({x:V1.x,z:V1.rz},12))) list.push(...vsPalHits());
+  if(typeof vsPalHits==='function'&&nahDran({x:V1.x,z:V1.rz},12)) list.push(...vsPalHits());
   if(tfHit&&tfHit.visible) list.push(tfHit);
   if(truck&&truck.state==='docked') truck.boxes.forEach(m=>list.push(m));
   list.push(...windowHits);
@@ -316,9 +321,8 @@ function updateTarget(){
   if(hits.length){ const ud=hits[0].object.userData; if(ud&&ud.kind) target={kind:ud.kind,ref:ud.ref,obj:hits[0].object}; }
 }
 function promptFor(t){
-  if(typeof hubPrompt==='function'){ const h=hubPrompt(t); if(h) return h; }
+  if(t&&t.kind==='ddltel'&&typeof ddlTelPrompt==='function') return ddlTelPrompt();
   if(!t) return null; const c=S.carrying, reg=regCustomer();
-  if(t.kind==='bandende'){ const h=vsHandPrompt(); if(h) return h; }
   if(pdaOn&&!grabbed){ const pt=pdaTargetType(); if(pt) return {t:`Preisgerät: ${P[pt].short} · ${eur(S.prices[pt])}`,a:true}; }
   if(c&&c.vm&&['level','rslot','box','station','gravur'].indexOf(t.kind)>=0) return {t:'Versandmaterial gehört ins Packmaterial-Regal an der Packstation',a:false};
   switch(t.kind){
@@ -353,7 +357,8 @@ function promptFor(t){
     case 'pos': if(reg&&reg.state==='pay') return reg.method==='cash'?{t:`Bargeld annehmen: ${eur(reg.given)}`,a:true}:{t:'Kartenzahlung abschließen',a:true}; return {t:'Kasse',a:false};
     case 'tfsperre': return {t:'Zugang zum Testfeld — im Laptop unter Ausbau freischalten',a:false};
     case 'laptop': return {t:'Laptop öffnen',a:true};
-    case 'laptop2': return {t:'Lagerterminal öffnen',a:true};
+    case 'laptop2': return {t:'Lager-PC: Onlineshop, Team, Bestellen',a:true};
+    case 'tablet': return {t:'Tablet: Ware bestellen',a:true};
     case 'pack': {
       if(!zoneOffen('packstation')) return {t:'Packstation — im Laptop unter Ausbau freischalten',a:false};
       if(!S.up.onlineshop) return {t:'Onlineshop muss noch freigeschaltet werden',a:false};
@@ -394,11 +399,8 @@ function promptFor(t){
 function doAction(){
   if(paused) return;
   if(sprayOn&&!grabbed){ doSpray(); return; }
-  if(typeof hubAn==='function'&&hubAn()){ hubAktion(target); return; }
   if(!target) return;
-  if(target.kind==='palette'){ hubAktion(target); return; }
-  if(target.kind==='ddlschild'){ ddlRufen(); return; }
-  if(target.kind==='bandende'){ if(S.carrying) toast('Erst den Karton abstellen.'); else vsSpielerAblegen(); return; }
+  if(target.kind==='ddltel'){ ddlRufen(); return; }
   if(pdaOn&&!grabbed){ const t=pdaTargetType(); if(t){ openPDA(t); return; } }
   const k=target.kind, r=target.ref, reg=regCustomer();
   if(k==='placing') placeGrab();
@@ -424,8 +426,9 @@ function doAction(){
   else if(k==='pos'){ if(reg&&reg.state==='pay'){ if(reg.method==='cash') openCash(reg); else reg.finishCard(); } }
   else if(k==='pack') vsSpielerPacken(r);
   else if(k==='vmregal'){ if(S.carrying&&S.carrying.vm) vmSpielerEinraeumen(r); }
-  else if(k==='laptop') openLaptop();
-  else if(k==='laptop2') openLaptop('order');
+  else if(k==='laptop') openLaptop(null,'buero');
+  else if(k==='laptop2') openLaptop('online','lager');
+  else if(k==='tablet') openLaptop('order','tablet');
   else if(k==='station'){ if(S.carrying) placeOnStation(r); }
   else if(k==='pult'){ if(zuendOpen) closeZuend(); else openZuend(); }
   else if(k==='gravur'){ if(S.carrying&&S.carrying.type==='blanko') refillGrav(); else if(!S.carrying) openGravInput(); }

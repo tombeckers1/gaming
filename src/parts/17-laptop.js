@@ -3,7 +3,16 @@
    Laptop
    ========================================================= */
 let laptopOpen=false, startOpen=true, pauseOpen=false, ltab='order', resetArm=false, lsup='ware', korbOpen=false, lkat='alle';
-function openLaptop(tab){ if(typeof handyOpen!=='undefined'&&handyOpen) closeHandy(false); laptopOpen=true; resetArm=false; if(tab) ltab=tab; for(const k in keys) keys[k]=false; mouseDown=false; touchAct=false; renderLaptop(); $('laptop').classList.add('show'); if(locked) document.exitPointerLock(); }
+/* Geraete (Tom 09.10., vorlaeufig): Buero-Laptop = Chef-Rechner mit allem wie bisher;
+   Lager-PC in der Versandecke = Bestellen, Onlineshop (Versandkosten, Aktionen, Statistik)
+   und Team; Tablet im Laden = Ware bestellen. Das Handy bleibt, wie es ist. */
+const GERAETE={
+  buero :{name:'Büro-Laptop',tabs:['order','price','liz','up','deko','rez','shop'],zu:'Laptop zuklappen'},
+  lager :{name:'Lager-PC',tabs:['order','online','staff'],zu:'Abmelden'},
+  tablet:{name:'Tablet · Bestellen',tabs:['order'],zu:'Tablet weglegen'}};
+let lapGeraet='buero';
+function geraetTabs(){ return (GERAETE[lapGeraet]||GERAETE.buero).tabs; }
+function openLaptop(tab,geraet){ if(typeof handyOpen!=='undefined'&&handyOpen) closeHandy(false); laptopOpen=true; resetArm=false; lapGeraet=GERAETE[geraet]?geraet:'buero'; if(tab) ltab=tab; if(geraetTabs().indexOf(ltab)<0) ltab=geraetTabs()[0]; for(const k in keys) keys[k]=false; mouseDown=false; touchAct=false; renderLaptop(); $('laptop').classList.add('show'); if(locked) document.exitPointerLock(); }
 function closeLaptop(relock){ laptopOpen=false; korbOpen=false; $('korbOv').classList.remove('show'); $('laptop').classList.remove('show'); if(relock) requestLock(); else if(lockWorked&&!COARSE&&!locked&&!summaryOpen&&!levelOpen) showPause(); }
 function priceHint(t){ const r=S.prices[t]/marketOf(t), lo=priceTol();
   if(r<=lo) return ['ok','Kunden greifen gern zu'];
@@ -975,7 +984,7 @@ function onlineHint(){
   const st=onlineStufe();
   if(st==='zu') return 'Der Onlineshop ist noch nicht freigeschaltet. Du findest ihn unter Ausbau (Kapitel 4).';
   if(st==='pauschal') return 'Der Shop läuft, aber ohne Packstation bleibt es bei einer Tagespauschale. Mit Packstation kommen echte Bestellungen herein, die du hier packst - das bringt deutlich mehr.';
-  return 'Bestellungen laufen den ganzen Verkaufstag über ein. Jedes gepackte Paket wird sofort gutgeschrieben; DDL holt um 22 Uhr alles an Tor V1 ab; ab 18 Uhr kannst du die Paletten selbst mit dem Hubwagen verladen.';
+  return 'Bestellungen laufen den ganzen Verkaufstag über ein. Jedes gepackte Paket wird sofort gutgeschrieben, das Porto an DDL geht gleich ab. Abgeholt wird nur auf Anruf: Wandtelefon neben Rolltor V1, Pauschale je Abholung.';
 }
 /* Nur Zahlen, kein Neuaufbau: so springt die Liste beim Tippen nicht. */
 function onlineZahlen(){
@@ -999,8 +1008,51 @@ function onlineListe(){
   const wb=vsWagenBedarf();
   const stand=b=>b.st==='wagen'?'<span class="ok">auf dem Wagen</span>':b.st==='tisch'?'<span class="ok">wird verpackt</span>'
     :!vsErfuellbar(b,wb)?'<span class="warn">Ware fehlt</span>':b.pos.some(l=>l.g>0)?`angefangen ${b.pos.reduce((a,l)=>a+l.g,0)}/${vsStueck(b)}`:'offen';
-  return L.map(b=>`<div class="best"><b>#${b.id} · ${VS_GR[b.gr].name}</b> <em>${eur(b.wert)}</em><small>${vsText(b)}</small><small>${stand(b)}</small></div>`).join('')+
+  return L.map(b=>`<div class="best"><b>#${b.id} · ${VS_GR[b.gr].name}</b> <em>${eur(b.wert)}</em><small>${vsText(b)}${b.versand?` · Versand ${eur(b.versand)}`:' · versandfrei'}</small><small>${stand(b)}</small></div>`).join('')+
     ((S.bestellungen||[]).length>10?`<small>und ${(S.bestellungen||[]).length-10} weitere</small>`:'');
+}
+/* ---------------------------------------------------------
+   Onlineshop-Statistik (Tom 09.10.): je Tag und Verlauf, damit man
+   die Wirkung der Einstellungen sieht. S.onlineLog: abgeschlossene
+   Tage; der laufende Tag kommt aus DS.
+   --------------------------------------------------------- */
+function versandLoehne(){ return r2(VS_PACKER.reduce((a,id)=>{ const st=STAFF.find(x=>x.id===id); return a+(st&&S.staff[id]?r2(st.wage*wageOf(id)*(inPause(id)?0.3:1)):0); },0)); }
+function onlineTag(){
+  const pN=DS.onPortoN||{1:0,3:0,6:0};
+  return {tag:S.day,b:DS.onB|0,abbr:DS.onAbbr|0,ware:r2(DS.onWare||0),geb:r2(DS.versandGeb||0),rabatt:r2(DS.onRabatt||0),ek:r2(DS.onEk||0),
+    porto:r2(DS.porto||0),pN:{1:pN[1]|0,3:pN[3]|0,6:pN[6]|0},ddl:r2(DS.ddl||0),ddlN:DS.ddlN|0,vm:r2(DS.onVm||0),lohn:versandLoehne()};
+}
+function onlineErgebnis(t){ return r2(t.ware+t.geb-t.ek-t.porto-t.ddl-t.vm-t.lohn); }
+function onlineTagSchliessen(wartend){
+  if(!S.up.onlineshop) return;
+  const t=onlineTag(); t.warte=wartend|0;
+  if(!t.b&&!t.ddl&&!t.abbr&&!packBereit()) return;
+  S.onlineLog=(Array.isArray(S.onlineLog)?S.onlineLog:[]).concat([t]).slice(-30);
+}
+function onlineStatHtml(){
+  const heute=onlineTag(), L=Array.isArray(S.onlineLog)?S.onlineLog:[], gestern=L[L.length-1]||null, w=L.slice(-7);
+  const avg=k=>w.length?w.reduce((a,t)=>a+(typeof k==='function'?k(t):(+t[k]||0)),0)/w.length:null;
+  const sp=[{n:'Heute',t:heute},{n:'Gestern',t:gestern},{n:`Ø ${w.length} Tage`,t:null}];
+  const f=(v,neg)=>v===null||v===undefined?'–':(neg&&v?'−':'')+eur(Math.abs(r2(v)));
+  const zeile=(name,fn,neg,kl)=>`<tr${kl?` class="${kl}"`:''}><td>${name}</td>${sp.map(c=>{ const v=c.t?fn(c.t):(w.length?r2(avg(fn)):null); return `<td${kl==='sum'&&v!==null?` class="${v<0?'neg':'pos'}"`:''}>${typeof v==='string'?v:neg===2?(v===null?'–':Math.round(v*10)/10):f(v,neg)}</td>`; }).join('')}</tr>`;
+  const korb=t=>t.b?r2(t.ware/t.b):0;
+  let h=`<table class="onstat"><tr><th></th>${sp.map(c=>`<th>${c.n}</th>`).join('')}</tr>`+
+    zeile('Bestellungen',t=>t.b,2)+zeile('Kaufabbrüche (Versandkosten)',t=>t.abbr||0,2)+zeile('Ø Warenkorb',korb)+
+    zeile('Warenumsatz',t=>t.ware)+zeile('Versandeinnahmen',t=>t.geb)+zeile('davon Rabatte gewährt',t=>t.rabatt)+
+    zeile('Wareneinsatz',t=>t.ek,1)+zeile(`Porto S ${eur(VS_PORTO[1])}`,t=>t.pN?t.pN[1]*VS_PORTO[1]:0,1)+zeile(`Porto M ${eur(VS_PORTO[3])}`,t=>t.pN?t.pN[3]*VS_PORTO[3]:0,1)+zeile(`Porto L ${eur(VS_PORTO[6])}`,t=>t.pN?t.pN[6]*VS_PORTO[6]:0,1)+
+    zeile(`DDL-Abholungen (${eur(DDL_PAUSCHALE)})`,t=>t.ddl,1)+zeile('Packmaterial',t=>t.vm,1)+zeile('Löhne Versand',t=>t.lohn,1)+
+    zeile('Ergebnis Online',onlineErgebnis,0,'sum')+`</table>`;
+  const V=L.slice(-14).map(onlineErgebnis); if(V.length>1){ const m=Math.max(1,...V.map(Math.abs));
+    h+=`<div class="onverlauf" title="Ergebnis Online der letzten ${V.length} Tage">${V.map(v=>`<i class="${v<0?'neg':''}" style="height:${Math.max(3,Math.round(Math.abs(v)/m*100))}%"></i>`).join('')}</div><small>Ergebnis der letzten ${V.length} Tage (rot = Verlust)</small>`; }
+  return h;
+}
+function ddlBoxHtml(){
+  if(typeof ddlStand!=='function') return '';
+  const d=ddlStand();
+  const txt=d.unterwegs?`DDL ist unterwegs${d.eta>0?` – noch etwa ${Math.max(1,Math.round(d.eta*MIN_PER_SEC/5)*5)} Minuten`:' – der Fahrer lädt'}.`
+    :d.voll?'Box voll! Das Band staut sich. Ruf DDL am Wandtelefon neben Rolltor V1.'
+    :d.pakete?`Ruf DDL am Wandtelefon neben Rolltor V1, wenn du abholen lassen willst (${eur(d.pauschale)} je Abholung).`:'Noch keine Pakete auf den Paletten.';
+  return `<div class="onbox${d.voll&&!d.unterwegs?' voll':''}" id="onDdl"><b>Versandbox: ${d.pakete} Paket${d.pakete===1?'':'e'} · ${d.belegt}/${d.paletten} Palette${d.paletten===1?'':'n'} belegt${d.band?` · ${d.band} auf dem Band`:''}</b><small>${txt}</small></div>`;
 }
 function updateOnline(){
   if(!(laptopOpen&&ltab==='online')&&!(handyOpen&&happ==='online')) return;
@@ -1014,6 +1066,7 @@ function updateOnline(){
   if(w) w.textContent=z.offen>8?`${z.offen} offene Bestellungen - über acht kostet dich das heute Abend Ruf.`:'';
   const vw=document.getElementById('onVm'); if(vw){ const t=vmWarnung(); if(vw.textContent!==t) vw.textContent=t; }
   const vs=document.getElementById('onVmStand'); if(vs){ const t=vmZeile(); if(vs.dataset.h!==t){ vs.innerHTML=t; vs.dataset.h=t; } }
+  const db=document.getElementById('onDdl'); if(db){ const t=ddlBoxHtml(); if(db.dataset.h!==t){ db.outerHTML=t; const n=document.getElementById('onDdl'); if(n) n.dataset.h=t; } }
 }
 function renderOnline(){
   const st=onlineStufe(), z=onlineZahlen();
@@ -1040,31 +1093,42 @@ function renderOnline(){
       `</div>`;
     return h;
   }
-  /* Versandkosten und Freigrenze stellt der Spieler ein (05.10.) */
-  { const c=vsCfg(), nf=vsNachfrage();
-    h+=`<div class="row"><div class="rm"><b>Versandkosten</b><small>Was der Kunde für den Versand zahlt und ab welchem Bestellwert es nichts kostet. Hohe Versandkosten schrecken ab, eine niedrige Freigrenze lockt mehr Bestellungen – und mancher legt noch etwas dazu, um sie zu erreichen. Das Porto an DDL zahlst du für jedes Paket: klein ${eur(VS_PORTO[1])}, groß ${eur(VS_PORTO[3])}, riesig ${eur(VS_PORTO[6])}.</small>`+
-      `<small class="${nf<0.8?'warn':'ok'}">Nachfrage ${Math.round(nf*100)} % · rund ${z.proTag} Bestellungen an einem vollen Verkaufstag</small></div></div>`;
-    h+=`<div class="row"><div class="rm"><b>Versand je Bestellung</b><small>0 bis 12,90 €</small></div><div class="steps"><button data-a="vsk" data-d="-0.5">−</button><b style="min-width:64px;text-align:center">${eur(c.kosten)}</b><button data-a="vsk" data-d="0.5">+</button></div></div>`;
-    h+=`<div class="row"><div class="rm"><b>Versandkostenfrei ab</b><small>Bestellwert 15 bis 200 € – oder nie</small></div><div class="steps"><button data-a="vsf" data-d="-5"${c.frei?'':' disabled'}>−</button><b style="min-width:64px;text-align:center">${c.frei?eur(c.frei):'nie'}</b><button data-a="vsf" data-d="5"${c.frei?'':' disabled'}>+</button><button data-a="vsf" data-d="aus">${c.frei?'nie frei':'Grenze an'}</button></div></div>`; }
+  h+=ddlBoxHtml();
+  /* Versandkosten, Schwelle (Tom 09.10.: 0-20 EUR, 0 = immer frei, oder nie frei) */
+  { const c=vsCfg(), nf=vsNachfrage(), a=vsAktion(), gratis=vsGratisHeute();
+    const schwelle=c.nie?'nie versandfrei':c.frei===0?'immer versandfrei':`versandfrei ab ${eur(c.frei)}`;
+    h+=`<div class="row"><div class="rm"><b>Versandkosten und Nachfrage</b><small>Der Kunde zahlt ${eur(c.kosten)} Versand, ${schwelle}${gratis?' – heute aber gratis (Aktion)':''}. Hohe Versandkosten sind der häufigste Grund für Kaufabbrüche; eine Gratis-Schwelle lockt größere Warenkörbe. Dein Porto an DDL ist fest: S ${eur(VS_PORTO[1])}, M ${eur(VS_PORTO[3])}, L ${eur(VS_PORTO[6])} je Paket, dazu ${eur(DDL_PAUSCHALE)} je Abholung.</small>`+
+      `<small class="${nf<0.8?'warn':'ok'}">Nachfrage ${Math.round(nf*100)} % (100 % = 4,90 €, frei ab 50 €, kein Sale) · rund ${z.proTag} Bestellungen an einem vollen Verkaufstag</small></div></div>`;
+    h+=`<div class="row"><div class="rm"><b>Versand je Bestellung</b><small>0 bis ${eur(VS_KOSTEN_MAX)}</small></div><div class="steps"><button data-a="vsk" data-d="-1">−1</button><button data-a="vsk" data-d="-0.1">−0,10</button><b style="min-width:70px;text-align:center">${eur(c.kosten)}</b><button data-a="vsk" data-d="0.1">+0,10</button><button data-a="vsk" data-d="1">+1</button></div></div>`;
+    h+=`<div class="row"><div class="rm"><b>Versandkostenfrei ab</b><small>Mindestbestellwert 0 bis ${eur(VS_FREI_MAX)} (0 = immer frei) – oder nie</small></div><div class="steps"><button data-a="vsf" data-d="-10"${c.nie||c.frei===0?' disabled':''}>−10</button><b style="min-width:84px;text-align:center">${c.nie?'nie':c.frei===0?'immer':eur(c.frei)}</b><button data-a="vsf" data-d="10"${c.nie?' disabled':''}>+10</button><button data-a="vsf" data-d="immer">immer</button><button data-a="vsf" data-d="nie">nie</button></div></div>`;
+    /* Aktionen */
+    const ids=Object.keys(a.rabatt);
+    h+=`<div class="row"><div class="rm"><b>Aktionen</b><small>Sale senkt den Onlinepreis (Ladenpreis bleibt). Mehr Bestellungen, aber jeder Rabatt-Euro fehlt dir am Ergebnis. Sale auf einzelne Produkte zieht die Nachfrage gezielt dorthin – gut zum Lagerabbau.</small></div></div>`;
+    h+=`<div class="row"><div class="rm"><b>Sale auf alles</b><small>${a.proz?`${a.proz} % auf alles im Onlineshop`:'kein Sale'}</small></div><div class="steps">${[0,10,20,30].map(p=>`<button data-a="sale" data-d="${p}"${a.proz===p?' class="on" disabled':''}>${p?p+' %':'aus'}</button>`).join('')}</div></div>`;
+    h+=`<div class="row"><div class="rm"><b>Heute versandkostenfrei</b><small>${gratis?'Aktiv bis Ladenschluss – jedes Paket kostet dich das volle Porto.':'Einen Tag lang zahlt kein Kunde Versand.'}</small></div><div class="steps"><button data-a="gratis">${gratis?'beenden':'starten'}</button></div></div>`;
+    const opts=ORDER.filter(t=>vsOnline(t)&&!a.rabatt[t]).map(t=>`<option value="${t}">${P[t].short||P[t].name}</option>`).join('');
+    h+=`<div class="row"><div class="rm"><b>Sale auf einzelne Produkte</b>`+
+      (ids.length?ids.map(t=>`<small>${P[t].short||P[t].name}: −${a.rabatt[t]} % · online ${eur(vsPreis(t))} statt ${eur(vsListe(t))} <button data-a="psaleweg" data-t="${t}">entfernen</button></small>`).join(''):'<small>keine</small>')+
+      `</div><div class="steps"><select class="onsel" id="onSaleT">${opts}</select><select class="onsel" id="onSaleP">${[10,20,30,40,50].map(p=>`<option value="${p}"${p===20?' selected':''}>−${p} %</option>`).join('')}</select><button data-a="psale">hinzufügen</button></div></div>`;
+  }
+  h+=`<div class="row"><div class="rm"><b>Statistik Onlineshop</b><small>Ergebnis = Warenumsatz + Versandeinnahmen − Wareneinsatz − Porto − DDL − Packmaterial − Löhne Versand. Alles steckt auch in der Tagesabrechnung.</small>${onlineStatHtml()}</div></div>`;
   /* Packmaterial (11d): fehlt der Karton, bleibt die Bestellung liegen */
   h+=`<div class="row"><div class="rm"><b>Packmaterial</b><small id="onVmStand">${vmZeile()}</small><small class="warn" id="onVm">${vmWarnung()}</small></div>`+
     `<div class="steps"><button data-a="vmtab">nachkaufen</button></div></div>`;
-  /* Gepackt wird am Packtisch, nicht per Knopf: die Ware muss erst
-     aus dem Lager oder dem Laden in den Karton */
   h+=`<div class="row"><div class="rm"><b>Offene Bestellungen</b>`+
       `<small>Jede Bestellung verlangt echte Ware aus dem Lager, sonst aus dem Laden. Im Schnitt <span id="onWert">${eur(z.wert)}</span> je Paket.</small>`+
       `<small class="warn" id="onWarn">${z.offen>8?`${z.offen} offene Bestellungen - über acht kostet dich das heute Abend Ruf.`:''}</small></div>`+
     `<div class="mkcol"><small>offen</small><b style="font-family:var(--display);font-size:24px" id="onOffen">${z.offen}</b></div></div>`;
   h+=`<div class="row"><div class="rm onListe" id="onListe">${onlineListe()}</div></div>`;
   h+=`<div class="row"><div class="rm"><b>Pakete zur Abholung</b>`+
-      `<small>Das Band bringt sie zur Palettierstation. ${packStufe()<2?'Am Bandende legst du oder der Versandmitarbeiter sie selbst auf die Paletten in der gelben Box (Kran-Greifer ab dem zweiten Packplatz).':'Der Kran-Greifer stapelt sie in die gelbe Box an der Rückwand.'} Um 22 Uhr kommt DDL an Tor V1; ab 18 Uhr kannst du die Paletten selbst mit dem Hubwagen in den LKW fahren. Sind alle Paletten voll, fährt DDL zwischendurch vor.</small></div>`+
-    `<div class="mkcol"><small>Paletten</small><b style="font-family:var(--display);font-size:20px" id="onPak">${z.pak}</b></div></div>`;
+      `<small>Das Band bringt sie zur Box, der Kran-Greifer stapelt sie auf ${palPlaetze()} Palette${palPlaetze()===1?'':'n'}. DDL kommt nur, wenn du am Wandtelefon anrufst; der Fahrer lädt selbst. Liegen Pakete seit gestern, ärgern sich die Kunden (Ruf). Ist die Box voll, staut sich das Band bis an die Tische.</small></div>`+
+    `<div class="mkcol"><small>Pakete</small><b style="font-family:var(--display);font-size:20px" id="onPak">${z.pak}</b></div></div>`;
   h+=`<div class="row"><div class="rm"><b>Versand heute</b>`+
       `<small>Was der Onlineshop heute schon eingebracht hat. Der Betrag steckt bereits im Tagesumsatz.</small></div>`+
     `<div class="mkcol"><small>Umsatz</small><b style="font-family:var(--display);font-size:20px" id="onHeute">${eur(z.heute)}</b></div></div>`;
   const pk=staff&&staff.packer;
   h+=`<div class="row${pk?'':' locked'}"><div class="rm"><b>Versandmitarbeiter</b>`+
-      `<small>${pk?'Holt die Ware mit dem Kommissionierwagen und packt selbstständig.':'Ohne ihn packst du selbst am Packtisch (E) - einstellen kannst du ihn im Handy unter Team.'}${packStufe()>1?` Packplätze: ${packStufe()}, Versandmitarbeiter: ${VS_PACKER.filter(id=>staff[id]).length}.`:''}</small>`+
+      `<small>${pk?'Holt die Ware mit dem Kommissionierwagen und packt selbstständig.':'Ohne ihn packst du selbst am Packtisch (E) - einstellen kannst du ihn unter Team.'}${packStufe()>1?` Packplätze: ${packStufe()}, Versandmitarbeiter: ${VS_PACKER.filter(id=>staff[id]).length}.`:''}</small>`+
       `<small class="${pk?'ok':''}" id="onStatus">${pk?z.status:'nicht eingestellt'}</small></div></div>`;
   return h;
 }
@@ -1097,7 +1161,7 @@ function openHandy(app){
 function closeHandy(relock){ handyOpen=false; $('handy').classList.remove('show'); if(relock) requestLock(); }
 function toggleHandy(){ if(handyOpen) closeHandy(true); else openHandy(); }
 function handyBadge(id){
-  if(id==='online') return S.up.onlineshop?(S.pakete|0):0;
+  if(id==='online') return !S.up.onlineshop?0:(typeof DDL!=='undefined'&&DDL.voll&&!ddlLaeuft())?'!':(S.pakete|0);
   if(id==='erf') return typeof erfFertig==='function'?ERFOLGE.filter(e=>erfOffen(e)&&erfFertig(e)).length:0;
   return 0;
 }
@@ -1121,9 +1185,11 @@ function renderHandy(){
 function renderLaptop(){
   if(handyOpen) renderHandy();
   if(!laptopOpen&&handyOpen) return;
-  if(HANDY_IDS.indexOf(ltab)>=0) ltab='order';
   /* Einrichtung steht jetzt unter Bestellen (Regale & Einrichtung) */
   if(ltab==='einr'){ ltab='order'; lsup='regal'; }
+  if(geraetTabs().indexOf(ltab)<0) ltab=geraetTabs()[0];
+  { const G=GERAETE[lapGeraet]||GERAETE.buero; document.querySelectorAll('#ltabs button').forEach(b=>{ b.style.display=G.tabs.indexOf(b.dataset.tab)>=0?'':'none'; });
+    const t=$('lGeraet'); if(t) t.textContent=G.name; const z=$('lclose'); if(z) z.textContent=G.zu; }
   lapZeichnen($('lbody'));
 }
 function lapZeichnen(body){
@@ -1457,8 +1523,9 @@ function lapKlick(e,imHandy){
   else if(a==='tab'){
     /* Verweise zwischen Laptop und Handy: was aufs Handy gehoert, oeffnet
        das Handy; vom Handy aus bleibt der Rest am Laptop */
-    if(HANDY_IDS.indexOf(t)>=0){ if(imHandy) happ=t; else { closeLaptop(false); openHandy(t); return; } }
-    else if(imHandy){ toast('Das erledigst du am Laptop im Büro.'); return; }
+    if(HANDY_IDS.indexOf(t)>=0){ if(imHandy) happ=t; else if(geraetTabs().indexOf(t)>=0) ltab=t; else { closeLaptop(false); openHandy(t); return; } }
+    else if(imHandy){ toast('Das erledigst du am Büro-Laptop (Bestellen auch am Lager-PC und am Tablet im Laden).'); return; }
+    else if(geraetTabs().indexOf(t)<0){ toast(`Das geht am Büro-Laptop – hier am ${(GERAETE[lapGeraet]||GERAETE.buero).name} nicht.`); return; }
     else ltab=t; }
   else if(a==='korbclose'){ closeKorb(); return; }
   else if(a==='cartgo') cartOrder();
@@ -1470,12 +1537,17 @@ function lapKlick(e,imHandy){
   else if(a==='rbuy') orderRegal(t);
   else if(a==='vmbuy') vmBestellen(t,+b.dataset.n||1);
   else if(a==='vmfill') vmAuffuellen();
-  else if(a==='vsk'){ const c=vsCfg(); c.kosten=clamp(r2(c.kosten+parseFloat(b.dataset.d)),0,12.9); save(); }
-  else if(a==='vsf'){ const c=vsCfg();
-    if(b.dataset.d==='aus') c.frei=c.frei?0:VS_CFG_STD.frei;
-    else c.frei=c.frei?clamp(c.frei+parseFloat(b.dataset.d),15,200):VS_CFG_STD.frei;
+  else if(a==='vsk'){ const c=vsCfg(); c.kosten=clamp(r2(c.kosten+parseFloat(b.dataset.d)),0,VS_KOSTEN_MAX); save(); }
+  else if(a==='vsf'){ const c=vsCfg(), d=b.dataset.d;
+    if(d==='nie'){ c.nie=true; } else if(d==='immer'){ c.nie=false; c.frei=0; }
+    else { c.nie=false; c.frei=clamp((c.frei||0)+parseFloat(d),0,VS_FREI_MAX); }
     save(); }
-  else if(a==='vmtab'){ if(imHandy){ toast('Versandmaterial bestellst du am Laptop im Büro (Bestellen › Versandmaterial).'); return; } ltab='order'; lsup='vm'; }
+  else if(a==='sale'){ vsAktion().proz=clamp(+b.dataset.d||0,0,50); save(); }
+  else if(a==='gratis'){ const x=vsAktion(); x.frei=x.frei===S.day?-1:S.day; save(); }
+  else if(a==='psale'){ const root=b.closest('#lbody,#hApp')||document, tt=root.querySelector('#onSaleT'), pp=root.querySelector('#onSaleP');
+    if(tt&&tt.value&&P[tt.value]){ vsAktion().rabatt[tt.value]=clamp(+(pp&&pp.value)||20,5,70); save(); } }
+  else if(a==='psaleweg'){ delete vsAktion().rabatt[t]; save(); }
+  else if(a==='vmtab'){ if(imHandy){ toast('Versandmaterial bestellst du am Lager-PC in der Versandecke oder am Büro-Laptop (Bestellen › Versandmaterial).'); return; } ltab='order'; lsup='vm'; }
   else if(a==='pack') cartAddPack(t);
   else if(a==='rkauf') buyAngebot(+t);
   else if(a==='p'){ S.prices[t]=Math.max(0.1,r2(S.prices[t]+parseFloat(b.dataset.d))); allLevels().forEach(l=>{ if(l.type===t) updateLabel(l); }); }

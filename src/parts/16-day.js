@@ -184,15 +184,19 @@ function endDay(){
   addGrime(0.06); staffMorale();
   const ev=todayEvent();
   if(ev&&ev.pruef){ if(cleanliness()>=70){ rep(3); toast('Die Prüfung war zufrieden. Das hebt den Ruf.','money'); } else { rep(-5); toast('Die Prüfung hat einen dreckigen Laden vorgefunden.','bad'); } }
-  /* Mit Packstation laeuft der Onlineshop ueber echte Pakete statt ueber eine Pauschale */
-  const abgeholt=typeof ddlAbholung==='function'?ddlAbholung():0;
+  /* 09.10. (Tom): keine Abholung um 22 Uhr mehr - DDL kommt nur auf Anruf. Pakete, die
+     schon seit gestern auf den Paletten liegen, aergern die Kunden (Lieferzeit). */
+  const paketeJetzt=typeof vsGelandet==='function'&&packTisch?vsGelandet():0;
+  const wartend=DS.ddlAbgeholt?0:Math.min(S.paketeVortag|0,paketeJetzt);
+  const lieferRuf=wartend>0?Math.min(3,r2(0.06*wartend)):0;
+  if(lieferRuf>0){ rep(-lieferRuf); toast(`${wartend} Paket${wartend===1?' wartet':'e warten'} seit gestern auf DDL – die Kunden ärgern sich (Ruf −${String(lieferRuf).replace('.',',')}).`,'bad'); }
+  S.paketeVortag=paketeJetzt;
   /* Ohne Packstation kommt der Onlineumsatz pauschal herein. Mit Packstation
      laeuft das meiste ueber echte Pakete, ein Sockel bleibt aber stehen,
      damit die Packstation nie eine Verschlechterung ist. */
   const onlineBasis=S.up.onlineshop?Math.round(40+S.rep*1.6+S.level*4):0;
   const online=packBereit()?Math.round(onlineBasis*0.4):onlineBasis;
   const dispo=dispoZins();
-  if(abgeholt) toast(`DDL hat ${abgeholt} Paket${abgeholt===1?'':'e'} abgeholt.`,'money');
   if(packBereit()&&(S.offen|0)>8){ rep(-Math.min(2,0.12*(S.offen-8))); }
   const wages=dailyWages(), fix=fixedCosts(), extra=(hasDeko('automat')?45:0)+online;
   let pay=0, rate=0;
@@ -201,7 +205,8 @@ function endDay(){
     if(S.loan.remaining<=0.01){ S.loan=null; toast('Kredit vollständig abbezahlt.','money'); } }
   DS.interest=pay;
   S.money=r2(S.money-wages-fix-pay-dispo+extra);
-  const out=r2(DS.goods+DS.upgrades+pay+dispo+DS.changeLoss+wages+fix+DS.burned+(DS.porto||0)+(DS.vm||0)), profit=r2(DS.revenue+extra-out), dr=S.rep-DS.rep0;
+  const out=r2(DS.goods+DS.upgrades+pay+dispo+DS.changeLoss+wages+fix+DS.burned+(DS.porto||0)+(DS.vm||0)+(DS.ddl||0)), profit=r2(DS.revenue+extra-out), dr=S.rep-DS.rep0;
+  if(typeof onlineTagSchliessen==='function') onlineTagSchliessen(wartend);
   const dayXP=60+Math.round(DS.revenue*0.05)+(DS.angry===0?40:0);
   addXP(dayXP);
   if(S.money<0){ rep(-3); toast('Konto im Minus. Das kostet Ruf.','bad'); }
@@ -211,10 +216,12 @@ function endDay(){
   if(online) rows.push(['Onlineshop',eur(online)]);
   if(DS.versand) rows.push(['Versand (Pakete)',eur(DS.versand)]);
   if(DS.versandGeb) rows.push(['Davon Versandkosten der Kunden',eur(DS.versandGeb)]);
+  if(DS.onRabatt) rows.push(['Online-Rabatte (schon abgezogen)',eur(DS.onRabatt)]);
   if(DS.sb) rows.push(['Davon an den SB-Kassen',`${DS.sb} Kunden`]);
   if(packBereit()&&(S.offen|0)>0) rows.push(['Nicht gepackte Bestellungen',String(S.offen|0)]);
+  if(packBereit()&&paketeJetzt>0) rows.push(['Pakete warten auf DDL',`${paketeJetzt}${wartend?` · ${wartend} seit gestern`:''}`]);
   if(S.goal) rows.push(['Wochenziel',`${S.goal.name}: ${Math.round(S.goal.have)}/${S.goal.need} ${S.goal.unit}`]);
-  rows.push({head:'Ausgaben'},['Wareneinkauf',eur(DS.goods)],['Ausbau und Deko',eur(DS.upgrades)],['Löhne',eur(wages)],['Fixkosten',eur(fix)],['Kreditrate',eur(pay)],['Dispozinsen',eur(dispo)],['Zu viel Rückgeld',eur(DS.changeLoss)],['Selbst gezündet',eur(DS.burned)],...(DS.porto?[['Porto an DDL',eur(DS.porto)]]:[]),...(DS.vm?[['Versandmaterial',eur(DS.vm)]]:[]),
+  rows.push({head:'Ausgaben'},['Wareneinkauf',eur(DS.goods)],['Ausbau und Deko',eur(DS.upgrades)],['Löhne',eur(wages)],['Fixkosten',eur(fix)],['Kreditrate',eur(pay)],['Dispozinsen',eur(dispo)],['Zu viel Rückgeld',eur(DS.changeLoss)],['Selbst gezündet',eur(DS.burned)],...(DS.porto?[['Porto an DDL',eur(DS.porto)]]:[]),...(DS.ddl?[[`DDL-Abholung (${DS.ddlN|0}× ${eur(typeof DDL_PAUSCHALE!=='undefined'?DDL_PAUSCHALE:0)})`,eur(DS.ddl)]]:[]),...(DS.vm?[['Versandmaterial',eur(DS.vm)]]:[]),
     ['Gewinn des Tages',(profit>=0?'+':'')+eur(profit),true],
     {head:'Laden'},['Kunden bedient',DS.customers],['Verkaufte Artikel',DS.sold],['Verpasst, weil Fach leer',DS.missed],['Genervt gegangen',DS.angry],['Diebstahl',eur(DS.stolen)],['Diebe gestellt',DS.caught],['Großaufträge',DS.orders||0],['Gravuren verkauft',DS.gravur||0],
     ['Ruf',(dr>=0?'+':'')+dr.toFixed(1).replace('.',',')],['Erfahrung',`+${DS.xpGained} XP`],

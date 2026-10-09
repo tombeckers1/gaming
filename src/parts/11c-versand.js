@@ -63,27 +63,75 @@ function vsWelt(i,x,z){ const p=ppW(i,x,z); return localToWorld(packTisch,p.x,p.
 function vsRy(i,ry){ return packTisch.rotation.y+ppRy(i,ry); }
 
 /* ---------------------------------------------------------
-   Versandkosten (Tom, 05.10.): der Spieler stellt im Onlineshop ein,
-   was der Kunde fuer den Versand zahlt und ab welchem Bestellwert es
-   nichts kostet. Hohe Versandkosten schrecken ab, eine niedrige
-   Freigrenze lockt - und zieht die Bestellungen ueber die Grenze.
-   Das Porto an DDL zahlst du fuer jedes Paket.
+   Versand-Wirtschaft (Tom 05.10., neu 09.10. - Finanzbildung: Kosten
+   kalkulieren, Folgen sichtbar machen, herunterwirtschaften moeglich).
+   - Porto an DDL fest je Paket: S 2,00 / M 3,50 / L 5,00 EUR (Tom).
+   - DDL-Abholung nur auf Anruf, Pauschale DDL_PAUSCHALE (11e) je Fahrt.
+   - Der Kunde zahlt die eingestellten Versandkosten (0-20 EUR), ab einem
+     Mindestbestellwert versandfrei (0 = immer frei, oder "nie frei").
+   - Aktionen: Sale auf alles, Sale auf einzelne Produkte, heute versandfrei.
+   Nachfrage nach echten E-Commerce-Daten:
+   - Versandkosten: 39-48 % der Kaufabbrueche in den USA wegen Zusatzkosten
+     (Versand, Steuern, Gebuehren), Baymard Institute 2024/2025; Kunden sind
+     "very sensitive to shipping charges" (Lewis, Singh, Fay 2006, Marketing
+     Science 25(1)). Modell: ein Kunde mit Warenkorb w nimmt Versandkosten v
+     mit p = exp(-0,75 * (v / (0,2 w + 2,5))^2) hin - bei 4,90 EUR auf 25 EUR
+     kaufen 73 %, bei 20 EUR fast niemand, bei 4,90 EUR auf 60 EUR 92 %.
+   - Gratisversand-Schwelle: 58 % der Onlinekaeufer legen etwas dazu, um sie zu
+     erreichen (UPS Pulse of the Online Shopper 2014) - vsNeueBestellung, 60 %.
+   - Rabatte: mittlere Preiselastizitaet -2,62 (Meta-Analyse Bijmolt, van Heerde,
+     Pieters 2005, JMR 42) fuer Sale auf einzelne Produkte; fuer "Sale auf alles"
+     -1,5 (weniger Markenwechsel, nur Mehrkauf).
    --------------------------------------------------------- */
-const VS_CFG_STD={kosten:4.9,frei:50};
-const VS_PORTO={1:3.9,3:5.4,6:8.9};
+const VS_CFG_STD={kosten:4.9,frei:50,nie:false};
+const VS_PORTO={1:2.0,3:3.5,6:5.0};
+const VS_KOSTEN_MAX=20, VS_FREI_MAX=300;
 function vsCfg(){
   if(!S) return VS_CFG_STD;
-  const c=S.versandCfg||(S.versandCfg={kosten:VS_CFG_STD.kosten,frei:VS_CFG_STD.frei});
-  c.kosten=clamp(Math.round((+c.kosten||0)*10)/10,0,12.9); if(!isFinite(c.kosten)) c.kosten=VS_CFG_STD.kosten;
-  c.frei=c.frei===0?0:clamp(Math.round(+c.frei||VS_CFG_STD.frei),15,200);
+  const c=S.versandCfg||(S.versandCfg={kosten:VS_CFG_STD.kosten,frei:VS_CFG_STD.frei,nie:false,v:2});
+  /* bis 09.10. hiess frei 0 "nie versandfrei" - jetzt heisst 0 "immer frei" */
+  if(c.v!==2){ if(c.frei===0){ c.nie=true; c.frei=VS_CFG_STD.frei; } c.v=2; }
+  c.kosten=Math.round((+c.kosten||0)*10)/10; if(!isFinite(c.kosten)) c.kosten=VS_CFG_STD.kosten; c.kosten=clamp(c.kosten,0,VS_KOSTEN_MAX);
+  c.frei=Math.round(+c.frei); if(!isFinite(c.frei)) c.frei=VS_CFG_STD.frei; c.frei=clamp(c.frei,0,VS_FREI_MAX);
+  c.nie=!!c.nie;
   return c;
 }
-/* Nachfragefaktor: 1 bei 4,90 EUR und frei ab 50 EUR */
-function vsNachfrage(){
-  const c=vsCfg(), q=c.frei>0?clamp((100-c.frei)/80,0,1):0;
-  return clamp(1.6*Math.exp(-0.13*c.kosten)*(1+0.35*q),0.3,1.6);
+/* Aktionen: S.aktion={proz, frei:Tag, rabatt:{produkt:proz}} */
+function vsAktion(){ if(!S) return {proz:0,frei:-1,rabatt:{}}; const a=S.aktion||(S.aktion={proz:0,frei:-1,rabatt:{}});
+  a.proz=clamp(Math.round(+a.proz||0),0,50); if(typeof a.frei!=='number') a.frei=-1; if(!a.rabatt||typeof a.rabatt!=='object') a.rabatt={};
+  for(const t in a.rabatt){ if(!P[t]||!(a.rabatt[t]>0)) delete a.rabatt[t]; else a.rabatt[t]=clamp(Math.round(a.rabatt[t]),5,70); }
+  return a; }
+function vsGratisHeute(){ return !!S&&vsAktion().frei===S.day; }
+/* Rabatt auf ein Produkt (0..0,7): der hoehere aus Sale-auf-alles und Produkt-Sale */
+function vsRabatt(t){ const a=vsAktion(); return Math.max(a.proz||0,a.rabatt[t]||0)/100; }
+function vsGebuehr(wert,cfg){ const c=cfg||vsCfg(); if(!cfg&&vsGratisHeute()) return 0; if(c.nie) return c.kosten; return wert>=c.frei?0:c.kosten; }
+/* Nimmt ein Kunde mit Warenkorb w die Versandkosten v hin? (Quellen oben) */
+function vsAnnahme(w,v){ if(!(v>0)) return 1; const r=v/(0.2*Math.max(0,w)+2.5); return Math.exp(-0.75*r*r); }
+/* Warenkoerbe zur Bewertung einer Einstellung: gemessene Quantile der Online-
+   bestellungen (Level 25-34, 3000 Stueck je Level: p10 5, Median 22, Mittel 35, p90 80 EUR) */
+const VS_KORB=[5,9,13,18,22,28,38,55,95];
+/* Anteil der Kunden, die bei dieser Einstellung kaufen - mit Aufstocken an der Schwelle */
+function vsQuote(cfg,gratis){
+  let a=0;
+  for(const w of VS_KORB){
+    let p=gratis?1:vsAnnahme(w,vsGebuehr(w,cfg));
+    if(!gratis&&!cfg.nie&&cfg.frei>0&&w<cfg.frei&&w>=cfg.frei*0.7) p=0.6*1+0.4*p;
+    a+=p; }
+  return a/VS_KORB.length;
 }
-function vsGebuehr(wert){ const c=vsCfg(); return c.frei>0&&wert>=c.frei?0:c.kosten; }
+let _vsQ0=null;
+function vsQuoteStd(){ return _vsQ0||(_vsQ0=vsQuote(VS_CFG_STD,false)); }
+/* Sale: mehr Kaeufe. Auf alles mit Elastizitaet -1,5; Produkt-Sale verschiebt die
+   Wahl zu den reduzierten Produkten (-2,62) und bringt halb so viel Neugeschaeft dazu */
+function vsSaleFaktor(){
+  const a=vsAktion(); let f=Math.pow(1-(a.proz||0)/100,-1.5);
+  const ids=Object.keys(a.rabatt); if(ids.length){ const L=ORDER.filter(t=>vsOnline(t)); if(L.length){
+    let m=0; for(const t of L) m+=vsGewicht(t); m/=L.length; f*=1+0.5*(m-1); } }
+  return f;
+}
+function vsGewicht(t){ const d=(vsAktion().rabatt[t]||0)/100; return d>0?Math.pow(1-d,-2.62):1; }
+/* Nachfragefaktor fuer Anzeige und Takt: 1 = Standard (4,90 EUR, frei ab 50 EUR, kein Sale) */
+function vsNachfrage(){ return vsQuote(vsCfg(),vsGratisHeute())/vsQuoteStd()*vsSaleFaktor(); }
 
 /* ---------------------------------------------------------
    Bestellungen
@@ -93,14 +141,18 @@ function paketWert(){
   if(L.length) return r2(L.reduce((a,b)=>a+b.wert,0)/L.length);
   return r2(12+S.level*0.6);
 }
-/* Mehr Packplaetze, mehr Bestellungen: der Shop nimmt an, was die
-   Station schaffen kann */
+/* Mehr Packplaetze, mehr Bestellungen: der Shop kann mehr Ware zeigen und
+   schneller versprechen ("Delivery was too slow" ist bei Baymard der zweit-
+   haeufigste Abbruchgrund, 20 %) */
 const VS_STUFE_MUL=[1,1,1.45,1.9];
+function vsBasis(){ return Math.max(4,Math.min(22,Math.round(4+S.rep*0.12+S.level*0.35))); }
+/* Erwartete Bestellungen an einem vollen Verkaufstag */
 function bestellungenProTag(){
   if(!packBereit()) return 0;
-  const basis=Math.max(4,Math.min(22,Math.round(4+S.rep*0.12+S.level*0.35)));
-  return Math.max(1,Math.round(basis*VS_STUFE_MUL[packStufe()]*vsNachfrage()));
+  return Math.max(0,Math.round(vsBasis()*VS_STUFE_MUL[packStufe()]*vsNachfrage()));
 }
+/* Kunden, die in den Shop kommen und einen Warenkorb fuellen (vor der Kasse) */
+function vsBesucheProTag(){ return vsBasis()*VS_STUFE_MUL[packStufe()]*vsSaleFaktor()/vsQuoteStd(); }
 /* Rauminhalt mit etwas Luft fuer Polster, laengste Kante */
 function vsVol(t){ const d=P[t].dims; return d[0]*d[1]*d[2]*1000*1.3; }
 function vsMass(t){ const d=P[t].dims; return Math.max(d[0],d[1],d[2]); }
@@ -113,8 +165,15 @@ function vsKlasse(pos){
 /* Online zahlt der Kunde den Regalpreis, hoechstens aber 30 Prozent
    ueber Markt - sonst waere der Onlineshop ein Weg, Mondpreise
    ohne jede Kaufzurueckhaltung zu kassieren. */
-function vsPreis(t){ return r2(Math.min(S.prices[t]||marketOf(t),marketOf(t)*1.3)); }
+function vsListe(t){ return r2(Math.min(S.prices[t]||marketOf(t),marketOf(t)*1.3)); }
+/* Onlinepreis mit Sale (Regulaer = Ladenpreis, Tom 09.10.) */
+function vsPreis(t){ return r2(vsListe(t)*(1-vsRabatt(t))); }
 function vsWertVon(pos){ return r2(pos.reduce((a,l)=>a+l.n*vsPreis(l.t),0)); }
+function vsRabattVon(pos){ return r2(pos.reduce((a,l)=>a+l.n*(vsListe(l.t)-vsPreis(l.t)),0)); }
+/* Zufallswahl mit Sale-Gewicht (Produkt-Sale zieht Nachfrage auf die reduzierten Produkte) */
+function vsWahl(L){ const a=vsAktion(); if(!Object.keys(a.rabatt).length) return L[Math.floor(Math.random()*L.length)];
+  let sum=0; const w=L.map(t=>{ const x=vsGewicht(t); sum+=x; return x; }); let r=Math.random()*sum;
+  for(let i=0;i<L.length;i++){ r-=w[i]; if(r<=0) return L[i]; } return L[L.length-1]; }
 function vsStueck(b){ return b.pos.reduce((a,l)=>a+l.n,0); }
 function vsFehlt(b){ return b.pos.reduce((a,l)=>a+Math.max(0,l.n-l.g),0); }
 function vsText(b){ return b.pos.map(l=>`${l.n}× ${P[l.t].short}`).join(', '); }
@@ -184,7 +243,7 @@ function vsNeueBestellung(erz){
     const soll=unten+(K.vmax-unten)*rand(0.35,0.95);
     const pos=[]; let V=0;
     for(let v=0;v<12&&pos.length<K.zeilen&&V<soll&&k2.length;v++){
-      const t=k2[Math.floor(Math.random()*k2.length)];
+      const t=vsWahl(k2);
       if(pos.some(l=>l.t===t)) continue;
       const platz=Math.floor((K.vmax-V)/vsVol(t)), da=erz?99:f(t);
       const max=Math.min(K.stueck,platz,da); if(max<1) continue;
@@ -195,7 +254,7 @@ function vsNeueBestellung(erz){
       /* Knapp unter der Versandfreigrenze legt mancher Kunde noch etwas
          dazu, damit der Versand nichts kostet */
       const cf=vsCfg();
-      if(cf.frei>0&&Math.random()<0.6){
+      if(!cf.nie&&cf.frei>0&&!vsGratisHeute()&&Math.random()<0.6){
         for(let n=0;n<4&&vsWertVon(pos)<cf.frei&&vsWertVon(pos)>=cf.frei*0.7;n++){
           const l=pos[Math.floor(Math.random()*pos.length)], vol=pos.reduce((a,x)=>a+x.n*vsVol(x.t),0)+vsVol(l.t);
           if(vol>VS_GR[6].vmax||(!erz&&f(l.t)<1)) break;
@@ -203,7 +262,7 @@ function vsNeueBestellung(erz){
       }
       const wert=vsWertVon(pos);
       S.bestNr=(S.bestNr|0)+1;
-      return {id:S.bestNr,pos,gr:vsKlasse(pos),wert,versand:vsGebuehr(wert),st:'offen',tag:S.day};
+      return {id:S.bestNr,pos,gr:vsKlasse(pos),wert,versand:vsGebuehr(wert),rabatt:vsRabattVon(pos),st:'offen',tag:S.day};
     }
     ziel=ziel===6?3:ziel===3?1:0;
   }
@@ -616,6 +675,11 @@ function vsBuchen(b,spieler){
   S.money=r2(S.money+w-porto); S.seasonRevenue=r2((S.seasonRevenue||0)+w);
   DS.revenue=r2(DS.revenue+w); DS.versand=r2((DS.versand||0)+w);
   DS.versandGeb=r2((DS.versandGeb||0)+geb); DS.porto=r2((DS.porto||0)+porto);
+  /* Onlineshop-Statistik (Tom 09.10.): Ware, Porto je Groesse, Rabatte, Wareneinsatz, Packmaterial */
+  DS.onB=(DS.onB|0)+1; DS.onWare=r2((DS.onWare||0)+b.wert); DS.onRabatt=r2((DS.onRabatt||0)+(+b.rabatt||0));
+  DS.onPortoN=DS.onPortoN||{1:0,3:0,6:0}; DS.onPortoN[b.gr]=(DS.onPortoN[b.gr]|0)+1;
+  DS.onEk=r2((DS.onEk||0)+b.pos.reduce((a,l)=>a+l.n*costOf(l.t),0));
+  if(typeof vmKostenJe==='function') DS.onVm=r2((DS.onVm||0)+vmKostenJe(b.gr));
   goalAdd('rev',w); goalAdd('sold',vsStueck(b));
   b.pos.forEach(l=>statVerkauf(l.t,l.n));
   statAdd('pakete',1);
@@ -643,7 +707,7 @@ function vsAufDieBahn(pi,m,gr){
 /* Ist auf dem Band an der Stelle x Platz fuer ein Paket der Laenge L? */
 function vsBandFrei(x,L,selbst){
   for(const e of vsBahn){ if(e===selbst||e.phase==='warten') continue;
-    if((e.phase==='greifer'&&!e.amBand)||e.phase==='hand') continue;
+    if(e.phase==='greifer'&&!e.amBand) continue;
     const l=vsLaenge(e), a=e.x-l/2, b=e.x+l/2;
     /* was von hinten (Osten) kommt, braucht Abstand: es laeuft waehrend
        des Schiebens weiter nach Westen */
@@ -679,7 +743,6 @@ function vsBahnUpdate(dt){
       if(e.t>=1){ e.phase='rollen'; e.laeuft=true; if(sfx.karton) sfx.karton(); }
     }
   }
-  vsHandFlugUpdate(dt);
   vsPortalUpdate(dt);
 }
 
@@ -696,7 +759,7 @@ function vsPortalFahrt(nach,phase){
 }
 function vsPortalUpdate(dt){
   const P_=vsPortal;
-  if(!packTisch||vsHandStufe()) return;
+  if(!packTisch) return;
   if(P_.von){ P_.t+=dt/P_.dauer; const k=vsGlatt(P_.t), a=P_.von, b=P_.nach;
     P_.x=a.x+(b.x-a.x)*k; P_.y=a.y+(b.y-a.y)*k; P_.z=a.z+(b.z-a.z)*k; }
   const fertig=!P_.von||P_.t>=1; if(fertig) P_.von=null;
@@ -706,7 +769,8 @@ function vsPortalUpdate(dt){
     case 'ruhe': {
       /* das vorderste Paket am Endanschlag, wenn es steht */
       /* erst wenn die letzte Fahrt (nach oben) zu Ende ist */
-      const v=fertig?vsBahn.filter(x=>x.phase==='rollen').sort((a,b)=>a.x-b.x)[0]:null;
+      /* waehrend der DDL-Fahrer in der Box laedt, ist sie belegt - der Kran wartet (Tom 09.10.) */
+      const v=fertig&&!(typeof boxBelegt==='function'&&boxBelegt())?vsBahn.filter(x=>x.phase==='rollen').sort((a,b)=>a.x-b.x)[0]:null;
       if(v&&!v.laeuft&&v.x<=BAND.x0+vsLaenge(v)/2+0.002){
         const G=VS_GR[v.gr];
         P_.e=v; vsPortalFahrt({x:v.x,y:Math.max(VS_YRUHE*0.9,BAND.y+G.h+0.3),z:BAND.z},'hin');
@@ -718,11 +782,11 @@ function vsPortalUpdate(dt){
     case 'runter': if(fertig){ P_.phase='saugen'; P_.t=0; } break;
     case 'saugen': {
       P_.t+=dt/0.25; if(P_.t<1) break;
-      /* Platz auf der Palette; alles voll: DDL kommt zwischendurch */
-      /* e liegt noch auf dem Band und zaehlt nicht zu den gelandeten */
-      let pl=vsPalZiel(e.gr);
-      if(!pl){ vsZwischenabholung(); pl=vsPalZiel(e.gr); }
-      if(!pl){ P_.t=0; break; }
+      /* Platz auf der Palette? e liegt noch auf dem Band und zaehlt nicht zu den gelandeten.
+         Alles voll: das Paket wartet am Bandende, bis jemand DDL ruft (keine Zwischenabholung
+         mehr, Tom 09.10.) - das Band staut zurueck bis an die Tische. */
+      const pl=(typeof boxBelegt==='function'&&boxBelegt())?null:vsPalZiel(e.gr);
+      if(!pl){ if(!(typeof boxBelegt==='function'&&boxBelegt())&&typeof vsBoxVoll==='function') vsBoxVoll(); P_.t=-3; break; }
       e.phase='greifer'; e.amBand=true; P_.ziel=pl;
       const G=VS_GR[e.gr]; vsPortalFahrt({x:P_.x,y:VS_YFREI+G.h,z:P_.z},'heben'); break; }
     case 'heben': if(fertig){ e.amBand=false; const G=VS_GR[e.gr], z=P_.ziel; vsPortalFahrt({x:z.x,y:VS_YFREI+G.h,z:z.z},'fahren'); }
@@ -753,96 +817,8 @@ function vsAbgelegt(e,ziel){
   syncPakete(); if(typeof sfx!=='undefined'&&sfx.thump) sfx.thump(0.22);
 }
 
-/* ---------------------------------------------------------
-   Stufe 1 ohne Roboter-Kran (Tom, 08.10.): das Paket laeuft bis an den
-   Endanschlag. Dort nimmt es der Packer ab, traegt es zur Palette und
-   legt es selbst ab - oder der Spieler legt es mit einem Griff hinueber.
-   Das Portal kommt erst mit Stufe 2.
-   Phase 'hand': das Paket ist vom Band genommen (Packer traegt, Spieler-Flug).
-   --------------------------------------------------------- */
-function vsHandStufe(){ return packStufe()<2; }
-/* Stand des Packers am Bandende und vor der Palette (Stationskoordinaten) */
-const VS_HAND={x:0.3,z:-0.25}, VS_HAND_PAL=0.95;
-let vsHandFlug=null;
-function vsGP(x,z){ const q=localToWorld(packTisch,x,z); return V(q.x,0,q.z); }
-function vsAmAnschlag(){ const v=vsBahn.filter(x=>x.phase==='rollen').sort((a,b)=>a.x-b.x)[0]; return v&&!v.laeuft&&v.x<=BAND.x0+vsLaenge(v)/2+0.002?v:null; }
-function vsHandBelegt(){ return vsBahn.some(e=>e.phase==='hand'); }
-function vsHandArbeit(){ return vsHandStufe()&&vsBahn.some(e=>e.phase==='rollen'||e.phase==='schieben'); }
-/* Platz auf der Palette; alles voll: DDL kommt zwischendurch */
-function vsHandZiel(gr){ let pl=vsPalZiel(gr); if(!pl){ vsZwischenabholung(); pl=vsPalZiel(gr); } return pl; }
-/* Paket in den Haenden des Packers (k: 0 = Band, 1 = Haende) */
-function vsHandHalten(w,e,k){
-  const G=VS_GR[e.gr], ry=w.g.rotation.y;
-  _vp.set(w.pos.x+Math.sin(ry)*0.42,1.02,w.pos.z+Math.cos(ry)*0.42); packTisch.worldToLocal(_vp);
-  const a=e.von, kk=vsGlatt(k);
-  e.m.position.set(a.x+(_vp.x-a.x)*kk,a.y+(_vp.y-a.y)*kk+Math.sin(Math.PI*Math.min(1,k))*0.08,a.z+(_vp.z-a.z)*kk);
-  e.m.rotation.y=vsWinkel(a.ry,ry-packTisch.rotation.y+Math.PI/2,kk);
-  e.hand={x:e.m.position.x,y:e.m.position.y,z:e.m.position.z,ry:e.m.rotation.y};
-  void G;
-}
-/* von a (Lage) nach Ziel z auf der Palette, im Bogen von oben */
-function vsHandBogen(e,a,z,k){
-  const kk=vsGlatt(k), hoch=Math.max(0,Math.max(a.y,z.y)+0.12-(a.y+(z.y-a.y)*kk));
-  e.m.position.set(a.x+(z.x-a.x)*kk,a.y+(z.y-a.y)*kk+Math.sin(Math.PI*Math.min(1,k))*Math.max(0.12,hoch),a.z+(z.z-a.z)*kk);
-  e.m.rotation.y=vsWinkel(a.ry,z.ry,kk);
-}
-function vsHandPrompt(){
-  if(!vsHandStufe()) return null;
-  const v=vsAmAnschlag();
-  if(!v) return {t:vsBahn.some(e=>e.phase==='rollen'||e.phase==='schieben')?'Paket läuft noch aufs Bandende zu':'Bandende: hier nimmst du die Pakete ab und legst sie auf die Palette',a:false};
-  if(vsHandBelegt()) return {t:'Gerade wird ein Paket auf die Palette gelegt',a:false};
-  return {t:`Paket (${VS_GR[v.gr].name}) auf die Palette legen`,a:true};
-}
-function vsSpielerAblegen(){
-  const v=vsHandStufe()&&vsAmAnschlag(); if(!v||vsHandBelegt()) return false;
-  if(typeof HUB!=='undefined'&&HUB.pal){ toast('Erst den Hubwagen abstellen.'); return false; }
-  const pl=vsHandZiel(v.gr); if(!pl){ toast('Auf den Paletten ist kein Platz mehr.'); return false; }
-  v.phase='hand'; vsHandFlug={e:v,z:pl,t:0,a:{x:v.m.position.x,y:v.m.position.y,z:v.m.position.z,ry:v.m.rotation.y}};
-  if(sfx.karton) sfx.karton();
-  return true;
-}
-function vsHandFlugUpdate(dt){
-  const f=vsHandFlug; if(!f) return;
-  if(vsBahn.indexOf(f.e)<0){ vsHandFlug=null; return; }
-  f.t+=dt/0.6; vsHandBogen(f.e,f.a,f.z,f.t);
-  if(f.t>=1){ vsAbgelegt(f.e,f.z); vsHandFlug=null; }
-}
-/* Packer: Pakete vom Bandende auf die Palette, bis das Band leer ist */
-function vsStapeln(w,dt){
-  const e=w.hand, wf=w.wf||1;
-  if(!e){
-    const v=vsAmAnschlag(), A=vsGP(VS_HAND.x,VS_HAND.z);
-    if(!v||vsHandBelegt()){
-      /* laeuft noch etwas heran: kurz am Bandende warten */
-      w.t-=dt;
-      if(vsHandArbeit()&&w.t>-8){ if(vsGehen(w,A,dt)||vsNotfalls(w,A)) vsBlick(w,vsGP(BAND.x0+0.3,BAND.z),dt); return; }
-      w.vs=w.vsNach||'heim'; w.vsNach=null; w.t=0.3; return; }
-    if(!vsGehen(w,A,dt)&&!vsNotfalls(w,A)) return;
-    if(!vsBlick(w,vsGP(v.x,BAND.z),dt)) return;
-    const pl=vsHandZiel(v.gr); if(!pl){ w.vs=w.vsNach||'heim'; w.vsNach=null; return; }
-    v.phase='hand'; v.ziel=pl; v.k=0; v.von={x:v.m.position.x,y:v.m.position.y,z:v.m.position.z,ry:v.m.rotation.y};
-    w.hand=v; w.vsHp='nehmen'; sfx.karton&&sfx.karton(); return;
-  }
-  /* DDL hat alles mitgenommen (auch das Paket in der Hand) */
-  if(vsBahn.indexOf(e)<0){ if(e.m.parent) e.m.parent.remove(e.m); w.hand=null; w.vsHp=null; w.t=0; return; }
-  const z=e.ziel, c=palZentrum(z.f);
-  if(w.vsHp==='nehmen'){ e.k=Math.min(1,e.k+dt*wf/0.35); vsHandHalten(w,e,e.k); if(e.k>=1) w.vsHp='tragen'; return; }
-  if(w.vsHp==='tragen'){
-    const B=vsGP(c.x+VS_HAND_PAL,c.z), da=vsGehen(w,B,dt)||vsNotfalls(w,B);
-    e.k=1; vsHandHalten(w,e,1);
-    if(!da||!vsBlick(w,vsGP(c.x,c.z),dt)) return;
-    w.vsHp='ablegen'; e.k=0; e.a=e.hand; return; }
-  /* ablegen */
-  e.k+=dt*wf/0.45; vsHandBogen(e,e.a,z,e.k);
-  if(e.k>=1){ vsAbgelegt(e,z); w.hand=null; w.vsHp=null; w.t=0; }
-}
-/* Abbruch (Pause, Kuendigung): das Paket geht zurueck ans Bandende */
-function vsHandZurueck(w){
-  const e=w.hand; w.hand=null; w.vsHp=null; if(!e||vsBahn.indexOf(e)<0) return;
-  e.phase='rollen'; e.laeuft=true; e.x=Math.max(e.x,BAND.x0+vsLaenge(e)/2);
-  const G=VS_GR[e.gr]; e.m.position.set(e.x,BAND.y+G.h/2,BAND.z); e.m.rotation.y=Math.PI/2;
-}
-
+/* 08.10. lag hier die Hand-Ablage fuer Stufe 1 ohne Kran (Packer bzw. Spieler legten das Paket
+   selbst auf die Palette). Seit 09.10. (Tom) hat schon Stufe 1 den Kran - die Hand-Ablage ist raus. */
 /* Bruecke, Laufwagen, Hubachse und Greifer an die Greiferlage stellen */
 function vsPortalZeigen(){
   const Pt=packTeile.portal, P_=vsPortal; if(!Pt) return;
@@ -975,9 +951,9 @@ function packOne(auto){
   const wb=vsWagenBedarf();
   const b=(S.bestellungen||[]).find(x=>x.st==='offen'&&vsErfuellbar(x,wb)&&vmPlatzMit(x.gr)>=0); if(!b) return false;
   const pi=vmPlatzMit(b.gr);
+  const pz=vsPalZiel(b.gr); if(!pz){ if(typeof vsBoxVoll==='function') vsBoxVoll(); return false; }
   if(!vsEntnehmen(b)) return false;
   vmVerbrauchen(pi,b.gr);
-  let pz=vsPalZiel(b.gr); if(!pz){ vsZwischenabholung(); pz=vsPalZiel(b.gr); }
   vsBuchen(b,!auto);
   S.paketGr.splice(vsGelandet(),0,b.gr); S.paketP.splice(vsGelandet()-1,0,pz?pz.p:-1); S.pakete=S.paketGr.length;
   syncPakete(); drawPackSchild();
@@ -1038,8 +1014,6 @@ function vsLoopZustand(w,dt,wf,tour,g){
       if(w.pos.distanceTo(vsHeim(w))>0.5){ w.vs='heim'; break; }
       vsDrehen(w,vsRy(pi,Math.PI),dt);
       w.t-=dt; if(w.t>0) break; w.t=0.8;
-      /* Stufe 1: erst das Band leer machen (Pakete selbst auf die Palette) */
-      if(vsHandArbeit()&&!vsHandBelegt()){ w.vs='stapeln'; w.vsNach=null; w.t=0; break; }
       if(P_.tisch&&P_.tisch.spieler) break;
       const plan=vsPlan(pi); if(!plan) break;
       plan.auf.forEach(a=>{ a.b.st='wagen'; });
@@ -1095,7 +1069,6 @@ function vsLoopZustand(w,dt,wf,tour,g){
       w.flug={m:einrStueck(s.t),von:von.p,q:von.q,t:0,a,l,s};
       w.flug.m.matrix.compose(von.p,von.q,_vs.setScalar(1)); w.flug.m.matrixWorldNeedsUpdate=true;
       break; }
-    case 'stapeln': vsStapeln(w,dt); break;
     case 'zurueck': {
       w.src=null;
       if(!vsWagenFertig(g)) break;
@@ -1125,10 +1098,8 @@ function vsLoopZustand(w,dt,wf,tour,g){
            die Bestellung wartet mit dem, was schon drin ist; der Karton
            geht zurueck ins Regal */
         a.pk.parent.remove(a.pk); a.pk=null; a.b.st='offen'; vmZurueck(pi,a.b.gr); w.k++; w.t=0.25; break; }
-      if(!vsTischFrei(pi)){
-        /* Stufe 1: das Band staut bis zum Tisch - erst ablegen, dann weiter auspacken */
-        if(vsHandStufe()&&!P_.tisch&&vsAmAnschlag()&&!vsHandBelegt()){ w.vsNach='parken'; w.vs='stapeln'; w.t=0; }
-        break; }
+      /* Band staut bis zum Tisch (Box voll, DDL nicht gerufen): warten */
+      if(!vsTischFrei(pi)) break;
       vsTischStart(pi,a.pk,a.b,false); a.pk=null; w.k++; w.t=0.3;
       break; }
   }
@@ -1181,7 +1152,7 @@ function vsPose(w,dt){
     const reich=-Math.atan2(Math.max(0.15,_vp.z),1.45-_vp.y);
     z=[-0.35,-0.35+(reich+0.35)*gg,0.07,-0.07]; k=Math.min(1,dt*16);
   }
-  else if(w.vs==='aufbauen'||(w.vs==='abladen'&&w.tour)||(w.vs==='stapeln'&&w.hand)) z=[-1.05,-1.05,0.07,-0.07];
+  else if(w.vs==='aufbauen'||(w.vs==='abladen'&&w.tour)) z=[-1.05,-1.05,0.07,-0.07];
   /* animPerson zieht jedes Bild zur Schrittbewegung - deshalb hier
      setzen statt nur anzustossen, sonst haengen die Arme halb */
   const unterarm=i=>u.arms[i].children.find(c=>c.isGroup);
@@ -1195,7 +1166,6 @@ function vsPose(w,dt){
 function vsAufraeumen(w){
   const pi=vsPlatzVon(w);
   if(w.flug){ scene.remove(w.flug.m); w.flug=null; }
-  vsHandZurueck(w);
   /* Kartons, die schon auf dem Wagen standen, gehen zurueck ins Regal */
   if(w.tour) w.tour.auf.forEach(a=>{ if(a.pk){ if(a.pk.parent) a.pk.parent.remove(a.pk); vmZurueck(pi,a.b.gr); } a.pk=null; if(a.b.st==='wagen') a.b.st='offen'; });
   w.tour=null; w.src=null; w.vs='heim';
@@ -1210,7 +1180,6 @@ function vsStatusVon(w){
       return `pickt ${s?(s.lager?'im Lager':'im Laden'):''} · ${tour?Math.min(tour.si+1,tour.stops.length):0}/${tour?tour.stops.length:0} Stellen`; }
     case 'zurueck': case 'parken': return 'bringt den Wagen zum Packtisch';
     case 'abladen': return 'verpackt am Tisch';
-    case 'stapeln': return 'legt die Pakete auf die Palette';
     default: {
       if((S.offen|0)<=0) return 'wartet auf Bestellungen';
       const wb=vsWagenBedarf(), mitWare=(S.bestellungen||[]).filter(b=>b.st==='offen'&&vsErfuellbar(b,wb));
@@ -1233,12 +1202,12 @@ function updateVersand(dt){
   if(!packBereit()){ versandT=0; return; }
   vsAbgleich();
   if(phase==='open'){
-    const n=bestellungenProTag(); if(n>0){
-      versandT-=dt;
-      if(versandT<=0){ versandT=330/n;
-        const b=vsNeueBestellung(false);
-        if(b){ S.bestellungen.push(b); vsSync(); drawPackSchild(); }
-      }
+    /* Kunden kommen in den Shop; wer die Versandkosten nicht hinnimmt, bricht ab */
+    versandT-=dt;
+    if(versandT<=0){ const n=vsBesucheProTag(); versandT=n>0?330/n:30;
+      const b=n>0?vsNeueBestellung(false):null;
+      if(b){ if(Math.random()<vsAnnahme(b.wert,b.versand)){ S.bestellungen.push(b); vsSync(); drawPackSchild(); }
+        else { DS.onAbbr=(DS.onAbbr|0)+1; statAdd('abbruch',1); S.bestNr=Math.max(0,(S.bestNr|0)-1); } }
     }
   }
   vsTischUpdate(dt);
@@ -1248,7 +1217,7 @@ function updateVersand(dt){
 function vsLaden(){
   S.bestellungen=(Array.isArray(S.bestellungen)?S.bestellungen:[]).filter(b=>b&&Array.isArray(b.pos)).map(b=>{
     const pos=b.pos.filter(l=>l&&P[l.t]&&l.n>0).map(l=>({t:l.t,n:l.n|0,g:Math.max(0,Math.min(l.n|0,l.g|0))}));
-    return pos.length?{id:b.id|0,pos,gr:[1,3,6].indexOf(b.gr)>=0?b.gr:vsKlasse(pos),wert:r2(+b.wert||vsWertVon(pos)),versand:r2(Math.max(0,+b.versand||0)),st:'offen',tag:b.tag|0}:null; }).filter(Boolean).slice(0,80);
+    return pos.length?{id:b.id|0,pos,gr:[1,3,6].indexOf(b.gr)>=0?b.gr:vsKlasse(pos),wert:r2(+b.wert||vsWertVon(pos)),versand:r2(Math.max(0,+b.versand||0)),rabatt:r2(Math.max(0,+b.rabatt||0)),st:'offen',tag:b.tag|0}:null; }).filter(Boolean).slice(0,80);
   S.paketGr=(Array.isArray(S.paketGr)?S.paketGr:[]).map(g=>[1,3,6].indexOf(g)>=0?g:1).slice(0,300);
   if(!S.paketGr.length&&(S.pakete|0)>0) for(let i=0;i<Math.min(300,S.pakete|0);i++) S.paketGr.push(1);
   S.pakete=S.paketGr.length;
@@ -1257,7 +1226,7 @@ function vsLaden(){
   /* alter Spielstand kannte nur eine Zahl: vsAbgleich gibt ihr Inhalt */
   if(S.bestellungen.length||!(S.offen|0)) S.offen=S.bestellungen.length;
   VS_PACKER.forEach(id=>{ if(staff[id]) vsAufraeumen(staff[id]); });
-  vsBahn.forEach(e=>{ if(e.m.parent) e.m.parent.remove(e.m); }); vsBahn.length=0; vsHandFlug=null;
+  vsBahn.forEach(e=>{ if(e.m.parent) e.m.parent.remove(e.m); }); vsBahn.length=0;
   vsPortalRuhe();
   vsPlaetze.forEach((P_,i)=>{ if(!P_) return;
     const T=P_.tisch; if(T){ if(T.pk.parent) T.pk.parent.remove(T.pk); if(T.flug) scene.remove(T.flug.m); P_.tisch=null; }

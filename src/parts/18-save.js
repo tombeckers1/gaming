@@ -57,7 +57,7 @@ function save(){
   if(typeof gpAn!=='undefined'&&gpAn) return;
   try{
     const d={v:3,money:S.money,rep:S.rep,level:S.level,xp:S.xp,season:S.season,day:S.day,loan:S.loan,prices:S.prices,up:S.up,staff:S.staff,prio:S.prio||{},einr:S.einr||{},wage:S.wage||{},pause:S.pause||{},ev:S.ev||null,goal:S.goal||null,mkt:r2(S.mkt||1),comp:r2(S.comp||1),lic:S.lic||['start'],stat:S.stat||{},erf:S.erf||{},gesehen:S.gesehen||[],eigene:S.eigene||[],gutschrift:r2(S.gutschrift||0),fwZaehler:S.fwZaehler||{},mi:S.mi||{},me:S.me||{},reg:S.reg||{},mh:S.mh||{},schock:S.schock||{},news:S.news||[],infl:S.infl||1,
-      wall:S.wall,floor:S.floor,schildBg:S.schildBg||'auto',schildFg:S.schildFg||'weiss',paint:S.paint,test:S.test,stamm:S.stamm,blanks:gravBlanks,grav:gravG?mpos(gravG):null,grime:r2(S.grime||0),tut:S.tut,tutAus:!!S.tutAus,karre:S.karre||null,seasonRevenue:S.seasonRevenue,carrying:S.carrying,kisten:S.kisten|0,kisteHand:!!S.kisteHand,cart:S.cart||[],rest:S.rest||null,ekVor:S.ekVor||{},offen:S.offen|0,pakete:S.pakete|0,bestellungen:(S.bestellungen||[]).map(b=>({id:b.id,pos:b.pos.map(l=>({t:l.t,n:l.n,g:l.g})),gr:b.gr,wert:b.wert,versand:b.versand||0,st:b.st,tag:b.tag})),vm:S.vm||null,versandCfg:S.versandCfg||null,paketGr:(S.paketGr||[]).slice(),paketP:(S.paketP||[]).slice(),paletten:(S.paletten||[]).map(p=>({id:p.id,ort:p.ort,idx:p.idx})),palNr:S.palNr|0,ddlTag:S.ddlTag|0,bestNr:S.bestNr|0,shopName:S.shopName||SHOP_DEFAULT,slogan:S.slogan||'',
+      wall:S.wall,floor:S.floor,schildBg:S.schildBg||'auto',schildFg:S.schildFg||'weiss',paint:S.paint,test:S.test,stamm:S.stamm,blanks:gravBlanks,grav:gravG?mpos(gravG):null,grime:r2(S.grime||0),tut:S.tut,tutAus:!!S.tutAus,karre:S.karre||null,seasonRevenue:S.seasonRevenue,carrying:S.carrying,kisten:S.kisten|0,kisteHand:!!S.kisteHand,cart:S.cart||[],rest:S.rest||null,ekVor:S.ekVor||{},offen:S.offen|0,pakete:S.pakete|0,bestellungen:(S.bestellungen||[]).map(b=>({id:b.id,pos:b.pos.map(l=>({t:l.t,n:l.n,g:l.g})),gr:b.gr,wert:b.wert,versand:b.versand||0,rabatt:b.rabatt||0,st:b.st,tag:b.tag})),vm:S.vm||null,versandCfg:S.versandCfg||null,aktion:S.aktion||null,onlineLog:(S.onlineLog||[]).slice(-30),ddlUnterwegs:!!S.ddlUnterwegs,boxVoll:!!S.boxVoll,paketeVortag:S.paketeVortag|0,paketGr:(S.paketGr||[]).slice(),paketP:(S.paketP||[]).slice(),paletten:(S.paletten||[]).map(p=>({id:p.id,ort:p.ort,idx:p.idx})),palNr:S.palNr|0,ddlTag:S.ddlTag|0,bestNr:S.bestNr|0,shopName:S.shopName||SHOP_DEFAULT,slogan:S.slogan||'',
       deko:dekos.map(d2=>Object.assign({id:d2.id},mpos(d2.g))),
       ck:mpos(ckG),desk:mpos(deskG),pack:mpos(packTisch),sb2weg:1,
       shelves:shelves.map(s=>Object.assign(mpos(s.g),{kind:s.kind,schild:s.schild||undefined,levels:s.levels.map(l=>({type:l.type,count:l.count,q:l.q||1}))})),
@@ -178,9 +178,9 @@ function startGame(fresh){
   { const c=d&&d.ck, alt=c&&Math.abs(c.x-CK_ALT.x)<0.01&&Math.abs(c.z-CK_ALT.z)<0.01&&Math.abs(c.ry-CK_ALT.ry)<0.01;
     const q=c&&!alt?c:CK_HOME; placeMovable(ckMov,q.x,q.z,q.ry); }
   if(d&&d.desk){ const m=movables.find(m=>m.kind==='desk'); if(m) placeMovable(m,Math.abs(d.desk.x+7.35)<0.01?-7.3:d.desk.x,d.desk.z,d.desk.ry); }
-  /* Die Versandecke steht, wo man sie hingeschoben hat. Ein neues
-     Spiel stellt sie an ihren Platz hinter dem Rolltor zurueck. */
-  if(packMov){ const q=d&&d.pack&&d.pack.z<-22.9&&d.pack.x<-8.6&&d.pack.x>-19.9?d.pack:PACK_HOME; placeMovable(packMov,q.x,q.z,q.ry); packPlatzPruefen(false); }
+  /* 09.10.: die Versandecke ist fest eingebaut und steht immer an ihrem Platz vor Rolltor V1
+     (vorher konnte man sie verschieben); was im Versandbereich steht, zieht unten um */
+  if(packMov) placeMovable(packMov,PACK_HOME.x,PACK_HOME.z,PACK_HOME.ry);
   (S.shelves||F.shelves).slice(0,SLOTS.length).forEach((sd,i)=>createShelf(i,sd));
   (S.racks||F.racks).slice(0,RACKS.length).forEach((rd,i)=>createRack(i,rd));
   racksEntwirren();
@@ -193,6 +193,8 @@ function startGame(fresh){
   (S.einbauUnterwegs||[]).forEach(id=>{ if(EINBAU[id]&&!S.up[id]) pending.push({einbau:id,t:lieferSek(),sup:'fachhandel'}); });
   (Array.isArray(S.vmUnterwegs)?S.vmUnterwegs:[]).slice(0,60).forEach(id=>{ if(VM[id]) pending.push({vm:id,t:lieferSek(),sup:'fachhandel'}); });
   (S.paketeBoden||[]).forEach(b=>{ if((b.regal&&regalOf(b.regal))||(b.einbau&&EINBAU[b.einbau]&&!S.up[b.einbau])) spawnPaket(b,{x:b.x,z:b.z,ry:b.ry}); });
+  /* alte Spielstaende: Regale, Moebel und Kartons im Versandbereich an einen freien Platz */
+  if(packMov&&d){ const n=versandBereichRaeumen(false); if(n) later(3,()=>toast(`${n} Sache${n===1?'':'n'} aus dem Versandbereich der Packstation umgestellt – dort wächst die Versandecke.`)); }
   if(S.up.gravur){ buildGravur(d&&d.grav?d.grav:null); gravBlanks=Math.max(0,Math.min(GRAV_MAX,(d&&d.blanks)|0)); drawGrav(); }
   STAFF.forEach(s=>{ if(S.staff[s.id]&&!inPause(s.id)) hireStaff(s.id); });
   if(S.up.regallicht){ shelfLight.intensity=0.8; shelfStrips.forEach(m=>m.emissiveIntensity=1.5); }

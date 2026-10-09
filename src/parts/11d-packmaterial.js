@@ -32,6 +32,8 @@ function vmStand(i){
   return S.vm[i];
 }
 function vmBedarf(gr){ return {[VM_KARTON[gr]||'ks']:1,folie:VM_FOLIE[gr]||1,band:VM_BAND[gr]||1}; }
+/* Materialkosten je Paket zum Einkaufspreis (Statistik): S 1,30 / M 2,46 / L 4,25 EUR */
+function vmKostenJe(gr){ const b=vmBedarf(gr); let k=0; for(const id in b) k+=b[id]*VM[id].preis/VM[id].stueck; return r2(k); }
 /* Reicht das Material am Platz i fuer ein Paket der Groesse gr?
    mat: was diese Tour schon vorgemerkt hat */
 function vmReicht(i,gr,mat){

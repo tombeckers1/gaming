@@ -601,10 +601,19 @@ for(const id of ['aurora200','granatapfel200','sonnensturm300','drachennest300']
 const K6_RAUM={
   kugel75:4.0,silberdistel75:5.5,hummelschwarm75:3.1,goldbrokat100:3.4,kugel100:2.26,blauregen100:4.8,
   fackelhimmel150:5.2,crossettennetz150:3.8,tigerkrone150:3.47,farbcrossette150:4.05,wetterleuchten150:3.7,
-  schatztruhe200:3.35,bluetenhagel200:3.4,kronenkranz200:2.34,zwillingssonne200:1.78,blitzpalme200:6.9,goldweidenkreuz200:2.83,
+  schatztruhe200:3.75,bluetenhagel200:3.6,kronenkranz200:2.45,zwillingssonne200:1.86,blitzpalme200:6.9,goldweidenkreuz200:2.83,
   kugel300:2.76,kanonade300:4.6,sternensturm300:3.49,riesenpalme300:2.92,ringnebel300:2.99,kometensturm300:2.32,urknall300:2.36,
   herbststurm300:4.5,eiszeit300:3.85,titanenfaust300:3.7,lavastrom300:4.8,galaxie300:4.6,sturmflut300:4.5,goetterdaemmerung300:2.5,himmelssturz300:3.85};
+/* 09.10. (Batterie-Runde 0b): Schatztruhe, Bluetenhagel, Kronenkranz und
+   Zwillingssonne etwas groesser - gemessen lag der 200er-Mittelwert (156 m)
+   unter dem der 150er (158 m), die Kaliber-Leiter (hoehen.js KALIBER) kippte */
 for(const id of Object.keys(K6_RAUM)) if(KUGEL[id]) KUGEL[id].raum=K6_RAUM[id];
+/* Bruchhoehe (09.10., 14u kgHoehe): die Koenigsklasse-Kugeln ab Level 27
+   brechen hoeher (165 m), der Himmelssturz mit der sinkenden Goldkrone
+   und dem Knistern ueber den ganzen Himmel 175 m (gemessen bei 165 m:
+   tiefster Stern 16 m - knapp; bei 90 m reichte er bis 75 m unter den Boden) */
+for(const id of ['herbststurm300','eiszeit300','titanenfaust300','lavastrom300','galaxie300','sturmflut300','goetterdaemmerung300']) if(KUGEL[id]) KUGEL[id].hoehe=165;
+if(KUGEL.himmelssturz300) KUGEL.himmelssturz300.hoehe=175;
 
 /* ---------- Knall fuer die neuen Kugeln ---------- */
 for(const id in K6_MONSTER){ if(!KUGEL[id]) continue; K5_TON_ALT[id]=null; KUGEL[id].ton='kk_'+id; sfx['kk_'+id]=(v,s)=>k5KnallId(id,v,s); }

@@ -42,7 +42,11 @@ function flattern(f0,f1,dur,vol,rate){ if(!AC) return;
    Toms PDF vom 05.10.), hoert man weit - kein Haus, kein Baum dazwischen.
    Ueber 35 m zaehlt die Hoehe nur noch zu 40 %; darunter wie bisher. Die
    Kugel auf 88 m klang sonst mit dem Mindestwert 0,08 (jetzt ~0,2). */
-const distVol=p=>{ const c=camera.position, dy=p.y-c.y, ve=dy>35?35+(dy-35)*0.4:dy;
+/* 09.10.: ueber 90 m zaehlt die Hoehe nicht mehr - die Kugeln brechen seit
+   der Batterie-Runde 95-185 m hoch, ihr Knall ist auf 90 m geeicht
+   (Runde 6, kugelknall.js); die Laufzeit (Licht vor Schall, schall())
+   rechnet weiter mit der echten Entfernung */
+const distVol=p=>{ const c=camera.position, dy=Math.min(p.y-c.y,90), ve=dy>35?35+(dy-35)*0.4:dy;
   return clamp(1-Math.hypot(p.x-c.x,ve,p.z-c.z)/70,0.08,1); };
 /* Alltagsgeraeusche (Scanner, Kasse, Tuer) sind leise Nahgeraeusche:
    nach gut 20 m hoert man sie nicht mehr. */

@@ -44,7 +44,22 @@ function rkHoeheZiel(t,L){
 /* Bruchhoehe ueber Grund (m) je Kaliber 75/100/150/200/300 mm - ein Meter
    Unterschied je Kaliber ist von unten nicht zu sehen ("gleiche Hoehe"),
    die groessere Kugel geht trotzdem nie tiefer auf. Steigzeit in s. */
-const KG_HOEHE=[86,87,88,89,90], KG_STEIG=[2.9,3.0,3.1,3.2,3.35];
+/* 09.10. (Batterie-Runde, Schritt 0b): seit Runde 6 sind die Kugeln
+   108-266 m gross - bei 86-90 m Bruchhoehe reichten die grossen bis unter
+   den Boden (gemessen in der Vorfuehrung, tiefster leuchtender Stern:
+   Tigerkrone -7 m, Kugel 300 -12 m, Kanonade -28 m, Herbststurm -39 m,
+   Lavastrom -39 m, Himmelssturz -75 m). Echte Kugeln steigen etwa 1 m je
+   mm Kaliber (75 mm ~100 m, 300 mm 250-300 m). Im Spiel so hoch wie noetig,
+   so tief wie moeglich - je hoeher, desto kleiner wirken die Sterne
+   (Punktgroesse sinkt mit der Entfernung): jetzt je Kaliber 95/105/120/
+   135/150 m, die Koenigsklasse ab Level 27 165 m, der Himmelssturz (seine
+   Goldkrone senkt sich weit) 175 m (KUGEL[id].hoehe, 14z2). Gemessen
+   danach: kein leuchtender Stern unter 10 m (hoehen.js BODEN). Steigzeit
+   waechst mit (echte 300er brauchen 6-8 s, hier 4,4 s - sonst wird das
+   Warten lang). */
+const KG_HOEHE=[95,105,120,135,150], KG_STEIG=[3.2,3.4,3.7,4.0,4.4];
+function kgHoehe(k){ const K4=Math.max(1,Math.min(5,k.kal|0)); return k.hoehe||KG_HOEHE[K4-1]; }
+try{ window.__kgHoehe={KUGEL,KG_HOEHE}; }catch(e){}
 /* Raeumlicher Massstab des Bruchs je Kaliber (Vorgabe) und je Sorte
    (gemessen: Durchmesser vorher -> Ziel 62/72/86/100/118 m) */
 const KG_RAUM_KAL=[2.0,1.8,1.6,1.55,1.5];
@@ -64,7 +79,7 @@ function kgRaum(k){ const K4=Math.max(1,Math.min(5,k.kal|0)); return k.raum||KG_
     const K4=Math.max(1,Math.min(5,k.kal|0)), zuend=KG_STEIG[K4-1], z0=zuend/KUGEL_ZUEND;
     /* Abschussort wie in shot(): o.y + ab (Standard 0,4) */
     const y0=o&&o.y!==undefined?o.y+(o.ab!==undefined?o.ab:0.4):1;
-    const h0=(KG_HOEHE[K4-1]-y0)/KUGEL_HUB[K4-1], pw=(h0+3*z0*z0)/(STEIG*z0)-21;
+    const h0=(kgHoehe(k)-y0)/KUGEL_HUB[K4-1], pw=(h0+3*z0*z0)/(STEIG*z0)-21;
     const r=ks(o,Object.assign({},k,{pw,fuse:z0}));
     if(r&&typeof r==='object') r.raum=kgRaum(k);
     return r;

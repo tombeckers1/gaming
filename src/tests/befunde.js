@@ -47,8 +47,8 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     o.uhr22={phase:bb.phase,tag:S.day};
     document.querySelectorAll('.ov.show').forEach(x=>x.classList.remove('show'));
     /* Rohr je Kaliber */
-    /* 09.10.: gestrichene Kugeln durch verbliebene gleichen Kalibers ersetzt (Kugelbomben-Runde 5) */
-    const soll={kugel75:0,kugel100:0,crossettennetz150:1,kronenkranz200:1,kanonade300:2,kugel300:2,hummelschwarm75:0,silberdistel75:0,goldbrokat100:0,blauregen100:0,wetterleuchten150:1,tigerkrone150:1,granatapfel200:1,urknall300:2};
+    /* 09.10.: gestrichene Kugeln durch verbliebene gleichen Kalibers ersetzt (Kugelbomben-Runde 5; Runde 6: Granatapfel raus -> Schatztruhe) */
+    const soll={kugel75:0,kugel100:0,crossettennetz150:1,kronenkranz200:1,kanonade300:2,kugel300:2,hummelschwarm75:0,silberdistel75:0,goldbrokat100:0,blauregen100:0,wetterleuchten150:1,tigerkrone150:1,schatztruhe200:1,urknall300:2};
     o.rohr={}; o.rohrFalsch=[]; for(const t in soll){ const ist=bb.moerserRohr(t); o.rohr[t]=ist; if(ist!==soll[t]) o.rohrFalsch.push(t+':'+ist+'≠'+soll[t]); }
     /* Qualitaet durchs Lagerregal */
     S.up.lager=true; bb.oeffneZone&&bb.oeffneZone('lager',true);

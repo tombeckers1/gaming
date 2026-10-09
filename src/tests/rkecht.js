@@ -9,9 +9,11 @@
      Ausnahme: der Fallschirm-Leuchtsatz, der ist ein Dauerlicht.
    Aufruf: node rkecht.js test.html ['["id",...]'] */
 const { chromium } = require('/opt/node22/lib/node_modules/playwright');
-const IDS=["raketenklein","glitzerraketen","blanko","gravur","raketen","kometenraketen","farbenrausch","knisterstern","smaragd","silberregen","kristall","furzrakete","regenbogenkrone","jumbogold","silbermond","jumboleiter","feuerdrache","supernova","kugel75","silberdistel75","kugel100","goldbrokat100","tigerkrone150","crossettennetz150","granatapfel200","kronenkranz200","kanonade300","kugel300",
+const IDS=["raketenklein","glitzerraketen","blanko","gravur","raketen","kometenraketen","farbenrausch","knisterstern","smaragd","silberregen","kristall","furzrakete","regenbogenkrone","jumbogold","silbermond","jumboleiter","feuerdrache","supernova","kugel75","silberdistel75","kugel100","goldbrokat100","tigerkrone150","crossettennetz150","kronenkranz200","kanonade300","kugel300",
   /* 09.10.: Kugelbomben-Runde 5 - gestrichene raus, die zehn neuen rein */
-  "fackelhimmel150","wetterleuchten150","schatztruhe200","bluetenhagel200","aurora200","sonnensturm300","drachennest300","ringnebel300","kometensturm300","urknall300"];
+  "fackelhimmel150","wetterleuchten150","schatztruhe200","bluetenhagel200","ringnebel300","kometensturm300","urknall300",
+  /* 09.10. nachmittags: Runde 6 - Aurora, Granatapfel, Sonnensturm, Drachennest raus, acht neue Koenigsklasse-Kugeln */
+  "herbststurm300","eiszeit300","titanenfaust300","lavastrom300","galaxie300","sturmflut300","goetterdaemmerung300","himmelssturz300"];
 (async()=>{
   const b=await chromium.launch({args:['--no-sandbox']}); const p=await b.newPage(); p.setDefaultTimeout(900000);
   const errs=[]; p.on('pageerror',e=>errs.push('PAGEERROR: '+e.message));

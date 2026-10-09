@@ -18,12 +18,14 @@ const HM_ANSICHTEN=[
   ['Schnellplätze',-44.5,-11.6,1.62,-0.08],
   ['Gelbe Wand mit N1',-46.5,-12.0,-1.57,0.05],
   ['Kartonlager ③',-34.4,-12.0,-1.57,-0.05],
-  ['Schleuse',-23.0,-18.6,3.14,-0.02],
+  ['Schleuse',-23.0,-18.4,0.0,-0.02],
   ['Produktion: Raketen',-73.0,-23.0,1.42,-0.12],
   ['Produktion: Kugelbomben',-80.4,-19.6,2.2,-0.12],
   ['Produktion: Batterien, Rohr-Raster',-86.0,-17.1,1.95,-0.22],
-  ['Produktion: Bunker und R6',-90.0,-27.8,0.55,0.05],
-  ['Produktion: Palettierer',-68.0,-14.0,2.6,-0.15],
+  ['Produktion: Bunker und R6',-90.6,-28.1,0.16,0.06],
+  ['Produktion: Palettierer',-74.5,-13.6,-1.08,-0.15],
+  ['Produktion: Leitstand und Rohstofflager',-86.5,-13.6,-2.2,-0.08],
+  ['Regalbediengerät (Flug)',-43.0,-25.8,1.5708,-0.06,5.4],
   ['Hochregal oben (Flug)',-46.0,-14.4,1.15,-0.25,8.6],
   ['Draufsicht (Dach aus)',-55.0,-20.0,0,-1.5707,48]
 ];
@@ -77,7 +79,7 @@ function hmLicht(){
   for(const l of [shopSpot,yardLight,shelfLight]){ if(l.parent) l.parent.remove(l); if(l.target&&l.target.parent) l.target.parent.remove(l.target); }
   const d=new THREE.DirectionalLight(0xfff4e6,0.5); d.position.set(4,40,6); scene.add(d); scene.add(d.target);
   if(renderer.shadowMap.enabled&&!gfxNiedrig(GFX)){
-    d.castShadow=true; const c=d.shadow.camera, R=36; c.left=-R; c.right=R; c.top=R; c.bottom=-R; c.near=5; c.far=70;
+    d.castShadow=true; const c=d.shadow.camera, R=28; c.left=-R; c.right=R; c.top=R; c.bottom=-R; c.near=5; c.far=70;
     const gr=Math.min((GFX_PROFIL[GFX]||GFX_PROFIL.hoch).sch,renderer.capabilities.maxTextureSize||4096); d.shadow.mapSize.set(gr,gr);
     d.shadow.bias=-0.0005; d.shadow.normalBias=0.03; d.shadow.radius=(GFX_PROFIL[GFX]||GFX_PROFIL.hoch).rad; }
   HM.deckenLicht=d;
@@ -135,7 +137,7 @@ function hmDach(an){
   HALLE.g.traverse(o=>{ if(o.isMesh&&(o.userData.hvMat==='decke'||o.userData.hvMat==='lichtband')) o.visible=an; });
 }
 /* Menue (Esc oder Laptop) */
-function hmMenu(an){
+function hmMenu(an,perTaste){
   HM.menu=an; let M=$('hmMenu');
   if(!M){ M=document.createElement('div'); M.className='ov'; M.id='hmMenu'; M.innerHTML='<div class="card"></div>'; document.body.appendChild(M);
     M.addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b) return; const a=b.dataset.a;
@@ -150,7 +152,7 @@ function hmMenu(an){
   M.classList.toggle('show',an);
   for(const k in keys) keys[k]=false; mouseDown=false;
   if(an){ if(locked) document.exitPointerLock(); hmMenuMalen(); }
-  else requestLock();
+  else if(!perTaste) requestLock();
 }
 function hmMenuMalen(mess){
   const M=$('hmMenu'); if(!M) return; const c=M.querySelector('.card');
@@ -169,7 +171,7 @@ function hmEingabe(){
   addEventListener('keydown',e=>{
     if(!HALLE_MODUS) return;
     e.stopImmediatePropagation();
-    if(HM.menu){ if(e.code==='Escape'&&!e.repeat) hmMenu(false); return; }
+    if(HM.menu){ if(e.code==='Escape'&&!e.repeat) hmMenu(false,true); return; }
     if(e.code==='Escape'){ hmMenu(true); return; }
     keys[e.code]=true;
     if(e.code==='Space'||e.code.indexOf('Arrow')===0) e.preventDefault();
@@ -210,5 +212,7 @@ function halleModusStart(){
     get fertig(){ return HALLE.gebaut&&!!HM.ladezeit; },
     info:()=>({calls:renderer.info.render.calls,tri:renderer.info.render.triangles,geo:renderer.info.memory.geometries,tex:renderer.info.memory.textures,prog:renderer.info.programs?renderer.info.programs.length:0}),
     shot:()=>{ noLoop=true; hallTick(0); hmLichtNachfuehren(1); camera.updateMatrixWorld(); renderer.info.reset(); renderFrame(0.016); renderer.info.reset(); renderFrame(0.016); return canvas.toDataURL('image/jpeg',0.85); },
+    tick:(sek)=>{ for(let t=0;t<sek;t+=0.05) hallTick(0.05); },
+    schiebe:(x,z)=>{ pl.x=x; pl.z=z; collide(pl,0.32); return {x:pl.x,z:pl.z}; },
     zeiten:()=>HALLE.zeiten, fehler:()=>HALLE.fehler||'', gfx:()=>GFX};
 }

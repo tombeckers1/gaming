@@ -39,7 +39,7 @@ function hvFlaechen(){
     hvCol(x-0.35,x+0.35,z-0.95,z+0.95); }
   /* Hubwagen (Modell aus dem Hauptspiel) */
   if(typeof hubModell==='function'){
-    for(const [x,z,ry] of [[-43.6,-30.3,0.4],[-28.6,-31.8,-1.3],[-44.6,-11.6,1.57]]){ const h=hubModell(); h.position.set(x,0,z); h.rotation.y=ry; G.add(h); } }
+    for(const [x,z,ry] of [[-43.6,-30.3,0.4],[-28.6,-31.8,-1.3],[-44.6,-11.6,1.57]].slice(0,hvQ().fein?3:1)){ const h=hubModell(); h.position.set(x,0,z); h.rotation.y=ry; G.add(h); } }
   S.fertig(G);
 }
 
@@ -81,5 +81,6 @@ function hvAusstattung(o){
     Sb.zyl(0.08,0.5,x+0.3,1.0,HV7.halle.z0+0.45,0xd02a20,'lack','y',10); Sb.box(0.3,0.3,0.02,x+0.3,1.65,HV7.halle.z0+0.13,0xd02a20,'lack'); }
   Sb.fertig(G);
   /* Lager-Hinweistafeln */
-  hvSchild(G,'ANBRUCH','Kartons → N1 → Kartonlager',2.6,0.62,-42.0+0.05,3.2,-21.13,Math.PI/2*0+Math.PI/2);
+  hvSchild(G,'ANBRUCH','Kartons → N1 → Kartonlager',2.6,0.62,-41.95,3.4,-21.13,Math.PI/2);
+  { const Sw=hvSammler(); for(const dz of [-1.2,1.2]) Sw.zyl(0.008,6.6,-41.95,3.71+3.3,-21.13+dz,0x30343a,'metall','y',4); Sw.fertig(G,false); }
 }

@@ -51778,6 +51778,8 @@ function hvInst(geo,mat,mats,parent,farben,schatten){
   if(farben) farben.forEach((c,i)=>im.setColorAt(i,LIN(c)));
   const s=new THREE.Sphere(); box.getBoundingSphere(s); s.radius+=r0*smax; g2.boundingSphere=s;
   im.instanceMatrix.needsUpdate=true;
+  /* three r128 schaltet die Sichtpruefung fuer Instanzen ab - mit der eigenen Huellkugel geht sie wieder */
+  im.frustumCulled=true;
   if(HIQ&&schatten!==false){ im.castShadow=true; im.receiveShadow=true; }
   hvRes(g2); parent.add(im); return im;
 }
@@ -52039,7 +52041,7 @@ function hvBoden(o){
   hvBodenPlatte(G,rH,HVM.boden,aoH,liH,0.01);
   /* Produktion */
   const rP={x0:P.x0,x1:P.x1,z0:P.z0,z1:P.z1};
-  HVM.bodenProd=HVM.bodenProd||hvRes(HVM.boden.clone()); HVM.bodenProd.color=LIN(0xd3d8d4);
+  HVM.bodenProd=HVM.bodenProd||hvRes(HVM.boden.clone()); HVM.bodenProd.color=LIN(0xc4cfc8);
   const aoP=hvKarte(rP,px,(g,X,Z,p)=>hvAoMalen(g,X,Z,p,rP,bl));
   HALLE.bodenProdAo=aoP;
   hvBodenPlatte(G,rP,HVM.bodenProd,aoP,null,0.012);
@@ -52283,9 +52285,56 @@ function hvProdHuelle(o){
     S.zyl(0.07,0.12,b.x1-0.2,2.85,bz1+0.42,0xff3020,'leucht','y',8);
   }
   S.fertig(G);
+  hvProdNebenflaechen(G);
   for(const [i,b] of HV7.bunker.entries()) hvSchild(G,'BUNKER '+(i+1),'Mischen · Ex-Zone 1',1.8,0.5,(b.x0+b.x1)/2,3.1,-28.55,0,'#7a1410','#ffd23f');
   hvSchild(G,'PRODUKTION','Raketen · Kugelbomben · Batterien',3.6,0.9,P.x1+0.1,4.4,-31.5,Math.PI/2);
   hvSchild(G,'PRODUKTION','Raketen · Kugelbomben · Batterien',3.6,0.9,P.x1-0.38,4.0,-31.5,-Math.PI/2);
+}
+
+/* Produktion, Nebenflaechen: Rohstofflager an der Suedwand, Leitstand aus Glas,
+   Rohstoffe an R6, Fertigware an R5 */
+function hvProdNebenflaechen(G){
+  const S=hvSammler(), P=HV7.prod, pal=[], palF=[], R=hvRng(61), q=hvQ();
+  /* Palettenregal, drei Ebenen, an der Suedwand */
+  const rz0=P.z1-1.35, rz1=P.z1-0.15, RX0=-99.8, RX1=-84.2, E=[0,1.45,2.9], fb=2.6;
+  for(let x=RX0;x<=RX1+0.01;x+=fb){ for(const z of [rz0+0.04,rz1-0.04]) S.box(0.09,4.2,0.08,x,2.1,z,0xc5cad1,'metall');
+    for(let y=0.4;y<4;y+=1.2) S.box(0.04,0.04,rz1-rz0-0.1,x,y,(rz0+rz1)/2,0xc5cad1,'metall'); }
+  for(let l=1;l<E.length;l++) for(let x=RX0;x<RX1-0.1;x+=fb) for(const z of [rz0+0.05,rz1-0.05]) S.box(fb-0.1,0.11,0.05,x+fb/2,E[l]-0.06,z,0xe36b1f,'lack');
+  hvCol(RX0-0.1,RX1+0.1,rz0,P.z1);
+  let n=0;
+  for(let x=RX0;x<RX1-0.1;x+=fb) for(let s=0;s<3;s++) for(const y of E){ n++; if(R()<0.15) continue;
+    const cx=x+0.1+(s+0.5)*(fb-0.2)/3, cz=(rz0+rz1)/2, art=n%4, y0=y+PAL_H;
+    pal.push(tm(cx,y,cz));
+    if(art===0){ for(let a=0;a<2;a++) for(let b=0;b<2;b++) S.zyl(0.2,0.75,cx-0.2+a*0.4,y0+0.375,cz-0.3+b*0.6,0xf1ece0,'matt','y',q.rund); }    /* Papierrollen */
+    else if(art===1){ for(let a=0;a<4;a++) for(let b=0;b<5;b++) S.zyl(0.045,1.1,cx,y0+0.05+a*0.095,cz-0.2+b*0.095,0x2b2d31,'matt','z',8); }  /* Rohre */
+    else if(art===2){ S.box(0.78,0.5,1.15,cx,y0+0.25,cz,0xbf9150,'matt'); }                                                                       /* Pappe flach */
+    else { for(let a=0;a<2;a++) for(let c=0;c<2;c++) S.box(0.36,0.25,1.1,cx-0.2+a*0.4,y0+0.13+c*0.26,cz,0x4a7ab8,'lack'); }                          /* Halbschalen in Kisten */
+  }
+  hvInst(hvPalGeo(),HVM.holz,pal,G);
+  /* Leitstand: Glasraum mit Pulten und Bildschirmen */
+  const L={x0:-82.2,x1:-75.4,z0:P.z1-5.2,z1:P.z1-0.12}, Hh=2.8, lm=(L.x0+L.x1)/2;
+  for(const [a,b,z] of [[L.x0,L.x1,L.z0]]){ for(let x=a;x<=b+0.01;x+=(b-a)/5) S.box(0.06,Hh,0.06,x,Hh/2,z,0x8a9099,'metall');
+    S.box(b-a,Hh-1.0,0.02,(a+b)/2,0.95+(Hh-1.0)/2,z,0xffffff,'plexi'); S.box(b-a,0.9,0.06,(a+b)/2,0.45,z,0xe4e7ea,'lack'); }
+  for(const x of [L.x0,L.x1]){ S.box(0.06,Hh,L.z1-L.z0,x,Hh/2,(L.z0+L.z1)/2,0xe4e7ea,'lack'); }
+  S.box(L.x1-L.x0+0.1,0.12,L.z1-L.z0+0.1,lm,Hh+0.06,(L.z0+L.z1)/2,0xe4e7ea,'lack');
+  S.box(1.0,2.1,0.04,L.x1-0.8,1.05,L.z0-0.01,0x7f8790,'lack');
+  for(let i=0;i<3;i++){ const x=L.x0+1.2+i*2.0; S.box(1.6,0.05,0.8,x,0.76,L.z0+0.9,0xd8dce1,'lack'); S.box(0.05,0.74,0.6,x,0.37,L.z0+0.9,0x5d646d,'lack');
+    for(const dx of [-0.4,0.4]){ S.box(0.55,0.34,0.03,x+dx,1.05,L.z0+1.15,HVF.dunkel,'lack'); S.box(0.5,0.29,0.004,x+dx,1.05,L.z0+1.13,0xffffff,'screen'); }
+    S.box(0.5,0.08,0.5,x,0.48,L.z0+0.3,0x2a2e35,'lack'); S.box(0.48,0.55,0.08,x,0.8,L.z0+0.05,0x2a2e35,'lack'); }
+  S.box(2.4,1.2,0.05,lm,1.9,L.z1-0.05,HVF.dunkel,'lack'); S.box(2.3,1.1,0.01,lm,1.9,L.z1-0.08,0xffffff,'screen');
+  hvCol(L.x0,L.x1,L.z0-0.05,L.z1);
+  /* Rohstoffe an R6 (Rohre, Papier), Fertigware vor R5 (foliert) */
+  for(const [x,z] of [[-93.4,-27.2],[-90.6,-27.2]]) { pal.length=0; }
+  const roh=[[-93.6,-27.6],[-90.4,-27.6]];
+  roh.forEach(([x,z],i)=>{ const pm=[tm(x,0,z)]; hvInst(hvPalGeo(),HVM.holz,pm,G);
+    if(i===0) for(let a=0;a<5;a++) for(let b=0;b<6;b++) S.zyl(0.045,1.1,x,PAL_H+0.05+a*0.095,z-0.24+b*0.095,0x2b2d31,'matt','z',8);
+    else for(let a=0;a<2;a++) for(let b=0;b<2;b++) S.zyl(0.2,0.75,x-0.2+a*0.4,PAL_H+0.375,z-0.3+b*0.6,0xf1ece0,'matt','y',q.rund);
+    hvCol(x-0.42,x+0.42,z-0.62,z+0.62); });
+  for(let i=0;i<4;i++){ const x=-77.6+(i%2)*1.1, z=-31.0+Math.floor(i/2)*1.5; palF.push({x,y:0,z,v:(i+1)%4}); hvCol(x-0.42,x+0.42,z-0.62,z+0.62); }
+  S.fertig(G);
+  hvPalettenInst(G,palF,true);
+  hvSchild(G,'LEITSTAND',null,1.6,0.42,lm,Hh+0.45,L.z0-0.02,Math.PI,'#1b2340','#f2c230');
+  hvSchild(G,'ROHSTOFFLAGER','Hülsen · Papier · Pappe · Halbschalen',3.0,0.6,(RX0+RX1)/2,4.55,rz0-0.05,Math.PI);
 }
 /* =========================================================
    Grosse Halle: Hochregal (Reserve) mit 3 Gassen, Regalbediengeraete,
@@ -52294,7 +52343,15 @@ function hvProdHuelle(o){
    Je Gasse 2 Reihen x 6 Felder x 3 Paletten x 5 Ebenen = 180 Plaetze.
    ========================================================= */
 /* Europalette, vereinfacht (fuer Hunderte Instanzen): 0,8 m in x, 1,2 m in z */
-let _hvPalGeo=null;
+let _hvPalGeo=null, _hvPalGeoR=null;
+/* Regalpalette: sichtbar ist nur die Stirn - Deck, drei Klotzreihen, Bodenbretter (7 Kaesten) */
+function hvPalGeoRegal(){
+  if(_hvPalGeoR) return _hvPalGeoR;
+  const B=[], b=(w,h,d,x,y,z,c)=>B.push({geo:hvGeoBox(),m:tm(x,y,z,0,0,0,w,h,d),color:c});
+  for(const dx of [-0.33,0,0.33]){ b(0.1,0.022,1.2,dx,0.011,0,0xc49a62); b(0.1,0.078,1.18,dx,0.061,0,0xa9814e); }
+  b(0.8,0.044,1.2,0,PAL_H-0.022,0,0xcfa66d);
+  _hvPalGeoR=merge(B); return _hvPalGeoR;
+}
 function hvPalGeo(){
   if(_hvPalGeo) return _hvPalGeo;
   const B=[], H1=0xc49a62, H2=0xa9814e, H3=0xcfa66d, q=hvQ();
@@ -52315,24 +52372,35 @@ function hvLadungGeo(v){
   if(_hvLadGeo[key]) return _hvLadGeo[key];
   const L=HV_LADUNG[v], R=hvRng(101+v*13), parts=[];
   if(!q.karton){ const g=new THREE.BoxGeometry(0.78,L.ny*L.h,1.18); g.translate(0,L.ny*L.h/2,0); _hvLadGeo[key]=g; return g; }
-  const w=0.8/L.nx, d=1.2/L.nz;
+  /* nur die Aussenflaechen der Ladung: jeder Karton zeigt seine Seiten, die
+     nach aussen gehen - innen liegende Flaechen sieht niemand (spart ~70 %) */
+  const w=0.8/L.nx, d=1.2/L.nz, n=HV_ATLAS_N, e=0.012;
+  const flaeche=(cx,cy,cz,fw,fh,ry,rx,zelle)=>{ const g=new THREE.PlaneGeometry(fw,fh), uv=g.attributes.uv;
+    const u0=(zelle%n)/n, v0=1-(Math.floor(zelle/n)+1)/n;
+    for(let i=0;i<uv.count;i++) uv.setXY(i,u0+e+uv.getX(i)*(1/n-2*e),v0+e+uv.getY(i)*(1/n-2*e));
+    parts.push({geo:g,m:tm(cx,cy,cz,rx||0,ry||0,0),color:0xffffff}); };
   for(let iy=0;iy<L.ny;iy++) for(let ix=0;ix<L.nx;ix++) for(let iz=0;iz<L.nz;iz++){
-    const g=hvKartonGeo(Math.floor(R()*HV_ATLAS_N*HV_ATLAS_N));
-    parts.push({geo:g,m:tm(-0.4+w*(ix+0.5)+(R()-0.5)*0.012,L.h*(iy+0.5),-0.6+d*(iz+0.5)+(R()-0.5)*0.012,0,(R()-0.5)*0.03,0,w-0.008,L.h-0.006,d-0.008),color:0xffffff}); }
+    const zl=Math.floor(R()*n*n), x=-0.4+w*(ix+0.5), y=L.h*(iy+0.5), z=-0.6+d*(iz+0.5);
+    if(ix===0) flaeche(-0.4,y,z,d-0.01,L.h-0.01,-Math.PI/2,0,zl);
+    if(ix===L.nx-1) flaeche(0.4,y,z,d-0.01,L.h-0.01,Math.PI/2,0,zl);
+    if(iz===0) flaeche(x,y,-0.6,w-0.01,L.h-0.01,Math.PI,0,zl);
+    if(iz===L.nz-1) flaeche(x,y,0.6,w-0.01,L.h-0.01,0,0,zl);
+    if(iy===L.ny-1) flaeche(x,L.h*L.ny,z,w-0.01,d-0.01,0,-Math.PI/2,zl);
+  }
   const out=merge(parts); parts.forEach(p=>p.geo.dispose());
   _hvLadGeo[key]=out; return out;
 }
 function hvLadungHoehe(v){ const L=HV_LADUNG[v]; return L.ny*L.h; }
 /* Paletten mit Ladung als Instanzen: liste [{x,y,z,v,ry}] */
-function hvPalettenInst(G,liste,mitFolie){
+function hvPalettenInst(G,liste,mitFolie,keinSchatten){
   if(!liste.length) return;
   const q=hvQ();
-  hvInst(hvPalGeo(),HVM.holz,liste.map(p=>tm(p.x,p.y,p.z,0,p.ry||0,0)),G);
+  const hi=hvInst(keinSchatten?hvPalGeoRegal():hvPalGeo(),HVM.holz,liste.map(p=>tm(p.x,p.y,p.z,0,p.ry||0,0)),G); if(hi&&keinSchatten) hi.castShadow=false;
   for(let v=0;v<HV_LADUNG.length;v++){
     const L=liste.filter(p=>p.v===v); if(!L.length) continue;
     const mats=L.map(p=>tm(p.x,p.y+PAL_H,p.z,0,p.ry||0,0));
-    if(q.karton) hvInst(hvLadungGeo(v),HVM.karton,mats,G);
-    else hvInst(hvLadungGeo(v),HVM.kartonB||(HVM.kartonB=hvRes(std(0xbf9150,{roughness:0.9}))),mats,G);
+    const im=q.karton?hvInst(hvLadungGeo(v),HVM.karton,mats,G):hvInst(hvLadungGeo(v),HVM.kartonB||(HVM.kartonB=hvRes(std(0xbf9150,{roughness:0.9}))),mats,G);
+    if(im&&keinSchatten) im.castShadow=false;
     if(mitFolie&&HVM.folie){ const h=hvLadungHoehe(v);
       hvInst(hvGeoBox(),HVM.folie,L.map(p=>tm(p.x,p.y+PAL_H+h/2,p.z,0,p.ry||0,0,0.83,h+0.03,1.23)),G,null,false); }
   }
@@ -52373,7 +52441,7 @@ function hvHochregalGasse(k){
     const v=Math.floor(rng()*HV_LADUNG.length);
     if(E[l]+PAL_H+hvLadungHoehe(v)>(E[l+1]||Ht)-0.15) continue;
     L.push({x:R.x0+j*R.fb+0.1+(s+0.5)*(R.fb-0.2)/3,y:E[l]+(l?0:0),z:(r.z0+r.z1)/2,v}); }
-  hvPalettenInst(G,L,false);
+  hvPalettenInst(G,L,false,true);
   HALLE.palettenHR=(HALLE.palettenHR||0)+L.length;
   hvSchild(G,'GASSE '+(k+1),'Reserve · '+(180)+' Plätze',1.4,0.42,xe+0.12,Ht-0.7,gs.mitte,Math.PI/2);
 }
@@ -52519,7 +52587,21 @@ function hvMaschine(S,x0,x1,z,b,h,o){
     for(const xx of [x0+0.03,x1-0.03]) S.box(0.05,0.05,b,xx,h-0.025,z,HVF.alu,'metall');
     for(const s of [-1,1]) S.box(L-0.1,h-ub-0.1,0.01,xm,(ub+h)/2,z+s*(b/2-0.03),0xffffff,'plexi');
     S.box(L,0.04,b,xm,h+0.02,z,o.dach||HVF.hell,'lack');
+    /* Innenleben: Hubachse mit Greifer ueber dem Band, Antrieb dunkel */
+    const ix=xm+(L>2.6?-L*0.18:0);
+    for(const s of [-1,1]) S.box(0.06,h-ub-0.1,0.06,ix,(ub+h)/2,z+s*(b/2-0.25),HVF.alu,'metall');
+    S.box(0.1,0.1,b-0.5,ix,h-0.35,z,HVF.alu,'metall');
+    S.box(0.18,0.22,0.22,ix,h-0.52,z,HVF.dunkel,'lack');
+    S.box(0.06,0.55,0.06,ix,h-0.85,z,0xb8bec6,'metall');
+    S.box(0.26,0.06,0.16,ix,h-1.12,z,HVF.dunkel,'lack');
+    if(L>2.6) S.box(0.5,0.32,0.4,xm+L*0.22,ub+0.2,z-b/2+0.4,0x5d646d,'lack');
+    /* Kabelzufuehrung von der Decke */
+    S.box(0.3,HV7.PH-h-0.05,0.06,x0+0.35,(HV7.PH+h)/2,z-b/2+0.1,HVF.gelb,'lack');
+    S.box(0.36,0.28,0.18,x0+0.35,h+0.18,z-b/2+0.12,0xc9ced5,'lack');
   }
+  /* Unterschrank: Zierband, Tuerfugen, Griffe */
+  for(const s of [-1,1]){ S.box(L-0.02,0.05,0.008,xm,0.74,z+s*(b/2+0.002),o.band||0x2f6fd0,'lack');
+    for(let xx=x0+0.6;xx<x1-0.3;xx+=0.6){ S.box(0.008,0.6,0.008,xx,0.43,z+s*(b/2+0.002),0x9aa1aa,'lack'); S.box(0.03,0.12,0.02,xx-0.08,0.5,z+s*(b/2+0.01),0x5d646d,'metall'); } }
   if(o.signal!==false){ const sx=x1-0.15, sz=z-b/2+0.15;
     S.zyl(0.03,0.35,sx,h+0.2,sz,HVF.alu,'metall','y',8);
     S.zyl(0.05,0.08,sx,h+0.42,sz,0x3dff7a,'leucht','y',10); S.zyl(0.05,0.08,sx,h+0.5,sz,0x5a4a10,'lack','y',10); S.zyl(0.05,0.08,sx,h+0.58,sz,0x5a1010,'lack','y',10); }
@@ -52752,7 +52834,7 @@ function hvFlaechen(){
     hvCol(x-0.35,x+0.35,z-0.95,z+0.95); }
   /* Hubwagen (Modell aus dem Hauptspiel) */
   if(typeof hubModell==='function'){
-    for(const [x,z,ry] of [[-43.6,-30.3,0.4],[-28.6,-31.8,-1.3],[-44.6,-11.6,1.57]]){ const h=hubModell(); h.position.set(x,0,z); h.rotation.y=ry; G.add(h); } }
+    for(const [x,z,ry] of [[-43.6,-30.3,0.4],[-28.6,-31.8,-1.3],[-44.6,-11.6,1.57]].slice(0,hvQ().fein?3:1)){ const h=hubModell(); h.position.set(x,0,z); h.rotation.y=ry; G.add(h); } }
   S.fertig(G);
 }
 
@@ -52794,7 +52876,8 @@ function hvAusstattung(o){
     Sb.zyl(0.08,0.5,x+0.3,1.0,HV7.halle.z0+0.45,0xd02a20,'lack','y',10); Sb.box(0.3,0.3,0.02,x+0.3,1.65,HV7.halle.z0+0.13,0xd02a20,'lack'); }
   Sb.fertig(G);
   /* Lager-Hinweistafeln */
-  hvSchild(G,'ANBRUCH','Kartons → N1 → Kartonlager',2.6,0.62,-42.0+0.05,3.2,-21.13,Math.PI/2*0+Math.PI/2);
+  hvSchild(G,'ANBRUCH','Kartons → N1 → Kartonlager',2.6,0.62,-41.95,3.4,-21.13,Math.PI/2);
+  { const Sw=hvSammler(); for(const dz of [-1.2,1.2]) Sw.zyl(0.008,6.6,-41.95,3.71+3.3,-21.13+dz,0x30343a,'metall','y',4); Sw.fertig(G,false); }
 }
 /* =========================================================
    Hallenmodus: im Startbildschirm "Große Halle" waehlen -> die Seite laedt
@@ -52816,12 +52899,14 @@ const HM_ANSICHTEN=[
   ['Schnellplätze',-44.5,-11.6,1.62,-0.08],
   ['Gelbe Wand mit N1',-46.5,-12.0,-1.57,0.05],
   ['Kartonlager ③',-34.4,-12.0,-1.57,-0.05],
-  ['Schleuse',-23.0,-18.6,3.14,-0.02],
+  ['Schleuse',-23.0,-18.4,0.0,-0.02],
   ['Produktion: Raketen',-73.0,-23.0,1.42,-0.12],
   ['Produktion: Kugelbomben',-80.4,-19.6,2.2,-0.12],
   ['Produktion: Batterien, Rohr-Raster',-86.0,-17.1,1.95,-0.22],
-  ['Produktion: Bunker und R6',-90.0,-27.8,0.55,0.05],
-  ['Produktion: Palettierer',-68.0,-14.0,2.6,-0.15],
+  ['Produktion: Bunker und R6',-90.6,-28.1,0.16,0.06],
+  ['Produktion: Palettierer',-74.5,-13.6,-1.08,-0.15],
+  ['Produktion: Leitstand und Rohstofflager',-86.5,-13.6,-2.2,-0.08],
+  ['Regalbediengerät (Flug)',-43.0,-25.8,1.5708,-0.06,5.4],
   ['Hochregal oben (Flug)',-46.0,-14.4,1.15,-0.25,8.6],
   ['Draufsicht (Dach aus)',-55.0,-20.0,0,-1.5707,48]
 ];
@@ -52875,7 +52960,7 @@ function hmLicht(){
   for(const l of [shopSpot,yardLight,shelfLight]){ if(l.parent) l.parent.remove(l); if(l.target&&l.target.parent) l.target.parent.remove(l.target); }
   const d=new THREE.DirectionalLight(0xfff4e6,0.5); d.position.set(4,40,6); scene.add(d); scene.add(d.target);
   if(renderer.shadowMap.enabled&&!gfxNiedrig(GFX)){
-    d.castShadow=true; const c=d.shadow.camera, R=36; c.left=-R; c.right=R; c.top=R; c.bottom=-R; c.near=5; c.far=70;
+    d.castShadow=true; const c=d.shadow.camera, R=28; c.left=-R; c.right=R; c.top=R; c.bottom=-R; c.near=5; c.far=70;
     const gr=Math.min((GFX_PROFIL[GFX]||GFX_PROFIL.hoch).sch,renderer.capabilities.maxTextureSize||4096); d.shadow.mapSize.set(gr,gr);
     d.shadow.bias=-0.0005; d.shadow.normalBias=0.03; d.shadow.radius=(GFX_PROFIL[GFX]||GFX_PROFIL.hoch).rad; }
   HM.deckenLicht=d;
@@ -52933,7 +53018,7 @@ function hmDach(an){
   HALLE.g.traverse(o=>{ if(o.isMesh&&(o.userData.hvMat==='decke'||o.userData.hvMat==='lichtband')) o.visible=an; });
 }
 /* Menue (Esc oder Laptop) */
-function hmMenu(an){
+function hmMenu(an,perTaste){
   HM.menu=an; let M=$('hmMenu');
   if(!M){ M=document.createElement('div'); M.className='ov'; M.id='hmMenu'; M.innerHTML='<div class="card"></div>'; document.body.appendChild(M);
     M.addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b) return; const a=b.dataset.a;
@@ -52948,7 +53033,7 @@ function hmMenu(an){
   M.classList.toggle('show',an);
   for(const k in keys) keys[k]=false; mouseDown=false;
   if(an){ if(locked) document.exitPointerLock(); hmMenuMalen(); }
-  else requestLock();
+  else if(!perTaste) requestLock();
 }
 function hmMenuMalen(mess){
   const M=$('hmMenu'); if(!M) return; const c=M.querySelector('.card');
@@ -52967,7 +53052,7 @@ function hmEingabe(){
   addEventListener('keydown',e=>{
     if(!HALLE_MODUS) return;
     e.stopImmediatePropagation();
-    if(HM.menu){ if(e.code==='Escape'&&!e.repeat) hmMenu(false); return; }
+    if(HM.menu){ if(e.code==='Escape'&&!e.repeat) hmMenu(false,true); return; }
     if(e.code==='Escape'){ hmMenu(true); return; }
     keys[e.code]=true;
     if(e.code==='Space'||e.code.indexOf('Arrow')===0) e.preventDefault();
@@ -53008,6 +53093,8 @@ function halleModusStart(){
     get fertig(){ return HALLE.gebaut&&!!HM.ladezeit; },
     info:()=>({calls:renderer.info.render.calls,tri:renderer.info.render.triangles,geo:renderer.info.memory.geometries,tex:renderer.info.memory.textures,prog:renderer.info.programs?renderer.info.programs.length:0}),
     shot:()=>{ noLoop=true; hallTick(0); hmLichtNachfuehren(1); camera.updateMatrixWorld(); renderer.info.reset(); renderFrame(0.016); renderer.info.reset(); renderFrame(0.016); return canvas.toDataURL('image/jpeg',0.85); },
+    tick:(sek)=>{ for(let t=0;t<sek;t+=0.05) hallTick(0.05); },
+    schiebe:(x,z)=>{ pl.x=x; pl.z=z; collide(pl,0.32); return {x:pl.x,z:pl.z}; },
     zeiten:()=>HALLE.zeiten, fehler:()=>HALLE.fehler||'', gfx:()=>GFX};
 }
 

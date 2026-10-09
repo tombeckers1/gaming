@@ -136,7 +136,7 @@ function hvBoden(o){
   hvBodenPlatte(G,rH,HVM.boden,aoH,liH,0.01);
   /* Produktion */
   const rP={x0:P.x0,x1:P.x1,z0:P.z0,z1:P.z1};
-  HVM.bodenProd=HVM.bodenProd||hvRes(HVM.boden.clone()); HVM.bodenProd.color=LIN(0xd3d8d4);
+  HVM.bodenProd=HVM.bodenProd||hvRes(HVM.boden.clone()); HVM.bodenProd.color=LIN(0xc4cfc8);
   const aoP=hvKarte(rP,px,(g,X,Z,p)=>hvAoMalen(g,X,Z,p,rP,bl));
   HALLE.bodenProdAo=aoP;
   hvBodenPlatte(G,rP,HVM.bodenProd,aoP,null,0.012);
@@ -380,7 +380,54 @@ function hvProdHuelle(o){
     S.zyl(0.07,0.12,b.x1-0.2,2.85,bz1+0.42,0xff3020,'leucht','y',8);
   }
   S.fertig(G);
+  hvProdNebenflaechen(G);
   for(const [i,b] of HV7.bunker.entries()) hvSchild(G,'BUNKER '+(i+1),'Mischen · Ex-Zone 1',1.8,0.5,(b.x0+b.x1)/2,3.1,-28.55,0,'#7a1410','#ffd23f');
   hvSchild(G,'PRODUKTION','Raketen · Kugelbomben · Batterien',3.6,0.9,P.x1+0.1,4.4,-31.5,Math.PI/2);
   hvSchild(G,'PRODUKTION','Raketen · Kugelbomben · Batterien',3.6,0.9,P.x1-0.38,4.0,-31.5,-Math.PI/2);
+}
+
+/* Produktion, Nebenflaechen: Rohstofflager an der Suedwand, Leitstand aus Glas,
+   Rohstoffe an R6, Fertigware an R5 */
+function hvProdNebenflaechen(G){
+  const S=hvSammler(), P=HV7.prod, pal=[], palF=[], R=hvRng(61), q=hvQ();
+  /* Palettenregal, drei Ebenen, an der Suedwand */
+  const rz0=P.z1-1.35, rz1=P.z1-0.15, RX0=-99.8, RX1=-84.2, E=[0,1.45,2.9], fb=2.6;
+  for(let x=RX0;x<=RX1+0.01;x+=fb){ for(const z of [rz0+0.04,rz1-0.04]) S.box(0.09,4.2,0.08,x,2.1,z,0xc5cad1,'metall');
+    for(let y=0.4;y<4;y+=1.2) S.box(0.04,0.04,rz1-rz0-0.1,x,y,(rz0+rz1)/2,0xc5cad1,'metall'); }
+  for(let l=1;l<E.length;l++) for(let x=RX0;x<RX1-0.1;x+=fb) for(const z of [rz0+0.05,rz1-0.05]) S.box(fb-0.1,0.11,0.05,x+fb/2,E[l]-0.06,z,0xe36b1f,'lack');
+  hvCol(RX0-0.1,RX1+0.1,rz0,P.z1);
+  let n=0;
+  for(let x=RX0;x<RX1-0.1;x+=fb) for(let s=0;s<3;s++) for(const y of E){ n++; if(R()<0.15) continue;
+    const cx=x+0.1+(s+0.5)*(fb-0.2)/3, cz=(rz0+rz1)/2, art=n%4, y0=y+PAL_H;
+    pal.push(tm(cx,y,cz));
+    if(art===0){ for(let a=0;a<2;a++) for(let b=0;b<2;b++) S.zyl(0.2,0.75,cx-0.2+a*0.4,y0+0.375,cz-0.3+b*0.6,0xf1ece0,'matt','y',q.rund); }    /* Papierrollen */
+    else if(art===1){ for(let a=0;a<4;a++) for(let b=0;b<5;b++) S.zyl(0.045,1.1,cx,y0+0.05+a*0.095,cz-0.2+b*0.095,0x2b2d31,'matt','z',8); }  /* Rohre */
+    else if(art===2){ S.box(0.78,0.5,1.15,cx,y0+0.25,cz,0xbf9150,'matt'); }                                                                       /* Pappe flach */
+    else { for(let a=0;a<2;a++) for(let c=0;c<2;c++) S.box(0.36,0.25,1.1,cx-0.2+a*0.4,y0+0.13+c*0.26,cz,0x4a7ab8,'lack'); }                          /* Halbschalen in Kisten */
+  }
+  hvInst(hvPalGeo(),HVM.holz,pal,G);
+  /* Leitstand: Glasraum mit Pulten und Bildschirmen */
+  const L={x0:-82.2,x1:-75.4,z0:P.z1-5.2,z1:P.z1-0.12}, Hh=2.8, lm=(L.x0+L.x1)/2;
+  for(const [a,b,z] of [[L.x0,L.x1,L.z0]]){ for(let x=a;x<=b+0.01;x+=(b-a)/5) S.box(0.06,Hh,0.06,x,Hh/2,z,0x8a9099,'metall');
+    S.box(b-a,Hh-1.0,0.02,(a+b)/2,0.95+(Hh-1.0)/2,z,0xffffff,'plexi'); S.box(b-a,0.9,0.06,(a+b)/2,0.45,z,0xe4e7ea,'lack'); }
+  for(const x of [L.x0,L.x1]){ S.box(0.06,Hh,L.z1-L.z0,x,Hh/2,(L.z0+L.z1)/2,0xe4e7ea,'lack'); }
+  S.box(L.x1-L.x0+0.1,0.12,L.z1-L.z0+0.1,lm,Hh+0.06,(L.z0+L.z1)/2,0xe4e7ea,'lack');
+  S.box(1.0,2.1,0.04,L.x1-0.8,1.05,L.z0-0.01,0x7f8790,'lack');
+  for(let i=0;i<3;i++){ const x=L.x0+1.2+i*2.0; S.box(1.6,0.05,0.8,x,0.76,L.z0+0.9,0xd8dce1,'lack'); S.box(0.05,0.74,0.6,x,0.37,L.z0+0.9,0x5d646d,'lack');
+    for(const dx of [-0.4,0.4]){ S.box(0.55,0.34,0.03,x+dx,1.05,L.z0+1.15,HVF.dunkel,'lack'); S.box(0.5,0.29,0.004,x+dx,1.05,L.z0+1.13,0xffffff,'screen'); }
+    S.box(0.5,0.08,0.5,x,0.48,L.z0+0.3,0x2a2e35,'lack'); S.box(0.48,0.55,0.08,x,0.8,L.z0+0.05,0x2a2e35,'lack'); }
+  S.box(2.4,1.2,0.05,lm,1.9,L.z1-0.05,HVF.dunkel,'lack'); S.box(2.3,1.1,0.01,lm,1.9,L.z1-0.08,0xffffff,'screen');
+  hvCol(L.x0,L.x1,L.z0-0.05,L.z1);
+  /* Rohstoffe an R6 (Rohre, Papier), Fertigware vor R5 (foliert) */
+  for(const [x,z] of [[-93.4,-27.2],[-90.6,-27.2]]) { pal.length=0; }
+  const roh=[[-93.6,-27.6],[-90.4,-27.6]];
+  roh.forEach(([x,z],i)=>{ const pm=[tm(x,0,z)]; hvInst(hvPalGeo(),HVM.holz,pm,G);
+    if(i===0) for(let a=0;a<5;a++) for(let b=0;b<6;b++) S.zyl(0.045,1.1,x,PAL_H+0.05+a*0.095,z-0.24+b*0.095,0x2b2d31,'matt','z',8);
+    else for(let a=0;a<2;a++) for(let b=0;b<2;b++) S.zyl(0.2,0.75,x-0.2+a*0.4,PAL_H+0.375,z-0.3+b*0.6,0xf1ece0,'matt','y',q.rund);
+    hvCol(x-0.42,x+0.42,z-0.62,z+0.62); });
+  for(let i=0;i<4;i++){ const x=-77.6+(i%2)*1.1, z=-31.0+Math.floor(i/2)*1.5; palF.push({x,y:0,z,v:(i+1)%4}); hvCol(x-0.42,x+0.42,z-0.62,z+0.62); }
+  S.fertig(G);
+  hvPalettenInst(G,palF,true);
+  hvSchild(G,'LEITSTAND',null,1.6,0.42,lm,Hh+0.45,L.z0-0.02,Math.PI,'#1b2340','#f2c230');
+  hvSchild(G,'ROHSTOFFLAGER','Hülsen · Papier · Pappe · Halbschalen',3.0,0.6,(RX0+RX1)/2,4.55,rz0-0.05,Math.PI);
 }

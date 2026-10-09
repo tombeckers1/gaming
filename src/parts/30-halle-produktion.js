@@ -22,7 +22,21 @@ function hvMaschine(S,x0,x1,z,b,h,o){
     for(const xx of [x0+0.03,x1-0.03]) S.box(0.05,0.05,b,xx,h-0.025,z,HVF.alu,'metall');
     for(const s of [-1,1]) S.box(L-0.1,h-ub-0.1,0.01,xm,(ub+h)/2,z+s*(b/2-0.03),0xffffff,'plexi');
     S.box(L,0.04,b,xm,h+0.02,z,o.dach||HVF.hell,'lack');
+    /* Innenleben: Hubachse mit Greifer ueber dem Band, Antrieb dunkel */
+    const ix=xm+(L>2.6?-L*0.18:0);
+    for(const s of [-1,1]) S.box(0.06,h-ub-0.1,0.06,ix,(ub+h)/2,z+s*(b/2-0.25),HVF.alu,'metall');
+    S.box(0.1,0.1,b-0.5,ix,h-0.35,z,HVF.alu,'metall');
+    S.box(0.18,0.22,0.22,ix,h-0.52,z,HVF.dunkel,'lack');
+    S.box(0.06,0.55,0.06,ix,h-0.85,z,0xb8bec6,'metall');
+    S.box(0.26,0.06,0.16,ix,h-1.12,z,HVF.dunkel,'lack');
+    if(L>2.6) S.box(0.5,0.32,0.4,xm+L*0.22,ub+0.2,z-b/2+0.4,0x5d646d,'lack');
+    /* Kabelzufuehrung von der Decke */
+    S.box(0.3,HV7.PH-h-0.05,0.06,x0+0.35,(HV7.PH+h)/2,z-b/2+0.1,HVF.gelb,'lack');
+    S.box(0.36,0.28,0.18,x0+0.35,h+0.18,z-b/2+0.12,0xc9ced5,'lack');
   }
+  /* Unterschrank: Zierband, Tuerfugen, Griffe */
+  for(const s of [-1,1]){ S.box(L-0.02,0.05,0.008,xm,0.74,z+s*(b/2+0.002),o.band||0x2f6fd0,'lack');
+    for(let xx=x0+0.6;xx<x1-0.3;xx+=0.6){ S.box(0.008,0.6,0.008,xx,0.43,z+s*(b/2+0.002),0x9aa1aa,'lack'); S.box(0.03,0.12,0.02,xx-0.08,0.5,z+s*(b/2+0.01),0x5d646d,'metall'); } }
   if(o.signal!==false){ const sx=x1-0.15, sz=z-b/2+0.15;
     S.zyl(0.03,0.35,sx,h+0.2,sz,HVF.alu,'metall','y',8);
     S.zyl(0.05,0.08,sx,h+0.42,sz,0x3dff7a,'leucht','y',10); S.zyl(0.05,0.08,sx,h+0.5,sz,0x5a4a10,'lack','y',10); S.zyl(0.05,0.08,sx,h+0.58,sz,0x5a1010,'lack','y',10); }

@@ -5,7 +5,15 @@
    Je Gasse 2 Reihen x 6 Felder x 3 Paletten x 5 Ebenen = 180 Plaetze.
    ========================================================= */
 /* Europalette, vereinfacht (fuer Hunderte Instanzen): 0,8 m in x, 1,2 m in z */
-let _hvPalGeo=null;
+let _hvPalGeo=null, _hvPalGeoR=null;
+/* Regalpalette: sichtbar ist nur die Stirn - Deck, drei Klotzreihen, Bodenbretter (7 Kaesten) */
+function hvPalGeoRegal(){
+  if(_hvPalGeoR) return _hvPalGeoR;
+  const B=[], b=(w,h,d,x,y,z,c)=>B.push({geo:hvGeoBox(),m:tm(x,y,z,0,0,0,w,h,d),color:c});
+  for(const dx of [-0.33,0,0.33]){ b(0.1,0.022,1.2,dx,0.011,0,0xc49a62); b(0.1,0.078,1.18,dx,0.061,0,0xa9814e); }
+  b(0.8,0.044,1.2,0,PAL_H-0.022,0,0xcfa66d);
+  _hvPalGeoR=merge(B); return _hvPalGeoR;
+}
 function hvPalGeo(){
   if(_hvPalGeo) return _hvPalGeo;
   const B=[], H1=0xc49a62, H2=0xa9814e, H3=0xcfa66d, q=hvQ();
@@ -26,24 +34,35 @@ function hvLadungGeo(v){
   if(_hvLadGeo[key]) return _hvLadGeo[key];
   const L=HV_LADUNG[v], R=hvRng(101+v*13), parts=[];
   if(!q.karton){ const g=new THREE.BoxGeometry(0.78,L.ny*L.h,1.18); g.translate(0,L.ny*L.h/2,0); _hvLadGeo[key]=g; return g; }
-  const w=0.8/L.nx, d=1.2/L.nz;
+  /* nur die Aussenflaechen der Ladung: jeder Karton zeigt seine Seiten, die
+     nach aussen gehen - innen liegende Flaechen sieht niemand (spart ~70 %) */
+  const w=0.8/L.nx, d=1.2/L.nz, n=HV_ATLAS_N, e=0.012;
+  const flaeche=(cx,cy,cz,fw,fh,ry,rx,zelle)=>{ const g=new THREE.PlaneGeometry(fw,fh), uv=g.attributes.uv;
+    const u0=(zelle%n)/n, v0=1-(Math.floor(zelle/n)+1)/n;
+    for(let i=0;i<uv.count;i++) uv.setXY(i,u0+e+uv.getX(i)*(1/n-2*e),v0+e+uv.getY(i)*(1/n-2*e));
+    parts.push({geo:g,m:tm(cx,cy,cz,rx||0,ry||0,0),color:0xffffff}); };
   for(let iy=0;iy<L.ny;iy++) for(let ix=0;ix<L.nx;ix++) for(let iz=0;iz<L.nz;iz++){
-    const g=hvKartonGeo(Math.floor(R()*HV_ATLAS_N*HV_ATLAS_N));
-    parts.push({geo:g,m:tm(-0.4+w*(ix+0.5)+(R()-0.5)*0.012,L.h*(iy+0.5),-0.6+d*(iz+0.5)+(R()-0.5)*0.012,0,(R()-0.5)*0.03,0,w-0.008,L.h-0.006,d-0.008),color:0xffffff}); }
+    const zl=Math.floor(R()*n*n), x=-0.4+w*(ix+0.5), y=L.h*(iy+0.5), z=-0.6+d*(iz+0.5);
+    if(ix===0) flaeche(-0.4,y,z,d-0.01,L.h-0.01,-Math.PI/2,0,zl);
+    if(ix===L.nx-1) flaeche(0.4,y,z,d-0.01,L.h-0.01,Math.PI/2,0,zl);
+    if(iz===0) flaeche(x,y,-0.6,w-0.01,L.h-0.01,Math.PI,0,zl);
+    if(iz===L.nz-1) flaeche(x,y,0.6,w-0.01,L.h-0.01,0,0,zl);
+    if(iy===L.ny-1) flaeche(x,L.h*L.ny,z,w-0.01,d-0.01,0,-Math.PI/2,zl);
+  }
   const out=merge(parts); parts.forEach(p=>p.geo.dispose());
   _hvLadGeo[key]=out; return out;
 }
 function hvLadungHoehe(v){ const L=HV_LADUNG[v]; return L.ny*L.h; }
 /* Paletten mit Ladung als Instanzen: liste [{x,y,z,v,ry}] */
-function hvPalettenInst(G,liste,mitFolie){
+function hvPalettenInst(G,liste,mitFolie,keinSchatten){
   if(!liste.length) return;
   const q=hvQ();
-  hvInst(hvPalGeo(),HVM.holz,liste.map(p=>tm(p.x,p.y,p.z,0,p.ry||0,0)),G);
+  const hi=hvInst(keinSchatten?hvPalGeoRegal():hvPalGeo(),HVM.holz,liste.map(p=>tm(p.x,p.y,p.z,0,p.ry||0,0)),G); if(hi&&keinSchatten) hi.castShadow=false;
   for(let v=0;v<HV_LADUNG.length;v++){
     const L=liste.filter(p=>p.v===v); if(!L.length) continue;
     const mats=L.map(p=>tm(p.x,p.y+PAL_H,p.z,0,p.ry||0,0));
-    if(q.karton) hvInst(hvLadungGeo(v),HVM.karton,mats,G);
-    else hvInst(hvLadungGeo(v),HVM.kartonB||(HVM.kartonB=hvRes(std(0xbf9150,{roughness:0.9}))),mats,G);
+    const im=q.karton?hvInst(hvLadungGeo(v),HVM.karton,mats,G):hvInst(hvLadungGeo(v),HVM.kartonB||(HVM.kartonB=hvRes(std(0xbf9150,{roughness:0.9}))),mats,G);
+    if(im&&keinSchatten) im.castShadow=false;
     if(mitFolie&&HVM.folie){ const h=hvLadungHoehe(v);
       hvInst(hvGeoBox(),HVM.folie,L.map(p=>tm(p.x,p.y+PAL_H+h/2,p.z,0,p.ry||0,0,0.83,h+0.03,1.23)),G,null,false); }
   }
@@ -84,7 +103,7 @@ function hvHochregalGasse(k){
     const v=Math.floor(rng()*HV_LADUNG.length);
     if(E[l]+PAL_H+hvLadungHoehe(v)>(E[l+1]||Ht)-0.15) continue;
     L.push({x:R.x0+j*R.fb+0.1+(s+0.5)*(R.fb-0.2)/3,y:E[l]+(l?0:0),z:(r.z0+r.z1)/2,v}); }
-  hvPalettenInst(G,L,false);
+  hvPalettenInst(G,L,false,true);
   HALLE.palettenHR=(HALLE.palettenHR||0)+L.length;
   hvSchild(G,'GASSE '+(k+1),'Reserve · '+(180)+' Plätze',1.4,0.42,xe+0.12,Ht-0.7,gs.mitte,Math.PI/2);
 }

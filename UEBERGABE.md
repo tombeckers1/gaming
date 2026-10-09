@@ -195,6 +195,7 @@ ROADMAP.md: Die Demo-Idee mit Kapitel 1–6 ist inzwischen durch den Release-Pla
   - Toms Referenzbild „10 Batterien“ (`docs/uebergabe/referenz-10-batterien.png`) nur als lose Inspiration, NICHT kopieren.
 
 ### 5.4 Großer Bau nach Ausbauplan v7 – NUR auf Toms ausdrückliches Startsignal
+- **Stand 10.10. (Branch `claude/halle-v7`):** Große Halle als eigener Modus gebaut (Startbildschirm „Große Halle“ bzw. `#halle`): Hochregal 3 Gassen mit RBG, I/O, Anbruch, Wareneingang R2–R4, 13 Schnellplätze, Packmaterial, Kartonlager ③ mit gelber Wand/N1, Schleuse 13 m, Produktion mit 3 Straßen (Bühnen, Portale, Rohr-Raster, Palettierer), Bunker, Leitstand, Laptop-Menü. Noch ohne Spielablauf. Einhängen ins Spiel: `docs/halle/zusammenfuehrung.md`, Bilder `docs/bilder/halle/`, Tests `src/tests/halle.js`, `halle-start.js`.
 - **Schätzung im neuen Chat:** realistisch 7 Arbeitstage, spätestens 10. Mit beschleunigten Tests etwa 5.
 - Phasen strikt nacheinander, Tom vorher warnen, wenn sich Agenten im Weg stehen würden.
 

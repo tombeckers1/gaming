@@ -298,6 +298,8 @@ function hvInst(geo,mat,mats,parent,farben,schatten){
   if(farben) farben.forEach((c,i)=>im.setColorAt(i,LIN(c)));
   const s=new THREE.Sphere(); box.getBoundingSphere(s); s.radius+=r0*smax; g2.boundingSphere=s;
   im.instanceMatrix.needsUpdate=true;
+  /* three r128 schaltet die Sichtpruefung fuer Instanzen ab - mit der eigenen Huellkugel geht sie wieder */
+  im.frustumCulled=true;
   if(HIQ&&schatten!==false){ im.castShadow=true; im.receiveShadow=true; }
   hvRes(g2); parent.add(im); return im;
 }

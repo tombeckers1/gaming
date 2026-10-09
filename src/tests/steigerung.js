@@ -66,7 +66,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
         dauer:sch.length?+(sch[sch.length-1].t-sch[0].t).toFixed(1):0,eff:[...new Set(log.map(e=>e.eff).filter(Boolean))]}; };
     for(const t of ['batterie16','knatter','batterie49','faecher','batterie100','zfaecher','kometen','donnerwand','profi','finale','sortiment',
       'raketenklein','raketen','jumbogold','jumboleiter','furzrakete','roemisch','sternenbrunnen','vulkan','goldgeysir','feuersaeule','feuerbrunnen',
-      'kugel75','kugel100','kugel150','feuerlilie200','kugel300'].filter(t=>bb.P[t])) /* 29.09.: entfernte Produkte fallen weg */
+      'kugel75','kugel100','wetterleuchten150','schatztruhe200','kugel300'].filter(t=>bb.P[t])) /* 29.09.: entfernte Produkte fallen weg; 09.10.: Weltenbrand und Feuerlilie gestrichen - die 150er und 200er der Leiter sind jetzt Wetterleuchten und Schatztruhe (Kugelbomben-Runde 5) */
       out[t]=messe(t);
     /* Feuerbrunnen: eigener Bodeneffekt */
     const pos={x:0,y:0.4,z:-20};
@@ -123,7 +123,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   /* Jedes Feuerwerk ist einzigartig: mindestens ein Bruchbild, das kein
      anderes Produkt zeigt */
   /* roemisch (Farbkanon) hat kein eigenes Bruchbild, sondern eine eigene Idee - die Farbwelle ueber die Rohre; das prueft anomalie.js (SIGNATUR) */
-  const EINZ=L.concat(['sortiment'].filter(t=>r[t])).concat(['raketenklein','raketen','jumbogold','jumboleiter','furzrakete','kugel75','kugel100','kugel150','feuerlilie200','kugel300']);
+  const EINZ=L.concat(['sortiment'].filter(t=>r[t])).concat(['raketenklein','raketen','jumbogold','jumboleiter','furzrakete','kugel75','kugel100','wetterleuchten150','schatztruhe200','kugel300']);
   EINZ.forEach(t=>{ const eigene=r[t].eff.filter(e=>!EINZ.some(x=>x!==t&&r[x].eff.includes(e)));
     pruef('EINZIGARTIG',eigene.length>0,`${t} hat kein eigenes Bruchbild: ${r[t].eff.join(',')}`); });
   /* Grosse Verbunde beginnen mit einer Fontaene */
@@ -145,7 +145,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     pruef('FARBEN',r[t].farben<=max&&r[t].fremd===0,`${t}: ${r[t].farben} Farbpaare, ${r[t].fremd} ausserhalb der Themen - zu bunt`); });
   /* Kugelbomben: jede Stufe groesser, hoeher, mit mehr Bruechen - und
      groesser und hoeher als jeder Batterieschuss bis zu ihrem Level */
-  const KG=['kugel75','kugel100','kugel150','feuerlilie200','kugel300'];   /* 30.09.: Bluetenkranz raus, Feuerlilie ist die 200er */
+  const KG=['kugel75','kugel100','wetterleuchten150','schatztruhe200','kugel300'];   /* 30.09.: Bluetenkranz raus, Feuerlilie ist die 200er; 09.10.: Weltenbrand und Feuerlilie raus - Wetterleuchten (150) und Schatztruhe (200) */
   for(let i=0;i<KG.length;i++){ const k=r[KG[i]];
     console.log(KG[i].padEnd(10),'lvl',r.lvl[KG[i]],'groesste',k.maxSz,'hoehe',k.maxHoehe,'brueche',k.echt);
     /* Brueche = wirklich aufgegangene Brueche (FW_LOG.brueche), nicht die

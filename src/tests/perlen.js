@@ -72,7 +72,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
       const kl=arme.filter(a=>a.length>25).map(a=>{ a.sort((x,y)=>x-y); let lu=0; for(let i=1;i<a.length;i++){ const g=a[i]-a[i-1]; if(g>0.35) lu+=g; } return lu/Math.max(0.1,a[a.length-1]-a[0]); });
       o.schnuppeArme=kl.length; o.schnuppeKlumpen=kl.length?+(kl.reduce((x,y)=>x+y,0)/kl.length).toFixed(3):null; }
     /* Steigschweif: verschiedene Ausstosspunkte je Funke, bei 30 Bildern/s */
-    { bb.run(12,0.1); const n0=bb.rockets.length; bb.igniteType('kugel150'); const pk=[]; let flog=[];
+    { bb.run(12,0.1); const n0=bb.rockets.length; bb.igniteType('crossettennetz150');   /* 09.10.: kugel150 gestrichen */ const pk=[]; let flog=[];
       for(let i=0;i<150;i++){ log=[]; bb.run(1/30,1/30); const L=log; log=null; if(bb.rockets.length>n0) flog.push(L); else if(flog.length) break; }
       flog.slice(2,-1).forEach(L=>L.forEach(q=>pk.push(q[0].toFixed(4)+','+q[1].toFixed(4)+','+q[2].toFixed(4))));
       o.steigBilder=flog.length; o.steigFunken=pk.length; o.steigPunkte=pk.length?+(new Set(pk).size/pk.length).toFixed(3):null; }

@@ -248,4 +248,6 @@ Object.assign(V,{
       kasten(k,w,h,d,tm(0,y+h/2,0),{pz:reg(k,'v'+i,w,h,e),nz:'v'+i,px:reg(k,'s'+i,d,h,e),nx:'s'+i,py:farbe(k,'#0a0a2a'),ny:farbe(k,'#0a0a2a')}); y+=h; });
     return fertig(k); }
 });
+/* 09.10.: Motive und Etiketten auch fuer die Kugeln der Runde 5 (04j) */
+window.R4_VP={MOTIV,kEtikett,rundDruck,himmel,bruch,hellC};
 })();

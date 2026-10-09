@@ -889,7 +889,11 @@ const ENTFERNT=['fontaene50','fontaene30','silberkaskade','feuerkaskade','jugend
    Level und Preis am naechsten (18-save.js, SORTE_NEU). Sonst stuende
    Ware ohne Katalogeintrag im Regal und das Spiel braeche ab. */
 const ENTFERNT_ERSATZ={};
-(function(){
+/* 09.10.: als Funktion, damit spaeter angelegte Ware (Runde 4, 02g) mit
+   demselben Weg gestrichen werden kann (02h ruft sie noch einmal auf).
+   Mehrfach aufrufbar: schon Gestrichenes hat keinen Katalogeintrag mehr
+   und behaelt seinen Ersatz. */
+function sortimentStreichen(){
   const weg=new Set(ENTFERNT);
   ENTFERNT.forEach(t=>{ const a=P[t]; if(!a) return; let best=null, bw=1e9;
     for(const [u,b] of Object.entries(P)){ if(weg.has(u)||b.cat!==a.cat||b.eigen||b.noOrder) continue;
@@ -902,4 +906,5 @@ const ENTFERNT_ERSATZ={};
   for(const g in GRUPPE) GRUPPE[g]=GRUPPE[g].filter(t=>!weg.has(t));
   /* 06.10.: auch die Prueflisten der neuen Ware (mblast, richtung) */
   for(const k in NEU_TEST) if(Array.isArray(NEU_TEST[k])) NEU_TEST[k]=NEU_TEST[k].filter(t=>!weg.has(t));
-})();
+}
+sortimentStreichen();

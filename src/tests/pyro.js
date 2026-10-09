@@ -44,11 +44,11 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     o.stationen=Object.keys(bb.stations).sort();
     o.moerserDa=!!bb.stations.moerser;
     o.kapazitaet=bb.stations.moerser?bb.stations.moerser.cap:0;
-    o.routing={kugel75:bb.stationOf('kugel75'),kugel100:bb.stationOf('kugel100'),kugel150:bb.stationOf('kugel150'),
+    o.routing={kugel75:bb.stationOf('kugel75'),kugel100:bb.stationOf('kugel100'),fackelhimmel150:bb.stationOf('fackelhimmel150'),
                raketen:bb.stationOf('raketen'),boeller:bb.stationOf('boeller')};
     /* Kugelbombe aufstellen und zuenden */
     bb.S.level=30; bb.S.money=300000; bb.LIZENZEN.forEach(l=>bb.buyLizenz(l.id));
-    bb.S.carrying={type:'kugel150',count:3,q:1};
+    bb.S.carrying={type:'fackelhimmel150',count:3,q:1};
     bb.placeOnStation(bb.stations.moerser);
     o.aufgestellt=bb.stations.moerser.items.length;
     o.falscheWareBlockiert=(()=>{ bb.S.carrying={type:'boeller',count:1,q:1};
@@ -160,16 +160,16 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   /* --- Produktnamen und Lizenzen --- */
   const pr=await p.evaluate(()=>{
     const bb=window.__bb,o={};
-    o.neu=['kugel75','kugel100','kugel150','goldgeysir'].map(t=>bb.P[t]&&bb.P[t].name);
-    o.imPaket=['kugel75','kugel100','kugel150','goldgeysir'].map(t=>bb.lizenzOf(t));
+    o.neu=['kugel75','kugel100','fackelhimmel150','goldgeysir'].map(t=>bb.P[t]&&bb.P[t].name);
+    o.imPaket=['kugel75','kugel100','fackelhimmel150','goldgeysir'].map(t=>bb.lizenzOf(t));
     for(let i=0;i<4;i++) bb.regalStellen('standard');
     for(let i=0;i<2;i++) bb.regalStellen('hoch');
     o.regale=bb.shelves.length;
-    o.regalPlatz=['kugel75','kugel100','kugel150','goldgeysir'].map(t=>bb.shelfCapOf(t));
-    o.einraeumbar=['kugel75','kugel100','kugel150','goldgeysir'].map(t=>!!bb.emptyLevel(t));
+    o.regalPlatz=['kugel75','kugel100','fackelhimmel150','goldgeysir'].map(t=>bb.shelfCapOf(t));
+    o.einraeumbar=['kugel75','kugel100','fackelhimmel150','goldgeysir'].map(t=>!!bb.emptyLevel(t));
     o.produkte=Object.keys(bb.P).length;
     o.ohnePaket=Object.keys(bb.P).filter(t=>!bb.lizenzOf(t));
-    o.namen=['goldpalmen','lb_goldader','profi','kugel150'].map(t=>bb.P[t].name);
+    o.namen=['goldpalmen','lb_goldader','profi','fackelhimmel150'].map(t=>bb.P[t].name);
     return o;
   });
   console.log('PRODUKTE',JSON.stringify(pr));

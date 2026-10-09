@@ -67,7 +67,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
       bb.run(3,0.05); return r; };
     const zaehl={}; for(const k of ['pups','monster','atom','boom']){ const f=bb.sfx[k]; bb.sfx[k]=v=>{ zaehl[k]=(zaehl[k]||0)+1; return f(v); }; }
     o.furz=await miss('boeller',2.5);
-    o.kugel=await miss('kugel150',5);
+    o.kugel=await miss('crossettennetz150',5);   /* 09.10.: Weltenbrand (kugel150) gestrichen - eine 150er */
     o.monster=await miss('monsterboeller',2.5);
     o.atom=await miss('atomboeller',7);
     o.zaehl=zaehl; bb.master.disconnect(wn);

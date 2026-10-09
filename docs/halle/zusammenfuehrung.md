@@ -33,7 +33,8 @@ Ruhe lässt), je Bereich eine Untergruppe `HALLE.bereiche[name]`. Kollisionen li
 ## Schritte zum Einhängen
 1. **Hallenstufe 3 ersetzen:** `logiStufeBauen(2)` (05m) baut heute Wände/Dach der 11-m-Halle.
    Beim Kauf von `lager_west3` stattdessen `hallLaden({umfeld:false},…)` aufrufen und die
-   Gruppe von Stufe 3 ausblenden. Stufen 1/2 bleiben wie heute.
+   Gruppe von Stufe 3 ausblenden. Stufen 1/2 bleiben, aber laut Plan endet Stufe 1 (`LAY.lw1`,
+   heute bis z −14) künftig an der gelben Wand bei z −17, weil ③ die Ecke x −36…−26 / z −17…−7 nimmt.
 2. **Tore:** v7 hat in der Halle nur R2–R4 = `WRAMPEN[0..2]`; die Produktion R5 (x −74, Ausgang)
    und R6 (x −92, Eingang). Heute gibt es noch Tor 5 bei x −57,5 (`WRAMPEN[3]`, Docks/LKW in
    11e/05h). Entscheidung Tom offen (siehe Bericht). Die Hallentore aus 30-gebaeude sind nur

@@ -20,7 +20,14 @@
    = in der Halle), lz seitlich; Welt = (V1.x - lz, V1.rz + lx).
    ========================================================= */
 const PAL_LG=1.2, PAL_BR=0.8, PAL_Y=0.09;          /* Europalette; PAL_Y: Hub am Hubwagen */
-/* Abholung auf Anruf (Tom 09.10.). DDL_PAUSCHALE: Herleitung im Kopf von 11c (Versand-Wirtschaft).
+/* Abholung auf Anruf (Tom 09.10.; Anruf am Wandtelefon oder per Handy, Onlineshop-App).
+   DDL_PAUSCHALE 39 EUR, nachgerechnet fuer Stufe 1 (1 Palette, ~90 S-Pakete Platz, Level 25):
+   ~12 Bestellungen/Tag x Deckungsbeitrag ~26 EUR (Ware + Versandeinnahme) = 312, minus Porto
+   (~2,6 je Paket) und Packmaterial (~1,6) = ~262 EUR/Tag. Ein Anruf am Tag reicht (Pakete von
+   gestern kosten Ruf). Selbst gepackt: 262 - 39 = ~223 EUR/Tag (Pauschale = 15 %). Mit
+   Versandmitarbeiter (165 EUR Lohn): ~58 EUR/Tag, Schwelle ~9,4 Bestellungen/Tag - der Lohn,
+   nicht die Pauschale, entscheidet. Bei nur 3 Paketen kostet ein Anruf 13 EUR je Paket: das
+   soll zum Sammeln bis zum Abend anregen. Darum bleibt es bei 39 EUR.
    DDL_ANFAHRT: Sekunden vom Anruf bis der LKW einbiegt (rund 50 Spielminuten). */
 const DDL_PAUSCHALE=39, DDL_ANFAHRT=20, DDL_RUF=1.5;
 /* Mitte des Tors (0,45 m ostwaerts der Box-Mitte: so bleibt neben der Box eine Gasse von 1,2 m zum Tor), Wandmitte, Heck des LKW */
@@ -666,7 +673,7 @@ function ddlRufen(){
 function vsBoxVoll(){
   if(DDL.voll) return;
   DDL.voll=true; S.boxVoll=true; statAdd('boxVoll',1);
-  toast(ddlLaeuft()?'Die Paletten sind voll – DDL ist schon unterwegs, das Band staut sich bis dahin.':'Die Paletten in der Versandbox sind voll! Ruf DDL am Wandtelefon neben Rolltor V1 – bis dahin staut sich das Band.','bad');
+  toast(ddlLaeuft()?'Die Paletten sind voll – DDL ist schon unterwegs, das Band staut sich bis dahin.':'Die Paletten in der Versandbox sind voll! Ruf DDL per Handy (Onlineshop) oder am Wandtelefon neben Rolltor V1 – bis dahin staut sich das Band.','bad');
   ddlTelZeichnen(); drawPackSchild();
 }
 function ddlTruckUpdate(dt){

@@ -984,7 +984,7 @@ function onlineHint(){
   const st=onlineStufe();
   if(st==='zu') return 'Der Onlineshop ist noch nicht freigeschaltet. Du findest ihn unter Ausbau (Kapitel 4).';
   if(st==='pauschal') return 'Der Shop läuft, aber ohne Packstation bleibt es bei einer Tagespauschale. Mit Packstation kommen echte Bestellungen herein, die du hier packst - das bringt deutlich mehr.';
-  return 'Bestellungen laufen den ganzen Verkaufstag über ein. Jedes gepackte Paket wird sofort gutgeschrieben, das Porto an DDL geht gleich ab. Abgeholt wird nur auf Anruf: Wandtelefon neben Rolltor V1, Pauschale je Abholung.';
+  return 'Bestellungen laufen den ganzen Verkaufstag über ein. Jedes gepackte Paket wird sofort gutgeschrieben, das Porto an DDL geht gleich ab. Abgeholt wird nur auf Anruf: Wandtelefon neben Rolltor V1 oder Handy (Onlineshop), Pauschale je Abholung.';
 }
 /* Nur Zahlen, kein Neuaufbau: so springt die Liste beim Tippen nicht. */
 function onlineZahlen(){
@@ -1050,9 +1050,12 @@ function ddlBoxHtml(){
   if(typeof ddlStand!=='function') return '';
   const d=ddlStand();
   const txt=d.unterwegs?`DDL ist unterwegs${d.eta>0?` – noch etwa ${Math.max(1,Math.round(d.eta*MIN_PER_SEC/5)*5)} Minuten`:' – der Fahrer lädt'}.`
-    :d.voll?'Box voll! Das Band staut sich. Ruf DDL am Wandtelefon neben Rolltor V1.'
-    :d.pakete?`Ruf DDL am Wandtelefon neben Rolltor V1, wenn du abholen lassen willst (${eur(d.pauschale)} je Abholung).`:'Noch keine Pakete auf den Paletten.';
-  return `<div class="onbox${d.voll&&!d.unterwegs?' voll':''}" id="onDdl"><b>Versandbox: ${d.pakete} Paket${d.pakete===1?'':'e'} · ${d.belegt}/${d.paletten} Palette${d.paletten===1?'':'n'} belegt${d.band?` · ${d.band} auf dem Band`:''}</b><small>${txt}</small></div>`;
+    :d.voll?'Box voll! Das Band staut sich. Ruf DDL – hier oder am Wandtelefon neben Rolltor V1.'
+    :d.pakete?`Ruf DDL hier oder am Wandtelefon neben Rolltor V1, wenn du abholen lassen willst (${eur(d.pauschale)} je Abholung).`:'Noch keine Pakete auf den Paletten.';
+  /* Anruf auch per Handy/Laptop (Tom 09.10.): gleiche Regeln und Pauschale wie am Wandtelefon (ddlTelPrompt) */
+  const pr=typeof ddlTelPrompt==='function'?ddlTelPrompt():{a:false};
+  const knopf=pr.a?`<div class="steps" style="justify-content:flex-start;margin-top:6px"><button data-a="ddlruf"${S.money<d.pauschale?' disabled':''}>📞 DDL rufen · ${eur(d.pauschale)}</button></div>`:'';
+  return `<div class="onbox${d.voll&&!d.unterwegs?' voll':''}" id="onDdl"><b>Versandbox: ${d.pakete} Paket${d.pakete===1?'':'e'} · ${d.belegt}/${d.paletten} Palette${d.paletten===1?'':'n'} belegt${d.band?` · ${d.band} auf dem Band`:''}</b><small>${txt}</small>${knopf}</div>`;
 }
 function updateOnline(){
   if(!(laptopOpen&&ltab==='online')&&!(handyOpen&&happ==='online')) return;
@@ -1121,7 +1124,7 @@ function renderOnline(){
     `<div class="mkcol"><small>offen</small><b style="font-family:var(--display);font-size:24px" id="onOffen">${z.offen}</b></div></div>`;
   h+=`<div class="row"><div class="rm onListe" id="onListe">${onlineListe()}</div></div>`;
   h+=`<div class="row"><div class="rm"><b>Pakete zur Abholung</b>`+
-      `<small>Das Band bringt sie zur Box, der Kran-Greifer stapelt sie auf ${palPlaetze()} Palette${palPlaetze()===1?'':'n'}. DDL kommt nur, wenn du am Wandtelefon anrufst; der Fahrer lädt selbst. Liegen Pakete seit gestern, ärgern sich die Kunden (Ruf). Ist die Box voll, staut sich das Band bis an die Tische.</small></div>`+
+      `<small>Das Band bringt sie zur Box, der Kran-Greifer stapelt sie auf ${palPlaetze()} Palette${palPlaetze()===1?'':'n'}. DDL kommt nur, wenn du anrufst (Wandtelefon oder Handy); der Fahrer lädt selbst. Liegen Pakete seit gestern, ärgern sich die Kunden (Ruf). Ist die Box voll, staut sich das Band bis an die Tische.</small></div>`+
     `<div class="mkcol"><small>Pakete</small><b style="font-family:var(--display);font-size:20px" id="onPak">${z.pak}</b></div></div>`;
   h+=`<div class="row"><div class="rm"><b>Versand heute</b>`+
       `<small>Was der Onlineshop heute schon eingebracht hat. Der Betrag steckt bereits im Tagesumsatz.</small></div>`+
@@ -1537,6 +1540,7 @@ function lapKlick(e,imHandy){
   else if(a==='rbuy') orderRegal(t);
   else if(a==='vmbuy') vmBestellen(t,+b.dataset.n||1);
   else if(a==='vmfill') vmAuffuellen();
+  else if(a==='ddlruf'){ if(typeof ddlRufen==='function') ddlRufen(); }
   else if(a==='vsk'){ const c=vsCfg(); c.kosten=clamp(r2(c.kosten+parseFloat(b.dataset.d)),0,VS_KOSTEN_MAX); save(); }
   else if(a==='vsf'){ const c=vsCfg(), d=b.dataset.d;
     if(d==='nie'){ c.nie=true; } else if(d==='immer'){ c.nie=false; c.frei=0; }

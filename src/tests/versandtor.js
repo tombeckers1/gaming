@@ -9,6 +9,8 @@
      laedt alle Paletten (in jeder Stufe der Fahrer), Tor zu, LKW weg; die Pauschale steht in der
      Tagesabrechnung und in der Onlineshop-Statistik
    - waehrend der LKW steht, ist die Box belegt (der Kran setzt nichts ab)
+   - DDL PER HANDY: Onlineshop-App, Knopf "DDL rufen" bucht dieselbe Pauschale; ist DDL unterwegs,
+     ist der Knopf weg (gleiche Regel wie am Telefon)
    - BOX VOLL: alle Paletten voll - das Paket wartet am Bandende, Meldung, Handy-Badge; nach der
      Abholung landet es
    - alter Spielstand: verschobene Station zurueck an ihren Platz, 2/4/6 Paletten werden 1/2/3
@@ -164,12 +166,17 @@ const fs = require('fs');
     bb.run(40, 0.05);
     o.band = bb.vsBahn.length; o.voll = bb.DDL.voll; o.toast = bb.toastLast; o.badge = (() => { bb.openHandy(); const t = document.querySelector('#hInhalt [data-app="online"] em'); const r = t && t.textContent; bb.closeHandy(false); return r; })();
     o.stand = bb.ddlStand(); o.schild = bb.ddlTelPrompt().t;
-    bb.ddlRufen(); let n = 0; while ((bb.VT.state || bb.ddlLaeuft()) && n++ < 30000) bb.run(0.1, 0.05);
+    /* DDL per Handy (Tom 09.10.): Onlineshop-App, Knopf "DDL rufen" - gleiche Pauschale wie am Wandtelefon */
+    { const geld = S.money, d0 = bb.DS.ddl || 0; bb.openHandy('online'); const k = document.querySelector('#hApp [data-a="ddlruf"]');
+      o.hKnopf = !!k; if (k) k.click(); o.hWarte = bb.DDL.warte; o.hGeld = +(geld - S.money).toFixed(2); o.hDs = +((bb.DS.ddl || 0) - d0).toFixed(2);
+      bb.renderHandy(); o.hKnopfNach = !!document.querySelector('#hApp [data-a="ddlruf"]'); bb.closeHandy(false); }
+    let n = 0; while ((bb.VT.state || bb.ddlLaeuft()) && n++ < 30000) bb.run(0.1, 0.05);
     bb.run(20, 0.05);
     o.bandNach = bb.vsBahn.length; o.gelandetNach = bb.vsGelandet(); o.vollNach = bb.DDL.voll;
     return o; });
   console.log('BOXVOLL', JSON.stringify(bv));
   pruef('BOX_VOLL', bv.band === 1 && bv.voll && /voll/i.test(bv.toast || '') && bv.badge === '!' && bv.stand.voll, 'volle Box wird nicht gemeldet oder das Paket landet trotzdem: ' + JSON.stringify(bv));
+  pruef('HANDY_RUF', bv.hKnopf && bv.hWarte && Math.abs(bv.hGeld - bv.stand.pauschale) < 0.01 && Math.abs(bv.hDs - bv.stand.pauschale) < 0.01 && !bv.hKnopfNach, 'DDL per Handy nicht rufbar oder Pauschale/Regel falsch: ' + JSON.stringify({k: bv.hKnopf, w: bv.hWarte, g: bv.hGeld, ds: bv.hDs, nach: bv.hKnopfNach}));
   pruef('BOX_VOLL_ABHOLUNG', bv.bandNach === 0 && bv.gelandetNach === 1 && !bv.vollNach, 'nach der Abholung landet das wartende Paket nicht: ' + JSON.stringify({band: bv.bandNach, gel: bv.gelandetNach, voll: bv.vollNach}));
 
   /* ---------- 6. alter Spielstand: Station woanders, 6 Paletten -> fester Platz, 3 Paletten ---------- */

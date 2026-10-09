@@ -124,6 +124,13 @@ damit sie auch in einem frischen Container gelten.
   Testlauf wirklich läuft (flock-Schlange/Prozess), statt blind zu warten;
   in der Endphase kurzer, billiger Check alle 30 Min (ein Bash-Befehl),
   sonst Wächter alle 2 h.
+- **Agenten selbst takten** (Tom, 09.10.2026: "machst du sehr gut, weiter so"): Agenten, die
+  sich Testsperre oder Dateien teilen würden, starte ich von mir aus nacheinander (der nächste
+  erst, wenn der vorige fertig ist) und sage Tom das vorher. Gleichzeitig blockierende Agenten
+  lesen doppelt ein und verbrauchen mehr Tokens – vermeiden. Parallel nur wirklich Unabhängiges.
+- **Wochenlimit ausreizen** (Tom, 09.10.2026): Ich kann den Verbrauch nicht selbst ablesen –
+  Tom nennt den Prozentstand. Bei "reiz aus" bis höchstens ~95–98 % planen (Puffer!), Kosten je
+  Paket aus dem bisherigen Agenten-Verbrauch schätzen, und vor dem Limit bremsen.
 - **Zeitprognosen** (Tom, 08.10.2026: "immer viel zu früh"): Am 08.10. lag
   ich 3–4× zu optimistisch (erste Angabe 2–3 h, real >9 h). Ursache: nur
   Testdauer gerechnet, angenommen alles grün. Ab jetzt rechnen:

@@ -15,7 +15,7 @@ Nummern = Laptop › „Vorführung (Änderungen)“ in V122. Kugelbomben darin:
 | 8 | lb_saphirfaecher | Ozean | an sich geil, aber Punkte -> Effekt grafisch krasser |
 | 9 | mohnfeld | Mohnfeld | RAUS |
 | 10 | winterwald | Winterwald | RAUS |
-| 17 | fuchsien | Fuchsien | RAUS (Tom: „Die 17 kann weg. Nee, also die 21 kann auch weg“ – Annahme: beide raus) |
+| 17 | fuchsien | Fuchsien | RAUS (von Tom bestätigt) |
 | 21 | lb_goldader | Goldader | RAUS |
 | 22 | korallenriff | Korallenriff | SEHR GUT – ausdrücklich betont (Vorbild) |
 | 28 | hochzeitsfaecher | Rosenherz | Herzen schön, aber mehr verschiedene Effekte, z. B. lila große breite Fontänen nach oben; insgesamt bearbeiten |

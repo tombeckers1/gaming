@@ -54,5 +54,5 @@ const KEIN_BODEN=new Set(['fuse','vfModell','dienst2']);
   if(!ids.length) mangel.push('keine Batterie gefunden');
   await b.close();
   if(mangel.length){ console.log('FEHLER ('+mangel.length+'):\n'+mangel.join('\n')); process.exit(1); }
-  console.log('OK: keine Bodenfontaene in Batterien, der Vulkan hat seinen Krater');
+  console.log('OK: keine Bodenfontaene in Batterien (der Vulkanausbruch ist seit 09.10. gestrichen)');
 })();

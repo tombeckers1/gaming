@@ -53,7 +53,10 @@ const VP_ZEILEN=[
      Kassenregal (fuenf Faecher) - Sturmfeuerzeuge, Streichhoelzer und
      Gehoerschutz duerfen nur dorthin; rechts statt des kleinen ein
      Verkaufsregal, damit es wieder genau ein Fach je Produkt sind */
-  {art:'paar',links:['klein','klein','klein','klein','klein','klein','klein','klein','kasse'],rechts:['kuehl','kuehl','kuehl','kuehl','kuehl','kuehl','kuehl','hoch','standard']},
+  /* 09.10. (Batterie-Runde: 13 Batterien raus, 11 neu - 2 Produkte weniger):
+     rechts statt des Hochregals (5 Faecher) ein kleines (3) - sonst blieben
+     zwei Faecher leer */
+  {art:'paar',links:['klein','klein','klein','klein','klein','klein','klein','klein','kasse'],rechts:['kuehl','kuehl','kuehl','kuehl','kuehl','kuehl','kuehl','klein','standard']},
   {art:'einzeln',kinds:['gross','gross','gross','gross','gross']},
   {art:'frei',kinds:['tisch','tischgross','gitter','gitter2','gitter3']}
 ];

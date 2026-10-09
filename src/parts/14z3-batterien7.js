@@ -95,6 +95,7 @@ EFF.b7corolla=function(p,A,B,s,r){ grOhneZutaten(r,0.5);
   schall(p,x=>later(T*0.9,()=>sfx.crackle(x*0.35))); };
 /* Crossette: Sterne fliegen aus und zerspringen nach gut einer halben
    Sekunde ueber Kreuz in vier, deren Enden in Spitze (B) aufbluehen */
+EFF.b7crossetteklar=function(p,A,B,s,r){ EFF.b7crossette(p,A,null,s,r); };
 EFF.b7crossette=function(p,A,B,s,r){ grOhneZutaten(r,0.45);
   const q=QUAL(), n=Math.round(8*s*q)+5, G=2.6;
   for(let i=0;i<n;i++){ const d=randDir(), v=kgMal(d,rand(9.5,11)*s), T1=rand(0.5,0.65);
@@ -180,8 +181,8 @@ EFF.b7palmespitze=function(p,A,B,s,r){ b7Palme(p,A,B,s,r,true); };
 /* Goldweide zu Spitze: Brokatweide, jeder zweite Stern endet in roter
    oder goldener Spitze (B) */
 EFF.b7weidespitze=function(p,A,B,s,r){ grOhneZutaten(r,0.45);
-  const q=QUAL(), n=Math.round(20*s*q)+7;
-  const hs=k5Brokat(p,n,8.4*s,rand(2.6,2.9),1.6,{glanz:4,staub:11});
+  const q=QUAL(), n=Math.round(28*s*q)+9;
+  const hs=k5Brokat(p,n,8.8*s,rand(2.6,2.9),1.6,{glanz:6,staub:16});
   hs.forEach(([h,v,L],i)=>{ if(i%2) return; kgSpaeter(L*0.7,()=>{ if(!kgLebt(h)) return; const [e,w]=kgOrt(h); b7Spitze(e,w,B,6); }); });
   schall(p,x=>later(2,()=>sfx.crackle(x*0.4))); };
 /* Je Bild bewegte Sterne: Schwimmer, Nattern, Wirbel. Koepfe sind
@@ -222,7 +223,7 @@ EFF.b7silberwelle=function(p,A,B,s,r){ grOhneZutaten(r,0.45);
   const q=QUAL(), n=Math.round(22*s*q)+8, G=2.2;
   nKugel(n,9.4*s,v=>{ const T=rand(0.85,1.0); const h=kgStern(psBig,p,v,[1.5,1.55,1.65],T,G,4,0.25);
     b7Glanz(p,v,G,0.04,T,[0.9,0.95,1.05],16,{life:[0.4,0.8]});
-    kgSpaeter(T*0.98,()=>{ const [e,w]=b7Nach(p,v,G,T*0.98); kgSpaeter(0.1,()=>{ const w2=kgMal(w,0.9), L=rand(1.1,1.4); b7Kopf(e,w2,b7Hell(B,1.6),L,2.2,{spur:0.32}); b7Glanz(e,w2,2.2,0.03,L,kgMal(B,0.85),14,{life:[0.4,0.8]}); }); }); });
+    kgSpaeter(T*0.98,()=>{ const [e,w]=b7Nach(p,v,G,T*0.98); kgSpaeter(0.1,()=>{ const w2=kgMal(w,0.9), L=rand(0.9,1.1); b7Kopf(e,w2,b7Hell(B,1.6),L,3.4,{spur:0.42}); b7Glanz(e,w2,3.4,0.03,L,kgMal(B,0.85),18,{life:[0.4,0.8]}); }); }); });
   schall(p,x=>sfx.rieseln(x*0.4,1.6)); };
 /* Grosse Dahlie: wenige, grosse, langsame Sterne mit dicker Spur */
 EFF.b7dahlie=function(p,A,B,s,r){ grOhneZutaten(r,0.55);
@@ -232,8 +233,8 @@ EFF.b7dahlie=function(p,A,B,s,r){ grOhneZutaten(r,0.55);
 /* Komet: der Kopf fliegt nach dem Ausstoss noch weiter und zerstiebt in
    Glitzer (A); knister: knisternd */
 function b7Komet(p,A,B,s,r,knister){ grOhneZutaten(r,0.35);
-  const v=[rand(-1.5,1.5),rand(5,7)*s,rand(-1.5,1.5)], T=rand(0.55,0.7);
-  b7Kopf(p,v,b7Hell(A,1.5),T,4,{spur:0.4,hof:1.2}); b7Glanz(p,v,4,0.02,T,kgMal(A,0.95),40,{glanz:8,life:[0.4,0.8],g:1.4});
+  const v=[rand(-1.5,1.5),rand(6,8)*s,rand(-1.5,1.5)], T=rand(0.7,0.9);
+  b7Kopf(p,v,b7Hell(A,1.6),T,4,{spur:0.5,hof:1.3}); b7Glanz(p,v,4,0.02,T,kgMal(A,0.95),64,{glanz:14,life:[0.5,0.9],g:1.4});
   kgSpaeter(T,()=>{ const [e,w]=b7Nach(p,v,4,T); if(knister) k5Knister(e,Math.round(16*QUAL())+6,4,[1.6,1.3,0.7]);
     else for(let k=0;k<Math.round(10*QUAL())+4;k++){ const d=randDir(), sp=rand(2,4); psMid.emit(e.x,e.y,e.z,w[0]*0.3+d[0]*sp,w[1]*0.3+d[1]*sp,w[2]*0.3+d[2]*sp,A[0]*1.4,A[1]*1.4,A[2]*1.4,rand(0.5,0.9),1.6,4); } });
   if(r) r.knall=knister?'bkKnisterhall':'bkZisch'; }
@@ -243,7 +244,10 @@ EFF.b7knisterkomet=function(p,A,B,s,r){ b7Komet(p,A,B,s,r,true); };
 EFF.b7blinkbukett=function(p,A,B,s,r){ grOhneZutaten(r,0.4);
   const q=QUAL(), k=3+Math.floor(Math.random()*3), [R,U]=kgAchsen(p);
   for(let j=0;j<k;j++){ const a=j/k*Math.PI*2+rand(-0.3,0.3), rr=rand(2.5,4)*s, e={x:p.x+(R[0]*Math.cos(a)+U[0]*Math.sin(a))*rr,y:p.y+U[1]*Math.sin(a)*rr,z:p.z+(R[2]*Math.cos(a)+U[2]*Math.sin(a))*rr}, c=j%2?B:A;
-    kgSpaeter(0.05*j,()=>{ for(let i=0;i<Math.round(14*s*q)+5;i++){ const d=randDir(), w=rand(3.4,4.2)*s; psBig.emit(e.x,e.y,e.z,d[0]*w,d[1]*w,d[2]*w,c[0]*1.8,c[1]*1.8,c[2]*1.8,rand(1.5,1.9),1.6,1); }
+    /* jeder Stern fliegt erst 0,4 s mit Farbschweif, dann blinkt er (mit Hof) */
+    kgSpaeter(0.05*j,()=>{ for(let i=0;i<Math.round(14*s*q)+5;i++){ const d=randDir(), w=rand(4.4,5.4)*s, v=[d[0]*w,d[1]*w,d[2]*w], T0=0.4;
+        b7Kopf(e,v,b7Hell(c,1.5),T0,1.6,{spur:0.25});
+        kgSpaeter(T0,()=>{ const [e2,w2]=b7Nach(e,v,1.6,T0), L=rand(1.4,1.8); b7Blink(e2,kgMal(w2,1/0.35*0.5),c,L,1.6); if(i%2===0) psHuge.emit(e2.x,e2.y,e2.z,w2[0]*0.5,w2[1]*0.5,w2[2]*0.5,c[0]*0.9,c[1]*0.9,c[2]*0.9,L,1.6,1); }); }
       b7Kopf(e,[0,0.5,0],b7Hell(c,1.2),0.35,0,{spur:0}); }); }
   schall(p,x=>{ for(let i=0;i<k;i++) later(0.05*i,()=>sfx.plopp(x*0.45,1)); later(0.4,()=>sfx.crackle(x*0.2)); }); };
 /* Zeitregen: Goldsterne haengen am Himmel und knistern einer nach dem
@@ -342,18 +346,18 @@ EFF.b7meteor=function(p,A,B,s,r){ grOhneZutaten(r,0.45);
   for(let j=0;j<k;j++){ const a=a0+j/k*Math.PI*2+rand(-0.3,0.3), el=rand(-0.45,0.3), w=rand(12,15)*s, v=[Math.cos(a)*Math.cos(el)*w,Math.sin(el)*w,Math.sin(a)*Math.cos(el)*w], T=rand(1.2,1.5);
     b7Kopf(p,v,b7Hell(A,1.5),T,2.4,{spur:0.5,hof:1.2}); b7Glanz(p,v,2.4,0.03,T,mischF(A,[1,1,1],0.4),70,{glanz:10,life:[0.35,0.7],g:1.6}); }
   if(r) r.knall='bkZisch'; };
-Object.assign(EFF_SCHWEIF,{b7weide:0.12,b7nishiki:0.1,b7nishikiperlen:0.1,b7titanweide:0.12,b7brokatkrone:0.12,b7brokatbunt:0.12,b7kronedahlie:0.2,b7corolla:0.2,b7crossette:0.25,
+Object.assign(EFF_SCHWEIF,{b7weide:0.12,b7nishiki:0.1,b7nishikiperlen:0.1,b7titanweide:0.12,b7brokatkrone:0.12,b7brokatbunt:0.12,b7kronedahlie:0.2,b7corolla:0.2,b7crossette:0.25,b7crossetteklar:0.25,
   b7schleier:0.14,b7schleierbunt:0.14,b7glitzerweide:0.2,b7weidefarbe:0.12,b7spinne:0.5,b7goldspinne:0.5,b7cyanpistill:0.15,b7blinkpaeonie:0.13,b7paeoniestrobe:0.13,b7goldstrobe:0.14,
   b7palme:0.3,b7palmespitze:0.3,b7weidespitze:0.12,b7schwimmer:0.22,b7natter:0.45,b7wirbelgold:0.4,b7neon:0.16,b7silberwelle:0.25,b7dahlie:0.32,b7komet:0.4,b7knisterkomet:0.4,
   b7blinkbukett:0,b7zeitregen:0.15,b7knisterkrone:0.12,b7titan:0.06,b7rose:0.32,b7lilie:0.3,b7sonnenblume:0.35,b7meer:0.26,b7gischt:0.22,b7fontaene:0.35,b7aehre:0.12,b7meteor:0.5,
   kornblume:0.24,kleebluete:0.2});
 Object.assign(EFF_FAMILIE,{b7weide:'haenger',b7nishiki:'haenger',b7nishikiperlen:'haenger',b7titanweide:'haenger',b7brokatkrone:'haenger',b7brokatbunt:'haenger',b7kronedahlie:'haenger',
-  b7corolla:'komet',b7crossette:'komet',b7schleier:'glitzer',b7schleierbunt:'glitzer',b7glitzerweide:'haenger',b7weidefarbe:'haenger',b7spinne:'knister',b7goldspinne:'knister',
+  b7corolla:'komet',b7crossette:'komet',b7crossetteklar:'komet',b7schleier:'glitzer',b7schleierbunt:'glitzer',b7glitzerweide:'haenger',b7weidefarbe:'haenger',b7spinne:'knister',b7goldspinne:'knister',
   b7cyanpistill:'kugel',b7blinkpaeonie:'kugel',b7paeoniestrobe:'kugel',b7goldstrobe:'haenger',b7palme:'haenger',b7palmespitze:'haenger',b7weidespitze:'haenger',b7schwimmer:'knister',
   b7natter:'komet',b7wirbelgold:'komet',b7neon:'kugel',b7silberwelle:'kugel',b7dahlie:'kugel',b7komet:'komet',b7knisterkomet:'komet',b7blinkbukett:'knister',b7zeitregen:'haenger',
   b7knisterkrone:'knister',b7titan:'salut',b7rose:'kugel',b7lilie:'haenger',b7sonnenblume:'kugel',b7meer:'kugel',b7gischt:'glitzer',b7fontaene:'haenger',b7aehre:'haenger',b7meteor:'komet'});
 if(typeof BRUCH_ART!=='undefined') Object.assign(BRUCH_ART,{b7weide:'weide',b7nishiki:'weide',b7nishikiperlen:'weide',b7titanweide:'weide',b7brokatkrone:'weide',b7brokatbunt:'weide',b7kronedahlie:'weide',
-  b7corolla:'komet',b7crossette:'komet',b7schleier:'glitzer',b7schleierbunt:'glitzer',b7glitzerweide:'weide',b7weidefarbe:'weide',b7spinne:'knister',b7goldspinne:'knister',
+  b7corolla:'komet',b7crossette:'komet',b7crossetteklar:'komet',b7schleier:'glitzer',b7schleierbunt:'glitzer',b7glitzerweide:'weide',b7weidefarbe:'weide',b7spinne:'knister',b7goldspinne:'knister',
   b7cyanpistill:'kern',b7blinkpaeonie:'kugel',b7paeoniestrobe:'kern',b7goldstrobe:'weide',b7palme:'palme',b7palmespitze:'palme',b7weidespitze:'weide',b7schwimmer:'knister',
   b7natter:'komet',b7wirbelgold:'komet',b7neon:'kern',b7silberwelle:'kugel',b7dahlie:'kugel',b7komet:'komet',b7knisterkomet:'komet',b7blinkbukett:'knister',b7zeitregen:'weide',
   b7knisterkrone:'knister',b7titan:'salut',b7rose:'kern',b7lilie:'palme',b7sonnenblume:'figur',b7meer:'kugel',b7gischt:'glitzer',b7fontaene:'palme',b7aehre:'weide',b7meteor:'komet'});
@@ -438,7 +442,8 @@ SIGNATUR.hochzeitsfaecher={idee:'Rosenherz',eff:'b7rose',text:'Rosen in Schalen,
    kommen ein paar Lichter/Punkte - weg; Ende extremer"): die Einschlaege
    (Salute) und die Sternspritzer sind weg, die Feuerkugeln zerbrechen in
    Splitter mit Spur statt in knackende Punkte (b7meteor statt meteor),
-   Crossetten statt Sternspritzer; das Finale ist ein Sturm aus 53 Schuss
+   Crossetten mit Glitzerspur statt Kreuzsternen und Sternspritzern (die
+   hinterliessen Punktwolken); das Finale ist ein Sturm aus 53 Schuss
    riesig im Kreis, darunter Titanschlaege erst ganz am Ende */
 EFF.feuerkugel=function(p,A,B,s,r){ grOhneZutaten(r,0.5);
   const G=2.6, T=0.8, k=Math.round(4+QUAL()*3), a0=rand(0,Math.PI*2);
@@ -450,13 +455,13 @@ EFF.feuerkugel=function(p,A,B,s,r){ grOhneZutaten(r,0.5);
   schall(p,x=>{ sfx.zischen(x*0.5,0.8); later(T,()=>sfx.crack(x*0.5)); }); };
 r4Show('meteorschauer',[['limette','weiss'],['weiss','limette'],['silber','gruen'],['weiss','silber']],{sz:[0.92,1.36],pw:[0,3.2],hell:[0.88,1.32],kurve:'spaet'},[
   {n:5,gap:1.1,muster:'zufall',ang:0.4,eff:'feuerkugel',kal:'gross',farbe:0,steig:'keiner',knall:'bkZisch',pause:1.0},
-  {n:20,gap:0.2,muster:'wischer',ang:0.38,eff:'kreuzstern',kal:'mittel',farbe:1,steig:'silber',knall:'bkKaskade',pause:1.0},
+  {n:20,gap:0.2,muster:'wischer',ang:0.38,eff:'b7crossetteklar',kal:'mittel',farbe:1,steig:'silber',knall:'bkKaskade',pause:1.0},
   {n:12,gap:0.45,muster:'x',ang:0.3,eff:'b7meteor',kal:'gross',farbe:2,steig:'keiner',pause:1.0},
   {n:16,gap:0.22,muster:'spirale',ang:0.32,eff:'feuerkugel',kal:'gross',farbe:0,steig:'keiner',knall:'bkZisch',pause:1.2},
-  {n:24,gap:0.15,muster:'z',ang:0.34,eff:['kreuzstern','b7crossette'],kal:'gross',farbe:1,steig:'silber',knall:'bkKaskade',pause:1.2},
+  {n:24,gap:0.15,muster:'z',ang:0.34,eff:['b7crossetteklar','b7crossetteklar'],kal:'gross',farbe:1,steig:'silber',knall:'bkKaskade',pause:1.2},
   {n:20,gap:0.25,muster:'welle',ang:0.34,eff:'rossschweif',kal:'gross',farbe:2,steig:'silber',knall:'bkBrokat',pause:1.4},
   {n:10,gap:0.4,muster:'paar',ang:0.3,eff:'b7meteor',kal:'riesig',farbe:0,steig:'keiner',pause:1.0},
-  {n:40,gap:0.06,muster:'kreis',ang:0.4,eff:['feuerkugel','b7meteor','b7crossette','b7meteor','feuerkugel','kreuzstern'],kal:'riesig',farbe:0,steig:'silber',knall:'bkDonnerhall'},
+  {n:40,gap:0.06,muster:'kreis',ang:0.4,eff:['feuerkugel','b7meteor','b7crossetteklar','b7meteor','feuerkugel','b7crossetteklar'],kal:'riesig',farbe:0,steig:'silber',knall:'bkDonnerhall'},
   {mit:true,n:13,gap:0.3,muster:'aussen',ang:0.3,eff:['b7meteor','b7meteor','b7titan'],kal:'riesig',pw:3,farbe:3,steig:'keiner',pause:8}]);
 SIGNATUR.meteorschauer={idee:'Meteorschauer',eff:'feuerkugel',text:'gruene Feuerkugeln, die in weisse Splitter mit Spur zerbrechen, Meteore mit langen Glitzerbahnen, Crossetten, ein Sturm als Finale'};
 lochName('meteorschauer',{desc:'Feuerkugeln ziehen grün leuchtend über den Himmel und zerbrechen in weiße Splitter, Meteore ziehen lange Glitzerbahnen, Crossetten zerspringen, silberne Pferdeschweife fallen – das Finale ein Meteorsturm aus 53 Schuss mit Titanschlägen ganz am Ende.'});
@@ -581,12 +586,12 @@ SIGNATUR.b7_goldnatter={idee:'Goldnatter',eff:'b7natter',text:'Goldweiden zu Spi
    BANG: fuenf Brokatkronen auf einen Schlag, Finale: fuenf Rohre
    knisternder Zeitregen. Kleines Kaliber, viele Reihen. */
 b7Show('b7_paukenschlag',[['silber','blau'],['gold','gold'],['bernstein','gold'],['silber','weiss'],['gold','weiss']],{sz:[0.9,1.35],pw:[0,3],hell:[0.88,1.32],kurve:'spaet'},[
-  {n:60,gap:0.1,muster:'z',seg:6,ang:0.34,eff:'b7silberwelle',kal:'klein',farbe:0,steig:'silber',knall:'bkPlopp',pause:0.8},
-  {n:60,gap:0.1,muster:'wischer',seg:5,ang:0.34,eff:'b7komet',kal:'klein',farbe:1,steig:'komet',pause:0.8},
-  {n:60,gap:0.1,muster:'welle',ang:0.34,eff:'b7knisterkomet',kal:'klein',farbe:2,steig:'knister',pause:0.8},
-  {n:50,gap:0.09,muster:'z',seg:5,ang:0.36,eff:['b7silberwelle','b7komet','b7knisterkomet'],kal:'klein',farbe:0,steig:'silber',pause:0.8},
-  {n:45,gap:0.08,muster:'zufall',ang:0.36,eff:'b7komet',kal:'klein',farbe:3,steig:'rieselschweif'},
-  {mit:true,n:10,gap:0.32,muster:'aussen',ang:0.3,eff:'b7knisterkomet',kal:'mittel',pw:2,farbe:2,steig:'knister',pause:1.5},
+  {n:60,gap:0.1,muster:'z',seg:6,ang:0.34,eff:'b7silberwelle',kal:'mittel',farbe:0,steig:'silber',knall:'bkPlopp',pause:0.8},
+  {n:60,gap:0.18,muster:'wischer',seg:5,ang:0.34,eff:'b7komet',kal:'mittel',farbe:1,steig:'komet',pause:0.8},
+  {n:60,gap:0.1,muster:'welle',ang:0.34,eff:'b7knisterkomet',kal:'mittel',farbe:2,steig:'knister',pause:0.8},
+  {n:50,gap:0.09,muster:'z',seg:5,ang:0.36,eff:['b7silberwelle','b7komet','b7knisterkomet'],kal:'mittel',farbe:0,steig:'silber',pause:0.8},
+  {n:45,gap:0.08,muster:'zufall',ang:0.36,eff:'b7komet',kal:'mittel',farbe:3,steig:'rieselschweif'},
+  {mit:true,n:10,gap:0.6,muster:'aussen',ang:0.3,eff:'b7knisterkomet',kal:'mittel',pw:2,farbe:2,steig:'knister',pause:1.5},
   {n:5,gap:0.02,muster:'mitte',ang:0.22,eff:'b7brokatkrone',kal:'riesig',pw:2,farbe:4,steig:'brokat',knall:'b7Donner',pause:3.0},
   {n:5,gap:0.05,muster:'aussen',ang:0.3,eff:'b7zeitregen',kal:'riesig',pw:3,farbe:4,steig:'brokat',knall:'bkKnisterhall',pause:6}]);
 SIGNATUR.b7_paukenschlag={idee:'Paukenschlag',eff:'b7silberwelle',text:'Reihe um Reihe im Z: Silberwellen zu Blau, Gold- und Knisterkometen, der Paukenschlag aus fuenf Brokatkronen, knisternder Zeitregen'};
@@ -617,9 +622,9 @@ b7Show('b7_blumenmeer',[['rose','rot'],['gold','gold'],['kornblau','gold'],['wei
   {n:60,gap:0.42,muster:'mitte',ang:0.24,eff:'b7nishiki',kal:'gross',farbe:1,steig:'gold',knall:'bkBrokat',pause:1.0},
   {n:60,gap:0.38,muster:'z',ang:0.34,eff:'kornblume',kal:'gross',farbe:2,steig:'silber',knall:'bkPuff',pause:3.5},
   {n:62,gap:0.38,muster:'aussen',ang:0.34,eff:'b7lilie',kal:'gross',farbe:3,steig:'silber',knall:'bkRieseln',pause:1.0},
-  {n:62,gap:0.32,muster:'wischer',ang:0.38,eff:'b7blinkbukett',kal:'gross',farbe:4,steig:'farbspur',pause:1.0},
+  {n:62,gap:0.25,muster:'wischer',ang:0.38,eff:'b7blinkbukett',kal:'gross',farbe:4,steig:'farbspur',pause:1.0},
   {n:44,gap:0.3,muster:'kreis',ang:0.38,eff:'b7sonnenblume',kal:'riesig',farbe:5,steig:'brokat',knall:'bkKnisterhall'},
-  {mit:true,n:20,gap:0.15,muster:'zufall',ang:0.4,eff:['b7sonnenblume','b7titanweide'],kal:'riesig',pw:3,farbe:6,steig:'brokat',knall:'b7Donner',pause:9}],1.45);
+  {mit:true,n:20,gap:0.1,muster:'zufall',ang:0.4,eff:['b7sonnenblume','b7titanweide'],kal:'riesig',pw:3,farbe:6,steig:'brokat',knall:'b7Donner',pause:9}],1.45);
 SIGNATUR.b7_blumenmeer={idee:'Blumenmeer',eff:'b7sonnenblume',text:'sechs Blumenbeete: Rosen, Goldregen, Kornblumen, Lilien, Blinksternfeld, Sonnenblumen'};
 
 /* RAGNAROEK (L28, 409) - Vorbild Riakeo "The Apocalypse 1+2" (409 Schuss,
@@ -677,4 +682,7 @@ Object.keys(B7_ABSCHUSS).concat(['kornblumen','bienenweide','meteorschauer','lb_
   d('meister','Das Ende der Leiter: der Weltuntergang mit 300 Schuss, der Urwald mit hundert, die Jumbo-Rakete »Supernova«, die 300-mm-Kugeln Kometensturm und Urknall – erst ein Boom, dann ein Monster-Schlag.');
   d('grossfeuer','Die Jumbo-Rakete »Juwelenpalme«, der Farbtiger, die Farbsäulen, der Weidenhain, die Goldnatter und die 200-mm-Kugelbomben.');
   d('grossfeuerwerk','Was sonst nur Profis zünden: das Blumenmeer mit sechs Blumenbeeten aus 368 Schuss, Ragnarök mit 409 Schuss aus vier Verbunden – und die Kugelbomben Herbststurm, Eiszeit, Titanenfaust und Lavastrom.'); }
+/* Drehbuecher der gestrichenen Batterien (r3Show/r4Show legten sie ohne
+   Katalogeintrag an) - sonst liefen Tests und Suchen ueber SHOWS ins Leere */
+for(const t of B7_WEG) if(!P[t]){ delete SHOWS[t]; if(typeof THEMEN!=='undefined') delete THEMEN[t]; }
 try{ window.__b7={NEU:B7_NEU.map(x=>x[0]),WEG:B7_WEG,BEARB:['kornblumen','lb_tautropfen','bienenweide','lb_saphirfaecher','hochzeitsfaecher','meteorschauer']}; }catch(e){}

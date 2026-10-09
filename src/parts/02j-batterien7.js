@@ -48,7 +48,7 @@ const B7_NEU=[
   'Ein Trommelwirbel aus 295 kleinen Rohren: Reihe um Reihe im Z – Silberwellen, die zu blauen Sternen werden, Goldkometen, knisternde Kometen –, dann der Paukenschlag: fünf Brokatkronen auf einen Schlag, und zum Schluss fünf Rohre Zeitregen, der knisternd verlischt.','profi'],
  ['b7_sternparade','Sternparade','152 Schuss Blinkstern-Buketts',24,[0.9,0.34,0.56],164.99,'#1a0a3a','#04020c','#b85cff','#fff35c',
   'Vier Batterien, über zwei Minuten: Blinkstern-Buketts in Violett und Zitrone, Rot mit blinkendem Weiß, Brokatkronen, goldene Kometen, violett und grün blinkende Buketts, goldene Spinnen und zum Schluss ein grüner Sternenteppich.','profi'],
- ['b7_blumenmeer','Blumenmeer','368 Schuss sechs Blumenbeete',27,[0.96,0.4,0.62],299.99,'#0a2a1a','#02060a','#ff5ac8','#ffd23f',
+ ['b7_blumenmeer','Blumenmeer','368 Schuss sechs Blumenbeete',27,[0.98,0.62,0.62],299.99,'#0a2a1a','#02060a','#ff5ac8','#ffd23f',
   'Zwei Verbunde, sechs große Blumenbeete, über drei Minuten: jedes Beet mit eigenem Effekt und eigener Schussrichtung – Rosen, Goldregen, Kornblumen, Lilien, ein Feld aus Blinksternen und ein Sonnenblumenbeet in Gold – zweimal zünden, lange staunen.','grossfeuerwerk'],
  ['b7_ragnaroek','Ragnarök','409 Schuss Weltenbrand',28,[0.98,0.92,0.6],349.99,'#2a0602','#060102','#ffd23f','#ff3a1a',
   'Vier Verbunde, 409 Schuss, zwei Minuten: Es beginnt in ruhiger Eleganz mit goldenen Brokatkronen und blauen Päonien, dann rote Dahlien, grüne Kometen, knisternde und blinkende Fächer, Salven im Z – und es endet im rasenden Weltenbrand mit Titanschlägen, die die Fenster klirren lassen.','grossfeuerwerk']

@@ -160,7 +160,10 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
       pruef('KUGEL',k.maxSz>r[t].maxSz&&k.maxHoehe>r[t].p95Hoehe,`${KG[i]} (Lvl ${r.lvl[KG[i]]}) nicht ueber ${t} (Lvl ${r.lvl[t]}): Groesse ${k.maxSz}/${r[t].maxSz}, Hoehe ${k.maxHoehe}/${r[t].maxHoehe}`); } }
   /* 06.10. (Toms PDF: "dass die auf der gleichen Hoehe explodieren"): alle
      Kugeln brechen auf einer Hoehe - hoechstens 6 m Unterschied, alle ueber 80 m */
-  { const h=KG.map(t=>r[t].maxHoehe); pruef('KUGELHOEHE',Math.max(...h)-Math.min(...h)<=6&&Math.min(...h)>80,'Kugeln nicht auf einer Hoehe: '+KG.map((t,i)=>t+' '+h[i]).join(', ')); }
+  /* 09.10. (Batterie-Runde 0b): die Kugeln brechen nicht mehr alle auf einer
+     Hoehe (86-90 m), sondern je Kaliber hoeher (95/105/120/135/150 m, hoehen.js
+     prueft die Soll-Hoehen) - hier: ueber 80 m und steigend mit dem Kaliber */
+  { const h=KG.map(t=>r[t].maxHoehe); pruef('KUGELHOEHE',h.every((x,i)=>!i||x>=h[i-1]-1)&&Math.min(...h)>80,'Kugelhoehe faellt mit dem Kaliber oder unter 80 m: '+KG.map((t,i)=>t+' '+h[i]).join(', ')); }
   /* Raketen haben eigene Bruchbilder, die es in Batterien nicht gibt */
   /* 26.09. (Tom: Anomalie): jede Rakete hat ihren eigenen Bruch - die Liste
      sind jetzt die Raketenbrueche aus katalog-raketen.md (spektrum und

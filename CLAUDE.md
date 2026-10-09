@@ -131,6 +131,9 @@ damit sie auch in einem frischen Container gelten.
 - **Wochenlimit ausreizen** (Tom, 09.10.2026): Ich kann den Verbrauch nicht selbst ablesen –
   Tom nennt den Prozentstand. Bei "reiz aus" bis höchstens ~95–98 % planen (Puffer!), Kosten je
   Paket aus dem bisherigen Agenten-Verbrauch schätzen, und vor dem Limit bremsen.
+- **Selbstständig abarbeiten** (Tom, 09.10.2026): Ich führe die Warteschlange
+  (docs/uebergabe/warteschlange.md) eigenständig: Pakete starten, wenn es Sinn macht (keine
+  Blockaden, Tokens sparen, Qualität grandios), Ergebnisse prüfen, veröffentlichen, berichten.
 - **Zeitprognosen** (Tom, 08.10.2026: "immer viel zu früh"): Am 08.10. lag
   ich 3–4× zu optimistisch (erste Angabe 2–3 h, real >9 h). Ursache: nur
   Testdauer gerechnet, angenommen alles grün. Ab jetzt rechnen:

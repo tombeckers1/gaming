@@ -3412,6 +3412,71 @@ const KUGEL_MARGE=2.33;
     meister:'Das Ende der Leiter: die Jumbo-Rakete »Supernova«, die 300-mm-Kugeln Kometensturm und Urknall – erst ein Boom, dann der größte Schlag des Spiels.'};
   for(const id in txt){ const L=LIZENZEN.find(l=>l.id===id); if(L) L.desc=txt[id]; }
 })();
+/* =========================================================
+   Kugelbomben-Runde 6 (Tom, 09.10.2026 nachmittags, nach V122,
+   docs/uebergabe/kugelbomben-0910b.md):
+   - RAUS: Aurora 200, Granatapfel 200, Sonnensturm 300, Drachennest 300 -
+     ueber ENTFERNT wie jede Streichung; Bestand alter Spielstaende wird
+     zur aehnlichsten verbliebenen Sorte (ENTFERNT_ERSATZ, 18-save).
+   - NEU: acht Koenigsklasse-Kugeln, "richtig intensiv, noch krasser als
+     Urknall", mehrstufig, Steigerung bis zur teuersten. Level: das
+     hoechste Feuerwerk im Spiel war Level 26 (Urknall, Finale/
+     Weltuntergang, Legion), die Lizenzen enden bei Level 25
+     (Meisterklasse), das Spiel geht weiter (Ausbau bis Level 31,
+     xpFor ohne Obergrenze). Die neuen Kugeln stehen darueber: Level 27-30,
+     in zwei neuen Lizenzen - Grossfeuerwerk (Level 27) und Pyro-Weltklasse
+     (Level 29). Freigeschaltet wird nur ueber die Lizenz (isUnlocked).
+   - PREISE nach der Kurve der Runde 5 (Kugel etwa ein Drittel der grossen
+     Batterie gleichen Levels): Batterien enden bei Level 26 (Weltuntergang
+     250 EUR -> Urknall 80 EUR); ihre Kurve (L24 150, L25 200, L26 250 EUR,
+     +50 je Level) weiter gedacht ergibt L27 300 ... L30 450 EUR, ein Drittel
+     davon 100-150 EUR. Die Kugeln: 89,99 / 94,99 (L27), 104,99 / 109,99
+     (L28), 119,99 / 129,99 (L29), 139,99 / 169,99 (L30, Himmelssturz als
+     letzte etwas darueber). Einkauf wie bisher 1 : 2,33, Nachfrage +2.
+   Effekte, Knall, Groesse: 14z2-kugeln6.js, Verpackung: 04k-form-kugeln6.js.
+   ========================================================= */
+const K6_WEG=['aurora200','granatapfel200','sonnensturm300','drachennest300'];
+const K6_NEU=[
+ /* id, Name, Level, VK, Lizenz, Text, Farben (bg1,bg2,ac,ac2) */
+ ['herbststurm300','Herbststurm',27,89.99,'grossfeuerwerk','Eine goldorange Kamuro-Krone, dann entzünden sich vierzig Flammenblätter und segeln flatternd und schaukelnd herab – zum Schluss steigt ein pfeifender Funkenschwarm auf. Ein Schlag, der lange nachrollt wie ein Herbststurm.','#4a1a04','#100602','#ffa030','#ffd23f'],
+ ['eiszeit300','Eiszeit',27,94.99,'grossfeuerwerk','Eine eisblaue Chrysantheme mit langen Silberschleiern – dann bricht das Eis: jeder Stern zersplittert in drei weiße Eissplitter, Kristalle blitzen auf, und zum Schluss taut alles zu einer knisternden Silberweide.','#06203a','#02060e','#9ce8ff','#f2f5ff'],
+ ['titanenfaust300','Titanenfaust',28,104.99,'grossfeuerwerk','Ein Titan-Salut, der die Fenster zittern lässt – aus dem Blitz schießen fünf Fingerbomben wie eine Faust, die sich öffnet, und jede zerspringt mit eigenem Schlag in Rot, Gold, Grün, Blau und Violett. Danach sinkt Silberflitter.','#1a1a22','#040408','#f2f5ff','#ffd23f'],
+ ['lavastrom300','Lavastrom',28,109.99,'grossfeuerwerk','Eine karminrote Brokatkugel bricht auf, und der Kern speit schwere Lavabrocken, die langsam herabsinken und breite Glutströme ziehen – wo sie verlöschen, zerplatzen sie knisternd zu Asche. Tief, lang, grollend.','#4a0a04','#100202','#ff4a1a','#ffb03a'],
+ ['galaxie300','Galaxie',29,119.99,'pyroweltklasse','Eine Spiralgalaxie am Himmel: zwei Arme aus Gold und Blauweiß, die sich langsam drehen, im Kern pulsiert ein Sternhaufen – dann zerspringen die Arme zu silbernen Sternhaufen.','#0a1030','#02030a','#ffd23f','#7ab0ff'],
+ ['sturmflut300','Sturmflut',29,129.99,'pyroweltklasse','Drei Wellen aus schweren Tigerkometen rollen nach außen – Blau, Gold, Weiß – und brechen nacheinander wie Brandung zu herabstürzender Gischt, jede mit eigenem Donnerschlag.','#04203a','#01060c','#5ce1ff','#ffd23f'],
+ ['goetterdaemmerung300','Götterdämmerung',30,139.99,'pyroweltklasse','Drei Schläge, jeder höher und größer: eine blutrote Päonie, dann steigt der Kern zu einer schweren Goldpalme, und ein zweiter Kern zerreißt im Götterschlag – Titanblitz, eine riesige weiße Chrysantheme und Knistern über den ganzen Himmel.','#3a0606','#0c0202','#ff3a1a','#ffd23f'],
+ ['himmelssturz300','Himmelssturz',30,169.99,'pyroweltklasse','Die größte Kugel im Spiel: eine Crossette-Palme aus Goldtigern, ein Donnerkranz aus 24 Schlägen – und dann stürzt der Himmel ein: doppelter Titanblitz, eine gewaltige Goldkrone, die sich bis fast zum Boden senkt, und ein Nachbeben, das durch die ganze Stadt rollt.','#3a2a06','#0c0802','#ffd23f','#f2f5ff']
+];
+const K6_LIZENZEN=[
+  {id:'grossfeuerwerk',lvl:27,cost:42000,name:'Großfeuerwerk',
+   desc:'Kugelbomben, wie sie sonst nur Profis zünden: Herbststurm mit seinen Flammenblättern, die schwebende Eiszeit, die Titanenfaust mit fünf Schlägen und der grollende Lavastrom.',items:[]},
+  {id:'pyroweltklasse',lvl:29,cost:52000,name:'Pyro-Weltklasse',
+   desc:'Das Allergrößte: die drehende Galaxie, die Sturmflut aus drei Wellen, die Götterdämmerung mit drei Schlägen und der Himmelssturz – die größte Kugel und der lauteste Knall im Spiel.',items:[]}
+];
+(function(){
+  K6_LIZENZEN.forEach(l=>{ if(!LIZENZEN.some(x=>x.id===l.id)) LIZENZEN.push(l); });
+  const insLiz=(id,liz)=>{ const L=LIZENZEN.find(l=>l.id===liz); if(L&&L.items.indexOf(id)<0) L.items.push(id); LIZ_VON[id]=liz; };
+  K6_NEU.forEach(([id,nm,lvl,vk,liz,desc,bg1,bg2,ac,ac2])=>{ if(P[id]) return; const mm=300;
+    const q={name:nm+' · Kugelbombe '+mm+' mm',short:'Kugel '+mm+' '+nm,cat:2,lvl,shape:'shell',dims:KUGEL_MASS[mm],grid:KUGEL_GRID[mm],box:1,
+      cost:Math.round(vk/KUGEL_MARGE*100)/100,market:vk,weight:5,hype:100,risk:10,desc,art:{title:nm.toUpperCase(),sub:'Kugelbombe '+mm+' mm',bg1,bg2,ac,ac2},runde6:true,aenderung:true};
+    NEUWARE[id]=q; P[id]=q; ORDER.push(id); if(VOLA[id]===undefined) VOLA[id]=neuVola(q);
+    GRUPPE.kugeln=GRUPPE.kugeln||[]; if(GRUPPE.kugeln.indexOf(id)<0) GRUPPE.kugeln.push(id);
+    if(NEU_TEST.kugeln&&NEU_TEST.kugeln.indexOf(id)<0) NEU_TEST.kugeln.push(id);
+    insLiz(id,liz); });
+  /* die vier gestrichenen Kugeln - derselbe Weg wie jede Streichung (02e) */
+  K6_WEG.forEach(t=>{ if(ENTFERNT.indexOf(t)<0) ENTFERNT.push(t); });
+  sortimentStreichen();
+  /* Silberdistel neu (gleicher Platz, Level 14), Fackelhimmel mit Flammen */
+  if(P.silberdistel75) P.silberdistel75.desc='Ein violetter Distelkopf, darum silberne Strahlen – und an jeder Spitze löst sich ein Flaumbüschel, das funkelnd und langsam im Wind davonschwebt.';
+  if(P.fackelhimmel150) P.fackelhimmel150.desc='Dreißig lodernde Flammenzungen stehen am Himmel – sie züngeln, flackern im Wind, Funken reißen ab, und fast zehn Sekunden lang sinken sie langsam, bis eine nach der anderen knisternd verlischt.';
+  /* alle Kugelbomben sind in dieser Runde geaendert (Knall, Groesse) -
+     Toms Pruefliste "Vorfuehrung (Aenderungen)" (17b) */
+  for(const t of ORDER){ const q=P[t]; if(q&&q.shape==='shell'&&!q.eigen&&!q.rezept) q.aenderung=true; }
+  /* Lizenztexte, die gestrichene Kugeln nannten */
+  const txt={profi:'Der Götterfunken-Verbund: zweihundert Schuss, und der halbe Ort steht auf der Straße. Dazu die Jumbo-Rakete »Polarstern« und die großen Kugelbomben: Himmelsbrecher, Ringnebel, Kanonade, Sternensturm und Riesenpalme.',
+    meister:'Die Jumbo-Rakete »Supernova«, die 300-mm-Kugeln Kometensturm und Urknall – erst ein Boom, dann ein Monster-Schlag. Danach geht es nur noch mit dem Großfeuerwerk weiter.'};
+  for(const id in txt){ const L=LIZENZEN.find(l=>l.id===id); if(L) L.desc=txt[id]; }
+})();
 
 /* =========================================================
    Renderer & Szene
@@ -12683,6 +12748,71 @@ Object.assign(V,{
       g.fillStyle='#ffffff'; g.font=`700 ${Math.round(Hh*0.09)}px Arial`; g.textAlign='center'; g.fillText('MAXIMUM',W/2,Hh*0.35); g.fillText('300 mm',W/2,Hh*0.5); });
     kasten(k,w,h,d,tm(0,h/2,0),{pz:reg(k,'v',w,h,e),nz:'v',px:warn,nx:warn,py:farbe(k,'#151515'),ny:farbe(k,'#0a0a0a')});
     ecken(k,w,h,d,'#8a929e',0.018); gurtX(k,0,w,h,'#d8281a',0.014); return fertig(k); }
+});
+})();
+/* =========================================================
+   Verpackungen der Kugelbomben-Runde 6 (09.10., Daten 02i, Effekte 14z2):
+   die acht neuen 300-mm-Kugeln, jede in eigener Schachtel wie Runde 5
+   (04j) - Effektbild rundum, Name, "KUGELBOMBE 300 mm"; die Form erzaehlt
+   den Namen. Wenige Dreiecke (Handy).
+   ========================================================= */
+(function(){
+if(typeof VP_FORM==='undefined'||typeof window==='undefined'||!window.VP_WERK||!window.R4_VP) return;
+const W_=window.VP_WERK, PI=Math.PI, V=VP_FORM, R4=window.R4_VP;
+const {neu,reg,farbe,kasten,fertig,vbox,vzyl,vkugel,vring,schleife,mantel,kugel,ecken,gurtX}=W_;
+const {MOTIV,kEtikett,rundDruck,himmel,bruch}=R4;
+Object.assign(MOTIV,{
+  herbst(g,W,H,r){ himmel(g,W,H,'#3a1404','#0c0402'); bruch(g,W*0.5,H*0.28,H*0.22,40,'rgba(255,190,80,.95)','rgba(255,120,30,.9)',1.2,0.3);
+    for(let i=0;i<22;i++){ const x=W*(0.08+r()*0.84), y=H*(0.3+r()*0.4), s=H*(0.018+r()*0.012), a=r()*PI;
+      g.save(); g.translate(x,y); g.rotate(a); g.fillStyle=['#ff9a2a','#ffd23f','#e8461a'][i%3]; g.beginPath(); g.ellipse(0,0,s*1.6,s*0.8,0,0,2*PI); g.fill(); g.restore(); } },
+  eis(g,W,H,r){ himmel(g,W,H,'#06203a','#01060c'); const x=W*0.5, y=H*0.32;
+    for(let i=0;i<60;i++){ const a=r()*2*PI, rr=H*(0.05+r()*0.22); g.fillStyle=i%3?'#bfe8ff':'#ffffff'; g.fillRect(x+Math.cos(a)*rr,y+Math.sin(a)*rr,2,2); }
+    g.strokeStyle='rgba(220,245,255,.9)'; g.lineWidth=Math.max(1,H*0.006); for(let i=0;i<6;i++){ const a=i/6*2*PI; g.beginPath(); g.moveTo(x,y); g.lineTo(x+Math.cos(a)*H*0.12,y+Math.sin(a)*H*0.12); g.stroke(); } },
+  faust(g,W,H,r){ himmel(g,W,H,'#141418','#040406'); const x=W*0.5, y=H*0.42;
+    const gr=g.createRadialGradient(x,y,1,x,y,H*0.18); gr.addColorStop(0,'#ffffff'); gr.addColorStop(1,'rgba(255,255,255,0)'); g.fillStyle=gr; g.fillRect(0,0,W,H);
+    const C=['#ff3a2a','#ffc83a','#3aff6a','#3a7aff','#c85cff']; for(let k=0;k<5;k++){ const a=PI*(1.12+0.19*k), ex=x+Math.cos(a)*H*0.28, ey=y+Math.sin(a)*H*0.3;
+      g.strokeStyle='rgba(255,230,180,.8)'; g.lineWidth=2; g.beginPath(); g.moveTo(x,y); g.lineTo(ex,ey); g.stroke(); bruch(g,ex,ey,H*0.07,18,C[k],'#ffffff',1); } },
+  lava(g,W,H,r){ himmel(g,W,H,'#3a0804','#0a0101'); bruch(g,W*0.5,H*0.25,H*0.18,34,'rgba(255,60,20,.95)','rgba(255,160,40,.9)',1.2);
+    g.save(); g.globalCompositeOperation='lighter'; for(let i=0;i<12;i++){ const a=PI*(0.15+0.7*r()), x0=W*0.5, y0=H*0.25, l=H*(0.25+r()*0.2);
+      const gr=g.createLinearGradient(x0,y0,x0+Math.cos(a)*l,y0+Math.sin(a)*l); gr.addColorStop(0,'rgba(255,200,80,.9)'); gr.addColorStop(1,'rgba(200,30,0,.2)');
+      g.strokeStyle=gr; g.lineWidth=Math.max(2,H*0.016); g.beginPath(); g.moveTo(x0,y0); g.lineTo(x0+Math.cos(a)*l,y0+Math.sin(a)*l); g.stroke(); } g.restore(); },
+  galaxie(g,W,H,r){ himmel(g,W,H,'#0a1030','#010208'); const x=W*0.5, y=H*0.32; g.save(); g.globalCompositeOperation='lighter';
+    for(let i=0;i<220;i++){ const arm=i%2, u=r(), th=arm*PI+u*4.2+(r()-0.5)*0.4, rr=H*0.03+u*H*0.26; g.fillStyle=u<0.45?'rgba(255,210,90,.9)':'rgba(140,180,255,.9)';
+      g.fillRect(x+Math.cos(th)*rr,y+Math.sin(th)*rr*0.55,2,2); } const gr=g.createRadialGradient(x,y,1,x,y,H*0.06); gr.addColorStop(0,'#ffffff'); gr.addColorStop(1,'rgba(255,240,200,0)'); g.fillStyle=gr; g.fillRect(x-H*0.1,y-H*0.1,H*0.2,H*0.2); g.restore(); },
+  flut(g,W,H,r){ himmel(g,W,H,'#04203a','#01060c'); const C=['rgba(110,200,255,.9)','rgba(255,210,70,.9)','rgba(240,245,255,.9)'];
+    for(let k=0;k<3;k++){ g.strokeStyle=C[k]; g.lineWidth=Math.max(2,H*0.01); g.beginPath(); for(let i=0;i<=40;i++){ const x=i/40*W, y=H*(0.2+k*0.14)+Math.sin(i/40*PI*3+k)*H*0.04; i?g.lineTo(x,y):g.moveTo(x,y); } g.stroke();
+      for(let i=0;i<14;i++){ g.fillStyle=C[k]; g.fillRect(r()*W,H*(0.22+k*0.14)+r()*H*0.1,1.5,1.5); } } },
+  goetter(g,W,H,r){ himmel(g,W,H,'#2a0404','#000000'); bruch(g,W*0.5,H*0.48,H*0.1,24,'rgba(255,40,20,.95)','rgba(255,90,60,.9)',1);
+    bruch(g,W*0.5,H*0.32,H*0.15,30,'rgba(255,200,70,.95)','rgba(255,230,140,.9)',1.2,0.3); bruch(g,W*0.5,H*0.14,H*0.2,44,'rgba(255,255,255,.95)','rgba(220,225,240,.9)',1.2); },
+  sturz(g,W,H,r){ g.fillStyle='#000'; g.fillRect(0,0,W,H); const x=W*0.5, y=H*0.2;
+    g.save(); g.globalCompositeOperation='lighter'; for(let i=0;i<40;i++){ const a=PI*(0.05+0.9*i/39); g.strokeStyle='rgba(255,200,80,.7)'; g.lineWidth=Math.max(1.5,H*0.008);
+      g.beginPath(); g.moveTo(x,y); g.quadraticCurveTo(x+Math.cos(a)*H*0.35,y-H*0.05,x+Math.cos(a)*H*0.45,y+H*0.6); g.stroke(); } g.restore();
+    const gr=g.createRadialGradient(x,y,1,x,y,H*0.12); gr.addColorStop(0,'#ffffff'); gr.addColorStop(1,'rgba(255,255,255,0)'); g.fillStyle=gr; g.fillRect(0,0,W,H*0.5); }
+});
+const kiste=(t,mot,c1,c2,deko)=>{ const k=neu(t), w=k.w-0.004, h=k.h-0.004, d=k.d-0.004, e=kEtikett(k,mot,300);
+  kasten(k,w,h,d,tm(0,h/2,0),{pz:reg(k,'v',w,h,e),nz:'v',px:reg(k,'s',d,h,e),nx:'s',py:farbe(k,c1),ny:farbe(k,c2)}); if(deko) deko(k,w,h,d); return fertig(k); };
+Object.assign(V,{
+  /* Herbststurm: Holzkiste mit Laubrand und Hanfgurt */
+  herbststurm300:t=>kiste(t,'herbst','#6a3a10','#3a1a06',(k,w,h,d)=>{ ecken(k,w,h,d,'#a8743a',0.014); gurtX(k,0,w,h,'#c8a060',0.012); }),
+  /* Eiszeit: eisblaue Trommel mit weissem Reif */
+  eiszeit300:t=>{ const k=neu(t), R=Math.min(k.w,k.d)/2-0.005, h=k.h-0.02;
+    mantel(k,R,h,0,'trommel',rundDruck(k,'eis',300),{seg:22}); vzyl(k,R+0.004,R+0.004,0.02,22,0,h+0.01,0,'#e8f6ff');
+    for(const y of [0.014,h-0.014]) vring(k,R+0.003,0.005,4,22,2*PI,0,y,0,'#9ce8ff',PI/2,0,0); return fertig(k); },
+  /* Titanenfaust: Stahlkiste mit Nieten-Ecken und rotem Gurt */
+  titanenfaust300:t=>kiste(t,'faust','#9aa4b2','#3a4048',(k,w,h,d)=>{ ecken(k,w,h,d,'#d0d8e2',0.02); gurtX(k,-d*0.25,w,h,'#c8281a',0.012); gurtX(k,d*0.25,w,h,'#c8281a',0.012); }),
+  /* Lavastrom: schwarze Rolle mit Glut-Deckel */
+  lavastrom300:t=>{ const k=neu(t), R=Math.min(k.w,k.d)/2-0.005, h=k.h-0.024;
+    mantel(k,R,h,0,'rolle',rundDruck(k,'lava',300),{seg:20}); vzyl(k,R+0.004,R+0.004,0.024,20,0,h+0.012,0,'#c8281a'); vkugel(k,R*0.4,10,6,0,h+0.03,0,'#ff6a1a',1,0.4,1); return fertig(k); },
+  /* Galaxie: flache Sternenkiste mit goldenem Ring obenauf */
+  galaxie300:t=>kiste(t,'galaxie','#0a1030','#04081a',(k,w,h,d)=>{ vring(k,Math.min(w,d)*0.32,0.005,4,24,2*PI,0,h+0.004,0,'#d9b45a',0,0,0); }),
+  /* Sturmflut: blaue Trommel mit Goldwelle */
+  sturmflut300:t=>{ const k=neu(t), R=Math.min(k.w,k.d)/2-0.005, h=k.h-0.02;
+    mantel(k,R,h,0,'trommel',rundDruck(k,'flut',300),{seg:22}); vzyl(k,R+0.004,R+0.004,0.02,22,0,h+0.01,0,'#1a5aa8');
+    vring(k,R+0.003,0.005,4,22,2*PI,0,h*0.5,0,'#d9b45a',PI/2,0,0.12); return fertig(k); },
+  /* Goetterdaemmerung: hohe schwarze Kiste mit drei roten Gurten */
+  goetterdaemmerung300:t=>kiste(t,'goetter','#1a0606','#0a0202',(k,w,h,d)=>{ ecken(k,w,h,d,'#8a6a2a',0.016); for(const z of [-0.3,0,0.3]) gurtX(k,d*z,w,h,'#a8181a',0.01); }),
+  /* Himmelssturz: die schwerste Kiste - Gold auf Schwarz, Stahlecken, Schleife */
+  himmelssturz300:t=>kiste(t,'sturz','#151515','#0a0a0a',(k,w,h,d)=>{ ecken(k,w,h,d,'#d9b45a',0.02); gurtX(k,0,w,h,'#d9b45a',0.016); schleife(k,0,h+0.006,0,Math.min(w,d)*0.35,'#d9b45a'); })
 });
 })();
 
@@ -45549,6 +45679,618 @@ for(const id of Object.keys(K5_RAUM)) if(KUGEL[id]) KUGEL[id].raum=K5_RAUM[id];
 for(const id of Object.keys(KNALL5)) if(KUGEL[id]){ K5_TON_ALT[id]=KUGEL[id].ton||null; KUGEL[id].ton='kk_'+id; }
 
 try{ window.__kg5={KNALL5,KNALL5_ART,KNALL5_MONSTER,KUGEL,K5_RAUM,aus(f){ KNALL5_AUS=!!f; },log(an){ K5_LOG=an?[]:null; },get logListe(){ return K5_LOG; },k5Laut}; }catch(e){}
+/* =========================================================
+   Kugelbomben-Runde 6 (Tom, 09.10.2026 nachmittags, nach V122,
+   docs/uebergabe/kugelbomben-0910b.md). Daten/Preise: 02i-kugeln6.js,
+   Verpackung: 04k-form-kugeln6.js.
+   1. KNALL NEU. Tom: "Der Bruchknall klingt wie ein Schalldaempfer-
+      Schuss - ich will eine tiefe, echte Explosion, ein richtiges WUMMS/
+      BOOM, gerade bei den grossen. Vorbild Urknall, aber jede anders."
+      Gemessen (09.10., OfflineAudioContext, __kg5.messen): der alte
+      Bruchknall (Runde 5) hatte seine Energie in Rauschen - ein
+      Hochpass-Zischen (Crack, 2,4-5,2 kHz) und tiefpassgefiltertes
+      Rauschen unter ~300 Hz, dazu ein leiser Sinus. Das ist genau der
+      Klang eines Schalldaempfers: "Pfft" ohne Druckstoss. Ein Laptop-
+      Lautsprecher gibt unter ~200 Hz fast nichts wieder - uebrig blieb
+      das Zischen.
+      Wie eine echte Kugelbombe klingt (Quellen):
+      - Der Bruch ist ein Luftstoss (Friedlander-Welle): ein senkrechter
+        Druckanstieg, dann Abfall in einen Unterdruck. Eine 75-mm-Salute
+        auf ~100 m hat eine Periode um 7 ms (~140 Hz) - je laenger die
+        Phase, desto mehr "weicher Boom" statt "scharfer Knall", und
+        desto staerker der Schlag in der Brust (K. L. & B. J. Kosanke,
+        "Firework Salute Sound Characteristics and Perception", Journal
+        of Pyrotechnics 34, jpyro.co.uk).
+      - Bodennah gemessen: Bruchknall breitbandig, Tiefton-Pegel bis
+        125 dB mit Spitze bei 16-25 Hz (Infraschall, Fenster klirren),
+        grosse Kaliber tiefer (Yamada u. a., J. Occup. Health 58 (2016),
+        "Noise and low-frequency sound levels due to aerial fireworks").
+      - Die Luft schluckt Hoehen: 125 Hz 0,45 dB/100 m, 2 kHz 9,9, 8 kHz
+        104 dB/100 m (ebd. Kosanke) - aus 90 m kommt kein Zischen an,
+        nur Knack und Wumms.
+      - Danach rollt der Schall: Reflexionen von Haeusern (20-80 ms),
+        spaete Rueckwuerfe von Waldrand/Huegeln (Hunderte ms bis
+        Sekunden), Donnerrollen; Licht kommt vor dem Schall (schall()).
+      - Klanggestaltung fuer kleine Lautsprecher: Tiefton mit Ober-
+        toenen (Saettigung) in 80-250 Hz, Koerper 150-800 Hz, kurzer
+        Anschlag, Kompressor, Hall nur auf Koerper/Rollen (sonusgearflow.
+        com "How to Build Explosions Patches", "Layer Harmonic Content
+        for Rich Impacts"; tonalux.org "Layering Techniques for Impact
+        Sounds").
+      Neuer Aufbau je Knall (k6Knall): DRUCKSTOSS (gerechnete Friedlander-
+      Welle mit Bodenreflexion, Periode 6-22 ms je Kaliber), ANSCHLAG
+      (kurzer Knack 1,2-3 kHz statt Zischen), TIEFTON (Sinus mit Fall,
+      durch einen tanh-Saettiger: Obertoene 2f/3f/5f, die ein Laptop
+      spielt), KOERPER (rosa Rauschen, saettigt), DONNERROLLEN (an- und
+      abschwellendes Grollen, 1-7 s) und RAUM (Faltungshall: Strasse mit
+      Haeusern, Tal mit Echo vom Waldrand, Donner). Alles laeuft ueber
+      einen gemeinsamen Kompressor (keine Uebersteuerung, auch wenn
+      mehrere Kugeln gleichzeitig brechen). Der Monster-Schlag des
+      Urknalls (Toms Vorbild) bleibt unveraendert.
+   2. GROESSER: alle Kugeln (K6_RAUM unten, Tabelle vorher/nachher in
+      UEBERGABE.md 5.3).
+   3. RAUS: Aurora, Granatapfel, Sonnensturm, Drachennest (02i).
+      Silberdistel NEU, Fackelhimmel mit echten Flammenzungen.
+   4. NEU: acht Koenigsklasse-Kugeln (Level 27-30), mehrstufig, jede mit
+      eigenem Monster-Knall - Steigerung bis zum Himmelssturz.
+   ========================================================= */
+
+/* =========================================================
+   1. Der Knall
+   ========================================================= */
+/* Werk je AudioContext und Hauptregler: Eingang -> Hochpass 28 Hz (der
+   unhoerbare Infraschall frisst sonst Aussteuerung) -> Kompressor ->
+   Ausgang; drei Faltungsraeume speisen denselben Eingang. Ruhige
+   Faltungsknoten rechnet der Browser nicht (Stille + Nachhallzeit). */
+const K6_WERKE=new WeakMap();
+let K6_AUS=false;
+function k6Werk(){ if(!AC) return null; let w=K6_WERKE.get(AC); if(w&&w.master===master) return w;
+  const ein=AC.createGain(), hp=AC.createBiquadFilter(), k=AC.createDynamicsCompressor(), auf=AC.createGain(), lim=AC.createDynamicsCompressor();
+  hp.type='highpass'; hp.frequency.value=K6_BUS.hp; hp.Q.value=0.7;
+  k.threshold.value=K6_BUS.thr; k.knee.value=12; k.ratio.value=4; k.attack.value=0.004; k.release.value=0.4;
+  auf.gain.value=K6_BUS.auf;
+  /* Begrenzer: kein Ausschlag ueber -1 dB vor dem Hauptregler (0,7) */
+  lim.threshold.value=K6_BUS.lim; lim.knee.value=0; lim.ratio.value=20; lim.attack.value=0.0005; lim.release.value=0.15;
+  ein.connect(hp); hp.connect(k); k.connect(auf); auf.connect(lim); lim.connect(master);
+  w={master,ein,raum:{},sat:{}};
+  for(const r of ['stadt','tal','donner']){ const c=AC.createConvolver(); c.normalize=false; c.buffer=k6IR(AC,r); c.connect(ein); w.raum[r]=c; }
+  K6_WERKE.set(AC,w); return w; }
+/* Abstimmung (gemessen 09.10.): Tiefton unter ~60 Hz frisst Aussteuerung
+   (der Kompressor duckt dann alles), hoerbar wird der Boom in 80-1000 Hz */
+const K6_BUS={hp:42,thr:-20,auf:0.9,lim:-1,tief:0.6,koerperF2:1.6,rollF:1.35,mitte:1.6};
+/* Raumantworten (Stereo), einmal gerechnet:
+   stadt  - dichte fruehe Reflexionen von Hauswaenden (35-380 ms), kurzer Nachhall
+   tal    - wenige klare Echos vom Waldrand/Huegel (0,4-2,7 s), dumpf
+   donner - rollendes Grollen: Wellen, die an- und abschwellen (bis 5,5 s) */
+function k6IR(ac,typ){ const sr=ac.sampleRate, T={stadt:2.4,tal:4.2,donner:5.6}[typ], n=Math.floor(sr*T), b=ac.createBuffer(2,n,sr);
+  let seed=typ.length*7919+13; const rnd=()=>{ seed=(seed*16807)%2147483647; return seed/2147483647; };
+  for(let ch=0;ch<2;ch++){ const d=b.getChannelData(ch), blips=[], wellen=[];
+    if(typ==='stadt'){ for(let k=0;k<13;k++){ const t=0.035+Math.pow(rnd(),1.3)*0.35; blips.push([t,0.6*Math.exp(-t/0.22)*(0.45+0.55*rnd()),0.004+rnd()*0.006]); } }
+    if(typ==='tal'){ for(let k=0;k<4;k++){ const t=0.08+rnd()*0.14; blips.push([t,0.25*(0.5+rnd()*0.5),0.01]); }
+      [[0.42,0.5],[0.78,0.4],[1.25,0.3],[1.85,0.2],[2.6,0.12]].forEach(([t,a])=>blips.push([t*(0.92+rnd()*0.16),a,0.04+rnd()*0.05])); }
+    if(typ==='donner'){ for(let k=0;k<11;k++){ const t=0.12+Math.pow(rnd(),0.8)*4.4; wellen.push([t,(0.4+0.6*rnd())*Math.exp(-t/2.2),0.15+rnd()*0.45]); } }
+    let lp=0, lp2=0;
+    for(let i=0;i<n;i++){ const t=i/sr, w=rnd()*2-1; let a=0;
+      for(const [t0,A,L] of blips){ const x=t-t0; if(x>=0&&x<L*5) a+=A*Math.exp(-x/L); }
+      if(typ==='stadt') a+=t>0.05?0.13*Math.exp(-(t-0.05)/0.55):0;
+      if(typ==='tal') a+=t>0.06?0.06*Math.exp(-t/1.3):0;
+      if(typ==='donner'){ for(const [t0,A,L] of wellen){ const x=(t-t0)/L; if(x>-3&&x<3) a+=A*Math.exp(-x*x); } a+=0.08*Math.exp(-t/1.8); }
+      /* Luft schluckt Hoehen: je spaeter, desto dumpfer */
+      const fc=typ==='stadt'?Math.max(350,4200*Math.exp(-t/0.35)):typ==='tal'?Math.max(180,1600*Math.exp(-t/0.6)):Math.max(90,420*Math.exp(-t/1.2));
+      const al=1-Math.exp(-2*Math.PI*fc/sr); lp+=(w*a-lp)*al; lp2+=(lp-lp2)*al; d[i]=lp2; }
+    /* Energie auf 1 (der Raum gibt so viel Energie zurueck, wie hineingeht) */
+    let e=0; for(let i=0;i<n;i++) e+=d[i]*d[i]; const s=1/Math.sqrt(e||1); for(let i=0;i<n;i++) d[i]*=s; }
+  return b; }
+/* tanh-Saettiger: Obertoene fuer kleine Lautsprecher */
+function k6Sat(w,drive){ const key=Math.round(drive*2)/2; if(w.sat[key]) return w.sat[key];
+  const N=2048, c=new Float32Array(N), k=Math.max(0.5,key), nt=Math.tanh(k); for(let i=0;i<N;i++){ const x=i/(N-1)*2-1; c[i]=Math.tanh(k*x)/nt; }
+  return (w.sat[key]=c); }
+/* Druckstoss: Friedlander-Welle p(t)=(1-t/T)e^(-1,3t/T), dann Unterdruck,
+   dazu die Bodenreflexion (~9 ms spaeter, 0,6) - je Periode einmal gerechnet */
+const K6_PULS=new WeakMap();
+function k6PulsBuf(ms){ let m=K6_PULS.get(AC); if(!m){ m={}; K6_PULS.set(AC,m); } const key=Math.round(ms); if(m[key]) return m[key];
+  const sr=AC.sampleRate, Tp=key/1000*0.4, Tn=key/1000*0.6, n=Math.floor(sr*(Tp+Tn+0.03)), b=AC.createBuffer(1,n,sr), d=b.getChannelData(0);
+  const welle=t=>t<0?0:t<Tp?(1-t/Tp)*Math.exp(-1.3*t/Tp):t<Tp+Tn?-0.42*Math.sin(Math.PI*(t-Tp)/Tn):0;
+  for(let i=0;i<n;i++){ const t=i/sr; d[i]=welle(t)+0.6*welle(t-0.009); }
+  return (m[key]=b); }
+/* Bausteine; at = Start ab jetzt (Audio-Uhr), z = Ziel (Knallknoten) */
+function k6Puls(z,at,ms,vol,lp){ const t=AC.currentTime+at, s=AC.createBufferSource(), f=AC.createBiquadFilter(), g=AC.createGain();
+  s.buffer=k6PulsBuf(ms); f.type='lowpass'; f.frequency.value=lp; f.Q.value=0.5; g.gain.value=vol;
+  s.connect(f); f.connect(g); g.connect(z); s.start(t); klangMelden(at,vol*1.2,700,'bandpass','k6Puls'); }
+function k6Tief(w,z,at,f0,f1,dur,vol,drive){ const t=AC.currentTime+at, o=AC.createOscillator(), g=AC.createGain(), sh=AC.createWaveShaper(), lp=AC.createBiquadFilter(), g2=AC.createGain();
+  o.type='sine'; o.frequency.setValueAtTime(f0,t); o.frequency.exponentialRampToValueAtTime(f1,t+dur*0.7);
+  g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(drive,t+0.006); g.gain.exponentialRampToValueAtTime(drive*0.0003,t+dur);
+  sh.curve=k6Sat(w,drive); sh.oversample='2x'; lp.type='lowpass'; lp.frequency.value=1400; g2.gain.value=vol;
+  o.connect(g); g.connect(sh); sh.connect(lp); lp.connect(g2); g2.connect(z); o.start(t); o.stop(t+dur+0.05);
+  klangMelden(at,vol*1.5,Math.sqrt(f0*f1)*3,'ton','k6Tief'); }
+function k6Rausch(z,at,o,sat,w){ const t=AC.currentTime+at, d=o.dur, s=AC.createBufferSource(), f=AC.createBiquadFilter(), g=AC.createGain();
+  s.buffer=o.rosa?rosaRausch():weissBuf(); s.loop=d>1.2; f.type=o.typ||'lowpass'; f.frequency.setValueAtTime(o.f,t); if(o.f2) f.frequency.exponentialRampToValueAtTime(o.f2,t+d); if(o.q) f.Q.value=o.q;
+  if(o.wellen){ /* Donnerrollen: Wellen schwellen an und ab */ g.gain.setValueAtTime(0.0001,t); let tt=t;
+    for(const [dt,a,an,ab] of o.wellen){ tt=t+dt; g.gain.setTargetAtTime(o.vol*a,tt,an); g.gain.setTargetAtTime(o.vol*a*0.25,tt+an*2.5,ab); }
+    g.gain.setTargetAtTime(0.0001,t+d*0.85,d*0.06); }
+  else { g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(o.vol,t+(o.an||0.004)); g.gain.exponentialRampToValueAtTime(0.0001,t+d); }
+  let k=g; if(sat){ const sh=AC.createWaveShaper(), g2=AC.createGain(); sh.curve=k6Sat(w,sat); g2.gain.value=1/Math.max(1,sat*0.6); g.connect(sh); sh.connect(g2); k=g2; }
+  s.connect(f); f.connect(g); k.connect(z); s.start(t,Math.random()*0.4); s.stop(t+d+0.1);
+  klangMelden(at,o.vol,o.f2?Math.sqrt(o.f*o.f2):o.f,o.typ||'lowpass','k6Rausch'); }
+/* Wellen fuer das Donnerrollen: n Schwellungen ueber dur s, die erste kraeftig */
+function k6Wellen(n,dur){ const L=[]; for(let i=0;i<n;i++){ const u=i/Math.max(1,n-1), dt=i?bkV(0.12,0.95)*dur*Math.pow(u,1.1)+0.05:0.03;
+    L.push([dt,i?bkV(0.45,0.95)*Math.exp(-u*1.4):1,bkV(0.05,0.14),bkV(0.18,0.45)]); }
+  return L.sort((a,b)=>a[0]-b[0]); }
+/* Ein Knall nach Rezept o (Lautstaerke am Ohr v):
+   P   Periode des Druckstosses (ms), puls Lautstaerke, lp Tiefpass (Hz)
+   tief [f0, f1, Dauer, vol, Saettigung]   Sinus mit Fall
+   koerper [vol, Hz, Hz2, Dauer]          rosa Rauschen, gesaettigt
+   knack [vol, Hz, Dauer]                 kurzer Anschlag (Bandpass)
+   mitte [vol, Hz, Dauer]                 Krachen in der Mitte (Bandpass, gesaettigt)
+   roll [vol, Dauer, Wellen, Hz]          Donnerrollen
+   raum 'stadt'|'tal'|'donner', hall Anteil (0..1)
+   doppel [s, Faktor]  zweiter Schlag;  schlaege [[s, Faktor], ...] weitere
+   knister/zisch/zusatz wie Runde 5 */
+function k6Knall(o,v,at0){ const w=k6Werk(); if(!w) return; at0=at0||0;
+  const k=bkV(0.94,1.06)*(o.f||1), L=k5Laut(v)*(o.laut||1), z=AC.createGain(); z.gain.value=L; z.connect(w.ein);
+  if(o.raum){ const s=AC.createGain(); s.gain.value=o.hall===undefined?0.6:o.hall; z.connect(s); s.connect(w.raum[o.raum]); }
+  const schlag=(at,f)=>{
+    if(o.P) k6Puls(z,at,o.P/k,(o.puls||0.8)*f,(o.lp||3000)*k);
+    if(o.knack) k6Rausch(z,at,{dur:o.knack[2],vol:o.knack[0]*f,typ:'bandpass',f:o.knack[1]*k,q:0.8});
+    if(o.mitte) k6Rausch(z,at+0.003,{dur:o.mitte[2]*bkV(0.9,1.1),vol:o.mitte[0]*f*K6_BUS.mitte,typ:'bandpass',f:o.mitte[1]*k,f2:o.mitte[1]*k*0.6,q:0.7,rosa:true},2,w);
+    if(o.tief) k6Tief(w,z,at+0.002,o.tief[0]*k,o.tief[1]*k,o.tief[2]*bkV(0.92,1.08),o.tief[3]*f*K6_BUS.tief,o.tief[4]||3);
+    if(o.koerper) k6Rausch(z,at+0.004,{dur:o.koerper[3]*bkV(0.9,1.1),vol:o.koerper[0]*f,f:o.koerper[1]*k,f2:o.koerper[2]*k*K6_BUS.koerperF2,rosa:true,an:0.01},o.koerperSat||2.5,w); };
+  schlag(at0,1);
+  if(o.doppel) schlag(at0+o.doppel[0]*bkV(0.9,1.1),o.doppel[1]);
+  if(o.schlaege) o.schlaege.forEach(([t,f])=>schlag(at0+t*bkV(0.95,1.05),f));
+  if(o.roll) k6Rausch(z,at0+0.02,{dur:o.roll[1]*bkV(0.9,1.1),vol:o.roll[0],f:(o.roll[3]||220)*k*K6_BUS.rollF,f2:(o.roll[3]||220)*k*0.5*K6_BUS.rollF,rosa:true,wellen:k6Wellen(o.roll[2]||5,o.roll[1])},2,w);
+  if(o.knister) bkKn(at0+o.knister[1],at0+o.knister[2],Math.round(o.knister[0]*bkV(0.85,1.15)),o.knister[3]*L);
+  if(o.zisch) bkR(at0+0.08,{dur:o.zisch[1]*bkV(0.9,1.1),vol:o.zisch[0]*L,typ:'highpass',f:4200*k,rosa:true,an:0.15});
+  if(o.zusatz&&sfx[o.zusatz]&&!at0) sfx[o.zusatz](v,1);
+}
+/* der Runde-5-Knall bleibt fuer die Gegenprobe (kugelknall.js '{"alt5":true}')
+   und fuer Toms Vorbild, den Monster-Schlag des Urknalls */
+const k5KnallAlt=k5Knall;
+let K6_ALT5=false;
+k5Knall=function(o,v){ if(o.v5||!o.k6) return k5KnallAlt(o,v);
+  if(K6_ALT5||K6_AUS) return k5KnallAlt(o.alt5||K6_ALT5_STD,v);
+  return k6Knall(o,v); };
+/* neue Kugeln hatten keinen Runde-5-Knall: Gegenprobe mit dem alten Kanonenschlag */
+const K6_ALT5_STD=Object.assign({art:'kanone'},KNALL5_ART.kanone,{f:0.9,laut:1.15,blitz:1.3});
+KNALL5_MONSTER.v5=true;
+
+/* Klangarten (Grundrezepte) - jede Kugel waehlt eine und aendert sie ab */
+const K6_ART={
+  /* Kanonenschlag: harter, langer Druckstoss, Strasse mit Haeusern */
+  kanone:{P:12,puls:0.95,lp:2600,knack:[0.52,2200,0.018],mitte:[0.4,850,0.3],tief:[70,36,0.7,0.4,4],koerper:[0.5,420,90,0.9],roll:[0.3,2.2,5,200],raum:'stadt',hall:0.55},
+  /* Peitsche: kurze Periode, heller Knack, hartes Echo von den Haeusern */
+  peitsche:{P:7,puls:1.0,lp:4200,knack:[0.83,3000,0.012],mitte:[0.4,850,0.3],tief:[95,48,0.4,0.3,3],koerper:[0.35,700,160,0.5],roll:[0.22,1.6,4,260],raum:'stadt',hall:0.75},
+  /* Dumpf: lange Periode, viel Tiefton, Donner */
+  dumpf:{P:18,puls:0.85,lp:1900,knack:[0.3,1500,0.02],mitte:[0.6,620,0.45],tief:[56,30,1.0,0.5,5],koerper:[0.65,300,70,1.3],roll:[0.38,3.2,6,170],raum:'donner',hall:0.5},
+  /* Donner: Schlag und langes Rollen */
+  donner:{P:14,puls:0.9,lp:2200,knack:[0.45,1900,0.02],mitte:[0.4,850,0.3],tief:[62,32,0.85,0.42,4],koerper:[0.5,380,80,1.0],roll:[0.5,4.5,8,180],raum:'donner',hall:0.6},
+  /* Doppel: Kern und Schale */
+  doppel:{P:11,puls:0.9,lp:2800,knack:[0.52,2300,0.015],mitte:[0.4,850,0.3],tief:[76,38,0.6,0.38,3.5],koerper:[0.45,480,110,0.7],roll:[0.25,1.8,4,210],raum:'stadt',hall:0.5,doppel:[0.13,0.75]},
+  /* Knister: Schlag, dann knistern die Sterne */
+  knister:{P:10,puls:0.9,lp:3000,knack:[0.52,2500,0.015],mitte:[0.4,850,0.3],tief:[80,40,0.5,0.36,3],koerper:[0.42,520,120,0.7],roll:[0.22,1.8,4,220],raum:'stadt',hall:0.5,knister:[26,0.25,1.6,0.16]},
+  /* Zisch: Schlag und Glitzerrauschen */
+  zisch:{P:11,puls:0.9,lp:2800,knack:[0.48,2300,0.016],mitte:[0.4,850,0.3],tief:[74,38,0.6,0.38,3.5],koerper:[0.45,460,100,0.8],roll:[0.26,2.0,5,200],raum:'stadt',hall:0.5,zisch:[0.1,1.6]},
+  /* Hall: Schlag, Echo vom Waldrand */
+  hall:{P:13,puls:0.9,lp:2400,knack:[0.42,2000,0.02],mitte:[0.4,850,0.3],tief:[66,34,0.75,0.42,4],koerper:[0.5,400,90,0.9],roll:[0.3,2.6,5,190],raum:'tal',hall:0.95},
+  /* Trommel: drei Schlaege kurz hintereinander */
+  trommel:{P:12,puls:0.9,lp:2600,knack:[0.52,2100,0.016],mitte:[0.4,850,0.3],tief:[70,36,0.6,0.38,4],koerper:[0.45,420,100,0.7],roll:[0.3,2.4,5,200],raum:'stadt',hall:0.55,schlaege:[[0.09,0.65],[0.2,0.5]]}
+};
+/* je Kugel: Art und Abwandlung. f = Tonhoehe (x Frequenzen), laut,
+   blitz (Zerlegerblitz), P (Periode: groessere Kugel, tieferer Boom) */
+const K6_WAHL={
+  kugel75:['doppel',{f:1.2,laut:0.61,blitz:0.6,P:8,zusatz:'herzton'}],
+  silberdistel75:['peitsche',{f:1.15,laut:0.58,blitz:0.6,P:6.5,knister:[22,0.6,1.8,0.12]}],
+  goldbrokat100:['zisch',{f:1.1,laut:1.1,blitz:0.7,P:9}],
+  hummelschwarm75:['trommel',{f:1.2,laut:0.63,blitz:0.6,P:7.5,schlaege:[[0.07,0.55]],zisch:[0.08,1.6]}],
+  kugel100:['dumpf',{f:1.1,laut:1.68,blitz:0.7,P:12,roll:[0.3,2.4,5,180]}],
+  blauregen100:['hall',{f:1.12,laut:0.57,blitz:0.6,P:9.5}],
+  fackelhimmel150:['dumpf',{f:0.98,laut:1.94,blitz:0.8,P:14,zisch:[0.06,3.0]}],
+  crossettennetz150:['peitsche',{f:0.95,laut:0.78,blitz:0.9,P:9,roll:[0.28,2.2,5,240]}],
+  tigerkrone150:['zisch',{f:0.92,laut:1.4,blitz:0.9,P:12,zisch:[0.14,2.4]}],
+  farbcrossette150:['doppel',{f:1.0,laut:1.09,blitz:0.9,P:11,doppel:[0.17,0.7]}],
+  wetterleuchten150:['donner',{f:0.95,laut:0.99,blitz:1.0,P:11,raum:'stadt'}],
+  schatztruhe200:['kanone',{f:1.05,laut:1.24,blitz:1.0,P:13}],
+  kronenkranz200:['hall',{f:0.98,laut:1.06,blitz:1.0,P:14}],
+  zwillingssonne200:['doppel',{f:0.95,laut:1.14,blitz:1.0,P:13,doppel:[0.22,0.9]}],
+  blitzpalme200:['dumpf',{f:1.0,laut:2.39,blitz:0.8,P:15}],
+  goldweidenkreuz200:['hall',{f:1.02,laut:2.45,blitz:0.9,P:13,raum:'donner'}],
+  bluetenhagel200:['knister',{f:1.05,laut:1.28,blitz:1.0,P:11,knister:[34,0.2,1.4,0.18]}],
+  kugel300:['peitsche',{f:0.85,laut:0.79,blitz:1.2,P:12,raum:'tal',hall:0.9,roll:[0.4,3.0,6,220]}],
+  ringnebel300:['doppel',{f:0.85,laut:1.27,blitz:1.2,P:15,doppel:[0.16,0.85],raum:'tal',hall:0.8}],
+  kanonade300:['trommel',{f:0.95,laut:1.32,blitz:1.2,P:15}],
+  sternensturm300:['donner',{f:1.0,laut:2.51,blitz:1.2,P:16}],
+  riesenpalme300:['dumpf',{f:0.85,laut:2.6,blitz:1.0,P:20,tief:[46,20,1.4,0.75,5]}],
+  kometensturm300:['zisch',{f:0.9,laut:1.52,blitz:1.2,P:16,zisch:[0.14,2.6],roll:[0.42,3.6,7,190]}],
+  urknall300:['kanone',{f:0.9,laut:2.59,blitz:1.3,P:16}]
+};
+/* der Runde-5-Knall jeder Kugel bleibt am neuen Rezept haengen (alt5) - fuer die Gegenprobe */
+for(const id in K6_WAHL){ const [art,o]=K6_WAHL[id], alt=KNALL5[id]; KNALL5[id]=Object.assign({art,k6:true,alt5:alt||null},K6_ART[art],o); }
+
+/* ---------- Messen (kugelknall.js, Runde 6) ----------
+   Der Knall wird in einem OfflineAudioContext gerechnet (alle Bausteine
+   laufen auf der Audio-Uhr) und ausgewertet:
+   spitze  hoechster Ausschlag am Ausgang (nach dem Hauptregler 0,7)
+   energie Summe der Quadrate (s)
+   laptop  Energie, die ein Laptop-Lautsprecher wiedergibt (Hochpass
+           2. Ordnung 200 Hz, Tiefpass 12 kHz), davon
+   boom    der Anteil 80-700 Hz (Wumms/Druck) und
+   zisch   der Anteil ueber 2,5 kHz (Zischen)
+   lautA   die Laptop-Energie nach Gehoer gewichtet (A-Kurve, x 10000) -
+           ein grobes Mass fuer die Lautheit
+   tief    Energie unter 150 Hz (Brust, grosse Lautsprecher)
+   schwer  Schwerpunkt des Spektrums (Hz)
+   dauer   Zeit, bis der Pegel 30 dB unter der Spitze bleibt (s) */
+function k6Fft(re,im){ const n=re.length; for(let i=1,j=0;i<n;i++){ let b=n>>1; for(;j&b;b>>=1) j^=b; j^=b; if(i<j){ let t=re[i]; re[i]=re[j]; re[j]=t; t=im[i]; im[i]=im[j]; im[j]=t; } }
+  for(let len=2;len<=n;len<<=1){ const a=-2*Math.PI/len, wr=Math.cos(a), wi=Math.sin(a);
+    for(let i=0;i<n;i+=len){ let cr=1, ci=0; for(let j=0;j<len/2;j++){ const u=i+j, v=u+len/2, xr=re[v]*cr-im[v]*ci, xi=re[v]*ci+im[v]*cr;
+      re[v]=re[u]-xr; im[v]=im[u]-xi; re[u]+=xr; im[u]+=xi; const nr=cr*wr-ci*wi; ci=cr*wi+ci*wr; cr=nr; } } } }
+function k6Auswerten(buf){ const sr=buf.sampleRate, n=buf.length, a=buf.getChannelData(0), b=buf.numberOfChannels>1?buf.getChannelData(1):a;
+  let sp=0, en=0; const m=new Float32Array(n); for(let i=0;i<n;i++){ const x=(a[i]+b[i])/2; m[i]=x; sp=Math.max(sp,Math.abs(a[i]),Math.abs(b[i])); en+=x*x/sr; }
+  /* Dauer: Huellkurve in 20-ms-Fenstern */
+  const W=Math.floor(sr*0.02); let mx=0; const env=[]; for(let i=0;i+W<=n;i+=W){ let e=0; for(let k=i;k<i+W;k++) e+=m[k]*m[k]; env.push(e/W); mx=Math.max(mx,e/W); }
+  let last=0; env.forEach((e,i)=>{ if(e>mx*1e-3) last=i; });
+  let N=1; while(N<n) N<<=1; const re=new Float32Array(N), im=new Float32Array(N); re.set(m); k6Fft(re,im);
+  let lap=0, boom=0, zisch=0, tief=0, sw=0, s0=0, la=0;
+  const aw=f=>{ const f2=f*f, r=148840000*f2*f2/((f2+424.36)*Math.sqrt((f2+11599.29)*(f2+544496.41))*(f2+148840000)); return r*1.2589; };
+  for(let i=1;i<N/2;i++){ const f=i*sr/N, p=(re[i]*re[i]+im[i]*im[i])/N/sr*2, hp=Math.pow(f,4)/(Math.pow(f,4)+Math.pow(200,4)), lp=1/(1+Math.pow(f/12000,4)), q=p*hp*lp;
+    lap+=q; la+=q*aw(f)*aw(f); if(f>=80&&f<=700) boom+=q; if(f>2500) zisch+=q; if(f<150) tief+=p; sw+=f*p; s0+=p; }
+  return {spitze:+sp.toFixed(3),energie:+en.toFixed(4),laptop:+lap.toFixed(5),lautA:+(la*1e4).toFixed(2),boom:+boom.toFixed(5),zisch:+zisch.toFixed(5),boomAnteil:+(boom/(lap||1)).toFixed(3),zischAnteil:+(zisch/(lap||1)).toFixed(3),
+    tief:+tief.toFixed(5),schwer:Math.round(sw/(s0||1)),dauer:+(last*0.02).toFixed(2)}; }
+/* fn() spielt Klaenge ab jetzt; gerechnet werden dauer s */
+async function k6Messen(fn,dauer){ if(!ac()) return null; const real=AC, rm=master, sr=48000, off=new OfflineAudioContext(2,Math.floor(sr*(dauer||8)),sr);
+  const m=off.createGain(); m.gain.value=0.7; m.connect(off.destination);
+  AC=off; master=m; const tw=timers.length; try{ fn(); } finally { AC=real; master=rm; }
+  /* Teile, die mit later() geplant wurden (Zusatzklaenge), laufen offline nicht mit */
+  const verpasst=timers.length-tw; timers.length=tw;
+  const buf=await off.startRendering(); const r=k6Auswerten(buf); r.verpasst=verpasst; return r; }
+/* Messung je Kugel: id, 'monster' (Urknall-Monster-Schlag mit Grollen),
+   alt=true: der Runde-5-Knall derselben Kugel (Gegenprobe) */
+function k6MessKnall(id,v,alt,nurHaupt,stufe){ v=v===undefined?0.19:v;
+  return k6Messen(()=>{ const a=K6_ALT5; K6_ALT5=!!alt; try{
+      if(stufe!==undefined&&stufe!==null){ const st=K6_MONSTER[id].stufen[stufe]; k6Knall(st[1],v); }
+      else if(id==='monster'){ k5Knall(KNALL5_MONSTER,v); grollen(7,0.9*k5Laut(v),160,0.4); }
+      else if(K6_MONSTER[id]) k6MonsterKnall(id,v,!nurHaupt);
+      else if(KNALL5[id]) k5Knall(KNALL5[id],v); }
+    finally { K6_ALT5=a; } },id==='monster'||(K6_MONSTER[id]&&!nurHaupt&&stufe==null)?12:8); }
+
+/* =========================================================
+   2. Silberdistel neu, Fackelhimmel mit Flammenzungen
+   ========================================================= */
+const k6F=()=>FW_RAUM?FW_RAUM.f:1;   /* Geschwindigkeiten, die ein Effekt spaeter direkt setzt, im Massstab des Bruchs */
+/* Silberdistel 75 (L14, Tom: "neu machen"): eine Distel, die verblueht.
+   Ein violetter Distelkopf, darum ein Kranz silberner Strahlen mit
+   feiner Spur; nach 1,2 s loest sich an jeder Strahlspitze ein Flaum-
+   buschel - fuenf, sechs silberweisse Glitzerfunken, die langsam
+   davonschweben, vom Wind seitlich getragen, und dabei funkeln. */
+EFF.silberdistel=function(p,A,B,s){ const q=QUAL(), G=1.8, T=1.25, n=Math.round(34*q)+16;
+  const wind=[rand(-1,1),0,rand(-1,1)], wl=Math.hypot(wind[0],wind[2])||1;
+  /* Distelkopf: dichte, kurze violette Sterne */
+  nKugel(Math.round(22*q)+10,1.5*s,v=>k5Stern(p,v,[1.25,.35,1.7],rand(1.5,1.9),1.0,{spur:0.04,weiss:0.25}));
+  nKugel(n,6.2*s,(v,i)=>{ k5Stern(p,v,[1.55,1.6,1.75],T,G,{spur:0.32,weiss:0.35});
+    kgSpaeter(T*rand(0.96,1.02),()=>{ const e=sternNach(p,v[0],v[1],v[2],G,T), a=SCHWEIF; SCHWEIF=0.02;
+      /* Flaumbueschel: zwei helle Koepfe und ein Woelkchen feiner Glitzerfaeden */
+      for(let j=0;j<2;j++){ const sp=rand(0.3,0.7);
+        psBig.emit(e.x,e.y,e.z,wind[0]/wl*1.1+rand(-sp,sp),rand(0.1,0.6),(wind[2]/wl*1.1+rand(-sp,sp)),1.7,1.72,1.85,rand(2.2,3.0),0.28,4); }
+      SCHWEIF=0.12; for(let j=0;j<Math.round(9*q)+3;j++){ const d=randDir(), sp=rand(0.4,1.1);
+        psMid.emit(e.x,e.y,e.z,wind[0]/wl*1.1+d[0]*sp,d[1]*sp+0.3,wind[2]/wl*1.1+d[2]*sp,1.45,1.48,1.6,rand(1.4,2.4),0.3,4); }
+      SCHWEIF=a; }); });
+  schall(p,x=>later(T,()=>sfx.rieseln(x*0.6,3))); };
+EFF_SCHWEIF.silberdistel=0.3; EFF_FAMILIE.silberdistel='haenger';
+/* Fackelhimmel 150 (Tom: "an sich geil, aber feine Textur viel besser -
+   nicht ein paar Punkte am Himmel, echte lodernde Flammen"). Vorher war
+   jede Flamme ein Kopf (psHuge) und 1-5 Zungen je 0,08 s - aus 100 m drei
+   Punkte. Jetzt hat jede Flamme einen Leib: an ihrem Fuss entstehen alle
+   0,05 s neue Flammenteilchen, die gleich schnell aufsteigen, sich nach
+   oben spitz zusammenlaufen und dabei abkuehlen (weissgelb -> orange -> dunkelrot,
+   Farbverlauf mode 2); ein weicher, dunkler Glutschein (psHuge) gibt
+   der Flamme Volumen, die Zunge flackert seitlich (gemeinsamer Wind,
+   eigener Takt), oben reissen Funken ab. So steht eine echte Flammen-
+   zunge von 4-6 m am Himmel, die zuengelt und lodert. */
+EFF.fackelhimmel=function(p,A,B,s){ const q=QUAL(), n=Math.round(6*s*q)+10, G=0.5, fl=[];
+  nKugel(n,4.6*s,v=>{ const T=rand(8.2,9.6), h=kgStern(psHuge,p,v,[1.4,.62,.16],T,G,0,0.01); fl.push({h,T,ph:rand(0,6.3),om:rand(5,9),gr:rand(1.0,1.4)}); });
+  const DT=0.05, F0=[2.3,1.9,1.1], F1=[2.2,1.05,.25], F2=[1.6,.38,.06], ROT=[.35,.05,.01];
+  for(let t=0.1;t<9.6;t+=DT){ const tt=t;
+    kgSpaeter(tt,()=>{ const a=SCHWEIF; SCHWEIF=0;
+      for(const L of fl){ if(tt>L.T-0.15) continue; const e=k5Pos(L.h); if(!e) continue;
+        const aus=tt>L.T-1.2?(L.T-tt)/1.2:1, flack=0.65+0.35*Math.sin(tt*L.om+L.ph)+rand(-0.15,0.15), hx=Math.sin(tt*2.3+L.ph)*0.8+Math.sin(tt*7.1+L.ph*2)*0.35, hz=Math.cos(tt*1.9+L.ph)*0.8+Math.cos(tt*6.3+L.ph)*0.35;
+        /* Leib der Flamme: 7-10 Teilchen am Fuss, steigen 6-9 m/s und
+           laufen zur Mitte zusammen (die Zunge wird oben spitz), kuehlen ab */
+        const nz=Math.round((q>0.7?9:5)*aus*flack*L.gr)+1;
+        for(let j=0;j<nz;j++){ const c=j%3?F1:F0, up=rand(5.5,9)*L.gr, r=rand(0,0.5)*L.gr, w=rand(0,6.3), ox=Math.cos(w)*r, oz=Math.sin(w)*r;
+          psBig.emit(e.x+ox,e.y+rand(-.2,.2),e.z+oz,hx*0.5-ox*1.4+rand(-.12,.12),up,hz*0.5-oz*1.4+rand(-.12,.12),c[0]*flack,c[1]*flack,c[2]*flack,rand(0.4,0.7),-0.6,2,ROT[0],ROT[1],ROT[2]); }
+        /* feine Flammenspitzen (psMid) - die Zunge franst nach oben aus */
+        for(let j=0;j<Math.round(5*q*aus)+1;j++) psMid.emit(e.x+rand(-.2,.2),e.y+rand(1.5,3.5)*L.gr,e.z+rand(-.2,.2),hx*0.9+rand(-.3,.3),rand(5,8),hz*0.9+rand(-.3,.3),F2[0]*1.3,F2[1]*1.4,F2[2],rand(0.25,0.5),-0.6,2,0.2,0.02,0);
+        /* Glutschein: weich und dunkelorange, gibt Volumen */
+        if(Math.random()<0.45*aus) psHuge.emit(e.x,e.y+rand(0.5,2.0)*L.gr,e.z,hx*0.4,rand(3,5),hz*0.4,0.6*flack,0.22*flack,0.04,rand(0.3,0.5),-0.4,2,0.12,0.02,0);
+        /* abreissende Funken */
+        if(Math.random()<0.35*q) psMid.emit(e.x,e.y+rand(1,2.2),e.z,rand(-1.2,1.2),rand(2.5,5),rand(-1.2,1.2),1.7,1.25,.5,rand(0.5,1.0),0.6,4);
+        kgFarbe(L.h,[1.4,.62,.16],0.6+0.5*flack*aus); }
+      SCHWEIF=a; }); }
+  for(const L of fl) kgSpaeter(L.T-0.1,()=>{ const e=k5Pos(L.h); if(e) k5Knister(e,Math.round(6*q)+3,1.6,[1.7,1.3,.6]); });
+  /* der Zuendkern: ein kurzer Glutball, der sofort zerfaellt */
+  for(let i=0;i<Math.round(40*q);i++){ const d=randDir(); kgStern(psBig,p,kgMal(d,rand(1.5,3)*s),F1,rand(0.5,0.9),1,0,0.05); }
+  schall(p,x=>{ sfx.fauchen(x*0.6,7,false); later(1.2,()=>sfx.fauchen(x*0.4,6)); later(7.6,()=>{ sfx.crackle(x*0.6); later(0.6,()=>sfx.crackle(x*0.45)); later(1.3,()=>sfx.crackle(x*0.3)); }); }); };
+
+/* =========================================================
+   3. Acht neue Koenigsklasse-Kugeln (Level 27-30). Tom: "richtig
+   intensiv, noch krasser als Urknall, jeweils mit verschiedenen
+   Effekten in einer Bombe (mehrstufig), Steigerung bis zur teuersten".
+   Jede hat einen eigenen Monster-Knall (K6_MONSTER: Hauptschlag und die
+   Schlaege ihrer Stufen, je am Ort der Stufe - Licht vor Schall).
+   ========================================================= */
+/* Monster-Rezepte (Grundlage K6_ART, groesser): Periode bis 34 ms, Tiefton
+   bis 16 Hz hinab, Rollen bis 8 s */
+const K6_MON={
+  sturm:{P:18,puls:1.0,lp:2200,knack:[0.4,1800,0.025],mitte:[0.55,700,0.5],tief:[50,22,1.4,0.8,6],koerper:[0.7,360,70,1.6],roll:[0.6,6,10,170],raum:'donner',hall:0.7,zisch:[0.1,4]},
+  eisbruch:{P:11,puls:1.1,lp:4600,knack:[0.75,3200,0.012],mitte:[0.55,700,0.5],tief:[78,30,1.1,0.65,5],koerper:[0.5,620,100,1.0],roll:[0.45,4.8,7,240],raum:'tal',hall:1.1},
+  faust:{P:22,puls:1.25,lp:2400,knack:[0.5,2000,0.02],mitte:[0.55,700,0.5],tief:[56,22,1.3,0.9,7],koerper:[0.75,380,70,1.4],roll:[0.5,5,8,180],raum:'stadt',hall:0.75},
+  vulkan:{P:27,puls:1.0,lp:1300,knack:[0.25,1400,0.03],mitte:[0.55,700,0.5],tief:[42,18,2.1,0.95,6],koerper:[0.85,260,55,2.3],roll:[0.72,7,12,150],raum:'donner',hall:0.6},
+  tiefraum:{P:25,puls:0.95,lp:1800,knack:[0.2,1600,0.025],mitte:[0.55,700,0.5],tief:[38,16,2.5,0.95,5],koerper:[0.6,300,60,2.0],roll:[0.62,7.5,9,160],raum:'tal',hall:1.15},
+  brandung:{P:20,puls:1.05,lp:2000,knack:[0.35,1900,0.02],mitte:[0.55,700,0.5],tief:[48,22,1.5,0.85,6],koerper:[0.78,340,65,1.8],roll:[0.68,6.5,10,190],raum:'donner',hall:0.7},
+  goetter:{P:30,puls:1.3,lp:2000,knack:[0.55,1900,0.03],mitte:[0.55,700,0.5],tief:[40,16,2.6,1.0,8],koerper:[0.9,320,50,2.6],roll:[0.85,8,13,160],raum:'donner',hall:0.75},
+  sturz:{P:34,puls:1.4,lp:1900,knack:[0.6,1800,0.035],mitte:[0.55,700,0.5],tief:[36,15,3.0,1.1,9],koerper:[1.0,300,45,3.0],roll:[0.95,8.5,14,150],raum:'donner',hall:0.85}
+};
+/* die neuen Kugeln sind dichter als alle anderen (Tom: "richtig intensiv") */
+const K6_DICHTE=1.8;
+const K6_M=(art,o)=>Object.assign({art,k6:true},K6_MON[art],o||{});
+/* je Kugel: haupt = Bruchknall (kk_<id>), stufen = [Zeit nach dem Bruch, Rezept, Name] */
+const K6_MONSTER={
+  herbststurm300:{haupt:K6_M('sturm',{f:1.0,laut:2.3,blitz:1.3}),stufen:[[0.9,K6_M('sturm',{f:1.25,laut:0.75,roll:[0.4,3.5,6,200],zisch:[0.16,3.5]}),'zuendschlag']]},
+  eiszeit300:{haupt:K6_M('eisbruch',{f:1.0,laut:0.68,blitz:1.4}),stufen:[[1.6,K6_M('eisbruch',{f:1.2,laut:0.85,P:8,roll:[0.3,3.2,5,300]}),'eis bricht'],[4.2,K6_M('eisbruch',{f:1.4,laut:0.55,P:6,tief:null,roll:[0.22,2.6,4,320],knister:[40,0.1,2.2,0.2]}),'eisregen']]},
+  titanenfaust300:{haupt:K6_M('faust',{f:1.0,laut:1.17,blitz:1.6}),stufen:[0,1,2,3,4].map(k=>[0.78+k*0.08,K6_M('faust',{f:1.15+k*0.07,laut:0.62,P:12,roll:k===4?[0.45,4,7,190]:null,koerper:[0.4,450,100,0.8]}),'finger'])},
+  lavastrom300:{haupt:K6_M('vulkan',{f:1.0,laut:2.8,blitz:1.3}),stufen:[[0.6,K6_M('vulkan',{f:1.3,laut:0.7,P:16,roll:[0.4,4,7,170]}),'ausbruch'],[3.7,K6_M('vulkan',{f:1.6,laut:0.4,P:9,tief:null,roll:null,knister:[60,0,2.4,0.22]}),'asche']]},
+  galaxie300:{haupt:K6_M('tiefraum',{f:1.0,laut:0.95,blitz:1.4}),stufen:[[2.2,K6_M('tiefraum',{f:1.35,laut:0.7,P:12,roll:[0.35,3.5,6,220],schlaege:[[0.08,0.6],[0.17,0.5],[0.27,0.4]]}),'sternhaufen']]},
+  sturmflut300:{haupt:K6_M('brandung',{f:1.0,laut:2.6,blitz:1.4}),stufen:[[1.4,K6_M('brandung',{f:1.1,laut:0.95,P:18}),'welle 1'],[1.95,K6_M('brandung',{f:0.95,laut:1.0,P:21}),'welle 2'],[2.6,K6_M('brandung',{f:1.25,laut:0.7,P:14,roll:[0.5,5,8,200]}),'gischt']]},
+  goetterdaemmerung300:{haupt:K6_M('goetter',{f:1.25,laut:1.0,P:16,blitz:1.2,roll:[0.5,3.5,6,190]}),stufen:[[1.15,K6_M('goetter',{f:1.1,laut:1.15,P:22,roll:[0.6,4.5,8,170]}),'zweiter schlag'],[2.45,K6_M('goetter',{f:0.95,laut:2.37,schlaege:[[0.1,0.7]],roll:[1.0,8,13,170]}),'goetterschlag']]},
+  himmelssturz300:{haupt:K6_M('sturz',{f:1.2,laut:1.09,P:18,blitz:1.3,roll:[0.55,4,7,200]}),stufen:[
+    ...[0,1,2,3,4,5].map(k=>[1.3+k*0.11,K6_M('sturz',{f:1.5+k*0.04,laut:0.6,P:9,tief:[90,40,0.5,0.45,4],koerper:[0.35,600,140,0.6],roll:k===5?[0.5,4,7,220]:null,knack:[0.55,2600,0.012]}),'donnerkranz']),
+    [2.7,K6_M('sturz',{f:0.95,laut:2.8,schlaege:[[0.12,0.85],[0.32,0.6]],roll:[1.15,9,15,170],mitte:[0.75,700,0.7]}),'himmelssturz'],[4.6,K6_M('sturz',{f:0.85,laut:2.33,P:30,knack:null,koerper:[0.7,220,40,2.6],roll:[0.8,7,10,120],tief:[30,14,3.2,1.1,9]}),'nachbeben']]}
+};
+for(const id in K6_MONSTER) KNALL5[id]=K6_MONSTER[id].haupt;
+/* Stufenknall am Ort e (Licht vor Schall) */
+function k6Stufe(id,k,e){ const M=K6_MONSTER[id]; if(!M||KNALL5_AUS) return; const st=M.stufen[k]; if(!st) return;
+  if(K5_LOG) K5_LOG.push({t:FW_UHR,id,stufe:k,art:st[2]});
+  schall(e,x=>{ if(K6_ALT5) return; k6Knall(st[1],x); }); }
+/* zur Messung: der ganze Klang einer Kugel (alle Stufen auf ihrer Zeit) */
+function k6MonsterKnall(id,v,alles){ const M=K6_MONSTER[id]; k5Knall(M.haupt,v); if(alles&&!K6_ALT5) M.stufen.forEach(([t,o])=>k6Knall(o,v,t)); }
+/* grosser Titanblitz mit Beben */
+function k6Titan(e,n,w,hell){ const q=QUAL(), a=SCHWEIF; SCHWEIF=0.05;
+  for(let i=0;i<4;i++) psHuge.emit(e.x,e.y,e.z,rand(-.4,.4),rand(-.4,.4),rand(-.4,.4),2.4,2.35,2.2,rand(0.08,0.14),0,0);
+  for(let i=0;i<Math.round(n*q);i++){ const d=randDir(), s=rand(0.6,1)*w; psMid.emit(e.x,e.y,e.z,d[0]*s,d[1]*s,d[2]*s,1.8,1.75,1.6,rand(0.1,0.22),0.5,0); }
+  SCHWEIF=a; flash(e,[1,1,1],(hell||1)*8,0.45); later(0.06,()=>flash(e,[1,.85,.6],(hell||1)*6,0.6));
+  { const v=distVol(e); shake=Math.max(shake,Math.min(1.6,0.8+v*2)); } }
+/* aufsteigender Kern (Bombe in der Bombe) mit hellem Schweif */
+function k6Kern(p,TK,fn,c){ const vk=[rand(-0.5,0.5),15,rand(-0.5,0.5)];
+  kgStern(psHuge,p,vk,c||[2,1.9,1.7],TK,2.4,0,0.4); rkFunken(p,vk,2.4,0.02,TK,80,[1.4,1.2,.8],{ps:psMid,life:[0.4,0.8],g:1.5,streu:0.3,mit:0.05,mode:4});
+  kgSpaeter(TK,()=>fn(sternNach(p,vk[0],vk[1],vk[2],2.4,TK))); }
+
+/* 1. HERBSTSTURM 300 (L27): eine goldorange Kamuro-Krone; nach 0,9 s
+   entzuenden sich vierzig Flammenblaetter, die flatternd und schaukelnd
+   herabsegeln (das chinesische "Falling Leaves") - jedes mit einer
+   kleinen Flamme -, zum Schluss steigt ein pfeifender Funkenschwarm
+   auf. Knall: Sturm - Boom mit langem, windigem Rollen. */
+EFF.herbststurm=function(p,A,B,s){ const q=QUAL()*K6_DICHTE, G=1.2;
+  k5Brokat(p,Math.round(60*q)+50,5.4*s,5.2,G,{glanz:6,staub:14,kopf:[1.95,1.15,.4]});
+  nKugel(Math.round(14*q)+8,1.8*s,v=>k5Stern(p,v,[1.8,.5,.1],rand(1.6,2.0),1.6,{spur:0.05}));
+  kgSpaeter(0.9,()=>{ k6Stufe('herbststurm300',0,p); const N=Math.round(34*q)+16, F=[[2.0,1.2,.35],[1.9,.75,.15],[1.7,.4,.08]];
+    for(let i=0;i<N;i++){ const d=randDir(), r=Math.cbrt(rand(0.15,1))*4.2*s, e={x:p.x+d[0]*r,y:p.y+d[1]*r*0.7,z:p.z+d[2]*r}, T=rand(4.8,6.2), c=F[i%3];
+      const h=kgStern(psHuge,e,[0,-0.3,0],c,T,0.25,0,0.02), ph=rand(0,6.3), om=rand(2.4,3.6), amp=rand(1.6,2.6), ax=rand(0,6.3);
+      k5Punkt(e,[2,1.6,.9],4,4,0.7);
+      for(let t=0.1;t<T-0.1;t+=0.1){ const tt=t; kgSpaeter(tt,()=>{ if(!kgLebt(h)) return; const j=h.i*3, V=h.ps.vel, f=k6F(), sw=Math.sin(om*tt+ph);
+        /* Blatt schaukelt: seitlich hin und her, sinkt schneller, wenn es kippt */
+        V[j]=Math.cos(ax)*sw*amp*f; V[j+2]=Math.sin(ax)*sw*amp*f; V[j+1]=-(0.6+0.9*Math.abs(Math.cos(om*tt+ph)))*f;
+        const P0=k5Pos(h), a=SCHWEIF; SCHWEIF=0; for(let k=0;k<(q>0.7?2:1);k++) psBig.emit(P0.x+rand(-.2,.2),P0.y,P0.z+rand(-.2,.2),rand(-.3,.3),rand(1.4,2.6),rand(-.3,.3),c[0],c[1],c[2],rand(0.3,0.5),-0.5,2,.3,.04,0); SCHWEIF=a; }); }
+      kgSpaeter(T-0.12,()=>{ const x=k5Pos(h); if(x) k5Knister(x,3,1.4,[1.7,1.2,.5]); }); }
+    schall(p,x=>{ sfx.fauchen(x*0.55,5.5); later(4.5,()=>sfx.crackle(x*0.6)); }); });
+  /* pfeifender Schwarm zum Schluss */
+  kgSpaeter(3.4,()=>{ k5Bruch(p,'pfeifschwarm',0.6); for(let i=0;i<Math.round(10*q)+8;i++){ const d=randDir(), v=[d[0]*2.2*s,Math.abs(d[1])*2.6*s+3,d[2]*2.2*s];
+      nKomet(p,v,[1.8,1.6,1.1],1.6,1.4,[1.3,1.1,.6],34); }
+    schall(p,x=>{ for(let k=0;k<5;k++) later(k*0.13,()=>sfx.pfeifTon(x*1.4,rand(-2,6),{dur:1.5})); }); }); };
+
+/* 2. EISZEIT 300 (L27): eine eisblaue Chrysantheme mit langen
+   Silberschleiern; bei 1,6 s bricht das Eis - jeder Stern zersplittert
+   in drei weisse Eissplitter (Kometen mit Spur, spitz auseinander),
+   dazwischen blitzen Eiskristalle (Strobe); bei 4,2 s taut alles zu
+   einer Silberweide, die knisternd herabrieselt. Knall: Eisbruch -
+   harter, heller Schlag und klare Echos vom Waldrand.
+   (09.10.: die erste Fassung mit eingefrorenen, stehenden Sternen war im
+   Render nur ein Feld loser Punkte - genau das, was Tom nicht will.) */
+EFF.eiszeit=function(p,A,B,s){ const q=QUAL()*K6_DICHTE, G=2.0, N=Math.round(40*q)+30, T1=1.6, sterne=[];
+  nKugel(N,6.4*s,v=>{ k5Stern(p,v,[.45,.8,1.9],T1+0.05,G,{spur:0.3,weiss:0.35}); k5Schleier(p,v,G,0.05,T1,[1.15,1.3,1.55],3,10,{sl:[0.8,1.3],sg:0.7}); sterne.push(v); });
+  nKugel(Math.round(10*q)+6,1.2*s,v=>kgStern(psHuge,p,v,[1.6,1.8,2.1],2.8,0.6,1,0));
+  kgSpaeter(T1,()=>{ k6Stufe('eiszeit300',0,p); k5Bruch(p,'eisbruch',0.8); flash(p,[.75,.88,1],5,0.25);
+    sterne.forEach(v=>{ const e=sternNach(p,v[0],v[1],v[2],G,T1), vv=bahnTempo(v,G,T1), l=Math.hypot(vv[0],vv[1],vv[2])||1, d=[vv[0]/l,vv[1]/l,vv[2]/l], [q1,q2]=quer(d), b0=rand(0,6.3);
+      for(let k=0;k<3;k++){ const b=b0+k*2.094, sp=2.4*Math.sqrt(s), dv=[d[0]*sp*0.8+(q1[0]*Math.cos(b)+q2[0]*Math.sin(b))*sp,d[1]*sp*0.8+(q1[1]*Math.cos(b)+q2[1]*Math.sin(b))*sp,d[2]*sp*0.8+(q1[2]*Math.cos(b)+q2[2]*Math.sin(b))*sp];
+        kgStern(psBig,e,dv,[1.75,1.85,2.05],rand(2.2,2.6),1.6,0,0.35); }
+      const a=SCHWEIF; SCHWEIF=0; for(let j=0;j<Math.round(3*q)+1;j++){ const r=randDir(), w=rand(0.8,2.2); psBig.emit(e.x,e.y,e.z,r[0]*w,r[1]*w,r[2]*w,1.9,1.95,2.1,rand(1.8,2.4),0.5,1); } SCHWEIF=a; }); });
+  kgSpaeter(4.2,()=>{ k6Stufe('eiszeit300',1,p); sterne.forEach((v,i)=>{ if(i%2) return; const e=sternNach(p,v[0],v[1],v[2],G,T1), w=[rand(-.5,.5),-0.3,rand(-.5,.5)];
+      const x={x:e.x+rand(-2,2)*s*0.3,y:e.y-rand(1,3),z:e.z+rand(-2,2)*s*0.3};
+      kgStern(psBig,x,w,[1.5,1.55,1.7],rand(2.4,3.0),1.4,4,0.4); rkFunken(x,w,1.4,0.05,2.4,16,[1.2,1.25,1.4],{ps:psMid,life:[0.7,1.2],g:1.0,streu:0.1,mit:0.1,mode:4}); });
+    schall(p,x=>sfx.rieseln(x*0.8,3.5)); }); };
+
+/* 3. TITANENFAUST 300 (L28): ein Titan-Salut - weisser Blitz, die Erde
+   bebt -, aus dem Blitz schiessen fuenf schwere Fingerbomben wie die
+   Finger einer sich oeffnenden Faust nach oben und aussen; jede bricht
+   nach 0,8 s mit eigenem Schlag zu einer Paeonie (Rot, Gold, Gruen, Blau,
+   Violett), zum Schluss sinkt eine Wolke aus Silberflitter. */
+const K6_FINGER=[[1.9,.18,.12],[1.9,1.3,.35],[.25,1.8,.45],[.3,.5,1.9],[1.3,.4,1.8]];
+EFF.titanenfaust=function(p,A,B,s){ const q=QUAL()*K6_DICHTE, G=2.0;
+  k6Titan(p,180,30,1.2);
+  nKugel(Math.round(60*q)+30,7.0*s,v=>{ kgStern(psBig,p,v,[1.85,1.85,1.95],0.9,G,0,0.3); });
+  const [u,w]=basisBlick(p,0.2);
+  for(let k=0;k<5;k++){ const a=Math.PI*(0.12+0.19*k), d=[u[0]*Math.cos(a)+w[0]*Math.sin(a)*1.0,u[1]*Math.cos(a)+w[1]*Math.sin(a)+0.25,u[2]*Math.cos(a)+w[2]*Math.sin(a)], l=Math.hypot(d[0],d[1],d[2]);
+    const v=kgMal([d[0]/l,d[1]/l,d[2]/l],5.6*s), T=0.78+k*0.08, c=K6_FINGER[k];
+    nKomet(p,v,[1.9,1.7,1.3],T,G,[1.3,1.1,.7],70);
+    kgSpaeter(T,()=>{ const e=sternNach(p,v[0],v[1],v[2],G,T); k6Stufe('titanenfaust300',k,e); k5Bruch(e,'finger',0.9); k5Punkt(e,mischF(c,[2,2,2],0.5),14,9,1);
+      k5HaltSammeln(()=>nKugel(Math.round(44*q)+26,3.4*s,vv=>k5Stern(e,vv,c,rand(2.2,2.6),2.0,{spur:0.14,weiss:0.3}))); }); }
+  kgSpaeter(2.3,()=>{ k5Bruch(p,'flitter',0.6); const a=SCHWEIF; SCHWEIF=0;
+    for(let i=0;i<Math.round(220*q)+60;i++){ const d=randDir(), r=Math.cbrt(Math.random())*6.5*s; psMid.emit(p.x+d[0]*r,p.y+d[1]*r,p.z+d[2]*r,rand(-.3,.3),rand(-.5,0),rand(-.3,.3),1.6,1.6,1.7,rand(1.8,2.8),0.4,3); }
+    SCHWEIF=a; schall(p,x=>{ sfx.rieseln(x*0.9,3); later(0.4,()=>sfx.crackle(x*0.7)); }); }); };
+
+/* 4. LAVASTROM 300 (L28): eine karminrote Brokatkugel bricht auf, bei
+   0,6 s speit der Kern 26 schwere Lavabrocken aus, die langsam und
+   schwer herabsinken und dabei breite, glutrote Glitzerstroeme ziehen;
+   wo ein Brocken verlischt, zerplatzt er zu knisternder Asche mit einem
+   goldenen Funken. Knall: Vulkan - tiefer, langer Druck und Grollen. */
+EFF.lavastrom=function(p,A,B,s){ const q=QUAL()*K6_DICHTE, G=1.4;
+  k5Brokat(p,Math.round(56*q)+34,5.2*s,4.2,G,{glanz:5,staub:12,kopf:[1.95,.5,.18]});
+  nKugel(Math.round(16*q)+10,2.0*s,v=>k5Stern(p,v,[1.8,.15,.05],rand(2.6,3.2),1.2,{spur:0.06}));
+  kgSpaeter(0.6,()=>{ k6Stufe('lavastrom300',0,p); k5Bruch(p,'ausbruch',0.8); flash(p,[1,.4,.1],5,0.6);
+    const n=Math.round(20*q)+14;
+    for(let i=0;i<n;i++){ const a=i/n*Math.PI*2+rand(-0.2,0.2), el=rand(-0.2,0.9), sp=rand(3.4,4.4)*s, v=[Math.cos(a)*Math.cos(el)*sp,Math.sin(el)*sp,Math.sin(a)*Math.cos(el)*sp], T=rand(3.0,3.5);
+      k5Tiger(p,v,[1.5,.38,.06],T,3.0,{glanz:8,staub:30,gold:0.25});
+      kgSpaeter(T*0.98,()=>{ const e=sternNach(p,v[0],v[1],v[2],3.0,T); k5Knister(e,Math.round(7*q)+3,2.4,[1.6,.9,.4]); psHuge.emit(e.x,e.y,e.z,0,0,0,1.8,1.2,.4,0.08,0,0);
+        for(let j=0;j<Math.round(5*q)+2;j++){ const d=randDir(); kgStern(psBig,e,kgMal(d,rand(1.2,2.0)),[1.6,1.1,.35],rand(0.6,1.0),2,4,0.06); } }); }
+    schall(p,x=>sfx.fauchen(x*0.5,3.5)); });
+  kgSpaeter(3.7,()=>k6Stufe('lavastrom300',1,p)); };
+
+/* 5. GALAXIE 300 (L29): eine Spiralgalaxie - zwei Arme aus Gold, nach
+   aussen blauweiss, liegen als schraege Scheibe am Himmel und drehen
+   sich langsam; im Kern pulsiert ein weisser Blinkstern-Haufen; bei
+   2,2 s zerspringen die Armsterne zu kleinen silbernen Sternhaufen
+   (Crossetten). Knall: Tiefraum - sehr tiefer Druck, schwellendes
+   Brummen, Echo vom Tal. */
+EFF.galaxie=function(p,A,B,s){ const q=QUAL()*K6_DICHTE, G=0.9, [u,w]=basisBlick(p,0.55), n=Math.round(150*q)+70, arme=[];
+  const nrm=[u[1]*w[2]-u[2]*w[1],u[2]*w[0]-u[0]*w[2],u[0]*w[1]-u[1]*w[0]];
+  for(let i=0;i<n;i++){ const arm=i%2, x=rand(0.12,1), th=arm*Math.PI+x*4.2+rand(-0.18,0.18), sp=(1.2+6.4*x)*s;
+    const d=[u[0]*Math.cos(th)+w[0]*Math.sin(th)*0.85+nrm[0]*rand(-.06,.06),u[1]*Math.cos(th)+w[1]*Math.sin(th)*0.85+nrm[1]*rand(-.06,.06),u[2]*Math.cos(th)+w[2]*Math.sin(th)*0.85+nrm[2]*rand(-.06,.06)];
+    const c=x<0.45?[1.9,1.4,.55]:mischF([.55,.75,1.9],[1.7,1.75,1.9],(x-0.45)), h=k5Stern(p,kgMal(d,sp),c,3.4,G,{spur:0.22,weiss:0.3}); arme.push({h,x,th});
+    if(i%4===0) rkFunken(p,kgMal(d,sp),G,0.05,2.0,12,mischF(c,[1,1,1],0.3),{ps:psMid,life:[0.7,1.2],g:0.6,streu:0.1,mit:0.05,mode:4}); }
+  /* die Scheibe dreht sich: jeder Stern bekommt eine Querkomponente */
+  for(let t=0.15;t<2.2;t+=0.15){ const tt=t; kgSpaeter(tt,()=>{ const f=k6F(); arme.forEach(({h,x})=>{ if(!kgLebt(h)) return; const j=h.i*3, V=h.ps.vel, r=[V[0+j],V[1+j],V[2+j]];
+      const t2=[nrm[1]*r[2]-nrm[2]*r[1],nrm[2]*r[0]-nrm[0]*r[2],nrm[0]*r[1]-nrm[1]*r[0]], k=0.07*(1.4-x);
+      V[j]+=t2[0]*k; V[j+1]+=t2[1]*k; V[j+2]+=t2[2]*k; }); }); }
+  /* pulsierender Kern */
+  nKugel(Math.round(22*q)+14,0.9*s,v=>kgStern(psHuge,p,v,[1.9,1.9,2.1],rand(3.6,4.4),0.3,1,0));
+  nKugel(Math.round(30*q)+10,1.6*s,v=>kgStern(psBig,p,v,[1.8,1.6,1.1],rand(2.6,3.2),0.4,1,0));
+  kgSpaeter(2.2,()=>{ k6Stufe('galaxie300',0,p); arme.forEach(({h,x},i)=>{ if(i%2||!kgLebt(h)) return; const [o,v]=kgOrt(h), [q1,q2]=quer([v[0],v[1],v[2]].map(z=>z/(Math.hypot(v[0],v[1],v[2])||1))), b0=rand(0,6.3);
+      kgSpaeter(rand(0,0.3),()=>{ for(let k=0;k<4;k++){ const b=b0+k*Math.PI/2, sp=2.6*Math.sqrt(s), dv=[(q1[0]*Math.cos(b)+q2[0]*Math.sin(b))*sp,(q1[1]*Math.cos(b)+q2[1]*Math.sin(b))*sp,(q1[2]*Math.cos(b)+q2[2]*Math.sin(b))*sp];
+        kgStern(psBig,o,dv,[1.6,1.7,1.95],rand(0.9,1.2),1.4,0,0.25); } psHuge.emit(o.x,o.y,o.z,0,0,0,1.6,1.7,2,0.05,0,0); }); });
+    k5Bruch(p,'sternhaufen',0.7); schall(p,x=>later(0.1,()=>BRUCH_KLAENGE.kaskade(k5Laut(x)*0.9))); }); };
+
+/* 6. STURMFLUT 300 (L29): drei Wellen - ein flacher Ring aus blauweissen
+   Tigerkometen rollt nach aussen und bricht bei 1,4 s wie eine Welle:
+   an jeder Spitze stuerzt Silbergischt herab; 0,5 s spaeter eine
+   goldene Welle tiefer, die bei 1,95 s bricht, zuletzt eine weisse
+   Welle nach oben. Jede Brandung mit eigenem Schlag. */
+EFF.sturmflut=function(p,A,B,s){ const q=QUAL()*K6_DICHTE, G=2.2;
+  const welle=(t0,c,el,T,sp,k,gischt)=>kgSpaeter(t0,()=>{ const n=Math.round(26*q)+18, a0=rand(0,6.3);
+    for(let i=0;i<n;i++){ const a=a0+i/n*Math.PI*2, e=el+rand(-0.06,0.06), v=[Math.cos(a)*Math.cos(e)*sp,Math.sin(e)*sp,Math.sin(a)*Math.cos(e)*sp];
+      k5Tiger(p,v,c,T,G,{glanz:8,staub:24});
+      kgSpaeter(T*rand(0.98,1.02),()=>{ const x=sternNach(p,v[0],v[1],v[2],G,T), vv=bahnTempo(v,G,T), a2=SCHWEIF; SCHWEIF=0.3;
+        for(let j=0;j<Math.round(8*q)+3;j++) psBig.emit(x.x,x.y,x.z,vv[0]*0.25+rand(-1,1),rand(-2.5,0.5),vv[2]*0.25+rand(-1,1),gischt[0],gischt[1],gischt[2],rand(1.4,2.2),2.6,4);
+        SCHWEIF=a2; if(i%4===0) k5Knister(x,3,1.6,[1.7,1.75,1.9]); }); }
+    if(k!==null) kgSpaeter(T,()=>{ k6Stufe('sturmflut300',k,p); k5Bruch(p,'brandung',0.8); }); });
+  welle(0,[.45,.75,1.9],0.05,1.4,7.4*s,0,[1.5,1.6,1.8]);
+  welle(0.5,[1.6,1.1,.3],-0.28,1.45,6.8*s,1,[1.7,1.4,.7]);
+  welle(1.1,[1.6,1.65,1.8],0.45,1.5,6.2*s,2,[1.6,1.65,1.8]);
+  nKugel(Math.round(16*q)+8,1.4*s,v=>k5Stern(p,v,[1.4,1.6,1.9],2.4,1.4,{spur:0.05})); };
+
+/* 7. GOETTERDAEMMERUNG 300 (L30): drei Schlaege, jeder hoeher und
+   groesser - eine blutrote Paeonie; der Kern steigt weiter und bricht
+   zu einer schweren Goldpalme mit Brokat; ein zweiter Kern steigt noch
+   hoeher und zerreisst im Goetterschlag: Titanblitz, eine riesige weisse
+   Chrysantheme mit Silberschleier und ein Knistern ueber den ganzen
+   Himmel. */
+EFF.goetterdaemmerung=function(p,A,B,s){ const q=QUAL()*K6_DICHTE, G=2.2;
+  nKugel(Math.round(60*q)+34,5.4*s,v=>k5Stern(p,v,[1.9,.2,.1],2.2,G,{spur:0.16,weiss:0.25}));
+  k6Kern(p,1.15,e=>{ k6Stufe('goetterdaemmerung300',0,e); k5Bruch(e,'goldpalme',1.0); k6Titan(e,60,16,0.6);
+    k5HaltSammeln(()=>{ const n=Math.round(6*q)+10;
+      for(let i=0;i<n;i++){ const a=i/n*Math.PI*2, el=rand(0.05,0.6), sp=6.2*s, v=[Math.cos(a)*Math.cos(el)*sp,Math.sin(el)*sp+1.2*s,Math.sin(a)*Math.cos(el)*sp]; k5Tiger(e,v,[1.7,1.15,.35],2.8,2.6,{glanz:10,staub:30,gold:0.6}); }
+      k5Brokat(e,Math.round(16*q)+14,3.4*s,4.2,1.2,{glanz:4,staub:9}); });
+    k6Kern(e,1.3,e2=>{ k6Stufe('goetterdaemmerung300',1,e2); k5Bruch(e2,'goetterschlag',1.6); k6Titan(e2,200,34,1.4);
+      k5HaltSammeln(()=>{ const S=s*1.3;
+        nKugel(Math.round(100*q)+50,7.8*S,v=>{ kgStern(psBig,e2,v,[1.85,1.85,1.95],rand(2.8,3.2),G,4,0.3); });
+        nKugel(Math.round(12*q)+8,7.4*S,v=>k5Schleier(e2,v,G,0.05,2.6,[1.25,1.28,1.38],3,12,{sl:[0.6,1.1]}));
+        nKugel(Math.round(18*q)+12,4.4*S,v=>k5Stern(e2,v,[1.9,1.4,.5],2.6,G,{spur:0.12})); });
+      kgSpaeter(1.7,()=>{ for(let i=0;i<Math.round(90*q)+30;i++){ const d=randDir(), r=Math.cbrt(Math.random())*7.5*s*1.3, x={x:e2.x+d[0]*r,y:e2.y+d[1]*r-2,z:e2.z+d[2]*r};
+          kgSpaeter(rand(0,1.6),()=>k5Knister(x,Math.round(4*q)+2,2.4,[1.75,1.65,1.4])); }
+        schall(e2,x=>{ sfx.crackle(x); later(0.4,()=>sfx.crackle(x*0.85)); later(0.9,()=>sfx.crackle(x*0.7)); }); }); },[2,1.6,1]); },[2,1.4,1]); };
+
+/* 8. HIMMELSSTURZ 300 (L30, die letzte und teuerste): eine riesige
+   Crossette-Palme aus Goldtigern, deren Arme bei 1,0 s in je vier
+   Silberkometen zerspringen; dann laeuft ein Donnerkranz aus 24 Salut-
+   schlaegen um die Palme (Blitz um Blitz); bei 2,7 s der Himmelssturz:
+   doppelter Titanblitz, eine gewaltige Goldkrone (Kamuro), die sich bis
+   fast zum Boden senkt, darin eine weisse Chrysantheme; bei 4,6 s
+   knistert die ganze Krone, und ein Nachbeben rollt ueber die Stadt -
+   der groesste Knall im Spiel. */
+EFF.himmelssturz=function(p,A,B,s){ const q=QUAL()*K6_DICHTE, G=2.2;
+  /* Auftakt: dichter weissgoldener Strauss um die Palme */
+  nKugel(Math.round(40*q)+30,4.6*s,v=>k5Stern(p,v,[1.9,1.55,.8],1.3,G,{spur:0.22,weiss:0.4}));
+  const n=Math.round(12*q)+14, a0=rand(0,6.3);
+  for(let i=0;i<n;i++){ const a=a0+i/n*Math.PI*2, el=rand(0.0,0.7), sp=6.6*s, v=[Math.cos(a)*Math.cos(el)*sp,Math.sin(el)*sp+1.0*s,Math.sin(a)*Math.cos(el)*sp];
+    k5Tiger(p,v,[1.6,1.1,.3],1.0,G,{glanz:8,staub:24,gold:0.6});
+    kgSpaeter(1.0,()=>{ const e=sternNach(p,v[0],v[1],v[2],G,1.0), vv=bahnTempo(v,G,1.0), l=Math.hypot(vv[0],vv[1],vv[2])||1, [q1,q2]=quer([vv[0]/l,vv[1]/l,vv[2]/l]), b0=rand(0,6.3);
+      for(let k=0;k<4;k++){ const b=b0+k*Math.PI/2, sp2=3.6*Math.sqrt(s), dv=[(q1[0]*Math.cos(b)+q2[0]*Math.sin(b))*sp2+vv[0]*0.4,(q1[1]*Math.cos(b)+q2[1]*Math.sin(b))*sp2+vv[1]*0.4,(q1[2]*Math.cos(b)+q2[2]*Math.sin(b))*sp2+vv[2]*0.4];
+        nKomet(e,dv,[1.7,1.75,1.9],1.4,2.6,[1.2,1.2,1.3],22); }
+      psHuge.emit(e.x,e.y,e.z,0,0,0,1.8,1.6,1.2,0.05,0,0); }); }
+  /* Donnerkranz: 24 Salutschlaege im Kreis, sechs Klanggruppen */
+  const [u,w]=basisBlick(p,0.15), R=7.6*s, b0=rand(0,6.3);
+  for(let k=0;k<24;k++){ const a=b0+k/24*Math.PI*2, e={x:p.x+(u[0]*Math.cos(a)+w[0]*Math.sin(a))*R,y:p.y+(u[1]*Math.cos(a)+w[1]*Math.sin(a))*R,z:p.z+(u[2]*Math.cos(a)+w[2]*Math.sin(a))*R};
+    kgSpaeter(1.3+k*0.028,()=>{ k5Punkt(e,[2.2,2.15,2.0],Math.round(14*q)+6,12,1.2); k5Bruch(e,'salut',0.5); if(k%4===0){ flash(e,[1,.95,.85],4,0.12); k6Stufe('himmelssturz300',k/4,e); } }); }
+  /* der Himmelssturz */
+  kgSpaeter(2.7,()=>{ k6Stufe('himmelssturz300',6,p); k5Bruch(p,'himmelssturz',2.0); k6Titan(p,240,38,1.6); later(0.12,()=>k6Titan(p,80,26,1.2));
+    k5HaltSammeln(()=>{ const S=s*1.25;
+      k5Brokat(p,Math.round(90*q)+60,6.6*S,7.2,0.9,{glanz:7,staub:15,kopf:[1.95,1.5,.75]});
+      nKugel(Math.round(70*q)+30,5.0*S,v=>{ kgStern(psBig,p,v,[1.85,1.88,1.98],rand(2.4,2.8),G,4,0.28); }); });
+    schall(p,x=>later(1.5,()=>sfx.rieseln(x*1.0,5.5))); });
+  kgSpaeter(4.6,()=>{ k6Stufe('himmelssturz300',7,p);
+    for(let i=0;i<Math.round(120*q)+40;i++){ const d=randDir(), r=Math.cbrt(Math.random())*8*s, x={x:p.x+d[0]*r,y:p.y+d[1]*r-6,z:p.z+d[2]*r};
+      kgSpaeter(rand(0,1.8),()=>k5Knister(x,Math.round(4*q)+2,2.4,[1.8,1.5,.8])); }
+    schall(p,x=>{ sfx.crackle(x); later(0.5,()=>sfx.crackle(x*0.9)); later(1.0,()=>sfx.crackle(x*0.75)); later(1.6,()=>sfx.crackle(x*0.6)); }); }); };
+
+/* ---------- Eintraege der neuen Kugeln ---------- */
+Object.assign(EFF_FAMILIE,{herbststurm:'haenger',eiszeit:'kugel',titanenfaust:'kugel',lavastrom:'haenger',galaxie:'kugel',sturmflut:'komet',goetterdaemmerung:'kugel',himmelssturz:'haenger'});
+Object.assign(EFF_SCHWEIF,{fackelhimmel:0.0,herbststurm:0.1,eiszeit:0.2,titanenfaust:0.16,lavastrom:0.12,galaxie:0.18,sturmflut:0.16,goetterdaemmerung:0.16,himmelssturz:0.14});
+const K6_KUGEL={
+  herbststurm300:{th:'glut',haupt:'herbststurm',A:'gold',B:'orange',steig:'brokat',abschuss:'goldfontaene',flash:0.8},
+  eiszeit300:{th:'nacht',haupt:'eiszeit',A:'himmel',B:'silber',steig:'blink',flash:0.8},
+  titanenfaust300:{th:'silber',haupt:'titanenfaust',A:'silber',B:'gold',steig:'titanspur',abschuss:'kometen',flash:1.0},
+  lavastrom300:{th:'glut',haupt:'lavastrom',A:'rot',B:'orange',steig:'glut',abschuss:'goldfontaene',flash:0.8},
+  galaxie300:{th:'nacht',haupt:'galaxie',A:'gold',B:'blau',steig:'komet',flash:0.7},
+  sturmflut300:{th:'nacht',haupt:'sturmflut',A:'blau',B:'gold',steig:'titanspur',abschuss:'farbkometen',flash:0.8},
+  goetterdaemmerung300:{th:'koenig',haupt:'goetterdaemmerung',A:'rot',B:'gold',steig:'kometenkopf',abschuss:'kometen',flash:0.9},
+  himmelssturz300:{th:'gold',haupt:'himmelssturz',A:'gold',B:'silber',steig:'titanspur',abschuss:'goldfontaene',flash:1.0}
+};
+for(const id in K6_KUGEL){ const k=K6_KUGEL[id];
+  KUGEL[id]=Object.assign({},KAL_WERTE[5],{kal:5,th:k.th,haupt:k.haupt,A:k.A,B:k.B,steig:k.steig,abschuss:k.abschuss,bruchOpt:{kern:false,nachglitzer:false,flash:k.flash},stufen:[]}); }
+Object.assign(SIGNATUR,{
+  silberdistel75:{eff:'silberdistel',text:'Violetter Distelkopf, Silberstrahlen, an jeder Spitze schwebt ein Flaumbüschel davon'},
+  fackelhimmel150:{eff:'fackelhimmel',text:'Dreißig lodernde Flammenzungen, die fast zehn Sekunden am Himmel stehen'},
+  herbststurm300:{eff:'herbststurm',text:'Goldorange Kamuro, vierzig flatternde Flammenblätter, pfeifender Schwarm'},
+  eiszeit300:{eff:'eiszeit',text:'Eisblaue Chrysantheme zersplittert in Eissplitter und Kristalle, taut zur Silberweide'},
+  titanenfaust300:{eff:'titanenfaust',text:'Titan-Salut, fünf Fingerbomben mit eigenem Schlag, Silberflitter'},
+  lavastrom300:{eff:'lavastrom',text:'Karminbrokat, schwere Lavabrocken mit Glutströmen, knisternde Asche'},
+  galaxie300:{eff:'galaxie',text:'Drehende Spiralgalaxie in Gold und Blau, pulsierender Kern, Sternhaufen'},
+  sturmflut300:{eff:'sturmflut',text:'Drei Wellen aus Tigerkometen brechen nacheinander zu Gischt'},
+  goetterdaemmerung300:{eff:'goetterdaemmerung',text:'Rot, dann Goldpalme, dann der Götterschlag - drei Schläge, jeder höher'},
+  himmelssturz300:{eff:'himmelssturz',text:'Crossette-Palme, Donnerkranz aus 24 Schlägen, Titansturz mit riesiger Goldkrone'}
+});
+/* gestrichen (02i): Bruchbild, Knall und Eintrag weg */
+for(const id of ['aurora200','granatapfel200','sonnensturm300','drachennest300']){ delete KUGEL[id]; delete KNALL5[id]; delete SIGNATUR[id]; delete K5_RAUM[id]; delete K5_TON_ALT[id]; }
+
+/* ---------- Groesse (FW_RAUM, 14u) ----------
+   Tom: "ALLE Kugeln groesser, auch die ersten Stufen; Tigerkrone,
+   Farbcrossette, Blitzpalme, Sternensturm viel groesser". Gemessen
+   (Durchmesser von 90 % der Sterne, Vorfuehrung), vorher -> Ziel:
+   75 mm 79-86 -> ~110 m, 100 mm 84-88 -> ~118 m, Profi 150 109-120 ->
+   150 m (Tigerkrone, Farbcrossette 165 m), Profi 200 112-120 -> 155-160 m
+   (Blitzpalme 178 m), Koenigsklasse 118-128 -> ~170 m (Sternensturm
+   190 m), Urknall 181 -> 205 m, die neuen 210-260 m. Werte nach der
+   Messung eingestellt (Tabelle UEBERGABE.md 5.3). */
+const K6_RAUM={
+  kugel75:4.0,silberdistel75:5.5,hummelschwarm75:3.1,goldbrokat100:3.4,kugel100:2.26,blauregen100:4.8,
+  fackelhimmel150:5.2,crossettennetz150:3.8,tigerkrone150:3.47,farbcrossette150:4.05,wetterleuchten150:3.7,
+  schatztruhe200:3.35,bluetenhagel200:3.4,kronenkranz200:2.34,zwillingssonne200:1.78,blitzpalme200:6.9,goldweidenkreuz200:2.83,
+  kugel300:2.76,kanonade300:4.6,sternensturm300:3.49,riesenpalme300:2.92,ringnebel300:2.99,kometensturm300:2.32,urknall300:2.36,
+  herbststurm300:4.5,eiszeit300:3.6,titanenfaust300:3.7,lavastrom300:4.8,galaxie300:4.6,sturmflut300:4.5,goetterdaemmerung300:2.5,himmelssturz300:3.85};
+for(const id of Object.keys(K6_RAUM)) if(KUGEL[id]) KUGEL[id].raum=K6_RAUM[id];
+
+/* ---------- Knall fuer die neuen Kugeln ---------- */
+for(const id in K6_MONSTER){ if(!KUGEL[id]) continue; K5_TON_ALT[id]=null; KUGEL[id].ton='kk_'+id; sfx['kk_'+id]=(v,s)=>k5KnallId(id,v,s); }
+
+try{ window.__kg6={K6_ART,K6_MON,K6_MONSTER,K6_RAUM,K6_WAHL,messen:k6MessKnall,messenFn:k6Messen,alt5(f){ K6_ALT5=!!f; },istAlt5:()=>K6_ALT5,aus(f){ K6_AUS=!!f; }}; }catch(e){}
 
 /* =========================================================
    Spieler
@@ -50736,6 +51478,1538 @@ function handbuchHTML(){
   ];
   return A.map(([t,h])=>`<h4>${t}</h4>${h}`).join('');
 }
+/* =========================================================
+   Grosse Halle nach Ausbauplan v7 (Tom, 10.10.2026)
+
+   Eigenstaendig ladbarer Bereich: Logistikhalle mit Hochregal (3 Gassen,
+   Regalbediengeraete, I/O, Anbruch), Wareneingang an R2-R4, Schnellplaetze,
+   Packmaterial, Kartonlager 3 mit gelber Wand und Tor N1, Schleuse 13 m und
+   der Produktion im Westfluegel (3 Strassen: Raketen, Kugelbomben,
+   Batterien, R6 Rohstoff rein, R5 Fertigware raus).
+
+   Gleiche Weltkoordinaten wie das Hauptspiel (LAY, LHALLE, WRAMPEN ...).
+   Schnittstelle (siehe docs/halle/zusammenfuehrung.md):
+     hallLaden(opts, fortschritt(anteil,text), fertig)  - in Schritten, mit Ladebalken
+     hallBauen(opts)      - alles auf einmal
+     hallAbbauen()        - alles wieder weg, Speicher frei
+     hallSichtbar(v)      - ein-/ausblenden samt Kollision
+     hallTick(dt)         - Animation (Roboter, Baender)
+     hallMessen()         - Zeichenaufrufe und Dreiecke je Bereich
+   opts.umfeld: Lager 1/2, Boden draussen, Hof - nur im eigenstaendigen Modus;
+   im Hauptspiel stehen diese Teile schon.
+   ========================================================= */
+const HV7=(()=>{
+  const H=LAY.lwest;
+  const g=[]; for(let k=0;k<3;k++){ const z0=-27.8+k*4.67; g.push({k,a0:z0,a1:z0+1.2,mitte:z0+2.0,b0:z0+2.8,b1:z0+4.0}); }
+  return {
+    halle:{x0:H.x0,x1:H.x1,z0:H.z0,z1:H.z1}, H:LOGI_STUFEN[2].h,
+    prod:{x0:-101.0,x1:H.x0,z0:H.z0,z1:H.z1}, PH:5.0,
+    kl3:{x0:-36.0,x1:LAY.lsued.x0,z0:-17.0,z1:H.z1},
+    schleuse:{x0:LAY.schleuse.x0,x1:LAY.schleuse.x1,z0:LAY.lsued.z0,z1:LAY.schleuse.z1},
+    sDurch:{z0:-26.9,z1:-23.1},                 /* Durchgang Halle -> Schleuse (3,8 m) */
+    sOffen:{z0:-21.6,z1:-17.2},                 /* Schleuse -> Lager Sued, offen */
+    hr:{x0:-65.7,x1:-48.3,z0:-28.0,z1:-14.0,felder:6,fb:2.9,ebenen:[0,1.9,3.8,5.7,7.6],hoehe:9.95},
+    gassen:g,
+    io:{x0:-48.3,x1:-46.0},
+    anbruch:{x0:-46.0,x1:-42.0,z0:-28.0,z1:-14.0},
+    we:{x0:-50.0,x1:-26.6,z0:-33.8,z1:-28.6},
+    pack:{x0:-41.5,x1:-33.0,z0:-27.5,z1:-23.0},
+    schnell:{x0:-65.4,n:13,dx:1.5,z0:-9.6,z1:-7.4},
+    n1:{x:-36.0,z0:-13.6,z1:-10.4,h:3.2},
+    tore:[{n:'R2',x:WRAMPEN[0]},{n:'R3',x:WRAMPEN[1]},{n:'R4',x:WRAMPEN[2]}],
+    ptore:[{n:'R6',x:-92.0,was:'Rohstoffe'},{n:'R5',x:-74.0,was:'Fertigware'}],
+    bunker:[{x0:-100.4,x1:-95.6},{x0:-89.2,x1:-84.4},{x0:-84.0,x1:-79.2}],
+    pTueren:[{z0:-33.3,z1:-29.7},{z0:-13.6,z1:-10.4}],   /* Halle <-> Produktion */
+    strassen:[{id:'raketen',name:'RAKETEN',z:g[0].mitte},{id:'kugeln',name:'KUGELBOMBEN',z:g[1].mitte},{id:'batterien',name:'BATTERIEN',z:g[2].mitte}],
+    raum:{x0:-101.6,x1:-7.6,z0:-35.6,z1:6.4}
+  };
+})();
+
+/* Zustand der Halle. g haengt erst beim Bauen in der Szene. */
+const HALLE={g:null,bereiche:{},cols:[],anim:[],lampen:[],gebaut:false,sichtbar:true,zeiten:{},opts:null,res:[],licht:null,t:0};
+/* Qualitaet je Grafikstufe: Ultra Low/Niedrig sparen Kartons, Rollen und Rundungen */
+function hvQ(){ const r=gfxRang(GFX); return {fein:r>=1, rund:r>=0?12:8, rollen:r>=0, karton:r>=1, folie:r>=2, tx:GFX==='ultralow'?0.5:1}; }
+
+/* ---------- Bereiche, Ressourcen, Kollision ---------- */
+function hvBereich(name){
+  if(HALLE.bereiche[name]) return HALLE.bereiche[name];
+  const g=new THREE.Group(); g.name='halle:'+name; g.userData._bnd=true; HALLE.g.add(g); HALLE.bereiche[name]=g; return g;
+}
+function hvRes(o){ HALLE.res.push(o); return o; }
+function hvCol(x0,x1,z0,z1){ const c={minX:Math.min(x0,x1),maxX:Math.max(x0,x1),minZ:Math.min(z0,z1),maxZ:Math.max(z0,z1),ref:null,halle:true}; HALLE.cols.push(c); if(HALLE.sichtbar) colliders.push(c); return c; }
+function hvLampe(x,y,z){ HALLE.lampen.push({x,y,z}); }
+
+/* ---------- prozedurale Texturen (Ideen aus docs/bilder/referenz/szene/tex.js) ---------- */
+function hvRng(seed){ let s=seed>>>0; return ()=>{ s=(s+0x6D2B79F5)|0; let t=Math.imul(s^(s>>>15),1|s); t=(t+Math.imul(t^(t>>>7),61|t))^t; return ((t^(t>>>14))>>>0)/4294967296; }; }
+/* kachelbares Wertrauschen, mehrere Oktaven, Werte 0..1 */
+function hvFbm(w,h,seed,sx,oct,gain){
+  const out=new Float32Array(w*h), fns=[];
+  for(let o=0;o<oct;o++){ const P=sx<<o, R=hvRng(seed*31+o*7), gr=new Float32Array(P*P); for(let i=0;i<gr.length;i++) gr[i]=R(); fns.push({P,gr}); }
+  let norm=0, a=1; for(let o=0;o<oct;o++){ norm+=a; a*=gain; }
+  for(let y=0;y<h;y++) for(let x=0;x<w;x++){
+    let v=0; a=1;
+    for(let o=0;o<oct;o++){ const {P,gr}=fns[o], fx0=x/w*P, fy0=y/h*P, xi=Math.floor(fx0), yi=Math.floor(fy0);
+      let fx=fx0-xi, fy=fy0-yi; fx=fx*fx*(3-2*fx); fy=fy*fy*(3-2*fy);
+      const x0=xi%P, y0=yi%P, x1=(x0+1)%P, y1=(y0+1)%P, A=gr[y0*P+x0], B=gr[y0*P+x1], C=gr[y1*P+x0], D=gr[y1*P+x1];
+      v+=a*(A+(B-A)*fx+(C-A)*fy+(A-B-C+D)*fx*fy); a*=gain; }
+    out[y*w+x]=v/norm; }
+  return out;
+}
+function hvFeldMalen(g,W,H,f,fn){ const id=g.createImageData(W,H); for(let i=0;i<W*H;i++){ const c=fn(f[i],i); id.data[i*4]=c[0]; id.data[i*4+1]=c[1]; id.data[i*4+2]=c[2]; id.data[i*4+3]=255; } g.putImageData(id,0,0); }
+function hvTex(w,h,fn,srgb,rep){ const q=hvQ(); const W=Math.max(16,Math.round(w*q.tx)), Hh=Math.max(16,Math.round(h*q.tx));
+  const t=hvRes(tex(W,Hh,fn,srgb)); t.wrapS=t.wrapT=THREE.RepeatWrapping; if(rep) t.repeat.set(rep[0],rep[1]); return t; }
+
+/* Hallenboden: geschliffener, versiegelter Beton - hell, leicht wolkig, Quarzsprenkel. Kachel 4 x 4 m. */
+function hvBodenTex(){
+  return hvTex(512,512,(g,W,H)=>{
+    const f=hvFbm(W,H,3,4,5,0.55), f2=hvFbm(W,H,12,2,3,0.5);
+    hvFeldMalen(g,W,H,f,(v,i)=>{ const k=0.88+0.24*v+0.12*(f2[i]-0.5); return [158*k,161*k,164*k]; });
+    const R=hvRng(4);
+    for(let i=0;i<W*H/70;i++){ const l=R()<0.5?255:40; g.fillStyle=`rgba(${l},${l},${l},${0.03+R()*0.06})`; const s=1+R()*1.6; g.fillRect(R()*W,R()*H,s,s); }
+    /* Laufspuren und Reifenabrieb, sehr schwach */
+    for(let i=0;i<40;i++){ g.strokeStyle=`rgba(60,60,64,${0.02+R()*0.04})`; g.lineWidth=2+R()*5; const y=R()*H; g.beginPath(); g.moveTo(0,y); g.bezierCurveTo(W*0.3,y+(R()-0.5)*80,W*0.7,y+(R()-0.5)*80,W,y); g.stroke(); }
+    /* Scheinfuge (Dehnungsfuge) am Kachelrand: alle 4 m eine feine Linie */
+    g.fillStyle='rgba(70,72,76,.35)'; g.fillRect(0,0,W,1.5); g.fillRect(0,0,1.5,H);
+  });
+}
+/* Sandwichpaneele innen: liegende Paneele 1 m hoch, feine Mikroprofilierung. Kachel 4 x 4 m. */
+function hvPaneelTex(){
+  return hvTex(256,512,(g,W,H)=>{
+    const f=hvFbm(64,128,21,4,3,0.5);
+    g.fillStyle='#d6dade'; g.fillRect(0,0,W,H);
+    const ph=H/4;
+    for(let p=0;p<4;p++){ const y=p*ph;
+      for(let k=0;k<ph;k+=8){ g.fillStyle='rgba(255,255,255,.35)'; g.fillRect(0,y+k,W,1); g.fillStyle='rgba(120,128,138,.10)'; g.fillRect(0,y+k+4,W,1.5); }
+      g.fillStyle='rgba(70,76,86,.45)'; g.fillRect(0,y+ph-3,W,3); g.fillStyle='rgba(255,255,255,.6)'; g.fillRect(0,y,W,1.5); }
+    for(let y=0;y<128;y++) for(let x=0;x<64;x++){ const v=f[y*64+x]; g.fillStyle=`rgba(${v>0.5?255:40},${v>0.5?255:44},${v>0.5?255:50},${Math.abs(v-0.5)*0.08})`; g.fillRect(x*W/64,y*H/128,W/64+1,H/128+1); }
+  });
+}
+/* Betonsockel 1,2 m mit Schalungsstoessen */
+function hvSockelTex(){
+  return hvTex(256,128,(g,W,H)=>{
+    const f=hvFbm(W,H,31,4,4,0.5);
+    hvFeldMalen(g,W,H,f,v=>{ const k=0.86+0.24*v; return [168*k,170*k,168*k]; });
+    const R=hvRng(32); for(let i=0;i<260;i++){ g.fillStyle=`rgba(40,40,40,${0.12+R()*0.2})`; const s=1+R()*2; g.beginPath(); g.arc(R()*W,R()*H,s,0,7); g.fill(); }
+    g.fillStyle='rgba(60,62,64,.4)'; g.fillRect(W/2,0,2,H); g.fillRect(0,0,2,H);
+  });
+}
+/* Trapezblech der Dachunterseite, Sicken laengs z */
+function hvDeckeTex(){
+  return hvTex(256,64,(g,W,H)=>{
+    for(let x=0;x<W;x+=64){ const gr=g.createLinearGradient(x,0,x+64,0);
+      gr.addColorStop(0,'#aeb4bc'); gr.addColorStop(0.2,'#dfe3e8'); gr.addColorStop(0.45,'#eef1f4'); gr.addColorStop(0.55,'#d5d9df'); gr.addColorStop(0.8,'#b9bfc7'); gr.addColorStop(1,'#9da3ac');
+      g.fillStyle=gr; g.fillRect(x,0,64,H); }
+  });
+}
+/* Torlamellen: Sektionaltor, 4 Lamellen je Kachel, Fensterreihe separat */
+function hvLamellenTex(){
+  return hvTex(128,512,(g,W,H)=>{
+    g.fillStyle='#dfe2e6'; g.fillRect(0,0,W,H);
+    const n=8, sh=H/n;
+    for(let s=0;s<n;s++){ const y=s*sh, gr=g.createLinearGradient(0,y,0,y+sh);
+      gr.addColorStop(0,'rgba(255,255,255,.35)'); gr.addColorStop(0.15,'rgba(255,255,255,.05)'); gr.addColorStop(0.8,'rgba(0,0,0,.05)'); gr.addColorStop(0.94,'rgba(0,0,0,.22)'); gr.addColorStop(1,'rgba(0,0,0,.4)');
+      g.fillStyle=gr; g.fillRect(0,y,W,sh);
+      if(s%2===0&&s){ g.fillStyle='rgba(30,34,40,.55)'; g.fillRect(0,y-1,W,3); } }
+  });
+}
+/* Gitterrost fuer Buehnen (Alpha) */
+function hvRostTex(){
+  const t=hvTex(64,64,(g,W,H)=>{ g.clearRect(0,0,W,H); g.fillStyle='#9aa1aa';
+    for(let i=0;i<W;i+=8) g.fillRect(i,0,2,H); for(let j=0;j<H;j+=16) g.fillRect(0,j,W,3); });
+  return t;
+}
+/* Schutzzaun-Gitter (Alpha) */
+function hvZaunTex(){
+  return hvTex(64,64,(g,W,H)=>{ g.clearRect(0,0,W,H); g.fillStyle='#2b2f36';
+    for(let i=0;i<W;i+=8) g.fillRect(i,0,1.6,H); for(let j=0;j<H;j+=8) g.fillRect(0,j,W,1.6); });
+}
+/* Karton-Atlas: 4 x 4 Seitenansichten fuer Kartons auf Paletten (ein Material fuer alle) */
+const HV_ATLAS_N=4;
+function hvKartonAtlas(){
+  const namen=(typeof ORDER!=='undefined'&&ORDER.length)?ORDER.filter(t=>P[t]&&P[t].cat).slice(0,64):[];
+  const R=hvRng(77);
+  return hvTex(1024,1024,(g,W,H)=>{
+    const c=W/HV_ATLAS_N;
+    for(let k=0;k<HV_ATLAS_N*HV_ATLAS_N;k++){
+      const x=(k%HV_ATLAS_N)*c, y=Math.floor(k/HV_ATLAS_N)*c;
+      const pappe=['#c89b5c','#bf9150','#d0a46a','#b88a4e','#c49658'][k%5];
+      g.fillStyle=pappe; g.fillRect(x,y,c,c);
+      for(let i=0;i<260;i++){ g.fillStyle=`rgba(90,60,20,${R()*0.07})`; g.fillRect(x+R()*c,y+R()*c,2,2); }
+      g.fillStyle='rgba(110,74,30,.35)'; g.fillRect(x,y,c,3); g.fillRect(x,y+c-3,c,3); g.fillRect(x,y,3,c); g.fillRect(x+c-3,y,3,c);
+      /* Klebeband */
+      g.fillStyle=['#b58a4f','#efece2','#c4342a','#e2b92e'][k%4]; g.fillRect(x,y+c*0.04,c,c*0.07);
+      /* Etikett */
+      const p=namen.length?P[namen[(k*5)%namen.length]]:null;
+      g.fillStyle='#f5f1e6'; g.fillRect(x+c*0.1,y+c*0.2,c*0.8,c*0.3);
+      g.fillStyle=p&&p.art?p.art.bg1:'#24345c'; g.fillRect(x+c*0.1,y+c*0.2,c*0.8,c*0.06);
+      g.fillStyle='#16181f'; g.textAlign='center'; g.textBaseline='middle';
+      const nm=p?p.name:'Feuerwerk'; fitFont(g,nm,c*0.74,30,BAR); g.fillText(nm,x+c/2,y+c*0.34);
+      g.font=BAR(17); g.fillText(p?`${p.box} Stück · Kategorie F${p.cat}`:'Kategorie F2',x+c/2,y+c*0.44);
+      /* 1.4G-Raute */
+      g.save(); g.translate(x+c*0.24,y+c*0.72); g.rotate(Math.PI/4); g.fillStyle='#f28a1c'; g.fillRect(-20,-20,40,40); g.strokeStyle='#16181f'; g.lineWidth=2.5; g.strokeRect(-16,-16,32,32); g.restore();
+      g.fillStyle='#16181f'; g.font=BUN(12); g.fillText('1.4G',x+c*0.24,y+c*0.72);
+      /* Strichcode */
+      for(let b=0;b<26;b++){ if(R()<0.55) g.fillRect(x+c*0.5+b*3.2,y+c*0.64,R()<0.5?1.4:2.6,c*0.16); }
+      g.font=BAR(14); g.fillText('UN 0336',x+c*0.68,y+c*0.86);
+    }
+  });
+}
+/* Stretchfolie: Glanzstreifen, halbtransparent */
+function hvFolieTex(){
+  return hvTex(128,128,(g,W,H)=>{ g.clearRect(0,0,W,H); const R=hvRng(9);
+    for(let i=0;i<34;i++){ const y=R()*H; g.fillStyle=`rgba(255,255,255,${0.08+R()*0.22})`; g.fillRect(0,y,W,1+R()*3); }
+    for(let i=0;i<10;i++){ g.fillStyle=`rgba(230,240,255,${0.05+R()*0.1})`; g.fillRect(R()*W,0,2+R()*8,H); }
+  });
+}
+/* Schild mit Text, einmal gemalt */
+function hvSchildTex(txt,unter,bg,fg,w,h){
+  return hvRes(tex(w||512,h||160,(g,W,H)=>{
+    g.fillStyle=bg||'#1b2340'; g.fillRect(0,0,W,H);
+    g.fillStyle=fg||'#f2c230'; g.fillRect(0,H-8,W,8);
+    g.textAlign='center'; g.textBaseline='middle'; g.fillStyle='#eef2f8';
+    fitFont(g,txt,W*0.9,unter?Math.round(H*0.42):Math.round(H*0.55),BUN); g.fillText(txt,W/2,unter?H*0.38:H/2-3);
+    if(unter){ g.fillStyle=fg||'#f2c230'; fitFont(g,unter,W*0.9,Math.round(H*0.24),BAR); g.fillText(unter,W/2,H*0.74); }
+  }));
+}
+
+/* ---------- Materialien (einmal je Halle, geteilt) ---------- */
+let HVM=null;
+function hvMaterialien(){
+  if(HVM) return HVM;
+  const q=hvQ();
+  const vc=(o)=>hvRes(new THREE.MeshStandardMaterial(Object.assign({vertexColors:true,roughness:0.6,metalness:0.1},o||{})));
+  const boden=hvBodenTex(), paneel=hvPaneelTex(), sockel=hvSockelTex(), decke=hvDeckeTex(), lam=hvLamellenTex();
+  paneel.repeat.set(1/4,1/4); sockel.repeat.set(1/2.4,1/1.2); decke.repeat.set(1/1.6,1/1.6);
+  const rost=hvRostTex(); const zaun=hvZaunTex(); rost.repeat.set(4,4); zaun.repeat.set(2.5,2.5);
+  HVM={
+    lack:vc({roughness:0.55,metalness:0.12}),          /* lackierter Stahl, Gehaeuse */
+    metall:vc({roughness:0.34,metalness:0.72}),        /* Aluprofile, verzinkt */
+    matt:vc({roughness:0.88,metalness:0}),             /* Holz, Gummi, Pappe ohne Bild */
+    leucht:hvRes(new THREE.MeshBasicMaterial({vertexColors:true,toneMapped:false})),
+    plexi:hvRes(new THREE.MeshStandardMaterial({color:LIN(0xd8e6f0),transparent:true,opacity:0.22,roughness:0.08,metalness:0.1,depthWrite:false,side:THREE.DoubleSide})),
+    boden:hvRes(new THREE.MeshStandardMaterial({map:boden,roughness:0.42,metalness:0.02})),
+    bodenTex:boden,
+    paneel:hvRes(new THREE.MeshStandardMaterial({map:paneel,roughness:0.62,metalness:0.08})),
+    gelb:hvRes(new THREE.MeshStandardMaterial({map:paneel,color:LIN(0xf0c419),roughness:0.6,metalness:0.08})),
+    sockel:hvRes(new THREE.MeshStandardMaterial({map:sockel,roughness:0.92})),
+    decke:hvRes(new THREE.MeshStandardMaterial({map:decke,roughness:0.7,metalness:0.2})),
+    laibung:hvRes(std(0xcfd3d9,{roughness:0.8})),
+    aussen:typeof blechMat==='function'?blechMat():std(0xb9bec6),
+    tor:hvRes(new THREE.MeshStandardMaterial({map:lam,roughness:0.45,metalness:0.35})),
+    torTex:lam,
+    rost:hvRes(new THREE.MeshStandardMaterial({map:rost,alphaTest:0.5,side:THREE.DoubleSide,roughness:0.5,metalness:0.6,transparent:false})),
+    rostTex:rost,
+    zaun:hvRes(new THREE.MeshStandardMaterial({map:zaun,alphaTest:0.5,side:THREE.DoubleSide,roughness:0.6,metalness:0.3})),
+    zaunTex:zaun,
+    karton:q.karton?hvRes(new THREE.MeshStandardMaterial({map:hvKartonAtlas(),roughness:0.88})):null,
+    folie:q.folie?hvRes(new THREE.MeshStandardMaterial({map:hvFolieTex(),transparent:true,opacity:0.55,roughness:0.15,metalness:0.1,depthWrite:false})):null,
+    holz:hvRes(new THREE.MeshStandardMaterial({vertexColors:true,roughness:0.92})),
+    lichtband:hvRes(new THREE.MeshBasicMaterial({color:LIN(0xe9f2ff),toneMapped:false})),
+    screen:hvRes(new THREE.MeshBasicMaterial({map:hvSchirmTex(),toneMapped:false})),
+    schraffur:hvRes(new THREE.MeshStandardMaterial({map:hvTex(64,64,(g,W,H)=>{ g.fillStyle='#f2c230'; g.fillRect(0,0,W,H); g.fillStyle='#1d1f24';
+      g.beginPath(); g.moveTo(0,0); g.lineTo(W/2,0); g.lineTo(0,H/2); g.fill(); g.beginPath(); g.moveTo(W,0); g.lineTo(W,H/2); g.lineTo(W/2,H); g.lineTo(0,H); g.fill(); }),roughness:0.6}))
+  };
+  return HVM;
+}
+/* Bedienbildschirm (HMI) einer Anlage */
+function hvSchirmTex(){
+  return hvRes(tex(256,160,(g,W,H)=>{
+    g.fillStyle='#0d1a2b'; g.fillRect(0,0,W,H); g.fillStyle='#173a5e'; g.fillRect(0,0,W,22);
+    g.fillStyle='#bfe3ff'; g.font=BAR(16); g.textBaseline='middle'; g.fillText('LINIE  ·  AUTOMATIK',8,11);
+    g.fillStyle='#3ddc84'; g.fillRect(W-58,5,50,12);
+    for(let i=0;i<5;i++){ g.fillStyle='#1d3554'; g.fillRect(10,32+i*24,W-20,18); g.fillStyle=['#3ddc84','#3ddc84','#f2c230','#3ddc84','#5fb4ff'][i]; g.fillRect(12,34+i*24,(W-24)*(0.35+0.13*i),14); }
+  }));
+}
+
+/* ---------- Sammler: viele Teile, wenige Zeichenaufrufe ----------
+   Jedes Teil ist eine Einheitsform mit Matrix (Lage, Drehung, Groesse) und
+   Farbe; am Ende wird je Material eine Geometrie verschmolzen (merge aus
+   reuse-helpers). */
+const HV_GEO={};
+function hvGeoBox(){ return HV_GEO.box||(HV_GEO.box=new THREE.BoxGeometry(1,1,1)); }
+const HV_METER={zaun:1,rost:1};
+function hvGeoTrichter(){ return HV_GEO.tr||(HV_GEO.tr=new THREE.CylinderGeometry(1,0.22,1,12,1,true)); }
+function hvGeoZyl(seg){ const k='z'+seg; return HV_GEO[k]||(HV_GEO[k]=new THREE.CylinderGeometry(1,1,1,seg)); }
+function hvSammler(){
+  const L={};
+  const add=(mat,geo,m,color,behalten)=>{ (L[mat]||(L[mat]=[])).push({geo,m,color,behalten}); };
+  return {
+    L,
+    box(w,h,d,x,y,z,color,mat,rx,ry,rz){
+      if(HV_METER[mat]&&!rx&&!ry&&!rz){ add(mat,hvMeterBox(w,h,d,x,y,z),HV_EINS,color); return; }
+      add(mat||'lack',hvGeoBox(),tm(x,y,z,rx||0,ry||0,rz||0,w,h,d),color); },
+    /* flaches Band schraeg in der x-y-Ebene (Schraegfoerderer, Rutsche) */
+    platte(x0,y0,x1,y1,z,b,d,color,mat){ const l=Math.hypot(x1-x0,y1-y0); add(mat||'lack',hvGeoBox(),tm((x0+x1)/2,(y0+y1)/2,z,0,0,Math.atan2(y1-y0,x1-x0),l,d,b),color); },
+    /* Trichter: Kegelstumpf, oben r1, unten r2 */
+    trichter(r1,r2,h,x,y,z,color,mat){ add(mat||'lack',hvGeoTrichter(),tm(x,y,z,0,0,0,r1,h,r1),color); },
+    /* Zylinder senkrecht (achse 'y'), quer in x ('x') oder in z ('z') */
+    zyl(r,l,x,y,z,color,mat,achse,seg){ const rx=achse==='z'?Math.PI/2:0, rz=achse==='x'?Math.PI/2:0;
+      add(mat||'metall',hvGeoZyl(seg||8),tm(x,y,z,rx,0,rz,r,l,r),color); },
+    /* Strebe von (x0,y0,z0) nach (x1,y1,z1) als duenner Kasten */
+    strebe(x0,y0,z0,x1,y1,z1,s,color,mat){ const dx=x1-x0, dy=y1-y0, dz=z1-z0, l=Math.hypot(dx,dy,dz); if(l<1e-4) return;
+      const m=new THREE.Matrix4(), q=new THREE.Quaternion().setFromUnitVectors(V(0,1,0),V(dx/l,dy/l,dz/l));
+      m.compose(V((x0+x1)/2,(y0+y1)/2,(z0+z1)/2),q,V(s,l,s)); add(mat||'lack',hvGeoBox(),m,color); },
+    geo(geo,m,color,mat,behalten){ add(mat||'lack',geo,m,color,behalten); },
+    leer(){ return !Object.keys(L).length; },
+    fertig(parent,schatten){
+      const out=[];
+      for(const k in L){ if(!L[k].length) continue;
+        const mesh=new THREE.Mesh(hvRes(merge(L[k])),HVM[k]); mesh.matrixAutoUpdate=false; mesh.updateMatrix(); mesh.userData.hvMat=k;
+        if(HIQ&&schatten!==false&&k!=='leucht'&&k!=='plexi'){ mesh.castShadow=true; mesh.receiveShadow=true; }
+        parent.add(mesh); out.push(mesh); }
+      for(const k in L){ for(const p of L[k]) if(!p.behalten&&!Object.values(HV_GEO).includes(p.geo)) p.geo.dispose(); L[k].length=0; }
+      return out;
+    }
+  };
+}
+/* Instanzen mit eigener Huellkugel - three r128 nimmt sonst die Kugel der
+   Einzelform und schneidet die ganze Gruppe weg, sobald deren Ursprung aus
+   dem Bild ist. */
+function hvInst(geo,mat,mats,parent,farben,schatten){
+  if(!mats.length) return null;
+  const g2=new THREE.BufferGeometry(); if(geo.index) g2.setIndex(geo.index);
+  for(const k in geo.attributes) g2.setAttribute(k,geo.attributes[k]);
+  if(!geo.boundingSphere) geo.computeBoundingSphere();
+  const box=new THREE.Box3(), p=new THREE.Vector3(), r0=geo.boundingSphere.radius;
+  const im=new THREE.InstancedMesh(g2,mat,mats.length);
+  let smax=1;
+  mats.forEach((m,i)=>{ im.setMatrixAt(i,m); p.setFromMatrixPosition(m); box.expandByPoint(p);
+    const e=m.elements; smax=Math.max(smax,Math.hypot(e[0],e[1],e[2]),Math.hypot(e[4],e[5],e[6]),Math.hypot(e[8],e[9],e[10])); });
+  if(farben) farben.forEach((c,i)=>im.setColorAt(i,LIN(c)));
+  const s=new THREE.Sphere(); box.getBoundingSphere(s); s.radius+=r0*smax; g2.boundingSphere=s;
+  im.instanceMatrix.needsUpdate=true;
+  if(HIQ&&schatten!==false){ im.castShadow=true; im.receiveShadow=true; }
+  hvRes(g2); parent.add(im); return im;
+}
+/* Wand als Kasten mit Meter-UVs (wie meterUV im Hauptspiel), in den Sammler:
+   gleiche Materialien werden zu einem Mesh verschmolzen. Kein Eintrag in die
+   globalen Wandlisten des Hauptspiels (WAENDE, occluders). */
+function hvMeterBox(w,h,d,x,y,z){
+  const g=new THREE.BoxGeometry(w,h,d); g.translate(x,y,z);
+  const p=g.attributes.position, n=g.attributes.normal, uv=g.attributes.uv;
+  for(let i=0;i<p.count;i++){ const X=p.getX(i), Y=p.getY(i), Z=p.getZ(i), ax=Math.abs(n.getX(i)), ay=Math.abs(n.getY(i)), az=Math.abs(n.getZ(i));
+    if(ay>ax&&ay>az) uv.setXY(i,X,Z); else if(ax>az) uv.setXY(i,Z,Y); else uv.setXY(i,X,Y); }
+  return g;
+}
+const HV_EINS=new THREE.Matrix4();
+function hvWand(S,x0,x1,z0,z1,y0,y1,mat){
+  const w=x1-x0,h=y1-y0,d=z1-z0; if(w<=0.001||h<=0.001||d<=0.001) return;
+  S.geo(hvMeterBox(w,h,d,(x0+x1)/2,(y0+y1)/2,(z0+z1)/2),HV_EINS,0xffffff,mat||'paneel');
+}
+/* Paneelwand mit Betonsockel (1,2 m): ein Wandzug laengs x oder z */
+function hvHallenWand(S,laengs,fest,a,b,y0,y1,innen,keinCol){
+  const t=0.24, s=1.2;
+  const mk=(ya,yb,mat)=>laengs?hvWand(S,a,b,fest-t/2,fest+t/2,ya,yb,mat):hvWand(S,fest-t/2,fest+t/2,a,b,ya,yb,mat);
+  if(y0<s){ mk(y0,Math.min(s,y1),'sockel'); if(y1>s) mk(s,y1,innen||'paneel'); }
+  else mk(y0,y1,innen||'paneel');
+  if(!keinCol&&y0<1){ if(laengs) hvCol(a,b,fest-t/2,fest+t/2); else hvCol(fest-t/2,fest+t/2,a,b); }
+}
+/* Wand mit Oeffnungen [{a,b,h,zu}] (h = Sturzunterkante, zu = trotzdem Kollision) */
+function hvWandMitOeffnungen(S,laengs,fest,von,bis,oeffn,H,innen){
+  const L=oeffn.slice().sort((p,q)=>p.a-q.a); let x=von; const t=0.24;
+  for(const o of L){ if(o.a>x) hvHallenWand(S,laengs,fest,x,o.a,0,H,innen);
+    if(H>o.h) hvHallenWand(S,laengs,fest,o.a,o.b,o.h,H,innen,true);
+    if(o.zu){ if(laengs) hvCol(o.a,o.b,fest-t/2,fest+t/2); else hvCol(fest-t/2,fest+t/2,o.a,o.b); }
+    x=o.b; }
+  if(bis>x) hvHallenWand(S,laengs,fest,x,bis,0,H,innen);
+}
+/* Text-Schild als Flaeche */
+function hvSchild(parent,txt,unter,w,h,x,y,z,ry,bg,fg){
+  const m=new THREE.Mesh(hvRes(new THREE.PlaneGeometry(w,h)),hvRes(new THREE.MeshStandardMaterial({map:hvSchildTex(txt,unter,bg,fg,Math.round(512*Math.min(2,w/h/3.2+0.3)),160),roughness:0.6})));
+  m.position.set(x,y,z); m.rotation.y=ry||0; parent.add(m); return m;
+}
+
+/* ---------- Ablauf: Schritte, Laden, Abbauen ---------- */
+function hallSchrittListe(o){
+  const L=[
+    ['Materialien und Texturen',()=>{ hvMaterialien(); }],
+    ['Hallenhülle, Dach und Licht',()=>hvGebaeude(o)],
+    ['Boden, Markierungen, Schatten',()=>hvBoden(o)],
+    ['Kartonlager ③, gelbe Wand, Tor N1, Schleuse',()=>hvLagerBauen(o)],
+    ['Rolltore R2–R6',()=>hvToreBauen(o)],
+    ['Hochregal Gasse 1',()=>hvHochregalGasse(0)],
+    ['Hochregal Gasse 2',()=>hvHochregalGasse(1)],
+    ['Hochregal Gasse 3',()=>hvHochregalGasse(2)],
+    ['Regalbediengeräte, I/O, Anbruch',()=>hvRbgUndIO()],
+    ['Wareneingang, Schnellplätze, Packmaterial',()=>hvFlaechen()],
+    ['Produktion: Hülle und Bunker',()=>hvProdHuelle(o)],
+    ['Produktion: Straße Raketen',()=>hvStrasse(0)],
+    ['Produktion: Straße Kugelbomben',()=>hvStrasse(1)],
+    ['Produktion: Straße Batterien',()=>hvStrasse(2)],
+    ['Laptop, Schilder, Feinschliff',()=>hvAusstattung(o)]
+  ];
+  return L;
+}
+function hallVorbereiten(o){
+  if(HALLE.g) hallAbbauen();
+  HALLE.opts=Object.assign({umfeld:false},o||{});
+  HALLE.g=new THREE.Group(); HALLE.g.name='halle'; HALLE.g.userData._bnd=true; scene.add(HALLE.g);
+  HALLE.bereiche={}; HALLE.cols=[]; HALLE.anim=[]; HALLE.lampen=[]; HALLE.zeiten={}; HALLE.gebaut=false; HALLE.sichtbar=true;
+}
+function hallFertig(){
+  HALLE.gebaut=true;
+  if(typeof navDirty==='function') try{ navDirty(); }catch(e){}
+}
+/* Schrittweise bauen: zwischen zwei Schritten bekommt der Browser ein Bild,
+   damit der Ladebalken laeuft. */
+function hallLaden(o,fortschritt,fertig){
+  hallVorbereiten(o);
+  const L=hallSchrittListe(HALLE.opts); let i=0;
+  const weiter=()=>{
+    if(i>=L.length){ hallFertig(); if(fortschritt) fortschritt(1,'Fertig'); if(fertig) fertig(); return; }
+    const [txt,fn]=L[i]; if(fortschritt) fortschritt(i/L.length,txt);
+    const naechster=()=>{ const t0=performance.now();
+      try{ fn(); }catch(e){ HALLE.fehler=(HALLE.fehler||'')+txt+': '+(e&&e.message||e)+'\n'; if(typeof console!=='undefined') console.error('Halle',txt,e); }
+      HALLE.zeiten[txt]=Math.round(performance.now()-t0); i++; weiter(); };
+    if(typeof requestAnimationFrame==='function') requestAnimationFrame(()=>setTimeout(naechster,0)); else setTimeout(naechster,0);
+  };
+  weiter();
+}
+function hallBauen(o){
+  hallVorbereiten(o);
+  for(const [txt,fn] of hallSchrittListe(HALLE.opts)){ const t0=performance.now(); fn(); HALLE.zeiten[txt]=Math.round(performance.now()-t0); }
+  hallFertig();
+}
+function hallAbbauen(){
+  if(!HALLE.g) return;
+  scene.remove(HALLE.g);
+  HALLE.g.traverse(o=>{ if(o.geometry&&o.geometry.dispose) o.geometry.dispose(); });
+  HALLE.res.forEach(r=>{ try{ if(r&&r.dispose) r.dispose(); }catch(e){} });
+  HALLE.res=[]; HVM=null;
+  HALLE.cols.forEach(c=>dropCol(c)); HALLE.cols=[];
+  HALLE.g=null; HALLE.bereiche={}; HALLE.anim=[]; HALLE.lampen=[]; HALLE.gebaut=false;
+}
+function hallSichtbar(v){
+  HALLE.sichtbar=!!v; if(!HALLE.g) return;
+  HALLE.g.visible=HALLE.sichtbar;
+  HALLE.cols.forEach(c=>{ const drin=colliders.indexOf(c)>=0; if(v&&!drin) colliders.push(c); else if(!v&&drin) dropCol(c); });
+}
+function hallTick(dt){
+  if(!HALLE.gebaut||!HALLE.sichtbar) return;
+  HALLE.t+=dt; for(const f of HALLE.anim) f(dt,HALLE.t);
+}
+/* Dreiecke und Zeichenaufrufe je Bereich (gezaehlt, nicht gerendert;
+   Instanzen mal Anzahl). Die gemessenen Werte des Renderers liefert der
+   Hallenmodus dazu. */
+function hallMessen(){
+  const out={}; let sd=0, st=0;
+  for(const k in HALLE.bereiche){ let d=0,t=0;
+    HALLE.bereiche[k].traverse(o=>{ if(!o.isMesh||!o.visible) return; const g=o.geometry; if(!g||!g.attributes.position) return;
+      const n=(g.index?g.index.count:g.attributes.position.count)/3, inst=o.isInstancedMesh?o.count:1, nm=Array.isArray(o.material)?o.material.length:1;
+      d+=nm; t+=n*inst; });
+    out[k]={draw:d,tri:Math.round(t)}; sd+=d; st+=t; }
+  out.gesamt={draw:sd,tri:Math.round(st)};
+  return out;
+}
+/* =========================================================
+   Grosse Halle: Gebaeude - Huelle, Dach, Licht, Boden, Lager 1-3,
+   gelbe Wand mit N1, Schleuse, Tore, Produktionsfluegel.
+   ========================================================= */
+const HV_FARBE={stahl:0xd9dde2, stahlD:0x8a9099, gelb:0xf2b81c, orange:0xe36b1f, blau:0x2f5d9a, schwarz:0x1d1f24, gruen:0x2f9e57, rot:0xc8322a, weiss:0xf2f4f6, alu:0xc5cad1, holz:0xc49a62};
+
+/* Halle: Waende, Dach mit Bindern und Lichtbaendern, Stuetzen, Hallenleuchten */
+function hvGebaeude(o){
+  const G=hvBereich('gebaeude'), S=hvSammler(), A=HV7.halle, H=HV7.H, K=HV7.kl3;
+  /* Nordwand (z -34) mit den Toren R2-R4 */
+  const tore=HV7.tore.map(t=>({a:t.x-WTOR.w/2,b:t.x+WTOR.w/2,h:WTOR.h+0.05,zu:true}));
+  hvWandMitOeffnungen(S,true,A.z0-0.12,A.x0-0.24,A.x1+0.24,tore,H);
+  /* Westwand zur Produktion: Brandwand mit drei Foerderoeffnungen (Westende der
+     Gassen) und zwei Durchgaengen */
+  const west=HV7.gassen.map(g=>({a:g.a0-0.1,b:g.a1+0.1,h:2.0,zu:true})).concat(HV7.pTueren.map(t=>({a:t.z0,b:t.z1,h:3.3})));
+  hvWandMitOeffnungen(S,false,A.x0-0.12,A.z0,A.z1+0.24,west,H);
+  /* Suedwand bis zur gelben Wand */
+  hvHallenWand(S,true,A.z1+0.12,A.x0-0.24,K.x0,0,H);
+  /* Ostwand zur Schleuse, mit Durchgang */
+  hvWandMitOeffnungen(S,false,A.x1+0.12,A.z0-0.24,K.z0,[{a:HV7.sDurch.z0,b:HV7.sDurch.z1,h:3.0}],H);
+  /* gelbe Wand zur Halle: unten gelb (5 m), darueber Paneel; Tor N1 */
+  const N=HV7.n1;
+  for(const [laengs,fest,a,b,oe] of [[false,K.x0-0.12,K.z0-0.12,K.z1+0.24,[{a:N.z0,b:N.z1,h:N.h}]],[true,K.z0-0.12,K.x0-0.24,A.x1+0.24,[]]]){
+    let x=a; const L=oe.slice();
+    const st=(p,q,y0)=>{ if(q-p<0.01) return; const t=0.24;
+      const mk=(ya,yb,m)=>laengs?hvWand(S,p,q,fest-t/2,fest+t/2,ya,yb,m):hvWand(S,fest-t/2,fest+t/2,p,q,ya,yb,m);
+      mk(y0,5.0,'gelb'); mk(5.0,H,'paneel'); };
+    for(const q of L){ st(x,q.a,0); if(laengs) hvCol(x,q.a,fest-0.12,fest+0.12); else hvCol(fest-0.12,fest+0.12,x,q.a); st(q.a,q.b,q.h); x=q.b; }
+    st(x,b,0); if(laengs) hvCol(x,b,fest-0.12,fest+0.12); else hvCol(fest-0.12,fest+0.12,x,b);
+  }
+  /* Decke (Trapezblech) ueber der ganzen Halle; Kartonlager 3 hat darunter eine eigene */
+  hvWand(S,A.x0-0.24,A.x1+0.24,A.z0-0.24,A.z1+0.24,H,H+0.2,'decke');
+  /* Lichtbaender im Dach: drei Streifen, Tageslicht */
+  for(const z of [-30.8,-21.0,-11.2]){ const x1=z>-17?K.x0-0.6:A.x1-1.5;
+    S.box(x1-(A.x0+1.5),0.02,1.4,(A.x0+1.5+x1)/2,H-0.02,z,0xffffff,'lichtband');
+    S.box(x1-(A.x0+1.5)+0.16,0.1,0.08,(A.x0+1.5+x1)/2,H-0.06,z-0.74,HV_FARBE.stahlD,'metall');
+    S.box(x1-(A.x0+1.5)+0.16,0.1,0.08,(A.x0+1.5+x1)/2,H-0.06,z+0.74,HV_FARBE.stahlD,'metall'); }
+  /* Fachwerkbinder quer zur Halle, alle 5 m */
+  const yu=H-0.68, yo=H-0.08;
+  for(let x=A.x0+5;x<A.x1-1;x+=5){
+    if(Math.abs(x-K.x0)<0.3) continue;
+    const z1=x>K.x0?K.z0-0.15:A.z1, z0=A.z0;
+    S.box(0.16,0.16,z1-z0,x,yu,(z0+z1)/2,HV_FARBE.stahl,'lack');
+    S.box(0.16,0.12,z1-z0,x,yo-0.04,(z0+z1)/2,HV_FARBE.stahl,'lack');
+    const n=Math.round((z1-z0)/1.5);
+    for(let i=0;i<=n;i++){ const z=z0+i*(z1-z0)/n; S.box(0.08,yo-yu,0.08,x,(yu+yo)/2,z,HV_FARBE.stahl,'lack');
+      if(i<n) S.strebe(x,yu,z,x,yo,z+(z1-z0)/n,0.07,HV_FARBE.stahl,'lack'); }
+    /* Stuetzen an den Laengswaenden */
+    for(const zs of [A.z0+0.2,z1===A.z1?A.z1-0.2:null]){ if(zs===null) continue; if(zs<-20&&HV7.tore.some(t=>Math.abs(t.x-x)<2.2)) continue;
+      S.box(0.3,yu,0.02,x,yu/2,zs+(zs<-20?0.14:-0.14),HV_FARBE.stahl,'lack');
+      S.box(0.3,yu,0.02,x,yu/2,zs+(zs<-20?-0.14:0.14),HV_FARBE.stahl,'lack');
+      S.box(0.02,yu,0.28,x,yu/2,zs,HV_FARBE.stahl,'lack');
+      S.box(0.5,0.05,0.5,x,0.025,zs,HV_FARBE.stahlD,'lack');
+      /* Anfahrschutz gelb */
+      S.box(0.36,0.6,0.08,x,0.3,zs+(zs<-20?0.32:-0.32),HV_FARBE.gelb,'lack'); }
+  }
+  /* Sprinklerleitungen unter dem Dach (rot) */
+  for(const z of [-26.0,-16.4]) S.zyl(0.06,A.x1-A.x0-1,(A.x0+A.x1)/2-(z>-17?5:0),H-0.95,z,HV_FARBE.rot,'lack','x',8);
+  /* Hallenleuchten: LED-Hallenstrahler (rund) unter den Bindern */
+  const q=hvQ();
+  for(let x=A.x0+2.5;x<A.x1;x+=5){
+    const zs=x<HV7.hr.x1+0.5?[-31.2,-23.47,-18.8,-11.5]:[-31.2,-26.0,-21.0,-15.5,-10.6];
+    for(const z of zs){
+      if(x>K.x0-0.3&&z>K.z0-0.3) continue;
+      const y=yu-0.55;
+      S.zyl(0.32,0.16,x,y+0.1,z,0x3a3f48,'lack','y',q.rund);
+      S.zyl(0.26,0.02,x,y+0.01,z,0xffffff,'leucht','y',q.rund);
+      S.zyl(0.012,0.55,x,y+0.45,z,0x2a2d33,'metall','y',4);
+      hvLampe(x,y,z);
+    }
+  }
+  S.fertig(G);
+  /* Hallenschilder innen */
+  hvSchild(G,'GROSSE HALLE','Reserve · Wareneingang · Anbruch',3.6,0.9,A.x1-0.14,5.2,(HV7.sDurch.z0+HV7.sDurch.z1)/2,-Math.PI/2);
+}
+
+/* Boden: geschliffener Beton mit eingebranntem Schatten (aoMap) und
+   Lichtkegeln der Leuchten (lightMap), darueber die Markierungen. */
+function hvBodenPlatte(parent,r,matBasis,schatten,licht,y){
+  const w=r.x1-r.x0, d=r.z1-r.z0;
+  const geo=hvRes(new THREE.PlaneGeometry(w,d)); geo.setAttribute('uv2',geo.attributes.uv);
+  const t=hvRes(matBasis.map.clone()); t.needsUpdate=true; t.repeat.set(w/4,d/4);
+  const m=hvRes(matBasis.clone()); m.map=t;
+  if(schatten){ m.aoMap=schatten; m.aoMapIntensity=1; }
+  if(licht){ m.lightMap=licht; m.lightMapIntensity=0.4; }
+  const o=new THREE.Mesh(geo,m); o.rotation.x=-Math.PI/2; o.position.set((r.x0+r.x1)/2,y||0.01,(r.z0+r.z1)/2);
+  o.matrixAutoUpdate=false; o.updateMatrix(); if(HIQ) o.receiveShadow=true; parent.add(o); return o;
+}
+/* Schatten-/Lichtkarte in Weltkoordinaten: px Pixel je Meter */
+function hvKarte(r,px,malen){
+  const W=Math.round((r.x1-r.x0)*px), H=Math.round((r.z1-r.z0)*px);
+  const t=hvRes(tex(W,H,(g)=>{ malen(g,(x)=>(x-r.x0)*px,(z)=>(r.z1-z)*px,px); },false));
+  t.wrapS=t.wrapT=THREE.ClampToEdgeWrapping; return t;
+}
+/* weiches Rechteck: mehrfach aufgeweitet mit wenig Deckkraft */
+function hvWeich(g,X,Z,px,x0,x1,z0,z1,dunkel,rad){
+  const R=Math.max(1,Math.round((rad||0.5)*px));
+  for(let i=R;i>=0;i-=Math.max(1,R/6|0)){ g.fillStyle=`rgba(0,0,0,${dunkel/(R/Math.max(1,R/6|0)+1)})`;
+    g.fillRect(X(x0)-i,Z(z1)-i,(x1-x0)*px+2*i,(z1-z0)*px+2*i); }
+}
+function hvAoMalen(g,X,Z,px,r,blocks){
+  g.fillStyle='#fff'; g.fillRect(0,0,g.canvas.width,g.canvas.height);
+  /* Waende: Rand dunkler */
+  const W=g.canvas.width, H=g.canvas.height, d=Math.round(0.7*px);
+  for(const [x,y,w,h,gx,gy] of [[0,0,W,d,0,1],[0,H-d,W,d,0,-1],[0,0,d,H,1,0],[W-d,0,d,H,-1,0]]){
+    const gr=gx?g.createLinearGradient(gx>0?0:W,0,gx>0?d:W-d,0):g.createLinearGradient(0,gy>0?0:H,0,gy>0?d:H-d);
+    gr.addColorStop(0,'rgba(0,0,0,.42)'); gr.addColorStop(1,'rgba(0,0,0,0)'); g.fillStyle=gr; g.fillRect(x,y,w,h); }
+  for(const b of blocks) hvWeich(g,X,Z,px,b[0],b[1],b[2],b[3],b[4]||0.5,b[5]||0.45);
+}
+function hvLichtMalen(g,X,Z,px,lampen,rad,staerke){
+  g.fillStyle='#000'; g.fillRect(0,0,g.canvas.width,g.canvas.height);
+  g.globalCompositeOperation='lighter';
+  for(const L of lampen){ const gr=g.createRadialGradient(X(L.x),Z(L.z),0,X(L.x),Z(L.z),rad*px);
+    gr.addColorStop(0,`rgba(255,246,232,${staerke})`); gr.addColorStop(0.5,`rgba(255,246,232,${staerke*0.45})`); gr.addColorStop(1,'rgba(255,246,232,0)');
+    g.fillStyle=gr; g.fillRect(X(L.x)-rad*px,Z(L.z)-rad*px,rad*px*2,rad*px*2); }
+  g.globalCompositeOperation='source-over';
+}
+/* Was auf dem Boden steht und ihn verschattet (x0,x1,z0,z1,dunkel,rand) */
+function hvSchattenBloecke(){
+  const B=[];
+  for(const gs of HV7.gassen){ B.push([HV7.hr.x0,HV7.hr.x1,gs.a0,gs.a1,0.55,0.35]); B.push([HV7.hr.x0,HV7.hr.x1,gs.b0,gs.b1,0.55,0.35]);
+    B.push([HV7.io.x0,HV7.io.x1,gs.a0+0.1,gs.a1-0.1,0.35,0.25]); B.push([HV7.io.x0,HV7.io.x1,gs.b0+0.1,gs.b1-0.1,0.35,0.25]); }
+  for(const s of HV7.strassen) B.push([-97.5,-66.6,s.z-1.0,s.z+1.0,0.38,0.5]);
+  for(const b of HV7.bunker) B.push([b.x0,b.x1,HV7.halle.z0,-29.0,0.6,0.4]);
+  return B;
+}
+function hvBoden(o){
+  const G=hvBereich('boden'), A=HV7.halle, P=HV7.prod, K=HV7.kl3;
+  const px=hvQ().fein?8:4;
+  const lampen=HALLE.lampen.slice();
+  const bl=hvSchattenBloecke();
+  /* Halle (ohne Kartonlager-Ecke - das ist ein eigener Boden) */
+  const rH={x0:A.x0,x1:A.x1,z0:A.z0,z1:A.z1};
+  const aoH=hvKarte(rH,px,(g,X,Z,p)=>{ hvAoMalen(g,X,Z,p,rH,bl); g.fillStyle='rgba(0,0,0,.35)'; g.fillRect(X(K.x0),Z(K.z1),(K.x1-K.x0)*p,(K.z1-K.z0)*p); });
+  const liH=hvKarte(rH,Math.max(2,px/2),(g,X,Z,p)=>hvLichtMalen(g,X,Z,p,lampen.filter(l=>l.x>A.x0&&l.x<A.x1),5.2,0.55));
+  hvBodenPlatte(G,rH,HVM.boden,aoH,liH,0.01);
+  /* Produktion */
+  const rP={x0:P.x0,x1:P.x1,z0:P.z0,z1:P.z1};
+  HVM.bodenProd=HVM.bodenProd||hvRes(HVM.boden.clone()); HVM.bodenProd.color=LIN(0xd3d8d4);
+  const aoP=hvKarte(rP,px,(g,X,Z,p)=>hvAoMalen(g,X,Z,p,rP,bl));
+  HALLE.bodenProdAo=aoP;
+  hvBodenPlatte(G,rP,HVM.bodenProd,aoP,null,0.012);
+  /* Kartonlager 3 und (im eigenstaendigen Modus) Lager 1/2 */
+  const rK={x0:K.x0,x1:K.x1,z0:K.z0,z1:K.z1};
+  hvBodenPlatte(G,rK,HVM.boden,null,null,0.014);
+  hvBodenPlatte(G,{x0:HV7.schleuse.x0,x1:HV7.schleuse.x1,z0:HV7.schleuse.z0,z1:HV7.schleuse.z1},HVM.boden,null,null,0.013);
+  if(o.umfeld){
+    const L=LAY.lsued, N=LAY.lnord;
+    hvBodenPlatte(G,{x0:L.x0,x1:L.x1,z0:L.z0,z1:N.z1},HVM.boden,null,null,0.012);
+    /* draussen: Asphalt, LKW-Hof */
+    const am=hvRes(std(0x6d7178,{roughness:0.95}));
+    const au=new THREE.Mesh(hvRes(new THREE.PlaneGeometry(260,180)),am); au.rotation.x=-Math.PI/2; au.position.set(-50,-0.02,-20); G.add(au);
+    const hm=hvRes(std(0x9a9ea4,{roughness:0.92}));
+    const hof=new THREE.Mesh(hvRes(new THREE.PlaneGeometry(P.x0*-1+LAY.hof2.x1-0,28)),hm); hof.rotation.x=-Math.PI/2;
+    hof.position.set((P.x0+LAY.hof2.x1)/2,-0.01,LHALLE.z-14.2); G.add(hof);
+  }
+  hvMarkierungen(G,o);
+}
+/* Bodenmarkierungen: alles flach, ein Mesh je Material. Beschriftung aus
+   einem Atlas (ein Zeichenaufruf). */
+const HV_PLANE=new THREE.PlaneGeometry(1,1).rotateX(-Math.PI/2);
+function hvMarkierungen(G,o){
+  const S=hvSammler(), Y=0.02, gelb=0xf2c230, weiss=0xeef0f2, gruen=0x3a9a5a, schwarz=0x1d1f24;
+  const fl=(x0,x1,z0,z1,c,y)=>S.geo(HV_PLANE,tm((x0+x1)/2,y||Y,(z0+z1)/2,0,0,0,x1-x0,1,z1-z0),c,'lack',true);
+  const linie=(x0,z0,x1,z1,b,c)=>{ if(Math.abs(x1-x0)>Math.abs(z1-z0)) fl(Math.min(x0,x1),Math.max(x0,x1),z0-b/2,z0+b/2,c); else fl(x0-b/2,x0+b/2,Math.min(z0,z1),Math.max(z0,z1),c); };
+  const rahmen=(x0,x1,z0,z1,b,c)=>{ linie(x0,z0,x1,z0,b,c); linie(x0,z1,x1,z1,b,c); linie(x0,z0,x0,z1,b,c); linie(x1,z0,x1,z1,b,c); };
+  const gestrichelt=(x0,z0,x1,z1,b,c,l,lu)=>{ const L=Math.hypot(x1-x0,z1-z0), n=Math.floor(L/(l+lu));
+    for(let i=0;i<n;i++){ const a=i*(l+lu)/L, e=(i*(l+lu)+l)/L; linie(x0+(x1-x0)*a,z0+(z1-z0)*a,x0+(x1-x0)*e,z0+(z1-z0)*e,b,c); } };
+  /* Schraffur schwarz-gelb: Flaeche mit Streifentextur, UV in Metern */
+  const schraffur=(x0,x1,z0,z1)=>{ const g=new THREE.PlaneGeometry(x1-x0,z1-z0).rotateX(-Math.PI/2), uv=g.attributes.uv;
+    for(let i=0;i<uv.count;i++) uv.setXY(i,uv.getX(i)*(x1-x0)/0.6,uv.getY(i)*(z1-z0)/0.6);
+    S.geo(g,tm((x0+x1)/2,Y+0.001,(z0+z1)/2),0xffffff,'schraffur'); };
+  const A=HV7.halle, K=HV7.kl3;
+  /* Wareneingang: Zone gestrichelt, je Tor zwei Spalten mit drei Stellplaetzen */
+  const W=HV7.we;
+  gestrichelt(W.x0,W.z1,W.x1,W.z1,0.12,gelb,0.6,0.3); gestrichelt(W.x0,W.z0+0.1,W.x0,W.z1,0.12,gelb,0.6,0.3);
+  for(const t of HV7.tore){
+    schraffur(t.x-WTOR.w/2,t.x+WTOR.w/2,A.z0+0.05,A.z0+0.75);
+    for(const dx of [-0.75,0.75]) for(let r=0;r<3;r++){ const cx=t.x+dx, cz=W.z0+1.6+r*1.45; rahmen(cx-0.5,cx+0.5,cz-0.68,cz+0.68,0.06,weiss); }
+  }
+  /* Ueberladebruecken vor den Toren gehoeren zum Tor (hvToreBauen) */
+  /* Hauptfahrweg: von der Schleuse nach Westen zwischen Wareneingang und Hochregal */
+  linie(A.x1-0.3,-28.3,A.x0+0.3,-28.3,0.12,gelb);
+  linie(HV7.anbruch.x1+0.6,-28.3,HV7.anbruch.x1+0.6,-14.0,0.12,gelb);
+  linie(A.x0+0.3,-13.6,K.x0-0.3,-13.6,0.12,gelb);
+  /* Anbruch: gruene Zone */
+  const AB=HV7.anbruch; rahmen(AB.x0+0.15,AB.x1-0.15,AB.z0+0.15,AB.z1-0.15,0.1,gruen);
+  for(const gs of HV7.gassen){ rahmen(AB.x0+0.5,AB.x0+1.9,gs.mitte-0.75,gs.mitte+0.75,0.05,weiss); }
+  /* Gassen-Zugang gesperrt: Schraffur vor den Schutzzaeunen */
+  for(const gs of HV7.gassen) schraffur(HV7.io.x1+0.1,HV7.io.x1+0.5,gs.a1+0.05,gs.b0-0.05);
+  /* Packmaterial */
+  const PM=HV7.pack; gestrichelt(PM.x0,PM.z0,PM.x1,PM.z0,0.1,gelb,0.5,0.25); gestrichelt(PM.x0,PM.z1,PM.x1,PM.z1,0.1,gelb,0.5,0.25);
+  gestrichelt(PM.x0,PM.z0,PM.x0,PM.z1,0.1,gelb,0.5,0.25); gestrichelt(PM.x1,PM.z0,PM.x1,PM.z1,0.1,gelb,0.5,0.25);
+  /* Schnellplaetze: 13 Rahmen an der Wand */
+  const SN=HV7.schnell;
+  for(let i=0;i<SN.n;i++){ const cx=SN.x0+0.6+i*SN.dx; rahmen(cx-0.6,cx+0.6,SN.z0,SN.z1,0.06,weiss); }
+  /* N1: Schraffur beidseits der Oeffnung, Durchfahrt markiert */
+  const N=HV7.n1; schraffur(N.x-1.1,N.x-0.15,N.z0-0.6,N.z0); schraffur(N.x-1.1,N.x-0.15,N.z1,N.z1+0.6);
+  linie(N.x-4,(N.z0+N.z1)/2,K.x0+12,(N.z0+N.z1)/2,0.1,gelb);
+  /* Durchgang zur Schleuse */
+  schraffur(A.x1-0.9,A.x1-0.15,HV7.sDurch.z0-0.5,HV7.sDurch.z0); schraffur(A.x1-0.9,A.x1-0.15,HV7.sDurch.z1,HV7.sDurch.z1+0.5);
+  /* Produktion: gruene Fusswege zwischen den Strassen, weisse Kanten */
+  const P=HV7.prod;
+  for(const z of [-28.2,-23.47,-18.8,-13.6]){ fl(P.x0+1,P.x1-0.4,z-0.6,z+0.6,gruen,Y-0.001); linie(P.x0+1,z-0.62,P.x1-0.4,z-0.62,0.06,weiss); linie(P.x0+1,z+0.62,P.x1-0.4,z+0.62,0.06,weiss); }
+  for(const t of HV7.ptore) schraffur(t.x-WTOR.w/2,t.x+WTOR.w/2,P.z0+0.05,P.z0+0.75);
+  for(const b of HV7.bunker) schraffur(b.x0,b.x1,-29.0,-28.35);
+  /* Kartonlager 3: gelbe Zonengrenze zu Lager 2 (keine Wand) */
+  gestrichelt(K.x1-0.05,K.z0+0.2,K.x1-0.05,K.z1-0.2,0.12,gelb,0.7,0.35);
+  if(o.umfeld){
+    /* Versandecke (Hauptspiel) als Flaeche markiert */
+    const L=LAY.lsued; rahmen(L.x0+0.3,L.x1-0.3,L.z0+0.3,-22.6,0.1,0xe0782e);
+    gestrichelt(L.x0+0.2,-5.9,L.x1-0.2,-5.9,0.1,gelb,0.7,0.35);
+  }
+  S.fertig(G,false);
+  hvBodenSchrift(G,o);
+}
+/* Bodenschrift aus einem Atlas */
+function hvBodenSchrift(G,o){
+  const T=[['WARENEINGANG',(HV7.we.x0+HV7.we.x1)/2-3,-29.6,0,4.2],['ANBRUCH',(HV7.anbruch.x0+HV7.anbruch.x1)/2,-21.0,Math.PI/2,3.0],
+    ['PACKMATERIAL',(HV7.pack.x0+HV7.pack.x1)/2,-22.6,0,3.0],['SCHNELLPLÄTZE',-56,-10.4,0,3.4],['N1',HV7.n1.x-1.5,-12.0,Math.PI/2,0.9],
+    ['KARTONLAGER ③',-30.5,-12.0,0,3.2],['GASSE 1',-47.0,HV7.gassen[0].mitte,Math.PI/2,1.4],['GASSE 2',-47.0,HV7.gassen[1].mitte,Math.PI/2,1.4],['GASSE 3',-47.0,HV7.gassen[2].mitte,Math.PI/2,1.4],
+    ['SCHLEUSE',-23.0,-24.0,Math.PI/2,2.4],['RAKETEN',-90,-28.2,0,2.0],['KUGELBOMBEN',-90,-23.47,0,2.6],['BATTERIEN',-90,-18.8,0,2.2],['FERTIGWARE R5',-74,-31.2,0,3.0],['ROHSTOFFE R6',-92.4,-27.4,0,2.6]];
+  if(o.umfeld) T.push(['VERSANDECKE V1',-14,-26.2,0,3.2],['② LAGER SÜD',-14,-15.0,0,2.8],['① BACKSTOCK',-14,-1.0,0,2.8]);
+  const cw=512, ch=96, n=T.length, rows=Math.ceil(n/2);
+  const t=hvRes(tex(cw*2,ch*rows,(g,W,H)=>{ g.clearRect(0,0,W,H); g.textAlign='center'; g.textBaseline='middle';
+    T.forEach((e,i)=>{ const x=(i%2)*cw, y=Math.floor(i/2)*ch; g.fillStyle='rgba(242,194,48,.92)'; fitFont(g,e[0],cw*0.92,ch*0.78,BUN); g.fillText(e[0],x+cw/2,y+ch/2+3); }); }));
+  const parts=[];
+  T.forEach((e,i)=>{ const g=new THREE.PlaneGeometry(e[4],e[4]*ch/cw).rotateX(-Math.PI/2), uv=g.attributes.uv;
+    const u0=(i%2)/2, v0=1-(Math.floor(i/2)+1)/rows;
+    for(let k=0;k<uv.count;k++) uv.setXY(k,u0+uv.getX(k)/2,v0+uv.getY(k)/rows);
+    parts.push({geo:g,m:tm(e[1],0.024,e[2],0,e[3],0),color:0xffffff}); });
+  const m=new THREE.Mesh(hvRes(merge(parts)),hvRes(new THREE.MeshStandardMaterial({map:t,transparent:true,depthWrite:false,roughness:0.6})));
+  m.renderOrder=2; m.matrixAutoUpdate=false; G.add(m);
+  parts.forEach(p=>p.geo.dispose());
+}
+
+/* Kartonlager 3, Schleuse und (eigenstaendig) Lager 1/2 */
+function hvLagerBauen(o){
+  const G=hvBereich('lager'), S=hvSammler(), K=HV7.kl3, SL=HV7.schleuse, LH=LAGER_H;
+  /* Kartonlager 3: Aussenwand Sued (zum Hof 1), Decke 5 m, Wand zur Schleuse */
+  hvHallenWand(S,true,K.z1+0.12,K.x0-0.24,K.x1+0.24,0,LH);
+  hvWand(S,K.x0,K.x1,K.z0,K.z1,LH,LH+0.2,'decke');
+  hvHallenWand(S,true,K.z0-0.12,SL.x0+0.24,SL.x1+0.12,0,LH);
+  /* Schleuse: 13 m lang, 3,4 m hoch, zur Halle mit Streifenvorhang, zu Lager 2 offen */
+  const SH=SCHLEUSE_H;
+  hvHallenWand(S,true,SL.z0-0.12,SL.x0+0.24,SL.x1+0.24,0,LH);
+  hvWand(S,SL.x0,SL.x1,SL.z0,SL.z1,SH,SH+0.15,'decke');
+  hvWandMitOeffnungen(S,false,SL.x1+0.12,SL.z0,SL.z1,[{a:HV7.sOffen.z0,b:HV7.sOffen.z1,h:3.0}],SH);
+  hvHallenWand(S,false,SL.x1+0.12,SL.z0,SL.z1,SH,LH,null,true);
+  /* Streifenvorhang im Durchgang zur Halle */
+  for(let z=HV7.sDurch.z0+0.1;z<HV7.sDurch.z1-0.05;z+=0.2) S.box(0.006,2.9,0.19,SL.x0+0.02,1.55,z+0.1,0xcfe0e8,'plexi');
+  S.box(0.12,0.08,HV7.sDurch.z1-HV7.sDurch.z0,SL.x0+0.02,2.98,(HV7.sDurch.z0+HV7.sDurch.z1)/2,HV_FARBE.stahlD,'metall');
+  /* Leuchten Schleuse und Kartonlager */
+  const lb=(x,y,z,ry)=>{ S.box(ry?0.22:1.4,0.06,ry?1.4:0.22,x,y-0.03,z,0xdfe3e9,'lack'); S.box(ry?0.16:1.3,0.01,ry?1.3:0.16,x,y-0.065,z,0xffffff,'leucht'); hvLampe(x,y,z); };
+  for(let z=SL.z0+2;z<SL.z1;z+=3.2) lb((SL.x0+SL.x1)/2,SH,z,true);
+  for(let x=K.x0+2;x<K.x1;x+=3.4) for(const z of [-15.0,-9.2]) lb(x,LH,z,false);
+  /* Regale im Kartonlager 3 (frei einrichtbar): Querreihen nord und sued des
+     Mittelgangs von N1 */
+  const regale=[];
+  for(let x=K.x0+1.2;x<K.x1-1.6;x+=3.3){ regale.push({x,z0:-16.6,z1:-13.9}); regale.push({x,z0:-10.1,z1:-7.4}); }
+  if(o.umfeld){
+    const L=LAY.lsued;
+    hvHallenWand(S,false,L.x1+0.12,L.z0-0.24,LAY.lnord.z1+0.24,0,LH);
+    hvWandMitOeffnungen(S,true,L.z0-0.12,L.x0,L.x1+0.24,[{a:V1.x-V1.w/2,b:V1.x+V1.w/2,h:V1.h,zu:true}],LH);
+    hvHallenWand(S,true,LAY.lnord.z1+0.12,L.x0-0.24,L.x1+0.24,0,LH);
+    hvWandMitOeffnungen(S,false,L.x0-0.12,LAY.lbasis.z0+0.4,LAY.lnord.z1+0.24,[{a:-3.6,b:-0.4,h:3.0,zu:true}],LH);
+    hvHallenWand(S,false,L.x0-0.12,K.z1,LAY.lbasis.z0+0.4,0,LH);
+    hvWand(S,L.x0,L.x1,L.z0,LAY.lnord.z1,LH,LH+0.2,'decke');
+    for(let x=L.x0+2;x<L.x1;x+=2.7) for(let z=L.z0+2.4;z<LAY.lnord.z1;z+=4.0) lb(x,LH,z,false);
+    /* Lager 2 und 1: Regalreihen laengs, die Versandecke bleibt frei */
+    for(let z=-21.6;z<-7.5;z+=3.6){ regale.push({x:-18.2,z0:z,z1:z+2.7,quer:false}); regale.push({x:-14.4,z0:z,z1:z+2.7}); regale.push({x:-10.6,z0:z,z1:z+2.7}); }
+    for(let z=-4.6;z<4.5;z+=3.4){ regale.push({x:-15.6,z0:z,z1:z+2.7}); regale.push({x:-11.4,z0:z,z1:z+2.7}); }
+    /* Tore R1 und V1 innen, geschlossen */
+    hvTor(G,S,'R1',L.x0,(-3.6-0.4)/2,'+x',3.2,3.0);
+    hvTor(G,S,'V1',V1.x,L.z0,'+z',V1.w,V1.h);
+  }
+  hvRegaleKarton(G,S,regale);
+  S.fertig(G);
+  /* gelbe Wand, Tor N1 (offenes Rolltor, Lamellen oben aufgewickelt) */
+  const N=HV7.n1, Sn=hvSammler();
+  for(const s of [-1,1]){ const z=s<0?N.z0:N.z1;
+    Sn.box(0.3,N.h+0.2,0.12,N.x-0.02,(N.h+0.2)/2,z+s*0.06,HV_FARBE.stahlD,'metall');
+    for(let y=0.1;y<2.0;y+=0.4) Sn.box(0.34,0.2,0.16,N.x-0.24,y+0.1,z+s*0.1,y%0.8<0.4?HV_FARBE.gelb:HV_FARBE.schwarz,'lack'); }
+  Sn.zyl(0.32,N.z1-N.z0+0.3,N.x-0.3,N.h+0.45,(N.z0+N.z1)/2,0xc9ced5,'metall','z',14);
+  Sn.box(0.5,0.5,0.4,N.x-0.3,N.h+0.45,N.z1+0.45,0x3a4150,'lack');
+  Sn.zyl(0.07,0.1,N.x-0.2,N.h+0.9,N.z0-0.4,0xffa020,'leucht','y',8);
+  Sn.fertig(G);
+  hvSchild(G,'N1','Kartonlager ③',1.6,0.5,HV7.n1.x-0.3,N.h+1.3,(N.z0+N.z1)/2,-Math.PI/2,'#1b2340','#f2c230');
+  hvSchild(G,'KARTONLAGER ③','Nachschub aus der Reserve',3.2,0.8,K.x0-0.3,6.0,-12.0,-Math.PI/2);
+  hvSchild(G,'SCHLEUSE','Packmaterial → Versandecke',2.4,0.6,HV7.halle.x1-0.15,3.6,(HV7.sDurch.z0+HV7.sDurch.z1)/2,-Math.PI/2);
+}
+/* Fachregale fuer Kartons: Rahmen verschmolzen, Kartons als Instanzen */
+function hvRegaleKarton(G,S,regale){
+  const kartons=[], R=hvRng(5), q=hvQ();
+  for(const r of regale){
+    const L=r.z1-r.z0, x=r.x, T=1.0, Hh=3.6, ebenen=[0.12,1.0,1.85,2.7];
+    for(const zz of [r.z0,r.z1]) for(const dx of [-T/2,T/2]) S.box(0.07,Hh,0.05,x+dx,Hh/2,zz,0x2f5d9a,'lack');
+    for(const y of ebenen) for(const dx of [-T/2,T/2]) S.box(0.05,0.1,L,x+dx,y,(r.z0+r.z1)/2,HV_FARBE.orange,'lack');
+    for(const y of ebenen) S.box(T,0.02,L,x,y+0.05,(r.z0+r.z1)/2,0xb8bec6,'metall');
+    for(const y of ebenen){ let z=r.z0+0.1; while(z<r.z1-0.4){ const w=0.38+R()*0.22, h=0.3+R()*0.3;
+        if(R()<0.86){ const m=tm(x+(R()-0.5)*0.08,y+0.06+h/2,z+w/2,0,(R()-0.5)*0.05,0,0.8,h,w); kartons.push(m); } z+=w+0.04; } }
+  }
+  if(!kartons.length) return;
+  if(q.karton){ const geo=hvKartonGeo(0); hvInst(geo,HVM.karton,kartons,G); hvRes(geo); }
+  else hvInst(hvGeoBox(),hvRes(std(0xbf9150,{roughness:0.9})),kartons,G);
+}
+/* Kartongeometrie (Einheitswuerfel) mit UVs auf eine Atlaszelle */
+function hvKartonGeo(zelle){
+  const g=new THREE.BoxGeometry(1,1,1), uv=g.attributes.uv, n=HV_ATLAS_N;
+  const u0=(zelle%n)/n, v0=1-(Math.floor(zelle/n)+1)/n, e=0.01;
+  for(let i=0;i<uv.count;i++) uv.setXY(i,u0+e+uv.getX(i)*(1/n-2*e),v0+e+uv.getY(i)*(1/n-2*e));
+  return g;
+}
+
+/* Sektionaltor mit Lamellen, innen gesehen. Lage: Mitte (cx,cz), Wand-
+   normale nach innen face. Gibt es fuer R2-R6 (Hallenwaende) und R1/V1. */
+function hvTor(G,S,name,cx,cz,face,B,Hh){
+  const quer=face==='+x'||face==='-x', s=(face==='+z'||face==='+x')?1:-1;
+  /* lokale Achse: u laengs der Wand, n in die Halle */
+  const P=(u,y,n)=>quer?[cx+n*s,y,cz+u]:[cx+u,y,cz+n*s];
+  const box=(wu,h,wn,u,y,n,c,m)=>{ const p=P(u,y,n); quer?S.box(wn,h,wu,p[0],p[1],p[2],c,m):S.box(wu,h,wn,p[0],p[1],p[2],c,m); };
+  /* Torblatt: eigenes Mesh mit Lamellentextur */
+  const geo=hvRes(new THREE.BoxGeometry(quer?0.06:B,Hh,quer?B:0.06)); const uv=geo.attributes.uv;
+  for(let i=0;i<uv.count;i++) uv.setXY(i,uv.getX(i)*B/2,uv.getY(i)*Hh/3.05);
+  const bl=new THREE.Mesh(geo,HVM.tor); const p0=P(0,Hh/2,0.1); bl.position.set(p0[0],p0[1],p0[2]);
+  if(HIQ){ bl.castShadow=true; bl.receiveShadow=true; } G.add(bl);
+  /* Fensterreihe im zweiten Panel von oben */
+  for(let k=0;k<4;k++) box(0.55,0.32,0.012,-B/2+0.55+k*(B-1.1)/3,Hh*0.72,0.135,0x9fb3c6,'leucht');
+  /* Laufschienen, Welle, Antrieb, Ampel, Taster */
+  for(const u of [-B/2-0.08,B/2+0.08]){ box(0.07,Hh+0.4,0.07,u,(Hh+0.4)/2,0.14,HV_FARBE.stahlD,'metall'); box(0.07,0.07,1.6,u,Hh+0.36,0.9,HV_FARBE.stahlD,'metall'); }
+  { const p=P(0,Hh+0.45,0.32); S.zyl(0.05,B+0.4,p[0],p[1],p[2],0xb8bec6,'metall',quer?'z':'x',10); }
+  box(0.36,0.32,0.3,B/2+0.45,Hh+0.4,0.35,0x3a4150,'lack');
+  box(0.18,0.28,0.12,B/2+0.5,1.4,0.1,HV_FARBE.gelb,'lack');
+  box(0.16,0.34,0.12,-B/2-0.45,2.0,0.1,HV_FARBE.schwarz,'lack');
+  box(0.09,0.09,0.02,-B/2-0.45,2.09,0.17,0x40ff70,'leucht'); box(0.09,0.09,0.02,-B/2-0.45,1.92,0.17,0x5a1010,'lack');
+  /* Zarge */
+  box(B+0.3,0.18,0.12,0,Hh+0.09,0.07,HV_FARBE.stahlD,'metall');
+  hvSchild(G,name,null,0.9,0.42,...(()=>{ const p=P(0,Hh+0.95,0.14); return [p[0],p[1],p[2]]; })(),quer?(s>0?Math.PI/2:-Math.PI/2):(s>0?0:Math.PI),'#1b2340','#f2c230');
+}
+function hvToreBauen(o){
+  const G=hvBereich('tore'), S=hvSammler(), A=HV7.halle;
+  for(const t of HV7.tore){ hvTor(G,S,t.n,t.x,A.z0,'+z',WTOR.w,WTOR.h);
+    /* Ueberladebruecke im Boden vor dem Tor: Riffelblech, gelb-schwarze Kante */
+    S.box(2.2,0.03,2.6,t.x,0.02,A.z0+1.4,0x7c838c,'metall');
+    for(let k=0;k<7;k++) S.box(0.31,0.032,0.1,t.x-0.95+k*0.32,0.022,A.z0+2.72,k%2?HV_FARBE.schwarz:HV_FARBE.gelb,'lack'); }
+  for(const t of HV7.ptore) hvTor(G,S,t.n,t.x,A.z0,'+z',WTOR.w,WTOR.h);
+  S.fertig(G);
+}
+
+/* Produktionsfluegel: Huelle 5 m, Stuetzenreihen in den Gaengen, Bunker */
+function hvProdHuelle(o){
+  const G=hvBereich('produktion'), S=hvSammler(), P=HV7.prod, H=HV7.PH;
+  hvWandMitOeffnungen(S,true,P.z0-0.12,P.x0-0.24,P.x1,HV7.ptore.map(t=>({a:t.x-WTOR.w/2,b:t.x+WTOR.w/2,h:WTOR.h+0.05,zu:true})),H);
+  hvHallenWand(S,false,P.x0-0.12,P.z0-0.24,P.z1+0.24,0,H);
+  hvHallenWand(S,true,P.z1+0.12,P.x0-0.24,P.x1,0,H);
+  hvWand(S,P.x0-0.24,P.x1,P.z0-0.24,P.z1+0.24,H,H+0.2,'decke');
+  /* Stuetzen und Unterzuege in den Gaengen zwischen den Strassen */
+  for(const z of [-23.47,-18.8]){
+    S.box(P.x1-P.x0,0.4,0.2,(P.x0+P.x1)/2,H-0.2,z,HV_FARBE.stahl,'lack');
+    for(let x=P.x0+7;x<P.x1-1;x+=7){ S.box(0.26,H-0.4,0.26,x,(H-0.4)/2,z,HV_FARBE.stahl,'lack'); S.box(0.34,0.55,0.34,x,0.28,z,HV_FARBE.gelb,'lack'); }
+  }
+  /* Kabeltrassen (gelb) und Druckluft (blau) laengs ueber den Strassen */
+  for(const s of HV7.strassen){ S.box(P.x1-P.x0-4,0.08,0.4,(P.x0+P.x1)/2+1,H-0.75,s.z-1.4,HV_FARBE.gelb,'lack');
+    S.zyl(0.04,P.x1-P.x0-4,(P.x0+P.x1)/2+1,H-0.55,s.z+1.3,0x2f6fd0,'lack','x',8); }
+  S.zyl(0.06,P.x1-P.x0-1,(P.x0+P.x1)/2,H-0.32,-21.1,HV_FARBE.rot,'lack','x',8);
+  /* Leuchtbaender (LED-Lichtleisten) ueber Strassen und Gaengen */
+  for(const z of [-31.0,-25.8,-21.13,-16.46,-11.0,-8.4]) for(let x=P.x0+2.5;x<P.x1-1;x+=3.5){
+    S.box(1.5,0.08,0.18,x,H-0.06,z,0xdfe3e9,'lack'); S.box(1.42,0.01,0.12,x,H-0.105,z,0xffffff,'leucht'); hvLampe(x,H-0.1,z); }
+  /* Bunkerzellen hinter Brandwaenden, schwere Schiebetuer, Ex-Zeichen */
+  const bz1=-29.0;
+  for(const b of HV7.bunker){
+    hvWand(S,b.x0-0.3,b.x0,P.z0,bz1,0,H,'sockel'); hvWand(S,b.x1,b.x1+0.3,P.z0,bz1,0,H,'sockel');
+    hvWand(S,b.x0-0.3,b.x1+0.3,bz1,bz1+0.3,2.6,H,'sockel');
+    hvWand(S,b.x0-0.3,b.x0+0.5,bz1,bz1+0.3,0,2.6,'sockel'); hvWand(S,b.x1-0.5,b.x1+0.3,bz1,bz1+0.3,0,2.6,'sockel');
+    hvCol(b.x0-0.3,b.x1+0.3,P.z0,bz1+0.3);
+    const m=(b.x0+b.x1)/2;
+    S.box(b.x1-b.x0-0.9,2.5,0.08,m,1.25,bz1+0.38,0x7f8790,'metall');
+    for(let k=0;k<4;k++) S.box(b.x1-b.x0-0.95,0.03,0.09,m,0.4+k*0.6,bz1+0.38,0x5d646d,'metall');
+    S.box(b.x1-b.x0-0.6,0.12,0.12,m,2.62,bz1+0.42,HV_FARBE.stahlD,'metall');
+    S.zyl(0.07,0.12,b.x1-0.2,2.85,bz1+0.42,0xff3020,'leucht','y',8);
+  }
+  S.fertig(G);
+  for(const [i,b] of HV7.bunker.entries()) hvSchild(G,'BUNKER '+(i+1),'Mischen · Ex-Zone 1',1.8,0.5,(b.x0+b.x1)/2,3.1,-28.55,0,'#7a1410','#ffd23f');
+  hvSchild(G,'PRODUKTION','Raketen · Kugelbomben · Batterien',3.6,0.9,P.x1+0.1,4.4,-31.5,Math.PI/2);
+  hvSchild(G,'PRODUKTION','Raketen · Kugelbomben · Batterien',3.6,0.9,P.x1-0.38,4.0,-31.5,-Math.PI/2);
+}
+/* =========================================================
+   Grosse Halle: Hochregal (Reserve) mit 3 Gassen, Regalbediengeraete,
+   I/O-Plaetze am Ostende, Einlagerung aus der Produktion am Westende,
+   Anbruchplatz.
+   Je Gasse 2 Reihen x 6 Felder x 3 Paletten x 5 Ebenen = 180 Plaetze.
+   ========================================================= */
+/* Europalette, vereinfacht (fuer Hunderte Instanzen): 0,8 m in x, 1,2 m in z */
+let _hvPalGeo=null;
+function hvPalGeo(){
+  if(_hvPalGeo) return _hvPalGeo;
+  const B=[], H1=0xc49a62, H2=0xa9814e, H3=0xcfa66d, q=hvQ();
+  const b=(w,h,d,x,y,z,c)=>B.push({geo:hvGeoBox(),m:tm(x,y,z,0,0,0,w,h,d),color:c});
+  for(const dx of [-0.33,0,0.33]) b(0.1,0.022,1.2,dx,0.011,0,H1);
+  for(const dx of [-0.33,0,0.33]) for(const dz of [-0.55,0,0.55]) b(0.1,0.078,0.14,dx,0.061,dz,H2);
+  if(q.fein) for(const dz of [-0.55,0,0.55]) b(0.8,0.022,0.14,0,0.111,dz,H1);
+  if(q.fein) for(const dx of [-0.34,-0.17,0,0.17,0.34]) b(dx===0||Math.abs(dx)>0.3?0.14:0.1,0.022,1.2,dx,PAL_H-0.011,0,dx===0?H1:H3);
+  else b(0.8,0.044,1.2,0,PAL_H-0.022,0,H3);
+  _hvPalGeo=merge(B); return _hvPalGeo;
+}
+/* Ladung einer Palette: Kartons mit Atlas-UVs, 0,8 x 1,2 m Grundflaeche, ab y=0.
+   Varianten unterscheiden Kartongroesse und Hoehe. */
+const HV_LADUNG=[{nx:2,nz:3,ny:3,h:0.42},{nx:2,nz:2,ny:2,h:0.56},{nx:3,nz:4,ny:4,h:0.3},{nx:2,nz:3,ny:2,h:0.46}];
+const _hvLadGeo={};
+function hvLadungGeo(v){
+  const q=hvQ(), key=v+(q.karton?'k':'b');
+  if(_hvLadGeo[key]) return _hvLadGeo[key];
+  const L=HV_LADUNG[v], R=hvRng(101+v*13), parts=[];
+  if(!q.karton){ const g=new THREE.BoxGeometry(0.78,L.ny*L.h,1.18); g.translate(0,L.ny*L.h/2,0); _hvLadGeo[key]=g; return g; }
+  const w=0.8/L.nx, d=1.2/L.nz;
+  for(let iy=0;iy<L.ny;iy++) for(let ix=0;ix<L.nx;ix++) for(let iz=0;iz<L.nz;iz++){
+    const g=hvKartonGeo(Math.floor(R()*HV_ATLAS_N*HV_ATLAS_N));
+    parts.push({geo:g,m:tm(-0.4+w*(ix+0.5)+(R()-0.5)*0.012,L.h*(iy+0.5),-0.6+d*(iz+0.5)+(R()-0.5)*0.012,0,(R()-0.5)*0.03,0,w-0.008,L.h-0.006,d-0.008),color:0xffffff}); }
+  const out=merge(parts); parts.forEach(p=>p.geo.dispose());
+  _hvLadGeo[key]=out; return out;
+}
+function hvLadungHoehe(v){ const L=HV_LADUNG[v]; return L.ny*L.h; }
+/* Paletten mit Ladung als Instanzen: liste [{x,y,z,v,ry}] */
+function hvPalettenInst(G,liste,mitFolie){
+  if(!liste.length) return;
+  const q=hvQ();
+  hvInst(hvPalGeo(),HVM.holz,liste.map(p=>tm(p.x,p.y,p.z,0,p.ry||0,0)),G);
+  for(let v=0;v<HV_LADUNG.length;v++){
+    const L=liste.filter(p=>p.v===v); if(!L.length) continue;
+    const mats=L.map(p=>tm(p.x,p.y+PAL_H,p.z,0,p.ry||0,0));
+    if(q.karton) hvInst(hvLadungGeo(v),HVM.karton,mats,G);
+    else hvInst(hvLadungGeo(v),HVM.kartonB||(HVM.kartonB=hvRes(std(0xbf9150,{roughness:0.9}))),mats,G);
+    if(mitFolie&&HVM.folie){ const h=hvLadungHoehe(v);
+      hvInst(hvGeoBox(),HVM.folie,L.map(p=>tm(p.x,p.y+PAL_H+h/2,p.z,0,p.ry||0,0,0.83,h+0.03,1.23)),G,null,false); }
+  }
+}
+
+function hvHochregalGasse(k){
+  const G=hvBereich('hochregal'), S=hvSammler(), R=HV7.hr, gs=HV7.gassen[k], E=R.ebenen, Ht=R.hoehe, q=hvQ();
+  const reihen=[{z0:gs.a0,z1:gs.a1,a:true},{z0:gs.b0,z1:gs.b1,a:false}];
+  const PFOST=0xc5cad1, TRAV=0xe36b1f;
+  for(const r of reihen){
+    for(let i=0;i<=R.felder;i++){ const x=R.x0+i*R.fb;
+      for(const z of [r.z0+0.04,r.z1-0.04]){ S.box(0.1,Ht,0.08,x,Ht/2,z,PFOST,'metall'); S.box(0.2,0.012,0.16,x,0.006,z,0x8a9099,'metall'); }
+      /* Rahmenverband: waagerecht und diagonal */
+      for(let y=0.3,s=1;y<Ht-0.5;y+=1.25,s=-s){
+        S.box(0.04,0.04,r.z1-r.z0-0.16,x,y,(r.z0+r.z1)/2,PFOST,'metall');
+        if(q.fein) S.strebe(x,y,s>0?r.z0+0.08:r.z1-0.08,x,Math.min(Ht-0.2,y+1.25),s>0?r.z1-0.08:r.z0+0.08,0.035,PFOST,'metall'); }
+    }
+    for(let l=1;l<E.length;l++) for(let j=0;j<R.felder;j++){ const x=R.x0+(j+0.5)*R.fb, y=E[l]-0.07;
+      for(const z of [r.z0+0.05,r.z1-0.05]) S.box(R.fb-0.1,0.12,0.05,x,y,z,TRAV,'lack'); }
+    S.box(R.x1-R.x0,0.1,0.06,(R.x0+R.x1)/2,Ht-0.05,r.z0+0.05,TRAV,'lack'); S.box(R.x1-R.x0,0.1,0.06,(R.x0+R.x1)/2,Ht-0.05,r.z1-0.05,TRAV,'lack');
+    /* Anfahrschutz an den Stirnseiten */
+    S.box(0.08,0.45,r.z1-r.z0+0.1,R.x1+0.1,0.225,(r.z0+r.z1)/2,0xf2c230,'lack');
+  }
+  /* Fahrschiene am Boden und Fuehrungsschiene oben, Quertraeger je Feld */
+  const xe=HV7.io.x1-0.15, xa=HV7.halle.x0+0.2;
+  S.box(xe-xa,0.07,0.1,(xa+xe)/2,0.035,gs.mitte,0x5a6068,'metall');
+  S.box(xe-xa,0.04,0.3,(xa+xe)/2,0.002,gs.mitte,0x3a3e44,'metall');
+  S.box(xe-xa,0.12,0.12,(xa+xe)/2,Ht+0.22,gs.mitte,0x5a6068,'metall');
+  for(let i=0;i<=R.felder;i++) S.box(0.08,0.08,gs.b0-gs.a1+0.1,R.x0+i*R.fb,Ht+0.08,gs.mitte,PFOST,'metall');
+  S.box(0.12,Ht+0.3,0.12,xe+0.05,(Ht+0.3)/2,gs.a1+0.06,PFOST,'metall'); S.box(0.12,Ht+0.3,0.12,xe+0.05,(Ht+0.3)/2,gs.b0-0.06,PFOST,'metall');
+  S.box(0.12,0.12,gs.b0-gs.a1,xe+0.05,Ht+0.2,gs.mitte,PFOST,'metall');
+  S.fertig(G);
+  /* Paletten: zufaellig, aber fest (Saat je Gasse) zu ~82 % belegt */
+  const rng=hvRng(500+k), L=[];
+  for(const r of reihen) for(let j=0;j<R.felder;j++) for(let s=0;s<3;s++) for(let l=0;l<E.length;l++){
+    if(r.a&&j===0&&l===0&&s<2) continue;              /* Westende: Foerderer aus der Produktion */
+    if(rng()>0.82) continue;
+    const v=Math.floor(rng()*HV_LADUNG.length);
+    if(E[l]+PAL_H+hvLadungHoehe(v)>(E[l+1]||Ht)-0.15) continue;
+    L.push({x:R.x0+j*R.fb+0.1+(s+0.5)*(R.fb-0.2)/3,y:E[l]+(l?0:0),z:(r.z0+r.z1)/2,v}); }
+  hvPalettenInst(G,L,false);
+  HALLE.palettenHR=(HALLE.palettenHR||0)+L.length;
+  hvSchild(G,'GASSE '+(k+1),'Reserve · '+(180)+' Plätze',1.4,0.42,xe+0.12,Ht-0.7,gs.mitte,Math.PI/2);
+}
+
+/* Regalbediengeraet: Fahrwerk, Mast, Hubwagen mit Teleskopgabel. Faehrt Ziele
+   im Regal an, schiebt die Gabel aus, holt oder bringt eine Palette. */
+function hvRbg(G,gs,k){
+  const R=HV7.hr, Ht=R.hoehe, q=hvQ();
+  const g=new THREE.Group(); g.position.set(-56,0,gs.mitte); G.add(g);
+  const S=hvSammler(), GELB=0xf2b81c, GRAU=0xe4e7ea, DUNK=0x2a2e35;
+  /* Fahrwerk */
+  S.box(3.0,0.5,0.7,0,0.35,0,GELB,'lack'); S.box(3.1,0.08,0.75,0,0.62,0,DUNK,'lack');
+  for(const dx of [-1.2,1.2]) S.zyl(0.2,0.24,dx,0.2,0,DUNK,'lack','z',q.rund);
+  /* Mast (zwei Profile mit Laufbahnen) */
+  for(const dz of [-0.2,0.2]) S.box(0.42,Ht-0.6,0.12,0.75,0.65+(Ht-0.6)/2,dz,GRAU,'lack');
+  S.box(0.06,Ht-0.6,0.5,0.98,0.65+(Ht-0.6)/2,0,0xb9bfc6,'metall');
+  for(let y=1.5;y<Ht-0.5;y+=1.6) S.box(0.38,0.08,0.34,0.75,y,0,GRAU,'lack');
+  /* Kopf mit Fuehrungsrollen */
+  S.box(1.4,0.3,0.6,0.5,Ht+0.0,0,GELB,'lack');
+  for(const dz of [-0.13,0.13]) S.zyl(0.06,0.1,0.5,Ht+0.2,dz,DUNK,'lack','y',8);
+  /* Schaltschrank und Leitungen */
+  S.box(0.6,1.7,0.55,-0.9,0.65+0.85,0,0xb9bfc6,'lack');
+  S.box(0.02,1.2,0.4,-0.6,1.6,0,0x8a9099,'lack');
+  S.box(0.04,Ht-1,0.04,0.98,Ht/2,0.3,DUNK,'matt');
+  S.zyl(0.07,0.12,0.5,Ht+0.22,0.22,0xff9a20,'leucht','y',8);
+  S.fertig(g);
+  /* Hubwagen am Mast */
+  const hub=new THREE.Group(); hub.position.set(0,1.0,0); g.add(hub);
+  const Sh=hvSammler();
+  Sh.box(0.25,1.3,0.9,0.45,0.65,0,GELB,'lack');
+  Sh.box(1.1,0.1,1.25,-0.15,0.05,0,GELB,'lack');
+  for(const dz of [-0.62,0.62]) Sh.box(0.06,1.0,0.06,-0.65,0.55,dz,GELB,'lack');
+  Sh.box(0.06,0.06,1.3,-0.65,1.05,0,GELB,'lack');
+  Sh.fertig(hub);
+  /* Teleskopgabel: zwei Zinken, fahren quer (z) ins Regal */
+  const gabel=new THREE.Group(); hub.add(gabel);
+  const Sg=hvSammler(); for(const dx of [-0.3,0.3]) Sg.box(0.14,0.06,1.2,-0.15+dx,0.13,0,0x9aa1aa,'metall'); Sg.fertig(gabel);
+  /* Palette auf der Gabel */
+  const v=k%HV_LADUNG.length;
+  const last=new THREE.Group(); gabel.add(last);
+  last.add(new THREE.Mesh(hvPalGeo(),HVM.holz)); const lm=new THREE.Mesh(hvLadungGeo(v),hvQ().karton?HVM.karton:(HVM.kartonB||(HVM.kartonB=hvRes(std(0xbf9150))))); lm.position.y=PAL_H; last.add(lm);
+  last.position.set(-0.15,0.16,0);
+  /* Ablauf: Ziel anfahren (x und Hoehe gleichzeitig), Gabel aus, Palette ab/auf, Gabel ein */
+  const E=R.ebenen, rng=hvRng(900+k);
+  const st={ph:'fahren',t:0,x:-56,y:1.0,zx:-56,zy:1.0,seite:1,traegt:true,warte:0};
+  const neuesZiel=()=>{ if(rng()<0.35){ st.zx=-47.3; st.zy=0.42; st.seite=rng()<0.5?-1:1; }   /* I/O am Ostende */
+    else { const j=Math.floor(rng()*R.felder), s=Math.floor(rng()*3); st.zx=R.x0+j*R.fb+0.1+(s+0.5)*(R.fb-0.2)/3; st.zy=E[Math.floor(rng()*E.length)]+0.02; st.seite=rng()<0.5?-1:1; } };
+  neuesZiel();
+  HALLE.anim.push((dt)=>{
+    if(!HALLE.animAn) return;
+    st.t+=dt;
+    if(st.ph==='fahren'){
+      const dx=st.zx-st.x, dy=st.zy-st.y;
+      const vx=Math.min(2.4,Math.abs(dx)*1.6+0.2), vy=Math.min(0.7,Math.abs(dy)*1.5+0.1);
+      st.x+=Math.sign(dx)*Math.min(Math.abs(dx),vx*dt); st.y+=Math.sign(dy)*Math.min(Math.abs(dy),vy*dt);
+      if(Math.abs(dx)<0.005&&Math.abs(dy)<0.005){ st.ph='aus'; st.t=0; }
+    } else if(st.ph==='aus'){ gabel.position.z=st.seite*Math.min(1,st.t/1.4)*1.15; if(st.t>1.6){ st.traegt=!st.traegt; last.visible=st.traegt; st.ph='ein'; st.t=0; } }
+    else if(st.ph==='ein'){ gabel.position.z=st.seite*Math.max(0,1-st.t/1.4)*1.15; if(st.t>1.5){ st.ph='warte'; st.t=0; } }
+    else if(st.ph==='warte'&&st.t>0.8){ neuesZiel(); st.ph='fahren'; st.t=0; }
+    g.position.x=st.x-0.75; hub.position.y=st.y;
+  });
+  return g;
+}
+/* Rollenfoerderer laengs x: Rahmen in den Sammler, Rollen in die Liste */
+function hvRollbahn(S,rollen,x0,x1,z,top,breite,beine){
+  const b=breite||1.25, y=top-0.05;
+  for(const s of [-1,1]) S.box(x1-x0,0.12,0.06,(x0+x1)/2,y-0.02,z+s*(b/2+0.03),0x6f7780,'lack');
+  if(beine!==false) for(let x=x0+0.15;x<x1;x+=Math.max(0.9,(x1-x0-0.3)/Math.max(1,Math.round((x1-x0)/1.2)))) for(const s of [-1,1]) S.box(0.06,y-0.04,0.06,x,(y-0.04)/2,z+s*(b/2+0.03),0x6f7780,'lack');
+  for(let x=x0+0.08;x<x1-0.04;x+=0.15) rollen.push(tm(x,y,z,Math.PI/2,0,0,0.04,b,0.04));
+}
+function hvRbgUndIO(){
+  const G=hvBereich('rbg'), A=hvBereich('io_anbruch'), S=hvSammler(), rollen=[], pal=[], q=hvQ(), IO=HV7.io;
+  HALLE.animAn=true;
+  HV7.gassen.forEach((gs,k)=>hvRbg(G,gs,k));
+  for(const gs of HV7.gassen){
+    /* I/O: Einlagern (Reihe A, mit Konturenkontrolle), Auslagern (Reihe B) */
+    const zA=(gs.a0+gs.a1)/2, zB=(gs.b0+gs.b1)/2;
+    hvRollbahn(S,rollen,IO.x0,IO.x1,zA,0.5); hvRollbahn(S,rollen,IO.x0,IO.x1,zB,0.5);
+    for(const s of [-1,1]) S.box(0.1,2.3,0.1,IO.x1-0.5,1.15,zA+s*0.78,0xf2b81c,'lack');
+    S.box(0.1,0.12,1.66,IO.x1-0.5,2.3,zA,0xf2b81c,'lack');
+    for(const s of [-1,1]) S.box(0.03,1.8,0.03,IO.x1-0.5,1.4,zA+s*0.72,0xff3020,'leucht');
+    S.zyl(0.06,0.1,IO.x1-0.5,2.45,zA+0.78,0x40ff70,'leucht','y',8);
+    /* Schutzzaun quer vor dem Gassenende mit Tuer und Schild */
+    const zx=IO.x1+0.05;
+    for(const z of [gs.a1+0.02,gs.b0-0.02,gs.mitte]) S.box(0.06,2.2,0.06,zx,1.1,z,0xf2c230,'lack');
+    S.box(0.02,2.0,gs.b0-gs.a1-0.1,zx,1.15,gs.mitte,0xffffff,'zaun');
+    if(q.fein) S.box(0.04,0.5,0.3,zx+0.06,1.4,gs.mitte+0.4,0xd8352a,'lack');
+    /* Paletten auf den Foerderern */
+    if(gs.k!==1) pal.push({x:IO.x0+0.6,y:0.5,z:zA,v:gs.k%4});
+    pal.push({x:IO.x1-0.5,y:0.5,z:zB,v:(gs.k+2)%4});
+    /* Westende: Foerderer durch die Brandwand aus der Produktion */
+    hvRollbahn(S,rollen,HV7.halle.x0-1.6,HV7.hr.x0+1.6,zA,0.5);
+    S.box(0.1,2.1,1.6,HV7.halle.x0+0.06,1.05,zA,0x8a9099,'metall');   /* Brandschutzabschluss, offen */
+  }
+  S.fertig(A);
+  hvInst(hvGeoZyl(q.rund),hvRolleMat(),rollen,A);
+  /* Anbruch: Paletten im Anbruch, Rollwagen, Packtisch mit Scanner */
+  const AB=HV7.anbruch, Sa=hvSammler();
+  HV7.gassen.forEach((gs,k)=>{ pal.push({x:AB.x0+1.2,y:0,z:gs.mitte,v:(k+1)%4,teil:true}); });
+  /* angebrochene Palette: weniger Kartons - als eigene Instanz mit niedriger Ladung */
+  hvPalettenInst(A,pal.filter(p=>!p.teil),false);
+  { const tp=pal.filter(p=>p.teil); hvInst(hvPalGeo(),HVM.holz,tp.map(p=>tm(p.x,0,p.z)),A);
+    const L=tp.map(p=>tm(p.x,PAL_H,p.z-0.3,0,0,0,1,0.5,0.5));
+    if(q.karton) hvInst(hvLadungGeo(0),HVM.karton,L,A); }
+  for(const [x,z,ry] of [[-43.0,-26.8,0.2],[-43.2,-20.6,-0.1],[-42.8,-15.4,0.05]]) hvRollwagen(Sa,x,z,ry);
+  Sa.box(1.6,0.05,0.8,-42.7,0.92,-23.47,0xd8dce1,'lack');
+  for(const dx of [-0.7,0.7]) for(const dz of [-0.33,0.33]) Sa.box(0.05,0.9,0.05,-42.7+dx,0.45,-23.47+dz,0x6f7780,'lack');
+  Sa.box(0.3,0.2,0.2,-42.3,1.05,-23.6,0x2a2e35,'lack');
+  Sa.fertig(A);
+}
+/* Rollwagen (Plattformwagen mit Buegel) mit ein paar Kartons */
+function hvRollwagen(S,x,z,ry){
+  const c=Math.cos(ry), s=Math.sin(ry), P=(lx,lz)=>[x+lx*c+lz*s,z-lx*s+lz*c];
+  const b=(w,h,d,lx,y,lz,col,m)=>{ const p=P(lx,lz); S.box(w,h,d,p[0],y,p[1],col,m,0,ry,0); };
+  b(0.7,0.04,1.1,0,0.24,0,0x5d646d,'lack');
+  for(const lx of [-0.3,0.3]) for(const lz of [-0.45,0.45]){ const p=P(lx,lz); S.zyl(0.07,0.05,p[0],0.08,p[1],0x1d1f24,'matt','x',8); }
+  for(const lx of [-0.32,0.32]) b(0.03,0.9,0.03,lx,0.7,0.53,0x8a9099,'metall');
+  b(0.66,0.03,0.03,0,1.14,0.53,0x8a9099,'metall');
+  b(0.5,0.4,0.6,0.02,0.46,-0.15,0xbf9150,'matt'); b(0.4,0.3,0.4,-0.05,0.81,-0.2,0xc89b5c,'matt');
+}
+function hvRolleMat(){ return HVM.rolle||(HVM.rolle=hvRes(std(0xb9bfc6,{metalness:0.7,roughness:0.32}))); }
+/* =========================================================
+   Grosse Halle: Produktion im Westfluegel (918 m2, 5 m), drei automatische
+   Fertigungsstrassen nach Toms Referenzfoto (produktion-referenz.webp):
+   Rollenbahnen, Portal-Greifer, Rohr-Raster, helle Industrie-Optik.
+   Jede Strasse hat zwei Ebenen: oben auf der Buehne die Zufuehrung
+   (Materialkisten, Trichter, Magazin), unten die Linie. Am Ostende legt ein
+   Palettierroboter die Kartons auf die Palette, ein Foerderer bringt sie
+   durch die Brandwand ans Westende ihrer Hochregalgasse.
+   Noch ohne Spielablauf - die Teile bewegen sich nur zur Ansicht.
+   ========================================================= */
+const HV_LINIE={xs:-97.6,xe:HV7.prod.x1-0.3,band:0.85,buehne:2.4};
+const HVF={weiss:0xeceef1,hell:0xd6dade,alu:0xc5cad1,dunkel:0x2a2e35,gelb:0xf2b81c,gummi:0x24262b,blau:0x2f6fd0,klt:0x3b6fb6,pappe:0xbf9150};
+
+/* Gehaeuse einer Station: Unterbau, Alurahmen, Plexiglas, Dach, Signalsaeule, Bedienfeld */
+function hvMaschine(S,x0,x1,z,b,h,o){
+  o=o||{}; const xm=(x0+x1)/2, L=x1-x0, ub=0.85;
+  S.box(L,0.7,b,xm,0.43,z,o.farbe||HVF.weiss,'lack');
+  S.box(L-0.06,0.08,b-0.06,xm,0.04,z,HVF.dunkel,'lack');
+  if(o.offen!==true){
+    for(const xx of [x0+0.03,x1-0.03,...(L>2.5?[xm]:[])]) for(const s of [-1,1]) S.box(0.05,h-ub,0.05,xx,(ub+h)/2,z+s*(b/2-0.03),HVF.alu,'metall');
+    for(const s of [-1,1]) S.box(L,0.05,0.05,xm,h-0.025,z+s*(b/2-0.03),HVF.alu,'metall');
+    for(const xx of [x0+0.03,x1-0.03]) S.box(0.05,0.05,b,xx,h-0.025,z,HVF.alu,'metall');
+    for(const s of [-1,1]) S.box(L-0.1,h-ub-0.1,0.01,xm,(ub+h)/2,z+s*(b/2-0.03),0xffffff,'plexi');
+    S.box(L,0.04,b,xm,h+0.02,z,o.dach||HVF.hell,'lack');
+  }
+  if(o.signal!==false){ const sx=x1-0.15, sz=z-b/2+0.15;
+    S.zyl(0.03,0.35,sx,h+0.2,sz,HVF.alu,'metall','y',8);
+    S.zyl(0.05,0.08,sx,h+0.42,sz,0x3dff7a,'leucht','y',10); S.zyl(0.05,0.08,sx,h+0.5,sz,0x5a4a10,'lack','y',10); S.zyl(0.05,0.08,sx,h+0.58,sz,0x5a1010,'lack','y',10); }
+  if(o.hmi!==false){ const hx=x0+0.4, hz=z+b/2+0.25;
+    S.box(0.05,0.9,0.05,hx,ub+0.45,z+b/2+0.05,HVF.alu,'metall'); S.box(0.05,0.05,0.25,hx,ub+0.9,z+b/2+0.15,HVF.alu,'metall');
+    S.box(0.42,0.3,0.06,hx,ub+1.05,hz,HVF.dunkel,'lack'); S.box(0.36,0.24,0.005,hx,ub+1.05,hz+0.033,0xffffff,'screen'); }
+}
+/* Gurtband laengs x mit Alurahmen und Beinen */
+function hvGurtband(S,x0,x1,z,b,y){
+  const xm=(x0+x1)/2; y=y||HV_LINIE.band;
+  S.box(x1-x0,0.03,b,xm,y-0.015,z,HVF.gummi,'matt');
+  for(const s of [-1,1]) S.box(x1-x0,0.1,0.04,xm,y-0.04,z+s*(b/2+0.02),HVF.alu,'metall');
+  for(let x=x0+0.2;x<x1;x+=1.5) for(const s of [-1,1]) S.box(0.05,y-0.08,0.05,x,(y-0.08)/2,z+s*(b/2+0.02),HVF.alu,'metall');
+  S.zyl(0.05,b,x0+0.04,y-0.05,z,HVF.alu,'metall','z',10); S.zyl(0.05,b,x1-0.04,y-0.05,z,HVF.alu,'metall','z',10);
+}
+/* Portal: vier Stuetzen, Laengstraeger, verfahrbarer Schlitten mit Hubachse */
+function hvPortal(G,S,x0,x1,z,b,h,greifer){
+  for(const xx of [x0,x1]) for(const s of [-1,1]) S.box(0.09,h,0.09,xx,h/2,z+s*b/2,HVF.alu,'metall');
+  for(const s of [-1,1]) S.box(x1-x0+0.09,0.12,0.1,(x0+x1)/2,h,z+s*b/2,HVF.alu,'metall');
+  S.box(x1-x0,0.06,0.06,(x0+x1)/2,h+0.1,z+b/2,HVF.dunkel,'matt');   /* Energiekette */
+  const sch=new THREE.Group(); sch.position.set((x0+x1)/2,h,z); G.add(sch);
+  const Ss=hvSammler();
+  Ss.box(0.3,0.16,b+0.12,0,0.05,0,HVF.gelb,'lack');
+  Ss.box(0.14,1.1,0.14,0,-0.45,0,HVF.alu,'metall');
+  const hub=new THREE.Group(); sch.add(hub);
+  const Sh=hvSammler(); Sh.box(0.1,0.9,0.1,0,-0.95,0,HVF.alu,'metall');
+  if(greifer==='platte'){ Sh.box(0.62,0.05,0.62,0,-1.42,0,HVF.alu,'metall'); for(let i=0;i<4;i++) Sh.zyl(0.03,0.1,-0.2+i*0.13,-1.48,0,HVF.dunkel,'lack','y',6); }
+  else { Sh.box(0.3,0.08,0.12,0,-1.42,0,HVF.dunkel,'lack'); for(const s of [-1,1]) Sh.box(0.03,0.16,0.08,s*0.11,-1.52,0,HVF.alu,'metall'); }
+  Ss.fertig(sch); Sh.fertig(hub);
+  const L=(x1-x0)/2-0.3, ph=Math.random()*6;
+  HALLE.anim.push((dt,t)=>{ if(!HALLE.animAn) return; const u=(t*0.22+ph)%2, w=u<1?u:2-u, e=w*w*(3-2*w);
+    sch.position.x=x0+0.3+e*(2*L); hub.position.y=Math.max(0,Math.sin((t*0.22+ph)*Math.PI*2))*0.5; });
+  return sch;
+}
+/* Roboterarm (Palettierer): Sockel, Drehturm, Ober- und Unterarm, Greifer */
+function hvRoboterArm(G,x,z,farbe){
+  const f=farbe||HVF.gelb, q=hvQ();
+  const basis=new THREE.Group(); basis.position.set(x,0,z); G.add(basis);
+  const Sb=hvSammler(); Sb.box(0.8,0.5,0.8,0,0.25,0,HVF.dunkel,'lack'); Sb.zyl(0.32,0.25,0,0.62,0,f,'lack','y',q.rund); Sb.fertig(basis);
+  const turm=new THREE.Group(); turm.position.y=0.75; basis.add(turm);
+  const St=hvSammler(); St.box(0.5,0.45,0.45,0,0.22,0,f,'lack'); St.zyl(0.18,0.55,0,0.5,0,HVF.dunkel,'lack','z',q.rund); St.fertig(turm);
+  const ober=new THREE.Group(); ober.position.set(0,0.5,0); turm.add(ober);
+  const So=hvSammler(); So.box(0.24,1.3,0.26,0,0.65,0.0,f,'lack'); So.zyl(0.14,0.4,0,1.3,0,HVF.dunkel,'lack','z',q.rund); So.fertig(ober);
+  const unter=new THREE.Group(); unter.position.set(0,1.3,0); ober.add(unter);
+  const Su=hvSammler(); Su.box(1.2,0.2,0.2,0.6,0,0,f,'lack'); Su.box(0.16,0.3,0.16,1.2,-0.15,0,HVF.dunkel,'lack');
+  Su.box(0.5,0.06,0.4,1.2,-0.32,0,HVF.alu,'metall'); for(const s of [-1,1]) Su.box(0.04,0.16,0.4,1.2+s*0.23,-0.42,0,HVF.alu,'metall'); Su.fertig(unter);
+  const ph=Math.random()*5;
+  HALLE.anim.push((dt,t)=>{ if(!HALLE.animAn) return; const u=t*0.35+ph;
+    turm.rotation.y=Math.sin(u)*1.3; ober.rotation.z=-0.35+Math.sin(u*2)*0.18; unter.rotation.z=-0.5-Math.sin(u*2)*0.25; });
+  return basis;
+}
+/* Buehne (zweite Ebene) mit Rost, Gelaender, Treppe am Ostende */
+function hvBuehne(S,x0,x1,z,b,y){
+  const xm=(x0+x1)/2;
+  for(let x=x0+0.1;x<=x1-0.05;x+=Math.max(2,(x1-x0-0.2)/Math.round((x1-x0)/2.6))) for(const s of [-1,1]) S.box(0.14,y,0.14,x,y/2,z+s*(b/2-0.07),HVF.gelb,'lack');
+  for(const s of [-1,1]) S.box(x1-x0,0.18,0.1,xm,y-0.09,z+s*(b/2-0.05),HVF.gelb,'lack');
+  S.box(x1-x0,0.04,b,xm,y+0.01,z,0xffffff,'rost');
+  S.box(x1-x0,0.02,b,xm,y-0.03,z,0x9aa1aa,'metall');
+  /* Gelaender */
+  for(const s of [-1,1]){ const zz=z+s*(b/2-0.03);
+    for(let x=x0+0.05;x<=x1;x+=1.2) S.box(0.04,1.1,0.04,x,y+0.55,zz,HVF.gelb,'lack');
+    S.box(x1-x0,0.05,0.05,xm,y+1.1,zz,HVF.gelb,'lack'); S.box(x1-x0,0.04,0.04,xm,y+0.55,zz,HVF.gelb,'lack'); S.box(x1-x0,0.12,0.015,xm,y+0.08,zz,HVF.gelb,'lack'); }
+  S.box(0.04,1.1,0.04,x1-0.02,y+0.55,z,HVF.gelb,'lack'); S.box(0.04,0.05,b,x1-0.02,y+1.1,z,HVF.gelb,'lack'); S.box(0.04,0.05,b-1.0,x0+0.02,y+1.1,z-0.5,HVF.gelb,'lack');
+  /* Treppe nach Osten hinab, laengs x neben der Buehne */
+  /* Treppe am Westende hinab (laengs x, Richtung Westwand) */
+  const tz=z+b/2-0.5, n=Math.round(y/0.2), lauf=n*0.26;
+  for(let i=0;i<n;i++){ const yy=y-(i+1)*y/n, xx=x0-0.13-i*0.26; S.box(0.28,0.04,0.9,xx,yy+0.02,tz,0xffffff,'rost'); }
+  for(const s of [-1,1]) S.strebe(x0,y,tz+s*0.47,x0-lauf,0,tz+s*0.47,0.06,HVF.gelb,'lack');
+  for(const s of [-1,1]) S.strebe(x0,y+1.0,tz+s*0.47,x0-lauf,1.0,tz+s*0.47,0.04,HVF.gelb,'lack');
+}
+/* Kleinladungstraeger-Stapel (blaue Kisten) */
+function hvKLT(S,x,z,y,nx,nz,ny){
+  for(let i=0;i<nx;i++) for(let j=0;j<nz;j++) for(let k=0;k<ny;k++) S.box(0.58,0.26,0.38,x+i*0.6,y+0.13+k*0.27,z+j*0.4,HVF.klt,'lack');
+}
+/* Schutzzaun-Feld mit Pfosten (laengs x oder z) */
+function hvZaun(S,x0,z0,x1,z1,h){
+  const L=Math.hypot(x1-x0,z1-z0), n=Math.max(1,Math.round(L/1.4)), laengs=Math.abs(x1-x0)>Math.abs(z1-z0);
+  for(let i=0;i<=n;i++){ const x=x0+(x1-x0)*i/n, z=z0+(z1-z0)*i/n; S.box(0.05,h,0.05,x,h/2,z,HVF.gelb,'lack'); }
+  if(laengs) S.box(L,h-0.15,0.02,(x0+x1)/2,(h+0.15)/2,z0,0xffffff,'zaun'); else S.box(0.02,h-0.15,L,x0,(h+0.15)/2,(z0+z1)/2,0xffffff,'zaun');
+}
+/* Palettierzelle am Ostende jeder Strasse: Roboter, Palette auf Foerderer
+   in Richtung Brandwand, Kartonstau, Schutzzaun */
+function hvPalettierzelle(G,S,rollen,zc,zA){
+  const x0=-72.4, xe=HV_LINIE.xe;
+  hvRollbahn(S,rollen,-71.8,HV7.halle.x0-1.6,zA,0.5);
+  hvRoboterArm(G,-69.6,zc+0.35);
+  hvZaun(S,x0,zc+1.5,xe,zc+1.5,2.0); hvZaun(S,x0,zA-0.85,-70.6,zA-0.85,2.0);
+  S.box(0.6,1.5,0.4,x0+0.4,0.75,zc+1.2,0xb9bfc6,'lack');
+  return [{x:-69.0,y:0.5,z:zA}];
+}
+
+/* Bewegte Teile auf dem Band (Instanzen, jedes Bild neu gesetzt) */
+function hvBandTeile(G,geo,mat,x0,x1,z,y,n,v,ry){
+  const mats=[]; for(let i=0;i<n;i++) mats.push(tm(x0+(x1-x0)*i/n,y,z,0,ry||0,0));
+  const im=hvInst(geo,mat,mats,G); if(!im) return;
+  im.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+  const m=new THREE.Matrix4(), L=x1-x0;
+  HALLE.anim.push((dt,t)=>{ if(!HALLE.animAn) return; for(let i=0;i<n;i++){ const x=x0+((L*i/n+t*v)%L); m.makeTranslation(x,y,z); im.setMatrixAt(i,m); } im.instanceMatrix.needsUpdate=true; });
+}
+
+function hvStrasse(k){
+  const st=HV7.strassen[k], zc=st.z, gs=HV7.gassen[k], zA=(gs.a0+gs.a1)/2;
+  const G=hvBereich('strasse_'+st.id), S=hvSammler(), rollen=[], q=hvQ();
+  const xs=HV_LINIE.xs, yb=HV_LINIE.buehne;
+  /* obere Ebene: Buehne ueber dem Westteil, mit Zufuehrung */
+  hvBuehne(S,xs,xs+9.0,zc,3.0,yb);
+  hvKLT(S,xs+0.5,zc-1.1,yb+0.04,3,2,3);
+  S.box(1.2,0.9,1.0,xs+3.2,yb+0.5,zc-0.8,HVF.hell,'lack');                      /* Vorratsbehaelter */
+  S.trichter(0.55,0.12,1.0,xs+3.2,yb-0.4,zc-0.8,HVF.alu,'metall'); S.zyl(0.1,yb-1.3,xs+3.2,(yb-0.9+2.0)/2,zc-0.8,HVF.alu,'metall','y',8);   /* Trichter durch die Buehne */
+  hvGurtband(S,xs+4.2,xs+8.6,zc+0.3,0.5,yb+0.8);
+  S.platte(xs+8.6,yb+0.78,xs+10.8,HV_LINIE.band+0.06,zc+0.3,0.5,0.04,HVF.gummi,'matt');   /* Schraegband nach unten */
+  for(const sd of [-1,1]) S.platte(xs+8.6,yb+0.74,xs+10.8,HV_LINIE.band+0.02,zc+0.3+sd*0.28,0.04,0.1,HVF.alu,'metall');
+  S.box(0.06,yb-0.2,0.06,xs+9.7,(yb-0.2)/2,zc+0.3,HVF.alu,'metall');
+  /* Hauptband der Linie */
+  hvGurtband(S,st.id==='batterien'?xs+11.4:xs+2.0,-72.6,zc,0.55);
+  const items=[];
+  if(st.id==='raketen'){
+    hvMaschine(S,xs+0.3,xs+3.8,zc,1.5,2.0,{hmi:true});                            /* Huelsenzufuehrung */
+    hvMaschine(S,xs+4.4,xs+8.6,zc,1.8,2.2);                                        /* Fuellstation */
+    hvPortal(G,S,-87.2,-82.2,zc,2.0,3.4,'zange');                                  /* Stab-Montage */
+    /* Magazin mit langen Holzstaeben (wie im Foto) */
+    const stab=[]; for(let i=0;i<7;i++) for(let j=0;j<4;j++) stab.push(tm(-86.6+i*0.09,1.95,zc+1.05+j*0.09,0,0,0,0.018,2.1,0.018));
+    hvInst(hvGeoZyl(6),HVM.stab||(HVM.stab=hvRes(std(0xd2b07a,{roughness:0.8}))),stab,G);
+    S.box(0.8,0.06,0.5,-86.35,0.9,zc+1.18,HVF.alu,'metall'); S.box(0.8,0.06,0.5,-86.35,3.0,zc+1.18,HVF.alu,'metall');
+    for(const s of [-1,1]) S.box(0.05,2.2,0.05,-86.35+s*0.4,1.95,zc+1.43,HVF.alu,'metall');
+    hvMaschine(S,-81.2,-77.6,zc,1.4,1.9);                                          /* Kappen und Etiketten */
+    S.zyl(0.28,0.12,-79.4,2.15,zc+0.9,0xf4f2ec,'matt','z',q.rund);
+    hvMaschine(S,-77.0,-73.0,zc,1.8,2.1);                                          /* Kartonierer */
+    for(let i=0;i<10;i++) S.box(0.9,0.012,0.6,-75.0,0.9+i*0.013,zc-1.25,HVF.pappe,'matt');
+    items.push({geo:hvRes(new THREE.BoxGeometry(0.5,0.12,0.16)),farbe:0xc23a2c,y:HV_LINIE.band+0.06,x0:xs+8.8,x1:-81.4,n:14,v:0.3});
+    items.push({geo:hvRes(new THREE.BoxGeometry(0.4,0.3,0.3)),farbe:HVF.pappe,y:HV_LINIE.band+0.15,x0:-72.9-0.01,x1:-72.6,n:1,v:0});
+  } else if(st.id==='kugeln'){
+    /* Halbschalen-Zufuehrung: zwei Wendelfoerderer */
+    for(const dz of [-0.5,0.5]){ S.zyl(0.45,0.35,xs+1.4,1.25,zc+dz,0xb8bec6,'metall','y',q.rund); S.zyl(0.18,1.0,xs+1.4,0.5,zc+dz,HVF.weiss,'lack','y',q.rund); }
+    /* Rundtakttisch mit Nestern, dreht sich */
+    hvMaschine(S,xs+3.0,xs+8.6,zc,2.2,2.3,{offen:false});
+    const tisch=new THREE.Group(); tisch.position.set(xs+5.2,0.95,zc); G.add(tisch);
+    const St=hvSammler(); St.zyl(0.95,0.06,0,0,0,HVF.alu,'metall','y',24);
+    for(let i=0;i<8;i++){ const a=i/8*Math.PI*2; St.geo(hvHalbkugel(),tm(Math.cos(a)*0.72,0.03,Math.sin(a)*0.72,0,0,0,0.14,0.14,0.14),0xe8e2d2,'matt',true); }
+    St.fertig(tisch);
+    HALLE.anim.push((dt)=>{ if(HALLE.animAn) tisch.rotation.y+=dt*0.4; });
+    hvMaschine(S,-87.6,-84.4,zc,1.6,2.6);                                          /* Verschliessen / Presse */
+    /* Kaschiertrommel (dreht sich) */
+    const tr=new THREE.Group(); tr.position.set(-82.0,1.45,zc); G.add(tr);
+    const Sr=hvSammler(); Sr.zyl(0.6,1.7,0,0,0,0xd9c9a4,'matt','z',q.rund*2); for(let i=0;i<6;i++){ const a=i/6*Math.PI*2; Sr.box(0.04,0.04,1.72,Math.cos(a)*0.61,Math.sin(a)*0.61,0,0x8a7a56,'matt'); } Sr.fertig(tr);
+    for(const s of [-1,1]){ S.box(0.12,1.5,0.12,-82.0,0.75,zc+s*1.0,HVF.weiss,'lack'); }
+    S.box(1.6,0.6,2.2,-82.0,0.3,zc,HVF.weiss,'lack');
+    HALLE.anim.push((dt)=>{ if(HALLE.animAn) tr.rotation.z-=dt*0.9; });
+    /* Trocknungsturm mit Kugeln (Umlaufregal) */
+    const tx=-78.0; for(const dx of [-0.7,0.7]) for(const dz of [-0.6,0.6]) S.box(0.06,3.6,0.06,tx+dx,1.8,zc+1.1+dz,HVF.alu,'metall');
+    const kug=[]; for(let l=0;l<6;l++){ S.box(1.4,0.03,1.2,tx,0.6+l*0.55,zc+1.1,0xb8bec6,'metall'); for(let i=0;i<4;i++) for(let j=0;j<3;j++) kug.push(tm(tx-0.5+i*0.33,0.73+l*0.55,zc+0.75+j*0.35,0,0,0,0.12,0.12,0.12)); }
+    hvInst(hvRes(new THREE.SphereGeometry(1,q.fein?12:8,q.fein?8:6)),HVM.kugel||(HVM.kugel=hvRes(std(0xe4d9c0,{roughness:0.85}))),kug,G);
+    hvMaschine(S,-76.2,-73.0,zc,1.6,1.9);                                          /* Kartonierer */
+    items.push({geo:hvRes(new THREE.SphereGeometry(0.11,q.fein?12:8,8)),farbe:0xe4d9c0,y:HV_LINIE.band+0.11,x0:-84.2,x1:-76.4,n:10,v:0.25});
+  } else {
+    /* Batterien: Rohrlager, Rohr-Raster unter dem Portal, Fuellen, Verkleben, Banderole */
+    for(let i=0;i<3;i++){ const px=xs+0.9+i*1.1;
+      const rr=[]; for(let a=0;a<4;a++) for(let b2=0;b2<6;b2++) rr.push(tm(px,0.25+a*0.12,zc-0.9+b2*0.12,0,0,Math.PI/2,0.05,0.9,0.05));
+      hvInst(hvGeoZyl(10),HVM.rohr||(HVM.rohr=hvRes(std(0x2b2d31,{roughness:0.75}))),rr,G); }
+    hvRollbahn(S,rollen,xs+4.2,xs+11.4,zc,0.85,0.95);
+    hvPortal(G,S,xs+5.0,xs+10.6,zc,1.6,3.0,'platte');
+    /* Rohr-Raster: Platten mit 6 x 6 stehenden Rohren (Foto) */
+    const rohr=[], innen=[];
+    for(let p=0;p<4;p++){ const cx=xs+5.0+p*1.45;
+      S.box(0.82,0.05,0.82,cx,0.9,zc,0x8a9099,'metall');
+      for(let i=0;i<6;i++) for(let j=0;j<6;j++){ const x=cx-0.33+i*0.132, z=zc-0.33+j*0.132, h=p===3?0.0:0.5;
+        if(p===3) continue;
+        rohr.push(tm(x,0.92+h/2,z,0,0,0,0.055,h,0.055)); innen.push(tm(x,0.92+h+0.002,z,0,0,0,0.045,0.004,0.045)); } }
+    hvInst(hvGeoZyl(q.fein?12:8),HVM.rohr||(HVM.rohr=hvRes(std(0x2b2d31,{roughness:0.75}))),rohr,G);
+    hvInst(hvGeoZyl(q.fein?12:8),HVM.pappeInnen||(HVM.pappeInnen=hvRes(std(0xcbb491,{roughness:0.9}))),innen,G,null,false);
+    hvMaschine(S,-85.6,-81.4,zc,1.8,2.4);                                          /* Fuellen (Effektsaetze) */
+    hvMaschine(S,-80.8,-77.4,zc,1.5,2.0);                                          /* Zuendschnur, Verkleben */
+    /* Banderole: Ringrahmen */
+    S.zyl(0.75,0.12,-75.6,1.35,zc,HVF.weiss,'lack','x',q.rund*2); S.box(0.3,0.6,1.7,-75.6,0.3,zc,HVF.weiss,'lack');
+    hvMaschine(S,-74.8,-73.0,zc,1.4,1.8,{hmi:false});
+    items.push({geo:hvRes(new THREE.BoxGeometry(0.36,0.26,0.36)),farbe:0x3a3d44,y:HV_LINIE.band+0.13,x0:-81.2,x1:-73.2,n:9,v:0.22});
+  }
+  /* Schaltschraenke am Gang */
+  for(let i=0;i<3;i++) S.box(0.8,2.0,0.4,xs+12.5+i*0.82,1.0,zc+1.72,0xc9ced5,'lack');
+  hvCol(xs+12.1,xs+14.9,zc+1.5,zc+1.95);
+  hvCol(xs-0.1,-72.4,zc-1.5,zc+1.5); hvCol(-72.4,HV7.halle.x0-0.24,zA-0.9,zc+1.5);
+  hvCol(xs-3.4,xs,zc+0.0,zc+1.5);
+  const pal=hvPalettierzelle(G,S,rollen,zc,zA);
+  S.fertig(G);
+  hvInst(hvGeoZyl(q.rund),hvRolleMat(),rollen,G);
+  hvPalettenInst(G,pal.map((p,i)=>Object.assign(p,{v:(k+i)%4})),false);
+  for(const it of items){ if(it.n>1) hvBandTeile(G,it.geo,hvRes(std(it.farbe,{roughness:0.7})),it.x0,it.x1,zc,it.y,it.n,it.v); }
+  hvSchild(G,'STRASSE '+(k+1)+' · '+st.name,k===0?'Hülse · Füllen · Stab · Kappe · Karton':k===1?'Halbschale · Füllen · Kaschieren · Trocknen':'Rohr-Raster · Füllen · Zündschnur · Banderole',3.2,0.62,xs+0.05,yb+1.9,zc,Math.PI/2);
+}
+let _hvHalb=null;
+function hvHalbkugel(){ return _hvHalb||(_hvHalb=new THREE.SphereGeometry(1,10,6,0,Math.PI*2,0,Math.PI/2)); }
+/* =========================================================
+   Grosse Halle: Flaechen (Wareneingang, Schnellplaetze, Packmaterial),
+   Laptop, Kollision der Einbauten, Kleinteile.
+   ========================================================= */
+function hvFlaechen(){
+  const G=hvBereich('flaechen'), S=hvSammler(), R=hvRng(31), W=HV7.we, pal=[], palF=[];
+  /* Wareneingang: angelieferte Paletten, foliert */
+  for(const t of HV7.tore) for(const dx of [-0.75,0.75]) for(let r=0;r<3;r++){
+    if(R()<0.4) continue; const x=t.x+dx, z=W.z0+1.6+r*1.45;
+    palF.push({x,y:0,z,v:Math.floor(R()*4)}); hvCol(x-0.42,x+0.42,z-0.62,z+0.62); }
+  /* Schnellplaetze: kurz abgestellte Paletten */
+  const SN=HV7.schnell;
+  for(let i=0;i<SN.n;i++){ if(R()<0.35) continue; const x=SN.x0+0.6+i*SN.dx, z=(SN.z0+SN.z1)/2;
+    (R()<0.5?palF:pal).push({x,y:0,z,v:Math.floor(R()*4)}); hvCol(x-0.42,x+0.42,z-0.62,z+0.62); }
+  hvPalettenInst(G,pal,false); hvPalettenInst(G,palF,true);
+  /* Packmaterial: Paletten mit Faltkartons, Folie, Klebeband, Fuellmaterial */
+  const PM=HV7.pack, holz=[];
+  const plaetze=[[-40.4,-26.4],[-38.6,-26.4],[-36.8,-26.4],[-35.0,-26.4],[-40.4,-24.1],[-38.6,-24.1],[-36.8,-24.1]];
+  plaetze.forEach(([x,z],i)=>{ holz.push(tm(x,0,z,0,Math.PI/2,0)); hvCol(x-0.62,x+0.62,z-0.42,z+0.42);
+    const y0=PAL_H;
+    if(i<3){ /* Faltkartons, flach gestapelt, mit Umreifung */
+      const n=[34,26,40][i], w=[1.15,1.0,0.9][i], d=[0.78,0.7,0.6][i], h=0.012*n;
+      S.box(w,h,d,x,y0+h/2,z,[0xbf9150,0xc89b5c,0xb88a4e][i],'matt');
+      for(const s of [-0.25,0.25]) S.box(0.025,h+0.004,d+0.004,x+s*w,y0+h/2,z,0xf2f2ee,'lack');
+    } else if(i===3){ /* Stretchfolie: stehende Rollen */
+      for(let a=0;a<3;a++) for(let b=0;b<2;b++) S.zyl(0.11,0.5,x-0.35+a*0.35,y0+0.25,z-0.2+b*0.4,0xe8ecf0,'lack','y',12);
+    } else if(i===4){ /* Fuellmaterial in Saecken */
+      for(let a=0;a<2;a++) for(let b=0;b<2;b++) for(let c=0;c<2;c++) S.box(0.55,0.32,0.36,x-0.28+a*0.56,y0+0.17+c*0.33,z-0.19+b*0.38,0xf4f4f0,'matt',0,(R()-0.5)*0.2,0);
+    } else if(i===5){ /* Klebeband-Kartons */
+      for(let a=0;a<3;a++) for(let b=0;b<2;b++) for(let c=0;c<3;c++) S.box(0.36,0.24,0.36,x-0.38+a*0.38,y0+0.12+c*0.25,z-0.19+b*0.38,0xc89b5c,'matt');
+    } else { /* Versandkartons gemischt, foliert */
+      S.box(1.1,0.9,0.75,x,y0+0.45,z,0xc89b5c,'matt'); }
+  });
+  hvInst(hvPalGeo(),HVM.holz,holz,G);
+  /* Fachbodenregal mit Klebeband und Etiketten */
+  { const x=-33.7, z=-25.3; for(const dz of [-0.9,0.9]) for(const dx of [-0.3,0.3]) S.box(0.05,2.2,0.05,x+dx,1.1,z+dz,0x9aa1aa,'metall');
+    for(const y of [0.2,0.8,1.4,2.0]) S.box(0.6,0.03,1.85,x,y,z,0xc5cad1,'metall');
+    for(const y of [0.2,0.8,1.4]) for(let k=0;k<6;k++) S.zyl(0.07,0.05,x,y+0.04,z-0.75+k*0.3,0xb58a4f,'matt','x',10);
+    hvCol(x-0.35,x+0.35,z-0.95,z+0.95); }
+  /* Hubwagen (Modell aus dem Hauptspiel) */
+  if(typeof hubModell==='function'){
+    for(const [x,z,ry] of [[-43.6,-30.3,0.4],[-28.6,-31.8,-1.3],[-44.6,-11.6,1.57]]){ const h=hubModell(); h.position.set(x,0,z); h.rotation.y=ry; G.add(h); } }
+  S.fertig(G);
+}
+
+/* Laptop auf einem Stehpult im Anbruch - hier oeffnet man das Hallenmenue */
+function hvAusstattung(o){
+  const G=hvBereich('ausstattung'), S=hvSammler(), q=hvQ();
+  const LP={x:-42.75,z:-18.0,y:1.12};
+  S.box(0.08,1.05,0.08,LP.x,0.52,LP.z,0x4a5058,'metall'); S.box(0.5,0.04,0.5,LP.x,0.02,LP.z,0x4a5058,'metall');
+  S.box(0.7,0.04,0.5,LP.x,1.07,LP.z,0xd8dce1,'lack');
+  S.box(0.38,0.02,0.26,LP.x,1.1,LP.z+0.03,0x2b2f38,'lack');
+  S.fertig(G);
+  const scr=new THREE.Mesh(hvRes(new THREE.PlaneGeometry(0.37,0.23)),hvRes(new THREE.MeshBasicMaterial({toneMapped:false,map:hvRes(tex(320,200,(g,W,H)=>{
+    g.fillStyle='#10223a'; g.fillRect(0,0,W,H); g.fillStyle='#f2c230'; g.fillRect(0,0,W,30);
+    g.fillStyle='#16181f'; g.font=BUN(18); g.textBaseline='middle'; g.fillText('GROSSE HALLE',10,16);
+    g.fillStyle='#dbe7f7'; g.font=BAR(22); ['Ansichten','Messwerte','Grafikstufe','Zurück zum Start'].forEach((t,i)=>g.fillText('› '+t,16,58+i*36));
+  }))})));
+  scr.position.set(LP.x,LP.y+0.12,LP.z-0.1); scr.rotation.x=-0.25; G.add(scr);
+  const deckel=new THREE.Mesh(hvRes(new THREE.BoxGeometry(0.38,0.25,0.012)),hvRes(std(0x2b2f38,{roughness:0.5})));
+  deckel.position.set(LP.x,LP.y+0.12,LP.z-0.108); deckel.rotation.x=-0.25; G.add(deckel);
+  HALLE.laptop=LP; hvCol(LP.x-0.36,LP.x+0.36,LP.z-0.26,LP.z+0.26);
+  /* Kollision der festen Einbauten */
+  const R=HV7.hr;
+  for(const gs of HV7.gassen){ hvCol(R.x0-0.1,R.x1+0.12,gs.a0,gs.a1); hvCol(R.x0-0.1,R.x1+0.12,gs.b0,gs.b1);
+    hvCol(HV7.io.x0,HV7.io.x1,gs.a0,gs.a1); hvCol(HV7.io.x0,HV7.io.x1,gs.b0,gs.b1); hvCol(HV7.io.x1,HV7.io.x1+0.1,gs.a1,gs.b0);
+    hvCol(HV7.anbruch.x0+0.78,HV7.anbruch.x0+1.62,gs.mitte-0.62,gs.mitte+0.62); }
+  for(const z of [-23.47,-18.8]) for(let x=HV7.prod.x0+7;x<HV7.prod.x1-1;x+=7) hvCol(x-0.18,x+0.18,z-0.18,z+0.18);
+  for(const [x,z] of [[-43.0,-26.8],[-43.2,-20.6],[-42.8,-15.4]]) hvCol(x-0.4,x+0.4,z-0.6,z+0.6);
+  hvCol(-43.5,-41.9,-23.9,-23.05);
+  /* Brandschutz-Schiebetore an den Durchgaengen zur Produktion (offen) */
+  const Sb=hvSammler();
+  for(const t of HV7.pTueren){ const L=t.z1-t.z0+0.4, z=t.z1+0.2+L/2;
+    Sb.box(0.1,3.5,L,HV7.halle.x0+0.08,1.75,z,0xb8bec6,'lack');
+    for(let k=1;k<4;k++) Sb.box(0.11,0.02,L,HV7.halle.x0+0.08,k*0.88,z,0x8a9099,'lack');
+    Sb.box(0.14,0.14,2*L+0.6,HV7.halle.x0+0.1,3.6,(t.z0+z+L/2)/2,0x5d646d,'metall');
+    /* Notausgang-Leuchte gruen ueber der Oeffnung */
+    Sb.box(0.04,0.18,0.42,HV7.halle.x0+0.06,3.45,(t.z0+t.z1)/2,0x2fd06a,'leucht'); }
+  /* Feuerloescher an den Stuetzen */
+  for(let x=HV7.halle.x0+5;x<HV7.halle.x1-1;x+=10){ if(HV7.tore.some(t=>Math.abs(t.x-x)<2.2)) continue;
+    Sb.zyl(0.08,0.5,x+0.3,1.0,HV7.halle.z0+0.45,0xd02a20,'lack','y',10); Sb.box(0.3,0.3,0.02,x+0.3,1.65,HV7.halle.z0+0.13,0xd02a20,'lack'); }
+  Sb.fertig(G);
+  /* Lager-Hinweistafeln */
+  hvSchild(G,'ANBRUCH','Kartons → N1 → Kartonlager',2.6,0.62,-42.0+0.05,3.2,-21.13,Math.PI/2*0+Math.PI/2);
+}
+/* =========================================================
+   Hallenmodus: im Startbildschirm "Große Halle" waehlen -> die Seite laedt
+   neu und baut statt der Spielwelt nur die Halle samt angrenzendem Lager
+   (mit Ladebildschirm). Frei begehbar, ein Laptop im Anbruch oeffnet das
+   Menue (Ansichten, Messwerte, Grafikstufe, zurueck). Kein Spielablauf.
+   Das Hauptspiel laeuft unveraendert, solange der Modus nicht gewaehlt ist.
+   Direkt aufrufbar mit #halle in der Adresse.
+   ========================================================= */
+const HALLE_MODUS=(()=>{ let h=false; try{ h=location.hash.indexOf('halle')>=0||sessionStorage.getItem('bb_modus')==='halle'; }catch(e){ h=location.hash.indexOf('halle')>=0; } return h; })();
+const HM={menu:false,flug:false,y:1.65,fps:0,fpsN:0,fpsT:0,info:null,deckenLicht:null,last:0,dachAus:false,start:0};
+const HM_ANSICHTEN=[
+  ['Eingang von der Schleuse',-27.6,-24.9,Math.PI/2,-0.04],
+  ['Hochregal: Gasse 2 vom Anbruch',-41.6,-20.3,1.45,0.16],
+  ['Hochregal: Stirnseite und I/O',-38.5,-30.6,1.05,0.08],
+  ['Wareneingang R2–R4',-36.0,-27.4,0.25,0.0],
+  ['Anbruch und Laptop',-40.3,-16.6,1.9,-0.12],
+  ['Packmaterial',-34.4,-21.4,0.75,-0.18],
+  ['Schnellplätze',-44.5,-11.6,1.62,-0.08],
+  ['Gelbe Wand mit N1',-46.5,-12.0,-1.57,0.05],
+  ['Kartonlager ③',-34.4,-12.0,-1.57,-0.05],
+  ['Schleuse',-23.0,-18.6,3.14,-0.02],
+  ['Produktion: Raketen',-73.0,-23.0,1.42,-0.12],
+  ['Produktion: Kugelbomben',-80.4,-19.6,2.2,-0.12],
+  ['Produktion: Batterien, Rohr-Raster',-86.0,-17.1,1.95,-0.22],
+  ['Produktion: Bunker und R6',-90.0,-27.8,0.55,0.05],
+  ['Produktion: Palettierer',-68.0,-14.0,2.6,-0.15],
+  ['Hochregal oben (Flug)',-46.0,-14.4,1.15,-0.25,8.6],
+  ['Draufsicht (Dach aus)',-55.0,-20.0,0,-1.5707,48]
+];
+/* Startbildschirm: Auswahl des Bereichs neben Neues Spiel / Weiterspielen */
+function halleStartWahl(){
+  if($('startModus')) return;
+  const st=document.createElement('style'); st.textContent=
+    '#startModus{display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap;margin-top:-6px}'+
+    '#startModus span{color:var(--muted);font-size:15px;margin-right:4px}'+
+    '#startModus button{font-size:16px;padding:9px 18px;border-radius:10px;min-width:0}'+
+    '#startModus button.an{outline:2px solid var(--signal);outline-offset:1px}'+
+    '#start.naming #startModus{display:none}';
+  document.head.appendChild(st);
+  const d=document.createElement('div'); d.id='startModus'; d.className='btns';
+  d.innerHTML='<span>Bereich:</span><button class="ghost an" id="smLaden" title="Das Spiel wie bisher">Verkaufsfläche + Lager</button><button class="ghost" id="smHalle" title="Nur die große Halle nach Plan v7 ansehen (ohne Spielablauf)">Große Halle</button>';
+  const b=$('startBtns'); b.parentNode.insertBefore(d,b.nextSibling);
+  $('smHalle').onclick=()=>{ try{ if(typeof S!=='undefined'&&S&&typeof save==='function') save(); sessionStorage.setItem('bb_modus','halle'); }catch(e){} location.reload(); };
+}
+/* Ladebildschirm */
+function hmLadeschirm(an){
+  let L=$('halleLade');
+  if(!L){ L=document.createElement('div'); L.id='halleLade';
+    L.innerHTML='<div class="hlBox"><div class="hlTitel">GROSSE HALLE</div><div class="hlSub">Ausbauplan v7 · Hochregal · Produktion · Kartonlager ③</div><div class="hlBar"><i id="hlBalken"></i></div><div class="hlText" id="hlText">Lädt …</div></div>';
+    const st=document.createElement('style'); st.textContent=
+      '#halleLade{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at 50% 40%,#1c2a48,#05070f 70%);color:#e8eefc;font-family:var(--ui)}'+
+      '#halleLade .hlBox{width:min(560px,86vw);text-align:center}'+
+      '#halleLade .hlTitel{font-family:Bungee,Impact,sans-serif;font-size:clamp(30px,6vw,52px);color:#f2c230;letter-spacing:1px}'+
+      '#halleLade .hlSub{color:#9fb0cf;font-size:16px;margin:6px 0 26px}'+
+      '#halleLade .hlBar{height:14px;border-radius:8px;background:rgba(255,255,255,.1);overflow:hidden;border:1px solid rgba(255,255,255,.18)}'+
+      '#halleLade .hlBar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#f2c230,#ff8a3d);transition:width .15s}'+
+      '#halleLade .hlText{margin-top:12px;font-size:16px;color:#cfd8ea;min-height:22px}'+
+      'body.hallmodus #hud .tl,body.hallmodus #tip,body.hallmodus #zielPfeil,body.hallmodus #staff,body.hallmodus #mode,body.hallmodus #carry,body.hallmodus #kTasten,body.hallmodus #tool,body.hallmodus #phone,body.hallmodus #order,body.hallmodus #touch .tbtn{display:none!important}'+
+      '#hmInfo{position:fixed;left:12px;top:10px;z-index:12;font:600 14px/1.35 var(--ui);color:#e8eefc;background:rgba(10,14,28,.62);padding:7px 11px;border-radius:9px;pointer-events:none;white-space:pre}'+
+      '#hmMenu .card{max-width:640px} #hmMenu h2{margin:0 0 6px;font-family:Bungee,Impact,sans-serif;color:#f2c230;font-size:24px}'+
+      '#hmMenu .hmRaster{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:6px;margin:8px 0 12px}'+
+      '#hmMenu button{font-size:14px;padding:8px 10px} #hmMenu .hmGfx button.an{outline:2px solid #f2c230}'+
+      '#hmMenu table{width:100%;font-size:13px;border-collapse:collapse} #hmMenu td{padding:2px 6px;border-bottom:1px solid rgba(255,255,255,.08)} #hmMenu td:nth-child(n+2){text-align:right}'+
+      '#hmMenu small{color:#9fb0cf}';
+    document.head.appendChild(st); document.body.appendChild(L); }
+  L.style.display=an?'flex':'none';
+}
+function hmFortschritt(a,txt){ const b=$('hlBalken'), t=$('hlText'); if(b) b.style.width=Math.round(a*100)+'%'; if(t) t.textContent=txt+' …'; }
+if(HALLE_MODUS){ hmLadeschirm(true); const s0=$('start'); if(s0) s0.classList.remove('show'); startOpen=false; document.body.classList.add('hallmodus'); }
+
+/* Licht im Hallenmodus: Himmelslicht gedimmt, Sonne aus, ein Deckenlicht von
+   oben mit Schatten, die beweglichen Innenlichter unter den naechsten Leuchten */
+function hmLicht(){
+  scene.fog=null; scene.background=new THREE.Color(0x9fb0c4);
+  hemi.color.setHex(0xeef2f8); hemi.groundColor.setHex(0x77736c); hemi.intensity=0.5;
+  sun.intensity=0; sun.castShadow=false;
+  for(const l of [shopSpot,yardLight,shelfLight]){ if(l.parent) l.parent.remove(l); if(l.target&&l.target.parent) l.target.parent.remove(l.target); }
+  const d=new THREE.DirectionalLight(0xfff4e6,0.5); d.position.set(4,40,6); scene.add(d); scene.add(d.target);
+  if(renderer.shadowMap.enabled&&!gfxNiedrig(GFX)){
+    d.castShadow=true; const c=d.shadow.camera, R=36; c.left=-R; c.right=R; c.top=R; c.bottom=-R; c.near=5; c.far=70;
+    const gr=Math.min((GFX_PROFIL[GFX]||GFX_PROFIL.hoch).sch,renderer.capabilities.maxTextureSize||4096); d.shadow.mapSize.set(gr,gr);
+    d.shadow.bias=-0.0005; d.shadow.normalBias=0.03; d.shadow.radius=(GFX_PROFIL[GFX]||GFX_PROFIL.hoch).rad; }
+  HM.deckenLicht=d;
+  for(const q of innenLichter){ q.l.distance=24; q.l.decay=1.05; q.l.color.setHex(0xfff0dc); }
+}
+function hmLichtNachfuehren(dt){
+  const d=HM.deckenLicht; if(d){ const r=4, tx=Math.round(pl.x/r)*r, tz=Math.round(pl.z/r)*r;
+    if(d.userData.tx!==tx||d.userData.tz!==tz){ d.userData.tx=tx; d.userData.tz=tz; d.position.set(tx+4,40,tz+6); d.target.position.set(tx,0,tz); d.target.updateMatrixWorld(); } }
+  /* Innenlichter: die naechsten Leuchten vor dem Blick */
+  HM.liT=(HM.liT||0)-dt; if(HM.liT>0) return; HM.liT=0.25;
+  const fx=-Math.sin(yaw), fz=-Math.cos(yaw), px=pl.x+fx*5, pz=pl.z+fz*5;
+  const L=HALLE.lampen.map((l,i)=>({i,d:Math.hypot(l.x-px,l.z-pz)})).sort((a,b)=>a.d-b.d);
+  innenLichter.forEach((q,n)=>{ const e=L[n*2]; if(!e){ q.l.intensity=0; return; } const l=HALLE.lampen[e.i];
+    q.l.position.set(l.x,l.y-0.4,l.z); q.l.intensity=l.y>8?0.85:0.5; });
+}
+/* Bewegung: wie im Spiel (WASD, Umschalt = rennen), Flugmodus mit Leertaste/C */
+function hmBewegen(dt){
+  let mx=0, mz=0;
+  if(keys.KeyW||keys.ArrowUp) mz-=1; if(keys.KeyS||keys.ArrowDown) mz+=1;
+  if(keys.KeyA||keys.ArrowLeft) mx-=1; if(keys.KeyD||keys.ArrowRight) mx+=1;
+  mx+=joy.x; mz+=joy.y; const len=Math.hypot(mx,mz); if(len>1){ mx/=len; mz/=len; }
+  const sp=((keys.ShiftLeft||keys.ShiftRight)?6.5:3.4)*(HM.flug?1.6:1), s=Math.sin(yaw), c=Math.cos(yaw);
+  pl.x+=(mx*c+mz*s)*sp*dt; pl.z+=(-mx*s+mz*c)*sp*dt;
+  if(HM.flug){ if(keys.Space) HM.y+=4*dt; if(keys.KeyC||keys.ControlLeft) HM.y-=4*dt; HM.y=clamp(HM.y,0.6,50);
+    pl.x=clamp(pl.x,HV7.raum.x0,HV7.raum.x1); pl.z=clamp(pl.z,HV7.raum.z0,HV7.raum.z1); }
+  else { HM.y+=(1.65-HM.y)*Math.min(1,dt*6); collide(pl,0.32); }
+  camera.position.set(pl.x,HM.y,pl.z); camera.rotation.set(pitch,yaw,0);
+}
+function hmLaptopNah(){ const L=HALLE.laptop; return L&&!HM.flug&&Math.hypot(pl.x-L.x,pl.z-L.z)<2.2; }
+function hmFrame(now){
+  requestAnimationFrame(hmFrame);
+  if(noLoop) return;
+  let dt=(now-HM.last)/1000; HM.last=now; const roh=dt; if(dt>0.05) dt=0.05; if(dt<0) dt=0;
+  if(!HM.menu) hmBewegen(dt);
+  hallTick(dt); hmLichtNachfuehren(dt);
+  renderer.info.reset(); renderFrame(dt);
+  HM.fpsN++; HM.fpsT+=roh;
+  if(HM.fpsT>=0.5){ HM.fps=HM.fpsN/HM.fpsT; HM.fpsN=0; HM.fpsT=0; hmInfoZeigen(); }
+  const p=$('prompt'); if(p){ const n=hmLaptopNah()&&!HM.menu; p.style.display=n?'block':'none'; if(n) p.textContent=COARSE?'Laptop antippen: Menü':'E: Laptop (Ansichten, Messwerte, Grafik)'; }
+}
+function hmInfoZeigen(){
+  let el=$('hmInfo'); if(!el){ el=document.createElement('div'); el.id='hmInfo'; document.body.appendChild(el); }
+  const i=renderer.info;
+  el.textContent=`Große Halle · ${GFX_NAME[GFX]||GFX}${HM.flug?' · Flugmodus':''}\n${HM.fps.toFixed(0)} FPS · ${i.render.calls} Zeichenaufrufe · ${(i.render.triangles/1000).toFixed(0)} Tsd. Dreiecke\n${COARSE?'':'E am Laptop · Esc Menü · F Flugmodus · M Messwerte'}`;
+}
+/* Ansicht setzen (auch fuer Bilder und Tests) */
+function hmAnsicht(x,z,yw,pt,y){
+  pl.x=x; pl.z=z; yaw=yw; pitch=pt||0; HM.y=y||1.65; HM.flug=!!y&&y>2.2;
+  hmDach(!(y&&y>20));
+  camera.position.set(pl.x,HM.y,pl.z); camera.rotation.set(pitch,yaw,0); camera.updateMatrixWorld();
+}
+/* Dach und Decken aus (Draufsicht) */
+function hmDach(an){
+  HM.dachAus=!an; if(!HALLE.g) return;
+  HALLE.g.traverse(o=>{ if(o.isMesh&&(o.userData.hvMat==='decke'||o.userData.hvMat==='lichtband')) o.visible=an; });
+}
+/* Menue (Esc oder Laptop) */
+function hmMenu(an){
+  HM.menu=an; let M=$('hmMenu');
+  if(!M){ M=document.createElement('div'); M.className='ov'; M.id='hmMenu'; M.innerHTML='<div class="card"></div>'; document.body.appendChild(M);
+    M.addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b) return; const a=b.dataset.a;
+      if(a==='weiter') hmMenu(false);
+      else if(a==='ansicht'){ const v=HM_ANSICHTEN[+b.dataset.i]; hmAnsicht(v[1],v[2],v[3],v[4],v[5]); hmMenu(false); }
+      else if(a==='anim'){ HALLE.animAn=!HALLE.animAn; hmMenuMalen(); }
+      else if(a==='flug'){ HM.flug=!HM.flug; if(!HM.flug) hmDach(true); hmMenuMalen(); }
+      else if(a==='gfx'){ try{ localStorage.setItem('bb_gfx',b.dataset.g); }catch(e){} location.reload(); }
+      else if(a==='mess'){ hmMenuMalen(true); }
+      else if(a==='zurueck'){ try{ sessionStorage.removeItem('bb_modus'); }catch(e){} if(location.hash.indexOf('halle')>=0) location.hash=''; location.reload(); }
+    }); }
+  M.classList.toggle('show',an);
+  for(const k in keys) keys[k]=false; mouseDown=false;
+  if(an){ if(locked) document.exitPointerLock(); hmMenuMalen(); }
+  else requestLock();
+}
+function hmMenuMalen(mess){
+  const M=$('hmMenu'); if(!M) return; const c=M.querySelector('.card');
+  let h='<h2>Große Halle</h2><small>Ausbauplan v7 · nur Ansicht, noch ohne Spielablauf. Laufen mit WASD, Umschalt rennt, F schaltet den Flugmodus (Leertaste hoch, C runter).</small>';
+  h+='<div class="hmRaster">'+HM_ANSICHTEN.map((v,i)=>`<button class="ghost" data-a="ansicht" data-i="${i}">${v[0]}</button>`).join('')+'</div>';
+  h+=`<div class="btns" style="justify-content:flex-start;gap:6px;flex-wrap:wrap"><button data-a="weiter">Weiter</button><button class="ghost" data-a="anim">Animation: ${HALLE.animAn?'an':'aus'}</button><button class="ghost" data-a="flug">Flugmodus: ${HM.flug?'an':'aus'}</button><button class="ghost" data-a="mess">Messwerte je Bereich</button><button class="ghost" data-a="zurueck">Zurück zum Startbildschirm</button></div>`;
+  h+='<div style="margin-top:12px"><small>Grafikstufe (lädt die Halle neu):</small><div class="btns hmGfx" style="justify-content:flex-start;gap:6px;flex-wrap:wrap;margin-top:6px">'+GFX_STUFEN.map(g=>`<button class="ghost${g===GFX?' an':''}" data-a="gfx" data-g="${g}">${GFX_NAME[g]}</button>`).join('')+'</div></div>';
+  if(mess){ const m=hallMessen(), i=renderer.info;
+    h+='<table style="margin-top:12px"><tr><td><b>Bereich</b></td><td><b>Zeichenaufrufe</b></td><td><b>Dreiecke</b></td><td><b>Bauzeit</b></td></tr>'+
+      Object.keys(m).map(k=>`<tr><td>${k}</td><td>${m[k].draw}</td><td>${m[k].tri.toLocaleString('de-DE')}</td><td></td></tr>`).join('')+
+      Object.keys(HALLE.zeiten).map(k=>`<tr><td><small>${k}</small></td><td></td><td></td><td>${HALLE.zeiten[k]} ms</td></tr>`).join('')+
+      `</table><small>Gezählt: alles, was die Halle enthält (Instanzen × Anzahl). Im Bild zuletzt: ${i.render.calls} Aufrufe, ${i.render.triangles.toLocaleString('de-DE')} Dreiecke.</small>`; }
+  c.innerHTML=h;
+}
+function hmEingabe(){
+  addEventListener('keydown',e=>{
+    if(!HALLE_MODUS) return;
+    e.stopImmediatePropagation();
+    if(HM.menu){ if(e.code==='Escape'&&!e.repeat) hmMenu(false); return; }
+    if(e.code==='Escape'){ hmMenu(true); return; }
+    keys[e.code]=true;
+    if(e.code==='Space'||e.code.indexOf('Arrow')===0) e.preventDefault();
+    if(e.code==='KeyE'&&!e.repeat&&hmLaptopNah()) hmMenu(true);
+    if(e.code==='KeyF'&&!e.repeat){ HM.flug=!HM.flug; if(!HM.flug) hmDach(true); }
+    if(e.code==='KeyM'&&!e.repeat){ hmMenu(true); hmMenuMalen(true); }
+  },true);
+  addEventListener('pointerlockchange',e=>{
+    e.stopImmediatePropagation();
+    locked=document.pointerLockElement===canvas; if(locked){ lockWorked=true; if(HM.menu) document.exitPointerLock(); return; }
+    if(lockWorked&&!COARSE&&!HM.menu) hmMenu(true);
+  },true);
+  canvas.addEventListener('mousedown',e=>{ if(HM.menu) return; if(!locked&&!lockFailed) requestLock(); if(e.button===0) mouseDown=true;
+    if(COARSE&&hmLaptopNah()) hmMenu(true); });
+}
+/* Start des Hallenmodus (aus 22-start statt der Spielwelt) */
+function halleModusStart(){
+  HM.start=performance.now();
+  hmLadeschirm(true); startOpen=false; paused=false;
+  SPIEL_RAUM=HV7.raum;
+  hmLicht();
+  initPost();
+  hmAnsicht(-27.6,-24.9,Math.PI/2,-0.04);
+  hmEingabe();
+  hallLaden({umfeld:true},hmFortschritt,()=>{
+    hmFortschritt(1,'Shader vorbereiten');
+    setTimeout(()=>{
+      if(typeof prachtAufbau==='function') prachtAufbau();
+      try{ renderer.compile(scene,camera); }catch(e){}
+      renderer.info.autoReset=false;
+      HM.ladezeit=Math.round(performance.now()-HM.start);
+      hmLadeschirm(false);
+      HM.last=performance.now(); requestAnimationFrame(hmFrame);
+      if(typeof toast==='function') toast(COARSE?'Große Halle: frei begehbar. Am Laptop im Anbruch gibt es das Menü.':'Große Halle: WASD laufen, Maus umsehen, F fliegen. Am Laptop im Anbruch (E) oder mit Esc gibt es das Menü.');
+    },30);
+  });
+  window.__halle={HALLE,HV7,HM,messen:hallMessen,ansicht:hmAnsicht,dach:hmDach,ansichten:HM_ANSICHTEN,renderer,scene,camera,
+    get fertig(){ return HALLE.gebaut&&!!HM.ladezeit; },
+    info:()=>({calls:renderer.info.render.calls,tri:renderer.info.render.triangles,geo:renderer.info.memory.geometries,tex:renderer.info.memory.textures,prog:renderer.info.programs?renderer.info.programs.length:0}),
+    shot:()=>{ noLoop=true; hallTick(0); hmLichtNachfuehren(1); camera.updateMatrixWorld(); renderer.info.reset(); renderFrame(0.016); renderer.info.reset(); renderFrame(0.016); return canvas.toDataURL('image/jpeg',0.85); },
+    zeiten:()=>HALLE.zeiten, fehler:()=>HALLE.fehler||'', gfx:()=>GFX};
+}
 
 /* =========================================================
    Start
@@ -50831,6 +53105,8 @@ function buildStart(){
     if(S){ try{ sessionStorage.setItem('bb_neustart',JSON.stringify({n,sl,tu})); }catch(e){} location.reload(); return; }
     begin(true,n,sl,tu); };
   $('nameBack').onclick=()=>zeigeNamen(false);
+  /* Bereich waehlen: Spiel oder Grosse Halle (30-halle-modus) */
+  if(typeof halleStartWahl==='function') halleStartWahl();
   $('sloganInput').onkeydown=e=>{ if(e.key==='Enter') $('nameGo').click(); };
   $('shopInput').onkeydown=e=>{ if(e.key==='Enter') $('sloganInput').focus(); };
   startFx();
@@ -50841,6 +53117,8 @@ function fontsReady(){
 }
 setCompact();
 fontsReady().then(()=>{
+  /* Grosse Halle allein (30-halle-modus): statt der Spielwelt nur die Halle */
+  if(HALLE_MODUS){ halleModusStart(); return; }
   buildKartons();
   buildWorld();
   { const li=$('logoImg'); if(li) li.src=LOGO; }

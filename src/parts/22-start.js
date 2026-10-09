@@ -93,6 +93,8 @@ function buildStart(){
     if(S){ try{ sessionStorage.setItem('bb_neustart',JSON.stringify({n,sl,tu})); }catch(e){} location.reload(); return; }
     begin(true,n,sl,tu); };
   $('nameBack').onclick=()=>zeigeNamen(false);
+  /* Bereich waehlen: Spiel oder Grosse Halle (30-halle-modus) */
+  if(typeof halleStartWahl==='function') halleStartWahl();
   $('sloganInput').onkeydown=e=>{ if(e.key==='Enter') $('nameGo').click(); };
   $('shopInput').onkeydown=e=>{ if(e.key==='Enter') $('sloganInput').focus(); };
   startFx();
@@ -103,6 +105,8 @@ function fontsReady(){
 }
 setCompact();
 fontsReady().then(()=>{
+  /* Grosse Halle allein (30-halle-modus): statt der Spielwelt nur die Halle */
+  if(HALLE_MODUS){ halleModusStart(); return; }
   buildKartons();
   buildWorld();
   { const li=$('logoImg'); if(li) li.src=LOGO; }

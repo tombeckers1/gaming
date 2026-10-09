@@ -383,7 +383,7 @@ function hvProdHuelle(o){
   hvProdNebenflaechen(G);
   for(const [i,b] of HV7.bunker.entries()) hvSchild(G,'BUNKER '+(i+1),'Mischen · Ex-Zone 1',1.8,0.5,(b.x0+b.x1)/2,3.1,-28.55,0,'#7a1410','#ffd23f');
   hvSchild(G,'PRODUKTION','Raketen · Kugelbomben · Batterien',3.6,0.9,P.x1+0.1,4.4,-31.5,Math.PI/2);
-  hvSchild(G,'PRODUKTION','Raketen · Kugelbomben · Batterien',3.6,0.9,P.x1-0.38,4.0,-31.5,-Math.PI/2);
+  hvSchild(G,'HALLE · RESERVE','Hochregal · Wareneingang · Anbruch',3.6,0.9,P.x1-0.38,4.0,-31.5,-Math.PI/2);
 }
 
 /* Produktion, Nebenflaechen: Rohstofflager an der Suedwand, Leitstand aus Glas,

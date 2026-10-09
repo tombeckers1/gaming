@@ -57,7 +57,7 @@ function hmLadeschirm(an){
       '#halleLade .hlBar{height:14px;border-radius:8px;background:rgba(255,255,255,.1);overflow:hidden;border:1px solid rgba(255,255,255,.18)}'+
       '#halleLade .hlBar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#f2c230,#ff8a3d);transition:width .15s}'+
       '#halleLade .hlText{margin-top:12px;font-size:16px;color:#cfd8ea;min-height:22px}'+
-      'body.hallmodus #hud .tl,body.hallmodus #tip,body.hallmodus #zielPfeil,body.hallmodus #staff,body.hallmodus #mode,body.hallmodus #carry,body.hallmodus #kTasten,body.hallmodus #tool,body.hallmodus #phone,body.hallmodus #order,body.hallmodus #touch .tbtn{display:none!important}'+
+      'body.hallmodus #hud .tl,body.hallmodus #tip,body.hallmodus #zielPfeil,body.hallmodus #staff,body.hallmodus #mode,body.hallmodus #carry,body.hallmodus #kTasten,body.hallmodus #tool,body.hallmodus #phone,body.hallmodus #order,body.hallmodus #touch .tbtn:not(#btnMenu){display:none!important}'+
       '#hmInfo{position:fixed;left:12px;top:10px;z-index:12;font:600 14px/1.35 var(--ui);color:#e8eefc;background:rgba(10,14,28,.62);padding:7px 11px;border-radius:9px;pointer-events:none;white-space:pre}'+
       '#hmMenu .card{max-width:640px} #hmMenu h2{margin:0 0 6px;font-family:Bungee,Impact,sans-serif;color:#f2c230;font-size:24px}'+
       '#hmMenu .hmRaster{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:6px;margin:8px 0 12px}'+
@@ -184,6 +184,7 @@ function hmEingabe(){
     locked=document.pointerLockElement===canvas; if(locked){ lockWorked=true; if(HM.menu) document.exitPointerLock(); return; }
     if(lockWorked&&!COARSE&&!HM.menu) hmMenu(true);
   },true);
+  { const bm=$('btnMenu'); if(bm) bm.addEventListener('touchstart',e=>{ e.preventDefault(); if(!HM.menu) hmMenu(true); },{passive:false}); }
   canvas.addEventListener('mousedown',e=>{ if(HM.menu) return; if(!locked&&!lockFailed) requestLock(); if(e.button===0) mouseDown=true;
     if(COARSE&&hmLaptopNah()) hmMenu(true); });
 }

@@ -7,8 +7,8 @@ Nach jedem fertigen Paket: prüfen, Artefakt veröffentlichen, Tom kurz berichte
 |---|---|---|---|
 | 1 | Versandecke, DDL, Onlineshop, Geräte | versand-sb-0910.md (ohne Automat/SB) | fertig 09.10. (05776a5, V123) |
 | 2 | Kugelbomben Runde 6 | kugelbomben-0910b.md | fertig 09.10. (9b413db, V124) |
-| 3 | Batterien + 10 neue nach echten Vorbildern | batterien-0910.md (+ DDL per Handy, Bruchhöhe große Kugeln) | läuft (seit 09.10. ~20:35) |
-| 4 | Licht und Schatten im Laden | licht-0910.md | wartet (nach 3: gleiche Nachbearbeitung; vor 5/6) |
+| 3 | Batterien + 10 neue nach echten Vorbildern | batterien-0910.md (+ DDL per Handy, Bruchhöhe große Kugeln) | fertig 10.10. (41ce9c7, V125); offen: Test gross GROESSER „raketen“ rot (Verpackungsmaß, nicht aus dieser Runde – prüfen) |
+| 4 | Licht und Schatten im Laden | licht-0910.md | als Nächstes – Start nach Wochenlimit-Reset 10.10. 14 Uhr (oder früher, wenn Tom < ~90 % meldet) |
 | 5 | Außenfassade und Hoflampen | fassade-0910.md (+ Toms Fotos) | wartet |
 | 6 | Automat „Deine Rakete“ + SB-Kassen | versand-sb-0910.md (Abschnitte Automat, SB) | wartet |
 | 6b | **Große Halle eigenständig ladbar** (Plan v7) | halle-1010.md | Optik fertig 09.10. (Branch claude/halle-v7, fbbd7e1), Vorschau-Artefakt https://claude.ai/artifact/1qMJc7Xf8qgiJ2ndwDmHzh; offen: Toms Abnahme + 5 Fragen, später Zusammenführung/Gameplay |

@@ -12,4 +12,7 @@ Nach jedem fertigen Paket: prüfen, Artefakt veröffentlichen, Tom kurz berichte
 | 5 | Außenfassade und Hoflampen | fassade-0910.md (+ Toms Fotos) | wartet |
 | 6 | Automat „Deine Rakete“ + SB-Kassen | versand-sb-0910.md (Abschnitte Automat, SB) | wartet |
 
+## Kleinkram (zwischen zwei Paketen selbst erledigen)
+- DDL auch per **Handy** rufen können (Tom 09.10.). Pauschale 39 € bleibt, sofern Stufe 1 sich lohnt (Rechnung prüfen: Stufe 1 muss nach Investition + Lohn + Pauschalen im Plus sein; sonst Pauschale senken). Test versandtor erweitern.
+
 Parallel nur bei „dreh auf“ und nur ohne gemeinsame Dateien (z. B. 6 neben 2/3).

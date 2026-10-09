@@ -1,0 +1,11 @@
+# Großes Paket ab 10.10.2026: Große Halle als eigenständig ladbarer Bereich (Tom, 09.10. abends)
+
+**Start NUR auf Toms Startsignal** (er fragt bzw. ich frage am 10.10. vormittags/mittags; Tom ist danach 2 Tage weg, das Paket läuft im Hintergrund). **Token-effizient und gemächlich** – neues Wochenlimit nicht in 1–2 Tagen verbrauchen.
+
+## Ziel
+- Die große Halle (Logistikhalle) nach **Ausbauplan v7** (docs/uebergabe/ausbauplan-v7.html, Artefakt TDsAd4EeAgzsdvS6k6gf5T) komplett ausgebaut bauen – plus die Lager-Erweiterungen aus dem Plan (Kartonlager ③, gelbe Wand mit Tor N1, ①–③ ein Raum, Schleuse ~13 m, Wareneingang-Stellplätze, 13 Schnellplätze, Packmaterial-Fläche, Hochregal 10 m mit 3 Gassen/Robotern/I-O, Produktion mit 3 Straßen nach Toms Referenzfoto docs/uebergabe/produktion-referenz.webp).
+- **Eigenständig ladbar:** Im Startbildschirm (Neues Spiel / Weiterspielen) zusätzlich wählbar: „Verkaufsfläche + Lager“ (heutiges Spiel) und „Große Halle“. Klick auf „Große Halle“ lädt nur die Halle (mit Ladebildschirm) – zum Anschauen: Optik von Robotern, Regalen, Anordnung der Räume, Texturfehler, Leistung. In der Halle steht ein Laptop.
+- Noch **keine Spielsimulation** in der Halle. Später: Verknüpfung mit dem Hauptspiel und eine Gameplay-Vorführung der Halle (Produktion, Hochregal, Versand, Lieferungen an den neuen Rolltoren, Wareneingang, Roboter, Hubwagen …) wie die heutige Gameplay-Vorführung.
+- **Zusammenführung von Anfang an mitdenken:** gleiche Weltkoordinaten und Maße (LAY, LHALLE, WRAMPEN …), eigene Module (z. B. src/parts/30-halle-*.js) mit klarer Schnittstelle (bauen/abbauen/sichtbar, Ladefunktion), gemeinsame Materialien/Helfer wiederverwenden statt duplizieren, keine globalen Seiteneffekte auf das Hauptspiel. Später soll ein Agent die Halle mit wenig Aufwand ins Hauptspiel einhängen können (Lade-Trigger beim Betreten = Plan-Phase 1 „Ladebildschirm“).
+- Parallel dazu können andere Agenten am bestehenden Spiel weiterarbeiten – nur ohne gemeinsame Dateien/Testsperre-Stau (Warteschlange beachten).
+- Gilt weiter: Produktion-Gameplay (Rohstoffe, Rezepte, Dauer, Kosten, Qualität, was tut der Spieler) vor dem Gameplay-Bau mit Tom klären – für die reine Optik nicht nötig.

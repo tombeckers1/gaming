@@ -11,6 +11,7 @@ Nach jedem fertigen Paket: prüfen, Artefakt veröffentlichen, Tom kurz berichte
 | 4 | Licht und Schatten im Laden | licht-0910.md | wartet (nach 3: gleiche Nachbearbeitung; vor 5/6) |
 | 5 | Außenfassade und Hoflampen | fassade-0910.md (+ Toms Fotos) | wartet |
 | 6 | Automat „Deine Rakete“ + SB-Kassen | versand-sb-0910.md (Abschnitte Automat, SB) | wartet |
+| 6b | **Große Halle eigenständig ladbar** (Plan v7) | halle-1010.md | NUR auf Toms Startsignal am 10.10.; danach 2 Tage im Hintergrund, token-sparsam |
 | 7 | Wirtschafts-Balancing „Schweizer Uhrwerk“ | balancing-0910.md | wartet (nach allen Inhalts-Paketen; voraussichtlich neues Wochenlimit) |
 
 ## Kleinkram (zwischen zwei Paketen selbst erledigen)

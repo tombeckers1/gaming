@@ -47,7 +47,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   /* wie im Spiel: Knopf im Laptop, dann baut sich die Halle Stueck fuer
      Stueck auf - waehrenddessen laeuft das Spiel weiter */
   const start=await p.evaluate(()=>{ const bb=window.__bb; window.__poolsVorher=Object.keys(bb.pools); window.__vorher={shelves:bb.shelves.length,cols:bb.colliders.length,lager:bb.ZONEN.lager_gross?bb.ZONEN.lager_gross.offen:null,pools:Object.keys(bb.pools).length};
-    bb.openLaptop(); bb.ltab='laden'; bb.renderLaptop(); const k=document.querySelector('[data-a="verpackung"]'); const t=performance.now(); if(k) k.click(); return {knopf:!!k,ms:Math.round(performance.now()-t)}; });
+    bb.openLaptop('shop'); bb.renderLaptop();   /* 09.10.: Tab heisst seit der Versandecke (Geraete-Tabs) 'shop' */ const k=document.querySelector('[data-a="verpackung"]'); const t=performance.now(); if(k) k.click(); return {knopf:!!k,ms:Math.round(performance.now()-t)}; });
   console.log('Knopf',JSON.stringify(start));
   await p.waitForFunction('window.__bb.vpFertig',null,{timeout:1200000,polling:500});
   const r=await p.evaluate((start)=>{ const bb=window.__bb, P=bb.P, o={platz:[],voll:[],rand:[],fuge:[],seite:[],luecke:[],aus:[],erreichbar:[]};

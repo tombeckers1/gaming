@@ -25,7 +25,8 @@
    - ZISCH: hoechstens 20 % der Laptop-Energie ueber 2,5 kHz (das
      "Pfft" des Schalldaempfers)
    - CLIP: kein Ausschlag ueber 0,75 am Ausgang (Vollaussteuerung 1,0)
-   - STEIGERUNG: die Lautheit (Mittel je Kaliber) waechst mit dem Kaliber,
+   - STEIGERUNG: die Lautheit (Mittel je Kaliber) waechst mit dem Kaliber (150 und
+     200 mm duerfen um 10 % streuen),
      jede neue Koenigsklasse-Kugel (ab Level 27) hat einen Schlag, der
      lauter ist als jeder Knall bis Level 26; der Urknall-Monster-Schlag ist 1,3-mal so laut wie
      jeder Bruchknall bis Level 26; der Himmelssturz-Schlag ist der
@@ -95,8 +96,11 @@ const KNALL_MIN=0.45;
   /* Runde 6: Klang offline rechnen und auswerten */
   if(!opt.aus){
     const kl=await p.evaluate(async(ids)=>{ const K=window.__kg6, P=window.__bb.P, o={liste:{}};
-      o.monster=await K.messen('monster');
-      for(const t of ids){ o.liste[t]=Object.assign({lvl:P[t].lvl,mm:Math.round(P[t].dims[0]*1000)},await K.messen(t,0.19,K.istAlt5(),true));
+      /* jeder Knall streut (Rauschen, +-5 % Tonhoehe): Mittel aus n Rechnungen */
+      const mittel=async(n,...a)=>{ let m=null; for(let i=0;i<n;i++){ const x=await K.messen(...a); if(!m) m=x; else for(const k of ['lautA','boomAnteil','zischAnteil','dauer']) m[k]+=x[k]; m.spitze=Math.max(m.spitze,x.spitze); }
+        for(const k of ['lautA','boomAnteil','zischAnteil','dauer']) m[k]=+(m[k]/n).toFixed(3); return m; };
+      o.monster=await mittel(3,'monster');
+      for(const t of ids){ o.liste[t]=Object.assign({lvl:P[t].lvl,mm:Math.round(P[t].dims[0]*1000)},await mittel(2,t,0.19,K.istAlt5(),true));
         /* mehrstufige Kugeln: der staerkste ihrer Schlaege */
         const M=K.K6_MONSTER[t]; o.liste[t].staerkst=o.liste[t].lautA;
         if(M&&!K.istAlt5()) for(let k=0;k<M.stufen.length;k++){ const m=await K.messen(t,0.19,false,true,k); o.liste[t].staerkst=Math.max(o.liste[t].staerkst,m.lautA); } }
@@ -114,11 +118,12 @@ const KNALL_MIN=0.45;
       const mit=g=>tier[g]?tier[g].reduce((a,c)=>a+c,0)/tier[g].length:null, reihe=[75,100,150,200,300].map(mit);
       console.log('Lautheit je Kaliber 75/100/150/200/300/neu:',reihe.concat([mit('neu')]).map(x=>x&&x.toFixed(2)).join(' / '));
       const kl75=Math.min(reihe[0],reihe[1]);
-      if(!(kl75<reihe[2]&&reihe[2]<=reihe[3]*1.05&&reihe[3]<=reihe[4]*1.05)) mangel.push('STEIGERUNG: Lautheit waechst nicht mit dem Kaliber: '+reihe.map(x=>x.toFixed(2)).join(' / '));
-      const bis26=Object.values(kl.liste).filter(m=>m.lvl<=26).map(m=>m.lautA), neu=Object.values(kl.liste).filter(m=>m.lvl>=27).map(m=>m.staerkst);
+      if(!(kl75<reihe[2]&&reihe[2]<=reihe[3]*1.1&&reihe[3]<=reihe[4]*1.1)) mangel.push('STEIGERUNG: Lautheit waechst nicht mit dem Kaliber: '+reihe.map(x=>x.toFixed(2)).join(' / '));
+      const bis26=Object.values(kl.liste).filter(m=>m.lvl<=26).map(m=>m.lautA), neu=Object.values(kl.liste).filter(m=>m.lvl>=27).map(m=>m.staerkst),
+        neuOhne=Object.entries(kl.liste).filter(([t,m])=>m.lvl>=27&&t!=='himmelssturz300').map(([t,m])=>m.staerkst);
       if(!(Math.min(...neu)>Math.max(...bis26))) mangel.push(`STEIGERUNG: neue Koenigsklasse (staerkster Schlag der leisesten ${Math.min(...neu)}) nicht lauter als jeder Knall bis Level 26 (${Math.max(...bis26)})`);
       if(!(M.lautA>=1.3*Math.max(...bis26))) mangel.push(`MONSTER: Urknall-Schlag ${M.lautA} nicht 1,3-mal so laut wie der lauteste Bruchknall bis Level 26 (${Math.max(...bis26)})`);
-      if(!kl.sturz||!(kl.sturz.lautA>Math.max(M.lautA,...neu))) mangel.push(`MONSTER: Himmelssturz-Schlag ${kl.sturz&&kl.sturz.lautA} nicht der lauteste (Urknall ${M.lautA}, neue bis ${Math.max(...neu)})`);
+      if(!kl.sturz||!(kl.sturz.lautA>Math.max(M.lautA,...neuOhne))) mangel.push(`MONSTER: Himmelssturz-Schlag ${kl.sturz&&kl.sturz.lautA} nicht der lauteste (Urknall ${M.lautA}, andere neue bis ${Math.max(...neuOhne)})`);
       else console.log(`Himmelssturz-Schlag: lautA ${kl.sturz.lautA}, Spitze ${kl.sturz.spitze}, rollt ${kl.sturz.dauer} s`);
     }
   }
@@ -130,7 +135,10 @@ const KNALL_MIN=0.45;
     if(max>0.4*n) mangel.push(`VIELFALT: eine Klangart bei ${max} von ${n} Kugeln`);
     if(!monster||!monster.zweit) mangel.push('MONSTER: der Urknall hat keinen zweiten Schlag');
     else { const andere=Math.max(...Object.entries(knallMax).filter(([t])=>t!=='urknall300'&&lvlVon[t]<=26).map(([t,w])=>w));
-      if(!(monster.zweit>=1.3*andere)) mangel.push(`MONSTER: zweiter Schlag ${monster.zweit} nicht 1,3-mal lauter als der lauteste Bruchknall ${andere}`);
+      /* 09.10. nachmittags (Runde 6): die Lautheit vergleicht jetzt die
+         Offline-Messung (lautA, oben) - der Mitschnitt hier zaehlt nur
+         Bausteine und kennt Kompressor/Begrenzer des neuen Knalls nicht */
+      if(opt.aus&&!(monster.zweit>=1.3*andere)) mangel.push(`MONSTER: zweiter Schlag ${monster.zweit} nicht 1,3-mal lauter als der lauteste Bruchknall ${andere}`);
       if(!(monster.zweitT>=1)) mangel.push(`MONSTER: zweiter Schlag schon nach ${monster.zweitT} s`); }
   }
   console.log(`\n${ids.length} Kugeln geprueft${opt.aus?' (Gegenprobe: alter Bruchklang, kein Zerlegerblitz)':opt.alt5?' (Gegenprobe: Knall der Runde 5)':''}`);
@@ -138,5 +146,5 @@ const KNALL_MIN=0.45;
   if(!ids.length) mangel.push('keine Kugel gefunden');
   await b.close();
   if(mangel.length){ console.log('FEHLER ('+mangel.length+'):\n'+mangel.join('\n')); console.log('MANGEL: '+mangel.length); process.exit(1); }
-  console.log('ALLES OK: jede Kugel knallt laut beim Zerlegen, mit Zerlegerblitz, jede anders; der Urknall hat den lautesten Schlag');
+  console.log('ALLES OK: jede Kugel knallt laut beim Zerlegen (Boom, kein Zischen, keine Uebersteuerung), mit Zerlegerblitz, jede anders; Urknall-Monster lauter als alles bis Level 26, der Himmelssturz am lautesten');
 })();

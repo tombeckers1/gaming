@@ -46,6 +46,11 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   const laut=await p.evaluate(async()=>{ const bb=window.__bb, S=bb.S; S.level=40; S.money=1e6; bb.LIZENZEN.forEach(l=>bb.buyLizenz(l.id));
     if(bb.MUSIK.an) bb.musikAn();
     const ac=bb.ac(); if(ac.state!=='running') await ac.resume();
+    /* 09.10. (Kugelbomben-Runde 6): die Lizenzen geben XP - mit den zwei
+       neuen Lizenzen (Grossfeuerwerk, Pyro-Weltklasse) steigt das Level
+       noch einmal, und Kassenklang/Level-Fanfare (28 Toene) liefen sonst
+       mitten in die Messung des Furzboellers (Spitze 0,9). Erst ausklingen lassen. */
+    for(let i=0;i<30;i++) bb.run(0.1,0.05); await new Promise(r=>setTimeout(r,2000));
     /* lueckenlos mitschreiben: ein AudioWorklet laeuft im Audio-Thread
        und verliert keinen Block, auch wenn das Bild gerade haengt (der
        ScriptProcessor auf dem Haupt-Thread liess Bloecke aus) */

@@ -208,13 +208,13 @@ const K6_WAHL={
   tigerkrone150:['zisch',{f:0.92,laut:1.4,blitz:0.9,P:12,zisch:[0.14,2.4]}],
   farbcrossette150:['doppel',{f:1.0,laut:1.09,blitz:0.9,P:11,doppel:[0.17,0.7]}],
   wetterleuchten150:['donner',{f:0.95,laut:0.99,blitz:1.0,P:11,raum:'stadt'}],
-  schatztruhe200:['kanone',{f:1.05,laut:1.24,blitz:1.0,P:13}],
-  kronenkranz200:['hall',{f:0.98,laut:1.06,blitz:1.0,P:14}],
-  zwillingssonne200:['doppel',{f:0.95,laut:1.14,blitz:1.0,P:13,doppel:[0.22,0.9]}],
-  blitzpalme200:['dumpf',{f:1.0,laut:2.39,blitz:0.8,P:15}],
-  goldweidenkreuz200:['hall',{f:1.02,laut:2.45,blitz:0.9,P:13,raum:'donner'}],
-  bluetenhagel200:['knister',{f:1.05,laut:1.28,blitz:1.0,P:11,knister:[34,0.2,1.4,0.18]}],
-  kugel300:['peitsche',{f:0.85,laut:0.79,blitz:1.2,P:12,raum:'tal',hall:0.9,roll:[0.4,3.0,6,220]}],
+  schatztruhe200:['kanone',{f:1.05,laut:1.39,blitz:1.0,P:13}],
+  kronenkranz200:['hall',{f:0.98,laut:1.19,blitz:1.0,P:14}],
+  zwillingssonne200:['doppel',{f:0.95,laut:1.28,blitz:1.0,P:13,doppel:[0.22,0.9]}],
+  blitzpalme200:['dumpf',{f:1.0,laut:2.68,blitz:0.8,P:15}],
+  goldweidenkreuz200:['hall',{f:1.02,laut:2.74,blitz:0.9,P:13,raum:'donner'}],
+  bluetenhagel200:['knister',{f:1.05,laut:1.43,blitz:1.0,P:11,knister:[34,0.2,1.4,0.18]}],
+  kugel300:['peitsche',{f:0.85,laut:0.62,blitz:1.2,P:12,raum:'tal',hall:0.9,roll:[0.4,3.0,6,220]}],
   ringnebel300:['doppel',{f:0.85,laut:1.27,blitz:1.2,P:15,doppel:[0.16,0.85],raum:'tal',hall:0.8}],
   kanonade300:['trommel',{f:0.95,laut:1.32,blitz:1.2,P:15}],
   sternensturm300:['donner',{f:1.0,laut:2.51,blitz:1.2,P:16}],
@@ -288,8 +288,8 @@ EFF.silberdistel=function(p,A,B,s){ const q=QUAL(), G=1.8, T=1.25, n=Math.round(
   nKugel(n,6.2*s,(v,i)=>{ k5Stern(p,v,[1.55,1.6,1.75],T,G,{spur:0.32,weiss:0.35});
     kgSpaeter(T*rand(0.96,1.02),()=>{ const e=sternNach(p,v[0],v[1],v[2],G,T), a=SCHWEIF; SCHWEIF=0.02;
       /* Flaumbueschel: zwei helle Koepfe und ein Woelkchen feiner Glitzerfaeden */
-      for(let j=0;j<2;j++){ const sp=rand(0.3,0.7);
-        psBig.emit(e.x,e.y,e.z,wind[0]/wl*1.1+rand(-sp,sp),rand(0.1,0.6),(wind[2]/wl*1.1+rand(-sp,sp)),1.7,1.72,1.85,rand(2.2,3.0),0.28,4); }
+      SCHWEIF=0.18; for(let j=0;j<4;j++){ const sp=rand(0.3,0.8);
+        psBig.emit(e.x,e.y,e.z,wind[0]/wl*1.1+rand(-sp,sp),rand(0.1,0.7),(wind[2]/wl*1.1+rand(-sp,sp)),1.95,1.95,2.1,rand(2.2,3.0),0.28,4); }
       SCHWEIF=0.12; for(let j=0;j<Math.round(9*q)+3;j++){ const d=randDir(), sp=rand(0.4,1.1);
         psMid.emit(e.x,e.y,e.z,wind[0]/wl*1.1+d[0]*sp,d[1]*sp+0.3,wind[2]/wl*1.1+d[2]*sp,1.45,1.48,1.6,rand(1.4,2.4),0.3,4); }
       SCHWEIF=a; }); });
@@ -354,16 +354,16 @@ const K6_DICHTE=1.8;
 const K6_M=(art,o)=>Object.assign({art,k6:true},K6_MON[art],o||{});
 /* je Kugel: haupt = Bruchknall (kk_<id>), stufen = [Zeit nach dem Bruch, Rezept, Name] */
 const K6_MONSTER={
-  herbststurm300:{haupt:K6_M('sturm',{f:1.0,laut:2.3,blitz:1.3}),stufen:[[0.9,K6_M('sturm',{f:1.25,laut:0.75,roll:[0.4,3.5,6,200],zisch:[0.16,3.5]}),'zuendschlag']]},
-  eiszeit300:{haupt:K6_M('eisbruch',{f:1.0,laut:0.68,blitz:1.4}),stufen:[[1.6,K6_M('eisbruch',{f:1.2,laut:0.85,P:8,roll:[0.3,3.2,5,300]}),'eis bricht'],[4.2,K6_M('eisbruch',{f:1.4,laut:0.55,P:6,tief:null,roll:[0.22,2.6,4,320],knister:[40,0.1,2.2,0.2]}),'eisregen']]},
+  herbststurm300:{haupt:K6_M('sturm',{f:1.0,laut:3.1,blitz:1.3}),stufen:[[0.9,K6_M('sturm',{f:1.25,laut:0.75,roll:[0.4,3.5,6,200],zisch:[0.16,3.5]}),'zuendschlag']]},
+  eiszeit300:{haupt:K6_M('eisbruch',{f:1.0,laut:0.68,blitz:1.4}),stufen:[[1.6,K6_M('eisbruch',{f:1.2,laut:0.55,P:8,roll:[0.3,3.2,5,300]}),'eis bricht'],[4.2,K6_M('eisbruch',{f:1.4,laut:0.4,P:6,tief:null,roll:[0.22,2.6,4,320],knister:[40,0.1,2.2,0.06]}),'eisregen']]},
   titanenfaust300:{haupt:K6_M('faust',{f:1.0,laut:1.17,blitz:1.6}),stufen:[0,1,2,3,4].map(k=>[0.78+k*0.08,K6_M('faust',{f:1.15+k*0.07,laut:0.62,P:12,roll:k===4?[0.45,4,7,190]:null,koerper:[0.4,450,100,0.8]}),'finger'])},
-  lavastrom300:{haupt:K6_M('vulkan',{f:1.0,laut:2.8,blitz:1.3}),stufen:[[0.6,K6_M('vulkan',{f:1.3,laut:0.7,P:16,roll:[0.4,4,7,170]}),'ausbruch'],[3.7,K6_M('vulkan',{f:1.6,laut:0.4,P:9,tief:null,roll:null,knister:[60,0,2.4,0.22]}),'asche']]},
+  lavastrom300:{haupt:K6_M('vulkan',{f:1.0,laut:3.2,blitz:1.3}),stufen:[[0.6,K6_M('vulkan',{f:1.3,laut:0.7,P:16,roll:[0.4,4,7,170]}),'ausbruch'],[3.7,K6_M('vulkan',{f:1.6,laut:0.4,P:9,tief:null,roll:null,knister:[60,0,2.4,0.22]}),'asche']]},
   galaxie300:{haupt:K6_M('tiefraum',{f:1.0,laut:0.95,blitz:1.4}),stufen:[[2.2,K6_M('tiefraum',{f:1.35,laut:0.7,P:12,roll:[0.35,3.5,6,220],schlaege:[[0.08,0.6],[0.17,0.5],[0.27,0.4]]}),'sternhaufen']]},
-  sturmflut300:{haupt:K6_M('brandung',{f:1.0,laut:2.6,blitz:1.4}),stufen:[[1.4,K6_M('brandung',{f:1.1,laut:0.95,P:18}),'welle 1'],[1.95,K6_M('brandung',{f:0.95,laut:1.0,P:21}),'welle 2'],[2.6,K6_M('brandung',{f:1.25,laut:0.7,P:14,roll:[0.5,5,8,200]}),'gischt']]},
-  goetterdaemmerung300:{haupt:K6_M('goetter',{f:1.25,laut:1.0,P:16,blitz:1.2,roll:[0.5,3.5,6,190]}),stufen:[[1.15,K6_M('goetter',{f:1.1,laut:1.15,P:22,roll:[0.6,4.5,8,170]}),'zweiter schlag'],[2.45,K6_M('goetter',{f:0.95,laut:2.37,schlaege:[[0.1,0.7]],roll:[1.0,8,13,170]}),'goetterschlag']]},
+  sturmflut300:{haupt:K6_M('brandung',{f:1.0,laut:3.3,blitz:1.4}),stufen:[[1.4,K6_M('brandung',{f:1.1,laut:0.95,P:18}),'welle 1'],[1.95,K6_M('brandung',{f:0.95,laut:1.6,P:21}),'welle 2'],[2.6,K6_M('brandung',{f:1.25,laut:0.7,P:14,roll:[0.5,5,8,200]}),'gischt']]},
+  goetterdaemmerung300:{haupt:K6_M('goetter',{f:1.25,laut:1.0,P:16,blitz:1.2,roll:[0.5,3.5,6,190]}),stufen:[[1.15,K6_M('goetter',{f:1.1,laut:1.15,P:22,roll:[0.6,4.5,8,170]}),'zweiter schlag'],[2.45,K6_M('goetter',{f:0.95,laut:2.1,schlaege:[[0.1,0.7]],roll:[1.0,8,13,170]}),'goetterschlag']]},
   himmelssturz300:{haupt:K6_M('sturz',{f:1.2,laut:1.09,P:18,blitz:1.3,roll:[0.55,4,7,200]}),stufen:[
     ...[0,1,2,3,4,5].map(k=>[1.3+k*0.11,K6_M('sturz',{f:1.5+k*0.04,laut:0.6,P:9,tief:[90,40,0.5,0.45,4],koerper:[0.35,600,140,0.6],roll:k===5?[0.5,4,7,220]:null,knack:[0.55,2600,0.012]}),'donnerkranz']),
-    [2.7,K6_M('sturz',{f:0.95,laut:2.8,schlaege:[[0.12,0.85],[0.32,0.6]],roll:[1.15,9,15,170],mitte:[0.75,700,0.7]}),'himmelssturz'],[4.6,K6_M('sturz',{f:0.85,laut:2.33,P:30,knack:null,koerper:[0.7,220,40,2.6],roll:[0.8,7,10,120],tief:[30,14,3.2,1.1,9]}),'nachbeben']]}
+    [2.7,K6_M('sturz',{f:0.95,laut:3.4,schlaege:[[0.12,0.85],[0.32,0.65],[0.62,0.5]],roll:[1.3,9,16,170],mitte:[0.75,700,0.7]}),'himmelssturz'],[4.6,K6_M('sturz',{f:0.85,laut:2.33,P:30,knack:null,koerper:[0.7,220,40,2.6],roll:[0.8,7,10,120],tief:[30,14,3.2,1.1,9]}),'nachbeben']]}
 };
 for(const id in K6_MONSTER) KNALL5[id]=K6_MONSTER[id].haupt;
 /* Stufenknall am Ort e (Licht vor Schall) */
@@ -603,7 +603,7 @@ const K6_RAUM={
   fackelhimmel150:5.2,crossettennetz150:3.8,tigerkrone150:3.47,farbcrossette150:4.05,wetterleuchten150:3.7,
   schatztruhe200:3.35,bluetenhagel200:3.4,kronenkranz200:2.34,zwillingssonne200:1.78,blitzpalme200:6.9,goldweidenkreuz200:2.83,
   kugel300:2.76,kanonade300:4.6,sternensturm300:3.49,riesenpalme300:2.92,ringnebel300:2.99,kometensturm300:2.32,urknall300:2.36,
-  herbststurm300:4.5,eiszeit300:3.6,titanenfaust300:3.7,lavastrom300:4.8,galaxie300:4.6,sturmflut300:4.5,goetterdaemmerung300:2.5,himmelssturz300:3.85};
+  herbststurm300:4.5,eiszeit300:3.85,titanenfaust300:3.7,lavastrom300:4.8,galaxie300:4.6,sturmflut300:4.5,goetterdaemmerung300:2.5,himmelssturz300:3.85};
 for(const id of Object.keys(K6_RAUM)) if(KUGEL[id]) KUGEL[id].raum=K6_RAUM[id];
 
 /* ---------- Knall fuer die neuen Kugeln ---------- */

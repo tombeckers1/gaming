@@ -10,6 +10,10 @@
 > Texturen, Performance, Gameplay, Flow, Wirtschaft. Schritt für Schritt mit Tom. Erste Aufgabe:
 > Läden gegenüber – Innenräume hinter den Schaufenstern realistisch (gameplay.md Punkt 14).
 
+> **Toms Absicht hinter dem Spiel (09.10.):** Finanzbildung – Kosten kalkulieren, Kredite einplanen,
+> Kostenstruktur verstehen. Falsche Entscheidungen dürfen ins Minus führen (Lerneffekt), Folgen
+> sichtbar machen. Wirtschaftliche Dynamik realistisch (an echten Daten ausrichten).
+
 Die folgenden Regeln sind eine Kopie von Toms globalen Anweisungen (Stand 08.10.2026),
 damit sie auch in einem frischen Container gelten.
 

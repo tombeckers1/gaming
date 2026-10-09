@@ -20,6 +20,14 @@ Foto: `versand-0910.png` (Blick auf die Versandecke vor Rolltor V1; roter Strich
 - **Onlineshop-Statistik** zeigt: Versandeinnahmen vom Kunden, Porto je Paketgröße, DDL-Pauschalen, Ergebnis Versand. Alles in der Kostenrechnung/Tagesabrechnung.
 - Ziel der Dynamik: Ausbau lohnt sich spürbar (weniger Anrufe = weniger Pauschalen, weniger Stocken). Die Zahlen so wählen, dass sich Stufe 2 und 3 in einer nachvollziehbaren Zeit amortisieren (Rechnung im Bericht).
 
+## Onlineshop-Einstellungen und Nachfrage-Dynamik (Tom, 09.10.)
+- Grundsatz (Toms eigentliche Absicht): **Finanzbildung.** Der Spieler soll Kosten kalkulieren, Kredite einplanen, Kostenstruktur verstehen – und sich mit falschen Entscheidungen auch herunterwirtschaften KÖNNEN (Lerneffekt). Nichts künstlich verhindern, aber Folgen sichtbar machen (Statistik).
+- **Einstellbar im Onlineshop:** Versandkosten für den Kunden (frei wählbar, z. B. 0–20 €), Mindestbestellwert für kostenlosen Versand (z. B. 50 €, auch 0 € = immer frei), **Aktionen/Sale**: z. B. „20 % auf alles“, „20 % auf ausgewählte Produkte“ (einzeln wählbar), „heute versandkostenfrei“, ggf. Online-Rabatt in € je Produkt. Reguläre Preise = Ladenpreise.
+- **Porto an DDL bleibt fest:** S 2,00 € · M 3,50 € · L 5,00 €. Der Spieler kann also bei billigen Bestellungen mit Gratisversand Geld verlieren (gewollt, z. B. Knallerbsen 5 € + Gratisversand).
+- **Nachfrage-Dynamik realistisch:** Je attraktiver das Angebot (niedrige Versandkosten, niedrige Schwelle, Rabatte, Sale), desto mehr Bestellungen und größere Warenkörbe; hohe Versandkosten senken die Conversion stark (z. B. 20 € Versand -> kaum Bestellungen). Werte an realen E-Commerce-Daten ausrichten (Recherche: Warenkorbabbrüche wegen Versandkosten, Wirkung von Gratisversand-Schwellen auf den Warenkorbwert, Rabatt-Elastizität) und Quellen im Bericht nennen. Sale auf einzelne Produkte erhöht gezielt deren Online-Nachfrage (Lagerabbau).
+- **Onlineshop-Statistik:** Bestellungen, Umsatz, Ø Warenkorb, Versandeinnahmen, Porto je Größe, DDL-Pauschalen, Rabattkosten, Ergebnis Online – je Tag und Verlauf, damit man die Wirkung der Einstellungen sieht.
+- **Geräte (vorläufig, Tom will das später ggf. anders lösen):** Den Laptop aus der großen Halle (Logistikhalle/„Lagerterminal“, 05h-ausbau.js lapHit2) entfernen und einen Laptop/Computer **ins Lager** stellen: dort Mitarbeiter, Onlineshop usw. steuern. **Im Laden ein Tablet** für Bestellungen (Ware ordern). Bestehender Laptop im Büro-Eck des Ladens: sinnvoll einordnen und im Bericht erklären, welches Gerät was kann (keine Funktion darf verloren gehen; Handy-Apps bleiben).
+
 ## Automat „Deine Rakete“ (gameplay.md Punkt 9)
 - Sieht aus „wie drei Pixel“ -> neu modellieren wie ein echter Verkaufs-/Konfigurationsautomat, Aufschrift „Rakete personalisieren“.
 

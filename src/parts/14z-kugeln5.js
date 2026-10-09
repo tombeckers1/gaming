@@ -78,7 +78,9 @@ function k5Dreh(d,ax,a){ const c=Math.cos(a), s=Math.sin(a), k=d[0]*ax[0]+d[1]*a
    ========================================================= */
 /* Lautstaerke am Ohr: ein Kugelbruch auf 90 m ist laut - er faellt mit
    der Entfernung kaum ab (v = distVol: 0,19 in der Vorfuehrung) */
-function k5Laut(v){ return clamp(0.62+(v||0)*1.6,0.55,1.15); }
+/* 09.10.: nicht lauter als der Monsterboeller aus 10 m (boeller.js LAUT:
+   der Boeller muss 1,25-mal so laut sein wie eine 150er Kugel) */
+function k5Laut(v){ return clamp(0.5+(v||0)*1.4,0.45,1.0); }
 /* Klangarten. Teile (Lautstaerke relativ):
    crack [vol, Hz, s, Filter]  harter Schlag (hoch)
    mitte [vol, Hz, s]          Druckwelle im hoerbaren Band (Bandpass)
@@ -185,9 +187,15 @@ function k5HaltSammeln(fn){ const L=[], pools=[psHuge,psBig], orig=pools.map(ps=
   pools.forEach((ps,k)=>{ ps.emit=function(x,y,z,vx,vy,vz,r,g,b,life,grav,mode){ const i=ps.next; const res=orig[k].apply(this,arguments); if(life>=1.1&&mode!==1&&mode!==3) L.push({ps,i,mx:0}); return res; }; });
   try{ return fn(); } finally { pools.forEach((ps,k)=>{ ps.emit=orig[k]; }); if(!K5_HALT_AUS) k5Halten(L); } }
 let K5_HALT_AUS=false;
+/* Alles, was ein Kugelbruch fuer spaeter plant (Toechter, Knistern,
+   Knall, Helligkeit), gehoert zum Feuerwerk (FW_KTX, 13-sound): der Stopp
+   der Vorfuehrung (X) raeumt es mit ab. Vorher lief z. B. das Knistern
+   einer gestoppten Kugel noch in die naechste Zuendung hinein (hoehen.js
+   mass dabei eine Rakete mit 139 m). */
 { const fb=fwBurst;
   fwBurst=function(r){ const self=this, args=arguments, kg=r&&r.kugel&&!r.stufe;
-    const x=kg?k5HaltSammeln(()=>fb.apply(self,args)):fb.apply(this,arguments);
+    if(kg) FW_KTX++;
+    let x; try{ x=kg?k5HaltSammeln(()=>fb.apply(self,args)):fb.apply(this,arguments); } finally { if(kg) FW_KTX--; }
     if(!KNALL5_AUS&&kg&&typeof r.knall==='string'&&r.knall.slice(0,3)==='kk_'){ const o=KNALL5[r.knall.slice(3)]; if(o) k5Blitz(r.p,o); }
     return x; }; }
 
@@ -210,8 +218,8 @@ EFF_SCHWEIF.tigerkrone=0.18;
    bleiben, darueber statt des Kamuro aus Goldstrichen eine echte
    Brokatkrone - warmweisse Koepfe, glitzernde, abkuehlende Schleier, die
    sich langsam wie eine Trauerweide senken */
-EFF.k5brokatkrone=function(p,A,B,s){ const n=Math.round(52*s*QUAL())+30;
-  k5Brokat(p,n,6.4*s,4.6,1.15,{glanz:6,staub:16});
+EFF.k5brokatkrone=function(p,A,B,s){ const n=Math.round(70*s*QUAL())+30;
+  k5Brokat(p,n,6.4*s,4.6,1.15,{glanz:9,staub:16});
   kgSpaeter(3.4,()=>schall(p,x=>sfx.rieseln(x*0.9,3.5))); };
 EFF_FAMILIE.k5brokatkrone='haenger'; EFF_SCHWEIF.k5brokatkrone=0.1;
 
@@ -231,18 +239,19 @@ EFF_FAMILIE.k5brokatkrone='haenger'; EFF_SCHWEIF.k5brokatkrone=0.1;
    die Flammen erloschen nach 3,6 statt 9 s); die Zungen (psBig, 1600 je
    Sekunde) leben nur eine halbe Sekunde */
 EFF.fackelhimmel=function(p,A,B,s){ const q=QUAL(), n=Math.round(10*s*q)+10, G=0.55;
-  const F=[[2.1,1.55,.5],[2.0,.85,.18],[1.6,.36,.07]];
-  nKugel(n,4.6*s,(v,i)=>{ const T=rand(8.2,9.8), h=kgStern(psHuge,p,v,[2.0,.95,.25],T,G,0,0.02);
+  const F=[[2.4,1.8,.6],[2.2,.95,.2],[1.8,.4,.08]];
+  nKugel(n,4.6*s,(v,i)=>{ const T=rand(8.2,9.8), h=kgStern(psHuge,p,v,[2.6,1.3,.35],T,G,0,0.02);
     const kern=kgStern(psHuge,p,v,[1.6,1.25,.55],T*0.98,G,0,0);
     for(let t=0.1;t<T-0.15;t+=0.08){ const tt=t;
       kgSpaeter(tt,()=>{ const e=k5Pos(h); if(!e) return; const a=SCHWEIF; SCHWEIF=0.06;
-        /* flackern */ kgFarbe(kern,[1.6,1.25,.55],rand(0.5,1.25));
+        /* flackern */ kgFarbe(kern,[1.6,1.25,.55],rand(0.5,1.4));
         /* Flammenzungen lecken nach oben und kuehlen ab */
-        for(let j=0;j<(q>0.7?3:2);j++){ const c=F[(Math.random()*3)|0], up=rand(1.3,3.0);
-          psBig.emit(e.x+rand(-.22,.22),e.y+rand(-.1,.25),e.z+rand(-.22,.22),rand(-.45,.45),up,rand(-.45,.45),c[0],c[1],c[2],rand(0.3,0.55),-1.6,2,c[0]*0.3,c[1]*0.1,c[2]*0.08); }
+        const nz=Math.round(rand(1,5)*(q>0.7?1:0.6));   /* zuengeln: mal eine, mal fuenf Zungen */
+        for(let j=0;j<nz;j++){ const c=F[(Math.random()*3)|0], up=rand(2.0,4.5);
+          psBig.emit(e.x+rand(-.3,.3),e.y+rand(-.1,.3),e.z+rand(-.3,.3),rand(-.5,.5),up,rand(-.5,.5),c[0],c[1],c[2],rand(0.4,0.75),-1.2,2,c[0]*0.3,c[1]*0.1,c[2]*0.08); }
         if(Math.random()<0.5*q) psMid.emit(e.x,e.y,e.z,rand(-1,1),rand(1.5,3.5),rand(-1,1),1.6,1.2,.55,rand(0.3,0.7),0.4,4);
         SCHWEIF=a; }); }
-    kgSpaeter(T-0.1,()=>{ const e=k5Pos(h)||sternNach(p,v[0],v[1],v[2],G,T); k5Knister(e,Math.round(6*q)+3,1.6,[1.7,1.3,.6]); }); });
+    kgSpaeter(T-0.1,()=>{ const e=k5Pos(h); if(e) k5Knister(e,Math.round(6*q)+3,1.6,[1.7,1.3,.6]); }); });
   /* der Zuendkern: ein kurzer Glutball, der sofort zerfaellt */
   for(let i=0;i<Math.round(40*q);i++){ const d=randDir(); kgStern(psBig,p,kgMal(d,rand(1.5,3)*s),F[i%3],rand(0.5,0.9),1,0,0.05); }
   schall(p,x=>{ sfx.fauchen(x*0.55,6,false); later(1.2,()=>sfx.fauchen(x*0.35,5)); later(7.6,()=>{ sfx.crackle(x*0.6); later(0.6,()=>sfx.crackle(x*0.45)); later(1.3,()=>sfx.crackle(x*0.3)); }); }); };
@@ -344,12 +353,12 @@ EFF.sonnensturm=function(p,A,B,s){ const q=QUAL(), G=1.25;
    goldene Dracheneier von oben nach unten los, eine silberne Welle antwortet
    von unten nach oben, und aus dem Nest fallen glutrote Tropfen */
 EFF.drachennest=function(p,A,B,s){ const q=QUAL(), G=2.0;
-  nKugel(Math.round(34*s*q)+24,5.0*s,v=>{ kgStern(psHuge,p,v,[1.7,.22,.08],3.0,G,0,0.14); kgStern(psBig,p,v,[1.8,.75,.4],2.8,G,0,0); });
+  nKugel(Math.round(46*s*q)+24,5.0*s,v=>{ kgStern(psHuge,p,v,[1.9,.25,.08],3.0,G,0,0.2); kgStern(psBig,p,v,[2.0,.8,.4],2.8,G,0,0); });
   const welle=(n,c,t0,dauer,auf)=>{ const E=[]; for(let i=0;i<n;i++){ const d=randDir(), r=Math.cbrt(rand(0.1,1))*6.2*s; E.push({x:p.x+d[0]*r,y:p.y+d[1]*r,z:p.z+d[2]*r}); }
     const y0=p.y-6.2*s, y1=p.y+6.2*s;
     E.forEach(e=>{ const u=(e.y-y0)/(y1-y0), t=t0+dauer*(auf?u:1-u)+rand(-0.05,0.05);
-      kgSpaeter(Math.max(0.05,t-0.6),()=>kgStern(psBig,e,[rand(-.3,.3),rand(-.3,.2),rand(-.3,.3)],kgMal(c,0.95),0.62,0.6,4,0));
-      kgSpaeter(t,()=>k5Knister(e,Math.round(5*q)+3,2.6,mischF(c,[1.8,1.8,1.8],0.4),{L:[0.12,0.4]})); });
+      kgSpaeter(Math.max(0.05,t-0.9),()=>kgStern(psBig,e,[rand(-.3,.3),rand(-.3,.2),rand(-.3,.3)],kgMal(c,1.25),0.92,0.6,4,0));
+      kgSpaeter(t,()=>{ k5Knister(e,Math.round(8*q)+4,2.8,mischF(c,[1.9,1.9,1.9],0.4),{L:[0.12,0.4]}); psHuge.emit(e.x,e.y,e.z,0,0,0,c[0]*1.2,c[1]*1.2,c[2]*1.2,0.05,0,0); }); });
     schall(p,x=>{ const L=k5Laut(x); later(t0,()=>bkKn(0,dauer+0.4,Math.round(70*q)+20,0.2*L)); }); };
   welle(Math.round(42*s*q)+40,[1.6,1.2,.45],0.8,1.4,false);
   welle(Math.round(26*s*q)+20,[1.45,1.5,1.65],2.3,1.1,true);

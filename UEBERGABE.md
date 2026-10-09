@@ -159,6 +159,14 @@ ROADMAP.md: Die Demo-Idee mit Kapitel 1–6 ist inzwischen durch den Release-Pla
 - 8 (großer Raum mit vier weiteren Stationen): Tom meldet sich, liegt auf Eis.
 
 ### 5.3 Feuerwerk
+- **Kugelbomben-Runde 5 (Toms Bewertung 09.10., `docs/uebergabe/kugelbomben-0910.md`) – ERLEDIGT 09.10.:**
+  - Code: Daten/Preise `02h-kugeln5.js`, Effekte/Knall/Groesse `14z-kugeln5.js`, Verpackung `04j-form-kugeln5.js`; Streichen ueber `ENTFERNT` (jetzt Funktion `sortimentStreichen()` in 02e, zweiter Aufruf in 02h).
+  - 13 Kugeln raus (alte Spielstaende: Ersatz per `ENTFERNT_ERSATZ`), 10 neu: Profi Fackelhimmel 150 (L17), Wetterleuchten 150 (L18), Schatztruhe 200 (L19), Bluetenhagel 200 (L20), Aurora 200 (L21); Koenigsklasse Sonnensturm 300 (L22), Drachennest 300 (L23), Ringnebel 300 (L24), Kometensturm 300 (L25), Urknall 300 (L26, ersetzt Himmelstreppe: Boom, dann Monster-Schlag nach 1,3 s). Jetzt 28 Kugeln.
+  - Knall: Ursache gemessen - Bruch auf 86-90 m kam mit distVol ~0,19 an, Klang war Puff/Plopp/Wumms/Herzton (gewichtet 0,02-0,08, Abschuss ~0,9). Neu: je Kugel eigener Bruchknall (`KNALL5`, 9 Klangarten) + Zerlegerblitz 0,06 s. Test `kugelknall.js` (Gegenprobe `'{"aus":true}'`).
+  - Groesse (Durchmesser 90 % der Sterne): Profi ~112-120 m, Koenigsklasse ~120-128 m (Himmelsbrecher 120), Urknall ~183 m. `K5_RAUM` in 14z.
+  - Optik: Sterne des Hauptbruchs brennen gleichmaessig statt linear zu verblassen (`k5Halten`), Brokat-Gold (`k5Brokat`), Tigerkrone neu (Kronen an den Spitzen), Kanonade mit Brokatkrone, Knister aus 90 m sichtbar (psBig).
+  - Preise: VK nach Level (`KUGEL_VK`, L14 9,99 ... L24 54,99, Urknall 79,99; vorher 300 mm 165-175 EUR), Marge 1:2,33 unveraendert, Nachfrage +1/+2. Gewinn je Kundenwunsch (alle Waren, rechnerisch): L18 -7 %, L24 -13 % - Kugeln brachten vorher ein Drittel des Feuerwerksgewinns.
+  - Kontaktboegen: `docs/bilder/kugeln-0910/`. Alle Kugeln haben `aenderung:true` (Vorfuehrung Aenderungen).
 - **Batterie-Formen nach Toms Referenzbildern** (`docs/uebergabe/batterie-referenz-3…7.png`: Hamburg/Caipirinha, Big Final, Magnum, Exotic Place).
   - Erledigt in `14w-batterieformen.js` (seit V118): 16 Batterien mit eigener Bauform, Zonen, Kaliber, Druck rundum, ein Loch = ein Schuss.
   - Offen ist nur Toms Urteil, ob noch welche „0815“ aussehen. Dann gezielt nacharbeiten.
@@ -293,7 +301,7 @@ flock /tmp/bb-testlock timeout 3600 node -r ./ladezeit-preload.js /home/user/gam
   - **Laden/Personal:** personen, kasse, kartonauf, einraeumer, regalsicht, pause.
   - **Versand:** packer, packband, packmaterial, versand, versandtor, tourplan, pakete, karre, kartonlogik, durchgang.
   - **Ausbau/Lager:** ausbau, stufen, lager, online.
-  - **Feuerwerk:** lochschuss, themen (+R4=1), abschussklang, bodenfontaene, ursprung (test.html), steigerung (test.html), hoehen, anomalie, neuware, sortiment, vfrohr, vfgrafik, vorfuehrung, mblast, kleinfeuer06, verpackung.
+  - **Feuerwerk:** lochschuss, themen (+R4=1), abschussklang, kugelknall, bodenfontaene, ursprung (test.html), steigerung (test.html), hoehen, anomalie, neuware, sortiment, vfrohr, vfgrafik, vorfuehrung, mblast, kleinfeuer06, verpackung.
   - **Leistung/Gesamt:** leistung, gameplay, H:gameplay (=HANDY=1), baum.
 - Container-Neustarts kommen vor und töten laufende Prozesse. Danach Agenten fortsetzen und Läufe neu starten. Das Scratchpad überlebt Neustarts, aber keinen Chatwechsel.
 

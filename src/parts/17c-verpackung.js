@@ -37,7 +37,10 @@ const VP_TEX=0.4;
 const VP_ZEILEN=[
   /* 06.10.: zehn Themen-Batterien (02f) - je ein Hochregal mehr links und
      rechts (2 x 5 Faecher), sonst bleiben die Getraenke ohne Fach */
-  {art:'paar',links:['hoch','hoch','hoch','hoch','hoch','hoch'],rechts:['standard','standard','standard','standard','standard','klein']},
+  /* 09.10.: Kugelbomben-Runde 5 - 13 Kugeln raus, 10 neu (3 Produkte
+     weniger): ein Hochregal weniger (5 Faecher), rechts statt des kleinen
+     ein Verkaufsregal (+1) - sonst blieben vier Faecher leer */
+  {art:'paar',links:['hoch','hoch','hoch','hoch','hoch'],rechts:['standard','standard','standard','standard','standard','standard']},
   {art:'insel',kinds:['gondel','gondel','gondel','gondel','gondel']},
   {art:'insel',kinds:['gondel','gondel','gondel','gondel','gondel']},
   /* 03.10.: neue Raketen, Kugeln und Batterien - 24 Fächer mehr, sonst

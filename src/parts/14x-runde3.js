@@ -254,8 +254,8 @@ EFF.goldweidenkreuz=function(p,A,B,s){ const G=2.4, t=0.8;
         rkFunken(e,dv,1.5,0.1,L,funken*0.4,[1.35,1.05,.5],{ps:psBig,life:[1.6,2.4],g:0.6,streu:0.15,mit:0.03,mode:4});
         kgSpaeter(L*0.85,()=>{ const q=sternNach(e,dv[0],dv[1],dv[2],1.5,L*0.85); for(let j=0;j<Math.round(5*QUAL());j++){ const d=randDir(); psSmall.emit(q.x,q.y,q.z,d[0]*1.6,d[1]*1.6,d[2]*1.6,1.5,1.3,.9,rand(0.1,0.25),1,3); } }); }
       psHuge.emit(e.x,e.y,e.z,0,0,0,1.4,1.25,1,0.06,0,0); }); },el);
-  kranz(12,8.6*s,0.15,A,4.4,70);
-  kgSpaeter(0.5,()=>kranz(8,6*s,-0.1,B,3.6,55));
+  kranz(12,8.6*s,0.15,A,4.4,62);   /* 09.10.: 70 -> 62 und 55 -> 48, Teilchen-Budget (hoehen.js BUDGET 14 000, gemessen 14 009) */
+  kgSpaeter(0.5,()=>kranz(8,6*s,-0.1,B,3.6,48));
   /* gerendert 07.10.: die Weiden waren duenne Striche - dazu ein goldener
      Kamuro-Schleier in der Mitte, der die Weiden zu einem Vorhang schliesst */
   kgSpaeter(0.95,()=>EFF.kamuro(p,FW.gold,FW.bernstein,s*0.55));

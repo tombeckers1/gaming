@@ -3,8 +3,9 @@
    Einheitssound, der Boom muss da sein"; Granatapfel: "Boom fehlt oft").
    Jede Kugel der Kugelbomben-Vorfuehrung wird gezuendet, jeder
    Klangbaustein mitgeschnitten (14x KLANG_LOG: Lautstaerke mal Anteil, der
-   aus einem kleinen Lautsprecher kommt). Summiert wird, was vom Bruch bis
-   0,9 s nach dem Eintreffen des Schalls klingt.
+   aus einem kleinen Lautsprecher kommt). Gemessen wird das lauteste
+   Zehntel vom Bruch bis 0,9 s nach dem Eintreffen des Schalls (der
+   Schlag - nicht die Summe vieler Knister-Klicks).
    - KNALL: jeder Hauptbruch klingt mit mindestens KNALL_MIN
      (gemessen vorher: 0,02-0,08 bei Herzschlag, Leuchtqualle,
      Granatapfel, Riesenpalme, Blauregen, Goldbrokat)
@@ -53,16 +54,19 @@ const KNALL_MIN=0.45;
       const K=window.__r3.klangLog()||[], L=(window.__kg5.logListe||[]).slice(); window.__r3.klang(false); window.__kg5.log(false); bb.fwLog(null);
       if(!br) return {lvl:P[t].lvl,fehlt:true};
       const c=bb.camera.position, dl=Math.hypot(c.x-br.x,c.y-br.y,c.z-br.z)/343;
-      let knall=0; for(const k of K) if(k.t>=br.t-0.02&&k.t<=br.t+dl+0.9) knall+=k.w;
+      /* Spitze: lautestes Zehntel (Knall = Schlag, nicht Summe vieler Knister-Klicks) */
+      const spitze=(t0,t1)=>{ const bin={}; for(const k of K) if(k.t>=t0&&k.t<=t1){ const i=Math.floor((k.t-t0)/0.1); bin[i]=(bin[i]||0)+k.w; } return Math.max(0,...Object.values(bin)); };
+      let summe=0; for(const k of K) if(k.t>=br.t-0.02&&k.t<=br.t+dl+0.9) summe+=k.w;
+      const knall=spitze(br.t-0.02,br.t+dl+0.9);
       /* zweiter grosser Schlag (Monster): Fenster ab 1 s nach dem Bruch, je 0,9 s */
       let zweit=0; const ms=L.find(x=>x.art==='monster');
-      if(ms){ for(const k of K) if(k.t>=ms.t-0.02&&k.t<=ms.t+0.9) zweit+=k.w; }
+      if(ms) zweit=spitze(ms.t-0.02,ms.t+0.9);
       const blitz=window.__punkte.filter(q=>q.t>=br.t-0.02&&q.t<=br.t+0.08&&Math.hypot(q.x-br.x,q.y-br.y,q.z-br.z)<1.5).length;
       const keys=[...new Set(window.__keys)].filter(k=>/^kk_/.test(k));
       const a=(L.find(x=>x.art&&x.art!=='monster')||{}).art||null;
-      return {lvl:P[t].lvl,knall:+knall.toFixed(3),blitz,keys,art:a,zweit:+zweit.toFixed(3),zweitT:ms?+(ms.t-br.t).toFixed(2):null}; },[t]);
+      return {lvl:P[t].lvl,knall:+knall.toFixed(3),summe:+summe.toFixed(3),blitz,keys,art:a,zweit:+zweit.toFixed(3),zweitT:ms?+(ms.t-br.t).toFixed(2):null}; },[t]);
     if(r.fehlt){ mangel.push(`${t}: kein Bruch`); continue; }
-    zeilen.push(`${t.padEnd(20)} L${String(r.lvl).padStart(2)}  Knall ${String(r.knall).padStart(6)}  Blitz ${r.blitz}  ${r.art||'-'} ${r.keys.join(',')}${r.zweit?'  MONSTER '+r.zweit+' nach '+r.zweitT+' s':''}`);
+    zeilen.push(`${t.padEnd(20)} L${String(r.lvl).padStart(2)}  Knall ${String(r.knall).padStart(6)} (Summe ${String(r.summe).padStart(6)})  Blitz ${r.blitz}  ${r.art||'-'} ${r.keys.join(',')}${r.zweit?'  MONSTER '+r.zweit+' nach '+r.zweitT+' s':''}`);
     knallMax[t]=r.knall;
     if(r.knall<KNALL_MIN) mangel.push(`KNALL: ${t} nur ${r.knall} (mindestens ${KNALL_MIN})`);
     if(!r.blitz) mangel.push(`BLITZ: ${t} ohne Zerlegerblitz`);

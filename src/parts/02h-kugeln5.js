@@ -11,11 +11,14 @@
    - PREISE: "Kugelbomben sollen nicht so viel kosten wie eine krasse
      Batterie". Bisher kostete eine 300-mm-Kugel (eine Zuendung, gut 6 s
      Bild) 165-175 EUR - mehr als Goetterfunken (200 Schuss, 66 s, 150 EUR).
-     Neu: Verkaufspreis nach Level, etwa 30 % der grossen Batterien
+     Neu: Verkaufspreis nach Level, etwa ein Drittel der grossen Batterien
      desselben Levels (Level 14 Knattersturm 31 EUR -> Kugel 10 EUR, Level 24
-     Goetterfunken 150 EUR -> Kugel 48 EUR). Einkauf wie bisher im
-     Verhaeltnis 1 : 2,33 (Marge unveraendert); weil eine guenstige Kugel
-     oefter gekauft wird, steigt die Nachfrage (weight) um eins.
+     Goetterfunken 150 EUR -> Kugel 55 EUR, Level 26 Weltuntergang 250 EUR ->
+     Urknall 80 EUR). Einkauf wie bisher im Verhaeltnis 1 : 2,33 (Marge
+     unveraendert). Eine guenstige Kugel wird oefter gekauft: die
+     Nachfrage (weight) steigt um eins, ab Level 17 um zwei - so bleibt der
+     Gewinn je Kundenwunsch nahe am alten Stand (gemessen 09.10., siehe
+     UEBERGABE.md).
    ========================================================= */
 const K5_WEG=['farbenmeer75','smaragdring100','kugel150','abendrot150','kometenschlag150','sternkugel150','weidenkoenig200',
   'seerose200','feuerlilie200','goldkrone200','crossettenweide300','kaiserkrone','himmelstreppe300'];
@@ -33,7 +36,7 @@ const K5_NEU=[
  ['urknall300','Urknall',300,26,'Erst ein Boom: ein Silberkranz mit grellem Blitz. Dann steigt der Kern weiter – und zerreißt im größten Schlag des Spiels: Titan-Silber, roter Feuerball, eine Goldkrone und ein Knistern, das den ganzen Himmel füllt.','meister','#1a1a1a','#000000','#ffffff','#ff3a1a']
 ];
 /* Verkaufspreis je Level (Kugelbomben), siehe oben */
-const KUGEL_VK={14:9.99,15:11.99,16:14.99,17:18.99,18:21.99,19:24.99,20:27.99,21:31.99,22:37.99,23:42.99,24:47.99,25:54.99,26:69.99};
+const KUGEL_VK={14:9.99,15:12.99,16:15.99,17:21.99,18:24.99,19:27.99,20:31.99,21:35.99,22:44.99,23:49.99,24:54.99,25:62.99,26:79.99};
 const KUGEL_MARGE=2.33;
 (function(){
   /* neue Kugeln wie Runde 4 (02g): Katalog, Bestellliste, Markt, Warengruppe, Lizenz */
@@ -53,7 +56,7 @@ const KUGEL_MARGE=2.33;
      (Aenderungen)" (17b) */
   for(const t of ORDER){ const q=P[t]; if(!q||q.shape!=='shell'||q.eigen||q.rezept) continue;
     const vk=KUGEL_VK[Math.max(14,Math.min(26,q.lvl|0))]; if(!vk) continue;
-    q.market=vk; q.cost=Math.round(vk/KUGEL_MARGE*100)/100; q.weight=(q.weight||3)+1; q.aenderung=true; }
+    q.market=vk; q.cost=Math.round(vk/KUGEL_MARGE*100)/100; q.weight=(q.weight||3)+(q.lvl>=17?2:1); q.aenderung=true; }
   /* Lizenztexte, die gestrichene Kugeln nannten */
   const txt={import:'Der Atombomben-Böller mit dem großen Pilz, die 150-mm-Kugel Fackelhimmel mit ihren lodernden Flammen und die Silberregen-Raketen. Teuer im Einkauf, launisch im Preis, aber die Kunden reden darüber.',
     goldklasse:'Glasbruch-Raketen, die Goldader und die 150-mm-Kugeln Crossettennetz, Tigerkrone, Farbcrossette und Wetterleuchten.',

@@ -72,7 +72,7 @@ EFF.goldweidenkreuz=function(p,A,B,s){ const G=2.6, t=0.8;
   nKranz(8,8*s,v=>{ nKomet(p,v,kgMal(A,1.4),t,G,[1,.8,.42],40);
     kgSpaeter(t,()=>{ const e=sternNach(p,v[0],v[1],v[2],G,t), w=bahnTempo(v,G,t), a0=rand(0,Math.PI*2);
       for(let k=0;k<4;k++){ const a=a0+k*Math.PI/2, sp=4.2*Math.sqrt(s), dv=[Math.cos(a)*sp+w[0]*0.3,1.2+w[1]*0.3,Math.sin(a)*sp+w[2]*0.3], L=3.6;
-        kgStern(psBig,e,dv,[1.3,.85,.4],L,1.6,0,0.45); rkFunken(e,dv,1.6,0.05,L,26 /* 09.10.: 30 -> 26, Teilchen-Budget (hoehen.js) mit Abstand */,kgMal(B,0.95),{ps:psMid,life:[1.8,2.8],g:0.75,streu:0.12,mit:0.03,mode:0,spur:0.25}); }
+        kgStern(psBig,e,dv,[1.3,.85,.4],L,1.6,0,0.45); rkFunken(e,dv,1.6,0.05,L,30,kgMal(B,0.95),{ps:psMid,life:[1.8,2.8],g:0.75,streu:0.12,mit:0.03,mode:0,spur:0.25}); }
       psHuge.emit(e.x,e.y,e.z,0,0,0,1.3,1.2,1,0.05,0,0); }); },0.15);
   nKugel(Math.round(20*KQ(s)),3*s,v=>kgStern(psBig,p,v,kgMal(A,1.4),1.8,2.2,0,0.1));
   schall(p,x=>{ sfx.plopp(x*0.85,0.8); later(0.8,()=>sfx.crack(x*0.4)); later(1.3,()=>sfx.rieseln(x*0.7,4.5)); }); };

@@ -6,7 +6,8 @@
    waehrend des Abbrennens entsteht (alles ausser Zuendschnur und Modell),
    zaehlt. Daneben wird jedes Drehbuch (SHOWS) auf boden/ground gelesen.
    - BODEN: keine Batterie ausser lb_vulkan hat einen Boden-Emitter
-   - VULKAN: der Vulkanausbruch hat seinen Krater (Boden-Emitter krater)
+   - VULKAN: der Vulkanausbruch hat seinen Krater (Boden-Emitter krater) -
+     seit 09.10. gestrichen (Batterie-Runde), die Pruefung greift nur, wenn er da ist
    Aufruf: node bodenfontaene.js real.html ['{"nur":["id"],"gegen":true}']
    gegen:true schaltet das Entfernen ab (dann muss der Test anschlagen). */
 const { chromium } = require('/opt/node22/lib/node_modules/playwright');

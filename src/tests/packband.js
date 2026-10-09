@@ -84,7 +84,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     window.__wand=(x,z)=>bb.colliders.filter(c=>x>c.minX+0.06&&x<c.maxX-0.06&&z>c.minZ+0.06&&z<c.maxZ-0.06);
   });
 
-  const T=['boeller','wunder','raketen','lb_polarweiden','lb_goldader','monsterboeller'];
+  const T=['boeller','wunder','raketen','lb_polarweiden','lb_weidenhain','monsterboeller'];
   for(const st of [1,2,3]){
     const r=await p.evaluate(({st,T})=>{ const bb=window.__bb, S=bb.S, o={st};
       if(st>1) bb.testKauf('packstation'+st);
@@ -146,18 +146,18 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
      nicht, der Packer bleibt nicht haengen */
   const sp0=await p.evaluate(()=>{ const bb=window.__bb, S=bb.S, o={};
     S.bestellungen=[]; S.offen=0; bb.ddlAbholung();
-    bb.racks.forEach(r=>r.slots.forEach(s=>{ if(s.box&&s.box.type==='lb_goldader'){ r.g.remove(s.box.mesh); s.box=null; } }));
-    bb.allLevels().forEach(l=>{ if(l.type==='lb_goldader') while(l.count>0) bb.removeFromLevel(l); });
-    bb.floorBoxes.filter(x=>x.type==='lb_goldader').forEach(x=>bb.removeFloorBox(x));
+    bb.racks.forEach(r=>r.slots.forEach(s=>{ if(s.box&&s.box.type==='lb_weidenhain'){ r.g.remove(s.box.mesh); s.box=null; } }));
+    bb.allLevels().forEach(l=>{ if(l.type==='lb_weidenhain') while(l.count>0) bb.removeFromLevel(l); });
+    bb.floorBoxes.filter(x=>x.type==='lb_weidenhain').forEach(x=>bb.removeFloorBox(x));
     /* ein Regal mit freiem Fach, davor eine unsichtbare Sperre bis an die Nachbarn */
     const rk=bb.racks.find(r=>r.slots.some(s=>!s.box)&&Math.abs(r.g.rotation.y)<0.01)||bb.racks[0]; const sl=rk.slots.find(s=>!s.box)||rk.slots[0];
     if(sl.box){ rk.g.remove(sl.box.mesh); sl.box=null; }
-    bb.putInSlot(sl,'lb_goldader',2,1);
+    bb.putInSlot(sl,'lb_weidenhain',2,1);
     const K=bb.RACKKIND[rk.kind]||bb.RACKKIND.standard, gx=rk.g.position.x, gz=rk.g.position.z;
     const sperre={minX:gx-K.w/2-1.4,maxX:gx+K.w/2+1.4,minZ:gz+K.zo+0.05,maxZ:gz+K.zo+1.7,ref:null}; bb.colliders.push(sperre);
     bb.NAV.dirty=true; bb.navBuild();
-    o.bestand=bb.vsBestand('lb_goldader');
-    S.bestNr=(S.bestNr|0)+1; S.bestellungen.push({id:S.bestNr,pos:[{t:'lb_goldader',n:1,g:0}],gr:6,wert:20,versand:0,st:'offen',tag:S.day}); S.offen=1;
+    o.bestand=bb.vsBestand('lb_weidenhain');
+    S.bestNr=(S.bestNr|0)+1; S.bestellungen.push({id:S.bestNr,pos:[{t:'lb_weidenhain',n:1,g:0}],gr:6,wert:20,versand:0,st:'offen',tag:S.day}); S.offen=1;
     const w=bb.staff.packer; let lang=0, am=0, zust={};
     for(let i=0;i<2400;i++){ bb.step(0.05); zust[w.vs]=(zust[w.vs]||0)+1;
       if(w.vs==='fahren'||w.vs==='greifen'){ am+=0.05; lang=Math.max(lang,am); } else am=0; }

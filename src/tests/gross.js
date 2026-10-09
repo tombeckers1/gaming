@@ -27,10 +27,10 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   const r=await p.evaluate(()=>{ const bb=window.__bb, S=bb.S, P=bb.P, o={};
     S.level=40; S.money=1e6; bb.LIZENZEN.forEach(l=>bb.buyLizenz(l.id)); bb.testKauf('testfeld');
     const vol=t=>P[t].dims[0]*P[t].dims[1]*P[t].dims[2];
-    const BATT=['goldpalmen','knatter','lb_polarweiden','lb_goldader','donnerwand','profi','finale']; /* 06.10.: Feuersturm, Schimmelreiter und Z-Faecher sind raus */
+    const BATT=['goldpalmen','knatter','lb_polarweiden','lb_weidenhain','b7_blumenmeer','finale','b7_ragnaroek']; /* 09.10.: Goldader, Trommelfeuer, Goetterfunken gestrichen - Blumenmeer (L27) und Ragnaroek (L28) sind die neuen grossen Verbunde */ /* 06.10.: Feuersturm, Schimmelreiter und Z-Faecher sind raus */
     o.batt=BATT.map(t=>({t,preis:P[t].market,vol:+vol(t).toFixed(4),h:P[t].dims[1]}));
     o.leiter=BATT.slice(1).filter((t,i)=>!(vol(t)>vol(BATT[i]))).map(t=>t);
-    o.gross=['donnerwand','profi','finale'].map(t=>+(vol(t)/vol('goldpalmen')).toFixed(1));
+    o.gross=['b7_blumenmeer','finale','b7_ragnaroek'].map(t=>+(vol(t)/vol('goldpalmen')).toFixed(1));
     o.atom={form:P.atomboeller.shape,teile:bb.pools.atomboeller.meshes.length};
     /* Faecher: was Kapazitaet hat, passt in die Hoehe. Jede Ware findet
        ein Regal, das es spaetestens mit ihr gibt; Kuehlpflichtiges passt

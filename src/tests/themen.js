@@ -26,7 +26,9 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
    als eigene Leiter. Sie feuern Bomben (shot) statt Lichter - LOCH zaehlt
    dann jeden sichtbaren Start (Schuss, Kugel, Licht). */
 const R4=!!process.env.R4;
-const PLAN=R4?{kornblumen:2,bienenweide:6,weinlese:7,mohnfeld:12,winterwald:13,fuchsien:16,korallenriff:18,schwarzersamt:23,meteorschauer:24,phoenix:25}:{lb_tautropfen:4,lb_zitronenfalter:7,lb_lavendelfeld:9,lb_herbstlaub:12,lb_kolibri:14,lb_sonnenblumen:20,lb_vulkan:22}; /* 07.10.: Vulkan nach Wucht L22 (14x R3_LEVEL) */
+/* 09.10. (Batterie-Runde): Weinlese, Mohnfeld, Winterwald, Fuchsien, Schwarzer Samt, Phoenix, Zitronenfalter
+   und Vulkanausbruch sind gestrichen - die Leitern pruefen die verbliebenen */
+const PLAN=R4?{kornblumen:2,bienenweide:6,korallenriff:18,meteorschauer:24}:{lb_tautropfen:4,lb_lavendelfeld:9,lb_herbstlaub:12,lb_kolibri:14,lb_sonnenblumen:20}; /* 07.10.: Vulkan nach Wucht L22 (14x R3_LEVEL) */
 const MEHRFACH=['kometenfaecher','zwillingskomet','drillingskomet','weidenfaecher','goldfaecher','farbweidenfaecher','wassertor','dreifachtor','torbogen'];
 async function neuesSpiel(p){
   await p.waitForFunction("!!document.querySelector('#startBtns button:not([disabled])')",{timeout:240000});

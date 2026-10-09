@@ -61,7 +61,10 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
       bb.vorfuehrungAn(A,'VORFÜHRUNG (ÄNDERUNGEN)'); bb.run(0.1,0.05);
       const kopf=bb.vfEl.innerText.slice(0,80), g=bb.vfGezuendet; taste('Space'); bb.run(0.1,0.05);
       o.aend={n:A.length,liste:bb.vfListe.length,kopf,erst:bb.vfLetzt===A[0],gez:bb.vfGezuendet-g,
-        eintrag:V2.VF_AENDERUNG.filter(t=>P[t]).every(t=>A.includes(t)),sortiert:A.every((t,i)=>!i||P[A[i-1]].lvl<=P[t].lvl)};
+        eintrag:V2.VF_AENDERUNG.filter(t=>P[t]).every(t=>A.includes(t)),sortiert:A.every((t,i)=>!i||P[A[i-1]].lvl<=P[t].lvl),
+        /* 09.10. (Batterie-Runde): nur noch, was in dieser Runde oder den Kugel-Runden geaendert/neu ist */
+        fremd:A.filter(t=>P[t].shape!=='shell'&&!(window.__b7&&(window.__b7.NEU.includes(t)||window.__b7.BEARB.includes(t)))),
+        neuDrin:window.__b7?window.__b7.NEU.every(t=>A.includes(t)):false};
       taste('KeyB');
       const alleK=Object.keys(P).filter(t=>P[t].shape==='shell'&&bb.stationOf(t));
       bb.vorfuehrungAn(K,'KUGELBOMBEN-VORFÜHRUNG'); bb.run(0.1,0.05);
@@ -82,7 +85,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   pruef('KEINE_XP',r.xp.level===1,'Level steigt in der Vorfuehrung: '+JSON.stringify(r.xp));
   pruef('ROHRE',r.rohre.n===3&&r.rohre.x.length>=3,'gleiche Kugelbomben aus demselben Rohr: '+JSON.stringify(r.rohre));
   pruef('ESC',!r.aus.an&&!r.aus.el,'Esc: '+JSON.stringify(r.aus));
-  pruef('AENDERUNGEN',r.aend&&r.aend.n>=10&&r.aend.liste===r.aend.n&&/ÄNDERUNGEN/.test(r.aend.kopf)&&r.aend.erst&&r.aend.gez===1&&r.aend.eintrag&&r.aend.sortiert,'Vorfuehrung (Aenderungen): '+JSON.stringify(r.aend));
+  pruef('AENDERUNGEN',r.aend&&r.aend.n>=10&&r.aend.liste===r.aend.n&&/ÄNDERUNGEN/.test(r.aend.kopf)&&r.aend.erst&&r.aend.gez===1&&r.aend.eintrag&&r.aend.sortiert&&!r.aend.fremd.length&&r.aend.neuDrin,'Vorfuehrung (Aenderungen): '+JSON.stringify(r.aend));
   pruef('KUGELN',r.kug&&r.kug.n===r.kug.alle&&r.kug.n>=15&&!r.kug.fehlt.length&&r.kug.nurMoerser&&/KUGELBOMBEN/.test(r.kug.kopf)&&r.kug.liste===r.kug.n,'Kugelbomben-Vorfuehrung: '+JSON.stringify(r.kug));
   console.log('MANGEL:',mangel.length?mangel.join(' | '):'keine');
   console.log('ERRORS:',errs.length||mangel.length?errs.concat(mangel).join('\n'):'keine');

@@ -57,7 +57,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     o.bandbreite={
       feuerzeug:band('feuerzeug'), knicklichter:band('knicklichter'), wunder:band('wunder'),
       sekt:band('sekt'), boeller:band('boeller'), zfaecher:band('zfaecher'),
-      atomboeller:band('atomboeller'), profi:band('profi'), furzrakete:band('furzrakete')
+      atomboeller:band('atomboeller'), finale:band('finale') /* 09.10.: Goetterfunken gestrichen */, furzrakete:band('furzrakete')
     };
     o.schnitt=+bb.marktSchnitt().toFixed(3);
     o.histLen=bb.S.mh.sekt.length;

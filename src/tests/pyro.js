@@ -132,23 +132,23 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   const bat=await p.evaluate(()=>{
     const bb=window.__bb,o={};
     o.laenge={};
-    ['goldpalmen','knatter','faecher','lb_goldader','donnerwand','profi','finale'].forEach(t=>{ o.laenge[t]=bb.showLength(t); });
+    ['goldpalmen','knatter','faecher','lb_weidenhain','hexenkessel','finale','b7_ragnaroek'] /* 09.10.: Goldader, Trommelfeuer, Goetterfunken gestrichen */.forEach(t=>{ o.laenge[t]=bb.showLength(t); });
     const wachsend=(a)=>a.every((v,i)=>i===0||v>=a[i-1]);
     o.laengeSteigt=wachsend(Object.values(o.laenge));
     /* Schusszahl je Drehbuch */
     o.schuesse={};
-    ['goldpalmen','knatter','faecher','lb_goldader','donnerwand','profi','finale'].forEach(t=>{
+    ['goldpalmen','knatter','faecher','lb_weidenhain','hexenkessel','finale','b7_ragnaroek'] /* 09.10.: Goldader, Trommelfeuer, Goetterfunken gestrichen */.forEach(t=>{
       o.schuesse[t]=bb.SHOWS[t]().reduce((a,ph)=>a+(ph.n||1),0); });
     o.schuesseSteigen=wachsend(Object.values(o.schuesse));
     /* Profi nutzt die Profi-Effekte und Kugelbomben */
     const pe=new Set(); let bomben=0;
-    bb.SHOWS.profi().forEach(ph=>{ if(ph.bomb) bomben++; const e=ph.eff; (Array.isArray(e)?e:[e]).forEach(x=>x&&pe.add(x)); });
+    bb.SHOWS.finale().forEach(ph=>{ if(ph.bomb) bomben++; const e=ph.eff; (Array.isArray(e)?e:[e]).forEach(x=>x&&pe.add(x)); });
     o.profiBomben=bomben;
     o.profiHatKamuro=pe.has('kamuro'); o.profiHatSalut=pe.has('salut'); o.profiHatZeitregen=pe.has('zeitregen');
     o.kleineOhneKamuro=!bb.SHOWS.goldpalmen().some(ph=>String(ph.eff).indexOf('kamuro')>=0);
     /* eine ganze Profishow durchlaufen lassen */
     const t0=bb.timersLen();
-    bb.igniteType('profi');
+    bb.igniteType('finale');
     bb.run(4,0.05);
     o.profiLaeuft=bb.timersLen()>t0;
     bb.run(140,0.05);
@@ -169,7 +169,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     o.einraeumbar=['kugel75','kugel100','fackelhimmel150','goldgeysir'].map(t=>!!bb.emptyLevel(t));
     o.produkte=Object.keys(bb.P).length;
     o.ohnePaket=Object.keys(bb.P).filter(t=>!bb.lizenzOf(t));
-    o.namen=['goldpalmen','lb_goldader','profi','fackelhimmel150'].map(t=>bb.P[t].name);
+    o.namen=['goldpalmen','lb_weidenhain','b7_ragnaroek','fackelhimmel150'].map(t=>bb.P[t].name);
     return o;
   });
   console.log('PRODUKTE',JSON.stringify(pr));

@@ -146,8 +146,10 @@ let vfSonder=null, vfSonderName=null;
    - Kugelbomben: kommt von selbst - jedes Produkt mit shape 'shell' bzw.
      Station Moerser steht drin, auch jede neue Kugel.
    ========================================================= */
-const VF_AENDERUNG=['lb_jadekoenig','lb_saphirfaecher','lb_goldader','profi','lb_vulkan','zwillingssonne200','goldweidenkreuz200',
-  'lb_zitronenfalter','lb_kolibri','faecher','donnerwand','hochzeitsfaecher','kinderbatterie','lb_gluehwuermchen','lb_tautropfen','glutschmiede','lb_weidenhain'];
+/* 09.10. (Batterie-Runde, batterien-0910.md): nur noch, was in dieser
+   Runde oder den Kugel-Runden geaendert/neu ist - die neuen Batterien und
+   alle Kugeln tragen P.aenderung selbst (02h/02i/02j) */
+const VF_AENDERUNG=['kornblumen','lb_tautropfen','bienenweide','lb_saphirfaecher','hochzeitsfaecher','meteorschauer'];
 function vfAenderungListe(){ return fwTestProdukte().filter(t=>P[t]&&(P[t].aenderung||VF_AENDERUNG.indexOf(t)>=0)); }
 function vfKugelListe(){ return fwTestProdukte().filter(t=>P[t]&&(P[t].shape==='shell'||stationOf(t)==='moerser'))
   .sort((a,b)=>moerserRohr(a)-moerserRohr(b)||(P[a].lvl-P[b].lvl)); }

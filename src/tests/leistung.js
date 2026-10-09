@@ -43,7 +43,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     bytes=0;
     const P=bb.STATION_POS;
     bb.igniteType('finale',{x:P.moerser.x,y:0.95,z:P.moerser.z});
-    bb.igniteType('donnerwand',{x:P.rampe.x,y:0.95,z:P.rampe.z});
+    bb.igniteType('feuerpfau',{x:P.rampe.x,y:0.95,z:P.rampe.z}); /* 09.10.: Trommelfeuer gestrichen - Farbsaeulen haben dieselbe Last (101k/107k Teilchen) */
     bb.igniteType('goldgeysir',{x:P.tisch.x-1,y:0.95,z:P.tisch.z});
     bb.igniteType('goldgeysir',{x:P.tisch.x+1,y:0.95,z:P.tisch.z}); /* 29.09.: statt Feuersaeule (entfernt); 06.10.: Goldgeysir statt Zauberbrunnen (Toms PDF) */
     bb.kugelbombe({x:5,y:1.7,z:-23},5); bb.kugelbombe({x:2,y:1.7,z:-25},5);

@@ -775,7 +775,8 @@ function vsPortalUpdate(dt){
       /* das vorderste Paket am Endanschlag, wenn es steht */
       /* erst wenn die letzte Fahrt (nach oben) zu Ende ist */
       /* waehrend der DDL-Fahrer in der Box laedt, ist sie belegt - der Kran wartet (Tom 09.10.) */
-      const v=fertig&&!(typeof boxBelegt==='function'&&boxBelegt())?vsBahn.filter(x=>x.phase==='rollen').sort((a,b)=>a.x-b.x)[0]:null;
+      /* Box voll gemeldet: erst wieder greifen, wenn Platz ist (DDL.voll setzt 11e zurueck) */
+      const v=fertig&&!(typeof boxBelegt==='function'&&boxBelegt())&&!(typeof DDL!=='undefined'&&DDL.voll)?vsBahn.filter(x=>x.phase==='rollen').sort((a,b)=>a.x-b.x)[0]:null;
       if(v&&!v.laeuft&&v.x<=BAND.x0+vsLaenge(v)/2+0.002){
         const G=VS_GR[v.gr];
         P_.e=v; vsPortalFahrt({x:v.x,y:Math.max(VS_YRUHE*0.9,BAND.y+G.h+0.3),z:BAND.z},'hin');
@@ -791,7 +792,9 @@ function vsPortalUpdate(dt){
          Alles voll: das Paket wartet am Bandende, bis jemand DDL ruft (keine Zwischenabholung
          mehr, Tom 09.10.) - das Band staut zurueck bis an die Tische. */
       const pl=(typeof boxBelegt==='function'&&boxBelegt())?null:vsPalZiel(e.gr);
-      if(!pl){ if(!(typeof boxBelegt==='function'&&boxBelegt())&&typeof vsBoxVoll==='function') vsBoxVoll(); P_.t=-3; break; }
+      if(!pl){ if(!(typeof boxBelegt==='function'&&boxBelegt())&&typeof vsBoxVoll==='function') vsBoxVoll();
+        /* loslassen und nach oben: das Paket bleibt am Bandende liegen, der Kran blockiert den DDL-Fahrer nicht */
+        P_.e=null; P_.zurueck=true; vsPortalFahrt({x:BAND.x0+0.4,y:VS_YRUHE,z:BAND.z},'ruhe'); break; }
       e.phase='greifer'; e.amBand=true; P_.ziel=pl;
       const G=VS_GR[e.gr]; vsPortalFahrt({x:P_.x,y:VS_YFREI+G.h,z:P_.z},'heben'); break; }
     case 'heben': if(fertig){ e.amBand=false; const G=VS_GR[e.gr], z=P_.ziel; vsPortalFahrt({x:z.x,y:VS_YFREI+G.h,z:z.z},'fahren'); }

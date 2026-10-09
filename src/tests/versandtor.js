@@ -109,7 +109,7 @@ const fs = require('fs');
 
     /* ---------- 4. DDL nur auf Anruf: ein ganzer Tag ohne Anruf, dann Anruf (Gegenprobe) ---------- */
     const d = await p.evaluate(st => { const bb = window.__bb, S = bb.S, o = {st};
-      bb.ddlAbholung(); window.__fuell(40, 1); window.__fuell(4, 3);
+      bb.ddlAbholung(); window.__fuell(40, 1); window.__fuell(4, 3); S.rep = 60;
       o.vorher = bb.vsGelandet(); S.paketeVortag = 0;
       bb.phase = 'open'; bb.clock = 600; let lkw = 0;
       for (let i = 0; i < 400; i++) { bb.run(1, 0.1); if (bb.VT.state || bb.DDL.warte) lkw++; if (bb.phase === 'after') break; }

@@ -85,7 +85,7 @@ function vsPalAbgleich(){
 function vsPalAufnehmend(p){ return p.ort==='z'; }
 
 /* ---------------------------------------------------------
-   Stapeln: Lage fuer Lage, jede Lage nur eine Groesse. Gerechnet in
+   Stapeln: Hoehenbild (seit 09.10. gemischte Groessen). Gerechnet in
    Palettenkoordinaten (Mitte 0/0, lange Seite in x). Ein Paket mit
    festem Eintrag in S.paketP bleibt auf seiner Palette; die anderen
    suchen sich die erste Palette in der Box, auf die es passt.
@@ -96,16 +96,22 @@ function vsStapelP(neuGr){
   const n=vsGelandet();
   const rect=(gr,x,z)=>{ const G=VS_GR[gr]; return {x0:x-G.x/2,x1:x+G.x/2,z0:z-G.z/2,z1:z+G.z/2}; };
   const mpos=(gr,k)=>{ const o=VS_MUSTER[gr].pos(k); return {x:o.z,z:o.x}; };
-  const traegt=(lag,r)=>{
-    if(!lag) return true;
-    for(const u of [-0.85,0,0.85]) for(const v of [-0.85,0,0.85]){
-      const px=(r.x0+r.x1)/2+u*(r.x1-r.x0)/2, pz=(r.z0+r.z1)/2+v*(r.z1-r.z0)/2;
-      if(!lag.boxen.some(q=>px>=q.x0&&px<=q.x1&&pz>=q.z0&&pz<=q.z1)) return false; }
-    return true; };
-  const frei=(lag,unten,gr)=>{ const M=VS_MUSTER[gr];
-    for(let k=0;k<M.n;k++){ if(lag&&lag.belegt[k]) continue; const o=mpos(gr,k), r=rect(gr,o.x,o.z);
-      if(traegt(unten,r)) return {k,r,o}; }
-    return null; };
+  /* 09.10.: Hoehenbild statt "jede Lage eine Groesse" - mit nur einer Palette (Stufe 1)
+     blockierte sonst ein einzelnes kleines Paket jede groessere Groesse. Ein Paket kommt an
+     einen Musterplatz seiner Groesse, so tief wie moeglich: es liegt auf der hoechsten
+     Oberkante darunter, und an allen 9 Messpunkten liegt genau dort etwas (Palette oder
+     Paket mit gleicher Oberkante) - nichts haengt in der Luft, nichts steckt ineinander. */
+  const platz=(boxen,gr)=>{ const M=VS_MUSTER[gr], G=VS_GR[gr]; let best=null;
+    for(let k=0;k<M.n;k++){ const o=mpos(gr,k), r=rect(gr,o.x,o.z);
+      let h=0; for(const q of boxen) if(r.x0<q.x1-0.004&&r.x1>q.x0+0.004&&r.z0<q.z1-0.004&&r.z1>q.z0+0.004) h=Math.max(h,q.top);
+      if(h+G.h>VS_HMAX+1e-6) continue;
+      if(best&&h>=best.h-1e-6) continue;
+      let ok=true;
+      if(h>0) for(const u of [-0.85,0,0.85]) { for(const v of [-0.85,0,0.85]){
+        const px=(r.x0+r.x1)/2+u*(r.x1-r.x0)/2, pz=(r.z0+r.z1)/2+v*(r.z1-r.z0)/2;
+        if(!boxen.some(q=>Math.abs(q.top-h)<0.005&&px>=q.x0&&px<=q.x1&&pz>=q.z0&&pz<=q.z1)){ ok=false; break; } } if(!ok) break; }
+      if(ok) best={k,r,o,h}; }
+    return best; };
   const st={}; S.paletten.forEach(p=>{ st[p.id]=[]; });
   const aufnehmend=vsPalZelle();
   const liste=[]; for(let i=0;i<n;i++) liste.push({gr:S.paketGr[i],p:S.paketP[i],i});
@@ -116,21 +122,12 @@ function vsStapelP(neuGr){
     const fest=it.p>=0&&st[it.p]?vsPalById(it.p):null;
     const versuche=[fest?[fest]:aufnehmend];
     if(fest) versuche.push(aufnehmend);
-    let pal=null, lag=null, wahl=null;
-    for(const kand of versuche){
-      /* 1. angefangene Lage gleicher Groesse */
-      for(const q of kand){ const L=st[q.id], top=L[L.length-1];
-        if(top&&top.gr===G.id){ const w=frei(top,L[L.length-2],G.id); if(w){ pal=q; lag=top; wahl=w; break; } } }
-      /* 2. neue Lage obendrauf */
-      if(!pal) for(const q of kand){ const L=st[q.id], top=L[L.length-1], H=top?top.y0+top.h:0;
-        if(H+G.h>VS_HMAX+1e-6) continue;
-        const w=frei(null,top,G.id); if(w){ pal=q; wahl=w; lag={gr:G.id,y0:H,h:G.h,belegt:{},boxen:[]}; L.push(lag); break; } }
-      if(pal) break;
-    }
+    let pal=null, wahl=null;
+    for(const kand of versuche){ for(const q of kand){ const w=platz(st[q.id],G.id); if(w){ pal=q; wahl=w; break; } } if(pal) break; }
     if(!pal){ lage.push(null); continue; }
-    lag.belegt[wahl.k]=true; lag.boxen.push(wahl.r);
+    wahl.r.top=wahl.h+G.h; st[pal.id].push(wahl.r);
     const j=Math.sin((it.i+1)*12.9898)*43758.5453, jr=j-Math.floor(j)-0.5;
-    const e={x:wahl.o.x+jr*0.004,y:PAL_H+lag.y0+G.h/2,z:wahl.o.z-jr*0.006,ry:jr*0.016,gr:G.id,p:pal.id,i:it.i,neu:!!it.neu};
+    const e={x:wahl.o.x+jr*0.004,y:PAL_H+wahl.h+G.h/2,z:wahl.o.z-jr*0.006,ry:jr*0.016,gr:G.id,p:pal.id,i:it.i,neu:!!it.neu};
     lage.push(e); pro[pal.id].push(e);
     if(!it.neu) S.paketP[it.i]=pal.id;
   }
@@ -162,7 +159,7 @@ let _holzGeo=null;
 function vsHolzGeo(){
   if(_holzGeo) return _holzGeo;
   const HOLZ=0xc49a62, HOLZ2=0xa9814e, HELL=0xcfa66d, vc=[];
-  const B=(w,h,d,c,x,y,z)=>vc.push({geo:roundedBoxGeo(w,h,d,Math.min(0.01,Math.min(w,h,d)*0.2),2),m:tm(x,y,z),color:c});
+  const B=(w,h,d,c,x,y,z)=>vc.push({geo:GFX==='ultralow'?new THREE.BoxGeometry(w,h,d):roundedBoxGeo(w,h,d,Math.min(0.01,Math.min(w,h,d)*0.2),2),m:tm(x,y,z),color:c});
   for(const dx of [-0.55,0,0.55]) for(const dz of [-0.34,0,0.34]) B(0.12,0.078,0.12,HOLZ2,dx,0.061,dz);
   for(const dz of [-0.34,0,0.34]) B(1.2,0.022,0.12,HOLZ,0,0.011,dz);
   for(const dx of [-0.55,0,0.55]) B(0.14,0.022,0.8,HOLZ,dx,0.111,0);
@@ -390,7 +387,7 @@ function buildVersandhof(){
   const g=new THREE.Group(); scene.add(g); VD.g=g;
   const steel=std(0x8d939d,{metalness:0.6,roughness:0.42}), dark=std(0x2a2e38,{metalness:0.5,roughness:0.45}), gelb=std(0xf2c230,{roughness:0.7});
   /* Vertexfarben: Zarge, Schienen, Kasten, Antrieb, Lampe, Telefon - ein Zeichenaufruf */
-  const VC=[], B=(w,h,d,c,x,y,z,rx,ry,rz)=>VC.push({geo:roundedBoxGeo(w,h,d,Math.min(0.012,Math.min(w,h,d)*0.2),2),m:tm(x,y,z,rx,ry,rz),color:c});
+  const VC=[], B=(w,h,d,c,x,y,z,rx,ry,rz)=>VC.push({geo:GFX==='ultralow'?new THREE.BoxGeometry(w,h,d):roundedBoxGeo(w,h,d,Math.min(0.012,Math.min(w,h,d)*0.2),2),m:tm(x,y,z,rx,ry,rz),color:c});
   const Cy=(r,h,c,x,y,z,rx,ry,rz,seg)=>VC.push({geo:new THREE.CylinderGeometry(r,r,h,seg||10),m:tm(x,y,z,rx,ry,rz),color:c});
   const ANTH=0x2b2f36, STAHL=0x8d939d, GRAU=0x5d636c;
   /* Torblatt: sechs Panele (je vier Lamellen), laeuft nach oben in den Wickelkasten */
@@ -488,7 +485,7 @@ function ddlTelZeichnen(){
   redraw(VD.telTex,(c,W,H)=>{ c.fillStyle='#1f3152'; c.fillRect(0,0,W,H); c.strokeStyle='rgba(255,255,255,.25)'; c.lineWidth=6; c.strokeRect(3,3,W-6,H-6);
     c.textAlign='center'; c.textBaseline='middle'; c.fillStyle='#f2f4f7'; c.font='700 64px "Barlow Condensed", sans-serif'; c.fillText('DDL RUFEN',W/2,62);
     c.font='600 34px "Barlow Condensed", sans-serif'; c.fillStyle='#bcd0ea';
-    c.fillText(`Abholung ${eur(DDL_PAUSCHALE)} pauschal · Porto je Paket`,W/2,126);
+    c.fillText(`Pauschale ${eur(DDL_PAUSCHALE)} je Abholung`,W/2,126);
     if(st){ c.fillStyle=st.voll?'#ff8a7a':st.unterwegs?'#ffd23f':'#8ef0a8';
       c.fillText(st.unterwegs?'DDL ist unterwegs':st.voll?`BOX VOLL · ${st.pakete} Pakete`:`Box ${st.pakete} Pakete · ${st.paletten} Palette${st.paletten===1?'':'n'}`,W/2,190); } });
 }
@@ -730,7 +727,8 @@ function updatePaletten(dt){
   if(DDL.warte&&!VT.state){ DDL.eta-=dt; if(DDL.eta<=0){ DDL.warte=false; vtStart(); } }
   /* Platz frei geworden (z. B. nach der Abholung): Meldung zuruecksetzen */
   _ddlTelT-=dt; if(_ddlTelT<=0){ _ddlTelT=1;
-    if(DDL.voll&&!vsBahn.some(e=>e.phase==='rollen'&&!e.laeuft&&e.x<=BAND.x0+vsLaenge(e)/2+0.002)&&vsPalZiel(1)){ DDL.voll=false; S.boxVoll=false; drawPackSchild(); }
+    if(DDL.voll&&!boxBelegt()){ const v=vsBahn.filter(e=>e.phase==='rollen').sort((a,b)=>a.x-b.x)[0];
+      if(vsPalZiel(v?v.gr:1)){ DDL.voll=false; S.boxVoll=false; drawPackSchild(); } }
     ddlTelZeichnen(); }
   vtUpdate(dt);
 }

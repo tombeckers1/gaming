@@ -377,7 +377,7 @@ function vmPic(id){
     /* Sechserpack in Folie, davor eine einzelne Rolle */
     for(let i=0;i<3;i++){ const x=58+i*38, y=62; g.fillStyle='#b88445'; g.beginPath(); g.ellipse(x,y,17,10,0,0,Math.PI*2); g.fill(); g.fillRect(x-17,y,34,22); g.beginPath(); g.ellipse(x,y+22,17,10,0,0,Math.PI); g.fill();
       g.fillStyle='#d9a75e'; g.beginPath(); g.ellipse(x,y,17,10,0,0,Math.PI*2); g.fill(); g.fillStyle='#c9ab7c'; g.beginPath(); g.ellipse(x,y,12,7,0,0,Math.PI*2); g.fill(); g.fillStyle='#2a1c0e'; g.beginPath(); g.ellipse(x,y,9,5,0,0,Math.PI*2); g.fill(); }
-    g.fillStyle='rgba(220,235,245,.18)'; g.fillRect(38,48,150,40);
+    g.strokeStyle='rgba(220,235,245,.35)'; g.lineWidth=1.5; g.strokeRect(38,50,150,38);
     const x=112, y=104; g.fillStyle='#b88445'; g.fillRect(x-30,y-4,60,22); g.beginPath(); g.ellipse(x,y+18,30,13,0,0,Math.PI); g.fill();
     g.fillStyle='#d9a75e'; g.beginPath(); g.ellipse(x,y-4,30,13,0,0,Math.PI*2); g.fill();
     for(let r=28;r>21;r-=2){ g.strokeStyle='rgba(255,230,180,.35)'; g.beginPath(); g.ellipse(x,y-4,r,r*0.43,0,0,Math.PI*2); g.stroke(); }

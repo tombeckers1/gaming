@@ -60,6 +60,10 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
         dann darf die Zahl nicht fallen (zeigt, dass der Test die Wirkung misst). */
   const nf=await p.evaluate(()=>{ const bb=window.__bb, S=bb.S, o={};
     bb.closeHandy(false);
+    /* Ware in die Ladenregale, damit Bestellungen entstehen koennen (Lager gibt es hier nicht) */
+    S.lic=bb.LIZENZEN.map(l=>l.id); const typen=bb.ORDER.filter(t=>bb.P[t]&&!bb.P[t].noShelf&&!bb.P[t].noOrder&&bb.isUnlocked(t));
+    let ti=0; for(const lv of bb.allLevels()){ for(let v=0;v<typen.length&&!lv.type;v++){ const t=typen[(ti++)%typen.length]; if(bb.addToLevel(lv,t,1)) { for(let k=0;k<30&&bb.addToLevel(lv,t,1);k++); } } }
+    o.bestand=bb.allLevels().reduce((a,l)=>a+(l.count|0),0);
     const tag=(cfg,gratis)=>{ Object.assign(bb.vsCfg(),cfg); bb.vsAktion().frei=gratis?S.day:-1; let n=0, ab=0;
       for(let r=0;r<6;r++){ S.bestellungen=[]; S.offen=0; const a0=bb.DS.onAbbr|0; bb.phase='open';
         for(let t=0;t<330;t+=0.5) bb.updateVersand(0.5); n+=S.bestellungen.length; ab+=(bb.DS.onAbbr|0)-a0; }
@@ -73,7 +77,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     bb.closeHandy(false);
     return o; });
   console.log('NACHFRAGE  ',JSON.stringify(nf));
-  if(!(nf.teuer.n<nf.std.n*0.35&&nf.frei.n>nf.std.n*1.15&&nf.teuer.abbr>nf.std.abbr)) fehler.push('NACHFRAGE: Versandkosten wirken nicht auf die Bestellungen '+JSON.stringify(nf));
+  if(!(nf.std.n>=5&&nf.teuer.n<nf.std.n*0.35&&nf.frei.n>nf.std.n*1.15&&nf.teuer.abbr>nf.std.abbr)) fehler.push('NACHFRAGE: Versandkosten wirken nicht auf die Bestellungen '+JSON.stringify(nf));
   if(!(nf.gegen.n>nf.teuer.n*2)) fehler.push('NACHFRAGE_GEGENPROBE: Test misst die Wirkung nicht '+JSON.stringify(nf));
   if(!(nf.ui.stat&&nf.ui.sale>=4&&nf.ui.gratis&&nf.ui.psale&&nf.ui.box&&nf.ui.ergebnis)) fehler.push('ONLINESHOP_UI: Statistik/Aktionen/Box fehlen '+JSON.stringify(nf.ui));
 

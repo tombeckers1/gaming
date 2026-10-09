@@ -882,7 +882,9 @@ function buildPackstation(){
   /* Gestelle, Beine, Portal und Zaunpfosten: je Sichtbarkeit ein Mesh
      mit Vertexfarben - sonst waeren es ein paar hundert Zeichenaufrufe */
   const VC={}, vc=k=>VC[k]||(VC[k]=[]);
-  const B=(k,w,h,d,c,x,y,z,rx,ry,rz)=>vc(k).push({geo:roundedBoxGeo(w,h,d,Math.min(0.01,Math.min(w,h,d)*0.2),2),m:tm(x,y,z,rx,ry,rz),color:c});
+  /* Ultra Low: einfache Quader statt gefaster Kanten (12 statt rund 150 Dreiecke je Teil) */
+  const UL=GFX==='ultralow';
+  const B=(k,w,h,d,c,x,y,z,rx,ry,rz)=>vc(k).push({geo:UL?new THREE.BoxGeometry(w,h,d):roundedBoxGeo(w,h,d,Math.min(0.01,Math.min(w,h,d)*0.2),2),m:tm(x,y,z,rx,ry,rz),color:c});
   const Cy=(k,r,h,c,x,y,z,rx,ry,rz,seg)=>vc(k).push({geo:new THREE.CylinderGeometry(r,r,h,seg||10),m:tm(x,y,z,rx,ry,rz),color:c});
   const STAHL=0x80868f, DUNKEL=0x30353f, GELB=0xe7a91c, ZINK=0xb4bac2, HOLZ=0xc49a62, HOLZ2=0xa9814e;
   /* userData.stufe: die Handy-Vorfuehrung (gpStatisch) fasst solche Teile

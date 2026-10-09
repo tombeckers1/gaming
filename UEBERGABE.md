@@ -144,6 +144,16 @@ ROADMAP.md: Die Demo-Idee mit Kapitel 1–6 ist inzwischen durch den Release-Pla
 - Über Nacht 08./09.10.: Läden gegenüber, Innenräume hinter den Schaufenstern realistisch (gameplay.md 14, `05e-street.js` `ladenInnen`).
   - ERLEDIGT 08./09.10.: `ladenInnen` jetzt in `05e2-laeden-innen.js` mit einem gemalten Textur-Atlas (2048², Niedrig/Handy 1024²) für alle 14 Ladenarten (Sichtwahl, Brotregal, Fleischtheke, Brillenwand, Bücher, Waschmaschinen …), weiter 1 Material/1 Mesh je Laden; Dreiecke der 6 Innenräume 23 776 → 8 452, Zeichenaufrufe gleich (12 Meshes). Eigener Zufall + `_altZufall` hält die Straße wie vorher (Test `laeden` STRASSE/TEXTUR). Bilder: `docs/bilder/laeden-innen/`.
 
+### 5.0c Versandecke, DDL auf Anruf, Onlineshop-Wirtschaft (Tom 09.10., `docs/uebergabe/versand-sb-0910.md`) – ERLEDIGT 09.10.
+- **Ecke:** Station 1 m Richtung Lager (`PACK_HOME` z −26,3), fest eingebaut (`packMov.fest`). Vor Rolltor V1 eine **Ladezone** mit gelber Gitterabsperrung links/rechts (`LADEZONE`, `LZ_ZAUN`, 05h) – nur der DDL-Fahrer kommt hinein. **Versandbereich** (`PACK_FL`, gelb schraffiert wo die Box noch wächst) ist für Regale/Möbel gesperrt; alte Stände räumen ihn beim Laden (`versandBereichRaeumen`).
+- **Stufen:** 1/2/3 Paletten + 1/2/3 Packplätze, **Kran ab Stufe 1** (Hand-Ablage V120 ist raus). Box wächst je Stufe (`ZELLE`, `PORTAL_Z0`). Alte 2/4/6-Paletten-Stände werden auf 1/2/3 umgestellt.
+- **DDL nur auf Anruf** (Wandtelefon links neben V1, `ddlRufen`, Pauschale `DDL_PAUSCHALE` 39 €), LKW nach ~20 s, Fahrer lädt selbst, Box so lange belegt (`boxBelegt`). Box voll → Band staut, Meldung, Handy-Badge „!“. Keine 22-Uhr-/Zwischenabholung mehr; Pakete seit gestern kosten Ruf. Porto S 2,00 / M 3,50 / L 5,00 €.
+- **Onlineshop:** Versandkosten 0–20 €, Schwelle (0 = immer frei / nie), Sale auf alles, Sale je Produkt, heute versandfrei; Nachfrage nach Baymard/UPS/Lewis 2006/Bijmolt 2005 (Kopf von 11c); Statistik je Tag + Verlauf (`onlineStatHtml`, `S.onlineLog`). Marktplatz-Pauschale bleibt mit Packstation ganz (16-day). Stufe 2/3 kosten jetzt 5.900/6.900 €.
+- **Geräte:** Lagerterminal der Logistikhalle weg; **Lager-PC** in der Versandecke (Bestellen, Onlineshop, Team), **Tablet** im Laden neben der Hintertür (Bestellen), Büro-Laptop wie bisher (`GERAETE` in 17-laptop).
+- **Optik:** Rolltor mit Lamellen/Fensterband/Schienen/Wickelkasten/Antrieb/Warnmarkierung, Schild „DDL Abholung“, Schwanenhalslampe und Ampel links, Packmaterial (Wellpappe, Lathe-Klebebandrollen instanziert, Folienrolle mit Stirnseite), Handabroller am Tisch, Laptop-Bilder Versandmaterial. Bilder: `docs/bilder/versand-0910/`.
+- **Tests:** versandtor (neu: TORSPERRE + Gegenprobe, NUR_AUF_ANRUF/ANRUF, ABRECHNUNG, BOX_VOLL, ALT_*), versand (FEST + Gegenprobe, VERSANDBEREICH, ALTSTAND_REGAL), online (NACHFRAGE + Gegenprobe), packband (Kran ab Stufe 1), packmaterial (neue Schwellen), gameplay (DDL_ANRUF).
+- **Offen/ehrlich:** Ein Packer schafft gemessen nur ~12 Pakete je Verkaufstag (Wege im Lager) – das begrenzt das Onlinegeschäft mehr als Box oder DDL.
+
 ### 5.1 Tests beschleunigen (Vorschlag, etwa ½ Tag)
 - Jeder Test lädt das Spiel ~50 s im Software-Renderer. Idee: einmal laden und den Spielstand per Hook zurücksetzen, oder mehrere Tests in einer Seite.
 - Spart geschätzt 30–40 % Testzeit für alles Weitere. Erst Tom fragen, ob er das will.

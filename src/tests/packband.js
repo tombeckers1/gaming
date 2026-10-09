@@ -173,7 +173,8 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     const durch=[];
     /* von Norden nach Sueden an mehreren Stellen: Band und Zaun halten auf */
     const d0=W(0,0), d1=W(0,-0.08), dx=d1.x-d0.x, dz2=d1.z-d0.z;
-    for(const lx of [-1.0,0.6,2.5,3.6]){ const a=W(lx,1.6); bb.setView(a.x,a.z,Math.PI,0); bb.schiebe(a.x,a.z);
+    /* 09.10.: lx -1 laege jetzt in der abgesperrten Ladezone vor V1 (dorthin kommt niemand, versandtor TORSPERRE) */
+    for(const lx of [0.6,2.5,3.6]){ const a=W(lx,1.6); bb.setView(a.x,a.z,Math.PI,0); bb.schiebe(a.x,a.z);
       for(let i=0;i<60;i++){ const q=bb.playerPos(); bb.schiebe(q.x+dx,q.z+dz2); }
       const pp=bb.playerPos(), sn=Math.sin(g.rotation.y), cs=Math.cos(g.rotation.y), dz=(pp.x-g.position.x)*sn+(pp.z-g.position.z)*cs; if(dz<bb.BAND.z-0.2) durch.push(lx+':'+dz.toFixed(2)); }
     o.durch=durch; return o; });

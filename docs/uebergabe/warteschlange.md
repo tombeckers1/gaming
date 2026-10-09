@@ -5,8 +5,8 @@ Nach jedem fertigen Paket: prüfen, Artefakt veröffentlichen, Tom kurz berichte
 
 | # | Paket | Auftrag | Stand |
 |---|---|---|---|
-| 1 | Versandecke, DDL, Onlineshop, Geräte | versand-sb-0910.md (ohne Automat/SB) | läuft |
-| 2 | Kugelbomben Runde 6 | kugelbomben-0910b.md | wartet (nach 1) |
+| 1 | Versandecke, DDL, Onlineshop, Geräte | versand-sb-0910.md (ohne Automat/SB) | fertig 09.10. (05776a5, V123) |
+| 2 | Kugelbomben Runde 6 | kugelbomben-0910b.md | läuft (seit 09.10. ~17:15) |
 | 3 | Batterien + 10 neue nach echten Vorbildern | batterien-0910.md | wartet (nach 2, gleiche Dateien) |
 | 4 | Licht und Schatten im Laden | licht-0910.md | wartet (nach 3: gleiche Nachbearbeitung; vor 5/6) |
 | 5 | Außenfassade und Hoflampen | fassade-0910.md (+ Toms Fotos) | wartet |

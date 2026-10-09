@@ -76,7 +76,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   const v=await p.evaluate(()=>{
     const bb=window.__bb, g=bb.packTisch, o={};
     const tisch=bb.ppW(0,0,0), w=bb.vsWelt(0,0,0);
-    bb.setView(w.x-1.6,w.z,-Math.PI/2,-0.35);
+    bb.setView(w.x-1.6,w.z,-Math.PI/2,-0.35); bb.run(0.1,0.05); bb.setView(w.x-1.6,w.z,-Math.PI/2,-0.35); bb.run(0.05,0.05);   /* Kamera folgt erst im naechsten Schritt */
     o.imBlick=!!bb.moebelImBlick(); bb.moebelTaste(); o.gegriffen=!!bb.grabbed; o.toast=bb.toastLast;
     if(bb.grabbed) bb.cancelGrab();
     bb.packMov.fest=false; const m=bb.moebelImBlick(); o.gegenprobe=m===bb.packMov; bb.packMov.fest=true;

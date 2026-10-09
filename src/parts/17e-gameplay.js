@@ -18,7 +18,7 @@
      Verlauf; Knoepfe/Tasten springen in die Bereiche; Zeitraffer.
    ========================================================= */
 const GP_KEY='bb_gp_sicherung';
-let gpAn=false, gpEl=null, gpTempo=1, gpTagAlt=-1, gpVerlauf=[], gpUhr=0, gpGestern=null;
+let gpDdlTag=-1, gpAn=false, gpEl=null, gpTempo=1, gpTagAlt=-1, gpVerlauf=[], gpUhr=0, gpGestern=null;
 /* Sprungpunkte: Name, x, z, Blickrichtung (yaw), Neigung */
 const GP_ORTE=[
   ['Verkauf',      14.0, 2.0, Math.PI*0.08, -0.12],
@@ -322,7 +322,9 @@ function gpTick(dt){
     const b=$('sBtn'); if(b&&b.onclick) b.onclick(); else closeSummary(); return; }
   /* Versand-Disponent (09.10.): DDL kommt nur auf Anruf - er ruft am Wandtelefon an, wenn die
      Box voll ist oder zum Feierabend Pakete warten (wie ein Spieler, mit Pauschale) */
-  if(typeof ddlRufen==='function'&&packBereit()&&!ddlLaeuft()&&vsGelandet()>0&&(DDL.voll||phase==='closing'||phase==='after'||vsGelandet()>=palPlaetze()*22)) ddlRufen();
+  if(typeof ddlRufen==='function'&&packBereit()&&!ddlLaeuft()&&vsGelandet()>0){
+    const abend=(phase==='closing'||phase==='after')&&gpDdlTag!==S.day;
+    if(DDL.voll||abend||vsGelandet()>=palPlaetze()*22){ if(abend) gpDdlTag=S.day; ddlRufen(); } }
   /* DDL fuehrt die Abholung zu Ende (LKW, Tor, DDL-Fahrer am Hubwagen), dann Tagesabschluss */
   if(phase==='after'){ if(typeof ddlLaeuft==='function'&&ddlLaeuft()&&gpWarteDdl<240){ gpWarteDdl+=dt; return; } gpWarteDdl=0; endDay(); return; }
   if(phase==='closed'){ if(typeof ruhetag==='function'&&ruhetag()) ruhetagBeenden(); else openShop(); }

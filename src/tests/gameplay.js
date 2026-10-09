@@ -49,7 +49,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   console.log('TAGE',JSON.stringify(Object.assign({},tage,{gespeichert:undefined})).slice(0,1500));
   pruef('PACKMATERIAL',tage.vm.verbraucht>20&&tage.vm.eingelagert>0,'Packmaterial wird nicht verbraucht oder nachgefuellt: '+JSON.stringify(tage.vm));
   /* 09.10.: DDL nur auf Anruf - der Versand-Disponent der Vorfuehrung ruft am Wandtelefon an */
-  pruef('DDL_ANRUF',tage.ddl.rufe>=1&&tage.ddl.abgeholt>0&&tage.ddl.log>=2,'in der Vorfuehrung wird DDL nicht gerufen oder nichts abgeholt: '+JSON.stringify(tage.ddl));
+  pruef('DDL_ANRUF',tage.ddl.rufe>=1&&tage.ddl.rufe<=12&&tage.ddl.abgeholt>0&&tage.ddl.log>=2,'in der Vorfuehrung wird DDL nicht gerufen oder nichts abgeholt: '+JSON.stringify(tage.ddl));
   pruef('LAEUFT',tage.tag>=tage.d0+3,'Tage laufen nicht weiter: '+tage.tag+' (Start '+tage.d0+')');
   pruef('KEIN_SPEICHERN',tage.gespeichert===r.vorher&&!!r.vorher,'die Vorfuehrung hat den Spielstand ueberschrieben');
   /* Beenden: alter Stand zurueck */

@@ -38,7 +38,8 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   const ZIELE = {
     'Platz vor Packtisch 1': () => { const h = window.__bb.vsHeim({pp: 0}); return {x: h.x, z: h.z}; },
     'Sued 3 vorn': () => ({x: -12.5, z: -22.0}),
-    'Hof vor Tor V1 (Tor auf)': () => { const bb = window.__bb; bb.vdOffen(true); bb.run(5, 0.1); const c = bb.vf(-0.8, 0.45); return {x: c.x, z: c.z}; },
+    /* 09.10. (Tom): vor V1 ist eine abgesperrte Ladezone - der Spieler kommt selbst bei offenem Tor NICHT in den Hof */
+    'Hof vor Tor V1 (Tor auf, gesperrt)': () => { const bb = window.__bb; bb.vdOffen(true); bb.run(5, 0.1); const c = bb.vf(-0.8, 0.45); return {x: c.x, z: c.z}; },
     'Halle Sued 1': () => ({x: -14.0, z: -10.5}),
     'Halle Sued 2': () => ({x: -14.0, z: -19.0}),
     'Logistikhalle': () => ({x: -40.0, z: -21.0})
@@ -48,7 +49,8 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   for (const name of Object.keys(ZIELE)) {
     const r = await p.evaluate(([n, f]) => { const bb = window.__bb; const z = eval('(' + f + ')')(); return Object.assign({z}, window.__lauf({x: -19.0, z: -2.0}, z)); }, [name, ZIELE[name].toString()]);
     erg[name] = r; console.log('LAUF', name, JSON.stringify(r));
-    pruef('DURCH_' + name, r.erreicht, 'Spieler kommt von Rolltor 1 nicht bis "' + name + '": ' + JSON.stringify(r));
+    if (/gesperrt/.test(name)) pruef('SPERRE_V1', !r.erreicht, 'Spieler kommt durch die Ladezone vor V1 in den Hof: ' + JSON.stringify(r));
+    else pruef('DURCH_' + name, r.erreicht, 'Spieler kommt von Rolltor 1 nicht bis "' + name + '": ' + JSON.stringify(r));
   }
   /* Mitarbeiter: Wegfindung (route) vom Tor zu den Plaetzen gibt es und endet am Ziel */
   const mit = await p.evaluate(() => { const bb = window.__bb, o = {};

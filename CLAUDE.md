@@ -134,6 +134,10 @@ damit sie auch in einem frischen Container gelten.
 - **Selbstständig abarbeiten** (Tom, 09.10.2026): Ich führe die Warteschlange
   (docs/uebergabe/warteschlange.md) eigenständig: Pakete starten, wenn es Sinn macht (keine
   Blockaden, Tokens sparen, Qualität grandios), Ergebnisse prüfen, veröffentlichen, berichten.
+- **Preise bestimme ich** (Tom, 09.10.2026): Alle Preise/Kosten/Löhne/Ausbauten so abstimmen, dass
+  das Spiel wie ein Schweizer Uhrwerk läuft – nicht zu leicht, nicht zu schwer, spürbarer Fortschritt
+  ohne lange Durststrecken (psychologische Muster). Jede Preisänderung mit Amortisation/Fortschritt
+  begründen. Großes Balancing-Paket: docs/uebergabe/balancing-0910.md.
 - **Zeitprognosen** (Tom, 08.10.2026: "immer viel zu früh"): Am 08.10. lag
   ich 3–4× zu optimistisch (erste Angabe 2–3 h, real >9 h). Ursache: nur
   Testdauer gerechnet, angenommen alles grün. Ab jetzt rechnen:

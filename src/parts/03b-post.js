@@ -41,9 +41,9 @@ function initPost(){
       depthTest:false,depthWrite:false});
     matComp=new THREE.ShaderMaterial({
       uniforms:{tDiffuse:{value:null},tBloom:{value:null},bloom:{value:0.62},vig:{value:0.34},
-        grain:{value:COARSE?0.0:0.028},aberr:{value:COARSE?0.0:0.0035},sat:{value:1.07},time:{value:0}},
+        grain:{value:COARSE?0.0:0.028},aberr:{value:COARSE?0.0:0.0035},sat:{value:1.07},time:{value:0},innen:{value:0}},
       vertexShader:QUAD_V,
-      fragmentShader:'uniform sampler2D tDiffuse;\nuniform sampler2D tBloom;\nuniform float bloom;\nuniform float vig;\nuniform float grain;\nuniform float aberr;\nuniform float sat;\nuniform float time;\nvarying vec2 vUv;\nfloat hash(vec2 p){ return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453); }\nvec3 toSRGB(vec3 v){ return mix(pow(v,vec3(0.41666))*1.055-0.055, v*12.92, vec3(lessThanEqual(v,vec3(0.0031308)))); }\nvoid main(){\n  vec2 uv=vUv;\n  vec2 d=uv-0.5;\n  float r2=dot(d,d);\n  float a=aberr*r2;\n  vec3 col;\n  col.r=texture2D(tDiffuse,uv+d*a).r;\n  col.g=texture2D(tDiffuse,uv).g;\n  col.b=texture2D(tDiffuse,uv-d*a).b;\n  col+=texture2D(tBloom,uv).rgb*bloom;\n  float lum=dot(col,vec3(0.2126,0.7152,0.0722));\n  col=mix(vec3(lum),col,sat);\n  col*=1.0-vig*smoothstep(0.12,0.62,r2);\n  col=toSRGB(max(col,0.0));\n  col+=(hash(uv*1024.0+time)-0.5)*grain;\n  gl_FragColor=vec4(col,1.0);\n}',
+      fragmentShader:'uniform sampler2D tDiffuse;\nuniform sampler2D tBloom;\nuniform float bloom;\nuniform float vig;\nuniform float grain;\nuniform float aberr;\nuniform float sat;\nuniform float time;\nuniform float innen;\nvarying vec2 vUv;\nfloat hash(vec2 p){ return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453); }\nvec3 toSRGB(vec3 v){ return mix(pow(v,vec3(0.41666))*1.055-0.055, v*12.92, vec3(lessThanEqual(v,vec3(0.0031308)))); }\nvoid main(){\n  vec2 uv=vUv;\n  vec2 d=uv-0.5;\n  float r2=dot(d,d);\n  float a=aberr*r2;\n  vec3 col;\n  col.r=texture2D(tDiffuse,uv+d*a).r;\n  col.g=texture2D(tDiffuse,uv).g;\n  col.b=texture2D(tDiffuse,uv-d*a).b;\n  col+=texture2D(tBloom,uv).rgb*bloom;\n  float lum=dot(col,vec3(0.2126,0.7152,0.0722));\n  col=mix(vec3(lum),col,sat);\n  col*=1.0-vig*smoothstep(0.12,0.62,r2);\n  col=toSRGB(max(col,0.0));\n  if(innen>0.001){ col=pow(col,vec3(1.0+0.14*innen)); float l2=dot(col,vec3(0.2126,0.7152,0.0722)); col=mix(vec3(l2),col,1.0+0.1*innen); }\n  col+=(hash(uv*1024.0+time)-0.5)*grain;\n  gl_FragColor=vec4(col,1.0);\n}',
       depthTest:false,depthWrite:false});
     matKopie=new THREE.ShaderMaterial({uniforms:{tDiffuse:{value:null}},vertexShader:QUAD_V,
       fragmentShader:'uniform sampler2D tDiffuse;\nvarying vec2 vUv;\nvec3 toSRGB(vec3 v){ return mix(pow(v,vec3(0.41666))*1.055-0.055, v*12.92, vec3(lessThanEqual(v,vec3(0.0031308)))); }\nvoid main(){ gl_FragColor=vec4(toSRGB(max(texture2D(tDiffuse,vUv).rgb,0.0)),1.0); }',
@@ -282,6 +282,7 @@ function schattenTakt(){
 }
 function renderFrame(dt){
   kleinTakt(dt||0);
+  if(typeof ladenLichtTakt==='function') ladenLichtTakt(dt||0.016);
   sonneNachfuehren();
   gruppenTakt();
   buendelTakt();
@@ -314,6 +315,8 @@ function renderFrame(dt){
     matComp.uniforms.tDiffuse.value=rtScene.texture;
     matComp.uniforms.tBloom.value=rtA.texture;
     matComp.uniforms.time.value=postT;
+    /* Laden-Licht (05p): drinnen satte Mitteltoene - draussen (Feuerwerk) unveraendert */
+    matComp.uniforms.innen.value=typeof LI!=='undefined'&&LI.an?LI.innen:0;
     renderer.setRenderTarget(null); renderer.render(quadScene,quadCam);
   }catch(e){ postOK=false; if(renderer.setRenderTarget) renderer.setRenderTarget(null); renderer.render(scene,camera); }
 }

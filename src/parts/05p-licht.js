@@ -21,12 +21,19 @@
      Sichtstrahl schneidet die Bodenebene), Staerke nach Blickwinkel
      (Fresnel) und Belag. Ein Zeichenaufruf.
 
+   - AUGENANPASSUNG: drinnen Belichtung 0,74 statt 1,05 (weisse Regale und
+     heller Boden liefen in reines Weiss), dazu in der Bildzusammenfuehrung
+     (ab Mittel) sattere Mitteltoene. Draussen - Strasse, Testfeld,
+     Feuerwerk - bleibt alles wie gehabt; der Wechsel dauert eine halbe
+     Sekunde wie beim Auge.
+
    Ultra Low legt nichts davon an (bleibt so schnell wie bisher). Niedrig
-   bekommt Kontaktschatten und Lichtflecken (zwei Zeichenaufrufe, keine
-   Echtzeit-Schatten - dort sind sie der einzige Schatten ueberhaupt).
+   bekommt nur die Kontaktschatten (ein Zeichenaufruf, kleine Flaechen;
+   keine Echtzeit-Schatten - dort sind sie der einzige Schatten ueberhaupt)
+   und die Augenanpassung (nur ein Zahlenwert).
    ========================================================= */
-const LI={an:false, schatten:null, flecken:null, glanz:null, objs:new Map(), personen:[], tS:0, tP:0, sig:'', n:{moebel:0,personen:0,flecken:0,glanz:0}, fehler:null, raeume:null, innen:0, cx:1e9, cz:1e9};
-const LI_BEL={aussen:1.05, innen:0.78}; LI.bel=LI_BEL;
+const LI={an:false, schatten:null, flecken:null, glanz:null, objs:new Map(), personen:[], tS:0, sig:'', n:{moebel:0,personen:0,flecken:0,glanz:0}, fehler:null, raeume:null, innen:0, cx:1e9, cz:1e9};
+const LI_BEL={aussen:1.05, innen:0.74}; LI.bel=LI_BEL;
 const LI_GEO_VS=`
 varying vec2 vUv;
 varying vec3 vP;
@@ -87,8 +94,9 @@ function lichtAufbau(){
     if(GFX_START===GFX_PROFIL.ultralow||GFX==='ultralow') return;
     if(String(THREE.REVISION).indexOf('stub')>=0||!THREE.InstancedMesh||!THREE.InstancedBufferAttribute) return;
     LI.schatten=liMesh(900,LI_SCH_FS,false,2);
-    LI.flecken=liMesh(400,LI_LICHT_FS,true,3);
-    LI.glanz=liMesh(24,LI_LICHT_FS,true,4);
+    /* Niedrig: nur die Kontaktschatten (kleine Flaechen) - Lichtflecken und Glanz liegen
+       grossflaechig auf dem Boden und kosten Fuellrate, die ein alter Rechner nicht hat */
+    if(!gfxNiedrig(GFX)){ LI.flecken=liMesh(400,LI_LICHT_FS,true,3); LI.glanz=liMesh(24,LI_LICHT_FS,true,4); }
     LI.an=true; LI.tS=-1e9;
   }catch(e){ LI.fehler=String(e&&e.message||e); LI.an=false; }
 }
@@ -150,7 +158,14 @@ function liMoebelSchatten(){
     const f=clamp(0.16+e.h*0.13,0.2,0.5), dichte=clamp(0.42+e.h*0.08,0.45,0.66), ein=Math.min(0.08,e.w*0.2,e.d*0.2);
     liSetzen(S,n++,e.x,Math.max(0,e.y0)+0.04,e.z,e.ry,e.w-2*ein+2*f,e.d-2*ein+2*f,dichte,f,0);
   }
-  LI.n.moebel=n; LI.nMoebel=n;
+  LI.n.moebel=n; LI.nMoebel=n; LI.voll=true;
+}
+/* nur den geaenderten Teil zur Grafikkarte schicken (sonst gingen jedes Bild 70 KB fuer
+   900 Plaetze hoch, auch wenn nur drei Personen laufen) */
+function liHoch(o,von,bis){
+  if(bis<=von) return;
+  o.instanceMatrix.updateRange.offset=von*16; o.instanceMatrix.updateRange.count=(bis-von)*16; o.instanceMatrix.needsUpdate=true;
+  o.instanceColor.updateRange.offset=von*3; o.instanceColor.updateRange.count=(bis-von)*3; o.instanceColor.needsUpdate=true;
 }
 function liPersonen(){
   const P=[]; for(const o of scene.children) if(o.userData&&o.userData.legs) P.push(o);
@@ -163,7 +178,8 @@ function liPersonenSchatten(){
     if(y>1.2||y<-0.6||(typeof unterDach==='function'&&!unterDach(x,1,z))) continue;
     liSetzen(S,n++,x,Math.max(0,y)+0.041,z,0,0.95,0.95,0.5,0.2,1); }
   LI.n.personen=n-(LI.nMoebel||0);
-  S.count=n; S.instanceMatrix.needsUpdate=true; S.instanceColor.needsUpdate=true;
+  S.count=n;
+  if(LI.voll){ LI.voll=false; liHoch(S,0,n); } else liHoch(S,LI.nMoebel||0,n);
 }
 /* ---------- Lichtflecken unter den Deckenleuchten ---------- */
 function liFlecken(){
@@ -171,11 +187,11 @@ function liFlecken(){
   for(const L of LAMPEN){ if(n>=F.instanceMatrix.count) break; if(L.id&&typeof zoneOffen==='function'&&!zoneOffen(L.id)) continue;
     const h=L.y, r=clamp(h*0.5,1.7,5), k=clamp(0.2*3.6/h,0.1,0.2);
     liSetzen(F,n++,L.x,0.043,L.z,0,r*2.4,r*1.9,k,0,0); }
-  F.count=n; F.instanceMatrix.needsUpdate=true; F.instanceColor.needsUpdate=true; LI.n.flecken=n;
+  F.count=n; liHoch(F,0,n); LI.n.flecken=n;
 }
 /* ---------- Glanzbahnen: Spiegelbild der naechsten Leuchten im Boden ---------- */
 function liGlanzStaerke(raum){
-  if(raum!==0) return raum===1?0.55:0.45;
+  if(raum!==0) return raum===1?0.7:0.6;
   let f=null; try{ f=typeof floorSet==='function'?floorSet():null; }catch(e){}
   if(!f) return 0.8; if(f.art==='velours') return 0;
   return clamp(0.55+(f.glanz||0)*0.5+(0.6-(f.rau!==undefined?f.rau:0.6))*0.6,0.35,1.15);
@@ -197,30 +213,34 @@ function liGlanz(){
     const raum=liRaum(L.x,L.z); if(raum<0||liRaum(px,pz)!==raum) continue;
     if(gl[raum]===undefined) gl[raum]=liGlanzStaerke(raum); const g=gl[raum]; if(g<=0) continue;
     const dh=Math.hypot(px-cam.x,pz-cam.z), sinA=cy/Math.hypot(dh,cy);       /* Neigung des Blicks zum Boden */
-    const fres=0.18+0.82*Math.pow(1-sinA,3);
+    const fres=0.3+0.7*Math.pow(1-sinA,2);
     const ferne=1-clamp((k.d-14)/10,0,1);
     const ry=Math.atan2(px-cam.x,pz-cam.z);
-    const lang=0.7+2.6*(1-sinA)+H*0.12, breit=0.75+H*0.05;
-    liSetzen(G,n++,px,0.045,pz,ry,breit,lang,0.42*g*fres*ferne,0,1); }
-  G.count=n; G.instanceMatrix.needsUpdate=true; G.instanceColor.needsUpdate=true; LI.n.glanz=n;
+    const lang=0.8+2.8*(1-sinA)+H*0.12, breit=0.6+H*0.04;
+    liSetzen(G,n++,px,0.045,pz,ry,breit,lang,0.66*g*fres*ferne,0,1); }
+  G.count=n; liHoch(G,0,n); LI.n.glanz=n;
 }
 function ladenLichtTakt(dt){
   if(!LI.an) return;
   try{
-    const sig=LAMPEN.length+'|'+(typeof S!=='undefined'&&S&&S.up?Object.keys(S.up).filter(k=>S.up[k]).length:0);
-    if(sig!==LI.sig){ LI.sig=sig; liFlecken(); }
+    const nied=gfxNiedrig(GFX);
+    if(LI.flecken){ LI.flecken.visible=!nied;
+      const sig=LAMPEN.length+'|'+(typeof S!=='undefined'&&S&&S.up?Object.keys(S.up).filter(k=>S.up[k]).length:0);
+      if(sig!==LI.sig){ LI.sig=sig; liFlecken(); } }
     /* alle 2 s nach der Uhr (nicht nach dt: Testbilder zeichnen mit festem dt, dazwischen laeuft das Spiel weiter) */
     const jetzt=performance.now();
     if(jetzt-LI.tS>2000){ LI.tS=jetzt; liMoebelSchatten(); liPersonen(); }
     liPersonenSchatten();
-    liGlanz();
+    if(LI.glanz) liGlanz();
     /* Augenanpassung: drinnen etwas weniger Belichtung - weisse Regale und heller Boden
        liefen sonst in reines Weiss, die Leuchten (nicht tonwertgemappt) heben sich ab.
        Draussen (Feuerwerk, Strasse) bleibt alles wie gehabt. Ein Sprung der Kamera
        (Teleport, Testbild) passt sofort an. */
     const c=camera.position, drin=typeof unterDach==='function'&&unterDach(c.x,1,c.z)?1:0;
     const sprung=Math.abs(c.x-LI.cx)+Math.abs(c.z-LI.cz)>3; LI.cx=c.x; LI.cz=c.z;
-    LI.innen=sprung?drin:LI.innen+(drin-LI.innen)*Math.min(1,(dt||0.016)*2.5);
+    /* nach der Uhr (wie die Schatten): Testbilder liegen Sekunden auseinander und sind dann angepasst */
+    const tA=Math.min(1,Math.max(0,(jetzt-(LI.tA||jetzt))/1000)); LI.tA=jetzt;
+    LI.innen=sprung?drin:LI.innen+(drin-LI.innen)*Math.min(1,tA*2.5);
     renderer.toneMappingExposure=LI_BEL.aussen+(LI_BEL.innen-LI_BEL.aussen)*LI.innen;
-  }catch(e){ LI.fehler=String(e&&e.message||e); LI.an=false; for(const o of [LI.schatten,LI.flecken,LI.glanz]) if(o) o.visible=false; }
+  }catch(e){ LI.fehler=String(e&&e.message||e); LI.an=false; renderer.toneMappingExposure=LI_BEL.aussen; for(const o of [LI.schatten,LI.flecken,LI.glanz]) if(o) o.visible=false; }
 }

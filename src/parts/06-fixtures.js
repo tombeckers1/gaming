@@ -272,47 +272,107 @@ function sbScreenTex(){
     g.fillText('HILFE',24+(W-40)*0.75,340);
   });
 }
+/* 10.10.: Geraetebau mit wenigen Zeichenaufrufen - alle Teile einer
+   Oberflaeche (Lack, Metall, matt, leuchtend) werden mit Vertexfarben zu
+   je einem Mesh verschmolzen. pivot() setzt eine Bezugsmatrix fuer
+   gekippte Baugruppen (Bildschirm, Kartenterminal). */
+const _geraetMat={};
+function geraetMat(art){
+  if(_geraetMat[art]) return _geraetMat[art];
+  let m;
+  if(art==='leucht') m=new THREE.MeshBasicMaterial({vertexColors:true,toneMapped:false});
+  else m=new THREE.MeshStandardMaterial(Object.assign({vertexColors:true},
+    {lack:{roughness:0.34,metalness:0.06},metall:{roughness:0.26,metalness:0.78},matt:{roughness:0.72,metalness:0.0},glas:{roughness:0.08,metalness:0.35}}[art]));
+  return _geraetMat[art]=m;
+}
+function geraetBau(){
+  const T={lack:[],metall:[],matt:[],glas:[],leucht:[]}; let basis=null;
+  const add=(art,geo,c,x,y,z,rx,ry,rz)=>{ let m=tm(x,y,z,rx,ry,rz); if(basis) m=basis.clone().multiply(m); T[art].push({geo,m,color:c}); };
+  const B={
+    pivot(x,y,z,rx,ry,rz){ basis=(x===undefined)?null:tm(x,y,z,rx,ry,rz); return B; },
+    box(art,w,h,d,c,x,y,z,rx,ry,rz){ const mn=Math.min(w,h,d);
+      add(art,mn>=0.03?roundedBoxGeo(w,h,d,Math.min(0.02,mn*0.2)):new THREE.BoxGeometry(w,h,d),c,x,y,z,rx,ry,rz); return B; },
+    rund(art,w,h,d,r,c,x,y,z,rx,ry,rz){ add(art,roundedBoxGeo(w,h,d,r),c,x,y,z,rx,ry,rz); return B; },
+    zyl(art,r1,r2,h,seg,c,x,y,z,rx,ry,rz){ add(art,new THREE.CylinderGeometry(r1,r2,h,seg),c,x,y,z,rx,ry,rz); return B; },
+    fertig(parent,schatten){ const out=[];
+      for(const art in T){ if(!T[art].length) continue;
+        const me=new THREE.Mesh(merge(T[art]),geraetMat(art));
+        if(HIQ&&schatten!==false&&art!=='leucht'){ me.castShadow=true; me.receiveShadow=true; }
+        parent.add(me); out.push(me); }
+      return out; }
+  };
+  return B;
+}
 function sbTerminal(parent,x,z){
-  /* 06.10.: weiss wie die Bedienkasse, Bildschirmrahmen und Sockel dunkel */
-  const korpus=std(CK_KORPUS,{roughness:0.42,metalness:0.05}),
-        blende=std(0xe4e8ef,{roughness:0.42,metalness:0.06}),
-        stahl=std(0xb4bac4,{metalness:0.7,roughness:0.3}),
-        dunkel=std(0x14171f,{roughness:0.5}),
-        akzent=std(0xc9ced6,{metalness:0.85,roughness:0.22});
+  /* 10.10. neu (Tom: Bildschirm zu tief, grauer Staender und roter
+     Scanner billig): wie ein echtes Self-Checkout - Touchscreen auf
+     Augenhoehe an einer Saeule, Bioptik-Scanner (Glasflaeche mit
+     Laserkreuz und Scannerturm), Korbablage links, Waage mit
+     Tuetenhalter rechts, Kartenterminal, Bondrucker, Lichtsignal. */
   const g=new THREE.Group(); g.position.set(x,0,z); parent.add(g);
-  /* Sockel und Korpus */
-  bbox(0.72,0.1,0.62,dunkel,0,0.05,0,g,false);
-  const c=rbox(0.78,0.86,0.68,0.02,korpus,0,0.53,0,g); occluders.push(c);
-  bbox(0.8,0.04,0.7,stahl,0,0.98,0,g,false);
-  bbox(0.8,0.035,0.03,akzent,0,0.74,0.345,g,false);
-  /* Abstellflaechen links und rechts */
-  for(const s of [-1,1]){
-    rbox(0.42,0.05,0.5,0.014,blende,s*0.6,0.97,0,g);
-    bbox(0.05,0.9,0.05,stahl,s*0.6,0.47,-0.2,g,false);
-    bbox(0.05,0.9,0.05,stahl,s*0.6,0.47,0.2,g,false);
+  const W=CK_KORPUS, NAVY=0x1d2c47, DUNK=0x15181f, GRAN=0x2b2f37, STAHL=0xb8bec8;
+  /* Korpus bleibt ein eigenes Mesh (Verdecker) */
+  const c=rbox(0.78,0.84,0.66,0.03,std(W,{roughness:0.36,metalness:0.06}),0,0.5,0,g); occluders.push(c);
+  const b=geraetBau();
+  /* Sockel, Front, Arbeitsplatte */
+  b.box('matt',0.72,0.08,0.6,DUNK,0,0.04,0)
+   .box('lack',0.6,0.5,0.012,0xd5d9e0,0,0.48,0.333)
+   .box('lack',0.78,0.07,0.016,NAVY,0,0.86,0.335)
+   .box('metall',0.7,0.05,0.012,STAHL,0,0.13,0.334)
+   .rund('lack',0.84,0.045,0.7,0.012,GRAN,0,0.94,0)
+   .box('metall',0.84,0.022,0.012,STAHL,0,0.93,0.352);
+  /* Scanner: Glasflaeche in der Platte, Laserkreuz, Scannerturm */
+  b.box('matt',0.36,0.006,0.27,0x0b0d12,0,0.963,0.09)
+   .box('glas',0.32,0.004,0.23,0x1a2430,0,0.966,0.09)
+   .box('leucht',0.28,0.002,0.004,0xd8262a,0,0.969,0.09,0,0.45,0)
+   .box('leucht',0.28,0.002,0.004,0xd8262a,0,0.969,0.09,0,-0.45,0)
+   .rund('matt',0.38,0.17,0.08,0.02,DUNK,0,1.045,-0.1)
+   .box('glas',0.31,0.11,0.004,0x1a2430,0,1.045,-0.059)
+   .box('leucht',0.26,0.003,0.002,0xb02020,0,1.045,-0.056);
+  /* Saeule mit Kappe */
+  b.rund('lack',0.3,0.86,0.16,0.04,W,0,1.39,-0.25)
+   .rund('lack',0.31,0.05,0.17,0.02,NAVY,0,1.8,-0.25);
+  /* Bondrucker unter dem Bildschirm */
+  b.rund('matt',0.17,0.06,0.04,0.01,DUNK,0,1.205,-0.155)
+   .box('matt',0.1,0.004,0.006,0x050608,0,1.2,-0.134)
+   .box('lack',0.07,0.05,0.002,0xf4f4f0,0,1.17,-0.132,0.15,0,0);
+  /* Bildschirmgehaeuse auf Augenhoehe, leicht nach oben gekippt */
+  const KX=-0.1, KY=1.53, KZ=-0.13;
+  b.pivot(0,KY,KZ,KX,0,0)
+   .rund('matt',0.53,0.39,0.05,0.02,DUNK,0,0,0)
+   .box('leucht',0.012,0.012,0.004,0x20242c,0,0.178,0.026)
+   .pivot();
+  /* Kartenterminal rechts am kurzen Arm */
+  b.zyl('metall',0.014,0.018,0.13,10,STAHL,0.31,1.03,-0.12)
+   .pivot(0.31,1.14,-0.11,-0.55,-0.25,0)
+   .rund('matt',0.1,0.17,0.035,0.012,DUNK,0,0,0)
+   .box('leucht',0.07,0.05,0.002,0x3b7fd0,0,0.04,0.019)
+   .box('lack',0.07,0.055,0.004,0x9aa1ac,0,-0.035,0.018)
+   .pivot();
+  /* links Korbablage */
+  b.rund('lack',0.36,0.72,0.52,0.025,W,-0.6,0.36,0)
+   .rund('lack',0.4,0.035,0.56,0.01,GRAN,-0.6,0.74,0)
+   .box('metall',0.4,0.02,0.012,STAHL,-0.6,0.73,0.282);
+  /* rechts Waage mit Tuetenhalter */
+  b.rund('lack',0.36,0.84,0.52,0.025,W,0.6,0.42,0)
+   .box('metall',0.38,0.018,0.48,STAHL,0.6,0.85,0)
+   .box('matt',0.3,0.006,0.4,0x9ea4ad,0.6,0.862,0.0);
+  for(const sx of [0.45,0.75]){
+    b.zyl('metall',0.011,0.011,0.5,8,STAHL,sx,1.11,-0.22)
+     .zyl('metall',0.009,0.009,0.34,8,STAHL,sx,1.36,-0.06,Math.PI/2,0,0);
   }
-  /* Scannerfenster in der Arbeitsplatte */
-  bbox(0.3,0.012,0.24,dunkel,0,1.005,0.12,g,false);
-  const scan=plane(0.26,0.2,new THREE.MeshBasicMaterial({toneMapped:false,
-    color:LIN(0x8f2a22)}),0,1.014,0.12,0,g);
-  scan.rotation.x=-Math.PI/2; scan.renderOrder=2;
-  /* Saeule mit Touchscreen */
-  const saeule=rbox(0.24,0.62,0.18,0.02,korpus,0,1.3,-0.16,g);
-  const rahmen=rbox(0.56,0.42,0.045,0.012,dunkel,0,1.62,-0.1,g); rahmen.rotation.x=0.22;
-  const scr=plane(0.5,0.36,new THREE.MeshBasicMaterial({map:sbScreenTex(),toneMapped:false}),0,1.627,-0.075,0,g);
-  scr.rotation.x=0.22;
-  /* Kartenleser auf kurzem Arm */
-  bbox(0.05,0.05,0.14,stahl,0.2,1.16,0.02,g,false);
-  const leser=rbox(0.13,0.2,0.05,0.012,dunkel,0.27,1.22,0.02,g); leser.rotation.x=-0.35;
-  plane(0.09,0.06,new THREE.MeshBasicMaterial({toneMapped:false,color:LIN(0x2f9e57)}),0.27,1.28,0.0,0,g).rotation.x=-0.35;
-  /* Statusleuchte auf einer Stange */
-  const st=new THREE.Mesh(new THREE.CylinderGeometry(0.018,0.018,0.86,10),stahl);
-  st.position.set(-0.3,1.42,-0.2); g.add(st);
+  b.zyl('metall',0.011,0.011,0.31,8,STAHL,0.6,1.36,-0.22,0,0,Math.PI/2)
+   .box('matt',0.26,0.26,0.2,0xf1f1ec,0.6,1.0,-0.05);
+  /* Lichtsignal-Stange */
+  b.zyl('metall',0.014,0.014,0.32,10,STAHL,0,1.98,-0.25)
+   .zyl('metall',0.056,0.056,0.016,14,STAHL,0,2.228,-0.25);
+  b.fertig(g);
+  /* Bildschirm (eigene Textur) */
+  const scr=plane(0.48,0.34,new THREE.MeshBasicMaterial({map:sbScreenTex(),toneMapped:false}),0,KY+0.026*Math.sin(-KX),KZ+0.026*Math.cos(KX),0,g);
+  scr.rotation.x=KX;
   const lampM=new THREE.MeshStandardMaterial({color:LIN(0x1d5f36),emissive:LIN(0x37d977),emissiveIntensity:1.6});
-  const lamp=new THREE.Mesh(new THREE.CylinderGeometry(0.055,0.055,0.11,12),lampM);
-  lamp.position.set(-0.3,1.9,-0.2); g.add(lamp);
-  /* Tuete am Buegel */
-  bbox(0.02,0.3,0.24,stahl,0.6,1.14,0,g,false);
+  const lamp=new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.05,0.11,14),lampM);
+  lamp.position.set(0,2.165,-0.25); g.add(lamp);
   /* unsichtbare Trefferflaeche: der Spieler kann selbst helfen */
   const hit=bbox(0.9,1.9,0.8,hitM,0,0.95,0.05,g,false);
   const l={g,lamp,lampM,busy:null,t:0,hit,helfer:null,hilfe:false};

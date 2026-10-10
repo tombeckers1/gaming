@@ -69,6 +69,7 @@ ROADMAP.md: Die Demo-Idee mit Kapitel 1–6 ist inzwischen durch den Release-Pla
   - Vorführungen: `17b-fwtest.js` (Feuerwerk), `17c-verpackung.js` (Verpackungsraum), `17e-gameplay.js` (fast durchgespielter Laden).
 - **Grafik:**
   - `03-scene.js`, `03b-post.js`, `03d-pracht.js`.
+  - `05p-licht.js` (10.10., Licht im Laden): Kontaktschatten unter Möbeln/Kartons/Personen, Lichtflecken unter den Deckenleuchten, Glanzbahnen der Leuchten im Boden (Mittel/Hoch; ab Maximum übernimmt die echte Spiegelung), Augenanpassung drinnen (Belichtung 0,74 statt 1,05) + sattere Mitteltöne in `03b` (`innen`). Alles Instanzen, je 1 Zeichenaufruf. Ultra Low: nichts; Niedrig: nur Kontaktschatten. Draußen/Feuerwerk unverändert. Test `licht` (Gegenprobe `GEGENPROBE=1`). Bilder `docs/bilder/licht-1010/`.
   - Stufen: Ultra Low, Niedrig, Mittel, Hoch, Maximum, Ultra, Ultra Extrem; Automatik nach Bildrate.
 - **Speichern:** `18-save.js`. Alte Spielstände müssen immer weiter laden; Migrationen testen.
 
@@ -129,6 +130,7 @@ ROADMAP.md: Die Demo-Idee mit Kapitel 1–6 ist inzwischen durch den Release-Pla
   - Tom hat einen alten PC (i7-4790), auf „Niedrig“ vorher 10–11 FPS.
   - Echte GPU-FPS mit Ultra Low sind ungemessen. Tom soll auf seinem PC testen.
   - Unklar: Warum zeichnet Niedrig etwa 2,4× mehr Dreiecke als im Sichtkegel liegen? Ein Baum hat ~17 000 Dreiecke.
+- **Licht (10.10.):** Hoch hat weiter keine Umgebungsspiegelung auf Metall/Glas (nur ab Maximum, 03d). Kontaktschatten nur für Möbel mit Stellfläche, Versandecke-Teile und Bodenkartons – Kleinkram ohne `movable` (z. B. Paletten, SB-Kassen) bekommt keinen. Kein Licht auf Regalfronten fern vom Spieler (nur die 1–3 wandernden Punktlichter). Vorbestehend rot (auf dem Stand vor dem Licht gegengeprüft): `buendel` GLEICH (Bildunterschied vorher 8–32 %/1,5–4 %, nachher 38 %/4 % – die wandernden Punktlichter sind zwischen den Aufnahmen nicht zur Ruhe gekommen), `vfgrafik` STOPP (65–70 Sterne nach Stopp) und dessen Neuladen auf Ultra Extrem (Zeitüberschreitung 300 s), `grafik2` AUTO (Automatik schaltet bei 20 Bildern/s nicht ab – der Auflösungsregler vom 03.10. greift zuerst; Lauf ~10 Min, einmal > 40 Min).
 
 ## 5. OFFENE AUFGABEN (Reihenfolge = Vorschlag; Tom entscheidet, wann gestartet wird)
 

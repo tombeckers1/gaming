@@ -10,7 +10,7 @@ Nach jedem fertigen Paket: prüfen, Artefakt veröffentlichen, Tom kurz berichte
 | 3 | Batterien + 10 neue nach echten Vorbildern | batterien-0910.md (+ DDL per Handy, Bruchhöhe große Kugeln) | fertig 10.10. (41ce9c7, V125); offen: Test gross GROESSER „raketen“ rot (Verpackungsmaß, nicht aus dieser Runde – prüfen) |
 | 4 | Licht und Schatten im Laden | licht-0910.md | als Nächstes – Start nach Wochenlimit-Reset 10.10. 14 Uhr (oder früher, wenn Tom < ~90 % meldet) |
 | 5 | Außenfassade und Hoflampen | fassade-0910.md (+ Toms Fotos) | wartet |
-| 6 | Automat „Deine Rakete“ + SB-Kassen | versand-sb-0910.md (Abschnitte Automat, SB) | wartet |
+| 6 | Automat „Deine Rakete“ + SB-Kassen | versand-sb-0910.md (Abschnitte Automat, SB) | Modelle fertig 10.10. auf Branch claude/automat-sb (f3a4ec6), UNGETESTET – nach dem Licht-Paket mergen + Tests (laeden, gameplay, leistung, kasse, sb*, gravur*), Bildschirmtext „Rakete personalisieren“ nachziehen |
 | 6b | **Große Halle eigenständig ladbar** (Plan v7) | halle-1010.md | Optik fertig 09.10. (Branch claude/halle-v7, fbbd7e1), Vorschau-Artefakt https://claude.ai/artifact/1qMJc7Xf8qgiJ2ndwDmHzh; offen: Toms Abnahme + 5 Fragen, später Zusammenführung/Gameplay |
 | 7 | Wirtschafts-Balancing „Schweizer Uhrwerk“ | balancing-0910.md | Ist-Analyse fertig 10.10. (Branch claude/balancing, cf325f0, docs/balancing/ist-analyse.md); wartet auf Toms OK zur Zielkurve, dann Werte anpassen |
 

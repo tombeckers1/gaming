@@ -410,7 +410,18 @@ function hvProdNebenflaechen(G){
   const L={x0:-82.2,x1:-75.4,z0:P.z1-5.2,z1:P.z1-0.12}, Hh=2.8, lm=(L.x0+L.x1)/2;
   for(const [a,b,z] of [[L.x0,L.x1,L.z0]]){ for(let x=a;x<=b+0.01;x+=(b-a)/5) S.box(0.06,Hh,0.06,x,Hh/2,z,0x8a9099,'metall');
     S.box(b-a,Hh-1.0,0.02,(a+b)/2,0.95+(Hh-1.0)/2,z,0xffffff,'plexi'); S.box(b-a,0.9,0.06,(a+b)/2,0.45,z,0xe4e7ea,'lack'); }
-  for(const x of [L.x0,L.x1]){ S.box(0.06,Hh,L.z1-L.z0,x,Hh/2,(L.z0+L.z1)/2,0xe4e7ea,'lack'); }
+  for(const x of [L.x0,L.x1]){ S.box(0.06,Hh,L.z1-L.z0,x,Hh/2,(L.z0+L.z1)/2,0xd3d7dc,'lack');
+    /* Paneelfugen, Sockelleiste, Bruestungsband und Fenster in der Seitenwand */
+    for(const sg of [-1,1]){ const xx=x+sg*0.034;
+      S.box(0.01,0.16,L.z1-L.z0,xx,0.08,(L.z0+L.z1)/2,0x4a5058,'lack'); S.box(0.01,0.05,L.z1-L.z0,xx,0.95,(L.z0+L.z1)/2,0x8a9099,'lack');
+      for(let z=L.z0+1.0;z<L.z1-0.2;z+=1.0) S.box(0.008,Hh-0.2,0.012,xx,Hh/2,z,0x9aa1aa,'lack');
+      S.box(0.012,0.06,2.1,xx,1.3,(L.z0+L.z1)/2-0.4,0x5d646d,'metall'); S.box(0.012,0.06,2.1,xx,2.3,(L.z0+L.z1)/2-0.4,0x5d646d,'metall');
+      for(const dz of [-1.05,0,1.05]) S.box(0.012,1.06,0.05,xx,1.8,(L.z0+L.z1)/2-0.4+dz,0x5d646d,'metall'); }
+    S.box(0.08,0.94,2.0,x,1.8,(L.z0+L.z1)/2-0.4,0xffffff,'plexi'); }
+  /* Dach: Klimageraet mit Luefter, Kabelkanal zur Decke */
+  S.box(1.4,0.55,0.9,L.x0+1.4,Hh+0.4,(L.z0+L.z1)/2+0.8,0xc9ced5,'lack'); S.zyl(0.3,0.03,L.x0+1.4,Hh+0.69,(L.z0+L.z1)/2+0.8,0x2a2e35,'lack','y',12);
+  for(let i=0;i<6;i++) S.box(0.012,0.025,0.8,L.x0+0.705,Hh+0.2+i*0.07,(L.z0+L.z1)/2+0.8,0x5d646d,'lack');
+  S.box(0.3,HV7.PH-Hh-0.12,0.08,L.x1-0.6,(HV7.PH+Hh+0.12)/2,(L.z0+L.z1)/2,0x8a9099,'metall');
   S.box(L.x1-L.x0+0.1,0.12,L.z1-L.z0+0.1,lm,Hh+0.06,(L.z0+L.z1)/2,0xe4e7ea,'lack');
   S.box(1.0,2.1,0.04,L.x1-0.8,1.05,L.z0-0.01,0x7f8790,'lack');
   for(let i=0;i<3;i++){ const x=L.x0+1.2+i*2.0; S.box(1.6,0.05,0.8,x,0.76,L.z0+0.9,0xd8dce1,'lack'); S.box(0.05,0.74,0.6,x,0.37,L.z0+0.9,0x5d646d,'lack');

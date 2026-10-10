@@ -51574,23 +51574,37 @@ function hvBodenTex(){
 }
 /* Sandwichpaneele innen: liegende Paneele 1 m hoch, feine Mikroprofilierung. Kachel 4 x 4 m. */
 function hvPaneelTex(){
+  /* Sandwichpaneele 1 m hoch, Stoss alle 4 m, Schraubenreihen, Laufspuren
+     unter den Fugen und fleckige Alterung - nicht mehr klinisch weiss */
   return hvTex(256,512,(g,W,H)=>{
-    const f=hvFbm(64,128,21,4,3,0.5);
-    g.fillStyle='#d6dade'; g.fillRect(0,0,W,H);
+    const f=hvFbm(64,128,21,4,3,0.5), R=hvRng(22);
+    g.fillStyle='#c9ced2'; g.fillRect(0,0,W,H);
     const ph=H/4;
     for(let p=0;p<4;p++){ const y=p*ph;
-      for(let k=0;k<ph;k+=8){ g.fillStyle='rgba(255,255,255,.35)'; g.fillRect(0,y+k,W,1); g.fillStyle='rgba(120,128,138,.10)'; g.fillRect(0,y+k+4,W,1.5); }
-      g.fillStyle='rgba(70,76,86,.45)'; g.fillRect(0,y+ph-3,W,3); g.fillStyle='rgba(255,255,255,.6)'; g.fillRect(0,y,W,1.5); }
-    for(let y=0;y<128;y++) for(let x=0;x<64;x++){ const v=f[y*64+x]; g.fillStyle=`rgba(${v>0.5?255:40},${v>0.5?255:44},${v>0.5?255:50},${Math.abs(v-0.5)*0.08})`; g.fillRect(x*W/64,y*H/128,W/64+1,H/128+1); }
+      g.fillStyle=`rgba(${p%2?120:255},${p%2?126:255},${p%2?134:255},.05)`; g.fillRect(0,y,W,ph);
+      for(let k=0;k<ph;k+=8){ g.fillStyle='rgba(255,255,255,.28)'; g.fillRect(0,y+k,W,1); g.fillStyle='rgba(110,118,128,.13)'; g.fillRect(0,y+k+4,W,1.5); }
+      g.fillStyle='rgba(55,60,70,.6)'; g.fillRect(0,y+ph-3,W,3); g.fillStyle='rgba(255,255,255,.55)'; g.fillRect(0,y,W,1.5);
+      for(let x=8;x<W;x+=32){ g.fillStyle='rgba(60,64,72,.55)'; g.fillRect(x,y+ph-9,2.5,2.5); g.fillRect(x,y+5,2.5,2.5); } }
+    /* Laufspuren: duenne graue Streifen unter den Fugen */
+    for(let i=0;i<60;i++){ const x=R()*W, y0=Math.floor(R()*4)*ph, l=10+R()*ph*0.8, a=0.05+R()*0.1;
+      const gr=g.createLinearGradient(0,y0,0,y0+l); gr.addColorStop(0,`rgba(70,66,58,${a})`); gr.addColorStop(1,'rgba(70,66,58,0)');
+      g.fillStyle=gr; g.fillRect(x,y0,1+R()*2.5,l); }
+    for(let y=0;y<128;y++) for(let x=0;x<64;x++){ const v=f[y*64+x]; g.fillStyle=`rgba(${v>0.5?255:62},${v>0.5?255:60},${v>0.5?255:56},${Math.abs(v-0.5)*0.24})`; g.fillRect(x*W/64,y*H/128,W/64+1,H/128+1); }
+    /* senkrechter Paneelstoss mit Deckleiste am Kachelrand */
+    g.fillStyle='rgba(60,66,74,.55)'; g.fillRect(0,0,3,H); g.fillStyle='rgba(255,255,255,.35)'; g.fillRect(3,0,1.5,H);
   });
 }
-/* Betonsockel 1,2 m mit Schalungsstoessen */
+/* Betonsockel 1,2 m mit Schalungsstoessen, Abdeckblech oben, Spritz- und
+   Reifenschmutz unten */
 function hvSockelTex(){
   return hvTex(256,128,(g,W,H)=>{
     const f=hvFbm(W,H,31,4,4,0.5);
-    hvFeldMalen(g,W,H,f,v=>{ const k=0.86+0.24*v; return [168*k,170*k,168*k]; });
+    hvFeldMalen(g,W,H,f,v=>{ const k=0.84+0.24*v; return [160*k,162*k,160*k]; });
     const R=hvRng(32); for(let i=0;i<260;i++){ g.fillStyle=`rgba(40,40,40,${0.12+R()*0.2})`; const s=1+R()*2; g.beginPath(); g.arc(R()*W,R()*H,s,0,7); g.fill(); }
     g.fillStyle='rgba(60,62,64,.4)'; g.fillRect(W/2,0,2,H); g.fillRect(0,0,2,H);
+    const gr=g.createLinearGradient(0,H*0.55,0,H); gr.addColorStop(0,'rgba(50,46,40,0)'); gr.addColorStop(1,'rgba(50,46,40,.5)'); g.fillStyle=gr; g.fillRect(0,H*0.55,W,H*0.45);
+    for(let i=0;i<70;i++){ g.fillStyle=`rgba(30,30,30,${0.05+R()*0.12})`; g.fillRect(R()*W,H*(0.82+R()*0.15),4+R()*30,1+R()*2); }
+    g.fillStyle='#8d949c'; g.fillRect(0,0,W,6); g.fillStyle='rgba(255,255,255,.5)'; g.fillRect(0,0,W,1.5); g.fillStyle='rgba(30,32,36,.55)'; g.fillRect(0,6,W,2.5);
   });
 }
 /* Trapezblech der Dachunterseite, Sicken laengs z */
@@ -51689,7 +51703,7 @@ function hvMaterialien(){
     plexi:hvRes(new THREE.MeshStandardMaterial({color:LIN(0xd8e6f0),transparent:true,opacity:0.22,roughness:0.08,metalness:0.1,depthWrite:false,side:THREE.DoubleSide})),
     boden:hvRes(new THREE.MeshStandardMaterial({map:boden,roughness:0.42,metalness:0.02})),
     bodenTex:boden,
-    paneel:hvRes(new THREE.MeshStandardMaterial({map:paneel,roughness:0.62,metalness:0.08})),
+    paneel:hvRes(new THREE.MeshStandardMaterial({map:paneel,color:LIN(0xc3c8cd),roughness:0.66,metalness:0.08})),
     gelb:hvRes(new THREE.MeshStandardMaterial({map:paneel,color:LIN(0xf0c419),roughness:0.6,metalness:0.08})),
     sockel:hvRes(new THREE.MeshStandardMaterial({map:sockel,roughness:0.92})),
     decke:hvRes(new THREE.MeshStandardMaterial({map:decke,roughness:0.7,metalness:0.2})),
@@ -52315,7 +52329,18 @@ function hvProdNebenflaechen(G){
   const L={x0:-82.2,x1:-75.4,z0:P.z1-5.2,z1:P.z1-0.12}, Hh=2.8, lm=(L.x0+L.x1)/2;
   for(const [a,b,z] of [[L.x0,L.x1,L.z0]]){ for(let x=a;x<=b+0.01;x+=(b-a)/5) S.box(0.06,Hh,0.06,x,Hh/2,z,0x8a9099,'metall');
     S.box(b-a,Hh-1.0,0.02,(a+b)/2,0.95+(Hh-1.0)/2,z,0xffffff,'plexi'); S.box(b-a,0.9,0.06,(a+b)/2,0.45,z,0xe4e7ea,'lack'); }
-  for(const x of [L.x0,L.x1]){ S.box(0.06,Hh,L.z1-L.z0,x,Hh/2,(L.z0+L.z1)/2,0xe4e7ea,'lack'); }
+  for(const x of [L.x0,L.x1]){ S.box(0.06,Hh,L.z1-L.z0,x,Hh/2,(L.z0+L.z1)/2,0xd3d7dc,'lack');
+    /* Paneelfugen, Sockelleiste, Bruestungsband und Fenster in der Seitenwand */
+    for(const sg of [-1,1]){ const xx=x+sg*0.034;
+      S.box(0.01,0.16,L.z1-L.z0,xx,0.08,(L.z0+L.z1)/2,0x4a5058,'lack'); S.box(0.01,0.05,L.z1-L.z0,xx,0.95,(L.z0+L.z1)/2,0x8a9099,'lack');
+      for(let z=L.z0+1.0;z<L.z1-0.2;z+=1.0) S.box(0.008,Hh-0.2,0.012,xx,Hh/2,z,0x9aa1aa,'lack');
+      S.box(0.012,0.06,2.1,xx,1.3,(L.z0+L.z1)/2-0.4,0x5d646d,'metall'); S.box(0.012,0.06,2.1,xx,2.3,(L.z0+L.z1)/2-0.4,0x5d646d,'metall');
+      for(const dz of [-1.05,0,1.05]) S.box(0.012,1.06,0.05,xx,1.8,(L.z0+L.z1)/2-0.4+dz,0x5d646d,'metall'); }
+    S.box(0.08,0.94,2.0,x,1.8,(L.z0+L.z1)/2-0.4,0xffffff,'plexi'); }
+  /* Dach: Klimageraet mit Luefter, Kabelkanal zur Decke */
+  S.box(1.4,0.55,0.9,L.x0+1.4,Hh+0.4,(L.z0+L.z1)/2+0.8,0xc9ced5,'lack'); S.zyl(0.3,0.03,L.x0+1.4,Hh+0.69,(L.z0+L.z1)/2+0.8,0x2a2e35,'lack','y',12);
+  for(let i=0;i<6;i++) S.box(0.012,0.025,0.8,L.x0+0.705,Hh+0.2+i*0.07,(L.z0+L.z1)/2+0.8,0x5d646d,'lack');
+  S.box(0.3,HV7.PH-Hh-0.12,0.08,L.x1-0.6,(HV7.PH+Hh+0.12)/2,(L.z0+L.z1)/2,0x8a9099,'metall');
   S.box(L.x1-L.x0+0.1,0.12,L.z1-L.z0+0.1,lm,Hh+0.06,(L.z0+L.z1)/2,0xe4e7ea,'lack');
   S.box(1.0,2.1,0.04,L.x1-0.8,1.05,L.z0-0.01,0x7f8790,'lack');
   for(let i=0;i<3;i++){ const x=L.x0+1.2+i*2.0; S.box(1.6,0.05,0.8,x,0.76,L.z0+0.9,0xd8dce1,'lack'); S.box(0.05,0.74,0.6,x,0.37,L.z0+0.9,0x5d646d,'lack');
@@ -52451,39 +52476,74 @@ function hvHochregalGasse(k){
 function hvRbg(G,gs,k){
   const R=HV7.hr, Ht=R.hoehe, q=hvQ();
   const g=new THREE.Group(); g.position.set(-56,0,gs.mitte); G.add(g);
-  const S=hvSammler(), GELB=0xf2b81c, GRAU=0xe4e7ea, DUNK=0x2a2e35;
-  /* Fahrwerk */
+  const S=hvSammler(), GELB=0xf2b81c, GRAU=0xaeb5bd, DUNK=0x2a2e35, MITT=0x5d646d;
+  /* Fahrwerk: Traeger, Radkaesten, Puffer, Fahrantrieb, Stromabnehmer */
   S.box(3.0,0.5,0.7,0,0.35,0,GELB,'lack'); S.box(3.1,0.08,0.75,0,0.62,0,DUNK,'lack');
-  for(const dx of [-1.2,1.2]) S.zyl(0.2,0.24,dx,0.2,0,DUNK,'lack','z',q.rund);
-  /* Mast (zwei Profile mit Laufbahnen) */
-  for(const dz of [-0.2,0.2]) S.box(0.42,Ht-0.6,0.12,0.75,0.65+(Ht-0.6)/2,dz,GRAU,'lack');
-  S.box(0.06,Ht-0.6,0.5,0.98,0.65+(Ht-0.6)/2,0,0xb9bfc6,'metall');
-  for(let y=1.5;y<Ht-0.5;y+=1.6) S.box(0.38,0.08,0.34,0.75,y,0,GRAU,'lack');
-  /* Kopf mit Fuehrungsrollen */
-  S.box(1.4,0.3,0.6,0.5,Ht+0.0,0,GELB,'lack');
-  for(const dz of [-0.13,0.13]) S.zyl(0.06,0.1,0.5,Ht+0.2,dz,DUNK,'lack','y',8);
-  /* Schaltschrank und Leitungen */
-  S.box(0.6,1.7,0.55,-0.9,0.65+0.85,0,0xb9bfc6,'lack');
-  S.box(0.02,1.2,0.4,-0.6,1.6,0,0x8a9099,'lack');
-  S.box(0.04,Ht-1,0.04,0.98,Ht/2,0.3,DUNK,'matt');
-  S.zyl(0.07,0.12,0.5,Ht+0.22,0.22,0xff9a20,'leucht','y',8);
+  for(const dx of [-1.2,1.2]){ S.zyl(0.2,0.24,dx,0.2,0,DUNK,'lack','z',q.rund); S.box(0.56,0.5,0.8,dx,0.33,0,MITT,'lack'); S.box(0.5,0.06,0.82,dx,0.6,0,DUNK,'lack'); }
+  for(const sx of [-1,1]) for(const dz of [-0.2,0.2]){ S.zyl(0.08,0.22,sx*1.62,0.32,dz,DUNK,'matt','x',8); S.box(0.04,0.3,0.7,sx*1.52,0.32,0,0x1d1f24,'lack'); }
+  S.zyl(0.15,0.36,1.25,0.82,0.18,MITT,'lack','z',q.rund); S.box(0.3,0.3,0.26,1.25,0.82,-0.12,DUNK,'lack'); S.zyl(0.1,0.06,1.25,0.82,0.39,DUNK,'lack','z',8);
+  S.box(0.08,0.14,0.32,-0.4,0.2,0.48,DUNK,'lack'); S.box(0.16,0.1,0.06,-0.4,0.2,0.62,0x8a9099,'metall');
+  /* Mast als Fachwerk: vier Gurte, Querriegel, Diagonalen an drei Seiten */
+  const y0=0.65, yt=Ht-0.15, mx0=0.6, mx1=0.92, mz=0.22;
+  for(const xx of [mx0,mx1]) for(const zz of [-mz,mz]) S.box(0.1,yt-y0,0.1,xx,(y0+yt)/2,zz,GRAU,'lack');
+  for(const zz of [-mz,mz]) S.box(0.04,yt-y0,0.08,mx0-0.06,(y0+yt)/2,zz,0xc9ced5,'metall');   /* Laufbahnen fuer den Hubwagen */
+  const stp=q.fein?0.9:1.8;
+  for(let y=y0+0.3,i=0;y<yt-0.2;y+=stp,i++){ const y2=Math.min(yt-0.1,y+stp);
+    S.box(mx1-mx0,0.06,0.06,(mx0+mx1)/2,y,-mz,GRAU,'lack'); S.box(mx1-mx0,0.06,0.06,(mx0+mx1)/2,y,mz,GRAU,'lack'); S.box(0.06,0.06,2*mz,mx1,y,0,GRAU,'lack');
+    const s=i%2?1:-1;
+    for(const zz of [-mz,mz]) S.strebe(s>0?mx0:mx1,y,zz,s>0?mx1:mx0,y2,zz,0.045,GRAU,'lack');
+    S.strebe(mx1,y,s*mz,mx1,y2,-s*mz,0.045,GRAU,'lack'); }
+  /* Hubseile und Steigleiter an der Ostseite */
+  for(const zz of [-0.1,0.1]) S.box(0.015,yt-y0,0.015,mx0-0.12,(y0+yt)/2,zz,0x3a3e44,'metall');
+  if(q.fein){ for(const zz of [-0.17,0.17]) S.box(0.04,yt-1.2,0.04,mx1+0.28,(1.2+yt)/2,zz,0x8a9099,'metall');
+    for(let y=1.4;y<yt-0.2;y+=0.3) S.box(0.03,0.03,0.34,mx1+0.28,y,0,0x8a9099,'metall');
+    for(let y=2.6;y<yt-0.4;y+=0.9){ S.box(0.03,0.03,0.6,mx1+0.5,y,0,GELB,'lack'); for(const zz of [-0.3,0.3]) S.box(0.3,0.03,0.03,mx1+0.36,y,zz,GELB,'lack'); } }
+  /* Kettenkanal mit Energiekette an der Mastseite */
+  S.box(0.18,yt-y0-0.3,0.03,0.76,(y0+yt-0.3)/2,mz+0.12,0x8a9099,'metall'); S.box(0.03,yt-y0-0.3,0.12,0.67,(y0+yt-0.3)/2,mz+0.07,0x8a9099,'metall');
+  for(let y=y0+0.1;y<Ht*0.55;y+=0.09) S.box(0.13,0.07,0.05,0.76,y,mz+0.07,0x1d1f24,'matt');
+  /* Kopf mit Fuehrungsrollen und Warnleuchte */
+  S.box(1.4,0.3,0.6,0.5,Ht+0.0,0,GELB,'lack'); S.box(1.44,0.05,0.64,0.5,Ht+0.17,0,DUNK,'lack');
+  for(const xx of [0.1,0.9]) for(const dz of [-0.11,0.11]) S.zyl(0.06,0.1,xx,Ht+0.24,dz,DUNK,'lack','y',8);
+  S.zyl(0.06,0.04,0.0,Ht+0.2,0.2,DUNK,'lack','y',8); S.zyl(0.07,0.14,0.0,Ht+0.29,0.2,0xff9a20,'leucht','y',10);
+  /* Schaltschrank an der Ostseite: Tuerfuge, Griff, Display, Hauptschalter, Lueftung */
+  const sx=1.22, sy=1.55;
+  S.box(0.5,1.7,0.62,sx,sy,0,0xc2c7cd,'lack'); S.box(0.54,0.06,0.66,sx,sy+0.88,0,MITT,'lack'); S.box(0.5,0.12,0.6,sx,0.7,0,DUNK,'lack');
+  const fx=sx+0.252;
+  S.box(0.006,1.6,0.006,fx,sy,0,0x6f7780,'lack'); S.box(0.03,0.2,0.03,fx+0.01,sy,0.08,DUNK,'metall');
+  S.box(0.006,0.12,0.2,fx,sy+0.5,-0.15,0x2a6fb0,'leucht'); for(let i=0;i<3;i++) S.zyl(0.018,0.02,fx,sy+0.32,-0.22+i*0.06,[0x3dff7a,0xffd23a,0xff4a3a][i],'leucht','x',8);
+  S.box(0.01,0.14,0.14,fx,sy+0.15,0.17,0xf2c230,'lack'); S.zyl(0.04,0.04,fx+0.02,sy+0.15,0.17,0xd8352a,'lack','x',10);
+  for(let i=0;i<5;i++) S.box(0.01,0.02,0.24,fx,sy-0.45-i*0.06,-0.12,0x3a3e44,'lack');
+  S.box(0.008,0.16,0.16,fx,sy-0.15,0.17,0xf2c230,'leucht');
+  /* zweiter Kasten (Umrichter) hinter dem Mast */
+  S.box(0.5,1.1,0.5,-0.95,0.65+0.55,0,0xc2c7cd,'lack'); for(let i=0;i<6;i++) S.box(0.01,0.02,0.32,-1.205,0.9+i*0.08,0,0x3a3e44,'lack');
   S.fertig(g);
-  /* Hubwagen am Mast */
+  /* Schlaufe der Energiekette: laeuft mit halber Hubgeschwindigkeit mit */
+  const schl=new THREE.Group(); g.add(schl);
+  { const Sk=hvSammler(); for(let i=0;i<=8;i++){ const a=Math.PI*i/8; Sk.box(0.13,0.06,0.05,0.76,-0.08*Math.sin(a),mz+0.15-0.08*Math.cos(a),0x1d1f24,'matt',a); } for(let y=0.04;y<0.9;y+=0.08) Sk.box(0.13,0.06,0.05,0.76,y,mz+0.23,0x1d1f24,'matt'); Sk.fertig(schl); }
+  /* Hubwagen am Mast: Rahmen, Fuehrungsrollen, Gabelantrieb, Seitenschutz */
   const hub=new THREE.Group(); hub.position.set(0,1.0,0); g.add(hub);
   const Sh=hvSammler();
-  Sh.box(0.25,1.3,0.9,0.45,0.65,0,GELB,'lack');
-  Sh.box(1.1,0.1,1.25,-0.15,0.05,0,GELB,'lack');
+  Sh.box(0.25,1.3,0.9,0.45,0.65,0,GELB,'lack'); Sh.box(0.27,0.06,0.94,0.45,1.28,0,DUNK,'lack');
+  for(const yy of [0.15,1.15]) for(const dz of [-mz,mz]) Sh.zyl(0.05,0.08,0.56,yy,dz,DUNK,'lack','x',8);
+  Sh.box(1.1,0.1,1.25,-0.15,0.05,0,GELB,'lack'); Sh.box(1.12,0.04,1.27,-0.15,0.0,0,DUNK,'lack');
   for(const dz of [-0.62,0.62]) Sh.box(0.06,1.0,0.06,-0.65,0.55,dz,GELB,'lack');
-  Sh.box(0.06,0.06,1.3,-0.65,1.05,0,GELB,'lack');
+  Sh.box(0.06,0.06,1.3,-0.65,1.05,0,GELB,'lack'); Sh.box(0.04,0.04,1.3,-0.65,0.6,0,GELB,'lack');
+  Sh.zyl(0.09,0.3,0.25,0.32,0.3,MITT,'lack','x',q.rund); Sh.box(0.16,0.2,0.2,0.08,0.32,0.3,DUNK,'lack');
+  for(const dz of [-0.6,0.6]){ Sh.box(0.08,0.06,0.04,0.3,0.16,dz,DUNK,'lack'); Sh.box(0.02,0.03,0.02,0.26,0.16,dz,0xff3020,'leucht'); }
+  Sh.zyl(0.04,0.08,0.45,1.36,0.35,0xff9a20,'leucht','y',8);
+  /* Teleskopgabel, feste Stufe */
+  for(const dx of [-0.3,0.3]) Sh.box(0.18,0.05,1.22,-0.15+dx,0.125,0,MITT,'lack');
   Sh.fertig(hub);
-  /* Teleskopgabel: zwei Zinken, fahren quer (z) ins Regal */
+  /* Mittelstufe (faehrt halb so weit) und Zinken */
+  const mitte=new THREE.Group(); hub.add(mitte);
+  { const Sm=hvSammler(); for(const dx of [-0.3,0.3]) Sm.box(0.15,0.04,1.18,-0.15+dx,0.165,0,0x8a9099,'metall'); Sm.fertig(mitte); }
   const gabel=new THREE.Group(); hub.add(gabel);
-  const Sg=hvSammler(); for(const dx of [-0.3,0.3]) Sg.box(0.14,0.06,1.2,-0.15+dx,0.13,0,0x9aa1aa,'metall'); Sg.fertig(gabel);
+  const Sg=hvSammler(); for(const dx of [-0.3,0.3]) Sg.box(0.13,0.05,1.2,-0.15+dx,0.21,0,0xb9bfc6,'metall'); Sg.fertig(gabel);
   /* Palette auf der Gabel */
   const v=k%HV_LADUNG.length;
   const last=new THREE.Group(); gabel.add(last);
   last.add(new THREE.Mesh(hvPalGeo(),HVM.holz)); const lm=new THREE.Mesh(hvLadungGeo(v),hvQ().karton?HVM.karton:(HVM.kartonB||(HVM.kartonB=hvRes(std(0xbf9150))))); lm.position.y=PAL_H; last.add(lm);
-  last.position.set(-0.15,0.16,0);
+  last.position.set(-0.15,0.235,0);
   /* Ablauf: Ziel anfahren (x und Hoehe gleichzeitig), Gabel aus, Palette ab/auf, Gabel ein */
   const E=R.ebenen, rng=hvRng(900+k);
   const st={ph:'fahren',t:0,x:-56,y:1.0,zx:-56,zy:1.0,seite:1,traegt:true,warte:0};
@@ -52501,7 +52561,7 @@ function hvRbg(G,gs,k){
     } else if(st.ph==='aus'){ gabel.position.z=st.seite*Math.min(1,st.t/1.4)*1.15; if(st.t>1.6){ st.traegt=!st.traegt; last.visible=st.traegt; st.ph='ein'; st.t=0; } }
     else if(st.ph==='ein'){ gabel.position.z=st.seite*Math.max(0,1-st.t/1.4)*1.15; if(st.t>1.5){ st.ph='warte'; st.t=0; } }
     else if(st.ph==='warte'&&st.t>0.8){ neuesZiel(); st.ph='fahren'; st.t=0; }
-    g.position.x=st.x-0.75; hub.position.y=st.y;
+    g.position.x=st.x-0.75; hub.position.y=st.y; mitte.position.z=gabel.position.z*0.5; schl.position.y=(0.65+st.y)*0.5+0.4;
   });
   return g;
 }
@@ -52574,7 +52634,7 @@ function hvRolleMat(){ return HVM.rolle||(HVM.rolle=hvRes(std(0xb9bfc6,{metalnes
    Noch ohne Spielablauf - die Teile bewegen sich nur zur Ansicht.
    ========================================================= */
 const HV_LINIE={xs:-97.6,xe:HV7.prod.x1-0.3,band:0.85,buehne:2.4};
-const HVF={weiss:0xeceef1,hell:0xd6dade,alu:0xc5cad1,dunkel:0x2a2e35,gelb:0xf2b81c,gummi:0x24262b,blau:0x2f6fd0,klt:0x3b6fb6,pappe:0xbf9150};
+const HVF={weiss:0xe2e5e8,hell:0xd6dade,alu:0xc5cad1,dunkel:0x2a2e35,gelb:0xf2b81c,gummi:0x24262b,blau:0x2f6fd0,klt:0x3b6fb6,pappe:0xbf9150};
 
 /* Gehaeuse einer Station: Unterbau, Alurahmen, Plexiglas, Dach, Signalsaeule, Bedienfeld */
 function hvMaschine(S,x0,x1,z,b,h,o){
@@ -52599,15 +52659,46 @@ function hvMaschine(S,x0,x1,z,b,h,o){
     S.box(0.3,HV7.PH-h-0.05,0.06,x0+0.35,(HV7.PH+h)/2,z-b/2+0.1,HVF.gelb,'lack');
     S.box(0.36,0.28,0.18,x0+0.35,h+0.18,z-b/2+0.12,0xc9ced5,'lack');
   }
-  /* Unterschrank: Zierband, Tuerfugen, Griffe */
-  for(const s of [-1,1]){ S.box(L-0.02,0.05,0.008,xm,0.74,z+s*(b/2+0.002),o.band||0x2f6fd0,'lack');
-    for(let xx=x0+0.6;xx<x1-0.3;xx+=0.6){ S.box(0.008,0.6,0.008,xx,0.43,z+s*(b/2+0.002),0x9aa1aa,'lack'); S.box(0.03,0.12,0.02,xx-0.08,0.5,z+s*(b/2+0.01),0x5d646d,'metall'); } }
+  const q=hvQ(), DK=0x4a5058;
+  /* Unterschrank: Eckprofile, Kantenleiste, Zierband, Tuerfugen, Griffe, Lueftungsgitter */
+  for(const xx of [x0+0.02,x1-0.02]) for(const s of [-1,1]) S.box(0.05,0.72,0.05,xx,0.44,z+s*(b/2-0.015),DK,'lack');
+  for(const s of [-1,1]){ S.box(L,0.04,0.03,xm,0.8,z+s*(b/2-0.005),DK,'lack');
+    S.box(L-0.02,0.05,0.008,xm,0.74,z+s*(b/2+0.002),o.band||0x2f6fd0,'lack');
+    for(let xx=x0+0.6;xx<x1-0.3;xx+=0.6){ S.box(0.008,0.6,0.008,xx,0.43,z+s*(b/2+0.002),0x7d848d,'lack'); S.box(0.03,0.12,0.02,xx-0.08,0.5,z+s*(b/2+0.01),0x5d646d,'metall'); }
+    if(q.fein){ const vx=x1-0.45; S.box(0.34,0.26,0.006,vx,0.36,z+s*(b/2+0.003),0x8a9099,'lack');
+      for(let i=0;i<6;i++) S.box(0.3,0.016,0.012,vx,0.26+i*0.04,z+s*(b/2+0.006),0x2a2e35,'lack'); } }
+  for(const xx of [x0,x1]){ const sg=xx<xm?-1:1; S.box(0.006,0.6,b-0.12,xx+sg*0.002,0.43,z,0x7d848d,'lack');
+    if(q.fein) for(let i=0;i<5;i++) S.box(0.012,0.016,Math.min(0.5,b-0.3),xx+sg*0.006,0.3+i*0.045,z,0x2a2e35,'lack'); }
+  if(o.offen!==true){
+    /* Dachblende mit Akzentband, dunkle Rahmenleisten an der Scheibe */
+    for(const s of [-1,1]){ S.box(L+0.02,0.1,0.02,xm,h-0.07,z+s*(b/2-0.0),o.band||0x2f6fd0,'lack'); S.box(L-0.1,0.025,0.02,xm,ub+0.06,z+s*(b/2-0.02),DK,'lack'); }
+    /* sichtbare Mechanik: Servomotor an der Achse, Zahnriemen, Pneumatikzylinder, Ventilinsel */
+    const ix=xm+(L>2.6?-L*0.18:0);
+    S.zyl(0.07,0.22,ix,h-0.35,z-b/2+0.37,DK,'lack','z',q.rund); S.zyl(0.05,0.06,ix,h-0.35,z-b/2+0.22,0x8a9099,'metall','z',8);
+    S.box(0.02,0.04,b-0.6,ix+0.06,h-0.35,z,0x1d1f24,'matt');
+    if(q.fein){ for(const s of [-1,1]){ S.zyl(0.035,0.42,ix+s*0.32,ub+0.45,z+b/2-0.35,0xd8dce1,'metall','y',8); S.zyl(0.012,0.2,ix+s*0.32,ub+0.75,z+b/2-0.35,0xb9bfc6,'metall','y',6); S.box(0.09,0.05,0.09,ix+s*0.32,ub+0.22,z+b/2-0.35,DK,'lack'); }
+      const vx=x1-0.5; S.box(0.42,0.12,0.1,vx,ub+0.5,z-b/2+0.12,0x3b6fb6,'lack'); for(let i=0;i<6;i++){ S.box(0.04,0.06,0.04,vx-0.17+i*0.068,ub+0.59,z-b/2+0.12,DK,'lack'); S.box(0.01,0.3,0.01,vx-0.17+i*0.068,ub+0.77,z-b/2+0.12,[0x3a8fd8,0x2a2e35,0x3a8fd8,0xe36b1f,0x3a8fd8,0x2a2e35][i],'matt'); } }
+    /* Kabeltrasse ueber dem Dach: Gitterrinne mit Kabeln */
+    const ky=h+0.32, kz=z-b/2+0.3;
+    S.box(L-0.2,0.012,0.3,xm,ky,kz,0x9aa1aa,'metall'); for(const s of [-1,1]) S.box(L-0.2,0.08,0.012,xm,ky+0.04,kz+s*0.15,0x9aa1aa,'metall');
+    for(let i=0;i<4;i++) S.box(L-0.24,0.035,0.035,xm,ky+0.025,kz-0.09+i*0.06,[0x1d1f24,0x5d646d,0xe36b1f,0x1d1f24][i],'matt');
+    for(let xx=x0+0.4;xx<x1-0.2;xx+=1.2) S.box(0.03,0.3,0.03,xx,h+0.17,kz,0x8a9099,'metall');
+  }
   if(o.signal!==false){ const sx=x1-0.15, sz=z-b/2+0.15;
-    S.zyl(0.03,0.35,sx,h+0.2,sz,HVF.alu,'metall','y',8);
-    S.zyl(0.05,0.08,sx,h+0.42,sz,0x3dff7a,'leucht','y',10); S.zyl(0.05,0.08,sx,h+0.5,sz,0x5a4a10,'lack','y',10); S.zyl(0.05,0.08,sx,h+0.58,sz,0x5a1010,'lack','y',10); }
+    S.box(0.12,0.04,0.12,sx,h+0.04,sz,DK,'lack'); S.zyl(0.025,0.3,sx,h+0.2,sz,HVF.alu,'metall','y',8);
+    S.zyl(0.05,0.04,sx,h+0.37,sz,0x1d1f24,'lack','y',10);
+    S.zyl(0.05,0.08,sx,h+0.43,sz,0x3dff7a,'leucht','y',10); S.zyl(0.05,0.08,sx,h+0.51,sz,0x6a5a14,'lack','y',10); S.zyl(0.05,0.08,sx,h+0.59,sz,0x6a1414,'lack','y',10);
+    S.zyl(0.05,0.08,sx,h+0.67,sz,0x1a2e6a,'lack','y',10); S.zyl(0.052,0.03,sx,h+0.725,sz,0x1d1f24,'lack','y',10); }
+  /* Not-Aus an beiden Stirnseiten des Unterbaus */
+  for(const xx of [x0-0.01,x1+0.01]){ const sg=xx<xm?-1:1; S.box(0.08,0.12,0.12,xx+sg*0.03,0.66,z+b/2-0.15,0xf2c230,'lack'); S.zyl(0.035,0.04,xx+sg*0.08,0.66,z+b/2-0.15,0xd8352a,'lack','x',10); }
   if(o.hmi!==false){ const hx=x0+0.4, hz=z+b/2+0.25;
-    S.box(0.05,0.9,0.05,hx,ub+0.45,z+b/2+0.05,HVF.alu,'metall'); S.box(0.05,0.05,0.25,hx,ub+0.9,z+b/2+0.15,HVF.alu,'metall');
-    S.box(0.42,0.3,0.06,hx,ub+1.05,hz,HVF.dunkel,'lack'); S.box(0.36,0.24,0.005,hx,ub+1.05,hz+0.033,0xffffff,'screen'); }
+    /* Bedienpult am Schwenkarm: Rahmen, Display, Tasten, Not-Aus */
+    S.box(0.06,0.9,0.06,hx,ub+0.45,z+b/2+0.05,HVF.alu,'metall'); S.box(0.06,0.06,0.25,hx,ub+0.9,z+b/2+0.15,HVF.alu,'metall'); S.zyl(0.05,0.06,hx,ub+0.92,hz-0.02,DK,'lack','y',8);
+    S.box(0.5,0.42,0.08,hx,ub+1.1,hz,0x5d646d,'lack'); S.box(0.46,0.38,0.006,hx,ub+1.1,hz+0.041,0x2a2e35,'lack');
+    S.box(0.36,0.22,0.005,hx-0.02,ub+1.15,hz+0.045,0xffffff,'screen');
+    for(let i=0;i<4;i++) S.box(0.04,0.025,0.01,hx-0.15+i*0.08,ub+0.97,hz+0.046,[0x3dff7a,0xffffff,0xffd23a,0x3a8fd8][i],'leucht');
+    S.box(0.1,0.12,0.08,hx+0.3,ub+1.0,hz,0xf2c230,'lack'); S.zyl(0.035,0.04,hx+0.3,ub+1.0,hz+0.055,0xd8352a,'lack','z',10);
+  }
 }
 /* Gurtband laengs x mit Alurahmen und Beinen */
 function hvGurtband(S,x0,x1,z,b,y){

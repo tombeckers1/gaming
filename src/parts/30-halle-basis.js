@@ -94,23 +94,37 @@ function hvBodenTex(){
 }
 /* Sandwichpaneele innen: liegende Paneele 1 m hoch, feine Mikroprofilierung. Kachel 4 x 4 m. */
 function hvPaneelTex(){
+  /* Sandwichpaneele 1 m hoch, Stoss alle 4 m, Schraubenreihen, Laufspuren
+     unter den Fugen und fleckige Alterung - nicht mehr klinisch weiss */
   return hvTex(256,512,(g,W,H)=>{
-    const f=hvFbm(64,128,21,4,3,0.5);
-    g.fillStyle='#d6dade'; g.fillRect(0,0,W,H);
+    const f=hvFbm(64,128,21,4,3,0.5), R=hvRng(22);
+    g.fillStyle='#c9ced2'; g.fillRect(0,0,W,H);
     const ph=H/4;
     for(let p=0;p<4;p++){ const y=p*ph;
-      for(let k=0;k<ph;k+=8){ g.fillStyle='rgba(255,255,255,.35)'; g.fillRect(0,y+k,W,1); g.fillStyle='rgba(120,128,138,.10)'; g.fillRect(0,y+k+4,W,1.5); }
-      g.fillStyle='rgba(70,76,86,.45)'; g.fillRect(0,y+ph-3,W,3); g.fillStyle='rgba(255,255,255,.6)'; g.fillRect(0,y,W,1.5); }
-    for(let y=0;y<128;y++) for(let x=0;x<64;x++){ const v=f[y*64+x]; g.fillStyle=`rgba(${v>0.5?255:40},${v>0.5?255:44},${v>0.5?255:50},${Math.abs(v-0.5)*0.08})`; g.fillRect(x*W/64,y*H/128,W/64+1,H/128+1); }
+      g.fillStyle=`rgba(${p%2?120:255},${p%2?126:255},${p%2?134:255},.05)`; g.fillRect(0,y,W,ph);
+      for(let k=0;k<ph;k+=8){ g.fillStyle='rgba(255,255,255,.28)'; g.fillRect(0,y+k,W,1); g.fillStyle='rgba(110,118,128,.13)'; g.fillRect(0,y+k+4,W,1.5); }
+      g.fillStyle='rgba(55,60,70,.6)'; g.fillRect(0,y+ph-3,W,3); g.fillStyle='rgba(255,255,255,.55)'; g.fillRect(0,y,W,1.5);
+      for(let x=8;x<W;x+=32){ g.fillStyle='rgba(60,64,72,.55)'; g.fillRect(x,y+ph-9,2.5,2.5); g.fillRect(x,y+5,2.5,2.5); } }
+    /* Laufspuren: duenne graue Streifen unter den Fugen */
+    for(let i=0;i<60;i++){ const x=R()*W, y0=Math.floor(R()*4)*ph, l=10+R()*ph*0.8, a=0.05+R()*0.1;
+      const gr=g.createLinearGradient(0,y0,0,y0+l); gr.addColorStop(0,`rgba(70,66,58,${a})`); gr.addColorStop(1,'rgba(70,66,58,0)');
+      g.fillStyle=gr; g.fillRect(x,y0,1+R()*2.5,l); }
+    for(let y=0;y<128;y++) for(let x=0;x<64;x++){ const v=f[y*64+x]; g.fillStyle=`rgba(${v>0.5?255:62},${v>0.5?255:60},${v>0.5?255:56},${Math.abs(v-0.5)*0.24})`; g.fillRect(x*W/64,y*H/128,W/64+1,H/128+1); }
+    /* senkrechter Paneelstoss mit Deckleiste am Kachelrand */
+    g.fillStyle='rgba(60,66,74,.55)'; g.fillRect(0,0,3,H); g.fillStyle='rgba(255,255,255,.35)'; g.fillRect(3,0,1.5,H);
   });
 }
-/* Betonsockel 1,2 m mit Schalungsstoessen */
+/* Betonsockel 1,2 m mit Schalungsstoessen, Abdeckblech oben, Spritz- und
+   Reifenschmutz unten */
 function hvSockelTex(){
   return hvTex(256,128,(g,W,H)=>{
     const f=hvFbm(W,H,31,4,4,0.5);
-    hvFeldMalen(g,W,H,f,v=>{ const k=0.86+0.24*v; return [168*k,170*k,168*k]; });
+    hvFeldMalen(g,W,H,f,v=>{ const k=0.84+0.24*v; return [160*k,162*k,160*k]; });
     const R=hvRng(32); for(let i=0;i<260;i++){ g.fillStyle=`rgba(40,40,40,${0.12+R()*0.2})`; const s=1+R()*2; g.beginPath(); g.arc(R()*W,R()*H,s,0,7); g.fill(); }
     g.fillStyle='rgba(60,62,64,.4)'; g.fillRect(W/2,0,2,H); g.fillRect(0,0,2,H);
+    const gr=g.createLinearGradient(0,H*0.55,0,H); gr.addColorStop(0,'rgba(50,46,40,0)'); gr.addColorStop(1,'rgba(50,46,40,.5)'); g.fillStyle=gr; g.fillRect(0,H*0.55,W,H*0.45);
+    for(let i=0;i<70;i++){ g.fillStyle=`rgba(30,30,30,${0.05+R()*0.12})`; g.fillRect(R()*W,H*(0.82+R()*0.15),4+R()*30,1+R()*2); }
+    g.fillStyle='#8d949c'; g.fillRect(0,0,W,6); g.fillStyle='rgba(255,255,255,.5)'; g.fillRect(0,0,W,1.5); g.fillStyle='rgba(30,32,36,.55)'; g.fillRect(0,6,W,2.5);
   });
 }
 /* Trapezblech der Dachunterseite, Sicken laengs z */
@@ -209,7 +223,7 @@ function hvMaterialien(){
     plexi:hvRes(new THREE.MeshStandardMaterial({color:LIN(0xd8e6f0),transparent:true,opacity:0.22,roughness:0.08,metalness:0.1,depthWrite:false,side:THREE.DoubleSide})),
     boden:hvRes(new THREE.MeshStandardMaterial({map:boden,roughness:0.42,metalness:0.02})),
     bodenTex:boden,
-    paneel:hvRes(new THREE.MeshStandardMaterial({map:paneel,roughness:0.62,metalness:0.08})),
+    paneel:hvRes(new THREE.MeshStandardMaterial({map:paneel,color:LIN(0xc3c8cd),roughness:0.66,metalness:0.08})),
     gelb:hvRes(new THREE.MeshStandardMaterial({map:paneel,color:LIN(0xf0c419),roughness:0.6,metalness:0.08})),
     sockel:hvRes(new THREE.MeshStandardMaterial({map:sockel,roughness:0.92})),
     decke:hvRes(new THREE.MeshStandardMaterial({map:decke,roughness:0.7,metalness:0.2})),

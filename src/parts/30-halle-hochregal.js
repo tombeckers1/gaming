@@ -113,39 +113,74 @@ function hvHochregalGasse(k){
 function hvRbg(G,gs,k){
   const R=HV7.hr, Ht=R.hoehe, q=hvQ();
   const g=new THREE.Group(); g.position.set(-56,0,gs.mitte); G.add(g);
-  const S=hvSammler(), GELB=0xf2b81c, GRAU=0xe4e7ea, DUNK=0x2a2e35;
-  /* Fahrwerk */
+  const S=hvSammler(), GELB=0xf2b81c, GRAU=0xaeb5bd, DUNK=0x2a2e35, MITT=0x5d646d;
+  /* Fahrwerk: Traeger, Radkaesten, Puffer, Fahrantrieb, Stromabnehmer */
   S.box(3.0,0.5,0.7,0,0.35,0,GELB,'lack'); S.box(3.1,0.08,0.75,0,0.62,0,DUNK,'lack');
-  for(const dx of [-1.2,1.2]) S.zyl(0.2,0.24,dx,0.2,0,DUNK,'lack','z',q.rund);
-  /* Mast (zwei Profile mit Laufbahnen) */
-  for(const dz of [-0.2,0.2]) S.box(0.42,Ht-0.6,0.12,0.75,0.65+(Ht-0.6)/2,dz,GRAU,'lack');
-  S.box(0.06,Ht-0.6,0.5,0.98,0.65+(Ht-0.6)/2,0,0xb9bfc6,'metall');
-  for(let y=1.5;y<Ht-0.5;y+=1.6) S.box(0.38,0.08,0.34,0.75,y,0,GRAU,'lack');
-  /* Kopf mit Fuehrungsrollen */
-  S.box(1.4,0.3,0.6,0.5,Ht+0.0,0,GELB,'lack');
-  for(const dz of [-0.13,0.13]) S.zyl(0.06,0.1,0.5,Ht+0.2,dz,DUNK,'lack','y',8);
-  /* Schaltschrank und Leitungen */
-  S.box(0.6,1.7,0.55,-0.9,0.65+0.85,0,0xb9bfc6,'lack');
-  S.box(0.02,1.2,0.4,-0.6,1.6,0,0x8a9099,'lack');
-  S.box(0.04,Ht-1,0.04,0.98,Ht/2,0.3,DUNK,'matt');
-  S.zyl(0.07,0.12,0.5,Ht+0.22,0.22,0xff9a20,'leucht','y',8);
+  for(const dx of [-1.2,1.2]){ S.zyl(0.2,0.24,dx,0.2,0,DUNK,'lack','z',q.rund); S.box(0.56,0.5,0.8,dx,0.33,0,MITT,'lack'); S.box(0.5,0.06,0.82,dx,0.6,0,DUNK,'lack'); }
+  for(const sx of [-1,1]) for(const dz of [-0.2,0.2]){ S.zyl(0.08,0.22,sx*1.62,0.32,dz,DUNK,'matt','x',8); S.box(0.04,0.3,0.7,sx*1.52,0.32,0,0x1d1f24,'lack'); }
+  S.zyl(0.15,0.36,1.25,0.82,0.18,MITT,'lack','z',q.rund); S.box(0.3,0.3,0.26,1.25,0.82,-0.12,DUNK,'lack'); S.zyl(0.1,0.06,1.25,0.82,0.39,DUNK,'lack','z',8);
+  S.box(0.08,0.14,0.32,-0.4,0.2,0.48,DUNK,'lack'); S.box(0.16,0.1,0.06,-0.4,0.2,0.62,0x8a9099,'metall');
+  /* Mast als Fachwerk: vier Gurte, Querriegel, Diagonalen an drei Seiten */
+  const y0=0.65, yt=Ht-0.15, mx0=0.6, mx1=0.92, mz=0.22;
+  for(const xx of [mx0,mx1]) for(const zz of [-mz,mz]) S.box(0.1,yt-y0,0.1,xx,(y0+yt)/2,zz,GRAU,'lack');
+  for(const zz of [-mz,mz]) S.box(0.04,yt-y0,0.08,mx0-0.06,(y0+yt)/2,zz,0xc9ced5,'metall');   /* Laufbahnen fuer den Hubwagen */
+  const stp=q.fein?0.9:1.8;
+  for(let y=y0+0.3,i=0;y<yt-0.2;y+=stp,i++){ const y2=Math.min(yt-0.1,y+stp);
+    S.box(mx1-mx0,0.06,0.06,(mx0+mx1)/2,y,-mz,GRAU,'lack'); S.box(mx1-mx0,0.06,0.06,(mx0+mx1)/2,y,mz,GRAU,'lack'); S.box(0.06,0.06,2*mz,mx1,y,0,GRAU,'lack');
+    const s=i%2?1:-1;
+    for(const zz of [-mz,mz]) S.strebe(s>0?mx0:mx1,y,zz,s>0?mx1:mx0,y2,zz,0.045,GRAU,'lack');
+    S.strebe(mx1,y,s*mz,mx1,y2,-s*mz,0.045,GRAU,'lack'); }
+  /* Hubseile und Steigleiter an der Ostseite */
+  for(const zz of [-0.1,0.1]) S.box(0.015,yt-y0,0.015,mx0-0.12,(y0+yt)/2,zz,0x3a3e44,'metall');
+  if(q.fein){ for(const zz of [-0.17,0.17]) S.box(0.04,yt-1.2,0.04,mx1+0.28,(1.2+yt)/2,zz,0x8a9099,'metall');
+    for(let y=1.4;y<yt-0.2;y+=0.3) S.box(0.03,0.03,0.34,mx1+0.28,y,0,0x8a9099,'metall');
+    for(let y=2.6;y<yt-0.4;y+=0.9){ S.box(0.03,0.03,0.6,mx1+0.5,y,0,GELB,'lack'); for(const zz of [-0.3,0.3]) S.box(0.3,0.03,0.03,mx1+0.36,y,zz,GELB,'lack'); } }
+  /* Kettenkanal mit Energiekette an der Mastseite */
+  S.box(0.18,yt-y0-0.3,0.03,0.76,(y0+yt-0.3)/2,mz+0.12,0x8a9099,'metall'); S.box(0.03,yt-y0-0.3,0.12,0.67,(y0+yt-0.3)/2,mz+0.07,0x8a9099,'metall');
+  for(let y=y0+0.1;y<Ht*0.55;y+=0.09) S.box(0.13,0.07,0.05,0.76,y,mz+0.07,0x1d1f24,'matt');
+  /* Kopf mit Fuehrungsrollen und Warnleuchte */
+  S.box(1.4,0.3,0.6,0.5,Ht+0.0,0,GELB,'lack'); S.box(1.44,0.05,0.64,0.5,Ht+0.17,0,DUNK,'lack');
+  for(const xx of [0.1,0.9]) for(const dz of [-0.11,0.11]) S.zyl(0.06,0.1,xx,Ht+0.24,dz,DUNK,'lack','y',8);
+  S.zyl(0.06,0.04,0.0,Ht+0.2,0.2,DUNK,'lack','y',8); S.zyl(0.07,0.14,0.0,Ht+0.29,0.2,0xff9a20,'leucht','y',10);
+  /* Schaltschrank an der Ostseite: Tuerfuge, Griff, Display, Hauptschalter, Lueftung */
+  const sx=1.22, sy=1.55;
+  S.box(0.5,1.7,0.62,sx,sy,0,0xc2c7cd,'lack'); S.box(0.54,0.06,0.66,sx,sy+0.88,0,MITT,'lack'); S.box(0.5,0.12,0.6,sx,0.7,0,DUNK,'lack');
+  const fx=sx+0.252;
+  S.box(0.006,1.6,0.006,fx,sy,0,0x6f7780,'lack'); S.box(0.03,0.2,0.03,fx+0.01,sy,0.08,DUNK,'metall');
+  S.box(0.006,0.12,0.2,fx,sy+0.5,-0.15,0x2a6fb0,'leucht'); for(let i=0;i<3;i++) S.zyl(0.018,0.02,fx,sy+0.32,-0.22+i*0.06,[0x3dff7a,0xffd23a,0xff4a3a][i],'leucht','x',8);
+  S.box(0.01,0.14,0.14,fx,sy+0.15,0.17,0xf2c230,'lack'); S.zyl(0.04,0.04,fx+0.02,sy+0.15,0.17,0xd8352a,'lack','x',10);
+  for(let i=0;i<5;i++) S.box(0.01,0.02,0.24,fx,sy-0.45-i*0.06,-0.12,0x3a3e44,'lack');
+  S.box(0.008,0.16,0.16,fx,sy-0.15,0.17,0xf2c230,'leucht');
+  /* zweiter Kasten (Umrichter) hinter dem Mast */
+  S.box(0.5,1.1,0.5,-0.95,0.65+0.55,0,0xc2c7cd,'lack'); for(let i=0;i<6;i++) S.box(0.01,0.02,0.32,-1.205,0.9+i*0.08,0,0x3a3e44,'lack');
   S.fertig(g);
-  /* Hubwagen am Mast */
+  /* Schlaufe der Energiekette: laeuft mit halber Hubgeschwindigkeit mit */
+  const schl=new THREE.Group(); g.add(schl);
+  { const Sk=hvSammler(); for(let i=0;i<=8;i++){ const a=Math.PI*i/8; Sk.box(0.13,0.06,0.05,0.76,-0.08*Math.sin(a),mz+0.15-0.08*Math.cos(a),0x1d1f24,'matt',a); } for(let y=0.04;y<0.9;y+=0.08) Sk.box(0.13,0.06,0.05,0.76,y,mz+0.23,0x1d1f24,'matt'); Sk.fertig(schl); }
+  /* Hubwagen am Mast: Rahmen, Fuehrungsrollen, Gabelantrieb, Seitenschutz */
   const hub=new THREE.Group(); hub.position.set(0,1.0,0); g.add(hub);
   const Sh=hvSammler();
-  Sh.box(0.25,1.3,0.9,0.45,0.65,0,GELB,'lack');
-  Sh.box(1.1,0.1,1.25,-0.15,0.05,0,GELB,'lack');
+  Sh.box(0.25,1.3,0.9,0.45,0.65,0,GELB,'lack'); Sh.box(0.27,0.06,0.94,0.45,1.28,0,DUNK,'lack');
+  for(const yy of [0.15,1.15]) for(const dz of [-mz,mz]) Sh.zyl(0.05,0.08,0.56,yy,dz,DUNK,'lack','x',8);
+  Sh.box(1.1,0.1,1.25,-0.15,0.05,0,GELB,'lack'); Sh.box(1.12,0.04,1.27,-0.15,0.0,0,DUNK,'lack');
   for(const dz of [-0.62,0.62]) Sh.box(0.06,1.0,0.06,-0.65,0.55,dz,GELB,'lack');
-  Sh.box(0.06,0.06,1.3,-0.65,1.05,0,GELB,'lack');
+  Sh.box(0.06,0.06,1.3,-0.65,1.05,0,GELB,'lack'); Sh.box(0.04,0.04,1.3,-0.65,0.6,0,GELB,'lack');
+  Sh.zyl(0.09,0.3,0.25,0.32,0.3,MITT,'lack','x',q.rund); Sh.box(0.16,0.2,0.2,0.08,0.32,0.3,DUNK,'lack');
+  for(const dz of [-0.6,0.6]){ Sh.box(0.08,0.06,0.04,0.3,0.16,dz,DUNK,'lack'); Sh.box(0.02,0.03,0.02,0.26,0.16,dz,0xff3020,'leucht'); }
+  Sh.zyl(0.04,0.08,0.45,1.36,0.35,0xff9a20,'leucht','y',8);
+  /* Teleskopgabel, feste Stufe */
+  for(const dx of [-0.3,0.3]) Sh.box(0.18,0.05,1.22,-0.15+dx,0.125,0,MITT,'lack');
   Sh.fertig(hub);
-  /* Teleskopgabel: zwei Zinken, fahren quer (z) ins Regal */
+  /* Mittelstufe (faehrt halb so weit) und Zinken */
+  const mitte=new THREE.Group(); hub.add(mitte);
+  { const Sm=hvSammler(); for(const dx of [-0.3,0.3]) Sm.box(0.15,0.04,1.18,-0.15+dx,0.165,0,0x8a9099,'metall'); Sm.fertig(mitte); }
   const gabel=new THREE.Group(); hub.add(gabel);
-  const Sg=hvSammler(); for(const dx of [-0.3,0.3]) Sg.box(0.14,0.06,1.2,-0.15+dx,0.13,0,0x9aa1aa,'metall'); Sg.fertig(gabel);
+  const Sg=hvSammler(); for(const dx of [-0.3,0.3]) Sg.box(0.13,0.05,1.2,-0.15+dx,0.21,0,0xb9bfc6,'metall'); Sg.fertig(gabel);
   /* Palette auf der Gabel */
   const v=k%HV_LADUNG.length;
   const last=new THREE.Group(); gabel.add(last);
   last.add(new THREE.Mesh(hvPalGeo(),HVM.holz)); const lm=new THREE.Mesh(hvLadungGeo(v),hvQ().karton?HVM.karton:(HVM.kartonB||(HVM.kartonB=hvRes(std(0xbf9150))))); lm.position.y=PAL_H; last.add(lm);
-  last.position.set(-0.15,0.16,0);
+  last.position.set(-0.15,0.235,0);
   /* Ablauf: Ziel anfahren (x und Hoehe gleichzeitig), Gabel aus, Palette ab/auf, Gabel ein */
   const E=R.ebenen, rng=hvRng(900+k);
   const st={ph:'fahren',t:0,x:-56,y:1.0,zx:-56,zy:1.0,seite:1,traegt:true,warte:0};
@@ -163,7 +198,7 @@ function hvRbg(G,gs,k){
     } else if(st.ph==='aus'){ gabel.position.z=st.seite*Math.min(1,st.t/1.4)*1.15; if(st.t>1.6){ st.traegt=!st.traegt; last.visible=st.traegt; st.ph='ein'; st.t=0; } }
     else if(st.ph==='ein'){ gabel.position.z=st.seite*Math.max(0,1-st.t/1.4)*1.15; if(st.t>1.5){ st.ph='warte'; st.t=0; } }
     else if(st.ph==='warte'&&st.t>0.8){ neuesZiel(); st.ph='fahren'; st.t=0; }
-    g.position.x=st.x-0.75; hub.position.y=st.y;
+    g.position.x=st.x-0.75; hub.position.y=st.y; mitte.position.z=gabel.position.z*0.5; schl.position.y=(0.65+st.y)*0.5+0.4;
   });
   return g;
 }

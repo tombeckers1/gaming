@@ -75,6 +75,12 @@ Ruhe lässt), je Bereich eine Untergruppe `HALLE.bereiche[name]`. Kollisionen li
 | Hoch | 272 / 214 Tsd. | 337–413 / 274–324 Tsd. |
 | Maximum | 272 / 214 Tsd. | 550–650 / 490–535 Tsd. (Spiegel + Schatten) |
 
+Optik-Ausbau 10.10. (RBG-Fachwerkmast, Schaltschrank, Energiekette, Teleskopgabel 2-stufig;
+Maschinen mit Eckprofilen, Lueftungsgittern, Bedienpult/Not-Aus, Signalsaeule, Kabeltrasse, Ventilinsel;
+Paneel-/Sockeltextur mit Schmutz; Leitstand-Waende): Hoch 272 → 281 Aufrufe, 214 → 238 Tsd. Dreiecke gesamt
+(+9 Aufrufe = je RBG Kettenschlaufe, Mittelstufe der Gabel, Leuchte am Hubwagen). Kleinteile (Leiter, Lueftungsgitter, Pneumatik) nur bei `hvQ().fein`, Fachwerk sonst grober.
+Bilder: `docs/bilder/halle/rbg-*.jpg`, `produktion-maschinen-detail.jpg`, `hochregal-stirnseite-wand.jpg`.
+
 Bauzeit 0,6–0,8 s (ohne Pracht). Echte FPS auf Toms PC sind ungemessen.
 
 ## Fallstricke (schon gelöst, nicht wieder einbauen)

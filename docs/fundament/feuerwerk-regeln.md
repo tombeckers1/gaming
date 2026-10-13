@@ -200,3 +200,16 @@ Gelöscht: `stationsModell`, `stationSlot`, `rampeMund`, `kerzeImRohr`, `station
 - Die alten Einzeltests bleiben, weil sie zusätzlich prüfen: `lochschuss` (Namen, Zählung je Lichtart),
   `ursprung` (jeder Funke, Emitter, Feuerteufel-Düsen), `vfrohr` (Bildpunkte im gerenderten Bild,
   Kamerablick).
+
+### Testergebnisse 13.10. (Stand dieses Branches, eigene Sperre, unter starker Fremdlast)
+
+- `abschussregel` (neu): ALLES OK – 131 Produkte × 2 Orte + 6 Prototypen, Anlage 3+3 / 12+12, Quelltext;
+  OFFEN nur F1 (7 Kugeln). Gegenprobe 1–5: jede Regel (R1, R3, R4, R5, R7) schlägt an.
+- grün: `lochschuss`, `ursprung` (131 Produkte, 0 Mängel), `vfrohr`, `vorfuehrung`, `hoehen`, `themen` (R4=1),
+  `verpackung`, `steigerung`, `bodenfontaene`, `moerser`, `rohrvarianten`, `kleinfeuer06`, `amprodukt`,
+  `anomalie` in vier Klassen-Teilläufen (Batterien A+B, Kugeln, Raketen/Lichter/Fontänen/Kleinfeuerwerk; ganzer Lauf sprengte unter Last 60 min).
+- `zuendpult`: alles grün bis auf URSPRUNG Platz 8 – auf dem Ausgangsstand 73e52ef genauso rot
+  (Batterieschüsse sind nach 2,6 s schon unterwegs; Test-Annahme veraltet).
+- `gameplay`: nur PACKMATERIAL (bekannter Flake laut UEBERGABE 0.5).
+- Angepasst: `ursprung` (Mündungshöhe aus `muendung`, Zündschnurdauer aus dem Baustein), `zuendpult`
+  (Rakete fliegt mit statt zu verschwinden), `bodenfontaene` (Emitter `abModell`).

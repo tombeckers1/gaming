@@ -3,7 +3,7 @@
    Speichern & Laden
    ========================================================= */
 function freshState(){ const prices={}; ORDER.forEach(t=>prices[t]=P[t].market);
-  return {v:3,money:500,rep:50,level:1,xp:0,season:1,day:0,loan:null,prices,grime:0,
+  return {v:3,money:WIRT.start.geld,rep:WIRT.start.ruf,level:WIRT.start.level,xp:0,season:1,day:0,loan:null,prices,grime:0,
     up:{lager:false,plakat:false,terminal:false,tag4:false,heizung:false,musik:false,radio:false,cams:false,regallicht:false,alarm:false,shop_halb:false,testfeld:false,shop_gross:false,lager_nord:false,lager_gross:false,packstation:false,kasse2:false,labor:false,labor2:false},
     staff:{},prio:{},wage:{},pause:{},ev:null,goal:null,mkt:1,comp:1,deko:[],wall:'creme',floor:'grau',schildBg:'auto',schildFg:'weiss',paint:[],test:null,stamm:{},
     /* Der Laden startet leer: kein Verkaufsregal, kein Lagerregal.
@@ -108,9 +108,9 @@ function startGame(fresh){
     if(Array.isArray(S.einbauUnterwegs)&&S.einbauUnterwegs.includes('kasse3')){ k3=true; S.einbauUnterwegs=S.einbauUnterwegs.filter(id=>id!=='kasse3'); }
     if(Array.isArray(S.paketeBoden)&&S.paketeBoden.some(b=>b&&b.einbau==='kasse3')){ k3=true; S.paketeBoden=S.paketeBoden.filter(b=>!(b&&b.einbau==='kasse3')); }
     if(S.carrying&&S.carrying.einbau==='kasse3'){ k3=true; S.carrying=null; }
-    if(k3) zurueck+=3800;
+    if(k3) zurueck+=WIRT.historie.erstattung.kasse3;
     for(const id of ['kassierer4','kassierer5']){
-      if(S.staff&&S.staff[id]) zurueck+=650;
+      if(S.staff&&S.staff[id]) zurueck+=WIRT.historie.erstattung.sbBetreuer;
       for(const k of ['staff','wage','pause','prio','einr']) if(S[k]&&typeof S[k]==='object') delete S[k][id]; }
     if(S.up) delete S.up.kasse3;
     if(zurueck>0){ S.money=r2((+S.money||0)+zurueck);
@@ -120,8 +120,8 @@ function startGame(fresh){
      zurueck und kann sie dort neu bauen; wer die Halle hat, dessen Station zieht an die neue Stelle
      (PACK_HOME beim Laden). */
   if(d&&d.up&&d.up.packstation&&!d.up.lager_sued2){ let z=0;
-    for(const [id,k] of [['packstation',6400],['packstation2',14000],['packstation3',26000]]) if(S.up[id]){ z+=k; delete S.up[id]; }
-    for(const [id,k] of [['packer',700],['packer2',750],['packer3',800]]){ if(S.staff&&S.staff[id]) z+=k;
+    for(const [id,k] of [['packstation',WIRT.historie.erstattung.packstation],['packstation2',WIRT.historie.erstattung.packstation2],['packstation3',WIRT.historie.erstattung.packstation3]]) if(S.up[id]){ z+=k; delete S.up[id]; }
+    for(const [id,k] of [['packer',WIRT.historie.erstattung.packer],['packer2',WIRT.historie.erstattung.packer2],['packer3',WIRT.historie.erstattung.packer3]]){ if(S.staff&&S.staff[id]) z+=k;
       for(const m of ['staff','wage','pause','prio','einr']) if(S[m]&&typeof S[m]==='object') delete S[m][id]; }
     S.paketGr=[]; S.paketP=[]; S.paletten=[]; S.pakete=0; S.pack=null;
     if(z>0){ S.money=r2((+S.money||0)+z); later(2.5,()=>toast(`Die Packstation zieht ans Hallenende (Lager Süd 4) – ${eur(z)} gutgeschrieben.`,'money')); } }

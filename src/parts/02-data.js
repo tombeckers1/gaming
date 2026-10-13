@@ -411,14 +411,8 @@ const PYROTYPES=[
   {id:'angeber',name:'Angeber',ceil:1.38,rounds:2,open:0.92,line:'Geld spielt keine Rolle, es muss nur knallen.'}
 ];
 const PYRONAMES=['Pyro-Team Schneider','Eventagentur Lindemann','Feuerwerk Bartosz','Schützenverein Ahlen','Hochzeitsplanung Vogt','Stadtfest Bergkamen','Pyrotechnik Krüger','Silvesterparty Hoteltrio','Zeltfest Oberdorf','Gartenverein Sonnenhang'];
-const LOANS=[
-  {lvl:5,amount:1000,term:10,rate:0.012},
-  {lvl:8,amount:2500,term:12,rate:0.013},
-  {lvl:12,amount:5000,term:14,rate:0.014},
-  {lvl:15,amount:10000,term:16,rate:0.015},
-  {lvl:20,amount:25000,term:20,rate:0.016},
-  {lvl:26,amount:60000,term:24,rate:0.017}
-];
+/* Kreditstufen: Werte in der Wirtschaftszentrale (01c-wirtschaft.js, WIRT.kredit) */
+const LOANS=WIRT.kredit.stufen;
 /* Waende und Boeden (26.09. neu): art waehlt den Maler in
    05o-oberflaechen, a/b/c sind die Farben, der Rest sind Masse und
    Glanz. Alle sofort frei (Tom: "da ist direkt alles freigeschaltet"),
@@ -477,7 +471,7 @@ const MSHORT=['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov'
 const MLEN=[31,28,31,30,31,30,31,31,30,31,30,31];
 const WDAY=['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
 const WSHORT=['So','Mo','Di','Mi','Do','Fr','Sa'];
-const START_DOY=273;            // 1. Oktober
+const START_DOY=WIRT.start.startDoy;            // 1. Oktober
 function dateInfo(n){
   const t=START_DOY+(n|0), y=1+Math.floor(t/365); let doy=t%365, m=0;
   while(doy>=MLEN[m]){ doy-=MLEN[m]; m++; }

@@ -1449,15 +1449,15 @@ function lapZeichnen(body){
         (fehlt?`<small>braucht: ${(UPGRADES.find(u=>u.id===s.req)||{name:s.req}).name}</small>`:lock?`<small>ab Level ${s.lvl}</small>`:has?`<button class="red" data-a="fire" data-t="${s.id}">Kündigen</button>`:`<button data-a="hire" data-t="${s.id}" ${S.money<s.hire?'disabled':''}>Einstellen</button>`)+prio+'</div>'; }).join('');
   } else if(ltab==='bank'){
     const t=loanTier(), L=S.loan;
-    hint=t?`Dein Kreditrahmen: ${eur(t.amount)}.`:'Kredite gibt es ab Level 5.';
+    hint=t?`Dein Kreditrahmen: ${eur(t.amount)}.`:`Kredite gibt es ab Level ${LOANS[0].lvl}.`;
     if(L){
       h=`<div class="row"><div class="rm"><b>Laufender Kredit</b><small>Aufgenommen: ${eur(L.amount)} · offen: ${eur(L.remaining)}</small><small>Rate ${eur(loanDaily())} pro Tag (Tilgung ${eur(r2(L.amount/L.term))} + ${Math.round(L.rate*1000)/10} % Zinsen)</small></div><div class="price">${eur(L.remaining)}</div></div>`+
-        `<div class="row"><div class="rm"><b>Vorzeitig tilgen</b><small>Spart Zinsen und bringt Erfahrung.</small></div><div class="steps"><button data-a="repay" data-v="250" ${S.money<Math.min(250,L.remaining)?'disabled':''}>250 €</button><button data-a="repay" data-v="1000" ${S.money<Math.min(1000,L.remaining)?'disabled':''}>1.000 €</button><button data-a="repay" data-v="0" ${S.money<L.remaining?'disabled':''}>Alles</button></div></div>`;
+        `<div class="row"><div class="rm"><b>Vorzeitig tilgen</b><small>Spart Zinsen und bringt Erfahrung.</small></div><div class="steps">${WIRT.kredit.tilgenKnoepfe.map(v=>`<button data-a="repay" data-v="${v}" ${S.money<Math.min(v,L.remaining)?'disabled':''}>${WF.euro(v)}</button>`).join('')}<button data-a="repay" data-v="0" ${S.money<L.remaining?'disabled':''}>Alles</button></div></div>`;
     } else if(t){
       h=LOANS.filter(l=>S.level>=l.lvl).map(l=>{ const daily=r2(l.amount/l.term+l.amount*l.rate), total=r2(daily*l.term);
         return `<div class="row"><div class="rm"><b>${eur(l.amount)} über ${l.term} Tage</b><small>Rate am ersten Tag ${eur(daily)}, danach sinkt sie</small><small>Zinssatz ${Math.round(l.rate*1000)/10} % pro Tag · Rückzahlung rund ${eur(total)}</small></div><button data-a="loan" data-v="${l.amount}">Aufnehmen</button></div>`; }).join('')+
         LOANS.filter(l=>S.level<l.lvl).map(l=>`<div class="row locked"><div class="rm"><b>${eur(l.amount)}</b><small>Größerer Rahmen ab Level ${l.lvl}</small></div><small>Level ${l.lvl}</small></div>`).join('');
-    } else h=`<div class="row"><div class="rm"><b>Noch kein Kreditrahmen</b><small>Ab Level 5 gibt dir die Bank 1.000 €. Danach wächst der Rahmen mit deinem Laden.</small></div></div>`;
+    } else h=`<div class="row"><div class="rm"><b>Noch kein Kreditrahmen</b><small>Ab Level ${LOANS[0].lvl} gibt dir die Bank ${WF.euro(LOANS[0].amount)}. Danach wächst der Rahmen mit deinem Laden.</small></div></div>`;
   } else if(ltab==='stats'){
     hint='Alle Zahlen gelten für den laufenden Tag.';
     const need=xpFor(S.level), nxt=levelUnlocks(S.level+1);

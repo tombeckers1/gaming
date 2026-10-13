@@ -47,7 +47,7 @@ function repayLoan(v){
   const L=S.loan; if(!L) return; const pay=Math.min(v===0?L.remaining:v,L.remaining,S.money);
   if(pay<=0) return;
   S.money=r2(S.money-pay); L.remaining=r2(L.remaining-pay);
-  if(L.remaining<=0.01){ S.loan=null; toast('Kredit abbezahlt.','money'); addXP(40,'Kredit getilgt'); }
+  if(L.remaining<=0.01){ S.loan=null; toast('Kredit abbezahlt.','money'); addXP(WIRT.xp.kreditGetilgt,'Kredit getilgt'); }
   else toast(`${eur(pay)} getilgt.`);
   sfx.pop(); save();
 }
@@ -161,16 +161,16 @@ function showSummary(title,text,rows,btn,fn){
   const b=$('sBtn'); b.textContent=btn; b.onclick=fn;
   $('summary').classList.add('show'); summaryOpen=true; paused=true; if(locked) document.exitPointerLock();
 }
-const SHELFFIX={klein:4,standard:9,hoch:12,kuehl:18,gondel:14,eck:11,gross:13,gitter:3,gitter2:4,gitter3:5,tisch:6,tischgross:8};
+const SHELFFIX=WIRT.fix.regalArt;   /* Fixkosten je Verkaufsregal, Werte in 01c-wirtschaft.js */
 /* Dispokredit: solange der Laden laeuft, gibt die Bank einen Rahmen.
    Ohne den koennte ein schlechter Januar das Spiel unrettbar festfahren:
    kein Geld -> keine Ware -> keine Kunden -> kein Geld. */
-function dispoLimit(){ return S.level>=4?Math.round(260+S.level*70):0; }
+function dispoLimit(){ return S.level>=WIRT.kredit.dispo.abLevel?Math.round(WIRT.kredit.dispo.grund+S.level*WIRT.kredit.dispo.jeLevel):0; }
 function verfuegbar(){ return r2(S.money+dispoLimit()); }
-function dispoZins(){ return S.money<0?r2(-S.money*0.006):0; }
+function dispoZins(){ return S.money<0?r2(-S.money*WIRT.kredit.dispo.zinsTag):0; }
 function fixedCosts(){
-  let f=10+6*racks.length+Math.round(Math.max(0,S.level-4)*4);
-  shelves.forEach(sh=>f+=SHELFFIX[sh.kind]||9);
+  let f=WIRT.fix.grund+WIRT.fix.jeLagerregal*racks.length+Math.round(Math.max(0,S.level-WIRT.fix.levelAb)*WIRT.fix.jeLevel);
+  shelves.forEach(sh=>f+=SHELFFIX[sh.kind]||WIRT.fix.regalStandard);
   return f;
 }
 /* Die ersten Tage läuft es besser: Neueröffnung spricht sich herum */
@@ -201,7 +201,7 @@ function endDay(){
   const online=onlineBasis;
   const dispo=dispoZins();
   if(packBereit()&&(S.offen|0)>8){ rep(-Math.min(2,0.12*(S.offen-8))); }
-  const wages=dailyWages(), fix=fixedCosts(), extra=(hasDeko('automat')?45:0)+online;
+  const wages=dailyWages(), fix=fixedCosts(), extra=(hasDeko('automat')?WIRT.tag.automat:0)+online;
   let pay=0, rate=0;
   if(S.loan){ rate=loanDaily(); const interest=r2(S.loan.remaining*S.loan.rate); pay=Math.min(rate,S.loan.remaining+interest);
     S.loan.remaining=r2(S.loan.remaining-(pay-interest)); S.loan.paid=r2(S.loan.paid+pay);
@@ -210,12 +210,12 @@ function endDay(){
   S.money=r2(S.money-wages-fix-pay-dispo+extra);
   const out=r2(DS.goods+DS.upgrades+pay+dispo+DS.changeLoss+wages+fix+DS.burned+(DS.porto||0)+(DS.vm||0)+(DS.ddl||0)), profit=r2(DS.revenue+extra-out), dr=S.rep-DS.rep0;
   if(typeof onlineTagSchliessen==='function') onlineTagSchliessen(wartend);
-  const dayXP=60+Math.round(DS.revenue*0.05)+(DS.angry===0?40:0);
+  const dayXP=WIRT.xp.tag.grund+Math.round(DS.revenue*WIRT.xp.tag.jeUmsatz)+(DS.angry===0?WIRT.xp.tag.ohneBeschwerde:0);
   addXP(dayXP);
-  if(S.money<0){ rep(-3); toast('Konto im Minus. Das kostet Ruf.','bad'); }
+  if(S.money<0){ rep(WIRT.ruf.kontoMinus); toast('Konto im Minus. Das kostet Ruf.','bad'); }
   const rows=[
     {head:'Einnahmen'},['Verkäufe',eur(DS.revenue)]];
-  if(hasDeko('automat')) rows.push(['Getränkeautomat',eur(45)]);
+  if(hasDeko('automat')) rows.push(['Getränkeautomat',eur(WIRT.tag.automat)]);
   if(online) rows.push(['Onlineshop (Marktplatz-Pauschale)',eur(online)]);
   if(DS.versand) rows.push(['Versand (Pakete)',eur(DS.versand)]);
   if(DS.versandGeb) rows.push(['Davon Versandkosten der Kunden',eur(DS.versandGeb)]);
@@ -236,7 +236,7 @@ function endDay(){
     const luft=verfuegbar();
     rows.push({head:'Achtung: Konto im Minus'},
       ['Noch verfügbar für Ware',eur(luft)],
-      ['Dispozinsen morgen',eur(r2(-S.money*0.006))]);
+      ['Dispozinsen morgen',eur(r2(-S.money*WIRT.kredit.dispo.zinsTag))]);
     const wege=[];
     if(dailyWages()>0) wege.push('Personal in die Saisonpause schicken oder entlassen');
     if(!S.loan&&loanTier()) wege.push(`Kredit über ${eur(loanTier().amount)} aufnehmen`);
@@ -282,7 +282,7 @@ function endDay(){
       else if(e.hoch&&e.hoch.d>=5) later(0.8,()=>toast(`Lieferant: ${P[e.hoch.t].short} heute ${f(e.hoch.d)} teurer im Einkauf.`,'bad')); }
     if(jahresende){
       const n=S.season; S.season++;
-      const jahr=S.seasonRevenue; S.seasonRevenue=0; addXP(200,'Ein Jahr geschafft');
+      const jahr=S.seasonRevenue; S.seasonRevenue=0; addXP(WIRT.xp.jahr,'Ein Jahr geschafft');
       showSummary('Frohes neues Jahr!',`Jahr ${n} ist durch. Der Laden macht weiter.`,[
         ['Umsatz im Jahr',eur(jahr)],['Kontostand',eur(S.money)],['Offener Kredit',S.loan?eur(S.loan.remaining):'kein Kredit'],
         ['Ruf',Math.round(S.rep)+' von 100'],['Level',S.level],['Nächstes Jahr',`Jahr ${n+1}`]

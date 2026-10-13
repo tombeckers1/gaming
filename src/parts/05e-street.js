@@ -1,37 +1,18 @@
 /* =========================================================
    Doppelstabmatte ums Testfeld und Strassenleuchten
    ========================================================= */
-function gitterMat(rx,ry2){
-  const t=tex(256,256,(g,W,H)=>{
-    g.clearRect(0,0,W,H);
-    g.strokeStyle='#6f7783'; g.lineCap='round';
-    /* senkrechte Einzelstaebe */
-    g.lineWidth=7;
-    for(let x=16;x<W;x+=51){ g.beginPath(); g.moveTo(x,0); g.lineTo(x,H); g.stroke(); }
-    /* waagerechte Doppelstaebe */
-    g.lineWidth=6;
-    for(let y=22;y<H;y+=51){
-      g.strokeStyle='#848c98'; g.beginPath(); g.moveTo(0,y-5); g.lineTo(W,y-5); g.stroke();
-      g.strokeStyle='#5f6672'; g.beginPath(); g.moveTo(0,y+5); g.lineTo(W,y+5); g.stroke();
-    }
-    /* Lichtkante oben auf den Staeben */
-    g.strokeStyle='rgba(255,255,255,.3)'; g.lineWidth=2;
-    for(let x=16;x<W;x+=51){ g.beginPath(); g.moveTo(x-2,0); g.lineTo(x-2,H); g.stroke(); }
-  });
-  t.wrapS=t.wrapT=THREE.RepeatWrapping; t.anisotropy=8; t.repeat.set(rx,ry2);
-  return new THREE.MeshStandardMaterial({map:t,transparent:true,alphaTest:0.35,side:THREE.DoubleSide,metalness:0.55,roughness:0.45});
-}
+/* gitterMat() entfaellt (13.10., Fundament): Doppelstabmatte = MAT.get('zaunGitter') mit geteilter
+   Textur MAT.tex('doppelstab'), Massstab in den UVs (MAT.kachel) - ein Material fuer alle Zaunlaeufe */
 /* Ein Zaunlauf von (x0,z0) nach (x1,z1) */
 function zaunLauf(x0,z0,x1,z1,h){
   const dx=x1-x0, dz=z1-z0, len=Math.hypot(dx,dz), ry=Math.atan2(dx,dz);
-  const post=std(0x59606b,{metalness:0.6,roughness:0.42});
-  const kappe=std(0x3c424d,{metalness:0.5,roughness:0.5});
+  const post=MAT.get('zaunPfosten');
+  const kappe=MAT.get('zaunKappe');
   /* Sockelschiene */
-  const sock=bbox(0.12,0.16,len,std(0x9a9ea6,{roughness:0.95}),(x0+x1)/2,0.08,(z0+z1)/2,null,false);
+  const sock=bbox(0.12,0.16,len,MAT.get('zaunSockel'),(x0+x1)/2,0.08,(z0+z1)/2,null,false);
   sock.rotation.y=ry;
   /* Matte */
-  const m=gitterMat(len,h-0.16);
-  const panel=new THREE.Mesh(new THREE.PlaneGeometry(len,h-0.16),m);
+  const panel=new THREE.Mesh(MAT.kachel(new THREE.PlaneGeometry(len,h-0.16),len,h-0.16),MAT.get('zaunGitter'));
   panel.position.set((x0+x1)/2,0.16+(h-0.16)/2,(z0+z1)/2);
   panel.rotation.y=ry+Math.PI/2;
   scene.add(panel);
@@ -129,7 +110,8 @@ const HAUSFARBEN={
 };
 /* ---------- Sammler: Teile je Material, am Ende ein Mesh ---------- */
 let HZ=null, HZS=null, HZA=null, _hzM=null, _hzT=null;
-function hzAdd(k,geo,m,c){ (HZ[k]||(HZ[k]=[])).push({geo,m,color:c}); }
+/* 13.10. (Fundament): HZ ist ein Baukasten-Sammler (bk.sammler, 04z); Klasse = Material-Schluessel */
+function hzAdd(k,geo,m,c){ HZ.geo(geo,m,c,k); }
 /* Quader, dessen UV in Metern laeuft: der Putz ist auf jedem
    Bauteil gleich fein und nicht auf jede Leiste gestaucht */
 function boxM(w,h,d,T){ const g=new THREE.BoxGeometry(w,h,d), uv=g.attributes.uv, S=[[d,h],[d,h],[w,d],[w,d],[w,h],[w,h]];
@@ -367,17 +349,11 @@ function hzFertig(){
   if(HZS.length){ const sm=new THREE.MeshStandardMaterial({vertexColors:true,map:schildAtlas(false),emissive:LIN(0xffffff),emissiveMap:schildAtlas(true),emissiveIntensity:0,alphaTest:0.3,alphaToCoverage:true,roughness:0.5,side:THREE.DoubleSide});
     sm.map.anisotropy=8; houseMats.push(sm); M.schild=sm; }
   if(HZA.length){ const mt=markiseAtlas(); mt.wrapS=THREE.RepeatWrapping; M.markise=new THREE.MeshStandardMaterial({map:mt,alphaTest:0.5,roughness:0.9,side:THREE.DoubleSide}); }
-  for(const k in HZ){
-    let mat=M[k];
-    if(!mat&&k.startsWith('tuer:')) mat=new THREE.MeshStandardMaterial({map:tuerTex(k.slice(5)),roughness:0.45,metalness:0.05});
-    if(!mat) continue;
-    const mesh=new THREE.Mesh(merge(HZ[k]),mat);
-    if(HIQ&&(k==='putz'||k==='dach'||k==='schiefer')){ mesh.castShadow=true; mesh.receiveShadow=true; }
-    if(k==='glas') mesh.onBeforeRender=M.nacht;
-    if(k==='spill'||k==='scheibe') mesh.renderOrder=2;
-    scene.add(mesh);
-  }
-  HZ={};
+  HZ.fertig(scene,{bauteil:'stadthaus',
+    mats:k=>{ let mat=M[k]; if(!mat&&k.startsWith('tuer:')) mat=new THREE.MeshStandardMaterial({map:tuerTex(k.slice(5)),roughness:0.45,metalness:0.05}); return mat||null; },
+    schatten:k=>HIQ&&(k==='putz'||k==='dach'||k==='schiefer'),
+    nachher:(mesh,k)=>{ if(k==='glas') mesh.onBeforeRender=M.nacht; if(k==='spill'||k==='scheibe') mesh.renderOrder=2; }});
+  HZ=bk.sammler();
 }
 /* Hoehe des Gehwegs vor der Zeile (der Gehweg gehoert der Strasse und
    kann sich aendern - Stufen und Lichtfleck setzen sich darauf) */
@@ -1496,8 +1472,8 @@ function nachbarFassade(x0,x1,zid,unterzeile,eingang){
   /* Attika, Gesims und Sockel. Die Farben gehen mit der Fassade:
      anthrazit wie der Sockel in der Textur, nicht mehr das
      Sandsteinbeige von der Ziegelwand. */
-  bbox(w+0.2,0.28,0.4,std(0x2f343d,{roughness:0.9}),cx,H+0.12,zf+0.02,g);
-  bbox(w+0.1,0.1,0.36,std(0xe8ecf2,{roughness:1}),cx,H+0.3,zf+0.04,g,false);
+  bbox(w+0.2,0.28,0.4,MAT.std(0x2f343d,{roughness:0.9}),cx,H+0.12,zf+0.02,g);
+  bbox(w+0.1,0.1,0.36,MAT.std(0xe8ecf2,{roughness:1}),cx,H+0.3,zf+0.04,g,false);
   /* Der Sockel war 50 cm tief und mittig auf der Wand - damit stand
      er zur Haelfte IM Laden und zog dort ein schwarzes Band unter
      der ganzen Fensterfront entlang. Er gehoert nach draussen. */
@@ -1505,7 +1481,7 @@ function nachbarFassade(x0,x1,zid,unterzeile,eingang){
      am Haupteingang. Vorher lief er durch und stand 62 cm hoch quer in
      der offenen Schiebetuer. Das Stueck in der Luecke steht nur, bis
      der zweite Eingang gekauft ist. */
-  { const sm=std(0x3b4049,{roughness:0.9}), sx0=x0-0.06, sx1=x1+0.06;
+  { const sm=MAT.std(0x3b4049,{roughness:0.9}), sx0=x0-0.06, sx1=x1+0.06;
     const sockel=(a2,b2,par)=>bbox(b2-a2,0.62,0.26,sm,(a2+b2)/2,0.31,zf+0.06,par);
     if(eingang!==undefined){
       const [ea,eb]=OEFF[eingang], ec=(ea+eb)/2, l0=ec-1.3, l1=ec+1.3;
@@ -1516,8 +1492,8 @@ function nachbarFassade(x0,x1,zid,unterzeile,eingang){
 
   /* ---------- Zustand „steht zum Verkauf“ ---------- */
   const gs=new THREE.Group(); g.add(gs); zWand(zid,gs);
-  const brett=std(0x6d5a44,{roughness:0.95});
-  const zugemauert=std(0x5a4a3e,{roughness:0.95});
+  const brett=MAT.std(0x6d5a44,{roughness:0.95});
+  const zugemauert=MAT.std(0x5a4a3e,{roughness:0.95});
   /* Die Oeffnungen sind jetzt eine durchgehende Fensterreihe und
      tragen nur noch ihre x-Grenzen; Bruestung und Sturz stehen fuer
      alle gleich in BR und ST. Vorher stand die Hoehe in jedem
@@ -1540,8 +1516,8 @@ function nachbarFassade(x0,x1,zid,unterzeile,eingang){
   /* ---------- Zustand „gehoert dir“: Schaufenster ---------- */
   const go=new THREE.Group(); g.add(go); zAdd(zid,go);
   const glas=new THREE.MeshStandardMaterial({color:LIN(0xbfe0ff),transparent:true,opacity:0.16,roughness:0.05,metalness:0.2,depthWrite:false});
-  const prof=std(0x2b3040,{metalness:0.5,roughness:0.4});
-  const bank=std(0xd7dae0,{roughness:0.5});
+  const prof=MAT.std(0x2b3040,{metalness:0.5,roughness:0.4});
+  const bank=MAT.std(0xd7dae0,{roughness:0.5});
   OEFF.forEach(([a,b],i)=>{
     if(i===eingang){ eingangsAchse(go,a,b,zf,ST,glas,prof); return; }
     const y0=BR, y1=ST;
@@ -1572,12 +1548,12 @@ function nachbarFassade(x0,x1,zid,unterzeile,eingang){
    ========================================================= */
 function buildMuelleimer(x,z,ry){
   const g=new THREE.Group(); g.position.set(x,0,z); g.rotation.y=ry||0; scene.add(g);
-  const stahl=std(0x50575f,{metalness:0.62,roughness:0.42});
-  const dunkel=std(0x2b3038,{metalness:0.5,roughness:0.5});
+  const stahl=MAT.std(0x50575f,{metalness:0.62,roughness:0.42});
+  const dunkel=MAT.std(0x2b3038,{metalness:0.5,roughness:0.5});
   /* Pfosten mit Fussplatte */
   bbox(0.22,0.025,0.22,stahl,0,0.012,0,g,false);
   for(let k=0;k<4;k++){ const a=k/4*Math.PI*2;
-    bbox(0.03,0.02,0.03,std(0x8f959e,{metalness:0.7}),Math.cos(a)*0.07,0.03,Math.sin(a)*0.07,g,false); }
+    bbox(0.03,0.02,0.03,MAT.std(0x8f959e,{metalness:0.7}),Math.cos(a)*0.07,0.03,Math.sin(a)*0.07,g,false); }
   const post=new THREE.Mesh(new THREE.CylinderGeometry(0.045,0.055,0.92,12),stahl);
   post.position.y=0.46; if(HIQ) post.castShadow=true; g.add(post);
   /* Korpus: konischer Behaelter mit Lochblech */
@@ -1603,7 +1579,7 @@ function buildMuelleimer(x,z,ry){
   deck.position.y=1.35; g.add(deck);
   const kegel=new THREE.Mesh(new THREE.CylinderGeometry(0.1,0.21,0.1,HIQ?22:14),dunkel);
   kegel.position.y=1.42; g.add(kegel);
-  bbox(0.19,0.055,0.13,std(0x14171c,{roughness:0.9}),0.07,1.43,0,g,false);
+  bbox(0.19,0.055,0.13,MAT.std(0x14171c,{roughness:0.9}),0.07,1.43,0,g,false);
   const asch=new THREE.Mesh(new THREE.CylinderGeometry(0.055,0.05,0.07,12),dunkel);
   asch.position.set(-0.12,1.47,0); g.add(asch);
   /* Halterung am Pfosten und Piktogramm */
@@ -1616,7 +1592,7 @@ function buildMuelleimer(x,z,ry){
     c.fillStyle='#4b525a'; c.fillRect(58,74,8,88); c.fillRect(76,74,8,88); c.fillRect(94,74,8,88);
   })}),0,1.1,0.202,0,g);
   /* Schnee auf dem Deckel */
-  const sn=new THREE.Mesh(new THREE.CylinderGeometry(0.13,0.21,0.04,HIQ?20:12),std(0xe8ecf2,{roughness:1}));
+  const sn=new THREE.Mesh(new THREE.CylinderGeometry(0.13,0.21,0.04,HIQ?20:12),MAT.std(0xe8ecf2,{roughness:1}));
   sn.position.y=1.47; g.add(sn);
   col(x-0.26,x+0.26,z-0.26,z+0.26);
   return g;
@@ -1653,9 +1629,10 @@ function gehwegY(x,z){
   return 0;
 }
 /* ---------- Sammler: Teile je Material, am Ende verschmolzen ---------- */
-let _stS={}, _stM=new THREE.Matrix4(), _strMats=null;
+/* 13.10. (Fundament): Stadtmoebel sammeln in einem Baukasten-Sammler (bk.sammler, 04z) */
+let _stS=bk.sammler(), _stM=new THREE.Matrix4(), _strMats=null;
 function stOrt(x,z,ry){ _stM=tm(x,gehwegY(x,z),z,0,ry||0,0); }
-function stM(k,geo,m,farbe){ (_stS[k]=_stS[k]||[]).push({geo,m:_stM.clone().multiply(m),color:farbe}); }
+function stM(k,geo,m,farbe){ _stS.geo(geo,_stM.clone().multiply(m),farbe,k); }
 function mT(k,geo,x,y,z,rx,ry,rz,farbe){ stM(k,geo,tm(x,y,z,rx,ry,rz),farbe); }
 /* Rohr von a nach b (lokale Koordinaten des aktuellen Orts) */
 const _yAchse=new THREE.Vector3(0,1,0);
@@ -1677,8 +1654,8 @@ function strMats(){
   /* Werbevitrine der Haltestelle: nachts von innen beleuchtet */
   const leucht=new THREE.MeshStandardMaterial({map:at,emissiveMap:at,emissive:LIN(0x9a9a9a),emissiveIntensity:0,roughness:0.3}); lampMats.push(leucht);
   _strMats={
-    lack:lichtMat(std(0xffffff,{vertexColors:true,metalness:0.5,roughness:0.42})),
-    matt:lichtMat(std(0xffffff,{vertexColors:true,roughness:0.88})),
+    lack:lichtMat(MAT.std(0xffffff,{vertexColors:true,metalness:0.5,roughness:0.42})),
+    matt:lichtMat(MAT.std(0xffffff,{vertexColors:true,roughness:0.88})),
     schild:lichtMat(new THREE.MeshStandardMaterial({map:at,roughness:0.45,metalness:0.1})),
     glas:new THREE.MeshStandardMaterial({color:LIN(0xcfdde8),transparent:true,opacity:0.2,roughness:0.06,metalness:0.3,depthWrite:false}),
     lampe, leucht
@@ -1687,12 +1664,8 @@ function strMats(){
 }
 function stFertig(){
   const M=strMats();
-  for(const k in _stS){ const t=_stS[k]; if(!t.length) continue;
-    const geo=merge(t);
-    const o=new THREE.Mesh(lichtUV2(geo),M[k]); o.userData.strasse=k;
-    if(HIQ&&k!=='glas'){ o.castShadow=true; o.receiveShadow=true; }
-    scene.add(o); }
-  _stS={};
+  _stS.fertig(scene,{bauteil:'stadtmoebel',mats:k=>M[k],geo:g=>lichtUV2(g),schatten:k=>HIQ&&k!=='glas',nachher:(o,k)=>{ o.userData.strasse=k; }});
+  _stS=bk.sammler();
 }
 /* Flaechen aus Dreiecken mit Farbe je Ecke. Die Dreiecke werden nach
    der Richtung h gedreht, damit die Normale stimmt. */
@@ -2159,7 +2132,7 @@ function strassenlampe(x,z,dir,sammeln){
   const y=gehwegY(x,z), g=new THREE.Group(); g.position.set(x,y,z); g.rotation.y=a; scene.add(g);
   const T={}, M=strMats(), W=tm(x,y,z,0,a,0);
   lampTeile((k,geo,m,c)=>{
-    if(k==='mast'){ const o=new THREE.Mesh(geo.applyMatrix4(m),std(c,{metalness:0.62,roughness:0.38})); if(HIQ) o.castShadow=true; g.add(o); }
+    if(k==='mast'){ const o=new THREE.Mesh(geo.applyMatrix4(m),MAT.std(c,{metalness:0.62,roughness:0.38})); if(HIQ) o.castShadow=true; g.add(o); }
     else (T[k]=T[k]||[]).push({geo,m,color:c}); });
   for(const k in T){ const o=new THREE.Mesh(lichtUV2(merge(T[k]),W),M[k]); if(HIQ&&k==='lack') o.castShadow=true; g.add(o); }
   return g;
@@ -2603,7 +2576,7 @@ function buildStreet(){
      Kloetze mit Luecken (Tom, 26.09.). Gruenderzeit- und Nachkriegs-
      haeuser gemischt, fast jedes mit Laden; jeder Laden kommt nur
      einmal vor. */
-  HZ={}; HZS=[]; HZA=[];
+  HZ=bk.sammler(); HZS=[]; HZA=[];
   scene.updateMatrixWorld();
   /* Fester Seed fuer die ganze Zeile samt zweiter Reihe: vorher stand
      nach jedem Neuladen eine andere Strasse da (Art-Director, 26.09.,

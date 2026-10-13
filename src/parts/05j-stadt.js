@@ -848,10 +848,10 @@ function baueBeacon(x,y,z,gross){
 }
 function buildFernsehturm(x,z){
   const g=new THREE.Group(); g.position.set(x,0,z); scene.add(g);
-  const beton=std(0xa9b2bd,{roughness:0.95});
+  const beton=MAT.std(0xa9b2bd,{roughness:0.95,side:THREE.DoubleSide});   /* side vorher nachtraeglich am Schaft gesetzt (gilt fuer alle Teile mit diesem Material) */
   const H=118;
   const schaft=new THREE.Mesh(new THREE.CylinderGeometry(3.2,7.5,H*0.72,16,1,true),beton);
-  schaft.position.y=H*0.36; schaft.material.side=THREE.DoubleSide; g.add(schaft);
+  schaft.position.y=H*0.36; g.add(schaft);
   /* Kanzel mit Fensterband */
   const kanzel=new THREE.Mesh(new THREE.CylinderGeometry(9.5,9.5,9,20),
     fassadenMaterial('glas'));
@@ -864,9 +864,9 @@ function buildFernsehturm(x,z){
     gm.setAttribute('color',new THREE.BufferAttribute(col,3)); }
   const dach=new THREE.Mesh(new THREE.ConeGeometry(10,6,20),beton);
   dach.position.y=H*0.72+7.2; g.add(dach);
-  const antenne=new THREE.Mesh(new THREE.CylinderGeometry(0.5,2.2,H*0.3,10),std(0xd8d8d8,{roughness:0.7}));
+  const antenne=new THREE.Mesh(new THREE.CylinderGeometry(0.5,2.2,H*0.3,10),MAT.std(0xd8d8d8,{roughness:0.7}));
   antenne.position.y=H*0.86; g.add(antenne);
-  const spitze=new THREE.Mesh(new THREE.CylinderGeometry(0.12,0.5,12,6),std(0xe8e8e8));
+  const spitze=new THREE.Mesh(new THREE.CylinderGeometry(0.12,0.5,12,6),MAT.std(0xe8e8e8));
   spitze.position.y=H+4; g.add(spitze);
   turmSpitze=baueBeacon(x,H+11,z,true);
   baueBeacon(x,H*0.72+9,z,false);
@@ -1096,7 +1096,7 @@ function buildFernverkehr(){
 let flieger=null, fliegerLicht=null, fliegerT=rand(20,70);
 function buildFlieger(){
   const g=new THREE.Group(); scene.add(g); g.visible=false;
-  const m=std(0xdfe4ea,{roughness:0.6,metalness:0.2});
+  const m=MAT.std(0xdfe4ea,{roughness:0.6,metalness:0.2});
   bbox(1.1,0.5,7,m,0,0,0,g,false);
   bbox(9,0.16,1.5,m,0,-0.05,0.4,g,false);
   bbox(3.2,0.14,0.9,m,0,0.5,-2.8,g,false);

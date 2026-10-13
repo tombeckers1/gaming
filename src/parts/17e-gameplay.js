@@ -283,7 +283,7 @@ function* gpStatisch(){
       const nachMat=new Map();
       for(const o of par.children){ const mt=o.material, gg=o.geometry;
         if(!o.isMesh||o.isInstancedMesh||!mt||Array.isArray(mt)||mt.transparent||mt.vertexColors||mt===hitM||!o.visible||o.children.length||o.renderOrder) continue;
-        if(Object.keys(o.userData||{}).length||occluders.indexOf(o)>=0||!gg||!gg.attributes||!gg.attributes.position||!gg.attributes.normal||gg.attributes.position.count>6000) continue;
+        if(udEigen(o.userData||{})||occluders.indexOf(o)>=0||!gg||!gg.attributes||!gg.attributes.position||!gg.attributes.normal||gg.attributes.position.count>6000) continue;
         const l=nachMat.get(mt)||[]; l.push(o); nachMat.set(mt,l); }
       for(const [mt,l] of nachMat){ if(l.length<2) continue; l.forEach(o=>o.updateMatrix());
         const m=new THREE.Mesh(merge(l.map(o=>({geo:o.geometry,m:o.matrix}))),mt); m.castShadow=l.some(o=>o.castShadow); m.receiveShadow=l.some(o=>o.receiveShadow);

@@ -416,8 +416,8 @@ function vsAnteil(b){ const n=vsStueck(b); return n?b.pos.reduce((a,l)=>a+Math.m
    --------------------------------------------------------- */
 function vsFeld(i){ return {x:(Math.floor(i/3)-0.5)*0.33,z:(i%3-1)*0.3}; }
 function vsWagenBauen(parent,pi){
-  const g=new THREE.Group(), rahmen=std(0x3a4049,{metalness:0.5,roughness:0.45}), blech=std(0x9aa2ad,{metalness:0.65,roughness:0.35});
-  const gummi=std(0x1b1d22,{roughness:0.8}), griff=std(0x23262c,{roughness:0.6});
+  const g=new THREE.Group(), rahmen=MAT.std(0x3a4049,{metalness:0.5,roughness:0.45}), blech=MAT.std(0x9aa2ad,{metalness:0.65,roughness:0.35});
+  const gummi=MAT.std(0x1b1d22,{roughness:0.8}), griff=MAT.std(0x23262c,{roughness:0.6});
   /* Ladeflaeche mit aufgemalten Faechern 1 bis 6 */
   bbox(0.7,0.025,0.94,blech,0,WG_Y-0.0125,0,g);
   const ft=tex(340,460,(c,W,H)=>{ c.clearRect(0,0,W,H);
@@ -433,14 +433,14 @@ function vsWagenBauen(parent,pi){
   for(const sz of [-0.46,0.46]) bbox(0.7,0.02,0.02,rahmen,0,WG_Y+0.08,sz,g,false);
   for(const sx of [-0.33,0.33]) for(const sz of [-0.45,0.45]) bbox(0.03,WG_Y-0.05,0.03,rahmen,sx,(WG_Y+0.05)/2+0.07,sz,g);
   bbox(0.66,0.02,0.9,blech,0,0.22,0,g,false);
-  const falt=std(0xc39c68,{roughness:0.92});
+  const falt=MAT.std(0xc39c68,{roughness:0.92});
   bbox(0.5,0.022,0.62,falt,0.02,0.242,0.05,g,false); bbox(0.46,0.022,0.58,falt,-0.03,0.264,0.02,g,false);
   /* Schiebebuegel am hinteren Ende */
   for(const sx of [-0.3,0.3]) bbox(0.028,0.34,0.028,rahmen,sx,WG_Y+0.16,-0.47,g,false);
   const bar=new THREE.Mesh(new THREE.CylinderGeometry(0.02,0.02,0.62,10),griff); bar.rotation.z=Math.PI/2; bar.position.set(0,WG_Y+0.32,-0.49); g.add(bar);
   /* Handscanner in einer Halterung hinter dem Buegel - ausserhalb der
      Ladeflaeche, sonst steckte er im riesigen Karton */
-  bbox(0.07,0.13,0.035,std(0x2b2f36,{roughness:0.5}),0.19,WG_Y+0.24,-0.535,g,false);
+  bbox(0.07,0.13,0.035,MAT.std(0x2b2f36,{roughness:0.5}),0.19,WG_Y+0.24,-0.535,g,false);
   const sc=plane(0.05,0.07,new THREE.MeshBasicMaterial({toneMapped:false,map:tex(64,90,(c,W,H)=>{ c.fillStyle='#0f2a1c'; c.fillRect(0,0,W,H); c.fillStyle='#6cf2a8'; c.font=BUN(22); c.textAlign='center'; c.fillText('PICK',W/2,36); c.fillRect(10,52,44,6); c.fillRect(10,64,30,6); })}),0.19,WG_Y+0.25,-0.554,Math.PI,g);
   /* Lenkrollen */
   for(const sx of [-0.28,0.28]) for(const sz of [-0.38,0.38]){

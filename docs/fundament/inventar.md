@@ -23,7 +23,7 @@ Zähl-Wrapper, messen3.js/messen4.js = Ansichten; Aufruf siehe Kopf von inventar
 
 ## Umbauliste (Reihenfolge)
 Optik (Etappe 2): 0 Materialbibliothek + Textur-Cache → 1 Baukasten-Kern (Sammler, LOD, Schildfabrik,
-`userData.bauteil`) → 2 Tore (Pilot) → 3 `wall()` ohne 6-Material-Array + 4 Zäune/Poller → 5 Lampen
+`userData.bauteil`) [0 und 1 erledigt 13.10., Schnittstelle `baukasten.md`] → 2 Tore (Pilot) → 3 `wall()` ohne 6-Material-Array + 4 Zäune/Poller → 5 Lampen
 (+ Fassade/Hoflampen) → 6 Paletten/Kartons-Atlas (−60 MB) → 7 Regale + Schildatlas → 8 Fassade/Türen/
 Fenster → 9 Halle-Branch umstellen (vor Halle-Merge).
 Wirtschaft (Etappe 4, wertneutral): 0 Gerüst + Node-Snapshot → 1 Finanzen → 2 Versand/Online →

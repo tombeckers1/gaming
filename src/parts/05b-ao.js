@@ -30,6 +30,5 @@ function roomAO(x0,x1,z0,z1,zoneId,seiten){
   /* Keine Baender an der Decke und keine Streifen in den Wandecken:
      die gaben harte Kanten, die wie ein Balken an der Wand aussahen. */
 }
-function concreteTex(){ const t=tex(256,256,(g,W,H)=>{ g.fillStyle='#8a8e94'; g.fillRect(0,0,W,H); for(let i=0;i<2500;i++){ const v=Math.random(); g.fillStyle=`rgba(${v<0.5?0:255},${v<0.5?0:255},${v<0.5?0:255},${Math.random()*0.06})`; g.fillRect(Math.random()*W,Math.random()*H,2,2); } g.strokeStyle='rgba(0,0,0,.18)'; g.lineWidth=2; g.strokeRect(0,0,W,H); });
-  t.wrapS=t.wrapT=THREE.RepeatWrapping; return t; }
+/* concreteTex() entfaellt (13.10., Fundament): Beton kommt geteilt aus MAT.tex('beton'), Massstab ueber MAT.kachel */
 function flat(w,d,m,x,y,z){ const o=new THREE.Mesh(new THREE.PlaneGeometry(w,d),m); o.rotation.x=-Math.PI/2; o.position.set(x,y,z); if(HIQ) o.receiveShadow=true; scene.add(o); return o; }

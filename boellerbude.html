@@ -812,6 +812,168 @@ function atlasBox(w,h,d,R){
 function fitFont(g,text,maxW,size,fam){ let s=size; do{ g.font=fam(s); if(g.measureText(text).width<=maxW) break; s-=1; }while(s>6); return s; }
 const BUN=s=>`${s}px Bungee, Impact, sans-serif`, BAR=s=>`700 ${s}px "Barlow Condensed", sans-serif`;
 
+/* =========================================================
+   Materialbibliothek (Fundament Etappe 2, Schritt 0)
+
+   Tom 13.10.2026: "einheitliche Struktur – ändert man es an einer
+   Stelle, ändert es sich überall." Farben, Materialien und geteilte
+   prozedurale Texturen kommen ab jetzt von hier. Vorher legte jede
+   Baufunktion ihre eigenen Materialien an (984 Material-Objekte, davon
+   501 Dubletten, 59 fuer ein und dasselbe Gelb) und malte die
+   Betontextur 19-mal neu.
+
+   Regeln (verbindlich, siehe docs/fundament/baukasten.md):
+   - Ein Material aus MAT.get/MAT.std/MAT.basic/MAT.vc ist GETEILT. Es wird
+     nie veraendert (color.set, opacity, emissiveIntensity, map, visible,
+     dispose ...). Wer ein Material spaeter aendern will, holt sich mit
+     MAT.neu(...) ein eigenes.
+   - Texturen aus MAT.tex(name) sind geteilt und kacheln mit repeat 1.
+     Den Massstab traegt die Geometrie: MAT.kachel(geo,rx,ry) skaliert die
+     UVs (gleiches Bild wie vorher texture.repeat.set(rx,ry)).
+   - Neue Farbe/neues Material: Eintrag in FARBE/REZEPT ergaenzen, nicht
+     daneben neu bauen.
+   - Grafikstufe: MAT.stufe() steht beim Laden fest. Ultra Low bekommt
+     ueber den Lambert-Austausch in reuse-helpers.js automatisch einfache
+     Materialien (MAT baut ueber THREE.MeshStandardMaterial).
+   - Waechter: mit localStorage bb_matwache=1 (oder window.__MATWACHE vor
+     dem Laden) meldet jedes geteilte Material, das doch veraendert wird,
+     einen Eintrag in MAT.verstoesse (Test src/tests/material.js).
+   ========================================================= */
+const MAT=(function(){
+  /* ---------- Farben (sRGB-Hex, Namen sprechend, deutsch) ----------
+     Werte = die im Spiel heute haeufigsten Hex-Werte (Inventar 13.10.,
+     inventar-optik.md 3.1); keine Farbe wurde dafuer veraendert. */
+  const FARBE={
+    signalGelb:0xf2c230, signalRot:0xd8352a, signalGruen:0x2f9e57, signalOrange:0xf2a01c, signalBlau:0x2a5a9e,
+    gitterGelb:0xe7a91c, schildGold:0xffd23f, schildBlau:0x1b2340,
+    lackAnthrazit:0x2a2e38, lackGraphit:0x3a4150, lackWeiss:0xe8ecf2, grauMittel:0x6a7078,
+    stahlVerzinkt:0x8d939d, stahlPfosten:0x59606b, stahlKappe:0x3c424d, alu:0xc9ced6,
+    gummiSchwarz:0x1c1f24, betonHell:0xa8acb2, betonSockel:0x9a9ea6, sockelGrau:0x3f4654,
+    deckeWeiss:0xe6e8ee, schnee:0xeef2f8, holzPalette:0xc49a62, holzPaletteDunkel:0xa9814e,
+    wellpappe:0xc89b5c, lampeGehaeuse:0x23262e, lampeWarm:0xfff0d0, glasKlar:0xd6ecff
+  };
+  /* ---------- benannte Materialien (Rezepte) ----------
+     f = Farbe (Name aus FARBE oder Hex), r/m = roughness/metalness, sonst
+     beliebige Material-Optionen. Werte exakt wie an den umgestellten
+     Stellen vorher (reiner Umbau, Optik gleich). */
+  const REZEPT={
+    signalGelb:{f:'signalGelb'},                                  /* std(0xf2c230): Bodenstriche, Markierungen */
+    deckeWeiss:{f:'deckeWeiss',r:1},                              /* Decken (std(0xe6e8ee,{roughness:1})) */
+    schnee:{f:'schnee',r:1},                                      /* Schneedecken auf Daechern/Mauern */
+    betonBoden:{f:0xffffff,tex:'beton',r:0.85},                    /* Lager-/Schleusenboden (Beton, Massstab per MAT.kachel) */
+    zaunPfosten:{f:'stahlPfosten',r:0.42,m:0.6},                  /* Doppelstabmatte: Pfosten */
+    zaunKappe:{f:'stahlKappe',r:0.5,m:0.5},                       /* Doppelstabmatte: Kappen, Schellen */
+    zaunSockel:{f:'betonSockel',r:0.95},                          /* Doppelstabmatte: Sockelschiene */
+    zaunGitter:{f:0xffffff,tex:'doppelstab',transparent:true,alphaTest:0.35,side:THREE.DoubleSide,m:0.55,r:0.45}, /* Doppelstabmatte (Textur) */
+    sockelGrau:{f:'sockelGrau'}                                   /* Sockel/Stadt #3f4654 */
+  };
+  /* Vertexfarben-Klassen (Sammler, bk.sammler): Farbe je Ecke, Oberflaeche je Klasse */
+  const VC_KLASSE={
+    standard:{roughness:0.45},                                    /* vcMat (04-models): Ware, Paletten, V1 */
+    lack:{roughness:0.34,metalness:0.06}, metall:{roughness:0.26,metalness:0.78},
+    matt:{roughness:0.72,metalness:0.0}, glas:{roughness:0.08,metalness:0.35}
+    /* leucht: MeshBasicMaterial ohne Tonemapping (unten) */
+  };
+
+  const cache=new Map(), texCache=new Map(), zaehler=new Map();
+  const zaehle=(k)=>{ zaehler.set(k,(zaehler.get(k)||0)+1); };
+  const hexVon=f=>typeof f==='string'?(FARBE[f]!==undefined?FARBE[f]:(()=>{ throw new Error('MAT: Farbe unbekannt: '+f); })()):f;
+
+  /* ---------- Waechter (nur Pruefung, sonst aus) ---------- */
+  let wacheAn=false; try{ wacheAn=!!window.__MATWACHE||localStorage.getItem('bb_matwache')==='1'; }catch(e){}
+  const verstoesse=[];
+  const WACH=['opacity','transparent','visible','emissiveIntensity','map','emissiveMap','alphaMap','roughness','metalness','side','depthWrite','depthTest','alphaTest','wireframe','vertexColors','color','emissive','polygonOffset','colorWrite','toneMapped','blending'];
+  function melde(name,was){ if(verstoesse.length<200) verstoesse.push({name,was,stack:String(new Error().stack).split('\n').slice(2,7).join(' | ')}); }
+  function bewacheFarbe(name,c,k){ if(!c||!c.isColor) return; for(const x of ['r','g','b']){ let v=c[x]; Object.defineProperty(c,x,{configurable:true,enumerable:true,get(){ return v; },set(n){ if(n!==v) melde(name,k+'.'+x); v=n; }}); } }
+  function bewache(name,m){
+    if(!wacheAn) return m;
+    for(const k of WACH){ if(!(k in m)) continue; let v=m[k]; if(v&&v.isColor) bewacheFarbe(name,v,k);
+      Object.defineProperty(m,k,{configurable:true,enumerable:true,get(){ return v; },set(n){ if(n!==v){ melde(name,k); if(n&&n.isColor) bewacheFarbe(name,n,k); } v=n; }}); }
+    const d=m.dispose; m.dispose=function(){ melde(name,'dispose'); return d.apply(this,arguments); };
+    return m;
+  }
+
+  /* ---------- Grafikstufe (beim Laden fest) ---------- */
+  let _stufe=null;
+  function stufe(){
+    if(_stufe) return _stufe;
+    const g=typeof GFX!=='undefined'?GFX:'hoch', p=(typeof GFX_PROFIL!=='undefined'&&GFX_PROFIL[g])||{tex:1,ani:4};
+    const rang=typeof gfxRang==='function'?gfxRang(g):2;
+    /* lod: 0 = Ultra Low (Kasten statt Fase, wenig Segmente), 1 = Niedrig..Hoch, 2 = ab Maximum */
+    return _stufe={name:g,rang,tx:p.tex,aniso:p.ani,lambert:g==='ultralow',lod:g==='ultralow'?0:(rang>=3?2:1)};
+  }
+
+  /* ---------- Materialien ---------- */
+  function ausRezept(name,extra){
+    const R=REZEPT[name]; if(!R) throw new Error('MAT: Material unbekannt: '+name);
+    const o={roughness:R.r!==undefined?R.r:0.85,metalness:R.m!==undefined?R.m:0};
+    for(const k in R) if(k!=='f'&&k!=='r'&&k!=='m'&&k!=='tex') o[k]=R[k];
+    if(R.tex) o.map=texGet(R.tex);
+    if(extra) Object.assign(o,extra);
+    const m=new THREE.MeshStandardMaterial(o); m.color=LIN(hexVon(R.f)); return m;
+  }
+  /* ein geteiltes Material je Schluessel; die Fabrik bleibt gemerkt (MAT.kopie) */
+  const fabrik=new Map();
+  function geteilt(k,f){ zaehle(k); let m=cache.get(k); if(!m){ m=bewache(k,f()); (m.userData||(m.userData={})).mat=k; cache.set(k,m); fabrik.set(k,f); } return m; }
+  /* geteiltes benanntes Material */
+  function get(name){ return geteilt('get:'+name,()=>ausRezept(name)); }
+  /* eigenes (veraenderbares) Material nach Rezept - wird gezaehlt, nicht geteilt */
+  function neu(name,extra){ zaehle('neu:'+name); return ausRezept(name,extra); }
+  /* frische, eigene Kopie eines geteilten Materials (gleiche Werte, nicht bewacht) - z. B. fuer
+     Pracht (03d), das je Ort (Spiegelboden, innen/aussen) eigene Werte setzt */
+  function kopie(m){ const f=m&&m.userData&&fabrik.get(m.userData.mat); zaehle('kopie:'+(m&&m.userData&&m.userData.mat)); return f?f():m.clone(); }
+  /* Schluessel aus einfachen Optionen; Texturen/Objekte sind nicht erlaubt (dann eigenes Material) */
+  function schluessel(art,hex,o){ let s=art+':'+(hex>>>0).toString(16);
+    if(o){ for(const k of Object.keys(o).sort()){ const v=o[k]; if(v!==null&&typeof v==='object') throw new Error('MAT.'+art+': Option '+k+' ist ein Objekt - dafuer MAT.neu/eigenes Material'); s+='|'+k+'='+v; } }
+    return s; }
+  /* geteiltes Standardmaterial nach Farbe + Optionen - gleiche Werte wie std(hex,o) */
+  function stdGeteilt(hex,o){ return geteilt(schluessel('std',hex,o),()=>std(hex,o)); }
+  /* geteiltes MeshBasicMaterial (Farbe wie new MeshBasicMaterial({color:hex}) - ohne Linearisierung) */
+  function basic(hex,o){ return geteilt(schluessel('basic',hex,o),()=>new THREE.MeshBasicMaterial(Object.assign({color:hex},o||{}))); }
+  /* Vertexfarben-Material je Klasse */
+  function vc(klasse){ const kl=klasse||'standard';
+    return geteilt('vc:'+kl,()=>{ if(kl==='leucht') return new THREE.MeshBasicMaterial({vertexColors:true,toneMapped:false});
+      const o=VC_KLASSE[kl]; if(!o) throw new Error('MAT.vc: Klasse unbekannt: '+kl); return new THREE.MeshStandardMaterial(Object.assign({vertexColors:true},o)); }); }
+  function farbe(name){ return hexVon(name); }
+
+  /* ---------- geteilte prozedurale Texturen (lazy, einmal gemalt) ---------- */
+  const TEXTUR={
+    /* Beton (vorher concreteTex() in 05b-ao.js, 19 Aufrufe an 12 Stellen) - Malcode unveraendert */
+    beton:()=>{ const t=tex(256,256,(g,W,H)=>{ g.fillStyle='#8a8e94'; g.fillRect(0,0,W,H); for(let i=0;i<2500;i++){ const v=Math.random(); g.fillStyle=`rgba(${v<0.5?0:255},${v<0.5?0:255},${v<0.5?0:255},${Math.random()*0.06})`; g.fillRect(Math.random()*W,Math.random()*H,2,2); } g.strokeStyle='rgba(0,0,0,.18)'; g.lineWidth=2; g.strokeRect(0,0,W,H); });
+      t.wrapS=t.wrapT=THREE.RepeatWrapping; return t; },
+    /* Doppelstabmatte (vorher gitterMat() in 05e-street.js, je Zaunlauf neu gemalt) - Malcode unveraendert */
+    doppelstab:()=>{ const t=tex(256,256,(g,W,H)=>{
+        g.clearRect(0,0,W,H);
+        g.strokeStyle='#6f7783'; g.lineCap='round';
+        /* senkrechte Einzelstaebe */
+        g.lineWidth=7;
+        for(let x=16;x<W;x+=51){ g.beginPath(); g.moveTo(x,0); g.lineTo(x,H); g.stroke(); }
+        /* waagerechte Doppelstaebe */
+        g.lineWidth=6;
+        for(let y=22;y<H;y+=51){
+          g.strokeStyle='#848c98'; g.beginPath(); g.moveTo(0,y-5); g.lineTo(W,y-5); g.stroke();
+          g.strokeStyle='#5f6672'; g.beginPath(); g.moveTo(0,y+5); g.lineTo(W,y+5); g.stroke();
+        }
+        /* Lichtkante oben auf den Staeben */
+        g.strokeStyle='rgba(255,255,255,.3)'; g.lineWidth=2;
+        for(let x=16;x<W;x+=51){ g.beginPath(); g.moveTo(x-2,0); g.lineTo(x-2,H); g.stroke(); }
+      });
+      t.wrapS=t.wrapT=THREE.RepeatWrapping; t.anisotropy=8; return t; }
+  };
+  function texGet(name){ zaehle('tex:'+name); let t=texCache.get(name); if(!t){ const f=TEXTUR[name]; if(!f) throw new Error('MAT.tex: Textur unbekannt: '+name); t=f(); t.userData=t.userData||{}; t.userData.mat=name; texCache.set(name,t); } return t; }
+  /* Massstab in die UVs (statt texture.repeat) - dann teilen alle Flaechen eine Textur */
+  function kachel(geo,rx,ry){ const uv=geo.attributes.uv; if(!uv) return geo; for(let i=0;i<uv.count;i++) uv.setXY(i,uv.getX(i)*rx,uv.getY(i)*ry); uv.needsUpdate=true; return geo; }
+
+  /* ---------- Uebersicht fuer Waechter-Tests und Uebersichtsseite ---------- */
+  function liste(){
+    const mats=[], texs=[]; for(const [k,m] of cache) mats.push({name:k,typ:m.type,abrufe:zaehler.get(k)||0});
+    for(const [k,t] of texCache){ const im=t.image||{}; texs.push({name:k,w:im.width||0,h:im.height||0,abrufe:zaehler.get('tex:'+k)||0}); }
+    const neuL=[]; for(const [k,n] of zaehler) if(k.indexOf('neu:')===0||k.indexOf('kopie:')===0) neuL.push({name:k,abrufe:n});
+    let abrufe=0; for(const x of mats) abrufe+=x.abrufe;
+    return {materialien:mats,texturen:texs,eigene:neuL,geteilt:mats.length,abrufe,gespart:abrufe-mats.length,farben:Object.keys(FARBE).length,rezepte:Object.keys(REZEPT).length};
+  }
+  return {FARBE,REZEPT,get,neu,kopie,std:stdGeteilt,basic,vc,farbe,tex:texGet,kachel,stufe,liste,verstoesse,get wache(){ return wacheAn; }};
+})();
 
 /* =========================================================
    Produktdaten
@@ -3890,10 +4052,13 @@ function gruppenTakt(){ if(--gbN>0) return; gbN=20; try{ scene.traverse(o=>{ if(
    angefasst. So kann nichts falsch stehen bleiben. */
 const BUENDEL={liste:[], fertig:new WeakSet(), unruhig:new WeakSet(), vorher:new WeakMap(), n:0, aufgeloest:0, aus:false};
 try{ if(localStorage.getItem('bb_buendel')==='0') BUENDEL.aus=true; }catch(e){}
+/* 13.10. (Fundament): die Baukasten-Markierung (userData.bauteil/klasse) ist keine eigene
+   Spiellogik - solche Meshes duerfen gebuendelt werden wie vorher die unmarkierten */
+function udEigen(ud){ for(const k in ud) if(k!=='bauteil'&&k!=='klasse') return true; return false; }
 function bKandidat(o,root){
   if(!o.isMesh||o.isInstancedMesh||o.isSkinnedMesh||o.children.length||o.userData._bnd) return false;
   const m=o.material; if(!m||Array.isArray(m)||!m.visible||m.transparent||m.vertexColors||(m.map&&m.map.isVideoTexture)) return false;
-  if(Object.keys(o.userData).length&&!(o.userData._gbM||o.userData._gbGeo)) return false;
+  if(udEigen(o.userData)&&!(o.userData._gbM||o.userData._gbGeo)) return false;
   if(o.onBeforeRender!==THREE.Object3D.prototype.onBeforeRender) return false;
   const g=o.geometry; if(!g||!g.attributes.position||!g.attributes.normal||(g.morphAttributes&&Object.keys(g.morphAttributes).length)) return false;
   for(let x=o;x&&x!==root;x=x.parent) if(!x.visible) return false;
@@ -4302,11 +4467,29 @@ function prDrinnen(x,z){
   return false;
 }
 const _prV=new THREE.Vector3();
+/* 13.10. (Fundament, Materialbibliothek): Materialien aus MAT teilen sich viele Meshes in Laden,
+   Lager und draussen. Pracht entscheidet Spiegelboden und Innen/Aussen aber je Material - damit
+   das Bild genau so bleibt wie vorher mit eigenen Materialien je Stelle, bekommt jeder weitere
+   Ort (flacher Boden ja/nein, innen/aussen) eine eigene frische Kopie (MAT.kopie). */
+const _prTeil=new WeakMap();
+function prFlachBoden(o){ const g=o.geometry; if(!g||!g.attributes||!g.attributes.position||o.isInstancedMesh) return false;
+  if(!g.boundingBox) g.computeBoundingBox();
+  _prB.copy(g.boundingBox).applyMatrix4(o.matrixWorld); _prB.getSize(_prS);
+  return _prS.y<0.03&&_prB.max.y<0.05&&_prB.min.y>-0.03&&_prS.x*_prS.z>0.5; }
+function prTeilen(m,o){
+  let k=PR.spRT&&prFlachBoden(o)?'f':'-';
+  if(PR.envAussen){ const g=o.geometry; if(g&&!g.boundingSphere&&g.computeBoundingSphere) g.computeBoundingSphere(); if(g&&g.boundingSphere) _prV.copy(g.boundingSphere.center).applyMatrix4(o.matrixWorld); else o.getWorldPosition(_prV); k+=prDrinnen(_prV.x,_prV.z)?'i':'a'; }
+  let e=_prTeil.get(m); if(!e){ e={}; e[k]=m; _prTeil.set(m,e); return m; }
+  if(!e[k]){ e[k]=MAT.kopie(m); PR.nTeil=(PR.nTeil||0)+1; }
+  return e[k];
+}
 function prMaterialien(wurzel){
   const aussen=new Map();
   (wurzel||scene).traverse(o=>{ if(!(o.isMesh||o.isInstancedMesh)||o.isSkinnedMesh) return;
     const ms=Array.isArray(o.material)?o.material:[o.material];
-    for(const m of ms){ if(!m) continue; prVeredeln(m,o); prSpiegelPruefen(m,o);
+    for(let i=0;i<ms.length;i++){ let m=ms[i]; if(!m) continue;
+      if(m.userData.mat){ const t=prTeilen(m,o); if(t!==m){ if(Array.isArray(o.material)){ o.material=o.material.slice(); o.material[i]=t; } else o.material=t; m=t; } }
+      prVeredeln(m,o); prSpiegelPruefen(m,o);
       if(PR.envAussen&&m.userData.prEnv!==undefined&&!m.userData.prOrt){ const g=o.geometry; if(g&&!g.boundingSphere&&g.computeBoundingSphere) g.computeBoundingSphere(); if(g&&g.boundingSphere) _prV.copy(g.boundingSphere.center).applyMatrix4(o.matrixWorld); else o.getWorldPosition(_prV); const d=prDrinnen(_prV.x,_prV.z), e=aussen.get(m)||{i:0,a:0}; d?e.i++:e.a++; aussen.set(m,e); } } });
   /* nur draussen benutzt: Spiegelbild der Strasse statt des Ladens */
   for(const [m,e] of aussen){ m.userData.prOrt=e.a>e.i?'aussen':'innen'; if(m.userData.prOrt==='aussen'&&!m.envMap){ m.envMap=PR.envAussen; m.needsUpdate=true; } }
@@ -4634,7 +4817,8 @@ function atlas(w,h,d,a,cat,o){
 /* =========================================================
    3D-Produktmodelle
    ========================================================= */
-const vcMat=new THREE.MeshStandardMaterial({vertexColors:true,roughness:0.45});
+/* Vertexfarben-Material (Ware, Paletten, V1): aus der Materialbibliothek, Klasse 'standard' (r 0,45) */
+const vcMat=MAT.vc('standard');
 /* eigene Verpackungsformen je Produkt (04g-form-*.js) */
 const VP_FORM={};
 const glassMat=new THREE.MeshStandardMaterial({color:0xffffff,transparent:true,opacity:0.22,roughness:0.05,metalness:0.1,depthWrite:false});
@@ -13047,6 +13231,108 @@ Object.assign(V,{
     vbox(k,k.w+0.004,0.004,k.d+0.004,0,0.016,0,'#d9b45a'); gurtX(k,0,k.w,k.h*0.66,'#c81a0a',0.016); return fertig(k); }
 });
 })();
+/* =========================================================
+   Baukasten – Kern (Fundament Etappe 2, Schritt 1)
+
+   Tom 13.10.2026: "einheitliche Struktur – ändert man es an einer
+   Stelle, ändert es sich überall." Bauteile entstehen ab jetzt aus
+   EINER Implementierung mit Parametern. Hier liegt der gemeinsame Kern:
+   - bk.lod()      Detailstufe aus der Grafikstufe (MAT.stufe)
+   - bk.kasten()   Kastenform: gefast oder einfacher Kasten nach Parametern
+   - bk.sammler()  viele Teile -> je Oberflaechenklasse EIN Mesh mit
+                   Vertexfarben (MAT.vc). Vorher sieben eigene Sammler
+                   (geraetBau 06, VC/vsHolzGeo 11e, hvSammler Halle, ...).
+   - bk.schild()   Schild Nachtblau/Gold mit Textur-Cache (gleicher Text,
+                   gleiche Groesse = eine Textur).
+   Jedes Mesh aus dem Baukasten traegt userData.bauteil (Waechter-Tests,
+   Uebersicht). Regel: nie daneben neu bauen - fehlt etwas, hier ergaenzen.
+   Doku: docs/fundament/baukasten.md
+   ========================================================= */
+const bk={};
+/* 0 = Ultra Low, 1 = Niedrig bis Hoch, 2 = ab Maximum (beim Laden fest) */
+bk.lod=()=>MAT.stufe().lod;
+/* Kasten w x h x d. o.fase = groesste Fase (m), o.anteil = Fase hoechstens Anteil der kleinsten
+   Kante (Standard 0,2), o.faseMin = darunter einfacher Kasten, o.seg = Segmente der Fase,
+   o.lod0Kasten = auf Ultra Low einfacher Kasten. Ohne o.fase: einfacher Kasten. */
+bk.kasten=function(w,h,d,o){
+  o=o||{}; const mn=Math.min(w,h,d);
+  if(!o.fase||(o.lod0Kasten&&bk.lod()===0)||mn<(o.faseMin||0)) return new THREE.BoxGeometry(w,h,d);
+  return roundedBoxGeo(w,h,d,Math.min(o.fase,mn*(o.anteil||0.2)),o.seg);
+};
+/* ---------- Sammler ----------
+   const S=bk.sammler({form:{fase:0.02,faseMin:0.03}, klasse:'lack', reihenfolge:[...], mats:{...}});
+   S.pivot(x,y,z,rx,ry,rz)                         Bezugsmatrix fuer gekippte Baugruppen (leer = aus)
+   S.box(w,h,d,x,y,z,farbe,klasse,rx,ry,rz)        Kasten (Form nach opt.form)
+   S.rund(w,h,d,r,x,y,z,farbe,klasse,rx,ry,rz)     Kasten mit fester Fase r
+   S.zyl(r1,r2,h,seg,x,y,z,farbe,klasse,rx,ry,rz)  Zylinder/Kegelstumpf
+   S.geo(geo,m,farbe,klasse)                       beliebige Geometrie mit Matrix
+   S.teile(klasse) -> [{geo,m,color}]              zum Weiterverwenden in einem fremden merge()
+   S.geometrie(klasse) -> BufferGeometry           verschmolzen, ohne Mesh (z. B. geteilte Palette)
+   S.fertig(parent,{schatten,bauteil,fest,mats,geo,nachher}) -> Mesh[]  je Klasse ein Mesh,
+        Material MAT.vc(klasse) oder mats[klasse] / mats(klasse) (null = auslassen); schatten auch
+        als Funktion(klasse); geo(geo,klasse) bearbeitet die verschmolzene Geometrie; nachher(mesh,klasse);
+        userData.bauteil/klasse (bauteil:false = ohne Markierung)
+   Klassen: standard (vcMat) | lack | metall | matt | glas | leucht (siehe MAT.vc). */
+bk.sammler=function(opt){
+  opt=opt||{};
+  const L={}, form=opt.form||{}; let basis=null;
+  if(opt.reihenfolge) for(const k of opt.reihenfolge) L[k]=[];
+  const add=(kl,geo,m,c)=>{ if(basis) m=basis.clone().multiply(m); (L[kl]||(L[kl]=[])).push({geo,m,color:c}); };
+  const kl=k=>k||opt.klasse||'standard';
+  const S={
+    L,
+    pivot(x,y,z,rx,ry,rz){ basis=(x===undefined)?null:tm(x,y,z,rx,ry,rz); return S; },
+    box(w,h,d,x,y,z,farbe,klasse,rx,ry,rz){ add(kl(klasse),bk.kasten(w,h,d,form),tm(x,y,z,rx,ry,rz),farbe); return S; },
+    rund(w,h,d,r,x,y,z,farbe,klasse,rx,ry,rz){ add(kl(klasse),roundedBoxGeo(w,h,d,r),tm(x,y,z,rx,ry,rz),farbe); return S; },
+    zyl(r1,r2,h,seg,x,y,z,farbe,klasse,rx,ry,rz){ add(kl(klasse),new THREE.CylinderGeometry(r1,r2,h,seg),tm(x,y,z,rx,ry,rz),farbe); return S; },
+    geo(geo,m,farbe,klasse){ add(kl(klasse),geo,m||new THREE.Matrix4(),farbe); return S; },
+    teile(klasse){ return L[kl(klasse)]||[]; },
+    leer(){ for(const k in L) if(L[k].length) return false; return true; },
+    geometrie(klasse){ const t=L[kl(klasse)]; return t&&t.length?merge(t):null; },
+    fertig(parent,o){
+      o=o||{}; const out=[], mats=o.mats||opt.mats;
+      for(const k in L){ if(!L[k].length) continue;
+        /* Material: eigene Tabelle/Funktion (null = Klasse auslassen) oder MAT.vc(klasse) */
+        const mat=typeof mats==='function'?mats(k):((mats&&mats[k])||MAT.vc(k)); if(!mat) continue;
+        let geo=merge(L[k]); if(o.geo) geo=o.geo(geo,k)||geo;
+        const me=new THREE.Mesh(geo,mat);
+        const sch=typeof o.schatten==='function'?o.schatten(k):(HIQ&&o.schatten!==false&&k!=='leucht');
+        if(sch){ me.castShadow=true; me.receiveShadow=true; }
+        if(o.bauteil!==false){ me.userData.bauteil=o.bauteil||opt.bauteil||'sammler'; me.userData.klasse=k; }
+        if(o.fest){ me.matrixAutoUpdate=false; me.updateMatrix(); }
+        if(o.nachher) o.nachher(me,k);
+        parent.add(me); out.push(me); }
+      return out; }
+  };
+  return S;
+};
+/* ---------- Schild (Nachtblau/Gold, Hausstil) mit Textur-Cache ----------
+   bk.schildTex({text,unter,bg,fg,w,h}) -> geteilte Textur (Schluessel = alle Werte)
+   bk.schild(parent,{text,unter,b,h,x,y,z,ry,bg,fg,px}) -> Mesh (Ebene b x h Meter)
+   Stil wie hvSchild (Halle): Hintergrund #1b2340, Goldstreifen unten, Text hell (BUN),
+   Untertitel gold (BAR). Material je Textur geteilt (MAT-Regel: nie veraendern). */
+const _bkSchildT=new Map(), _bkSchildM=new Map();
+bk.schildTex=function(o){
+  const W=Math.round(o.w||512), H=Math.round(o.h||160), bg=o.bg||'#1b2340', fg=o.fg||'#f2c230';
+  const k=[o.text,o.unter||'',bg,fg,W,H].join('|'); let t=_bkSchildT.get(k);
+  if(!t){ t=tex(W,H,(g,W2,H2)=>{
+      g.fillStyle=bg; g.fillRect(0,0,W2,H2);
+      g.fillStyle=fg; g.fillRect(0,H2-8,W2,8);
+      g.textAlign='center'; g.textBaseline='middle'; g.fillStyle='#eef2f8';
+      fitFont(g,o.text,W2*0.9,o.unter?Math.round(H2*0.42):Math.round(H2*0.55),BUN); g.fillText(o.text,W2/2,o.unter?H2*0.38:H2/2-3);
+      if(o.unter){ g.fillStyle=fg; fitFont(g,o.unter,W2*0.9,Math.round(H2*0.24),BAR); g.fillText(o.unter,W2/2,H2*0.74); } });
+    _bkSchildT.set(k,t); }
+  return t;
+};
+bk.schild=function(parent,o){
+  const px=Math.round(160*(o.px||1)), w=Math.round(px*Math.min(6.4,Math.max(1,o.b/o.h))), h=px;
+  const t=bk.schildTex({text:o.text,unter:o.unter,bg:o.bg,fg:o.fg,w,h});
+  let m=_bkSchildM.get(t); if(!m){ m=new THREE.MeshStandardMaterial({map:t,roughness:0.6}); m.userData.mat='schild'; _bkSchildM.set(t,m); }
+  const me=new THREE.Mesh(new THREE.PlaneGeometry(o.b,o.h),m);
+  me.position.set(o.x||0,o.y||0,o.z||0); me.rotation.y=o.ry||0; me.userData.bauteil='schild';
+  (parent||scene).add(me); return me;
+};
+bk.liste=function(){ return {schildTexturen:_bkSchildT.size,schildMaterialien:_bkSchildM.size}; };
 
 /* =========================================================
    Wände, Böden, Welt
@@ -13378,8 +13664,7 @@ function roomAO(x0,x1,z0,z1,zoneId,seiten){
   /* Keine Baender an der Decke und keine Streifen in den Wandecken:
      die gaben harte Kanten, die wie ein Balken an der Wand aussahen. */
 }
-function concreteTex(){ const t=tex(256,256,(g,W,H)=>{ g.fillStyle='#8a8e94'; g.fillRect(0,0,W,H); for(let i=0;i<2500;i++){ const v=Math.random(); g.fillStyle=`rgba(${v<0.5?0:255},${v<0.5?0:255},${v<0.5?0:255},${Math.random()*0.06})`; g.fillRect(Math.random()*W,Math.random()*H,2,2); } g.strokeStyle='rgba(0,0,0,.18)'; g.lineWidth=2; g.strokeRect(0,0,W,H); });
-  t.wrapS=t.wrapT=THREE.RepeatWrapping; return t; }
+/* concreteTex() entfaellt (13.10., Fundament): Beton kommt geteilt aus MAT.tex('beton'), Massstab ueber MAT.kachel */
 function flat(w,d,m,x,y,z){ const o=new THREE.Mesh(new THREE.PlaneGeometry(w,d),m); o.rotation.x=-Math.PI/2; o.position.set(x,y,z); if(HIQ) o.receiveShadow=true; scene.add(o); return o; }
 /* Streuscheibe der Deckenleuchten, auch vom Ausbau genutzt */
 let _deckenT=null;
@@ -13443,9 +13728,8 @@ function buildWorld(){
      unterschiedlicher Kachelgroesse uebereinander - an ihrer Kante
      sprang die Helligkeit, das sah aus wie ein Riss im Boden. */
   { const L=LAY.lbasis, N=LAY.lnord;
-    const lc=concreteTex(); lc.repeat.set((L.x1-L.x0)/2,(N.z1-L.z0)/2);
-    flat(L.x1-L.x0,N.z1-L.z0,new THREE.MeshStandardMaterial({map:lc,roughness:0.85}),
-      (L.x0+L.x1)/2,0.015,(L.z0+N.z1)/2); }
+    MAT.kachel(flat(L.x1-L.x0,N.z1-L.z0,MAT.get('betonBoden'),
+      (L.x0+L.x1)/2,0.015,(L.z0+N.z1)/2).geometry,(L.x1-L.x0)/2,(N.z1-L.z0)/2); }
   /* Testfeldbelag ueber die ganze Flaeche, nicht nur um die Stationen */
   { const T=LAY.test, tg=yardGroundTex(); tg.repeat.set((T.x1-T.x0)/10*2.2,(T.z1-T.z0)/9*2);
     flat(T.x1-T.x0,T.z1-T.z0,new THREE.MeshStandardMaterial({map:tg,roughness:0.92}),
@@ -13461,7 +13745,7 @@ function buildWorld(){
   wall(2,7.2,5.9,6.1,0,0.9,'-z',shopWall); wall(2,7.2,5.9,6.1,2.4,H,'-z',shopWall);
   wall(-1.2,1.2,5.9,6.1,2.5,H,'-z',shopWall);
   const glass=new THREE.MeshStandardMaterial({color:LIN(0xbfe0ff),transparent:true,opacity:0.16,roughness:0.05,metalness:0.2,depthWrite:false});
-  const frame=std(0x2b3040,{metalness:0.5,roughness:0.4});
+  const frame=MAT.std(0x2b3040,{metalness:0.5,roughness:0.4});
   for(const [a,b] of [[-7.2,-2],[2,7.2]]){ const gp=bbox(b-a,1.5,0.03,glass,(a+b)/2,1.65,6.0,null,false); occluders.push(gp);
     bbox(b-a,0.06,0.12,frame,(a+b)/2,0.93,6.0); bbox(b-a,0.06,0.12,frame,(a+b)/2,2.38,6.0); bbox(0.06,1.5,0.1,frame,(a+b)/2,1.65,6.0);
   }
@@ -13517,10 +13801,10 @@ function buildWorld(){
   /* Der Dachrand des Ladens darf nach Westen nicht ueber die Wand
      hinausragen: dahinter steht das hoehere Lager, und der
      Ueberstand stand dort als dunkler Balken quer in der Wand. */
-  bbox(16.2,0.25,12.4,std(0x2b2f3a),0.1,H+0.13,0);
+  bbox(16.2,0.25,12.4,MAT.std(0x2b2f3a),0.1,H+0.13,0);
   /* Ein Dach ueber das ganze Lager, Rampenraum und Anbau zusammen */
-  bbox(12.4,0.25,12.4,std(0x2b2f3a),-14,LAGER_H+0.13,-0.1);
-  const ceil=std(0xe6e8ee,{roughness:1});
+  bbox(12.4,0.25,12.4,MAT.std(0x2b2f3a),-14,LAGER_H+0.13,-0.1);
+  const ceil=MAT.std(0xe6e8ee,{roughness:1});
   /* Beide Decken reichen ueber die Innenseiten aller Waende hinaus und
      stossen in der Trennwand aneinander - kein Spalt, keine Ueberlappung. */
   const c1=new THREE.Mesh(new THREE.PlaneGeometry(16.1,12.3),ceil); c1.rotation.x=Math.PI/2; c1.position.set(0.1,H-0.01,0); scene.add(c1);
@@ -13532,8 +13816,8 @@ function buildWorld(){
      Das Gehäuse ist mattes Aluminium ohne Metallanteil, damit beim
      Durchlaufen kein wanderndes Glanzlicht entsteht. */
   const panelM=new THREE.MeshBasicMaterial({map:diffT,toneMapped:false});
-  const fixM=std(0xdfe3e9,{metalness:0,roughness:0.62});
-  const rev=std(0x252932,{metalness:0,roughness:0.9});
+  const fixM=MAT.std(0xdfe3e9,{metalness:0,roughness:0.62});
+  const rev=MAT.std(0x252932,{metalness:0,roughness:0.9});
   const leuchten=[];
   /* Das Leuchtenraster richtet sich nach der Trennwand: drei
      Reihen in der Starthaelfte, zwei in der zweiten. Vorher lief
@@ -13568,9 +13852,9 @@ function buildWorld(){
        Flaechenkauf weg - dann haengt die Uhr in der Luft. Sie sitzt
        deshalb an der Rueckwand des Basisladens, die immer steht. */
     const zg=new THREE.Group(); zg.position.set(-2.6,2.6,-5.86); scene.add(zg);
-    const geh=new THREE.Mesh(new THREE.CylinderGeometry(0.24,0.24,0.055,HIQ?36:18),std(0x2b3140,{metalness:0.35,roughness:0.45}));
+    const geh=new THREE.Mesh(new THREE.CylinderGeometry(0.24,0.24,0.055,HIQ?36:18),MAT.std(0x2b3140,{metalness:0.35,roughness:0.45}));
     geh.rotation.x=Math.PI/2; zg.add(geh);
-    const rand2=new THREE.Mesh(new THREE.TorusGeometry(0.235,0.018,10,HIQ?30:16),std(0x9aa1ac,{metalness:0.7,roughness:0.3}));
+    const rand2=new THREE.Mesh(new THREE.TorusGeometry(0.235,0.018,10,HIQ?30:16),MAT.std(0x9aa1ac,{metalness:0.7,roughness:0.3}));
     rand2.position.z=0.03; zg.add(rand2);
     const blattT=tex(512,512,(g,W,H)=>{
       g.fillStyle='#f4f6fb'; g.beginPath(); g.arc(256,256,248,0,Math.PI*2); g.fill();
@@ -13587,7 +13871,7 @@ function buildWorld(){
       g.fillStyle='#8a9099'; g.font=BAR(26); g.fillText('QUARZ',256,336);
     });
     const blatt=plane(0.42,0.42,new THREE.MeshStandardMaterial({map:blattT,roughness:0.75}),0,0,0.032,0,zg);
-    const zeigerM=std(0x141a2c,{roughness:0.5}), secM=std(0xc8322a,{roughness:0.45});
+    const zeigerM=MAT.std(0x141a2c,{roughness:0.5}), secM=MAT.std(0xc8322a,{roughness:0.45});
     uhrStd=new THREE.Group(); uhrStd.position.z=0.038; zg.add(uhrStd);
     bbox(0.026,0.125,0.008,zeigerM,0,0.052,0,uhrStd,false);
     uhrMin=new THREE.Group(); uhrMin.position.z=0.045; zg.add(uhrMin);
@@ -13595,7 +13879,7 @@ function buildWorld(){
     uhrSek=new THREE.Group(); uhrSek.position.z=0.051; zg.add(uhrSek);
     bbox(0.008,0.2,0.006,secM,0,0.076,0,uhrSek,false);
     bbox(0.008,0.05,0.006,secM,0,-0.028,0,uhrSek,false);
-    const nabe=new THREE.Mesh(new THREE.CylinderGeometry(0.018,0.018,0.014,12),std(0x9aa1ac,{metalness:0.7}));
+    const nabe=new THREE.Mesh(new THREE.CylinderGeometry(0.018,0.018,0.014,12),MAT.std(0x9aa1ac,{metalness:0.7}));
     nabe.rotation.x=Math.PI/2; nabe.position.z=0.056; zg.add(nabe);
     /* Glas mit Reflex */
     const glasM=new THREE.MeshStandardMaterial({color:LIN(0xdfe8f4),transparent:true,opacity:0.14,roughness:0.06,metalness:0.3});
@@ -13685,7 +13969,7 @@ function schild(x,y,z,w,h,mat,steelM){
     cap.position.set(sx,y+h/2,0); g.add(cap);
   }
   /* Rueckblech, damit das Schild Tiefe hat */
-  bbox(w+0.05,h+0.05,0.025,std(0x4a515c,{metalness:0.5,roughness:0.5}),0,y,-0.016,g,false);
+  bbox(w+0.05,h+0.05,0.025,MAT.std(0x4a515c,{metalness:0.5,roughness:0.5}),0,y,-0.016,g,false);
   plane(w,h,mat,0,y,0.002,0,g);
   plane(w,h,mat,0,y,-0.032,Math.PI,g);
   return g;
@@ -13755,9 +14039,9 @@ function yardGroundTex(){
   return t;
 }
 function buildYard(){
-  const steel=std(0x9aa1ab,{metalness:0.72,roughness:0.3});
-  const steelDark=std(0x5d646e,{metalness:0.65,roughness:0.42});
-  const rubber=std(0x1c1f26,{roughness:0.95});
+  const steel=MAT.std(0x9aa1ab,{metalness:0.72,roughness:0.3});
+  const steelDark=MAT.std(0x5d646e,{metalness:0.65,roughness:0.42});
+  const rubber=MAT.std(0x1c1f26,{roughness:0.95});
   /* Perforiertes Tischblech */
   const perf=tex(512,512,(g,W,H)=>{
     g.fillStyle='#aab0b9'; g.fillRect(0,0,W,H);
@@ -13818,14 +14102,14 @@ function buildYard(){
       bbox(0.06,TT-0.05,0.06,steelDark,x,(TT-0.05)/2,z,g);
       bbox(0.11,0.025,0.11,rubber,x,0.012,z,g,false); }
     bbox(1.1,0.03,0.12,steelDark,0,0.26,0.3,g,false); bbox(1.1,0.03,0.12,steelDark,0,0.26,-0.3,g,false);
-    const tubeM=std(0x3e4652,{metalness:0.72,roughness:0.34});
+    const tubeM=MAT.std(0x3e4652,{metalness:0.72,roughness:0.34,side:THREE.DoubleSide});   /* side vorher nachtraeglich je Rohr gesetzt */
     const A=ROHR_ACHSE, c=Math.cos(A.neig), sn=Math.sin(A.neig);
     for(let i=0;i<s.cap;i++){
       const x=RAMPE_X[i];
       const t=new THREE.Mesh(new THREE.CylinderGeometry(0.062,0.062,A.halb*2,20,1,true),tubeM);
-      t.material.side=THREE.DoubleSide; t.position.set(x,A.y,A.z); t.rotation.x=A.neig;
+      t.position.set(x,A.y,A.z); t.rotation.x=A.neig;
       if(HIQ) t.castShadow=true; g.add(t);
-      const inner=new THREE.Mesh(new THREE.CylinderGeometry(0.056,0.056,A.halb*2-0.03,16,1,true),std(0x14161b,{roughness:0.9,side:THREE.DoubleSide}));
+      const inner=new THREE.Mesh(new THREE.CylinderGeometry(0.056,0.056,A.halb*2-0.03,16,1,true),MAT.std(0x14161b,{roughness:0.9,side:THREE.DoubleSide}));
       inner.position.copy(t.position); inner.rotation.copy(t.rotation); g.add(inner);
       /* Boden des Rohrs, Muendungsring, Schelle */
       const fussY=A.y-c*A.halb, fussZ=A.z-sn*A.halb;
@@ -13866,9 +14150,9 @@ function buildYard(){
       for(let i=0;i<900;i++){ c.fillStyle=`rgba(0,0,0,${Math.random()*0.07})`; c.fillRect(Math.random()*W,Math.random()*H,2,2); } });
       t.wrapS=t.wrapT=THREE.RepeatWrapping; t.repeat.set(3,1.5);
       return new THREE.MeshStandardMaterial({map:t,metalness:0.62,roughness:0.44}); })();
-    const stahl=std(0x767d88,{metalness:0.72,roughness:0.36});
-    const lack =std(0xf2c230,{metalness:0.25,roughness:0.55});
-    const rohrM=std(0x2f353f,{metalness:0.78,roughness:0.3});
+    const stahl=MAT.std(0x767d88,{metalness:0.72,roughness:0.36});
+    const lack =MAT.std(0xf2c230,{metalness:0.25,roughness:0.55});
+    const rohrM=MAT.std(0x2f353f,{metalness:0.78,roughness:0.3,side:THREE.DoubleSide});   /* side vorher nachtraeglich je Rohr gesetzt */
     /* Bodenplatte aus Riffelblech auf vier Fuessen */
     bbox(2.4,0.05,1.16,riffel,0,0.055,0,g);
     for(const sx of [-1.06,1.06]) for(const sz of [-0.46,0.46])
@@ -13897,15 +14181,15 @@ function buildYard(){
     const kal=[[-0.72,MOERSER_R[0],1.30],[0,MOERSER_R[1],1.55],[0.78,MOERSER_R[2],1.85]];
     kal.forEach(([x,r,hh],i)=>{
       const t=new THREE.Mesh(new THREE.CylinderGeometry(r,r,hh,22,1,true),rohrM);
-      t.material.side=THREE.DoubleSide; t.position.set(x,0.18+hh/2,0);
+      t.position.set(x,0.18+hh/2,0);
       if(HIQ) t.castShadow=true; g.add(t);
-      const innen=new THREE.Mesh(new THREE.CylinderGeometry(r*0.9,r*0.9,hh-0.04,16,1,true),std(0x0b0c10,{roughness:1,side:THREE.DoubleSide}));
+      const innen=new THREE.Mesh(new THREE.CylinderGeometry(r*0.9,r*0.9,hh-0.04,16,1,true),MAT.std(0x0b0c10,{roughness:1,side:THREE.DoubleSide}));
       innen.position.copy(t.position); g.add(innen);
       /* Boden im Rohr, damit man nicht hindurchsieht */
-      const bo=new THREE.Mesh(new THREE.CircleGeometry(r*0.9,16),std(0x15171c,{roughness:1}));
+      const bo=new THREE.Mesh(new THREE.CircleGeometry(r*0.9,16),MAT.std(0x15171c,{roughness:1}));
       bo.rotation.x=-Math.PI/2; bo.position.set(x,0.2,0); g.add(bo);
       /* Muendungswulst und Verstaerkungsringe */
-      const wulst=new THREE.Mesh(new THREE.TorusGeometry(r*1.03,r*0.17,8,20),std(0x454d59,{metalness:0.7,roughness:0.35}));
+      const wulst=new THREE.Mesh(new THREE.TorusGeometry(r*1.03,r*0.17,8,20),MAT.std(0x454d59,{metalness:0.7,roughness:0.35}));
       wulst.rotation.x=Math.PI/2; wulst.position.set(x,0.18+hh,0); g.add(wulst);
       for(const f of [0.3,0.62]){ const rg=new THREE.Mesh(new THREE.TorusGeometry(r*1.02,r*0.1,6,18),rohrM);
         rg.rotation.x=Math.PI/2; rg.position.set(x,0.18+hh*f,0); g.add(rg); }
@@ -13930,15 +14214,15 @@ function buildYard(){
     /* Um 180 Grad gedreht gegenueber vorher: der Bediener steht auf der
        Rueckseite und blickt ueber das Pult aufs Testfeld. */
     const g=new THREE.Group(); g.position.set(PULT_POS.x,0,PULT_POS.z); g.rotation.y=PULT_RY; scene.add(g);
-    const korpus=std(0x2b3240,{metalness:0.42,roughness:0.44});
-    const kante=std(0x9aa1ac,{metalness:0.7,roughness:0.3});
-    const pulver=std(0xf2c230,{roughness:0.55});
+    const korpus=MAT.std(0x2b3240,{metalness:0.42,roughness:0.44});
+    const kante=MAT.std(0x9aa1ac,{metalness:0.7,roughness:0.3});
+    const pulver=MAT.std(0xf2c230,{roughness:0.55});
 
     /* Unterbau als geschlossener Schaltschrank. Vorher stand das
        Pult auf vier duennen Rohren und wirkte wie ein Campingtisch -
        fuer ein Geraet, das Feuerwerk zuendet, zu wenig. */
-    const blech=std(0x353c4a,{metalness:0.5,roughness:0.44});
-    const rippe=std(0x232936,{metalness:0.45,roughness:0.5});
+    const blech=MAT.std(0x353c4a,{metalness:0.5,roughness:0.44});
+    const rippe=MAT.std(0x232936,{metalness:0.45,roughness:0.5});
     /* Sockel mit Fussleiste */
     bbox(1.02,0.09,0.62,rippe,0,0.045,0,g);
     bbox(1.06,0.02,0.66,kante,0,0.10,0,g,false);
@@ -13960,7 +14244,7 @@ function buildYard(){
        geht dort in den Boden. Ein loses Stueck, das schraeg daneben
        lag, steckte halb im Boden und endete im Nichts - von oben ein
        schwarzer Keil (Tom, Foto 29.09.). */
-    { const kr=new THREE.Mesh(new THREE.CylinderGeometry(0.035,0.035,0.16,10),std(0x1c1f26,{roughness:0.9}));
+    { const kr=new THREE.Mesh(new THREE.CylinderGeometry(0.035,0.035,0.16,10),MAT.std(0x1c1f26,{roughness:0.9}));
       kr.position.set(0.30,0.08,-0.24); kr.userData.kabelrohr=true; g.add(kr); }
     /* Warnstreifen ueber dem Sockel */
     plane(0.98,0.07,new THREE.MeshStandardMaterial({map:tex(420,32,(c,W,H)=>{
@@ -14035,7 +14319,7 @@ function buildYard(){
     pultTex=tex(960,480,()=>{});
     /* im Feld ANZEIGE, unter der Kanalreihe - weiter oben verdeckte
        das Display die Kanalnummern 4 bis 6 */
-    rbox(0.32,0.02,0.19,0.008,std(0x11141b,{roughness:0.5}),-0.030,0.02,0.052,pult);
+    rbox(0.32,0.02,0.19,0.008,MAT.std(0x11141b,{roughness:0.5}),-0.030,0.02,0.052,pult);
     const scr=plane(0.285,0.155,new THREE.MeshBasicMaterial({map:pultTex,toneMapped:false}),-0.030,0.031,0.052,0,pult);
     scr.rotation.x=-Math.PI/2;
 
@@ -14046,13 +14330,13 @@ function buildYard(){
        Einbauring, Raendelmutter, Schaft, Teller, Kuppel - und die
        Beschriftung steht auf der Pultplatte daneben. */
     const TX=0.295, TZ=0.065;
-    const rotDunkel=std(0x8e1a11,{roughness:0.42,metalness:0.02});
-    const rotKorpus=std(0xbe2418,{roughness:0.3,metalness:0.03});
-    const rotHell=std(0xd93b2c,{roughness:0.24,metalness:0.03});
+    const rotDunkel=MAT.std(0x8e1a11,{roughness:0.42,metalness:0.02});
+    const rotKorpus=MAT.std(0xbe2418,{roughness:0.3,metalness:0.03});
+    const rotHell=MAT.std(0xd93b2c,{roughness:0.24,metalness:0.03});
     const ring=new THREE.Mesh(new THREE.CylinderGeometry(0.086,0.092,0.020,HIQ?32:16),kante);
     ring.position.set(TX,0.020,TZ); pult.add(ring);
     const raend=new THREE.Mesh(new THREE.CylinderGeometry(0.079,0.079,0.015,HIQ?24:12),
-      std(0x7a8089,{metalness:0.75,roughness:0.28}));
+      MAT.std(0x7a8089,{metalness:0.75,roughness:0.28}));
     raend.position.set(TX,0.036,TZ); pult.add(raend);
     const schaft=new THREE.Mesh(new THREE.CylinderGeometry(0.050,0.050,0.022,HIQ?24:12),rotDunkel);
     schaft.position.set(TX,0.051,TZ); pult.add(schaft);
@@ -14074,11 +14358,11 @@ function buildYard(){
     /* Schluesselschalter links mit Stellungsmarke */
     const zylR=new THREE.Mesh(new THREE.CylinderGeometry(0.030,0.030,0.020,HIQ?18:10),kante);
     zylR.position.set(-0.328,0.022,0.067); pult.add(zylR);
-    const key=new THREE.Mesh(new THREE.BoxGeometry(0.009,0.014,0.055),std(0xb9a05a,{metalness:0.8,roughness:0.3}));
+    const key=new THREE.Mesh(new THREE.BoxGeometry(0.009,0.014,0.055),MAT.std(0xb9a05a,{metalness:0.8,roughness:0.3}));
     key.position.set(-0.328,0.036,0.094); key.rotation.x=-0.5; pult.add(key);
     /* Meldeleuchten: eine je Kanal. Aus = leer, gruen = scharf,
        rot = brennt (pultLampen) */
-    const tastM=std(0x2a2f38,{roughness:0.5,metalness:0.2}), tastKopf=std(0xd9dde3,{roughness:0.45});
+    const tastM=MAT.std(0x2a2f38,{roughness:0.5,metalness:0.2}), tastKopf=MAT.std(0xd9dde3,{roughness:0.45});
     for(let i=0;i<9;i++){
       const lx=PULT_LAMP_X(i);
       const lm=new THREE.MeshStandardMaterial({color:LIN(0x1e232e),roughness:0.4,emissive:LIN(0x39ff7a),emissiveIntensity:0});
@@ -14114,8 +14398,8 @@ function buildYard(){
   /* Der erste Mast stand bei z -7,2 und ragte durch die Decke des
      Lagergangs. Beide sind mit den Stationen nach Sueden gerueckt. */
   for(const [x,z] of [[-5.6,-13.0],[6.6,-21.0]]){
-    bbox(0.12,3.4,0.12,std(0x4a4f5a,{metalness:0.5}),x,1.7,z);
-    const head=bbox(0.55,0.3,0.25,std(0x2a2e38),x,3.45,z); head.rotation.x=0.4;
+    bbox(0.12,3.4,0.12,MAT.std(0x4a4f5a,{metalness:0.5}),x,1.7,z);
+    const head=bbox(0.55,0.3,0.25,MAT.std(0x2a2e38),x,3.45,z); head.rotation.x=0.4;
     const lm=new THREE.MeshStandardMaterial({color:0x222222,emissive:LIN(0xfff0d0),emissiveIntensity:0}); lampMats.push(lm);
     bbox(0.45,0.03,0.2,lm,x,3.33,z+(z<-17?0.1:-0.12),null,false);
   }
@@ -14251,7 +14535,7 @@ function raketeModell(t){
   const mat=h=>std(parseInt(h.slice(1),16),L0.metall?{metalness:0.55,roughness:0.3}:{roughness:0.5});
   /* Stab haengt im Abschussrohr (0,62 m) - er reicht nicht bis zum Boden */
   const SL=0.56;
-  const stab=new THREE.Mesh(new THREE.CylinderGeometry(L0.jumbo?0.011:0.006,L0.jumbo?0.011:0.006,SL,6),std(0xc9a46a,{roughness:0.8}));
+  const stab=new THREE.Mesh(new THREE.CylinderGeometry(L0.jumbo?0.011:0.006,L0.jumbo?0.011:0.006,SL,6),MAT.std(0xc9a46a,{roughness:0.8}));
   stab.position.y=-SL/2+0.01; g.add(stab);
   /* Treibsatz, Band, Kopf */
   const body=new THREE.Mesh(new THREE.CylinderGeometry(L0.r,L0.r,L0.L,HIQ?16:10),mat(L0.body));
@@ -14262,7 +14546,7 @@ function raketeModell(t){
   const kopf=new THREE.Mesh(new THREE.ConeGeometry(L0.r*1.12,L0.r*(L0.gross?3.4:2.6),HIQ?16:10),mat(L0.kopf));
   kopf.position.y=L0.L+L0.r*(L0.gross?1.7:1.3); g.add(kopf);
   /* Duese mit Zuendschnur */
-  const d=new THREE.Mesh(new THREE.CylinderGeometry(L0.r*0.7,L0.r*0.9,0.02,10),std(0x2a2e36));
+  const d=new THREE.Mesh(new THREE.CylinderGeometry(L0.r*0.7,L0.r*0.9,0.02,10),MAT.std(0x2a2e36));
   d.position.y=-0.01; g.add(d);
   if(L0.flossen) for(let k=0;k<3;k++){
     const fl=bbox(0.004,L0.L*0.32,L0.r*1.3,mat(L0.band),0,L0.L*0.16,0,g,false);
@@ -14297,7 +14581,7 @@ function moerserRohr(t){ return {kugel75:0,kugel100:0,kugel150:1,kugel200:1,kuge
 function kugelModell(t,slot){
   /* passt nicht jede Kugel in jedes Rohr - dann eben knapp unter die Innenweite */
   const g=new THREE.Group(), rr=ROHR_INNEN[slot%3], rk=Math.min(KUGEL_R[kugelTyp(t)]||0.06,rr*0.97);
-  const papier=std(0xb58a55,{roughness:0.95});
+  const papier=MAT.std(0xb58a55,{roughness:0.95});
   const kugel=new THREE.Mesh(new THREE.SphereGeometry(rk,HIQ?16:10,HIQ?12:8),papier);
   kugel.position.y=-0.14-rk; g.add(kugel);
   /* Schnur: aus der Kugel hoch, ueber den Rand und aussen herab */
@@ -14312,7 +14596,7 @@ function kugelModell(t,slot){
     const sg=new THREE.Mesh(new THREE.CylinderGeometry(0.009,0.009,L+0.012,6),schnurM);
     sg.position.set((a.x+b.x)/2,(a.y+b.y)/2,0); sg.rotation.z=Math.atan2(-dx,dy); g.add(sg);
   }
-  const spitze=new THREE.Mesh(new THREE.SphereGeometry(0.016,8,6),std(0xd8352a,{roughness:0.6}));
+  const spitze=new THREE.Mesh(new THREE.SphereGeometry(0.016,8,6),MAT.std(0xd8352a,{roughness:0.6}));
   spitze.position.copy(pts[pts.length-1]); g.add(spitze);
   g.userData.lunte=pts[pts.length-1].clone();
   return g;
@@ -14499,37 +14783,18 @@ function fizzle(t,o){
 /* =========================================================
    Doppelstabmatte ums Testfeld und Strassenleuchten
    ========================================================= */
-function gitterMat(rx,ry2){
-  const t=tex(256,256,(g,W,H)=>{
-    g.clearRect(0,0,W,H);
-    g.strokeStyle='#6f7783'; g.lineCap='round';
-    /* senkrechte Einzelstaebe */
-    g.lineWidth=7;
-    for(let x=16;x<W;x+=51){ g.beginPath(); g.moveTo(x,0); g.lineTo(x,H); g.stroke(); }
-    /* waagerechte Doppelstaebe */
-    g.lineWidth=6;
-    for(let y=22;y<H;y+=51){
-      g.strokeStyle='#848c98'; g.beginPath(); g.moveTo(0,y-5); g.lineTo(W,y-5); g.stroke();
-      g.strokeStyle='#5f6672'; g.beginPath(); g.moveTo(0,y+5); g.lineTo(W,y+5); g.stroke();
-    }
-    /* Lichtkante oben auf den Staeben */
-    g.strokeStyle='rgba(255,255,255,.3)'; g.lineWidth=2;
-    for(let x=16;x<W;x+=51){ g.beginPath(); g.moveTo(x-2,0); g.lineTo(x-2,H); g.stroke(); }
-  });
-  t.wrapS=t.wrapT=THREE.RepeatWrapping; t.anisotropy=8; t.repeat.set(rx,ry2);
-  return new THREE.MeshStandardMaterial({map:t,transparent:true,alphaTest:0.35,side:THREE.DoubleSide,metalness:0.55,roughness:0.45});
-}
+/* gitterMat() entfaellt (13.10., Fundament): Doppelstabmatte = MAT.get('zaunGitter') mit geteilter
+   Textur MAT.tex('doppelstab'), Massstab in den UVs (MAT.kachel) - ein Material fuer alle Zaunlaeufe */
 /* Ein Zaunlauf von (x0,z0) nach (x1,z1) */
 function zaunLauf(x0,z0,x1,z1,h){
   const dx=x1-x0, dz=z1-z0, len=Math.hypot(dx,dz), ry=Math.atan2(dx,dz);
-  const post=std(0x59606b,{metalness:0.6,roughness:0.42});
-  const kappe=std(0x3c424d,{metalness:0.5,roughness:0.5});
+  const post=MAT.get('zaunPfosten');
+  const kappe=MAT.get('zaunKappe');
   /* Sockelschiene */
-  const sock=bbox(0.12,0.16,len,std(0x9a9ea6,{roughness:0.95}),(x0+x1)/2,0.08,(z0+z1)/2,null,false);
+  const sock=bbox(0.12,0.16,len,MAT.get('zaunSockel'),(x0+x1)/2,0.08,(z0+z1)/2,null,false);
   sock.rotation.y=ry;
   /* Matte */
-  const m=gitterMat(len,h-0.16);
-  const panel=new THREE.Mesh(new THREE.PlaneGeometry(len,h-0.16),m);
+  const panel=new THREE.Mesh(MAT.kachel(new THREE.PlaneGeometry(len,h-0.16),len,h-0.16),MAT.get('zaunGitter'));
   panel.position.set((x0+x1)/2,0.16+(h-0.16)/2,(z0+z1)/2);
   panel.rotation.y=ry+Math.PI/2;
   scene.add(panel);
@@ -14627,7 +14892,8 @@ const HAUSFARBEN={
 };
 /* ---------- Sammler: Teile je Material, am Ende ein Mesh ---------- */
 let HZ=null, HZS=null, HZA=null, _hzM=null, _hzT=null;
-function hzAdd(k,geo,m,c){ (HZ[k]||(HZ[k]=[])).push({geo,m,color:c}); }
+/* 13.10. (Fundament): HZ ist ein Baukasten-Sammler (bk.sammler, 04z); Klasse = Material-Schluessel */
+function hzAdd(k,geo,m,c){ HZ.geo(geo,m,c,k); }
 /* Quader, dessen UV in Metern laeuft: der Putz ist auf jedem
    Bauteil gleich fein und nicht auf jede Leiste gestaucht */
 function boxM(w,h,d,T){ const g=new THREE.BoxGeometry(w,h,d), uv=g.attributes.uv, S=[[d,h],[d,h],[w,d],[w,d],[w,h],[w,h]];
@@ -14865,17 +15131,11 @@ function hzFertig(){
   if(HZS.length){ const sm=new THREE.MeshStandardMaterial({vertexColors:true,map:schildAtlas(false),emissive:LIN(0xffffff),emissiveMap:schildAtlas(true),emissiveIntensity:0,alphaTest:0.3,alphaToCoverage:true,roughness:0.5,side:THREE.DoubleSide});
     sm.map.anisotropy=8; houseMats.push(sm); M.schild=sm; }
   if(HZA.length){ const mt=markiseAtlas(); mt.wrapS=THREE.RepeatWrapping; M.markise=new THREE.MeshStandardMaterial({map:mt,alphaTest:0.5,roughness:0.9,side:THREE.DoubleSide}); }
-  for(const k in HZ){
-    let mat=M[k];
-    if(!mat&&k.startsWith('tuer:')) mat=new THREE.MeshStandardMaterial({map:tuerTex(k.slice(5)),roughness:0.45,metalness:0.05});
-    if(!mat) continue;
-    const mesh=new THREE.Mesh(merge(HZ[k]),mat);
-    if(HIQ&&(k==='putz'||k==='dach'||k==='schiefer')){ mesh.castShadow=true; mesh.receiveShadow=true; }
-    if(k==='glas') mesh.onBeforeRender=M.nacht;
-    if(k==='spill'||k==='scheibe') mesh.renderOrder=2;
-    scene.add(mesh);
-  }
-  HZ={};
+  HZ.fertig(scene,{bauteil:'stadthaus',
+    mats:k=>{ let mat=M[k]; if(!mat&&k.startsWith('tuer:')) mat=new THREE.MeshStandardMaterial({map:tuerTex(k.slice(5)),roughness:0.45,metalness:0.05}); return mat||null; },
+    schatten:k=>HIQ&&(k==='putz'||k==='dach'||k==='schiefer'),
+    nachher:(mesh,k)=>{ if(k==='glas') mesh.onBeforeRender=M.nacht; if(k==='spill'||k==='scheibe') mesh.renderOrder=2; }});
+  HZ=bk.sammler();
 }
 /* Hoehe des Gehwegs vor der Zeile (der Gehweg gehoert der Strasse und
    kann sich aendern - Stufen und Lichtfleck setzen sich darauf) */
@@ -15994,8 +16254,8 @@ function nachbarFassade(x0,x1,zid,unterzeile,eingang){
   /* Attika, Gesims und Sockel. Die Farben gehen mit der Fassade:
      anthrazit wie der Sockel in der Textur, nicht mehr das
      Sandsteinbeige von der Ziegelwand. */
-  bbox(w+0.2,0.28,0.4,std(0x2f343d,{roughness:0.9}),cx,H+0.12,zf+0.02,g);
-  bbox(w+0.1,0.1,0.36,std(0xe8ecf2,{roughness:1}),cx,H+0.3,zf+0.04,g,false);
+  bbox(w+0.2,0.28,0.4,MAT.std(0x2f343d,{roughness:0.9}),cx,H+0.12,zf+0.02,g);
+  bbox(w+0.1,0.1,0.36,MAT.std(0xe8ecf2,{roughness:1}),cx,H+0.3,zf+0.04,g,false);
   /* Der Sockel war 50 cm tief und mittig auf der Wand - damit stand
      er zur Haelfte IM Laden und zog dort ein schwarzes Band unter
      der ganzen Fensterfront entlang. Er gehoert nach draussen. */
@@ -16003,7 +16263,7 @@ function nachbarFassade(x0,x1,zid,unterzeile,eingang){
      am Haupteingang. Vorher lief er durch und stand 62 cm hoch quer in
      der offenen Schiebetuer. Das Stueck in der Luecke steht nur, bis
      der zweite Eingang gekauft ist. */
-  { const sm=std(0x3b4049,{roughness:0.9}), sx0=x0-0.06, sx1=x1+0.06;
+  { const sm=MAT.std(0x3b4049,{roughness:0.9}), sx0=x0-0.06, sx1=x1+0.06;
     const sockel=(a2,b2,par)=>bbox(b2-a2,0.62,0.26,sm,(a2+b2)/2,0.31,zf+0.06,par);
     if(eingang!==undefined){
       const [ea,eb]=OEFF[eingang], ec=(ea+eb)/2, l0=ec-1.3, l1=ec+1.3;
@@ -16014,8 +16274,8 @@ function nachbarFassade(x0,x1,zid,unterzeile,eingang){
 
   /* ---------- Zustand „steht zum Verkauf“ ---------- */
   const gs=new THREE.Group(); g.add(gs); zWand(zid,gs);
-  const brett=std(0x6d5a44,{roughness:0.95});
-  const zugemauert=std(0x5a4a3e,{roughness:0.95});
+  const brett=MAT.std(0x6d5a44,{roughness:0.95});
+  const zugemauert=MAT.std(0x5a4a3e,{roughness:0.95});
   /* Die Oeffnungen sind jetzt eine durchgehende Fensterreihe und
      tragen nur noch ihre x-Grenzen; Bruestung und Sturz stehen fuer
      alle gleich in BR und ST. Vorher stand die Hoehe in jedem
@@ -16038,8 +16298,8 @@ function nachbarFassade(x0,x1,zid,unterzeile,eingang){
   /* ---------- Zustand „gehoert dir“: Schaufenster ---------- */
   const go=new THREE.Group(); g.add(go); zAdd(zid,go);
   const glas=new THREE.MeshStandardMaterial({color:LIN(0xbfe0ff),transparent:true,opacity:0.16,roughness:0.05,metalness:0.2,depthWrite:false});
-  const prof=std(0x2b3040,{metalness:0.5,roughness:0.4});
-  const bank=std(0xd7dae0,{roughness:0.5});
+  const prof=MAT.std(0x2b3040,{metalness:0.5,roughness:0.4});
+  const bank=MAT.std(0xd7dae0,{roughness:0.5});
   OEFF.forEach(([a,b],i)=>{
     if(i===eingang){ eingangsAchse(go,a,b,zf,ST,glas,prof); return; }
     const y0=BR, y1=ST;
@@ -16070,12 +16330,12 @@ function nachbarFassade(x0,x1,zid,unterzeile,eingang){
    ========================================================= */
 function buildMuelleimer(x,z,ry){
   const g=new THREE.Group(); g.position.set(x,0,z); g.rotation.y=ry||0; scene.add(g);
-  const stahl=std(0x50575f,{metalness:0.62,roughness:0.42});
-  const dunkel=std(0x2b3038,{metalness:0.5,roughness:0.5});
+  const stahl=MAT.std(0x50575f,{metalness:0.62,roughness:0.42});
+  const dunkel=MAT.std(0x2b3038,{metalness:0.5,roughness:0.5});
   /* Pfosten mit Fussplatte */
   bbox(0.22,0.025,0.22,stahl,0,0.012,0,g,false);
   for(let k=0;k<4;k++){ const a=k/4*Math.PI*2;
-    bbox(0.03,0.02,0.03,std(0x8f959e,{metalness:0.7}),Math.cos(a)*0.07,0.03,Math.sin(a)*0.07,g,false); }
+    bbox(0.03,0.02,0.03,MAT.std(0x8f959e,{metalness:0.7}),Math.cos(a)*0.07,0.03,Math.sin(a)*0.07,g,false); }
   const post=new THREE.Mesh(new THREE.CylinderGeometry(0.045,0.055,0.92,12),stahl);
   post.position.y=0.46; if(HIQ) post.castShadow=true; g.add(post);
   /* Korpus: konischer Behaelter mit Lochblech */
@@ -16101,7 +16361,7 @@ function buildMuelleimer(x,z,ry){
   deck.position.y=1.35; g.add(deck);
   const kegel=new THREE.Mesh(new THREE.CylinderGeometry(0.1,0.21,0.1,HIQ?22:14),dunkel);
   kegel.position.y=1.42; g.add(kegel);
-  bbox(0.19,0.055,0.13,std(0x14171c,{roughness:0.9}),0.07,1.43,0,g,false);
+  bbox(0.19,0.055,0.13,MAT.std(0x14171c,{roughness:0.9}),0.07,1.43,0,g,false);
   const asch=new THREE.Mesh(new THREE.CylinderGeometry(0.055,0.05,0.07,12),dunkel);
   asch.position.set(-0.12,1.47,0); g.add(asch);
   /* Halterung am Pfosten und Piktogramm */
@@ -16114,7 +16374,7 @@ function buildMuelleimer(x,z,ry){
     c.fillStyle='#4b525a'; c.fillRect(58,74,8,88); c.fillRect(76,74,8,88); c.fillRect(94,74,8,88);
   })}),0,1.1,0.202,0,g);
   /* Schnee auf dem Deckel */
-  const sn=new THREE.Mesh(new THREE.CylinderGeometry(0.13,0.21,0.04,HIQ?20:12),std(0xe8ecf2,{roughness:1}));
+  const sn=new THREE.Mesh(new THREE.CylinderGeometry(0.13,0.21,0.04,HIQ?20:12),MAT.std(0xe8ecf2,{roughness:1}));
   sn.position.y=1.47; g.add(sn);
   col(x-0.26,x+0.26,z-0.26,z+0.26);
   return g;
@@ -16151,9 +16411,10 @@ function gehwegY(x,z){
   return 0;
 }
 /* ---------- Sammler: Teile je Material, am Ende verschmolzen ---------- */
-let _stS={}, _stM=new THREE.Matrix4(), _strMats=null;
+/* 13.10. (Fundament): Stadtmoebel sammeln in einem Baukasten-Sammler (bk.sammler, 04z) */
+let _stS=bk.sammler(), _stM=new THREE.Matrix4(), _strMats=null;
 function stOrt(x,z,ry){ _stM=tm(x,gehwegY(x,z),z,0,ry||0,0); }
-function stM(k,geo,m,farbe){ (_stS[k]=_stS[k]||[]).push({geo,m:_stM.clone().multiply(m),color:farbe}); }
+function stM(k,geo,m,farbe){ _stS.geo(geo,_stM.clone().multiply(m),farbe,k); }
 function mT(k,geo,x,y,z,rx,ry,rz,farbe){ stM(k,geo,tm(x,y,z,rx,ry,rz),farbe); }
 /* Rohr von a nach b (lokale Koordinaten des aktuellen Orts) */
 const _yAchse=new THREE.Vector3(0,1,0);
@@ -16175,8 +16436,8 @@ function strMats(){
   /* Werbevitrine der Haltestelle: nachts von innen beleuchtet */
   const leucht=new THREE.MeshStandardMaterial({map:at,emissiveMap:at,emissive:LIN(0x9a9a9a),emissiveIntensity:0,roughness:0.3}); lampMats.push(leucht);
   _strMats={
-    lack:lichtMat(std(0xffffff,{vertexColors:true,metalness:0.5,roughness:0.42})),
-    matt:lichtMat(std(0xffffff,{vertexColors:true,roughness:0.88})),
+    lack:lichtMat(MAT.std(0xffffff,{vertexColors:true,metalness:0.5,roughness:0.42})),
+    matt:lichtMat(MAT.std(0xffffff,{vertexColors:true,roughness:0.88})),
     schild:lichtMat(new THREE.MeshStandardMaterial({map:at,roughness:0.45,metalness:0.1})),
     glas:new THREE.MeshStandardMaterial({color:LIN(0xcfdde8),transparent:true,opacity:0.2,roughness:0.06,metalness:0.3,depthWrite:false}),
     lampe, leucht
@@ -16185,12 +16446,8 @@ function strMats(){
 }
 function stFertig(){
   const M=strMats();
-  for(const k in _stS){ const t=_stS[k]; if(!t.length) continue;
-    const geo=merge(t);
-    const o=new THREE.Mesh(lichtUV2(geo),M[k]); o.userData.strasse=k;
-    if(HIQ&&k!=='glas'){ o.castShadow=true; o.receiveShadow=true; }
-    scene.add(o); }
-  _stS={};
+  _stS.fertig(scene,{bauteil:'stadtmoebel',mats:k=>M[k],geo:g=>lichtUV2(g),schatten:k=>HIQ&&k!=='glas',nachher:(o,k)=>{ o.userData.strasse=k; }});
+  _stS=bk.sammler();
 }
 /* Flaechen aus Dreiecken mit Farbe je Ecke. Die Dreiecke werden nach
    der Richtung h gedreht, damit die Normale stimmt. */
@@ -16657,7 +16914,7 @@ function strassenlampe(x,z,dir,sammeln){
   const y=gehwegY(x,z), g=new THREE.Group(); g.position.set(x,y,z); g.rotation.y=a; scene.add(g);
   const T={}, M=strMats(), W=tm(x,y,z,0,a,0);
   lampTeile((k,geo,m,c)=>{
-    if(k==='mast'){ const o=new THREE.Mesh(geo.applyMatrix4(m),std(c,{metalness:0.62,roughness:0.38})); if(HIQ) o.castShadow=true; g.add(o); }
+    if(k==='mast'){ const o=new THREE.Mesh(geo.applyMatrix4(m),MAT.std(c,{metalness:0.62,roughness:0.38})); if(HIQ) o.castShadow=true; g.add(o); }
     else (T[k]=T[k]||[]).push({geo,m,color:c}); });
   for(const k in T){ const o=new THREE.Mesh(lichtUV2(merge(T[k]),W),M[k]); if(HIQ&&k==='lack') o.castShadow=true; g.add(o); }
   return g;
@@ -17101,7 +17358,7 @@ function buildStreet(){
      Kloetze mit Luecken (Tom, 26.09.). Gruenderzeit- und Nachkriegs-
      haeuser gemischt, fast jedes mit Laden; jeder Laden kommt nur
      einmal vor. */
-  HZ={}; HZS=[]; HZA=[];
+  HZ=bk.sammler(); HZS=[]; HZA=[];
   scene.updateMatrixWorld();
   /* Fester Seed fuer die ganze Zeile samt zweiter Reihe: vorher stand
      nach jedem Neuladen eine andere Strasse da (Art-Director, 26.09.,
@@ -17883,11 +18140,11 @@ function drawSignFace(g,W,H){
 function signFaceTex(){ return tex(1024,256,(g,W,H)=>drawSignFace(g,W,H)); }
 function buildFacade(){
   const H=WH, zf=6.1;
-  const steel=std(0x9ba2ad,{metalness:0.75,roughness:0.35});
-  const dark=std(0x161c30,{roughness:0.6});
-  const snow=std(0xeef2f8,{roughness:1});
+  const steel=MAT.std(0x9ba2ad,{metalness:0.75,roughness:0.35});
+  const dark=MAT.std(0x161c30,{roughness:0.6});
+  const snow=MAT.std(0xeef2f8,{roughness:1});
   // --- Traufkasten über der Front
-  bbox(16.5,0.36,0.34,std(0x2a3042,{roughness:0.8}),0,H+0.32,6.22,null,false);
+  bbox(16.5,0.36,0.34,MAT.std(0x2a3042,{roughness:0.8}),0,H+0.32,6.22,null,false);
   /* Abdeckung in Alu statt weisser Schneekante - die lief bisher genau
      unter dem Schild entlang und verschmolz mit dessen Rahmen. */
   bbox(16.6,0.05,0.42,steel,0,H+0.525,6.22,null,false);
@@ -17928,14 +18185,14 @@ function buildFacade(){
     const cx=(a+b)/2, w=b-a;
     /* Sohlbank in dunklem Alu wie die Fensterrahmen. Vorher hell-
        graue Steinbank mit weisser Schneekante - Tom: das Hellgraue muss weg. */
-    bbox(w+0.2,0.05,0.3,std(0x2b3040,{metalness:0.55,roughness:0.38}),cx,0.9,zf+0.1,null,false);
+    bbox(w+0.2,0.05,0.3,MAT.std(0x2b3040,{metalness:0.55,roughness:0.38}),cx,0.9,zf+0.1,null,false);
   }
   // --- Eingang
   {
     tuer=buildSchiebetuer(0);
     /* Laibung des Haupteingangs in Alu verkleidet: die Tuer sitzt innen,
        aussen sieht man die Wandstaerke (5,90-6,10), Oeffnung +-1,20, Sturz 2,50 */
-    { const la=std(0xc4cad3,{metalness:0,roughness:0.5});
+    { const la=MAT.std(0xc4cad3,{metalness:0,roughness:0.5});
       for(const s of [-1,1]) bbox(0.025,2.5,0.21,la,s*1.1875,1.25,6.0,null,false);
       bbox(2.4,0.025,0.21,la,0,2.4875,6.0,null,false); }
     /* Fussmatte: Gummirahmen mit eingefasster Buerstenflaeche */
@@ -17970,7 +18227,7 @@ function buildFacade(){
       const mat=new THREE.MeshStandardMaterial({map:mt,roughness:0.95});
       const matte=bbox(1.9,0.022,1.02,mat,0,0.023,6.85,null,false);
       /* angeschraegte Gummikante ringsum, damit sie nicht aufgeklebt wirkt */
-      const gum=std(0x14161c,{roughness:0.95});
+      const gum=MAT.std(0x14161c,{roughness:0.95});
       for(const dz of [-0.525,0.525]) bbox(2.0,0.012,0.06,gum,0,0.014,6.85+dz,null,false);
       for(const dx of [-0.98,0.98]) bbox(0.06,0.012,1.13,gum,dx,0.014,6.85,null,false);
     }
@@ -17980,7 +18237,7 @@ function buildFacade(){
        mit Rahmen, Acrylfront, an zwei Stangen von der Decke abgehaengt und
        vor der Wand - es sieht auf jeder Wandfarbe gleich aus. */
     { const SW=1.56, SH=0.40, SD=0.09, sy=2.95/* ueber dem Tuerantrieb */, sz=5.74, fz=sz-SD/2-0.003;
-      const gehaeuse=std(0x2a2e35,{metalness:0.55,roughness:0.38}), alu=std(0xc9ced6,{metalness:0.85,roughness:0.25});
+      const gehaeuse=MAT.std(0x2a2e35,{metalness:0.55,roughness:0.38}), alu=MAT.std(0xc9ced6,{metalness:0.85,roughness:0.25});
       bbox(SW-0.02,SH-0.02,SD-0.01,gehaeuse,0,sy,sz,null,false);
       for(const dy of [-1,1]) bbox(SW,0.034,SD+0.006,gehaeuse,0,sy+dy*(SH/2-0.017),sz,null,false);
       for(const dx of [-1,1]) bbox(0.034,SH,SD+0.006,gehaeuse,dx*(SW/2-0.017),sy,sz,null,false);
@@ -18004,12 +18261,12 @@ function buildFacade(){
      hellgraues Klinkermuster - das passte zu nichts daneben. */
   /* gleich hoch und gleich tief wie an den Erweiterungen (Tom, 26.09.:
      der 87-cm-Block war zu hoch und wirkte billig) */
-  const plinthM=std(0x3b4049,{roughness:0.9});
+  const plinthM=MAT.std(0x3b4049,{roughness:0.9});
   bbox(6.85,0.62,0.26,plinthM,-4.72,0.31,zf+0.06,null,false);
   bbox(6.85,0.62,0.26,plinthM, 4.72,0.31,zf+0.06,null,false);
   for(const x of [-5.4,5.4]){
-    bbox(0.16,0.85,0.16,std(0x2f3542,{metalness:0.5,roughness:0.5}),x,0.42,7.5,null,false);
-    bbox(0.2,0.06,0.2,std(0xd9c07a,{metalness:0.7}),x,0.87,7.5,null,false);
+    bbox(0.16,0.85,0.16,MAT.std(0x2f3542,{metalness:0.5,roughness:0.5}),x,0.42,7.5,null,false);
+    bbox(0.2,0.06,0.2,MAT.std(0xd9c07a,{metalness:0.7}),x,0.87,7.5,null,false);
     col(x-0.2,x+0.2,7.3,7.7);
   }
   // Hausnummer
@@ -18082,9 +18339,9 @@ const TUEREN=[];
 function buildSchiebetuer(cx,hb){
   const HB=hb||5.4;
   const g=new THREE.Group(); g.position.x=cx||0; scene.add(g);
-  const alu=std(0xc4cad3,{metalness:0,roughness:0.5});
-  const aluD=std(0x8f959e,{metalness:0,roughness:0.55});
-  const dark=std(0x23272f,{metalness:0,roughness:0.6});
+  const alu=MAT.std(0xc4cad3,{metalness:0,roughness:0.5});
+  const aluD=MAT.std(0x8f959e,{metalness:0,roughness:0.55});
+  const dark=MAT.std(0x23272f,{metalness:0,roughness:0.6});
   const glass=new THREE.MeshStandardMaterial({color:LIN(0xd6ecff),transparent:true,opacity:0.17,roughness:0.05,metalness:0.1,depthWrite:false});
   const W=TUER.w, HH=TUER.y, Z=TUER.z;
   /* Antriebskasten über der Öffnung, reicht über beide Parktaschen */
@@ -18113,7 +18370,7 @@ function buildSchiebetuer(cx,hb){
     bbox(0.055,HH-0.12,0.055,alu,W/2-0.028,HH/2,0,lf,false);
     bbox(W-0.09,HH-0.2,0.022,glass,0,HH/2,0,lf,false);
     /* Sicherheitsmarkierung auf Griffhöhe */
-    bbox(W-0.1,0.055,0.026,new THREE.MeshStandardMaterial({color:LIN(0xe8eef6),transparent:true,opacity:0.65,roughness:0.6}),0,1.32,0,lf,false);
+    bbox(W-0.1,0.055,0.026,MAT.std(0xe8eef6,{transparent:true,opacity:0.65,roughness:0.6}),0,1.32,0,lf,false);
     /* Laufwagen oben */
     for(const dx of [-0.34,0.34]){
       bbox(0.09,0.05,0.05,aluD,dx,HH+0.02,-0.06,lf,false);
@@ -18224,13 +18481,11 @@ function updateDoor(dt){
   doorSet(door.t+(d>0?1:-1)*Math.min(Math.abs(d),0.95*dt));
 }
 function buildDock(){
-  const snow=std(0xeef2f8,{roughness:1});
-  const steel=std(0x8d939d,{metalness:0.6,roughness:0.42});
-  const yard=concreteTex(); yard.repeat.set(4,6);
-  const ym=new THREE.MeshStandardMaterial({map:yard,roughness:0.92,color:LIN(0xb0b4ba)});
-  flat(14,9,ym,-27,0.014,-2);
-  const drv=concreteTex(); drv.repeat.set(4,6);
-  flat(10,9.2,new THREE.MeshStandardMaterial({map:drv,roughness:0.92,color:LIN(0xa8acb2)}),-25,0.013,6.9);
+  const snow=MAT.std(0xeef2f8,{roughness:1});
+  const steel=MAT.std(0x8d939d,{metalness:0.6,roughness:0.42});
+  const ym=new THREE.MeshStandardMaterial({map:MAT.tex('beton'),roughness:0.92,color:LIN(0xb0b4ba)});
+  MAT.kachel(flat(14,9,ym,-27,0.014,-2).geometry,4,6);
+  MAT.kachel(flat(10,9.2,new THREE.MeshStandardMaterial({map:MAT.tex('beton'),roughness:0.92,color:LIN(0xa8acb2)}),-25,0.013,6.9).geometry,4,6);
   // Hofmauer
   const mw=brickMat(14,2.8);
   bbox(14.1,2.8,0.24,mw,-27,1.4,-6.0,null,false);
@@ -18241,8 +18496,8 @@ function buildDock(){
   bbox(0.24,2.8,10.6,mw2,-34.0,1.4,5.9,null,false);
   bbox(0.34,0.14,2.6,snow,-34.0,2.84,-4.85,null,false);
   bbox(0.34,0.14,10.7,snow,-34.0,2.84,5.9,null,false);
-  for(const z of [-3.6,0.6]){ bbox(0.42,3.2,0.42,std(0x5f584e,{roughness:1}),-34.0,1.6,z,null,false);
-    bbox(0.5,0.16,0.5,std(0x3a4150),-34.0,3.24,z,null,false); }
+  for(const z of [-3.6,0.6]){ bbox(0.42,3.2,0.42,MAT.std(0x5f584e,{roughness:1}),-34.0,1.6,z,null,false);
+    bbox(0.5,0.16,0.5,MAT.std(0x3a4150),-34.0,3.24,z,null,false); }
   /* Schiebetor, offen an die Mauer gefahren */
   { const g2=new THREE.Group(); g2.position.set(-34.0,0,3.1); scene.add(g2);
     bbox(0.1,0.1,4.2,steel,0.12,2.25,0,g2,false);
@@ -18260,7 +18515,7 @@ function buildDock(){
      echte Oeffnungen - hier klebten vorher dunkle Kaesten aussen drauf. */
   buildTor(steel,snow);
   // Vordach über dem Tor
-  const cano=bbox(1.9,0.1,4.4,std(0x3a4150,{metalness:0.5}),-20.95,3.32,-2,null,false); cano.rotation.z=0.08;
+  const cano=bbox(1.9,0.1,4.4,MAT.std(0x3a4150,{metalness:0.5}),-20.95,3.32,-2,null,false); cano.rotation.z=0.08;
   bbox(1.95,0.09,4.45,snow,-20.95,3.42,-2,null,false).rotation.z=0.08;
   /* Zwei Streben von der Wand schraeg hinauf unter die Aussenkante des
      Vordachs. Vorher standen sie bei z = +-1,9 statt um die Dachmitte
@@ -18270,18 +18525,18 @@ function buildDock(){
   /* Hofbeleuchtung: zwei Wandstrahler an der Lagerwand, dazu zwei
      Mastleuchten im Hof. Vorher schwebten die Leuchten frei in der Luft. */
   for(const z of [-4.9,0.9]){
-    const wm=std(0x3a4150,{metalness:0.5,roughness:0.5});
+    const wm=MAT.std(0x3a4150,{metalness:0.5,roughness:0.5});
     bbox(0.16,0.22,0.16,wm,-20.16,2.85,z,null,false);              // Wandsockel
     const arm=bbox(0.34,0.07,0.07,wm,-20.42,2.95,z,null,false); arm.rotation.z=0.22;
-    const geh=rbox(0.3,0.16,0.4,0.03,std(0x2f343e,{metalness:0.5,roughness:0.45}),-20.64,3.02,z,null);
+    const geh=rbox(0.3,0.16,0.4,0.03,MAT.std(0x2f343e,{metalness:0.5,roughness:0.45}),-20.64,3.02,z,null);
     geh.rotation.z=0.34;
     const lm=new THREE.MeshStandardMaterial({color:LIN(0x23262e),emissive:LIN(0xfff0d0),emissiveIntensity:0}); lampMats.push(lm);
     const wa=bbox(0.06,0.13,0.34,lm,-20.76,2.94,z,null,false); wa.rotation.z=0.34;
-    bbox(0.34,0.03,0.44,std(0x8f959e,{metalness:0.6}),-20.62,3.12,z,null,false);
+    bbox(0.34,0.03,0.44,MAT.std(0x8f959e,{metalness:0.6}),-20.62,3.12,z,null,false);
   }
   if(typeof strassenlampe==='function'){ strassenlampe(-26.4,-5.2,Math.PI/2); strassenlampe(-31.6,-2,Math.PI/2); }
   // Bodenmarkierung für den LKW
-  const mark=(w,d,x,z,c)=>flat(w,d,std(c||0xf2c230),x,0.017,z);
+  const mark=(w,d,x,z,c)=>flat(w,d,MAT.std(c||0xf2c230),x,0.017,z);
   for(let x2=-33;x2<-20.6;x2+=1.0){ mark(0.6,0.12,x2,-3.55); mark(0.6,0.12,x2,-0.45); }
   mark(0.14,3.4,-33.3,-2);
   const zm=new THREE.Mesh(new THREE.PlaneGeometry(5.2,1.6),new THREE.MeshBasicMaterial({transparent:true,depthWrite:false,map:tex(1040,320,(g,W,H)=>{
@@ -18295,8 +18550,8 @@ function buildDock(){
     g.fillStyle='#ffd23f'; g.fillText('ANLIEFERUNG',W/2,H/2+3); })}));
   zm.rotation.x=-Math.PI/2; zm.position.set(-26,0.018,2.6); zm.renderOrder=2; scene.add(zm);
   // Poller neben dem Tor
-  for(const z of [-4.0,0.0]){ bbox(0.2,0.95,0.2,std(0xf2c230,{roughness:0.7}),-20.6,0.48,z,null,false);
-    bbox(0.22,0.14,0.22,std(0x1f1f24),-20.6,0.86,z,null,false); col(-20.75,-20.45,z-0.15,z+0.15); }
+  for(const z of [-4.0,0.0]){ bbox(0.2,0.95,0.2,MAT.std(0xf2c230,{roughness:0.7}),-20.6,0.48,z,null,false);
+    bbox(0.22,0.14,0.22,MAT.std(0x1f1f24),-20.6,0.86,z,null,false); col(-20.75,-20.45,z-0.15,z+0.15); }
   // Schild an der Wand
   plane(1.5,0.5,new THREE.MeshStandardMaterial({map:tex(300,100,(g,W,H)=>{
     g.fillStyle='#1b2340'; g.fillRect(0,0,W,H); g.strokeStyle='#ffd23f'; g.lineWidth=5; g.strokeRect(6,6,W-12,H-12);
@@ -18343,8 +18598,8 @@ function torPanelMat(){
 }
 function buildTor(steel,snow){
   const g=new THREE.Group(); scene.add(g);
-  const dark=std(0x2a2e38,{metalness:0.5,roughness:0.45});
-  const rub=std(0x16181d,{roughness:0.96});
+  const dark=MAT.std(0x2a2e38,{metalness:0.5,roughness:0.45});
+  const rub=MAT.std(0x16181d,{roughness:0.96});
   const R=TOR.R, XD=TOR.x, Z=TOR.z;
   /* Zarge aussen */
   for(const dz of [-1.78,1.78]) bbox(0.3,3.2,0.16,steel,-20.0,1.6,Z+dz,null,false);
@@ -18376,8 +18631,8 @@ function buildTor(steel,snow){
     const dr=new THREE.Mesh(new THREE.CylinderGeometry(0.11,0.08,0.09,12),steel);
     dr.rotation.x=Math.PI/2; dr.position.set(XD+0.24,TOR.h+0.3,Z+dz); g.add(dr);
   }
-  bbox(0.3,0.26,0.4,std(0x3a4150,{metalness:0.55}),XD+0.45,TOR.h+0.3,Z-1.95,g,false);
-  bbox(0.16,0.16,0.2,std(0xf2a01c,{roughness:0.5}),XD+0.45,TOR.h+0.08,Z-1.95,g,false);
+  bbox(0.3,0.26,0.4,MAT.std(0x3a4150,{metalness:0.55}),XD+0.45,TOR.h+0.3,Z-1.95,g,false);
+  bbox(0.16,0.16,0.2,MAT.std(0xf2a01c,{roughness:0.5}),XD+0.45,TOR.h+0.08,Z-1.95,g,false);
   const chain=new THREE.Mesh(new THREE.TorusGeometry(0.16,0.012,6,16),dark);
   chain.position.set(XD+0.5,TOR.h-0.1,Z-1.95); chain.scale.y=3.4; g.add(chain);
   /* Warnleuchte und Ampel */
@@ -18391,10 +18646,10 @@ function buildTor(steel,snow){
   const lr=new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.05,0.04,10),lampR); lr.rotation.z=Math.PI/2; lr.position.set(XD+0.3,2.0,Z+1.92); g.add(lr);
   const lg=new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.05,0.04,10),lampG); lg.rotation.z=Math.PI/2; lg.position.set(XD+0.3,1.8,Z+1.92); g.add(lg);
   /* Bedienkasten */
-  bbox(0.12,0.24,0.16,std(0xf2c230,{roughness:0.6}),XD+0.3,1.35,Z+1.92,g,false);
+  bbox(0.12,0.24,0.16,MAT.std(0xf2c230,{roughness:0.6}),XD+0.3,1.35,Z+1.92,g,false);
   for(let k=0;k<3;k++) bbox(0.04,0.05,0.05,std([0x2f9e57,0xd8352a,0x2a2e38][k]),XD+0.37,1.43-k*0.07,Z+1.92,g,false);
   /* Torpanele */
-  const pm=std(0xdfe2e6,{metalness:0.4,roughness:0.5});
+  const pm=MAT.std(0xdfe2e6,{metalness:0.4,roughness:0.5});
   const pmT=torPanelMat();
   const panels=[];
   for(let i=0;i<TOR.n;i++){
@@ -18417,7 +18672,7 @@ function buildTor(steel,snow){
     /* Nut-und-Feder-Profil an den Panelkanten */
     const nut=new THREE.Mesh(new THREE.BoxGeometry(0.075,0.022,TOR.w-0.02),steel);
     nut.position.set(0,TOR.ph/2-0.014,0); pn.add(nut);
-    const fed=new THREE.Mesh(new THREE.BoxGeometry(0.06,0.018,TOR.w-0.04),std(0x9aa1ac,{metalness:0.6,roughness:0.4}));
+    const fed=new THREE.Mesh(new THREE.BoxGeometry(0.06,0.018,TOR.w-0.04),MAT.std(0x9aa1ac,{metalness:0.6,roughness:0.4}));
     fed.position.set(0,-TOR.ph/2+0.012,0); pn.add(fed);
     /* Scharnierbaender in der Flaeche */
     for(const dz of [-0.55,0.55]){
@@ -18428,7 +18683,7 @@ function buildTor(steel,snow){
       const seal=new THREE.Mesh(new THREE.BoxGeometry(0.12,0.055,TOR.w),rub);
       seal.position.set(0,-TOR.ph/2+0.01,0); pn.add(seal);
       /* Griffmulde und Warnstreifen auf dem untersten Panel */
-      const gr2=new THREE.Mesh(new THREE.BoxGeometry(0.03,0.09,0.5),std(0x59606b,{metalness:0.6,roughness:0.4}));
+      const gr2=new THREE.Mesh(new THREE.BoxGeometry(0.03,0.09,0.5),MAT.std(0x59606b,{metalness:0.6,roughness:0.4}));
       gr2.position.set(-0.056,0.06,0); pn.add(gr2);
       const wt=new THREE.Mesh(new THREE.BoxGeometry(0.012,0.12,TOR.w-0.06),
         new THREE.MeshStandardMaterial({roughness:0.6,map:tex(512,48,(c,W,H)=>{
@@ -18593,17 +18848,17 @@ function halle(id,r,opt){
   const H=opt.h||WH;
   const lager=opt.art==='lager';
   const innen=lager?lagerWall:shopWall;
-  const ceil=std(0xe6e8ee,{roughness:1});
+  const ceil=MAT.std(0xe6e8ee,{roughness:1});
   const au=opt.aussen||{};
   const ex=opt.ex||undefined;
   /* Boden */
   let bodenMat;
-  if(lager){ const lc=concreteTex(); lc.repeat.set((r.x1-r.x0)/2,(r.z1-r.z0)/2); bodenMat=new THREE.MeshStandardMaterial({map:lc,roughness:0.85}); }
+  if(lager) bodenMat=MAT.get('betonBoden');
   else bodenMat=floorMat;
   if(!opt.keinBoden){
     const bo=new THREE.Mesh(new THREE.PlaneGeometry(r.x1-r.x0,r.z1-r.z0),bodenMat);
     bo.rotation.x=-Math.PI/2; bo.position.set((r.x0+r.x1)/2,0.015,(r.z0+r.z1)/2); scene.add(bo);
-    if(!lager) bodenUV(bo,BODEN_KACHEL);
+    if(!lager) bodenUV(bo,BODEN_KACHEL); else MAT.kachel(bo.geometry,(r.x1-r.x0)/2,(r.z1-r.z0)/2);
     zAdd(id,bo);
   }
   /* Decke und Dach */
@@ -18615,7 +18870,7 @@ function halle(id,r,opt){
      faellt das nicht auf, bei zwoelf Metern flimmern die beiden
      Flaechen gegeneinander und die Decke wird streifig. Zehn
      Zentimeter Abstand reichen auf die ganze Hallenlaenge. */
-  if(!opt.keinDach) bbox(r.x1-r.x0+LW*3,0.25,r.z1-r.z0+LW*3,std(0x2b2f3a),(r.x0+r.x1)/2,H+0.24,(r.z0+r.z1)/2,null,true);
+  if(!opt.keinDach) bbox(r.x1-r.x0+LW*3,0.25,r.z1-r.z0+LW*3,MAT.std(0x2b2f3a),(r.x0+r.x1)/2,H+0.24,(r.z0+r.z1)/2,null,true);
   /* Aussenwaende: stehen immer, auch solange der Bereich gesperrt ist.
      Von der Strasse aus sieht man sonst ein Loch im Gebaeude. */
   if(au.w) wall(r.x0-LW,r.x0,r.z0,r.z1,0,H,'+x',innen,ex);
@@ -18661,7 +18916,7 @@ function stuetzeM(){ if(!_stuetzeM) _stuetzeM=std(0xdfe3ea,{roughness:0.72}); re
 function stuetze(x,z,h){
   const g=new THREE.Mesh(new THREE.CylinderGeometry(0.17,0.17,h-0.16,HIQ?18:10),stuetzeM());
   g.position.set(x,(h-0.16)/2,z); if(HIQ){ g.castShadow=true; g.receiveShadow=true; } scene.add(g);
-  bbox(0.46,0.1,0.46,std(0x9aa0ab,{roughness:0.8}),x,0.05,z,null,false);
+  bbox(0.46,0.1,0.46,MAT.std(0x9aa0ab,{roughness:0.8}),x,0.05,z,null,false);
   bbox(0.44,0.08,0.44,stuetzeM(),x,h-0.06,z,null,false);
   col(x-0.22,x+0.22,z-0.22,z+0.22);
   return g;
@@ -18756,8 +19011,8 @@ function lagerSperre(){
   const Z='lager';
   const g=new THREE.Group(); g.position.set(-8.0,0,-2.5); g.rotation.y=Math.PI/2; scene.add(g);
   const bandM=new THREE.MeshStandardMaterial({map:sperrbandTex('LAGER · KAPITEL 2'),roughness:0.72,side:THREE.DoubleSide});
-  const halt=std(0x3d4450,{metalness:0.5,roughness:0.5});
-  const kopf=std(0x1f242e,{metalness:0.4,roughness:0.55});
+  const halt=MAT.std(0x3d4450,{metalness:0.5,roughness:0.5});
+  const kopf=MAT.std(0x1f242e,{metalness:0.4,roughness:0.55});
   const a=-0.66, b=0.66;
   for(const y of [0.5,1.0,1.5]) sperrband(Z,a+0.06,b-0.06,0,y,bandM,g);
   for(const x of [a+0.04,b-0.04]){
@@ -18786,8 +19041,8 @@ const WA_SLOTS=[]; for(let r=0;r<2;r++) for(let c=0;c<3;c++) WA_SLOTS.push({x:WA
 function testfeldSperre(){
   const Z='testfeld', a=4.4, b=6.1, z=-6.0;
   const bandM=new THREE.MeshStandardMaterial({map:sperrbandTex('TESTFELD GESPERRT'),roughness:0.72,side:THREE.DoubleSide});
-  const halt=std(0x3d4450,{metalness:0.5,roughness:0.5});
-  const kopf=std(0x1f242e,{metalness:0.4,roughness:0.55});
+  const halt=MAT.std(0x3d4450,{metalness:0.5,roughness:0.5});
+  const kopf=MAT.std(0x1f242e,{metalness:0.4,roughness:0.55});
   for(const y of [0.5,1.0,1.5]) sperrband(Z,a+0.06,b-0.06,z,y,bandM);
   /* Zwei Pfosten in den Laibungen, an denen das Band haengt */
   for(const x of [a+0.04,b-0.04]){
@@ -18833,12 +19088,11 @@ function buildLagergang(){
   const G=GANG, mitteX=(G.x0+G.x1)/2, mitteZ=(G.z0+G.z1)/2;
   const breite=G.x1-G.x0, tiefe=G.z1-G.z0;
   /* Boden: derselbe Estrich wie im Lager */
-  const bc=concreteTex(); bc.repeat.set(breite/2,tiefe/2);
-  const bo=new THREE.Mesh(new THREE.PlaneGeometry(breite,tiefe),
-    new THREE.MeshStandardMaterial({map:bc,roughness:0.85}));
+  const bo=new THREE.Mesh(MAT.kachel(new THREE.PlaneGeometry(breite,tiefe),breite/2,tiefe/2),
+    MAT.get('betonBoden'));
   bo.rotation.x=-Math.PI/2; bo.position.set(mitteX,0.016,mitteZ); scene.add(bo); zAdd(Z,bo);
   /* Decke und Dachrand */
-  const ce=new THREE.Mesh(new THREE.PlaneGeometry(breite+0.3,tiefe+0.3),std(0xe6e8ee,{roughness:1}));
+  const ce=new THREE.Mesh(new THREE.PlaneGeometry(breite+0.3,tiefe+0.3),MAT.std(0xe6e8ee,{roughness:1}));
   ce.rotation.x=Math.PI/2; ce.position.set(mitteX,G.h-0.01,mitteZ); scene.add(ce); zAdd(Z,ce);
   /* Der Dachrand deckt die Kopf- und Suedwand ab, aber keinen
      Zentimeter mehr: mit dem sonst ueblichen Ueberstand ragte er
@@ -18846,7 +19100,7 @@ function buildLagergang(){
   /* Dachrand in beiden Richtungen INNERHALB der angrenzenden Waende.
      Lag er mit -5,9 genau in der Ebene der Ladenrueckwand, flimmerte
      er von innen als dunkler Streifen ueber der Uhr. */
-  zAdd(Z,bbox(breite+LW,0.25,tiefe+LW,std(0x2b2f3a),mitteX,G.h+0.13,mitteZ,null,true));
+  zAdd(Z,bbox(breite+LW,0.25,tiefe+LW,MAT.std(0x2b2f3a),mitteX,G.h+0.13,mitteZ,null,true));
   /* Suedwand mit dem Durchgang aufs Testfeld. Der Sturz bleibt
      stehen, sonst steht das Dach in der Luft. */
   const zs=G.z0;
@@ -18906,7 +19160,7 @@ function pvcMat(){
 function streifenvorhang(zid,laengs,fest,a0,a1,hoehe){
   const len=a1-a0, mitte=(a0+a1)/2, H=hoehe-0.12;
   /* Traverse mit Halteklemmen */
-  const stahl=std(0x8d939d,{metalness:0.6,roughness:0.4});
+  const stahl=MAT.std(0x8d939d,{metalness:0.6,roughness:0.4});
   zAdd(zid,laengs
     ? bbox(len+0.16,0.1,0.14,stahl,mitte,hoehe-0.05,fest,null,false)
     : bbox(0.14,0.1,len+0.16,stahl,fest,hoehe-0.05,mitte,null,false));
@@ -18932,14 +19186,13 @@ function buildSchleuse(){
   const S2=LAY.schleuse, H=SCHLEUSE_H;
   const mx=(S2.x0+S2.x1)/2, mz=(S2.z0+S2.z1)/2;
   const br=S2.x1-S2.x0, ti=S2.z1-S2.z0;
-  const bc=concreteTex(); bc.repeat.set(br/2,ti/2);
-  const bo=new THREE.Mesh(new THREE.PlaneGeometry(br,ti),
-    new THREE.MeshStandardMaterial({map:bc,roughness:0.85}));
+  const bo=new THREE.Mesh(MAT.kachel(new THREE.PlaneGeometry(br,ti),br/2,ti/2),
+    MAT.get('betonBoden'));
   bo.rotation.x=-Math.PI/2; bo.position.set(mx,0.016,mz); scene.add(bo);
   /* Die Decke endet buendig in den beiden Gebaeudewaenden. Mit dem
      ueblichen Ueberstand schaute ihre Kante als dunkler Streifen in
      die Lagerhalle hinein. */
-  const ce=new THREE.Mesh(new THREE.PlaneGeometry(br-0.2,ti+0.3),std(0xe6e8ee,{roughness:1}));
+  const ce=new THREE.Mesh(new THREE.PlaneGeometry(br-0.2,ti+0.3),MAT.std(0xe6e8ee,{roughness:1}));
   ce.rotation.x=Math.PI/2; ce.position.set(mx,H-0.01,mz); scene.add(ce);
   /* Der Dachrand darf nur bis in die Gebaeudewaende reichen. Mit dem
      ueblichen Ueberstand stand er als schwarzer Balken frei in der
@@ -18952,7 +19205,7 @@ function buildSchleuse(){
      darum in ihrer Mitte (x1 - LW/2), nicht an ihrer Innenseite - sonst
      standen ihre Kanten als helle Streifen und dunkler Balken in der Halle. */
   const xo=S2.x1-LW/2;
-  bbox(xo-S2.x0,0.25,ti+LW*2,std(0x2b2f3a),(S2.x0+xo)/2,H+0.24,mz,null,true);
+  bbox(xo-S2.x0,0.25,ti+LW*2,MAT.std(0x2b2f3a),(S2.x0+xo)/2,H+0.24,mz,null,true);
   /* Laengswaende. Die Kopfenden sind die Gebaeudewaende selbst. */
   for(const [z0,z1] of [[S2.z0-LW,S2.z0],[S2.z1,S2.z1+LW]]){
     wall(S2.x0,xo,z0,z1,0,H,z0<mz?'+z':'-z',lagerWall);
@@ -19001,8 +19254,8 @@ function buildLagerTerminal(){
 /* Tablet im Laden, an der Rueckwand rechts neben der Hintertuer zum Testfeld */
 function buildTablet(){
   const g=new THREE.Group(); g.position.set(7.0,0,-5.86); scene.add(g);
-  const dunkel=std(0x1f232b,{metalness:0.4,roughness:0.4});
-  bbox(0.07,0.32,0.03,std(0x8b929c,{metalness:0.7,roughness:0.3}),0,1.32,0.02,g,false);
+  const dunkel=MAT.std(0x1f232b,{metalness:0.4,roughness:0.4});
+  bbox(0.07,0.32,0.03,MAT.std(0x8b929c,{metalness:0.7,roughness:0.3}),0,1.32,0.02,g,false);
   const t=bbox(0.32,0.22,0.018,dunkel,0,1.42,0.05,g,false); t.rotation.x=-0.18;
   const sch=neuerSchoner(320,220,'Bestellen');
   const sc=plane(0.29,0.19,new THREE.MeshBasicMaterial({toneMapped:false,map:sch.t}),0,1.42,0.061,0,g); sc.rotation.x=-0.18; sch.mesh=sc;
@@ -19038,7 +19291,7 @@ function fugenPlatte(r,mat,y,decke,kachel){
   return m;
 }
 function fugenfueller(){
-  const ceil=std(0xe6e8ee,{roughness:1});
+  const ceil=MAT.std(0xe6e8ee,{roughness:1});
   /* Verkauf: Basis, Ost I und Ost II liegen in einer Flucht, das
      Rueckgebaeude haengt darunter. Die zweite Platte liegt einen
      Millimeter tiefer, damit sich die beiden im Ueberlappungs-
@@ -19048,11 +19301,10 @@ function fugenfueller(){
   fugenPlatte({x0:-7.9,x1:37.9,z0:-5.9,z1:5.9},ceil,WH-0.006,true);
   fugenPlatte({x0: 8.0,x1:37.9,z0:-21.9,z1:-5.9},ceil,WH-0.0065,true);
   /* Lager: Basislager mit Anbau Nord, dazu die Halle Sued */
-  const bet=(r)=>{ const t=concreteTex(); t.repeat.set((r.x1-r.x0)/2,(r.z1-r.z0)/2);
-    return new THREE.MeshStandardMaterial({map:t,roughness:0.85}); };
+  const bet=()=>MAT.get('betonBoden');
   const l1={x0:-19.9,x1:-8.1,z0:-5.9,z1:5.9}, l2={x0:-19.9,x1:-8.1,z0:-29.9,z1:-5.9};
-  fugenPlatte(l1,bet(l1),0.012,false);
-  fugenPlatte(l2,bet(l2),0.011,false);
+  MAT.kachel(fugenPlatte(l1,bet(),0.012,false).geometry,(l1.x1-l1.x0)/2,(l1.z1-l1.z0)/2);
+  MAT.kachel(fugenPlatte(l2,bet(),0.011,false).geometry,(l2.x1-l2.x0)/2,(l2.z1-l2.z0)/2);
   /* Das ganze Lager liegt jetzt auf einer Deckenhoehe - eine
      durchgehende Platte darueber schliesst die Haarfugen zwischen
      den einzelnen Deckenfeldern. */
@@ -19455,18 +19707,18 @@ function buildPackstation(){
   ladezoneBauen(g,B);
   /* Paletten sind eigene Objekte (11e-palette.js): die Box zeigt sie dort. */
   /* bewegliche Portalteile: Bruecke (faehrt in z), Laufwagen, Hubachse, Greifer */
-  { const Pt={}, gelb=std(GELB,{roughness:0.5,metalness:0.25}), dunkel=std(0x2a2e36,{roughness:0.55,metalness:0.4}), zink=std(ZINK,{metalness:0.6,roughness:0.35});
+  { const Pt={}, gelb=std(GELB,{roughness:0.5,metalness:0.25}), dunkel=MAT.std(0x2a2e36,{roughness:0.55,metalness:0.4}), zink=std(ZINK,{metalness:0.6,roughness:0.35});
     const bx0=ZELLE[1].x0+0.01, L=brX1-bx0;
     const br=new THREE.Group(); br.position.set((bx0+brX1)/2,PORTAL_Y+0.27,BAND.z); g.add(br);
     bbox(L,0.14,0.14,gelb,0,0,0,br); bbox(L-0.1,0.03,0.05,zink,0,0.085,0,br,false);
     for(const sx of [ZELLE[1].x0+0.06,ZELLE[1].x1-0.06]) bbox(0.16,0.12,0.24,dunkel,sx-(bx0+brX1)/2,-0.09,0,br,false);
     const wg=new THREE.Group(); wg.position.set(BAND.x0+0.4,PORTAL_Y+0.27,BAND.z); g.add(wg);
-    bbox(0.28,0.24,0.3,dunkel,0,0,0,wg); bbox(0.16,0.12,0.12,std(0x2a5a9e,{roughness:0.5}),0.05,0.18,0,wg,false);
+    bbox(0.28,0.24,0.3,dunkel,0,0,0,wg); bbox(0.16,0.12,0.12,MAT.std(0x2a5a9e,{roughness:0.5}),0.05,0.18,0,wg,false);
     const mast=bbox(0.08,1,0.08,zink,0,0,0,g,false), mast2=bbox(0.11,0.5,0.11,dunkel,0,0,0,g,false);
     const gr=new THREE.Group(); g.add(gr);
     /* Unterkante der Sauger = Greiferlage: dort liegt die Paketoberseite an */
     bbox(0.3,0.04,0.26,dunkel,0,0.045,0,gr); bbox(0.12,0.07,0.12,dunkel,0,0.1,0,gr,false);
-    const saugM=std(0x1b1d22,{roughness:0.9}), saugG=new THREE.CylinderGeometry(0.035,0.028,0.025,12);
+    const saugM=MAT.std(0x1b1d22,{roughness:0.9}), saugG=new THREE.CylinderGeometry(0.035,0.028,0.025,12);
     for(const sx of [-0.09,0.09]) for(const sz of [-0.08,0.08]){ const c=new THREE.Mesh(saugG,saugM); c.position.set(sx,0.0125,sz); gr.add(c); }
     Pt.bruecke=br; Pt.wagen=wg; Pt.mast=mast; Pt.mast2=mast2; Pt.greifer=gr;
     [br,wg,mast,mast2,gr].forEach(o=>T.ab[1].push(o));   /* Kran ab Stufe 1 (Tom 09.10.) */
@@ -19478,7 +19730,7 @@ function buildPackstation(){
   /* Hinweisschild ueber dem ersten Packplatz, von beiden Seiten lesbar */
   { const P=ppW(0,0,-0.36), st=std(0x7d838c,{metalness:0.6,roughness:0.4});
     for(const sx of [-0.56,0.56]) bbox(0.05,1.5,0.05,st,P.x+sx,1.72,P.z,g,false);
-    bbox(1.3,0.36,0.05,std(0x1b2340,{roughness:0.7}),P.x,2.3,P.z,g,false);
+    bbox(1.3,0.36,0.05,MAT.std(0x1b2340,{roughness:0.7}),P.x,2.3,P.z,g,false);
     packSchildTex=tex(1024,256,()=>{});
     const sm=new THREE.MeshBasicMaterial({map:packSchildTex,toneMapped:false});
     plane(1.24,0.31,sm,P.x,2.3,P.z+0.03,0,g); plane(1.24,0.31,sm,P.x,2.3,P.z-0.03,Math.PI,g);
@@ -19566,8 +19818,8 @@ function packSperre(id,g){
   const zb=-1.62, xs=[-1.7,0.3,2.2,4.1];
   const bandM=new THREE.MeshStandardMaterial({map:sperrbandTex('NOCH NICHT FREIGESCHALTET'),
     roughness:0.72,side:THREE.DoubleSide});
-  const halt=std(0x3d4450,{metalness:0.5,roughness:0.5});
-  const kopf=std(0x1f242e,{metalness:0.4,roughness:0.55});
+  const halt=MAT.std(0x3d4450,{metalness:0.5,roughness:0.5});
+  const kopf=MAT.std(0x1f242e,{metalness:0.4,roughness:0.55});
   for(let j=0;j<xs.length-1;j++)
     for(const y of [0.55,1.05]) sperrband(id,xs[j]+0.04,xs[j+1]-0.04,zb,y,bandM,g);
   for(const x of xs){
@@ -19703,7 +19955,7 @@ function torBlattMat(){
    Halle liegt oestlich der Wand, innen ist also +x. */
 function westTorInnen(g,steel,dark,kante,eintrag){
   const H=WTOR.h, B=WTOR.w;
-  const hell=std(0x6a707a,{metalness:0.7,roughness:0.35});
+  const hell=MAT.std(0x6a707a,{metalness:0.7,roughness:0.35});
   /* Senkrechte Schienen bis ueber die Torhoehe: das Blatt faehrt
      gerade nach oben, die Halle ist zwoelf Meter hoch. */
   for(const dz of [-1,1]){
@@ -19724,8 +19976,8 @@ function westTorInnen(g,steel,dark,kante,eintrag){
     bbox(0.26,0.22,0.06,steel,0.28,H+0.34,dz*(B/2+0.16),g,false);
   }
   /* Antrieb mit Kette */
-  bbox(0.34,0.3,0.44,std(0x3a4150,{metalness:0.55}),0.52,H+0.34,-(B/2+0.42),g,false);
-  bbox(0.18,0.18,0.22,std(0xf2a01c,{roughness:0.5}),0.52,H+0.08,-(B/2+0.42),g,false);
+  bbox(0.34,0.3,0.44,MAT.std(0x3a4150,{metalness:0.55}),0.52,H+0.34,-(B/2+0.42),g,false);
+  bbox(0.18,0.18,0.22,MAT.std(0xf2a01c,{roughness:0.5}),0.52,H+0.08,-(B/2+0.42),g,false);
   const chain=new THREE.Mesh(new THREE.TorusGeometry(0.17,0.013,6,HIQ?16:8),dark);
   chain.position.set(0.56,H-0.2,-(B/2+0.42)); chain.scale.y=4.2; g.add(chain);
   /* Warnleuchte ueber dem Tor */
@@ -19739,7 +19991,7 @@ function westTorInnen(g,steel,dark,kante,eintrag){
     const c2=new THREE.Mesh(new THREE.CylinderGeometry(0.052,0.052,0.045,HIQ?10:6),m);
     c2.rotation.z=Math.PI/2; c2.position.set(0.33,y,B/2+0.5); g.add(c2);
   }
-  bbox(0.13,0.26,0.17,std(0xf2c230,{roughness:0.6}),0.3,1.35,B/2+0.5,g,false);
+  bbox(0.13,0.26,0.17,MAT.std(0xf2c230,{roughness:0.6}),0.3,1.35,B/2+0.5,g,false);
   for(let k=0;k<3;k++)
     bbox(0.04,0.05,0.05,std([0x2f9e57,0xd8352a,0x2a2e38][k]),0.37,1.44-k*0.075,B/2+0.5,g,false);
   /* Torkennung innen, damit man die Rampen auseinanderhaelt */
@@ -19753,15 +20005,15 @@ function westTorInnen(g,steel,dark,kante,eintrag){
    Gebaut ist es in eigenen Koordinaten mit innen = +x; die Gruppe
    wird so gedreht, dass +x nach Norden in die Halle zeigt. */
 function westTor(cx,nr){
-  const Z=LHALLE.z, steel=std(0x8d939d,{metalness:0.6,roughness:0.42});
-  const dark=std(0x2a2e38,{metalness:0.5,roughness:0.45});
-  const rub=std(0x16181d,{roughness:0.96});
+  const Z=LHALLE.z, steel=MAT.std(0x8d939d,{metalness:0.6,roughness:0.42});
+  const dark=MAT.std(0x2a2e38,{metalness:0.5,roughness:0.45});
+  const rub=MAT.std(0x16181d,{roughness:0.96});
   const g=new THREE.Group(); g.position.set(cx,0,Z); g.rotation.y=-Math.PI/2; scene.add(g);
   /* Torblatt aus echten Sektionalpanelen, denselben wie an der
      Basisrampe. Vorher war hier eine Textur auf einen Kasten
      geklebt - im Spiel sah man den Unterschied sofort. */
-  const kante=std(0x6f757e,{metalness:0.5,roughness:0.5});
-  const pmT=torPanelMat(), pm=std(0xdfe2e6,{metalness:0.4,roughness:0.5});
+  const kante=MAT.std(0x6f757e,{metalness:0.5,roughness:0.5});
+  const pmT=torPanelMat(), pm=MAT.std(0xdfe2e6,{metalness:0.4,roughness:0.5});
   const bl=new THREE.Group(); bl.position.set(-0.15,WTOR.h/2,0); g.add(bl);
   const PN=5, ph=WTOR.h/PN;
   for(let i=0;i<PN;i++){
@@ -19800,9 +20052,9 @@ function westTor(cx,nr){
     bbox(0.06,0.56,0.32,dark,-0.21,1.05,s*(WTOR.w/2+0.28),g,false);
   }
   /* Vordach mit Schneeauflage */
-  const cano=bbox(1.35,0.1,WTOR.w+1.2,std(0x3a4150,{metalness:0.5}),-0.85,WTOR.h+0.52,0,g,false);
+  const cano=bbox(1.35,0.1,WTOR.w+1.2,MAT.std(0x3a4150,{metalness:0.5}),-0.85,WTOR.h+0.52,0,g,false);
   cano.rotation.z=-0.09;
-  const sn=bbox(1.38,0.08,WTOR.w+1.24,std(0xeef2f8,{roughness:1}),-0.85,WTOR.h+0.61,0,g,false);
+  const sn=bbox(1.38,0.08,WTOR.w+1.24,MAT.std(0xeef2f8,{roughness:1}),-0.85,WTOR.h+0.61,0,g,false);
   sn.rotation.z=-0.09;
   /* Streben von der Wand hinauf unter die Aussenkante des Vordachs.
      Mit rotation.z = -0.74 kippten sie falsch herum: das untere Ende
@@ -19820,11 +20072,11 @@ function westTor(cx,nr){
      ohne Dichtung schaut man links und rechts am Heck vorbei ins
      Freie. Drei Polster aus Planenstoff schliessen den Spalt, so
      wie an jeder echten Rampe. */
-  const planeM=std(0x23262c,{roughness:0.95});
+  const planeM=MAT.std(0x23262c,{roughness:0.95});
   for(const s2 of [-1,1])
     bbox(0.46,WTOR.h+0.1,0.5,planeM,-0.26,(WTOR.h+0.1)/2,s2*(WTOR.w/2-0.2),g,false);
   bbox(0.46,0.42,WTOR.w+0.1,planeM,-0.26,WTOR.h-0.09,0,g,false);
-  bbox(0.12,0.24,0.16,std(0xf2c230,{roughness:0.6}),-0.3,1.35,WTOR.w/2+0.62,g,false);
+  bbox(0.12,0.24,0.16,MAT.std(0xf2c230,{roughness:0.6}),-0.3,1.35,WTOR.w/2+0.62,g,false);
   for(let k=0;k<3;k++) bbox(0.04,0.05,0.05,std([0x2f9e57,0xd8352a,0x2a2e38][k]),-0.37,1.43-k*0.07,WTOR.w/2+0.62,g,false);
   /* Torkennung ueber dem Vordach */
   plane(0.8,0.62,new THREE.MeshStandardMaterial({map:tex(160,124,(c,W,H)=>{
@@ -19835,8 +20087,8 @@ function westTor(cx,nr){
   /* Poller neben der Torlaibung, im Hof vor der Wand */
   for(const s of [-1,1]){
     const lz=s*(WTOR.w/2+1.15);
-    bbox(0.2,0.95,0.2,std(0xf2c230,{roughness:0.7}),-0.9,0.48,lz,g,true);
-    bbox(0.22,0.14,0.22,std(0x1f1f24),-0.9,0.86,lz,g,false);
+    bbox(0.2,0.95,0.2,MAT.std(0xf2c230,{roughness:0.7}),-0.9,0.48,lz,g,true);
+    bbox(0.22,0.14,0.22,MAT.std(0x1f1f24),-0.9,0.86,lz,g,false);
     /* lokal (x,z) -> Welt (cx - z, Z + x) bei Drehung -90 Grad */
     col(cx-lz-0.15,cx-lz+0.15,Z-1.05,Z-0.75);
   }
@@ -19854,10 +20106,10 @@ const LAGERFENSTER=[-17.6,-14.0,-10.4];
 function lagerFensterWand(){
   const r=LAY.lnord, z0=r.z1, z1=r.z1+LW, H=LAGER_H;
   const FB=1.7, Y0=1.35, Y1=2.6;                       /* Breite, Bruestung, Sturz */
-  const leib=std(0xdfe3e8,{roughness:0.85});          /* Laibung: heller Putz */
-  const alu=std(0x2b3040,{metalness:0.55,roughness:0.38});
+  const leib=MAT.std(0xdfe3e8,{roughness:0.85});          /* Laibung: heller Putz */
+  const alu=MAT.std(0x2b3040,{metalness:0.55,roughness:0.38});
   const glas=new THREE.MeshStandardMaterial({color:LIN(0x5d7288),transparent:true,opacity:0.38,roughness:0.05,metalness:0.2,side:THREE.DoubleSide,depthWrite:false});
-  const bankA=std(0xb9bec6,{metalness:0.6,roughness:0.35}), bankI=std(0xe6e8ec,{roughness:0.6});
+  const bankA=MAT.std(0xb9bec6,{metalness:0.6,roughness:0.35}), bankI=MAT.std(0xe6e8ec,{roughness:0.6});
   const W=(a,b,y0,y1)=>{ if(b-a>0.005&&y1-y0>0.005) wall(a,b,z0,z1,y0,y1,'-z',lagerWall,undefined,0,leib); };
   let x=r.x0-LW;
   for(const cx of LAGERFENSTER){
@@ -19876,7 +20128,7 @@ function lagerFensterWand(){
       for(const dy of [0.075,fh-0.075]) bbox(FB/2-0.12,0.04,0.05,alu,fx,Y0+dy,zm+0.01,null,false);
       bbox(FB/2-0.14,fh-0.2,0.012,glas,fx,Y0+fh/2,zm,null,false);
       /* Griff am Fluegel innen */
-      bbox(0.025,0.12,0.03,std(0xc9ced6,{metalness:0.8,roughness:0.25}),cx+sx*0.1,Y0+fh/2,z0-0.01,null,false); }
+      bbox(0.025,0.12,0.03,MAT.std(0xc9ced6,{metalness:0.8,roughness:0.25}),cx+sx*0.1,Y0+fh/2,z0-0.01,null,false); }
     /* Fensterbank aussen (Alu, leicht vorstehend) und innen */
     bbox(FB+0.08,0.03,0.2,bankA,cx,Y0-0.012,z1+0.06,null,false);
     bbox(FB+0.05,0.03,0.16,bankI,cx,Y0-0.012,z0-0.05,null,false);
@@ -19889,8 +20141,8 @@ function lagerFensterWand(){
 function hofMast(x,z,ry){
   const g=new THREE.Group(); g.position.set(x,0,z); g.rotation.y=ry||0; scene.add(g);
   g.userData.hof='mast';
-  const mast=std(0x4b515c,{metalness:0.62,roughness:0.38});
-  const dark=std(0x2a2e38,{metalness:0.5,roughness:0.5});
+  const mast=MAT.std(0x4b515c,{metalness:0.62,roughness:0.38});
+  const dark=MAT.std(0x2a2e38,{metalness:0.5,roughness:0.5});
   const so=new THREE.Mesh(new THREE.CylinderGeometry(0.2,0.26,0.4,12),dark); so.position.y=0.2; g.add(so);
   const m1=new THREE.Mesh(new THREE.CylinderGeometry(0.09,0.14,7.4,12),mast);
   m1.position.y=4.1; if(HIQ) m1.castShadow=true; g.add(m1);
@@ -19909,16 +20161,16 @@ function abstellAuflieger(x,z,ry,name,farbe,fahrend){
   /* Laenge des Aufbaus, damit der Anrufer das Heck ausrichten kann */
   g.userData.len=13.2;
   const L=13.2, W2=2.55, HH=2.95, FY=1.15;      /* Ladeflaechenhoehe */
-  const alu=std(0xb6bcc4,{metalness:0.55,roughness:0.42});
-  const dark=std(0x22262e,{metalness:0.4,roughness:0.6});
+  const alu=MAT.std(0xb6bcc4,{metalness:0.55,roughness:0.42});
+  const dark=MAT.std(0x22262e,{metalness:0.4,roughness:0.6});
   /* Aufbau mit Werbung auf den Seiten */
   const side=new THREE.MeshStandardMaterial({map:liveryTex(name,farbe,false),roughness:0.74});
   const body=new THREE.Mesh(new THREE.BoxGeometry(L,HH,W2),[dark,dark,alu,dark,side,side]);
   body.position.set(0,FY+HH/2,0); if(HIQ){ body.castShadow=true; body.receiveShadow=true; } g.add(body);
   bbox(L+0.05,0.1,W2+0.06,alu,0,FY+HH-0.04,0,g,false);
-  bbox(L+0.05,0.16,W2+0.06,std(0x8a7f6a,{roughness:0.9}),0,FY+0.1,0,g,false);
+  bbox(L+0.05,0.16,W2+0.06,MAT.std(0x8a7f6a,{roughness:0.9}),0,FY+0.1,0,g,false);
   /* Hecktueren mit Scharnieren und Stangen */
-  for(const s of [-1,1]) bbox(0.06,HH-0.2,W2/2-0.08,std(0xe6e8ec,{roughness:0.6}),-L/2-0.04,FY+HH/2,s*W2/4,g,false);
+  for(const s of [-1,1]) bbox(0.06,HH-0.2,W2/2-0.08,MAT.std(0xe6e8ec,{roughness:0.6}),-L/2-0.04,FY+HH/2,s*W2/4,g,false);
   for(const s of [-1,1]) for(const o of [0.28,0.9]){
     const st=new THREE.Mesh(new THREE.CylinderGeometry(0.022,0.022,HH-0.34,8),alu);
     st.position.set(-L/2-0.09,FY+HH/2,s*o*W2/2.2); g.add(st); }
@@ -19948,7 +20200,7 @@ function abstellAuflieger(x,z,ry,name,farbe,fahrend){
     ch.push({geo:gRueck,m:tm(-L/2-0.09,0.92,s*(W2/2-0.35)),color:0x9a2a24});
     ch.push({geo:gBlink,m:tm(-L/2-0.09,1.12,s*(W2/2-0.35)),color:0xf2a01c}); }
   ch.push({geo:gSchild,m:tm(-L/2-0.1,0.72,0),color:0xf2f0e8});
-  const chm=new THREE.Mesh(merge(ch),new THREE.MeshStandardMaterial({vertexColors:true,metalness:0.12,roughness:0.66}));
+  const chm=new THREE.Mesh(merge(ch),MAT.std(0xffffff,{vertexColors:true,metalness:0.12,roughness:0.66}));
   if(HIQ) chm.castShadow=true; g.add(chm);
   [gRahmen,gWinde,gFuss,gKoenig,gRad,gFelge,gAchse,gKotfl,gSchutz,gRueck,gBlink,gSchild].forEach(q=>q.dispose());
   /* Kollision als ein Block */
@@ -20031,9 +20283,9 @@ function logiGlas(len,rows){
 function buildLogistik(){
   const H=LOGI.hoehe, ha=LOGI.halle, bu=LOGI.buero;
   const blech=blechMat();
-  const sockel=std(0x3f454e,{roughness:0.88});
-  const attika=std(0x2b2f3a,{metalness:0.4,roughness:0.6});
-  const steel=std(0x8d939d,{metalness:0.6,roughness:0.42});
+  const sockel=MAT.std(0x3f454e,{roughness:0.88});
+  const attika=MAT.std(0x2b2f3a,{metalness:0.4,roughness:0.6});
+  const steel=MAT.std(0x8d939d,{metalness:0.6,roughness:0.42});
   /* --- Halle --- */
   const hw=ha.x1-ha.x0, hd=ha.z1-ha.z0, hcx=(ha.x0+ha.x1)/2, hcz=(ha.z0+ha.z1)/2;
   const halleM=new THREE.Mesh(new THREE.BoxGeometry(hw,H,hd),blech);
@@ -20042,18 +20294,18 @@ function buildLogistik(){
   scene.add(halleM); occluders.push(halleM); meterUV(halleM);
   bbox(hw+0.1,1.3,hd+0.1,sockel,hcx,0.65,hcz,null,false);
   bbox(hw+0.5,0.7,hd+0.5,attika,hcx,H+0.3,hcz,null,false);
-  bbox(hw+0.2,0.5,hd+0.2,std(0x1b2340,{roughness:0.8}),hcx,H-1.4,hcz,null,false);
+  bbox(hw+0.2,0.5,hd+0.2,MAT.std(0x1b2340,{roughness:0.8}),hcx,H-1.4,hcz,null,false);
   /* Dach mit Lichtband und Lueftern */
-  flat(hw-0.6,hd-0.6,std(0x4a4f58,{roughness:0.95}),hcx,H+0.02,hcz);
-  for(let i=0;i<7;i++) flat(3.4,hd-4,new THREE.MeshBasicMaterial({color:0xdfe6ef,toneMapped:false}),ha.x0+4+i*6.2,H+0.05,hcz);
+  flat(hw-0.6,hd-0.6,MAT.std(0x4a4f58,{roughness:0.95}),hcx,H+0.02,hcz);
+  for(let i=0;i<7;i++) flat(3.4,hd-4,MAT.basic(0xdfe6ef,{toneMapped:false}),ha.x0+4+i*6.2,H+0.05,hcz);
   for(let i=0;i<5;i++){ const rx=ha.x0+6+i*8.4;
-    rbox(2.4,1.1,2.0,0.1,std(0xa7adb6,{metalness:0.5,roughness:0.5}),rx,H+0.85,ha.z1-4.5,null);
-    bbox(2.5,0.12,2.1,std(0xeef2f8,{roughness:1}),rx,H+1.46,ha.z1-4.5,null,false); }
+    rbox(2.4,1.1,2.0,0.1,MAT.std(0xa7adb6,{metalness:0.5,roughness:0.5}),rx,H+0.85,ha.z1-4.5,null);
+    bbox(2.5,0.12,2.1,MAT.std(0xeef2f8,{roughness:1}),rx,H+1.46,ha.z1-4.5,null,false); }
   /* --- Buerokopf --- */
   const bw=bu.x1-bu.x0, bd=bu.z1-bu.z0, bcx=(bu.x0+bu.x1)/2, bcz=(bu.z0+bu.z1)/2;
   const glasN=new THREE.MeshStandardMaterial({map:logiGlas(bw,2),roughness:0.22,metalness:0.4});
   const glasW=new THREE.MeshStandardMaterial({map:logiGlas(bd,2),roughness:0.22,metalness:0.4});
-  const putz=std(0xdde1e7,{roughness:0.9});
+  const putz=MAT.std(0xdde1e7,{roughness:0.9});
   const bm=new THREE.Mesh(new THREE.BoxGeometry(bw,LOGI.bh,bd),[glasW,glasW,putz,putz,glasN,glasN]);
   bm.position.set(bcx,LOGI.bh/2,bcz);
   if(HIQ){ bm.castShadow=true; bm.receiveShadow=true; }
@@ -20061,7 +20313,7 @@ function buildLogistik(){
   bbox(bw+0.4,0.45,bd+0.4,attika,bcx,LOGI.bh+0.22,bcz,null,false);
   bbox(bw+0.1,0.9,bd+0.1,sockel,bcx,0.45,bcz,null,false);
   /* Eingangsvordach und Schriftzug */
-  bbox(5.0,0.18,2.4,std(0x9aa1ac,{metalness:0.6,roughness:0.4}),bu.x0+3.2,3.35,bu.z1+1.0,null,false);
+  bbox(5.0,0.18,2.4,MAT.std(0x9aa1ac,{metalness:0.6,roughness:0.4}),bu.x0+3.2,3.35,bu.z1+1.0,null,false);
   for(const dx of [-2.0,2.0]) bbox(0.09,3.3,0.09,steel,bu.x0+3.2+dx,1.65,bu.z1+1.9,null,false);
   plane(11.0,1.95,new THREE.MeshStandardMaterial({map:logiSchriftzug()}),bcx,LOGI.bh-1.5,bu.z1+0.06,0,null);
   /* --- Ladetore an der Westfassade der Halle --- */
@@ -20072,16 +20324,14 @@ function buildLogistik(){
     bl.rotation.y=-Math.PI/2; bl.position.set(ha.x0-0.06,2.1,tz); scene.add(bl);
     for(const s of [-1,1]) bbox(0.16,4.5,0.2,steel,ha.x0-0.08,2.25,tz+s*1.9,null,false);
     bbox(0.16,0.24,4.0,steel,ha.x0-0.08,4.32,tz,null,false);
-    bbox(1.2,0.12,4.6,std(0x3a4150,{metalness:0.5}),ha.x0-0.65,4.85,tz,null,false);
-    for(const s of [-1,1]) bbox(0.2,0.6,0.26,std(0x16181d,{roughness:0.96}),ha.x0-0.16,1.2,tz+s*2.1,null,false);
+    bbox(1.2,0.12,4.6,MAT.std(0x3a4150,{metalness:0.5}),ha.x0-0.65,4.85,tz,null,false);
+    for(const s of [-1,1]) bbox(0.2,0.6,0.26,MAT.std(0x16181d,{roughness:0.96}),ha.x0-0.16,1.2,tz+s*2.1,null,false);
   }
   /* --- Vorplatz, Zaun, Bauschild --- */
-  const ap=concreteTex(); ap.repeat.set(3,14);
-  flat(6.0,30.0,new THREE.MeshStandardMaterial({map:ap,roughness:0.93,color:LIN(0xa8acb2)}),43.5,0.013,-1.0);
-  const ap2=concreteTex(); ap2.repeat.set(10,3);
-  flat(hw-2,5.5,new THREE.MeshStandardMaterial({map:ap2,roughness:0.93,color:LIN(0xa8acb2)}),hcx,0.012,ha.z1+2.8);
+  MAT.kachel(flat(6.0,30.0,new THREE.MeshStandardMaterial({map:MAT.tex('beton'),roughness:0.93,color:LIN(0xa8acb2)}),43.5,0.013,-1.0).geometry,3,14);
+  MAT.kachel(flat(hw-2,5.5,new THREE.MeshStandardMaterial({map:MAT.tex('beton'),roughness:0.93,color:LIN(0xa8acb2)}),hcx,0.012,ha.z1+2.8).geometry,10,3);
   for(let i=0;i<4;i++){ const tz=ha.z0+3.4+i*5.6;
-    for(const s of [-1,1]) flat(4.4,0.14,std(0xf2c230),ha.x0-2.6,0.017,tz+s*2.4); }
+    for(const s of [-1,1]) flat(4.4,0.14,MAT.std(0xf2c230),ha.x0-2.6,0.017,tz+s*2.4); }
   /* Zaun mit Bauschild: faellt, sobald das Zentrum freigeschaltet wird */
   const Z=LOGI.zaun, ZH=2.4;
   zaunLauf(Z.x,Z.z0,Z.x,Z.z1,ZH);
@@ -20098,7 +20348,7 @@ function buildLogistik(){
       bbox(0.1,0.1,3.0,steel,0,0.4,s*1.55,g2,false);
       for(let i=0;i<10;i++) bbox(0.07,ZH-0.6,0.07,steel,0,ZH/2,s*0.1+s*i*0.32,g2,false);
       bbox(0.12,ZH+0.3,0.12,steel,0,(ZH+0.3)/2,s*3.05,g2,false); }
-    bbox(0.14,0.3,0.24,std(0xf2c230,{roughness:0.6}),0.1,1.15,0,g2,false); }
+    bbox(0.14,0.3,0.24,MAT.std(0xf2c230,{roughness:0.6}),0.1,1.15,0,g2,false); }
   /* Hier stand ein Bauschild „NOCH NICHT ZU HABEN“. Auch das ist
      raus - kein Schild im Spiel soll den Spieler daran erinnern,
      was er noch nicht hat. */
@@ -20985,10 +21235,10 @@ function baueBeacon(x,y,z,gross){
 }
 function buildFernsehturm(x,z){
   const g=new THREE.Group(); g.position.set(x,0,z); scene.add(g);
-  const beton=std(0xa9b2bd,{roughness:0.95});
+  const beton=MAT.std(0xa9b2bd,{roughness:0.95,side:THREE.DoubleSide});   /* side vorher nachtraeglich am Schaft gesetzt (gilt fuer alle Teile mit diesem Material) */
   const H=118;
   const schaft=new THREE.Mesh(new THREE.CylinderGeometry(3.2,7.5,H*0.72,16,1,true),beton);
-  schaft.position.y=H*0.36; schaft.material.side=THREE.DoubleSide; g.add(schaft);
+  schaft.position.y=H*0.36; g.add(schaft);
   /* Kanzel mit Fensterband */
   const kanzel=new THREE.Mesh(new THREE.CylinderGeometry(9.5,9.5,9,20),
     fassadenMaterial('glas'));
@@ -21001,9 +21251,9 @@ function buildFernsehturm(x,z){
     gm.setAttribute('color',new THREE.BufferAttribute(col,3)); }
   const dach=new THREE.Mesh(new THREE.ConeGeometry(10,6,20),beton);
   dach.position.y=H*0.72+7.2; g.add(dach);
-  const antenne=new THREE.Mesh(new THREE.CylinderGeometry(0.5,2.2,H*0.3,10),std(0xd8d8d8,{roughness:0.7}));
+  const antenne=new THREE.Mesh(new THREE.CylinderGeometry(0.5,2.2,H*0.3,10),MAT.std(0xd8d8d8,{roughness:0.7}));
   antenne.position.y=H*0.86; g.add(antenne);
-  const spitze=new THREE.Mesh(new THREE.CylinderGeometry(0.12,0.5,12,6),std(0xe8e8e8));
+  const spitze=new THREE.Mesh(new THREE.CylinderGeometry(0.12,0.5,12,6),MAT.std(0xe8e8e8));
   spitze.position.y=H+4; g.add(spitze);
   turmSpitze=baueBeacon(x,H+11,z,true);
   baueBeacon(x,H*0.72+9,z,false);
@@ -21233,7 +21483,7 @@ function buildFernverkehr(){
 let flieger=null, fliegerLicht=null, fliegerT=rand(20,70);
 function buildFlieger(){
   const g=new THREE.Group(); scene.add(g); g.visible=false;
-  const m=std(0xdfe4ea,{roughness:0.6,metalness:0.2});
+  const m=MAT.std(0xdfe4ea,{roughness:0.6,metalness:0.2});
   bbox(1.1,0.5,7,m,0,0,0,g,false);
   bbox(9,0.16,1.5,m,0,-0.05,0.4,g,false);
   bbox(3.2,0.14,0.9,m,0,0.5,-2.8,g,false);
@@ -21548,15 +21798,15 @@ function eingangsAchse(go,a,b,zf,ST,glas,prof){
   const d=buildSchiebetuer(cx,5.3);
   scene.remove(d.g); auf.add(d.g);
   EING2.tuer=d;
-  const stahl=std(0x4a4f5a,{metalness:0.5,roughness:0.45});
+  const stahl=MAT.std(0x4a4f5a,{metalness:0.5,roughness:0.45});
   /* Vordach ueber dem Eingang, wie am Haupthaus */
-  const vd=bbox(3.4,0.08,1.5,std(0x2f343d,{metalness:0.4,roughness:0.6}),cx,TUER.y+0.62,zf+0.85,auf,false);
+  const vd=bbox(3.4,0.08,1.5,MAT.std(0x2f343d,{metalness:0.4,roughness:0.6}),cx,TUER.y+0.62,zf+0.85,auf,false);
   vd.rotation.x=0.05;
   /* Zwei Zugstangen von der Wand ueber dem Dach hinab zur Vorderkante.
      Vorher hingen sie unter dem Dach und endeten unten frei in der Luft. */
   for(const s of [-1,1]) strebeZ(zf+0.02,TUER.y+1.3,zf+1.45,TUER.y+0.67,cx+s*1.5,stahl,auf);
   /* Schmutzfangmatte innen und aussen */
-  const matte=std(0x232830,{roughness:0.98});
+  const matte=MAT.std(0x232830,{roughness:0.98});
   bbox(2.4,0.014,1.1,matte,cx,0.02,zf-0.72,auf,false);
   bbox(2.4,0.014,1.0,matte,cx,0.02,zf+0.68,auf,false);
   /* „Eingang 2“ ueber der Tuer */
@@ -21565,7 +21815,7 @@ function eingangsAchse(go,a,b,zf,ST,glas,prof){
     g2.fillStyle='#ffd23f'; g2.font=BUN(56); g2.textAlign='center'; g2.textBaseline='middle';
     g2.fillText('EINGANG 2',W/2,H/2+3);
   });
-  bbox(2.3,0.46,0.06,std(0x1b2340,{roughness:0.7}),cx,TUER.y+0.42,zf+0.05,auf,false);
+  bbox(2.3,0.46,0.06,MAT.std(0x1b2340,{roughness:0.7}),cx,TUER.y+0.42,zf+0.05,auf,false);
   plane(2.2,0.4,new THREE.MeshBasicMaterial({map:sch,toneMapped:false}),cx,TUER.y+0.42,zf+0.09,0,auf);
 }
 
@@ -21641,7 +21891,7 @@ function logiSammle(fn){
 }
 /* Suedwand: massive Stuecke, dazwischen die Toroeffnungen dieser Stufe */
 function logiSuedwand(i,r,H,ex){
-  const Z=LHALLE.z, sock=std(0x4a5058,{roughness:0.9});
+  const Z=LHALLE.z, sock=MAT.std(0x4a5058,{roughness:0.9});
   const tore=WRAMPEN.map((x,k)=>({x,k})).filter(t=>TOR_STUFE[t.k]<=i&&t.x>r.x0&&t.x<r.x1).sort((a,b)=>a.x-b.x);
   const stueck=(a,b)=>{ if(b-a<0.01) return;
     wall(a,b,Z-LW,Z,0,H,'+z',lagerWall,ex,0,lagerWall); col(a,b,Z-LW,Z);
@@ -21700,14 +21950,12 @@ function logiToreBauen(){
 /* LKW-Hof suedlich der Halle */
 function logiHofBauen(){
   const r=LAY.hof2, Z=LHALLE.z;
-  const bt=concreteTex(); bt.repeat.set((r.x1-r.x0)/2.4,(r.z1-r.z0)/2.4);
-  flat(r.x1-r.x0,r.z1-r.z0,new THREE.MeshStandardMaterial({map:bt,roughness:0.93,color:LIN(0xaaaeb4)}),
-       (r.x0+r.x1)/2,0.013,(r.z0+r.z1)/2);
+  MAT.kachel(flat(r.x1-r.x0,r.z1-r.z0,new THREE.MeshStandardMaterial({map:MAT.tex('beton'),roughness:0.93,color:LIN(0xaaaeb4)}),
+       (r.x0+r.x1)/2,0.013,(r.z0+r.z1)/2).geometry,(r.x1-r.x0)/2.4,(r.z1-r.z0)/2.4);
   /* Zufahrt nach Westen hinaus */
-  const zt=concreteTex(); zt.repeat.set(12,2);
-  flat(28,7.5,new THREE.MeshStandardMaterial({map:zt,roughness:0.93,color:LIN(0xa4a8ae)}),r.x0-14,0.012,-50.0);
+  MAT.kachel(flat(28,7.5,new THREE.MeshStandardMaterial({map:MAT.tex('beton'),roughness:0.93,color:LIN(0xa4a8ae)}),r.x0-14,0.012,-50.0).geometry,12,2);
   /* Stellplatzmarkierung vor jedem Tor: zwei Linien, Stopplinie, Mittelstriche */
-  const gelb=std(0xf2c230);
+  const gelb=MAT.std(0xf2c230);
   for(const cx of WRAMPEN){
     for(const s of [-1,1]) flat(0.14,14,gelb,cx+s*1.9,0.017,Z-7.4);
     flat(3.8,0.14,gelb,cx,0.017,Z-14.4);
@@ -21736,18 +21984,18 @@ function logiHofBauen(){
   palettenStapel(r.x1-2.4,Z-5.6,5,-0.2);
   palettenStapel(r.x0+2.4,Z-8.0,6,0.3);
   { const cx=r.x0+4.2, cz=Z-4.0;
-    const cm=std(0x4a6f52,{metalness:0.35,roughness:0.7});
+    const cm=MAT.std(0x4a6f52,{metalness:0.35,roughness:0.7});
     bbox(2.5,2.2,6.0,cm,cx,1.1,cz,null,true);
-    bbox(2.6,0.14,6.1,std(0xeef2f8,{roughness:1}),cx,2.24,cz,null,false);
-    for(let i=0;i<9;i++) bbox(2.56,2.1,0.08,std(0x3f6047,{metalness:0.3,roughness:0.75}),cx,1.1,cz-2.8+i*0.7,null,false);
+    bbox(2.6,0.14,6.1,MAT.std(0xeef2f8,{roughness:1}),cx,2.24,cz,null,false);
+    for(let i=0;i<9;i++) bbox(2.56,2.1,0.08,MAT.std(0x3f6047,{metalness:0.3,roughness:0.75}),cx,1.1,cz-2.8+i*0.7,null,false);
     col(cx-1.35,cx+1.35,cz-3.1,cz+3.1); }
   for(const [sx,sz,sw] of [[r.x0+8,r.z0+3,3.0],[-43,r.z0+3,2.6]]){
-    const h=new THREE.Mesh(new THREE.SphereGeometry(sw/2,HIQ?14:8,8),std(0xeef2f8,{roughness:1}));
+    const h=new THREE.Mesh(new THREE.SphereGeometry(sw/2,HIQ?14:8,8),MAT.std(0xeef2f8,{roughness:1}));
     h.scale.set(1,0.42,0.8); h.position.set(sx,0.1,sz); scene.add(h);
     col(sx-sw/2,sx+sw/2,sz-sw/2.6,sz+sw/2.6); }
   /* Hinweisschild an der Einfahrt */
   { const px=r.x0+0.2, pz=torB+1.2;
-    bbox(0.1,2.4,0.1,std(0x59606b,{metalness:0.6}),px,1.2,pz,null,false);
+    bbox(0.1,2.4,0.1,MAT.std(0x59606b,{metalness:0.6}),px,1.2,pz,null,false);
     plane(1.5,0.95,new THREE.MeshStandardMaterial({side:THREE.DoubleSide,map:tex(300,190,(g,W,H)=>{
       g.fillStyle='#1b2340'; g.fillRect(0,0,W,H);
       g.strokeStyle='#ffd23f'; g.lineWidth=6; g.strokeRect(7,7,W-14,H-14);
@@ -21920,7 +22168,7 @@ function buildPark(){
     E.push({geo:new THREE.SphereGeometry(0.08,10,8),m:tm(0,0.26,0.2),color:erpel?0x1f6b3a:0x6a4a2a});
     E.push({geo:new THREE.ConeGeometry(0.03,0.1,6),m:tm(0,0.25,0.3,Math.PI/2,0,0),color:0xe0a030});
     E.push({geo:new THREE.SphereGeometry(0.1,8,6),m:tm(0,0.14,-0.18,0,0,0,1,0.6,1),color:erpel?0x3a3a3a:0x5a4230});
-    g.add(new THREE.Mesh(merge(E),new THREE.MeshStandardMaterial({vertexColors:true,roughness:0.7})));
+    g.add(new THREE.Mesh(merge(E),MAT.std(0xffffff,{vertexColors:true,roughness:0.7})));
     g.position.set(SEE.x,0.06,SEE.z); scene.add(g);
     parkEnten.push({g,a:rand(0,Math.PI*2),r:rand(0.25,0.8),sp:rand(0.05,0.12)*(i%3?1:-1),ph:rand(0,6)}); }
   if(typeof makePerson==='function') for(let i=0;i<(COARSE?2:4);i++){
@@ -22830,12 +23078,12 @@ function buildCheckout(){
      Leiste und gelber Schrift. */
   const corpus=std(CK_KORPUS,{roughness:0.42,metalness:0.05}),
         panel=std(parseInt(CK_BLENDE.slice(1),16),{roughness:0.34,metalness:0.03}),
-        laminat=std(0xd6dae2,{roughness:0.38,metalness:0.05}),
-        steel=std(0xb8bec8,{metalness:0.72,roughness:0.28}),
-        dark=std(0x14171f,{roughness:0.5}),
+        laminat=MAT.std(0xd6dae2,{roughness:0.38,metalness:0.05}),
+        steel=MAT.std(0xb8bec8,{metalness:0.72,roughness:0.28}),
+        dark=MAT.std(0x14171f,{roughness:0.5}),
         sockel=std(CK_SOCKEL,{roughness:0.6}),
-        rubber=std(0x1c1d22,{roughness:0.95}),
-        accent=std(0xc9ced6,{metalness:0.85,roughness:0.22});
+        rubber=MAT.std(0x1c1d22,{roughness:0.95}),
+        accent=MAT.std(0xc9ced6,{metalness:0.85,roughness:0.22});
   /* Korpus mit Sockelrücksprung */
   const c=rbox(3.2,0.74,0.8,0.02,corpus,0,0.5,0,ckG); occluders.push(c);
   bbox(3.08,0.14,0.68,sockel,0,0.07,0,ckG);
@@ -22865,21 +23113,21 @@ function buildCheckout(){
   bbox(BL,0.03,0.46,new THREE.MeshStandardMaterial({map:beltTex,roughness:0.85}),BX,0.956,0,ckG,false);
   for(const s2 of [-1,1]){
     bbox(BL+0.06,0.05,0.03,steel,BX,0.965,s2*0.245,ckG);
-    bbox(BL+0.06,0.012,0.012,std(0xf2c230),BX,0.992,s2*0.245,ckG,false);
+    bbox(BL+0.06,0.012,0.012,MAT.std(0xf2c230),BX,0.992,s2*0.245,ckG,false);
   }
   for(const ex of [BELT_B-0.04,BELT_A+0.06]){
     const rl=new THREE.Mesh(new THREE.CylinderGeometry(0.03,0.03,0.47,14),steel);
     rl.rotation.x=Math.PI/2; rl.position.set(ex,0.956,0); ckG.add(rl);
   }
-  bbox(0.07,0.1,0.5,std(0x2a2e38,{metalness:0.4}),BELT_A+0.12,0.94,0,ckG);
+  bbox(0.07,0.1,0.5,MAT.std(0x2a2e38,{metalness:0.4}),BELT_A+0.12,0.94,0,ckG);
   /* Warentrenner */
   { const t=new THREE.Group(); t.position.set(BELT_A-0.25,0.985,0); t.rotation.y=0.08; ckG.add(t);
-    bbox(0.035,0.055,0.42,std(0x2f3a5e),0,0,0,t,false);
+    bbox(0.035,0.055,0.42,MAT.std(0x2f3a5e),0,0,0,t,false);
     plane(0.4,0.05,new THREE.MeshStandardMaterial({map:tex(600,78,(g,W,H)=>{ g.fillStyle='#2f3a5e'; g.fillRect(0,0,W,H); g.fillStyle='#ffd23f'; g.font=BAR(51); g.textAlign='center'; g.textBaseline='middle'; g.fillText('NÄCHSTER KUNDE',W/2,H/2+3); })}),0.019,0,0,Math.PI/2,t); }
   /* Scanner: eine in die Platte eingelassene Glasscheibe, sonst nichts */
   {
-    const bezel=std(0xaeb4bd,{metalness:0.18,roughness:0.5});
-    const frameIn=std(0x30353d,{metalness:0.1,roughness:0.62});
+    const bezel=MAT.std(0xaeb4bd,{metalness:0.18,roughness:0.5});
+    const frameIn=MAT.std(0x30353d,{metalness:0.1,roughness:0.62});
     const scanGlass=new THREE.MeshStandardMaterial({
       color:LIN(0x121620),roughness:0.07,metalness:0.25,
       map:tex(512,512,(g,W,H)=>{
@@ -22901,7 +23149,7 @@ function buildCheckout(){
     bbox(0.026,0.026,0.01,led,-0.42,0.9775,0.16,ckG,false);
   }
   /* Kassenmonitor auf Schwenkarm */
-  bbox(0.16,0.03,0.16,std(0x2c3140,{metalness:0.3}),-0.8,0.96,-0.06,ckG,false);
+  bbox(0.16,0.03,0.16,MAT.std(0x2c3140,{metalness:0.3}),-0.8,0.96,-0.06,ckG,false);
   const post=new THREE.Mesh(new THREE.CylinderGeometry(0.022,0.028,0.34,12),steel); post.position.set(-0.8,1.12,-0.06); ckG.add(post);
   const arm=bbox(0.04,0.04,0.16,steel,-0.8,1.29,-0.01,ckG,false); arm.rotation.x=0.5;
   const scrBody=rbox(0.44,0.32,0.035,0.01,dark,-0.8,1.4,-0.06,ckG); scrBody.rotation.x=0.16;
@@ -22943,14 +23191,14 @@ function buildCheckout(){
       for(let i=0;i<500;i++){ g.fillStyle=`rgba(255,255,255,${Math.random()*0.03})`; g.fillRect(Math.random()*W,Math.random()*H,2,2); }
     });
     kbT.anisotropy=8;
-    const wanne=std(0x141820,{roughness:0.55,metalness:0.1});
+    const wanne=MAT.std(0x141820,{roughness:0.55,metalness:0.1});
     const kb=rbox(0.44,0.026,0.175,0.006,wanne,-0.8,0.954,-0.32,ckG); kb.rotation.x=-0.06;
     const face=plane(0.4,0.15,new THREE.MeshStandardMaterial({map:kbT,roughness:0.42}),-0.8,0.9685,-0.32,0,ckG);
     /* 03.10. (Tom, Foto): die Beschriftung stand fuer den Kassierer auf dem
        Kopf - um 180 Grad in der Ebene gedreht, Funktionstasten rechts */
     face.rotation.set(-Math.PI/2-0.06,0,Math.PI);
     /* Kabel zur Kasse */
-    const kab=new THREE.Mesh(new THREE.CylinderGeometry(0.006,0.006,0.13,6),std(0x20242c,{roughness:0.9}));
+    const kab=new THREE.Mesh(new THREE.CylinderGeometry(0.006,0.006,0.13,6),MAT.std(0x20242c,{roughness:0.9}));
     kab.position.set(-0.8,0.952,-0.4); kab.rotation.x=1.35; ckG.add(kab);
   }
   posHit=bbox(0.66,0.72,0.6,hitM,-0.8,1.2,-0.1,ckG,false); posHit.userData={kind:'pos'};
@@ -22992,30 +23240,16 @@ function sbScreenTex(){
    Oberflaeche (Lack, Metall, matt, leuchtend) werden mit Vertexfarben zu
    je einem Mesh verschmolzen. pivot() setzt eine Bezugsmatrix fuer
    gekippte Baugruppen (Bildschirm, Kartenterminal). */
-const _geraetMat={};
-function geraetMat(art){
-  if(_geraetMat[art]) return _geraetMat[art];
-  let m;
-  if(art==='leucht') m=new THREE.MeshBasicMaterial({vertexColors:true,toneMapped:false});
-  else m=new THREE.MeshStandardMaterial(Object.assign({vertexColors:true},
-    {lack:{roughness:0.34,metalness:0.06},metall:{roughness:0.26,metalness:0.78},matt:{roughness:0.72,metalness:0.0},glas:{roughness:0.08,metalness:0.35}}[art]));
-  return _geraetMat[art]=m;
-}
+/* 13.10. (Fundament): duenne Huelle ueber den Baukasten-Sammler bk.sammler (04z) -
+   gleiche Aufrufe wie vorher, Materialien aus MAT.vc (lack/metall/matt/glas/leucht); geraetMat entfaellt. */
 function geraetBau(){
-  const T={lack:[],metall:[],matt:[],glas:[],leucht:[]}; let basis=null;
-  const add=(art,geo,c,x,y,z,rx,ry,rz)=>{ let m=tm(x,y,z,rx,ry,rz); if(basis) m=basis.clone().multiply(m); T[art].push({geo,m,color:c}); };
+  const S=bk.sammler({form:{fase:0.02,faseMin:0.03},reihenfolge:['lack','metall','matt','glas','leucht'],bauteil:'geraet'});
   const B={
-    pivot(x,y,z,rx,ry,rz){ basis=(x===undefined)?null:tm(x,y,z,rx,ry,rz); return B; },
-    box(art,w,h,d,c,x,y,z,rx,ry,rz){ const mn=Math.min(w,h,d);
-      add(art,mn>=0.03?roundedBoxGeo(w,h,d,Math.min(0.02,mn*0.2)):new THREE.BoxGeometry(w,h,d),c,x,y,z,rx,ry,rz); return B; },
-    rund(art,w,h,d,r,c,x,y,z,rx,ry,rz){ add(art,roundedBoxGeo(w,h,d,r),c,x,y,z,rx,ry,rz); return B; },
-    zyl(art,r1,r2,h,seg,c,x,y,z,rx,ry,rz){ add(art,new THREE.CylinderGeometry(r1,r2,h,seg),c,x,y,z,rx,ry,rz); return B; },
-    fertig(parent,schatten){ const out=[];
-      for(const art in T){ if(!T[art].length) continue;
-        const me=new THREE.Mesh(merge(T[art]),geraetMat(art));
-        if(HIQ&&schatten!==false&&art!=='leucht'){ me.castShadow=true; me.receiveShadow=true; }
-        parent.add(me); out.push(me); }
-      return out; }
+    pivot(x,y,z,rx,ry,rz){ S.pivot(x,y,z,rx,ry,rz); return B; },
+    box(art,w,h,d,c,x,y,z,rx,ry,rz){ S.box(w,h,d,x,y,z,c,art,rx,ry,rz); return B; },
+    rund(art,w,h,d,r,c,x,y,z,rx,ry,rz){ S.rund(w,h,d,r,x,y,z,c,art,rx,ry,rz); return B; },
+    zyl(art,r1,r2,h,seg,c,x,y,z,rx,ry,rz){ S.zyl(r1,r2,h,seg,x,y,z,c,art,rx,ry,rz); return B; },
+    fertig(parent,schatten){ return S.fertig(parent,{schatten}); }
   };
   return B;
 }
@@ -23099,7 +23333,7 @@ function buildSBKasse(){
   if(sbG) return sbG;
   sbG=new THREE.Group(); sbG.position.set(0,0,0); scene.add(sbG);
   /* Rueckwand mit Beschilderung hinter den Terminals */
-  const w=std(0x1b2340,{roughness:0.7});
+  const w=MAT.std(0x1b2340,{roughness:0.7});
   bbox(3.6,0.34,0.12,w,10.6,2.35,3.75,sbG,false);
   const schild=tex(1024,140,(g,W,H)=>{
     g.fillStyle='#1b2340'; g.fillRect(0,0,W,H);
@@ -23108,7 +23342,7 @@ function buildSBKasse(){
     g.strokeStyle='#2f3a5e'; g.lineWidth=6; g.strokeRect(3,3,W-6,H-6);
   });
   plane(3.4,0.3,new THREE.MeshBasicMaterial({map:schild,toneMapped:false}),10.6,2.35,3.82,0,sbG);
-  for(const sx of [9.0,12.2]) bbox(0.07,2.2,0.07,std(0x8d939d,{metalness:0.6,roughness:0.4}),sx,1.15,3.75,sbG,false);
+  for(const sx of [9.0,12.2]) bbox(0.07,2.2,0.07,MAT.std(0x8d939d,{metalness:0.6,roughness:0.4}),sx,1.15,3.75,sbG,false);
   for(const x of [9.7,11.5]) sbLanes.push(sbTerminal(sbG,x,4.4));
   sbCols.push(col(9.0,10.4,4.05,4.75),col(10.8,12.2,4.05,4.75));
   return sbG;
@@ -23196,10 +23430,10 @@ function buildDesk(){
         g.fillStyle=gl; g.fillRect(0,0,W,H);
       }); t.wrapS=t.wrapT=THREE.RepeatWrapping; t.anisotropy=8; return t; })();
   const woodT=new THREE.MeshStandardMaterial({map:furnierT,roughness:0.34,metalness:0.04}),
-        kante=std(0x3c2c1c,{roughness:0.4}),
-        metal=std(0x9aa1ac,{metalness:0.75,roughness:0.26}),
-        metalD=std(0x2f3540,{metalness:0.55,roughness:0.38}),
-        dark=std(0x1c1f29,{roughness:0.5});
+        kante=MAT.std(0x3c2c1c,{roughness:0.4}),
+        metal=MAT.std(0x9aa1ac,{metalness:0.75,roughness:0.26}),
+        metalD=MAT.std(0x2f3540,{metalness:0.55,roughness:0.38}),
+        dark=MAT.std(0x1c1f29,{roughness:0.5});
   /* Platte mit umlaufender Massivholzkante */
   bbox(1.12,0.038,1.56,woodT,0,0.762,0,deskG);
   for(const [w,d,x,z] of [[1.14,0.022,0,0.782],[1.14,0.022,0,-0.782]])
@@ -23223,9 +23457,9 @@ function buildDesk(){
   for(const sx of [-0.2,0.2]) bbox(0.03,0.09,0.03,metalD,sx,0.71,-0.52,deskG,false);
   /* Rollcontainer unter der Platte */
   { const c2=new THREE.Group(); c2.position.set(0.28,0,0.28); deskG.add(c2);
-    rbox(0.42,0.58,0.52,0.014,std(0x2b303c,{metalness:0.2,roughness:0.5}),0,0.32,0,c2);
+    rbox(0.42,0.58,0.52,0.014,MAT.std(0x2b303c,{metalness:0.2,roughness:0.5}),0,0.32,0,c2);
     for(let i=0;i<3;i++){
-      bbox(0.4,0.16,0.012,std(0x353b47,{roughness:0.45}),0,0.16+i*0.18,0.262,c2,false);
+      bbox(0.4,0.16,0.012,MAT.std(0x353b47,{roughness:0.45}),0,0.16+i*0.18,0.262,c2,false);
       bbox(0.16,0.014,0.016,metal,0,0.16+i*0.18,0.272,c2,false);
     }
     for(const sx of [-0.15,0.15]) for(const sz of [-0.18,0.18]){
@@ -23235,12 +23469,12 @@ function buildDesk(){
   }
   /* Laptop */
   const lap=new THREE.Group(); lap.position.set(-0.05,0.78,-0.16); lap.rotation.y=-Math.PI/2; deskG.add(lap);
-  rbox(0.44,0.018,0.32,0.006,std(0x2b303c,{metalness:0.45,roughness:0.35}),0,0.009,0.08,lap);
-  bbox(0.36,0.004,0.2,std(0x1c1f29),0,0.019,0.11,lap,false);
+  rbox(0.44,0.018,0.32,0.006,MAT.std(0x2b303c,{metalness:0.45,roughness:0.35}),0,0.009,0.08,lap);
+  bbox(0.36,0.004,0.2,MAT.std(0x1c1f29),0,0.019,0.11,lap,false);
   for(let r=0;r<4;r++) for(let c2=0;c2<12;c2++)
-    bbox(0.024,0.004,0.018,std(0x3f4654),-0.15+c2*0.0275,0.022,0.05+r*0.023,lap,false);
-  bbox(0.12,0.004,0.06,std(0x353b47),0,0.021,0.17,lap,false);
-  const lid=rbox(0.45,0.3,0.014,0.006,std(0x2b303c,{metalness:0.45,roughness:0.35}),0,0.16,-0.08,lap);
+    bbox(0.024,0.004,0.018,MAT.std(0x3f4654),-0.15+c2*0.0275,0.022,0.05+r*0.023,lap,false);
+  bbox(0.12,0.004,0.06,MAT.std(0x353b47),0,0.021,0.17,lap,false);
+  const lid=rbox(0.45,0.3,0.014,0.006,MAT.std(0x2b303c,{metalness:0.45,roughness:0.35}),0,0.16,-0.08,lap);
   lid.rotation.x=-0.22;
   /* Bildschirmschoner statt Menueattrappe - das echte Menue oeffnet sich beim Anklicken */
   const sch=neuerSchoner(512,320);
@@ -23252,15 +23486,15 @@ function buildDesk(){
   lapHit=bbox(0.7,0.5,0.7,hitM,-0.05,0.95,-0.1,deskG,false); lapHit.userData={kind:'laptop'};
   /* Bürostuhl */
   { const ch=new THREE.Group(); ch.position.set(-0.85,0,0.05); ch.rotation.y=1.5; deskG.add(ch);
-    rbox(0.46,0.09,0.44,0.03,std(0x2c3140,{roughness:0.75}),0,0.46,0,ch);
-    const bk=rbox(0.44,0.5,0.08,0.03,std(0x2c3140,{roughness:0.75}),0,0.76,-0.21,ch); bk.rotation.x=0.14;
+    rbox(0.46,0.09,0.44,0.03,MAT.std(0x2c3140,{roughness:0.75}),0,0.46,0,ch);
+    const bk=rbox(0.44,0.5,0.08,0.03,MAT.std(0x2c3140,{roughness:0.75}),0,0.76,-0.21,ch); bk.rotation.x=0.14;
     bbox(0.06,0.14,0.06,metal,0,0.56,-0.2,ch,false);
     const col2=new THREE.Mesh(new THREE.CylinderGeometry(0.035,0.045,0.38,10),metal); col2.position.y=0.23; ch.add(col2);
     for(let i=0;i<5;i++){ const a2=i/5*Math.PI*2;
       bbox(0.05,0.03,0.26,metal,Math.cos(a2)*0.11,0.06,Math.sin(a2)*0.11,ch,false).rotation.y=-a2;
       const w=new THREE.Mesh(new THREE.CylinderGeometry(0.035,0.035,0.022,8),dark);
       w.rotation.z=Math.PI/2; w.position.set(Math.cos(a2)*0.24,0.035,Math.sin(a2)*0.24); ch.add(w); }
-    for(const sx of [-1,1]) bbox(0.05,0.18,0.28,std(0x1f2430),sx*0.25,0.6,0,ch,false); }
+    for(const sx of [-1,1]) bbox(0.05,0.18,0.28,MAT.std(0x1f2430),sx*0.25,0.6,0,ch,false); }
   addMovable({kind:'desk',name:'Büro-Tisch',g:deskG,fw:1.2,fd:1.6});
 }
 
@@ -23679,7 +23913,7 @@ function createShelf(i,data){
       for(const sx of [-1,1]){
         bbox(W/2-0.02,top-0.14,0.03,coldGlass,sx*W/4,top/2,D/2-0.002,fg,false);
         bbox(0.03,top-0.14,0.04,coldFrame,sx*(W/2-0.03),top/2,D/2,fg,false);
-        bbox(0.035,0.5,0.05,std(0xdfe3ea,{metalness:0.6}),sx*0.06,top*0.55,D/2+0.03,fg,false);
+        bbox(0.035,0.5,0.05,MAT.std(0xdfe3ea,{metalness:0.6}),sx*0.06,top*0.55,D/2+0.03,fg,false);
       }
       bbox(W,0.16,D,coldFrame,0,top+0.12,0,fg);
       plane(W*0.8,0.11,new THREE.MeshBasicMaterial({toneMapped:false,map:tex(256,36,(c,Wc,Hc)=>{ c.fillStyle='#0e2a44'; c.fillRect(0,0,Wc,Hc); c.fillStyle='#8fd6ff'; c.font=BUN(22); c.textAlign='center'; c.textBaseline='middle'; c.fillText('GEKÜHLT  4 °C',Wc/2,Hc/2+1); })}),0,top+0.12,D/2+0.005,0,fg);
@@ -24090,7 +24324,7 @@ function createRack(i,data){
   rk.schildTex=tex(512,256,()=>{});
   plane(0.52,0.26,new THREE.MeshStandardMaterial({roughness:0.6,map:rk.schildTex}),
     -XO+0.34,1.6,ZO+0.012,0,g);
-  bbox(0.56,0.3,0.012,std(0x8d939d,{metalness:0.4,roughness:0.55}),-XO+0.34,1.6,ZO+0.004,g,false);
+  bbox(0.56,0.3,0.012,MAT.std(0x8d939d,{metalness:0.4,roughness:0.55}),-XO+0.34,1.6,ZO+0.004,g,false);
   rk.mov=addMovable({kind:'rack',name:K.name,g,fw:BW+0.16,fd:2*ZO+0.14,ref:rk});
   rk.nr=racks.length; racks.push(rk); drawRackSchild(rk);
   if(data&&data.slots) data.slots.forEach((sd,k)=>{ if(sd&&P[sd.type]&&rk.slots[k]) putInSlot(rk.slots[k],sd.type,sd.count,sd.q,sd.kiste); });
@@ -24225,9 +24459,9 @@ function drawGrav(){
 /* Gravierte Einzelstücke (eigene Meshes, weil jeder Text anders ist) */
 function makeEngraved(text){
   const g=new THREE.Group();
-  const body=new THREE.Mesh(new THREE.CylinderGeometry(0.019,0.019,0.16,12),std(0xd8352a)); body.rotation.z=Math.PI/2; g.add(body);
-  const tip=new THREE.Mesh(new THREE.ConeGeometry(0.019,0.05,12),std(0xffd23f)); tip.rotation.z=-Math.PI/2; tip.position.x=0.105; g.add(tip);
-  const stick=new THREE.Mesh(new THREE.CylinderGeometry(0.004,0.004,0.32,5),std(0xc9a46a)); stick.rotation.z=Math.PI/2; stick.position.set(-0.2,-0.016,0); g.add(stick);
+  const body=new THREE.Mesh(new THREE.CylinderGeometry(0.019,0.019,0.16,12),MAT.std(0xd8352a)); body.rotation.z=Math.PI/2; g.add(body);
+  const tip=new THREE.Mesh(new THREE.ConeGeometry(0.019,0.05,12),MAT.std(0xffd23f)); tip.rotation.z=-Math.PI/2; tip.position.x=0.105; g.add(tip);
+  const stick=new THREE.Mesh(new THREE.CylinderGeometry(0.004,0.004,0.32,5),MAT.std(0xc9a46a)); stick.rotation.z=Math.PI/2; stick.position.set(-0.2,-0.016,0); g.add(stick);
   const lt=tex(384,96,(c,W,H)=>{
     const gr=c.createLinearGradient(0,0,0,H); gr.addColorStop(0,'#f4f1e8'); gr.addColorStop(1,'#ded7c6'); c.fillStyle=gr; c.fillRect(0,0,W,H);
     c.fillStyle='#6a24c9'; c.fillRect(0,0,W,10); c.fillRect(0,H-10,W,10);
@@ -24288,29 +24522,29 @@ const dekos=[];
 const leafM=std(0x2f7a3f,{roughness:0.85}), potM=std(0xb45a38,{roughness:0.8}), metalM=std(0x9aa1ad,{metalness:0.6,roughness:0.35});
 function makeDekoMesh(id,g){
   if(id==='pflanze'){
-    bbox(0.3,0.3,0.3,potM,0,0.15,0,g); bbox(0.34,0.06,0.34,std(0x8a4328),0,0.32,0,g);
+    bbox(0.3,0.3,0.3,potM,0,0.15,0,g); bbox(0.34,0.06,0.34,MAT.std(0x8a4328),0,0.32,0,g);
     for(let i=0;i<9;i++){ const a=i/9*Math.PI*2, l=new THREE.Mesh(new THREE.SphereGeometry(0.14,10,7),leafM);
       l.position.set(Math.cos(a)*0.16,0.52+Math.sin(i*2)*0.14,Math.sin(a)*0.16); l.scale.set(0.5,1.5,0.5); l.rotation.z=Math.cos(a)*0.5; l.rotation.x=Math.sin(a)*0.5; if(HIQ) l.castShadow=true; g.add(l); }
     return {fw:0.5,fd:0.5};
   }
-  if(id==='stehtisch'){ bbox(0.06,1.05,0.06,metalM,0,0.52,0,g); bbox(0.5,0.05,0.5,std(0x2b3040),0,1.07,0,g); bbox(0.42,0.03,0.42,metalM,0,0.02,0,g); return {fw:0.6,fd:0.6}; }
+  if(id==='stehtisch'){ bbox(0.06,1.05,0.06,metalM,0,0.52,0,g); bbox(0.5,0.05,0.5,MAT.std(0x2b3040),0,1.07,0,g); bbox(0.42,0.03,0.42,metalM,0,0.02,0,g); return {fw:0.6,fd:0.6}; }
   if(id==='muell'){ const m=new THREE.Mesh(new THREE.CylinderGeometry(0.19,0.15,0.62,14),std(0x3b4050,{roughness:0.6})); m.position.y=0.31; if(HIQ) m.castShadow=true; g.add(m);
-    const l=new THREE.Mesh(new THREE.CylinderGeometry(0.2,0.2,0.05,14),std(0x8a8f99)); l.position.y=0.64; g.add(l); return {fw:0.45,fd:0.45}; }
+    const l=new THREE.Mesh(new THREE.CylinderGeometry(0.2,0.2,0.05,14),MAT.std(0x8a8f99)); l.position.y=0.64; g.add(l); return {fw:0.45,fd:0.45}; }
   if(id==='teppich'){ const t=tex(256,128,(gg,W,H)=>{ gg.fillStyle='#7a2230'; gg.fillRect(0,0,W,H); gg.fillStyle='#c9a24a'; gg.fillRect(8,8,W-16,H-16); gg.fillStyle='#7a2230'; gg.fillRect(20,20,W-40,H-40); gg.fillStyle='#f2e6c8'; for(let i=0;i<8;i++){ gg.fillRect(34+i*24,H/2-8,14,16); } });
     const m=new THREE.Mesh(new THREE.PlaneGeometry(3.0,1.5),new THREE.MeshStandardMaterial({map:t,roughness:0.95})); m.rotation.x=-Math.PI/2; m.position.y=0.025; if(HIQ) m.receiveShadow=true; g.add(m); return {fw:0,fd:0}; }
   if(id==='lichter'){ const bulbs=[];
     for(let i=0;i<16;i++){ const x=-1.5+i*0.2, y=2.5-Math.sin(i/15*Math.PI)*0.22;
       const b=new THREE.Mesh(new THREE.SphereGeometry(0.045,8,6),new THREE.MeshStandardMaterial({color:LIN(pick([0xff5a4a,0xffd23f,0x5ce1ff,0x8ef0a8])),emissive:LIN(0xffffff),emissiveIntensity:0.6}));
       b.position.set(x,y,0); g.add(b); bulbs.push(b.material); }
-    bbox(3.2,0.012,0.012,std(0x2a2e38),0,2.56,0,g,false); g.userData.bulbs=bulbs; return {fw:0,fd:0};
+    bbox(3.2,0.012,0.012,MAT.std(0x2a2e38),0,2.56,0,g,false); g.userData.bulbs=bulbs; return {fw:0,fd:0};
   }
   if(id==='ventilator'){ const rot=new THREE.Group(); rot.position.y=3.1; g.add(rot);
     bbox(0.06,0.45,0.06,metalM,0,0.25,0,g,false);
-    const hub=new THREE.Mesh(new THREE.CylinderGeometry(0.1,0.12,0.08,12),std(0x2b3040)); rot.add(hub);
+    const hub=new THREE.Mesh(new THREE.CylinderGeometry(0.1,0.12,0.08,12),MAT.std(0x2b3040)); rot.add(hub);
     for(let i=0;i<4;i++){ const b=bbox(0.9,0.02,0.16,std(0x6d4c35),0.5,0,0,rot,false); b.rotation.y=i*Math.PI/2; b.position.set(Math.cos(i*Math.PI/2)*0.5,0,Math.sin(i*Math.PI/2)*0.5); }
     g.userData.rot=rot; return {fw:0,fd:0};
   }
-  if(id==='baum'){ bbox(0.16,0.35,0.16,std(0x5a3a22),0,0.17,0,g);
+  if(id==='baum'){ bbox(0.16,0.35,0.16,MAT.std(0x5a3a22),0,0.17,0,g);
     for(let i=0;i<4;i++){ const c=new THREE.Mesh(new THREE.ConeGeometry(0.72-i*0.15,0.6,12),std(0x1f5c33,{roughness:0.9})); c.position.y=0.55+i*0.42; if(HIQ) c.castShadow=true; g.add(c); }
     for(let i=0;i<18;i++){ const a=Math.random()*Math.PI*2, r=rand(0.12,0.6), y=rand(0.5,1.9);
       const b=new THREE.Mesh(new THREE.SphereGeometry(0.055,8,6),new THREE.MeshStandardMaterial({color:LIN(pick([0xe63b2e,0xffd23f,0x7fd1ff])),metalness:0.6,roughness:0.25,emissive:LIN(0x331100),emissiveIntensity:0.3}));
@@ -24320,9 +24554,9 @@ function makeDekoMesh(id,g){
   }
   if(id==='neon'){ const t=tex(512,160,(gg,W,H)=>{ gg.fillStyle='#0b0f22'; gg.fillRect(0,0,W,H); gg.font=BUN(62); gg.textAlign='center'; gg.textBaseline='middle'; gg.fillStyle='#ff4fa3'; gg.fillText('FROHES NEUES',W/2+4,H/2+4); gg.fillStyle='#5ce1ff'; gg.fillText('FROHES NEUES',W/2,H/2); });
     plane(1.9,0.6,new THREE.MeshBasicMaterial({map:t,toneMapped:false,transparent:true}),0,2.3,0,0,g); return {fw:0,fd:0}; }
-  if(id==='automat'){ bbox(0.9,1.9,0.7,std(0x1f3f8a,{roughness:0.5}),0,0.95,0,g);
+  if(id==='automat'){ bbox(0.9,1.9,0.7,MAT.std(0x1f3f8a,{roughness:0.5}),0,0.95,0,g);
     plane(0.62,1.2,new THREE.MeshStandardMaterial({map:tex(180,340,(gg,W,H)=>{ gg.fillStyle='#0d1a2b'; gg.fillRect(0,0,W,H); for(let r=0;r<5;r++) for(let c=0;c<4;c++){ gg.fillStyle=pick(['#e63b2e','#2f9e57','#ffd23f','#5ce1ff','#f2f5ff']); gg.fillRect(8+c*43,10+r*66,34,54); } })}),0,1.1,0.36,0,g);
-    bbox(0.28,0.5,0.06,std(0x16181f),0.28,0.6,0.37,g); return {fw:1.0,fd:0.8}; }
+    bbox(0.28,0.5,0.06,MAT.std(0x16181f),0.28,0.6,0.37,g); return {fw:1.0,fd:0.8}; }
   if(id.indexOf('bild_')===0){
     const M={
       bild_raketen:{w:1.2,h:0.9,frame:0x6b4a2c,draw:(c,W,H)=>{
@@ -24364,7 +24598,7 @@ function makeDekoMesh(id,g){
     const t=tex(Math.round(M.w*300),Math.round(M.h*300),M.draw);
     const fr=std(M.frame,{metalness:0.35,roughness:0.5});
     bbox(M.w+0.1,M.h+0.1,0.05,fr,0,1.75,0,g,false);
-    bbox(M.w+0.02,M.h+0.02,0.02,std(0x1a1a1a),0,1.75,0.026,g,false);
+    bbox(M.w+0.02,M.h+0.02,0.02,MAT.std(0x1a1a1a),0,1.75,0.026,g,false);
     plane(M.w,M.h,new THREE.MeshStandardMaterial({map:t,roughness:0.55}),0,1.75,0.037,0,g);
     bbox(M.w*0.55,0.05,0.14,fr,0,1.75+M.h/2+0.14,0.06,g,false);
     const lm=new THREE.MeshStandardMaterial({color:LIN(0xf5f2e8),emissive:LIN(0xfff0cc),emissiveIntensity:0.5});
@@ -24445,8 +24679,8 @@ const fransenTex=tex(128,32,(g,W,H)=>{ g.clearRect(0,0,W,H);
     g.beginPath(); g.moveTo(x+1,0); g.lineTo(x+1+(Math.random()-0.5)*3,l); g.stroke(); } },false);
 function makeWischer(){
   const g=new THREE.Group();
-  const alu=std(0xc9ced6,{metalness:0.85,roughness:0.28}), alu2=std(0xaeb4bd,{metalness:0.85,roughness:0.34});
-  const blau=std(0x1f5fa8,{roughness:0.55}), grau=std(0x3a3f48,{roughness:0.6}), gelb=std(0xf2c230,{roughness:0.5});
+  const alu=MAT.std(0xc9ced6,{metalness:0.85,roughness:0.28}), alu2=MAT.std(0xaeb4bd,{metalness:0.85,roughness:0.34});
+  const blau=MAT.std(0x1f5fa8,{roughness:0.55}), grau=MAT.std(0x3a3f48,{roughness:0.6}), gelb=MAT.std(0xf2c230,{roughness:0.5});
   /* Kopf: Kunststoffplatte, darunter der Lappen, an den Enden Fransen */
   const kopf=new THREE.Group(); g.add(kopf);
   const tuch=new THREE.MeshStandardMaterial({map:mikrofaserTex,roughness:0.95});
@@ -24826,8 +25060,8 @@ function makeTruck(name,col){
   if(HIQ){ body.castShadow=true; body.receiveShadow=true; } g.add(body);
   /* Kastenhülle aussen, innen dunkel */
   const bm=new THREE.MeshStandardMaterial({map:liveryTex(name,col,false),roughness:0.62,metalness:0.1});
-  const side=std(0x2a2e36,{roughness:0.7});
-  const kof=new THREE.Mesh(new THREE.BoxGeometry(L,HH,W+0.1),[side,side,std(0xdfe3ea),side,bm,bm]);
+  const side=MAT.std(0x2a2e36,{roughness:0.7});
+  const kof=new THREE.Mesh(new THREE.BoxGeometry(L,HH,W+0.1),[side,side,MAT.std(0xdfe3ea),side,bm,bm]);
   kof.position.set(cx,HH/2,0); if(HIQ) kof.castShadow=true; g.add(kof);
   /* Scheiben */
   const gl=new THREE.MeshStandardMaterial({color:LIN(0x1d2632),transparent:true,opacity:0.62,roughness:0.08,metalness:0.4});
@@ -24873,7 +25107,7 @@ function makeLaderaum(name,col,rahmen){
       c.ellipse(Math.random()*Wc,Hc*0.62+Math.random()*Hc*0.38,rand(8,30),rand(4,11),0,0,Math.PI*2); c.fill(); } });
   wallTexI.wrapS=wallTexI.wrapT=THREE.RepeatWrapping; wallTexI.repeat.set(3.2,1);
   const wm=new THREE.MeshStandardMaterial({map:wallTexI,roughness:0.82,side:THREE.DoubleSide});
-  const alu=std(0xb6bcc4,{metalness:0.55,roughness:0.42});
+  const alu=MAT.std(0xb6bcc4,{metalness:0.55,roughness:0.42});
   for(const s of [-1,1]){
     const wl=new THREE.Mesh(new THREE.PlaneGeometry(L,HH),wm);
     wl.rotation.y=s>0?Math.PI:0; wl.position.set(-L/2,HH/2,s*W/2); g.add(wl);
@@ -24881,15 +25115,15 @@ function makeLaderaum(name,col,rahmen){
     for(const yy of [0.52,1.46]){
       bbox(L-0.12,0.05,0.026,alu,-L/2,yy,s*(W/2-0.02),g,false);
       for(let k=0;k<Math.floor((L-0.8)/1.1);k++)
-        bbox(0.09,0.028,0.014,std(0x7d838c,{metalness:0.7,roughness:0.35}),-0.55-k*1.1,yy,s*(W/2-0.036),g,false);
+        bbox(0.09,0.028,0.014,MAT.std(0x7d838c,{metalness:0.7,roughness:0.35}),-0.55-k*1.1,yy,s*(W/2-0.036),g,false);
     }
     /* Scheuerleiste unten */
-    bbox(L-0.1,0.18,0.04,std(0x8a7f6a,{roughness:0.9}),-L/2,0.1,s*(W/2-0.03),g,false);
+    bbox(L-0.1,0.18,0.04,MAT.std(0x8a7f6a,{roughness:0.9}),-L/2,0.1,s*(W/2-0.03),g,false);
     /* Dachkante */
     bbox(L-0.1,0.07,0.05,alu,-L/2,HH-0.05,s*(W/2-0.03),g,false);
   }
   /* Decke mit lichtdurchlaessigem Dachband */
-  const ceil=new THREE.Mesh(new THREE.PlaneGeometry(L,W),std(0xf0ece2,{roughness:0.9,side:THREE.DoubleSide}));
+  const ceil=new THREE.Mesh(new THREE.PlaneGeometry(L,W),MAT.std(0xf0ece2,{roughness:0.9,side:THREE.DoubleSide}));
   ceil.rotation.x=Math.PI/2; ceil.position.set(-L/2,HH,0); g.add(ceil);
   const dach=new THREE.Mesh(new THREE.PlaneGeometry(L-0.4,W*0.5),
     new THREE.MeshBasicMaterial({color:0xfbf7ec,toneMapped:false}));
@@ -24909,10 +25143,10 @@ function makeLaderaum(name,col,rahmen){
   for(const s of [-1,1]) bbox(0.05,HH,0.07,alu,-L+0.05,HH/2,s*(W/2-0.07),g,false);
   /* Heck: Kantenschutz innen, Rahmen aussen gegen die Torlaibung */
   for(const s of [-1,1]) bbox(0.09,HH,0.09,alu,-0.05,HH/2,s*(W/2-0.05),g,false);
-  const rah=std(0x2f343c,{roughness:0.8});
+  const rah=MAT.std(0x2f343c,{roughness:0.8});
   for(const s of [-1,1]) bbox(0.14,HH+0.34,0.28,rah,-0.07,HH/2,s*(W/2+0.13),g,false);
   bbox(0.14,0.28,W+0.54,rah,-0.07,HH+0.14,0,g,false);
-  bbox(0.14,0.09,W,std(0x6a7078,{metalness:0.5}),-0.04,0.05,0,g,false);
+  bbox(0.14,0.09,W,MAT.std(0x6a7078,{metalness:0.5}),-0.04,0.05,0,g,false);
   bbox(0.1,0.1,W,alu,-0.05,HH-0.05,0,g,false);
   return g;
 }
@@ -24966,9 +25200,9 @@ function makeBruecke(rahmen){
   const pl=new THREE.MeshStandardMaterial({map:plate,metalness:0.6,roughness:0.45});
   bbox(1.5,0.05,3.1,pl,0.8,0,0,g,false);
   const lip=bbox(0.34,0.04,3.1,pl,-0.02,0,0,g,false); lip.rotation.z=0.05;
-  for(const dz of [-1.5,1.5]) bbox(1.5,0.02,0.1,std(0xf2c230),0.8,0.035,dz,g,false);
+  for(const dz of [-1.5,1.5]) bbox(1.5,0.02,0.1,MAT.std(0xf2c230),0.8,0.035,dz,g,false);
   /* Scharniere zum Laderaum hin */
-  const hg=std(0x6f757e,{metalness:0.7,roughness:0.4});
+  const hg=MAT.std(0x6f757e,{metalness:0.7,roughness:0.4});
   for(const dz of [-1.1,0,1.1]) bbox(0.12,0.08,0.34,hg,0.08,0.015,dz,g,false);
   (rahmen||scene).add(g);
   return g;
@@ -25302,8 +25536,8 @@ function karreFolgen(){ if(!karreG) return; karreG.position.set(pl.x,0,pl.z); ka
 let karreG=null, karreArtGebaut=null, karreKisten=[];
 function karreModell(art){
   const g=new THREE.Group();
-  const rot=std(0xd23a2a,{metalness:0.35,roughness:0.45}), stahl=std(0x9ba2ad,{metalness:0.75,roughness:0.3});
-  const gummi=std(0x18191d,{roughness:0.95}), felge=std(0xc9ced6,{metalness:0.7,roughness:0.3}), griff=std(0x22252c,{roughness:0.7});
+  const rot=MAT.std(0xd23a2a,{metalness:0.35,roughness:0.45}), stahl=MAT.std(0x9ba2ad,{metalness:0.75,roughness:0.3});
+  const gummi=MAT.std(0x18191d,{roughness:0.95}), felge=MAT.std(0xc9ced6,{metalness:0.7,roughness:0.3}), griff=MAT.std(0x22252c,{roughness:0.7});
   const rad=(x,y,z,r,b)=>{ const t=new THREE.Mesh(new THREE.CylinderGeometry(r,r,b,20),gummi); t.rotation.z=Math.PI/2; t.position.set(x,y,z); g.add(t);
     const f=new THREE.Mesh(new THREE.CylinderGeometry(r*0.55,r*0.55,b+0.01,14),felge); f.rotation.z=Math.PI/2; f.position.set(x,y,z); g.add(f); };
   const rohr=(x0,y0,z0,x1,y1,z1,r,m)=>{ const a=new THREE.Vector3(x0,y0,z0), c=new THREE.Vector3(x1,y1,z1), L=a.distanceTo(c);
@@ -25320,8 +25554,8 @@ function karreModell(art){
   } else {
     /* Plattformwagen: Ladeflaeche, Schiebebuegel, vier Lenkrollen */
     /* 0,92 x 1,24 m: zwei Kartons nebeneinander, zwei hintereinander */
-    rbox(0.92,0.05,1.24,0.012,std(0x3a6ea5,{roughness:0.6}),0,0.17,-0.66,g);
-    rbox(0.94,0.012,1.26,0.01,std(0x2b2f36,{roughness:0.95}),0,0.2,-0.66,g);
+    rbox(0.92,0.05,1.24,0.012,MAT.std(0x3a6ea5,{roughness:0.6}),0,0.17,-0.66,g);
+    rbox(0.94,0.012,1.26,0.01,MAT.std(0x2b2f36,{roughness:0.95}),0,0.2,-0.66,g);
     for(const sx of [-0.42,0.42]) rohr(sx,0.17,-0.04, sx,1.0,0.02,0.016,stahl);
     rohr(-0.44,1.0,0.02,0.44,1.0,0.02,0.02,griff);
     for(const [x,z] of [[-0.38,-0.12],[0.38,-0.12],[-0.38,-1.2],[0.38,-1.2]]){
@@ -26991,7 +27225,7 @@ function einrKiste(){
   _kInnen=_kInnen||std(0x8a6a40,{roughness:0.95,side:THREE.BackSide});
   _kUnsichtbar=_kUnsichtbar||new THREE.MeshBasicMaterial({visible:false});
   const g=new THREE.Group(), u={};
-  u.pappe=std(0xc49a60,{roughness:0.92});
+  u.pappe=MAT.std(0xc49a60,{roughness:0.92});
   /* Koerper ohne Deckel, innen dunkle Pappe */
   u.koerper=new THREE.Mesh(kartonGeo,[u.pappe,u.pappe,_kUnsichtbar,u.pappe,u.pappe,u.pappe]);
   g.add(u.koerper);
@@ -27514,8 +27748,8 @@ function vsAnteil(b){ const n=vsStueck(b); return n?b.pos.reduce((a,l)=>a+Math.m
    --------------------------------------------------------- */
 function vsFeld(i){ return {x:(Math.floor(i/3)-0.5)*0.33,z:(i%3-1)*0.3}; }
 function vsWagenBauen(parent,pi){
-  const g=new THREE.Group(), rahmen=std(0x3a4049,{metalness:0.5,roughness:0.45}), blech=std(0x9aa2ad,{metalness:0.65,roughness:0.35});
-  const gummi=std(0x1b1d22,{roughness:0.8}), griff=std(0x23262c,{roughness:0.6});
+  const g=new THREE.Group(), rahmen=MAT.std(0x3a4049,{metalness:0.5,roughness:0.45}), blech=MAT.std(0x9aa2ad,{metalness:0.65,roughness:0.35});
+  const gummi=MAT.std(0x1b1d22,{roughness:0.8}), griff=MAT.std(0x23262c,{roughness:0.6});
   /* Ladeflaeche mit aufgemalten Faechern 1 bis 6 */
   bbox(0.7,0.025,0.94,blech,0,WG_Y-0.0125,0,g);
   const ft=tex(340,460,(c,W,H)=>{ c.clearRect(0,0,W,H);
@@ -27531,14 +27765,14 @@ function vsWagenBauen(parent,pi){
   for(const sz of [-0.46,0.46]) bbox(0.7,0.02,0.02,rahmen,0,WG_Y+0.08,sz,g,false);
   for(const sx of [-0.33,0.33]) for(const sz of [-0.45,0.45]) bbox(0.03,WG_Y-0.05,0.03,rahmen,sx,(WG_Y+0.05)/2+0.07,sz,g);
   bbox(0.66,0.02,0.9,blech,0,0.22,0,g,false);
-  const falt=std(0xc39c68,{roughness:0.92});
+  const falt=MAT.std(0xc39c68,{roughness:0.92});
   bbox(0.5,0.022,0.62,falt,0.02,0.242,0.05,g,false); bbox(0.46,0.022,0.58,falt,-0.03,0.264,0.02,g,false);
   /* Schiebebuegel am hinteren Ende */
   for(const sx of [-0.3,0.3]) bbox(0.028,0.34,0.028,rahmen,sx,WG_Y+0.16,-0.47,g,false);
   const bar=new THREE.Mesh(new THREE.CylinderGeometry(0.02,0.02,0.62,10),griff); bar.rotation.z=Math.PI/2; bar.position.set(0,WG_Y+0.32,-0.49); g.add(bar);
   /* Handscanner in einer Halterung hinter dem Buegel - ausserhalb der
      Ladeflaeche, sonst steckte er im riesigen Karton */
-  bbox(0.07,0.13,0.035,std(0x2b2f36,{roughness:0.5}),0.19,WG_Y+0.24,-0.535,g,false);
+  bbox(0.07,0.13,0.035,MAT.std(0x2b2f36,{roughness:0.5}),0.19,WG_Y+0.24,-0.535,g,false);
   const sc=plane(0.05,0.07,new THREE.MeshBasicMaterial({toneMapped:false,map:tex(64,90,(c,W,H)=>{ c.fillStyle='#0f2a1c'; c.fillRect(0,0,W,H); c.fillStyle='#6cf2a8'; c.font=BUN(22); c.textAlign='center'; c.fillText('PICK',W/2,36); c.fillRect(10,52,44,6); c.fillRect(10,64,30,6); })}),0.19,WG_Y+0.25,-0.554,Math.PI,g);
   /* Lenkrollen */
   for(const sx of [-0.28,0.28]) for(const sz of [-0.38,0.38]){
@@ -28907,13 +29141,13 @@ function vsKapazitaet(gr){ const G=VS_GR[gr||1]; return Math.max(1,palPlaetze())
 let _holzGeo=null;
 function vsHolzGeo(){
   if(_holzGeo) return _holzGeo;
-  const HOLZ=0xc49a62, HOLZ2=0xa9814e, HELL=0xcfa66d, vc=[];
-  const B=(w,h,d,c,x,y,z)=>vc.push({geo:GFX==='ultralow'?new THREE.BoxGeometry(w,h,d):roundedBoxGeo(w,h,d,Math.min(0.01,Math.min(w,h,d)*0.2),2),m:tm(x,y,z),color:c});
+  const HOLZ=0xc49a62, HOLZ2=0xa9814e, HELL=0xcfa66d, S=bk.sammler({form:{fase:0.01,seg:2,lod0Kasten:true}});
+  const B=(w,h,d,c,x,y,z)=>S.box(w,h,d,x,y,z,c);
   for(const dx of [-0.55,0,0.55]) for(const dz of [-0.34,0,0.34]) B(0.12,0.078,0.12,HOLZ2,dx,0.061,dz);
   for(const dz of [-0.34,0,0.34]) B(1.2,0.022,0.12,HOLZ,0,0.011,dz);
   for(const dx of [-0.55,0,0.55]) B(0.14,0.022,0.8,HOLZ,dx,0.111,0);
   for(const dz of [-0.34,-0.17,0,0.17,0.34]){ const k=dz===0||Math.abs(dz)>0.3; B(1.2,0.022,k?0.14:0.1,k?HOLZ:HELL,0,PAL_H-0.011,dz); }
-  _holzGeo=merge(vc);
+  _holzGeo=S.geometrie();
   return _holzGeo;
 }
 /* Pakete einer Palette zu einem Mesh: Seiten ein Material, Deckel je
@@ -29028,8 +29262,8 @@ function hubDa(){ return zoneOffen('packstation'); }
 function hubAn(){ return false; }
 function hubKollision(){}
 function hubModell(){
-  const g=new THREE.Group(), rot=std(0xd23a2a,{metalness:0.3,roughness:0.5}), stahl=std(0x9ba2ad,{metalness:0.75,roughness:0.32});
-  const gummi=std(0x18191d,{roughness:0.95}), griff=std(0x22252c,{roughness:0.7});
+  const g=new THREE.Group(), rot=MAT.std(0xd23a2a,{metalness:0.3,roughness:0.5}), stahl=MAT.std(0x9ba2ad,{metalness:0.75,roughness:0.32});
+  const gummi=MAT.std(0x18191d,{roughness:0.95}), griff=MAT.std(0x22252c,{roughness:0.7});
   /* Gabeln zeigen nach vorn (-z), unter die Palette */
   for(const sx of [-0.27,0.27]){ rbox(0.16,0.055,1.1,0.012,stahl,sx,0.05,-0.78,g); rbox(0.16,0.05,0.2,0.01,stahl,sx,0.045,-1.42,g);
     const r=new THREE.Mesh(new THREE.CylinderGeometry(0.04,0.04,0.07,12),gummi); r.rotation.z=Math.PI/2; r.position.set(sx,0.04,-1.3); g.add(r);
@@ -29134,10 +29368,10 @@ function ddlSchildTex(){
 function buildVersandhof(){
   if(VD.g) return;
   const g=new THREE.Group(); scene.add(g); VD.g=g;
-  const steel=std(0x8d939d,{metalness:0.6,roughness:0.42}), dark=std(0x2a2e38,{metalness:0.5,roughness:0.45}), gelb=std(0xf2c230,{roughness:0.7});
+  const steel=MAT.std(0x8d939d,{metalness:0.6,roughness:0.42}), dark=MAT.std(0x2a2e38,{metalness:0.5,roughness:0.45}), gelb=MAT.std(0xf2c230,{roughness:0.7});
   /* Vertexfarben: Zarge, Schienen, Kasten, Antrieb, Lampe, Telefon - ein Zeichenaufruf */
-  const VC=[], B=(w,h,d,c,x,y,z,rx,ry,rz)=>VC.push({geo:GFX==='ultralow'?new THREE.BoxGeometry(w,h,d):roundedBoxGeo(w,h,d,Math.min(0.012,Math.min(w,h,d)*0.2),2),m:tm(x,y,z,rx,ry,rz),color:c});
-  const Cy=(r,h,c,x,y,z,rx,ry,rz,seg)=>VC.push({geo:new THREE.CylinderGeometry(r,r,h,seg||10),m:tm(x,y,z,rx,ry,rz),color:c});
+  const VC=bk.sammler({form:{fase:0.012,seg:2,lod0Kasten:true},bauteil:'versandtor'}), B=(w,h,d,c,x,y,z,rx,ry,rz)=>VC.box(w,h,d,x,y,z,c,null,rx,ry,rz);
+  const Cy=(r,h,c,x,y,z,rx,ry,rz,seg)=>VC.zyl(r,r,h,seg||10,x,y,z,c,null,rx,ry,rz);
   const ANTH=0x2b2f36, STAHL=0x8d939d, GRAU=0x5d636c;
   /* Torblatt: sechs Panele (je vier Lamellen), laeuft nach oben in den Wickelkasten */
   const N=6, ph=V1.h/N, PM=vdPanelMat();
@@ -29197,23 +29431,22 @@ function buildVersandhof(){
     VD.telSchild=plane(0.62,0.31,new THREE.MeshBasicMaterial({map:VD.telTex,toneMapped:false}),PX,PY+0.46,PZ+0.02,0,g);
     VD.telHit=bbox(0.75,1.1,0.4,hitM,PX,PY+0.15,PZ+0.25,g,false); VD.telHit.userData={kind:'ddltel',ref:null};
     VD.telPos={x:PX,z:PZ}; }
-  { const m=new THREE.Mesh(merge(VC),vcMat); if(HIQ){ m.castShadow=true; m.receiveShadow=true; } g.add(m); }
+  VC.fertig(g);
   ddlTelZeichnen();
   /* Versandhof: Betonplatte, Fahrspur, Zaun, Poller */
   const hof=V1_HOF, W=hof.x1-hof.x0, D=hof.z1-hof.z0;
-  const bt=concreteTex(); bt.repeat.set(W/2.2,D/2.2);
-  const fl=new THREE.Mesh(new THREE.PlaneGeometry(W,D),new THREE.MeshStandardMaterial({map:bt,roughness:0.92,color:LIN(0xa8acb2)}));
+  const fl=new THREE.Mesh(MAT.kachel(new THREE.PlaneGeometry(W,D),W/2.2,D/2.2),new THREE.MeshStandardMaterial({map:MAT.tex('beton'),roughness:0.92,color:LIN(0xa8acb2)}));
   fl.rotation.x=-Math.PI/2; fl.position.set((hof.x0+hof.x1)/2,0.036,(hof.z0+hof.z1)/2); if(HIQ) fl.receiveShadow=true; g.add(fl);
-  const mark=(w,d,x,z)=>{ const m=new THREE.Mesh(new THREE.PlaneGeometry(w,d),new THREE.MeshBasicMaterial({color:0xf2c230})); m.rotation.x=-Math.PI/2; m.position.set(x,0.04,z); g.add(m); };
+  const mark=(w,d,x,z)=>{ const m=new THREE.Mesh(new THREE.PlaneGeometry(w,d),MAT.basic(0xf2c230)); m.rotation.x=-Math.PI/2; m.position.set(x,0.04,z); g.add(m); };
   for(let z2=hof.z1-0.8;z2>hof.z0+1;z2-=1.1){ mark(0.12,0.6,V1.x-1.75,z2); mark(0.12,0.6,V1.x+1.75,z2); }
   const zm=new THREE.Mesh(new THREE.PlaneGeometry(4.6,1.3),new THREE.MeshBasicMaterial({transparent:true,depthWrite:false,map:tex(920,260,(c2,Wc,Hc)=>{ c2.clearRect(0,0,Wc,Hc);
     c2.fillStyle='rgba(18,20,26,.62)'; c2.fillRect(0,0,Wc,Hc); c2.strokeStyle='#ffd23f'; c2.lineWidth=10; c2.strokeRect(5,5,Wc-10,Hc-10);
     c2.textAlign='center'; c2.textBaseline='middle'; c2.font=BUN(104); c2.fillStyle='#ffd23f'; c2.fillText('VERSANDHOF',Wc/2,Hc/2+3); })}));
   zm.rotation.x=-Math.PI/2; zm.rotation.z=0; zm.position.set(V1.x,0.045,hof.z1-2.4); zm.renderOrder=2; g.add(zm);
-  const zaunM=std(0x4a5260,{metalness:0.6,roughness:0.5});
+  const zaunM=MAT.std(0x4a5260,{metalness:0.6,roughness:0.5});
   const zaun=(x0,z0,x1,z1)=>{ const quer=Math.abs(x1-x0)>Math.abs(z1-z0), L=quer?Math.abs(x1-x0):Math.abs(z1-z0), n=Math.max(1,Math.round(L/2));
     for(let j=0;j<=n;j++){ const x=x0+(x1-x0)*j/n, z=z0+(z1-z0)*j/n; bbox(0.08,2.0,0.08,zaunM,x,1.0,z,g,false); }
-    const m=new THREE.Mesh(new THREE.BoxGeometry(quer?L:0.03,1.7,quer?0.03:L),std(0x707886,{metalness:0.5,roughness:0.5,transparent:true,opacity:0.55}));
+    const m=new THREE.Mesh(new THREE.BoxGeometry(quer?L:0.03,1.7,quer?0.03:L),MAT.std(0x707886,{metalness:0.5,roughness:0.5,transparent:true,opacity:0.55}));
     m.position.set((x0+x1)/2,1.0,(z0+z1)/2); g.add(m);
     for(const yy of [0.15,1.95]) bbox(quer?L:0.05,0.05,quer?0.05:L,zaunM,(x0+x1)/2,yy,(z0+z1)/2,g,false); };
   zaun(hof.x0,hof.z1,hof.x0,hof.z0); zaun(hof.x1,hof.z1,hof.x1,hof.z0); zaun(hof.x0,hof.z0,hof.x1,hof.z0);
@@ -48067,10 +48300,10 @@ let pdaOn=false, pdaG=null, pdaTex=null, pdaOpen=false, pdaItem=null, pdaLast=''
 function buildPDA(){
   if(pdaG) return;
   const g=new THREE.Group();
-  const body=std(0x30343d,{roughness:0.55,metalness:0.15});
-  const rubber=std(0xf2c230,{roughness:0.9});
-  const dark=std(0x14161c,{roughness:0.6});
-  const steel=std(0x9ba2ad,{metalness:0.7,roughness:0.35});
+  const body=MAT.std(0x30343d,{roughness:0.55,metalness:0.15});
+  const rubber=MAT.std(0xf2c230,{roughness:0.9});
+  const dark=MAT.std(0x14161c,{roughness:0.6});
+  const steel=MAT.std(0x9ba2ad,{metalness:0.7,roughness:0.35});
   // Gehäuse mit Gummikanten
   rbox(0.086,0.185,0.028,0.006,body,0,0,0,g);
   rbox(0.096,0.03,0.036,0.008,rubber,0,0.082,0,g);
@@ -48081,16 +48314,16 @@ function buildPDA(){
   plane(0.068,0.076,new THREE.MeshBasicMaterial({map:pdaTex,toneMapped:false}),0,0.045,0.0185,0,g);
   // Tastenfeld
   for(let r=0;r<4;r++) for(let c=0;c<3;c++)
-    rbox(0.019,0.013,0.005,0.002,std(r===0?0x3f4650:0x262a32,{roughness:0.7}),-0.023+c*0.023,-0.012-r*0.017,0.016,g);
-  rbox(0.05,0.014,0.006,0.003,std(0xf2a01c,{roughness:0.6}),0,0.0,0.016,g);
+    rbox(0.019,0.013,0.005,0.002,MAT.std(r===0?0x3f4650:0x262a32,{roughness:0.7}),-0.023+c*0.023,-0.012-r*0.017,0.016,g);
+  rbox(0.05,0.014,0.006,0.003,MAT.std(0xf2a01c,{roughness:0.6}),0,0.0,0.016,g);
   // Scanfenster oben mit rotem Strich
   rbox(0.05,0.012,0.01,0.003,dark,0,0.095,0.008,g);
   box(0.042,0.004,0.004,new THREE.MeshBasicMaterial({color:0xff3b2e,toneMapped:false}),0,0.095,0.014,g,false);
   // Pistolengriff
   const grip=rbox(0.05,0.075,0.042,0.01,body,0,-0.1,-0.03,g); grip.rotation.x=0.32;
-  rbox(0.03,0.02,0.012,0.004,std(0x1c1f26),0,-0.072,-0.018,g);
+  rbox(0.03,0.02,0.012,0.004,MAT.std(0x1c1f26),0,-0.072,-0.018,g);
   // Handschlaufe und Antenne
-  const strap=new THREE.Mesh(new THREE.TorusGeometry(0.035,0.006,6,14,Math.PI),std(0x1c1f26,{roughness:0.95}));
+  const strap=new THREE.Mesh(new THREE.TorusGeometry(0.035,0.006,6,14,Math.PI),MAT.std(0x1c1f26,{roughness:0.95}));
   strap.rotation.set(Math.PI/2,0,0); strap.position.set(0,-0.03,-0.03); g.add(strap);
   rbox(0.01,0.022,0.01,0.004,steel,0.03,0.104,0,g);
   // Statuslampe
@@ -51644,7 +51877,7 @@ function* gpStatisch(){
       const nachMat=new Map();
       for(const o of par.children){ const mt=o.material, gg=o.geometry;
         if(!o.isMesh||o.isInstancedMesh||!mt||Array.isArray(mt)||mt.transparent||mt.vertexColors||mt===hitM||!o.visible||o.children.length||o.renderOrder) continue;
-        if(Object.keys(o.userData||{}).length||occluders.indexOf(o)>=0||!gg||!gg.attributes||!gg.attributes.position||!gg.attributes.normal||gg.attributes.position.count>6000) continue;
+        if(udEigen(o.userData||{})||occluders.indexOf(o)>=0||!gg||!gg.attributes||!gg.attributes.position||!gg.attributes.normal||gg.attributes.position.count>6000) continue;
         const l=nachMat.get(mt)||[]; l.push(o); nachMat.set(mt,l); }
       for(const [mt,l] of nachMat){ if(l.length<2) continue; l.forEach(o=>o.updateMatrix());
         const m=new THREE.Mesh(merge(l.map(o=>({geo:o.geometry,m:o.matrix}))),mt); m.castShadow=l.some(o=>o.castShadow); m.receiveShadow=l.some(o=>o.receiveShadow);
@@ -52920,7 +53153,7 @@ fontsReady().then(()=>{
   /* Shader fuers Feuerwerk vorab uebersetzen, solange das Startmenue
      steht - dann steht beim Losspielen und beim ersten Schuss nichts */
   setTimeout(()=>{ if(typeof shaderVorab==='function') shaderVorab(); },400);
-  window.__bb={get S(){return S},get phase(){return phase},set phase(v){phase=v},set clock(v){clock=v},get clock(){return clock},pickUp,floorBoxes,shelves,racks,dekos,stockOne,openShop,step,customers,queue,belt,scanBelt,buyUp,buyDeko,get DS(){return DS},endDay,pending,save,openLaptop,closeLaptop,pl,addXP,hireStaff,fireStaff,staff,dirts,addDirt,movables,toggleBuild,setWall,setFloor,
+  window.__bb={MAT,bk,get S(){return S},get phase(){return phase},set phase(v){phase=v},set clock(v){clock=v},get clock(){return clock},pickUp,floorBoxes,shelves,racks,dekos,stockOne,openShop,step,customers,queue,belt,scanBelt,buyUp,buyDeko,get DS(){return DS},endDay,pending,save,openLaptop,closeLaptop,pl,addXP,hireStaff,fireStaff,staff,dirts,addDirt,movables,toggleBuild,setWall,setFloor,
     stations,firePult,placeOnStation,igniteType,get order(){return order},get phone(){return phone},makeCall,answerPhone,haggle,acceptDeal,declineDeal,get truck(){return truck},spawnTruck,takeFromTruck,takeBox,dropBox,updateTruck,get door(){return door},get tuer(){return tuer},tuerSet,tuerNah,updateSchiebetuer,doorOpen,doorIsOpen,trailerOccupied,LR,lrFront,TOR,orderReady,orderLeft,shipOne,removeFloorBox,prioOf,setPrio,racks,updateCarry,spawnFloorBox,staff,SHELFKIND,layout,shelfCapOf,shelfAccepts,emptyLevel,dateInfo,dateStr,dateShort,seasonInfo,isSunday,dayMult,ruhetag,wageOf,setWage,friendliness,inPause,setPause,windowGrime,addGrime,cleanWindowTick,ambienteScore,bildBoost,fixedCosts,dailyWages,dispoLimit,verfuegbar,dispoZins,takeLoan,loanTier,loanDaily,EVENTS,GOALS,CUSTTYPES,UPGRADES,STAFF,stockOf,spawnInterval,pools,todayEvent,evv,rollEvent,rollMarket,newGoal,goalAdd,goalTick,ekFactor,marktText,xpFor,rollCustType,priceTol,buyChance,regCustomer,makeWishes,nachfrageFaktor,shelfStockOf,buildGravur,refillGrav,openGravInput,closeGravInput,get gravBlanks(){return gravBlanks},set gravBlanks(v){gravBlanks=v},orderBox,buyPack,cartAdd,cartAddPack,cartOrder,cartClear,cartDel,cartGoods,cartFee,cartTotal,cartBoxes,cartLines,LIEFERZEIT_SEK,VERSAND,VERSANDFREI,lieferSek,
     regaleImBlick,vsPK,VS_OPT,vsRouteLaenge,vsStopsBauen,vsBedarf,vsPQ:vsPunkteVon,scene,camera,P,NEUWARE,NEU_SHOWS,NEU_FONT,NEU_KUGEL,neuZuenden,PARK,restWelle,restTick,restDruck,restDaten,buyAngebot,grossOffen,updatePark,parkWasser:()=>_wasserM,parkTannen:()=>PARK_TANNEN,parkLeben:()=>parkEnten.concat(parkLeute).map(e=>({x:e.g.position.x,z:e.g.position.z})),pendingListe:()=>pending,einbauPakete,spawnPaket,paketAblegen,paketAufheben,EINBAU,PAKET_MASS,vorDieTuer,sbZiel,makeAuto,AUTOFORM,ladenInnen,stadtInfo:()=>({warn:beacons.length,kronen:KRONEN.length,stufen:SKYLINE_INFO.stufen,skyStile:SKYLINE_INFO.stile.size,stile:Object.keys(STADT_MATS).length}),clearStations,fachHoehe,kindOf,packKartonWert,SUPPLIERS,supplierFor,supplierOf,tierPrice,isUnlocked,lizLevel,renderLaptop,get lsup(){return lsup},set lsup(v){lsup=v},get lkat(){return lkat},set lkat(v){lkat=v},SPARTE,SPARTE_NAME,sparteVon,HEADNAME,headArt,catPill,ekRoh,ekDelta,ekTag,ekNiveau,ekPill,get ltab(){return ltab},set ltab(v){ltab=v},EFF,EFF_ALL,EFF_KLEIN,EFF_GROSS,EFF_PRO,SHOWS,kugelbombe,shot,mine,FW,stations,stationOf,placedCount,togglePDA,openPDA,closePDA,setPost,get postOn(){return postOn},get pdaOn(){return pdaOn},showLength,psHuge,psBig,psMid,psSmall,rockets,emitters,timersLen:()=>timers.length,timersLeeren:()=>{timers.length=0;},setView:(x,z,y,p)=>{pl.x=x;pl.z=z;yaw=y;pitch=p;aim=null;},schiebe:(x,z)=>{pl.x=x;pl.z=z;collide(pl,0.32);return{x:pl.x,z:pl.z};},PLZ_MAX,camYaw:()=>yaw,camPitch:()=>pitch,playerPos:()=>({x:pl.x,z:pl.z}),pultYaw:()=>pultHit?pultHit.parent.rotation.y:null,get pultHit(){return pultHit},applyShopName,shopName,shopSlogan,signTexPx:()=>signTex&&signTex.image?texCanvas(signTex).getContext('2d').getImageData(0,0,signTex.image.width,40).data.join(''):null,lagerWall,fwShot:shot,KUGEL_R,ROHR_INNEN,MOERSER_R,moerserRohr,sfx,WOLKEN,get master(){return master},ac,SORTE_NEU,sortenUmstellen,get shakeWert(){return shake},get ckG(){return ckG},get ckNameTex(){return ckNameTex},get ckMovable(){return ckMov},CK_HOME,CK_ALT,spotPos,queueApproach,ckTexPx:()=>ckNameTex&&ckNameTex.image?texCanvas(ckNameTex).getContext('2d').getImageData(0,0,ckNameTex.image.width,60).data.join(''):null,testfeldMitte,STATION_POS,aimAt,UPGRADES,upPic,PLAN,planFlaechen,uhrZeiger:()=>({std:uhrStd?+uhrStd.rotation.z.toFixed(4):0,min:uhrMin?+uhrMin.rotation.z.toFixed(4):0}),drawRackSchild,get snowPts(){return snowPts},buildStadt,updateStadt,get stadtBoxen(){return stadtBoxen},get stadtBaeume(){return stadtBaeume},buildFernbaeume,schwaerme,beacons,silhouetten,get verkehrPts(){return verkehrPts},get rauchPts(){return rauchPts},get flieger(){return flieger},stadtFrei,STADT_FREI,WALLS,FLOORS,bodenMalen,wandMalen,oberflaechenMuster,oberflaechenAnwenden,BODEN_KACHEL,WAND_B,WAND_H,bodenPx,wandPx,innenUmgebung,sockelM,get wallTex(){return wallTex},get floorTexRef(){return floorTexRef},get floorMat(){return floorMat},get shopWall(){return shopWall},renderOnline,onlineHint,onlineStufe,onlineZahlen,onlineListe,updateOnline,SCHILDBG,SCHILDFG,setSchild,schildBg,schildFg,repaintSchilder,updateHead,allLevels,addToLevel,putInSlot,regCustomer,ZONEN,zoneOffen,oeffneZone,applyZonen,SLOTS,RACKS,slotsOffen,colliders,LAY,LOGI,WRAMPEN,WTORE,updateSnow,unterDach,dachBereiche,get lapHit2(){return lapHit2},buildLagerTerminal,toggleTest,testLevel,buyUp,get toastLast(){return toastLast},__floorBoxen:()=>floorBoxes.length,WBAY_UP,wbays,dockPlaetze,wbayFrei,wbayOffen,spawnWTruck,updateWBays,wbaysInit,wtorSet,GANG,GANGTUER,buildLagergang,flaeche,WTOR,RACKKIND,route,NAV,navFrei,navIdx,navBuild,shelfStand,shelves,sbLanes,buildSBKasse,sbFrei,sbOffen,sbNutzbar,EING2,eingaenge,naechsterEingang,setEingang2,TUEREN,tuerSetD,tuerNahD,packBereit,packOne,paketWert,bestellungenProTag,pakete,ddlAbholung,updateVersand,VS_GR,VS_FELD,WG_PARK,vsNeueBestellung,vsAbgleich,vsKlasse,vsQuellen,vsBestand,vsErfuellbar,vsPlan,vsStapelP,vsPalZiel,vsSpielerPacken,vsSpielerBestellung,vsTischFrei,vsStatus,vsAufraeumen,vsLaden,vsBahn,vsPaketOffen,vsKlappen,vsFuellung,vsPaketZu,get vsTisch(){return vsPlaetze[0]?vsPlaetze[0].tisch:null},get vsWagen(){return vsPlaetze[0]?vsPlaetze[0].wagen:null},vsPlaetze,vsPortal,vsStufeGeaendert,packStufe,packStufeAnwenden,packTeile,VS_PP,VS_PZ,VS_TOP,VS_TB,ppW,BAND,ZELLE,ZELLE_Z1,PALETTEN,PAL_H,VS_MUSTER,vsKapazitaet,vsGelandet,vsCfg,vsNachfrage,vsGebuehr,VS_PORTO,VS_CFG_STD,vsBuchen,vsHits,vsPlatzAus,VM,VM_IDS,vmStand,vmReicht,vmVerbrauchen,vmEinlagern,vmBestellen,vmAuffuellen,vmBestellbar,vmGesamt,vmKapGesamt,vmUnterwegs,vmRegale,vmRegalZeichnen,vmWarnung,vmPlatzMit,vmLkwJob,vmStandPunkt,pullFromTruck,dumpTruck,createShelf,createRack,regalStellen,testKauf,regalAufbauen,orderRegal,REGALWARE,regalOf,regalKind,regalPreis,regalPlatz,regalOffen,startGame,promptFor,ERFOLGE,erfOffen,erfStufe,erfStand,erfZiel,erfFertig,erfAnteil,erfGeschafft,erfGesamt,stat,statAdd,statRekord,statVerkauf,bruchGesehen,gruppeVon,GRUPPE,TRAEGER,BRUCH,BRUCH_IDS,REZ_FARBEN,ETIKETT,traegerVon,traegerOffen,bruchOffen,bruchListe,rezeptWow,rezeptKosten,rezeptMarkt,rezeptHype,rezeptDauer,rezeptEntwicklung,rezeptGueltig,eigeneListe,eigenesEintragen,rezepteTick,rezProto,rezBauen,renderRezeptur,get entwurf(){return entwurf},set entwurf(v){entwurf=v},entwurfInit,ORDER,LIZENZEN,lizenzOf,hatLizenz,lizenzDaten,naechsteLizenz,buyLizenz,VOLA,volaOf,REGIME,marketOf,costOf,marktZiel,marktLuecke,meOf,miOf,marktDelta,marktNiveau,marktPhase,marktSchock,marktLabel,marktSchnitt,marktExtrem,marktChance,sortimentBreite,sortimentZug,bekanntheit,spawnInterval,rollMarkt,marktInit,inflOf,inflText,setPreisAufMarkt,igniteType,get packHit(){return packHit},get packTisch(){return packTisch},get packMov(){return packMov},zuendeKanal,zuendeAlle,alleKanaele,get pultText(){return pultText},drawPult,kanalItem,openZuend,closeZuend,get zuendOpen(){return zuendOpen},overlayOpen,pultTaster,zuendTick,TISCH_X,RAMPE_X,KANAL_START,bereitCount,brennDauer,muendung,pultLamps,RAKETEN_LOOK,RAKETEN_KL,makePerson,applyTOD,updateHUD,renderer,renderFrame,get DEMO(){return DEMO},LHALLE,LOGI_STUFEN,TOR_STUFE,logiStufe,logiZeige,logiAnwenden,LOGI_G,TOR_G,WTORE,tuAktion:(kind,ref)=>{ const alt=target; target={kind,ref}; try{ doAction(); } finally { target=alt; } },promptFor,KARREN,karreArt,karreAn,karreStapel,karreLast,karreNimmt,toggleKarre,updateKarre,setTutorial,tutorialAn,zielFuer,get zielAktuell(){return zielAktuell},get tipKey(){return tipKey},updateZiel,set DEMO(v){DEMO=v},kapitelVon,kapitelVoll,openHandy,closeHandy,toggleHandy,get handyOpen(){return handyOpen},get happ(){return happ},HANDY_APPS,renderHandy,shaderVorab,SCHONER,schonerMalen,updateSchoner,makeWischer,stelleWischer,get wischer(){return wischer},updateWischen,wischerPersonal,cleanTick,updateFireworks,FLASH,spurEnden,LR_LAMPE,schweber,kundenSymbol,geldSchwebt,get serie(){return serie},serieZufrieden,serieBricht,KAPITEL,kapitel,kapitelNr,kapitelAufstieg,WA,WA_SLOTS,vorDieTuer,SB_KASSIERER,sbBesetzt,sbLaneVon,sbKassiererPlatz,sbBetreuer,sbHeimPlatz,sbHelferPlatz,sbGeholfen,sbFreiNah,SB_SELBST,sbPos,MUSIK,STUECKE,musikAn,musikWeiter,musikVol,musikTick,spielSchritt,get mStep(){return mStep},set mStep(v){mStep=v;mTakte=0;},get mBus(){return mBus},get postHalf(){return postHalf},EFF_SCHWEIF,mitSchweif,KOEPFE,KLEID,UNIFORM,STAFFKOPF,faceCache,animPerson,personTuete,personTraegt,personGreif,FIG_DATEN,FIG_PERSONEN,PACKS,packPreis,packPool,packOffen,packContents,syncPakete,rotateGrab,cancelGrab,moebelTaste,moebelEinpacken,paketAuspacken,moebelImBlick,removeShelf,removeRack,PACK_FL,PACK_HOME,spotFree,rectOf,grab,placeGrab,updateGrab,get grabbed(){return grabbed},showPause,closePause,pauseSeite,pauseSeiteAktiv,zumStartbildschirm,fortsetzen,musikWahl,musikTitel,get startOpen(){return startOpen},get pauseOpen(){return pauseOpen},get target(){return target},einrOf,einrAktiv,einrHoch,einrRunter,einrSchalten,AUFGABEN,einrJob,kartonMat,pools,shelfStockOf,removeFromLevel,fwLog:(a)=>{FW_LOG=a;},moerserRohr,ROHR_KALIBER,effPassen,EFF_FAMILIE,basisBlick,fwTestSchalten,fwTestProdukte,fwTestStapeln,get fwTestAn(){return fwTestAn},get fwTestBoxen(){return fwTestBoxen},get fwTestMarken(){return fwTestMarken},fwStufe,sonne:()=>sun.intensity,get fwUhr(){return FW_UHR},THEMEN,SHOW_BASIS,EFF,emittersListe:()=>emitters,show,SIGNATUR,showZeiten,showDauer,phDauer,musterWinkel,feuertopf,playShow,KAL,get rohrStreu(){return ROHR_STREU},vorfuehrungAn,vorfuehrungAus,vfNaechstes,vfZuenden,vfStopp,get vfAufraeumen(){return vfAufraeumen},vfSpringen,vfNote,vfText,vfTaste,get vfAn(){return vfAn},get vfGezuendet(){return vfGezuendet},get vfIdx(){return vfIdx},get vfLetzt(){return vfLetzt},get vfListe(){return vfListe},get vfEl(){return vfEl},set rohrStreu(v){ROHR_STREU=v},BUENDEL,bSammeln,bWaechter,buendelJetzt:()=>{ bSammeln(); bSammeln(); return BUENDEL.n; },NEU_TEST,get vfSonder(){return vfSonder},vpSchalten,vpStart,vpAus,vpStellplaetze,vpVerteilen,vpProdukte,vpFuellung,get vpAn(){return vpAn},get vpRegale(){return vpRegale},get vpPlan(){return vpPlan},get vpFertig(){return vpFertig},get SPIEL_RAUM(){return SPIEL_RAUM},vpZeilenMass,VP_ZEILEN,sucheText,sucheRang,drawFront,drawTop,drawSide,WARE_MOTIV,wareFront,wareTop,wareMarke,KAPPE,kleinTakt,texCanvas,get RES(){return RES},resSetzen,resRegeln,gfxMess,schildTaste,schildFertig,schildZiel,get schildOpen(){return schildOpen},get vpNamenM(){return vpNamenM},kisteTaste,kannRaus,kisteRaus,kisteMat,KISTE_STUECK,poolDa,poolWeg,VP_FL,modRaster,slotLocal,gfxAnwenden,gfxWaehlen,gfxMessen,gfxMess,gfxAnzeige,get GFX(){return GFX},get GFX_WAHL(){return GFX_WAHL},QUAL,rohrBedarf,rohrLayout,rohrSatz,istBatterie,batterieModell,zuendPlan,buildProduct,capOf,zuendFolge,rohrMund,korpusTeile,rohrGeometrie,stationsPool,poolsAus,istVerbundKarton,regalFarben,regaleFaerben,get ROHR_LOG(){return ROHR_LOG},set ROHR_LOG(v){ROHR_LOG=v},schattenSichtbar:()=>renderer.shadowMap.enabled&&sun.shadow.bias>-1,sfxVol,get SFX_VOL(){return SFX_VOL},GFX_PROFIL,GFX_START,GFX_NAME,PR,PRACHT,prUmgebung,LI,ladenLichtTakt,liMoebelSchatten,prMaterialien,gfxPixel,gfxSamples,schattenGr:()=>sun.shadow.mapSize.x,get postDiv(){return postDiv},festImBlick,makeWishes,VP_FORM,gpStart,gpEnde,gpSpringe,gpBauSchritt,gpTick,gpBestellen,gpBauSchritt,get gpFertig(){return gpFertig},get gpAn(){return gpAn},get gpVerlauf(){return gpVerlauf},GP_ORTE,wandRechtecke,wandSchub,moebelRect,rackRect,rackKindOf,stellPlatz,rackStellPlatz,rackPlatzFrei,racksEntwirren,regalNein,kasseReserve,gpPlan,gpVerteilen,GP_ABT,gpAbtVon,
     vsWelt,vdOffen,vdSetzen,ddlAbfahrt,ddlTelPrompt,boxBelegt,ddlStand,vsBoxVoll,vsAnnahme,vsQuote,vsQuoteStd,vsAktion,vsRabatt,vsPreis,vsListe,vsSaleFaktor,vsBesucheProTag,vsGratisHeute,onlineTag,onlineTagSchliessen,onlineErgebnis,onlineStatHtml,versandBereich,versandBereichRaeumen,placeMovable,LADEZONE,ladezoneRechtecke,PORTAL_Z0,DDL_PAUSCHALE,LAGERPC,get tabHit(){return tabHit},get lapGeraet(){return lapGeraet},GERAETE,vmKostenJe,openLaptop,lapKlick,ddlTelZeichnen,VS_PORTO,hubAufbauPark,V1,VT,VD,LD,HUB,DDL,vf,vfRueck,ddlSlot,vsStapelLage,vsPalZelle,vsPalZahl,ddlRufen,ddlAbholung,ddlLaeuft,updatePaletten,vsPalAbgleich,vsPalById,palZentrumWelt,vsPalObj,vsPalHits,vdIstOffen,vtBesetzt,vsPalGleitet,roboterBusy,hubKollision,DDL_SLOTS,rackR1Pack,vsHeim,vsKapazitaet,PACK_HOME,V1_HOF,PAL_N,ZELLE,PALETTEN,palPlaetze,vsPalNeu,

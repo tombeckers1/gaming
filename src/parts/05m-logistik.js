@@ -47,7 +47,7 @@ function logiSammle(fn){
 }
 /* Suedwand: massive Stuecke, dazwischen die Toroeffnungen dieser Stufe */
 function logiSuedwand(i,r,H,ex){
-  const Z=LHALLE.z, sock=std(0x4a5058,{roughness:0.9});
+  const Z=LHALLE.z, sock=MAT.std(0x4a5058,{roughness:0.9});
   const tore=WRAMPEN.map((x,k)=>({x,k})).filter(t=>TOR_STUFE[t.k]<=i&&t.x>r.x0&&t.x<r.x1).sort((a,b)=>a.x-b.x);
   const stueck=(a,b)=>{ if(b-a<0.01) return;
     wall(a,b,Z-LW,Z,0,H,'+z',lagerWall,ex,0,lagerWall); col(a,b,Z-LW,Z);
@@ -106,14 +106,12 @@ function logiToreBauen(){
 /* LKW-Hof suedlich der Halle */
 function logiHofBauen(){
   const r=LAY.hof2, Z=LHALLE.z;
-  const bt=concreteTex(); bt.repeat.set((r.x1-r.x0)/2.4,(r.z1-r.z0)/2.4);
-  flat(r.x1-r.x0,r.z1-r.z0,new THREE.MeshStandardMaterial({map:bt,roughness:0.93,color:LIN(0xaaaeb4)}),
-       (r.x0+r.x1)/2,0.013,(r.z0+r.z1)/2);
+  MAT.kachel(flat(r.x1-r.x0,r.z1-r.z0,new THREE.MeshStandardMaterial({map:MAT.tex('beton'),roughness:0.93,color:LIN(0xaaaeb4)}),
+       (r.x0+r.x1)/2,0.013,(r.z0+r.z1)/2).geometry,(r.x1-r.x0)/2.4,(r.z1-r.z0)/2.4);
   /* Zufahrt nach Westen hinaus */
-  const zt=concreteTex(); zt.repeat.set(12,2);
-  flat(28,7.5,new THREE.MeshStandardMaterial({map:zt,roughness:0.93,color:LIN(0xa4a8ae)}),r.x0-14,0.012,-50.0);
+  MAT.kachel(flat(28,7.5,new THREE.MeshStandardMaterial({map:MAT.tex('beton'),roughness:0.93,color:LIN(0xa4a8ae)}),r.x0-14,0.012,-50.0).geometry,12,2);
   /* Stellplatzmarkierung vor jedem Tor: zwei Linien, Stopplinie, Mittelstriche */
-  const gelb=std(0xf2c230);
+  const gelb=MAT.std(0xf2c230);
   for(const cx of WRAMPEN){
     for(const s of [-1,1]) flat(0.14,14,gelb,cx+s*1.9,0.017,Z-7.4);
     flat(3.8,0.14,gelb,cx,0.017,Z-14.4);
@@ -142,18 +140,18 @@ function logiHofBauen(){
   palettenStapel(r.x1-2.4,Z-5.6,5,-0.2);
   palettenStapel(r.x0+2.4,Z-8.0,6,0.3);
   { const cx=r.x0+4.2, cz=Z-4.0;
-    const cm=std(0x4a6f52,{metalness:0.35,roughness:0.7});
+    const cm=MAT.std(0x4a6f52,{metalness:0.35,roughness:0.7});
     bbox(2.5,2.2,6.0,cm,cx,1.1,cz,null,true);
-    bbox(2.6,0.14,6.1,std(0xeef2f8,{roughness:1}),cx,2.24,cz,null,false);
-    for(let i=0;i<9;i++) bbox(2.56,2.1,0.08,std(0x3f6047,{metalness:0.3,roughness:0.75}),cx,1.1,cz-2.8+i*0.7,null,false);
+    bbox(2.6,0.14,6.1,MAT.std(0xeef2f8,{roughness:1}),cx,2.24,cz,null,false);
+    for(let i=0;i<9;i++) bbox(2.56,2.1,0.08,MAT.std(0x3f6047,{metalness:0.3,roughness:0.75}),cx,1.1,cz-2.8+i*0.7,null,false);
     col(cx-1.35,cx+1.35,cz-3.1,cz+3.1); }
   for(const [sx,sz,sw] of [[r.x0+8,r.z0+3,3.0],[-43,r.z0+3,2.6]]){
-    const h=new THREE.Mesh(new THREE.SphereGeometry(sw/2,HIQ?14:8,8),std(0xeef2f8,{roughness:1}));
+    const h=new THREE.Mesh(new THREE.SphereGeometry(sw/2,HIQ?14:8,8),MAT.std(0xeef2f8,{roughness:1}));
     h.scale.set(1,0.42,0.8); h.position.set(sx,0.1,sz); scene.add(h);
     col(sx-sw/2,sx+sw/2,sz-sw/2.6,sz+sw/2.6); }
   /* Hinweisschild an der Einfahrt */
   { const px=r.x0+0.2, pz=torB+1.2;
-    bbox(0.1,2.4,0.1,std(0x59606b,{metalness:0.6}),px,1.2,pz,null,false);
+    bbox(0.1,2.4,0.1,MAT.std(0x59606b,{metalness:0.6}),px,1.2,pz,null,false);
     plane(1.5,0.95,new THREE.MeshStandardMaterial({side:THREE.DoubleSide,map:tex(300,190,(g,W,H)=>{
       g.fillStyle='#1b2340'; g.fillRect(0,0,W,H);
       g.strokeStyle='#ffd23f'; g.lineWidth=6; g.strokeRect(7,7,W-14,H-14);

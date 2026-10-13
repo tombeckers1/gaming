@@ -9,7 +9,7 @@ function einrKiste(){
   _kInnen=_kInnen||std(0x8a6a40,{roughness:0.95,side:THREE.BackSide});
   _kUnsichtbar=_kUnsichtbar||new THREE.MeshBasicMaterial({visible:false});
   const g=new THREE.Group(), u={};
-  u.pappe=std(0xc49a60,{roughness:0.92});
+  u.pappe=MAT.std(0xc49a60,{roughness:0.92});
   /* Koerper ohne Deckel, innen dunkle Pappe */
   u.koerper=new THREE.Mesh(kartonGeo,[u.pappe,u.pappe,_kUnsichtbar,u.pappe,u.pappe,u.pappe]);
   g.add(u.koerper);

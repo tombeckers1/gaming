@@ -146,17 +146,17 @@ function halle(id,r,opt){
   const H=opt.h||WH;
   const lager=opt.art==='lager';
   const innen=lager?lagerWall:shopWall;
-  const ceil=std(0xe6e8ee,{roughness:1});
+  const ceil=MAT.std(0xe6e8ee,{roughness:1});
   const au=opt.aussen||{};
   const ex=opt.ex||undefined;
   /* Boden */
   let bodenMat;
-  if(lager){ const lc=concreteTex(); lc.repeat.set((r.x1-r.x0)/2,(r.z1-r.z0)/2); bodenMat=new THREE.MeshStandardMaterial({map:lc,roughness:0.85}); }
+  if(lager) bodenMat=MAT.get('betonBoden');
   else bodenMat=floorMat;
   if(!opt.keinBoden){
     const bo=new THREE.Mesh(new THREE.PlaneGeometry(r.x1-r.x0,r.z1-r.z0),bodenMat);
     bo.rotation.x=-Math.PI/2; bo.position.set((r.x0+r.x1)/2,0.015,(r.z0+r.z1)/2); scene.add(bo);
-    if(!lager) bodenUV(bo,BODEN_KACHEL);
+    if(!lager) bodenUV(bo,BODEN_KACHEL); else MAT.kachel(bo.geometry,(r.x1-r.x0)/2,(r.z1-r.z0)/2);
     zAdd(id,bo);
   }
   /* Decke und Dach */
@@ -168,7 +168,7 @@ function halle(id,r,opt){
      faellt das nicht auf, bei zwoelf Metern flimmern die beiden
      Flaechen gegeneinander und die Decke wird streifig. Zehn
      Zentimeter Abstand reichen auf die ganze Hallenlaenge. */
-  if(!opt.keinDach) bbox(r.x1-r.x0+LW*3,0.25,r.z1-r.z0+LW*3,std(0x2b2f3a),(r.x0+r.x1)/2,H+0.24,(r.z0+r.z1)/2,null,true);
+  if(!opt.keinDach) bbox(r.x1-r.x0+LW*3,0.25,r.z1-r.z0+LW*3,MAT.std(0x2b2f3a),(r.x0+r.x1)/2,H+0.24,(r.z0+r.z1)/2,null,true);
   /* Aussenwaende: stehen immer, auch solange der Bereich gesperrt ist.
      Von der Strasse aus sieht man sonst ein Loch im Gebaeude. */
   if(au.w) wall(r.x0-LW,r.x0,r.z0,r.z1,0,H,'+x',innen,ex);
@@ -214,7 +214,7 @@ function stuetzeM(){ if(!_stuetzeM) _stuetzeM=std(0xdfe3ea,{roughness:0.72}); re
 function stuetze(x,z,h){
   const g=new THREE.Mesh(new THREE.CylinderGeometry(0.17,0.17,h-0.16,HIQ?18:10),stuetzeM());
   g.position.set(x,(h-0.16)/2,z); if(HIQ){ g.castShadow=true; g.receiveShadow=true; } scene.add(g);
-  bbox(0.46,0.1,0.46,std(0x9aa0ab,{roughness:0.8}),x,0.05,z,null,false);
+  bbox(0.46,0.1,0.46,MAT.std(0x9aa0ab,{roughness:0.8}),x,0.05,z,null,false);
   bbox(0.44,0.08,0.44,stuetzeM(),x,h-0.06,z,null,false);
   col(x-0.22,x+0.22,z-0.22,z+0.22);
   return g;
@@ -309,8 +309,8 @@ function lagerSperre(){
   const Z='lager';
   const g=new THREE.Group(); g.position.set(-8.0,0,-2.5); g.rotation.y=Math.PI/2; scene.add(g);
   const bandM=new THREE.MeshStandardMaterial({map:sperrbandTex('LAGER · KAPITEL 2'),roughness:0.72,side:THREE.DoubleSide});
-  const halt=std(0x3d4450,{metalness:0.5,roughness:0.5});
-  const kopf=std(0x1f242e,{metalness:0.4,roughness:0.55});
+  const halt=MAT.std(0x3d4450,{metalness:0.5,roughness:0.5});
+  const kopf=MAT.std(0x1f242e,{metalness:0.4,roughness:0.55});
   const a=-0.66, b=0.66;
   for(const y of [0.5,1.0,1.5]) sperrband(Z,a+0.06,b-0.06,0,y,bandM,g);
   for(const x of [a+0.04,b-0.04]){
@@ -339,8 +339,8 @@ const WA_SLOTS=[]; for(let r=0;r<2;r++) for(let c=0;c<3;c++) WA_SLOTS.push({x:WA
 function testfeldSperre(){
   const Z='testfeld', a=4.4, b=6.1, z=-6.0;
   const bandM=new THREE.MeshStandardMaterial({map:sperrbandTex('TESTFELD GESPERRT'),roughness:0.72,side:THREE.DoubleSide});
-  const halt=std(0x3d4450,{metalness:0.5,roughness:0.5});
-  const kopf=std(0x1f242e,{metalness:0.4,roughness:0.55});
+  const halt=MAT.std(0x3d4450,{metalness:0.5,roughness:0.5});
+  const kopf=MAT.std(0x1f242e,{metalness:0.4,roughness:0.55});
   for(const y of [0.5,1.0,1.5]) sperrband(Z,a+0.06,b-0.06,z,y,bandM);
   /* Zwei Pfosten in den Laibungen, an denen das Band haengt */
   for(const x of [a+0.04,b-0.04]){
@@ -386,12 +386,11 @@ function buildLagergang(){
   const G=GANG, mitteX=(G.x0+G.x1)/2, mitteZ=(G.z0+G.z1)/2;
   const breite=G.x1-G.x0, tiefe=G.z1-G.z0;
   /* Boden: derselbe Estrich wie im Lager */
-  const bc=concreteTex(); bc.repeat.set(breite/2,tiefe/2);
-  const bo=new THREE.Mesh(new THREE.PlaneGeometry(breite,tiefe),
-    new THREE.MeshStandardMaterial({map:bc,roughness:0.85}));
+  const bo=new THREE.Mesh(MAT.kachel(new THREE.PlaneGeometry(breite,tiefe),breite/2,tiefe/2),
+    MAT.get('betonBoden'));
   bo.rotation.x=-Math.PI/2; bo.position.set(mitteX,0.016,mitteZ); scene.add(bo); zAdd(Z,bo);
   /* Decke und Dachrand */
-  const ce=new THREE.Mesh(new THREE.PlaneGeometry(breite+0.3,tiefe+0.3),std(0xe6e8ee,{roughness:1}));
+  const ce=new THREE.Mesh(new THREE.PlaneGeometry(breite+0.3,tiefe+0.3),MAT.std(0xe6e8ee,{roughness:1}));
   ce.rotation.x=Math.PI/2; ce.position.set(mitteX,G.h-0.01,mitteZ); scene.add(ce); zAdd(Z,ce);
   /* Der Dachrand deckt die Kopf- und Suedwand ab, aber keinen
      Zentimeter mehr: mit dem sonst ueblichen Ueberstand ragte er
@@ -399,7 +398,7 @@ function buildLagergang(){
   /* Dachrand in beiden Richtungen INNERHALB der angrenzenden Waende.
      Lag er mit -5,9 genau in der Ebene der Ladenrueckwand, flimmerte
      er von innen als dunkler Streifen ueber der Uhr. */
-  zAdd(Z,bbox(breite+LW,0.25,tiefe+LW,std(0x2b2f3a),mitteX,G.h+0.13,mitteZ,null,true));
+  zAdd(Z,bbox(breite+LW,0.25,tiefe+LW,MAT.std(0x2b2f3a),mitteX,G.h+0.13,mitteZ,null,true));
   /* Suedwand mit dem Durchgang aufs Testfeld. Der Sturz bleibt
      stehen, sonst steht das Dach in der Luft. */
   const zs=G.z0;
@@ -459,7 +458,7 @@ function pvcMat(){
 function streifenvorhang(zid,laengs,fest,a0,a1,hoehe){
   const len=a1-a0, mitte=(a0+a1)/2, H=hoehe-0.12;
   /* Traverse mit Halteklemmen */
-  const stahl=std(0x8d939d,{metalness:0.6,roughness:0.4});
+  const stahl=MAT.std(0x8d939d,{metalness:0.6,roughness:0.4});
   zAdd(zid,laengs
     ? bbox(len+0.16,0.1,0.14,stahl,mitte,hoehe-0.05,fest,null,false)
     : bbox(0.14,0.1,len+0.16,stahl,fest,hoehe-0.05,mitte,null,false));
@@ -485,14 +484,13 @@ function buildSchleuse(){
   const S2=LAY.schleuse, H=SCHLEUSE_H;
   const mx=(S2.x0+S2.x1)/2, mz=(S2.z0+S2.z1)/2;
   const br=S2.x1-S2.x0, ti=S2.z1-S2.z0;
-  const bc=concreteTex(); bc.repeat.set(br/2,ti/2);
-  const bo=new THREE.Mesh(new THREE.PlaneGeometry(br,ti),
-    new THREE.MeshStandardMaterial({map:bc,roughness:0.85}));
+  const bo=new THREE.Mesh(MAT.kachel(new THREE.PlaneGeometry(br,ti),br/2,ti/2),
+    MAT.get('betonBoden'));
   bo.rotation.x=-Math.PI/2; bo.position.set(mx,0.016,mz); scene.add(bo);
   /* Die Decke endet buendig in den beiden Gebaeudewaenden. Mit dem
      ueblichen Ueberstand schaute ihre Kante als dunkler Streifen in
      die Lagerhalle hinein. */
-  const ce=new THREE.Mesh(new THREE.PlaneGeometry(br-0.2,ti+0.3),std(0xe6e8ee,{roughness:1}));
+  const ce=new THREE.Mesh(new THREE.PlaneGeometry(br-0.2,ti+0.3),MAT.std(0xe6e8ee,{roughness:1}));
   ce.rotation.x=Math.PI/2; ce.position.set(mx,H-0.01,mz); scene.add(ce);
   /* Der Dachrand darf nur bis in die Gebaeudewaende reichen. Mit dem
      ueblichen Ueberstand stand er als schwarzer Balken frei in der
@@ -505,7 +503,7 @@ function buildSchleuse(){
      darum in ihrer Mitte (x1 - LW/2), nicht an ihrer Innenseite - sonst
      standen ihre Kanten als helle Streifen und dunkler Balken in der Halle. */
   const xo=S2.x1-LW/2;
-  bbox(xo-S2.x0,0.25,ti+LW*2,std(0x2b2f3a),(S2.x0+xo)/2,H+0.24,mz,null,true);
+  bbox(xo-S2.x0,0.25,ti+LW*2,MAT.std(0x2b2f3a),(S2.x0+xo)/2,H+0.24,mz,null,true);
   /* Laengswaende. Die Kopfenden sind die Gebaeudewaende selbst. */
   for(const [z0,z1] of [[S2.z0-LW,S2.z0],[S2.z1,S2.z1+LW]]){
     wall(S2.x0,xo,z0,z1,0,H,z0<mz?'+z':'-z',lagerWall);
@@ -554,8 +552,8 @@ function buildLagerTerminal(){
 /* Tablet im Laden, an der Rueckwand rechts neben der Hintertuer zum Testfeld */
 function buildTablet(){
   const g=new THREE.Group(); g.position.set(7.0,0,-5.86); scene.add(g);
-  const dunkel=std(0x1f232b,{metalness:0.4,roughness:0.4});
-  bbox(0.07,0.32,0.03,std(0x8b929c,{metalness:0.7,roughness:0.3}),0,1.32,0.02,g,false);
+  const dunkel=MAT.std(0x1f232b,{metalness:0.4,roughness:0.4});
+  bbox(0.07,0.32,0.03,MAT.std(0x8b929c,{metalness:0.7,roughness:0.3}),0,1.32,0.02,g,false);
   const t=bbox(0.32,0.22,0.018,dunkel,0,1.42,0.05,g,false); t.rotation.x=-0.18;
   const sch=neuerSchoner(320,220,'Bestellen');
   const sc=plane(0.29,0.19,new THREE.MeshBasicMaterial({toneMapped:false,map:sch.t}),0,1.42,0.061,0,g); sc.rotation.x=-0.18; sch.mesh=sc;
@@ -591,7 +589,7 @@ function fugenPlatte(r,mat,y,decke,kachel){
   return m;
 }
 function fugenfueller(){
-  const ceil=std(0xe6e8ee,{roughness:1});
+  const ceil=MAT.std(0xe6e8ee,{roughness:1});
   /* Verkauf: Basis, Ost I und Ost II liegen in einer Flucht, das
      Rueckgebaeude haengt darunter. Die zweite Platte liegt einen
      Millimeter tiefer, damit sich die beiden im Ueberlappungs-
@@ -601,11 +599,10 @@ function fugenfueller(){
   fugenPlatte({x0:-7.9,x1:37.9,z0:-5.9,z1:5.9},ceil,WH-0.006,true);
   fugenPlatte({x0: 8.0,x1:37.9,z0:-21.9,z1:-5.9},ceil,WH-0.0065,true);
   /* Lager: Basislager mit Anbau Nord, dazu die Halle Sued */
-  const bet=(r)=>{ const t=concreteTex(); t.repeat.set((r.x1-r.x0)/2,(r.z1-r.z0)/2);
-    return new THREE.MeshStandardMaterial({map:t,roughness:0.85}); };
+  const bet=()=>MAT.get('betonBoden');
   const l1={x0:-19.9,x1:-8.1,z0:-5.9,z1:5.9}, l2={x0:-19.9,x1:-8.1,z0:-29.9,z1:-5.9};
-  fugenPlatte(l1,bet(l1),0.012,false);
-  fugenPlatte(l2,bet(l2),0.011,false);
+  MAT.kachel(fugenPlatte(l1,bet(),0.012,false).geometry,(l1.x1-l1.x0)/2,(l1.z1-l1.z0)/2);
+  MAT.kachel(fugenPlatte(l2,bet(),0.011,false).geometry,(l2.x1-l2.x0)/2,(l2.z1-l2.z0)/2);
   /* Das ganze Lager liegt jetzt auf einer Deckenhoehe - eine
      durchgehende Platte darueber schliesst die Haarfugen zwischen
      den einzelnen Deckenfeldern. */
@@ -1008,18 +1005,18 @@ function buildPackstation(){
   ladezoneBauen(g,B);
   /* Paletten sind eigene Objekte (11e-palette.js): die Box zeigt sie dort. */
   /* bewegliche Portalteile: Bruecke (faehrt in z), Laufwagen, Hubachse, Greifer */
-  { const Pt={}, gelb=std(GELB,{roughness:0.5,metalness:0.25}), dunkel=std(0x2a2e36,{roughness:0.55,metalness:0.4}), zink=std(ZINK,{metalness:0.6,roughness:0.35});
+  { const Pt={}, gelb=std(GELB,{roughness:0.5,metalness:0.25}), dunkel=MAT.std(0x2a2e36,{roughness:0.55,metalness:0.4}), zink=std(ZINK,{metalness:0.6,roughness:0.35});
     const bx0=ZELLE[1].x0+0.01, L=brX1-bx0;
     const br=new THREE.Group(); br.position.set((bx0+brX1)/2,PORTAL_Y+0.27,BAND.z); g.add(br);
     bbox(L,0.14,0.14,gelb,0,0,0,br); bbox(L-0.1,0.03,0.05,zink,0,0.085,0,br,false);
     for(const sx of [ZELLE[1].x0+0.06,ZELLE[1].x1-0.06]) bbox(0.16,0.12,0.24,dunkel,sx-(bx0+brX1)/2,-0.09,0,br,false);
     const wg=new THREE.Group(); wg.position.set(BAND.x0+0.4,PORTAL_Y+0.27,BAND.z); g.add(wg);
-    bbox(0.28,0.24,0.3,dunkel,0,0,0,wg); bbox(0.16,0.12,0.12,std(0x2a5a9e,{roughness:0.5}),0.05,0.18,0,wg,false);
+    bbox(0.28,0.24,0.3,dunkel,0,0,0,wg); bbox(0.16,0.12,0.12,MAT.std(0x2a5a9e,{roughness:0.5}),0.05,0.18,0,wg,false);
     const mast=bbox(0.08,1,0.08,zink,0,0,0,g,false), mast2=bbox(0.11,0.5,0.11,dunkel,0,0,0,g,false);
     const gr=new THREE.Group(); g.add(gr);
     /* Unterkante der Sauger = Greiferlage: dort liegt die Paketoberseite an */
     bbox(0.3,0.04,0.26,dunkel,0,0.045,0,gr); bbox(0.12,0.07,0.12,dunkel,0,0.1,0,gr,false);
-    const saugM=std(0x1b1d22,{roughness:0.9}), saugG=new THREE.CylinderGeometry(0.035,0.028,0.025,12);
+    const saugM=MAT.std(0x1b1d22,{roughness:0.9}), saugG=new THREE.CylinderGeometry(0.035,0.028,0.025,12);
     for(const sx of [-0.09,0.09]) for(const sz of [-0.08,0.08]){ const c=new THREE.Mesh(saugG,saugM); c.position.set(sx,0.0125,sz); gr.add(c); }
     Pt.bruecke=br; Pt.wagen=wg; Pt.mast=mast; Pt.mast2=mast2; Pt.greifer=gr;
     [br,wg,mast,mast2,gr].forEach(o=>T.ab[1].push(o));   /* Kran ab Stufe 1 (Tom 09.10.) */
@@ -1031,7 +1028,7 @@ function buildPackstation(){
   /* Hinweisschild ueber dem ersten Packplatz, von beiden Seiten lesbar */
   { const P=ppW(0,0,-0.36), st=std(0x7d838c,{metalness:0.6,roughness:0.4});
     for(const sx of [-0.56,0.56]) bbox(0.05,1.5,0.05,st,P.x+sx,1.72,P.z,g,false);
-    bbox(1.3,0.36,0.05,std(0x1b2340,{roughness:0.7}),P.x,2.3,P.z,g,false);
+    bbox(1.3,0.36,0.05,MAT.std(0x1b2340,{roughness:0.7}),P.x,2.3,P.z,g,false);
     packSchildTex=tex(1024,256,()=>{});
     const sm=new THREE.MeshBasicMaterial({map:packSchildTex,toneMapped:false});
     plane(1.24,0.31,sm,P.x,2.3,P.z+0.03,0,g); plane(1.24,0.31,sm,P.x,2.3,P.z-0.03,Math.PI,g);
@@ -1119,8 +1116,8 @@ function packSperre(id,g){
   const zb=-1.62, xs=[-1.7,0.3,2.2,4.1];
   const bandM=new THREE.MeshStandardMaterial({map:sperrbandTex('NOCH NICHT FREIGESCHALTET'),
     roughness:0.72,side:THREE.DoubleSide});
-  const halt=std(0x3d4450,{metalness:0.5,roughness:0.5});
-  const kopf=std(0x1f242e,{metalness:0.4,roughness:0.55});
+  const halt=MAT.std(0x3d4450,{metalness:0.5,roughness:0.5});
+  const kopf=MAT.std(0x1f242e,{metalness:0.4,roughness:0.55});
   for(let j=0;j<xs.length-1;j++)
     for(const y of [0.55,1.05]) sperrband(id,xs[j]+0.04,xs[j+1]-0.04,zb,y,bandM,g);
   for(const x of xs){
@@ -1256,7 +1253,7 @@ function torBlattMat(){
    Halle liegt oestlich der Wand, innen ist also +x. */
 function westTorInnen(g,steel,dark,kante,eintrag){
   const H=WTOR.h, B=WTOR.w;
-  const hell=std(0x6a707a,{metalness:0.7,roughness:0.35});
+  const hell=MAT.std(0x6a707a,{metalness:0.7,roughness:0.35});
   /* Senkrechte Schienen bis ueber die Torhoehe: das Blatt faehrt
      gerade nach oben, die Halle ist zwoelf Meter hoch. */
   for(const dz of [-1,1]){
@@ -1277,8 +1274,8 @@ function westTorInnen(g,steel,dark,kante,eintrag){
     bbox(0.26,0.22,0.06,steel,0.28,H+0.34,dz*(B/2+0.16),g,false);
   }
   /* Antrieb mit Kette */
-  bbox(0.34,0.3,0.44,std(0x3a4150,{metalness:0.55}),0.52,H+0.34,-(B/2+0.42),g,false);
-  bbox(0.18,0.18,0.22,std(0xf2a01c,{roughness:0.5}),0.52,H+0.08,-(B/2+0.42),g,false);
+  bbox(0.34,0.3,0.44,MAT.std(0x3a4150,{metalness:0.55}),0.52,H+0.34,-(B/2+0.42),g,false);
+  bbox(0.18,0.18,0.22,MAT.std(0xf2a01c,{roughness:0.5}),0.52,H+0.08,-(B/2+0.42),g,false);
   const chain=new THREE.Mesh(new THREE.TorusGeometry(0.17,0.013,6,HIQ?16:8),dark);
   chain.position.set(0.56,H-0.2,-(B/2+0.42)); chain.scale.y=4.2; g.add(chain);
   /* Warnleuchte ueber dem Tor */
@@ -1292,7 +1289,7 @@ function westTorInnen(g,steel,dark,kante,eintrag){
     const c2=new THREE.Mesh(new THREE.CylinderGeometry(0.052,0.052,0.045,HIQ?10:6),m);
     c2.rotation.z=Math.PI/2; c2.position.set(0.33,y,B/2+0.5); g.add(c2);
   }
-  bbox(0.13,0.26,0.17,std(0xf2c230,{roughness:0.6}),0.3,1.35,B/2+0.5,g,false);
+  bbox(0.13,0.26,0.17,MAT.std(0xf2c230,{roughness:0.6}),0.3,1.35,B/2+0.5,g,false);
   for(let k=0;k<3;k++)
     bbox(0.04,0.05,0.05,std([0x2f9e57,0xd8352a,0x2a2e38][k]),0.37,1.44-k*0.075,B/2+0.5,g,false);
   /* Torkennung innen, damit man die Rampen auseinanderhaelt */
@@ -1306,15 +1303,15 @@ function westTorInnen(g,steel,dark,kante,eintrag){
    Gebaut ist es in eigenen Koordinaten mit innen = +x; die Gruppe
    wird so gedreht, dass +x nach Norden in die Halle zeigt. */
 function westTor(cx,nr){
-  const Z=LHALLE.z, steel=std(0x8d939d,{metalness:0.6,roughness:0.42});
-  const dark=std(0x2a2e38,{metalness:0.5,roughness:0.45});
-  const rub=std(0x16181d,{roughness:0.96});
+  const Z=LHALLE.z, steel=MAT.std(0x8d939d,{metalness:0.6,roughness:0.42});
+  const dark=MAT.std(0x2a2e38,{metalness:0.5,roughness:0.45});
+  const rub=MAT.std(0x16181d,{roughness:0.96});
   const g=new THREE.Group(); g.position.set(cx,0,Z); g.rotation.y=-Math.PI/2; scene.add(g);
   /* Torblatt aus echten Sektionalpanelen, denselben wie an der
      Basisrampe. Vorher war hier eine Textur auf einen Kasten
      geklebt - im Spiel sah man den Unterschied sofort. */
-  const kante=std(0x6f757e,{metalness:0.5,roughness:0.5});
-  const pmT=torPanelMat(), pm=std(0xdfe2e6,{metalness:0.4,roughness:0.5});
+  const kante=MAT.std(0x6f757e,{metalness:0.5,roughness:0.5});
+  const pmT=torPanelMat(), pm=MAT.std(0xdfe2e6,{metalness:0.4,roughness:0.5});
   const bl=new THREE.Group(); bl.position.set(-0.15,WTOR.h/2,0); g.add(bl);
   const PN=5, ph=WTOR.h/PN;
   for(let i=0;i<PN;i++){
@@ -1353,9 +1350,9 @@ function westTor(cx,nr){
     bbox(0.06,0.56,0.32,dark,-0.21,1.05,s*(WTOR.w/2+0.28),g,false);
   }
   /* Vordach mit Schneeauflage */
-  const cano=bbox(1.35,0.1,WTOR.w+1.2,std(0x3a4150,{metalness:0.5}),-0.85,WTOR.h+0.52,0,g,false);
+  const cano=bbox(1.35,0.1,WTOR.w+1.2,MAT.std(0x3a4150,{metalness:0.5}),-0.85,WTOR.h+0.52,0,g,false);
   cano.rotation.z=-0.09;
-  const sn=bbox(1.38,0.08,WTOR.w+1.24,std(0xeef2f8,{roughness:1}),-0.85,WTOR.h+0.61,0,g,false);
+  const sn=bbox(1.38,0.08,WTOR.w+1.24,MAT.std(0xeef2f8,{roughness:1}),-0.85,WTOR.h+0.61,0,g,false);
   sn.rotation.z=-0.09;
   /* Streben von der Wand hinauf unter die Aussenkante des Vordachs.
      Mit rotation.z = -0.74 kippten sie falsch herum: das untere Ende
@@ -1373,11 +1370,11 @@ function westTor(cx,nr){
      ohne Dichtung schaut man links und rechts am Heck vorbei ins
      Freie. Drei Polster aus Planenstoff schliessen den Spalt, so
      wie an jeder echten Rampe. */
-  const planeM=std(0x23262c,{roughness:0.95});
+  const planeM=MAT.std(0x23262c,{roughness:0.95});
   for(const s2 of [-1,1])
     bbox(0.46,WTOR.h+0.1,0.5,planeM,-0.26,(WTOR.h+0.1)/2,s2*(WTOR.w/2-0.2),g,false);
   bbox(0.46,0.42,WTOR.w+0.1,planeM,-0.26,WTOR.h-0.09,0,g,false);
-  bbox(0.12,0.24,0.16,std(0xf2c230,{roughness:0.6}),-0.3,1.35,WTOR.w/2+0.62,g,false);
+  bbox(0.12,0.24,0.16,MAT.std(0xf2c230,{roughness:0.6}),-0.3,1.35,WTOR.w/2+0.62,g,false);
   for(let k=0;k<3;k++) bbox(0.04,0.05,0.05,std([0x2f9e57,0xd8352a,0x2a2e38][k]),-0.37,1.43-k*0.07,WTOR.w/2+0.62,g,false);
   /* Torkennung ueber dem Vordach */
   plane(0.8,0.62,new THREE.MeshStandardMaterial({map:tex(160,124,(c,W,H)=>{
@@ -1388,8 +1385,8 @@ function westTor(cx,nr){
   /* Poller neben der Torlaibung, im Hof vor der Wand */
   for(const s of [-1,1]){
     const lz=s*(WTOR.w/2+1.15);
-    bbox(0.2,0.95,0.2,std(0xf2c230,{roughness:0.7}),-0.9,0.48,lz,g,true);
-    bbox(0.22,0.14,0.22,std(0x1f1f24),-0.9,0.86,lz,g,false);
+    bbox(0.2,0.95,0.2,MAT.std(0xf2c230,{roughness:0.7}),-0.9,0.48,lz,g,true);
+    bbox(0.22,0.14,0.22,MAT.std(0x1f1f24),-0.9,0.86,lz,g,false);
     /* lokal (x,z) -> Welt (cx - z, Z + x) bei Drehung -90 Grad */
     col(cx-lz-0.15,cx-lz+0.15,Z-1.05,Z-0.75);
   }
@@ -1407,10 +1404,10 @@ const LAGERFENSTER=[-17.6,-14.0,-10.4];
 function lagerFensterWand(){
   const r=LAY.lnord, z0=r.z1, z1=r.z1+LW, H=LAGER_H;
   const FB=1.7, Y0=1.35, Y1=2.6;                       /* Breite, Bruestung, Sturz */
-  const leib=std(0xdfe3e8,{roughness:0.85});          /* Laibung: heller Putz */
-  const alu=std(0x2b3040,{metalness:0.55,roughness:0.38});
+  const leib=MAT.std(0xdfe3e8,{roughness:0.85});          /* Laibung: heller Putz */
+  const alu=MAT.std(0x2b3040,{metalness:0.55,roughness:0.38});
   const glas=new THREE.MeshStandardMaterial({color:LIN(0x5d7288),transparent:true,opacity:0.38,roughness:0.05,metalness:0.2,side:THREE.DoubleSide,depthWrite:false});
-  const bankA=std(0xb9bec6,{metalness:0.6,roughness:0.35}), bankI=std(0xe6e8ec,{roughness:0.6});
+  const bankA=MAT.std(0xb9bec6,{metalness:0.6,roughness:0.35}), bankI=MAT.std(0xe6e8ec,{roughness:0.6});
   const W=(a,b,y0,y1)=>{ if(b-a>0.005&&y1-y0>0.005) wall(a,b,z0,z1,y0,y1,'-z',lagerWall,undefined,0,leib); };
   let x=r.x0-LW;
   for(const cx of LAGERFENSTER){
@@ -1429,7 +1426,7 @@ function lagerFensterWand(){
       for(const dy of [0.075,fh-0.075]) bbox(FB/2-0.12,0.04,0.05,alu,fx,Y0+dy,zm+0.01,null,false);
       bbox(FB/2-0.14,fh-0.2,0.012,glas,fx,Y0+fh/2,zm,null,false);
       /* Griff am Fluegel innen */
-      bbox(0.025,0.12,0.03,std(0xc9ced6,{metalness:0.8,roughness:0.25}),cx+sx*0.1,Y0+fh/2,z0-0.01,null,false); }
+      bbox(0.025,0.12,0.03,MAT.std(0xc9ced6,{metalness:0.8,roughness:0.25}),cx+sx*0.1,Y0+fh/2,z0-0.01,null,false); }
     /* Fensterbank aussen (Alu, leicht vorstehend) und innen */
     bbox(FB+0.08,0.03,0.2,bankA,cx,Y0-0.012,z1+0.06,null,false);
     bbox(FB+0.05,0.03,0.16,bankI,cx,Y0-0.012,z0-0.05,null,false);
@@ -1442,8 +1439,8 @@ function lagerFensterWand(){
 function hofMast(x,z,ry){
   const g=new THREE.Group(); g.position.set(x,0,z); g.rotation.y=ry||0; scene.add(g);
   g.userData.hof='mast';
-  const mast=std(0x4b515c,{metalness:0.62,roughness:0.38});
-  const dark=std(0x2a2e38,{metalness:0.5,roughness:0.5});
+  const mast=MAT.std(0x4b515c,{metalness:0.62,roughness:0.38});
+  const dark=MAT.std(0x2a2e38,{metalness:0.5,roughness:0.5});
   const so=new THREE.Mesh(new THREE.CylinderGeometry(0.2,0.26,0.4,12),dark); so.position.y=0.2; g.add(so);
   const m1=new THREE.Mesh(new THREE.CylinderGeometry(0.09,0.14,7.4,12),mast);
   m1.position.y=4.1; if(HIQ) m1.castShadow=true; g.add(m1);
@@ -1462,16 +1459,16 @@ function abstellAuflieger(x,z,ry,name,farbe,fahrend){
   /* Laenge des Aufbaus, damit der Anrufer das Heck ausrichten kann */
   g.userData.len=13.2;
   const L=13.2, W2=2.55, HH=2.95, FY=1.15;      /* Ladeflaechenhoehe */
-  const alu=std(0xb6bcc4,{metalness:0.55,roughness:0.42});
-  const dark=std(0x22262e,{metalness:0.4,roughness:0.6});
+  const alu=MAT.std(0xb6bcc4,{metalness:0.55,roughness:0.42});
+  const dark=MAT.std(0x22262e,{metalness:0.4,roughness:0.6});
   /* Aufbau mit Werbung auf den Seiten */
   const side=new THREE.MeshStandardMaterial({map:liveryTex(name,farbe,false),roughness:0.74});
   const body=new THREE.Mesh(new THREE.BoxGeometry(L,HH,W2),[dark,dark,alu,dark,side,side]);
   body.position.set(0,FY+HH/2,0); if(HIQ){ body.castShadow=true; body.receiveShadow=true; } g.add(body);
   bbox(L+0.05,0.1,W2+0.06,alu,0,FY+HH-0.04,0,g,false);
-  bbox(L+0.05,0.16,W2+0.06,std(0x8a7f6a,{roughness:0.9}),0,FY+0.1,0,g,false);
+  bbox(L+0.05,0.16,W2+0.06,MAT.std(0x8a7f6a,{roughness:0.9}),0,FY+0.1,0,g,false);
   /* Hecktueren mit Scharnieren und Stangen */
-  for(const s of [-1,1]) bbox(0.06,HH-0.2,W2/2-0.08,std(0xe6e8ec,{roughness:0.6}),-L/2-0.04,FY+HH/2,s*W2/4,g,false);
+  for(const s of [-1,1]) bbox(0.06,HH-0.2,W2/2-0.08,MAT.std(0xe6e8ec,{roughness:0.6}),-L/2-0.04,FY+HH/2,s*W2/4,g,false);
   for(const s of [-1,1]) for(const o of [0.28,0.9]){
     const st=new THREE.Mesh(new THREE.CylinderGeometry(0.022,0.022,HH-0.34,8),alu);
     st.position.set(-L/2-0.09,FY+HH/2,s*o*W2/2.2); g.add(st); }
@@ -1501,7 +1498,7 @@ function abstellAuflieger(x,z,ry,name,farbe,fahrend){
     ch.push({geo:gRueck,m:tm(-L/2-0.09,0.92,s*(W2/2-0.35)),color:0x9a2a24});
     ch.push({geo:gBlink,m:tm(-L/2-0.09,1.12,s*(W2/2-0.35)),color:0xf2a01c}); }
   ch.push({geo:gSchild,m:tm(-L/2-0.1,0.72,0),color:0xf2f0e8});
-  const chm=new THREE.Mesh(merge(ch),new THREE.MeshStandardMaterial({vertexColors:true,metalness:0.12,roughness:0.66}));
+  const chm=new THREE.Mesh(merge(ch),MAT.std(0xffffff,{vertexColors:true,metalness:0.12,roughness:0.66}));
   if(HIQ) chm.castShadow=true; g.add(chm);
   [gRahmen,gWinde,gFuss,gKoenig,gRad,gFelge,gAchse,gKotfl,gSchutz,gRueck,gBlink,gSchild].forEach(q=>q.dispose());
   /* Kollision als ein Block */
@@ -1584,9 +1581,9 @@ function logiGlas(len,rows){
 function buildLogistik(){
   const H=LOGI.hoehe, ha=LOGI.halle, bu=LOGI.buero;
   const blech=blechMat();
-  const sockel=std(0x3f454e,{roughness:0.88});
-  const attika=std(0x2b2f3a,{metalness:0.4,roughness:0.6});
-  const steel=std(0x8d939d,{metalness:0.6,roughness:0.42});
+  const sockel=MAT.std(0x3f454e,{roughness:0.88});
+  const attika=MAT.std(0x2b2f3a,{metalness:0.4,roughness:0.6});
+  const steel=MAT.std(0x8d939d,{metalness:0.6,roughness:0.42});
   /* --- Halle --- */
   const hw=ha.x1-ha.x0, hd=ha.z1-ha.z0, hcx=(ha.x0+ha.x1)/2, hcz=(ha.z0+ha.z1)/2;
   const halleM=new THREE.Mesh(new THREE.BoxGeometry(hw,H,hd),blech);
@@ -1595,18 +1592,18 @@ function buildLogistik(){
   scene.add(halleM); occluders.push(halleM); meterUV(halleM);
   bbox(hw+0.1,1.3,hd+0.1,sockel,hcx,0.65,hcz,null,false);
   bbox(hw+0.5,0.7,hd+0.5,attika,hcx,H+0.3,hcz,null,false);
-  bbox(hw+0.2,0.5,hd+0.2,std(0x1b2340,{roughness:0.8}),hcx,H-1.4,hcz,null,false);
+  bbox(hw+0.2,0.5,hd+0.2,MAT.std(0x1b2340,{roughness:0.8}),hcx,H-1.4,hcz,null,false);
   /* Dach mit Lichtband und Lueftern */
-  flat(hw-0.6,hd-0.6,std(0x4a4f58,{roughness:0.95}),hcx,H+0.02,hcz);
-  for(let i=0;i<7;i++) flat(3.4,hd-4,new THREE.MeshBasicMaterial({color:0xdfe6ef,toneMapped:false}),ha.x0+4+i*6.2,H+0.05,hcz);
+  flat(hw-0.6,hd-0.6,MAT.std(0x4a4f58,{roughness:0.95}),hcx,H+0.02,hcz);
+  for(let i=0;i<7;i++) flat(3.4,hd-4,MAT.basic(0xdfe6ef,{toneMapped:false}),ha.x0+4+i*6.2,H+0.05,hcz);
   for(let i=0;i<5;i++){ const rx=ha.x0+6+i*8.4;
-    rbox(2.4,1.1,2.0,0.1,std(0xa7adb6,{metalness:0.5,roughness:0.5}),rx,H+0.85,ha.z1-4.5,null);
-    bbox(2.5,0.12,2.1,std(0xeef2f8,{roughness:1}),rx,H+1.46,ha.z1-4.5,null,false); }
+    rbox(2.4,1.1,2.0,0.1,MAT.std(0xa7adb6,{metalness:0.5,roughness:0.5}),rx,H+0.85,ha.z1-4.5,null);
+    bbox(2.5,0.12,2.1,MAT.std(0xeef2f8,{roughness:1}),rx,H+1.46,ha.z1-4.5,null,false); }
   /* --- Buerokopf --- */
   const bw=bu.x1-bu.x0, bd=bu.z1-bu.z0, bcx=(bu.x0+bu.x1)/2, bcz=(bu.z0+bu.z1)/2;
   const glasN=new THREE.MeshStandardMaterial({map:logiGlas(bw,2),roughness:0.22,metalness:0.4});
   const glasW=new THREE.MeshStandardMaterial({map:logiGlas(bd,2),roughness:0.22,metalness:0.4});
-  const putz=std(0xdde1e7,{roughness:0.9});
+  const putz=MAT.std(0xdde1e7,{roughness:0.9});
   const bm=new THREE.Mesh(new THREE.BoxGeometry(bw,LOGI.bh,bd),[glasW,glasW,putz,putz,glasN,glasN]);
   bm.position.set(bcx,LOGI.bh/2,bcz);
   if(HIQ){ bm.castShadow=true; bm.receiveShadow=true; }
@@ -1614,7 +1611,7 @@ function buildLogistik(){
   bbox(bw+0.4,0.45,bd+0.4,attika,bcx,LOGI.bh+0.22,bcz,null,false);
   bbox(bw+0.1,0.9,bd+0.1,sockel,bcx,0.45,bcz,null,false);
   /* Eingangsvordach und Schriftzug */
-  bbox(5.0,0.18,2.4,std(0x9aa1ac,{metalness:0.6,roughness:0.4}),bu.x0+3.2,3.35,bu.z1+1.0,null,false);
+  bbox(5.0,0.18,2.4,MAT.std(0x9aa1ac,{metalness:0.6,roughness:0.4}),bu.x0+3.2,3.35,bu.z1+1.0,null,false);
   for(const dx of [-2.0,2.0]) bbox(0.09,3.3,0.09,steel,bu.x0+3.2+dx,1.65,bu.z1+1.9,null,false);
   plane(11.0,1.95,new THREE.MeshStandardMaterial({map:logiSchriftzug()}),bcx,LOGI.bh-1.5,bu.z1+0.06,0,null);
   /* --- Ladetore an der Westfassade der Halle --- */
@@ -1625,16 +1622,14 @@ function buildLogistik(){
     bl.rotation.y=-Math.PI/2; bl.position.set(ha.x0-0.06,2.1,tz); scene.add(bl);
     for(const s of [-1,1]) bbox(0.16,4.5,0.2,steel,ha.x0-0.08,2.25,tz+s*1.9,null,false);
     bbox(0.16,0.24,4.0,steel,ha.x0-0.08,4.32,tz,null,false);
-    bbox(1.2,0.12,4.6,std(0x3a4150,{metalness:0.5}),ha.x0-0.65,4.85,tz,null,false);
-    for(const s of [-1,1]) bbox(0.2,0.6,0.26,std(0x16181d,{roughness:0.96}),ha.x0-0.16,1.2,tz+s*2.1,null,false);
+    bbox(1.2,0.12,4.6,MAT.std(0x3a4150,{metalness:0.5}),ha.x0-0.65,4.85,tz,null,false);
+    for(const s of [-1,1]) bbox(0.2,0.6,0.26,MAT.std(0x16181d,{roughness:0.96}),ha.x0-0.16,1.2,tz+s*2.1,null,false);
   }
   /* --- Vorplatz, Zaun, Bauschild --- */
-  const ap=concreteTex(); ap.repeat.set(3,14);
-  flat(6.0,30.0,new THREE.MeshStandardMaterial({map:ap,roughness:0.93,color:LIN(0xa8acb2)}),43.5,0.013,-1.0);
-  const ap2=concreteTex(); ap2.repeat.set(10,3);
-  flat(hw-2,5.5,new THREE.MeshStandardMaterial({map:ap2,roughness:0.93,color:LIN(0xa8acb2)}),hcx,0.012,ha.z1+2.8);
+  MAT.kachel(flat(6.0,30.0,new THREE.MeshStandardMaterial({map:MAT.tex('beton'),roughness:0.93,color:LIN(0xa8acb2)}),43.5,0.013,-1.0).geometry,3,14);
+  MAT.kachel(flat(hw-2,5.5,new THREE.MeshStandardMaterial({map:MAT.tex('beton'),roughness:0.93,color:LIN(0xa8acb2)}),hcx,0.012,ha.z1+2.8).geometry,10,3);
   for(let i=0;i<4;i++){ const tz=ha.z0+3.4+i*5.6;
-    for(const s of [-1,1]) flat(4.4,0.14,std(0xf2c230),ha.x0-2.6,0.017,tz+s*2.4); }
+    for(const s of [-1,1]) flat(4.4,0.14,MAT.std(0xf2c230),ha.x0-2.6,0.017,tz+s*2.4); }
   /* Zaun mit Bauschild: faellt, sobald das Zentrum freigeschaltet wird */
   const Z=LOGI.zaun, ZH=2.4;
   zaunLauf(Z.x,Z.z0,Z.x,Z.z1,ZH);
@@ -1651,7 +1646,7 @@ function buildLogistik(){
       bbox(0.1,0.1,3.0,steel,0,0.4,s*1.55,g2,false);
       for(let i=0;i<10;i++) bbox(0.07,ZH-0.6,0.07,steel,0,ZH/2,s*0.1+s*i*0.32,g2,false);
       bbox(0.12,ZH+0.3,0.12,steel,0,(ZH+0.3)/2,s*3.05,g2,false); }
-    bbox(0.14,0.3,0.24,std(0xf2c230,{roughness:0.6}),0.1,1.15,0,g2,false); }
+    bbox(0.14,0.3,0.24,MAT.std(0xf2c230,{roughness:0.6}),0.1,1.15,0,g2,false); }
   /* Hier stand ein Bauschild „NOCH NICHT ZU HABEN“. Auch das ist
      raus - kein Schild im Spiel soll den Spieler daran erinnern,
      was er noch nicht hat. */

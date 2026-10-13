@@ -142,7 +142,7 @@ class InstancedBufferAttribute extends BufferAttribute{constructor(a,i){super(a,
 class Sprite extends Object3D{constructor(m){super();this.material=m;}}
 class InstancedMesh extends Mesh{constructor(g,m,c){super(g,m);this.count=0;this.instanceMatrix=new BufferAttribute(new Float32Array(16*c),16);}
   setMatrixAt(i,m){this._last=m;}}
-class Material{clone(){ const m=Object.create(Object.getPrototypeOf(this)); Object.assign(m,this); return m; } constructor(o){Object.assign(this,o||{});if(this.color===undefined)this.color=new Color(0xffffff);else if(typeof this.color==='number')this.color=new Color(this.color);}
+class Material{clone(){ const m=Object.create(Object.getPrototypeOf(this)); Object.assign(m,this); return m; } constructor(o){this.userData={};Object.assign(this,o||{});if(this.color===undefined)this.color=new Color(0xffffff);else if(typeof this.color==='number')this.color=new Color(this.color);}
   dispose(){}}
 class MeshStandardMaterial extends Material{}
 class MeshPhysicalMaterial extends MeshStandardMaterial{}

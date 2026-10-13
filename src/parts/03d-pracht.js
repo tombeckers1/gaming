@@ -289,11 +289,29 @@ function prDrinnen(x,z){
   return false;
 }
 const _prV=new THREE.Vector3();
+/* 13.10. (Fundament, Materialbibliothek): Materialien aus MAT teilen sich viele Meshes in Laden,
+   Lager und draussen. Pracht entscheidet Spiegelboden und Innen/Aussen aber je Material - damit
+   das Bild genau so bleibt wie vorher mit eigenen Materialien je Stelle, bekommt jeder weitere
+   Ort (flacher Boden ja/nein, innen/aussen) eine eigene frische Kopie (MAT.kopie). */
+const _prTeil=new WeakMap();
+function prFlachBoden(o){ const g=o.geometry; if(!g||!g.attributes||!g.attributes.position||o.isInstancedMesh) return false;
+  if(!g.boundingBox) g.computeBoundingBox();
+  _prB.copy(g.boundingBox).applyMatrix4(o.matrixWorld); _prB.getSize(_prS);
+  return _prS.y<0.03&&_prB.max.y<0.05&&_prB.min.y>-0.03&&_prS.x*_prS.z>0.5; }
+function prTeilen(m,o){
+  let k=PR.spRT&&prFlachBoden(o)?'f':'-';
+  if(PR.envAussen){ const g=o.geometry; if(g&&!g.boundingSphere&&g.computeBoundingSphere) g.computeBoundingSphere(); if(g&&g.boundingSphere) _prV.copy(g.boundingSphere.center).applyMatrix4(o.matrixWorld); else o.getWorldPosition(_prV); k+=prDrinnen(_prV.x,_prV.z)?'i':'a'; }
+  let e=_prTeil.get(m); if(!e){ e={}; e[k]=m; _prTeil.set(m,e); return m; }
+  if(!e[k]){ e[k]=MAT.kopie(m); PR.nTeil=(PR.nTeil||0)+1; }
+  return e[k];
+}
 function prMaterialien(wurzel){
   const aussen=new Map();
   (wurzel||scene).traverse(o=>{ if(!(o.isMesh||o.isInstancedMesh)||o.isSkinnedMesh) return;
     const ms=Array.isArray(o.material)?o.material:[o.material];
-    for(const m of ms){ if(!m) continue; prVeredeln(m,o); prSpiegelPruefen(m,o);
+    for(let i=0;i<ms.length;i++){ let m=ms[i]; if(!m) continue;
+      if(m.userData.mat){ const t=prTeilen(m,o); if(t!==m){ if(Array.isArray(o.material)){ o.material=o.material.slice(); o.material[i]=t; } else o.material=t; m=t; } }
+      prVeredeln(m,o); prSpiegelPruefen(m,o);
       if(PR.envAussen&&m.userData.prEnv!==undefined&&!m.userData.prOrt){ const g=o.geometry; if(g&&!g.boundingSphere&&g.computeBoundingSphere) g.computeBoundingSphere(); if(g&&g.boundingSphere) _prV.copy(g.boundingSphere.center).applyMatrix4(o.matrixWorld); else o.getWorldPosition(_prV); const d=prDrinnen(_prV.x,_prV.z), e=aussen.get(m)||{i:0,a:0}; d?e.i++:e.a++; aussen.set(m,e); } } });
   /* nur draussen benutzt: Spiegelbild der Strasse statt des Ladens */
   for(const [m,e] of aussen){ m.userData.prOrt=e.a>e.i?'aussen':'innen'; if(m.userData.prOrt==='aussen'&&!m.envMap){ m.envMap=PR.envAussen; m.needsUpdate=true; } }

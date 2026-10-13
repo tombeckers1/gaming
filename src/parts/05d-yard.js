@@ -34,7 +34,7 @@ function schild(x,y,z,w,h,mat,steelM){
     cap.position.set(sx,y+h/2,0); g.add(cap);
   }
   /* Rueckblech, damit das Schild Tiefe hat */
-  bbox(w+0.05,h+0.05,0.025,std(0x4a515c,{metalness:0.5,roughness:0.5}),0,y,-0.016,g,false);
+  bbox(w+0.05,h+0.05,0.025,MAT.std(0x4a515c,{metalness:0.5,roughness:0.5}),0,y,-0.016,g,false);
   plane(w,h,mat,0,y,0.002,0,g);
   plane(w,h,mat,0,y,-0.032,Math.PI,g);
   return g;
@@ -104,9 +104,9 @@ function yardGroundTex(){
   return t;
 }
 function buildYard(){
-  const steel=std(0x9aa1ab,{metalness:0.72,roughness:0.3});
-  const steelDark=std(0x5d646e,{metalness:0.65,roughness:0.42});
-  const rubber=std(0x1c1f26,{roughness:0.95});
+  const steel=MAT.std(0x9aa1ab,{metalness:0.72,roughness:0.3});
+  const steelDark=MAT.std(0x5d646e,{metalness:0.65,roughness:0.42});
+  const rubber=MAT.std(0x1c1f26,{roughness:0.95});
   /* Perforiertes Tischblech */
   const perf=tex(512,512,(g,W,H)=>{
     g.fillStyle='#aab0b9'; g.fillRect(0,0,W,H);
@@ -167,14 +167,14 @@ function buildYard(){
       bbox(0.06,TT-0.05,0.06,steelDark,x,(TT-0.05)/2,z,g);
       bbox(0.11,0.025,0.11,rubber,x,0.012,z,g,false); }
     bbox(1.1,0.03,0.12,steelDark,0,0.26,0.3,g,false); bbox(1.1,0.03,0.12,steelDark,0,0.26,-0.3,g,false);
-    const tubeM=std(0x3e4652,{metalness:0.72,roughness:0.34});
+    const tubeM=MAT.std(0x3e4652,{metalness:0.72,roughness:0.34,side:THREE.DoubleSide});   /* side vorher nachtraeglich je Rohr gesetzt */
     const A=ROHR_ACHSE, c=Math.cos(A.neig), sn=Math.sin(A.neig);
     for(let i=0;i<s.cap;i++){
       const x=RAMPE_X[i];
       const t=new THREE.Mesh(new THREE.CylinderGeometry(0.062,0.062,A.halb*2,20,1,true),tubeM);
-      t.material.side=THREE.DoubleSide; t.position.set(x,A.y,A.z); t.rotation.x=A.neig;
+      t.position.set(x,A.y,A.z); t.rotation.x=A.neig;
       if(HIQ) t.castShadow=true; g.add(t);
-      const inner=new THREE.Mesh(new THREE.CylinderGeometry(0.056,0.056,A.halb*2-0.03,16,1,true),std(0x14161b,{roughness:0.9,side:THREE.DoubleSide}));
+      const inner=new THREE.Mesh(new THREE.CylinderGeometry(0.056,0.056,A.halb*2-0.03,16,1,true),MAT.std(0x14161b,{roughness:0.9,side:THREE.DoubleSide}));
       inner.position.copy(t.position); inner.rotation.copy(t.rotation); g.add(inner);
       /* Boden des Rohrs, Muendungsring, Schelle */
       const fussY=A.y-c*A.halb, fussZ=A.z-sn*A.halb;
@@ -215,9 +215,9 @@ function buildYard(){
       for(let i=0;i<900;i++){ c.fillStyle=`rgba(0,0,0,${Math.random()*0.07})`; c.fillRect(Math.random()*W,Math.random()*H,2,2); } });
       t.wrapS=t.wrapT=THREE.RepeatWrapping; t.repeat.set(3,1.5);
       return new THREE.MeshStandardMaterial({map:t,metalness:0.62,roughness:0.44}); })();
-    const stahl=std(0x767d88,{metalness:0.72,roughness:0.36});
-    const lack =std(0xf2c230,{metalness:0.25,roughness:0.55});
-    const rohrM=std(0x2f353f,{metalness:0.78,roughness:0.3});
+    const stahl=MAT.std(0x767d88,{metalness:0.72,roughness:0.36});
+    const lack =MAT.std(0xf2c230,{metalness:0.25,roughness:0.55});
+    const rohrM=MAT.std(0x2f353f,{metalness:0.78,roughness:0.3,side:THREE.DoubleSide});   /* side vorher nachtraeglich je Rohr gesetzt */
     /* Bodenplatte aus Riffelblech auf vier Fuessen */
     bbox(2.4,0.05,1.16,riffel,0,0.055,0,g);
     for(const sx of [-1.06,1.06]) for(const sz of [-0.46,0.46])
@@ -246,15 +246,15 @@ function buildYard(){
     const kal=[[-0.72,MOERSER_R[0],1.30],[0,MOERSER_R[1],1.55],[0.78,MOERSER_R[2],1.85]];
     kal.forEach(([x,r,hh],i)=>{
       const t=new THREE.Mesh(new THREE.CylinderGeometry(r,r,hh,22,1,true),rohrM);
-      t.material.side=THREE.DoubleSide; t.position.set(x,0.18+hh/2,0);
+      t.position.set(x,0.18+hh/2,0);
       if(HIQ) t.castShadow=true; g.add(t);
-      const innen=new THREE.Mesh(new THREE.CylinderGeometry(r*0.9,r*0.9,hh-0.04,16,1,true),std(0x0b0c10,{roughness:1,side:THREE.DoubleSide}));
+      const innen=new THREE.Mesh(new THREE.CylinderGeometry(r*0.9,r*0.9,hh-0.04,16,1,true),MAT.std(0x0b0c10,{roughness:1,side:THREE.DoubleSide}));
       innen.position.copy(t.position); g.add(innen);
       /* Boden im Rohr, damit man nicht hindurchsieht */
-      const bo=new THREE.Mesh(new THREE.CircleGeometry(r*0.9,16),std(0x15171c,{roughness:1}));
+      const bo=new THREE.Mesh(new THREE.CircleGeometry(r*0.9,16),MAT.std(0x15171c,{roughness:1}));
       bo.rotation.x=-Math.PI/2; bo.position.set(x,0.2,0); g.add(bo);
       /* Muendungswulst und Verstaerkungsringe */
-      const wulst=new THREE.Mesh(new THREE.TorusGeometry(r*1.03,r*0.17,8,20),std(0x454d59,{metalness:0.7,roughness:0.35}));
+      const wulst=new THREE.Mesh(new THREE.TorusGeometry(r*1.03,r*0.17,8,20),MAT.std(0x454d59,{metalness:0.7,roughness:0.35}));
       wulst.rotation.x=Math.PI/2; wulst.position.set(x,0.18+hh,0); g.add(wulst);
       for(const f of [0.3,0.62]){ const rg=new THREE.Mesh(new THREE.TorusGeometry(r*1.02,r*0.1,6,18),rohrM);
         rg.rotation.x=Math.PI/2; rg.position.set(x,0.18+hh*f,0); g.add(rg); }
@@ -279,15 +279,15 @@ function buildYard(){
     /* Um 180 Grad gedreht gegenueber vorher: der Bediener steht auf der
        Rueckseite und blickt ueber das Pult aufs Testfeld. */
     const g=new THREE.Group(); g.position.set(PULT_POS.x,0,PULT_POS.z); g.rotation.y=PULT_RY; scene.add(g);
-    const korpus=std(0x2b3240,{metalness:0.42,roughness:0.44});
-    const kante=std(0x9aa1ac,{metalness:0.7,roughness:0.3});
-    const pulver=std(0xf2c230,{roughness:0.55});
+    const korpus=MAT.std(0x2b3240,{metalness:0.42,roughness:0.44});
+    const kante=MAT.std(0x9aa1ac,{metalness:0.7,roughness:0.3});
+    const pulver=MAT.std(0xf2c230,{roughness:0.55});
 
     /* Unterbau als geschlossener Schaltschrank. Vorher stand das
        Pult auf vier duennen Rohren und wirkte wie ein Campingtisch -
        fuer ein Geraet, das Feuerwerk zuendet, zu wenig. */
-    const blech=std(0x353c4a,{metalness:0.5,roughness:0.44});
-    const rippe=std(0x232936,{metalness:0.45,roughness:0.5});
+    const blech=MAT.std(0x353c4a,{metalness:0.5,roughness:0.44});
+    const rippe=MAT.std(0x232936,{metalness:0.45,roughness:0.5});
     /* Sockel mit Fussleiste */
     bbox(1.02,0.09,0.62,rippe,0,0.045,0,g);
     bbox(1.06,0.02,0.66,kante,0,0.10,0,g,false);
@@ -309,7 +309,7 @@ function buildYard(){
        geht dort in den Boden. Ein loses Stueck, das schraeg daneben
        lag, steckte halb im Boden und endete im Nichts - von oben ein
        schwarzer Keil (Tom, Foto 29.09.). */
-    { const kr=new THREE.Mesh(new THREE.CylinderGeometry(0.035,0.035,0.16,10),std(0x1c1f26,{roughness:0.9}));
+    { const kr=new THREE.Mesh(new THREE.CylinderGeometry(0.035,0.035,0.16,10),MAT.std(0x1c1f26,{roughness:0.9}));
       kr.position.set(0.30,0.08,-0.24); kr.userData.kabelrohr=true; g.add(kr); }
     /* Warnstreifen ueber dem Sockel */
     plane(0.98,0.07,new THREE.MeshStandardMaterial({map:tex(420,32,(c,W,H)=>{
@@ -384,7 +384,7 @@ function buildYard(){
     pultTex=tex(960,480,()=>{});
     /* im Feld ANZEIGE, unter der Kanalreihe - weiter oben verdeckte
        das Display die Kanalnummern 4 bis 6 */
-    rbox(0.32,0.02,0.19,0.008,std(0x11141b,{roughness:0.5}),-0.030,0.02,0.052,pult);
+    rbox(0.32,0.02,0.19,0.008,MAT.std(0x11141b,{roughness:0.5}),-0.030,0.02,0.052,pult);
     const scr=plane(0.285,0.155,new THREE.MeshBasicMaterial({map:pultTex,toneMapped:false}),-0.030,0.031,0.052,0,pult);
     scr.rotation.x=-Math.PI/2;
 
@@ -395,13 +395,13 @@ function buildYard(){
        Einbauring, Raendelmutter, Schaft, Teller, Kuppel - und die
        Beschriftung steht auf der Pultplatte daneben. */
     const TX=0.295, TZ=0.065;
-    const rotDunkel=std(0x8e1a11,{roughness:0.42,metalness:0.02});
-    const rotKorpus=std(0xbe2418,{roughness:0.3,metalness:0.03});
-    const rotHell=std(0xd93b2c,{roughness:0.24,metalness:0.03});
+    const rotDunkel=MAT.std(0x8e1a11,{roughness:0.42,metalness:0.02});
+    const rotKorpus=MAT.std(0xbe2418,{roughness:0.3,metalness:0.03});
+    const rotHell=MAT.std(0xd93b2c,{roughness:0.24,metalness:0.03});
     const ring=new THREE.Mesh(new THREE.CylinderGeometry(0.086,0.092,0.020,HIQ?32:16),kante);
     ring.position.set(TX,0.020,TZ); pult.add(ring);
     const raend=new THREE.Mesh(new THREE.CylinderGeometry(0.079,0.079,0.015,HIQ?24:12),
-      std(0x7a8089,{metalness:0.75,roughness:0.28}));
+      MAT.std(0x7a8089,{metalness:0.75,roughness:0.28}));
     raend.position.set(TX,0.036,TZ); pult.add(raend);
     const schaft=new THREE.Mesh(new THREE.CylinderGeometry(0.050,0.050,0.022,HIQ?24:12),rotDunkel);
     schaft.position.set(TX,0.051,TZ); pult.add(schaft);
@@ -423,11 +423,11 @@ function buildYard(){
     /* Schluesselschalter links mit Stellungsmarke */
     const zylR=new THREE.Mesh(new THREE.CylinderGeometry(0.030,0.030,0.020,HIQ?18:10),kante);
     zylR.position.set(-0.328,0.022,0.067); pult.add(zylR);
-    const key=new THREE.Mesh(new THREE.BoxGeometry(0.009,0.014,0.055),std(0xb9a05a,{metalness:0.8,roughness:0.3}));
+    const key=new THREE.Mesh(new THREE.BoxGeometry(0.009,0.014,0.055),MAT.std(0xb9a05a,{metalness:0.8,roughness:0.3}));
     key.position.set(-0.328,0.036,0.094); key.rotation.x=-0.5; pult.add(key);
     /* Meldeleuchten: eine je Kanal. Aus = leer, gruen = scharf,
        rot = brennt (pultLampen) */
-    const tastM=std(0x2a2f38,{roughness:0.5,metalness:0.2}), tastKopf=std(0xd9dde3,{roughness:0.45});
+    const tastM=MAT.std(0x2a2f38,{roughness:0.5,metalness:0.2}), tastKopf=MAT.std(0xd9dde3,{roughness:0.45});
     for(let i=0;i<9;i++){
       const lx=PULT_LAMP_X(i);
       const lm=new THREE.MeshStandardMaterial({color:LIN(0x1e232e),roughness:0.4,emissive:LIN(0x39ff7a),emissiveIntensity:0});
@@ -463,8 +463,8 @@ function buildYard(){
   /* Der erste Mast stand bei z -7,2 und ragte durch die Decke des
      Lagergangs. Beide sind mit den Stationen nach Sueden gerueckt. */
   for(const [x,z] of [[-5.6,-13.0],[6.6,-21.0]]){
-    bbox(0.12,3.4,0.12,std(0x4a4f5a,{metalness:0.5}),x,1.7,z);
-    const head=bbox(0.55,0.3,0.25,std(0x2a2e38),x,3.45,z); head.rotation.x=0.4;
+    bbox(0.12,3.4,0.12,MAT.std(0x4a4f5a,{metalness:0.5}),x,1.7,z);
+    const head=bbox(0.55,0.3,0.25,MAT.std(0x2a2e38),x,3.45,z); head.rotation.x=0.4;
     const lm=new THREE.MeshStandardMaterial({color:0x222222,emissive:LIN(0xfff0d0),emissiveIntensity:0}); lampMats.push(lm);
     bbox(0.45,0.03,0.2,lm,x,3.33,z+(z<-17?0.1:-0.12),null,false);
   }
@@ -600,7 +600,7 @@ function raketeModell(t){
   const mat=h=>std(parseInt(h.slice(1),16),L0.metall?{metalness:0.55,roughness:0.3}:{roughness:0.5});
   /* Stab haengt im Abschussrohr (0,62 m) - er reicht nicht bis zum Boden */
   const SL=0.56;
-  const stab=new THREE.Mesh(new THREE.CylinderGeometry(L0.jumbo?0.011:0.006,L0.jumbo?0.011:0.006,SL,6),std(0xc9a46a,{roughness:0.8}));
+  const stab=new THREE.Mesh(new THREE.CylinderGeometry(L0.jumbo?0.011:0.006,L0.jumbo?0.011:0.006,SL,6),MAT.std(0xc9a46a,{roughness:0.8}));
   stab.position.y=-SL/2+0.01; g.add(stab);
   /* Treibsatz, Band, Kopf */
   const body=new THREE.Mesh(new THREE.CylinderGeometry(L0.r,L0.r,L0.L,HIQ?16:10),mat(L0.body));
@@ -611,7 +611,7 @@ function raketeModell(t){
   const kopf=new THREE.Mesh(new THREE.ConeGeometry(L0.r*1.12,L0.r*(L0.gross?3.4:2.6),HIQ?16:10),mat(L0.kopf));
   kopf.position.y=L0.L+L0.r*(L0.gross?1.7:1.3); g.add(kopf);
   /* Duese mit Zuendschnur */
-  const d=new THREE.Mesh(new THREE.CylinderGeometry(L0.r*0.7,L0.r*0.9,0.02,10),std(0x2a2e36));
+  const d=new THREE.Mesh(new THREE.CylinderGeometry(L0.r*0.7,L0.r*0.9,0.02,10),MAT.std(0x2a2e36));
   d.position.y=-0.01; g.add(d);
   if(L0.flossen) for(let k=0;k<3;k++){
     const fl=bbox(0.004,L0.L*0.32,L0.r*1.3,mat(L0.band),0,L0.L*0.16,0,g,false);
@@ -646,7 +646,7 @@ function moerserRohr(t){ return {kugel75:0,kugel100:0,kugel150:1,kugel200:1,kuge
 function kugelModell(t,slot){
   /* passt nicht jede Kugel in jedes Rohr - dann eben knapp unter die Innenweite */
   const g=new THREE.Group(), rr=ROHR_INNEN[slot%3], rk=Math.min(KUGEL_R[kugelTyp(t)]||0.06,rr*0.97);
-  const papier=std(0xb58a55,{roughness:0.95});
+  const papier=MAT.std(0xb58a55,{roughness:0.95});
   const kugel=new THREE.Mesh(new THREE.SphereGeometry(rk,HIQ?16:10,HIQ?12:8),papier);
   kugel.position.y=-0.14-rk; g.add(kugel);
   /* Schnur: aus der Kugel hoch, ueber den Rand und aussen herab */
@@ -661,7 +661,7 @@ function kugelModell(t,slot){
     const sg=new THREE.Mesh(new THREE.CylinderGeometry(0.009,0.009,L+0.012,6),schnurM);
     sg.position.set((a.x+b.x)/2,(a.y+b.y)/2,0); sg.rotation.z=Math.atan2(-dx,dy); g.add(sg);
   }
-  const spitze=new THREE.Mesh(new THREE.SphereGeometry(0.016,8,6),std(0xd8352a,{roughness:0.6}));
+  const spitze=new THREE.Mesh(new THREE.SphereGeometry(0.016,8,6),MAT.std(0xd8352a,{roughness:0.6}));
   spitze.position.copy(pts[pts.length-1]); g.add(spitze);
   g.userData.lunte=pts[pts.length-1].clone();
   return g;

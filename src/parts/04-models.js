@@ -2,7 +2,8 @@
 /* =========================================================
    3D-Produktmodelle
    ========================================================= */
-const vcMat=new THREE.MeshStandardMaterial({vertexColors:true,roughness:0.45});
+/* Vertexfarben-Material (Ware, Paletten, V1): aus der Materialbibliothek, Klasse 'standard' (r 0,45) */
+const vcMat=MAT.vc('standard');
 /* eigene Verpackungsformen je Produkt (04g-form-*.js) */
 const VP_FORM={};
 const glassMat=new THREE.MeshStandardMaterial({color:0xffffff,transparent:true,opacity:0.22,roughness:0.05,metalness:0.1,depthWrite:false});

@@ -165,13 +165,13 @@ function vsKapazitaet(gr){ const G=VS_GR[gr||1]; return Math.max(1,palPlaetze())
 let _holzGeo=null;
 function vsHolzGeo(){
   if(_holzGeo) return _holzGeo;
-  const HOLZ=0xc49a62, HOLZ2=0xa9814e, HELL=0xcfa66d, vc=[];
-  const B=(w,h,d,c,x,y,z)=>vc.push({geo:GFX==='ultralow'?new THREE.BoxGeometry(w,h,d):roundedBoxGeo(w,h,d,Math.min(0.01,Math.min(w,h,d)*0.2),2),m:tm(x,y,z),color:c});
+  const HOLZ=0xc49a62, HOLZ2=0xa9814e, HELL=0xcfa66d, S=bk.sammler({form:{fase:0.01,seg:2,lod0Kasten:true}});
+  const B=(w,h,d,c,x,y,z)=>S.box(w,h,d,x,y,z,c);
   for(const dx of [-0.55,0,0.55]) for(const dz of [-0.34,0,0.34]) B(0.12,0.078,0.12,HOLZ2,dx,0.061,dz);
   for(const dz of [-0.34,0,0.34]) B(1.2,0.022,0.12,HOLZ,0,0.011,dz);
   for(const dx of [-0.55,0,0.55]) B(0.14,0.022,0.8,HOLZ,dx,0.111,0);
   for(const dz of [-0.34,-0.17,0,0.17,0.34]){ const k=dz===0||Math.abs(dz)>0.3; B(1.2,0.022,k?0.14:0.1,k?HOLZ:HELL,0,PAL_H-0.011,dz); }
-  _holzGeo=merge(vc);
+  _holzGeo=S.geometrie();
   return _holzGeo;
 }
 /* Pakete einer Palette zu einem Mesh: Seiten ein Material, Deckel je
@@ -286,8 +286,8 @@ function hubDa(){ return zoneOffen('packstation'); }
 function hubAn(){ return false; }
 function hubKollision(){}
 function hubModell(){
-  const g=new THREE.Group(), rot=std(0xd23a2a,{metalness:0.3,roughness:0.5}), stahl=std(0x9ba2ad,{metalness:0.75,roughness:0.32});
-  const gummi=std(0x18191d,{roughness:0.95}), griff=std(0x22252c,{roughness:0.7});
+  const g=new THREE.Group(), rot=MAT.std(0xd23a2a,{metalness:0.3,roughness:0.5}), stahl=MAT.std(0x9ba2ad,{metalness:0.75,roughness:0.32});
+  const gummi=MAT.std(0x18191d,{roughness:0.95}), griff=MAT.std(0x22252c,{roughness:0.7});
   /* Gabeln zeigen nach vorn (-z), unter die Palette */
   for(const sx of [-0.27,0.27]){ rbox(0.16,0.055,1.1,0.012,stahl,sx,0.05,-0.78,g); rbox(0.16,0.05,0.2,0.01,stahl,sx,0.045,-1.42,g);
     const r=new THREE.Mesh(new THREE.CylinderGeometry(0.04,0.04,0.07,12),gummi); r.rotation.z=Math.PI/2; r.position.set(sx,0.04,-1.3); g.add(r);
@@ -392,10 +392,10 @@ function ddlSchildTex(){
 function buildVersandhof(){
   if(VD.g) return;
   const g=new THREE.Group(); scene.add(g); VD.g=g;
-  const steel=std(0x8d939d,{metalness:0.6,roughness:0.42}), dark=std(0x2a2e38,{metalness:0.5,roughness:0.45}), gelb=std(0xf2c230,{roughness:0.7});
+  const steel=MAT.std(0x8d939d,{metalness:0.6,roughness:0.42}), dark=MAT.std(0x2a2e38,{metalness:0.5,roughness:0.45}), gelb=MAT.std(0xf2c230,{roughness:0.7});
   /* Vertexfarben: Zarge, Schienen, Kasten, Antrieb, Lampe, Telefon - ein Zeichenaufruf */
-  const VC=[], B=(w,h,d,c,x,y,z,rx,ry,rz)=>VC.push({geo:GFX==='ultralow'?new THREE.BoxGeometry(w,h,d):roundedBoxGeo(w,h,d,Math.min(0.012,Math.min(w,h,d)*0.2),2),m:tm(x,y,z,rx,ry,rz),color:c});
-  const Cy=(r,h,c,x,y,z,rx,ry,rz,seg)=>VC.push({geo:new THREE.CylinderGeometry(r,r,h,seg||10),m:tm(x,y,z,rx,ry,rz),color:c});
+  const VC=bk.sammler({form:{fase:0.012,seg:2,lod0Kasten:true},bauteil:'versandtor'}), B=(w,h,d,c,x,y,z,rx,ry,rz)=>VC.box(w,h,d,x,y,z,c,null,rx,ry,rz);
+  const Cy=(r,h,c,x,y,z,rx,ry,rz,seg)=>VC.zyl(r,r,h,seg||10,x,y,z,c,null,rx,ry,rz);
   const ANTH=0x2b2f36, STAHL=0x8d939d, GRAU=0x5d636c;
   /* Torblatt: sechs Panele (je vier Lamellen), laeuft nach oben in den Wickelkasten */
   const N=6, ph=V1.h/N, PM=vdPanelMat();
@@ -455,23 +455,22 @@ function buildVersandhof(){
     VD.telSchild=plane(0.62,0.31,new THREE.MeshBasicMaterial({map:VD.telTex,toneMapped:false}),PX,PY+0.46,PZ+0.02,0,g);
     VD.telHit=bbox(0.75,1.1,0.4,hitM,PX,PY+0.15,PZ+0.25,g,false); VD.telHit.userData={kind:'ddltel',ref:null};
     VD.telPos={x:PX,z:PZ}; }
-  { const m=new THREE.Mesh(merge(VC),vcMat); if(HIQ){ m.castShadow=true; m.receiveShadow=true; } g.add(m); }
+  VC.fertig(g);
   ddlTelZeichnen();
   /* Versandhof: Betonplatte, Fahrspur, Zaun, Poller */
   const hof=V1_HOF, W=hof.x1-hof.x0, D=hof.z1-hof.z0;
-  const bt=concreteTex(); bt.repeat.set(W/2.2,D/2.2);
-  const fl=new THREE.Mesh(new THREE.PlaneGeometry(W,D),new THREE.MeshStandardMaterial({map:bt,roughness:0.92,color:LIN(0xa8acb2)}));
+  const fl=new THREE.Mesh(MAT.kachel(new THREE.PlaneGeometry(W,D),W/2.2,D/2.2),new THREE.MeshStandardMaterial({map:MAT.tex('beton'),roughness:0.92,color:LIN(0xa8acb2)}));
   fl.rotation.x=-Math.PI/2; fl.position.set((hof.x0+hof.x1)/2,0.036,(hof.z0+hof.z1)/2); if(HIQ) fl.receiveShadow=true; g.add(fl);
-  const mark=(w,d,x,z)=>{ const m=new THREE.Mesh(new THREE.PlaneGeometry(w,d),new THREE.MeshBasicMaterial({color:0xf2c230})); m.rotation.x=-Math.PI/2; m.position.set(x,0.04,z); g.add(m); };
+  const mark=(w,d,x,z)=>{ const m=new THREE.Mesh(new THREE.PlaneGeometry(w,d),MAT.basic(0xf2c230)); m.rotation.x=-Math.PI/2; m.position.set(x,0.04,z); g.add(m); };
   for(let z2=hof.z1-0.8;z2>hof.z0+1;z2-=1.1){ mark(0.12,0.6,V1.x-1.75,z2); mark(0.12,0.6,V1.x+1.75,z2); }
   const zm=new THREE.Mesh(new THREE.PlaneGeometry(4.6,1.3),new THREE.MeshBasicMaterial({transparent:true,depthWrite:false,map:tex(920,260,(c2,Wc,Hc)=>{ c2.clearRect(0,0,Wc,Hc);
     c2.fillStyle='rgba(18,20,26,.62)'; c2.fillRect(0,0,Wc,Hc); c2.strokeStyle='#ffd23f'; c2.lineWidth=10; c2.strokeRect(5,5,Wc-10,Hc-10);
     c2.textAlign='center'; c2.textBaseline='middle'; c2.font=BUN(104); c2.fillStyle='#ffd23f'; c2.fillText('VERSANDHOF',Wc/2,Hc/2+3); })}));
   zm.rotation.x=-Math.PI/2; zm.rotation.z=0; zm.position.set(V1.x,0.045,hof.z1-2.4); zm.renderOrder=2; g.add(zm);
-  const zaunM=std(0x4a5260,{metalness:0.6,roughness:0.5});
+  const zaunM=MAT.std(0x4a5260,{metalness:0.6,roughness:0.5});
   const zaun=(x0,z0,x1,z1)=>{ const quer=Math.abs(x1-x0)>Math.abs(z1-z0), L=quer?Math.abs(x1-x0):Math.abs(z1-z0), n=Math.max(1,Math.round(L/2));
     for(let j=0;j<=n;j++){ const x=x0+(x1-x0)*j/n, z=z0+(z1-z0)*j/n; bbox(0.08,2.0,0.08,zaunM,x,1.0,z,g,false); }
-    const m=new THREE.Mesh(new THREE.BoxGeometry(quer?L:0.03,1.7,quer?0.03:L),std(0x707886,{metalness:0.5,roughness:0.5,transparent:true,opacity:0.55}));
+    const m=new THREE.Mesh(new THREE.BoxGeometry(quer?L:0.03,1.7,quer?0.03:L),MAT.std(0x707886,{metalness:0.5,roughness:0.5,transparent:true,opacity:0.55}));
     m.position.set((x0+x1)/2,1.0,(z0+z1)/2); g.add(m);
     for(const yy of [0.15,1.95]) bbox(quer?L:0.05,0.05,quer?0.05:L,zaunM,(x0+x1)/2,yy,(z0+z1)/2,g,false); };
   zaun(hof.x0,hof.z1,hof.x0,hof.z0); zaun(hof.x1,hof.z1,hof.x1,hof.z0); zaun(hof.x0,hof.z0,hof.x1,hof.z0);

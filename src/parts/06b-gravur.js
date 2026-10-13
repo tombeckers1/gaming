@@ -105,9 +105,9 @@ function drawGrav(){
 /* Gravierte Einzelstücke (eigene Meshes, weil jeder Text anders ist) */
 function makeEngraved(text){
   const g=new THREE.Group();
-  const body=new THREE.Mesh(new THREE.CylinderGeometry(0.019,0.019,0.16,12),std(0xd8352a)); body.rotation.z=Math.PI/2; g.add(body);
-  const tip=new THREE.Mesh(new THREE.ConeGeometry(0.019,0.05,12),std(0xffd23f)); tip.rotation.z=-Math.PI/2; tip.position.x=0.105; g.add(tip);
-  const stick=new THREE.Mesh(new THREE.CylinderGeometry(0.004,0.004,0.32,5),std(0xc9a46a)); stick.rotation.z=Math.PI/2; stick.position.set(-0.2,-0.016,0); g.add(stick);
+  const body=new THREE.Mesh(new THREE.CylinderGeometry(0.019,0.019,0.16,12),MAT.std(0xd8352a)); body.rotation.z=Math.PI/2; g.add(body);
+  const tip=new THREE.Mesh(new THREE.ConeGeometry(0.019,0.05,12),MAT.std(0xffd23f)); tip.rotation.z=-Math.PI/2; tip.position.x=0.105; g.add(tip);
+  const stick=new THREE.Mesh(new THREE.CylinderGeometry(0.004,0.004,0.32,5),MAT.std(0xc9a46a)); stick.rotation.z=Math.PI/2; stick.position.set(-0.2,-0.016,0); g.add(stick);
   const lt=tex(384,96,(c,W,H)=>{
     const gr=c.createLinearGradient(0,0,0,H); gr.addColorStop(0,'#f4f1e8'); gr.addColorStop(1,'#ded7c6'); c.fillStyle=gr; c.fillRect(0,0,W,H);
     c.fillStyle='#6a24c9'; c.fillRect(0,0,W,10); c.fillRect(0,H-10,W,10);

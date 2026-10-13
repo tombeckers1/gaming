@@ -109,8 +109,8 @@ function makeTruck(name,col){
   if(HIQ){ body.castShadow=true; body.receiveShadow=true; } g.add(body);
   /* Kastenhülle aussen, innen dunkel */
   const bm=new THREE.MeshStandardMaterial({map:liveryTex(name,col,false),roughness:0.62,metalness:0.1});
-  const side=std(0x2a2e36,{roughness:0.7});
-  const kof=new THREE.Mesh(new THREE.BoxGeometry(L,HH,W+0.1),[side,side,std(0xdfe3ea),side,bm,bm]);
+  const side=MAT.std(0x2a2e36,{roughness:0.7});
+  const kof=new THREE.Mesh(new THREE.BoxGeometry(L,HH,W+0.1),[side,side,MAT.std(0xdfe3ea),side,bm,bm]);
   kof.position.set(cx,HH/2,0); if(HIQ) kof.castShadow=true; g.add(kof);
   /* Scheiben */
   const gl=new THREE.MeshStandardMaterial({color:LIN(0x1d2632),transparent:true,opacity:0.62,roughness:0.08,metalness:0.4});
@@ -156,7 +156,7 @@ function makeLaderaum(name,col,rahmen){
       c.ellipse(Math.random()*Wc,Hc*0.62+Math.random()*Hc*0.38,rand(8,30),rand(4,11),0,0,Math.PI*2); c.fill(); } });
   wallTexI.wrapS=wallTexI.wrapT=THREE.RepeatWrapping; wallTexI.repeat.set(3.2,1);
   const wm=new THREE.MeshStandardMaterial({map:wallTexI,roughness:0.82,side:THREE.DoubleSide});
-  const alu=std(0xb6bcc4,{metalness:0.55,roughness:0.42});
+  const alu=MAT.std(0xb6bcc4,{metalness:0.55,roughness:0.42});
   for(const s of [-1,1]){
     const wl=new THREE.Mesh(new THREE.PlaneGeometry(L,HH),wm);
     wl.rotation.y=s>0?Math.PI:0; wl.position.set(-L/2,HH/2,s*W/2); g.add(wl);
@@ -164,15 +164,15 @@ function makeLaderaum(name,col,rahmen){
     for(const yy of [0.52,1.46]){
       bbox(L-0.12,0.05,0.026,alu,-L/2,yy,s*(W/2-0.02),g,false);
       for(let k=0;k<Math.floor((L-0.8)/1.1);k++)
-        bbox(0.09,0.028,0.014,std(0x7d838c,{metalness:0.7,roughness:0.35}),-0.55-k*1.1,yy,s*(W/2-0.036),g,false);
+        bbox(0.09,0.028,0.014,MAT.std(0x7d838c,{metalness:0.7,roughness:0.35}),-0.55-k*1.1,yy,s*(W/2-0.036),g,false);
     }
     /* Scheuerleiste unten */
-    bbox(L-0.1,0.18,0.04,std(0x8a7f6a,{roughness:0.9}),-L/2,0.1,s*(W/2-0.03),g,false);
+    bbox(L-0.1,0.18,0.04,MAT.std(0x8a7f6a,{roughness:0.9}),-L/2,0.1,s*(W/2-0.03),g,false);
     /* Dachkante */
     bbox(L-0.1,0.07,0.05,alu,-L/2,HH-0.05,s*(W/2-0.03),g,false);
   }
   /* Decke mit lichtdurchlaessigem Dachband */
-  const ceil=new THREE.Mesh(new THREE.PlaneGeometry(L,W),std(0xf0ece2,{roughness:0.9,side:THREE.DoubleSide}));
+  const ceil=new THREE.Mesh(new THREE.PlaneGeometry(L,W),MAT.std(0xf0ece2,{roughness:0.9,side:THREE.DoubleSide}));
   ceil.rotation.x=Math.PI/2; ceil.position.set(-L/2,HH,0); g.add(ceil);
   const dach=new THREE.Mesh(new THREE.PlaneGeometry(L-0.4,W*0.5),
     new THREE.MeshBasicMaterial({color:0xfbf7ec,toneMapped:false}));
@@ -192,10 +192,10 @@ function makeLaderaum(name,col,rahmen){
   for(const s of [-1,1]) bbox(0.05,HH,0.07,alu,-L+0.05,HH/2,s*(W/2-0.07),g,false);
   /* Heck: Kantenschutz innen, Rahmen aussen gegen die Torlaibung */
   for(const s of [-1,1]) bbox(0.09,HH,0.09,alu,-0.05,HH/2,s*(W/2-0.05),g,false);
-  const rah=std(0x2f343c,{roughness:0.8});
+  const rah=MAT.std(0x2f343c,{roughness:0.8});
   for(const s of [-1,1]) bbox(0.14,HH+0.34,0.28,rah,-0.07,HH/2,s*(W/2+0.13),g,false);
   bbox(0.14,0.28,W+0.54,rah,-0.07,HH+0.14,0,g,false);
-  bbox(0.14,0.09,W,std(0x6a7078,{metalness:0.5}),-0.04,0.05,0,g,false);
+  bbox(0.14,0.09,W,MAT.std(0x6a7078,{metalness:0.5}),-0.04,0.05,0,g,false);
   bbox(0.1,0.1,W,alu,-0.05,HH-0.05,0,g,false);
   return g;
 }
@@ -249,9 +249,9 @@ function makeBruecke(rahmen){
   const pl=new THREE.MeshStandardMaterial({map:plate,metalness:0.6,roughness:0.45});
   bbox(1.5,0.05,3.1,pl,0.8,0,0,g,false);
   const lip=bbox(0.34,0.04,3.1,pl,-0.02,0,0,g,false); lip.rotation.z=0.05;
-  for(const dz of [-1.5,1.5]) bbox(1.5,0.02,0.1,std(0xf2c230),0.8,0.035,dz,g,false);
+  for(const dz of [-1.5,1.5]) bbox(1.5,0.02,0.1,MAT.std(0xf2c230),0.8,0.035,dz,g,false);
   /* Scharniere zum Laderaum hin */
-  const hg=std(0x6f757e,{metalness:0.7,roughness:0.4});
+  const hg=MAT.std(0x6f757e,{metalness:0.7,roughness:0.4});
   for(const dz of [-1.1,0,1.1]) bbox(0.12,0.08,0.34,hg,0.08,0.015,dz,g,false);
   (rahmen||scene).add(g);
   return g;

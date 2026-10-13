@@ -142,7 +142,7 @@ function buildPark(){
     E.push({geo:new THREE.SphereGeometry(0.08,10,8),m:tm(0,0.26,0.2),color:erpel?0x1f6b3a:0x6a4a2a});
     E.push({geo:new THREE.ConeGeometry(0.03,0.1,6),m:tm(0,0.25,0.3,Math.PI/2,0,0),color:0xe0a030});
     E.push({geo:new THREE.SphereGeometry(0.1,8,6),m:tm(0,0.14,-0.18,0,0,0,1,0.6,1),color:erpel?0x3a3a3a:0x5a4230});
-    g.add(new THREE.Mesh(merge(E),new THREE.MeshStandardMaterial({vertexColors:true,roughness:0.7})));
+    g.add(new THREE.Mesh(merge(E),MAT.std(0xffffff,{vertexColors:true,roughness:0.7})));
     g.position.set(SEE.x,0.06,SEE.z); scene.add(g);
     parkEnten.push({g,a:rand(0,Math.PI*2),r:rand(0.25,0.8),sp:rand(0.05,0.12)*(i%3?1:-1),ph:rand(0,6)}); }
   if(typeof makePerson==='function') for(let i=0;i<(COARSE?2:4);i++){

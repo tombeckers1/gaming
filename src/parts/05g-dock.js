@@ -57,13 +57,11 @@ function updateDoor(dt){
   doorSet(door.t+(d>0?1:-1)*Math.min(Math.abs(d),0.95*dt));
 }
 function buildDock(){
-  const snow=std(0xeef2f8,{roughness:1});
-  const steel=std(0x8d939d,{metalness:0.6,roughness:0.42});
-  const yard=concreteTex(); yard.repeat.set(4,6);
-  const ym=new THREE.MeshStandardMaterial({map:yard,roughness:0.92,color:LIN(0xb0b4ba)});
-  flat(14,9,ym,-27,0.014,-2);
-  const drv=concreteTex(); drv.repeat.set(4,6);
-  flat(10,9.2,new THREE.MeshStandardMaterial({map:drv,roughness:0.92,color:LIN(0xa8acb2)}),-25,0.013,6.9);
+  const snow=MAT.std(0xeef2f8,{roughness:1});
+  const steel=MAT.std(0x8d939d,{metalness:0.6,roughness:0.42});
+  const ym=new THREE.MeshStandardMaterial({map:MAT.tex('beton'),roughness:0.92,color:LIN(0xb0b4ba)});
+  MAT.kachel(flat(14,9,ym,-27,0.014,-2).geometry,4,6);
+  MAT.kachel(flat(10,9.2,new THREE.MeshStandardMaterial({map:MAT.tex('beton'),roughness:0.92,color:LIN(0xa8acb2)}),-25,0.013,6.9).geometry,4,6);
   // Hofmauer
   const mw=brickMat(14,2.8);
   bbox(14.1,2.8,0.24,mw,-27,1.4,-6.0,null,false);
@@ -74,8 +72,8 @@ function buildDock(){
   bbox(0.24,2.8,10.6,mw2,-34.0,1.4,5.9,null,false);
   bbox(0.34,0.14,2.6,snow,-34.0,2.84,-4.85,null,false);
   bbox(0.34,0.14,10.7,snow,-34.0,2.84,5.9,null,false);
-  for(const z of [-3.6,0.6]){ bbox(0.42,3.2,0.42,std(0x5f584e,{roughness:1}),-34.0,1.6,z,null,false);
-    bbox(0.5,0.16,0.5,std(0x3a4150),-34.0,3.24,z,null,false); }
+  for(const z of [-3.6,0.6]){ bbox(0.42,3.2,0.42,MAT.std(0x5f584e,{roughness:1}),-34.0,1.6,z,null,false);
+    bbox(0.5,0.16,0.5,MAT.std(0x3a4150),-34.0,3.24,z,null,false); }
   /* Schiebetor, offen an die Mauer gefahren */
   { const g2=new THREE.Group(); g2.position.set(-34.0,0,3.1); scene.add(g2);
     bbox(0.1,0.1,4.2,steel,0.12,2.25,0,g2,false);
@@ -93,7 +91,7 @@ function buildDock(){
      echte Oeffnungen - hier klebten vorher dunkle Kaesten aussen drauf. */
   buildTor(steel,snow);
   // Vordach über dem Tor
-  const cano=bbox(1.9,0.1,4.4,std(0x3a4150,{metalness:0.5}),-20.95,3.32,-2,null,false); cano.rotation.z=0.08;
+  const cano=bbox(1.9,0.1,4.4,MAT.std(0x3a4150,{metalness:0.5}),-20.95,3.32,-2,null,false); cano.rotation.z=0.08;
   bbox(1.95,0.09,4.45,snow,-20.95,3.42,-2,null,false).rotation.z=0.08;
   /* Zwei Streben von der Wand schraeg hinauf unter die Aussenkante des
      Vordachs. Vorher standen sie bei z = +-1,9 statt um die Dachmitte
@@ -103,18 +101,18 @@ function buildDock(){
   /* Hofbeleuchtung: zwei Wandstrahler an der Lagerwand, dazu zwei
      Mastleuchten im Hof. Vorher schwebten die Leuchten frei in der Luft. */
   for(const z of [-4.9,0.9]){
-    const wm=std(0x3a4150,{metalness:0.5,roughness:0.5});
+    const wm=MAT.std(0x3a4150,{metalness:0.5,roughness:0.5});
     bbox(0.16,0.22,0.16,wm,-20.16,2.85,z,null,false);              // Wandsockel
     const arm=bbox(0.34,0.07,0.07,wm,-20.42,2.95,z,null,false); arm.rotation.z=0.22;
-    const geh=rbox(0.3,0.16,0.4,0.03,std(0x2f343e,{metalness:0.5,roughness:0.45}),-20.64,3.02,z,null);
+    const geh=rbox(0.3,0.16,0.4,0.03,MAT.std(0x2f343e,{metalness:0.5,roughness:0.45}),-20.64,3.02,z,null);
     geh.rotation.z=0.34;
     const lm=new THREE.MeshStandardMaterial({color:LIN(0x23262e),emissive:LIN(0xfff0d0),emissiveIntensity:0}); lampMats.push(lm);
     const wa=bbox(0.06,0.13,0.34,lm,-20.76,2.94,z,null,false); wa.rotation.z=0.34;
-    bbox(0.34,0.03,0.44,std(0x8f959e,{metalness:0.6}),-20.62,3.12,z,null,false);
+    bbox(0.34,0.03,0.44,MAT.std(0x8f959e,{metalness:0.6}),-20.62,3.12,z,null,false);
   }
   if(typeof strassenlampe==='function'){ strassenlampe(-26.4,-5.2,Math.PI/2); strassenlampe(-31.6,-2,Math.PI/2); }
   // Bodenmarkierung für den LKW
-  const mark=(w,d,x,z,c)=>flat(w,d,std(c||0xf2c230),x,0.017,z);
+  const mark=(w,d,x,z,c)=>flat(w,d,MAT.std(c||0xf2c230),x,0.017,z);
   for(let x2=-33;x2<-20.6;x2+=1.0){ mark(0.6,0.12,x2,-3.55); mark(0.6,0.12,x2,-0.45); }
   mark(0.14,3.4,-33.3,-2);
   const zm=new THREE.Mesh(new THREE.PlaneGeometry(5.2,1.6),new THREE.MeshBasicMaterial({transparent:true,depthWrite:false,map:tex(1040,320,(g,W,H)=>{
@@ -128,8 +126,8 @@ function buildDock(){
     g.fillStyle='#ffd23f'; g.fillText('ANLIEFERUNG',W/2,H/2+3); })}));
   zm.rotation.x=-Math.PI/2; zm.position.set(-26,0.018,2.6); zm.renderOrder=2; scene.add(zm);
   // Poller neben dem Tor
-  for(const z of [-4.0,0.0]){ bbox(0.2,0.95,0.2,std(0xf2c230,{roughness:0.7}),-20.6,0.48,z,null,false);
-    bbox(0.22,0.14,0.22,std(0x1f1f24),-20.6,0.86,z,null,false); col(-20.75,-20.45,z-0.15,z+0.15); }
+  for(const z of [-4.0,0.0]){ bbox(0.2,0.95,0.2,MAT.std(0xf2c230,{roughness:0.7}),-20.6,0.48,z,null,false);
+    bbox(0.22,0.14,0.22,MAT.std(0x1f1f24),-20.6,0.86,z,null,false); col(-20.75,-20.45,z-0.15,z+0.15); }
   // Schild an der Wand
   plane(1.5,0.5,new THREE.MeshStandardMaterial({map:tex(300,100,(g,W,H)=>{
     g.fillStyle='#1b2340'; g.fillRect(0,0,W,H); g.strokeStyle='#ffd23f'; g.lineWidth=5; g.strokeRect(6,6,W-12,H-12);
@@ -176,8 +174,8 @@ function torPanelMat(){
 }
 function buildTor(steel,snow){
   const g=new THREE.Group(); scene.add(g);
-  const dark=std(0x2a2e38,{metalness:0.5,roughness:0.45});
-  const rub=std(0x16181d,{roughness:0.96});
+  const dark=MAT.std(0x2a2e38,{metalness:0.5,roughness:0.45});
+  const rub=MAT.std(0x16181d,{roughness:0.96});
   const R=TOR.R, XD=TOR.x, Z=TOR.z;
   /* Zarge aussen */
   for(const dz of [-1.78,1.78]) bbox(0.3,3.2,0.16,steel,-20.0,1.6,Z+dz,null,false);
@@ -209,8 +207,8 @@ function buildTor(steel,snow){
     const dr=new THREE.Mesh(new THREE.CylinderGeometry(0.11,0.08,0.09,12),steel);
     dr.rotation.x=Math.PI/2; dr.position.set(XD+0.24,TOR.h+0.3,Z+dz); g.add(dr);
   }
-  bbox(0.3,0.26,0.4,std(0x3a4150,{metalness:0.55}),XD+0.45,TOR.h+0.3,Z-1.95,g,false);
-  bbox(0.16,0.16,0.2,std(0xf2a01c,{roughness:0.5}),XD+0.45,TOR.h+0.08,Z-1.95,g,false);
+  bbox(0.3,0.26,0.4,MAT.std(0x3a4150,{metalness:0.55}),XD+0.45,TOR.h+0.3,Z-1.95,g,false);
+  bbox(0.16,0.16,0.2,MAT.std(0xf2a01c,{roughness:0.5}),XD+0.45,TOR.h+0.08,Z-1.95,g,false);
   const chain=new THREE.Mesh(new THREE.TorusGeometry(0.16,0.012,6,16),dark);
   chain.position.set(XD+0.5,TOR.h-0.1,Z-1.95); chain.scale.y=3.4; g.add(chain);
   /* Warnleuchte und Ampel */
@@ -224,10 +222,10 @@ function buildTor(steel,snow){
   const lr=new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.05,0.04,10),lampR); lr.rotation.z=Math.PI/2; lr.position.set(XD+0.3,2.0,Z+1.92); g.add(lr);
   const lg=new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.05,0.04,10),lampG); lg.rotation.z=Math.PI/2; lg.position.set(XD+0.3,1.8,Z+1.92); g.add(lg);
   /* Bedienkasten */
-  bbox(0.12,0.24,0.16,std(0xf2c230,{roughness:0.6}),XD+0.3,1.35,Z+1.92,g,false);
+  bbox(0.12,0.24,0.16,MAT.std(0xf2c230,{roughness:0.6}),XD+0.3,1.35,Z+1.92,g,false);
   for(let k=0;k<3;k++) bbox(0.04,0.05,0.05,std([0x2f9e57,0xd8352a,0x2a2e38][k]),XD+0.37,1.43-k*0.07,Z+1.92,g,false);
   /* Torpanele */
-  const pm=std(0xdfe2e6,{metalness:0.4,roughness:0.5});
+  const pm=MAT.std(0xdfe2e6,{metalness:0.4,roughness:0.5});
   const pmT=torPanelMat();
   const panels=[];
   for(let i=0;i<TOR.n;i++){
@@ -250,7 +248,7 @@ function buildTor(steel,snow){
     /* Nut-und-Feder-Profil an den Panelkanten */
     const nut=new THREE.Mesh(new THREE.BoxGeometry(0.075,0.022,TOR.w-0.02),steel);
     nut.position.set(0,TOR.ph/2-0.014,0); pn.add(nut);
-    const fed=new THREE.Mesh(new THREE.BoxGeometry(0.06,0.018,TOR.w-0.04),std(0x9aa1ac,{metalness:0.6,roughness:0.4}));
+    const fed=new THREE.Mesh(new THREE.BoxGeometry(0.06,0.018,TOR.w-0.04),MAT.std(0x9aa1ac,{metalness:0.6,roughness:0.4}));
     fed.position.set(0,-TOR.ph/2+0.012,0); pn.add(fed);
     /* Scharnierbaender in der Flaeche */
     for(const dz of [-0.55,0.55]){
@@ -261,7 +259,7 @@ function buildTor(steel,snow){
       const seal=new THREE.Mesh(new THREE.BoxGeometry(0.12,0.055,TOR.w),rub);
       seal.position.set(0,-TOR.ph/2+0.01,0); pn.add(seal);
       /* Griffmulde und Warnstreifen auf dem untersten Panel */
-      const gr2=new THREE.Mesh(new THREE.BoxGeometry(0.03,0.09,0.5),std(0x59606b,{metalness:0.6,roughness:0.4}));
+      const gr2=new THREE.Mesh(new THREE.BoxGeometry(0.03,0.09,0.5),MAT.std(0x59606b,{metalness:0.6,roughness:0.4}));
       gr2.position.set(-0.056,0.06,0); pn.add(gr2);
       const wt=new THREE.Mesh(new THREE.BoxGeometry(0.012,0.12,TOR.w-0.06),
         new THREE.MeshStandardMaterial({roughness:0.6,map:tex(512,48,(c,W,H)=>{

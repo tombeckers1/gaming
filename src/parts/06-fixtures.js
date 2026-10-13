@@ -114,12 +114,12 @@ function buildCheckout(){
      Leiste und gelber Schrift. */
   const corpus=std(CK_KORPUS,{roughness:0.42,metalness:0.05}),
         panel=std(parseInt(CK_BLENDE.slice(1),16),{roughness:0.34,metalness:0.03}),
-        laminat=std(0xd6dae2,{roughness:0.38,metalness:0.05}),
-        steel=std(0xb8bec8,{metalness:0.72,roughness:0.28}),
-        dark=std(0x14171f,{roughness:0.5}),
+        laminat=MAT.std(0xd6dae2,{roughness:0.38,metalness:0.05}),
+        steel=MAT.std(0xb8bec8,{metalness:0.72,roughness:0.28}),
+        dark=MAT.std(0x14171f,{roughness:0.5}),
         sockel=std(CK_SOCKEL,{roughness:0.6}),
-        rubber=std(0x1c1d22,{roughness:0.95}),
-        accent=std(0xc9ced6,{metalness:0.85,roughness:0.22});
+        rubber=MAT.std(0x1c1d22,{roughness:0.95}),
+        accent=MAT.std(0xc9ced6,{metalness:0.85,roughness:0.22});
   /* Korpus mit Sockelrücksprung */
   const c=rbox(3.2,0.74,0.8,0.02,corpus,0,0.5,0,ckG); occluders.push(c);
   bbox(3.08,0.14,0.68,sockel,0,0.07,0,ckG);
@@ -149,21 +149,21 @@ function buildCheckout(){
   bbox(BL,0.03,0.46,new THREE.MeshStandardMaterial({map:beltTex,roughness:0.85}),BX,0.956,0,ckG,false);
   for(const s2 of [-1,1]){
     bbox(BL+0.06,0.05,0.03,steel,BX,0.965,s2*0.245,ckG);
-    bbox(BL+0.06,0.012,0.012,std(0xf2c230),BX,0.992,s2*0.245,ckG,false);
+    bbox(BL+0.06,0.012,0.012,MAT.std(0xf2c230),BX,0.992,s2*0.245,ckG,false);
   }
   for(const ex of [BELT_B-0.04,BELT_A+0.06]){
     const rl=new THREE.Mesh(new THREE.CylinderGeometry(0.03,0.03,0.47,14),steel);
     rl.rotation.x=Math.PI/2; rl.position.set(ex,0.956,0); ckG.add(rl);
   }
-  bbox(0.07,0.1,0.5,std(0x2a2e38,{metalness:0.4}),BELT_A+0.12,0.94,0,ckG);
+  bbox(0.07,0.1,0.5,MAT.std(0x2a2e38,{metalness:0.4}),BELT_A+0.12,0.94,0,ckG);
   /* Warentrenner */
   { const t=new THREE.Group(); t.position.set(BELT_A-0.25,0.985,0); t.rotation.y=0.08; ckG.add(t);
-    bbox(0.035,0.055,0.42,std(0x2f3a5e),0,0,0,t,false);
+    bbox(0.035,0.055,0.42,MAT.std(0x2f3a5e),0,0,0,t,false);
     plane(0.4,0.05,new THREE.MeshStandardMaterial({map:tex(600,78,(g,W,H)=>{ g.fillStyle='#2f3a5e'; g.fillRect(0,0,W,H); g.fillStyle='#ffd23f'; g.font=BAR(51); g.textAlign='center'; g.textBaseline='middle'; g.fillText('NÄCHSTER KUNDE',W/2,H/2+3); })}),0.019,0,0,Math.PI/2,t); }
   /* Scanner: eine in die Platte eingelassene Glasscheibe, sonst nichts */
   {
-    const bezel=std(0xaeb4bd,{metalness:0.18,roughness:0.5});
-    const frameIn=std(0x30353d,{metalness:0.1,roughness:0.62});
+    const bezel=MAT.std(0xaeb4bd,{metalness:0.18,roughness:0.5});
+    const frameIn=MAT.std(0x30353d,{metalness:0.1,roughness:0.62});
     const scanGlass=new THREE.MeshStandardMaterial({
       color:LIN(0x121620),roughness:0.07,metalness:0.25,
       map:tex(512,512,(g,W,H)=>{
@@ -185,7 +185,7 @@ function buildCheckout(){
     bbox(0.026,0.026,0.01,led,-0.42,0.9775,0.16,ckG,false);
   }
   /* Kassenmonitor auf Schwenkarm */
-  bbox(0.16,0.03,0.16,std(0x2c3140,{metalness:0.3}),-0.8,0.96,-0.06,ckG,false);
+  bbox(0.16,0.03,0.16,MAT.std(0x2c3140,{metalness:0.3}),-0.8,0.96,-0.06,ckG,false);
   const post=new THREE.Mesh(new THREE.CylinderGeometry(0.022,0.028,0.34,12),steel); post.position.set(-0.8,1.12,-0.06); ckG.add(post);
   const arm=bbox(0.04,0.04,0.16,steel,-0.8,1.29,-0.01,ckG,false); arm.rotation.x=0.5;
   const scrBody=rbox(0.44,0.32,0.035,0.01,dark,-0.8,1.4,-0.06,ckG); scrBody.rotation.x=0.16;
@@ -227,14 +227,14 @@ function buildCheckout(){
       for(let i=0;i<500;i++){ g.fillStyle=`rgba(255,255,255,${Math.random()*0.03})`; g.fillRect(Math.random()*W,Math.random()*H,2,2); }
     });
     kbT.anisotropy=8;
-    const wanne=std(0x141820,{roughness:0.55,metalness:0.1});
+    const wanne=MAT.std(0x141820,{roughness:0.55,metalness:0.1});
     const kb=rbox(0.44,0.026,0.175,0.006,wanne,-0.8,0.954,-0.32,ckG); kb.rotation.x=-0.06;
     const face=plane(0.4,0.15,new THREE.MeshStandardMaterial({map:kbT,roughness:0.42}),-0.8,0.9685,-0.32,0,ckG);
     /* 03.10. (Tom, Foto): die Beschriftung stand fuer den Kassierer auf dem
        Kopf - um 180 Grad in der Ebene gedreht, Funktionstasten rechts */
     face.rotation.set(-Math.PI/2-0.06,0,Math.PI);
     /* Kabel zur Kasse */
-    const kab=new THREE.Mesh(new THREE.CylinderGeometry(0.006,0.006,0.13,6),std(0x20242c,{roughness:0.9}));
+    const kab=new THREE.Mesh(new THREE.CylinderGeometry(0.006,0.006,0.13,6),MAT.std(0x20242c,{roughness:0.9}));
     kab.position.set(-0.8,0.952,-0.4); kab.rotation.x=1.35; ckG.add(kab);
   }
   posHit=bbox(0.66,0.72,0.6,hitM,-0.8,1.2,-0.1,ckG,false); posHit.userData={kind:'pos'};
@@ -276,30 +276,16 @@ function sbScreenTex(){
    Oberflaeche (Lack, Metall, matt, leuchtend) werden mit Vertexfarben zu
    je einem Mesh verschmolzen. pivot() setzt eine Bezugsmatrix fuer
    gekippte Baugruppen (Bildschirm, Kartenterminal). */
-const _geraetMat={};
-function geraetMat(art){
-  if(_geraetMat[art]) return _geraetMat[art];
-  let m;
-  if(art==='leucht') m=new THREE.MeshBasicMaterial({vertexColors:true,toneMapped:false});
-  else m=new THREE.MeshStandardMaterial(Object.assign({vertexColors:true},
-    {lack:{roughness:0.34,metalness:0.06},metall:{roughness:0.26,metalness:0.78},matt:{roughness:0.72,metalness:0.0},glas:{roughness:0.08,metalness:0.35}}[art]));
-  return _geraetMat[art]=m;
-}
+/* 13.10. (Fundament): duenne Huelle ueber den Baukasten-Sammler bk.sammler (04z) -
+   gleiche Aufrufe wie vorher, Materialien aus MAT.vc (lack/metall/matt/glas/leucht); geraetMat entfaellt. */
 function geraetBau(){
-  const T={lack:[],metall:[],matt:[],glas:[],leucht:[]}; let basis=null;
-  const add=(art,geo,c,x,y,z,rx,ry,rz)=>{ let m=tm(x,y,z,rx,ry,rz); if(basis) m=basis.clone().multiply(m); T[art].push({geo,m,color:c}); };
+  const S=bk.sammler({form:{fase:0.02,faseMin:0.03},reihenfolge:['lack','metall','matt','glas','leucht'],bauteil:'geraet'});
   const B={
-    pivot(x,y,z,rx,ry,rz){ basis=(x===undefined)?null:tm(x,y,z,rx,ry,rz); return B; },
-    box(art,w,h,d,c,x,y,z,rx,ry,rz){ const mn=Math.min(w,h,d);
-      add(art,mn>=0.03?roundedBoxGeo(w,h,d,Math.min(0.02,mn*0.2)):new THREE.BoxGeometry(w,h,d),c,x,y,z,rx,ry,rz); return B; },
-    rund(art,w,h,d,r,c,x,y,z,rx,ry,rz){ add(art,roundedBoxGeo(w,h,d,r),c,x,y,z,rx,ry,rz); return B; },
-    zyl(art,r1,r2,h,seg,c,x,y,z,rx,ry,rz){ add(art,new THREE.CylinderGeometry(r1,r2,h,seg),c,x,y,z,rx,ry,rz); return B; },
-    fertig(parent,schatten){ const out=[];
-      for(const art in T){ if(!T[art].length) continue;
-        const me=new THREE.Mesh(merge(T[art]),geraetMat(art));
-        if(HIQ&&schatten!==false&&art!=='leucht'){ me.castShadow=true; me.receiveShadow=true; }
-        parent.add(me); out.push(me); }
-      return out; }
+    pivot(x,y,z,rx,ry,rz){ S.pivot(x,y,z,rx,ry,rz); return B; },
+    box(art,w,h,d,c,x,y,z,rx,ry,rz){ S.box(w,h,d,x,y,z,c,art,rx,ry,rz); return B; },
+    rund(art,w,h,d,r,c,x,y,z,rx,ry,rz){ S.rund(w,h,d,r,x,y,z,c,art,rx,ry,rz); return B; },
+    zyl(art,r1,r2,h,seg,c,x,y,z,rx,ry,rz){ S.zyl(r1,r2,h,seg,x,y,z,c,art,rx,ry,rz); return B; },
+    fertig(parent,schatten){ return S.fertig(parent,{schatten}); }
   };
   return B;
 }
@@ -383,7 +369,7 @@ function buildSBKasse(){
   if(sbG) return sbG;
   sbG=new THREE.Group(); sbG.position.set(0,0,0); scene.add(sbG);
   /* Rueckwand mit Beschilderung hinter den Terminals */
-  const w=std(0x1b2340,{roughness:0.7});
+  const w=MAT.std(0x1b2340,{roughness:0.7});
   bbox(3.6,0.34,0.12,w,10.6,2.35,3.75,sbG,false);
   const schild=tex(1024,140,(g,W,H)=>{
     g.fillStyle='#1b2340'; g.fillRect(0,0,W,H);
@@ -392,7 +378,7 @@ function buildSBKasse(){
     g.strokeStyle='#2f3a5e'; g.lineWidth=6; g.strokeRect(3,3,W-6,H-6);
   });
   plane(3.4,0.3,new THREE.MeshBasicMaterial({map:schild,toneMapped:false}),10.6,2.35,3.82,0,sbG);
-  for(const sx of [9.0,12.2]) bbox(0.07,2.2,0.07,std(0x8d939d,{metalness:0.6,roughness:0.4}),sx,1.15,3.75,sbG,false);
+  for(const sx of [9.0,12.2]) bbox(0.07,2.2,0.07,MAT.std(0x8d939d,{metalness:0.6,roughness:0.4}),sx,1.15,3.75,sbG,false);
   for(const x of [9.7,11.5]) sbLanes.push(sbTerminal(sbG,x,4.4));
   sbCols.push(col(9.0,10.4,4.05,4.75),col(10.8,12.2,4.05,4.75));
   return sbG;
@@ -480,10 +466,10 @@ function buildDesk(){
         g.fillStyle=gl; g.fillRect(0,0,W,H);
       }); t.wrapS=t.wrapT=THREE.RepeatWrapping; t.anisotropy=8; return t; })();
   const woodT=new THREE.MeshStandardMaterial({map:furnierT,roughness:0.34,metalness:0.04}),
-        kante=std(0x3c2c1c,{roughness:0.4}),
-        metal=std(0x9aa1ac,{metalness:0.75,roughness:0.26}),
-        metalD=std(0x2f3540,{metalness:0.55,roughness:0.38}),
-        dark=std(0x1c1f29,{roughness:0.5});
+        kante=MAT.std(0x3c2c1c,{roughness:0.4}),
+        metal=MAT.std(0x9aa1ac,{metalness:0.75,roughness:0.26}),
+        metalD=MAT.std(0x2f3540,{metalness:0.55,roughness:0.38}),
+        dark=MAT.std(0x1c1f29,{roughness:0.5});
   /* Platte mit umlaufender Massivholzkante */
   bbox(1.12,0.038,1.56,woodT,0,0.762,0,deskG);
   for(const [w,d,x,z] of [[1.14,0.022,0,0.782],[1.14,0.022,0,-0.782]])
@@ -507,9 +493,9 @@ function buildDesk(){
   for(const sx of [-0.2,0.2]) bbox(0.03,0.09,0.03,metalD,sx,0.71,-0.52,deskG,false);
   /* Rollcontainer unter der Platte */
   { const c2=new THREE.Group(); c2.position.set(0.28,0,0.28); deskG.add(c2);
-    rbox(0.42,0.58,0.52,0.014,std(0x2b303c,{metalness:0.2,roughness:0.5}),0,0.32,0,c2);
+    rbox(0.42,0.58,0.52,0.014,MAT.std(0x2b303c,{metalness:0.2,roughness:0.5}),0,0.32,0,c2);
     for(let i=0;i<3;i++){
-      bbox(0.4,0.16,0.012,std(0x353b47,{roughness:0.45}),0,0.16+i*0.18,0.262,c2,false);
+      bbox(0.4,0.16,0.012,MAT.std(0x353b47,{roughness:0.45}),0,0.16+i*0.18,0.262,c2,false);
       bbox(0.16,0.014,0.016,metal,0,0.16+i*0.18,0.272,c2,false);
     }
     for(const sx of [-0.15,0.15]) for(const sz of [-0.18,0.18]){
@@ -519,12 +505,12 @@ function buildDesk(){
   }
   /* Laptop */
   const lap=new THREE.Group(); lap.position.set(-0.05,0.78,-0.16); lap.rotation.y=-Math.PI/2; deskG.add(lap);
-  rbox(0.44,0.018,0.32,0.006,std(0x2b303c,{metalness:0.45,roughness:0.35}),0,0.009,0.08,lap);
-  bbox(0.36,0.004,0.2,std(0x1c1f29),0,0.019,0.11,lap,false);
+  rbox(0.44,0.018,0.32,0.006,MAT.std(0x2b303c,{metalness:0.45,roughness:0.35}),0,0.009,0.08,lap);
+  bbox(0.36,0.004,0.2,MAT.std(0x1c1f29),0,0.019,0.11,lap,false);
   for(let r=0;r<4;r++) for(let c2=0;c2<12;c2++)
-    bbox(0.024,0.004,0.018,std(0x3f4654),-0.15+c2*0.0275,0.022,0.05+r*0.023,lap,false);
-  bbox(0.12,0.004,0.06,std(0x353b47),0,0.021,0.17,lap,false);
-  const lid=rbox(0.45,0.3,0.014,0.006,std(0x2b303c,{metalness:0.45,roughness:0.35}),0,0.16,-0.08,lap);
+    bbox(0.024,0.004,0.018,MAT.std(0x3f4654),-0.15+c2*0.0275,0.022,0.05+r*0.023,lap,false);
+  bbox(0.12,0.004,0.06,MAT.std(0x353b47),0,0.021,0.17,lap,false);
+  const lid=rbox(0.45,0.3,0.014,0.006,MAT.std(0x2b303c,{metalness:0.45,roughness:0.35}),0,0.16,-0.08,lap);
   lid.rotation.x=-0.22;
   /* Bildschirmschoner statt Menueattrappe - das echte Menue oeffnet sich beim Anklicken */
   const sch=neuerSchoner(512,320);
@@ -536,15 +522,15 @@ function buildDesk(){
   lapHit=bbox(0.7,0.5,0.7,hitM,-0.05,0.95,-0.1,deskG,false); lapHit.userData={kind:'laptop'};
   /* Bürostuhl */
   { const ch=new THREE.Group(); ch.position.set(-0.85,0,0.05); ch.rotation.y=1.5; deskG.add(ch);
-    rbox(0.46,0.09,0.44,0.03,std(0x2c3140,{roughness:0.75}),0,0.46,0,ch);
-    const bk=rbox(0.44,0.5,0.08,0.03,std(0x2c3140,{roughness:0.75}),0,0.76,-0.21,ch); bk.rotation.x=0.14;
+    rbox(0.46,0.09,0.44,0.03,MAT.std(0x2c3140,{roughness:0.75}),0,0.46,0,ch);
+    const bk=rbox(0.44,0.5,0.08,0.03,MAT.std(0x2c3140,{roughness:0.75}),0,0.76,-0.21,ch); bk.rotation.x=0.14;
     bbox(0.06,0.14,0.06,metal,0,0.56,-0.2,ch,false);
     const col2=new THREE.Mesh(new THREE.CylinderGeometry(0.035,0.045,0.38,10),metal); col2.position.y=0.23; ch.add(col2);
     for(let i=0;i<5;i++){ const a2=i/5*Math.PI*2;
       bbox(0.05,0.03,0.26,metal,Math.cos(a2)*0.11,0.06,Math.sin(a2)*0.11,ch,false).rotation.y=-a2;
       const w=new THREE.Mesh(new THREE.CylinderGeometry(0.035,0.035,0.022,8),dark);
       w.rotation.z=Math.PI/2; w.position.set(Math.cos(a2)*0.24,0.035,Math.sin(a2)*0.24); ch.add(w); }
-    for(const sx of [-1,1]) bbox(0.05,0.18,0.28,std(0x1f2430),sx*0.25,0.6,0,ch,false); }
+    for(const sx of [-1,1]) bbox(0.05,0.18,0.28,MAT.std(0x1f2430),sx*0.25,0.6,0,ch,false); }
   addMovable({kind:'desk',name:'Büro-Tisch',g:deskG,fw:1.2,fd:1.6});
 }
 
@@ -963,7 +949,7 @@ function createShelf(i,data){
       for(const sx of [-1,1]){
         bbox(W/2-0.02,top-0.14,0.03,coldGlass,sx*W/4,top/2,D/2-0.002,fg,false);
         bbox(0.03,top-0.14,0.04,coldFrame,sx*(W/2-0.03),top/2,D/2,fg,false);
-        bbox(0.035,0.5,0.05,std(0xdfe3ea,{metalness:0.6}),sx*0.06,top*0.55,D/2+0.03,fg,false);
+        bbox(0.035,0.5,0.05,MAT.std(0xdfe3ea,{metalness:0.6}),sx*0.06,top*0.55,D/2+0.03,fg,false);
       }
       bbox(W,0.16,D,coldFrame,0,top+0.12,0,fg);
       plane(W*0.8,0.11,new THREE.MeshBasicMaterial({toneMapped:false,map:tex(256,36,(c,Wc,Hc)=>{ c.fillStyle='#0e2a44'; c.fillRect(0,0,Wc,Hc); c.fillStyle='#8fd6ff'; c.font=BUN(22); c.textAlign='center'; c.textBaseline='middle'; c.fillText('GEKÜHLT  4 °C',Wc/2,Hc/2+1); })}),0,top+0.12,D/2+0.005,0,fg);
@@ -1374,7 +1360,7 @@ function createRack(i,data){
   rk.schildTex=tex(512,256,()=>{});
   plane(0.52,0.26,new THREE.MeshStandardMaterial({roughness:0.6,map:rk.schildTex}),
     -XO+0.34,1.6,ZO+0.012,0,g);
-  bbox(0.56,0.3,0.012,std(0x8d939d,{metalness:0.4,roughness:0.55}),-XO+0.34,1.6,ZO+0.004,g,false);
+  bbox(0.56,0.3,0.012,MAT.std(0x8d939d,{metalness:0.4,roughness:0.55}),-XO+0.34,1.6,ZO+0.004,g,false);
   rk.mov=addMovable({kind:'rack',name:K.name,g,fw:BW+0.16,fd:2*ZO+0.14,ref:rk});
   rk.nr=racks.length; racks.push(rk); drawRackSchild(rk);
   if(data&&data.slots) data.slots.forEach((sd,k)=>{ if(sd&&P[sd.type]&&rk.slots[k]) putInSlot(rk.slots[k],sd.type,sd.count,sd.q,sd.kiste); });

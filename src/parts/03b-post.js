@@ -199,10 +199,13 @@ function gruppenTakt(){ if(--gbN>0) return; gbN=20; try{ scene.traverse(o=>{ if(
    angefasst. So kann nichts falsch stehen bleiben. */
 const BUENDEL={liste:[], fertig:new WeakSet(), unruhig:new WeakSet(), vorher:new WeakMap(), n:0, aufgeloest:0, aus:false};
 try{ if(localStorage.getItem('bb_buendel')==='0') BUENDEL.aus=true; }catch(e){}
+/* 13.10. (Fundament): die Baukasten-Markierung (userData.bauteil/klasse) ist keine eigene
+   Spiellogik - solche Meshes duerfen gebuendelt werden wie vorher die unmarkierten */
+function udEigen(ud){ for(const k in ud) if(k!=='bauteil'&&k!=='klasse') return true; return false; }
 function bKandidat(o,root){
   if(!o.isMesh||o.isInstancedMesh||o.isSkinnedMesh||o.children.length||o.userData._bnd) return false;
   const m=o.material; if(!m||Array.isArray(m)||!m.visible||m.transparent||m.vertexColors||(m.map&&m.map.isVideoTexture)) return false;
-  if(Object.keys(o.userData).length&&!(o.userData._gbM||o.userData._gbGeo)) return false;
+  if(udEigen(o.userData)&&!(o.userData._gbM||o.userData._gbGeo)) return false;
   if(o.onBeforeRender!==THREE.Object3D.prototype.onBeforeRender) return false;
   const g=o.geometry; if(!g||!g.attributes.position||!g.attributes.normal||(g.morphAttributes&&Object.keys(g.morphAttributes).length)) return false;
   for(let x=o;x&&x!==root;x=x.parent) if(!x.visible) return false;

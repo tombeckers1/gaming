@@ -90,3 +90,14 @@ Hoch und Ultra Low, Max für Laden/Lager/Dock-Hof): gleich bis auf das Rauschmus
 (eine geteilte Textur statt 19 einzeln gewürfelter; ≤ 0,85 % der Pixel, Abweichung ≤ 16 Stufen fast überall).
 Restunterschiede in Hof/Straße/Testfeld liegen im Grundrauschen (alt gegen alt gleich groß: Uhr, Scanner,
 Vögel, Schnee).
+
+## 4. Katalog (Übersicht mit Bildern, wiederholbar)
+
+`node tools/fundament/katalog.js <real.html> <ausgabeordner>` startet ein neues Spiel (alle Zonen offen) und schreibt
+`katalog.json` plus Bilder: jedes Material (Bibliothek `MAT.liste()` und die heute noch eigenen, nach Signatur
+gruppiert) als Kugel + Kachel, jede Textur (Dubletten über Pixel-Hash zusammengefasst, Größe/MB, Nutzung, Herkunft),
+jedes Bauteil mit `userData.bauteil` (isoliert gerendert, Varianten, Fundorte) und die wiederkehrenden Objekte, die noch
+nicht im Baukasten stehen (Tore, Fenster, Regale, Kassen, Lampen, Zäune, Poller; Tabelle `VORHER` in
+`tools/fundament/katalog-seite.js`). Neue Baukasten-Bauteile erscheinen ohne Änderung automatisch; ein Objekt, das in den
+Baukasten wandert, wird aus `VORHER` gestrichen. Die Herkunft („Baufunktion“) kommt aus dem Zähl-Wrapper
+`pre.js`/`post.js`, den der Generator selbst einbaut (`KATALOG_PROFIL=0` schaltet ihn ab). Bilder ~3 MB, Lauf ~10 Min.

@@ -30,6 +30,21 @@ mit den 166 Tests als Sicherheitsnetz (nach jedem Schritt grün).
   (`docs/balancing/ist-analyse.md` auf Branch `claude/balancing`) zeigt die Folgen (zu zäh am Anfang,
   Level läuft dem Geld davon, Kredite unplanbar, keine Miete, keine Insolvenz).
 
+## Klarstellung Tom (13.10. nachmittags) – Einheitlichkeit gilt für ALLES außer den Effekten
+„Das Spiel soll im Großen und Ganzen einheitlich sein, die Zusammenhänge maximal bestehen, die Logik und
+der Aufbau, alles.“ Nicht einheitlich, sondern Anomalie: nur die Effekte selbst (Bruchbild, Ablauf, Klang).
+Einheitlich dagegen die **Mechanik**: Effekte kommen genau aus den Löchern/Rohren, sichtbare Löcher =
+Schusszahl, immer gleiche Art der Zündung/Darstellung (nicht einmal aus der Verpackung und einmal als
+ausgepacktes Produkt).
+Folgen für den Plan:
+- Etappe 2 ab Tore: Umbau ist **sichtbar** – je Bauteil EINE Optik (beste Variante wird Standard),
+  Unterschiede nur über Parameter (Größe, Fenster, Nummer). Schritte 0/1 (Bibliothek, Kern) bleiben unsichtbar.
+- **Neue Etappe 2b „Feuerwerks-Regelwerk“**: Inventar, wo/wie Produkte gezündet und dargestellt werden
+  (Laden-Testfeld, Vorführung, Silvester, Hof …: verpackt/ausgepackt, Rohrraster, Mündung); EIN Abschuss-
+  Baustein (Rohrraster aus Schusszahl, Abschuss an der Mündung, einheitliche Zünd-Darstellung) für alle
+  Produkte; die Einzeltests lochschuss/ursprung/vfrohr zu einem Wächter über ALLE Produkte und Orte bündeln.
+  Effekte (Anomalie) bleiben unangetastet.
+
 ## Umfang in 5 Etappen (je Etappe: bauen, Tests der betroffenen Bereiche grün, commit, Artefakt, Bericht)
 
 ### Etappe 1 – Bestandsaufnahme (zuerst, billig, Grundlage für alles)

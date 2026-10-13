@@ -28,7 +28,13 @@ for(const f of dateien){
   const rueck=t=>t.replace(/WIRT((?:\.[A-Za-z_$][\w$]*|\[\d+\]|\['[^']+'\])+)/g,(m,p)=>{
     const teile=[...p.matchAll(/\.([A-Za-z_$][\w$]*)|\[(\d+)\]|\['([^']+)'\]/g)].map(x=>x[1]||x[2]||x[3]);
     const v=wert(teile); return typeof v==='number'?String(v):m; });
-  const a=zahl(rueck(alt)).split('\n'), b=zahl(rueck(neu)).split('\n');
+  /* lokale Kurznamen (const T=WIRT.kunden.takt) aufloesen: gelten 15 Zeilen weit, VMW & Co. (>= 3 Zeichen) in der ganzen Datei;
+     die Deklaration selbst faellt weg - steht danach die alte Zeile da, war es ein reiner Umzug */
+  const alias=t=>{ const L=t.split('\n'), A=[];
+    L.forEach((l,i)=>{ for(const m of l.matchAll(/\b([A-Z][A-Z0-9]{0,3})=WIRT((?:\.[A-Za-z_$][\w$]*)+)/g)) A.push({n:m[1],p:'WIRT'+m[2],von:i,bis:m[1].length>=3?L.length:i+25}); });
+    for(const a of A){ for(let i=a.von;i<=Math.min(a.bis,L.length-1);i++) L[i]=L[i].replace(new RegExp('(?<![\\w$.])'+a.n+'\\.(?=[A-Za-z_$])','g'),a.p+'.'); }
+    return L.map(l=>l.replace(/\b[A-Z][A-Z0-9]{0,3}=WIRT(?:\.[A-Za-z_$][\w$]*)+,\s*/g,'').replace(/,\s*[A-Z][A-Z0-9]{0,3}=WIRT(?:\.[A-Za-z_$][\w$]*)+(?=[;,])/g,'').replace(/const [A-Z][A-Z0-9]{0,3}=WIRT(?:\.[A-Za-z_$][\w$]*)+;\s*/g,'').replace(/^\s*\n/,'')).filter((l,i,arr)=>!(l.trim()===''&&L[i].trim()!=='')).join('\n'); };
+  const a=zahl(rueck(alias(alt))).split('\n'), b=zahl(rueck(alias(neu))).split('\n');
   fs.writeFileSync(TA,a.join('\n')); fs.writeFileSync(TB,b.join('\n'));
   let d=''; try{ cp.execSync(`diff -w ${TA} ${TB}`,{encoding:'utf8'}); }catch(e){ d=e.stdout||''; }
   const zeilen=d.split('\n').filter(l=>l.startsWith('<')||l.startsWith('>'));

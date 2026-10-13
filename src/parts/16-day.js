@@ -69,14 +69,14 @@ function inflText(){ const i=Math.round((inflOf()-1)*100); return i<=0?'keine':'
 /* Tagesereignis würfeln */
 function rollEvent(){
   S.ev=null;
-  if(S.day<3) return;
-  if(Math.random()<0.34) return;
+  if(S.day<WIRT.kunden.ereignis.abTag) return;
+  if(Math.random()<WIRT.kunden.ereignis.keinsChance) return;
   let tot=0; EVENTS.forEach(e=>tot+=e.w);
   let r=Math.random()*tot;
   for(const e of EVENTS){ r-=e.w; if(r<=0){ S.ev=e.id; break; } }
   const e=todayEvent(); if(!e) return;
   if(e.rep) rep(e.rep);
-  if(e.hype) hype=Math.min(100,hype+e.hype);
+  if(e.hype) hype=Math.min(WIRT.kunden.hype.max,hype+e.hype);
 }
 /* Wochenziel */
 function newGoal(){
@@ -110,23 +110,24 @@ function sortimentBreite(){
 /* Voll zieht das Sortiment bei knapp der Haelfte aller Waren - frueher
    34 von 69. Seit es dreimal so viele gibt (26.09.), zaehlt der Anteil,
    sonst waere der Laden schon auf Level 6 "voll sortiert". */
-const SORT_VOLL=Math.round(ORDER.filter(t=>!P[t].noOrder&&!P[t].noShelf).length*34/68);
-function sortimentZug(){ return 0.78+Math.min(1,sortimentBreite()/SORT_VOLL)*0.52; }
+const SORT_VOLL=Math.round(ORDER.filter(t=>!P[t].noOrder&&!P[t].noShelf).length*WIRT.kunden.sortiment.vollZaehler/WIRT.kunden.sortiment.vollNenner);
+function sortimentZug(){ return WIRT.kunden.sortiment.grund+Math.min(1,sortimentBreite()/SORT_VOLL)*WIRT.kunden.sortiment.voll; }
 /* Der Ruf eines eingesessenen Ladens spricht sich herum */
-function bekanntheit(){ return 1+Math.min(20,Math.max(0,S.level-1))*0.019; }
+function bekanntheit(){ return 1+Math.min(WIRT.kunden.bekanntheit.maxLevel,Math.max(0,S.level-1))*WIRT.kunden.bekanntheit.jeLevel; }
 /* Wie gross ist der Laden? Ein Markt mit Gondelgassen spricht sich
    anders herum als der Kiosk an der Ecke - und die Koerbe werden
    voller, weil die Leute laenger drin unterwegs sind. */
 function ladenGroesse(){
-  return 1+(S.up.shop_gross?0.34:0)+(S.up.shop_ost?0.26:0)+(S.up.shop_sued?0.30:0);
+  const LG=WIRT.kunden.laden; return 1+(S.up.shop_gross?LG.shop_gross:0)+(S.up.shop_ost?LG.shop_ost:0)+(S.up.shop_sued?LG.shop_sued:0);
 }
-function korbGroesse(){ return 0.78+ladenGroesse()*0.22; }
+function korbGroesse(){ return WIRT.kunden.korb.grund+ladenGroesse()*WIRT.kunden.korb.jeGroesse; }
 function spawnInterval(){
-  const m=dayMult(S.day)*evv('cust')*eroeffnung()*(1+0.05*(S.season-1))
-    *(0.55+S.rep/100)*bekanntheit()*sortimentZug()*ladenGroesse()
-    *(S.up.plakat?1.3:1)*(S.up.radio?1.25:1)*(S.up.tafel?1.3:1)*(S.up.kundenkarte?1.12:1)
-    *(1+hype/50)*(0.85+ambienteScore()/180)*(0.75+cleanliness()/300);
-  return Math.max(0.55,9.2/m);
+  const T=WIRT.kunden.takt, WB=WIRT.kunden.werbung;
+  const m=dayMult(S.day)*evv('cust')*eroeffnung()*(1+T.jahrBonus*(S.season-1))
+    *(T.rufGrund+S.rep/T.rufTeiler)*bekanntheit()*sortimentZug()*ladenGroesse()
+    *(S.up.plakat?WB.plakat:1)*(S.up.radio?WB.radio:1)*(S.up.tafel?WB.tafel:1)*(S.up.kundenkarte?WB.kundenkarte:1)
+    *(1+hype/T.hypeTeiler)*(T.ambGrund+ambienteScore()/T.ambTeiler)*(T.sauberGrund+cleanliness()/T.sauberTeiler);
+  return Math.max(T.min,T.basis/m);
 }
 function ruhetag(){ return isSunday(S.day)&&!S.up.tag4; }
 /* Ruhetag beenden. Vorher blieb der Sonntag ohne Sonntagsgenehmigung
@@ -146,7 +147,7 @@ function updateDay(dt){
     clock+=dt*MIN_PER_SEC;
     if(clock>=CLOSE_T){ clock=CLOSE_T; phase='closing'; updateSign(); toast('22 Uhr: Es kommen keine neuen Kunden mehr.'); }
     spawnT-=dt;
-    if(spawnT<=0&&customers.length<20){ customers.push(new Customer()); spawnT=spawnInterval()*rand(0.6,1.4); }
+    if(spawnT<=0&&customers.length<WIRT.kunden.takt.maxGleichzeitig){ customers.push(new Customer()); spawnT=spawnInterval()*rand(WIRT.kunden.takt.streuung[0],WIRT.kunden.takt.streuung[1]); }
   } else if(phase==='closing'&&customers.length===0){ phase='after'; updateSign();
     if(order) failOrder();
     if(typeof truck!=='undefined'&&truck) dumpTruck();
@@ -174,7 +175,7 @@ function fixedCosts(){
   return f;
 }
 /* Die ersten Tage läuft es besser: Neueröffnung spricht sich herum */
-function eroeffnung(){ return S.day<7?1.75-S.day*0.11:1; }
+function eroeffnung(){ const E=WIRT.kunden.eroeffnung; return S.day<E.tage?E.start-S.day*E.jeTag:1; }
 function endDay(){
   if(phase!=='after') return;
   /* ohne Pausenmenue ueber dem Tagesabschluss (Befund 26.09.) */

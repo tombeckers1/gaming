@@ -258,7 +258,7 @@ const CATNAME={0:'Zubehör',1:'F1',2:'F2'};
 /* Regale stehen hier nicht mehr: sie werden bei Regalbau
    Stegemann bestellt und kommen mit dem LKW (siehe REGALWARE). */
 const UPGRADES=[
-  {id:'plakat',kat:'markt',lvl:4,name:'Werbeplakate in der Stadt',desc:'Dauerhaft rund 30 Prozent mehr Kunden.',cost:()=>WIRT.ausbau.preis.plakat,done:()=>S.up.plakat},
+  {id:'plakat',kat:'markt',lvl:4,name:'Werbeplakate in der Stadt',desc:`Dauerhaft rund ${WF.prozMehr(WIRT.kunden.werbung.plakat)} Prozent mehr Kunden.`,cost:()=>WIRT.ausbau.preis.plakat,done:()=>S.up.plakat},
   {id:'sackkarre',kat:'einr',lvl:3,name:'Sackkarre',desc:'Vier Kartons auf einmal. Mit K herausholen: jeder Karton, den du aufhebst, kommt mit drauf.',cost:()=>WIRT.ausbau.preis.sackkarre,done:()=>S.up.sackkarre},
   /* 03.10. (Tom): Ware aus dem Regal zurueckholen - mit leeren Kisten.
      Wiederholbar: jeder Kauf legt fuenf Kisten in den Vorrat. */
@@ -268,8 +268,8 @@ const UPGRADES=[
   {id:'tag4',kat:'markt',lvl:7,name:'Sonntagsgenehmigung',desc:'Du darfst auch sonntags öffnen. Sonst ist Sonntag Ruhetag.',cost:()=>WIRT.ausbau.preis.tag4,done:()=>S.up.tag4},
   {id:'heizung',kat:'einr',lvl:7,name:'Heizstrahler',desc:'Kunden warten länger, bevor sie genervt gehen.',cost:()=>WIRT.ausbau.preis.heizung,done:()=>S.up.heizung},
   {id:'musik',kat:'einr',lvl:8,name:'Soundanlage',desc:'Bessere Stimmung im Laden.',cost:()=>WIRT.ausbau.preis.musik,done:()=>S.up.musik},
-  {id:'radio',kat:'markt',lvl:9,name:'Radiowerbung',desc:'Noch einmal rund 25 Prozent mehr Kunden.',cost:()=>WIRT.ausbau.preis.radio,done:()=>S.up.radio},
-  {id:'cams',kat:'einr',lvl:10,name:'Überwachungskameras',desc:'Halbiert die Zahl der Diebstahlversuche.',cost:()=>WIRT.ausbau.preis.cams,done:()=>S.up.cams},
+  {id:'radio',kat:'markt',lvl:9,name:'Radiowerbung',desc:`Noch einmal rund ${WF.prozMehr(WIRT.kunden.werbung.radio)} Prozent mehr Kunden.`,cost:()=>WIRT.ausbau.preis.radio,done:()=>S.up.radio},
+  {id:'cams',kat:'einr',lvl:10,name:'Überwachungskameras',desc:`${WF.wenigerText(WIRT.kunden.dieb.kameras)} die Zahl der Diebstahlversuche.`,cost:()=>WIRT.ausbau.preis.cams,done:()=>S.up.cams},
   {id:'regallicht',kat:'einr',lvl:11,name:'Regalbeleuchtung',desc:'Ware wirkt hochwertiger, bessere Stimmung.',cost:()=>WIRT.ausbau.preis.regallicht,done:()=>S.up.regallicht},
   {id:'alarm',kat:'einr',lvl:14,name:'Warensicherung',desc:'Diebe werden am Ausgang meistens gestoppt.',cost:()=>WIRT.ausbau.preis.alarm,done:()=>S.up.alarm},
   {id:'grosskunden',kat:'markt',lvl:7,req:'lager',name:'Eintrag im Branchenbuch',desc:'Pyrotechniker und Veranstalter rufen dich für Großbestellungen an.',cost:()=>WIRT.ausbau.preis.grosskunden,done:()=>S.up.grosskunden},
@@ -481,28 +481,20 @@ function dateStr(n){ const i=dateInfo(n); return `${WDAY[i.wd]}, ${i.d}. ${MONTH
 function dateShort(n){ const i=dateInfo(n); return `${WSHORT[i.wd]} ${i.d}.${i.m+1}.`; }
 function isSunday(n){ return dateInfo(n).wd===0; }
 /* Nachfrage übers Jahr: Silvester ist der Gipfel, dazwischen läuft es weiter */
+/* Die Tabelle (Monat, Tage, Faktor, Text) steht in 01c-wirtschaft.js (WIRT.saison.regeln):
+   erste passende Regel gilt. */
 function seasonInfo(n){
-  const i=dateInfo(n), m=i.m, d=i.d;
-  if(m===11&&d>=26) return [1.5+(d-26)*0.34,'Silvestergeschäft'];
-  if(m===11&&d>=20) return [1.25,'Weihnachtswoche'];
-  if(m===11) return [1.1,'Vorweihnachtszeit'];
-  if(m===0&&d===1) return [1.35,'Neujahr, Restverkauf'];
-  if(m===0&&d<=14) return [0.80,'Ruhige Januartage'];
-  if(m===0||m===1) return [0.72,'Tiefste Nebensaison'];
-  if(m===2) return [0.80,'Frühjahr, wenig los'];
-  if(m===3&&d>=25) return [1.45,'Walpurgisnacht steht an'];
-  if(m===4&&d<=2) return [1.3,'Erster Mai'];
-  if(m===3||m===4) return [0.9,'Frühling'];
-  if(m===5) return [1.0,'Sommeranfang, Feste'];
-  if(m===6||m===7) return [1.15,'Sommerfeste und Hochzeiten'];
-  if(m===8) return [0.88,'Spätsommer'];
-  if(m===9&&d>=28) return [1.25,'Halloween'];
-  if(m===9) return [0.92,'Oktober'];
-  return [0.86,'November, ruhig'];
+  const i=dateInfo(n), m=i.m, d=i.d, Z=WIRT.saison;
+  for(const r of Z.regeln){
+    if(r.m!==undefined&&(Array.isArray(r.m)?r.m.indexOf(m)<0:r.m!==m)) continue;
+    if(r.ab!==undefined&&d<r.ab) continue;
+    if(r.bis!==undefined&&d>r.bis) continue;
+    return [r.silvester?Z.silvester.grund+(d-Z.silvester.ab)*Z.silvester.jeTag:r.f,r.text];
+  }
 }
-const WDMULT=[0.55,0.82,0.84,0.9,1.0,1.28,1.35];
+const WDMULT=WIRT.saison.wochentag;
 function dayMult(n){ const i=dateInfo(n); return seasonInfo(n)[0]*WDMULT[i.wd]; }
-function silvesterNah(n){ const i=dateInfo(n); return i.m===11&&i.d>=26; }
+function silvesterNah(n){ const i=dateInfo(n); return i.m===11&&i.d>=WIRT.saison.silvester.ab; }
 const OPEN_T=WIRT.zeit.oeffnen, CLOSE_T=WIRT.zeit.schliessen, MIN_PER_SEC=(CLOSE_T-OPEN_T)/WIRT.zeit.echtzeitSek;
 /* Jede Bestellung ist eine Lieferung: kurzer Vorlauf, bis der Lieferant
    an der Rampe steht, dazu eine kleine Liefergebuehr, die ab einem
@@ -792,7 +784,7 @@ const CUSTTYPES=[
   {id:'profi',w:5,tol:1.06,items:2.6,pat:1.25,name:'Profi',f2:true}
 ];
 function rollCustType(){
-  const pool=CUSTTYPES.filter(c=>!c.f2||S.level>=8);
+  const pool=CUSTTYPES.filter(c=>!c.f2||S.level>=WIRT.kunden.profiAbLevel);
   let tot=0; pool.forEach(c=>tot+=c.w);
   let r=Math.random()*tot;
   for(const c of pool){ r-=c.w; if(r<=0) return c; }
@@ -845,7 +837,7 @@ let S=null, phase='closed', clock=OPEN_T, hype=0, DS=null, paused=true, shake=0,
 const isUnlocked=t=>{ const l=LIZ_VON[t]; return l?hatLizenz(l):S.level>=P[t].lvl; };
 const lizLevel=t=>{ const l=LIZ_VON[t]; const d=l&&LIZENZEN.find(x=>x.id===l); return d?d.lvl:P[t].lvl; };
 const rep=d=>{ S.rep=clamp(S.rep+d,0,100); };
-const cleanliness=()=>clamp(100-dirts.length*7,0,100);
+const cleanliness=()=>clamp(100-dirts.length*WIRT.kunden.dreck.jeFleck,0,100);
 const canShelf=t=>!P[t].noShelf;
 const canOrder=t=>!P[t].noOrder;
 const canWish=t=>!P[t].noWish;
@@ -854,11 +846,12 @@ function qualityLabel(q){ return q>=1.12?['ok','Markenware']:q>=0.98?['','Normal
 function bildBoost(){ let b=0; (dekos||[]).forEach(d=>{ const D=DEKO.find(x=>x.id===d.id); if(D&&D.buy) b+=D.buy; }); return b; }
 function ambienteScore(){
   let a=0; (S.deko||[]).forEach(d=>{ const D=DEKO.find(x=>x.id===d.id); if(D) a+=D.amb; });
-  if(S.up.musik) a+=6; if(S.up.regallicht) a+=6; if(S.up.heizung) a+=4;
+  const AM=WIRT.kunden.ambiente;
+  if(S.up.musik) a+=AM.musik; if(S.up.regallicht) a+=AM.regallicht; if(S.up.heizung) a+=AM.heizung;
   shelves.forEach(sh=>{ a+=(SHELFKIND[sh.kind]||SHELFKIND.standard).amb; });
-  a-=Math.round(windowGrime()*12);
+  a-=Math.round(windowGrime()*AM.fensterDreck);
   const w=WALLS.findIndex(x=>x.id===S.wall), f=FLOORS.findIndex(x=>x.id===S.floor);
   /* anteilig nach Rang: der teuerste Belag bringt so viel wie vorher */
-  a+=Math.round(Math.max(0,w)*26/(WALLS.length-1))+Math.round(Math.max(0,f)*20/(FLOORS.length-1));
+  a+=Math.round(Math.max(0,w)*AM.wandMax/(WALLS.length-1))+Math.round(Math.max(0,f)*AM.bodenMax/(FLOORS.length-1));
   return clamp(a,0,100);
 }

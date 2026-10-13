@@ -40,6 +40,61 @@ const WIRT={
     echtzeitSek:330     // ein Verkaufstag dauert 330 s echte Zeit (MIN_PER_SEC = 840/330).
                         // Wirkt auf: Kunden je Tag (Takt in Sekunden), Online-Bestelltakt (11c)
   },
+  /* ---------- Saison: Nachfrage-Faktor je Datum x Wochentag (dayMult) ----------
+     Wirkt NUR auf den Ladenkunden-Takt (spawnInterval) und die Anruf-Frequenz der Grossauftraege
+     (10b) - nicht auf Online, Markt, Lohn, Fixkosten (Luecke fuers Balancing). */
+  saison:{
+    /* erste passende Regel gilt: m = Monat (0 = Januar, Liste = mehrere), ab/bis = Tag im Monat */
+    regeln:[
+      {m:11,ab:26,silvester:true,text:'Silvestergeschäft'},
+      {m:11,ab:20,f:1.25,text:'Weihnachtswoche'},
+      {m:11,f:1.1,text:'Vorweihnachtszeit'},
+      {m:0,ab:1,bis:1,f:1.35,text:'Neujahr, Restverkauf'},
+      {m:0,bis:14,f:0.80,text:'Ruhige Januartage'},
+      {m:[0,1],f:0.72,text:'Tiefste Nebensaison'},
+      {m:2,f:0.80,text:'Frühjahr, wenig los'},
+      {m:3,ab:25,f:1.45,text:'Walpurgisnacht steht an'},
+      {m:4,bis:2,f:1.3,text:'Erster Mai'},
+      {m:[3,4],f:0.9,text:'Frühling'},
+      {m:5,f:1.0,text:'Sommeranfang, Feste'},
+      {m:[6,7],f:1.15,text:'Sommerfeste und Hochzeiten'},
+      {m:8,f:0.88,text:'Spätsommer'},
+      {m:9,ab:28,f:1.25,text:'Halloween'},
+      {m:9,f:0.92,text:'Oktober'},
+      {f:0.86,text:'November, ruhig'}
+    ],
+    silvester:{ab:26,grund:1.5,jeTag:0.34},   // 26.12. = 1,5 ... 31.12. = 3,2; ab 26.12. auch Wunsch F2 x1,9 und Menge +1
+    wochentag:[0.55,0.82,0.84,0.9,1.0,1.28,1.35]   // So, Mo, Di, Mi, Do, Fr, Sa (WDMULT)
+  },
+  /* ---------- Ladenkunden ---------- */
+  kunden:{
+    /* Takt: neuer Kunde alle max(min, basis/m) s x Zufall(streuung), m = Produkt aller Faktoren (16-day spawnInterval).
+       Rechnerisch ~36 Kunden je Tag bei m = 1; hoechstens maxGleichzeitig im Laden (bremst Silvester - Luecke). */
+    takt:{basis:9.2,min:0.55,streuung:[0.6,1.4],maxGleichzeitig:20,jahrBonus:0.05,
+      rufGrund:0.55,rufTeiler:100,hypeTeiler:50,ambGrund:0.85,ambTeiler:180,sauberGrund:0.75,sauberTeiler:300},
+    werbung:{plakat:1.3,radio:1.25,tafel:1.3,kundenkarte:1.12},   // Faktor auf den Kunden-Takt, solange gekauft
+    eroeffnung:{tage:7,start:1.75,jeTag:0.11},     // Neueroeffnung: Tag 0 x1,75, faellt je Tag um 0,11
+    bekanntheit:{maxLevel:20,jeLevel:0.019},       // 1 + min(20, Level-1)*0,019 (max x1,38)
+    sortiment:{grund:0.78,voll:0.52,vollZaehler:34,vollNenner:68},   // 0,78 + min(1, Sorten/SORT_VOLL)*0,52; SORT_VOLL = alle Sorten*34/68
+    laden:{shop_gross:0.34,shop_ost:0.26,shop_sued:0.30},   // Ladengroesse 1 + Summe -> mehr Kunden und groessere Koerbe
+    korb:{grund:0.78,jeGroesse:0.22},
+    ereignis:{abTag:3,keinsChance:0.34},           // Tagesereignis ab Tag 3, an 34 % der Tage keins
+    /* Preis: Kaufchance 1, solange Preis/Markt <= lo; linear auf 0 bei lo + spanne */
+    toleranz:{grund:0.95,ambTeiler:450,rufTeiler:900,jeFreundlichkeit:0.12},   // lo = (grund + Amb/450 + Ruf/900 + Bilder + (Freundl.-1)*0,12) x Ereignis x Konkurrenz
+    kauf:{jeMenge:0.18,kuehl:0.16,spanne:0.5},
+    nachfrage:{nurLager:0.5,nirgends:0.3},         // Wunschgewicht, wenn die Sorte nicht im Regal steht (sonst 1)
+    wunsch:{n:[0.38,0.6,0.8],silvesterF2:1.9,hypeAb:40,hypeF2:1.3,zubehoer:1.1,jugendF2:0.12,profiF2:2.6,
+      teuerAb:20,mittelAb:7,mittelEins:0.65,kleinMax:3,silvesterPlus:0.45},
+    profiAbLevel:8,                                // Kundentyp "Profi" erst ab Level 8
+    dieb:{abLevel:4,grund:0.035,jeLevel:0.0035,maxLevelAnteil:0.05,kameras:0.5,security:0.35,alarm:0.7},
+    geduld:{min:75,max:110,jeRuf:0.3,heizung:30,klima:35,jeAmbiente:0.35,freundGrund:0.72,jeFreund:0.3},
+    gravurWunsch:0.3,                              // Anteil Kunden, die eine Gravur wollen (mit Automat)
+    dreck:{chance:0.08,mitMuell:0.04,jeFleck:7},   // Fleck je Kunde; Sauberkeit = 100 - 7 je Fleck
+    ambiente:{musik:6,regallicht:6,heizung:4,fensterDreck:12,wandMax:26,bodenMax:20},
+    karteAnteil:0.6,                               // 60 % zahlen mit Karte (bar: +3 XP ohne Rueckgeld-Fehler)
+    sb:{maxKorb:3,maxKorbBetreut:8,wahl:0.45,wahlBetreut:0.6,problemGrund:0.18,problemJeArtikel:0.025,problemMax:0.36},
+    hype:{max:100,verfallJeSek:1.1}                // Hype aus dem Testfeld: + P.hype je Stueck, faellt 1,1/s, Tagesende 0
+  },
   /* ---------- Einkauf beim Lieferanten (Wareneingang) ---------- */
   einkauf:{
     lieferSek:5,        // s bis die Lieferung da ist (x Ereignis "Stau" 2,1)
@@ -204,6 +259,10 @@ const WF={
   /* kleine Zahlen als Wort ("über acht"), sonst Ziffern */
   zahlwort:(n)=>['null','eins','zwei','drei','vier','fünf','sechs','sieben','acht','neun','zehn','elf','zwölf','dreizehn','vierzehn','fünfzehn','sechzehn','siebzehn','achtzehn','neunzehn','zwanzig'][n]||String(n),
   /* Marktplatz-Pauschale des Onlineshops je Tag (16-day endDay, Laptop-Anzeige, sim.js) */
+  /* Faktor als "x Prozent mehr" (1,3 -> 30) bzw. als Verb fuer "weniger" (0,5 -> Halbiert) */
+  prozMehr:(f)=>Math.round((f-1)*100),
+  prozWeniger:(f)=>Math.round((1-f)*100),
+  wenigerText:(f)=>f===0.5?'Halbiert':f===0.25?'Viertelt':`Senkt um ${Math.round((1-f)*100)} Prozent`,
   /* XP bis zum naechsten Level (xpFor in 02-data) */
   xpBis:(l)=>Math.round(WIRT.xp.kurve.a*Math.pow(l,WIRT.xp.kurve.exp)),
   onlinePauschale:(ruf,level)=>Math.round(WIRT.versand.pauschale.grund+ruf*WIRT.versand.pauschale.jeRuf+level*WIRT.versand.pauschale.jeLevel)

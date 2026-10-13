@@ -5,6 +5,12 @@
 > Neueste Entscheidung (Tom, 08.10. abends): Versandecke **Stufe 1 ohne Roboter-Kran**,
 > der Spieler legt das Paket selbst auf die Palette (UEBERGABE.md 5.0) – erledigt 08.10., V120.
 
+> **AKTUELL (Tom, 13.10.):** Chatwechsel erfolgt; nächstes Paket ist das **Fundament** –
+> einheitliche Struktur (Baukasten + Materialbibliothek zuerst, dann Stilregeln, Wirtschaftszentrale,
+> Wächter-Tests, Übersicht). Kein Neubau. Auftrag: `docs/uebergabe/fundament.md`, Stand: UEBERGABE.md Abschnitt 0.
+> **Dauerregel ab Fundament:** Neue Objekte/Materialien nur aus dem Baukasten bzw. der Bibliothek;
+> Wirtschaftswerte nur aus der Wirtschaftszentrale; jeder Bericht mit Zeile „Konsistenz“.
+
 > **Neue Richtung (Tom, 08.10. nachts):** Ausbauplan v7 (große Halle, Hochregal, Produktion)
 > wird **in die Zukunft verschoben**. Erst den heutigen Stand auf sehr hohes Niveau bringen:
 > Texturen, Performance, Gameplay, Flow, Wirtschaft. Schritt für Schritt mit Tom. Erste Aufgabe:

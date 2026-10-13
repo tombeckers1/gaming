@@ -1,11 +1,68 @@
 # Übergabe Böllerladen Simulator – vollständiger Kontext für den neuen Chat
-Stand: 08.10.2026, ca. 22:30 Uhr (dt. Zeit). Verfasst am Ende des langen Chats vom 07./08.10.
+Stand: **13.10.2026** (Chatwechsel nach dem langen Chat vom 08.–13.10.). Ältere Abschnitte ab „1.“ unten gelten weiter, Abschnitt 0 ist der aktuelle Stand.
 
-> **Für den neuen Chat:** Diese Datei komplett lesen. Danach `CLAUDE.md` (Repo-Wurzel, Regeln)
-> und bei Bedarf `docs/uebergabe/*`. Nichts davon ist optional. Tom erwartet, dass du ab
-> der ersten Antwort alles weißt, was hier steht, und nicht nachfragst, was schon geklärt ist.
+> **Für den neuen Chat:** Zuerst Abschnitt 0 und 10 lesen, dann `CLAUDE.md` (Regeln), dann
+> `docs/uebergabe/fundament.md` (nächstes Paket) und `docs/uebergabe/warteschlange.md`.
+> Bei Bedarf `docs/uebergabe/*`. Tom erwartet, dass du ab der ersten Antwort alles weißt und
+> nicht nachfragst, was schon geklärt ist.
 
 ---
+
+## 0. AKTUELLER STAND 13.10.2026 – ZUERST LESEN
+
+### 0.1 Nächster Schritt (Toms Entscheidung 13.10.)
+**Paket „Fundament“** – Auftrag komplett in `docs/uebergabe/fundament.md`. KEIN Neubau des Spiels.
+Reihenfolge laut Tom: zuerst Optik-/Textur-Struktur (Baukasten + Materialbibliothek, alles einheitlich),
+dann Stilregeln, Wirtschaftszentrale, Wächter-Tests, Übersichtsseite. Danach erst Halle ins Hauptspiel
+und Balancing. Tom will sich darauf verlassen können, dass Agenten das Drumherum mitdenken – die Struktur
+soll das erzwingen. Start: direkt im neuen Chat (Tom hat zugestimmt), Etappe 1 Bestandsaufnahme zuerst.
+
+### 0.2 Spielstand / Artefakte / Branches
+- **Hauptspiel:** Branch `claude/artifact-review-task-d47i09`, Commit `24240d5` (+ Übergabe-Commit),
+  Artefakt https://claude.ai/artifact/7zw7iHrZYiYSGzw1QHNwVJ **Version 127**.
+- **Große Halle (Optik, eigener Modus):** Branch `claude/halle-v7` (Commit `48533c5`), Worktree
+  `/home/user/gaming-halle` (überlebt keinen neuen Container – Branch ist gepusht), Vorschau-Artefakt
+  https://claude.ai/artifact/1qMJc7Xf8qgiJ2ndwDmHzh (Version 2). Doku `docs/halle/zusammenfuehrung.md`
+  (auf dem Branch). Start: Startbildschirm „Große Halle“ oder `#halle`.
+- **Balancing-Analyse:** Branch `claude/balancing` (Commit `cf325f0`): `tools/balance/sim.js`,
+  `tools/balance/auswertung.js`, `docs/balancing/ist-analyse.md`. Keine Spielwerte geändert.
+- **Automat/SB-Kassen:** Branch `claude/automat-sb` – bereits ins Hauptspiel gemergt (V127).
+- Worktrees ggf. neu anlegen: `git worktree add ../gaming-halle claude/halle-v7` usw.
+
+### 0.3 Was vom 08.–10.10. gebaut wurde (Versionen 120–127)
+- **V120** Versandecke Stufe 1 ohne Kran (am 09.10. durch V123 wieder ersetzt).
+- **V121** Läden gegenüber: Innenräume mit gemaltem Textur-Atlas (`05e2-laeden-innen.js`), 14 Ladenarten.
+- **V122** Kugelbomben Runde 5 (`docs/uebergabe/kugelbomben-0910.md`): 13 raus, 10 neu, eigener Bruchknall je Kugel, Größen, Preise ≈ 1/3 einer großen Batterie.
+- **V123** Versandecke/DDL/Onlineshop (`versand-sb-0910.md`): Station 1 m Richtung Lager, fest eingebaut; Ladezone vor V1 gesperrt (gelbe Absperrung); Stufen 1/2/3 = 1/2/3 Paletten + Packplätze, Kran ab Stufe 1; Versandbereich schraffiert/unbebaubar; **DDL nur auf Anruf** (Wandtelefon, **39 € Pauschale**, Fahrer lädt; keine Abholung 22 Uhr, keine Zwischenabholung); Porto S/M/L 2,00/3,50/5,00 €; Onlineshop: Versandkosten 0–20 €, Gratis-Schwelle, Sale (alles/einzelne Produkte), „heute versandkostenfrei“, Nachfrage-Elastizität nach Baymard/UPS/Bijmolt, Statistik; Stufenpreise 5 900/6 900 €; **Lager-PC** (Bestellen, Onlineshop, Team) in der Versandecke statt Lagerterminal der Halle, **Tablet** im Laden (nur Bestellen), Büro-Laptop alles; Rolltor V1 mit Lamellen/Fenstern, Schild „DDL Abholung“, Lampe links, Packmaterial-Modelle.
+- **V124** Kugelbomben Runde 6 (`kugelbomben-0910b.md`): neuer Knall (Friedlander-Druckstoß, gesättigter Tiefton, Donnerrollen, Faltungshall), alle 30–50 % größer, 4 raus, Silberdistel neu, Fackelhimmel mit Flammenzungen, 8 neue (Level 27–30, Lizenzen L27 Großfeuerwerk 42 000 €, L29 Pyro-Weltklasse 52 000 €), Urknall-Monster als Vorbild; Test `kugelknall`.
+- **V125** Batterien (`batterien-0910.md`): 13 raus, 6 bearbeitet, 11 neue nach echten Vorbildern (Links in der Datei); Änderungsliste („Vorführung (Änderungen)“) nur noch diese + Kugeln (49); **DDL auch per Handy** (Onlineshop-App); Kugel-Bruchhöhen je Kaliber 95–150 m, Königsklasse 165–175 m.
+- **V126** Licht und Schatten im Laden (`05p-licht.js`, `licht-0910.md`): Kontaktschatten, Lichtflecken, Glanzbahnen (ab Mittel), Innen-Belichtung 0,74, Feuerwerk unverändert; Ultra Low/Niedrig nicht langsamer.
+- **V127** Automat „Rakete personalisieren“ (`06b-gravur.js`) und SB-Kassen (`06-fixtures.js` `sbTerminal`, Helfer `geraetBau()`) neu modelliert, weniger Draw-Calls.
+- Referenz-Render „was ist maximal drin“ (three r186): `docs/bilder/referenz/` (Vergleich mit Toms KI-Zielbild).
+
+### 0.4 Offene Punkte / Fragen an Tom (nicht selbst entscheiden)
+1. **Balancing-Zielkurve** freigeben (Vorschlag in `docs/balancing/ist-analyse.md`, Branch `claude/balancing`): alle 10–20 Min spürbar, alle 45–90 Min Fläche, alle 2–4 h Kapitel; Demo: erster Ausbau ~0:30, Kapitel 2 ~1 h; Kredite 30–120 Tage, Miete je Fläche, Insolvenz mit Auswertung, Silvester als Rekordtag. Kommt NACH dem Fundament (Wirtschaftszentrale).
+2. **Halle – 6 Fragen:** Tor 5 (x −57,5) im Plan nicht vorhanden – weg? R4 bei −47,5 (Spiel) statt −43 (Plan) ok? Bunkerzellen verschoben ok? Südstreifen Produktion = Rohstofflager + Leitstand ok? Gelbe Wand nur bis 5 m gelb ok? Produktion höher für mehrere Stockwerke?
+3. **Fassade + Hoflampen** (`fassade-0910.md`, Fotos dabei): Tom wollte Referenzfotos nachschicken; wird mit dem Baukasten (Fassadenpaneel, Mastlampe) erledigt.
+4. Tom hat die neuen Sounds/Optiken von V124–V127 noch nicht alle bewertet.
+
+### 0.5 Bekannte Schwächen / rote Tests (ehrlich)
+- Schon vor dem Licht-Paket rot: `buendel` (GLEICH, Bildabweichung), `vfgrafik` (Funken nach Stopp, Ultra-Extrem-Neuladen Zeitlimit), `grafik2` (automatische Stufen-Absenkung schaltet nicht herunter).
+- `gross` GROESSER „raketen“ rot (Verpackungsmaß, nicht aus der Batterie-Runde).
+- `gameplay` PACKMATERIAL wackelt (bekannter Flake, 2. Lauf grün).
+- Sounds nur gemessen, nicht gehört; Feuerwerks-Bilder nur im Software-Renderer.
+- Engpass Versand: Packer schaffen ~12 Pakete/Tag (Wege) -> Amortisation Stufe 2/3 ~47–56 Spieltage.
+- Echte FPS auf Toms PC (i7-4790) weiterhin ungemessen.
+
+### 0.6 Neue Regeln dieses Chats (auch in CLAUDE.md)
+- Toms Absicht: **Finanzbildung** (Kosten kalkulieren, Kredite, Herunterwirtschaften möglich, Folgen sichtbar).
+- **Preise bestimme ich** – Schweizer Uhrwerk, spürbarer Fortschritt, Begründung mit Amortisation.
+- **Selbstständig abarbeiten** nach `docs/uebergabe/warteschlange.md`; Agenten selbst takten (nacheinander, wenn sie sich Dateien/Testsperre teilen; parallel nur Unabhängiges in eigenen Worktrees/Branches mit eigener Sperre `/tmp/bb-testlock-<name>` und `nice`).
+- **Wochenlimit:** Tom nennt den Prozentstand; bei „aufdrehen“ bis ~95 % planen und rechtzeitig bremsen. Faustwert aus diesem Chat: ~200 000 Agenten-Tokens ≈ 1 % Wochenlimit. Reset samstags 14 Uhr.
+- „Was ich als weg markiere, ist weg“ – keine Rückfrage bei Streichungen.
+- Wächter-Check per `send_later` alle 2 h, solange Agenten laufen.
+- Was gestrichen wird: Lösch-Mechanismus `ENTFERNT` (02e-neuware.js), alte Spielstände ersetzen Ware.
+
 
 ## 1. Wer, was, wo
 
@@ -340,12 +397,9 @@ flock /tmp/bb-testlock timeout 3600 node -r ./ladezeit-preload.js /home/user/gam
 - Container-Neustarts kommen vor und töten laufende Prozesse. Danach Agenten fortsetzen und Läufe neu starten. Das Scratchpad überlebt Neustarts, aber keinen Chatwechsel.
 
 ## 10. Erste Schritte im neuen Chat
-1. Diese Datei und `CLAUDE.md` lesen. `git log -5` und den Branch prüfen.
-2. Tom kurz bestätigen, dass der Kontext da ist (3 Zeilen), und nach der Reihenfolge fragen. Vorschlag:
-   - 5.0 Stufe 1 ohne Kran (klein, ~½ Tag).
-   - dann 5.1 Tests beschleunigen.
-   - dann 5.2 Modelle oder 5.4 großer Bau (nur mit Startsignal) oder 5.3 Feuerwerk.
-3. Für jede Aufgabe eine Zeitprognose nach Regel (realistisch/spätestens, dt. Uhrzeit) und sagen, ob Agenten sich im Weg stehen würden.
+1. Abschnitt 0, `CLAUDE.md`, `docs/uebergabe/fundament.md` und `warteschlange.md` lesen; `git log -5`, Branch prüfen.
+2. Tom in 3 Zeilen bestätigen, dass der Kontext da ist, und das **Fundament** starten (Etappe 1 Bestandsaufnahme) – Tom hat bereits zugestimmt. Zeitprognose nach Regel (realistisch/spätestens, dt. Uhrzeit), Wochenlimit-Stand erfragen.
+3. Etappen nacheinander (gleiche Dateien), nach jeder Etappe: Tests der betroffenen Bereiche, Artefakt veröffentlichen, kurzer Bericht mit Zeile „Konsistenz“.
 
 ## 11. Wo steht was noch
 - **Chronik aller Entscheidungen:** `git log` (513+ Commits mit sprechenden Texten). Jede Datei in `src/parts/` beginnt mit einem Kommentar, der Toms Wunsch mit Datum zitiert.

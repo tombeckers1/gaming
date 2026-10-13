@@ -1,0 +1,32 @@
+const { chromium } = require('/opt/node22/lib/node_modules/playwright');
+const fs=require('fs');
+(async()=>{
+  const b=await chromium.launch({args:['--use-gl=swiftshader','--enable-unsafe-swiftshader','--no-sandbox']});
+  const p=await b.newPage({viewport:{width:640,height:400}});
+  const errs=[]; p.on('pageerror',e=>errs.push('PAGEERROR: '+e.message));
+  await p.goto('file://'+process.argv[2]);
+  await p.waitForFunction('window.__bb!==undefined',{timeout:120000});
+  await p.evaluate(()=>localStorage.clear());
+  await p.reload(); await p.waitForFunction('window.__bb!==undefined',{timeout:120000});
+  await p.waitForFunction("!!document.querySelector('#startBtns button:not([disabled])')",{timeout:120000});
+  await p.click('#startBtns button:last-child',{timeout:120000});
+  await p.waitForSelector('#nameBox.show',{state:'visible',timeout:60000});
+  await p.click('#nameGo');
+  await p.waitForFunction("!document.getElementById('start').classList.contains('show')",{timeout:60000});
+  await p.evaluate(()=>{ const bb=window.__bb; bb.S.level=99; for(const u of bb.UPGRADES) bb.S.up[u.id]=true; try{ bb.applyZonen(); }catch(e){} bb.run(1,0.05);
+    const R=bb.renderer, o=R.renderBufferDirect.bind(R); window.__rec=null; window.__rend=[]; const r0=R.render.bind(R);
+    R.render=function(s,c){ const r=r0(s,c); window.__rend.push({sc:s===bb.scene,calls:R.info.render.calls,tris:R.info.render.triangles}); return r; };
+    R.renderBufferDirect=function(cam,sc,geo,mat,obj,grp){ if(window.__rec){ const n=grp?grp.count:(geo.index?geo.index.count:(geo.attributes.position?geo.attributes.position.count:0)); const a=window.__rec[sc?'m':'s']; a.c++; a.t+=n/3*(obj.isInstancedMesh?obj.count:1); } return o(cam,sc,geo,mat,obj,grp); }; });
+  const views={laden:[0,3,0,0],ladenFront:[0,-4,Math.PI,0],lager:[-14,-2,0,0],lagerDock:[-17,-2,-Math.PI/2,0],testfeld:[0,-12,0,0.05],dockHof:[-27,3,-Math.PI/2,0],halleW:[-46,-10,0,0],strasse:[0,12,Math.PI,0.05]};
+  const messen=async()=>{ const out={}; for(const k in views){ const v=views[k];
+    out[k]=await p.evaluate(([x,z,yaw,pitch])=>{ const bb=window.__bb; bb.setView(x,z,yaw,pitch); bb.run(0.3,0.05); bb.clock=1000; bb.applyTOD();
+      for(let i=0;i<3;i++){ bb.kameraSetzen(); bb.renderFrame(0.016); }
+      window.__rec={m:{c:0,t:0},s:{c:0,t:0}}; bb.kameraSetzen(); bb.renderFrame(0.016); const r=window.__rec; window.__rec=null; return {main:r.m,shadow:r.s}; },v); } return out; };
+  const res={errs};
+  res.vor=await messen();
+  res.buendel=await p.evaluate(()=>{ const bb=window.__bb; const n1=bb.buendelJetzt(); for(let i=0;i<3;i++){ bb.run(0.2,0.05); bb.buendelJetzt(); } return {n:bb.buendelJetzt()}; });
+  res.nach=await messen();
+  fs.writeFileSync(process.argv[3],JSON.stringify(res));
+  console.log('fertig',errs.length,'fehler',errs.slice(0,3), JSON.stringify(res.buendel));
+  await b.close();
+})().catch(e=>{console.error('FAIL',e);process.exit(1);});

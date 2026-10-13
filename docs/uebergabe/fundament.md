@@ -45,6 +45,20 @@ Folgen für den Plan:
   Produkte; die Einzeltests lochschuss/ursprung/vfrohr zu einem Wächter über ALLE Produkte und Orte bündeln.
   Effekte (Anomalie) bleiben unangetastet.
 
+## Toms Anforderung an die Übersicht (13.10. nachmittags) – Sicherheit durch Sichtbarkeit
+Tom will den Unterbau SEHEN, ohne das Spiel 20× spielen zu müssen: Grobes in Listen prüfen, Feinschliff beim Spielen.
+- **Bauteil-Katalog mit Bild:** so sieht ein Rolltor aus, so die Fenster, Schiebetüren, Kassen, Regale, Lampen … –
+  je Bauteil Bild, Varianten (Parameter), wo verwendet.
+- **Textur-/Material-Katalog mit Bild:** jede Textur und jedes Material einzeln.
+- **Verpackungen/Formen:** jede Produktverpackung ist eigen (bewusst verschieden), wird aber ebenfalls gelistet
+  (Detailregeln dazu später gemeinsam mit Tom festlegen).
+- **Wirtschaft als Listen/Definitionen:** wie baut sich das Spiel auf; welche Entscheidung hat welche Folge
+  (zu viel auf einmal kaufen, zu wenig ausbauen, Kredit, Versandkosten …), und WARUM ein Zusammenhang so gesetzt ist
+  (Begründung/Quelle je Regel).
+- **Vorgehen:** Übersichtsseite nicht erst in Etappe 5, sondern ab Etappe 2 mitwachsen lassen (nach jedem Schritt
+  aktualisiert), damit Tom früh prüfen kann.
+- Halle (Branch claude/halle-v7): viele Texturfehler, Tom überlegt Neubau – Entscheidung später, auf Basis des Baukastens.
+
 ## Umfang in 5 Etappen (je Etappe: bauen, Tests der betroffenen Bereiche grün, commit, Artefakt, Bericht)
 
 ### Etappe 1 – Bestandsaufnahme (zuerst, billig, Grundlage für alles)

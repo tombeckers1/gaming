@@ -56,7 +56,7 @@ function schonerMalen(o,dt){
     g.fillStyle='rgba(255,214,120,.75)'; for(const [fx,fy] of b.fe) g.fillRect(fx,fy,3,4); }
   /* Leiste unten: Ladenname links, Uhrzeit rechts */
   g.fillStyle='rgba(8,10,24,.72)'; g.fillRect(0,h-30,w,30);
-  g.fillStyle='#ffd23f'; g.font=BUN(15); g.textAlign='left'; g.textBaseline='middle';
+  g.fillStyle=MAT.css('schildgold'); g.font=BUN(15); g.textAlign='left'; g.textBaseline='middle';
   g.fillText((o.titel||shopName()).toUpperCase().slice(0,26),12,h-15);
   const min=Math.floor(typeof clock==='number'?clock:0), hh=Math.floor(min/60)%24, mm=min%60;
   g.fillStyle='#e8eeff'; g.font=BAR(20); g.textAlign='right';

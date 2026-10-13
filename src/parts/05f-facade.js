@@ -26,7 +26,7 @@ function drawSignFace(g,W,H){
     g.fillStyle=bg; g.fillRect(0,0,W,H);
     for(let i=0;i<900;i++){ g.fillStyle=`rgba(255,255,255,${Math.random()*0.04})`; g.fillRect(Math.random()*W,Math.random()*H,2,2); }
     burst(g,90,70,54,'#ffd23f',14); burst(g,W-86,74,44,'#e63b2e',12); burst(g,W-150,178,30,'#8fd6ff',10);
-    g.strokeStyle='#f2c230'; g.lineWidth=7; g.strokeRect(14,14,W-28,H-28);
+    g.strokeStyle=MAT.css('schildgold'); g.lineWidth=7; g.strokeRect(14,14,W-28,H-28);
     g.strokeStyle='rgba(255,255,255,.35)'; g.lineWidth=2; g.strokeRect(22,22,W-44,H-44);
     g.textAlign='center'; g.textBaseline='middle';
     const t=shopName().toUpperCase(); fitFont(g,t,W-190,116,BUN);
@@ -41,11 +41,11 @@ function drawSignFace(g,W,H){
 function signFaceTex(){ return tex(1024,256,(g,W,H)=>drawSignFace(g,W,H)); }
 function buildFacade(){
   const H=WH, zf=6.1;
-  const steel=MAT.std(0x9ba2ad,{metalness:0.75,roughness:0.35});
-  const dark=MAT.std(0x161c30,{roughness:0.6});
-  const snow=MAT.std(0xeef2f8,{roughness:1});
+  const steel=MAT.get('chromHell');
+  const dark=MAT.get('schildBlau');
+  const snow=MAT.get('weissMatt');
   // --- Traufkasten über der Front
-  bbox(16.5,0.36,0.34,MAT.std(0x2a3042,{roughness:0.8}),0,H+0.32,6.22,null,false);
+  bbox(16.5,0.36,0.34,MAT.ober('nachtblau','matt'),0,H+0.32,6.22,null,false);
   /* Abdeckung in Alu statt weisser Schneekante - die lief bisher genau
      unter dem Schild entlang und verschmolz mit dessen Rahmen. */
   bbox(16.6,0.05,0.42,steel,0,H+0.525,6.22,null,false);
@@ -78,7 +78,7 @@ function buildFacade(){
   for(const x of [-2.4,2.4]){
     bbox(0.06,0.34,0.06,steel,x,SY+1.3,6.2,null,false);
     bbox(0.06,0.06,0.38,steel,x,SY+1.45,6.36,null,false);
-    const sm=new THREE.MeshStandardMaterial({color:LIN(0x23262e),emissive:LIN(0xfff0cc),emissiveIntensity:0}); lampMats.push(sm);
+    const sm=new THREE.MeshStandardMaterial({color:LIN(MAT.farbe('anthrazit')),emissive:LIN(0xfff0cc),emissiveIntensity:0}); lampMats.push(sm);
     const sh=new THREE.Mesh(new THREE.CylinderGeometry(0.15,0.09,0.2,10),sm); sh.position.set(x,SY+1.36,6.53); sh.rotation.x=2.5; scene.add(sh);
   }
   // --- Schaufenster: Sohlbank, Warenauslage, Sicherheitsgitterhalter
@@ -86,14 +86,14 @@ function buildFacade(){
     const cx=(a+b)/2, w=b-a;
     /* Sohlbank in dunklem Alu wie die Fensterrahmen. Vorher hell-
        graue Steinbank mit weisser Schneekante - Tom: das Hellgraue muss weg. */
-    bbox(w+0.2,0.05,0.3,MAT.std(0x2b3040,{metalness:0.55,roughness:0.38}),cx,0.9,zf+0.1,null,false);
+    bbox(w+0.2,0.05,0.3,MAT.get('stahlAnthrazit'),cx,0.9,zf+0.1,null,false);
   }
   // --- Eingang
   {
     tuer=buildSchiebetuer(0);
     /* Laibung des Haupteingangs in Alu verkleidet: die Tuer sitzt innen,
        aussen sieht man die Wandstaerke (5,90-6,10), Oeffnung +-1,20, Sturz 2,50 */
-    { const la=MAT.std(0xc4cad3,{metalness:0,roughness:0.5});
+    { const la=MAT.ober('aluminium','kunststoff');
       for(const s of [-1,1]) bbox(0.025,2.5,0.21,la,s*1.1875,1.25,6.0,null,false);
       bbox(2.4,0.025,0.21,la,0,2.4875,6.0,null,false); }
     /* Fussmatte: Gummirahmen mit eingefasster Buerstenflaeche */
@@ -128,7 +128,7 @@ function buildFacade(){
       const mat=new THREE.MeshStandardMaterial({map:mt,roughness:0.95});
       const matte=bbox(1.9,0.022,1.02,mat,0,0.023,6.85,null,false);
       /* angeschraegte Gummikante ringsum, damit sie nicht aufgeklebt wirkt */
-      const gum=MAT.std(0x14161c,{roughness:0.95});
+      const gum=MAT.get('gummi');
       for(const dz of [-0.525,0.525]) bbox(2.0,0.012,0.06,gum,0,0.014,6.85+dz,null,false);
       for(const dx of [-0.98,0.98]) bbox(0.06,0.012,1.13,gum,dx,0.014,6.85,null,false);
     }
@@ -138,7 +138,7 @@ function buildFacade(){
        mit Rahmen, Acrylfront, an zwei Stangen von der Decke abgehaengt und
        vor der Wand - es sieht auf jeder Wandfarbe gleich aus. */
     { const SW=1.56, SH=0.40, SD=0.09, sy=2.95/* ueber dem Tuerantrieb */, sz=5.74, fz=sz-SD/2-0.003;
-      const gehaeuse=MAT.std(0x2a2e35,{metalness:0.55,roughness:0.38}), alu=MAT.std(0xc9ced6,{metalness:0.85,roughness:0.25});
+      const gehaeuse=MAT.get('stahlAnthrazit'), alu=MAT.get('aluBlank');
       bbox(SW-0.02,SH-0.02,SD-0.01,gehaeuse,0,sy,sz,null,false);
       for(const dy of [-1,1]) bbox(SW,0.034,SD+0.006,gehaeuse,0,sy+dy*(SH/2-0.017),sz,null,false);
       for(const dx of [-1,1]) bbox(0.034,SH,SD+0.006,gehaeuse,dx*(SW/2-0.017),sy,sz,null,false);
@@ -162,11 +162,11 @@ function buildFacade(){
      hellgraues Klinkermuster - das passte zu nichts daneben. */
   /* gleich hoch und gleich tief wie an den Erweiterungen (Tom, 26.09.:
      der 87-cm-Block war zu hoch und wirkte billig) */
-  const plinthM=MAT.std(0x3b4049,{roughness:0.9});
+  const plinthM=MAT.get('graphitMatt');
   bbox(6.85,0.62,0.26,plinthM,-4.72,0.31,zf+0.06,null,false);
   bbox(6.85,0.62,0.26,plinthM, 4.72,0.31,zf+0.06,null,false);
   for(const x of [-5.4,5.4]){
-    bbox(0.16,0.85,0.16,MAT.std(0x2f3542,{metalness:0.5,roughness:0.5}),x,0.42,7.5,null,false);
+    bbox(0.16,0.85,0.16,MAT.get('stahlAnthrazit'),x,0.42,7.5,null,false);
     bbox(0.2,0.06,0.2,MAT.std(0xd9c07a,{metalness:0.7}),x,0.87,7.5,null,false);
     col(x-0.2,x+0.2,7.3,7.7);
   }
@@ -240,10 +240,10 @@ const TUEREN=[];
 function buildSchiebetuer(cx,hb){
   const HB=hb||5.4;
   const g=new THREE.Group(); g.position.x=cx||0; scene.add(g);
-  const alu=MAT.std(0xc4cad3,{metalness:0,roughness:0.5});
-  const aluD=MAT.std(0x8f959e,{metalness:0,roughness:0.55});
-  const dark=MAT.std(0x23272f,{metalness:0,roughness:0.6});
-  const glass=new THREE.MeshStandardMaterial({color:LIN(0xd6ecff),transparent:true,opacity:0.17,roughness:0.05,metalness:0.1,depthWrite:false});
+  const alu=MAT.ober('aluminium','kunststoff');
+  const aluD=MAT.ober('silbergrau','kunststoff');
+  const dark=MAT.get('kunststoffAnthrazit');
+  const glass=new THREE.MeshStandardMaterial({color:LIN(MAT.farbe('glasKlar')),transparent:true,opacity:0.17,roughness:0.05,metalness:0.1,depthWrite:false});
   const W=TUER.w, HH=TUER.y, Z=TUER.z;
   /* Antriebskasten über der Öffnung, reicht über beide Parktaschen */
   bbox(HB,0.24,0.26,alu,0,HH+0.14,Z-0.05,g,false);
@@ -271,7 +271,7 @@ function buildSchiebetuer(cx,hb){
     bbox(0.055,HH-0.12,0.055,alu,W/2-0.028,HH/2,0,lf,false);
     bbox(W-0.09,HH-0.2,0.022,glass,0,HH/2,0,lf,false);
     /* Sicherheitsmarkierung auf Griffhöhe */
-    bbox(W-0.1,0.055,0.026,MAT.std(0xe8eef6,{transparent:true,opacity:0.65,roughness:0.6}),0,1.32,0,lf,false);
+    bbox(W-0.1,0.055,0.026,MAT.ober('weiss','kunststoff',{transparent:true,opacity:0.65}),0,1.32,0,lf,false);
     /* Laufwagen oben */
     for(const dx of [-0.34,0.34]){
       bbox(0.09,0.05,0.05,aluD,dx,HH+0.02,-0.06,lf,false);

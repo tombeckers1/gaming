@@ -24,8 +24,8 @@ const fransenTex=tex(128,32,(g,W,H)=>{ g.clearRect(0,0,W,H);
     g.beginPath(); g.moveTo(x+1,0); g.lineTo(x+1+(Math.random()-0.5)*3,l); g.stroke(); } },false);
 function makeWischer(){
   const g=new THREE.Group();
-  const alu=MAT.std(0xc9ced6,{metalness:0.85,roughness:0.28}), alu2=MAT.std(0xaeb4bd,{metalness:0.85,roughness:0.34});
-  const blau=MAT.std(0x1f5fa8,{roughness:0.55}), grau=MAT.std(0x3a3f48,{roughness:0.6}), gelb=MAT.std(0xf2c230,{roughness:0.5});
+  const alu=MAT.get('aluBlank'), alu2=MAT.get('chromHell');
+  const blau=MAT.ober('signalblau','kunststoff'), grau=MAT.ober('graphit','kunststoff'), gelb=MAT.get('lackGelb');
   /* Kopf: Kunststoffplatte, darunter der Lappen, an den Enden Fransen */
   const kopf=new THREE.Group(); g.add(kopf);
   const tuch=new THREE.MeshStandardMaterial({map:mikrofaserTex,roughness:0.95});

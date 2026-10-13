@@ -510,7 +510,7 @@ function stadtTeileBauen(){
   if(ST_HELI.length){
     const t=tex(256,256,(g,W,H)=>{ g.fillStyle='#3d4247'; g.fillRect(0,0,W,H);
       g.strokeStyle='#e8e8e2'; g.lineWidth=7; g.beginPath(); g.arc(W/2,H/2,W*0.4,0,Math.PI*2); g.stroke();
-      g.fillStyle='#f2c230'; g.fillRect(W*0.34,H*0.3,W*0.07,H*0.4); g.fillRect(W*0.59,H*0.3,W*0.07,H*0.4); g.fillRect(W*0.34,H*0.47,W*0.32,H*0.07); });
+      g.fillStyle=MAT.css('signalgelb'); g.fillRect(W*0.34,H*0.3,W*0.07,H*0.4); g.fillRect(W*0.59,H*0.3,W*0.07,H*0.4); g.fillRect(W*0.34,H*0.47,W*0.32,H*0.07); });
     stadtAdd(new THREE.Mesh(merge(ST_HELI),new THREE.MeshStandardMaterial({map:t,roughness:0.9})));
   }
   if(ST_LICHTER.length){
@@ -562,7 +562,7 @@ function haus(S,cx,cz,w,d,h,stil,achseX,o){
       /* Staffelgeschoss, zur Strasse zurueckgesetzt */
       S.fass[stil].push({geo:bake(prisma(gRechteck(sw,sd),3.0,stil),cx,h+0.1,cz),m:ID,color:hex});
       ST_KANTEN.push({geo:new THREE.BoxGeometry(sw+0.3,0.6,sd+0.3),m:tm(cx,h+3.2,cz),color:gs});
-    } else for(let a=0;a<2;a++) ST_DEKO.push({geo:new THREE.BoxGeometry(rand(1.2,2.4),rand(0.8,1.6),rand(1.2,2)),m:tm(cx+rand(-w*0.25,w*0.25),h+1,cz+rand(-d*0.25,d*0.25)),color:0x9aa2ac});
+    } else for(let a=0;a<2;a++) ST_DEKO.push({geo:new THREE.BoxGeometry(rand(1.2,2.4),rand(0.8,1.6),rand(1.2,2)),m:tm(cx+rand(-w*0.25,w*0.25),h+1,cz+rand(-d*0.25,d*0.25)),color:MAT.farbe('hellgrau')});
     return;
   }
   ST_KANTEN.push({geo:new THREE.BoxGeometry(w+0.36,0.44,d+0.36),m:tm(cx,h,cz),color:gs});
@@ -583,8 +583,8 @@ function haus(S,cx,cz,w,d,h,stil,achseX,o){
     const n=Math.max(1,Math.floor((L-1.5)/3.8)), yr=z=>-0.32+(b+0.5-z)*sl;
     for(const sz of [1,-1]){ if(sz<0&&Math.random()<0.5) continue;
       for(let k=0;k<n;k++){ const gx=-L/2+(k+0.5)*L/n, zf=b-0.9, yb=yr(zf)-0.2;
-        ST_KANTEN.push({geo:new THREE.BoxGeometry(1.5,1.45,1.8),m:lok(gx,yb+0.72,sz*(zf-0.9)),color:0xe8e4dc});
-        ST_KANTEN.push({geo:new THREE.BoxGeometry(1.0,0.85,0.06),m:lok(gx,yb+0.74,sz*(zf+0.02)),color:0x2a323c});
+        ST_KANTEN.push({geo:new THREE.BoxGeometry(1.5,1.45,1.8),m:lok(gx,yb+0.72,sz*(zf-0.9)),color:MAT.farbe('cremeweiss')});
+        ST_KANTEN.push({geo:new THREE.BoxGeometry(1.0,0.85,0.06),m:lok(gx,yb+0.74,sz*(zf+0.02)),color:MAT.farbe('anthrazit')});
         ST_DACH.push({geo:new THREE.BoxGeometry(1.8,0.14,2.3),m:lok(gx,yb+1.52,sz*(zf-0.9),sz*0.16),color:o.dachHex}); } }
   }
   /* Schornsteine am First */
@@ -605,19 +605,19 @@ function lamellen(P,x,y,z,hk,abst,sp){
   for(let i=0;i<P.length;i++){ const a=P[i], b=P[(i+1)%P.length], dx=b.x-a.x, dz=b.z-a.z, l=Math.hypot(dx,dz);
     const k=Math.max(1,Math.round(l/abst)), nx=dz/l, nz=-dx/l, ry=Math.atan2(-dz,dx);
     for(let j=0;j<k;j++){ const t=(j+0.5)/k;
-      ST_KRONE.push({geo:kroneSpalte(new THREE.BoxGeometry(0.22,hk,0.7),sp),m:tm(x+a.x+dx*t+nx*0.12,y+hk/2,z+a.z+dz*t+nz*0.12,0,ry,0),color:0x9098a2}); } }
+      ST_KRONE.push({geo:kroneSpalte(new THREE.BoxGeometry(0.22,hk,0.7),sp),m:tm(x+a.x+dx*t+nx*0.12,y+hk/2,z+a.z+dz*t+nz*0.12,0,ry,0),color:MAT.farbe('silbergrau')}); } }
 }
 function relief(stil,form,P,ww,dd,th,x,y,z){
   const S=FASSADE[stil], rows=Math.max(1,Math.round(th/S.geschoss)), fh=th/rows;
   if(stil==='band'&&rows<40){
     /* Bruestungsbaender stehen vor: jedes Geschoss wirft einen Schatten */
     const ring=weiter(P,ww,dd,0.3);
-    for(let k=1;k<rows;k++) ST_KANTEN.push({geo:bake(prisma(ring,0.34,null,{boden:true}),x,y+k*fh-fh*0.1,z),m:ID,color:0xe4e1da});
+    for(let k=1;k<rows;k++) ST_KANTEN.push({geo:bake(prisma(ring,0.34,null,{boden:true}),x,y+k*fh-fh*0.1,z),m:ID,color:MAT.farbe('cremeweiss')});
     return;
   }
   if(form!=='eckig'||stil==='putz') return;
   /* Lisenen: senkrechte Pfeiler auf den Achsgrenzen */
-  const jede=stil==='glas'?2:1, farbe=stil==='glas'?0xc6ced6:stil==='stein'?0xe0d6c0:stil==='klinker'?0x9a5a44:0xc6c1b6;
+  const jede=stil==='glas'?2:1, farbe=stil==='glas'?MAT.farbe('aluminium'):stil==='stein'?0xe0d6c0:stil==='klinker'?0x9a5a44:0xc6c1b6;
   const tief=stil==='glas'?0.4:0.55, br=stil==='glas'?0.3:0.5;
   for(let i=0;i<4;i++){ const a=P[i], b=P[(i+1)%4], dx=b.x-a.x, dz=b.z-a.z, l=Math.hypot(dx,dz);
     const c=Math.max(1,Math.round(l/S.achse)), nx=dz/l, nz=-dx/l, ry=Math.atan2(-dz,dx);
@@ -645,7 +645,7 @@ function turm(S,cx,cz,w,d,h,stil,o){
   } else {
     /* Lobby: eingerueckter Glassockel unter einem Vordach */
     ST_LOBBY.push({geo:bake(prisma(grund(w-1.4,d-1.4),5,null,{u:20,u0:Math.random(),v:[0.5,1],deckel:false}),cx,0,cz),m:ID});
-    ST_KANTEN.push({geo:bake(prisma(weiter(grund(w,d),w,d,0.4),0.5,null,{boden:true}),cx,4.75,cz),m:ID,color:0xcfd4da});
+    ST_KANTEN.push({geo:bake(prisma(weiter(grund(w,d),w,d,0.4),0.5,null,{boden:true}),cx,4.75,cz),m:ID,color:MAT.farbe('aluminium')});
     y=5;
   }
   /* Staffelung mit Ruecksprung, manchmal aus der Mitte geschoben */
@@ -657,7 +657,7 @@ function turm(S,cx,cz,w,d,h,stil,o){
     if(detail) relief(stil,form,P,ww,dd,th,cx+ox,y,cz+oz);
     y+=th;
     if(t<nT-1){
-      ST_KANTEN.push({geo:bake(prisma(weiter(P,ww,dd,0.45),0.7,null,{boden:true}),cx+ox,y-0.35,cz+oz),m:ID,color:0xd3d6da});
+      ST_KANTEN.push({geo:bake(prisma(weiter(P,ww,dd,0.45),0.7,null,{boden:true}),cx+ox,y-0.35,cz+oz),m:ID,color:MAT.farbe('lichtgrau')});
       const nw=ww*rand(0.7,0.86), nd=dd*rand(0.7,0.86), z=Math.random();
       if(z<0.3) ox+=(Math.random()<0.5?1:-1)*(ww-nw)/2*0.9; else if(z<0.55) oz+=(Math.random()<0.5?1:-1)*(dd-nd)/2*0.9;
       ww=nw; dd=nd;
@@ -665,7 +665,7 @@ function turm(S,cx,cz,w,d,h,stil,o){
   }
   if(nT>1) SKYLINE_INFO.stufen++;
   const P=grund(ww,dd), tx=cx+ox, tz=cz+oz;
-  ST_KANTEN.push({geo:bake(prisma(weiter(P,ww,dd,0.25),1.1,null,{boden:true}),tx,y-0.2,tz),m:ID,color:0xd3d6da});
+  ST_KANTEN.push({geo:bake(prisma(weiter(P,ww,dd,0.25),1.1,null,{boden:true}),tx,y-0.2,tz),m:ID,color:MAT.farbe('lichtgrau')});
   y+=0.9;
   let top=y;
   if(h>38){
@@ -676,23 +676,23 @@ function turm(S,cx,cz,w,d,h,stil,o){
     if(k==='lamellen'){
       /* Technikgeschoss hinter einem Lamellenschirm */
       const hk=clamp(Math.min(ww,dd)*rand(0.18,0.3),3,7);
-      ST_KANTEN.push({geo:new THREE.BoxGeometry(ww*0.55,hk*0.85,dd*0.55),m:tm(tx,top+hk*0.42,tz),color:0x6c737c});
+      ST_KANTEN.push({geo:new THREE.BoxGeometry(ww*0.55,hk*0.85,dd*0.55),m:tm(tx,top+hk*0.42,tz),color:MAT.farbe('mittelgrau')});
       lamellen(P,tx,top,tz,hk,detail?1.4:2.2,sp);
-      ST_KRONE.push({geo:kroneSpalte(bake(prisma(weiter(P,ww,dd,0.2),0.4,null,{v:[0.55,0.62],boden:true}),tx,top+hk-0.4,tz),sp),m:ID,color:0x9098a2});
+      ST_KRONE.push({geo:kroneSpalte(bake(prisma(weiter(P,ww,dd,0.2),0.4,null,{v:[0.55,0.62],boden:true}),tx,top+hk-0.4,tz),sp),m:ID,color:MAT.farbe('silbergrau')});
       top+=hk;
     } else if(k==='spitze'){
       /* Pyramidendach aus Metall auf dem eigenen Grundriss */
       const hs=Math.min(ww,dd)*rand(0.45,0.85);
-      ST_KRONE.push({geo:kroneSpalte(bake(pyramide(weiter(P,ww,dd,-0.25),hs),tx,top,tz),sp),m:ID,color:q<0.6?0x8a939c:0x6f8c80});
+      ST_KRONE.push({geo:kroneSpalte(bake(pyramide(weiter(P,ww,dd,-0.25),hs),tx,top,tz),sp),m:ID,color:q<0.6?MAT.farbe('silbergrau'):0x6f8c80});
       top+=hs;
     } else if(k==='heli'){
       /* Hubschrauberlandeplatz: die Plattform liegt auf einem Technik-
          block und vier Stuetzen (28.09.: vorher schwebte sie, und der
          Block stach durch sie hindurch) */
       const R=Math.min(ww,dd)*0.36, px=tx-ww*0.08, pz=tz+dd*0.06;
-      ST_KANTEN.push({geo:new THREE.BoxGeometry(R*1.1,2.4,R*1.1),m:tm(px,top+1.2,pz),color:0x737a83});
+      ST_KANTEN.push({geo:new THREE.BoxGeometry(R*1.1,2.4,R*1.1),m:tm(px,top+1.2,pz),color:MAT.farbe('mittelgrau')});
       for(let i=0;i<4;i++){ const a=i*Math.PI/2+Math.PI/4;
-        ST_DEKO.push({geo:new THREE.BoxGeometry(0.3,2.5,0.3),m:tm(px+Math.cos(a)*R*0.9,top+1.25,pz+Math.sin(a)*R*0.9),color:0x5d636b}); }
+        ST_DEKO.push({geo:new THREE.BoxGeometry(0.3,2.5,0.3),m:tm(px+Math.cos(a)*R*0.9,top+1.25,pz+Math.sin(a)*R*0.9),color:MAT.farbe('basaltgrau')}); }
       ST_HELI.push({geo:new THREE.CylinderGeometry(R,R,0.3,24),m:tm(px,top+2.6,pz)});
       for(let i=0;i<8;i++){ const a=i/8*Math.PI*2; ST_LICHTER.push([px+Math.cos(a)*R,top+2.9,pz+Math.sin(a)*R].concat(i%2?GRUEN:WEISS)); }
       top+=2.8;
@@ -700,13 +700,13 @@ function turm(S,cx,cz,w,d,h,stil,o){
       /* Technikaufbau mit Rueckkuehlern - so viele, wie auf ihn passen */
       const bw=ww*0.6, bd=dd*0.5, n=clamp(Math.floor(bw/2.4),1,4), ab=bw/n, rk=Math.min(0.9,ab*0.4,bd*0.4);
       ST_KANTEN.push({geo:new THREE.BoxGeometry(bw,3.6,bd),m:tm(tx,top+1.8,tz),color:0x7b828b});
-      for(let i=0;i<n;i++) ST_DEKO.push({geo:new THREE.CylinderGeometry(rk,rk,1.1,10),m:tm(tx+(i-(n-1)/2)*ab,top+4.15,tz),color:0x9aa2ac});
+      for(let i=0;i<n;i++) ST_DEKO.push({geo:new THREE.CylinderGeometry(rk,rk,1.1,10),m:tm(tx+(i-(n-1)/2)*ab,top+4.15,tz),color:MAT.farbe('hellgrau')});
       top+=4.7;
     }
     /* Antennenmast */
     let spitze=top;
     if(Math.random()<(k==='spitze'?0.7:0.4)){ const ah=rand(8,20);
-      ST_DEKO.push({geo:new THREE.CylinderGeometry(0.12,0.38,ah,6),m:tm(tx,top+ah/2,tz),color:0xb8bec6}); spitze=top+ah; }
+      ST_DEKO.push({geo:new THREE.CylinderGeometry(0.12,0.38,ah,6),m:tm(tx,top+ah/2,tz),color:MAT.farbe('aluminium')}); spitze=top+ah; }
     WARNLICHT.push([tx,spitze+0.6,tz]);
     /* Flugwarnlichter an den Dachecken (ab etwa 60 m) */
     if(y>58){ /* auf dem Grundriss, auch bei runden Tuermen */
@@ -829,7 +829,7 @@ function fernRing(S,opt){
     belegen(cx,cz,w/2,d/2); S.boxen++;
     const q=Math.random(), stil=q<0.3?'putz':q<0.5?'raster':q<0.68?'band':q<0.9?'glas':'klinker';
     S.fass[stil].push({geo:fassadenBox(w,h,d,stil),m:tm(cx,h/2,cz),color:stadtTon(stil,r)});
-    if(h>28) ST_KANTEN.push({geo:new THREE.BoxGeometry(w*0.5,3,d*0.45),m:tm(cx,h+1.5,cz),color:0x9aa6b2});
+    if(h>28) ST_KANTEN.push({geo:new THREE.BoxGeometry(w*0.5,3,d*0.45),m:tm(cx,h+1.5,cz),color:MAT.farbe('hellgrau')});
     if(h>70) ST_LICHTER.push([cx,h+3.4,cz].concat(ROT));
   }
 }
@@ -848,7 +848,7 @@ function baueBeacon(x,y,z,gross){
 }
 function buildFernsehturm(x,z){
   const g=new THREE.Group(); g.position.set(x,0,z); scene.add(g);
-  const beton=MAT.std(0xa9b2bd,{roughness:0.95,side:THREE.DoubleSide});   /* side vorher nachtraeglich am Schaft gesetzt (gilt fuer alle Teile mit diesem Material) */
+  const beton=MAT.ober('hellgrau','matt',{side:THREE.DoubleSide});   /* side vorher nachtraeglich am Schaft gesetzt (gilt fuer alle Teile mit diesem Material) */
   const H=118;
   const schaft=new THREE.Mesh(new THREE.CylinderGeometry(3.2,7.5,H*0.72,16,1,true),beton);
   schaft.position.y=H*0.36; g.add(schaft);
@@ -860,13 +860,13 @@ function buildFernsehturm(x,z){
   { const uv=kanzel.geometry.attributes.uv; for(let i=0;i<uv.count;i++) uv.setXY(i,uv.getX(i)*24/FMOD,uv.getY(i)*3/FMOD); uv.needsUpdate=true; }
   /* die Kanzel braucht Vertexfarben, weil das Material sie erwartet */
   { const gm=kanzel.geometry, n=gm.attributes.position.count, col=new Float32Array(n*3);
-    const c=LIN(0xcdd8e4); for(let i=0;i<n;i++){ col[i*3]=c.r; col[i*3+1]=c.g; col[i*3+2]=c.b; }
+    const c=LIN(MAT.farbe('aluminium')); for(let i=0;i<n;i++){ col[i*3]=c.r; col[i*3+1]=c.g; col[i*3+2]=c.b; }
     gm.setAttribute('color',new THREE.BufferAttribute(col,3)); }
   const dach=new THREE.Mesh(new THREE.ConeGeometry(10,6,20),beton);
   dach.position.y=H*0.72+7.2; g.add(dach);
-  const antenne=new THREE.Mesh(new THREE.CylinderGeometry(0.5,2.2,H*0.3,10),MAT.std(0xd8d8d8,{roughness:0.7}));
+  const antenne=new THREE.Mesh(new THREE.CylinderGeometry(0.5,2.2,H*0.3,10),MAT.get('kunststoffHellgrau'));
   antenne.position.y=H*0.86; g.add(antenne);
-  const spitze=new THREE.Mesh(new THREE.CylinderGeometry(0.12,0.5,12,6),MAT.std(0xe8e8e8));
+  const spitze=new THREE.Mesh(new THREE.CylinderGeometry(0.12,0.5,12,6),MAT.get('weissMatt'));
   spitze.position.y=H+4; g.add(spitze);
   turmSpitze=baueBeacon(x,H+11,z,true);
   baueBeacon(x,H*0.72+9,z,false);
@@ -875,18 +875,18 @@ function buildKran(x,z,h,ry){
   const gitter=[];
   /* Mast */
   for(let i=0;i<Math.round(h/3);i++){
-    gitter.push({geo:new THREE.BoxGeometry(1.5,0.22,0.22),m:tm(0,i*3,0.7),color:0xe0a520});
-    gitter.push({geo:new THREE.BoxGeometry(1.5,0.22,0.22),m:tm(0,i*3,-0.7),color:0xe0a520});
+    gitter.push({geo:new THREE.BoxGeometry(1.5,0.22,0.22),m:tm(0,i*3,0.7),color:MAT.farbe('signalgelb')});
+    gitter.push({geo:new THREE.BoxGeometry(1.5,0.22,0.22),m:tm(0,i*3,-0.7),color:MAT.farbe('signalgelb')});
   }
   for(const sx of [-0.7,0.7]) for(const sz of [-0.7,0.7])
-    gitter.push({geo:new THREE.BoxGeometry(0.24,h,0.24),m:tm(sx,h/2,sz),color:0xe0a520});
+    gitter.push({geo:new THREE.BoxGeometry(0.24,h,0.24),m:tm(sx,h/2,sz),color:MAT.farbe('signalgelb')});
   /* Ausleger und Gegengewicht */
-  gitter.push({geo:new THREE.BoxGeometry(34,0.9,1.1),m:tm(11,h+1.4,0),color:0xe0a520});
-  gitter.push({geo:new THREE.BoxGeometry(9,1.6,2.2),m:tm(-7,h+1.4,0),color:0x555a62});
-  gitter.push({geo:new THREE.BoxGeometry(2.2,2,2),m:tm(0,h+2.8,0),color:0xe0a520});
+  gitter.push({geo:new THREE.BoxGeometry(34,0.9,1.1),m:tm(11,h+1.4,0),color:MAT.farbe('signalgelb')});
+  gitter.push({geo:new THREE.BoxGeometry(9,1.6,2.2),m:tm(-7,h+1.4,0),color:MAT.farbe('basaltgrau')});
+  gitter.push({geo:new THREE.BoxGeometry(2.2,2,2),m:tm(0,h+2.8,0),color:MAT.farbe('signalgelb')});
   /* Seil und Haken */
-  gitter.push({geo:new THREE.BoxGeometry(0.1,h*0.5,0.1),m:tm(18,h*0.75,0),color:0x3a3f48});
-  gitter.push({geo:new THREE.BoxGeometry(0.7,0.7,0.7),m:tm(18,h*0.5,0),color:0x6a7078});
+  gitter.push({geo:new THREE.BoxGeometry(0.1,h*0.5,0.1),m:tm(18,h*0.75,0),color:MAT.farbe('graphit')});
+  gitter.push({geo:new THREE.BoxGeometry(0.7,0.7,0.7),m:tm(18,h*0.5,0),color:MAT.farbe('mittelgrau')});
   /* Das verschmolzene Gitter stand bisher im Nullpunkt statt am
      Bauplatz - mitten im Laden. Position und Drehung gehoeren an das
      Mesh, eine Gruppe drumherum braucht es nicht. */
@@ -899,17 +899,17 @@ function buildKirche(x,z,ry){
      Spitzbogenfenstern und Schallarkaden im Turm */
   const W=tm(x,0,z,0,ry,0), T=[];
   const L=(geo,px,py,pz,c,ry2)=>T.push({geo,m:W.clone().multiply(tm(px,py,pz,0,ry2||0,0)),color:c});
-  const STEIN=0xa39887, DACHF=0x5d4a44, DUNKEL=0x2c313a;
+  const STEIN=MAT.farbe('steingrau'), DACHF=0x5d4a44, DUNKEL=MAT.farbe('anthrazit');
   L(new THREE.BoxGeometry(16,11,9),0,5.5,0,STEIN);
   const dg=dachGeo(16,[[4.9,-0.3],[0,6.2],[-4.9,-0.3]],[[4.5,-0.2],[0,6],[-4.5,-0.2]]);
   T.push({geo:bake(dg.dach,x,11,z,ry),m:ID,color:DACHF},{geo:bake(dg.giebel,x,11,z,ry),m:ID,color:STEIN});
   for(let i=0;i<5;i++){ const px=-5.2+i*3.2;
     for(const s of [1,-1]){ L(new THREE.BoxGeometry(1.3,5.2,0.08),px,5.6,s*4.52,DUNKEL);
-      if(i<4) L(new THREE.BoxGeometry(0.7,7.5,0.9),px+1.6,3.75,s*4.9,0x958a7a); } }
+      if(i<4) L(new THREE.BoxGeometry(0.7,7.5,0.9),px+1.6,3.75,s*4.9,MAT.farbe('steingrau')); } }
   L(new THREE.BoxGeometry(0.08,3.4,3.4),8.02,6.5,0,DUNKEL);
   /* Turm mit Schallarkaden, Helm und Kreuz */
   L(new THREE.BoxGeometry(5.4,27,5.4),-9,13.5,0,STEIN);
-  L(new THREE.BoxGeometry(5.8,0.5,5.8),-9,17.5,0,0x958a7a);
+  L(new THREE.BoxGeometry(5.8,0.5,5.8),-9,17.5,0,MAT.farbe('steingrau'));
   for(const [dx,dz,r] of [[0,2.72,0],[0,-2.72,0],[2.72,0,Math.PI/2],[-2.72,0,Math.PI/2]])
     L(new THREE.BoxGeometry(2.2,3.2,0.08),-9+dx,24.4,dz,DUNKEL,r);
   L(new THREE.ConeGeometry(4,12,4),-9,33,0,0x4a6a5a,Math.PI/4);
@@ -917,7 +917,7 @@ function buildKirche(x,z,ry){
   L(new THREE.BoxGeometry(1.2,0.2,0.2),-9,40.7,0,0xd8c070);
   stadtAdd(new THREE.Mesh(merge(T),new THREE.MeshStandardMaterial({vertexColors:true,roughness:0.95})));
   /* beleuchtetes Zifferblatt */
-  const zb=new THREE.MeshStandardMaterial({color:LIN(0xf4efe0),emissive:LIN(0xffe9b8),emissiveIntensity:0,roughness:0.6,
+  const zb=new THREE.MeshStandardMaterial({color:LIN(MAT.farbe('cremeweiss')),emissive:LIN(0xffe9b8),emissiveIntensity:0,roughness:0.6,
     map:tex(128,128,(c,W,H)=>{
       c.fillStyle='#f4efe0'; c.beginPath(); c.arc(W/2,H/2,W*0.46,0,Math.PI*2); c.fill();
       c.strokeStyle='#2a2620'; c.lineWidth=4; c.stroke();
@@ -951,7 +951,7 @@ function buildFernbaeume(){
   const setzen=(x,z,skal)=>{
     if(!platzFrei(x,z,1.5,1.5)) return false;
     const h=rand(5,9)*skal, r=rand(1.9,3.2)*skal;
-    staemme.push({geo:new THREE.CylinderGeometry(0.16*skal,0.26*skal,h*0.55,6),m:tm(x,h*0.28,z),color:0x4a3a2c});
+    staemme.push({geo:new THREE.CylinderGeometry(0.16*skal,0.26*skal,h*0.55,6),m:tm(x,h*0.28,z),color:MAT.farbe('holzDunkel')});
     const c=gruen[Math.floor(Math.random()*gruen.length)];
     /* zwei versetzte Kugeln geben der Krone Form, ohne teuer zu sein */
     kronen.push({geo:new THREE.SphereGeometry(r,7,5),m:tm(x,h*0.62,z),color:c});
@@ -1011,7 +1011,7 @@ function vogelGeo(){
    ein eigener Zeichenaufruf (42 Stueck) */
 function buildVoegel(){
   const geo=vogelGeo();
-  const mat=new THREE.MeshBasicMaterial({color:LIN(0x2b3038),side:THREE.DoubleSide,fog:true});
+  const mat=new THREE.MeshBasicMaterial({color:LIN(MAT.farbe('anthrazit')),side:THREE.DoubleSide,fog:true});
   const nS=COARSE?2:3;
   for(let s=0;s<nS;s++){
     const g=new THREE.Group(); scene.add(g);
@@ -1038,26 +1038,26 @@ function buildVoegel(){
 const VIA={y:15.5, len:340, x:[-212,218]};
 function buildHochstrasse(){
   const teile=[], pfeiler=[], lampen=[];
-  const lm=new THREE.MeshStandardMaterial({color:LIN(0x2a2a2e),emissive:LIN(0xffd9a0),emissiveIntensity:0,fog:true});
+  const lm=new THREE.MeshStandardMaterial({color:LIN(MAT.farbe('anthrazit')),emissive:LIN(0xffd9a0),emissiveIntensity:0,fog:true});
   lampMats.push(lm);
   VIA.x.forEach((vx,k)=>{
     const n=Math.round(VIA.len/20);
     for(let i=0;i<n;i++){
       const z=-VIA.len/2+i*20+10;
       const dy=Math.sin(i*0.35+k)*0.9;         /* leichte Kuppe in der Fahrbahn */
-      teile.push({geo:new THREE.BoxGeometry(13,1.2,20.2),m:tm(vx,VIA.y+dy,z),color:0x8b9099});
+      teile.push({geo:new THREE.BoxGeometry(13,1.2,20.2),m:tm(vx,VIA.y+dy,z),color:MAT.farbe('silbergrau')});
       /* Leitplanken links und rechts */
       for(const sx of [-6.2,6.2])
-        teile.push({geo:new THREE.BoxGeometry(0.4,0.8,20.2),m:tm(vx+sx,VIA.y+dy+0.95,z),color:0xb4bac4});
+        teile.push({geo:new THREE.BoxGeometry(0.4,0.8,20.2),m:tm(vx+sx,VIA.y+dy+0.95,z),color:MAT.farbe('hellgrau')});
       /* Pfeilerpaare */
       if(i%2===0) for(const sx of [-3.4,3.4]){
-        pfeiler.push({geo:new THREE.CylinderGeometry(1.2,1.7,VIA.y+dy,10),m:tm(vx+sx,(VIA.y+dy)/2,z),color:0x9aa1ab});
-        pfeiler.push({geo:new THREE.BoxGeometry(3.6,0.8,3.6),m:tm(vx+sx,0.4,z),color:0x868d97});
+        pfeiler.push({geo:new THREE.CylinderGeometry(1.2,1.7,VIA.y+dy,10),m:tm(vx+sx,(VIA.y+dy)/2,z),color:MAT.farbe('hellgrau')});
+        pfeiler.push({geo:new THREE.BoxGeometry(3.6,0.8,3.6),m:tm(vx+sx,0.4,z),color:MAT.farbe('silbergrau')});
       }
       /* Beleuchtungsmasten mit Ausleger */
       if(i%3===0){
-        pfeiler.push({geo:new THREE.CylinderGeometry(0.15,0.22,10,6),m:tm(vx+6.4,VIA.y+dy+6.2,z),color:0x6f767f});
-        pfeiler.push({geo:new THREE.BoxGeometry(2.4,0.24,0.5),m:tm(vx+5.2,VIA.y+dy+11.1,z),color:0x6f767f});
+        pfeiler.push({geo:new THREE.CylinderGeometry(0.15,0.22,10,6),m:tm(vx+6.4,VIA.y+dy+6.2,z),color:MAT.farbe('mittelgrau')});
+        pfeiler.push({geo:new THREE.BoxGeometry(2.4,0.24,0.5),m:tm(vx+5.2,VIA.y+dy+11.1,z),color:MAT.farbe('mittelgrau')});
         lampen.push({geo:new THREE.BoxGeometry(1.6,0.32,0.8),m:tm(vx+4.4,VIA.y+dy+10.8,z)});
       }
     }
@@ -1096,7 +1096,7 @@ function buildFernverkehr(){
 let flieger=null, fliegerLicht=null, fliegerT=rand(20,70);
 function buildFlieger(){
   const g=new THREE.Group(); scene.add(g); g.visible=false;
-  const m=MAT.std(0xdfe4ea,{roughness:0.6,metalness:0.2});
+  const m=MAT.ober('lichtgrau','lackMetall');
   bbox(1.1,0.5,7,m,0,0,0,g,false);
   bbox(9,0.16,1.5,m,0,-0.05,0.4,g,false);
   bbox(3.2,0.14,0.9,m,0,0.5,-2.8,g,false);

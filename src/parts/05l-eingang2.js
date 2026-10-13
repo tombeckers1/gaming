@@ -43,22 +43,22 @@ function eingangsAchse(go,a,b,zf,ST,glas,prof){
   EING2.tuer=d;
   const stahl=MAT.std(0x4a4f5a,{metalness:0.5,roughness:0.45});
   /* Vordach ueber dem Eingang, wie am Haupthaus */
-  const vd=bbox(3.4,0.08,1.5,MAT.std(0x2f343d,{metalness:0.4,roughness:0.6}),cx,TUER.y+0.62,zf+0.85,auf,false);
+  const vd=bbox(3.4,0.08,1.5,MAT.get('lackAnthrazit'),cx,TUER.y+0.62,zf+0.85,auf,false);
   vd.rotation.x=0.05;
   /* Zwei Zugstangen von der Wand ueber dem Dach hinab zur Vorderkante.
      Vorher hingen sie unter dem Dach und endeten unten frei in der Luft. */
   for(const s of [-1,1]) strebeZ(zf+0.02,TUER.y+1.3,zf+1.45,TUER.y+0.67,cx+s*1.5,stahl,auf);
   /* Schmutzfangmatte innen und aussen */
-  const matte=MAT.std(0x232830,{roughness:0.98});
+  const matte=MAT.get('anthrazitMatt');
   bbox(2.4,0.014,1.1,matte,cx,0.02,zf-0.72,auf,false);
   bbox(2.4,0.014,1.0,matte,cx,0.02,zf+0.68,auf,false);
   /* „Eingang 2“ ueber der Tuer */
   const sch=tex(512,110,(g2,W,H)=>{
     g2.fillStyle='#1b2340'; g2.fillRect(0,0,W,H);
-    g2.fillStyle='#ffd23f'; g2.font=BUN(56); g2.textAlign='center'; g2.textBaseline='middle';
+    g2.fillStyle=MAT.css('schildgold'); g2.font=BUN(56); g2.textAlign='center'; g2.textBaseline='middle';
     g2.fillText('EINGANG 2',W/2,H/2+3);
   });
-  bbox(2.3,0.46,0.06,MAT.std(0x1b2340,{roughness:0.7}),cx,TUER.y+0.42,zf+0.05,auf,false);
+  bbox(2.3,0.46,0.06,MAT.get('schildBlau'),cx,TUER.y+0.42,zf+0.05,auf,false);
   plane(2.2,0.4,new THREE.MeshBasicMaterial({map:sch,toneMapped:false}),cx,TUER.y+0.42,zf+0.09,0,auf);
 }
 

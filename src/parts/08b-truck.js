@@ -47,7 +47,7 @@ function liveryTex(name,col,innen){
     g.fillStyle='#ffffff'; g.fillText(name.toUpperCase(),W/2,H*0.43);
     g.font=BAR(26); g.fillStyle=hex; g.fillText('PYROTECHNIK · GROSSHANDEL',W/2,H*0.70);
     g.save(); g.translate(W*0.87,H*0.83); g.rotate(Math.PI/4);
-    g.fillStyle='#f2a01c'; g.fillRect(-26,-26,52,52); g.strokeStyle='#1f1f24'; g.lineWidth=3; g.strokeRect(-26,-26,52,52);
+    g.fillStyle=MAT.css('signalorange'); g.fillRect(-26,-26,52,52); g.strokeStyle='#1f1f24'; g.lineWidth=3; g.strokeRect(-26,-26,52,52);
     g.restore();
     g.fillStyle='#1f1f24'; g.font=BUN(20); g.fillText('1.4G',W*0.87,H*0.89);
     g.fillStyle='rgba(60,60,70,.25)'; for(let i=0;i<160;i++) g.fillRect(Math.random()*W,H*0.8+Math.random()*H*0.2,4,3);
@@ -56,30 +56,30 @@ function liveryTex(name,col,innen){
 /* --- Aufbau: Aussenhülle, Fahrerhaus, begehbarer Innenraum --- */
 function makeTruck(name,col){
   const g=new THREE.Group();
-  const dark=0x14161c, chrome=0xb9bec8, amber=0xf2a01c, redl=0x9a2a24;
+  const dark=MAT.farbe('gummischwarz'), chrome=MAT.farbe('aluminium'), amber=MAT.farbe('signalorange'), redl=0x9a2a24;
   const vc=[];
   const B=(w,h,d,c,x,y,z,rx,ry,rz)=>vc.push({geo:roundedBoxGeo(w,h,d,Math.min(0.03,Math.min(w,h,d)*0.2),2),m:tm(x,y,z,rx,ry,rz),color:c});
   const Cy=(r1,r2,h,c,x,y,z,rx,ry,rz,seg)=>vc.push({geo:new THREE.CylinderGeometry(r1,r2,h,seg||12),m:tm(x,y,z,rx,ry,rz),color:c});
   const L=LR.len, W=LR.w, HH=LR.h;
   const cx=-L/2;                              // Mitte des Kastens, Heck bei x=0
   /* Fahrgestell unter dem Kasten */
-  B(L+0.3,0.16,W-0.2,0x2a2e36,cx,-0.1,0);
+  B(L+0.3,0.16,W-0.2,MAT.farbe('anthrazit'),cx,-0.1,0);
   Cy(0.26,0.26,0.9,chrome,cx+0.4,-0.16,0,0,0,Math.PI/2);
-  Cy(0.05,0.05,1.2,0x3a3f48,cx-0.2,-0.22,0.5,0,0,Math.PI/2);
+  Cy(0.05,0.05,1.2,MAT.farbe('graphit'),cx-0.2,-0.22,0.5,0,0,Math.PI/2);
   const wheel=(x,z)=>{ Cy(0.46,0.46,0.28,dark,x,-0.44,z,0,0,Math.PI/2,16);
     Cy(0.25,0.25,0.3,chrome,x,-0.44,z,0,0,Math.PI/2,12);
-    Cy(0.1,0.1,0.32,0x8a8f99,x,-0.44,z,0,0,Math.PI/2,10); };
+    Cy(0.1,0.1,0.32,MAT.farbe('silbergrau'),x,-0.44,z,0,0,Math.PI/2,10); };
   for(const wx of [-1.5,-2.5]) for(const wz of [-1.0,-1.28,1.0,1.28]) wheel(wx,wz);
-  B(0.06,0.5,0.4,0x1a1c22,-0.5,-0.55,-1.3); B(0.06,0.5,0.4,0x1a1c22,-0.5,-0.55,1.3);
+  B(0.06,0.5,0.4,MAT.farbe('gummischwarz'),-0.5,-0.55,-1.3); B(0.06,0.5,0.4,MAT.farbe('gummischwarz'),-0.5,-0.55,1.3);
   /* Heckpartie: Rahmen, Leuchten, Unterfahrschutz */
-  B(0.12,HH+0.2,W+0.16,0x3a4150,0.02,HH/2-0.1,0);
-  B(0.16,0.16,W+0.2,0x3a4150,0.04,-0.5,0);
+  B(0.12,HH+0.2,W+0.16,MAT.farbe('graphit'),0.02,HH/2-0.1,0);
+  B(0.16,0.16,W+0.2,MAT.farbe('graphit'),0.04,-0.5,0);
   for(const s of [-1,1]){
     B(0.08,0.16,0.3,redl,0.06,-0.28,s*0.9);
     B(0.08,0.16,0.16,amber,0.06,-0.28,s*0.66);
-    B(0.08,0.16,0.16,0xe8ecf2,0.06,-0.28,s*1.1);
+    B(0.08,0.16,0.16,MAT.farbe('weiss'),0.06,-0.28,s*1.1);
   }
-  B(0.05,0.12,0.34,0xf2f2ee,0.07,-0.5,0);
+  B(0.05,0.12,0.34,MAT.farbe('cremeweiss'),0.07,-0.5,0);
   /* Türflügel, weit aufgeschlagen an die Kastenseiten geklappt */
   for(const s of [-1,1]){
     vc.push({geo:roundedBoxGeo(1.2,HH-0.1,0.07,0.02,2),m:tm(-0.62,HH/2-0.05,s*(W/2+0.06),0,Math.PI/2,0),color:col});
@@ -90,30 +90,30 @@ function makeTruck(name,col){
   B(2.32,1.75,2.2,col,fx,0.78,0);
   B(2.34,0.14,2.24,col,fx,1.69,0);
   B(2.36,0.5,0.1,col,fx-1.07,0.06,0);
-  B(1.6,0.34,0.06,0x2a2e36,fx-1.11,0.42,0);
-  B(2.45,0.34,0.26,0x33383f,fx-1.11,-0.26,0);
+  B(1.6,0.34,0.06,MAT.farbe('anthrazit'),fx-1.11,0.42,0);
+  B(2.45,0.34,0.26,MAT.farbe('graphit'),fx-1.11,-0.26,0);
   for(const s of [-1,1]){
-    B(0.42,0.22,0.06,0xf2f0e4,fx-1.13,0.04,s*0.86);
+    B(0.42,0.22,0.06,MAT.farbe('cremeweiss'),fx-1.13,0.04,s*0.86);
     B(0.16,0.14,0.06,amber,fx-1.11,0.04,s*1.12);
-    B(0.06,0.5,0.06,0x2a2e36,fx-0.5,1.16,s*1.22);
-    B(0.1,0.34,0.14,0x2a2e36,fx-0.5,1.3,s*1.34);
-    B(0.5,0.08,0.34,0x3a3f48,fx,-0.44,s*1.12);
+    B(0.06,0.5,0.06,MAT.farbe('anthrazit'),fx-0.5,1.16,s*1.22);
+    B(0.1,0.34,0.14,MAT.farbe('anthrazit'),fx-0.5,1.3,s*1.34);
+    B(0.5,0.08,0.34,MAT.farbe('graphit'),fx,-0.44,s*1.12);
   }
   B(2.3,0.12,0.4,col,fx-0.9,1.78,0);
   for(let i=0;i<5;i++) B(0.12,0.07,0.07,amber,fx-0.95,1.82,-0.5+i*0.25);
-  B(0.34,0.12,0.03,0xf2f2ee,fx-1.24,-0.36,0);
-  Cy(0.06,0.06,1.9,0x2a2e36,cx+L/2-0.1,0.96,-1.18);
+  B(0.34,0.12,0.03,MAT.farbe('cremeweiss'),fx-1.24,-0.36,0);
+  Cy(0.06,0.06,1.9,MAT.farbe('anthrazit'),cx+L/2-0.1,0.96,-1.18);
   /* Stützwinde */
-  for(const s of [-1,1]){ B(0.1,0.55,0.1,0x4a5058,cx-L/2+0.5,-0.42,s*0.8); B(0.2,0.06,0.2,0x3a4150,cx-L/2+0.5,-0.68,s*0.8); }
+  for(const s of [-1,1]){ B(0.1,0.55,0.1,0x4a5058,cx-L/2+0.5,-0.42,s*0.8); B(0.2,0.06,0.2,MAT.farbe('graphit'),cx-L/2+0.5,-0.68,s*0.8); }
   const body=new THREE.Mesh(merge(vc),vcMat);
   if(HIQ){ body.castShadow=true; body.receiveShadow=true; } g.add(body);
   /* Kastenhülle aussen, innen dunkel */
   const bm=new THREE.MeshStandardMaterial({map:liveryTex(name,col,false),roughness:0.62,metalness:0.1});
-  const side=MAT.std(0x2a2e36,{roughness:0.7});
-  const kof=new THREE.Mesh(new THREE.BoxGeometry(L,HH,W+0.1),[side,side,MAT.std(0xdfe3ea),side,bm,bm]);
+  const side=MAT.get('kunststoffAnthrazit');
+  const kof=new THREE.Mesh(new THREE.BoxGeometry(L,HH,W+0.1),[side,side,MAT.ober('lichtgrau','matt'),side,bm,bm]);
   kof.position.set(cx,HH/2,0); if(HIQ) kof.castShadow=true; g.add(kof);
   /* Scheiben */
-  const gl=new THREE.MeshStandardMaterial({color:LIN(0x1d2632),transparent:true,opacity:0.62,roughness:0.08,metalness:0.4});
+  const gl=new THREE.MeshStandardMaterial({color:LIN(MAT.farbe('anthrazit')),transparent:true,opacity:0.62,roughness:0.08,metalness:0.4});
   const ws=new THREE.Mesh(new THREE.BoxGeometry(0.06,1.0,2.06),gl); ws.position.set(fx-1.03,1.22,0); ws.rotation.z=-0.13; g.add(ws);
   for(const s of [-1,1]){ const sw=new THREE.Mesh(new THREE.BoxGeometry(1.0,0.78,0.06),gl); sw.position.set(fx-0.2,1.2,s*1.15); g.add(sw); }
   return g;
@@ -156,7 +156,7 @@ function makeLaderaum(name,col,rahmen){
       c.ellipse(Math.random()*Wc,Hc*0.62+Math.random()*Hc*0.38,rand(8,30),rand(4,11),0,0,Math.PI*2); c.fill(); } });
   wallTexI.wrapS=wallTexI.wrapT=THREE.RepeatWrapping; wallTexI.repeat.set(3.2,1);
   const wm=new THREE.MeshStandardMaterial({map:wallTexI,roughness:0.82,side:THREE.DoubleSide});
-  const alu=MAT.std(0xb6bcc4,{metalness:0.55,roughness:0.42});
+  const alu=MAT.get('stahlHell');
   for(const s of [-1,1]){
     const wl=new THREE.Mesh(new THREE.PlaneGeometry(L,HH),wm);
     wl.rotation.y=s>0?Math.PI:0; wl.position.set(-L/2,HH/2,s*W/2); g.add(wl);
@@ -164,7 +164,7 @@ function makeLaderaum(name,col,rahmen){
     for(const yy of [0.52,1.46]){
       bbox(L-0.12,0.05,0.026,alu,-L/2,yy,s*(W/2-0.02),g,false);
       for(let k=0;k<Math.floor((L-0.8)/1.1);k++)
-        bbox(0.09,0.028,0.014,MAT.std(0x7d838c,{metalness:0.7,roughness:0.35}),-0.55-k*1.1,yy,s*(W/2-0.036),g,false);
+        bbox(0.09,0.028,0.014,MAT.ober('silbergrau','blank'),-0.55-k*1.1,yy,s*(W/2-0.036),g,false);
     }
     /* Scheuerleiste unten */
     bbox(L-0.1,0.18,0.04,MAT.std(0x8a7f6a,{roughness:0.9}),-L/2,0.1,s*(W/2-0.03),g,false);
@@ -172,10 +172,10 @@ function makeLaderaum(name,col,rahmen){
     bbox(L-0.1,0.07,0.05,alu,-L/2,HH-0.05,s*(W/2-0.03),g,false);
   }
   /* Decke mit lichtdurchlaessigem Dachband */
-  const ceil=new THREE.Mesh(new THREE.PlaneGeometry(L,W),MAT.std(0xf0ece2,{roughness:0.9,side:THREE.DoubleSide}));
+  const ceil=new THREE.Mesh(new THREE.PlaneGeometry(L,W),MAT.ober('cremeweiss','matt',{side:THREE.DoubleSide}));
   ceil.rotation.x=Math.PI/2; ceil.position.set(-L/2,HH,0); g.add(ceil);
   const dach=new THREE.Mesh(new THREE.PlaneGeometry(L-0.4,W*0.5),
-    new THREE.MeshBasicMaterial({color:0xfbf7ec,toneMapped:false}));
+    new THREE.MeshBasicMaterial({color:MAT.farbe('cremeweiss'),toneMapped:false}));
   dach.rotation.x=Math.PI/2; dach.position.set(-L/2,HH-0.012,0); g.add(dach);
   const led=new THREE.MeshBasicMaterial({color:0xfff6e2,toneMapped:false});
   for(const s of [-1,1]) bbox(L-0.8,0.03,0.07,led,-L/2,HH-0.07,s*(W/2-0.22),g,false);
@@ -192,10 +192,10 @@ function makeLaderaum(name,col,rahmen){
   for(const s of [-1,1]) bbox(0.05,HH,0.07,alu,-L+0.05,HH/2,s*(W/2-0.07),g,false);
   /* Heck: Kantenschutz innen, Rahmen aussen gegen die Torlaibung */
   for(const s of [-1,1]) bbox(0.09,HH,0.09,alu,-0.05,HH/2,s*(W/2-0.05),g,false);
-  const rah=MAT.std(0x2f343c,{roughness:0.8});
+  const rah=MAT.get('anthrazitMatt');
   for(const s of [-1,1]) bbox(0.14,HH+0.34,0.28,rah,-0.07,HH/2,s*(W/2+0.13),g,false);
   bbox(0.14,0.28,W+0.54,rah,-0.07,HH+0.14,0,g,false);
-  bbox(0.14,0.09,W,MAT.std(0x6a7078,{metalness:0.5}),-0.04,0.05,0,g,false);
+  bbox(0.14,0.09,W,MAT.get('stahlMittel'),-0.04,0.05,0,g,false);
   bbox(0.1,0.1,W,alu,-0.05,HH-0.05,0,g,false);
   return g;
 }
@@ -249,9 +249,9 @@ function makeBruecke(rahmen){
   const pl=new THREE.MeshStandardMaterial({map:plate,metalness:0.6,roughness:0.45});
   bbox(1.5,0.05,3.1,pl,0.8,0,0,g,false);
   const lip=bbox(0.34,0.04,3.1,pl,-0.02,0,0,g,false); lip.rotation.z=0.05;
-  for(const dz of [-1.5,1.5]) bbox(1.5,0.02,0.1,MAT.std(0xf2c230),0.8,0.035,dz,g,false);
+  for(const dz of [-1.5,1.5]) bbox(1.5,0.02,0.1,MAT.get('markierungGelb'),0.8,0.035,dz,g,false);
   /* Scharniere zum Laderaum hin */
-  const hg=MAT.std(0x6f757e,{metalness:0.7,roughness:0.4});
+  const hg=MAT.get('stahlMittel');
   for(const dz of [-1.1,0,1.1]) bbox(0.12,0.08,0.34,hg,0.08,0.015,dz,g,false);
   (rahmen||scene).add(g);
   return g;

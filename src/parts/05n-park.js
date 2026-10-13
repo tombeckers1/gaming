@@ -79,12 +79,12 @@ function buildPark(){
     for(const a0 of [0.4,2.2,3.6,5.1]) for(let k=0;k<26;k++){ const a=a0+rand(-0.25,0.25), f=seeRand(a)*rand(0.94,1.02);
       const h=rand(0.7,1.5), x=SEE.x+Math.cos(a)*SEE.rx*f, z=SEE.z+Math.sin(a)*SEE.rz*f;
       T.push({geo:new THREE.CylinderGeometry(0.008,0.014,h,4),m:tm(x,h/2,z,rand(-0.15,0.15),0,rand(-0.15,0.15)),color:pick([0x8a7a52,0x9c8a5c,0x6e6a40])});
-      if(k%4===0) T.push({geo:new THREE.CylinderGeometry(0.03,0.03,0.14,6),m:tm(x,h,z),color:0x4a3624}); }
+      if(k%4===0) T.push({geo:new THREE.CylinderGeometry(0.03,0.03,0.14,6),m:tm(x,h,z),color:MAT.farbe('holzDunkel')}); }
     /* Steg aus Holz am Nordufer */
     const sx=SEE.x-2, sz=SEE.z-SEE.rz*0.95;
     for(let k=0;k<9;k++) T.push({geo:new THREE.BoxGeometry(1.4,0.06,0.28),m:tm(sx,0.32,sz+0.5-k*0.32),color:k%2?0x7a5c3e:0x6e5236});
-    for(const dx of [-0.62,0.62]) for(const dz of [0.4,-1.2,-2.2]) T.push({geo:new THREE.CylinderGeometry(0.06,0.06,0.6,6),m:tm(sx+dx,0.1,sz+dz),color:0x4a3a2a});
-    for(let k=0;k<9;k++) T.push({geo:new THREE.BoxGeometry(1.4,0.03,0.28),m:tm(sx,0.36,sz+0.5-k*0.32),color:0xe8ecf2});
+    for(const dx of [-0.62,0.62]) for(const dz of [0.4,-1.2,-2.2]) T.push({geo:new THREE.CylinderGeometry(0.06,0.06,0.6,6),m:tm(sx+dx,0.1,sz+dz),color:MAT.farbe('holzDunkel')});
+    for(let k=0;k<9;k++) T.push({geo:new THREE.BoxGeometry(1.4,0.03,0.28),m:tm(sx,0.36,sz+0.5-k*0.32),color:MAT.farbe('weiss')});
     stadtAddPark(new THREE.Mesh(merge(T),new THREE.MeshStandardMaterial({vertexColors:true,roughness:0.9})));
   }
   /* --- Baeume: kahle Laubbaeume und verschneite Tannen --- */
@@ -95,42 +95,42 @@ function buildPark(){
      Kegel, Schnee nur als duenne Haube auf der Oberseite */
   let tn=0;
   const tanne=(x,z,h)=>{ const q=()=>parkRauschen(tn++*1.7+x*3.1+z);
-    T.push({geo:new THREE.CylinderGeometry(0.1,0.17,h*0.3,6),m:tm(x,h*0.15,z),color:0x4a3624});
+    T.push({geo:new THREE.CylinderGeometry(0.1,0.17,h*0.3,6),m:tm(x,h*0.15,z),color:MAT.farbe('holzDunkel')});
     for(let k=0;k<6;k++){ const f=k/5, r=h*(0.34-f*0.25)*(0.9+q()*0.2), y=h*(0.14+f*0.66), hh=h*(0.3-f*0.1);
       const ox=(q()-0.5)*0.12*h*0.1, oz=(q()-0.5)*0.12*h*0.1, kip=(q()-0.5)*0.08;
       T.push({geo:new THREE.ConeGeometry(r,hh,11),m:tm(x+ox,y+hh/2,z+oz,kip,q()*6,kip),color:[0x223f2c,0x2a4a33,0x1f3a29][k%3]});
       /* Haube = obere 45 % desselben Kegels, einen Hauch groesser: liegt
          auf, statt als Ring abzustehen */
-      T.push({geo:new THREE.ConeGeometry(r*0.45*1.06,hh*0.45,11),m:tm(x+ox,y+hh*(0.55+0.225)+0.015,z+oz,kip,q()*6,kip),color:0xd9e1ea}); }
-    T.push({geo:new THREE.ConeGeometry(h*0.05,h*0.14,7),m:tm(x,h*0.86,z),color:0x2a4a33}); };
+      T.push({geo:new THREE.ConeGeometry(r*0.45*1.06,hh*0.45,11),m:tm(x+ox,y+hh*(0.55+0.225)+0.015,z+oz,kip,q()*6,kip),color:MAT.farbe('lichtgrau')}); }
+    T.push({geo:new THREE.ConeGeometry(h*0.05,h*0.14,7),m:tm(x,h*0.86,z),color:MAT.farbe('tannengruen')}); };
   [[13,-24.8],[22,-25.4],[31,-24.9],[39,-25.6],[-17.8,-40],[-16,-51],[-17.2,-33.5],[-6,-52],[6,-36],[19,-31.5],[33,-44],[38,-52],[39,-32],[-1,-50],[25,-49],[-18,-46]]
     .forEach(([x,z],i)=>{ tanne(x,z,4+parkRauschen(i+3)*3.5); PARK_TANNEN++; });
   /* Buesche mit Schneehauben */
   [[-2.5,-41],[0,-39],[26,-44],[29,-36],[5,-47],[20,-49],[-18,-47],[35,-47]].forEach(([x,z],i)=>{
     for(let k=0;k<3;k++){ const r=rand(0.5,0.8), dx=rand(-0.6,0.6), dz=rand(-0.5,0.5);
       T.push({geo:new THREE.SphereGeometry(r,9,7),m:tm(x+dx,r*0.7,z+dz,0,0,0,1,0.8,1),color:pick([0x33502f,0x3c5a36])});
-      T.push({geo:new THREE.SphereGeometry(r*0.8,9,5,0,Math.PI*2,0,Math.PI*0.35),m:tm(x+dx,r*0.9,z+dz),color:0xe8edf3}); } });
+      T.push({geo:new THREE.SphereGeometry(r*0.8,9,5,0,Math.PI*2,0,Math.PI*0.35),m:tm(x+dx,r*0.9,z+dz),color:MAT.farbe('weiss')}); } });
   /* Baenke am Weg, mit Blick auf den See */
   [[0.6,1],[2.3,1],[4.1,1]].forEach(([a])=>{ const x=RUNDWEG.x+Math.cos(a)*(RUNDWEG.rx-1.6), z=RUNDWEG.z+Math.sin(a)*(RUNDWEG.rz-1.6), ry=Math.atan2(SEE.x-x,SEE.z-z);
     const B=(w,h,d,lx,ly,lz,c)=>{ const m=new THREE.Matrix4().makeRotationY(ry); m.setPosition(x,0,z); const o=tm(lx,ly,lz); T.push({geo:new THREE.BoxGeometry(w,h,d),m:m.multiply(o),color:c}); };
     for(let k=0;k<3;k++) B(1.6,0.05,0.12,0,0.45,-0.15+k*0.15,0x7a5a3a);
     for(let k=0;k<2;k++) B(1.6,0.1,0.04,0,0.62+k*0.14,-0.24,0x7a5a3a);
-    for(const s of [-0.7,0.7]){ B(0.06,0.45,0.5,s,0.22,-0.05,0x2a2e36); B(0.06,0.4,0.06,s,0.62,-0.25,0x2a2e36); }
-    B(1.55,0.03,0.4,0,0.49,-0.02,0xe8ecf2); });
+    for(const s of [-0.7,0.7]){ B(0.06,0.45,0.5,s,0.22,-0.05,MAT.farbe('anthrazit')); B(0.06,0.4,0.06,s,0.62,-0.25,MAT.farbe('anthrazit')); }
+    B(1.55,0.03,0.4,0,0.49,-0.02,MAT.farbe('weiss')); });
   /* Schneemann */
   { const x=-4, z=-38;
-    for(const [r,y] of [[0.5,0.45],[0.36,1.1],[0.25,1.55]]) T.push({geo:new THREE.SphereGeometry(r,12,9),m:tm(x,y,z),color:0xf2f5f8});
-    T.push({geo:new THREE.ConeGeometry(0.05,0.25,8),m:tm(x,1.55,z+0.3,Math.PI/2,0,0),color:0xe07a2a});
-    T.push({geo:new THREE.CylinderGeometry(0.2,0.2,0.28,12),m:tm(x,1.9,z),color:0x1e2228});
-    T.push({geo:new THREE.CylinderGeometry(0.3,0.3,0.03,12),m:tm(x,1.77,z),color:0x1e2228});
-    T.push({geo:new THREE.TorusGeometry(0.27,0.05,6,14),m:tm(x,1.33,z,Math.PI/2,0,0),color:0xc8322a}); }
+    for(const [r,y] of [[0.5,0.45],[0.36,1.1],[0.25,1.55]]) T.push({geo:new THREE.SphereGeometry(r,12,9),m:tm(x,y,z),color:MAT.farbe('weiss')});
+    T.push({geo:new THREE.ConeGeometry(0.05,0.25,8),m:tm(x,1.55,z+0.3,Math.PI/2,0,0),color:MAT.farbe('signalorange')});
+    T.push({geo:new THREE.CylinderGeometry(0.2,0.2,0.28,12),m:tm(x,1.9,z),color:MAT.farbe('gummischwarz')});
+    T.push({geo:new THREE.CylinderGeometry(0.3,0.3,0.03,12),m:tm(x,1.77,z),color:MAT.farbe('gummischwarz')});
+    T.push({geo:new THREE.TorusGeometry(0.27,0.05,6,14),m:tm(x,1.33,z,Math.PI/2,0,0),color:MAT.farbe('signalrot')}); }
   stadtAddPark(new THREE.Mesh(merge(T),new THREE.MeshStandardMaterial({vertexColors:true,roughness:0.85})));
   /* --- Laternen: warmes Licht am Abend --- */
   { const L=[], G=[];
     for(let k=0;k<6;k++){ const a=k/6*Math.PI*2+0.3, x=RUNDWEG.x+Math.cos(a)*(RUNDWEG.rx+1.4), z=RUNDWEG.z+Math.sin(a)*(RUNDWEG.rz+1.4);
-      G.push({geo:new THREE.CylinderGeometry(0.05,0.08,3.2,8),m:tm(x,1.6,z),color:0x23272e});
-      G.push({geo:new THREE.CylinderGeometry(0.2,0.14,0.08,8),m:tm(x,3.62,z),color:0x23272e});
-      G.push({geo:new THREE.CylinderGeometry(0.03,0.2,0.2,8),m:tm(x,3.74,z),color:0x23272e});
+      G.push({geo:new THREE.CylinderGeometry(0.05,0.08,3.2,8),m:tm(x,1.6,z),color:MAT.farbe('anthrazit')});
+      G.push({geo:new THREE.CylinderGeometry(0.2,0.14,0.08,8),m:tm(x,3.62,z),color:MAT.farbe('anthrazit')});
+      G.push({geo:new THREE.CylinderGeometry(0.03,0.2,0.2,8),m:tm(x,3.74,z),color:MAT.farbe('anthrazit')});
       L.push({geo:new THREE.CylinderGeometry(0.15,0.11,0.36,8),m:tm(x,3.4,z)}); }
     stadtAddPark(new THREE.Mesh(merge(G),new THREE.MeshStandardMaterial({vertexColors:true,roughness:0.5,metalness:0.5})));
     const lm=new THREE.MeshStandardMaterial({color:LIN(0xf2e6c8),emissive:LIN(0xffcf8a),emissiveIntensity:0,roughness:0.3}); lampMats.push(lm);

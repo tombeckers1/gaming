@@ -120,7 +120,11 @@ const fs = require('fs');
       const rep0 = S.rep; bb.endDay(); o.nachTag = bb.vsGelandet(); o.lkwOhneRuf = lkw; o.rows = document.getElementById('sRows').textContent;
       if (window.__bb.summaryOpen !== false) { const btn = document.getElementById('sBtn'); if (btn && btn.onclick) btn.onclick(); }
       /* zweiter Tag ohne Anruf: Pakete warten seit gestern - das kostet Ruf */
-      bb.phase = 'after'; bb.clock = 1320; const rep1 = S.rep; bb.endDay(); o.repStrafe = +(rep1 - S.rep).toFixed(2); { const btn = document.getElementById('sBtn'); if (btn && btn.onclick) btn.onclick(); }
+      /* Ruf vor der Messung auf 60 (13.10.): die Kunden des Testtages finden leere Regale (rep -0,4 je
+         verpasstem Wunsch) und druecken den Ruf je nach Zufall bis auf 0 - am Boden (clamp 0..100) kann die
+         Lieferzeit-Strafe nichts mehr abziehen, der Test war dann zufaellig rot. Erwartet wird genau die
+         Strafe aus 16-day.js: min(3, 0,06 je wartendem Paket); kein Tagesereignis (Pruefung +3 Ruf) dazwischen. */
+      bb.phase = 'after'; bb.clock = 1320; S.rep = 60; S.ev = null; const rep1 = S.rep, wart = Math.min(S.paketeVortag | 0, bb.vsGelandet()); bb.endDay(); o.repStrafe = +(rep1 - S.rep).toFixed(2); o.repSoll = Math.min(3, Math.round(0.06 * wart * 100) / 100); o.wartend = wart; { const btn = document.getElementById('sBtn'); if (btn && btn.onclick) btn.onclick(); }
       void rep0;
       /* Gegenprobe: Anruf am Wandtelefon */
       bb.phase = 'open'; bb.clock = 700; bb.newDayStats && 0;
@@ -143,7 +147,7 @@ const fs = require('fs');
       return o; }, st);
     console.log('ANRUF', JSON.stringify(Object.assign({}, d, {rows: undefined, rows2: (d.rows2 || '').slice(0, 400)})));
     pruef('NUR_AUF_ANRUF' + st, d.lkwOhneRuf === 0 && d.nachTag === d.vorher && d.vorher >= 44, 'DDL kam ohne Anruf oder der Tagesabschluss holte ab: ' + JSON.stringify({lkw: d.lkwOhneRuf, vor: d.vorher, nach: d.nachTag}));
-    pruef('LIEFERZEIT' + st, d.repStrafe > 0, 'Pakete seit gestern kosten keinen Ruf: ' + d.repStrafe);
+    pruef('LIEFERZEIT' + st, d.wartend >= 44 && d.repStrafe >= d.repSoll - 0.005 && d.repSoll > 0, 'Pakete seit gestern kosten keinen (vollen) Ruf: ' + JSON.stringify({strafe: d.repStrafe, soll: d.repSoll, wartend: d.wartend}));
     pruef('ANRUF' + st, d.prompt && d.prompt.a && d.gerufen && Math.abs(d.pauschale - d.soll) < 0.01 && Math.abs(d.dsDdl - d.soll) < 0.01, 'Anruf bucht die Pauschale nicht: ' + JSON.stringify({prompt: d.prompt, g: d.gerufen, p: d.pauschale, ds: d.dsDdl}));
     pruef('ANFAHRT' + st, d.anfahrtS >= 10 && d.anfahrtS <= 40 && d.docked === 'docked', 'DDL kommt nicht nach kurzer Zeit: ' + JSON.stringify({s: d.anfahrtS, dock: d.docked}));
     pruef('FAHRER' + st, d.fig, 'der DDL-Fahrer laedt nicht selbst (Stufe ' + st + ')');

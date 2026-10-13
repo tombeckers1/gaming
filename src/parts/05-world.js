@@ -234,11 +234,11 @@ function brickMat(len,h){
   t.repeat.set(Math.max(1,Math.round(len/2.5)),1);
   return new THREE.MeshStandardMaterial({map:t,roughness:0.92,metalness:0.02});
 }
-const trimMat=std(0xd2d5db,{roughness:0.95});
-const lagerWallTex=tex(32,512,(g,W,H)=>{ g.fillStyle='#a3a8b0'; g.fillRect(0,0,W,H); const b=Math.round(H*(1-0.35/WH)); for(let y=b;y<H;y+=16){ g.fillStyle=((y-b)/16)%2<1?'#f2c230':'#1f1f24'; g.fillRect(0,y,W,16);} });
+const trimMat=MAT.eigen('aluminium','matt');
+const lagerWallTex=tex(32,512,(g,W,H)=>{ g.fillStyle='#a3a8b0'; g.fillRect(0,0,W,H); const b=Math.round(H*(1-0.35/WH)); for(let y=b;y<H;y+=16){ g.fillStyle=((y-b)/16)%2<1?MAT.css('signalgelb'):'#1f1f24'; g.fillRect(0,y,W,16);} });
 lagerWallTex.wrapS=THREE.RepeatWrapping; lagerWallTex.wrapT=THREE.ClampToEdgeWrapping; lagerWallTex.repeat.set(1/2.6,1/WH);
 const lagerWall=new THREE.MeshStandardMaterial({map:lagerWallTex,roughness:0.95});
-const lagerUpper=std(0xa3a8b0,{roughness:0.95});
+const lagerUpper=MAT.eigen('hellgrau','matt');
 /* Wand-UVs in Metern: dadurch ist die Tapete auf jedem Wandstueck gleich
    gross, die Scheuerleiste laeuft durch und Teilstuecke ueber Tuer oder
    Fenster zeigen genau den passenden Ausschnitt - keine Naehte mehr. */

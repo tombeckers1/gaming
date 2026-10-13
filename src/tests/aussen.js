@@ -28,8 +28,8 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     bb.scene.traverse(m=>{ if(!m.isMesh) return; bx.setFromObject(m); bx.getSize(sz);
       if(m.userData.zaunPfosten){ const c=bx.getCenter(new THREE.Vector3());
         if(c.x>L.x0-0.02&&c.x<L.x1+0.02&&c.z>L.z0-0.02&&c.z<L.z1+0.02) o.pfosten.push([+c.x.toFixed(2),+c.z.toFixed(2)]); }
-      /* Sockel: dunkle Bloecke an der Ladenfront (z um 6), lang und flach */
-      if(bx.min.y<0.01&&sz.x>2&&sz.y>0.4&&sz.y<1.2&&sz.z<0.4&&bx.min.z>5.8&&bx.max.z<6.6&&m.material&&m.material.color&&m.material.color.getHex()===new THREE.Color().setHex(0x3b4049).convertSRGBToLinear().getHex()) o.sockel.push(+sz.y.toFixed(3));
+      /* Sockel: dunkle Bloecke an der Ladenfront (z um 6), lang und flach - Farbe Graphit aus der Bibliothek (13.10., vorher #3b4049) */
+      if(bx.min.y<0.01&&sz.x>2&&sz.y>0.4&&sz.y<1.2&&sz.z<0.4&&bx.min.z>5.8&&bx.max.z<6.6&&m.material&&m.material.color&&m.material.color.getHex()===new THREE.Color().setHex(bb.MAT.farbe('graphit')).convertSRGBToLinear().getHex()) o.sockel.push(+sz.y.toFixed(3));
       /* senkrechte 10-cm-Profile in der Frontwand ueber Bruestungshoehe */
       if(Math.abs(sz.x-0.1)<0.005&&sz.y>1.2&&sz.z<0.08&&bx.min.z>5.7&&bx.max.z<6.4) o.profile++; });
     return o; });

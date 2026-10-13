@@ -165,7 +165,7 @@ function vsKapazitaet(gr){ const G=VS_GR[gr||1]; return Math.max(1,palPlaetze())
 let _holzGeo=null;
 function vsHolzGeo(){
   if(_holzGeo) return _holzGeo;
-  const HOLZ=0xc49a62, HOLZ2=0xa9814e, HELL=0xcfa66d, S=bk.sammler({form:{fase:0.01,seg:2,lod0Kasten:true}});
+  const HOLZ=MAT.farbe('holzPalette'), HOLZ2=MAT.farbe('holzPaletteDunkel'), HELL=MAT.farbe('holzPalette'), S=bk.sammler({form:{fase:0.01,seg:2,lod0Kasten:true}});
   const B=(w,h,d,c,x,y,z)=>S.box(w,h,d,x,y,z,c);
   for(const dx of [-0.55,0,0.55]) for(const dz of [-0.34,0,0.34]) B(0.12,0.078,0.12,HOLZ2,dx,0.061,dz);
   for(const dz of [-0.34,0,0.34]) B(1.2,0.022,0.12,HOLZ,0,0.011,dz);
@@ -286,8 +286,8 @@ function hubDa(){ return zoneOffen('packstation'); }
 function hubAn(){ return false; }
 function hubKollision(){}
 function hubModell(){
-  const g=new THREE.Group(), rot=MAT.std(0xd23a2a,{metalness:0.3,roughness:0.5}), stahl=MAT.std(0x9ba2ad,{metalness:0.75,roughness:0.32});
-  const gummi=MAT.std(0x18191d,{roughness:0.95}), griff=MAT.std(0x22252c,{roughness:0.7});
+  const g=new THREE.Group(), rot=MAT.ober('signalrot','lackMetall'), stahl=MAT.get('chromHell');
+  const gummi=MAT.get('gummi'), griff=MAT.get('kunststoffSchwarz');
   /* Gabeln zeigen nach vorn (-z), unter die Palette */
   for(const sx of [-0.27,0.27]){ rbox(0.16,0.055,1.1,0.012,stahl,sx,0.05,-0.78,g); rbox(0.16,0.05,0.2,0.01,stahl,sx,0.045,-1.42,g);
     const r=new THREE.Mesh(new THREE.CylinderGeometry(0.04,0.04,0.07,12),gummi); r.rotation.z=Math.PI/2; r.position.set(sx,0.04,-1.3); g.add(r);
@@ -368,13 +368,11 @@ function vdPanelMat(){
   const unten=tex(512,128,(c,W,H)=>{ lam(c,W,H); c.fillStyle='#16181b'; c.fillRect(0,H-14,W,14); c.fillStyle='#8a9099'; c.fillRect(0,H-18,W,4); });
   const m=t=>new THREE.MeshStandardMaterial({map:t,metalness:0.45,roughness:0.42});
   _vdMat={normal:m(normal),fenster:m(fenster),unten:m(unten)};
-  _vdMat.fenster.emissive=LIN(0x1a2a44); _vdMat.fenster.emissiveIntensity=0.15;
+  _vdMat.fenster.emissive=LIN(MAT.farbe('nachtblau')); _vdMat.fenster.emissiveIntensity=0.15;
   return _vdMat;
 }
 /* Warnmarkierung gelb-schwarz (Fuehrungsschienen unten, Torkante) */
-let _vsWarnTex=null;
-function vsWarnTex(){ if(_vsWarnTex) return _vsWarnTex; _vsWarnTex=tex(64,256,(c,W,H)=>{ c.fillStyle='#f2c230'; c.fillRect(0,0,W,H); c.fillStyle='#1b1d22';
-  for(let y=-W;y<H+W;y+=40){ c.beginPath(); c.moveTo(0,y); c.lineTo(W,y-W*0.6); c.lineTo(W,y-W*0.6+20); c.lineTo(0,y+20); c.closePath(); c.fill(); } }); return _vsWarnTex; }
+/* vsWarnTex() entfaellt (13.10., Materialangleichung): Warnschraffur = MAT.get('warnschraffur') */
 /* Schild "DDL Abholung" (Tom 09.10., wie im Zielbild: dunkelblau, Paket-Symbol) */
 function ddlSchildTex(){
   return tex(1024,416,(g,W,H)=>{ g.fillStyle='#1f3152'; g.fillRect(0,0,W,H);
@@ -392,11 +390,11 @@ function ddlSchildTex(){
 function buildVersandhof(){
   if(VD.g) return;
   const g=new THREE.Group(); scene.add(g); VD.g=g;
-  const steel=MAT.std(0x8d939d,{metalness:0.6,roughness:0.42}), dark=MAT.std(0x2a2e38,{metalness:0.5,roughness:0.45}), gelb=MAT.std(0xf2c230,{roughness:0.7});
+  const steel=MAT.get('stahlVerzinkt'), dark=MAT.get('stahlAnthrazit'), gelb=MAT.get('lackGelb');
   /* Vertexfarben: Zarge, Schienen, Kasten, Antrieb, Lampe, Telefon - ein Zeichenaufruf */
   const VC=bk.sammler({form:{fase:0.012,seg:2,lod0Kasten:true},bauteil:'versandtor'}), B=(w,h,d,c,x,y,z,rx,ry,rz)=>VC.box(w,h,d,x,y,z,c,null,rx,ry,rz);
   const Cy=(r,h,c,x,y,z,rx,ry,rz,seg)=>VC.zyl(r,r,h,seg||10,x,y,z,c,null,rx,ry,rz);
-  const ANTH=0x2b2f36, STAHL=0x8d939d, GRAU=0x5d636c;
+  const ANTH=MAT.farbe('anthrazit'), STAHL=MAT.farbe('silbergrau'), GRAU=MAT.farbe('basaltgrau');
   /* Torblatt: sechs Panele (je vier Lamellen), laeuft nach oben in den Wickelkasten */
   const N=6, ph=V1.h/N, PM=vdPanelMat();
   for(let i=0;i<N;i++){ const pn=new THREE.Mesh(new THREE.BoxGeometry(V1.w-0.06,ph-0.008,0.06),i===0?PM.unten:i===3?PM.fenster:PM.normal); pn.position.set(V1.x,(i+0.5)*ph,V1.wz); if(HIQ){ pn.castShadow=true; } g.add(pn); VD.panels.push(pn); }
@@ -407,19 +405,19 @@ function buildVersandhof(){
   /* Wickelkasten ueber dem Tor, innen und aussen, Antrieb mit Kettenkasten rechts */
   for(const zz of [V1.wz-0.2,V1.wz+0.2]) B(V1.w+0.42,0.68,0.24,ANTH,V1.x,V1.h+0.34,zz);
   B(V1.w+0.46,0.04,0.66,GRAU,V1.x,V1.h+0.69,V1.wz);
-  B(0.28,0.3,0.36,0x3a3f48,V1.x+V1.w/2+0.38,V1.h+0.32,V1.wz+0.26); Cy(0.1,0.18,0x24272c,V1.x+V1.w/2+0.38,V1.h+0.32,V1.wz+0.5,Math.PI/2,0,0,14);
-  B(0.12,0.2,0.08,0xe7a91c,V1.x+V1.w/2+0.38,V1.h+0.06,V1.wz+0.3);
+  B(0.28,0.3,0.36,MAT.farbe('graphit'),V1.x+V1.w/2+0.38,V1.h+0.32,V1.wz+0.26); Cy(0.1,0.18,MAT.farbe('gummischwarz'),V1.x+V1.w/2+0.38,V1.h+0.32,V1.wz+0.5,Math.PI/2,0,0,14);
+  B(0.12,0.2,0.08,MAT.farbe('signalgelb'),V1.x+V1.w/2+0.38,V1.h+0.06,V1.wz+0.3);
   /* Steuerkasten mit Tastern und Not-Halt links neben dem Tor (ausserhalb der Ladezone) */
   const TX=V1.x-V1.w/2-0.42;
-  B(0.26,0.36,0.12,0xd9dde3,TX,1.35,V1.wz+0.16); for(const [dy,c] of [[0.08,0x2fd06a],[-0.02,0xff4433],[-0.12,0x1b1d22]]) Cy(0.022,0.02,c,TX-0.05,1.35+dy,V1.wz+0.23,Math.PI/2,0,0,10);
-  Cy(0.04,0.03,0xd21d1d,TX+0.07,1.38,V1.wz+0.24,Math.PI/2,0,0,12); Cy(0.05,0.012,0xf2c230,TX+0.07,1.38,V1.wz+0.225,Math.PI/2,0,0,12);
+  B(0.26,0.36,0.12,MAT.farbe('lichtgrau'),TX,1.35,V1.wz+0.16); for(const [dy,c] of [[0.08,0x2fd06a],[-0.02,0xff4433],[-0.12,MAT.farbe('gummischwarz')]]) Cy(0.022,0.02,c,TX-0.05,1.35+dy,V1.wz+0.23,Math.PI/2,0,0,10);
+  Cy(0.04,0.03,MAT.farbe('signalrot'),TX+0.07,1.38,V1.wz+0.24,Math.PI/2,0,0,12); Cy(0.05,0.012,MAT.farbe('signalgelb'),TX+0.07,1.38,V1.wz+0.225,Math.PI/2,0,0,12);
   /* Warnmarkierung: Schienen unten gelb-schwarz, Bodendichtung - als ein Mesh mit Textur */
   { const parts=[]; for(const sx of [-1,1]) for(const zz of [V1.wz-0.12,V1.wz+0.12]) parts.push({geo:new THREE.BoxGeometry(0.15,1.0,0.105),m:tm(V1.x+sx*(V1.w/2+0.04),0.5,zz),color:0xffffff});
-    const w=new THREE.Mesh(merge(parts),new THREE.MeshStandardMaterial({map:vsWarnTex(),roughness:0.6})); g.add(w); }
+    const w=new THREE.Mesh(MAT.kachel(merge(parts),0.15/0.4,1.0/0.4),MAT.get('warnschraffur')); g.add(w); }
   /* Ampel: rot zu, gruen offen - 09.10. (Tom) links neben das Tor statt halb in die Ecke */
   VD.lampR=new THREE.MeshStandardMaterial({color:LIN(0x401010),emissive:LIN(0xff3a22),emissiveIntensity:1.4});
   VD.lampG=new THREE.MeshStandardMaterial({color:LIN(0x104018),emissive:LIN(0x33ff77),emissiveIntensity:0});
-  VD.warn=new THREE.MeshStandardMaterial({color:LIN(0x403010),emissive:LIN(0xffa820),emissiveIntensity:0});
+  VD.warn=new THREE.MeshStandardMaterial({color:LIN(MAT.farbe('holzDunkel')),emissive:LIN(0xffa820),emissiveIntensity:0});
   const AX=V1.x-V1.w/2-0.42;
   B(0.2,0.5,0.14,ANTH,AX,2.25,V1.wz+0.17);
   const lamp=(m,y)=>{ const l=new THREE.Mesh(new THREE.SphereGeometry(0.06,10,8),m); l.position.set(AX,y,V1.wz+0.25); g.add(l); };
@@ -431,7 +429,7 @@ function buildVersandhof(){
     /* Schwanenhals als Bogen aus kurzen Rohrstuecken (Ebene x = LX) */
     { let py=LY, pz=V1.wz+0.13; for(let i=1;i<=8;i++){ const t=i/8, a=t*Math.PI*0.95, ny=LY+Math.sin(a)*0.26, nz=V1.wz+0.13+(1-Math.cos(a))*0.25+t*0.02;
       const dy=ny-py, dz=nz-pz, L=Math.hypot(dy,dz); Cy(0.016,L+0.01,ANTH,LX,(py+ny)/2,(pz+nz)/2,Math.atan2(dz,dy),0,0,6); py=ny; pz=nz; } }
-    const kopf=new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.2,0.18,20,1,true),std(0x1c1f24,{metalness:0.5,roughness:0.4,side:THREE.DoubleSide}));
+    const kopf=new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.2,0.18,20,1,true),MAT.eigen('gummischwarz','stahl',{side:THREE.DoubleSide}));
     kopf.position.set(LX,LY-0.1,V1.wz+0.63); g.add(kopf);
     VD.schwan=new THREE.MeshStandardMaterial({color:LIN(0xfff4dc),emissive:LIN(0xfff0d0),emissiveIntensity:0.6});
     if(typeof lampMats!=='undefined') lampMats.push(VD.schwan);
@@ -439,17 +437,17 @@ function buildVersandhof(){
   /* Schild "DDL Abholung" ueber dem Tor, innen und aussen (vorher "V1 · VERSAND") */
   { const sm=new THREE.MeshStandardMaterial({map:ddlSchildTex(),roughness:0.55}), SY=V1.h+1.25;
     /* die Wand ist 0,2 m dick (Innenseite z = wz + 0,1) */
-    B(1.96,0.84,0.04,0xc9ced6,V1.x,SY,V1.wz+0.12); B(1.96,0.84,0.04,0xc9ced6,V1.x,SY,V1.wz-0.12);
+    B(1.96,0.84,0.04,MAT.farbe('aluminium'),V1.x,SY,V1.wz+0.12); B(1.96,0.84,0.04,MAT.farbe('aluminium'),V1.x,SY,V1.wz-0.12);
     VD.sign=plane(1.9,0.78,sm,V1.x,SY,V1.wz+0.145,0,g); plane(1.9,0.78,sm,V1.x,SY,V1.wz-0.145,Math.PI,g); }
   /* Wandtelefon (Tom 09.10.: "DDL nur auf Anruf - Telefon an der Wand"): links neben der
      Ladezone, vom Gang hinter den Packtischen aus erreichbar */
   { const PX=V1.x-V1.w/2-1.25, PY=1.38, PZ=V1.wz+0.1;
-    B(0.26,0.36,0.1,0xe7a91c,PX,PY,PZ+0.05); B(0.2,0.12,0.02,0x2a2e36,PX,PY+0.07,PZ+0.105);
-    for(let r=0;r<4;r++) for(let c=0;c<3;c++) B(0.034,0.024,0.012,0xd9dde3,PX-0.045+c*0.045,PY-0.04-r*0.032,PZ+0.105);
-    B(0.06,0.3,0.06,0x1c1f24,PX+0.17,PY+0.01,PZ+0.08); B(0.08,0.06,0.07,0x1c1f24,PX+0.17,PY+0.15,PZ+0.08); B(0.08,0.06,0.07,0x1c1f24,PX+0.17,PY-0.13,PZ+0.08);
+    B(0.26,0.36,0.1,MAT.farbe('signalgelb'),PX,PY,PZ+0.05); B(0.2,0.12,0.02,MAT.farbe('anthrazit'),PX,PY+0.07,PZ+0.105);
+    for(let r=0;r<4;r++) for(let c=0;c<3;c++) B(0.034,0.024,0.012,MAT.farbe('lichtgrau'),PX-0.045+c*0.045,PY-0.04-r*0.032,PZ+0.105);
+    B(0.06,0.3,0.06,MAT.farbe('gummischwarz'),PX+0.17,PY+0.01,PZ+0.08); B(0.08,0.06,0.07,MAT.farbe('gummischwarz'),PX+0.17,PY+0.15,PZ+0.08); B(0.08,0.06,0.07,MAT.farbe('gummischwarz'),PX+0.17,PY-0.13,PZ+0.08);
     /* Spiralkabel vom Hoerer zum Geraet (Ebene z = PZ+0,09) */
     { const pts=[[PX+0.17,PY-0.16],[PX+0.2,PY-0.3],[PX+0.13,PY-0.4],[PX+0.06,PY-0.3],[PX+0.05,PY-0.17]];
-      for(let i=1;i<pts.length;i++){ const [ax,ay]=pts[i-1], [bx,by]=pts[i], dx=bx-ax, dy=by-ay; Cy(0.008,Math.hypot(dx,dy)+0.01,0x1c1f24,(ax+bx)/2,(ay+by)/2,PZ+0.09,0,0,Math.atan2(-dx,dy),6); } }
+      for(let i=1;i<pts.length;i++){ const [ax,ay]=pts[i-1], [bx,by]=pts[i], dx=bx-ax, dy=by-ay; Cy(0.008,Math.hypot(dx,dy)+0.01,MAT.farbe('gummischwarz'),(ax+bx)/2,(ay+by)/2,PZ+0.09,0,0,Math.atan2(-dx,dy),6); } }
     /* Schild darueber: was das Telefon kann, und der Stand der Box */
     VD.telTex=tex(512,256,()=>{});
     VD.telSchild=plane(0.62,0.31,new THREE.MeshBasicMaterial({map:VD.telTex,toneMapped:false}),PX,PY+0.46,PZ+0.02,0,g);
@@ -459,18 +457,18 @@ function buildVersandhof(){
   ddlTelZeichnen();
   /* Versandhof: Betonplatte, Fahrspur, Zaun, Poller */
   const hof=V1_HOF, W=hof.x1-hof.x0, D=hof.z1-hof.z0;
-  const fl=new THREE.Mesh(MAT.kachel(new THREE.PlaneGeometry(W,D),W/2.2,D/2.2),new THREE.MeshStandardMaterial({map:MAT.tex('beton'),roughness:0.92,color:LIN(0xa8acb2)}));
+  const fl=new THREE.Mesh(MAT.kachel(new THREE.PlaneGeometry(W,D),W/2.2,D/2.2),MAT.get('betonHof'));
   fl.rotation.x=-Math.PI/2; fl.position.set((hof.x0+hof.x1)/2,0.036,(hof.z0+hof.z1)/2); if(HIQ) fl.receiveShadow=true; g.add(fl);
-  const mark=(w,d,x,z)=>{ const m=new THREE.Mesh(new THREE.PlaneGeometry(w,d),MAT.basic(0xf2c230)); m.rotation.x=-Math.PI/2; m.position.set(x,0.04,z); g.add(m); };
+  const mark=(w,d,x,z)=>{ const m=new THREE.Mesh(new THREE.PlaneGeometry(w,d),MAT.basic(MAT.farbe('signalgelb'))); m.rotation.x=-Math.PI/2; m.position.set(x,0.04,z); g.add(m); };
   for(let z2=hof.z1-0.8;z2>hof.z0+1;z2-=1.1){ mark(0.12,0.6,V1.x-1.75,z2); mark(0.12,0.6,V1.x+1.75,z2); }
   const zm=new THREE.Mesh(new THREE.PlaneGeometry(4.6,1.3),new THREE.MeshBasicMaterial({transparent:true,depthWrite:false,map:tex(920,260,(c2,Wc,Hc)=>{ c2.clearRect(0,0,Wc,Hc);
-    c2.fillStyle='rgba(18,20,26,.62)'; c2.fillRect(0,0,Wc,Hc); c2.strokeStyle='#ffd23f'; c2.lineWidth=10; c2.strokeRect(5,5,Wc-10,Hc-10);
-    c2.textAlign='center'; c2.textBaseline='middle'; c2.font=BUN(104); c2.fillStyle='#ffd23f'; c2.fillText('VERSANDHOF',Wc/2,Hc/2+3); })}));
+    c2.fillStyle='rgba(18,20,26,.62)'; c2.fillRect(0,0,Wc,Hc); c2.strokeStyle=MAT.css('signalgelb'); c2.lineWidth=10; c2.strokeRect(5,5,Wc-10,Hc-10);
+    c2.textAlign='center'; c2.textBaseline='middle'; c2.font=BUN(104); c2.fillStyle=MAT.css('signalgelb'); c2.fillText('VERSANDHOF',Wc/2,Hc/2+3); })}));
   zm.rotation.x=-Math.PI/2; zm.rotation.z=0; zm.position.set(V1.x,0.045,hof.z1-2.4); zm.renderOrder=2; g.add(zm);
-  const zaunM=MAT.std(0x4a5260,{metalness:0.6,roughness:0.5});
+  const zaunM=MAT.get('zaunPfosten');
   const zaun=(x0,z0,x1,z1)=>{ const quer=Math.abs(x1-x0)>Math.abs(z1-z0), L=quer?Math.abs(x1-x0):Math.abs(z1-z0), n=Math.max(1,Math.round(L/2));
     for(let j=0;j<=n;j++){ const x=x0+(x1-x0)*j/n, z=z0+(z1-z0)*j/n; bbox(0.08,2.0,0.08,zaunM,x,1.0,z,g,false); }
-    const m=new THREE.Mesh(new THREE.BoxGeometry(quer?L:0.03,1.7,quer?0.03:L),MAT.std(0x707886,{metalness:0.5,roughness:0.5,transparent:true,opacity:0.55}));
+    const m=new THREE.Mesh(new THREE.BoxGeometry(quer?L:0.03,1.7,quer?0.03:L),MAT.ober('mittelgrau','stahl',{transparent:true,opacity:0.55}));
     m.position.set((x0+x1)/2,1.0,(z0+z1)/2); g.add(m);
     for(const yy of [0.15,1.95]) bbox(quer?L:0.05,0.05,quer?0.05:L,zaunM,(x0+x1)/2,yy,(z0+z1)/2,g,false); };
   zaun(hof.x0,hof.z1,hof.x0,hof.z0); zaun(hof.x1,hof.z1,hof.x1,hof.z0); zaun(hof.x0,hof.z0,hof.x1,hof.z0);
@@ -479,7 +477,7 @@ function buildVersandhof(){
   for(const s of [-1,1]){ const x=V1.x+s*(V1.w/2+0.55); bbox(0.18,0.9,0.18,gelb,x,0.45,V1.wz-0.9,g,false); col(x-0.14,x+0.14,V1.wz-1.04,V1.wz-0.76); }
   /* Flutlicht ueber dem Tor (aussen) */
   bbox(0.5,0.12,0.2,dark,V1.x,V1.h+1.95,V1.wz-0.25,g,false);
-  VD.fluter=new THREE.MeshStandardMaterial({color:LIN(0x23262e),emissive:LIN(0xfff2d6),emissiveIntensity:0}); if(typeof lampMats!=='undefined') lampMats.push(VD.fluter);
+  VD.fluter=new THREE.MeshStandardMaterial({color:LIN(MAT.farbe('anthrazit')),emissive:LIN(0xfff2d6),emissiveIntensity:0}); if(typeof lampMats!=='undefined') lampMats.push(VD.fluter);
   const fl2=new THREE.Mesh(new THREE.BoxGeometry(0.42,0.06,0.12),VD.fluter); fl2.position.set(V1.x,V1.h+1.87,V1.wz-0.3); g.add(fl2);
   void steel;
   vdSetzen(0);

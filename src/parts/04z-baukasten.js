@@ -80,7 +80,7 @@ bk.sammler=function(opt){
    Untertitel gold (BAR). Material je Textur geteilt (MAT-Regel: nie veraendern). */
 const _bkSchildT=new Map(), _bkSchildM=new Map();
 bk.schildTex=function(o){
-  const W=Math.round(o.w||512), H=Math.round(o.h||160), bg=o.bg||'#1b2340', fg=o.fg||'#f2c230';
+  const W=Math.round(o.w||512), H=Math.round(o.h||160), bg=o.bg||'#1b2340', fg=o.fg||MAT.css('schildgold');
   const k=[o.text,o.unter||'',bg,fg,W,H].join('|'); let t=_bkSchildT.get(k);
   if(!t){ t=tex(W,H,(g,W2,H2)=>{
       g.fillStyle=bg; g.fillRect(0,0,W2,H2);

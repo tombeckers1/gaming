@@ -10,17 +10,20 @@ wird es hier ergänzt – nicht lokal in der Baufunktion angelegt.
 
 | Aufruf | Liefert | Geteilt? |
 |---|---|---|
-| `MAT.farbe('signalGelb')` | Hex-Zahl (sRGB) aus `MAT.FARBE` – für Vertexfarben/Sammler | – |
+| `MAT.farbe('signalgelb')` | Hex-Zahl (sRGB) aus der Palette `MAT.PALETTE` – für Vertexfarben/Sammler | – |
+| `MAT.css('signalgelb',0.5)` | dieselbe Farbe als CSS (`#f9a800` bzw. `rgba(…)`) – für Canvas-Texturen | – |
+| `MAT.ober('anthrazit','lackMetall',{side:…})` | geteiltes Material aus Palettenfarbe + Oberflächenklasse (`MAT.KLASSE`: matt, kunststoff, lackMetall, stahl, blank) | ja |
+| `MAT.eigen('silbergrau','stahl',{…})` | dasselbe als eigenes, veränderbares Material (Zusatz darf alles: map, emissive …) | nein |
 | `MAT.get('zaunPfosten')` | benanntes Material aus `MAT.REZEPT` | ja |
 | `MAT.std(0xf2c230,{roughness:0.7})` | wie `std(hex,o)`, aber ein Objekt je Farbe+Optionen (nur einfache Werte, keine Texturen/Farben-Objekte) | ja |
 | `MAT.basic(0xf2c230)` | wie `new MeshBasicMaterial({color:hex})` | ja |
 | `MAT.vc('lack')` | Vertexfarben-Material je Klasse: `standard` (= `vcMat`, r 0,45), `lack`, `metall`, `matt`, `glas`, `leucht` | ja |
 | `MAT.neu('signalGelb',{opacity:…})` | eigenes, veränderbares Material nach Rezept (gezählt) | nein |
 | `MAT.kopie(m)` | frische eigene Kopie eines geteilten Materials (gleiche Werte) | nein |
-| `MAT.tex('beton')` | geteilte prozedurale Textur (lazy, einmal gemalt): `beton`, `doppelstab` | ja |
+| `MAT.tex('beton')` | geteilte prozedurale Textur (lazy, einmal gemalt): `beton`, `doppelstab`, `drahtgitter`, `warnschraffur` | ja |
 | `MAT.kachel(geo,rx,ry)` | skaliert die UVs der Geometrie – ersetzt `texture.repeat.set(rx,ry)` bei geteilten Texturen | – |
 | `MAT.stufe()` | `{name, rang, tx, aniso, lambert, lod}` – Grafikstufe, beim Laden fest | – |
-| `MAT.liste()` | Materialien/Texturen mit Abrufzählern (für Wächter-Test und Übersicht) | – |
+| `MAT.liste()` | Materialien/Texturen mit Abrufzählern (für Wächter-Test und Übersicht); je Material `farbe`/`klasse`/`rezept`/`wofuer`, dazu `katalog` = alle Farben, Klassen, Rezepte, Texturen mit Name, Hex und Zweck | – |
 
 **Geteilt heißt: nie verändern.** Kein `color.set/copy`, `opacity`, `transparent`, `emissiveIntensity`,
 `map`, `visible`, `dispose` … auf einem Material aus `get/std/basic/vc/tex`. Wer ein Material
@@ -37,12 +40,18 @@ später ändern will (Ampel, Lampe in `lampMats`, Regalfarbe, Hervorhebung, Ausb
   Test: `src/tests/material.js` (Gameplay-Vorführung + ein Spieltag + Tag/Abend/Nacht, Gegenprobe
   `GEGENPROBE=1`).
 
+### Palette, Klassen, Rezepte (Materialangleichung 13.10., `docs/fundament/angleichung.md`)
+- **Farbe = Ton** (`PALETTE`: `[hex, Name, wofür, RAL-Bezug]`), 28 Töne + Lampenlicht. Gleiche Sache = gleicher Ton.
+- **Oberfläche = Klasse** (`KLASSE`): `matt` 0,9/0 · `kunststoff` 0,6/0 · `lackMetall` 0,5/0,3 · `stahl` 0,42/0,6 · `blank` 0,28/0,85 (roughness/metalness). Keine freien Werte mehr.
+- **Material = Ton + Klasse** (`MAT.ober`) oder benanntes `REZEPT` (z. B. `stahlVerzinkt` = silbergrau+stahl). Ein Rezept nur aus Ton+Klasse ist **dasselbe Objekt** wie `MAT.ober(ton,klasse)`.
+- Nicht angeglichen (bewusst): Feuerwerk, Produkte/Verpackungen (`04-models`, `04g`…), Figuren (`09*`), Läden-Atlas (`05e2`), Licht und Leuchtfarben (`emissive`, `03-scene`), Zufallsvielfalt (Listen mit ≥ 3 Farben: Hausfassaden, Autos, Türen), Tönungsweiß/-schwarz unter Texturen.
+
 ### Ein Material ergänzen
-1. Farbe fehlt → `FARBE` (Name deutsch, sprechend, Hex wie im Spiel; keine stille Farbänderung).
-2. Material → `REZEPT` (`f` = Farbname oder Hex, `r`/`m` = roughness/metalness, `tex` = Name aus
+1. Farbe fehlt → erst prüfen, ob ein Ton der Palette passt (ΔE < 6,5 neutral, < 12 bunt = gleicher Ton). Nur wenn die Farbe eine **eigene Bedeutung** hat, neuer Eintrag in `PALETTE` (Name deutsch, Hex, wofür, RAL-Bezug).
+2. Material → `MAT.ober(ton,klasse)`; wiederkehrend → `REZEPT` (`f` = Ton oder Hex, `k` = Klasse, `w` = wofür, `tex` = Name aus
    `TEXTUR`, sonst normale Material-Optionen).
 3. Textur → `TEXTUR` (Malfunktion einmal, `RepeatWrapping`, Maßstab über `MAT.kachel`).
-4. Aufrufen mit `MAT.get(name)`; bei Einzelfarben ohne Namen reicht `MAT.std(hex,o)`.
+4. Aufrufen mit `MAT.get(name)` bzw. `MAT.ober(ton,klasse)`; `MAT.std(hex,o)` nur noch für Einzelfarben, die bewusst keinem Ton angehören (Liste in `angleichung.md` §4).
 
 ## 2. Baukasten `bk` (`src/parts/04z-baukasten.js`, im Build vor `05-world.js`)
 
@@ -73,7 +82,11 @@ Neues Bauteil = Funktion `bk.<name>(o)` in `04z-baukasten.js`: Parameter statt K
 `bk.sammler`, Materialien nur aus `MAT`, Rückgabe enthält Spiellogik-Haken (Kollision, Treffer,
 bewegte Teile) statt sie intern zu verdrahten, jedes Mesh mit `userData.bauteil`.
 
-## 3. Messung Schritt 0+1 (13.10., neues Spiel, alle Zonen offen, Stufe Hoch, swiftshader)
+## 3. Messung Schritt 2 (Materialangleichung, 13.10.)
+Material-Objekte 563 → 430, Dubletten 114 → 89, Texturen 225 → 223, Zeichenaufrufe fast gleich; Einzelheiten und
+Vorher/Nachher-Bilder in `angleichung.md`.
+
+## 3a. Messung Schritt 0+1 (13.10., neues Spiel, alle Zonen offen, Stufe Hoch, swiftshader)
 
 | Größe | vorher | nachher |
 |---|---|---|

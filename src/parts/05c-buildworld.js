@@ -67,7 +67,7 @@ function buildWorld(){
     flat(T.x1-T.x0,T.z1-T.z0,new THREE.MeshStandardMaterial({map:tg,roughness:0.92}),
       (T.x0+T.x1)/2,0.013,(T.z0+T.z1)/2); }
   // Warenannahme
-  const zone=new THREE.Mesh(new THREE.PlaneGeometry(4.3,2.3),new THREE.MeshBasicMaterial({transparent:true,depthWrite:false,map:tex(430,230,(g,W,H)=>{ g.clearRect(0,0,W,H); g.strokeStyle='#ffd23f'; g.lineWidth=10; g.setLineDash([26,14]); g.strokeRect(8,8,W-16,H-16); g.setLineDash([]); g.fillStyle='rgba(255,210,63,.95)'; g.font=BAR(30); g.fillText('Wareneingang',24,H-26); })}));
+  const zone=new THREE.Mesh(new THREE.PlaneGeometry(4.3,2.3),new THREE.MeshBasicMaterial({transparent:true,depthWrite:false,map:tex(430,230,(g,W,H)=>{ g.clearRect(0,0,W,H); g.strokeStyle=MAT.css('signalgelb'); g.lineWidth=10; g.setLineDash([26,14]); g.strokeRect(8,8,W-16,H-16); g.setLineDash([]); g.fillStyle=MAT.css('signalgelb',.95); g.font=BAR(30); g.fillText('Wareneingang',24,H-26); })}));
   zone.rotation.set(-Math.PI/2,0,-Math.PI/2); zone.position.set(-15.3,0.022,-2); zone.renderOrder=2; scene.add(zone);
   // Laden: Frontwand mit Schaufenstern
   const H=WH;
@@ -76,8 +76,8 @@ function buildWorld(){
   wall(1.2,2,5.9,6.1,0,H,'-z',shopWall); wall(7.2,8,5.9,6.1,0,H,'-z',shopWall);
   wall(2,7.2,5.9,6.1,0,0.9,'-z',shopWall); wall(2,7.2,5.9,6.1,2.4,H,'-z',shopWall);
   wall(-1.2,1.2,5.9,6.1,2.5,H,'-z',shopWall);
-  const glass=new THREE.MeshStandardMaterial({color:LIN(0xbfe0ff),transparent:true,opacity:0.16,roughness:0.05,metalness:0.2,depthWrite:false});
-  const frame=MAT.std(0x2b3040,{metalness:0.5,roughness:0.4});
+  const glass=new THREE.MeshStandardMaterial({color:LIN(MAT.farbe('glasKlar')),transparent:true,opacity:0.16,roughness:0.05,metalness:0.2,depthWrite:false});
+  const frame=MAT.get('stahlAnthrazit');
   for(const [a,b] of [[-7.2,-2],[2,7.2]]){ const gp=bbox(b-a,1.5,0.03,glass,(a+b)/2,1.65,6.0,null,false); occluders.push(gp);
     bbox(b-a,0.06,0.12,frame,(a+b)/2,0.93,6.0); bbox(b-a,0.06,0.12,frame,(a+b)/2,2.38,6.0); bbox(0.06,1.5,0.1,frame,(a+b)/2,1.65,6.0);
   }
@@ -133,10 +133,10 @@ function buildWorld(){
   /* Der Dachrand des Ladens darf nach Westen nicht ueber die Wand
      hinausragen: dahinter steht das hoehere Lager, und der
      Ueberstand stand dort als dunkler Balken quer in der Wand. */
-  bbox(16.2,0.25,12.4,MAT.std(0x2b2f3a),0.1,H+0.13,0);
+  bbox(16.2,0.25,12.4,MAT.get('anthrazitMatt'),0.1,H+0.13,0);
   /* Ein Dach ueber das ganze Lager, Rampenraum und Anbau zusammen */
-  bbox(12.4,0.25,12.4,MAT.std(0x2b2f3a),-14,LAGER_H+0.13,-0.1);
-  const ceil=MAT.std(0xe6e8ee,{roughness:1});
+  bbox(12.4,0.25,12.4,MAT.get('anthrazitMatt'),-14,LAGER_H+0.13,-0.1);
+  const ceil=MAT.get('weissMatt');
   /* Beide Decken reichen ueber die Innenseiten aller Waende hinaus und
      stossen in der Trennwand aneinander - kein Spalt, keine Ueberlappung. */
   const c1=new THREE.Mesh(new THREE.PlaneGeometry(16.1,12.3),ceil); c1.rotation.x=Math.PI/2; c1.position.set(0.1,H-0.01,0); scene.add(c1);
@@ -148,8 +148,8 @@ function buildWorld(){
      Das Gehäuse ist mattes Aluminium ohne Metallanteil, damit beim
      Durchlaufen kein wanderndes Glanzlicht entsteht. */
   const panelM=new THREE.MeshBasicMaterial({map:diffT,toneMapped:false});
-  const fixM=MAT.std(0xdfe3e9,{metalness:0,roughness:0.62});
-  const rev=MAT.std(0x252932,{metalness:0,roughness:0.9});
+  const fixM=MAT.get('kunststoffHellgrau');
+  const rev=MAT.get('anthrazitMatt');
   const leuchten=[];
   /* Das Leuchtenraster richtet sich nach der Trennwand: drei
      Reihen in der Starthaelfte, zwei in der zweiten. Vorher lief
@@ -177,16 +177,16 @@ function buildWorld(){
   roomAO(-19.9,-8.1,-5.9,5.9,null,{n:true,w:true,e:true});
   buildAusbau();
   buildFacade();
-  plane(1.4,0.35,new THREE.MeshStandardMaterial({map:tex(280,70,(g,W,Hh)=>{ g.fillStyle='#f2c230'; g.fillRect(0,0,W,Hh); g.fillStyle='#16181f'; g.font=BUN(40); g.textAlign='center'; g.textBaseline='middle'; g.fillText('LAGER',W/2,Hh/2+2); })}),-7.88,2.85,-2.5,Math.PI/2);
+  plane(1.4,0.35,new THREE.MeshStandardMaterial({map:tex(280,70,(g,W,Hh)=>{ g.fillStyle=MAT.css('signalgelb'); g.fillRect(0,0,W,Hh); g.fillStyle='#16181f'; g.font=BUN(40); g.textAlign='center'; g.textBaseline='middle'; g.fillText('LAGER',W/2,Hh/2+2); })}),-7.88,2.85,-2.5,Math.PI/2);
   // Wanduhr: echtes Gehaeuse mit Glas, Zeiger laufen nach der Spielzeit
   {
     /* Die Uhr hing an der Ostwand. Die faellt jetzt beim ersten
        Flaechenkauf weg - dann haengt die Uhr in der Luft. Sie sitzt
        deshalb an der Rueckwand des Basisladens, die immer steht. */
     const zg=new THREE.Group(); zg.position.set(-2.6,2.6,-5.86); scene.add(zg);
-    const geh=new THREE.Mesh(new THREE.CylinderGeometry(0.24,0.24,0.055,HIQ?36:18),MAT.std(0x2b3140,{metalness:0.35,roughness:0.45}));
+    const geh=new THREE.Mesh(new THREE.CylinderGeometry(0.24,0.24,0.055,HIQ?36:18),MAT.get('lackAnthrazit'));
     geh.rotation.x=Math.PI/2; zg.add(geh);
-    const rand2=new THREE.Mesh(new THREE.TorusGeometry(0.235,0.018,10,HIQ?30:16),MAT.std(0x9aa1ac,{metalness:0.7,roughness:0.3}));
+    const rand2=new THREE.Mesh(new THREE.TorusGeometry(0.235,0.018,10,HIQ?30:16),MAT.get('chromHell'));
     rand2.position.z=0.03; zg.add(rand2);
     const blattT=tex(512,512,(g,W,H)=>{
       g.fillStyle='#f4f6fb'; g.beginPath(); g.arc(256,256,248,0,Math.PI*2); g.fill();
@@ -203,7 +203,7 @@ function buildWorld(){
       g.fillStyle='#8a9099'; g.font=BAR(26); g.fillText('QUARZ',256,336);
     });
     const blatt=plane(0.42,0.42,new THREE.MeshStandardMaterial({map:blattT,roughness:0.75}),0,0,0.032,0,zg);
-    const zeigerM=MAT.std(0x141a2c,{roughness:0.5}), secM=MAT.std(0xc8322a,{roughness:0.45});
+    const zeigerM=MAT.get('schildBlau'), secM=MAT.get('lackRot');
     uhrStd=new THREE.Group(); uhrStd.position.z=0.038; zg.add(uhrStd);
     bbox(0.026,0.125,0.008,zeigerM,0,0.052,0,uhrStd,false);
     uhrMin=new THREE.Group(); uhrMin.position.z=0.045; zg.add(uhrMin);
@@ -211,10 +211,10 @@ function buildWorld(){
     uhrSek=new THREE.Group(); uhrSek.position.z=0.051; zg.add(uhrSek);
     bbox(0.008,0.2,0.006,secM,0,0.076,0,uhrSek,false);
     bbox(0.008,0.05,0.006,secM,0,-0.028,0,uhrSek,false);
-    const nabe=new THREE.Mesh(new THREE.CylinderGeometry(0.018,0.018,0.014,12),MAT.std(0x9aa1ac,{metalness:0.7}));
+    const nabe=new THREE.Mesh(new THREE.CylinderGeometry(0.018,0.018,0.014,12),MAT.get('stahlHell'));
     nabe.rotation.x=Math.PI/2; nabe.position.z=0.056; zg.add(nabe);
     /* Glas mit Reflex */
-    const glasM=new THREE.MeshStandardMaterial({color:LIN(0xdfe8f4),transparent:true,opacity:0.14,roughness:0.06,metalness:0.3});
+    const glasM=new THREE.MeshStandardMaterial({color:LIN(MAT.farbe('weiss')),transparent:true,opacity:0.14,roughness:0.06,metalness:0.3});
     const gl=new THREE.Mesh(new THREE.CircleGeometry(0.225,HIQ?32:16),glasM); gl.position.z=0.062; zg.add(gl);
   }
   buildCheckout(); buildDesk();

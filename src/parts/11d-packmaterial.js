@@ -161,7 +161,7 @@ function vmTexturen(){
     c.fillStyle='#24366e'; c.fillRect(W*0.2,0,10,H); c.fillRect(W*0.75,0,10,H);
     c.fillStyle='#f4f2ea'; c.fillRect(W*0.3,H*0.35,W*0.4,H*0.3); c.fillStyle='#1b2340'; c.textAlign='center'; c.textBaseline='middle';
     fitFont(c,txt,W*0.36,30,BUN); c.fillText(txt,W/2,H/2); });
-  _vmTex={kante,deckel:{ks:deckel('S'),km:deckel('M'),kl:deckel('L')},schild:{kl:schild('KARTON L','#1b2340','#f2c230'),km:schild('KARTON M','#1b2340','#f2c230'),ks:schild('KARTON S','#1b2340','#f2c230'),folie:schild('FOLIE · BAND','#1b2340','#f2c230'),kopf:schild('PACKMITTEL','#ffffff','#2a5a9e')},
+  _vmTex={kante,deckel:{ks:deckel('S'),km:deckel('M'),kl:deckel('L')},schild:{kl:schild('KARTON L',MAT.css('nachtblau'),MAT.css('schildgold')),km:schild('KARTON M',MAT.css('nachtblau'),MAT.css('schildgold')),ks:schild('KARTON S',MAT.css('nachtblau'),MAT.css('schildgold')),folie:schild('FOLIE · BAND',MAT.css('nachtblau'),MAT.css('schildgold')),kopf:schild('PACKMITTEL','#ffffff','#2a5a9e')},
     folie,rollEnde,band,bundel:{ks:bundel('KARTON S'),km:bundel('KARTON M'),kl:bundel('KARTON L'),folie,band:bundel('KLEBEBAND')}};
   return _vmTex;
 }
@@ -192,7 +192,7 @@ function vmRegalBauen(g,i,reg,B0,k){
   const P=(lx,lz)=>({x:L.x+lx*cs+lz*sn,z:L.z-lx*sn+lz*cs}), x=0, z=0;
   const B=(k2,bw,bh,bd,c,lx,y,lz,rx,ry,rz)=>{ const p=P(lx,lz); B0(k2,bw,bh,bd,c,p.x,y,p.z,cs<0?-(rx||0):(rx||0),(ry||0)+L.ry,rz); };
   const setz=(m,lx,y,lz)=>{ const p=P(lx,lz); m.position.set(p.x,y,p.z); m.rotation.y+=L.ry; return m; };
-  const BLAU=0x2a5a9e, ZINK=0xb9bec6;
+  const BLAU=MAT.farbe('signalblau'), ZINK=MAT.farbe('aluminium');
   for(const sx of [-1,1]) for(const sz of [-1,1]) B(k,0.035,VM_RH,0.035,BLAU,x+sx*(w/2-0.018),VM_RH/2,z+sz*(d/2-0.018));
   for(const sx of [-1,1]) for(const y of [0.3,1.1]) B(k,0.02,0.02,d-0.04,BLAU,x+sx*(w/2-0.018),y,z,0.6*(y>1?1:-1),0,0);
   for(const y of VM_BOEDEN.concat([VM_RH])) B(k,w,0.022,d,ZINK,x,y-0.011,z);
@@ -216,14 +216,14 @@ function vmRegalBauen(g,i,reg,B0,k){
   for(let j=0;j<3;j++){ const m=new THREE.Mesh(fg,fm); m.rotation.z=Math.PI/2; const p=P(x,z-0.18+j*0.18); m.position.set(p.x,VM_BOEDEN[3]+0.085,p.z); g.add(m); reg(m); R.folie.push(m); }
   const sm=setz(plane(0.24,0.05,new THREE.MeshBasicMaterial({map:T.schild.folie,toneMapped:false}),0,0,0,0,g),x,VM_BOEDEN[3]-0.035,z+d/2+0.006); reg(sm);
   /* Klebeband: offener Karton auf dem Regal, bis zu zwoelf Rollen */
-  B(k,0.5,0.004,0.24,0xc49a62,x,VM_RH+0.002,z); for(const s of [-1,1]){ B(k,0.5,0.06,0.006,0xc49a62,x,VM_RH+0.03,z+s*0.12); B(k,0.006,0.06,0.24,0xc49a62,x+s*0.25,VM_RH+0.03,z); }
+  B(k,0.5,0.004,0.24,MAT.farbe('holzPalette'),x,VM_RH+0.002,z); for(const s of [-1,1]){ B(k,0.5,0.06,0.006,MAT.farbe('holzPalette'),x,VM_RH+0.03,z+s*0.12); B(k,0.006,0.06,0.24,MAT.farbe('holzPalette'),x+s*0.25,VM_RH+0.03,z); }
   /* zwoelf echte Klebebandrollen in einem Zeichenaufruf; sichtbar sind so viele, wie da sind */
   { const im=new THREE.InstancedMesh(vmBandGeo(),vmBandMat(),12), q=new THREE.Matrix4();
     for(let j=0;j<12;j++){ const p=P(x-0.2+(j%6)*0.08,z+(j<6?-0.055:0.055)); q.makeTranslation(p.x,VM_RH+0.03,p.z); im.setMatrixAt(j,q); }
     im.instanceMatrix.needsUpdate=true; if(HIQ) im.castShadow=true; g.add(im); reg(im); R.bandIM=im; }
   /* Kopfschild */
   const km=setz(plane(0.5,0.12,new THREE.MeshBasicMaterial({map:T.schild.kopf,toneMapped:false}),0,0,0,0,g),x,VM_RH+0.16,z+0.02); reg(km);
-  B(k,0.52,0.14,0.02,0x1b2340,x,VM_RH+0.16,z+0.005);
+  B(k,0.52,0.14,0.02,MAT.farbe('nachtblau'),x,VM_RH+0.16,z+0.005);
   for(const s of [-1,1]) B(k,0.02,0.16,0.02,BLAU,x+s*0.2,VM_RH+0.08,z);
   const hit=setz(bbox(w+0.06,VM_RH+0.2,d+0.06,hitM,0,0,0,g,false),x,(VM_RH+0.2)/2,z);
   hit.userData={kind:'vmregal',ref:i}; reg(hit); R.hit=hit;
@@ -393,7 +393,7 @@ function vmPic(id){
       g.fillStyle='rgba(70,45,18,.5)'; for(let x=x0;x<x0+w;x+=3) g.fillRect(x,y+1,1,d-3); }
     const top=118-n*d;
     g.fillStyle='#24366e'; for(const sx of [0.25,0.7]){ g.fillRect(x0+w*sx,top,6,n*d); g.beginPath(); g.moveTo(x0+w*sx,top); g.lineTo(x0+w*sx+26,top-14); g.lineTo(x0+w*sx+32,top-14); g.lineTo(x0+w*sx+6,top); g.fill(); }
-    g.fillStyle='#f2c230'; g.font='700 16px sans-serif'; g.textAlign='left'; g.fillText(VM[id].kurz.toUpperCase(),16,26);
+    g.fillStyle=MAT.css('schildgold'); g.font='700 16px sans-serif'; g.textAlign='left'; g.fillText(VM[id].kurz.toUpperCase(),16,26);
   }
   g.strokeStyle='rgba(242,245,255,.18)'; g.lineWidth=2; g.strokeRect(1,1,W-2,H-2);
   return _vmPic[id]=c.toDataURL('image/png');

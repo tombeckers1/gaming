@@ -80,7 +80,7 @@ let ckG=null, ckMov=null, ckNameTex=null;
    Blende weiss wie im Supermarkt, Schrift Anthrazit; dunkel bleiben nur
    Sockel, Bedienfeld und Bildschirm. Vorher Korpus und Blende Anthrazit
    mit heller Schrift. */
-const CK_KORPUS=0xe9ebee, CK_SOCKEL=0x2a2d33;
+const CK_KORPUS=MAT.farbe('weiss'), CK_SOCKEL=MAT.farbe('anthrazit');
 const CK_BLENDE='#e9ebee', CK_TEXT='#2b2e34';
 const CK_SCHRIFT=s=>`700 ${s}px Cinzel, Georgia, "Times New Roman", serif`;
 function drawCkName(g,W,H){
@@ -114,12 +114,12 @@ function buildCheckout(){
      Leiste und gelber Schrift. */
   const corpus=std(CK_KORPUS,{roughness:0.42,metalness:0.05}),
         panel=std(parseInt(CK_BLENDE.slice(1),16),{roughness:0.34,metalness:0.03}),
-        laminat=MAT.std(0xd6dae2,{roughness:0.38,metalness:0.05}),
-        steel=MAT.std(0xb8bec8,{metalness:0.72,roughness:0.28}),
-        dark=MAT.std(0x14171f,{roughness:0.5}),
+        laminat=MAT.get('kunststoffHellgrau'),
+        steel=MAT.get('aluBlank'),
+        dark=MAT.get('kunststoffSchwarz'),
         sockel=std(CK_SOCKEL,{roughness:0.6}),
-        rubber=MAT.std(0x1c1d22,{roughness:0.95}),
-        accent=MAT.std(0xc9ced6,{metalness:0.85,roughness:0.22});
+        rubber=MAT.get('gummi'),
+        accent=MAT.get('aluBlank');
   /* Korpus mit Sockelrücksprung */
   const c=rbox(3.2,0.74,0.8,0.02,corpus,0,0.5,0,ckG); occluders.push(c);
   bbox(3.08,0.14,0.68,sockel,0,0.07,0,ckG);
@@ -149,23 +149,23 @@ function buildCheckout(){
   bbox(BL,0.03,0.46,new THREE.MeshStandardMaterial({map:beltTex,roughness:0.85}),BX,0.956,0,ckG,false);
   for(const s2 of [-1,1]){
     bbox(BL+0.06,0.05,0.03,steel,BX,0.965,s2*0.245,ckG);
-    bbox(BL+0.06,0.012,0.012,MAT.std(0xf2c230),BX,0.992,s2*0.245,ckG,false);
+    bbox(BL+0.06,0.012,0.012,MAT.get('markierungGelb'),BX,0.992,s2*0.245,ckG,false);
   }
   for(const ex of [BELT_B-0.04,BELT_A+0.06]){
     const rl=new THREE.Mesh(new THREE.CylinderGeometry(0.03,0.03,0.47,14),steel);
     rl.rotation.x=Math.PI/2; rl.position.set(ex,0.956,0); ckG.add(rl);
   }
-  bbox(0.07,0.1,0.5,MAT.std(0x2a2e38,{metalness:0.4}),BELT_A+0.12,0.94,0,ckG);
+  bbox(0.07,0.1,0.5,MAT.get('lackAnthrazit'),BELT_A+0.12,0.94,0,ckG);
   /* Warentrenner */
   { const t=new THREE.Group(); t.position.set(BELT_A-0.25,0.985,0); t.rotation.y=0.08; ckG.add(t);
-    bbox(0.035,0.055,0.42,MAT.std(0x2f3a5e),0,0,0,t,false);
-    plane(0.4,0.05,new THREE.MeshStandardMaterial({map:tex(600,78,(g,W,H)=>{ g.fillStyle='#2f3a5e'; g.fillRect(0,0,W,H); g.fillStyle='#ffd23f'; g.font=BAR(51); g.textAlign='center'; g.textBaseline='middle'; g.fillText('NÄCHSTER KUNDE',W/2,H/2+3); })}),0.019,0,0,Math.PI/2,t); }
+    bbox(0.035,0.055,0.42,MAT.ober('nachtblau','matt'),0,0,0,t,false);
+    plane(0.4,0.05,new THREE.MeshStandardMaterial({map:tex(600,78,(g,W,H)=>{ g.fillStyle='#2f3a5e'; g.fillRect(0,0,W,H); g.fillStyle=MAT.css('schildgold'); g.font=BAR(51); g.textAlign='center'; g.textBaseline='middle'; g.fillText('NÄCHSTER KUNDE',W/2,H/2+3); })}),0.019,0,0,Math.PI/2,t); }
   /* Scanner: eine in die Platte eingelassene Glasscheibe, sonst nichts */
   {
-    const bezel=MAT.std(0xaeb4bd,{metalness:0.18,roughness:0.5});
-    const frameIn=MAT.std(0x30353d,{metalness:0.1,roughness:0.62});
+    const bezel=MAT.ober('hellgrau','lackMetall');
+    const frameIn=MAT.get('kunststoffAnthrazit');
     const scanGlass=new THREE.MeshStandardMaterial({
-      color:LIN(0x121620),roughness:0.07,metalness:0.25,
+      color:LIN(MAT.farbe('gummischwarz')),roughness:0.07,metalness:0.25,
       map:tex(512,512,(g,W,H)=>{
         g.fillStyle='#10141c'; g.fillRect(0,0,W,H);
         const gl=g.createLinearGradient(0,0,W*0.7,H);
@@ -185,7 +185,7 @@ function buildCheckout(){
     bbox(0.026,0.026,0.01,led,-0.42,0.9775,0.16,ckG,false);
   }
   /* Kassenmonitor auf Schwenkarm */
-  bbox(0.16,0.03,0.16,MAT.std(0x2c3140,{metalness:0.3}),-0.8,0.96,-0.06,ckG,false);
+  bbox(0.16,0.03,0.16,MAT.get('lackAnthrazit'),-0.8,0.96,-0.06,ckG,false);
   const post=new THREE.Mesh(new THREE.CylinderGeometry(0.022,0.028,0.34,12),steel); post.position.set(-0.8,1.12,-0.06); ckG.add(post);
   const arm=bbox(0.04,0.04,0.16,steel,-0.8,1.29,-0.01,ckG,false); arm.rotation.x=0.5;
   const scrBody=rbox(0.44,0.32,0.035,0.01,dark,-0.8,1.4,-0.06,ckG); scrBody.rotation.x=0.16;
@@ -227,14 +227,14 @@ function buildCheckout(){
       for(let i=0;i<500;i++){ g.fillStyle=`rgba(255,255,255,${Math.random()*0.03})`; g.fillRect(Math.random()*W,Math.random()*H,2,2); }
     });
     kbT.anisotropy=8;
-    const wanne=MAT.std(0x141820,{roughness:0.55,metalness:0.1});
+    const wanne=MAT.get('kunststoffSchwarz');
     const kb=rbox(0.44,0.026,0.175,0.006,wanne,-0.8,0.954,-0.32,ckG); kb.rotation.x=-0.06;
     const face=plane(0.4,0.15,new THREE.MeshStandardMaterial({map:kbT,roughness:0.42}),-0.8,0.9685,-0.32,0,ckG);
     /* 03.10. (Tom, Foto): die Beschriftung stand fuer den Kassierer auf dem
        Kopf - um 180 Grad in der Ebene gedreht, Funktionstasten rechts */
     face.rotation.set(-Math.PI/2-0.06,0,Math.PI);
     /* Kabel zur Kasse */
-    const kab=new THREE.Mesh(new THREE.CylinderGeometry(0.006,0.006,0.13,6),MAT.std(0x20242c,{roughness:0.9}));
+    const kab=new THREE.Mesh(new THREE.CylinderGeometry(0.006,0.006,0.13,6),MAT.get('gummi'));
     kab.position.set(-0.8,0.952,-0.4); kab.rotation.x=1.35; ckG.add(kab);
   }
   posHit=bbox(0.66,0.72,0.6,hitM,-0.8,1.2,-0.1,ckG,false); posHit.userData={kind:'pos'};
@@ -251,7 +251,7 @@ function sbScreenTex(){
   return tex(512,384,(g,W,H)=>{
     g.fillStyle='#0f1726'; g.fillRect(0,0,W,H);
     g.fillStyle='#16233a'; g.fillRect(0,0,W,68);
-    g.fillStyle='#ffd23f'; g.font=BUN(34); g.textAlign='left'; g.textBaseline='middle';
+    g.fillStyle=MAT.css('schildgold'); g.font=BUN(34); g.textAlign='left'; g.textBaseline='middle';
     g.fillText('SB-KASSE', 20, 34);
     g.fillStyle='#6cf2a8'; g.font=BAR(24); g.textAlign='right';
     g.fillText('BEREIT', W-20, 34);
@@ -296,32 +296,32 @@ function sbTerminal(parent,x,z){
      Laserkreuz und Scannerturm), Korbablage links, Waage mit
      Tuetenhalter rechts, Kartenterminal, Bondrucker, Lichtsignal. */
   const g=new THREE.Group(); g.position.set(x,0,z); parent.add(g);
-  const W=CK_KORPUS, NAVY=0x1d2c47, DUNK=0x15181f, GRAN=0x2b2f37, STAHL=0xb8bec8;
+  const W=CK_KORPUS, NAVY=MAT.farbe('nachtblau'), DUNK=MAT.farbe('gummischwarz'), GRAN=MAT.farbe('anthrazit'), STAHL=MAT.farbe('aluminium');
   /* Korpus bleibt ein eigenes Mesh (Verdecker) */
   const c=rbox(0.78,0.84,0.66,0.03,std(W,{roughness:0.36,metalness:0.06}),0,0.5,0,g); occluders.push(c);
   const b=geraetBau();
   /* Sockel, Front, Arbeitsplatte */
   b.box('matt',0.72,0.08,0.6,DUNK,0,0.04,0)
-   .box('lack',0.6,0.5,0.012,0xd5d9e0,0,0.48,0.333)
+   .box('lack',0.6,0.5,0.012,MAT.farbe('lichtgrau'),0,0.48,0.333)
    .box('lack',0.78,0.07,0.016,NAVY,0,0.86,0.335)
    .box('metall',0.7,0.05,0.012,STAHL,0,0.13,0.334)
    .rund('lack',0.84,0.045,0.7,0.012,GRAN,0,0.94,0)
    .box('metall',0.84,0.022,0.012,STAHL,0,0.93,0.352);
   /* Scanner: Glasflaeche in der Platte, Laserkreuz, Scannerturm */
-  b.box('matt',0.36,0.006,0.27,0x0b0d12,0,0.963,0.09)
-   .box('glas',0.32,0.004,0.23,0x1a2430,0,0.966,0.09)
+  b.box('matt',0.36,0.006,0.27,MAT.farbe('tiefschwarz'),0,0.963,0.09)
+   .box('glas',0.32,0.004,0.23,MAT.farbe('anthrazit'),0,0.966,0.09)
    .box('leucht',0.28,0.002,0.004,0xd8262a,0,0.969,0.09,0,0.45,0)
    .box('leucht',0.28,0.002,0.004,0xd8262a,0,0.969,0.09,0,-0.45,0)
    .rund('matt',0.38,0.17,0.08,0.02,DUNK,0,1.045,-0.1)
-   .box('glas',0.31,0.11,0.004,0x1a2430,0,1.045,-0.059)
+   .box('glas',0.31,0.11,0.004,MAT.farbe('anthrazit'),0,1.045,-0.059)
    .box('leucht',0.26,0.003,0.002,0xb02020,0,1.045,-0.056);
   /* Saeule mit Kappe */
   b.rund('lack',0.3,0.86,0.16,0.04,W,0,1.39,-0.25)
    .rund('lack',0.31,0.05,0.17,0.02,NAVY,0,1.8,-0.25);
   /* Bondrucker unter dem Bildschirm */
   b.rund('matt',0.17,0.06,0.04,0.01,DUNK,0,1.205,-0.155)
-   .box('matt',0.1,0.004,0.006,0x050608,0,1.2,-0.134)
-   .box('lack',0.07,0.05,0.002,0xf4f4f0,0,1.17,-0.132,0.15,0,0);
+   .box('matt',0.1,0.004,0.006,MAT.farbe('tiefschwarz'),0,1.2,-0.134)
+   .box('lack',0.07,0.05,0.002,MAT.farbe('cremeweiss'),0,1.17,-0.132,0.15,0,0);
   /* Bildschirmgehaeuse auf Augenhoehe, leicht nach oben gekippt */
   const KX=-0.1, KY=1.53, KZ=-0.13;
   b.pivot(0,KY,KZ,KX,0,0)
@@ -333,7 +333,7 @@ function sbTerminal(parent,x,z){
    .pivot(0.31,1.14,-0.11,-0.55,-0.25,0)
    .rund('matt',0.1,0.17,0.035,0.012,DUNK,0,0,0)
    .box('leucht',0.07,0.05,0.002,0x3b7fd0,0,0.04,0.019)
-   .box('lack',0.07,0.055,0.004,0x9aa1ac,0,-0.035,0.018)
+   .box('lack',0.07,0.055,0.004,MAT.farbe('hellgrau'),0,-0.035,0.018)
    .pivot();
   /* links Korbablage */
   b.rund('lack',0.36,0.72,0.52,0.025,W,-0.6,0.36,0)
@@ -342,13 +342,13 @@ function sbTerminal(parent,x,z){
   /* rechts Waage mit Tuetenhalter */
   b.rund('lack',0.36,0.84,0.52,0.025,W,0.6,0.42,0)
    .box('metall',0.38,0.018,0.48,STAHL,0.6,0.85,0)
-   .box('matt',0.3,0.006,0.4,0x9ea4ad,0.6,0.862,0.0);
+   .box('matt',0.3,0.006,0.4,MAT.farbe('hellgrau'),0.6,0.862,0.0);
   for(const sx of [0.45,0.75]){
     b.zyl('metall',0.011,0.011,0.5,8,STAHL,sx,1.11,-0.22)
      .zyl('metall',0.009,0.009,0.34,8,STAHL,sx,1.36,-0.06,Math.PI/2,0,0);
   }
   b.zyl('metall',0.011,0.011,0.31,8,STAHL,0.6,1.36,-0.22,0,0,Math.PI/2)
-   .box('matt',0.26,0.26,0.2,0xf1f1ec,0.6,1.0,-0.05);
+   .box('matt',0.26,0.26,0.2,MAT.farbe('cremeweiss'),0.6,1.0,-0.05);
   /* Lichtsignal-Stange */
   b.zyl('metall',0.014,0.014,0.32,10,STAHL,0,1.98,-0.25)
    .zyl('metall',0.056,0.056,0.016,14,STAHL,0,2.228,-0.25);
@@ -369,23 +369,23 @@ function buildSBKasse(){
   if(sbG) return sbG;
   sbG=new THREE.Group(); sbG.position.set(0,0,0); scene.add(sbG);
   /* Rueckwand mit Beschilderung hinter den Terminals */
-  const w=MAT.std(0x1b2340,{roughness:0.7});
+  const w=MAT.get('schildBlau');
   bbox(3.6,0.34,0.12,w,10.6,2.35,3.75,sbG,false);
   const schild=tex(1024,140,(g,W,H)=>{
     g.fillStyle='#1b2340'; g.fillRect(0,0,W,H);
-    g.fillStyle='#ffd23f'; g.font=BUN(64); g.textAlign='center'; g.textBaseline='middle';
+    g.fillStyle=MAT.css('schildgold'); g.font=BUN(64); g.textAlign='center'; g.textBaseline='middle';
     g.fillText('SB-KASSEN',W/2,H/2+4);
     g.strokeStyle='#2f3a5e'; g.lineWidth=6; g.strokeRect(3,3,W-6,H-6);
   });
   plane(3.4,0.3,new THREE.MeshBasicMaterial({map:schild,toneMapped:false}),10.6,2.35,3.82,0,sbG);
-  for(const sx of [9.0,12.2]) bbox(0.07,2.2,0.07,MAT.std(0x8d939d,{metalness:0.6,roughness:0.4}),sx,1.15,3.75,sbG,false);
+  for(const sx of [9.0,12.2]) bbox(0.07,2.2,0.07,MAT.get('stahlVerzinkt'),sx,1.15,3.75,sbG,false);
   for(const x of [9.7,11.5]) sbLanes.push(sbTerminal(sbG,x,4.4));
   sbCols.push(col(9.0,10.4,4.05,4.75),col(10.8,12.2,4.05,4.75));
   return sbG;
 }
 function sbLampe(l,frei){
   l.lampM.color.copy(LIN(frei?0x1d5f36:0x5f3a1d));
-  l.lampM.emissive.copy(LIN(frei?0x37d977:0xf2a23a));
+  l.lampM.emissive.copy(LIN(frei?0x37d977:MAT.farbe('signalorange')));
   l.lampM.emissiveIntensity=1.6; l.hilfe=false;
 }
 /* Rot blinkend: hier kommt ein Kunde nicht weiter */
@@ -466,10 +466,10 @@ function buildDesk(){
         g.fillStyle=gl; g.fillRect(0,0,W,H);
       }); t.wrapS=t.wrapT=THREE.RepeatWrapping; t.anisotropy=8; return t; })();
   const woodT=new THREE.MeshStandardMaterial({map:furnierT,roughness:0.34,metalness:0.04}),
-        kante=MAT.std(0x3c2c1c,{roughness:0.4}),
-        metal=MAT.std(0x9aa1ac,{metalness:0.75,roughness:0.26}),
-        metalD=MAT.std(0x2f3540,{metalness:0.55,roughness:0.38}),
-        dark=MAT.std(0x1c1f29,{roughness:0.5});
+        kante=MAT.ober('holzDunkel','matt'),
+        metal=MAT.get('chromHell'),
+        metalD=MAT.get('stahlAnthrazit'),
+        dark=MAT.get('kunststoffSchwarz');
   /* Platte mit umlaufender Massivholzkante */
   bbox(1.12,0.038,1.56,woodT,0,0.762,0,deskG);
   for(const [w,d,x,z] of [[1.14,0.022,0,0.782],[1.14,0.022,0,-0.782]])
@@ -493,9 +493,9 @@ function buildDesk(){
   for(const sx of [-0.2,0.2]) bbox(0.03,0.09,0.03,metalD,sx,0.71,-0.52,deskG,false);
   /* Rollcontainer unter der Platte */
   { const c2=new THREE.Group(); c2.position.set(0.28,0,0.28); deskG.add(c2);
-    rbox(0.42,0.58,0.52,0.014,MAT.std(0x2b303c,{metalness:0.2,roughness:0.5}),0,0.32,0,c2);
+    rbox(0.42,0.58,0.52,0.014,MAT.get('lackAnthrazit'),0,0.32,0,c2);
     for(let i=0;i<3;i++){
-      bbox(0.4,0.16,0.012,MAT.std(0x353b47,{roughness:0.45}),0,0.16+i*0.18,0.262,c2,false);
+      bbox(0.4,0.16,0.012,MAT.ober('graphit','kunststoff'),0,0.16+i*0.18,0.262,c2,false);
       bbox(0.16,0.014,0.016,metal,0,0.16+i*0.18,0.272,c2,false);
     }
     for(const sx of [-0.15,0.15]) for(const sz of [-0.18,0.18]){
@@ -505,12 +505,12 @@ function buildDesk(){
   }
   /* Laptop */
   const lap=new THREE.Group(); lap.position.set(-0.05,0.78,-0.16); lap.rotation.y=-Math.PI/2; deskG.add(lap);
-  rbox(0.44,0.018,0.32,0.006,MAT.std(0x2b303c,{metalness:0.45,roughness:0.35}),0,0.009,0.08,lap);
-  bbox(0.36,0.004,0.2,MAT.std(0x1c1f29),0,0.019,0.11,lap,false);
+  rbox(0.44,0.018,0.32,0.006,MAT.get('stahlAnthrazit'),0,0.009,0.08,lap);
+  bbox(0.36,0.004,0.2,MAT.get('gummi'),0,0.019,0.11,lap,false);
   for(let r=0;r<4;r++) for(let c2=0;c2<12;c2++)
-    bbox(0.024,0.004,0.018,MAT.std(0x3f4654),-0.15+c2*0.0275,0.022,0.05+r*0.023,lap,false);
-  bbox(0.12,0.004,0.06,MAT.std(0x353b47),0,0.021,0.17,lap,false);
-  const lid=rbox(0.45,0.3,0.014,0.006,MAT.std(0x2b303c,{metalness:0.45,roughness:0.35}),0,0.16,-0.08,lap);
+    bbox(0.024,0.004,0.018,MAT.get('graphitMatt'),-0.15+c2*0.0275,0.022,0.05+r*0.023,lap,false);
+  bbox(0.12,0.004,0.06,MAT.get('graphitMatt'),0,0.021,0.17,lap,false);
+  const lid=rbox(0.45,0.3,0.014,0.006,MAT.get('stahlAnthrazit'),0,0.16,-0.08,lap);
   lid.rotation.x=-0.22;
   /* Bildschirmschoner statt Menueattrappe - das echte Menue oeffnet sich beim Anklicken */
   const sch=neuerSchoner(512,320);
@@ -522,15 +522,15 @@ function buildDesk(){
   lapHit=bbox(0.7,0.5,0.7,hitM,-0.05,0.95,-0.1,deskG,false); lapHit.userData={kind:'laptop'};
   /* Bürostuhl */
   { const ch=new THREE.Group(); ch.position.set(-0.85,0,0.05); ch.rotation.y=1.5; deskG.add(ch);
-    rbox(0.46,0.09,0.44,0.03,MAT.std(0x2c3140,{roughness:0.75}),0,0.46,0,ch);
-    const bk=rbox(0.44,0.5,0.08,0.03,MAT.std(0x2c3140,{roughness:0.75}),0,0.76,-0.21,ch); bk.rotation.x=0.14;
+    rbox(0.46,0.09,0.44,0.03,MAT.get('kunststoffAnthrazit'),0,0.46,0,ch);
+    const bk=rbox(0.44,0.5,0.08,0.03,MAT.get('kunststoffAnthrazit'),0,0.76,-0.21,ch); bk.rotation.x=0.14;
     bbox(0.06,0.14,0.06,metal,0,0.56,-0.2,ch,false);
     const col2=new THREE.Mesh(new THREE.CylinderGeometry(0.035,0.045,0.38,10),metal); col2.position.y=0.23; ch.add(col2);
     for(let i=0;i<5;i++){ const a2=i/5*Math.PI*2;
       bbox(0.05,0.03,0.26,metal,Math.cos(a2)*0.11,0.06,Math.sin(a2)*0.11,ch,false).rotation.y=-a2;
       const w=new THREE.Mesh(new THREE.CylinderGeometry(0.035,0.035,0.022,8),dark);
       w.rotation.z=Math.PI/2; w.position.set(Math.cos(a2)*0.24,0.035,Math.sin(a2)*0.24); ch.add(w); }
-    for(const sx of [-1,1]) bbox(0.05,0.18,0.28,MAT.std(0x1f2430),sx*0.25,0.6,0,ch,false); }
+    for(const sx of [-1,1]) bbox(0.05,0.18,0.28,MAT.get('anthrazitMatt'),sx*0.25,0.6,0,ch,false); }
   addMovable({kind:'desk',name:'Büro-Tisch',g:deskG,fw:1.2,fd:1.6});
 }
 
@@ -538,11 +538,11 @@ function buildDesk(){
    Verkaufsregale
    ========================================================= */
 const shelves=[];
-const shUp=std(0x4a5266,{metalness:0.5,roughness:0.45}), shBoard=std(0xd9dde4,{roughness:0.6}), shRail=std(0xc8322a,{roughness:0.5});
-const shSide=std(0xe4e7ec,{roughness:0.7}); const shelfStrips=[];
+const shUp=std(0x4a5266,{metalness:0.5,roughness:0.45}), shBoard=MAT.eigen('lichtgrau','kunststoff'), shRail=MAT.eigen('signalrot','kunststoff');
+const shSide=MAT.eigen('weiss','kunststoff'); const shelfStrips=[];
 let _gestell=null;
 function gestellMat(){ if(!_gestell) _gestell=new THREE.MeshStandardMaterial({vertexColors:true,metalness:0,roughness:0.72}); return _gestell; }
-const coldFrame=std(0xc8ccd4,{metalness:0.6,roughness:0.3});
+const coldFrame=MAT.eigen('aluminium','stahl');
 const coldGlass=new THREE.MeshStandardMaterial({color:LIN(0xd8ecff),transparent:true,opacity:0.2,roughness:0.05,metalness:0.2,depthWrite:false});
 /* Rueckwand: pulverbeschichtetes Lochblech. Die Textur ist neutral hell,
    die Farbe kommt ueber material.color aus der Regalpalette - so passt
@@ -557,7 +557,7 @@ function kindOf(sh){ return SHELFKIND[sh&&sh.kind]||SHELFKIND.standard; }
    Kasse, vorher Anthrazit. */
 let _kasseRueck=null, _kasseStahl=null;
 function kasseRueckMat(){ return _kasseRueck||(_kasseRueck=new THREE.MeshStandardMaterial({roughness:0.6,metalness:0.1,map:pegMat.map,color:LIN(0xdcdfe3)})); }
-function kasseStahlMat(){ return _kasseStahl||(_kasseStahl=std(0xc9ced6,{metalness:0.85,roughness:0.22})); }
+function kasseStahlMat(){ return _kasseStahl||(_kasseStahl=MAT.eigen('aluminium','blank')); }
 function shelfCount(k){ return shelves.filter(s=>s.kind===k).length; }
 /* Fassungsvermögen richtet sich nach Regalbreite und -tiefe */
 /* Freie Hoehe ueber einem Fach: bis zum naechsten Boden; das oberste
@@ -777,14 +777,14 @@ function regalFarben(K){
   const wa=hx(w.a), hell=lum(wa)>0.42;
   /* Verkaufstische (02.10., Tom: "nicht gelb, sondern weiss und so"):
      weisse Schichtstoffplatte, Gestell in Alu bzw. Anthrazit zur Wand */
-  if(K&&K.bau==='tisch') return {rahmen:hell?0x3b3f47:0xc4c8ce, seite:0xc4c8ce, blende:0xc4c8ce, fuss:0x24272d, boden:0xd6d9de, preis:0xe9ebee, lippe:0xb4b9c1, kopf:hell?0x2b2f36:0x1d2026, platte:0xf1f0ec, rueck:0xe8e8e6};
+  if(K&&K.bau==='tisch') return {rahmen:hell?MAT.farbe('graphit'):MAT.farbe('aluminium'), seite:MAT.farbe('aluminium'), blende:MAT.farbe('aluminium'), fuss:MAT.farbe('gummischwarz'), boden:MAT.farbe('lichtgrau'), preis:MAT.farbe('weiss'), lippe:MAT.farbe('hellgrau'), kopf:hell?MAT.farbe('anthrazit'):MAT.farbe('gummischwarz'), platte:MAT.farbe('cremeweiss'), rueck:MAT.farbe('cremeweiss')};
   /* Kassenregal: Farben der Kasse (Korpus und Blende weiss, Sockel
      dunkel, Platte und Boeden hellgrau, Leisten Edelstahl) - unabhaengig
      von der Wand. 06.10.: weiss wie die Kasse, vorher Anthrazit. */
-  if(K&&K.kasse) return {rahmen:CK_KORPUS, seite:CK_KORPUS, blende:CK_KORPUS, fuss:CK_SOCKEL, boden:0xd6dae2, preis:0xe9ebee, lippe:0xc9ced6, kopf:CK_KORPUS, platte:0xd6dae2, rueck:0xdcdfe3};
-  if(K&&K.cold) return {rahmen:0xc8ccd4,seite:0xc8ccd4,blende:0xc8ccd4,fuss:0x2a2e38,boden:0xd9dde4,preis:0xc8ccd4,lippe:0xe8ecf2,kopf:0x1b2340,platte:0xbf9a6c,rueck:0xeef4fa};
-  return {rahmen:hell?0x3b3f47:0xb9bec6, seite:hell?mix(wa,0xf6f6f4,0.78):mix(wa,0x9da2aa,0.45), blende:hell?0x3b3f47:0xb9bec6, fuss:0x24272d,
-    boden:0xd6d9de, preis:0xe9ebee, lippe:0xb4b9c1, kopf:hell?0x2b2f36:0x1d2026, platte:hell?0xbf9a6c:0x9c7a52, rueck:hell?mix(wa,0xf4f4f2,0.82):mix(wa,0xb4b8be,0.5)};
+  if(K&&K.kasse) return {rahmen:CK_KORPUS, seite:CK_KORPUS, blende:CK_KORPUS, fuss:CK_SOCKEL, boden:MAT.farbe('lichtgrau'), preis:MAT.farbe('weiss'), lippe:MAT.farbe('aluminium'), kopf:CK_KORPUS, platte:MAT.farbe('lichtgrau'), rueck:MAT.farbe('lichtgrau')};
+  if(K&&K.cold) return {rahmen:MAT.farbe('aluminium'),seite:MAT.farbe('aluminium'),blende:MAT.farbe('aluminium'),fuss:MAT.farbe('anthrazit'),boden:MAT.farbe('lichtgrau'),preis:MAT.farbe('aluminium'),lippe:MAT.farbe('weiss'),kopf:MAT.farbe('nachtblau'),platte:MAT.farbe('holzPalette'),rueck:MAT.farbe('weiss')};
+  return {rahmen:hell?MAT.farbe('graphit'):MAT.farbe('aluminium'), seite:hell?mix(wa,MAT.farbe('cremeweiss'),0.78):mix(wa,MAT.farbe('hellgrau'),0.45), blende:hell?MAT.farbe('graphit'):MAT.farbe('aluminium'), fuss:MAT.farbe('gummischwarz'),
+    boden:MAT.farbe('lichtgrau'), preis:MAT.farbe('weiss'), lippe:MAT.farbe('hellgrau'), kopf:hell?MAT.farbe('anthrazit'):MAT.farbe('gummischwarz'), platte:hell?MAT.farbe('holzPalette'):MAT.farbe('holzPaletteDunkel'), rueck:hell?mix(wa,MAT.farbe('cremeweiss'),0.82):mix(wa,MAT.farbe('hellgrau'),0.5)};
 }
 function regaleFaerben(){
   pegMat.color.copy(LIN(regalFarben(null).rueck));
@@ -795,12 +795,7 @@ function regaleFaerben(){
 }
 /* Drahtgitter fuer die Gitterbox: Stahldraht 4 mm im 5-cm-Raster, als
    Alpha-Textur - man sieht die Ware durch das Gitter */
-let _gitterT=null;
-function gitterTex(){ if(_gitterT) return _gitterT;
-  _gitterT=tex(128,128,(g,W,H)=>{ g.clearRect(0,0,W,H); g.fillStyle='#ffffff';
-    for(let x=0;x<W;x+=32){ g.fillRect(x,0,5,H); } for(let y=0;y<H;y+=32){ g.fillRect(0,y,W,5); }
-    g.fillStyle='rgba(0,0,0,.35)'; for(let x=0;x<W;x+=32) g.fillRect(x+4,0,1,H); });
-  _gitterT.wrapS=_gitterT.wrapT=THREE.RepeatWrapping; return _gitterT; }
+/* gitterTex() entfaellt (13.10., Materialangleichung): Drahtgitter = MAT.tex('drahtgitter') (geteilt) */
 /* Verkaufstisch und Gitterbox: eigene Bauform, aber dieselben Faecher
    (Level), Preisschilder, Kopfschild und Treffer wie ein Regal - Kunden,
    Einraeumer und Speicherstand behandeln sie wie jedes andere Regal. */
@@ -850,7 +845,7 @@ function bauMoebel(K,sh,g,RF){
     st.push({geo:box(W,0.025,0.025),m:tm(0,y+hw,-D/2+0.012),rolle:'rahmen'});
     st.push({geo:box(W,0.025,0.025),m:tm(0,y+hv,D/2-0.012),rolle:'rahmen'});
     for(const sx of [-1,1]) st.push({geo:box(0.025,0.025,D),m:tm(sx*(W/2-0.012),y+hw,0),rolle:'rahmen'});
-    const gm=new THREE.MeshStandardMaterial({map:gitterTex(),color:LIN(RF.rahmen),alphaTest:0.4,transparent:false,side:THREE.DoubleSide,metalness:0.5,roughness:0.45});
+    const gm=new THREE.MeshStandardMaterial({map:MAT.tex('drahtgitter'),color:LIN(RF.rahmen),alphaTest:0.4,transparent:false,side:THREE.DoubleSide,metalness:0.5,roughness:0.45});
     sh.gitterM=gm;
     const wand=(w,h,x,yy,z,ry)=>{ const m=plane(w,h,gm,x,yy,z,ry,fg); const uv=m.geometry.attributes.uv; for(let i=0;i<uv.count;i++) uv.setXY(i,uv.getX(i)*w/0.2,uv.getY(i)*h/0.2); uv.needsUpdate=true; return m; };
     wand(W-0.04,hw,0,y+hw/2,-D/2+0.012,0); wand(W-0.04,hv,0,y+hv/2,D/2-0.012,0);
@@ -914,7 +909,7 @@ function createShelf(i,data){
     for(const sx of [-1,1]) for(const sz of [-1,1])
       st.push({geo:box(0.09,0.04,0.09),m:tm(sx*(hw-0.1),0.02,sz*(D/2-0.1)),rolle:'fuss'});
     /* Rueckwand bleibt eigenes Mesh: Lochblech beziehungsweise Kuehlschrankwand */
-    bbox(iw,top-0.1,0.02,K.cold?std(0xeef4fa,{roughness:0.5}):K.kasse?kasseRueckMat():pegMat,0,top/2,-D/2+0.03,fg);
+    bbox(iw,top-0.1,0.02,K.cold?MAT.eigen('weiss','kunststoff'):K.kasse?kasseRueckMat():pegMat,0,top/2,-D/2+0.03,fg);
     /* Kassenregal: Edelstahlleisten wie an der Kasse - vorn an der
        Deckplatte und ueber der Sockelblende */
     if(K.kasse){ const ed=kasseStahlMat();
@@ -941,7 +936,7 @@ function createShelf(i,data){
     gest.userData.rollen=st.map(x=>[x.rolle,x.geo.index?x.geo.index.count:x.geo.attributes.position.count]); gest.userData.regalK=K; sh.gestelle=(sh.gestelle||[]).concat([gest]);
     if(HIQ){ gest.castShadow=true; gest.receiveShadow=true; } fg.add(gest);
     if(li0.length){
-      const strip=new THREE.MeshStandardMaterial({color:LIN(0xf5f7fb),emissive:LIN(K.cold?0xcfe8ff:0xfff2dc),emissiveIntensity:K.cold?1.1:0});
+      const strip=new THREE.MeshStandardMaterial({color:LIN(MAT.farbe('weiss')),emissive:LIN(K.cold?MAT.farbe('glasKlar'):0xfff2dc),emissiveIntensity:K.cold?1.1:0});
       if(!K.cold) shelfStrips.push(strip);
       fg.add(new THREE.Mesh(merge(li0),strip));
     }
@@ -949,7 +944,7 @@ function createShelf(i,data){
       for(const sx of [-1,1]){
         bbox(W/2-0.02,top-0.14,0.03,coldGlass,sx*W/4,top/2,D/2-0.002,fg,false);
         bbox(0.03,top-0.14,0.04,coldFrame,sx*(W/2-0.03),top/2,D/2,fg,false);
-        bbox(0.035,0.5,0.05,MAT.std(0xdfe3ea,{metalness:0.6}),sx*0.06,top*0.55,D/2+0.03,fg,false);
+        bbox(0.035,0.5,0.05,MAT.ober('lichtgrau','stahl'),sx*0.06,top*0.55,D/2+0.03,fg,false);
       }
       bbox(W,0.16,D,coldFrame,0,top+0.12,0,fg);
       plane(W*0.8,0.11,new THREE.MeshBasicMaterial({toneMapped:false,map:tex(256,36,(c,Wc,Hc)=>{ c.fillStyle='#0e2a44'; c.fillRect(0,0,Wc,Hc); c.fillStyle='#8fd6ff'; c.font=BUN(22); c.textAlign='center'; c.textBaseline='middle'; c.fillText('GEKÜHLT  4 °C',Wc/2,Hc/2+1); })}),0,top+0.12,D/2+0.005,0,fg);
@@ -1258,7 +1253,7 @@ function drawRackSchild(rk){
     c.fillStyle='#f4f2ea'; c.fillRect(0,0,W,H);
     c.fillStyle='#1b2340'; c.fillRect(0,0,W,54);
     c.textAlign='left'; c.textBaseline='middle';
-    c.fillStyle='#ffd23f'; c.font=BUN(30); c.fillText('LAGERPLATZ '+((rk.nr||0)+1),16,29);
+    c.fillStyle=MAT.css('schildgold'); c.font=BUN(30); c.fillText('LAGERPLATZ '+((rk.nr||0)+1),16,29);
     if(!list.length){
       c.fillStyle='#8a9099'; c.font=BAR(40); c.textAlign='center';
       c.fillText('leer',W/2,150);
@@ -1276,7 +1271,7 @@ function drawRackSchild(rk){
   });
 }
 function refreshRackSchilder(){ racks.forEach(r=>{ if(r) drawRackSchild(r); }); }
-const rackBlue=std(0x2f5d9e,{metalness:0.4,roughness:0.5}), rackOrange=std(0xe06a1f,{metalness:0.3,roughness:0.5}), deck=std(0x8d939d,{metalness:0.5,roughness:0.5});
+const rackBlue=MAT.eigen('signalblau','lackMetall'), rackOrange=MAT.eigen('signalorange','lackMetall'), deck=MAT.eigen('silbergrau','stahl');
 /* Stuetzenprofil und Blechauflage einmal erzeugen und teilen -
    bei ueber dreissig Regalen sonst dreissig Texturen im Speicher. */
 let _postM=null,_deckM=null,_rahmenM=null;
@@ -1325,26 +1320,26 @@ function createRack(i,data){
   for(const x of [-XO,XO]){
     for(const z of [-ZO,ZO]){
       const po=bbox(0.085,HT,0.075,_postM,x,HT/2,z,g);
-      fr.push({geo:box(0.2,0.022,0.17),m:tm(x,0.011,z),color:0x1f2a3a});
-      for(const bx of [-0.06,0.06]) fr.push({geo:box(0.022,0.03,0.022),m:tm(x+bx,0.03,z),color:0x8d939d});
+      fr.push({geo:box(0.2,0.022,0.17),m:tm(x,0.011,z),color:MAT.farbe('anthrazit')});
+      for(const bx of [-0.06,0.06]) fr.push({geo:box(0.022,0.03,0.022),m:tm(x+bx,0.03,z),color:MAT.farbe('silbergrau')});
     }
     /* Waagerechte Riegel und Diagonalen ueber die ganze Rahmenhoehe */
     const nR=Math.max(3,Math.round(HT/0.7));
-    for(let k=0;k<nR;k++) fr.push({geo:box(0.04,0.04,2*ZO),m:tm(x,0.42+k*0.7,0),color:0x2a538c});
+    for(let k=0;k<nR;k++) fr.push({geo:box(0.04,0.04,2*ZO),m:tm(x,0.42+k*0.7,0),color:MAT.farbe('signalblau')});
     for(let k=0;k<nR-1;k++)
-      fr.push({geo:box(0.035,0.035,2*ZO*1.3+0.06),m:tm(x,0.77+k*0.7,0,(k%2?1:-1)*Math.atan2(0.7,2*ZO),0,0),color:0x2a538c});
+      fr.push({geo:box(0.035,0.035,2*ZO*1.3+0.06),m:tm(x,0.77+k*0.7,0,(k%2?1:-1)*Math.atan2(0.7,2*ZO),0,0),color:MAT.farbe('signalblau')});
   }
   const rk={i,g,kind,slot:slot||null,slots:[]};
   const sw=(K.sp.length>1?K.sp[1]-K.sp[0]:0.8)-0.02;
   K.lv.forEach((y,li)=>{
     for(const z of [-ZO+0.03,ZO-0.03]){
       /* Traverse als Kastenprofil mit Auflagelippe */
-      fr.push({geo:box(BW,0.095,0.05),m:tm(0,y-0.05,z),color:0xe06a1f});
+      fr.push({geo:box(BW,0.095,0.05),m:tm(0,y-0.05,z),color:MAT.farbe('signalorange')});
       fr.push({geo:box(BW,0.022,0.062),m:tm(0,y-0.005,z),color:0xf08a3a});
       fr.push({geo:box(BW,0.018,0.05),m:tm(0,y-0.098,z),color:0xb4520f});
       for(const x of [-BW/2,BW/2]){
-        fr.push({geo:box(0.05,0.14,0.07),m:tm(x,y-0.045,z),color:0x1f2a3a});
-        fr.push({geo:box(0.022,0.035,0.022),m:tm(x*0.94,y+0.02,z),color:0xd8d8d2});
+        fr.push({geo:box(0.05,0.14,0.07),m:tm(x,y-0.045,z),color:MAT.farbe('anthrazit')});
+        fr.push({geo:box(0.022,0.035,0.022),m:tm(x*0.94,y+0.02,z),color:MAT.farbe('lichtgrau')});
       }
     }
     bbox(BW-0.08,0.022,2*ZO-0.09,_deckM,0,y-0.005,0,g);
@@ -1360,7 +1355,7 @@ function createRack(i,data){
   rk.schildTex=tex(512,256,()=>{});
   plane(0.52,0.26,new THREE.MeshStandardMaterial({roughness:0.6,map:rk.schildTex}),
     -XO+0.34,1.6,ZO+0.012,0,g);
-  bbox(0.56,0.3,0.012,MAT.std(0x8d939d,{metalness:0.4,roughness:0.55}),-XO+0.34,1.6,ZO+0.004,g,false);
+  bbox(0.56,0.3,0.012,MAT.ober('silbergrau','lackMetall'),-XO+0.34,1.6,ZO+0.004,g,false);
   rk.mov=addMovable({kind:'rack',name:K.name,g,fw:BW+0.16,fd:2*ZO+0.14,ref:rk});
   rk.nr=racks.length; racks.push(rk); drawRackSchild(rk);
   if(data&&data.slots) data.slots.forEach((sd,k)=>{ if(sd&&P[sd.type]&&rk.slots[k]) putInSlot(rk.slots[k],sd.type,sd.count,sd.q,sd.kiste); });

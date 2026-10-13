@@ -34,7 +34,7 @@ function zaunLauf(x0,z0,x1,z1,h){
 let _warnTex=null;
 function warnTex(){
   if(!_warnTex) _warnTex=tex(320,180,(g,W,Hh)=>{
-    g.fillStyle='#f2c230'; g.fillRect(0,0,W,Hh);
+    g.fillStyle=MAT.css('signalgelb'); g.fillRect(0,0,W,Hh);
     g.strokeStyle='#1f1f24'; g.lineWidth=8; g.strokeRect(6,6,W-12,Hh-12);
     g.textAlign='center'; g.textBaseline='middle'; g.fillStyle='#1f1f24';
     g.font=BUN(34); g.fillText('TESTFELD',W/2,48);
@@ -250,12 +250,12 @@ function hzTex(){
 function hzMats(){
   if(_hzM) return _hzM;
   const T=hzTex(), env=autoUmgebung();
-  const lampe=new THREE.MeshStandardMaterial({color:LIN(0xe9e3d4),emissive:LIN(0xffd9a0),emissiveIntensity:0,roughness:0.3}); lampMats.push(lampe);
+  const lampe=new THREE.MeshStandardMaterial({color:LIN(MAT.farbe('cremeweiss')),emissive:LIN(0xffd9a0),emissiveIntensity:0,roughness:0.3}); lampMats.push(lampe);
   _hzM={
     putz:new THREE.MeshStandardMaterial({vertexColors:true,map:T.putz,roughness:0.93}),
     rahmen:new THREE.MeshStandardMaterial({vertexColors:true,roughness:0.5}),
     zink:new THREE.MeshStandardMaterial({vertexColors:true,roughness:0.4,metalness:0.55}),
-    messing:new THREE.MeshStandardMaterial({color:LIN(0xc9a14e),metalness:0.85,roughness:0.28}),
+    messing:new THREE.MeshStandardMaterial({color:LIN(MAT.farbe('messing')),metalness:0.85,roughness:0.28}),
     dach:new THREE.MeshStandardMaterial({vertexColors:true,map:T.dach,roughness:0.82}),
     schiefer:new THREE.MeshStandardMaterial({vertexColors:true,map:T.schiefer,roughness:0.5,metalness:0.15}),
     schnee:new THREE.MeshStandardMaterial({color:LIN(0xf3f6fa),map:T.schnee,alphaTest:0.5,roughness:1}),
@@ -403,7 +403,7 @@ function tuerTex(farbe){
   t.anisotropy=8; _tuerTex[farbe]=t; return t;
 }
 function hausTuer(K,o,x){
-  const zf=o.zf, R=0.3, tb=1.3, th=3.0, y0=0.34, farbe=pick(TUERFARBEN), stein=0x9a958c;
+  const zf=o.zf, R=0.3, tb=1.3, th=3.0, y0=0.34, farbe=pick(TUERFARBEN), stein=MAT.farbe('steingrau');
   o.loch.push([x,0.17,tb,th-0.17]); o.glow.push([x,th+0.3,1.5]);
   /* eine Stufe vor der Fassade, eine in der Nische */
   K.B('putz',tb+0.5,0.17,0.42,x,0.085,zf+0.21,stein);
@@ -412,7 +412,7 @@ function hausTuer(K,o,x){
   K.R('putz',[x+tb/2,(y0+th)/2,zf-R/2],[0,0,1],[0,1,0],R,th-y0,o.laibF);
   K.R('putz',[x,th,zf-R/2],[1,0,0],[0,0,1],tb,R,o.laibD);
   /* Zarge, Blatt mit Lackkante, Kaempfer und Oberlicht */
-  const zb=zf-R, rc=0xe4dfd4, lw=tb-0.2, lh=th-y0-0.1-0.42;
+  const zb=zf-R, rc=MAT.farbe('cremeweiss'), lw=tb-0.2, lh=th-y0-0.1-0.42;
   for(const sx of [-1,1]) K.B('rahmen',0.1,th-y0,0.12,x+sx*(tb/2-0.05),(y0+th)/2,zb+0.06,rc);
   K.B('rahmen',tb,0.1,0.12,x,th-0.05,zb+0.06,rc);
   K.B('rahmen',lw,lh,0.05,x,y0+lh/2,zb+0.035,parseInt(farbe.slice(1),16));
@@ -425,13 +425,13 @@ function hausTuer(K,o,x){
   K.B('messing',0.05,0.2,0.012,x+lw/2-0.1,y0+1.0,zl+0.006);
   K.B('messing',0.14,0.022,0.022,x+lw/2-0.16,y0+1.05,zl+0.03);
   /* Klingeltableau in der Laibung */
-  K.B('zink',0.02,0.3,0.13,x+tb/2-0.012,1.5,zf-0.12,0xc7ccd4);
+  K.B('zink',0.02,0.3,0.13,x+tb/2-0.012,1.5,zf-0.12,MAT.farbe('aluminium'));
   for(let k=0;k<3;k++){ K.B('messing',0.012,0.025,0.025,x+tb/2-0.028,1.6-k*0.08,zf-0.15);
-    K.B('rahmen',0.004,0.02,0.05,x+tb/2-0.024,1.6-k*0.08,zf-0.09,0xf2efe6); }
+    K.B('rahmen',0.004,0.02,0.05,x+tb/2-0.024,1.6-k*0.08,zf-0.09,MAT.farbe('cremeweiss')); }
   /* Hausnummer und Wandleuchte ueber der Nische */
   const nx=x+0.5, ny=th+0.32;
   K.Q('schild',[[nx-0.12,ny-0.09,zf+0.012],[nx+0.12,ny-0.09,zf+0.012],[nx+0.12,ny+0.09,zf+0.012],[nx-0.12,ny+0.09,zf+0.012]],nummerUV(Math.floor(Math.random()*16)),0xffffff);
-  const sw=0x1e2126;
+  const sw=MAT.farbe('gummischwarz');
   K.B('zink',0.05,0.05,0.12,x,th+0.4,zf+0.05,sw);
   K.B('zink',0.18,0.03,0.16,x,th+0.44,zf+0.14,sw);
   K.B('lampe',0.14,0.16,0.12,x,th+0.345,zf+0.14);
@@ -460,17 +460,17 @@ function fenster(K,o,x,yb,ww,wh,art){
   /* Sohlbank mit Schnee: Altbau Stein mit Konsolen, Nachkrieg Zinkblech */
   if(alt){ K.B('putz',ww+0.34,0.1,0.18,x,yb-0.05,zf+0.09,sc);
     if(HIQ&&art!=='treppe') for(const sx of [-1,1]) K.B('putz',0.11,0.16,0.12,x+sx*(ww/2+0.07),yb-0.18,zf+0.06,sc);
-    K.B('putz',ww+0.28,0.035,0.15,x,yb+0.017,zf+0.1,0xf2f5f8); }
-  else { K.B('zink',ww+0.08,0.03,0.14,x,yb-0.015,zf+0.07,0x9aa0a8); K.B('putz',ww+0.04,0.03,0.11,x,yb+0.013,zf+0.07,0xf2f5f8); }
+    K.B('putz',ww+0.28,0.035,0.15,x,yb+0.017,zf+0.1,MAT.farbe('weiss')); }
+  else { K.B('zink',ww+0.08,0.03,0.14,x,yb-0.015,zf+0.07,MAT.farbe('hellgrau')); K.B('putz',ww+0.04,0.03,0.11,x,yb+0.013,zf+0.07,MAT.farbe('weiss')); }
   /* Blumenkasten mit Tannengruen und ein paar roten Kugeln - so sieht
      eine Fassade Ende Dezember aus; vorher waren alle Baenke leer (27.09.) */
   if(HIQ&&art!=='treppe'&&art!=='eg'&&wh<2&&Math.random()<(art==='bel'?0.4:0.12)){ const zk=zf+0.11, yk=yb+(alt?0.035:0.028), n=Math.max(3,Math.round(ww/0.15));
-    K.B('rahmen',ww+0.04,0.16,0.16,x,yk+0.08,zk,alt?0x5e4230:0x3a3f48);
+    K.B('rahmen',ww+0.04,0.16,0.16,x,yk+0.08,zk,alt?MAT.farbe('holzDunkel'):MAT.farbe('graphit'));
     for(let i=0;i<n;i++){ const px=x-ww/2+0.07+i*(ww-0.14)/(n-1);
       /* Tannengruen als flache Kegel statt Kugeln - die lasen sich wie
          eine Reihe gruener Baelle (26.09.) */
       K.C('rahmen',0.012,0.085,0.17+(i%3)*0.03,px,yk+0.24+(i%3)*0.015,zk+(i%2?0.03:-0.02),i%3?0x2c4a2e:0x3a5a34);
-      if(i%3===1) K.K('rahmen',0.028,px+0.03,yk+0.25,zk+0.08,0xb8202a); } }
+      if(i%3===1) K.K('rahmen',0.028,px+0.03,yk+0.25,zk+0.08,MAT.farbe('feuerrot')); } }
   /* Faschen um die Oeffnung decken zugleich die Schnittkante im Putz */
   const s=alt?0.14:0.1, pr=alt?0.05:0.02, fc=alt?sc:o.faschF;
   K.B('putz',ww+2*s,s,pr,x,yb+wh+s/2,zf+pr/2,fc);
@@ -483,7 +483,7 @@ function fenster(K,o,x,yb,ww,wh,art){
     K.F('putz',[[[x-a,y1,z1],[x+a,y1,z1],[x,y1+hg,z1]],[[x-a,y1,z0],[x-a,y1,z1],[x,y1+hg,z1],[x,y1+hg,z0]],[[x,y1+hg,z0],[x,y1+hg,z1],[x+a,y1,z1],[x+a,y1,z0]]],sc);
   } else if(art==='mitte'){
     K.B('putz',ww+2*s+0.16,0.1,0.13,x,yT+0.05,zf+0.065,sc); K.B('putz',ww+2*s+0.3,0.07,0.19,x,yT+0.135,zf+0.095,sc);
-    K.B('putz',ww+2*s+0.26,0.03,0.15,x,yT+0.185,zf+0.095,0xf2f5f8);
+    K.B('putz',ww+2*s+0.26,0.03,0.15,x,yT+0.185,zf+0.095,MAT.farbe('weiss'));
   } else if(art!=='treppe') K.B('putz',0.2,0.26,0.07,x,yb+wh+s/2-0.02,zf+0.045,sc);
   /* Brüstungsfeld unter dem Fenster */
   if(HIQ&&(art==='bel'||art==='mitte')){ const y0=yb-0.22, hp=0.36, f=0.05, z=zf+0.012;
@@ -501,7 +501,7 @@ function gaube(K,o,xc,zD,h,zE,t,wd,wh,vorn,wange){
   K.G(xc,yS+0.08,ww,wh,zD-0.14,fensterZufall());
   const rc=o.rahmenF; K.B('rahmen',0.06,wh,0.05,xc,yS+0.08+wh/2,zD-0.11,rc);
   K.B('rahmen',ww,0.06,0.05,xc,yS+0.08+wh*0.7,zD-0.11,rc);
-  K.B('zink',ww+0.1,0.03,0.12,xc,yS+0.065,zD+0.04,0x8f959e);
+  K.B('zink',ww+0.1,0.03,0.12,xc,yS+0.065,zD+0.04,MAT.farbe('silbergrau'));
   /* Wangen bis zur Dachflaeche */
   K.F('putz',[[[xl,yR-0.05,zw],[xl,yT,zw],[xl,yT,zB2]]],wange);
   K.F('putz',[[[xr,yR-0.05,zw],[xr,yT,zB2],[xr,yT,zw]]],wange);
@@ -510,26 +510,26 @@ function gaube(K,o,xc,zD,h,zE,t,wd,wh,vorn,wange){
   const el=xl-0.1, er=xr+0.1, yE=yT-0.1*(yG-yT)/(wd/2);
   const L=[[el,yE,zB2],[el,yE,zFr],[xc,yG,zFr],[xc,yG,zB]], Rr=[[xc,yG,zB],[xc,yG,zFr],[er,yE,zFr],[er,yE,zB2]];
   for(const P of [L,Rr]){ K.F('dach',[P],o.dachF,1.2); K.F('schnee',[P.map(p=>[p[0],p[1]+0.03,p[2]])],0xffffff,2.2); }
-  K.B('zink',wd+0.26,0.1,0.06,xc,yE-0.02,zFr+0.02,0x8f959e);
+  K.B('zink',wd+0.26,0.1,0.06,xc,yE-0.02,zFr+0.02,MAT.farbe('silbergrau'));
 }
 /* ---------- Dach: Sattel, Mansarde oder flach mit Attika ---------- */
 function hausDach(K,o){
   const w=o.w, zf=o.zf, h=o.h, x0=-w/2, x1=w/2, dc=o.dachF;
-  const S=(P,schnee,sch)=>{ K.F(sch?'schiefer':'dach',[P],sch?0x5a5f68:dc,1.2); if(schnee) K.F('schnee',[P.map(p=>[p[0],p[1]+0.035,p[2]])],0xffffff,2.2); };
+  const S=(P,schnee,sch)=>{ K.F(sch?'schiefer':'dach',[P],sch?MAT.farbe('basaltgrau'):dc,1.2); if(schnee) K.F('schnee',[P.map(p=>[p[0],p[1]+0.035,p[2]])],0xffffff,2.2); };
   const giebel=(pr)=>{ /* Giebelwaende aus dem Profil [z,y], von vorn nach hinten */
     K.F('putz',[pr.map(([z,y])=>[x1,y,z]).reverse()],o.farbe); K.F('putz',[pr.map(([z,y])=>[x0,y,z])],o.farbe); };
   const kamin=(yF,zK)=>{ const n=w>9?2:1; for(let i=0;i<n;i++){ const kx=(n===1?rand(-0.3,0.3):(i?0.28:-0.3))*w, kh=1.0+Math.random()*0.5;
     K.B('putz',0.52,kh+1.2,0.72,kx,yF-1.2+(kh+1.2)/2,zK,o.kaminF);
     K.B('putz',0.6,0.08,0.8,kx,yF+kh-0.08,zK,hexMix(o.kaminF,0xffffff,0.2));
-    K.B('zink',0.3,0.2,0.3,kx,yF+kh+0.1,zK,0x4a4640); K.B('putz',0.56,0.05,0.76,kx,yF+kh+0.005,zK,0xf2f5f8); } };
+    K.B('zink',0.3,0.2,0.3,kx,yF+kh+0.1,zK,0x4a4640); K.B('putz',0.56,0.05,0.76,kx,yF+kh+0.005,zK,MAT.farbe('weiss')); } };
   if(o.dach==='sattel'){ const t=Math.tan(o.neig), ov=o.ueber, zE=zf+ov, yF=h+zE*t, yW=h+ov*t;
     S([[x0,h,zE],[x1,h,zE],[x1,yF,0],[x0,yF,0]],1); S([[x1,h,-zE],[x0,h,-zE],[x0,yF,0],[x1,yF,0]],1);
     giebel([[zf,h],[zf,yW],[0,yF],[-zf,yW],[-zf,h]]);
-    K.B('zink',w,0.12,0.13,0,h+0.02,zE+0.04,0x8f959e);
+    K.B('zink',w,0.12,0.13,0,h+0.02,zE+0.04,MAT.farbe('silbergrau'));
     K.B('dach',w,0.1,0.12,0,yF+0.03,0,dc);
     if(o.stil==='nach'){ /* Traufe mit Sichtsparren */
-      K.R('putz',[0,h-0.12,(zf+zE)/2],[1,0,0],[0,0,1],w,ov,0xe8e4dc);
-      K.B('rahmen',w,0.2,0.04,0,h-0.05,zE-0.02,0x5a4030);
+      K.R('putz',[0,h-0.12,(zf+zE)/2],[1,0,0],[0,0,1],w,ov,MAT.farbe('cremeweiss'));
+      K.B('rahmen',w,0.2,0.04,0,h-0.05,zE-0.02,MAT.farbe('holzDunkel'));
       if(HIQ) for(let i=0;i<Math.floor(w/0.85);i++) K.B('rahmen',0.08,0.12,ov,-w/2+0.4+i*0.85,h-0.06,zf+ov/2,0x6b4a32); }
     for(const gx of o.gauben) gaube(K,o,gx,zf-0.2,h,zE,t,1.35,1.1,o.stil==='nach'?o.farbe:o.stuckF,o.farbe);
     kamin(yF,-0.7);
@@ -537,25 +537,25 @@ function hausDach(K,o){
     S([[x0,h,zE],[x1,h,zE],[x1,yK,zK],[x0,yK,zK]],0,1); S([[x1,h,-zE],[x0,h,-zE],[x0,yK,-zK],[x1,yK,-zK]],0,1);
     S([[x0,yK,zK],[x1,yK,zK],[x1,yF,0],[x0,yF,0]],1); S([[x1,yK,-zK],[x0,yK,-zK],[x0,yF,0],[x1,yF,0]],1);
     giebel([[zf,h],[zf,yW],[zK,yK],[0,yF],[-zK,yK],[-zf,yW],[-zf,h]]);
-    K.B('zink',w,0.07,0.12,0,yK+0.02,zK,0x6a6e76);
-    K.B('zink',w,0.12,0.13,0,h+0.02,zE+0.04,0x8f959e);
-    for(const gx of o.gauben) gaube(K,o,gx,zE-0.1,h,zE,t1,1.4,1.3,o.stuckF,0x5a5e66);
+    K.B('zink',w,0.07,0.12,0,yK+0.02,zK,MAT.farbe('mittelgrau'));
+    K.B('zink',w,0.12,0.13,0,h+0.02,zE+0.04,MAT.farbe('silbergrau'));
+    for(const gx of o.gauben) gaube(K,o,gx,zE-0.1,h,zE,t1,1.4,1.3,o.stuckF,MAT.farbe('basaltgrau'));
     kamin(yF,-0.7);
   } else {
     K.R('putz',[0,h,0],[1,0,0],[0,0,-1],w,2*zf,0x77746e); K.R('schnee',[0,h+0.02,0],[1,0,0],[0,0,-1],w,2*zf,0xffffff,2.2);
     K.B('putz',w,0.75,0.25,0,h+0.375,zf-0.125,o.farbe); K.B('putz',w,0.75,0.25,0,h+0.375,-zf+0.125,o.farbe);
     for(const sx of [-1,1]) K.B('putz',0.25,0.75,2*zf-0.5,sx*(w/2-0.125),h+0.375,0,o.farbe);
-    K.B('zink',w+0.04,0.05,0.33,0,h+0.77,zf-0.12,0x9aa0a8); K.B('putz',w,0.04,0.28,0,h+0.81,zf-0.12,0xf2f5f8);
+    K.B('zink',w+0.04,0.05,0.33,0,h+0.77,zf-0.12,MAT.farbe('hellgrau')); K.B('putz',w,0.04,0.28,0,h+0.81,zf-0.12,MAT.farbe('weiss'));
     /* Treppenhausaufbau und Lueftung */
-    K.B('putz',2.4,2.3,2.8,w*0.22,h+1.15,-zf*0.35,o.farbe); K.B('zink',2.5,0.06,2.9,w*0.22,h+2.33,-zf*0.35,0x9aa0a8);
-    K.B('putz',2.3,0.04,2.7,w*0.22,h+2.38,-zf*0.35,0xf2f5f8);
-    for(let i=0;i<3;i++) K.B('zink',0.5,0.5,0.5,-w*0.3+i*0.8,h+0.25,-zf*0.1,0xa0a6ae);
+    K.B('putz',2.4,2.3,2.8,w*0.22,h+1.15,-zf*0.35,o.farbe); K.B('zink',2.5,0.06,2.9,w*0.22,h+2.33,-zf*0.35,MAT.farbe('hellgrau'));
+    K.B('putz',2.3,0.04,2.7,w*0.22,h+2.38,-zf*0.35,MAT.farbe('weiss'));
+    for(let i=0;i<3;i++) K.B('zink',0.5,0.5,0.5,-w*0.3+i*0.8,h+0.25,-zf*0.1,MAT.farbe('hellgrau'));
     kamin(h+0.6,-zf*0.6);
   }
 }
 /* ---------- Ladenfront: Schaufenster, Glastuer, Schild, Markise ---------- */
 function ladenFront(K,g,o){
-  const zf=o.zf, xa=o.sx0, xb=o.sx1, yT=o.yT, R=0.2, L=o.laden, fr=L.holz?0x3b2a1e:0x2a2e35, stein=L.holz?0x3b2a1e:0x55524d;
+  const zf=o.zf, xa=o.sx0, xb=o.sx1, yT=o.yT, R=0.2, L=o.laden, fr=L.holz?MAT.farbe('holzDunkel'):MAT.farbe('anthrazit'), stein=L.holz?MAT.farbe('holzDunkel'):0x55524d;
   o.loch.push([(xa+xb)/2,0.14,xb-xa,yT-0.14]); o.glow.push([(xa+xb)/2,yT,xb-xa+0.6,'laden']);
   K.R('putz',[xa,(yT+0.14)/2,zf-R/2],[0,0,-1],[0,1,0],R,yT-0.14,o.laibF);
   K.R('putz',[xb,(yT+0.14)/2,zf-R/2],[0,0,1],[0,1,0],R,yT-0.14,o.laibF);
@@ -563,8 +563,8 @@ function ladenFront(K,g,o){
   const dw=1.05, dx=xb-dw/2-0.04, xw=dx-dw/2, zg=zf-R+0.06, yK=yT-0.5;
   /* Sockel unter dem Glas, Schwelle und Stufe vor der Tuer */
   K.B('putz',xw-xa,0.46,R+0.02,(xa+xw)/2,0.23,zf-R/2,stein);
-  K.B('putz',dw+0.08,0.3,R+0.02,dx,0.15,zf-R/2,0x8a857c);
-  K.B('putz',dw+0.3,0.15,0.36,dx,0.075,zf+0.18,0x9a958c);
+  K.B('putz',dw+0.08,0.3,R+0.02,dx,0.15,zf-R/2,MAT.farbe('steingrau'));
+  K.B('putz',dw+0.3,0.15,0.36,dx,0.075,zf+0.18,MAT.farbe('steingrau'));
   /* Glas: Schaufenster, Oberlicht, Tuer */
   /* Spiegelung je Scheibe versetzt und in Metern gekachelt, sonst stehen
      die Schraegstreifen in jeder Scheibe an derselben Stelle */
@@ -578,7 +578,7 @@ function ladenFront(K,g,o){
   K.B('rahmen',0.08,yK-0.3,0.1,xb-0.04,(0.3+yK)/2,zg,fr);
   for(let i=1;i<=n;i++) K.B('rahmen',0.05,yT-yK,0.08,xa+(xb-xa)*i/(n+1),(yK+yT)/2,zg,fr);
   K.B('rahmen',dw-0.1,0.1,0.06,dx,0.35,zg+0.02,fr);
-  K.B('zink',0.03,0.7,0.04,xw+0.16,1.3,zg+0.07,0xb8bec8);
+  K.B('zink',0.03,0.7,0.04,xw+0.16,1.3,zg+0.07,MAT.farbe('aluminium'));
   ladenInnen(g,L.n,xa,xb,yT,zf-R,L.f,0.3);
   /* Schild: Leuchtkasten oder Einzelbuchstaben auf dem Putzband */
   const i=HZS.length;
@@ -595,7 +595,7 @@ function ladenFront(K,g,o){
     /* deckende Zeile: nur die Vorderflaeche von Brett/Kasten bekleben */
     const QF=(bw,bh,z)=>{ const fu=bw/qW/2, fv=(1-bh/qH)/2*(uv[3]-uv[1]);
       K.Q('schild',[[xc-bw/2,yc-bh/2,z],[xc+bw/2,yc-bh/2,z],[xc+bw/2,yc+bh/2,z],[xc-bw/2,yc+bh/2,z]],[0.5-fu,uv[1]+fv,0.5+fu,uv[3]-fv],0xffffff); };
-    if(L.holz){ const bh=Math.min(band-0.2,qH*0.85), bw=frac*qW+0.6; K.B('rahmen',bw,bh,0.06,xc,yc,zf+0.03,fc); K.B('rahmen',bw+0.06,0.04,0.08,xc,yc+bh/2,zf+0.04,0xb8913e);
+    if(L.holz){ const bh=Math.min(band-0.2,qH*0.85), bw=frac*qW+0.6; K.B('rahmen',bw,bh,0.06,xc,yc,zf+0.03,fc); K.B('rahmen',bw+0.06,0.04,0.08,xc,yc+bh/2,zf+0.04,MAT.farbe('messing'));
       QF(bw,bh,zf+0.062); }
     else if(kasten){ const bw=frac*qW+0.5, bh=Math.min(band-0.2,qH*0.8); K.B('rahmen',bw,bh,0.14,xc,yc,zf+0.07,fc); QF(bw,bh,zf+0.142); }
     else { for(let k=3;k>=1;k--) Q(zf+0.05-k*0.012,0x2a2622); Q(zf+0.052,0xffffff); }
@@ -603,8 +603,8 @@ function ladenFront(K,g,o){
   /* Ausleger mit Symbol am linken Pfeiler */
   const si=SYMBOLE.indexOf(L.s);
   if(si>=0&&HZS.length&&M_AUSLEGER()){ const xn=xa-0.24, yn=o.gH+0.66, zc=zf+0.53, uv=symbolUV(si);
-    K.B('zink',0.04,0.04,0.9,xn,yn+0.36,zf+0.45,0x2a2d33);
-    K.B('rahmen',0.05,0.66,0.66,xn,yn,zc,0xb8913e);
+    K.B('zink',0.04,0.04,0.9,xn,yn+0.36,zf+0.45,MAT.farbe('anthrazit'));
+    K.B('rahmen',0.05,0.66,0.66,xn,yn,zc,MAT.farbe('messing'));
     const q=(sx)=>{ const x=xn+sx*0.027, a=-sx; K.Q('schild',[[x,yn-0.31,zc-a*0.31],[x,yn-0.31,zc+a*0.31],[x,yn+0.31,zc+a*0.31],[x,yn+0.31,zc-a*0.31]],uv,0xffffff); };
     q(1); q(-1); }
   /* Markise bei gut der Haelfte der Laeden */
@@ -612,21 +612,21 @@ function ladenFront(K,g,o){
     const a0=xa-0.05, a1=xb+0.05, ym=yT+0.02, ye=yT-0.5, zm=zf+0.14, ze=zf+1.45, u1=(a1-a0)/4;
     K.Q('markise',[[a0,ye,ze],[a1,ye,ze],[a1,ym,zm],[a0,ym,zm]],[0,1-(r*64+38)/512,u1,1-(r*64)/512]);
     K.Q('markise',[[a0,ye-0.24,ze],[a1,ye-0.24,ze],[a1,ye,ze],[a0,ye,ze]],[0,1-(r*64+64)/512,u1,1-(r*64+40)/512]);
-    K.B('zink',a1-a0,0.05,0.05,(a0+a1)/2,ye,ze,0xd0d4da); K.B('zink',a1-a0,0.12,0.2,(a0+a1)/2,ym-0.02,zf+0.1,0x3a3f48);
+    K.B('zink',a1-a0,0.05,0.05,(a0+a1)/2,ye,ze,MAT.farbe('aluminium')); K.B('zink',a1-a0,0.12,0.2,(a0+a1)/2,ym-0.02,zf+0.1,MAT.farbe('graphit'));
     const len=Math.hypot(ze-zm,ym-ye)*0.95, rx=Math.atan2(ym-ye,ze-zm);
-    for(const sx of [a0+0.35,a1-0.35]) K.B('zink',0.04,0.04,len,sx,(ym+ye)/2-0.08,(zm+ze)/2,0x9aa0a8,rx); }
+    for(const sx of [a0+0.35,a1-0.35]) K.B('zink',0.04,0.04,len,sx,(ym+ye)/2-0.08,(zm+ze)/2,MAT.farbe('hellgrau'),rx); }
   /* Lichterkette im Schaufenster - es ist Silvester */
   if(Math.random()<0.5) for(let k=0,n=Math.floor((xw-xa)/0.16);k<n;k++){ const u=k/(n-1||1); K.B('lampe',0.03,0.03,0.03,xa+0.08+u*(xw-xa-0.16),yK-0.1-Math.sin(u*Math.PI*Math.max(1,Math.round((xw-xa)/1.8)))**2*0.18,zg-0.06); }
   /* Vor der Tuer: Blumeneimer, Zeitungsstaender oder ein Aufsteller */
   const t=L.n, by=o.by, xv=xa+0.75, zv=zf+0.5;
-  if(t.startsWith('BLUM')){ K.B('rahmen',1.9,0.05,0.5,xa+1.05,by+0.42,zf+0.35,0x5a3b26); for(const sx of [-1,1]) K.B('rahmen',0.05,0.42,0.45,xa+1.05+sx*0.9,by+0.21,zf+0.35,0x5a3b26);
+  if(t.startsWith('BLUM')){ K.B('rahmen',1.9,0.05,0.5,xa+1.05,by+0.42,zf+0.35,MAT.farbe('holzDunkel')); for(const sx of [-1,1]) K.B('rahmen',0.05,0.42,0.45,xa+1.05+sx*0.9,by+0.21,zf+0.35,MAT.farbe('holzDunkel'));
     for(let k=0;k<8;k++){ const x=xa+0.25+(k%4)*0.52, z=zf+(k<4?0.22:0.5), y=k<4?by+0.45:by;
-      K.C('zink',0.13,0.1,0.3,x,y+0.15,z,0x6a7078); for(let j=0;j<5;j++) K.K('rahmen',0.07,x+rand(-0.08,0.08),y+0.36+rand(0,0.12),z+rand(-0.08,0.08),[0xc8322a,0xe8d040,0xf2f0ea,0xd86a9a,0x3f7a3a][(k+j)%5]); } }
-  else if(t.startsWith('KIOSK')||t.startsWith('SCHREIB')){ K.B('zink',0.62,1.15,0.34,xv,by+0.575,zv,0x3a3f48);
+      K.C('zink',0.13,0.1,0.3,x,y+0.15,z,MAT.farbe('mittelgrau')); for(let j=0;j<5;j++) K.K('rahmen',0.07,x+rand(-0.08,0.08),y+0.36+rand(0,0.12),z+rand(-0.08,0.08),[0xc8322a,0xe8d040,0xf2f0ea,0xd86a9a,0x3f7a3a][(k+j)%5]); } }
+  else if(t.startsWith('KIOSK')||t.startsWith('SCHREIB')){ K.B('zink',0.62,1.15,0.34,xv,by+0.575,zv,MAT.farbe('graphit'));
     for(let k=0;k<4;k++) for(let j=0;j<3;j++) K.B('rahmen',0.17,0.24,0.012,xv-0.2+j*0.2,by+0.3+k*0.26,zv+0.18,[0xc8322a,0x2f5d9e,0xe8d040,0xf2f0ea,0x3f8a4a][(k*3+j)%5]); }
-  else if(!t.startsWith('APOTH')&&!t.startsWith('OPTIK')){ const holz=0x5a3b26;
+  else if(!t.startsWith('APOTH')&&!t.startsWith('OPTIK')){ const holz=MAT.farbe('holzDunkel');
     for(const sx of [-1,1]) K.B('rahmen',0.6,0.95,0.03,xv,by+0.45,zv+sx*0.09,sx>0?0x2a2e2a:holz,sx*0.19);
-    K.B('rahmen',0.5,0.62,0.005,xv,by+0.55,zv+0.19,0x2f3530,0.19); K.B('rahmen',0.36,0.04,0.005,xv,by+0.72,zv+0.2,0xf2f0ea,0.19); K.B('rahmen',0.3,0.03,0.005,xv,by+0.6,zv+0.22,0xe8c170,0.19); }
+    K.B('rahmen',0.5,0.62,0.005,xv,by+0.55,zv+0.19,0x2f3530,0.19); K.B('rahmen',0.36,0.04,0.005,xv,by+0.72,zv+0.2,MAT.farbe('cremeweiss'),0.19); K.B('rahmen',0.3,0.03,0.005,xv,by+0.6,zv+0.22,MAT.farbe('messing'),0.19); }
   /* nachts faellt warmes Licht aus dem Schaufenster auf den Gehweg */
   const ys=o.by+0.012;
   K.Q('spill',[[xa-0.4,ys,zf+3.0],[xb+0.4,ys,zf+3.0],[xb+0.4,ys,zf+0.05],[xa-0.4,ys,zf+0.05]],[0,0,1,1]);
@@ -675,8 +675,8 @@ function buildHaus(cx,zFront,o){
   Object.assign(o,{zf,loch:[],glow:[],laib:alt?0.24:0.18,
     stuckF:hexMix(o.farbe,0xf4efe4,alt?0.5:0.3), faschF:hexMix(o.farbe,0xf0eee8,0.55),
     laibF:hexMix(o.farbe,0xffffff,0.12), laibD:hexMix(o.farbe,0x000000,0.3),
-    rahmenF:Math.random()<0.75?0xf1efe9:(alt?0x5a3b26:0x3a3d42),
-    dachF:o.dach==='mansard'?0x4a4d54:pick(alt?[0xa4503a,0x8f4634,0x4a4d54]:[0x9a4a36,0x5a4a44,0x4a4d54]),
+    rahmenF:Math.random()<0.75?MAT.farbe('cremeweiss'):(alt?MAT.farbe('holzDunkel'):MAT.farbe('graphit')),
+    dachF:o.dach==='mansard'?MAT.farbe('graphit'):pick(alt?[0xa4503a,0x8f4634,0x4a4d54]:[0x9a4a36,0x5a4a44,0x4a4d54]),
     kaminF:pick([0x8a4a3c,0x7a4436,hexMix(o.farbe,0x000000,0.1)]),
     neig:alt?rand(0.72,0.86):rand(0.55,0.68), ueber:alt?0.5:0.55});
   const M=tm(cx,0,zFront+zf,0,Math.PI,0), K=hausKit(M);
@@ -707,27 +707,27 @@ function buildHaus(cx,zFront,o){
   /* Balkone (Nachkrieg): Platte, Gelaender, manchmal eine Lichterkette */
   if(balkon>=0){ const x=bx(balkon), bw=Math.min(bay-0.2,2.6), bars=Math.random()<0.5, lk=Math.random()<0.5;
     for(let r=0;r<o.rows;r++){ const fy=gH+r*fh;
-      K.B('putz',bw,0.16,1.15,x,fy-0.03,zf+0.575,0xb8b4ac); K.B('putz',bw-0.04,0.03,1.1,x,fy+0.065,zf+0.58,0xf2f5f8);
-      K.B('rahmen',bw,0.05,0.05,x,fy+1.0,zf+1.12,0x3a3f48);
-      for(const sx of [-1,1]) K.B('rahmen',0.05,0.05,1.1,x+sx*(bw/2-0.025),fy+1.0,zf+0.6,0x3a3f48);
-      if(bars&&HIQ) for(let k=0;k<Math.floor(bw/0.13);k++) K.B('rahmen',0.022,0.9,0.022,x-bw/2+0.08+k*0.13,fy+0.52,zf+1.12,0x3a3f48);
-      else K.B('rahmen',bw-0.08,0.85,0.02,x,fy+0.52,zf+1.12,0x8a9aa8);
+      K.B('putz',bw,0.16,1.15,x,fy-0.03,zf+0.575,0xb8b4ac); K.B('putz',bw-0.04,0.03,1.1,x,fy+0.065,zf+0.58,MAT.farbe('weiss'));
+      K.B('rahmen',bw,0.05,0.05,x,fy+1.0,zf+1.12,MAT.farbe('graphit'));
+      for(const sx of [-1,1]) K.B('rahmen',0.05,0.05,1.1,x+sx*(bw/2-0.025),fy+1.0,zf+0.6,MAT.farbe('graphit'));
+      if(bars&&HIQ) for(let k=0;k<Math.floor(bw/0.13);k++) K.B('rahmen',0.022,0.9,0.022,x-bw/2+0.08+k*0.13,fy+0.52,zf+1.12,MAT.farbe('graphit'));
+      else K.B('rahmen',bw-0.08,0.85,0.02,x,fy+0.52,zf+1.12,MAT.farbe('silbergrau'));
       if(lk&&r===o.rows-1||lk&&r===0) for(let k=0;k<Math.floor(bw/0.22);k++) K.B('lampe',0.035,0.035,0.035,x-bw/2+0.12+k*0.22,fy+0.96-Math.sin(k*1.3)*0.03,zf+1.15); } }
   /* Gesimse: Gurtgesims ueber dem Laden, Traufgesims mit Zahnschnitt */
   if(alt){
-    K.B('putz',w,0.14,0.2,0,gH+0.07,zf+0.1,sc); K.B('putz',w,0.08,0.26,0,gH+0.18,zf+0.13,sc); K.B('putz',w,0.03,0.22,0,gH+0.235,zf+0.14,0xf2f5f8);
+    K.B('putz',w,0.14,0.2,0,gH+0.07,zf+0.1,sc); K.B('putz',w,0.08,0.26,0,gH+0.18,zf+0.13,sc); K.B('putz',w,0.03,0.22,0,gH+0.235,zf+0.14,MAT.farbe('weiss'));
     K.B('putz',w,0.4,0.05,0,h-0.75,zf+0.025,sc);
     if(HIQ){ const n=Math.floor(w/0.24); for(let i=0;i<n;i++) K.B('putz',0.09,0.12,0.1,-w/2+(i+0.5)*w/n,h-0.46,zf+0.05,sc); }
     K.B('putz',w,0.1,0.22,0,h-0.35,zf+0.11,sc); K.B('putz',w,0.18,0.42,0,h-0.21,zf+0.21,sc); K.B('putz',w,0.12,0.5,0,h-0.06,zf+0.25,sc);
     /* Eckquader an beiden Hauskanten */
     if(HIQ) for(const sx of [-1,1]) for(let y=gH+0.3,k=0;y<h-1.3;y+=0.36,k++){ const qb=k%2?0.22:0.32; K.B('putz',qb,0.32,0.04,sx*(w/2-qb/2),y+0.16,zf+0.02,sc); }
   } else {
-    K.B('putz',w,0.12,0.06,0,gH,zf+0.03,o.faschF); K.B('putz',w,0.025,0.05,0,gH+0.07,zf+0.03,0xf2f5f8);
+    K.B('putz',w,0.12,0.06,0,gH,zf+0.03,o.faschF); K.B('putz',w,0.025,0.05,0,gH+0.07,zf+0.03,MAT.farbe('weiss'));
   }
   /* Sockel aus Stein unter dem Putz */
   K.B('putz',w,0.14,0.04,0,0.07,zf+0.02,0x6f6a62);
   /* Fallrohr an der Hauskante auf der Seite des Eingangs */
-  { const fx=(sp?-1:1)*(w/2-0.12), top=alt?h-0.4:h-0.45, zr=zf+0.12, zn=0x8f959e;
+  { const fx=(sp?-1:1)*(w/2-0.12), top=alt?h-0.4:h-0.45, zr=zf+0.12, zn=MAT.farbe('silbergrau');
     K.Z('zink',0.055,top-0.25,fx,(top+0.25)/2,zr,zn);
     for(let y=1.2;y<top;y+=2.1) K.B('zink',0.14,0.04,0.13,fx,y,zf+0.065,zn);
     K.B('zink',0.13,0.15,0.13,fx,0.2,zr,zn);
@@ -751,7 +751,7 @@ function buildHaus(cx,zFront,o){
 /* ---------- Zweite Reihe: echte Fassade, aber einfacher (weiter weg) ---------- */
 function hinterhaus(cx,zFront,o){
   const w=o.w, d=o.d, zf=d/2, h=o.h, alt=o.stil!=='nach';
-  Object.assign(o,{zf,laib:0.15,stuckF:hexMix(o.farbe,0xf4efe4,0.45),rahmenF:0xf1efe9,
+  Object.assign(o,{zf,laib:0.15,stuckF:hexMix(o.farbe,0xf4efe4,0.45),rahmenF:MAT.farbe('cremeweiss'),
     dachF:pick([0xa4503a,0x8f4634,0x4a4d54,0x5a4a44]),kaminF:0x8a4a3c,neig:rand(0.6,0.85),ueber:0.4,gauben:[]});
   const K=hausKit(tm(cx,0,zFront+zf,0,Math.PI,0));
   K.B('putz',w,h,d,0,h/2,0,o.farbe);
@@ -760,7 +760,7 @@ function hinterhaus(cx,zFront,o){
     K.G(x,yb,ww,wh,zf+0.012,fensterZufall());
     K.B('putz',ww+0.24,0.08,0.14,x,yb-0.04,zf+0.07,alt?o.stuckF:0xd8d6d0);
     if(HIQ){ K.B('putz',ww+0.2,0.1,0.04,x,yb+wh+0.05,zf+0.02,o.stuckF);
-      K.B('rahmen',0.06,wh,0.03,x,yb+wh/2,zf+0.025,0xf1efe9); } }
+      K.B('rahmen',0.06,wh,0.03,x,yb+wh/2,zf+0.025,MAT.farbe('cremeweiss')); } }
   /* Erdgeschoss: dunkles Band mit Schaufenstern */
   K.G(0,0.5,w*0.7,2.4,zf+0.012,Math.random()<0.5?11:3);
   K.B('putz',w,0.3,0.4,0,h-0.15,zf+0.2,alt?o.stuckF:hexMix(o.farbe,0x000000,0.15));
@@ -1116,8 +1116,8 @@ function makeAuto(col,form){
   const ohneUV=g=>{ g=g.index?g.toNonIndexed():g.clone(); g.deleteAttribute('uv'); return g; };
   const P=(a,geo,c,m)=>a.push({geo,m:m||ID,color:c});
   const G=(geo,c,m)=>P(gummi,geo.attributes.uv?ohneUV(geo):geo,c,m);
-  const schwarz=0x0b0c0e, fuge=0x07080a;
-  P(lack,K.oben,col); G(K.unten,0x16171a);
+  const schwarz=MAT.farbe('tiefschwarz'), fuge=MAT.farbe('tiefschwarz');
+  P(lack,K.oben,col); G(K.unten,MAT.farbe('tiefschwarz'));
   const {flaeche,linie,SP,OP,FP,HP,TOP,BOT,gurt,HW,zV,zH,Ra}=K;
   const zD=d=>L2-d, ende=(d)=>Math.abs(L2-d);
   const smin=(a,b,k)=>{ const m=Math.min(a,b); return m-k*Math.log(Math.exp((m-a)/k)+Math.exp((m-b)/k)); };
@@ -1137,25 +1137,25 @@ function makeAuto(col,form){
     const rahmen=[0,alle[1],alle[2]];
     P(glasT,flaeche(0,sg,48,4,(u,v)=>{ u=0.5-0.5*Math.cos(Math.PI*u); const d=dA-0.02+(alle[1]+0.016-dA+0.02)*u, z=zD(d), lo=gurt(z)-0.006, hi=Math.max(lo,fOben(d,rahmen,0.014)); return SP(sg,d,lo+(hi-lo)*v); },0.003),schwarz);
     for(const fe of W){ const d0=Math.max(fe[0],dA), d1=fe[1], nu=Math.max(10,Math.round((d1-d0)/0.04));
-      P(glasT,flaeche(0,sg,nu,4,(u,v)=>{ u=0.5-0.5*Math.cos(Math.PI*u); const d=d0+(d1-d0)*u, z=zD(d), lo=gurt(z)+0.012, hi=Math.max(lo,fOben(d,fe,0)); return SP(sg,d,lo+(hi-lo)*v); },0.006),0x141b24); }
+      P(glasT,flaeche(0,sg,nu,4,(u,v)=>{ u=0.5-0.5*Math.cos(Math.PI*u); const d=d0+(d1-d0)*u, z=zD(d), lo=gurt(z)+0.012, hi=Math.max(lo,fOben(d,fe,0)); return SP(sg,d,lo+(hi-lo)*v); },0.006),MAT.farbe('gummischwarz')); }
     /* Zierleiste an der Guertellinie */
-    P(chromT,flaeche(0,sg,24,1,(u,v)=>{ const d=dA+0.03+(alle[1]-0.01-dA-0.03)*u, z=zD(d), g=gurt(z); return SP(sg,d,g-0.012+0.011*v); },0.004),D.planke?0x2a2d32:0xc9ced6);
+    P(chromT,flaeche(0,sg,24,1,(u,v)=>{ const d=dA+0.03+(alle[1]-0.01-dA-0.03)*u, z=zD(d), g=gurt(z); return SP(sg,d,g-0.012+0.011*v); },0.004),D.planke?MAT.farbe('anthrazit'):MAT.farbe('aluminium'));
   }
   /* Frontscheibe mit Siebdruckrand */
   const dCowl=D.top[2][0], dHead=D.top[3][0];
   P(glasT,flaeche(1,1,8,14,(u,v)=>OP(-0.93+1.86*v,dCowl+0.01+(dHead-dCowl-0.02)*u),0.003),schwarz);
-  P(glasT,flaeche(1,1,10,16,(u,v)=>OP(-0.885+1.77*v,dCowl+0.03+(dHead-dCowl-0.075)*u),0.005),0x1a222d);
+  P(glasT,flaeche(1,1,10,16,(u,v)=>OP(-0.885+1.77*v,dCowl+0.03+(dHead-dCowl-0.075)*u),0.005),MAT.farbe('gummischwarz'));
   /* Scheibenwischer in Ruhestellung */
   for(const [q0,q1] of [[-0.8,0.02],[0.06,0.82]]){ const pts=[]; for(let k=0;k<=8;k++){ const q=q0+(q1-q0)*k/8; pts.push(OP(q,dCowl+0.07+0.035*(q-q0)/(q1-q0))); }
-    G(linie(1,1,pts,0.014,0.016),0x111214); }
+    G(linie(1,1,pts,0.014,0.016),MAT.farbe('tiefschwarz')); }
   /* Heckscheibe */
   const dRoof=D.top[D.top.length-3][0];
   if(D.heck==='stufe'){ const dDeck=D.top[D.top.length-2][0];
     P(glasT,flaeche(1,1,8,14,(u,v)=>OP(-0.9+1.8*v,dRoof+0.03+(dDeck-dRoof-0.06)*u),0.003),schwarz);
-    P(glasT,flaeche(1,1,8,14,(u,v)=>OP(-0.85+1.7*v,dRoof+0.07+(dDeck-dRoof-0.14)*u),0.005),0x1a222d); }
+    P(glasT,flaeche(1,1,8,14,(u,v)=>OP(-0.85+1.7*v,dRoof+0.07+(dDeck-dRoof-0.14)*u),0.005),MAT.farbe('gummischwarz')); }
   else { const gR=gurt(-L2), yTop=TOP(-L2)-0.06;
     const hs=(rand,off,c)=>P(glasT,flaeche(2,-1,14,8,(u,v)=>{ const y=gR+0.04-rand+(yTop-gR-0.04+2*rand)*v, e=Math.abs(2*v-1); return HP((-0.8-rand*1.5+0.05*Math.pow(e,6))*(1-2*u),y); },off),c);
-    hs(0.015,0.003,schwarz); hs(0,0.006,0x1a222d); }
+    hs(0.015,0.003,schwarz); hs(0,0.006,MAT.farbe('gummischwarz')); }
 
   /* ---------- Leuchten ----------
      Scheinwerfer und Rueckleuchten laufen um die Ecke: vorn/hinten auf
@@ -1170,32 +1170,32 @@ function makeAuto(col,form){
     for(const sg of [-1,1]){
       /* Gehaeuse schwarz, darin Reflektor, Tagfahrlicht als Lichtleiste,
          zwei Projektionslinsen */
-      leuchte(true,sg,0.44,1.6,yB,yT,0.003,0x0b0c0e,glasT);
-      leuchte(true,sg,0.47,1.5,w=>yB(w)+0.008,w=>yT(w)-0.008,0.0045,0x76808b,lack);
-      leuchte(true,sg,0.47,1.42,w=>yT(w)-0.024,w=>yT(w)-0.013,0.006,0xf7f9fb,chromT);
-      for(const qc of [0.70,0.86]){ const yc=(yB(qc)+yT(qc))/2-0.006; kreis(sg,qc,yc,0.031,0.0055,0xd6dbe1,chromT); kreis(sg,qc,yc,0.022,0.0065,0x15171b,glasT); } }
+      leuchte(true,sg,0.44,1.6,yB,yT,0.003,MAT.farbe('tiefschwarz'),glasT);
+      leuchte(true,sg,0.47,1.5,w=>yB(w)+0.008,w=>yT(w)-0.008,0.0045,MAT.farbe('mittelgrau'),lack);
+      leuchte(true,sg,0.47,1.42,w=>yT(w)-0.024,w=>yT(w)-0.013,0.006,MAT.farbe('weiss'),chromT);
+      for(const qc of [0.70,0.86]){ const yc=(yB(qc)+yT(qc))/2-0.006; kreis(sg,qc,yc,0.031,0.0055,MAT.farbe('lichtgrau'),chromT); kreis(sg,qc,yc,0.022,0.0065,MAT.farbe('gummischwarz'),glasT); } }
     /* Kuehlergrill zwischen den Scheinwerfern, unten Lufteinlass */
     const gross=stilGrill()==='gross', gT=yT(0.45)-0.004, gB=gross?nose-0.31:yB(0.45)+0.004;
-    P(glasT,flaeche(2,1,10,4,(u,v)=>{ const q=(gross?0.44-0.04*(1-v):0.45)*(2*u-1); return FP(q,gB+(gT-gB)*v); },0.003),0x0a0b0d);
-    for(let k=1;k<(gross?6:3);k++){ const y=gB+(gT-gB)*k/(gross?6:3); P(chromT,flaeche(2,1,10,1,(u,v)=>FP((gross?0.4:0.43)*(2*u-1),y-0.003+0.006*v),0.0055),gross?0x5a6068:0xb8bdc5); }
-    P(chromT,flaeche(2,1,12,1,(u,v)=>FP(0.46*(2*u-1),gB-0.011+0.011*v),0.006),0xc9ced6);
+    P(glasT,flaeche(2,1,10,4,(u,v)=>{ const q=(gross?0.44-0.04*(1-v):0.45)*(2*u-1); return FP(q,gB+(gT-gB)*v); },0.003),MAT.farbe('tiefschwarz'));
+    for(let k=1;k<(gross?6:3);k++){ const y=gB+(gT-gB)*k/(gross?6:3); P(chromT,flaeche(2,1,10,1,(u,v)=>FP((gross?0.4:0.43)*(2*u-1),y-0.003+0.006*v),0.0055),gross?MAT.farbe('basaltgrau'):MAT.farbe('aluminium')); }
+    P(chromT,flaeche(2,1,12,1,(u,v)=>FP(0.46*(2*u-1),gB-0.011+0.011*v),0.006),MAT.farbe('aluminium'));
     const bF=BOT(L2);
-    G(flaeche(2,1,12,3,(u,v)=>FP(0.58*(1-0.1*v)*(2*u-1),bF+0.035+0.15*v),0.003),0x121315);
-    for(let k=1;k<4;k++){ const y=bF+0.035+0.15*k/4; G(flaeche(2,1,10,1,(u,v)=>FP(0.55*(2*u-1),y-0.004+0.008*v),0.005),0x2c2f34); }
-    for(const sg of [-1,1]){ G(flaeche(2,1,4,3,(u,v)=>FP(sg*(0.74+0.18*u),bF+0.05+0.12*v),0.003),0x121315); kreis(sg,0.83,bF+0.11,0.03,0.005,0xcfd4da,chromT); } }
+    G(flaeche(2,1,12,3,(u,v)=>FP(0.58*(1-0.1*v)*(2*u-1),bF+0.035+0.15*v),0.003),MAT.farbe('tiefschwarz'));
+    for(let k=1;k<4;k++){ const y=bF+0.035+0.15*k/4; G(flaeche(2,1,10,1,(u,v)=>FP(0.55*(2*u-1),y-0.004+0.008*v),0.005),MAT.farbe('anthrazit')); }
+    for(const sg of [-1,1]){ G(flaeche(2,1,4,3,(u,v)=>FP(sg*(0.74+0.18*u),bF+0.05+0.12*v),0.003),MAT.farbe('tiefschwarz')); kreis(sg,0.83,bF+0.11,0.03,0.005,MAT.farbe('aluminium'),chromT); } }
   /* Rueckleuchten */
   { const gR=gurt(-L2), yTop=D.heck==='stufe'?TOP(-L2)-0.05:gR+0.01, yT=w=>yTop-0.03*Math.max(0,w-1), yB=w=>yTop-0.12+0.02*clamp((1-w)/0.5,0,1)+0.07*clamp((w-1)/0.55,0,1);
     for(const sg of [-1,1]){
       leuchte(false,sg,0.5,1.55,yB,yT,0.003,0x6e0b0d,glasT);
-      leuchte(false,sg,0.56,1.5,w=>yT(w)-0.03,w=>yT(w)-0.016,0.006,0xd0161c,glasT);
-      leuchte(false,sg,0.53,0.66,w=>yB(w)+0.015,w=>yB(w)+0.05,0.0055,0xd8d8d6,chromT); } }
+      leuchte(false,sg,0.56,1.5,w=>yT(w)-0.03,w=>yT(w)-0.016,0.006,MAT.farbe('signalrot'),glasT);
+      leuchte(false,sg,0.53,0.66,w=>yB(w)+0.015,w=>yB(w)+0.05,0.0055,MAT.farbe('lichtgrau'),chromT); } }
   /* Heckschuerze dunkel, Reflektoren, Endrohr */
   { const bR=BOT(-L2);
-    G(flaeche(2,-1,12,2,(u,v)=>HP(-0.86+1.72*u,bR+0.005+0.1*v),0.003),0x141518);
+    G(flaeche(2,-1,12,2,(u,v)=>HP(-0.86+1.72*u,bR+0.005+0.1*v),0.003),MAT.farbe('tiefschwarz'));
     for(const sg of [-1,1]) P(glasT,flaeche(2,-1,4,1,(u,v)=>HP(sg*(0.7+0.16*u),bR+0.13+0.03*v),0.004),0x7a0d10);
     const qe=0.55, ye=bR+0.06, eh=new THREE.CylinderGeometry(0.036,0.036,0.12,14,1,true); eh.rotateX(Math.PI/2);
     const pe=K.S(qe,2*K.Ty(-L2,ye)-1,-1,{x:0,y:0,z:0});
-    P(chromT,eh,0xd5d9de,tm(pe.x,ye,pe.z+0.02)); G(new THREE.CircleGeometry(0.03,12),0x050505,tm(pe.x,ye,pe.z-0.07,0,Math.PI,0)); }
+    P(chromT,eh,MAT.farbe('lichtgrau'),tm(pe.x,ye,pe.z+0.02)); G(new THREE.CircleGeometry(0.03,12),MAT.farbe('tiefschwarz'),tm(pe.x,ye,pe.z-0.07,0,Math.PI,0)); }
 
   /* ---------- Fugen, Griffe, Spiegel ---------- */
   const dB=(W[0][1]+W[1][0])/2, dT=W[1][1], dF=dV+Ra+0.07, so=z=>K.sockel(z);
@@ -1212,12 +1212,12 @@ function makeAuto(col,form){
     { const pts=[]; for(let k=0;k<=10;k++){ const d=dF+(dH-Ra-0.05-dF)*k/10; pts.push([d,so(zD(d))+0.05]); } L(pts); }
     /* Tuergriffe */
     for(const d of [dB-0.3,dT-0.28]){ const z=zD(d), y=gurt(z)-0.075, x=HW(z,y);
-      P(D.planke?lack:chromT,roundedBoxGeo(0.03,0.028,0.17,0.012,2),D.planke?col:0xc4c9d0,tm(sg*(x+0.004),y,z)); }
+      P(D.planke?lack:chromT,roundedBoxGeo(0.03,0.028,0.17,0.012,2),D.planke?col:MAT.farbe('aluminium'),tm(sg*(x+0.004),y,z)); }
     /* Aussenspiegel am Fuss der A-Saeule */
     { const d=dA+0.12, z=zD(d), y=gurt(z)+0.075, x=HW(z,gurt(z)-0.02);
       P(lack,roundedBoxGeo(0.06,0.035,0.08,0.015,2),col,tm(sg*(x+0.02),y-0.03,z));
       P(lack,roundedBoxGeo(0.17,0.11,0.09,0.04,3),col,tm(sg*(x+0.1),y,z,0,sg*0.08,0));
-      P(glasT,roundedBoxGeo(0.145,0.085,0.012,0.006,2),0x5d6773,tm(sg*(x+0.105),y,z-0.042,0,sg*0.08,0));
+      P(glasT,roundedBoxGeo(0.145,0.085,0.012,0.006,2),MAT.farbe('basaltgrau'),tm(sg*(x+0.105),y,z-0.042,0,sg*0.08,0));
       P(glasT,roundedBoxGeo(0.06,0.012,0.035,0.005,2),0xd08a20,tm(sg*(x+0.14),y-0.032,z+0.028,0,sg*0.08,0)); }
     /* Schweller/Beplankung dunkel, beim SUV auch um die Radlaeufe */
     { const zs=K.GZ.map(q=>q*L2).filter(z=>Math.abs(z)<L2-0.12), hoch=D.planke?0.075:0.055;
@@ -1227,7 +1227,7 @@ function makeAuto(col,form){
         ids.push(N.v(_aO.x+n.x*0.002,_aO.y+n.y*0.002,_aO.z+n.z*0.002)); nor.push(n.x,n.y,n.z); }
       for(let i=0;i+1<teil.length;i++){ if(!D.planke&&Math.abs(teil[i+1]-teil[i])>0.5) continue;
         for(let r=0;r<2;r++){ const a=i*3+r; N.q(ids[a],ids[a+3],ids[a+4],ids[a+1],nor[a*3],nor[a*3+1],nor[a*3+2]); } }
-      const g=N.geo(); g.setAttribute('normal',new THREE.Float32BufferAttribute(nor,3)); G(g,0x1a1b1e); }
+      const g=N.geo(); g.setAttribute('normal',new THREE.Float32BufferAttribute(nor,3)); G(g,MAT.farbe('gummischwarz')); }
   }
   /* Haubenfugen, Kofferraum-/Heckklappenfugen, Tankdeckel */
   for(const sg of [-1,1]){ const pts=[]; for(let k=0;k<=12;k++) pts.push(OP(sg*0.875,0.1+(dCowl-0.14)*k/12)); G(linie(1,1,pts,0.005,0.002),fuge); }
@@ -1243,30 +1243,30 @@ function makeAuto(col,form){
   /* ---------- Dachreling, Antenne ---------- */
   if(D.reling) for(const sg of [-1,1]){ const pts=[], d0=dHead+0.3, d1=F.L-0.3;
     for(let k=0;k<=14;k++){ const d=d0+(d1-d0)*k/14, p=OP(sg*0.8,d); K.S(p[0],p[1],p[2],_aO); pts.push(new THREE.Vector3(_aO.x,_aO.y+0.045,_aO.z)); }
-    P(chromT,new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts),16,0.014,6,false),0x9ea4ac);
-    for(const k of [1,13]) P(chromT,roundedBoxGeo(0.03,0.05,0.08,0.012,2),0x24272c,tm(pts[k].x,pts[k].y-0.025,pts[k].z)); }
+    P(chromT,new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts),16,0.014,6,false),MAT.farbe('hellgrau'));
+    for(const k of [1,13]) P(chromT,roundedBoxGeo(0.03,0.05,0.08,0.012,2),MAT.farbe('gummischwarz'),tm(pts[k].x,pts[k].y-0.025,pts[k].z)); }
   { const d=F.L-(D.heck==='stufe'?1.35:0.35), p=OP(0,d); K.S(p[0],p[1],p[2],_aO);
-    const g=new THREE.SphereGeometry(1,10,6,0,Math.PI*2,0,Math.PI/2); g.scale(0.035,0.055,0.11); P(glasT,g,0x101114,tm(0,_aO.y-0.004,_aO.z,-0.08,0,0)); }
+    const g=new THREE.SphereGeometry(1,10,6,0,Math.PI*2,0,Math.PI/2); g.scale(0.035,0.055,0.11); P(glasT,g,MAT.farbe('tiefschwarz'),tm(0,_aO.y-0.004,_aO.z,-0.08,0,0)); }
 
   /* ---------- Raeder ---------- */
   const stil=pick([{n:5,doppel:false,b1:0.068,b2:0.05},{n:5,doppel:true,b1:0.036,b2:0.028,spalt:0.14},{n:10,doppel:false,b1:0.036,b2:0.027},{n:7,doppel:false,b1:0.052,b2:0.038},{n:6,doppel:true,b1:0.03,b2:0.024,spalt:0.12}]);
-  const fFarbe=pick([0x8e949c,0x8e949c,0x80868e,0x3d4147,0x2a2c30]), sFarbe=Math.random()<0.25?0xb01e1e:0x34373c;
+  const fFarbe=pick([0x8e949c,0x8e949c,0x80868e,0x3d4147,0x2a2c30]), sFarbe=Math.random()<0.25?MAT.farbe('feuerrot'):MAT.farbe('graphit');
   const RT=autoRad(F,D,stil);
   for(const z of [zV,zH]) for(const sg of [-1,1]){
     const yw=rad, x=sg*(HW(z,rad+0.12)-D.reifenB/2-0.012);
     const dreh=new THREE.Matrix4().makeRotationY(sg<0?Math.PI:0), spin=new THREE.Matrix4().makeRotationX(Math.random()*Math.PI*2);
     const M=new THREE.Matrix4().makeTranslation(x,yw,z).multiply(dreh), Ms=M.clone().multiply(spin);
     /* Reifen: Radmitte auf Radhoehe - die Laufflaeche beruehrt y=0 */
-    P(gummi,RT.reifen,0x1d1e21,Ms);
+    P(gummi,RT.reifen,MAT.farbe('gummischwarz'),Ms);
     for(const g of RT.felge) P(lack,g,fFarbe,Ms);
-    for(const g of RT.dunkel) G(g,0x0d0e10,Ms);
-    for(const g of RT.stahl) G(g,0x6e7176,Ms);
+    for(const g of RT.dunkel) G(g,MAT.farbe('tiefschwarz'),Ms);
+    for(const g of RT.stahl) G(g,MAT.farbe('mittelgrau'),Ms);
     P(lack,RT.sattel,sFarbe,M);
     /* dunkles Radhaus: Innenwand bis an den Radlauf */
     const sh=new THREE.Shape(), ra=Ra+0.01; sh.moveTo(ra+0.01,rad-0.04); sh.lineTo(ra+0.01,rad);
     for(let k=0;k<=16;k++){ const a=k/16*Math.PI; sh.lineTo(Math.cos(a)*ra,rad+Math.sin(a)*ra); }
     sh.lineTo(-ra-0.01,rad-0.04); sh.lineTo(ra+0.01,rad-0.04);
-    G(new THREE.ShapeGeometry(sh),0x0a0b0c,tm(sg*(Math.abs(x)-D.reifenB/2-0.03),0,z,0,sg*Math.PI/2,0));
+    G(new THREE.ShapeGeometry(sh),MAT.farbe('tiefschwarz'),tm(sg*(Math.abs(x)-D.reifenB/2-0.03),0,z,0,sg*Math.PI/2,0));
   }
 
   /* ---------- Kennzeichen ---------- */
@@ -1274,9 +1274,9 @@ function makeAuto(col,form){
   const schild=new THREE.PlaneGeometry(0.52,0.11), uv=schild.attributes.uv;
   for(let i=0;i<uv.count;i++){ uv.setXY(i,(cx+uv.getX(i)*256)/512,1-(cy+(1-uv.getY(i))*55)/512); }
   const schilder=[];
-  { const y=BOT(L2)+0.2, p=K.S(0,2*K.Ty(L2,y)-1,1,{x:0,y:0,z:0}); schilder.push({geo:schild,m:tm(0,y,p.z+0.012),color:0xffffff}); G(roundedBoxGeo(0.54,0.125,0.014,0.005,2),0x111214,tm(0,y,p.z+0.004)); }
+  { const y=BOT(L2)+0.2, p=K.S(0,2*K.Ty(L2,y)-1,1,{x:0,y:0,z:0}); schilder.push({geo:schild,m:tm(0,y,p.z+0.012),color:0xffffff}); G(roundedBoxGeo(0.54,0.125,0.014,0.005,2),MAT.farbe('tiefschwarz'),tm(0,y,p.z+0.004)); }
   { const y=D.heck==='stufe'?TOP(-L2)-0.33:gurt(-L2)-0.24, p=K.S(0,2*K.Ty(-L2,y)-1,-1,{x:0,y:0,z:0});
-    schilder.push({geo:schild,m:tm(0,y,p.z-0.012,0,Math.PI,0),color:0xffffff}); G(roundedBoxGeo(0.54,0.125,0.014,0.005,2),0x111214,tm(0,y,p.z-0.004)); }
+    schilder.push({geo:schild,m:tm(0,y,p.z-0.012,0,Math.PI,0),color:0xffffff}); G(roundedBoxGeo(0.54,0.125,0.014,0.005,2),MAT.farbe('tiefschwarz'),tm(0,y,p.z-0.004)); }
 
   const g=new THREE.Group();
   const m1=new THREE.Mesh(merge(lack),_lackM);
@@ -1472,8 +1472,8 @@ function nachbarFassade(x0,x1,zid,unterzeile,eingang){
   /* Attika, Gesims und Sockel. Die Farben gehen mit der Fassade:
      anthrazit wie der Sockel in der Textur, nicht mehr das
      Sandsteinbeige von der Ziegelwand. */
-  bbox(w+0.2,0.28,0.4,MAT.std(0x2f343d,{roughness:0.9}),cx,H+0.12,zf+0.02,g);
-  bbox(w+0.1,0.1,0.36,MAT.std(0xe8ecf2,{roughness:1}),cx,H+0.3,zf+0.04,g,false);
+  bbox(w+0.2,0.28,0.4,MAT.get('anthrazitMatt'),cx,H+0.12,zf+0.02,g);
+  bbox(w+0.1,0.1,0.36,MAT.get('weissMatt'),cx,H+0.3,zf+0.04,g,false);
   /* Der Sockel war 50 cm tief und mittig auf der Wand - damit stand
      er zur Haelfte IM Laden und zog dort ein schwarzes Band unter
      der ganzen Fensterfront entlang. Er gehoert nach draussen. */
@@ -1481,7 +1481,7 @@ function nachbarFassade(x0,x1,zid,unterzeile,eingang){
      am Haupteingang. Vorher lief er durch und stand 62 cm hoch quer in
      der offenen Schiebetuer. Das Stueck in der Luecke steht nur, bis
      der zweite Eingang gekauft ist. */
-  { const sm=MAT.std(0x3b4049,{roughness:0.9}), sx0=x0-0.06, sx1=x1+0.06;
+  { const sm=MAT.get('graphitMatt'), sx0=x0-0.06, sx1=x1+0.06;
     const sockel=(a2,b2,par)=>bbox(b2-a2,0.62,0.26,sm,(a2+b2)/2,0.31,zf+0.06,par);
     if(eingang!==undefined){
       const [ea,eb]=OEFF[eingang], ec=(ea+eb)/2, l0=ec-1.3, l1=ec+1.3;
@@ -1515,9 +1515,9 @@ function nachbarFassade(x0,x1,zid,unterzeile,eingang){
 
   /* ---------- Zustand „gehoert dir“: Schaufenster ---------- */
   const go=new THREE.Group(); g.add(go); zAdd(zid,go);
-  const glas=new THREE.MeshStandardMaterial({color:LIN(0xbfe0ff),transparent:true,opacity:0.16,roughness:0.05,metalness:0.2,depthWrite:false});
-  const prof=MAT.std(0x2b3040,{metalness:0.5,roughness:0.4});
-  const bank=MAT.std(0xd7dae0,{roughness:0.5});
+  const glas=new THREE.MeshStandardMaterial({color:LIN(MAT.farbe('glasKlar')),transparent:true,opacity:0.16,roughness:0.05,metalness:0.2,depthWrite:false});
+  const prof=MAT.get('stahlAnthrazit');
+  const bank=MAT.get('kunststoffHellgrau');
   OEFF.forEach(([a,b],i)=>{
     if(i===eingang){ eingangsAchse(go,a,b,zf,ST,glas,prof); return; }
     const y0=BR, y1=ST;
@@ -1548,12 +1548,12 @@ function nachbarFassade(x0,x1,zid,unterzeile,eingang){
    ========================================================= */
 function buildMuelleimer(x,z,ry){
   const g=new THREE.Group(); g.position.set(x,0,z); g.rotation.y=ry||0; scene.add(g);
-  const stahl=MAT.std(0x50575f,{metalness:0.62,roughness:0.42});
-  const dunkel=MAT.std(0x2b3038,{metalness:0.5,roughness:0.5});
+  const stahl=MAT.get('zaunPfosten');
+  const dunkel=MAT.get('stahlAnthrazit');
   /* Pfosten mit Fussplatte */
   bbox(0.22,0.025,0.22,stahl,0,0.012,0,g,false);
   for(let k=0;k<4;k++){ const a=k/4*Math.PI*2;
-    bbox(0.03,0.02,0.03,MAT.std(0x8f959e,{metalness:0.7}),Math.cos(a)*0.07,0.03,Math.sin(a)*0.07,g,false); }
+    bbox(0.03,0.02,0.03,MAT.get('stahlVerzinkt'),Math.cos(a)*0.07,0.03,Math.sin(a)*0.07,g,false); }
   const post=new THREE.Mesh(new THREE.CylinderGeometry(0.045,0.055,0.92,12),stahl);
   post.position.y=0.46; if(HIQ) post.castShadow=true; g.add(post);
   /* Korpus: konischer Behaelter mit Lochblech */
@@ -1579,7 +1579,7 @@ function buildMuelleimer(x,z,ry){
   deck.position.y=1.35; g.add(deck);
   const kegel=new THREE.Mesh(new THREE.CylinderGeometry(0.1,0.21,0.1,HIQ?22:14),dunkel);
   kegel.position.y=1.42; g.add(kegel);
-  bbox(0.19,0.055,0.13,MAT.std(0x14171c,{roughness:0.9}),0.07,1.43,0,g,false);
+  bbox(0.19,0.055,0.13,MAT.get('gummi'),0.07,1.43,0,g,false);
   const asch=new THREE.Mesh(new THREE.CylinderGeometry(0.055,0.05,0.07,12),dunkel);
   asch.position.set(-0.12,1.47,0); g.add(asch);
   /* Halterung am Pfosten und Piktogramm */
@@ -1592,7 +1592,7 @@ function buildMuelleimer(x,z,ry){
     c.fillStyle='#4b525a'; c.fillRect(58,74,8,88); c.fillRect(76,74,8,88); c.fillRect(94,74,8,88);
   })}),0,1.1,0.202,0,g);
   /* Schnee auf dem Deckel */
-  const sn=new THREE.Mesh(new THREE.CylinderGeometry(0.13,0.21,0.04,HIQ?20:12),MAT.std(0xe8ecf2,{roughness:1}));
+  const sn=new THREE.Mesh(new THREE.CylinderGeometry(0.13,0.21,0.04,HIQ?20:12),MAT.get('weissMatt'));
   sn.position.y=1.47; g.add(sn);
   col(x-0.26,x+0.26,z-0.26,z+0.26);
   return g;
@@ -1650,14 +1650,14 @@ function atlasUV(geo,x0,y0,x1,y1){
 function strMats(){
   if(_strMats) return _strMats;
   const at=strassenAtlas();
-  const lampe=new THREE.MeshStandardMaterial({color:LIN(0x23262e),emissive:LIN(0xffe9c0),emissiveIntensity:0}); lampMats.push(lampe);
+  const lampe=new THREE.MeshStandardMaterial({color:LIN(MAT.farbe('anthrazit')),emissive:LIN(0xffe9c0),emissiveIntensity:0}); lampMats.push(lampe);
   /* Werbevitrine der Haltestelle: nachts von innen beleuchtet */
   const leucht=new THREE.MeshStandardMaterial({map:at,emissiveMap:at,emissive:LIN(0x9a9a9a),emissiveIntensity:0,roughness:0.3}); lampMats.push(leucht);
   _strMats={
     lack:lichtMat(MAT.std(0xffffff,{vertexColors:true,metalness:0.5,roughness:0.42})),
     matt:lichtMat(MAT.std(0xffffff,{vertexColors:true,roughness:0.88})),
     schild:lichtMat(new THREE.MeshStandardMaterial({map:at,roughness:0.45,metalness:0.1})),
-    glas:new THREE.MeshStandardMaterial({color:LIN(0xcfdde8),transparent:true,opacity:0.2,roughness:0.06,metalness:0.3,depthWrite:false}),
+    glas:new THREE.MeshStandardMaterial({color:LIN(MAT.farbe('lichtgrau')),transparent:true,opacity:0.2,roughness:0.06,metalness:0.3,depthWrite:false}),
     lampe, leucht
   };
   return _strMats;
@@ -1968,12 +1968,12 @@ function strassenAtlas(){
     g.fillStyle='#1b2a22'; g.fillRect(404,712,88,38); txt('0,50 €',448,731,20,'#9fe8a8','700');
     for(let r=0;r<3;r++) for(let c=0;c<3;c++){ g.fillStyle='#e6e8ea'; g.fillRect(410+c*28,762+r*22,20,15); }
     g.fillStyle='#111'; g.fillRect(420,836,56,6); g.fillRect(430,856,36,5);
-    g.fillStyle='#f2c230'; g.fillRect(396,876,104,12);
+    g.fillStyle=MAT.css('signalgelb'); g.fillRect(396,876,104,12);
     /* --- Kabelverteiler, Tuer 256 x 256 (x 512, y 640) --- */
     g.fillStyle='#c7c4b6'; g.fillRect(512,640,256,256);
     g.strokeStyle='rgba(0,0,0,.35)'; g.lineWidth=3; g.strokeRect(522,650,110,236); g.strokeRect(646,650,112,236);
     g.fillStyle='#555'; g.fillRect(622,760,6,20); g.fillRect(650,760,6,20);
-    g.fillStyle='#f2c230'; g.beginPath(); g.moveTo(690,700); g.lineTo(716,746); g.lineTo(664,746); g.closePath(); g.fill(); txt('⚡',690,730,22,'#111');
+    g.fillStyle=MAT.css('signalgelb'); g.beginPath(); g.moveTo(690,700); g.lineTo(716,746); g.lineTo(664,746); g.closePath(); g.fill(); txt('⚡',690,730,22,'#111');
     g.save(); g.translate(560,820); g.rotate(-0.12); txt('RKZ',0,0,40,'#2d4f9e','900'); g.restore();
     g.fillStyle='#e8e2d2'; g.fillRect(540,690,50,34); g.fillStyle='#c8322a'; g.fillRect(544,694,42,8);
     for(let k=0;k<3000;k++){ g.fillStyle=`rgba(60,50,40,${R()*0.08})`; g.fillRect(512+R()*256,640+R()*256,2,2); }
@@ -2000,11 +2000,11 @@ function strSchrift(){
 /* ---------- Leuchte ---------- */
 /* Die Teile einer Leuchte in lokalen Koordinaten; add(k,geo,matrix,farbe) */
 function lampTeile(add){
-  const D=0x2a2e38, MA=0x4b515c, C=(a,b,h,s)=>new THREE.CylinderGeometry(a,b,h,s);
+  const D=MAT.farbe('anthrazit'), MA=MAT.farbe('basaltgrau'), C=(a,b,h,s)=>new THREE.CylinderGeometry(a,b,h,s);
   add('lack',C(0.15,0.19,0.34,14),tm(0,0.17,0),D);
-  add('lack',new THREE.BoxGeometry(0.1,0.16,0.02),tm(0,0.2,0.185),0x6a7078);
+  add('lack',new THREE.BoxGeometry(0.1,0.16,0.02),tm(0,0.2,0.185),MAT.farbe('mittelgrau'));
   add('lack',C(0.16,0.16,0.03,14),tm(0,0.35,0),D);
-  for(let i=0;i<4;i++){ const a=i/4*Math.PI*2; add('lack',new THREE.BoxGeometry(0.035,0.03,0.035),tm(Math.cos(a)*0.13,0.37,Math.sin(a)*0.13),0x7d838c); }
+  for(let i=0;i<4;i++){ const a=i/4*Math.PI*2; add('lack',new THREE.BoxGeometry(0.035,0.03,0.035),tm(Math.cos(a)*0.13,0.37,Math.sin(a)*0.13),MAT.farbe('silbergrau')); }
   add('mast',C(0.075,0.11,4.4,14),tm(0,2.57,0),MA);
   /* Bogen als kurze Segmente */
   const R=0.9, seg=7;
@@ -2015,11 +2015,11 @@ function lampTeile(add){
   }
   /* Leuchtenkopf mit Wanne, Halterung und Deckel */
   const K=tm(0,5.63,0.9,0.06,0,0), k=(geo,x,y,z,c,key)=>add(key||'lack',geo,K.clone().multiply(tm(x,y,z)),c);
-  k(roundedBoxGeo(0.3,0.11,0.82,0.04),0,0.06,0,0x3b414c);
-  k(new THREE.BoxGeometry(0.26,0.03,0.74),0,0.005,0,0x71787f);
+  k(roundedBoxGeo(0.3,0.11,0.82,0.04),0,0.06,0,MAT.farbe('graphit'));
+  k(new THREE.BoxGeometry(0.26,0.03,0.74),0,0.005,0,MAT.farbe('mittelgrau'));
   k(new THREE.BoxGeometry(0.24,0.045,0.7),0,-0.02,0,0xffffff,'lampe');
-  k(new THREE.BoxGeometry(0.16,0.09,0.16),0,0.06,-0.44,0x2f343e);
-  k(new THREE.BoxGeometry(0.24,0.02,0.6),0,0.125,0.02,0x4d535d);
+  k(new THREE.BoxGeometry(0.16,0.09,0.16),0,0.06,-0.44,MAT.farbe('anthrazit'));
+  k(new THREE.BoxGeometry(0.24,0.02,0.6),0,0.125,0.02,MAT.farbe('basaltgrau'));
 }
 /* Nachtlicht der Leuchten (Tom, 26.09.: "alles drum herum deutlich
    hochwertiger"). Zuerst lagen additive Flaechen ueber dem Boden: sie
@@ -2254,7 +2254,7 @@ function buildFahrbahn(){
       pf(x,gegen?zS-0.4-R()*0.15:zN+0.4+R()*0.15,1.0+R()*1.8,0.45+R()*0.35,R()*8|0);
       if(R()<0.2&&frei(x+3)) pf(x+3+R()*2,R()<0.5?zN+1.35:STR.mitte+0.95,0.8+R()*1.0,0.35+R()*0.25,R()*8|0); }
     const env=pfuetzenUmgebung(), pt=pfuetzenTex();
-    const pm=lichtMat(new THREE.MeshStandardMaterial({color:LIN(0x121314),roughness:1,roughnessMap:pt.r,normalMap:pt.n,metalness:0.1,envMap:env||null,envMapIntensity:3.2,
+    const pm=lichtMat(new THREE.MeshStandardMaterial({color:LIN(MAT.farbe('tiefschwarz')),roughness:1,roughnessMap:pt.r,normalMap:pt.n,metalness:0.1,envMap:env||null,envMapIntensity:3.2,
       alphaMap:pt.a,transparent:true,depthWrite:false}));
     if(pm.normalMap) pm.normalScale=new THREE.Vector2(0.45,0.45);
     /* 0,5 war zu wenig: bei Tag lagen die Pfuetzen als dunkle, gruenliche
@@ -2282,7 +2282,7 @@ function buildFahrbahn(){
     for(let i=1;i<n;i++) pts.push([a+(b-a)*i/n,i%2?zS-0.45:STR.park+0.2]);
     pts.push([b,STR.park+0.2]); streifen(Mk,pts,0.12,0.009,grau(1),uvM); }
   const ab=abriebTex();
-  const mm=lichtMat(new THREE.MeshStandardMaterial({color:LIN(0xe9e7df),roughness:0.62,alphaMap:ab,alphaTest:0.5}));
+  const mm=lichtMat(new THREE.MeshStandardMaterial({color:LIN(MAT.farbe('cremeweiss')),roughness:0.62,alphaMap:ab,alphaTest:0.5}));
   const mkm=new THREE.Mesh(lichtUV2(Mk.geo()),mm); if(HIQ) mkm.receiveShadow=true; scene.add(mkm);
   /* Schrift "30" (je Spur, in Fahrtrichtung lesbar) und "BUS" */
   { const Sb=bauer(), sch=(cx,cz,ux,uz,w,h,u0,u1)=>{ const rx=-uz, rz=ux, e=(a,b,u,v)=>ecke(cx+ux*b+rx*a,0.01,cz+uz*b+rz*a,u,v);
@@ -2321,36 +2321,36 @@ function buildFahrbahn(){
      nicht gelaufen und nicht geraeumt. Ausgefranster Rand ueber Alpha. */
   { const Sr=bauer(), e=(x,z,u,v)=>ecke(x,0.015,z,u,v);
     for(let x=-44;x<44;x+=4) Sr.quad(e(x,22.5,x/4,0),e(x+4,22.5,x/4+1,0),e(x+4,23.1,x/4+1,1),e(x,23.1,x/4,1));
-    const sr=lichtMat(new THREE.MeshStandardMaterial({color:LIN(0xe6ebf2),roughness:0.95,alphaMap:schneeRandTex(),transparent:true,depthWrite:false}));
+    const sr=lichtMat(new THREE.MeshStandardMaterial({color:LIN(MAT.farbe('weiss')),roughness:0.95,alphaMap:schneeRandTex(),transparent:true,depthWrite:false}));
     const o=new THREE.Mesh(lichtUV2(Sr.geo()),sr); o.renderOrder=1; if(HIQ) o.receiveShadow=true; scene.add(o); }
 }
 
 /* ---------- Stadtmoebel (alles in den Sammler) ---------- */
 function stPoller(x,z){ stOrt(x,z,0);
-  mT('lack',new THREE.CylinderGeometry(0.075,0.075,0.02,14),0,0.01,0,0,0,0,0x33373e);
-  mT('lack',new THREE.CylinderGeometry(0.05,0.05,0.86,14),0,0.44,0,0,0,0,0x3a3f47);
-  mT('lack',new THREE.SphereGeometry(0.05,14,6,0,Math.PI*2,0,Math.PI/2),0,0.87,0,0,0,0,0x3a3f47);
-  mT('matt',new THREE.CylinderGeometry(0.052,0.052,0.07,14,1,true),0,0.74,0,0,0,0,0xf2f2ee);
+  mT('lack',new THREE.CylinderGeometry(0.075,0.075,0.02,14),0,0.01,0,0,0,0,MAT.farbe('graphit'));
+  mT('lack',new THREE.CylinderGeometry(0.05,0.05,0.86,14),0,0.44,0,0,0,0,MAT.farbe('graphit'));
+  mT('lack',new THREE.SphereGeometry(0.05,14,6,0,Math.PI*2,0,Math.PI/2),0,0.87,0,0,0,0,MAT.farbe('graphit'));
+  mT('matt',new THREE.CylinderGeometry(0.052,0.052,0.07,14,1,true),0,0.74,0,0,0,0,MAT.farbe('cremeweiss'));
 }
 function stSchild(x,z,ry,felder,h){   /* felder: [[x0,y0,x1,y1,breite,hoehe,rund]] von oben nach unten */
   stOrt(x,z,ry); h=h||2.35;
-  mT('lack',new THREE.CylinderGeometry(0.032,0.032,h,10),0,h/2,0,0,0,0,0x9aa0a6);
-  mT('lack',new THREE.CylinderGeometry(0.036,0.036,0.03,10),0,h+0.015,0,0,0,0,0x7d838c);
+  mT('lack',new THREE.CylinderGeometry(0.032,0.032,h,10),0,h/2,0,0,0,0,MAT.farbe('hellgrau'));
+  mT('lack',new THREE.CylinderGeometry(0.036,0.036,0.03,10),0,h+0.015,0,0,0,0,MAT.farbe('silbergrau'));
   let y=h-0.02;
   for(const [x0,y0,x1,y1,w,hh,rund] of felder){
     y-=hh/2;
     const rueck=rund?new THREE.CylinderGeometry(w/2,w/2,0.015,28):new THREE.BoxGeometry(w,hh,0.015);
-    mT('lack',rueck,0,y,0.045,rund?Math.PI/2:0,0,0,0x8f959c);
+    mT('lack',rueck,0,y,0.045,rund?Math.PI/2:0,0,0,MAT.farbe('silbergrau'));
     const vorn=rund?new THREE.CircleGeometry(w/2,28):new THREE.PlaneGeometry(w,hh);
     mT('schild',atlasUV(vorn,x0,y0,x1,y1),0,y,0.054,0,0,0);
-    mT('lack',new THREE.BoxGeometry(0.1,0.035,0.05),0,y+hh*0.3,0.025,0,0,0,0x7d838c);
-    mT('lack',new THREE.BoxGeometry(0.1,0.035,0.05),0,y-hh*0.3,0.025,0,0,0,0x7d838c);
+    mT('lack',new THREE.BoxGeometry(0.1,0.035,0.05),0,y+hh*0.3,0.025,0,0,0,MAT.farbe('silbergrau'));
+    mT('lack',new THREE.BoxGeometry(0.1,0.035,0.05),0,y-hh*0.3,0.025,0,0,0,MAT.farbe('silbergrau'));
     y-=hh/2+0.03;
   }
 }
 function stFahrradbuegel(x,z){ stOrt(x,z,0);
-  for(const s of [-1,1]) mT('lack',new THREE.CylinderGeometry(0.024,0.024,0.62,10),0,0.31,s*0.35,0,0,0,0x5a6068);
-  mT('lack',new THREE.TorusGeometry(0.35,0.024,8,16,Math.PI),0,0.62,0,0,Math.PI/2,0,0x5a6068);
+  for(const s of [-1,1]) mT('lack',new THREE.CylinderGeometry(0.024,0.024,0.62,10),0,0.31,s*0.35,0,0,0,MAT.farbe('basaltgrau'));
+  mT('lack',new THREE.TorusGeometry(0.35,0.024,8,16,Math.PI),0,0.62,0,0,Math.PI/2,0,MAT.farbe('basaltgrau'));
 }
 /* neig: Schraeglage zum Buegel hin (28.09.) - senkrecht und ohne
    Stuetze standen die Raeder wie abgestellte Requisiten */
@@ -2358,79 +2358,79 @@ function stFahrrad(x,z,ry,lack,neig){ stOrt(x,z,ry); _stM.multiply(tm(0,0,0,0,0,
   const lk=Math.sign(neig||0)*0.3, lx=Math.cos(lk)*0.24, lz=Math.sin(lk)*0.24;
   const Rr=0.33, F=[0,Rr,0.53], B=[0,Rr,-0.5], T=[0,0.3,0], S=[0,0.84,-0.14], H=[0,0.88,0.36], Hu=[0,0.7,0.41];
   for(const w of [F,B]){
-    mT('matt',new THREE.TorusGeometry(Rr,0.02,6,28),w[0],w[1],w[2],0,Math.PI/2,0,0x17181b);
-    mT('lack',new THREE.TorusGeometry(Rr-0.03,0.008,4,24),w[0],w[1],w[2],0,Math.PI/2,0,0xb8bcc2);
-    mT('lack',new THREE.CylinderGeometry(0.022,0.022,0.1,8),w[0],w[1],w[2],0,0,Math.PI/2,0x9aa0a6);
-    for(let i=0;i<6;i++){ const a=i/6*Math.PI; stRohr('lack',[0,w[1]+Math.cos(a)*(Rr-0.03),w[2]+Math.sin(a)*(Rr-0.03)],[0,w[1]-Math.cos(a)*(Rr-0.03),w[2]-Math.sin(a)*(Rr-0.03)],0.003,0xc8ccd2,3); }
+    mT('matt',new THREE.TorusGeometry(Rr,0.02,6,28),w[0],w[1],w[2],0,Math.PI/2,0,MAT.farbe('gummischwarz'));
+    mT('lack',new THREE.TorusGeometry(Rr-0.03,0.008,4,24),w[0],w[1],w[2],0,Math.PI/2,0,MAT.farbe('hellgrau'));
+    mT('lack',new THREE.CylinderGeometry(0.022,0.022,0.1,8),w[0],w[1],w[2],0,0,Math.PI/2,MAT.farbe('hellgrau'));
+    for(let i=0;i<6;i++){ const a=i/6*Math.PI; stRohr('lack',[0,w[1]+Math.cos(a)*(Rr-0.03),w[2]+Math.sin(a)*(Rr-0.03)],[0,w[1]-Math.cos(a)*(Rr-0.03),w[2]-Math.sin(a)*(Rr-0.03)],0.003,MAT.farbe('aluminium'),3); }
   }
   for(const [a,b] of [[T,S],[S,Hu],[T,Hu],[T,B],[S,B],[Hu,F],[Hu,H]]) stRohr('lack',a,b,0.018,lack,8);
   /* Lenker leicht eingeschlagen */
-  stRohr('lack',[lx,H[1]+0.04,H[2]-0.06-lz],[-lx,H[1]+0.04,H[2]-0.06+lz],0.012,0x2b2e33,6);
-  for(const s of [-1,1]) stRohr('matt',[s*lx*0.83,H[1]+0.04,H[2]-0.06-s*lz*0.83],[s*lx*1.12,H[1]+0.04,H[2]-0.06-s*lz*1.12],0.018,0x17181b,6);
-  stRohr('lack',[0,S[1],S[2]],[0,S[1]+0.08,S[2]-0.02],0.013,0x9aa0a6,6);
-  mT('matt',new THREE.BoxGeometry(0.13,0.05,0.25),0,S[1]+0.1,S[2]-0.02,0,0,0,0x1b1c1f);
-  mT('matt',new THREE.BoxGeometry(0.16,0.012,0.14),0,S[1]+0.13,S[2]-0.02,0,0,0,0xeef1f5);  // Schnee auf dem Sattel
-  mT('lack',new THREE.CylinderGeometry(0.07,0.07,0.02,14),0.04,T[1],T[2],0,0,Math.PI/2,0x6b7078);
-  stRohr('lack',[0.06,T[1],T[2]],[0.06,T[1]-0.14,T[2]+0.06],0.012,0x6b7078,6);
-  mT('matt',new THREE.BoxGeometry(0.1,0.025,0.05),0.1,T[1]-0.15,T[2]+0.06,0,0,0,0x202225);
+  stRohr('lack',[lx,H[1]+0.04,H[2]-0.06-lz],[-lx,H[1]+0.04,H[2]-0.06+lz],0.012,MAT.farbe('anthrazit'),6);
+  for(const s of [-1,1]) stRohr('matt',[s*lx*0.83,H[1]+0.04,H[2]-0.06-s*lz*0.83],[s*lx*1.12,H[1]+0.04,H[2]-0.06-s*lz*1.12],0.018,MAT.farbe('gummischwarz'),6);
+  stRohr('lack',[0,S[1],S[2]],[0,S[1]+0.08,S[2]-0.02],0.013,MAT.farbe('hellgrau'),6);
+  mT('matt',new THREE.BoxGeometry(0.13,0.05,0.25),0,S[1]+0.1,S[2]-0.02,0,0,0,MAT.farbe('gummischwarz'));
+  mT('matt',new THREE.BoxGeometry(0.16,0.012,0.14),0,S[1]+0.13,S[2]-0.02,0,0,0,MAT.farbe('weiss'));  // Schnee auf dem Sattel
+  mT('lack',new THREE.CylinderGeometry(0.07,0.07,0.02,14),0.04,T[1],T[2],0,0,Math.PI/2,MAT.farbe('mittelgrau'));
+  stRohr('lack',[0.06,T[1],T[2]],[0.06,T[1]-0.14,T[2]+0.06],0.012,MAT.farbe('mittelgrau'),6);
+  mT('matt',new THREE.BoxGeometry(0.1,0.025,0.05),0.1,T[1]-0.15,T[2]+0.06,0,0,0,MAT.farbe('gummischwarz'));
   /* Schutzbleche und Gepaecktraeger */
   mT('lack',new THREE.TorusGeometry(Rr+0.04,0.03,3,14,Math.PI*0.55),0,B[1],B[2],0,Math.PI/2,Math.PI*0.3,lack);
-  stRohr('lack',[0,0.74,-0.2],[0,0.74,-0.72],0.01,0x2b2e33,5); stRohr('lack',[0,0.74,-0.72],[0,Rr,-0.5],0.01,0x2b2e33,5);
+  stRohr('lack',[0,0.74,-0.2],[0,0.74,-0.72],0.01,MAT.farbe('anthrazit'),5); stRohr('lack',[0,0.74,-0.72],[0,Rr,-0.5],0.01,MAT.farbe('anthrazit'),5);
 }
-function stHydrant(x,z){ stOrt(x,z,0.4); const rot=0xb3261e;
+function stHydrant(x,z){ stOrt(x,z,0.4); const rot=MAT.farbe('feuerrot');
   mT('lack',new THREE.CylinderGeometry(0.16,0.17,0.06,16),0,0.03,0,0,0,0,rot);
   mT('lack',new THREE.CylinderGeometry(0.105,0.115,0.6,16),0,0.36,0,0,0,0,rot);
   mT('lack',new THREE.CylinderGeometry(0.135,0.135,0.05,16),0,0.12,0,0,0,0,rot);
   mT('lack',new THREE.CylinderGeometry(0.13,0.12,0.06,16),0,0.69,0,0,0,0,rot);
   mT('lack',new THREE.SphereGeometry(0.12,16,8,0,Math.PI*2,0,Math.PI/2),0,0.72,0,0,0,0,rot);
-  mT('lack',new THREE.CylinderGeometry(0.03,0.035,0.06,5),0,0.85,0,0,0,0,0x9aa0a6);
+  mT('lack',new THREE.CylinderGeometry(0.03,0.035,0.06,5),0,0.85,0,0,0,0,MAT.farbe('hellgrau'));
   for(const s of [-1,1]){ mT('lack',new THREE.CylinderGeometry(0.045,0.045,0.12,12),s*0.15,0.5,0,0,0,Math.PI/2,rot);
-    mT('lack',new THREE.CylinderGeometry(0.052,0.052,0.035,12),s*0.22,0.5,0,0,0,Math.PI/2,0xa8adb3); }
+    mT('lack',new THREE.CylinderGeometry(0.052,0.052,0.035,12),s*0.22,0.5,0,0,0,Math.PI/2,MAT.farbe('hellgrau')); }
   mT('lack',new THREE.CylinderGeometry(0.06,0.06,0.1,12),0,0.44,0.14,Math.PI/2,0,0,rot);
-  mT('lack',new THREE.CylinderGeometry(0.068,0.068,0.035,12),0,0.44,0.2,Math.PI/2,0,0,0xa8adb3);
-  mT('matt',new THREE.CylinderGeometry(0.08,0.12,0.03,14),0,0.815,0,0,0,0,0xeef1f5);
+  mT('lack',new THREE.CylinderGeometry(0.068,0.068,0.035,12),0,0.44,0.2,Math.PI/2,0,0,MAT.farbe('hellgrau'));
+  mT('matt',new THREE.CylinderGeometry(0.08,0.12,0.03,14),0,0.815,0,0,0,0,MAT.farbe('weiss'));
 }
 function stAutomat(x,z,ry){ stOrt(x,z,ry);
-  mT('lack',new THREE.BoxGeometry(0.46,0.05,0.36),0,0.025,0,0,0,0,0x3a3f47);
-  mT('lack',new THREE.BoxGeometry(0.4,1.42,0.3),0,0.76,0,0,0,0,0x8e959c);
+  mT('lack',new THREE.BoxGeometry(0.46,0.05,0.36),0,0.025,0,0,0,0,MAT.farbe('graphit'));
+  mT('lack',new THREE.BoxGeometry(0.4,1.42,0.3),0,0.76,0,0,0,0,MAT.farbe('silbergrau'));
   mT('schild',atlasUV(new THREE.PlaneGeometry(0.36,0.72),384,640,512,896),0,1.02,0.152,0,0,0);
-  mT('lack',new THREE.BoxGeometry(0.44,0.06,0.34),0,1.5,0,0,0,0,0x6b7178);
-  mT('lack',new THREE.BoxGeometry(0.4,0.02,0.3),0,1.56,-0.02,-0.35,0,0,0x1c2c52);   // Solarmodul
-  mT('matt',new THREE.BoxGeometry(0.42,0.03,0.3),0,1.595,-0.03,-0.35,0,0,0xeef1f5);
+  mT('lack',new THREE.BoxGeometry(0.44,0.06,0.34),0,1.5,0,0,0,0,MAT.farbe('mittelgrau'));
+  mT('lack',new THREE.BoxGeometry(0.4,0.02,0.3),0,1.56,-0.02,-0.35,0,0,MAT.farbe('nachtblau'));   // Solarmodul
+  mT('matt',new THREE.BoxGeometry(0.42,0.03,0.3),0,1.595,-0.03,-0.35,0,0,MAT.farbe('weiss'));
 }
 /* Briefkasten: gelber Kasten mit runder Haube auf dem Pfosten, ohne
    Firmenzeichen. Einwurf zum Gehweg. */
-function stBriefkasten(x,z,ry){ stOrt(x,z,ry); const gelb=0xf0bf12;
+function stBriefkasten(x,z,ry){ stOrt(x,z,ry); const gelb=MAT.farbe('signalgelb');
   mT('lack',new THREE.CylinderGeometry(0.035,0.042,0.88,10),0,0.44,0,0,0,0,0x4a5058);
   mT('lack',new THREE.BoxGeometry(0.42,0.53,0.3),0,1.135,0,0,0,0,gelb);
   mT('lack',new THREE.CylinderGeometry(0.21,0.21,0.3,16,1,false,-Math.PI/2,Math.PI),0,1.4,0,-Math.PI/2,0,0,gelb);
-  mT('lack',new THREE.BoxGeometry(0.25,0.03,0.02),0,1.3,0.152,0,0,0,0x1b1c1e);
-  mT('matt',new THREE.BoxGeometry(0.15,0.1,0.006),0,1.04,0.152,0,0,0,0xf2f1ea);
-  mT('matt',new THREE.CylinderGeometry(0.218,0.218,0.31,12,1,false,-Math.PI/4,Math.PI/2),0,1.4,0,-Math.PI/2,0,0,0xeef1f5);
+  mT('lack',new THREE.BoxGeometry(0.25,0.03,0.02),0,1.3,0.152,0,0,0,MAT.farbe('gummischwarz'));
+  mT('matt',new THREE.BoxGeometry(0.15,0.1,0.006),0,1.04,0.152,0,0,0,MAT.farbe('cremeweiss'));
+  mT('matt',new THREE.CylinderGeometry(0.218,0.218,0.31,12,1,false,-Math.PI/4,Math.PI/2),0,1.4,0,-Math.PI/2,0,0,MAT.farbe('weiss'));
 }
 function stKasten(x,z,ry){ stOrt(x,z,ry);
-  mT('matt',new THREE.BoxGeometry(0.98,0.12,0.36),0,0.06,0,0,0,0,0x6c6e70);
+  mT('matt',new THREE.BoxGeometry(0.98,0.12,0.36),0,0.06,0,0,0,0,MAT.farbe('mittelgrau'));
   mT('matt',new THREE.BoxGeometry(0.94,1.1,0.32),0,0.67,0,0,0,0,0xc4c1b3);
   mT('schild',atlasUV(new THREE.PlaneGeometry(0.92,1.08),512,640,768,896),0,0.67,0.162,0,0,0);
   mT('matt',new THREE.BoxGeometry(1.0,0.05,0.4),0,1.245,0,0,0,0,0xb4b1a4);
-  mT('matt',new THREE.BoxGeometry(0.96,0.035,0.36),0,1.285,0,0,0,0,0xeef1f5);
+  mT('matt',new THREE.BoxGeometry(0.96,0.035,0.36),0,1.285,0,0,0,0,MAT.farbe('weiss'));
 }
-function stLitfass(x,z){ stOrt(x,z,0); const gruen=0x2f4a3a;
+function stLitfass(x,z){ stOrt(x,z,0); const gruen=MAT.farbe('tannengruen');
   mT('lack',new THREE.CylinderGeometry(0.68,0.7,0.32,32),0,0.16,0,0,0,0,gruen);
   mT('lack',new THREE.CylinderGeometry(0.64,0.68,0.06,32),0,0.35,0,0,0,0,gruen);
   mT('schild',atlasUV(new THREE.CylinderGeometry(0.6,0.6,2.3,40,1,true),0,0,1024,512),0,1.53,0,0,0,0);
   mT('lack',new THREE.CylinderGeometry(0.7,0.62,0.14,32),0,2.75,0,0,0,0,gruen);
   mT('lack',new THREE.CylinderGeometry(0.66,0.66,0.08,32),0,2.86,0,0,0,0,gruen);
   mT('lack',new THREE.CylinderGeometry(0.2,0.62,0.5,32),0,3.15,0,0,0,0,gruen);
-  mT('matt',new THREE.CylinderGeometry(0.28,0.64,0.2,32),0,3.02,0,0,0,0,0xe8ecf2);         // Schnee auf der Haube
+  mT('matt',new THREE.CylinderGeometry(0.28,0.64,0.2,32),0,3.02,0,0,0,0,MAT.farbe('weiss'));         // Schnee auf der Haube
   mT('lack',new THREE.SphereGeometry(0.12,14,8),0,3.44,0,0,0,0,gruen);
   mT('lack',new THREE.CylinderGeometry(0.03,0.03,0.2,8),0,3.6,0,0,0,0,gruen);
 }
 function stHaltestelle(x,z){ stOrt(x,z,0);
-  const W2=1.9, T=1.5, H=2.35, an=0x3a3f47;
+  const W2=1.9, T=1.5, H=2.35, an=MAT.farbe('graphit');
   for(const sx of [-1,1]) for(const sz of [-1,1]) mT('lack',new THREE.BoxGeometry(0.07,H,0.07),sx*W2,H/2,sz*T/2,0,0,0,an);
   mT('lack',new THREE.BoxGeometry(W2*2+0.4,0.1,T+0.35),0,H+0.05,0.05,0,0,0,an);
-  mT('matt',new THREE.BoxGeometry(W2*2+0.34,0.05,T+0.28),0,H+0.125,0.05,0,0,0,0xeef1f5);   // Schnee auf dem Dach
+  mT('matt',new THREE.BoxGeometry(W2*2+0.34,0.05,T+0.28),0,H+0.125,0.05,0,0,0,MAT.farbe('weiss'));   // Schnee auf dem Dach
   mT('schild',atlasUV(new THREE.PlaneGeometry(1.6,0.4),640,512,896,576),0,H+0.05,-(T+0.35)/2+0.05-0.002,0,Math.PI,0);
   /* Glas: Rueckwand und Seiten */
   mT('glas',new THREE.PlaneGeometry(W2*2-0.07,H-0.2),0,H/2+0.05,T/2,0,0,0);
@@ -2510,7 +2510,7 @@ function buildStadtmoebel(){
   /* Fahrradbuegel mit zwei Raedern, genau gegenueber vom Laden in der
      Luecke zwischen zwei Parkbuchten - sonst verdecken sie die Autos */
   for(const x of [0.2,1.1,2.0]) stFahrradbuegel(x,zG+0.55);
-  stFahrrad(0.35,zG+0.62,0.03,0x1f4a8a,0.12); stFahrrad(1.85,zG+0.6,-0.04,0x7a1d24,-0.11);
+  stFahrrad(0.35,zG+0.62,0.03,MAT.farbe('signalblau'),0.12); stFahrrad(1.85,zG+0.6,-0.04,0x7a1d24,-0.11);
   stAutomat(-3.6,zS+0.5,Math.PI);
   stHydrant(10.6,zS+0.55);
   stBriefkasten(-10.4,zS+0.62,0);
@@ -2527,7 +2527,7 @@ function buildStadtmoebel(){
   stSchild(-41.3,zG,GEG,[[256,512,384,640,0.45,0.45,true],[640,512,896,576,0.6,0.15]],2.6);
   /* Fahrplan am Haltestellenmast zeigt zu den Wartenden */
   stOrt(-41.3,zG,0);
-  mT('lack',new THREE.BoxGeometry(0.5,0.62,0.06),0,1.45,0.066,0,0,0,0x3a3f47);
+  mT('lack',new THREE.BoxGeometry(0.5,0.62,0.06),0,1.45,0.066,0,0,0,MAT.farbe('graphit'));
   mT('schild',atlasUV(new THREE.PlaneGeometry(0.45,0.56),256,640,384,800),0,1.45,0.098,0,0,0);
   /* Z 350 beidseitig, quer zur Fahrbahn */
   stSchild(Z-1.95,zG,-Math.PI/2,[[0,512,128,640,0.6,0.6]]); mT('schild',atlasUV(new THREE.PlaneGeometry(0.6,0.6),0,512,128,640),0,2.03,0.036,0,Math.PI,0);

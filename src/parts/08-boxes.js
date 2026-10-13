@@ -17,7 +17,7 @@ function removeFloorBox(b){ const i=floorBoxes.indexOf(b); if(i<0) return false;
   const p=b.mesh.position;
   floorBoxes.forEach(o=>{ const q=o.mesh.position; if(Math.abs(q.x-p.x)<0.3&&Math.abs(q.z-p.z)<0.3&&q.y>p.y) q.y-=0.41; });
   return true; }
-const carryMesh=new THREE.Mesh(kartonGeo,std(0xc89b5c));
+const carryMesh=new THREE.Mesh(kartonGeo,MAT.eigen('wellpappe','matt'));
 carryMesh.position.set(0.34,-0.4,-0.82); carryMesh.rotation.set(0.12,-0.28,0); carryMesh.scale.setScalar(0.78); carryMesh.visible=false; camera.add(carryMesh);
 let carryGrav=null;
 let carryRegal=null;

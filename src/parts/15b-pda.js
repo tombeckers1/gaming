@@ -6,10 +6,10 @@ let pdaOn=false, pdaG=null, pdaTex=null, pdaOpen=false, pdaItem=null, pdaLast=''
 function buildPDA(){
   if(pdaG) return;
   const g=new THREE.Group();
-  const body=MAT.std(0x30343d,{roughness:0.55,metalness:0.15});
-  const rubber=MAT.std(0xf2c230,{roughness:0.9});
-  const dark=MAT.std(0x14161c,{roughness:0.6});
-  const steel=MAT.std(0x9ba2ad,{metalness:0.7,roughness:0.35});
+  const body=MAT.get('lackAnthrazit');
+  const rubber=MAT.get('markierungGelb');
+  const dark=MAT.get('kunststoffSchwarz');
+  const steel=MAT.get('chromHell');
   // Gehäuse mit Gummikanten
   rbox(0.086,0.185,0.028,0.006,body,0,0,0,g);
   rbox(0.096,0.03,0.036,0.008,rubber,0,0.082,0,g);
@@ -20,16 +20,16 @@ function buildPDA(){
   plane(0.068,0.076,new THREE.MeshBasicMaterial({map:pdaTex,toneMapped:false}),0,0.045,0.0185,0,g);
   // Tastenfeld
   for(let r=0;r<4;r++) for(let c=0;c<3;c++)
-    rbox(0.019,0.013,0.005,0.002,MAT.std(r===0?0x3f4650:0x262a32,{roughness:0.7}),-0.023+c*0.023,-0.012-r*0.017,0.016,g);
-  rbox(0.05,0.014,0.006,0.003,MAT.std(0xf2a01c,{roughness:0.6}),0,0.0,0.016,g);
+    rbox(0.019,0.013,0.005,0.002,MAT.std(r===0?MAT.farbe('graphit'):MAT.farbe('anthrazit'),{roughness:0.7}),-0.023+c*0.023,-0.012-r*0.017,0.016,g);
+  rbox(0.05,0.014,0.006,0.003,MAT.ober('signalorange','kunststoff'),0,0.0,0.016,g);
   // Scanfenster oben mit rotem Strich
   rbox(0.05,0.012,0.01,0.003,dark,0,0.095,0.008,g);
   box(0.042,0.004,0.004,new THREE.MeshBasicMaterial({color:0xff3b2e,toneMapped:false}),0,0.095,0.014,g,false);
   // Pistolengriff
   const grip=rbox(0.05,0.075,0.042,0.01,body,0,-0.1,-0.03,g); grip.rotation.x=0.32;
-  rbox(0.03,0.02,0.012,0.004,MAT.std(0x1c1f26),0,-0.072,-0.018,g);
+  rbox(0.03,0.02,0.012,0.004,MAT.get('gummi'),0,-0.072,-0.018,g);
   // Handschlaufe und Antenne
-  const strap=new THREE.Mesh(new THREE.TorusGeometry(0.035,0.006,6,14,Math.PI),MAT.std(0x1c1f26,{roughness:0.95}));
+  const strap=new THREE.Mesh(new THREE.TorusGeometry(0.035,0.006,6,14,Math.PI),MAT.get('gummi'));
   strap.rotation.set(Math.PI/2,0,0); strap.position.set(0,-0.03,-0.03); g.add(strap);
   rbox(0.01,0.022,0.01,0.004,steel,0.03,0.104,0,g);
   // Statuslampe

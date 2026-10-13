@@ -54,8 +54,8 @@ function karreFolgen(){ if(!karreG) return; karreG.position.set(pl.x,0,pl.z); ka
 let karreG=null, karreArtGebaut=null, karreKisten=[];
 function karreModell(art){
   const g=new THREE.Group();
-  const rot=MAT.std(0xd23a2a,{metalness:0.35,roughness:0.45}), stahl=MAT.std(0x9ba2ad,{metalness:0.75,roughness:0.3});
-  const gummi=MAT.std(0x18191d,{roughness:0.95}), felge=MAT.std(0xc9ced6,{metalness:0.7,roughness:0.3}), griff=MAT.std(0x22252c,{roughness:0.7});
+  const rot=MAT.ober('signalrot','lackMetall'), stahl=MAT.get('chromHell');
+  const gummi=MAT.get('gummi'), felge=MAT.get('aluBlank'), griff=MAT.get('kunststoffSchwarz');
   const rad=(x,y,z,r,b)=>{ const t=new THREE.Mesh(new THREE.CylinderGeometry(r,r,b,20),gummi); t.rotation.z=Math.PI/2; t.position.set(x,y,z); g.add(t);
     const f=new THREE.Mesh(new THREE.CylinderGeometry(r*0.55,r*0.55,b+0.01,14),felge); f.rotation.z=Math.PI/2; f.position.set(x,y,z); g.add(f); };
   const rohr=(x0,y0,z0,x1,y1,z1,r,m)=>{ const a=new THREE.Vector3(x0,y0,z0), c=new THREE.Vector3(x1,y1,z1), L=a.distanceTo(c);
@@ -73,7 +73,7 @@ function karreModell(art){
     /* Plattformwagen: Ladeflaeche, Schiebebuegel, vier Lenkrollen */
     /* 0,92 x 1,24 m: zwei Kartons nebeneinander, zwei hintereinander */
     rbox(0.92,0.05,1.24,0.012,MAT.std(0x3a6ea5,{roughness:0.6}),0,0.17,-0.66,g);
-    rbox(0.94,0.012,1.26,0.01,MAT.std(0x2b2f36,{roughness:0.95}),0,0.2,-0.66,g);
+    rbox(0.94,0.012,1.26,0.01,MAT.get('anthrazitMatt'),0,0.2,-0.66,g);
     for(const sx of [-0.42,0.42]) rohr(sx,0.17,-0.04, sx,1.0,0.02,0.016,stahl);
     rohr(-0.44,1.0,0.02,0.44,1.0,0.02,0.02,griff);
     for(const [x,z] of [[-0.38,-0.12],[0.38,-0.12],[-0.38,-1.2],[0.38,-1.2]]){

@@ -53,7 +53,7 @@ function applyZonen(){
    Beim Kauf faellt sie weg und der Laden ist einfach groesser.
    -------------------------------------------------------- */
 let _sockelM=null;
-function sockelM(){ if(!_sockelM) _sockelM=std(0x1a2038); return _sockelM; }
+function sockelM(){ if(!_sockelM) _sockelM=MAT.eigen('nachtblau','matt'); return _sockelM; }
 /* Eine Wand, die nicht den Blick auf Regale verstellen soll:
    sie liegt nicht in der Liste, die der Zielstrahl abfragt. */
 function stilleWand(x0,x1,z0,z1,y0,y1,inFace,inMat,exMat,ue){
@@ -130,8 +130,8 @@ function leuchtenRaster(id,r,y,ax,az){
   for(let i=0;i<nx;i++) for(let k=0;k<nz;k++){
     const x=r.x0+(i+0.5)*(r.x1-r.x0)/nx, z=r.z0+(k+0.5)*(r.z1-r.z0)/nz;
     LAMPEN.push({x,y,z,id});
-    korpus.push({geo:gRev,m:tm(x,y-0.008*f,z),color:0x252932});
-    korpus.push({geo:gFix,m:tm(x,y-0.026*f,z),color:0xdfe3e9});
+    korpus.push({geo:gRev,m:tm(x,y-0.008*f,z),color:MAT.farbe('anthrazit')});
+    korpus.push({geo:gFix,m:tm(x,y-0.026*f,z),color:MAT.farbe('lichtgrau')});
     diff.push({geo:gDif,m:tm(x,y-0.043*f,z,Math.PI/2,0,0)});
   }
   const mk=new THREE.Mesh(merge(korpus),_korpusM); scene.add(mk); zAdd(id,mk);
@@ -146,7 +146,7 @@ function halle(id,r,opt){
   const H=opt.h||WH;
   const lager=opt.art==='lager';
   const innen=lager?lagerWall:shopWall;
-  const ceil=MAT.std(0xe6e8ee,{roughness:1});
+  const ceil=MAT.get('weissMatt');
   const au=opt.aussen||{};
   const ex=opt.ex||undefined;
   /* Boden */
@@ -168,7 +168,7 @@ function halle(id,r,opt){
      faellt das nicht auf, bei zwoelf Metern flimmern die beiden
      Flaechen gegeneinander und die Decke wird streifig. Zehn
      Zentimeter Abstand reichen auf die ganze Hallenlaenge. */
-  if(!opt.keinDach) bbox(r.x1-r.x0+LW*3,0.25,r.z1-r.z0+LW*3,MAT.std(0x2b2f3a),(r.x0+r.x1)/2,H+0.24,(r.z0+r.z1)/2,null,true);
+  if(!opt.keinDach) bbox(r.x1-r.x0+LW*3,0.25,r.z1-r.z0+LW*3,MAT.get('anthrazitMatt'),(r.x0+r.x1)/2,H+0.24,(r.z0+r.z1)/2,null,true);
   /* Aussenwaende: stehen immer, auch solange der Bereich gesperrt ist.
      Von der Strasse aus sieht man sonst ein Loch im Gebaeude. */
   if(au.w) wall(r.x0-LW,r.x0,r.z0,r.z1,0,H,'+x',innen,ex);
@@ -210,11 +210,11 @@ function halle(id,r,opt){
    Halle von vierzig Metern ganz ohne Stuetze sieht falsch aus, ein
    stehengebliebener Wandklotz aber auch. */
 let _stuetzeM=null;
-function stuetzeM(){ if(!_stuetzeM) _stuetzeM=std(0xdfe3ea,{roughness:0.72}); return _stuetzeM; }
+function stuetzeM(){ if(!_stuetzeM) _stuetzeM=MAT.eigen('lichtgrau','kunststoff'); return _stuetzeM; }
 function stuetze(x,z,h){
   const g=new THREE.Mesh(new THREE.CylinderGeometry(0.17,0.17,h-0.16,HIQ?18:10),stuetzeM());
   g.position.set(x,(h-0.16)/2,z); if(HIQ){ g.castShadow=true; g.receiveShadow=true; } scene.add(g);
-  bbox(0.46,0.1,0.46,MAT.std(0x9aa0ab,{roughness:0.8}),x,0.05,z,null,false);
+  bbox(0.46,0.1,0.46,MAT.ober('silbergrau','matt'),x,0.05,z,null,false);
   bbox(0.44,0.08,0.44,stuetzeM(),x,h-0.06,z,null,false);
   col(x-0.22,x+0.22,z-0.22,z+0.22);
   return g;
@@ -309,8 +309,8 @@ function lagerSperre(){
   const Z='lager';
   const g=new THREE.Group(); g.position.set(-8.0,0,-2.5); g.rotation.y=Math.PI/2; scene.add(g);
   const bandM=new THREE.MeshStandardMaterial({map:sperrbandTex('LAGER · KAPITEL 2'),roughness:0.72,side:THREE.DoubleSide});
-  const halt=MAT.std(0x3d4450,{metalness:0.5,roughness:0.5});
-  const kopf=MAT.std(0x1f242e,{metalness:0.4,roughness:0.55});
+  const halt=MAT.get('stahlGraphit');
+  const kopf=MAT.get('lackSchwarz');
   const a=-0.66, b=0.66;
   for(const y of [0.5,1.0,1.5]) sperrband(Z,a+0.06,b-0.06,0,y,bandM,g);
   for(const x of [a+0.04,b-0.04]){
@@ -327,8 +327,8 @@ function lagerSperre(){
   { const pa=wg.attributes.position; for(let i=0;i<pa.count;i++) pa.setY(i,(typeof gehwegY==='function'?gehwegY(pa.getX(i),pa.getZ(i)):0.012)+0.008); pa.needsUpdate=true; }
   const m=new THREE.Mesh(wg,new THREE.MeshBasicMaterial({transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2,
     map:tex(540,350,(c,W,H)=>{ c.clearRect(0,0,W,H);
-      c.strokeStyle='#ffd23f'; c.lineWidth=12; c.setLineDash([30,16]); c.strokeRect(10,10,W-20,H-20); c.setLineDash([]);
-      c.fillStyle='rgba(255,210,63,.95)'; c.font=BUN(46); c.textAlign='center'; c.textBaseline='middle';
+      c.strokeStyle=MAT.css('signalgelb'); c.lineWidth=12; c.setLineDash([30,16]); c.strokeRect(10,10,W-20,H-20); c.setLineDash([]);
+      c.fillStyle=MAT.css('signalgelb',.95); c.font=BUN(46); c.textAlign='center'; c.textBaseline='middle';
       c.fillText('WARENANNAHME',W/2,H-52); })}));
   m.renderOrder=2; scene.add(m);
   zWand(Z,m);
@@ -339,8 +339,8 @@ const WA_SLOTS=[]; for(let r=0;r<2;r++) for(let c=0;c<3;c++) WA_SLOTS.push({x:WA
 function testfeldSperre(){
   const Z='testfeld', a=4.4, b=6.1, z=-6.0;
   const bandM=new THREE.MeshStandardMaterial({map:sperrbandTex('TESTFELD GESPERRT'),roughness:0.72,side:THREE.DoubleSide});
-  const halt=MAT.std(0x3d4450,{metalness:0.5,roughness:0.5});
-  const kopf=MAT.std(0x1f242e,{metalness:0.4,roughness:0.55});
+  const halt=MAT.get('stahlGraphit');
+  const kopf=MAT.get('lackSchwarz');
   for(const y of [0.5,1.0,1.5]) sperrband(Z,a+0.06,b-0.06,z,y,bandM);
   /* Zwei Pfosten in den Laibungen, an denen das Band haengt */
   for(const x of [a+0.04,b-0.04]){
@@ -352,7 +352,7 @@ function testfeldSperre(){
      Es bleibt stehen, auch nachdem der Zugang gekauft ist - es
      sagt, wohin die Tuer fuehrt, nicht dass sie zu ist. */
   plane(1.4,0.35,new THREE.MeshStandardMaterial({map:tex(280,70,(g,W,Hh)=>{
-    g.fillStyle='#f2c230'; g.fillRect(0,0,W,Hh);
+    g.fillStyle=MAT.css('signalgelb'); g.fillRect(0,0,W,Hh);
     g.fillStyle='#16181f'; g.font=BUN(38); g.textAlign='center'; g.textBaseline='middle';
     g.fillText('TESTFELD',W/2,Hh/2+2); })}),(a+b)/2,2.85,z+0.12,0,null);
   zWandCol(Z,col(a,b,z-0.14,z+0.14));
@@ -390,7 +390,7 @@ function buildLagergang(){
     MAT.get('betonBoden'));
   bo.rotation.x=-Math.PI/2; bo.position.set(mitteX,0.016,mitteZ); scene.add(bo); zAdd(Z,bo);
   /* Decke und Dachrand */
-  const ce=new THREE.Mesh(new THREE.PlaneGeometry(breite+0.3,tiefe+0.3),MAT.std(0xe6e8ee,{roughness:1}));
+  const ce=new THREE.Mesh(new THREE.PlaneGeometry(breite+0.3,tiefe+0.3),MAT.get('weissMatt'));
   ce.rotation.x=Math.PI/2; ce.position.set(mitteX,G.h-0.01,mitteZ); scene.add(ce); zAdd(Z,ce);
   /* Der Dachrand deckt die Kopf- und Suedwand ab, aber keinen
      Zentimeter mehr: mit dem sonst ueblichen Ueberstand ragte er
@@ -398,7 +398,7 @@ function buildLagergang(){
   /* Dachrand in beiden Richtungen INNERHALB der angrenzenden Waende.
      Lag er mit -5,9 genau in der Ebene der Ladenrueckwand, flimmerte
      er von innen als dunkler Streifen ueber der Uhr. */
-  zAdd(Z,bbox(breite+LW,0.25,tiefe+LW,MAT.std(0x2b2f3a),mitteX,G.h+0.13,mitteZ,null,true));
+  zAdd(Z,bbox(breite+LW,0.25,tiefe+LW,MAT.get('anthrazitMatt'),mitteX,G.h+0.13,mitteZ,null,true));
   /* Suedwand mit dem Durchgang aufs Testfeld. Der Sturz bleibt
      stehen, sonst steht das Dach in der Luft. */
   const zs=G.z0;
@@ -432,7 +432,7 @@ function buildLagergang(){
   zAdd(Z,plane(1.5,0.3,new THREE.MeshBasicMaterial({toneMapped:false,side:THREE.DoubleSide,
     map:tex(512,104,(g,W,H)=>{
       g.fillStyle='#1b2340'; g.fillRect(0,0,W,H);
-      g.fillStyle='#f2c230'; g.fillRect(0,H-7,W,7);
+      g.fillStyle=MAT.css('schildgold'); g.fillRect(0,H-7,W,7);
       g.textAlign='center'; g.textBaseline='middle';
       g.fillStyle='#e8ecf5'; g.font=BUN(36); g.fillText('◄  LAGER · GROSSHANDEL',W/2,H/2-3);
     })}),mitteX,2.45,G.z1-0.06,Math.PI,null));
@@ -458,7 +458,7 @@ function pvcMat(){
 function streifenvorhang(zid,laengs,fest,a0,a1,hoehe){
   const len=a1-a0, mitte=(a0+a1)/2, H=hoehe-0.12;
   /* Traverse mit Halteklemmen */
-  const stahl=MAT.std(0x8d939d,{metalness:0.6,roughness:0.4});
+  const stahl=MAT.get('stahlVerzinkt');
   zAdd(zid,laengs
     ? bbox(len+0.16,0.1,0.14,stahl,mitte,hoehe-0.05,fest,null,false)
     : bbox(0.14,0.1,len+0.16,stahl,fest,hoehe-0.05,mitte,null,false));
@@ -472,7 +472,7 @@ function streifenvorhang(zid,laengs,fest,a0,a1,hoehe){
   for(let i=0;i<n;i++){
     const a=a0+rest+B/2+i*T;
     const kipp=(i%2?1:-1)*0.035;           /* leicht schraeg, wie benutzt */
-    teile.push({geo,color:i%2?0xeef3f7:0xe4ecf2,
+    teile.push({geo,color:i%2?MAT.farbe('weiss'):MAT.farbe('weiss'),
       m:laengs?tm(a,H/2+0.02,fest,0,kipp,0):tm(fest,H/2+0.02,a,0,Math.PI/2+kipp,0)});
   }
   const m=new THREE.Mesh(merge(teile),pvcMat());
@@ -490,7 +490,7 @@ function buildSchleuse(){
   /* Die Decke endet buendig in den beiden Gebaeudewaenden. Mit dem
      ueblichen Ueberstand schaute ihre Kante als dunkler Streifen in
      die Lagerhalle hinein. */
-  const ce=new THREE.Mesh(new THREE.PlaneGeometry(br-0.2,ti+0.3),MAT.std(0xe6e8ee,{roughness:1}));
+  const ce=new THREE.Mesh(new THREE.PlaneGeometry(br-0.2,ti+0.3),MAT.get('weissMatt'));
   ce.rotation.x=Math.PI/2; ce.position.set(mx,H-0.01,mz); scene.add(ce);
   /* Der Dachrand darf nur bis in die Gebaeudewaende reichen. Mit dem
      ueblichen Ueberstand stand er als schwarzer Balken frei in der
@@ -503,7 +503,7 @@ function buildSchleuse(){
      darum in ihrer Mitte (x1 - LW/2), nicht an ihrer Innenseite - sonst
      standen ihre Kanten als helle Streifen und dunkler Balken in der Halle. */
   const xo=S2.x1-LW/2;
-  bbox(xo-S2.x0,0.25,ti+LW*2,MAT.std(0x2b2f3a),(S2.x0+xo)/2,H+0.24,mz,null,true);
+  bbox(xo-S2.x0,0.25,ti+LW*2,MAT.get('anthrazitMatt'),(S2.x0+xo)/2,H+0.24,mz,null,true);
   /* Laengswaende. Die Kopfenden sind die Gebaeudewaende selbst. */
   for(const [z0,z1] of [[S2.z0-LW,S2.z0],[S2.z1,S2.z1+LW]]){
     wall(S2.x0,xo,z0,z1,0,H,z0<mz?'+z':'-z',lagerWall);
@@ -527,16 +527,16 @@ function buildLagerTerminal(){
   const g=new THREE.Group(); g.position.set(LAGERPC.x,0,LAGERPC.z); scene.add(g); zAdd('lager_sued2',g);
   g.userData.inventar=true;
   const VC=[], B=(w,h,d,c,x,y,z,rx,ry,rz)=>VC.push({geo:roundedBoxGeo(w,h,d,Math.min(0.01,Math.min(w,h,d)*0.2),2),m:tm(x,y,z,rx,ry,rz),color:c});
-  const STAHL=0x767d88, DUNKEL=0x2b303c, PLATTE=0xb8bec8, BLAU=0x2a5a9e;
+  const STAHL=MAT.farbe('mittelgrau'), DUNKEL=MAT.farbe('anthrazit'), PLATTE=MAT.farbe('aluminium'), BLAU=MAT.farbe('signalblau');
   /* Stehpult: Saeule mit Fuss, schraege Platte, Ablage, Monitor am Arm */
   B(0.62,0.04,0.46,DUNKEL,0,0.02,0.04); B(0.09,1.02,0.09,STAHL,0,0.53,-0.02);
   B(0.72,0.035,0.42,PLATTE,0,1.06,0.06,-0.18,0,0); B(0.72,0.03,0.04,DUNKEL,0,1.03,0.27,-0.18,0,0);
   B(0.5,0.03,0.3,STAHL,0,0.42,0.02); B(0.36,0.42,0.26,DUNKEL,0.1,0.21,0.0);
-  B(0.04,0.36,0.04,STAHL,0,1.28,-0.12); B(0.56,0.36,0.035,0x14161a,0,1.48,-0.08);
-  B(0.44,0.02,0.15,0x22252b,-0.02,1.095,0.09,-0.18,0,0); B(0.07,0.02,0.1,0x22252b,0.28,1.09,0.12,-0.18,0,0);
+  B(0.04,0.36,0.04,STAHL,0,1.28,-0.12); B(0.56,0.36,0.035,MAT.farbe('tiefschwarz'),0,1.48,-0.08);
+  B(0.44,0.02,0.15,MAT.farbe('gummischwarz'),-0.02,1.095,0.09,-0.18,0,0); B(0.07,0.02,0.1,MAT.farbe('gummischwarz'),0.28,1.09,0.12,-0.18,0,0);
   /* Etikettendrucker und Handscanner im Halter */
-  B(0.18,0.14,0.2,0xe9ebee,-0.48,1.0,0.04); B(0.12,0.01,0.1,0xf6f4ec,-0.48,1.075,0.04);
-  B(0.05,0.16,0.05,0xe7a91c,0.4,1.16,0.12,0.4,0,0);
+  B(0.18,0.14,0.2,MAT.farbe('weiss'),-0.48,1.0,0.04); B(0.12,0.01,0.1,MAT.farbe('cremeweiss'),-0.48,1.075,0.04);
+  B(0.05,0.16,0.05,MAT.farbe('signalgelb'),0.4,1.16,0.12,0.4,0,0);
   /* Schild an der Wand */
   B(0.62,0.16,0.02,BLAU,0,1.95,-0.27);
   const m=new THREE.Mesh(merge(VC),vcMat); if(HIQ){ m.castShadow=true; m.receiveShadow=true; } g.add(m);
@@ -552,8 +552,8 @@ function buildLagerTerminal(){
 /* Tablet im Laden, an der Rueckwand rechts neben der Hintertuer zum Testfeld */
 function buildTablet(){
   const g=new THREE.Group(); g.position.set(7.0,0,-5.86); scene.add(g);
-  const dunkel=MAT.std(0x1f232b,{metalness:0.4,roughness:0.4});
-  bbox(0.07,0.32,0.03,MAT.std(0x8b929c,{metalness:0.7,roughness:0.3}),0,1.32,0.02,g,false);
+  const dunkel=MAT.get('lackSchwarz');
+  bbox(0.07,0.32,0.03,MAT.ober('silbergrau','blank'),0,1.32,0.02,g,false);
   const t=bbox(0.32,0.22,0.018,dunkel,0,1.42,0.05,g,false); t.rotation.x=-0.18;
   const sch=neuerSchoner(320,220,'Bestellen');
   const sc=plane(0.29,0.19,new THREE.MeshBasicMaterial({toneMapped:false,map:sch.t}),0,1.42,0.061,0,g); sc.rotation.x=-0.18; sch.mesh=sc;
@@ -589,7 +589,7 @@ function fugenPlatte(r,mat,y,decke,kachel){
   return m;
 }
 function fugenfueller(){
-  const ceil=MAT.std(0xe6e8ee,{roughness:1});
+  const ceil=MAT.get('weissMatt');
   /* Verkauf: Basis, Ost I und Ost II liegen in einer Flucht, das
      Rueckgebaeude haengt darunter. Die zweite Platte liegt einen
      Millimeter tiefer, damit sich die beiden im Ueberlappungs-
@@ -802,25 +802,14 @@ function packRegalImWeg(st){
 }
 /* Gitter (Tom 09.10.: "Absperrungen in Gelb, im Stil der Gitterbox"): Drahtgitter als
    Alpha-Textur, der Massstab steckt in den UVs - ein Material fuer alle Felder */
-let _vsGitterM=null;
-function vsGitterMat(){
-  if(_vsGitterM) return _vsGitterM;
-  const t=tex(128,128,(c,W,H)=>{ c.clearRect(0,0,W,H);
-    c.strokeStyle='rgba(214,156,22,1)'; c.lineWidth=3;
-    for(let x=2;x<W;x+=16){ c.beginPath(); c.moveTo(x,0); c.lineTo(x,H); c.stroke(); }
-    for(let y=2;y<H;y+=16){ c.beginPath(); c.moveTo(0,y); c.lineTo(W,y); c.stroke(); }
-    c.fillStyle='rgba(255,236,150,.9)'; for(let x=2;x<W;x+=16) for(let y=2;y<H;y+=16) c.fillRect(x-1,y-1,2,2); });
-  t.wrapS=t.wrapT=THREE.RepeatWrapping;
-  _vsGitterM=new THREE.MeshStandardMaterial({map:t,transparent:true,alphaTest:0.35,side:THREE.DoubleSide,roughness:0.55,metalness:0.35});
-  return _vsGitterM;
-}
-/* Ein Gitterfeld als Ebene, UVs in halben Metern - dann teilen alle Felder ein Material */
-function gitterGeo(L,h){ const geo=new THREE.PlaneGeometry(L,h), uv=geo.attributes.uv;
-  for(let i=0;i<uv.count;i++) uv.setXY(i,uv.getX(i)*L/0.5,uv.getY(i)*h/0.5); return geo; }
+/* vsGitterMat() entfaellt (13.10., Materialangleichung): gelbes Schweissgitter = MAT.get('gitterGelb') */
+const vsGitterMat=()=>MAT.get('gitterGelb');
+/* Ein Gitterfeld als Ebene, UVs je 0,2 m (Drahtgitter-Kachel, Masche 5 cm) - alle Felder teilen ein Material */
+function gitterGeo(L,h){ return MAT.kachel(new THREE.PlaneGeometry(L,h),L/0.2,h/0.2); }
 /* Zaun von a nach b: Pfosten mit Fussplatten hoechstens alle 1,2 m, Ober- und Unterholm,
    bei mat ein Gitter dazwischen (sonst Gelaender mit Mittelholm). B: Vertexfarben-Helfer. */
 function gitterZaun(B,k,g,ax,az,bx,bz,h,mat,reg){
-  const GELB=0xe7a91c, DUNKEL=0x30353f, L=Math.hypot(bx-ax,bz-az), n=Math.max(1,Math.ceil(L/1.2)), ry=Math.atan2(bz-az,bx-ax);
+  const GELB=MAT.farbe('signalgelb'), DUNKEL=MAT.farbe('anthrazit'), L=Math.hypot(bx-ax,bz-az), n=Math.max(1,Math.ceil(L/1.2)), ry=Math.atan2(bz-az,bx-ax);
   for(let j=0;j<=n;j++){ const x=ax+(bx-ax)*j/n, z=az+(bz-az)*j/n; B(k,0.05,h,0.05,GELB,x,h/2,z); B(k,0.12,0.015,0.12,DUNKEL,x,0.008,z); }
   B(k,L,0.04,0.04,GELB,(ax+bx)/2,h-0.02,(az+bz)/2,0,-ry,0); B(k,L,0.04,0.04,GELB,(ax+bx)/2,0.12,(az+bz)/2,0,-ry,0);
   if(mat){ const m=new THREE.Mesh(gitterGeo(L,h-0.2),mat); m.position.set((ax+bx)/2,h/2+0.02,(az+bz)/2); m.rotation.y=-ry; g.add(m); if(reg) reg(m); return m; }
@@ -832,9 +821,9 @@ function gitterZaun(B,k,g,ax,az,bx,bz,h,mat,reg){
 function reserveTex(BW,BT){
   const k=Math.min(200,1024/Math.max(BW,BT)), W=Math.max(16,Math.round(BW*k)), H=Math.max(16,Math.round(BT*k));
   return tex(W,H,(c)=>{ c.clearRect(0,0,W,H);
-    c.strokeStyle='rgba(242,194,48,.95)'; c.lineWidth=Math.max(4,k*0.06); c.setLineDash([k*0.3,k*0.15]); c.strokeRect(c.lineWidth/2,c.lineWidth/2,W-c.lineWidth,H-c.lineWidth); c.setLineDash([]);
+    c.strokeStyle=MAT.css('signalgelb',.95); c.lineWidth=Math.max(4,k*0.06); c.setLineDash([k*0.3,k*0.15]); c.strokeRect(c.lineWidth/2,c.lineWidth/2,W-c.lineWidth,H-c.lineWidth); c.setLineDash([]);
     c.save(); c.beginPath(); c.rect(k*0.08,k*0.08,W-k*0.16,H-k*0.16); c.clip();
-    c.strokeStyle='rgba(242,194,48,.55)'; c.lineWidth=Math.max(3,k*0.035);
+    c.strokeStyle=MAT.css('signalgelb',.55); c.lineWidth=Math.max(3,k*0.035);
     for(let d=-H;d<W;d+=k*0.35){ c.beginPath(); c.moveTo(d,H); c.lineTo(d+H,0); c.stroke(); }
     c.restore(); });
 }
@@ -858,10 +847,10 @@ function ladezoneBauen(g,B){
   const x0=LADEZONE.x0+0.05, x1=LADEZONE.x1-0.08, z0=ZELLE_Z1+0.1, z1=LADEZONE.z1-0.05, BW=x1-x0, BT=z1-z0, k=150;
   const t=tex(Math.round(BW*k),Math.round(BT*k),(c,W,H)=>{ c.clearRect(0,0,W,H);
     c.save(); c.beginPath(); c.rect(0,0,W,H); c.rect(16,16,W-32,H-32); c.clip('evenodd');
-    c.fillStyle='#f2c230'; c.fillRect(0,0,W,H); c.fillStyle='#1b1d22';
+    c.fillStyle=MAT.css('signalgelb'); c.fillRect(0,0,W,H); c.fillStyle='#1b1d22';
     for(let d=-H;d<W+H;d+=30){ c.beginPath(); c.moveTo(d,0); c.lineTo(d+15,0); c.lineTo(d+15-H,H); c.lineTo(d-H,H); c.closePath(); c.fill(); }
     c.restore();
-    c.strokeStyle='rgba(242,194,48,.5)'; c.lineWidth=10;
+    c.strokeStyle=MAT.css('signalgelb',.5); c.lineWidth=10;
     for(let d=-H;d<W;d+=70){ c.beginPath(); c.moveTo(d,H-16); c.lineTo(d+H,16); c.stroke(); } });
   const fm=new THREE.Mesh(new THREE.PlaneGeometry(BW,BT),new THREE.MeshStandardMaterial({map:t,transparent:true,depthWrite:false,roughness:0.6,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2}));
   fm.rotation.x=-Math.PI/2; fm.position.set((x0+x1)/2,0.021,(z0+z1)/2); g.add(fm);
@@ -883,7 +872,7 @@ function buildPackstation(){
   const UL=GFX==='ultralow';
   const B=(k,w,h,d,c,x,y,z,rx,ry,rz)=>vc(k).push({geo:UL?new THREE.BoxGeometry(w,h,d):roundedBoxGeo(w,h,d,Math.min(0.01,Math.min(w,h,d)*0.2),2),m:tm(x,y,z,rx,ry,rz),color:c});
   const Cy=(k,r,h,c,x,y,z,rx,ry,rz,seg)=>vc(k).push({geo:new THREE.CylinderGeometry(r,r,h,seg||10),m:tm(x,y,z,rx,ry,rz),color:c});
-  const STAHL=0x80868f, DUNKEL=0x30353f, GELB=0xe7a91c, ZINK=0xb4bac2, HOLZ=0xc49a62, HOLZ2=0xa9814e;
+  const STAHL=MAT.farbe('silbergrau'), DUNKEL=MAT.farbe('anthrazit'), GELB=MAT.farbe('signalgelb'), ZINK=MAT.farbe('hellgrau'), HOLZ=MAT.farbe('holzPalette'), HOLZ2=MAT.farbe('holzPaletteDunkel');
   /* userData.stufe: die Handy-Vorfuehrung (gpStatisch) fasst solche Teile
      nicht zusammen - sonst liessen sie sich nicht mehr ein- und ausblenden */
   const reg=(o,k)=>{ const s=+k.slice(-1); (k.indexOf('nur')===0?T.nur:T.ab)[s].push(o); if(o.userData&&!o.userData.kind) o.userData.stufe=k; return o; };
@@ -908,23 +897,23 @@ function buildPackstation(){
     for(const sz of [-0.32,0.32]) Bp(VS_TB-0.22,0.05,0.04,STAHL,0,0.28,sz);
     Bp(VS_TB-0.16,0.03,0.68,DUNKEL,0,0.31,0);
     /* gefaltete Kartons auf der unteren Ablage */
-    Bp(0.5,0.05,0.5,0xc9a978,-0.24,0.35,0); Bp(0.44,0.04,0.46,0xbf9d6c,-0.22,0.395,0.01);
-    Bp(0.36,0.05,0.36,0xc9a978,0.3,0.35,-0.02);
+    Bp(0.5,0.05,0.5,MAT.farbe('holzPalette'),-0.24,0.35,0); Bp(0.44,0.04,0.46,MAT.farbe('holzPalette'),-0.22,0.395,0.01);
+    Bp(0.36,0.05,0.36,MAT.farbe('holzPalette'),0.3,0.35,-0.02);
     /* Waage vorn links, Etikettendrucker hinten links, Abroller rechts -
        die Mitte bleibt frei: dort steht der Karton, und zum Band hin wird
        er hinuebergeschoben */
     Bp(0.2,0.04,0.2,DUNKEL,-0.46,0.97,0.24); Bp(0.17,0.01,0.17,ZINK,-0.46,0.995,0.24);
-    Bp(0.18,0.18,0.2,DUNKEL,-0.48,1.04,-0.25); Bp(0.14,0.01,0.12,0xf2f0e8,-0.48,1.135,-0.25);
+    Bp(0.18,0.18,0.2,DUNKEL,-0.48,1.04,-0.25); Bp(0.14,0.01,0.12,MAT.farbe('cremeweiss'),-0.48,1.135,-0.25);
     /* Uebergabeblech: Tischkante bis Bandkante, buendig mit der Platte */
-    Bp(VS_TB-0.2,0.012,0.12,0xb4bac2,0,VS_TOP-0.006,-0.45);
+    Bp(VS_TB-0.2,0.012,0.12,MAT.farbe('hellgrau'),0,VS_TOP-0.006,-0.45);
     /* Handabroller (Tom 09.10.: "Klebebandrolle ist zwei Pixel"): Pistolengriff, Rahmen,
        Andrueckrolle, Messer - und eine echte Rolle (Lathe, 50 mm aussen, 38 mm Huelse) */
     { const q=W(0.47,-0.22), ry=VS_PP[i].s>0?0:Math.PI, R=(lx,lz)=>{ const a=W(0.47+lx,-0.22+lz); return a; };
       const T2=(w,h,d,c,lx,y,lz,rx,rz)=>{ const a=R(lx,lz); B(k,w,h,d,c,a.x,y,a.z,rx||0,ry,rz||0); };
-      T2(0.035,0.11,0.03,0xc4302b,0.0,0.99,0.07,0.5,0); T2(0.03,0.02,0.16,0x2b2f36,0.0,1.045,0.0); T2(0.03,0.07,0.02,0x2b2f36,0.0,1.03,-0.08);
-      T2(0.03,0.012,0.05,0x9aa1ac,0.0,1.012,-0.1); Cy(k,0.012,0.05,0x1c1f24,R(0,-0.085).x,0.998,R(0,-0.085).z,0,0,Math.PI/2,10);
-      vc(k).push({geo:vmBandGeo(),m:tm(q.x,1.05+0.02,q.z,0,0,Math.PI/2),color:0xd6a560});
-      Cy(k,0.037,0.052,0xb79a6c,q.x,1.07,q.z,0,0,Math.PI/2,14); void ry; }
+      T2(0.035,0.11,0.03,MAT.farbe('feuerrot'),0.0,0.99,0.07,0.5,0); T2(0.03,0.02,0.16,MAT.farbe('anthrazit'),0.0,1.045,0.0); T2(0.03,0.07,0.02,MAT.farbe('anthrazit'),0.0,1.03,-0.08);
+      T2(0.03,0.012,0.05,MAT.farbe('hellgrau'),0.0,1.012,-0.1); Cy(k,0.012,0.05,MAT.farbe('gummischwarz'),R(0,-0.085).x,0.998,R(0,-0.085).z,0,0,Math.PI/2,10);
+      vc(k).push({geo:vmBandGeo(),m:tm(q.x,1.05+0.02,q.z,0,0,Math.PI/2),color:MAT.farbe('wellpappe')});
+      Cy(k,0.037,0.052,MAT.farbe('holzPalette'),q.x,1.07,q.z,0,0,Math.PI/2,14); void ry; }
     const hit=bbox(VS_TB+0.1,1.3,0.95,hitM,M.x,0.65,M.z,g,false);
     hit.userData={kind:'pack',ref:i}; T.hits[i]=hit; reg(hit,k);
     if(i===0) packHit=hit;
@@ -944,13 +933,13 @@ function buildPackstation(){
       B(k,0.04,0.04,b-0.04,STAHL,x,0.24,z); B(k,0.04,0.04,b-0.04,STAHL,x,Y-0.17,z); }
     for(const s of [-1,1]) B(k,L-0.2,0.035,0.035,STAHL,xm,0.24,z+s*(b/2-0.02));
     /* Gurt: Unterseite, Umlenktrommeln, Antrieb am Anfang im Osten */
-    B(k,Ls,0.02,b-0.02,0x1d2026,BAND.stau+Ls/2,Y-0.12,z);
-    for(const x of [BAND.stau+0.04,BAND.x1-0.04]) Cy(k,0.045,b-0.02,0x5c626b,x,Y-0.045,z,Math.PI/2,0,0,12);
-    B(k,0.3,0.22,0.24,0x2a5a9e,BAND.x1-0.4,Y-0.42,z); Cy(k,0.07,0.16,0x2a5a9e,BAND.x1-0.62,Y-0.42,z,0,0,Math.PI/2,12);
+    B(k,Ls,0.02,b-0.02,MAT.farbe('gummischwarz'),BAND.stau+Ls/2,Y-0.12,z);
+    for(const x of [BAND.stau+0.04,BAND.x1-0.04]) Cy(k,0.045,b-0.02,MAT.farbe('basaltgrau'),x,Y-0.045,z,Math.PI/2,0,0,12);
+    B(k,0.3,0.22,0.24,MAT.farbe('signalblau'),BAND.x1-0.4,Y-0.42,z); Cy(k,0.07,0.16,MAT.farbe('signalblau'),BAND.x1-0.62,Y-0.42,z,0,0,Math.PI/2,12);
     /* Staurollenbahn bis zum Endanschlag */
     for(let x=BAND.x0+0.06;x<BAND.stau-0.02;x+=0.075) Cy(k,0.03,b-0.03,ZINK,x,Y-0.03,z,Math.PI/2,0,0,10);
     /* Endanschlag mit Gummipuffer und Lichtschranke */
-    B(k,0.04,0.2,b+0.08,GELB,BAND.x0-0.02,Y+0.06,z); B(k,0.02,0.1,b-0.1,0x1b1d22,BAND.x0+0.005,Y+0.05,z);
+    B(k,0.04,0.2,b+0.08,GELB,BAND.x0-0.02,Y+0.06,z); B(k,0.02,0.1,b-0.1,MAT.farbe('gummischwarz'),BAND.x0+0.005,Y+0.05,z);
     for(const s of [-1,1]) B(k,0.05,0.08,0.05,DUNKEL,BAND.x0+0.25,Y+0.09,z+s*(b/2+0.05));
     /* Gurt mit Laufrichtung: das Muster wandert mit (11c) */
     const gt=tex(512,64,(c,W,H)=>{ c.fillStyle='#24272d'; c.fillRect(0,0,W,H);
@@ -975,8 +964,8 @@ function buildPackstation(){
     for(const px of [px0,px1]){ B(k,0.12,0.16,pz1-pz0,GELB,px,PORTAL_Y+0.08,(pz0+pz1)/2); B(k,0.04,0.03,pz1-pz0,ZINK,px,PORTAL_Y+0.175,(pz0+pz1)/2); }
     for(const pz of [pz0,pz1]) B(k,px1-px0,0.12,0.1,GELB,(px0+px1)/2,PORTAL_Y-0.02,pz);
     /* Energiekette am westlichen Traeger, Schaltkasten mit Leuchten an der Stuetze */
-    B(k,0.08,0.06,pz1-pz0-0.2,0x1b1d22,px0-0.1,PORTAL_Y+0.05,(pz0+pz1)/2);
-    B(k,0.22,0.36,0.14,0xd9dde3,px1,1.5,pz1-0.13); B(k,0.05,0.05,0.02,0x2fd06a,px1-0.05,1.6,pz1-0.205); B(k,0.05,0.05,0.02,0xff4433,px1+0.05,1.6,pz1-0.205);
+    B(k,0.08,0.06,pz1-pz0-0.2,MAT.farbe('gummischwarz'),px0-0.1,PORTAL_Y+0.05,(pz0+pz1)/2);
+    B(k,0.22,0.36,0.14,MAT.farbe('lichtgrau'),px1,1.5,pz1-0.13); B(k,0.05,0.05,0.02,0x2fd06a,px1-0.05,1.6,pz1-0.205); B(k,0.05,0.05,0.02,0xff4433,px1+0.05,1.6,pz1-0.205);
     /* Zaun: 2 m hoch an West und Sued, zum Band hin im Osten ein niedriges Gelaender -
        darueber hebt der Greifer die Pakete. Die Seite zum Rolltor V1 ist offen: dort holt
        der DDL-Fahrer die Paletten mit dem Hubwagen. */
@@ -988,10 +977,10 @@ function buildPackstation(){
     const PXM=200, W=Math.round((x1-x0)*PXM), H=Math.round((z1-z0)*PXM);
     const ft=tex(W,H,(c)=>{ c.clearRect(0,0,W,H);
       c.save(); c.beginPath(); c.rect(0,0,W,H); c.rect(18,18,W-36,H-36); c.clip('evenodd');
-      c.fillStyle='#f2c230'; c.fillRect(0,0,W,H); c.fillStyle='#1b1d22';
+      c.fillStyle=MAT.css('signalgelb'); c.fillRect(0,0,W,H); c.fillStyle='#1b1d22';
       for(let d=-H;d<W+H;d+=34){ c.beginPath(); c.moveTo(d,0); c.lineTo(d+17,0); c.lineTo(d+17-H,H); c.lineTo(d-H,H); c.closePath(); c.fill(); }
       c.restore();
-      c.strokeStyle='rgba(242,194,48,.9)'; c.lineWidth=6;
+      c.strokeStyle=MAT.css('signalgelb',.9); c.lineWidth=6;
       /* Bildzeile 0 liegt im Sueden (z0) */
       for(let j=0;j<PAL_N[s];j++){ const p=PALETTEN[j], a=(p.x-0.65-x0)*PXM, b=(p.x+0.65-x0)*PXM, o=(p.z-0.45-z0)*PXM, u=(p.z+0.45-z0)*PXM, L=24;
         c.beginPath(); c.moveTo(a,o+L); c.lineTo(a,o); c.lineTo(a+L,o); c.moveTo(b-L,o); c.lineTo(b,o); c.lineTo(b,o+L);
@@ -1005,18 +994,18 @@ function buildPackstation(){
   ladezoneBauen(g,B);
   /* Paletten sind eigene Objekte (11e-palette.js): die Box zeigt sie dort. */
   /* bewegliche Portalteile: Bruecke (faehrt in z), Laufwagen, Hubachse, Greifer */
-  { const Pt={}, gelb=std(GELB,{roughness:0.5,metalness:0.25}), dunkel=MAT.std(0x2a2e36,{roughness:0.55,metalness:0.4}), zink=std(ZINK,{metalness:0.6,roughness:0.35});
+  { const Pt={}, gelb=std(GELB,{roughness:0.5,metalness:0.25}), dunkel=MAT.get('lackAnthrazit'), zink=std(ZINK,{metalness:0.6,roughness:0.35});
     const bx0=ZELLE[1].x0+0.01, L=brX1-bx0;
     const br=new THREE.Group(); br.position.set((bx0+brX1)/2,PORTAL_Y+0.27,BAND.z); g.add(br);
     bbox(L,0.14,0.14,gelb,0,0,0,br); bbox(L-0.1,0.03,0.05,zink,0,0.085,0,br,false);
     for(const sx of [ZELLE[1].x0+0.06,ZELLE[1].x1-0.06]) bbox(0.16,0.12,0.24,dunkel,sx-(bx0+brX1)/2,-0.09,0,br,false);
     const wg=new THREE.Group(); wg.position.set(BAND.x0+0.4,PORTAL_Y+0.27,BAND.z); g.add(wg);
-    bbox(0.28,0.24,0.3,dunkel,0,0,0,wg); bbox(0.16,0.12,0.12,MAT.std(0x2a5a9e,{roughness:0.5}),0.05,0.18,0,wg,false);
+    bbox(0.28,0.24,0.3,dunkel,0,0,0,wg); bbox(0.16,0.12,0.12,MAT.ober('signalblau','kunststoff'),0.05,0.18,0,wg,false);
     const mast=bbox(0.08,1,0.08,zink,0,0,0,g,false), mast2=bbox(0.11,0.5,0.11,dunkel,0,0,0,g,false);
     const gr=new THREE.Group(); g.add(gr);
     /* Unterkante der Sauger = Greiferlage: dort liegt die Paketoberseite an */
     bbox(0.3,0.04,0.26,dunkel,0,0.045,0,gr); bbox(0.12,0.07,0.12,dunkel,0,0.1,0,gr,false);
-    const saugM=MAT.std(0x1b1d22,{roughness:0.9}), saugG=new THREE.CylinderGeometry(0.035,0.028,0.025,12);
+    const saugM=MAT.get('gummi'), saugG=new THREE.CylinderGeometry(0.035,0.028,0.025,12);
     for(const sx of [-0.09,0.09]) for(const sz of [-0.08,0.08]){ const c=new THREE.Mesh(saugG,saugM); c.position.set(sx,0.0125,sz); gr.add(c); }
     Pt.bruecke=br; Pt.wagen=wg; Pt.mast=mast; Pt.mast2=mast2; Pt.greifer=gr;
     [br,wg,mast,mast2,gr].forEach(o=>T.ab[1].push(o));   /* Kran ab Stufe 1 (Tom 09.10.) */
@@ -1026,9 +1015,9 @@ function buildPackstation(){
   for(const k in VC){ const m=new THREE.Mesh(merge(VC[k]),vcMat); if(HIQ){ m.castShadow=true; m.receiveShadow=true; } g.add(m); if(k!=='lz') reg(m,k); }
 
   /* Hinweisschild ueber dem ersten Packplatz, von beiden Seiten lesbar */
-  { const P=ppW(0,0,-0.36), st=std(0x7d838c,{metalness:0.6,roughness:0.4});
+  { const P=ppW(0,0,-0.36), st=MAT.eigen('silbergrau','stahl');
     for(const sx of [-0.56,0.56]) bbox(0.05,1.5,0.05,st,P.x+sx,1.72,P.z,g,false);
-    bbox(1.3,0.36,0.05,MAT.std(0x1b2340,{roughness:0.7}),P.x,2.3,P.z,g,false);
+    bbox(1.3,0.36,0.05,MAT.get('schildBlau'),P.x,2.3,P.z,g,false);
     packSchildTex=tex(1024,256,()=>{});
     const sm=new THREE.MeshBasicMaterial({map:packSchildTex,toneMapped:false});
     plane(1.24,0.31,sm,P.x,2.3,P.z+0.03,0,g); plane(1.24,0.31,sm,P.x,2.3,P.z-0.03,Math.PI,g);
@@ -1116,8 +1105,8 @@ function packSperre(id,g){
   const zb=-1.62, xs=[-1.7,0.3,2.2,4.1];
   const bandM=new THREE.MeshStandardMaterial({map:sperrbandTex('NOCH NICHT FREIGESCHALTET'),
     roughness:0.72,side:THREE.DoubleSide});
-  const halt=MAT.std(0x3d4450,{metalness:0.5,roughness:0.5});
-  const kopf=MAT.std(0x1f242e,{metalness:0.4,roughness:0.55});
+  const halt=MAT.get('stahlGraphit');
+  const kopf=MAT.get('lackSchwarz');
   for(let j=0;j<xs.length-1;j++)
     for(const y of [0.55,1.05]) sperrband(id,xs[j]+0.04,xs[j+1]-0.04,zb,y,bandM,g);
   for(const x of xs){
@@ -1134,9 +1123,9 @@ function versandFlaeche(g){
     const t=tex(Math.round(BW*200),Math.round(BT*200),(c,W,H)=>{
       c.fillStyle='#57606c'; c.fillRect(0,0,W,H);
       for(let i=0;i<W*H/100;i++){ c.fillStyle=`rgba(255,255,255,${Math.random()*0.03})`; c.fillRect(Math.random()*W,Math.random()*H,2,2); }
-      c.strokeStyle='#f2c230'; c.lineWidth=12; c.strokeRect(6,6,W-12,H-12);
+      c.strokeStyle=MAT.css('signalgelb'); c.lineWidth=12; c.strokeRect(6,6,W-12,H-12);
       c.save(); c.beginPath(); c.rect(0,0,W,H); c.clip();
-      c.strokeStyle='rgba(242,194,48,.75)'; c.lineWidth=9;
+      c.strokeStyle=MAT.css('signalgelb',.75); c.lineWidth=9;
       for(let y=-H;y<H*2;y+=30){ c.beginPath(); c.moveTo(W-50,y); c.lineTo(W,y-50); c.stroke(); }
       c.restore(); });
     const bo=new THREE.Mesh(new THREE.PlaneGeometry(BW,BT),new THREE.MeshStandardMaterial({map:t,roughness:0.62}));
@@ -1147,7 +1136,7 @@ function versandFlaeche(g){
   /* Schrift vor jedem Packplatz - nur fuer die Plaetze, die es in der
      Stufe schon gibt, lesbar fuer den, der davor steht */
   for(let i=0;i<3;i++){
-    const lt=tex(512,96,(c,W,H)=>{ c.clearRect(0,0,W,H); c.fillStyle='rgba(242,194,48,.88)'; c.textAlign='center'; c.textBaseline='middle';
+    const lt=tex(512,96,(c,W,H)=>{ c.clearRect(0,0,W,H); c.fillStyle=MAT.css('signalgelb',.88); c.textAlign='center'; c.textBaseline='middle';
       fitFont(c,'PACKPLATZ '+(i+1),W-24,64,BUN); c.fillText('PACKPLATZ '+(i+1),W/2,H/2+3); });
     const m=new THREE.Mesh(new THREE.PlaneGeometry(1.2,0.22),new THREE.MeshStandardMaterial({map:lt,transparent:true,depthWrite:false,roughness:0.6,
       polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2}));
@@ -1169,7 +1158,7 @@ function drawPackSchild(){
       g.fillText(voll?'BOX VOLL · DDL RUFEN':d&&d.unterwegs?'DDL KOMMT':'VERSAND · BEREIT',W/2,H/2-14);
       g.fillStyle='#bcd0ea'; g.font=BAR(34); g.fillText(`${S.offen|0} Bestellung${(S.offen|0)===1?'':'en'} offen · ${S.pakete|0} Paket${(S.pakete|0)===1?'':'e'} zur Abholung`,W/2,H-38);
     } else {
-      g.fillStyle='#ffd23f'; g.font=BUN(52); g.fillText('VERSAND',W/2,H/2-16);
+      g.fillStyle=MAT.css('schildgold'); g.font=BUN(52); g.fillText('VERSAND',W/2,H/2-16);
       g.fillStyle='#ff9d92'; g.font=BAR(32); g.fillText('Onlineshop noch nicht freigeschaltet',W/2,H-38);
     }
     g.strokeStyle='#2f3a5e'; g.lineWidth=6; g.strokeRect(3,3,W-6,H-6);
@@ -1253,7 +1242,7 @@ function torBlattMat(){
    Halle liegt oestlich der Wand, innen ist also +x. */
 function westTorInnen(g,steel,dark,kante,eintrag){
   const H=WTOR.h, B=WTOR.w;
-  const hell=MAT.std(0x6a707a,{metalness:0.7,roughness:0.35});
+  const hell=MAT.ober('mittelgrau','blank');
   /* Senkrechte Schienen bis ueber die Torhoehe: das Blatt faehrt
      gerade nach oben, die Halle ist zwoelf Meter hoch. */
   for(const dz of [-1,1]){
@@ -1274,12 +1263,12 @@ function westTorInnen(g,steel,dark,kante,eintrag){
     bbox(0.26,0.22,0.06,steel,0.28,H+0.34,dz*(B/2+0.16),g,false);
   }
   /* Antrieb mit Kette */
-  bbox(0.34,0.3,0.44,MAT.std(0x3a4150,{metalness:0.55}),0.52,H+0.34,-(B/2+0.42),g,false);
-  bbox(0.18,0.18,0.22,MAT.std(0xf2a01c,{roughness:0.5}),0.52,H+0.08,-(B/2+0.42),g,false);
+  bbox(0.34,0.3,0.44,MAT.get('stahlGraphit'),0.52,H+0.34,-(B/2+0.42),g,false);
+  bbox(0.18,0.18,0.22,MAT.ober('signalorange','kunststoff'),0.52,H+0.08,-(B/2+0.42),g,false);
   const chain=new THREE.Mesh(new THREE.TorusGeometry(0.17,0.013,6,HIQ?16:8),dark);
   chain.position.set(0.56,H-0.2,-(B/2+0.42)); chain.scale.y=4.2; g.add(chain);
   /* Warnleuchte ueber dem Tor */
-  const warn=new THREE.MeshStandardMaterial({color:LIN(0x3a2a08),emissive:LIN(0xffb02a),emissiveIntensity:0.5});
+  const warn=new THREE.MeshStandardMaterial({color:LIN(MAT.farbe('holzDunkel')),emissive:LIN(0xffb02a),emissiveIntensity:0.5});
   const wl=new THREE.Mesh(new THREE.CylinderGeometry(0.08,0.095,0.13,HIQ?12:8),warn);
   wl.position.set(0.34,H+0.62,B/2+0.3); g.add(wl);
   bbox(0.11,0.07,0.11,dark,0.34,H+0.71,B/2+0.3,g,false);
@@ -1289,29 +1278,29 @@ function westTorInnen(g,steel,dark,kante,eintrag){
     const c2=new THREE.Mesh(new THREE.CylinderGeometry(0.052,0.052,0.045,HIQ?10:6),m);
     c2.rotation.z=Math.PI/2; c2.position.set(0.33,y,B/2+0.5); g.add(c2);
   }
-  bbox(0.13,0.26,0.17,MAT.std(0xf2c230,{roughness:0.6}),0.3,1.35,B/2+0.5,g,false);
+  bbox(0.13,0.26,0.17,MAT.get('lackGelb'),0.3,1.35,B/2+0.5,g,false);
   for(let k=0;k<3;k++)
-    bbox(0.04,0.05,0.05,std([0x2f9e57,0xd8352a,0x2a2e38][k]),0.37,1.44-k*0.075,B/2+0.5,g,false);
+    bbox(0.04,0.05,0.05,[MAT.ober('signalgruen','kunststoff'),MAT.get('lackRot'),MAT.get('kunststoffAnthrazit')][k],0.37,1.44-k*0.075,B/2+0.5,g,false);
   /* Torkennung innen, damit man die Rampen auseinanderhaelt */
   plane(0.62,0.48,new THREE.MeshStandardMaterial({map:tex(150,116,(c,W,Hh)=>{
     c.fillStyle='#1b2340'; c.fillRect(0,0,W,Hh);
-    c.strokeStyle='#ffd23f'; c.lineWidth=6; c.strokeRect(5,5,W-10,Hh-10);
-    c.fillStyle='#ffd23f'; c.font=BUN(68); c.textAlign='center'; c.textBaseline='middle';
+    c.strokeStyle=MAT.css('schildgold'); c.lineWidth=6; c.strokeRect(5,5,W-10,Hh-10);
+    c.fillStyle=MAT.css('schildgold'); c.font=BUN(68); c.textAlign='center'; c.textBaseline='middle';
     c.fillText(String(eintrag.nr+1),W/2,Hh/2+5); })}),0.16,H+0.95,0,Math.PI/2,g);
 }
 /* Ein Ladetor in der Suedwand der Logistikhalle, von aussen gesehen.
    Gebaut ist es in eigenen Koordinaten mit innen = +x; die Gruppe
    wird so gedreht, dass +x nach Norden in die Halle zeigt. */
 function westTor(cx,nr){
-  const Z=LHALLE.z, steel=MAT.std(0x8d939d,{metalness:0.6,roughness:0.42});
-  const dark=MAT.std(0x2a2e38,{metalness:0.5,roughness:0.45});
-  const rub=MAT.std(0x16181d,{roughness:0.96});
+  const Z=LHALLE.z, steel=MAT.get('stahlVerzinkt');
+  const dark=MAT.get('stahlAnthrazit');
+  const rub=MAT.get('gummi');
   const g=new THREE.Group(); g.position.set(cx,0,Z); g.rotation.y=-Math.PI/2; scene.add(g);
   /* Torblatt aus echten Sektionalpanelen, denselben wie an der
      Basisrampe. Vorher war hier eine Textur auf einen Kasten
      geklebt - im Spiel sah man den Unterschied sofort. */
-  const kante=MAT.std(0x6f757e,{metalness:0.5,roughness:0.5});
-  const pmT=torPanelMat(), pm=MAT.std(0xdfe2e6,{metalness:0.4,roughness:0.5});
+  const kante=MAT.get('stahlMittel');
+  const pmT=torPanelMat(), pm=MAT.ober('lichtgrau','lackMetall');
   const bl=new THREE.Group(); bl.position.set(-0.15,WTOR.h/2,0); g.add(bl);
   const PN=5, ph=WTOR.h/PN;
   for(let i=0;i<PN;i++){
@@ -1350,9 +1339,9 @@ function westTor(cx,nr){
     bbox(0.06,0.56,0.32,dark,-0.21,1.05,s*(WTOR.w/2+0.28),g,false);
   }
   /* Vordach mit Schneeauflage */
-  const cano=bbox(1.35,0.1,WTOR.w+1.2,MAT.std(0x3a4150,{metalness:0.5}),-0.85,WTOR.h+0.52,0,g,false);
+  const cano=bbox(1.35,0.1,WTOR.w+1.2,MAT.get('stahlGraphit'),-0.85,WTOR.h+0.52,0,g,false);
   cano.rotation.z=-0.09;
-  const sn=bbox(1.38,0.08,WTOR.w+1.24,MAT.std(0xeef2f8,{roughness:1}),-0.85,WTOR.h+0.61,0,g,false);
+  const sn=bbox(1.38,0.08,WTOR.w+1.24,MAT.get('weissMatt'),-0.85,WTOR.h+0.61,0,g,false);
   sn.rotation.z=-0.09;
   /* Streben von der Wand hinauf unter die Aussenkante des Vordachs.
      Mit rotation.z = -0.74 kippten sie falsch herum: das untere Ende
@@ -1370,23 +1359,23 @@ function westTor(cx,nr){
      ohne Dichtung schaut man links und rechts am Heck vorbei ins
      Freie. Drei Polster aus Planenstoff schliessen den Spalt, so
      wie an jeder echten Rampe. */
-  const planeM=MAT.std(0x23262c,{roughness:0.95});
+  const planeM=MAT.get('gummi');
   for(const s2 of [-1,1])
     bbox(0.46,WTOR.h+0.1,0.5,planeM,-0.26,(WTOR.h+0.1)/2,s2*(WTOR.w/2-0.2),g,false);
   bbox(0.46,0.42,WTOR.w+0.1,planeM,-0.26,WTOR.h-0.09,0,g,false);
-  bbox(0.12,0.24,0.16,MAT.std(0xf2c230,{roughness:0.6}),-0.3,1.35,WTOR.w/2+0.62,g,false);
-  for(let k=0;k<3;k++) bbox(0.04,0.05,0.05,std([0x2f9e57,0xd8352a,0x2a2e38][k]),-0.37,1.43-k*0.07,WTOR.w/2+0.62,g,false);
+  bbox(0.12,0.24,0.16,MAT.get('lackGelb'),-0.3,1.35,WTOR.w/2+0.62,g,false);
+  for(let k=0;k<3;k++) bbox(0.04,0.05,0.05,[MAT.ober('signalgruen','kunststoff'),MAT.get('lackRot'),MAT.get('kunststoffAnthrazit')][k],-0.37,1.43-k*0.07,WTOR.w/2+0.62,g,false);
   /* Torkennung ueber dem Vordach */
   plane(0.8,0.62,new THREE.MeshStandardMaterial({map:tex(160,124,(c,W,H)=>{
     c.fillStyle='#1b2340'; c.fillRect(0,0,W,H);
-    c.strokeStyle='#ffd23f'; c.lineWidth=6; c.strokeRect(5,5,W-10,H-10);
-    c.fillStyle='#ffd23f'; c.font=BUN(78); c.textAlign='center'; c.textBaseline='middle';
+    c.strokeStyle=MAT.css('schildgold'); c.lineWidth=6; c.strokeRect(5,5,W-10,H-10);
+    c.fillStyle=MAT.css('schildgold'); c.font=BUN(78); c.textAlign='center'; c.textBaseline='middle';
     c.fillText(String(nr+1),W/2,H/2+6); })}),-0.22,WTOR.h+0.95,0,-Math.PI/2,g);
   /* Poller neben der Torlaibung, im Hof vor der Wand */
   for(const s of [-1,1]){
     const lz=s*(WTOR.w/2+1.15);
-    bbox(0.2,0.95,0.2,MAT.std(0xf2c230,{roughness:0.7}),-0.9,0.48,lz,g,true);
-    bbox(0.22,0.14,0.22,MAT.std(0x1f1f24),-0.9,0.86,lz,g,false);
+    bbox(0.2,0.95,0.2,MAT.get('lackGelb'),-0.9,0.48,lz,g,true);
+    bbox(0.22,0.14,0.22,MAT.get('gummi'),-0.9,0.86,lz,g,false);
     /* lokal (x,z) -> Welt (cx - z, Z + x) bei Drehung -90 Grad */
     col(cx-lz-0.15,cx-lz+0.15,Z-1.05,Z-0.75);
   }
@@ -1404,10 +1393,10 @@ const LAGERFENSTER=[-17.6,-14.0,-10.4];
 function lagerFensterWand(){
   const r=LAY.lnord, z0=r.z1, z1=r.z1+LW, H=LAGER_H;
   const FB=1.7, Y0=1.35, Y1=2.6;                       /* Breite, Bruestung, Sturz */
-  const leib=MAT.std(0xdfe3e8,{roughness:0.85});          /* Laibung: heller Putz */
-  const alu=MAT.std(0x2b3040,{metalness:0.55,roughness:0.38});
+  const leib=MAT.ober('lichtgrau','matt');          /* Laibung: heller Putz */
+  const alu=MAT.get('stahlAnthrazit');
   const glas=new THREE.MeshStandardMaterial({color:LIN(0x5d7288),transparent:true,opacity:0.38,roughness:0.05,metalness:0.2,side:THREE.DoubleSide,depthWrite:false});
-  const bankA=MAT.std(0xb9bec6,{metalness:0.6,roughness:0.35}), bankI=MAT.std(0xe6e8ec,{roughness:0.6});
+  const bankA=MAT.ober('aluminium','stahl'), bankI=MAT.get('kunststoffWeiss');
   const W=(a,b,y0,y1)=>{ if(b-a>0.005&&y1-y0>0.005) wall(a,b,z0,z1,y0,y1,'-z',lagerWall,undefined,0,leib); };
   let x=r.x0-LW;
   for(const cx of LAGERFENSTER){
@@ -1426,7 +1415,7 @@ function lagerFensterWand(){
       for(const dy of [0.075,fh-0.075]) bbox(FB/2-0.12,0.04,0.05,alu,fx,Y0+dy,zm+0.01,null,false);
       bbox(FB/2-0.14,fh-0.2,0.012,glas,fx,Y0+fh/2,zm,null,false);
       /* Griff am Fluegel innen */
-      bbox(0.025,0.12,0.03,MAT.std(0xc9ced6,{metalness:0.8,roughness:0.25}),cx+sx*0.1,Y0+fh/2,z0-0.01,null,false); }
+      bbox(0.025,0.12,0.03,MAT.get('aluBlank'),cx+sx*0.1,Y0+fh/2,z0-0.01,null,false); }
     /* Fensterbank aussen (Alu, leicht vorstehend) und innen */
     bbox(FB+0.08,0.03,0.2,bankA,cx,Y0-0.012,z1+0.06,null,false);
     bbox(FB+0.05,0.03,0.16,bankI,cx,Y0-0.012,z0-0.05,null,false);
@@ -1439,15 +1428,15 @@ function lagerFensterWand(){
 function hofMast(x,z,ry){
   const g=new THREE.Group(); g.position.set(x,0,z); g.rotation.y=ry||0; scene.add(g);
   g.userData.hof='mast';
-  const mast=MAT.std(0x4b515c,{metalness:0.62,roughness:0.38});
-  const dark=MAT.std(0x2a2e38,{metalness:0.5,roughness:0.5});
+  const mast=MAT.get('zaunPfosten');
+  const dark=MAT.get('stahlAnthrazit');
   const so=new THREE.Mesh(new THREE.CylinderGeometry(0.2,0.26,0.4,12),dark); so.position.y=0.2; g.add(so);
   const m1=new THREE.Mesh(new THREE.CylinderGeometry(0.09,0.14,7.4,12),mast);
   m1.position.y=4.1; if(HIQ) m1.castShadow=true; g.add(m1);
   bbox(1.7,0.09,0.09,mast,0,7.7,0,g,false);
   for(const s of [-1,1]){
     const geh=rbox(0.62,0.3,0.34,0.04,dark,s*0.62,7.55,0,g); geh.rotation.x=0.42;
-    const lm=new THREE.MeshStandardMaterial({color:LIN(0x23262e),emissive:LIN(0xfff2d6),emissiveIntensity:0}); lampMats.push(lm);
+    const lm=new THREE.MeshStandardMaterial({color:LIN(MAT.farbe('anthrazit')),emissive:LIN(0xfff2d6),emissiveIntensity:0}); lampMats.push(lm);
     const fl=bbox(0.54,0.03,0.26,lm,s*0.62,7.4,0.06,g,false); fl.rotation.x=0.42;
   }
   col(x-0.3,x+0.3,z-0.3,z+0.3);
@@ -1459,8 +1448,8 @@ function abstellAuflieger(x,z,ry,name,farbe,fahrend){
   /* Laenge des Aufbaus, damit der Anrufer das Heck ausrichten kann */
   g.userData.len=13.2;
   const L=13.2, W2=2.55, HH=2.95, FY=1.15;      /* Ladeflaechenhoehe */
-  const alu=MAT.std(0xb6bcc4,{metalness:0.55,roughness:0.42});
-  const dark=MAT.std(0x22262e,{metalness:0.4,roughness:0.6});
+  const alu=MAT.get('stahlHell');
+  const dark=MAT.get('lackSchwarz');
   /* Aufbau mit Werbung auf den Seiten */
   const side=new THREE.MeshStandardMaterial({map:liveryTex(name,farbe,false),roughness:0.74});
   const body=new THREE.Mesh(new THREE.BoxGeometry(L,HH,W2),[dark,dark,alu,dark,side,side]);
@@ -1468,7 +1457,7 @@ function abstellAuflieger(x,z,ry,name,farbe,fahrend){
   bbox(L+0.05,0.1,W2+0.06,alu,0,FY+HH-0.04,0,g,false);
   bbox(L+0.05,0.16,W2+0.06,MAT.std(0x8a7f6a,{roughness:0.9}),0,FY+0.1,0,g,false);
   /* Hecktueren mit Scharnieren und Stangen */
-  for(const s of [-1,1]) bbox(0.06,HH-0.2,W2/2-0.08,MAT.std(0xe6e8ec,{roughness:0.6}),-L/2-0.04,FY+HH/2,s*W2/4,g,false);
+  for(const s of [-1,1]) bbox(0.06,HH-0.2,W2/2-0.08,MAT.get('kunststoffWeiss'),-L/2-0.04,FY+HH/2,s*W2/4,g,false);
   for(const s of [-1,1]) for(const o of [0.28,0.9]){
     const st=new THREE.Mesh(new THREE.CylinderGeometry(0.022,0.022,HH-0.34,8),alu);
     st.position.set(-L/2-0.09,FY+HH/2,s*o*W2/2.2); g.add(st); }
@@ -1482,22 +1471,22 @@ function abstellAuflieger(x,z,ry,name,farbe,fahrend){
   const gSchutz=new THREE.BoxGeometry(0.1,0.16,W2-0.2), gRueck=new THREE.BoxGeometry(0.05,0.2,0.34);
   const gBlink=new THREE.BoxGeometry(0.05,0.08,0.12), gSchild=new THREE.BoxGeometry(0.03,0.12,0.5);
   const ch=[];
-  for(const s of [-1,1]) ch.push({geo:gRahmen,m:tm(0,FY-0.16,s*0.42),color:0x5a6068});
-  for(const s of [-1,1]){ ch.push({geo:gWinde,m:tm(L/2-3.3,FY-0.62,s*0.95),color:0x22262e});
-    ch.push({geo:gFuss,m:tm(L/2-3.3,FY-1.04,s*0.95),color:0x22262e}); }
-  ch.push({geo:gKoenig,m:tm(L/2-0.7,FY-0.2,0),color:0x6a7078});
+  for(const s of [-1,1]) ch.push({geo:gRahmen,m:tm(0,FY-0.16,s*0.42),color:MAT.farbe('basaltgrau')});
+  for(const s of [-1,1]){ ch.push({geo:gWinde,m:tm(L/2-3.3,FY-0.62,s*0.95),color:MAT.farbe('gummischwarz')});
+    ch.push({geo:gFuss,m:tm(L/2-3.3,FY-1.04,s*0.95),color:MAT.farbe('gummischwarz')}); }
+  ch.push({geo:gKoenig,m:tm(L/2-0.7,FY-0.2,0),color:MAT.farbe('mittelgrau')});
   for(let a=0;a<3;a++){ const ax=-L/2+2.1+a*1.34;
     for(const s of [-1,1]) for(const dz of [0.145,-0.145]){
       const pz=s*(W2/2-0.46)+s*dz;
-      ch.push({geo:gRad,  m:tm(ax,0.5,pz,Math.PI/2,0,0),color:0x26292f});
-      ch.push({geo:gFelge,m:tm(ax,0.5,pz,Math.PI/2,0,0),color:0x9aa1ac}); }
-    ch.push({geo:gAchse,m:tm(ax,0.5,0),color:0x22262e});
-    for(const s of [-1,1]) ch.push({geo:gKotfl,m:tm(ax,1.05,s*(W2/2-0.02)),color:0x3a4048}); }
-  ch.push({geo:gSchutz,m:tm(-L/2+0.1,0.62,0),color:0x6a7078});
+      ch.push({geo:gRad,  m:tm(ax,0.5,pz,Math.PI/2,0,0),color:MAT.farbe('anthrazit')});
+      ch.push({geo:gFelge,m:tm(ax,0.5,pz,Math.PI/2,0,0),color:MAT.farbe('hellgrau')}); }
+    ch.push({geo:gAchse,m:tm(ax,0.5,0),color:MAT.farbe('gummischwarz')});
+    for(const s of [-1,1]) ch.push({geo:gKotfl,m:tm(ax,1.05,s*(W2/2-0.02)),color:MAT.farbe('graphit')}); }
+  ch.push({geo:gSchutz,m:tm(-L/2+0.1,0.62,0),color:MAT.farbe('mittelgrau')});
   for(const s of [-1,1]){
     ch.push({geo:gRueck,m:tm(-L/2-0.09,0.92,s*(W2/2-0.35)),color:0x9a2a24});
-    ch.push({geo:gBlink,m:tm(-L/2-0.09,1.12,s*(W2/2-0.35)),color:0xf2a01c}); }
-  ch.push({geo:gSchild,m:tm(-L/2-0.1,0.72,0),color:0xf2f0e8});
+    ch.push({geo:gBlink,m:tm(-L/2-0.09,1.12,s*(W2/2-0.35)),color:MAT.farbe('signalorange')}); }
+  ch.push({geo:gSchild,m:tm(-L/2-0.1,0.72,0),color:MAT.farbe('cremeweiss')});
   const chm=new THREE.Mesh(merge(ch),MAT.std(0xffffff,{vertexColors:true,metalness:0.12,roughness:0.66}));
   if(HIQ) chm.castShadow=true; g.add(chm);
   [gRahmen,gWinde,gFuss,gKoenig,gRad,gFelge,gAchse,gKotfl,gSchutz,gRueck,gBlink,gSchild].forEach(q=>q.dispose());
@@ -1521,9 +1510,9 @@ function palettenStapel(x,z,n,ry){
   const ps=[];
   for(let i=0;i<n;i++){ const y=i*0.15, jx=rand(-0.02,0.02);
     for(const dz of [-0.48,0,0.48]) ps.push({geo:kl,m:tm(jx,y+0.04,dz),color:0x8e7550});
-    for(const dz of [-0.48,-0.24,0,0.24,0.48]) ps.push({geo:br,m:tm(0,y+0.1,dz),color:0xa58a5e});
-    for(const dx of [-0.5,0,0.5]) ps.push({geo:qu,m:tm(dx,y+0.125,0),color:0xa58a5e}); }
-  ps.push({geo:sn,m:tm(0,n*0.15+0.14,0),color:0xeef2f8});
+    for(const dz of [-0.48,-0.24,0,0.24,0.48]) ps.push({geo:br,m:tm(0,y+0.1,dz),color:MAT.farbe('holzPaletteDunkel')});
+    for(const dx of [-0.5,0,0.5]) ps.push({geo:qu,m:tm(dx,y+0.125,0),color:MAT.farbe('holzPaletteDunkel')}); }
+  ps.push({geo:sn,m:tm(0,n*0.15+0.14,0),color:MAT.farbe('weiss')});
   const m=new THREE.Mesh(merge(ps),holzMat());
   m.position.set(x,0,z); m.rotation.y=ry||0; m.userData.hof='paletten';
   if(HIQ){ m.castShadow=true; m.receiveShadow=true; }
@@ -1549,12 +1538,12 @@ function logiSchriftzug(){
     gr.addColorStop(0,'rgba(255,255,255,.12)'); gr.addColorStop(0.5,'rgba(255,255,255,0)');
     g.fillStyle=gr; g.fillRect(0,0,W,H);
     g.textAlign='left'; g.textBaseline='middle';
-    g.fillStyle='#ffd23f'; g.font=BUN(92); g.fillText('LOGISTIK',44,H/2-4);
+    g.fillStyle=MAT.css('schildgold'); g.font=BUN(92); g.fillText('LOGISTIK',44,H/2-4);
     g.fillStyle='#e8eefc'; g.font=BUN(92); g.fillText('ZENTRUM',430,H/2-4);
     g.fillStyle='#7f8db0'; g.font=BAR(34); g.fillText('UMSCHLAG · KOMMISSIONIERUNG · VERSAND',44,H-34);
     /* Rautenlogo rechts */
     g.save(); g.translate(W-96,H/2); g.rotate(Math.PI/4);
-    g.fillStyle='#ffd23f'; g.fillRect(-42,-42,84,84);
+    g.fillStyle=MAT.css('schildgold'); g.fillRect(-42,-42,84,84);
     g.fillStyle='#16213f'; g.fillRect(-22,-22,44,44); g.restore();
   });
 }
@@ -1581,9 +1570,9 @@ function logiGlas(len,rows){
 function buildLogistik(){
   const H=LOGI.hoehe, ha=LOGI.halle, bu=LOGI.buero;
   const blech=blechMat();
-  const sockel=MAT.std(0x3f454e,{roughness:0.88});
-  const attika=MAT.std(0x2b2f3a,{metalness:0.4,roughness:0.6});
-  const steel=MAT.std(0x8d939d,{metalness:0.6,roughness:0.42});
+  const sockel=MAT.get('graphitMatt');
+  const attika=MAT.get('lackAnthrazit');
+  const steel=MAT.get('stahlVerzinkt');
   /* --- Halle --- */
   const hw=ha.x1-ha.x0, hd=ha.z1-ha.z0, hcx=(ha.x0+ha.x1)/2, hcz=(ha.z0+ha.z1)/2;
   const halleM=new THREE.Mesh(new THREE.BoxGeometry(hw,H,hd),blech);
@@ -1592,18 +1581,18 @@ function buildLogistik(){
   scene.add(halleM); occluders.push(halleM); meterUV(halleM);
   bbox(hw+0.1,1.3,hd+0.1,sockel,hcx,0.65,hcz,null,false);
   bbox(hw+0.5,0.7,hd+0.5,attika,hcx,H+0.3,hcz,null,false);
-  bbox(hw+0.2,0.5,hd+0.2,MAT.std(0x1b2340,{roughness:0.8}),hcx,H-1.4,hcz,null,false);
+  bbox(hw+0.2,0.5,hd+0.2,MAT.ober('nachtblau','matt'),hcx,H-1.4,hcz,null,false);
   /* Dach mit Lichtband und Lueftern */
   flat(hw-0.6,hd-0.6,MAT.std(0x4a4f58,{roughness:0.95}),hcx,H+0.02,hcz);
-  for(let i=0;i<7;i++) flat(3.4,hd-4,MAT.basic(0xdfe6ef,{toneMapped:false}),ha.x0+4+i*6.2,H+0.05,hcz);
+  for(let i=0;i<7;i++) flat(3.4,hd-4,MAT.basic(MAT.farbe('weiss'),{toneMapped:false}),ha.x0+4+i*6.2,H+0.05,hcz);
   for(let i=0;i<5;i++){ const rx=ha.x0+6+i*8.4;
-    rbox(2.4,1.1,2.0,0.1,MAT.std(0xa7adb6,{metalness:0.5,roughness:0.5}),rx,H+0.85,ha.z1-4.5,null);
-    bbox(2.5,0.12,2.1,MAT.std(0xeef2f8,{roughness:1}),rx,H+1.46,ha.z1-4.5,null,false); }
+    rbox(2.4,1.1,2.0,0.1,MAT.get('stahlHell'),rx,H+0.85,ha.z1-4.5,null);
+    bbox(2.5,0.12,2.1,MAT.get('weissMatt'),rx,H+1.46,ha.z1-4.5,null,false); }
   /* --- Buerokopf --- */
   const bw=bu.x1-bu.x0, bd=bu.z1-bu.z0, bcx=(bu.x0+bu.x1)/2, bcz=(bu.z0+bu.z1)/2;
   const glasN=new THREE.MeshStandardMaterial({map:logiGlas(bw,2),roughness:0.22,metalness:0.4});
   const glasW=new THREE.MeshStandardMaterial({map:logiGlas(bd,2),roughness:0.22,metalness:0.4});
-  const putz=MAT.std(0xdde1e7,{roughness:0.9});
+  const putz=MAT.ober('lichtgrau','matt');
   const bm=new THREE.Mesh(new THREE.BoxGeometry(bw,LOGI.bh,bd),[glasW,glasW,putz,putz,glasN,glasN]);
   bm.position.set(bcx,LOGI.bh/2,bcz);
   if(HIQ){ bm.castShadow=true; bm.receiveShadow=true; }
@@ -1611,7 +1600,7 @@ function buildLogistik(){
   bbox(bw+0.4,0.45,bd+0.4,attika,bcx,LOGI.bh+0.22,bcz,null,false);
   bbox(bw+0.1,0.9,bd+0.1,sockel,bcx,0.45,bcz,null,false);
   /* Eingangsvordach und Schriftzug */
-  bbox(5.0,0.18,2.4,MAT.std(0x9aa1ac,{metalness:0.6,roughness:0.4}),bu.x0+3.2,3.35,bu.z1+1.0,null,false);
+  bbox(5.0,0.18,2.4,MAT.get('stahlHell'),bu.x0+3.2,3.35,bu.z1+1.0,null,false);
   for(const dx of [-2.0,2.0]) bbox(0.09,3.3,0.09,steel,bu.x0+3.2+dx,1.65,bu.z1+1.9,null,false);
   plane(11.0,1.95,new THREE.MeshStandardMaterial({map:logiSchriftzug()}),bcx,LOGI.bh-1.5,bu.z1+0.06,0,null);
   /* --- Ladetore an der Westfassade der Halle --- */
@@ -1622,14 +1611,14 @@ function buildLogistik(){
     bl.rotation.y=-Math.PI/2; bl.position.set(ha.x0-0.06,2.1,tz); scene.add(bl);
     for(const s of [-1,1]) bbox(0.16,4.5,0.2,steel,ha.x0-0.08,2.25,tz+s*1.9,null,false);
     bbox(0.16,0.24,4.0,steel,ha.x0-0.08,4.32,tz,null,false);
-    bbox(1.2,0.12,4.6,MAT.std(0x3a4150,{metalness:0.5}),ha.x0-0.65,4.85,tz,null,false);
-    for(const s of [-1,1]) bbox(0.2,0.6,0.26,MAT.std(0x16181d,{roughness:0.96}),ha.x0-0.16,1.2,tz+s*2.1,null,false);
+    bbox(1.2,0.12,4.6,MAT.get('stahlGraphit'),ha.x0-0.65,4.85,tz,null,false);
+    for(const s of [-1,1]) bbox(0.2,0.6,0.26,MAT.get('gummi'),ha.x0-0.16,1.2,tz+s*2.1,null,false);
   }
   /* --- Vorplatz, Zaun, Bauschild --- */
-  MAT.kachel(flat(6.0,30.0,new THREE.MeshStandardMaterial({map:MAT.tex('beton'),roughness:0.93,color:LIN(0xa8acb2)}),43.5,0.013,-1.0).geometry,3,14);
-  MAT.kachel(flat(hw-2,5.5,new THREE.MeshStandardMaterial({map:MAT.tex('beton'),roughness:0.93,color:LIN(0xa8acb2)}),hcx,0.012,ha.z1+2.8).geometry,10,3);
+  MAT.kachel(flat(6.0,30.0,MAT.get('betonHof'),43.5,0.013,-1.0).geometry,3,14);
+  MAT.kachel(flat(hw-2,5.5,MAT.get('betonHof'),hcx,0.012,ha.z1+2.8).geometry,10,3);
   for(let i=0;i<4;i++){ const tz=ha.z0+3.4+i*5.6;
-    for(const s of [-1,1]) flat(4.4,0.14,MAT.std(0xf2c230),ha.x0-2.6,0.017,tz+s*2.4); }
+    for(const s of [-1,1]) flat(4.4,0.14,MAT.get('markierungGelb'),ha.x0-2.6,0.017,tz+s*2.4); }
   /* Zaun mit Bauschild: faellt, sobald das Zentrum freigeschaltet wird */
   const Z=LOGI.zaun, ZH=2.4;
   zaunLauf(Z.x,Z.z0,Z.x,Z.z1,ZH);
@@ -1646,7 +1635,7 @@ function buildLogistik(){
       bbox(0.1,0.1,3.0,steel,0,0.4,s*1.55,g2,false);
       for(let i=0;i<10;i++) bbox(0.07,ZH-0.6,0.07,steel,0,ZH/2,s*0.1+s*i*0.32,g2,false);
       bbox(0.12,ZH+0.3,0.12,steel,0,(ZH+0.3)/2,s*3.05,g2,false); }
-    bbox(0.14,0.3,0.24,MAT.std(0xf2c230,{roughness:0.6}),0.1,1.15,0,g2,false); }
+    bbox(0.14,0.3,0.24,MAT.get('lackGelb'),0.1,1.15,0,g2,false); }
   /* Hier stand ein Bauschild „NOCH NICHT ZU HABEN“. Auch das ist
      raus - kein Schild im Spiel soll den Spieler daran erinnern,
      was er noch nicht hat. */

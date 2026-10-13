@@ -909,6 +909,35 @@ const WIRT={
     sb:{maxKorb:3,maxKorbBetreut:8,wahl:0.45,wahlBetreut:0.6,problemGrund:0.18,problemJeArtikel:0.025,problemMax:0.36},
     hype:{max:100,verfallJeSek:1.1}                // Hype aus dem Testfeld: + P.hype je Stueck, faellt 1,1/s, Tagesende 0
   },
+  /* ---------- Ware: Produktpreise (P[t].cost / .market) bleiben im Katalog (239 Werte in 7 Dateien),
+     hier stehen nur die Regeln, nach denen Generatoren Preise bilden ---------- */
+  ware:{
+    kugelMarge:2.33     // Kugelbomben: EK = VK / 2,33 (02h, 02i)
+  },
+  /* ---------- Markt: Preisindex je Sorte (02b rollMarkt, taeglich) ----------
+     mi = Einkaufsindex (sofort), me = Kundenerwartung (zieht traege nach) -> Einkaufschance = Luecke me/mi.
+     Inflation wirkt auf EK UND VK-Erwartung (Marge bleibt) - nicht auf Loehne, Fixkosten, Porto, Ausbau. */
+  markt:{
+    regime:{   // Marktphasen: amp skaliert das Rauschen, rev zieht zur Mitte, d = Dauer in Tagen
+      fest:{amp:0.10,rev:0.26,d:[12,30]}, ruhig:{amp:0.34,rev:0.15,d:[8,20]},
+      normal:{amp:0.85,rev:0.07,d:[5,14]}, sturm:{amp:2.10,rev:0.04,d:[3,9]}
+    },
+    /* Wahlgewichte [fest, ruhig, normal, sturm] nach Volatilitaet der Sorte (bis < vola) */
+    regimeWahl:[{bis:0.30,w:[72,26,2,0]},{bis:0.60,w:[32,44,23,1]},{bis:0.95,w:[12,32,43,13]},{bis:Infinity,w:[4,19,45,32]}],
+    volaStandard:{f2:0.85,f1:0.6,zubehoer:0.45},   // Sorten ohne eigenen VOLA-Wert
+    miMin:0.62, miMax:1.88,       // Kappung des Index
+    gaussBreite:1.15,             // (3 Zufallszahlen - 1,5) * 1,15 ~ Glockenkurve
+    startStreuung:0.06,           // Startindex 1 +- gauss*0,06*vola
+    rauschen:0.045,               // Tagesrauschen gauss*0,045*vola*amp
+    traegheit:0.26,               // Erwartung holt 26 % der Luecke je Tag auf
+    verlaufTage:16,               // Kursgrafik
+    inflation:{min:0.0008,max:0.0028,sprungChance:0.05,sprungMin:0.003,sprungMax:0.009,deckel:4},   // ~0,21 %/Tag, x2,1 nach 365 Tagen
+    schock:{abVola:0.48,chanceJeVola:0.012,knappAnteil:0.55,knapp:[0.28,0.80],schwemme:[0.18,0.40],dauer:[3,9],sturmDauer:[3,8]},
+    schnittMin:0.7, schnittMax:1.5,   // S.mkt (Marktschnitt fuer Texte)
+    /* Konkurrenz S.comp: taeglich x Zufall, multipliziert die Preistoleranz */
+    konkurrenz:{schwank:[0.95,1.05],min:0.88,max:1.12,ladeMin:0.85,ladeMax:1.15},
+    ladeMktMin:0.7, ladeMktMax:1.4    // Klemmen beim Laden eines Spielstands (18-save)
+  },
   /* ---------- Einkauf beim Lieferanten (Wareneingang) ---------- */
   einkauf:{
     lieferSek:5,        // s bis die Lieferung da ist (x Ereignis "Stau" 2,1)
@@ -1965,23 +1994,21 @@ const VOLA={
   zfaecher:1.05, kometen:1.15, titanraketen:1.25, kugel200:1.50, finale:1.55, jumbogold:1.30, jumboleiter:1.45,
   goldgeysir:0.85, feuerbrunnen:0.9, feuersaeule:1.2, fontaene30:1.35, fontaene50:1.5, donnerwand:1.35, kugel300:1.6
 };
-function volaOf(t){ const v=VOLA[t]; if(v!==undefined) return v; const p=P[t]; return p&&p.cat===2?0.85:p&&p.cat===1?0.6:0.45; }
+function volaOf(t){ const v=VOLA[t]; if(v!==undefined) return v; const p=P[t], VS=WIRT.markt.volaStandard; return p&&p.cat===2?VS.f2:p&&p.cat===1?VS.f1:VS.zubehoer; }
 
 /* Marktphasen. amp skaliert das Tagesrauschen, rev zieht zurueck zur Mitte. */
 const REGIME={
-  fest  :{amp:0.10, rev:0.26, d:[12,30], name:'stabil',      farbe:'ok'},
-  ruhig :{amp:0.34, rev:0.15, d:[8,20],  name:'ruhig',       farbe:''},
-  normal:{amp:0.85, rev:0.07, d:[5,14],  name:'schwankend',  farbe:'warn'},
-  sturm :{amp:2.10, rev:0.04, d:[3,9],   name:'turbulent',   farbe:'no'}
+  /* amp/rev/d: 01c-wirtschaft.js (WIRT.markt.regime) */
+  fest  :{amp:WIRT.markt.regime.fest.amp, rev:WIRT.markt.regime.fest.rev, d:WIRT.markt.regime.fest.d, name:'stabil',      farbe:'ok'},
+  ruhig :{amp:WIRT.markt.regime.ruhig.amp, rev:WIRT.markt.regime.ruhig.rev, d:WIRT.markt.regime.ruhig.d,  name:'ruhig',       farbe:''},
+  normal:{amp:WIRT.markt.regime.normal.amp, rev:WIRT.markt.regime.normal.rev, d:WIRT.markt.regime.normal.d,  name:'schwankend',  farbe:'warn'},
+  sturm :{amp:WIRT.markt.regime.sturm.amp, rev:WIRT.markt.regime.sturm.rev, d:WIRT.markt.regime.sturm.d,   name:'turbulent',   farbe:'no'}
 };
 const REGIME_ALL=['fest','ruhig','normal','sturm'];
 /* Wie wahrscheinlich welche Phase ist, haengt an der Volatilitaet */
 function regimeWahl(t){
   const v=volaOf(t);
-  const w = v<0.30 ? [72,26,2,0]
-          : v<0.60 ? [32,44,23,1]
-          : v<0.95 ? [12,32,43,13]
-          :          [4,19,45,32];
+  const RW=WIRT.markt.regimeWahl, w=(RW.find(x=>v<x.bis)||RW[RW.length-1]).w;   /* wie frueher: alles andere -> letzte Zeile */
   let s=0; for(const x of w) s+=x;
   let r=Math.random()*s;
   for(let i=0;i<4;i++){ r-=w[i]; if(r<=0) return REGIME_ALL[i]; }
@@ -1991,9 +2018,9 @@ function regimeNeu(t){
   const k=regimeWahl(t), d=REGIME[k].d;
   return {k,t:Math.round(rand(d[0],d[1]))};
 }
-const MI_MIN=0.62, MI_MAX=1.88;
+const MI_MIN=WIRT.markt.miMin, MI_MAX=WIRT.markt.miMax;
 /* Zwei Gleichverteilungen ergeben eine brauchbare Glockenkurve */
-const gauss=()=>(Math.random()+Math.random()+Math.random()-1.5)*1.15;
+const gauss=()=>(Math.random()+Math.random()+Math.random()-1.5)*WIRT.markt.gaussBreite;
 
 const SCHOCK_KNAPP=[
   'Zoll hält eine ganze Lieferung fest',
@@ -2017,7 +2044,7 @@ function marktInit(){
   S.mi=S.mi||{}; S.me=S.me||{}; S.reg=S.reg||{}; S.mh=S.mh||{}; S.schock=S.schock||{};
   S.infl=+S.infl||1;
   ORDER.forEach(t=>{
-    if(typeof S.mi[t]!=='number'||!isFinite(S.mi[t])) S.mi[t]=r3(clamp(1+gauss()*0.06*volaOf(t),MI_MIN,MI_MAX));
+    if(typeof S.mi[t]!=='number'||!isFinite(S.mi[t])) S.mi[t]=r3(clamp(1+gauss()*WIRT.markt.startStreuung*volaOf(t),MI_MIN,MI_MAX));
     if(typeof S.me[t]!=='number'||!isFinite(S.me[t])) S.me[t]=S.mi[t];
     if(!S.reg[t]||!REGIME[S.reg[t].k]) S.reg[t]=regimeNeu(t);
     if(!Array.isArray(S.mh[t])||!S.mh[t].length) S.mh[t]=[S.mi[t]];
@@ -2101,9 +2128,10 @@ function rollMarkt(){
   S.ekVor={}; ORDER.forEach(t=>{ S.ekVor[t]=r3(miOf(t)*inflOf()); });
   const news=[];
   /* Inflation: meistens ein kleiner Schritt, selten ein groesserer */
-  let inf=rand(0.0008,0.0028);
-  if(Math.random()<0.05) inf+=rand(0.003,0.009);
-  S.infl=r3(clamp(inflOf()*(1+inf),1,4));
+  const IF=WIRT.markt.inflation, SK=WIRT.markt.schock;
+  let inf=rand(IF.min,IF.max);
+  if(Math.random()<IF.sprungChance) inf+=rand(IF.sprungMin,IF.sprungMax);
+  S.infl=r3(clamp(inflOf()*(1+inf),1,IF.deckel));
   ORDER.forEach(t=>{
     const reg=S.reg[t];
     reg.t--;
@@ -2113,22 +2141,22 @@ function rollMarkt(){
     const sch=S.schock[t];
     if(sch){ sch.t--; if(sch.t<=0) delete S.schock[t]; }
     let mi=miOf(t);
-    mi+=(1-mi)*r.rev + gauss()*0.045*v*r.amp;
+    mi+=(1-mi)*r.rev + gauss()*WIRT.markt.rauschen*v*r.amp;
     /* Neuer Schock? Nur bei Waren, die ueberhaupt schwanken. */
-    if(!sch&&v>=0.48&&Math.random()<0.012*v){
-      const knapp=Math.random()<0.55;
-      const f=knapp?1+rand(0.28,0.80):1-rand(0.18,0.40);
+    if(!sch&&v>=SK.abVola&&Math.random()<SK.chanceJeVola*v){
+      const knapp=Math.random()<SK.knappAnteil;
+      const f=knapp?1+rand(SK.knapp[0],SK.knapp[1]):1-rand(SK.schwemme[0],SK.schwemme[1]);
       mi*=f;
-      S.schock[t]={k:knapp?'knapp':'schwemme',t:Math.round(rand(3,9))};
-      S.reg[t]={k:'sturm',t:Math.round(rand(3,8))};
+      S.schock[t]={k:knapp?'knapp':'schwemme',t:Math.round(rand(SK.dauer[0],SK.dauer[1]))};
+      S.reg[t]={k:'sturm',t:Math.round(rand(SK.sturmDauer[0],SK.sturmDauer[1]))};
       news.push({t,knapp,text:knapp?pick(SCHOCK_KNAPP):pick(SCHOCK_SCHWEMME)});
     }
     S.mi[t]=r3(clamp(mi,MI_MIN,MI_MAX));
     /* Erwartung der Kunden laeuft traege nach */
-    S.me[t]=r3(clamp(meOf(t)+(S.mi[t]-meOf(t))*0.26,MI_MIN,MI_MAX));
-    const h=S.mh[t]; h.push(S.me[t]); if(h.length>16) h.shift();
+    S.me[t]=r3(clamp(meOf(t)+(S.mi[t]-meOf(t))*WIRT.markt.traegheit,MI_MIN,MI_MAX));
+    const h=S.mh[t]; h.push(S.me[t]); if(h.length>WIRT.markt.verlaufTage) h.shift();
   });
-  S.mkt=r2(clamp(marktSchnitt(),0.7,1.5));
+  S.mkt=r2(clamp(marktSchnitt(),WIRT.markt.schnittMin,WIRT.markt.schnittMax));
   S.news=news.slice(0,4);
   return S.news;
 }
@@ -3647,7 +3675,7 @@ const K5_NEU=[
 ];
 /* Verkaufspreis je Level (Kugelbomben), siehe oben */
 const KUGEL_VK={14:9.99,15:12.99,16:15.99,17:21.99,18:24.99,19:27.99,20:31.99,21:35.99,22:44.99,23:49.99,24:54.99,25:62.99,26:79.99};
-const KUGEL_MARGE=2.33;
+const KUGEL_MARGE=WIRT.ware.kugelMarge;   /* 01c-wirtschaft.js */
 (function(){
   /* neue Kugeln wie Runde 4 (02g): Katalog, Bestellliste, Markt, Warengruppe, Lizenz */
   const insLiz=(id,liz)=>{ const L=LIZENZEN.find(l=>l.id===liz); if(L&&L.items.indexOf(id)<0) L.items.push(id); LIZ_VON[id]=liz; };
@@ -48695,7 +48723,7 @@ function newDayStats(){ DS={revenue:0,customers:0,sold:0,f2:0,missed:0,angry:0,g
    hier kommt nur noch die Konkurrenz dazu. */
 function rollMarket(){
   rollMarkt();
-  S.comp=clamp((S.comp||1)*rand(0.95,1.05),0.88,1.12);
+  const KO=WIRT.markt.konkurrenz; S.comp=clamp((S.comp||1)*rand(KO.schwank[0],KO.schwank[1]),KO.min,KO.max);
 }
 /* Auf den Marktpreis kommt nur noch das Tagesereignis und der Rabatt */
 function ekFactor(){ return evv('ek')*(S.up&&S.up.lizenz?0.9:1); }
@@ -52140,7 +52168,7 @@ function startGame(fresh){
     S.up.shop_halb=true; S.up.lager_nord=true; S.up.testfeld=true;
   }
   const F=freshState();
-  S.prices=Object.assign(F.prices,S.prices||{}); for(const t in S.prices) if(!P[t]) delete S.prices[t]; /* aus dem Sortiment genommene Sorten */ S.up=Object.assign(F.up,S.up||{}); S.staff=Object.assign({},S.staff||{}); S.prio=Object.assign({},S.prio||{}); S.grime=clamp(+S.grime||0,0,1); S.mkt=clamp(+S.mkt||1,0.7,1.4); S.comp=clamp(+S.comp||1,0.85,1.15); if(S.ev&&!eventById(S.ev)) S.ev=null; S.wage=Object.assign({},S.wage||{}); S.pause=Object.assign({},S.pause||{}); S.tut=S.tut||{}; S.paint=S.paint||[]; S.stamm=S.stamm||{};
+  S.prices=Object.assign(F.prices,S.prices||{}); for(const t in S.prices) if(!P[t]) delete S.prices[t]; /* aus dem Sortiment genommene Sorten */ S.up=Object.assign(F.up,S.up||{}); S.staff=Object.assign({},S.staff||{}); S.prio=Object.assign({},S.prio||{}); S.grime=clamp(+S.grime||0,0,1); S.mkt=clamp(+S.mkt||1,WIRT.markt.ladeMktMin,WIRT.markt.ladeMktMax); S.comp=clamp(+S.comp||1,WIRT.markt.konkurrenz.ladeMin,WIRT.markt.konkurrenz.ladeMax); if(S.ev&&!eventById(S.ev)) S.ev=null; S.wage=Object.assign({},S.wage||{}); S.pause=Object.assign({},S.pause||{}); S.tut=S.tut||{}; S.paint=S.paint||[]; S.stamm=S.stamm||{};
   S.shopName=(typeof S.shopName==='string'&&S.shopName.trim())?S.shopName.trim().slice(0,22):SHOP_DEFAULT;
   S.slogan=(typeof S.slogan==='string')?S.slogan.trim().slice(0,38):SLOGAN_DEFAULT;
   /* Restposten gibt es seit 26.09. nur noch als Angebot mit Vorrat -

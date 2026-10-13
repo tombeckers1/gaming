@@ -95,6 +95,35 @@ const WIRT={
     sb:{maxKorb:3,maxKorbBetreut:8,wahl:0.45,wahlBetreut:0.6,problemGrund:0.18,problemJeArtikel:0.025,problemMax:0.36},
     hype:{max:100,verfallJeSek:1.1}                // Hype aus dem Testfeld: + P.hype je Stueck, faellt 1,1/s, Tagesende 0
   },
+  /* ---------- Ware: Produktpreise (P[t].cost / .market) bleiben im Katalog (239 Werte in 7 Dateien),
+     hier stehen nur die Regeln, nach denen Generatoren Preise bilden ---------- */
+  ware:{
+    kugelMarge:2.33     // Kugelbomben: EK = VK / 2,33 (02h, 02i)
+  },
+  /* ---------- Markt: Preisindex je Sorte (02b rollMarkt, taeglich) ----------
+     mi = Einkaufsindex (sofort), me = Kundenerwartung (zieht traege nach) -> Einkaufschance = Luecke me/mi.
+     Inflation wirkt auf EK UND VK-Erwartung (Marge bleibt) - nicht auf Loehne, Fixkosten, Porto, Ausbau. */
+  markt:{
+    regime:{   // Marktphasen: amp skaliert das Rauschen, rev zieht zur Mitte, d = Dauer in Tagen
+      fest:{amp:0.10,rev:0.26,d:[12,30]}, ruhig:{amp:0.34,rev:0.15,d:[8,20]},
+      normal:{amp:0.85,rev:0.07,d:[5,14]}, sturm:{amp:2.10,rev:0.04,d:[3,9]}
+    },
+    /* Wahlgewichte [fest, ruhig, normal, sturm] nach Volatilitaet der Sorte (bis < vola) */
+    regimeWahl:[{bis:0.30,w:[72,26,2,0]},{bis:0.60,w:[32,44,23,1]},{bis:0.95,w:[12,32,43,13]},{bis:Infinity,w:[4,19,45,32]}],
+    volaStandard:{f2:0.85,f1:0.6,zubehoer:0.45},   // Sorten ohne eigenen VOLA-Wert
+    miMin:0.62, miMax:1.88,       // Kappung des Index
+    gaussBreite:1.15,             // (3 Zufallszahlen - 1,5) * 1,15 ~ Glockenkurve
+    startStreuung:0.06,           // Startindex 1 +- gauss*0,06*vola
+    rauschen:0.045,               // Tagesrauschen gauss*0,045*vola*amp
+    traegheit:0.26,               // Erwartung holt 26 % der Luecke je Tag auf
+    verlaufTage:16,               // Kursgrafik
+    inflation:{min:0.0008,max:0.0028,sprungChance:0.05,sprungMin:0.003,sprungMax:0.009,deckel:4},   // ~0,21 %/Tag, x2,1 nach 365 Tagen
+    schock:{abVola:0.48,chanceJeVola:0.012,knappAnteil:0.55,knapp:[0.28,0.80],schwemme:[0.18,0.40],dauer:[3,9],sturmDauer:[3,8]},
+    schnittMin:0.7, schnittMax:1.5,   // S.mkt (Marktschnitt fuer Texte)
+    /* Konkurrenz S.comp: taeglich x Zufall, multipliziert die Preistoleranz */
+    konkurrenz:{schwank:[0.95,1.05],min:0.88,max:1.12,ladeMin:0.85,ladeMax:1.15},
+    ladeMktMin:0.7, ladeMktMax:1.4    // Klemmen beim Laden eines Spielstands (18-save)
+  },
   /* ---------- Einkauf beim Lieferanten (Wareneingang) ---------- */
   einkauf:{
     lieferSek:5,        // s bis die Lieferung da ist (x Ereignis "Stau" 2,1)

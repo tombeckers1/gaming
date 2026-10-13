@@ -60,7 +60,7 @@ function newDayStats(){ DS={revenue:0,customers:0,sold:0,f2:0,missed:0,angry:0,g
    hier kommt nur noch die Konkurrenz dazu. */
 function rollMarket(){
   rollMarkt();
-  S.comp=clamp((S.comp||1)*rand(0.95,1.05),0.88,1.12);
+  const KO=WIRT.markt.konkurrenz; S.comp=clamp((S.comp||1)*rand(KO.schwank[0],KO.schwank[1]),KO.min,KO.max);
 }
 /* Auf den Marktpreis kommt nur noch das Tagesereignis und der Rabatt */
 function ekFactor(){ return evv('ek')*(S.up&&S.up.lizenz?0.9:1); }

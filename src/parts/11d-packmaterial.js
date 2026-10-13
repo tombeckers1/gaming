@@ -10,17 +10,19 @@
    aus dem LKW holen und am Regal einraeumen (E).
    S.vm[i] ist der Bestand im Regal von Packplatz i.
    ========================================================= */
+const VMW=WIRT.versand.material;
 const VM={
-  ks:   {id:'ks',   name:'Versandkarton S',  kurz:'Karton S', gr:1,einheit:'Bündel', stueck:25,preis:8.9, kap:50,text:'25 flache Kartons für kleine Pakete'},
-  km:   {id:'km',   name:'Versandkarton M',  kurz:'Karton M', gr:3,einheit:'Bündel', stueck:15,preis:11.4,kap:30,text:'15 flache Kartons für große Pakete'},
-  kl:   {id:'kl',   name:'Versandkarton L',  kurz:'Karton L', gr:6,einheit:'Bündel', stueck:8, preis:12.8,kap:16,text:'8 flache Kartons für riesige Pakete'},
-  folie:{id:'folie',name:'Luftpolsterfolie', kurz:'Folie',          einheit:'Rolle',  stueck:20,preis:14.9,kap:60,text:'eine Rolle reicht für 20 kleine, 10 große oder 6 riesige Pakete'},
-  band: {id:'band', name:'Klebeband',        kurz:'Klebeband',      einheit:'Karton', stueck:48,preis:9.9, kap:96,text:'6 Rollen, zusammen für 48 kleine oder 24 riesige Pakete'}
+  /* Preis und Stueck je Gebinde: 01c-wirtschaft.js (WIRT.versand.material); Texte daraus */
+  ks:   {id:'ks',   name:'Versandkarton S',  kurz:'Karton S', gr:1,einheit:'Bündel', stueck:VMW.ks.stueck,preis:VMW.ks.preis, kap:50,text:`${VMW.ks.stueck} flache Kartons für kleine Pakete`},
+  km:   {id:'km',   name:'Versandkarton M',  kurz:'Karton M', gr:3,einheit:'Bündel', stueck:VMW.km.stueck,preis:VMW.km.preis,kap:30,text:`${VMW.km.stueck} flache Kartons für große Pakete`},
+  kl:   {id:'kl',   name:'Versandkarton L',  kurz:'Karton L', gr:6,einheit:'Bündel', stueck:VMW.kl.stueck, preis:VMW.kl.preis,kap:16,text:`${VMW.kl.stueck} flache Kartons für riesige Pakete`},
+  folie:{id:'folie',name:'Luftpolsterfolie', kurz:'Folie',          einheit:'Rolle',  stueck:VMW.folie.stueck,preis:VMW.folie.preis,kap:60,text:`eine Rolle reicht für ${Math.floor(VMW.folie.stueck/VMW.folieJe[1])} kleine, ${Math.floor(VMW.folie.stueck/VMW.folieJe[3])} große oder ${Math.floor(VMW.folie.stueck/VMW.folieJe[6])} riesige Pakete`},
+  band: {id:'band', name:'Klebeband',        kurz:'Klebeband',      einheit:'Karton', stueck:VMW.band.stueck,preis:VMW.band.preis, kap:96,text:`6 Rollen, zusammen für ${Math.floor(VMW.band.stueck/VMW.bandJe[1])} kleine oder ${Math.floor(VMW.band.stueck/VMW.bandJe[6])} riesige Pakete`}
 };
 const VM_IDS=['ks','km','kl','folie','band'];
 const VM_KARTON={1:'ks',3:'km',6:'kl'};
 /* Verbrauch je Paket: ein Karton, Folie und Klebeband in Fuellungen */
-const VM_FOLIE={1:1,3:2,6:3}, VM_BAND={1:1,3:1,6:2};
+const VM_FOLIE=VMW.folieJe, VM_BAND=VMW.bandJe;
 const vmRegale=[];
 /* Bestand im Regal von Packplatz i; neue und alte Spielstaende
    bekommen die Erstausstattung: jedes Regal voll */
@@ -315,7 +317,7 @@ function vmSpielerEinraeumen(i){
   const c=S.carrying; if(!c||!c.vm) return;
   if(i>=packStufe()) return;
   if(!vmHatPlatz(i,c.vm)){ toast(`Im Regal ist kein Platz mehr für ${VM[c.vm].name}.`,'bad'); return; }
-  vmEinlagern(i,c.vm); S.carrying=null; sfx.pop(); updateCarry(); addXP(1);
+  vmEinlagern(i,c.vm); S.carrying=null; sfx.pop(); updateCarry(); addXP(WIRT.xp.packmaterialEinlagern);
 }
 /* Q mit Versandmaterial in der Hand: abstellen gibt es nicht - es kommt
    ins Regal. Nur wenn alle Regale voll sind, in das mit dem meisten Platz */

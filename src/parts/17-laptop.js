@@ -16,8 +16,8 @@ function openLaptop(tab,geraet){ if(typeof handyOpen!=='undefined'&&handyOpen) c
 function closeLaptop(relock){ laptopOpen=false; korbOpen=false; $('korbOv').classList.remove('show'); $('laptop').classList.remove('show'); if(relock) requestLock(); else if(lockWorked&&!COARSE&&!locked&&!summaryOpen&&!levelOpen) showPause(); }
 function priceHint(t){ const r=S.prices[t]/marketOf(t), lo=priceTol();
   if(r<=lo) return ['ok','Kunden greifen gern zu'];
-  if(r<=lo+0.2) return ['warn','Einige zögern'];
-  if(r<lo+0.45) return ['no','Viele lassen es liegen'];
+  if(r<=lo+WIRT.kunden.preisAmpel.einige) return ['warn','Einige zögern'];
+  if(r<lo+WIRT.kunden.preisAmpel.viele) return ['no','Viele lassen es liegen'];
   return ['no','Zu dem Preis kauft niemand']; }
 /* Verkaufspreis auf das aktuelle Marktniveau setzen */
 function setPreisAufMarkt(t,f){
@@ -195,7 +195,7 @@ function buyLizenz(id){
   S.lic=(S.lic||[]).concat(id);
   /* Startpreise der neuen Ware auf Marktniveau */
   l.items.forEach(t=>{ if(P[t]) S.prices[t]=marketOf(t); });
-  sfx.cash(); addXP(Math.round(l.cost/14)+30,'Lizenz');
+  sfx.cash(); addXP(Math.round(l.cost/WIRT.xp.lizenz.teiler)+WIRT.xp.lizenz.bonus,'Lizenz');
   toast(`${l.name} freigeschaltet: ${l.items.filter(t=>P[t]).map(t=>P[t].short).join(', ')}.`,'money');
   save();
 }
@@ -318,8 +318,8 @@ function packContents(n,gruppe,sorten){
     /* Themenpaket: gleichverteilt aus der Gruppe. Wundertuete:
        meist Kleinkram, selten ein teurer Karton. */
     if(gruppe){ out.push(pick(pool)); continue; }
-    const jackpot=Math.random()<0.12;
-    const cand=pool.filter(t=>jackpot?costOf(t)>=6:costOf(t)<6);
+    const jackpot=Math.random()<WIRT.einkauf.pakete.jackpot;
+    const cand=pool.filter(t=>jackpot?costOf(t)>=WIRT.einkauf.pakete.teuerAb:costOf(t)<WIRT.einkauf.pakete.teuerAb);
     out.push(pick(cand.length?cand:pool));
   }
   return out;
@@ -330,18 +330,18 @@ function packKartonWert(gruppe,sorten){
   const pool=packPool(gruppe); if(!pool.length) return 0;
   const m=l=>l.reduce((a,t)=>a+costOf(t)*P[t].box,0)/l.length;
   if(gruppe||sorten) return m(pool);
-  const billig=pool.filter(t=>costOf(t)<6), teuer=pool.filter(t=>costOf(t)>=6);
-  return 0.88*m(billig.length?billig:pool)+0.12*m(teuer.length?teuer:pool);
+  const PK=WIRT.einkauf.pakete, billig=pool.filter(t=>costOf(t)<PK.teuerAb), teuer=pool.filter(t=>costOf(t)>=PK.teuerAb);
+  return (1-PK.jackpot)*m(billig.length?billig:pool)+PK.jackpot*m(teuer.length?teuer:pool);
 }
 /* Preis eines Pakets: im Mittel steckt mehr drin, als es kostet,
    aber jede Tuete ist ein Wurf. Groessere Pakete sind je Karton
    etwas guenstiger, Themenpakete (planbarer) etwas weniger. */
 /* Restposten sind richtig billig (Tom, 25.09.): im Mittel ein Drittel
    bis fast die Haelfte unter dem Einkaufswert */
-const PACK_RABATT={tuete:0.62,kiste:0.58,palette:0.52};
+const PACK_RABATT=WIRT.einkauf.pakete.rabatt;
 function packPreis(pk){
-  const f=pk.sorten?0.56:pk.gruppe?0.6:(PACK_RABATT[pk.id]||0.7);
-  return Math.max(5,Math.round(packKartonWert(pk.gruppe,pk.sorten)*pk.n*f/5)*5);
+  const PK=WIRT.einkauf.pakete, f=pk.sorten?PK.sorten:pk.gruppe?PK.themen:(PACK_RABATT[pk.id]||PK.sonstige);
+  return Math.max(PK.min,Math.round(packKartonWert(pk.gruppe,pk.sorten)*pk.n*f/PK.runden)*PK.runden);
 }
 function packOffen(pk){ return S.level>=pk.lvl&&(!pk.gruppe||packPool(pk.gruppe).length>0); }
 function buyPack(id){
@@ -356,7 +356,7 @@ function buyPack(id){
   const worth=r2(items.reduce((a,t)=>a+costOf(t)*P[t].box,0));
   sfx.cash(); toast(`${pk.name}: ${txt}`,'money');
   later(0.6,()=>toast(worth>preis?`Einkaufswert ${eur(worth)}. Guter Griff.`:`Einkaufswert ${eur(worth)}. Diesmal Pech.`,worth>preis?'money':'bad'));
-  addXP(20,'Wundertüte'); S.tut.order=true; save();
+  addXP(WIRT.xp.restposten,'Wundertüte'); S.tut.order=true; save();
 }
 /* =========================================================
    Restposten (Tom, 26.09.): kein festes Regal mit Wundertueten mehr.
@@ -367,29 +367,30 @@ function buyPack(id){
    Das Angebot ist zugleich ein Schwierigkeitshebel: wer gut dasteht,
    bekommt seltener und weniger, wer knapp ist, oefter und mehr.
    ========================================================= */
-const RESTPOSTEN={welle:[70,260],dauer:[120,360],max:8};
-function restDaten(){ if(!S.rest) S.rest={angebote:[],t:rand(15,40),seq:0,erst:false}; return S.rest; }
+/* Werte (Wellen, Dauer, Vorrat, Druck-Formel): 01c-wirtschaft.js (WIRT.einkauf.restposten); RESTPOSTEN bleibt der alte Name */
+const RPW=WIRT.einkauf.restposten, RESTPOSTEN={welle:RPW.welle,dauer:RPW.dauer,max:RPW.max};
+function restDaten(){ if(!S.rest) S.rest={angebote:[],t:rand(RPW.ersteWelle[0],RPW.ersteWelle[1]),seq:0,erst:false}; return S.rest; }
 /* 0 = knapp bei Kasse, 1 = dickes Polster: wie viele Tage das Geld die
    laufenden Kosten traegt. Mit Kredit zaehlt man als knapper. */
 function restDruck(){
-  const kosten=Math.max(60,(typeof fixedCosts==='function'?fixedCosts():0)+(typeof dailyWages==='function'?dailyWages():0));
-  let d=clamp((S.money/kosten-4)/26,0,1);
-  if(S.loan) d*=0.5;
+  const DR=RPW.druck, kosten=Math.max(DR.kostenMin,(typeof fixedCosts==='function'?fixedCosts():0)+(typeof dailyWages==='function'?dailyWages():0));
+  let d=clamp((S.money/kosten-DR.tageAb)/DR.tageSpanne,0,1);
+  if(S.loan) d*=DR.mitKredit;
   return d;
 }
 /* Eine Lieferung bei Ratzke. zufall (0..1) nur fuer Tests. */
 function restWelle(zufall){
   const R=restDaten(), d=restDruck(), pool=PACKS.filter(packOffen);
   const w=zufall===undefined?Math.random():zufall;
-  const pLeer=0.15+0.4*d, pViel=0.28-0.2*d;
-  let n=!pool.length||w<pLeer?0:w>1-pViel?3+Math.floor(Math.random()*3):1+Math.floor(Math.random()*2);
+  const RP=RPW, pLeer=RP.leer.grund+RP.leer.jeDruck*d, pViel=RP.viel.grund+RP.viel.jeDruck*d;
+  let n=!pool.length||w<pLeer?0:w>1-pViel?RP.vielN[0]+Math.floor(Math.random()*RP.vielN[1]):RP.normalN[0]+Math.floor(Math.random()*RP.normalN[1]);
   /* die allererste Lieferung nach der Freischaltung ist nie leer */
   if(!R.erst&&pool.length){ n=Math.max(n,2); R.erst=true; }
   for(let i=0;i<n&&R.angebote.length<RESTPOSTEN.max;i++){
-    const pk=pick(pool), vorrat=1+(Math.random()<0.35?1:0)+(Math.random()<0.12?1:0);
-    R.angebote.push({id:++R.seq,pack:pk.id,preis:Math.max(5,Math.round(packPreis(pk)*rand(0.85,1.12)/5)*5),vorrat,bis:rand(...RESTPOSTEN.dauer)}); }
+    const pk=pick(pool), vorrat=1+(Math.random()<RP.vorrat.zwei?1:0)+(Math.random()<RP.vorrat.drei?1:0);
+    R.angebote.push({id:++R.seq,pack:pk.id,preis:Math.max(WIRT.einkauf.pakete.min,Math.round(packPreis(pk)*rand(RP.preis[0],RP.preis[1])/WIRT.einkauf.pakete.runden)*WIRT.einkauf.pakete.runden),vorrat,bis:rand(...RESTPOSTEN.dauer)}); }
   /* naechste Lieferung: wer gut dasteht, wartet laenger */
-  R.t=rand(...RESTPOSTEN.welle)*(0.7+0.9*d);
+  R.t=rand(...RESTPOSTEN.welle)*(RP.takt.grund+RP.takt.jeDruck*d);
   return n;
 }
 function restTick(dt){
@@ -413,7 +414,7 @@ function buyAngebot(id){
   const worth=r2(items.reduce((s2,t)=>s2+costOf(t)*P[t].box,0));
   sfx.cash(); toast(`${pk.name}: ${txt}`,'money');
   later(0.6,()=>toast(worth>a.preis?`Einkaufswert ${eur(worth)}. Guter Griff.`:`Einkaufswert ${eur(worth)}. Diesmal Pech.`,worth>a.preis?'money':'bad'));
-  addXP(20,'Restposten'); S.tut.order=true; save();
+  addXP(WIRT.xp.restposten,'Restposten'); S.tut.order=true; save();
 }
 /* =========================================================
    Warenkorb-Maske: eigene Ansicht ueber dem Laptop
@@ -1016,7 +1017,7 @@ function onlineListe(){
    die Wirkung der Einstellungen sieht. S.onlineLog: abgeschlossene
    Tage; der laufende Tag kommt aus DS.
    --------------------------------------------------------- */
-function versandLoehne(){ return r2(VS_PACKER.reduce((a,id)=>{ const st=STAFF.find(x=>x.id===id); return a+(st&&S.staff[id]?r2(st.wage*wageOf(id)*(inPause(id)?0.3:1)):0); },0)); }
+function versandLoehne(){ return r2(VS_PACKER.reduce((a,id)=>{ const st=STAFF.find(x=>x.id===id); return a+(st&&S.staff[id]?r2(st.wage*wageOf(id)*(inPause(id)?WIRT.personal.pause:1)):0); },0)); }
 function onlineTag(){
   const pN=DS.onPortoN||{1:0,3:0,6:0};
   return {tag:S.day,b:DS.onB|0,abbr:DS.onAbbr|0,ware:r2(DS.onWare||0),geb:r2(DS.versandGeb||0),rabatt:r2(DS.onRabatt||0),ek:r2(DS.onEk||0),
@@ -1066,7 +1067,7 @@ function updateOnline(){
   set('onStatus',z.status||'nicht eingestellt');
   const li=document.getElementById('onListe'); if(li){ const h=onlineListe(); if(li.dataset.h!==h){ li.innerHTML=h; li.dataset.h=h; } }
   const w=document.getElementById('onWarn');
-  if(w) w.textContent=z.offen>8?`${z.offen} offene Bestellungen - über acht kostet dich das heute Abend Ruf.`:'';
+  if(w) w.textContent=z.offen>WIRT.versand.strafe.offenAb?`${z.offen} offene Bestellungen - über ${WF.zahlwort(WIRT.versand.strafe.offenAb)} kostet dich das heute Abend Ruf.`:'';
   const vw=document.getElementById('onVm'); if(vw){ const t=vmWarnung(); if(vw.textContent!==t) vw.textContent=t; }
   const vs=document.getElementById('onVmStand'); if(vs){ const t=vmZeile(); if(vs.dataset.h!==t){ vs.innerHTML=t; vs.dataset.h=t; } }
   const db=document.getElementById('onDdl'); if(db){ const t=ddlBoxHtml(); if(db.dataset.h!==t){ db.outerHTML=t; const n=document.getElementById('onDdl'); if(n) n.dataset.h=t; } }
@@ -1101,7 +1102,7 @@ function renderOnline(){
   { const c=vsCfg(), nf=vsNachfrage(), a=vsAktion(), gratis=vsGratisHeute();
     const schwelle=c.nie?'nie versandfrei':c.frei===0?'immer versandfrei':`versandfrei ab ${eur(c.frei)}`;
     h+=`<div class="row"><div class="rm"><b>Versandkosten und Nachfrage</b><small>Der Kunde zahlt ${eur(c.kosten)} Versand, ${schwelle}${gratis?' – heute aber gratis (Aktion)':''}. Hohe Versandkosten sind der häufigste Grund für Kaufabbrüche; eine Gratis-Schwelle lockt größere Warenkörbe. Dein Porto an DDL ist fest: S ${eur(VS_PORTO[1])}, M ${eur(VS_PORTO[3])}, L ${eur(VS_PORTO[6])} je Paket, dazu ${eur(DDL_PAUSCHALE)} je Abholung.</small>`+
-      `<small class="${nf<0.8?'warn':'ok'}">Nachfrage ${Math.round(nf*100)} % (100 % = 4,90 €, frei ab 50 €, kein Sale) · rund ${z.proTag} Bestellungen an einem vollen Verkaufstag</small></div></div>`;
+      `<small class="${nf<0.8?'warn':'ok'}">Nachfrage ${Math.round(nf*100)} % (100 % = ${WF.euro(VS_CFG_STD.kosten,2)}, frei ab ${WF.euro(VS_CFG_STD.frei)}, kein Sale) · rund ${z.proTag} Bestellungen an einem vollen Verkaufstag</small></div></div>`;
     h+=`<div class="row"><div class="rm"><b>Versand je Bestellung</b><small>0 bis ${eur(VS_KOSTEN_MAX)}</small></div><div class="steps"><button data-a="vsk" data-d="-1">−1</button><button data-a="vsk" data-d="-0.1">−0,10</button><b style="min-width:70px;text-align:center">${eur(c.kosten)}</b><button data-a="vsk" data-d="0.1">+0,10</button><button data-a="vsk" data-d="1">+1</button></div></div>`;
     h+=`<div class="row"><div class="rm"><b>Versandkostenfrei ab</b><small>Mindestbestellwert 0 bis ${eur(VS_FREI_MAX)} (0 = immer frei) – oder nie</small></div><div class="steps"><button data-a="vsf" data-d="-10"${c.nie||c.frei===0?' disabled':''}>−10</button><b style="min-width:84px;text-align:center">${c.nie?'nie':c.frei===0?'immer':eur(c.frei)}</b><button data-a="vsf" data-d="10"${c.nie?' disabled':''}>+10</button><button data-a="vsf" data-d="immer">immer</button><button data-a="vsf" data-d="nie">nie</button></div></div>`;
     /* Aktionen */
@@ -1435,7 +1436,7 @@ function lapZeichnen(body){
           (lock?`<small>ab Level ${d.lvl}</small>`:`<button data-a="deko" data-t="${d.id}" ${S.money<d.cost?'disabled':''}>${eur(d.cost)}</button>`)+'</div>'; }).join('');
   } else if(ltab==='staff'){
     hint=`Löhne heute: ${eur(dailyWages())} · werden beim Tagesabschluss abgebucht.`;
-    hint+=` Freundlichkeit im Laden: ${Math.round(friendliness()*100)} %. Höhere Löhne machen schneller und freundlicher. Außerhalb der Saison kannst du Leute in die Saisonpause schicken: 30 % Lohn, keine Arbeit, Rückkehr jederzeit ohne neue Einstellungskosten.`;
+    hint+=` Freundlichkeit im Laden: ${Math.round(friendliness()*100)} %. Höhere Löhne machen schneller und freundlicher. Außerhalb der Saison kannst du Leute in die Saisonpause schicken: ${WF.prozent(WIRT.personal.pause)} % Lohn, keine Arbeit, Rückkehr jederzeit ohne neue Einstellungskosten.`;
     h=STAFF.map(s=>{ const fehlt=s.req&&!S.up[s.req], lock=S.level<s.lvl||fehlt, has=!!S.staff[s.id];
       const isStock=s.id.indexOf('auffueller')===0;
       /* Einraeumer: Aufgaben in Reihenfolge, jede an/aus (Tom, 24.09.) */
@@ -1444,20 +1445,20 @@ function lapZeichnen(body){
           return `<div class="einrZ${an?'':' aus'}"><span class="nr">${an?e.reihe.filter(x=>!e.aus[x]).indexOf(a)+1:'–'}</span><span class="tx"><b>${AUFGABEN[a].name}</b><small>${AUFGABEN[a].desc}</small></span>`+
             btn(a,'hoch','▲',false,i===0)+btn(a,'runter','▼',false,i===e.reihe.length-1)+btn(a,'an',an?'An':'Aus',an)+`</div>`; }).join('')+`</div>`; })():'';
       const lohn=has?`<small>Lohn: ${WAGES.map(w=>`<button data-a="wage" data-t="${s.id}" data-v="${w.f}" title="${w.desc}" style="padding:4px 8px;font-size:14px;margin-right:4px;${wageOf(s.id)===w.f?'background:var(--mint);color:var(--ink)':'background:rgba(242,245,255,.12);color:var(--snow)'}">${w.name} ${eur(r2(s.wage*w.f))}</button>`).join('')}</small>`:'';
-      const pause=has?`<small>${inPause(s.id)?`In Saisonpause · ${eur(r2(s.wage*wageOf(s.id)*0.3))} pro Tag`:'Im Dienst'} <button data-a="pause" data-t="${s.id}" style="padding:4px 9px;font-size:14px;margin-left:6px;${inPause(s.id)?'background:var(--mint);color:var(--ink)':'background:rgba(242,245,255,.12);color:var(--snow)'}">${inPause(s.id)?'Zurück in den Dienst':'In Saisonpause schicken'}</button></small>`:'';
+      const pause=has?`<small>${inPause(s.id)?`In Saisonpause · ${eur(r2(s.wage*wageOf(s.id)*WIRT.personal.pause))} pro Tag`:'Im Dienst'} <button data-a="pause" data-t="${s.id}" style="padding:4px 9px;font-size:14px;margin-left:6px;${inPause(s.id)?'background:var(--mint);color:var(--ink)':'background:rgba(242,245,255,.12);color:var(--snow)'}">${inPause(s.id)?'Zurück in den Dienst':'In Saisonpause schicken'}</button></small>`:'';
       return `<div class="row${lock?' locked':''}${prio?' mitEinr':''}"><div class="rm"><b>${s.name}</b><small>${s.desc}</small><small>Einstellung ${eur(s.hire)} · Grundlohn ${eur(s.wage)} pro Tag</small>${lohn}${pause}</div>`+
         (fehlt?`<small>braucht: ${(UPGRADES.find(u=>u.id===s.req)||{name:s.req}).name}</small>`:lock?`<small>ab Level ${s.lvl}</small>`:has?`<button class="red" data-a="fire" data-t="${s.id}">Kündigen</button>`:`<button data-a="hire" data-t="${s.id}" ${S.money<s.hire?'disabled':''}>Einstellen</button>`)+prio+'</div>'; }).join('');
   } else if(ltab==='bank'){
     const t=loanTier(), L=S.loan;
-    hint=t?`Dein Kreditrahmen: ${eur(t.amount)}.`:'Kredite gibt es ab Level 5.';
+    hint=t?`Dein Kreditrahmen: ${eur(t.amount)}.`:`Kredite gibt es ab Level ${LOANS[0].lvl}.`;
     if(L){
       h=`<div class="row"><div class="rm"><b>Laufender Kredit</b><small>Aufgenommen: ${eur(L.amount)} · offen: ${eur(L.remaining)}</small><small>Rate ${eur(loanDaily())} pro Tag (Tilgung ${eur(r2(L.amount/L.term))} + ${Math.round(L.rate*1000)/10} % Zinsen)</small></div><div class="price">${eur(L.remaining)}</div></div>`+
-        `<div class="row"><div class="rm"><b>Vorzeitig tilgen</b><small>Spart Zinsen und bringt Erfahrung.</small></div><div class="steps"><button data-a="repay" data-v="250" ${S.money<Math.min(250,L.remaining)?'disabled':''}>250 €</button><button data-a="repay" data-v="1000" ${S.money<Math.min(1000,L.remaining)?'disabled':''}>1.000 €</button><button data-a="repay" data-v="0" ${S.money<L.remaining?'disabled':''}>Alles</button></div></div>`;
+        `<div class="row"><div class="rm"><b>Vorzeitig tilgen</b><small>Spart Zinsen und bringt Erfahrung.</small></div><div class="steps">${WIRT.kredit.tilgenKnoepfe.map(v=>`<button data-a="repay" data-v="${v}" ${S.money<Math.min(v,L.remaining)?'disabled':''}>${WF.euro(v)}</button>`).join('')}<button data-a="repay" data-v="0" ${S.money<L.remaining?'disabled':''}>Alles</button></div></div>`;
     } else if(t){
       h=LOANS.filter(l=>S.level>=l.lvl).map(l=>{ const daily=r2(l.amount/l.term+l.amount*l.rate), total=r2(daily*l.term);
         return `<div class="row"><div class="rm"><b>${eur(l.amount)} über ${l.term} Tage</b><small>Rate am ersten Tag ${eur(daily)}, danach sinkt sie</small><small>Zinssatz ${Math.round(l.rate*1000)/10} % pro Tag · Rückzahlung rund ${eur(total)}</small></div><button data-a="loan" data-v="${l.amount}">Aufnehmen</button></div>`; }).join('')+
         LOANS.filter(l=>S.level<l.lvl).map(l=>`<div class="row locked"><div class="rm"><b>${eur(l.amount)}</b><small>Größerer Rahmen ab Level ${l.lvl}</small></div><small>Level ${l.lvl}</small></div>`).join('');
-    } else h=`<div class="row"><div class="rm"><b>Noch kein Kreditrahmen</b><small>Ab Level 5 gibt dir die Bank 1.000 €. Danach wächst der Rahmen mit deinem Laden.</small></div></div>`;
+    } else h=`<div class="row"><div class="rm"><b>Noch kein Kreditrahmen</b><small>Ab Level ${LOANS[0].lvl} gibt dir die Bank ${WF.euro(LOANS[0].amount)}. Danach wächst der Rahmen mit deinem Laden.</small></div></div>`;
   } else if(ltab==='stats'){
     hint='Alle Zahlen gelten für den laufenden Tag.';
     const need=xpFor(S.level), nxt=levelUnlocks(S.level+1);
@@ -1693,7 +1694,7 @@ function buyUp(id){
       else if(id==='eingang2'){ setEingang2(true); toast('Der zweite Eingang ist offen. Kunden nehmen ab jetzt die Tür, die näher liegt.','money'); }
       else if(id.indexOf('rampe')===0) toast(`${u.name.split(' ')[0]} Andockstation geht in Betrieb. Das Tor ist frei.`,'money');
       else if(id==='packstation'){ drawPackSchild(); toast(S.up.onlineshop?'Die Packstation steht. Ab jetzt kommen Onlinebestellungen als Pakete herein.':'Die Packstation steht. Für den Versand brauchst du noch den Onlineshop.','money'); }
-      addXP(Math.round(cost/12),'Ausbau'); sfx.cash(); save(); return;
+      addXP(Math.round(cost/WIRT.xp.ausbauTeiler),'Ausbau'); sfx.cash(); save(); return;
     }
     if(id==='onlineshop'){ drawPackSchild(); }
 
@@ -1704,12 +1705,12 @@ function buyUp(id){
     else if(id==='regallicht'){ shelfLight.intensity=0.8; shelfStrips.forEach(m=>m.emissiveIntensity=1.5); }
     else toast(`${u.name} eingebaut.`);
   }
-  addXP(Math.round(cost/12),'Ausbau'); sfx.cash(); save();
+  addXP(Math.round(cost/WIRT.xp.ausbauTeiler),'Ausbau'); sfx.cash(); save();
 }
 function buyDeko(id){
   const d=DEKO.find(x=>x.id===id); if(!d||S.level<d.lvl||S.money<d.cost) return;
   S.money=r2(S.money-d.cost); DS.upgrades=r2(DS.upgrades+d.cost);
-  createDeko(id,null); sfx.cash(); addXP(Math.round(d.cost/12),'Deko'); toast(`${d.name} aufgestellt. Verschieben: anschauen und F.`); save();
+  createDeko(id,null); sfx.cash(); addXP(Math.round(d.cost/WIRT.xp.ausbauTeiler),'Deko'); toast(`${d.name} aufgestellt. Verschieben: anschauen und F.`); save();
 }
 function setWall(id){ const w=WALLS.find(x=>x.id===id); if(!w||S.level<w.lvl||S.wall===id) return;
   const paid=(S.paint||[]).indexOf(id)>=0;

@@ -206,8 +206,8 @@ function route(from,to){
 const KASSE_GRIFF=0.35;
 function spotPos(i){ return i===0?ck(1.05,1.05):ck(0.1-(i-1)*0.8,1.68); }
 function queueApproach(){ return ck(-4.0,1.7); }
-function priceTol(){ return (0.95+ambienteScore()/450+S.rep/900+bildBoost()+(friendliness()-1)*0.12)*evv('tol')*(S.comp||1); }
-function buyChance(t,price,q,cold,ct){ const r=price/marketOf(t), lo=priceTol()*(ct?ct.tol:1)+((q||1)-1)*0.18+(cold?0.16:0); if(r<=lo) return 1; if(r>=lo+0.5) return 0; return 1-(r-lo)/0.5; }
+function priceTol(){ const T=WIRT.kunden.toleranz; return (T.grund+ambienteScore()/T.ambTeiler+S.rep/T.rufTeiler+bildBoost()+(friendliness()-1)*T.jeFreundlichkeit)*evv('tol')*(S.comp||1); }
+function buyChance(t,price,q,cold,ct){ const K=WIRT.kunden.kauf, r=price/marketOf(t), lo=priceTol()*(ct?ct.tol:1)+((q||1)-1)*K.jeMenge+(cold?K.kuehl:0); if(r<=lo) return 1; if(r>=lo+K.spanne) return 0; return 1-(r-lo)/K.spanne; }
 function dayIndex(){ return S.day; }
 /* Was im Regal steht, fragen die Leute deutlich haeufiger nach.
    Ohne das wuerde jedes neue Lizenzpaket den Umsatz einbrechen lassen:
@@ -216,39 +216,40 @@ function dayIndex(){ return S.day; }
    was fehlt, bleibt aber - das ist das Signal zum Nachbestellen. */
 function nachfrageFaktor(t){
   if(shelfStockOf(t)>0) return 1;
-  return stockOf(t)>0?0.5:0.3;
+  return stockOf(t)>0?WIRT.kunden.nachfrage.nurLager:WIRT.kunden.nachfrage.nirgends;
 }
 function makeWishes(ct){
   const avail=ORDER.filter(t=>isUnlocked(t)&&canWish(t)), list=[], used=new Set();
-  const late=silvesterNah(S.day);
-  let n=Math.random()<0.38?1:(Math.random()<0.6?2:(Math.random()<0.8?3:4));
+  const late=silvesterNah(S.day), W=WIRT.kunden.wunsch;
+  let n=Math.random()<W.n[0]?1:(Math.random()<W.n[1]?2:(Math.random()<W.n[2]?3:4));
   if(ct) n=Math.max(1,Math.round(n*ct.items));
   n=Math.max(1,Math.round(n*korbGroesse()));
   for(let k=0;k<n;k++){
     const pool=avail.filter(a=>!used.has(a)); if(!pool.length) break;
     const wt=pool.map(t=>{ let w=P[t].weight;
-      if(late&&P[t].cat===2) w*=1.9;
-      if(hype>40&&P[t].cat===2) w*=1.3;
-      if(P[t].cat===0) w*=1.1*evv('cat0');
+      if(late&&P[t].cat===2) w*=W.silvesterF2;
+      if(hype>W.hypeAb&&P[t].cat===2) w*=W.hypeF2;
+      if(P[t].cat===0) w*=W.zubehoer*evv('cat0');
       if(P[t].cat===2) w*=evv('cat2');
-      if(ct&&ct.f1&&P[t].cat===2) w*=0.12;
-      if(ct&&ct.f2&&P[t].cat===2) w*=2.6;
+      if(ct&&ct.f1&&P[t].cat===2) w*=W.jugendF2;
+      if(ct&&ct.f2&&P[t].cat===2) w*=W.profiF2;
       return w*nachfrageFaktor(t); });
     let r=Math.random()*wt.reduce((a,b)=>a+b,0), t=pool[0];
     for(let j=0;j<pool.length;j++){ r-=wt[j]; if(r<=0){ t=pool[j]; break; } }
     used.add(t);
-    const mp=marketOf(t), big=mp>20;
-    let q=big?1:(mp>7?(Math.random()<0.65?1:2):1+Math.floor(Math.random()*3));
-    if(late&&!big&&Math.random()<0.45) q++;
+    const mp=marketOf(t), big=mp>W.teuerAb;
+    let q=big?1:(mp>W.mittelAb?(Math.random()<W.mittelEins?1:2):1+Math.floor(Math.random()*W.kleinMax));
+    if(late&&!big&&Math.random()<W.silvesterPlus) q++;
     list.push({type:t,qty:q});
   }
   return list;
 }
 function thiefChance(){
-  if(S.level<4) return 0;
-  let c=0.035+Math.min(0.05,S.level*0.0035);
-  if(S.up.cams) c*=0.5;
-  if(staff.security) c*=0.35;
+  const D=WIRT.kunden.dieb;
+  if(S.level<D.abLevel) return 0;
+  let c=D.grund+Math.min(D.maxLevelAnteil,S.level*D.jeLevel);
+  if(S.up.cams) c*=D.kameras;
+  if(staff.security) c*=D.security;
   return c*evv('theft');
 }
 class Customer{
@@ -263,10 +264,10 @@ class Customer{
     this.g=makePerson({ct:this.ct}); this.g.position.set(ein+rand(-4,4),0,13.5); scene.add(this.g);
     this.path=[V(ein,0,7.6),V(ein,0,4.9)]; this.state='enter'; this.speed=rand(1.2,1.6);
     this.wishes=makeWishes(this.ct); this.items=[]; this.missed=false; this.total=0; this.sb=null;
-    this.patience=(rand(75,110)+S.rep*0.3+(S.up.heizung?30:0)+(S.up.klima?35:0)+ambienteScore()*0.35)*(0.72+0.3*friendliness())*this.ct.pat*evv('pat');
+    const G=WIRT.kunden.geduld; this.patience=(rand(G.min,G.max)+S.rep*G.jeRuf+(S.up.heizung?G.heizung:0)+(S.up.klima?G.klima:0)+ambienteScore()*G.jeAmbiente)*(G.freundGrund+G.jeFreund*friendliness())*this.ct.pat*evv('pat');
     this.wait=0; this.bub=null; this.bubT=0; this.moving=false;
     this.thief=Math.random()<thiefChance(); this.mark=null; this.caught=false;
-    this.wantGrav=!!(S.up.gravur&&Math.random()<0.3); this.gravDone=false;
+    this.wantGrav=!!(S.up.gravur&&Math.random()<WIRT.kunden.gravurWunsch); this.gravDone=false;
   }
   get pos(){ return this.g.position; }
   say(t,bad){ this.clearBub(); this.bub=bubble(t,bad); this.g.add(this.bub); this.bubT=2.8; }
@@ -288,17 +289,17 @@ class Customer{
     while(this.wishes.length){
       const w=this.wishes.shift(), lv=findLevel(w.type,this.pos);
       if(lv){ this.cur=w; this.lv=lv; this.path=route(this.pos,shelfStand(lv.sh).add(V(rand(-0.4,0.4),0,0))); this.state='toShelf'; return; }
-      this.say(`Keine ${P[w.type].short}?`,true); this.missed=true; DS.missed+=w.qty; rep(-0.4); kundenSymbol(this.g,'fehlt');
+      this.say(`Keine ${P[w.type].short}?`,true); this.missed=true; DS.missed+=w.qty; rep(WIRT.ruf.fehlwunsch); kundenSymbol(this.g,'fehlt');
     }
     if(this.items.length){ if(this.thief) this.startSteal(); else this.joinQueue(); }
-    else { rep(-0.3); serieBricht(); this.leave(); }
+    else { rep(WIRT.ruf.leerGegangen); serieBricht(); this.leave(); }
   }
   take(){
     const w=this.cur, lv=this.lv;
     if(!(lv.type===w.type&&lv.count>0)){
       const alt=findLevel(w.type,this.pos);
       if(alt){ this.lv=alt; this.path=route(this.pos,shelfStand(alt.sh)); this.state='toShelf'; return; }
-      this.say(`Keine ${P[w.type].short} mehr?`,true); this.missed=true; DS.missed+=w.qty; rep(-0.4); kundenSymbol(this.g,'fehlt'); this.nextWish(); return;
+      this.say(`Keine ${P[w.type].short} mehr?`,true); this.missed=true; DS.missed+=w.qty; rep(WIRT.ruf.fehlwunsch); kundenSymbol(this.g,'fehlt'); this.nextWish(); return;
     }
     let got=0, pricey=false;
     for(let k=0;k<w.qty;k++){
@@ -306,7 +307,7 @@ class Customer{
       const price=S.prices[w.type];
       if(this.thief||Math.random()<buyChance(w.type,price,lv.q,kindOf(lv.sh).cold,this.ct)){ removeFromLevel(lv); this.items.push({type:w.type,price}); got++; } else pricey=true;
     }
-    if(got===0){ this.missed=true; if(pricey){ this.say('Viel zu teuer!',true); rep(-0.5); kundenSymbol(this.g,'teuer'); } else DS.missed+=w.qty; }
+    if(got===0){ this.missed=true; if(pricey){ this.say('Viel zu teuer!',true); rep(WIRT.ruf.zuTeuer); kundenSymbol(this.g,'teuer'); } else DS.missed+=w.qty; }
     else if(pricey) this.say('Hm, ganz schön teuer.');
     /* Wunsch gefunden und gekauft: ein Herz, nicht bei jedem Griff */
     else if(Math.random()<0.45){ kundenSymbol(this.g,'herz'); if(Math.random()<0.4) this.say(pick(['Genau das hab ich gesucht!','Endlich!','Perfekt.','Die nehm ich!'])); }
@@ -328,7 +329,7 @@ class Customer{
     let back=0;
     this.items.forEach(it=>{ const lv=emptyLevel(it.type); if(lv&&addToLevel(lv,it.type)) back++; });
     this.items=[];
-    DS.caught++; addXP(25,'Dieb gestellt'); rep(0.6); sfx.beep();
+    DS.caught++; addXP(WIRT.xp.diebGestellt,'Dieb gestellt'); rep(WIRT.ruf.diebGestellt); sfx.beep();
     toast(what==='spray'?'Erwischt! Ware zurück im Regal.':'Der Sicherheitsdienst hat ihn gestoppt.','money');
     this.say('Schon gut, schon gut!');
     { const e=naechsterEingang(this.pos.x);
@@ -337,7 +338,7 @@ class Customer{
   }
   escaped(){
     const v=r2(this.stolenValue());
-    DS.stolen=r2(DS.stolen+v); rep(-1.8);
+    DS.stolen=r2(DS.stolen+v); rep(WIRT.ruf.diebEntkommen);
     toast(`Dieb entkommen: Ware für ${eur(v)} weg.`,'bad');
     if(staff.security&&staff.security.chase===this) staff.security.chase=null;
   }
@@ -345,8 +346,8 @@ class Customer{
     /* SB-Kassen (Tom, 29.09.): der Kunde zahlt dort immer selbst. Steht
        ein SB-Betreuer bereit, trauen sich auch Kunden mit vollerem Korb
        hin - ohne Betreuer nur, wer wenig hat. */
-    const betreut=sbBetreuer().length>0, maxKorb=betreut?8:3;
-    if(sbOffen()&&this.items.length<=maxKorb&&(queue.length>=1||regCustomer()||!staff.kassierer||Math.random()<(betreut?0.6:0.45))){
+    const SB=WIRT.kunden.sb, betreut=sbBetreuer().length>0, maxKorb=betreut?SB.maxKorbBetreut:SB.maxKorb;
+    if(sbOffen()&&this.items.length<=maxKorb&&(queue.length>=1||regCustomer()||!staff.kassierer||Math.random()<(betreut?SB.wahlBetreut:SB.wahl))){
       const i=sbFreiNah(this.pos);
       if(i>=0){ this.sb=i; sbLanes[i].busy=this; sbLampe(sbLanes[i],false);
         this.state='sbGo'; this.path=[...route(this.pos,sbPos(i))]; DS.sb=(DS.sb||0)+1; return; }
@@ -372,7 +373,7 @@ class Customer{
     this.method='card';
     /* etwa jeder dritte bis fuenfte kommt nicht weiter - mit mehr
        Ware im Korb eher als mit einem Teil */
-    this.sbProblem=Math.random()<Math.min(0.36,0.18+0.025*this.items.length);
+    this.sbProblem=Math.random()<Math.min(WIRT.kunden.sb.problemMax,WIRT.kunden.sb.problemGrund+WIRT.kunden.sb.problemJeArtikel*this.items.length);
     this.sbProbBei=this.sbT*rand(0.25,0.7); this.hilfeT=0;
     this.say(pick(['Geht auch selbst.','Schnell durch hier.','Piep.']));
   }
@@ -390,7 +391,7 @@ class Customer{
   }
   atRegister(){ personTraegt(this.g,null); this.state='unload'; this.ui=0; this.unT=0.5; this.scanned=0; this.sum=0; posReset(); posStatus='Kunde legt Ware aufs Band'; drawPOS(); }
   startPay(){
-    this.state='pay'; this.method=Math.random()<0.6?'card':'cash';
+    this.state='pay'; this.method=Math.random()<WIRT.kunden.karteAnteil?'card':'cash';
     this.autoT=this.method==='card'?(S.up.terminal?0.6:1.0):2.2;
     if(this.method==='card'){ this.say('Mit Karte, bitte.'); const w=ck(0.62,0.42); this.prop=box(0.085,0.054,0.004,std(0x2f5d9e,{metalness:0.3}),w.x,1.1,w.z,null,false); this.prop.rotation.x=-0.4; posStatus='Kartenzahlung: Terminal anklicken'; }
     else { this.given=cashAmount(this.total); this.say(`Bar: ${eur(this.given)}`); const w=ck(0.35,0.28); this.prop=box(0.14,0.004,0.07,std(this.given>=50?0xf2a25a:this.given>=20?0x7aa9df:0xe58c85),w.x,0.957,w.z,null,false); posStatus=`Bar erhalten: ${eur(this.given)}. Kasse anklicken`; }
@@ -405,10 +406,10 @@ class Customer{
     goalAdd('rev',this.total); goalAdd('cust',1); goalAdd('sold',this.items.length); goalAdd('f2',nf2);
     this.items.forEach(it=>statVerkauf(it.type,1));
     statAdd('kunden',1);
-    let gain=Math.round(this.total*0.5)+4; if(over<=0.001&&this.method==='cash') gain+=3;
+    let gain=Math.round(this.total*WIRT.xp.kunde.jeEuro)+WIRT.xp.kunde.grund; if(over<=0.001&&this.method==='cash') gain+=WIRT.xp.kunde.barPassend;
     addXP(gain);
     /* 03.10.: echte Kasse statt des Bestaetigungs-Tons (Schublade, Glocke) */
-    rep(this.missed?0.2:0.8); { const v=this.g?nahVol(this.g.position):1; if(v>0.02) sfx.kasse(v); } toast('+'+eur(this.total),'money');
+    rep(this.missed?WIRT.ruf.kaufMitFehl:WIRT.ruf.kaufOk); { const v=this.g?nahVol(this.g.position):1; if(v>0.02) sfx.kasse(v); } toast('+'+eur(this.total),'money');
     geldSchwebt(this.pos,this.total);
     if(this.missed) serieBricht(); else { serieZufrieden(); if(this.total>=60) kundenSymbol(this.g,'stern'); }
     if(over>0) toast(`${eur(over)} zu viel Rückgeld gegeben.`,'bad');
@@ -425,7 +426,7 @@ class Customer{
     if(cashCust===this) closeCash(false);
   }
   giveUp(){
-    this.say('Dauert mir zu lange!',true); rep(-2); DS.angry++; kundenSymbol(this.g,'sauer'); serieBricht();
+    this.say('Dauert mir zu lange!',true); rep(WIRT.ruf.geduldWeg); DS.angry++; kundenSymbol(this.g,'sauer'); serieBricht();
     if(['unload','scan','pay','sbPay','sbHilfe'].includes(this.state)) this.cleanupRegister();
     this.items=[]; personTraegt(this.g,null); this.leave();
   }
@@ -436,7 +437,7 @@ class Customer{
     { const e=naechsterEingang(this.pos.x);
       this.state='leave'; this.path=[...route(this.pos,V(e,0,4.9)),V(e,0,7.6),V(e+rand(-5,5),0,14)]; }
     /* seltener als frueher (22 %): Tom fand die Flecken zu viele */
-    if(Math.random()<(hasDeko('muell')?0.04:0.08)) addDirt(this.pos.x+rand(-1,1),this.pos.z+rand(-1,1));
+    if(Math.random()<(hasDeko('muell')?WIRT.kunden.dreck.mitMuell:WIRT.kunden.dreck.chance)) addDirt(this.pos.x+rand(-1,1),this.pos.z+rand(-1,1));
   }
   update(dt){
     if(this.bub){ this.bubT-=dt; if(this.bubT<=0) this.clearBub(); }
@@ -453,7 +454,7 @@ class Customer{
       case 'browse': this.wait-=dt; if(this.wait<=0) this.take(); break;
       case 'steal':
         if(this.walk(dt)){
-          if(S.up.alarm&&Math.random()<0.7){ this.caughtBy('alarm'); }
+          if(S.up.alarm&&Math.random()<WIRT.kunden.dieb.alarm){ this.caughtBy('alarm'); }
           else { this.escaped(); this.state='leave'; this.path=[V(naechsterEingang(this.pos.x)+rand(-5,5),0,15)]; if(this.mark){ this.g.remove(this.mark); this.mark=null; } }
         } break;
       case 'queue': {
@@ -491,7 +492,7 @@ class Customer{
            halben Minute selbst durch - verärgert. */
         this.hilfeT+=dt; this.patience-=dt*0.5;
         const l=sbLanes[this.sb]; if(l) sbLampeBlink(l,this.hilfeT);
-        if(this.hilfeT>=SB_SELBST){ this.missed=true; rep(-0.4); DS.sbAllein=(DS.sbAllein||0)+1;
+        if(this.hilfeT>=SB_SELBST){ this.missed=true; rep(WIRT.ruf.sbAllein); DS.sbAllein=(DS.sbAllein||0)+1;
           this.say(pick(['Na endlich …','Nie wieder SB-Kasse.','Hat ja lange gedauert.'])); sbGeholfen(l,null); }
         break; }
       case 'leave': if(this.walk(dt)) this.remove(); break;

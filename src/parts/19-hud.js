@@ -113,7 +113,7 @@ function kapitelAufstieg(nr){
   $('kapBanner').classList.add('show');
   sfx.level(); later(0.35,()=>sfx.level());
   clearTimeout(kapT); kapT=setTimeout(()=>$('kapBanner').classList.remove('show'),4200);
-  addXP(40,'Neues Kapitel');
+  addXP(WIRT.xp.kapitel,'Neues Kapitel');
 }
 
 /* =========================================================
@@ -165,11 +165,11 @@ function updateSchweber(dt){
 /* Serie: zufriedene Kunden am Stueck. Wer ohne Wunsch geht oder
    die Geduld verliert, beendet sie. */
 let serie=0;
-const SERIE_STUFEN=[5,10,20,35,50,75,100];
+const SERIE_STUFEN=WIRT.xp.serieStufen;
 function serieZufrieden(){
   serie++;
   if(SERIE_STUFEN.indexOf(serie)>=0){
-    const bonus=serie*6; addXP(bonus,'Serie');
+    const bonus=serie*WIRT.xp.serieJeKunde; addXP(bonus,'Serie');
     toast(`Serie: ${serie} zufriedene Kunden am Stück! +${bonus} XP`,'money'); sfx.level();
   }
 }

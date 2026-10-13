@@ -401,8 +401,8 @@ function sbGeholfen(l,wer){
   sbLampe(l,false);
   if(!c||c.state!=='sbHilfe') return;
   c.state='sbPay';
-  if(wer){ c.say(pick(['Danke!','Ah, so geht das.','Super, danke!'])); DS.sbHilfe=(DS.sbHilfe||0)+1; rep(0.1); sfx.beep(); }
-  if(wer==='spieler'){ addXP(4,'SB-Hilfe'); }
+  if(wer){ c.say(pick(['Danke!','Ah, so geht das.','Super, danke!'])); DS.sbHilfe=(DS.sbHilfe||0)+1; rep(WIRT.ruf.sbHilfe); sfx.beep(); }
+  if(wer==='spieler'){ addXP(WIRT.xp.sbHilfe,'SB-Hilfe'); }
 }
 let sbHinweisZeit=-1e9;
 function sbHinweisOk(){ const t=performance.now(); if(t-sbHinweisZeit<45000) return false; sbHinweisZeit=t; return true; }
@@ -1152,9 +1152,9 @@ const racks=[], RLV=[0.14,0.94,1.74];
 /* Regaltypen im Lager. Alles bleibt in Reichweite: das oberste Fach
    liegt so hoch, dass man es von unten noch anvisieren kann. */
 const RACKKIND={
-  standard:{id:'standard',name:'Lagerregal',     w:2.44,zo:0.30,lv:RLV,                          sp:[-0.8,0,0.8],          cost:0,  step:0,  lvl:1, hoch:2.34},
-  hoch:    {id:'hoch',    name:'Hochregal',      w:2.44,zo:0.30,lv:[0.14,1.02,1.90,2.78,3.66],   sp:[-0.8,0,0.8],          cost:520,step:150,lvl:12,hoch:4.26},
-  schwer:  {id:'schwer',  name:'Schwerlastregal',w:3.30,zo:0.42,lv:[0.16,1.26,2.36,3.46],        sp:[-1.2,-0.4,0.4,1.2],   cost:880,step:240,lvl:18,hoch:4.20}
+  standard:{id:'standard',name:'Lagerregal',     w:2.44,zo:0.30,lv:RLV,                          sp:[-0.8,0,0.8],          cost:WIRT.regal.lager.standard.grund,  step:WIRT.regal.lager.standard.jeWeiteres,  lvl:1, hoch:2.34},
+  hoch:    {id:'hoch',    name:'Hochregal',      w:2.44,zo:0.30,lv:[0.14,1.02,1.90,2.78,3.66],   sp:[-0.8,0,0.8],          cost:WIRT.regal.lager.hoch.grund,step:WIRT.regal.lager.hoch.jeWeiteres,lvl:12,hoch:4.26},
+  schwer:  {id:'schwer',  name:'Schwerlastregal',w:3.30,zo:0.42,lv:[0.16,1.26,2.36,3.46],        sp:[-1.2,-0.4,0.4,1.2],   cost:WIRT.regal.lager.schwer.grund,step:WIRT.regal.lager.schwer.jeWeiteres,lvl:18,hoch:4.20}
 };
 const RACKORDER=['standard','hoch','schwer'];
 function rackKindOf(rk){ return RACKKIND[rk&&rk.kind]||RACKKIND.standard; }

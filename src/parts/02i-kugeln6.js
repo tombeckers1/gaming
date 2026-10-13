@@ -34,9 +34,9 @@ const K6_NEU=[
  ['himmelssturz300','Himmelssturz',30,169.99,'pyroweltklasse','Die größte Kugel im Spiel: eine Crossette-Palme aus Goldtigern, ein Donnerkranz aus 24 Schlägen – und dann stürzt der Himmel ein: doppelter Titanblitz, eine gewaltige Goldkrone, die sich bis fast zum Boden senkt, und ein Nachbeben, das durch die ganze Stadt rollt.','#3a2a06','#0c0802','#ffd23f','#f2f5ff']
 ];
 const K6_LIZENZEN=[
-  {id:'grossfeuerwerk',lvl:27,cost:42000,name:'Großfeuerwerk',
+  {id:'grossfeuerwerk',lvl:27,cost:WIRT.lizenz.preis.grossfeuerwerk,name:'Großfeuerwerk',
    desc:'Kugelbomben, wie sie sonst nur Profis zünden: Herbststurm mit seinen Flammenblättern, die schwebende Eiszeit, die Titanenfaust mit fünf Schlägen und der grollende Lavastrom.',items:[]},
-  {id:'pyroweltklasse',lvl:29,cost:52000,name:'Pyro-Weltklasse',
+  {id:'pyroweltklasse',lvl:29,cost:WIRT.lizenz.preis.pyroweltklasse,name:'Pyro-Weltklasse',
    desc:'Das Allergrößte: die drehende Galaxie, die Sturmflut aus drei Wellen, die Götterdämmerung mit drei Schlägen und der Himmelssturz – die größte Kugel und der lauteste Knall im Spiel.',items:[]}
 ];
 (function(){

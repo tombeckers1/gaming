@@ -17,7 +17,7 @@
    - X mit voller Kiste schaltet zwischen "ausraeumen" und "einraeumen"
      (zurueck in ein Fach mit derselben Sorte).
    ========================================================= */
-const KISTE_STUECK=5;
+const KISTE_STUECK=WIRT.ausbau.kistenJeKauf;
 let _kisteMat=null;
 /* blaue Kunststoffkiste: Rippen, Griffloch, Aufdruck MEHRWEG */
 function kisteMat(){

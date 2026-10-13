@@ -154,7 +154,7 @@ function step(dt){
   updateInnenlicht(dt); updateTruck(dt); updateWBays(dt); updateSchiebetuer(dt); updateVersand(dt); updatePaletten(dt); updateSchweber(dt); updateWischen(dt); updateSchoner(dt); updateZiel(dt); karreNachziehen(); karreFolgen(); kartonTick(dt);
   for(let i=timers.length-1;i>=0;i--){ timers[i].t-=dt; if(timers[i].t<=0){ const tm=timers[i]; timers.splice(i,1); if(tm.fw){ FW_KTX++; try{ tm.fn(); } finally { FW_KTX--; } } else tm.fn(); } }
   if(phase==='open') addGrime(dt*0.0016*(1+customers.length*0.05));
-  hype=Math.max(0,hype-dt*1.1);
+  hype=Math.max(0,hype-dt*WIRT.kunden.hype.verfallJeSek);
   updateFireworks(dt); updateSnow(dt); updateDeko(dt); updateStadt(dt); updatePark(dt);
   updateTarget(); holdRepeat(dt); applyTOD(); updateUhr();
   hudT-=dt; if(hudT<=0){ hudT=0.1; updateHUD(); updatePrompt(); zuendTick(); if(pdaOn) drawPDA(); if(laptopOpen||handyOpen) updateOnline(); }

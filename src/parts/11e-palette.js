@@ -29,7 +29,7 @@ const PAL_LG=1.2, PAL_BR=0.8, PAL_Y=0.09;          /* Europalette; PAL_Y: Hub am
    nicht die Pauschale, entscheidet. Bei nur 3 Paketen kostet ein Anruf 13 EUR je Paket: das
    soll zum Sammeln bis zum Abend anregen. Darum bleibt es bei 39 EUR.
    DDL_ANFAHRT: Sekunden vom Anruf bis der LKW einbiegt (rund 50 Spielminuten). */
-const DDL_PAUSCHALE=39, DDL_ANFAHRT=20, DDL_RUF=1.5;
+const DDL_PAUSCHALE=WIRT.versand.ddl.pauschale, DDL_ANFAHRT=WIRT.versand.ddl.anfahrtSek, DDL_RUF=1.5;   /* Pauschale/Anfahrt: 01c-wirtschaft.js */
 /* Mitte des Tors (0,45 m ostwaerts der Box-Mitte: so bleibt neben der Box eine Gasse von 1,2 m zum Tor), Wandmitte, Heck des LKW */
 const V1={x:-10.25,w:3.26,h:3.0,wz:-30.0,rz:-30.05};
 const V1_HOF={x0:-15.7,x1:-4.7,z0:-45.6,z1:-30.1};

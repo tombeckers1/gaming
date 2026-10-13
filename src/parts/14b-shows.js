@@ -704,7 +704,7 @@ function igniteType(t,o0,it){
   /* Vorfuehrung (Entwicklung): kein Hype, keine Erfahrung - sonst ging
      nach gut zwanzig Zuendungen das Level-Fenster auf und fing die Tasten */
   if(!(typeof vfAn!=='undefined'&&vfAn)){
-    hype=Math.min(100,hype+p.hype); DS.burned=r2(DS.burned+costOf(t)); addXP(Math.max(1,Math.round(p.hype/3)));
+    hype=Math.min(WIRT.kunden.hype.max,hype+p.hype); DS.burned=r2(DS.burned+costOf(t)); addXP(Math.max(WIRT.xp.zuenden.min,Math.round(p.hype/WIRT.xp.zuenden.hypeTeiler)));
     statAdd('gezuendet',1); statAdd('hype',p.hype); }
   else vfGezuendet++;
   if(SHOWS[t]){ const tag=neuerShowTag(); emitters.push({t:0.8,k:'fuse',o}); later(0.8,()=>playShow(o,SHOWS[t](),t,tag)); return; }

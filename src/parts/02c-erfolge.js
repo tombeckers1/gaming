@@ -31,73 +31,73 @@ const ERFOLGE=[
   /* --- Verkauf: laeuft von Anfang an mit --- */
   {id:'v_boeller',kat:'Verkauf',name:'Krachmacher',ikon:'boeller',
    desc:'Böller aller Art über die Theke gebracht',
-   stufen:[100,800,5000,20000],lohn:[60,320,1600,7000]},
+   stufen:[100,800,5000,20000],lohn:WIRT.erfolg.lohn.v_boeller},
   {id:'v_raketen',kat:'Verkauf',name:'Startrampe',ikon:'rakete',
    desc:'Raketen verkauft',req:{liz:'klassiker'},
-   stufen:[60,500,3000,12000],lohn:[80,400,2000,8000]},
+   stufen:[60,500,3000,12000],lohn:WIRT.erfolg.lohn.v_raketen},
   {id:'v_batterien',kat:'Verkauf',name:'Verbundhändler',ikon:'batterie',
    desc:'Batterien und Verbunde verkauft',req:{liz:'verbund'},
-   stufen:[40,300,1500,6000],lohn:[260,1400,5000,14000]},
+   stufen:[40,300,1500,6000],lohn:WIRT.erfolg.lohn.v_batterien},
   {id:'v_kugeln',kat:'Verkauf',name:'Schweres Kaliber',ikon:'kugel',
    desc:'Kugelbomben verkauft',req:{liz:'verbund'},
-   stufen:[10,80,400,1500],lohn:[300,1600,5500,16000]},
+   stufen:[10,80,400,1500],lohn:WIRT.erfolg.lohn.v_kugeln},
   {id:'v_sekt',kat:'Verkauf',name:'Auf Mitternacht',ikon:'sekt',
    desc:'Getränke verkauft: Sekt, Bier, Wein, Säfte',req:{liz:'klassiker'},
-   stufen:[50,400,2000,8000],lohn:[70,350,1500,5500]},
+   stufen:[50,400,2000,8000],lohn:WIRT.erfolg.lohn.v_sekt},
   {id:'v_essen',kat:'Verkauf',name:'Buffet-König',ikon:'essen',
    desc:'Essen verkauft: Snacks, Buffet, Feinkost',req:{liz:'snacks'},
-   stufen:[60,500,2500,10000],lohn:[60,300,1300,5000]},
+   stufen:[60,500,2500,10000],lohn:WIRT.erfolg.lohn.v_essen},
   {id:'v_zubehoer',kat:'Verkauf',name:'Alles für die Party',ikon:'zubehoer',
    desc:'Zubehör verkauft',req:{liz:'zubehoer'},
-   stufen:[80,600,3000,12000],lohn:[60,300,1300,5000]},
+   stufen:[80,600,3000,12000],lohn:WIRT.erfolg.lohn.v_zubehoer},
   /* --- Theke und Lager --- */
   {id:'kunden',kat:'Laden',name:'Stammpublikum',ikon:'kunde',
    desc:'Kunden abkassiert',
-   stufen:[100,800,4000,15000],lohn:[80,450,2200,9000]},
+   stufen:[100,800,4000,15000],lohn:WIRT.erfolg.lohn.kunden},
   {id:'kartons',kat:'Laden',name:'Packesel',ikon:'karton',
    desc:'Kartons eingeräumt',
-   stufen:[50,400,2000,8000],lohn:[60,300,1400,5500]},
+   stufen:[50,400,2000,8000],lohn:WIRT.erfolg.lohn.kartons},
   {id:'lkw',kat:'Laden',name:'Rampenroutine',ikon:'lkw',
    desc:'Lieferungen an der Rampe entgegengenommen',
-   stufen:[10,60,300,1200],lohn:[70,380,1800,7000]},
+   stufen:[10,60,300,1200],lohn:WIRT.erfolg.lohn.lkw},
   /* --- Testfeld: an das eigene Zuenden geknuepft --- */
   {id:'gezuendet',kat:'Testfeld',name:'Feuerwerker',ikon:'zuenden',
    desc:'Artikel selbst gezündet',
-   stufen:[20,150,700,3000],lohn:[80,400,1800,7000]},
+   stufen:[20,150,700,3000],lohn:WIRT.erfolg.lohn.gezuendet},
   {id:'brucharten',kat:'Testfeld',name:'Effektsammler',ikon:'stern',
    desc:'verschiedene Bruchbilder am Himmel gesehen',
-   stufen:[6,12,19,27],lohn:[150,600,2400,9000]},
+   stufen:[6,12,19,27],lohn:WIRT.erfolg.lohn.brucharten},
   {id:'hype',kat:'Testfeld',name:'Volksfeststimmung',ikon:'hype',
    desc:'Hype durch eigene Vorführungen erzeugt',
-   stufen:[200,2000,10000,40000],lohn:[90,500,2200,8000]},
+   stufen:[200,2000,10000,40000],lohn:WIRT.erfolg.lohn.hype},
   /* --- Versand: erst mit Onlineshop und Packstation --- */
   {id:'pakete',kat:'Versand',name:'Versandfertig',ikon:'paket',
    desc:'Pakete selbst gepackt',req:{up:'packstation'},
-   stufen:[25,200,1000,4000],lohn:[200,900,3600,12000]},
+   stufen:[25,200,1000,4000],lohn:WIRT.erfolg.lohn.pakete},
   {id:'ddl',kat:'Versand',name:'Abholbereit',ikon:'ddl',
    desc:'Pakete von DDL abholen lassen',req:{up:'onlineshop'},
-   stufen:[50,400,2000,8000],lohn:[180,800,3200,11000]},
+   stufen:[50,400,2000,8000],lohn:WIRT.erfolg.lohn.ddl},
   /* --- Grossauftraege --- */
   {id:'auftraege',kat:'Aufträge',name:'Für die ganze Stadt',ikon:'auftrag',
    desc:'Großaufträge ausgeliefert',req:{up:'grosskunden'},
-   stufen:[5,30,150,600],lohn:[220,1000,4200,14000]},
+   stufen:[5,30,150,600],lohn:WIRT.erfolg.lohn.auftraege},
   /* --- Eigene Marke: erst mit dem Labor --- */
   {id:'eigene',kat:'Eigene Marke',name:'Hausmarke',ikon:'labor',
    desc:'eigene Rezepturen entwickelt',req:{up:'labor'},
-   stufen:[1,4,10,20],lohn:[400,1800,6000,18000]},
+   stufen:[1,4,10,20],lohn:WIRT.erfolg.lohn.eigene},
   {id:'v_eigene',kat:'Eigene Marke',name:'Unter eigenem Namen',ikon:'labor',
    desc:'Artikel der eigenen Marke verkauft',req:{up:'labor'},
-   stufen:[50,400,2000,8000],lohn:[300,1400,5000,16000]},
+   stufen:[50,400,2000,8000],lohn:WIRT.erfolg.lohn.v_eigene},
   /* --- Bestwerte: kein Scheitern moeglich, nur Rekorde --- */
   {id:'rek_tag',kat:'Rekorde',name:'Bester Tag',ikon:'geld',rekord:true,geld:true,
    desc:'höchster Tagesumsatz',
-   stufen:[500,2000,6000,15000],lohn:[120,600,2400,9000]},
+   stufen:[500,2000,6000,15000],lohn:WIRT.erfolg.lohn.rek_tag},
   {id:'rek_kunden',kat:'Rekorde',name:'Volle Bude',ikon:'kunde',rekord:true,
    desc:'meiste Kunden an einem Tag',
-   stufen:[40,80,140,220],lohn:[110,550,2200,8000]},
+   stufen:[40,80,140,220],lohn:WIRT.erfolg.lohn.rek_kunden},
   {id:'tage',kat:'Rekorde',name:'Durchgehalten',ikon:'kalender',
    desc:'Tage im Geschäft',
-   stufen:[7,30,90,200],lohn:[100,500,2000,7500]}
+   stufen:[7,30,90,200],lohn:WIRT.erfolg.lohn.tage}
 ];
 
 /* --------------------------------------------------------
@@ -170,7 +170,7 @@ function erfBelohnen(e,stufe){
     DS.praemien=r2((DS.praemien||0)+geld);
     toast(`${e.name}: ${eur(geld)} Prämie.`,'money');
   }
-  addXP(Math.round(geld/10)+25,'Herausforderung');
+  addXP(Math.round(geld/WIRT.xp.herausforderung.teiler)+WIRT.xp.herausforderung.bonus,'Herausforderung');
   sfx.level();
 }
 function erfolgPruefen(id){

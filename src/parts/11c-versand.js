@@ -690,7 +690,7 @@ function vsBuchen(b,spieler){
   statAdd('pakete',1);
   const i=S.bestellungen.indexOf(b); if(i>=0) S.bestellungen.splice(i,1);
   vsSync(); drawPackSchild();
-  if(spieler){ addXP(3); sfx.cash(); toast(`Paket #${b.id} fertig: +${eur(w)}${porto?` · Porto ${eur(porto)}`:''}`,'money'); }
+  if(spieler){ addXP(WIRT.xp.paketGepackt); sfx.cash(); toast(`Paket #${b.id} fertig: +${eur(w)}${porto?` · Porto ${eur(porto)}`:''}`,'money'); }
 }
 
 /* Palettenplaetze, Stapeln, Zwischenabholung und Abholung stehen seit 07.10. in

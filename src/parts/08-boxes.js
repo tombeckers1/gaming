@@ -111,7 +111,7 @@ function regalAufbauen(id,x,z){
   if(r.art==='rack') createRack(racks.length,{kind:r.kind,x:best.x,z:best.z,ry:best.ry||0});
   else createShelf(shelves.length,{kind:r.kind,x:best.x,z:best.z,ry:best.ry||0,art:best.art});
   sfx.cash(); S.tut.shelf=true;
-  addXP(12,'Regal aufgebaut');
+  addXP(WIRT.xp.regalAufbau,'Regal aufgebaut');
   toast(`${K.name} steht.`,'money'); save();
   return true;
 }
@@ -161,7 +161,7 @@ function paketAblegen(c,p){
 function einbauAufstellen(id){
   S.up[id]=true; if(S.einbauBestellt) delete S.einbauBestellt[id];
   if(id==='kasse2'){ setSB(true); toast('Die SB-Kassen stehen. Kunden mit wenig Ware bedienen sich jetzt selbst.','money'); }
-  sfx.cash(); addXP(20,'Einbau'); save();
+  sfx.cash(); addXP(WIRT.xp.einbau,'Einbau'); save();
 }
 /* Ein Regal ohne Lieferung aufstellen. Diesen Weg nimmt das Spiel
    selbst nie - er steht fuer die Tests, damit sie einen

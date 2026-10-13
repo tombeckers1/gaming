@@ -93,7 +93,7 @@ function acceptDeal(){
   S.stamm=S.stamm||{}; S.stamm[c.type.id]=(S.stamm[c.type.id]||0)+1;
   closeDeal(); phone.state=null; phone.call=null; phone.cd=rand(150,260);
   sfx.cash(); toast(`Auftrag über ${eur(pay)} angenommen. Die Ware geht aus dem Lager raus.`,'money');
-  addXP(20,'Auftrag an Land gezogen');
+  addXP(WIRT.xp.auftragAngenommen,'Auftrag an Land gezogen');
 }
 function declineDeal(){ closeDeal(); phone.state=null; phone.call=null; phone.cd=rand(70,130); toast('Abgelehnt.'); }
 function closeDeal(){ $('deal').classList.remove('show'); dealOpen=false; paused=false; requestLock(); }
@@ -134,14 +134,14 @@ function finishOrder(){
   const o=order; order=null;
   S.money=r2(S.money+o.pay); DS.revenue=r2(DS.revenue+o.pay); S.seasonRevenue=r2(S.seasonRevenue+o.pay);
   DS.orders=(DS.orders||0)+1; goalAdd('orders',1); statAdd('auftraege',1);
-  rep(2.5); addXP(Math.round(o.pay*0.4)+40,'Großauftrag erfüllt'); sfx.cash();
+  rep(WIRT.ruf.auftragErfuellt); addXP(Math.round(o.pay*WIRT.xp.auftragErfuellt.jeEuro)+WIRT.xp.auftragErfuellt.grund,'Großauftrag erfüllt'); sfx.cash();
   toast(`${o.name}: Ware ist raus, ${eur(o.pay)} gutgeschrieben.`,'money');
   save();
 }
 function failOrder(){
   if(!order) return; const o=order; order=null;
   const fehlt=o.items.reduce((a,it)=>a+(it.cartons-it.loaded),0);
-  rep(-4); toast(`${o.name} hat ${fehlt} Karton${fehlt>1?'s':''} nicht bekommen. Das kostet Ruf.`,'bad');
+  rep(WIRT.ruf.auftragVerfehlt); toast(`${o.name} hat ${fehlt} Karton${fehlt>1?'s':''} nicht bekommen. Das kostet Ruf.`,'bad');
 }
 function updateOrder(dt){
   if(!order) return;

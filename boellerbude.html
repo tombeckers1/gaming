@@ -962,14 +962,44 @@ const WIRT={
     automat:45          // € je Tag mit Deko "Getraenkeautomat"
   },
   /* ---------- Ruf (0..100) ---------- */
+  /* Jede Aenderung geht ueber rep(d) und wird auf 0..100 geklemmt. Ruf wirkt auf: Kunden je Tag
+     (0,55 + Ruf/100), Preistoleranz (+Ruf/900), Geduld (+0,3*Ruf), Online-Besucher und -Pauschale. */
   ruf:{
+    kaufOk:0.8,         // Kunde hat alles bekommen und bezahlt
+    kaufMitFehl:0.2,    // bezahlt, aber ein Wunsch fehlte
+    fehlwunsch:-0.4,    // Fach leer / Ware nicht da (je Wunsch)
+    leerGegangen:-0.3,  // geht ganz ohne Ware
+    zuTeuer:-0.5,       // "Viel zu teuer!" (Preis ueber Toleranz)
+    geduldWeg:-2,       // "Dauert mir zu lange!"
+    diebGestellt:0.6, diebEntkommen:-1.8,
+    sbAllein:-0.4,      // SB-Kunde kam allein nicht weiter
+    sbHilfe:0.1,        // ihm wurde geholfen
+    auftragErfuellt:2.5, auftragVerfehlt:-4,   // Grossauftraege (Telefon)
+    pruefungGut:3, pruefungSchlecht:-5, pruefungSauberAb:70,   // Ereignis "Gewerbeaufsicht": Sauberkeit >= 70
+    kuendigung:-1,      // Mitarbeiter kuendigt wegen Mindestlohn
     kontoMinus:-3       // je Tagesabschluss mit Konto < 0
   },
   /* ---------- Erfahrung ---------- */
+  /* Level-Kurve: XP bis zum naechsten Level = round(a * Level^exp). Level schaltet Lizenzen,
+     Ausbauten, Personal, Kredite frei - Geld und Level sind getrennte Kurven (ist-analyse 3.3). */
   xp:{
+    kurve:{a:50,exp:1.55},
+    kunde:{jeEuro:0.5,grund:4,barPassend:3},          // je bezahltem Einkauf; +3 wenn bar ohne Rueckgeld-Fehler
     tag:{grund:60,jeUmsatz:0.05,ohneBeschwerde:40},   // Tages-XP = grund + Umsatz*jeUmsatz + (keiner genervt ? ohneBeschwerde : 0)
     jahr:200,           // XP fuer ein volles Jahr
-    kreditGetilgt:40
+    kreditGetilgt:40,
+    kapitel:40,
+    /* Geld ausgeben bringt XP (Luecke fuers Balancing: Level folgt Ausgaben) */
+    ausbauTeiler:12,                 // Ausbau/Deko: Kosten/12
+    lizenz:{teiler:14,bonus:30},     // Lizenz: Kosten/14 + 30
+    herausforderung:{teiler:10,bonus:25},   // Praemie/10 + 25
+    wochenzielTeiler:3,              // Wochenziel: Praemie/3
+    auftragAngenommen:20, auftragErfuellt:{jeEuro:0.4,grund:40},
+    restposten:20,                   // Wundertuete / Restposten-Angebot gekauft
+    eigeneRezeptur:180,
+    zuenden:{hypeTeiler:3,min:1},    // je gezuendetem Stueck: max(1, Hype/3)
+    serieStufen:[5,10,20,35,50,75,100], serieJeKunde:6,   // Serie zufriedener Kunden: n*6 XP an den Stufen
+    diebGestellt:25, regalAufbau:12, einbau:20, gravur:12, paketGepackt:3, dreckWeg:3, fensterPutzen:4, sbHilfe:4, packmaterialEinlagern:1
   },
   /* ---------- Nie aendern: historische Preise fuer Spielstand-Migrationen (18-save) ----------
      Wer alte Ausbauten hatte, bekommt GENAU das zurueck, was er damals bezahlt hat -
@@ -988,6 +1018,8 @@ const WF={
   /* kleine Zahlen als Wort ("über acht"), sonst Ziffern */
   zahlwort:(n)=>['null','eins','zwei','drei','vier','fünf','sechs','sieben','acht','neun','zehn','elf','zwölf','dreizehn','vierzehn','fünfzehn','sechzehn','siebzehn','achtzehn','neunzehn','zwanzig'][n]||String(n),
   /* Marktplatz-Pauschale des Onlineshops je Tag (16-day endDay, Laptop-Anzeige, sim.js) */
+  /* XP bis zum naechsten Level (xpFor in 02-data) */
+  xpBis:(l)=>Math.round(WIRT.xp.kurve.a*Math.pow(l,WIRT.xp.kurve.exp)),
   onlinePauschale:(ruf,level)=>Math.round(WIRT.versand.pauschale.grund+ruf*WIRT.versand.pauschale.jeRuf+level*WIRT.versand.pauschale.jeLevel)
 };
 
@@ -1749,7 +1781,7 @@ const DEKOSPOTS=[{x:-7.1,z:3.2},{x:-7.1,z:-3.6},{x:-6.2,z:1.2},{x:-3.4,z:3.4},{x
   {x:21.0,z:4.6,zone:'shop_ost'},{x:36.5,z:4.6,zone:'shop_ost'},
   {x:9.5,z:-7.5,zone:'shop_sued'},{x:36.0,z:-7.5,zone:'shop_sued'},
   {x:9.5,z:-19.0,zone:'shop_sued'},{x:36.0,z:-19.0,zone:'shop_sued'}];
-function xpFor(l){ return Math.round(50*Math.pow(l,1.55)); }
+function xpFor(l){ return WF.xpBis(l); }   /* Kurve: WIRT.xp.kurve */
 
 /* =========================================================
    Tagesereignisse: jeder Tag bekommt eine eigene Färbung
@@ -2273,7 +2305,7 @@ function erfBelohnen(e,stufe){
     DS.praemien=r2((DS.praemien||0)+geld);
     toast(`${e.name}: ${eur(geld)} Prämie.`,'money');
   }
-  addXP(Math.round(geld/10)+25,'Herausforderung');
+  addXP(Math.round(geld/WIRT.xp.herausforderung.teiler)+WIRT.xp.herausforderung.bonus,'Herausforderung');
   sfx.level();
 }
 function erfolgPruefen(id){
@@ -2492,7 +2524,7 @@ function rezepteTick(){
     e.rest--;
     if(e.rest<=0){ e.fertig=true; eigenesEintragen(e); neu++;
       toast(`${e.name} ist fertig entwickelt und steht im Bestellkatalog.`,'money');
-      statAdd('eigene',1); addXP(180,'Eigene Rezeptur'); }
+      statAdd('eigene',1); addXP(WIRT.xp.eigeneRezeptur,'Eigene Rezeptur'); }
   });
   return neu;
 }
@@ -18235,7 +18267,7 @@ function addGrime(v){ if(!S) return; S.grime=clamp((S.grime||0)+v,0,1); applyGri
 function cleanWindowTick(first){
   if(windowGrime()<=0.01){ toast('Die Scheiben sind sauber.'); return; }
   winWork+=first?0.1:0.14;
-  if(winWork>=1){ winWork=0; S.grime=clamp(S.grime-0.34,0,1); applyGrime(); sfx.spray(); addXP(4);
+  if(winWork>=1){ winWork=0; S.grime=clamp(S.grime-0.34,0,1); applyGrime(); sfx.spray(); addXP(WIRT.xp.fensterPutzen);
     S.tut.fenster=true;
     toast(windowGrime()<=0.01?'Scheiben blitzen wieder.':'Schon besser. Weiter putzen.'); }
 }
@@ -23309,8 +23341,8 @@ function sbGeholfen(l,wer){
   sbLampe(l,false);
   if(!c||c.state!=='sbHilfe') return;
   c.state='sbPay';
-  if(wer){ c.say(pick(['Danke!','Ah, so geht das.','Super, danke!'])); DS.sbHilfe=(DS.sbHilfe||0)+1; rep(0.1); sfx.beep(); }
-  if(wer==='spieler'){ addXP(4,'SB-Hilfe'); }
+  if(wer){ c.say(pick(['Danke!','Ah, so geht das.','Super, danke!'])); DS.sbHilfe=(DS.sbHilfe||0)+1; rep(WIRT.ruf.sbHilfe); sfx.beep(); }
+  if(wer==='spieler'){ addXP(WIRT.xp.sbHilfe,'SB-Hilfe'); }
 }
 let sbHinweisZeit=-1e9;
 function sbHinweisOk(){ const t=performance.now(); if(t-sbHinweisZeit<45000) return false; sbHinweisZeit=t; return true; }
@@ -24454,7 +24486,7 @@ function closeGravInput(ok){
     S.carrying={type:'gravur',count:1,q:1,text:txt};
     updateCarry(); sfx.cash();
     toast(`„${txt}" ist drauf. Ab zur Abschussrampe.`,'money');
-    addXP(12,'Eigene Gravur');
+    addXP(WIRT.xp.gravur,'Eigene Gravur');
   }
   requestLock();
 }
@@ -24825,7 +24857,7 @@ function regalAufbauen(id,x,z){
   if(r.art==='rack') createRack(racks.length,{kind:r.kind,x:best.x,z:best.z,ry:best.ry||0});
   else createShelf(shelves.length,{kind:r.kind,x:best.x,z:best.z,ry:best.ry||0,art:best.art});
   sfx.cash(); S.tut.shelf=true;
-  addXP(12,'Regal aufgebaut');
+  addXP(WIRT.xp.regalAufbau,'Regal aufgebaut');
   toast(`${K.name} steht.`,'money'); save();
   return true;
 }
@@ -24875,7 +24907,7 @@ function paketAblegen(c,p){
 function einbauAufstellen(id){
   S.up[id]=true; if(S.einbauBestellt) delete S.einbauBestellt[id];
   if(id==='kasse2'){ setSB(true); toast('Die SB-Kassen stehen. Kunden mit wenig Ware bedienen sich jetzt selbst.','money'); }
-  sfx.cash(); addXP(20,'Einbau'); save();
+  sfx.cash(); addXP(WIRT.xp.einbau,'Einbau'); save();
 }
 /* Ein Regal ohne Lieferung aufstellen. Diesen Weg nimmt das Spiel
    selbst nie - er steht fuer die Tests, damit sie einen
@@ -26492,17 +26524,17 @@ class Customer{
     while(this.wishes.length){
       const w=this.wishes.shift(), lv=findLevel(w.type,this.pos);
       if(lv){ this.cur=w; this.lv=lv; this.path=route(this.pos,shelfStand(lv.sh).add(V(rand(-0.4,0.4),0,0))); this.state='toShelf'; return; }
-      this.say(`Keine ${P[w.type].short}?`,true); this.missed=true; DS.missed+=w.qty; rep(-0.4); kundenSymbol(this.g,'fehlt');
+      this.say(`Keine ${P[w.type].short}?`,true); this.missed=true; DS.missed+=w.qty; rep(WIRT.ruf.fehlwunsch); kundenSymbol(this.g,'fehlt');
     }
     if(this.items.length){ if(this.thief) this.startSteal(); else this.joinQueue(); }
-    else { rep(-0.3); serieBricht(); this.leave(); }
+    else { rep(WIRT.ruf.leerGegangen); serieBricht(); this.leave(); }
   }
   take(){
     const w=this.cur, lv=this.lv;
     if(!(lv.type===w.type&&lv.count>0)){
       const alt=findLevel(w.type,this.pos);
       if(alt){ this.lv=alt; this.path=route(this.pos,shelfStand(alt.sh)); this.state='toShelf'; return; }
-      this.say(`Keine ${P[w.type].short} mehr?`,true); this.missed=true; DS.missed+=w.qty; rep(-0.4); kundenSymbol(this.g,'fehlt'); this.nextWish(); return;
+      this.say(`Keine ${P[w.type].short} mehr?`,true); this.missed=true; DS.missed+=w.qty; rep(WIRT.ruf.fehlwunsch); kundenSymbol(this.g,'fehlt'); this.nextWish(); return;
     }
     let got=0, pricey=false;
     for(let k=0;k<w.qty;k++){
@@ -26510,7 +26542,7 @@ class Customer{
       const price=S.prices[w.type];
       if(this.thief||Math.random()<buyChance(w.type,price,lv.q,kindOf(lv.sh).cold,this.ct)){ removeFromLevel(lv); this.items.push({type:w.type,price}); got++; } else pricey=true;
     }
-    if(got===0){ this.missed=true; if(pricey){ this.say('Viel zu teuer!',true); rep(-0.5); kundenSymbol(this.g,'teuer'); } else DS.missed+=w.qty; }
+    if(got===0){ this.missed=true; if(pricey){ this.say('Viel zu teuer!',true); rep(WIRT.ruf.zuTeuer); kundenSymbol(this.g,'teuer'); } else DS.missed+=w.qty; }
     else if(pricey) this.say('Hm, ganz schön teuer.');
     /* Wunsch gefunden und gekauft: ein Herz, nicht bei jedem Griff */
     else if(Math.random()<0.45){ kundenSymbol(this.g,'herz'); if(Math.random()<0.4) this.say(pick(['Genau das hab ich gesucht!','Endlich!','Perfekt.','Die nehm ich!'])); }
@@ -26532,7 +26564,7 @@ class Customer{
     let back=0;
     this.items.forEach(it=>{ const lv=emptyLevel(it.type); if(lv&&addToLevel(lv,it.type)) back++; });
     this.items=[];
-    DS.caught++; addXP(25,'Dieb gestellt'); rep(0.6); sfx.beep();
+    DS.caught++; addXP(WIRT.xp.diebGestellt,'Dieb gestellt'); rep(WIRT.ruf.diebGestellt); sfx.beep();
     toast(what==='spray'?'Erwischt! Ware zurück im Regal.':'Der Sicherheitsdienst hat ihn gestoppt.','money');
     this.say('Schon gut, schon gut!');
     { const e=naechsterEingang(this.pos.x);
@@ -26541,7 +26573,7 @@ class Customer{
   }
   escaped(){
     const v=r2(this.stolenValue());
-    DS.stolen=r2(DS.stolen+v); rep(-1.8);
+    DS.stolen=r2(DS.stolen+v); rep(WIRT.ruf.diebEntkommen);
     toast(`Dieb entkommen: Ware für ${eur(v)} weg.`,'bad');
     if(staff.security&&staff.security.chase===this) staff.security.chase=null;
   }
@@ -26609,10 +26641,10 @@ class Customer{
     goalAdd('rev',this.total); goalAdd('cust',1); goalAdd('sold',this.items.length); goalAdd('f2',nf2);
     this.items.forEach(it=>statVerkauf(it.type,1));
     statAdd('kunden',1);
-    let gain=Math.round(this.total*0.5)+4; if(over<=0.001&&this.method==='cash') gain+=3;
+    let gain=Math.round(this.total*WIRT.xp.kunde.jeEuro)+WIRT.xp.kunde.grund; if(over<=0.001&&this.method==='cash') gain+=WIRT.xp.kunde.barPassend;
     addXP(gain);
     /* 03.10.: echte Kasse statt des Bestaetigungs-Tons (Schublade, Glocke) */
-    rep(this.missed?0.2:0.8); { const v=this.g?nahVol(this.g.position):1; if(v>0.02) sfx.kasse(v); } toast('+'+eur(this.total),'money');
+    rep(this.missed?WIRT.ruf.kaufMitFehl:WIRT.ruf.kaufOk); { const v=this.g?nahVol(this.g.position):1; if(v>0.02) sfx.kasse(v); } toast('+'+eur(this.total),'money');
     geldSchwebt(this.pos,this.total);
     if(this.missed) serieBricht(); else { serieZufrieden(); if(this.total>=60) kundenSymbol(this.g,'stern'); }
     if(over>0) toast(`${eur(over)} zu viel Rückgeld gegeben.`,'bad');
@@ -26629,7 +26661,7 @@ class Customer{
     if(cashCust===this) closeCash(false);
   }
   giveUp(){
-    this.say('Dauert mir zu lange!',true); rep(-2); DS.angry++; kundenSymbol(this.g,'sauer'); serieBricht();
+    this.say('Dauert mir zu lange!',true); rep(WIRT.ruf.geduldWeg); DS.angry++; kundenSymbol(this.g,'sauer'); serieBricht();
     if(['unload','scan','pay','sbPay','sbHilfe'].includes(this.state)) this.cleanupRegister();
     this.items=[]; personTraegt(this.g,null); this.leave();
   }
@@ -26695,7 +26727,7 @@ class Customer{
            halben Minute selbst durch - verärgert. */
         this.hilfeT+=dt; this.patience-=dt*0.5;
         const l=sbLanes[this.sb]; if(l) sbLampeBlink(l,this.hilfeT);
-        if(this.hilfeT>=SB_SELBST){ this.missed=true; rep(-0.4); DS.sbAllein=(DS.sbAllein||0)+1;
+        if(this.hilfeT>=SB_SELBST){ this.missed=true; rep(WIRT.ruf.sbAllein); DS.sbAllein=(DS.sbAllein||0)+1;
           this.say(pick(['Na endlich …','Nie wieder SB-Kasse.','Hat ja lange gedauert.'])); sbGeholfen(l,null); }
         break; }
       case 'leave': if(this.walk(dt)) this.remove(); break;
@@ -26814,7 +26846,7 @@ function acceptDeal(){
   S.stamm=S.stamm||{}; S.stamm[c.type.id]=(S.stamm[c.type.id]||0)+1;
   closeDeal(); phone.state=null; phone.call=null; phone.cd=rand(150,260);
   sfx.cash(); toast(`Auftrag über ${eur(pay)} angenommen. Die Ware geht aus dem Lager raus.`,'money');
-  addXP(20,'Auftrag an Land gezogen');
+  addXP(WIRT.xp.auftragAngenommen,'Auftrag an Land gezogen');
 }
 function declineDeal(){ closeDeal(); phone.state=null; phone.call=null; phone.cd=rand(70,130); toast('Abgelehnt.'); }
 function closeDeal(){ $('deal').classList.remove('show'); dealOpen=false; paused=false; requestLock(); }
@@ -26855,14 +26887,14 @@ function finishOrder(){
   const o=order; order=null;
   S.money=r2(S.money+o.pay); DS.revenue=r2(DS.revenue+o.pay); S.seasonRevenue=r2(S.seasonRevenue+o.pay);
   DS.orders=(DS.orders||0)+1; goalAdd('orders',1); statAdd('auftraege',1);
-  rep(2.5); addXP(Math.round(o.pay*0.4)+40,'Großauftrag erfüllt'); sfx.cash();
+  rep(WIRT.ruf.auftragErfuellt); addXP(Math.round(o.pay*WIRT.xp.auftragErfuellt.jeEuro)+WIRT.xp.auftragErfuellt.grund,'Großauftrag erfüllt'); sfx.cash();
   toast(`${o.name}: Ware ist raus, ${eur(o.pay)} gutgeschrieben.`,'money');
   save();
 }
 function failOrder(){
   if(!order) return; const o=order; order=null;
   const fehlt=o.items.reduce((a,it)=>a+(it.cartons-it.loaded),0);
-  rep(-4); toast(`${o.name} hat ${fehlt} Karton${fehlt>1?'s':''} nicht bekommen. Das kostet Ruf.`,'bad');
+  rep(WIRT.ruf.auftragVerfehlt); toast(`${o.name} hat ${fehlt} Karton${fehlt>1?'s':''} nicht bekommen. Das kostet Ruf.`,'bad');
 }
 function updateOrder(dt){
   if(!order) return;
@@ -27153,7 +27185,7 @@ function staffMorale(){
   STAFF.forEach(st=>{
     if(!S.staff[st.id]||inPause(st.id)) return;
     if(wageOf(st.id)<0.8&&Math.random()<0.14){
-      S.staff[st.id]=false; fireStaff(st.id); rep(-1);
+      S.staff[st.id]=false; fireStaff(st.id); rep(WIRT.ruf.kuendigung);
       toast(`${st.name} hat gekündigt. Für den Lohn macht das keiner lange.`,'bad');
     }
   });
@@ -27966,7 +27998,7 @@ function vsBuchen(b,spieler){
   statAdd('pakete',1);
   const i=S.bestellungen.indexOf(b); if(i>=0) S.bestellungen.splice(i,1);
   vsSync(); drawPackSchild();
-  if(spieler){ addXP(3); sfx.cash(); toast(`Paket #${b.id} fertig: +${eur(w)}${porto?` · Porto ${eur(porto)}`:''}`,'money'); }
+  if(spieler){ addXP(WIRT.xp.paketGepackt); sfx.cash(); toast(`Paket #${b.id} fertig: +${eur(w)}${porto?` · Porto ${eur(porto)}`:''}`,'money'); }
 }
 
 /* Palettenplaetze, Stapeln, Zwischenabholung und Abholung stehen seit 07.10. in
@@ -28837,7 +28869,7 @@ function vmSpielerEinraeumen(i){
   const c=S.carrying; if(!c||!c.vm) return;
   if(i>=packStufe()) return;
   if(!vmHatPlatz(i,c.vm)){ toast(`Im Regal ist kein Platz mehr für ${VM[c.vm].name}.`,'bad'); return; }
-  vmEinlagern(i,c.vm); S.carrying=null; sfx.pop(); updateCarry(); addXP(1);
+  vmEinlagern(i,c.vm); S.carrying=null; sfx.pop(); updateCarry(); addXP(WIRT.xp.packmaterialEinlagern);
 }
 /* Q mit Versandmaterial in der Hand: abstellen gibt es nicht - es kommt
    ins Regal. Nur wenn alle Regale voll sind, in das mit dem meisten Platz */
@@ -33341,7 +33373,7 @@ function igniteType(t,o0,it){
   /* Vorfuehrung (Entwicklung): kein Hype, keine Erfahrung - sonst ging
      nach gut zwanzig Zuendungen das Level-Fenster auf und fing die Tasten */
   if(!(typeof vfAn!=='undefined'&&vfAn)){
-    hype=Math.min(100,hype+p.hype); DS.burned=r2(DS.burned+costOf(t)); addXP(Math.max(1,Math.round(p.hype/3)));
+    hype=Math.min(100,hype+p.hype); DS.burned=r2(DS.burned+costOf(t)); addXP(Math.max(WIRT.xp.zuenden.min,Math.round(p.hype/WIRT.xp.zuenden.hypeTeiler)));
     statAdd('gezuendet',1); statAdd('hype',p.hype); }
   else vfGezuendet++;
   if(SHOWS[t]){ const tag=neuerShowTag(); emitters.push({t:0.8,k:'fuse',o}); later(0.8,()=>playShow(o,SHOWS[t](),t,tag)); return; }
@@ -48221,7 +48253,7 @@ function cleanTick(d,first){
   if(dirts.indexOf(d)<0) return;
   d.work+=first?0.12:0.16;
   wischeSpieler(d); dreckAnteil(d,1-d.work);
-  if(d.work>=1){ removeDirt(d); sfx.pop(); addXP(3); S.tut.clean=true; }
+  if(d.work>=1){ removeDirt(d); sfx.pop(); addXP(WIRT.xp.dreckWeg); S.tut.clean=true; }
 }
 function pressAction(){ ac(); doAction(); repeatT=0.3; }
 function holdRepeat(dt){
@@ -48637,7 +48669,7 @@ function goalAdd(kind,n){
   const g=S&&S.goal; if(!g||g.done||g.kind!==kind) return;
   g.have=r2(g.have+n);
   if(g.have>=g.need){ g.done=true;
-    S.money=r2(S.money+g.pay); addXP(Math.round(g.pay/3),'Wochenziel geschafft'); sfx.cash();
+    S.money=r2(S.money+g.pay); addXP(Math.round(g.pay/WIRT.xp.wochenzielTeiler),'Wochenziel geschafft'); sfx.cash();
     toast(`Wochenziel geschafft: ${g.name}. ${eur(g.pay)} Prämie.`,'money'); }
 }
 function goalTick(){
@@ -48733,7 +48765,7 @@ function endDay(){
   clearStations();
   addGrime(0.06); staffMorale();
   const ev=todayEvent();
-  if(ev&&ev.pruef){ if(cleanliness()>=70){ rep(3); toast('Die Prüfung war zufrieden. Das hebt den Ruf.','money'); } else { rep(-5); toast('Die Prüfung hat einen dreckigen Laden vorgefunden.','bad'); } }
+  if(ev&&ev.pruef){ if(cleanliness()>=WIRT.ruf.pruefungSauberAb){ rep(WIRT.ruf.pruefungGut); toast('Die Prüfung war zufrieden. Das hebt den Ruf.','money'); } else { rep(WIRT.ruf.pruefungSchlecht); toast('Die Prüfung hat einen dreckigen Laden vorgefunden.','bad'); } }
   /* 09.10. (Tom): keine Abholung um 22 Uhr mehr - DDL kommt nur auf Anruf. Pakete, die
      schon seit gestern auf den Paletten liegen, aergern die Kunden (Lieferzeit). */
   const paketeJetzt=typeof vsGelandet==='function'&&packTisch?vsGelandet():0;
@@ -49042,7 +49074,7 @@ function buyLizenz(id){
   S.lic=(S.lic||[]).concat(id);
   /* Startpreise der neuen Ware auf Marktniveau */
   l.items.forEach(t=>{ if(P[t]) S.prices[t]=marketOf(t); });
-  sfx.cash(); addXP(Math.round(l.cost/14)+30,'Lizenz');
+  sfx.cash(); addXP(Math.round(l.cost/WIRT.xp.lizenz.teiler)+WIRT.xp.lizenz.bonus,'Lizenz');
   toast(`${l.name} freigeschaltet: ${l.items.filter(t=>P[t]).map(t=>P[t].short).join(', ')}.`,'money');
   save();
 }
@@ -49203,7 +49235,7 @@ function buyPack(id){
   const worth=r2(items.reduce((a,t)=>a+costOf(t)*P[t].box,0));
   sfx.cash(); toast(`${pk.name}: ${txt}`,'money');
   later(0.6,()=>toast(worth>preis?`Einkaufswert ${eur(worth)}. Guter Griff.`:`Einkaufswert ${eur(worth)}. Diesmal Pech.`,worth>preis?'money':'bad'));
-  addXP(20,'Wundertüte'); S.tut.order=true; save();
+  addXP(WIRT.xp.restposten,'Wundertüte'); S.tut.order=true; save();
 }
 /* =========================================================
    Restposten (Tom, 26.09.): kein festes Regal mit Wundertueten mehr.
@@ -49260,7 +49292,7 @@ function buyAngebot(id){
   const worth=r2(items.reduce((s2,t)=>s2+costOf(t)*P[t].box,0));
   sfx.cash(); toast(`${pk.name}: ${txt}`,'money');
   later(0.6,()=>toast(worth>a.preis?`Einkaufswert ${eur(worth)}. Guter Griff.`:`Einkaufswert ${eur(worth)}. Diesmal Pech.`,worth>a.preis?'money':'bad'));
-  addXP(20,'Restposten'); S.tut.order=true; save();
+  addXP(WIRT.xp.restposten,'Restposten'); S.tut.order=true; save();
 }
 /* =========================================================
    Warenkorb-Maske: eigene Ansicht ueber dem Laptop
@@ -50540,7 +50572,7 @@ function buyUp(id){
       else if(id==='eingang2'){ setEingang2(true); toast('Der zweite Eingang ist offen. Kunden nehmen ab jetzt die Tür, die näher liegt.','money'); }
       else if(id.indexOf('rampe')===0) toast(`${u.name.split(' ')[0]} Andockstation geht in Betrieb. Das Tor ist frei.`,'money');
       else if(id==='packstation'){ drawPackSchild(); toast(S.up.onlineshop?'Die Packstation steht. Ab jetzt kommen Onlinebestellungen als Pakete herein.':'Die Packstation steht. Für den Versand brauchst du noch den Onlineshop.','money'); }
-      addXP(Math.round(cost/12),'Ausbau'); sfx.cash(); save(); return;
+      addXP(Math.round(cost/WIRT.xp.ausbauTeiler),'Ausbau'); sfx.cash(); save(); return;
     }
     if(id==='onlineshop'){ drawPackSchild(); }
 
@@ -50551,12 +50583,12 @@ function buyUp(id){
     else if(id==='regallicht'){ shelfLight.intensity=0.8; shelfStrips.forEach(m=>m.emissiveIntensity=1.5); }
     else toast(`${u.name} eingebaut.`);
   }
-  addXP(Math.round(cost/12),'Ausbau'); sfx.cash(); save();
+  addXP(Math.round(cost/WIRT.xp.ausbauTeiler),'Ausbau'); sfx.cash(); save();
 }
 function buyDeko(id){
   const d=DEKO.find(x=>x.id===id); if(!d||S.level<d.lvl||S.money<d.cost) return;
   S.money=r2(S.money-d.cost); DS.upgrades=r2(DS.upgrades+d.cost);
-  createDeko(id,null); sfx.cash(); addXP(Math.round(d.cost/12),'Deko'); toast(`${d.name} aufgestellt. Verschieben: anschauen und F.`); save();
+  createDeko(id,null); sfx.cash(); addXP(Math.round(d.cost/WIRT.xp.ausbauTeiler),'Deko'); toast(`${d.name} aufgestellt. Verschieben: anschauen und F.`); save();
 }
 function setWall(id){ const w=WALLS.find(x=>x.id===id); if(!w||S.level<w.lvl||S.wall===id) return;
   const paid=(S.paint||[]).indexOf(id)>=0;
@@ -52238,7 +52270,7 @@ function kapitelAufstieg(nr){
   $('kapBanner').classList.add('show');
   sfx.level(); later(0.35,()=>sfx.level());
   clearTimeout(kapT); kapT=setTimeout(()=>$('kapBanner').classList.remove('show'),4200);
-  addXP(40,'Neues Kapitel');
+  addXP(WIRT.xp.kapitel,'Neues Kapitel');
 }
 
 /* =========================================================
@@ -52290,11 +52322,11 @@ function updateSchweber(dt){
 /* Serie: zufriedene Kunden am Stueck. Wer ohne Wunsch geht oder
    die Geduld verliert, beendet sie. */
 let serie=0;
-const SERIE_STUFEN=[5,10,20,35,50,75,100];
+const SERIE_STUFEN=WIRT.xp.serieStufen;
 function serieZufrieden(){
   serie++;
   if(SERIE_STUFEN.indexOf(serie)>=0){
-    const bonus=serie*6; addXP(bonus,'Serie');
+    const bonus=serie*WIRT.xp.serieJeKunde; addXP(bonus,'Serie');
     toast(`Serie: ${serie} zufriedene Kunden am Stück! +${bonus} XP`,'money'); sfx.level();
   }
 }

@@ -271,7 +271,7 @@ function staffMorale(){
   STAFF.forEach(st=>{
     if(!S.staff[st.id]||inPause(st.id)) return;
     if(wageOf(st.id)<0.8&&Math.random()<0.14){
-      S.staff[st.id]=false; fireStaff(st.id); rep(-1);
+      S.staff[st.id]=false; fireStaff(st.id); rep(WIRT.ruf.kuendigung);
       toast(`${st.name} hat gekündigt. Für den Lohn macht das keiner lange.`,'bad');
     }
   });

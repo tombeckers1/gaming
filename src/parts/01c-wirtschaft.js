@@ -148,14 +148,44 @@ const WIRT={
     automat:45          // € je Tag mit Deko "Getraenkeautomat"
   },
   /* ---------- Ruf (0..100) ---------- */
+  /* Jede Aenderung geht ueber rep(d) und wird auf 0..100 geklemmt. Ruf wirkt auf: Kunden je Tag
+     (0,55 + Ruf/100), Preistoleranz (+Ruf/900), Geduld (+0,3*Ruf), Online-Besucher und -Pauschale. */
   ruf:{
+    kaufOk:0.8,         // Kunde hat alles bekommen und bezahlt
+    kaufMitFehl:0.2,    // bezahlt, aber ein Wunsch fehlte
+    fehlwunsch:-0.4,    // Fach leer / Ware nicht da (je Wunsch)
+    leerGegangen:-0.3,  // geht ganz ohne Ware
+    zuTeuer:-0.5,       // "Viel zu teuer!" (Preis ueber Toleranz)
+    geduldWeg:-2,       // "Dauert mir zu lange!"
+    diebGestellt:0.6, diebEntkommen:-1.8,
+    sbAllein:-0.4,      // SB-Kunde kam allein nicht weiter
+    sbHilfe:0.1,        // ihm wurde geholfen
+    auftragErfuellt:2.5, auftragVerfehlt:-4,   // Grossauftraege (Telefon)
+    pruefungGut:3, pruefungSchlecht:-5, pruefungSauberAb:70,   // Ereignis "Gewerbeaufsicht": Sauberkeit >= 70
+    kuendigung:-1,      // Mitarbeiter kuendigt wegen Mindestlohn
     kontoMinus:-3       // je Tagesabschluss mit Konto < 0
   },
   /* ---------- Erfahrung ---------- */
+  /* Level-Kurve: XP bis zum naechsten Level = round(a * Level^exp). Level schaltet Lizenzen,
+     Ausbauten, Personal, Kredite frei - Geld und Level sind getrennte Kurven (ist-analyse 3.3). */
   xp:{
+    kurve:{a:50,exp:1.55},
+    kunde:{jeEuro:0.5,grund:4,barPassend:3},          // je bezahltem Einkauf; +3 wenn bar ohne Rueckgeld-Fehler
     tag:{grund:60,jeUmsatz:0.05,ohneBeschwerde:40},   // Tages-XP = grund + Umsatz*jeUmsatz + (keiner genervt ? ohneBeschwerde : 0)
     jahr:200,           // XP fuer ein volles Jahr
-    kreditGetilgt:40
+    kreditGetilgt:40,
+    kapitel:40,
+    /* Geld ausgeben bringt XP (Luecke fuers Balancing: Level folgt Ausgaben) */
+    ausbauTeiler:12,                 // Ausbau/Deko: Kosten/12
+    lizenz:{teiler:14,bonus:30},     // Lizenz: Kosten/14 + 30
+    herausforderung:{teiler:10,bonus:25},   // Praemie/10 + 25
+    wochenzielTeiler:3,              // Wochenziel: Praemie/3
+    auftragAngenommen:20, auftragErfuellt:{jeEuro:0.4,grund:40},
+    restposten:20,                   // Wundertuete / Restposten-Angebot gekauft
+    eigeneRezeptur:180,
+    zuenden:{hypeTeiler:3,min:1},    // je gezuendetem Stueck: max(1, Hype/3)
+    serieStufen:[5,10,20,35,50,75,100], serieJeKunde:6,   // Serie zufriedener Kunden: n*6 XP an den Stufen
+    diebGestellt:25, regalAufbau:12, einbau:20, gravur:12, paketGepackt:3, dreckWeg:3, fensterPutzen:4, sbHilfe:4, packmaterialEinlagern:1
   },
   /* ---------- Nie aendern: historische Preise fuer Spielstand-Migrationen (18-save) ----------
      Wer alte Ausbauten hatte, bekommt GENAU das zurueck, was er damals bezahlt hat -
@@ -174,6 +204,8 @@ const WF={
   /* kleine Zahlen als Wort ("über acht"), sonst Ziffern */
   zahlwort:(n)=>['null','eins','zwei','drei','vier','fünf','sechs','sieben','acht','neun','zehn','elf','zwölf','dreizehn','vierzehn','fünfzehn','sechzehn','siebzehn','achtzehn','neunzehn','zwanzig'][n]||String(n),
   /* Marktplatz-Pauschale des Onlineshops je Tag (16-day endDay, Laptop-Anzeige, sim.js) */
+  /* XP bis zum naechsten Level (xpFor in 02-data) */
+  xpBis:(l)=>Math.round(WIRT.xp.kurve.a*Math.pow(l,WIRT.xp.kurve.exp)),
   onlinePauschale:(ruf,level)=>Math.round(WIRT.versand.pauschale.grund+ruf*WIRT.versand.pauschale.jeRuf+level*WIRT.versand.pauschale.jeLevel)
 };
 

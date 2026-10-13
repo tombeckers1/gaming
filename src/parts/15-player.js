@@ -439,7 +439,7 @@ function cleanTick(d,first){
   if(dirts.indexOf(d)<0) return;
   d.work+=first?0.12:0.16;
   wischeSpieler(d); dreckAnteil(d,1-d.work);
-  if(d.work>=1){ removeDirt(d); sfx.pop(); addXP(3); S.tut.clean=true; }
+  if(d.work>=1){ removeDirt(d); sfx.pop(); addXP(WIRT.xp.dreckWeg); S.tut.clean=true; }
 }
 function pressAction(){ ac(); doAction(); repeatT=0.3; }
 function holdRepeat(dt){

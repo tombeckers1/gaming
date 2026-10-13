@@ -195,7 +195,7 @@ function buyLizenz(id){
   S.lic=(S.lic||[]).concat(id);
   /* Startpreise der neuen Ware auf Marktniveau */
   l.items.forEach(t=>{ if(P[t]) S.prices[t]=marketOf(t); });
-  sfx.cash(); addXP(Math.round(l.cost/14)+30,'Lizenz');
+  sfx.cash(); addXP(Math.round(l.cost/WIRT.xp.lizenz.teiler)+WIRT.xp.lizenz.bonus,'Lizenz');
   toast(`${l.name} freigeschaltet: ${l.items.filter(t=>P[t]).map(t=>P[t].short).join(', ')}.`,'money');
   save();
 }
@@ -356,7 +356,7 @@ function buyPack(id){
   const worth=r2(items.reduce((a,t)=>a+costOf(t)*P[t].box,0));
   sfx.cash(); toast(`${pk.name}: ${txt}`,'money');
   later(0.6,()=>toast(worth>preis?`Einkaufswert ${eur(worth)}. Guter Griff.`:`Einkaufswert ${eur(worth)}. Diesmal Pech.`,worth>preis?'money':'bad'));
-  addXP(20,'Wundertüte'); S.tut.order=true; save();
+  addXP(WIRT.xp.restposten,'Wundertüte'); S.tut.order=true; save();
 }
 /* =========================================================
    Restposten (Tom, 26.09.): kein festes Regal mit Wundertueten mehr.
@@ -413,7 +413,7 @@ function buyAngebot(id){
   const worth=r2(items.reduce((s2,t)=>s2+costOf(t)*P[t].box,0));
   sfx.cash(); toast(`${pk.name}: ${txt}`,'money');
   later(0.6,()=>toast(worth>a.preis?`Einkaufswert ${eur(worth)}. Guter Griff.`:`Einkaufswert ${eur(worth)}. Diesmal Pech.`,worth>a.preis?'money':'bad'));
-  addXP(20,'Restposten'); S.tut.order=true; save();
+  addXP(WIRT.xp.restposten,'Restposten'); S.tut.order=true; save();
 }
 /* =========================================================
    Warenkorb-Maske: eigene Ansicht ueber dem Laptop
@@ -1693,7 +1693,7 @@ function buyUp(id){
       else if(id==='eingang2'){ setEingang2(true); toast('Der zweite Eingang ist offen. Kunden nehmen ab jetzt die Tür, die näher liegt.','money'); }
       else if(id.indexOf('rampe')===0) toast(`${u.name.split(' ')[0]} Andockstation geht in Betrieb. Das Tor ist frei.`,'money');
       else if(id==='packstation'){ drawPackSchild(); toast(S.up.onlineshop?'Die Packstation steht. Ab jetzt kommen Onlinebestellungen als Pakete herein.':'Die Packstation steht. Für den Versand brauchst du noch den Onlineshop.','money'); }
-      addXP(Math.round(cost/12),'Ausbau'); sfx.cash(); save(); return;
+      addXP(Math.round(cost/WIRT.xp.ausbauTeiler),'Ausbau'); sfx.cash(); save(); return;
     }
     if(id==='onlineshop'){ drawPackSchild(); }
 
@@ -1704,12 +1704,12 @@ function buyUp(id){
     else if(id==='regallicht'){ shelfLight.intensity=0.8; shelfStrips.forEach(m=>m.emissiveIntensity=1.5); }
     else toast(`${u.name} eingebaut.`);
   }
-  addXP(Math.round(cost/12),'Ausbau'); sfx.cash(); save();
+  addXP(Math.round(cost/WIRT.xp.ausbauTeiler),'Ausbau'); sfx.cash(); save();
 }
 function buyDeko(id){
   const d=DEKO.find(x=>x.id===id); if(!d||S.level<d.lvl||S.money<d.cost) return;
   S.money=r2(S.money-d.cost); DS.upgrades=r2(DS.upgrades+d.cost);
-  createDeko(id,null); sfx.cash(); addXP(Math.round(d.cost/12),'Deko'); toast(`${d.name} aufgestellt. Verschieben: anschauen und F.`); save();
+  createDeko(id,null); sfx.cash(); addXP(Math.round(d.cost/WIRT.xp.ausbauTeiler),'Deko'); toast(`${d.name} aufgestellt. Verschieben: anschauen und F.`); save();
 }
 function setWall(id){ const w=WALLS.find(x=>x.id===id); if(!w||S.level<w.lvl||S.wall===id) return;
   const paid=(S.paint||[]).indexOf(id)>=0;

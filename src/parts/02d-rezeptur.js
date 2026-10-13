@@ -192,7 +192,7 @@ function rezepteTick(){
     e.rest--;
     if(e.rest<=0){ e.fertig=true; eigenesEintragen(e); neu++;
       toast(`${e.name} ist fertig entwickelt und steht im Bestellkatalog.`,'money');
-      statAdd('eigene',1); addXP(180,'Eigene Rezeptur'); }
+      statAdd('eigene',1); addXP(WIRT.xp.eigeneRezeptur,'Eigene Rezeptur'); }
   });
   return neu;
 }

@@ -751,7 +751,7 @@ const DEKOSPOTS=[{x:-7.1,z:3.2},{x:-7.1,z:-3.6},{x:-6.2,z:1.2},{x:-3.4,z:3.4},{x
   {x:21.0,z:4.6,zone:'shop_ost'},{x:36.5,z:4.6,zone:'shop_ost'},
   {x:9.5,z:-7.5,zone:'shop_sued'},{x:36.0,z:-7.5,zone:'shop_sued'},
   {x:9.5,z:-19.0,zone:'shop_sued'},{x:36.0,z:-19.0,zone:'shop_sued'}];
-function xpFor(l){ return Math.round(50*Math.pow(l,1.55)); }
+function xpFor(l){ return WF.xpBis(l); }   /* Kurve: WIRT.xp.kurve */
 
 /* =========================================================
    Tagesereignisse: jeder Tag bekommt eine eigene Färbung

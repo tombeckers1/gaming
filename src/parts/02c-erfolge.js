@@ -170,7 +170,7 @@ function erfBelohnen(e,stufe){
     DS.praemien=r2((DS.praemien||0)+geld);
     toast(`${e.name}: ${eur(geld)} Prämie.`,'money');
   }
-  addXP(Math.round(geld/10)+25,'Herausforderung');
+  addXP(Math.round(geld/WIRT.xp.herausforderung.teiler)+WIRT.xp.herausforderung.bonus,'Herausforderung');
   sfx.level();
 }
 function erfolgPruefen(id){

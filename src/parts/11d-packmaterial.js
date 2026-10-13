@@ -317,7 +317,7 @@ function vmSpielerEinraeumen(i){
   const c=S.carrying; if(!c||!c.vm) return;
   if(i>=packStufe()) return;
   if(!vmHatPlatz(i,c.vm)){ toast(`Im Regal ist kein Platz mehr für ${VM[c.vm].name}.`,'bad'); return; }
-  vmEinlagern(i,c.vm); S.carrying=null; sfx.pop(); updateCarry(); addXP(1);
+  vmEinlagern(i,c.vm); S.carrying=null; sfx.pop(); updateCarry(); addXP(WIRT.xp.packmaterialEinlagern);
 }
 /* Q mit Versandmaterial in der Hand: abstellen gibt es nicht - es kommt
    ins Regal. Nur wenn alle Regale voll sind, in das mit dem meisten Platz */

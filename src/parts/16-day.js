@@ -87,7 +87,7 @@ function goalAdd(kind,n){
   const g=S&&S.goal; if(!g||g.done||g.kind!==kind) return;
   g.have=r2(g.have+n);
   if(g.have>=g.need){ g.done=true;
-    S.money=r2(S.money+g.pay); addXP(Math.round(g.pay/3),'Wochenziel geschafft'); sfx.cash();
+    S.money=r2(S.money+g.pay); addXP(Math.round(g.pay/WIRT.xp.wochenzielTeiler),'Wochenziel geschafft'); sfx.cash();
     toast(`Wochenziel geschafft: ${g.name}. ${eur(g.pay)} Prämie.`,'money'); }
 }
 function goalTick(){
@@ -183,7 +183,7 @@ function endDay(){
   clearStations();
   addGrime(0.06); staffMorale();
   const ev=todayEvent();
-  if(ev&&ev.pruef){ if(cleanliness()>=70){ rep(3); toast('Die Prüfung war zufrieden. Das hebt den Ruf.','money'); } else { rep(-5); toast('Die Prüfung hat einen dreckigen Laden vorgefunden.','bad'); } }
+  if(ev&&ev.pruef){ if(cleanliness()>=WIRT.ruf.pruefungSauberAb){ rep(WIRT.ruf.pruefungGut); toast('Die Prüfung war zufrieden. Das hebt den Ruf.','money'); } else { rep(WIRT.ruf.pruefungSchlecht); toast('Die Prüfung hat einen dreckigen Laden vorgefunden.','bad'); } }
   /* 09.10. (Tom): keine Abholung um 22 Uhr mehr - DDL kommt nur auf Anruf. Pakete, die
      schon seit gestern auf den Paletten liegen, aergern die Kunden (Lieferzeit). */
   const paketeJetzt=typeof vsGelandet==='function'&&packTisch?vsGelandet():0;

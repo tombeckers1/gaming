@@ -415,8 +415,8 @@ function sbGeholfen(l,wer){
   sbLampe(l,false);
   if(!c||c.state!=='sbHilfe') return;
   c.state='sbPay';
-  if(wer){ c.say(pick(['Danke!','Ah, so geht das.','Super, danke!'])); DS.sbHilfe=(DS.sbHilfe||0)+1; rep(0.1); sfx.beep(); }
-  if(wer==='spieler'){ addXP(4,'SB-Hilfe'); }
+  if(wer){ c.say(pick(['Danke!','Ah, so geht das.','Super, danke!'])); DS.sbHilfe=(DS.sbHilfe||0)+1; rep(WIRT.ruf.sbHilfe); sfx.beep(); }
+  if(wer==='spieler'){ addXP(WIRT.xp.sbHilfe,'SB-Hilfe'); }
 }
 let sbHinweisZeit=-1e9;
 function sbHinweisOk(){ const t=performance.now(); if(t-sbHinweisZeit<45000) return false; sbHinweisZeit=t; return true; }

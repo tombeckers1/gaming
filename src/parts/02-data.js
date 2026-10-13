@@ -503,14 +503,14 @@ function seasonInfo(n){
 const WDMULT=[0.55,0.82,0.84,0.9,1.0,1.28,1.35];
 function dayMult(n){ const i=dateInfo(n); return seasonInfo(n)[0]*WDMULT[i.wd]; }
 function silvesterNah(n){ const i=dateInfo(n); return i.m===11&&i.d>=26; }
-const OPEN_T=480, CLOSE_T=1320, MIN_PER_SEC=840/330;
+const OPEN_T=WIRT.zeit.oeffnen, CLOSE_T=WIRT.zeit.schliessen, MIN_PER_SEC=(CLOSE_T-OPEN_T)/WIRT.zeit.echtzeitSek;
 /* Jede Bestellung ist eine Lieferung: kurzer Vorlauf, bis der Lieferant
    an der Rampe steht, dazu eine kleine Liefergebuehr, die ab einem
    groesseren Warenwert entfaellt. */
 const SHOP_DEFAULT='Feuerwerksladen', SLOGAN_DEFAULT='Feuerwerk · Silvester · seit 1998';
 function shopName(){ return (S&&S.shopName)||SHOP_DEFAULT; }
 function shopSlogan(){ return (S&&S.slogan!==undefined&&S.slogan!==null)?S.slogan:SLOGAN_DEFAULT; }
-const LIEFERZEIT_SEK=5, VERSAND=5.9, VERSANDFREI=150;
+const LIEFERZEIT_SEK=WIRT.einkauf.lieferSek, VERSAND=WIRT.einkauf.liefergebuehr, VERSANDFREI=WIRT.einkauf.lieferfreiAb;   /* 01c-wirtschaft.js */
 function lieferSek(){ return LIEFERZEIT_SEK; }
 /* Regaltypen. Klein ist der Einstieg, der Kühlschrank nimmt nur Sekt & Co. */
 /* Faecher (Tom, 01.10.): alle Faecher eines Regals sind gleich hoch -

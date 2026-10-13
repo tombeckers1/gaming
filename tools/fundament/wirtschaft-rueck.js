@@ -24,10 +24,11 @@ for(const f of dateien){
   const neu=fs.readFileSync(path.join(W,f),'utf8');
   let alt=''; try{ alt=cp.execSync(`git -C ${W} show ${BASIS}:${f}`,{encoding:'utf8',maxBuffer:64<<20}); }catch(e){ console.log(f+': neu (kein Gegenstueck im Ausgangsstand)'); continue; }
   /* WIRT.x.y / WIRT.x['y'] / WIRT.x[3] -> Wert, wenn es eine Zahl ist */
-  const ersetzt=neu.replace(/WIRT((?:\.[A-Za-z_$][\w$]*|\[\d+\]|\['[^']+'\])+)/g,(m,p)=>{
+  /* beide Seiten ruecksetzen: so geht auch der Vergleich gegen einen Zwischenstand */
+  const rueck=t=>t.replace(/WIRT((?:\.[A-Za-z_$][\w$]*|\[\d+\]|\['[^']+'\])+)/g,(m,p)=>{
     const teile=[...p.matchAll(/\.([A-Za-z_$][\w$]*)|\[(\d+)\]|\['([^']+)'\]/g)].map(x=>x[1]||x[2]||x[3]);
     const v=wert(teile); return typeof v==='number'?String(v):m; });
-  const a=zahl(alt).split('\n'), b=zahl(ersetzt).split('\n');
+  const a=zahl(rueck(alt)).split('\n'), b=zahl(rueck(neu)).split('\n');
   fs.writeFileSync(TA,a.join('\n')); fs.writeFileSync(TB,b.join('\n'));
   let d=''; try{ cp.execSync(`diff -w ${TA} ${TB}`,{encoding:'utf8'}); }catch(e){ d=e.stdout||''; }
   const zeilen=d.split('\n').filter(l=>l.startsWith('<')||l.startsWith('>'));

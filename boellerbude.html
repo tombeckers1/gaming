@@ -847,6 +847,54 @@ const WIRT={
     level:1,
     startDoy:273        // Tag 0 = 1. Oktober (Tag im Jahr) -> Silvester nach ~92 Tagen
   },
+  /* ---------- Tageslaenge ---------- */
+  zeit:{
+    oeffnen:480,        // Spielminute 08:00
+    schliessen:1320,    // Spielminute 22:00
+    echtzeitSek:330     // ein Verkaufstag dauert 330 s echte Zeit (MIN_PER_SEC = 840/330).
+                        // Wirkt auf: Kunden je Tag (Takt in Sekunden), Online-Bestelltakt (11c)
+  },
+  /* ---------- Einkauf beim Lieferanten (Wareneingang) ---------- */
+  einkauf:{
+    lieferSek:5,        // s bis die Lieferung da ist (x Ereignis "Stau" 2,1)
+    liefergebuehr:5.9,  // € je Bestellung (VERSAND - Namensfalle: das ist der EINGANG, nicht der Onlineversand)
+    lieferfreiAb:150    // € Warenwert, ab dem die Liefergebuehr entfaellt (VERSANDFREI)
+  },
+  /* ---------- Onlineshop / Versand (Ausgang) ----------
+     Quellen siehe 11c-versand.js Kopf "Versand-Wirtschaft": Baymard 2024/25 (39-48 % Abbrueche wegen
+     Zusatzkosten), Lewis/Singh/Fay 2006, UPS Pulse 2014 (58 % stocken auf), Bijmolt et al. 2005 (-2,62). */
+  versand:{
+    std:{kosten:4.9,frei:50},        // Voreinstellung = "Nachfrage 100 %" (vsQuoteStd)
+    kostenMax:20, freiMax:300,       // Regler-Grenzen im Laptop
+    porto:{1:2.0,3:3.5,6:5.0},       // € an DDL je Paket S/M/L (VS_PORTO)
+    /* Abbruch: Kunde mit Warenkorb w nimmt Versand v hin mit p = exp(-k*(v/(a*w+b))^2) */
+    abbruch:{k:0.75,a:0.2,b:2.5},    // 4,90 € auf 25 € -> 73 % kaufen, 20 € -> fast niemand
+    korb:[5,9,13,18,22,28,38,55,95], // € Warenkorb-Quantile (gemessen L25-34) fuer die Anzeige "Nachfrage x %"
+    aufstocken:{ab:0.7,anteil:0.6,maxSchritte:4},  // ab 70 % der Gratis-Schwelle legen 60 % etwas dazu (UPS 2014: 58 %)
+    sale:{allesElast:-1.5,produktElast:-2.62,produktNeu:0.5,allesMax:50,produktMin:5,produktMax:70},
+    /* Besucher je Tag = clamp(round(grund + jeRuf*Ruf + jeLevel*Level), min, max) x Stufe x Sale / Standardquote */
+    basis:{grund:4,jeRuf:0.12,jeLevel:0.35,min:4,max:22},
+    stufeMul:[1,1,1.45,1.9],         // Packstation Stufe 0..3 (mehr Packplaetze -> mehr Bestellungen)
+    onlineDeckel:1.3,                // Onlinepreis hoechstens 130 % vom Marktpreis
+    paketwertSchaetzung:{grund:12,jeLevel:0.6},  // € Anzeige, solange keine Bestellung offen ist
+    /* Bestellgroesse: Anteil S / bis M, ab Level spaetAb grosszuegiger */
+    groesse:{anteilS:0.68,bisM:0.94,spaetAb:22,spaetS:0.5,spaetBisM:0.85},
+    /* Marktplatz-Pauschale je Tag ab Onlineshop (auch mit Packstation, ohne Kosten):
+       round(grund + jeRuf*Ruf + jeLevel*Level) - ist-analyse: ~52 % des Betriebsgewinns (fuers Balancing) */
+    pauschale:{grund:40,jeRuf:1.6,jeLevel:4},
+    ddl:{pauschale:39,anfahrtSek:20},  // € je Abholung (Herleitung 11e-palette.js Kopf), s Anfahrt
+    /* Ruf-Strafen am Abend */
+    strafe:{
+      offenAb:8, offenJe:0.12, offenMax:2,       // mehr als 8 offene Bestellungen: -0,12 je weitere, max -2
+      wartendJe:0.06, wartendMax:3               // Pakete seit gestern auf der Palette: -0,06 je Paket, max -3
+    },
+    /* Packmaterial: Preis je Gebinde, Stueck je Gebinde, Verbrauch je Paket S/M/L */
+    material:{
+      ks:{preis:8.9,stueck:25}, km:{preis:11.4,stueck:15}, kl:{preis:12.8,stueck:8},
+      folie:{preis:14.9,stueck:20}, band:{preis:9.9,stueck:48},
+      folieJe:{1:1,3:2,6:3}, bandJe:{1:1,3:1,6:2}
+    }
+  },
   /* ---------- Bank: Kredit, Dispo ---------- */
   kredit:{
     /* Kreditstufen (Kopie landet im Spielstand: {amount,remaining,term,rate,paid}).
@@ -902,7 +950,11 @@ const WF={
   /* Zahlen fuer Texte: deutsch, mit Tausenderpunkt; dez = Nachkommastellen */
   zahl:(v,dez)=>Number(v).toLocaleString('de-DE',{minimumFractionDigits:dez|0,maximumFractionDigits:dez|0}),
   /* "1.400 €" bzw. mit dez=2 "5,90 €" (normales Leerzeichen, anders als eur()) */
-  euro:(v,dez)=>WF.zahl(v,dez)+' €'
+  euro:(v,dez)=>WF.zahl(v,dez)+' €',
+  /* kleine Zahlen als Wort ("über acht"), sonst Ziffern */
+  zahlwort:(n)=>['null','eins','zwei','drei','vier','fünf','sechs','sieben','acht','neun','zehn','elf','zwölf','dreizehn','vierzehn','fünfzehn','sechzehn','siebzehn','achtzehn','neunzehn','zwanzig'][n]||String(n),
+  /* Marktplatz-Pauschale des Onlineshops je Tag (16-day endDay, Laptop-Anzeige, sim.js) */
+  onlinePauschale:(ruf,level)=>Math.round(WIRT.versand.pauschale.grund+ruf*WIRT.versand.pauschale.jeRuf+level*WIRT.versand.pauschale.jeLevel)
 };
 
 /* ---------- Tief einfrieren ---------- */
@@ -1415,14 +1467,14 @@ function seasonInfo(n){
 const WDMULT=[0.55,0.82,0.84,0.9,1.0,1.28,1.35];
 function dayMult(n){ const i=dateInfo(n); return seasonInfo(n)[0]*WDMULT[i.wd]; }
 function silvesterNah(n){ const i=dateInfo(n); return i.m===11&&i.d>=26; }
-const OPEN_T=480, CLOSE_T=1320, MIN_PER_SEC=840/330;
+const OPEN_T=WIRT.zeit.oeffnen, CLOSE_T=WIRT.zeit.schliessen, MIN_PER_SEC=(CLOSE_T-OPEN_T)/WIRT.zeit.echtzeitSek;
 /* Jede Bestellung ist eine Lieferung: kurzer Vorlauf, bis der Lieferant
    an der Rampe steht, dazu eine kleine Liefergebuehr, die ab einem
    groesseren Warenwert entfaellt. */
 const SHOP_DEFAULT='Feuerwerksladen', SLOGAN_DEFAULT='Feuerwerk · Silvester · seit 1998';
 function shopName(){ return (S&&S.shopName)||SHOP_DEFAULT; }
 function shopSlogan(){ return (S&&S.slogan!==undefined&&S.slogan!==null)?S.slogan:SLOGAN_DEFAULT; }
-const LIEFERZEIT_SEK=5, VERSAND=5.9, VERSANDFREI=150;
+const LIEFERZEIT_SEK=WIRT.einkauf.lieferSek, VERSAND=WIRT.einkauf.liefergebuehr, VERSANDFREI=WIRT.einkauf.lieferfreiAb;   /* 01c-wirtschaft.js */
 function lieferSek(){ return LIEFERZEIT_SEK; }
 /* Regaltypen. Klein ist der Einstieg, der Kühlschrank nimmt nur Sekt & Co. */
 /* Faecher (Tom, 01.10.): alle Faecher eines Regals sind gleich hoch -
@@ -27273,9 +27325,9 @@ function vsRy(i,ry){ return packTisch.rotation.y+ppRy(i,ry); }
      Pieters 2005, JMR 42) fuer Sale auf einzelne Produkte; fuer "Sale auf alles"
      -1,5 (weniger Markenwechsel, nur Mehrkauf).
    --------------------------------------------------------- */
-const VS_CFG_STD={kosten:4.9,frei:50,nie:false};
-const VS_PORTO={1:2.0,3:3.5,6:5.0};
-const VS_KOSTEN_MAX=20, VS_FREI_MAX=300;
+const VS_CFG_STD={kosten:WIRT.versand.std.kosten,frei:WIRT.versand.std.frei,nie:false};   /* Werte: 01c-wirtschaft.js (WIRT.versand) */
+const VS_PORTO=WIRT.versand.porto;
+const VS_KOSTEN_MAX=WIRT.versand.kostenMax, VS_FREI_MAX=WIRT.versand.freiMax;
 function vsCfg(){
   if(!S) return VS_CFG_STD;
   const c=S.versandCfg||(S.versandCfg={kosten:VS_CFG_STD.kosten,frei:VS_CFG_STD.frei,nie:false,v:2});
@@ -27288,24 +27340,24 @@ function vsCfg(){
 }
 /* Aktionen: S.aktion={proz, frei:Tag, rabatt:{produkt:proz}} */
 function vsAktion(){ if(!S) return {proz:0,frei:-1,rabatt:{}}; const a=S.aktion||(S.aktion={proz:0,frei:-1,rabatt:{}});
-  a.proz=clamp(Math.round(+a.proz||0),0,50); if(typeof a.frei!=='number') a.frei=-1; if(!a.rabatt||typeof a.rabatt!=='object') a.rabatt={};
-  for(const t in a.rabatt){ if(!P[t]||!(a.rabatt[t]>0)) delete a.rabatt[t]; else a.rabatt[t]=clamp(Math.round(a.rabatt[t]),5,70); }
+  a.proz=clamp(Math.round(+a.proz||0),0,WIRT.versand.sale.allesMax); if(typeof a.frei!=='number') a.frei=-1; if(!a.rabatt||typeof a.rabatt!=='object') a.rabatt={};
+  for(const t in a.rabatt){ if(!P[t]||!(a.rabatt[t]>0)) delete a.rabatt[t]; else a.rabatt[t]=clamp(Math.round(a.rabatt[t]),WIRT.versand.sale.produktMin,WIRT.versand.sale.produktMax); }
   return a; }
 function vsGratisHeute(){ return !!S&&vsAktion().frei===S.day; }
 /* Rabatt auf ein Produkt (0..0,7): der hoehere aus Sale-auf-alles und Produkt-Sale */
 function vsRabatt(t){ const a=vsAktion(); return Math.max(a.proz||0,a.rabatt[t]||0)/100; }
 function vsGebuehr(wert,cfg){ const c=cfg||vsCfg(); if(!cfg&&vsGratisHeute()) return 0; if(c.nie) return c.kosten; return wert>=c.frei?0:c.kosten; }
 /* Nimmt ein Kunde mit Warenkorb w die Versandkosten v hin? (Quellen oben) */
-function vsAnnahme(w,v){ if(!(v>0)) return 1; const r=v/(0.2*Math.max(0,w)+2.5); return Math.exp(-0.75*r*r); }
+function vsAnnahme(w,v){ if(!(v>0)) return 1; const r=v/(WIRT.versand.abbruch.a*Math.max(0,w)+WIRT.versand.abbruch.b); return Math.exp(-WIRT.versand.abbruch.k*r*r); }
 /* Warenkoerbe zur Bewertung einer Einstellung: gemessene Quantile der Online-
    bestellungen (Level 25-34, 3000 Stueck je Level: p10 5, Median 22, Mittel 35, p90 80 EUR) */
-const VS_KORB=[5,9,13,18,22,28,38,55,95];
+const VS_KORB=WIRT.versand.korb;
 /* Anteil der Kunden, die bei dieser Einstellung kaufen - mit Aufstocken an der Schwelle */
 function vsQuote(cfg,gratis){
   let a=0;
   for(const w of VS_KORB){
     let p=gratis?1:vsAnnahme(w,vsGebuehr(w,cfg));
-    if(!gratis&&!cfg.nie&&cfg.frei>0&&w<cfg.frei&&w>=cfg.frei*0.7) p=0.6*1+0.4*p;
+    if(!gratis&&!cfg.nie&&cfg.frei>0&&w<cfg.frei&&w>=cfg.frei*WIRT.versand.aufstocken.ab) p=WIRT.versand.aufstocken.anteil*1+(1-WIRT.versand.aufstocken.anteil)*p;
     a+=p; }
   return a/VS_KORB.length;
 }
@@ -27314,12 +27366,12 @@ function vsQuoteStd(){ return _vsQ0||(_vsQ0=vsQuote(VS_CFG_STD,false)); }
 /* Sale: mehr Kaeufe. Auf alles mit Elastizitaet -1,5; Produkt-Sale verschiebt die
    Wahl zu den reduzierten Produkten (-2,62) und bringt halb so viel Neugeschaeft dazu */
 function vsSaleFaktor(){
-  const a=vsAktion(); let f=Math.pow(1-(a.proz||0)/100,-1.5);
+  const a=vsAktion(); let f=Math.pow(1-(a.proz||0)/100,WIRT.versand.sale.allesElast);
   const ids=Object.keys(a.rabatt); if(ids.length){ const L=ORDER.filter(t=>vsOnline(t)); if(L.length){
-    let m=0; for(const t of L) m+=vsGewicht(t); m/=L.length; f*=1+0.5*(m-1); } }
+    let m=0; for(const t of L) m+=vsGewicht(t); m/=L.length; f*=1+WIRT.versand.sale.produktNeu*(m-1); } }
   return f;
 }
-function vsGewicht(t){ const d=(vsAktion().rabatt[t]||0)/100; return d>0?Math.pow(1-d,-2.62):1; }
+function vsGewicht(t){ const d=(vsAktion().rabatt[t]||0)/100; return d>0?Math.pow(1-d,WIRT.versand.sale.produktElast):1; }
 /* Nachfragefaktor fuer Anzeige und Takt: 1 = Standard (4,90 EUR, frei ab 50 EUR, kein Sale) */
 function vsNachfrage(){ return vsQuote(vsCfg(),vsGratisHeute())/vsQuoteStd()*vsSaleFaktor(); }
 
@@ -27329,13 +27381,13 @@ function vsNachfrage(){ return vsQuote(vsCfg(),vsGratisHeute())/vsQuoteStd()*vsS
 function paketWert(){
   const L=(S&&S.bestellungen)||[];
   if(L.length) return r2(L.reduce((a,b)=>a+b.wert,0)/L.length);
-  return r2(12+S.level*0.6);
+  return r2(WIRT.versand.paketwertSchaetzung.grund+S.level*WIRT.versand.paketwertSchaetzung.jeLevel);
 }
 /* Mehr Packplaetze, mehr Bestellungen: der Shop kann mehr Ware zeigen und
    schneller versprechen ("Delivery was too slow" ist bei Baymard der zweit-
    haeufigste Abbruchgrund, 20 %) */
-const VS_STUFE_MUL=[1,1,1.45,1.9];
-function vsBasis(){ return Math.max(4,Math.min(22,Math.round(4+S.rep*0.12+S.level*0.35))); }
+const VS_STUFE_MUL=WIRT.versand.stufeMul;
+function vsBasis(){ const B=WIRT.versand.basis; return Math.max(B.min,Math.min(B.max,Math.round(B.grund+S.rep*B.jeRuf+S.level*B.jeLevel))); }
 /* Erwartete Bestellungen an einem vollen Verkaufstag */
 function bestellungenProTag(){
   if(!packBereit()) return 0;
@@ -27355,7 +27407,7 @@ function vsKlasse(pos){
 /* Online zahlt der Kunde den Regalpreis, hoechstens aber 30 Prozent
    ueber Markt - sonst waere der Onlineshop ein Weg, Mondpreise
    ohne jede Kaufzurueckhaltung zu kassieren. */
-function vsListe(t){ return r2(Math.min(S.prices[t]||marketOf(t),marketOf(t)*1.3)); }
+function vsListe(t){ return r2(Math.min(S.prices[t]||marketOf(t),marketOf(t)*WIRT.versand.onlineDeckel)); }
 /* Onlinepreis mit Sale (Regulaer = Ladenpreis, Tom 09.10.) */
 function vsPreis(t){ return r2(vsListe(t)*(1-vsRabatt(t))); }
 function vsWertVon(pos){ return r2(pos.reduce((a,l)=>a+l.n*vsPreis(l.t),0)); }
@@ -27425,8 +27477,8 @@ function vsNeueBestellung(erz){
   const frei={}; const f=t=>frei[t]!==undefined?frei[t]:(frei[t]=vsBestand(t)-vsReserviert(t));
   const kand=ORDER.filter(t=>vsOnline(t)&&(erz||f(t)>0));
   if(!kand.length) return null;
-  const r=Math.random(), spaet=S.level>=22;
-  let ziel=r<(spaet?0.5:0.68)?1:r<(spaet?0.85:0.94)?3:6;
+  const G=WIRT.versand.groesse, r=Math.random(), spaet=S.level>=G.spaetAb;
+  let ziel=r<(spaet?G.spaetS:G.anteilS)?1:r<(spaet?G.spaetBisM:G.bisM)?3:6;
   while(ziel){
     const K=VS_GR[ziel], k2=kand.filter(t=>vsVol(t)<=K.vmax&&vsMass(t)<=K.mass);
     const unten=ziel===1?0:ziel===3?VS_GR[1].vmax:VS_GR[3].vmax;
@@ -27444,8 +27496,8 @@ function vsNeueBestellung(erz){
       /* Knapp unter der Versandfreigrenze legt mancher Kunde noch etwas
          dazu, damit der Versand nichts kostet */
       const cf=vsCfg();
-      if(!cf.nie&&cf.frei>0&&!vsGratisHeute()&&Math.random()<0.6){
-        for(let n=0;n<4&&vsWertVon(pos)<cf.frei&&vsWertVon(pos)>=cf.frei*0.7;n++){
+      if(!cf.nie&&cf.frei>0&&!vsGratisHeute()&&Math.random()<WIRT.versand.aufstocken.anteil){
+        for(let n=0;n<WIRT.versand.aufstocken.maxSchritte&&vsWertVon(pos)<cf.frei&&vsWertVon(pos)>=cf.frei*WIRT.versand.aufstocken.ab;n++){
           const l=pos[Math.floor(Math.random()*pos.length)], vol=pos.reduce((a,x)=>a+x.n*vsVol(x.t),0)+vsVol(l.t);
           if(vol>VS_GR[6].vmax||(!erz&&f(l.t)<1)) break;
           l.n++; if(!erz) frei[l.t]--; }
@@ -28402,7 +28454,7 @@ function updateVersand(dt){
   if(phase==='open'){
     /* Kunden kommen in den Shop; wer die Versandkosten nicht hinnimmt, bricht ab */
     versandT-=dt;
-    if(versandT<=0){ const n=vsBesucheProTag(); versandT=n>0?330/n:30;
+    if(versandT<=0){ const n=vsBesucheProTag(); versandT=n>0?WIRT.zeit.echtzeitSek/n:30;
       const b=n>0?vsNeueBestellung(false):null;
       if(b){ if(Math.random()<vsAnnahme(b.wert,b.versand)){ S.bestellungen.push(b); vsSync(); drawPackSchild(); }
         else { DS.onAbbr=(DS.onAbbr|0)+1; statAdd('abbruch',1); S.bestNr=Math.max(0,(S.bestNr|0)-1); } }
@@ -28444,17 +28496,19 @@ function vsLaden(){
    aus dem LKW holen und am Regal einraeumen (E).
    S.vm[i] ist der Bestand im Regal von Packplatz i.
    ========================================================= */
+const VMW=WIRT.versand.material;
 const VM={
-  ks:   {id:'ks',   name:'Versandkarton S',  kurz:'Karton S', gr:1,einheit:'Bündel', stueck:25,preis:8.9, kap:50,text:'25 flache Kartons für kleine Pakete'},
-  km:   {id:'km',   name:'Versandkarton M',  kurz:'Karton M', gr:3,einheit:'Bündel', stueck:15,preis:11.4,kap:30,text:'15 flache Kartons für große Pakete'},
-  kl:   {id:'kl',   name:'Versandkarton L',  kurz:'Karton L', gr:6,einheit:'Bündel', stueck:8, preis:12.8,kap:16,text:'8 flache Kartons für riesige Pakete'},
-  folie:{id:'folie',name:'Luftpolsterfolie', kurz:'Folie',          einheit:'Rolle',  stueck:20,preis:14.9,kap:60,text:'eine Rolle reicht für 20 kleine, 10 große oder 6 riesige Pakete'},
-  band: {id:'band', name:'Klebeband',        kurz:'Klebeband',      einheit:'Karton', stueck:48,preis:9.9, kap:96,text:'6 Rollen, zusammen für 48 kleine oder 24 riesige Pakete'}
+  /* Preis und Stueck je Gebinde: 01c-wirtschaft.js (WIRT.versand.material); Texte daraus */
+  ks:   {id:'ks',   name:'Versandkarton S',  kurz:'Karton S', gr:1,einheit:'Bündel', stueck:VMW.ks.stueck,preis:VMW.ks.preis, kap:50,text:`${VMW.ks.stueck} flache Kartons für kleine Pakete`},
+  km:   {id:'km',   name:'Versandkarton M',  kurz:'Karton M', gr:3,einheit:'Bündel', stueck:VMW.km.stueck,preis:VMW.km.preis,kap:30,text:`${VMW.km.stueck} flache Kartons für große Pakete`},
+  kl:   {id:'kl',   name:'Versandkarton L',  kurz:'Karton L', gr:6,einheit:'Bündel', stueck:VMW.kl.stueck, preis:VMW.kl.preis,kap:16,text:`${VMW.kl.stueck} flache Kartons für riesige Pakete`},
+  folie:{id:'folie',name:'Luftpolsterfolie', kurz:'Folie',          einheit:'Rolle',  stueck:VMW.folie.stueck,preis:VMW.folie.preis,kap:60,text:`eine Rolle reicht für ${Math.floor(VMW.folie.stueck/VMW.folieJe[1])} kleine, ${Math.floor(VMW.folie.stueck/VMW.folieJe[3])} große oder ${Math.floor(VMW.folie.stueck/VMW.folieJe[6])} riesige Pakete`},
+  band: {id:'band', name:'Klebeband',        kurz:'Klebeband',      einheit:'Karton', stueck:VMW.band.stueck,preis:VMW.band.preis, kap:96,text:`6 Rollen, zusammen für ${Math.floor(VMW.band.stueck/VMW.bandJe[1])} kleine oder ${Math.floor(VMW.band.stueck/VMW.bandJe[6])} riesige Pakete`}
 };
 const VM_IDS=['ks','km','kl','folie','band'];
 const VM_KARTON={1:'ks',3:'km',6:'kl'};
 /* Verbrauch je Paket: ein Karton, Folie und Klebeband in Fuellungen */
-const VM_FOLIE={1:1,3:2,6:3}, VM_BAND={1:1,3:1,6:2};
+const VM_FOLIE=VMW.folieJe, VM_BAND=VMW.bandJe;
 const vmRegale=[];
 /* Bestand im Regal von Packplatz i; neue und alte Spielstaende
    bekommen die Erstausstattung: jedes Regal voll */
@@ -28863,7 +28917,7 @@ const PAL_LG=1.2, PAL_BR=0.8, PAL_Y=0.09;          /* Europalette; PAL_Y: Hub am
    nicht die Pauschale, entscheidet. Bei nur 3 Paketen kostet ein Anruf 13 EUR je Paket: das
    soll zum Sammeln bis zum Abend anregen. Darum bleibt es bei 39 EUR.
    DDL_ANFAHRT: Sekunden vom Anruf bis der LKW einbiegt (rund 50 Spielminuten). */
-const DDL_PAUSCHALE=39, DDL_ANFAHRT=20, DDL_RUF=1.5;
+const DDL_PAUSCHALE=WIRT.versand.ddl.pauschale, DDL_ANFAHRT=WIRT.versand.ddl.anfahrtSek, DDL_RUF=1.5;   /* Pauschale/Anfahrt: 01c-wirtschaft.js */
 /* Mitte des Tors (0,45 m ostwaerts der Box-Mitte: so bleibt neben der Box eine Gasse von 1,2 m zum Tor), Wandmitte, Heck des LKW */
 const V1={x:-10.25,w:3.26,h:3.0,wz:-30.0,rz:-30.05};
 const V1_HOF={x0:-15.7,x1:-4.7,z0:-45.6,z1:-30.1};
@@ -48650,7 +48704,7 @@ function endDay(){
      schon seit gestern auf den Paletten liegen, aergern die Kunden (Lieferzeit). */
   const paketeJetzt=typeof vsGelandet==='function'&&packTisch?vsGelandet():0;
   const wartend=DS.ddlAbgeholt?0:Math.min(S.paketeVortag|0,paketeJetzt);
-  const lieferRuf=wartend>0?Math.min(3,r2(0.06*wartend)):0;
+  const lieferRuf=wartend>0?Math.min(WIRT.versand.strafe.wartendMax,r2(WIRT.versand.strafe.wartendJe*wartend)):0;
   if(lieferRuf>0){ rep(-lieferRuf); toast(`${wartend} Paket${wartend===1?' wartet':'e warten'} seit gestern auf DDL – die Kunden ärgern sich (Ruf −${String(lieferRuf).replace('.',',')}).`,'bad'); }
   S.paketeVortag=paketeJetzt;
   /* Ohne Packstation kommt der Onlineumsatz pauschal herein. Mit Packstation
@@ -48659,10 +48713,10 @@ function endDay(){
   /* 09.10.: die Pauschale bleibt mit Packstation ganz stehen (Marktplatz-Verkaeufe,
      die der Marktplatz selbst verschickt) - die Packstation kommt obendrauf und
      ihre Rechnung (Statistik im Onlineshop) bleibt sauber fuer sich */
-  const onlineBasis=S.up.onlineshop?Math.round(40+S.rep*1.6+S.level*4):0;
+  const onlineBasis=S.up.onlineshop?WF.onlinePauschale(S.rep,S.level):0;
   const online=onlineBasis;
   const dispo=dispoZins();
-  if(packBereit()&&(S.offen|0)>8){ rep(-Math.min(2,0.12*(S.offen-8))); }
+  if(packBereit()&&(S.offen|0)>WIRT.versand.strafe.offenAb){ rep(-Math.min(WIRT.versand.strafe.offenMax,WIRT.versand.strafe.offenJe*(S.offen-WIRT.versand.strafe.offenAb))); }
   const wages=dailyWages(), fix=fixedCosts(), extra=(hasDeko('automat')?WIRT.tag.automat:0)+online;
   let pay=0, rate=0;
   if(S.loan){ rate=loanDaily(); const interest=r2(S.loan.remaining*S.loan.rate); pay=Math.min(rate,S.loan.remaining+interest);
@@ -49825,7 +49879,7 @@ function updateOnline(){
   set('onStatus',z.status||'nicht eingestellt');
   const li=document.getElementById('onListe'); if(li){ const h=onlineListe(); if(li.dataset.h!==h){ li.innerHTML=h; li.dataset.h=h; } }
   const w=document.getElementById('onWarn');
-  if(w) w.textContent=z.offen>8?`${z.offen} offene Bestellungen - über acht kostet dich das heute Abend Ruf.`:'';
+  if(w) w.textContent=z.offen>WIRT.versand.strafe.offenAb?`${z.offen} offene Bestellungen - über ${WF.zahlwort(WIRT.versand.strafe.offenAb)} kostet dich das heute Abend Ruf.`:'';
   const vw=document.getElementById('onVm'); if(vw){ const t=vmWarnung(); if(vw.textContent!==t) vw.textContent=t; }
   const vs=document.getElementById('onVmStand'); if(vs){ const t=vmZeile(); if(vs.dataset.h!==t){ vs.innerHTML=t; vs.dataset.h=t; } }
   const db=document.getElementById('onDdl'); if(db){ const t=ddlBoxHtml(); if(db.dataset.h!==t){ db.outerHTML=t; const n=document.getElementById('onDdl'); if(n) n.dataset.h=t; } }
@@ -49860,7 +49914,7 @@ function renderOnline(){
   { const c=vsCfg(), nf=vsNachfrage(), a=vsAktion(), gratis=vsGratisHeute();
     const schwelle=c.nie?'nie versandfrei':c.frei===0?'immer versandfrei':`versandfrei ab ${eur(c.frei)}`;
     h+=`<div class="row"><div class="rm"><b>Versandkosten und Nachfrage</b><small>Der Kunde zahlt ${eur(c.kosten)} Versand, ${schwelle}${gratis?' – heute aber gratis (Aktion)':''}. Hohe Versandkosten sind der häufigste Grund für Kaufabbrüche; eine Gratis-Schwelle lockt größere Warenkörbe. Dein Porto an DDL ist fest: S ${eur(VS_PORTO[1])}, M ${eur(VS_PORTO[3])}, L ${eur(VS_PORTO[6])} je Paket, dazu ${eur(DDL_PAUSCHALE)} je Abholung.</small>`+
-      `<small class="${nf<0.8?'warn':'ok'}">Nachfrage ${Math.round(nf*100)} % (100 % = 4,90 €, frei ab 50 €, kein Sale) · rund ${z.proTag} Bestellungen an einem vollen Verkaufstag</small></div></div>`;
+      `<small class="${nf<0.8?'warn':'ok'}">Nachfrage ${Math.round(nf*100)} % (100 % = ${WF.euro(VS_CFG_STD.kosten,2)}, frei ab ${WF.euro(VS_CFG_STD.frei)}, kein Sale) · rund ${z.proTag} Bestellungen an einem vollen Verkaufstag</small></div></div>`;
     h+=`<div class="row"><div class="rm"><b>Versand je Bestellung</b><small>0 bis ${eur(VS_KOSTEN_MAX)}</small></div><div class="steps"><button data-a="vsk" data-d="-1">−1</button><button data-a="vsk" data-d="-0.1">−0,10</button><b style="min-width:70px;text-align:center">${eur(c.kosten)}</b><button data-a="vsk" data-d="0.1">+0,10</button><button data-a="vsk" data-d="1">+1</button></div></div>`;
     h+=`<div class="row"><div class="rm"><b>Versandkostenfrei ab</b><small>Mindestbestellwert 0 bis ${eur(VS_FREI_MAX)} (0 = immer frei) – oder nie</small></div><div class="steps"><button data-a="vsf" data-d="-10"${c.nie||c.frei===0?' disabled':''}>−10</button><b style="min-width:84px;text-align:center">${c.nie?'nie':c.frei===0?'immer':eur(c.frei)}</b><button data-a="vsf" data-d="10"${c.nie?' disabled':''}>+10</button><button data-a="vsf" data-d="immer">immer</button><button data-a="vsf" data-d="nie">nie</button></div></div>`;
     /* Aktionen */
@@ -52816,7 +52870,7 @@ function handbuchHTML(){
       schritte([`Zum Laptop auf dem Schreibtisch neben der Lagertür gehen und ${E} drücken.`,
         `Reiter <b>Bestellen</b> › <b>Ware · Fachhandel</b>. Oben filterst du nach Sparte (F1, F2, Zubehör, Essen, Getränke).`,
         `Bei der Ware „+ 1× Preis“ drücken – ein Karton landet im Warenkorb.`,
-        `„Warenkorb anzeigen“ › „Jetzt bestellen“. Die Lieferung kommt nach etwa 5 Sekunden. Versand 5,90 €, ab 150 € Warenwert frei.`])+
+        `„Warenkorb anzeigen“ › „Jetzt bestellen“. Die Lieferung kommt nach etwa ${LIEFERZEIT_SEK} Sekunden. Versand ${WF.euro(VERSAND,2)}, ab ${WF.euro(VERSANDFREI)} Warenwert frei.`])+
       ab(`<b>Großhandel</b> (ab Level 8 mit eigenem Lager): dieselbe Ware im 10er-Pack (−10 %) oder 20er-Pack (−18 %). <b>Restposten</b> (ab Level 14): wechselnde Angebote, sofort gekauft, ohne Versand – dafür nur 86 % Qualität, es kann Blindgänger geben. Neue Ware schaltest du unter <b>Sortiment</b> mit Lizenzpaketen frei.`)],
     ['Lieferung annehmen',
       ab(`Ohne Lager stellt der Lieferant alles vor die Ladentür auf die gelbe WARENANNAHME. Hinlaufen, mit ${E} aufheben, in den Laden tragen.`)+
@@ -52879,8 +52933,8 @@ function handbuchHTML(){
       ab(`Der Lohn entscheidet über Tempo und Freundlichkeit: Mindestlohn (×0,75, sie kündigen öfter), Normal, Gut (×1,3) oder Top (×1,65). In der Saisonpause bekommen sie 30 % und arbeiten nicht.`)],
     ['Versand',
       ab(`Der Onlineshop (ab Level 15) bringt eine Tagespauschale. Mit der Packstation (ab Level 25, am hinteren Ende der großen Halle nach Lagererweiterung 4) kommen echte Bestellungen: Packtisch anschauen und ${E} packt die älteste Bestellung, deren Ware und Packmaterial da sind. Das Paket läuft übers Band, der Kran-Greifer stapelt es auf die Palette in der gelben Box vor Rolltor V1 (Stufe 1: eine Palette, Stufe 2: zwei, Stufe 3: drei). Vor dem Tor ist eine abgesperrte Ladezone – dort fährt nur der DDL-Fahrer.`)+
-      ab(`DDL kommt nur, wenn du am <b>Wandtelefon</b> neben dem Rolltor oder per <b>Handy</b> (Onlineshop-App) anrufst: Pauschale je Abholung, dazu Porto je Paket (S 2,00 €, M 3,50 €, L 5,00 €). Der Fahrer lädt die Paletten selbst; so lange ist die Box belegt. Sind alle Paletten voll, staut sich das Band bis an die Tische. Pakete, die seit gestern warten, kosten Ruf. Kartons, Folie und Klebeband stehen im Packmaterial-Regal neben dem Tisch – Nachschub unter Bestellen › Versandmaterial.`)+
-      ab(`Im Onlineshop stellst du die Versandkosten (0–20 €) und die Grenze für kostenlosen Versand ein (0 = immer frei, oder nie), dazu Aktionen: Sale auf alles, Sale auf einzelne Produkte, heute versandkostenfrei. Hohe Versandkosten vertreiben Kunden, Gratisversand lockt viele kleine Bestellungen, die dich Porto kosten. Die Statistik zeigt je Tag, was übrig bleibt. Mehr als 8 offene Bestellungen am Abend kosten Ruf.`)],
+      ab(`DDL kommt nur, wenn du am <b>Wandtelefon</b> neben dem Rolltor oder per <b>Handy</b> (Onlineshop-App) anrufst: Pauschale je Abholung, dazu Porto je Paket (S ${WF.euro(VS_PORTO[1],2)}, M ${WF.euro(VS_PORTO[3],2)}, L ${WF.euro(VS_PORTO[6],2)}). Der Fahrer lädt die Paletten selbst; so lange ist die Box belegt. Sind alle Paletten voll, staut sich das Band bis an die Tische. Pakete, die seit gestern warten, kosten Ruf. Kartons, Folie und Klebeband stehen im Packmaterial-Regal neben dem Tisch – Nachschub unter Bestellen › Versandmaterial.`)+
+      ab(`Im Onlineshop stellst du die Versandkosten (0–${WF.euro(VS_KOSTEN_MAX)}) und die Grenze für kostenlosen Versand ein (0 = immer frei, oder nie), dazu Aktionen: Sale auf alles, Sale auf einzelne Produkte, heute versandkostenfrei. Hohe Versandkosten vertreiben Kunden, Gratisversand lockt viele kleine Bestellungen, die dich Porto kosten. Die Statistik zeigt je Tag, was übrig bleibt. Mehr als ${WIRT.versand.strafe.offenAb} offene Bestellungen am Abend kosten Ruf.`)],
     ['Entwicklungslabor',
       ab(`Ab Level 20 (Kapitel 5) im Laptop unter Entwicklung: Träger, Bruchbild, zwei Farben, Etikett und Name wählen. Du kannst nur Bruchbilder verbauen, die du schon am Himmel gesehen hast. „Prototyp zünden“ ist kostenlos, „In Produktion“ bringt dein Produkt nach ein paar Tagen in den Katalog. Die zweite Zündstufe gibt es ab Level 28.`)],
     ['Musik, Bild und Pause',

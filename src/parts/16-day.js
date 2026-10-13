@@ -188,7 +188,7 @@ function endDay(){
      schon seit gestern auf den Paletten liegen, aergern die Kunden (Lieferzeit). */
   const paketeJetzt=typeof vsGelandet==='function'&&packTisch?vsGelandet():0;
   const wartend=DS.ddlAbgeholt?0:Math.min(S.paketeVortag|0,paketeJetzt);
-  const lieferRuf=wartend>0?Math.min(3,r2(0.06*wartend)):0;
+  const lieferRuf=wartend>0?Math.min(WIRT.versand.strafe.wartendMax,r2(WIRT.versand.strafe.wartendJe*wartend)):0;
   if(lieferRuf>0){ rep(-lieferRuf); toast(`${wartend} Paket${wartend===1?' wartet':'e warten'} seit gestern auf DDL – die Kunden ärgern sich (Ruf −${String(lieferRuf).replace('.',',')}).`,'bad'); }
   S.paketeVortag=paketeJetzt;
   /* Ohne Packstation kommt der Onlineumsatz pauschal herein. Mit Packstation
@@ -197,10 +197,10 @@ function endDay(){
   /* 09.10.: die Pauschale bleibt mit Packstation ganz stehen (Marktplatz-Verkaeufe,
      die der Marktplatz selbst verschickt) - die Packstation kommt obendrauf und
      ihre Rechnung (Statistik im Onlineshop) bleibt sauber fuer sich */
-  const onlineBasis=S.up.onlineshop?Math.round(40+S.rep*1.6+S.level*4):0;
+  const onlineBasis=S.up.onlineshop?WF.onlinePauschale(S.rep,S.level):0;
   const online=onlineBasis;
   const dispo=dispoZins();
-  if(packBereit()&&(S.offen|0)>8){ rep(-Math.min(2,0.12*(S.offen-8))); }
+  if(packBereit()&&(S.offen|0)>WIRT.versand.strafe.offenAb){ rep(-Math.min(WIRT.versand.strafe.offenMax,WIRT.versand.strafe.offenJe*(S.offen-WIRT.versand.strafe.offenAb))); }
   const wages=dailyWages(), fix=fixedCosts(), extra=(hasDeko('automat')?WIRT.tag.automat:0)+online;
   let pay=0, rate=0;
   if(S.loan){ rate=loanDaily(); const interest=r2(S.loan.remaining*S.loan.rate); pay=Math.min(rate,S.loan.remaining+interest);

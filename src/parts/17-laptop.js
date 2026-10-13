@@ -1066,7 +1066,7 @@ function updateOnline(){
   set('onStatus',z.status||'nicht eingestellt');
   const li=document.getElementById('onListe'); if(li){ const h=onlineListe(); if(li.dataset.h!==h){ li.innerHTML=h; li.dataset.h=h; } }
   const w=document.getElementById('onWarn');
-  if(w) w.textContent=z.offen>8?`${z.offen} offene Bestellungen - über acht kostet dich das heute Abend Ruf.`:'';
+  if(w) w.textContent=z.offen>WIRT.versand.strafe.offenAb?`${z.offen} offene Bestellungen - über ${WF.zahlwort(WIRT.versand.strafe.offenAb)} kostet dich das heute Abend Ruf.`:'';
   const vw=document.getElementById('onVm'); if(vw){ const t=vmWarnung(); if(vw.textContent!==t) vw.textContent=t; }
   const vs=document.getElementById('onVmStand'); if(vs){ const t=vmZeile(); if(vs.dataset.h!==t){ vs.innerHTML=t; vs.dataset.h=t; } }
   const db=document.getElementById('onDdl'); if(db){ const t=ddlBoxHtml(); if(db.dataset.h!==t){ db.outerHTML=t; const n=document.getElementById('onDdl'); if(n) n.dataset.h=t; } }
@@ -1101,7 +1101,7 @@ function renderOnline(){
   { const c=vsCfg(), nf=vsNachfrage(), a=vsAktion(), gratis=vsGratisHeute();
     const schwelle=c.nie?'nie versandfrei':c.frei===0?'immer versandfrei':`versandfrei ab ${eur(c.frei)}`;
     h+=`<div class="row"><div class="rm"><b>Versandkosten und Nachfrage</b><small>Der Kunde zahlt ${eur(c.kosten)} Versand, ${schwelle}${gratis?' – heute aber gratis (Aktion)':''}. Hohe Versandkosten sind der häufigste Grund für Kaufabbrüche; eine Gratis-Schwelle lockt größere Warenkörbe. Dein Porto an DDL ist fest: S ${eur(VS_PORTO[1])}, M ${eur(VS_PORTO[3])}, L ${eur(VS_PORTO[6])} je Paket, dazu ${eur(DDL_PAUSCHALE)} je Abholung.</small>`+
-      `<small class="${nf<0.8?'warn':'ok'}">Nachfrage ${Math.round(nf*100)} % (100 % = 4,90 €, frei ab 50 €, kein Sale) · rund ${z.proTag} Bestellungen an einem vollen Verkaufstag</small></div></div>`;
+      `<small class="${nf<0.8?'warn':'ok'}">Nachfrage ${Math.round(nf*100)} % (100 % = ${WF.euro(VS_CFG_STD.kosten,2)}, frei ab ${WF.euro(VS_CFG_STD.frei)}, kein Sale) · rund ${z.proTag} Bestellungen an einem vollen Verkaufstag</small></div></div>`;
     h+=`<div class="row"><div class="rm"><b>Versand je Bestellung</b><small>0 bis ${eur(VS_KOSTEN_MAX)}</small></div><div class="steps"><button data-a="vsk" data-d="-1">−1</button><button data-a="vsk" data-d="-0.1">−0,10</button><b style="min-width:70px;text-align:center">${eur(c.kosten)}</b><button data-a="vsk" data-d="0.1">+0,10</button><button data-a="vsk" data-d="1">+1</button></div></div>`;
     h+=`<div class="row"><div class="rm"><b>Versandkostenfrei ab</b><small>Mindestbestellwert 0 bis ${eur(VS_FREI_MAX)} (0 = immer frei) – oder nie</small></div><div class="steps"><button data-a="vsf" data-d="-10"${c.nie||c.frei===0?' disabled':''}>−10</button><b style="min-width:84px;text-align:center">${c.nie?'nie':c.frei===0?'immer':eur(c.frei)}</b><button data-a="vsf" data-d="10"${c.nie?' disabled':''}>+10</button><button data-a="vsf" data-d="immer">immer</button><button data-a="vsf" data-d="nie">nie</button></div></div>`;
     /* Aktionen */

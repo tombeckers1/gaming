@@ -193,52 +193,23 @@ let vfBlickE=null, VF_FOV0=null;
 const VF_FOV_NAH=16;
 function vfBlickFrei(e){ if(e&&e!==vfBlickE) return; if(vfBlickE) vfBlickE.cam.an=false; vfBlickE=null;
   if(VF_FOV0!==null&&camera.fov!==VF_FOV0){ camera.fov=VF_FOV0; camera.updateProjectionMatrix(); } }
-function vfImRohr(t,o){
-  vfBlickFrei();
-  const p=P[t]; if(!p) return null;
-  let g=null, kugel=null;
-  if(o.sid==='rampe'&&p.shape==='rocketset'&&t!=='gravur'){ g=raketeModell(t); g.position.set(o.x,o.y-0.01,o.z); }
-  else if(o.sid==='moerser'&&p.shape==='shell'){ g=kugelModell(t,moerserRohr(t)); g.position.set(o.x,o.y,o.z); kugel=g.children[0];
-    /* 07.10. (Tom: "Kugelbomben NICHT sichtbar im Rohr, ohne heraushaengende
-       Zuendschnur"): an der Station liegt die Kugel 14 cm tief im Rohr - vom
-       Pult aus unsichtbar - und die Schnur hing zur Seite, die der Blick in der
-       Vorfuehrung nicht sieht. Hier sitzt die Kugel oben in der Muendung (die
-       obere Haelfte schaut heraus) und die Schnur haengt zum Zuschauer hin
-       ueber den Rand. */
-    const rk=kugel.geometry&&kugel.geometry.parameters?kugel.geometry.parameters.radius:0.06; kugel.position.y=rk*0.25;   /* gerendert: mit -0,4 rk verdeckte der Muendungswulst die Kugel */
-    const c=camera.position; g.rotation.y=-Math.atan2(c.z-o.z,c.x-o.x); }
-  if(!g) return null;
-  g.userData.vfModell=t; scene.add(g);
-  const e={t:30,k:'vfModell',o:{x:o.x,y:o.y,z:o.z},ab:o.ab||0,g,kugel,sid:o.sid,alter:0,r:null,fertig:false,
-    cam:{an:true,letzt:null}};
-  e.weg=()=>{ if(g.parent) g.parent.remove(g); e.fertig=true; e.t=0; vfBlickFrei(e); };
+/* Modell im Rohr, Zuendschnur und Mitflug kommen seit dem 13.10. vom
+   Abschuss-Baustein (14z4 abAufstellen, abFlug) - an der Station genauso.
+   Hier bleibt nur der Kamerablick der Vorfuehrung, angehaengt an den
+   Mitflug-Emitter e (e.blick). */
+function vfBlickAn(e){
+  vfBlickFrei(); if(!e) return;
+  e.cam={an:true,letzt:null}; e.blick=vfBlickTick; e.blickAus=vfBlickFrei;
   if(VF_FOV0===null) VF_FOV0=camera.fov;
-  vfBlickE=e; emitters.push(e); vfAufraeumen.push(e.weg);
-  return e;
-}
+  vfBlickE=e; }
 /* beim Beenden der Vorfuehrung gehoert der Blick wieder dem Spieler */
 { const aus=vorfuehrungAus; vorfuehrungAus=function(){ vfBlickFrei(); return aus.apply(this,arguments); }; }
-const _vfY=new THREE.Vector3(0,1,0), _vfD=new THREE.Vector3();
 /* Hoehenwinkel vom Auge zu einem Punkt */
 function vfHoehenWinkel(x,y,z){ const c=camera.position; return Math.atan2(y-c.y,Math.hypot(x-c.x,z-c.z)); }
-NEU_EMIT.vfModell=function(e,dt,o){
-  e.alter+=dt;
-  if(e.fertig){ e.t=0; return; }
-  if(!e.r){
-    /* die Rakete oder Kugel, die eben aus diesem Rohr gestartet ist */
-    for(const r of rockets) if(!r.vfModell&&r.alter<0.3&&Math.abs(r.y0-(o.y+e.ab))<0.3&&Math.abs(r.p.x-o.x)<0.6&&Math.abs(r.p.z-o.z)<0.6){ e.r=r; r.vfModell=e.g; break; }
-    if(e.r){ if(e.kugel){ e.g.children.forEach(m=>{ if(m!==e.kugel) m.visible=false; }); e.kugel.position.set(0,0,0); e.g.rotation.set(0,0,0); } }
-    else if(e.alter>8) e.weg();
-  }
-  const r=e.r;
+function vfBlickTick(e,dt,o,r){
   /* Bruch: das Modell ist weg, der Blick legt sich noch 1,5 s auf die
      Bruchmitte (sonst stand eine Rakete am oberen Bildrand und wuchs hinaus) */
-  if(r&&e.bruch===undefined&&rockets.indexOf(r)<0){ if(e.g.parent) e.g.parent.remove(e.g);
-    e.bruch=vfHoehenWinkel(r.p.x,r.p.y,r.p.z)-(e.kugel?0.06:0.1); e.nach=1.5; }
-  if(e.bruch!==undefined){ e.nach-=dt; if(e.nach<=0){ e.weg(); return; } }
-  else if(r){
-    e.g.position.set(r.p.x,r.p.y,r.p.z);
-    if(!e.kugel){ _vfD.set(r.v.x,r.v.y,r.v.z); if(_vfD.lengthSq()>0.01){ _vfD.normalize(); e.g.quaternion.setFromUnitVectors(_vfY,_vfD); } } }
+  if(e.bruchP&&e.bruch===undefined) e.bruch=vfHoehenWinkel(e.bruchP.x,e.bruchP.y,e.bruchP.z)-(e.kugel?0.06:0.1);
   /* Blick: erst aufs Rohr, dann mit dem Aufstieg nach oben */
   const c=e.cam; if(!c.an||vfBlickE!==e||typeof pitch==='undefined') return;
   if(!vfAn){ vfBlickFrei(e); return; }

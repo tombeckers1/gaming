@@ -199,8 +199,10 @@ function buildProduct0(t,roh){
         g.beginPath(); g.arc(cx,cy,r0,0,Math.PI*2); g.fill(); }
     });
     parts.push({geo:merge([{geo:new THREE.CylinderGeometry(R*1.02,R*1.02,bH,26,1,true),m:tm(0,by,0)}]),mat:new THREE.MeshStandardMaterial({map:bt,roughness:0.45,side:THREE.DoubleSide})});
-    /* Acrylhaube */
-    parts.push({geo:merge([{geo:new THREE.BoxGeometry(w*0.96,h-ph-0.004,d*0.96),m:tm(0,ph+(h-ph)/2,0)}]),mat:glassMat});
+    /* Acrylhaube - nur im Laden; am Zuendort steht die Bombe ausgepackt
+       auf ihrem Sockel (13.10., Fundament 2b), die Oeffnung ist ihre Spitze */
+    if(!roh) parts.push({geo:merge([{geo:new THREE.BoxGeometry(w*0.96,h-ph-0.004,d*0.96),m:tm(0,ph+(h-ph)/2,0)}]),mat:glassMat});
+    else parts.oben=+(by+R*1.392).toFixed(3);
   }
   else if(sh==='bottle'){
     /* 03.10.: Glas, Form, Kapsel und Etikett je Produkt (04e WARE_FLASCHE);

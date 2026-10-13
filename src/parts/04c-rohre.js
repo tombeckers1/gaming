@@ -323,8 +323,7 @@ const _poolsAus={};
 const poolsAus=new Proxy(_poolsAus,{get(o,k){
   if(typeof k==='string'&&!(k in o)&&typeof P!=='undefined'&&P[k]&&P[k].dims) o[k]=new ItemPool(istBatterie(k)?buildAusgepackt(k):buildProduct(k,true),12);
   return o[k]; }});
-/* Was steht auf dem Zuendtisch: Batterien ausgepackt, alles andere wie im Regal */
-function stationsPool(t){ return istBatterie(t)||(P[t]&&P[t].shape==='fountainset')?poolsAus[t]:pools[t]; }
+/* Was auf dem Zuendtisch steht: Abschuss-Baustein 14z4 (abForm, abPool) - immer ausgepackt */
 
 /* ---------------- Verpackung im Laden ---------------- */
 /* Grosse Verbunde kommen im braunen Wellpappkarton mit Etikett,

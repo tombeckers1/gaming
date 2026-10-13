@@ -73,7 +73,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
        neben dem Tisch steht, wo die Funkenmessung (Tischhoehe) nicht
        hinschaut. Zuendschnur, Rauch/Reste und Takt-Emitter ohne eigenen
        Ort (PAD) zaehlen nicht. */
-    const EM=bb.emittersListe(), emPush=EM.push, EM_OHNE=/^(fuse|gb_|dienst|rest|bodenrest|rauch|papierflug)/;
+    const EM=bb.emittersListe(), emPush=EM.push, EM_OHNE=/^(fuse|gb_|dienst|rest|bodenrest|rauch|papierflug|abModell)/;
     EM.push=function(...a){ if(window.__em&&bb.fwUhr>=O.ab) for(const e of a) if(e&&e.o&&e.o.x!==undefined&&!EM_OHNE.test(e.k||''))
       window.__em.push([e.k,+(e.o.x-O.x).toFixed(2),+((e.o.y!==undefined?e.o.y:0)-O.y).toFixed(2),+(e.o.z-O.z).toFixed(2),neben(e.o.x,e.o.z),e.o.modul]);
       return emPush.apply(this,a); };
@@ -86,14 +86,19 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
       const it=st.items[st.items.length-1]; if(!it){ out[t]={fehler:'nicht platziert'}; continue; }
       const m=bb.muendung(st,it.slot,t), d=P[t].dims||[0.2,0.2,0.2];
       /* Oeffnung: Mitte, halbe Ausdehnung quer (hx) und in der Tiefe (hz), Hoehe */
-      if(sid==='tisch') O={x:m.x,z:m.z,hx:d[0]/2,hz:d[2]/2,y:0.93+d[1],y0:0.85};
+      /* 13.10. (Fundament 2b): Oberkante der Oeffnung aus der Muendung - die ausgepackte
+         Form (Abschuss-Baustein) kann niedriger sein als der Karton (Bodenring, Atom-Boeller) */
+      if(sid==='tisch') O={x:m.x,z:m.z,hx:d[0]/2,hz:d[2]/2,y:m.y,y0:0.85};
       else if(sid==='rampe'&&P[t].shape==='candle'){ const w=d[0]; O={x:m.x,z:m.z,hx:0.52*w+0.185*w,hz:0.5*d[2]+0.185*w,y:1.18+0.9*d[1],y0:1.18+0.9*d[1]-0.4}; }
       else if(sid==='rampe') O={x:m.x,z:m.z,hx:0.062,hz:0.062,rund:true,y:m.y,y0:m.y-0.4};
       else { const R=bb.MOERSER_R[it.slot%3]; O={x:m.x,z:m.z,hx:R,hz:R,rund:true,y:m.y,y0:m.y-0.4}; }
       neben=(x,z)=>O.rund?Math.max(0,Math.hypot(x-O.x,z-O.z)-O.hx):Math.hypot(Math.max(0,Math.abs(x-O.x)-O.hx),Math.max(0,Math.abs(z-O.z)-O.hz));
       window.__pk=[]; window.__em=[]; const log=[]; bb.fwLog(log);
       window.__ft=t==='feuerteufel'&&typeof window.__ftMuendungen==='function'?{M:window.__ftMuendungen({x:m.x,y:O.y,z:m.z},t),d:[]}:null;
-      O.ab=bb.fwUhr+(sid==='moerser'?0.76:0); bb.zuendeAlle();
+      /* Zuendschnur der Kugel brennt aussen am Rand: so lange zaehlt am Moerser nichts
+         (13.10.: Dauer aus dem Abschuss-Baustein, an jedem Ort gleich - vorher 0,75 s fest) */
+      const vorK=window.__abschuss?window.__abschuss.AB_VOR.kugel:0.75;
+      O.ab=bb.fwUhr+(sid==='moerser'?vorK+0.01:0); bb.zuendeAlle();
       const T=Math.min(90,bb.brennDauer(t)+1);
       for(let s=0;s<T;s+=0.1) bb.run(0.1,0.05);
       const pk=window.__pk, em=window.__em, ft=window.__ft; window.__pk=null; window.__em=null; window.__ft=null; bb.fwLog(null);

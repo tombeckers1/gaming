@@ -162,7 +162,7 @@ function vorfuehrungAn(nur,name){
   if(!S.up.testfeld){ S.up.shop_halb=true; S.up.testfeld=true; if(typeof applyZonen==='function') applyZonen(); }
   vfSonder=Array.isArray(nur)?nur.filter(t=>P[t]&&stationOf(t)):null; vfSonderName=vfSonder?(name||'VORFÜHRUNG'):null;
   vfListe=vfSonder||fwTestProdukte(); vfLaden(); if(vfSonder) vfIdx=0; vfIdx=clamp(vfIdx,0,Math.max(0,vfListe.length-1)); vfLetzt=null;
-  vfAn=true; lastF=-1; applyTOD(); clearStations(); vfAnlageBauen(); vfBelegt={};
+  vfAn=true; lastF=-1; applyTOD(); clearStations(); vfAnlageBauen(); vfBelegt={}; vfAufgestellt={};
   for(const sid of ['tisch','rampe','moerser']) if(stations[sid]&&stations[sid].g) stations[sid].g.visible=false;
   /* Uhr, Geld, Tutorial und Zielpfeil stoeren beim Zusehen - weg damit */
   if(!document.getElementById('vfStil')){ const st=document.createElement('style'); st.id='vfStil';
@@ -193,40 +193,37 @@ function vorfuehrungAus(){
 /* 30.09. (Tom: "alle Test-Vorfuehrungen in die Mitte des Testfelds, dass
    man alles gut sehen kann - aktuell hinten links"): die Reihe steht in der
    Mitte (Testfeld z -28..-6), die normalen Stationen sind solange ausgeblendet */
-const VF_Z=-18.0, VF_TISCH={x0:-7.0,n:10,dx:0.52,y:0.93}, VF_ROHR={x0:-1.4,n:12,dx:0.3,y:1.38}, VF_MOERSER={x0:2.9,n:4,dx:0.42,gdx:1.7,hoch:[0.62,0.82,1.02]};
-let vfAnlage=null, vfBelegt={};
+const VF_Z=-18.0, VF_TISCH={x0:-7.0,n:10,dx:0.52,y:0.93}, VF_ROHR={x0:-1.4,n:12,dx:0.3}, VF_MOERSER={x0:2.9,n:4,dx:0.42,gdx:1.7};
+let vfAnlage=null, vfBelegt={}, vfAufgestellt={};
+/* Vorfuehranlage: dieselben Geraete wie an den Stationen (Abschuss-
+   Baustein 14z4) - Lochblech-Zuendtisch, Abschussrohre auf ihrem Tisch
+   (gleiche Neigung vom Zuschauer weg), Moerser je Kaliber mit Schellen,
+   Wulst und Ringen auf Riffelblech */
 function vfAnlageBauen(){
   if(vfAnlage){ vfAnlage.visible=true; return; }
-  const g=new THREE.Group(), stahl=std(0x8a929e,{metalness:0.6,roughness:0.4}), holz=std(0xa8844f,{roughness:0.8}), rohrM=std(0x6f7782,{metalness:0.5,roughness:0.5}), gruen=std(0x4f8a5c,{roughness:0.7});
-  const box=(w,h,d,m,x,y,z)=>{ const b=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m); b.position.set(x,y,z); b.castShadow=b.receiveShadow=true; g.add(b); return b; };
+  const g=new THREE.Group(), M=abMat();
   const T=VF_TISCH, tw=T.n*T.dx+0.2, tx=T.x0+(T.n-1)*T.dx/2;
-  box(tw,0.06,0.9,holz,tx,T.y-0.03,VF_Z);
-  for(const sx of [-1,1]) for(const sz of [-1,1]) box(0.08,T.y-0.06,0.08,stahl,tx+sx*(tw/2-0.1),(T.y-0.06)/2,VF_Z+sz*0.35);
+  abTischBau(g,tx,VF_Z,tw);
   const R=VF_ROHR, rw=(R.n-1)*R.dx+0.4, rx=R.x0+(R.n-1)*R.dx/2;
-  /* Raketen: Abschussrohre (0,62 m) auf Fussplatten auf einem Tisch, wie an der Station */
-  box(rw,0.04,0.5,stahl,rx,0.74,VF_Z);
-  for(const sx of [-1,1]) for(const sz of [-1,1]) box(0.06,0.72,0.06,stahl,rx+sx*(rw/2-0.08),0.36,VF_Z+sz*0.2);
-  for(let i=0;i<R.n;i++){ const c=new THREE.Mesh(new THREE.CylinderGeometry(0.055,0.055,0.62,14,1,true),rohrM); c.position.set(R.x0+i*R.dx,R.y-0.31,VF_Z); g.add(c);
-    box(0.16,0.02,0.16,stahl,R.x0+i*R.dx,0.77,VF_Z); }
-  const M=VF_MOERSER;
-  for(let k=0;k<3;k++){ const gx=M.x0+k*M.gdx, h=M.hoch[k], r=ROHR_INNEN[k]+0.012;
-    box(M.n*M.dx+0.1,0.12,0.6,gruen,gx+(M.n-1)*M.dx/2,0.06,VF_Z);
-    for(let i=0;i<M.n;i++){ const c=new THREE.Mesh(new THREE.CylinderGeometry(r,r,h,18,1,true),rohrM); c.position.set(gx+i*M.dx,h/2,VF_Z); g.add(c); } }
+  abRampeBau(g,rx,VF_Z,rw);
+  for(let i=0;i<R.n;i++) abRohrBau(g,R.x0+i*R.dx,VF_Z);
+  const MO=VF_MOERSER;
+  for(let k=0;k<3;k++){ const gx=MO.x0+k*MO.gdx;
+    bbox(MO.n*MO.dx+0.16,0.05,0.62,M.riffel,gx+(MO.n-1)*MO.dx/2,0.055,VF_Z,g);
+    for(let i=0;i<MO.n;i++) abMoerserBau(g,gx+i*MO.dx,VF_Z,k); }
   scene.add(g); vfAnlage=g;
 }
 /* naechster freier Platz der Art (Tisch, Rohr, Moerser je Kaliber) */
 function vfPlatz(art,n){ const jetzt=FW_UHR; let best=0, bz=Infinity;
   for(let i=0;i<n;i++){ const z=vfBelegt[art+i]||0; if(z<=jetzt) return i; if(z<bz){ bz=z; best=i; } }
   return best; }
-function vfMuendung(t){
-  const sid=stationOf(t), p=P[t], d=p.dims||[0.2,0.2,0.2];
-  if(sid==='tisch'){ const i=vfPlatz('t',VF_TISCH.n), hx=d[0]/2, hz=d[2]/2;
-    return {art:'t'+i,sid,x:VF_TISCH.x0+i*VF_TISCH.dx,y:VF_TISCH.y+d[1],z:VF_Z,ab:0.08,jit:Math.min(0.06,hx*0.5,hz*0.5),hx,hz,boden:VF_TISCH.y,ry:Math.PI}; }
-  if(sid==='moerser'){ const k=moerserRohr(t)%3, i=vfPlatz('m'+k,VF_MOERSER.n);
-    return {art:'m'+k+i,sid,x:VF_MOERSER.x0+k*VF_MOERSER.gdx+i*VF_MOERSER.dx,y:VF_MOERSER.hoch[k],z:VF_Z,ab:0.05,jit:0.02,hx:ROHR_INNEN[k]*0.8,hz:ROHR_INNEN[k]*0.8}; }
-  const i=vfPlatz('r',VF_ROHR.n), kerze=p.shape==='candle';
-  return {art:'r'+i,sid,x:VF_ROHR.x0+i*VF_ROHR.dx,y:kerze?VF_ROHR.y+0.25:VF_ROHR.y,z:VF_Z,ab:kerze?0.02:0.05,jit:kerze?0.005:0.02,hx:kerze?0.05:0.045,hz:kerze?0.05:0.045};
-}
+/* Platz der Anlage fuer ein Produkt (Abschuss-Baustein abPlatz) - Muendung,
+   Darstellung und Zuendung sind dann dieselben wie an der Station */
+function vfPlatzFuer(t){ const sid=stationOf(t);
+  if(sid==='tisch'){ const i=vfPlatz('t',VF_TISCH.n); return abPlatz('tisch',VF_TISCH.x0+i*VF_TISCH.dx,VF_TISCH.y,VF_Z,{ort:'vorf',belegt:'t'+i,sid}); }
+  if(sid==='moerser'){ const k=moerserRohr(t)%3, i=vfPlatz('m'+k,VF_MOERSER.n), c=camera.position;
+    return abPlatz('moerser',VF_MOERSER.x0+k*VF_MOERSER.gdx+i*VF_MOERSER.dx,MOERSER_MUND[k],VF_Z,{ort:'vorf',kal:k,belegt:'m'+k+i,sid,blick:{x:c.x,z:c.z}}); }
+  const i=vfPlatz('r',VF_ROHR.n); return abPlatz('rohr',VF_ROHR.x0+i*VF_ROHR.dx,RAMPE_TISCH,VF_Z,{ort:'vorf',neig:ROHR_ACHSE.neig,belegt:'r'+i,sid}); }
 /* ein Produkt auf seinen Platz der Anlage und sofort zuenden - wie auf
    der Station: Zuendschnur bei Rohr und Moerser, dann igniteType am
    Abschussort (Effekt und Klang wie im Spiel) */
@@ -258,27 +255,22 @@ function vfStopp(){
   if(typeof WOLKEN!=='undefined') for(const w of WOLKEN) w.t=w.dauer;
   for(const f of FLASH){ f.t=0; f.max=0; if(f.l) f.l.intensity=0; }
   for(const fn of vfAufraeumen.splice(0)) try{ fn(); }catch(e){}
-  vfBelegt={};
+  vfBelegt={}; vfAufgestellt={};
   if(typeof sfxSchnitt==='function') sfxSchnitt();
   vfZeigen();
   return n;
 }
 function vfZuendenRoh(t){
   if(!t||!P[t]) return false;
-  /* 06.10. (Toms PDF: Raketen und Kugeln sichtbar im Rohr): die Zuendschnur
-     brennt etwas laenger als an der Station, damit man das Modell sieht (14u) */
-  const o=vfMuendung(t), dauer=brennDauer(t), vor=o.sid==='moerser'?1.2:o.sid==='rampe'?(P[t].shape==='rocketset'?0.9:0.4):0;
-  vfBelegt[o.art]=FW_UHR+vor+dauer+0.5;
-  let h=null, bt=null, pg=null;
-  if(o.sid==='tisch'&&istBatterie(t)){ bt=batterieModell(t,Math.PI); bt.g.position.set(o.x,o.boden,o.z); bt.g.rotation.y=Math.PI; scene.add(bt.g); o.batt=bt; }
-  /* Wunderkerzen: Mini-Podest statt Verpackung (03.10., Tom; 14q) */
-  else if(o.sid==='tisch'&&typeof kqPodestAuf==='function'&&(pg=kqPodestAuf(t,{x:o.x,y:o.boden,z:o.z}))) scene.add(pg);
-  /* Kleinfeuerwerk ausgepackt statt Ladenverpackung (07.10., Tom; 14x) */
-  else if(o.sid==='tisch'&&typeof kfTischAuf==='function'&&(pg=kfTischAuf(t,{x:o.x,y:o.boden,z:o.z}))) scene.add(pg);
-  else if(o.sid==='tisch'&&stationsPool(t)&&!stationsPool(t).full()) h=stationsPool(t).add(mx(o.x,o.boden,o.z,Math.PI));
-  if(typeof vfImRohr==='function') vfImRohr(t,o);
-  if(vor){ emitters.push({t:vor,k:'fuse',o:{x:o.x,y:o.y,z:o.z}}); sfx.fizz(distVol(o)*0.5); }
-  later(vor,()=>{ if(vfAn) igniteType(t,o); });
+  /* 06.10. (Toms PDF: Raketen und Kugeln sichtbar im Rohr): Darstellung und
+     Zuendung kommen vom Abschuss-Baustein (14z4) - wie an der Station:
+     ausgepacktes Produkt, Zuendschnur, Modell fliegt mit, Rauchrest */
+  const ort=vfPlatzFuer(t), alt=vfAufgestellt[ort.belegt]; if(alt) abWeg(alt);
+  const h=abAufstellen(ort,t);
+  const z=abZuenden(ort,t,h,{solange:()=>vfAn}), o=z.o;
+  vfBelegt[ort.belegt]=FW_UHR+z.dauer+0.5; vfAufgestellt[ort.belegt]=h;
+  vfAufraeumen.push(()=>abWeg(h));
+  if(vfAufraeumen.length>40) vfAufraeumen.splice(0,vfAufraeumen.length-40);
   /* der Blick folgt dem Produkt: zur Seite auf seinen Platz, nach oben so
      weit, wie es steigt - Kleinfeuerwerk flach, Batterien halb, Raketen
      und Kugeln steil */
@@ -287,12 +279,10 @@ function vfZuendenRoh(t){
      Drittel statt am Rand (gemessen, Spieler 11 m vor dem Tisch); Rampe 0,85 statt 0,72 (Raketen bis ~75 m im Bild statt 35 m); Moerser 0,95 statt 0,85, sonst schneidet der Rand die 300er
      (Bruch ~90 m) mittendurch */
   /* 06.10.: Finale Grande schiesst ihre Kugeln auf Kugelhoehe (14u) - Blick wie am Moerser */
-  { const sh=P[t].shape; pitch=t==='kugelfinale'?1.0:o.sid==='tisch'?(SHOWS[t]||sh==='battery'||sh==='fan'?0.8:sh==='fountain'||sh==='cylinder'||sh==='fountainset'?0.35:0.1):o.sid==='rampe'?0.85:0.95;
+  { const sh=P[t].shape, sid=ort.sid; pitch=t==='kugelfinale'?1.0:sid==='tisch'?(SHOWS[t]||sh==='battery'||sh==='fan'?0.8:sh==='fountain'||sh==='cylinder'||sh==='fountainset'?0.35:0.1):sid==='rampe'?0.85:0.95;
     yaw=Math.atan2(-(o.x-pl.x),-(o.z-pl.z)); }
-  if(h){ let weg=false; const fn=()=>{ if(weg) return; weg=true; if(h.pool) h.pool.remove(h); }; vfAufraeumen.push(fn); later(vor+dauer,fn); }
-  if(bt){ let weg=false; const fn=()=>{ if(weg) return; weg=true; bt.weg(); }; vfAufraeumen.push(fn); later(vor+dauer,fn); }
-  if(pg){ let weg=false; const fn=()=>{ if(weg) return; weg=true; if(pg.parent) pg.parent.remove(pg); }; vfAufraeumen.push(fn); later(vor+dauer,fn); }
-  if(vfAufraeumen.length>40) vfAufraeumen.splice(0,vfAufraeumen.length-40);
+  /* Rakete und Kugel: der Blick beginnt am Rohr und folgt dem Aufstieg (14u) */
+  if(h&&h.flug&&typeof vfBlickAn==='function') vfBlickAn(h.flug);
   vfLetzt=t; return true;
 }
 function vfNaechstes(){ if(!vfListe.length) return; vfZuenden(vfListe[vfIdx]); vfIdx=Math.min(vfListe.length,vfIdx+1); vfMerken(); vfZeigen(); }

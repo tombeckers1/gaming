@@ -4831,8 +4831,10 @@ function buildProduct0(t,roh){
         g.beginPath(); g.arc(cx,cy,r0,0,Math.PI*2); g.fill(); }
     });
     parts.push({geo:merge([{geo:new THREE.CylinderGeometry(R*1.02,R*1.02,bH,26,1,true),m:tm(0,by,0)}]),mat:new THREE.MeshStandardMaterial({map:bt,roughness:0.45,side:THREE.DoubleSide})});
-    /* Acrylhaube */
-    parts.push({geo:merge([{geo:new THREE.BoxGeometry(w*0.96,h-ph-0.004,d*0.96),m:tm(0,ph+(h-ph)/2,0)}]),mat:glassMat});
+    /* Acrylhaube - nur im Laden; am Zuendort steht die Bombe ausgepackt
+       auf ihrem Sockel (13.10., Fundament 2b), die Oeffnung ist ihre Spitze */
+    if(!roh) parts.push({geo:merge([{geo:new THREE.BoxGeometry(w*0.96,h-ph-0.004,d*0.96),m:tm(0,ph+(h-ph)/2,0)}]),mat:glassMat});
+    else parts.oben=+(by+R*1.392).toFixed(3);
   }
   else if(sh==='bottle'){
     /* 03.10.: Glas, Form, Kapsel und Etikett je Produkt (04e WARE_FLASCHE);
@@ -5462,8 +5464,7 @@ const _poolsAus={};
 const poolsAus=new Proxy(_poolsAus,{get(o,k){
   if(typeof k==='string'&&!(k in o)&&typeof P!=='undefined'&&P[k]&&P[k].dims) o[k]=new ItemPool(istBatterie(k)?buildAusgepackt(k):buildProduct(k,true),12);
   return o[k]; }});
-/* Was steht auf dem Zuendtisch: Batterien ausgepackt, alles andere wie im Regal */
-function stationsPool(t){ return istBatterie(t)||(P[t]&&P[t].shape==='fountainset')?poolsAus[t]:pools[t]; }
+/* Was auf dem Zuendtisch steht: Abschuss-Baustein 14z4 (abForm, abPool) - immer ausgepackt */
 
 /* ---------------- Verpackung im Laden ---------------- */
 /* Grosse Verbunde kommen im braunen Wellpappkarton mit Etikett,
@@ -7851,16 +7852,25 @@ const FT_DUESE={fussX:0.02,fussY:0.181,len:0.0725,neig:32,r0:0.0106,r1:0.0085};
 function ftMuendungen(o,prod){ const D=FT_DUESE, h=(P[prod]&&P[prod].dims?P[prod].dims[1]:0.2), sn=Math.sin(D.neig*Math.PI/180), cs=Math.cos(D.neig*Math.PI/180);
   return [-1,1].map(s=>({x:o.x+s*(D.fussX+sn*D.len),y:o.y-h+D.fussY+cs*D.len,z:o.z,d:[s*sn,cs,0],s})); }
 if(typeof window!=='undefined') window.__ftMuendungen=ftMuendungen;
+/* Ausgepackt (13.10., Fundament 2b, Abschuss-Baustein 14z4): am Zuendort
+   steht das Produkt ohne Verpackung - dieselbe Form, aber ohne Folie;
+   Formen mit Schachtel bauen dann nur ihr Inneres (o.aus). Die Form
+   meldet ihre Oeffnungen (parts.loecher) und die Hoehe der Oeffnung
+   (parts.oben), wenn sie von dims abweichen. */
+let VP_AUSGEPACKT=null;
 (()=>{
+let aus=false;
+VP_AUSGEPACKT=t=>{ aus=true; try{ return VP_FORM[t](t); } finally { aus=false; } };
 const PI=Math.PI, HOLZ=0xc9a46a, I=s=>parseInt(String(s).slice(1),16);
 /* ---------------- Grundgeruest ---------------- */
-function G(t){ const p=P[t]; return {t,p,a:p.art,cat:p.cat,w:p.dims[0],h:p.dims[1],d:p.dims[2],vc:[],dr:[],fo:[],gl:[],ex:[],R:{},rnd:zufallAus(hashStr(t+'|vp'))}; }
+function G(t){ const p=P[t]; return {t,p,a:p.art,cat:p.cat,w:p.dims[0],h:p.dims[1],d:p.dims[2],vc:[],dr:[],fo:[],gl:[],ex:[],R:{},rnd:zufallAus(hashStr(t+'|vp')),aus}; }
 function fertig(o){ const parts=[];
   if(o.dr.length) parts.push({geo:merge(o.dr),mat:o.drMat});
   if(o.vc.length) parts.push({geo:merge(o.vc),mat:vcMat});
   o.ex.forEach(q=>parts.push(q));
   if(o.gl.length) parts.push({geo:merge(o.gl),mat:glassMat});
-  if(o.fo.length) parts.push({geo:merge(o.fo),mat:o.foMat||folieKlar});
+  if(o.fo.length&&!o.aus) parts.push({geo:merge(o.fo),mat:o.foMat||folieKlar});
+  if(o.loecher) parts.loecher=o.loecher; if(o.oben!==undefined) parts.oben=o.oben;
   return parts; }
 const box=(o,w,h,d,x,y,z,c,rx,ry,rz)=>o.vc.push({geo:new THREE.BoxGeometry(w,h,d),m:tm(x,y,z,rx,ry,rz),color:c});
 const zyl=(o,r1,r2,l,s,x,y,z,c,rx,ry,rz,sx,sy,sz)=>o.vc.push({geo:new THREE.CylinderGeometry(r1,r2,l,s),m:tm(x,y,z,rx,ry,rz,sx,sy,sz),color:c});
@@ -8421,6 +8431,11 @@ VP_FORM.feuerteufel=t=>{ const o=G(t), {w,h,d,a}=o, D=FT_DUESE, Rb=d/2*0.96, Hb=
 /* Feuerkreis: achteckige Schachtel, im Deckel ein rundes Fenster auf
    den Bodenring */
 VP_FORM.bodenfeuer=t=>{ const o=G(t), {w,h,d,a}=o, ap=w*0.49, Rc=ap/Math.cos(PI/8), sw=2*ap*Math.tan(PI/8), Hb=h*0.97;
+  /* ausgepackt: der Bodenring mit seinen acht Duesen liegt auf dem Tisch,
+     ohne Schachtel (vorher kam der Feuerkreis oben aus dem Deckel) */
+  if(o.aus){ const rr=ap*0.42; torus(o,rr,0.013,0,0.013,0,0xc05a1a,PI/2,0,0,24);
+    for(let i=0;i<8;i++){ const an=i/8*PI*2; zyl(o,0.009,0.009,0.014,8,Math.cos(an)*rr,0.027,Math.sin(an)*rr,i%2?ROT:0xffd23f); }
+    zyl(o,0.0016,0.0016,0.03,4,rr,0.02,0.012,0x2e8b3a,PI/2,0,0); o.oben=0.034; return fertig(o); }
   const R=bogen(o,[{n:'v',w:sw*3,h:Hb,f:B(t)},{n:'s',w:sw,h:Hb,f:seite(t)},{n:'h',w:sw,h:Hb,f:(g,W,H)=>{ g.fillStyle=a.bg2; g.fillRect(0,0,W,H); g.fillStyle=a.ac; g.fillRect(0,H*0.9,W,H*0.1); }},
     {n:'dk',w:Rc*2,h:Rc*2,f:(g,W,H)=>{ drawTop(g,W,H,a,o.cat); g.fillStyle='rgba(0,0,0,.25)'; g.fillRect(0,0,W,H); loch(g,[{x:W/2,y:H/2,r:W*0.3}]); g.strokeStyle=a.ac; g.lineWidth=W*0.02; g.beginPath(); g.arc(W/2,H/2,W*0.33,0,PI*2); g.stroke(); }}],{alpha:true});
   const v=R.v, third=k=>[v[0]+(v[2]-v[0])*k/3,v[1],v[0]+(v[2]-v[0])*(k+1)/3,v[3]];
@@ -8548,6 +8563,8 @@ VP_FORM.roemisch=t=>{ const o=G(t), {w,h,d,a}=o, r=Math.min(w,d)/2*0.965/2.7, Rc
   teile.push({n:'bd',w:umf,h:bh,f:(g,W,H)=>{ g.fillStyle=a.bg2; g.fillRect(0,0,W,H); teil(g,W/4,0,W/2,H,B(t)); teil(g,-W/4,0,W/2,H,seite(t)); teil(g,W*0.75,0,W/2,H,seite(t));
     g.fillStyle=a.ac2; g.fillRect(0,0,W,H*0.05); g.fillRect(0,H*0.95,W,H*0.05); }});
   const R=bogen(o,teile,{max:1100});
+  /* die fuenf Rohre sind die Oeffnungen (Abschuss-Baustein: jeder Schuss aus seinem Rohr) */
+  o.loecher=C.map(([x,z])=>({x,z,y:ky+ch,r}));
   /* Dreiecke sparsam (Handy): je Rohr 12 Seiten, Kappe ein Stueck, keine Bodenplatte */
   C.forEach(([x,z],i)=>{ const c=I(F[i][0]), al=PI*(36+i*72)/180;
     /* Etikett so drehen, dass die Vorderhaelfte nach aussen zeigt */
@@ -13780,17 +13797,9 @@ function buildYard(){
   {
     const s=STATION_POS.tisch, g=new THREE.Group(); g.position.set(s.x,0,s.z); scene.add(g);
     const TB=TISCH_B/2;
-    bbox(TISCH_B,0.04,1.05,perfM,0,0.9,0,g);
-    bbox(TISCH_B+0.06,0.05,0.05,steelDark,0,0.925,0.52,g); bbox(TISCH_B+0.06,0.05,0.05,steelDark,0,0.925,-0.52,g);
-    bbox(0.05,0.05,1.07,steelDark,TB+0.02,0.925,0,g); bbox(0.05,0.05,1.07,steelDark,-TB-0.02,0.925,0,g);
-    for(const [x,z] of [[-TB+0.11,-0.42],[TB-0.11,-0.42],[-TB+0.11,0.42],[TB-0.11,0.42],[0,-0.42],[0,0.42]]){
-      bbox(0.07,0.88,0.07,steelDark,x,0.44,z,g);
-      bbox(0.12,0.025,0.12,rubber,x,0.012,z,g,false);
-    }
-    bbox(TISCH_B-0.2,0.03,0.16,steelDark,0,0.3,0.42,g,false);
-    bbox(TISCH_B-0.2,0.03,0.16,steelDark,0,0.3,-0.42,g,false);
-    bbox(0.06,0.06,0.9,steelDark,TB-0.15,0.3,0,g,false);
-    bbox(0.06,0.06,0.9,steelDark,-TB+0.15,0.3,0,g,false);
+    /* Lochblechtisch: Abschuss-Baustein (14z4), dieselbe Bauart steht in der Vorfuehrung */
+    abMatSetzen({perf:perfM,stahl:steel,stahlDunkel:steelDark,gummi:rubber});
+    abTischBau(g,0,0,TISCH_B);
     /* Kanalnummern an der Vorderkante, je Platz eine */
     for(let i=0;i<s.cap;i++) plane(0.1,0.064,kanalMat(KANAL_START.tisch+i),TISCH_X[i],0.915,0.549,0,g);
     const hit=bbox(TISCH_B+0.1,0.95,1.15,hitM,0,0.62,0,g,false);
@@ -13811,33 +13820,9 @@ function buildYard(){
   {
     const s=STATION_POS.rampe, g=new THREE.Group(); g.position.set(s.x,0,s.z); scene.add(g);
     const TT=RAMPE_TISCH;
-    bbox(1.3,0.04,0.74,perfM,0,TT-0.02,0,g);
-    bbox(1.36,0.05,0.05,steelDark,0,TT-0.025,0.37,g); bbox(1.36,0.05,0.05,steelDark,0,TT-0.025,-0.37,g);
-    bbox(0.05,0.05,0.76,steelDark,0.66,TT-0.025,0,g); bbox(0.05,0.05,0.76,steelDark,-0.66,TT-0.025,0,g);
-    for(const [x,z] of [[-0.58,-0.3],[0.58,-0.3],[-0.58,0.3],[0.58,0.3]]){
-      bbox(0.06,TT-0.05,0.06,steelDark,x,(TT-0.05)/2,z,g);
-      bbox(0.11,0.025,0.11,rubber,x,0.012,z,g,false); }
-    bbox(1.1,0.03,0.12,steelDark,0,0.26,0.3,g,false); bbox(1.1,0.03,0.12,steelDark,0,0.26,-0.3,g,false);
-    const tubeM=std(0x3e4652,{metalness:0.72,roughness:0.34});
-    const A=ROHR_ACHSE, c=Math.cos(A.neig), sn=Math.sin(A.neig);
-    for(let i=0;i<s.cap;i++){
-      const x=RAMPE_X[i];
-      const t=new THREE.Mesh(new THREE.CylinderGeometry(0.062,0.062,A.halb*2,20,1,true),tubeM);
-      t.material.side=THREE.DoubleSide; t.position.set(x,A.y,A.z); t.rotation.x=A.neig;
-      if(HIQ) t.castShadow=true; g.add(t);
-      const inner=new THREE.Mesh(new THREE.CylinderGeometry(0.056,0.056,A.halb*2-0.03,16,1,true),std(0x14161b,{roughness:0.9,side:THREE.DoubleSide}));
-      inner.position.copy(t.position); inner.rotation.copy(t.rotation); g.add(inner);
-      /* Boden des Rohrs, Muendungsring, Schelle */
-      const fussY=A.y-c*A.halb, fussZ=A.z-sn*A.halb;
-      const boden=new THREE.Mesh(new THREE.CylinderGeometry(0.06,0.06,0.012,20),steelDark); boden.position.set(x,fussY,fussZ); boden.rotation.x=A.neig; g.add(boden);
-      const ring=new THREE.Mesh(new THREE.TorusGeometry(0.064,0.013,8,18),steel);
-      ring.rotation.x=Math.PI/2+A.neig; ring.position.set(x,A.y+c*A.halb,A.z+sn*A.halb); g.add(ring);
-      const schelle=new THREE.Mesh(new THREE.TorusGeometry(0.066,0.012,8,18),steelDark);
-      schelle.rotation.x=Math.PI/2+A.neig; schelle.position.set(x,A.y-c*A.halb*0.55,A.z-sn*A.halb*0.55); g.add(schelle);
-      /* schwere Fussplatte mit zwei Stuetzen zur Schelle */
-      bbox(0.24,0.022,0.24,steelDark,x,TT+0.011,fussZ,g,false);
-      for(const sx of [-1,1]){ const st=bbox(0.014,0.2,0.014,steelDark,x+sx*0.085,TT+0.1,fussZ+0.02,g,false); st.rotation.z=-sx*0.32; }
-    }
+    /* Tisch und Rohre: Abschuss-Baustein (14z4) - dieselben Rohre wie in der Vorfuehrung */
+    abRampeBau(g,0,0,1.3);
+    for(let i=0;i<s.cap;i++) abRohrBau(g,RAMPE_X[i],0);
     for(let i=0;i<s.cap;i++) plane(0.1,0.064,kanalMat(KANAL_START.rampe+i),RAMPE_X[i],TT-0.03,0.378,0,g);
     const hit=bbox(1.4,1.5,0.85,hitM,0,0.78,0,g,false);
     stations.rampe={id:'rampe',g,items:[],cap:s.cap,hit};
@@ -13868,7 +13853,6 @@ function buildYard(){
       return new THREE.MeshStandardMaterial({map:t,metalness:0.62,roughness:0.44}); })();
     const stahl=std(0x767d88,{metalness:0.72,roughness:0.36});
     const lack =std(0xf2c230,{metalness:0.25,roughness:0.55});
-    const rohrM=std(0x2f353f,{metalness:0.78,roughness:0.3});
     /* Bodenplatte aus Riffelblech auf vier Fuessen */
     bbox(2.4,0.05,1.16,riffel,0,0.055,0,g);
     for(const sx of [-1.06,1.06]) for(const sz of [-0.46,0.46])
@@ -13880,12 +13864,6 @@ function buildYard(){
       const dia=bbox(0.05,0.05,0.82,stahl,sx,0.39,0,g,false); dia.rotation.x=0.88;
     }
     for(const sz of [-0.5,0.5]) bbox(2.24,0.07,0.07,stahl,0,0.68,sz,g,false);
-    /* Rohrschellen: je zwei Halbschalen mit Schraube */
-    const kalX=[-0.72,0,0.78], kalR=MOERSER_R;
-    kalX.forEach((x,i)=>{ for(const y of [0.42,0.66]){
-      const sch=new THREE.Mesh(new THREE.TorusGeometry(kalR[i]+0.03,0.026,6,18),stahl);
-      sch.rotation.x=Math.PI/2; sch.position.set(x,y,0); g.add(sch);
-      bbox(0.05,0.05,0.09,stahl,x+kalR[i]+0.05,y,0,g,false); } });
     /* Anfahrschutz aus Stahlrohr statt Sandsaecken */
     for(const sz of [-0.78,0.78]){
       bbox(2.5,0.09,0.09,lack,0,0.5,sz,g,false);
@@ -13893,25 +13871,10 @@ function buildYard(){
         bbox(0.09,0.5,0.09,lack,sx,0.25,sz,g,false);
         bbox(0.2,0.04,0.2,stahl,sx,0.02,sz,g,false); }
     }
-    /* drei Rohre in aufsteigendem Kaliber */
-    const kal=[[-0.72,MOERSER_R[0],1.30],[0,MOERSER_R[1],1.55],[0.78,MOERSER_R[2],1.85]];
-    kal.forEach(([x,r,hh],i)=>{
-      const t=new THREE.Mesh(new THREE.CylinderGeometry(r,r,hh,22,1,true),rohrM);
-      t.material.side=THREE.DoubleSide; t.position.set(x,0.18+hh/2,0);
-      if(HIQ) t.castShadow=true; g.add(t);
-      const innen=new THREE.Mesh(new THREE.CylinderGeometry(r*0.9,r*0.9,hh-0.04,16,1,true),std(0x0b0c10,{roughness:1,side:THREE.DoubleSide}));
-      innen.position.copy(t.position); g.add(innen);
-      /* Boden im Rohr, damit man nicht hindurchsieht */
-      const bo=new THREE.Mesh(new THREE.CircleGeometry(r*0.9,16),std(0x15171c,{roughness:1}));
-      bo.rotation.x=-Math.PI/2; bo.position.set(x,0.2,0); g.add(bo);
-      /* Muendungswulst und Verstaerkungsringe */
-      const wulst=new THREE.Mesh(new THREE.TorusGeometry(r*1.03,r*0.17,8,20),std(0x454d59,{metalness:0.7,roughness:0.35}));
-      wulst.rotation.x=Math.PI/2; wulst.position.set(x,0.18+hh,0); g.add(wulst);
-      for(const f of [0.3,0.62]){ const rg=new THREE.Mesh(new THREE.TorusGeometry(r*1.02,r*0.1,6,18),rohrM);
-        rg.rotation.x=Math.PI/2; rg.position.set(x,0.18+hh*f,0); g.add(rg); }
-      /* Frueher hing hier ein rotes Zuendkabel je Rohr. Die drei
-         Striche sahen aus wie vergessene Faeden. */
-      /* Kaliberschild */
+    /* drei Rohre in aufsteigendem Kaliber: Abschuss-Baustein (14z4) - mit
+       Schellen, Wulst und Ringen, dieselben Rohre wie in der Vorfuehrung */
+    abMatSetzen({riffel});
+    MOERSER_X.forEach((x,i)=>{ abMoerserBau(g,x,0,i);
       /* Kanalnummer und Kaliber des Rohrs */
       plane(0.22,0.09,kanalMat(KANAL_START.moerser+i,ROHR_KALIBER[i]),x,0.62,0.5,0,g);
     });
@@ -14144,27 +14107,10 @@ function alleKanaele(){
 }
 function kanalItem(k){ const e=alleKanaele().find(x=>x.kanal===k); return e?e.it:null; }
 /* Wo der Effekt eines Platzes startet: Oberkante des Produkts auf
-   dem Tisch, Muendung des Rohrs, Muendung des Moerserrohrs. jit ist
-   der seitliche Versatz eines Schusses - aus einem Rohr kommt er
-   gerade heraus, nicht irgendwo aus der Naehe. hx/hz: halbe Oeffnung
-   quer und in der Tiefe - weiter darf kein Abschuss, keine Mine und
-   keine Duese vom Mittelpunkt weg (28.09., Tom: echt). */
-const MOERSER_MUND=[1.48,1.73,2.03];
-function muendung(st,slot,t){
-  const p=STATION_POS[st.id];
-  if(st.id==='tisch'){ const h=P[t]&&P[t].dims?P[t].dims[1]:0.2;
-    const d=P[t]&&P[t].dims||[0.2,0.2,0.2], hx=d[0]/2, hz=d[2]/2;
-    return {x:p.x+TISCH_X[slot%3],y:0.93+h,z:p.z,ab:0.08,jit:Math.min(0.06,hx*0.5,hz*0.5),hx,hz,ry:stationSlot(st,slot).ry}; }
-  if(st.id==='moerser') return {x:p.x+[-0.72,0,0.78][slot%3],y:MOERSER_MUND[slot%3],z:p.z,ab:0.05,jit:0.02,hx:ROHR_INNEN[slot%3]*0.8,hz:ROHR_INNEN[slot%3]*0.8};
-  /* Roemische Lichter stehen im Rohr und ragen heraus: ihre Oeffnung
-     sind die fuenf Rohre des Buendels oben (Modell: Rohre bei +-0,52 w,
-     Hoehe 0,9 h). Vorher starteten ihre Schuesse an der Rohrmuendung
-     (1,34 m) - 20 bis 30 cm tief im Buendel (28.09., Tom: echt). */
-  const pc=P[t];
-  if(pc&&pc.shape==='candle'&&pc.dims){ const k=kerzeImRohr(slot,t);
-    return {x:k.top.x,y:k.top.y,z:k.top.z,ab:0.02,jit:0.005,hx:k.hx,hz:k.hz}; }
-  const mu=rampeMund(slot); return {x:mu.x,y:mu.y,z:mu.z,ab:0.05,jit:0.02,hx:0.045,hz:0.045};
-}
+   dem Tisch, Muendung des Rohrs, Muendung des Moerserrohrs - seit dem
+   13.10. (Fundament 2b) an EINER Stelle fuer jeden Zuend-Ort: Abschuss-
+   Baustein 14z4 (abPlatzStation, abMuendung). */
+function muendung(st,slot,t){ return abMuendung(abPlatzStation(st,slot),t); }
 function placedCount(){ let n=0; for(const k in stations) n+=stations[k].items.length; return n; }
 function bereitCount(){ let n=0; for(const k in stations) n+=stations[k].items.filter(it=>it.state==='bereit').length; return n; }
 let pultText='';
@@ -14201,30 +14147,8 @@ function pultLampen(){
     if(it.state==='brennt'){ m.emissive.copy(LIN(0xff3b2e)); m.emissiveIntensity=1.6; }
     else { m.emissive.copy(LIN(0x39ff7a)); m.emissiveIntensity=1.3; } });
 }
-/* Roemische Lichter stecken IM Abschussrohr (Tom, Foto 29.09.): das
-   Buendel war mit bis zu 25 cm doppelt so breit wie das Rohr (11 cm),
-   stand senkrecht auf dem Rand und machte die Neigung nicht mit. Jetzt
-   folgt es der Rohrachse, ist so schmal, dass es hineinpasst (einzelne
-   Kerzen 2-3 cm wie in echt), und das obere Drittel schaut heraus. */
-/* Abschussrohre auf dem Tisch (01.10. abends): Platte in 0,76 m, Rohr
-   0,62 m lang, um 0,1 rad vom Pult weg geneigt - Muendung in 1,38 m */
-const RAMPE_TISCH=0.76;
-const ROHR_ACHSE={y:RAMPE_TISCH+0.012+0.31*Math.cos(0.1),z:-0.055,neig:-0.1,halb:0.31,innen:0.056};
-function rampeMund(slot){ const p=STATION_POS.rampe, A=ROHR_ACHSE; return {x:p.x+RAMPE_X[slot%3],y:A.y+Math.cos(A.neig)*A.halb,z:p.z+A.z+Math.sin(A.neig)*A.halb}; }
-function kerzeImRohr(slot,t){
-  const p=STATION_POS.rampe, d=P[t].dims, w=d[0], HH=d[1]*0.9;
-  const s=Math.min(1,(ROHR_ACHSE.innen*2-0.008)/(1.41*w));
-  const c=Math.cos(ROHR_ACHSE.neig), sn=Math.sin(ROHR_ACHSE.neig);
-  const bei=u=>({x:p.x+RAMPE_X[slot%3],y:ROHR_ACHSE.y+c*u,z:p.z+ROHR_ACHSE.z+sn*u});
-  const tb=ROHR_ACHSE.halb-0.4*HH;
-  return {base:bei(tb),top:bei(tb+HH),s,neig:ROHR_ACHSE.neig,hx:0.52*w*s,hz:0.5*w*s};
-}
-function stationSlot(st,i){
-  const p=STATION_POS[st.id];
-  if(st.id==='tisch') return {x:p.x+TISCH_X[i%3],y:0.93,z:p.z,ry:Math.PI};
-  if(st.id==='moerser'){ const x=[-0.72,0,0.78][i%3]; return {x:p.x+x,y:[1.36,1.62,1.92][i%3],z:p.z,ry:rand(0,Math.PI*2)}; }
-  const mu=rampeMund(i); return {x:mu.x,y:mu.y-0.16,z:mu.z,ry:0};
-}
+/* Abschussrohre, Roemische Lichter im Rohr, Plaetze: Abschuss-Baustein 14z4
+   (RAMPE_TISCH, ROHR_ACHSE, abRohrMund, abKerze, abPlatzStation) */
 /* =========================================================
    Was auf der Station sichtbar steht. Raketen stecken mit dem Stab
    im Rohr und schauen oben heraus, jede Sorte mit eigenem Aussehen.
@@ -14317,39 +14241,6 @@ function kugelModell(t,slot){
   g.userData.lunte=pts[pts.length-1].clone();
   return g;
 }
-function stationsModell(st,it,sl){
-  const t=it.type, p=P[t]; if(!p) return false;
-  if(st.id==='rampe'&&(p.shape==='rocketset')&&t!=='gravur'){
-    const o=muendung(st,it.slot,t);
-    const g=raketeModell(t); g.position.set(o.x,o.y-0.01,o.z); g.rotation.x=-0.1;
-    scene.add(g); it.modell=g; return true;
-  }
-  if(st.id==='rampe'&&t==='gravur'){
-    const o=muendung(st,it.slot,t);
-    const m=makeEngraved(it.text||(S.carrying&&S.carrying.text)||'');
-    m.rotation.z=Math.PI/2; m.position.set(o.x,o.y+0.07,o.z); scene.add(m);
-    it.mesh=m; it.text=S.carrying&&S.carrying.text; return true;
-  }
-  if(st.id==='moerser'&&p.shape==='shell'){
-    const o=muendung(st,it.slot,t);
-    const g=kugelModell(t,it.slot); g.position.set(o.x,o.y,o.z); g.rotation.y=-Math.PI*0.5;
-    scene.add(g); it.modell=g; return true;
-  }
-  /* Fontaenen mit Gestell (Drehsonne, Niagara): das aufgebaute Gestell
-     steht auf dem Platz, die Funken kommen aus seinen Duesen (28.09.,
-     Tom: echt - vorher erschienen Rad und Leine erst beim Zuenden in der
-     Luft ueber dem Karton). Eigenes Feld gestell: es bleibt beim Zuenden
-     stehen und hat keine Zuendschnur-Vorlaufzeit wie ein Rohr. */
-  if(st.id==='tisch'&&typeof fkGestell==='function'){ const g=fkGestell(t,sl); if(g){ scene.add(g); it.gestell=g; return true; } }
-  /* Wunderkerzen (03.10., Tom): ohne Verpackung - die Kerzen stecken in
-     einem Mini-Podest (14q). Als gestell: es bleibt beim Zuenden stehen. */
-  if(st.id==='tisch'&&typeof kqPodestAuf==='function'){ const g=kqPodestAuf(t,sl); if(g){ scene.add(g); it.gestell=g; return true; } }
-  /* Kleinfeuerwerk (07.10., Tom: "beim Zuenden steht die Verpackung auf
-     dem Tisch, nicht das Produkt"): ausgepackt - Popper im Halter, Boeller
-     mit Zuendschnur, Frosch, Bonbons, Kreisel ... (14x) */
-  if(st.id==='tisch'&&typeof kfTischAuf==='function'){ const g=kfTischAuf(t,sl); if(g){ scene.add(g); it.gestell=g; return true; } }
-  return false;
-}
 function placeOnStation(st){
   const c=S.carrying; if(!c) return;
   const want=stationOf(c.type);
@@ -14360,26 +14251,11 @@ function placeOnStation(st){
     if(itemAufPlatz(st,slot)){ toast(`${P[c.type].short} gehört ins ${ROHR_NAME[slot]} (${ROHR_KALIBER[slot]}) - das ist belegt. Erst zünden.`,'bad'); return; } }
   else slot=freierPlatz(st);
   if(slot<0){ toast('Die Station ist voll. Erst zünden.','bad'); return; }
-  const sl=stationSlot(st,slot);
-  const it={type:c.type,q:c.q||1,slot,kanal:kanalVon(st,slot),state:'bereit'};
-  if(stationsModell(st,it,sl)){
-    /* eigenes Modell: Rakete im Rohr, Kugelbombe mit Zuendschnur */
-  } else if(c.type==='gravur'){
-    const m=makeEngraved(c.text||''); m.position.set(sl.x,sl.y+0.06,sl.z); m.rotation.y=sl.ry; scene.add(m);
-    it.mesh=m; it.text=c.text;
-  } else {
-    /* alle stehen mit der Breite quer zum Blick - die Schuesse laufen
-       ueber diese Breite. Vorher wurden Verbunde ueber 0,76 m quer
-       gestellt und schossen dann neben dem Karton (28.09.) */
-    if(st.id==='rampe'&&P[c.type].shape==='candle'){
-      const k=kerzeImRohr(slot,c.type); _e.set(k.neig,0,0); _q.setFromEuler(_e);
-      it.h=pools[c.type].add(new THREE.Matrix4().compose(V(k.base.x,k.base.y,k.base.z),_q,V(k.s,1,k.s)));
-    } else if(istBatterie(c.type)){
-      /* Batterie: eigenes Modell mit echten Rohren - jedes Rohr verkohlt,
-         sobald es geschossen hat; sie bleibt stehen, bis sie abgebrannt ist */
-      const b=batterieModell(c.type,sl.ry); b.g.position.set(sl.x,sl.y,sl.z); b.g.rotation.y=sl.ry; scene.add(b.g); it.batt=b;
-    } else it.h=stationsPool(c.type).add(mx(sl.x,sl.y,sl.z,sl.ry));
-  }
+  /* Darstellung: Abschuss-Baustein (14z4) - das ausgepackte Produkt,
+     an jedem Zuend-Ort gleich (Batterie mit Rohren, Rakete im Rohr,
+     Kugel in der Muendung, Buendel im Rohr, Gestell, Podest ...) */
+  const pl=abPlatzStation(st,slot);
+  const it=Object.assign(abAufstellen(pl,c.type,{text:c.text})||{},{type:c.type,q:c.q||1,slot,kanal:kanalVon(st,slot),state:'bereit'});
   st.items.push(it);
   c.count--; S.tut.build=true; sfx.pop();
   if(c.count<=0) kartonLeer(c,'Karton leer.');
@@ -14387,11 +14263,7 @@ function placeOnStation(st){
   toast(`Kanal ${it.kanal}: ${P[it.type].short}`);
 }
 function itemEntfernen(st,it){
-  if(it.h) it.h.pool.remove(it.h);
-  if(it.batt) it.batt.weg();
-  if(it.mesh) disposeEngraved(it.mesh);
-  if(it.modell&&it.modell.parent) it.modell.parent.remove(it.modell);
-  if(it.gestell&&it.gestell.parent) it.gestell.parent.remove(it.gestell);
+  abWeg(it);
   const i=st.items.indexOf(it); if(i>=0) st.items.splice(i,1);
 }
 function clearStations(){ for(const k in stations){ stations[k].items.slice().forEach(it=>itemEntfernen(stations[k],it)); } drawPult(); }
@@ -14419,43 +14291,19 @@ function brennDauer(t){
   if(sh==='battery'||sh==='fan') return 9;
   return 4;
 }
-/* Einen Platz zuenden. Liefert true, wenn etwas gezuendet wurde. */
+/* Einen Platz zuenden. Liefert true, wenn etwas gezuendet wurde.
+   Zuendschnur, Abschuss, Modell fliegt mit, Rauchrest: Abschuss-Baustein
+   (14z4 abZuenden) - hier nur, was die Station dazu tut: Blindgaenger bei
+   billiger Ware, Kanal frei nach dem Abbrand, Pult. */
 function zuendeItem(st,it,leise){
   if(!it||it.state!=='bereit') return false;
   it.state='brennt';
-  const o=muendung(st,it.slot,it.type);
-  if(it.batt) o.batt=it.batt;
-  const dud=Math.random()<clamp((1-(it.q||1))*0.65,0,0.45);
-  /* Raketen und Kugelbomben brennen erst die Zuendschnur herunter,
-     dann verlassen sie Rohr oder Moerser - und sind weg. */
-  const imRohr=it.modell||(st.id==='rampe'&&it.mesh);
-  const vor=imRohr?(st.id==='moerser'?0.75:0.4):0;
-  if(vor){
-    let lo=o;
-    if(it.modell&&it.modell.userData.lunte){ it.modell.updateMatrixWorld(true);
-      const w=it.modell.localToWorld(it.modell.userData.lunte.clone()); lo={x:w.x,y:w.y-0.05,z:w.z}; }
-    emitters.push({t:vor,k:'fuse',o:lo}); sfx.fizz(distVol(o)*0.5);
-  }
-  later(vor,()=>{
-    if(dud){ fizzle(it.type,o); return; }
-    if(it.modell) it.modell.visible=false;
-    if(st.id==='rampe'&&it.mesh) it.mesh.visible=false;
-    igniteType(it.type,o,it);
-    if(it.text) later(0.9,()=>toast(`„${it.text}" steigt auf.`,'money'));
-  });
-  const dauer=vor+(dud?2.2:brennDauer(it.type));
-  later(dauer,()=>{
-    /* abgebrannt: ein Rest Rauch, dann ist der Platz wieder frei. Er
-       steigt aus der Oeffnung, nicht daneben (28.09., Tom: echt) */
-    const dd=P[it.type].dims||[0.2,0.2,0.2], rr=st.id==='tisch'?Math.min(0.08,Math.min(dd[0],dd[2])*0.4):0.03;
-    for(let k=0;k<14;k++){ const d=randDir();
-      psSmall.emit(o.x+rand(-rr,rr),o.y,o.z+rand(-rr,rr),d[0]*0.25,Math.abs(d[1])*0.6+0.3,d[2]*0.25,0.34,0.34,0.36,rand(1.2,2.2),-0.25,0); }
-    itemEntfernen(st,it); drawPult();
-  });
+  const z=abZuenden(it.pl,it.type,it,{q:it.proto?1:(it.q||1),it,fertig:()=>{ itemEntfernen(st,it); drawPult(); if(it.proto) later(12,()=>abProtoWeg(it.type)); }});
+  if(it.text&&!z.dud) later(z.vor+0.9,()=>toast(`„${it.text}" steigt auf.`,'money'));
   if(!leise) sfx.pop();
   S.tut.launch=true;
   drawPult();
-  return dud?'dud':true;
+  return z.dud?'dud':true;
 }
 /* Die Tastkappe am Pult geht kurz herunter - man sieht, welcher
    Kanal gedrueckt wurde */
@@ -32753,7 +32601,10 @@ function playShowRoh(o,phases,prod,tag,PLAN){
   const breite=2*VM.halb;
   /* Ort zum Versatz: erst beim Zuenden gerechnet, wenn alle Versaetze
      der Show bekannt sind (VM.k) */
-  const ortAus=off=>off?versetzt(o,off*VM.k()):versetzt(o,0);
+  /* Roemische Lichter (13.10., Fundament 2b): die Oeffnung hat einzelne
+     Rohre (o.loecher, Abschuss-Baustein 14z4) - jeder Versatz landet auf
+     dem Rohr, das dort sitzt, nicht zwischen den Rohren */
+  const ortAus=off=>o.loecher&&o.loecher.length?abLochOrt(o,off?off*VM.k():0):off?versetzt(o,off*VM.k()):versetzt(o,0);
   /* Batterien: jeder Schuss und jeder Boden-Effekt aus seinem eigenen
      Rohr (04c, Tom 01.10.: so viele Loecher wie Schuss) */
   const RS=rohrSatz(o,prod);
@@ -33160,7 +33011,8 @@ function igniteType(t,o0,it){
   const o=o0||padOf(t), sh=p.shape;
   /* Vorfuehrung (Entwicklung): kein Hype, keine Erfahrung - sonst ging
      nach gut zwanzig Zuendungen das Level-Fenster auf und fing die Tasten */
-  if(!(typeof vfAn!=='undefined'&&vfAn)){
+  /* Prototyp der eigenen Rezeptur (14z4 abProtoZuenden): kostenlos, ohne Hype */
+  if(!(typeof vfAn!=='undefined'&&vfAn)&&!p.proto){
     hype=Math.min(100,hype+p.hype); DS.burned=r2(DS.burned+costOf(t)); addXP(Math.max(1,Math.round(p.hype/3)));
     statAdd('gezuendet',1); statAdd('hype',p.hype); }
   else vfGezuendet++;
@@ -33194,8 +33046,10 @@ function igniteType(t,o0,it){
       sfx.fizz(v);   /* danach rauscht das Klangbett der Fontaene (30.09.) */
       later(3.2,()=>shot(o,{pw:3,sz:tr.kal*1.2,eff:rz.eff,A,B,fuse:1.3,dick:1,stufen:st}));
     } else {
-      for(let i=0;i<tr.schuss;i++) later(i*0.45,()=>
-        shot(o,{pw:tr.kal>1.1?3:0,sz:tr.kal,eff:rz.eff,A,B,stufen:i===tr.schuss-1?st:null}));
+      /* Raketenset: eine Rakete je Rohr wie jede Rakete im Sortiment (13.10.,
+         Fundament 2b: Loch = Schuss) - vorher stiegen tr.schuss Raketen aus
+         einem Rohr, in dem nur eine steckte */
+      shot(o,{pw:tr.kal>1.1?3:0,sz:tr.kal,eff:rz.eff,A,B,stufen:st});
     }
     return;
   }
@@ -38546,7 +38400,7 @@ Object.assign(FONT_EREIGNIS,{
    28.09., Tom: "wenn da eine Oeffnung ist, dann soll es am Produkt
    rausgehen". Rad und Leine erschienen erst beim Zuenden in der Luft ueber
    dem Karton. Jetzt steht das aufgebaute Gestell auf dem Tischplatz,
-   sobald das Produkt dort steht (Aufruf aus stationsModell), und die Funken
+   sobald das Produkt dort steht (Aufruf aus abAufstellen, 14z4), und die Funken
    kommen aus seinen Duesen. Im Regal bleibt es ein Karton (dims). */
 const FK_GESTELL=[];
 function fkGestellBau(t,x,y,z){
@@ -38580,7 +38434,7 @@ function fkGestellBau(t,x,y,z){
   g.userData.x=x; g.userData.z=z; g.userData.t=t;
   return g;
 }
-/* Aufruf aus stationsModell (05d-yard.js): nur auf dem Zuendtisch */
+/* Aufruf aus abAufstellen (Abschuss-Baustein 14z4): Station und Vorfuehrung */
 function fkGestell(t,sl){ const g=fkGestellBau(t,sl.x,sl.y,sl.z); if(!g) return null;
   for(let i=FK_GESTELL.length-1;i>=0;i--) if(!FK_GESTELL[i].parent) FK_GESTELL.splice(i,1);
   FK_GESTELL.push(g); return g; }
@@ -43450,52 +43304,23 @@ let vfBlickE=null, VF_FOV0=null;
 const VF_FOV_NAH=16;
 function vfBlickFrei(e){ if(e&&e!==vfBlickE) return; if(vfBlickE) vfBlickE.cam.an=false; vfBlickE=null;
   if(VF_FOV0!==null&&camera.fov!==VF_FOV0){ camera.fov=VF_FOV0; camera.updateProjectionMatrix(); } }
-function vfImRohr(t,o){
-  vfBlickFrei();
-  const p=P[t]; if(!p) return null;
-  let g=null, kugel=null;
-  if(o.sid==='rampe'&&p.shape==='rocketset'&&t!=='gravur'){ g=raketeModell(t); g.position.set(o.x,o.y-0.01,o.z); }
-  else if(o.sid==='moerser'&&p.shape==='shell'){ g=kugelModell(t,moerserRohr(t)); g.position.set(o.x,o.y,o.z); kugel=g.children[0];
-    /* 07.10. (Tom: "Kugelbomben NICHT sichtbar im Rohr, ohne heraushaengende
-       Zuendschnur"): an der Station liegt die Kugel 14 cm tief im Rohr - vom
-       Pult aus unsichtbar - und die Schnur hing zur Seite, die der Blick in der
-       Vorfuehrung nicht sieht. Hier sitzt die Kugel oben in der Muendung (die
-       obere Haelfte schaut heraus) und die Schnur haengt zum Zuschauer hin
-       ueber den Rand. */
-    const rk=kugel.geometry&&kugel.geometry.parameters?kugel.geometry.parameters.radius:0.06; kugel.position.y=rk*0.25;   /* gerendert: mit -0,4 rk verdeckte der Muendungswulst die Kugel */
-    const c=camera.position; g.rotation.y=-Math.atan2(c.z-o.z,c.x-o.x); }
-  if(!g) return null;
-  g.userData.vfModell=t; scene.add(g);
-  const e={t:30,k:'vfModell',o:{x:o.x,y:o.y,z:o.z},ab:o.ab||0,g,kugel,sid:o.sid,alter:0,r:null,fertig:false,
-    cam:{an:true,letzt:null}};
-  e.weg=()=>{ if(g.parent) g.parent.remove(g); e.fertig=true; e.t=0; vfBlickFrei(e); };
+/* Modell im Rohr, Zuendschnur und Mitflug kommen seit dem 13.10. vom
+   Abschuss-Baustein (14z4 abAufstellen, abFlug) - an der Station genauso.
+   Hier bleibt nur der Kamerablick der Vorfuehrung, angehaengt an den
+   Mitflug-Emitter e (e.blick). */
+function vfBlickAn(e){
+  vfBlickFrei(); if(!e) return;
+  e.cam={an:true,letzt:null}; e.blick=vfBlickTick; e.blickAus=vfBlickFrei;
   if(VF_FOV0===null) VF_FOV0=camera.fov;
-  vfBlickE=e; emitters.push(e); vfAufraeumen.push(e.weg);
-  return e;
-}
+  vfBlickE=e; }
 /* beim Beenden der Vorfuehrung gehoert der Blick wieder dem Spieler */
 { const aus=vorfuehrungAus; vorfuehrungAus=function(){ vfBlickFrei(); return aus.apply(this,arguments); }; }
-const _vfY=new THREE.Vector3(0,1,0), _vfD=new THREE.Vector3();
 /* Hoehenwinkel vom Auge zu einem Punkt */
 function vfHoehenWinkel(x,y,z){ const c=camera.position; return Math.atan2(y-c.y,Math.hypot(x-c.x,z-c.z)); }
-NEU_EMIT.vfModell=function(e,dt,o){
-  e.alter+=dt;
-  if(e.fertig){ e.t=0; return; }
-  if(!e.r){
-    /* die Rakete oder Kugel, die eben aus diesem Rohr gestartet ist */
-    for(const r of rockets) if(!r.vfModell&&r.alter<0.3&&Math.abs(r.y0-(o.y+e.ab))<0.3&&Math.abs(r.p.x-o.x)<0.6&&Math.abs(r.p.z-o.z)<0.6){ e.r=r; r.vfModell=e.g; break; }
-    if(e.r){ if(e.kugel){ e.g.children.forEach(m=>{ if(m!==e.kugel) m.visible=false; }); e.kugel.position.set(0,0,0); e.g.rotation.set(0,0,0); } }
-    else if(e.alter>8) e.weg();
-  }
-  const r=e.r;
+function vfBlickTick(e,dt,o,r){
   /* Bruch: das Modell ist weg, der Blick legt sich noch 1,5 s auf die
      Bruchmitte (sonst stand eine Rakete am oberen Bildrand und wuchs hinaus) */
-  if(r&&e.bruch===undefined&&rockets.indexOf(r)<0){ if(e.g.parent) e.g.parent.remove(e.g);
-    e.bruch=vfHoehenWinkel(r.p.x,r.p.y,r.p.z)-(e.kugel?0.06:0.1); e.nach=1.5; }
-  if(e.bruch!==undefined){ e.nach-=dt; if(e.nach<=0){ e.weg(); return; } }
-  else if(r){
-    e.g.position.set(r.p.x,r.p.y,r.p.z);
-    if(!e.kugel){ _vfD.set(r.v.x,r.v.y,r.v.z); if(_vfD.lengthSq()>0.01){ _vfD.normalize(); e.g.quaternion.setFromUnitVectors(_vfY,_vfD); } } }
+  if(e.bruchP&&e.bruch===undefined) e.bruch=vfHoehenWinkel(e.bruchP.x,e.bruchP.y,e.bruchP.z)-(e.kugel?0.06:0.1);
   /* Blick: erst aufs Rohr, dann mit dem Aufstieg nach oben */
   const c=e.cam; if(!c.an||vfBlickE!==e||typeof pitch==='undefined') return;
   if(!vfAn){ vfBlickFrei(e); return; }
@@ -45258,56 +45083,10 @@ function r3OhneKern(id){ const alt=SHOWS[id]; if(!alt) return; SHOWS[id]=()=>{ c
 
 /* ---------- Vorfuehrung: dieselben Abschussrohre wie im Spiel ----------
    Tom 07.10.: "Abschussrohre in der Vorfuehrung sehen anders aus als im
-   echten Spiel -> dieselben Rohre wie im Spiel nehmen". Die Vorfuehranlage
-   hatte glatte graue Zylinder ohne Innenseite (0,62 m Rohr, Moerser 0,6-
-   1 m hoch). Jetzt wie an den Stationen (05d): Abschussrohr aus dunklem
-   Stahl mit schwarzer Innenwand, Boden, Muendungsring, Schelle und
-   schwerer Fussplatte mit zwei Stuetzen auf einem Lochblechtisch; Moerser
-   wie die Moerserbatterie - Rohre 1,30/1,55/1,85 m auf 0,18 m, Muendungs-
-   wulst, zwei Verstaerkungsringe, Boden, Schellen, Riffelblech-Platte. */
-const VF_MOERSER_H=[1.30,1.55,1.85], VF_MOERSER_FUSS=0.18;
-vfAnlageBauen=function(){
-  if(vfAnlage){ vfAnlage.visible=true; return; }
-  const g=new THREE.Group(), steel=std(0x8a929e,{metalness:0.65,roughness:0.38}), steelDark=std(0x3a4049,{metalness:0.6,roughness:0.45}), holz=std(0xa8844f,{roughness:0.8});
-  const perf=std(0x5d646e,{metalness:0.55,roughness:0.5}), tubeM=std(0x3e4652,{metalness:0.72,roughness:0.34}), innenM=std(0x14161b,{roughness:0.9,side:THREE.DoubleSide});
-  tubeM.side=THREE.DoubleSide;
-  const box=(w,h,d,m,x,y,z)=>{ const b=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m); b.position.set(x,y,z); b.castShadow=b.receiveShadow=true; g.add(b); return b; };
-  const ring=(r,t,m,x,y,z)=>{ const o=new THREE.Mesh(new THREE.TorusGeometry(r,t,8,20),m); o.rotation.x=Math.PI/2; o.position.set(x,y,z); g.add(o); return o; };
-  /* Tisch fuer Batterien und Kleinfeuerwerk wie bisher */
-  const T=VF_TISCH, tw=T.n*T.dx+0.2, tx=T.x0+(T.n-1)*T.dx/2;
-  box(tw,0.06,0.9,holz,tx,T.y-0.03,VF_Z);
-  for(const sx of [-1,1]) for(const sz of [-1,1]) box(0.08,T.y-0.06,0.08,steel,tx+sx*(tw/2-0.1),(T.y-0.06)/2,VF_Z+sz*0.35);
-  /* Abschussrohre: Lochblechtisch in 0,76 m, Rohre 0,62 m, Muendung 1,38 m */
-  const R=VF_ROHR, TT=RAMPE_TISCH, rw=(R.n-1)*R.dx+0.4, rx=R.x0+(R.n-1)*R.dx/2, H=0.62, yc=TT+0.012+H/2;
-  box(rw,0.04,0.74,perf,rx,TT-0.02,VF_Z);
-  box(rw+0.06,0.05,0.05,steelDark,rx,TT-0.025,VF_Z+0.37); box(rw+0.06,0.05,0.05,steelDark,rx,TT-0.025,VF_Z-0.37);
-  for(const sx of [-1,1]) for(const sz of [-1,1]) box(0.06,TT-0.05,0.06,steelDark,rx+sx*(rw/2-0.08),(TT-0.05)/2,VF_Z+sz*0.3);
-  box(rw-0.2,0.03,0.12,steelDark,rx,0.26,VF_Z+0.3); box(rw-0.2,0.03,0.12,steelDark,rx,0.26,VF_Z-0.3);
-  for(let i=0;i<R.n;i++){ const x=R.x0+i*R.dx;
-    const t=new THREE.Mesh(new THREE.CylinderGeometry(0.062,0.062,H,20,1,true),tubeM); t.position.set(x,yc,VF_Z); t.castShadow=true; g.add(t);
-    const inn=new THREE.Mesh(new THREE.CylinderGeometry(0.056,0.056,H-0.03,16,1,true),innenM); inn.position.copy(t.position); g.add(inn);
-    const bo=new THREE.Mesh(new THREE.CylinderGeometry(0.06,0.06,0.012,20),steelDark); bo.position.set(x,yc-H/2,VF_Z); g.add(bo);
-    ring(0.064,0.013,steel,x,yc+H/2,VF_Z); ring(0.066,0.012,steelDark,x,yc-H/2*0.55,VF_Z);
-    box(0.24,0.022,0.24,steelDark,x,TT+0.011,VF_Z);
-    for(const sx of [-1,1]){ const st=box(0.014,0.2,0.014,steelDark,x+sx*0.085,TT+0.1,VF_Z+0.02); st.rotation.z=-sx*0.32; } }
-  /* Moerser: je Kaliber vier Rohre wie an der Moerserbatterie */
-  const M=VF_MOERSER, rohrM=std(0x2f353f,{metalness:0.78,roughness:0.3}), wulstM=std(0x454d59,{metalness:0.7,roughness:0.35}), bodenM=std(0x15171c,{roughness:1}), schwarz=std(0x0b0c10,{roughness:1,side:THREE.DoubleSide});
-  rohrM.side=THREE.DoubleSide;
-  for(let k=0;k<3;k++){ const gx=M.x0+k*M.gdx, hh=VF_MOERSER_H[k], r=MOERSER_R[k], y0=VF_MOERSER_FUSS;
-    box(M.n*M.dx+0.16,0.05,0.62,perf,gx+(M.n-1)*M.dx/2,0.055,VF_Z);
-    for(let i=0;i<M.n;i++){ const x=gx+i*M.dx;
-      const t=new THREE.Mesh(new THREE.CylinderGeometry(r,r,hh,22,1,true),rohrM); t.position.set(x,y0+hh/2,VF_Z); t.castShadow=true; g.add(t);
-      const inn=new THREE.Mesh(new THREE.CylinderGeometry(r*0.9,r*0.9,hh-0.04,16,1,true),schwarz); inn.position.copy(t.position); g.add(inn);
-      const bo=new THREE.Mesh(new THREE.CircleGeometry(r*0.9,16),bodenM); bo.rotation.x=-Math.PI/2; bo.position.set(x,y0+0.02,VF_Z); g.add(bo);
-      ring(r*1.03,r*0.17,wulstM,x,y0+hh,VF_Z);
-      for(const f of [0.3,0.62]) ring(r*1.02,r*0.1,rohrM,x,y0+hh*f,VF_Z);
-      for(const y of [0.42,0.66]) ring(r+0.03,0.022,steel,x,y,VF_Z); } }
-  scene.add(g); vfAnlage=g;
-};
-/* Muendungen passend zu den neuen Moersern (Rohrhoehe 1,48/1,73/2,03 m) */
-{ const vm=vfMuendung; vfMuendung=function(t){ const o=vm.apply(this,arguments);
-    if(o&&o.sid==='moerser'){ const k=moerserRohr(t)%3; o.y=VF_MOERSER_FUSS+VF_MOERSER_H[k]; }
-    return o; }; }
+   echten Spiel -> dieselben Rohre wie im Spiel nehmen". Seit dem 13.10.
+   (Fundament 2b) baut der Abschuss-Baustein (14z4 abRohrBau, abMoerserBau,
+   abTischBau, abRampeBau) Station und Vorfuehranlage (17b vfAnlageBauen)
+   mit derselben Funktion - die Kopie, die hier stand, ist weg. */
 
 /* ---------- 4. Level-Ordnung ----------
    Tom 07.10.: "Weltuntergang hebt sich in der Koenigsklasse stark ab ->
@@ -47600,6 +47379,362 @@ Object.keys(B7_ABSCHUSS).concat(['kornblumen','bienenweide','meteorschauer','lb_
    Katalogeintrag an) - sonst liefen Tests und Suchen ueber SHOWS ins Leere */
 for(const t of B7_WEG) if(!P[t]){ delete SHOWS[t]; if(typeof THEMEN!=='undefined') delete THEMEN[t]; }
 try{ window.__b7={NEU:B7_NEU.map(x=>x[0]),WEG:B7_WEG,BEARB:['kornblumen','lb_tautropfen','bienenweide','lb_saphirfaecher','hochzeitsfaecher','meteorschauer']}; }catch(e){}
+/* =========================================================
+   ABSCHUSS-BAUSTEIN - eine Mechanik fuer jede Zuendung
+   (Fundament Etappe 2b, Tom 13.10.2026: "Effekte kommen genau aus den
+   Loechern/Rohren, sichtbare Loecher = Schusszahl, immer gleiche Art der
+   Zuendung/Darstellung - es kann nicht sein, dass einmal aus der
+   Verpackung abgeschossen wird und einmal ein ausgepacktes Produkt
+   dasteht.")
+   Regelwerk: docs/fundament/feuerwerk-regeln.md, Waechter-Test
+   src/tests/abschussregel.js.
+
+   Hier steht GENAU EINMAL, fuer jeden Zuend-Ort (Testfeld-Stationen im
+   Spiel und in der Teststation, alle drei Vorfuehrungen auf PC und Handy,
+   Prototyp der eigenen Rezeptur):
+   - der Platz (abPlatz, abPlatzStation): Zuendtisch, Abschussrohr
+     (Raketen, Roemische Lichter), Moerser je Kaliber. Ein Ort liefert nur
+     Koordinaten, alles andere ist hier gleich.
+   - die Muendung (abMuendung): Abschusspunkt und Oeffnung des Produkts;
+     Roemische Lichter mit ihren einzelnen Rohren (abKerzenLoecher).
+   - die Darstellung (abForm, abAufstellen): immer das ausgepackte Produkt
+     - Batterie mit einem Rohr je Schuss (Rohrraster 04c rohrLayout),
+     Rakete im Rohr, Kugel in der Moerser-Muendung mit Zuendschnur,
+     Lichterbuendel im Rohr, Gestell, Podest, Kleinfeuerwerk, Fontaene.
+   - die Zuendung (abZuenden): Zuendschnur, Abschuss (igniteType), das
+     Modell fliegt mit (abFlug), Rauchrest, Abraeumen.
+   - die Abschussgeraete (abRohrBau, abMoerserBau, abTischBau,
+     abRampeBau): Station und Vorfuehrung haben dieselben Rohre.
+   Neue Zuend-Orte rufen NUR diese Funktionen auf (Waechter: EINMAL).
+   Die Effekte selbst (Drehbuecher 14g-14z3: Bruchbild, Ablauf, Klang)
+   bleiben Anomalie und werden hier nicht angefasst.
+   ========================================================= */
+
+/* ---------- Abschussgeraete: Masse ---------- */
+/* Abschussrohr fuer Raketen und Roemische Lichter (01.10. abends): Platte
+   in 0,76 m, Rohr 0,62 m lang, um 0,1 rad vom Zuschauer weg geneigt -
+   Muendung in 1,39 m. pl.x/pl.z eines Rohr-Platzes = Mitte der Reihe. */
+const RAMPE_TISCH=0.76;
+const ROHR_ACHSE={y:RAMPE_TISCH+0.012+0.31*Math.cos(0.1),z:-0.055,neig:-0.1,halb:0.31,innen:0.056};
+/* Moerser: Rohr je Kaliber (klein/mittel/gross), auf 0,18 m Fuss -
+   Muendung in 1,48 / 1,73 / 2,03 m (vorher dreimal getrennt notiert:
+   Station, Platz und Vorfuehrung) */
+const MOERSER_FUSS=0.18, MOERSER_H=[1.30,1.55,1.85], MOERSER_MUND=MOERSER_H.map(h=>+(MOERSER_FUSS+h).toFixed(3));
+const MOERSER_X=[-0.72,0,0.78];
+/* Zuendschnur bis zum Abschuss (s), je Darstellung - an jedem Ort gleich
+   (vorher Station 0,4/0,75 s, Vorfuehrung 0,9/1,2 s). Lang genug, dass
+   man Rakete und Kugel im Rohr sieht (Toms PDF 05.10.). Batterien,
+   Fontaenen und Kleinfeuerwerk bringen ihre Zuendschnur im Drehbuch mit. */
+const AB_VOR={rakete:0.9,gravur:0.9,kugel:1.2,buendel:0.4};
+/* Wer selbst das Geschoss ist, fliegt mit (Modell folgt dem Aufstieg) */
+const AB_FLIEGT={rakete:true,gravur:true,kugel:true};
+const AB_FLIEGT_T={atomboeller:true};
+
+/* ---------- Darstellung: immer ausgepackt ---------- */
+/* Produkte, deren Form aus 04g das Produkt SELBST ist (die Huelle ist die
+   Fontaene, ihre Duesen sind die Oeffnungen) - kein Verkaufspaket. Alle
+   anderen Tischprodukte stehen als buildProduct(t,true) (ohne Verpackung)
+   oder mit eigenem Modell da. Ausgepackt heisst: ohne Folie, Blister,
+   Haube, Schachtel (VP_AUSGEPACKT, 04g). */
+const AB_KOERPER={
+  roemisch:'fuenf bedruckte Rohre mit Kappen (03.10., Tom) - ausgepackt ohne Schrumpffolie, im Abschussrohr',
+  feuerteufel:'Papphuelse mit zwei Hoerner-Duesen, aus denen Strahl und Flamme kommen (Toms PDF 06.10.)',
+  feuerberg:'Vulkankegel mit Krater - der Kegel ist die Fontaene',
+  eisblume:'Pappwickelhuelse mit Kristallkappe - die Huelse ist die Fontaene',
+  tischbombe:'Papptrommel mit Zugschnur - die Trommel ist die Tischbombe',
+  goldgeysir:'Golddose - Frage an Tom (F3): Dose mit Deckel ist eher Verpackung',
+  bodenfeuer:'ausgepackt nur der Bodenring mit acht Duesen (vorher: Schachtel mit Fenster)'
+};
+/* Offene Fragen an Tom (feuerwerk-regeln.md, Abschnitt 4): Abweichungen,
+   deren Behebung den Effekt veraendern wuerde. Der Waechter meldet sie
+   als OFFEN statt als Fehler - und schlaegt an, wenn hier etwas steht,
+   das gar nicht mehr abweicht. */
+const AB_OFFEN={
+  /* F1: Begleitkometen am Moerser (14p KUGEL_ABSCHUSS kometen/farbkometen) */
+  kronenkranz200:'F1', goldweidenkreuz200:'F1', kometensturm300:'F1', urknall300:'F1', titanenfaust300:'F1', sturmflut300:'F1', goetterdaemmerung300:'F1'
+};
+/* Mitzaehler fuer den Waechter: jede Darstellung und Zuendung je Ort */
+const AB_ZAEHLER={aufstellen:{},zuenden:{}};
+let AB_LOG=null;   /* Waechter: Mitschnitt jeder Darstellung und Zuendung */
+
+function abForm(t){
+  const p=P[t]; if(!p) return null; const sid=stationOf(t); if(!sid) return null;
+  if(sid==='moerser') return 'kugel';
+  if(sid==='rampe') return t==='gravur'?'gravur':p.shape==='candle'?'buendel':'rakete';
+  if(istBatterie(t)) return 'batterie';
+  if(p.gestell&&typeof fkGestellBau==='function') return 'gestell';
+  if(typeof kqWkLayout==='function'&&kqWkLayout(t)) return 'podest';
+  if(typeof KF_BAU!=='undefined'&&KF_BAU[t]) return 'klein';
+  if(AB_KOERPER[t]&&VP_FORM[t]) return 'koerper';
+  return 'roh';
+}
+/* Modellteile der ausgepackten Form (Pool je Produkt) */
+const _abPools={};
+function abTeile(t){ return AB_KOERPER[t]&&VP_FORM[t]&&typeof VP_AUSGEPACKT==='function'?VP_AUSGEPACKT(t):buildProduct(t,true); }
+function abPool(t){ if(!_abPools[t]){ const L=abTeile(t); _abPools[t]=new ItemPool(L,4); _abPools[t].teile=L; } return _abPools[t]; }
+/* Hoehe der Oeffnung ueber der Tischplatte: die ausgepackte Form sagt
+   es (parts.oben), sonst die Hoehe des Produkts */
+const _abOben={};
+function abOben(t){ const p=P[t], h=p&&p.dims?p.dims[1]:0.2, f=abForm(t);
+  if(f!=='koerper'&&f!=='roh') return h;
+  if(_abOben[t]===undefined){ const L=abPool(t).teile||null; _abOben[t]=L&&L.oben!==undefined?L.oben:h; }
+  return _abOben[t]; }
+
+/* ---------- Platz ---------- */
+/* art: tisch (pl.y = Tischplatte) | rohr (pl.x/pl.z = Reihe) | moerser
+   (pl.y = Muendung, kal = Kaliber 0-2). ry: Drehung auf dem Tisch, neig:
+   Rohrneigung, blick: wohin die Zuendschnur der Kugel haengt. */
+function abPlatz(art,x,y,z,ext){ return Object.assign({art,x,y,z,ry:Math.PI,neig:0,kal:0,blick:null,ort:'station'},ext||{}); }
+/* Testfeld (05d): Platz slot einer Station */
+function abPlatzStation(st,slot){ const p=STATION_POS[st.id], i=slot%3;
+  if(st.id==='tisch') return abPlatz('tisch',p.x+TISCH_X[i],0.93,p.z,{ry:Math.PI});
+  if(st.id==='moerser') return abPlatz('moerser',p.x+MOERSER_X[i],MOERSER_MUND[i],p.z,{kal:i,blick:PULT_POS});
+  return abPlatz('rohr',p.x+RAMPE_X[i],RAMPE_TISCH,p.z,{neig:ROHR_ACHSE.neig}); }
+
+/* ---------- Muendung ---------- */
+function abRohrBei(pl,u){ const A=ROHR_ACHSE, n=pl.neig||0; return {x:pl.x,y:A.y+Math.cos(n)*u,z:pl.z+A.z+Math.sin(n)*u}; }
+function abRohrMund(pl){ return abRohrBei(pl,ROHR_ACHSE.halb); }
+/* Roemische Lichter stecken IM Abschussrohr (Tom, Foto 29.09.), das obere
+   Drittel schaut heraus; so schmal, dass das Buendel hineinpasst */
+function abKerze(pl,t){
+  const d=P[t].dims, w=d[0], L=abForm(t)==='buendel'?abPool(t).teile:null, lo=L&&L.loecher;
+  /* Breite des Buendels: aus den Rohren des Modells (Kreis um die Mitte) */
+  const breite=lo?2*Math.max(...lo.map(q=>Math.hypot(q.x,q.z)+q.r)):1.41*w;
+  const HH=lo?Math.max(...lo.map(q=>q.y)):d[1]*0.9, s=Math.min(1,(ROHR_ACHSE.innen*2-0.008)/breite), tb=ROHR_ACHSE.halb-0.4*HH;
+  const hx=lo?Math.max(...lo.map(q=>Math.abs(q.x)))*s:0.52*w*s, hz=lo?Math.max(...lo.map(q=>Math.abs(q.z)))*s:0.5*w*s;
+  return {base:abRohrBei(pl,tb),top:abRohrBei(pl,tb+HH),s,neig:pl.neig||0,hx,hz,lo}; }
+/* die einzelnen Rohre des Buendels in Weltlage (x quer bleibt, y/z kippen mit der Rohrneigung) */
+function abKerzenLoecher(pl,t){ const k=abKerze(pl,t); if(!k.lo) return null; const c=Math.cos(k.neig), s=Math.sin(k.neig);
+  return k.lo.map(q=>{ const a=q.x*k.s, b=q.y, z=q.z*k.s; return {x:k.base.x+a,y:k.base.y+b*c-z*s,z:k.base.z+b*s+z*c,r:q.r*0.9*k.s}; }); }
+/* Abschusspunkt o eines Produkts auf seinem Platz: x/y/z Muendung, ab
+   Abstand darueber, jit Streuung, hx/hz halbe Oeffnung - weiter darf kein
+   Abschuss, keine Mine und keine Duese vom Mittelpunkt weg (28.09., Tom) */
+function abMuendung(pl,t){ const p=P[t]||{}, d=p.dims||[0.2,0.2,0.2];
+  if(pl.art==='tisch'){ const hx=d[0]/2, hz=d[2]/2; return {x:pl.x,y:pl.y+abOben(t),z:pl.z,ab:0.08,jit:Math.min(0.06,hx*0.5,hz*0.5),hx,hz,ry:pl.ry}; }
+  if(pl.art==='moerser'){ const r=ROHR_INNEN[pl.kal]*0.8; return {x:pl.x,y:pl.y,z:pl.z,ab:0.05,jit:0.02,hx:r,hz:r}; }
+  if(p.shape==='candle'&&p.dims){ const k=abKerze(pl,t), L=abKerzenLoecher(pl,t);
+    /* hx: das aeusserste Rohr - die Drehbuch-Versaetze landen genau auf den Rohren (14b ortAus) */
+    return {x:k.top.x,y:k.top.y,z:k.top.z,ab:0.02,jit:0.005,hx:k.hx+0.015,hz:k.hz,loecher:L}; }
+  const mu=abRohrMund(pl); return {x:mu.x,y:mu.y,z:mu.z,ab:0.05,jit:0.02,hx:0.045,hz:0.045}; }
+/* Drehbuch-Versatz quer (m) -> das Rohr des Buendels, das dort sitzt */
+function abLochOrt(o,off){ const L=o.loecher; let b=L[0], bd=1e9;
+  for(const q of L){ const dd=Math.abs(q.x-(o.x+off)); if(dd<bd){ bd=dd; b=q; } }
+  const v=V(b.x,b.y,b.z); v.jit=Math.min(o.jit||0.005,b.r*0.4); v.ab=o.ab; return v; }
+
+/* ---------- Darstellung ---------- */
+/* Stellt das ausgepackte Produkt auf den Platz. Rueckgabe: der Griff h
+   (Felder wie ein Stationsplatz: h Pool, batt Batterie, modell Rakete/
+   Kugel, gestell, mesh Gravur) - die Station nimmt ihn als Platz-Eintrag. */
+function abAufstellen(pl,t,opt){ opt=opt||{};
+  const p=P[t], form=abForm(t); if(!p||!form) return null;
+  const h={form,t,pl};
+  AB_ZAEHLER.aufstellen[pl.ort]=(AB_ZAEHLER.aufstellen[pl.ort]||0)+1;
+  const o=abMuendung(pl,t);
+  if(form==='batterie'){ const b=batterieModell(t,pl.ry); b.g.position.set(pl.x,pl.y,pl.z); b.g.rotation.y=pl.ry; scene.add(b.g); h.batt=b; }
+  else if(form==='gestell'||form==='podest'||form==='klein'){
+    const g=form==='gestell'?fkGestell(t,pl):form==='podest'?kqPodestAuf(t,pl):kfTischAuf(t,pl);
+    if(g){ scene.add(g); h.gestell=g; } }
+  else if(form==='rakete'){ const g=raketeModell(t); g.position.set(o.x,o.y-0.01,o.z); g.rotation.x=pl.neig||0; h.modell=g; }
+  else if(form==='gravur'){
+    /* Gravur-Rakete: liegend gebaut (06b) - in einer Gruppe aufgestellt,
+       damit sie wie jede Rakete mit der Spitze voran fliegt */
+    const m=makeEngraved(opt.text||''), g=new THREE.Group(); m.rotation.z=Math.PI/2; m.position.y=0.07; g.add(m);
+    g.position.set(o.x,o.y,o.z); g.rotation.x=pl.neig||0; h.modell=g; h.mesh=m; h.text=opt.text||null; }
+  else if(form==='kugel'){
+    /* 07.10. (Tom: "Kugelbomben NICHT sichtbar im Rohr, ohne heraushaengende
+       Zuendschnur"): die Kugel sitzt oben in der Muendung (die obere Haelfte
+       schaut heraus), die Schnur haengt zum Zuschauer hin ueber den Rand -
+       an der Station zum Zuendpult, in der Vorfuehrung zur Kamera */
+    const g=kugelModell(t,pl.kal), kugel=g.children[0], b=pl.blick||camera.position;
+    const rk=kugel.geometry&&kugel.geometry.parameters?kugel.geometry.parameters.radius:0.06; kugel.position.y=rk*0.25;
+    g.position.set(o.x,o.y,o.z); g.rotation.y=-Math.atan2(b.z-o.z,b.x-o.x); h.modell=g; h.kugel=kugel; }
+  else if(form==='buendel'){ const k=abKerze(pl,t); _e.set(k.neig,0,0); _q.setFromEuler(_e);
+    h.h=abPool(t).add(new THREE.Matrix4().compose(V(k.base.x,k.base.y,k.base.z),_q,V(k.s,1,k.s))); }
+  else h.h=abPool(t).add(mx(pl.x,pl.y,pl.z,pl.ry));
+  if(h.modell){ h.modell.userData.abModell=t; h.modell.userData.vfModell=t; scene.add(h.modell); }
+  if(AB_LOG) AB_LOG.push({was:'auf',ort:pl.ort,t,form,h,pl});
+  return h;
+}
+/* alles, was der Griff aufgestellt hat, wieder weg (Station: itemEntfernen) */
+function abWeg(h){ if(!h||h.weg_) return; h.weg_=true;
+  if(h.h&&h.h.pool) h.h.pool.remove(h.h);
+  if(h.batt) h.batt.weg();
+  if(h.mesh) disposeEngraved(h.mesh);
+  if(h.modell&&h.modell.parent) h.modell.parent.remove(h.modell);
+  if(h.gestell&&h.gestell.parent) h.gestell.parent.remove(h.gestell);
+  if(h.flug&&!h.flug.fertig) h.flug.weg(); }
+
+/* ---------- Zuendung ---------- */
+/* opt: q Qualitaet (Blindgaenger bei billiger Ware - nur im Spiel),
+   solange() Abbruch (Vorfuehrung beendet), fertig() nach dem Abbrand
+   (sonst raeumt der Baustein selbst ab), it fuer igniteType (Gravurtext).
+   Rueckgabe {o,vor,dauer,dud}. */
+function abZuenden(pl,t,h,opt){ opt=opt||{};
+  AB_ZAEHLER.zuenden[pl.ort]=(AB_ZAEHLER.zuenden[pl.ort]||0)+1;
+  const form=h?h.form:abForm(t), o=abMuendung(pl,t); if(h&&h.batt) o.batt=h.batt;
+  const vor=AB_VOR[form]||0; if(h) h.vor=vor;
+  const dud=opt.q!==undefined&&Math.random()<clamp((1-opt.q)*0.65,0,0.45);
+  if(vor){ let lo=o;
+    if(h&&h.modell&&h.modell.userData.lunte){ h.modell.updateMatrixWorld(true); const w=h.modell.localToWorld(h.modell.userData.lunte.clone()); lo={x:w.x,y:w.y-0.05,z:w.z}; }
+    emitters.push({t:vor,k:'fuse',o:lo}); sfx.fizz(distVol(o)*0.5); }
+  if(h&&(AB_FLIEGT[form]||AB_FLIEGT_T[t])) abFlug(h,o);
+  later(vor,()=>{
+    if(opt.solange&&!opt.solange()) return;
+    if(dud){ fizzle(t,o); if(h&&h.flug) h.flug.weg(); return; }
+    igniteType(t,o,opt.it||h); });
+  const dauer=vor+(dud?2.2:brennDauer(t));
+  later(dauer,()=>{
+    /* abgebrannt: ein Rest Rauch steigt aus der Oeffnung, nicht daneben
+       (28.09., Tom: echt), dann ist der Platz wieder frei */
+    const dd=P[t]&&P[t].dims||[0.2,0.2,0.2], rr=pl.art==='tisch'?Math.min(0.08,Math.min(dd[0],dd[2])*0.4):0.03;
+    for(let k=0;k<14;k++){ const d=randDir();
+      psSmall.emit(o.x+rand(-rr,rr),o.y,o.z+rand(-rr,rr),d[0]*0.25,Math.abs(d[1])*0.6+0.3,d[2]*0.25,0.34,0.34,0.36,rand(1.2,2.2),-0.25,0); }
+    if(opt.fertig) opt.fertig(); else abWeg(h); });
+  if(AB_LOG) AB_LOG.push({was:'zuend',ort:pl.ort,t,form,h,pl,o,vor,dauer,dud,uhr:FW_UHR});
+  return {o,vor,dauer,dud};
+}
+/* Das Modell fliegt mit: die Rakete (Stab voran gekippt in Flugrichtung),
+   die Kugel ohne Schnur, und ist mit dem Bruch weg (vorher nur in der
+   Vorfuehrung - an der Station verschwand die Rakete beim Start). Ein
+   Produkt, das selbst das Geschoss ist (Atom-Boeller), verschwindet beim
+   Abschuss vom Tisch. e.blick: die Vorfuehrung haengt ihren Kamerablick an (14u). */
+function abFlug(h,o){
+  const e={t:30,k:'abModell',o:{x:o.x,y:o.y,z:o.z},ab:o.ab||0,g:h.modell||null,pool:h.modell?null:h.h,kugel:h.kugel||null,alter:0,r:null,fertig:false,warte:(h.vor||0)+8};
+  e.weg=()=>{ if(e.g&&e.g.parent) e.g.parent.remove(e.g); e.fertig=true; e.t=0; if(e.blickAus) e.blickAus(e); };
+  h.flug=e; emitters.push(e); return e; }
+const _abY=new THREE.Vector3(0,1,0), _abD=new THREE.Vector3();
+NEU_EMIT.abModell=function(e,dt,o){
+  e.alter+=dt;
+  if(e.fertig){ e.t=0; return; }
+  e.t=30;
+  if(!e.r){
+    /* die Rakete oder Kugel, die eben aus dieser Muendung gestartet ist */
+    for(const r of rockets) if(!r.abModell&&r.alter<0.3&&Math.abs(r.y0-(o.y+e.ab))<0.3&&Math.abs(r.p.x-o.x)<0.6&&Math.abs(r.p.z-o.z)<0.6){ e.r=r; r.abModell=e.g||true; break; }
+    if(e.r){
+      if(e.pool&&e.pool.pool){ e.pool.pool.remove(e.pool); e.pool=null; }
+      if(e.kugel){ e.g.children.forEach(m=>{ if(m!==e.kugel) m.visible=false; }); e.kugel.position.set(0,0,0); e.g.rotation.set(0,0,0); } }
+    else if(e.alter>e.warte){ e.weg(); return; }
+  }
+  const r=e.r;
+  if(r&&e.nach===undefined&&rockets.indexOf(r)<0){ if(e.g&&e.g.parent) e.g.parent.remove(e.g);
+    if(!e.blick){ e.weg(); return; }
+    e.bruchP={x:r.p.x,y:r.p.y,z:r.p.z}; e.nach=1.5; }
+  if(e.nach!==undefined){ e.nach-=dt; if(e.nach<=0){ e.weg(); return; } }
+  else if(r&&e.g){ e.g.position.set(r.p.x,r.p.y,r.p.z);
+    if(!e.kugel){ _abD.set(r.v.x,r.v.y,r.v.z); if(_abD.lengthSq()>0.01){ _abD.normalize(); e.g.quaternion.setFromUnitVectors(_abY,_abD); } } }
+  if(e.blick) e.blick(e,dt,o,r);
+};
+
+/* ---------- Abschussgeraete ---------- */
+/* Materialien: der Zuendtisch aus Lochblech und die Riffelblechplatte
+   des Moersers entstehen in buildYard (05d) und werden hier fuer die
+   Vorfuehranlage mitbenutzt (abMatSetzen); Rohre, Stahl, Gummi hier. */
+const AB_MAT={};
+function abMatSetzen(m){ Object.assign(AB_MAT,m); }
+function abMat(){ if(AB_MAT.rohr) return AB_MAT;
+  AB_MAT.rohr=std(0x3e4652,{metalness:0.72,roughness:0.34}); AB_MAT.rohr.side=THREE.DoubleSide;
+  AB_MAT.rohrInnen=std(0x14161b,{roughness:0.9,side:THREE.DoubleSide});
+  AB_MAT.stahl=AB_MAT.stahl||std(0x9aa1ab,{metalness:0.72,roughness:0.3});
+  AB_MAT.stahlDunkel=AB_MAT.stahlDunkel||std(0x5d646e,{metalness:0.65,roughness:0.42});
+  AB_MAT.gummi=AB_MAT.gummi||std(0x1c1f26,{roughness:0.95});
+  AB_MAT.moerser=std(0x2f353f,{metalness:0.78,roughness:0.3}); AB_MAT.moerser.side=THREE.DoubleSide;
+  AB_MAT.moerserInnen=std(0x0b0c10,{roughness:1,side:THREE.DoubleSide});
+  AB_MAT.moerserBoden=std(0x15171c,{roughness:1});
+  AB_MAT.wulst=std(0x454d59,{metalness:0.7,roughness:0.35});
+  AB_MAT.schelle=std(0x767d88,{metalness:0.72,roughness:0.36});
+  if(!AB_MAT.perf) AB_MAT.perf=std(0xaab0b9,{metalness:0.66,roughness:0.42});
+  if(!AB_MAT.riffel) AB_MAT.riffel=std(0x7b828d,{metalness:0.62,roughness:0.44});
+  return AB_MAT; }
+/* Ein Abschussrohr fuer Raketen: Stahlrohr mit schwarzer Innenwand, Boden,
+   Muendungsring, Schelle, schwere Fussplatte mit zwei Stuetzen. x/z0 in
+   der Gruppe g: Mitte der Reihe (wie pl.x/pl.z). */
+function abRohrBau(g,x,z0){
+  const M=abMat(), A=ROHR_ACHSE, c=Math.cos(A.neig), sn=Math.sin(A.neig), TT=RAMPE_TISCH, z=z0+A.z;
+  const t=new THREE.Mesh(new THREE.CylinderGeometry(0.062,0.062,A.halb*2,20,1,true),M.rohr);
+  t.position.set(x,A.y,z); t.rotation.x=A.neig; if(HIQ) t.castShadow=true; g.add(t);
+  const inner=new THREE.Mesh(new THREE.CylinderGeometry(0.056,0.056,A.halb*2-0.03,16,1,true),M.rohrInnen);
+  inner.position.copy(t.position); inner.rotation.copy(t.rotation); g.add(inner);
+  const fussY=A.y-c*A.halb, fussZ=z-sn*A.halb;
+  const boden=new THREE.Mesh(new THREE.CylinderGeometry(0.06,0.06,0.012,20),M.stahlDunkel); boden.position.set(x,fussY,fussZ); boden.rotation.x=A.neig; g.add(boden);
+  const ring=new THREE.Mesh(new THREE.TorusGeometry(0.064,0.013,8,18),M.stahl);
+  ring.rotation.x=Math.PI/2+A.neig; ring.position.set(x,A.y+c*A.halb,z+sn*A.halb); g.add(ring);
+  const schelle=new THREE.Mesh(new THREE.TorusGeometry(0.066,0.012,8,18),M.stahlDunkel);
+  schelle.rotation.x=Math.PI/2+A.neig; schelle.position.set(x,A.y-c*A.halb*0.55,z-sn*A.halb*0.55); g.add(schelle);
+  bbox(0.24,0.022,0.24,M.stahlDunkel,x,TT+0.011,fussZ,g,false);
+  for(const sx of [-1,1]){ const st=bbox(0.014,0.2,0.014,M.stahlDunkel,x+sx*0.085,TT+0.1,fussZ+0.02,g,false); st.rotation.z=-sx*0.32; }
+  g.userData.abRohre=(g.userData.abRohre||0)+1;
+  return t; }
+/* Lochblechtisch unter den Abschussrohren: Breite B, Mitte x0/z0 */
+function abRampeBau(g,x0,z0,B){ const M=abMat(), TT=RAMPE_TISCH;
+  bbox(B,0.04,0.74,M.perf,x0,TT-0.02,z0,g);
+  bbox(B+0.06,0.05,0.05,M.stahlDunkel,x0,TT-0.025,z0+0.37,g); bbox(B+0.06,0.05,0.05,M.stahlDunkel,x0,TT-0.025,z0-0.37,g);
+  bbox(0.05,0.05,0.76,M.stahlDunkel,x0+B/2+0.01,TT-0.025,z0,g); bbox(0.05,0.05,0.76,M.stahlDunkel,x0-B/2-0.01,TT-0.025,z0,g);
+  const n=Math.max(2,Math.ceil((B-0.14)/1.6)+1);
+  for(let i=0;i<n;i++){ const x=x0-B/2+0.07+(B-0.14)*i/(n-1); for(const z of [-0.3,0.3]){
+    bbox(0.06,TT-0.05,0.06,M.stahlDunkel,x,(TT-0.05)/2,z0+z,g);
+    bbox(0.11,0.025,0.11,M.gummi,x,0.012,z0+z,g,false); } }
+  bbox(B-0.2,0.03,0.12,M.stahlDunkel,x0,0.26,z0+0.3,g,false); bbox(B-0.2,0.03,0.12,M.stahlDunkel,x0,0.26,z0-0.3,g,false); }
+/* Ein Moerserrohr des Kalibers k: Rohr, Innenwand, Boden, Muendungswulst,
+   zwei Verstaerkungsringe, zwei Rohrschellen mit Schraube */
+function abMoerserBau(g,x,z0,k){
+  const M=abMat(), r=MOERSER_R[k], hh=MOERSER_H[k], y0=MOERSER_FUSS;
+  const t=new THREE.Mesh(new THREE.CylinderGeometry(r,r,hh,22,1,true),M.moerser); t.position.set(x,y0+hh/2,z0); if(HIQ) t.castShadow=true; g.add(t);
+  const innen=new THREE.Mesh(new THREE.CylinderGeometry(r*0.9,r*0.9,hh-0.04,16,1,true),M.moerserInnen); innen.position.copy(t.position); g.add(innen);
+  const bo=new THREE.Mesh(new THREE.CircleGeometry(r*0.9,16),M.moerserBoden); bo.rotation.x=-Math.PI/2; bo.position.set(x,y0+0.02,z0); g.add(bo);
+  const ring=(R,d,m,y)=>{ const q=new THREE.Mesh(new THREE.TorusGeometry(R,d,8,20),m); q.rotation.x=Math.PI/2; q.position.set(x,y,z0); g.add(q); return q; };
+  ring(r*1.03,r*0.17,M.wulst,y0+hh);
+  for(const f of [0.3,0.62]) ring(r*1.02,r*0.1,M.moerser,y0+hh*f);
+  for(const y of [0.42,0.66]){ ring(r+0.03,0.026,M.schelle,y); bbox(0.05,0.05,0.09,M.schelle,x+r+0.05,y,z0,g,false); }
+  g.userData.abMoerser=(g.userData.abMoerser||0)+1;
+  return t; }
+/* Zuendtisch aus Lochblech: Platte, Rahmen, Beine im Abstand von hoechstens
+   1,65 m, Gummifuesse, Querstreben. Breite B, Mitte x0/z0, Platte bei 0,9 m */
+function abTischBau(g,x0,z0,B){ const M=abMat(), TB=B/2;
+  bbox(B,0.04,1.05,M.perf,x0,0.9,z0,g);
+  bbox(B+0.06,0.05,0.05,M.stahlDunkel,x0,0.925,z0+0.52,g); bbox(B+0.06,0.05,0.05,M.stahlDunkel,x0,0.925,z0-0.52,g);
+  bbox(0.05,0.05,1.07,M.stahlDunkel,x0+TB+0.02,0.925,z0,g); bbox(0.05,0.05,1.07,M.stahlDunkel,x0-TB-0.02,0.925,z0,g);
+  const n=Math.max(2,Math.ceil((B-0.22)/1.65)+1);
+  for(let i=0;i<n;i++){ const x=x0-TB+0.11+(B-0.22)*i/(n-1); for(const z of [-0.42,0.42]){
+    bbox(0.07,0.88,0.07,M.stahlDunkel,x,0.44,z0+z,g);
+    bbox(0.12,0.025,0.12,M.gummi,x,0.012,z0+z,g,false); } }
+  bbox(B-0.2,0.03,0.16,M.stahlDunkel,x0,0.3,z0+0.42,g,false);
+  bbox(B-0.2,0.03,0.16,M.stahlDunkel,x0,0.3,z0-0.42,g,false);
+  bbox(0.06,0.06,0.9,M.stahlDunkel,x0+TB-0.15,0.3,z0,g,false);
+  bbox(0.06,0.06,0.9,M.stahlDunkel,x0-TB+0.15,0.3,z0,g,false); }
+
+/* ---------- Prototyp der eigenen Rezeptur ----------
+   Vorher schoss rezProto (17-laptop) seine Effekte frei in die Luft ueber
+   den Stationen (ohne Produkt, mit eigener Kopie der Rezeptur-Logik).
+   Jetzt: ein Probestueck kommt wie jedes Produkt auf seinen Platz und
+   zuendet ueber denselben Weg (Kanal, Darstellung, Zuendschnur). Das
+   Probestueck ist nur fuer diese Zuendung im Katalog P (nicht im
+   Sortiment, kein Hype, keine Erfahrung) und danach wieder weg. */
+let _abProtoN=0;
+function abProtoProdukt(r){
+  const id='proto_'+(++_abProtoN);
+  P[id]=rezeptProdukt(Object.assign({},r,{id,name:String(r.name||'Prototyp').trim()||'Prototyp',cost:0,market:0,hype:0}));
+  P[id].proto=true; return id; }
+function abProtoWeg(id){ if(!P[id]||!P[id].proto) return;
+  for(const C of [typeof _rohrBedarf!=='undefined'?_rohrBedarf:null,typeof _rohrLayout!=='undefined'?_rohrLayout:null,typeof _zplan!=='undefined'?_zplan:null,
+    typeof _korpus!=='undefined'?_korpus:null,typeof _rohrGeo!=='undefined'?_rohrGeo:null,_abOben]) if(C) delete C[id];
+  for(const C of [typeof _pools!=='undefined'?_pools:null,typeof _poolsAus!=='undefined'?_poolsAus:null,_abPools]) if(C&&C[id]){
+    for(const m of C[id].meshes||[]) if(m.parent) m.parent.remove(m); delete C[id]; }
+  delete P[id]; }
+function abProtoZuenden(r){
+  const id=abProtoProdukt(r), sid=stationOf(id), st=stations[sid];
+  const slot=sid==='moerser'?moerserRohr(id):freierPlatz(st);
+  if(!st||slot<0||itemAufPlatz(st,slot)){ abProtoWeg(id); return {frei:false,name:STATION_POS[sid]?STATION_POS[sid].name:''}; }
+  const pl=abPlatzStation(st,slot), it=Object.assign(abAufstellen(pl,id),{type:id,q:1,slot,kanal:kanalVon(st,slot),state:'bereit',proto:true});
+  st.items.push(it); drawPult(); zuendeItem(st,it,true);
+  return {frei:true,kanal:it.kanal,id}; }
+
+/* Testzugang (abschussregel.js) */
+try{ window.__abschuss={abForm,abPlatz,abPlatzStation,abMuendung,abKerze,abKerzenLoecher,abOben,abPool,abTeile,abAufstellen,abZuenden,abWeg,
+  log(a){ AB_LOG=a; }, verpackungsMats:()=>[typeof folieKlar!=='undefined'?folieKlar:null,typeof folieMat!=='undefined'?folieMat:null,typeof glassMat!=='undefined'?glassMat:null].filter(Boolean),
+  get rohrGeometrie(){ return rohrGeometrie; }, get rohrLayout(){ return rohrLayout; }, get VF(){ return {VF_TISCH,VF_ROHR,VF_MOERSER,VF_Z}; }, fontDuesenLage, FT_DUESE:typeof FT_DUESE!=='undefined'?FT_DUESE:null,
+  AB_VOR,AB_KOERPER,AB_OFFEN,AB_ZAEHLER,AB_FLIEGT,AB_FLIEGT_T,MOERSER_MUND,ROHR_ACHSE,RAMPE_TISCH,abProtoZuenden,
+  get KUGEL_ABSCHUSS(){ return typeof KUGEL_ABSCHUSS!=='undefined'?KUGEL_ABSCHUSS:null; },
+  get KUGEL(){ return KUGEL; }, get vfAnlage(){ return typeof vfAnlage!=='undefined'?vfAnlage:null; }}; }catch(e){}
 
 /* =========================================================
    Spieler
@@ -50589,21 +50724,16 @@ function renderRezeptur(){
     `<div class="price">${eur(marketOf(e.id))}</div></div>`).join('');
   return h;
 }
-/* Prototyp: geht sofort auf dem Testfeld hoch, kostet nichts */
+/* Prototyp: geht sofort auf dem Testfeld hoch, kostet nichts. Seit dem
+   13.10. (Fundament 2b) wie jedes Produkt: das Probestueck steht auf seinem
+   Platz (Mörser, Rohr, Zündtisch) und zündet über den Abschuss-Baustein
+   (14z4 abProtoZuenden) - vorher stiegen die Effekte ohne Produkt frei
+   über den Stationen auf. */
 function rezProto(){
   const r=entwurf; if(!rezeptGueltig(r)) return;
-  const tr=traegerVon(r.traeger);
-  const o=tr.shape==='shell'?V(STATION_POS.moerser.x,1.7,STATION_POS.moerser.z)
-        :tr.shape==='rocketset'?V(STATION_POS.rampe.x,1.3,STATION_POS.rampe.z)
-        :V(STATION_POS.tisch.x,0.95,STATION_POS.tisch.z);
-  const A=K(r.A)||FW.gold, B=K(r.B)||FW.weiss;
-  const st=r.eff2?[{t:0.55,eff:r.eff2,sz:tr.kal*0.6,streu:5,A:B,B:A}]:null;
-  if(tr.shape==='shell') kugelbombe(o,r.traeger==='kugel100'?2:1,{A,B,eff:r.eff});
-  else if(tr.shape==='battery'){ for(let i=0;i<tr.schuss;i++) later(i*0.32,()=>shot(o,{sz:tr.kal,eff:r.eff,A,B,stufen:i===tr.schuss-1?st:null})); }
-  else if(tr.shape==='cylinder'){ emitters.push({t:2.4,k:'fountain',o,A:FW.gold,B:A});
-    later(2.4,()=>shot(o,{pw:3,sz:tr.kal*1.2,eff:r.eff,A,B,fuse:1.3,dick:1,stufen:st})); }
-  else for(let i=0;i<tr.schuss;i++) later(i*0.45,()=>shot(o,{pw:tr.kal>1.1?3:0,sz:tr.kal,eff:r.eff,A,B,stufen:i===tr.schuss-1?st:null}));
-  toast('Prototyp steigt auf dem Testfeld.','xp');
+  const z=abProtoZuenden(r);
+  if(!z.frei){ toast(`Für den Prototyp ist auf ${z.name} kein Platz frei. Erst zünden.`,'bad'); return; }
+  toast(`Prototyp steigt auf dem Testfeld (Kanal ${z.kanal}).`,'xp');
   closeLaptop(true);
 }
 /* In Produktion geben */
@@ -50787,7 +50917,7 @@ function vorfuehrungAn(nur,name){
   if(!S.up.testfeld){ S.up.shop_halb=true; S.up.testfeld=true; if(typeof applyZonen==='function') applyZonen(); }
   vfSonder=Array.isArray(nur)?nur.filter(t=>P[t]&&stationOf(t)):null; vfSonderName=vfSonder?(name||'VORFÜHRUNG'):null;
   vfListe=vfSonder||fwTestProdukte(); vfLaden(); if(vfSonder) vfIdx=0; vfIdx=clamp(vfIdx,0,Math.max(0,vfListe.length-1)); vfLetzt=null;
-  vfAn=true; lastF=-1; applyTOD(); clearStations(); vfAnlageBauen(); vfBelegt={};
+  vfAn=true; lastF=-1; applyTOD(); clearStations(); vfAnlageBauen(); vfBelegt={}; vfAufgestellt={};
   for(const sid of ['tisch','rampe','moerser']) if(stations[sid]&&stations[sid].g) stations[sid].g.visible=false;
   /* Uhr, Geld, Tutorial und Zielpfeil stoeren beim Zusehen - weg damit */
   if(!document.getElementById('vfStil')){ const st=document.createElement('style'); st.id='vfStil';
@@ -50818,40 +50948,37 @@ function vorfuehrungAus(){
 /* 30.09. (Tom: "alle Test-Vorfuehrungen in die Mitte des Testfelds, dass
    man alles gut sehen kann - aktuell hinten links"): die Reihe steht in der
    Mitte (Testfeld z -28..-6), die normalen Stationen sind solange ausgeblendet */
-const VF_Z=-18.0, VF_TISCH={x0:-7.0,n:10,dx:0.52,y:0.93}, VF_ROHR={x0:-1.4,n:12,dx:0.3,y:1.38}, VF_MOERSER={x0:2.9,n:4,dx:0.42,gdx:1.7,hoch:[0.62,0.82,1.02]};
-let vfAnlage=null, vfBelegt={};
+const VF_Z=-18.0, VF_TISCH={x0:-7.0,n:10,dx:0.52,y:0.93}, VF_ROHR={x0:-1.4,n:12,dx:0.3}, VF_MOERSER={x0:2.9,n:4,dx:0.42,gdx:1.7};
+let vfAnlage=null, vfBelegt={}, vfAufgestellt={};
+/* Vorfuehranlage: dieselben Geraete wie an den Stationen (Abschuss-
+   Baustein 14z4) - Lochblech-Zuendtisch, Abschussrohre auf ihrem Tisch
+   (gleiche Neigung vom Zuschauer weg), Moerser je Kaliber mit Schellen,
+   Wulst und Ringen auf Riffelblech */
 function vfAnlageBauen(){
   if(vfAnlage){ vfAnlage.visible=true; return; }
-  const g=new THREE.Group(), stahl=std(0x8a929e,{metalness:0.6,roughness:0.4}), holz=std(0xa8844f,{roughness:0.8}), rohrM=std(0x6f7782,{metalness:0.5,roughness:0.5}), gruen=std(0x4f8a5c,{roughness:0.7});
-  const box=(w,h,d,m,x,y,z)=>{ const b=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m); b.position.set(x,y,z); b.castShadow=b.receiveShadow=true; g.add(b); return b; };
+  const g=new THREE.Group(), M=abMat();
   const T=VF_TISCH, tw=T.n*T.dx+0.2, tx=T.x0+(T.n-1)*T.dx/2;
-  box(tw,0.06,0.9,holz,tx,T.y-0.03,VF_Z);
-  for(const sx of [-1,1]) for(const sz of [-1,1]) box(0.08,T.y-0.06,0.08,stahl,tx+sx*(tw/2-0.1),(T.y-0.06)/2,VF_Z+sz*0.35);
+  abTischBau(g,tx,VF_Z,tw);
   const R=VF_ROHR, rw=(R.n-1)*R.dx+0.4, rx=R.x0+(R.n-1)*R.dx/2;
-  /* Raketen: Abschussrohre (0,62 m) auf Fussplatten auf einem Tisch, wie an der Station */
-  box(rw,0.04,0.5,stahl,rx,0.74,VF_Z);
-  for(const sx of [-1,1]) for(const sz of [-1,1]) box(0.06,0.72,0.06,stahl,rx+sx*(rw/2-0.08),0.36,VF_Z+sz*0.2);
-  for(let i=0;i<R.n;i++){ const c=new THREE.Mesh(new THREE.CylinderGeometry(0.055,0.055,0.62,14,1,true),rohrM); c.position.set(R.x0+i*R.dx,R.y-0.31,VF_Z); g.add(c);
-    box(0.16,0.02,0.16,stahl,R.x0+i*R.dx,0.77,VF_Z); }
-  const M=VF_MOERSER;
-  for(let k=0;k<3;k++){ const gx=M.x0+k*M.gdx, h=M.hoch[k], r=ROHR_INNEN[k]+0.012;
-    box(M.n*M.dx+0.1,0.12,0.6,gruen,gx+(M.n-1)*M.dx/2,0.06,VF_Z);
-    for(let i=0;i<M.n;i++){ const c=new THREE.Mesh(new THREE.CylinderGeometry(r,r,h,18,1,true),rohrM); c.position.set(gx+i*M.dx,h/2,VF_Z); g.add(c); } }
+  abRampeBau(g,rx,VF_Z,rw);
+  for(let i=0;i<R.n;i++) abRohrBau(g,R.x0+i*R.dx,VF_Z);
+  const MO=VF_MOERSER;
+  for(let k=0;k<3;k++){ const gx=MO.x0+k*MO.gdx;
+    bbox(MO.n*MO.dx+0.16,0.05,0.62,M.riffel,gx+(MO.n-1)*MO.dx/2,0.055,VF_Z,g);
+    for(let i=0;i<MO.n;i++) abMoerserBau(g,gx+i*MO.dx,VF_Z,k); }
   scene.add(g); vfAnlage=g;
 }
 /* naechster freier Platz der Art (Tisch, Rohr, Moerser je Kaliber) */
 function vfPlatz(art,n){ const jetzt=FW_UHR; let best=0, bz=Infinity;
   for(let i=0;i<n;i++){ const z=vfBelegt[art+i]||0; if(z<=jetzt) return i; if(z<bz){ bz=z; best=i; } }
   return best; }
-function vfMuendung(t){
-  const sid=stationOf(t), p=P[t], d=p.dims||[0.2,0.2,0.2];
-  if(sid==='tisch'){ const i=vfPlatz('t',VF_TISCH.n), hx=d[0]/2, hz=d[2]/2;
-    return {art:'t'+i,sid,x:VF_TISCH.x0+i*VF_TISCH.dx,y:VF_TISCH.y+d[1],z:VF_Z,ab:0.08,jit:Math.min(0.06,hx*0.5,hz*0.5),hx,hz,boden:VF_TISCH.y,ry:Math.PI}; }
-  if(sid==='moerser'){ const k=moerserRohr(t)%3, i=vfPlatz('m'+k,VF_MOERSER.n);
-    return {art:'m'+k+i,sid,x:VF_MOERSER.x0+k*VF_MOERSER.gdx+i*VF_MOERSER.dx,y:VF_MOERSER.hoch[k],z:VF_Z,ab:0.05,jit:0.02,hx:ROHR_INNEN[k]*0.8,hz:ROHR_INNEN[k]*0.8}; }
-  const i=vfPlatz('r',VF_ROHR.n), kerze=p.shape==='candle';
-  return {art:'r'+i,sid,x:VF_ROHR.x0+i*VF_ROHR.dx,y:kerze?VF_ROHR.y+0.25:VF_ROHR.y,z:VF_Z,ab:kerze?0.02:0.05,jit:kerze?0.005:0.02,hx:kerze?0.05:0.045,hz:kerze?0.05:0.045};
-}
+/* Platz der Anlage fuer ein Produkt (Abschuss-Baustein abPlatz) - Muendung,
+   Darstellung und Zuendung sind dann dieselben wie an der Station */
+function vfPlatzFuer(t){ const sid=stationOf(t);
+  if(sid==='tisch'){ const i=vfPlatz('t',VF_TISCH.n); return abPlatz('tisch',VF_TISCH.x0+i*VF_TISCH.dx,VF_TISCH.y,VF_Z,{ort:'vorf',belegt:'t'+i,sid}); }
+  if(sid==='moerser'){ const k=moerserRohr(t)%3, i=vfPlatz('m'+k,VF_MOERSER.n), c=camera.position;
+    return abPlatz('moerser',VF_MOERSER.x0+k*VF_MOERSER.gdx+i*VF_MOERSER.dx,MOERSER_MUND[k],VF_Z,{ort:'vorf',kal:k,belegt:'m'+k+i,sid,blick:{x:c.x,z:c.z}}); }
+  const i=vfPlatz('r',VF_ROHR.n); return abPlatz('rohr',VF_ROHR.x0+i*VF_ROHR.dx,RAMPE_TISCH,VF_Z,{ort:'vorf',neig:ROHR_ACHSE.neig,belegt:'r'+i,sid}); }
 /* ein Produkt auf seinen Platz der Anlage und sofort zuenden - wie auf
    der Station: Zuendschnur bei Rohr und Moerser, dann igniteType am
    Abschussort (Effekt und Klang wie im Spiel) */
@@ -50883,27 +51010,22 @@ function vfStopp(){
   if(typeof WOLKEN!=='undefined') for(const w of WOLKEN) w.t=w.dauer;
   for(const f of FLASH){ f.t=0; f.max=0; if(f.l) f.l.intensity=0; }
   for(const fn of vfAufraeumen.splice(0)) try{ fn(); }catch(e){}
-  vfBelegt={};
+  vfBelegt={}; vfAufgestellt={};
   if(typeof sfxSchnitt==='function') sfxSchnitt();
   vfZeigen();
   return n;
 }
 function vfZuendenRoh(t){
   if(!t||!P[t]) return false;
-  /* 06.10. (Toms PDF: Raketen und Kugeln sichtbar im Rohr): die Zuendschnur
-     brennt etwas laenger als an der Station, damit man das Modell sieht (14u) */
-  const o=vfMuendung(t), dauer=brennDauer(t), vor=o.sid==='moerser'?1.2:o.sid==='rampe'?(P[t].shape==='rocketset'?0.9:0.4):0;
-  vfBelegt[o.art]=FW_UHR+vor+dauer+0.5;
-  let h=null, bt=null, pg=null;
-  if(o.sid==='tisch'&&istBatterie(t)){ bt=batterieModell(t,Math.PI); bt.g.position.set(o.x,o.boden,o.z); bt.g.rotation.y=Math.PI; scene.add(bt.g); o.batt=bt; }
-  /* Wunderkerzen: Mini-Podest statt Verpackung (03.10., Tom; 14q) */
-  else if(o.sid==='tisch'&&typeof kqPodestAuf==='function'&&(pg=kqPodestAuf(t,{x:o.x,y:o.boden,z:o.z}))) scene.add(pg);
-  /* Kleinfeuerwerk ausgepackt statt Ladenverpackung (07.10., Tom; 14x) */
-  else if(o.sid==='tisch'&&typeof kfTischAuf==='function'&&(pg=kfTischAuf(t,{x:o.x,y:o.boden,z:o.z}))) scene.add(pg);
-  else if(o.sid==='tisch'&&stationsPool(t)&&!stationsPool(t).full()) h=stationsPool(t).add(mx(o.x,o.boden,o.z,Math.PI));
-  if(typeof vfImRohr==='function') vfImRohr(t,o);
-  if(vor){ emitters.push({t:vor,k:'fuse',o:{x:o.x,y:o.y,z:o.z}}); sfx.fizz(distVol(o)*0.5); }
-  later(vor,()=>{ if(vfAn) igniteType(t,o); });
+  /* 06.10. (Toms PDF: Raketen und Kugeln sichtbar im Rohr): Darstellung und
+     Zuendung kommen vom Abschuss-Baustein (14z4) - wie an der Station:
+     ausgepacktes Produkt, Zuendschnur, Modell fliegt mit, Rauchrest */
+  const ort=vfPlatzFuer(t), alt=vfAufgestellt[ort.belegt]; if(alt) abWeg(alt);
+  const h=abAufstellen(ort,t);
+  const z=abZuenden(ort,t,h,{solange:()=>vfAn}), o=z.o;
+  vfBelegt[ort.belegt]=FW_UHR+z.dauer+0.5; vfAufgestellt[ort.belegt]=h;
+  vfAufraeumen.push(()=>abWeg(h));
+  if(vfAufraeumen.length>40) vfAufraeumen.splice(0,vfAufraeumen.length-40);
   /* der Blick folgt dem Produkt: zur Seite auf seinen Platz, nach oben so
      weit, wie es steigt - Kleinfeuerwerk flach, Batterien halb, Raketen
      und Kugeln steil */
@@ -50912,12 +51034,10 @@ function vfZuendenRoh(t){
      Drittel statt am Rand (gemessen, Spieler 11 m vor dem Tisch); Rampe 0,85 statt 0,72 (Raketen bis ~75 m im Bild statt 35 m); Moerser 0,95 statt 0,85, sonst schneidet der Rand die 300er
      (Bruch ~90 m) mittendurch */
   /* 06.10.: Finale Grande schiesst ihre Kugeln auf Kugelhoehe (14u) - Blick wie am Moerser */
-  { const sh=P[t].shape; pitch=t==='kugelfinale'?1.0:o.sid==='tisch'?(SHOWS[t]||sh==='battery'||sh==='fan'?0.8:sh==='fountain'||sh==='cylinder'||sh==='fountainset'?0.35:0.1):o.sid==='rampe'?0.85:0.95;
+  { const sh=P[t].shape, sid=ort.sid; pitch=t==='kugelfinale'?1.0:sid==='tisch'?(SHOWS[t]||sh==='battery'||sh==='fan'?0.8:sh==='fountain'||sh==='cylinder'||sh==='fountainset'?0.35:0.1):sid==='rampe'?0.85:0.95;
     yaw=Math.atan2(-(o.x-pl.x),-(o.z-pl.z)); }
-  if(h){ let weg=false; const fn=()=>{ if(weg) return; weg=true; if(h.pool) h.pool.remove(h); }; vfAufraeumen.push(fn); later(vor+dauer,fn); }
-  if(bt){ let weg=false; const fn=()=>{ if(weg) return; weg=true; bt.weg(); }; vfAufraeumen.push(fn); later(vor+dauer,fn); }
-  if(pg){ let weg=false; const fn=()=>{ if(weg) return; weg=true; if(pg.parent) pg.parent.remove(pg); }; vfAufraeumen.push(fn); later(vor+dauer,fn); }
-  if(vfAufraeumen.length>40) vfAufraeumen.splice(0,vfAufraeumen.length-40);
+  /* Rakete und Kugel: der Blick beginnt am Rohr und folgt dem Aufstieg (14u) */
+  if(h&&h.flug&&typeof vfBlickAn==='function') vfBlickAn(h.flug);
   vfLetzt=t; return true;
 }
 function vfNaechstes(){ if(!vfListe.length) return; vfZuenden(vfListe[vfIdx]); vfIdx=Math.min(vfListe.length,vfIdx+1); vfMerken(); vfZeigen(); }
@@ -52922,7 +53042,7 @@ fontsReady().then(()=>{
   setTimeout(()=>{ if(typeof shaderVorab==='function') shaderVorab(); },400);
   window.__bb={get S(){return S},get phase(){return phase},set phase(v){phase=v},set clock(v){clock=v},get clock(){return clock},pickUp,floorBoxes,shelves,racks,dekos,stockOne,openShop,step,customers,queue,belt,scanBelt,buyUp,buyDeko,get DS(){return DS},endDay,pending,save,openLaptop,closeLaptop,pl,addXP,hireStaff,fireStaff,staff,dirts,addDirt,movables,toggleBuild,setWall,setFloor,
     stations,firePult,placeOnStation,igniteType,get order(){return order},get phone(){return phone},makeCall,answerPhone,haggle,acceptDeal,declineDeal,get truck(){return truck},spawnTruck,takeFromTruck,takeBox,dropBox,updateTruck,get door(){return door},get tuer(){return tuer},tuerSet,tuerNah,updateSchiebetuer,doorOpen,doorIsOpen,trailerOccupied,LR,lrFront,TOR,orderReady,orderLeft,shipOne,removeFloorBox,prioOf,setPrio,racks,updateCarry,spawnFloorBox,staff,SHELFKIND,layout,shelfCapOf,shelfAccepts,emptyLevel,dateInfo,dateStr,dateShort,seasonInfo,isSunday,dayMult,ruhetag,wageOf,setWage,friendliness,inPause,setPause,windowGrime,addGrime,cleanWindowTick,ambienteScore,bildBoost,fixedCosts,dailyWages,dispoLimit,verfuegbar,dispoZins,takeLoan,loanTier,loanDaily,EVENTS,GOALS,CUSTTYPES,UPGRADES,STAFF,stockOf,spawnInterval,pools,todayEvent,evv,rollEvent,rollMarket,newGoal,goalAdd,goalTick,ekFactor,marktText,xpFor,rollCustType,priceTol,buyChance,regCustomer,makeWishes,nachfrageFaktor,shelfStockOf,buildGravur,refillGrav,openGravInput,closeGravInput,get gravBlanks(){return gravBlanks},set gravBlanks(v){gravBlanks=v},orderBox,buyPack,cartAdd,cartAddPack,cartOrder,cartClear,cartDel,cartGoods,cartFee,cartTotal,cartBoxes,cartLines,LIEFERZEIT_SEK,VERSAND,VERSANDFREI,lieferSek,
-    regaleImBlick,vsPK,VS_OPT,vsRouteLaenge,vsStopsBauen,vsBedarf,vsPQ:vsPunkteVon,scene,camera,P,NEUWARE,NEU_SHOWS,NEU_FONT,NEU_KUGEL,neuZuenden,PARK,restWelle,restTick,restDruck,restDaten,buyAngebot,grossOffen,updatePark,parkWasser:()=>_wasserM,parkTannen:()=>PARK_TANNEN,parkLeben:()=>parkEnten.concat(parkLeute).map(e=>({x:e.g.position.x,z:e.g.position.z})),pendingListe:()=>pending,einbauPakete,spawnPaket,paketAblegen,paketAufheben,EINBAU,PAKET_MASS,vorDieTuer,sbZiel,makeAuto,AUTOFORM,ladenInnen,stadtInfo:()=>({warn:beacons.length,kronen:KRONEN.length,stufen:SKYLINE_INFO.stufen,skyStile:SKYLINE_INFO.stile.size,stile:Object.keys(STADT_MATS).length}),clearStations,fachHoehe,kindOf,packKartonWert,SUPPLIERS,supplierFor,supplierOf,tierPrice,isUnlocked,lizLevel,renderLaptop,get lsup(){return lsup},set lsup(v){lsup=v},get lkat(){return lkat},set lkat(v){lkat=v},SPARTE,SPARTE_NAME,sparteVon,HEADNAME,headArt,catPill,ekRoh,ekDelta,ekTag,ekNiveau,ekPill,get ltab(){return ltab},set ltab(v){ltab=v},EFF,EFF_ALL,EFF_KLEIN,EFF_GROSS,EFF_PRO,SHOWS,kugelbombe,shot,mine,FW,stations,stationOf,placedCount,togglePDA,openPDA,closePDA,setPost,get postOn(){return postOn},get pdaOn(){return pdaOn},showLength,psHuge,psBig,psMid,psSmall,rockets,emitters,timersLen:()=>timers.length,timersLeeren:()=>{timers.length=0;},setView:(x,z,y,p)=>{pl.x=x;pl.z=z;yaw=y;pitch=p;aim=null;},schiebe:(x,z)=>{pl.x=x;pl.z=z;collide(pl,0.32);return{x:pl.x,z:pl.z};},PLZ_MAX,camYaw:()=>yaw,camPitch:()=>pitch,playerPos:()=>({x:pl.x,z:pl.z}),pultYaw:()=>pultHit?pultHit.parent.rotation.y:null,get pultHit(){return pultHit},applyShopName,shopName,shopSlogan,signTexPx:()=>signTex&&signTex.image?texCanvas(signTex).getContext('2d').getImageData(0,0,signTex.image.width,40).data.join(''):null,lagerWall,fwShot:shot,KUGEL_R,ROHR_INNEN,MOERSER_R,moerserRohr,sfx,WOLKEN,get master(){return master},ac,SORTE_NEU,sortenUmstellen,get shakeWert(){return shake},get ckG(){return ckG},get ckNameTex(){return ckNameTex},get ckMovable(){return ckMov},CK_HOME,CK_ALT,spotPos,queueApproach,ckTexPx:()=>ckNameTex&&ckNameTex.image?texCanvas(ckNameTex).getContext('2d').getImageData(0,0,ckNameTex.image.width,60).data.join(''):null,testfeldMitte,STATION_POS,aimAt,UPGRADES,upPic,PLAN,planFlaechen,uhrZeiger:()=>({std:uhrStd?+uhrStd.rotation.z.toFixed(4):0,min:uhrMin?+uhrMin.rotation.z.toFixed(4):0}),drawRackSchild,get snowPts(){return snowPts},buildStadt,updateStadt,get stadtBoxen(){return stadtBoxen},get stadtBaeume(){return stadtBaeume},buildFernbaeume,schwaerme,beacons,silhouetten,get verkehrPts(){return verkehrPts},get rauchPts(){return rauchPts},get flieger(){return flieger},stadtFrei,STADT_FREI,WALLS,FLOORS,bodenMalen,wandMalen,oberflaechenMuster,oberflaechenAnwenden,BODEN_KACHEL,WAND_B,WAND_H,bodenPx,wandPx,innenUmgebung,sockelM,get wallTex(){return wallTex},get floorTexRef(){return floorTexRef},get floorMat(){return floorMat},get shopWall(){return shopWall},renderOnline,onlineHint,onlineStufe,onlineZahlen,onlineListe,updateOnline,SCHILDBG,SCHILDFG,setSchild,schildBg,schildFg,repaintSchilder,updateHead,allLevels,addToLevel,putInSlot,regCustomer,ZONEN,zoneOffen,oeffneZone,applyZonen,SLOTS,RACKS,slotsOffen,colliders,LAY,LOGI,WRAMPEN,WTORE,updateSnow,unterDach,dachBereiche,get lapHit2(){return lapHit2},buildLagerTerminal,toggleTest,testLevel,buyUp,get toastLast(){return toastLast},__floorBoxen:()=>floorBoxes.length,WBAY_UP,wbays,dockPlaetze,wbayFrei,wbayOffen,spawnWTruck,updateWBays,wbaysInit,wtorSet,GANG,GANGTUER,buildLagergang,flaeche,WTOR,RACKKIND,route,NAV,navFrei,navIdx,navBuild,shelfStand,shelves,sbLanes,buildSBKasse,sbFrei,sbOffen,sbNutzbar,EING2,eingaenge,naechsterEingang,setEingang2,TUEREN,tuerSetD,tuerNahD,packBereit,packOne,paketWert,bestellungenProTag,pakete,ddlAbholung,updateVersand,VS_GR,VS_FELD,WG_PARK,vsNeueBestellung,vsAbgleich,vsKlasse,vsQuellen,vsBestand,vsErfuellbar,vsPlan,vsStapelP,vsPalZiel,vsSpielerPacken,vsSpielerBestellung,vsTischFrei,vsStatus,vsAufraeumen,vsLaden,vsBahn,vsPaketOffen,vsKlappen,vsFuellung,vsPaketZu,get vsTisch(){return vsPlaetze[0]?vsPlaetze[0].tisch:null},get vsWagen(){return vsPlaetze[0]?vsPlaetze[0].wagen:null},vsPlaetze,vsPortal,vsStufeGeaendert,packStufe,packStufeAnwenden,packTeile,VS_PP,VS_PZ,VS_TOP,VS_TB,ppW,BAND,ZELLE,ZELLE_Z1,PALETTEN,PAL_H,VS_MUSTER,vsKapazitaet,vsGelandet,vsCfg,vsNachfrage,vsGebuehr,VS_PORTO,VS_CFG_STD,vsBuchen,vsHits,vsPlatzAus,VM,VM_IDS,vmStand,vmReicht,vmVerbrauchen,vmEinlagern,vmBestellen,vmAuffuellen,vmBestellbar,vmGesamt,vmKapGesamt,vmUnterwegs,vmRegale,vmRegalZeichnen,vmWarnung,vmPlatzMit,vmLkwJob,vmStandPunkt,pullFromTruck,dumpTruck,createShelf,createRack,regalStellen,testKauf,regalAufbauen,orderRegal,REGALWARE,regalOf,regalKind,regalPreis,regalPlatz,regalOffen,startGame,promptFor,ERFOLGE,erfOffen,erfStufe,erfStand,erfZiel,erfFertig,erfAnteil,erfGeschafft,erfGesamt,stat,statAdd,statRekord,statVerkauf,bruchGesehen,gruppeVon,GRUPPE,TRAEGER,BRUCH,BRUCH_IDS,REZ_FARBEN,ETIKETT,traegerVon,traegerOffen,bruchOffen,bruchListe,rezeptWow,rezeptKosten,rezeptMarkt,rezeptHype,rezeptDauer,rezeptEntwicklung,rezeptGueltig,eigeneListe,eigenesEintragen,rezepteTick,rezProto,rezBauen,renderRezeptur,get entwurf(){return entwurf},set entwurf(v){entwurf=v},entwurfInit,ORDER,LIZENZEN,lizenzOf,hatLizenz,lizenzDaten,naechsteLizenz,buyLizenz,VOLA,volaOf,REGIME,marketOf,costOf,marktZiel,marktLuecke,meOf,miOf,marktDelta,marktNiveau,marktPhase,marktSchock,marktLabel,marktSchnitt,marktExtrem,marktChance,sortimentBreite,sortimentZug,bekanntheit,spawnInterval,rollMarkt,marktInit,inflOf,inflText,setPreisAufMarkt,igniteType,get packHit(){return packHit},get packTisch(){return packTisch},get packMov(){return packMov},zuendeKanal,zuendeAlle,alleKanaele,get pultText(){return pultText},drawPult,kanalItem,openZuend,closeZuend,get zuendOpen(){return zuendOpen},overlayOpen,pultTaster,zuendTick,TISCH_X,RAMPE_X,KANAL_START,bereitCount,brennDauer,muendung,pultLamps,RAKETEN_LOOK,RAKETEN_KL,makePerson,applyTOD,updateHUD,renderer,renderFrame,get DEMO(){return DEMO},LHALLE,LOGI_STUFEN,TOR_STUFE,logiStufe,logiZeige,logiAnwenden,LOGI_G,TOR_G,WTORE,tuAktion:(kind,ref)=>{ const alt=target; target={kind,ref}; try{ doAction(); } finally { target=alt; } },promptFor,KARREN,karreArt,karreAn,karreStapel,karreLast,karreNimmt,toggleKarre,updateKarre,setTutorial,tutorialAn,zielFuer,get zielAktuell(){return zielAktuell},get tipKey(){return tipKey},updateZiel,set DEMO(v){DEMO=v},kapitelVon,kapitelVoll,openHandy,closeHandy,toggleHandy,get handyOpen(){return handyOpen},get happ(){return happ},HANDY_APPS,renderHandy,shaderVorab,SCHONER,schonerMalen,updateSchoner,makeWischer,stelleWischer,get wischer(){return wischer},updateWischen,wischerPersonal,cleanTick,updateFireworks,FLASH,spurEnden,LR_LAMPE,schweber,kundenSymbol,geldSchwebt,get serie(){return serie},serieZufrieden,serieBricht,KAPITEL,kapitel,kapitelNr,kapitelAufstieg,WA,WA_SLOTS,vorDieTuer,SB_KASSIERER,sbBesetzt,sbLaneVon,sbKassiererPlatz,sbBetreuer,sbHeimPlatz,sbHelferPlatz,sbGeholfen,sbFreiNah,SB_SELBST,sbPos,MUSIK,STUECKE,musikAn,musikWeiter,musikVol,musikTick,spielSchritt,get mStep(){return mStep},set mStep(v){mStep=v;mTakte=0;},get mBus(){return mBus},get postHalf(){return postHalf},EFF_SCHWEIF,mitSchweif,KOEPFE,KLEID,UNIFORM,STAFFKOPF,faceCache,animPerson,personTuete,personTraegt,personGreif,FIG_DATEN,FIG_PERSONEN,PACKS,packPreis,packPool,packOffen,packContents,syncPakete,rotateGrab,cancelGrab,moebelTaste,moebelEinpacken,paketAuspacken,moebelImBlick,removeShelf,removeRack,PACK_FL,PACK_HOME,spotFree,rectOf,grab,placeGrab,updateGrab,get grabbed(){return grabbed},showPause,closePause,pauseSeite,pauseSeiteAktiv,zumStartbildschirm,fortsetzen,musikWahl,musikTitel,get startOpen(){return startOpen},get pauseOpen(){return pauseOpen},get target(){return target},einrOf,einrAktiv,einrHoch,einrRunter,einrSchalten,AUFGABEN,einrJob,kartonMat,pools,shelfStockOf,removeFromLevel,fwLog:(a)=>{FW_LOG=a;},moerserRohr,ROHR_KALIBER,effPassen,EFF_FAMILIE,basisBlick,fwTestSchalten,fwTestProdukte,fwTestStapeln,get fwTestAn(){return fwTestAn},get fwTestBoxen(){return fwTestBoxen},get fwTestMarken(){return fwTestMarken},fwStufe,sonne:()=>sun.intensity,get fwUhr(){return FW_UHR},THEMEN,SHOW_BASIS,EFF,emittersListe:()=>emitters,show,SIGNATUR,showZeiten,showDauer,phDauer,musterWinkel,feuertopf,playShow,KAL,get rohrStreu(){return ROHR_STREU},vorfuehrungAn,vorfuehrungAus,vfNaechstes,vfZuenden,vfStopp,get vfAufraeumen(){return vfAufraeumen},vfSpringen,vfNote,vfText,vfTaste,get vfAn(){return vfAn},get vfGezuendet(){return vfGezuendet},get vfIdx(){return vfIdx},get vfLetzt(){return vfLetzt},get vfListe(){return vfListe},get vfEl(){return vfEl},set rohrStreu(v){ROHR_STREU=v},BUENDEL,bSammeln,bWaechter,buendelJetzt:()=>{ bSammeln(); bSammeln(); return BUENDEL.n; },NEU_TEST,get vfSonder(){return vfSonder},vpSchalten,vpStart,vpAus,vpStellplaetze,vpVerteilen,vpProdukte,vpFuellung,get vpAn(){return vpAn},get vpRegale(){return vpRegale},get vpPlan(){return vpPlan},get vpFertig(){return vpFertig},get SPIEL_RAUM(){return SPIEL_RAUM},vpZeilenMass,VP_ZEILEN,sucheText,sucheRang,drawFront,drawTop,drawSide,WARE_MOTIV,wareFront,wareTop,wareMarke,KAPPE,kleinTakt,texCanvas,get RES(){return RES},resSetzen,resRegeln,gfxMess,schildTaste,schildFertig,schildZiel,get schildOpen(){return schildOpen},get vpNamenM(){return vpNamenM},kisteTaste,kannRaus,kisteRaus,kisteMat,KISTE_STUECK,poolDa,poolWeg,VP_FL,modRaster,slotLocal,gfxAnwenden,gfxWaehlen,gfxMessen,gfxMess,gfxAnzeige,get GFX(){return GFX},get GFX_WAHL(){return GFX_WAHL},QUAL,rohrBedarf,rohrLayout,rohrSatz,istBatterie,batterieModell,zuendPlan,buildProduct,capOf,zuendFolge,rohrMund,korpusTeile,rohrGeometrie,stationsPool,poolsAus,istVerbundKarton,regalFarben,regaleFaerben,get ROHR_LOG(){return ROHR_LOG},set ROHR_LOG(v){ROHR_LOG=v},schattenSichtbar:()=>renderer.shadowMap.enabled&&sun.shadow.bias>-1,sfxVol,get SFX_VOL(){return SFX_VOL},GFX_PROFIL,GFX_START,GFX_NAME,PR,PRACHT,prUmgebung,LI,ladenLichtTakt,liMoebelSchatten,prMaterialien,gfxPixel,gfxSamples,schattenGr:()=>sun.shadow.mapSize.x,get postDiv(){return postDiv},festImBlick,makeWishes,VP_FORM,gpStart,gpEnde,gpSpringe,gpBauSchritt,gpTick,gpBestellen,gpBauSchritt,get gpFertig(){return gpFertig},get gpAn(){return gpAn},get gpVerlauf(){return gpVerlauf},GP_ORTE,wandRechtecke,wandSchub,moebelRect,rackRect,rackKindOf,stellPlatz,rackStellPlatz,rackPlatzFrei,racksEntwirren,regalNein,kasseReserve,gpPlan,gpVerteilen,GP_ABT,gpAbtVon,
+    regaleImBlick,vsPK,VS_OPT,vsRouteLaenge,vsStopsBauen,vsBedarf,vsPQ:vsPunkteVon,scene,camera,P,NEUWARE,NEU_SHOWS,NEU_FONT,NEU_KUGEL,neuZuenden,PARK,restWelle,restTick,restDruck,restDaten,buyAngebot,grossOffen,updatePark,parkWasser:()=>_wasserM,parkTannen:()=>PARK_TANNEN,parkLeben:()=>parkEnten.concat(parkLeute).map(e=>({x:e.g.position.x,z:e.g.position.z})),pendingListe:()=>pending,einbauPakete,spawnPaket,paketAblegen,paketAufheben,EINBAU,PAKET_MASS,vorDieTuer,sbZiel,makeAuto,AUTOFORM,ladenInnen,stadtInfo:()=>({warn:beacons.length,kronen:KRONEN.length,stufen:SKYLINE_INFO.stufen,skyStile:SKYLINE_INFO.stile.size,stile:Object.keys(STADT_MATS).length}),clearStations,fachHoehe,kindOf,packKartonWert,SUPPLIERS,supplierFor,supplierOf,tierPrice,isUnlocked,lizLevel,renderLaptop,get lsup(){return lsup},set lsup(v){lsup=v},get lkat(){return lkat},set lkat(v){lkat=v},SPARTE,SPARTE_NAME,sparteVon,HEADNAME,headArt,catPill,ekRoh,ekDelta,ekTag,ekNiveau,ekPill,get ltab(){return ltab},set ltab(v){ltab=v},EFF,EFF_ALL,EFF_KLEIN,EFF_GROSS,EFF_PRO,SHOWS,kugelbombe,shot,mine,FW,stations,stationOf,placedCount,togglePDA,openPDA,closePDA,setPost,get postOn(){return postOn},get pdaOn(){return pdaOn},showLength,psHuge,psBig,psMid,psSmall,rockets,emitters,timersLen:()=>timers.length,timersLeeren:()=>{timers.length=0;},setView:(x,z,y,p)=>{pl.x=x;pl.z=z;yaw=y;pitch=p;aim=null;},schiebe:(x,z)=>{pl.x=x;pl.z=z;collide(pl,0.32);return{x:pl.x,z:pl.z};},PLZ_MAX,camYaw:()=>yaw,camPitch:()=>pitch,playerPos:()=>({x:pl.x,z:pl.z}),pultYaw:()=>pultHit?pultHit.parent.rotation.y:null,get pultHit(){return pultHit},applyShopName,shopName,shopSlogan,signTexPx:()=>signTex&&signTex.image?texCanvas(signTex).getContext('2d').getImageData(0,0,signTex.image.width,40).data.join(''):null,lagerWall,fwShot:shot,KUGEL_R,ROHR_INNEN,MOERSER_R,moerserRohr,sfx,WOLKEN,get master(){return master},ac,SORTE_NEU,sortenUmstellen,get shakeWert(){return shake},get ckG(){return ckG},get ckNameTex(){return ckNameTex},get ckMovable(){return ckMov},CK_HOME,CK_ALT,spotPos,queueApproach,ckTexPx:()=>ckNameTex&&ckNameTex.image?texCanvas(ckNameTex).getContext('2d').getImageData(0,0,ckNameTex.image.width,60).data.join(''):null,testfeldMitte,STATION_POS,aimAt,UPGRADES,upPic,PLAN,planFlaechen,uhrZeiger:()=>({std:uhrStd?+uhrStd.rotation.z.toFixed(4):0,min:uhrMin?+uhrMin.rotation.z.toFixed(4):0}),drawRackSchild,get snowPts(){return snowPts},buildStadt,updateStadt,get stadtBoxen(){return stadtBoxen},get stadtBaeume(){return stadtBaeume},buildFernbaeume,schwaerme,beacons,silhouetten,get verkehrPts(){return verkehrPts},get rauchPts(){return rauchPts},get flieger(){return flieger},stadtFrei,STADT_FREI,WALLS,FLOORS,bodenMalen,wandMalen,oberflaechenMuster,oberflaechenAnwenden,BODEN_KACHEL,WAND_B,WAND_H,bodenPx,wandPx,innenUmgebung,sockelM,get wallTex(){return wallTex},get floorTexRef(){return floorTexRef},get floorMat(){return floorMat},get shopWall(){return shopWall},renderOnline,onlineHint,onlineStufe,onlineZahlen,onlineListe,updateOnline,SCHILDBG,SCHILDFG,setSchild,schildBg,schildFg,repaintSchilder,updateHead,allLevels,addToLevel,putInSlot,regCustomer,ZONEN,zoneOffen,oeffneZone,applyZonen,SLOTS,RACKS,slotsOffen,colliders,LAY,LOGI,WRAMPEN,WTORE,updateSnow,unterDach,dachBereiche,get lapHit2(){return lapHit2},buildLagerTerminal,toggleTest,testLevel,buyUp,get toastLast(){return toastLast},__floorBoxen:()=>floorBoxes.length,WBAY_UP,wbays,dockPlaetze,wbayFrei,wbayOffen,spawnWTruck,updateWBays,wbaysInit,wtorSet,GANG,GANGTUER,buildLagergang,flaeche,WTOR,RACKKIND,route,NAV,navFrei,navIdx,navBuild,shelfStand,shelves,sbLanes,buildSBKasse,sbFrei,sbOffen,sbNutzbar,EING2,eingaenge,naechsterEingang,setEingang2,TUEREN,tuerSetD,tuerNahD,packBereit,packOne,paketWert,bestellungenProTag,pakete,ddlAbholung,updateVersand,VS_GR,VS_FELD,WG_PARK,vsNeueBestellung,vsAbgleich,vsKlasse,vsQuellen,vsBestand,vsErfuellbar,vsPlan,vsStapelP,vsPalZiel,vsSpielerPacken,vsSpielerBestellung,vsTischFrei,vsStatus,vsAufraeumen,vsLaden,vsBahn,vsPaketOffen,vsKlappen,vsFuellung,vsPaketZu,get vsTisch(){return vsPlaetze[0]?vsPlaetze[0].tisch:null},get vsWagen(){return vsPlaetze[0]?vsPlaetze[0].wagen:null},vsPlaetze,vsPortal,vsStufeGeaendert,packStufe,packStufeAnwenden,packTeile,VS_PP,VS_PZ,VS_TOP,VS_TB,ppW,BAND,ZELLE,ZELLE_Z1,PALETTEN,PAL_H,VS_MUSTER,vsKapazitaet,vsGelandet,vsCfg,vsNachfrage,vsGebuehr,VS_PORTO,VS_CFG_STD,vsBuchen,vsHits,vsPlatzAus,VM,VM_IDS,vmStand,vmReicht,vmVerbrauchen,vmEinlagern,vmBestellen,vmAuffuellen,vmBestellbar,vmGesamt,vmKapGesamt,vmUnterwegs,vmRegale,vmRegalZeichnen,vmWarnung,vmPlatzMit,vmLkwJob,vmStandPunkt,pullFromTruck,dumpTruck,createShelf,createRack,regalStellen,testKauf,regalAufbauen,orderRegal,REGALWARE,regalOf,regalKind,regalPreis,regalPlatz,regalOffen,startGame,promptFor,ERFOLGE,erfOffen,erfStufe,erfStand,erfZiel,erfFertig,erfAnteil,erfGeschafft,erfGesamt,stat,statAdd,statRekord,statVerkauf,bruchGesehen,gruppeVon,GRUPPE,TRAEGER,BRUCH,BRUCH_IDS,REZ_FARBEN,ETIKETT,traegerVon,traegerOffen,bruchOffen,bruchListe,rezeptWow,rezeptKosten,rezeptMarkt,rezeptHype,rezeptDauer,rezeptEntwicklung,rezeptGueltig,eigeneListe,eigenesEintragen,rezepteTick,rezProto,rezBauen,renderRezeptur,get entwurf(){return entwurf},set entwurf(v){entwurf=v},entwurfInit,ORDER,LIZENZEN,lizenzOf,hatLizenz,lizenzDaten,naechsteLizenz,buyLizenz,VOLA,volaOf,REGIME,marketOf,costOf,marktZiel,marktLuecke,meOf,miOf,marktDelta,marktNiveau,marktPhase,marktSchock,marktLabel,marktSchnitt,marktExtrem,marktChance,sortimentBreite,sortimentZug,bekanntheit,spawnInterval,rollMarkt,marktInit,inflOf,inflText,setPreisAufMarkt,igniteType,get packHit(){return packHit},get packTisch(){return packTisch},get packMov(){return packMov},zuendeKanal,zuendeAlle,alleKanaele,get pultText(){return pultText},drawPult,kanalItem,openZuend,closeZuend,get zuendOpen(){return zuendOpen},overlayOpen,pultTaster,zuendTick,TISCH_X,RAMPE_X,KANAL_START,bereitCount,brennDauer,muendung,pultLamps,RAKETEN_LOOK,RAKETEN_KL,makePerson,applyTOD,updateHUD,renderer,renderFrame,get DEMO(){return DEMO},LHALLE,LOGI_STUFEN,TOR_STUFE,logiStufe,logiZeige,logiAnwenden,LOGI_G,TOR_G,WTORE,tuAktion:(kind,ref)=>{ const alt=target; target={kind,ref}; try{ doAction(); } finally { target=alt; } },promptFor,KARREN,karreArt,karreAn,karreStapel,karreLast,karreNimmt,toggleKarre,updateKarre,setTutorial,tutorialAn,zielFuer,get zielAktuell(){return zielAktuell},get tipKey(){return tipKey},updateZiel,set DEMO(v){DEMO=v},kapitelVon,kapitelVoll,openHandy,closeHandy,toggleHandy,get handyOpen(){return handyOpen},get happ(){return happ},HANDY_APPS,renderHandy,shaderVorab,SCHONER,schonerMalen,updateSchoner,makeWischer,stelleWischer,get wischer(){return wischer},updateWischen,wischerPersonal,cleanTick,updateFireworks,FLASH,spurEnden,LR_LAMPE,schweber,kundenSymbol,geldSchwebt,get serie(){return serie},serieZufrieden,serieBricht,KAPITEL,kapitel,kapitelNr,kapitelAufstieg,WA,WA_SLOTS,vorDieTuer,SB_KASSIERER,sbBesetzt,sbLaneVon,sbKassiererPlatz,sbBetreuer,sbHeimPlatz,sbHelferPlatz,sbGeholfen,sbFreiNah,SB_SELBST,sbPos,MUSIK,STUECKE,musikAn,musikWeiter,musikVol,musikTick,spielSchritt,get mStep(){return mStep},set mStep(v){mStep=v;mTakte=0;},get mBus(){return mBus},get postHalf(){return postHalf},EFF_SCHWEIF,mitSchweif,KOEPFE,KLEID,UNIFORM,STAFFKOPF,faceCache,animPerson,personTuete,personTraegt,personGreif,FIG_DATEN,FIG_PERSONEN,PACKS,packPreis,packPool,packOffen,packContents,syncPakete,rotateGrab,cancelGrab,moebelTaste,moebelEinpacken,paketAuspacken,moebelImBlick,removeShelf,removeRack,PACK_FL,PACK_HOME,spotFree,rectOf,grab,placeGrab,updateGrab,get grabbed(){return grabbed},showPause,closePause,pauseSeite,pauseSeiteAktiv,zumStartbildschirm,fortsetzen,musikWahl,musikTitel,get startOpen(){return startOpen},get pauseOpen(){return pauseOpen},get target(){return target},einrOf,einrAktiv,einrHoch,einrRunter,einrSchalten,AUFGABEN,einrJob,kartonMat,pools,shelfStockOf,removeFromLevel,fwLog:(a)=>{FW_LOG=a;},moerserRohr,ROHR_KALIBER,effPassen,EFF_FAMILIE,basisBlick,fwTestSchalten,fwTestProdukte,fwTestStapeln,get fwTestAn(){return fwTestAn},get fwTestBoxen(){return fwTestBoxen},get fwTestMarken(){return fwTestMarken},fwStufe,sonne:()=>sun.intensity,get fwUhr(){return FW_UHR},THEMEN,SHOW_BASIS,EFF,emittersListe:()=>emitters,show,SIGNATUR,showZeiten,showDauer,phDauer,musterWinkel,feuertopf,playShow,KAL,get rohrStreu(){return ROHR_STREU},vorfuehrungAn,vorfuehrungAus,vfNaechstes,vfZuenden,vfStopp,get vfAufraeumen(){return vfAufraeumen},vfSpringen,vfNote,vfText,vfTaste,get vfAn(){return vfAn},get vfGezuendet(){return vfGezuendet},get vfIdx(){return vfIdx},get vfLetzt(){return vfLetzt},get vfListe(){return vfListe},get vfEl(){return vfEl},set rohrStreu(v){ROHR_STREU=v},BUENDEL,bSammeln,bWaechter,buendelJetzt:()=>{ bSammeln(); bSammeln(); return BUENDEL.n; },NEU_TEST,get vfSonder(){return vfSonder},vpSchalten,vpStart,vpAus,vpStellplaetze,vpVerteilen,vpProdukte,vpFuellung,get vpAn(){return vpAn},get vpRegale(){return vpRegale},get vpPlan(){return vpPlan},get vpFertig(){return vpFertig},get SPIEL_RAUM(){return SPIEL_RAUM},vpZeilenMass,VP_ZEILEN,sucheText,sucheRang,drawFront,drawTop,drawSide,WARE_MOTIV,wareFront,wareTop,wareMarke,KAPPE,kleinTakt,texCanvas,get RES(){return RES},resSetzen,resRegeln,gfxMess,schildTaste,schildFertig,schildZiel,get schildOpen(){return schildOpen},get vpNamenM(){return vpNamenM},kisteTaste,kannRaus,kisteRaus,kisteMat,KISTE_STUECK,poolDa,poolWeg,VP_FL,modRaster,slotLocal,gfxAnwenden,gfxWaehlen,gfxMessen,gfxMess,gfxAnzeige,get GFX(){return GFX},get GFX_WAHL(){return GFX_WAHL},QUAL,rohrBedarf,rohrLayout,rohrSatz,istBatterie,batterieModell,zuendPlan,buildProduct,capOf,zuendFolge,rohrMund,korpusTeile,rohrGeometrie,poolsAus,istVerbundKarton,regalFarben,regaleFaerben,get ROHR_LOG(){return ROHR_LOG},set ROHR_LOG(v){ROHR_LOG=v},schattenSichtbar:()=>renderer.shadowMap.enabled&&sun.shadow.bias>-1,sfxVol,get SFX_VOL(){return SFX_VOL},GFX_PROFIL,GFX_START,GFX_NAME,PR,PRACHT,prUmgebung,LI,ladenLichtTakt,liMoebelSchatten,prMaterialien,gfxPixel,gfxSamples,schattenGr:()=>sun.shadow.mapSize.x,get postDiv(){return postDiv},festImBlick,makeWishes,VP_FORM,gpStart,gpEnde,gpSpringe,gpBauSchritt,gpTick,gpBestellen,gpBauSchritt,get gpFertig(){return gpFertig},get gpAn(){return gpAn},get gpVerlauf(){return gpVerlauf},GP_ORTE,wandRechtecke,wandSchub,moebelRect,rackRect,rackKindOf,stellPlatz,rackStellPlatz,rackPlatzFrei,racksEntwirren,regalNein,kasseReserve,gpPlan,gpVerteilen,GP_ABT,gpAbtVon,
     vsWelt,vdOffen,vdSetzen,ddlAbfahrt,ddlTelPrompt,boxBelegt,ddlStand,vsBoxVoll,vsAnnahme,vsQuote,vsQuoteStd,vsAktion,vsRabatt,vsPreis,vsListe,vsSaleFaktor,vsBesucheProTag,vsGratisHeute,onlineTag,onlineTagSchliessen,onlineErgebnis,onlineStatHtml,versandBereich,versandBereichRaeumen,placeMovable,LADEZONE,ladezoneRechtecke,PORTAL_Z0,DDL_PAUSCHALE,LAGERPC,get tabHit(){return tabHit},get lapGeraet(){return lapGeraet},GERAETE,vmKostenJe,openLaptop,lapKlick,ddlTelZeichnen,VS_PORTO,hubAufbauPark,V1,VT,VD,LD,HUB,DDL,vf,vfRueck,ddlSlot,vsStapelLage,vsPalZelle,vsPalZahl,ddlRufen,ddlAbholung,ddlLaeuft,updatePaletten,vsPalAbgleich,vsPalById,palZentrumWelt,vsPalObj,vsPalHits,vdIstOffen,vtBesetzt,vsPalGleitet,roboterBusy,hubKollision,DDL_SLOTS,rackR1Pack,vsHeim,vsKapazitaet,PACK_HOME,V1_HOF,PAL_N,ZELLE,PALETTEN,palPlaetze,vsPalNeu,
     kameraSetzen:()=>{ camera.position.set(pl.x,1.65,pl.z); camera.rotation.set(pitch,yaw,0); camera.updateMatrixWorld(); updateTarget(); applyTOD(); },
     stoppSchleife:()=>{ noLoop=true; },

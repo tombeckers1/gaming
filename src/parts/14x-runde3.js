@@ -482,56 +482,10 @@ function r3OhneKern(id){ const alt=SHOWS[id]; if(!alt) return; SHOWS[id]=()=>{ c
 
 /* ---------- Vorfuehrung: dieselben Abschussrohre wie im Spiel ----------
    Tom 07.10.: "Abschussrohre in der Vorfuehrung sehen anders aus als im
-   echten Spiel -> dieselben Rohre wie im Spiel nehmen". Die Vorfuehranlage
-   hatte glatte graue Zylinder ohne Innenseite (0,62 m Rohr, Moerser 0,6-
-   1 m hoch). Jetzt wie an den Stationen (05d): Abschussrohr aus dunklem
-   Stahl mit schwarzer Innenwand, Boden, Muendungsring, Schelle und
-   schwerer Fussplatte mit zwei Stuetzen auf einem Lochblechtisch; Moerser
-   wie die Moerserbatterie - Rohre 1,30/1,55/1,85 m auf 0,18 m, Muendungs-
-   wulst, zwei Verstaerkungsringe, Boden, Schellen, Riffelblech-Platte. */
-const VF_MOERSER_H=[1.30,1.55,1.85], VF_MOERSER_FUSS=0.18;
-vfAnlageBauen=function(){
-  if(vfAnlage){ vfAnlage.visible=true; return; }
-  const g=new THREE.Group(), steel=std(0x8a929e,{metalness:0.65,roughness:0.38}), steelDark=std(0x3a4049,{metalness:0.6,roughness:0.45}), holz=std(0xa8844f,{roughness:0.8});
-  const perf=std(0x5d646e,{metalness:0.55,roughness:0.5}), tubeM=std(0x3e4652,{metalness:0.72,roughness:0.34}), innenM=std(0x14161b,{roughness:0.9,side:THREE.DoubleSide});
-  tubeM.side=THREE.DoubleSide;
-  const box=(w,h,d,m,x,y,z)=>{ const b=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m); b.position.set(x,y,z); b.castShadow=b.receiveShadow=true; g.add(b); return b; };
-  const ring=(r,t,m,x,y,z)=>{ const o=new THREE.Mesh(new THREE.TorusGeometry(r,t,8,20),m); o.rotation.x=Math.PI/2; o.position.set(x,y,z); g.add(o); return o; };
-  /* Tisch fuer Batterien und Kleinfeuerwerk wie bisher */
-  const T=VF_TISCH, tw=T.n*T.dx+0.2, tx=T.x0+(T.n-1)*T.dx/2;
-  box(tw,0.06,0.9,holz,tx,T.y-0.03,VF_Z);
-  for(const sx of [-1,1]) for(const sz of [-1,1]) box(0.08,T.y-0.06,0.08,steel,tx+sx*(tw/2-0.1),(T.y-0.06)/2,VF_Z+sz*0.35);
-  /* Abschussrohre: Lochblechtisch in 0,76 m, Rohre 0,62 m, Muendung 1,38 m */
-  const R=VF_ROHR, TT=RAMPE_TISCH, rw=(R.n-1)*R.dx+0.4, rx=R.x0+(R.n-1)*R.dx/2, H=0.62, yc=TT+0.012+H/2;
-  box(rw,0.04,0.74,perf,rx,TT-0.02,VF_Z);
-  box(rw+0.06,0.05,0.05,steelDark,rx,TT-0.025,VF_Z+0.37); box(rw+0.06,0.05,0.05,steelDark,rx,TT-0.025,VF_Z-0.37);
-  for(const sx of [-1,1]) for(const sz of [-1,1]) box(0.06,TT-0.05,0.06,steelDark,rx+sx*(rw/2-0.08),(TT-0.05)/2,VF_Z+sz*0.3);
-  box(rw-0.2,0.03,0.12,steelDark,rx,0.26,VF_Z+0.3); box(rw-0.2,0.03,0.12,steelDark,rx,0.26,VF_Z-0.3);
-  for(let i=0;i<R.n;i++){ const x=R.x0+i*R.dx;
-    const t=new THREE.Mesh(new THREE.CylinderGeometry(0.062,0.062,H,20,1,true),tubeM); t.position.set(x,yc,VF_Z); t.castShadow=true; g.add(t);
-    const inn=new THREE.Mesh(new THREE.CylinderGeometry(0.056,0.056,H-0.03,16,1,true),innenM); inn.position.copy(t.position); g.add(inn);
-    const bo=new THREE.Mesh(new THREE.CylinderGeometry(0.06,0.06,0.012,20),steelDark); bo.position.set(x,yc-H/2,VF_Z); g.add(bo);
-    ring(0.064,0.013,steel,x,yc+H/2,VF_Z); ring(0.066,0.012,steelDark,x,yc-H/2*0.55,VF_Z);
-    box(0.24,0.022,0.24,steelDark,x,TT+0.011,VF_Z);
-    for(const sx of [-1,1]){ const st=box(0.014,0.2,0.014,steelDark,x+sx*0.085,TT+0.1,VF_Z+0.02); st.rotation.z=-sx*0.32; } }
-  /* Moerser: je Kaliber vier Rohre wie an der Moerserbatterie */
-  const M=VF_MOERSER, rohrM=std(0x2f353f,{metalness:0.78,roughness:0.3}), wulstM=std(0x454d59,{metalness:0.7,roughness:0.35}), bodenM=std(0x15171c,{roughness:1}), schwarz=std(0x0b0c10,{roughness:1,side:THREE.DoubleSide});
-  rohrM.side=THREE.DoubleSide;
-  for(let k=0;k<3;k++){ const gx=M.x0+k*M.gdx, hh=VF_MOERSER_H[k], r=MOERSER_R[k], y0=VF_MOERSER_FUSS;
-    box(M.n*M.dx+0.16,0.05,0.62,perf,gx+(M.n-1)*M.dx/2,0.055,VF_Z);
-    for(let i=0;i<M.n;i++){ const x=gx+i*M.dx;
-      const t=new THREE.Mesh(new THREE.CylinderGeometry(r,r,hh,22,1,true),rohrM); t.position.set(x,y0+hh/2,VF_Z); t.castShadow=true; g.add(t);
-      const inn=new THREE.Mesh(new THREE.CylinderGeometry(r*0.9,r*0.9,hh-0.04,16,1,true),schwarz); inn.position.copy(t.position); g.add(inn);
-      const bo=new THREE.Mesh(new THREE.CircleGeometry(r*0.9,16),bodenM); bo.rotation.x=-Math.PI/2; bo.position.set(x,y0+0.02,VF_Z); g.add(bo);
-      ring(r*1.03,r*0.17,wulstM,x,y0+hh,VF_Z);
-      for(const f of [0.3,0.62]) ring(r*1.02,r*0.1,rohrM,x,y0+hh*f,VF_Z);
-      for(const y of [0.42,0.66]) ring(r+0.03,0.022,steel,x,y,VF_Z); } }
-  scene.add(g); vfAnlage=g;
-};
-/* Muendungen passend zu den neuen Moersern (Rohrhoehe 1,48/1,73/2,03 m) */
-{ const vm=vfMuendung; vfMuendung=function(t){ const o=vm.apply(this,arguments);
-    if(o&&o.sid==='moerser'){ const k=moerserRohr(t)%3; o.y=VF_MOERSER_FUSS+VF_MOERSER_H[k]; }
-    return o; }; }
+   echten Spiel -> dieselben Rohre wie im Spiel nehmen". Seit dem 13.10.
+   (Fundament 2b) baut der Abschuss-Baustein (14z4 abRohrBau, abMoerserBau,
+   abTischBau, abRampeBau) Station und Vorfuehranlage (17b vfAnlageBauen)
+   mit derselben Funktion - die Kopie, die hier stand, ist weg. */
 
 /* ---------- 4. Level-Ordnung ----------
    Tom 07.10.: "Weltuntergang hebt sich in der Koenigsklasse stark ab ->

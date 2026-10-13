@@ -1923,21 +1923,16 @@ function renderRezeptur(){
     `<div class="price">${eur(marketOf(e.id))}</div></div>`).join('');
   return h;
 }
-/* Prototyp: geht sofort auf dem Testfeld hoch, kostet nichts */
+/* Prototyp: geht sofort auf dem Testfeld hoch, kostet nichts. Seit dem
+   13.10. (Fundament 2b) wie jedes Produkt: das Probestueck steht auf seinem
+   Platz (Mörser, Rohr, Zündtisch) und zündet über den Abschuss-Baustein
+   (14z4 abProtoZuenden) - vorher stiegen die Effekte ohne Produkt frei
+   über den Stationen auf. */
 function rezProto(){
   const r=entwurf; if(!rezeptGueltig(r)) return;
-  const tr=traegerVon(r.traeger);
-  const o=tr.shape==='shell'?V(STATION_POS.moerser.x,1.7,STATION_POS.moerser.z)
-        :tr.shape==='rocketset'?V(STATION_POS.rampe.x,1.3,STATION_POS.rampe.z)
-        :V(STATION_POS.tisch.x,0.95,STATION_POS.tisch.z);
-  const A=K(r.A)||FW.gold, B=K(r.B)||FW.weiss;
-  const st=r.eff2?[{t:0.55,eff:r.eff2,sz:tr.kal*0.6,streu:5,A:B,B:A}]:null;
-  if(tr.shape==='shell') kugelbombe(o,r.traeger==='kugel100'?2:1,{A,B,eff:r.eff});
-  else if(tr.shape==='battery'){ for(let i=0;i<tr.schuss;i++) later(i*0.32,()=>shot(o,{sz:tr.kal,eff:r.eff,A,B,stufen:i===tr.schuss-1?st:null})); }
-  else if(tr.shape==='cylinder'){ emitters.push({t:2.4,k:'fountain',o,A:FW.gold,B:A});
-    later(2.4,()=>shot(o,{pw:3,sz:tr.kal*1.2,eff:r.eff,A,B,fuse:1.3,dick:1,stufen:st})); }
-  else for(let i=0;i<tr.schuss;i++) later(i*0.45,()=>shot(o,{pw:tr.kal>1.1?3:0,sz:tr.kal,eff:r.eff,A,B,stufen:i===tr.schuss-1?st:null}));
-  toast('Prototyp steigt auf dem Testfeld.','xp');
+  const z=abProtoZuenden(r);
+  if(!z.frei){ toast(`Für den Prototyp ist auf ${z.name} kein Platz frei. Erst zünden.`,'bad'); return; }
+  toast(`Prototyp steigt auf dem Testfeld (Kanal ${z.kanal}).`,'xp');
   closeLaptop(true);
 }
 /* In Produktion geben */

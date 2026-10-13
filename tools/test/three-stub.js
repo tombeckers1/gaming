@@ -14,7 +14,7 @@ class Vector3{ project(){ this.x=0; this.y=0; this.z=0.5; return this; } lerpVec
   add(v){this.x+=v.x;this.y+=v.y;this.z+=v.z;return this;}
   addScaledVector(v,s){this.x+=v.x*s;this.y+=v.y*s;this.z+=v.z*s;return this;}
   sub(v){this.x-=v.x;this.y-=v.y;this.z-=v.z;return this;}
-  length(){return Math.hypot(this.x,this.y,this.z);}
+  length(){return Math.hypot(this.x,this.y,this.z);} lengthSq(){return this.x*this.x+this.y*this.y+this.z*this.z;}
   normalize(){const l=this.length()||1;this.x/=l;this.y/=l;this.z/=l;return this;}
   dot(v){return this.x*v.x+this.y*v.y+this.z*v.z;}
   distanceTo(v){return Math.hypot(this.x-v.x,this.y-v.y,this.z-v.z);}
@@ -124,7 +124,7 @@ class Object3D{
   updateMatrix(){ if(!this.matrix) this.matrix=new Matrix4(); return this; }
   add(o){if(o){this.children.push(o);o.parent=this;}return this;}
   remove(o){const i=this.children.indexOf(o);if(i>=0){this.children.splice(i,1);o.parent=null;}return this;}
-  updateMatrixWorld(){}
+  updateMatrixWorld(){} updateWorldMatrix(){}
   /* Stub: Weltlage nur aus den Positionen der Kette, ohne Drehung */
   getWorldQuaternion(q){ let a=0,o=this; while(o){ if(o.rotation) a+=o.rotation.y||0; o=o.parent; } q.x=0;q.y=Math.sin(a/2);q.z=0;q.w=Math.cos(a/2); return q; }
   getWorldPosition(v){ v.set(0,0,0); let o=this; while(o){ v.x+=o.position.x; v.y+=o.position.y; v.z+=o.position.z; o=o.parent; } return v; }

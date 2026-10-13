@@ -13,7 +13,7 @@
 const { chromium } = require('/opt/node22/lib/node_modules/playwright');
 /* keine Bodenfontaenen: Zuendschnur, Modell im Rohr, der Hilfsdienst der
    Bruchbilder (dienst2) und die Taktgeber der Bruchbilder am Himmel (gb_*) */
-const KEIN_BODEN=new Set(['fuse','vfModell','dienst2']);
+const KEIN_BODEN=new Set(['fuse','vfModell','abModell','dienst2']);
 (async()=>{
   const b=await chromium.launch({args:['--use-gl=swiftshader','--enable-unsafe-swiftshader','--no-sandbox']});
   const p=await b.newPage({viewport:{width:640,height:400}}); p.setDefaultTimeout(1500000);

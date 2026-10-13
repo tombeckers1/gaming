@@ -15,16 +15,25 @@ const FT_DUESE={fussX:0.02,fussY:0.181,len:0.0725,neig:32,r0:0.0106,r1:0.0085};
 function ftMuendungen(o,prod){ const D=FT_DUESE, h=(P[prod]&&P[prod].dims?P[prod].dims[1]:0.2), sn=Math.sin(D.neig*Math.PI/180), cs=Math.cos(D.neig*Math.PI/180);
   return [-1,1].map(s=>({x:o.x+s*(D.fussX+sn*D.len),y:o.y-h+D.fussY+cs*D.len,z:o.z,d:[s*sn,cs,0],s})); }
 if(typeof window!=='undefined') window.__ftMuendungen=ftMuendungen;
+/* Ausgepackt (13.10., Fundament 2b, Abschuss-Baustein 14z4): am Zuendort
+   steht das Produkt ohne Verpackung - dieselbe Form, aber ohne Folie;
+   Formen mit Schachtel bauen dann nur ihr Inneres (o.aus). Die Form
+   meldet ihre Oeffnungen (parts.loecher) und die Hoehe der Oeffnung
+   (parts.oben), wenn sie von dims abweichen. */
+let VP_AUSGEPACKT=null;
 (()=>{
+let aus=false;
+VP_AUSGEPACKT=t=>{ aus=true; try{ return VP_FORM[t](t); } finally { aus=false; } };
 const PI=Math.PI, HOLZ=0xc9a46a, I=s=>parseInt(String(s).slice(1),16);
 /* ---------------- Grundgeruest ---------------- */
-function G(t){ const p=P[t]; return {t,p,a:p.art,cat:p.cat,w:p.dims[0],h:p.dims[1],d:p.dims[2],vc:[],dr:[],fo:[],gl:[],ex:[],R:{},rnd:zufallAus(hashStr(t+'|vp'))}; }
+function G(t){ const p=P[t]; return {t,p,a:p.art,cat:p.cat,w:p.dims[0],h:p.dims[1],d:p.dims[2],vc:[],dr:[],fo:[],gl:[],ex:[],R:{},rnd:zufallAus(hashStr(t+'|vp')),aus}; }
 function fertig(o){ const parts=[];
   if(o.dr.length) parts.push({geo:merge(o.dr),mat:o.drMat});
   if(o.vc.length) parts.push({geo:merge(o.vc),mat:vcMat});
   o.ex.forEach(q=>parts.push(q));
   if(o.gl.length) parts.push({geo:merge(o.gl),mat:glassMat});
-  if(o.fo.length) parts.push({geo:merge(o.fo),mat:o.foMat||folieKlar});
+  if(o.fo.length&&!o.aus) parts.push({geo:merge(o.fo),mat:o.foMat||folieKlar});
+  if(o.loecher) parts.loecher=o.loecher; if(o.oben!==undefined) parts.oben=o.oben;
   return parts; }
 const box=(o,w,h,d,x,y,z,c,rx,ry,rz)=>o.vc.push({geo:new THREE.BoxGeometry(w,h,d),m:tm(x,y,z,rx,ry,rz),color:c});
 const zyl=(o,r1,r2,l,s,x,y,z,c,rx,ry,rz,sx,sy,sz)=>o.vc.push({geo:new THREE.CylinderGeometry(r1,r2,l,s),m:tm(x,y,z,rx,ry,rz,sx,sy,sz),color:c});
@@ -585,6 +594,11 @@ VP_FORM.feuerteufel=t=>{ const o=G(t), {w,h,d,a}=o, D=FT_DUESE, Rb=d/2*0.96, Hb=
 /* Feuerkreis: achteckige Schachtel, im Deckel ein rundes Fenster auf
    den Bodenring */
 VP_FORM.bodenfeuer=t=>{ const o=G(t), {w,h,d,a}=o, ap=w*0.49, Rc=ap/Math.cos(PI/8), sw=2*ap*Math.tan(PI/8), Hb=h*0.97;
+  /* ausgepackt: der Bodenring mit seinen acht Duesen liegt auf dem Tisch,
+     ohne Schachtel (vorher kam der Feuerkreis oben aus dem Deckel) */
+  if(o.aus){ const rr=ap*0.42; torus(o,rr,0.013,0,0.013,0,0xc05a1a,PI/2,0,0,24);
+    for(let i=0;i<8;i++){ const an=i/8*PI*2; zyl(o,0.009,0.009,0.014,8,Math.cos(an)*rr,0.027,Math.sin(an)*rr,i%2?ROT:0xffd23f); }
+    zyl(o,0.0016,0.0016,0.03,4,rr,0.02,0.012,0x2e8b3a,PI/2,0,0); o.oben=0.034; return fertig(o); }
   const R=bogen(o,[{n:'v',w:sw*3,h:Hb,f:B(t)},{n:'s',w:sw,h:Hb,f:seite(t)},{n:'h',w:sw,h:Hb,f:(g,W,H)=>{ g.fillStyle=a.bg2; g.fillRect(0,0,W,H); g.fillStyle=a.ac; g.fillRect(0,H*0.9,W,H*0.1); }},
     {n:'dk',w:Rc*2,h:Rc*2,f:(g,W,H)=>{ drawTop(g,W,H,a,o.cat); g.fillStyle='rgba(0,0,0,.25)'; g.fillRect(0,0,W,H); loch(g,[{x:W/2,y:H/2,r:W*0.3}]); g.strokeStyle=a.ac; g.lineWidth=W*0.02; g.beginPath(); g.arc(W/2,H/2,W*0.33,0,PI*2); g.stroke(); }}],{alpha:true});
   const v=R.v, third=k=>[v[0]+(v[2]-v[0])*k/3,v[1],v[0]+(v[2]-v[0])*(k+1)/3,v[3]];
@@ -712,6 +726,8 @@ VP_FORM.roemisch=t=>{ const o=G(t), {w,h,d,a}=o, r=Math.min(w,d)/2*0.965/2.7, Rc
   teile.push({n:'bd',w:umf,h:bh,f:(g,W,H)=>{ g.fillStyle=a.bg2; g.fillRect(0,0,W,H); teil(g,W/4,0,W/2,H,B(t)); teil(g,-W/4,0,W/2,H,seite(t)); teil(g,W*0.75,0,W/2,H,seite(t));
     g.fillStyle=a.ac2; g.fillRect(0,0,W,H*0.05); g.fillRect(0,H*0.95,W,H*0.05); }});
   const R=bogen(o,teile,{max:1100});
+  /* die fuenf Rohre sind die Oeffnungen (Abschuss-Baustein: jeder Schuss aus seinem Rohr) */
+  o.loecher=C.map(([x,z])=>({x,z,y:ky+ch,r}));
   /* Dreiecke sparsam (Handy): je Rohr 12 Seiten, Kappe ein Stueck, keine Bodenplatte */
   C.forEach(([x,z],i)=>{ const c=I(F[i][0]), al=PI*(36+i*72)/180;
     /* Etikett so drehen, dass die Vorderhaelfte nach aussen zeigt */

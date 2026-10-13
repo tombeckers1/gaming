@@ -374,13 +374,138 @@ const WF={
   prozMehr:(f)=>Math.round((f-1)*100),
   prozWeniger:(f)=>Math.round((1-f)*100),
   wenigerText:(f)=>f===0.5?'Halbiert':f===0.25?'Viertelt':`Senkt um ${Math.round((1-f)*100)} Prozent`,
+  /* Fuer die Uebersicht: Dispo als Jahreszins (einfach, ohne Zinseszins) und Gesamtzins je Kreditstufe,
+     genau so gerechnet wie der Tagesabschluss (16-day endDay: Rate = Betrag/Laufzeit + Rest*Zins) */
+  dispoJahrText:()=>`rund ${WF.zahl(WIRT.kredit.dispo.zinsTag*365*100,0)} % im Jahr`,
+  kreditGesamtzins:(st)=>{ let rest=st.amount, bezahlt=0, tage=0; const r2_=v=>Math.round(v*100)/100;
+    while(rest>0.01&&tage<1000){ const rate=r2_(st.amount/st.term+rest*st.rate), zins=r2_(rest*st.rate), pay=Math.min(rate,rest+zins); rest=r2_(rest-(pay-zins)); bezahlt=r2_(bezahlt+pay); tage++; }
+    return {zins:r2_(bezahlt-st.amount),anteil:(bezahlt-st.amount)/st.amount,tage}; },
+  kreditGesamtzinsText:()=>WIRT.kredit.stufen.map(st=>{ const g=WF.kreditGesamtzins(st); return `${WF.euro(st.amount)}: ${WF.zahl(g.anteil*100,1)} % in ${g.tage} Tagen`; }).join(', '),
   /* XP bis zum naechsten Level (xpFor in 02-data) */
   xpBis:(l)=>Math.round(WIRT.xp.kurve.a*Math.pow(l,WIRT.xp.kurve.exp)),
   onlinePauschale:(ruf,level)=>Math.round(WIRT.versand.pauschale.grund+ruf*WIRT.versand.pauschale.jeRuf+level*WIRT.versand.pauschale.jeLevel)
 };
 
+/* ---------- Wirkungsketten als Daten (Fundament Etappe 4) ----------
+   Je Entscheidung des Spielers: was folgt daraus, mit welcher Formel, wo im Code, und WARUM.
+   {pfad} in Texten wird beim Erzeugen der Uebersicht durch den aktuellen Wert ersetzt
+   (tools/fundament/wirtschaft-uebersicht.js -> docs/fundament/wirtschaft.md), damit kein Text
+   eine Zahl wiederholt. ort = Datei:Funktion (die Zeile sucht das Werkzeug selbst).
+   luecken = so wirkt es HEUTE nicht (ehrlich, fuers Balancing - nicht hier aendern). */
+const WIRT_KETTEN=[
+  {id:'zuviel_kaufen',entscheidung:'Zu viel auf einmal kaufen (Ware, Lizenz, Ausbau, Regale)',
+   folgen:[
+     {text:'Ware, Regale, Packmaterial und Restposten gehen bis in den Dispo (Konto + Rahmen); Ausbau, Lizenz, Deko, Personal, Rezepte nur mit echtem Guthaben.',ort:'16-day.js:verfuegbar',werte:['kredit.dispo']},
+     {text:'Dispo-Rahmen = {kredit.dispo.grund} € + {kredit.dispo.jeLevel} € je Level (erst ab Level {kredit.dispo.abLevel}).',ort:'16-day.js:dispoLimit',werte:['kredit.dispo']},
+     {text:'Im Minus kostet jeder Tag {kredit.dispo.zinsTag|%} des Minusbetrags an Zinsen ({WF:dispoJahrText}) und {ruf.kontoMinus} Ruf.',ort:'16-day.js:endDay',werte:['kredit.dispo.zinsTag','ruf.kontoMinus']},
+     {text:'Weniger Ruf heisst weniger Kunden (x(0,55 + Ruf/100)) - und ohne Geld keine Ware, ohne Ware kein Umsatz: Abwaertsspirale, der Tagesabschluss warnt und nennt Auswege.',ort:'16-day.js:spawnInterval',werte:['kunden.takt']},
+     {text:'Jedes Verkaufsregal kostet zusaetzlich jeden Tag Fixkosten ({fix.regalArt.klein} € klein ... {fix.regalArt.kuehl} € Kühlschrank), jedes Lagerregal {fix.jeLagerregal} €.',ort:'16-day.js:fixedCosts',werte:['fix']}],
+   warum:'Liquidität vor Rentabilität: wer alles in Bestand und Ausbau steckt, kann laufende Kosten nicht zahlen. Der Dispo verhindert, dass ein schlechter Tag das Spiel festfährt, ist aber teuer ({kredit.dispo.zinsTag|%} am Tag, {WF:dispoJahrText}) - echte Dispozinsen sind zweistellig im Jahr, nicht dreistellig: bewusst überzeichnet, damit das Minus weh tut.',
+   luecken:['Geldpruefung uneinheitlich: Ware mit Dispo, Ausbau ohne, DDL-Ruf gar nicht.','Keine Insolvenz, keine Bank-Mahnung: das Minus kann beliebig tief werden, nur Ruf und Zins bremsen.']},
+  {id:'zuwenig_ausbauen',entscheidung:'Zu wenig (oder zu spaet) ausbauen',
+   folgen:[
+     {text:'Ladenflaeche zieht Kunden und fuellt Koerbe: Ladengroesse 1 + {kunden.laden.shop_gross} / {kunden.laden.shop_ost} / {kunden.laden.shop_sued} je Erweiterung, Korb = {kunden.korb.grund} + {kunden.korb.jeGroesse} x Ladengröße.',ort:'16-day.js:ladenGroesse',werte:['kunden.laden','kunden.korb']},
+     {text:'Wenige Regalplaetze heissen wenige Sorten im Regal; Sortimentsbreite zieht Kunden: {kunden.sortiment.grund} + bis {kunden.sortiment.voll} (voll ab der Hälfte aller Sorten).',ort:'16-day.js:sortimentZug',werte:['kunden.sortiment']},
+     {text:'Lizenz ohne Regalplatz: Kunden wünschen die neue Ware trotzdem (gedämpft auf {kunden.nachfrage.nirgends|%} der Nachfrage) - jeder Fehlwunsch kostet {ruf.fehlwunsch} Ruf.',ort:'10-customers.js:nachfrageFaktor',werte:['kunden.nachfrage','ruf.fehlwunsch']},
+     {text:'Werbung wirkt nur, solange gekauft: Plakat x{kunden.werbung.plakat}, Radio x{kunden.werbung.radio}, Tafel x{kunden.werbung.tafel}, Kundenkarte x{kunden.werbung.kundenkarte} auf den Kundentakt.',ort:'16-day.js:spawnInterval',werte:['kunden.werbung','ausbau.preis']}],
+   warum:'Wachstum braucht Kapazität (Fläche, Regale, Personal). Ausbau ist eine Investition mit Amortisation - wer nicht investiert, bleibt beim Umsatz stehen.',
+   luecken:['Fläche, Hallen, Tore, Packstation kosten keine laufende Miete - nur den Kaufpreis (Fixkosten hängen am Level, nicht an der Fläche).','Höchstens {kunden.takt.maxGleichzeitig} Kunden gleichzeitig im Laden - große Fläche bringt an Silvester weniger als gedacht.']},
+  {id:'kredit',entscheidung:'Kredit aufnehmen',
+   folgen:[
+     {text:'Rahmen und Konditionen nach Level (Stufen {kredit.stufen.0.amount} € ab Level {kredit.stufen.0.lvl} bis {kredit.stufen.5.amount} € ab Level {kredit.stufen.5.lvl}).',ort:'16-day.js:loanTier',werte:['kredit.stufen']},
+     {text:'Tagesrate = Betrag/Laufzeit + Restschuld x Tageszins; wird jeden Tagesabschluss abgebucht (auch an Ruhetagen).',ort:'16-day.js:loanDaily',werte:['kredit.stufen']},
+     {text:'Vorzeitig tilgen ({kredit.tilgenKnoepfe.0} €, {kredit.tilgenKnoepfe.1} €, alles) spart Zinsen und bringt beim Ablösen {xp.kreditGetilgt} XP.',ort:'16-day.js:repayLoan',werte:['kredit.tilgenKnoepfe','xp.kreditGetilgt']},
+     {text:'Mit laufendem Kredit zaehlt man bei Restposten als knapper (Druck x{einkauf.restposten.druck.mitKredit}) - es gibt öfter und mehr Angebote.',ort:'17-laptop.js:restDruck',werte:['einkauf.restposten.druck']}],
+   warum:'Fremdkapital beschleunigt Investitionen, kostet aber Zins und bindet künftige Einnahmen (Rate). Gesamtzins über die Laufzeit je Stufe: {WF:kreditGesamtzinsText} - lange Laufzeiten sind teurer.',
+   luecken:['takeLoan nimmt Laufzeit/Zins der HÖCHSTEN freigeschalteten Stufe, der Laptop zeigt die gewählte (Level 8: Karte 10 Tage 1,2 %, tatsächlich 12 Tage 1,3 %).','Zinsen sind Tageszinsen - kein Jahreszins sichtbar, kein Vergleich mit echten Konditionen.']},
+  {id:'versandkosten',entscheidung:'Versandkosten und Gratis-Schwelle im Onlineshop einstellen',
+   folgen:[
+     {text:'Jeder Online-Kunde mit Warenkorb w nimmt Versandkosten v hin mit p = exp(-{versand.abbruch.k} x (v/({versand.abbruch.a} w + {versand.abbruch.b}))^2); sonst Kaufabbruch.',ort:'11c-versand.js:vsAnnahme',werte:['versand.abbruch']},
+     {text:'Knapp unter der Gratis-Schwelle (ab {versand.aufstocken.ab|%} davon) legen {versand.aufstocken.anteil|%} der Kunden noch etwas dazu.',ort:'11c-versand.js:vsNeueBestellung',werte:['versand.aufstocken']},
+     {text:'Jedes Paket kostet festes Porto an DDL (S {versand.porto.1|€}, M {versand.porto.3|€}, L {versand.porto.6|€}), jede Abholung {versand.ddl.pauschale} €, dazu Packmaterial je Paket.',ort:'11c-versand.js:vsBuchen',werte:['versand.porto','versand.ddl','versand.material']},
+     {text:'Wie viele Kunden ueberhaupt kommen: {versand.basis.grund} + {versand.basis.jeRuf} x Ruf + {versand.basis.jeLevel} x Level (zwischen {versand.basis.min} und {versand.basis.max}) x Packstation-Stufe x Sale.',ort:'11c-versand.js:vsBasis',werte:['versand.basis','versand.stufeMul']},
+     {text:'Sale bringt mehr Bestellungen (Elastizitaet {versand.sale.allesElast} auf alles, {versand.sale.produktElast} je Produkt), jeder Rabatt-Euro fehlt aber am Ergebnis.',ort:'11c-versand.js:vsSaleFaktor',werte:['versand.sale']},
+     {text:'Mehr als {versand.strafe.offenAb} offene Bestellungen am Abend und Pakete, die seit gestern warten, kosten Ruf.',ort:'16-day.js:endDay',werte:['versand.strafe']}],
+   warum:'Versandkosten sind der häufigste Grund für Kaufabbrüche (Baymard 2024/25: 39-48 % wegen Zusatzkosten; Lewis/Singh/Fay 2006). Gratisversand lockt viele kleine Pakete, deren Porto man selbst trägt - Deckungsbeitrag je Paket rechnen.',
+   quelle:'Baymard Institute 2024/2025; Lewis, Singh, Fay 2006 (Marketing Science 25); UPS Pulse of the Online Shopper 2014 (58 % stocken auf); Bijmolt, van Heerde, Pieters 2005 (JMR 42, Elastizität -2,62)',
+   luecken:['Die Marktplatz-Pauschale ({versand.pauschale.grund} + {versand.pauschale.jeRuf} x Ruf + {versand.pauschale.jeLevel} x Level je Tag) kommt ohne jede Kosten und unabhängig von Versandkosten, Sale, Bestand - laut ist-analyse rund die Hälfte des Betriebsgewinns.','Saison, Werbung, Hype, Sortiment wirken nicht auf Online.','Der Ladenpreis wirkt online nur über den Deckel x{versand.onlineDeckel} - kein Preisvergleich.']},
+  {id:'leere_faecher',entscheidung:'Faecher leer laufen lassen',
+   folgen:[
+     {text:'Kunde findet die Ware nicht: {ruf.fehlwunsch} Ruf je Wunsch, geht er ganz ohne Ware weitere {ruf.leerGegangen}.',ort:'10-customers.js:Customer',werte:['ruf.fehlwunsch','ruf.leerGegangen']},
+     {text:'Bezahlt er trotzdem, gibt es nur {ruf.kaufMitFehl} statt {ruf.kaufOk} Ruf.',ort:'10-customers.js:complete',werte:['ruf.kaufMitFehl','ruf.kaufOk']},
+     {text:'Ruf wirkt auf Kunden je Tag, Preistoleranz (+Ruf/{kunden.toleranz.rufTeiler}), Geduld (+{kunden.geduld.jeRuf} x Ruf) und Online-Besucher.',ort:'10-customers.js:priceTol',werte:['kunden.takt','kunden.toleranz','kunden.geduld']},
+     {text:'Leere Sorten werden seltener gewünscht (nur im Lager {kunden.nachfrage.nurLager|%}, nirgends {kunden.nachfrage.nirgends|%}) - der Umsatz fällt leise mit.',ort:'10-customers.js:nachfrageFaktor',werte:['kunden.nachfrage']}],
+   warum:'Lieferfähigkeit (Servicegrad) ist ein Kernziel im Handel: Out-of-Stock kostet Umsatz und Kundenvertrauen.',
+   luecken:['Keine Tagesobergrenze für den Rufverlust - an vollen Tagen kann der Ruf in zwei Tagen kippen.','"Viel zu teuer" (Ruf {ruf.zuTeuer}) erscheint nicht im Tagesabschluss.']},
+  {id:'preise',entscheidung:'Verkaufspreise setzen',
+   folgen:[
+     {text:'Kauf sicher, solange Preis/Marktpreis <= Toleranz; dann linear bis 0 bei Toleranz + {kunden.kauf.spanne}. Toleranz = ({kunden.toleranz.grund} + Ambiente/{kunden.toleranz.ambTeiler} + Ruf/{kunden.toleranz.rufTeiler} + Bilder + Freundlichkeit) x Ereignis x Konkurrenz.',ort:'10-customers.js:buyChance',werte:['kunden.kauf','kunden.toleranz']},
+     {text:'Nimmt er gar nichts, weil zu teuer: {ruf.zuTeuer} Ruf.',ort:'10-customers.js:Customer',werte:['ruf.zuTeuer']},
+     {text:'Online zahlt der Kunde den Ladenpreis, hoechstens x{versand.onlineDeckel} vom Markt; Großaufträge rechnen mit dem Ladenpreis.',ort:'11c-versand.js:vsListe',werte:['versand.onlineDeckel']}],
+   warum:'Preis-Absatz-Funktion: höherer Preis = mehr Marge je Stück, aber weniger Käufer. Die Kundenerwartung folgt dem Markt (Inflation) - Preise müssen mitgezogen werden.',
+   luecken:['Die Preisampel im Laptop nutzt die Schwellen {kunden.preisAmpel.einige}/{kunden.preisAmpel.viele}, die Rechnung {kunden.kauf.spanne} - die Ampel ist strenger als die Kunden.']},
+  {id:'personal',entscheidung:'Personal einstellen, Lohn waehlen, Saisonpause',
+   folgen:[
+     {text:'Einstellung kostet einmal, der Tageslohn jeden Tag (auch Sonntag): Grundlohn x Lohnstufe ({personal.lohnstufen.0} / {personal.lohnstufen.1} / {personal.lohnstufen.2} / {personal.lohnstufen.3}).',ort:'11-staff.js:dailyWages',werte:['personal']},
+     {text:'Lohnstufe macht schneller (Tempo {personal.tempo.grund} + {personal.tempo.jeLohn} x Stufe) und freundlicher -> Preistoleranz und Geduld der Kunden.',ort:'11-staff.js:applyWage',werte:['personal.tempo','kunden.toleranz.jeFreundlichkeit','kunden.geduld']},
+     {text:'Unter Lohnstufe {personal.kuendigung.unter} kündigt jeder mit {personal.kuendigung.chanceTag|%} Wahrscheinlichkeit je Tag, Ruf {ruf.kuendigung}.',ort:'11-staff.js:staffMorale',werte:['personal.kuendigung','ruf.kuendigung']},
+     {text:'Saisonpause: {personal.pause|%} des Lohns, keine Arbeit, Rückkehr ohne neue Einstellung.',ort:'11-staff.js:dailyWages',werte:['personal.pause']}],
+   warum:'Personal ist ein Fixkostenblock: lohnt sich nur, wenn es mehr Umsatz oder Zeit bringt als es kostet. Kurzarbeit in der Nebensaison statt Kündigen spart die Einstellungskosten.',
+   luecken:['Löhne folgen weder Inflation noch Level noch Ergebnis.']},
+  {id:'saison',entscheidung:'Saison und Silvester einplanen',
+   folgen:[
+     {text:'Nachfrage je Datum (Tabelle saison.regeln, 31.12. = {saison.silvester.grund} + 5 x {saison.silvester.jeTag}) mal Wochentag (Sa x{saison.wochentag.6}, So x{saison.wochentag.0}) bestimmt den Kundentakt.',ort:'02-data.js:dayMult',werte:['saison']},
+     {text:'Ab dem {saison.silvester.ab}.12. wollen Kunden F2 x{kunden.wunsch.silvesterF2} und öfter ein Stück mehr.',ort:'10-customers.js:makeWishes',werte:['kunden.wunsch.silvesterF2','kunden.wunsch.silvesterPlus']},
+     {text:'In der Nebensaison rufen Grosskunden oefter an (x bis {auftrag.flau.max}).',ort:'10b-pyro.js:updatePhone',werte:['auftrag.flau']}],
+   warum:'Feuerwerk ist extrem saisonal (Deutschland: Verkauf 29.-31.12.). Vorrat, Personal und Liquidität müssen auf die Spitze hin geplant werden.',
+   luecken:['Saison wirkt nicht auf Online, Markt/Einkaufspreise, Löhne, Fixkosten.','Kundendeckel {kunden.takt.maxGleichzeitig} gleichzeitig bremst die Silvesterspitze.']},
+  {id:'markt',entscheidung:'Einkaufen, wenn der Markt günstig ist',
+   folgen:[
+     {text:'Einkaufspreis folgt dem Tagesindex sofort, die Kundenerwartung nur träge ({markt.traegheit|%} der Lücke je Tag) - daraus entsteht die Einkaufschance.',ort:'02b-markt.js:rollMarkt',werte:['markt']},
+     {text:'Inflation ~{markt.inflation.min|%}-{markt.inflation.max|%} je Tag (selten Sprünge) auf EK und Kundenerwartung.',ort:'02b-markt.js:rollMarkt',werte:['markt.inflation']},
+     {text:'Grosshandel ab {einkauf.lieferant.grosshandel.staffel.0.n} Kartons {einkauf.lieferant.grosshandel.staffel.0.d|%} / {einkauf.lieferant.grosshandel.staffel.1.n} Kartons {einkauf.lieferant.grosshandel.staffel.1.d|%} Rabatt, Großhandelslizenz x{einkauf.grosshandelslizenz}; Liefergebühr {einkauf.liefergebuehr|€} unter {einkauf.lieferfreiAb} €.',ort:'17-laptop.js:tierPrice',werte:['einkauf']}],
+   warum:'Einkauf ist der größte Kostenblock im Handel: Mengenrabatt und Timing gegen Kapitalbindung und Lagerplatz abwägen.',
+   luecken:['Inflation trifft keine Fixgrößen (Lohn, Fixkosten, Porto, DDL, Packmaterial, Ausbau, Regale).','SUPPLIERS.delay wird nirgends gelesen.']},
+  {id:'level',entscheidung:'Wachsen (Umsatz, Ausgaben -> Level)',
+   folgen:[
+     {text:'XP je Kunde {xp.kunde.jeEuro} je € + {xp.kunde.grund}, je Tag {xp.tag.grund} + {xp.tag.jeUmsatz|%} vom Umsatz; Level-Kurve {xp.kurve.a} x Level^{xp.kurve.exp}.',ort:'02-data.js:xpFor',werte:['xp']},
+     {text:'Auch Geld ausgeben bringt XP (Ausbau/Deko Kosten/{xp.ausbauTeiler}, Lizenz Kosten/{xp.lizenz.teiler} + {xp.lizenz.bonus}).',ort:'17-laptop.js:buyUp',werte:['xp.ausbauTeiler','xp.lizenz']},
+     {text:'Jedes Level ab {fix.levelAb} kostet {fix.jeLevel} € Fixkosten am Tag mehr, hebt Dispo/Kredit, Bekanntheit (+{kunden.bekanntheit.jeLevel} je Level) und das Diebstahlrisiko.',ort:'16-day.js:fixedCosts',werte:['fix','kunden.bekanntheit','kunden.dieb']}],
+   warum:'Level ist der Fortschrittsanzeiger (Freischaltungen). Er sollte der wirtschaftlichen Leistung folgen, nicht nur der Spielzeit.',
+   luecken:['Level und Geld sind getrennte Kurven: Ausgaben-XP lassen das Level dem Geld davonlaufen (ist-analyse 3.3).','Die Fixkosten sind eine "Level-Steuer", keine echte Miete.']},
+  {id:'sauberkeit',entscheidung:'Laden sauber und schön halten',
+   folgen:[
+     {text:'Jeder Kunde hinterlässt mit {kunden.dreck.chance|%} einen Fleck (mit Mülleimer {kunden.dreck.mitMuell|%}); Sauberkeit = 100 - {kunden.dreck.jeFleck} je Fleck -> Kundentakt x({kunden.takt.sauberGrund} + Sauberkeit/{kunden.takt.sauberTeiler}).',ort:'16-day.js:spawnInterval',werte:['kunden.dreck','kunden.takt']},
+     {text:'Ambiente (Deko, Musik, Licht, Wand/Boden) hebt Takt, Preistoleranz und Geduld.',ort:'02-data.js:ambienteScore',werte:['kunden.ambiente','deko.preis','wand.preis','boden.preis']},
+     {text:'Pruefung (Ereignis): Sauberkeit >= {ruf.pruefungSauberAb} bringt {ruf.pruefungGut} Ruf, sonst {ruf.pruefungSchlecht}.',ort:'16-day.js:endDay',werte:['ruf.pruefungGut','ruf.pruefungSchlecht']}],
+   warum:'Einkaufserlebnis beeinflusst Zahlungsbereitschaft und Wiederkehr.',luecken:[]},
+  {id:'diebstahl',entscheidung:'Gegen Diebstahl sichern (Kameras, Security, Warensicherung)',
+   folgen:[
+     {text:'Ab Level {kunden.dieb.abLevel}: Diebchance {kunden.dieb.grund|%} + Level x {kunden.dieb.jeLevel|%} (bis +{kunden.dieb.maxLevelAnteil|%}); Kameras x{kunden.dieb.kameras}, Security x{kunden.dieb.security}; Warensicherung stellt {kunden.dieb.alarm|%} der Diebe am Ausgang.',ort:'10-customers.js:thiefChance',werte:['kunden.dieb']},
+     {text:'Entkommt der Dieb: Ware weg (zum Einkaufswert in der Statistik), Ruf {ruf.diebEntkommen}; gestellt: Ruf +{ruf.diebGestellt}, {xp.diebGestellt} XP.',ort:'10-customers.js:escaped',werte:['ruf.diebEntkommen','ruf.diebGestellt']}],
+   warum:'Inventurdifferenz ist ein echter Kostenfaktor im Einzelhandel; Sicherung kostet Geld und lohnt erst ab einer Größe.',
+   luecken:['Der Diebstahl zählt nicht in die Tagesausgaben (Ware war schon bezahlt) - nur als Zeile "Diebstahl".']},
+  {id:'zuenden',entscheidung:'Auf dem Testfeld zuenden (Hype)',
+   folgen:[
+     {text:'Jedes gezuendete Stueck bringt seinen Hype (bis {kunden.hype.max}), fällt {kunden.hype.verfallJeSek} je Sekunde; Hype hebt den Kundentakt (x(1 + Hype/{kunden.takt.hypeTeiler})) und über {kunden.wunsch.hypeAb} die F2-Wünsche x{kunden.wunsch.hypeF2}.',ort:'14b-shows.js:igniteType',werte:['kunden.hype','kunden.takt.hypeTeiler','kunden.wunsch']},
+     {text:'Die Ware ist weg (zum Einkaufswert als "Selbst gezuendet" im Tagesabschluss).',ort:'16-day.js:endDay',werte:[]}],
+   warum:'Marketing kostet Ware - Wirkung ist kurz und muss in den Umsatz der nächsten Minuten umschlagen.',
+   luecken:['"Gewinn des Tages" zieht Selbst-Gezündetes ab, obwohl es nie vom Konto abgeht (doppelt gezählt).']},
+  {id:'auftraege',entscheidung:'Grossauftraege annehmen und verhandeln',
+   folgen:[
+     {text:'Mit Branchenbuch rufen Grosskunden an; Kartons je Auftrag nach Level, Wert = Kartons x Stueck x Ladenpreis x Angebot.',ort:'10b-pyro.js:makeCall',werte:['auftrag.kartons']},
+     {text:'Hoch pokern ueber die Grenze kostet Versuche; Meisterbrief x{auftrag.meister} auf die Auszahlung.',ort:'10b-pyro.js:haggle',werte:['auftrag.nachgeben','auftrag.meister']},
+     {text:'Erfuellt: Ruf +{ruf.auftragErfuellt}, XP; Kartons fehlen bei Abholung: Ruf {ruf.auftragVerfehlt}.',ort:'10b-pyro.js:finishOrder',werte:['ruf.auftragErfuellt','ruf.auftragVerfehlt','xp.auftragErfuellt']}],
+   warum:'B2B-Geschäft: große Mengen, kleinere Marge, Lieferfähigkeit entscheidet.',luecken:[]},
+  {id:'restposten',entscheidung:'Restposten und Wundertueten kaufen',
+   folgen:[
+     {text:'Preis = mittlerer Karton-Einkauf x Kartons x Faktor ({einkauf.pakete.sonstige} ... {einkauf.pakete.rabatt.palette}), gerundet auf {einkauf.pakete.runden} €.',ort:'17-laptop.js:packPreis',werte:['einkauf.pakete']},
+     {text:'Wer viel Geld hat (Konto/Tageskosten ueber {einkauf.restposten.druck.tageAb} Tage), bekommt seltener und weniger Angebote; Qualität {einkauf.lieferant.ratzke.qualitaet|%}.',ort:'17-laptop.js:restDruck',werte:['einkauf.restposten','einkauf.lieferant.ratzke']}],
+   warum:'Gelegenheitskauf gegen Risiko (Mischung, Qualität) und Lagerplatz.',luecken:[]}
+];
 /* ---------- Tief einfrieren ---------- */
 (function wirtFrieren(o){ Object.freeze(o); for(const k of Object.keys(o)){ const v=o[k]; if(v&&typeof v==='object'&&!Object.isFrozen(v)) wirtFrieren(v); } })(WIRT);
 Object.freeze(WF);
+(function f(o){ Object.freeze(o); for(const k of Object.keys(o)){ const v=o[k]; if(v&&typeof v==='object'&&!Object.isFrozen(v)) f(v); } })(WIRT_KETTEN);
 /* Fuer Tests, Werkzeuge und die Uebersicht (window.__bb bleibt unberuehrt) */
-window.__wirt={WIRT,WF};
+window.__wirt={WIRT,WF,WIRT_KETTEN};

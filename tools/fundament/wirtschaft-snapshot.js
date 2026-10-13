@@ -200,13 +200,15 @@ else if(arg[0]==='--schreiben'){ fs.writeFileSync(REF,json); console.log('Refere
 else {
   const ref=JSON.parse(fs.readFileSync(REF,'utf8'));
   const diffs=[];
-  const vgl=(a,b,p)=>{ if(diffs.length>60) return;
+  const vgl=(a,b,p)=>{ if(diffs.length>5000) return;
     if(typeof a!==typeof b||Array.isArray(a)!==Array.isArray(b)||(a===null)!==(b===null)){ diffs.push(p+': '+JSON.stringify(a)?.slice(0,120)+' -> '+JSON.stringify(b)?.slice(0,120)); return; }
     if(a&&typeof a==='object'){ const ks=new Set([...Object.keys(a),...Object.keys(b)]); for(const k of ks) vgl(a[k],b[k],p+'.'+k); return; }
     if(a!==b) diffs.push(p+': '+JSON.stringify(a)?.slice(0,160)+' -> '+JSON.stringify(b)?.slice(0,160)); };
   vgl(ref,out,'');
   console.log(`Wirtschafts-Snapshot: ${Object.keys(out).length} Bereiche, ${(json.length/1024).toFixed(0)} KB`);
   if(fehler.length) console.log('Proben mit Fehlertext (muessen gleich bleiben):',fehler.length);
-  if(diffs.length){ console.log('ABWEICHUNG ('+diffs.length+(diffs.length>60?'+':'')+'):'); diffs.slice(0,60).forEach(d=>console.log('  '+d)); process.exit(1); }
+  if(diffs.length){ const ber={}; for(const d of diffs){ const b=d.split('.')[1].split(':')[0]; ber[b]=(ber[b]||0)+1; }
+    console.log('ABWEICHUNG ('+diffs.length+(diffs.length>5000?'+':'')+' Stellen) in: '+Object.entries(ber).map(([b,n])=>b+' '+n).join(', '));
+    diffs.slice(0,40).forEach(d=>console.log('  '+d)); if(diffs.length>40) console.log('  ...'); process.exit(1); }
   console.log('GLEICH: keine Abweichung zur Referenz');
 }

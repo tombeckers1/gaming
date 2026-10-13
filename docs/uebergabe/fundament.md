@@ -59,6 +59,17 @@ Tom will den Unterbau SEHEN, ohne das Spiel 20× spielen zu müssen: Grobes in L
   aktualisiert), damit Tom früh prüfen kann.
 - Halle (Branch claude/halle-v7): viele Texturfehler, Tom überlegt Neubau – Entscheidung später, auf Basis des Baukastens.
 
+## Tom 13.10. nachmittags (3) – Einheitsregel für Neues + Texturen
+- **Neues entsteht automatisch im System:** jedes neue Objekt (z. B. künftig Förderband für Regale/Pakete) wird als
+  Baukasten-Bauteil mit Bibliotheks-Materialien angelegt, nicht frei daneben gebaut; Ausnahme nur Feuerwerks-
+  Effekte/Verpackungsmotive (Anomalie). Erzwungen über Stilregeln + CLAUDE.md-Pflichtregel + Wächter-Tests.
+  Jedes neue Bauteil kommt mit Eintrag (Bild, Parameter, Begründung) in die Übersicht; auf Anfrage erklären.
+- **Texturen/Materialien werden sichtbar angeglichen:** Schritt 0/1 bleibt bewusst optisch gleich (Beweis, dass der
+  Umbau nichts kaputt macht). Direkt danach Schritt **„Materialangleichung“**: Farb-/Material-Cluster (alle Gelbs ->
+  ein Signalgelb, alle Stahl-Graus -> Stahl verzinkt, Beton, Holz …) auf je EIN Bibliotheksmaterial bzw. EINE Textur
+  zusammenführen – mit Vorher/Nachher-Bildern in der Übersicht für Toms Abnahme. Danach je Bauteil-Schritt (Tore,
+  Wände …) auch deren Texturen vereinheitlichen.
+
 ## Umfang in 5 Etappen (je Etappe: bauen, Tests der betroffenen Bereiche grün, commit, Artefakt, Bericht)
 
 ### Etappe 1 – Bestandsaufnahme (zuerst, billig, Grundlage für alles)

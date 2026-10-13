@@ -4,12 +4,12 @@
    ========================================================= */
 let phone={state:null,t:0,cd:120,call:null}, order=null;
 function pyroUnlocked(){ return S&&S.up&&S.up.grosskunden; }
-function orderScale(){ return S.level>=15?[4,9]:S.level>=10?[3,6]:[2,4]; }
+function orderScale(){ return WIRT.auftrag.kartons.find(k=>S.level>=k.abLevel).n; }
 function makeCall(){
   const avail=ORDER.filter(t=>isUnlocked(t)&&P[t].cat&&canShelf(t));
   if(!avail.length) return null;
   const [lo,hi]=orderScale(), total=Math.round(rand(lo,hi+0.99));
-  const n=Math.min(avail.length,total<=3?1:(Math.random()<0.5?2:3));
+  const n=Math.min(avail.length,total<=3?1:(Math.random()<WIRT.auftrag.zweiSorten?2:3));
   const picks=[], pool=avail.slice();
   for(let i=0;i<n&&pool.length;i++){ const k=Math.floor(Math.random()*pool.length); picks.push(pool.splice(k,1)[0]); }
   const items=[]; let left=total;
@@ -18,14 +18,14 @@ function makeCall(){
   const type=pick(PYROTYPES);
   const value=items.reduce((a,it)=>a+it.cartons*P[it.type].box*S.prices[it.type],0);
   const stamm=(S.stamm||{})[type.id]||0;
-  return {name:pick(PYRONAMES),type,items,value:r2(value),mult:type.open+Math.min(0.08,stamm*0.02),round:0,rounds:type.rounds,stamm};
+  return {name:pick(PYRONAMES),type,items,value:r2(value),mult:type.open+Math.min(WIRT.auftrag.stammMax,stamm*WIRT.auftrag.stammJe),round:0,rounds:type.rounds,stamm};
 }
 function updatePhone(dt){
   if(!pyroUnlocked()||phase!=='open') return;
   if(order||phone.state){ if(phone.state==='ringing'){ phone.t-=dt; if(phone.t<=0){ phone.state=null; $('phone').textContent=''; phone.cd=rand(60,110); toast('Anruf verpasst.','bad'); } } return; }
   /* In der Nebensaison ist im Laden wenig los, dafuer melden sich mehr
      Veranstalter. Das haelt Januar bis September lebendig. */
-  const flau=clamp(1.9-dayMult(S.day)*0.9,0.8,1.9);
+  const FL=WIRT.auftrag.flau, flau=clamp(FL.grund-dayMult(S.day)*FL.jeSaison,FL.min,FL.max);
   phone.cd-=dt*flau/evv('pyro');
   if(phone.cd<=0){
     const c=makeCall();
@@ -83,12 +83,12 @@ function haggle(step){
     setTimeout(()=>{ if(!dealOpen) return; closeDeal(); toast('Der Auftrag ist geplatzt.','bad'); phone.state=null; phone.call=null; phone.cd=rand(70,130); },1400);
     return;
   }
-  c.mult=r2(Math.min(c.type.ceil,c.mult+step*0.35));
+  c.mult=r2(Math.min(c.type.ceil,c.mult+step*WIRT.auftrag.nachgeben));
   renderDeal(line);
 }
 function acceptDeal(){
   const c=phone.call; if(!c) return;
-  const pay=r2(c.value*c.mult*(S.up&&S.up.meister?1.33:1));
+  const pay=r2(c.value*c.mult*(S.up&&S.up.meister?WIRT.auftrag.meister:1));
   order={name:c.name,typeId:c.type.id,items:c.items,pay,arrive:rand(18,30),t:0,done:false};
   S.stamm=S.stamm||{}; S.stamm[c.type.id]=(S.stamm[c.type.id]||0)+1;
   closeDeal(); phone.state=null; phone.call=null; phone.cd=rand(150,260);
@@ -102,7 +102,7 @@ function orderNeed(t){ if(!order) return 0; const it=order.items.find(x=>x.type=
 function orderLeft(){ return order?order.items.reduce((a,it)=>a+(it.cartons-it.loaded),0):0; }
 /* Ware, die für einen laufenden Auftrag reserviert ist, fasst das Personal nicht an */
 function reservedType(t){ return !!order&&order.arrive<=0&&orderNeed(t)>0; }
-function fullBox(t){ return Math.ceil(P[t].box*0.9); }
+function fullBox(t){ return Math.ceil(P[t].box*WIRT.auftrag.vollerKarton); }
 /* Zählt, wie viele volle Kartons im Lager abholbereit stehen */
 function orderReady(){
   if(!order) return 0;

@@ -318,8 +318,8 @@ function packContents(n,gruppe,sorten){
     /* Themenpaket: gleichverteilt aus der Gruppe. Wundertuete:
        meist Kleinkram, selten ein teurer Karton. */
     if(gruppe){ out.push(pick(pool)); continue; }
-    const jackpot=Math.random()<0.12;
-    const cand=pool.filter(t=>jackpot?costOf(t)>=6:costOf(t)<6);
+    const jackpot=Math.random()<WIRT.einkauf.pakete.jackpot;
+    const cand=pool.filter(t=>jackpot?costOf(t)>=WIRT.einkauf.pakete.teuerAb:costOf(t)<WIRT.einkauf.pakete.teuerAb);
     out.push(pick(cand.length?cand:pool));
   }
   return out;
@@ -330,18 +330,18 @@ function packKartonWert(gruppe,sorten){
   const pool=packPool(gruppe); if(!pool.length) return 0;
   const m=l=>l.reduce((a,t)=>a+costOf(t)*P[t].box,0)/l.length;
   if(gruppe||sorten) return m(pool);
-  const billig=pool.filter(t=>costOf(t)<6), teuer=pool.filter(t=>costOf(t)>=6);
-  return 0.88*m(billig.length?billig:pool)+0.12*m(teuer.length?teuer:pool);
+  const PK=WIRT.einkauf.pakete, billig=pool.filter(t=>costOf(t)<PK.teuerAb), teuer=pool.filter(t=>costOf(t)>=PK.teuerAb);
+  return (1-PK.jackpot)*m(billig.length?billig:pool)+PK.jackpot*m(teuer.length?teuer:pool);
 }
 /* Preis eines Pakets: im Mittel steckt mehr drin, als es kostet,
    aber jede Tuete ist ein Wurf. Groessere Pakete sind je Karton
    etwas guenstiger, Themenpakete (planbarer) etwas weniger. */
 /* Restposten sind richtig billig (Tom, 25.09.): im Mittel ein Drittel
    bis fast die Haelfte unter dem Einkaufswert */
-const PACK_RABATT={tuete:0.62,kiste:0.58,palette:0.52};
+const PACK_RABATT=WIRT.einkauf.pakete.rabatt;
 function packPreis(pk){
-  const f=pk.sorten?0.56:pk.gruppe?0.6:(PACK_RABATT[pk.id]||0.7);
-  return Math.max(5,Math.round(packKartonWert(pk.gruppe,pk.sorten)*pk.n*f/5)*5);
+  const PK=WIRT.einkauf.pakete, f=pk.sorten?PK.sorten:pk.gruppe?PK.themen:(PACK_RABATT[pk.id]||PK.sonstige);
+  return Math.max(PK.min,Math.round(packKartonWert(pk.gruppe,pk.sorten)*pk.n*f/PK.runden)*PK.runden);
 }
 function packOffen(pk){ return S.level>=pk.lvl&&(!pk.gruppe||packPool(pk.gruppe).length>0); }
 function buyPack(id){
@@ -367,29 +367,30 @@ function buyPack(id){
    Das Angebot ist zugleich ein Schwierigkeitshebel: wer gut dasteht,
    bekommt seltener und weniger, wer knapp ist, oefter und mehr.
    ========================================================= */
-const RESTPOSTEN={welle:[70,260],dauer:[120,360],max:8};
-function restDaten(){ if(!S.rest) S.rest={angebote:[],t:rand(15,40),seq:0,erst:false}; return S.rest; }
+/* Werte (Wellen, Dauer, Vorrat, Druck-Formel): 01c-wirtschaft.js (WIRT.einkauf.restposten); RESTPOSTEN bleibt der alte Name */
+const RPW=WIRT.einkauf.restposten, RESTPOSTEN={welle:RPW.welle,dauer:RPW.dauer,max:RPW.max};
+function restDaten(){ if(!S.rest) S.rest={angebote:[],t:rand(RPW.ersteWelle[0],RPW.ersteWelle[1]),seq:0,erst:false}; return S.rest; }
 /* 0 = knapp bei Kasse, 1 = dickes Polster: wie viele Tage das Geld die
    laufenden Kosten traegt. Mit Kredit zaehlt man als knapper. */
 function restDruck(){
-  const kosten=Math.max(60,(typeof fixedCosts==='function'?fixedCosts():0)+(typeof dailyWages==='function'?dailyWages():0));
-  let d=clamp((S.money/kosten-4)/26,0,1);
-  if(S.loan) d*=0.5;
+  const DR=RPW.druck, kosten=Math.max(DR.kostenMin,(typeof fixedCosts==='function'?fixedCosts():0)+(typeof dailyWages==='function'?dailyWages():0));
+  let d=clamp((S.money/kosten-DR.tageAb)/DR.tageSpanne,0,1);
+  if(S.loan) d*=DR.mitKredit;
   return d;
 }
 /* Eine Lieferung bei Ratzke. zufall (0..1) nur fuer Tests. */
 function restWelle(zufall){
   const R=restDaten(), d=restDruck(), pool=PACKS.filter(packOffen);
   const w=zufall===undefined?Math.random():zufall;
-  const pLeer=0.15+0.4*d, pViel=0.28-0.2*d;
-  let n=!pool.length||w<pLeer?0:w>1-pViel?3+Math.floor(Math.random()*3):1+Math.floor(Math.random()*2);
+  const RP=RPW, pLeer=RP.leer.grund+RP.leer.jeDruck*d, pViel=RP.viel.grund+RP.viel.jeDruck*d;
+  let n=!pool.length||w<pLeer?0:w>1-pViel?RP.vielN[0]+Math.floor(Math.random()*RP.vielN[1]):RP.normalN[0]+Math.floor(Math.random()*RP.normalN[1]);
   /* die allererste Lieferung nach der Freischaltung ist nie leer */
   if(!R.erst&&pool.length){ n=Math.max(n,2); R.erst=true; }
   for(let i=0;i<n&&R.angebote.length<RESTPOSTEN.max;i++){
-    const pk=pick(pool), vorrat=1+(Math.random()<0.35?1:0)+(Math.random()<0.12?1:0);
-    R.angebote.push({id:++R.seq,pack:pk.id,preis:Math.max(5,Math.round(packPreis(pk)*rand(0.85,1.12)/5)*5),vorrat,bis:rand(...RESTPOSTEN.dauer)}); }
+    const pk=pick(pool), vorrat=1+(Math.random()<RP.vorrat.zwei?1:0)+(Math.random()<RP.vorrat.drei?1:0);
+    R.angebote.push({id:++R.seq,pack:pk.id,preis:Math.max(WIRT.einkauf.pakete.min,Math.round(packPreis(pk)*rand(RP.preis[0],RP.preis[1])/WIRT.einkauf.pakete.runden)*WIRT.einkauf.pakete.runden),vorrat,bis:rand(...RESTPOSTEN.dauer)}); }
   /* naechste Lieferung: wer gut dasteht, wartet laenger */
-  R.t=rand(...RESTPOSTEN.welle)*(0.7+0.9*d);
+  R.t=rand(...RESTPOSTEN.welle)*(RP.takt.grund+RP.takt.jeDruck*d);
   return n;
 }
 function restTick(dt){
@@ -1016,7 +1017,7 @@ function onlineListe(){
    die Wirkung der Einstellungen sieht. S.onlineLog: abgeschlossene
    Tage; der laufende Tag kommt aus DS.
    --------------------------------------------------------- */
-function versandLoehne(){ return r2(VS_PACKER.reduce((a,id)=>{ const st=STAFF.find(x=>x.id===id); return a+(st&&S.staff[id]?r2(st.wage*wageOf(id)*(inPause(id)?0.3:1)):0); },0)); }
+function versandLoehne(){ return r2(VS_PACKER.reduce((a,id)=>{ const st=STAFF.find(x=>x.id===id); return a+(st&&S.staff[id]?r2(st.wage*wageOf(id)*(inPause(id)?WIRT.personal.pause:1)):0); },0)); }
 function onlineTag(){
   const pN=DS.onPortoN||{1:0,3:0,6:0};
   return {tag:S.day,b:DS.onB|0,abbr:DS.onAbbr|0,ware:r2(DS.onWare||0),geb:r2(DS.versandGeb||0),rabatt:r2(DS.onRabatt||0),ek:r2(DS.onEk||0),
@@ -1435,7 +1436,7 @@ function lapZeichnen(body){
           (lock?`<small>ab Level ${d.lvl}</small>`:`<button data-a="deko" data-t="${d.id}" ${S.money<d.cost?'disabled':''}>${eur(d.cost)}</button>`)+'</div>'; }).join('');
   } else if(ltab==='staff'){
     hint=`Löhne heute: ${eur(dailyWages())} · werden beim Tagesabschluss abgebucht.`;
-    hint+=` Freundlichkeit im Laden: ${Math.round(friendliness()*100)} %. Höhere Löhne machen schneller und freundlicher. Außerhalb der Saison kannst du Leute in die Saisonpause schicken: 30 % Lohn, keine Arbeit, Rückkehr jederzeit ohne neue Einstellungskosten.`;
+    hint+=` Freundlichkeit im Laden: ${Math.round(friendliness()*100)} %. Höhere Löhne machen schneller und freundlicher. Außerhalb der Saison kannst du Leute in die Saisonpause schicken: ${WF.prozent(WIRT.personal.pause)} % Lohn, keine Arbeit, Rückkehr jederzeit ohne neue Einstellungskosten.`;
     h=STAFF.map(s=>{ const fehlt=s.req&&!S.up[s.req], lock=S.level<s.lvl||fehlt, has=!!S.staff[s.id];
       const isStock=s.id.indexOf('auffueller')===0;
       /* Einraeumer: Aufgaben in Reihenfolge, jede an/aus (Tom, 24.09.) */
@@ -1444,7 +1445,7 @@ function lapZeichnen(body){
           return `<div class="einrZ${an?'':' aus'}"><span class="nr">${an?e.reihe.filter(x=>!e.aus[x]).indexOf(a)+1:'–'}</span><span class="tx"><b>${AUFGABEN[a].name}</b><small>${AUFGABEN[a].desc}</small></span>`+
             btn(a,'hoch','▲',false,i===0)+btn(a,'runter','▼',false,i===e.reihe.length-1)+btn(a,'an',an?'An':'Aus',an)+`</div>`; }).join('')+`</div>`; })():'';
       const lohn=has?`<small>Lohn: ${WAGES.map(w=>`<button data-a="wage" data-t="${s.id}" data-v="${w.f}" title="${w.desc}" style="padding:4px 8px;font-size:14px;margin-right:4px;${wageOf(s.id)===w.f?'background:var(--mint);color:var(--ink)':'background:rgba(242,245,255,.12);color:var(--snow)'}">${w.name} ${eur(r2(s.wage*w.f))}</button>`).join('')}</small>`:'';
-      const pause=has?`<small>${inPause(s.id)?`In Saisonpause · ${eur(r2(s.wage*wageOf(s.id)*0.3))} pro Tag`:'Im Dienst'} <button data-a="pause" data-t="${s.id}" style="padding:4px 9px;font-size:14px;margin-left:6px;${inPause(s.id)?'background:var(--mint);color:var(--ink)':'background:rgba(242,245,255,.12);color:var(--snow)'}">${inPause(s.id)?'Zurück in den Dienst':'In Saisonpause schicken'}</button></small>`:'';
+      const pause=has?`<small>${inPause(s.id)?`In Saisonpause · ${eur(r2(s.wage*wageOf(s.id)*WIRT.personal.pause))} pro Tag`:'Im Dienst'} <button data-a="pause" data-t="${s.id}" style="padding:4px 9px;font-size:14px;margin-left:6px;${inPause(s.id)?'background:var(--mint);color:var(--ink)':'background:rgba(242,245,255,.12);color:var(--snow)'}">${inPause(s.id)?'Zurück in den Dienst':'In Saisonpause schicken'}</button></small>`:'';
       return `<div class="row${lock?' locked':''}${prio?' mitEinr':''}"><div class="rm"><b>${s.name}</b><small>${s.desc}</small><small>Einstellung ${eur(s.hire)} · Grundlohn ${eur(s.wage)} pro Tag</small>${lohn}${pause}</div>`+
         (fehlt?`<small>braucht: ${(UPGRADES.find(u=>u.id===s.req)||{name:s.req}).name}</small>`:lock?`<small>ab Level ${s.lvl}</small>`:has?`<button class="red" data-a="fire" data-t="${s.id}">Kündigen</button>`:`<button data-a="hire" data-t="${s.id}" ${S.money<s.hire?'disabled':''}>Einstellen</button>`)+prio+'</div>'; }).join('');
   } else if(ltab==='bank'){

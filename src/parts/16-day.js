@@ -63,7 +63,7 @@ function rollMarket(){
   const KO=WIRT.markt.konkurrenz; S.comp=clamp((S.comp||1)*rand(KO.schwank[0],KO.schwank[1]),KO.min,KO.max);
 }
 /* Auf den Marktpreis kommt nur noch das Tagesereignis und der Rabatt */
-function ekFactor(){ return evv('ek')*(S.up&&S.up.lizenz?0.9:1); }
+function ekFactor(){ return evv('ek')*(S.up&&S.up.lizenz?WIRT.einkauf.grosshandelslizenz:1); }
 function marktText(){ const m=S.mkt||1; return m<0.88?'Markt günstig':m<0.97?'Markt leicht günstig':m<1.05?'Markt normal':m<1.16?'Markt teuer':'Markt sehr teuer'; }
 function inflText(){ const i=Math.round((inflOf()-1)*100); return i<=0?'keine':'+'+i+' %'; }
 /* Tagesereignis würfeln */
@@ -270,7 +270,7 @@ function endDay(){
   const flau=dayMult(S.day+1)<0.95;
   const morgen=isSunday(S.day+1)&&!S.up.tag4?'Morgen ist Sonntag, Ruhetag. Gute Gelegenheit zum Auffüllen.'
     :(flau&&aktiv>0&&profit<0)
-      ? `Morgen: ${dateStr(S.day+1)}. ${seasonInfo(S.day+1)[1]}. Die Saison ist vorbei und der Tag war im Minus — schick dein Team im Handy (App Team) in die Saisonpause, das kostet nur 30 Prozent Lohn.`
+      ? `Morgen: ${dateStr(S.day+1)}. ${seasonInfo(S.day+1)[1]}. Die Saison ist vorbei und der Tag war im Minus — schick dein Team im Handy (App Team) in die Saisonpause, das kostet nur ${WF.prozent(WIRT.personal.pause)} Prozent Lohn.`
       : `Morgen: ${dateStr(S.day+1)}. ${seasonInfo(S.day+1)[1]}.`;
   showSummary(`Tagesabschluss · ${dateStr(S.day)}`,morgen,rows,'Nächster Tag',()=>{
     statRekord('rek_tag',Math.round(DS.revenue));

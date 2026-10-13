@@ -942,7 +942,21 @@ const WIRT={
   einkauf:{
     lieferSek:5,        // s bis die Lieferung da ist (x Ereignis "Stau" 2,1)
     liefergebuehr:5.9,  // € je Bestellung (VERSAND - Namensfalle: das ist der EINGANG, nicht der Onlineversand)
-    lieferfreiAb:150    // € Warenwert, ab dem die Liefergebuehr entfaellt (VERSANDFREI)
+    lieferfreiAb:150,   // € Warenwert, ab dem die Liefergebuehr entfaellt (VERSANDFREI)
+    /* Lieferanten (SUPPLIERS in 02-data): mult = Preisfaktor, qualitaet (Restposten: Blindgaenger), Mengenstaffel n/d (Rabatt) */
+    lieferant:{
+      fachhandel:{mult:1.00,qualitaet:1.00,staffel:[{n:1,d:0}]},
+      grosshandel:{mult:1.00,qualitaet:1.00,staffel:[{n:10,d:0.10},{n:20,d:0.18}]},
+      ratzke:{mult:0.60,qualitaet:0.86}
+    },
+    grosshandelslizenz:0.9,   // Ausbau "Grosshandelslizenz": alle Einkaufspreise x0,9 (gilt nicht fuer Regale, Packmaterial)
+    /* Wundertueten/Themenpakete: Preis = mittlerer Karton-EK x Kartons x Faktor, auf 5 € gerundet (mind. 5 €) */
+    pakete:{rabatt:{tuete:0.62,kiste:0.58,palette:0.52},sonstige:0.7,themen:0.6,sorten:0.56,jackpot:0.12,teuerAb:6,runden:5,min:5},
+    /* Restposten-Ratzke: Angebote kommen in Wellen; wer viel Geld hat (druck -> 1), bekommt seltener und weniger */
+    restposten:{welle:[70,260],dauer:[120,360],max:8,ersteWelle:[15,40],
+      druck:{kostenMin:60,tageAb:4,tageSpanne:26,mitKredit:0.5},
+      leer:{grund:0.15,jeDruck:0.4}, viel:{grund:0.28,jeDruck:-0.2}, vielN:[3,3], normalN:[1,2],
+      vorrat:{zwei:0.35,drei:0.12}, preis:[0.85,1.12], takt:{grund:0.7,jeDruck:0.9}}
   },
   /* ---------- Onlineshop / Versand (Ausgang) ----------
      Quellen siehe 11c-versand.js Kopf "Versand-Wirtschaft": Baymard 2024/25 (39-48 % Abbrueche wegen
@@ -1003,6 +1017,12 @@ const WIRT={
     }
   },
   personal:{
+    /* Lohnstufen (WAGES in 11-staff): f x Grundlohn; f wirkt auf Tempo (0,55 + 0,48 f) und Freundlichkeit
+       (= Schnitt der f) -> Preistoleranz (+(f-1)*0,12) und Geduld (0,72 + 0,3 f) */
+    lohnstufen:[0.75,1.00,1.30,1.65],
+    pause:0.3,          // Saisonpause: 30 % Lohn, keine Arbeit, Rueckkehr ohne neue Einstellung
+    kuendigung:{unter:0.8,chanceTag:0.14},   // Lohnstufe < 0,8: kuendigt mit 14 % je Tag (Ruf: ruf.kuendigung)
+    tempo:{grund:0.55,jeLohn:0.48},
     einstellung:{reinigung:250, auffueller:450, auffueller2:600, kassierer:600, kassierer2:600, kassierer3:600, security:800, packer:700, packer2:750, packer3:800},   // € einmalig
     lohn:{reinigung:55, auffueller:110, auffueller2:130, kassierer:145, kassierer2:140, kassierer3:140, security:190, packer:165, packer2:170, packer3:175}   // € Grundlohn je Tag (x Lohnstufe)
   },
@@ -1012,6 +1032,60 @@ const WIRT={
   regal:{ // Preis = grund + jeWeiteres x schon aufgestellte derselben Art (regalPreis)
     verkauf:{klein:{grund:45,jeWeiteres:28}, standard:{grund:130,jeWeiteres:70}, hoch:{grund:260,jeWeiteres:95}, kuehl:{grund:430,jeWeiteres:155}, gondel:{grund:560,jeWeiteres:190}, eck:{grund:480,jeWeiteres:165}, gross:{grund:640,jeWeiteres:210}, tisch:{grund:220,jeWeiteres:80}, tischgross:{grund:340,jeWeiteres:120}, gitter:{grund:140,jeWeiteres:50}, gitter2:{grund:210,jeWeiteres:75}, gitter3:{grund:290,jeWeiteres:100}, kasse:{grund:120,jeWeiteres:60}},
     lager:{standard:{grund:0,jeWeiteres:0}, hoch:{grund:520,jeWeiteres:150}, schwer:{grund:880,jeWeiteres:240}}
+  },
+  /* ---------- Grossauftraege (Telefon, 10b-pyro) ---------- */
+  auftrag:{
+    kartons:[{abLevel:15,n:[4,9]},{abLevel:10,n:[3,6]},{abLevel:0,n:[2,4]}],   // Kartons je Auftrag
+    zweiSorten:0.5,                 // ab 4 Kartons: 2 oder 3 Sorten
+    stammJe:0.02, stammMax:0.08,    // Stammkunde: + 2 % je frueherem Auftrag, max + 8 %
+    nachgeben:0.35,                 // zu hoch gepokert: Angebot steigt nur um 35 % des Schritts
+    meister:1.33,                   // Ausbau "Meisterbrief": Auszahlung x1,33
+    flau:{grund:1.9,jeSaison:0.9,min:0.8,max:1.9},   // Nebensaison: Anrufe schneller (clamp(1,9 - dayMult*0,9))
+    vollerKarton:0.9                // Karton zaehlt als voll ab 90 %
+  },
+  /* ---------- Wochenziele (GOALS in 02-data): Ziel = a + b*Level, Praemie = c + d*Level ---------- */
+  ziele:{
+    umsatz:{ziel:[600,260],praemie:[120,45]},
+    kunden:{ziel:[40,14],praemie:[100,40]},
+    artikel:{ziel:[90,34],praemie:[110,42]},
+    f2:{ziel:[30,16],praemie:[150,55]},
+    sauber:{tage:5,praemie:[130,40]},
+    gross:{levelJeAuftrag:5,praemie:[200,60]}
+  },
+  /* ---------- Herausforderungen (ERFOLGE in 02c): Praemie je Stufe; Stufe 2 meist als Warengutschrift ---------- */
+  erfolg:{
+    lohn:{
+      v_boeller:[60,320,1600,7000],
+      v_raketen:[80,400,2000,8000],
+      v_batterien:[260,1400,5000,14000],
+      v_kugeln:[300,1600,5500,16000],
+      v_sekt:[70,350,1500,5500],
+      v_essen:[60,300,1300,5000],
+      v_zubehoer:[60,300,1300,5000],
+      kunden:[80,450,2200,9000],
+      kartons:[60,300,1400,5500],
+      lkw:[70,380,1800,7000],
+      gezuendet:[80,400,1800,7000],
+      brucharten:[150,600,2400,9000],
+      hype:[90,500,2200,8000],
+      pakete:[200,900,3600,12000],
+      ddl:[180,800,3200,11000],
+      auftraege:[220,1000,4200,14000],
+      eigene:[400,1800,6000,18000],
+      v_eigene:[300,1400,5000,16000],
+      rek_tag:[120,600,2400,9000],
+      rek_kunden:[110,550,2200,8000],
+      tage:[100,500,2000,7500]
+    }
+  },
+  /* ---------- Entwicklungslabor (02d): Formeln fuer Eigenrezepte; Ergebnis wird im Spielstand gespeichert ---------- */
+  rezept:{
+    wow:{schussGrund:0.85,schussLog:0.24,zweiFarben:1.06,farbAuf:0.5,stufe2:1.18,stufe2Wow:0.14},
+    kosten:{grund:0.72,jeKlasse:0.19,farbAuf:0.62,stufe2:1.22,stufe2Klasse:0.06},
+    markt:{grund:1.75,jeWow:0.42},      // VK = Kosten x (1,75 + 0,42 Wow)
+    hype:{jeWowSchuss:3.2,grund:6},
+    entwicklung:{grund:320,jeBasis:95,jeKlasse:0.22,stufe2:1.45},   // einmalige Entwicklungskosten
+    vola:0.55
   },
   /* ---------- Bank: Kredit, Dispo ---------- */
   kredit:{
@@ -1102,6 +1176,11 @@ const WF={
   /* kleine Zahlen als Wort ("über acht"), sonst Ziffern */
   zahlwort:(n)=>['null','eins','zwei','drei','vier','fünf','sechs','sieben','acht','neun','zehn','elf','zwölf','dreizehn','vierzehn','fünfzehn','sechzehn','siebzehn','achtzehn','neunzehn','zwanzig'][n]||String(n),
   /* Marktplatz-Pauschale des Onlineshops je Tag (16-day endDay, Laptop-Anzeige, sim.js) */
+  /* Anteil als ganze Prozent (0,3 -> 30); Faktor ohne Nullen (1,30 -> "1,3") */
+  prozent:(f)=>Math.round(f*100),
+  zahlKurz:(f)=>String(f).replace('.',','),
+  /* Aufschlag als Wort: 1,33 -> "ein Drittel", 1,5 -> "die Hälfte", sonst "x Prozent" */
+  mehrText:(f)=>({33:'ein Drittel',25:'ein Viertel',50:'die Hälfte',100:'das Doppelte'})[Math.round((f-1)*100)]||`${Math.round((f-1)*100)} Prozent`,
   /* Faktor als "x Prozent mehr" (1,3 -> 30) bzw. als Verb fuer "weniger" (0,5 -> Halbiert) */
   prozMehr:(f)=>Math.round((f-1)*100),
   prozWeniger:(f)=>Math.round((1-f)*100),
@@ -1394,9 +1473,9 @@ const UPGRADES=[
   {id:'onlineshop',kat:'flaeche',lvl:15,kap:4,name:'Onlineshop',desc:'Bringt jeden Tag Umsatz nebenbei, abhängig von deinem Ruf. Mit Packstation kommen die Bestellungen als echte Pakete ins Lager und bringen deutlich mehr.',cost:()=>WIRT.ausbau.preis.onlineshop,done:()=>S.up.onlineshop},
   {id:'kundenkarte',kat:'markt',lvl:21,name:'Stammkundenkarte',desc:'Stammkunden kommen öfter wieder und zahlen bereitwilliger.',cost:()=>WIRT.ausbau.preis.kundenkarte,done:()=>S.up.kundenkarte},
   {id:'tafel',kat:'markt',lvl:23,name:'Digitale Werbetafel',desc:'Große Tafel an der Fassade. Noch einmal deutlich mehr Kundschaft.',cost:()=>WIRT.ausbau.preis.tafel,done:()=>S.up.tafel},
-  {id:'lizenz',kat:'markt',lvl:25,name:'Großhandelslizenz',desc:'Alle Lieferanten geben dir zusätzlich zehn Prozent Nachlass.',cost:()=>WIRT.ausbau.preis.lizenz,done:()=>S.up.lizenz},
+  {id:'lizenz',kat:'markt',lvl:25,name:'Großhandelslizenz',desc:`Alle Lieferanten geben dir zusätzlich ${WF.zahlwort(WF.prozWeniger(WIRT.einkauf.grosshandelslizenz))} Prozent Nachlass.`,cost:()=>WIRT.ausbau.preis.lizenz,done:()=>S.up.lizenz},
   {id:'klima',kat:'einr',lvl:27,name:'Klima und Musikanlage XL',desc:'Deutlich bessere Stimmung, Kunden bleiben spürbar länger.',cost:()=>WIRT.ausbau.preis.klima,done:()=>S.up.klima},
-  {id:'meister',kat:'markt',lvl:30,name:'Meisterbrief Pyrotechnik',desc:'Die höchste Stufe. Großaufträge zahlen ein Drittel mehr.',cost:()=>WIRT.ausbau.preis.meister,done:()=>S.up.meister},
+  {id:'meister',kat:'markt',lvl:30,name:'Meisterbrief Pyrotechnik',desc:`Die höchste Stufe. Großaufträge zahlen ${WF.mehrText(WIRT.auftrag.meister)} mehr.`,cost:()=>WIRT.ausbau.preis.meister,done:()=>S.up.meister},
   {id:'shop_halb',kat:'flaeche',lvl:3,name:'Ladenerweiterung 1 – etwas mehr Platz',desc:'Die zugemauerte Hälfte deines eigenen Ladenlokals: rund 70 Quadratmeter mehr, das zweite Schaufenster und zwei weitere Regalplätze. Die Trennwand fällt beim Kauf ganz weg — ein Raum, kein Pfeiler, kein Sturz. Dahinter liegt auch die Tür zum Testfeld.',cost:()=>WIRT.ausbau.preis.shop_halb,done:()=>S.up.shop_halb},
   {id:'testfeld',kat:'flaeche',lvl:5,req:'shop_halb',name:'Testfeld freischalten',desc:'Der abgesperrte Hof hinter dem Laden wird dein Testfeld: Zündtisch, Abschussröhren und Mörserbatterie. Erst damit kannst du selbst zünden — und was du gezündet hast, spricht sich herum.',cost:()=>WIRT.ausbau.preis.testfeld,done:()=>S.up.testfeld},
   {id:'shop_gross',kat:'flaeche',lvl:11,req:'shop_halb',kap:3,name:'Ladenerweiterung 2 – deutlich mehr Platz',desc:'Kauft das leerstehende Ladenlokal nebenan. Die Seitenwand wird durchbrochen, die Schaufenster werden entmauert: rund 142 Quadratmeter mehr Fläche und zehn zusätzliche Regalplätze.',cost:()=>WIRT.ausbau.preis.shop_gross,done:()=>S.up.shop_gross},
@@ -1490,11 +1569,11 @@ const STAFF=[
    SUP_ALT leitet sie auf die neue Stufe um. */
 const SUPPLIERS=[
   {id:'fachhandel',lvl:1,name:'Pyro-Fachhandel Brandt',short:'Fachhandel',desc:'Dein Fachhändler um die Ecke: alles aus deinem Sortiment, jeder Karton einzeln zum Listenpreis.',
-    mult:1.00,quality:1.00,delay:[4,8],tiers:[{n:1,d:0}]},
+    mult:WIRT.einkauf.lieferant.fachhandel.mult,quality:WIRT.einkauf.lieferant.fachhandel.qualitaet,delay:[4,8],tiers:WIRT.einkauf.lieferant.fachhandel.staffel},
   {id:'grosshandel',lvl:8,kap:2,name:'Feuerwerk-Großhandel Kowalski',short:'Großhandel',desc:'Dieselbe Ware wie beim Fachhandel, aber nur im Zehner- oder Zwanzigerpack – und dafür günstiger.',
-    mult:1.00,quality:1.00,delay:[6,10],tiers:[{n:10,d:0.10},{n:20,d:0.18}]},
+    mult:WIRT.einkauf.lieferant.grosshandel.mult,quality:WIRT.einkauf.lieferant.grosshandel.qualitaet,delay:[6,10],tiers:WIRT.einkauf.lieferant.grosshandel.staffel},
   {id:'ratzke',lvl:14,name:'Restposten-Ratzke',short:'Restposten',desc:'Lagerräumungen zu Spottpreisen: bunt gemischt, halb sortiert oder ein ganzer Posten einer Sorte. Was reinkommt, entscheidet der Zufall – mal viel, mal gar nichts. Wer zuerst zugreift, hat es.',
-    mult:0.60,quality:0.86,delay:[6,12],mystery:true}
+    mult:WIRT.einkauf.lieferant.ratzke.mult,quality:WIRT.einkauf.lieferant.ratzke.qualitaet,delay:[6,12],mystery:true}
 ];
 const SUP_ALT={mertens:'fachhandel',party:'fachhandel',kowalski:'grosshandel',import:'grosshandel',premium:'grosshandel',direkt:'grosshandel'};
 /* Grosshandel ab Level 8 und mit eigenem Lager (Kapitel 2) */
@@ -1910,13 +1989,15 @@ function rollCustType(){
 }
 
 /* Wochenziele */
+const ZW=WIRT.ziele;
 const GOALS=[
-  {id:'umsatz',name:'Wochenumsatz',mk:l=>({need:Math.round(600+l*260),unit:'€',kind:'rev'}),pay:l=>Math.round(120+l*45)},
-  {id:'kunden',name:'Kundschaft bedienen',mk:l=>({need:Math.round(40+l*14),unit:'Kunden',kind:'cust'}),pay:l=>Math.round(100+l*40)},
-  {id:'artikel',name:'Artikel verkaufen',mk:l=>({need:Math.round(90+l*34),unit:'Artikel',kind:'sold'}),pay:l=>Math.round(110+l*42)},
-  {id:'f2',name:'Feuerwerk F2 absetzen',mk:l=>({need:Math.round(30+l*16),unit:'F2-Artikel',kind:'f2'}),pay:l=>Math.round(150+l*55)},
-  {id:'sauber',name:'Sauber bleiben',mk:l=>({need:5,unit:'Tage ohne Beschwerde',kind:'clean'}),pay:l=>Math.round(130+l*40)},
-  {id:'gross',name:'Großaufträge erfüllen',mk:l=>({need:Math.max(1,Math.round(l/5)),unit:'Aufträge',kind:'orders'}),pay:l=>Math.round(200+l*60)}
+  /* Ziel- und Praemienformeln: a + b*Level aus 01c-wirtschaft.js (WIRT.ziele) */
+  {id:'umsatz',name:'Wochenumsatz',mk:l=>({need:Math.round(ZW.umsatz.ziel[0]+l*ZW.umsatz.ziel[1]),unit:'€',kind:'rev'}),pay:l=>Math.round(ZW.umsatz.praemie[0]+l*ZW.umsatz.praemie[1])},
+  {id:'kunden',name:'Kundschaft bedienen',mk:l=>({need:Math.round(ZW.kunden.ziel[0]+l*ZW.kunden.ziel[1]),unit:'Kunden',kind:'cust'}),pay:l=>Math.round(ZW.kunden.praemie[0]+l*ZW.kunden.praemie[1])},
+  {id:'artikel',name:'Artikel verkaufen',mk:l=>({need:Math.round(ZW.artikel.ziel[0]+l*ZW.artikel.ziel[1]),unit:'Artikel',kind:'sold'}),pay:l=>Math.round(ZW.artikel.praemie[0]+l*ZW.artikel.praemie[1])},
+  {id:'f2',name:'Feuerwerk F2 absetzen',mk:l=>({need:Math.round(ZW.f2.ziel[0]+l*ZW.f2.ziel[1]),unit:'F2-Artikel',kind:'f2'}),pay:l=>Math.round(ZW.f2.praemie[0]+l*ZW.f2.praemie[1])},
+  {id:'sauber',name:'Sauber bleiben',mk:l=>({need:ZW.sauber.tage,unit:'Tage ohne Beschwerde',kind:'clean'}),pay:l=>Math.round(ZW.sauber.praemie[0]+l*ZW.sauber.praemie[1])},
+  {id:'gross',name:'Großaufträge erfüllen',mk:l=>({need:Math.max(1,Math.round(l/ZW.gross.levelJeAuftrag)),unit:'Aufträge',kind:'orders'}),pay:l=>Math.round(ZW.gross.praemie[0]+l*ZW.gross.praemie[1])}
 ];
 function levelUnlocks(l){
   const out=[];
@@ -2246,73 +2327,73 @@ const ERFOLGE=[
   /* --- Verkauf: laeuft von Anfang an mit --- */
   {id:'v_boeller',kat:'Verkauf',name:'Krachmacher',ikon:'boeller',
    desc:'Böller aller Art über die Theke gebracht',
-   stufen:[100,800,5000,20000],lohn:[60,320,1600,7000]},
+   stufen:[100,800,5000,20000],lohn:WIRT.erfolg.lohn.v_boeller},
   {id:'v_raketen',kat:'Verkauf',name:'Startrampe',ikon:'rakete',
    desc:'Raketen verkauft',req:{liz:'klassiker'},
-   stufen:[60,500,3000,12000],lohn:[80,400,2000,8000]},
+   stufen:[60,500,3000,12000],lohn:WIRT.erfolg.lohn.v_raketen},
   {id:'v_batterien',kat:'Verkauf',name:'Verbundhändler',ikon:'batterie',
    desc:'Batterien und Verbunde verkauft',req:{liz:'verbund'},
-   stufen:[40,300,1500,6000],lohn:[260,1400,5000,14000]},
+   stufen:[40,300,1500,6000],lohn:WIRT.erfolg.lohn.v_batterien},
   {id:'v_kugeln',kat:'Verkauf',name:'Schweres Kaliber',ikon:'kugel',
    desc:'Kugelbomben verkauft',req:{liz:'verbund'},
-   stufen:[10,80,400,1500],lohn:[300,1600,5500,16000]},
+   stufen:[10,80,400,1500],lohn:WIRT.erfolg.lohn.v_kugeln},
   {id:'v_sekt',kat:'Verkauf',name:'Auf Mitternacht',ikon:'sekt',
    desc:'Getränke verkauft: Sekt, Bier, Wein, Säfte',req:{liz:'klassiker'},
-   stufen:[50,400,2000,8000],lohn:[70,350,1500,5500]},
+   stufen:[50,400,2000,8000],lohn:WIRT.erfolg.lohn.v_sekt},
   {id:'v_essen',kat:'Verkauf',name:'Buffet-König',ikon:'essen',
    desc:'Essen verkauft: Snacks, Buffet, Feinkost',req:{liz:'snacks'},
-   stufen:[60,500,2500,10000],lohn:[60,300,1300,5000]},
+   stufen:[60,500,2500,10000],lohn:WIRT.erfolg.lohn.v_essen},
   {id:'v_zubehoer',kat:'Verkauf',name:'Alles für die Party',ikon:'zubehoer',
    desc:'Zubehör verkauft',req:{liz:'zubehoer'},
-   stufen:[80,600,3000,12000],lohn:[60,300,1300,5000]},
+   stufen:[80,600,3000,12000],lohn:WIRT.erfolg.lohn.v_zubehoer},
   /* --- Theke und Lager --- */
   {id:'kunden',kat:'Laden',name:'Stammpublikum',ikon:'kunde',
    desc:'Kunden abkassiert',
-   stufen:[100,800,4000,15000],lohn:[80,450,2200,9000]},
+   stufen:[100,800,4000,15000],lohn:WIRT.erfolg.lohn.kunden},
   {id:'kartons',kat:'Laden',name:'Packesel',ikon:'karton',
    desc:'Kartons eingeräumt',
-   stufen:[50,400,2000,8000],lohn:[60,300,1400,5500]},
+   stufen:[50,400,2000,8000],lohn:WIRT.erfolg.lohn.kartons},
   {id:'lkw',kat:'Laden',name:'Rampenroutine',ikon:'lkw',
    desc:'Lieferungen an der Rampe entgegengenommen',
-   stufen:[10,60,300,1200],lohn:[70,380,1800,7000]},
+   stufen:[10,60,300,1200],lohn:WIRT.erfolg.lohn.lkw},
   /* --- Testfeld: an das eigene Zuenden geknuepft --- */
   {id:'gezuendet',kat:'Testfeld',name:'Feuerwerker',ikon:'zuenden',
    desc:'Artikel selbst gezündet',
-   stufen:[20,150,700,3000],lohn:[80,400,1800,7000]},
+   stufen:[20,150,700,3000],lohn:WIRT.erfolg.lohn.gezuendet},
   {id:'brucharten',kat:'Testfeld',name:'Effektsammler',ikon:'stern',
    desc:'verschiedene Bruchbilder am Himmel gesehen',
-   stufen:[6,12,19,27],lohn:[150,600,2400,9000]},
+   stufen:[6,12,19,27],lohn:WIRT.erfolg.lohn.brucharten},
   {id:'hype',kat:'Testfeld',name:'Volksfeststimmung',ikon:'hype',
    desc:'Hype durch eigene Vorführungen erzeugt',
-   stufen:[200,2000,10000,40000],lohn:[90,500,2200,8000]},
+   stufen:[200,2000,10000,40000],lohn:WIRT.erfolg.lohn.hype},
   /* --- Versand: erst mit Onlineshop und Packstation --- */
   {id:'pakete',kat:'Versand',name:'Versandfertig',ikon:'paket',
    desc:'Pakete selbst gepackt',req:{up:'packstation'},
-   stufen:[25,200,1000,4000],lohn:[200,900,3600,12000]},
+   stufen:[25,200,1000,4000],lohn:WIRT.erfolg.lohn.pakete},
   {id:'ddl',kat:'Versand',name:'Abholbereit',ikon:'ddl',
    desc:'Pakete von DDL abholen lassen',req:{up:'onlineshop'},
-   stufen:[50,400,2000,8000],lohn:[180,800,3200,11000]},
+   stufen:[50,400,2000,8000],lohn:WIRT.erfolg.lohn.ddl},
   /* --- Grossauftraege --- */
   {id:'auftraege',kat:'Aufträge',name:'Für die ganze Stadt',ikon:'auftrag',
    desc:'Großaufträge ausgeliefert',req:{up:'grosskunden'},
-   stufen:[5,30,150,600],lohn:[220,1000,4200,14000]},
+   stufen:[5,30,150,600],lohn:WIRT.erfolg.lohn.auftraege},
   /* --- Eigene Marke: erst mit dem Labor --- */
   {id:'eigene',kat:'Eigene Marke',name:'Hausmarke',ikon:'labor',
    desc:'eigene Rezepturen entwickelt',req:{up:'labor'},
-   stufen:[1,4,10,20],lohn:[400,1800,6000,18000]},
+   stufen:[1,4,10,20],lohn:WIRT.erfolg.lohn.eigene},
   {id:'v_eigene',kat:'Eigene Marke',name:'Unter eigenem Namen',ikon:'labor',
    desc:'Artikel der eigenen Marke verkauft',req:{up:'labor'},
-   stufen:[50,400,2000,8000],lohn:[300,1400,5000,16000]},
+   stufen:[50,400,2000,8000],lohn:WIRT.erfolg.lohn.v_eigene},
   /* --- Bestwerte: kein Scheitern moeglich, nur Rekorde --- */
   {id:'rek_tag',kat:'Rekorde',name:'Bester Tag',ikon:'geld',rekord:true,geld:true,
    desc:'höchster Tagesumsatz',
-   stufen:[500,2000,6000,15000],lohn:[120,600,2400,9000]},
+   stufen:[500,2000,6000,15000],lohn:WIRT.erfolg.lohn.rek_tag},
   {id:'rek_kunden',kat:'Rekorde',name:'Volle Bude',ikon:'kunde',rekord:true,
    desc:'meiste Kunden an einem Tag',
-   stufen:[40,80,140,220],lohn:[110,550,2200,8000]},
+   stufen:[40,80,140,220],lohn:WIRT.erfolg.lohn.rek_kunden},
   {id:'tage',kat:'Rekorde',name:'Durchgehalten',ikon:'kalender',
    desc:'Tage im Geschäft',
-   stufen:[7,30,90,200],lohn:[100,500,2000,7500]}
+   stufen:[7,30,90,200],lohn:WIRT.erfolg.lohn.tage}
 ];
 
 /* --------------------------------------------------------
@@ -2522,34 +2603,37 @@ function etikettVon(id){ return ETIKETT.find(e=>e.id===id)||ETIKETT[0]; }
 function rezeptWow(r){
   const tr=traegerVon(r.traeger);
   const b=BRUCH[r.eff]||BRUCH.kugel;
-  let w=b.wow*tr.kal*(0.85+Math.log2(1+tr.schuss)*0.24);
+  const RW=WIRT.rezept.wow;
+  let w=b.wow*tr.kal*(RW.schussGrund+Math.log2(1+tr.schuss)*RW.schussLog);
   /* Zwei verschiedene Farben wirken staerker als eine */
-  if(r.A!==r.B) w*=1.06;
+  if(r.A!==r.B) w*=RW.zweiFarben;
   const fa=farbVon(r.A), fb=farbVon(r.B);
-  w*=1+(fa.auf+fb.auf)*0.5;
+  w*=1+(fa.auf+fb.auf)*RW.farbAuf;
   /* Eine zweite Stufe ist der groesste einzelne Sprung */
-  if(r.eff2){ const b2=BRUCH[r.eff2]||BRUCH.kugel; w*=1.18+b2.wow*0.14; }
+  if(r.eff2){ const b2=BRUCH[r.eff2]||BRUCH.kugel; w*=RW.stufe2+b2.wow*RW.stufe2Wow; }
   return w;
 }
 function rezeptKosten(r){
   const tr=traegerVon(r.traeger);
   const b=BRUCH[r.eff]||BRUCH.kugel;
   const fa=farbVon(r.A), fb=farbVon(r.B);
-  let c=tr.basis*(0.72+b.klasse*0.19)*(1+(fa.auf+fb.auf)*0.62);
-  if(r.eff2){ const b2=BRUCH[r.eff2]||BRUCH.kugel; c*=1.22+b2.klasse*0.06; }
+  const RK=WIRT.rezept.kosten;
+  let c=tr.basis*(RK.grund+b.klasse*RK.jeKlasse)*(1+(fa.auf+fb.auf)*RK.farbAuf);
+  if(r.eff2){ const b2=BRUCH[r.eff2]||BRUCH.kugel; c*=RK.stufe2+b2.klasse*RK.stufe2Klasse; }
   return r2(c);
 }
 /* Der Marktpreis ergibt sich aus dem Wow-Wert, nicht aus freier Eingabe */
 function rezeptMarkt(r){
   const k=rezeptKosten(r), w=rezeptWow(r);
-  return r2(k*(1.75+w*0.42));
+  return r2(k*(WIRT.rezept.markt.grund+w*WIRT.rezept.markt.jeWow));
 }
-function rezeptHype(r){ return Math.round(rezeptWow(r)*traegerVon(r.traeger).schuss*3.2+6); }
+function rezeptHype(r){ return Math.round(rezeptWow(r)*traegerVon(r.traeger).schuss*WIRT.rezept.hype.jeWowSchuss+WIRT.rezept.hype.grund); }
 function rezeptDauer(r){ return traegerVon(r.traeger).zeit+(r.eff2?1:0); }
 /* Einmalige Entwicklungskosten: der Deckel gegen Durchprobieren */
 function rezeptEntwicklung(r){
   const tr=traegerVon(r.traeger);
-  return Math.round((320+tr.basis*95)*(1+(BRUCH[r.eff]||BRUCH.kugel).klasse*0.22)*(r.eff2?1.45:1));
+  const RE=WIRT.rezept.entwicklung;
+  return Math.round((RE.grund+tr.basis*RE.jeBasis)*(1+(BRUCH[r.eff]||BRUCH.kugel).klasse*RE.jeKlasse)*(r.eff2?RE.stufe2:1));
 }
 function rezeptGueltig(r){
   if(!r||!r.traeger||!r.eff) return false;
@@ -2587,7 +2671,7 @@ function eigenesEintragen(e){
   P[e.id]=rezeptProdukt(e);
   if(typeof kartonWahl==='function') kartonWahl(e.id);
   if(ORDER.indexOf(e.id)<0) ORDER.push(e.id);
-  VOLA[e.id]=0.55;
+  VOLA[e.id]=WIRT.rezept.vola;
   if(!(S.prices[e.id]>0)) S.prices[e.id]=P[e.id].market;
   /* Marktindex und Modellvorrat nachziehen */
   if(S.mi&&typeof S.mi[e.id]!=='number'){ S.mi[e.id]=1; S.me[e.id]=1; S.reg[e.id]=regimeNeu(e.id); S.mh[e.id]=[1]; }
@@ -26838,12 +26922,12 @@ function sprayHit(){
    ========================================================= */
 let phone={state:null,t:0,cd:120,call:null}, order=null;
 function pyroUnlocked(){ return S&&S.up&&S.up.grosskunden; }
-function orderScale(){ return S.level>=15?[4,9]:S.level>=10?[3,6]:[2,4]; }
+function orderScale(){ return WIRT.auftrag.kartons.find(k=>S.level>=k.abLevel).n; }
 function makeCall(){
   const avail=ORDER.filter(t=>isUnlocked(t)&&P[t].cat&&canShelf(t));
   if(!avail.length) return null;
   const [lo,hi]=orderScale(), total=Math.round(rand(lo,hi+0.99));
-  const n=Math.min(avail.length,total<=3?1:(Math.random()<0.5?2:3));
+  const n=Math.min(avail.length,total<=3?1:(Math.random()<WIRT.auftrag.zweiSorten?2:3));
   const picks=[], pool=avail.slice();
   for(let i=0;i<n&&pool.length;i++){ const k=Math.floor(Math.random()*pool.length); picks.push(pool.splice(k,1)[0]); }
   const items=[]; let left=total;
@@ -26852,14 +26936,14 @@ function makeCall(){
   const type=pick(PYROTYPES);
   const value=items.reduce((a,it)=>a+it.cartons*P[it.type].box*S.prices[it.type],0);
   const stamm=(S.stamm||{})[type.id]||0;
-  return {name:pick(PYRONAMES),type,items,value:r2(value),mult:type.open+Math.min(0.08,stamm*0.02),round:0,rounds:type.rounds,stamm};
+  return {name:pick(PYRONAMES),type,items,value:r2(value),mult:type.open+Math.min(WIRT.auftrag.stammMax,stamm*WIRT.auftrag.stammJe),round:0,rounds:type.rounds,stamm};
 }
 function updatePhone(dt){
   if(!pyroUnlocked()||phase!=='open') return;
   if(order||phone.state){ if(phone.state==='ringing'){ phone.t-=dt; if(phone.t<=0){ phone.state=null; $('phone').textContent=''; phone.cd=rand(60,110); toast('Anruf verpasst.','bad'); } } return; }
   /* In der Nebensaison ist im Laden wenig los, dafuer melden sich mehr
      Veranstalter. Das haelt Januar bis September lebendig. */
-  const flau=clamp(1.9-dayMult(S.day)*0.9,0.8,1.9);
+  const FL=WIRT.auftrag.flau, flau=clamp(FL.grund-dayMult(S.day)*FL.jeSaison,FL.min,FL.max);
   phone.cd-=dt*flau/evv('pyro');
   if(phone.cd<=0){
     const c=makeCall();
@@ -26917,12 +27001,12 @@ function haggle(step){
     setTimeout(()=>{ if(!dealOpen) return; closeDeal(); toast('Der Auftrag ist geplatzt.','bad'); phone.state=null; phone.call=null; phone.cd=rand(70,130); },1400);
     return;
   }
-  c.mult=r2(Math.min(c.type.ceil,c.mult+step*0.35));
+  c.mult=r2(Math.min(c.type.ceil,c.mult+step*WIRT.auftrag.nachgeben));
   renderDeal(line);
 }
 function acceptDeal(){
   const c=phone.call; if(!c) return;
-  const pay=r2(c.value*c.mult*(S.up&&S.up.meister?1.33:1));
+  const pay=r2(c.value*c.mult*(S.up&&S.up.meister?WIRT.auftrag.meister:1));
   order={name:c.name,typeId:c.type.id,items:c.items,pay,arrive:rand(18,30),t:0,done:false};
   S.stamm=S.stamm||{}; S.stamm[c.type.id]=(S.stamm[c.type.id]||0)+1;
   closeDeal(); phone.state=null; phone.call=null; phone.cd=rand(150,260);
@@ -26936,7 +27020,7 @@ function orderNeed(t){ if(!order) return 0; const it=order.items.find(x=>x.type=
 function orderLeft(){ return order?order.items.reduce((a,it)=>a+(it.cartons-it.loaded),0):0; }
 /* Ware, die für einen laufenden Auftrag reserviert ist, fasst das Personal nicht an */
 function reservedType(t){ return !!order&&order.arrive<=0&&orderNeed(t)>0; }
-function fullBox(t){ return Math.ceil(P[t].box*0.9); }
+function fullBox(t){ return Math.ceil(P[t].box*WIRT.auftrag.vollerKarton); }
 /* Zählt, wie viele volle Kartons im Lager abholbereit stehen */
 function orderReady(){
   if(!order) return 0;
@@ -27055,10 +27139,11 @@ function freiePos(v){
 }
 /* Lohnstufen: mehr Geld heißt schneller, gründlicher und freundlicher */
 const WAGES=[
-  {f:0.75,name:'Mindestlohn',desc:'billig, aber lustlos'},
-  {f:1.00,name:'Normal',desc:'macht seinen Job'},
-  {f:1.30,name:'Gut bezahlt',desc:'flott und aufmerksam'},
-  {f:1.65,name:'Top',desc:'schnell, gründlich, freundlich'}
+  /* f: 01c-wirtschaft.js (WIRT.personal.lohnstufen) */
+  {f:WIRT.personal.lohnstufen[0],name:'Mindestlohn',desc:'billig, aber lustlos'},
+  {f:WIRT.personal.lohnstufen[1],name:'Normal',desc:'macht seinen Job'},
+  {f:WIRT.personal.lohnstufen[2],name:'Gut bezahlt',desc:'flott und aufmerksam'},
+  {f:WIRT.personal.lohnstufen[3],name:'Top',desc:'schnell, gründlich, freundlich'}
 ];
 function wageOf(id){ const v=(S&&S.wage&&S.wage[id]); return WAGES.some(w=>w.f===v)?v:1.0; }
 /* Saisonpause: von Januar bis Herbst braucht kein Laden volle Besetzung.
@@ -27118,7 +27203,7 @@ class Worker{
     this.path=[]; this.base=id==='security'?1.9:1.45; this.speed=this.base; this.state='idle'; this.t=0; this.carry=null; this.chase=null; this.moving=false; this.applyWage();
   }
   get pos(){ return this.g.position; }
-  applyWage(){ const f=wageOf(this.id); this.speed=this.base*(0.55+0.48*f); this.wf=f; }
+  applyWage(){ const f=wageOf(this.id); this.speed=this.base*(WIRT.personal.tempo.grund+WIRT.personal.tempo.jeLohn*f); this.wf=f; }
   walk(dt){
     if(!this.path.length){ this.moving=false; return true; }
     const t=this.path[0], dx=t.x-this.pos.x, dz=t.z-this.pos.z, d=Math.hypot(dx,dz), st=this.speed*dt;
@@ -27260,12 +27345,12 @@ class Worker{
 }
 function hireStaff(id){ if(staff[id]) return; staff[id]=new Worker(id); }
 function fireStaff(id){ if(!staff[id]) return; staff[id].remove(); staff[id]=null; }
-function dailyWages(){ let w=0; STAFF.forEach(s=>{ if(S.staff[s.id]) w+=r2(s.wage*wageOf(s.id)*(inPause(s.id)?0.3:1)); }); return r2(w); }
+function dailyWages(){ let w=0; STAFF.forEach(s=>{ if(S.staff[s.id]) w+=r2(s.wage*wageOf(s.id)*(inPause(s.id)?WIRT.personal.pause:1)); }); return r2(w); }
 /* Wer zu schlecht bezahlt wird, kündigt irgendwann */
 function staffMorale(){
   STAFF.forEach(st=>{
     if(!S.staff[st.id]||inPause(st.id)) return;
-    if(wageOf(st.id)<0.8&&Math.random()<0.14){
+    if(wageOf(st.id)<WIRT.personal.kuendigung.unter&&Math.random()<WIRT.personal.kuendigung.chanceTag){
       S.staff[st.id]=false; fireStaff(st.id); rep(WIRT.ruf.kuendigung);
       toast(`${st.name} hat gekündigt. Für den Lohn macht das keiner lange.`,'bad');
     }
@@ -48726,7 +48811,7 @@ function rollMarket(){
   const KO=WIRT.markt.konkurrenz; S.comp=clamp((S.comp||1)*rand(KO.schwank[0],KO.schwank[1]),KO.min,KO.max);
 }
 /* Auf den Marktpreis kommt nur noch das Tagesereignis und der Rabatt */
-function ekFactor(){ return evv('ek')*(S.up&&S.up.lizenz?0.9:1); }
+function ekFactor(){ return evv('ek')*(S.up&&S.up.lizenz?WIRT.einkauf.grosshandelslizenz:1); }
 function marktText(){ const m=S.mkt||1; return m<0.88?'Markt günstig':m<0.97?'Markt leicht günstig':m<1.05?'Markt normal':m<1.16?'Markt teuer':'Markt sehr teuer'; }
 function inflText(){ const i=Math.round((inflOf()-1)*100); return i<=0?'keine':'+'+i+' %'; }
 /* Tagesereignis würfeln */
@@ -48933,7 +49018,7 @@ function endDay(){
   const flau=dayMult(S.day+1)<0.95;
   const morgen=isSunday(S.day+1)&&!S.up.tag4?'Morgen ist Sonntag, Ruhetag. Gute Gelegenheit zum Auffüllen.'
     :(flau&&aktiv>0&&profit<0)
-      ? `Morgen: ${dateStr(S.day+1)}. ${seasonInfo(S.day+1)[1]}. Die Saison ist vorbei und der Tag war im Minus — schick dein Team im Handy (App Team) in die Saisonpause, das kostet nur 30 Prozent Lohn.`
+      ? `Morgen: ${dateStr(S.day+1)}. ${seasonInfo(S.day+1)[1]}. Die Saison ist vorbei und der Tag war im Minus — schick dein Team im Handy (App Team) in die Saisonpause, das kostet nur ${WF.prozent(WIRT.personal.pause)} Prozent Lohn.`
       : `Morgen: ${dateStr(S.day+1)}. ${seasonInfo(S.day+1)[1]}.`;
   showSummary(`Tagesabschluss · ${dateStr(S.day)}`,morgen,rows,'Nächster Tag',()=>{
     statRekord('rek_tag',Math.round(DS.revenue));
@@ -49279,8 +49364,8 @@ function packContents(n,gruppe,sorten){
     /* Themenpaket: gleichverteilt aus der Gruppe. Wundertuete:
        meist Kleinkram, selten ein teurer Karton. */
     if(gruppe){ out.push(pick(pool)); continue; }
-    const jackpot=Math.random()<0.12;
-    const cand=pool.filter(t=>jackpot?costOf(t)>=6:costOf(t)<6);
+    const jackpot=Math.random()<WIRT.einkauf.pakete.jackpot;
+    const cand=pool.filter(t=>jackpot?costOf(t)>=WIRT.einkauf.pakete.teuerAb:costOf(t)<WIRT.einkauf.pakete.teuerAb);
     out.push(pick(cand.length?cand:pool));
   }
   return out;
@@ -49291,18 +49376,18 @@ function packKartonWert(gruppe,sorten){
   const pool=packPool(gruppe); if(!pool.length) return 0;
   const m=l=>l.reduce((a,t)=>a+costOf(t)*P[t].box,0)/l.length;
   if(gruppe||sorten) return m(pool);
-  const billig=pool.filter(t=>costOf(t)<6), teuer=pool.filter(t=>costOf(t)>=6);
-  return 0.88*m(billig.length?billig:pool)+0.12*m(teuer.length?teuer:pool);
+  const PK=WIRT.einkauf.pakete, billig=pool.filter(t=>costOf(t)<PK.teuerAb), teuer=pool.filter(t=>costOf(t)>=PK.teuerAb);
+  return (1-PK.jackpot)*m(billig.length?billig:pool)+PK.jackpot*m(teuer.length?teuer:pool);
 }
 /* Preis eines Pakets: im Mittel steckt mehr drin, als es kostet,
    aber jede Tuete ist ein Wurf. Groessere Pakete sind je Karton
    etwas guenstiger, Themenpakete (planbarer) etwas weniger. */
 /* Restposten sind richtig billig (Tom, 25.09.): im Mittel ein Drittel
    bis fast die Haelfte unter dem Einkaufswert */
-const PACK_RABATT={tuete:0.62,kiste:0.58,palette:0.52};
+const PACK_RABATT=WIRT.einkauf.pakete.rabatt;
 function packPreis(pk){
-  const f=pk.sorten?0.56:pk.gruppe?0.6:(PACK_RABATT[pk.id]||0.7);
-  return Math.max(5,Math.round(packKartonWert(pk.gruppe,pk.sorten)*pk.n*f/5)*5);
+  const PK=WIRT.einkauf.pakete, f=pk.sorten?PK.sorten:pk.gruppe?PK.themen:(PACK_RABATT[pk.id]||PK.sonstige);
+  return Math.max(PK.min,Math.round(packKartonWert(pk.gruppe,pk.sorten)*pk.n*f/PK.runden)*PK.runden);
 }
 function packOffen(pk){ return S.level>=pk.lvl&&(!pk.gruppe||packPool(pk.gruppe).length>0); }
 function buyPack(id){
@@ -49328,29 +49413,30 @@ function buyPack(id){
    Das Angebot ist zugleich ein Schwierigkeitshebel: wer gut dasteht,
    bekommt seltener und weniger, wer knapp ist, oefter und mehr.
    ========================================================= */
-const RESTPOSTEN={welle:[70,260],dauer:[120,360],max:8};
-function restDaten(){ if(!S.rest) S.rest={angebote:[],t:rand(15,40),seq:0,erst:false}; return S.rest; }
+/* Werte (Wellen, Dauer, Vorrat, Druck-Formel): 01c-wirtschaft.js (WIRT.einkauf.restposten); RESTPOSTEN bleibt der alte Name */
+const RPW=WIRT.einkauf.restposten, RESTPOSTEN={welle:RPW.welle,dauer:RPW.dauer,max:RPW.max};
+function restDaten(){ if(!S.rest) S.rest={angebote:[],t:rand(RPW.ersteWelle[0],RPW.ersteWelle[1]),seq:0,erst:false}; return S.rest; }
 /* 0 = knapp bei Kasse, 1 = dickes Polster: wie viele Tage das Geld die
    laufenden Kosten traegt. Mit Kredit zaehlt man als knapper. */
 function restDruck(){
-  const kosten=Math.max(60,(typeof fixedCosts==='function'?fixedCosts():0)+(typeof dailyWages==='function'?dailyWages():0));
-  let d=clamp((S.money/kosten-4)/26,0,1);
-  if(S.loan) d*=0.5;
+  const DR=RPW.druck, kosten=Math.max(DR.kostenMin,(typeof fixedCosts==='function'?fixedCosts():0)+(typeof dailyWages==='function'?dailyWages():0));
+  let d=clamp((S.money/kosten-DR.tageAb)/DR.tageSpanne,0,1);
+  if(S.loan) d*=DR.mitKredit;
   return d;
 }
 /* Eine Lieferung bei Ratzke. zufall (0..1) nur fuer Tests. */
 function restWelle(zufall){
   const R=restDaten(), d=restDruck(), pool=PACKS.filter(packOffen);
   const w=zufall===undefined?Math.random():zufall;
-  const pLeer=0.15+0.4*d, pViel=0.28-0.2*d;
-  let n=!pool.length||w<pLeer?0:w>1-pViel?3+Math.floor(Math.random()*3):1+Math.floor(Math.random()*2);
+  const RP=RPW, pLeer=RP.leer.grund+RP.leer.jeDruck*d, pViel=RP.viel.grund+RP.viel.jeDruck*d;
+  let n=!pool.length||w<pLeer?0:w>1-pViel?RP.vielN[0]+Math.floor(Math.random()*RP.vielN[1]):RP.normalN[0]+Math.floor(Math.random()*RP.normalN[1]);
   /* die allererste Lieferung nach der Freischaltung ist nie leer */
   if(!R.erst&&pool.length){ n=Math.max(n,2); R.erst=true; }
   for(let i=0;i<n&&R.angebote.length<RESTPOSTEN.max;i++){
-    const pk=pick(pool), vorrat=1+(Math.random()<0.35?1:0)+(Math.random()<0.12?1:0);
-    R.angebote.push({id:++R.seq,pack:pk.id,preis:Math.max(5,Math.round(packPreis(pk)*rand(0.85,1.12)/5)*5),vorrat,bis:rand(...RESTPOSTEN.dauer)}); }
+    const pk=pick(pool), vorrat=1+(Math.random()<RP.vorrat.zwei?1:0)+(Math.random()<RP.vorrat.drei?1:0);
+    R.angebote.push({id:++R.seq,pack:pk.id,preis:Math.max(WIRT.einkauf.pakete.min,Math.round(packPreis(pk)*rand(RP.preis[0],RP.preis[1])/WIRT.einkauf.pakete.runden)*WIRT.einkauf.pakete.runden),vorrat,bis:rand(...RESTPOSTEN.dauer)}); }
   /* naechste Lieferung: wer gut dasteht, wartet laenger */
-  R.t=rand(...RESTPOSTEN.welle)*(0.7+0.9*d);
+  R.t=rand(...RESTPOSTEN.welle)*(RP.takt.grund+RP.takt.jeDruck*d);
   return n;
 }
 function restTick(dt){
@@ -49977,7 +50063,7 @@ function onlineListe(){
    die Wirkung der Einstellungen sieht. S.onlineLog: abgeschlossene
    Tage; der laufende Tag kommt aus DS.
    --------------------------------------------------------- */
-function versandLoehne(){ return r2(VS_PACKER.reduce((a,id)=>{ const st=STAFF.find(x=>x.id===id); return a+(st&&S.staff[id]?r2(st.wage*wageOf(id)*(inPause(id)?0.3:1)):0); },0)); }
+function versandLoehne(){ return r2(VS_PACKER.reduce((a,id)=>{ const st=STAFF.find(x=>x.id===id); return a+(st&&S.staff[id]?r2(st.wage*wageOf(id)*(inPause(id)?WIRT.personal.pause:1)):0); },0)); }
 function onlineTag(){
   const pN=DS.onPortoN||{1:0,3:0,6:0};
   return {tag:S.day,b:DS.onB|0,abbr:DS.onAbbr|0,ware:r2(DS.onWare||0),geb:r2(DS.versandGeb||0),rabatt:r2(DS.onRabatt||0),ek:r2(DS.onEk||0),
@@ -50396,7 +50482,7 @@ function lapZeichnen(body){
           (lock?`<small>ab Level ${d.lvl}</small>`:`<button data-a="deko" data-t="${d.id}" ${S.money<d.cost?'disabled':''}>${eur(d.cost)}</button>`)+'</div>'; }).join('');
   } else if(ltab==='staff'){
     hint=`Löhne heute: ${eur(dailyWages())} · werden beim Tagesabschluss abgebucht.`;
-    hint+=` Freundlichkeit im Laden: ${Math.round(friendliness()*100)} %. Höhere Löhne machen schneller und freundlicher. Außerhalb der Saison kannst du Leute in die Saisonpause schicken: 30 % Lohn, keine Arbeit, Rückkehr jederzeit ohne neue Einstellungskosten.`;
+    hint+=` Freundlichkeit im Laden: ${Math.round(friendliness()*100)} %. Höhere Löhne machen schneller und freundlicher. Außerhalb der Saison kannst du Leute in die Saisonpause schicken: ${WF.prozent(WIRT.personal.pause)} % Lohn, keine Arbeit, Rückkehr jederzeit ohne neue Einstellungskosten.`;
     h=STAFF.map(s=>{ const fehlt=s.req&&!S.up[s.req], lock=S.level<s.lvl||fehlt, has=!!S.staff[s.id];
       const isStock=s.id.indexOf('auffueller')===0;
       /* Einraeumer: Aufgaben in Reihenfolge, jede an/aus (Tom, 24.09.) */
@@ -50405,7 +50491,7 @@ function lapZeichnen(body){
           return `<div class="einrZ${an?'':' aus'}"><span class="nr">${an?e.reihe.filter(x=>!e.aus[x]).indexOf(a)+1:'–'}</span><span class="tx"><b>${AUFGABEN[a].name}</b><small>${AUFGABEN[a].desc}</small></span>`+
             btn(a,'hoch','▲',false,i===0)+btn(a,'runter','▼',false,i===e.reihe.length-1)+btn(a,'an',an?'An':'Aus',an)+`</div>`; }).join('')+`</div>`; })():'';
       const lohn=has?`<small>Lohn: ${WAGES.map(w=>`<button data-a="wage" data-t="${s.id}" data-v="${w.f}" title="${w.desc}" style="padding:4px 8px;font-size:14px;margin-right:4px;${wageOf(s.id)===w.f?'background:var(--mint);color:var(--ink)':'background:rgba(242,245,255,.12);color:var(--snow)'}">${w.name} ${eur(r2(s.wage*w.f))}</button>`).join('')}</small>`:'';
-      const pause=has?`<small>${inPause(s.id)?`In Saisonpause · ${eur(r2(s.wage*wageOf(s.id)*0.3))} pro Tag`:'Im Dienst'} <button data-a="pause" data-t="${s.id}" style="padding:4px 9px;font-size:14px;margin-left:6px;${inPause(s.id)?'background:var(--mint);color:var(--ink)':'background:rgba(242,245,255,.12);color:var(--snow)'}">${inPause(s.id)?'Zurück in den Dienst':'In Saisonpause schicken'}</button></small>`:'';
+      const pause=has?`<small>${inPause(s.id)?`In Saisonpause · ${eur(r2(s.wage*wageOf(s.id)*WIRT.personal.pause))} pro Tag`:'Im Dienst'} <button data-a="pause" data-t="${s.id}" style="padding:4px 9px;font-size:14px;margin-left:6px;${inPause(s.id)?'background:var(--mint);color:var(--ink)':'background:rgba(242,245,255,.12);color:var(--snow)'}">${inPause(s.id)?'Zurück in den Dienst':'In Saisonpause schicken'}</button></small>`:'';
       return `<div class="row${lock?' locked':''}${prio?' mitEinr':''}"><div class="rm"><b>${s.name}</b><small>${s.desc}</small><small>Einstellung ${eur(s.hire)} · Grundlohn ${eur(s.wage)} pro Tag</small>${lohn}${pause}</div>`+
         (fehlt?`<small>braucht: ${(UPGRADES.find(u=>u.id===s.req)||{name:s.req}).name}</small>`:lock?`<small>ab Level ${s.lvl}</small>`:has?`<button class="red" data-a="fire" data-t="${s.id}">Kündigen</button>`:`<button data-a="hire" data-t="${s.id}" ${S.money<s.hire?'disabled':''}>Einstellen</button>`)+prio+'</div>'; }).join('');
   } else if(ltab==='bank'){
@@ -53021,7 +53107,7 @@ function handbuchHTML(){
         `Reiter <b>Bestellen</b> › <b>Ware · Fachhandel</b>. Oben filterst du nach Sparte (F1, F2, Zubehör, Essen, Getränke).`,
         `Bei der Ware „+ 1× Preis“ drücken – ein Karton landet im Warenkorb.`,
         `„Warenkorb anzeigen“ › „Jetzt bestellen“. Die Lieferung kommt nach etwa ${LIEFERZEIT_SEK} Sekunden. Versand ${WF.euro(VERSAND,2)}, ab ${WF.euro(VERSANDFREI)} Warenwert frei.`])+
-      ab(`<b>Großhandel</b> (ab Level 8 mit eigenem Lager): dieselbe Ware im 10er-Pack (−10 %) oder 20er-Pack (−18 %). <b>Restposten</b> (ab Level 14): wechselnde Angebote, sofort gekauft, ohne Versand – dafür nur 86 % Qualität, es kann Blindgänger geben. Neue Ware schaltest du unter <b>Sortiment</b> mit Lizenzpaketen frei.`)],
+      ab(`<b>Großhandel</b> (ab Level ${SUPPLIERS[1].lvl} mit eigenem Lager): dieselbe Ware im ${SUPPLIERS[1].tiers[0].n}er-Pack (−${WF.prozent(SUPPLIERS[1].tiers[0].d)} %) oder ${SUPPLIERS[1].tiers[1].n}er-Pack (−${WF.prozent(SUPPLIERS[1].tiers[1].d)} %). <b>Restposten</b> (ab Level ${SUPPLIERS[2].lvl}): wechselnde Angebote, sofort gekauft, ohne Versand – dafür nur ${WF.prozent(SUPPLIERS[2].quality)} % Qualität, es kann Blindgänger geben. Neue Ware schaltest du unter <b>Sortiment</b> mit Lizenzpaketen frei.`)],
     ['Lieferung annehmen',
       ab(`Ohne Lager stellt der Lieferant alles vor die Ladentür auf die gelbe WARENANNAHME. Hinlaufen, mit ${E} aufheben, in den Laden tragen.`)+
       ab(`Mit Lager (ab Level 6) setzt der LKW hinten an die Rampe: Warte auf „Der Laderaum ist offen“, geh über die Brücke hinein und nimm jeden Karton mit ${E}. Ist der Laderaum leer und du bist draußen, fährt er los. Um 22 Uhr lädt der Fahrer den Rest selbst ins Lager. An gekauften Andockstationen der Logistikhalle lädt der Fahrer immer selbst ab.`)],
@@ -53073,14 +53159,14 @@ function handbuchHTML(){
     ['Gravur-Automat',
       ab(`Ab Level 9 (Bestellen › Regale & Einrichtung). Blanko-Raketen-Karton tragen und ${EH}: der Automat füllt sich (bis 12). Kunden gravieren dann selbst. Mit leeren Händen ${E}: „Eigene Rakete beschriften“, Text eingeben, „Aufdrucken“. Die Rakete gehört auf die Abschussröhren – ${Q} würde sie wegwerfen.`)],
     ['Handy',
-      ab(`${HANDY} holt das Handy heraus${COARSE?'':' (<kbd>Tab</kbd>, <kbd>H</kbd> oder <kbd>Esc</kbd> steckt es weg)'}. Apps: <b>Onlineshop</b>, <b>Team</b> (Personal, Lohn, Saisonpause, Reihenfolge der Einräumer), <b>Werbung</b> (Plakate, Radio, Sonntagsgenehmigung, Branchenbuch …), <b>Bank</b> (Kredit ab Level 5), <b>Bericht</b> (Zahlen, Ruf, Sauberkeit, Markt) und <b>Ziele</b>.`)+
+      ab(`${HANDY} holt das Handy heraus${COARSE?'':' (<kbd>Tab</kbd>, <kbd>H</kbd> oder <kbd>Esc</kbd> steckt es weg)'}. Apps: <b>Onlineshop</b>, <b>Team</b> (Personal, Lohn, Saisonpause, Reihenfolge der Einräumer), <b>Werbung</b> (Plakate, Radio, Sonntagsgenehmigung, Branchenbuch …), <b>Bank</b> (Kredit ab Level ${LOANS[0].lvl}), <b>Bericht</b> (Zahlen, Ruf, Sauberkeit, Markt) und <b>Ziele</b>.`)+
       ab(`Mit dem Eintrag im Branchenbuch (ab Level 7, mit Lager) rufen Großkunden an. ${H} nimmt an (26 Sekunden Zeit). Dann verhandelst du (5, 10 oder 20 % mehr fordern) und schließt ab. Eine Spedition holt volle Kartons aus dem Lager. Achtung: ${COARSE?'„Ablehnen“':'<kbd>Esc</kbd> im Verhandlungsfenster'} lehnt den Auftrag ab.`)],
     ['Laptop',
       ab(`${E} am Schreibtisch öffnet den Büro-Laptop mit allen Reitern: <b>Bestellen</b>, <b>Preise &amp; Markt</b>, <b>Sortiment</b> (Lizenzpakete), <b>Ausbau</b> (neue Flächen nach Kapiteln), <b>Deko</b> (Wände, Böden, Schilder, Deko-Stücke), <b>Entwicklung</b> (Labor) und <b>Laden</b> (öffnen, Tag beenden).`)+
       ab(`Der <b>Lager-PC</b> in der Versandecke (Lager Süd, neben dem DDL-Telefon) kann Bestellen, Onlineshop und Team. Das <b>Tablet</b> im Laden an der Wand neben der Hintertür ist nur zum Ware Bestellen da. Das Handy hat Onlineshop, Team, Werbung, Bank, Bericht und Ziele.`)],
     ['Personal',
       ab(`Im Handy unter Team stellst du ein: Reinigungskraft (ab Level 6), Einräumer (ab Level 9 und 12, mit Lager – die Reihenfolge seiner Aufgaben legst du mit ▲ ▼ fest), Kassierer (ab Level 11), SB-Betreuer (helfen an den SB-Kassen, einer schafft mehrere), Sicherheitsdienst (ab Level 13) und Versand (ab Level 25, mit Packstation).`)+
-      ab(`Der Lohn entscheidet über Tempo und Freundlichkeit: Mindestlohn (×0,75, sie kündigen öfter), Normal, Gut (×1,3) oder Top (×1,65). In der Saisonpause bekommen sie 30 % und arbeiten nicht.`)],
+      ab(`Der Lohn entscheidet über Tempo und Freundlichkeit: Mindestlohn (×${WF.zahlKurz(WAGES[0].f)}, sie kündigen öfter), Normal, Gut (×${WF.zahlKurz(WAGES[2].f)}) oder Top (×${WF.zahlKurz(WAGES[3].f)}). In der Saisonpause bekommen sie ${WF.prozent(WIRT.personal.pause)} % und arbeiten nicht.`)],
     ['Versand',
       ab(`Der Onlineshop (ab Level 15) bringt eine Tagespauschale. Mit der Packstation (ab Level 25, am hinteren Ende der großen Halle nach Lagererweiterung 4) kommen echte Bestellungen: Packtisch anschauen und ${E} packt die älteste Bestellung, deren Ware und Packmaterial da sind. Das Paket läuft übers Band, der Kran-Greifer stapelt es auf die Palette in der gelben Box vor Rolltor V1 (Stufe 1: eine Palette, Stufe 2: zwei, Stufe 3: drei). Vor dem Tor ist eine abgesperrte Ladezone – dort fährt nur der DDL-Fahrer.`)+
       ab(`DDL kommt nur, wenn du am <b>Wandtelefon</b> neben dem Rolltor oder per <b>Handy</b> (Onlineshop-App) anrufst: Pauschale je Abholung, dazu Porto je Paket (S ${WF.euro(VS_PORTO[1],2)}, M ${WF.euro(VS_PORTO[3],2)}, L ${WF.euro(VS_PORTO[6],2)}). Der Fahrer lädt die Paletten selbst; so lange ist die Box belegt. Sind alle Paletten voll, staut sich das Band bis an die Tische. Pakete, die seit gestern warten, kosten Ruf. Kartons, Folie und Klebeband stehen im Packmaterial-Regal neben dem Tisch – Nachschub unter Bestellen › Versandmaterial.`)+

@@ -276,9 +276,9 @@ const UPGRADES=[
   {id:'onlineshop',kat:'flaeche',lvl:15,kap:4,name:'Onlineshop',desc:'Bringt jeden Tag Umsatz nebenbei, abhängig von deinem Ruf. Mit Packstation kommen die Bestellungen als echte Pakete ins Lager und bringen deutlich mehr.',cost:()=>WIRT.ausbau.preis.onlineshop,done:()=>S.up.onlineshop},
   {id:'kundenkarte',kat:'markt',lvl:21,name:'Stammkundenkarte',desc:'Stammkunden kommen öfter wieder und zahlen bereitwilliger.',cost:()=>WIRT.ausbau.preis.kundenkarte,done:()=>S.up.kundenkarte},
   {id:'tafel',kat:'markt',lvl:23,name:'Digitale Werbetafel',desc:'Große Tafel an der Fassade. Noch einmal deutlich mehr Kundschaft.',cost:()=>WIRT.ausbau.preis.tafel,done:()=>S.up.tafel},
-  {id:'lizenz',kat:'markt',lvl:25,name:'Großhandelslizenz',desc:'Alle Lieferanten geben dir zusätzlich zehn Prozent Nachlass.',cost:()=>WIRT.ausbau.preis.lizenz,done:()=>S.up.lizenz},
+  {id:'lizenz',kat:'markt',lvl:25,name:'Großhandelslizenz',desc:`Alle Lieferanten geben dir zusätzlich ${WF.zahlwort(WF.prozWeniger(WIRT.einkauf.grosshandelslizenz))} Prozent Nachlass.`,cost:()=>WIRT.ausbau.preis.lizenz,done:()=>S.up.lizenz},
   {id:'klima',kat:'einr',lvl:27,name:'Klima und Musikanlage XL',desc:'Deutlich bessere Stimmung, Kunden bleiben spürbar länger.',cost:()=>WIRT.ausbau.preis.klima,done:()=>S.up.klima},
-  {id:'meister',kat:'markt',lvl:30,name:'Meisterbrief Pyrotechnik',desc:'Die höchste Stufe. Großaufträge zahlen ein Drittel mehr.',cost:()=>WIRT.ausbau.preis.meister,done:()=>S.up.meister},
+  {id:'meister',kat:'markt',lvl:30,name:'Meisterbrief Pyrotechnik',desc:`Die höchste Stufe. Großaufträge zahlen ${WF.mehrText(WIRT.auftrag.meister)} mehr.`,cost:()=>WIRT.ausbau.preis.meister,done:()=>S.up.meister},
   {id:'shop_halb',kat:'flaeche',lvl:3,name:'Ladenerweiterung 1 – etwas mehr Platz',desc:'Die zugemauerte Hälfte deines eigenen Ladenlokals: rund 70 Quadratmeter mehr, das zweite Schaufenster und zwei weitere Regalplätze. Die Trennwand fällt beim Kauf ganz weg — ein Raum, kein Pfeiler, kein Sturz. Dahinter liegt auch die Tür zum Testfeld.',cost:()=>WIRT.ausbau.preis.shop_halb,done:()=>S.up.shop_halb},
   {id:'testfeld',kat:'flaeche',lvl:5,req:'shop_halb',name:'Testfeld freischalten',desc:'Der abgesperrte Hof hinter dem Laden wird dein Testfeld: Zündtisch, Abschussröhren und Mörserbatterie. Erst damit kannst du selbst zünden — und was du gezündet hast, spricht sich herum.',cost:()=>WIRT.ausbau.preis.testfeld,done:()=>S.up.testfeld},
   {id:'shop_gross',kat:'flaeche',lvl:11,req:'shop_halb',kap:3,name:'Ladenerweiterung 2 – deutlich mehr Platz',desc:'Kauft das leerstehende Ladenlokal nebenan. Die Seitenwand wird durchbrochen, die Schaufenster werden entmauert: rund 142 Quadratmeter mehr Fläche und zehn zusätzliche Regalplätze.',cost:()=>WIRT.ausbau.preis.shop_gross,done:()=>S.up.shop_gross},
@@ -372,11 +372,11 @@ const STAFF=[
    SUP_ALT leitet sie auf die neue Stufe um. */
 const SUPPLIERS=[
   {id:'fachhandel',lvl:1,name:'Pyro-Fachhandel Brandt',short:'Fachhandel',desc:'Dein Fachhändler um die Ecke: alles aus deinem Sortiment, jeder Karton einzeln zum Listenpreis.',
-    mult:1.00,quality:1.00,delay:[4,8],tiers:[{n:1,d:0}]},
+    mult:WIRT.einkauf.lieferant.fachhandel.mult,quality:WIRT.einkauf.lieferant.fachhandel.qualitaet,delay:[4,8],tiers:WIRT.einkauf.lieferant.fachhandel.staffel},
   {id:'grosshandel',lvl:8,kap:2,name:'Feuerwerk-Großhandel Kowalski',short:'Großhandel',desc:'Dieselbe Ware wie beim Fachhandel, aber nur im Zehner- oder Zwanzigerpack – und dafür günstiger.',
-    mult:1.00,quality:1.00,delay:[6,10],tiers:[{n:10,d:0.10},{n:20,d:0.18}]},
+    mult:WIRT.einkauf.lieferant.grosshandel.mult,quality:WIRT.einkauf.lieferant.grosshandel.qualitaet,delay:[6,10],tiers:WIRT.einkauf.lieferant.grosshandel.staffel},
   {id:'ratzke',lvl:14,name:'Restposten-Ratzke',short:'Restposten',desc:'Lagerräumungen zu Spottpreisen: bunt gemischt, halb sortiert oder ein ganzer Posten einer Sorte. Was reinkommt, entscheidet der Zufall – mal viel, mal gar nichts. Wer zuerst zugreift, hat es.',
-    mult:0.60,quality:0.86,delay:[6,12],mystery:true}
+    mult:WIRT.einkauf.lieferant.ratzke.mult,quality:WIRT.einkauf.lieferant.ratzke.qualitaet,delay:[6,12],mystery:true}
 ];
 const SUP_ALT={mertens:'fachhandel',party:'fachhandel',kowalski:'grosshandel',import:'grosshandel',premium:'grosshandel',direkt:'grosshandel'};
 /* Grosshandel ab Level 8 und mit eigenem Lager (Kapitel 2) */
@@ -792,13 +792,15 @@ function rollCustType(){
 }
 
 /* Wochenziele */
+const ZW=WIRT.ziele;
 const GOALS=[
-  {id:'umsatz',name:'Wochenumsatz',mk:l=>({need:Math.round(600+l*260),unit:'€',kind:'rev'}),pay:l=>Math.round(120+l*45)},
-  {id:'kunden',name:'Kundschaft bedienen',mk:l=>({need:Math.round(40+l*14),unit:'Kunden',kind:'cust'}),pay:l=>Math.round(100+l*40)},
-  {id:'artikel',name:'Artikel verkaufen',mk:l=>({need:Math.round(90+l*34),unit:'Artikel',kind:'sold'}),pay:l=>Math.round(110+l*42)},
-  {id:'f2',name:'Feuerwerk F2 absetzen',mk:l=>({need:Math.round(30+l*16),unit:'F2-Artikel',kind:'f2'}),pay:l=>Math.round(150+l*55)},
-  {id:'sauber',name:'Sauber bleiben',mk:l=>({need:5,unit:'Tage ohne Beschwerde',kind:'clean'}),pay:l=>Math.round(130+l*40)},
-  {id:'gross',name:'Großaufträge erfüllen',mk:l=>({need:Math.max(1,Math.round(l/5)),unit:'Aufträge',kind:'orders'}),pay:l=>Math.round(200+l*60)}
+  /* Ziel- und Praemienformeln: a + b*Level aus 01c-wirtschaft.js (WIRT.ziele) */
+  {id:'umsatz',name:'Wochenumsatz',mk:l=>({need:Math.round(ZW.umsatz.ziel[0]+l*ZW.umsatz.ziel[1]),unit:'€',kind:'rev'}),pay:l=>Math.round(ZW.umsatz.praemie[0]+l*ZW.umsatz.praemie[1])},
+  {id:'kunden',name:'Kundschaft bedienen',mk:l=>({need:Math.round(ZW.kunden.ziel[0]+l*ZW.kunden.ziel[1]),unit:'Kunden',kind:'cust'}),pay:l=>Math.round(ZW.kunden.praemie[0]+l*ZW.kunden.praemie[1])},
+  {id:'artikel',name:'Artikel verkaufen',mk:l=>({need:Math.round(ZW.artikel.ziel[0]+l*ZW.artikel.ziel[1]),unit:'Artikel',kind:'sold'}),pay:l=>Math.round(ZW.artikel.praemie[0]+l*ZW.artikel.praemie[1])},
+  {id:'f2',name:'Feuerwerk F2 absetzen',mk:l=>({need:Math.round(ZW.f2.ziel[0]+l*ZW.f2.ziel[1]),unit:'F2-Artikel',kind:'f2'}),pay:l=>Math.round(ZW.f2.praemie[0]+l*ZW.f2.praemie[1])},
+  {id:'sauber',name:'Sauber bleiben',mk:l=>({need:ZW.sauber.tage,unit:'Tage ohne Beschwerde',kind:'clean'}),pay:l=>Math.round(ZW.sauber.praemie[0]+l*ZW.sauber.praemie[1])},
+  {id:'gross',name:'Großaufträge erfüllen',mk:l=>({need:Math.max(1,Math.round(l/ZW.gross.levelJeAuftrag)),unit:'Aufträge',kind:'orders'}),pay:l=>Math.round(ZW.gross.praemie[0]+l*ZW.gross.praemie[1])}
 ];
 function levelUnlocks(l){
   const out=[];

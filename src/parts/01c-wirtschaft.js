@@ -128,7 +128,21 @@ const WIRT={
   einkauf:{
     lieferSek:5,        // s bis die Lieferung da ist (x Ereignis "Stau" 2,1)
     liefergebuehr:5.9,  // € je Bestellung (VERSAND - Namensfalle: das ist der EINGANG, nicht der Onlineversand)
-    lieferfreiAb:150    // € Warenwert, ab dem die Liefergebuehr entfaellt (VERSANDFREI)
+    lieferfreiAb:150,   // € Warenwert, ab dem die Liefergebuehr entfaellt (VERSANDFREI)
+    /* Lieferanten (SUPPLIERS in 02-data): mult = Preisfaktor, qualitaet (Restposten: Blindgaenger), Mengenstaffel n/d (Rabatt) */
+    lieferant:{
+      fachhandel:{mult:1.00,qualitaet:1.00,staffel:[{n:1,d:0}]},
+      grosshandel:{mult:1.00,qualitaet:1.00,staffel:[{n:10,d:0.10},{n:20,d:0.18}]},
+      ratzke:{mult:0.60,qualitaet:0.86}
+    },
+    grosshandelslizenz:0.9,   // Ausbau "Grosshandelslizenz": alle Einkaufspreise x0,9 (gilt nicht fuer Regale, Packmaterial)
+    /* Wundertueten/Themenpakete: Preis = mittlerer Karton-EK x Kartons x Faktor, auf 5 € gerundet (mind. 5 €) */
+    pakete:{rabatt:{tuete:0.62,kiste:0.58,palette:0.52},sonstige:0.7,themen:0.6,sorten:0.56,jackpot:0.12,teuerAb:6,runden:5,min:5},
+    /* Restposten-Ratzke: Angebote kommen in Wellen; wer viel Geld hat (druck -> 1), bekommt seltener und weniger */
+    restposten:{welle:[70,260],dauer:[120,360],max:8,ersteWelle:[15,40],
+      druck:{kostenMin:60,tageAb:4,tageSpanne:26,mitKredit:0.5},
+      leer:{grund:0.15,jeDruck:0.4}, viel:{grund:0.28,jeDruck:-0.2}, vielN:[3,3], normalN:[1,2],
+      vorrat:{zwei:0.35,drei:0.12}, preis:[0.85,1.12], takt:{grund:0.7,jeDruck:0.9}}
   },
   /* ---------- Onlineshop / Versand (Ausgang) ----------
      Quellen siehe 11c-versand.js Kopf "Versand-Wirtschaft": Baymard 2024/25 (39-48 % Abbrueche wegen
@@ -189,6 +203,12 @@ const WIRT={
     }
   },
   personal:{
+    /* Lohnstufen (WAGES in 11-staff): f x Grundlohn; f wirkt auf Tempo (0,55 + 0,48 f) und Freundlichkeit
+       (= Schnitt der f) -> Preistoleranz (+(f-1)*0,12) und Geduld (0,72 + 0,3 f) */
+    lohnstufen:[0.75,1.00,1.30,1.65],
+    pause:0.3,          // Saisonpause: 30 % Lohn, keine Arbeit, Rueckkehr ohne neue Einstellung
+    kuendigung:{unter:0.8,chanceTag:0.14},   // Lohnstufe < 0,8: kuendigt mit 14 % je Tag (Ruf: ruf.kuendigung)
+    tempo:{grund:0.55,jeLohn:0.48},
     einstellung:{reinigung:250, auffueller:450, auffueller2:600, kassierer:600, kassierer2:600, kassierer3:600, security:800, packer:700, packer2:750, packer3:800},   // € einmalig
     lohn:{reinigung:55, auffueller:110, auffueller2:130, kassierer:145, kassierer2:140, kassierer3:140, security:190, packer:165, packer2:170, packer3:175}   // € Grundlohn je Tag (x Lohnstufe)
   },
@@ -198,6 +218,60 @@ const WIRT={
   regal:{ // Preis = grund + jeWeiteres x schon aufgestellte derselben Art (regalPreis)
     verkauf:{klein:{grund:45,jeWeiteres:28}, standard:{grund:130,jeWeiteres:70}, hoch:{grund:260,jeWeiteres:95}, kuehl:{grund:430,jeWeiteres:155}, gondel:{grund:560,jeWeiteres:190}, eck:{grund:480,jeWeiteres:165}, gross:{grund:640,jeWeiteres:210}, tisch:{grund:220,jeWeiteres:80}, tischgross:{grund:340,jeWeiteres:120}, gitter:{grund:140,jeWeiteres:50}, gitter2:{grund:210,jeWeiteres:75}, gitter3:{grund:290,jeWeiteres:100}, kasse:{grund:120,jeWeiteres:60}},
     lager:{standard:{grund:0,jeWeiteres:0}, hoch:{grund:520,jeWeiteres:150}, schwer:{grund:880,jeWeiteres:240}}
+  },
+  /* ---------- Grossauftraege (Telefon, 10b-pyro) ---------- */
+  auftrag:{
+    kartons:[{abLevel:15,n:[4,9]},{abLevel:10,n:[3,6]},{abLevel:0,n:[2,4]}],   // Kartons je Auftrag
+    zweiSorten:0.5,                 // ab 4 Kartons: 2 oder 3 Sorten
+    stammJe:0.02, stammMax:0.08,    // Stammkunde: + 2 % je frueherem Auftrag, max + 8 %
+    nachgeben:0.35,                 // zu hoch gepokert: Angebot steigt nur um 35 % des Schritts
+    meister:1.33,                   // Ausbau "Meisterbrief": Auszahlung x1,33
+    flau:{grund:1.9,jeSaison:0.9,min:0.8,max:1.9},   // Nebensaison: Anrufe schneller (clamp(1,9 - dayMult*0,9))
+    vollerKarton:0.9                // Karton zaehlt als voll ab 90 %
+  },
+  /* ---------- Wochenziele (GOALS in 02-data): Ziel = a + b*Level, Praemie = c + d*Level ---------- */
+  ziele:{
+    umsatz:{ziel:[600,260],praemie:[120,45]},
+    kunden:{ziel:[40,14],praemie:[100,40]},
+    artikel:{ziel:[90,34],praemie:[110,42]},
+    f2:{ziel:[30,16],praemie:[150,55]},
+    sauber:{tage:5,praemie:[130,40]},
+    gross:{levelJeAuftrag:5,praemie:[200,60]}
+  },
+  /* ---------- Herausforderungen (ERFOLGE in 02c): Praemie je Stufe; Stufe 2 meist als Warengutschrift ---------- */
+  erfolg:{
+    lohn:{
+      v_boeller:[60,320,1600,7000],
+      v_raketen:[80,400,2000,8000],
+      v_batterien:[260,1400,5000,14000],
+      v_kugeln:[300,1600,5500,16000],
+      v_sekt:[70,350,1500,5500],
+      v_essen:[60,300,1300,5000],
+      v_zubehoer:[60,300,1300,5000],
+      kunden:[80,450,2200,9000],
+      kartons:[60,300,1400,5500],
+      lkw:[70,380,1800,7000],
+      gezuendet:[80,400,1800,7000],
+      brucharten:[150,600,2400,9000],
+      hype:[90,500,2200,8000],
+      pakete:[200,900,3600,12000],
+      ddl:[180,800,3200,11000],
+      auftraege:[220,1000,4200,14000],
+      eigene:[400,1800,6000,18000],
+      v_eigene:[300,1400,5000,16000],
+      rek_tag:[120,600,2400,9000],
+      rek_kunden:[110,550,2200,8000],
+      tage:[100,500,2000,7500]
+    }
+  },
+  /* ---------- Entwicklungslabor (02d): Formeln fuer Eigenrezepte; Ergebnis wird im Spielstand gespeichert ---------- */
+  rezept:{
+    wow:{schussGrund:0.85,schussLog:0.24,zweiFarben:1.06,farbAuf:0.5,stufe2:1.18,stufe2Wow:0.14},
+    kosten:{grund:0.72,jeKlasse:0.19,farbAuf:0.62,stufe2:1.22,stufe2Klasse:0.06},
+    markt:{grund:1.75,jeWow:0.42},      // VK = Kosten x (1,75 + 0,42 Wow)
+    hype:{jeWowSchuss:3.2,grund:6},
+    entwicklung:{grund:320,jeBasis:95,jeKlasse:0.22,stufe2:1.45},   // einmalige Entwicklungskosten
+    vola:0.55
   },
   /* ---------- Bank: Kredit, Dispo ---------- */
   kredit:{
@@ -288,6 +362,11 @@ const WF={
   /* kleine Zahlen als Wort ("über acht"), sonst Ziffern */
   zahlwort:(n)=>['null','eins','zwei','drei','vier','fünf','sechs','sieben','acht','neun','zehn','elf','zwölf','dreizehn','vierzehn','fünfzehn','sechzehn','siebzehn','achtzehn','neunzehn','zwanzig'][n]||String(n),
   /* Marktplatz-Pauschale des Onlineshops je Tag (16-day endDay, Laptop-Anzeige, sim.js) */
+  /* Anteil als ganze Prozent (0,3 -> 30); Faktor ohne Nullen (1,30 -> "1,3") */
+  prozent:(f)=>Math.round(f*100),
+  zahlKurz:(f)=>String(f).replace('.',','),
+  /* Aufschlag als Wort: 1,33 -> "ein Drittel", 1,5 -> "die Hälfte", sonst "x Prozent" */
+  mehrText:(f)=>({33:'ein Drittel',25:'ein Viertel',50:'die Hälfte',100:'das Doppelte'})[Math.round((f-1)*100)]||`${Math.round((f-1)*100)} Prozent`,
   /* Faktor als "x Prozent mehr" (1,3 -> 30) bzw. als Verb fuer "weniger" (0,5 -> Halbiert) */
   prozMehr:(f)=>Math.round((f-1)*100),
   prozWeniger:(f)=>Math.round((1-f)*100),

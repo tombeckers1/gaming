@@ -27,7 +27,7 @@ for(const f of dateien){
   /* beide Seiten ruecksetzen: so geht auch der Vergleich gegen einen Zwischenstand */
   const rueck=t=>t.replace(/WIRT((?:\.[A-Za-z_$][\w$]*|\[\d+\]|\['[^']+'\])+)/g,(m,p)=>{
     const teile=[...p.matchAll(/\.([A-Za-z_$][\w$]*)|\[(\d+)\]|\['([^']+)'\]/g)].map(x=>x[1]||x[2]||x[3]);
-    const v=wert(teile); return typeof v==='number'?String(v):m; });
+    const v=wert(teile); return typeof v==='number'?String(v):(Array.isArray(v)&&v.every(x=>typeof x==='number'))?'['+v.join(',')+']':m; });
   /* lokale Kurznamen (const T=WIRT.kunden.takt) aufloesen: gelten 15 Zeilen weit, VMW & Co. (>= 3 Zeichen) in der ganzen Datei;
      die Deklaration selbst faellt weg - steht danach die alte Zeile da, war es ein reiner Umzug */
   const alias=t=>{ const L=t.split('\n'), A=[];

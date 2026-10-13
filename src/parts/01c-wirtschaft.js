@@ -92,6 +92,7 @@ const WIRT={
     dreck:{chance:0.08,mitMuell:0.04,jeFleck:7},   // Fleck je Kunde; Sauberkeit = 100 - 7 je Fleck
     ambiente:{musik:6,regallicht:6,heizung:4,fensterDreck:12,wandMax:26,bodenMax:20},
     karteAnteil:0.6,                               // 60 % zahlen mit Karte (bar: +3 XP ohne Rueckgeld-Fehler)
+    preisAmpel:{einige:0.2,viele:0.45},           // Laptop-Hinweis 'Einige zoegern' / 'Viele lassen es liegen' (lo + x) - weicht von kauf.spanne 0,5 ab (fuers Balancing)
     sb:{maxKorb:3,maxKorbBetreut:8,wahl:0.45,wahlBetreut:0.6,problemGrund:0.18,problemJeArtikel:0.025,problemMax:0.36},
     hype:{max:100,verfallJeSek:1.1}                // Hype aus dem Testfeld: + P.hype je Stueck, faellt 1,1/s, Tagesende 0
   },
@@ -227,7 +228,9 @@ const WIRT={
     nachgeben:0.35,                 // zu hoch gepokert: Angebot steigt nur um 35 % des Schritts
     meister:1.33,                   // Ausbau "Meisterbrief": Auszahlung x1,33
     flau:{grund:1.9,jeSaison:0.9,min:0.8,max:1.9},   // Nebensaison: Anrufe schneller (clamp(1,9 - dayMult*0,9))
-    vollerKarton:0.9                // Karton zaehlt als voll ab 90 %
+    vollerKarton:0.9,               // Karton zaehlt als voll ab 90 %
+    /* Telefon-Takt in Sekunden echter Zeit (x Nebensaison-Faktor flau, / Ereignis "Veranstalter") */
+    takt:{start:120,keineWare:90,klingeln:26,verpasst:[60,110],nachAnnahme:[150,260],nachAblehnung:[70,130],abholung:[18,30]}
   },
   /* ---------- Wochenziele (GOALS in 02-data): Ziel = a + b*Level, Praemie = c + d*Level ---------- */
   ziele:{

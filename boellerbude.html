@@ -906,6 +906,7 @@ const WIRT={
     dreck:{chance:0.08,mitMuell:0.04,jeFleck:7},   // Fleck je Kunde; Sauberkeit = 100 - 7 je Fleck
     ambiente:{musik:6,regallicht:6,heizung:4,fensterDreck:12,wandMax:26,bodenMax:20},
     karteAnteil:0.6,                               // 60 % zahlen mit Karte (bar: +3 XP ohne Rueckgeld-Fehler)
+    preisAmpel:{einige:0.2,viele:0.45},           // Laptop-Hinweis 'Einige zoegern' / 'Viele lassen es liegen' (lo + x) - weicht von kauf.spanne 0,5 ab (fuers Balancing)
     sb:{maxKorb:3,maxKorbBetreut:8,wahl:0.45,wahlBetreut:0.6,problemGrund:0.18,problemJeArtikel:0.025,problemMax:0.36},
     hype:{max:100,verfallJeSek:1.1}                // Hype aus dem Testfeld: + P.hype je Stueck, faellt 1,1/s, Tagesende 0
   },
@@ -1041,7 +1042,9 @@ const WIRT={
     nachgeben:0.35,                 // zu hoch gepokert: Angebot steigt nur um 35 % des Schritts
     meister:1.33,                   // Ausbau "Meisterbrief": Auszahlung x1,33
     flau:{grund:1.9,jeSaison:0.9,min:0.8,max:1.9},   // Nebensaison: Anrufe schneller (clamp(1,9 - dayMult*0,9))
-    vollerKarton:0.9                // Karton zaehlt als voll ab 90 %
+    vollerKarton:0.9,               // Karton zaehlt als voll ab 90 %
+    /* Telefon-Takt in Sekunden echter Zeit (x Nebensaison-Faktor flau, / Ereignis "Veranstalter") */
+    takt:{start:120,keineWare:90,klingeln:26,verpasst:[60,110],nachAnnahme:[150,260],nachAblehnung:[70,130],abholung:[18,30]}
   },
   /* ---------- Wochenziele (GOALS in 02-data): Ziel = a + b*Level, Praemie = c + d*Level ---------- */
   ziele:{
@@ -26920,7 +26923,7 @@ function sprayHit(){
 /* =========================================================
    Großkunden: Anruf, Verhandlung, Abholung
    ========================================================= */
-let phone={state:null,t:0,cd:120,call:null}, order=null;
+let phone={state:null,t:0,cd:WIRT.auftrag.takt.start,call:null}, order=null;
 function pyroUnlocked(){ return S&&S.up&&S.up.grosskunden; }
 function orderScale(){ return WIRT.auftrag.kartons.find(k=>S.level>=k.abLevel).n; }
 function makeCall(){
@@ -26940,15 +26943,15 @@ function makeCall(){
 }
 function updatePhone(dt){
   if(!pyroUnlocked()||phase!=='open') return;
-  if(order||phone.state){ if(phone.state==='ringing'){ phone.t-=dt; if(phone.t<=0){ phone.state=null; $('phone').textContent=''; phone.cd=rand(60,110); toast('Anruf verpasst.','bad'); } } return; }
+  if(order||phone.state){ if(phone.state==='ringing'){ phone.t-=dt; if(phone.t<=0){ phone.state=null; $('phone').textContent=''; phone.cd=rand(WIRT.auftrag.takt.verpasst[0],WIRT.auftrag.takt.verpasst[1]); toast('Anruf verpasst.','bad'); } } return; }
   /* In der Nebensaison ist im Laden wenig los, dafuer melden sich mehr
      Veranstalter. Das haelt Januar bis September lebendig. */
   const FL=WIRT.auftrag.flau, flau=clamp(FL.grund-dayMult(S.day)*FL.jeSaison,FL.min,FL.max);
   phone.cd-=dt*flau/evv('pyro');
   if(phone.cd<=0){
     const c=makeCall();
-    if(!c){ phone.cd=90; return; }
-    phone.call=c; phone.state='ringing'; phone.t=26; S.tut.phone=true; sfx.ring();
+    if(!c){ phone.cd=WIRT.auftrag.takt.keineWare; return; }
+    phone.call=c; phone.state='ringing'; phone.t=WIRT.auftrag.takt.klingeln; S.tut.phone=true; sfx.ring();
     toast('Das Handy klingelt.',COARSE?'':'xp');
   }
 }
@@ -26998,7 +27001,7 @@ function haggle(step){
     sfx.alarm(); renderDeal(line+' Dann eben nicht.');
     document.querySelectorAll('#dHaggle button').forEach(b=>b.disabled=true);
     $('dAccept').disabled=true;
-    setTimeout(()=>{ if(!dealOpen) return; closeDeal(); toast('Der Auftrag ist geplatzt.','bad'); phone.state=null; phone.call=null; phone.cd=rand(70,130); },1400);
+    setTimeout(()=>{ if(!dealOpen) return; closeDeal(); toast('Der Auftrag ist geplatzt.','bad'); phone.state=null; phone.call=null; phone.cd=rand(WIRT.auftrag.takt.nachAblehnung[0],WIRT.auftrag.takt.nachAblehnung[1]); },1400);
     return;
   }
   c.mult=r2(Math.min(c.type.ceil,c.mult+step*WIRT.auftrag.nachgeben));
@@ -27007,13 +27010,13 @@ function haggle(step){
 function acceptDeal(){
   const c=phone.call; if(!c) return;
   const pay=r2(c.value*c.mult*(S.up&&S.up.meister?WIRT.auftrag.meister:1));
-  order={name:c.name,typeId:c.type.id,items:c.items,pay,arrive:rand(18,30),t:0,done:false};
+  order={name:c.name,typeId:c.type.id,items:c.items,pay,arrive:rand(WIRT.auftrag.takt.abholung[0],WIRT.auftrag.takt.abholung[1]),t:0,done:false};
   S.stamm=S.stamm||{}; S.stamm[c.type.id]=(S.stamm[c.type.id]||0)+1;
-  closeDeal(); phone.state=null; phone.call=null; phone.cd=rand(150,260);
+  closeDeal(); phone.state=null; phone.call=null; phone.cd=rand(WIRT.auftrag.takt.nachAnnahme[0],WIRT.auftrag.takt.nachAnnahme[1]);
   sfx.cash(); toast(`Auftrag über ${eur(pay)} angenommen. Die Ware geht aus dem Lager raus.`,'money');
   addXP(WIRT.xp.auftragAngenommen,'Auftrag an Land gezogen');
 }
-function declineDeal(){ closeDeal(); phone.state=null; phone.call=null; phone.cd=rand(70,130); toast('Abgelehnt.'); }
+function declineDeal(){ closeDeal(); phone.state=null; phone.call=null; phone.cd=rand(WIRT.auftrag.takt.nachAblehnung[0],WIRT.auftrag.takt.nachAblehnung[1]); toast('Abgelehnt.'); }
 function closeDeal(){ $('deal').classList.remove('show'); dealOpen=false; paused=false; requestLock(); }
 /* --- Versand aus dem Lager --- */
 function orderNeed(t){ if(!order) return 0; const it=order.items.find(x=>x.type===t); return it?it.cartons-it.loaded:0; }
@@ -49062,8 +49065,8 @@ function openLaptop(tab,geraet){ if(typeof handyOpen!=='undefined'&&handyOpen) c
 function closeLaptop(relock){ laptopOpen=false; korbOpen=false; $('korbOv').classList.remove('show'); $('laptop').classList.remove('show'); if(relock) requestLock(); else if(lockWorked&&!COARSE&&!locked&&!summaryOpen&&!levelOpen) showPause(); }
 function priceHint(t){ const r=S.prices[t]/marketOf(t), lo=priceTol();
   if(r<=lo) return ['ok','Kunden greifen gern zu'];
-  if(r<=lo+0.2) return ['warn','Einige zögern'];
-  if(r<lo+0.45) return ['no','Viele lassen es liegen'];
+  if(r<=lo+WIRT.kunden.preisAmpel.einige) return ['warn','Einige zögern'];
+  if(r<lo+WIRT.kunden.preisAmpel.viele) return ['no','Viele lassen es liegen'];
   return ['no','Zu dem Preis kauft niemand']; }
 /* Verkaufspreis auf das aktuelle Marktniveau setzen */
 function setPreisAufMarkt(t,f){
@@ -53160,7 +53163,7 @@ function handbuchHTML(){
       ab(`Ab Level 9 (Bestellen › Regale & Einrichtung). Blanko-Raketen-Karton tragen und ${EH}: der Automat füllt sich (bis 12). Kunden gravieren dann selbst. Mit leeren Händen ${E}: „Eigene Rakete beschriften“, Text eingeben, „Aufdrucken“. Die Rakete gehört auf die Abschussröhren – ${Q} würde sie wegwerfen.`)],
     ['Handy',
       ab(`${HANDY} holt das Handy heraus${COARSE?'':' (<kbd>Tab</kbd>, <kbd>H</kbd> oder <kbd>Esc</kbd> steckt es weg)'}. Apps: <b>Onlineshop</b>, <b>Team</b> (Personal, Lohn, Saisonpause, Reihenfolge der Einräumer), <b>Werbung</b> (Plakate, Radio, Sonntagsgenehmigung, Branchenbuch …), <b>Bank</b> (Kredit ab Level ${LOANS[0].lvl}), <b>Bericht</b> (Zahlen, Ruf, Sauberkeit, Markt) und <b>Ziele</b>.`)+
-      ab(`Mit dem Eintrag im Branchenbuch (ab Level 7, mit Lager) rufen Großkunden an. ${H} nimmt an (26 Sekunden Zeit). Dann verhandelst du (5, 10 oder 20 % mehr fordern) und schließt ab. Eine Spedition holt volle Kartons aus dem Lager. Achtung: ${COARSE?'„Ablehnen“':'<kbd>Esc</kbd> im Verhandlungsfenster'} lehnt den Auftrag ab.`)],
+      ab(`Mit dem Eintrag im Branchenbuch (ab Level 7, mit Lager) rufen Großkunden an. ${H} nimmt an (${WIRT.auftrag.takt.klingeln} Sekunden Zeit). Dann verhandelst du (5, 10 oder 20 % mehr fordern) und schließt ab. Eine Spedition holt volle Kartons aus dem Lager. Achtung: ${COARSE?'„Ablehnen“':'<kbd>Esc</kbd> im Verhandlungsfenster'} lehnt den Auftrag ab.`)],
     ['Laptop',
       ab(`${E} am Schreibtisch öffnet den Büro-Laptop mit allen Reitern: <b>Bestellen</b>, <b>Preise &amp; Markt</b>, <b>Sortiment</b> (Lizenzpakete), <b>Ausbau</b> (neue Flächen nach Kapiteln), <b>Deko</b> (Wände, Böden, Schilder, Deko-Stücke), <b>Entwicklung</b> (Labor) und <b>Laden</b> (öffnen, Tag beenden).`)+
       ab(`Der <b>Lager-PC</b> in der Versandecke (Lager Süd, neben dem DDL-Telefon) kann Bestellen, Onlineshop und Team. Das <b>Tablet</b> im Laden an der Wand neben der Hintertür ist nur zum Ware Bestellen da. Das Handy hat Onlineshop, Team, Werbung, Bank, Bericht und Ziele.`)],

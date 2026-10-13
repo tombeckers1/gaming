@@ -16,8 +16,8 @@ function openLaptop(tab,geraet){ if(typeof handyOpen!=='undefined'&&handyOpen) c
 function closeLaptop(relock){ laptopOpen=false; korbOpen=false; $('korbOv').classList.remove('show'); $('laptop').classList.remove('show'); if(relock) requestLock(); else if(lockWorked&&!COARSE&&!locked&&!summaryOpen&&!levelOpen) showPause(); }
 function priceHint(t){ const r=S.prices[t]/marketOf(t), lo=priceTol();
   if(r<=lo) return ['ok','Kunden greifen gern zu'];
-  if(r<=lo+0.2) return ['warn','Einige zögern'];
-  if(r<lo+0.45) return ['no','Viele lassen es liegen'];
+  if(r<=lo+WIRT.kunden.preisAmpel.einige) return ['warn','Einige zögern'];
+  if(r<lo+WIRT.kunden.preisAmpel.viele) return ['no','Viele lassen es liegen'];
   return ['no','Zu dem Preis kauft niemand']; }
 /* Verkaufspreis auf das aktuelle Marktniveau setzen */
 function setPreisAufMarkt(t,f){

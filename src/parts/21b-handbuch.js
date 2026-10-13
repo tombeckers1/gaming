@@ -7,6 +7,8 @@
    ein Level oder ein Preis, muss es hier mit.
    Am Touchgeraet stehen statt der Tasten die Knopfnamen.
    ========================================================= */
+/* Werte im Text kommen aus Katalog und Wirtschaftszentrale (Fundament Etappe 4) */
+function hbUp(id){ return UPGRADES.find(u=>u.id===id)||{lvl:'?'}; }
 function hbTaste(pc,touch){ const t=COARSE?(touch||''):pc; return t?`<kbd>${t}</kbd>`:''; }
 function handbuchHTML(){
   const E=hbTaste('E','Aktion'), EH=COARSE?'<kbd>Aktion</kbd> halten':'<kbd>E</kbd> halten', Q=hbTaste('Q','Ablegen'),
@@ -32,9 +34,9 @@ function handbuchHTML(){
       schritte([`Karton mit ${E} aufheben – du trägst immer einen Karton (mit Karre mehr, siehe unten).`,
         `Ein Regalfach anschauen: unten steht „Einräumen: Name belegt/Platz“.`,
         `${EH}: Stück für Stück kommt ins Fach. Ist der Karton leer, wird er von selbst entsorgt.`])+
-      ab(`Jedes Fach nimmt nur eine Sorte. Kühlware (Sekt, Bier, Salate …) kommt in den Sekt-Kühlschrank, Kühlpflichtiges nur dorthin. Einen Karton stellst du mit ${Q} vor dir auf den Boden. Zurückholen aus dem Regal geht mit einer Mehrwegkiste (Laptop › Einrichtung, 5 Stück 10 €): ${COARSE?'Knopf „Kiste“':'X'} nimmt eine leere Kiste, Aktion auf ein Fach räumt Ware hinein. Mit ${COARSE?'„Kiste“':'X'} schaltest du eine volle Kiste zwischen ausräumen und einräumen um. Vor einem Regal beschriftest du mit ${COARSE?'„Schild“':'L'} sein Kopfschild selbst, z. B. „XXL-Fontänen“.`)],
+      ab(`Jedes Fach nimmt nur eine Sorte. Kühlware (Sekt, Bier, Salate …) kommt in den Sekt-Kühlschrank, Kühlpflichtiges nur dorthin. Einen Karton stellst du mit ${Q} vor dir auf den Boden. Zurückholen aus dem Regal geht mit einer Mehrwegkiste (Laptop › Einrichtung, ${WIRT.ausbau.kistenJeKauf} Stück ${WF.euro(WIRT.ausbau.preis.kisten)}): ${COARSE?'Knopf „Kiste“':'X'} nimmt eine leere Kiste, Aktion auf ein Fach räumt Ware hinein. Mit ${COARSE?'„Kiste“':'X'} schaltest du eine volle Kiste zwischen ausräumen und einräumen um. Vor einem Regal beschriftest du mit ${COARSE?'„Schild“':'L'} sein Kopfschild selbst, z. B. „XXL-Fontänen“.`)],
     ['Sackkarre und Plattformwagen',
-      ab(`Kaufen im Laptop unter Bestellen › Regale & Einrichtung: <b>Sackkarre</b> ab Level 3 für 350 € (4 Kartons), <b>Plattformwagen</b> ab Level 8 mit Lager für 1.400 € (8 Kartons, ersetzt die Sackkarre). Beide sind sofort da.`)+
+      ab(`Kaufen im Laptop unter Bestellen › Regale & Einrichtung: <b>Sackkarre</b> ab Level ${hbUp('sackkarre').lvl} für ${WF.euro(WIRT.ausbau.preis.sackkarre)} (${KARREN.sackkarre.cap} Kartons), <b>Plattformwagen</b> ab Level ${hbUp('wagen').lvl} mit Lager für ${WF.euro(WIRT.ausbau.preis.wagen)} (${KARREN.wagen.cap} Kartons, ersetzt die Sackkarre). Beide sind sofort da.`)+
       schritte([`${K} holt die Karre heraus. Trägst du gerade einen Karton, kommt er gleich mit drauf.`,
         `Jeden weiteren Karton mit ${E} aufheben – vom Boden, aus dem LKW oder aus dem Lagerregal. Er kommt oben drauf, bis „Die Karre ist voll“ erscheint.`,
         `Abladen nimmt immer den obersten Karton: am Regalfach ${EH} räumt ihn ein, am freien Lagerplatz lagert ${E} ihn ein, ${Q} stellt ihn auf den Boden. Danach rückt der nächste von selbst nach.`,

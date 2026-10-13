@@ -81,6 +81,40 @@ const WIRT={
       folieJe:{1:1,3:2,6:3}, bandJe:{1:1,3:1,6:2}
     }
   },
+  /* ---------- Preise der Kataloge (Kataloge selbst bleiben in 02-data, 02b, 02e, 02i, 06-fixtures) ---------- */
+  ausbau:{
+    kistenJeKauf:5,     // Mehrwegkisten je Kauf (KISTE_STUECK, 08e) - Preis: preis.kisten
+    preis:{ // € je Ausbau (UPGRADES[].cost), Reihenfolge wie im Katalog
+      plakat:400, sackkarre:350, kisten:10, wagen:1400, terminal:320, tag4:900,
+      heizung:450, musik:380, radio:1200, cams:900, regallicht:700, alarm:2200,
+      grosskunden:500, onlineshop:3200, kundenkarte:2600, tafel:4200, lizenz:6500, klima:5400,
+      meister:12000, shop_halb:1400, testfeld:3200, shop_gross:7500, lager:1200, lager_nord:1900,
+      lager_gross:6200, shop_ost:16000, shop_sued:34000, lager_sued:11000, lager_sued2:15000, lager_west:22000,
+      rampe2:12000, lager_west2:30000, rampe3:15000, rampe4:20000, lager_west3:42000, rampe5:26000,
+      packstation:6400, packstation2:5900, packstation3:6900, eingang2:11500, kasse2:3400, labor:9800,
+      labor2:16500, gravur:1200
+    }
+  },
+  lizenz:{
+    preis:{ // € je Lizenzpaket (LIZENZEN[].cost), nach Level
+      start:0, jugend:60, zubehoer:120, klassiker:380, partydeko:520, snacks:260,
+      krach:1100, buffet:700, partynacht:1500, kleinfeuer:1800, himmel:2600, genuss:3400,
+      feuerzauber:4200, verbund:6000, getraenke:5000, festtafel:6500, nachthimmel:9000, import:13000,
+      goldklasse:15000, schabernack:16000, sternklasse:18000, grossfeuer:21000, feinkost:12000, profi:26000,
+      meister:34000, grossfeuerwerk:42000, pyroweltklasse:52000
+    }
+  },
+  personal:{
+    einstellung:{reinigung:250, auffueller:450, auffueller2:600, kassierer:600, kassierer2:600, kassierer3:600, security:800, packer:700, packer2:750, packer3:800},   // € einmalig
+    lohn:{reinigung:55, auffueller:110, auffueller2:130, kassierer:145, kassierer2:140, kassierer3:140, security:190, packer:165, packer2:170, packer3:175}   // € Grundlohn je Tag (x Lohnstufe)
+  },
+  deko:{ preis:{pflanze:70, stehtisch:95, muell:80, teppich:130, lichter:170, ventilator:210, baum:290, neon:480, automat:640, bild_raketen:180, bild_stadt:320, bild_sortiment:420, saeule:900, vitrine:1400, bild_meister:820} },
+  wand:{ preis:{creme:0, weiss:50, salbei:140, sand:250, streifen:370, anthrazit:520, raute:670, terrakotta:780, ziegel:840, metro:960, beere:1020, blume:1210, holzvert:1410, mitternacht:1620, petrol:1840, gold:2060, gras:2400, damast:2900, moire:3400, nussbaum:4200, samt:5600, marmorwand:7800} },
+  boden:{ preis:{grau:0, vinyl:70, holz:190, schach:340, eiche:520, fliese:720, beton:940, industrie:1180, teppich:1430, terrazzo:1690, marmor:1970, fischgraet:2600, chevron:3200, travertin:3900, nussfisch:4600, veneziano:5400, marmorband:6200, versailles:8500} },
+  regal:{ // Preis = grund + jeWeiteres x schon aufgestellte derselben Art (regalPreis)
+    verkauf:{klein:{grund:45,jeWeiteres:28}, standard:{grund:130,jeWeiteres:70}, hoch:{grund:260,jeWeiteres:95}, kuehl:{grund:430,jeWeiteres:155}, gondel:{grund:560,jeWeiteres:190}, eck:{grund:480,jeWeiteres:165}, gross:{grund:640,jeWeiteres:210}, tisch:{grund:220,jeWeiteres:80}, tischgross:{grund:340,jeWeiteres:120}, gitter:{grund:140,jeWeiteres:50}, gitter2:{grund:210,jeWeiteres:75}, gitter3:{grund:290,jeWeiteres:100}, kasse:{grund:120,jeWeiteres:60}},
+    lager:{standard:{grund:0,jeWeiteres:0}, hoch:{grund:520,jeWeiteres:150}, schwer:{grund:880,jeWeiteres:240}}
+  },
   /* ---------- Bank: Kredit, Dispo ---------- */
   kredit:{
     /* Kreditstufen (Kopie landet im Spielstand: {amount,remaining,term,rate,paid}).

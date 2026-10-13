@@ -81,7 +81,8 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     bb.zuendeKanal(4);
     o.vorStart4=r4.modell.visible;
     bb.run(1.3,0.05);
-    o.nachStart4=r4.modell.visible;
+    /* 13.10. (Fundament 2b): die Rakete verlaesst das Rohr - ihr Modell fliegt mit (Abschuss-Baustein), steht also nicht mehr an der Muendung */
+    o.nachStart4=r4.modell.visible&&!!r4.modell.parent&&r4.modell.position.y<m4.y+1;
     o.rak4=bb.rockets.filter(q=>Math.abs(q.p.x-m4.x)<0.6&&Math.abs(q.p.z-m4.z)<0.6).length;
     o.scharf=[1,3,5,7].map(n=>bb.kanalItem(n)&&bb.kanalItem(n).state);
     bb.run(o.dauer8+1,0.1);

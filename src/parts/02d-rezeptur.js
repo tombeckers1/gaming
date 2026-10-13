@@ -110,34 +110,37 @@ function etikettVon(id){ return ETIKETT.find(e=>e.id===id)||ETIKETT[0]; }
 function rezeptWow(r){
   const tr=traegerVon(r.traeger);
   const b=BRUCH[r.eff]||BRUCH.kugel;
-  let w=b.wow*tr.kal*(0.85+Math.log2(1+tr.schuss)*0.24);
+  const RW=WIRT.rezept.wow;
+  let w=b.wow*tr.kal*(RW.schussGrund+Math.log2(1+tr.schuss)*RW.schussLog);
   /* Zwei verschiedene Farben wirken staerker als eine */
-  if(r.A!==r.B) w*=1.06;
+  if(r.A!==r.B) w*=RW.zweiFarben;
   const fa=farbVon(r.A), fb=farbVon(r.B);
-  w*=1+(fa.auf+fb.auf)*0.5;
+  w*=1+(fa.auf+fb.auf)*RW.farbAuf;
   /* Eine zweite Stufe ist der groesste einzelne Sprung */
-  if(r.eff2){ const b2=BRUCH[r.eff2]||BRUCH.kugel; w*=1.18+b2.wow*0.14; }
+  if(r.eff2){ const b2=BRUCH[r.eff2]||BRUCH.kugel; w*=RW.stufe2+b2.wow*RW.stufe2Wow; }
   return w;
 }
 function rezeptKosten(r){
   const tr=traegerVon(r.traeger);
   const b=BRUCH[r.eff]||BRUCH.kugel;
   const fa=farbVon(r.A), fb=farbVon(r.B);
-  let c=tr.basis*(0.72+b.klasse*0.19)*(1+(fa.auf+fb.auf)*0.62);
-  if(r.eff2){ const b2=BRUCH[r.eff2]||BRUCH.kugel; c*=1.22+b2.klasse*0.06; }
+  const RK=WIRT.rezept.kosten;
+  let c=tr.basis*(RK.grund+b.klasse*RK.jeKlasse)*(1+(fa.auf+fb.auf)*RK.farbAuf);
+  if(r.eff2){ const b2=BRUCH[r.eff2]||BRUCH.kugel; c*=RK.stufe2+b2.klasse*RK.stufe2Klasse; }
   return r2(c);
 }
 /* Der Marktpreis ergibt sich aus dem Wow-Wert, nicht aus freier Eingabe */
 function rezeptMarkt(r){
   const k=rezeptKosten(r), w=rezeptWow(r);
-  return r2(k*(1.75+w*0.42));
+  return r2(k*(WIRT.rezept.markt.grund+w*WIRT.rezept.markt.jeWow));
 }
-function rezeptHype(r){ return Math.round(rezeptWow(r)*traegerVon(r.traeger).schuss*3.2+6); }
+function rezeptHype(r){ return Math.round(rezeptWow(r)*traegerVon(r.traeger).schuss*WIRT.rezept.hype.jeWowSchuss+WIRT.rezept.hype.grund); }
 function rezeptDauer(r){ return traegerVon(r.traeger).zeit+(r.eff2?1:0); }
 /* Einmalige Entwicklungskosten: der Deckel gegen Durchprobieren */
 function rezeptEntwicklung(r){
   const tr=traegerVon(r.traeger);
-  return Math.round((320+tr.basis*95)*(1+(BRUCH[r.eff]||BRUCH.kugel).klasse*0.22)*(r.eff2?1.45:1));
+  const RE=WIRT.rezept.entwicklung;
+  return Math.round((RE.grund+tr.basis*RE.jeBasis)*(1+(BRUCH[r.eff]||BRUCH.kugel).klasse*RE.jeKlasse)*(r.eff2?RE.stufe2:1));
 }
 function rezeptGueltig(r){
   if(!r||!r.traeger||!r.eff) return false;
@@ -175,7 +178,7 @@ function eigenesEintragen(e){
   P[e.id]=rezeptProdukt(e);
   if(typeof kartonWahl==='function') kartonWahl(e.id);
   if(ORDER.indexOf(e.id)<0) ORDER.push(e.id);
-  VOLA[e.id]=0.55;
+  VOLA[e.id]=WIRT.rezept.vola;
   if(!(S.prices[e.id]>0)) S.prices[e.id]=P[e.id].market;
   /* Marktindex und Modellvorrat nachziehen */
   if(S.mi&&typeof S.mi[e.id]!=='number'){ S.mi[e.id]=1; S.me[e.id]=1; S.reg[e.id]=regimeNeu(e.id); S.mh[e.id]=[1]; }
@@ -192,7 +195,7 @@ function rezepteTick(){
     e.rest--;
     if(e.rest<=0){ e.fertig=true; eigenesEintragen(e); neu++;
       toast(`${e.name} ist fertig entwickelt und steht im Bestellkatalog.`,'money');
-      statAdd('eigene',1); addXP(180,'Eigene Rezeptur'); }
+      statAdd('eigene',1); addXP(WIRT.xp.eigeneRezeptur,'Eigene Rezeptur'); }
   });
   return neu;
 }

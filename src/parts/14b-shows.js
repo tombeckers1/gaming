@@ -296,7 +296,10 @@ function playShowRoh(o,phases,prod,tag,PLAN){
   const breite=2*VM.halb;
   /* Ort zum Versatz: erst beim Zuenden gerechnet, wenn alle Versaetze
      der Show bekannt sind (VM.k) */
-  const ortAus=off=>off?versetzt(o,off*VM.k()):versetzt(o,0);
+  /* Roemische Lichter (13.10., Fundament 2b): die Oeffnung hat einzelne
+     Rohre (o.loecher, Abschuss-Baustein 14z4) - jeder Versatz landet auf
+     dem Rohr, das dort sitzt, nicht zwischen den Rohren */
+  const ortAus=off=>o.loecher&&o.loecher.length?abLochOrt(o,off?off*VM.k():0):off?versetzt(o,off*VM.k()):versetzt(o,0);
   /* Batterien: jeder Schuss und jeder Boden-Effekt aus seinem eigenen
      Rohr (04c, Tom 01.10.: so viele Loecher wie Schuss) */
   const RS=rohrSatz(o,prod);
@@ -703,8 +706,9 @@ function igniteType(t,o0,it){
   const o=o0||padOf(t), sh=p.shape;
   /* Vorfuehrung (Entwicklung): kein Hype, keine Erfahrung - sonst ging
      nach gut zwanzig Zuendungen das Level-Fenster auf und fing die Tasten */
-  if(!(typeof vfAn!=='undefined'&&vfAn)){
-    hype=Math.min(100,hype+p.hype); DS.burned=r2(DS.burned+costOf(t)); addXP(Math.max(1,Math.round(p.hype/3)));
+  /* Prototyp der eigenen Rezeptur (14z4 abProtoZuenden): kostenlos, ohne Hype */
+  if(!(typeof vfAn!=='undefined'&&vfAn)&&!p.proto){
+    hype=Math.min(WIRT.kunden.hype.max,hype+p.hype); DS.burned=r2(DS.burned+costOf(t)); addXP(Math.max(WIRT.xp.zuenden.min,Math.round(p.hype/WIRT.xp.zuenden.hypeTeiler)));
     statAdd('gezuendet',1); statAdd('hype',p.hype); }
   else vfGezuendet++;
   if(SHOWS[t]){ const tag=neuerShowTag(); emitters.push({t:0.8,k:'fuse',o}); later(0.8,()=>playShow(o,SHOWS[t](),t,tag)); return; }
@@ -737,8 +741,10 @@ function igniteType(t,o0,it){
       sfx.fizz(v);   /* danach rauscht das Klangbett der Fontaene (30.09.) */
       later(3.2,()=>shot(o,{pw:3,sz:tr.kal*1.2,eff:rz.eff,A,B,fuse:1.3,dick:1,stufen:st}));
     } else {
-      for(let i=0;i<tr.schuss;i++) later(i*0.45,()=>
-        shot(o,{pw:tr.kal>1.1?3:0,sz:tr.kal,eff:rz.eff,A,B,stufen:i===tr.schuss-1?st:null}));
+      /* Raketenset: eine Rakete je Rohr wie jede Rakete im Sortiment (13.10.,
+         Fundament 2b: Loch = Schuss) - vorher stiegen tr.schuss Raketen aus
+         einem Rohr, in dem nur eine steckte */
+      shot(o,{pw:tr.kal>1.1?3:0,sz:tr.kal,eff:rz.eff,A,B,stufen:st});
     }
     return;
   }

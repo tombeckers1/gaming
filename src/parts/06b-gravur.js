@@ -156,7 +156,7 @@ function closeGravInput(ok){
     S.carrying={type:'gravur',count:1,q:1,text:txt};
     updateCarry(); sfx.cash();
     toast(`„${txt}" ist drauf. Ab zur Abschussrampe.`,'money');
-    addXP(12,'Eigene Gravur');
+    addXP(WIRT.xp.gravur,'Eigene Gravur');
   }
   requestLock();
 }

@@ -926,7 +926,7 @@ Object.assign(FONT_EREIGNIS,{
    28.09., Tom: "wenn da eine Oeffnung ist, dann soll es am Produkt
    rausgehen". Rad und Leine erschienen erst beim Zuenden in der Luft ueber
    dem Karton. Jetzt steht das aufgebaute Gestell auf dem Tischplatz,
-   sobald das Produkt dort steht (Aufruf aus stationsModell), und die Funken
+   sobald das Produkt dort steht (Aufruf aus abAufstellen, 14z4), und die Funken
    kommen aus seinen Duesen. Im Regal bleibt es ein Karton (dims). */
 const FK_GESTELL=[];
 function fkGestellBau(t,x,y,z){
@@ -960,7 +960,7 @@ function fkGestellBau(t,x,y,z){
   g.userData.x=x; g.userData.z=z; g.userData.t=t;
   return g;
 }
-/* Aufruf aus stationsModell (05d-yard.js): nur auf dem Zuendtisch */
+/* Aufruf aus abAufstellen (Abschuss-Baustein 14z4): Station und Vorfuehrung */
 function fkGestell(t,sl){ const g=fkGestellBau(t,sl.x,sl.y,sl.z); if(!g) return null;
   for(let i=FK_GESTELL.length-1;i>=0;i--) if(!FK_GESTELL[i].parent) FK_GESTELL.splice(i,1);
   FK_GESTELL.push(g); return g; }

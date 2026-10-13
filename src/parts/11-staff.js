@@ -60,10 +60,11 @@ function freiePos(v){
 }
 /* Lohnstufen: mehr Geld heißt schneller, gründlicher und freundlicher */
 const WAGES=[
-  {f:0.75,name:'Mindestlohn',desc:'billig, aber lustlos'},
-  {f:1.00,name:'Normal',desc:'macht seinen Job'},
-  {f:1.30,name:'Gut bezahlt',desc:'flott und aufmerksam'},
-  {f:1.65,name:'Top',desc:'schnell, gründlich, freundlich'}
+  /* f: 01c-wirtschaft.js (WIRT.personal.lohnstufen) */
+  {f:WIRT.personal.lohnstufen[0],name:'Mindestlohn',desc:'billig, aber lustlos'},
+  {f:WIRT.personal.lohnstufen[1],name:'Normal',desc:'macht seinen Job'},
+  {f:WIRT.personal.lohnstufen[2],name:'Gut bezahlt',desc:'flott und aufmerksam'},
+  {f:WIRT.personal.lohnstufen[3],name:'Top',desc:'schnell, gründlich, freundlich'}
 ];
 function wageOf(id){ const v=(S&&S.wage&&S.wage[id]); return WAGES.some(w=>w.f===v)?v:1.0; }
 /* Saisonpause: von Januar bis Herbst braucht kein Laden volle Besetzung.
@@ -123,7 +124,7 @@ class Worker{
     this.path=[]; this.base=id==='security'?1.9:1.45; this.speed=this.base; this.state='idle'; this.t=0; this.carry=null; this.chase=null; this.moving=false; this.applyWage();
   }
   get pos(){ return this.g.position; }
-  applyWage(){ const f=wageOf(this.id); this.speed=this.base*(0.55+0.48*f); this.wf=f; }
+  applyWage(){ const f=wageOf(this.id); this.speed=this.base*(WIRT.personal.tempo.grund+WIRT.personal.tempo.jeLohn*f); this.wf=f; }
   walk(dt){
     if(!this.path.length){ this.moving=false; return true; }
     const t=this.path[0], dx=t.x-this.pos.x, dz=t.z-this.pos.z, d=Math.hypot(dx,dz), st=this.speed*dt;
@@ -265,13 +266,13 @@ class Worker{
 }
 function hireStaff(id){ if(staff[id]) return; staff[id]=new Worker(id); }
 function fireStaff(id){ if(!staff[id]) return; staff[id].remove(); staff[id]=null; }
-function dailyWages(){ let w=0; STAFF.forEach(s=>{ if(S.staff[s.id]) w+=r2(s.wage*wageOf(s.id)*(inPause(s.id)?0.3:1)); }); return r2(w); }
+function dailyWages(){ let w=0; STAFF.forEach(s=>{ if(S.staff[s.id]) w+=r2(s.wage*wageOf(s.id)*(inPause(s.id)?WIRT.personal.pause:1)); }); return r2(w); }
 /* Wer zu schlecht bezahlt wird, kündigt irgendwann */
 function staffMorale(){
   STAFF.forEach(st=>{
     if(!S.staff[st.id]||inPause(st.id)) return;
-    if(wageOf(st.id)<0.8&&Math.random()<0.14){
-      S.staff[st.id]=false; fireStaff(st.id); rep(-1);
+    if(wageOf(st.id)<WIRT.personal.kuendigung.unter&&Math.random()<WIRT.personal.kuendigung.chanceTag){
+      S.staff[st.id]=false; fireStaff(st.id); rep(WIRT.ruf.kuendigung);
       toast(`${st.name} hat gekündigt. Für den Lohn macht das keiner lange.`,'bad');
     }
   });

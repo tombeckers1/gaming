@@ -37,7 +37,7 @@ const K5_NEU=[
 ];
 /* Verkaufspreis je Level (Kugelbomben), siehe oben */
 const KUGEL_VK={14:9.99,15:12.99,16:15.99,17:21.99,18:24.99,19:27.99,20:31.99,21:35.99,22:44.99,23:49.99,24:54.99,25:62.99,26:79.99};
-const KUGEL_MARGE=2.33;
+const KUGEL_MARGE=WIRT.ware.kugelMarge;   /* 01c-wirtschaft.js */
 (function(){
   /* neue Kugeln wie Runde 4 (02g): Katalog, Bestellliste, Markt, Warengruppe, Lizenz */
   const insLiz=(id,liz)=>{ const L=LIZENZEN.find(l=>l.id===liz); if(L&&L.items.indexOf(id)<0) L.items.push(id); LIZ_VON[id]=liz; };

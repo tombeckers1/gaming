@@ -215,7 +215,7 @@ function addGrime(v){ if(!S) return; S.grime=clamp((S.grime||0)+v,0,1); applyGri
 function cleanWindowTick(first){
   if(windowGrime()<=0.01){ toast('Die Scheiben sind sauber.'); return; }
   winWork+=first?0.1:0.14;
-  if(winWork>=1){ winWork=0; S.grime=clamp(S.grime-0.34,0,1); applyGrime(); sfx.spray(); addXP(4);
+  if(winWork>=1){ winWork=0; S.grime=clamp(S.grime-0.34,0,1); applyGrime(); sfx.spray(); addXP(WIRT.xp.fensterPutzen);
     S.tut.fenster=true;
     toast(windowGrime()<=0.01?'Scheiben blitzen wieder.':'Schon besser. Weiter putzen.'); }
 }

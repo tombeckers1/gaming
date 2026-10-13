@@ -129,17 +129,9 @@ function buildYard(){
   {
     const s=STATION_POS.tisch, g=new THREE.Group(); g.position.set(s.x,0,s.z); scene.add(g);
     const TB=TISCH_B/2;
-    bbox(TISCH_B,0.04,1.05,perfM,0,0.9,0,g);
-    bbox(TISCH_B+0.06,0.05,0.05,steelDark,0,0.925,0.52,g); bbox(TISCH_B+0.06,0.05,0.05,steelDark,0,0.925,-0.52,g);
-    bbox(0.05,0.05,1.07,steelDark,TB+0.02,0.925,0,g); bbox(0.05,0.05,1.07,steelDark,-TB-0.02,0.925,0,g);
-    for(const [x,z] of [[-TB+0.11,-0.42],[TB-0.11,-0.42],[-TB+0.11,0.42],[TB-0.11,0.42],[0,-0.42],[0,0.42]]){
-      bbox(0.07,0.88,0.07,steelDark,x,0.44,z,g);
-      bbox(0.12,0.025,0.12,rubber,x,0.012,z,g,false);
-    }
-    bbox(TISCH_B-0.2,0.03,0.16,steelDark,0,0.3,0.42,g,false);
-    bbox(TISCH_B-0.2,0.03,0.16,steelDark,0,0.3,-0.42,g,false);
-    bbox(0.06,0.06,0.9,steelDark,TB-0.15,0.3,0,g,false);
-    bbox(0.06,0.06,0.9,steelDark,-TB+0.15,0.3,0,g,false);
+    /* Lochblechtisch: Abschuss-Baustein (14z4), dieselbe Bauart steht in der Vorfuehrung */
+    abMatSetzen({perf:perfM,stahl:steel,stahlDunkel:steelDark,gummi:rubber});
+    abTischBau(g,0,0,TISCH_B);
     /* Kanalnummern an der Vorderkante, je Platz eine */
     for(let i=0;i<s.cap;i++) plane(0.1,0.064,kanalMat(KANAL_START.tisch+i),TISCH_X[i],0.915,0.549,0,g);
     const hit=bbox(TISCH_B+0.1,0.95,1.15,hitM,0,0.62,0,g,false);
@@ -160,33 +152,9 @@ function buildYard(){
   {
     const s=STATION_POS.rampe, g=new THREE.Group(); g.position.set(s.x,0,s.z); scene.add(g);
     const TT=RAMPE_TISCH;
-    bbox(1.3,0.04,0.74,perfM,0,TT-0.02,0,g);
-    bbox(1.36,0.05,0.05,steelDark,0,TT-0.025,0.37,g); bbox(1.36,0.05,0.05,steelDark,0,TT-0.025,-0.37,g);
-    bbox(0.05,0.05,0.76,steelDark,0.66,TT-0.025,0,g); bbox(0.05,0.05,0.76,steelDark,-0.66,TT-0.025,0,g);
-    for(const [x,z] of [[-0.58,-0.3],[0.58,-0.3],[-0.58,0.3],[0.58,0.3]]){
-      bbox(0.06,TT-0.05,0.06,steelDark,x,(TT-0.05)/2,z,g);
-      bbox(0.11,0.025,0.11,rubber,x,0.012,z,g,false); }
-    bbox(1.1,0.03,0.12,steelDark,0,0.26,0.3,g,false); bbox(1.1,0.03,0.12,steelDark,0,0.26,-0.3,g,false);
-    const tubeM=MAT.ober('graphit','blank',{side:THREE.DoubleSide});   /* side vorher nachtraeglich je Rohr gesetzt */
-    const A=ROHR_ACHSE, c=Math.cos(A.neig), sn=Math.sin(A.neig);
-    for(let i=0;i<s.cap;i++){
-      const x=RAMPE_X[i];
-      const t=new THREE.Mesh(new THREE.CylinderGeometry(0.062,0.062,A.halb*2,20,1,true),tubeM);
-      t.position.set(x,A.y,A.z); t.rotation.x=A.neig;
-      if(HIQ) t.castShadow=true; g.add(t);
-      const inner=new THREE.Mesh(new THREE.CylinderGeometry(0.056,0.056,A.halb*2-0.03,16,1,true),MAT.ober('tiefschwarz','matt',{side:THREE.DoubleSide}));
-      inner.position.copy(t.position); inner.rotation.copy(t.rotation); g.add(inner);
-      /* Boden des Rohrs, Muendungsring, Schelle */
-      const fussY=A.y-c*A.halb, fussZ=A.z-sn*A.halb;
-      const boden=new THREE.Mesh(new THREE.CylinderGeometry(0.06,0.06,0.012,20),steelDark); boden.position.set(x,fussY,fussZ); boden.rotation.x=A.neig; g.add(boden);
-      const ring=new THREE.Mesh(new THREE.TorusGeometry(0.064,0.013,8,18),steel);
-      ring.rotation.x=Math.PI/2+A.neig; ring.position.set(x,A.y+c*A.halb,A.z+sn*A.halb); g.add(ring);
-      const schelle=new THREE.Mesh(new THREE.TorusGeometry(0.066,0.012,8,18),steelDark);
-      schelle.rotation.x=Math.PI/2+A.neig; schelle.position.set(x,A.y-c*A.halb*0.55,A.z-sn*A.halb*0.55); g.add(schelle);
-      /* schwere Fussplatte mit zwei Stuetzen zur Schelle */
-      bbox(0.24,0.022,0.24,steelDark,x,TT+0.011,fussZ,g,false);
-      for(const sx of [-1,1]){ const st=bbox(0.014,0.2,0.014,steelDark,x+sx*0.085,TT+0.1,fussZ+0.02,g,false); st.rotation.z=-sx*0.32; }
-    }
+    /* Tisch und Rohre: Abschuss-Baustein (14z4) - dieselben Rohre wie in der Vorfuehrung */
+    abRampeBau(g,0,0,1.3);
+    for(let i=0;i<s.cap;i++) abRohrBau(g,RAMPE_X[i],0);
     for(let i=0;i<s.cap;i++) plane(0.1,0.064,kanalMat(KANAL_START.rampe+i),RAMPE_X[i],TT-0.03,0.378,0,g);
     const hit=bbox(1.4,1.5,0.85,hitM,0,0.78,0,g,false);
     stations.rampe={id:'rampe',g,items:[],cap:s.cap,hit};
@@ -217,7 +185,6 @@ function buildYard(){
       return new THREE.MeshStandardMaterial({map:t,metalness:0.62,roughness:0.44}); })();
     const stahl=MAT.get('stahlMittel');
     const lack =MAT.ober('signalgelb','lackMetall');
-    const rohrM=MAT.ober('anthrazit','blank',{side:THREE.DoubleSide});   /* side vorher nachtraeglich je Rohr gesetzt */
     /* Bodenplatte aus Riffelblech auf vier Fuessen */
     bbox(2.4,0.05,1.16,riffel,0,0.055,0,g);
     for(const sx of [-1.06,1.06]) for(const sz of [-0.46,0.46])
@@ -229,12 +196,6 @@ function buildYard(){
       const dia=bbox(0.05,0.05,0.82,stahl,sx,0.39,0,g,false); dia.rotation.x=0.88;
     }
     for(const sz of [-0.5,0.5]) bbox(2.24,0.07,0.07,stahl,0,0.68,sz,g,false);
-    /* Rohrschellen: je zwei Halbschalen mit Schraube */
-    const kalX=[-0.72,0,0.78], kalR=MOERSER_R;
-    kalX.forEach((x,i)=>{ for(const y of [0.42,0.66]){
-      const sch=new THREE.Mesh(new THREE.TorusGeometry(kalR[i]+0.03,0.026,6,18),stahl);
-      sch.rotation.x=Math.PI/2; sch.position.set(x,y,0); g.add(sch);
-      bbox(0.05,0.05,0.09,stahl,x+kalR[i]+0.05,y,0,g,false); } });
     /* Anfahrschutz aus Stahlrohr statt Sandsaecken */
     for(const sz of [-0.78,0.78]){
       bbox(2.5,0.09,0.09,lack,0,0.5,sz,g,false);
@@ -242,25 +203,10 @@ function buildYard(){
         bbox(0.09,0.5,0.09,lack,sx,0.25,sz,g,false);
         bbox(0.2,0.04,0.2,stahl,sx,0.02,sz,g,false); }
     }
-    /* drei Rohre in aufsteigendem Kaliber */
-    const kal=[[-0.72,MOERSER_R[0],1.30],[0,MOERSER_R[1],1.55],[0.78,MOERSER_R[2],1.85]];
-    kal.forEach(([x,r,hh],i)=>{
-      const t=new THREE.Mesh(new THREE.CylinderGeometry(r,r,hh,22,1,true),rohrM);
-      t.position.set(x,0.18+hh/2,0);
-      if(HIQ) t.castShadow=true; g.add(t);
-      const innen=new THREE.Mesh(new THREE.CylinderGeometry(r*0.9,r*0.9,hh-0.04,16,1,true),MAT.ober('tiefschwarz','matt',{side:THREE.DoubleSide}));
-      innen.position.copy(t.position); g.add(innen);
-      /* Boden im Rohr, damit man nicht hindurchsieht */
-      const bo=new THREE.Mesh(new THREE.CircleGeometry(r*0.9,16),MAT.get('gummi'));
-      bo.rotation.x=-Math.PI/2; bo.position.set(x,0.2,0); g.add(bo);
-      /* Muendungswulst und Verstaerkungsringe */
-      const wulst=new THREE.Mesh(new THREE.TorusGeometry(r*1.03,r*0.17,8,20),MAT.ober('graphit','blank'));
-      wulst.rotation.x=Math.PI/2; wulst.position.set(x,0.18+hh,0); g.add(wulst);
-      for(const f of [0.3,0.62]){ const rg=new THREE.Mesh(new THREE.TorusGeometry(r*1.02,r*0.1,6,18),rohrM);
-        rg.rotation.x=Math.PI/2; rg.position.set(x,0.18+hh*f,0); g.add(rg); }
-      /* Frueher hing hier ein rotes Zuendkabel je Rohr. Die drei
-         Striche sahen aus wie vergessene Faeden. */
-      /* Kaliberschild */
+    /* drei Rohre in aufsteigendem Kaliber: Abschuss-Baustein (14z4) - mit
+       Schellen, Wulst und Ringen, dieselben Rohre wie in der Vorfuehrung */
+    abMatSetzen({riffel});
+    MOERSER_X.forEach((x,i)=>{ abMoerserBau(g,x,0,i);
       /* Kanalnummer und Kaliber des Rohrs */
       plane(0.22,0.09,kanalMat(KANAL_START.moerser+i,ROHR_KALIBER[i]),x,0.62,0.5,0,g);
     });
@@ -489,27 +435,10 @@ function alleKanaele(){
 }
 function kanalItem(k){ const e=alleKanaele().find(x=>x.kanal===k); return e?e.it:null; }
 /* Wo der Effekt eines Platzes startet: Oberkante des Produkts auf
-   dem Tisch, Muendung des Rohrs, Muendung des Moerserrohrs. jit ist
-   der seitliche Versatz eines Schusses - aus einem Rohr kommt er
-   gerade heraus, nicht irgendwo aus der Naehe. hx/hz: halbe Oeffnung
-   quer und in der Tiefe - weiter darf kein Abschuss, keine Mine und
-   keine Duese vom Mittelpunkt weg (28.09., Tom: echt). */
-const MOERSER_MUND=[1.48,1.73,2.03];
-function muendung(st,slot,t){
-  const p=STATION_POS[st.id];
-  if(st.id==='tisch'){ const h=P[t]&&P[t].dims?P[t].dims[1]:0.2;
-    const d=P[t]&&P[t].dims||[0.2,0.2,0.2], hx=d[0]/2, hz=d[2]/2;
-    return {x:p.x+TISCH_X[slot%3],y:0.93+h,z:p.z,ab:0.08,jit:Math.min(0.06,hx*0.5,hz*0.5),hx,hz,ry:stationSlot(st,slot).ry}; }
-  if(st.id==='moerser') return {x:p.x+[-0.72,0,0.78][slot%3],y:MOERSER_MUND[slot%3],z:p.z,ab:0.05,jit:0.02,hx:ROHR_INNEN[slot%3]*0.8,hz:ROHR_INNEN[slot%3]*0.8};
-  /* Roemische Lichter stehen im Rohr und ragen heraus: ihre Oeffnung
-     sind die fuenf Rohre des Buendels oben (Modell: Rohre bei +-0,52 w,
-     Hoehe 0,9 h). Vorher starteten ihre Schuesse an der Rohrmuendung
-     (1,34 m) - 20 bis 30 cm tief im Buendel (28.09., Tom: echt). */
-  const pc=P[t];
-  if(pc&&pc.shape==='candle'&&pc.dims){ const k=kerzeImRohr(slot,t);
-    return {x:k.top.x,y:k.top.y,z:k.top.z,ab:0.02,jit:0.005,hx:k.hx,hz:k.hz}; }
-  const mu=rampeMund(slot); return {x:mu.x,y:mu.y,z:mu.z,ab:0.05,jit:0.02,hx:0.045,hz:0.045};
-}
+   dem Tisch, Muendung des Rohrs, Muendung des Moerserrohrs - seit dem
+   13.10. (Fundament 2b) an EINER Stelle fuer jeden Zuend-Ort: Abschuss-
+   Baustein 14z4 (abPlatzStation, abMuendung). */
+function muendung(st,slot,t){ return abMuendung(abPlatzStation(st,slot),t); }
 function placedCount(){ let n=0; for(const k in stations) n+=stations[k].items.length; return n; }
 function bereitCount(){ let n=0; for(const k in stations) n+=stations[k].items.filter(it=>it.state==='bereit').length; return n; }
 let pultText='';
@@ -546,30 +475,8 @@ function pultLampen(){
     if(it.state==='brennt'){ m.emissive.copy(LIN(0xff3b2e)); m.emissiveIntensity=1.6; }
     else { m.emissive.copy(LIN(0x39ff7a)); m.emissiveIntensity=1.3; } });
 }
-/* Roemische Lichter stecken IM Abschussrohr (Tom, Foto 29.09.): das
-   Buendel war mit bis zu 25 cm doppelt so breit wie das Rohr (11 cm),
-   stand senkrecht auf dem Rand und machte die Neigung nicht mit. Jetzt
-   folgt es der Rohrachse, ist so schmal, dass es hineinpasst (einzelne
-   Kerzen 2-3 cm wie in echt), und das obere Drittel schaut heraus. */
-/* Abschussrohre auf dem Tisch (01.10. abends): Platte in 0,76 m, Rohr
-   0,62 m lang, um 0,1 rad vom Pult weg geneigt - Muendung in 1,38 m */
-const RAMPE_TISCH=0.76;
-const ROHR_ACHSE={y:RAMPE_TISCH+0.012+0.31*Math.cos(0.1),z:-0.055,neig:-0.1,halb:0.31,innen:0.056};
-function rampeMund(slot){ const p=STATION_POS.rampe, A=ROHR_ACHSE; return {x:p.x+RAMPE_X[slot%3],y:A.y+Math.cos(A.neig)*A.halb,z:p.z+A.z+Math.sin(A.neig)*A.halb}; }
-function kerzeImRohr(slot,t){
-  const p=STATION_POS.rampe, d=P[t].dims, w=d[0], HH=d[1]*0.9;
-  const s=Math.min(1,(ROHR_ACHSE.innen*2-0.008)/(1.41*w));
-  const c=Math.cos(ROHR_ACHSE.neig), sn=Math.sin(ROHR_ACHSE.neig);
-  const bei=u=>({x:p.x+RAMPE_X[slot%3],y:ROHR_ACHSE.y+c*u,z:p.z+ROHR_ACHSE.z+sn*u});
-  const tb=ROHR_ACHSE.halb-0.4*HH;
-  return {base:bei(tb),top:bei(tb+HH),s,neig:ROHR_ACHSE.neig,hx:0.52*w*s,hz:0.5*w*s};
-}
-function stationSlot(st,i){
-  const p=STATION_POS[st.id];
-  if(st.id==='tisch') return {x:p.x+TISCH_X[i%3],y:0.93,z:p.z,ry:Math.PI};
-  if(st.id==='moerser'){ const x=[-0.72,0,0.78][i%3]; return {x:p.x+x,y:[1.36,1.62,1.92][i%3],z:p.z,ry:rand(0,Math.PI*2)}; }
-  const mu=rampeMund(i); return {x:mu.x,y:mu.y-0.16,z:mu.z,ry:0};
-}
+/* Abschussrohre, Roemische Lichter im Rohr, Plaetze: Abschuss-Baustein 14z4
+   (RAMPE_TISCH, ROHR_ACHSE, abRohrMund, abKerze, abPlatzStation) */
 /* =========================================================
    Was auf der Station sichtbar steht. Raketen stecken mit dem Stab
    im Rohr und schauen oben heraus, jede Sorte mit eigenem Aussehen.
@@ -662,39 +569,6 @@ function kugelModell(t,slot){
   g.userData.lunte=pts[pts.length-1].clone();
   return g;
 }
-function stationsModell(st,it,sl){
-  const t=it.type, p=P[t]; if(!p) return false;
-  if(st.id==='rampe'&&(p.shape==='rocketset')&&t!=='gravur'){
-    const o=muendung(st,it.slot,t);
-    const g=raketeModell(t); g.position.set(o.x,o.y-0.01,o.z); g.rotation.x=-0.1;
-    scene.add(g); it.modell=g; return true;
-  }
-  if(st.id==='rampe'&&t==='gravur'){
-    const o=muendung(st,it.slot,t);
-    const m=makeEngraved(it.text||(S.carrying&&S.carrying.text)||'');
-    m.rotation.z=Math.PI/2; m.position.set(o.x,o.y+0.07,o.z); scene.add(m);
-    it.mesh=m; it.text=S.carrying&&S.carrying.text; return true;
-  }
-  if(st.id==='moerser'&&p.shape==='shell'){
-    const o=muendung(st,it.slot,t);
-    const g=kugelModell(t,it.slot); g.position.set(o.x,o.y,o.z); g.rotation.y=-Math.PI*0.5;
-    scene.add(g); it.modell=g; return true;
-  }
-  /* Fontaenen mit Gestell (Drehsonne, Niagara): das aufgebaute Gestell
-     steht auf dem Platz, die Funken kommen aus seinen Duesen (28.09.,
-     Tom: echt - vorher erschienen Rad und Leine erst beim Zuenden in der
-     Luft ueber dem Karton). Eigenes Feld gestell: es bleibt beim Zuenden
-     stehen und hat keine Zuendschnur-Vorlaufzeit wie ein Rohr. */
-  if(st.id==='tisch'&&typeof fkGestell==='function'){ const g=fkGestell(t,sl); if(g){ scene.add(g); it.gestell=g; return true; } }
-  /* Wunderkerzen (03.10., Tom): ohne Verpackung - die Kerzen stecken in
-     einem Mini-Podest (14q). Als gestell: es bleibt beim Zuenden stehen. */
-  if(st.id==='tisch'&&typeof kqPodestAuf==='function'){ const g=kqPodestAuf(t,sl); if(g){ scene.add(g); it.gestell=g; return true; } }
-  /* Kleinfeuerwerk (07.10., Tom: "beim Zuenden steht die Verpackung auf
-     dem Tisch, nicht das Produkt"): ausgepackt - Popper im Halter, Boeller
-     mit Zuendschnur, Frosch, Bonbons, Kreisel ... (14x) */
-  if(st.id==='tisch'&&typeof kfTischAuf==='function'){ const g=kfTischAuf(t,sl); if(g){ scene.add(g); it.gestell=g; return true; } }
-  return false;
-}
 function placeOnStation(st){
   const c=S.carrying; if(!c) return;
   const want=stationOf(c.type);
@@ -705,26 +579,11 @@ function placeOnStation(st){
     if(itemAufPlatz(st,slot)){ toast(`${P[c.type].short} gehört ins ${ROHR_NAME[slot]} (${ROHR_KALIBER[slot]}) - das ist belegt. Erst zünden.`,'bad'); return; } }
   else slot=freierPlatz(st);
   if(slot<0){ toast('Die Station ist voll. Erst zünden.','bad'); return; }
-  const sl=stationSlot(st,slot);
-  const it={type:c.type,q:c.q||1,slot,kanal:kanalVon(st,slot),state:'bereit'};
-  if(stationsModell(st,it,sl)){
-    /* eigenes Modell: Rakete im Rohr, Kugelbombe mit Zuendschnur */
-  } else if(c.type==='gravur'){
-    const m=makeEngraved(c.text||''); m.position.set(sl.x,sl.y+0.06,sl.z); m.rotation.y=sl.ry; scene.add(m);
-    it.mesh=m; it.text=c.text;
-  } else {
-    /* alle stehen mit der Breite quer zum Blick - die Schuesse laufen
-       ueber diese Breite. Vorher wurden Verbunde ueber 0,76 m quer
-       gestellt und schossen dann neben dem Karton (28.09.) */
-    if(st.id==='rampe'&&P[c.type].shape==='candle'){
-      const k=kerzeImRohr(slot,c.type); _e.set(k.neig,0,0); _q.setFromEuler(_e);
-      it.h=pools[c.type].add(new THREE.Matrix4().compose(V(k.base.x,k.base.y,k.base.z),_q,V(k.s,1,k.s)));
-    } else if(istBatterie(c.type)){
-      /* Batterie: eigenes Modell mit echten Rohren - jedes Rohr verkohlt,
-         sobald es geschossen hat; sie bleibt stehen, bis sie abgebrannt ist */
-      const b=batterieModell(c.type,sl.ry); b.g.position.set(sl.x,sl.y,sl.z); b.g.rotation.y=sl.ry; scene.add(b.g); it.batt=b;
-    } else it.h=stationsPool(c.type).add(mx(sl.x,sl.y,sl.z,sl.ry));
-  }
+  /* Darstellung: Abschuss-Baustein (14z4) - das ausgepackte Produkt,
+     an jedem Zuend-Ort gleich (Batterie mit Rohren, Rakete im Rohr,
+     Kugel in der Muendung, Buendel im Rohr, Gestell, Podest ...) */
+  const pl=abPlatzStation(st,slot);
+  const it=Object.assign(abAufstellen(pl,c.type,{text:c.text})||{},{type:c.type,q:c.q||1,slot,kanal:kanalVon(st,slot),state:'bereit'});
   st.items.push(it);
   c.count--; S.tut.build=true; sfx.pop();
   if(c.count<=0) kartonLeer(c,'Karton leer.');
@@ -732,11 +591,7 @@ function placeOnStation(st){
   toast(`Kanal ${it.kanal}: ${P[it.type].short}`);
 }
 function itemEntfernen(st,it){
-  if(it.h) it.h.pool.remove(it.h);
-  if(it.batt) it.batt.weg();
-  if(it.mesh) disposeEngraved(it.mesh);
-  if(it.modell&&it.modell.parent) it.modell.parent.remove(it.modell);
-  if(it.gestell&&it.gestell.parent) it.gestell.parent.remove(it.gestell);
+  abWeg(it);
   const i=st.items.indexOf(it); if(i>=0) st.items.splice(i,1);
 }
 function clearStations(){ for(const k in stations){ stations[k].items.slice().forEach(it=>itemEntfernen(stations[k],it)); } drawPult(); }
@@ -764,43 +619,19 @@ function brennDauer(t){
   if(sh==='battery'||sh==='fan') return 9;
   return 4;
 }
-/* Einen Platz zuenden. Liefert true, wenn etwas gezuendet wurde. */
+/* Einen Platz zuenden. Liefert true, wenn etwas gezuendet wurde.
+   Zuendschnur, Abschuss, Modell fliegt mit, Rauchrest: Abschuss-Baustein
+   (14z4 abZuenden) - hier nur, was die Station dazu tut: Blindgaenger bei
+   billiger Ware, Kanal frei nach dem Abbrand, Pult. */
 function zuendeItem(st,it,leise){
   if(!it||it.state!=='bereit') return false;
   it.state='brennt';
-  const o=muendung(st,it.slot,it.type);
-  if(it.batt) o.batt=it.batt;
-  const dud=Math.random()<clamp((1-(it.q||1))*0.65,0,0.45);
-  /* Raketen und Kugelbomben brennen erst die Zuendschnur herunter,
-     dann verlassen sie Rohr oder Moerser - und sind weg. */
-  const imRohr=it.modell||(st.id==='rampe'&&it.mesh);
-  const vor=imRohr?(st.id==='moerser'?0.75:0.4):0;
-  if(vor){
-    let lo=o;
-    if(it.modell&&it.modell.userData.lunte){ it.modell.updateMatrixWorld(true);
-      const w=it.modell.localToWorld(it.modell.userData.lunte.clone()); lo={x:w.x,y:w.y-0.05,z:w.z}; }
-    emitters.push({t:vor,k:'fuse',o:lo}); sfx.fizz(distVol(o)*0.5);
-  }
-  later(vor,()=>{
-    if(dud){ fizzle(it.type,o); return; }
-    if(it.modell) it.modell.visible=false;
-    if(st.id==='rampe'&&it.mesh) it.mesh.visible=false;
-    igniteType(it.type,o,it);
-    if(it.text) later(0.9,()=>toast(`„${it.text}" steigt auf.`,'money'));
-  });
-  const dauer=vor+(dud?2.2:brennDauer(it.type));
-  later(dauer,()=>{
-    /* abgebrannt: ein Rest Rauch, dann ist der Platz wieder frei. Er
-       steigt aus der Oeffnung, nicht daneben (28.09., Tom: echt) */
-    const dd=P[it.type].dims||[0.2,0.2,0.2], rr=st.id==='tisch'?Math.min(0.08,Math.min(dd[0],dd[2])*0.4):0.03;
-    for(let k=0;k<14;k++){ const d=randDir();
-      psSmall.emit(o.x+rand(-rr,rr),o.y,o.z+rand(-rr,rr),d[0]*0.25,Math.abs(d[1])*0.6+0.3,d[2]*0.25,0.34,0.34,0.36,rand(1.2,2.2),-0.25,0); }
-    itemEntfernen(st,it); drawPult();
-  });
+  const z=abZuenden(it.pl,it.type,it,{q:it.proto?1:(it.q||1),it,fertig:()=>{ itemEntfernen(st,it); drawPult(); if(it.proto) later(12,()=>abProtoWeg(it.type)); }});
+  if(it.text&&!z.dud) later(z.vor+0.9,()=>toast(`„${it.text}" steigt auf.`,'money'));
   if(!leise) sfx.pop();
   S.tut.launch=true;
   drawPult();
-  return dud?'dud':true;
+  return z.dud?'dud':true;
 }
 /* Die Tastkappe am Pult geht kurz herunter - man sieht, welcher
    Kanal gedrueckt wurde */

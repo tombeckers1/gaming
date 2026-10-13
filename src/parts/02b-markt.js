@@ -19,23 +19,21 @@ const VOLA={
   zfaecher:1.05, kometen:1.15, titanraketen:1.25, kugel200:1.50, finale:1.55, jumbogold:1.30, jumboleiter:1.45,
   goldgeysir:0.85, feuerbrunnen:0.9, feuersaeule:1.2, fontaene30:1.35, fontaene50:1.5, donnerwand:1.35, kugel300:1.6
 };
-function volaOf(t){ const v=VOLA[t]; if(v!==undefined) return v; const p=P[t]; return p&&p.cat===2?0.85:p&&p.cat===1?0.6:0.45; }
+function volaOf(t){ const v=VOLA[t]; if(v!==undefined) return v; const p=P[t], VS=WIRT.markt.volaStandard; return p&&p.cat===2?VS.f2:p&&p.cat===1?VS.f1:VS.zubehoer; }
 
 /* Marktphasen. amp skaliert das Tagesrauschen, rev zieht zurueck zur Mitte. */
 const REGIME={
-  fest  :{amp:0.10, rev:0.26, d:[12,30], name:'stabil',      farbe:'ok'},
-  ruhig :{amp:0.34, rev:0.15, d:[8,20],  name:'ruhig',       farbe:''},
-  normal:{amp:0.85, rev:0.07, d:[5,14],  name:'schwankend',  farbe:'warn'},
-  sturm :{amp:2.10, rev:0.04, d:[3,9],   name:'turbulent',   farbe:'no'}
+  /* amp/rev/d: 01c-wirtschaft.js (WIRT.markt.regime) */
+  fest  :{amp:WIRT.markt.regime.fest.amp, rev:WIRT.markt.regime.fest.rev, d:WIRT.markt.regime.fest.d, name:'stabil',      farbe:'ok'},
+  ruhig :{amp:WIRT.markt.regime.ruhig.amp, rev:WIRT.markt.regime.ruhig.rev, d:WIRT.markt.regime.ruhig.d,  name:'ruhig',       farbe:''},
+  normal:{amp:WIRT.markt.regime.normal.amp, rev:WIRT.markt.regime.normal.rev, d:WIRT.markt.regime.normal.d,  name:'schwankend',  farbe:'warn'},
+  sturm :{amp:WIRT.markt.regime.sturm.amp, rev:WIRT.markt.regime.sturm.rev, d:WIRT.markt.regime.sturm.d,   name:'turbulent',   farbe:'no'}
 };
 const REGIME_ALL=['fest','ruhig','normal','sturm'];
 /* Wie wahrscheinlich welche Phase ist, haengt an der Volatilitaet */
 function regimeWahl(t){
   const v=volaOf(t);
-  const w = v<0.30 ? [72,26,2,0]
-          : v<0.60 ? [32,44,23,1]
-          : v<0.95 ? [12,32,43,13]
-          :          [4,19,45,32];
+  const RW=WIRT.markt.regimeWahl, w=(RW.find(x=>v<x.bis)||RW[RW.length-1]).w;   /* wie frueher: alles andere -> letzte Zeile */
   let s=0; for(const x of w) s+=x;
   let r=Math.random()*s;
   for(let i=0;i<4;i++){ r-=w[i]; if(r<=0) return REGIME_ALL[i]; }
@@ -45,9 +43,9 @@ function regimeNeu(t){
   const k=regimeWahl(t), d=REGIME[k].d;
   return {k,t:Math.round(rand(d[0],d[1]))};
 }
-const MI_MIN=0.62, MI_MAX=1.88;
+const MI_MIN=WIRT.markt.miMin, MI_MAX=WIRT.markt.miMax;
 /* Zwei Gleichverteilungen ergeben eine brauchbare Glockenkurve */
-const gauss=()=>(Math.random()+Math.random()+Math.random()-1.5)*1.15;
+const gauss=()=>(Math.random()+Math.random()+Math.random()-1.5)*WIRT.markt.gaussBreite;
 
 const SCHOCK_KNAPP=[
   'Zoll hält eine ganze Lieferung fest',
@@ -71,7 +69,7 @@ function marktInit(){
   S.mi=S.mi||{}; S.me=S.me||{}; S.reg=S.reg||{}; S.mh=S.mh||{}; S.schock=S.schock||{};
   S.infl=+S.infl||1;
   ORDER.forEach(t=>{
-    if(typeof S.mi[t]!=='number'||!isFinite(S.mi[t])) S.mi[t]=r3(clamp(1+gauss()*0.06*volaOf(t),MI_MIN,MI_MAX));
+    if(typeof S.mi[t]!=='number'||!isFinite(S.mi[t])) S.mi[t]=r3(clamp(1+gauss()*WIRT.markt.startStreuung*volaOf(t),MI_MIN,MI_MAX));
     if(typeof S.me[t]!=='number'||!isFinite(S.me[t])) S.me[t]=S.mi[t];
     if(!S.reg[t]||!REGIME[S.reg[t].k]) S.reg[t]=regimeNeu(t);
     if(!Array.isArray(S.mh[t])||!S.mh[t].length) S.mh[t]=[S.mi[t]];
@@ -155,9 +153,10 @@ function rollMarkt(){
   S.ekVor={}; ORDER.forEach(t=>{ S.ekVor[t]=r3(miOf(t)*inflOf()); });
   const news=[];
   /* Inflation: meistens ein kleiner Schritt, selten ein groesserer */
-  let inf=rand(0.0008,0.0028);
-  if(Math.random()<0.05) inf+=rand(0.003,0.009);
-  S.infl=r3(clamp(inflOf()*(1+inf),1,4));
+  const IF=WIRT.markt.inflation, SK=WIRT.markt.schock;
+  let inf=rand(IF.min,IF.max);
+  if(Math.random()<IF.sprungChance) inf+=rand(IF.sprungMin,IF.sprungMax);
+  S.infl=r3(clamp(inflOf()*(1+inf),1,IF.deckel));
   ORDER.forEach(t=>{
     const reg=S.reg[t];
     reg.t--;
@@ -167,22 +166,22 @@ function rollMarkt(){
     const sch=S.schock[t];
     if(sch){ sch.t--; if(sch.t<=0) delete S.schock[t]; }
     let mi=miOf(t);
-    mi+=(1-mi)*r.rev + gauss()*0.045*v*r.amp;
+    mi+=(1-mi)*r.rev + gauss()*WIRT.markt.rauschen*v*r.amp;
     /* Neuer Schock? Nur bei Waren, die ueberhaupt schwanken. */
-    if(!sch&&v>=0.48&&Math.random()<0.012*v){
-      const knapp=Math.random()<0.55;
-      const f=knapp?1+rand(0.28,0.80):1-rand(0.18,0.40);
+    if(!sch&&v>=SK.abVola&&Math.random()<SK.chanceJeVola*v){
+      const knapp=Math.random()<SK.knappAnteil;
+      const f=knapp?1+rand(SK.knapp[0],SK.knapp[1]):1-rand(SK.schwemme[0],SK.schwemme[1]);
       mi*=f;
-      S.schock[t]={k:knapp?'knapp':'schwemme',t:Math.round(rand(3,9))};
-      S.reg[t]={k:'sturm',t:Math.round(rand(3,8))};
+      S.schock[t]={k:knapp?'knapp':'schwemme',t:Math.round(rand(SK.dauer[0],SK.dauer[1]))};
+      S.reg[t]={k:'sturm',t:Math.round(rand(SK.sturmDauer[0],SK.sturmDauer[1]))};
       news.push({t,knapp,text:knapp?pick(SCHOCK_KNAPP):pick(SCHOCK_SCHWEMME)});
     }
     S.mi[t]=r3(clamp(mi,MI_MIN,MI_MAX));
     /* Erwartung der Kunden laeuft traege nach */
-    S.me[t]=r3(clamp(meOf(t)+(S.mi[t]-meOf(t))*0.26,MI_MIN,MI_MAX));
-    const h=S.mh[t]; h.push(S.me[t]); if(h.length>16) h.shift();
+    S.me[t]=r3(clamp(meOf(t)+(S.mi[t]-meOf(t))*WIRT.markt.traegheit,MI_MIN,MI_MAX));
+    const h=S.mh[t]; h.push(S.me[t]); if(h.length>WIRT.markt.verlaufTage) h.shift();
   });
-  S.mkt=r2(clamp(marktSchnitt(),0.7,1.5));
+  S.mkt=r2(clamp(marktSchnitt(),WIRT.markt.schnittMin,WIRT.markt.schnittMax));
   S.news=news.slice(0,4);
   return S.news;
 }
@@ -192,43 +191,43 @@ function rollMarkt(){
    freigeschaltet, sondern in Paketen gekauft.
    ========================================================= */
 const LIZENZEN=[
-  {id:'start',lvl:1,cost:0,name:'Grundsortiment',
+  {id:'start',lvl:1,cost:WIRT.lizenz.preis.start,name:'Grundsortiment',
    desc:'Womit jeder Laden anfängt: Wunderkerzen, Knallerbsen, Knallfrösche.',
    items:['wunder','knallerbsen','tisch','knallfrosch']},
-  {id:'zubehoer',lvl:3,cost:120,name:'Silvesterzubehör',
+  {id:'zubehoer',lvl:3,cost:WIRT.lizenz.preis.zubehoer,name:'Silvesterzubehör',
    desc:'Alles um das Feuerwerk herum. Kleine Margen, aber fast jeder Kunde nimmt etwas davon mit.',
    items:['feuerzeug','luftschlangen','knicklichter','brille','chips','konfetti','stabfeuerzeug']},
-  {id:'partydeko',lvl:6,cost:520,name:'Partydeko',
+  {id:'partydeko',lvl:6,cost:WIRT.lizenz.preis.partydeko,name:'Partydeko',
    desc:'Luftballons mit Zahlen fürs neue Jahr, Partyhüte und Tröten, Luftrüssel, Girlanden, Glitzervorhang, Tischdeko und Partygeschirr. Kein Feuerwerk, aber fast jede Silvesterparty braucht es.',
    items:['ballons','partyhuete','luftruessel','girlanden','folienvorhang','tischdeko','geschirr']},
-  {id:'klassiker',lvl:5,cost:380,name:'Silvester-Klassiker',
+  {id:'klassiker',lvl:5,cost:WIRT.lizenz.preis.klassiker,name:'Silvester-Klassiker',
    desc:'Die Ware, wegen der die Leute überhaupt kommen: der Furzböller, Schwärmer, kleine Raketen und der Sekt für Mitternacht.',
    items:['boeller','schwaermer','raketenklein','sekt','kindersekt']},
-  {id:'krach',lvl:8,cost:1100,name:'Abteilung Krach',
+  {id:'krach',lvl:8,cost:WIRT.lizenz.preis.krach,name:'Abteilung Krach',
    desc:'Der Monster Böller, Römische Lichter und Fontänen. Ab hier wird es laut.',
    items:['monsterboeller','roemisch','fontaene','blanko','gravur']},
-  {id:'partynacht',lvl:9,cost:1500,name:'Partynacht',
+  {id:'partynacht',lvl:9,cost:WIRT.lizenz.preis.partynacht,name:'Partynacht',
    desc:'Getränke und Spiel für den Abend: alkoholfreier Secco und das Partyfass kommen in den Kühlschrank, dazu Glühwein und das Partyspiel »Countdown«.',
    items:['partyspiel','secco','partyfass','gluehwein']},
-  {id:'himmel',lvl:11,cost:2600,name:'Bunte Nacht',
+  {id:'himmel',lvl:11,cost:WIRT.lizenz.preis.himmel,name:'Bunte Nacht',
    desc:'Die Hasenjagd, ab Level 14 der Goldgeysir mit wachsender Knisterkrone und die blaue Batterie Ozean. Dazu Wachsgießen und Feuerzangenbowle.',
    items:['raketen','pfeifraketen','raketengold','vulkan','goldgeysir','wasserfall','sternenbrunnen','bleigiessen','bowle']},
-  {id:'genuss',lvl:12,cost:3400,name:'Fondue & Raclette',
+  {id:'genuss',lvl:12,cost:WIRT.lizenz.preis.genuss,name:'Fondue & Raclette',
    desc:'Fondue-Set und Raclette-Grill für acht Personen, dazu fertige Platten für vier: Fleisch mit Soßen fürs Fondue, Käse und Beilagen fürs Raclette. Die Platten sind frisch und gehören in den Kühlschrank.',
    items:['fonduegeraet','raclettegeraet','fondueessen','racletteessen']},
-  {id:'verbund',lvl:14,cost:6000,name:'Verbund & Kugelbomben',
+  {id:'verbund',lvl:14,cost:WIRT.lizenz.preis.verbund,name:'Verbund & Kugelbomben',
    desc:'Batterien, der Knattersturm, Fächer und die ersten Kugelbomben. Die gehören in die Mörserbatterie auf dem Testfeld: ein Schuss, oben mehrere Brüche nacheinander.',
    items:['batterie16','knatter','batterie49','sortiment','faecher','feuerbrunnen','kugel75','kugel100']},
-  {id:'import',lvl:17,cost:13000,name:'Import & Sonderposten',
+  {id:'import',lvl:17,cost:WIRT.lizenz.preis.import,name:'Import & Sonderposten',
    desc:'Der Atombomben-Böller mit dem großen Pilz, die 150-mm-Kugelbombe Weltenbrand und die Silberregen-Raketen. Teuer im Einkauf, launisch im Preis, aber die Kunden reden darüber.',
    items:['atomboeller','batterie100','zfaecher','kometen','kugel150']},
-  {id:'schabernack',lvl:19,cost:16000,name:'Schabernack-Edition',
+  {id:'schabernack',lvl:19,cost:WIRT.lizenz.preis.schabernack,name:'Schabernack-Edition',
    desc:'Die Furzrakete »Donnerbalken«. Verkauft sich von allein, weil jeder sie einmal gesehen haben will.',
    items:['furzrakete']},
-  {id:'grossfeuer',lvl:20,cost:21000,name:'Großkaliber',
+  {id:'grossfeuer',lvl:20,cost:WIRT.lizenz.preis.grossfeuer,name:'Großkaliber',
    desc:'Die Jumbo-Rakete »Juwelenpalme«, die 200-mm-Kugelbombe Sternschleier, der Farbtiger, das Kronenfeuer, das Trommelfeuer mit zwanzig Salven aus sechs Rohren und der Hexenkessel mit 180 Schuss.',
    items:['titanraketen','jumbogold','kugel200','donnerwand','feuersaeule','fontaene30']},
-  {id:'profi',lvl:22,cost:26000,name:'Profiklasse',
+  {id:'profi',lvl:22,cost:WIRT.lizenz.preis.profi,name:'Profiklasse',
    desc:'Der Götterfunken-Verbund: zweihundert Schuss, und der halbe Ort steht auf der Straße. Dazu die Jumbo-Rakete »Polarstern«: eine Leiter aus Lichtperlen, oben kreisen die Sterne um den Polarstern. Ab Level 22 die 200-mm-Kugel Feuerlilie, ab Level 23 die 300-mm-Kugel Himmelsbrecher, ab Level 24 der Weltuntergang mit dreihundert Schuss, das Sternentor aus 160 Kerzen und die 300-mm-Kanonade.',
    items:['profi','finale','kugel300','jumboleiter','fontaene50']}
 ];

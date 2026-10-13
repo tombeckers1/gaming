@@ -258,51 +258,51 @@ const CATNAME={0:'Zubehör',1:'F1',2:'F2'};
 /* Regale stehen hier nicht mehr: sie werden bei Regalbau
    Stegemann bestellt und kommen mit dem LKW (siehe REGALWARE). */
 const UPGRADES=[
-  {id:'plakat',kat:'markt',lvl:4,name:'Werbeplakate in der Stadt',desc:'Dauerhaft rund 30 Prozent mehr Kunden.',cost:()=>400,done:()=>S.up.plakat},
-  {id:'sackkarre',kat:'einr',lvl:3,name:'Sackkarre',desc:'Vier Kartons auf einmal. Mit K herausholen: jeder Karton, den du aufhebst, kommt mit drauf.',cost:()=>350,done:()=>S.up.sackkarre},
+  {id:'plakat',kat:'markt',lvl:4,name:'Werbeplakate in der Stadt',desc:`Dauerhaft rund ${WF.prozMehr(WIRT.kunden.werbung.plakat)} Prozent mehr Kunden.`,cost:()=>WIRT.ausbau.preis.plakat,done:()=>S.up.plakat},
+  {id:'sackkarre',kat:'einr',lvl:3,name:'Sackkarre',desc:'Vier Kartons auf einmal. Mit K herausholen: jeder Karton, den du aufhebst, kommt mit drauf.',cost:()=>WIRT.ausbau.preis.sackkarre,done:()=>S.up.sackkarre},
   /* 03.10. (Tom): Ware aus dem Regal zurueckholen - mit leeren Kisten.
      Wiederholbar: jeder Kauf legt fuenf Kisten in den Vorrat. */
-  {id:'kisten',kat:'einr',lvl:1,name:'Mehrwegkisten · 5 Stück',desc:'Leere Kunststoffkisten zum Ausräumen: mit X (Handy: Knopf „Kiste“) eine leere Kiste nehmen, auf ein Fach zielen – die Ware kommt vorn heraus in die Kiste. Danach wie einen Karton woanders einräumen, abstellen oder ins Lager bringen. Beliebig oft nachkaufbar.',cost:()=>10,done:()=>false},
-  {id:'wagen',kat:'einr',lvl:8,req:'lager',name:'Plattformwagen',desc:'Acht Kartons auf einmal - für den LKW und das Lager. Ersetzt die Sackkarre.',cost:()=>1400,done:()=>S.up.wagen},
-  {id:'terminal',kat:'einr',lvl:6,name:'Kontaktlos-Terminal',desc:'Kartenzahlung geht deutlich schneller.',cost:()=>320,done:()=>S.up.terminal},
-  {id:'tag4',kat:'markt',lvl:7,name:'Sonntagsgenehmigung',desc:'Du darfst auch sonntags öffnen. Sonst ist Sonntag Ruhetag.',cost:()=>900,done:()=>S.up.tag4},
-  {id:'heizung',kat:'einr',lvl:7,name:'Heizstrahler',desc:'Kunden warten länger, bevor sie genervt gehen.',cost:()=>450,done:()=>S.up.heizung},
-  {id:'musik',kat:'einr',lvl:8,name:'Soundanlage',desc:'Bessere Stimmung im Laden.',cost:()=>380,done:()=>S.up.musik},
-  {id:'radio',kat:'markt',lvl:9,name:'Radiowerbung',desc:'Noch einmal rund 25 Prozent mehr Kunden.',cost:()=>1200,done:()=>S.up.radio},
-  {id:'cams',kat:'einr',lvl:10,name:'Überwachungskameras',desc:'Halbiert die Zahl der Diebstahlversuche.',cost:()=>900,done:()=>S.up.cams},
-  {id:'regallicht',kat:'einr',lvl:11,name:'Regalbeleuchtung',desc:'Ware wirkt hochwertiger, bessere Stimmung.',cost:()=>700,done:()=>S.up.regallicht},
-  {id:'alarm',kat:'einr',lvl:14,name:'Warensicherung',desc:'Diebe werden am Ausgang meistens gestoppt.',cost:()=>2200,done:()=>S.up.alarm},
-  {id:'grosskunden',kat:'markt',lvl:7,req:'lager',name:'Eintrag im Branchenbuch',desc:'Pyrotechniker und Veranstalter rufen dich für Großbestellungen an.',cost:()=>500,done:()=>S.up.grosskunden},
-  {id:'onlineshop',kat:'flaeche',lvl:15,kap:4,name:'Onlineshop',desc:'Bringt jeden Tag Umsatz nebenbei, abhängig von deinem Ruf. Mit Packstation kommen die Bestellungen als echte Pakete ins Lager und bringen deutlich mehr.',cost:()=>3200,done:()=>S.up.onlineshop},
-  {id:'kundenkarte',kat:'markt',lvl:21,name:'Stammkundenkarte',desc:'Stammkunden kommen öfter wieder und zahlen bereitwilliger.',cost:()=>2600,done:()=>S.up.kundenkarte},
-  {id:'tafel',kat:'markt',lvl:23,name:'Digitale Werbetafel',desc:'Große Tafel an der Fassade. Noch einmal deutlich mehr Kundschaft.',cost:()=>4200,done:()=>S.up.tafel},
-  {id:'lizenz',kat:'markt',lvl:25,name:'Großhandelslizenz',desc:'Alle Lieferanten geben dir zusätzlich zehn Prozent Nachlass.',cost:()=>6500,done:()=>S.up.lizenz},
-  {id:'klima',kat:'einr',lvl:27,name:'Klima und Musikanlage XL',desc:'Deutlich bessere Stimmung, Kunden bleiben spürbar länger.',cost:()=>5400,done:()=>S.up.klima},
-  {id:'meister',kat:'markt',lvl:30,name:'Meisterbrief Pyrotechnik',desc:'Die höchste Stufe. Großaufträge zahlen ein Drittel mehr.',cost:()=>12000,done:()=>S.up.meister},
-  {id:'shop_halb',kat:'flaeche',lvl:3,name:'Ladenerweiterung 1 – etwas mehr Platz',desc:'Die zugemauerte Hälfte deines eigenen Ladenlokals: rund 70 Quadratmeter mehr, das zweite Schaufenster und zwei weitere Regalplätze. Die Trennwand fällt beim Kauf ganz weg — ein Raum, kein Pfeiler, kein Sturz. Dahinter liegt auch die Tür zum Testfeld.',cost:()=>1400,done:()=>S.up.shop_halb},
-  {id:'testfeld',kat:'flaeche',lvl:5,req:'shop_halb',name:'Testfeld freischalten',desc:'Der abgesperrte Hof hinter dem Laden wird dein Testfeld: Zündtisch, Abschussröhren und Mörserbatterie. Erst damit kannst du selbst zünden — und was du gezündet hast, spricht sich herum.',cost:()=>3200,done:()=>S.up.testfeld},
-  {id:'shop_gross',kat:'flaeche',lvl:11,req:'shop_halb',kap:3,name:'Ladenerweiterung 2 – deutlich mehr Platz',desc:'Kauft das leerstehende Ladenlokal nebenan. Die Seitenwand wird durchbrochen, die Schaufenster werden entmauert: rund 142 Quadratmeter mehr Fläche und zehn zusätzliche Regalplätze.',cost:()=>7500,done:()=>S.up.shop_gross},
+  {id:'kisten',kat:'einr',lvl:1,name:`Mehrwegkisten · ${WIRT.ausbau.kistenJeKauf} Stück`,desc:'Leere Kunststoffkisten zum Ausräumen: mit X (Handy: Knopf „Kiste“) eine leere Kiste nehmen, auf ein Fach zielen – die Ware kommt vorn heraus in die Kiste. Danach wie einen Karton woanders einräumen, abstellen oder ins Lager bringen. Beliebig oft nachkaufbar.',cost:()=>WIRT.ausbau.preis.kisten,done:()=>false},
+  {id:'wagen',kat:'einr',lvl:8,req:'lager',name:'Plattformwagen',desc:'Acht Kartons auf einmal - für den LKW und das Lager. Ersetzt die Sackkarre.',cost:()=>WIRT.ausbau.preis.wagen,done:()=>S.up.wagen},
+  {id:'terminal',kat:'einr',lvl:6,name:'Kontaktlos-Terminal',desc:'Kartenzahlung geht deutlich schneller.',cost:()=>WIRT.ausbau.preis.terminal,done:()=>S.up.terminal},
+  {id:'tag4',kat:'markt',lvl:7,name:'Sonntagsgenehmigung',desc:'Du darfst auch sonntags öffnen. Sonst ist Sonntag Ruhetag.',cost:()=>WIRT.ausbau.preis.tag4,done:()=>S.up.tag4},
+  {id:'heizung',kat:'einr',lvl:7,name:'Heizstrahler',desc:'Kunden warten länger, bevor sie genervt gehen.',cost:()=>WIRT.ausbau.preis.heizung,done:()=>S.up.heizung},
+  {id:'musik',kat:'einr',lvl:8,name:'Soundanlage',desc:'Bessere Stimmung im Laden.',cost:()=>WIRT.ausbau.preis.musik,done:()=>S.up.musik},
+  {id:'radio',kat:'markt',lvl:9,name:'Radiowerbung',desc:`Noch einmal rund ${WF.prozMehr(WIRT.kunden.werbung.radio)} Prozent mehr Kunden.`,cost:()=>WIRT.ausbau.preis.radio,done:()=>S.up.radio},
+  {id:'cams',kat:'einr',lvl:10,name:'Überwachungskameras',desc:`${WF.wenigerText(WIRT.kunden.dieb.kameras)} die Zahl der Diebstahlversuche.`,cost:()=>WIRT.ausbau.preis.cams,done:()=>S.up.cams},
+  {id:'regallicht',kat:'einr',lvl:11,name:'Regalbeleuchtung',desc:'Ware wirkt hochwertiger, bessere Stimmung.',cost:()=>WIRT.ausbau.preis.regallicht,done:()=>S.up.regallicht},
+  {id:'alarm',kat:'einr',lvl:14,name:'Warensicherung',desc:'Diebe werden am Ausgang meistens gestoppt.',cost:()=>WIRT.ausbau.preis.alarm,done:()=>S.up.alarm},
+  {id:'grosskunden',kat:'markt',lvl:7,req:'lager',name:'Eintrag im Branchenbuch',desc:'Pyrotechniker und Veranstalter rufen dich für Großbestellungen an.',cost:()=>WIRT.ausbau.preis.grosskunden,done:()=>S.up.grosskunden},
+  {id:'onlineshop',kat:'flaeche',lvl:15,kap:4,name:'Onlineshop',desc:'Bringt jeden Tag Umsatz nebenbei, abhängig von deinem Ruf. Mit Packstation kommen die Bestellungen als echte Pakete ins Lager und bringen deutlich mehr.',cost:()=>WIRT.ausbau.preis.onlineshop,done:()=>S.up.onlineshop},
+  {id:'kundenkarte',kat:'markt',lvl:21,name:'Stammkundenkarte',desc:'Stammkunden kommen öfter wieder und zahlen bereitwilliger.',cost:()=>WIRT.ausbau.preis.kundenkarte,done:()=>S.up.kundenkarte},
+  {id:'tafel',kat:'markt',lvl:23,name:'Digitale Werbetafel',desc:'Große Tafel an der Fassade. Noch einmal deutlich mehr Kundschaft.',cost:()=>WIRT.ausbau.preis.tafel,done:()=>S.up.tafel},
+  {id:'lizenz',kat:'markt',lvl:25,name:'Großhandelslizenz',desc:`Alle Lieferanten geben dir zusätzlich ${WF.zahlwort(WF.prozWeniger(WIRT.einkauf.grosshandelslizenz))} Prozent Nachlass.`,cost:()=>WIRT.ausbau.preis.lizenz,done:()=>S.up.lizenz},
+  {id:'klima',kat:'einr',lvl:27,name:'Klima und Musikanlage XL',desc:'Deutlich bessere Stimmung, Kunden bleiben spürbar länger.',cost:()=>WIRT.ausbau.preis.klima,done:()=>S.up.klima},
+  {id:'meister',kat:'markt',lvl:30,name:'Meisterbrief Pyrotechnik',desc:`Die höchste Stufe. Großaufträge zahlen ${WF.mehrText(WIRT.auftrag.meister)} mehr.`,cost:()=>WIRT.ausbau.preis.meister,done:()=>S.up.meister},
+  {id:'shop_halb',kat:'flaeche',lvl:3,name:'Ladenerweiterung 1 – etwas mehr Platz',desc:'Die zugemauerte Hälfte deines eigenen Ladenlokals: rund 70 Quadratmeter mehr, das zweite Schaufenster und zwei weitere Regalplätze. Die Trennwand fällt beim Kauf ganz weg — ein Raum, kein Pfeiler, kein Sturz. Dahinter liegt auch die Tür zum Testfeld.',cost:()=>WIRT.ausbau.preis.shop_halb,done:()=>S.up.shop_halb},
+  {id:'testfeld',kat:'flaeche',lvl:5,req:'shop_halb',name:'Testfeld freischalten',desc:'Der abgesperrte Hof hinter dem Laden wird dein Testfeld: Zündtisch, Abschussröhren und Mörserbatterie. Erst damit kannst du selbst zünden — und was du gezündet hast, spricht sich herum.',cost:()=>WIRT.ausbau.preis.testfeld,done:()=>S.up.testfeld},
+  {id:'shop_gross',kat:'flaeche',lvl:11,req:'shop_halb',kap:3,name:'Ladenerweiterung 2 – deutlich mehr Platz',desc:'Kauft das leerstehende Ladenlokal nebenan. Die Seitenwand wird durchbrochen, die Schaufenster werden entmauert: rund 142 Quadratmeter mehr Fläche und zehn zusätzliche Regalplätze.',cost:()=>WIRT.ausbau.preis.shop_gross,done:()=>S.up.shop_gross},
   /* Kapitel 2: das Lager. Bis dahin ist der Laden ein Kiosk: der
      Lieferant stellt die Kartons vor die Ladentuer, das Lager hinter
      dem Verkauf ist abgesperrt. */
-  {id:'lager',kat:'flaeche',lvl:6,kap:2,name:'Lager mit Warenannahme',desc:'Das Lager hinter dem Laden wird deins: Rolltor mit Andockstation, der LKW fährt direkt an die Rampe, und du kannst Lagerregale aufstellen. Aus dem Pyro-Kiosk wird ein kleines Fachgeschäft.',cost:()=>1200,done:()=>S.up.lager},
-  {id:'lager_nord',kat:'flaeche',lvl:8,req:'lager',name:'Lagererweiterung 1 – etwas mehr Platz',desc:'Was hinter der Trennwand im Lager liegt: 47 Quadratmeter mehr, sechs zusätzliche Stellplätze für Regale. Die Wand fällt beim Kauf ganz weg — kein Sturz, kein Pfeiler, ein durchgehender Raum bis zur Stirnwand.',cost:()=>1900,done:()=>S.up.lager_nord},
-  {id:'lager_gross',kat:'flaeche',lvl:13,req:'lager_nord',name:'Lagererweiterung 2 – deutlich mehr Platz',desc:'Hinter dem Rolltor wird die Wand auf neun Metern durchbrochen: der erste Abschnitt der großen Halle dahinter, 118 Quadratmeter mit fünf Metern lichter Höhe. Hier steht die Packstation, und ab hier lohnt sich der Onlineshop. Hochregale passen erst in diese Höhe.',cost:()=>6200,done:()=>S.up.lager_gross},
-  {id:'shop_ost',kat:'flaeche',lvl:21,req:'shop_gross',name:'Ladenerweiterung 3 – viel mehr Platz',desc:'Das nächste leerstehende Lokal in der Reihe: noch einmal 212 Quadratmeter, Gondelgassen, Eckregal und eine lange Wandreihe.',cost:()=>16000,done:()=>S.up.shop_ost},
-  {id:'shop_sued',kat:'flaeche',lvl:24,req:'shop_ost',kap:6,name:'Ladenerweiterung 4 – riesig viel Platz',desc:'Die große Halle hinter dem Laden, zwei breite Durchgänge: 478 Quadratmeter Verkaufsfläche mit zwei Gondelgassen. Damit ist der Laden fünfeinhalbmal so groß wie am Anfang.',cost:()=>34000,done:()=>S.up.shop_sued},
-  {id:'lager_sued',kat:'flaeche',lvl:18,req:'lager_gross',name:'Lagererweiterung 3 – noch mehr Platz',desc:'Der zweite Abschnitt, noch einmal 83 Quadratmeter. Die Wand zum ersten fällt ganz weg — kein Pfeiler, kein Sturz, eine durchgehende Halle.',cost:()=>11000,done:()=>S.up.lager_sued},
-  {id:'lager_sued2',kat:'flaeche',lvl:25,req:'lager_sued',name:'Lagererweiterung 4 – die ganze Halle',desc:'Der letzte Abschnitt bis zur Stirnwand. Damit steht die ganze Halle: 283 Quadratmeter am Stück, dreizehn Stellplätze für Hoch- und Schwerlastregale.',cost:()=>15000,done:()=>S.up.lager_sued2},
-  {id:'lager_west',kat:'flaeche',lvl:28,req:'lager_sued2',kap:7,name:'Logistikhalle – Stufe 1',desc:'Eine eigene Halle hinter der Schleuse: 18 mal 20 Meter, 6,5 Meter hoch, mit zwei Toren an der Südwand zum LKW-Hof. Klein fängt sie an, mit jeder Stufe wird sie größer und höher. Dazu wird der Lagergang hinter dem Laden geöffnet.',cost:()=>22000,done:()=>S.up.lager_west},
+  {id:'lager',kat:'flaeche',lvl:6,kap:2,name:'Lager mit Warenannahme',desc:'Das Lager hinter dem Laden wird deins: Rolltor mit Andockstation, der LKW fährt direkt an die Rampe, und du kannst Lagerregale aufstellen. Aus dem Pyro-Kiosk wird ein kleines Fachgeschäft.',cost:()=>WIRT.ausbau.preis.lager,done:()=>S.up.lager},
+  {id:'lager_nord',kat:'flaeche',lvl:8,req:'lager',name:'Lagererweiterung 1 – etwas mehr Platz',desc:'Was hinter der Trennwand im Lager liegt: 47 Quadratmeter mehr, sechs zusätzliche Stellplätze für Regale. Die Wand fällt beim Kauf ganz weg — kein Sturz, kein Pfeiler, ein durchgehender Raum bis zur Stirnwand.',cost:()=>WIRT.ausbau.preis.lager_nord,done:()=>S.up.lager_nord},
+  {id:'lager_gross',kat:'flaeche',lvl:13,req:'lager_nord',name:'Lagererweiterung 2 – deutlich mehr Platz',desc:'Hinter dem Rolltor wird die Wand auf neun Metern durchbrochen: der erste Abschnitt der großen Halle dahinter, 118 Quadratmeter mit fünf Metern lichter Höhe. Hier steht die Packstation, und ab hier lohnt sich der Onlineshop. Hochregale passen erst in diese Höhe.',cost:()=>WIRT.ausbau.preis.lager_gross,done:()=>S.up.lager_gross},
+  {id:'shop_ost',kat:'flaeche',lvl:21,req:'shop_gross',name:'Ladenerweiterung 3 – viel mehr Platz',desc:'Das nächste leerstehende Lokal in der Reihe: noch einmal 212 Quadratmeter, Gondelgassen, Eckregal und eine lange Wandreihe.',cost:()=>WIRT.ausbau.preis.shop_ost,done:()=>S.up.shop_ost},
+  {id:'shop_sued',kat:'flaeche',lvl:24,req:'shop_ost',kap:6,name:'Ladenerweiterung 4 – riesig viel Platz',desc:'Die große Halle hinter dem Laden, zwei breite Durchgänge: 478 Quadratmeter Verkaufsfläche mit zwei Gondelgassen. Damit ist der Laden fünfeinhalbmal so groß wie am Anfang.',cost:()=>WIRT.ausbau.preis.shop_sued,done:()=>S.up.shop_sued},
+  {id:'lager_sued',kat:'flaeche',lvl:18,req:'lager_gross',name:'Lagererweiterung 3 – noch mehr Platz',desc:'Der zweite Abschnitt, noch einmal 83 Quadratmeter. Die Wand zum ersten fällt ganz weg — kein Pfeiler, kein Sturz, eine durchgehende Halle.',cost:()=>WIRT.ausbau.preis.lager_sued,done:()=>S.up.lager_sued},
+  {id:'lager_sued2',kat:'flaeche',lvl:25,req:'lager_sued',name:'Lagererweiterung 4 – die ganze Halle',desc:'Der letzte Abschnitt bis zur Stirnwand. Damit steht die ganze Halle: 283 Quadratmeter am Stück, dreizehn Stellplätze für Hoch- und Schwerlastregale.',cost:()=>WIRT.ausbau.preis.lager_sued2,done:()=>S.up.lager_sued2},
+  {id:'lager_west',kat:'flaeche',lvl:28,req:'lager_sued2',kap:7,name:'Logistikhalle – Stufe 1',desc:'Eine eigene Halle hinter der Schleuse: 18 mal 20 Meter, 6,5 Meter hoch, mit zwei Toren an der Südwand zum LKW-Hof. Klein fängt sie an, mit jeder Stufe wird sie größer und höher. Dazu wird der Lagergang hinter dem Laden geöffnet.',cost:()=>WIRT.ausbau.preis.lager_west,done:()=>S.up.lager_west},
   /* Andockstationen. Die Basisrampe hinter dem Lager ist die erste
      und bleibt die begehbare; jede zugekaufte Westrampe nimmt eine
      Lieferung zusaetzlich an, parallel zu allen anderen. */
-  {id:'rampe2',kat:'flaeche',lvl:28,req:'lager_west',name:'Andockstation 2',desc:'Das erste Tor der Logistikhalle geht in Betrieb. Ab jetzt können zwei Lieferungen gleichzeitig anrollen: während du an der Basisrampe auslädst, stapelt der Fahrer hier seine Kartons selbst in der Halle ab.',cost:()=>12000,done:()=>S.up.rampe2},
-  {id:'lager_west2',kat:'flaeche',lvl:29,req:'lager_west',name:'Logistikhalle – Stufe 2',desc:'Die Halle wächst: 30 mal 24 Meter und 8,5 Meter hoch, mit Platz für ein drittes Tor und acht weitere Regalplätze.',cost:()=>30000,done:()=>S.up.lager_west2},
-  {id:'rampe3',kat:'flaeche',lvl:29,req:'rampe2',name:'Andockstation 3',desc:'Das zweite Tor der Logistikhalle kommt dazu. Drei Lieferungen nebeneinander — ab hier staut sich der Einkauf auch an starken Tagen nicht mehr.',cost:()=>15000,done:()=>S.up.rampe3},
-  {id:'rampe4',kat:'flaeche',lvl:30,req:'lager_west2',name:'Andockstation 4',desc:'Das Tor in der erweiterten Halle. Vier Lieferungen gleichzeitig.',cost:()=>20000,done:()=>S.up.rampe4},
-  {id:'lager_west3',kat:'flaeche',lvl:30,req:'lager_west2',name:'Logistikhalle – Stufe 3',desc:'Die volle Halle: 40 mal 27 Meter und 11 Meter hoch, Platz für Hochregale bis unters Dach und das letzte Tor.',cost:()=>42000,done:()=>S.up.lager_west3},
-  {id:'rampe5',kat:'flaeche',lvl:31,req:'lager_west3',name:'Andockstation 5',desc:'Das letzte Tor der Logistikhalle. Zusammen mit der Basisrampe rollen dann fünf Lieferungen gleichzeitig an — mehr gibt das Grundstück nicht her.',cost:()=>26000,done:()=>S.up.rampe5},
-  {id:'packstation',kat:'flaeche',lvl:25,req:'lager_sued2',name:'Packstation für den Versand',desc:'Ein Packplatz mit Packmaterial-Regal am hinteren Ende der großen Halle, dazu Förderband, Kran-Greifer und eine Palette in der gelben Box vor Rolltor V1. Das fertige Paket läuft übers Band, der Kran stapelt es auf die Palette. Abgeholt wird nur, wenn du DDL am Wandtelefon oder per Handy (Onlineshop) rufst – jede Abholung kostet eine Pauschale, dazu Porto je Paket (S 2,00 €, M 3,50 €, L 5,00 €). Der DDL-Fahrer lädt selbst. Ist die Palette voll, staut sich das Band. Zusammen mit dem Onlineshop kommen Bestellungen als echte Pakete herein.',cost:()=>6400,done:()=>S.up.packstation},
+  {id:'rampe2',kat:'flaeche',lvl:28,req:'lager_west',name:'Andockstation 2',desc:'Das erste Tor der Logistikhalle geht in Betrieb. Ab jetzt können zwei Lieferungen gleichzeitig anrollen: während du an der Basisrampe auslädst, stapelt der Fahrer hier seine Kartons selbst in der Halle ab.',cost:()=>WIRT.ausbau.preis.rampe2,done:()=>S.up.rampe2},
+  {id:'lager_west2',kat:'flaeche',lvl:29,req:'lager_west',name:'Logistikhalle – Stufe 2',desc:'Die Halle wächst: 30 mal 24 Meter und 8,5 Meter hoch, mit Platz für ein drittes Tor und acht weitere Regalplätze.',cost:()=>WIRT.ausbau.preis.lager_west2,done:()=>S.up.lager_west2},
+  {id:'rampe3',kat:'flaeche',lvl:29,req:'rampe2',name:'Andockstation 3',desc:'Das zweite Tor der Logistikhalle kommt dazu. Drei Lieferungen nebeneinander — ab hier staut sich der Einkauf auch an starken Tagen nicht mehr.',cost:()=>WIRT.ausbau.preis.rampe3,done:()=>S.up.rampe3},
+  {id:'rampe4',kat:'flaeche',lvl:30,req:'lager_west2',name:'Andockstation 4',desc:'Das Tor in der erweiterten Halle. Vier Lieferungen gleichzeitig.',cost:()=>WIRT.ausbau.preis.rampe4,done:()=>S.up.rampe4},
+  {id:'lager_west3',kat:'flaeche',lvl:30,req:'lager_west2',name:'Logistikhalle – Stufe 3',desc:'Die volle Halle: 40 mal 27 Meter und 11 Meter hoch, Platz für Hochregale bis unters Dach und das letzte Tor.',cost:()=>WIRT.ausbau.preis.lager_west3,done:()=>S.up.lager_west3},
+  {id:'rampe5',kat:'flaeche',lvl:31,req:'lager_west3',name:'Andockstation 5',desc:'Das letzte Tor der Logistikhalle. Zusammen mit der Basisrampe rollen dann fünf Lieferungen gleichzeitig an — mehr gibt das Grundstück nicht her.',cost:()=>WIRT.ausbau.preis.rampe5,done:()=>S.up.rampe5},
+  {id:'packstation',kat:'flaeche',lvl:25,req:'lager_sued2',name:'Packstation für den Versand',desc:`Ein Packplatz mit Packmaterial-Regal am hinteren Ende der großen Halle, dazu Förderband, Kran-Greifer und eine Palette in der gelben Box vor Rolltor V1. Das fertige Paket läuft übers Band, der Kran stapelt es auf die Palette. Abgeholt wird nur, wenn du DDL am Wandtelefon oder per Handy (Onlineshop) rufst – jede Abholung kostet eine Pauschale, dazu Porto je Paket (S ${WF.euro(WIRT.versand.porto[1],2)}, M ${WF.euro(WIRT.versand.porto[3],2)}, L ${WF.euro(WIRT.versand.porto[6],2)}). Der DDL-Fahrer lädt selbst. Ist die Palette voll, staut sich das Band. Zusammen mit dem Onlineshop kommen Bestellungen als echte Pakete herein.`,cost:()=>WIRT.ausbau.preis.packstation,done:()=>S.up.packstation},
   /* Ausbau der Packstation (Tom, 05.10.): weitere Packplaetze am selben
      Band, je mit Packmaterial-Regal und Wagen, und mehr Paletten unter
      dem Portal. Mehr Plaetze heisst auch mehr Bestellungen am Tag.
@@ -312,52 +312,52 @@ const UPGRADES=[
      50 EUR im Schnitt 26 EUR Deckungsbeitrag (nach Ware, Porto, Material).
      Jede Stufe: +12 Pakete = +313 EUR, minus Lohn 170 EUR -> rund +140 EUR
      am Tag; mit Einstellung des Packers rund 47 bzw. 56 Spieltage. */
-  {id:'packstation2',kat:'flaeche',lvl:27,req:'packstation',name:'Packstation – zweiter Packplatz',desc:'Ein zweiter Packplatz gegenüber am selben Förderband, mit eigenem Packmaterial-Regal und Kommissionierwagen, und eine zweite Palette hinten in der Box. Doppelt so viel Platz bis zum nächsten Anruf bei DDL, weniger Stau, mehr Bestellungen am Tag. Einen zweiten Versandmitarbeiter stellst du unter Team ein.',cost:()=>5900,done:()=>S.up.packstation2},
-  {id:'packstation3',kat:'flaeche',lvl:29,req:'packstation2',name:'Packstation – Versandstraße',desc:'Der dritte Packplatz macht aus der Ecke eine kleine Versandstraße: drei Packer, ein Band, drei Paletten in der Box, der Kran wächst mit. Noch einmal mehr Bestellungen am Tag – und die Abholpauschale verteilt sich auf viele Pakete.',cost:()=>6900,done:()=>S.up.packstation3},
-  {id:'eingang2',kat:'flaeche',lvl:25,req:'shop_ost',name:'Ladenerweiterung 5 – zweite Tür',desc:'Im Eckhaus ist die mittlere Achse bis zum Boden offen und wartet auf eine Tür. Der Ausbau setzt dieselbe Schiebetür wie am Haupteingang hinein, mit Vordach und Matte. Kunden nehmen ab jetzt den Eingang, der näher liegt – wer hinten in der Erweiterung einkauft, spart sich den Weg quer durch den Laden.',cost:()=>11500,done:()=>S.up.eingang2},
-  {id:'kasse2',kat:'einr',lvl:16,req:'shop_gross',name:'SB-Kassen',desc:'Zwei Selbstbedienungsterminals in der neuen Verkaufsfläche. Kunden mit wenig Ware zahlen dort selbst, das entlastet deine Schlange spürbar.',cost:()=>3400,done:()=>S.up.kasse2},
+  {id:'packstation2',kat:'flaeche',lvl:27,req:'packstation',name:'Packstation – zweiter Packplatz',desc:'Ein zweiter Packplatz gegenüber am selben Förderband, mit eigenem Packmaterial-Regal und Kommissionierwagen, und eine zweite Palette hinten in der Box. Doppelt so viel Platz bis zum nächsten Anruf bei DDL, weniger Stau, mehr Bestellungen am Tag. Einen zweiten Versandmitarbeiter stellst du unter Team ein.',cost:()=>WIRT.ausbau.preis.packstation2,done:()=>S.up.packstation2},
+  {id:'packstation3',kat:'flaeche',lvl:29,req:'packstation2',name:'Packstation – Versandstraße',desc:'Der dritte Packplatz macht aus der Ecke eine kleine Versandstraße: drei Packer, ein Band, drei Paletten in der Box, der Kran wächst mit. Noch einmal mehr Bestellungen am Tag – und die Abholpauschale verteilt sich auf viele Pakete.',cost:()=>WIRT.ausbau.preis.packstation3,done:()=>S.up.packstation3},
+  {id:'eingang2',kat:'flaeche',lvl:25,req:'shop_ost',name:'Ladenerweiterung 5 – zweite Tür',desc:'Im Eckhaus ist die mittlere Achse bis zum Boden offen und wartet auf eine Tür. Der Ausbau setzt dieselbe Schiebetür wie am Haupteingang hinein, mit Vordach und Matte. Kunden nehmen ab jetzt den Eingang, der näher liegt – wer hinten in der Erweiterung einkauft, spart sich den Weg quer durch den Laden.',cost:()=>WIRT.ausbau.preis.eingang2,done:()=>S.up.eingang2},
+  {id:'kasse2',kat:'einr',lvl:16,req:'shop_gross',name:'SB-Kassen',desc:'Zwei Selbstbedienungsterminals in der neuen Verkaufsfläche. Kunden mit wenig Ware zahlen dort selbst, das entlastet deine Schlange spürbar.',cost:()=>WIRT.ausbau.preis.kasse2,done:()=>S.up.kasse2},
   /* Die SB-Kassen am zweiten Eingang (kasse3) gibt es seit 05.10. nicht
      mehr (Tom: "machen keinen Sinn - die muessen weg"): direkt hinter der
      Tuer standen sie im Weg, und bezahlt wird an der Kasse oder an den
      SB-Kassen der Erweiterung. Alte Staende bekommen den Preis zurueck
      (18-save). */
-  {id:'labor',kat:'flaeche',lvl:20,req:'shop_gross',kap:5,name:'Entwicklungslabor',desc:'Ein Labortisch im Lager. Ab hier entwickelst du eigene Rezepturen: Träger, Bruchbild und Farben aussuchen, Prototyp auf dem Testfeld zünden, in Produktion geben. Verbauen darfst du nur Bruchbilder, die du selbst schon am Himmel gesehen hast.',cost:()=>9800,done:()=>S.up.labor},
-  {id:'labor2',kat:'einr',lvl:28,req:'labor',name:'Zweite Zündstufe',desc:'Erweitert das Labor um eine zweite Stufe im Rezept: Nach dem Hauptbruch geht ein zweites Bruchbild auf. Der größte einzelne Sprung im Wert einer Rezeptur.',cost:()=>16500,done:()=>S.up.labor2},
-  {id:'gravur',kat:'einr',lvl:9,name:'Gravur-Automat',desc:'Kunden beschriften ihre eigene Rakete. Hohe Marge, du musst nur Blanko-Ware nachfüllen.',cost:()=>1200,done:()=>S.up.gravur}
+  {id:'labor',kat:'flaeche',lvl:20,req:'shop_gross',kap:5,name:'Entwicklungslabor',desc:'Ein Labortisch im Lager. Ab hier entwickelst du eigene Rezepturen: Träger, Bruchbild und Farben aussuchen, Prototyp auf dem Testfeld zünden, in Produktion geben. Verbauen darfst du nur Bruchbilder, die du selbst schon am Himmel gesehen hast.',cost:()=>WIRT.ausbau.preis.labor,done:()=>S.up.labor},
+  {id:'labor2',kat:'einr',lvl:28,req:'labor',name:'Zweite Zündstufe',desc:'Erweitert das Labor um eine zweite Stufe im Rezept: Nach dem Hauptbruch geht ein zweites Bruchbild auf. Der größte einzelne Sprung im Wert einer Rezeptur.',cost:()=>WIRT.ausbau.preis.labor2,done:()=>S.up.labor2},
+  {id:'gravur',kat:'einr',lvl:9,name:'Gravur-Automat',desc:'Kunden beschriften ihre eigene Rakete. Hohe Marge, du musst nur Blanko-Ware nachfüllen.',cost:()=>WIRT.ausbau.preis.gravur,done:()=>S.up.gravur}
 ];
 const DEKO=[
-  {id:'pflanze',lvl:6,name:'Zimmerpflanze',amb:2,cost:70},
-  {id:'stehtisch',lvl:6,name:'Stehtisch',amb:2,cost:95},
-  {id:'muell',lvl:6,name:'Mülleimer',amb:2,cost:80,desc:'Der Laden wird langsamer dreckig.'},
-  {id:'teppich',lvl:7,name:'Läufer-Teppich',amb:3,cost:130},
-  {id:'lichter',lvl:8,name:'Lichterkette',amb:5,cost:170},
-  {id:'ventilator',lvl:9,name:'Deckenventilator',amb:4,cost:210},
-  {id:'baum',lvl:10,name:'Weihnachtsbaum',amb:7,cost:290},
-  {id:'neon',lvl:12,name:'Neonschild Frohes Neues',amb:9,cost:480},
-  {id:'automat',lvl:14,name:'Getränkeautomat',amb:8,cost:640,desc:'Bringt nebenbei ein paar Euro pro Tag.'},
-  {id:'bild_raketen',lvl:5,name:'Bild: Raketennacht',amb:4,buy:0.03,cost:180,wall:true,desc:'Großformat an der Wand. Kunden greifen etwas beherzter zu.'},
-  {id:'bild_stadt',lvl:8,name:'Bild: Feuerwerk über der Stadt',amb:6,buy:0.04,cost:320,wall:true,desc:'Macht Lust auf Silvester. Wirkt auf die Kauflaune.'},
-  {id:'bild_sortiment',lvl:11,name:'Bild: Sortimentstafel',amb:5,buy:0.05,cost:420,wall:true,desc:'Zeigt, was der Laden alles hat. Kunden nehmen mehr mit.'},
-  {id:'saeule',lvl:19,name:'Leuchtsäule',amb:10,cost:900,desc:'Dreht sich langsam und zieht Blicke.'},
-  {id:'vitrine',lvl:22,name:'Schauvitrine',amb:12,buy:0.04,cost:1400,desc:'Zeigt die teuersten Stücke im besten Licht.'},
-  {id:'bild_meister',lvl:16,name:'Bild: Der Sprengmeister',amb:9,buy:0.07,cost:820,wall:true,desc:'Das Prunkstück. Deutlich höhere Kauflaune im ganzen Laden.'}
+  {id:'pflanze',lvl:6,name:'Zimmerpflanze',amb:2,cost:WIRT.deko.preis.pflanze},
+  {id:'stehtisch',lvl:6,name:'Stehtisch',amb:2,cost:WIRT.deko.preis.stehtisch},
+  {id:'muell',lvl:6,name:'Mülleimer',amb:2,cost:WIRT.deko.preis.muell,desc:'Der Laden wird langsamer dreckig.'},
+  {id:'teppich',lvl:7,name:'Läufer-Teppich',amb:3,cost:WIRT.deko.preis.teppich},
+  {id:'lichter',lvl:8,name:'Lichterkette',amb:5,cost:WIRT.deko.preis.lichter},
+  {id:'ventilator',lvl:9,name:'Deckenventilator',amb:4,cost:WIRT.deko.preis.ventilator},
+  {id:'baum',lvl:10,name:'Weihnachtsbaum',amb:7,cost:WIRT.deko.preis.baum},
+  {id:'neon',lvl:12,name:'Neonschild Frohes Neues',amb:9,cost:WIRT.deko.preis.neon},
+  {id:'automat',lvl:14,name:'Getränkeautomat',amb:8,cost:WIRT.deko.preis.automat,desc:'Bringt nebenbei ein paar Euro pro Tag.'},
+  {id:'bild_raketen',lvl:5,name:'Bild: Raketennacht',amb:4,buy:0.03,cost:WIRT.deko.preis.bild_raketen,wall:true,desc:'Großformat an der Wand. Kunden greifen etwas beherzter zu.'},
+  {id:'bild_stadt',lvl:8,name:'Bild: Feuerwerk über der Stadt',amb:6,buy:0.04,cost:WIRT.deko.preis.bild_stadt,wall:true,desc:'Macht Lust auf Silvester. Wirkt auf die Kauflaune.'},
+  {id:'bild_sortiment',lvl:11,name:'Bild: Sortimentstafel',amb:5,buy:0.05,cost:WIRT.deko.preis.bild_sortiment,wall:true,desc:'Zeigt, was der Laden alles hat. Kunden nehmen mehr mit.'},
+  {id:'saeule',lvl:19,name:'Leuchtsäule',amb:10,cost:WIRT.deko.preis.saeule,desc:'Dreht sich langsam und zieht Blicke.'},
+  {id:'vitrine',lvl:22,name:'Schauvitrine',amb:12,buy:0.04,cost:WIRT.deko.preis.vitrine,desc:'Zeigt die teuersten Stücke im besten Licht.'},
+  {id:'bild_meister',lvl:16,name:'Bild: Der Sprengmeister',amb:9,buy:0.07,cost:WIRT.deko.preis.bild_meister,wall:true,desc:'Das Prunkstück. Deutlich höhere Kauflaune im ganzen Laden.'}
 ];
 const STAFF=[
-  {id:'reinigung',lvl:6,name:'Reinigungskraft',desc:'Wischt den Dreck weg, solange der Laden offen ist.',hire:250,wage:55},
-  {id:'auffueller',lvl:9,req:'lager',name:'Einräumer',desc:'Lädt den LKW aus, räumt ins Lager und füllt die Regale - Karton für Karton, Stück für Stück. Was er zuerst macht, stellst du am Handy unter Team ein.',hire:450,wage:110},
-  {id:'auffueller2',lvl:12,req:'lager',name:'Zweiter Einräumer',desc:'Zweites Paar Hände. Gib ihm eine andere Reihenfolge, dann greift es ineinander.',hire:600,wage:130},
-  {id:'kassierer',lvl:11,name:'Kassierer',desc:'Scannt und kassiert selbstständig an der Kasse.',hire:600,wage:145},
+  {id:'reinigung',lvl:6,name:'Reinigungskraft',desc:'Wischt den Dreck weg, solange der Laden offen ist.',hire:WIRT.personal.einstellung.reinigung,wage:WIRT.personal.lohn.reinigung},
+  {id:'auffueller',lvl:9,req:'lager',name:'Einräumer',desc:'Lädt den LKW aus, räumt ins Lager und füllt die Regale - Karton für Karton, Stück für Stück. Was er zuerst macht, stellst du am Handy unter Team ein.',hire:WIRT.personal.einstellung.auffueller,wage:WIRT.personal.lohn.auffueller},
+  {id:'auffueller2',lvl:12,req:'lager',name:'Zweiter Einräumer',desc:'Zweites Paar Hände. Gib ihm eine andere Reihenfolge, dann greift es ineinander.',hire:WIRT.personal.einstellung.auffueller2,wage:WIRT.personal.lohn.auffueller2},
+  {id:'kassierer',lvl:11,name:'Kassierer',desc:'Scannt und kassiert selbstständig an der Kasse.',hire:WIRT.personal.einstellung.kassierer,wage:WIRT.personal.lohn.kassierer},
   /* SB-Betreuer (Tom, 29.09.): an SB-Kassen kassiert niemand, der
      Betreuer hilft, wenn ein Kunde nicht weiterkommt. Die Ids bleiben
      die alten Kassierer-Ids, damit Spielstaende passen. */
-  {id:'kassierer2',kurz:'SB 1',lvl:16,req:'kasse2',name:'SB-Betreuer',desc:'Steht bei den SB-Kassen. Etwa jeder dritte bis fünfte Kunde kommt beim Selberzahlen nicht weiter – dann geht er hin und hilft. Einer schafft alle SB-Kassen, und mit Betreuer nehmen Kunden auch mit vollerem Korb die SB-Kasse.',hire:600,wage:140},
-  {id:'kassierer3',kurz:'SB 2',lvl:17,req:'kasse2',name:'Zweiter SB-Betreuer',desc:'Für viel Betrieb: Hängen zwei Kunden gleichzeitig, muss keiner warten. Lohnt sich erst, wenn es an den SB-Kassen voll wird.',hire:600,wage:140},
+  {id:'kassierer2',kurz:'SB 1',lvl:16,req:'kasse2',name:'SB-Betreuer',desc:'Steht bei den SB-Kassen. Etwa jeder dritte bis fünfte Kunde kommt beim Selberzahlen nicht weiter – dann geht er hin und hilft. Einer schafft alle SB-Kassen, und mit Betreuer nehmen Kunden auch mit vollerem Korb die SB-Kasse.',hire:WIRT.personal.einstellung.kassierer2,wage:WIRT.personal.lohn.kassierer2},
+  {id:'kassierer3',kurz:'SB 2',lvl:17,req:'kasse2',name:'Zweiter SB-Betreuer',desc:'Für viel Betrieb: Hängen zwei Kunden gleichzeitig, muss keiner warten. Lohnt sich erst, wenn es an den SB-Kassen voll wird.',hire:WIRT.personal.einstellung.kassierer3,wage:WIRT.personal.lohn.kassierer3},
   /* SB-Betreuer 3 und 4 gehoerten zur Kassenzeile am zweiten Eingang -
      mit ihr sind sie weg (05.10.); zwei Betreuer schaffen beide SB-Kassen */
-  {id:'security',lvl:13,name:'Sicherheitsdienst',desc:'Hält Diebe im Laden auf, bevor sie rauskommen.',hire:800,wage:190},
-  {id:'packer',lvl:25,req:'packstation',name:'Versandmitarbeiter',desc:'Schiebt einen Kommissionierwagen mit sechs Fächern durchs Lager – fehlt dort etwas, durch den Laden –, legt jede Onlinebestellung Stück für Stück in ihren Karton, klebt am Packtisch zu und schickt das Paket aufs Band zur Palettierstation.',hire:700,wage:165},
-  {id:'packer2',kurz:'Packer 2',lvl:27,req:'packstation2',name:'Zweiter Versandmitarbeiter',desc:'Arbeitet am zweiten Packplatz mit eigenem Wagen und eigenem Packmaterial-Regal.',hire:750,wage:170},
-  {id:'packer3',kurz:'Packer 3',lvl:29,req:'packstation3',name:'Dritter Versandmitarbeiter',desc:'Der dritte Packplatz der Versandstraße. Lohnt sich, wenn täglich viele Bestellungen offen bleiben.',hire:800,wage:175}
+  {id:'security',lvl:13,name:'Sicherheitsdienst',desc:'Hält Diebe im Laden auf, bevor sie rauskommen.',hire:WIRT.personal.einstellung.security,wage:WIRT.personal.lohn.security},
+  {id:'packer',lvl:25,req:'packstation',name:'Versandmitarbeiter',desc:'Schiebt einen Kommissionierwagen mit sechs Fächern durchs Lager – fehlt dort etwas, durch den Laden –, legt jede Onlinebestellung Stück für Stück in ihren Karton, klebt am Packtisch zu und schickt das Paket aufs Band zur Palettierstation.',hire:WIRT.personal.einstellung.packer,wage:WIRT.personal.lohn.packer},
+  {id:'packer2',kurz:'Packer 2',lvl:27,req:'packstation2',name:'Zweiter Versandmitarbeiter',desc:'Arbeitet am zweiten Packplatz mit eigenem Wagen und eigenem Packmaterial-Regal.',hire:WIRT.personal.einstellung.packer2,wage:WIRT.personal.lohn.packer2},
+  {id:'packer3',kurz:'Packer 3',lvl:29,req:'packstation3',name:'Dritter Versandmitarbeiter',desc:'Der dritte Packplatz der Versandstraße. Lohnt sich, wenn täglich viele Bestellungen offen bleiben.',hire:WIRT.personal.einstellung.packer3,wage:WIRT.personal.lohn.packer3}
 ];
 /* Einkauf (Tom, 25.09., zweite Runde; 26.09. nachgeschaerft): keine
    Lieferanten mit eigenem Sortiment mehr. Drei Stufen, jede mit eigenem
@@ -372,11 +372,11 @@ const STAFF=[
    SUP_ALT leitet sie auf die neue Stufe um. */
 const SUPPLIERS=[
   {id:'fachhandel',lvl:1,name:'Pyro-Fachhandel Brandt',short:'Fachhandel',desc:'Dein Fachhändler um die Ecke: alles aus deinem Sortiment, jeder Karton einzeln zum Listenpreis.',
-    mult:1.00,quality:1.00,delay:[4,8],tiers:[{n:1,d:0}]},
+    mult:WIRT.einkauf.lieferant.fachhandel.mult,quality:WIRT.einkauf.lieferant.fachhandel.qualitaet,delay:[4,8],tiers:WIRT.einkauf.lieferant.fachhandel.staffel},
   {id:'grosshandel',lvl:8,kap:2,name:'Feuerwerk-Großhandel Kowalski',short:'Großhandel',desc:'Dieselbe Ware wie beim Fachhandel, aber nur im Zehner- oder Zwanzigerpack – und dafür günstiger.',
-    mult:1.00,quality:1.00,delay:[6,10],tiers:[{n:10,d:0.10},{n:20,d:0.18}]},
+    mult:WIRT.einkauf.lieferant.grosshandel.mult,quality:WIRT.einkauf.lieferant.grosshandel.qualitaet,delay:[6,10],tiers:WIRT.einkauf.lieferant.grosshandel.staffel},
   {id:'ratzke',lvl:14,name:'Restposten-Ratzke',short:'Restposten',desc:'Lagerräumungen zu Spottpreisen: bunt gemischt, halb sortiert oder ein ganzer Posten einer Sorte. Was reinkommt, entscheidet der Zufall – mal viel, mal gar nichts. Wer zuerst zugreift, hat es.',
-    mult:0.60,quality:0.86,delay:[6,12],mystery:true}
+    mult:WIRT.einkauf.lieferant.ratzke.mult,quality:WIRT.einkauf.lieferant.ratzke.qualitaet,delay:[6,12],mystery:true}
 ];
 const SUP_ALT={mertens:'fachhandel',party:'fachhandel',kowalski:'grosshandel',import:'grosshandel',premium:'grosshandel',direkt:'grosshandel'};
 /* Grosshandel ab Level 8 und mit eigenem Lager (Kapitel 2) */
@@ -411,62 +411,56 @@ const PYROTYPES=[
   {id:'angeber',name:'Angeber',ceil:1.38,rounds:2,open:0.92,line:'Geld spielt keine Rolle, es muss nur knallen.'}
 ];
 const PYRONAMES=['Pyro-Team Schneider','Eventagentur Lindemann','Feuerwerk Bartosz','Schützenverein Ahlen','Hochzeitsplanung Vogt','Stadtfest Bergkamen','Pyrotechnik Krüger','Silvesterparty Hoteltrio','Zeltfest Oberdorf','Gartenverein Sonnenhang'];
-const LOANS=[
-  {lvl:5,amount:1000,term:10,rate:0.012},
-  {lvl:8,amount:2500,term:12,rate:0.013},
-  {lvl:12,amount:5000,term:14,rate:0.014},
-  {lvl:15,amount:10000,term:16,rate:0.015},
-  {lvl:20,amount:25000,term:20,rate:0.016},
-  {lvl:26,amount:60000,term:24,rate:0.017}
-];
+/* Kreditstufen: Werte in der Wirtschaftszentrale (01c-wirtschaft.js, WIRT.kredit) */
+const LOANS=WIRT.kredit.stufen;
 /* Waende und Boeden (26.09. neu): art waehlt den Maler in
    05o-oberflaechen, a/b/c sind die Farben, der Rest sind Masse und
    Glanz. Alle sofort frei (Tom: "da ist direkt alles freigeschaltet"),
    der Anreiz ist die Optik - und die Stimmung, die mit dem Preis steigt.
    Die alten ids bleiben, damit Spielstaende ihren Belag behalten. */
 const WALLS=[
-  {id:'creme',lvl:1,name:'Creme',cost:0,art:'farbe',a:'#e9e1d1'},
-  {id:'weiss',lvl:1,name:'Reinweiß',cost:50,art:'farbe',a:'#f3f2ee',sockel:'#d9d7d1'},
-  {id:'salbei',lvl:1,name:'Salbeigrün',cost:140,art:'farbe',a:'#b3bfa6'},
-  {id:'sand',lvl:1,name:'Kalkputz Sand',cost:250,art:'putz',a:'#d6c3a4'},
-  {id:'streifen',lvl:1,name:'Tapete Streifen',cost:370,art:'streifen',a:'#ece4d3',b:'#b4c3c4'},
-  {id:'anthrazit',lvl:1,name:'Anthrazit matt',cost:520,art:'farbe',a:'#3b3e44',sockel:'#26282c'},
-  {id:'raute',lvl:1,name:'Tapete Harlekin',cost:670,art:'harlekin',a:'#e7e1d4',b:'#d3cab8',c:'#b0924f'},
-  {id:'terrakotta',lvl:1,name:'Kalkputz Terrakotta',cost:780,art:'putz',a:'#bf7250'},
-  {id:'ziegel',lvl:1,name:'Sichtziegel',cost:840,art:'ziegel',a:'#a2553b',relief:3,sockel:'#4a3a32'},
-  {id:'metro',lvl:1,name:'Metrofliese weiß',cost:960,art:'fliesen',a:'#efeee9',fw:0.15,fh:0.075,versatz:0.5,fuge:0.82,rau:0.35,glanz:0.35,relief:2.6,sockel:'#bfbdb6'},
-  {id:'beere',lvl:1,name:'Tadelakt Beere',cost:1020,art:'putz',a:'#7e3446',rau:0.55,glanz:0.2},
-  {id:'blume',lvl:1,name:'Tapete Ranken',cost:1210,art:'blumen',a:'#e8e0cd',b:'#5d7658',c:'#c47a5a'},
-  {id:'holzvert',lvl:1,name:'Eiche Rippenpaneel',cost:1410,art:'rippen',a:'#b88d5e',relief:3.2,sockel:'#2a2420'},
-  {id:'mitternacht',lvl:1,name:'Mitternachtsblau',cost:1620,art:'farbe',a:'#223153',sockel:'#b7954f'},
-  {id:'petrol',lvl:1,name:'Zellige Petrol',cost:1840,art:'fliesen',a:'#1d5c63',fw:0.1,fh:0.1,streu:true,fuge:0.8,rau:0.25,glanz:0.5,relief:3,sockel:'#163f44'},
-  {id:'gold',lvl:1,name:'Art déco Gold',cost:2060,art:'artdeco',a:'#17171b',b:'#c9a24a',sockel:'#b7954f'},
-  {id:'gras',lvl:1,name:'Grastapete',cost:2400,art:'gras',a:'#b8a483',relief:2.6},
-  {id:'damast',lvl:1,name:'Damast Salbei',cost:2900,art:'damast',a:'#56684f'},
-  {id:'moire',lvl:1,name:'Moiré Rosé',cost:3400,art:'moire',a:'#e0b7b1',glanz:0.15},
-  {id:'nussbaum',lvl:1,name:'Nussbaum Rippenpaneel',cost:4200,art:'rippen',a:'#6e4c34',relief:3.2,sockel:'#1e1814'},
-  {id:'samt',lvl:1,name:'Samt Bordeaux',cost:5600,art:'samt',a:'#6d2130',rau:1,relief:1.6,sockel:'#3a1119'},
-  {id:'marmorwand',lvl:1,name:'Calacatta-Marmor',cost:7800,art:'marmorwand',a:'#eeeae2',rau:0.22,glanz:0.55,relief:1.2,sockel:'#8d8a86'}
+  {id:'creme',lvl:1,name:'Creme',cost:WIRT.wand.preis.creme,art:'farbe',a:'#e9e1d1'},
+  {id:'weiss',lvl:1,name:'Reinweiß',cost:WIRT.wand.preis.weiss,art:'farbe',a:'#f3f2ee',sockel:'#d9d7d1'},
+  {id:'salbei',lvl:1,name:'Salbeigrün',cost:WIRT.wand.preis.salbei,art:'farbe',a:'#b3bfa6'},
+  {id:'sand',lvl:1,name:'Kalkputz Sand',cost:WIRT.wand.preis.sand,art:'putz',a:'#d6c3a4'},
+  {id:'streifen',lvl:1,name:'Tapete Streifen',cost:WIRT.wand.preis.streifen,art:'streifen',a:'#ece4d3',b:'#b4c3c4'},
+  {id:'anthrazit',lvl:1,name:'Anthrazit matt',cost:WIRT.wand.preis.anthrazit,art:'farbe',a:'#3b3e44',sockel:'#26282c'},
+  {id:'raute',lvl:1,name:'Tapete Harlekin',cost:WIRT.wand.preis.raute,art:'harlekin',a:'#e7e1d4',b:'#d3cab8',c:'#b0924f'},
+  {id:'terrakotta',lvl:1,name:'Kalkputz Terrakotta',cost:WIRT.wand.preis.terrakotta,art:'putz',a:'#bf7250'},
+  {id:'ziegel',lvl:1,name:'Sichtziegel',cost:WIRT.wand.preis.ziegel,art:'ziegel',a:'#a2553b',relief:3,sockel:'#4a3a32'},
+  {id:'metro',lvl:1,name:'Metrofliese weiß',cost:WIRT.wand.preis.metro,art:'fliesen',a:'#efeee9',fw:0.15,fh:0.075,versatz:0.5,fuge:0.82,rau:0.35,glanz:0.35,relief:2.6,sockel:'#bfbdb6'},
+  {id:'beere',lvl:1,name:'Tadelakt Beere',cost:WIRT.wand.preis.beere,art:'putz',a:'#7e3446',rau:0.55,glanz:0.2},
+  {id:'blume',lvl:1,name:'Tapete Ranken',cost:WIRT.wand.preis.blume,art:'blumen',a:'#e8e0cd',b:'#5d7658',c:'#c47a5a'},
+  {id:'holzvert',lvl:1,name:'Eiche Rippenpaneel',cost:WIRT.wand.preis.holzvert,art:'rippen',a:'#b88d5e',relief:3.2,sockel:'#2a2420'},
+  {id:'mitternacht',lvl:1,name:'Mitternachtsblau',cost:WIRT.wand.preis.mitternacht,art:'farbe',a:'#223153',sockel:'#b7954f'},
+  {id:'petrol',lvl:1,name:'Zellige Petrol',cost:WIRT.wand.preis.petrol,art:'fliesen',a:'#1d5c63',fw:0.1,fh:0.1,streu:true,fuge:0.8,rau:0.25,glanz:0.5,relief:3,sockel:'#163f44'},
+  {id:'gold',lvl:1,name:'Art déco Gold',cost:WIRT.wand.preis.gold,art:'artdeco',a:'#17171b',b:'#c9a24a',sockel:'#b7954f'},
+  {id:'gras',lvl:1,name:'Grastapete',cost:WIRT.wand.preis.gras,art:'gras',a:'#b8a483',relief:2.6},
+  {id:'damast',lvl:1,name:'Damast Salbei',cost:WIRT.wand.preis.damast,art:'damast',a:'#56684f'},
+  {id:'moire',lvl:1,name:'Moiré Rosé',cost:WIRT.wand.preis.moire,art:'moire',a:'#e0b7b1',glanz:0.15},
+  {id:'nussbaum',lvl:1,name:'Nussbaum Rippenpaneel',cost:WIRT.wand.preis.nussbaum,art:'rippen',a:'#6e4c34',relief:3.2,sockel:'#1e1814'},
+  {id:'samt',lvl:1,name:'Samt Bordeaux',cost:WIRT.wand.preis.samt,art:'samt',a:'#6d2130',rau:1,relief:1.6,sockel:'#3a1119'},
+  {id:'marmorwand',lvl:1,name:'Calacatta-Marmor',cost:WIRT.wand.preis.marmorwand,art:'marmorwand',a:'#eeeae2',rau:0.22,glanz:0.55,relief:1.2,sockel:'#8d8a86'}
 ];
 const FLOORS=[
-  {id:'grau',lvl:1,name:'Estrich grau',cost:0,art:'estrich',a:'#a7a39c',rau:0.8},
-  {id:'vinyl',lvl:1,name:'Vinyl Steinoptik',cost:70,art:'mikrozement',a:'#cdc9c1',rau:0.6,glanz:0.12,hell:0.82},
-  {id:'holz',lvl:1,name:'Kieferndielen',cost:190,art:'dielen',a:'#b98b59',breite:0.14,lmin:0.8,lmax:1.7,aeste:0.3,rau:0.6},
-  {id:'schach',lvl:1,name:'Schachbrett Marmor',cost:340,art:'schach',a:'#ebe8e1',b:'#1d1c1f',rau:0.3,glanz:0.35,hell:0.84},
-  {id:'eiche',lvl:1,name:'Landhausdiele Eiche',cost:520,art:'dielen',a:'#a47a4f',breite:0.22,lmin:1.3,lmax:2.4,aeste:0.16,rau:0.5,glanz:0.12},
-  {id:'fliese',lvl:1,name:'Feinsteinzeug 60 × 120',cost:720,art:'fliese',a:'#d3cec4',rau:0.4,glanz:0.2,hell:0.82},
-  {id:'beton',lvl:1,name:'Geschliffener Beton',cost:940,art:'beton',a:'#9c9590',rau:0.3,glanz:0.35,hell:0.78},
-  {id:'industrie',lvl:1,name:'Kautschuk Granit',cost:1180,art:'kautschuk',a:'#3d4147',rau:0.75},
-  {id:'teppich',lvl:1,name:'Velours Altrosa',cost:1430,art:'velours',a:'#c29492',rau:1,relief:1.2},
-  {id:'terrazzo',lvl:1,name:'Terrazzo',cost:1690,art:'terrazzo',a:'#e4ded2',rau:0.3,glanz:0.3,hell:0.8},
-  {id:'marmor',lvl:1,name:'Carrara-Marmor',cost:1970,art:'marmor',a:'#e9e8e1',rau:0.18,glanz:0.5,hell:0.76},
-  {id:'fischgraet',lvl:1,name:'Fischgrät Eiche',cost:2600,art:'fischgraet',a:'#b88c5d',rau:0.45,glanz:0.15},
-  {id:'chevron',lvl:1,name:'Chevron Eiche hell',cost:3200,art:'chevron',a:'#c9a77d',rau:0.45,glanz:0.15},
-  {id:'travertin',lvl:1,name:'Travertin',cost:3900,art:'travertin',a:'#d6c1a3',rau:0.4,glanz:0.2,hell:0.8},
-  {id:'nussfisch',lvl:1,name:'Fischgrät Nussbaum',cost:4600,art:'fischgraet',a:'#6c4b34',rau:0.4,glanz:0.18},
-  {id:'veneziano',lvl:1,name:'Terrazzo Veneziano',cost:5400,art:'terrazzo',a:'#e7cfc4',gross:2.2,koerner:['#f4f1ea','#d8d4cc','#9a948e','#c9776a','#e9b9a6','#2f2f33'],rau:0.25,glanz:0.35,hell:0.82},
-  {id:'marmorband',lvl:1,name:'Marmorbänder',cost:6200,art:'marmorband',rau:0.2,glanz:0.45,hell:0.8},
-  {id:'versailles',lvl:1,name:'Versailles-Parkett',cost:8500,art:'versailles',a:'#a97b4d',rau:0.4,glanz:0.2}
+  {id:'grau',lvl:1,name:'Estrich grau',cost:WIRT.boden.preis.grau,art:'estrich',a:'#a7a39c',rau:0.8},
+  {id:'vinyl',lvl:1,name:'Vinyl Steinoptik',cost:WIRT.boden.preis.vinyl,art:'mikrozement',a:'#cdc9c1',rau:0.6,glanz:0.12,hell:0.82},
+  {id:'holz',lvl:1,name:'Kieferndielen',cost:WIRT.boden.preis.holz,art:'dielen',a:'#b98b59',breite:0.14,lmin:0.8,lmax:1.7,aeste:0.3,rau:0.6},
+  {id:'schach',lvl:1,name:'Schachbrett Marmor',cost:WIRT.boden.preis.schach,art:'schach',a:'#ebe8e1',b:'#1d1c1f',rau:0.3,glanz:0.35,hell:0.84},
+  {id:'eiche',lvl:1,name:'Landhausdiele Eiche',cost:WIRT.boden.preis.eiche,art:'dielen',a:'#a47a4f',breite:0.22,lmin:1.3,lmax:2.4,aeste:0.16,rau:0.5,glanz:0.12},
+  {id:'fliese',lvl:1,name:'Feinsteinzeug 60 × 120',cost:WIRT.boden.preis.fliese,art:'fliese',a:'#d3cec4',rau:0.4,glanz:0.2,hell:0.82},
+  {id:'beton',lvl:1,name:'Geschliffener Beton',cost:WIRT.boden.preis.beton,art:'beton',a:'#9c9590',rau:0.3,glanz:0.35,hell:0.78},
+  {id:'industrie',lvl:1,name:'Kautschuk Granit',cost:WIRT.boden.preis.industrie,art:'kautschuk',a:'#3d4147',rau:0.75},
+  {id:'teppich',lvl:1,name:'Velours Altrosa',cost:WIRT.boden.preis.teppich,art:'velours',a:'#c29492',rau:1,relief:1.2},
+  {id:'terrazzo',lvl:1,name:'Terrazzo',cost:WIRT.boden.preis.terrazzo,art:'terrazzo',a:'#e4ded2',rau:0.3,glanz:0.3,hell:0.8},
+  {id:'marmor',lvl:1,name:'Carrara-Marmor',cost:WIRT.boden.preis.marmor,art:'marmor',a:'#e9e8e1',rau:0.18,glanz:0.5,hell:0.76},
+  {id:'fischgraet',lvl:1,name:'Fischgrät Eiche',cost:WIRT.boden.preis.fischgraet,art:'fischgraet',a:'#b88c5d',rau:0.45,glanz:0.15},
+  {id:'chevron',lvl:1,name:'Chevron Eiche hell',cost:WIRT.boden.preis.chevron,art:'chevron',a:'#c9a77d',rau:0.45,glanz:0.15},
+  {id:'travertin',lvl:1,name:'Travertin',cost:WIRT.boden.preis.travertin,art:'travertin',a:'#d6c1a3',rau:0.4,glanz:0.2,hell:0.8},
+  {id:'nussfisch',lvl:1,name:'Fischgrät Nussbaum',cost:WIRT.boden.preis.nussfisch,art:'fischgraet',a:'#6c4b34',rau:0.4,glanz:0.18},
+  {id:'veneziano',lvl:1,name:'Terrazzo Veneziano',cost:WIRT.boden.preis.veneziano,art:'terrazzo',a:'#e7cfc4',gross:2.2,koerner:['#f4f1ea','#d8d4cc','#9a948e','#c9776a','#e9b9a6','#2f2f33'],rau:0.25,glanz:0.35,hell:0.82},
+  {id:'marmorband',lvl:1,name:'Marmorbänder',cost:WIRT.boden.preis.marmorband,art:'marmorband',rau:0.2,glanz:0.45,hell:0.8},
+  {id:'versailles',lvl:1,name:'Versailles-Parkett',cost:WIRT.boden.preis.versailles,art:'versailles',a:'#a97b4d',rau:0.4,glanz:0.2}
 ];
 
 /* Fortschritt ---------------------------------------------- */
@@ -477,7 +471,7 @@ const MSHORT=['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov'
 const MLEN=[31,28,31,30,31,30,31,31,30,31,30,31];
 const WDAY=['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
 const WSHORT=['So','Mo','Di','Mi','Do','Fr','Sa'];
-const START_DOY=273;            // 1. Oktober
+const START_DOY=WIRT.start.startDoy;            // 1. Oktober
 function dateInfo(n){
   const t=START_DOY+(n|0), y=1+Math.floor(t/365); let doy=t%365, m=0;
   while(doy>=MLEN[m]){ doy-=MLEN[m]; m++; }
@@ -487,36 +481,28 @@ function dateStr(n){ const i=dateInfo(n); return `${WDAY[i.wd]}, ${i.d}. ${MONTH
 function dateShort(n){ const i=dateInfo(n); return `${WSHORT[i.wd]} ${i.d}.${i.m+1}.`; }
 function isSunday(n){ return dateInfo(n).wd===0; }
 /* Nachfrage übers Jahr: Silvester ist der Gipfel, dazwischen läuft es weiter */
+/* Die Tabelle (Monat, Tage, Faktor, Text) steht in 01c-wirtschaft.js (WIRT.saison.regeln):
+   erste passende Regel gilt. */
 function seasonInfo(n){
-  const i=dateInfo(n), m=i.m, d=i.d;
-  if(m===11&&d>=26) return [1.5+(d-26)*0.34,'Silvestergeschäft'];
-  if(m===11&&d>=20) return [1.25,'Weihnachtswoche'];
-  if(m===11) return [1.1,'Vorweihnachtszeit'];
-  if(m===0&&d===1) return [1.35,'Neujahr, Restverkauf'];
-  if(m===0&&d<=14) return [0.80,'Ruhige Januartage'];
-  if(m===0||m===1) return [0.72,'Tiefste Nebensaison'];
-  if(m===2) return [0.80,'Frühjahr, wenig los'];
-  if(m===3&&d>=25) return [1.45,'Walpurgisnacht steht an'];
-  if(m===4&&d<=2) return [1.3,'Erster Mai'];
-  if(m===3||m===4) return [0.9,'Frühling'];
-  if(m===5) return [1.0,'Sommeranfang, Feste'];
-  if(m===6||m===7) return [1.15,'Sommerfeste und Hochzeiten'];
-  if(m===8) return [0.88,'Spätsommer'];
-  if(m===9&&d>=28) return [1.25,'Halloween'];
-  if(m===9) return [0.92,'Oktober'];
-  return [0.86,'November, ruhig'];
+  const i=dateInfo(n), m=i.m, d=i.d, Z=WIRT.saison;
+  for(const r of Z.regeln){
+    if(r.m!==undefined&&(Array.isArray(r.m)?r.m.indexOf(m)<0:r.m!==m)) continue;
+    if(r.ab!==undefined&&d<r.ab) continue;
+    if(r.bis!==undefined&&d>r.bis) continue;
+    return [r.silvester?Z.silvester.grund+(d-Z.silvester.ab)*Z.silvester.jeTag:r.f,r.text];
+  }
 }
-const WDMULT=[0.55,0.82,0.84,0.9,1.0,1.28,1.35];
+const WDMULT=WIRT.saison.wochentag;
 function dayMult(n){ const i=dateInfo(n); return seasonInfo(n)[0]*WDMULT[i.wd]; }
-function silvesterNah(n){ const i=dateInfo(n); return i.m===11&&i.d>=26; }
-const OPEN_T=480, CLOSE_T=1320, MIN_PER_SEC=840/330;
+function silvesterNah(n){ const i=dateInfo(n); return i.m===11&&i.d>=WIRT.saison.silvester.ab; }
+const OPEN_T=WIRT.zeit.oeffnen, CLOSE_T=WIRT.zeit.schliessen, MIN_PER_SEC=(CLOSE_T-OPEN_T)/WIRT.zeit.echtzeitSek;
 /* Jede Bestellung ist eine Lieferung: kurzer Vorlauf, bis der Lieferant
    an der Rampe steht, dazu eine kleine Liefergebuehr, die ab einem
    groesseren Warenwert entfaellt. */
 const SHOP_DEFAULT='Feuerwerksladen', SLOGAN_DEFAULT='Feuerwerk · Silvester · seit 1998';
 function shopName(){ return (S&&S.shopName)||SHOP_DEFAULT; }
 function shopSlogan(){ return (S&&S.slogan!==undefined&&S.slogan!==null)?S.slogan:SLOGAN_DEFAULT; }
-const LIEFERZEIT_SEK=5, VERSAND=5.9, VERSANDFREI=150;
+const LIEFERZEIT_SEK=WIRT.einkauf.lieferSek, VERSAND=WIRT.einkauf.liefergebuehr, VERSANDFREI=WIRT.einkauf.lieferfreiAb;   /* 01c-wirtschaft.js */
 function lieferSek(){ return LIEFERZEIT_SEK; }
 /* Regaltypen. Klein ist der Einstieg, der Kühlschrank nimmt nur Sekt & Co. */
 /* Faecher (Tom, 01.10.): alle Faecher eines Regals sind gleich hoch -
@@ -538,35 +524,35 @@ function lieferSek(){ return LIEFERZEIT_SEK; }
    Verkaufsregal fasst genau doppelt so viel wie ein kleines, der grosse
    Tisch doppelt so viel wie der normale. */
 const SHELFKIND={
-  klein:{id:'klein',name:'Kleines Regal',w:1.0,d:0.52,mod:1,lv:[0.19,0.75,1.31],oben:0.52,lvl:1,cost:45,step:28,amb:0},
-  standard:{id:'standard',name:'Verkaufsregal',w:2.0,d:0.52,mod:2,lv:[0.19,0.75,1.31,1.87],oben:0.52,lvl:4,cost:130,step:70,amb:1},
-  hoch:{id:'hoch',name:'Hochregal',w:2.0,d:0.52,mod:2,lv:[0.12,0.68,1.24,1.80,2.36],oben:0.52,lvl:10,cost:260,step:95,amb:2},
-  kuehl:{id:'kuehl',name:'Sekt-Kühlschrank',w:1.1,d:0.58,mod:1,lv:[0.14,0.70,1.26,1.82],oben:0.52,lvl:6,cost:430,step:155,amb:5,cold:true},
+  klein:{id:'klein',name:'Kleines Regal',w:1.0,d:0.52,mod:1,lv:[0.19,0.75,1.31],oben:0.52,lvl:1,cost:WIRT.regal.verkauf.klein.grund,step:WIRT.regal.verkauf.klein.jeWeiteres,amb:0},
+  standard:{id:'standard',name:'Verkaufsregal',w:2.0,d:0.52,mod:2,lv:[0.19,0.75,1.31,1.87],oben:0.52,lvl:4,cost:WIRT.regal.verkauf.standard.grund,step:WIRT.regal.verkauf.standard.jeWeiteres,amb:1},
+  hoch:{id:'hoch',name:'Hochregal',w:2.0,d:0.52,mod:2,lv:[0.12,0.68,1.24,1.80,2.36],oben:0.52,lvl:10,cost:WIRT.regal.verkauf.hoch.grund,step:WIRT.regal.verkauf.hoch.jeWeiteres,amb:2},
+  kuehl:{id:'kuehl',name:'Sekt-Kühlschrank',w:1.1,d:0.58,mod:1,lv:[0.14,0.70,1.26,1.82],oben:0.52,lvl:6,cost:WIRT.regal.verkauf.kuehl.grund,step:WIRT.regal.verkauf.kuehl.jeWeiteres,amb:5,cold:true},
   /* Mittelgondel: steht frei im Raum, Ware auf beiden Seiten. */
-  gondel:{id:'gondel',name:'Mittelgondel',w:2.0,d:0.5,mod:2,fw:2.1,fd:1.04,lv:[0.19,0.75,1.31,1.87],oben:0.52,lvl:12,cost:560,step:190,amb:3,art:'insel',
+  gondel:{id:'gondel',name:'Mittelgondel',w:2.0,d:0.5,mod:2,fw:2.1,fd:1.04,lv:[0.19,0.75,1.31,1.87],oben:0.52,lvl:12,cost:WIRT.regal.verkauf.gondel.grund,step:WIRT.regal.verkauf.gondel.jeWeiteres,amb:3,art:'insel',
     seiten:[{ry:0,ox:0,oz:0.25},{ry:Math.PI,ox:0,oz:-0.25}]},
   /* Eckregal: zwei Schenkel ueber Eck, wie im Supermarkt. */
-  eck:{id:'eck',name:'Eckregal',w:1.2,d:0.5,mod:1,fw:1.74,fd:1.74,lv:[0.19,0.75,1.31,1.87],oben:0.52,lvl:14,cost:480,step:165,amb:2,art:'ecke',
+  eck:{id:'eck',name:'Eckregal',w:1.2,d:0.5,mod:1,fw:1.74,fd:1.74,lv:[0.19,0.75,1.31,1.87],oben:0.52,lvl:14,cost:WIRT.regal.verkauf.eck.grund,step:WIRT.regal.verkauf.eck.jeWeiteres,amb:2,art:'ecke',
     seiten:[{ry:0,ox:0.25,oz:-0.60},{ry:Math.PI/2,ox:-0.60,oz:0.25}]},
   /* Grossverbund-Regal: zwei gleich hohe Faecher, in jedes passen zwei
      der ganz grossen Verbunde nebeneinander - vier Legion insgesamt
      (Tom, 01.10.: "oben zwei, unten zwei") */
-  gross:{id:'gross',name:'Großverbund-Regal',w:2.12,d:0.68,mod:2,modB:0.98,tiefe:0.62,lv:[0.19,1.15],oben:0.92,lvl:18,cost:640,step:210,amb:2},
+  gross:{id:'gross',name:'Großverbund-Regal',w:2.12,d:0.68,mod:2,modB:0.98,tiefe:0.62,lv:[0.19,1.15],oben:0.92,lvl:18,cost:WIRT.regal.verkauf.gross.grund,step:WIRT.regal.verkauf.gross.jeWeiteres,amb:2},
   /* Verkaufstisch und Aktions-Gitterbox (Tom, 01.10.): grosse Batterien
      stehen im Laden auf Tischen oder in Gitterboxen wie beim Discounter,
      nicht im Regal. frei: Ware wird auch in die Tiefe und aufeinander
      gestapelt, so weit Flaeche und Hoehe reichen. */
-  tisch:{id:'tisch',name:'Verkaufstisch',w:2.0,d:0.94,modX:2,modZ:2,lv:[0.76],oben:1.0,bau:'tisch',frei:true,lvl:8,cost:220,step:80,amb:2},
+  tisch:{id:'tisch',name:'Verkaufstisch',w:2.0,d:0.94,modX:2,modZ:2,lv:[0.76],oben:1.0,bau:'tisch',frei:true,lvl:8,cost:WIRT.regal.verkauf.tisch.grund,step:WIRT.regal.verkauf.tisch.jeWeiteres,amb:2},
   /* 02.10. (Tom: "auch groessere Verkaufstische"): der grosse Tisch steht
      frei im Gang wie beim Discounter - auf den Inselplaetzen */
-  tischgross:{id:'tischgross',name:'Großer Verkaufstisch',w:2.0,d:1.86,modX:2,modZ:4,lv:[0.78],oben:1.0,bau:'tisch',art:'insel',frei:true,lvl:12,cost:340,step:120,amb:3},
+  tischgross:{id:'tischgross',name:'Großer Verkaufstisch',w:2.0,d:1.86,modX:2,modZ:4,lv:[0.78],oben:1.0,bau:'tisch',art:'insel',frei:true,lvl:12,cost:WIRT.regal.verkauf.tischgross.grund,step:WIRT.regal.verkauf.tischgross.jeWeiteres,amb:3},
   /* Gitterboxen (02.10., Tom: "hoeher, damit sich der Kunde nicht buecken
      muss, verschiedene Groessen, darunter Mini-Regale fuer Kleinartikel"):
      die Wanne steht auf 64 cm, darunter zwei offene Faecher. Die letzte
      Ebene ist immer die Wanne. */
-  gitter:{id:'gitter',name:'Gitterbox',w:1.0,d:0.94,modX:1,modZ:2,lv:[0.12,0.36,0.64],oben:0.76,bau:'gitter',frei:true,lvl:5,cost:140,step:50,amb:1},
-  gitter2:{id:'gitter2',name:'Gitterbox groß',w:1.9,d:0.94,modX:2,modZ:2,lv:[0.12,0.36,0.64],oben:0.76,bau:'gitter',frei:true,lvl:9,cost:210,step:75,amb:2},
-  gitter3:{id:'gitter3',name:'Gitterbox XL',w:1.9,d:1.86,modX:2,modZ:4,lv:[0.12,0.36,0.64],oben:0.76,bau:'gitter',frei:true,lvl:13,cost:290,step:100,amb:2},
+  gitter:{id:'gitter',name:'Gitterbox',w:1.0,d:0.94,modX:1,modZ:2,lv:[0.12,0.36,0.64],oben:0.76,bau:'gitter',frei:true,lvl:5,cost:WIRT.regal.verkauf.gitter.grund,step:WIRT.regal.verkauf.gitter.jeWeiteres,amb:1},
+  gitter2:{id:'gitter2',name:'Gitterbox groß',w:1.9,d:0.94,modX:2,modZ:2,lv:[0.12,0.36,0.64],oben:0.76,bau:'gitter',frei:true,lvl:9,cost:WIRT.regal.verkauf.gitter2.grund,step:WIRT.regal.verkauf.gitter2.jeWeiteres,amb:2},
+  gitter3:{id:'gitter3',name:'Gitterbox XL',w:1.9,d:1.86,modX:2,modZ:4,lv:[0.12,0.36,0.64],oben:0.76,bau:'gitter',frei:true,lvl:13,cost:WIRT.regal.verkauf.gitter3.grund,step:WIRT.regal.verkauf.gitter3.jeWeiteres,amb:2},
   /* Kassenregal (05.10., Tom: "Sturmfeuerzeug im Regal macht keinen Sinn.
      Sowas an der Kasse platzieren - ein extra Regal fuer die Kasse, das
      optisch zur Kasse passt, fuer kleine Artikel"): niedriger Aufsteller
@@ -577,7 +563,7 @@ const SHELFKIND={
      (Feuerzeuge, Streichhoelzer, Gehoerschutz), 'gern' kommt bevorzugt
      hierher und sonst ins Regal (Knicklichter, Knallerbsen, Glueckstaler,
      Marzipanschwein). */
-  kasse:{id:'kasse',name:'Kassenregal',w:2.0,d:0.5,mod:2,lv:[0.18,0.48,0.78,1.08,1.38],oben:0.26,lvl:3,cost:120,step:60,amb:2,art:'kasse',kasse:true}
+  kasse:{id:'kasse',name:'Kassenregal',w:2.0,d:0.5,mod:2,lv:[0.18,0.48,0.78,1.08,1.38],oben:0.26,lvl:3,cost:WIRT.regal.verkauf.kasse.grund,step:WIRT.regal.verkauf.kasse.jeWeiteres,amb:2,art:'kasse',kasse:true}
 };
 const SHELFORDER=['klein','standard','hoch','kuehl','gondel','eck','gross','gitter','gitter2','gitter3','tisch','tischgross','kasse'];
 /* =========================================================
@@ -757,7 +743,7 @@ const DEKOSPOTS=[{x:-7.1,z:3.2},{x:-7.1,z:-3.6},{x:-6.2,z:1.2},{x:-3.4,z:3.4},{x
   {x:21.0,z:4.6,zone:'shop_ost'},{x:36.5,z:4.6,zone:'shop_ost'},
   {x:9.5,z:-7.5,zone:'shop_sued'},{x:36.0,z:-7.5,zone:'shop_sued'},
   {x:9.5,z:-19.0,zone:'shop_sued'},{x:36.0,z:-19.0,zone:'shop_sued'}];
-function xpFor(l){ return Math.round(50*Math.pow(l,1.55)); }
+function xpFor(l){ return WF.xpBis(l); }   /* Kurve: WIRT.xp.kurve */
 
 /* =========================================================
    Tagesereignisse: jeder Tag bekommt eine eigene Färbung
@@ -798,7 +784,7 @@ const CUSTTYPES=[
   {id:'profi',w:5,tol:1.06,items:2.6,pat:1.25,name:'Profi',f2:true}
 ];
 function rollCustType(){
-  const pool=CUSTTYPES.filter(c=>!c.f2||S.level>=8);
+  const pool=CUSTTYPES.filter(c=>!c.f2||S.level>=WIRT.kunden.profiAbLevel);
   let tot=0; pool.forEach(c=>tot+=c.w);
   let r=Math.random()*tot;
   for(const c of pool){ r-=c.w; if(r<=0) return c; }
@@ -806,13 +792,15 @@ function rollCustType(){
 }
 
 /* Wochenziele */
+const ZW=WIRT.ziele;
 const GOALS=[
-  {id:'umsatz',name:'Wochenumsatz',mk:l=>({need:Math.round(600+l*260),unit:'€',kind:'rev'}),pay:l=>Math.round(120+l*45)},
-  {id:'kunden',name:'Kundschaft bedienen',mk:l=>({need:Math.round(40+l*14),unit:'Kunden',kind:'cust'}),pay:l=>Math.round(100+l*40)},
-  {id:'artikel',name:'Artikel verkaufen',mk:l=>({need:Math.round(90+l*34),unit:'Artikel',kind:'sold'}),pay:l=>Math.round(110+l*42)},
-  {id:'f2',name:'Feuerwerk F2 absetzen',mk:l=>({need:Math.round(30+l*16),unit:'F2-Artikel',kind:'f2'}),pay:l=>Math.round(150+l*55)},
-  {id:'sauber',name:'Sauber bleiben',mk:l=>({need:5,unit:'Tage ohne Beschwerde',kind:'clean'}),pay:l=>Math.round(130+l*40)},
-  {id:'gross',name:'Großaufträge erfüllen',mk:l=>({need:Math.max(1,Math.round(l/5)),unit:'Aufträge',kind:'orders'}),pay:l=>Math.round(200+l*60)}
+  /* Ziel- und Praemienformeln: a + b*Level aus 01c-wirtschaft.js (WIRT.ziele) */
+  {id:'umsatz',name:'Wochenumsatz',mk:l=>({need:Math.round(ZW.umsatz.ziel[0]+l*ZW.umsatz.ziel[1]),unit:'€',kind:'rev'}),pay:l=>Math.round(ZW.umsatz.praemie[0]+l*ZW.umsatz.praemie[1])},
+  {id:'kunden',name:'Kundschaft bedienen',mk:l=>({need:Math.round(ZW.kunden.ziel[0]+l*ZW.kunden.ziel[1]),unit:'Kunden',kind:'cust'}),pay:l=>Math.round(ZW.kunden.praemie[0]+l*ZW.kunden.praemie[1])},
+  {id:'artikel',name:'Artikel verkaufen',mk:l=>({need:Math.round(ZW.artikel.ziel[0]+l*ZW.artikel.ziel[1]),unit:'Artikel',kind:'sold'}),pay:l=>Math.round(ZW.artikel.praemie[0]+l*ZW.artikel.praemie[1])},
+  {id:'f2',name:'Feuerwerk F2 absetzen',mk:l=>({need:Math.round(ZW.f2.ziel[0]+l*ZW.f2.ziel[1]),unit:'F2-Artikel',kind:'f2'}),pay:l=>Math.round(ZW.f2.praemie[0]+l*ZW.f2.praemie[1])},
+  {id:'sauber',name:'Sauber bleiben',mk:l=>({need:ZW.sauber.tage,unit:'Tage ohne Beschwerde',kind:'clean'}),pay:l=>Math.round(ZW.sauber.praemie[0]+l*ZW.sauber.praemie[1])},
+  {id:'gross',name:'Großaufträge erfüllen',mk:l=>({need:Math.max(1,Math.round(l/ZW.gross.levelJeAuftrag)),unit:'Aufträge',kind:'orders'}),pay:l=>Math.round(ZW.gross.praemie[0]+l*ZW.gross.praemie[1])}
 ];
 function levelUnlocks(l){
   const out=[];
@@ -851,7 +839,7 @@ let S=null, phase='closed', clock=OPEN_T, hype=0, DS=null, paused=true, shake=0,
 const isUnlocked=t=>{ const l=LIZ_VON[t]; return l?hatLizenz(l):S.level>=P[t].lvl; };
 const lizLevel=t=>{ const l=LIZ_VON[t]; const d=l&&LIZENZEN.find(x=>x.id===l); return d?d.lvl:P[t].lvl; };
 const rep=d=>{ S.rep=clamp(S.rep+d,0,100); };
-const cleanliness=()=>clamp(100-dirts.length*7,0,100);
+const cleanliness=()=>clamp(100-dirts.length*WIRT.kunden.dreck.jeFleck,0,100);
 const canShelf=t=>!P[t].noShelf;
 const canOrder=t=>!P[t].noOrder;
 const canWish=t=>!P[t].noWish;
@@ -860,11 +848,12 @@ function qualityLabel(q){ return q>=1.12?['ok','Markenware']:q>=0.98?['','Normal
 function bildBoost(){ let b=0; (dekos||[]).forEach(d=>{ const D=DEKO.find(x=>x.id===d.id); if(D&&D.buy) b+=D.buy; }); return b; }
 function ambienteScore(){
   let a=0; (S.deko||[]).forEach(d=>{ const D=DEKO.find(x=>x.id===d.id); if(D) a+=D.amb; });
-  if(S.up.musik) a+=6; if(S.up.regallicht) a+=6; if(S.up.heizung) a+=4;
+  const AM=WIRT.kunden.ambiente;
+  if(S.up.musik) a+=AM.musik; if(S.up.regallicht) a+=AM.regallicht; if(S.up.heizung) a+=AM.heizung;
   shelves.forEach(sh=>{ a+=(SHELFKIND[sh.kind]||SHELFKIND.standard).amb; });
-  a-=Math.round(windowGrime()*12);
+  a-=Math.round(windowGrime()*AM.fensterDreck);
   const w=WALLS.findIndex(x=>x.id===S.wall), f=FLOORS.findIndex(x=>x.id===S.floor);
   /* anteilig nach Rang: der teuerste Belag bringt so viel wie vorher */
-  a+=Math.round(Math.max(0,w)*26/(WALLS.length-1))+Math.round(Math.max(0,f)*20/(FLOORS.length-1));
+  a+=Math.round(Math.max(0,w)*AM.wandMax/(WALLS.length-1))+Math.round(Math.max(0,f)*AM.bodenMax/(FLOORS.length-1));
   return clamp(a,0,100);
 }

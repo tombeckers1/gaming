@@ -83,9 +83,9 @@ function vsRy(i,ry){ return packTisch.rotation.y+ppRy(i,ry); }
      Pieters 2005, JMR 42) fuer Sale auf einzelne Produkte; fuer "Sale auf alles"
      -1,5 (weniger Markenwechsel, nur Mehrkauf).
    --------------------------------------------------------- */
-const VS_CFG_STD={kosten:4.9,frei:50,nie:false};
-const VS_PORTO={1:2.0,3:3.5,6:5.0};
-const VS_KOSTEN_MAX=20, VS_FREI_MAX=300;
+const VS_CFG_STD={kosten:WIRT.versand.std.kosten,frei:WIRT.versand.std.frei,nie:false};   /* Werte: 01c-wirtschaft.js (WIRT.versand) */
+const VS_PORTO=WIRT.versand.porto;
+const VS_KOSTEN_MAX=WIRT.versand.kostenMax, VS_FREI_MAX=WIRT.versand.freiMax;
 function vsCfg(){
   if(!S) return VS_CFG_STD;
   const c=S.versandCfg||(S.versandCfg={kosten:VS_CFG_STD.kosten,frei:VS_CFG_STD.frei,nie:false,v:2});
@@ -98,24 +98,24 @@ function vsCfg(){
 }
 /* Aktionen: S.aktion={proz, frei:Tag, rabatt:{produkt:proz}} */
 function vsAktion(){ if(!S) return {proz:0,frei:-1,rabatt:{}}; const a=S.aktion||(S.aktion={proz:0,frei:-1,rabatt:{}});
-  a.proz=clamp(Math.round(+a.proz||0),0,50); if(typeof a.frei!=='number') a.frei=-1; if(!a.rabatt||typeof a.rabatt!=='object') a.rabatt={};
-  for(const t in a.rabatt){ if(!P[t]||!(a.rabatt[t]>0)) delete a.rabatt[t]; else a.rabatt[t]=clamp(Math.round(a.rabatt[t]),5,70); }
+  a.proz=clamp(Math.round(+a.proz||0),0,WIRT.versand.sale.allesMax); if(typeof a.frei!=='number') a.frei=-1; if(!a.rabatt||typeof a.rabatt!=='object') a.rabatt={};
+  for(const t in a.rabatt){ if(!P[t]||!(a.rabatt[t]>0)) delete a.rabatt[t]; else a.rabatt[t]=clamp(Math.round(a.rabatt[t]),WIRT.versand.sale.produktMin,WIRT.versand.sale.produktMax); }
   return a; }
 function vsGratisHeute(){ return !!S&&vsAktion().frei===S.day; }
 /* Rabatt auf ein Produkt (0..0,7): der hoehere aus Sale-auf-alles und Produkt-Sale */
 function vsRabatt(t){ const a=vsAktion(); return Math.max(a.proz||0,a.rabatt[t]||0)/100; }
 function vsGebuehr(wert,cfg){ const c=cfg||vsCfg(); if(!cfg&&vsGratisHeute()) return 0; if(c.nie) return c.kosten; return wert>=c.frei?0:c.kosten; }
 /* Nimmt ein Kunde mit Warenkorb w die Versandkosten v hin? (Quellen oben) */
-function vsAnnahme(w,v){ if(!(v>0)) return 1; const r=v/(0.2*Math.max(0,w)+2.5); return Math.exp(-0.75*r*r); }
+function vsAnnahme(w,v){ if(!(v>0)) return 1; const r=v/(WIRT.versand.abbruch.a*Math.max(0,w)+WIRT.versand.abbruch.b); return Math.exp(-WIRT.versand.abbruch.k*r*r); }
 /* Warenkoerbe zur Bewertung einer Einstellung: gemessene Quantile der Online-
    bestellungen (Level 25-34, 3000 Stueck je Level: p10 5, Median 22, Mittel 35, p90 80 EUR) */
-const VS_KORB=[5,9,13,18,22,28,38,55,95];
+const VS_KORB=WIRT.versand.korb;
 /* Anteil der Kunden, die bei dieser Einstellung kaufen - mit Aufstocken an der Schwelle */
 function vsQuote(cfg,gratis){
   let a=0;
   for(const w of VS_KORB){
     let p=gratis?1:vsAnnahme(w,vsGebuehr(w,cfg));
-    if(!gratis&&!cfg.nie&&cfg.frei>0&&w<cfg.frei&&w>=cfg.frei*0.7) p=0.6*1+0.4*p;
+    if(!gratis&&!cfg.nie&&cfg.frei>0&&w<cfg.frei&&w>=cfg.frei*WIRT.versand.aufstocken.ab) p=WIRT.versand.aufstocken.anteil*1+(1-WIRT.versand.aufstocken.anteil)*p;
     a+=p; }
   return a/VS_KORB.length;
 }
@@ -124,12 +124,12 @@ function vsQuoteStd(){ return _vsQ0||(_vsQ0=vsQuote(VS_CFG_STD,false)); }
 /* Sale: mehr Kaeufe. Auf alles mit Elastizitaet -1,5; Produkt-Sale verschiebt die
    Wahl zu den reduzierten Produkten (-2,62) und bringt halb so viel Neugeschaeft dazu */
 function vsSaleFaktor(){
-  const a=vsAktion(); let f=Math.pow(1-(a.proz||0)/100,-1.5);
+  const a=vsAktion(); let f=Math.pow(1-(a.proz||0)/100,WIRT.versand.sale.allesElast);
   const ids=Object.keys(a.rabatt); if(ids.length){ const L=ORDER.filter(t=>vsOnline(t)); if(L.length){
-    let m=0; for(const t of L) m+=vsGewicht(t); m/=L.length; f*=1+0.5*(m-1); } }
+    let m=0; for(const t of L) m+=vsGewicht(t); m/=L.length; f*=1+WIRT.versand.sale.produktNeu*(m-1); } }
   return f;
 }
-function vsGewicht(t){ const d=(vsAktion().rabatt[t]||0)/100; return d>0?Math.pow(1-d,-2.62):1; }
+function vsGewicht(t){ const d=(vsAktion().rabatt[t]||0)/100; return d>0?Math.pow(1-d,WIRT.versand.sale.produktElast):1; }
 /* Nachfragefaktor fuer Anzeige und Takt: 1 = Standard (4,90 EUR, frei ab 50 EUR, kein Sale) */
 function vsNachfrage(){ return vsQuote(vsCfg(),vsGratisHeute())/vsQuoteStd()*vsSaleFaktor(); }
 
@@ -139,13 +139,13 @@ function vsNachfrage(){ return vsQuote(vsCfg(),vsGratisHeute())/vsQuoteStd()*vsS
 function paketWert(){
   const L=(S&&S.bestellungen)||[];
   if(L.length) return r2(L.reduce((a,b)=>a+b.wert,0)/L.length);
-  return r2(12+S.level*0.6);
+  return r2(WIRT.versand.paketwertSchaetzung.grund+S.level*WIRT.versand.paketwertSchaetzung.jeLevel);
 }
 /* Mehr Packplaetze, mehr Bestellungen: der Shop kann mehr Ware zeigen und
    schneller versprechen ("Delivery was too slow" ist bei Baymard der zweit-
    haeufigste Abbruchgrund, 20 %) */
-const VS_STUFE_MUL=[1,1,1.45,1.9];
-function vsBasis(){ return Math.max(4,Math.min(22,Math.round(4+S.rep*0.12+S.level*0.35))); }
+const VS_STUFE_MUL=WIRT.versand.stufeMul;
+function vsBasis(){ const B=WIRT.versand.basis; return Math.max(B.min,Math.min(B.max,Math.round(B.grund+S.rep*B.jeRuf+S.level*B.jeLevel))); }
 /* Erwartete Bestellungen an einem vollen Verkaufstag */
 function bestellungenProTag(){
   if(!packBereit()) return 0;
@@ -165,7 +165,7 @@ function vsKlasse(pos){
 /* Online zahlt der Kunde den Regalpreis, hoechstens aber 30 Prozent
    ueber Markt - sonst waere der Onlineshop ein Weg, Mondpreise
    ohne jede Kaufzurueckhaltung zu kassieren. */
-function vsListe(t){ return r2(Math.min(S.prices[t]||marketOf(t),marketOf(t)*1.3)); }
+function vsListe(t){ return r2(Math.min(S.prices[t]||marketOf(t),marketOf(t)*WIRT.versand.onlineDeckel)); }
 /* Onlinepreis mit Sale (Regulaer = Ladenpreis, Tom 09.10.) */
 function vsPreis(t){ return r2(vsListe(t)*(1-vsRabatt(t))); }
 function vsWertVon(pos){ return r2(pos.reduce((a,l)=>a+l.n*vsPreis(l.t),0)); }
@@ -235,8 +235,8 @@ function vsNeueBestellung(erz){
   const frei={}; const f=t=>frei[t]!==undefined?frei[t]:(frei[t]=vsBestand(t)-vsReserviert(t));
   const kand=ORDER.filter(t=>vsOnline(t)&&(erz||f(t)>0));
   if(!kand.length) return null;
-  const r=Math.random(), spaet=S.level>=22;
-  let ziel=r<(spaet?0.5:0.68)?1:r<(spaet?0.85:0.94)?3:6;
+  const G=WIRT.versand.groesse, r=Math.random(), spaet=S.level>=G.spaetAb;
+  let ziel=r<(spaet?G.spaetS:G.anteilS)?1:r<(spaet?G.spaetBisM:G.bisM)?3:6;
   while(ziel){
     const K=VS_GR[ziel], k2=kand.filter(t=>vsVol(t)<=K.vmax&&vsMass(t)<=K.mass);
     const unten=ziel===1?0:ziel===3?VS_GR[1].vmax:VS_GR[3].vmax;
@@ -254,8 +254,8 @@ function vsNeueBestellung(erz){
       /* Knapp unter der Versandfreigrenze legt mancher Kunde noch etwas
          dazu, damit der Versand nichts kostet */
       const cf=vsCfg();
-      if(!cf.nie&&cf.frei>0&&!vsGratisHeute()&&Math.random()<0.6){
-        for(let n=0;n<4&&vsWertVon(pos)<cf.frei&&vsWertVon(pos)>=cf.frei*0.7;n++){
+      if(!cf.nie&&cf.frei>0&&!vsGratisHeute()&&Math.random()<WIRT.versand.aufstocken.anteil){
+        for(let n=0;n<WIRT.versand.aufstocken.maxSchritte&&vsWertVon(pos)<cf.frei&&vsWertVon(pos)>=cf.frei*WIRT.versand.aufstocken.ab;n++){
           const l=pos[Math.floor(Math.random()*pos.length)], vol=pos.reduce((a,x)=>a+x.n*vsVol(x.t),0)+vsVol(l.t);
           if(vol>VS_GR[6].vmax||(!erz&&f(l.t)<1)) break;
           l.n++; if(!erz) frei[l.t]--; }
@@ -690,7 +690,7 @@ function vsBuchen(b,spieler){
   statAdd('pakete',1);
   const i=S.bestellungen.indexOf(b); if(i>=0) S.bestellungen.splice(i,1);
   vsSync(); drawPackSchild();
-  if(spieler){ addXP(3); sfx.cash(); toast(`Paket #${b.id} fertig: +${eur(w)}${porto?` · Porto ${eur(porto)}`:''}`,'money'); }
+  if(spieler){ addXP(WIRT.xp.paketGepackt); sfx.cash(); toast(`Paket #${b.id} fertig: +${eur(w)}${porto?` · Porto ${eur(porto)}`:''}`,'money'); }
 }
 
 /* Palettenplaetze, Stapeln, Zwischenabholung und Abholung stehen seit 07.10. in
@@ -1212,7 +1212,7 @@ function updateVersand(dt){
   if(phase==='open'){
     /* Kunden kommen in den Shop; wer die Versandkosten nicht hinnimmt, bricht ab */
     versandT-=dt;
-    if(versandT<=0){ const n=vsBesucheProTag(); versandT=n>0?330/n:30;
+    if(versandT<=0){ const n=vsBesucheProTag(); versandT=n>0?WIRT.zeit.echtzeitSek/n:30;
       const b=n>0?vsNeueBestellung(false):null;
       if(b){ if(Math.random()<vsAnnahme(b.wert,b.versand)){ S.bestellungen.push(b); vsSync(); drawPackSchild(); }
         else { DS.onAbbr=(DS.onAbbr|0)+1; statAdd('abbruch',1); S.bestNr=Math.max(0,(S.bestNr|0)-1); } }

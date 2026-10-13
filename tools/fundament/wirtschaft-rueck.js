@@ -22,7 +22,7 @@ const dateien=cp.execSync(`git -C ${W} diff --name-only ${BASIS} -- src/parts`,{
 let restGesamt=0;
 for(const f of dateien){
   const neu=fs.readFileSync(path.join(W,f),'utf8');
-  let alt=''; try{ alt=cp.execSync(`git -C ${W} show ${BASIS}:${f}`,{encoding:'utf8',maxBuffer:64<<20}); }catch(e){ console.log(f+': neu (kein Gegenstueck im Ausgangsstand)'); continue; }
+  let alt=''; try{ alt=cp.execSync(`git -C ${W} show ${BASIS}:${f}`,{encoding:'utf8',maxBuffer:64<<20,stdio:['pipe','pipe','ignore']}); }catch(e){ console.log(f+': neu (kein Gegenstueck im Ausgangsstand)'); continue; }
   /* WIRT.x.y / WIRT.x['y'] / WIRT.x[3] -> Wert, wenn es eine Zahl ist */
   /* beide Seiten ruecksetzen: so geht auch der Vergleich gegen einen Zwischenstand */
   const rueck=t=>t.replace(/WIRT((?:\.[A-Za-z_$][\w$]*|\[\d+\]|\['[^']+'\])+)/g,(m,p)=>{

@@ -183,6 +183,10 @@ Alle Zahlen einzeln: [`wirtschaft-werte.md`](wirtschaft-werte.md).
   Herausforderungen, Labor, sechs komplette Tagesabschlüsse mit Text, Handbuch, alle Laptop-Reiter und Handy-Apps.
 - **Rückübersetzung** (`tools/fundament/wirtschaft-rueck.js`): setzt jeden `WIRT.…`-Verweis wieder als Zahl ein und
   vergleicht mit dem Ausgangsstand – übrig bleiben nur Strukturzeilen (Aliase, erzeugte Texte, Saisontabelle).
-- **Balancing-Simulation** (`tools/balance/sim.js`, jetzt geseedet und ohne Echtzeit): Ausgangsstand und neuer Stand
-  spielen dieselben Tage exakt gleich (`tools/balance/vergleich.js`), Katalog byte-gleich.
-- **Gegenprobe:** eine absichtlich geänderte Zahl (DDL-Pauschale 39 → 40 €) schlägt im Snapshot und in der Simulation an.
+- **Balancing-Simulation** (`tools/balance/sim.js`, jetzt geseedet und ohne Echtzeit; zwei Läufe desselben Stands sind
+  gleich): Ausgangsstand gegen neuen Stand **exakt gleich** in allen Kernspalten je Tag (`tools/balance/vergleich.js`) –
+  Strategie „gut“ 45 Tage (Ende Level 21, Konto 3.449 €), „schlecht“ 30 Tage (Level 9, −1.547 €), „mutig“ 40 Tage
+  (Level 17, 1.862 €); Katalog byte-gleich.
+- **Gegenprobe:** DDL-Pauschale 39 → 40 € und Fixkosten-Grundbetrag 10 → 11 € absichtlich geändert: der Snapshot meldet
+  172 Abweichungen (Konstanten, Fixkosten, Tagesabschluss, Restposten-Druck, Online-Texte, Laptop), die Simulation weicht
+  ab Tag 0 ab (Fixkosten +1 €/Tag, Konto nach 6 Tagen 864 → 858 €). Danach zurückgesetzt, beides wieder gleich.

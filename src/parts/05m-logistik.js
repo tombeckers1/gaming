@@ -91,6 +91,8 @@ function logiStufeBauen(i){
   neu.forEach(o=>{ scene.remove(o); g.add(o); });
   cols.forEach(c=>dropCol(c));
   LOGI_COLS[i]=cols;
+  /* Stufe 3: Ostwand, Wandschatten und Raster-Leuchten weichen dem Ausbau "lagerlogistik" (05q) */
+  if(i===2&&typeof llAltHalle==='function') llAltHalle(g,cols);
 }
 /* Tore einmal bauen, eingeblendet werden sie mit ihrer Stufe */
 function logiToreBauen(){
@@ -175,7 +177,10 @@ function logiColSetzen(list,an){
 function logiAnwenden(){
   if(!LOGI_G.length) return;
   const z=logiZeige();
-  LOGI_G.forEach((g,i)=>{ g.visible=i===z; logiColSetzen(LOGI_COLS[i],i===z); });
+  const ll=typeof llOffen==='function'&&llOffen();
+  LOGI_G.forEach((g,i)=>{ g.visible=i===z; logiColSetzen(LOGI_COLS[i].filter(c=>LL_ALT.halleCols.indexOf(c)<0),i===z); });
+  if(LL_ALT.halle) LL_ALT.halle.visible=!ll;
+  logiColSetzen(LL_ALT.halleCols,z===2&&!ll);
   TOR_G.forEach((g,k)=>{ const an=TOR_STUFE[k]<=z; g.visible=an; logiColSetzen(TOR_COLS[k],an); });
   if(typeof navDirty==='function') navDirty();
 }

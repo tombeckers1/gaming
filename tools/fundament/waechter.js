@@ -85,10 +85,16 @@ const BAUTEILE=[
   {bk:'tuer',woerter:['tuer','tuere','door','schiebetuer'],wofuer:'Tueren'},
   {bk:'fenster',woerter:['fenster','window'],wofuer:'Fenster'},
   {bk:'leiter',woerter:['leiter','ladder'],wofuer:'Leitern'},
-  {bk:'foerderband',woerter:['foerderband','rollenbahn','band','belt','conveyor'],wofuer:'Foerderbaender'}
+  {bk:'foerderband',woerter:['foerderband','rollenbahn','band','belt','conveyor'],wofuer:'Foerderbaender'},
+  /* Halle Etappe A (14.10.) */
+  {bk:'hochregal',woerter:['hochregal','palettenregal'],wofuer:'Hochregal (Rahmen, Traversen, Gitterroste, Belegung) - baukasten.md'},
+  {bk:'rbg',woerter:['rbg','regalbediengeraet'],wofuer:'Regalbediengeraet'},
+  {bk:'foerderer',woerter:['foerderer','rollenfoerderer','kettenfoerderer'],wofuer:'Paletten-Foerderer (Rollen)'},
+  {bk:'bodenmarkierung',woerter:['bodenmarkierung','markierungen'],wofuer:'Bodenmarkierung (Fahrweg, Gehweg, Sperrflaeche, Stellplatz)'},
+  {bk:'fts',woerter:['fts'],wofuer:'Fahrerloses Transportfahrzeug (Paletten)'}
 ];
 /* Helfer im Baukasten (kein Bauteil, keine Namensregel) */
-const HELFER=['lod','kasten','stab','uvZeile','schildTex','liste','WB','PALETTE','inst','bandMat','bandTex','flaeche','flaecheArt','fuss','wandFlaeche','wandBildAdd','wandbildTakt','paletten','palFarbe'];
+const HELFER=['lod','kasten','stab','uvZeile','schildTex','liste','WB','PALETTE','inst','bandMat','bandTex','flaeche','flaecheArt','fuss','wandFlaeche','wandBildAdd','wandbildTakt','paletten','palFarbe','HOCHREGAL','ladungGeo','MARKIERUNG'];
 /* geloeschte Duplikate - duerfen nie zurueckkommen (Schritte Material, Angleichung, Tore, Feuerwerk) */
 const GELOESCHT=['torPanelMat','torBlattMat','westTorInnen','vdPanelMat','panelPose','strebe','concreteTex','gitterTex','gitterMat',
   'stationsModell','stationSlot','rampeMund','kerzeImRohr','stationsPool','vfMuendung','vfImRohr','hvLamellenTex','hvTor'];

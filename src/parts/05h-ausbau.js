@@ -109,35 +109,12 @@ function trennwand(id,laengs,fest,a0,a1,h,innen,aussen,face){
    ========================================================= */
 const SHOP_X2=LAY.shop.x1, LAGER_Z2=LAY.lnord.z1;
 
-let _panelM=null, _korpusM=null;
-function leuchtenMat(){
-  if(!_panelM){ _panelM=new THREE.MeshBasicMaterial({map:deckenDiffuse(),toneMapped:false});
-    _korpusM=new THREE.MeshStandardMaterial({vertexColors:true,metalness:0,roughness:0.72}); }
-  return _panelM;
-}
-/* Deckenleuchten im Raster. Eine grosse Halle bekommt schnell dreissig
-   Leuchten - als Einzelmeshes waere das teuer, deshalb wird das ganze
-   Raster zu zwei Meshes verschmolzen: Korpus und Leuchtflaeche. */
-function leuchtenRaster(id,r,y,ax,az){
-  leuchtenMat();
-  const nx=Math.max(1,Math.round((r.x1-r.x0)/ax)), nz=Math.max(1,Math.round((r.z1-r.z0)/az));
-  /* Je hoeher die Halle, desto groesser die Leuchte - sonst haengen
-     unter zwoelf Metern Decke nur noch Striche. */
-  const f=Math.max(1,y/3.8);
-  const gRev=new THREE.BoxGeometry(1.44*f,0.03*f,0.42*f), gFix=new THREE.BoxGeometry(1.36*f,0.028*f,0.36*f);
-  const gDif=new THREE.PlaneGeometry(1.26*f,0.28*f);
-  const korpus=[], diff=[];
-  for(let i=0;i<nx;i++) for(let k=0;k<nz;k++){
-    const x=r.x0+(i+0.5)*(r.x1-r.x0)/nx, z=r.z0+(k+0.5)*(r.z1-r.z0)/nz;
-    LAMPEN.push({x,y,z,id});
-    korpus.push({geo:gRev,m:tm(x,y-0.008*f,z),color:MAT.farbe('anthrazit')});
-    korpus.push({geo:gFix,m:tm(x,y-0.026*f,z),color:MAT.farbe('lichtgrau')});
-    diff.push({geo:gDif,m:tm(x,y-0.043*f,z,Math.PI/2,0,0)});
-  }
-  const mk=new THREE.Mesh(merge(korpus),_korpusM); scene.add(mk); zAdd(id,mk);
-  const md=new THREE.Mesh(merge(diff),_panelM); scene.add(md); zAdd(id,md);
-  gRev.dispose(); gFix.dispose(); gDif.dispose();
-}
+let _panelM=null;
+/* Streuscheibe der Deckenleuchten (Material; Korpus = MAT.vc('matt'), gleiche Werte wie vorher) */
+function deckenPanelMat(){ if(!_panelM) _panelM=new THREE.MeshBasicMaterial({map:deckenDiffuse(),toneMapped:false}); return _panelM; }
+/* Deckenleuchten im Raster - baut seit 14.10. bk.lampe({art:'raster'}) (04z, Halle Etappe A).
+   Das ganze Raster ist zwei Meshes: Korpus und Leuchtflaeche. */
+function leuchtenRaster(id,r,y,ax,az){ return bk.lampe({art:'raster',id,r,y,ax,az,panel:deckenPanelMat()}); }
 /* Eine ganze Halle in einem Rutsch.
    aussen sagt, welche Seiten eine echte Aussenwand bekommen;
    die uebrigen grenzen an einen Nachbarbereich. */
@@ -636,6 +613,9 @@ function buildAusbau(){
      -20,1 bis -19,9) - rechts neben dem Rolltor sprang sie sichtbar vor.
      Jetzt dieselbe Flucht innen und aussen; sie endet dort, wo die
      Rolltorwand beginnt (z -6,1), mit den ueblichen 6 mm Ueberlappung. */
+  /* 14.10. (Halle Etappe A): Ostwand von ②, alte Schleuse und ihre Streifenvorhaenge verschwinden mit dem
+     Ausbau "lagerlogistik" (neue Schleuse z −29,9…−17, ③ offen zu ②) - darum gesammelt in llAltSammle (05q) */
+  llAltSammle(()=>{
   durchbruchWand('lager_west',false,LAY.lsued.x0-LW/2,LAY.lsued.z0,-6.1+0.006,ST,lagerWall,undefined,3.0,HALLE_H,'+x');
   /* Nur das Stueck in der Schleuse zeigt nach aussen in den Gang -
      dort gehoert die Lagerwand hin, sonst stossen im Gang zwei
@@ -647,6 +627,7 @@ function buildAusbau(){
      statt blanker Loecher. */
   streifenvorhang('lager_west',false,LAY.lsued.x0-LW/2,ST[0][0],ST[0][1],3.0);
   streifenvorhang('lager_west',false,LAY.lwest.x1,ST[0][0],ST[0][1],3.0);
+  });
 
   /* ---------- Packstation, Rampen, Logistikzentrum ---------- */
   /* Die beiden Kopfwaende des Lagergangs. Sie ersetzen die
@@ -687,6 +668,7 @@ function buildAusbau(){
   buildVersandhof();
   buildLogistikHalle();
   buildLogistik();
+  buildLagerlogistik();
 }
 
 /* =========================================================

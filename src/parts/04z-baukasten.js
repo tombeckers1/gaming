@@ -759,3 +759,253 @@ bk.wandbild=function(erzwingen){
 };
 /* im Bild-Takt (03b renderFrame): alle 10 Bilder Pruefsumme, beim ersten Mal sofort */
 bk.wandbildTakt=function(){ if(WB.aus) return; if(WB.sig===null||++WB.takt%10===0){ try{ bk.wandbild(); }catch(e){ WB.aus=true; WB.fehler=String(e&&e.message||e); for(const o of WB.liste) o.layers.set(0); if(WB.g) WB.g.visible=false; } } };
+
+/* =========================================================
+   Lagertechnik (Halle Etappe A, 14.10.2026, docs/halle/plan-1410.md): Hochregal, Regalbediengeraet,
+   Foerderer, Leuchten, Bodenmarkierung. Wiederholteile als InstancedMesh (eine Geometrie je Teil und
+   Detailstufe, geteilt ueber alle Gassen), Rest ueber bk.sammler. Farben nur aus MAT (Stuetzen
+   Signalblau, Traversen Signalorange, Anfahrschutz Signalgelb, Technik Anthrazit). Doku baukasten.md §2.
+   ========================================================= */
+/* Masse Hochregal (Skizze 1.1 / Branch halle-v7): Feld 2,9 m mit 3 Europaletten quer, Ebenen = Oberkante
+   Traverse (0 = Boden), Rahmentiefe 1,2 m, Hoehe 9,95 m */
+bk.HOCHREGAL={fb:2.9,tiefe:1.2,ebenen:[0,1.9,3.8,5.7,7.6],hoehe:9.95,felder:6,jeFeld:3,traverse:0.12};
+const _bkHR=new Map();
+function _bkHRGeo(k,f){ const key=k+':'+bk.lod(); let g=_bkHR.get(key); if(!g){ g=f(); _bkHR.set(key,g); } return g; }
+/* Ladung einer Regalpalette: 2 x 2 x 3 Kartons 0,4 x 0,4 x 0,6 m (Pappe), auf Ultra Low ein Block */
+bk.ladungGeo=function(){ return _bkHRGeo('ladung',()=>{
+  const S=bk.sammler({}), P=MAT.farbe('wellpappe');
+  if(bk.lod()===0){ S.box(0.8,1.2,1.2,0,0.6,0,P,'stumpf'); return S.geometrie('stumpf'); }
+  for(let iy=0;iy<3;iy++) for(let ix=0;ix<2;ix++) for(let iz=0;iz<2;iz++)
+    S.box(0.39,0.395,0.59,-0.2+ix*0.4,0.2+iy*0.4,-0.3+iz*0.6,P,'stumpf');
+  return S.geometrie('stumpf'); }); };
+/* Hochregal einer Gasse: zwei Reihen (A: z0..z0+1,2, B: z0+2,8..z0+4,0), Gasse dazwischen (Mitte z0+2,0).
+   o = {x0, z0, felder, parent, nr, schiene (Fahr-/Fuehrungsschiene der Gasse, Standard true), stirn:'ost'|'beide'}
+   -> {g, meshes, kollision:[{x0,x1,z0,z1}], plaetze:[{x,y,z,reihe,feld,ebene}], mitte, x0, x1, belegen(liste)} */
+bk.hochregal=function(o){
+  const A=bk.HOCHREGAL, F=MAT.farbe, L=bk.lod(), fb=A.fb, x0=o.x0, nf=o.felder||A.felder, x1=x0+nf*fb, z0=o.z0, T=A.tiefe, H=A.hoehe;
+  const g=new THREE.Group(); g.userData.bauteil='hochregal'; (o.parent||scene).add(g);
+  const reihen=[{z0:z0,z1:z0+T},{z0:z0+2.8,z1:z0+2.8+T}], mitte=z0+2.0;
+  const BLAU=F('signalblau'), ORANGE=F('signalorange');
+  /* Rahmen: zwei Stuetzen (Lochprofil 100 x 80) mit Fussplatte, waagerechte und diagonale Verbaende, Kopf bei H */
+  const rahmen=_bkHRGeo('rahmen',()=>{ const S=bk.sammler({});
+    for(const z of [0.05,T-0.05]){ S.box(0.1,H,0.08,0,H/2,z,BLAU,'lackMetall'); S.box(0.18,0.012,0.16,0,0.006,z,F('anthrazit'),'lackMetall'); }
+    const dy=1.25; for(let y=0.25,s=1;y<H-0.4;y+=dy,s=-s){ S.box(0.045,0.04,T-0.14,0,y,T/2,BLAU,'lackMetall');
+      if(L>0){ const y2=Math.min(H-0.15,y+dy), a=s>0?0.09:T-0.09, b=s>0?T-0.09:0.09, dz=b-a, dyy=y2-y;
+        S.box(0.035,Math.hypot(dz,dyy),0.035,0,(y+y2)/2,(a+b)/2,BLAU,'lackMetall',Math.atan2(dz,dyy),0,0); } }
+    return S.geometrie('lackMetall'); });
+  /* Traversenpaar eines Feldes (vorn + hinten), Oberkante = Ebene */
+  const trav=_bkHRGeo('traverse',()=>{ const S=bk.sammler({}), l=fb-0.1;
+    for(const z of [0.06,T-0.06]){ S.box(l,A.traverse,0.05,0,-A.traverse/2,z,ORANGE,'lackMetall'); if(L>1) for(const s of [-1,1]) S.box(0.07,0.16,0.06,s*(l/2-0.03),-0.08,z,ORANGE,'lackMetall'); }
+    return S.geometrie('lackMetall'); });
+  /* Gitterrost (Draht, verzinkt) auf jeder Traversenebene */
+  const rost=_bkHRGeo('rost',()=>{ const gg=new THREE.PlaneGeometry(fb-0.14,T-0.06); gg.rotateX(-Math.PI/2); gg.translate(0,0.004,T/2); return MAT.kachel(gg,(fb-0.14)/0.2,(T-0.06)/0.2); });
+  const mR=[], mT=[], mG=[];
+  for(const r of reihen){
+    for(let i=0;i<=nf;i++) mR.push(tm(x0+i*fb,0,r.z0));
+    for(let j=0;j<nf;j++){ const cx=x0+(j+0.5)*fb;
+      for(let l=1;l<A.ebenen.length;l++){ mT.push(tm(cx,A.ebenen[l],r.z0)); mG.push(tm(cx,A.ebenen[l],r.z0)); }
+      mT.push(tm(cx,H,r.z0)); }
+  }
+  const meshes=[bk.inst(rahmen,MAT.vc('lackMetall'),mR,{parent:g,bauteil:'hochregal',art:'rahmen'}),
+    bk.inst(trav,MAT.vc('lackMetall'),mT,{parent:g,bauteil:'hochregal',art:'traverse'}),
+    bk.inst(rost,MAT.get('gitterRost'),mG,{parent:g,bauteil:'hochregal',art:'gitterrost',schatten:false})];
+  /* Schienen der Gasse (Fahrschiene am Boden, Fuehrungsschiene oben an Querjochen), Anfahrschutz an der Stirn */
+  const S=bk.sammler({form:{fase:0.01,faseMin:0.05,lod0Kasten:true},bauteil:'hochregal'});
+  const xs0=x0-0.25, xs1=x1+(o.schieneOst||1.6);
+  if(o.schiene!==false){
+    S.box(xs1-xs0,0.06,0.09,(xs0+xs1)/2,0.03,mitte,F('silbergrau'),'stahl');
+    S.box(xs1-xs0,0.012,0.32,(xs0+xs1)/2,0.006,mitte,F('graphit'),'lackMetall');
+    S.box(xs1-x0+0.1,0.12,0.12,(x0+xs1)/2,H+0.3,mitte,F('anthrazit'),'lackMetall');
+    for(let i=0;i<=nf;i+=2) S.box(0.1,0.1,2.8-T+0.12,x0+i*fb,H+0.18,mitte,F('anthrazit'),'lackMetall');
+    /* Joch am Ostende fuer die Fuehrungsschiene ueber der Uebergabe */
+    for(const z of [mitte-0.85,mitte+0.85]) S.box(0.12,H+0.36,0.12,xs1-0.06,(H+0.36)/2,z,F('anthrazit'),'lackMetall');
+    S.box(0.12,0.12,1.82,xs1-0.06,H+0.3,mitte,F('anthrazit'),'lackMetall');
+  }
+  for(const r of reihen){ const xe=x1+0.18;
+    bk.anfahrschutz(S,{von:[xe,r.z0-0.04],bis:[xe,r.z1+0.04],hoehe:0.45,pfosten:1.3});
+    /* Stuetzenschutz an den Eckstuetzen zur Gasse */
+    const zg=r.z0<mitte?r.z1-0.05:r.z0+0.05; S.box(0.22,0.4,0.2,x1,0.2,zg,F('signalgelb'),'lackMetall');
+    if(o.stirn==='beide') bk.anfahrschutz(S,{von:[x0-0.18,r.z0-0.04],bis:[x0-0.18,r.z1+0.04],hoehe:0.45,pfosten:1.3}); }
+  meshes.push(...S.fertig(g,{bauteil:'hochregal',fest:true}));
+  if(o.nr) bk.schild(g,{text:'GASSE '+o.nr,unter:(nf*A.jeFeld*A.ebenen.length*2)+' Palettenplätze',b:1.5,h:0.45,x:xs1+0.02,y:H-0.9,z:mitte,ry:Math.PI/2});
+  /* Palettenplaetze: Reihe, Feld, Platz im Feld, Ebene */
+  const plaetze=[];
+  reihen.forEach((r,ri)=>{ for(let j=0;j<nf;j++) for(let s=0;s<A.jeFeld;s++) for(let l=0;l<A.ebenen.length;l++)
+    plaetze.push({x:x0+j*fb+0.1+(s+0.5)*(fb-0.2)/A.jeFeld,y:A.ebenen[l]+(l?0.004:0),z:(r.z0+r.z1)/2,reihe:ri,feld:j,ebene:l}); });
+  const kollision=reihen.map(r=>({x0:x0-0.1,x1:x1+0.3,z0:r.z0-0.05,z1:r.z1+0.05}));
+  /* Belegung: je belegtem Platz Europalette (bk.palette) mit Kartonladung - zwei InstancedMesh fuer die ganze Gasse */
+  const N=plaetze.length, mP=bk.inst(bk.palette('euro',{fein:L>1}),MAT.get('palette'),plaetze.map(p=>tm(p.x,p.y,p.z,0,Math.PI/2,0)),{parent:g,bauteil:'hochregal',art:'palette',schatten:false});
+  const mL=bk.inst(bk.ladungGeo(),MAT.vc('stumpf'),plaetze.map(p=>tm(p.x,p.y+bk.PALETTE.euro.h,p.z)),{parent:g,bauteil:'hochregal',art:'ladung',schatten:false});
+  const hell=new THREE.Color();
+  const belegen=liste=>{ let n=0; const m=new THREE.Matrix4();
+    for(const i of liste){ const p=plaetze[i]; if(!p) continue;
+      mP.setMatrixAt(n,m.copy(tm(p.x,p.y,p.z,0,Math.PI/2+((i*7)%3-1)*0.02,0)));
+      mL.setMatrixAt(n,tm(p.x+((i*13)%5-2)*0.006,p.y+bk.PALETTE.euro.h,p.z));
+      const v=0.86+((i*37)%11)/80; mL.setColorAt(n,hell.setRGB(v,v,v)); n++; }
+    mP.count=n; mL.count=n; mP.instanceMatrix.needsUpdate=true; mL.instanceMatrix.needsUpdate=true; if(mL.instanceColor) mL.instanceColor.needsUpdate=true;
+    mP.visible=mL.visible=n>0; return n; };
+  meshes.push(mP,mL); belegen([]);
+  return {g,meshes,kollision,plaetze,mitte,x0,x1,xs1,reihen,ebenen:A.ebenen,hoehe:H,belegen};
+};
+/* Regalbediengeraet (RBG) fuer eine Gasse: zwei Fahrkatzen (Signalgelb wie Kran), Mast Anthrazit, Hubwagen mit
+   Teleskopgabel bis zum Boden, Schaltschrank, Kopf an der Fuehrungsschiene, Warnleuchte. Gabelmitte = g.x (Ladung mittig).
+   o = {x, z (Gassenmitte), hoehe (Mast bis Fuehrungsschiene), parent}
+   -> {g (faehrt in x), hub (faehrt in y = Unterkante Gabel), gabel (faehrt in z, quer in die Reihe), set(x,y,z), yMin, meshes} */
+bk.rbg=function(o){
+  const F=MAT.farbe, L=bk.lod(), H=o.hoehe||10.2, GELB=F('signalgelb'), ANTH=F('anthrazit'), seg=[6,10,14][L];
+  const g=new THREE.Group(); g.position.set(o.x||0,0,o.z||0); g.userData.bauteil='rbg'; (o.parent||scene).add(g);
+  const S=bk.sammler({form:{fase:0.015,faseMin:0.06,seg:1,lod0Kasten:true},bauteil:'rbg'});
+  /* Fahrwerk: zwei Fahrkatzen auf der Bodenschiene, flacher Unterzug dazwischen (Hubwagen faehrt bis zum Boden) */
+  for(const dx of [-1.05,1.05]){ S.box(0.56,0.42,0.6,dx,0.3,0,GELB,'lackMetall'); S.box(0.6,0.04,0.64,dx,0.53,0,ANTH,'lackMetall');
+    S.zyl(0.15,0.15,0.2,seg,dx,0.15,0,ANTH,'lackMetall',Math.PI/2,0,0); S.box(0.08,0.2,0.4,dx+Math.sign(dx)*0.32,0.25,0,F('gummischwarz'),'matt'); }
+  S.box(1.6,0.05,0.22,0,0.025,0,ANTH,'lackMetall');
+  /* Antrieb */
+  S.zyl(0.12,0.12,0.3,seg,1.05,0.68,0.16,F('mittelgrau'),'lackMetall',Math.PI/2,0,0); S.box(0.24,0.24,0.2,1.05,0.68,-0.12,ANTH,'lackMetall');
+  /* Mast (Kastenprofil) ueber der Fahrkatze Ost, Laufbahnen fuer den Hubwagen */
+  S.box(0.3,H-0.55,0.4,0.95,0.55+(H-0.55)/2,0,ANTH,'lackMetall');
+  for(const z of [-0.14,0.14]) S.box(0.04,H-0.6,0.06,0.78,0.3+(H-0.6)/2,z,F('silbergrau'),'stahl');
+  if(L>0) for(let y=1.2;y<H-0.6;y+=1.2) S.box(0.31,0.03,0.41,0.95,y,0,F('graphit'),'lackMetall');
+  /* Kopf mit Fuehrungsrollen an der oberen Schiene, Warnleuchte */
+  S.box(2.6,0.22,0.4,0,H-0.11,0,GELB,'lackMetall');
+  for(const z of [-0.09,0.09]) for(const x of [-1.0,1.0]) S.zyl(0.06,0.06,0.12,seg,x,H+0.06,z,ANTH,'stahl');
+  S.zyl(0.06,0.07,0.1,seg,0.0,H+0.05,0.12,ANTH,'lackMetall'); S.zyl(0.07,0.07,0.14,seg,0.0,H+0.17,0.12,F('signalorange'),'leucht');
+  /* Schaltschrank auf der Fahrkatze West, Display und Not-Halt */
+  S.box(0.46,1.4,0.5,-1.05,1.25,0,F('lichtgrau'),'kunststoff'); S.box(0.5,0.05,0.54,-1.05,1.97,0,ANTH,'lackMetall');
+  S.box(0.01,0.16,0.24,-1.285,1.6,0.05,F('signalblau'),'leucht'); S.zyl(0.035,0.035,0.03,seg,-1.29,1.35,-0.15,F('signalrot'),'kunststoff',0,0,Math.PI/2);
+  /* Energiekette am Mast */
+  if(L>0) S.box(0.06,H*0.5,0.14,1.13,0.6+H*0.25,0.16,F('gummischwarz'),'matt');
+  const meshes=S.fertig(g,{bauteil:'rbg'});
+  /* Hubwagen (y = Unterkante Gabel): Traegerplatte am Mast, Gabeltraeger, Teleskopgabel quer in die Reihe */
+  const hub=new THREE.Group(); hub.position.y=0.5; g.add(hub);
+  const Sh=bk.sammler({form:{fase:0.012,faseMin:0.05,seg:1,lod0Kasten:true},bauteil:'rbg'});
+  Sh.box(0.12,0.9,0.72,0.66,0.45,0,GELB,'lackMetall'); Sh.box(0.2,0.1,0.72,0.5,0.06,0,ANTH,'lackMetall');
+  for(const z of [-0.33,0.33]) Sh.box(0.12,0.5,0.04,0.58,0.3,z,ANTH,'lackMetall');
+  meshes.push(...Sh.fertig(hub,{bauteil:'rbg'}));
+  const gabel=new THREE.Group(); hub.add(gabel);
+  const Sg=bk.sammler({bauteil:'rbg'});
+  for(const x of [-0.25,0.25]){ Sg.box(0.12,0.04,1.15,x,0.02,0,F('silbergrau'),'stahl'); Sg.box(0.1,0.025,1.1,x,0.05,0,F('graphit'),'lackMetall'); }
+  Sg.box(0.62,0.05,0.12,0.12,0.03,0,ANTH,'lackMetall');
+  meshes.push(...Sg.fertig(gabel,{bauteil:'rbg'}));
+  const R={g,hub,gabel,meshes,yMin:0.0,
+    set(x,y,z){ if(x!==undefined) g.position.x=x; if(y!==undefined) hub.position.y=Math.max(R.yMin,y); if(z!==undefined) gabel.position.z=z; }};
+  return R;
+};
+/* Rollenfoerderer (Paletten, 1 m breit): Seitenwangen Anthrazit, Rollen Stahl hell, Stuetzen verzinkt, Antrieb.
+   o = {von:[x,z], bis:[x,z], breite 1,0, hoehe (Oberkante Rollen) 0,55, teilung (Rollenabstand) 0,16, parent}
+   -> {meshes, laenge, y, punkt(t) -> {x,z} (t 0..1), ry, kollision {x0,x1,z0,z1}} */
+bk.foerderer=function(o){
+  const F=MAT.farbe, L=bk.lod(), seg=[6,8,12][L], [ax,az]=o.von, [bx,bz]=o.bis, dx=bx-ax, dz=bz-az, len=Math.hypot(dx,dz);
+  const B=o.breite||1.0, Hh=o.hoehe||0.55, t=o.teilung||(L?0.16:0.32), ry=Math.atan2(-dz,dx);
+  const g=new THREE.Group(); g.position.set(ax,0,az); g.rotation.y=ry; g.userData.bauteil='foerderer'; (o.parent||scene).add(g);
+  const S=bk.sammler({form:{fase:0.008,faseMin:0.04,lod0Kasten:true},bauteil:'foerderer'});
+  for(const s of [-1,1]){ S.box(len,0.14,0.05,len/2,Hh-0.05,s*(B/2+0.03),F('anthrazit'),'lackMetall'); }
+  const n=Math.max(2,Math.floor(len/t));
+  for(let i=0;i<n;i++) S.zyl(0.03,0.03,B,seg,(i+0.5)*len/n,Hh-0.03,0,F('hellgrau'),'stahl',Math.PI/2,0,0);
+  const ns=Math.max(2,Math.ceil(len/1.6)+1);
+  for(let i=0;i<ns;i++){ const x=Math.min(len-0.05,Math.max(0.05,i*len/(ns-1))); for(const s of [-1,1]){ S.box(0.06,Hh-0.12,0.06,x,(Hh-0.12)/2,s*(B/2-0.02),F('silbergrau'),'stahl'); bk.fuss(S,x,s*(B/2-0.02),0.12); }
+    S.box(0.05,0.05,B,x,0.18,0,F('silbergrau'),'stahl'); }
+  if(o.antrieb!==false){ S.box(0.3,0.24,0.22,len*0.5,Hh-0.22,-(B/2+0.18),F('graphit'),'lackMetall'); S.zyl(0.08,0.08,0.22,seg,len*0.5,Hh-0.22,-(B/2+0.36),F('mittelgrau'),'lackMetall',Math.PI/2,0,0); }
+  const meshes=S.fertig(g,{bauteil:'foerderer',fest:true});
+  const cx=[ax,bx], cz=[az,bz], w=B/2+0.1;
+  return {g,meshes,laenge:len,y:Hh,ry,punkt:u=>({x:ax+dx*u,z:az+dz*u}),
+    kollision:{x0:Math.min(...cx)-(Math.abs(dz)>Math.abs(dx)?w:0),x1:Math.max(...cx)+(Math.abs(dz)>Math.abs(dx)?w:0),z0:Math.min(...cz)-(Math.abs(dx)>=Math.abs(dz)?w:0),z1:Math.max(...cz)+(Math.abs(dx)>=Math.abs(dz)?w:0)}};
+};
+/* Leuchten.
+   art 'raster' (Deckenleuchten im Raster, vorher leuchtenRaster 05h): o = {id (Zone), r:{x0,x1,z0,z1}, y (Decke), ax, az, panel (Material
+       der Streuscheibe)} - zwei Meshes (Korpus, Scheibe), jede Leuchte meldet sich in LAMPEN an.
+   art 'halle' (Hallenleuchte, LED-Hallenstrahler linear 1,4 m an Pendeln): o = {punkte:[[x,z],...], y (Unterkante), decke (Pendel bis),
+       zone (LAMPEN-id), aus (Zone, mit der die Leuchte ausgeht), parent} - zwei InstancedMesh (Gehaeuse, Leuchtflaeche).
+   art 'strasse' (Mastleuchte, vorher lampTeile 05e): o.add(k,geo,matrix,farbe) bekommt die Teile in lokalen Koordinaten. */
+bk.lampe=function(o){
+  if(o.art==='strasse'){ const add=o.add, D=MAT.farbe('anthrazit'), MA=MAT.farbe('basaltgrau'), C=(a,b,h,s)=>new THREE.CylinderGeometry(a,b,h,s);
+    add('lack',C(0.15,0.19,0.34,14),tm(0,0.17,0),D);
+    add('lack',new THREE.BoxGeometry(0.1,0.16,0.02),tm(0,0.2,0.185),MAT.farbe('mittelgrau'));
+    add('lack',C(0.16,0.16,0.03,14),tm(0,0.35,0),D);
+    for(let i=0;i<4;i++){ const a=i/4*Math.PI*2; add('lack',new THREE.BoxGeometry(0.035,0.03,0.035),tm(Math.cos(a)*0.13,0.37,Math.sin(a)*0.13),MAT.farbe('silbergrau')); }
+    add('mast',C(0.075,0.11,4.4,14),tm(0,2.57,0),MA);
+    const R=0.9, seg=7;
+    for(let i=0;i<seg;i++){ const a0=i/seg*(Math.PI/2), a1=(i+1)/seg*(Math.PI/2);
+      const x0=Math.sin(a0)*R, y0=R-Math.cos(a0)*R, x1=Math.sin(a1)*R, y1=R-Math.cos(a1)*R;
+      add('lack',C(0.062,0.066,Math.hypot(x1-x0,y1-y0)*1.08,10),tm(0,4.77+(y0+y1)/2,(x0+x1)/2,Math.atan2(x1-x0,y1-y0),0,0),MA); }
+    const K=tm(0,5.63,0.9,0.06,0,0), k=(geo,x,y,z,c,key)=>add(key||'lack',geo,K.clone().multiply(tm(x,y,z)),c);
+    k(roundedBoxGeo(0.3,0.11,0.82,0.04),0,0.06,0,MAT.farbe('graphit'));
+    k(new THREE.BoxGeometry(0.26,0.03,0.74),0,0.005,0,MAT.farbe('mittelgrau'));
+    k(new THREE.BoxGeometry(0.24,0.045,0.7),0,-0.02,0,0xffffff,'lampe');
+    k(new THREE.BoxGeometry(0.16,0.09,0.16),0,0.06,-0.44,MAT.farbe('anthrazit'));
+    k(new THREE.BoxGeometry(0.24,0.02,0.6),0,0.125,0.02,MAT.farbe('basaltgrau'));
+    return null; }
+  if(o.art==='raster'){ const r=o.r, y=o.y, id=o.id;
+    const nx=Math.max(1,Math.round((r.x1-r.x0)/o.ax)), nz=Math.max(1,Math.round((r.z1-r.z0)/o.az));
+    /* Je hoeher die Halle, desto groesser die Leuchte - sonst haengen unter zwoelf Metern Decke nur noch Striche. */
+    const f=Math.max(1,y/3.8);
+    const gRev=new THREE.BoxGeometry(1.44*f,0.03*f,0.42*f), gFix=new THREE.BoxGeometry(1.36*f,0.028*f,0.36*f), gDif=new THREE.PlaneGeometry(1.26*f,0.28*f);
+    const korpus=[], diff=[], lampen=[];
+    for(let i=0;i<nx;i++) for(let k=0;k<nz;k++){ const x=r.x0+(i+0.5)*(r.x1-r.x0)/nx, z=r.z0+(k+0.5)*(r.z1-r.z0)/nz;
+      const L={x,y,z,id}; LAMPEN.push(L); lampen.push(L);
+      korpus.push({geo:gRev,m:tm(x,y-0.008*f,z),color:MAT.farbe('anthrazit')});
+      korpus.push({geo:gFix,m:tm(x,y-0.026*f,z),color:MAT.farbe('lichtgrau')});
+      diff.push({geo:gDif,m:tm(x,y-0.043*f,z,Math.PI/2,0,0)}); }
+    const mk=new THREE.Mesh(merge(korpus),MAT.vc('matt')), md=new THREE.Mesh(merge(diff),o.panel);
+    mk.userData.bauteil=md.userData.bauteil='lampe'; mk.userData.bauteilArt=md.userData.bauteilArt='raster';
+    (o.parent||scene).add(mk); (o.parent||scene).add(md);
+    if(id&&typeof zAdd==='function'){ zAdd(id,mk); zAdd(id,md); }
+    gRev.dispose(); gFix.dispose(); gDif.dispose();
+    return {meshes:[mk,md],lampen}; }
+  /* Hallenleuchte */
+  const L=bk.lod(), y=o.y, pend=Math.max(0,(o.decke||y)-y-0.12);
+  const geo=_bkHRGeo('hallenleuchte:'+pend.toFixed(2),()=>{ const S=bk.sammler({form:{fase:0.01,faseMin:0.04,lod0Kasten:true}});
+    S.box(1.42,0.09,0.3,0,0.06,0,MAT.farbe('anthrazit'),'lackMetall');
+    if(L>0) for(let i=-5;i<=5;i++) S.box(0.025,0.05,0.26,i*0.12,0.13,0,MAT.farbe('aluminium'),'lackMetall');
+    if(pend>0) for(const x of [-0.6,0.6]) S.box(0.012,pend,0.012,x,0.1+pend/2,0,MAT.farbe('silbergrau'),'lackMetall');
+    return S.geometrie('lackMetall'); });
+  const geoL=_bkHRGeo('hallenleuchte:flaeche',()=>merge([{geo:new THREE.BoxGeometry(1.32,0.02,0.22),m:tm(0,0.008,0),color:MAT.farbe('lampeWarm')}]));
+  const M=o.punkte.map(([x,z,ry])=>tm(x,y,z,0,ry||0,0)), lampen=[];
+  for(const [x,z] of o.punkte){ const Lp={x,y,z,id:o.zone||null}; if(o.aus) Lp.aus=o.aus; LAMPEN.push(Lp); lampen.push(Lp); }
+  const meshes=[bk.inst(geo,MAT.vc('lackMetall'),M,{parent:o.parent,bauteil:'lampe',art:'halle',schatten:false}),
+    bk.inst(geoL,MAT.vc('leucht'),M,{parent:o.parent,bauteil:'lampe',art:'halle',schatten:false})];
+  return {meshes,lampen};
+};
+/* Bodenmarkierung (ASR A1.8): gleiche Breiten und Farben ueberall.
+   o = {linien:[[x0,z0,x1,z1,farbe('gelb'|'weiss'|'gruen'),breite]] (Fahrwege gelb 0,12 m, Stellplaetze weiss/gelb 0,08 m),
+        rahmen:[{x0,x1,z0,z1,farbe,breite}] (Stellplatz/Feld umrandet), flaechen:[{x0,x1,z0,z1,art:'gehweg'|'sperr'}]
+        (Gehweg gruen, Sperrflaeche gelb-schwarz 45°), piktos:[{x,z,ry,g}] (Fussgaenger 0,8 m), y (Boden), parent,
+        schatten (true = empfaengt Sonnenschatten wie Aussenboeden; innen aus, wie die Hallenboeden)}
+   -> {meshes} je Material EIN Mesh (UV in Metern, Schraffur 0,4 m je Kachel) */
+bk.MARKIERUNG={fahrweg:0.12,stellplatz:0.08,gehweg:0.12,pikto:0.8};
+bk.bodenmarkierung=function(o){
+  const y=o.y===undefined?0.015:o.y, T={gelb:[],weiss:[],gruen:[],sperr:[],pikto:[]};
+  const quad=(k,cx,cz,w,d,ry,dy,uvM)=>{ const gg=new THREE.PlaneGeometry(w,d); gg.rotateX(-Math.PI/2); if(ry) gg.rotateY(ry); gg.translate(cx,y+dy,cz);
+    if(uvM){ const p=gg.attributes.position, uv=gg.attributes.uv; for(let i=0;i<p.count;i++) uv.setXY(i,p.getX(i)/uvM,-p.getZ(i)/uvM); }
+    T[k].push({geo:gg,m:new THREE.Matrix4()}); };
+  const linie=(x0,z0,x1,z1,f,b)=>{ const L=Math.hypot(x1-x0,z1-z0); if(L<0.01) return; quad(f||'gelb',(x0+x1)/2,(z0+z1)/2,L+(b||0.12),b||0.12,Math.atan2(-(z1-z0),x1-x0),0.005); };
+  for(const l of (o.linien||[])) linie(l[0],l[1],l[2],l[3],l[4],l[5]);
+  for(const r of (o.rahmen||[])){ const b=r.breite||bk.MARKIERUNG.stellplatz, f=r.farbe||'gelb', h=b/2;
+    linie(r.x0+h,r.z0+h,r.x1-h,r.z0+h,f,b); linie(r.x0+h,r.z1-h,r.x1-h,r.z1-h,f,b);
+    linie(r.x0+h,r.z0+h,r.x0+h,r.z1-h,f,b); linie(r.x1-h,r.z0+h,r.x1-h,r.z1-h,f,b); }
+  for(const f of (o.flaechen||[])){ const w=f.x1-f.x0, d=f.z1-f.z0;
+    if(f.art==='sperr') quad('sperr',(f.x0+f.x1)/2,(f.z0+f.z1)/2,w,d,0,0.003,0.4); else quad('gruen',(f.x0+f.x1)/2,(f.z0+f.z1)/2,w,d,0,0.003); }
+  for(const p of (o.piktos||[])){ const gg=new THREE.PlaneGeometry(p.g||0.8,p.g||0.8); gg.rotateX(-Math.PI/2); gg.rotateY(p.ry||0); gg.translate(p.x,y+0.006,p.z); T.pikto.push({geo:gg,m:new THREE.Matrix4()}); }
+  const MM={gelb:MAT.get('markierungGelb'),weiss:MAT.get('weissMatt'),gruen:MAT.get('markierungGruen'),sperr:MAT.get('sperrflaeche'),pikto:MAT.get('markierungPikto')};
+  const meshes=[];
+  for(const k in T){ if(!T[k].length) continue; const me=new THREE.Mesh(merge(T[k]),MM[k]); T[k].forEach(t=>t.geo.dispose());
+    if(HIQ&&o.schatten) me.receiveShadow=true; me.userData.bauteil='bodenmarkierung'; me.userData.bauteilArt=k; me.matrixAutoUpdate=false; me.updateMatrix();
+    (o.parent||scene).add(me); meshes.push(me); }
+  return {meshes};
+};
+/* Fahrerloses Transportfahrzeug (FTS) fuer Paletten: flacher Fahrkoerper Lichtgrau, Hubdeck verzinkt, Rammschutz-Leiste
+   Signalgelb rundum, Laserscanner vorn/hinten, Warnleuchte. o = {x,z,ry,parent} -> {g, deck (hebt in y), set(hub 0..1), meshes} */
+bk.fts=function(o){
+  o=o||{}; const F=MAT.farbe, L=bk.lod(), seg=[6,10,14][L];
+  const g=new THREE.Group(); g.position.set(o.x||0,0,o.z||0); g.rotation.y=o.ry||0; g.userData.bauteil='fts'; (o.parent||scene).add(g);
+  const S=bk.sammler({form:{fase:0.02,faseMin:0.05,seg:1,lod0Kasten:true},bauteil:'fts'});
+  S.box(1.3,0.22,0.78,0,0.15,0,F('lichtgrau'),'lackMetall');
+  S.box(1.34,0.06,0.82,0,0.08,0,F('signalgelb'),'kunststoff');
+  for(const x of [-0.45,0.45]) S.zyl(0.06,0.06,0.06,seg,x,0.06,0.34,F('gummischwarz'),'matt',Math.PI/2,0,0), S.zyl(0.06,0.06,0.06,seg,x,0.06,-0.34,F('gummischwarz'),'matt',Math.PI/2,0,0);
+  for(const s of [-1,1]){ S.zyl(0.05,0.05,0.06,seg,s*0.6,0.3,0,F('gummischwarz'),'kunststoff'); S.box(0.02,0.04,0.3,s*0.66,0.18,0,F('tiefschwarz'),'kunststoff'); }
+  S.zyl(0.035,0.035,0.08,seg,0.5,0.3,0.3,F('signalorange'),'leucht');
+  S.box(0.012,0.05,0.18,0.656,0.2,-0.2,F('signalblau'),'leucht');
+  const meshes=S.fertig(g,{bauteil:'fts'});
+  const deck=new THREE.Group(); deck.position.y=0.27; g.add(deck);
+  const Sd=bk.sammler({bauteil:'fts'}); Sd.box(1.1,0.03,0.7,0,0.015,0,F('silbergrau'),'stahl'); meshes.push(...Sd.fertig(deck,{bauteil:'fts'}));
+  return {g,deck,meshes,set(h){ deck.position.y=0.27+0.06*Math.max(0,Math.min(1,h)); }};
+};

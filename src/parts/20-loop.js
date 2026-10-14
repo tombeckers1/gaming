@@ -26,7 +26,7 @@ function updateInnenlicht(dt){
   innenT-=dt;
   if(innenT<=0){ innenT=0.18;
     const fx=-Math.sin(yaw), fz=-Math.cos(yaw), px=pl.x+fx*2.5, pz=pl.z+fz*2.5;
-    const kand=[]; for(let i=0;i<LAMPEN.length;i++){ const L=LAMPEN[i]; if(L.id&&!zoneOffen(L.id)) continue;
+    const kand=[]; for(let i=0;i<LAMPEN.length;i++){ const L=LAMPEN[i]; if(L.id&&!zoneOffen(L.id)) continue; if(L.aus&&zoneOffen(L.aus)) continue;
       const d=Math.hypot(L.x-px,L.z-pz), dk=Math.hypot(L.x-pl.x,L.z-pl.z); if(d>16&&dk>16) continue;
       kand.push({i,d:Math.min(d,dk*1.15)}); }
     kand.sort((a,b)=>a.d-b.d);
@@ -68,6 +68,8 @@ function dachBereiche(){
   const g=_daecher.length;
   r({x0:GANG.x0,x1:GANG.x1,z0:GANG.z0,z1:GANG.z1},GANG.h);
   _daecher[g].zone='lager_west';
+  /* Halle Etappe A: Ostteil von ③ und neue Schleuse haben ihr Dach erst mit dem Ausbau */
+  r({x0:-26,x1:-19.9,z0:LL.schleuse.z0,z1:LL.lager3.z1},LL.h3); _daecher[_daecher.length-1].zone=LL.id;
   return _daecher;
 }
 function unterDach(x,y,z){
@@ -151,7 +153,7 @@ function step(dt){
     else if(!spawnWTruck(frei,ladung,sid,supplierOf(sid).name)) break;
   }
   updateSonne(pl.x,pl.z);
-  updateInnenlicht(dt); updateTruck(dt); updateWBays(dt); updateSchiebetuer(dt); updateVersand(dt); updatePaletten(dt); updateSchweber(dt); updateWischen(dt); updateSchoner(dt); updateZiel(dt); karreNachziehen(); karreFolgen(); kartonTick(dt);
+  updateInnenlicht(dt); updateTruck(dt); updateWBays(dt); if(typeof hrTick==='function') hrTick(dt); updateSchiebetuer(dt); updateVersand(dt); updatePaletten(dt); updateSchweber(dt); updateWischen(dt); updateSchoner(dt); updateZiel(dt); karreNachziehen(); karreFolgen(); kartonTick(dt);
   for(let i=timers.length-1;i>=0;i--){ timers[i].t-=dt; if(timers[i].t<=0){ const tm=timers[i]; timers.splice(i,1); if(tm.fw){ FW_KTX++; try{ tm.fn(); } finally { FW_KTX--; } } else tm.fn(); } }
   if(phase==='open') addGrime(dt*0.0016*(1+customers.length*0.05));
   hype=Math.max(0,hype-dt*WIRT.kunden.hype.verfallJeSek);

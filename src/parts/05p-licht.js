@@ -118,7 +118,7 @@ function liKasten(g){
   return n?_liB.clone():null;
 }
 function liRaeume(){
-  if(!LI.raeume){ const L=LAY; LI.raeume=[L.shop,{x0:-19.9,x1:-8.1,z0:-29.9,z1:5.9},L.schleuse,L.lw2,L.lwest].filter(Boolean); }
+  if(!LI.raeume){ const L=LAY; LI.raeume=[L.shop,{x0:-19.9,x1:-8.1,z0:-29.9,z1:5.9},L.schleuse,L.lw2,L.lwest,LL.lager3,LL.schleuse].filter(Boolean); }
   return LI.raeume;
 }
 function liRaum(x,z){ const R=liRaeume(); for(let i=0;i<R.length;i++){ const r=R[i]; if(x>r.x0-0.2&&x<r.x1+0.2&&z>r.z0-0.2&&z<r.z1+0.2) return i; } return -1; }
@@ -184,7 +184,7 @@ function liPersonenSchatten(){
 /* ---------- Lichtflecken unter den Deckenleuchten ---------- */
 function liFlecken(){
   const F=LI.flecken; let n=0;
-  for(const L of LAMPEN){ if(n>=F.instanceMatrix.count) break; if(L.id&&typeof zoneOffen==='function'&&!zoneOffen(L.id)) continue;
+  for(const L of LAMPEN){ if(n>=F.instanceMatrix.count) break; if(L.id&&typeof zoneOffen==='function'&&!zoneOffen(L.id)) continue; if(L.aus&&zoneOffen(L.aus)) continue;
     const h=L.y, r=clamp(h*0.5,1.7,5), k=clamp(0.2*3.6/h,0.1,0.2);
     liSetzen(F,n++,L.x,0.043,L.z,0,r*2.4,r*1.9,k,0,0); }
   F.count=n; liHoch(F,0,n); LI.n.flecken=n;
@@ -201,7 +201,7 @@ function liGlanz(){
   const spiegel=typeof PR!=='undefined'&&PR.an&&PR.sp&&PR.sp.k.value>0;
   if(spiegel||gfxNiedrig(GFX)||cy<0.3||cy>6){ G.count=0; LI.n.glanz=0; return; }
   const fx=-Math.sin(yaw), fz=-Math.cos(yaw), kand=[];
-  for(const L of LAMPEN){ if(L.id&&typeof zoneOffen==='function'&&!zoneOffen(L.id)) continue;
+  for(const L of LAMPEN){ if(L.id&&typeof zoneOffen==='function'&&!zoneOffen(L.id)) continue; if(L.aus&&zoneOffen(L.aus)) continue;
     const dx=L.x-cam.x, dz=L.z-cam.z, d=Math.hypot(dx,dz); if(d>24||d<0.3) continue;
     if((dx*fx+dz*fz)<-1.5) continue;
     kand.push({L,d}); }

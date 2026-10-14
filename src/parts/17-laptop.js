@@ -1691,6 +1691,7 @@ function buyUp(id){
       else if(id==='lager_sued') toast('Der zweite Abschnitt ist offen. Die Wand dazwischen ist ganz weg.','money');
       else if(id==='lager_sued2') toast('Die Halle Süd ist komplett: 283 Quadratmeter am Stück.','money');
       else if(id==='lager_west') toast('Die Logistikhalle gehört dir: hinter der Schleuse, die Tore rechts an der Südwand. Mit jeder Stufe wird sie größer.','money');
+      else if(id==='lagerlogistik') toast('Das Hochregal läuft: Lieferungen an Tor 2 bis 4 lagert das Regalbediengerät ein, Nachschub fährt nach ③. Durch N1 geht es ins Kartonlager.','money');
       else if(id==='eingang2'){ setEingang2(true); toast('Der zweite Eingang ist offen. Kunden nehmen ab jetzt die Tür, die näher liegt.','money'); }
       else if(id.indexOf('rampe')===0) toast(`${u.name.split(' ')[0]} Andockstation geht in Betrieb. Das Tor ist frei.`,'money');
       else if(id==='packstation'){ drawPackSchild(); toast(S.up.onlineshop?'Die Packstation steht. Ab jetzt kommen Onlinebestellungen als Pakete herein.':'Die Packstation steht. Für den Versand brauchst du noch den Onlineshop.','money'); }

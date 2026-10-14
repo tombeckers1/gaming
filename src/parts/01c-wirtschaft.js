@@ -191,7 +191,11 @@ const WIRT={
       lager_gross:6200, shop_ost:16000, shop_sued:34000, lager_sued:11000, lager_sued2:15000, lager_west:22000,
       rampe2:12000, lager_west2:30000, rampe3:15000, rampe4:20000, lager_west3:42000, rampe5:26000,
       packstation:6400, packstation2:5900, packstation3:6900, eingang2:11500, kasse2:3400, labor:9800,
-      labor2:16500, gravur:1200
+      labor2:16500, gravur:1200,
+      /* Halle Etappe A (14.10.): Hochregal Gasse 1 + RBG + I/O + ③ + Schleuse. Amortisation in docs/halle/etappe-a.md:
+         geschaetzt ~+520 €/Tag (Staffel 18 % statt 10 % auf den Grosshandels-Einkauf, Einraeumer-Wege gespart, Packer
+         kuerzer) minus Betrieb fix.hochregal -> ~38 Spieltage; Ziel "grosse Stufen" 15-30 Tage + Puffer (Kapitel 7) */
+      lagerlogistik:18500
     }
   },
   lizenz:{
@@ -303,7 +307,8 @@ const WIRT={
     levelAb:4,          // ab diesem Level kostet jedes weitere Level ...
     jeLevel:4,          // ... 4 € je Tag ("Level-Steuer", keine Miete/Flaeche - Luecke fuers Balancing)
     regalArt:{klein:4,standard:9,hoch:12,kuehl:18,gondel:14,eck:11,gross:13,gitter:3,gitter2:4,gitter3:5,tisch:6,tischgross:8},  // € je Verkaufsregal
-    regalStandard:9     // € fuer Regalarten ohne Eintrag (z. B. Kassenregal)
+    regalStandard:9,    // € fuer Regalarten ohne Eintrag (z. B. Kassenregal)
+    hochregal:35        // € je Tag und aktiver Hochregal-Gasse (Strom und Wartung RBG, Foerderer, FTS) - ab Ausbau lagerlogistik
   },
   tag:{
     automat:45          // € je Tag mit Deko "Getraenkeautomat"
@@ -497,6 +502,13 @@ const WIRT_KETTEN=[
      {text:'Hoch pokern ueber die Grenze kostet Versuche; Meisterbrief x{auftrag.meister} auf die Auszahlung.',ort:'10b-pyro.js:haggle',werte:['auftrag.nachgeben','auftrag.meister']},
      {text:'Erfuellt: Ruf +{ruf.auftragErfuellt}, XP; Kartons fehlen bei Abholung: Ruf {ruf.auftragVerfehlt}.',ort:'10b-pyro.js:finishOrder',werte:['ruf.auftragErfuellt','ruf.auftragVerfehlt','xp.auftragErfuellt']}],
    warum:'B2B-Geschäft: große Mengen, kleinere Marge, Lieferfähigkeit entscheidet.',luecken:[]},
+  {id:'lagerlogistik',entscheidung:'Hochregal und Kartonlager bauen (Lagerlogistik, Kapitel 7.3)',
+   folgen:[
+     {text:'Einmalig {ausbau.preis.lagerlogistik|€}; danach jeden Tag {fix.hochregal|€} je aktiver Gasse (Strom, Wartung RBG und FTS) in den Fixkosten.',ort:'16-day.js:fixedCosts',werte:['ausbau.preis.lagerlogistik','fix.hochregal']},
+     {text:'Lieferungen an Tor 2-4 landen auf Stellplaetzen und gehen automatisch ins Hochregal (180 Palettenplaetze in Gasse 1) - kein Einraeumen von Hand, Lagerplatz fuer grosse Grosshandels-Staffeln (ab {einkauf.lieferant.grosshandel.staffel.1.n} Kartons {einkauf.lieferant.grosshandel.staffel.1.d|%} Rabatt).',ort:'11f-hochregal.js:hrEinlagern',werte:['einkauf.lieferant.grosshandel']},
+     {text:'Bestand im Hochregal zaehlt fuer Onlinebestellungen; das RBG lagert in den Anbruch aus, die FTS bringen Nachschub nach ③ und ①, Packer picken auch im Anbruch.',ort:'11f-hochregal.js:hrTick',werte:[]}],
+   warum:'Fixkosten gegen Skaleneffekt: Ein automatisches Lager lohnt sich erst mit Menge - wer wenig umschlaegt, zahlt jeden Tag Betrieb fuer leere Plaetze.',
+   luecken:['Ersparnis (Staffel, Wege) ist geschaetzt, nicht im Balancing-Lauf gemessen - der Bot erreicht Kapitel 7 nicht.']},
   {id:'restposten',entscheidung:'Restposten und Wundertueten kaufen',
    folgen:[
      {text:'Preis = mittlerer Karton-Einkauf x Kartons x Faktor ({einkauf.pakete.sonstige} ... {einkauf.pakete.rabatt.palette}), gerundet auf {einkauf.pakete.runden} €.',ort:'17-laptop.js:packPreis',werte:['einkauf.pakete']},

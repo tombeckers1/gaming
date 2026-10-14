@@ -37,6 +37,8 @@ function wbayFrei(){
    drei uebereinander, dann eine Reihe weiter in die Halle hinein
    (nach Norden, die Tore stehen in der Suedwand). */
 function wbaySlot(cx,n){
+  /* Halle Etappe A: mit der Lagerlogistik auf die Paletten der Stellplaetze (Tor 2-4, 11f) */
+  { const tor=WRAMPEN.indexOf(cx), s=typeof llStellSlot==='function'?llStellSlot(tor):null; if(s) return s; }
   const Z=LHALLE.z+1.7;
   const reihe=n%3, stapel=Math.floor(n/3)%3, tief=Math.floor(n/9);
   return {x:cx-0.95+reihe*0.95, y:0.2+stapel*0.41, z:Z+tief*1.05, ry:Math.PI/2+rand(-0.08,0.08)};

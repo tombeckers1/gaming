@@ -79,6 +79,7 @@ function save(){
         .concat(Object.values(staff).filter(w=>w&&w.carry&&w.carry.vm).map(w=>w.carry.vm)),
       paketeBoden:einbauPakete.map(b=>Object.assign({regal:b.regal,einbau:b.einbau},mpos(b.mesh))),
       einbauBestellt:S.einbauBestellt||{},
+      hr:S.hr||null, ll:S.ll||null,
       boxes:floorBoxes.filter(b=>!b.test).map(b=>({type:b.type,count:b.count,q:b.q||1,kiste:b.kiste?1:0,x:+b.mesh.position.x.toFixed(2),y:+b.mesh.position.y.toFixed(2),z:+b.mesh.position.z.toFixed(2),ry:+b.mesh.rotation.y.toFixed(2)})).concat(pending.filter(p=>p.type&&P[p.type]).map(p=>({type:p.type,count:P[p.type].box,q:p.q||1}))).concat((typeof truck!=='undefined'&&truck?truck.cargo:[]).filter(c=>c.type&&P[c.type]).map(c=>({type:c.type,count:P[c.type].box,q:c.q||1})))};
     localStorage.setItem(KEY,JSON.stringify(d));
   }catch(e){}

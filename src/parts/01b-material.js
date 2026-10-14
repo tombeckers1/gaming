@@ -50,11 +50,11 @@ const MAT=(function(){
     steingrau:        [0x9a958c,'Steingrau','Naturstein, Pflaster, Mauerwerk warm','≈ RAL 7030'],
     signalgelb:       [0xf9a800,'Signalgelb','Warnfarbe: Anfahrschutz, Bodenmarkierung, Absperrgitter, Kran, Torantrieb','RAL 1003'],
     schildgold:       [0xffd23f,'Schildgold','Hausstil-Schrift und -Rahmen auf Nachtblau (Schilder, Logo, Automat) - vorher zwei Golds (#ffd23f, #f2c230)','–'],
-    signalorange:     [0xed760e,'Signalorange','Blink-/Warnleuchten (Gehaeuse, Glas aus), Tasten','≈ RAL 2000'],
+    signalorange:     [0xed760e,'Signalorange','Blink-/Warnleuchten (Gehaeuse, Glas aus), Tasten, Traversen der Palettenregale (Hochregal)','≈ RAL 2000'],
     signalrot:        [0xd8352a,'Signalrot','Not-Halt, Ampel rot (aus), rote Bedienteile, Markierung rot','≈ RAL 3020'],
     feuerrot:         [0xaf2b1e,'Feuerrot','Brandschutz: Hydrant, Feuerloescher; dunkle Rotteile','RAL 3000'],
-    signalgruen:      [0x2f9e57,'Signalgruen','Ampel gruen (aus), Fluchtweg, gruene Bedienteile','≈ RAL 6024'],
-    signalblau:       [0x2a5a9e,'Signalblau','blaue Bedienteile, Regalrahmen blau, Hinweisschilder','≈ RAL 5005'],
+    signalgruen:      [0x2f9e57,'Signalgruen','Ampel gruen (aus), Fluchtweg, Gehweg-Markierung, gruene Bedienteile','≈ RAL 6024'],
+    signalblau:       [0x2a5a9e,'Signalblau','blaue Bedienteile, Regalrahmen blau (Stuetzen Hochregal), Hinweisschilder','≈ RAL 5005'],
     nachtblau:        [0x1b2340,'Nachtblau','Hausfarbe Schilder/Laden (mit Schildgold)','≈ RAL 5011'],
     tannengruen:      [0x2a4a33,'Tannengruen','Stadtmoebel gruen (Litfass, Baenke), Hecken-Kaesten','≈ RAL 6009'],
     holzPalette:      [0xc49a62,'Holz Palette','Europaletten, Kisten, helles Holz','–'],
@@ -127,6 +127,13 @@ const MAT=(function(){
     torBlatt:         {f:0xffffff,tex:'torBlatt',vertexColors:true,k:'lackMetall',w:'Torblatt aller Ladetore (Sektionen lichtgrau wie der alte R1, Lichtband, Warnstreifen) - Atlas torBlatt'},
     ampelRot:         {f:0x300808,emissive:LIN(0xff2a2a),emissiveIntensity:1.4,k:'kunststoff',w:'Torampel rot (Tor zu) - nur MAT.neu, Leuchtstaerke schaltet'},
     ampelGruen:       {f:0x082a12,emissive:LIN(0x3dff7a),emissiveIntensity:0,k:'kunststoff',w:'Torampel gruen (Tor offen) - nur MAT.neu, Leuchtstaerke schaltet'},
+    /* Halle Etappe A (14.10.): Gitterroste im Hochregal und Bodenmarkierung Gehweg (bk.hochregal, bk.bodenmarkierung).
+       Boden-Markierungen liegen 3-5 mm ueber dem Boden und schieben sich zusaetzlich per polygonOffset nach vorn. */
+    gitterRost:       {f:'silbergrau',tex:'drahtgitter',transparent:true,alphaTest:0.35,side:THREE.DoubleSide,k:'stahl',w:'Gitterrost verzinkt im Palettenregal (UV 0,2 m je Kachel, Masche 5 cm)'},
+    markierungGruen:  {f:'signalgruen',k:'matt',polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-2,w:'Bodenmarkierung Gehweg gruen (Halle, Kartonlager)'},
+    markierungPikto:  {f:0xffffff,tex:'fussgaenger',k:'matt',polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-4,w:'Fussgaenger-Piktogramm auf dem Gehweg (Textur fussgaenger, gruenes Feld)'},
+    lichtband:        {f:'glasKlar',emissive:LIN(0xe4edf7),emissiveIntensity:0.9,k:'kunststoff',w:'Lichtband im Hallendach (Tageslicht, zugleich RWA) - nur MAT.neu, Leuchtstaerke folgt der Sonne (11f)'},
+    sperrflaeche:     {f:0xffffff,tex:'warnschraffur',k:'matt',polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-2,w:'Sperrflaeche gelb-schwarz am Boden (Warnschraffur, UV in Metern / 0,4)'},
     torWarn:          {f:0x3a2208,emissive:LIN(0xffb02a),emissiveIntensity:0,k:'kunststoff',w:'Rundumleuchte ueber dem Torantrieb (blinkt, solange das Tor faehrt) - nur MAT.neu'}
   };
   /* Vertexfarben-Klassen (Sammler, bk.sammler): Farbe je Ecke, Oberflaeche je Klasse */
@@ -224,7 +231,7 @@ const MAT=(function(){
   function css(name,a){ const h=hexVon(name); if(a===undefined) return '#'+(h>>>0).toString(16).padStart(6,'0'); return 'rgba('+(h>>16&255)+','+(h>>8&255)+','+(h&255)+','+a+')'; }
 
   /* ---------- geteilte prozedurale Texturen (lazy, einmal gemalt) ---------- */
-  const TEXTUR_W={fassade:'Aussenwand Faserzementtafeln (Fugen, Nieten, Sockel 62 cm) - Kachel 2,4 x 8 m ueber repeat, Wand-UV in Metern',lagerwand:'Lagerwand hell mit gelb-schwarzem Sockelband - Kachel 2,6 x 3,6 m ueber repeat',trapezblech:'Trapezblech Hallenwand, Sicke 0,4 m - Kachel 3,2 m ueber repeat',beton:'Beton (innen Lagerboden, aussen Hof) - eine Textur, Massstab ueber die UVs',doppelstab:'Doppelstabmatte (Zaeune, Absperrungen)',drahtgitter:'Drahtgitter/Schweissgitter (Gitterbox, Ladezonen-Absperrung) - Masche 5 cm, Farbe ueber das Material',warnschraffur:'Warnschraffur gelb/schwarz (Torkanten, Sperrflaechen, Bodenrahmen)',palettenMarke:'Paletten-Atlas 256 x 256: oben links Brand EPAL im Oval (Eck-Kloetze), oben rechts IPPC/HT-Stempel (Mittelkloetze), darunter Kiefern-Maserung (Streifen je Brett); Layout MAT.PALETTE_UV. Holzton kommt ueber Vertexfarben, Alterung ueber Instanzfarben',torBlatt:'Torblatt-Atlas aller Ladetore (Optik alter R1, Tom 14.10.): Zeile 0 glatte Sektion lichtgrau, 1 Lichtband (4 Scheiben), 2 unterstes Panel aussen (Griffmulde), 3 weiss (Kleinteile ueber Vertexfarben)'};
+  const TEXTUR_W={fassade:'Aussenwand Faserzementtafeln (Fugen, Nieten, Sockel 62 cm) - Kachel 2,4 x 8 m ueber repeat, Wand-UV in Metern',lagerwand:'Lagerwand hell mit gelb-schwarzem Sockelband - Kachel 2,6 x 3,6 m ueber repeat',trapezblech:'Trapezblech Hallenwand, Sicke 0,4 m - Kachel 3,2 m ueber repeat',beton:'Beton (innen Lagerboden, aussen Hof) - eine Textur, Massstab ueber die UVs',doppelstab:'Doppelstabmatte (Zaeune, Absperrungen)',drahtgitter:'Drahtgitter/Schweissgitter (Gitterbox, Ladezonen-Absperrung) - Masche 5 cm, Farbe ueber das Material',warnschraffur:'Warnschraffur gelb/schwarz (Torkanten, Sperrflaechen, Bodenrahmen)',palettenMarke:'Paletten-Atlas 256 x 256: oben links Brand EPAL im Oval (Eck-Kloetze), oben rechts IPPC/HT-Stempel (Mittelkloetze), darunter Kiefern-Maserung (Streifen je Brett); Layout MAT.PALETTE_UV. Holzton kommt ueber Vertexfarben, Alterung ueber Instanzfarben',fussgaenger:'Fussgaenger-Piktogramm weiss auf Signalgruen (Gehweg-Markierung), 128 x 128',torBlatt:'Torblatt-Atlas aller Ladetore (Optik alter R1, Tom 14.10.): Zeile 0 glatte Sektion lichtgrau, 1 Lichtband (4 Scheiben), 2 unterstes Panel aussen (Griffmulde), 3 weiss (Kleinteile ueber Vertexfarben)'};
   /* Fassadentafeln (vorher fassadeTex() in 05-world.js): Kachel zwei Tafeln breit, Fuge auf dem Kachelrand -
      wo sich die Textur wiederholt, sitzt eine Fuge; senkrecht ueber die volle Wandhoehe (Sockel unten bleibt) */
   const FASS={b:2.4, h:8.0, sockel:0.62, tafel:1.18};
@@ -289,6 +296,14 @@ const MAT=(function(){
         for(let x=16;x<W;x+=51){ g.beginPath(); g.moveTo(x-2,0); g.lineTo(x-2,H); g.stroke(); }
       });
       t.wrapS=t.wrapT=THREE.RepeatWrapping; t.anisotropy=8; return t; },
+    /* Fussgaenger-Piktogramm (Halle Etappe A, 14.10.): gruenes Feld, weisse Figur im Schritt, wie Gehweg-Markierungen
+       in Logistikhallen (ASR A1.8 Verkehrswege). Eine Kachel = ein Piktogramm (0,8 m). */
+    fussgaenger:()=>{ const t=tex(128,128,(g,W,H)=>{ g.fillStyle=css('signalgruen'); g.fillRect(0,0,W,H);
+        g.fillStyle=css('weiss'); g.strokeStyle=css('weiss'); g.lineCap='round'; g.lineWidth=11;
+        g.beginPath(); g.arc(68,20,11,0,Math.PI*2); g.fill();
+        const L=(a,b,c,d)=>{ g.beginPath(); g.moveTo(a,b); g.lineTo(c,d); g.stroke(); };
+        L(64,40,58,76); L(58,76,40,108); L(58,76,78,94); L(78,94,76,116); L(62,46,40,64); L(62,46,86,62); });
+      t.wrapS=t.wrapT=THREE.ClampToEdgeWrapping; t.anisotropy=4; return t; },
     /* Drahtgitter (Schweissgitter), weiss, Farbe ueber das Material (13.10., vorher gitterTex() in 06 fuer die
        Gitterbox und vsGitterMat() in 05h fuer die Ladezone - zwei Malcodes, zwei Maschenweiten). Kachel = 4 Maschen,
        UV-Massstab 0,2 m je Kachel -> Masche 5 cm. */

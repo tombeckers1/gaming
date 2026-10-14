@@ -94,9 +94,13 @@ const UMBAU_RAUM=[
   {r:LAY.ls1,  z:'lager_gross'},
   {r:{x0:LAY.ls1.x0,x1:LAY.ls1.x1,z0:LAY.ls2.z0,z1:LAY.ls1.z1},z:'lager_sued'},
   {r:LAY.lsued,z:'lager_sued2'},
-  {r:LAY.lw1,z:'lager_west'},{r:LAY.lw2,z:'lager_west2'},{r:LAY.lwest,z:'lager_west3'}
+  {r:LAY.lw1,z:'lager_west'},{r:LAY.lw2,z:'lager_west2'},{r:LAY.lwest,z:'lager_west3'},
+  /* Halle Etappe A: Ostteil von ③ (x −26…−19,9) */
+  {r:{x0:-36,x1:-19.9,z0:-17,z1:-7},z:'lagerlogistik'}
 ];
 function imRaum(minX,maxX,minZ,maxZ){
+  /* Halle Etappe A: Hochregal, Anbruch, Stellplaetze, Packmaterial, Schleuse sind belegt (05q) */
+  if(typeof llSperrt==='function'&&llSperrt(minX,maxX,minZ,maxZ)) return false;
   return UMBAU_RAUM.some(b=>(!b.z||zoneOffen(b.z))&&
     minX>=b.r.x0+0.08&&maxX<=b.r.x1-0.08&&minZ>=b.r.z0+0.08&&maxZ<=b.r.z1-0.08);
 }

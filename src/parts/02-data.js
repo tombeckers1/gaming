@@ -302,6 +302,8 @@ const UPGRADES=[
   {id:'rampe4',kat:'flaeche',lvl:30,req:'lager_west2',name:'Andockstation 4',desc:'Das Tor in der erweiterten Halle. Vier Lieferungen gleichzeitig.',cost:()=>WIRT.ausbau.preis.rampe4,done:()=>S.up.rampe4},
   {id:'lager_west3',kat:'flaeche',lvl:30,req:'lager_west2',name:'Logistikhalle – Stufe 3',desc:'Die volle Halle: 40 mal 27 Meter und 11 Meter hoch, Platz für Hochregale bis unters Dach und das letzte Tor.',cost:()=>WIRT.ausbau.preis.lager_west3,done:()=>S.up.lager_west3},
   {id:'rampe5',kat:'flaeche',lvl:31,req:'lager_west3',name:'Andockstation 5',desc:'Das letzte Tor der Logistikhalle. Zusammen mit der Basisrampe rollen dann fünf Lieferungen gleichzeitig an — mehr gibt das Grundstück nicht her.',cost:()=>WIRT.ausbau.preis.rampe5,done:()=>S.up.rampe5},
+  /* Kapitel 7.3 (Halle Etappe A, 14.10.): die volle Halle wird zum Hochregallager (05q, 11f) */
+  {id:'lagerlogistik',kat:'flaeche',lvl:31,req:'lager_west3',kap:7,name:'Lagerlogistik – Hochregal und Kartonlager',desc:`Die Logistikhalle wird zum Hochregallager: Gasse 1 mit 180 Palettenplätzen und Regalbediengerät, Ein- und Auslagerung über Förderer, Anbruch zum Kommissionieren, Stellplätze am Wareneingang und zwei fahrerlose Transportfahrzeuge. Lieferungen an Tor 2 bis 4 gehen ab jetzt automatisch ins Hochregal, Nachschub fährt nach ③ und ①. Dazu das Kartonlager ③ mit gelber Wand und Schnelllauftor N1 – ①, ② und ③ sind ein Raum – und eine neue Schleuse. Die Lagerregale in der Halle ziehen nach ③ um. Betrieb ${WF.euro(WIRT.fix.hochregal,0)} am Tag.`,cost:()=>WIRT.ausbau.preis.lagerlogistik,done:()=>S.up.lagerlogistik},
   {id:'packstation',kat:'flaeche',lvl:25,req:'lager_sued2',name:'Packstation für den Versand',desc:`Ein Packplatz mit Packmaterial-Regal am hinteren Ende der großen Halle, dazu Förderband, Kran-Greifer und eine Palette in der gelben Box vor Rolltor V1. Das fertige Paket läuft übers Band, der Kran stapelt es auf die Palette. Abgeholt wird nur, wenn du DDL am Wandtelefon oder per Handy (Onlineshop) rufst – jede Abholung kostet eine Pauschale, dazu Porto je Paket (S ${WF.euro(WIRT.versand.porto[1],2)}, M ${WF.euro(WIRT.versand.porto[3],2)}, L ${WF.euro(WIRT.versand.porto[6],2)}). Der DDL-Fahrer lädt selbst. Ist die Palette voll, staut sich das Band. Zusammen mit dem Onlineshop kommen Bestellungen als echte Pakete herein.`,cost:()=>WIRT.ausbau.preis.packstation,done:()=>S.up.packstation},
   /* Ausbau der Packstation (Tom, 05.10.): weitere Packplaetze am selben
      Band, je mit Packmaterial-Regal und Wagen, und mehr Paletten unter
@@ -693,6 +695,12 @@ function mkRacks(){
   [-18.0,-22.0,-26.0].forEach(z=>{ add(-41.5,z,0,5.0,'lager_west'); add(-35.0,z,0,5.0,'lager_west'); });
   [-14.0,-18.0,-22.0,-26.0].forEach(z=>{ add(-52.5,z,0,6.4,'lager_west2'); add(-47.5,z,0,6.4,'lager_west2'); });
   [-12.0,-16.0,-20.0,-24.0,-28.0].forEach(z=>{ add(-63.0,z,0,6.4,'lager_west3'); add(-59.0,z,0,6.4,'lager_west3'); });
+  /* Halle Etappe A (14.10.): mit der Lagerlogistik wird die Halle zum Hochregallager - die freien Plaetze
+     dort entfallen (weg), dafuer bekommt das Kartonlager ③ zwei Reihen (Nordwand und gelbe Wand). Lagerregale,
+     die dort standen, ziehen beim Kauf um (llRaeumen, 11f); Plaetze am Ende der Liste, damit alte Staende passen. */
+  for(const sl of A) if(sl.zone&&sl.zone.indexOf('lager_west')===0) sl.weg='lagerlogistik';
+  [-34.6,-31.5,-28.4,-25.3,-22.2].forEach(x=>add(x,-7.55,Math.PI,5.0,'lagerlogistik'));
+  [-34.6,-31.5,-28.4].forEach(x=>add(x,-16.45,0,5.0,'lagerlogistik'));
   return A;
 }
 const RACKS=mkRacks();

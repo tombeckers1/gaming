@@ -78,6 +78,12 @@ später ändern will (Ampel, Lampe in `lampMats`, Regalfarbe, Hervorhebung, Ausb
 | `bk.palette(art,{fein})` | **jede Palette im Spiel**: EPAL-Europalette 1,2 × 0,8 × 0,144 m (11 Bretter, 9 Klötze, gekappte Deckbrett-Ecken, gefaste Bodenbretter, Brand „EPAL im Oval“/IPPC aus der Textur), eine Geometrie je Art und Detail, Material `MAT.get('palette')` (Atlas `palettenMarke`); Doku `paletten.md` |
 | `bk.paletten(liste,{gruppe,fein,schnee})` | viele Paletten als EIN InstancedMesh (gleiche `gruppe` = ein Zeichenaufruf über mehrere Aufrufe; je Instanz eigene Alterung über `bk.palFarbe`); Hülle `palettenStapel(x,z,n,ry)` = Hofstapel |
 | `bk.karton(t,{kiste})` | Versandkarton einer Sorte als Mesh (`kartonGeo` + `kartonMat[t]` = Atlaszelle) – Lagerregal, Boden, LKW, Karre |
+| `bk.hochregal(o)` | **Palettenhochregal einer Gasse** (Halle Etappe A, 14.10.): zwei Reihen à `felder` × 2,9 m, Ebenen 0/1,9/3,8/5,7/7,6, Höhe 9,95 m (`bk.HOCHREGAL`); Rahmen (Stützen Signalblau), Traversenpaare (Signalorange), Gitterroste (`MAT.get('gitterRost')`) je als **ein InstancedMesh** mit geteilter Geometrie je Detailstufe; Fahr-/Führungsschiene, Anfahrschutz an der Stirn, Schild „GASSE n“. Rückgabe `{plaetze, kollision, mitte, belegen(liste)}` – `belegen` zeigt Europalette + Kartonladung (`bk.ladungGeo`) je belegtem Platz (zwei InstancedMesh). Doku `docs/halle/etappe-a.md` |
+| `bk.rbg(o)` | Regalbediengerät: zwei Fahrkatzen + Kopf Signalgelb (wie Kran), Mast Anthrazit, Hubwagen mit Teleskopgabel bis zum Boden, Schaltschrank, Warnleuchte. Rückgabe `{g (x), hub (y = Unterkante Gabel), gabel (z), set(x,y,z)}` – fahren lässt es die Logik (11f) |
+| `bk.foerderer(o)` | Rollenförderer für Paletten `{von,bis,breite,hoehe,teilung}`: Seitenwangen Anthrazit, Rollen Stahl hell, Stützen verzinkt mit Fußplatte, Antrieb; Rückgabe `{laenge,y,punkt(t),kollision}` |
+| `bk.fts(o)` | Fahrerloses Transportfahrzeug (Paletten): Fahrkörper Lichtgrau, Rammschutz Signalgelb, Laserscanner, Hubdeck verzinkt; `{g, deck, set(hub)}` |
+| `bk.lampe(o)` | **Leuchten**: `art:'raster'` Deckenleuchten im Raster (vorher `leuchtenRaster`/`leuchtenMat` in 05h, jetzt Hülle), `'halle'` LED-Hallenleuchte linear 1,4 m an Pendeln (zwei InstancedMesh: Gehäuse `MAT.vc('lackMetall')`, Leuchtfläche `MAT.vc('leucht')` in `lampeWarm`), `'strasse'` Mastleuchte (vorher `lampTeile` in 05e). Jede Leuchte meldet sich in `LAMPEN` an (`id` = Zone, `aus` = Zone, mit der sie ausgeht) |
+| `bk.bodenmarkierung(o)` | **jede Bodenmarkierung** (ASR A1.8): `linien` (Fahrweg gelb 0,12 m, Stellplatz weiß 0,06–0,08 m), `rahmen`, `flaechen` (`gehweg` grün, `sperr` gelb-schwarz 45° mit UV in Metern / 0,4 m), `piktos` (Fußgänger 0,8 m, Textur `fussgaenger`); je Material **ein** Mesh, 3–6 mm über dem Boden + polygonOffset, Sonnenschatten nur mit `schatten:true` (außen) |
 
 Sammler (`opt`: `form` = Kastenform wie `bk.kasten`, `klasse` = Standardklasse, `reihenfolge`,
 `mats` = eigene Materialien je Klasse statt `MAT.vc`, `bauteil` = Name für `userData.bauteil`):
@@ -122,6 +128,15 @@ Neues Bauteil = Funktion `bk.<name>(o)` in `04z-baukasten.js`: Parameter statt K
 bewegte Teile) statt sie intern zu verdrahten, jedes Mesh mit `userData.bauteil`.
 Danach `bk.<name>` in `tools/fundament/waechter.js` (`BAUTEILE` mit Namenswörtern oder `HELFER`) eintragen und
 `node tools/fundament/waechter.js` laufen lassen – verbindlicher Ablauf und Wächter: `stilregeln.md` §10–11.
+
+## 2b. Halle Etappe A (14.10.2026) – neue Bauteile und Materialien
+- Neue Rezepte: `gitterRost` (silbergrau Stahl, Drahtgitter-Textur), `markierungGruen` (Signalgrün, Gehweg), `markierungPikto`
+  (Textur `fussgaenger`), `sperrflaeche` (Warnschraffur am Boden), `lichtband` (Tageslicht im Hallendach, nur `MAT.neu`).
+  Neue Textur `fussgaenger`. Paletten-Töne unverändert; `signalorange` (+ Traversen), `signalblau` (+ Hochregal-Stützen),
+  `signalgruen` (+ Gehweg) nur im „wofür“ ergänzt – kein neuer Ton.
+- Wächter: `hochregal`, `rbg`, `foerderer`, `bodenmarkierung`, `fts` in `BAUTEILE`; `HOCHREGAL`, `ladungGeo`, `MARKIERUNG` in `HELFER`.
+  `bk.lampe` aktiviert die Namensregel „lampe/leuchte“: `leuchtenRaster` (05h) und `lampTeile` (05e) sind dafür Hüllen geworden.
+- Einsatz und Messung: `docs/halle/etappe-a.md`.
 
 ## 3. Messung Schritte 3 + 4 (Wände, Zäune/Poller, 14.10.)
 Mit Laufzeit-Bündelung (Spielzustand): Hauptpass Laden 597 → 490, Lagerdock 635 → 495, Dock-Hof 739 → 561; Schattenpass 464–511 → 266–290

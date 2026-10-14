@@ -1975,28 +1975,7 @@ function strSchrift(){
 
 /* ---------- Leuchte ---------- */
 /* Die Teile einer Leuchte in lokalen Koordinaten; add(k,geo,matrix,farbe) */
-function lampTeile(add){
-  const D=MAT.farbe('anthrazit'), MA=MAT.farbe('basaltgrau'), C=(a,b,h,s)=>new THREE.CylinderGeometry(a,b,h,s);
-  add('lack',C(0.15,0.19,0.34,14),tm(0,0.17,0),D);
-  add('lack',new THREE.BoxGeometry(0.1,0.16,0.02),tm(0,0.2,0.185),MAT.farbe('mittelgrau'));
-  add('lack',C(0.16,0.16,0.03,14),tm(0,0.35,0),D);
-  for(let i=0;i<4;i++){ const a=i/4*Math.PI*2; add('lack',new THREE.BoxGeometry(0.035,0.03,0.035),tm(Math.cos(a)*0.13,0.37,Math.sin(a)*0.13),MAT.farbe('silbergrau')); }
-  add('mast',C(0.075,0.11,4.4,14),tm(0,2.57,0),MA);
-  /* Bogen als kurze Segmente */
-  const R=0.9, seg=7;
-  for(let i=0;i<seg;i++){
-    const a0=i/seg*(Math.PI/2), a1=(i+1)/seg*(Math.PI/2);
-    const x0=Math.sin(a0)*R, y0=R-Math.cos(a0)*R, x1=Math.sin(a1)*R, y1=R-Math.cos(a1)*R;
-    add('lack',C(0.062,0.066,Math.hypot(x1-x0,y1-y0)*1.08,10),tm(0,4.77+(y0+y1)/2,(x0+x1)/2,Math.atan2(x1-x0,y1-y0),0,0),MA);
-  }
-  /* Leuchtenkopf mit Wanne, Halterung und Deckel */
-  const K=tm(0,5.63,0.9,0.06,0,0), k=(geo,x,y,z,c,key)=>add(key||'lack',geo,K.clone().multiply(tm(x,y,z)),c);
-  k(roundedBoxGeo(0.3,0.11,0.82,0.04),0,0.06,0,MAT.farbe('graphit'));
-  k(new THREE.BoxGeometry(0.26,0.03,0.74),0,0.005,0,MAT.farbe('mittelgrau'));
-  k(new THREE.BoxGeometry(0.24,0.045,0.7),0,-0.02,0,0xffffff,'lampe');
-  k(new THREE.BoxGeometry(0.16,0.09,0.16),0,0.06,-0.44,MAT.farbe('anthrazit'));
-  k(new THREE.BoxGeometry(0.24,0.02,0.6),0,0.125,0.02,MAT.farbe('basaltgrau'));
-}
+function lampTeile(add){ bk.lampe({art:'strasse',add}); }   /* Teile seit 14.10. in bk.lampe (04z) */
 /* Nachtlicht der Leuchten (Tom, 26.09.: "alles drum herum deutlich
    hochwertiger"). Zuerst lagen additive Flaechen ueber dem Boden: sie
    faerbten den Asphalt sandfarben, und wo Flicken und Markierungen per

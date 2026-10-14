@@ -32,6 +32,8 @@ const GP_ORTE=[
   /* 09.10.: DDL auf Anruf - Blick vom Wandtelefon auf Ladezone und Rolltor V1 */
   ['DDL-Tor',     -14.6,-27.4, -0.62, -0.05],
   ['Logistik',    -30.0,-16.0, Math.PI*0.62, -0.05],
+  /* 14.10. (Halle Etappe A): vom Anbruch in Gasse 1 - RBG, Foerderer, Paletten bis unters Dach */
+  ['Hochregal',   -43.2,-25.6, Math.PI/2, 0.14],
   ['Testfeld',      0.3,-8.5, 0, 0.05]
 ];
 /* 03.10. (Tom: "die Gameplay-Vorfuehrung haengt, am Handy geht gar
@@ -254,6 +256,10 @@ function* gpAufbau(){
   let g=0, rn=0;
   for(const r of racks){ for(const sl of r.slots){ if(sl.box) continue; const t=gut[g++%gut.length]; try{ putInSlot(sl,t,P[t].box,1); }catch(e){} }
     yield [0.86+0.12*(++rn)/Math.max(1,racks.length),'Lager füllen']; }
+  /* Hochregal (Halle Etappe A): Gasse 1 zu gut zwei Dritteln mit der meistverkauften Ware, damit RBG und Anbruch arbeiten */
+  if(typeof llOffen==='function'&&llOffen()&&typeof hrDaten==='function'){ const D=hrDaten();
+    for(let i=0;i<180;i++) if(!D.p[i]&&(i*7)%10<7){ const t=gut[i%gut.length]; D.p[i]=[{t,c:P[t].box,q:1},{t,c:P[t].box,q:1},{t,c:P[t].box,q:1}]; }
+    hrSync(); yield [0.985,'Hochregal einlagern']; }
   /* Packmaterial-Regale voll (Erstausstattung) */
   if(typeof vmStand==='function'){ vmStand(0); for(let i=0;i<3;i++) VM_IDS.forEach(id=>{ S.vm[i][id]=VM[id].kap; }); vmRegalZeichnen(); }
   /* Laden auf, Spieler in den Verkauf */
@@ -372,7 +378,7 @@ function gpZeichnen(){
 /* Tasten waehrend der Vorfuehrung */
 function gpTaste(e){
   if(!gpAn) return false;
-  if(/^Digit[1-8]$/.test(e.code)){ gpSpringe(+e.code.slice(5)-1); return true; }
+  if(/^Digit[1-9]$/.test(e.code)){ gpSpringe(+e.code.slice(5)-1); return true; }
   if(e.code==='KeyT'){ gpTempoWechsel(); return true; }
   if(e.code==='KeyB'){ gpEnde(); return true; }
   return false;

@@ -84,7 +84,7 @@ function stockOne(lv,quiet){
   if(c.count<=0) kartonLeer(c);
   updateCarry();
 }
-function stockOf(t){ let n=0; allLevels().forEach(l=>{ if(l.type===t) n+=l.count; }); floorBoxes.forEach(b=>{ if(b.type===t) n+=b.count; }); racks.forEach(r=>r.slots.forEach(s=>{ if(s.box&&s.box.type===t) n+=s.box.count; })); if(S.carrying&&S.carrying.type===t) n+=S.carrying.count; if(S.karre&&S.karre.stapel) S.karre.stapel.forEach(c=>{ if(c.type===t) n+=c.count; }); pending.forEach(p=>{ if(p.type===t) n+=P[t].box; }); return n; }
+function stockOf(t){ let n=0; allLevels().forEach(l=>{ if(l.type===t) n+=l.count; }); floorBoxes.forEach(b=>{ if(b.type===t) n+=b.count; }); racks.forEach(r=>r.slots.forEach(s=>{ if(s.box&&s.box.type===t) n+=s.box.count; })); if(S.carrying&&S.carrying.type===t) n+=S.carrying.count; if(S.karre&&S.karre.stapel) S.karre.stapel.forEach(c=>{ if(c.type===t) n+=c.count; }); pending.forEach(p=>{ if(p.type===t) n+=P[t].box; }); if(typeof hrStock==='function') n+=hrStock(t); return n; }
 function shelfStockOf(t){ let n=0; allLevels().forEach(l=>{ if(l.type===t) n+=l.count; }); return n; }
 
 /* =========================================================

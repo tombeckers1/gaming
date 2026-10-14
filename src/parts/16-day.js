@@ -172,6 +172,8 @@ function dispoZins(){ return S.money<0?r2(-S.money*WIRT.kredit.dispo.zinsTag):0;
 function fixedCosts(){
   let f=WIRT.fix.grund+WIRT.fix.jeLagerregal*racks.length+Math.round(Math.max(0,S.level-WIRT.fix.levelAb)*WIRT.fix.jeLevel);
   shelves.forEach(sh=>f+=SHELFFIX[sh.kind]||WIRT.fix.regalStandard);
+  /* Halle Etappe A: Betrieb je aktiver Hochregal-Gasse */
+  if(typeof llGasseAktiv==='function') for(let k=0;k<3;k++) if(llGasseAktiv(k)) f+=WIRT.fix.hochregal;
   return f;
 }
 /* Die ersten Tage läuft es besser: Neueröffnung spricht sich herum */

@@ -79,6 +79,104 @@ button:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid var(-
 .kartons img{width:100%;border:1px solid var(--linie);border-radius:4px;background:#fff}
 .folgt{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
 .folgt .karte{padding:14px;gap:6px}
+
+/* Version 2: Angleichung, Wirtschaft, Feuerwerk */
+code{font:12px var(--mono);background:rgba(127,127,127,.14);padding:0 4px;border-radius:2px;overflow-wrap:anywhere}
+.frage{border-left-color:var(--lauf)}
+.hinweis b{font-weight:600}
+.tafel{grid-template-columns:repeat(auto-fill,minmax(210px,1fr))}
+.tafel .farbe i{width:44px;height:44px}
+.farbe .ral{color:var(--akzent)}
+.tab{display:grid;border:1px solid var(--linie);border-radius:4px;background:var(--flaeche);overflow:hidden;min-width:0}
+.tab .tr{display:grid;grid-template-columns:var(--c);gap:4px 16px;padding:8px 12px;border-top:1px solid var(--linie);min-width:0;align-items:start}
+.tab .th+.tr,.tab .tr:first-child{border-top:0}
+.tab .th{font:600 11px var(--text);text-transform:uppercase;letter-spacing:.07em;color:var(--leise);background:var(--bg)}
+.tab .tr>*{min-width:0;overflow-wrap:anywhere}
+.tab .nach{font-weight:500}
+.klassen{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px}
+.klasse{background:var(--flaeche);border:1px solid var(--linie);border-radius:4px;padding:10px 12px;display:grid;gap:5px;min-width:0}
+.klasse .kopf2{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.klasse .ball{width:44px;height:44px;border-radius:50%;flex:none;border:1px solid rgba(0,0,0,.12)}
+.mt{display:grid;grid-template-columns:62px 1fr 34px;gap:8px;align-items:center;font-size:12px;color:var(--leise)}
+.mt .m{height:6px;border-radius:3px;background:var(--linie);overflow:hidden}
+.mt .m i{display:block;height:100%;background:var(--akzent)}
+.cluster{display:grid;border:1px solid var(--linie);border-radius:4px;background:var(--flaeche);overflow:hidden;min-width:0}
+.cl{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr) minmax(0,1fr);gap:8px 18px;padding:9px 12px;border-top:1px solid var(--linie);align-items:center}
+.cl:first-child{border-top:0}
+.cl>*{min-width:0}
+.sw{display:flex;flex-wrap:wrap;gap:3px;align-items:center}
+.sw i{width:20px;height:20px;border-radius:2px;border:1px solid rgba(0,0,0,.18);flex:none}
+.sw .pfeil{color:var(--leise);margin-inline:4px;font-size:16px;line-height:1}
+.neu{display:flex;gap:10px;align-items:center;min-width:0}
+.neu i{width:34px;height:34px;border-radius:3px;border:1px solid rgba(0,0,0,.18);flex:none}
+.neu div{display:grid;min-width:0}
+.paare{align-items:start;display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,560px),1fr));gap:14px}
+.paar{background:var(--flaeche);border:1px solid var(--linie);border-radius:4px;overflow:hidden;min-width:0}
+.paar .t{padding:8px 12px 10px;display:grid;gap:2px}
+.paar .zoom{display:block;width:100%;padding:0;border:0;background:#1b1d22;cursor:zoom-in;line-height:0}
+.paar img{width:100%;height:auto;display:block}
+.paar.gross{grid-column:1/-1}
+.paar.gross .zoom{overflow-x:auto;cursor:zoom-out}
+.paar.gross img{width:max(100%,1100px);max-width:none}
+details.mehrd{margin-top:14px;background:var(--flaeche);border:1px solid var(--linie);border-radius:4px;padding:0}
+details.mehrd>summary{cursor:pointer;padding:10px 14px;font-weight:600;list-style:none}
+details.mehrd>summary::-webkit-details-marker{display:none}
+details.mehrd>summary::before{content:"+";display:inline-block;width:1.2em;color:var(--akzent);font-weight:700}
+details.mehrd[open]>summary::before{content:"\2212"}
+details.mehrd>:not(summary){margin-inline:14px;margin-block:0 14px}
+details.mehrd ul,details.mehrd ol{padding-left:20px}
+details.mehrd li{margin-bottom:5px;overflow-wrap:anywhere}
+.ketten{display:grid;gap:10px}
+.kette{background:var(--flaeche);border:1px solid var(--linie);border-radius:4px;min-width:0}
+.kette>summary{cursor:pointer;padding:12px 14px;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;list-style:none}
+.kette>summary::-webkit-details-marker{display:none}
+.kette>summary::before{content:"+";color:var(--akzent);font-weight:700;width:1em;flex:none}
+.kette[open]>summary::before{content:"\2212"}
+.kette>summary b{font:600 19px/1.2 var(--display);letter-spacing:.02em;flex:1 1 220px;min-width:0}
+.kette .in{padding:0 14px 14px;display:grid;gap:12px;min-width:0}
+.kette .folgen{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.kette .folgen li{display:grid;grid-template-columns:22px minmax(0,1fr);gap:0 6px;min-width:0}
+.kette .folgen li::before{content:"\2192";color:var(--akzent);font-weight:700}
+.kette .ort{grid-column:2;font:11.5px var(--mono);color:var(--leise);overflow-wrap:anywhere}
+.box{border-radius:4px;padding:10px 12px;border-left:4px solid var(--linie);background:var(--bg);min-width:0}
+.box.warum{border-left-color:var(--ok)}
+.box.luecke{border-left-color:var(--warn)}
+.box h4{margin:0 0 4px;font:600 12px var(--text);text-transform:uppercase;letter-spacing:.07em;color:var(--leise)}
+.box ul{margin:0;padding-left:18px}.box li{margin-bottom:3px;overflow-wrap:anywhere}
+.box.warum p{margin:0;overflow-wrap:anywhere}
+.fehler{counter-reset:f;list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.fehler li{counter-increment:f;background:var(--flaeche);border:1px solid var(--linie);border-left:4px solid var(--warn);border-radius:4px;padding:10px 12px 10px 46px;position:relative;overflow-wrap:anywhere}
+.fehler li::before{content:counter(f);position:absolute;left:12px;top:8px;font:700 22px/1 var(--display);color:var(--warn)}
+.gruppen{display:grid;gap:8px}
+.gruppen details{background:var(--flaeche);border:1px solid var(--linie);border-radius:4px}
+.gruppen summary{cursor:pointer;padding:10px 14px;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;list-style:none}
+.gruppen summary::-webkit-details-marker{display:none}
+.gruppen summary::before{content:"+";color:var(--akzent);font-weight:700;width:1em}
+.gruppen details[open]>summary::before{content:"\2212"}
+.gruppen .tab{margin:0 12px 12px;border-radius:3px}
+.gruppen .ortk{font:11px var(--mono);color:var(--leise)}
+.zitat{margin:0 0 18px;border-left:4px solid var(--gelb);background:var(--flaeche);padding:12px 16px;border-radius:0 4px 4px 0;max-width:80ch;font-style:italic}
+.zitat small{display:block;font-style:normal;color:var(--leise);margin-top:4px}
+.regeln,.fragen{display:grid;gap:10px}
+.regel{background:var(--flaeche);border:1px solid var(--linie);border-radius:4px;padding:12px 14px;display:grid;grid-template-columns:54px minmax(0,1fr);gap:4px 14px;min-width:0}
+.regel .nr{font:700 34px/1 var(--display);color:var(--akzent);grid-row:1/span 4}
+.regel h4{margin:0;font:600 20px/1.2 var(--display);letter-spacing:.02em}
+.regel p{margin:0;overflow-wrap:anywhere}
+.regel .zit{border-left:3px solid var(--gelb);padding-left:10px;font-style:italic;color:var(--fg)}
+.regel .erz{font-size:13px;color:var(--leise)}
+.regel .erz b{color:var(--ok)}
+.frage-k{background:var(--flaeche);border:1px solid var(--linie);border-left:4px solid var(--lauf);border-radius:4px;padding:12px 14px;min-width:0}
+.frage-k h4{margin:0 0 4px;font:600 19px/1.2 var(--display)}
+.frage-k p{margin:0;overflow-wrap:anywhere}
+.chip.ok{border-color:var(--ok);color:var(--ok)}.chip.warn{border-color:var(--warn);color:var(--warn)}.chip.lauf{border-color:var(--lauf);color:var(--lauf)}
+.klein b{font-weight:600}
+@media (max-width:760px){
+  .tab .th{display:none}
+  .tab .tr{grid-template-columns:1fr}
+  .tab .tr>[data-l]::before{content:attr(data-l);display:block;font-size:11px;color:var(--leise);text-transform:uppercase;letter-spacing:.06em}
+  .cl{grid-template-columns:1fr}
+  .regel{grid-template-columns:1fr}.regel .nr{grid-row:auto}
+}
 footer{margin-top:48px;color:var(--leise);font-size:12px}
 @media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
 </style>
@@ -86,15 +184,94 @@ footer{margin-top:48px;color:var(--leise);font-size:12px}
 <header class="kopf"><div class="in">
   <div class="meta" id="meta"></div>
   <h1>Böllerladen <span>Bauteil-Katalog</span></h1>
-  <p class="unter">Alles, was im Spiel gebaut wird, an einer Stelle: Materialien, Texturen und Bauteile, jeweils mit Bild und Fundort. Die Seite wächst mit jedem Schritt des Fundaments mit.</p>
+  <p class="unter">Der Unterbau des Spiels an einer Stelle, ohne zu spielen: wie Materialien und Farben angeglichen wurden, wie die Wirtschaft rechnet (Entscheidung und Folge), welche Regeln fürs Feuerwerk gelten, dazu jedes Bauteil, Material und jede Textur mit Bild und Fundort. Die Seite wächst mit jedem Schritt des Fundaments mit.</p>
   <ul class="schritte" id="schritte"></ul>
 </div></header>
 <nav class="tabs"><div class="in" id="tabs">
-  <a href="#heute">Heute uneinheitlich</a><a href="#bauteile">Bauteile</a><a href="#farben">Farben</a>
-  <a href="#materialien">Materialien</a><a href="#texturen">Texturen</a><a href="#verpackungen">Verpackungen</a><a href="#folgt">Wirtschaft &amp; Feuerwerk</a>
+  <a href="#angleichung">Angleichung</a><a href="#wirtschaft">Wirtschaft</a><a href="#feuerwerk">Feuerwerk</a>
+  <a href="#heute">Heute uneinheitlich</a><a href="#bauteile">Bauteile</a>
+  <a href="#materialien">Materialien</a><a href="#texturen">Texturen</a><a href="#verpackungen">Verpackungen</a>
 </div></nav>
 
 <main class="wrap">
+<section id="angleichung">
+  <h2>Materialangleichung</h2>
+  <p class="lead">Grundsatz: <b>gleiche Sache = gleiche Farbe, gleiche Oberfläche, gleiche Textur</b>, überall im Spiel. Unterschiede gibt es nur, wenn sie etwas bedeuten (dann ein eigener, benannter Eintrag mit Begründung). Alles steht in einer Datei, <span class="mono">src/parts/01b-material.js</span>: eine Farbe dort ändern, und sie ändert sich überall.</p>
+  <div class="zahlen" id="azahlen"></div>
+  <div class="hinweis frage" id="agelb"></div>
+
+  <h3>Was angeglichen wurde</h3>
+  <div id="awas"></div>
+
+  <h3>Farbtafel: die Töne des Spiels</h3>
+  <p class="lead" id="apalette-text"></p>
+  <div class="palette tafel" id="apalette"></div>
+
+  <h3>Oberflächenklassen</h3>
+  <p class="lead">Vorher hat jede Stelle Glanz und Metall frei gewählt (Gelb allein 0,55 / 0,6 / 0,7 / 0,85). Jetzt gibt es fünf Klassen; jedes Material wählt eine.</p>
+  <div class="klassen" id="aklassen"></div>
+
+  <h3>Cluster: alte Farben, neuer Ton</h3>
+  <p class="lead">Je Zeile: die bisherigen Farbwerte (Quadrate, Anzahl Code-Stellen beim Daraufzeigen) und der eine neue Ton. Zur Abnahme.</p>
+  <div class="cluster" id="acluster"></div>
+  <p class="klein" id="aeigene" style="margin-top:10px;max-width:80ch"></p>
+
+  <h3>Vorher / Nachher</h3>
+  <p class="lead" id="abildtext"></p>
+  <div class="filter"><button type="button" id="az-tag" aria-pressed="true">Tag</button><button type="button" id="az-nacht" aria-pressed="false">Abend / Nacht</button></div>
+  <div class="paare" id="apaare"></div>
+
+  <h3>Messung</h3>
+  <div id="amessung"></div>
+  <details class="mehrd"><summary>Bewusst nicht angeglichen</summary><ul id="anicht"></ul></details>
+</section>
+
+<section id="wirtschaft">
+  <h2>Wirtschaft: Entscheidung und Folge</h2>
+  <p class="lead">Wie das Spiel rechnet, in der Reihenfolge, die zählt: <b>Was tue ich als Spieler, was passiert dann, und warum ist es so eingestellt?</b> Jede Karte ist eine Entscheidung (zu viel einkaufen, Kredit, Versandkosten, Personal …) mit ihren Folgen, den echten Zahlen, dem Ort im Code und einer Begründung aus der Betriebswirtschaft. Alle Zahlen stehen in <span class="mono">src/parts/01c-wirtschaft.js</span>; die Karten werden aus dieser Datei erzeugt und veralten deshalb nicht.</p>
+  <div class="zahlen" id="wzahlen"></div>
+  <div class="filter"><button type="button" id="w-auf">Alle aufklappen</button><button type="button" id="w-zu">Alle zuklappen</button><input id="wsuche" type="search" placeholder="Suchen: Kredit, Porto, Ruf …" aria-label="Wirtschaft durchsuchen"></div>
+  <div class="ketten" id="wketten"></div>
+
+  <h3>Gefundene Fehler fürs Balancing</h3>
+  <p class="lead">Beim Aufschreiben aufgefallen und <b>bewusst nicht behoben</b>: die Zentralisierung durfte nichts am Verhalten ändern (bewiesen, siehe unten). Das Balancing-Paket geht diese Liste durch.</p>
+  <ol class="fehler" id="wfehler"></ol>
+
+  <h3>Die wichtigsten Zahlen je Bereich</h3>
+  <p class="lead">Alle Werte der Wirtschaftszentrale, nach Bereich. Aufklappen; je Wert die Bedeutung und wo er im Spiel gelesen wird.</p>
+  <div class="gruppen" id="wwerte"></div>
+
+  <details class="mehrd"><summary>Eine Zahl ändern, und sehen, was passiert</summary><ol>
+    <li>Wert in <span class="mono">src/parts/01c-wirtschaft.js</span> ändern.</li>
+    <li><span class="mono">node tools/fundament/wirtschaft-snapshot.js</span> zeigt jede Stelle, die sich dadurch ändert (Preise, Kundentakt, Tagesabschluss, Texte).</li>
+    <li><span class="mono">node tools/fundament/wirtschaft-uebersicht.js</span> schreibt die Ketten und Wertelisten neu; danach diese Seite neu erzeugen.</li>
+    <li>Für das große Bild: <span class="mono">tools/balance/sim.js</span> (Bot spielt 30 bis 45 Tage), vorher gegen nachher.</li></ol></details>
+  <details class="mehrd"><summary>Beweis: Die Zentralisierung hat nichts verändert</summary><ul id="wbeweis"></ul></details>
+  <details class="mehrd"><summary>Was bewusst nicht in der Zentrale steht</summary><ul id="wnicht"></ul></details>
+</section>
+
+<section id="feuerwerk">
+  <h2>Feuerwerks-Regelwerk</h2>
+  <p class="lead">Die einheitliche Abschussmechanik als nummerierte Regeln. Die Effekte selbst (Bruchbild, Ablauf, Klang) bleiben einzigartig; die Regeln gelten nur dafür, <b>wie ein Produkt aufgestellt, gezündet und dargestellt wird</b>. Jede Regel prüft ein Wächter-Test (<span class="mono">src/tests/abschussregel.js</span>), und genau eine Stelle im Code (<span class="mono">14z4-abschuss.js</span>) setzt sie um.</p>
+  <blockquote class="zitat" id="fauftrag"></blockquote>
+  <div class="zahlen" id="fzahlen"></div>
+
+  <h3>Die acht Regeln</h3>
+  <div class="regeln" id="fregeln"></div>
+
+  <h3>Offene Fragen an Tom</h3>
+  <p class="lead">Hier würde die Behebung den Effekt verändern, also nicht selbst entschieden. Bis zur Antwort meldet der Wächter sie als „offen“.</p>
+  <div class="fragen" id="ffragen"></div>
+
+  <h3>Behobene Abweichungen</h3>
+  <p class="lead">So sah es vorher aus (gemessen), und so ist es jetzt.</p>
+  <div id="fabw"></div>
+
+  <details class="mehrd"><summary>Inventar: 131 Produkte nach Klasse</summary><div id="finv"></div></details>
+  <details class="mehrd"><summary>Zünd-Orte: vorher getrennt, jetzt ein Weg</summary><div id="forte"></div></details>
+  <details class="mehrd"><summary>Nachweis durch Tests</summary><p id="ftest"></p><p id="fgegen" class="klein"></p></details>
+</section>
+
 <section id="heute">
   <h2>Heute noch uneinheitlich</h2>
   <p class="lead">Diese Dinge kommen im Spiel mehrfach vor und sind heute jeweils <b>eigenständig gebaut</b>. Darum sehen sie verschieden aus. Im Baukasten wird daraus je Kategorie <b>ein</b> Bauteil; Unterschiede gibt es dann nur noch über Maße, Fenster oder Nummer.</p>
@@ -105,12 +282,6 @@ footer{margin-top:48px;color:var(--leise);font-size:12px}
   <h2>Bauteile im Baukasten</h2>
   <p class="lead">Fertige Bauteile aus <span class="mono">bk</span>. Änderst du eins, ändert es sich an jedem Fundort. Hier kommen Schritt für Schritt Tore, Wände, Zäune, Lampen, Regale und Kassen dazu.</p>
   <div class="reihe" id="bk"></div>
-</section>
-
-<section id="farben">
-  <h2>Farben der Bibliothek</h2>
-  <p class="lead">Die benannten Farben in <span class="mono">MAT.FARBE</span>. Jede Farbe gibt es genau einmal; alle Bauteile holen sie von hier.</p>
-  <div class="palette" id="palette"></div>
 </section>
 
 <section id="materialien">
@@ -142,14 +313,6 @@ footer{margin-top:48px;color:var(--leise);font-size:12px}
   <div class="kartons" id="kartons"></div>
 </section>
 
-<section id="folgt">
-  <h2>Wirtschaft &amp; Feuerwerk</h2>
-  <p class="lead">Beide Teile laufen gerade parallel und kommen mit der nächsten Version dieser Seite dazu.</p>
-  <div class="folgt">
-    <div class="karte"><b>Wirtschaft als Ursache und Folge</b><span class="klein">Jede Entscheidung (zu viel einkaufen, zu wenig ausbauen, Kredit, Versandkosten, leere Fächer, Personal) mit ihrer Folge im Spiel und der Begründung, warum der Zusammenhang so gesetzt ist. Alle Zahlen aus einer Zentrale.</span></div>
-    <div class="karte"><b>Feuerwerks-Regelwerk</b><span class="klein">Die einheitliche Abschussmechanik als nummerierte Regeln: ein Loch pro Schuss, Effekt aus der Öffnung, überall gleiche Zünd-Darstellung. Die Effekte selbst bleiben einzigartig.</span></div>
-  </div>
-</section>
 <footer id="fuss"></footer>
 </main>
 
@@ -178,8 +341,90 @@ for(const k of D.vorher){
 for(const b of D.bauteile){const c=el('div','karte');
   c.innerHTML=(b.bild?`<img loading="lazy" src="${b.bild}" alt="${esc(b.name)}">`:'')+`<div class="t"><b>${esc(b.name)}</b><span class="klein">${b.inst}× im Spiel · ${b.var} Variante${b.var==1?'':'n'} · ${zahl(b.dreiecke)} Dreiecke</span><span class="klein">${esc(b.zonen.join(', '))}</span></div>`;
   $('#bk').append(c);}
-// Farben
-for(const f of D.farben){const d=el('div','farbe');d.innerHTML=`<i style="background:${esc(f.hex)}"></i><div><b class="mono">${esc(f.name)}</b><span class="klein mono">${esc(f.hex)}${f.ral?' · RAL '+esc(f.ral):''}</span>${f.wofuer?`<span class="klein">${esc(f.wofuer)}</span>`:''}</div>`;$('#palette').append(d);}
+// ---------- gemeinsame Helfer (Version 2) ----------
+const tab=(c,kopf,zeilen)=>{const t=el('div','tab');t.style.setProperty('--c',c);
+  const h=el('div','tr th');h.innerHTML=kopf.map(k=>`<span>${k}</span>`).join('');t.append(h);
+  for(const z of zeilen){const r=el('div','tr');r.innerHTML=z.map((x,i)=>`<span data-l="${esc(kopf[i])}"${i===z.length-1&&z.nach?' class="nach"':''}>${x}</span>`).join('');t.append(r);}return t;};
+const spoiler=(sel,items)=>{$(sel).innerHTML=items.map(x=>`<li>${x}</li>`).join('');};
+
+// ---------- Materialangleichung ----------
+const A=D.angl;
+{
+  const pal=A.palette||[], cl=A.cluster||[], ton=pal.filter(f=>!/^lampe/.test(f.name)), lampen=pal.length-ton.length, clw={};cl.forEach(c=>clw[c.id]=c.wofuer);
+  const w0=(A.was||[])[0]||{}, mw=/^(\d+)/.exec(w0.vorher||''), ms2=/(\d+) Stellen umgestellt/.exec(w0.nachher||''), stellen=ms2?+ms2[1]:cl.reduce((a,c)=>a+c.stellen,0), werte=mw?+mw[1]:cl.reduce((a,c)=>a+c.werte,0);
+  $('#azahlen').innerHTML=`<div><b>${zahl(werte)}</b><small>Farbwerte vorher</small></div><div><b>${zahl(ton.length)}</b><small>Töne jetzt${lampen?' (+ Lampenlicht)':''}</small></div><div><b>${zahl(stellen)}</b><small>Stellen im Code umgestellt</small></div><div><b>${zahl((A.klassen||[]).length)}</b><small>Oberflächenklassen</small></div>`;
+  const sg=pal.find(f=>f.name==='signalgelb')||{hex:'#f9a800'};
+  $('#agelb').innerHTML=`<b>Offene Frage an Tom: das Gelb.</b> Signalgelb ist jetzt das echte <b>RAL&nbsp;1003</b> (<span class="mono">${esc(sg.hex)}</span>) statt bisher <span class="mono">#f2c230</span> <span class="sw" style="display:inline-flex;vertical-align:middle"><i style="background:#f2c230"></i><span class="pfeil">→</span><i style="background:${esc(sg.hex)}"></i></span> Es ist satter und wirkt orangestichiger; es steht überall, wo etwas warnt (Anfahrschutz, Bodenmarkierung, Absperrgitter, Kran, Torantrieb, Warnschilder, Schraffur). Das Hausgold der Schrift auf Nachtblau bleibt <span class="mono">#ffd23f</span> (<i>schildgold</i>). Gefällt dir das neue Gelb nicht: <b>eine Zeile</b> (<span class="mono">PALETTE.signalgelb</span>) ändern, und es ändert sich überall. Bilder unten, Dock-Hof und Versandecke zeigen es am besten.`;
+  $('#awas').append(tab('minmax(0,1.1fr) minmax(0,1.6fr) minmax(0,1.6fr)',['Was','Vorher','Nachher'],(A.was||[]).map(w=>[`<b>${w.was}</b>`,w.vorher,w.nachher])));
+  $('#apalette-text').innerHTML=`${zahl(ton.length)} benannte Töne${lampen?' und '+lampen+' Lampenlicht':''} aus <span class="mono">MAT.PALETTE</span>, mit RAL-Bezug und Verwendung. Jeder Ton existiert genau einmal; alle Bauteile holen ihn von hier.`;
+  for(const f of pal){const d=el('div','farbe');d.innerHTML=`<i style="background:${esc(f.hex)}"></i><div><b>${esc(f.anzeige||f.name)}</b><span class="klein mono">${esc(f.hex)}${f.ral&&f.ral!=='–'?` · <span class="ral">${/RAL/.test(f.ral)?esc(f.ral):'RAL '+esc(f.ral)}</span>`:''}</span>${(f.anzeige||'').replace(/\s/g,'').toLowerCase()===f.name.toLowerCase()?'':`<span class="klein mono">${esc(f.name)}</span>`}${(clw[f.name]||esc(f.wofuer||''))?`<span class="klein">${clw[f.name]||esc(f.wofuer)}</span>`:''}</div>`;$('#apalette').append(d);}
+  for(const k of (A.klassen||[])){const g=Math.round(255-k.metall*150-(k.rau-.28)*0), c=el('div','klasse');
+    const ball=`radial-gradient(circle at 32% 28%,#fff ${Math.round((1-k.rau)*30)}%,hsl(215 ${Math.round(8+k.metall*6)}% ${Math.round(72-k.metall*34)}%) ${Math.round(55+k.rau*20)}%,hsl(215 10% ${Math.round(30-k.metall*8)}%))`;
+    c.innerHTML=`<div class="kopf2"><b class="mono">${esc(k.name)}</b><i class="ball" style="background:${ball}"></i></div><span class="klein">${k.wofuer}</span><div class="mt"><span>rau</span><span class="m"><i style="width:${k.rau*100}%"></i></span><span>${String(k.rau).replace('.',',')}</span></div><div class="mt"><span>Metall</span><span class="m"><i style="width:${k.metall*100}%"></i></span><span>${String(k.metall).replace('.',',')}</span></div>`;
+    $('#aklassen').append(c);}
+  for(const c of cl){const r=el('div','cl');
+    const alt=c.alt.slice(0,10).map(a=>`<i style="background:${esc(a.hex)}" title="${esc(a.hex)} · ${a.n}× im Code"></i>`).join('');
+    r.innerHTML=`<div><b>${esc(c.cluster)}</b><br><span class="klein">${c.werte} Werte, ${c.stellen} Stellen</span></div>
+      <div class="sw">${alt}${c.werte>c.alt.length?`<span class="klein">+${c.werte-c.alt.length}</span>`:''}<span class="pfeil">→</span><i style="background:${esc(c.hex)}"></i></div>
+      <div class="neu"><div><span class="mono"><b>${esc(c.id)}</b> ${esc(c.hex)}</span><span class="klein">${c.ral&&c.ral!=='–'?(/RAL/.test(c.ral)?esc(c.ral):'RAL '+esc(c.ral))+' · ':''}${c.wofuer}</span></div></div>`;
+    $('#acluster').append(r);}
+  $('#aeigene').innerHTML=A.eigene||'';
+  $('#abildtext').innerHTML=(A.bildHinweis||'')+' Antippen vergrößert das Bildpaar.';
+  /* Bildpaare je Szene: Tag | Abend oder Nacht */
+  const NAME={dockHof:'Dock-Hof',halleW:'Halle West',laden:'Laden',ladenFront:'Ladenfront',lager:'Lager',lagerDock:'Lagerdock',strasse:'Straße',testfeld:'Testfeld',kasse:'Kasse',packplatz:'Packplatz',versandecke:'Versandecke',farbtafel:'Farbtafel (alle alten Werte)'};
+  const szenen=[];
+  for(const sz of A.szenen||[]){const per={};
+    for(const l of sz.links){const m=/^(tag|abend|nacht)-(.+)\.jpg$/.exec(l.datei), key=m?m[2]:l.datei.replace(/\.jpg$/,''); (per[key]=per[key]||{})[m?m[1]:'tag']=l.datei;}
+    for(const [key,v] of Object.entries(per)) szenen.push({key,tag:v.tag,nacht:v.abend||v.nacht,nachtName:v.abend?'Abend':'Nacht',zeigt:sz.zeigt});}
+  let zeit='tag';
+  const paare=()=>{ $('#apaare').replaceChildren(...szenen.map(z=>{const f=z[zeit==='tag'?'tag':'nacht']||z.tag, img=A.bilder[f]; if(!img) return el('div');
+      const c=el('div','paar');c.innerHTML=`<button type="button" class="zoom" aria-label="Vergrößern: ${esc(NAME[z.key]||z.key)}"><img src="${img}" alt="${esc(NAME[z.key]||z.key)}, links vorher, rechts nachher"></button><div class="t"><b>${esc(NAME[z.key]||z.key)}${zeit==='nacht'&&z.nacht?' · '+z.nachtName:''}</b><span class="klein">links vorher, rechts nachher · ${z.zeigt}</span></div>`;
+      c.querySelector('.zoom').addEventListener('click',()=>c.classList.toggle('gross'));return c;}));};
+  for(const [id,v] of [['#az-tag','tag'],['#az-nacht','nacht']]) $(id).addEventListener('click',()=>{zeit=v;$('#az-tag').setAttribute('aria-pressed',String(v==='tag'));$('#az-nacht').setAttribute('aria-pressed',String(v==='nacht'));paare();});
+  paare();
+  $('#amessung').append(tab('minmax(0,1.3fr) minmax(0,1fr) minmax(0,2fr)',['Größe','Vorher','Nachher'],(A.messung||[]).map(m=>[m.was,m.vorher,m.nachher])));
+  spoiler('#anicht',A.nicht||[]);
+}
+
+// ---------- Wirtschaft ----------
+const W=D.wirt;
+{
+  const nW=W.gruppen.reduce((a,g)=>a+g.werte.length,0), nF=W.ketten.reduce((a,k)=>a+k.folgen.length,0), nL=W.ketten.reduce((a,k)=>a+k.luecken.length,0);
+  $('#wzahlen').innerHTML=`<div><b>${W.ketten.length}</b><small>Entscheidungen</small></div><div><b>${nF}</b><small>Folgen mit Ort im Code</small></div><div><b>${zahl(nW)}</b><small>Zahlen in der Zentrale</small></div><div><b>${W.fehler.length}</b><small>Fehler fürs Balancing</small></div><div><b>${nL}</b><small>bekannte Lücken</small></div>`;
+  const ketten=[];
+  W.ketten.forEach((k,i)=>{const d=el('details','kette');d.dataset.q=JSON.stringify(k).toLowerCase();
+    d.innerHTML=`<summary><b>${esc(k.entscheidung)}</b><span class="chip">${k.folgen.length} Folgen</span>${k.luecken.length?`<span class="chip warn">${k.luecken.length} Lücke${k.luecken.length>1?'n':''}</span>`:''}</summary><div class="in">
+      <ul class="folgen">${k.folgen.map(f=>`<li><span>${f.text}</span><span class="ort">${esc(f.ort)}${f.funktion?' · '+esc(f.funktion):''}</span></li>`).join('')}</ul>
+      <div class="box warum"><h4>Warum so</h4><p>${k.warum}</p>${k.quelle?`<p class="klein" style="margin-top:6px"><b>Quelle:</b> ${k.quelle}</p>`:''}</div>
+      ${k.luecken.length?`<div class="box luecke"><h4>Lücke heute, fürs Balancing</h4><ul>${k.luecken.map(x=>`<li>${x}</li>`).join('')}</ul></div>`:''}</div>`;
+    if(i===0) d.open=true; ketten.push(d); $('#wketten').append(d);});
+  $('#w-auf').addEventListener('click',()=>ketten.forEach(d=>d.open=true));$('#w-zu').addEventListener('click',()=>ketten.forEach(d=>d.open=false));
+  $('#wsuche').addEventListener('input',e=>{const q=e.target.value.trim().toLowerCase();ketten.forEach(d=>{d.hidden=!!q&&!d.dataset.q.includes(q);if(q&&!d.hidden)d.open=true;});});
+  $('#wfehler').innerHTML=W.fehler.map(f=>`<li>${f}</li>`).join('');
+  const BER={start:'Spielstart',zeit:'Tageszeit',saison:'Saison',kunden:'Kunden',ware:'Ware',markt:'Markt und Inflation',einkauf:'Einkauf',versand:'Versand und Onlineshop',ausbau:'Ausbauten',lizenz:'Lizenzen',personal:'Personal',deko:'Deko',wand:'Wände',boden:'Böden',regal:'Regale',auftrag:'Großaufträge',ziele:'Wochenziele',erfolg:'Herausforderungen',rezept:'Labor und Rezepte',kredit:'Kredit',fix:'Fixkosten',tag:'Tagesabschluss',ruf:'Ruf',xp:'Erfahrung und Level',historie:'Historie (eingefroren)'};
+  for(const g of W.gruppen){const d=el('details');
+    d.innerHTML=`<summary><b style="font:600 18px var(--display);letter-spacing:.02em">${esc(BER[g.name]||g.name)}</b><span class="chip">${g.werte.length} Werte</span><span class="klein mono">${esc(g.name)}</span></summary>`;
+    d.append(tab('minmax(0,1fr) minmax(0,1.5fr) minmax(0,1.7fr)',['Größe','Wert','Bedeutung und Ort'],g.werte.map(w=>[`<span class="mono">${esc(w.name)}</span>`,esc(w.wert),`${w.bedeutung||'<span class="klein">–</span>'}${w.orte.length?`<br><span class="ortk">${esc(w.orte.slice(0,2).join(', '))}${w.orte.length>2?' +'+(w.orte.length-2):''}</span>`:''}${w.ketten.length?` <span class="chip">${esc(w.ketten.length)} Kette${w.ketten.length>1?'n':''}</span>`:''}`])));
+    $('#wwerte').append(d);}
+  spoiler('#wbeweis',W.beweis);spoiler('#wnicht',W.nicht);
+}
+
+// ---------- Feuerwerks-Regelwerk ----------
+const F=D.fw;
+{
+  $('#fauftrag').innerHTML=`${esc(F.auftrag)}<small>Auftrag von Tom, 13.10.2026</small>`;
+  const nOff=F.abweichungen.filter(a=>a.offen).length, nOk=F.abweichungen.length-nOff;
+  $('#fzahlen').innerHTML=`<div><b>${F.regeln.length}</b><small>Regeln</small></div><div><b>${nOk}</b><small>Abweichungen behoben</small></div><div><b>${F.fragen.length}</b><small>offene Fragen an Tom</small></div><div><b>131</b><small>Produkte gemessen</small></div>`;
+  for(const r of F.regeln){const c=el('div','regel');
+    c.innerHTML=`<div class="nr">${esc(r.id)}</div><h4>${esc(r.titel)}</h4><p>${r.text}</p>${r.begruendung?`<p class="zit"><b style="font-style:normal">Begründung:</b> ${r.begruendung}</p>`:''}${r.erzwungen?`<p class="erz"><b>Erzwungen:</b> ${r.erzwungen}</p>`:''}`;
+    $('#fregeln').append(c);}
+  for(const q of F.fragen){const c=el('div','frage-k');c.innerHTML=`<h4>${esc(q.id)}  ${esc(q.titel)}</h4><p>${q.text}</p>`;$('#ffragen').append(c);}
+  const beh=F.abweichungen.filter(a=>!a.offen);
+  $('#fabw').append(tab('44px minmax(0,2.2fr) minmax(0,1fr) 70px minmax(0,2fr)',['Nr','Vorher','Betroffen','Regel','Jetzt'],beh.map(a=>[`<b>${esc(a.id)}</b>`,a.vorher,a.betroffen,`<span class="mono">${esc(a.regel)}</span>`,a.jetzt])));
+  $('#finv').append(tab('minmax(0,1.2fr) 60px minmax(0,1fr) minmax(0,2fr) minmax(0,1.5fr)',['Klasse','Anzahl','Platz','Darstellung','Löcher : Schüsse'],F.inventar.map(i=>[i.klasse,i.anzahl,i.platz,i.modell,i.loecher])));
+  $('#forte').append(tab('minmax(0,1fr) minmax(0,3fr)',['Ort','Wo im Spiel'],F.orte.map(o=>[o.ort,o.wo])));
+  $('#ftest').innerHTML=F.test||'';$('#fgegen').innerHTML=F.gegenprobe||'';
+}
 
 // Materialien
 const ms=D.matSum;
@@ -210,7 +455,7 @@ $('#tsuche').addEventListener('input',()=>{tN=60;tZeigen();});$('#tmehr').addEve
 // Verpackungen
 $('#ktext').innerHTML=`Alle ${zahl(D.kartons.n)} Versandkartons, einer je Produkt. Die Motive sind bewusst verschieden (jedes Produkt eigen). Zusammen belegen sie ${zahl(Math.round(D.kartons.mb||0))} MB; ein gemeinsamer Bildatlas soll das später deutlich senken, ohne dass sich die Motive ändern.`;
 if(D.kartons.bild)$('#kartons').innerHTML=`<img loading="lazy" src="${D.kartons.bild}" alt="Alle Versandkartons als Kontaktbogen">`;
-$('#fuss').textContent=`Erzeugt mit tools/fundament/katalog.js und uebersicht.py. ${zahl(D.z?.materialien)} Materialien, ${zahl(D.z?.texturen)} Texturen, ${zahl(D.z?.bauteile)} Bauteile, ${zahl(D.z?.vorherVarianten)} Vorher-Varianten.`;
+$('#fuss').textContent=`Erzeugt mit tools/fundament/katalog.js und uebersicht.py (Angleichung, Wirtschaft und Feuerwerk aus docs/fundament/*.md). ${zahl(D.z?.materialien)} Materialien, ${zahl(D.z?.texturen)} Texturen, ${zahl(D.z?.bauteile)} Bauteile, ${zahl(D.z?.vorherVarianten)} Vorher-Varianten.`;
 
 // Reiter markieren
 const tabs=[...document.querySelectorAll('#tabs a')];

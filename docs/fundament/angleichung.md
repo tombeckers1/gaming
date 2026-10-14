@@ -56,13 +56,13 @@ Spalte „vorher“: die bisherigen Hex-Werte mit Anzahl Code-Stellen (die häuf
 | Lichtgrau | 21 Werte / 33 Stellen: #d9dde3×4, #dfe3ea×3, #d6dae2×3, #dfe3e9×2, #dfe2e6×2, #d3d6da×2, #d9dde4×2, #d6d9de×2 … (21 Werte) | `lichtgrau` **#dcdfe4** (≈ RAL 7035) | Regalböden, helle Verkleidungen, Kunststoff hellgrau |
 | Weiss | 20 Werte / 56 Stellen: #f2f5f8×10, #e8ecf2×7, #eef2f8×7, #eef1f5×6, #e6e8ee×5, #e9ebee×5, #e6e8ec×2, #eef4fa×2 … (20 Werte) | `weiss` **#e8ecf2** (≈ RAL 9016) | Decken, Putz, Kunststoff weiss, Schnee, Etiketten |
 | Cremeweiss | 23 Werte / 30 Stellen: #f1efe9×3, #f2f2ee×3, #e9e3d4×2, #e8e4dc×2, #f2f0e8×2, #e4dfd4×1, #f2efe6×1, #f2f0ea×1 … (23 Werte) | `cremeweiss` **#f2efe6** (≈ RAL 9001) | warme Weisstöne: Fensterbänke, Putz warm, Papier |
-| Steingrau | 5 Werte / 7 Stellen: #9a958c×2, #958a7a×2, #8a857c×1, #a39887×1, #8a8680×1 | `steingrau` **#9a958c** (≈ RAL 7030) | Naturstein, Pflaster, Maürwerk warm |
+| Steingrau | 5 Werte / 7 Stellen: #9a958c×2, #958a7a×2, #8a857c×1, #a39887×1, #8a8680×1 | `steingrau` **#9a958c** (≈ RAL 7030) | Naturstein, Pflaster, Mauerwerk warm |
 | Signalgelb | 4 Werte / 29 Stellen: #f2c230×18, #e7a91c×5, #e0a520×5, #f0bf12×1 | `signalgelb` **#f9a800** (RAL 1003) | Warnfarbe: Anfahrschutz, Bodenmarkierung, Absperrgitter, Kran, Torantrieb |
 | Schildgold | 1 Werte / 2 Stellen: #ffd23f×2 | `schildgold` **#ffd23f** (–) | Hausstil-Schrift und -Rahmen auf Nachtblau (Schilder, Logo, Automat) - vorher zwei Golds (#ffd23f, #f2c230) |
 | Signalorange | 4 Werte / 9 Stellen: #f2a01c×5, #e06a1f×2, #e07a2a×1, #f2a23a×1 | `signalorange` **#ed760e** (≈ RAL 2000) | Blink-/Warnleuchten (Gehäuse, Glas aus), Tasten |
 | Signalrot | 7 Werte / 12 Stellen: #c8322a×3, #d8352a×3, #d23a2a×2, #be2418×1, #d93b2c×1, #d0161c×1, #d21d1d×1 | `signalrot` **#d8352a** (≈ RAL 3020) | Not-Halt, Ampel rot (aus), rote Bedienteile, Markierung rot |
-| Feuerrot | 5 Werte / 5 Stellen: #8e1a11×1, #b8202a×1, #b01e1e×1, #b3261e×1, #c4302b×1 | `feuerrot` **#af2b1e** (RAL 3000) | Brandschutz: Hydrant, Feürlöscher; dunkle Rotteile |
-| Signalblau | 5 Werte / 10 Stellen: #2a5a9e×5, #2a538c×2, #1f4a8a×1, #2f5d9e×1, #1f5fa8×1 | `signalblau` **#2a5a9e** (≈ RAL 5005) | blaü Bedienteile, Regalrahmen blau, Hinweisschilder |
+| Feuerrot | 5 Werte / 5 Stellen: #8e1a11×1, #b8202a×1, #b01e1e×1, #b3261e×1, #c4302b×1 | `feuerrot` **#af2b1e** (RAL 3000) | Brandschutz: Hydrant, Feuerlöscher; dunkle Rotteile |
+| Signalblau | 5 Werte / 10 Stellen: #2a5a9e×5, #2a538c×2, #1f4a8a×1, #2f5d9e×1, #1f5fa8×1 | `signalblau` **#2a5a9e** (≈ RAL 5005) | blau Bedienteile, Regalrahmen blau, Hinweisschilder |
 | Nachtblau | 11 Werte / 16 Stellen: #1b2340×6, #141a2c×1, #1c2c52×1, #161c30×1, #2a3042×1, #1a2038×1, #2f3a5e×1, #1d2c47×1 … (11 Werte) | `nachtblau` **#1b2340** (≈ RAL 5011) | Hausfarbe Schilder/Laden (mit Schildgold) |
 | Tannengruen | 5 Werte / 5 Stellen: #2c4a2e×1, #3a5a34×1, #2f4a3a×1, #3f6047×1, #2a4a33×1 | `tannengruen` **#2a4a33** (≈ RAL 6009) | Stadtmöbel grün (Litfass, Bänke), Hecken-Kästen |
 | Holz Palette | 8 Werte / 16 Stellen: #c49a62×5, #c9a46a×3, #c9a978×2, #bf9a6c×2, #bf9d6c×1, #b79a6c×1, #c39c68×1, #cfa66d×1 | `holzPalette` **#c49a62** (–) | Europaletten, Kisten, helles Holz |

@@ -32,7 +32,7 @@ gleichzeitig, besser einer** (material braucht ~11 GB).
 
 **Offen, in dieser Reihenfolge (Tom hat zugestimmt):**
 0. Übersicht aktualisieren (Katalog neu erzeugen; zaeune.md/waende.md/kartons.md werden automatisch Abschnitte) und veröffentlichen – Sonnet, kurz.
-1. EPAL-Paletten nach echtem Vorbild (fundament.md „Antworten“) + Karton-Auflösung je Grafikstufe (Niedrig/Mittel 128 px, Max 512 px) – Sonnet.
+1. ~~EPAL-Paletten + Karton-Auflösung je Stufe~~ – erledigt 14.10. (V134, `docs/fundament/paletten.md`; Veröffentlichung durch Tom/Hauptsitzung).
 2. Lampen + Fassade/Hoflampen (`fassade-0910.md`) – Opus.
 3. Balancing nach freigegebener Zielkurve **ohne Silvester-Rekordtag** (`balancing-0910.md` unten) auf der Wirtschaftszentrale.
 4. Regale, Kassen, Fenster, Türen, Schilder, Bodenmarkierungen (Größen/Arten bleiben, nur Bauweise einheitlich).

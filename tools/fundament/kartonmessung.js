@@ -74,6 +74,12 @@ const fs=require('fs');
     const st=[]; sc.traverse(m=>{ if(m.userData&&m.userData.hof==='paletten'){ const w=m.getWorldPosition(m.position.clone()); st.push([w.x,w.z]); } });
     st.sort((a,b)=>b[0]-a[0]); if(st[0]) out.hofStapelOst={cam:[st[0][0]+2.6,2.3,st[0][1]+2.6],ziel:[st[0][0]-0.6,0.6,st[0][1]]};
     if(st.length>2){ const q=st[2]; out.hofStapelWest={cam:[q[0]+2.0,1.9,q[1]+2.3],ziel:[q[0],0.5,q[1]]}; }
+    /* Nahaufnahmen (Paletten-Schritt 14.10.): Versandpalette von vorn-unten, Hofstapel von der Seite */
+    /* Versandpalette: Kamera senkrecht zur Laengsseite (lokales z der Gruppe), 1,05 m davor, knapp ueber dem Boden */
+    { const ids2=Object.keys(bb.vsPalObj||{}); if(ids2.length){ const g=bb.vsPalObj[ids2[0]].g; g.updateMatrixWorld(true); const w=g.getWorldPosition(g.position.clone()), n=new (w.constructor)(0,0,1).transformDirection(g.matrixWorld), t=new (w.constructor)(1,0,0).transformDirection(g.matrixWorld);
+        out.versandPaletteNah={cam:[w.x+n.x*1.05+t.x*0.3,0.3,w.z+n.z*1.05+t.z*0.3],ziel:[w.x,0.07,w.z]}; } }
+    /* Hofstapel: Wartespur (zwei Stapel) und Westrand, von der Seite ohne Container im Bild */
+    if(st[1]){ const q=st[1]; out.hofStapelNah={cam:[q[0]-2.3,0.9,q[1]],ziel:[q[0],0.45,q[1]]}; out.hofStapelNah2={cam:[q[0]+2.3,0.9,q[1]],ziel:[q[0],0.45,q[1]]}; }
     out.lagerBoden={cam:[-17.6,1.9,-0.4],ziel:[-17.9,0.3,-3.0]};
     const rk=(bb.racks||[]).find(r=>r.slots.some(s=>s.box)); if(rk){ rk.g.updateMatrixWorld(true); const w=rk.g.getWorldPosition(rk.g.position.clone()); const d=new (w.constructor)(0,0,2.6).applyQuaternion(rk.g.getWorldQuaternion(rk.g.quaternion.clone())); out.lagerRegal={cam:[w.x+d.x,1.7,w.z+d.z],ziel:[w.x,1.0,w.z]}; }
     out._stapel=st; return out; });
@@ -95,6 +101,8 @@ const fs=require('fs');
     bb.scene.traverse(x=>{ if(!x.isMesh) return; meshes++; const ms=Array.isArray(x.material)?x.material:[x.material]; ms.forEach(m=>m&&mats.add(m));
       if(x.userData&&x.userData.bauteil==='palette') pal++;
       if(ms.some(m=>m&&(m.userData&&m.userData.atlas==='karton'||(m.map&&m.map.image&&m.map.image.__karton)))){ kmesh++; ms.forEach(m=>m&&kmats.add(m)); } });
+    let palTri=0, palInst=0, palGeo=new Set(), palDraw=0; bb.scene.traverse(x=>{ if(x.isMesh&&x.userData&&x.userData.bauteil==='palette'&&x.userData.bauteilArt!=='schnee'){ const g=x.geometry, t=(g.index?g.index.count:g.attributes.position.count)/3, n=x.isInstancedMesh?x.count:1; palTri+=t*n; palInst+=n; palDraw++; palGeo.add(g.id+':'+t); } });
+    o.paletten={dreieckeGesamt:Math.round(palTri),paletten:palInst,drawcalls:palDraw,geometrien:[...palGeo]};
     o.meshes=meshes; o.materialien=mats.size; o.kartonMeshes=kmesh; o.kartonMaterialien=kmats.size; o.palettenMeshes=pal;
     if(bb.kartonAtlasInfo){ o.atlas=bb.kartonAtlasInfo(); o.kartonCPU_MB=+(o.atlas.bytes/1048576).toFixed(1); }
     else { let s=0; for(const k of Object.keys(bb.kartonMat)){ const im=bb.kartonMat[k].map.image; s+=im.width*im.height*4; } o.kartonCPU_MB=+(s/1048576).toFixed(1); }

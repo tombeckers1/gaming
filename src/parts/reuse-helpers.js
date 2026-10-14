@@ -25,18 +25,18 @@ const gfxNiedrig=st=>st==='niedrig'||st==='ultralow';
    Automatik bleibt bei hoechstens Hoch). Je Stufe: Pixeldichte (px:
    Mindestwert, pxMax: Obergrenze - ueber 1 heisst Supersampling auf
    normalen Bildschirmen), Kantenglaettung (ms), Schattenkarte (sch, rad),
-   Texturschaerfe (tex Faktor, cap Obergrenze je Druckbogen, ani
+   Texturschaerfe (tex Faktor, kar Kartonzelle in Pixel (Atlas karton, 14.10.: bis Mittel 128, Hoch 256, Maximum+ 512), cap Obergrenze je Druckbogen, ani
    Anisotropie), Feuerwerksfunken (qual), Leuchteffekt-Aufloesung (blur).
    Texturen und Funkenpuffer entstehen beim Laden - dafuer zaehlt die
    beim Start gewaehlte Stufe. */
 const GFX_PROFIL={
-  ultralow:{px:0,pxMax:0.5,ms:0,sch:256,rad:1,tex:0.5,cap:512,ani:1,qual:0.25,blur:4},
-  niedrig:{px:0,pxMax:0.75,ms:0,sch:512,rad:1.2,tex:1,cap:1120,ani:4,qual:0.55,blur:4},
-  mittel:{px:0,pxMax:1,ms:2,sch:1024,rad:1.2,tex:1,cap:1120,ani:4,qual:0.8,blur:4},
-  hoch:{px:0,pxMax:2,ms:4,sch:2048,rad:2.2,tex:1,cap:1120,ani:4,qual:1,blur:4},
-  max:{px:1.5,pxMax:2,ms:8,sch:4096,rad:2.6,tex:1.5,cap:1700,ani:8,qual:1.25,blur:3},
-  ultra:{px:2,pxMax:2.5,ms:8,sch:4096,rad:3,tex:2,cap:2300,ani:16,qual:1.5,blur:2},
-  extrem:{px:2.5,pxMax:3,ms:16,sch:8192,rad:3.2,tex:2.5,cap:3000,ani:16,qual:1.9,blur:2}};
+  ultralow:{px:0,pxMax:0.5,ms:0,sch:256,rad:1,tex:0.5,cap:512,ani:1,qual:0.25,blur:4,kar:128},
+  niedrig:{px:0,pxMax:0.75,ms:0,sch:512,rad:1.2,tex:1,cap:1120,ani:4,qual:0.55,blur:4,kar:128},
+  mittel:{px:0,pxMax:1,ms:2,sch:1024,rad:1.2,tex:1,cap:1120,ani:4,qual:0.8,blur:4,kar:128},
+  hoch:{px:0,pxMax:2,ms:4,sch:2048,rad:2.2,tex:1,cap:1120,ani:4,qual:1,blur:4,kar:256},
+  max:{px:1.5,pxMax:2,ms:8,sch:4096,rad:2.6,tex:1.5,cap:1700,ani:8,qual:1.25,blur:3,kar:512},
+  ultra:{px:2,pxMax:2.5,ms:8,sch:4096,rad:3,tex:2,cap:2300,ani:16,qual:1.5,blur:2,kar:512},
+  extrem:{px:2.5,pxMax:3,ms:16,sch:8192,rad:3.2,tex:2.5,cap:3000,ani:16,qual:1.9,blur:2,kar:512}};
 const GFX_NAME={ultralow:'Ultra Low',niedrig:'Niedrig',mittel:'Mittel',hoch:'Hoch',max:'Maximum',ultra:'Ultra',extrem:'Ultra Extrem'};
 let GFX_WAHL='auto', GFX='hoch';
 try{ GFX_WAHL=localStorage.getItem('bb_gfx')||'auto'; GFX=GFX_WAHL==='auto'?(localStorage.getItem('bb_gfx_auto')||'hoch'):GFX_WAHL; }catch(e){}

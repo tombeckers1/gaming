@@ -259,7 +259,7 @@ def feuerwerk(pfad):
 # Standard-Optik + Begruendung, Parameter, Fundorte, Messung, Tests, offene Fragen an Tom (alles aus dem Dokument, nichts abgeschrieben)
 # und die Bildpaare des Ordners. Neue Schritte (zaeune.md, waende.md ...) erscheinen automatisch, sobald es Datei und Ordner gibt.
 SCHRITT_AUSSER = {'angleichung'}                       # hat einen eigenen, aelteren Abschnitt
-SCHRITT_REIHE = ['tore', 'waende', 'zaeune', 'poller', 'lampen', 'kartons', 'regale', 'fassade', 'tueren', 'fenster']
+SCHRITT_REIHE = ['tore', 'waende', 'zaeune', 'poller', 'lampen', 'kartons', 'paletten', 'regale', 'fassade', 'tueren', 'fenster']
 BILD_ENDUNG = re.compile(r'\.(webp|jpg|jpeg|png)$', re.I)
 BILD_TEIL = re.compile(r'^(?P<n>.+?)-(?P<k>vorher-nachher|nachher-isoliert|vorher-isoliert)$')
 

@@ -145,5 +145,5 @@ function kartonMalen(g,W,H,t){ const p=P[t], v=kartonVariante(t), gefahr=kartonG
       if(v.griff){ g.fillStyle='rgba(40,28,14,.7)'; g.beginPath(); g.ellipse(W*0.5,H*0.045,W*0.1,H*0.014,0,0,Math.PI*2); g.fill(); }
 }
 function buildKartons(){
-  _kartonAtlas=MAT.atlas('karton',{zelle:256,seite:1024,malen:kartonMalen,wofuer:'Versandkarton je Produkt (Absender, Etikett, Gefahrgut, Klebeband) - Zelle je Sorte'});
+  _kartonAtlas=MAT.atlas('karton',{zelle:256,stufenZelle:'kar',seite:1024,malen:kartonMalen,wofuer:'Versandkarton je Produkt (Absender, Etikett, Gefahrgut, Klebeband) - Zelle je Sorte'});
 }

@@ -740,18 +740,18 @@ const gfxNiedrig=st=>st==='niedrig'||st==='ultralow';
    Automatik bleibt bei hoechstens Hoch). Je Stufe: Pixeldichte (px:
    Mindestwert, pxMax: Obergrenze - ueber 1 heisst Supersampling auf
    normalen Bildschirmen), Kantenglaettung (ms), Schattenkarte (sch, rad),
-   Texturschaerfe (tex Faktor, cap Obergrenze je Druckbogen, ani
+   Texturschaerfe (tex Faktor, kar Kartonzelle in Pixel (Atlas karton, 14.10.: bis Mittel 128, Hoch 256, Maximum+ 512), cap Obergrenze je Druckbogen, ani
    Anisotropie), Feuerwerksfunken (qual), Leuchteffekt-Aufloesung (blur).
    Texturen und Funkenpuffer entstehen beim Laden - dafuer zaehlt die
    beim Start gewaehlte Stufe. */
 const GFX_PROFIL={
-  ultralow:{px:0,pxMax:0.5,ms:0,sch:256,rad:1,tex:0.5,cap:512,ani:1,qual:0.25,blur:4},
-  niedrig:{px:0,pxMax:0.75,ms:0,sch:512,rad:1.2,tex:1,cap:1120,ani:4,qual:0.55,blur:4},
-  mittel:{px:0,pxMax:1,ms:2,sch:1024,rad:1.2,tex:1,cap:1120,ani:4,qual:0.8,blur:4},
-  hoch:{px:0,pxMax:2,ms:4,sch:2048,rad:2.2,tex:1,cap:1120,ani:4,qual:1,blur:4},
-  max:{px:1.5,pxMax:2,ms:8,sch:4096,rad:2.6,tex:1.5,cap:1700,ani:8,qual:1.25,blur:3},
-  ultra:{px:2,pxMax:2.5,ms:8,sch:4096,rad:3,tex:2,cap:2300,ani:16,qual:1.5,blur:2},
-  extrem:{px:2.5,pxMax:3,ms:16,sch:8192,rad:3.2,tex:2.5,cap:3000,ani:16,qual:1.9,blur:2}};
+  ultralow:{px:0,pxMax:0.5,ms:0,sch:256,rad:1,tex:0.5,cap:512,ani:1,qual:0.25,blur:4,kar:128},
+  niedrig:{px:0,pxMax:0.75,ms:0,sch:512,rad:1.2,tex:1,cap:1120,ani:4,qual:0.55,blur:4,kar:128},
+  mittel:{px:0,pxMax:1,ms:2,sch:1024,rad:1.2,tex:1,cap:1120,ani:4,qual:0.8,blur:4,kar:128},
+  hoch:{px:0,pxMax:2,ms:4,sch:2048,rad:2.2,tex:1,cap:1120,ani:4,qual:1,blur:4,kar:256},
+  max:{px:1.5,pxMax:2,ms:8,sch:4096,rad:2.6,tex:1.5,cap:1700,ani:8,qual:1.25,blur:3,kar:512},
+  ultra:{px:2,pxMax:2.5,ms:8,sch:4096,rad:3,tex:2,cap:2300,ani:16,qual:1.5,blur:2,kar:512},
+  extrem:{px:2.5,pxMax:3,ms:16,sch:8192,rad:3.2,tex:2.5,cap:3000,ani:16,qual:1.9,blur:2,kar:512}};
 const GFX_NAME={ultralow:'Ultra Low',niedrig:'Niedrig',mittel:'Mittel',hoch:'Hoch',max:'Maximum',ultra:'Ultra',extrem:'Ultra Extrem'};
 let GFX_WAHL='auto', GFX='hoch';
 try{ GFX_WAHL=localStorage.getItem('bb_gfx')||'auto'; GFX=GFX_WAHL==='auto'?(localStorage.getItem('bb_gfx_auto')||'hoch'):GFX_WAHL; }catch(e){}
@@ -916,6 +916,7 @@ const MAT=(function(){
     lackRot:          {f:'signalrot',k:'kunststoff',   w:'Not-Halt, rote Bedienteile'},
     schildBlau:       {f:'nachtblau',k:'kunststoff',   w:'Schildtafeln Hausstil'},
     holzPalette:      {f:'holzPalette',k:'matt',       w:'Europalette, Kisten'},
+    palette:          {f:0xffffff,tex:'palettenMarke',vertexColors:true,k:'matt',w:'Europalette EPAL (bk.palette): Holzton ueber Vertexfarben (Palette / Palette dunkel), Maserung und Brand (EPAL im Oval, IPPC/HT) aus dem Atlas palettenMarke; Alterung ueber die Instanzfarbe'},
     betonBoden:       {f:0xffffff,tex:'beton',k:'matt',w:'Beton innen: Lager-/Schleusenboden (Massstab per MAT.kachel)'},
     betonHof:         {f:'hellgrau',tex:'beton',k:'matt',w:'Beton aussen: Hof, Rampen, Gehweg-Platten'},
     gitterGelb:       {f:'signalgelb',tex:'drahtgitter',transparent:true,alphaTest:0.35,side:THREE.DoubleSide,k:'lackMetall',w:'gelbes Schweissgitter: Ladezonen-Absperrung (UV 0,2 m je Kachel)'},
@@ -982,7 +983,7 @@ const MAT=(function(){
     const g=typeof GFX!=='undefined'?GFX:'hoch', p=(typeof GFX_PROFIL!=='undefined'&&GFX_PROFIL[g])||{tex:1,ani:4};
     const rang=typeof gfxRang==='function'?gfxRang(g):2;
     /* lod: 0 = Ultra Low (Kasten statt Fase, wenig Segmente), 1 = Niedrig..Hoch, 2 = ab Maximum */
-    return _stufe={name:g,rang,tx:p.tex,aniso:p.ani,lambert:g==='ultralow',lod:g==='ultralow'?0:(rang>=3?2:1)};
+    return _stufe={name:g,rang,tx:p.tex,kar:p.kar||256,aniso:p.ani,lambert:g==='ultralow',lod:g==='ultralow'?0:(rang>=3?2:1)};
   }
 
   /* ---------- Materialien ---------- */
@@ -1037,10 +1038,14 @@ const MAT=(function(){
   function css(name,a){ const h=hexVon(name); if(a===undefined) return '#'+(h>>>0).toString(16).padStart(6,'0'); return 'rgba('+(h>>16&255)+','+(h>>8&255)+','+(h&255)+','+a+')'; }
 
   /* ---------- geteilte prozedurale Texturen (lazy, einmal gemalt) ---------- */
-  const TEXTUR_W={fassade:'Aussenwand Faserzementtafeln (Fugen, Nieten, Sockel 62 cm) - Kachel 2,4 x 8 m ueber repeat, Wand-UV in Metern',lagerwand:'Lagerwand hell mit gelb-schwarzem Sockelband - Kachel 2,6 x 3,6 m ueber repeat',trapezblech:'Trapezblech Hallenwand, Sicke 0,4 m - Kachel 3,2 m ueber repeat',beton:'Beton (innen Lagerboden, aussen Hof) - eine Textur, Massstab ueber die UVs',doppelstab:'Doppelstabmatte (Zaeune, Absperrungen)',drahtgitter:'Drahtgitter/Schweissgitter (Gitterbox, Ladezonen-Absperrung) - Masche 5 cm, Farbe ueber das Material',warnschraffur:'Warnschraffur gelb/schwarz (Torkanten, Sperrflaechen, Bodenrahmen)',torBlatt:'Torblatt-Atlas aller Ladetore (Optik alter R1, Tom 14.10.): Zeile 0 glatte Sektion lichtgrau, 1 Lichtband (4 Scheiben), 2 unterstes Panel aussen (Griffmulde), 3 weiss (Kleinteile ueber Vertexfarben)'};
+  const TEXTUR_W={fassade:'Aussenwand Faserzementtafeln (Fugen, Nieten, Sockel 62 cm) - Kachel 2,4 x 8 m ueber repeat, Wand-UV in Metern',lagerwand:'Lagerwand hell mit gelb-schwarzem Sockelband - Kachel 2,6 x 3,6 m ueber repeat',trapezblech:'Trapezblech Hallenwand, Sicke 0,4 m - Kachel 3,2 m ueber repeat',beton:'Beton (innen Lagerboden, aussen Hof) - eine Textur, Massstab ueber die UVs',doppelstab:'Doppelstabmatte (Zaeune, Absperrungen)',drahtgitter:'Drahtgitter/Schweissgitter (Gitterbox, Ladezonen-Absperrung) - Masche 5 cm, Farbe ueber das Material',warnschraffur:'Warnschraffur gelb/schwarz (Torkanten, Sperrflaechen, Bodenrahmen)',palettenMarke:'Paletten-Atlas 256 x 256: oben links Brand EPAL im Oval (Eck-Kloetze), oben rechts IPPC/HT-Stempel (Mittelkloetze), darunter Kiefern-Maserung (Streifen je Brett); Layout MAT.PALETTE_UV. Holzton kommt ueber Vertexfarben, Alterung ueber Instanzfarben',torBlatt:'Torblatt-Atlas aller Ladetore (Optik alter R1, Tom 14.10.): Zeile 0 glatte Sektion lichtgrau, 1 Lichtband (4 Scheiben), 2 unterstes Panel aussen (Griffmulde), 3 weiss (Kleinteile ueber Vertexfarben)'};
   /* Fassadentafeln (vorher fassadeTex() in 05-world.js): Kachel zwei Tafeln breit, Fuge auf dem Kachelrand -
      wo sich die Textur wiederholt, sitzt eine Fuge; senkrecht ueber die volle Wandhoehe (Sockel unten bleibt) */
   const FASS={b:2.4, h:8.0, sockel:0.62, tafel:1.18};
+  /* Layout des Paletten-Atlas (Pixel im 256er-Bild, y von oben): EPAL-Brand 0..128 x 0..64, IPPC-Stempel 128..256 x 0..64,
+     Maserung 72..252 (Streifen). Texel-Rand 1 px gegen Filterung in die Nachbarzelle. UV = [u0,v0,u1,v1] (v nach oben). */
+  const PAL_UV=(()=>{ const N=256, uv=(x0,y0,x1,y1)=>[(x0+1)/N,1-(y1-1)/N,(x1-1)/N,1-(y0+1)/N];
+    return {epal:uv(0,0,128,64),ippc:uv(128,0,256,64),maser:uv(0,72,256,252),maserY0:72,maserY1:252,N}; })();
   const TEXTUR={
     /* Malcode unveraendert aus 05-world.js (fassadeTex, 26.09.) */
     fassade:()=>{ const t=tex(256,1024,(g,W,H)=>{
@@ -1120,6 +1125,31 @@ const MAT=(function(){
        Vier Zeilen je 128 px, Massstab fuer 3,26 x 0,6 m (andere Tore strecken): 0 glatte Sektion,
        1 Lichtband, 2 unterstes Panel aussen (Griffmulde), 3 weiss fuer Kleinteile ueber
        Vertexfarben. Zeilen waehlt bk.uvZeile(geo,zeile,innen,rand). */
+    /* Paletten-Atlas (14.10., Schritt Paletten): weisse Grundflaeche, Holzton kommt aus den Vertexfarben (multipliziert).
+       Brand dunkelbraun wie Brennstempel; Maserung Laengsstreifen + Jahresringe + wenige Astlocher. Saat fest: immer gleich. */
+    palettenMarke:()=>{ const t=tex(256,256,(g,W,H)=>{
+        let sd=1234567; const z=()=>{ sd=(sd*1103515245+12345)&0x7fffffff; return sd/0x7fffffff; };
+        g.fillStyle='#ffffff'; g.fillRect(0,0,W,H);
+        const Y0=PAL_UV.maserY0, Y1=PAL_UV.maserY1;
+        /* Maserung: Streifen entlang x (Brettlaenge), je Brettband verschiedene Lage */
+        for(let i=0;i<260;i++){ const y=Y0+z()*(Y1-Y0), x=z()*W, l=60+z()*190, a=0.05+z()*0.13;
+          g.strokeStyle='rgba('+(96+z()*30|0)+','+(66+z()*20|0)+','+(34+z()*14|0)+','+a+')'; g.lineWidth=0.6+z()*1.4;
+          g.beginPath(); g.moveTo(x,y); g.bezierCurveTo(x+l*0.3,y+(z()-0.5)*3,x+l*0.7,y+(z()-0.5)*3,x+l,y+(z()-0.5)*2); g.stroke(); }
+        for(let y=Y0;y<Y1;y+=9+z()*7){ g.fillStyle='rgba(110,78,40,'+(0.04+z()*0.06)+')'; g.fillRect(0,y,W,1+z()*3); }
+        for(let i=0;i<7;i++){ const x=z()*W, y=Y0+8+z()*(Y1-Y0-16), r=2+z()*3;
+          g.fillStyle='rgba(84,56,28,.35)'; g.beginPath(); g.ellipse(x,y,r*1.8,r,0,0,Math.PI*2); g.fill();
+          g.strokeStyle='rgba(110,78,40,.18)'; g.lineWidth=1; g.beginPath(); g.ellipse(x,y,r*3.2,r*1.7,0,0,Math.PI*2); g.stroke(); }
+        const dunkel='rgba(38,26,16,.88)'; g.fillStyle=dunkel; g.strokeStyle=dunkel; g.textAlign='center'; g.textBaseline='middle';
+        /* EPAL im Oval (Eck-Kloetze der 1200er-Seite) */
+        g.lineWidth=4; g.beginPath(); g.ellipse(64,32,54,25,0,0,Math.PI*2); g.stroke();
+        g.font='bold 31px "Barlow Condensed", Arial, sans-serif'; g.fillText('EPAL',64,33);
+        /* IPPC/HT-Stempel (Mittelklotz): Rechteck, Laendercode, Behandlung, Herstellernummer */
+        g.lineWidth=2; g.strokeRect(138,6,108,52);
+        g.font='bold 15px Arial, sans-serif'; g.textAlign='left'; g.fillText('IPPC',144,17);
+        g.font='bold 13px Arial, sans-serif'; g.fillText('DE-BY 4711',144,34);
+        g.font='bold 20px Arial, sans-serif'; g.fillText('HT',144,49); g.font='9px Arial, sans-serif'; g.fillText('EPAL 4711 10 25',168,50);
+        g.beginPath(); g.moveTo(228,12); g.lineTo(228,26); g.moveTo(228,16); g.lineTo(223,12); g.moveTo(228,16); g.lineTo(233,12); g.moveTo(228,21); g.lineTo(223,17); g.moveTo(228,21); g.lineTo(233,17); g.lineWidth=1.4; g.stroke(); });
+      t.anisotropy=4; return t; },
     torBlatt:()=>{ const t=tex(512,512,(c,W,H)=>{ const RH=H/4, M=W/3.26, MV=RH/0.588;
         const sektion=y0=>{ c.fillStyle=css('lichtgrau'); c.fillRect(0,y0,W,RH);
           /* Fuge: Nut oben, Feder unten (am alten Tor eigene Profile im Spalt) */
@@ -1160,11 +1190,14 @@ const MAT=(function(){
   function atlasObc(sh){ atlasPatch(sh,this); }
   function atlas(name,o){
     let A=atlasListe.get(name); if(A) return A;
-    const st=stufe(), voll=o.zelle||256, cs=Math.max(32,Math.round(voll*Math.min(1,st.tx||1))), S=o.seite||1024, je=Math.floor(S/cs);
+    /* Zellgroesse: o.stufenZelle = Name eines Wertes aus MAT.stufe() (z. B. 'kar', Pixel je Stufe aus GFX_PROFIL),
+       sonst zelle * min(1, tx). voll = Malgroesse des Motivs (Koordinaten 256); ist die Zelle groesser, wird der
+       Malcode skaliert (Vektoren/Schrift scharf, kein Hochziehen eines kleinen Bildes). */
+    const st=stufe(), voll=o.zelle||256, ziel=(o.stufenZelle&&st[o.stufenZelle])||Math.round(voll*Math.min(1,st.tx||1)), cs=Math.max(32,ziel), mal=Math.max(voll,cs), S=o.seite||1024, je=Math.floor(S/cs);
     const seiten=[], zellen=new Map(), mats=new Map();
     let malC=null, malG=null, kleinC=null, kleinG=null;
-    const leinwand=()=>{ if(malC) return; malC=document.createElement('canvas'); malC.width=malC.height=voll; malG=malC.getContext('2d');
-      if(cs!==voll){ kleinC=document.createElement('canvas'); kleinC.width=kleinC.height=cs; kleinG=kleinC.getContext('2d'); kleinG.imageSmoothingEnabled=true; kleinG.imageSmoothingQuality='high'; } };
+    const leinwand=()=>{ if(malC) return; malC=document.createElement('canvas'); malC.width=malC.height=mal; malG=malC.getContext('2d');
+      if(cs!==mal){ kleinC=document.createElement('canvas'); kleinC.width=kleinC.height=cs; kleinG=kleinC.getContext('2d'); kleinG.imageSmoothingEnabled=true; kleinG.imageSmoothingQuality='high'; } };
     function neueSeite(){ const im=new ImageData(S,S), t=new THREE.CanvasTexture(im);
       t.anisotropy=typeof GFX_START!=='undefined'?GFX_START.ani:st.aniso; t.encoding=THREE.sRGBEncoding; t.userData={mat:'atlas:'+name,atlas:name,seite:seiten.length};
       const s={im,t,n:0}; seiten.push(s); return s; }
@@ -1172,7 +1205,8 @@ const MAT=(function(){
       let Z=zellen.get(key); if(Z) return Z;
       let s=seiten[seiten.length-1]; if(!s||s.n>=je*je) s=neueSeite();
       const i=s.n++, x=(i%je)*cs, y=Math.floor(i/je)*cs;
-      leinwand(); malC.width=voll;   /* setzt Zustand (Schrift, Ausrichtung, Linien) und Bild zurueck - wie eine frische Leinwand */
+      leinwand(); malC.width=mal;   /* setzt Zustand (Schrift, Ausrichtung, Linien) und Bild zurueck - wie eine frische Leinwand */
+      if(mal!==voll) malG.scale(mal/voll,mal/voll);
       o.malen(malG,voll,voll,key);
       let d; if(kleinC){ kleinG.clearRect(0,0,cs,cs); kleinG.drawImage(malC,0,0,cs,cs); d=kleinG.getImageData(0,0,cs,cs).data; } else d=malG.getImageData(0,0,cs,cs).data;
       const ziel=s.im.data; for(let r=0;r<cs;r++) ziel.set(d.subarray(r*cs*4,(r+1)*cs*4),((y+r)*S+x)*4);
@@ -1214,7 +1248,7 @@ const MAT=(function(){
     const atlanten=[...atlasListe.values()].map(A=>A.info());
     return {materialien:mats,texturen:texs,eigene:neuL,atlanten,geteilt:mats.length,abrufe,gespart:abrufe-mats.length,farben:Object.keys(FARBE).length,rezepte:Object.keys(REZEPT).length,katalog};
   }
-  return {FARBE,PALETTE,KLASSE,REZEPT,get,ober,eigen,neu,kopie,std:stdGeteilt,basic,vc,farbe,css,tex:texGet,kachel,atlas,atlasPatch,atlasObc,stufe,liste,verstoesse,get wache(){ return wacheAn; }};
+  return {FARBE,PALETTE,PALETTE_UV:PAL_UV,KLASSE,REZEPT,get,ober,eigen,neu,kopie,std:stdGeteilt,basic,vc,farbe,css,tex:texGet,kachel,atlas,atlasPatch,atlasObc,stufe,liste,verstoesse,get wache(){ return wacheAn; }};
 })();
 /* =========================================================
    WIRTSCHAFTSZENTRALE (Fundament Etappe 4, 13.10.2026)
@@ -6090,7 +6124,7 @@ function kartonMalen(g,W,H,t){ const p=P[t], v=kartonVariante(t), gefahr=kartonG
       if(v.griff){ g.fillStyle='rgba(40,28,14,.7)'; g.beginPath(); g.ellipse(W*0.5,H*0.045,W*0.1,H*0.014,0,0,Math.PI*2); g.fill(); }
 }
 function buildKartons(){
-  _kartonAtlas=MAT.atlas('karton',{zelle:256,seite:1024,malen:kartonMalen,wofuer:'Versandkarton je Produkt (Absender, Etikett, Gefahrgut, Klebeband) - Zelle je Sorte'});
+  _kartonAtlas=MAT.atlas('karton',{zelle:256,stufenZelle:'kar',seite:1024,malen:kartonMalen,wofuer:'Versandkarton je Produkt (Absender, Etikett, Gefahrgut, Klebeband) - Zelle je Sorte'});
 }
 /* =========================================================
    Batterien: Rohre, ausgepackte Batterie, Verpackung
@@ -14499,7 +14533,7 @@ bk.tor=function(o){
    ========================================================= */
 /* Instanzen einer Geometrie mit eigener Huellkugel (three r128 prueft Instanzen sonst gegen die
    Kugel EINER Instanz - Vorbild hvInst, Halle). geo bleibt geteilt (Attribute werden nur verwiesen).
-   bk.inst(geo, mat, [Matrix4], {parent, schatten, bauteil, art}) -> InstancedMesh */
+   bk.inst(geo, mat, [Matrix4], {parent, schatten, bauteil, art, farben:[THREE.Color]}) -> InstancedMesh (farben = Instanzfarbe, multipliziert) */
 bk.inst=function(geo,mat,matrizen,o){
   o=o||{}; if(!matrizen.length) return null;
   const g2=new THREE.BufferGeometry(); if(geo.index) g2.setIndex(geo.index);
@@ -14511,31 +14545,80 @@ bk.inst=function(geo,mat,matrizen,o){
   matrizen.forEach((m,i)=>{ im.setMatrixAt(i,m); p.copy(c0).applyMatrix4(m); box.expandByPoint(p); });
   const s=new THREE.Sphere(); box.getBoundingSphere(s); s.radius+=r0; g2.boundingSphere=s;
   im.instanceMatrix.needsUpdate=true; im.frustumCulled=true;
+  if(o.farben){ o.farben.forEach((c,i)=>im.setColorAt(i,c)); im.instanceColor.needsUpdate=true; }
   if(HIQ&&o.schatten!==false){ im.castShadow=true; im.receiveShadow=true; }
   im.userData.bauteil=o.bauteil||'instanzen'; if(o.art) im.userData.bauteilArt=o.art;
   (o.parent||scene).add(im); return im;
 };
-/* Ladungstraeger: Mass je Art (l laengs x, b quer z, h Hoehe; Ursprung Mitte unten) */
-bk.PALETTE={euro:{l:1.2,b:0.8,h:0.144,name:'Europalette EPAL 1200 x 800 x 144 mm'}};
+/* Ladungstraeger: Mass je Art (l laengs x, b quer z, h Hoehe; Ursprung Mitte unten).
+   EPAL-Europalette nach Datenblatt (epal-pallets.org, Technische Zeichnung 3p4.eu): 1200 x 800 x 144 mm,
+   11 Bretter 22 mm = 5 Deckbretter (aussen/Mitte 145, dazwischen 100 breit), 3 Querbretter 800 x 145,
+   3 Bodenbretter (aussen 100, Mitte 145 breit); 9 Kloetze 78 mm hoch (145 x 100 aussen, 145 x 145 Mitte);
+   Deckbretter an den 4 Ecken 17 mm x 45 Grad gekappt; Bodenbretter an der Oberkante der Enden gefast. Lagen z (Mitte) und breit b. */
+bk.PALETTE={euro:{l:1.2,b:0.8,h:0.144,name:'Europalette EPAL 1200 x 800 x 144 mm',d:0.022,k:0.078,kappe:0.017,fase:0.014,
+  deck:[[-0.3275,0.145],[-0.16375,0.1],[0,0.145],[0.16375,0.1],[0.3275,0.145]],
+  boden:[[-0.35,0.1],[0,0.145],[0.35,0.1]],
+  quer:[[-0.5275,0.145],[0,0.145],[0.5275,0.145]]}};
 const _bkPalGeo=new Map();
-/* bk.palette(art, {fein}) -> geteilte Geometrie (Vertexfarben, Material MAT.vc('stumpf')).
-   fein: Fasen an den Brettern (Standard ab Niedrig, wie V1); fein:false = einfache Kaesten
-   (Hofstapel, viele Paletten in der Ferne). Je Art und Detail genau eine Geometrie. */
+/* UV eines Kastens auf Fenster [u0,v0,u1,v1] des Atlas palettenMarke legen; marken {flaeche:fenster} (0 +x 1 -x 2 +y 3 -y 4 +z 5 -z) */
+function palUV(geo,fenster,marken){ const uv=geo.attributes.uv;
+  for(let f=0;f<6;f++){ const r=(marken&&marken[f])||fenster; for(let i=0;i<4;i++){ const k=f*4+i; uv.setXY(k,r[0]+uv.getX(k)*(r[2]-r[0]),r[1]+uv.getY(k)*(r[3]-r[1])); } }
+  return geo; }
+/* Prisma: Polygon pts [[x,y]] im Profil, entlang z um t extrudiert (mittig). Flache Normalen, UV ueber die Umrissbox auf Fenster F. */
+function palPrisma(pts,t,F){
+  let fl=0; for(let i=0;i<pts.length;i++){ const p=pts[i], q=pts[(i+1)%pts.length]; fl+=p[0]*q[1]-q[0]*p[1]; }
+  if(fl<0) pts=pts.slice().reverse();
+  const n=pts.length, h=t/2, P=[], N=[], U=[]; let x0=1e9,x1=-1e9,y0=1e9,y1=-1e9;
+  for(const p of pts){ x0=Math.min(x0,p[0]); x1=Math.max(x1,p[0]); y0=Math.min(y0,p[1]); y1=Math.max(y1,p[1]); }
+  const v=(p,zz,nx,ny,nz)=>{ P.push(p[0],p[1],zz); N.push(nx,ny,nz); U.push(F[0]+(p[0]-x0)/(x1-x0)*(F[2]-F[0]),F[1]+(p[1]-y0)/(y1-y0)*(F[3]-F[1])); };
+  for(let i=1;i<n-1;i++){ v(pts[0],h,0,0,1); v(pts[i],h,0,0,1); v(pts[i+1],h,0,0,1); v(pts[0],-h,0,0,-1); v(pts[i+1],-h,0,0,-1); v(pts[i],-h,0,0,-1); }
+  for(let i=0;i<n;i++){ const p=pts[i], q=pts[(i+1)%n], ex=q[0]-p[0], ey=q[1]-p[1], l=Math.hypot(ex,ey), nx=ey/l, ny=-ex/l;
+    v(p,-h,nx,ny,0); v(q,-h,nx,ny,0); v(q,h,nx,ny,0); v(p,-h,nx,ny,0); v(q,h,nx,ny,0); v(p,h,nx,ny,0); }
+  const g=new THREE.BufferGeometry();
+  g.setAttribute('position',new THREE.Float32BufferAttribute(P,3)); g.setAttribute('normal',new THREE.Float32BufferAttribute(N,3)); g.setAttribute('uv',new THREE.Float32BufferAttribute(U,2));
+  return g; }
+/* Alterung einer Palette: Instanzfarbe von frisch (1) bis vergraut (0,74), dazu leichte Helligkeit; stabil je Ort/Nummer (kein Zufall) */
+bk.palFarbe=function(x,y,z,id){
+  const f=q=>{ const w=Math.sin(q)*43758.5453; return w-Math.floor(w); };
+  const s=(id||0)*7.31+x*12.9898+y*78.233+z*37.719, alt=Math.pow(f(s),1.4), hell=0.94+0.1*f(s*1.7+3);
+  return new THREE.Color((1-0.26*alt)*hell,(1-0.25*alt)*hell,(1-0.22*alt)*hell);
+};
+/* bk.palette(art, {fein}) -> geteilte Geometrie (Vertexfarben + UV auf den Atlas palettenMarke, Material MAT.get('palette')).
+   fein (Standard ab Niedrig): gekappte Deckbrett-Ecken und gefaste Bodenbretter; fein:false = einfache Kaesten
+   (Hofstapel, Ultra Low). Brand (EPAL im Oval an den Eck-, IPPC/HT am Mittelklotz der Laengsseiten) und Maserung
+   kommen in beiden Fassungen aus der Textur. Je Art und Detail genau eine Geometrie. */
 bk.palette=function(art,o){
   art=art||'euro'; const A=bk.PALETTE[art]; if(!A) throw new Error('bk.palette: Art unbekannt: '+art);
   const fein=!(o&&o.fein===false)&&bk.lod()>0, key=art+'|'+(fein?1:0);
   let geo=_bkPalGeo.get(key); if(geo) return geo;
-  const HOLZ=MAT.farbe('holzPalette'), HOLZ2=MAT.farbe('holzPaletteDunkel'), H=A.h, lx=A.l/2-0.05, bz=A.b/2-0.06;
-  const S=bk.sammler({form:fein?{fase:0.01,seg:2,lod0Kasten:true}:{},klasse:'stumpf'});
-  /* 9 Kloetze, 3 Bodenbretter laengs, 3 Querbretter, 5 Deckbretter (aussen und Mitte breit) */
-  for(const dx of [-lx,0,lx]) for(const dz of [-bz,0,bz]) S.box(0.12,0.078,0.12,dx,0.061,dz,HOLZ2);
-  for(const dz of [-bz,0,bz]) S.box(A.l,0.022,0.12,0,0.011,dz,HOLZ);
-  for(const dx of [-lx,0,lx]) S.box(0.14,0.022,A.b,dx,0.111,0,HOLZ);
-  for(const dz of [-bz,-bz/2,0,bz/2,bz]){ const breit=dz===0||Math.abs(dz)>bz*0.9; S.box(A.l,0.022,breit?0.14:0.1,0,H-0.011,dz,HOLZ); }
+  const HOLZ=MAT.farbe('holzPalette'), HOLZ2=MAT.farbe('holzPaletteDunkel'), U=MAT.PALETTE_UV, d=A.d, kh=A.k, H=A.h, hl=A.l/2, N=U.N;
+  const S=bk.sammler({klasse:'stumpf',bauteil:'palette'});
+  let nb=0;
+  /* Maserungsfenster: ganze Brettlaenge, ein Streifen je Brett (verschiedene Lage), Breite ~ Brettbreite */
+  const maser=b=>{ const px=Math.round(b*190), y0=U.maserY0+((nb++*47)%(U.maserY1-U.maserY0-px)), y1=y0+px; return [U.maser[0],1-(y1-1)/N,U.maser[2],1-(y0+1)/N]; };
+  const klotzFenster=()=>{ const f=maser(0.05); return [0.42,f[1],0.46,f[3]]; };
+  const kasten=(w,h,dd,x,y,z,farbe,fenster,marken)=>{ S.geo(palUV(new THREE.BoxGeometry(w,h,dd),fenster,marken),tm(x,y,z),farbe); };
+  /* 9 Kloetze: Brand auf den Laengsseiten der aeusseren Reihen (Ecken EPAL, Mitte IPPC/HT) */
+  for(const [bx,bw] of A.quer) for(const [bz,bb] of A.boden){
+    const marken=bz===0?null:(bz>0?{4:bx===0?U.ippc:U.epal}:{5:bx===0?U.ippc:U.epal});
+    kasten(bw,kh,bb,bx,d+kh/2,bz,HOLZ2,klotzFenster(),marken); }
+  /* 3 Querbretter (800 lang) */
+  for(const [bx,bw] of A.quer) kasten(bw,d,A.b,bx,d+kh+d/2,0,HOLZ,maser(bw));
+  /* 3 Bodenbretter: fein mit gefasten Enden (Profil x-y, Tiefe = Brettbreite) */
+  for(const [bz,bb] of A.boden){
+    if(fein){ const hy=d/2, c=A.fase; S.geo(palPrisma([[-hl,-hy],[hl,-hy],[hl,hy-c],[hl-c,hy],[-hl+c,hy],[-hl,hy-c]],bb,maser(bb)),tm(0,d/2,bz),HOLZ); }
+    else kasten(A.l,d,bb,0,d/2,bz,HOLZ,maser(bb)); }
+  /* 5 Deckbretter: fein die beiden aeusseren mit je zwei gekappten Aussenecken (17 mm x 45 Grad); Draufsicht (x,z) -> Profil (x,-z), flach gelegt */
+  for(const [bz,bb] of A.deck){
+    const aussen=Math.abs(bz)>0.3;
+    if(fein&&aussen){ const s=bz>0?1:-1, hb=bb/2, c=A.kappe, zi=-s*hb, zo=s*hb;
+      const plan=[[-hl,zi],[hl,zi],[hl,zo-s*c],[hl-c,zo],[-hl+c,zo],[-hl,zo-s*c]];
+      S.geo(palPrisma(plan.map(p=>[p[0],-p[1]]),d,maser(bb)),tm(0,H-d/2,bz,-Math.PI/2,0,0),HOLZ); }
+    else kasten(A.l,d,bb,0,H-d/2,bz,HOLZ,maser(bb)); }
   geo=S.geometrie(); geo.computeBoundingSphere(); geo.userData={bauteil:'palette',art,fein};
   _bkPalGeo.set(key,geo); return geo;
 };
-/* bk.paletten(liste, {gruppe, fein, schnee, parent, schatten}) -> {holz, schnee}: Paletten als
+/* bk.paletten(liste, {gruppe, fein, schnee, parent, schatten}) -> {holz, schnee}: Paletten (je Instanz eigene Alterung, bk.palFarbe) als
    EIN InstancedMesh. liste = [{x,y,z,ry}] (y = Unterkante). schnee = [{x,y,z,ry}] Schneehauben
    (Instanzen, weissMatt). gruppe: Aufrufe mit demselben Namen landen in denselben Instanzen
    (Hofstapel an mehreren Stellen = ein Zeichenaufruf). */
@@ -14544,13 +14627,13 @@ bk.paletten=function(liste,o){
   o=o||{}; const A=bk.PALETTE[o.art||'euro'];
   let G=o.gruppe?_bkPalGruppe.get(o.gruppe):null;
   /* Instanzen relativ zur ersten Palette der Gruppe: das Mesh steht dort (Karte, Hofobjekte) */
-  if(!G){ const e0=liste[0]||{x:0,z:0}; G={holz:[],schnee:[],mHolz:null,mSchnee:null,ox:e0.x,oz:e0.z}; if(o.gruppe) _bkPalGruppe.set(o.gruppe,G); }
+  if(!G){ const e0=liste[0]||{x:0,z:0}; G={holz:[],farben:[],schnee:[],mHolz:null,mSchnee:null,ox:e0.x,oz:e0.z}; if(o.gruppe) _bkPalGruppe.set(o.gruppe,G); }
   const M=e=>tm(e.x-G.ox,e.y||0,e.z-G.oz,0,e.ry||0,0);
-  for(const e of liste) G.holz.push(M(e)); for(const e of (o.schnee||[])) G.schnee.push(M(e));
+  for(const e of liste){ G.holz.push(M(e)); G.farben.push(bk.palFarbe(e.x,e.y||0,e.z,e.id)); } for(const e of (o.schnee||[])) G.schnee.push(M(e));
   const par=o.parent||scene;
   if(G.mHolz) G.mHolz.parent&&G.mHolz.parent.remove(G.mHolz);
   if(G.mSchnee) G.mSchnee.parent&&G.mSchnee.parent.remove(G.mSchnee);
-  G.mHolz=bk.inst(bk.palette(o.art||'euro',{fein:o.fein}),MAT.vc('stumpf'),G.holz,{parent:par,schatten:o.schatten,bauteil:'palette',art:o.art||'euro'});
+  G.mHolz=bk.inst(bk.palette(o.art||'euro',{fein:o.fein}),MAT.get('palette'),G.holz,{parent:par,schatten:o.schatten,bauteil:'palette',art:o.art||'euro',farben:G.farben});
   if(G.schnee.length){ if(!bk._schneeHaube) bk._schneeHaube=new THREE.BoxGeometry(A.l+0.02,0.05,A.b+0.02).translate(0,0.025,0);
     G.mSchnee=bk.inst(bk._schneeHaube,MAT.get('weissMatt'),G.schnee,{parent:par,schatten:o.schatten,bauteil:'palette',art:'schnee'}); }
   for(const m of [G.mHolz,G.mSchnee]) if(m) m.position.set(G.ox,0,G.oz);
@@ -29786,9 +29869,9 @@ function vsPaketMeshe(items){
 function vsPalObjekt(p){
   let o=vsPalObj[p.id];
   if(o) return o;
-  const g=new THREE.Group(), holz=new THREE.Mesh(bk.palette('euro'),MAT.vc('stumpf')); holz.userData.bauteil='palette'; holz.userData.bauteilArt='euro';
-  if(HIQ){ holz.castShadow=true; holz.receiveShadow=true; }
-  g.add(holz); g.userData.pal=p.id;
+  /* Palette = Baukasten (bk.palette), eine Instanz mit eigener Alterung (bk.palFarbe nach Nummer); bewegt sich mit der Gruppe */
+  const g=new THREE.Group(), holz=bk.inst(bk.palette('euro'),MAT.get('palette'),[new THREE.Matrix4()],{parent:g,bauteil:'palette',art:'euro',farben:[bk.palFarbe(0,0,0,p.id+1)]});
+  g.userData.pal=p.id;
   o=vsPalObj[p.id]={g,holz,pk:null,sig:'',cx:null,cz:null,id:p.id};
   return o;
 }

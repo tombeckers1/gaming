@@ -191,9 +191,9 @@ function vsPaketMeshe(items){
 function vsPalObjekt(p){
   let o=vsPalObj[p.id];
   if(o) return o;
-  const g=new THREE.Group(), holz=new THREE.Mesh(bk.palette('euro'),MAT.vc('stumpf')); holz.userData.bauteil='palette'; holz.userData.bauteilArt='euro';
-  if(HIQ){ holz.castShadow=true; holz.receiveShadow=true; }
-  g.add(holz); g.userData.pal=p.id;
+  /* Palette = Baukasten (bk.palette), eine Instanz mit eigener Alterung (bk.palFarbe nach Nummer); bewegt sich mit der Gruppe */
+  const g=new THREE.Group(), holz=bk.inst(bk.palette('euro'),MAT.get('palette'),[new THREE.Matrix4()],{parent:g,bauteil:'palette',art:'euro',farben:[bk.palFarbe(0,0,0,p.id+1)]});
+  g.userData.pal=p.id;
   o=vsPalObj[p.id]={g,holz,pk:null,sig:'',cx:null,cz:null,id:p.id};
   return o;
 }

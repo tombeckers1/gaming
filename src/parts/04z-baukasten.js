@@ -480,7 +480,7 @@ bk.tor=function(o){
    ========================================================= */
 /* Instanzen einer Geometrie mit eigener Huellkugel (three r128 prueft Instanzen sonst gegen die
    Kugel EINER Instanz - Vorbild hvInst, Halle). geo bleibt geteilt (Attribute werden nur verwiesen).
-   bk.inst(geo, mat, [Matrix4], {parent, schatten, bauteil, art}) -> InstancedMesh */
+   bk.inst(geo, mat, [Matrix4], {parent, schatten, bauteil, art, farben:[THREE.Color]}) -> InstancedMesh (farben = Instanzfarbe, multipliziert) */
 bk.inst=function(geo,mat,matrizen,o){
   o=o||{}; if(!matrizen.length) return null;
   const g2=new THREE.BufferGeometry(); if(geo.index) g2.setIndex(geo.index);
@@ -492,31 +492,80 @@ bk.inst=function(geo,mat,matrizen,o){
   matrizen.forEach((m,i)=>{ im.setMatrixAt(i,m); p.copy(c0).applyMatrix4(m); box.expandByPoint(p); });
   const s=new THREE.Sphere(); box.getBoundingSphere(s); s.radius+=r0; g2.boundingSphere=s;
   im.instanceMatrix.needsUpdate=true; im.frustumCulled=true;
+  if(o.farben){ o.farben.forEach((c,i)=>im.setColorAt(i,c)); im.instanceColor.needsUpdate=true; }
   if(HIQ&&o.schatten!==false){ im.castShadow=true; im.receiveShadow=true; }
   im.userData.bauteil=o.bauteil||'instanzen'; if(o.art) im.userData.bauteilArt=o.art;
   (o.parent||scene).add(im); return im;
 };
-/* Ladungstraeger: Mass je Art (l laengs x, b quer z, h Hoehe; Ursprung Mitte unten) */
-bk.PALETTE={euro:{l:1.2,b:0.8,h:0.144,name:'Europalette EPAL 1200 x 800 x 144 mm'}};
+/* Ladungstraeger: Mass je Art (l laengs x, b quer z, h Hoehe; Ursprung Mitte unten).
+   EPAL-Europalette nach Datenblatt (epal-pallets.org, Technische Zeichnung 3p4.eu): 1200 x 800 x 144 mm,
+   11 Bretter 22 mm = 5 Deckbretter (aussen/Mitte 145, dazwischen 100 breit), 3 Querbretter 800 x 145,
+   3 Bodenbretter (aussen 100, Mitte 145 breit); 9 Kloetze 78 mm hoch (145 x 100 aussen, 145 x 145 Mitte);
+   Deckbretter an den 4 Ecken 17 mm x 45 Grad gekappt; Bodenbretter an der Oberkante der Enden gefast. Lagen z (Mitte) und breit b. */
+bk.PALETTE={euro:{l:1.2,b:0.8,h:0.144,name:'Europalette EPAL 1200 x 800 x 144 mm',d:0.022,k:0.078,kappe:0.017,fase:0.014,
+  deck:[[-0.3275,0.145],[-0.16375,0.1],[0,0.145],[0.16375,0.1],[0.3275,0.145]],
+  boden:[[-0.35,0.1],[0,0.145],[0.35,0.1]],
+  quer:[[-0.5275,0.145],[0,0.145],[0.5275,0.145]]}};
 const _bkPalGeo=new Map();
-/* bk.palette(art, {fein}) -> geteilte Geometrie (Vertexfarben, Material MAT.vc('stumpf')).
-   fein: Fasen an den Brettern (Standard ab Niedrig, wie V1); fein:false = einfache Kaesten
-   (Hofstapel, viele Paletten in der Ferne). Je Art und Detail genau eine Geometrie. */
+/* UV eines Kastens auf Fenster [u0,v0,u1,v1] des Atlas palettenMarke legen; marken {flaeche:fenster} (0 +x 1 -x 2 +y 3 -y 4 +z 5 -z) */
+function palUV(geo,fenster,marken){ const uv=geo.attributes.uv;
+  for(let f=0;f<6;f++){ const r=(marken&&marken[f])||fenster; for(let i=0;i<4;i++){ const k=f*4+i; uv.setXY(k,r[0]+uv.getX(k)*(r[2]-r[0]),r[1]+uv.getY(k)*(r[3]-r[1])); } }
+  return geo; }
+/* Prisma: Polygon pts [[x,y]] im Profil, entlang z um t extrudiert (mittig). Flache Normalen, UV ueber die Umrissbox auf Fenster F. */
+function palPrisma(pts,t,F){
+  let fl=0; for(let i=0;i<pts.length;i++){ const p=pts[i], q=pts[(i+1)%pts.length]; fl+=p[0]*q[1]-q[0]*p[1]; }
+  if(fl<0) pts=pts.slice().reverse();
+  const n=pts.length, h=t/2, P=[], N=[], U=[]; let x0=1e9,x1=-1e9,y0=1e9,y1=-1e9;
+  for(const p of pts){ x0=Math.min(x0,p[0]); x1=Math.max(x1,p[0]); y0=Math.min(y0,p[1]); y1=Math.max(y1,p[1]); }
+  const v=(p,zz,nx,ny,nz)=>{ P.push(p[0],p[1],zz); N.push(nx,ny,nz); U.push(F[0]+(p[0]-x0)/(x1-x0)*(F[2]-F[0]),F[1]+(p[1]-y0)/(y1-y0)*(F[3]-F[1])); };
+  for(let i=1;i<n-1;i++){ v(pts[0],h,0,0,1); v(pts[i],h,0,0,1); v(pts[i+1],h,0,0,1); v(pts[0],-h,0,0,-1); v(pts[i+1],-h,0,0,-1); v(pts[i],-h,0,0,-1); }
+  for(let i=0;i<n;i++){ const p=pts[i], q=pts[(i+1)%n], ex=q[0]-p[0], ey=q[1]-p[1], l=Math.hypot(ex,ey), nx=ey/l, ny=-ex/l;
+    v(p,-h,nx,ny,0); v(q,-h,nx,ny,0); v(q,h,nx,ny,0); v(p,-h,nx,ny,0); v(q,h,nx,ny,0); v(p,h,nx,ny,0); }
+  const g=new THREE.BufferGeometry();
+  g.setAttribute('position',new THREE.Float32BufferAttribute(P,3)); g.setAttribute('normal',new THREE.Float32BufferAttribute(N,3)); g.setAttribute('uv',new THREE.Float32BufferAttribute(U,2));
+  return g; }
+/* Alterung einer Palette: Instanzfarbe von frisch (1) bis vergraut (0,74), dazu leichte Helligkeit; stabil je Ort/Nummer (kein Zufall) */
+bk.palFarbe=function(x,y,z,id){
+  const f=q=>{ const w=Math.sin(q)*43758.5453; return w-Math.floor(w); };
+  const s=(id||0)*7.31+x*12.9898+y*78.233+z*37.719, alt=Math.pow(f(s),1.4), hell=0.94+0.1*f(s*1.7+3);
+  return new THREE.Color((1-0.26*alt)*hell,(1-0.25*alt)*hell,(1-0.22*alt)*hell);
+};
+/* bk.palette(art, {fein}) -> geteilte Geometrie (Vertexfarben + UV auf den Atlas palettenMarke, Material MAT.get('palette')).
+   fein (Standard ab Niedrig): gekappte Deckbrett-Ecken und gefaste Bodenbretter; fein:false = einfache Kaesten
+   (Hofstapel, Ultra Low). Brand (EPAL im Oval an den Eck-, IPPC/HT am Mittelklotz der Laengsseiten) und Maserung
+   kommen in beiden Fassungen aus der Textur. Je Art und Detail genau eine Geometrie. */
 bk.palette=function(art,o){
   art=art||'euro'; const A=bk.PALETTE[art]; if(!A) throw new Error('bk.palette: Art unbekannt: '+art);
   const fein=!(o&&o.fein===false)&&bk.lod()>0, key=art+'|'+(fein?1:0);
   let geo=_bkPalGeo.get(key); if(geo) return geo;
-  const HOLZ=MAT.farbe('holzPalette'), HOLZ2=MAT.farbe('holzPaletteDunkel'), H=A.h, lx=A.l/2-0.05, bz=A.b/2-0.06;
-  const S=bk.sammler({form:fein?{fase:0.01,seg:2,lod0Kasten:true}:{},klasse:'stumpf'});
-  /* 9 Kloetze, 3 Bodenbretter laengs, 3 Querbretter, 5 Deckbretter (aussen und Mitte breit) */
-  for(const dx of [-lx,0,lx]) for(const dz of [-bz,0,bz]) S.box(0.12,0.078,0.12,dx,0.061,dz,HOLZ2);
-  for(const dz of [-bz,0,bz]) S.box(A.l,0.022,0.12,0,0.011,dz,HOLZ);
-  for(const dx of [-lx,0,lx]) S.box(0.14,0.022,A.b,dx,0.111,0,HOLZ);
-  for(const dz of [-bz,-bz/2,0,bz/2,bz]){ const breit=dz===0||Math.abs(dz)>bz*0.9; S.box(A.l,0.022,breit?0.14:0.1,0,H-0.011,dz,HOLZ); }
+  const HOLZ=MAT.farbe('holzPalette'), HOLZ2=MAT.farbe('holzPaletteDunkel'), U=MAT.PALETTE_UV, d=A.d, kh=A.k, H=A.h, hl=A.l/2, N=U.N;
+  const S=bk.sammler({klasse:'stumpf',bauteil:'palette'});
+  let nb=0;
+  /* Maserungsfenster: ganze Brettlaenge, ein Streifen je Brett (verschiedene Lage), Breite ~ Brettbreite */
+  const maser=b=>{ const px=Math.round(b*190), y0=U.maserY0+((nb++*47)%(U.maserY1-U.maserY0-px)), y1=y0+px; return [U.maser[0],1-(y1-1)/N,U.maser[2],1-(y0+1)/N]; };
+  const klotzFenster=()=>{ const f=maser(0.05); return [0.42,f[1],0.46,f[3]]; };
+  const kasten=(w,h,dd,x,y,z,farbe,fenster,marken)=>{ S.geo(palUV(new THREE.BoxGeometry(w,h,dd),fenster,marken),tm(x,y,z),farbe); };
+  /* 9 Kloetze: Brand auf den Laengsseiten der aeusseren Reihen (Ecken EPAL, Mitte IPPC/HT) */
+  for(const [bx,bw] of A.quer) for(const [bz,bb] of A.boden){
+    const marken=bz===0?null:(bz>0?{4:bx===0?U.ippc:U.epal}:{5:bx===0?U.ippc:U.epal});
+    kasten(bw,kh,bb,bx,d+kh/2,bz,HOLZ2,klotzFenster(),marken); }
+  /* 3 Querbretter (800 lang) */
+  for(const [bx,bw] of A.quer) kasten(bw,d,A.b,bx,d+kh+d/2,0,HOLZ,maser(bw));
+  /* 3 Bodenbretter: fein mit gefasten Enden (Profil x-y, Tiefe = Brettbreite) */
+  for(const [bz,bb] of A.boden){
+    if(fein){ const hy=d/2, c=A.fase; S.geo(palPrisma([[-hl,-hy],[hl,-hy],[hl,hy-c],[hl-c,hy],[-hl+c,hy],[-hl,hy-c]],bb,maser(bb)),tm(0,d/2,bz),HOLZ); }
+    else kasten(A.l,d,bb,0,d/2,bz,HOLZ,maser(bb)); }
+  /* 5 Deckbretter: fein die beiden aeusseren mit je zwei gekappten Aussenecken (17 mm x 45 Grad); Draufsicht (x,z) -> Profil (x,-z), flach gelegt */
+  for(const [bz,bb] of A.deck){
+    const aussen=Math.abs(bz)>0.3;
+    if(fein&&aussen){ const s=bz>0?1:-1, hb=bb/2, c=A.kappe, zi=-s*hb, zo=s*hb;
+      const plan=[[-hl,zi],[hl,zi],[hl,zo-s*c],[hl-c,zo],[-hl+c,zo],[-hl,zo-s*c]];
+      S.geo(palPrisma(plan.map(p=>[p[0],-p[1]]),d,maser(bb)),tm(0,H-d/2,bz,-Math.PI/2,0,0),HOLZ); }
+    else kasten(A.l,d,bb,0,H-d/2,bz,HOLZ,maser(bb)); }
   geo=S.geometrie(); geo.computeBoundingSphere(); geo.userData={bauteil:'palette',art,fein};
   _bkPalGeo.set(key,geo); return geo;
 };
-/* bk.paletten(liste, {gruppe, fein, schnee, parent, schatten}) -> {holz, schnee}: Paletten als
+/* bk.paletten(liste, {gruppe, fein, schnee, parent, schatten}) -> {holz, schnee}: Paletten (je Instanz eigene Alterung, bk.palFarbe) als
    EIN InstancedMesh. liste = [{x,y,z,ry}] (y = Unterkante). schnee = [{x,y,z,ry}] Schneehauben
    (Instanzen, weissMatt). gruppe: Aufrufe mit demselben Namen landen in denselben Instanzen
    (Hofstapel an mehreren Stellen = ein Zeichenaufruf). */
@@ -525,13 +574,13 @@ bk.paletten=function(liste,o){
   o=o||{}; const A=bk.PALETTE[o.art||'euro'];
   let G=o.gruppe?_bkPalGruppe.get(o.gruppe):null;
   /* Instanzen relativ zur ersten Palette der Gruppe: das Mesh steht dort (Karte, Hofobjekte) */
-  if(!G){ const e0=liste[0]||{x:0,z:0}; G={holz:[],schnee:[],mHolz:null,mSchnee:null,ox:e0.x,oz:e0.z}; if(o.gruppe) _bkPalGruppe.set(o.gruppe,G); }
+  if(!G){ const e0=liste[0]||{x:0,z:0}; G={holz:[],farben:[],schnee:[],mHolz:null,mSchnee:null,ox:e0.x,oz:e0.z}; if(o.gruppe) _bkPalGruppe.set(o.gruppe,G); }
   const M=e=>tm(e.x-G.ox,e.y||0,e.z-G.oz,0,e.ry||0,0);
-  for(const e of liste) G.holz.push(M(e)); for(const e of (o.schnee||[])) G.schnee.push(M(e));
+  for(const e of liste){ G.holz.push(M(e)); G.farben.push(bk.palFarbe(e.x,e.y||0,e.z,e.id)); } for(const e of (o.schnee||[])) G.schnee.push(M(e));
   const par=o.parent||scene;
   if(G.mHolz) G.mHolz.parent&&G.mHolz.parent.remove(G.mHolz);
   if(G.mSchnee) G.mSchnee.parent&&G.mSchnee.parent.remove(G.mSchnee);
-  G.mHolz=bk.inst(bk.palette(o.art||'euro',{fein:o.fein}),MAT.vc('stumpf'),G.holz,{parent:par,schatten:o.schatten,bauteil:'palette',art:o.art||'euro'});
+  G.mHolz=bk.inst(bk.palette(o.art||'euro',{fein:o.fein}),MAT.get('palette'),G.holz,{parent:par,schatten:o.schatten,bauteil:'palette',art:o.art||'euro',farben:G.farben});
   if(G.schnee.length){ if(!bk._schneeHaube) bk._schneeHaube=new THREE.BoxGeometry(A.l+0.02,0.05,A.b+0.02).translate(0,0.025,0);
     G.mSchnee=bk.inst(bk._schneeHaube,MAT.get('weissMatt'),G.schnee,{parent:par,schatten:o.schatten,bauteil:'palette',art:'schnee'}); }
   for(const m of [G.mHolz,G.mSchnee]) if(m) m.position.set(G.ox,0,G.oz);

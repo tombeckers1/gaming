@@ -102,6 +102,7 @@ const MAT=(function(){
     lackRot:          {f:'signalrot',k:'kunststoff',   w:'Not-Halt, rote Bedienteile'},
     schildBlau:       {f:'nachtblau',k:'kunststoff',   w:'Schildtafeln Hausstil'},
     holzPalette:      {f:'holzPalette',k:'matt',       w:'Europalette, Kisten'},
+    palette:          {f:0xffffff,tex:'palettenMarke',vertexColors:true,k:'matt',w:'Europalette EPAL (bk.palette): Holzton ueber Vertexfarben (Palette / Palette dunkel), Maserung und Brand (EPAL im Oval, IPPC/HT) aus dem Atlas palettenMarke; Alterung ueber die Instanzfarbe'},
     betonBoden:       {f:0xffffff,tex:'beton',k:'matt',w:'Beton innen: Lager-/Schleusenboden (Massstab per MAT.kachel)'},
     betonHof:         {f:'hellgrau',tex:'beton',k:'matt',w:'Beton aussen: Hof, Rampen, Gehweg-Platten'},
     gitterGelb:       {f:'signalgelb',tex:'drahtgitter',transparent:true,alphaTest:0.35,side:THREE.DoubleSide,k:'lackMetall',w:'gelbes Schweissgitter: Ladezonen-Absperrung (UV 0,2 m je Kachel)'},
@@ -168,7 +169,7 @@ const MAT=(function(){
     const g=typeof GFX!=='undefined'?GFX:'hoch', p=(typeof GFX_PROFIL!=='undefined'&&GFX_PROFIL[g])||{tex:1,ani:4};
     const rang=typeof gfxRang==='function'?gfxRang(g):2;
     /* lod: 0 = Ultra Low (Kasten statt Fase, wenig Segmente), 1 = Niedrig..Hoch, 2 = ab Maximum */
-    return _stufe={name:g,rang,tx:p.tex,aniso:p.ani,lambert:g==='ultralow',lod:g==='ultralow'?0:(rang>=3?2:1)};
+    return _stufe={name:g,rang,tx:p.tex,kar:p.kar||256,aniso:p.ani,lambert:g==='ultralow',lod:g==='ultralow'?0:(rang>=3?2:1)};
   }
 
   /* ---------- Materialien ---------- */
@@ -223,10 +224,14 @@ const MAT=(function(){
   function css(name,a){ const h=hexVon(name); if(a===undefined) return '#'+(h>>>0).toString(16).padStart(6,'0'); return 'rgba('+(h>>16&255)+','+(h>>8&255)+','+(h&255)+','+a+')'; }
 
   /* ---------- geteilte prozedurale Texturen (lazy, einmal gemalt) ---------- */
-  const TEXTUR_W={fassade:'Aussenwand Faserzementtafeln (Fugen, Nieten, Sockel 62 cm) - Kachel 2,4 x 8 m ueber repeat, Wand-UV in Metern',lagerwand:'Lagerwand hell mit gelb-schwarzem Sockelband - Kachel 2,6 x 3,6 m ueber repeat',trapezblech:'Trapezblech Hallenwand, Sicke 0,4 m - Kachel 3,2 m ueber repeat',beton:'Beton (innen Lagerboden, aussen Hof) - eine Textur, Massstab ueber die UVs',doppelstab:'Doppelstabmatte (Zaeune, Absperrungen)',drahtgitter:'Drahtgitter/Schweissgitter (Gitterbox, Ladezonen-Absperrung) - Masche 5 cm, Farbe ueber das Material',warnschraffur:'Warnschraffur gelb/schwarz (Torkanten, Sperrflaechen, Bodenrahmen)',torBlatt:'Torblatt-Atlas aller Ladetore (Optik alter R1, Tom 14.10.): Zeile 0 glatte Sektion lichtgrau, 1 Lichtband (4 Scheiben), 2 unterstes Panel aussen (Griffmulde), 3 weiss (Kleinteile ueber Vertexfarben)'};
+  const TEXTUR_W={fassade:'Aussenwand Faserzementtafeln (Fugen, Nieten, Sockel 62 cm) - Kachel 2,4 x 8 m ueber repeat, Wand-UV in Metern',lagerwand:'Lagerwand hell mit gelb-schwarzem Sockelband - Kachel 2,6 x 3,6 m ueber repeat',trapezblech:'Trapezblech Hallenwand, Sicke 0,4 m - Kachel 3,2 m ueber repeat',beton:'Beton (innen Lagerboden, aussen Hof) - eine Textur, Massstab ueber die UVs',doppelstab:'Doppelstabmatte (Zaeune, Absperrungen)',drahtgitter:'Drahtgitter/Schweissgitter (Gitterbox, Ladezonen-Absperrung) - Masche 5 cm, Farbe ueber das Material',warnschraffur:'Warnschraffur gelb/schwarz (Torkanten, Sperrflaechen, Bodenrahmen)',palettenMarke:'Paletten-Atlas 256 x 256: oben links Brand EPAL im Oval (Eck-Kloetze), oben rechts IPPC/HT-Stempel (Mittelkloetze), darunter Kiefern-Maserung (Streifen je Brett); Layout MAT.PALETTE_UV. Holzton kommt ueber Vertexfarben, Alterung ueber Instanzfarben',torBlatt:'Torblatt-Atlas aller Ladetore (Optik alter R1, Tom 14.10.): Zeile 0 glatte Sektion lichtgrau, 1 Lichtband (4 Scheiben), 2 unterstes Panel aussen (Griffmulde), 3 weiss (Kleinteile ueber Vertexfarben)'};
   /* Fassadentafeln (vorher fassadeTex() in 05-world.js): Kachel zwei Tafeln breit, Fuge auf dem Kachelrand -
      wo sich die Textur wiederholt, sitzt eine Fuge; senkrecht ueber die volle Wandhoehe (Sockel unten bleibt) */
   const FASS={b:2.4, h:8.0, sockel:0.62, tafel:1.18};
+  /* Layout des Paletten-Atlas (Pixel im 256er-Bild, y von oben): EPAL-Brand 0..128 x 0..64, IPPC-Stempel 128..256 x 0..64,
+     Maserung 72..252 (Streifen). Texel-Rand 1 px gegen Filterung in die Nachbarzelle. UV = [u0,v0,u1,v1] (v nach oben). */
+  const PAL_UV=(()=>{ const N=256, uv=(x0,y0,x1,y1)=>[(x0+1)/N,1-(y1-1)/N,(x1-1)/N,1-(y0+1)/N];
+    return {epal:uv(0,0,128,64),ippc:uv(128,0,256,64),maser:uv(0,72,256,252),maserY0:72,maserY1:252,N}; })();
   const TEXTUR={
     /* Malcode unveraendert aus 05-world.js (fassadeTex, 26.09.) */
     fassade:()=>{ const t=tex(256,1024,(g,W,H)=>{
@@ -306,6 +311,31 @@ const MAT=(function(){
        Vier Zeilen je 128 px, Massstab fuer 3,26 x 0,6 m (andere Tore strecken): 0 glatte Sektion,
        1 Lichtband, 2 unterstes Panel aussen (Griffmulde), 3 weiss fuer Kleinteile ueber
        Vertexfarben. Zeilen waehlt bk.uvZeile(geo,zeile,innen,rand). */
+    /* Paletten-Atlas (14.10., Schritt Paletten): weisse Grundflaeche, Holzton kommt aus den Vertexfarben (multipliziert).
+       Brand dunkelbraun wie Brennstempel; Maserung Laengsstreifen + Jahresringe + wenige Astlocher. Saat fest: immer gleich. */
+    palettenMarke:()=>{ const t=tex(256,256,(g,W,H)=>{
+        let sd=1234567; const z=()=>{ sd=(sd*1103515245+12345)&0x7fffffff; return sd/0x7fffffff; };
+        g.fillStyle='#ffffff'; g.fillRect(0,0,W,H);
+        const Y0=PAL_UV.maserY0, Y1=PAL_UV.maserY1;
+        /* Maserung: Streifen entlang x (Brettlaenge), je Brettband verschiedene Lage */
+        for(let i=0;i<260;i++){ const y=Y0+z()*(Y1-Y0), x=z()*W, l=60+z()*190, a=0.05+z()*0.13;
+          g.strokeStyle='rgba('+(96+z()*30|0)+','+(66+z()*20|0)+','+(34+z()*14|0)+','+a+')'; g.lineWidth=0.6+z()*1.4;
+          g.beginPath(); g.moveTo(x,y); g.bezierCurveTo(x+l*0.3,y+(z()-0.5)*3,x+l*0.7,y+(z()-0.5)*3,x+l,y+(z()-0.5)*2); g.stroke(); }
+        for(let y=Y0;y<Y1;y+=9+z()*7){ g.fillStyle='rgba(110,78,40,'+(0.04+z()*0.06)+')'; g.fillRect(0,y,W,1+z()*3); }
+        for(let i=0;i<7;i++){ const x=z()*W, y=Y0+8+z()*(Y1-Y0-16), r=2+z()*3;
+          g.fillStyle='rgba(84,56,28,.35)'; g.beginPath(); g.ellipse(x,y,r*1.8,r,0,0,Math.PI*2); g.fill();
+          g.strokeStyle='rgba(110,78,40,.18)'; g.lineWidth=1; g.beginPath(); g.ellipse(x,y,r*3.2,r*1.7,0,0,Math.PI*2); g.stroke(); }
+        const dunkel='rgba(38,26,16,.88)'; g.fillStyle=dunkel; g.strokeStyle=dunkel; g.textAlign='center'; g.textBaseline='middle';
+        /* EPAL im Oval (Eck-Kloetze der 1200er-Seite) */
+        g.lineWidth=4; g.beginPath(); g.ellipse(64,32,54,25,0,0,Math.PI*2); g.stroke();
+        g.font='bold 31px "Barlow Condensed", Arial, sans-serif'; g.fillText('EPAL',64,33);
+        /* IPPC/HT-Stempel (Mittelklotz): Rechteck, Laendercode, Behandlung, Herstellernummer */
+        g.lineWidth=2; g.strokeRect(138,6,108,52);
+        g.font='bold 15px Arial, sans-serif'; g.textAlign='left'; g.fillText('IPPC',144,17);
+        g.font='bold 13px Arial, sans-serif'; g.fillText('DE-BY 4711',144,34);
+        g.font='bold 20px Arial, sans-serif'; g.fillText('HT',144,49); g.font='9px Arial, sans-serif'; g.fillText('EPAL 4711 10 25',168,50);
+        g.beginPath(); g.moveTo(228,12); g.lineTo(228,26); g.moveTo(228,16); g.lineTo(223,12); g.moveTo(228,16); g.lineTo(233,12); g.moveTo(228,21); g.lineTo(223,17); g.moveTo(228,21); g.lineTo(233,17); g.lineWidth=1.4; g.stroke(); });
+      t.anisotropy=4; return t; },
     torBlatt:()=>{ const t=tex(512,512,(c,W,H)=>{ const RH=H/4, M=W/3.26, MV=RH/0.588;
         const sektion=y0=>{ c.fillStyle=css('lichtgrau'); c.fillRect(0,y0,W,RH);
           /* Fuge: Nut oben, Feder unten (am alten Tor eigene Profile im Spalt) */
@@ -346,11 +376,14 @@ const MAT=(function(){
   function atlasObc(sh){ atlasPatch(sh,this); }
   function atlas(name,o){
     let A=atlasListe.get(name); if(A) return A;
-    const st=stufe(), voll=o.zelle||256, cs=Math.max(32,Math.round(voll*Math.min(1,st.tx||1))), S=o.seite||1024, je=Math.floor(S/cs);
+    /* Zellgroesse: o.stufenZelle = Name eines Wertes aus MAT.stufe() (z. B. 'kar', Pixel je Stufe aus GFX_PROFIL),
+       sonst zelle * min(1, tx). voll = Malgroesse des Motivs (Koordinaten 256); ist die Zelle groesser, wird der
+       Malcode skaliert (Vektoren/Schrift scharf, kein Hochziehen eines kleinen Bildes). */
+    const st=stufe(), voll=o.zelle||256, ziel=(o.stufenZelle&&st[o.stufenZelle])||Math.round(voll*Math.min(1,st.tx||1)), cs=Math.max(32,ziel), mal=Math.max(voll,cs), S=o.seite||1024, je=Math.floor(S/cs);
     const seiten=[], zellen=new Map(), mats=new Map();
     let malC=null, malG=null, kleinC=null, kleinG=null;
-    const leinwand=()=>{ if(malC) return; malC=document.createElement('canvas'); malC.width=malC.height=voll; malG=malC.getContext('2d');
-      if(cs!==voll){ kleinC=document.createElement('canvas'); kleinC.width=kleinC.height=cs; kleinG=kleinC.getContext('2d'); kleinG.imageSmoothingEnabled=true; kleinG.imageSmoothingQuality='high'; } };
+    const leinwand=()=>{ if(malC) return; malC=document.createElement('canvas'); malC.width=malC.height=mal; malG=malC.getContext('2d');
+      if(cs!==mal){ kleinC=document.createElement('canvas'); kleinC.width=kleinC.height=cs; kleinG=kleinC.getContext('2d'); kleinG.imageSmoothingEnabled=true; kleinG.imageSmoothingQuality='high'; } };
     function neueSeite(){ const im=new ImageData(S,S), t=new THREE.CanvasTexture(im);
       t.anisotropy=typeof GFX_START!=='undefined'?GFX_START.ani:st.aniso; t.encoding=THREE.sRGBEncoding; t.userData={mat:'atlas:'+name,atlas:name,seite:seiten.length};
       const s={im,t,n:0}; seiten.push(s); return s; }
@@ -358,7 +391,8 @@ const MAT=(function(){
       let Z=zellen.get(key); if(Z) return Z;
       let s=seiten[seiten.length-1]; if(!s||s.n>=je*je) s=neueSeite();
       const i=s.n++, x=(i%je)*cs, y=Math.floor(i/je)*cs;
-      leinwand(); malC.width=voll;   /* setzt Zustand (Schrift, Ausrichtung, Linien) und Bild zurueck - wie eine frische Leinwand */
+      leinwand(); malC.width=mal;   /* setzt Zustand (Schrift, Ausrichtung, Linien) und Bild zurueck - wie eine frische Leinwand */
+      if(mal!==voll) malG.scale(mal/voll,mal/voll);
       o.malen(malG,voll,voll,key);
       let d; if(kleinC){ kleinG.clearRect(0,0,cs,cs); kleinG.drawImage(malC,0,0,cs,cs); d=kleinG.getImageData(0,0,cs,cs).data; } else d=malG.getImageData(0,0,cs,cs).data;
       const ziel=s.im.data; for(let r=0;r<cs;r++) ziel.set(d.subarray(r*cs*4,(r+1)*cs*4),((y+r)*S+x)*4);
@@ -400,5 +434,5 @@ const MAT=(function(){
     const atlanten=[...atlasListe.values()].map(A=>A.info());
     return {materialien:mats,texturen:texs,eigene:neuL,atlanten,geteilt:mats.length,abrufe,gespart:abrufe-mats.length,farben:Object.keys(FARBE).length,rezepte:Object.keys(REZEPT).length,katalog};
   }
-  return {FARBE,PALETTE,KLASSE,REZEPT,get,ober,eigen,neu,kopie,std:stdGeteilt,basic,vc,farbe,css,tex:texGet,kachel,atlas,atlasPatch,atlasObc,stufe,liste,verstoesse,get wache(){ return wacheAn; }};
+  return {FARBE,PALETTE,PALETTE_UV:PAL_UV,KLASSE,REZEPT,get,ober,eigen,neu,kopie,std:stdGeteilt,basic,vc,farbe,css,tex:texGet,kachel,atlas,atlasPatch,atlasObc,stufe,liste,verstoesse,get wache(){ return wacheAn; }};
 })();

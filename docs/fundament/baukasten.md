@@ -75,8 +75,8 @@ später ändern will (Ampel, Lampe in `lampMats`, Regalfarbe, Hervorhebung, Ausb
 | `bk.stab(S,x0,y0,x1,y1,z,d,farbe,klasse)` | Stab zwischen zwei Punkten (Streben, Abhänger) |
 | `bk.uvZeile(geo,zeile)` | UVs eines Kastens auf eine Zeile des Atlas `torBlatt` legen (0 Lamellen, 1 Fenster, 2 unten, 3 weiß) |
 | `bk.inst(geo,mat,[Matrix4],o)` | Instanzen einer geteilten Geometrie mit eigener Hüllkugel (Sichtprüfung bleibt an) |
-| `bk.palette(art,{fein})` | **jede Palette im Spiel**: Europalette 1,2 × 0,8 × 0,144 m, eine Geometrie je Art und Detail, Material `MAT.vc('stumpf')`; Doku `kartons.md` |
-| `bk.paletten(liste,{gruppe,fein,schnee})` | viele Paletten als EIN InstancedMesh (gleiche `gruppe` = ein Zeichenaufruf über mehrere Aufrufe); Hülle `palettenStapel(x,z,n,ry)` = Hofstapel |
+| `bk.palette(art,{fein})` | **jede Palette im Spiel**: EPAL-Europalette 1,2 × 0,8 × 0,144 m (11 Bretter, 9 Klötze, gekappte Deckbrett-Ecken, gefaste Bodenbretter, Brand „EPAL im Oval“/IPPC aus der Textur), eine Geometrie je Art und Detail, Material `MAT.get('palette')` (Atlas `palettenMarke`); Doku `paletten.md` |
+| `bk.paletten(liste,{gruppe,fein,schnee})` | viele Paletten als EIN InstancedMesh (gleiche `gruppe` = ein Zeichenaufruf über mehrere Aufrufe; je Instanz eigene Alterung über `bk.palFarbe`); Hülle `palettenStapel(x,z,n,ry)` = Hofstapel |
 | `bk.karton(t,{kiste})` | Versandkarton einer Sorte als Mesh (`kartonGeo` + `kartonMat[t]` = Atlaszelle) – Lagerregal, Boden, LKW, Karre |
 
 Sammler (`opt`: `form` = Kastenform wie `bk.kasten`, `klasse` = Standardklasse, `reihenfolge`,

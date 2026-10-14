@@ -48,7 +48,7 @@ aus, jetzt immer gleich.
 | `kartonBild(t)` | Sorte | Motiv als ImageData (vorher `kartonMat[t].map.image`) |
 
 Grafikstufen: Zelle 256 px ab Niedrig (pixelgleich zu vorher), **Ultra Low 128 px** (`tx` 0,5; gemalt wird in 256 und
-verkleinert – Aufteilung und Schriftgrößen bleiben). Maximum und höher bleiben bei 256 (siehe offene Fragen).
+verkleinert – Aufteilung und Schriftgrößen bleiben). Maximum und höher blieben bei 256 – seit V134 (Tom 14.10.): Niedrig/Mittel 128, Hoch 256, Maximum+ 512, siehe `paletten.md` 4b.
 
 ## 3. Welche Stelle nutzt was
 

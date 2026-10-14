@@ -11,6 +11,13 @@
 > **Dauerregel ab Fundament:** Neue Objekte/Materialien nur aus dem Baukasten bzw. der Bibliothek;
 > Wirtschaftswerte nur aus der Wirtschaftszentrale; jeder Bericht mit Zeile „Konsistenz“.
 
+> **PFLICHT für jeden Agenten (Stilregeln, ab 14.10.):** Vor jedem neuen Objekt, Material, jeder
+> Wirtschaftszahl und jedem Feuerwerk `docs/fundament/stilregeln.md` lesen und den Ablauf dort
+> einhalten (Baukasten prüfen → Parameter nutzen → sonst `bk` ergänzen, nie daneben bauen; Farben/
+> Materialien nur `MAT`; Zahlen nur `01c`; Zünden nur `14z4`). Ausgenommen sind nur Feuerwerks-Effekte
+> und Verpackungsmotive. Nach jeder Änderung `node tools/fundament/waechter.js` (4 s, ohne Browser)
+> – Rot wird behoben, nicht in die Ausnahmeliste geschoben; die Liste darf nur schrumpfen.
+
 > **Neue Richtung (Tom, 08.10. nachts):** Ausbauplan v7 (große Halle, Hochregal, Produktion)
 > wird **in die Zukunft verschoben**. Erst den heutigen Stand auf sehr hohes Niveau bringen:
 > Texturen, Performance, Gameplay, Flow, Wirtschaft. Schritt für Schritt mit Tom. Erste Aufgabe:

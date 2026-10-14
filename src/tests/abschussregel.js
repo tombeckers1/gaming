@@ -52,7 +52,8 @@ function fehlerSeite(datei){
 /* R7: Quelltext der Teile - wer ruft die Darstellungs- und Zuendfunktionen auf */
 function einmal(){
   const dir=path.join(__dirname,'..','parts'), out=[];
-  const FN=['raketeModell','kugelModell','batterieModell','kfTischAuf','kqPodestAuf','fkGestell','igniteType'];
+  /* dieselbe Liste wie der Node-Waechter (tools/fundament/waechter.js, Fundament Etappe 5) - eine Quelle */
+  const FN=require(path.join(__dirname,'..','..','tools','fundament','waechter.js')).FW_FN;
   /* Ersatzaufbau, wenn die Engine ohne Platz gerufen wird (Tests, die
      igniteType direkt zuenden): Bengalholz-Halter (14q kqHolzPodest) */
   const ERSATZ=[/^14q-klein-neu\.js:.*kqHolzPodest|^14q-klein-neu\.js:  g=kqPodestAuf\('bengalholz'/];

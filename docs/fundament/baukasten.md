@@ -102,6 +102,8 @@ Erst prüfen, ob es das Bauteil schon gibt (hier und in der Umbauliste `inventar
 Neues Bauteil = Funktion `bk.<name>(o)` in `04z-baukasten.js`: Parameter statt Kopie, Teile über
 `bk.sammler`, Materialien nur aus `MAT`, Rückgabe enthält Spiellogik-Haken (Kollision, Treffer,
 bewegte Teile) statt sie intern zu verdrahten, jedes Mesh mit `userData.bauteil`.
+Danach `bk.<name>` in `tools/fundament/waechter.js` (`BAUTEILE` mit Namenswörtern oder `HELFER`) eintragen und
+`node tools/fundament/waechter.js` laufen lassen – verbindlicher Ablauf und Wächter: `stilregeln.md` §10–11.
 
 ## 3. Messung Schritt 2 (Materialangleichung, 13.10.)
 Material-Objekte 563 → 430, Dubletten 114 → 89, Texturen 225 → 223, Zeichenaufrufe fast gleich; Einzelheiten und

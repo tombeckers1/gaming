@@ -81,14 +81,15 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   M(JSON.stringify(l2.stock)===JSON.stringify(l.stock0.map((v,i)=>v+l.soll[i])),'Bestand stimmt nicht: '+l.stock0+' + '+l.soll+' -> '+l2.stock);
 
   /* 4) Speichern/Laden: Bestand bleibt */
-  const s1=await p.evaluate(()=>{ const bb=window.__bb; bb.save(); return {hr:bb.hrStock(),belegt:bb.hrBelegt()}; });
+  const s1=await p.evaluate(()=>{ const bb=window.__bb, D=bb.hrDaten(), T=bb.ORDER.filter(t=>bb.P[t]&&bb.P[t].box&&!bb.P[t].noOrder);
+    for(let i=0;i<6;i++) D.p[150+i]=[{t:T[i],c:bb.P[T[i]].box,q:1},{t:T[i+1],c:bb.P[T[i+1]].box,q:1}]; bb.hrSync(); bb.save(); return {hr:bb.hrStock(),belegt:bb.hrBelegt()}; });
   await H.neuladen(p);
   await p.click('#startBtns button:first-child').catch(()=>{});
   await p.waitForFunction("!document.getElementById('start').classList.contains('show')",null,{timeout:300000}).catch(()=>{});
   const s2=await p.evaluate(()=>{ const bb=window.__bb; return {hr:bb.hrStock(),belegt:bb.hrBelegt(),offen:bb.llOffen(),gebaut:!!bb.LL_G&&bb.LL_G.visible,anbruch:bb.racks.filter(r=>{ const q=r.g.position; return q.x>-46&&q.x<-42&&q.z>-28&&q.z<-14; }).length}; });
   console.log('LADEN',JSON.stringify(s1),JSON.stringify(s2));
   M(s2.offen&&s2.gebaut,'nach dem Laden nicht gebaut');
-  M(s2.hr===s1.hr&&s2.belegt===s1.belegt,'Hochregal-Bestand nach dem Laden anders: '+JSON.stringify([s1,s2]));
+  M(s1.belegt>=6&&s2.hr===s1.hr&&s2.belegt===s1.belegt,'Hochregal-Bestand nach dem Laden anders: '+JSON.stringify([s1,s2]));
   M(s2.anbruch===5,'Anbruch nach dem Laden: '+s2.anbruch);
 
   if(errs.length) console.log('ERRORS: '+errs.slice(0,6).join(' | '));

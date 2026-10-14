@@ -834,8 +834,9 @@ bk.hochregal=function(o){
     plaetze.push({x:x0+j*fb+0.1+(s+0.5)*(fb-0.2)/A.jeFeld,y:A.ebenen[l]+(l?0.004:0),z:(r.z0+r.z1)/2,reihe:ri,feld:j,ebene:l}); });
   const kollision=reihen.map(r=>({x0:x0-0.1,x1:x1+0.3,z0:r.z0-0.05,z1:r.z1+0.05}));
   /* Belegung: je belegtem Platz Europalette (bk.palette) mit Kartonladung - zwei InstancedMesh fuer die ganze Gasse */
-  const N=plaetze.length, mP=bk.inst(bk.palette('euro',{fein:L>1}),MAT.get('palette'),plaetze.map(p=>tm(p.x,p.y,p.z,0,Math.PI/2,0)),{parent:g,bauteil:'hochregal',art:'palette',schatten:false});
-  const mL=bk.inst(bk.ladungGeo(),MAT.vc('stumpf'),plaetze.map(p=>tm(p.x,p.y+bk.PALETTE.euro.h,p.z)),{parent:g,bauteil:'hochregal',art:'ladung',schatten:false});
+  /* Instanzfarbe (Alterung) wie bk.paletten - dasselbe Material teilt sich in r128 ein Shaderprogramm: alle Paletten-Instanzen brauchen sie */
+  const N=plaetze.length, mP=bk.inst(bk.palette('euro',{fein:L>1}),MAT.get('palette'),plaetze.map(p=>tm(p.x,p.y,p.z,0,Math.PI/2,0)),{parent:g,bauteil:'hochregal',art:'palette',schatten:false,farben:plaetze.map((p,i)=>bk.palFarbe(p.x,p.y,p.z,i))});
+  const mL=bk.inst(bk.ladungGeo(),MAT.vc('stumpf'),plaetze.map(p=>tm(p.x,p.y+bk.PALETTE.euro.h,p.z)),{parent:g,bauteil:'hochregal',art:'ladung',schatten:false,farben:plaetze.map(()=>new THREE.Color(1,1,1))});   /* Instanzfarbe von Anfang an (spaeter angelegt bricht r128 beim Zeichnen) */
   const hell=new THREE.Color();
   const belegen=liste=>{ let n=0; const m=new THREE.Matrix4();
     for(const i of liste){ const p=plaetze[i]; if(!p) continue;

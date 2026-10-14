@@ -142,16 +142,24 @@ function ftsTick(f,dt){
 /* Nachschub: Kartons im Anbruch, die gerade keine offene Bestellung braucht, in ein Lagerregal ①②③ mit Platz */
 function hrAnbruchRacks(){ const a=LL.anbruch; return racks.filter(r=>{ const p=r.g.position; return p.x>a.x0&&p.x<a.x1&&p.z>a.z0&&p.z<a.z1; }); }
 function hrLagerRacks(){ return racks.filter(r=>{ const p=r.g.position; return p.x>-36.2&&p.x<-8&&p.z>-17.2&&p.z<6; }); }
+/* Nachschub fuellt nur ③ (am Weg vom Anbruch) und laesst im Lager immer Platz fuer eine Lieferung an Rolltor 1
+   (HR_RESERVE freie Faecher) - sonst stuende der LKW an der Basisrampe, bis jemand Platz schafft (gemessen 14.10.:
+   Vorfuehrung, Versandmaterial kam nicht mehr ins Packmaterial-Regal) */
+const HR_RESERVE=18;
+function hrNachschubRacks(){ return racks.filter(r=>{ const p=r.g.position; return p.x>-36.2&&p.x<-19.9&&p.z>-17.2&&p.z<-6.8; }); }
 function hrStaffBelegt(s){ return Object.values(staff).some(o=>o&&o.src&&(o.src.slot===s||o.src.box===s)); }
 function hrNachschubPlan(){
   const A=hrAnbruchRacks(); if(!A.length) return null;
-  const ziel=hrLagerRacks().map(r=>({r,frei:r.slots.filter(s=>!s.box).length})).filter(x=>x.frei>0);
+  const freiGesamt=hrLagerRacks().reduce((n,r)=>n+r.slots.filter(s=>!s.box).length,0);
+  if(freiGesamt<=HR_RESERVE) return null;
+  const ziel=hrNachschubRacks().map(r=>({r,frei:r.slots.filter(s=>!s.box).length})).filter(x=>x.frei>0);
   if(!ziel.length) return null;
   const im=(t)=>{ let n=0; for(const r of hrLagerRacks()) for(const s of r.slots) if(s.box&&s.box.type===t) n+=s.box.count; for(const lv of allLevels()) if(lv.type===t) n+=lv.count; return n; };
   const kand=[]; for(const r of A) for(const s of r.slots) if(s.box&&!hrStaffBelegt(s)&&!(typeof vsReserviert==='function'&&vsReserviert(s.box.type)>0)) kand.push(s);
   if(kand.length<2) return null;
   kand.sort((a,b)=>im(a.box.type)-im(b.box.type));
-  const z=ziel.sort((a,b)=>b.frei-a.frei)[0], slots=kand.slice(0,Math.min(4,z.frei));
+  const z=ziel.sort((a,b)=>b.frei-a.frei)[0], slots=kand.slice(0,Math.min(4,z.frei,freiGesamt-HR_RESERVE));
+  if(!slots.length) return null;
   const rk=z.r, sn=Math.sin(rk.g.rotation.y), cs=Math.cos(rk.g.rotation.y), K=rackKindOf(rk), lz=K.zo+0.75;
   const von=slots[0].rk.g.position, vy=slots[0].rk.g.rotation.y;
   return {slots,rk,von:{x:von.x+Math.sin(vy)*(K.zo+0.75),z:von.z+Math.cos(vy)*(K.zo+0.75)},nach:{x:rk.g.position.x+sn*lz,z:rk.g.position.z+cs*lz}};

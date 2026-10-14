@@ -38,7 +38,6 @@ function llSperrRechtecke(){ const a=LL.anbruch, R=[];
   R.push({x0:LL.weing.x0,x1:LL.weing.x1,z0:-34,z1:LL.weing.z1});           /* Wareneingang */
   R.push({x0:LL.wausg.x0,x1:LL.wausg.x1,z0:-34,z1:LL.wausg.z1});           /* Ausgang R5 */
   R.push(LL.packmat); R.push(LL.schnell);
-  R.push({x0:-36.4,x1:-35.6,z0:-17.2,z1:-6.9}); R.push({x0:-36.4,x1:-25.8,z0:-17.4,z1:-16.6});   /* gelbe Wand */
   R.push({x0:-26.4,x1:-19.6,z0:-30.2,z1:-17.0});                          /* Schleuse */
   R.push({x0:-36.2,x1:-33.0,z0:-13.8,z1:-10.2}); R.push({x0:-38.6,x1:-36.0,z0:-13.8,z1:-10.2});  /* vor und hinter N1 */
   return R; }
@@ -113,7 +112,7 @@ function llBauen(){
 }
 /* Wandstueck (Kollision nur, wenn es am Boden steht) */
 function llW(x0,x1,z0,z1,y0,y1,innen,fi,fa,still){
-  const m=bk.wand({x0,x1,z0,z1,y0,y1,innen,flaechen:{innen:fi,aussen:fa,laibung:fi},ue:0,still});
+  const m=bk.wand({x0,x1,z0,z1,y0,y1,innen,flaechen:{innen:fi,aussen:fa,laibung:'laibung'},ue:0,still});
   if(y0<0.05) col(Math.min(x0,x1),Math.max(x0,x1),Math.min(z0,z1),Math.max(z0,z1));
   return m; }
 function llRohbau(){
@@ -277,8 +276,8 @@ function llLicht(){
     S.fertig(scene,{fest:true,schatten:false}); }
   /* Sprinkler (sparsam): drei Hauptleitungen Feuerrot unter der Decke, Abzweige mit Sprinklerkoepfen */
   { const S=bk.sammler({bauteil:'sprinkler'}), F=MAT.farbe, seg=[6,8,10][bk.lod()];
-    for(const z of [-32.5,-23.3,-13.0]){ S.zyl(0.06,0.06,39.4,seg,-46,10.55,z,F('feuerrot'),'lackMetall',0,0,Math.PI/2);
-      for(let x=-64;x<=-28;x+=3){ S.zyl(0.025,0.025,0.35,seg,x,10.37,z,F('feuerrot'),'lackMetall'); S.zyl(0.03,0.02,0.05,seg,x,10.17,z,F('messing'),'blank'); } }
+    for(const z of [-32.5,-23.3,-13.0]){ const xe=z>-17?-36.3:-26.3; S.zyl(0.06,0.06,xe+65.7,seg,(xe-65.7)/2,10.55,z,F('feuerrot'),'lackMetall',0,0,Math.PI/2);
+      for(let x=-64;x<=xe-1;x+=3){ S.zyl(0.025,0.025,0.35,seg,x,10.37,z,F('feuerrot'),'lackMetall'); S.zyl(0.03,0.02,0.05,seg,x,10.17,z,F('messing'),'blank'); } }
     S.zyl(0.08,0.08,10.4,seg,-26.4,5.2,-33.6,F('feuerrot'),'lackMetall');
     S.fertig(scene,{fest:true,schatten:false}); }
   /* Fluchtweg-Schilder (gruen) */
@@ -301,8 +300,8 @@ function llAussen(){
   MAT.kachel(flat(32,12.7,MAT.get('betonHof'),-50,0.012,-0.45).geometry,32/2.4,12.7/2.4);
   /* Tank */
   const S=bk.sammler({form:{fase:0.02,faseMin:0.06,lod0Kasten:true},bauteil:'sprinklertank'});
-  S.zyl(T.r,T.r,T.h,seg,T.x,T.h/2+0.3,T.z,F('silbergrau'),'stahl'); S.zyl(T.r+0.15,T.r+0.15,0.3,seg,T.x,0.15,T.z,F('hellgrau'),'matt');
-  S.zyl(T.r*0.2,T.r+0.02,0.6,seg,T.x,T.h+0.6,T.z,F('silbergrau'),'stahl');
+  S.zyl(T.r,T.r,T.h,seg,T.x,T.h/2+0.3,T.z,F('lichtgrau'),'lackMetall'); S.zyl(T.r+0.15,T.r+0.15,0.3,seg,T.x,0.15,T.z,F('hellgrau'),'matt');
+  S.zyl(T.r*0.2,T.r+0.02,0.6,seg,T.x,T.h+0.6,T.z,F('lichtgrau'),'lackMetall');
   for(let i=1;i<6;i++) S.zyl(T.r+0.01,T.r+0.01,0.04,seg,T.x,0.3+i*T.h/6,T.z,F('basaltgrau'),'stahl');
   for(let y=0.6;y<T.h;y+=0.3) S.box(0.42,0.03,0.03,T.x+T.r+0.12,y,T.z+0.4,F('silbergrau'),'stahl');
   for(const dz of [0.2,0.6]) S.box(0.04,T.h,0.04,T.x+T.r+0.12,T.h/2+0.3,T.z+dz,F('silbergrau'),'stahl');

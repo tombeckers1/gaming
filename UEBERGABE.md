@@ -10,7 +10,7 @@ Stand: **14.10.2026 abends** (Abschnitt 00 neu; Chat 13.–14.10. Fundament). Ä
 
 ## 00. STAND 14.10.2026 ABENDS – ZUERST LESEN (danach Abschnitt 0 für Hintergrund)
 
-**Spiel V133 in Prüfung / V132 veröffentlicht** – Branch `claude/artifact-review-task-d47i09`, Artefakt
+**Spiel V133 veröffentlicht (f2017e7)** – Branch `claude/artifact-review-task-d47i09`, Artefakt
 https://claude.ai/artifact/7zw7iHrZYiYSGzw1QHNwVJ. **Übersicht für Tom** (Bauteil-/Material-/Textur-Katalog, Vorher/
 Nachher je Schritt, Wirtschaft „Entscheidung → Folge“, Feuerwerks-Regeln): https://claude.ai/artifact/4fTTh8HyVbz6qNYF47yFg9
 – Generator `tools/fundament/katalog.js` + `uebersicht.py` (Branch `claude/fundament-katalog`, liest docs/fundament/*.md
@@ -22,7 +22,7 @@ und Bildordner automatisch), Ausgabe nach Scratchpad `bauteil-katalog.html` und 
 Materialangleichung, Tore (grau = alter R1, Tom 14.10.; Graphit verworfen), Wände/Zäune/Poller (Wandbild: Schatten −40 %),
 Paletten + Karton-Atlas, Wirtschaftszentrale `01c-wirtschaft.js` (WIRT/WF/WIRT_KETTEN, Snapshot-Beweis), Feuerwerks-
 Regelwerk + Abschuss-Baustein `14z4-abschuss.js`, Stilregeln `docs/fundament/stilregeln.md` (PFLICHT, Verweis in CLAUDE.md),
-Wächter `node tools/fundament/waechter.js` (4 s, ohne Browser; Ausnahmeliste darf nur schrumpfen) + `src/tests/waechter.js`.
+Wächter `node tools/fundament/waechter.js` (4 s, ohne Browser; Ausnahmeliste darf nur schrumpfen) + `src/tests/waechter.js` (Ausgangswerte 14.10.). Regression V133: gameplay, versandtor, ausbau, sockel, fassade, lager, stufen, rampe, material, waechter grün.
 Doku je Schritt: docs/fundament/<schritt>.md + Bildordner.
 
 **Test-Sanierung (14.10.):** Hängende Real-Tests = Speicher (OOM-Killer beendet Renderer stumm, Container ~15 GB für alle).
@@ -31,6 +31,7 @@ Neuer `tools/test/ladezeit-preload.js` (Herzschlag, „RENDERER TOT“ Exit 4, S
 gleichzeitig, besser einer** (material braucht ~11 GB).
 
 **Offen, in dieser Reihenfolge (Tom hat zugestimmt):**
+0. Übersicht aktualisieren (Katalog neu erzeugen; zaeune.md/waende.md/kartons.md werden automatisch Abschnitte) und veröffentlichen – Sonnet, kurz.
 1. EPAL-Paletten nach echtem Vorbild (fundament.md „Antworten“) + Karton-Auflösung je Grafikstufe (Niedrig/Mittel 128 px, Max 512 px) – Sonnet.
 2. Lampen + Fassade/Hoflampen (`fassade-0910.md`) – Opus.
 3. Balancing nach freigegebener Zielkurve **ohne Silvester-Rekordtag** (`balancing-0910.md` unten) auf der Wirtschaftszentrale.

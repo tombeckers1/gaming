@@ -11,3 +11,9 @@ Vorgehen (Vorschlag):
 4. Demo-Bogen (30–60 Min bis zum ersten großen Ausbau, Steam Next Fest) besonders prüfen.
 
 Reihenfolge: NACH den Inhalts-Paketen (Feuerwerk, Licht, Fassade, Automat/SB), weil neue Produkte/Preise die Kurve verändern. Gilt ab jetzt auch als Dauerregel: jede Preis-/Kostenänderung eines Agenten muss zur Gesamtkurve passen (Amortisation/Fortschritt im Bericht nennen).
+
+## Toms Entscheidung zur Zielkurve (14.10.2026, 08:45)
+Zielkurve aus docs/balancing/ist-analyse.md freigegeben, **ohne „Silvester als Rekordtag“** („erstmal weg“).
+Silvester-Nachfrage bleibt so, wie sie heute im Code wirkt (WIRT-Saisonfaktoren) – sie ist nur kein Balancing-Ziel.
+Gilt: alle 10–20 Min spürbar, alle 45–90 Min Fläche, alle 2–4 h Kapitel; Demo erster Ausbau ~0:30, Kapitel 2 ~1 h;
+Kredite 30–120 Tage, Miete je Fläche, Insolvenz mit Auswertung. Umsetzung auf der Wirtschaftszentrale (01c).

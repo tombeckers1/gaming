@@ -78,7 +78,10 @@ function llAltAO(){ const out=[];
   scene.traverse(o=>{ if(o.material!==aoMatF||!o.parent) return; const p=o.position; if(Math.abs(p.x+19.7)<0.25&&p.z<-6&&p.z>-30) out.push(o); });
   return out; }
 
-let LL_G=null, LL_COLS=[], LL_T=null, LL_AO=null;
+/* Gruppen: LL_G Rohbau (③, Schleuse, Aussen - immer sichtbar), LL_H Halleninhalt (Hochregal, Zonen, Markierungen, Licht -
+   nur gezeichnet, wenn die Kamera in der Halle steht oder eine Oeffnung der Halle im Blick hat, llSichtTakt), LL_D bewegte
+   Teile (RBG, FTS, Ladungen, Stellplatz-Paletten; nicht in die Laufzeit-Buendelung) */
+let LL_G=null, LL_H=null, LL_D=null, LL_A=null, LL_COLS=[], LL_T=null, LL_AO=null;
 function buildLagerlogistik(){
   zone(LL.id); zHook(LL.id,llAnwenden);
 }
@@ -86,6 +89,7 @@ function llAnwenden(){
   const an=llOffen();
   if(an&&!LL_G) llBauen();
   if(LL_G) LL_G.visible=an;
+  if(LL_H&&!an){ LL_H.visible=false; LL_D.visible=false; LL_A.visible=false; }
   for(const c of LL_COLS){ const d=colliders.indexOf(c)>=0; if(an&&!d) colliders.push(c); else if(!an&&d) dropCol(c); }
   if(LL_ALT.g) LL_ALT.g.visible=!an;
   for(const c of LL_ALT.cols){ const d=colliders.indexOf(c)>=0; if(!an&&!d) colliders.push(c); else if(an&&d) dropCol(c); }
@@ -100,12 +104,17 @@ function llAnwenden(){
 
 /* ---------- Bau (einmal, beim ersten Oeffnen) ---------- */
 function llBauen(){
-  LL_G=new THREE.Group(); LL_G.name='lagerlogistik'; LL_G.userData.inventar=true; scene.add(LL_G);
-  LL_T={gassen:[],foerderer:{},n1:null,lichtband:null,tor:null};
-  const vorS=new Set(scene.children), vorC=colliders.length, vorL=LAMPEN.length;
-  llRohbau(); llHochregal(); llZonen(); llBoden(); llLicht(); llAussen();
-  /* alles, was in die Szene ging, in die Gruppe; Kollisionen verwaltet llAnwenden */
-  for(const o of scene.children.filter(o=>!vorS.has(o)&&o!==LL_G)){ scene.remove(o); LL_G.add(o); }
+  const grp=(n,bnd)=>{ const g=new THREE.Group(); g.name=n; g.userData.inventar=true; if(bnd) g.userData._bnd=true; scene.add(g); return g; };
+  LL_G=grp('lagerlogistik'); LL_H=grp('lagerlogistikHalle'); LL_D=grp('lagerlogistikBewegt',true); LL_A=grp('lagerlogistikAussen');
+  LL_T={gassen:[],foerderer:{},n1:null,lichtband:null,tor:null,hr:null};
+  const vorC=colliders.length, vorL=LAMPEN.length;
+  /* alles, was eine Baufunktion in die Szene stellt, in ihre Gruppe; Kollisionen verwaltet llAnwenden */
+  const fang=(ziel,fn)=>{ const vorS=new Set(scene.children); fn(); for(const o of scene.children.filter(o=>!vorS.has(o))){ scene.remove(o); ziel.add(o); } };
+  fang(LL_G,()=>{ llRohbau(); }); fang(LL_A,()=>{ llAussen(); });
+  /* Bodenschatten von ③/Schleuse/Halle in EIN Mesh (sonst je Streifen ein Zeichenaufruf) */
+  { const ao=LL_G.children.filter(o=>o.isMesh&&o.material===aoMatF);
+    if(ao.length>1){ const teile=ao.map(o=>{ o.updateMatrix(); return {geo:o.geometry,m:o.matrix.clone()}; }); const m=new THREE.Mesh(merge(teile),aoMatF); m.renderOrder=1; m.matrixAutoUpdate=false; ao.forEach(o=>{ LL_G.remove(o); o.geometry.dispose(); }); LL_G.add(m); } }
+  fang(LL_H,()=>{ llHochregal(); llZonen(); llBoden(); llLicht(); });
   LL_COLS=colliders.slice(vorC); for(const c of LL_COLS) dropCol(c);
   for(let i=vorL;i<LAMPEN.length;i++) LAMPEN[i].id=LL.id;
   bk.wandbild();
@@ -170,6 +179,9 @@ function llRohbau(){
   LL_T.n1.set(0); LL_T.n1t=0;
   bk.schild(scene,{text:'N1',unter:'Kartonlager',b:0.9,h:0.4,x:-36-W-0.03,y:N.h+0.75,z:(N.z0+N.z1)/2,ry:-Math.PI/2});
   bk.schild(scene,{text:'KARTONLAGER',unter:'③',b:1.6,h:0.5,x:-36-W-0.03,y:6.2,z:-12,ry:-Math.PI/2});
+  /* ③ und Schleuse: Leuchtenraster wie im uebrigen Lager */
+  bk.lampe({art:'raster',r:LL.lager3,y:LL.h3,ax:3.6,az:3.4,panel:deckenPanelMat()});
+  bk.lampe({art:'raster',r:{x0:-26,x1:-19.9,z0:-29.9,z1:-17},y:SCHLEUSE_H,ax:3.0,az:3.2,panel:deckenPanelMat()});
   /* Bodenschatten an den neuen Waenden */
   roomAO(L3.x0+W,-26-W,L3.z0+W,L3.z1,null,{s:true,w:true});
   roomAO(-26-W,S2.x1,L3.z0+W,L3.z1,null,{n:true});
@@ -180,10 +192,9 @@ function llRohbau(){
 }
 /* Hochregal 3 Gassen + RBG (Gasse 1 aktiv, 2/3 kommen spaeter) + I/O-Foerderer + Schutzzaun */
 function llHochregal(){
-  for(let k=0;k<3;k++){ const z0=LL.hr.z0(k);
-    const R=bk.hochregal({x0:LL.hr.x0,z0,nr:k+1,schieneOst:k===0?2.2:0.6});
-    for(const c of R.kollision) col(c.x0,c.x1,c.z0,c.z1);
-    LL_T.gassen[k]={R,rbg:null,k}; }
+  const R=bk.hochregal({x0:LL.hr.x0,gassen:[0,1,2].map(k=>({z0:LL.hr.z0(k),nr:k+1,schieneOst:k===0?2.2:0.6}))});
+  LL_T.hr=R;
+  R.gassen.forEach((G,k)=>{ for(const c of G.kollision) col(c.x0,c.x1,c.z0,c.z1); LL_T.gassen[k]={R:G,rbg:null,k}; });
   /* Foerderer: Aufgabe (Hofseite -> Reihe A, Gasse 1), Auslagerung (Reihe B -> Anbruch) */
   const A=LL.aufgabe, B=LL.auslager;
   LL_T.foerderer.ein=bk.foerderer({von:[A.x,A.z0],bis:[A.x,A.z1],breite:1.0,hoehe:0.55});
@@ -266,9 +277,6 @@ function llLicht(){
   for(const x of [-44,-39,-34,-29]) for(const z of [-31.2,-26.0,-20.5]) pk.push([x,z]);
   for(const x of [-64,-59,-54,-49,-44,-39]) pk.push([x,-11.6]);
   bk.lampe({art:'halle',punkte:pk,y:9.0,decke:11.0,zone:LL.id});
-  /* ③: Leuchtenraster wie im uebrigen Lager */
-  bk.lampe({art:'raster',r:LL.lager3,y:LL.h3,ax:3.6,az:3.4,panel:deckenPanelMat()});
-  bk.lampe({art:'raster',r:{x0:-26,x1:-19.9,z0:-29.9,z1:-17},y:SCHLEUSE_H,ax:3.0,az:3.2,panel:deckenPanelMat()});
   /* Lichtbaender (zugleich Rauch- und Waermeabzug): helle Streifen in der Hallendecke, Tag hell, Nacht dunkel (11f) */
   { const parts=[]; for(const z of [-30.5,-20.5,-10.5]) parts.push({geo:new THREE.PlaneGeometry(38,1.6),m:tm(-46,10.97,z,Math.PI/2,0,0),color:0xffffff});
     LL_T.lichtband=new THREE.Mesh(merge(parts),MAT.neu('lichtband')); LL_T.lichtband.userData.bauteil='lichtband'; scene.add(LL_T.lichtband);
@@ -280,20 +288,38 @@ function llLicht(){
       for(let x=-64;x<=xe-1;x+=3){ S.zyl(0.025,0.025,0.35,seg,x,10.37,z,F('feuerrot'),'lackMetall'); S.zyl(0.03,0.02,0.05,seg,x,10.17,z,F('messing'),'blank'); } }
     S.zyl(0.08,0.08,10.4,seg,-26.4,5.2,-33.6,F('feuerrot'),'lackMetall');
     S.fertig(scene,{fest:true,schatten:false}); }
+  llTuer([1]);
   /* Fluchtweg-Schilder (gruen) */
   const fw={bg:MAT.css('signalgruen'),fg:MAT.css('weiss')};
   bk.schild(scene,Object.assign({text:'NOTAUSGANG',unter:'↑ Personaltür',b:1.2,h:0.38,x:-40,y:2.55,z:-7.03,ry:Math.PI},fw));
   bk.schild(scene,Object.assign({text:'FLUCHTWEG',unter:'← Kartonlager ③ · Laden',b:1.2,h:0.38,x:-36.12,y:3.55,z:-14.4,ry:-Math.PI/2},fw));
   bk.schild(scene,Object.assign({text:'FLUCHTWEG',unter:'→ Schleuse · Lager',b:1.2,h:0.38,x:-26.12,y:3.6,z:-21.6,ry:-Math.PI/2},fw));
   llHaengend(Object.assign({text:'NOTAUSGANG',unter:'↑ Personaltür',b:1.2,h:0.38,x:-48,y:3.2,z:-12.0,ry:-Math.PI/2},fw));
-  /* Personaltuer (Notausgang) in der Nordwand x −40: Stahltuer mit Panikstange, innen und aussen */
-  { const S=bk.sammler({form:{fase:0.008,faseMin:0.03,lod0Kasten:true},bauteil:'notausgang'}), F=MAT.farbe;
-    for(const s of [1,-1]){ const z=-7+s*-0.025+(s>0?0:LW+0.05);
-      S.box(1.1,2.12,0.04,-40,1.06,z,F('anthrazit'),'lackMetall'); S.box(1.0,2.04,0.03,-40,1.04,z+s*-0.02,F('lichtgrau'),'lackMetall');
-      if(s>0){ S.box(0.86,0.06,0.06,-40,1.05,z-0.07,F('silbergrau'),'stahl'); for(const x of [-0.4,0.4]) S.box(0.06,0.1,0.08,-40+x,1.05,z-0.05,F('anthrazit'),'lackMetall'); } }
-    S.fertig(scene,{fest:true}); }
 }
 /* Aussen an der Strasse: Sprinkler-Tank, Mitarbeiter-Parkplatz, Pforte, Zaun */
+/* Personaltuer (Notausgang) in der Nordwand x −40: Stahltuer mit Panikstange; seite 1 = innen (Halle), −1 = aussen */
+function llTuer(seiten){
+  const S=bk.sammler({form:{fase:0.008,faseMin:0.03,lod0Kasten:true},bauteil:'notausgang'}), F=MAT.farbe;
+  for(const s of seiten){ const z=-7+s*-0.025+(s>0?0:LW+0.05);
+    S.box(1.1,2.12,0.04,-40,1.06,z,F('anthrazit'),'lackMetall'); S.box(1.0,2.04,0.03,-40,1.04,z+s*-0.02,F('lichtgrau'),'lackMetall');
+    if(s>0){ S.box(0.86,0.06,0.06,-40,1.05,z-0.07,F('silbergrau'),'stahl'); for(const x of [-0.4,0.4]) S.box(0.06,0.1,0.08,-40+x,1.05,z-0.05,F('anthrazit'),'lackMetall'); } }
+  S.fertig(scene,{fest:true});
+}
+/* Portale der Halle: Durchgang Schleuse, N1 (wenn offen), Ladetore R2-R5 (wenn offen) */
+const _llFr=new THREE.Frustum(), _llM=new THREE.Matrix4(), _llBox=new THREE.Box3(), _llA=new THREE.Vector3(), _llB=new THREE.Vector3();
+function llSichtTakt(){
+  if(!LL_H||!LL_G||!LL_G.visible) return;
+  const c=camera.position, x=c.x, z=c.z; let v=x>-66&&x<-25.9&&z>-34.1&&z<-6.9&&!(x>-36&&z>-17);
+  /* von aussen nur durch eine Oeffnung, und nur aus dem Raum davor: Schleuse/Lager (Durchgang), ③/Lager (N1), Hof (Tore) */
+  if(!v){ camera.updateMatrixWorld(); _llM.multiplyMatrices(camera.projectionMatrix,camera.matrixWorldInverse); _llFr.setFromProjectionMatrix(_llM);
+    const P=(x0,y0,z0,x1,y1,z1)=>_llFr.intersectsBox(_llBox.set(_llA.set(x0,y0,z0),_llB.set(x1,y1,z1)));
+    const imLager=x>-26&&x<-8.1&&z>-30&&z<5.9, imDritten=x>-36&&x<-8.1&&z>-17.2&&z<5.9;
+    v=(imLager&&P(-26.3,0,LL.durchgang[0],-25.7,3.0,LL.durchgang[1]))||(imDritten&&LL_T.n1t>0.04&&P(-36.3,0,LL.n1.z0,-35.7,LL.n1.h,LL.n1.z1));
+    if(!v&&z<-34&&typeof WTORE!=='undefined') for(const T of WTORE) if(T&&T.t>0.04&&P(T.x-1.75,0,-34.3,T.x+1.75,3.1,-33.7)){ v=true; break; } }
+  LL_H.visible=v; LL_D.visible=v;
+  /* Aussenanlagen (Tank, Parkplatz, Pforte): nicht aus Halle, ③, Schleuse und dem Lager-Sueden (dort nur Waende dazwischen) */
+  LL_A.visible=!((x>-66&&x<-8.1&&z>-34.1&&z<-6.0)||(x>-26&&x<-8.1&&z>-30&&z<-6));
+}
 function llAussen(){
   const F=MAT.farbe, T=LL.tank, P=LL.park, Pf=LL.pforte, seg=[16,28,40][bk.lod()];
   /* Flaeche: Beton von der Hallenwand bis zum Gehweg */
@@ -329,6 +355,7 @@ function llAussen(){
   Sp.fertig(scene,{fest:true});
   bk.schild(scene,{text:'PFORTE',unter:'Werk · Logistik',b:1.3,h:0.4,x:(Pf.x0+Pf.x1)/2,y:2.75,z:Pf.z1+0.02,ry:0});
   col(Pf.x0,Pf.x1,Pf.z0,Pf.z1);
+  llTuer([-1]);
   /* Zaun zur Strasse mit Einfahrt (x −42…−38) und Westseite um den Tank */
   bk.zaun({art:'doppelstab',von:[-66.2,5.9],bis:[Pf.x0,5.9],hoehe:2.0,luecke:[[66.2-42,66.2-38.2]]});
   bk.zaun({art:'doppelstab',von:[-66.2,-6.9],bis:[-66.2,5.9],hoehe:2.0});

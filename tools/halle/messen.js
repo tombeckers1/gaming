@@ -1,6 +1,7 @@
 // Messung Halle Etappe A (14.10.): Zeichenaufrufe, Dreiecke, Texturspeicher je Grafikstufe und Ansicht.
 // node -r tools/test/ladezeit-preload.js tools/halle/messen.js <real.html> <ausgabe.json> [stufen=ultralow,niedrig,hoch,max]
-// Alle Ausbauten gekauft (wie tools/fundament/messen3.js), Spielschleife aus, je Ansicht 3 Bilder, das dritte zaehlt.
+// Alle Ausbauten gekauft (wie tools/fundament/messen3.js), Spielschleife aus, je Ansicht 3 Bilder, das dritte zaehlt:
+// Summe aller Zeichenaufrufe/Dreiecke der Szene-Renderdurchgaenge dieses Bildes (Hauptbild + Schatten, ohne Nachbearbeitung).
 const { chromium } = require('/opt/node22/lib/node_modules/playwright');
 const fs=require('fs'), path=require('path');
 const H=require(path.join(__dirname,'../test/start-hilfe.js'));
@@ -17,10 +18,13 @@ const H=require(path.join(__dirname,'../test/start-hilfe.js'));
     await H.neuladen(p); await H.neuesSpiel(p,{stoppen:true});
     res[g]=await p.evaluate(V=>{ const bb=window.__bb, R=bb.renderer;
       bb.S.level=99; bb.S.money=9e6; for(const u of bb.UPGRADES) if(!u.geplant) bb.S.up[u.id]=true; try{ bb.applyZonen(); }catch(e){} bb.run(2,0.05);
-      const o={ansichten:{}};
+      /* Laufzeit-Buendelung wie im Spiel nach einigen Sekunden (03b) */ if(bb.buendelJetzt) bb.buendelJetzt();
+      const o={ansichten:{}}; let rec=null; const r0=R.render.bind(R);
+      R.render=function(sc,c){ const r=r0(sc,c); if(rec&&sc===bb.scene){ rec.calls+=R.info.render.calls; rec.tris+=R.info.render.triangles; } return r; };
       for(const k in V){ const v=V[k]; bb.setView(v[0],v[1],v[2],v[3]); bb.clock=600; bb.run(0.2,0.05); bb.clock=600; bb.applyTOD();
-        for(let i=0;i<3;i++){ bb.kameraSetzen(); bb.renderFrame(0.016); }
-        o.ansichten[k]={calls:R.info.render.calls,tris:R.info.render.triangles}; }
+        for(let i=0;i<2;i++){ bb.kameraSetzen(); bb.renderFrame(0.016); }
+        rec={calls:0,tris:0}; bb.kameraSetzen(); bb.renderFrame(0.016); o.ansichten[k]=rec; rec=null; }
+      R.render=r0;
       /* Texturspeicher: alle Texturen im Szenengraf (Breite x Hoehe x 4 Byte, Mipmaps +1/3) */
       const T=new Set(); bb.scene.traverse(x=>{ if(!x.material) return; for(const m of [].concat(x.material)) if(m) for(const k of ['map','emissiveMap','alphaMap','normalMap','bumpMap','roughnessMap']) if(m[k]) T.add(m[k]); });
       let by=0; for(const t of T){ const im=t.image; if(im&&im.width) by+=im.width*im.height*4*(t.generateMipmaps!==false?4/3:1); }

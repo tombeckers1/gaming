@@ -778,13 +778,17 @@ bk.ladungGeo=function(){ return _bkHRGeo('ladung',()=>{
   for(let iy=0;iy<3;iy++) for(let ix=0;ix<2;ix++) for(let iz=0;iz<2;iz++)
     S.box(0.39,0.395,0.59,-0.2+ix*0.4,0.2+iy*0.4,-0.3+iz*0.6,P,'stumpf');
   return S.geometrie('stumpf'); }); };
-/* Hochregal einer Gasse: zwei Reihen (A: z0..z0+1,2, B: z0+2,8..z0+4,0), Gasse dazwischen (Mitte z0+2,0).
-   o = {x0, z0, felder, parent, nr, schiene (Fahr-/Fuehrungsschiene der Gasse, Standard true), stirn:'ost'|'beide'}
-   -> {g, meshes, kollision:[{x0,x1,z0,z1}], plaetze:[{x,y,z,reihe,feld,ebene}], mitte, x0, x1, belegen(liste)} */
+/* Hochregal: je Gasse zwei Reihen (A: z0..z0+1,2, B: z0+2,8..z0+4,0), Gasse dazwischen (Mitte z0+2,0). Alle Gassen eines
+   Aufrufs teilen sich die InstancedMesh (Rahmen, Traversen, Gitterroste, Paletten, Ladung) - 3 Gassen = so viele
+   Zeichenaufrufe wie eine.
+   o = {x0, gassen:[{z0, nr, schieneOst (Schiene ueber das Regalende hinaus, m), schiene:false}], felder, parent, stirn:'ost'|'beide'}
+   (kurz: o.z0/o.nr fuer eine Gasse)
+   -> {g, meshes, gassen:[{z0,mitte,reihen,kollision,xs1,von,bis (Index in plaetze)}], plaetze:[{x,y,z,gasse,reihe,feld,ebene}],
+       x0, x1, hoehe, ebenen, belegen(liste der Indizes in plaetze)} */
 bk.hochregal=function(o){
-  const A=bk.HOCHREGAL, F=MAT.farbe, L=bk.lod(), fb=A.fb, x0=o.x0, nf=o.felder||A.felder, x1=x0+nf*fb, z0=o.z0, T=A.tiefe, H=A.hoehe;
+  const A=bk.HOCHREGAL, F=MAT.farbe, L=bk.lod(), fb=A.fb, x0=o.x0, nf=o.felder||A.felder, x1=x0+nf*fb, T=A.tiefe, H=A.hoehe;
+  const GL=o.gassen||[{z0:o.z0,nr:o.nr,schieneOst:o.schieneOst,schiene:o.schiene}];
   const g=new THREE.Group(); g.userData.bauteil='hochregal'; (o.parent||scene).add(g);
-  const reihen=[{z0:z0,z1:z0+T},{z0:z0+2.8,z1:z0+2.8+T}], mitte=z0+2.0;
   const BLAU=F('signalblau'), ORANGE=F('signalorange');
   /* Rahmen: zwei Stuetzen (Lochprofil 100 x 80) mit Fussplatte, waagerechte und diagonale Verbaende, Kopf bei H */
   const rahmen=_bkHRGeo('rahmen',()=>{ const S=bk.sammler({});
@@ -799,54 +803,51 @@ bk.hochregal=function(o){
     return S.geometrie('lackMetall'); });
   /* Gitterrost (Draht, verzinkt) auf jeder Traversenebene */
   const rost=_bkHRGeo('rost',()=>{ const gg=new THREE.PlaneGeometry(fb-0.14,T-0.06); gg.rotateX(-Math.PI/2); gg.translate(0,0.004,T/2); return MAT.kachel(gg,(fb-0.14)/0.2,(T-0.06)/0.2); });
-  const mR=[], mT=[], mG=[];
-  for(const r of reihen){
-    for(let i=0;i<=nf;i++) mR.push(tm(x0+i*fb,0,r.z0));
-    for(let j=0;j<nf;j++){ const cx=x0+(j+0.5)*fb;
-      for(let l=1;l<A.ebenen.length;l++){ mT.push(tm(cx,A.ebenen[l],r.z0)); mG.push(tm(cx,A.ebenen[l],r.z0)); }
-      mT.push(tm(cx,H,r.z0)); }
-  }
+  const mR=[], mT=[], mG=[], plaetze=[], gassen=[];
+  const S=bk.sammler({form:{fase:0.01,faseMin:0.05,lod0Kasten:true},bauteil:'hochregal'});
+  GL.forEach((q,k)=>{ const z0=q.z0, reihen=[{z0:z0,z1:z0+T},{z0:z0+2.8,z1:z0+2.8+T}], mitte=z0+2.0, xs1=x1+(q.schieneOst===undefined?1.6:q.schieneOst);
+    for(const r of reihen){
+      for(let i=0;i<=nf;i++) mR.push(tm(x0+i*fb,0,r.z0));
+      for(let j=0;j<nf;j++){ const cx=x0+(j+0.5)*fb;
+        for(let l=1;l<A.ebenen.length;l++){ mT.push(tm(cx,A.ebenen[l],r.z0)); mG.push(tm(cx,A.ebenen[l],r.z0)); }
+        mT.push(tm(cx,H,r.z0)); } }
+    /* Schienen der Gasse (Fahrschiene am Boden, Fuehrungsschiene oben an Querjochen), Anfahrschutz an der Stirn */
+    const xs0=x0-0.25;
+    if(q.schiene!==false){
+      S.box(xs1-xs0,0.06,0.09,(xs0+xs1)/2,0.03,mitte,F('silbergrau'),'stahl');
+      S.box(xs1-xs0,0.012,0.32,(xs0+xs1)/2,0.006,mitte,F('graphit'),'lackMetall');
+      S.box(xs1-x0+0.1,0.12,0.12,(x0+xs1)/2,H+0.3,mitte,F('anthrazit'),'lackMetall');
+      for(let i=0;i<=nf;i+=2) S.box(0.1,0.1,2.8-T+0.12,x0+i*fb,H+0.18,mitte,F('anthrazit'),'lackMetall');
+      for(const z of [mitte-0.85,mitte+0.85]) S.box(0.12,H+0.36,0.12,xs1-0.06,(H+0.36)/2,z,F('anthrazit'),'lackMetall');
+      S.box(0.12,0.12,1.82,xs1-0.06,H+0.3,mitte,F('anthrazit'),'lackMetall'); }
+    for(const r of reihen){ const xe=x1+0.18;
+      bk.anfahrschutz(S,{von:[xe,r.z0-0.04],bis:[xe,r.z1+0.04],hoehe:0.45,pfosten:1.3});
+      const zg=r.z0<mitte?r.z1-0.05:r.z0+0.05; S.box(0.22,0.4,0.2,x1,0.2,zg,F('signalgelb'),'lackMetall');
+      if(o.stirn==='beide') bk.anfahrschutz(S,{von:[x0-0.18,r.z0-0.04],bis:[x0-0.18,r.z1+0.04],hoehe:0.45,pfosten:1.3}); }
+    if(q.nr) bk.schild(g,{text:'GASSE '+q.nr,unter:(nf*A.jeFeld*A.ebenen.length*2)+' Palettenplätze',b:1.5,h:0.45,x:xs1+0.02,y:H-0.9,z:mitte,ry:Math.PI/2});
+    const von=plaetze.length;
+    reihen.forEach((r,ri)=>{ for(let j=0;j<nf;j++) for(let s2=0;s2<A.jeFeld;s2++) for(let l=0;l<A.ebenen.length;l++)
+      plaetze.push({x:x0+j*fb+0.1+(s2+0.5)*(fb-0.2)/A.jeFeld,y:A.ebenen[l]+(l?0.004:0),z:(r.z0+r.z1)/2,gasse:k,reihe:ri,feld:j,ebene:l}); });
+    gassen.push({z0,mitte,reihen,xs1,von,bis:plaetze.length,kollision:reihen.map(r=>({x0:x0-0.1,x1:x1+0.3,z0:r.z0-0.05,z1:r.z1+0.05}))}); });
   const meshes=[bk.inst(rahmen,MAT.vc('lackMetall'),mR,{parent:g,bauteil:'hochregal',art:'rahmen'}),
     bk.inst(trav,MAT.vc('lackMetall'),mT,{parent:g,bauteil:'hochregal',art:'traverse'}),
     bk.inst(rost,MAT.get('gitterRost'),mG,{parent:g,bauteil:'hochregal',art:'gitterrost',schatten:false})];
-  /* Schienen der Gasse (Fahrschiene am Boden, Fuehrungsschiene oben an Querjochen), Anfahrschutz an der Stirn */
-  const S=bk.sammler({form:{fase:0.01,faseMin:0.05,lod0Kasten:true},bauteil:'hochregal'});
-  const xs0=x0-0.25, xs1=x1+(o.schieneOst||1.6);
-  if(o.schiene!==false){
-    S.box(xs1-xs0,0.06,0.09,(xs0+xs1)/2,0.03,mitte,F('silbergrau'),'stahl');
-    S.box(xs1-xs0,0.012,0.32,(xs0+xs1)/2,0.006,mitte,F('graphit'),'lackMetall');
-    S.box(xs1-x0+0.1,0.12,0.12,(x0+xs1)/2,H+0.3,mitte,F('anthrazit'),'lackMetall');
-    for(let i=0;i<=nf;i+=2) S.box(0.1,0.1,2.8-T+0.12,x0+i*fb,H+0.18,mitte,F('anthrazit'),'lackMetall');
-    /* Joch am Ostende fuer die Fuehrungsschiene ueber der Uebergabe */
-    for(const z of [mitte-0.85,mitte+0.85]) S.box(0.12,H+0.36,0.12,xs1-0.06,(H+0.36)/2,z,F('anthrazit'),'lackMetall');
-    S.box(0.12,0.12,1.82,xs1-0.06,H+0.3,mitte,F('anthrazit'),'lackMetall');
-  }
-  for(const r of reihen){ const xe=x1+0.18;
-    bk.anfahrschutz(S,{von:[xe,r.z0-0.04],bis:[xe,r.z1+0.04],hoehe:0.45,pfosten:1.3});
-    /* Stuetzenschutz an den Eckstuetzen zur Gasse */
-    const zg=r.z0<mitte?r.z1-0.05:r.z0+0.05; S.box(0.22,0.4,0.2,x1,0.2,zg,F('signalgelb'),'lackMetall');
-    if(o.stirn==='beide') bk.anfahrschutz(S,{von:[x0-0.18,r.z0-0.04],bis:[x0-0.18,r.z1+0.04],hoehe:0.45,pfosten:1.3}); }
   meshes.push(...S.fertig(g,{bauteil:'hochregal',fest:true}));
-  if(o.nr) bk.schild(g,{text:'GASSE '+o.nr,unter:(nf*A.jeFeld*A.ebenen.length*2)+' Palettenplätze',b:1.5,h:0.45,x:xs1+0.02,y:H-0.9,z:mitte,ry:Math.PI/2});
-  /* Palettenplaetze: Reihe, Feld, Platz im Feld, Ebene */
-  const plaetze=[];
-  reihen.forEach((r,ri)=>{ for(let j=0;j<nf;j++) for(let s=0;s<A.jeFeld;s++) for(let l=0;l<A.ebenen.length;l++)
-    plaetze.push({x:x0+j*fb+0.1+(s+0.5)*(fb-0.2)/A.jeFeld,y:A.ebenen[l]+(l?0.004:0),z:(r.z0+r.z1)/2,reihe:ri,feld:j,ebene:l}); });
-  const kollision=reihen.map(r=>({x0:x0-0.1,x1:x1+0.3,z0:r.z0-0.05,z1:r.z1+0.05}));
-  /* Belegung: je belegtem Platz Europalette (bk.palette) mit Kartonladung - zwei InstancedMesh fuer die ganze Gasse */
-  /* Instanzfarbe (Alterung) wie bk.paletten - dasselbe Material teilt sich in r128 ein Shaderprogramm: alle Paletten-Instanzen brauchen sie */
-  const N=plaetze.length, mP=bk.inst(bk.palette('euro',{fein:L>1}),MAT.get('palette'),plaetze.map(p=>tm(p.x,p.y,p.z,0,Math.PI/2,0)),{parent:g,bauteil:'hochregal',art:'palette',schatten:false,farben:plaetze.map((p,i)=>bk.palFarbe(p.x,p.y,p.z,i))});
-  const mL=bk.inst(bk.ladungGeo(),MAT.vc('stumpf'),plaetze.map(p=>tm(p.x,p.y+bk.PALETTE.euro.h,p.z)),{parent:g,bauteil:'hochregal',art:'ladung',schatten:false,farben:plaetze.map(()=>new THREE.Color(1,1,1))});   /* Instanzfarbe von Anfang an (spaeter angelegt bricht r128 beim Zeichnen) */
+  /* Belegung: je belegtem Platz Europalette (bk.palette) mit Kartonladung - zwei InstancedMesh fuer alle Gassen.
+     Instanzfarbe (Alterung) wie bk.paletten - dasselbe Material teilt sich in r128 ein Shaderprogramm: alle Paletten-Instanzen
+     brauchen sie; bei der Ladung von Anfang an (spaeter angelegt bricht r128 beim Zeichnen). */
+  const mP=bk.inst(bk.palette('euro',{fein:L>1}),MAT.get('palette'),plaetze.map(p=>tm(p.x,p.y,p.z,0,Math.PI/2,0)),{parent:g,bauteil:'hochregal',art:'palette',schatten:false,farben:plaetze.map((p,i)=>bk.palFarbe(p.x,p.y,p.z,i))});
+  const mL=bk.inst(bk.ladungGeo(),MAT.vc('stumpf'),plaetze.map(p=>tm(p.x,p.y+bk.PALETTE.euro.h,p.z)),{parent:g,bauteil:'hochregal',art:'ladung',schatten:false,farben:plaetze.map(()=>new THREE.Color(1,1,1))});
   const hell=new THREE.Color();
-  const belegen=liste=>{ let n=0; const m=new THREE.Matrix4();
+  const belegen=liste=>{ let n=0;
     for(const i of liste){ const p=plaetze[i]; if(!p) continue;
-      mP.setMatrixAt(n,m.copy(tm(p.x,p.y,p.z,0,Math.PI/2+((i*7)%3-1)*0.02,0)));
+      mP.setMatrixAt(n,tm(p.x,p.y,p.z,0,Math.PI/2+((i*7)%3-1)*0.02,0));
       mL.setMatrixAt(n,tm(p.x+((i*13)%5-2)*0.006,p.y+bk.PALETTE.euro.h,p.z));
       const v=0.86+((i*37)%11)/80; mL.setColorAt(n,hell.setRGB(v,v,v)); n++; }
     mP.count=n; mL.count=n; mP.instanceMatrix.needsUpdate=true; mL.instanceMatrix.needsUpdate=true; if(mL.instanceColor) mL.instanceColor.needsUpdate=true;
     mP.visible=mL.visible=n>0; return n; };
   meshes.push(mP,mL); belegen([]);
-  return {g,meshes,kollision,plaetze,mitte,x0,x1,xs1,reihen,ebenen:A.ebenen,hoehe:H,belegen};
+  return {g,meshes,gassen,plaetze,x0,x1,ebenen:A.ebenen,hoehe:H,belegen};
 };
 /* Regalbediengeraet (RBG) fuer eine Gasse: zwei Fahrkatzen (Signalgelb wie Kran), Mast Anthrazit, Hubwagen mit
    Teleskopgabel bis zum Boden, Schaltschrank, Kopf an der Fuehrungsschiene, Warnleuchte. Gabelmitte = g.x (Ladung mittig).

@@ -10,7 +10,7 @@ const HR={rbg:[],fts:[],anbruchT:0,tick:0,last:null,zahl:{ein:0,aus:0,nach:0}}; 
 const HR_TEMPO={fahr:2.6,hub:0.9,gabel:0.6,foerder:0.55,fts:1.5};   /* m/s (RBG Fahren/Heben/Gabel, Foerderer, FTS) */
 const HR_JE_PALETTE=8;                                              /* Kartons je Regalpalette (2 x 2 x 2) */
 function hrDaten(){ if(!S.hr||!Array.isArray(S.hr.p)) S.hr={p:new Array(540).fill(null),tr:[]}; if(!Array.isArray(S.hr.tr)) S.hr.tr=[]; return S.hr; }
-function hrPlaetze(k){ const G=LL_T&&LL_T.gassen[k]; return G?G.R.plaetze:[]; }
+function hrPlaetze(k){ const R=LL_T&&LL_T.hr; return R?R.plaetze.slice(k*180,(k+1)*180):[]; }
 /* Bestand je Sorte (Plaetze + Ladungen unterwegs) */
 function hrStock(t){ if(!S||!S.hr) return 0; let n=0;
   for(const p of S.hr.p) if(p) for(const b of p) if(!t||b.t===t) n+=b.c;
@@ -19,16 +19,16 @@ function hrStock(t){ if(!S||!S.hr) return 0; let n=0;
 function hrBelegt(){ let n=0; if(S&&S.hr) for(const p of S.hr.p) if(p) n++; return n; }
 function hrKapazitaet(){ let n=0; for(let k=0;k<3;k++) if(llGasseAktiv(k)) n+=hrPlaetze(k).length; return n; }
 /* Sichtbar machen: Paletten im Regal, RBG der aktiven Gassen */
-function hrSync(){ if(!LL_T) return; const D=hrDaten();
-  for(let k=0;k<3;k++){ const G=LL_T.gassen[k]; if(!G) continue; const L=[]; for(let i=0;i<G.R.plaetze.length;i++) if(D.p[k*180+i]) L.push(i); G.R.belegen(L); } }
+function hrSync(){ if(!LL_T||!LL_T.hr) return; const D=hrDaten(), L=[];
+  for(let i=0;i<LL_T.hr.plaetze.length;i++) if(D.p[i]) L.push(i); LL_T.hr.belegen(L); }
 function hrAnwenden(){
   if(!S) return;
   if(!llOffen()||!LL_T){ for(const f of HR.fts) if(f.g) f.g.visible=false; return; }
   const D=hrDaten();
   for(let k=0;k<3;k++){ const G=LL_T.gassen[k]; if(!G) continue;
-    if(llGasseAktiv(k)&&!G.rbg){ G.rbg=bk.rbg({x:LL.aufgabe.x,z:G.R.mitte,hoehe:G.R.hoehe+0.25,parent:LL_G}); G.rbg.k=k; G.rbg.job=null; HR.rbg[k]=G.rbg; }
+    if(llGasseAktiv(k)&&!G.rbg){ G.rbg=bk.rbg({x:LL.aufgabe.x,z:G.R.mitte,hoehe:LL_T.hr.hoehe+0.25,parent:LL_D}); G.rbg.k=k; G.rbg.job=null; HR.rbg[k]=G.rbg; }
     if(G.rbg) G.rbg.g.visible=llGasseAktiv(k); }
-  if(!HR.fts.length){ HR.fts=[bk.fts({x:-44.5,z:LL.spur,ry:0,parent:LL_G}),bk.fts({x:-43.0,z:-16.2,ry:Math.PI/2,parent:LL_G})];
+  if(!HR.fts.length){ HR.fts=[bk.fts({x:-44.5,z:LL.spur,ry:0,parent:LL_D}),bk.fts({x:-43.0,z:-16.2,ry:Math.PI/2,parent:LL_D})];
     HR.fts.forEach((f,i)=>{ f.i=i; f.job=null; f.last=null; }); }
   for(const f of HR.fts) f.g.visible=true;
   /* Ladungen, die beim Speichern unterwegs waren, kommen ins Regal (sonst auf einen Stellplatz) */
@@ -49,12 +49,14 @@ let LL_STELL_M=null;
 function llStellBoxen(p){ const out=[]; for(const b of floorBoxes){ const q=b.mesh.position; if(Math.abs(q.x-p.x)<0.5&&Math.abs(q.z-p.z)<0.62&&q.y>0.15&&q.y<1.2) out.push(b); } return out; }
 function llStellZustand(){ return LL_STELL.map(p=>({p,n:llStellBoxen(p).length})); }
 function llStellSicht(){
-  if(!LL_G) return;
-  if(!LL_STELL_M){ LL_STELL_M=LL_STELL.map(p=>{ const m=new THREE.Mesh(bk.palette('euro',{fein:bk.lod()>1}),MAT.get('palette')); m.position.set(p.x,0,p.z); m.rotation.y=Math.PI/2; m.userData.bauteil='palette'; if(HIQ) m.receiveShadow=true; LL_G.add(m); return m; }); }
+  if(!LL_D) return;
+  /* alle Stellplatz-Paletten in EINEM InstancedMesh; ausgeblendete bekommen Groesse 0 */
+  if(!LL_STELL_M){ LL_STELL_M=bk.inst(bk.palette('euro',{fein:bk.lod()>1}),MAT.get('palette'),LL_STELL.map(p=>tm(p.x,0,p.z,0,Math.PI/2,0)),{parent:LL_D,bauteil:'palette',art:'stellplatz',schatten:false,farben:LL_STELL.map((p,i)=>bk.palFarbe(p.x,0,p.z,i))}); }
   const Z=llStellZustand();
   LL_STELL.forEach((p,i)=>{ const hinten=LL_STELL.filter(q=>q.tor===p.tor&&q.s===p.s&&q.r<p.r);
     const belegt=Z[i].n>0, frei=!hinten.some(q=>Z[LL_STELL.indexOf(q)].n>0), weg=HR.fts.some(f=>f.job&&f.job.stell===i);
-    LL_STELL_M[i].visible=!weg&&(belegt||frei); });
+    LL_STELL_M.setMatrixAt(i,(!weg&&(belegt||frei))?tm(p.x,0,p.z,0,Math.PI/2,0):tm(p.x,-1,p.z,0,0,0,0.0001,0.0001,0.0001)); });
+  LL_STELL_M.instanceMatrix.needsUpdate=true;
 }
 /* Abstellplatz fuer den n-ten Karton eines Westtors (08c wbaySlot) - null = alter Platz */
 function llStellSlot(tor){
@@ -74,7 +76,7 @@ function hrNach(cur,ziel,v,dt){ const d=ziel-cur, s=v*dt; return Math.abs(d)<=s?
 /* Ladung als sichtbare Gruppe: Palette + Kartons (Atlas je Sorte) */
 function hrLadung(boxes){ const g=new THREE.Group(); const pa=new THREE.Mesh(bk.palette('euro',{fein:bk.lod()>1}),MAT.get('palette')); pa.rotation.y=Math.PI/2; g.add(pa);
   boxes.forEach((b,i)=>{ const m=bk.karton(b.t); m.rotation.y=Math.PI/2; m.position.set(-0.2+(i%2)*0.4,bk.PALETTE.euro.h+0.2+Math.floor(i/4)*0.41,-0.3+(Math.floor(i/2)%2)*0.6); g.add(m); });
-  g.userData.bauteil='ladung'; LL_G.add(g); return g; }
+  g.userData.bauteil='ladung'; LL_D.add(g); return g; }
 function hrLadungWeg(l){ if(l&&l.g){ l.g.parent&&l.g.parent.remove(l.g); l.g=null; } const D=hrDaten(), i=D.tr.indexOf(l.d); if(i>=0) D.tr.splice(i,1); }
 
 /* FTS: faehrt eine Punktliste ab (Drehen auf der Stelle, dann gerade) */
@@ -106,15 +108,17 @@ function ftsEinJob(){
 function ftsTick(f,dt){
   const j=f.job, g=f.g;
   if(!j){
-    if(f.i===0){ if(hrFreiPlatz()<0) return; const i=ftsEinJob(); if(i<0){ if(Math.hypot(g.position.x+44.5,g.position.z-LL.spur)>0.3&&!f.weg){ f.weg=[{x:-44.5,z:LL.spur}]; } if(f.weg&&ftsFahre(f,dt)) f.weg=null; return; }
+    /* untaetig: hoechstens zweimal je Sekunde nach Arbeit suchen (Stellplaetze/Regale durchsuchen kostet) */
+    if(f.weg&&ftsFahre(f,dt)) f.weg=null;
+    if((f.warte=(f.warte||0)-dt)>0) return; f.warte=0.5;
+    if(f.i===0){ if(hrFreiPlatz()<0) return; const i=ftsEinJob(); if(i<0){ if(Math.hypot(g.position.x+44.5,g.position.z-LL.spur)>0.3&&!f.weg){ f.weg=[{x:g.position.x,z:LL.spur},{x:-44.5,z:LL.spur}]; } return; }
       const p=LL_STELL[i]; f.job={art:'ein',stell:i,schritt:0}; f.weg=[{x:g.position.x,z:LL.spur},{x:p.x,z:LL.spur},{x:p.x,z:p.z}]; llStellSicht(); return; }
     /* FTS 2: Nachschub aus dem Anbruch nach ③/②/① */
-    if((HR.tick|0)%2) return;
-    const n=hrNachschubPlan(); if(!n){ if(!f.weg&&Math.hypot(g.position.x+43.0,g.position.z+16.2)>0.4) f.weg=ftsWeg(f,{x:-43.0,z:-16.2}); if(f.weg&&ftsFahre(f,dt)) f.weg=null; return; }
+    const n=hrNachschubPlan(); if(!n){ if(!f.weg&&Math.hypot(g.position.x+43.0,g.position.z+16.2)>0.4) f.weg=ftsWeg(f,{x:-43.0,z:-16.2}); return; }
     f.job={art:'nach',plan:n,schritt:0}; f.weg=ftsWeg(f,n.von); return; }
   if(j.art==='ein'){
     if(j.schritt===0){ if(!ftsFahre(f,dt)) return;
-      const p=LL_STELL[j.stell], bx=llStellBoxen(p);
+      const p=LL_STELL[j.stell], bx=llStellBoxen(p).filter(b=>!hrStaffBelegt(b));
       const boxes=bx.map(b=>({t:b.type,c:b.count,q:b.q||1})); bx.forEach(b=>removeFloorBox(b));
       if(!boxes.length){ f.job=null; llStellSicht(); return; }
       const d={b:boxes}; hrDaten().tr.push(d); f.last={d,g:hrLadung(boxes)}; f.set(1);
@@ -154,7 +158,9 @@ function hrNachschubPlan(){
   if(freiGesamt<=HR_RESERVE) return null;
   const ziel=hrNachschubRacks().map(r=>({r,frei:r.slots.filter(s=>!s.box).length})).filter(x=>x.frei>0);
   if(!ziel.length) return null;
-  const im=(t)=>{ let n=0; for(const r of hrLagerRacks()) for(const s of r.slots) if(s.box&&s.box.type===t) n+=s.box.count; for(const lv of allLevels()) if(lv.type===t) n+=lv.count; return n; };
+  const IM={}; for(const r of hrLagerRacks()) for(const s of r.slots) if(s.box) IM[s.box.type]=(IM[s.box.type]||0)+s.box.count;
+  for(const lv of allLevels()) if(lv.type) IM[lv.type]=(IM[lv.type]||0)+lv.count;
+  const im=t=>IM[t]||0;
   const kand=[]; for(const r of A) for(const s of r.slots) if(s.box&&!hrStaffBelegt(s)&&!(typeof vsReserviert==='function'&&vsReserviert(s.box.type)>0)) kand.push(s);
   if(kand.length<2) return null;
   kand.sort((a,b)=>im(a.box.type)-im(b.box.type));
@@ -168,7 +174,7 @@ function hrNachschubPlan(){
 /* ---------- RBG ----------
    Jobs: 'ein' (Palette vom Aufgabe-Foerderer an einen freien Platz), 'aus' (Platz -> Auslager-Foerderer -> Anbruch). */
 function rbgTick(R,dt){
-  const k=R.k, G=LL_T.gassen[k], P=G.R.plaetze, D=hrDaten(), ax=LL.aufgabe.x, aisle=G.R.mitte;
+  const k=R.k, G=LL_T.gassen[k], P=LL_T.hr.plaetze, D=hrDaten(), ax=LL.aufgabe.x, aisle=G.R.mitte;
   if(!R.job){
     /* Einlagern hat Vorrang, sobald eine Palette am Ende des Aufgabe-Foerderers steht (Gasse 1 bedient die Aufgabe) */
     const bereit=k===0&&HR.band&&HR.band.find(b=>b.z>=LL.aufgabe.z1-0.02);
@@ -179,7 +185,7 @@ function rbgTick(R,dt){
   const fahr=(x,y)=>{ g.position.x=hrNach(g.position.x,x,HR_TEMPO.fahr,dt); hub.position.y=hrNach(hub.position.y,y,HR_TEMPO.hub,dt); return Math.abs(g.position.x-x)<0.005&&Math.abs(hub.position.y-y)<0.005; };
   const gabel=z=>{ gab.position.z=hrNach(gab.position.z,z,HR_TEMPO.gabel,dt); return Math.abs(gab.position.z-z)<0.004; };
   const traeg=()=>{ if(j.l&&j.l.g){ const wp=new THREE.Vector3(); gab.getWorldPosition(wp); j.l.g.position.set(wp.x,wp.y+0.065,wp.z); j.l.g.rotation.y=0; } };
-  const p=j.platz>=0?P[j.platz%180]:null, pz=p?p.z-aisle:0, py=p?Math.max(0,p.y-0.06):0;
+  const p=j.platz>=0?P[j.platz]:null, pz=p?p.z-aisle:0, py=p?Math.max(0,p.y-0.06):0;
   const ioY=0.55-0.08;
   if(j.art==='ein'){
     switch(j.schritt){
@@ -251,7 +257,7 @@ function hrN1Tick(dt){
   LL_T.n1t=hrNach(LL_T.n1t,auf?1:0,auf?1.6:0.7,dt); T.set(LL_T.n1t);
 }
 function hrTick(dt){
-  if(!LL_T||!LL_G||!LL_G.visible||!S) return;
+  if(!LL_T||!LL_G||!LL_G.visible||!S) return;   /* laeuft auch, wenn der Halleninhalt gerade nicht gezeichnet wird */
   HR.tick+=dt;
   for(const R of HR.rbg) if(R&&R.g.visible) rbgTick(R,dt);
   for(const f of HR.fts) ftsTick(f,dt);

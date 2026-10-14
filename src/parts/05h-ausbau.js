@@ -1337,27 +1337,7 @@ function abstellAuflieger(x,z,ry,name,farbe,fahrend){
   }
   return g;
 }
-/* Palettenstapel als Hofdeko. Ein Stapel sind ueber achtzig Bretter -
-   die werden zu einem einzigen Mesh verschmolzen. */
-let _holzM=null;
-function holzMat(){ if(!_holzM) _holzM=new THREE.MeshStandardMaterial({vertexColors:true,roughness:0.94}); return _holzM; }
-function palettenStapel(x,z,n,ry){
-  const kl=new THREE.BoxGeometry(1.16,0.08,0.13), br=new THREE.BoxGeometry(1.16,0.03,0.09);
-  const qu=new THREE.BoxGeometry(0.1,0.04,1.0), sn=new THREE.BoxGeometry(1.2,0.05,1.05);
-  const ps=[];
-  for(let i=0;i<n;i++){ const y=i*0.15, jx=rand(-0.02,0.02);
-    for(const dz of [-0.48,0,0.48]) ps.push({geo:kl,m:tm(jx,y+0.04,dz),color:0x8e7550});
-    for(const dz of [-0.48,-0.24,0,0.24,0.48]) ps.push({geo:br,m:tm(0,y+0.1,dz),color:MAT.farbe('holzPaletteDunkel')});
-    for(const dx of [-0.5,0,0.5]) ps.push({geo:qu,m:tm(dx,y+0.125,0),color:MAT.farbe('holzPaletteDunkel')}); }
-  ps.push({geo:sn,m:tm(0,n*0.15+0.14,0),color:MAT.farbe('weiss')});
-  const m=new THREE.Mesh(merge(ps),holzMat());
-  m.position.set(x,0,z); m.rotation.y=ry||0; m.userData.hof='paletten';
-  if(HIQ){ m.castShadow=true; m.receiveShadow=true; }
-  scene.add(m);
-  kl.dispose(); br.dispose(); qu.dispose(); sn.dispose();
-  col(x-0.62,x+0.62,z-0.55,z+0.55);
-  return m;
-}
+/* Palettenstapel als Hofdeko: palettenStapel(x,z,n,ry) steht seit 14.10. im Baukasten (04z, bk.paletten). */
 /* =========================================================
    Logistikzentrum im Osten. Steht fertig hinter Zaun und
    Bauschild, betreten kann man es noch nicht.

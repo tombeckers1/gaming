@@ -22,6 +22,7 @@ wird es hier ergänzt – nicht lokal in der Baufunktion angelegt.
 | `MAT.kopie(m)` | frische eigene Kopie eines geteilten Materials (gleiche Werte) | nein |
 | `MAT.tex('beton')` | geteilte prozedurale Textur (lazy, einmal gemalt): `beton`, `doppelstab`, `drahtgitter`, `warnschraffur` | ja |
 | `MAT.kachel(geo,rx,ry)` | skaliert die UVs der Geometrie – ersetzt `texture.repeat.set(rx,ry)` bei geteilten Texturen | – |
+| `MAT.atlas(name,{zelle,seite,malen,wofuer})` | Textur-Atlas mit Zellen (lazy, Seiten 1024², Ultra Low halbe Zellgröße): `A.material(key)` eigenes Material je Schlüssel, Zelle per Uniform `atlasZ` (ein Shaderprogramm für alle), `A.bild(key)`, `A.info()` – Versandkartons, Doku `kartons.md` | Seite ja, Material je Schlüssel |
 | `MAT.stufe()` | `{name, rang, tx, aniso, lambert, lod}` – Grafikstufe, beim Laden fest | – |
 | `MAT.liste()` | Materialien/Texturen mit Abrufzählern (für Wächter-Test und Übersicht); je Material `farbe`/`klasse`/`rezept`/`wofuer`, dazu `katalog` = alle Farben, Klassen, Rezepte, Texturen mit Name, Hex und Zweck | – |
 
@@ -65,6 +66,10 @@ später ändern will (Ampel, Lampe in `lampMats`, Regalfarbe, Hervorhebung, Ausb
 | `bk.poller(S,x,z,o)` | Poller/Anfahrschutz in einen Sammler, gibt das Kollisionsrechteck zurück (Tore; später Schritt Zäune/Poller) |
 | `bk.stab(S,x0,y0,x1,y1,z,d,farbe,klasse)` | Stab zwischen zwei Punkten (Streben, Abhänger) |
 | `bk.uvZeile(geo,zeile)` | UVs eines Kastens auf eine Zeile des Atlas `torBlatt` legen (0 Lamellen, 1 Fenster, 2 unten, 3 weiß) |
+| `bk.inst(geo,mat,[Matrix4],o)` | Instanzen einer geteilten Geometrie mit eigener Hüllkugel (Sichtprüfung bleibt an) |
+| `bk.palette(art,{fein})` | **jede Palette im Spiel**: Europalette 1,2 × 0,8 × 0,144 m, eine Geometrie je Art und Detail, Material `MAT.vc('stumpf')`; Doku `kartons.md` |
+| `bk.paletten(liste,{gruppe,fein,schnee})` | viele Paletten als EIN InstancedMesh (gleiche `gruppe` = ein Zeichenaufruf über mehrere Aufrufe); Hülle `palettenStapel(x,z,n,ry)` = Hofstapel |
+| `bk.karton(t,{kiste})` | Versandkarton einer Sorte als Mesh (`kartonGeo` + `kartonMat[t]` = Atlaszelle) – Lagerregal, Boden, LKW, Karre |
 
 Sammler (`opt`: `form` = Kastenform wie `bk.kasten`, `klasse` = Standardklasse, `reihenfolge`,
 `mats` = eigene Materialien je Klasse statt `MAT.vc`, `bauteil` = Name für `userData.bauteil`):
@@ -76,8 +81,8 @@ S.fertig(parent,{schatten,bauteil,fest});   // -> Mesh[] je Klasse, userData.bau
 S.geometrie(klasse);                         // nur verschmolzene Geometrie (z. B. geteilte Palette)
 ```
 Umgestellt (13.10.): `geraetBau()` (06, Kasse/SB-Terminal/Gravur – jetzt dünne Hülle),
-Versandhof V1 (`buildVersandhof`, 11e: Telefon, Lampe, Schildrahmen; Bauteil `versandhof`), Palettengeometrie (`vsHolzGeo`, 11e), `vcMat` (04) = `MAT.vc('standard')`.
-Sammler-Klassen: neben `standard/lack/metall/matt/glas/leucht` gibt es seit dem Tor-Schritt `kunststoff`, `lackMetall`, `stahl`, `blank`
+Versandhof V1 (`buildVersandhof`, 11e: Telefon, Lampe, Schildrahmen; Bauteil `versandhof`), `vcMat` (04) = `MAT.vc('standard')`. 14.10.: Paletten (`vsHolzGeo` 11e, `palettenStapel` 05h → `bk.palette`/`bk.paletten`) und Versandkartons (`buildKartons` 04b → `MAT.atlas('karton')`, `bk.karton`), Doku `kartons.md`.
+Sammler-Klassen: neben `standard/lack/metall/matt/glas/leucht` gibt es seit dem Tor-Schritt `kunststoff`, `lackMetall`, `stahl`, `blank` und seit dem Paletten-Schritt `stumpf` (= Klasse matt 0,9: Holz, Pappe)
 mit **denselben Werten wie die Oberflächenklassen** (`MAT.KLASSE`) – ein Sammler-Bauteil sieht dann aus wie Einzelteile mit
 `MAT.ober(ton,klasse)`. Neue Bauteile nehmen diese Klassen.
 

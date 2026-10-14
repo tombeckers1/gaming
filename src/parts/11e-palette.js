@@ -162,18 +162,7 @@ function vsKapazitaet(gr){ const G=VS_GR[gr||1]; return Math.max(1,palPlaetze())
 /* ---------------------------------------------------------
    Modelle
    --------------------------------------------------------- */
-let _holzGeo=null;
-function vsHolzGeo(){
-  if(_holzGeo) return _holzGeo;
-  const HOLZ=MAT.farbe('holzPalette'), HOLZ2=MAT.farbe('holzPaletteDunkel'), HELL=MAT.farbe('holzPalette'), S=bk.sammler({form:{fase:0.01,seg:2,lod0Kasten:true}});
-  const B=(w,h,d,c,x,y,z)=>S.box(w,h,d,x,y,z,c);
-  for(const dx of [-0.55,0,0.55]) for(const dz of [-0.34,0,0.34]) B(0.12,0.078,0.12,HOLZ2,dx,0.061,dz);
-  for(const dz of [-0.34,0,0.34]) B(1.2,0.022,0.12,HOLZ,0,0.011,dz);
-  for(const dx of [-0.55,0,0.55]) B(0.14,0.022,0.8,HOLZ,dx,0.111,0);
-  for(const dz of [-0.34,-0.17,0,0.17,0.34]){ const k=dz===0||Math.abs(dz)>0.3; B(1.2,0.022,k?0.14:0.1,k?HOLZ:HELL,0,PAL_H-0.011,dz); }
-  _holzGeo=S.geometrie();
-  return _holzGeo;
-}
+/* Palette: Europalette aus dem Baukasten (bk.palette, 04z) - vorher eigene Geometrie vsHolzGeo hier */
 /* Pakete einer Palette zu einem Mesh: Seiten ein Material, Deckel je
    Groesse - so kostet auch ein hoher Stapel nur wenige Zeichenaufrufe */
 function vsPaketMeshe(items){
@@ -202,7 +191,7 @@ function vsPaketMeshe(items){
 function vsPalObjekt(p){
   let o=vsPalObj[p.id];
   if(o) return o;
-  const g=new THREE.Group(), holz=new THREE.Mesh(vsHolzGeo(),vcMat);
+  const g=new THREE.Group(), holz=new THREE.Mesh(bk.palette('euro'),MAT.vc('stumpf')); holz.userData.bauteil='palette'; holz.userData.bauteilArt='euro';
   if(HIQ){ holz.castShadow=true; holz.receiveShadow=true; }
   g.add(holz); g.userData.pal=p.id;
   o=vsPalObj[p.id]={g,holz,pk:null,sig:'',cx:null,cz:null,id:p.id};

@@ -227,8 +227,10 @@ const PR_FS_SP=`
   }`;
 /* ein und dieselbe Funktion fuer alle: die Werte haengen am Material, der
    Programmschluessel nennt die Bausteine (Relief, Spiegel) */
-function prKey(){ return 'pracht|'+(this.userData.prU?'r':'')+(this.userData.prSp?'s':''); }
+function prKey(){ return 'pracht|'+(this.userData.prU?'r':'')+(this.userData.prSp?'s':'')+(this.userData.atlasZ?'z':''); }
 function prOBC(sh){
+  /* Atlas-Materialien (MAT.atlas, z. B. Versandkartons): Zelle im Vertexshader waehlen wie ohne Pracht */
+  if(this.userData.atlasZ) MAT.atlasPatch(sh,this);
   const u=this.userData.prU, sp=this.userData.prSp; if(!u&&!sp) return;
   let kopf=PR_FS_KOPF;
   if(u){ Object.assign(sh.uniforms,u); kopf+=PR_FS_RELIEF; }
@@ -241,7 +243,7 @@ function prOBC(sh){
 }
 function prAnbinden(m){ m.onBeforeCompile=prOBC; m.customProgramCacheKey=prKey; m.needsUpdate=true; }
 /* fremde Shader-Erweiterung? Dann nicht anfassen */
-const prFremd=m=>m.onBeforeCompile!==THREE.Material.prototype.onBeforeCompile&&m.onBeforeCompile!==prOBC;
+const prFremd=m=>m.onBeforeCompile!==THREE.Material.prototype.onBeforeCompile&&m.onBeforeCompile!==prOBC&&m.onBeforeCompile!==MAT.atlasObc;
 function prVeredeln(m,o){
   if(PR.mats.has(m)) return; PR.mats.add(m);
   const art=prArtVon(m,o); if(!art) return;

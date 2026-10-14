@@ -101,108 +101,9 @@ function wallSet(){ return WALLS.find(w=>w.id===S.wall)||WALLS[0]; }
 function floorSet(){ return FLOORS.find(f=>f.id===S.floor)||FLOORS[0]; }
 /* Streichen und verlegen: die Maler stehen in 05o-oberflaechen */
 function repaint(){ oberflaechenAnwenden(); }
-/* =========================================================
-   Aussenhaut der Gebaeude.
-
-   Vorher lag ueberall dieselbe Ziegeltapete: 256 Pixel, die sich
-   alle 1,3 Meter wiederholten. Auf einer 30 Meter langen Hallenwand
-   sind das zwei Dutzend sichtbare Naehte, und Ziegel passen ohnehin
-   nicht zu einem Fachmarkt.
-
-   Jetzt haengen grossformatige Faserzementtafeln davor. Der Trick
-   gegen die Naht: die Kachel ist genau zwei Tafeln breit und die
-   Fuge liegt exakt auf dem Kachelrand. Wo sich die Textur
-   wiederholt, sitzt also eine Fuge - und Fugen duerfen sich
-   wiederholen. Senkrecht laeuft die Kachel ueber die volle
-   Wandhoehe und wird geklemmt, damit der dunkle Sockel unten
-   bleibt und nicht alle zwei Meter noch einmal auftaucht.
-   ========================================================= */
-const FASS={b:2.4, h:8.0, sockel:0.62, tafel:1.18};
-function fassadeTex(){
-  const PXB=256, PXH=1024;                       /* 107 px/m quer, 128 px/m hoch */
-  return tex(PXB,PXH,(g,W,H)=>{
-    const mx=W/FASS.b, my=H/FASS.h;              /* Pixel je Meter */
-    const yv=m=>H-m*my;                          /* Meter ueber Boden -> Pixel */
-    /* Grundton der Tafeln, leicht warmes Hellgrau */
-    g.fillStyle='#c9cbc7'; g.fillRect(0,0,W,H);
-    /* Jede Tafel bekommt ihren eigenen Ton. Quer wechseln nur zwei
-       Werte - mehr passt nicht in eine Kachel -, senkrecht laeuft
-       die Reihe ueber die ganze Wandhoehe und wiederholt sich
-       darum gar nicht. So wirkt die Flaeche wie verlegte Platten
-       und nicht wie ein Stueck Pappe. */
-    { let sd=7; const rnd=()=>{ sd=(sd*1103515245+12345)&0x7fffffff; return sd/0x7fffffff; };
-      for(let m=FASS.sockel;m<FASS.h;m+=FASS.tafel){
-        const y0=H-(m+FASS.tafel)*my, y1=H-m*my;
-        for(const [xa,xb] of [[0,W/2],[W/2,W]]){
-          const t2=(rnd()-0.5)*2;
-          g.fillStyle=`rgba(${t2>0?'255,255,255':'96,100,106'},${Math.abs(t2)*0.085})`;
-          g.fillRect(xa,y0,xb-xa,y1-y0);
-        }
-      }
-    }
-    /* grossflaechige Wolke, damit die Wand nicht wie Pappe wirkt */
-    for(let i=0;i<70;i++){
-      const r=rand(40,150);
-      g.fillStyle=`rgba(${Math.random()<0.5?'255,255,255':'120,124,128'},${rand(0.012,0.045)})`;
-      g.beginPath(); g.ellipse(rand(0,W),rand(0,H),r,r*rand(0.4,1.0),rand(0,3.14),0,Math.PI*2); g.fill();
-    }
-    /* feines Korn */
-    for(let i=0;i<14000;i++){
-      g.fillStyle=`rgba(${Math.random()<0.5?'255,255,255':'90,94,98'},${rand(0.02,0.09)})`;
-      g.fillRect(Math.random()*W,Math.random()*H,1,1);
-    }
-    /* Regenschlieren von den Fugen abwaerts */
-    for(let i=0;i<90;i++){
-      const x=rand(0,W), y=rand(yv(FASS.h),yv(FASS.sockel)), l=rand(20,140);
-      g.fillStyle=`rgba(96,99,104,${rand(0.02,0.06)})`; g.fillRect(x,y,rand(1,3),l);
-    }
-    /* --- Fugen. Eine senkrechte sitzt auf dem Kachelrand (x=0),
-       die zweite in der Mitte. Beide bekommen Tiefe: dunkler
-       Schattenkern, rechts eine helle Kante.                     --- */
-    const fugeV=x=>{
-      const w2=Math.max(2,Math.round(0.022*mx));
-      g.fillStyle='rgba(58,60,64,.62)'; g.fillRect(x-w2/2,0,w2,H);
-      g.fillStyle='rgba(255,255,255,.22)'; g.fillRect(x+w2/2,0,1.5,H);
-      g.fillStyle='rgba(30,32,36,.30)';  g.fillRect(x-w2/2-1.5,0,1.5,H);
-    };
-    const fugeH=y=>{
-      const w2=Math.max(2,Math.round(0.022*my));
-      g.fillStyle='rgba(58,60,64,.58)'; g.fillRect(0,y-w2/2,W,w2);
-      g.fillStyle='rgba(255,255,255,.20)'; g.fillRect(0,y+w2/2,W,1.5);
-    };
-    for(let m=FASS.sockel;m<FASS.h+FASS.tafel;m+=FASS.tafel) fugeH(yv(m));
-    fugeV(0); fugeV(W/2); fugeV(W);
-    /* Nieten an den Tafelecken */
-    g.fillStyle='rgba(84,88,94,.5)';
-    for(let m=FASS.sockel+0.10;m<FASS.h;m+=FASS.tafel)
-      for(const x of [0.12*mx,W/2-0.12*mx,W/2+0.12*mx,W-0.12*mx]){
-        g.beginPath(); g.arc(x,yv(m),Math.max(1,0.018*my),0,Math.PI*2); g.fill(); }
-    /* --- Sockel: dunkler, rauer, mit Tropfkante und Spritzwasser --- */
-    const sy=yv(FASS.sockel);
-    g.fillStyle='#3b4049'; g.fillRect(0,sy,W,H-sy);
-    for(let i=0;i<5000;i++){
-      g.fillStyle=`rgba(${Math.random()<0.5?'255,255,255':'0,0,0'},${rand(0.02,0.08)})`;
-      g.fillRect(Math.random()*W,sy+Math.random()*(H-sy),1,1);
-    }
-    const sp=g.createLinearGradient(0,H-0.45*my,0,H);
-    sp.addColorStop(0,'rgba(24,26,30,0)'); sp.addColorStop(1,'rgba(24,26,30,.55)');
-    g.fillStyle=sp; g.fillRect(0,H-0.45*my,W,0.45*my);
-    /* Tropfkante als schmales helles Blech ueber dem Sockel */
-    g.fillStyle='#9aa0a8'; g.fillRect(0,sy-Math.max(2,0.05*my),W,Math.max(2,0.05*my));
-    g.fillStyle='rgba(255,255,255,.35)'; g.fillRect(0,sy-Math.max(2,0.05*my),W,1.5);
-    g.fillStyle='rgba(20,22,26,.45)'; g.fillRect(0,sy,W,2);
-  });
-}
-let wallBrick=null;
-function wallBrickMat(){
-  if(!wallBrick){
-    const t=fassadeTex();
-    t.wrapS=THREE.RepeatWrapping; t.wrapT=THREE.ClampToEdgeWrapping;
-    t.repeat.set(1/FASS.b,1/FASS.h); t.anisotropy=8;
-    wallBrick=new THREE.MeshStandardMaterial({map:t,roughness:0.78,metalness:0.04});
-  }
-  return wallBrick;
-}
+/* Aussenhaut der Gebaeude (Faserzementtafeln, fassadeTex/wallBrickMat) und Lagerwand stehen seit 14.10.
+   (Fundament Schritt Waende) in der Materialbibliothek: MAT.get('wandFassade') / MAT.get('wandLager'),
+   Malcode unveraendert in 01b-material.js (TEXTUR fassade/lagerwand). Waende baut bk.wand (04z). */
 /* Hof- und Grundstuecksmauern stehen als einfache Kaesten in der
    Welt, ihre UVs laufen von 0 bis 1 je Seite. Deshalb bekommen sie
    ein eigenes Material, dessen Wiederholung aus den Massen kommt:
@@ -234,11 +135,8 @@ function brickMat(len,h){
   t.repeat.set(Math.max(1,Math.round(len/2.5)),1);
   return new THREE.MeshStandardMaterial({map:t,roughness:0.92,metalness:0.02});
 }
-const trimMat=MAT.eigen('aluminium','matt');
-const lagerWallTex=tex(32,512,(g,W,H)=>{ g.fillStyle='#a3a8b0'; g.fillRect(0,0,W,H); const b=Math.round(H*(1-0.35/WH)); for(let y=b;y<H;y+=16){ g.fillStyle=((y-b)/16)%2<1?MAT.css('signalgelb'):'#1f1f24'; g.fillRect(0,y,W,16);} });
-lagerWallTex.wrapS=THREE.RepeatWrapping; lagerWallTex.wrapT=THREE.ClampToEdgeWrapping; lagerWallTex.repeat.set(1/2.6,1/WH);
-const lagerWall=new THREE.MeshStandardMaterial({map:lagerWallTex,roughness:0.95});
-const lagerUpper=MAT.eigen('hellgrau','matt');
+/* Lagerwand: hell mit gelb-schwarzem Sockelband (Materialbibliothek, Kachel 2,6 x 3,6 m) */
+const lagerWall=MAT.get('wandLager');
 /* Wand-UVs in Metern: dadurch ist die Tapete auf jedem Wandstueck gleich
    gross, die Scheuerleiste laeuft durch und Teilstuecke ueber Tuer oder
    Fenster zeigen genau den passenden Ausschnitt - keine Naehte mehr. */
@@ -269,7 +167,6 @@ function bodenUV(m,kachel){
     uv.setXY(i,(p2.getX(i)+m.position.x)/kachel,(-p2.getY(i)+m.position.z)/kachel);
   uv.needsUpdate=true; return m;
 }
-const FACE={'+x':0,'-x':1,'+z':4,'-z':5}, OPP={'+x':'-x','-x':'+x','+z':'-z','-z':'+z'};
 /* ue: Ueberstand in Laengsrichtung. Er schliesst Haarfugen an den
    Enden einer Wandflucht. Zwischen zwei Stuecken DERSELBEN Flucht
    richtet er Schaden an: die beiden Stuecke ueberlappen sich dann um
@@ -278,22 +175,9 @@ const FACE={'+x':0,'-x':1,'+z':4,'-z':5}, OPP={'+x':'-x','-x':'+x','+z':'-z','-z
    ueberall dort standen, wo eine Wand aus Abschnitten gebaut wird.
    Solche Abschnitte setzen ue auf 0. */
 const WAENDE=[];
+/* Huelle (14.10., Fundament Schritt Waende): baut ueber bk.wand (04z) - ein Material je Flaeche,
+   hoechstens drei Gruppen, gezeichnet im Wandbild. Die Schmalseiten sind die Laibung; wer eine
+   Oeffnung baut, gibt das passende Material mit (randMat), sonst 'laibung'. exMat fehlt = Fassade. */
 function wall(x0,x1,z0,z1,y0,y1,inFace,inMat,exMat,ue,randMat){
-  const u=ue===undefined?0.006:ue;
-  if(x1-x0>z1-z0){ x0-=u; x1+=u; } else { z0-=u; z1+=u; }
-  /* Die vier Schmalseiten sind die Laibung. Sie standen ueberall auf
-     hellem Grau; an einer Tuer in einer dunklen Fassade sah das aus
-     wie ein weisser Klotz, der vor der Wand steht. Wer eine Oeffnung
-     baut, gibt hier das passende Material mit. */
-  const rm=randMat||trimMat;
-  const w=x1-x0,h=y1-y0,d=z1-z0; const mats=[rm,rm,rm,rm,rm,rm];
-  mats[FACE[inFace]]=inMat; mats[FACE[OPP[inFace]]]=exMat||wallBrickMat();
-  const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mats); m.position.set((x0+x1)/2,(y0+y1)/2,(z0+z1)/2);
-  meterUV(m);
-  m.userData.aabb={x0:Math.min(x0,x1),x1:Math.max(x0,x1),z0:Math.min(z0,z1),z1:Math.max(z0,z1)};
-  if(HIQ){ m.castShadow=true; m.receiveShadow=true; } scene.add(m); occluders.push(m);
-  /* Grundriss fuer die Moebelplaetze (wandRechtecke in 06-fixtures):
-     nur, was am Boden steht - Stuerze ueber Tueren zaehlen nicht */
-  if(Math.min(y0,y1)<0.9) WAENDE.push(m);
-  return m;
+  return bk.wand({x0,x1,z0,z1,y0,y1,innen:inFace,flaechen:{innen:inMat,aussen:exMat,laibung:randMat},ue});
 }

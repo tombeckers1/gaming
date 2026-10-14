@@ -282,6 +282,8 @@ function doSpray(){
    Interaktion
    ========================================================= */
 const ray=new THREE.Raycaster(), center=new THREE.Vector2(0,0);
+/* Wandstuecke liegen seit 14.10. auf Ebene 3 (gezeichnet im Wandbild, bk.wandbild) - der Zielstrahl trifft sie weiter */
+if(ray.layers) ray.layers.enable(3);
 /* auch Ebene 1: gebuendelte Originale (03b, BUENDEL) bleiben treffbar */
 if(ray.layers) ray.layers.enable(1);
 let target=null, repeatT=0, touchAct=false, mouseDown=false;

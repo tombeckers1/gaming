@@ -26,8 +26,9 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     S.level=40; S.money=1e7; ['shop_halb','lager','lager_nord','shop_gross','lager_gross','lager_sued','shop_ost','shop_sued','eingang2'].forEach(id=>bb.testKauf(id));
     const L=bb.LAY.shop, bx=new THREE.Box3(), sz=new THREE.Vector3();
     bb.scene.traverse(m=>{ if(!m.isMesh) return; bx.setFromObject(m); bx.getSize(sz);
-      if(m.userData.zaunPfosten){ const c=bx.getCenter(new THREE.Vector3());
-        if(c.x>L.x0-0.02&&c.x<L.x1+0.02&&c.z>L.z0-0.02&&c.z<L.z1+0.02) o.pfosten.push([+c.x.toFixed(2),+c.z.toFixed(2)]); }
+      /* seit 14.10. (bk.zaun): ein Mesh je Zaunlauf, die Pfosten stehen als Liste [[x,z],...] (Koordinaten im parent) dabei */
+      if(m.userData.zaunPfosten){ const pts=Array.isArray(m.userData.zaunPfosten)?m.userData.zaunPfosten.map(([x,z])=>m.parent.localToWorld(new THREE.Vector3(x,0,z))):[bx.getCenter(new THREE.Vector3())];
+        for(const c of pts) if(c.x>L.x0-0.02&&c.x<L.x1+0.02&&c.z>L.z0-0.02&&c.z<L.z1+0.02) o.pfosten.push([+c.x.toFixed(2),+c.z.toFixed(2)]); }
       /* Sockel: dunkle Bloecke an der Ladenfront (z um 6), lang und flach - Farbe Graphit aus der Bibliothek (13.10., vorher #3b4049) */
       if(bx.min.y<0.01&&sz.x>2&&sz.y>0.4&&sz.y<1.2&&sz.z<0.4&&bx.min.z>5.8&&bx.max.z<6.6&&m.material&&m.material.color&&m.material.color.getHex()===new THREE.Color().setHex(bb.MAT.farbe('graphit')).convertSRGBToLinear().getHex()) o.sockel.push(+sz.y.toFixed(3));
       /* senkrechte 10-cm-Profile in der Frontwand ueber Bruestungshoehe */

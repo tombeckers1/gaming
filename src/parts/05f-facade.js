@@ -165,9 +165,10 @@ function buildFacade(){
   const plinthM=MAT.get('graphitMatt');
   bbox(6.85,0.62,0.26,plinthM,-4.72,0.31,zf+0.06,null,false);
   bbox(6.85,0.62,0.26,plinthM, 4.72,0.31,zf+0.06,null,false);
+  /* Poller auf dem Gehweg: Strassenpoller aus dem Baukasten (bk.poller art 'stadt', ueber stPoller
+     in den Stadtmoebel-Sammler, 05e) - vorher eigener Vierkant anthrazit mit Goldkappe (14.10.) */
   for(const x of [-5.4,5.4]){
-    bbox(0.16,0.85,0.16,MAT.get('stahlAnthrazit'),x,0.42,7.5,null,false);
-    bbox(0.2,0.06,0.2,MAT.std(0xd9c07a,{metalness:0.7}),x,0.87,7.5,null,false);
+    stPoller(x,7.5);
     col(x-0.2,x+0.2,7.3,7.7);
   }
   // Hausnummer

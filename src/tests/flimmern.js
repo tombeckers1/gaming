@@ -44,7 +44,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
         if(Math.min(b1,a1)-Math.max(b0,a0)<0.02) return;
         if(Math.min(bx.max.y,y1)-Math.max(bx.min.y,y0)<0.02) return;
         const k=achse==='x'?(sg>0?0:1):(sg>0?4:5);
-        const m=Array.isArray(q.material)?q.material[k]:q.material;
+        const m=bb.bk&&bb.bk.wandFlaeche?bb.bk.wandFlaeche(q,k):(Array.isArray(q.material)?q.material[k]:q.material);   /* Waende: Material je Seite (bk.wand, 14.10.) */
         out.push(m);
       });
       return new Set(out).size;
@@ -58,8 +58,8 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     /* 2 - freies Wandende bei x=8 (Rueckwand des Grundladens) */
     o.ende=null;
     boxen.forEach(({q,bx})=>{
-      if(Math.abs(bx.max.x-8.006)<0.01&&bx.min.x>6&&bx.min.x<6.2&&Math.abs(bx.min.z+6.1)<0.01&&Array.isArray(q.material)){
-        const m=q.material[0], w=q.material[4];
+      if(Math.abs(bx.max.x-8.006)<0.01&&bx.min.x>6&&bx.min.x<6.2&&Math.abs(bx.min.z+6.1)<0.01&&(Array.isArray(q.material)||q.userData.flaechen)){
+        const F=k=>bb.bk&&bb.bk.wandFlaeche?bb.bk.wandFlaeche(q,k):q.material[k], m=F(0), w=F(4);
         o.ende={gleich:m===w, farbe:m&&m.color?m.color.getHexString():'?'};
       }
     });

@@ -89,7 +89,7 @@ function buildWorld(){
      dort die Lagerwand mit dem gelben Streifen, obwohl das die
      Rueckseite des Ladens ist. Der Lagergang kommt spaeter als
      Anbau davor; dass er an einer Fassade endet, ist richtig so. */
-  const fas=wallBrickMat();
+  const fas=bk.flaeche('fassade');
   /* Die Stirnseiten tragen die Wandfarbe mit Sockelband: an der
      Hintertuer als Laibung, und bei x = 8 endet die Wand frei, sobald
      die Halle hinterm Laden gekauft ist. Dort stand vorher eine
@@ -122,13 +122,12 @@ function buildWorld(){
      eine zugemauerte Ausbaustufe mit niedrigerer Decke, und
      dazwischen blieb ein Sturz quer im Lager stehen. */
   /* Sockelleiste im Ton der Wand (sockelM, 05h) */
-  const base=sockelM();
-  /* Sockelleisten enden an den Tueroeffnungen, statt durchzulaufen */
-  for(const [a,b] of [[-7.9,4.4],[6.1,7.9]]) bbox(b-a,0.1,0.02,base,(a+b)/2,0.05,-5.89,null,false);
-  for(const [a,b] of [[-7.9,-1.2],[1.2,7.9]]) bbox(b-a,0.1,0.02,base,(a+b)/2,0.05,5.89,null,false);
+  /* Sockelleisten enden an den Tueroeffnungen, statt durchzulaufen (bk.sockelleiste, Wandbild) */
+  for(const [a,b] of [[-7.9,4.4],[6.1,7.9]]) bk.sockelleiste({laengs:true,a0:a,a1:b,x:(a+b)/2,z:-5.89});
+  for(const [a,b] of [[-7.9,-1.2],[1.2,7.9]]) bk.sockelleiste({laengs:true,a0:a,a1:b,x:(a+b)/2,z:5.89});
   for(const [a,b] of [[-5.9,-4.4],[4.4,5.9]])
-    for(const sx of [7.89,8.11]) zWand('shop_gross',bbox(0.02,0.1,b-a,base,sx,0.05,(a+b)/2,null,false));
-  for(const [a,b] of [[-5.9,-3.2],[-1.8,5.9]]) bbox(0.02,0.1,b-a,base,-7.89,0.05,(a+b)/2,null,false);
+    for(const sx of [7.89,8.11]) bk.sockelleiste({laengs:false,a0:a,a1:b,x:sx,z:(a+b)/2,zone:'shop_gross'});
+  for(const [a,b] of [[-5.9,-3.2],[-1.8,5.9]]) bk.sockelleiste({laengs:false,a0:a,a1:b,x:-7.89,z:(a+b)/2});
   // Dächer & Decken
   /* Der Dachrand des Ladens darf nach Westen nicht ueber die Wand
      hinausragen: dahinter steht das hoehere Lager, und der

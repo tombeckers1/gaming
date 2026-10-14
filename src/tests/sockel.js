@@ -16,7 +16,9 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   await p.goto('file://'+process.argv[2]); await p.waitForFunction('window.__bb!==undefined',{timeout:60000});
   await neuesSpiel(p);
   const r=await p.evaluate(()=>{ const bb=window.__bb, sm=bb.sockelM(), lw=bb.lagerWall, out={n:0,falsch:[]};
-    const waende=[]; bb.scene.traverse(o=>{ if(o.isMesh&&Array.isArray(o.material)&&o.material.length===6&&o.geometry.parameters&&o.geometry.parameters.width!==undefined) waende.push(o); });
+    /* seit 14.10. (bk.wand): Waende tragen ihr Material je Seite in userData.flaechen (vorher 6er-Material-Feld) */
+    const flaeche=(w,k)=>bb.bk&&bb.bk.wandFlaeche?bb.bk.wandFlaeche(w,k):w.material[k];
+    const waende=[]; bb.scene.traverse(o=>{ if(o.isMesh&&(o.userData.flaechen||(Array.isArray(o.material)&&o.material.length===6))&&o.geometry.parameters&&o.geometry.parameters.width!==undefined) waende.push(o); });
     bb.scene.traverse(o=>{ if(!o.isMesh||o.material!==sm) return; const g=o.geometry.parameters; if(!g||g.width===undefined) return;
       out.n++; const p=o.position, xd=g.width<g.depth; /* duenn in x -> Leiste laeuft in z */
       for(const w of waende){ const q=w.position, G=w.geometry.parameters;
@@ -26,7 +28,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
         if(pl<lang[0]+0.05||pl>lang[1]-0.05) continue;
         if(q.y-G.height/2>0.05) continue;
         const s=xd?Math.sign(p.x-q.x):Math.sign(p.z-q.z), fi=xd?(s>0?0:1):(s>0?4:5);
-        if(w.material[fi]===lw) out.falsch.push([+p.x.toFixed(2),+p.z.toFixed(2),o.visible]); } });
+        if(flaeche(w,fi)===lw) out.falsch.push([+p.x.toFixed(2),+p.z.toFixed(2),o.visible]); } });
     return out; });
   console.log('Leisten',r.n,'vor Lagerwand',r.falsch.length,JSON.stringify(r.falsch.slice(0,10)));
   const m=[]; if(!r.n) m.push('keine Leisten gefunden'); if(r.falsch.length) m.push('SOCKEL: '+r.falsch.length+' Ladenleisten vor der Lagerwand');

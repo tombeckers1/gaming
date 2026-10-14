@@ -36,7 +36,7 @@ const fs=require('fs');
     scene.traverse(o=>{ if(!(o.isMesh||o.isPoints||o.isLine||o.isSprite)) return;
       const g=o.geometry; let tri=0; if(g){ const c=g.index?g.index.count:(g.attributes.position?g.attributes.position.count:0); tri=c/3; }
       const ms=Array.isArray(o.material)?o.material:[o.material]; const id=out.meshes.length; window.__idx.push(o); window.__idmap.set(o.id,id);
-      out.meshes.push({i:id,own:o.userData.__own||'',zone:'',vis:effVis(o),type:o.type,inst:o.isInstancedMesh?o.count:1,tri:Math.round(tri),mats:ms.map(m=>m&&m.id),cast:!!o.castShadow,hid:ms.every(m=>m&&m.visible===false),vc:!!(g&&g.attributes.color),arr:Array.isArray(o.material)});
+      out.meshes.push({i:id,own:o.userData.__own||'',zone:'',vis:effVis(o),type:o.type,inst:o.isInstancedMesh?o.count:1,tri:Math.round(tri),mats:ms.map(m=>m&&m.id),cast:!!o.castShadow,hid:ms.every(m=>m&&m.visible===false),vc:!!(g&&g.attributes.color),arr:Array.isArray(o.material),bt:o.userData.bauteil||'',lay:o.layers.mask});
       for(const m of ms){ if(!m||out.mats[m.id]) continue; out.mats[m.id]={t:m.type,col:m.color?'#'+m.color.clone().convertLinearToSRGB().getHexString():null,r:m.roughness,m:m.metalness,vc:!!m.vertexColors,map:ts(m.map),nrm:ts(m.normalMap),bump:ts(m.bumpMap),lm:ts(m.lightMap),em:m.emissive?'#'+m.emissive.getHexString():null,emI:m.emissiveIntensity,op:m.opacity,tr:m.transparent,at:m.alphaTest,side:m.side}; }
     });
     return out; });

@@ -15,6 +15,12 @@ Nach jedem fertigen Paket: prüfen, Artefakt veröffentlichen, Tom kurz berichte
 | 6b | **Große Halle eigenständig ladbar** (Plan v7) | halle-1010.md | Optik fertig 09.10. (Branch claude/halle-v7, fbbd7e1), Vorschau-Artefakt https://claude.ai/artifact/1qMJc7Xf8qgiJ2ndwDmHzh; offen: Toms Abnahme + 5 Fragen, später Zusammenführung/Gameplay |
 | 7 | Wirtschafts-Balancing „Schweizer Uhrwerk“ | balancing-0910.md | Ist-Analyse fertig 10.10. (Branch claude/balancing, cf325f0, docs/balancing/ist-analyse.md); wartet auf Toms OK zur Zielkurve, dann Werte anpassen |
 
+## Entscheidung Tom 14.10.2026 vormittags – Große Halle
+Die große Halle wird **neu gebaut** (nicht der Branch claude/halle-v7 übernommen) – als **nächstes großes Paket nach
+dem Fundament**. Vorher gemeinsam mit Tom einen **genauen Plan**: was wohin kommt und wie es aussehen soll. Beim Neubau
+werden die Welten **direkt zusammengelegt** (Halle im Hauptspiel, kein eigener Modus). Neubau komplett auf
+Baukasten/Bibliothek/Wirtschaftszentrale. Start erst, wenn die laufenden Fundament-Schritte fertig sind.
+
 ## Kleinkram (zwischen zwei Paketen selbst erledigen)
 - DDL auch per **Handy** rufen können (Tom 09.10.). Pauschale 39 € bleibt, sofern Stufe 1 sich lohnt (Rechnung prüfen: Stufe 1 muss nach Investition + Lohn + Pauschalen im Plus sein; sonst Pauschale senken). Test versandtor erweitern.
 

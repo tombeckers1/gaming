@@ -68,11 +68,11 @@ function sammeln(){
     if(!o.isMesh) return;
     if(o.userData&&o.userData._bnd) return;                /* Laufzeit-Buendel: nur Kopie der Originale */
     let vis=true; for(let x=o;x;x=x.parent) if(!x.visible){ vis=false; break; }
-    let bauteil=null, name=null;
-    for(let x=o;x;x=x.parent){ if(!bauteil&&x.userData&&x.userData.bauteil) bauteil=x.userData.bauteil; if(!name&&x.name&&x.name!=='Wurzel') name=x.name; }
+    let bauteil=null, name=null, bart=null;
+    for(let x=o;x;x=x.parent){ if(!bauteil&&x.userData&&x.userData.bauteil){ bauteil=x.userData.bauteil; bart=x.userData.bauteilArt||null; } if(!name&&x.name&&x.name!=='Wurzel') name=x.name; }
     const p=new THREE.Vector3().setFromMatrixPosition(o.matrixWorld);
     const g=o.geometry; let bx=null, c=p; if(g){ if(!g.boundingBox) g.computeBoundingBox(); if(g.boundingBox&&!g.boundingBox.isEmpty()){ bx=g.boundingBox.clone().applyMatrix4(o.matrixWorld); c=bx.getCenter(new THREE.Vector3()); } }
-    L.push({o,vis,ms:Array.isArray(o.material)?o.material:[o.material],bauteil,name,own:o.userData.__own||null,call:o.userData.__call,
+    L.push({o,vis,ms:Array.isArray(o.material)?o.material:[o.material],bauteil,bart,name,own:o.userData.__own||null,call:o.userData.__call,
       x:c.x,y:c.y,z:c.z,bx,zone:zm.get(o)||null});
   });
   K.meshes=L; return L.length;
@@ -305,7 +305,7 @@ K.bauteile=function(){
   const art=new Map();                                     /* bauteil -> {inst: Map(key -> meshes[])} */
   for(const mm of K.meshes){ if(!mm.bauteil) continue;
     /* Instanz = Meshes gleicher Art im selben Elternknoten (Sammler -> ein Mesh je Klasse); an der Szene: je Fundort-Cluster */
-    const par=mm.o.parent; const key=(par&&par!==scene?par.uuid:'szene');
+    const par=mm.o.parent; const key=(par&&par!==scene?par.uuid:'szene')+'|'+(mm.bart||'');
     let a=art.get(mm.bauteil); if(!a){ a={name:mm.bauteil,inst:new Map()}; art.set(mm.bauteil,a); }
     let i=a.inst.get(key); if(!i){ i={meshes:[],par:par}; a.inst.set(key,i); } i.meshes.push(mm); }
   const out=[]; K.btObjs=[];
@@ -318,17 +318,17 @@ K.bauteile=function(){
       const klassen=[...new Set(i.meshes.map(x=>x.o.userData.klasse).filter(Boolean))];
       const mats=new Set(); i.meshes.forEach(x=>x.ms.forEach(m=>m&&mats.add(m.userData&&m.userData.mat?m.userData.mat:matSig(m))));
       const tris=ms.reduce((s,o)=>s+trisVon(o),0);
-      insts.push({meshes:ms.length,dreiecke:tris,groesse:info,zone:zoneVon(i.meshes[0]),klassen,materialien:[...mats].slice(0,12),materialAnzahl:mats.size,
+      insts.push({art:i.meshes[0].bart||null,meshes:ms.length,dreiecke:tris,groesse:info,zone:zoneVon(i.meshes[0]),klassen,materialien:[...mats].slice(0,12),materialAnzahl:mats.size,
         sichtbar:i.meshes.some(x=>x.vis),ms,bx});
     }
     insts.sort((p,q)=>q.dreiecke-p.dreiecke);
     /* Varianten: gleiche Groesse (5 cm gerundet) und gleiche Dreieckszahl */
-    const var_=new Map(); insts.forEach((x,ix)=>{ const k=[rd(x.groesse.b,1),rd(x.groesse.h,1),rd(x.groesse.t,1),x.dreiecke].join('x'); let v=var_.get(k); if(!v){ v={schluessel:k,anzahl:0,beispiel:ix,groesse:x.groesse,dreiecke:x.dreiecke,klassen:x.klassen,meshes:x.meshes}; var_.set(k,v); } v.anzahl++; });
+    const var_=new Map(); insts.forEach((x,ix)=>{ const k=[x.art||'',rd(x.groesse.b,1),rd(x.groesse.h,1),rd(x.groesse.t,1),x.dreiecke].join('x'); let v=var_.get(k); if(!v){ v={schluessel:k,art:x.art,zone:x.zone,anzahl:0,beispiel:ix,groesse:x.groesse,dreiecke:x.dreiecke,klassen:x.klassen,meshes:x.meshes}; var_.set(k,v); } v.anzahl++; });
     const idx=out.length;
     K.btObjs.push(insts);
     out.push({id:idx,name:a.name,instanzen:insts.length,meshesGesamt:insts.reduce((s,x)=>s+x.meshes,0),dreieckeGesamt:insts.reduce((s,x)=>s+x.dreiecke,0),
-      varianten:[...var_.values()].slice(0,12).map(v=>({anzahl:v.anzahl,beispiel:v.beispiel,groesse:v.groesse,dreiecke:v.dreiecke,klassen:v.klassen,meshes:v.meshes})),varianteAnzahl:var_.size,
-      fundorte:insts.slice(0,30).map((x,ix)=>({instanz:ix,pos:{x:x.groesse.x,y:x.groesse.y,z:x.groesse.z},groesse:x.groesse,zone:x.zone,meshes:x.meshes,dreiecke:x.dreiecke,klassen:x.klassen,materialien:x.materialien,sichtbar:x.sichtbar}))});
+      varianten:[...var_.values()].slice(0,12).map(v=>({art:v.art,zone:v.zone,anzahl:v.anzahl,beispiel:v.beispiel,groesse:v.groesse,dreiecke:v.dreiecke,klassen:v.klassen,meshes:v.meshes})),varianteAnzahl:var_.size,
+      fundorte:insts.slice(0,30).map((x,ix)=>({instanz:ix,art:x.art,pos:{x:x.groesse.x,y:x.groesse.y,z:x.groesse.z},groesse:x.groesse,zone:x.zone,meshes:x.meshes,dreiecke:x.dreiecke,klassen:x.klassen,materialien:x.materialien,sichtbar:x.sichtbar}))});
   }
   K.btListe=out; return {arten:out.length,eintraege:out};
 };

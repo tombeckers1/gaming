@@ -28,10 +28,14 @@ function oeffneZone(id,leise){
   z.cols.forEach(c=>{ if(colliders.indexOf(c)<0) colliders.push(c); });
   z.hooks.forEach(fn=>fn());
   if(typeof navDirty==='function') navDirty();
+  bk.wandbild();
   if(!leise) sfx.cash();
 }
 /* Nach dem Laden eines Spielstands alle gekauften Bereiche oeffnen */
 function applyZonen(){
+  /* Wandbild erst am Ende einmal neu bauen, nicht je geoeffneter Zone (Laden eines Spielstands) */
+  bk.WB.halt=true;
+  try{
   for(const id in ZONEN){
     const z=ZONEN[id];
     if(zoneOffen(id)) oeffneZone(id,true);
@@ -44,6 +48,8 @@ function applyZonen(){
   }
   if(typeof logiAnwenden==='function') logiAnwenden();
   if(typeof navDirty==='function') navDirty();
+  } finally { bk.WB.halt=false; }
+  bk.wandbild();
 }
 
 /* --------------------------------------------------------
@@ -57,9 +63,7 @@ function sockelM(){ if(!_sockelM) _sockelM=MAT.eigen('nachtblau','matt'); return
 /* Eine Wand, die nicht den Blick auf Regale verstellen soll:
    sie liegt nicht in der Liste, die der Zielstrahl abfragt. */
 function stilleWand(x0,x1,z0,z1,y0,y1,inFace,inMat,exMat,ue){
-  const m=wall(x0,x1,z0,z1,y0,y1,inFace,inMat,exMat,ue);
-  const i=occluders.indexOf(m); if(i>=0) occluders.splice(i,1);
-  return m;
+  return bk.wand({x0,x1,z0,z1,y0,y1,innen:inFace,flaechen:{innen:inMat,aussen:exMat},ue,still:true});
 }
 /* Auf welcher Seite einer Wand (-1/+1 entlang ihrer Dicke) klebt die
    Ladentapete? face ist die Innenseite ('-z' = Seite zu kleinerem z). */
@@ -74,13 +78,9 @@ function ladenSeiten(face,innen,aussen){
    Leiste immer auf beide Seiten - an einer Wand zwischen Laden und
    Lager lag die dunkle Ladenleiste dann im Lager ueber dem gelb-
    schwarzen Sockel (Tom, 01.10.: doppelter Streifen in der Ecke). */
+/* Huelle (14.10.): Leisten aus dem Baukasten (bk.sockelleiste), gezeichnet im Wandbild */
 function sockelLeiste(id,laengs,fest,a0,a1,seiten){
-  for(const s of (seiten||[-1,1])){
-    const o=laengs
-      ? bbox(a1-a0,0.1,0.02,sockelM(),(a0+a1)/2,0.05,fest+s*(LW/2+0.011),null,false)
-      : bbox(0.02,0.1,a1-a0,sockelM(),fest+s*(LW/2+0.011),0.05,(a0+a1)/2,null,false);
-    if(id) zWand(id,o);
-  }
+  for(const s of (seiten||[-1,1])) bk.sockelleiste({laengs,fest,a0,a1,seite:s,zone:id||null});
 }
 /* Fuellung einer vorbereiteten Oeffnung. laengs = die Wand laeuft in x. */
 /* Die Fuellung einer Oeffnung, solange der Bereich dahinter nicht
@@ -185,11 +185,11 @@ function halle(id,r,opt){
   else if(au.s) col(r.x0-LW,r.x1+LW,r.z0-LW,r.z0);
   /* Sockelleisten nur im Laden */
   if(!lager){
-    const base=sockelM();
-    if(au.n) zAdd(id,bbox(r.x1-r.x0,0.1,0.02,base,(r.x0+r.x1)/2,0.05,r.z1-0.01,null,false));
-    if(au.s) zAdd(id,bbox(r.x1-r.x0,0.1,0.02,base,(r.x0+r.x1)/2,0.05,r.z0+0.01,null,false));
-    if(au.w) zAdd(id,bbox(0.02,0.1,r.z1-r.z0,base,r.x0+0.01,0.05,(r.z0+r.z1)/2,null,false));
-    if(au.e) zAdd(id,bbox(0.02,0.1,r.z1-r.z0,base,r.x1-0.01,0.05,(r.z0+r.z1)/2,null,false));
+    const L=(laengs,a0,a1,x,z)=>bk.sockelleiste({laengs,a0,a1,x,z,versteckt:id});
+    if(au.n) L(true,r.x0,r.x1,(r.x0+r.x1)/2,r.z1-0.01);
+    if(au.s) L(true,r.x0,r.x1,(r.x0+r.x1)/2,r.z0+0.01);
+    if(au.w) L(false,r.z0,r.z1,r.x0+0.01,(r.z0+r.z1)/2);
+    if(au.e) L(false,r.z0,r.z1,r.x1-0.01,(r.z0+r.z1)/2);
   }
   if(!opt.keinLicht) leuchtenRaster(id,r,H,opt.ax||(lager?3.6:3.4),opt.az||(lager?4.2:3.6));
   /* Der Bodenschatten gehoert nur an Kanten, an denen dauerhaft
@@ -268,39 +268,8 @@ function durchbruchWand(id,laengs,fest,von,bis,oeffnungen,mat,exMat,sturzY,hoehe
    Sinn der Sache.
    ========================================================= */
 let tfHit=null;
-function sperrbandTex(text,n){
-  const wdh=n||2;
-  const t=tex(1024,64,(g,W,H)=>{
-    g.fillStyle='#cf1f16'; g.fillRect(0,0,W,H);
-    /* dunkle Webkante oben und unten, wie bei echtem Band */
-    g.fillStyle='rgba(0,0,0,.24)'; g.fillRect(0,0,W,5); g.fillRect(0,H-5,W,5);
-    g.fillStyle='rgba(255,255,255,.10)'; g.fillRect(0,7,W,4);
-    g.fillStyle='#f7f8fc'; g.font=BUN(31); g.textAlign='center'; g.textBaseline='middle';
-    for(let i=0;i<wdh;i++) g.fillText(text,W/(wdh*2)+i*W/wdh,H/2+2);
-  });
-  t.wrapS=t.wrapT=THREE.ClampToEdgeWrapping; t.anisotropy=8; return t;
-}
-/* Ein Band spannt zwischen zwei Pfosten und haengt in der Mitte
-   durch. Eine gerade Leiste sieht aus wie ein roter Strich. */
-function sperrband(Z,a,b,z,y,mat,parent){
-  const L=b-a, durch=0.05;
-  const geo=new THREE.PlaneGeometry(L,0.09,16,1);
-  /* Direkt im Array rechnen: getX/setY gibt es im Testdoppel nicht,
-     und das Band soll auch dort ohne Fehler gebaut werden. */
-  const pos=geo.attributes&&geo.attributes.position, arr=pos&&pos.array;
-  if(arr&&pos.count){
-    for(let i=0;i<pos.count;i++){
-      const t=(arr[i*3]+L/2)/L;
-      arr[i*3+1]-=durch*Math.sin(Math.PI*t);
-    }
-    pos.needsUpdate=true;
-    if(geo.computeVertexNormals) geo.computeVertexNormals();
-  }
-  const m=new THREE.Mesh(geo,mat);
-  m.position.set((a+b)/2,y,z); m.userData.sperrband=true;
-  (parent||scene).add(m); zWand(Z,m);
-  return m;
-}
+/* sperrbandTex()/sperrband() entfallen (14.10., Fundament Schritt Zaeune): Absperrband = bk.absperrung (04z) -
+   Pfosten in einem Sammler, alle Baender EIN Mesh, Material je Aufdruck einmal (bk.bandMat) */
 /* Kapitel 1, Pyro-Kiosk: die Tuer vom Verkauf ins Lager ist mit
    Absperrband zu, wie die Hintertuer zum Testfeld. Man sieht ins
    Lager hinein, kommt aber nicht hin. Die Lieferungen landen solange
@@ -308,15 +277,8 @@ function sperrband(Z,a,b,z,y,mat,parent){
 function lagerSperre(){
   const Z='lager';
   const g=new THREE.Group(); g.position.set(-8.0,0,-2.5); g.rotation.y=Math.PI/2; scene.add(g);
-  const bandM=new THREE.MeshStandardMaterial({map:sperrbandTex('LAGER · KAPITEL 2'),roughness:0.72,side:THREE.DoubleSide});
-  const halt=MAT.get('stahlGraphit');
-  const kopf=MAT.get('lackSchwarz');
-  const a=-0.66, b=0.66;
-  for(const y of [0.5,1.0,1.5]) sperrband(Z,a+0.06,b-0.06,0,y,bandM,g);
-  for(const x of [a+0.04,b-0.04]){
-    zWand(Z,bbox(0.05,1.76,0.05,halt,x,0.88,0,g,false));
-    zWand(Z,bbox(0.08,0.05,0.08,kopf,x,1.78,0,g,false));
-  }
+  /* Pfosten in den Laibungen der Tuer (frei:false = ohne Fussplatte) */
+  bk.absperrung({punkte:[[-0.62,0],[0.62,0]],text:'LAGER · KAPITEL 2',zone:Z,parent:g,frei:false});
   zWandCol(Z,col(-8.3,-7.7,-3.25,-1.75));
   /* Warenannahme auf dem Gehweg: gelbe Markierung mit Schrift */
   /* 02.10. (Tom, Foto): der Gehweg steigt zum Bord hin an (1 cm am Haus,
@@ -338,16 +300,8 @@ const WA={x:3.5,z:7.75};
 const WA_SLOTS=[]; for(let r=0;r<2;r++) for(let c=0;c<3;c++) WA_SLOTS.push({x:WA.x-0.75+c*0.75,z:WA.z-0.42+r*0.84});
 function testfeldSperre(){
   const Z='testfeld', a=4.4, b=6.1, z=-6.0;
-  const bandM=new THREE.MeshStandardMaterial({map:sperrbandTex('TESTFELD GESPERRT'),roughness:0.72,side:THREE.DoubleSide});
-  const halt=MAT.get('stahlGraphit');
-  const kopf=MAT.get('lackSchwarz');
-  for(const y of [0.5,1.0,1.5]) sperrband(Z,a+0.06,b-0.06,z,y,bandM);
   /* Zwei Pfosten in den Laibungen, an denen das Band haengt */
-  for(const x of [a+0.04,b-0.04]){
-    zWand(Z,bbox(0.05,1.76,0.05,halt,x,0.88,z,null,false));
-    zWand(Z,bbox(0.08,0.05,0.08,kopf,x,1.78,z,null,false));
-    for(const y of [0.5,1.0,1.5]) zWand(Z,bbox(0.075,0.035,0.035,kopf,x,y,z,null,false));
-  }
+  bk.absperrung({punkte:[[a+0.04,z],[b-0.04,z]],text:'TESTFELD GESPERRT',zone:Z,frei:false});
   /* Schild ueber dem Durchgang, wie das Schild an der Lagertuer.
      Es bleibt stehen, auch nachdem der Zugang gekauft ist - es
      sagt, wohin die Tuer fuehrt, nicht dass sie zu ist. */
@@ -403,7 +357,7 @@ function buildLagergang(){
      stehen, sonst steht das Dach in der Luft. */
   const zs=G.z0;
   /* Laibung des Testfelddurchgangs in der Fassade, nicht in Grau */
-  const lb=wallBrickMat();
+  const lb=bk.flaeche('fassade');
   /* Die Enden stecken bis zur Mitte in den Kopfwaenden. Reichten sie
      bis zu deren Innenflaeche, lag die Stirnseite genau in derselben
      Ebene - in der Halle hinterm Laden und im Lager flimmerte dann
@@ -802,20 +756,10 @@ function packRegalImWeg(st){
 }
 /* Gitter (Tom 09.10.: "Absperrungen in Gelb, im Stil der Gitterbox"): Drahtgitter als
    Alpha-Textur, der Massstab steckt in den UVs - ein Material fuer alle Felder */
-/* vsGitterMat() entfaellt (13.10., Materialangleichung): gelbes Schweissgitter = MAT.get('gitterGelb') */
-const vsGitterMat=()=>MAT.get('gitterGelb');
-/* Ein Gitterfeld als Ebene, UVs je 0,2 m (Drahtgitter-Kachel, Masche 5 cm) - alle Felder teilen ein Material */
-function gitterGeo(L,h){ return MAT.kachel(new THREE.PlaneGeometry(L,h),L/0.2,h/0.2); }
-/* Zaun von a nach b: Pfosten mit Fussplatten hoechstens alle 1,2 m, Ober- und Unterholm,
-   bei mat ein Gitter dazwischen (sonst Gelaender mit Mittelholm). B: Vertexfarben-Helfer. */
-function gitterZaun(B,k,g,ax,az,bx,bz,h,mat,reg){
-  const GELB=MAT.farbe('signalgelb'), DUNKEL=MAT.farbe('anthrazit'), L=Math.hypot(bx-ax,bz-az), n=Math.max(1,Math.ceil(L/1.2)), ry=Math.atan2(bz-az,bx-ax);
-  for(let j=0;j<=n;j++){ const x=ax+(bx-ax)*j/n, z=az+(bz-az)*j/n; B(k,0.05,h,0.05,GELB,x,h/2,z); B(k,0.12,0.015,0.12,DUNKEL,x,0.008,z); }
-  B(k,L,0.04,0.04,GELB,(ax+bx)/2,h-0.02,(az+bz)/2,0,-ry,0); B(k,L,0.04,0.04,GELB,(ax+bx)/2,0.12,(az+bz)/2,0,-ry,0);
-  if(mat){ const m=new THREE.Mesh(gitterGeo(L,h-0.2),mat); m.position.set((ax+bx)/2,h/2+0.02,(az+bz)/2); m.rotation.y=-ry; g.add(m); if(reg) reg(m); return m; }
-  B(k,L,0.04,0.04,GELB,(ax+bx)/2,h*0.55,(az+bz)/2,0,-ry,0);
-  return null;
-}
+/* gitterGeo()/gitterZaun() entfallen (14.10., Fundament Schritt Zaeune): gelbes Schutzgitter und Gelaender =
+   bk.zaun({art:'gitter'|'gelaender', S}) (04z). Die Packstation sammelt ihre Teile je Stufe selbst (VC,
+   Vertexfarben) - bk.zaun legt Pfosten und Holme dort hinein, das Gitter wird ein eigenes Mesh. */
+function vsZaunS(B,k){ return {box:(w,h,d,x,y,z,c,kl,rx,ry,rz)=>B(k,w,h,d,c,x,y,z,rx,ry,rz)}; }
 /* Versandbereich am Boden (Tom 09.10.: "gelbe Linie/Schraffur, keine Schrift"): hier waechst
    die Station noch hin - Regale und Moebel kommen dort nicht hin (PACK_FL) */
 function reserveTex(BW,BT){
@@ -841,8 +785,7 @@ const LZ_ZAUN=[
   {ax:ZELLE[1].x0-0.02,az:ZELLE_Z1+0.03,bx:LADEZONE.x0+0.05,bz:ZELLE_Z1+0.03}];   /* Ost: Box bis Hallenwand */
 function ladezoneRechtecke(){ return LZ_ZAUN.map(f=>({x0:Math.min(f.ax,f.bx)-0.06,x1:Math.max(f.ax,f.bx)+0.06,z0:Math.min(f.az,f.bz)-0.06,z1:Math.max(f.az,f.bz)+0.06})); }
 function ladezoneBauen(g,B){
-  const M=vsGitterMat();
-  for(const f of LZ_ZAUN) gitterZaun(B,'lz',g,f.ax,f.az,f.bx,f.bz,1.25,M,null);
+  for(const f of LZ_ZAUN) bk.zaun({art:'gitter',von:[f.ax,f.az],bis:[f.bx,f.bz],hoehe:1.25,S:vsZaunS(B,'lz'),parent:g});
   /* Sperrflaeche am Boden: gelbe Schraegstreifen, Rand mit Warnstreifen */
   const x0=LADEZONE.x0+0.05, x1=LADEZONE.x1-0.08, z0=ZELLE_Z1+0.1, z1=LADEZONE.z1-0.05, BW=x1-x0, BT=z1-z0, k=150;
   const t=tex(Math.round(BW*k),Math.round(BT*k),(c,W,H)=>{ c.clearRect(0,0,W,H);
@@ -954,7 +897,6 @@ function buildPackstation(){
 
   /* ---- Palettierstation je Stufe: Portal, Zaun, Bodenmarkierung ----
      09.10. (Tom): Kran schon ab Stufe 1, nur eine Palette; je Stufe eine Palette mehr */
-  const zaunM=vsGitterMat();
   const brX1=BAND.x0+0.65;   /* die Portalbruecke ragt im Osten ueber das Bandende */
   for(let s=1;s<=3;s++){ const k='nur'+s, C=ZELLE[s], x0=C.x0, x1=C.x1, z0=C.z0, z1=C.z1;
     const px0=x0+0.06, px1=x1-0.06, pz0=PORTAL_Z0[s]+0.06, pz1=z1-0.06;
@@ -969,9 +911,8 @@ function buildPackstation(){
     /* Zaun: 2 m hoch an West und Sued, zum Band hin im Osten ein niedriges Gelaender -
        darueber hebt der Greifer die Pakete. Die Seite zum Rolltor V1 ist offen: dort holt
        der DDL-Fahrer die Paletten mit dem Hubwagen. */
-    gitterZaun(B,k,g,x0,z1,x0,z0,2.0,zaunM,o=>reg(o,k));
-    gitterZaun(B,k,g,x0,z0,x1,z0,2.0,zaunM,o=>reg(o,k));
-    gitterZaun(B,k,g,x1,z1-0.15,x1,z0+0.15,1.1,null,o=>reg(o,k));
+    for(const [von,bis,art] of [[[x0,z1],[x0,z0],'gitter'],[[x0,z0],[x1,z0],'gitter'],[[x1,z1-0.15],[x1,z0+0.15],'gelaender']])
+      bk.zaun({art,von,bis,S:vsZaunS(B,k),parent:g}).gitter.forEach(o=>reg(o,k));
     B(k,0.5,0.03,0.04,GELB,x0+0.3,0.02,z1-0.05); B(k,0.5,0.03,0.04,GELB,x1-0.3,0.02,z1-0.05);
     /* Boden: Warnstreifen am Rand, Eckmarken der Palettenplaetze */
     const PXM=200, W=Math.round((x1-x0)*PXM), H=Math.round((z1-z0)*PXM);
@@ -1103,17 +1044,7 @@ function versandBereichRaeumen(laut){
    Station und wandert beim Umbau mit. */
 function packSperre(id,g){
   const zb=-1.62, xs=[-1.7,0.3,2.2,4.1];
-  const bandM=new THREE.MeshStandardMaterial({map:sperrbandTex('NOCH NICHT FREIGESCHALTET'),
-    roughness:0.72,side:THREE.DoubleSide});
-  const halt=MAT.get('stahlGraphit');
-  const kopf=MAT.get('lackSchwarz');
-  for(let j=0;j<xs.length-1;j++)
-    for(const y of [0.55,1.05]) sperrband(id,xs[j]+0.04,xs[j+1]-0.04,zb,y,bandM,g);
-  for(const x of xs){
-    zWand(id,bbox(0.055,1.2,0.055,halt,x,0.6,zb,g,false));
-    zWand(id,bbox(0.09,0.055,0.09,kopf,x,1.22,zb,g,false));
-    zWand(id,bbox(0.2,0.03,0.2,kopf,x,0.015,zb,g,false));
-  }
+  bk.absperrung({punkte:xs.map(x=>[x,zb]),baender:[0.55,1.05],text:'NOCH NICHT FREIGESCHALTET',zone:id,parent:g});
 }
 /* Die Packplaetze stehen auf einer eigenen, markierten Flaeche: grauer
    Boden mit gelbem Rand und Schraffur an den Schmalseiten. Der zweite
@@ -1183,27 +1114,7 @@ const WTOR={w:3.4,h:3.05};
 
 /* Trapezblech fuer Hallenwaende. Die Wand-UVs stehen in Metern,
    deshalb passt ein einziges Material auf jede Wandlaenge. */
-let _blech=null;
-function blechMat(){
-  if(_blech) return _blech;
-  const t=tex(256,64,(g,W,H)=>{
-    g.fillStyle='#b9bec6'; g.fillRect(0,0,W,H);
-    /* eine Sicke je 32 px, also je 0,4 m */
-    for(let x=0;x<W;x+=32){
-      const gr=g.createLinearGradient(x,0,x+32,0);
-      gr.addColorStop(0.00,'#8f959e'); gr.addColorStop(0.16,'#cfd4da');
-      gr.addColorStop(0.42,'#e4e8ed'); gr.addColorStop(0.58,'#c4c9d1');
-      gr.addColorStop(0.84,'#9aa0a9'); gr.addColorStop(1.00,'#7d838c');
-      g.fillStyle=gr; g.fillRect(x,0,32,H);
-      g.fillStyle='rgba(255,255,255,.35)'; g.fillRect(x+12,0,2,H);
-      g.fillStyle='rgba(0,0,0,.18)';       g.fillRect(x+30,0,2,H);
-    }
-    for(let i=0;i<900;i++){ g.fillStyle=`rgba(0,0,0,${Math.random()*0.05})`; g.fillRect(Math.random()*W,Math.random()*H,2,2); }
-  });
-  t.wrapS=t.wrapT=THREE.RepeatWrapping; t.repeat.set(1/3.2,1/3.2); t.anisotropy=8;
-  _blech=new THREE.MeshStandardMaterial({map:t,roughness:0.52,metalness:0.38});
-  return _blech;
-}
+/* blechMat() entfaellt (14.10., Fundament Schritt Waende): Trapezblech = bk.flaeche('blech') = MAT.get('wandBlech') */
 /* Ein Ladetor in der Suedwand der Logistikhalle (R2-R5). Seit 13.10.
    (Fundament, Schritt Tore) baut bk.tor() Blatt, Aussen- und Innenseite -
    vorher standen hier westTor/westTorInnen mit je rund 73 Einzelmeshes und
@@ -1386,7 +1297,7 @@ function logiGlas(len,rows){
 }
 function buildLogistik(){
   const H=LOGI.hoehe, ha=LOGI.halle, bu=LOGI.buero;
-  const blech=blechMat();
+  const blech=bk.flaeche('blech');
   const sockel=MAT.get('graphitMatt');
   const attika=MAT.get('lackAnthrazit');
   const steel=MAT.get('stahlVerzinkt');
@@ -1430,15 +1341,17 @@ function buildLogistik(){
     for(const s of [-1,1]) flat(4.4,0.14,MAT.get('markierungGelb'),ha.x0-2.6,0.017,tz+s*2.4); }
   /* Zaun mit Bauschild: faellt, sobald das Zentrum freigeschaltet wird */
   const Z=LOGI.zaun, ZH=2.4;
-  zaunLauf(Z.x,Z.z0,Z.x,Z.z1,ZH);
-  zaunLauf(Z.x,Z.z0,ha.x0,Z.z0,ZH);
-  zaunLauf(Z.x,Z.z1,bu.x0,Z.z1,ZH);
+  /* Luecke fuer das Doppeltor (bis 14.10. lief die Matte mitten durch das Tor) */
+  const TZ=2.0, TB=6.22;
+  bk.zaun({art:'doppelstab',von:[Z.x,Z.z0],bis:[Z.x,Z.z1],hoehe:ZH,luecke:[[TZ-TB/2-Z.z0,TZ+TB/2-Z.z0]]});
+  bk.zaun({art:'doppelstab',von:[Z.x,Z.z0],bis:[ha.x0,Z.z0],hoehe:ZH});
+  bk.zaun({art:'doppelstab',von:[Z.x,Z.z1],bis:[bu.x0,Z.z1],hoehe:ZH});
   col(Z.x-0.12,Z.x+0.12,Z.z0,Z.z1);
   col(Z.x,ha.x0,Z.z0-0.12,Z.z0+0.12);
   col(Z.x,bu.x0,Z.z1-0.12,Z.z1+0.12);
   zWandCol('logistik',col(Z.x,ha.x1+1,Z.z0,Z.z1));
   /* Doppeltor in der Zaunflucht, verschlossen (Zauntor aus dem Baukasten) */
-  bk.tor({art:'gitter',bewegung:'fluegel',breite:6.22,hoehe:ZH,boden:0.35,pfosten:true,schloss:true,x:Z.x,z:2.0,ry:0});
+  bk.tor({art:'gitter',bewegung:'fluegel',breite:TB,hoehe:ZH,boden:0.35,pfosten:true,schloss:true,x:Z.x,z:TZ,ry:0});
   /* Hier stand ein Bauschild „NOCH NICHT ZU HABEN“. Auch das ist
      raus - kein Schild im Spiel soll den Spieler daran erinnern,
      was er noch nicht hat. */

@@ -184,7 +184,6 @@ function buildYard(){
       t.wrapS=t.wrapT=THREE.RepeatWrapping; t.repeat.set(3,1.5);
       return new THREE.MeshStandardMaterial({map:t,metalness:0.62,roughness:0.44}); })();
     const stahl=MAT.get('stahlMittel');
-    const lack =MAT.ober('signalgelb','lackMetall');
     /* Bodenplatte aus Riffelblech auf vier Fuessen */
     bbox(2.4,0.05,1.16,riffel,0,0.055,0,g);
     for(const sx of [-1.06,1.06]) for(const sz of [-0.46,0.46])
@@ -196,13 +195,10 @@ function buildYard(){
       const dia=bbox(0.05,0.05,0.82,stahl,sx,0.39,0,g,false); dia.rotation.x=0.88;
     }
     for(const sz of [-0.5,0.5]) bbox(2.24,0.07,0.07,stahl,0,0.68,sz,g,false);
-    /* Anfahrschutz aus Stahlrohr statt Sandsaecken */
-    for(const sz of [-0.78,0.78]){
-      bbox(2.5,0.09,0.09,lack,0,0.5,sz,g,false);
-      for(const sx of [-1.2,1.2]){
-        bbox(0.09,0.5,0.09,lack,sx,0.25,sz,g,false);
-        bbox(0.2,0.04,0.2,stahl,sx,0.02,sz,g,false); }
-    }
+    /* Anfahrschutz aus Stahlrohr statt Sandsaecken - Baukasten-Buegel (bk.anfahrschutz, 14.10.) */
+    { const S=bk.sammler({form:{fase:0.01,faseMin:0.06,seg:1,lod0Kasten:true},bauteil:'anfahrschutz'});
+      for(const sz of [-0.78,0.78]) bk.anfahrschutz(S,{von:[-1.2,sz],bis:[1.2,sz]});
+      S.fertig(g,{bauteil:'anfahrschutz',schatten:false}); }
     /* drei Rohre in aufsteigendem Kaliber: Abschuss-Baustein (14z4) - mit
        Schellen, Wulst und Ringen, dieselben Rohre wie in der Vorfuehrung */
     abMatSetzen({riffel});

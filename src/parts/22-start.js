@@ -104,7 +104,7 @@ function fontsReady(){
 setCompact();
 fontsReady().then(()=>{
   buildKartons();
-  buildWorld();
+  buildWorld(); bk.wandbild();
   { const li=$('logoImg'); if(li) li.src=LOGO; }
   initPost(); prachtAufbau(); lichtAufbau(); buildPDA();
   initFlash(); { const pk=Math.max(1,GFX_START.qual); psHuge=new PS(COARSE?700:Math.round(2000*pk),0.95,COARSE?2:4,sternTex); psBig=new PS(COARSE?3600:Math.round(10000*pk),0.42,COARSE?3:5); psMid=new PS(COARSE?1800:Math.round(9000*pk),0.15,COARSE?2:3); psSmall=new PS(COARSE?900:Math.round(1800*pk),0.07); }

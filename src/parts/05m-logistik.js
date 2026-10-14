@@ -47,13 +47,13 @@ function logiSammle(fn){
 }
 /* Suedwand: massive Stuecke, dazwischen die Toroeffnungen dieser Stufe */
 function logiSuedwand(i,r,H,ex){
-  const Z=LHALLE.z, sock=MAT.std(0x4a5058,{roughness:0.9});
+  const Z=LHALLE.z;
   const tore=WRAMPEN.map((x,k)=>({x,k})).filter(t=>TOR_STUFE[t.k]<=i&&t.x>r.x0&&t.x<r.x1).sort((a,b)=>a.x-b.x);
   const stueck=(a,b)=>{ if(b-a<0.01) return;
     wall(a,b,Z-LW,Z,0,H,'+z',lagerWall,ex,0,lagerWall); col(a,b,Z-LW,Z);
     /* Sockelband gegen Spritzwasser, nur an der vollen Wand - frueher
        lief es auch quer vor den Toren her */
-    bbox(b-a,1.05,0.06,sock,(a+b)/2,0.525,Z-LW-0.03,null,false); };
+    bk.sockelleiste({art:'aussen',laengs:true,a0:a,a1:b,fest:Z-LW/2,seite:-1}); };
   let x=r.x0-LW;
   for(const t of tore){
     const a=t.x-WTOR.w/2, b=t.x+WTOR.w/2;
@@ -65,7 +65,7 @@ function logiSuedwand(i,r,H,ex){
   stueck(x,r.x1+LW/2);
 }
 function logiStufeBauen(i){
-  const st=LOGI_STUFEN[i], r=st.r, H=st.h, bl=blechMat(), S2=LAY.schleuse;
+  const st=LOGI_STUFEN[i], r=st.r, H=st.h, bl=bk.flaeche('blech'), S2=LAY.schleuse;
   const ST=[[S2.z0+1.6,S2.z1-1.6]];
   const g=new THREE.Group(); g.userData.inventar=true; g.userData.logiStufe=i; scene.add(g); LOGI_G[i]=g;
   const {neu,cols}=logiSammle(()=>{
@@ -119,10 +119,9 @@ function logiHofBauen(){
   }
   /* Zaun: Sueden, Osten und Westen mit der Einfahrt */
   const ZH=2.2, torA=-53.5, torB=-46.5;
-  zaunLauf(r.x0,r.z0,r.x1,r.z0,ZH);
-  zaunLauf(r.x1,r.z0,r.x1,r.z1,ZH);
-  zaunLauf(r.x0,r.z0,r.x0,torA,ZH);
-  zaunLauf(r.x0,torB,r.x0,r.z1,ZH);
+  bk.zaun({art:'doppelstab',von:[r.x0,r.z0],bis:[r.x1,r.z0],hoehe:ZH});
+  bk.zaun({art:'doppelstab',von:[r.x1,r.z0],bis:[r.x1,r.z1],hoehe:ZH});
+  bk.zaun({art:'doppelstab',von:[r.x0,r.z0],bis:[r.x0,r.z1],hoehe:ZH,luecke:[[torA-r.z0,torB-r.z0]]});   /* Einfahrt */
   col(r.x0,r.x1,r.z0-0.1,r.z0+0.1);
   col(r.x1-0.1,r.x1+0.1,r.z0,r.z1);
   col(r.x0-0.1,r.x0+0.1,r.z0,torA);

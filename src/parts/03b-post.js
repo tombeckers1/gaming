@@ -203,7 +203,7 @@ try{ if(localStorage.getItem('bb_buendel')==='0') BUENDEL.aus=true; }catch(e){}
    Spiellogik - solche Meshes duerfen gebuendelt werden wie vorher die unmarkierten */
 function udEigen(ud){ for(const k in ud) if(k!=='bauteil'&&k!=='klasse') return true; return false; }
 function bKandidat(o,root){
-  if(!o.isMesh||o.isInstancedMesh||o.isSkinnedMesh||o.children.length||o.userData._bnd) return false;
+  if(!o.isMesh||o.isInstancedMesh||o.isSkinnedMesh||o.children.length||o.userData._bnd||o.userData.wandBild) return false;
   const m=o.material; if(!m||Array.isArray(m)||!m.visible||m.transparent||m.vertexColors||(m.map&&m.map.isVideoTexture)) return false;
   if(udEigen(o.userData)&&!(o.userData._gbM||o.userData._gbGeo)) return false;
   if(o.onBeforeRender!==THREE.Object3D.prototype.onBeforeRender) return false;
@@ -288,6 +288,7 @@ function renderFrame(dt){
   if(typeof ladenLichtTakt==='function') ladenLichtTakt(dt||0.016);
   sonneNachfuehren();
   gruppenTakt();
+  if(typeof bk!=='undefined') bk.wandbildTakt();
   buendelTakt();
   schattenTakt();
   if(PR.an) prachtTakt();

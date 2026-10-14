@@ -1,32 +1,8 @@
 /* =========================================================
    Doppelstabmatte ums Testfeld und Strassenleuchten
    ========================================================= */
-/* gitterMat() entfaellt (13.10., Fundament): Doppelstabmatte = MAT.get('zaunGitter') mit geteilter
-   Textur MAT.tex('doppelstab'), Massstab in den UVs (MAT.kachel) - ein Material fuer alle Zaunlaeufe */
-/* Ein Zaunlauf von (x0,z0) nach (x1,z1) */
-function zaunLauf(x0,z0,x1,z1,h){
-  const dx=x1-x0, dz=z1-z0, len=Math.hypot(dx,dz), ry=Math.atan2(dx,dz);
-  const post=MAT.get('zaunPfosten');
-  const kappe=MAT.get('zaunKappe');
-  /* Sockelschiene */
-  const sock=bbox(0.12,0.16,len,MAT.get('zaunSockel'),(x0+x1)/2,0.08,(z0+z1)/2,null,false);
-  sock.rotation.y=ry;
-  /* Matte */
-  const panel=new THREE.Mesh(MAT.kachel(new THREE.PlaneGeometry(len,h-0.16),len,h-0.16),MAT.get('zaunGitter'));
-  panel.position.set((x0+x1)/2,0.16+(h-0.16)/2,(z0+z1)/2);
-  panel.rotation.y=ry+Math.PI/2;
-  scene.add(panel);
-  /* Pfosten alle 2,5 m */
-  const n=Math.max(2,Math.round(len/2.5));
-  for(let i=0;i<=n;i++){
-    const t2=i/n, x=x0+dx*t2, z=z0+dz*t2;
-    const p2=bbox(0.07,h+0.06,0.07,post,x,(h+0.06)/2,z,null,false); p2.rotation.y=ry; p2.userData.zaunPfosten=true;
-    bbox(0.1,0.025,0.1,kappe,x,h+0.09,z,null,false);
-    for(const y of [0.42,h-0.3]){
-      const sch=bbox(0.1,0.05,0.05,kappe,x,y,z,null,false); sch.rotation.y=ry;
-    }
-  }
-}
+/* zaunLauf() entfaellt (14.10., Fundament Schritt Zaeune): Doppelstabmatte = bk.zaun({art:'doppelstab'}) (04z) -
+   ein Sammler je Lauf (Pfosten, Kappen, Schellen, Sockelschiene, Matte) statt 33 Einzelmeshes */
 /* Das Testfeld reicht jetzt von der Lagerwand bis an die Suedhalle.
    Im Norden steht die Ladenrueckwand, im Westen die Lagerwand, im
    Osten die Westwand des Rueckgebaeudes - eingezaeunt wird nur, was
@@ -54,11 +30,11 @@ function warnSchild(x,z,ry){
    ueberall sieht, wo man steht. */
 function buildZaun(){
   const H=2.0, T=LAY.test;
-  zaunLauf(T.x0,T.z0,T.x1,T.z0,H);            /* Sueden        */
+  bk.zaun({art:'doppelstab',von:[T.x0,T.z0],bis:[T.x1,T.z0],hoehe:H});            /* Sueden        */
   /* endet an der Aussenseite der Suedhallenwand - bei LAY.sued.z0
      stand der letzte Pfosten genau in der Innenecke der Verkaufsflaeche
      und ragte dort als dunkler Strich in den Laden (Tom, 26.09.) */
-  zaunLauf(T.x1,T.z0,T.x1,LAY.sued.z0-0.2,H);     /* Osten, unten  */
+  bk.zaun({art:'doppelstab',von:[T.x1,T.z0],bis:[T.x1,LAY.sued.z0-0.2],hoehe:H});     /* Osten, unten  */
   col(T.x0,T.x1,T.z0-0.1,T.z0+0.1);
   col(T.x1-0.1,T.x1+0.1,T.z0,LAY.sued.z0);
   /* Warnschilder laengs der Zaunlaeufe */
@@ -1434,7 +1410,7 @@ function nachbarFassade(x0,x1,zid,unterzeile,eingang){
   /* Die Ladenzeile ist ein Gebaeude, also traegt sie dieselbe
      Fassade wie der eigene Laden - vorher sass hier eine zweite,
      noch groebere Ziegeltextur daneben. */
-  const zm=wallBrickMat();
+  const zm=bk.flaeche('fassade');
   const w=x1-x0, cx=(x0+x1)/2;
   /* Die Fassade hat echte Oeffnungen. Solange nebenan nicht gekauft ist,
      sind sie zugemauert; nach dem Kauf sitzen dort Schaufenster.
@@ -1467,7 +1443,7 @@ function nachbarFassade(x0,x1,zid,unterzeile,eingang){
      keine Sockelleiste - im Basisladen schon. An der Stossstelle hoerte
      die Leiste mitten an der Wand auf. Jetzt laeuft sie durch, nur an
      der Eingangsachse nicht. */
-  { const sl=(a2,b2)=>{ if(b2>a2+0.01) zAdd(zid,bbox(b2-a2,0.1,0.02,sockelM(),(a2+b2)/2,0.05,zf-0.21,null,false)); };
+  { const sl=(a2,b2)=>{ if(b2>a2+0.01) bk.sockelleiste({laengs:true,a0:a2,a1:b2,x:(a2+b2)/2,z:zf-0.21,versteckt:zid}); };
     if(eingang!==undefined){ const [ea,eb]=OEFF[eingang]; sl(x0,ea); sl(eb,x1); } else sl(x0,x1); }
   /* Attika, Gesims und Sockel. Die Farben gehen mit der Fassade:
      anthrazit wie der Sockel in der Textur, nicht mehr das
@@ -2326,12 +2302,9 @@ function buildFahrbahn(){
 }
 
 /* ---------- Stadtmoebel (alles in den Sammler) ---------- */
-function stPoller(x,z){ stOrt(x,z,0);
-  mT('lack',new THREE.CylinderGeometry(0.075,0.075,0.02,14),0,0.01,0,0,0,0,MAT.farbe('graphit'));
-  mT('lack',new THREE.CylinderGeometry(0.05,0.05,0.86,14),0,0.44,0,0,0,0,MAT.farbe('graphit'));
-  mT('lack',new THREE.SphereGeometry(0.05,14,6,0,Math.PI*2,0,Math.PI/2),0,0.87,0,0,0,0,MAT.farbe('graphit'));
-  mT('matt',new THREE.CylinderGeometry(0.052,0.052,0.07,14,1,true),0,0.74,0,0,0,0,MAT.farbe('cremeweiss'));
-}
+/* Strassenpoller: bk.poller art 'stadt' (04z) in den Stadtmoebel-Sammler (Strassenmaterialien mit Lichtpfuetzen).
+   Auch die Poller vor dem Schaufenster (05f) kommen von hier - buildFacade laeuft vor stFertig. */
+function stPoller(x,z){ _stS.pivot(x,gehwegY(x,z),z); bk.poller(_stS,0,0,{art:'stadt',kl:{lack:'lack',matt:'matt'}}); _stS.pivot(); }
 function stSchild(x,z,ry,felder,h){   /* felder: [[x0,y0,x1,y1,breite,hoehe,rund]] von oben nach unten */
   stOrt(x,z,ry); h=h||2.35;
   mT('lack',new THREE.CylinderGeometry(0.032,0.032,h,10),0,h/2,0,0,0,0,MAT.farbe('hellgrau'));

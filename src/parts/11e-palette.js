@@ -412,13 +412,10 @@ function buildVersandhof(){
     c2.fillStyle='rgba(18,20,26,.62)'; c2.fillRect(0,0,Wc,Hc); c2.strokeStyle=MAT.css('signalgelb'); c2.lineWidth=10; c2.strokeRect(5,5,Wc-10,Hc-10);
     c2.textAlign='center'; c2.textBaseline='middle'; c2.font=BUN(104); c2.fillStyle=MAT.css('signalgelb'); c2.fillText('VERSANDHOF',Wc/2,Hc/2+3); })}));
   zm.rotation.x=-Math.PI/2; zm.rotation.z=0; zm.position.set(V1.x,0.045,hof.z1-2.4); zm.renderOrder=2; g.add(zm);
-  const zaunM=MAT.get('zaunPfosten');
-  const zaun=(x0,z0,x1,z1)=>{ const quer=Math.abs(x1-x0)>Math.abs(z1-z0), L=quer?Math.abs(x1-x0):Math.abs(z1-z0), n=Math.max(1,Math.round(L/2));
-    for(let j=0;j<=n;j++){ const x=x0+(x1-x0)*j/n, z=z0+(z1-z0)*j/n; bbox(0.08,2.0,0.08,zaunM,x,1.0,z,g,false); }
-    const m=new THREE.Mesh(new THREE.BoxGeometry(quer?L:0.03,1.7,quer?0.03:L),MAT.ober('mittelgrau','stahl',{transparent:true,opacity:0.55}));
-    m.position.set((x0+x1)/2,1.0,(z0+z1)/2); g.add(m);
-    for(const yy of [0.15,1.95]) bbox(quer?L:0.05,0.05,quer?0.05:L,zaunM,(x0+x1)/2,yy,(z0+z1)/2,g,false); };
-  zaun(hof.x0,hof.z1,hof.x0,hof.z0); zaun(hof.x1,hof.z1,hof.x1,hof.z0); zaun(hof.x0,hof.z0,hof.x1,hof.z0);
+  /* Zaun: Doppelstabmatte aus dem Baukasten (bk.zaun, aussen) - vorher eigene Pfosten alle 2 m mit
+     halbdurchsichtiger Scheibe (14.10., Fundament Schritt Zaeune) */
+  for(const [a,b] of [[[hof.x0,hof.z1],[hof.x0,hof.z0]],[[hof.x1,hof.z1],[hof.x1,hof.z0]],[[hof.x0,hof.z0],[hof.x1,hof.z0]]])
+    bk.zaun({art:'doppelstab',von:a,bis:b,hoehe:2.0,parent:g});
   col(hof.x0-0.1,hof.x0+0.05,hof.z0,hof.z1); col(hof.x1-0.05,hof.x1+0.1,hof.z0,hof.z1); col(hof.x0,hof.x1,hof.z0-0.1,hof.z0+0.05);
   /* Flutlicht ueber dem Tor (aussen) */
   bbox(0.5,0.12,0.2,dark,V1.x,V1.h+1.95,V1.wz-0.25,g,false);

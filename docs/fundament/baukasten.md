@@ -63,7 +63,15 @@ später ändern will (Ampel, Lampe in `lampMats`, Regalfarbe, Hervorhebung, Ausb
 | `bk.sammler(opt)` | viele Teile → je Oberflächenklasse **ein** Mesh mit Vertexfarben |
 | `bk.schild(parent,{text,unter,b,h,x,y,z,ry,bg,fg,px})` | Schild im Hausstil (Nachtblau/Gold), Textur-Cache je Text+Größe |
 | `bk.tor(o)` | **jedes Tor im Spiel** (Ladetor sektional/roll, Attrappe, Zauntor) – eine Optik, Parameter statt Kopie; Doku `tore.md` |
-| `bk.poller(S,x,z,o)` | Poller/Anfahrschutz in einen Sammler, gibt das Kollisionsrechteck zurück (Tore; später Schritt Zäune/Poller) |
+| `bk.poller(S,x,z,o)` | Poller in einen Sammler: `art:'anfahr'` (Industrie, gelb – Tore/Rampen) · `'stadt'` (Gehweg, graphit rund); gibt das Kollisionsrechteck zurück. Doku `zaeune.md` |
+| `bk.anfahrschutz(S,o)` | Rammschutz-Bügel aus Vierkantrohr (gelb) von `von` nach `bis` in einen Sammler (Mörser) |
+| `bk.zaun(o)` | **jeder Zaun**: `art:'doppelstab'` (außen) · `'gitter'` (gelb, innen) · `'gelaender'`; `von/bis`, `hoehe`, `pfosten`, `luecke` (Tor/Einfahrt), optional fremder Sammler `S`. Doku `zaeune.md` |
+| `bk.absperrung(o)` | Absperrband zwischen Pfosten (`punkte`, `baender`, `text`, `zone`, `frei`) – ein Band-Mesh, Material je Aufdruck einmal |
+| `bk.fuss(S,x,z,b)` | Fußplatte (Pfosten von Gitter, Anfahrschutz) – überall dieselbe |
+| `bk.wand(o)` | **jedes Wandstück**: `flaechen:{innen,aussen,laibung}` als Art (`'laden'`, `'lager'`, `'fassade'`, `'blech'`, `'laibung'`, `'putz'`) oder Material, ≤ 3 Gruppen, UV in Metern, `still`, `zone`, `sockel`. `wall()`/`stilleWand()` sind Hüllen. Doku `waende.md` |
+| `bk.sockelleiste(o)` | Sockel vor einer Wand: `art:'laden'` (Fußleiste, Farbe folgt der Tapete) · `'aussen'` (Spritzwassersockel graphit) |
+| `bk.wandbild()` | zeichnet alle Wandstücke und Sockel je Material und 32-m-Feld als **ein** Mesh (Haupt- und Schattenpass); Originale auf Ebene 3 für Logik/Tests |
+| `bk.flaeche(name)`, `bk.wandFlaeche(mesh,k)` | Wandfläche → Material · Material einer Box-Seite (0 +x … 5 −z) einer Wand |
 | `bk.stab(S,x0,y0,x1,y1,z,d,farbe,klasse)` | Stab zwischen zwei Punkten (Streben, Abhänger) |
 | `bk.uvZeile(geo,zeile)` | UVs eines Kastens auf eine Zeile des Atlas `torBlatt` legen (0 Lamellen, 1 Fenster, 2 unten, 3 weiß) |
 | `bk.inst(geo,mat,[Matrix4],o)` | Instanzen einer geteilten Geometrie mit eigener Hüllkugel (Sichtprüfung bleibt an) |
@@ -102,6 +110,11 @@ Die Spiel-Logik (Kollision des Blatts, Ampel schalten, Warnleuchte blinken, Klan
 Noch eigene Sammler (Folgeschritte): Stadthäuser `hausKit`/`hzAdd` und Stadtmöbel `stM` (05e, eigene
 Atlas-/Lichtmaterialien), Stadt `sammler()` (05j), Halle `hvSammler` (Branch, Schritt 9).
 
+### `bk.zaun`, `bk.poller`, `bk.anfahrschutz`, `bk.absperrung` (Schritt „Zäune/Poller“, 14.10.) – siehe `zaeune.md`
+### `bk.wand`, `bk.sockelleiste`, Wandbild (Schritt „Wände“, 14.10.) – siehe `waende.md`
+Ebenen (`layers`): 0 gezeichnet · 1 Originale der Laufzeit-Bündelung (03b) · 2 Kleinteil-Kappung (03c) · **3 Wand-Originale (Wandbild)**.
+Der Zielstrahl des Spielers (15-player `ray`) testet 0, 1 und 3.
+
 ### Ein Bauteil ergänzen
 Erst prüfen, ob es das Bauteil schon gibt (hier und in der Umbauliste `inventar-optik.md` §5).
 Neues Bauteil = Funktion `bk.<name>(o)` in `04z-baukasten.js`: Parameter statt Kopie, Teile über
@@ -110,7 +123,11 @@ bewegte Teile) statt sie intern zu verdrahten, jedes Mesh mit `userData.bauteil`
 Danach `bk.<name>` in `tools/fundament/waechter.js` (`BAUTEILE` mit Namenswörtern oder `HELFER`) eintragen und
 `node tools/fundament/waechter.js` laufen lassen – verbindlicher Ablauf und Wächter: `stilregeln.md` §10–11.
 
-## 3. Messung Schritt 2 (Materialangleichung, 13.10.)
+## 3. Messung Schritte 3 + 4 (Wände, Zäune/Poller, 14.10.)
+Mit Laufzeit-Bündelung (Spielzustand): Hauptpass Laden 597 → 490, Lagerdock 635 → 495, Dock-Hof 739 → 561; Schattenpass 464–511 → 266–290
+(−40 … −44 %). Meshes im Graf 2 521 → 2 218, Zeichengruppen 3 381 → 2 516. Einzelheiten: `waende.md` §4, `zaeune.md` §4.
+
+## 3b. Messung Schritt 2 (Materialangleichung, 13.10.)
 Material-Objekte 563 → 430, Dubletten 114 → 89, Texturen 225 → 223, Zeichenaufrufe fast gleich; Einzelheiten und
 Vorher/Nachher-Bilder in `angleichung.md`.
 

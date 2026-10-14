@@ -419,11 +419,7 @@ const VORHER=[
   {kat:'Lampen',id:'lampe-strasse',titel:'Straßenlampe',baut:'strassenlampe',datei:'05e-street.js',blick:0,sel:{owns:['strassenlampe','lampTeile']}},
   {kat:'Lampen',id:'lampe-strahler',titel:'Wandstrahler (Dock)',baut:'buildDock',datei:'05g-dock.js',blick:0,sel:{own:'buildDock',box:[-21.2,2.6,-5.4,-19.9,3.4,-4.4]}},
   {kat:'Lampen',id:'lampe-fassade',titel:'Fassadenstrahler',baut:'buildFacade',datei:'05f-facade.js',blick:0,sel:{own:'buildFacade',box:[-2.65,6.6,6.2,-2.15,7.1,6.7]}},
-  /* ---- Zaeune, Poller ---- */
-  {kat:'Zäune & Poller',id:'zaun-dsm',titel:'Doppelstabmatten-Zaun (Hof)',baut:'zaunLauf',datei:'05e-street.js',blick:0,sel:{own:'zaunLauf',nth:0,ausschnitt:5}},
-  {kat:'Zäune & Poller',id:'zaun-gitter',titel:'Gitterzaun Packstation',baut:'gitterZaun',datei:'05h-ausbau.js',blick:0,sel:{own:'gitterZaun'}},
-  {kat:'Zäune & Poller',id:'poller-fassade',titel:'Poller Ladenfront',baut:'buildFacade',datei:'05f-facade.js',blick:0,sel:{own:'buildFacade',box:[5.2,0,7.3,5.7,1.0,7.8]}},
-  {kat:'Zäune & Poller',id:'poller-dock',titel:'Poller Dock',baut:'buildDock',datei:'05g-dock.js',blick:0,sel:{own:'buildDock',box:[-20.8,0,-4.2,-20.3,1.0,-3.8]}},
+  /* Zaeune, Poller: seit 14.10. im Baukasten (bk.zaun, bk.poller, bk.anfahrschutz, bk.absperrung) - erscheinen unter den Bauteilen */
   /* ---- Paletten ---- */
   /* Palettenstapel: seit 14.10. im Baukasten (bk.paletten, userData.bauteil 'palette') */
 ];

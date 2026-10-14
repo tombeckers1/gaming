@@ -138,6 +138,11 @@ automatisch unter den Baukasten-Bauteilen.
 
 ## 5a. Tests (eigene Sperre, je Lauf ein Browser)
 
+14.10. (Optik alter R1): grün rampe, wrampe, logistik, versandtor, abfahrt, versand, material (0 Verstöße, Warnschraffur 28 Abrufe), stufen, gameplay;
+`wirtschaft-snapshot` GLEICH. Erstläufe brachen unter Last ab (Klick-Zeitlimit, Speichermangel-Abstürze fremder Browser) – wiederholt, nicht Tor-bedingt.
+
+13.10.:
+
 Grün: rampe (Tor zu → auf über den Bogen → LKW dockt, Ausladen, Tor zu), wrampe, logistik, versandtor, abfahrt, lieferung,
 durchgang, versand, material (Wächter: 0 Verstöße), bruecke, tuer, ladentuer, eingang, stufen, korb, neu2, ausbau (Speichern + Laden), gameplay (Endstand).
 Nicht bestätigt (Zeitlimit unter Last, nicht Tor-bedingt): raum und rampe-vorher hängen beide 30 min im selben Aufruf

@@ -5,7 +5,8 @@
 > Neueste Entscheidung (Tom, 08.10. abends): Versandecke **Stufe 1 ohne Roboter-Kran**,
 > der Spieler legt das Paket selbst auf die Palette (UEBERGABE.md 5.0) – erledigt 08.10., V120.
 
-> **AKTUELL (Tom, 13.10.):** Chatwechsel erfolgt; nächstes Paket ist das **Fundament** –
+> **AKTUELL (14.10. abends):** Fundament weitgehend fertig – Stand und offene Reihenfolge in UEBERGABE.md Abschnitt 00.
+> **Vorher (Tom, 13.10.):** Chatwechsel erfolgt; nächstes Paket ist das **Fundament** –
 > einheitliche Struktur (Baukasten + Materialbibliothek zuerst, dann Stilregeln, Wirtschaftszentrale,
 > Wächter-Tests, Übersicht). Kein Neubau. Auftrag: `docs/uebergabe/fundament.md`, Stand: UEBERGABE.md Abschnitt 0.
 > **Dauerregel ab Fundament:** Neue Objekte/Materialien nur aus dem Baukasten bzw. der Bibliothek;

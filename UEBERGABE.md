@@ -1,5 +1,5 @@
 # Übergabe Böllerladen Simulator – vollständiger Kontext für den neuen Chat
-Stand: **13.10.2026** (Chatwechsel nach dem langen Chat vom 08.–13.10.). Ältere Abschnitte ab „1.“ unten gelten weiter, Abschnitt 0 ist der aktuelle Stand.
+Stand: **14.10.2026 abends** (Abschnitt 00 neu; Chat 13.–14.10. Fundament). Ältere Abschnitte ab „1.“ unten gelten weiter, Abschnitt 0 ist der aktuelle Stand.
 
 > **Für den neuen Chat:** Zuerst Abschnitt 0 und 10 lesen, dann `CLAUDE.md` (Regeln), dann
 > `docs/uebergabe/fundament.md` (nächstes Paket) und `docs/uebergabe/warteschlange.md`.
@@ -8,7 +8,39 @@ Stand: **13.10.2026** (Chatwechsel nach dem langen Chat vom 08.–13.10.). Älte
 
 ---
 
-## 0. AKTUELLER STAND 13.10.2026 – ZUERST LESEN
+## 00. STAND 14.10.2026 ABENDS – ZUERST LESEN (danach Abschnitt 0 für Hintergrund)
+
+**Spiel V133 in Prüfung / V132 veröffentlicht** – Branch `claude/artifact-review-task-d47i09`, Artefakt
+https://claude.ai/artifact/7zw7iHrZYiYSGzw1QHNwVJ. **Übersicht für Tom** (Bauteil-/Material-/Textur-Katalog, Vorher/
+Nachher je Schritt, Wirtschaft „Entscheidung → Folge“, Feuerwerks-Regeln): https://claude.ai/artifact/4fTTh8HyVbz6qNYF47yFg9
+– Generator `tools/fundament/katalog.js` + `uebersicht.py` (Branch `claude/fundament-katalog`, liest docs/fundament/*.md
+und Bildordner automatisch), Ausgabe nach Scratchpad `bauteil-katalog.html` und von dort veröffentlichen.
+
+**Fundament fertig + gemergt (13.–14.10.):** Inventar (`docs/fundament/inventar*.md`), Materialbibliothek `01b-material.js`
+(MAT: 28 Töne PALETTE mit RAL, 5 Oberflächenklassen, Rezepte, geteilte Texturen, Atlas), Baukasten `04z-baukasten.js`
+(bk.sammler/schild/tor/poller/zaun/anfahrschutz/absperrung/wand/sockelleiste/wandbild/palette/paletten/inst/karton),
+Materialangleichung, Tore (grau = alter R1, Tom 14.10.; Graphit verworfen), Wände/Zäune/Poller (Wandbild: Schatten −40 %),
+Paletten + Karton-Atlas, Wirtschaftszentrale `01c-wirtschaft.js` (WIRT/WF/WIRT_KETTEN, Snapshot-Beweis), Feuerwerks-
+Regelwerk + Abschuss-Baustein `14z4-abschuss.js`, Stilregeln `docs/fundament/stilregeln.md` (PFLICHT, Verweis in CLAUDE.md),
+Wächter `node tools/fundament/waechter.js` (4 s, ohne Browser; Ausnahmeliste darf nur schrumpfen) + `src/tests/waechter.js`.
+Doku je Schritt: docs/fundament/<schritt>.md + Bildordner.
+
+**Test-Sanierung (14.10.):** Hängende Real-Tests = Speicher (OOM-Killer beendet Renderer stumm, Container ~15 GB für alle).
+Neuer `tools/test/ladezeit-preload.js` (Herzschlag, „RENDERER TOT“ Exit 4, Speichergrenze) + `tools/test/lauf.sh`
+(`BB_LOCK=/tmp/bb-testlock sh tools/test/lauf.sh <test>`) + `start-hilfe.js`. **Regel: höchstens 2 Agenten mit Browser
+gleichzeitig, besser einer** (material braucht ~11 GB).
+
+**Offen, in dieser Reihenfolge (Tom hat zugestimmt):**
+1. EPAL-Paletten nach echtem Vorbild (fundament.md „Antworten“) + Karton-Auflösung je Grafikstufe (Niedrig/Mittel 128 px, Max 512 px) – Sonnet.
+2. Lampen + Fassade/Hoflampen (`fassade-0910.md`) – Opus.
+3. Balancing nach freigegebener Zielkurve **ohne Silvester-Rekordtag** (`balancing-0910.md` unten) auf der Wirtschaftszentrale.
+4. Regale, Kassen, Fenster, Türen, Schilder, Bodenmarkierungen (Größen/Arten bleiben, nur Bauweise einheitlich).
+5. Leistungsbericht im Spiel (Tom misst auf seinem PC); prüfen: Vorführung hält ~1,3 GB Texturen, Speicherspitze beim ersten Laden-Bild.
+6. Danach großes Paket: **Große Halle NEU bauen**, vorher genauer Plan mit Tom, Welten direkt zusammenlegen (warteschlange.md).
+**Beiseite (Tom 14.10.):** Feuerwerk-Fragen F1–F4, Feuerwerk wird jetzt nicht geändert.
+**Wochenlimit:** Tom 14.10. ~16 Uhr 41 %; Ziel höchstens ~1 %/h, Sa 14 Uhr ≤ 85 %. Ein Agent nach dem anderen, Sonnet für Routine.
+
+## 0. STAND 13.10.2026 (Hintergrund)
 
 ### 0.1 Nächster Schritt (Toms Entscheidung 13.10.)
 **Paket „Fundament“** – Auftrag komplett in `docs/uebergabe/fundament.md`. KEIN Neubau des Spiels.

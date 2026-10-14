@@ -335,3 +335,92 @@ bk.tor=function(o){
     T.kollision.push({x0:Math.min(a[0],b[0]),x1:Math.max(a[0],b[0]),z0:Math.min(a[1],b[1]),z1:Math.max(a[1],b[1]),art:r.art}); }
   return T;
 };
+
+/* =========================================================
+   Instanzen, Palette, Karton (Fundament Etappe 2, Schritt "Paletten + Kartons", 14.10.)
+
+   Vorher zwei Paletten im Hauptspiel (palettenStapel 05h: 1,2 x 1,05 m, Holz #8e7550,
+   eigenes Material r 0,94; vsHolzGeo 11e: Europalette 1,2 x 0,8 m mit Fasen, vcMat r 0,45)
+   und eine dritte im Halle-Branch (hvPalGeo). Jetzt EINE Europalette: Mass und Aufbau von
+   V1 (9 Kloetze, 3 Bodenbretter, 3 Querbretter, 5 Deckbretter, EPAL 1200 x 800 x 144),
+   Holz holzPalette/holzPaletteDunkel, Oberflaeche stumpf (= Klasse matt 0,9).
+   Doku: docs/fundament/kartons.md
+   ========================================================= */
+/* Instanzen einer Geometrie mit eigener Huellkugel (three r128 prueft Instanzen sonst gegen die
+   Kugel EINER Instanz - Vorbild hvInst, Halle). geo bleibt geteilt (Attribute werden nur verwiesen).
+   bk.inst(geo, mat, [Matrix4], {parent, schatten, bauteil, art}) -> InstancedMesh */
+bk.inst=function(geo,mat,matrizen,o){
+  o=o||{}; if(!matrizen.length) return null;
+  const g2=new THREE.BufferGeometry(); if(geo.index) g2.setIndex(geo.index);
+  for(const k in geo.attributes) g2.setAttribute(k,geo.attributes[k]);
+  for(const gr of geo.groups) g2.addGroup(gr.start,gr.count,gr.materialIndex);
+  if(!geo.boundingSphere) geo.computeBoundingSphere();
+  const box=new THREE.Box3(), p=new THREE.Vector3(), r0=geo.boundingSphere.radius, c0=geo.boundingSphere.center;
+  const im=new THREE.InstancedMesh(g2,mat,matrizen.length);
+  matrizen.forEach((m,i)=>{ im.setMatrixAt(i,m); p.copy(c0).applyMatrix4(m); box.expandByPoint(p); });
+  const s=new THREE.Sphere(); box.getBoundingSphere(s); s.radius+=r0; g2.boundingSphere=s;
+  im.instanceMatrix.needsUpdate=true; im.frustumCulled=true;
+  if(HIQ&&o.schatten!==false){ im.castShadow=true; im.receiveShadow=true; }
+  im.userData.bauteil=o.bauteil||'instanzen'; if(o.art) im.userData.bauteilArt=o.art;
+  (o.parent||scene).add(im); return im;
+};
+/* Ladungstraeger: Mass je Art (l laengs x, b quer z, h Hoehe; Ursprung Mitte unten) */
+bk.PALETTE={euro:{l:1.2,b:0.8,h:0.144,name:'Europalette EPAL 1200 x 800 x 144 mm'}};
+const _bkPalGeo=new Map();
+/* bk.palette(art, {fein}) -> geteilte Geometrie (Vertexfarben, Material MAT.vc('stumpf')).
+   fein: Fasen an den Brettern (Standard ab Niedrig, wie V1); fein:false = einfache Kaesten
+   (Hofstapel, viele Paletten in der Ferne). Je Art und Detail genau eine Geometrie. */
+bk.palette=function(art,o){
+  art=art||'euro'; const A=bk.PALETTE[art]; if(!A) throw new Error('bk.palette: Art unbekannt: '+art);
+  const fein=!(o&&o.fein===false)&&bk.lod()>0, key=art+'|'+(fein?1:0);
+  let geo=_bkPalGeo.get(key); if(geo) return geo;
+  const HOLZ=MAT.farbe('holzPalette'), HOLZ2=MAT.farbe('holzPaletteDunkel'), H=A.h, lx=A.l/2-0.05, bz=A.b/2-0.06;
+  const S=bk.sammler({form:fein?{fase:0.01,seg:2,lod0Kasten:true}:{},klasse:'stumpf'});
+  /* 9 Kloetze, 3 Bodenbretter laengs, 3 Querbretter, 5 Deckbretter (aussen und Mitte breit) */
+  for(const dx of [-lx,0,lx]) for(const dz of [-bz,0,bz]) S.box(0.12,0.078,0.12,dx,0.061,dz,HOLZ2);
+  for(const dz of [-bz,0,bz]) S.box(A.l,0.022,0.12,0,0.011,dz,HOLZ);
+  for(const dx of [-lx,0,lx]) S.box(0.14,0.022,A.b,dx,0.111,0,HOLZ);
+  for(const dz of [-bz,-bz/2,0,bz/2,bz]){ const breit=dz===0||Math.abs(dz)>bz*0.9; S.box(A.l,0.022,breit?0.14:0.1,0,H-0.011,dz,HOLZ); }
+  geo=S.geometrie(); geo.computeBoundingSphere(); geo.userData={bauteil:'palette',art,fein};
+  _bkPalGeo.set(key,geo); return geo;
+};
+/* bk.paletten(liste, {gruppe, fein, schnee, parent, schatten}) -> {holz, schnee}: Paletten als
+   EIN InstancedMesh. liste = [{x,y,z,ry}] (y = Unterkante). schnee = [{x,y,z,ry}] Schneehauben
+   (Instanzen, weissMatt). gruppe: Aufrufe mit demselben Namen landen in denselben Instanzen
+   (Hofstapel an mehreren Stellen = ein Zeichenaufruf). */
+const _bkPalGruppe=new Map();
+bk.paletten=function(liste,o){
+  o=o||{}; const A=bk.PALETTE[o.art||'euro'];
+  let G=o.gruppe?_bkPalGruppe.get(o.gruppe):null;
+  /* Instanzen relativ zur ersten Palette der Gruppe: das Mesh steht dort (Karte, Hofobjekte) */
+  if(!G){ const e0=liste[0]||{x:0,z:0}; G={holz:[],schnee:[],mHolz:null,mSchnee:null,ox:e0.x,oz:e0.z}; if(o.gruppe) _bkPalGruppe.set(o.gruppe,G); }
+  const M=e=>tm(e.x-G.ox,e.y||0,e.z-G.oz,0,e.ry||0,0);
+  for(const e of liste) G.holz.push(M(e)); for(const e of (o.schnee||[])) G.schnee.push(M(e));
+  const par=o.parent||scene;
+  if(G.mHolz) G.mHolz.parent&&G.mHolz.parent.remove(G.mHolz);
+  if(G.mSchnee) G.mSchnee.parent&&G.mSchnee.parent.remove(G.mSchnee);
+  G.mHolz=bk.inst(bk.palette(o.art||'euro',{fein:o.fein}),MAT.vc('stumpf'),G.holz,{parent:par,schatten:o.schatten,bauteil:'palette',art:o.art||'euro'});
+  if(G.schnee.length){ if(!bk._schneeHaube) bk._schneeHaube=new THREE.BoxGeometry(A.l+0.02,0.05,A.b+0.02).translate(0,0.025,0);
+    G.mSchnee=bk.inst(bk._schneeHaube,MAT.get('weissMatt'),G.schnee,{parent:par,schatten:o.schatten,bauteil:'palette',art:'schnee'}); }
+  for(const m of [G.mHolz,G.mSchnee]) if(m) m.position.set(G.ox,0,G.oz);
+  return {holz:G.mHolz,schnee:G.mSchnee};
+};
+/* Palettenstapel als Hofdeko (vorher 05h, eigene Palette 1,2 x 1,05 m in #8e7550): n Europaletten
+   uebereinander, jede Lage leicht versetzt, oben eine Schneehaube. Nahe Stapel teilen sich die
+   Instanzen (gruppe nach 40-m-Raster: Logistikhof Ost, Wartespur, Westrand). Kollision wie vorher als Rechteck. */
+function palettenStapel(x,z,n,ry){
+  ry=ry||0; const A=bk.PALETTE.euro, c=Math.cos(ry), s=Math.sin(ry), L=[];
+  for(let i=0;i<n;i++){ const jx=rand(-0.02,0.02); L.push({x:x+jx*c,y:i*A.h,z:z-jx*s,ry}); }
+  const r=bk.paletten(L,{gruppe:'hofstapel:'+Math.floor(x/40)+','+Math.floor(z/40),fein:false,schnee:[{x,y:n*A.h,z,ry}]});
+  r.holz.userData.hof='paletten';
+  const hx=Math.abs(c)*A.l/2+Math.abs(s)*A.b/2+0.02, hz=Math.abs(s)*A.l/2+Math.abs(c)*A.b/2+0.02;
+  col(x-hx,x+hx,z-hz,z+hz);
+  return r.holz;
+}
+/* Versandkarton einer Sorte (Atlaszelle aus MAT.atlas('karton'), 04b) als Mesh - alle Stellen
+   (Lagerregal, Boden, LKW, Karre) bauen ihn hier. o.kiste: Mehrwegkiste statt Karton. */
+bk.karton=function(t,o){
+  const m=new THREE.Mesh(kartonGeo,o&&o.kiste?kisteMat():kartonMat[t]);
+  if(HIQ){ m.castShadow=true; m.receiveShadow=true; }
+  m.userData.bauteil='karton'; return m;
+};

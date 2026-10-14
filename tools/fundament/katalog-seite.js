@@ -425,7 +425,7 @@ const VORHER=[
   {kat:'Zäune & Poller',id:'poller-fassade',titel:'Poller Ladenfront',baut:'buildFacade',datei:'05f-facade.js',blick:0,sel:{own:'buildFacade',box:[5.2,0,7.3,5.7,1.0,7.8]}},
   {kat:'Zäune & Poller',id:'poller-dock',titel:'Poller Dock',baut:'buildDock',datei:'05g-dock.js',blick:0,sel:{own:'buildDock',box:[-20.8,0,-4.2,-20.3,1.0,-3.8]}},
   /* ---- Paletten ---- */
-  {kat:'Paletten & Ladung',id:'palette-stapel',titel:'Palettenstapel (Hof, Holz #8e7550)',baut:'palettenStapel',datei:'05h-ausbau.js',blick:0,sel:{own:'palettenStapel'}}
+  /* Palettenstapel: seit 14.10. im Baukasten (bk.paletten, userData.bauteil 'palette') */
 ];
 K.VORHER=VORHER;
 const _v3=new THREE.Vector3();
@@ -480,18 +480,27 @@ K.vorher=function(){
 K.vBild=function(i){ const o=K.vObjs[i]; if(!o) return null; return K.iso(o.ms,{blick:o.blick,hoehe:o.hoehe,clip:o.clip}); };
 K.vBilder=function(a,b){ const o={}; for(let i=a;i<Math.min(b,K.vObjs.length);i++){ try{ o[i]=K.vBild(i); }catch(e){ o[i]=null; } } return o; };
 
-/* ---------- Verpackungen: Versandkarton je Produkt (kartonMat, 256x256 je Sorte) als Kontaktbogen ---------- */
+/* ---------- Verpackungen: Versandkarton je Produkt als Kontaktbogen ----------
+   seit 14.10. Zellen im Atlas MAT.atlas('karton') (bb.kartonBild, alle Sorten werden dafuer gemalt);
+   aeltere Staende: eigene Textur je Sorte (kartonMat[t].map, 256x256) */
 K.kartons=function(zelle,spalten){
-  zelle=zelle||64; spalten=spalten||16; const km=bb.kartonMat||{}, keys=Object.keys(km).filter(k=>km[k]&&km[k].map&&km[k].map.image);
+  zelle=zelle||64; spalten=spalten||16; const km=bb.kartonMat||{}, atlas=typeof bb.kartonBild==='function';
+  const keys=atlas?bb.ORDER.filter(k=>!!bb.kartonBild(k)):Object.keys(km).filter(k=>km[k]&&km[k].map&&km[k].map.image);
   if(!keys.length) return {anzahl:0,sheet:null,zellen:[]};
   const zeilen=Math.ceil(keys.length/spalten), c=document.createElement('canvas'); c.width=spalten*zelle; c.height=zeilen*zelle; const g=c.getContext('2d'); g.fillStyle='#dde1e8'; g.fillRect(0,0,c.width,c.height);
+  const tmp=document.createElement('canvas'), tg=tmp.getContext('2d');
   const hs=new Map(); const zellen=[];
-  keys.forEach((k,i)=>{ const t=km[k].map, im=t.image; try{ g.drawImage(im,(i%spalten)*zelle,Math.floor(i/spalten)*zelle,zelle,zelle); }catch(e){}
-    const p=pixel(t), h=p?hash(p):null; hs.set(h,(hs.get(h)||0)+1);
-    let name=null; try{ const q=bb.pools&&bb.pools[k]; name=q&&(q.name||q.label)||null; }catch(e){}
-    zellen.push({i,key:k,name,w:im.width,h:im.height,hash:h,herkunft:(t.userData&&t.userData.__lab)||null}); });
+  keys.forEach((k,i)=>{ let im, p, lab=null;
+    if(atlas){ const b=bb.kartonBild(k); im=b; p={w:b.width,h:b.height,data:b.data}; lab='atlas:karton'; }
+    else { const t=km[k].map; im=t.image; p=pixel(t); lab=(t.userData&&t.userData.__lab)||null; }
+    try{ if(im&&im.data){ tmp.width=im.width; tmp.height=im.height; tg.putImageData(im,0,0); g.drawImage(tmp,(i%spalten)*zelle,Math.floor(i/spalten)*zelle,zelle,zelle); }
+      else g.drawImage(im,(i%spalten)*zelle,Math.floor(i/spalten)*zelle,zelle,zelle); }catch(e){}
+    const h=p?hash(p):null; hs.set(h,(hs.get(h)||0)+1);
+    let name=null; try{ name=bb.P[k]&&bb.P[k].name||null; }catch(e){}
+    zellen.push({i,key:k,name,w:im.width,h:im.height,hash:h,herkunft:lab}); });
   let u=c.toDataURL('image/webp',0.8); if(u.indexOf('image/webp')<0) u=c.toDataURL('image/jpeg',0.8);
-  const w=keys[0]&&km[keys[0]].map.image.width||256, mb=keys.length*w*w*4/1048576;
-  return {anzahl:keys.length,spalten,zelle,sheet:u,zellen,verschiedeneBilder:hs.size,rohMB:rd(mb,1),gpuMB:rd(mb*1.333,1)};
+  const inf=atlas&&bb.kartonAtlasInfo?bb.kartonAtlasInfo():null;
+  const w=zellen[0]?zellen[0].w:256, mb=inf?inf.bytes/1048576:keys.length*w*w*4/1048576;
+  return {anzahl:keys.length,spalten,zelle,sheet:u,zellen,verschiedeneBilder:hs.size,rohMB:rd(mb,1),gpuMB:rd(mb*1.333,1),atlas:inf};
 };
 })();

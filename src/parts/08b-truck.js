@@ -217,11 +217,11 @@ function fillCargo(){
     /* Versandmaterial (11d): Kartonbuendel, Folienrolle, Klebeband */
     const m=c.vm?vmLadungMesh(c.vm):pk
       ? new THREE.Mesh(new THREE.BoxGeometry(M[0],M[1],M[2]),regalPaketMat())
-      : new THREE.Mesh(kartonGeo,kartonMat[c.type]);
+      : bk.karton(c.type);
     m.position.set(s.x,c.vm?m.userData.h/2+0.02+Math.floor(i/16)*0.42:pk?M[1]/2+0.02+Math.floor(i/16)*0.42:s.y,s.z);
     m.rotation.y=rand(-0.07,0.07);
     if(HIQ){ m.castShadow=true; m.receiveShadow=true; }
-    m.userData={kind:'tbox',ref:c};
+    Object.assign(m.userData,{kind:'tbox',ref:c});
     scene.add(m); truck.boxes.push(m);
   });
 }

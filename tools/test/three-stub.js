@@ -25,7 +25,9 @@ class Vector3{ project(){ this.x=0; this.y=0; this.z=0.5; return this; } lerpVec
   fromBufferAttribute(a,i){this.x=a.getX(i);this.y=a.getY(i);this.z=a.getZ?a.getZ(i):0;return this;}
   cross(v){const x=this.y*v.z-this.z*v.y,y=this.z*v.x-this.x*v.z,z=this.x*v.y-this.y*v.x;this.x=x;this.y=y;this.z=z;return this;}
   divideScalar(s){return this.multiplyScalar(1/(s||1));}
+  applyMatrix4(){return this;}
 }
+class Vector4{constructor(x,y,z,w){this.x=x||0;this.y=y||0;this.z=z||0;this.w=w===undefined?1:w;} set(x,y,z,w){this.x=x;this.y=y;this.z=z;this.w=w;return this;} copy(v){this.x=v.x;this.y=v.y;this.z=v.z;this.w=v.w;return this;} clone(){return new Vector4(this.x,this.y,this.z,this.w);}}
 class Vector2{constructor(x,y){this.x=x||0;this.y=y||0;}
   set(x,y){this.x=x;this.y=y;return this;}
   copy(v){this.x=v.x;this.y=v.y;return this;}
@@ -72,7 +74,8 @@ class BufferAttribute{
 }
 class Float32BufferAttribute extends BufferAttribute{constructor(a,i){super(a instanceof Float32Array?a:new Float32Array(a),i);}}
 class BufferGeometry{
-  constructor(n){this.attributes={};this.index=null;this._n=n||24;this.userData={};}
+  constructor(n){this.attributes={};this.index=null;this._n=n||24;this.userData={};this.groups=[];}
+  addGroup(s,c,m){this.groups.push({start:s,count:c,materialIndex:m||0});}
   deleteAttribute(k){delete this.attributes[k];return this;}
   setAttribute(k,a){this.attributes[k]=a;return this;}
   getAttribute(k){return this.attributes[k];}
@@ -180,12 +183,12 @@ class WebGLRenderer{
 }
 class Frustum{ setFromProjectionMatrix(){ return this; } intersectsSphere(){ return true; } intersectsObject(){ return true; } intersectsBox(){ return true; } containsPoint(){ return true; } }
 class Sphere{ constructor(c,r){ this.center=c||new Vector3(); this.radius=r||0; } set(c,r){ this.center.copy(c); this.radius=r; return this; } clone(){ return new Sphere(this.center.clone(),this.radius); } applyMatrix4(){ return this; } }
-class Box3{ constructor(a,b){ this.min=a||new Vector3(); this.max=b||new Vector3(); } setFromObject(){ return this; } getCenter(v){ return (v||new Vector3()).set(0,0,0); } getSize(v){ return (v||new Vector3()).set(1,1,1); } expandByPoint(){ return this; } containsPoint(){ return false; } }
+class Box3{ constructor(a,b){ this.min=a||new Vector3(); this.max=b||new Vector3(); } setFromObject(){ return this; } getCenter(v){ return (v||new Vector3()).set(0,0,0); } getSize(v){ return (v||new Vector3()).set(1,1,1); } expandByPoint(){ return this; } containsPoint(){ return false; } getBoundingSphere(s){ return s||new Sphere(); } }
 class LatheGeometry extends BufferGeometry{constructor(){super(48);const g=mkGeo(48);this.attributes=g.attributes;}}
 class RingGeometry extends BufferGeometry{constructor(){super(36);const g=mkGeo(36);this.attributes=g.attributes;}}
 class IcosahedronGeometry extends BufferGeometry{constructor(){super(60);const g=mkGeo(60);this.attributes=g.attributes;}}
 class OctahedronGeometry extends BufferGeometry{constructor(){super(24);const g=mkGeo(24);this.attributes=g.attributes;}}
-Object.assign(T,{Texture:CanvasTexture,Sphere,Box3,LatheGeometry,RingGeometry,IcosahedronGeometry,OctahedronGeometry,Path:Shape,PCFShadowMap:1,Frustum,CatmullRomCurve3,TubeGeometry,Shape,ShapeGeometry,ExtrudeGeometry,DodecahedronGeometry,MeshPhysicalMaterial,PMREMGenerator,EquirectangularReflectionMapping:303,FrontSide:0,NormalBlending:1,Uniform,ShaderMaterial,WebGLRenderTarget,WebGLMultisampleRenderTarget,OrthographicCamera,LinearFilter:1006,NearestFilter:1003,RGBAFormat:1023,RGBFormat:1022,UnsignedByteType:1009,HalfFloatType:1016,Vector3,Vector2,Euler,Quaternion,Matrix4,Color,BufferAttribute,Float32BufferAttribute,BufferGeometry,BoxGeometry,PlaneGeometry,CylinderGeometry,SphereGeometry,ConeGeometry,TorusGeometry,CircleGeometry,Object3D,Group,Scene,Mesh,Points,LineSegments,LineBasicMaterial,InstancedBufferGeometry,InstancedBufferAttribute,Sprite,InstancedMesh,Material,MeshStandardMaterial,MeshBasicMaterial,PointsMaterial,SpriteMaterial,HemisphereLight,DirectionalLight,PointLight,SpotLight,PerspectiveCamera,Fog,CanvasTexture,Raycaster,WebGLRenderer,
+Object.assign(T,{Texture:CanvasTexture,Vector4,Sphere,Box3,LatheGeometry,RingGeometry,IcosahedronGeometry,OctahedronGeometry,Path:Shape,PCFShadowMap:1,Frustum,CatmullRomCurve3,TubeGeometry,Shape,ShapeGeometry,ExtrudeGeometry,DodecahedronGeometry,MeshPhysicalMaterial,PMREMGenerator,EquirectangularReflectionMapping:303,FrontSide:0,NormalBlending:1,Uniform,ShaderMaterial,WebGLRenderTarget,WebGLMultisampleRenderTarget,OrthographicCamera,LinearFilter:1006,NearestFilter:1003,RGBAFormat:1023,RGBFormat:1022,UnsignedByteType:1009,HalfFloatType:1016,Vector3,Vector2,Euler,Quaternion,Matrix4,Color,BufferAttribute,Float32BufferAttribute,BufferGeometry,BoxGeometry,PlaneGeometry,CylinderGeometry,SphereGeometry,ConeGeometry,TorusGeometry,CircleGeometry,Object3D,Group,Scene,Mesh,Points,LineSegments,LineBasicMaterial,InstancedBufferGeometry,InstancedBufferAttribute,Sprite,InstancedMesh,Material,MeshStandardMaterial,MeshBasicMaterial,PointsMaterial,SpriteMaterial,HemisphereLight,DirectionalLight,PointLight,SpotLight,PerspectiveCamera,Fog,CanvasTexture,Raycaster,WebGLRenderer,
   RepeatWrapping:1000,ClampToEdgeWrapping:1001,SRGBColorSpace:'srgb',LinearSRGBColorSpace:'srgb-linear',NoToneMapping:0,HalfFloatType:1016,FloatType:1015,REVISION:'161-stub',sRGBEncoding:3001,DoubleSide:2,BackSide:1,AdditiveBlending:2,ACESFilmicToneMapping:4,PCFSoftShadowMap:2,DynamicDrawUsage:35048});
 window.THREE=T;
 })();

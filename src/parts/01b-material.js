@@ -126,7 +126,10 @@ const MAT=(function(){
   /* Oberflaechenklassen auch als Vertexfarben-Klasse (13.10., Tore): MAT.vc('stahl') hat dieselben Werte wie
      MAT.ober(...,'stahl') - Sammler-Bauteile sehen dann aus wie Einzelteile mit Bibliotheksmaterial. */
   for(const k of ['kunststoff','lackMetall','stahl','blank']) VC_KLASSE[k]={roughness:KLASSE[k].r,metalness:KLASSE[k].m};
-  const VC_W={kunststoff:'Sammler Kunststoff/Lack (Klasse kunststoff)',lackMetall:'Sammler Metall lackiert (Klasse lackMetall)',stahl:'Sammler Stahl (Klasse stahl)',blank:'Sammler blank/Chrom (Klasse blank)',standard:'Sammler Standard: Ware, Paletten',lack:'Sammler lackiert (Geraete, Rahmen)',metall:'Sammler Metall (Stahl, Alu, Chrom)',matt:'Sammler matt (Gummi, Kunststoff matt)',glas:'Sammler Glas/Display',leucht:'Sammler leuchtend (LEDs, Anzeigen, ohne Tonemapping)'};
+  /* 14.10. (Paletten): Klasse matt (0,9) als Vertexfarben-Klasse - Holz, Pappe. Der alte Sammler-Name 'matt'
+     (0,72, Gummi/Kunststoff matt) bleibt fuer die bestehenden Bauteile. */
+  VC_KLASSE.stumpf={roughness:KLASSE.matt.r,metalness:KLASSE.matt.m};
+  const VC_W={stumpf:'Sammler stumpf (= Klasse matt 0,9): Holz (Paletten), Pappe',kunststoff:'Sammler Kunststoff/Lack (Klasse kunststoff)',lackMetall:'Sammler Metall lackiert (Klasse lackMetall)',stahl:'Sammler Stahl (Klasse stahl)',blank:'Sammler blank/Chrom (Klasse blank)',standard:'Sammler Standard: Ware, Paletten',lack:'Sammler lackiert (Geraete, Rahmen)',metall:'Sammler Metall (Stahl, Alu, Chrom)',matt:'Sammler matt (Gummi, Kunststoff matt)',glas:'Sammler Glas/Display',leucht:'Sammler leuchtend (LEDs, Anzeigen, ohne Tonemapping)'};
 
   const cache=new Map(), texCache=new Map(), zaehler=new Map();
   const zaehle=(k)=>{ zaehler.set(k,(zaehler.get(k)||0)+1); };
@@ -268,6 +271,64 @@ const MAT=(function(){
       t.anisotropy=8; return t; }
   };
   function texGet(name){ zaehle('tex:'+name); let t=texCache.get(name); if(!t){ const f=TEXTUR[name]; if(!f) throw new Error('MAT.tex: Textur unbekannt: '+name); t=f(); t.userData=t.userData||{}; t.userData.mat=name; texCache.set(name,t); } return t; }
+  /* ---------- Textur-Atlas mit Zellen (14.10., Schritt "Paletten + Kartons") ----------
+     Viele gleich grosse Einzelbilder (z. B. ein Versandkarton je Produkt, vorher 239 eigene
+     256er-Texturen = 62,7 MB Bilddaten, alle schon beim Start gemalt) teilen sich wenige
+     Atlasseiten. Eine Zelle wird erst gemalt, wenn ihr Schluessel zum ersten Mal gebraucht
+     wird; eine Seite (Standard 1024 x 1024) entsteht erst mit ihrer ersten Zelle.
+     Grafikstufe: Zellgroesse = zelle * min(1, MAT.stufe().tx) - Ultra Low halbe Aufloesung
+     (gemalt wird immer in voller Groesse und verkleinert, Motiv und Aufteilung bleiben gleich).
+       const A=MAT.atlas('karton',{zelle:256,seite:1024,malen:(g,W,H,key)=>{...},wofuer:'...'});
+       A.material(key,{roughness:..})  eigenes Material je Schluessel (gecacht), map = Atlasseite,
+                                       die Zelle waehlt ein Uniform (atlasZ) im Vertexshader -
+                                       alle Zellen teilen ein Shaderprogramm
+       A.zelle(key) -> {tex,z,seite,x,y}   A.bild(key) -> ImageData der Zelle   A.info()
+     Seiten sind ImageData (wie texSpar), nie Canvas: kein zweiter Bildspeicher im Browser.
+     Ein Atlas-Material nie mit MAT.kopie/clone kopieren (der Shader-Baustein haengt an
+     onBeforeCompile) - es ist ohnehin ein eigenes Material je Schluessel. */
+  const atlasListe=new Map();
+  const ATLAS_VS_KOPF='uniform vec4 atlasZ;\n';
+  const ATLAS_UV='#ifdef USE_UV\n\tvUv = ( uvTransform * vec3( uv * atlasZ.zw + atlasZ.xy, 1 ) ).xy;\n#endif';
+  /* Shader-Baustein: auch Pracht (03d) ruft ihn, wenn es ein Atlas-Material veredelt */
+  function atlasPatch(sh,m){ const z=m&&m.userData&&m.userData.atlasZ; if(!z) return;
+    sh.uniforms.atlasZ=z;
+    sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\n'+ATLAS_VS_KOPF).replace('#include <uv_vertex>',ATLAS_UV); }
+  function atlasObc(sh){ atlasPatch(sh,this); }
+  function atlas(name,o){
+    let A=atlasListe.get(name); if(A) return A;
+    const st=stufe(), voll=o.zelle||256, cs=Math.max(32,Math.round(voll*Math.min(1,st.tx||1))), S=o.seite||1024, je=Math.floor(S/cs);
+    const seiten=[], zellen=new Map(), mats=new Map();
+    let malC=null, malG=null, kleinC=null, kleinG=null;
+    const leinwand=()=>{ if(malC) return; malC=document.createElement('canvas'); malC.width=malC.height=voll; malG=malC.getContext('2d');
+      if(cs!==voll){ kleinC=document.createElement('canvas'); kleinC.width=kleinC.height=cs; kleinG=kleinC.getContext('2d'); kleinG.imageSmoothingEnabled=true; kleinG.imageSmoothingQuality='high'; } };
+    function neueSeite(){ const im=new ImageData(S,S), t=new THREE.CanvasTexture(im);
+      t.anisotropy=typeof GFX_START!=='undefined'?GFX_START.ani:st.aniso; t.encoding=THREE.sRGBEncoding; t.userData={mat:'atlas:'+name,atlas:name,seite:seiten.length};
+      const s={im,t,n:0}; seiten.push(s); return s; }
+    function zelle(key){
+      let Z=zellen.get(key); if(Z) return Z;
+      let s=seiten[seiten.length-1]; if(!s||s.n>=je*je) s=neueSeite();
+      const i=s.n++, x=(i%je)*cs, y=Math.floor(i/je)*cs;
+      leinwand(); malC.width=voll;   /* setzt Zustand (Schrift, Ausrichtung, Linien) und Bild zurueck - wie eine frische Leinwand */
+      o.malen(malG,voll,voll,key);
+      let d; if(kleinC){ kleinG.clearRect(0,0,cs,cs); kleinG.drawImage(malC,0,0,cs,cs); d=kleinG.getImageData(0,0,cs,cs).data; } else d=malG.getImageData(0,0,cs,cs).data;
+      const ziel=s.im.data; for(let r=0;r<cs;r++) ziel.set(d.subarray(r*cs*4,(r+1)*cs*4),((y+r)*S+x)*4);
+      s.t.needsUpdate=true;
+      /* flipY: Bildzeile 0 liegt oben (v = 1). Halbes Texel Rand, damit die Filterung nicht in die Nachbarzelle greift */
+      const z=new THREE.Vector4((x+0.5)/S,1-(y+cs-0.5)/S,(cs-1)/S,(cs-1)/S);
+      Z={key,tex:s.t,z,seite:seiten.indexOf(s),x,y}; zellen.set(key,Z); zaehle('atlas:'+name); return Z; }
+    function material(key,extra){
+      let m=mats.get(key); if(m) return m; const Z=zelle(key);
+      m=new THREE.MeshStandardMaterial(Object.assign({roughness:KLASSE.matt.r,metalness:KLASSE.matt.m},extra||{},{map:Z.tex}));
+      m.userData.atlas=name; m.userData.atlasZ={value:Z.z}; m.onBeforeCompile=atlasObc;
+      mats.set(key,m); return m; }
+    function bild(key){ const Z=zelle(key), s=seiten[Z.seite], out=new ImageData(cs,cs);
+      for(let r=0;r<cs;r++) out.data.set(s.im.data.subarray(((Z.y+r)*S+Z.x)*4,((Z.y+r)*S+Z.x+cs)*4),r*cs*4);
+      return out; }
+    function info(){ return {name,zelle:cs,zelleVoll:voll,seite:S,jeSeite:je*je,seiten:seiten.length,zellen:zellen.size,materialien:mats.size,
+      bytes:seiten.length*S*S*4,wofuer:o.wofuer||''}; }
+    A={name,zelle,material,bild,info,hat:k=>zellen.has(k),schluessel:()=>[...zellen.keys()],seiten:()=>seiten.map(s=>s.t)};
+    atlasListe.set(name,A); return A;
+  }
   /* Massstab in die UVs (statt texture.repeat) - dann teilen alle Flaechen eine Textur */
   function kachel(geo,rx,ry){ const uv=geo.attributes.uv; if(!uv) return geo; for(let i=0;i<uv.count;i++) uv.setXY(i,uv.getX(i)*rx,uv.getY(i)*ry); uv.needsUpdate=true; return geo; }
 
@@ -286,7 +347,8 @@ const MAT=(function(){
       texturen:Object.keys(TEXTUR).map(k=>({key:k,wofuer:TEXTUR_W[k]||''})),
       vc:Object.keys(VC_KLASSE).concat(['leucht']).map(k=>({key:k,wofuer:VC_W[k]||''}))
     };
-    return {materialien:mats,texturen:texs,eigene:neuL,geteilt:mats.length,abrufe,gespart:abrufe-mats.length,farben:Object.keys(FARBE).length,rezepte:Object.keys(REZEPT).length,katalog};
+    const atlanten=[...atlasListe.values()].map(A=>A.info());
+    return {materialien:mats,texturen:texs,eigene:neuL,atlanten,geteilt:mats.length,abrufe,gespart:abrufe-mats.length,farben:Object.keys(FARBE).length,rezepte:Object.keys(REZEPT).length,katalog};
   }
-  return {FARBE,PALETTE,KLASSE,REZEPT,get,ober,eigen,neu,kopie,std:stdGeteilt,basic,vc,farbe,css,tex:texGet,kachel,stufe,liste,verstoesse,get wache(){ return wacheAn; }};
+  return {FARBE,PALETTE,KLASSE,REZEPT,get,ober,eigen,neu,kopie,std:stdGeteilt,basic,vc,farbe,css,tex:texGet,kachel,atlas,atlasPatch,atlasObc,stufe,liste,verstoesse,get wache(){ return wacheAn; }};
 })();

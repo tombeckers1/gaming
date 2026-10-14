@@ -1381,5 +1381,5 @@ function removeRack(rk){
   racks.forEach((x,k)=>{ x.nr=k; drawRackSchild(x); });
   return true;
 }
-function putInSlot(sl,type,count,q,kiste){ const m=new THREE.Mesh(kartonGeo,kiste?kisteMat():kartonMat[type]); m.position.set(sl.x,sl.y+0.2,0); m.rotation.y=rand(-0.05,0.05); if(HIQ){ m.castShadow=true; m.receiveShadow=true; } sl.rk.g.add(m); sl.box={type,count,q:q||1,mesh:m}; if(kiste) sl.box.kiste=true; drawRackSchild(sl.rk); }
+function putInSlot(sl,type,count,q,kiste){ const m=bk.karton(type,{kiste}); m.position.set(sl.x,sl.y+0.2,0); m.rotation.y=rand(-0.05,0.05); sl.rk.g.add(m); sl.box={type,count,q:q||1,mesh:m}; if(kiste) sl.box.kiste=true; drawRackSchild(sl.rk); }
 function findStoredBox(type){ for(const r of racks) for(const s of r.slots) if(s.box&&(!type||s.box.type===type)) return s; return null; }

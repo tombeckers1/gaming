@@ -1204,182 +1204,19 @@ function blechMat(){
   _blech=new THREE.MeshStandardMaterial({map:t,roughness:0.52,metalness:0.38});
   return _blech;
 }
-/* Sektionaltorblatt, geschlossen. Fuenf Panele, mittleres mit Fenstern. */
-let _torBlatt=null;
-function torBlattMat(){
-  if(_torBlatt) return _torBlatt;
-  const t=tex(512,640,(g,W,H)=>{
-    const ph=H/5;
-    for(let i=0;i<5;i++){
-      const y=i*ph;
-      const gr=g.createLinearGradient(0,y,0,y+ph);
-      gr.addColorStop(0,'#e9ebee'); gr.addColorStop(0.1,'#f4f5f7');
-      gr.addColorStop(0.5,'#dcdfe4'); gr.addColorStop(0.9,'#eff1f3'); gr.addColorStop(1,'#b7bcc3');
-      g.fillStyle=gr; g.fillRect(0,y,W,ph);
-      for(let k=y+18;k<y+ph-14;k+=22){ g.fillStyle='rgba(255,255,255,.45)'; g.fillRect(0,k,W,2);
-        g.fillStyle='rgba(110,116,126,.28)'; g.fillRect(0,k+2,W,3); }
-      g.fillStyle='rgba(50,56,66,.45)'; g.fillRect(0,y+ph-5,W,5);
-      if(i===1){ for(let k=0;k<4;k++){ const wx=48+k*108;
-          g.fillStyle='#6f7a88'; g.fillRect(wx-3,y+22,84,ph-47);
-          const gg=g.createLinearGradient(wx,y+24,wx+78,y+ph-26);
-          gg.addColorStop(0,'#aab8c8'); gg.addColorStop(0.5,'#8d9db0'); gg.addColorStop(1,'#c3cedb');
-          g.fillStyle=gg; g.fillRect(wx,y+25,78,ph-53); } }
-    }
-    /* Schmutzrand und Anfahrspuren unten */
-    const gr2=g.createLinearGradient(0,H-90,0,H);
-    gr2.addColorStop(0,'rgba(86,82,74,0)'); gr2.addColorStop(1,'rgba(86,82,74,.3)');
-    g.fillStyle=gr2; g.fillRect(0,H-90,W,90);
-    for(let i=0;i<20;i++){ g.strokeStyle=`rgba(120,126,136,${rand(0.08,0.24)})`; g.lineWidth=rand(0.6,1.8);
-      const x=Math.random()*W,y=H-rand(0,150); g.beginPath(); g.moveTo(x,y); g.lineTo(x+rand(-70,70),y+rand(-4,4)); g.stroke(); }
-  });
-  t.anisotropy=8;
-  _torBlatt=new THREE.MeshStandardMaterial({map:t,metalness:0.4,roughness:0.46});
-  return _torBlatt;
-}
-/* Die Innenseite eines Westtores. Sie zeigt dasselbe wie das Tor
-   an der Basisrampe: Fuehrungsschienen, Torwelle mit Federn,
-   Antrieb mit Kette, Warnleuchte, Ampel und Bedienkasten. Die
-   Halle liegt oestlich der Wand, innen ist also +x. */
-function westTorInnen(g,steel,dark,kante,eintrag){
-  const H=WTOR.h, B=WTOR.w;
-  const hell=MAT.ober('mittelgrau','blank');
-  /* Senkrechte Schienen bis ueber die Torhoehe: das Blatt faehrt
-     gerade nach oben, die Halle ist zwoelf Meter hoch. */
-  for(const dz of [-1,1]){
-    bbox(0.08,H*2+0.2,0.08,steel,0.12,(H*2+0.2)/2,dz*(B/2+0.1),g,false);
-    for(let k=0;k<4;k++)
-      bbox(0.38,0.05,0.05,steel,0.3,0.7+k*(H*2)/4,dz*(B/2+0.1),g,false);
-  }
-  /* Torwelle mit Federn, Seiltrommeln und Konsolen */
-  const shaft=new THREE.Mesh(new THREE.CylinderGeometry(0.038,0.038,B+0.7,HIQ?12:8),steel);
-  shaft.rotation.x=Math.PI/2; shaft.position.set(0.3,H+0.34,0); g.add(shaft);
-  for(const dz of [-0.8,0.8]){
-    const sp=new THREE.Mesh(new THREE.CylinderGeometry(0.08,0.08,0.9,HIQ?14:8),hell);
-    sp.rotation.x=Math.PI/2; sp.position.set(0.3,H+0.34,dz); g.add(sp);
-  }
-  for(const dz of [-1,1]){
-    const dr=new THREE.Mesh(new THREE.CylinderGeometry(0.12,0.085,0.1,HIQ?14:8),steel);
-    dr.rotation.x=Math.PI/2; dr.position.set(0.3,H+0.34,dz*(B/2+0.02)); g.add(dr);
-    bbox(0.26,0.22,0.06,steel,0.28,H+0.34,dz*(B/2+0.16),g,false);
-  }
-  /* Antrieb mit Kette */
-  bbox(0.34,0.3,0.44,MAT.get('stahlGraphit'),0.52,H+0.34,-(B/2+0.42),g,false);
-  bbox(0.18,0.18,0.22,MAT.ober('signalorange','kunststoff'),0.52,H+0.08,-(B/2+0.42),g,false);
-  const chain=new THREE.Mesh(new THREE.TorusGeometry(0.17,0.013,6,HIQ?16:8),dark);
-  chain.position.set(0.56,H-0.2,-(B/2+0.42)); chain.scale.y=4.2; g.add(chain);
-  /* Warnleuchte ueber dem Tor */
-  const warn=new THREE.MeshStandardMaterial({color:LIN(MAT.farbe('holzDunkel')),emissive:LIN(0xffb02a),emissiveIntensity:0.5});
-  const wl=new THREE.Mesh(new THREE.CylinderGeometry(0.08,0.095,0.13,HIQ?12:8),warn);
-  wl.position.set(0.34,H+0.62,B/2+0.3); g.add(wl);
-  bbox(0.11,0.07,0.11,dark,0.34,H+0.71,B/2+0.3,g,false);
-  /* Ampel und Bedienkasten neben dem Tor, innen */
-  bbox(0.15,0.36,0.13,dark,0.24,1.92,B/2+0.5,g,false);
-  for(const [m,y] of [[eintrag.rot,2.04],[eintrag.gruen,1.82]]){
-    const c2=new THREE.Mesh(new THREE.CylinderGeometry(0.052,0.052,0.045,HIQ?10:6),m);
-    c2.rotation.z=Math.PI/2; c2.position.set(0.33,y,B/2+0.5); g.add(c2);
-  }
-  bbox(0.13,0.26,0.17,MAT.get('lackGelb'),0.3,1.35,B/2+0.5,g,false);
-  for(let k=0;k<3;k++)
-    bbox(0.04,0.05,0.05,[MAT.ober('signalgruen','kunststoff'),MAT.get('lackRot'),MAT.get('kunststoffAnthrazit')][k],0.37,1.44-k*0.075,B/2+0.5,g,false);
-  /* Torkennung innen, damit man die Rampen auseinanderhaelt */
-  plane(0.62,0.48,new THREE.MeshStandardMaterial({map:tex(150,116,(c,W,Hh)=>{
-    c.fillStyle='#1b2340'; c.fillRect(0,0,W,Hh);
-    c.strokeStyle=MAT.css('schildgold'); c.lineWidth=6; c.strokeRect(5,5,W-10,Hh-10);
-    c.fillStyle=MAT.css('schildgold'); c.font=BUN(68); c.textAlign='center'; c.textBaseline='middle';
-    c.fillText(String(eintrag.nr+1),W/2,Hh/2+5); })}),0.16,H+0.95,0,Math.PI/2,g);
-}
-/* Ein Ladetor in der Suedwand der Logistikhalle, von aussen gesehen.
-   Gebaut ist es in eigenen Koordinaten mit innen = +x; die Gruppe
-   wird so gedreht, dass +x nach Norden in die Halle zeigt. */
+/* Ein Ladetor in der Suedwand der Logistikhalle (R2-R5). Seit 13.10.
+   (Fundament, Schritt Tore) baut bk.tor() Blatt, Aussen- und Innenseite -
+   vorher standen hier westTor/westTorInnen mit je rund 73 Einzelmeshes und
+   der eigenen Textur torBlattMat. Innen = +x der Torgruppe, die Gruppe ist
+   so gedreht, dass +x nach Norden in die Halle zeigt. Die Spiel-Logik
+   (WTORE: blatt/zu/auf/rot/gruen, wtorSet in 08c) bleibt unveraendert. */
 function westTor(cx,nr){
-  const Z=LHALLE.z, steel=MAT.get('stahlVerzinkt');
-  const dark=MAT.get('stahlAnthrazit');
-  const rub=MAT.get('gummi');
-  const g=new THREE.Group(); g.position.set(cx,0,Z); g.rotation.y=-Math.PI/2; scene.add(g);
-  /* Torblatt aus echten Sektionalpanelen, denselben wie an der
-     Basisrampe. Vorher war hier eine Textur auf einen Kasten
-     geklebt - im Spiel sah man den Unterschied sofort. */
-  const kante=MAT.get('stahlMittel');
-  const pmT=torPanelMat(), pm=MAT.ober('lichtgrau','lackMetall');
-  const bl=new THREE.Group(); bl.position.set(-0.15,WTOR.h/2,0); g.add(bl);
-  const PN=5, ph=WTOR.h/PN;
-  for(let i=0;i<PN;i++){
-    const pn=new THREE.Mesh(new THREE.BoxGeometry(0.095,ph-0.012,WTOR.w),
-      [pm,pm,pm,pm,pmT,pmT]);
-    pn.position.y=-WTOR.h/2+ph/2+i*ph;
-    if(HIQ){ pn.castShadow=true; pn.receiveShadow=true; }
-    bl.add(pn);
-    /* Scharnierrollen an den Panelkanten */
-    for(const dz of [-1,1]){
-      const rl=new THREE.Mesh(new THREE.CylinderGeometry(0.028,0.028,0.05,8),kante);
-      rl.rotation.x=Math.PI/2; rl.position.set(-0.06,pn.position.y+ph/2-0.02,dz*(WTOR.w/2-0.12));
-      bl.add(rl);
-    }
-  }
-  /* Das Tor merkt sich Torblatt und Ampel, damit eine zugekaufte
-     Andockstation wirklich aufmachen kann. */
-  /* Die beiden Ampelmaterialien werden von aussen und von innen
-     benutzt und muessen darum vor beidem stehen. */
-  const lr=new THREE.MeshStandardMaterial({color:LIN(0x300808),emissive:LIN(0xff2a2a),emissiveIntensity:1.2});
-  const lg=new THREE.MeshStandardMaterial({color:LIN(0x082a12),emissive:LIN(0x3dff7a),emissiveIntensity:0});
-  const eintrag={nr,x:cx,g,blatt:bl,zu:WTOR.h/2,auf:WTOR.h/2+WTOR.h-0.06,t:0,rot:lr,gruen:lg};
-  /* Fuehrungsschienen links und rechts */
-  for(const dz of [-1,1]) bbox(0.07,WTOR.h+0.1,0.07,kante,-0.06,WTOR.h/2,dz*(WTOR.w/2+0.05),g,false);
-  /* --- Innenseite: dieselbe Ausstattung wie am Tor der Basisrampe.
-         Vorher war von der Halle aus nur ein Torblatt in der Wand zu
-         sehen, ohne Schienen, Welle, Antrieb oder Ampel. --- */
-  westTorInnen(g,steel,dark,kante,eintrag);
-
-  /* Zarge */
-  for(const s of [-1,1]) bbox(0.3,WTOR.h+0.26,0.18,steel,-0.24,(WTOR.h+0.26)/2,s*(WTOR.w/2+0.09),g,false);
-  bbox(0.3,0.22,WTOR.w+0.36,steel,-0.24,WTOR.h+0.13,0,g,false);
-  /* Anfahrpuffer aus Gummi */
-  for(const s of [-1,1]){
-    bbox(0.22,0.52,0.28,rub,-0.33,1.05,s*(WTOR.w/2+0.28),g,true);
-    bbox(0.06,0.56,0.32,dark,-0.21,1.05,s*(WTOR.w/2+0.28),g,false);
-  }
-  /* Vordach mit Schneeauflage */
-  const cano=bbox(1.35,0.1,WTOR.w+1.2,MAT.get('stahlGraphit'),-0.85,WTOR.h+0.52,0,g,false);
-  cano.rotation.z=-0.09;
-  const sn=bbox(1.38,0.08,WTOR.w+1.24,MAT.get('weissMatt'),-0.85,WTOR.h+0.61,0,g,false);
-  sn.rotation.z=-0.09;
-  /* Streben von der Wand hinauf unter die Aussenkante des Vordachs.
-     Mit rotation.z = -0.74 kippten sie falsch herum: das untere Ende
-     schwebte vor der Wand, das obere steckte im Dach. */
-  for(const s of [-1,1]) strebe(-0.25,WTOR.h-0.25,-1.4,WTOR.h+0.47,s*(WTOR.w/2+0.4),steel,g);
-  /* Torbeschlaege: Fuehrungsschienen und Antriebskasten sieht man
-     von aussen nicht - dafuer Ampel, Taster und Torkennung. */
-  bbox(0.14,0.44,0.14,dark,-0.3,2.0,WTOR.w/2+0.62,g,false);
-  for(const [m,y] of [[lr,2.12],[lg,1.9]]){
-    const c2=new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.05,0.04,10),m);
-    c2.rotation.z=Math.PI/2; c2.position.set(-0.38,y,WTOR.w/2+0.62); g.add(c2);
-  }
-  WTORE[nr-1]=eintrag;
-  /* Torabdichtung. Der Auflieger ist 2,55 m breit, das Tor 3,4 -
-     ohne Dichtung schaut man links und rechts am Heck vorbei ins
-     Freie. Drei Polster aus Planenstoff schliessen den Spalt, so
-     wie an jeder echten Rampe. */
-  const planeM=MAT.get('gummi');
-  for(const s2 of [-1,1])
-    bbox(0.46,WTOR.h+0.1,0.5,planeM,-0.26,(WTOR.h+0.1)/2,s2*(WTOR.w/2-0.2),g,false);
-  bbox(0.46,0.42,WTOR.w+0.1,planeM,-0.26,WTOR.h-0.09,0,g,false);
-  bbox(0.12,0.24,0.16,MAT.get('lackGelb'),-0.3,1.35,WTOR.w/2+0.62,g,false);
-  for(let k=0;k<3;k++) bbox(0.04,0.05,0.05,[MAT.ober('signalgruen','kunststoff'),MAT.get('lackRot'),MAT.get('kunststoffAnthrazit')][k],-0.37,1.43-k*0.07,WTOR.w/2+0.62,g,false);
-  /* Torkennung ueber dem Vordach */
-  plane(0.8,0.62,new THREE.MeshStandardMaterial({map:tex(160,124,(c,W,H)=>{
-    c.fillStyle='#1b2340'; c.fillRect(0,0,W,H);
-    c.strokeStyle=MAT.css('schildgold'); c.lineWidth=6; c.strokeRect(5,5,W-10,H-10);
-    c.fillStyle=MAT.css('schildgold'); c.font=BUN(78); c.textAlign='center'; c.textBaseline='middle';
-    c.fillText(String(nr+1),W/2,H/2+6); })}),-0.22,WTOR.h+0.95,0,-Math.PI/2,g);
-  /* Poller neben der Torlaibung, im Hof vor der Wand */
-  for(const s of [-1,1]){
-    const lz=s*(WTOR.w/2+1.15);
-    bbox(0.2,0.95,0.2,MAT.get('lackGelb'),-0.9,0.48,lz,g,true);
-    bbox(0.22,0.14,0.22,MAT.get('gummi'),-0.9,0.86,lz,g,false);
-    /* lokal (x,z) -> Welt (cx - z, Z + x) bei Drehung -90 Grad */
-    col(cx-lz-0.15,cx-lz+0.15,Z-1.05,Z-0.75);
-  }
-  return g;
+  const Z=LHALLE.z;
+  const T=bk.tor({art:'sektional',fuehrung:'vertikal',breite:WTOR.w,hoehe:WTOR.h,wand:[-LW,0],blatt:-0.15,
+    nr:String(nr+1),bedien:1,x:cx,z:Z,ry:-Math.PI/2});
+  for(const r of T.kollision) col(r.x0,r.x1,r.z0,r.z1);
+  WTORE[nr-1]={nr,x:cx,g:T.g,blatt:T.blatt,zu:T.zu,auf:T.auf,t:0,rot:T.ampel.rot,gruen:T.ampel.gruen,T};
+  return T.g;
 }
 /* =========================================================
    Nordwand des Lagers zur Strasse, mit drei echten Fenstern
@@ -1603,17 +1440,9 @@ function buildLogistik(){
   bbox(5.0,0.18,2.4,MAT.get('stahlHell'),bu.x0+3.2,3.35,bu.z1+1.0,null,false);
   for(const dx of [-2.0,2.0]) bbox(0.09,3.3,0.09,steel,bu.x0+3.2+dx,1.65,bu.z1+1.9,null,false);
   plane(11.0,1.95,new THREE.MeshStandardMaterial({map:logiSchriftzug()}),bcx,LOGI.bh-1.5,bu.z1+0.06,0,null);
-  /* --- Ladetore an der Westfassade der Halle --- */
-  const tm2=torBlattMat();
-  for(let i=0;i<4;i++){
-    const tz=ha.z0+3.4+i*5.6;
-    const bl=new THREE.Mesh(new THREE.PlaneGeometry(3.6,4.2),tm2);
-    bl.rotation.y=-Math.PI/2; bl.position.set(ha.x0-0.06,2.1,tz); scene.add(bl);
-    for(const s of [-1,1]) bbox(0.16,4.5,0.2,steel,ha.x0-0.08,2.25,tz+s*1.9,null,false);
-    bbox(0.16,0.24,4.0,steel,ha.x0-0.08,4.32,tz,null,false);
-    bbox(1.2,0.12,4.6,MAT.get('stahlGraphit'),ha.x0-0.65,4.85,tz,null,false);
-    for(const s of [-1,1]) bbox(0.2,0.6,0.26,MAT.get('gummi'),ha.x0-0.16,1.2,tz+s*2.1,null,false);
-  }
+  /* --- Ladetore an der Westfassade der Halle (Attrappen, Baukasten: Blatt fest) --- */
+  for(let i=0;i<4;i++) bk.tor({art:'sektional',breite:3.6,hoehe:4.2,seite:'aussen',beweglich:false,ampel:false,poller:false,
+    wand:[0,0],blatt:-0.04,x:ha.x0,z:ha.z0+3.4+i*5.6,ry:0});
   /* --- Vorplatz, Zaun, Bauschild --- */
   MAT.kachel(flat(6.0,30.0,MAT.get('betonHof'),43.5,0.013,-1.0).geometry,3,14);
   MAT.kachel(flat(hw-2,5.5,MAT.get('betonHof'),hcx,0.012,ha.z1+2.8).geometry,10,3);
@@ -1628,14 +1457,8 @@ function buildLogistik(){
   col(Z.x,ha.x0,Z.z0-0.12,Z.z0+0.12);
   col(Z.x,bu.x0,Z.z1-0.12,Z.z1+0.12);
   zWandCol('logistik',col(Z.x,ha.x1+1,Z.z0,Z.z1));
-  /* Doppeltor in der Zaunflucht, verschlossen */
-  { const g2=new THREE.Group(); g2.position.set(Z.x,0,2.0); scene.add(g2);
-    for(const s of [-1,1]){
-      bbox(0.1,0.1,3.0,steel,0,ZH-0.14,s*1.55,g2,false);
-      bbox(0.1,0.1,3.0,steel,0,0.4,s*1.55,g2,false);
-      for(let i=0;i<10;i++) bbox(0.07,ZH-0.6,0.07,steel,0,ZH/2,s*0.1+s*i*0.32,g2,false);
-      bbox(0.12,ZH+0.3,0.12,steel,0,(ZH+0.3)/2,s*3.05,g2,false); }
-    bbox(0.14,0.3,0.24,MAT.get('lackGelb'),0.1,1.15,0,g2,false); }
+  /* Doppeltor in der Zaunflucht, verschlossen (Zauntor aus dem Baukasten) */
+  bk.tor({art:'gitter',bewegung:'fluegel',breite:6.22,hoehe:ZH,boden:0.35,pfosten:true,schloss:true,x:Z.x,z:2.0,ry:0});
   /* Hier stand ein Bauschild „NOCH NICHT ZU HABEN“. Auch das ist
      raus - kein Schild im Spiel soll den Spieler daran erinnern,
      was er noch nicht hat. */

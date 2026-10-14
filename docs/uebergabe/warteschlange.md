@@ -5,7 +5,7 @@ Nach jedem fertigen Paket: prüfen, Artefakt veröffentlichen, Tom kurz berichte
 
 | # | Paket | Auftrag | Stand |
 |---|---|---|---|
-| 0 | **Fundament** (Baukasten, Materialien, Stilregeln, Wirtschaftszentrale, Wächter-Tests, Übersicht) | fundament.md | **ALS NÄCHSTES** im neuen Chat (Tom 13.10.); vor Halle-Merge, Fassade, Balancing |
+| 0 | **Fundament** (Baukasten, Materialien, Stilregeln, Wirtschaftszentrale, Wächter-Tests, Übersicht) | fundament.md | 14.10. V129 (f4725e6): Inventar, MAT-Bibliothek, bk-Kern, Materialangleichung, Wirtschaftszentrale 01c, Feuerwerks-Regelwerk 14z4 fertig + gemergt; Übersicht https://claude.ai/artifact/4fTTh8HyVbz6qNYF47yFg9 (Generator tools/fundament/uebersicht.py, Branch claude/fundament-katalog); läuft: Tore (Branch claude/fundament-tore); offen: Wände/Zäune/Lampen, Kartons/Regale, Stilregeln, Wächter-Tests; Fragen an Tom: F1–F4 Feuerwerk, RAL-1003-Gelb |
 | 1 | Versandecke, DDL, Onlineshop, Geräte | versand-sb-0910.md (ohne Automat/SB) | fertig 09.10. (05776a5, V123) |
 | 2 | Kugelbomben Runde 6 | kugelbomben-0910b.md | fertig 09.10. (9b413db, V124) |
 | 3 | Batterien + 10 neue nach echten Vorbildern | batterien-0910.md (+ DDL per Handy, Bruchhöhe große Kugeln) | fertig 10.10. (41ce9c7, V125); offen: Test gross GROESSER „raketen“ rot (Verpackungsmaß, nicht aus dieser Runde – prüfen) |

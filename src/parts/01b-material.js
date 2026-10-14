@@ -107,7 +107,14 @@ const MAT=(function(){
     zaunPfosten:      {f:'basaltgrau',k:'stahl',       w:'Doppelstabmatte: Pfosten, dunkle Stahlprofile'},
     zaunKappe:        {f:'graphit',k:'stahl',          w:'Doppelstabmatte: Kappen, Schellen'},
     zaunSockel:       {f:'hellgrau',k:'matt',          w:'Doppelstabmatte: Sockelschiene, Beton hell'},
-    zaunGitter:       {f:0xffffff,tex:'doppelstab',transparent:true,alphaTest:0.35,side:THREE.DoubleSide,k:'stahl',w:'Doppelstabmatte (Textur)'}
+    zaunGitter:       {f:0xffffff,tex:'doppelstab',transparent:true,alphaTest:0.35,side:THREE.DoubleSide,k:'stahl',w:'Doppelstabmatte (Textur)'},
+    /* Tore (Fundament Schritt "Tore", 13.10.): ein Material fuer jedes Torblatt (Atlas-Textur torBlatt, Zeile je
+       Paneltyp, Kleinteile ueber Vertexfarben auf der weissen Zeile) und die drei Zustandsleuchten. Die Leuchten
+       sind veraenderlich (emissiveIntensity) - nur ueber MAT.neu(...) holen, nie MAT.get. */
+    torBlatt:         {f:0xffffff,tex:'torBlatt',vertexColors:true,k:'lackMetall',w:'Torblatt aller Ladetore (Lamellen/Sektionen graphit, Fensterband, Bodendichtung) - Atlas torBlatt'},
+    ampelRot:         {f:0x300808,emissive:LIN(0xff2a2a),emissiveIntensity:1.4,k:'kunststoff',w:'Torampel rot (Tor zu) - nur MAT.neu, Leuchtstaerke schaltet'},
+    ampelGruen:       {f:0x082a12,emissive:LIN(0x3dff7a),emissiveIntensity:0,k:'kunststoff',w:'Torampel gruen (Tor offen) - nur MAT.neu, Leuchtstaerke schaltet'},
+    torWarn:          {f:0x3a2208,emissive:LIN(0xffb02a),emissiveIntensity:0,k:'kunststoff',w:'Rundumleuchte ueber dem Torantrieb (blinkt, solange das Tor faehrt) - nur MAT.neu'}
   };
   /* Vertexfarben-Klassen (Sammler, bk.sammler): Farbe je Ecke, Oberflaeche je Klasse */
   const VC_KLASSE={
@@ -116,7 +123,10 @@ const MAT=(function(){
     matt:{roughness:0.72,metalness:0.0}, glas:{roughness:0.08,metalness:0.35}
     /* leucht: MeshBasicMaterial ohne Tonemapping (unten) */
   };
-  const VC_W={standard:'Sammler Standard: Ware, Paletten, V1-Tor',lack:'Sammler lackiert (Geraete, Rahmen)',metall:'Sammler Metall (Stahl, Alu, Chrom)',matt:'Sammler matt (Gummi, Kunststoff matt)',glas:'Sammler Glas/Display',leucht:'Sammler leuchtend (LEDs, Anzeigen, ohne Tonemapping)'};
+  /* Oberflaechenklassen auch als Vertexfarben-Klasse (13.10., Tore): MAT.vc('stahl') hat dieselben Werte wie
+     MAT.ober(...,'stahl') - Sammler-Bauteile sehen dann aus wie Einzelteile mit Bibliotheksmaterial. */
+  for(const k of ['kunststoff','lackMetall','stahl','blank']) VC_KLASSE[k]={roughness:KLASSE[k].r,metalness:KLASSE[k].m};
+  const VC_W={kunststoff:'Sammler Kunststoff/Lack (Klasse kunststoff)',lackMetall:'Sammler Metall lackiert (Klasse lackMetall)',stahl:'Sammler Stahl (Klasse stahl)',blank:'Sammler blank/Chrom (Klasse blank)',standard:'Sammler Standard: Ware, Paletten',lack:'Sammler lackiert (Geraete, Rahmen)',metall:'Sammler Metall (Stahl, Alu, Chrom)',matt:'Sammler matt (Gummi, Kunststoff matt)',glas:'Sammler Glas/Display',leucht:'Sammler leuchtend (LEDs, Anzeigen, ohne Tonemapping)'};
 
   const cache=new Map(), texCache=new Map(), zaehler=new Map();
   const zaehle=(k)=>{ zaehler.set(k,(zaehler.get(k)||0)+1); };
@@ -198,7 +208,7 @@ const MAT=(function(){
   function css(name,a){ const h=hexVon(name); if(a===undefined) return '#'+(h>>>0).toString(16).padStart(6,'0'); return 'rgba('+(h>>16&255)+','+(h>>8&255)+','+(h&255)+','+a+')'; }
 
   /* ---------- geteilte prozedurale Texturen (lazy, einmal gemalt) ---------- */
-  const TEXTUR_W={beton:'Beton (innen Lagerboden, aussen Hof) - eine Textur, Massstab ueber die UVs',doppelstab:'Doppelstabmatte (Zaeune, Absperrungen)',drahtgitter:'Drahtgitter/Schweissgitter (Gitterbox, Ladezonen-Absperrung) - Masche 5 cm, Farbe ueber das Material',warnschraffur:'Warnschraffur gelb/schwarz (Torkanten, Sperrflaechen, Bodenrahmen)'};
+  const TEXTUR_W={beton:'Beton (innen Lagerboden, aussen Hof) - eine Textur, Massstab ueber die UVs',doppelstab:'Doppelstabmatte (Zaeune, Absperrungen)',drahtgitter:'Drahtgitter/Schweissgitter (Gitterbox, Ladezonen-Absperrung) - Masche 5 cm, Farbe ueber das Material',warnschraffur:'Warnschraffur gelb/schwarz (Torkanten, Sperrflaechen, Bodenrahmen)',torBlatt:'Torblatt-Atlas aller Ladetore: Zeile 0 Lamellen, 1 Fensterband, 2 unten mit Bodendichtung, 3 weiss (Kleinteile ueber Vertexfarben)'};
   const TEXTUR={
     /* Beton (vorher concreteTex() in 05b-ao.js, 19 Aufrufe an 12 Stellen) - Malcode unveraendert */
     beton:()=>{ const t=tex(256,256,(g,W,H)=>{ g.fillStyle='#8a8e94'; g.fillRect(0,0,W,H); for(let i=0;i<2500;i++){ const v=Math.random(); g.fillStyle=`rgba(${v<0.5?0:255},${v<0.5?0:255},${v<0.5?0:255},${Math.random()*0.06})`; g.fillRect(Math.random()*W,Math.random()*H,2,2); } g.strokeStyle='rgba(0,0,0,.18)'; g.lineWidth=2; g.strokeRect(0,0,W,H); });
@@ -233,7 +243,27 @@ const MAT=(function(){
        -> Baender 10 cm. Massstab: MAT.kachel(geo, laenge/0.4, hoehe/0.4) */
     warnschraffur:()=>{ const t=tex(128,128,(g,W,H)=>{ g.fillStyle=css('gummischwarz'); g.fillRect(0,0,W,H); g.fillStyle=css('signalgelb');
         const P=W/2; for(let c=-2*W;c<2*W;c+=P){ g.beginPath(); g.moveTo(c,0); g.lineTo(c+P/2,0); g.lineTo(c+P/2-H,H); g.lineTo(c-H,H); g.closePath(); g.fill(); } });
-      t.wrapS=t.wrapT=THREE.RepeatWrapping; t.anisotropy=4; return t; }
+      t.wrapS=t.wrapT=THREE.RepeatWrapping; t.anisotropy=4; return t; },
+    /* Torblatt-Atlas (13.10., Schritt Tore): vorher drei Familien - torPanelMat (05g, hell 1024x256),
+       torBlattMat (05h, 512x640, Ost-Attrappe) und vdPanelMat (11e, drei 512x128). Standard ist die
+       V1-Optik (Tom 09.10. "Lamellen, Fensterband, Bodendichtung"; Zielbild: anthrazite Rolltore mit
+       Fensterband). Vier Zeilen je 128 px: 0 vier Lamellen, 1 Lamellen mit drei Fenstern, 2 unterste
+       Lamelle mit Gummidichtung, 3 weiss fuer Kleinteile (Rollen, Baender) ueber Vertexfarben. Zeilen
+       waehlt bk.uvZeile(geo,zeile). */
+    torBlatt:()=>{ const t=tex(512,512,(c,W,H)=>{ const RH=H/4;
+        const lam=y0=>{ c.fillStyle=css('graphit'); c.fillRect(0,y0,W,RH);
+          for(let s2=0;s2<4;s2++){ const y=y0+s2*RH/4, h=RH/4, gr=c.createLinearGradient(0,y,0,y+h);
+            gr.addColorStop(0,'rgba(255,255,255,.16)'); gr.addColorStop(0.18,'rgba(255,255,255,.04)'); gr.addColorStop(0.78,'rgba(0,0,0,.05)'); gr.addColorStop(0.93,'rgba(0,0,0,.30)'); gr.addColorStop(1,'rgba(0,0,0,.5)');
+            c.fillStyle=gr; c.fillRect(0,y,W,h); }
+          for(let i=0;i<900;i++){ c.fillStyle=`rgba(255,255,255,${Math.random()*0.035})`; c.fillRect(Math.random()*W,y0+Math.random()*RH,2,1); } };
+        lam(0);
+        lam(RH); for(const fx of [0.2,0.5,0.8]){ const w=W*0.2, h=RH*0.5, x=W*fx-w/2, y=RH+RH*0.25;
+          c.fillStyle=css('tiefschwarz'); c.fillRect(x-5,y-5,w+10,h+10);
+          const g=c.createLinearGradient(0,y,0,y+h); g.addColorStop(0,'#2f5fae'); g.addColorStop(0.45,'#9cc4ff'); g.addColorStop(0.52,'#e8f2ff'); g.addColorStop(0.6,'#9cc4ff'); g.addColorStop(1,'#244f9a');
+          c.fillStyle=g; c.fillRect(x,y,w,h); c.fillStyle='rgba(255,255,255,.25)'; c.fillRect(x+4,y+3,w*0.3,2); }
+        lam(2*RH); c.fillStyle=css('gummischwarz'); c.fillRect(0,3*RH-14,W,14); c.fillStyle=css('basaltgrau'); c.fillRect(0,3*RH-18,W,4);
+        c.fillStyle='#ffffff'; c.fillRect(0,3*RH,W,RH); });
+      t.anisotropy=8; return t; }
   };
   function texGet(name){ zaehle('tex:'+name); let t=texCache.get(name); if(!t){ const f=TEXTUR[name]; if(!f) throw new Error('MAT.tex: Textur unbekannt: '+name); t=f(); t.userData=t.userData||{}; t.userData.mat=name; texCache.set(name,t); } return t; }
   /* Massstab in die UVs (statt texture.repeat) - dann teilen alle Flaechen eine Textur */

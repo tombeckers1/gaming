@@ -330,8 +330,8 @@ function hubAufbauPark(){
    --------------------------------------------------------- */
 function vdSetzen(t){
   VD.t=clamp(t,0,1);
-  /* der Behang laeuft als Ganzes hoch und wickelt sich Lamelle fuer Lamelle in den Kasten */
-  VD.panels.forEach((pn,i)=>{ const zu=(i+0.5)*(V1.h/VD.panels.length); pn.position.y=Math.min(zu+VD.t*(V1.h+0.12),V1.h+0.31); pn.visible=zu+VD.t*(V1.h+0.12)<V1.h+0.62; });
+  /* der Behang laeuft als Ganzes hoch und wickelt sich Lamelle fuer Lamelle in den Kasten (bk.tor, art roll) */
+  if(VD.T) VD.T.set(VD.t);
   if(VD.t>0.12){ if(VD.col){ dropCol(VD.col); VD.col=null; if(typeof navDirty==='function') navDirty(); } }
   else if(!VD.col){ VD.col=col(V1.x-V1.w/2,V1.x+V1.w/2,V1.wz-0.08,V1.wz+0.08); if(typeof navDirty==='function') navDirty(); }
   const offen=VD.t>=0.98;
@@ -349,29 +349,8 @@ function vdUpdate(dt){
   vdSetzen(VD.t+(d>0?1:-1)*Math.min(Math.abs(d),dt/3.4));
 }
 /* Rolltor-Lamellen (Tom 09.10.: "grafisch aufwerten - Lamellen, Fuehrungsschienen, Antrieb,
-   Bodendichtung, Warnmarkierung"): anthrazit, vier Lamellen je Panel, im vierten Panel ein
-   Fensterband, unten die Gummidichtung. Ein Material je Paneltyp. */
-let _vdMat=null;
-function vdPanelMat(){
-  if(_vdMat) return _vdMat;
-  const lam=(c,W,H)=>{ c.fillStyle='#3d4148'; c.fillRect(0,0,W,H);
-    for(let s2=0;s2<4;s2++){ const y=s2*H/4, h=H/4, gr=c.createLinearGradient(0,y,0,y+h);
-      gr.addColorStop(0,'rgba(255,255,255,.16)'); gr.addColorStop(0.18,'rgba(255,255,255,.04)'); gr.addColorStop(0.78,'rgba(0,0,0,.05)'); gr.addColorStop(0.93,'rgba(0,0,0,.30)'); gr.addColorStop(1,'rgba(0,0,0,.5)');
-      c.fillStyle=gr; c.fillRect(0,y,W,h); }
-    for(let i=0;i<900;i++){ c.fillStyle=`rgba(255,255,255,${Math.random()*0.035})`; c.fillRect(Math.random()*W,Math.random()*H,2,1); } };
-  const normal=tex(512,128,lam);
-  const fenster=tex(512,128,(c,W,H)=>{ lam(c,W,H);
-    for(const fx of [0.2,0.5,0.8]){ const w=W*0.2, h=H*0.5, x=W*fx-w/2, y=H*0.25;
-      c.fillStyle='#202328'; c.fillRect(x-5,y-5,w+10,h+10);
-      const g=c.createLinearGradient(0,y,0,y+h); g.addColorStop(0,'#2f5fae'); g.addColorStop(0.45,'#9cc4ff'); g.addColorStop(0.52,'#e8f2ff'); g.addColorStop(0.6,'#9cc4ff'); g.addColorStop(1,'#244f9a');
-      c.fillStyle=g; c.fillRect(x,y,w,h); c.fillStyle='rgba(255,255,255,.25)'; c.fillRect(x+4,y+3,w*0.3,2); } });
-  const unten=tex(512,128,(c,W,H)=>{ lam(c,W,H); c.fillStyle='#16181b'; c.fillRect(0,H-14,W,14); c.fillStyle='#8a9099'; c.fillRect(0,H-18,W,4); });
-  const m=t=>new THREE.MeshStandardMaterial({map:t,metalness:0.45,roughness:0.42});
-  _vdMat={normal:m(normal),fenster:m(fenster),unten:m(unten)};
-  _vdMat.fenster.emissive=LIN(MAT.farbe('nachtblau')); _vdMat.fenster.emissiveIntensity=0.15;
-  return _vdMat;
-}
-/* Warnmarkierung gelb-schwarz (Fuehrungsschienen unten, Torkante) */
+   Bodendichtung, Warnmarkierung"): seit 13.10. Standard-Optik ALLER Ladetore - die Textur
+   (vorher vdPanelMat hier) steht als Atlas torBlatt in der Bibliothek (01b), das Tor baut bk.tor. */
 /* vsWarnTex() entfaellt (13.10., Materialangleichung): Warnschraffur = MAT.get('warnschraffur') */
 /* Schild "DDL Abholung" (Tom 09.10., wie im Zielbild: dunkelblau, Paket-Symbol) */
 function ddlSchildTex(){
@@ -390,39 +369,17 @@ function ddlSchildTex(){
 function buildVersandhof(){
   if(VD.g) return;
   const g=new THREE.Group(); scene.add(g); VD.g=g;
-  const steel=MAT.get('stahlVerzinkt'), dark=MAT.get('stahlAnthrazit'), gelb=MAT.get('lackGelb');
-  /* Vertexfarben: Zarge, Schienen, Kasten, Antrieb, Lampe, Telefon - ein Zeichenaufruf */
-  const VC=bk.sammler({form:{fase:0.012,seg:2,lod0Kasten:true},bauteil:'versandtor'}), B=(w,h,d,c,x,y,z,rx,ry,rz)=>VC.box(w,h,d,x,y,z,c,null,rx,ry,rz);
+  const dark=MAT.get('stahlAnthrazit');
+  /* Vertexfarben: Lampe, Schildrahmen, Telefon - ein Zeichenaufruf (das Tor baut bk.tor) */
+  const VC=bk.sammler({form:{fase:0.012,seg:2,lod0Kasten:true},bauteil:'versandhof'}), B=(w,h,d,c,x,y,z,rx,ry,rz)=>VC.box(w,h,d,x,y,z,c,null,rx,ry,rz);
   const Cy=(r,h,c,x,y,z,rx,ry,rz,seg)=>VC.zyl(r,r,h,seg||10,x,y,z,c,null,rx,ry,rz);
-  const ANTH=MAT.farbe('anthrazit'), STAHL=MAT.farbe('silbergrau'), GRAU=MAT.farbe('basaltgrau');
-  /* Torblatt: sechs Panele (je vier Lamellen), laeuft nach oben in den Wickelkasten */
-  const N=6, ph=V1.h/N, PM=vdPanelMat();
-  for(let i=0;i<N;i++){ const pn=new THREE.Mesh(new THREE.BoxGeometry(V1.w-0.06,ph-0.008,0.06),i===0?PM.unten:i===3?PM.fenster:PM.normal); pn.position.set(V1.x,(i+0.5)*ph,V1.wz); if(HIQ){ pn.castShadow=true; } g.add(pn); VD.panels.push(pn); }
-  /* Fuehrungsschienen (C-Profil) innen und aussen, Zarge und Sturz */
-  for(const sx of [-1,1]){ const x=V1.x+sx*(V1.w/2+0.04);
-    for(const zz of [V1.wz-0.12,V1.wz+0.12]){ B(0.14,V1.h+0.66,0.1,STAHL,x,(V1.h+0.66)/2,zz); B(0.05,V1.h+0.6,0.04,ANTH,x-sx*0.05,(V1.h+0.6)/2,zz+(zz>V1.wz?0.05:-0.05)); }
-    for(let y=0.4;y<V1.h;y+=0.75) for(const zz of [V1.wz-0.18,V1.wz+0.18]) B(0.06,0.04,0.04,GRAU,x,y,zz); }
-  /* Wickelkasten ueber dem Tor, innen und aussen, Antrieb mit Kettenkasten rechts */
-  for(const zz of [V1.wz-0.2,V1.wz+0.2]) B(V1.w+0.42,0.68,0.24,ANTH,V1.x,V1.h+0.34,zz);
-  B(V1.w+0.46,0.04,0.66,GRAU,V1.x,V1.h+0.69,V1.wz);
-  B(0.28,0.3,0.36,MAT.farbe('graphit'),V1.x+V1.w/2+0.38,V1.h+0.32,V1.wz+0.26); Cy(0.1,0.18,MAT.farbe('gummischwarz'),V1.x+V1.w/2+0.38,V1.h+0.32,V1.wz+0.5,Math.PI/2,0,0,14);
-  B(0.12,0.2,0.08,MAT.farbe('signalgelb'),V1.x+V1.w/2+0.38,V1.h+0.06,V1.wz+0.3);
-  /* Steuerkasten mit Tastern und Not-Halt links neben dem Tor (ausserhalb der Ladezone) */
-  const TX=V1.x-V1.w/2-0.42;
-  B(0.26,0.36,0.12,MAT.farbe('lichtgrau'),TX,1.35,V1.wz+0.16); for(const [dy,c] of [[0.08,0x2fd06a],[-0.02,0xff4433],[-0.12,MAT.farbe('gummischwarz')]]) Cy(0.022,0.02,c,TX-0.05,1.35+dy,V1.wz+0.23,Math.PI/2,0,0,10);
-  Cy(0.04,0.03,MAT.farbe('signalrot'),TX+0.07,1.38,V1.wz+0.24,Math.PI/2,0,0,12); Cy(0.05,0.012,MAT.farbe('signalgelb'),TX+0.07,1.38,V1.wz+0.225,Math.PI/2,0,0,12);
-  /* Warnmarkierung: Schienen unten gelb-schwarz, Bodendichtung - als ein Mesh mit Textur */
-  { const parts=[]; for(const sx of [-1,1]) for(const zz of [V1.wz-0.12,V1.wz+0.12]) parts.push({geo:new THREE.BoxGeometry(0.15,1.0,0.105),m:tm(V1.x+sx*(V1.w/2+0.04),0.5,zz),color:0xffffff});
-    const w=new THREE.Mesh(MAT.kachel(merge(parts),0.15/0.4,1.0/0.4),MAT.get('warnschraffur')); g.add(w); }
-  /* Ampel: rot zu, gruen offen - 09.10. (Tom) links neben das Tor statt halb in die Ecke */
-  VD.lampR=new THREE.MeshStandardMaterial({color:LIN(0x401010),emissive:LIN(0xff3a22),emissiveIntensity:1.4});
-  VD.lampG=new THREE.MeshStandardMaterial({color:LIN(0x104018),emissive:LIN(0x33ff77),emissiveIntensity:0});
-  VD.warn=new THREE.MeshStandardMaterial({color:LIN(MAT.farbe('holzDunkel')),emissive:LIN(0xffa820),emissiveIntensity:0});
-  const AX=V1.x-V1.w/2-0.42;
-  B(0.2,0.5,0.14,ANTH,AX,2.25,V1.wz+0.17);
-  const lamp=(m,y)=>{ const l=new THREE.Mesh(new THREE.SphereGeometry(0.06,10,8),m); l.position.set(AX,y,V1.wz+0.25); g.add(l); };
-  lamp(VD.lampR,2.38); lamp(VD.lampG,2.2);
-  const wl=new THREE.Mesh(new THREE.SphereGeometry(0.08,10,8),VD.warn); wl.position.set(V1.x+V1.w/2+0.38,V1.h+0.55,V1.wz+0.35); g.add(wl);
+  const ANTH=MAT.farbe('anthrazit');
+  /* Das Rolltor selbst: bk.tor (04z) - Blatt mit sechs Panelen, Schienen innen und aussen,
+     Wickelkasten, Antrieb, Bedienkasten mit Not-Halt, Ampel (09.10. Tom: links neben dem Tor),
+     Warnleuchte, Zarge, Torabdichtung, Vordach, Poller. Innen = +z der Welt. */
+  const T=bk.tor({art:'roll',breite:V1.w,hoehe:V1.h,wand:[-0.1,0.1],blatt:0,nr:null,bedien:1,x:V1.x,z:V1.wz,ry:-Math.PI/2,parent:g});
+  for(const r of T.kollision) col(r.x0,r.x1,r.z0,r.z1);
+  VD.T=T; VD.panels=T.panele; VD.lampR=T.ampel.rot; VD.lampG=T.ampel.gruen; VD.warn=T.warn;
   /* Schwanenhalslampe links ueber dem Tor (Zielbild), Licht nach unten */
   { const LX=V1.x-V1.w/2-0.7, LY=V1.h+0.9;
     B(0.16,0.22,0.04,ANTH,LX,LY,V1.wz+0.12);
@@ -473,13 +430,10 @@ function buildVersandhof(){
     for(const yy of [0.15,1.95]) bbox(quer?L:0.05,0.05,quer?0.05:L,zaunM,(x0+x1)/2,yy,(z0+z1)/2,g,false); };
   zaun(hof.x0,hof.z1,hof.x0,hof.z0); zaun(hof.x1,hof.z1,hof.x1,hof.z0); zaun(hof.x0,hof.z0,hof.x1,hof.z0);
   col(hof.x0-0.1,hof.x0+0.05,hof.z0,hof.z1); col(hof.x1-0.05,hof.x1+0.1,hof.z0,hof.z1); col(hof.x0,hof.x1,hof.z0-0.1,hof.z0+0.05);
-  /* Poller vor dem Tor */
-  for(const s of [-1,1]){ const x=V1.x+s*(V1.w/2+0.55); bbox(0.18,0.9,0.18,gelb,x,0.45,V1.wz-0.9,g,false); col(x-0.14,x+0.14,V1.wz-1.04,V1.wz-0.76); }
   /* Flutlicht ueber dem Tor (aussen) */
   bbox(0.5,0.12,0.2,dark,V1.x,V1.h+1.95,V1.wz-0.25,g,false);
   VD.fluter=new THREE.MeshStandardMaterial({color:LIN(MAT.farbe('anthrazit')),emissive:LIN(0xfff2d6),emissiveIntensity:0}); if(typeof lampMats!=='undefined') lampMats.push(VD.fluter);
   const fl2=new THREE.Mesh(new THREE.BoxGeometry(0.42,0.06,0.12),VD.fluter); fl2.position.set(V1.x,V1.h+1.87,V1.wz-0.3); g.add(fl2);
-  void steel;
   vdSetzen(0);
 }
 /* Schild am Telefon: Anleitung und Stand der Box */

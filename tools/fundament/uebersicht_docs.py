@@ -252,3 +252,135 @@ def feuerwerk(pfad):
     if not (regeln and ab and fr):
         WARN.append('Feuerwerk-Regeln: Regeln/Abweichungen/Fragen unvollständig')
     return r
+
+
+# ------------------------------------------------------------------ Umbau-Schritte (generisch)
+# Jede docs/fundament/<schritt>.md mit Bildordner docs/fundament/<schritt>/ wird ein Abschnitt "<Name> - vorher/nachher":
+# Standard-Optik + Begruendung, Parameter, Fundorte, Messung, Tests, offene Fragen an Tom (alles aus dem Dokument, nichts abgeschrieben)
+# und die Bildpaare des Ordners. Neue Schritte (zaeune.md, waende.md ...) erscheinen automatisch, sobald es Datei und Ordner gibt.
+SCHRITT_AUSSER = {'angleichung'}                       # hat einen eigenen, aelteren Abschnitt
+SCHRITT_REIHE = ['tore', 'waende', 'zaeune', 'poller', 'lampen', 'kartons', 'regale', 'fassade', 'tueren', 'fenster']
+BILD_ENDUNG = re.compile(r'\.(webp|jpg|jpeg|png)$', re.I)
+BILD_TEIL = re.compile(r'^(?P<n>.+?)-(?P<k>vorher-nachher|nachher-isoliert|vorher-isoliert)$')
+
+
+def blocks(text):
+    """Markdown-Ausschnitt -> Liste einfacher Bloecke (p, h4, ul, ol, tab, zitat)."""
+    out, zeilen, i = [], text.split('\n'), 0
+    while i < len(zeilen):
+        z = zeilen[i]
+        if not z.strip() or re.match(r'^-{3,}\s*$', z):
+            i += 1; continue
+        if z.startswith('|'):
+            tb = []
+            while i < len(zeilen) and zeilen[i].startswith('|'):
+                tb.append(zeilen[i]); i += 1
+            if len(tb) >= 2:
+                kopf = [c.strip() for c in tb[0].strip().strip('|').split(' | ')]
+                rows = [[c.strip() for c in l.strip().strip('|').split(' | ')] for l in tb[2:]]
+                rows = [(r + [''] * len(kopf))[:len(kopf)] for r in rows]
+                out.append({'t': 'tab', 'kopf': [inline(k) for k in kopf], 'zeilen': [[inline(c) for c in r] for r in rows]})
+            continue
+        m = re.match(r'^(#{3,6}) (.*)', z)
+        if m:
+            out.append({'t': 'h4', 'h': inline(m.group(2))}); i += 1; continue
+        if z.startswith('> '):
+            q = []
+            while i < len(zeilen) and zeilen[i].startswith('>'):
+                q.append(zeilen[i].lstrip('> ')); i += 1
+            out.append({'t': 'zitat', 'h': inline(' '.join(q))}); continue
+        lm = re.match(r'^(- |\d+\. )', z)
+        if lm:
+            ol = z[0].isdigit(); items = []
+            while i < len(zeilen) and re.match(r'^(- |\d+\. |\s+\S)', zeilen[i]) and zeilen[i].strip():
+                if re.match(r'^(- |\d+\. )', zeilen[i]):
+                    items.append(re.sub(r'^(- |\d+\. )', '', zeilen[i]))
+                else:
+                    items[-1] += ' ' + zeilen[i].strip()
+                i += 1
+            out.append({'t': 'ol' if ol else 'ul', 'items': [inline(' '.join(x.split())) for x in items]}); continue
+        p = []
+        while i < len(zeilen) and zeilen[i].strip() and not re.match(r'^(\||#{3,6} |- |\d+\. |> )', zeilen[i]):
+            p.append(zeilen[i].strip()); i += 1
+        if not p:
+            i += 1; continue
+        out.append({'t': 'p', 'h': inline(' '.join(p))})
+    return out
+
+
+def _abschnitte(md):
+    """Nummerierte Abschnitte '## 4. Titel' -> [(titel, text)]; Text davor = Einleitung."""
+    teile = re.split(r'^## ', md, flags=re.M)
+    return teile[0], [(t.split('\n', 1)[0].strip(), t.split('\n', 1)[1] if '\n' in t else '') for t in teile[1:]]
+
+
+def _art(titel):
+    t = titel.lower()
+    if re.search(r'standard|optik', t): return 'optik'
+    if re.search(r'parameter', t): return 'parameter'
+    if re.search(r'welche stelle|nutzt|fundort', t): return 'stellen'
+    if re.search(r'messung', t): return 'messung'
+    if re.search(r'^\d+\.?\s*bilder|^bilder', t): return 'bilder'
+    if re.search(r'test', t): return 'tests'
+    if re.search(r'offen|tom|frage', t): return 'offen'
+    return 'sonst'
+
+
+def schritt(md_pfad, bild_dir):
+    stem = os.path.splitext(os.path.basename(md_pfad))[0]
+    md = lies(md_pfad)
+    h1 = re.match(r'^# (.*)', md)
+    titel = h1.group(1).strip() if h1 else stem
+    name = re.split(r' [–-] ', re.sub(r'`', '', titel), 1)[0].strip() or stem.capitalize()
+    kopf, abs_ = _abschnitte(md.split('\n', 1)[1] if h1 else md)
+    r = {'id': stem, 'name': name, 'titel': inline(titel), 'intro': blocks(kopf), 'abschnitte': [], 'bilder': [], 'offen': []}
+    labels = {}
+    for t, txt in abs_:
+        a = _art(re.sub(r'^\d+[a-z]?\.\s*', '', t))
+        if a == 'bilder':
+            for z in txt.split('\n'):
+                if z.startswith('| ') and '](' in z:
+                    zellen = [c.strip() for c in z.strip().strip('|').split(' | ')]
+                    for f in re.findall(r'\]\([^)]*?([^/)]+\.(?:webp|jpg|jpeg|png))\)', z):
+                        labels[f] = zellen[0]
+            continue
+        b = blocks(txt)
+        if a == 'offen':
+            for bl in b:
+                if bl['t'] == 'ul':
+                    r['offen'] += bl['items']
+            continue
+        r['abschnitte'].append({'art': a, 'titel': inline(re.sub(r'^\d+[a-z]?\.\s*', '', t)), 'bloecke': b})
+    if not r['abschnitte']:
+        WARN.append('Schritt %s: keine Abschnitte' % stem)
+    # Bildpaare aus dem Ordner
+    paare = {}
+    for f in sorted(os.listdir(bild_dir)):
+        if not BILD_ENDUNG.search(f):
+            continue
+        s = BILD_ENDUNG.sub('', f); m = BILD_TEIL.match(s)
+        n, k = (m.group('n'), m.group('k')) if m else (s, 'vorher-nachher')
+        paare.setdefault(n, {})[k] = f
+    for n, d in paare.items():
+        lab = next((labels[f] for f in d.values() if f in labels), None)
+        r['bilder'].append({'n': n, 'label': inline(lab) if lab else n.replace('-', ' ').capitalize(), 'dateien': d})
+    # Reihenfolge wie in der Bilder-Tabelle des Dokuments, Rest nach Name
+    pos = {f: i for i, f in enumerate(labels)}
+    r['bilder'].sort(key=lambda b: min([pos.get(f, 9999) for f in b['dateien'].values()] or [9999]))
+    if not r['bilder']:
+        WARN.append('Schritt %s: keine Bilder in %s' % (stem, bild_dir))
+    return r
+
+
+def schritte(doc_dir):
+    """Alle Schritte mit <schritt>.md + Ordner <schritt>/ (mit Bildern); Reihenfolge SCHRITT_REIHE, Rest alphabetisch."""
+    out = []
+    for f in sorted(os.listdir(doc_dir)):
+        if not f.endswith('.md'):
+            continue
+        stem = f[:-3]; d = os.path.join(doc_dir, stem)
+        if stem in SCHRITT_AUSSER or not os.path.isdir(d) or not any(BILD_ENDUNG.search(x) for x in os.listdir(d)):
+            continue
+        out.append(schritt(os.path.join(doc_dir, f), d))
+    out.sort(key=lambda s: (SCHRITT_REIHE.index(s['id']) if s['id'] in SCHRITT_REIHE else 99, s['id']))
+    return out

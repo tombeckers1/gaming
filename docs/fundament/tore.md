@@ -96,19 +96,19 @@ fehlt deshalb; die Bündelung fasst ohnehin nur statische Einzelmeshes zusammen,
 ## 5. Bilder (`docs/fundament/tore/`)
 
 Links vorher, rechts nachher, gleiche Kamera, Tag. „isoliert“ = nur Meshes mit `userData.bauteil='tor'`
-(die Vorher-Bilder isoliert stehen im Katalog: `katalog/vorher/tor-*.webp`).
+(die Vorher-Bilder isoliert: `*-vorher-isoliert.webp`, aus dem alten Vorher-Katalog gerettet).
 
 | Tor | im Spiel | isoliert |
 |---|---|---|
-| R1 außen (Dock-Hof) | [vorher/nachher](tore/r1-aussen-vorher-nachher.webp) | [nachher](tore/r1-aussen-nachher-isoliert.webp) · [vorher](katalog/vorher/tor-r1-0.webp) |
+| R1 außen (Dock-Hof) | [vorher/nachher](tore/r1-aussen-vorher-nachher.webp) | [nachher](tore/r1-aussen-nachher-isoliert.webp) · [vorher](tore/r1-aussen-vorher-isoliert.webp) |
 | R1 innen (Lager) | [vorher/nachher](tore/r1-innen-vorher-nachher.webp) | [nachher](tore/r1-innen-nachher-isoliert.webp) |
-| R2–R5 außen (LKW-Hof) | [vorher/nachher](tore/r2-aussen-vorher-nachher.webp) | [nachher](tore/r2-aussen-nachher-isoliert.webp) · [vorher](katalog/vorher/tor-r25-aussen-0.webp) |
-| R2–R5 innen (Logistikhalle) | [vorher/nachher](tore/r2-innen-vorher-nachher.webp) | [nachher](tore/r2-innen-nachher-isoliert.webp) · [vorher](katalog/vorher/tor-r25-innen-0.webp) |
-| V1 außen (Versandhof) | [vorher/nachher](tore/v1-aussen-vorher-nachher.webp) | [nachher](tore/v1-aussen-nachher-isoliert.webp) · [vorher](katalog/vorher/tor-v1-0.webp) |
+| R2–R5 außen (LKW-Hof) | [vorher/nachher](tore/r2-aussen-vorher-nachher.webp) | [nachher](tore/r2-aussen-nachher-isoliert.webp) · [vorher](tore/r2-aussen-vorher-isoliert.webp) |
+| R2–R5 innen (Logistikhalle) | [vorher/nachher](tore/r2-innen-vorher-nachher.webp) | [nachher](tore/r2-innen-nachher-isoliert.webp) · [vorher](tore/r2-innen-vorher-isoliert.webp) |
+| V1 außen (Versandhof) | [vorher/nachher](tore/v1-aussen-vorher-nachher.webp) | [nachher](tore/v1-aussen-nachher-isoliert.webp) · [vorher](tore/v1-aussen-vorher-isoliert.webp) |
 | V1 innen (Versandecke) | [vorher/nachher](tore/v1-innen-vorher-nachher.webp) | [nachher](tore/v1-innen-nachher-isoliert.webp) |
 | Logistikzentrum Ost (Attrappen, im Spiel hinter den Aufliegern) | [vorher/nachher](tore/ost-vorher-nachher.webp) | [nachher](tore/ost-nachher-isoliert.webp) |
-| Schiebetor Hof | [vorher/nachher](tore/hof-schiebetor-vorher-nachher.webp) | [nachher](tore/hof-schiebetor-nachher-isoliert.webp) · [vorher](katalog/vorher/tor-hof-0.webp) |
-| Doppeltor im Zaun (Ost) | [vorher/nachher](tore/doppeltor-vorher-nachher.webp) | [nachher](tore/doppeltor-nachher-isoliert.webp) · [vorher](katalog/vorher/tor-ost-0.webp) |
+| Schiebetor Hof | [vorher/nachher](tore/hof-schiebetor-vorher-nachher.webp) | [nachher](tore/hof-schiebetor-nachher-isoliert.webp) · [vorher](tore/hof-schiebetor-vorher-isoliert.webp) |
+| Doppeltor im Zaun (Ost) | [vorher/nachher](tore/doppeltor-vorher-nachher.webp) | [nachher](tore/doppeltor-nachher-isoliert.webp) · [vorher](tore/doppeltor-vorher-isoliert.webp) |
 
 Bilder neu erzeugen: `tools/fundament/torbilder.js <real.html> <ordner> [iso]` (`VIEWS=r1-aussen,…` schränkt ein) – Kameras je Tor, `iso` blendet alles außer
 `userData.bauteil='tor'` aus. Für Wiederholung im Katalog reicht `tools/fundament/katalog.js`: `bk.tor` erscheint dort

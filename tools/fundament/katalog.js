@@ -112,7 +112,7 @@ const pad=(n,l)=>String(n).padStart(l||3,'0');
     const bt=await sicher('bauteile',()=>p.evaluate(()=>window.__K.bauteile()));
     if(bt){
       for(const a of bt.eintraege){
-        const bilder=Math.min(a.varianten.length,4);
+        const bilder=Math.min(a.varianten.length,8);
         for(let v=0;v<bilder;v++){ const u=await sicher('btBild '+a.name,()=>p.evaluate(([x,y])=>window.__K.btBild(x,y),[a.id,a.varianten[v].beispiel])); a.varianten[v].bild=speichern('bauteile/'+a.name.replace(/[^\w-]/g,'_')+'-v'+v,u); }
         a.bild=a.varianten[0]&&a.varianten[0].bild||null;
       }

@@ -11,6 +11,9 @@ Version 2 (13.10.2026): dazu Materialangleichung, Wirtschaft (Entscheidung -> Fo
 liest uebersicht_docs.py aus docs/fundament/*.md (angleichung.md, wirtschaft.md + wirtschaft-werte.md, feuerwerk-regeln.md) und
 docs/fundament/angleichung/*.jpg - nichts ist abgeschrieben; wirtschaft*.md erzeugt wirtschaft-uebersicht.js aus WIRT_KETTEN.
 
+Version 3 (14.10.2026): Abschnitt je Umbau-Schritt "<Name> - vorher/nachher" (Tore ...), automatisch fuer jede docs/fundament/<schritt>.md mit
+Bildordner docs/fundament/<schritt>/ (uebersicht_docs.schritte); Bauteile im Baukasten mit Varianten (bauteilArt) und Fundorten.
+
 Aufruf: python3 tools/fundament/uebersicht.py <katalog-ordner> <ausgabe.html> [stand.json]
 stand.json (optional): {"commit": "...", "version": "V128", "schritte": [{"name":..,"stand":"fertig|laeuft|offen","text":..}]}
 """
@@ -79,9 +82,21 @@ for c in K['vorher']['kategorien']:
         'meshes': v.get('meshes'), 'mats': v.get('materialien'), 'dreiecke': v.get('dreiecke'),
         'nach': v.get('nachgebaut'), 'bild': bild(v.get('bild'))} for v in c['varianten']]})
 
+def zonen_zaehlen(b):
+    z = {}
+    for f in b.get('fundorte', []):
+        if f.get('zone'):
+            z[f['zone']] = z.get(f['zone'], 0) + 1
+    return sorted(z.items(), key=lambda kv: -kv[1])
+
+
 bauteile = [{'name': b['name'], 'inst': b['instanzen'], 'dreiecke': b['dreieckeGesamt'], 'var': b['varianteAnzahl'],
              'bild': bild(b['varianten'][0].get('bild')) if b['varianten'] else None,
-             'zonen': sorted({f.get('zone') for f in b.get('fundorte', []) if f.get('zone')})}
+             'zonen': [z for z, _ in zonen_zaehlen(b)], 'zonenN': zonen_zaehlen(b),
+             'fundorteN': len(b.get('fundorte', [])),
+             'varianten': [{'art': v.get('art'), 'zone': v.get('zone'), 'n': v.get('anzahl'), 'dreiecke': v.get('dreiecke'), 'meshes': v.get('meshes'),
+                            'b': (v.get('groesse') or {}).get('b'), 'h': (v.get('groesse') or {}).get('h'), 't': (v.get('groesse') or {}).get('t'),
+                            'bild': bild(v.get('bild'))} for v in b['varianten']]}
             for b in K['bauteile']['eintraege']]
 
 farben = [dict(f, wofuer=de(f.get('wofuer')), anzeige=de(f.get('anzeige'))) for f in (K['baukasten'].get('farben') or [])]
@@ -104,6 +119,17 @@ for sz in angl['szenen']:
             angl['bilder'][d] = 'data:image/jpeg;base64,' + base64.b64encode(open(p, 'rb').read()).decode() if os.path.exists(p) else None
             if not angl['bilder'][d]:
                 docs.WARN.append('Bild fehlt: ' + d)
+def datei_uri(p):
+    if not os.path.exists(p):
+        docs.WARN.append('Bild fehlt: ' + p); return None
+    ext = os.path.splitext(p)[1].lstrip('.').lower().replace('jpg', 'jpeg')
+    return f'data:image/{ext};base64,' + base64.b64encode(open(p, 'rb').read()).decode()
+
+
+steps = docs.schritte(DOC)
+for st_ in steps:
+    for b in st_['bilder']:
+        b['dateien'] = {k: datei_uri(os.path.join(DOC, st_['id'], f)) for k, f in b['dateien'].items()}
 angl['palette'] = farben
 angl['klassenK'] = klassenK
 daten = {
@@ -112,7 +138,7 @@ daten = {
     'texSum': {k: K['texturen'].get(k) for k in ['einzigartig', 'texturObjekte', 'dubletten', 'rohMB', 'gpuMB']},
     'mats': mats, 'texs': texs, 'vorher': vorher, 'bauteile': bauteile, 'farben': farben,
     'kartons': {'n': K['verpackungen']['anzahl'], 'mb': K['verpackungen'].get('gpuMB'), 'bild': bild(K['verpackungen'].get('bild'))},
-    'stand': stand, 'angl': angl, 'wirt': wirt, 'fw': fw,
+    'stand': stand, 'angl': angl, 'schritte': steps, 'wirt': wirt, 'fw': fw,
 }
 
 tpl = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'uebersicht-vorlage.html')).read()

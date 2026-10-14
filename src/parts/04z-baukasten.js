@@ -563,7 +563,7 @@ bk.WB=WB;
 bk.wandBildAdd=function(m){ m.userData.wandBild=true; WB.liste.push(m); WB.sig=null; return m; };
 function _wbSicht(o){ let a=o; while(a){ if(!a.visible) return false; if(!a.parent) return a===scene; a=a.parent; } return false; }
 bk.wandbild=function(erzwingen){
-  if(WB.aus) return false;
+  if(WB.aus||WB.halt) return false;
   if(typeof scene==='undefined'||!scene.layers||!THREE.Matrix3||!THREE.Layers){ WB.aus=true; return false; }
   /* Pruefsumme: Sichtbarkeit und Material jedes Originals */
   let sig=WB.liste.length+':'; const sicht=[];

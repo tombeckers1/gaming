@@ -116,7 +116,11 @@ Neues Bauteil = Funktion `bk.<name>(o)` in `04z-baukasten.js`: Parameter statt K
 `bk.sammler`, Materialien nur aus `MAT`, Rückgabe enthält Spiellogik-Haken (Kollision, Treffer,
 bewegte Teile) statt sie intern zu verdrahten, jedes Mesh mit `userData.bauteil`.
 
-## 3. Messung Schritt 2 (Materialangleichung, 13.10.)
+## 3. Messung Schritte 3 + 4 (Wände, Zäune/Poller, 14.10.)
+Mit Laufzeit-Bündelung (Spielzustand): Hauptpass Laden 597 → 490, Lagerdock 635 → 495, Dock-Hof 739 → 561; Schattenpass 464–511 → 266–290
+(−40 … −44 %). Meshes im Graf 2 521 → 2 218, Zeichengruppen 3 381 → 2 516. Einzelheiten: `waende.md` §4, `zaeune.md` §4.
+
+## 3b. Messung Schritt 2 (Materialangleichung, 13.10.)
 Material-Objekte 563 → 430, Dubletten 114 → 89, Texturen 225 → 223, Zeichenaufrufe fast gleich; Einzelheiten und
 Vorher/Nachher-Bilder in `angleichung.md`.
 

@@ -33,6 +33,9 @@ function oeffneZone(id,leise){
 }
 /* Nach dem Laden eines Spielstands alle gekauften Bereiche oeffnen */
 function applyZonen(){
+  /* Wandbild erst am Ende einmal neu bauen, nicht je geoeffneter Zone (Laden eines Spielstands) */
+  bk.WB.halt=true;
+  try{
   for(const id in ZONEN){
     const z=ZONEN[id];
     if(zoneOffen(id)) oeffneZone(id,true);
@@ -45,6 +48,7 @@ function applyZonen(){
   }
   if(typeof logiAnwenden==='function') logiAnwenden();
   if(typeof navDirty==='function') navDirty();
+  } finally { bk.WB.halt=false; }
   bk.wandbild();
 }
 

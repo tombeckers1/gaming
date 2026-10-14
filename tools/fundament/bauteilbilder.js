@@ -3,7 +3,7 @@
 // Neues Spiel, Tag, Stufe Hoch, Zufall fest. Zuerst die Ansichten im Anfangszustand (Absperrbaender
 // haengen nur vor dem Kauf), dann alles freigeschaltet. "iso" baut die Baukasten-Bauteile zusaetzlich
 // einzeln vor hellem Grund (nur im Nachher-Stand vorhanden: bk.zaun/poller/anfahrschutz/absperrung/wand).
-// VIEWS=a,b schraenkt die Ansichten ein.
+// VIEWS=a,b schraenkt die Ansichten ein, GFXW=max waehlt die Grafikstufe (Standard hoch).
 const { chromium } = require('/opt/node22/lib/node_modules/playwright');
 const fs=require('fs');
 (async()=>{
@@ -15,7 +15,7 @@ const fs=require('fs');
   const errs=[]; p.on('pageerror',e=>errs.push('PAGEERROR: '+e.message));
   await p.goto('file://'+html);
   await p.waitForFunction('window.__bb!==undefined',null,{timeout:900000});
-  await p.evaluate(()=>{ localStorage.clear(); localStorage.setItem('bb_gfx','hoch'); });
+  await p.evaluate(g=>{ localStorage.clear(); localStorage.setItem('bb_gfx',g); },process.env.GFXW||'hoch');
   await p.reload(); await p.waitForFunction('window.__bb!==undefined',null,{timeout:900000});
   await p.waitForFunction("!!document.querySelector('#startBtns button:not([disabled])')",null,{timeout:900000});
   await p.click('#startBtns button:last-child',{timeout:900000});
@@ -28,7 +28,7 @@ const fs=require('fs');
     'band-testfeld':[5.25,-2.6,0,0.12], 'band-lager':[-4.6,-2.5,P2,0.1]
   };
   const ALLES={
-    'zaun-testfeld':[3.5,-21.5,0.55,0.08], 'zaun-lkwhof':[-62.5,-47,'auf',-70,-51.5,0.04], 'zaun-ost':[39.4,-1.5,-P2+0.45,0.04],
+    'zaun-testfeld':[3.5,-21.5,0.55,0.08], 'zaun-lkwhof':[-40,-55,'auf',-56,-62,0.02], 'zaun-ost':[39.4,-1.5,-P2+0.45,0.04],
     'zaun-versandhof':null, 'gitter-packstation':[-10.25,-24.6,0,0.16],
     'poller-laden':[3.6,10.6,'auf',5.4,7.5,0.22], 'anfahrschutz-moerser':null,
     'wand-laden':[0,3,0,0], 'wand-lager':[-14,-2,0,0.05], 'wand-lagerdock':[-17,-2,-P2,0], 'wand-dockhof':[-27,3,-P2,0.05],
@@ -47,9 +47,9 @@ const fs=require('fs');
   await p.evaluate(()=>{ const bb=window.__bb; bb.S.level=99; bb.S.money=9e7; for(const id of ['lager','lager_nord','lager_gross','lager_sued','lager_sued2']) bb.S.up[id]=true; bb.S.up.packstation=false; try{ bb.applyZonen(); }catch(e){} bb.run(0.5,0.05); });
   { const q=await p.evaluate(()=>{ const bb=window.__bb, bx=new THREE.Box3(); bb.packTisch.updateMatrixWorld(true);
       bb.packTisch.traverse(o=>{ if(o.isMesh&&o.userData&&o.userData.sperrband) bx.expandByObject(o); });
-      const c=bx.getCenter(new THREE.Vector3()); return [c.x+0.6,c.z+3.0,'auf',c.x,c.z,0.2]; }); await bild('band-packstation',q); }
+      const c=bx.getCenter(new THREE.Vector3()); return [c.x+0.6,c.z+3.0,'auf',c.x,c.z,-0.12]; }); await bild('band-packstation',q); }
   await p.evaluate(()=>{ const bb=window.__bb; for(const u of bb.UPGRADES) bb.S.up[u.id]=true; try{ bb.applyZonen(); }catch(e){} try{ bb.logiAnwenden(); }catch(e){} bb.run(1,0.05); });
-  { const m=await p.evaluate(()=>{ const s=window.__bb.STATION_POS.moerser; return [s.x-2.4,s.z+2.9,'auf',s.x,s.z,0.4]; }); ALLES['anfahrschutz-moerser']=m; }
+  { const m=await p.evaluate(()=>{ const s=window.__bb.STATION_POS.moerser; return [s.x-2.0,s.z+2.6,'auf',s.x,s.z,-0.38]; }); ALLES['anfahrschutz-moerser']=m; }
   { const m=await p.evaluate(()=>{ const h=window.__bb.V1_HOF; return [h.x1-0.9,h.z0+1.2,'auf',h.x0,(h.z0+h.z1)/2,0.1]; }); ALLES['zaun-versandhof']=m; }
   for(const k in ALLES) await bild(k,ALLES[k]);
   if(iso){

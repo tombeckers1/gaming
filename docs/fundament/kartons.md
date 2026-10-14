@@ -116,7 +116,20 @@ Bilder neu erzeugen: `node tools/fundament/kartonmessung.js <real.html> <ordner>
 
 ## 5a. Tests (eigene Sperre `/tmp/bb-testlock-kartons`, je Lauf ein Browser)
 
-TESTERGEBNISSE
+Container unter Volllast (drei Agenten, Last 10–16 auf 4 Kernen, Speichergrenze 13,4 GB mit OOM-Kills von Browsern).
+
+**Grün:** kartonlogik (Raute nur auf Feuerwerk, 239 verschiedene Motive, alter Spielstand mit Eiswürfeln lädt; neu
+**ATLAS_ZELLE**: gerenderte Kartonvorderseite gegen ihre Zelle, Korrelation 0,96–0,997; **Gegenprobe** Zellwahl auf
+ganze Atlasseite → −0,36…0,12, schlägt an), karre, kartons, pakete, packband, versandtor, lager, einraeumer (Lauf 3,
+inkl. Neuladen; Karton zeigt `kartonMat[t]` = Aufdruck), material (Wächter 0 Verstöße), **gameplay** (Endstand, ALLES OK).
+`node tools/fundament/wirtschaft-snapshot.js`: GLEICH.
+
+**Nicht bestätigt – Zeitlimit beim Start/Neuladen, nicht karton-bedingt:** kiste, kartonauf, versand, sortiment hängen in
+`neuesSpiel()` bzw. am Knopf „Weiterspielen“ (Klick 120 s, Warten 15–30 s). Gegenprobe auf d9e733d: kiste, versand und
+einraeumer brechen **vorher an derselben Stelle** ab; kartonauf lief vorher einmal in einer ruhigen Minute durch. Startzeit
+(Klick „Los“ bis Spiel) gemessen, je 3 Läufe abwechselnd: vorher 69 / 40 / 112 s, nachher 19 / 123 / 66 s – nur Lastrauschen.
+versand (nachher, Lauf 3) bestand seine Prüfungen GRUPPE, FEST, BELEGT, KAUF und scheiterte erst am Neuladen. → beim Merge in der
+Regression bei ruhigem Rechner wiederholen.
 
 ## 6. Offen / für Tom
 

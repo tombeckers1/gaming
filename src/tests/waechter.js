@@ -29,17 +29,13 @@ const VIEWS={laden:[0,3,0,0],lager:[-14,-2,0,0],lagerDock:[-17,-2,-Math.PI/2,0],
 (async()=>{
   if(SCHREIB&&!(process.env.GRUND||'').trim()){ console.log('ABGELEHNT: BUDGET_SCHREIBEN braucht GRUND="..." (Begruendungspflicht)'); process.exit(2); }
   const A=JSON.parse(fs.readFileSync(AUS,'utf8')); const B=A.laufzeit;
+  const H=require('../../tools/test/start-hilfe.js');
   const b=await chromium.launch({args:['--use-gl=swiftshader','--enable-unsafe-swiftshader','--no-sandbox']});
   const p=await b.newPage({viewport:{width:480,height:300}}); p.setDefaultTimeout(900000);
   const errs=[]; p.on('pageerror',e=>{ errs.push('PAGEERROR: '+e.message); console.log('PAGEERROR',e.message.slice(0,300)); });
   await p.addInitScript(()=>{ window.__MATWACHE=true; try{ if(!sessionStorage.getItem('x')){ localStorage.clear(); sessionStorage.setItem('x','1'); } }catch(e){} });
-  await p.goto('file://'+process.argv[2],{timeout:900000,waitUntil:'domcontentloaded'});
-  await p.waitForFunction("!!window.__bb&&!!document.querySelector('#startBtns button:not([disabled])')",null,{timeout:900000,polling:1000});
-  await p.evaluate(()=>{ document.querySelector('#startBtns button:last-child').click(); document.getElementById('nameGo').click(); });
-  console.log('Start geklickt nach',dauer());
-  for(let i=0;;i++){ const z=await p.evaluate(()=>({zu:!document.getElementById('start').classList.contains('show'),S:!!(window.__bb&&window.__bb.S),name:!!document.querySelector('#nameBox.show')}));
-    if(z.zu) break; if(i%6===5) console.log('warte auf Spielstart',dauer(),JSON.stringify(z)); if(i>180) throw new Error('Spielstart haengt: '+JSON.stringify(z)+' '+errs.slice(0,3).join(' | '));
-    await new Promise(r=>setTimeout(r,10000)); }
+  await H.laden(p,process.argv[2]);
+  await H.neuesSpiel(p,{stoppen:true});
   console.log('geladen nach',dauer());
 
   /* Messfunktionen im Spiel einmal anlegen */
@@ -70,13 +66,14 @@ const VIEWS={laden:[0,3,0,0],lager:[-14,-2,0,0],lagerDock:[-17,-2,-Math.PI/2,0],
   const M=await messen(); console.log('gemessen nach',dauer());
 
   /* WACHE: Tag/Abend/Nacht zeichnen, 20 s Spiel */
-  const wache=async(eingriff)=>p.evaluate(e=>{ const bb=window.__bb, W=window.__W, MAT=bb.MAT;
-    if(e==='verstoss') MAT.get('markierungGelb').color.setHex(0xff0000);
-    for(const clk of [600,1100,1300]) for(const v of [[0,3,0,0],[-27,3,-Math.PI/2,0],[0,12,Math.PI,0.05]]) W.ansicht(v,clk);
-    if(!e) bb.run(20,0.1);
-    const r={an:MAT.wache,n:MAT.verstoesse.length,erste:MAT.verstoesse.slice(0,4).map(x=>x.name+'.'+x.was+' @ '+String(x.stack).slice(0,140))};
-    if(e==='verstoss'){ MAT.get('markierungGelb').color.setHex(MAT.farbe('signalgelb')); r.n=MAT.verstoesse.length; MAT.verstoesse.length=0; }
-    return r; },eingriff||null);
+  const wache=async(eingriff)=>{
+    if(eingriff==='verstoss') await p.evaluate(()=>window.__bb.MAT.get('markierungGelb').color.setHex(0xff0000));
+    for(const clk of [600,1100,1300]) await p.evaluate(clk=>{ const W=window.__W; for(const v of [[0,3,0,0],[-27,3,-Math.PI/2,0],[0,12,Math.PI,0.05]]) W.ansicht(v,clk); },clk);
+    if(!eingriff) await H.vorspulen(p,{sek:2,dt:0.1,max:10,bis:'false',name:'20 s Spiel'});   /* 10 x 2 s = 20 s Spielzeit, in Stuecken */
+    return p.evaluate(e=>{ const bb=window.__bb, MAT=bb.MAT;
+      const r={an:MAT.wache,n:MAT.verstoesse.length,erste:MAT.verstoesse.slice(0,4).map(x=>x.name+'.'+x.was+' @ '+String(x.stack).slice(0,140))};
+      if(e==='verstoss'){ MAT.get('markierungGelb').color.setHex(MAT.farbe('signalgelb')); r.n=MAT.verstoesse.length; MAT.verstoesse.length=0; }
+      return r; },eingriff||null); };
   const WA=await wache(); console.log('Wache nach',dauer());
 
   /* ---------- Pruefen gegen die Ausgangswerte ---------- */

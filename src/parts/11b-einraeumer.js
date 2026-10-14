@@ -46,13 +46,16 @@ function einrJob(w){
   const andere=[staff.auffueller,staff.auffueller2,staff.packer,staff.packer2,staff.packer3].filter(o=>o&&o!==w);
   const belegt=x=>andere.some(o=>o.src&&(o.src.box===x||o.src.slot===x));
   const res=t=>typeof reservedType==='function'&&reservedType(t);
+  /* emptyLevel(t) laeuft sonst je Karton neu ueber alle Faecher (14.10.: ~30 ms je Schritt bei vielen Kartons am Boden,
+     jeder untaetige Einraeumer jeden Schritt). Nur "gibt es ein Fach?" zaehlt - je Art einmal je Aufruf. */
+  const _el={}; const fach=t=>(t in _el)?_el[t]:(_el[t]=!!emptyLevel(t));
   const lkwDa=typeof truck!=='undefined'&&truck&&truck.state==='docked'&&truck.cargo.some(c=>!c.regal&&!c.einbau&&!c.vm);
   for(const a of einrAktiv(w.id)){
     if(a==='regal'){
-      for(const b of floorBoxes){ if(!b.test&&!belegt(b)&&!res(b.type)&&emptyLevel(b.type)) return {box:b,kind:'floor'}; }
-      for(const r of racks) for(const s of r.slots){ if(s.box&&!belegt(s)&&!res(s.box.type)&&emptyLevel(s.box.type)) return {slot:s,kind:'rack'}; }
+      for(const b of floorBoxes){ if(!b.test&&!belegt(b)&&!res(b.type)&&fach(b.type)) return {box:b,kind:'floor'}; }
+      for(const r of racks) for(const s of r.slots){ if(s.box&&!belegt(s)&&!res(s.box.type)&&fach(s.box.type)) return {slot:s,kind:'rack'}; }
     } else if(a==='direkt'&&lkwDa){
-      const c=truck.cargo.find(c=>!c.regal&&!c.einbau&&!c.vm&&emptyLevel(c.type));
+      const c=truck.cargo.find(c=>!c.regal&&!c.einbau&&!c.vm&&fach(c.type));
       if(c) return {kind:'truck',direkt:true,typ:c.type};
     } else if(a==='lager'&&lkwDa) return {kind:'truck'};
     /* Versandmaterial ins Packmaterial-Regal (11d) */

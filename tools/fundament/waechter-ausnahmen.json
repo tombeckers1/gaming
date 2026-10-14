@@ -135,5 +135,67 @@
     {"datei":"reuse-pack.js","art":"css","anzahl":9,"werte":{"#0e1226":1,"#1b1b1b":1,"#2e8b3a":1,"#5ce1ff":1,"#e8d1a3":1,"#f3e3c0":1,"#ff5a8a":1,"#ffd23f":1,"#fff2d6":1},"grund":"Ware/Produktmodelle und Pools: Verpackung (frei) gemischt mit Hilfsmaterialien (glassMat, Etiketten, Karton-Texturen je Sorte)","schritt":"Schritt Paletten/Kartons (Karton-Atlas) + glassMat -> MAT-Rezept","anlass":"Ausgangsstand 14.10.2026 (d9e733d, Hauptstand V130) - Fundament Etappe 5","seit":"2026-10-14"},
     {"datei":"reuse-pack.js","art":"material","anzahl":1,"werte":{"MeshStandardMaterial":1},"grund":"Ware/Produktmodelle und Pools: Verpackung (frei) gemischt mit Hilfsmaterialien (glassMat, Etiketten, Karton-Texturen je Sorte)","schritt":"Schritt Paletten/Kartons (Karton-Atlas) + glassMat -> MAT-Rezept","anlass":"Ausgangsstand 14.10.2026 (d9e733d, Hauptstand V130) - Fundament Etappe 5","seit":"2026-10-14"}
   ],
-  "laufzeit": null
+  "laufzeit": {
+    "stand": "2026-10-14",
+    "grund": "Ausgangsstand V131 14.10.",
+    "toleranz": {
+      "rel": 0.05,
+      "abs": 15
+    },
+    "ansicht": "neues Spiel, Level 99, alle Ausbauten, applyZonen, Stufe Hoch (gespeichert), swiftshader 480x300, Abend (clock 1000), vor der Laufzeit-Buendelung",
+    "tore": 12,
+    "bauteile": {
+      "palette": 9,
+      "tor": 87,
+      "versandhof": 1,
+      "schild": 10,
+      "stadtmoebel": 6,
+      "stadthaus": 18
+    },
+    "sechsMaterial": 172,
+    "sechsGrund": "alte Waende aus wall() (05-world) mit je einem Material pro Seite - Schritt Waende (claude/fundament-waende) loest sie auf",
+    "szene": {
+      "meshes": 2251,
+      "materialien": 410,
+      "texturen": 218
+    },
+    "ansichten": {
+      "laden": {
+        "calls": 836,
+        "schatten": 588,
+        "mats": 252,
+        "texs": 138
+      },
+      "lager": {
+        "calls": 721,
+        "schatten": 560,
+        "mats": 229,
+        "texs": 131
+      },
+      "lagerDock": {
+        "calls": 899,
+        "schatten": 554,
+        "mats": 226,
+        "texs": 128
+      },
+      "dockHof": {
+        "calls": 1085,
+        "schatten": 543,
+        "mats": 246,
+        "texs": 140
+      },
+      "testfeld": {
+        "calls": 549,
+        "schatten": 568,
+        "mats": 203,
+        "texs": 117
+      },
+      "strasse": {
+        "calls": 119,
+        "schatten": 577,
+        "mats": 101,
+        "texs": 78
+      }
+    }
+  }
 }

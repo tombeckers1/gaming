@@ -1,20 +1,13 @@
 /* Ausbau: Bauwaende, Zonen, SB-Kassen, Packstation */
-async function neuesSpiel(p){
-  await p.waitForFunction("!!document.querySelector('#startBtns button:not([disabled])')",{timeout:120000});
-  await p.click('#startBtns button:last-child');
-  await p.waitForSelector('#nameBox.show',{state:'visible',timeout:60000});
-  await p.click('#nameGo');
-  await p.waitForFunction("!document.getElementById('start').classList.contains('show')",{timeout:60000});
-}
 const { chromium } = require('/opt/node22/lib/node_modules/playwright');
 (async()=>{
   const b=await chromium.launch({args:['--use-gl=swiftshader','--enable-unsafe-swiftshader','--no-sandbox']});
   const p=await b.newPage({viewport:{width:1280,height:760}}); p.setDefaultTimeout(120000);
   const errs=[]; p.on('pageerror',e=>errs.push('PAGEERROR: '+e.message));
   p.on('console',m=>{ if(m.type()==='error'&&m.text().indexOf('ERR_CERT')<0) errs.push('CONSOLE: '+m.text()); });
-  await p.goto('file://'+process.argv[2]);
-  await p.waitForFunction('window.__bb!==undefined',{timeout:30000});
-  await neuesSpiel(p);
+  const H=require('../../tools/test/start-hilfe.js');
+  await H.laden(p,process.argv[2]);
+  await H.neuesSpiel(p,{stoppen:true});
 
   const zu=await p.evaluate(()=>{
     const bb=window.__bb, o={};
@@ -76,12 +69,17 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   console.log('REGALE',JSON.stringify(regale));
 
   /* Versand: Bestellungen -> Pakete -> Abholung */
-  const versand=await p.evaluate(()=>{
+  const versand0=await p.evaluate(()=>{
     const bb=window.__bb, o={};
     o.bereit=bb.packBereit();
     o.proTag=bb.bestellungenProTag();
     o.wert=bb.paketWert();
-    bb.openShop(); bb.run(200,0.05);
+    bb.openShop();
+    return o;
+  });
+  await H.vorspulen(p,{sek:2,dt:0.05,max:100,bis:'false',name:'Versand 200 s'});   /* = bb.run(200,0.05), in Stuecken */
+  const versand=await p.evaluate(o=>{
+    const bb=window.__bb;
     o.offenNachLauf=bb.S.offen|0;
     const geld0=bb.S.money;
     let n=0; while(bb.packOne(false)) n++;
@@ -91,11 +89,11 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     const ab=bb.ddlAbholung();
     o.abgeholt=ab; o.meshesDanach=bb.pakete.length;
     return o;
-  });
+  },versand0);
   console.log('VERSAND',JSON.stringify(versand));
 
   /* SB-Kassen bedienen Kunden */
-  const sb=await p.evaluate(()=>{
+  const sb0=await p.evaluate(()=>{
     const bb=window.__bb, o={};
     bb.hireStaff('packer'); bb.S.staff.packer=true;
     /* Regale fuellen, sonst kauft niemand */
@@ -103,8 +101,12 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     bb.allLevels().forEach((lv,i)=>{ const t=arten[i%arten.length]; bb.addToLevel(lv,t,1); for(let k=0;k<30;k++) bb.addToLevel(lv,t,1); });
     o.imRegal=bb.allLevels().reduce((a,l)=>a+l.count,0);
     bb.phase='open'; bb.clock=480;
-    const rev0=bb.DS.revenue;
-    bb.run(260,0.05);
+    window.__rev0=bb.DS.revenue;
+    return o;
+  });
+  await H.vorspulen(p,{sek:2,dt:0.05,max:130,bis:'false',name:'SB-Kassen 260 s'});   /* = bb.run(260,0.05), in Stuecken */
+  const sb=await p.evaluate(o=>{
+    const bb=window.__bb, rev0=window.__rev0;
     o.kunden=bb.customers.length;
     o.sbBenutzt=bb.DS.sb|0;
     o.zustaende=[...new Set(bb.customers.map(c=>c.state))].sort();
@@ -112,7 +114,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     o.lanesFrei=bb.sbLanes.filter(l=>!l.busy).length;
     o.genervt=bb.DS.angry;
     return o;
-  });
+  },sb0);
   console.log('SB',JSON.stringify(sb));
 
 
@@ -149,11 +151,9 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
 
   /* Speichern und laden */
   await p.evaluate(()=>{ window.__bb.save(); });
-  await p.reload();
-  await p.waitForFunction('window.__bb!==undefined',{timeout:30000});
-  await p.waitForFunction("!!document.querySelector('#startBtns button:not([disabled])')",{timeout:30000});
+  await H.neuladen(p);
   await p.click('#startBtns button:first-child');
-  await p.waitForFunction("!document.getElementById('start').classList.contains('show')",{timeout:15000});
+  await H.warte(p,"!document.getElementById('start').classList.contains('show')",'gespeichertes Spiel geladen');
   const geladen=await p.evaluate(()=>{
     const bb=window.__bb, o={};
     o.up={shop:bb.S.up.shop_gross,lager:bb.S.up.lager_gross,pack:bb.S.up.packstation,sb:bb.S.up.kasse2};

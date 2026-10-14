@@ -10,8 +10,8 @@ function freeSlot(){ const L=(typeof zoneOffen==='function'&&!zoneOffen('lager')
   return {x:best.x,y:0.2+gy+bn*0.41,z:best.z,ry:rand(-0.08,0.08)}; }
 function spawnFloorBox(type,count,pos,q,kiste){
   pos=pos||freeSlot();
-  const m=new THREE.Mesh(kartonGeo,kiste?kisteMat():kartonMat[type]); m.position.set(pos.x,pos.y,pos.z); m.rotation.y=pos.ry||0; if(HIQ){ m.castShadow=true; m.receiveShadow=true; } scene.add(m);
-  const b={type,count,q:q||1,mesh:m}; if(kiste) b.kiste=true; m.userData={kind:'box',ref:b}; floorBoxes.push(b); return b;
+  const m=bk.karton(type,{kiste}); m.position.set(pos.x,pos.y,pos.z); m.rotation.y=pos.ry||0; scene.add(m);
+  const b={type,count,q:q||1,mesh:m}; if(kiste) b.kiste=true; Object.assign(m.userData,{kind:'box',ref:b}); floorBoxes.push(b); return b;
 }
 function removeFloorBox(b){ const i=floorBoxes.indexOf(b); if(i<0) return false; floorBoxes.splice(i,1); scene.remove(b.mesh);
   const p=b.mesh.position;

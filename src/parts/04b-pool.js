@@ -51,9 +51,30 @@ function poolCap(t){ const p=P[t], g=p.grid, gap=0.012;
   const cols=Math.max(1,Math.floor((2.0-0.1+gap)/(p.dims[0]+gap)));
   return Math.min(1600,cols*g[1]*g[2]*SLOTS.length+60); }
 
-/* Kartons */
+/* Kartons
+   14.10. (Fundament, Schritt "Paletten + Kartons"): Die Versandkartons malten beim Start fuer
+   JEDES Produkt eine eigene 256er-Textur (239 Stueck, 62,7 MB Bilddaten), auch fuer Ware, die
+   erst zwanzig Level spaeter kommt. Jetzt liegen die Motive als Zellen im Atlas MAT.atlas('karton')
+   (Seiten 1024 x 1024, 16 Zellen je Seite, Ultra Low halbe Aufloesung) und werden erst gemalt,
+   wenn ein Karton der Sorte zum ersten Mal gebraucht wird. kartonMat[t] bleibt als Huelle: es
+   liefert wie vorher ein eigenes Material je Sorte (gecacht) - nur dass dessen Bild eine
+   Atlasseite ist und ein Uniform die Zelle waehlt (ein Shaderprogramm fuer alle Kartons).
+   Motiv und Malcode sind unveraendert; nur das Pappe-Rauschen kommt jetzt aus einem Zufall mit
+   Saat je Sorte (vorher Math.random: jeder Start ein anderes Rauschen) - derselbe Karton sieht
+   bei jedem Laden gleich aus. Doku: docs/fundament/kartons.md */
 const kartonGeo=new THREE.BoxGeometry(0.6,0.4,0.45);
-const kartonMat={};
+let _kartonAtlas=null;
+/* wie vorher: Kartons gibt es fuer jede Sorte in ORDER (jetzt auch fuer spaeter
+   eingetragene eigene Rezepte), erst ab buildKartons() (22-start) */
+const kartonMat=new Proxy({},{get(o,k){
+  if(typeof k!=='string') return o[k];
+  if(k in o) return o[k];
+  if(!_kartonAtlas||!P[k]||ORDER.indexOf(k)<0) return undefined;
+  return (o[k]=_kartonAtlas.material(k,{roughness:0.9}));
+}});
+/* Motiv einer Sorte als ImageData (Tests kartonlogik, Katalog) - vorher kartonMat[t].map.image */
+function kartonBild(t){ return kartonMat[t]?_kartonAtlas.bild(t):null; }
+function kartonAtlasInfo(){ return _kartonAtlas?_kartonAtlas.info():null; }
 /* Absender nach Sparte - bei jedem Produkt steht einer drauf, je nach
    Hash der Sorte (nicht jeder Karton ist einzigartig, aber sie sehen
    nicht mehr alle gleich aus) */
@@ -79,11 +100,11 @@ function kartonVariante(t){
     barcode:((h>>15)&1)===0
   };
 }
-function buildKartons(){
-  ORDER.forEach(t=>{ const p=P[t], v=kartonVariante(t), gefahr=kartonGefahrgut(t);
-    kartonMat[t]=new THREE.MeshStandardMaterial({roughness:0.9,map:tex(256,256,(g,W,H)=>{
+/* Malcode eines Kartons (256 x 256, unveraendert seit 07.10.; Rauschen mit Saat je Sorte) */
+function kartonMalen(g,W,H,t){ const p=P[t], v=kartonVariante(t), gefahr=kartonGefahrgut(t);
+      let sa=hashStr('pappe'+t)>>>0; const zuf=()=>{ sa=sa+0x6D2B79F5|0; let q=Math.imul(sa^sa>>>15,1|sa); q=q+Math.imul(q^q>>>7,61|q)^q; return ((q^q>>>14)>>>0)/4294967296; };
       g.fillStyle=v.pappe; g.fillRect(0,0,W,H);
-      for(let i=0;i<500;i++){ g.fillStyle=`rgba(90,60,20,${Math.random()*0.06})`; g.fillRect(Math.random()*W,Math.random()*H,2,2); }
+      for(let i=0;i<500;i++){ g.fillStyle=`rgba(90,60,20,${zuf()*0.06})`; g.fillRect(zuf()*W,zuf()*H,2,2); }
       g.fillStyle='rgba(120,80,30,.25)'; g.fillRect(0,0,W,6); g.fillRect(0,H-6,W,6); g.fillRect(0,0,6,H); g.fillRect(W-6,0,6,H);
       /* Klebeband: laengs ueber die Mitte oder quer unter dem Etikett */
       if(v.quer){ g.fillStyle=v.band.c; g.fillRect(0,H*0.5,W,H*0.075); g.fillStyle='rgba(255,255,255,.14)'; g.fillRect(0,H*0.5,W,H*0.015); }
@@ -122,6 +143,7 @@ function buildKartons(){
       if(v.barcode){ g.fillStyle='#f7f3ea'; g.fillRect(W*0.06,H*0.86,W*0.3,H*0.1); g.fillStyle='#16181f'; const bh=hashStr(t);
         for(let x=W*0.075,k=0;x<W*0.34;k++){ const bw=1+((bh>>(k%24))&1)*1.6; g.fillRect(x,H*0.87,bw,H*0.08); x+=bw+1.1; } }
       if(v.griff){ g.fillStyle='rgba(40,28,14,.7)'; g.beginPath(); g.ellipse(W*0.5,H*0.045,W*0.1,H*0.014,0,0,Math.PI*2); g.fill(); }
-    })});
-  });
+}
+function buildKartons(){
+  _kartonAtlas=MAT.atlas('karton',{zelle:256,seite:1024,malen:kartonMalen,wofuer:'Versandkarton je Produkt (Absender, Etikett, Gefahrgut, Klebeband) - Zelle je Sorte'});
 }

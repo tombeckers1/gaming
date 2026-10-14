@@ -105,7 +105,7 @@ function updateKarre(){
   while(karreKisten.length>liste.length){ m.remove(karreKisten.pop()); }
   liste.forEach((c,i)=>{
     let k=karreKisten[i];
-    if(!k){ k=new THREE.Mesh(kartonGeo,kartonMat[c.type]); m.add(k); karreKisten[i]=k; }
+    if(!k){ k=bk.karton(c.type); m.add(k); karreKisten[i]=k; }
     k.material=kartonMat[c.type];
     if(art==='sackkarre'){ const y=0.22+i*0.41; k.position.set(0,y,y*0.16-0.235); k.rotation.set(0.16,0,0); }
     else { const j=i%4, st=Math.floor(i/4);

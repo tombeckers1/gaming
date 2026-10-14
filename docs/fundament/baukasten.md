@@ -61,6 +61,10 @@ später ändern will (Ampel, Lampe in `lampMats`, Regalfarbe, Hervorhebung, Ausb
 | `bk.kasten(w,h,d,{fase,anteil,faseMin,seg,lod0Kasten})` | Kasten gefast oder einfach (Fase ≤ `fase`, ≤ `anteil`·kleinste Kante) |
 | `bk.sammler(opt)` | viele Teile → je Oberflächenklasse **ein** Mesh mit Vertexfarben |
 | `bk.schild(parent,{text,unter,b,h,x,y,z,ry,bg,fg,px})` | Schild im Hausstil (Nachtblau/Gold), Textur-Cache je Text+Größe |
+| `bk.tor(o)` | **jedes Tor im Spiel** (Ladetor sektional/roll, Attrappe, Zauntor) – eine Optik, Parameter statt Kopie; Doku `tore.md` |
+| `bk.poller(S,x,z,o)` | Poller/Anfahrschutz in einen Sammler, gibt das Kollisionsrechteck zurück (Tore; später Schritt Zäune/Poller) |
+| `bk.stab(S,x0,y0,x1,y1,z,d,farbe,klasse)` | Stab zwischen zwei Punkten (Streben, Abhänger) |
+| `bk.uvZeile(geo,zeile)` | UVs eines Kastens auf eine Zeile des Atlas `torBlatt` legen (0 Lamellen, 1 Fenster, 2 unten, 3 weiß) |
 
 Sammler (`opt`: `form` = Kastenform wie `bk.kasten`, `klasse` = Standardklasse, `reihenfolge`,
 `mats` = eigene Materialien je Klasse statt `MAT.vc`, `bauteil` = Name für `userData.bauteil`):
@@ -72,7 +76,24 @@ S.fertig(parent,{schatten,bauteil,fest});   // -> Mesh[] je Klasse, userData.bau
 S.geometrie(klasse);                         // nur verschmolzene Geometrie (z. B. geteilte Palette)
 ```
 Umgestellt (13.10.): `geraetBau()` (06, Kasse/SB-Terminal/Gravur – jetzt dünne Hülle),
-V1-Versandtor (`buildVersandhof`, 11e), Palettengeometrie (`vsHolzGeo`, 11e), `vcMat` (04) = `MAT.vc('standard')`.
+Versandhof V1 (`buildVersandhof`, 11e: Telefon, Lampe, Schildrahmen; Bauteil `versandhof`), Palettengeometrie (`vsHolzGeo`, 11e), `vcMat` (04) = `MAT.vc('standard')`.
+Sammler-Klassen: neben `standard/lack/metall/matt/glas/leucht` gibt es seit dem Tor-Schritt `kunststoff`, `lackMetall`, `stahl`, `blank`
+mit **denselben Werten wie die Oberflächenklassen** (`MAT.KLASSE`) – ein Sammler-Bauteil sieht dann aus wie Einzelteile mit
+`MAT.ober(ton,klasse)`. Neue Bauteile nehmen diese Klassen.
+
+### `bk.tor(o)` – Tore (Schritt „Tore“, 13.10., Pilot)
+Eine Implementierung für alle Tore: R1 (05g), R2–R5 (05h `westTor`), V1 (11e), Ost-Attrappen (05h), Schiebetor Hof (05g),
+Doppeltor im Zaun (05h). Lokales Maß: x = Wandnormale (außen −x, innen +x), z = quer, Gruppe bei `(x,y,z)` um `ry` gedreht.
+```js
+const T=bk.tor({art:'sektional'|'roll'|'gitter', breite, hoehe, panele, fenster, fuehrung:'vertikal'|'normal', R, decke,
+  seite:'aussen'|'innen'|'beide', ampel:'beide'|'innen'|'aussen'|false, bedien:±1, vordach, dichtung, poller, nr,
+  wand:[xAussen,xInnen], blatt:xBlatt, beweglich, offen, parent, x,y,z,ry,  /* gitter: */ bewegung, boden, pfosten, schloss});
+T.set(t01);  T.panele / T.blatt / T.zu / T.auf;  T.ampel.rot / T.ampel.gruen / T.warn (MAT.neu, veränderlich);  T.kollision (Welt)
+```
+Je Tor: statische Teile in 5–6 Sammler-Meshes (Klassen stahl/lackMetall/kunststoff/matt/blank + Warnschraffur), das Blatt
+mit EINEM Material `MAT.get('torBlatt')` (Atlas, Kleinteile über Vertexfarben) – 1 Mesh (senkrecht fahrend, Attrappe: im
+Sammler) oder 1 je Panel (Rolltor, Sektionaltor mit Bogen) –, je Zustand ein Leuchten-Mesh, Nummernschild über `bk.schild`.
+Die Spiel-Logik (Kollision des Blatts, Ampel schalten, Warnleuchte blinken, Klang) bleibt in den Hüllen `doorSet`/`wtorSet`/`vdSetzen`.
 Noch eigene Sammler (Folgeschritte): Stadthäuser `hausKit`/`hzAdd` und Stadtmöbel `stM` (05e, eigene
 Atlas-/Lichtmaterialien), Stadt `sammler()` (05j), Halle `hvSammler` (Branch, Schritt 9).
 

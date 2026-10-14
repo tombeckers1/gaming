@@ -38,6 +38,10 @@ gleichzeitig, besser einer** (material braucht ~11 GB).
 4. Regale, Kassen, Fenster, Türen, Schilder, Bodenmarkierungen (Größen/Arten bleiben, nur Bauweise einheitlich).
 5. Leistungsbericht im Spiel (Tom misst auf seinem PC); prüfen: Vorführung hält ~1,3 GB Texturen, Speicherspitze beim ersten Laden-Bild.
 6. Danach großes Paket: **Große Halle NEU bauen**, vorher genauer Plan mit Tom, Welten direkt zusammenlegen (warteschlange.md).
+**Halle Etappe A gebaut (14.10. nachts, Agent):** Ausbau `lagerlogistik` (Kapitel 7.3): ③ + gelbe Wand + N1, neue Schleuse,
+Hochregal 3 Gassen (Gasse 1 mit RBG), I/O, Anbruch, Stellplätze, FTS-Logik (Einlagern, Anbruch, Nachschub ③), Bodenmarkierungen,
+Hallenlicht, Sprinkler, Tank/Parkplatz/Pforte. Doku `docs/halle/etappe-a.md`, Bauteile `bk.hochregal/rbg/foerderer/fts/lampe/
+bodenmarkierung` (baukasten.md), Test `src/tests/hochregal.js`, Bilder `docs/halle/bilder-1410/`. Etappe B (Werk West) offen.
 **Beiseite (Tom 14.10.):** Feuerwerk-Fragen F1–F4, Feuerwerk wird jetzt nicht geändert.
 **Wochenlimit:** Tom 14.10. ~16 Uhr 41 %; Ziel höchstens ~1 %/h, Sa 14 Uhr ≤ 85 %. Ein Agent nach dem anderen, Sonnet für Routine.
 

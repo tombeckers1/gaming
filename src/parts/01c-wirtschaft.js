@@ -505,7 +505,7 @@ const WIRT_KETTEN=[
   {id:'lagerlogistik',entscheidung:'Hochregal und Kartonlager bauen (Lagerlogistik, Kapitel 7.3)',
    folgen:[
      {text:'Einmalig {ausbau.preis.lagerlogistik|€}; danach jeden Tag {fix.hochregal|€} je aktiver Gasse (Strom, Wartung RBG und FTS) in den Fixkosten.',ort:'16-day.js:fixedCosts',werte:['ausbau.preis.lagerlogistik','fix.hochregal']},
-     {text:'Lieferungen an Tor 2-4 landen auf Stellplaetzen und gehen automatisch ins Hochregal (180 Palettenplaetze in Gasse 1) - kein Einraeumen von Hand, Lagerplatz fuer grosse Grosshandels-Staffeln (ab {einkauf.lieferant.grosshandel.staffel.1.n} Kartons {einkauf.lieferant.grosshandel.staffel.1.d|%} Rabatt).',ort:'11f-hochregal.js:hrEinlagern',werte:['einkauf.lieferant.grosshandel']},
+     {text:'Lieferungen an Tor 2-4 landen auf Stellplaetzen und gehen automatisch ins Hochregal (180 Palettenplaetze in Gasse 1) - kein Einraeumen von Hand, Lagerplatz fuer grosse Grosshandels-Staffeln (ab {einkauf.lieferant.grosshandel.staffel.1.n} Kartons {einkauf.lieferant.grosshandel.staffel.1.d|%} Rabatt).',ort:'11f-hochregal.js:ftsEinJob',werte:['einkauf.lieferant.grosshandel']},
      {text:'Bestand im Hochregal zaehlt fuer Onlinebestellungen; das RBG lagert in den Anbruch aus, die FTS bringen Nachschub nach ③ und ①, Packer picken auch im Anbruch.',ort:'11f-hochregal.js:hrTick',werte:[]}],
    warum:'Fixkosten gegen Skaleneffekt: Ein automatisches Lager lohnt sich erst mit Menge - wer wenig umschlaegt, zahlt jeden Tag Betrieb fuer leere Plaetze.',
    luecken:['Ersparnis (Staffel, Wege) ist geschaetzt, nicht im Balancing-Lauf gemessen - der Bot erreicht Kapitel 7 nicht.']},

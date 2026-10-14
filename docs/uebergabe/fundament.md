@@ -125,3 +125,11 @@ Tom will den Unterbau SEHEN, ohne das Spiel 20× spielen zu müssen: Grobes in L
 - Halle (Branch `claude/halle-v7`) wird ERST NACH Etappe 2/3 ins Hauptspiel geholt und dabei auf den
   Baukasten umgestellt (ihre Tore/Regale/Lampen sind sonst wieder Duplikate).
 - Fassade + Hoflampen (`fassade-0910.md`) werden mit dem Baukasten erledigt (Fassadenpaneel, Mastlampe).
+
+## Tom 14.10. nachmittags – Antworten auf offene Fragen
+- **Feuerwerk F1–F4: beiseite**, das Feuerwerk wird jetzt nicht geändert.
+- **Karton-Auflösung je Grafikstufe: ja** – Niedrig/Mittel 128 px (wie Ultra Low), Hoch wie heute, Maximum schärfer (512 px).
+- **Paletten:** „Guck dir an, wie eine Hofpalette aussieht und mach sie einheitlich.“ -> echte EPAL-Europalette als
+  einziges Vorbild (geprüft per Exa, EPAL-Datenblatt): 1200 × 800 × 144 mm, 11 Bretter (5 Deck-, 3 Quer-, 3 Bodenbretter,
+  22–24 mm), 9 Klötze (Mittelklötze mit IPPC/HT-Brand, „EPAL im Oval“ auf den äußeren Klötzen der 1200er-Seite),
+  4 Ecken gekappt, Bodenbretter gefast, helles Nadelholz (Kiefer/Fichte), gebraucht leicht vergraut. Gilt für alle Paletten.

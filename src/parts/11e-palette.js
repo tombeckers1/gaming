@@ -349,8 +349,9 @@ function vdUpdate(dt){
   vdSetzen(VD.t+(d>0?1:-1)*Math.min(Math.abs(d),dt/3.4));
 }
 /* Rolltor-Lamellen (Tom 09.10.: "grafisch aufwerten - Lamellen, Fuehrungsschienen, Antrieb,
-   Bodendichtung, Warnmarkierung"): seit 13.10. Standard-Optik ALLER Ladetore - die Textur
-   (vorher vdPanelMat hier) steht als Atlas torBlatt in der Bibliothek (01b), das Tor baut bk.tor. */
+   Bodendichtung, Warnmarkierung"): Textur seit 13.10. Atlas torBlatt (01b), Tor baut bk.tor.
+   Seit 14.10. (Tom: "so wie damals das allererste Rolltor ... das war grau") tragen alle Ladetore,
+   auch V1, die Optik des alten R1 - die graphitfarbene Lamellenoptik ist verworfen. */
 /* vsWarnTex() entfaellt (13.10., Materialangleichung): Warnschraffur = MAT.get('warnschraffur') */
 /* Schild "DDL Abholung" (Tom 09.10., wie im Zielbild: dunkelblau, Paket-Symbol) */
 function ddlSchildTex(){
@@ -375,7 +376,7 @@ function buildVersandhof(){
   const Cy=(r,h,c,x,y,z,rx,ry,rz,seg)=>VC.zyl(r,r,h,seg||10,x,y,z,c,null,rx,ry,rz);
   const ANTH=MAT.farbe('anthrazit');
   /* Das Rolltor selbst: bk.tor (04z) - Blatt mit sechs Panelen, Schienen innen und aussen,
-     Wickelkasten, Antrieb, Bedienkasten mit Not-Halt, Ampel (09.10. Tom: links neben dem Tor),
+     Wickelkasten, Antrieb, gelber Bedienkasten, Ampel (09.10. Tom: links neben dem Tor),
      Warnleuchte, Zarge, Torabdichtung, Vordach, Poller. Innen = +z der Welt. */
   const T=bk.tor({art:'roll',breite:V1.w,hoehe:V1.h,wand:[-0.1,0.1],blatt:0,nr:null,bedien:1,x:V1.x,z:V1.wz,ry:-Math.PI/2,parent:g});
   for(const r of T.kollision) col(r.x0,r.x1,r.z0,r.z1);

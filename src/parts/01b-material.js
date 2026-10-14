@@ -42,7 +42,7 @@ const MAT=(function(){
     silbergrau:       [0x8d939d,'Silbergrau','verzinkter Stahl: Gitter, Geländer, Pfosten, Traeger','≈ RAL 7001'],
     hellgrau:         [0xa8acb2,'Hellgrau','Beton hell, Stahl hell (Bandrollen, Achsen), Sockelschienen','≈ RAL 7038'],
     aluminium:        [0xc9ced6,'Aluminium','Alu-Profile, Kassentheken, Leisten, Chromteile','≈ RAL 9006'],
-    lichtgrau:        [0xdcdfe4,'Lichtgrau','Regalboeden, helle Verkleidungen, Kunststoff hellgrau','≈ RAL 7035'],
+    lichtgrau:        [0xdcdfe4,'Lichtgrau','Regalboeden, helle Verkleidungen, Kunststoff hellgrau, Torblatt aller Ladetore (alter R1)','≈ RAL 7035'],
     weiss:            [0xe8ecf2,'Weiss','Decken, Putz, Kunststoff weiss, Schnee, Etiketten','≈ RAL 9016'],
     cremeweiss:       [0xf2efe6,'Cremeweiss','warme Weisstoene: Fensterbaenke, Putz warm, Papier','≈ RAL 9001'],
     steingrau:        [0x9a958c,'Steingrau','Naturstein, Pflaster, Mauerwerk warm','≈ RAL 7030'],
@@ -111,7 +111,7 @@ const MAT=(function(){
     /* Tore (Fundament Schritt "Tore", 13.10.): ein Material fuer jedes Torblatt (Atlas-Textur torBlatt, Zeile je
        Paneltyp, Kleinteile ueber Vertexfarben auf der weissen Zeile) und die drei Zustandsleuchten. Die Leuchten
        sind veraenderlich (emissiveIntensity) - nur ueber MAT.neu(...) holen, nie MAT.get. */
-    torBlatt:         {f:0xffffff,tex:'torBlatt',vertexColors:true,k:'lackMetall',w:'Torblatt aller Ladetore (Lamellen/Sektionen graphit, Fensterband, Bodendichtung) - Atlas torBlatt'},
+    torBlatt:         {f:0xffffff,tex:'torBlatt',vertexColors:true,k:'lackMetall',w:'Torblatt aller Ladetore (Sektionen lichtgrau wie der alte R1, Lichtband, Warnstreifen) - Atlas torBlatt'},
     ampelRot:         {f:0x300808,emissive:LIN(0xff2a2a),emissiveIntensity:1.4,k:'kunststoff',w:'Torampel rot (Tor zu) - nur MAT.neu, Leuchtstaerke schaltet'},
     ampelGruen:       {f:0x082a12,emissive:LIN(0x3dff7a),emissiveIntensity:0,k:'kunststoff',w:'Torampel gruen (Tor offen) - nur MAT.neu, Leuchtstaerke schaltet'},
     torWarn:          {f:0x3a2208,emissive:LIN(0xffb02a),emissiveIntensity:0,k:'kunststoff',w:'Rundumleuchte ueber dem Torantrieb (blinkt, solange das Tor faehrt) - nur MAT.neu'}
@@ -208,7 +208,7 @@ const MAT=(function(){
   function css(name,a){ const h=hexVon(name); if(a===undefined) return '#'+(h>>>0).toString(16).padStart(6,'0'); return 'rgba('+(h>>16&255)+','+(h>>8&255)+','+(h&255)+','+a+')'; }
 
   /* ---------- geteilte prozedurale Texturen (lazy, einmal gemalt) ---------- */
-  const TEXTUR_W={beton:'Beton (innen Lagerboden, aussen Hof) - eine Textur, Massstab ueber die UVs',doppelstab:'Doppelstabmatte (Zaeune, Absperrungen)',drahtgitter:'Drahtgitter/Schweissgitter (Gitterbox, Ladezonen-Absperrung) - Masche 5 cm, Farbe ueber das Material',warnschraffur:'Warnschraffur gelb/schwarz (Torkanten, Sperrflaechen, Bodenrahmen)',torBlatt:'Torblatt-Atlas aller Ladetore: Zeile 0 Lamellen, 1 Fensterband, 2 unten mit Bodendichtung, 3 weiss (Kleinteile ueber Vertexfarben)'};
+  const TEXTUR_W={beton:'Beton (innen Lagerboden, aussen Hof) - eine Textur, Massstab ueber die UVs',doppelstab:'Doppelstabmatte (Zaeune, Absperrungen)',drahtgitter:'Drahtgitter/Schweissgitter (Gitterbox, Ladezonen-Absperrung) - Masche 5 cm, Farbe ueber das Material',warnschraffur:'Warnschraffur gelb/schwarz (Torkanten, Sperrflaechen, Bodenrahmen)',torBlatt:'Torblatt-Atlas aller Ladetore (Optik alter R1, Tom 14.10.): Zeile 0 glatte Sektion lichtgrau, 1 Lichtband (4 Scheiben), 2 unterstes Panel aussen (Griffmulde), 3 weiss (Kleinteile ueber Vertexfarben)'};
   const TEXTUR={
     /* Beton (vorher concreteTex() in 05b-ao.js, 19 Aufrufe an 12 Stellen) - Malcode unveraendert */
     beton:()=>{ const t=tex(256,256,(g,W,H)=>{ g.fillStyle='#8a8e94'; g.fillRect(0,0,W,H); for(let i=0;i<2500;i++){ const v=Math.random(); g.fillStyle=`rgba(${v<0.5?0:255},${v<0.5?0:255},${v<0.5?0:255},${Math.random()*0.06})`; g.fillRect(Math.random()*W,Math.random()*H,2,2); } g.strokeStyle='rgba(0,0,0,.18)'; g.lineWidth=2; g.strokeRect(0,0,W,H); });
@@ -244,24 +244,26 @@ const MAT=(function(){
     warnschraffur:()=>{ const t=tex(128,128,(g,W,H)=>{ g.fillStyle=css('gummischwarz'); g.fillRect(0,0,W,H); g.fillStyle=css('signalgelb');
         const P=W/2; for(let c=-2*W;c<2*W;c+=P){ g.beginPath(); g.moveTo(c,0); g.lineTo(c+P/2,0); g.lineTo(c+P/2-H,H); g.lineTo(c-H,H); g.closePath(); g.fill(); } });
       t.wrapS=t.wrapT=THREE.RepeatWrapping; t.anisotropy=4; return t; },
-    /* Torblatt-Atlas (13.10., Schritt Tore): vorher drei Familien - torPanelMat (05g, hell 1024x256),
-       torBlattMat (05h, 512x640, Ost-Attrappe) und vdPanelMat (11e, drei 512x128). Standard ist die
-       V1-Optik (Tom 09.10. "Lamellen, Fensterband, Bodendichtung"; Zielbild: anthrazite Rolltore mit
-       Fensterband). Vier Zeilen je 128 px: 0 vier Lamellen, 1 Lamellen mit drei Fenstern, 2 unterste
-       Lamelle mit Gummidichtung, 3 weiss fuer Kleinteile (Rollen, Baender) ueber Vertexfarben. Zeilen
-       waehlt bk.uvZeile(geo,zeile). */
-    torBlatt:()=>{ const t=tex(512,512,(c,W,H)=>{ const RH=H/4;
-        const lam=y0=>{ c.fillStyle=css('graphit'); c.fillRect(0,y0,W,RH);
-          for(let s2=0;s2<4;s2++){ const y=y0+s2*RH/4, h=RH/4, gr=c.createLinearGradient(0,y,0,y+h);
-            gr.addColorStop(0,'rgba(255,255,255,.16)'); gr.addColorStop(0.18,'rgba(255,255,255,.04)'); gr.addColorStop(0.78,'rgba(0,0,0,.05)'); gr.addColorStop(0.93,'rgba(0,0,0,.30)'); gr.addColorStop(1,'rgba(0,0,0,.5)');
-            c.fillStyle=gr; c.fillRect(0,y,W,h); }
-          for(let i=0;i<900;i++){ c.fillStyle=`rgba(255,255,255,${Math.random()*0.035})`; c.fillRect(Math.random()*W,y0+Math.random()*RH,2,1); } };
-        lam(0);
-        lam(RH); for(const fx of [0.2,0.5,0.8]){ const w=W*0.2, h=RH*0.5, x=W*fx-w/2, y=RH+RH*0.25;
-          c.fillStyle=css('tiefschwarz'); c.fillRect(x-5,y-5,w+10,h+10);
-          const g=c.createLinearGradient(0,y,0,y+h); g.addColorStop(0,'#2f5fae'); g.addColorStop(0.45,'#9cc4ff'); g.addColorStop(0.52,'#e8f2ff'); g.addColorStop(0.6,'#9cc4ff'); g.addColorStop(1,'#244f9a');
-          c.fillStyle=g; c.fillRect(x,y,w,h); c.fillStyle='rgba(255,255,255,.25)'; c.fillRect(x+4,y+3,w*0.3,2); }
-        lam(2*RH); c.fillStyle=css('gummischwarz'); c.fillRect(0,3*RH-14,W,14); c.fillStyle=css('basaltgrau'); c.fillRect(0,3*RH-18,W,4);
+    /* Torblatt-Atlas (Schritt Tore 13.10., Optik 14.10.): Tom 14.10. "Mach die Rolltore bitte so wie damals
+       das allererste Rolltor, was man freischaltet. Das war grau ... auch von der Textur her hat mir das alte
+       besser gefallen." = R1 an der Basisrampe bis V129 (05g buildTor): Sandwich-Sektionen glatt lichtgrau
+       lackiert (MAT.ober('lichtgrau','lackMetall') auf den grossen Flaechen; torPanelMat lag nur auf den
+       Stirnseiten), Lichtband aus vier hellen Scheiben 0,52 x 0,30 m im vorletzten Panel, unten aussen
+       Griffmulde (der Warnstreifen 12 cm ist ein eigenes Teil mit MAT.get('warnschraffur'), wie am alten R1). Die graphitfarbene V1-Lamellenoptik von V130 ist verworfen (14.10.).
+       Vier Zeilen je 128 px, Massstab fuer 3,26 x 0,6 m (andere Tore strecken): 0 glatte Sektion,
+       1 Lichtband, 2 unterstes Panel aussen (Griffmulde), 3 weiss fuer Kleinteile ueber
+       Vertexfarben. Zeilen waehlt bk.uvZeile(geo,zeile,innen,rand). */
+    torBlatt:()=>{ const t=tex(512,512,(c,W,H)=>{ const RH=H/4, M=W/3.26, MV=RH/0.588;
+        const sektion=y0=>{ c.fillStyle=css('lichtgrau'); c.fillRect(0,y0,W,RH);
+          /* Fuge: Nut oben, Feder unten (am alten Tor eigene Profile im Spalt) */
+          c.fillStyle='rgba(60,66,76,.22)'; c.fillRect(0,y0+2,W,2); c.fillStyle='rgba(0,0,0,.12)'; c.fillRect(0,y0+RH-4,W,2); };
+        sektion(0);
+        sektion(RH); for(const z of [-1.2,-0.4,0.4,1.2]){ const w=0.52*M, h=0.3*MV, x=(z+1.63)*M-w/2, y=RH+(RH-h)/2;
+          c.fillStyle='rgba(255,255,255,.45)'; c.fillRect(x,y,w,h); c.fillStyle='rgba(0,0,0,.05)'; c.fillRect(x,y+h-1,w,1); }
+        sektion(2*RH); { const y0=2*RH, yb=y0+RH-2;
+          /* Griffmulde 0,5 x 0,09 m, Mitte 6 cm ueber der Panelmitte */
+          c.fillStyle=css('basaltgrau'); c.fillRect(W/2-0.25*M,y0+RH/2-0.06*MV-0.045*MV,0.5*M,0.09*MV);
+          /* Warnstreifen darunter: eigenes Teil mit MAT.get('warnschraffur') (eine Schraffur fuer alles) */ }
         c.fillStyle='#ffffff'; c.fillRect(0,3*RH,W,RH); });
       t.anisotropy=8; return t; }
   };

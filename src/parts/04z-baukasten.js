@@ -110,10 +110,15 @@ bk.liste=function(){ return {schildTexturen:_bkSchildT.size,schildMaterialien:_b
    Texturen und vier Ampel-Varianten. Jetzt EINE Implementierung, Unterschiede nur ueber
    Parameter mit Bedeutung (Art, Groesse, Fenster, Nummer, Seite, Beschlag).
 
-   Standard-Optik = V1 (09.10., Tom: "Lamellen, Fuehrungsschienen, Antrieb, Bodendichtung,
-   Warnmarkierung"; passt zum Zielbild mit anthraziten Toren und Fensterband) + die Aussen-
-   und Innenausstattung von R2-R5 (Zarge, Torabdichtung, Puffer, Vordach, Poller, Torwelle,
-   Nummernschild). Begruendung und Parametertabelle: docs/fundament/tore.md
+   Standard-Optik = der alte R1 an der Basisrampe (bis V129). Tom 14.10.: "Mach die Rolltore
+   bitte so wie damals das allererste Rolltor, was man freischaltet. Das war grau. Jetzt sind
+   alle schwarz. Auch von der Textur her hat mir das alte besser gefallen. Bitte so einheitlich
+   aendern." Also: Sektionen glatt lichtgrau, Lichtband mit vier Scheiben im vorletzten Panel,
+   unten aussen Warnstreifen und Griffmulde, Bodengummi, Scharnierbaender aussen; Zarge
+   verzinkt durch die Wand, schmale Torabdichtung, Puffer, Vordach 1,9 m mit Schnee, Poller,
+   kleine Ampel, gelber Bedienkasten. Die graphitfarbene V1-Optik von V130 (Lamellen,
+   Fensterband, Warnschraffur auf Polstern und Schienen, Not-Halt) ist verworfen (14.10.).
+   Begruendung und Parametertabelle: docs/fundament/tore.md
 
    Lokales Mass: x = Wandnormale (aussen -x, innen +x), z = quer ueber die Torbreite (Mitte 0),
    y = Boden. Die Gruppe steht bei (o.x, o.y, o.z), gedreht um o.ry, so dass +x in den Raum zeigt.
@@ -126,6 +131,8 @@ bk.liste=function(){ return {schildTexturen:_bkSchildT.size,schildMaterialien:_b
      antrieb:'welle'|'kasten' (Standard: sektional Welle, roll Wickelkasten),
      seite:'aussen'|'innen'|'beide', ampel:'aussen'|'innen'|'beide'|false, bedien:+1|-1 (Seite
      von Ampel/Bedienkasten, quer), vordach, dichtung (Torabdichtung + Puffer), poller,
+     fahrzeug (Breite des andockenden Fahrzeugs, Standard 3,0 = Koffer-LKW an R1; 2,55 = Auflieger
+       an R2-R5: die Polster schliessen den Spalt bis an das Heck),
      nr:'2'|null (Nummernschild ueber bk.schild), wand:[xAussen,xInnen] (Wandflaechen),
      blatt:x (Ebene des Torblatts), beweglich:false (Attrappe: Blatt fest im Sammler),
      offen:0..1, parent, x,y,z,ry,
@@ -135,29 +142,32 @@ bk.liste=function(){ return {schildTexturen:_bkSchildT.size,schildMaterialien:_b
    Die Spiel-Logik (door, WTORE, VD, Kollision des Blatts, Ampel schalten) bleibt in den
    Huellen (05g, 05h, 11e) - bk.tor baut nur und bewegt das Blatt.
    ========================================================= */
-/* UVs eines Kastens auf eine Zeile des Atlas torBlatt legen (0 Lamellen, 1 Fenster, 2 unten, 3 weiss) */
-bk.uvZeile=function(geo,zeile){
-  const uv=geo.attributes.uv, Z=4, e=2/128;
+/* UVs eines Kastens auf Zeilen des Atlas torBlatt legen (0 Sektion, 1 Lichtband, 2 unten aussen, 3 weiss).
+   zeile = Aussenflaeche (-x), innen = Innenflaeche (+x), rand = Stirn-/Kantenflaechen (Standard: wie zeile).
+   BoxGeometry mit einem Segment: je Flaeche 4 Ecken in der Folge +x, -x, +y, -y, +z, -z. */
+bk.uvZeile=function(geo,zeile,innen,rand){
+  const uv=geo.attributes.uv, Z=4, e=2/128, box=uv.count===24;
+  if(innen===undefined) innen=zeile; if(rand===undefined) rand=zeile;
   for(let i=0;i<uv.count;i++){
-    if(zeile===3) uv.setXY(i,0.5,1-3.5/Z);
-    else uv.setY(i,1-(zeile+1)/Z+(e+uv.getY(i)*(1-2*e))/Z); }
+    const zl=!box?zeile:(i<4?innen:(i<8?zeile:rand));
+    if(zl===3) uv.setXY(i,0.5,1-3.5/Z);
+    else uv.setY(i,1-(zl+1)/Z+(e+uv.getY(i)*(1-2*e))/Z); }
   uv.needsUpdate=true; return geo;
 };
 /* Stab zwischen zwei Punkten in der x-y-Ebene (z fest) - Streben, Abhaenger */
 bk.stab=function(S,x0,y0,x1,y1,z,d,farbe,klasse){
   const dx=x1-x0, dy=y1-y0; S.box(d,Math.hypot(dx,dy),d,(x0+x1)/2,(y0+y1)/2,z,farbe,klasse,0,0,Math.atan2(-dx,dy)); return S;
 };
-/* Poller/Anfahrschutz (Signalgelb, Gummikappe, zwei Reflexbaender) in einen Sammler; Rueckgabe = Kollisionsrechteck lokal */
+/* Poller/Anfahrschutz (Signalgelb, Gummikappe - wie am alten R1) in einen Sammler; Rueckgabe = Kollisionsrechteck lokal */
 bk.poller=function(S,x,z,o){
   o=o||{}; const h=o.hoehe||0.95, b=o.breite||0.2, F=MAT.farbe;
   S.box(b,h,b,x,h/2,z,F('signalgelb'),'kunststoff');
   S.box(b+0.02,0.14,b+0.02,x,h-0.09,z,F('gummischwarz'),'matt');
-  for(const y of [0.55,0.7]) S.box(b+0.008,0.05,b+0.008,x,h-y,z,F('gummischwarz'),'kunststoff');
   return {x0:x-0.15,x1:x+0.15,z0:z-0.15,z1:z+0.15,art:'poller'};
 };
 bk.tor=function(o){
   o=Object.assign({art:'sektional',breite:3.26,hoehe:3.0,seite:'beide',fenster:true,fuehrung:'vertikal',R:0.42,decke:null,
-    ampel:'beide',bedien:1,vordach:true,dichtung:true,poller:true,nr:null,wand:[-0.1,0.1],blatt:0,beweglich:true,offen:0,
+    ampel:'beide',bedien:1,vordach:true,dichtung:true,fahrzeug:3.0,poller:true,nr:null,wand:[-0.1,0.1],blatt:0,beweglich:true,offen:0,
     bewegung:'schiebe',boden:0.3,pfosten:false,schloss:false,x:0,y:0,z:0,ry:0},o||{});
   const parent=o.parent||scene, W=o.breite, H=o.hoehe, w2=W/2, L=bk.lod(), F=MAT.farbe;
   const seg=[6,10,14][L], roll=o.art==='roll', gitter=o.art==='gitter';
@@ -165,15 +175,14 @@ bk.tor=function(o){
   const amp=o.ampel===true?'beide':o.ampel, ampA=aussen&&(amp==='beide'||amp==='aussen'), ampI=innen&&(amp==='beide'||amp==='innen');
   const xa=o.wand[0], xi=o.wand[1], xb=o.blatt, bs=o.bedien>=0?1:-1, ad=-bs;
   const STAHL=F('silbergrau'), ANTH=F('anthrazit'), GRAPH=F('graphit'), BASALT=F('basaltgrau'), GELB=F('signalgelb'),
-        GUMMI=F('gummischwarz'), WEISS=F('weiss'), LICHT=F('lichtgrau'), MITTEL=F('mittelgrau');
+        GUMMI=F('gummischwarz'), WEISS=F('weiss'), MITTEL=F('mittelgrau');
   const g=new THREE.Group(); g.position.set(o.x,o.y,o.z); g.rotation.y=o.ry;
   g.userData.bauteil='tor'; g.userData.bauteilArt=o.art; parent.add(g);
   const MB=MAT.get('torBlatt');
   const S=bk.sammler({form:{fase:0.012,faseMin:0.06,seg:1,lod0Kasten:true},klasse:'stahl',bauteil:'tor',
-    mats:{warn:MAT.get('warnschraffur'),blatt:MB}});
+    mats:{blatt:MB,warn:MAT.get('warnschraffur')}});
   const T={g,art:o.art,o,panele:[],blatt:null,zu:0,auf:0,t:0,ampel:null,warn:null,kollision:[],statisch:[]};
   const lokal=[];                                   /* Kollision lokal -> am Ende in Welt */
-  const warnPlatte=(d,h,b,x,y,z)=>S.geo(MAT.kachel(new THREE.BoxGeometry(d,h,b),b/0.4,h/0.4),tm(x,y,z),0xffffff,'warn');
   const weiss=geo=>bk.uvZeile(geo,3);
 
   if(gitter){
@@ -191,26 +200,29 @@ bk.tor=function(o){
     return T;
   }
 
-  /* ---------- Aussenseite: Zarge mit Warnschraffur, Torabdichtung, Puffer, Vordach, Poller ---------- */
+  /* ---------- Aussenseite wie am alten R1: Zarge verzinkt, Torabdichtung, Puffer, Vordach mit Schnee, Poller ----------
+     Masse vom alten R1 (05g bis V129), gemessen ab der Aussenwand xa und der Torkante w2. */
   if(aussen){
-    const ZX=xa-0.06;
-    /* Warnschraffur unten an der Torkante: auf der Zarge, mit Torabdichtung vorn auf den Polstern (Fahrer-Einweisung) */
-    for(const s of [-1,1]){ S.box(0.12,H+0.22,0.18,ZX,(H+0.22)/2,s*(w2+0.09),STAHL); if(!o.dichtung) warnPlatte(0.01,1.0,0.18,xa-0.125,0.5,s*(w2+0.09)); }
-    S.box(0.12,0.22,W+0.36,ZX,H+0.11,0,STAHL);
+    /* Zarge durch die Wand (innen 3 cm sichtbar als heller Rahmen) */
+    const z0=xa-0.03, z1=innen?Math.max(xi+0.03,z0+0.12):xa+0.1, zd=z1-z0, zx=(z0+z1)/2;
+    for(const s of [-1,1]) S.box(zd,H+0.2,0.16,zx,(H+0.2)/2,s*(w2+0.15),STAHL);
+    S.box(zd,0.22,W+0.64,zx,H+0.12,0,STAHL);
     if(o.dichtung){
-      /* Auflieger 2,55 m: die Polster reichen bis 1,35 m an die Mitte und schliessen den Spalt (Plane, Gummi) */
-      const pw=Math.max(0.25,w2+0.18-1.35), pc=w2+0.18-pw/2;
-      for(const s of [-1,1]){ S.box(0.46,H+0.1,pw,xa-0.23,(H+0.1)/2,s*pc,GUMMI,'matt'); warnPlatte(0.01,1.0,pw,xa-0.465,0.5,s*pc);
-        S.box(0.22,0.5,0.28,xa-0.13,1.0,s*(w2+0.32),GUMMI,'matt'); S.box(0.04,0.56,0.32,xa-0.01,1.0,s*(w2+0.32),ANTH,'lackMetall'); }
-      S.box(0.46,0.42,W+0.36,xa-0.23,H-0.09,0,GUMMI,'matt');
+      /* Polster bis an das andockende Fahrzeug (o.fahrzeug/2 + 8 cm Ueberdeckung), hoechstens bis 4 cm in die
+         Oeffnung: R1 (Koffer 3,0 m) 0,26 m wie frueher, R2-R5 (Auflieger 2,55 m) breiter - sonst sieht man am Heck vorbei */
+      const ri=Math.min(w2-0.04,o.fahrzeug/2+0.08), ra=w2+0.22, pw=ra-ri, pc=(ri+ra)/2;
+      /* 30 cm vor der Wand (R1 reichte 10 cm in die Wand - bei Toren mit Blatt in der Wandebene, R2-R5, schnitt das ins Blatt) */
+      for(const s of [-1,1]){ S.box(0.3,H+0.1,pw,xa-0.15,(H+0.1)/2,s*pc,GUMMI,'matt');
+        S.box(0.24,0.5,0.3,xa-0.16,0.55,s*(ri-0.04),GUMMI,'matt'); }
+      S.box(0.3,0.26,W+0.64,xa-0.15,H+0.12,0,GUMMI,'matt');
     }
     if(o.vordach){
-      const vx=xa-0.68, vy=H+0.5;
-      S.box(1.35,0.1,W+1.2,vx,vy,0,GRAPH,'lackMetall',0,0,0.08);
-      S.box(1.38,0.08,W+1.24,vx,vy+0.09,0,WEISS,'matt',0,0,0.08);
-      for(const s of [-1,1]) bk.stab(S,xa-0.02,H-0.25,xa-1.22,H+0.4,s*(w2+0.4),0.07,STAHL,'stahl');
+      const vx=xa-0.83, vy=H+0.32;
+      S.box(1.9,0.1,W+1.14,vx,vy,0,GRAPH,'stahl',0,0,0.08);
+      S.box(1.95,0.09,W+1.19,vx,vy+0.1,0,WEISS,'matt',0,0,0.08);
+      for(const s of [-1,1]) bk.stab(S,xa,H-0.45,xa-1.43,H+0.2,s*(w2+0.27),0.07,STAHL,'stahl');
     }
-    if(o.poller) for(const s of [-1,1]) lokal.push(bk.poller(S,xa-0.72,s*(w2+0.6)));
+    if(o.poller) for(const s of [-1,1]) lokal.push(bk.poller(S,xa-0.48,s*(w2+0.37)));
   }
   /* ---------- Innenseite: Fuehrung, Antrieb, Warnleuchte ---------- */
   const lampen={rot:[],gruen:[],warn:[]};
@@ -222,7 +234,7 @@ bk.tor=function(o){
         S.box(0.1,H+0.66,0.14,xx,(H+0.66)/2,z,STAHL);
         S.box(0.05,H+0.6,0.04,xx+(drin?0.05:-0.05),(H+0.6)/2,z-s*0.05,ANTH,'lackMetall');
         for(let y=0.4;y<H;y+=0.75) S.box(0.04,0.04,0.06,xx+(drin?0.06:-0.06),y,z+s*0.05,BASALT);
-        if(drin) warnPlatte(0.105,1.0,0.15,xx,0.5,z); } }
+      } }
     for(const xx of [xb-0.2,xb+0.2]) if(xx>xb?innen:aussen) S.box(0.24,0.68,W+0.42,xx,H+0.34,0,ANTH,'lackMetall');
     S.box(0.66,0.04,W+0.46,xb,H+0.69,0,BASALT);
     if(innen){ const z=ad*(w2+0.38);
@@ -244,7 +256,6 @@ bk.tor=function(o){
         const lg=H*2+0.2; S.box(0.08,lg,0.08,SX,lg/2,z,STAHL);
         for(let k=0;k<4;k++) S.box(0.38,0.05,0.05,SX+0.18,0.7+k*(H*2)/4,z,STAHL);
       }
-      warnPlatte(0.09,1.0,0.09,SX,0.5,z);
       S.zyl(0.11,0.085,0.1,seg,XW,YW,s*(w2-0.01),STAHL,'stahl',Math.PI/2);
       S.box(0.26,0.22,0.06,XW-0.02,YW,s*(w2+0.14),STAHL); }
     S.zyl(0.036,0.036,W+0.5,seg,XW,YW,0,STAHL,'stahl',Math.PI/2);
@@ -256,17 +267,14 @@ bk.tor=function(o){
     lampen.warn.push(zylGeo(0.075,0.09,0.12,XW+0.22,YW+0.32,z)); S.box(0.11,0.07,0.11,XW+0.22,YW+0.41,z,ANTH,'lackMetall');
   }
   /* ---------- Ampel und Bedienkasten (Seite bs, quer), Nummernschild ---------- */
-  const ampelBau=(innenSeite)=>{
-    const f=innenSeite?1:-1, x0=innenSeite?xi:xa, z=bs*(w2+0.42);
-    S.box(0.14,0.46,0.2,x0+f*0.07,2.1,z,ANTH,'lackMetall');
-    lampen.rot.push(zylGeo(0.055,0.055,0.04,x0+f*0.15,2.22,z,0,0,Math.PI/2));
-    lampen.gruen.push(zylGeo(0.055,0.055,0.04,x0+f*0.15,1.98,z,0,0,Math.PI/2));
-    for(const y of [2.29,2.05]) S.box(0.06,0.02,0.15,x0+f*0.17,y,z,ANTH,'lackMetall');
-    if(innenSeite){ /* Bedienkasten: auf, stopp, zu - daneben Not-Halt */
-      S.box(0.12,0.36,0.26,x0+0.06,1.35,z,LICHT,'kunststoff');
-      [[0.08,F('signalgruen')],[-0.02,F('signalrot')],[-0.12,GUMMI]].forEach(([dy,c])=>S.zyl(0.022,0.022,0.02,seg,x0+0.13,1.35+dy,z-bs*0.05,c,'kunststoff',0,0,Math.PI/2));
-      S.zyl(0.04,0.04,0.03,seg,x0+0.14,1.38,z+bs*0.07,F('signalrot'),'kunststoff',0,0,Math.PI/2);
-      S.zyl(0.05,0.05,0.012,seg,x0+0.125,1.38,z+bs*0.07,GELB,'kunststoff',0,0,Math.PI/2); }
+  const ampelBau=(innenSeite)=>{ /* wie am alten R1: kleines Gehaeuse, zwei Leuchten; innen der gelbe Bedienkasten */
+    const f=innenSeite?1:-1, x0=innenSeite?xi:xa, z=bs*(w2+0.3);
+    S.box(0.14,0.34,0.12,x0+f*0.07,1.9,z,ANTH,'stahl');
+    lampen.rot.push(zylGeo(0.05,0.05,0.04,x0+f*0.15,2.0,z,0,0,Math.PI/2));
+    lampen.gruen.push(zylGeo(0.05,0.05,0.04,x0+f*0.15,1.8,z,0,0,Math.PI/2));
+    if(innenSeite){ /* Bedienkasten: auf, zu, stopp */
+      S.box(0.12,0.24,0.16,x0+0.06,1.35,bs*(w2+0.32),GELB,'kunststoff');
+      [F('signalgruen'),F('signalrot'),ANTH].forEach((c,k)=>S.box(0.04,0.05,0.05,x0+0.13,1.43-k*0.07,bs*(w2+0.32),c,'kunststoff')); }
   };
   if(o.ampel){ if(ampA) ampelBau(false); if(ampI) ampelBau(true); }
   if(o.nr!==null&&o.nr!==undefined){
@@ -274,26 +282,33 @@ bk.tor=function(o){
     if(innen) bk.schild(g,{text:String(o.nr),b:0.62,h:0.48,x:xi+0.02,y:H+0.95,z:0,ry:Math.PI/2});
   }
   /* ---------- Torblatt ---------- */
-  const n=o.panele||Math.max(2,Math.round(H/(roll?0.5:0.6))), ph=H/n, D=0.06;
-  const fz=o.fenster===false?-1:(typeof o.fenster==='number'?o.fenster:Math.floor(n*0.6));
-  const zeile=i=>i===0?2:(i===fz?1:0);
+  /* Panele wie am alten R1: Sandwich 9,5 cm (Rolltor-Lamellen 6 cm), Lichtband im vorletzten Panel,
+     unterstes Panel aussen mit Warnstreifen/Griffmulde und Bodengummi, Scharnierbaender aussen, Rollen innen */
+  const n=o.panele||Math.max(2,Math.round(H/(roll?0.5:0.6))), ph=H/n, D=roll?0.06:0.095, PB=roll?W-0.06:W;
+  const fz=o.fenster===false?-1:(typeof o.fenster==='number'?o.fenster:n-2);
   const panelTeile=(P,i,x,y)=>{ /* ein Panel samt Kleinteilen in den Sammler P, Mitte (x,y) */
-    P.geo(bk.uvZeile(new THREE.BoxGeometry(D,ph-(roll?0.008:0.012),roll?W-0.06:W),zeile(i)),tm(x,y,0),0xffffff,'blatt');
+    const geo=new THREE.BoxGeometry(D,ph-(roll?0.008:0.012),PB);
+    if(i===0) bk.uvZeile(geo,2,0,0); else bk.uvZeile(geo,i===fz?1:0,i===fz?1:0,0);
+    P.geo(geo,tm(x,y,0),0xffffff,'blatt');
+    if(i===0) P.geo(weiss(new THREE.BoxGeometry(D+0.025,0.055,PB)),tm(x,y-ph/2+0.0275,0),GUMMI,'blatt');
+    if(i===0&&aussen) P.geo(MAT.kachel(new THREE.BoxGeometry(0.012,0.12,PB-0.06),(PB-0.06)/0.4,0.12/0.4),tm(x-D/2-0.006,y-ph/2+0.1,0),0xffffff,'warn');
     if(!roll&&L>0){ for(const s of [-1,1]){ P.geo(weiss(new THREE.CylinderGeometry(0.03,0.03,0.05,8)),tm(x+D/2+0.03,y-ph/2+0.04,s*(w2-0.04),Math.PI/2),STAHL,'blatt');
-        P.geo(weiss(new THREE.BoxGeometry(0.02,0.11,0.16)),tm(x+D/2+0.01,y-ph/2+0.03,s*0.55),STAHL,'blatt'); } }
+        if(i>0) P.geo(weiss(new THREE.BoxGeometry(0.02,0.11,0.16)),tm(x-D/2-0.01,y-ph/2+0.03,s*0.55),STAHL,'blatt'); } }
   };
-  const blattSammler=()=>bk.sammler({klasse:'blatt',bauteil:'tor',mats:{blatt:MB}});
+  const blattSammler=()=>bk.sammler({klasse:'blatt',bauteil:'tor',mats:{blatt:MB,warn:MAT.get('warnschraffur')}});
   const sch=k=>HIQ;
+  /* bewegtes Blatt: erstes Mesh (Klasse blatt) traegt die uebrigen (Warnstreifen) als Kinder - sie fahren mit */
+  const blattMesh=P=>{ const ms=P.fertig(g,{schatten:sch}); for(let k=1;k<ms.length;k++){ g.remove(ms[k]); ms[0].add(ms[k]); } return ms[0]; };
   if(!o.beweglich){
     for(let i=0;i<n;i++) panelTeile(S,i,xb,ph/2+i*ph);
   } else if(!roll&&o.fuehrung!=='normal'){
     /* senkrecht fahrendes Blatt: EIN Mesh, Mitte auf halber Hoehe (WTORE.blatt, zu/auf wie vorher) */
     const P=blattSammler(); for(let i=0;i<n;i++) panelTeile(P,i,0,-H/2+ph/2+i*ph);
-    T.blatt=P.fertig(g,{schatten:sch})[0]; T.blatt.position.set(xb,H/2,0);
+    T.blatt=blattMesh(P); T.blatt.position.set(xb,H/2,0);
     T.zu=H/2; T.auf=H/2+H-0.06; T.panele=[T.blatt];
   } else {
     /* Rolltor und Sektionaltor mit Bogen: ein Mesh je Panel (jedes faehrt eigen) */
-    for(let i=0;i<n;i++){ const P=blattSammler(); panelTeile(P,i,0,0); const me=P.fertig(g,{schatten:sch})[0]; me.userData.panel=i; T.panele.push(me); }
+    for(let i=0;i<n;i++){ const P=blattSammler(); panelTeile(P,i,0,0); const me=blattMesh(P); me.userData.panel=i; T.panele.push(me); }
   }
   /* ---------- Leuchten: je Zustand EIN Mesh (alle Lampen dieses Tors), Material veraenderlich (MAT.neu) ---------- */
   const leuchte=(liste,name)=>{ if(!liste.length) return null; const m=MAT.neu(name); const me=new THREE.Mesh(merge(liste),m);

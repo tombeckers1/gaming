@@ -1212,7 +1212,7 @@ function blechMat(){
    (WTORE: blatt/zu/auf/rot/gruen, wtorSet in 08c) bleibt unveraendert. */
 function westTor(cx,nr){
   const Z=LHALLE.z;
-  const T=bk.tor({art:'sektional',fuehrung:'vertikal',breite:WTOR.w,hoehe:WTOR.h,wand:[-LW,0],blatt:-0.15,
+  const T=bk.tor({art:'sektional',fuehrung:'vertikal',breite:WTOR.w,hoehe:WTOR.h,wand:[-LW,0],blatt:-0.15,fahrzeug:2.55,
     nr:String(nr+1),bedien:1,x:cx,z:Z,ry:-Math.PI/2});
   for(const r of T.kollision) col(r.x0,r.x1,r.z0,r.z1);
   WTORE[nr-1]={nr,x:cx,g:T.g,blatt:T.blatt,zu:T.zu,auf:T.auf,t:0,rot:T.ampel.rot,gruen:T.ampel.gruen,T};
@@ -1441,7 +1441,7 @@ function buildLogistik(){
   for(const dx of [-2.0,2.0]) bbox(0.09,3.3,0.09,steel,bu.x0+3.2+dx,1.65,bu.z1+1.9,null,false);
   plane(11.0,1.95,new THREE.MeshStandardMaterial({map:logiSchriftzug()}),bcx,LOGI.bh-1.5,bu.z1+0.06,0,null);
   /* --- Ladetore an der Westfassade der Halle (Attrappen, Baukasten: Blatt fest) --- */
-  for(let i=0;i<4;i++) bk.tor({art:'sektional',breite:3.6,hoehe:4.2,seite:'aussen',beweglich:false,ampel:false,poller:false,
+  for(let i=0;i<4;i++) bk.tor({art:'sektional',breite:3.6,hoehe:4.2,seite:'aussen',beweglich:false,ampel:false,poller:false,fahrzeug:2.55,
     wand:[0,0],blatt:-0.04,x:ha.x0,z:ha.z0+3.4+i*5.6,ry:0});
   /* --- Vorplatz, Zaun, Bauschild --- */
   MAT.kachel(flat(6.0,30.0,MAT.get('betonHof'),43.5,0.013,-1.0).geometry,3,14);

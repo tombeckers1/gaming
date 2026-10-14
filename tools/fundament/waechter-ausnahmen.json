@@ -138,7 +138,7 @@
   ],
   "laufzeit": {
     "stand": "2026-10-14",
-    "grund": "Ausgangsstand V131 14.10.",
+    "grund": "Wände/Zäune-Merge 14.10.: 6-Material-Meshes 172 -> 25 (wall() ohne 6er-Array)",
     "toleranz": {
       "rel": 0.05,
       "abs": 15
@@ -146,56 +146,60 @@
     "ansicht": "neues Spiel, Level 99, alle Ausbauten, applyZonen, Stufe Hoch (gespeichert), swiftshader 480x300, Abend (clock 1000), vor der Laufzeit-Buendelung",
     "tore": 12,
     "bauteile": {
+      "wand": 239,
+      "absperrung": 9,
+      "zaun": 42,
       "palette": 9,
       "tor": 87,
       "versandhof": 1,
       "schild": 10,
+      "anfahrschutz": 2,
       "stadtmoebel": 6,
       "stadthaus": 18
     },
-    "sechsMaterial": 172,
+    "sechsMaterial": 25,
     "sechsGrund": "alte Waende aus wall() (05-world) mit je einem Material pro Seite - Schritt Waende (claude/fundament-waende) loest sie auf",
     "szene": {
-      "meshes": 2251,
-      "materialien": 410,
+      "meshes": 1948,
+      "materialien": 405,
       "texturen": 218
     },
     "ansichten": {
       "laden": {
-        "calls": 836,
-        "schatten": 588,
-        "mats": 252,
+        "calls": 698,
+        "schatten": 367,
+        "mats": 249,
         "texs": 138
       },
       "lager": {
-        "calls": 721,
-        "schatten": 560,
-        "mats": 229,
+        "calls": 595,
+        "schatten": 356,
+        "mats": 226,
         "texs": 131
       },
       "lagerDock": {
-        "calls": 899,
-        "schatten": 554,
+        "calls": 782,
+        "schatten": 355,
         "mats": 226,
         "texs": 128
       },
       "dockHof": {
-        "calls": 1085,
-        "schatten": 543,
-        "mats": 246,
+        "calls": 934,
+        "schatten": 347,
+        "mats": 245,
         "texs": 140
       },
       "testfeld": {
-        "calls": 549,
-        "schatten": 568,
-        "mats": 203,
+        "calls": 470,
+        "schatten": 358,
+        "mats": 201,
         "texs": 117
       },
       "strasse": {
-        "calls": 119,
-        "schatten": 577,
-        "mats": 101,
-        "texs": 78
+        "calls": 122,
+        "schatten": 364,
+        "mats": 104,
+        "texs": 81
       }
     }
   }

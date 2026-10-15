@@ -96,7 +96,7 @@ keine Einzel-Schmutztexturen je Objekt, kein Zufallsschmutz pro Bau. Ein Abnutzu
 ## 8. Licht (`src/parts/05p-licht.js`, Doku `docs/uebergabe/licht-1510.md`)
 - **Belichtung fest `LI_BEL` = 1,05**, drinnen wie draussen – keine Augenanpassung, keine Innen-Abdunklung in der Bildzusammenfuehrung.
 - **Innenlicht = Raumlicht im Shader** (`RAUM`): jede Flaeche in einem Raum aus `dachBereiche()` bekommt gleichmaessiges Deckenlicht
-  (von oben voll, seitlich 65 %, von unten 30 %), Tag und Nacht gleich; Himmelslicht drinnen nur zu `RAUM.hemi`, Sonne drinnen nur
+  (Raumlicht von oben voll, seitlich 80 %, von unten 60 %, dazu ab Mittel das Deckenlicht mit Schatten `DECKE`), Tag und Nacht gleich; Himmelslicht drinnen nur zu `RAUM.hemi`, Sonne drinnen nur
   durch die Schattenkarte (Fenster/Tore, ab Mittel), ohne Schattenkarte drinnen aus. Neuer Raum = neuer Eintrag in `dachBereiche()`
   (20-loop) – dann hat er Dach, Schnee-Schutz und Licht zugleich. Keine Punktlichter, die dem Spieler folgen; keine Strahler je Raum.
 - **Boden** matt bis seidenmatt nur ueber `MAT.bodenGlanz(belag)` (Rauheit ≥ 0,62, Spiegelung ≤ 0,12) – keine Glanzbahnen.

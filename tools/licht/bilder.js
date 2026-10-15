@@ -1,8 +1,9 @@
 // Licht-Bilder und Helligkeits-Lauf (Licht-Paket 15.10.). Immer unter der Sperre starten:
 //   flock /tmp/bb-testlock-licht node -r <arbeitsordner>/ladezeit-preload.js tools/licht/bilder.js <real.html> <ordner> <gfx> [bilder|lauf] [tag]
+// zaehlen: Zeichenaufrufe (inkl. Schattenkarten und Bildeffekte) und Bildzeit je Ansicht. Modi kombinierbar: bilder,zaehlen,lauf
 // bilder: feste Kameras (Laden vom Eingang/von der Kasse erhoeht wie das Referenzbild, Gang, Lager, Versand, Halle, Werk, Sued)
 //         je Tag (10:00) und Nacht (22:00) -> <ordner>/<ansicht>-<tag|nacht>-<gfx><tag>.jpg; Mittelwert je Bild in mittel.json
-// lauf:   Gang durch die Raeume mit Kameradrehung (30 Bilder/s Spielzeit), mittlere Bildhelligkeit je Bild -> <ordner>/lauf-<gfx><tag>.json
+// lauf:   Gang durch die Raeume (ein Bild je 1,5 m, 480 x 270) mit Kameradrehung (8 Blicke je Wegpunkt), mittlere Bildhelligkeit je Bild -> <ordner>/lauf-<gfx><tag>.json
 // Laden wie im Spiel: Gameplay-Vorfuehrung aufgebaut (Regale voll, Kunden), Bildeffekte wie die Stufe sie hat.
 const { chromium } = require('/opt/node22/lib/node_modules/playwright');
 const fs=require('fs'), path=require('path');
@@ -36,9 +37,11 @@ const WEG=[[0,4],[0,-3],[6,-3],[14,1],[24,0],[22,-10],[22,-18],[12,-14],[4,-3],[
   const hell=`(()=>{ const gl=window.__bb.renderer.getContext(), W=gl.drawingBufferWidth, H=gl.drawingBufferHeight, a=new Uint8Array(W*H*4);
     gl.readPixels(0,0,W,H,gl.RGBA,gl.UNSIGNED_BYTE,a); let s=0, n=0, weiss=0; for(let i=0;i<a.length;i+=16){ const l=0.2126*a[i]+0.7152*a[i+1]+0.0722*a[i+2]; s+=l; n++; if(l>=250) weiss++; }
     return {mittel:+(s/n).toFixed(1), weiss:+(weiss/n*100).toFixed(2)}; })()`;
-  if(modus==='bilder'){
+  const MOD=modus.split(',');
+  if(MOD.includes('bilder')){
     const mittel={};
-    for(const zeit of [['tag',600],['nacht',1320]]) for(const k in ANS){ const v=ANS[k];
+    const NUR=process.env.NUR?process.env.NUR.split(','):null, ZEITEN=process.env.ZEITEN?process.env.ZEITEN.split(','):['tag','nacht'];
+    for(const zeit of [['tag',600],['nacht',1320]].filter(z=>ZEITEN.includes(z[0]))) for(const k in ANS){ if(NUR&&!NUR.includes(k)) continue; const v=ANS[k];
       const r=await p.evaluate(({v,zeit,hell})=>{ const bb=window.__bb, cam=bb.camera;
         const dx=v.t[0]-v.p[0], dz=v.t[2]-v.p[2], yaw=Math.atan2(-dx,-dz);
         bb.setView(v.p[0],v.p[2],yaw,0); bb.clock=zeit; bb.run(0.4,0.05); bb.clock=zeit; bb.applyTOD();
@@ -49,7 +52,8 @@ const WEG=[[0,4],[0,-3],[6,-3],[14,1],[24,0],[22,-10],[22,-18],[12,-14],[4,-3],[
       const name=k+'-'+zeit[0]+'-'+gfx+tag; fs.writeFileSync(path.join(out,name+'.jpg'),Buffer.from(r.u.split(',')[1],'base64')); mittel[name]=r.m; console.log('bild',name,JSON.stringify(r.m)); }
     const mf=path.join(out,'mittel.json'); let alt={}; try{ alt=JSON.parse(fs.readFileSync(mf,'utf8')); }catch(e){}
     fs.writeFileSync(mf,JSON.stringify(Object.assign(alt,mittel),null,1));
-  } else if(modus==='zaehlen'){
+  }
+  if(MOD.includes('zaehlen')){
     /* Zeichenaufrufe je Bild (alles: Schattenkarten, Szene, Bildeffekte) und Bildzeit (swiftshader, nur als Vergleichswert) */
     const r=await p.evaluate(({ANS})=>{ const bb=window.__bb, R=bb.renderer, cam=bb.camera, o={};
       for(const k in ANS){ const v=ANS[k]; const dx=v.t[0]-v.p[0], dz=v.t[2]-v.p[2], yaw=Math.atan2(-dx,-dz);
@@ -62,16 +66,18 @@ const WEG=[[0,4],[0,-3],[6,-3],[14,1],[24,0],[22,-10],[22,-18],[12,-14],[4,-3],[
       return o; },{ANS});
     fs.writeFileSync(path.join(out,'zaehlen-'+gfx+tag+'.json'),JSON.stringify(r,null,1));
     console.log('ZAEHLEN',gfx,JSON.stringify(r));
-  } else {
+  }
+  if(MOD.includes('lauf')){
+    await p.setViewportSize({width:480,height:270}); await p.evaluate(()=>new Promise(r=>setTimeout(r,300)));
     for(const zeit of [['tag',600],['nacht',1320]]){
       const r=await p.evaluate(({WEG,zeit,hell})=>{ const bb=window.__bb, werte=[]; bb.clock=zeit; bb.applyTOD();
         const dt=1/30; let yaw=0;
         const bild=(x,z,y)=>{ bb.setView(x,z,y,-0.05); bb.run(dt,dt); bb.clock=zeit; bb.kameraSetzen(); bb.renderFrame(dt); const m=(0,eval)(hell); werte.push([+x.toFixed(1),+z.toFixed(1),+y.toFixed(2),m.mittel]); };
-        for(let i=0;i<WEG.length-1;i++){ const [x0,z0]=WEG[i], [x1,z1]=WEG[i+1], d=Math.hypot(x1-x0,z1-z0), n=Math.max(1,Math.round(d/4*30/6));
+        for(let i=0;i<WEG.length-1;i++){ const [x0,z0]=WEG[i], [x1,z1]=WEG[i+1], d=Math.hypot(x1-x0,z1-z0), n=Math.max(1,Math.round(d/1.5));
           yaw=Math.atan2(-(x1-x0),-(z1-z0));
           for(let k=0;k<n;k++){ const t=k/n; bild(x0+(x1-x0)*t,z0+(z1-z0)*t,yaw); }
-          /* am Punkt umdrehen: 12 Blickrichtungen */
-          for(let k=1;k<=12;k++) bild(x1,z1,yaw+k*Math.PI/6); }
+          /* am Punkt umdrehen: 8 Blickrichtungen */
+          for(let k=1;k<=8;k++) bild(x1,z1,yaw+k*Math.PI/4); }
         return werte; },{WEG,zeit:zeit[1],hell});
       /* Spruenge: groesste Aenderung zwischen zwei Nachbarbildern, getrennt nach Gehen/Drehen am selben Ort */
       let maxDreh=0, maxGeh=0, summe=0; for(let i=1;i<r.length;i++){ const d=Math.abs(r[i][3]-r[i-1][3]); if(r[i][0]===r[i-1][0]&&r[i][1]===r[i-1][1]) maxDreh=Math.max(maxDreh,d); else maxGeh=Math.max(maxGeh,d); summe+=d; }

@@ -17,8 +17,8 @@
    Neu - ein RAUMLICHT im Shader (alle Stufen, kostet keinen Zeichenaufruf):
    - Jede Flaeche weiss, ob sie in einem Raum liegt (Weltlage gegen die Raumliste aus
      dachBereiche(), also dieselben Raeume, Zonen und Ausbaustufen wie Schnee/Kunden).
-     Drinnen bekommt sie gleichmaessiges Deckenlicht: von oben voll, seitlich 65 %, von
-     unten 30 % - Tag und Nacht gleich, an jedem Ort gleich, egal wohin man schaut.
+     Drinnen bekommt sie gleichmaessiges Deckenlicht: von oben voll, seitlich 80 %, von
+     unten 60 % - Tag und Nacht gleich, an jedem Ort gleich, egal wohin man schaut.
    - Das Himmelslicht wirkt drinnen nur noch zu RAUM.hemi (Tageslicht durch die Fenster),
      die Sonne nur, wo die Schattenkarte sie durchlaesst (Fenster, Tore: Sonnenflecken mit
      Schatten). Ohne Schattenkarte (Niedrig, Ultra Low, Handy) ist die Sonne drinnen aus -
@@ -35,13 +35,13 @@ const LI={an:false, schatten:null, objs:new Map(), personen:[], tS:0, n:{moebel:
 const LI_BEL=1.05; LI.bel=LI_BEL;
 /* Raumlicht: Staerke (Deckenlicht von oben), Anteil Himmelslicht drinnen, Glanz des Raums
    (Leuchtdichte der Umgebung je Staerke 1), hoechstens RAUM.n Raeume */
-const RAUM={n:24, staerke:0.7, decke:0.38, hemi:0.25, spec:0.32, werte:null, sig:'', liste:[], nAktiv:0, tS:-1e9};
-/* DECKENLICHT mit Schatten (ab Mittel): ein Richtungslicht fast senkrecht von oben (10 Grad geneigt), wirkt nur
+const RAUM={n:24, staerke:0.5, decke:0.5, hemi:0.2, spec:0.32, werte:null, sig:'', liste:[], nAktiv:0, tS:-1e9};
+/* DECKENLICHT mit Schatten (ab Mittel): ein Richtungslicht fast senkrecht von oben (12 Grad geneigt), wirkt nur
    drinnen (der Shader erkennt es an der Richtung) - Regale, Kassen, Personen, Kartons werfen weiche Schatten auf
    den Boden, untere Regalboeden liegen im Schatten der oberen. Die Schattenkarte deckt 32 x 32 m um den Spieler,
    das Licht sitzt 3,3 m hoch: Decken und Daecher liegen darueber und werfen keinen Schatten. Ohne Schattenkarte
    (Niedrig) ist es aus, das Raumlicht uebernimmt seinen Anteil (gleich hell). */
-const DECKE={l:null, h:3.3, neig:0.176, halb:16, x:1e9, z:1e9};
+const DECKE={l:null, h:3.3, neig:0.21, halb:16, x:1e9, z:1e9};
 (function raumShader(){
   const C=THREE.ShaderChunk;
   /* Test-Attrappe von three (Node, test.html): keine Shader - nichts zu tun */
@@ -63,7 +63,7 @@ vec2 raumAn( vec3 p ){
   }
   return vec2( 0.0, 1.0 );
 }
-vec3 raumIrr( float st, vec3 nW ){ return st * ( 0.75 + 0.25 * nW.y ) * vec3( 1.0, 0.965, 0.91 ) * PI; }
+vec3 raumIrr( float st, vec3 nW ){ return st * ( 0.8 + 0.2 * nW.y ) * vec3( 1.0, 0.965, 0.91 ) * PI; }
 `;
   /* Fragment (Standard, Physical, Phong, Toon) */
   let f=C.lights_fragment_begin;

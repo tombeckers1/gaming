@@ -72,9 +72,10 @@ vec3 raumIrr( float st, vec3 nW ){ return st * ( 0.8 + 0.2 * nW.y ) * vec3( 1.0,
   f=f.slice(0,dir)+f.slice(dir,dirE).replace('RE_Direct( directLight, geometry, material, reflectedLight );','directLight.color *= ( vec4( directLight.direction, 0.0 ) * viewMatrix ).y > 0.95 ? ( raumA.x > 0.0 ? 1.0 : 0.0 ) : raumSo;\n\t\tRE_Direct( directLight, geometry, material, reflectedLight );')+f.slice(dirE);
   f=f.replace(/(#if defined\( RE_IndirectSpecular \)\s*vec3 radiance = vec3\( 0\.0 \);)/,'#if defined( RE_IndirectDiffuse )\n\tif( raumA.x > 0.0 ) irradiance = irradiance * raumL[ 0 ].x + raumIrr( raumA.x, raumN );\n#endif\n$1\n#ifndef USE_ENVMAP\n\tradiance += raumA.x * raumL[ 0 ].y * vec3( 1.0, 0.965, 0.91 );\n#endif');
   /* Lambert (Ultra Low): Licht je Ecke. Boden- und Deckenplatten enden oft unter der Wand (Ecke 10-20 cm ausserhalb
-     des Raums) - waagrechte Flaechen bekommen darum 0,3 m Luft */
+     des Raums) - waagrechte Flaechen bekommen darum 0,3 m Luft.
+     Weltlage ueber modelMatrix: three laedt cameraPosition fuer Lambert nicht hoch (nur Standard/Phong/Toon/Shader) */
   let l=C.lights_lambert_vertex;
-  l=l.replace('backGeometry.viewDir = geometry.viewDir;','backGeometry.viewDir = geometry.viewDir;\nvec3 raumN = ( vec4( geometry.normal, 0.0 ) * viewMatrix ).xyz;\nvec2 raumA = raumAn( cameraPosition + ( vec4( mvPosition.xyz, 0.0 ) * viewMatrix ).xyz, abs( raumN.y ) > 0.9 ? 0.3 : 0.0 );\nfloat raumSo = raumA.x > 0.0 ? raumA.y : 1.0;');
+  l=l.replace('backGeometry.viewDir = geometry.viewDir;','backGeometry.viewDir = geometry.viewDir;\nvec3 raumN = ( vec4( geometry.normal, 0.0 ) * viewMatrix ).xyz;\nvec4 raumW = vec4( transformed, 1.0 );\n#ifdef USE_INSTANCING\n\traumW = instanceMatrix * raumW;\n#endif\nraumW = modelMatrix * raumW;\nvec2 raumA = raumAn( raumW.xyz, abs( raumN.y ) > 0.9 ? 0.3 : 0.0 );\nfloat raumSo = raumA.x > 0.0 ? raumA.y : 1.0;');
   const ld=l.indexOf('#if NUM_DIR_LIGHTS > 0'), ldE=l.indexOf('#if NUM_HEMI_LIGHTS > 0');
   l=l.slice(0,ld)+l.slice(ld,ldE).replace('directLightColor_Diffuse = PI * directLight.color;','directLightColor_Diffuse = PI * directLight.color * raumSo;')+l.slice(ldE)
     +'\nif( raumA.x > 0.0 ){ vIndirectFront = vIndirectFront * raumL[ 0 ].x + raumIrr( raumA.x, raumN );\n#ifdef DOUBLE_SIDED\n\tvIndirectBack = vIndirectBack * raumL[ 0 ].x + raumIrr( raumA.x, -raumN );\n#endif\n}\n';

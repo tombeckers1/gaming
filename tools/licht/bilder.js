@@ -65,7 +65,9 @@ const WEG=[[0,4],[0,-3],[14,1],[22,-12],[4,-3],[-7.4,1.0],[-14,-8],[-14,-22],[-3
         for(let i=0;i<2;i++){ f(); bb.renderFrame(0.05); }
         const gl=R.getContext(), px=new Uint8Array(4); let calls=0, tris=0, ms=0;
         const NB=gfx==='mittel'?6:2; for(let i=0;i<NB;i++){ f(); R.info.autoReset=false; R.info.reset(); const t=performance.now(); bb.renderFrame(0.05); gl.readPixels(0,0,1,1,gl.RGBA,gl.UNSIGNED_BYTE,px); ms+=performance.now()-t; calls+=R.info.render.calls; tris+=R.info.render.triangles; R.info.autoReset=true; }
-        o[k]={calls:Math.round(calls/NB),tris:Math.round(tris/NB),ms:Math.round(ms/NB)}; }
+        /* nur Zeichnen (ohne Spiel-/Licht-Takt und Bildeffekte): Szene direkt, 3 Mal */
+        let ms2=0; for(let i=0;i<3;i++){ const t=performance.now(); R.setRenderTarget(null); R.render(bb.scene,cam); gl.readPixels(0,0,1,1,gl.RGBA,gl.UNSIGNED_BYTE,px); ms2+=performance.now()-t; }
+        o[k]={calls:Math.round(calls/NB),tris:Math.round(tris/NB),ms:Math.round(ms/NB),msSzene:Math.round(ms2/3)}; }
       return o; },{ANS,gfx});
     fs.writeFileSync(path.join(out,'zaehlen-'+gfx+tag+'.json'),JSON.stringify(r,null,1));
     console.log('ZAEHLEN',gfx,JSON.stringify(r));

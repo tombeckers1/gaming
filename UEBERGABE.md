@@ -53,7 +53,8 @@ Offen: Produktions-Gameplay (Konzept freigegeben, `produktion-konzept.md`) auf d
 Ursachen: Augenanpassung (Belichtung 0,74 + Gamma je Kameraort), 3 Punktlichter, die dem Blick folgten, Ladenstrahler, Glanzbahnen.
 Neu: **Raumlicht im Shader** (`RAUM` in 05p, Räume aus `dachBereiche()`), feste Belichtung 1,05, **Deckenlicht mit Schatten** ab Mittel
 (`DECKE`), Boden matt über `MAT.bodenGlanz`. Doku `docs/uebergabe/licht-1510.md`, Bilder `docs/bilder/licht-1510/`, Test `src/tests/licht.js`
-(neu), Werkzeug `tools/licht/bilder.js` (Bilder, Zeichenaufrufe, Helligkeits-Lauf). Stilregeln §8 neu.
+(neu), Werkzeuge `tools/licht/bilder.js` (Bilder, Zeichenaufrufe) + `vergleich.py`. Kontaktschatten jetzt auf allen Stufen.
+Stilregeln §8 neu. Offen/später: Abschnitt „Grenzen“ in licht-1510.md.
 **Beiseite (Tom 14.10.):** Feuerwerk-Fragen F1–F4, Feuerwerk wird jetzt nicht geändert.
 **Wochenlimit:** Tom 14.10. ~16 Uhr 41 %; Ziel höchstens ~1 %/h, Sa 14 Uhr ≤ 85 %. Ein Agent nach dem anderen, Sonnet für Routine.
 

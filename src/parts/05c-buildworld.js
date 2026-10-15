@@ -68,8 +68,9 @@ function buildWorld(){
     flat(T.x1-T.x0,T.z1-T.z0,new THREE.MeshStandardMaterial({map:tg,roughness:0.92}),
       (T.x0+T.x1)/2,0.013,(T.z0+T.z1)/2); }
   // Warenannahme
-  const zone=new THREE.Mesh(new THREE.PlaneGeometry(4.3,2.3),new THREE.MeshBasicMaterial({transparent:true,depthWrite:false,map:tex(430,230,(g,W,H)=>{ g.clearRect(0,0,W,H); g.strokeStyle=MAT.css('signalgelb'); g.lineWidth=10; g.setLineDash([26,14]); g.strokeRect(8,8,W-16,H-16); g.setLineDash([]); g.fillStyle=MAT.css('signalgelb',.95); g.font=BAR(30); g.fillText('Wareneingang',24,H-26); })}));
-  zone.rotation.set(-Math.PI/2,0,-Math.PI/2); zone.position.set(-15.3,0.022,-2); zone.renderOrder=2; scene.add(zone);
+  /* gestrichelt umrandete Abstellflaeche mit Bodenschrift (bk.bodenmarkierung, Einheit 15.10.) */
+  bk.bodenmarkierung({rahmen:[{x0:-16.45,x1:-14.15,z0:-4.15,z1:0.15,farbe:'gelb',breite:0.08,strich:0.26,luecke:0.14}],
+    schriften:[{text:'WARENEINGANG',x:-15.3,z:-2,b:2.6,h:0.5,ry:-Math.PI/2}],y:0.016});
   // Laden: Frontwand mit Schaufenstern
   const H=WH;
   wall(-8,-7.2,5.9,6.1,0,H,'-z',shopWall); wall(-2,-1.2,5.9,6.1,0,H,'-z',shopWall);
@@ -77,13 +78,9 @@ function buildWorld(){
   wall(1.2,2,5.9,6.1,0,H,'-z',shopWall); wall(7.2,8,5.9,6.1,0,H,'-z',shopWall);
   wall(2,7.2,5.9,6.1,0,0.9,'-z',shopWall); wall(2,7.2,5.9,6.1,2.4,H,'-z',shopWall);
   wall(-1.2,1.2,5.9,6.1,2.5,H,'-z',shopWall);
-  const glass=new THREE.MeshStandardMaterial({color:LIN(MAT.farbe('glasKlar')),transparent:true,opacity:0.16,roughness:0.05,metalness:0.2,depthWrite:false});
-  const frame=MAT.get('stahlAnthrazit');
-  for(const [a,b] of [[-7.2,-2],[2,7.2]]){ const gp=bbox(b-a,1.5,0.03,glass,(a+b)/2,1.65,6.0,null,false); occluders.push(gp);
-    bbox(b-a,0.06,0.12,frame,(a+b)/2,0.93,6.0); bbox(b-a,0.06,0.12,frame,(a+b)/2,2.38,6.0); bbox(0.06,1.5,0.1,frame,(a+b)/2,1.65,6.0);
-  }
-  buildWindowGrime();
-  bbox(0.08,2.5,0.14,frame,-1.2,1.25,6.0); bbox(0.08,2.5,0.14,frame,1.2,1.25,6.0); bbox(2.4,0.08,0.14,frame,0,2.5,6.0);
+  /* Schaufenster, Tuerzarge, Sohlbank und Schmutzschicht: bk.fenster (04z) - wie an den Erweiterungen */
+  { const F=bk.fenster({art:'schaufenster',z:6.0,felder:[{x0:-7.2,x1:-2,y0:0.9,y1:2.4},{x0:2,x1:7.2,y0:0.9,y1:2.4}],zarge:[{x0:-1.2,x1:1.2,y1:2.5}],schmutz:true});
+    occluders.push(F.glas); buildWindowGrime(F.schmutz); }
   // Rückwand, rechte Wand
   /* Rueckwand des Basisladens. Ihre Aussenseite traegt die
      Fassade wie jede andere Aussenwand - vom Testfeld aus sah man

@@ -109,134 +109,12 @@ function ck(x,z){ return localToWorld(ckG,x,z); }
 function ckYaw(){ return ckG.rotation.y; }
 function buildCheckout(){
   ckG=new THREE.Group(); ckG.position.set(CK_HOME.x,0,CK_HOME.z); ckG.rotation.y=CK_HOME.ry; scene.add(ckG);
-  /* Aussen neutral: Korpus und Blende weiss (06.10., vorher Anthrazit),
-     Sockel dunkel, Zierleiste Edelstahl. Davor Marineblau mit roter
-     Leiste und gelber Schrift. */
-  const corpus=std(CK_KORPUS,{roughness:0.42,metalness:0.05}),
-        panel=std(parseInt(CK_BLENDE.slice(1),16),{roughness:0.34,metalness:0.03}),
-        laminat=MAT.get('kunststoffHellgrau'),
-        steel=MAT.get('aluBlank'),
-        dark=MAT.get('kunststoffSchwarz'),
-        sockel=std(CK_SOCKEL,{roughness:0.6}),
-        rubber=MAT.get('gummi'),
-        accent=MAT.get('aluBlank');
-  /* Korpus mit Sockelrücksprung */
-  const c=rbox(3.2,0.74,0.8,0.02,corpus,0,0.5,0,ckG); occluders.push(c);
-  bbox(3.08,0.14,0.68,sockel,0,0.07,0,ckG);
-  bbox(3.22,0.04,0.82,steel,0,0.15,0,ckG,false);
-  /* Frontblende zum Kunden */
-  bbox(3.12,0.5,0.03,panel,0,0.56,0.405,ckG,false);
-  bbox(3.14,0.045,0.035,accent,0,0.82,0.408,ckG,false);
+  /* Kassenplatz aus dem Baukasten (bk.kasse art 'kasse', 04z): Korpus und Blende weiss, Sockel dunkel, Leisten Edelstahl;
+     hier bleiben Ladenname, Kassenbildschirm, Trefferflaechen und die Logik (Band, Tuete, Bezahlen) */
   ckNameTex=tex(1000,136,(g,W,H)=>drawCkName(g,W,H));
-  plane(1.5,0.2,new THREE.MeshStandardMaterial({roughness:0.34,metalness:0.03,map:ckNameTex}),0.74,0.6,0.423,0,ckG);
-  /* Arbeitsplatte mit gerundeter Vorderkante */
-  bbox(3.34,0.05,0.86,laminat,0,0.925,0,ckG);
-  const edge=new THREE.Mesh(new THREE.CylinderGeometry(0.026,0.026,3.34,12),laminat);
-  edge.rotation.z=Math.PI/2; edge.position.set(0,0.925,0.43); ckG.add(edge);
-  /* Laufband mit Rollen und Seitenführung */
-  beltTex=tex(512,256,(g,W,H)=>{
-    g.fillStyle='#17181d'; g.fillRect(0,0,W,H);
-    for(let x=0;x<W;x+=26){
-      g.fillStyle='#252830'; g.fillRect(x,0,11,H);
-      g.fillStyle='rgba(255,255,255,.07)'; g.fillRect(x+11,0,2,H);
-      g.fillStyle='rgba(0,0,0,.35)'; g.fillRect(x+24,0,2,H);
-    }
-    for(let i=0;i<5200;i++){ const v=Math.random(); g.fillStyle=`rgba(${v<0.5?0:255},${v<0.5?0:255},${v<0.5?0:255},${Math.random()*0.05})`; g.fillRect(Math.random()*W,Math.random()*H,2,2); }
-    for(let i=0;i<22;i++){ g.fillStyle=`rgba(0,0,0,${rand(0.05,0.14)})`; g.beginPath();
-      g.ellipse(Math.random()*W,Math.random()*H,rand(6,22),rand(4,12),Math.random()*3,0,Math.PI*2); g.fill(); } });
-  beltTex.wrapS=beltTex.wrapT=THREE.RepeatWrapping; beltTex.repeat.set(6,1);
-  const BL=BELT_A-BELT_B+0.12, BX=(BELT_A+BELT_B)/2;
-  bbox(BL,0.03,0.46,new THREE.MeshStandardMaterial({map:beltTex,roughness:0.85}),BX,0.956,0,ckG,false);
-  for(const s2 of [-1,1]){
-    bbox(BL+0.06,0.05,0.03,steel,BX,0.965,s2*0.245,ckG);
-    bbox(BL+0.06,0.012,0.012,MAT.get('markierungGelb'),BX,0.992,s2*0.245,ckG,false);
-  }
-  for(const ex of [BELT_B-0.04,BELT_A+0.06]){
-    const rl=new THREE.Mesh(new THREE.CylinderGeometry(0.03,0.03,0.47,14),steel);
-    rl.rotation.x=Math.PI/2; rl.position.set(ex,0.956,0); ckG.add(rl);
-  }
-  bbox(0.07,0.1,0.5,MAT.get('lackAnthrazit'),BELT_A+0.12,0.94,0,ckG);
-  /* Warentrenner */
-  { const t=new THREE.Group(); t.position.set(BELT_A-0.25,0.985,0); t.rotation.y=0.08; ckG.add(t);
-    bbox(0.035,0.055,0.42,MAT.ober('nachtblau','matt'),0,0,0,t,false);
-    plane(0.4,0.05,new THREE.MeshStandardMaterial({map:tex(600,78,(g,W,H)=>{ g.fillStyle='#2f3a5e'; g.fillRect(0,0,W,H); g.fillStyle=MAT.css('schildgold'); g.font=BAR(51); g.textAlign='center'; g.textBaseline='middle'; g.fillText('NÄCHSTER KUNDE',W/2,H/2+3); })}),0.019,0,0,Math.PI/2,t); }
-  /* Scanner: eine in die Platte eingelassene Glasscheibe, sonst nichts */
-  {
-    const bezel=MAT.ober('hellgrau','lackMetall');
-    const frameIn=MAT.get('kunststoffAnthrazit');
-    const scanGlass=new THREE.MeshStandardMaterial({
-      color:LIN(MAT.farbe('gummischwarz')),roughness:0.07,metalness:0.25,
-      map:tex(512,512,(g,W,H)=>{
-        g.fillStyle='#10141c'; g.fillRect(0,0,W,H);
-        const gl=g.createLinearGradient(0,0,W*0.7,H);
-        gl.addColorStop(0,'rgba(210,226,244,.24)'); gl.addColorStop(0.35,'rgba(210,226,244,.05)');
-        gl.addColorStop(0.62,'rgba(210,226,244,.14)'); gl.addColorStop(1,'rgba(210,226,244,.03)');
-        g.fillStyle=gl; g.fillRect(0,0,W,H);
-        for(let i=0;i<70;i++){ g.strokeStyle=`rgba(230,238,250,${rand(0.02,0.07)})`; g.lineWidth=rand(0.6,1.6);
-          const x=Math.random()*W, y=Math.random()*H;
-          g.beginPath(); g.moveTo(x,y); g.lineTo(x+rand(-70,70),y+rand(-18,18)); g.stroke(); }
-        for(let i=0;i<900;i++){ g.fillStyle=`rgba(255,255,255,${Math.random()*0.035})`; g.fillRect(Math.random()*W,Math.random()*H,2,2); }
-      })});
-    rbox(0.5,0.05,0.44,0.012,bezel,-0.22,0.938,0,ckG);
-    bbox(0.42,0.035,0.36,frameIn,-0.22,0.958,0,ckG,false);
-    const pane=plane(0.38,0.32,scanGlass,-0.22,0.9765,0,0,ckG);
-    pane.rotation.x=-Math.PI/2;
-    const led=new THREE.MeshBasicMaterial({color:0x4dff92,toneMapped:false});
-    bbox(0.026,0.026,0.01,led,-0.42,0.9775,0.16,ckG,false);
-  }
-  /* Kassenmonitor auf Schwenkarm */
-  bbox(0.16,0.03,0.16,MAT.get('lackAnthrazit'),-0.8,0.96,-0.06,ckG,false);
-  const post=new THREE.Mesh(new THREE.CylinderGeometry(0.022,0.028,0.34,12),steel); post.position.set(-0.8,1.12,-0.06); ckG.add(post);
-  const arm=bbox(0.04,0.04,0.16,steel,-0.8,1.29,-0.01,ckG,false); arm.rotation.x=0.5;
-  const scrBody=rbox(0.44,0.32,0.035,0.01,dark,-0.8,1.4,-0.06,ckG); scrBody.rotation.x=0.16;
   posTex=tex(1024,720,()=>{});
-  const scr=plane(0.4,0.275,new THREE.MeshBasicMaterial({map:posTex,toneMapped:false}),0,0,-0.02,Math.PI,scrBody);
-  bbox(0.46,0.02,0.05,dark,-0.8,1.23,-0.056,ckG,false);
-  /* Tastatur und Kassenlade: die Tastatur liegt auf der Bedienerseite
-     vor dem Monitor, nicht dahinter beim Kunden. */
-  /* Kassentastatur: Wanne mit Rand, beschriftete Tasten, farbige
-     Funktionsblöcke und Summentaste. */
-  {
-    const kbT=tex(768,384,(g,W,H)=>{
-      g.fillStyle='#1b1f28'; g.fillRect(0,0,W,H);
-      const cols=8, rows=4, mx=26, my=22;
-      const cw=(W-mx*2)/cols, ch=(H-my*2)/rows;
-      const label=['7','8','9','STORNO','4','5','6','KARTE','1','2','3','BAR','0','00',',','SUMME'];
-      for(let r=0;r<rows;r++) for(let c=0;c<cols;c++){
-        const i=r*cols+c;
-        const x=mx+c*cw+3, y=my+r*ch+3, w=cw-6, h=ch-6;
-        const isFn=c>=6, isSum=(r===3&&c>=6);
-        /* Tastenschatten und Kappe */
-        g.fillStyle='rgba(0,0,0,.55)'; g.fillRect(x+2,y+3,w,h);
-        const base=isSum?'#2f7a48':isFn?'#3d4658':'#e8e9ec';
-        const top =isSum?'#3f9a5c':isFn?'#4e596e':'#f7f8fa';
-        const gr=g.createLinearGradient(0,y,0,y+h);
-        gr.addColorStop(0,top); gr.addColorStop(1,base);
-        g.fillStyle=gr; g.fillRect(x,y,w,h);
-        g.fillStyle='rgba(255,255,255,.25)'; g.fillRect(x,y,w,2);
-        g.fillStyle='rgba(0,0,0,.22)'; g.fillRect(x,y+h-2,w,2);
-        /* Beschriftung */
-        const t=label[(r*4+(c%4))%label.length];
-        g.fillStyle=isFn||isSum?'#eef2f8':'#1b1f28';
-        g.textAlign='center'; g.textBaseline='middle';
-        g.font=BAR(t.length>3?15:26);
-        g.fillText(t,x+w/2,y+h/2+1);
-      }
-      /* Rand der Wanne */
-      g.strokeStyle='#0f1218'; g.lineWidth=10; g.strokeRect(5,5,W-10,H-10);
-      for(let i=0;i<500;i++){ g.fillStyle=`rgba(255,255,255,${Math.random()*0.03})`; g.fillRect(Math.random()*W,Math.random()*H,2,2); }
-    });
-    kbT.anisotropy=8;
-    const wanne=MAT.get('kunststoffSchwarz');
-    const kb=rbox(0.44,0.026,0.175,0.006,wanne,-0.8,0.954,-0.32,ckG); kb.rotation.x=-0.06;
-    const face=plane(0.4,0.15,new THREE.MeshStandardMaterial({map:kbT,roughness:0.42}),-0.8,0.9685,-0.32,0,ckG);
-    /* 03.10. (Tom, Foto): die Beschriftung stand fuer den Kassierer auf dem
-       Kopf - um 180 Grad in der Ebene gedreht, Funktionstasten rechts */
-    face.rotation.set(-Math.PI/2-0.06,0,Math.PI);
-    /* Kabel zur Kasse */
-    const kab=new THREE.Mesh(new THREE.CylinderGeometry(0.006,0.006,0.13,6),MAT.get('gummi'));
-    kab.position.set(-0.8,0.952,-0.4); kab.rotation.x=1.35; ckG.add(kab);
-  }
+  const K=bk.kasse({art:'kasse',parent:ckG,name:ckNameTex,pos:posTex,bandA:BELT_A,bandB:BELT_B});
+  occluders.push(K.korpus); beltTex=K.band;
   posHit=bbox(0.66,0.72,0.6,hitM,-0.8,1.2,-0.1,ckG,false); posHit.userData={kind:'pos'};
   cardHit=bbox(0.34,0.3,0.34,hitM,0.58,1.06,0.26,ckG,false); cardHit.userData={kind:'card'};
   ckMov=addMovable({kind:'ck',name:'Kasse',g:ckG,fw:3.4,fd:0.95,onPlace:()=>{ belt.forEach(b=>syncBeltItem(b)); syncBag(); }});
@@ -290,95 +168,21 @@ function geraetBau(){
   return B;
 }
 function sbTerminal(parent,x,z){
-  /* 10.10. neu (Tom: Bildschirm zu tief, grauer Staender und roter
-     Scanner billig): wie ein echtes Self-Checkout - Touchscreen auf
-     Augenhoehe an einer Saeule, Bioptik-Scanner (Glasflaeche mit
-     Laserkreuz und Scannerturm), Korbablage links, Waage mit
-     Tuetenhalter rechts, Kartenterminal, Bondrucker, Lichtsignal. */
-  const g=new THREE.Group(); g.position.set(x,0,z); parent.add(g);
-  const W=CK_KORPUS, NAVY=MAT.farbe('nachtblau'), DUNK=MAT.farbe('gummischwarz'), GRAN=MAT.farbe('anthrazit'), STAHL=MAT.farbe('aluminium');
-  /* Korpus bleibt ein eigenes Mesh (Verdecker) */
-  const c=rbox(0.78,0.84,0.66,0.03,std(W,{roughness:0.36,metalness:0.06}),0,0.5,0,g); occluders.push(c);
-  const b=geraetBau();
-  /* Sockel, Front, Arbeitsplatte */
-  b.box('matt',0.72,0.08,0.6,DUNK,0,0.04,0)
-   .box('lack',0.6,0.5,0.012,MAT.farbe('lichtgrau'),0,0.48,0.333)
-   .box('lack',0.78,0.07,0.016,NAVY,0,0.86,0.335)
-   .box('metall',0.7,0.05,0.012,STAHL,0,0.13,0.334)
-   .rund('lack',0.84,0.045,0.7,0.012,GRAN,0,0.94,0)
-   .box('metall',0.84,0.022,0.012,STAHL,0,0.93,0.352);
-  /* Scanner: Glasflaeche in der Platte, Laserkreuz, Scannerturm */
-  b.box('matt',0.36,0.006,0.27,MAT.farbe('tiefschwarz'),0,0.963,0.09)
-   .box('glas',0.32,0.004,0.23,MAT.farbe('anthrazit'),0,0.966,0.09)
-   .box('leucht',0.28,0.002,0.004,0xd8262a,0,0.969,0.09,0,0.45,0)
-   .box('leucht',0.28,0.002,0.004,0xd8262a,0,0.969,0.09,0,-0.45,0)
-   .rund('matt',0.38,0.17,0.08,0.02,DUNK,0,1.045,-0.1)
-   .box('glas',0.31,0.11,0.004,MAT.farbe('anthrazit'),0,1.045,-0.059)
-   .box('leucht',0.26,0.003,0.002,0xb02020,0,1.045,-0.056);
-  /* Saeule mit Kappe */
-  b.rund('lack',0.3,0.86,0.16,0.04,W,0,1.39,-0.25)
-   .rund('lack',0.31,0.05,0.17,0.02,NAVY,0,1.8,-0.25);
-  /* Bondrucker unter dem Bildschirm */
-  b.rund('matt',0.17,0.06,0.04,0.01,DUNK,0,1.205,-0.155)
-   .box('matt',0.1,0.004,0.006,MAT.farbe('tiefschwarz'),0,1.2,-0.134)
-   .box('lack',0.07,0.05,0.002,MAT.farbe('cremeweiss'),0,1.17,-0.132,0.15,0,0);
-  /* Bildschirmgehaeuse auf Augenhoehe, leicht nach oben gekippt */
-  const KX=-0.1, KY=1.53, KZ=-0.13;
-  b.pivot(0,KY,KZ,KX,0,0)
-   .rund('matt',0.53,0.39,0.05,0.02,DUNK,0,0,0)
-   .box('leucht',0.012,0.012,0.004,0x20242c,0,0.178,0.026)
-   .pivot();
-  /* Kartenterminal rechts am kurzen Arm */
-  b.zyl('metall',0.014,0.018,0.13,10,STAHL,0.31,1.03,-0.12)
-   .pivot(0.31,1.14,-0.11,-0.55,-0.25,0)
-   .rund('matt',0.1,0.17,0.035,0.012,DUNK,0,0,0)
-   .box('leucht',0.07,0.05,0.002,0x3b7fd0,0,0.04,0.019)
-   .box('lack',0.07,0.055,0.004,MAT.farbe('hellgrau'),0,-0.035,0.018)
-   .pivot();
-  /* links Korbablage */
-  b.rund('lack',0.36,0.72,0.52,0.025,W,-0.6,0.36,0)
-   .rund('lack',0.4,0.035,0.56,0.01,GRAN,-0.6,0.74,0)
-   .box('metall',0.4,0.02,0.012,STAHL,-0.6,0.73,0.282);
-  /* rechts Waage mit Tuetenhalter */
-  b.rund('lack',0.36,0.84,0.52,0.025,W,0.6,0.42,0)
-   .box('metall',0.38,0.018,0.48,STAHL,0.6,0.85,0)
-   .box('matt',0.3,0.006,0.4,MAT.farbe('hellgrau'),0.6,0.862,0.0);
-  for(const sx of [0.45,0.75]){
-    b.zyl('metall',0.011,0.011,0.5,8,STAHL,sx,1.11,-0.22)
-     .zyl('metall',0.009,0.009,0.34,8,STAHL,sx,1.36,-0.06,Math.PI/2,0,0);
-  }
-  b.zyl('metall',0.011,0.011,0.31,8,STAHL,0.6,1.36,-0.22,0,0,Math.PI/2)
-   .box('matt',0.26,0.26,0.2,MAT.farbe('cremeweiss'),0.6,1.0,-0.05);
-  /* Lichtsignal-Stange */
-  b.zyl('metall',0.014,0.014,0.32,10,STAHL,0,1.98,-0.25)
-   .zyl('metall',0.056,0.056,0.016,14,STAHL,0,2.228,-0.25);
-  b.fertig(g);
-  /* Bildschirm (eigene Textur) */
-  const scr=plane(0.48,0.34,new THREE.MeshBasicMaterial({map:sbScreenTex(),toneMapped:false}),0,KY+0.026*Math.sin(-KX),KZ+0.026*Math.cos(KX),0,g);
-  scr.rotation.x=KX;
-  const lampM=new THREE.MeshStandardMaterial({color:LIN(0x1d5f36),emissive:LIN(0x37d977),emissiveIntensity:1.6});
-  const lamp=new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.05,0.11,14),lampM);
-  lamp.position.set(0,2.165,-0.25); g.add(lamp);
+  /* 10.10. (Tom: Bildschirm zu tief, grauer Staender billig): wie ein echtes Self-Checkout. Gebaut von bk.kasse (art 'sb', 04z) -
+     hier Trefferflaeche und Spurzustand */
+  const T=bk.kasse({art:'sb',parent,x,z,bildschirm:sbScreenTex()});
+  occluders.push(T.korpus);
   /* unsichtbare Trefferflaeche: der Spieler kann selbst helfen */
-  const hit=bbox(0.9,1.9,0.8,hitM,0,0.95,0.05,g,false);
-  const l={g,lamp,lampM,busy:null,t:0,hit,helfer:null,hilfe:false};
-  hit.userData={kind:'sbterm',ref:l};
+  const hit=bbox(0.9,1.9,0.8,hitM,0,0.95,0.05,T.g,false);
+  const l={g:T.g,lamp:T.lamp,lampM:T.lampM,busy:null,t:0,hit,helfer:null,hilfe:false};
+  hit.userData={kind:'sbterm',ref:l}; sbLampe(l,true);
   return l;
 }
 function buildSBKasse(){
   if(sbG) return sbG;
   sbG=new THREE.Group(); sbG.position.set(0,0,0); scene.add(sbG);
-  /* Rueckwand mit Beschilderung hinter den Terminals */
-  const w=MAT.get('schildBlau');
-  bbox(3.6,0.34,0.12,w,10.6,2.35,3.75,sbG,false);
-  const schild=tex(1024,140,(g,W,H)=>{
-    g.fillStyle='#1b2340'; g.fillRect(0,0,W,H);
-    g.fillStyle=MAT.css('schildgold'); g.font=BUN(64); g.textAlign='center'; g.textBaseline='middle';
-    g.fillText('SB-KASSEN',W/2,H/2+4);
-    g.strokeStyle='#2f3a5e'; g.lineWidth=6; g.strokeRect(3,3,W-6,H-6);
-  });
-  plane(3.4,0.3,new THREE.MeshBasicMaterial({map:schild,toneMapped:false}),10.6,2.35,3.82,0,sbG);
-  for(const sx of [9.0,12.2]) bbox(0.07,2.2,0.07,MAT.get('stahlVerzinkt'),sx,1.15,3.75,sbG,false);
+  /* Rueckwand mit Beschilderung hinter den Terminals (bk.kasse art 'sbTafel') */
+  bk.kasse({art:'sbTafel',parent:sbG,x:10.6,z:3.75,breite:3.6});
   for(const x of [9.7,11.5]) sbLanes.push(sbTerminal(sbG,x,4.4));
   sbCols.push(col(9.0,10.4,4.05,4.75),col(10.8,12.2,4.05,4.75));
   return sbG;
@@ -538,26 +342,11 @@ function buildDesk(){
    Verkaufsregale
    ========================================================= */
 const shelves=[];
-const shUp=std(0x4a5266,{metalness:0.5,roughness:0.45}), shBoard=MAT.eigen('lichtgrau','kunststoff'), shRail=MAT.eigen('signalrot','kunststoff');
-const shSide=MAT.eigen('weiss','kunststoff'); const shelfStrips=[];
-let _gestell=null;
-function gestellMat(){ if(!_gestell) _gestell=new THREE.MeshStandardMaterial({vertexColors:true,metalness:0,roughness:0.72}); return _gestell; }
-const coldFrame=MAT.eigen('aluminium','stahl');
-const coldGlass=new THREE.MeshStandardMaterial({color:LIN(0xd8ecff),transparent:true,opacity:0.2,roughness:0.05,metalness:0.2,depthWrite:false});
-/* Rueckwand: pulverbeschichtetes Lochblech. Die Textur ist neutral hell,
-   die Farbe kommt ueber material.color aus der Regalpalette - so passt
-   sie zu jeder Wand. Loecher mit Schattenkante statt aufgemalter Punkte. */
-const pegMat=new THREE.MeshStandardMaterial({roughness:0.62,metalness:0.12,map:(()=>{ const t=tex(256,256,(g,W,H)=>{ g.fillStyle='#f4f5f6'; g.fillRect(0,0,W,H);
-  for(let i=0;i<1400;i++){ g.fillStyle=`rgba(${Math.random()<0.5?'255,255,255':'120,124,130'},${0.03+Math.random()*0.04})`; g.fillRect(Math.random()*W,Math.random()*H,2,2); }
-  for(let x=16;x<W;x+=32) for(let y=16;y<H;y+=32){ g.fillStyle='rgba(255,255,255,.7)'; g.fillRect(x-3,y-4,7,9); g.fillStyle='#3a3d43'; g.fillRect(x-3,y-5,6,9); g.fillStyle='#6a6e76'; g.fillRect(x-3,y-5,6,2); } });
-  t.wrapS=t.wrapT=THREE.RepeatWrapping; t.repeat.set(5,5); return t; })()});
+const shelfStrips=[];
+/* Gestell-Material aller Verkaufsmoebel (Vertexfarben nach Rolle): Oberflaechenklasse Kunststoff/Lack aus der Bibliothek
+   (Einheit 15.10., vorher eigenes Material roughness 0,72); Rueckwand, Glas, Gitter usw. baut bk.regal (04z) */
+function gestellMat(){ return MAT.vc('kunststoff'); }
 function kindOf(sh){ return SHELFKIND[sh&&sh.kind]||SHELFKIND.standard; }
-/* Kassenregal: helles Lochblech (dieselbe Textur wie die Regale) und
-   Edelstahl wie die Zierleiste der Kasse. 06.10.: hell zur weissen
-   Kasse, vorher Anthrazit. */
-let _kasseRueck=null, _kasseStahl=null;
-function kasseRueckMat(){ return _kasseRueck||(_kasseRueck=new THREE.MeshStandardMaterial({roughness:0.6,metalness:0.1,map:pegMat.map,color:LIN(0xdcdfe3)})); }
-function kasseStahlMat(){ return _kasseStahl||(_kasseStahl=MAT.eigen('aluminium','blank')); }
 function shelfCount(k){ return shelves.filter(s=>s.kind===k).length; }
 /* Fassungsvermögen richtet sich nach Regalbreite und -tiefe */
 /* Freie Hoehe ueber einem Fach: bis zum naechsten Boden; das oberste
@@ -787,170 +576,35 @@ function regalFarben(K){
     boden:MAT.farbe('lichtgrau'), preis:MAT.farbe('weiss'), lippe:MAT.farbe('hellgrau'), kopf:hell?MAT.farbe('anthrazit'):MAT.farbe('gummischwarz'), platte:hell?MAT.farbe('holzPalette'):MAT.farbe('holzPaletteDunkel'), rueck:hell?mix(wa,MAT.farbe('cremeweiss'),0.82):mix(wa,MAT.farbe('hellgrau'),0.5)};
 }
 function regaleFaerben(){
-  pegMat.color.copy(LIN(regalFarben(null).rueck));
+  bk.regal.rueckwand().color.copy(LIN(regalFarben(null).rueck));
   shelves.forEach(sh=>{ (sh.gestelle||[]).forEach(m=>{ const RF=regalFarben(m.userData.regalK), ca=m.geometry.attributes.color; let o=0;
       for(const [r,n] of m.userData.rollen){ const c=LIN(RF[r]); for(let i=0;i<n;i++) ca.setXYZ(o+i,c.r,c.g,c.b); o+=n; } ca.needsUpdate=true; });
-    if(sh.gitterM) sh.gitterM.color.copy(LIN(regalFarben(kindOf(sh)).rahmen));
-    if(sh.blind){ const RF=regalFarben(kindOf(sh)); sh.blind[0].material.color.copy(LIN(RF.seite)); sh.blind[1].material.color.copy(LIN(RF.rahmen)); } });
+    if(sh.gitterM) sh.gitterM.color.copy(LIN(regalFarben(kindOf(sh)).rahmen)); });
 }
 /* Drahtgitter fuer die Gitterbox: Stahldraht 4 mm im 5-cm-Raster, als
    Alpha-Textur - man sieht die Ware durch das Gitter */
 /* gitterTex() entfaellt (13.10., Materialangleichung): Drahtgitter = MAT.tex('drahtgitter') (geteilt) */
-/* Verkaufstisch und Gitterbox: eigene Bauform, aber dieselben Faecher
-   (Level), Preisschilder, Kopfschild und Treffer wie ein Regal - Kunden,
-   Einraeumer und Speicherstand behandeln sie wie jedes andere Regal. */
-function bauMoebel(K,sh,g,RF){
-  const W=K.w, D=K.d, nL=K.lv.length, y=K.lv[nL-1], fh=K.oben, iw=W-0.1, st=[], kopf=[];
-  const GB={}; const box=(w,h,d)=>GB[w+'|'+h+'|'+d]||(GB[w+'|'+h+'|'+d]=new THREE.BoxGeometry(w,h,d));
-  const fg=new THREE.Group(); g.add(fg);
-  let preisY, headY;
-  if(K.bau==='tisch'){
-    /* Ladenbau-Tisch: Bauteile aus dem Baukasten (bk.verkaufstischTeile, 04z) - dieselben Teile braucht
-       die Verpackungs-Ausstellung 2.0 (17f) fuer ihre Tischreihen */
-    st.push(...bk.verkaufstischTeile(K,box));
-    preisY=[y-0.1];
-    /* Aktionsschild auf einem Steckpfosten hinten in der Mitte - eigenes
-       Teil, es verschwindet, solange der Tisch leer ist */
-    kopf.push({geo:box(0.03,0.62,0.03),m:tm(0,y+fh+0.05,-D/2+0.08),rolle:'rahmen'});
-    headY=y+fh+0.42;
-    kopf.push({geo:box(1.0,0.2,0.03),m:tm(0,headY,-D/2+0.08),rolle:'kopf'});
-  } else {
-    /* Gitterbox: die Wanne steht auf einem Unterbau mit offenen Faechern
-       fuer Kleinartikel (Tom, 02.10.). Unterbau: Seitenwangen, Rueckwand,
-       Boeden mit Preisleiste. Wanne: Bodenblech, Eckpfosten, Drahtgitter
-       rundum, oben ein Rohrrahmen; vorn niedriger zum Hineingreifen. */
-    const hw=Math.min(0.62,fh+0.06), hv=Math.min(hw-0.1,fh-0.08);
-    /* 03.10. (Tom, iPhone-Foto: Saegezaehne unten am Unterbau): Sockel,
-       Seitenwangen und Wannenboden lagen in derselben Ebene und flimmerten
-       gegeneinander. Jetzt: dunkler Sockel 25 mm zurueckgesetzt, Wangen
-       und Rueckwand stehen auf dem Sockel, die Wannenplatte steht 6 mm
-       ueber - keine zwei Flaechen teilen sich mehr eine Ebene. */
-    const SK=0.08;
-    for(const sx of [-1,1]) st.push({geo:box(0.03,y-SK,D),m:tm(sx*(W/2-0.015),(y+SK)/2,0),rolle:'seite'});
-    st.push({geo:box(W-0.06,y-SK,0.02),m:tm(0,(y+SK)/2,-D/2+0.01),rolle:'rueck'});
-    st.push({geo:box(W-0.05,SK,D-0.05),m:tm(0,SK/2,0),rolle:'fuss'});
-    preisY=[];
-    for(let li=0;li<nL-1;li++){ const yl=K.lv[li];
-      st.push({geo:box(W-0.06,0.025,D-0.03),m:tm(0,yl-0.012,0),rolle:'boden'});
-      st.push({geo:box(iw,0.05,0.014),m:tm(0,yl-0.02,D/2-0.013),rolle:'preis'}); preisY.push(yl-0.02); }
-    st.push({geo:box(W+0.012,0.04,D+0.012),m:tm(0,y-0.02,0),rolle:'boden'});
-    for(const sx of [-1,1]) for(const sz of [-1,1]) st.push({geo:box(0.035,hw+0.02,0.035),m:tm(sx*(W/2-0.018),y+hw/2,sz*(D/2-0.018)),rolle:'rahmen'});
-    st.push({geo:box(W,0.025,0.025),m:tm(0,y+hw,-D/2+0.012),rolle:'rahmen'});
-    st.push({geo:box(W,0.025,0.025),m:tm(0,y+hv,D/2-0.012),rolle:'rahmen'});
-    for(const sx of [-1,1]) st.push({geo:box(0.025,0.025,D),m:tm(sx*(W/2-0.012),y+hw,0),rolle:'rahmen'});
-    const gm=new THREE.MeshStandardMaterial({map:MAT.tex('drahtgitter'),color:LIN(RF.rahmen),alphaTest:0.4,transparent:false,side:THREE.DoubleSide,metalness:0.5,roughness:0.45});
-    sh.gitterM=gm;
-    const wand=(w,h,x,yy,z,ry)=>{ const m=plane(w,h,gm,x,yy,z,ry,fg); const uv=m.geometry.attributes.uv; for(let i=0;i<uv.count;i++) uv.setXY(i,uv.getX(i)*w/0.2,uv.getY(i)*h/0.2); uv.needsUpdate=true; return m; };
-    wand(W-0.04,hw,0,y+hw/2,-D/2+0.012,0); wand(W-0.04,hv,0,y+hv/2,D/2-0.012,0);
-    for(const sx of [-1,1]) wand(D-0.04,hw,sx*(W/2-0.012),y+hw/2,0,Math.PI/2);
-    preisY.push(y+hv-0.04); headY=y+hv+0.13;
-    /* Klappschild vorn am Rohrrahmen */
-    kopf.push({geo:box(0.9,0.2,0.02),m:tm(0,headY,D/2-0.004),rolle:'kopf'});
-  }
-  st.forEach(x=>{ x.color=RF[x.rolle]; }); kopf.forEach(x=>{ x.color=RF[x.rolle]; });
-  const gest=new THREE.Mesh(merge(st),gestellMat());
-  gest.userData.rollen=st.map(x=>[x.rolle,x._n]); gest.userData.regalK=K;
-  const kg=new THREE.Group(); fg.add(kg); sh.kopfG=kg;
-  const km=new THREE.Mesh(merge(kopf),gestellMat()); km.userData.rollen=kopf.map(x=>[x.rolle,x._n]); km.userData.regalK=K; kg.add(km);
-  sh.gestelle=[gest,km];
-  if(HIQ){ gest.castShadow=true; gest.receiveShadow=true; } fg.add(gest);
-  for(const k in GB) GB[k].dispose();
-  /* je Ebene Preisschild und Trefferflaeche (Unterbau-Faecher, Wanne bzw. Platte) */
-  K.lv.forEach((yl,li)=>{
-    const lt=tex(Math.round(700*REGAL_TEX),Math.round(80*REGAL_TEX),()=>{}); lt.anisotropy=8;
-    plane(Math.min(0.46,iw*0.46),0.052,new THREE.MeshBasicMaterial({map:lt,toneMapped:false}),0,preisY[li],D/2+(K.bau==='tisch'?-0.032:0.003),0,fg);
-    const h=fachHoehe(K,li), hit=bbox(iw,h,D,hitM,0,yl+h/2,0.01,fg,false);
-    const lv={sh,li,face:0,type:null,count:0,q:1,items:[],tex:lt,hit}; hit.userData={kind:'level',ref:lv}; sh.levels.push(lv); });
-  sh.headTex=tex(Math.round(1024*REGAL_TEX),Math.round(160*REGAL_TEX),()=>{});
-  const hz=K.bau==='tisch'?-D/2+0.08+0.016:D/2+0.008, hwid=K.bau==='tisch'?0.96:0.86;
-  plane(hwid,0.17,new THREE.MeshBasicMaterial({map:sh.headTex,toneMapped:false,side:THREE.DoubleSide}),0,headY,hz,0,kg);
-  sh.headY=headY;
-}
+/* Verkaufsmoebel (Regal, Gondel, Eck, Kuehlschrank, Kassenregal, Verkaufstisch, Gitterbox): gebaut von bk.regal (04z, art 'laden') -
+   hier nur Platz, Faecher (Level), Speicherstand. Tisch und Gitterbox haben dieselben Faecher, Preisschilder, Kopfschild und
+   Treffer wie ein Regal - Kunden, Einraeumer und Speicherstand behandeln sie wie jedes andere Regal. */
 function createShelf(i,data){
   const kind=(data&&data.kind&&SHELFKIND[data.kind])?data.kind:'standard';
   const K=SHELFKIND[kind];
-  pegMat.color.copy(LIN(regalFarben(null).rueck));
+  bk.regal.rueckwand().color.copy(LIN(regalFarben(null).rueck));
   const g=new THREE.Group(); const frei=slotsOffen().filter(sl=>slotPasst(K,sl));
   const s=data&&data.x!==undefined?data:(frei[0]||slotsOffen()[0]||SLOTS[0]);
   g.position.set(s.x,0,s.z); g.rotation.y=s.ry||0; scene.add(g);
   /* nie in der Wand: ein wenig nachruecken, wo das reicht (auch fuer
      alte Spielstaende mit Tischen an der Wandreihe) */
   { const sb=wandSchub(moebelRect(K,s.x,s.z,s.ry||0),s.ry||0,SCHUB_T,SCHUB_L); if(sb){ g.position.x+=sb.dx; g.position.z+=sb.dz; } }
-  const W=K.w, D=K.d, top=K.lv[K.lv.length-1]+fachHoehe(K,K.lv.length-1)+0.04, hw=W/2, iw=W-0.1;
+  const W=K.w, D=K.d;
   const sh={i,g,kind,levels:[],W,D};
   if(data&&typeof data.schild==='string'&&data.schild.trim()) sh.schild=data.schild.trim().slice(0,24);
-  /* Das Gestell ist reine Kulisse und wird je Warenseite zu einem
-     Mesh verschmolzen - bei fuenfzig Regalen im Endausbau zaehlt das. */
-  const GB={}; const box=(w,h,d)=>GB[w+'|'+h+'|'+d]||(GB[w+'|'+h+'|'+d]=new THREE.BoxGeometry(w,h,d));
-  /* Farben nach Rolle: sie folgen der Wandfarbe (regalFarben) und werden
-     beim Umstreichen nachgefaerbt (regaleFaerben) */
-  const RF=regalFarben(K);
-  if(K.bau){ bauMoebel(K,sh,g,RF); } else
-  seitenVon(K).forEach((f,fi)=>{
-    const fg=new THREE.Group(); fg.position.set(f.ox,0,f.oz); fg.rotation.y=f.ry; g.add(fg);
-    const st=[];   /* Gestell */
-    const li0=[];  /* Lichtleisten */
-    st.push({geo:box(0.05,top,D),m:tm(-hw+0.025,top/2,0),rolle:'rahmen'});
-    st.push({geo:box(0.05,top,D),m:tm( hw-0.025,top/2,0),rolle:'rahmen'});
-    st.push({geo:box(W,0.06,D),  m:tm(0,top+0.03,0),rolle:'rahmen'});
-    st.push({geo:box(iw,0.08,D-0.02),m:tm(0,0.04,0),rolle:'rahmen'});
-    for(const sx of [-1,1]) st.push({geo:box(0.022,top-0.08,D),m:tm(sx*(hw+0.005),top/2,0),rolle:'seite'});
-    /* Mittelsteher zwischen den Regalmodulen (02.10.: jedes Modul fasst
-       ganze Kartons, das Verkaufsregal sind zwei Module) */
-    for(let k=1;k<(K.mod||1);k++) st.push({geo:box(STEHER,top-0.1,D-0.06),m:tm(-iw/2+k*(modBreite(K)+STEHER)-STEHER/2,top/2,-0.02),rolle:'rahmen'});
-    st.push({geo:box(W-0.06,0.14,0.03),m:tm(0,0.11,D/2-0.005),rolle:'blende'});
-    for(const sx of [-1,1]) for(const sz of [-1,1])
-      st.push({geo:box(0.09,0.04,0.09),m:tm(sx*(hw-0.1),0.02,sz*(D/2-0.1)),rolle:'fuss'});
-    /* Rueckwand bleibt eigenes Mesh: Lochblech beziehungsweise Kuehlschrankwand */
-    bbox(iw,top-0.1,0.02,K.cold?MAT.eigen('weiss','kunststoff'):K.kasse?kasseRueckMat():pegMat,0,top/2,-D/2+0.03,fg);
-    /* Kassenregal: Edelstahlleisten wie an der Kasse - vorn an der
-       Deckplatte und ueber der Sockelblende */
-    if(K.kasse){ const ed=kasseStahlMat();
-      bbox(W+0.012,0.03,0.02,ed,0,top+0.045,D/2+0.004,fg,false);
-      bbox(W-0.04,0.022,0.02,ed,0,0.19,D/2+0.006,fg,false); }
-    K.lv.forEach((y,li)=>{
-      st.push({geo:box(iw,0.03,D-0.04),m:tm(0,y-0.015,0),rolle:'boden'});
-      st.push({geo:box(iw,0.05,0.014),m:tm(0,y-0.02,D/2-0.013),rolle:'preis'});
-      st.push({geo:box(iw,0.012,0.02),m:tm(0,y-0.045,D/2-0.011),rolle:'lippe'});
-      st.push({geo:box(iw-0.04,0.018,0.05),m:tm(0,y-0.055,-D/2+0.06),rolle:'rahmen'});
-      if(li>0||K.cold) li0.push({geo:box(iw-0.06,0.016,0.04),m:tm(0,y-0.048,D/2-0.07)});
-      const lt=tex(Math.round(700*REGAL_TEX),Math.round(80*REGAL_TEX),()=>{}); lt.anisotropy=8;
-      plane(Math.min(0.46,iw*0.46),0.052,new THREE.MeshBasicMaterial({map:lt,toneMapped:false}),0,y-0.02,D/2-0.004,0,fg);
-      const fh=fachHoehe(K,li), hit=bbox(iw,fh,D,hitM,0,y+fh/2,0.01,fg,false);
-      const lv={sh,li,face:fi,type:null,count:0,q:1,items:[],tex:lt,hit}; hit.userData={kind:'level',ref:lv}; sh.levels.push(lv);
-    });
-    /* Kopfschild ueber jeder Warenseite */
-    if(fi===0) sh.headTex=tex(Math.round(1024*REGAL_TEX),Math.round(160*REGAL_TEX),()=>{});
-    const hy=top+(K.cold?0.34:0.18);
-    st.push({geo:box(W-0.04,0.28,0.05),m:tm(0,hy,0.02),rolle:'kopf'});
-    plane(W-0.1,0.24,new THREE.MeshBasicMaterial({map:sh.headTex,toneMapped:false}),0,hy,0.051,0,fg);
-    st.forEach(x=>{ x.color=RF[x.rolle]; });
-    const gest=new THREE.Mesh(merge(st),gestellMat());
-    gest.userData.rollen=st.map(x=>[x.rolle,x.geo.index?x.geo.index.count:x.geo.attributes.position.count]); gest.userData.regalK=K; sh.gestelle=(sh.gestelle||[]).concat([gest]);
-    if(HIQ){ gest.castShadow=true; gest.receiveShadow=true; } fg.add(gest);
-    if(li0.length){
-      const strip=new THREE.MeshStandardMaterial({color:LIN(MAT.farbe('weiss')),emissive:LIN(K.cold?MAT.farbe('glasKlar'):0xfff2dc),emissiveIntensity:K.cold?1.1:0});
-      if(!K.cold) shelfStrips.push(strip);
-      fg.add(new THREE.Mesh(merge(li0),strip));
-    }
-    if(K.cold){
-      for(const sx of [-1,1]){
-        bbox(W/2-0.02,top-0.14,0.03,coldGlass,sx*W/4,top/2,D/2-0.002,fg,false);
-        bbox(0.03,top-0.14,0.04,coldFrame,sx*(W/2-0.03),top/2,D/2,fg,false);
-        bbox(0.035,0.5,0.05,MAT.ober('lichtgrau','stahl'),sx*0.06,top*0.55,D/2+0.03,fg,false);
-      }
-      bbox(W,0.16,D,coldFrame,0,top+0.12,0,fg);
-      plane(W*0.8,0.11,new THREE.MeshBasicMaterial({toneMapped:false,map:tex(256,36,(c,Wc,Hc)=>{ c.fillStyle='#0e2a44'; c.fillRect(0,0,Wc,Hc); c.fillStyle='#8fd6ff'; c.font=BUN(22); c.textAlign='center'; c.textBaseline='middle'; c.fillText('GEKÜHLT  4 °C',Wc/2,Hc/2+1); })}),0,top+0.12,D/2+0.005,0,fg);
-    }
-  });
-  /* Beim Eckregal bleibt zwischen den beiden Schenkeln eine tote Ecke.
-     Im Supermarkt steht dort ein Blindfeld - sonst schaut man durch
-     den Spalt auf die Wand. */
-  if(K.art==='ecke'){
-    const RF=regalFarben(K); sh.blind=[bbox(0.52,top,0.52,std(RF.seite,{roughness:0.8}),-0.6,top/2,-0.6,g),bbox(0.56,0.06,0.56,std(RF.rahmen,{roughness:0.7}),-0.6,top+0.03,-0.6,g,false)];
-  }
-  for(const k in GB) GB[k].dispose();
-  if(!K.bau) sh.headY=top+(K.cold?0.34:0.18);
+  /* Farben nach Rolle: sie folgen der Wandfarbe (regalFarben) und werden beim Umstreichen nachgefaerbt (regaleFaerben) */
+  const R=bk.regal({art:'laden',K,g,farben:regalFarben(K),px:REGAL_TEX});
+  sh.gestelle=R.gestelle; sh.headTex=R.headTex; sh.headY=R.headY; if(R.kopfG) sh.kopfG=R.kopfG; if(R.gitterM) sh.gitterM=R.gitterM;
+  if(R.leiste){ if(shelfStrips.indexOf(R.leiste)<0) shelfStrips.push(R.leiste); R.leiste.emissiveIntensity=(S&&S.up&&S.up.regallicht)?1.5:0; }
+  for(const f of R.faecher){ const lv={sh,li:f.li,face:f.face,type:null,count:0,q:1,items:[],tex:f.tex,hit:f.hit}; f.hit.userData={kind:'level',ref:lv}; sh.levels.push(lv); }
   sh.mov=addMovable({kind:'shelf',name:K.name,g,fw:(K.fw||W)+0.06,fd:(K.fd||D)+0.04,ref:sh,onPlace:()=>syncShelf(sh)});
   shelves.push(sh);
   if(data&&data.levels) data.levels.forEach((ld,li)=>{ if(ld&&ld.type&&P[ld.type]&&sh.levels[li]){ const n=Math.min(ld.count|0,layout(ld.type,sh,sh.levels[li]).cap); for(let k=0;k<n;k++) addToLevel(sh.levels[li],ld.type,ld.q||1); } });
@@ -1264,37 +918,6 @@ function drawRackSchild(rk){
   });
 }
 function refreshRackSchilder(){ racks.forEach(r=>{ if(r) drawRackSchild(r); }); }
-const rackBlue=MAT.eigen('signalblau','lackMetall'), rackOrange=MAT.eigen('signalorange','lackMetall'), deck=MAT.eigen('silbergrau','stahl');
-/* Stuetzenprofil und Blechauflage einmal erzeugen und teilen -
-   bei ueber dreissig Regalen sonst dreissig Texturen im Speicher. */
-let _postM=null,_deckM=null,_rahmenM=null;
-function rackMats(){
-  if(_postM) return;
-  const holeT=tex(64,512,(c,W,H)=>{
-    c.fillStyle='#2f5d9e'; c.fillRect(0,0,W,H);
-    c.fillStyle='rgba(255,255,255,.16)'; c.fillRect(0,0,6,H);
-    c.fillStyle='rgba(0,0,0,.24)'; c.fillRect(W-7,0,7,H);
-    for(let y=10;y<H-8;y+=22){
-      c.fillStyle='#16335c'; c.fillRect(W/2-7,y,14,11);
-      c.fillStyle='rgba(0,0,0,.45)'; c.fillRect(W/2-7,y+9,14,2);
-    }
-    for(let i2=0;i2<700;i2++){ c.fillStyle=`rgba(0,0,0,${Math.random()*0.07})`; c.fillRect(Math.random()*W,Math.random()*H,2,2); }
-  });
-  _postM=new THREE.MeshStandardMaterial({map:holeT,metalness:0.35,roughness:0.5});
-  /* Glatte, lackierte Stahlblechauflage statt Spanplattenoptik */
-  const boardT=tex(256,256,(c,W,H)=>{
-    const g0=c.createLinearGradient(0,0,0,H);
-    g0.addColorStop(0,'#9aa1ac'); g0.addColorStop(0.45,'#aeb5c0'); g0.addColorStop(1,'#8f959f');
-    c.fillStyle=g0; c.fillRect(0,0,W,H);
-    for(let x=0;x<W;x+=64){ c.fillStyle='rgba(255,255,255,.08)'; c.fillRect(x,0,2,H);
-      c.fillStyle='rgba(0,0,0,.08)'; c.fillRect(x+2,0,2,H); }
-    for(let i2=0;i2<600;i2++){ c.fillStyle=`rgba(255,255,255,${Math.random()*0.035})`; c.fillRect(Math.random()*W,Math.random()*H,2,2); }
-    c.fillStyle='rgba(40,46,56,.22)'; c.fillRect(0,0,W,4); c.fillRect(0,H-4,W,4);
-  });
-  boardT.wrapS=boardT.wrapT=THREE.RepeatWrapping; boardT.repeat.set(3,1); boardT.anisotropy=8;
-  _deckM=new THREE.MeshStandardMaterial({map:boardT,roughness:0.38,metalness:0.45});
-  _rahmenM=new THREE.MeshStandardMaterial({vertexColors:true,metalness:0.38,roughness:0.46});
-}
 function createRack(i,data){
   const kind=(data&&data.kind&&RACKKIND[data.kind])?data.kind:'standard';
   const K=RACKKIND[kind];
@@ -1305,51 +928,12 @@ function createRack(i,data){
   const r=data&&data.x!==undefined?data:slot, g=new THREE.Group();
   g.position.set(r.x,0,r.z); g.rotation.y=r.ry||0; scene.add(g);
   { const sb=wandSchub(rackRect(K,r.x,r.z,r.ry||0),r.ry||0,SCHUB_T,SCHUB_L); if(sb){ g.position.x+=sb.dx; g.position.z+=sb.dz; } }
-  const HT=K.hoch, XO=K.w/2, ZO=K.zo, BW=K.w;
-  rackMats();
-  const GB={}; const box=(w,h,d)=>GB[w+'|'+h+'|'+d]||(GB[w+'|'+h+'|'+d]=new THREE.BoxGeometry(w,h,d));
-  const fr=[];                                 /* alles Starre in einem Mesh */
-  /* Rahmen: Stuetzen, Fussplatten, Diagonalverband */
-  for(const x of [-XO,XO]){
-    for(const z of [-ZO,ZO]){
-      const po=bbox(0.085,HT,0.075,_postM,x,HT/2,z,g);
-      fr.push({geo:box(0.2,0.022,0.17),m:tm(x,0.011,z),color:MAT.farbe('anthrazit')});
-      for(const bx of [-0.06,0.06]) fr.push({geo:box(0.022,0.03,0.022),m:tm(x+bx,0.03,z),color:MAT.farbe('silbergrau')});
-    }
-    /* Waagerechte Riegel und Diagonalen ueber die ganze Rahmenhoehe */
-    const nR=Math.max(3,Math.round(HT/0.7));
-    for(let k=0;k<nR;k++) fr.push({geo:box(0.04,0.04,2*ZO),m:tm(x,0.42+k*0.7,0),color:MAT.farbe('signalblau')});
-    for(let k=0;k<nR-1;k++)
-      fr.push({geo:box(0.035,0.035,2*ZO*1.3+0.06),m:tm(x,0.77+k*0.7,0,(k%2?1:-1)*Math.atan2(0.7,2*ZO),0,0),color:MAT.farbe('signalblau')});
-  }
+  /* Gestell, Boeden, Stuetzen und Inhaltsschild: bk.regal (04z, art 'lager') */
   const rk={i,g,kind,slot:slot||null,slots:[]};
-  const sw=(K.sp.length>1?K.sp[1]-K.sp[0]:0.8)-0.02;
-  K.lv.forEach((y,li)=>{
-    for(const z of [-ZO+0.03,ZO-0.03]){
-      /* Traverse als Kastenprofil mit Auflagelippe */
-      fr.push({geo:box(BW,0.095,0.05),m:tm(0,y-0.05,z),color:MAT.farbe('signalorange')});
-      fr.push({geo:box(BW,0.022,0.062),m:tm(0,y-0.005,z),color:0xf08a3a});
-      fr.push({geo:box(BW,0.018,0.05),m:tm(0,y-0.098,z),color:0xb4520f});
-      for(const x of [-BW/2,BW/2]){
-        fr.push({geo:box(0.05,0.14,0.07),m:tm(x,y-0.045,z),color:MAT.farbe('anthrazit')});
-        fr.push({geo:box(0.022,0.035,0.022),m:tm(x*0.94,y+0.02,z),color:MAT.farbe('lichtgrau')});
-      }
-    }
-    bbox(BW-0.08,0.022,2*ZO-0.09,_deckM,0,y-0.005,0,g);
-    K.sp.forEach((x,si)=>{
-      const hit=bbox(sw,0.74,2*ZO,hitM,x,y+0.37,0,g,false);
-      const sl={rk,li,si,x,y,box:null,hit}; hit.userData={kind:'rslot',ref:sl}; rk.slots.push(sl);
-    });
-  });
-  const fm=new THREE.Mesh(merge(fr),_rahmenM);
-  if(HIQ){ fm.castShadow=true; fm.receiveShadow=true; } g.add(fm);
-  for(const k in GB) GB[k].dispose();
-  /* Inhaltsschild: zeigt, was gerade im Regal liegt */
-  rk.schildTex=tex(512,256,()=>{});
-  plane(0.52,0.26,new THREE.MeshStandardMaterial({roughness:0.6,map:rk.schildTex}),
-    -XO+0.34,1.6,ZO+0.012,0,g);
-  bbox(0.56,0.3,0.012,MAT.ober('silbergrau','lackMetall'),-XO+0.34,1.6,ZO+0.004,g,false);
-  rk.mov=addMovable({kind:'rack',name:K.name,g,fw:BW+0.16,fd:2*ZO+0.14,ref:rk});
+  const R=bk.regal({art:'lager',K,g});
+  for(const f of R.faecher){ const sl={rk,li:f.li,si:f.si,x:f.x,y:f.y,box:null,hit:f.hit}; f.hit.userData={kind:'rslot',ref:sl}; rk.slots.push(sl); }
+  rk.schildTex=R.schildTex;
+  rk.mov=addMovable({kind:'rack',name:K.name,g,fw:K.w+0.16,fd:2*K.zo+0.14,ref:rk});
   rk.nr=racks.length; racks.push(rk); drawRackSchild(rk);
   if(data&&data.slots) data.slots.forEach((sd,k)=>{ if(sd&&P[sd.type]&&rk.slots[k]) putInSlot(rk.slots[k],sd.type,sd.count,sd.q,sd.kiste); });
   drawRackSchild(rk);

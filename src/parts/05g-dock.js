@@ -83,25 +83,11 @@ function buildDock(){
     bbox(0.34,0.03,0.44,MAT.get('stahlVerzinkt'),-20.62,3.12,z,null,false);
   }
   if(typeof strassenlampe==='function'){ strassenlampe(-26.4,-5.2,Math.PI/2); strassenlampe(-31.6,-2,Math.PI/2); }
-  // Bodenmarkierung für den LKW
-  const mark=(w,d,x,z,c)=>flat(w,d,c?MAT.std(c):MAT.get('markierungGelb'),x,0.017,z);
-  for(let x2=-33;x2<-20.6;x2+=1.0){ mark(0.6,0.12,x2,-3.55); mark(0.6,0.12,x2,-0.45); }
-  mark(0.14,3.4,-33.3,-2);
-  const zm=new THREE.Mesh(new THREE.PlaneGeometry(5.2,1.6),new THREE.MeshBasicMaterial({transparent:true,depthWrite:false,map:tex(1040,320,(g,W,H)=>{
-    g.clearRect(0,0,W,H);
-    /* dunkles Feld unter der Schrift, damit sie sich vom Beton abhebt */
-    g.fillStyle='rgba(18,20,26,.62)'; g.fillRect(0,0,W,H);
-    g.strokeStyle=MAT.css('signalgelb'); g.lineWidth=12; g.strokeRect(6,6,W-12,H-12);
-    g.textAlign='center'; g.textBaseline='middle';
-    g.font=BUN(120);
-    g.fillStyle='rgba(0,0,0,.75)'; g.fillText('ANLIEFERUNG',W/2+6,H/2+9);
-    g.fillStyle=MAT.css('signalgelb'); g.fillText('ANLIEFERUNG',W/2,H/2+3); })}));
-  zm.rotation.x=-Math.PI/2; zm.position.set(-26,0.018,2.6); zm.renderOrder=2; scene.add(zm);
+  /* Bodenmarkierung fuer den LKW: gestrichelte Fahrspur, Endlinie, Bodenschrift (bk.bodenmarkierung, Einheit 15.10.) */
+  bk.bodenmarkierung({linien:[[-33.3,-3.55,-20.7,-3.55,'gelb',0.12,0.6,0.4],[-33.3,-0.45,-20.7,-0.45,'gelb',0.12,0.6,0.4],[-33.3,-3.7,-33.3,-0.3,'gelb',0.12]],
+    schriften:[{text:'ANLIEFERUNG',x:-26,z:2.6,b:5.2,h:1.6}],y:0.012,schatten:true});
   // Schild an der Wand
-  plane(1.5,0.5,new THREE.MeshStandardMaterial({map:tex(300,100,(g,W,H)=>{
-    g.fillStyle='#1b2340'; g.fillRect(0,0,W,H); g.strokeStyle=MAT.css('schildgold'); g.lineWidth=5; g.strokeRect(6,6,W-12,H-12);
-    g.fillStyle=MAT.css('schildgold'); g.font=BUN(30); g.textAlign='center'; g.fillText('WARENEINGANG',W/2,42);
-    g.fillStyle='#bcd0ea'; g.font=BAR(24); g.fillText('Anlieferung 7 – 16 Uhr',W/2,76); })}),-19.93,2.2,-4.9,-Math.PI/2);
+  bk.schild(scene,{text:'WARENEINGANG',unter:'Anlieferung 7 – 16 Uhr',b:1.5,h:0.5,x:-19.93,y:2.2,z:-4.9,ry:-Math.PI/2});
 }
 
 /* Das Tor R1 selbst: eine duenne Huelle ueber bk.tor (04z-baukasten.js). Vorher stand hier

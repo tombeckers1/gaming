@@ -80,10 +80,11 @@ const BAUTEILE=[
   {bk:'wandbild',woerter:['wandbild'],wofuer:'Wandbilder'},
   {bk:'palette',woerter:['palette','paletten','pallet','europalette'],wofuer:'Paletten'},
   {bk:'karton',woerter:['karton','kartons'],wofuer:'Kartons (Atlas)'},
-  {bk:'regal',woerter:['regal','regale','rack','shelf','gondel'],wofuer:'Regale'},
+  {bk:'regal',woerter:['regal','regale','rack','shelf','gondel'],wofuer:'Regale (Verkaufsmoebel, Lagerregal, Fachboden) - einheit.md'},
+  {bk:'kasse',woerter:['kasse','kassen','checkout','kassenplatz'],wofuer:'Kassen (Kassenplatz, SB-Terminal, SB-Tafel) - einheit.md'},
   {bk:'lampe',woerter:['lampe','lampen','leuchte','leuchten','lamp','fluter','strahler'],wofuer:'Lampen'},
-  {bk:'tuer',woerter:['tuer','tuere','door','schiebetuer'],wofuer:'Tueren'},
-  {bk:'fenster',woerter:['fenster','window'],wofuer:'Fenster'},
+  {bk:'tuer',woerter:['tuer','tuere','door','schiebetuer','drehtuer','stahltuer','brandschutztuer','feuerschutztuer','streifenvorhang'],wofuer:'Tueren (Schiebetuer, Drehfluegel Stahl/Brand/Glas, Streifenvorhang) - einheit.md'},
+  {bk:'fenster',woerter:['fenster','window','schaufenster'],wofuer:'Fenster (Schaufenster, Fluegelfenster Lager) - einheit.md'},
   {bk:'leiter',woerter:['leiter','ladder'],wofuer:'Leitern'},
   {bk:'foerderband',woerter:['foerderband','rollenbahn','band','belt','conveyor'],wofuer:'Foerderbaender'},
   /* Halle Etappe A (14.10.) */
@@ -93,9 +94,7 @@ const BAUTEILE=[
   {bk:'bodenmarkierung',woerter:['bodenmarkierung','markierungen'],wofuer:'Bodenmarkierung (Fahrweg, Gehweg, Sperrflaeche, Stellplatz)'},
   {bk:'fts',woerter:['fts'],wofuer:'Fahrerloses Transportfahrzeug (Paletten)'},
   {bk:'hubwagen',woerter:['hubwagen','handhubwagen','ameise'],wofuer:'Handhubwagen (Gabeln passen in die Euro-Palette; DDL-Fahrer, Versandhof)'},
-  /* Halle Etappe B (15.10.) - Woerter bewusst eng: alte Tuer-/Zellen-Bauten (hausTuer, buildSchiebetuer, Atlas-zelle) stellt der
-     Schritt Tueren/Fenster um, dann werden die Woerter breiter */
-  {bk:'drehtuer',woerter:['drehtuer','stahltuer','brandschutztuer','feuerschutztuer'],wofuer:'Drehfluegeltueren (Stahl, Brandschutz, Glas) - Werk West; Schiebe-/Haustueren folgen im Schritt Tueren (bk.tuer)'},
+  /* Halle Etappe B (15.10.) - Woerter bewusst eng (Atlas-zelle). bk.drehtuer ist seit Einheit 15.10. bk.tuer (art stahl/brand/glas) */
   {bk:'treppe',woerter:['treppe','treppen','stiege'],wofuer:'Treppen (Stahl, Gelaender gelb)'},
   {bk:'portalgreifer',woerter:['portalgreifer','greifer'],wofuer:'Portalgreifer aus Alu-Profil (Fertigung)'},
   {bk:'rohrraster',woerter:['rohrraster'],wofuer:'Batterie-Rohr-Raster (Fertigung)'},
@@ -106,7 +105,7 @@ const BAUTEILE=[
   {bk:'verkaufstisch',woerter:['verkaufstisch','verkaufstische'],wofuer:'Ladenbau-Verkaufstische (viele in einem Mesh) - Optik wie SHELFKIND.tisch/tischgross'}
 ];
 /* Helfer im Baukasten (kein Bauteil, keine Namensregel) */
-const HELFER=['lod','kasten','stab','uvZeile','schildTex','liste','WB','PALETTE','inst','bandMat','bandTex','flaeche','flaecheArt','fuss','wandFlaeche','wandBildAdd','wandbildTakt','paletten','palFarbe','HOCHREGAL','ladungGeo','MARKIERUNG','kastenM','werkSammler','balken','HUBWAGEN','verkaufstischTeile','schildAtlas','schildWeg'];
+const HELFER=['lod','kasten','stab','uvZeile','schildTex','liste','WB','PALETTE','inst','bandMat','bandTex','flaeche','flaecheArt','fuss','wandFlaeche','wandBildAdd','wandbildTakt','paletten','palFarbe','HOCHREGAL','ladungGeo','MARKIERUNG','kastenM','werkSammler','balken','HUBWAGEN','verkaufstischTeile','schildAtlas','schildWeg','SCHILD'];
 /* geloeschte Duplikate - duerfen nie zurueckkommen (Schritte Material, Angleichung, Tore, Feuerwerk) */
 const GELOESCHT=['torPanelMat','torBlattMat','westTorInnen','vdPanelMat','panelPose','strebe','concreteTex','gitterTex','gitterMat',
   'stationsModell','stationSlot','rampeMund','kerzeImRohr','stationsPool','vfMuendung','vfImRohr','hvLamellenTex','hvTor'];

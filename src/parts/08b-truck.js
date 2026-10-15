@@ -349,27 +349,8 @@ function removeTruck(){
 }
 function truckLeft(){ return truck&&truck.state==='docked'?truck.cargo.length:0; }
 /* Jeder vom LKW genommene Karton zaehlt als Lieferungsteil */
-/* Flaches Paket fuer ein Regal: Bretter und Profile, in Folie */
-let _rpGeo=null,_rpMat=null;
-function regalPaketGeo(){ if(!_rpGeo) _rpGeo=new THREE.BoxGeometry(0.34,0.24,1.18); return _rpGeo; }
-function regalPaketMat(){
-  if(_rpMat) return _rpMat;
-  const t=tex(256,128,(c,W,H)=>{
-    c.fillStyle='#b9bec6'; c.fillRect(0,0,W,H);
-    for(let i=0;i<900;i++){ c.fillStyle=`rgba(255,255,255,${Math.random()*0.16})`;
-      c.fillRect(Math.random()*W,Math.random()*H,rand(4,22),1); }
-    /* Umreifungsbaender */
-    c.fillStyle='#2b3040'; c.fillRect(W*0.22,0,8,H); c.fillRect(W*0.72,0,8,H);
-    /* Etikett */
-    c.fillStyle='#f4f2ea'; c.fillRect(W*0.34,H*0.28,W*0.32,H*0.44);
-    c.strokeStyle='#8f959e'; c.lineWidth=2; c.strokeRect(W*0.34,H*0.28,W*0.32,H*0.44);
-    c.fillStyle='#1b2340'; c.font=BUN(15); c.textAlign='center'; c.textBaseline='middle';
-    c.fillText('REGALBAU',W*0.5,H*0.42);
-    c.fillStyle='#5a6070'; c.font=BAR(13); c.fillText('Stegemann',W*0.5,H*0.58);
-  });
-  _rpMat=new THREE.MeshStandardMaterial({map:t,roughness:0.62});
-  return _rpMat;
-}
+/* Flaches Paket fuer ein Regal: Bretter und Profile, in Folie - Material aus der Bibliothek (MAT 'regalPaket', Einheit 15.10.) */
+function regalPaketMat(){ return MAT.get('regalPaket'); }
 function takeBox(item){ statAdd('kartons',1);
 
   if(!truck||truck.state!=='docked') return;

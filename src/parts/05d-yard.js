@@ -22,23 +22,9 @@ const PULT_LAMP_X=i=>-0.35+i*0.075+Math.floor(i/3)*0.05;
    ueber 0,76 m quer gestellt - die Schuesse liefen aber ueber die
    Breite und kamen neben dem Karton heraus (28.09., Tom: echt). */
 const TISCH_B=3.3, TISCH_X=[-1.1,0,1.1], RAMPE_X=[-0.4,0,0.4];
-/* Hinweisschild auf zwei Rohrpfosten, damit es nicht in der Luft haengt */
-function schild(x,y,z,w,h,mat,steelM){
-  const g=new THREE.Group(); g.position.set(x,0,z); scene.add(g);
-  const px=w/2-0.06;
-  for(const sx of [-px,px]){
-    const p2=new THREE.Mesh(new THREE.CylinderGeometry(0.028,0.028,y+h/2,10),steelM);
-    p2.position.set(sx,(y+h/2)/2,0); if(HIQ) p2.castShadow=true; g.add(p2);
-    bbox(0.11,0.02,0.11,steelM,sx,0.012,0,g,false);
-    const cap=new THREE.Mesh(new THREE.SphereGeometry(0.03,8,6),steelM);
-    cap.position.set(sx,y+h/2,0); g.add(cap);
-  }
-  /* Rueckblech, damit das Schild Tiefe hat */
-  bbox(w+0.05,h+0.05,0.025,MAT.get('zaunPfosten'),0,y,-0.016,g,false);
-  plane(w,h,mat,0,y,0.002,0,g);
-  plane(w,h,mat,0,y,-0.032,Math.PI,g);
-  return g;
-}
+/* Hinweisschild auf zwei Rohrpfosten: bk.schild({pfosten:true}) (04z) - Stationsschilder im Hausstil (Einheit 15.10.:
+   vorher drei Stile, gelb/schwarz, rot/weiss, nachtblau/gold, fuer dieselbe Sache) */
+const stationsSchild=(text,x,y,z,b)=>bk.schild(scene,{text,b,h:0.2,x,y,z,pfosten:true});
 
 /* Die ganze Testfeldausstattung ist um 2,8 m nach Sueden gerueckt.
    Davor stand der Zuendtisch bei z -9,6 und das Pult bei z -8,2 -
@@ -138,11 +124,7 @@ function buildYard(){
     stations.tisch={id:'tisch',g,items:[],cap:s.cap,hit};
     hit.userData={kind:'station',ref:stations.tisch};
     col(s.x-TB-0.05,s.x+TB+0.05,s.z-0.58,s.z+0.58);
-    schild(s.x,1.34,s.z-0.72,0.9,0.2,new THREE.MeshStandardMaterial({map:tex(540,120,(g2,W,H)=>{
-      g2.fillStyle=MAT.css('signalgelb'); g2.fillRect(0,0,W,H);
-      g2.fillStyle='#0e1226'; g2.lineWidth=6; g2.strokeStyle='#0e1226'; g2.strokeRect(4,4,W-8,H-8);
-      g2.font=BUN(62); g2.textAlign='center'; g2.textBaseline='middle';
-      g2.fillText('ZÜNDTISCH',W/2,H/2+3); })}),steelDark);
+    stationsSchild('ZÜNDTISCH',s.x,1.34,s.z-0.72,0.9);
   }
   /* --- Abschussröhren ---
      (01.10. abends, Tom: "Raketen starten einzeln aus einer Abschuss-
@@ -160,11 +142,7 @@ function buildYard(){
     stations.rampe={id:'rampe',g,items:[],cap:s.cap,hit};
     hit.userData={kind:'station',ref:stations.rampe};
     col(s.x-0.68,s.x+0.68,s.z-0.46,s.z+0.46);
-    schild(s.x,1.62,s.z-0.62,1.15,0.2,new THREE.MeshStandardMaterial({map:tex(690,120,(g2,W,H)=>{
-      g2.fillStyle='#e63b2e'; g2.fillRect(0,0,W,H);
-      g2.lineWidth=6; g2.strokeStyle='#ffffff'; g2.strokeRect(4,4,W-8,H-8);
-      g2.fillStyle='#fff'; g2.font=BUN(56); g2.textAlign='center'; g2.textBaseline='middle';
-      g2.fillText('ABSCHUSSRÖHREN',W/2,H/2+3); })}),steelDark);
+    stationsSchild('ABSCHUSSRÖHREN',s.x,1.62,s.z-0.62,1.15);
   }
   /* --- Moerserbatterie fuer Kugelbomben ---
      Drei schwere Stahlrohre in einem Holzrahmen, mit Sandsaecken
@@ -210,11 +188,7 @@ function buildYard(){
     stations.moerser={id:'moerser',g,items:[],cap:s.cap,hit};
     hit.userData={kind:'station',ref:stations.moerser};
     col(s.x-1.25,s.x+1.25,s.z-0.55,s.z+0.55);
-    schild(s.x,1.9,s.z-0.78,1.05,0.2,new THREE.MeshStandardMaterial({map:tex(630,120,(g2,W,H)=>{
-      g2.fillStyle='#1b2340'; g2.fillRect(0,0,W,H);
-      g2.lineWidth=6; g2.strokeStyle=MAT.css('schildgold'); g2.strokeRect(4,4,W-8,H-8);
-      g2.fillStyle=MAT.css('schildgold'); g2.font=BUN(52); g2.textAlign='center'; g2.textBaseline='middle';
-      g2.fillText('MÖRSERBATTERIE',W/2,H/2+3); })}),steelDark);
+    stationsSchild('MÖRSERBATTERIE',s.x,1.9,s.z-0.78,1.05);
   }
   /* --- Zündpult: Stahlgehaeuse auf Rahmengestell --- */
   {

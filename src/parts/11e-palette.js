@@ -321,8 +321,7 @@ function vdUpdate(dt){
    auch V1, die Optik des alten R1 - die graphitfarbene Lamellenoptik ist verworfen. */
 /* vsWarnTex() entfaellt (13.10., Materialangleichung): Warnschraffur = MAT.get('warnschraffur') */
 /* Schild "DDL Abholung" (Tom 09.10., wie im Zielbild: dunkelblau, Paket-Symbol) */
-function ddlSchildTex(){
-  return tex(1024,416,(g,W,H)=>{ g.fillStyle='#1f3152'; g.fillRect(0,0,W,H);
+function ddlSchildMalen(g,W,H){ { g.fillStyle='#1f3152'; g.fillRect(0,0,W,H);
     const gr=g.createLinearGradient(0,0,0,H); gr.addColorStop(0,'rgba(255,255,255,0.07)'); gr.addColorStop(1,'rgba(0,0,0,0.14)'); g.fillStyle=gr; g.fillRect(0,0,W,H);
     g.strokeStyle='rgba(255,255,255,.18)'; g.lineWidth=6; g.strokeRect(10,10,W-20,H-20);
     g.strokeStyle='#f2f4f7'; g.lineWidth=12; g.lineJoin='round';
@@ -332,7 +331,7 @@ function ddlSchildTex(){
     g.moveTo(x+s2*0.25,y+s2*0.15); g.lineTo(x+s2*0.75,y+s2*0.41); g.lineTo(x+s2*0.75,y+s2*0.6); g.stroke();
     g.fillStyle='#f2f4f7'; g.textBaseline='alphabetic'; g.textAlign='left';
     g.font='700 118px "Barlow Condensed", Inter, sans-serif'; g.fillText('DDL',420,182);
-    g.font='600 112px "Barlow Condensed", Inter, sans-serif'; g.fillText('Abholung',420,330); });
+    g.font='600 112px "Barlow Condensed", Inter, sans-serif'; g.fillText('Abholung',420,330); }
 }
 function buildVersandhof(){
   if(VD.g) return;
@@ -360,10 +359,10 @@ function buildVersandhof(){
     if(typeof lampMats!=='undefined') lampMats.push(VD.schwan);
     const glas=new THREE.Mesh(new THREE.CircleGeometry(0.19,20),VD.schwan); glas.rotation.x=Math.PI/2; glas.position.set(LX,LY-0.185,V1.wz+0.63); g.add(glas); }
   /* Schild "DDL Abholung" ueber dem Tor, innen und aussen (vorher "V1 · VERSAND") */
-  { const sm=new THREE.MeshStandardMaterial({map:ddlSchildTex(),roughness:0.55}), SY=V1.h+1.25;
-    /* die Wand ist 0,2 m dick (Innenseite z = wz + 0,1) */
+  { const SY=V1.h+1.25, o={malen:ddlSchildMalen,pw:1024,ph:416,schluessel:'ddl',b:1.9,h:0.78,x:V1.x,y:SY};
+    /* die Wand ist 0,2 m dick (Innenseite z = wz + 0,1); Carrier-Schild = Sonderschild (eigener Malcode, Textur geteilt) */
     B(1.96,0.84,0.04,MAT.farbe('aluminium'),V1.x,SY,V1.wz+0.12); B(1.96,0.84,0.04,MAT.farbe('aluminium'),V1.x,SY,V1.wz-0.12);
-    VD.sign=plane(1.9,0.78,sm,V1.x,SY,V1.wz+0.145,0,g); plane(1.9,0.78,sm,V1.x,SY,V1.wz-0.145,Math.PI,g); }
+    VD.sign=bk.schild(g,Object.assign({z:V1.wz+0.145},o)); bk.schild(g,Object.assign({z:V1.wz-0.145,ry:Math.PI},o)); }
   /* Wandtelefon (Tom 09.10.: "DDL nur auf Anruf - Telefon an der Wand"): links neben der
      Ladezone, vom Gang hinter den Packtischen aus erreichbar */
   { const PX=V1.x-V1.w/2-1.25, PY=1.38, PZ=V1.wz+0.1;
@@ -384,14 +383,11 @@ function buildVersandhof(){
   const hof=V1_HOF, W=hof.x1-hof.x0, D=hof.z1-hof.z0;
   const fl=new THREE.Mesh(MAT.kachel(new THREE.PlaneGeometry(W,D),W/2.2,D/2.2),MAT.get('betonHof'));
   fl.rotation.x=-Math.PI/2; fl.position.set((hof.x0+hof.x1)/2,0.036,(hof.z0+hof.z1)/2); if(HIQ) fl.receiveShadow=true; g.add(fl);
-  const mark=(w,d,x,z)=>{ const m=new THREE.Mesh(new THREE.PlaneGeometry(w,d),MAT.basic(MAT.farbe('signalgelb'))); m.rotation.x=-Math.PI/2; m.position.set(x,0.04,z); g.add(m); };
-  for(let z2=hof.z1-0.8;z2>hof.z0+1;z2-=1.1){ mark(0.12,0.6,V1.x-1.75,z2); mark(0.12,0.6,V1.x+1.75,z2); }
-  const zm=new THREE.Mesh(new THREE.PlaneGeometry(4.6,1.3),new THREE.MeshBasicMaterial({transparent:true,depthWrite:false,map:tex(920,260,(c2,Wc,Hc)=>{ c2.clearRect(0,0,Wc,Hc);
-    c2.fillStyle='rgba(18,20,26,.62)'; c2.fillRect(0,0,Wc,Hc); c2.strokeStyle=MAT.css('signalgelb'); c2.lineWidth=10; c2.strokeRect(5,5,Wc-10,Hc-10);
-    c2.textAlign='center'; c2.textBaseline='middle'; c2.font=BUN(104); c2.fillStyle=MAT.css('signalgelb'); c2.fillText('VERSANDHOF',Wc/2,Hc/2+3); })}));
-  /* Hofschrift am Ende des Hofs, vor dem Fuehrerhaus des wartenden LKW - nie im Bereich des LKW (der Laderaum steht 3 m breit bis z -39,5, das
-     Fuehrerhaus bis -42,1); frueher bei z -32,5 mitten unter dem LKW und durch den Ladeboden zu sehen (Tom 15.10.) */
-  zm.rotation.x=-Math.PI/2; zm.rotation.z=0; zm.position.set(V1.x,0.045,hof.z0+2.3); zm.renderOrder=2; g.add(zm);
+  /* Fahrspur gestrichelt und Hofschrift (bk.bodenmarkierung, Einheit 15.10.) - Hofschrift am Ende des Hofs, vor dem Fuehrerhaus des
+     wartenden LKW - nie im Bereich des LKW (der Laderaum steht 3 m breit bis z -39,5, das Fuehrerhaus bis -42,1); frueher bei z -32,5
+     mitten unter dem LKW und durch den Ladeboden zu sehen (Tom 15.10.) */
+  { const L=[]; for(let z2=hof.z1-0.8;z2>hof.z0+1;z2-=1.1) for(const sx of [-1.75,1.75]) L.push([V1.x+sx,z2+0.3,V1.x+sx,z2-0.3,'gelb',0.12]);
+    bk.bodenmarkierung({linien:L.map(l=>[l[0],l[1]-0.06,l[2],l[3]+0.06,l[4],l[5]]),schriften:[{text:'VERSANDHOF',x:V1.x,z:hof.z0+2.3,b:4.6,h:1.3}],parent:g,y:0.036,schatten:true}); }
   /* Zaun: Doppelstabmatte aus dem Baukasten (bk.zaun, aussen) - vorher eigene Pfosten alle 2 m mit
      halbdurchsichtiger Scheibe (14.10., Fundament Schritt Zaeune) */
   for(const [a,b] of [[[hof.x0,hof.z1],[hof.x0,hof.z0]],[[hof.x1,hof.z1],[hof.x1,hof.z0]],[[hof.x0,hof.z0],[hof.x1,hof.z0]]])

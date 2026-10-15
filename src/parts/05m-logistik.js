@@ -83,10 +83,7 @@ function logiStufeBauen(i){
     logiSuedwand(i,r,H,bl);
 
     /* Hallenschild ueber dem Durchgang, innen */
-    plane(2.2,0.44,new THREE.MeshBasicMaterial({toneMapped:false,map:tex(512,104,(c,W,Hh)=>{
-      c.fillStyle='#1b2340'; c.fillRect(0,0,W,Hh); c.fillStyle=MAT.css('schildgold'); c.fillRect(0,Hh-7,W,7);
-      c.textAlign='center'; c.textBaseline='middle'; c.fillStyle='#e8ecf5'; c.font=BUN(38);
-      c.fillText('LOGISTIKHALLE · STUFE '+(i+1),W/2,Hh/2-3); })}),r.x1-0.13,3.45,(S2.z0+S2.z1)/2,-Math.PI/2,null);
+    bk.schild(scene,{text:'LOGISTIKHALLE · STUFE '+(i+1),b:2.2,h:0.44,x:r.x1-0.13,y:3.45,z:(S2.z0+S2.z1)/2,ry:-Math.PI/2,leucht:true});
   });
   neu.forEach(o=>{ scene.remove(o); g.add(o); });
   cols.forEach(c=>dropCol(c));
@@ -112,13 +109,8 @@ function logiHofBauen(){
   const r=LAY.hof2, Z=LHALLE.z;
   MAT.kachel(flat(r.x1-r.x0,r.z1-r.z0,MAT.get('betonHof'),
        (r.x0+r.x1)/2,0.013,(r.z0+r.z1)/2).geometry,(r.x1-r.x0)/2.4,(r.z1-r.z0)/2.4);
-  /* Stellplatzmarkierung vor jedem Tor: zwei Linien, Stopplinie, Mittelstriche */
-  const gelb=MAT.get('markierungGelb');
-  for(const cx of WRAMPEN){
-    for(const s of [-1,1]) flat(0.14,14,gelb,cx+s*1.9,0.017,Z-7.4);
-    flat(3.8,0.14,gelb,cx,0.017,Z-14.4);
-    for(let j=0;j<5;j++) flat(0.1,0.5,gelb,cx,0.017,Z-1.2-j*1.1);
-  }
+  /* Stellplatzmarkierung vor jedem Tor: LKW-Stellplatz aus dem Baukasten (zwei Linien, Stopplinie, Mittelstriche) */
+  bk.bodenmarkierung({lkw:WRAMPEN.map(cx=>({x:cx,z:Z})),y:0.012,schatten:true});
   /* Zaun: Sueden, Osten und Westen mit der Einfahrt */
   const ZH=2.2, torA=-53.5, torB=-46.5;
   bk.zaun({art:'doppelstab',von:[r.x0,r.z0],bis:[r.x1,r.z0],hoehe:ZH});
@@ -132,16 +124,7 @@ function logiHofBauen(){
   /* Hinweisschild an der Einfahrt */
   { const px=r.x0+0.2, pz=torB+1.2;
     bbox(0.1,2.4,0.1,MAT.get('zaunPfosten'),px,1.2,pz,null,false);
-    plane(1.5,0.95,new THREE.MeshStandardMaterial({side:THREE.DoubleSide,map:tex(300,190,(g,W,H)=>{
-      g.fillStyle='#1b2340'; g.fillRect(0,0,W,H);
-      g.strokeStyle=MAT.css('schildgold'); g.lineWidth=6; g.strokeRect(7,7,W-14,H-14);
-      g.textAlign='center'; g.textBaseline='middle';
-      g.fillStyle=MAT.css('schildgold'); g.font=BUN(30); g.fillText('LOGISTIKHOF',W/2,44);
-      g.fillStyle='#bcd0ea'; g.font=BAR(24);
-      g.fillText('Tor 2 – 5 · Auflieger',W/2,86);
-      g.fillText('Schrittgeschwindigkeit',W/2,118);
-      g.fillStyle='#ff9d92'; g.font=BAR(22); g.fillText('Rauchen und Feuer verboten',W/2,152); })}),
-      px,1.75,pz,Math.PI/2,null); }
+    bk.schild(scene,{text:'LOGISTIKHOF',unter:'Tor 2 – 5 · Schrittgeschwindigkeit · Rauchen verboten',b:1.5,h:0.95,x:px,y:1.75,z:pz,ry:Math.PI/2,doppel:true}); }
   });
   if(typeof wkAltHof==='function') wkAltHof(westAlt.neu,westAlt.cols);
   col(r.x0,r.x1,r.z0-0.1,r.z0+0.1);
@@ -149,7 +132,7 @@ function logiHofBauen(){
   /* Wartespur: abgestellte Auflieger laengs am West- und Ostrand -
      die Fahrspuren vor den Toren bleiben bis zum Suedzaun frei */
   for(const [n,f,x,ry] of [['Kowalski',TRUCKCOL.kowalski,r.x0+2.8,Math.PI/2],['Ratzke',TRUCKCOL.ratzke,r.x1-2.8,-Math.PI/2]]){
-    for(const s of [-1,1]) flat(0.14,14,gelb,x+s*1.5,0.017,-52.0);
+    bk.bodenmarkierung({linien:[-1,1].map(s=>[x+s*1.5,-45,x+s*1.5,-59,'gelb',bk.MARKIERUNG.fahrweg]),y:0.012,schatten:true});
     abstellAuflieger(x,-52.0,ry,n,f);
   }
   /* Licht, Paletten, Container, Schnee - alles ausserhalb der Fahrspuren */

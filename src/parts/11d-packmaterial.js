@@ -142,7 +142,6 @@ function vmTexturen(){
     c.strokeStyle='rgba(40,30,20,.7)'; c.lineWidth=4; for(const x of [W*0.1,W*0.16]){ c.beginPath(); c.moveTo(x,H*0.24); c.lineTo(x,H*0.08); c.moveTo(x-6,H*0.14); c.lineTo(x,H*0.08); c.lineTo(x+6,H*0.14); c.stroke(); }
     c.fillStyle='rgba(30,52,110,.92)'; c.fillRect(W*0.36,0,12,H); c.fillRect(W*0.62,0,12,H);
     c.fillStyle='rgba(255,255,255,.18)'; c.fillRect(W*0.36,0,3,H); c.fillRect(W*0.62,0,3,H); });
-  const schild=(txt,fg,bg)=>tex(256,64,(c,W,H)=>{ c.fillStyle=bg; c.fillRect(0,0,W,H); c.fillStyle=fg; c.textAlign='center'; c.textBaseline='middle'; fitFont(c,txt,W-16,38,BUN); c.fillText(txt,W/2,H/2+2); });
   /* Luftpolsterfolie: Noppen mit Glanzpunkt, halbdurchsichtig */
   const folie=tex(128,64,(c,W,H)=>{ c.fillStyle='#d6e8f2'; c.fillRect(0,0,W,H);
     for(let y=4;y<H;y+=8) for(let x=(y/8%2)*4;x<W;x+=8){ c.fillStyle='rgba(150,180,198,.55)'; c.beginPath(); c.arc(x+0.8,y+0.8,3,0,Math.PI*2); c.fill();
@@ -163,7 +162,7 @@ function vmTexturen(){
     c.fillStyle='#24366e'; c.fillRect(W*0.2,0,10,H); c.fillRect(W*0.75,0,10,H);
     c.fillStyle='#f4f2ea'; c.fillRect(W*0.3,H*0.35,W*0.4,H*0.3); c.fillStyle='#1b2340'; c.textAlign='center'; c.textBaseline='middle';
     fitFont(c,txt,W*0.36,30,BUN); c.fillText(txt,W/2,H/2); });
-  _vmTex={kante,deckel:{ks:deckel('S'),km:deckel('M'),kl:deckel('L')},schild:{kl:schild('KARTON L',MAT.css('nachtblau'),MAT.css('schildgold')),km:schild('KARTON M',MAT.css('nachtblau'),MAT.css('schildgold')),ks:schild('KARTON S',MAT.css('nachtblau'),MAT.css('schildgold')),folie:schild('FOLIE · BAND',MAT.css('nachtblau'),MAT.css('schildgold')),kopf:schild('PACKMITTEL','#ffffff','#2a5a9e')},
+  _vmTex={kante,deckel:{ks:deckel('S'),km:deckel('M'),kl:deckel('L')},
     folie,rollEnde,band,bundel:{ks:bundel('KARTON S'),km:bundel('KARTON M'),kl:bundel('KARTON L'),folie,band:bundel('KLEBEBAND')}};
   return _vmTex;
 }
@@ -194,12 +193,10 @@ function vmRegalBauen(g,i,reg,B0,k){
   const P=(lx,lz)=>({x:L.x+lx*cs+lz*sn,z:L.z-lx*sn+lz*cs}), x=0, z=0;
   const B=(k2,bw,bh,bd,c,lx,y,lz,rx,ry,rz)=>{ const p=P(lx,lz); B0(k2,bw,bh,bd,c,p.x,y,p.z,cs<0?-(rx||0):(rx||0),(ry||0)+L.ry,rz); };
   const setz=(m,lx,y,lz)=>{ const p=P(lx,lz); m.position.set(p.x,y,p.z); m.rotation.y+=L.ry; return m; };
-  const BLAU=MAT.farbe('signalblau'), ZINK=MAT.farbe('aluminium');
-  for(const sx of [-1,1]) for(const sz of [-1,1]) B(k,0.035,VM_RH,0.035,BLAU,x+sx*(w/2-0.018),VM_RH/2,z+sz*(d/2-0.018));
-  for(const sx of [-1,1]) for(const y of [0.3,1.1]) B(k,0.02,0.02,d-0.04,BLAU,x+sx*(w/2-0.018),y,z,0.6*(y>1?1:-1),0,0);
-  for(const y of VM_BOEDEN.concat([VM_RH])) B(k,w,0.022,d,ZINK,x,y-0.011,z);
-  /* Rueckwand aus Lochblech nur unten: vom Band her sieht man hinein */
-  B(k,w-0.04,0.3,0.01,ZINK,x,0.25,z-d/2+0.01);
+  const BLAU=MAT.farbe('signalblau');
+  /* Gestell: Fachbodenregal aus dem Baukasten (bk.regal art 'fachboden': Stuetzen Signalblau, Boeden verzinkt wie das Lagerregal),
+     Rueckwand aus Lochblech nur unten - vom Band her sieht man hinein */
+  bk.regal({art:'fachboden',breite:w,tiefe:d,hoehe:VM_RH,boeden:VM_BOEDEN,rueckwand:0.3,box:(bw,bh,bd,c,lx,y,lz,rx,ry,rz)=>B(k,bw,bh,bd,c,x+lx,y,z+lz,rx,ry,rz)});
   const R={i,stapel:{},folie:[],band:[],hit:null};
   /* flache Kartons: Hoehe je Stueck */
   const dicke={kl:0.008,km:0.006,ks:0.004}, boden={kl:0,km:1,ks:2};
@@ -210,13 +207,13 @@ function vmRegalBauen(g,i,reg,B0,k){
     setz(m,x,VM_BOEDEN[boden[id]]+0.5,z+0.01); g.add(m); reg(m);
     if(HIQ){ m.castShadow=true; m.receiveShadow=true; }
     R.stapel[id]={m,dicke:dicke[id],y0:VM_BOEDEN[boden[id]]};
-    const sm=setz(plane(0.2,0.05,new THREE.MeshBasicMaterial({map:T.schild[id],toneMapped:false}),0,0,0,0,g),x,VM_BOEDEN[boden[id]]-0.035,z+d/2+0.006); reg(sm);
+    const sm=setz(bk.schild(g,{text:{kl:'KARTON L',km:'KARTON M',ks:'KARTON S'}[id],b:0.2,h:0.05,px:0.4,leucht:true}),x,VM_BOEDEN[boden[id]]-0.035,z+d/2+0.006); reg(sm);
   }
   /* Folienrollen liegen laengs, bis zu drei */
   const fm=vmFolieMat(), fg=vmFolieGeo(w-0.1);
   /* Rollen laengs in Regal-x: im gedrehten Regal zeigt die Achse in Welt-x genauso */
   for(let j=0;j<3;j++){ const m=new THREE.Mesh(fg,fm); m.rotation.z=Math.PI/2; const p=P(x,z-0.18+j*0.18); m.position.set(p.x,VM_BOEDEN[3]+0.085,p.z); g.add(m); reg(m); R.folie.push(m); }
-  const sm=setz(plane(0.24,0.05,new THREE.MeshBasicMaterial({map:T.schild.folie,toneMapped:false}),0,0,0,0,g),x,VM_BOEDEN[3]-0.035,z+d/2+0.006); reg(sm);
+  const sm=setz(bk.schild(g,{text:'FOLIE · BAND',b:0.24,h:0.05,px:0.4,leucht:true}),x,VM_BOEDEN[3]-0.035,z+d/2+0.006); reg(sm);
   /* Klebeband: offener Karton auf dem Regal, bis zu zwoelf Rollen */
   B(k,0.5,0.004,0.24,MAT.farbe('holzPalette'),x,VM_RH+0.002,z); for(const s of [-1,1]){ B(k,0.5,0.06,0.006,MAT.farbe('holzPalette'),x,VM_RH+0.03,z+s*0.12); B(k,0.006,0.06,0.24,MAT.farbe('holzPalette'),x+s*0.25,VM_RH+0.03,z); }
   /* zwoelf echte Klebebandrollen in einem Zeichenaufruf; sichtbar sind so viele, wie da sind */
@@ -224,7 +221,7 @@ function vmRegalBauen(g,i,reg,B0,k){
     for(let j=0;j<12;j++){ const p=P(x-0.2+(j%6)*0.08,z+(j<6?-0.055:0.055)); q.makeTranslation(p.x,VM_RH+0.03,p.z); im.setMatrixAt(j,q); }
     im.instanceMatrix.needsUpdate=true; if(HIQ) im.castShadow=true; g.add(im); reg(im); R.bandIM=im; }
   /* Kopfschild */
-  const km=setz(plane(0.5,0.12,new THREE.MeshBasicMaterial({map:T.schild.kopf,toneMapped:false}),0,0,0,0,g),x,VM_RH+0.16,z+0.02); reg(km);
+  const km=setz(bk.schild(g,{text:'PACKMITTEL',stil:'info',b:0.5,h:0.12,px:0.5,leucht:true}),x,VM_RH+0.16,z+0.02); reg(km);
   B(k,0.52,0.14,0.02,MAT.farbe('nachtblau'),x,VM_RH+0.16,z+0.005);
   for(const s of [-1,1]) B(k,0.02,0.16,0.02,BLAU,x+s*0.2,VM_RH+0.08,z);
   const hit=setz(bbox(w+0.06,VM_RH+0.2,d+0.06,hitM,0,0,0,g,false),x,(VM_RH+0.2)/2,z);

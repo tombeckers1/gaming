@@ -9,31 +9,20 @@
 const EING2={x:null, tuer:null};
 /* Die Eingangsachse im Schaufenstergrundriss. Wird aus 05e heraus
    gerufen, wenn der Laden die Achse besitzt. */
-function eingangsAchse(go,a,b,zf,ST,glas,prof){
+function eingangsAchse(go,a,b,zf,ST){
   const cx=(a+b)/2;
   EING2.x=Math.round(cx*100)/100;
-  /* Festverglaste Seitenfelder links und rechts der Tuer */
-  for(const [fa,fb] of [[a,cx-1.34],[cx+1.34,b]]){
-    const bw=fb-fa; if(bw<0.12) continue;
-    const bxc=(fa+fb)/2;
-    /* wie die Schaufenster: nur schmale Leisten oben und unten */
-    bbox(bw,ST,0.03,glas,bxc,ST/2,zf-0.1,go,false);
-    bbox(bw,0.06,0.12,prof,bxc,ST-0.03,zf-0.1,go,false);
-    bbox(bw,0.06,0.12,prof,bxc,0.03,zf-0.1,go,false);
-  }
-  /* Pfosten zwischen Seitenfeld und Tuer: die Tuer laeuft innen, die
-     Seitenfelder brauchen hier ihren Rahmen (02.10.) */
-  for(const s of [-1,1]) bbox(0.06,ST,0.12,prof,cx+s*1.31,ST/2,zf-0.1,go,false);
+  /* Festverglaste Seitenfelder links und rechts der Tuer (wie die Schaufenster: nur schmale Leisten oben und unten) und die
+     Pfosten zwischen Seitenfeld und Tuer - die Tuer laeuft innen, die Seitenfelder brauchen hier ihren Rahmen (02.10.) */
+  bk.fenster({art:'schaufenster',z:zf-0.1,parent:go,felder:[[a,cx-1.34],[cx+1.34,b]].filter(([fa,fb])=>fb-fa>=0.12).map(([fa,fb])=>({x0:fa,x1:fb,y0:0,y1:ST,sprosse:false})),
+    pfosten:[{x:cx-1.31,h:ST},{x:cx+1.31,h:ST}]});
 
   /* --- Zustand „noch nicht gekauft“: ganz normales Schaufenster ---
      Kein Hinweisschild, kein Bauzaun: der Laden soll schick
      aussehen und nicht wie eine Baustelle. Dass hier eine Tuer
      hinkommen kann, steht im Laptop. --- */
   const zu=new THREE.Group(); go.add(zu); zWand('eingang2',zu);
-  bbox(2.68,ST,0.03,glas,cx,ST/2,zf-0.1,zu,false);
-  bbox(2.72,0.06,0.12,prof,cx,ST-0.03,zf-0.1,zu,false);
-  bbox(2.72,0.06,0.12,prof,cx,0.03,zf-0.1,zu,false);
-  bbox(0.06,ST,0.1,prof,cx,ST/2,zf-0.1,zu,false);
+  bk.fenster({art:'schaufenster',z:zf-0.1,parent:zu,felder:[{x0:cx-1.36,x1:cx+1.36,y0:0,y1:ST}]});
 
   /* --- Zustand „gekauft“: Tuer, Vordach, Matte --- */
   const auf=new THREE.Group(); go.add(auf); zAdd('eingang2',auf);
@@ -41,7 +30,7 @@ function eingangsAchse(go,a,b,zf,ST,glas,prof){
   const d=buildSchiebetuer(cx,5.3);
   scene.remove(d.g); auf.add(d.g);
   EING2.tuer=d;
-  const stahl=MAT.std(0x4a4f5a,{metalness:0.5,roughness:0.45});
+  const stahl=MAT.get('zaunPfosten');   /* Zugstangen Stahl dunkel (Einheit 15.10., vorher freies Material) */
   /* Vordach ueber dem Eingang, wie am Haupthaus */
   const vd=bbox(3.4,0.08,1.5,MAT.get('lackAnthrazit'),cx,TUER.y+0.62,zf+0.85,auf,false);
   vd.rotation.x=0.05;
@@ -53,13 +42,8 @@ function eingangsAchse(go,a,b,zf,ST,glas,prof){
   bbox(2.4,0.014,1.1,matte,cx,0.02,zf-0.72,auf,false);
   bbox(2.4,0.014,1.0,matte,cx,0.02,zf+0.68,auf,false);
   /* „Eingang 2“ ueber der Tuer */
-  const sch=tex(512,110,(g2,W,H)=>{
-    g2.fillStyle='#1b2340'; g2.fillRect(0,0,W,H);
-    g2.fillStyle=MAT.css('schildgold'); g2.font=BUN(56); g2.textAlign='center'; g2.textBaseline='middle';
-    g2.fillText('EINGANG 2',W/2,H/2+3);
-  });
   bbox(2.3,0.46,0.06,MAT.get('schildBlau'),cx,TUER.y+0.42,zf+0.05,auf,false);
-  plane(2.2,0.4,new THREE.MeshBasicMaterial({map:sch,toneMapped:false}),cx,TUER.y+0.42,zf+0.09,0,auf);
+  bk.schild(auf,{text:'EINGANG 2',b:2.2,h:0.4,x:cx,y:TUER.y+0.42,z:zf+0.09,leucht:true});
 }
 
 /* Die SB-Kassenzeile, die hier hinter der Tuer stand (sb2G, Ausbau

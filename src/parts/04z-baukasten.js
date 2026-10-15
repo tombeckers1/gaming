@@ -79,29 +79,58 @@ bk.sammler=function(opt){
    Stil wie hvSchild (Halle): Hintergrund #1b2340, Goldstreifen unten, Text hell (BUN),
    Untertitel gold (BAR). Material je Textur geteilt (MAT-Regel: nie veraendern). */
 const _bkSchildT=new Map(), _bkSchildM=new Map();
+/* Schildstile (Einheit 15.10., stilregeln.md §6): Bedeutung waehlt die Farben - nie frei malen.
+   haus  = Hausstil Nachtblau, Goldstreifen unten, Schrift hell (Bungee), Unterzeile Gold (Tore, Gassen, Abteilungen, Kassen)
+   info  = Hinweis Signalblau, Schrift weiss (Geraete, Lager-PC, Kuehlschrank, Packmittel)
+   warn  = Warnung Signalgelb, Schrift und Streifen Gummischwarz (Gefahr, Zutritt, Ladezone)
+   tafel = helle Tafel Weiss, Schrift Nachtblau, Streifen Signalblau (Hinweistafeln an Pfosten, Bauschilder)
+   brand = Brandschutz Feuerrot, Schrift und Streifen weiss (Brandwand, Feuerschutztor, Sprinkler, Gefahrstoff)
+   flucht = Rettungsweg Signalgruen, Schrift und Streifen weiss (Notausgang, Fluchtweg) */
+bk.SCHILD={haus:{bg:'nachtblau',streifen:'schildgold',text:'weiss',unter:'schildgold'},info:{bg:'signalblau',streifen:null,text:'weiss',unter:'weiss'},
+  warn:{bg:'signalgelb',streifen:'gummischwarz',text:'gummischwarz',unter:'gummischwarz'},tafel:{bg:'weiss',streifen:'signalblau',text:'nachtblau',unter:'signalblau'},
+  brand:{bg:'feuerrot',streifen:'weiss',text:'weiss',unter:'weiss'},flucht:{bg:'signalgruen',streifen:'weiss',text:'weiss',unter:'weiss'}};
 bk.schildTex=function(o){
-  const W=Math.round(o.w||512), H=Math.round(o.h||160), bg=o.bg||'#1b2340', fg=o.fg||MAT.css('schildgold');
-  const k=[o.text,o.unter||'',bg,fg,W,H].join('|'); let t=_bkSchildT.get(k);
+  const W=Math.round(o.w||512), H=Math.round(o.h||160), St=bk.SCHILD[o.stil||'haus']||bk.SCHILD.haus;
+  const bg=o.bg||MAT.css(St.bg), fg=o.fg||(St.streifen?MAT.css(St.streifen):null), tx=o.textFarbe||MAT.css(St.text), un=o.fg||MAT.css(St.unter);
+  const k=[o.text,o.unter||'',bg,fg,tx,W,H].join('|'); let t=_bkSchildT.get(k);
   if(!t){ t=tex(W,H,(g,W2,H2)=>{
       g.fillStyle=bg; g.fillRect(0,0,W2,H2);
-      g.fillStyle=fg; g.fillRect(0,H2-8,W2,8);
-      g.textAlign='center'; g.textBaseline='middle'; g.fillStyle='#eef2f8';
+      if(fg){ g.fillStyle=fg; g.fillRect(0,H2-8,W2,8); }
+      g.textAlign='center'; g.textBaseline='middle'; g.fillStyle=tx;
       fitFont(g,o.text,W2*0.9,o.unter?Math.round(H2*0.42):Math.round(H2*0.55),BUN); g.fillText(o.text,W2/2,o.unter?H2*0.38:H2/2-3);
-      if(o.unter){ g.fillStyle=fg; fitFont(g,o.unter,W2*0.9,Math.round(H2*0.24),BAR); g.fillText(o.unter,W2/2,H2*0.74); } });
+      if(o.unter){ g.fillStyle=un; fitFont(g,o.unter,W2*0.9,Math.round(H2*0.24),BAR); g.fillText(o.unter,W2/2,H2*0.74); } });
     _bkSchildT.set(k,t); }
   return t;
 };
+/* bk.schild(parent,{text,unter,stil,b,h,x,y,z,ry,bg,fg,px,leucht,doppel,pfosten,rueck}) -> Mesh (mit pfosten: Gruppe, .userData.flaeche = Mesh).
+   Standard: Text im Stil (bk.SCHILD), Textur-Cache je Text+Stil+Groesse, Material je Textur geteilt (nie veraendern).
+   Sonderschild: o.malen(g,W,H) malt selbst (Ladenlogo, Carrier-Schild, Kategorie-Marke; o.pw/o.ph Pixel) - mit o.schluessel geteilt,
+   sonst eigene Textur und eigenes Material (darf neu gemalt werden: redraw(me.material.map, ...)).
+   leucht = unbeleuchtet (Leuchtschild/Anzeige), doppel = beidseitig, rueck = Rueckblech (Tiefe), pfosten = auf zwei Rohrpfosten
+   (Hinweis-/Stationsschild: Pfosten Stahl anthrazit mit Fuss und Kappe, Rueckblech, Schrift vorn und hinten; y = Schildmitte) */
 bk.schild=function(parent,o){
-  const px=Math.round(160*(o.px||1)), w=Math.round(px*Math.min(6.4,Math.max(1,o.b/o.h))), h=px;
-  const t=bk.schildTex({text:o.text,unter:o.unter,bg:o.bg,fg:o.fg,w,h});
-  let m=_bkSchildM.get(t); if(!m){ m=new THREE.MeshStandardMaterial({map:t,roughness:0.6}); m.userData.mat='schild'; _bkSchildM.set(t,m); }
-  const me=new THREE.Mesh(new THREE.PlaneGeometry(o.b,o.h),m);
-  me.position.set(o.x||0,o.y||0,o.z||0); me.rotation.y=o.ry||0; me.userData.bauteil='schild';
-  (parent||scene).add(me); return me;
+  let t, geteilt=true;
+  if(o.malen){ const W=Math.round(o.pw||512), H=Math.round(o.ph||128), k=o.schluessel?'m:'+o.schluessel+'|'+W+'|'+H:null;
+    t=k&&_bkSchildT.get(k); if(!t){ t=tex(W,H,o.malen); if(k) _bkSchildT.set(k,t); else geteilt=false; } }
+  else { const px=Math.round(160*(o.px||1)), w=Math.round(px*Math.min(6.4,Math.max(1,o.b/o.h)));
+    t=bk.schildTex({text:o.text,unter:o.unter,stil:o.stil,bg:o.bg,fg:o.fg,textFarbe:o.textFarbe,w,h:px}); }
+  const x2=(o.doppel||o.pfosten)?{side:THREE.DoubleSide}:undefined, neu=()=>o.leucht?MAT.bild(t,x2):MAT.neu('etikett',Object.assign({map:t},x2||{}));
+  let m; if(geteilt){ const mk=(o.leucht?'L':'')+(x2?'D':''); let mm=_bkSchildM.get(t); if(!mm){ mm={}; _bkSchildM.set(t,mm); } m=mm[mk]; if(!m){ m=mm[mk]=neu(); m.userData.mat='schild'; } }
+  else m=neu();
+  const flaeche=(par,x,y,z,ry)=>{ const me=new THREE.Mesh(new THREE.PlaneGeometry(o.b,o.h),m); me.position.set(x,y,z); me.rotation.y=ry||0; me.userData.bauteil='schild'; par.add(me); return me; };
+  if(o.pfosten){ const g=new THREE.Group(); g.position.set(o.x||0,0,o.z||0); g.rotation.y=o.ry||0; g.userData.bauteil='schild'; (parent||scene).add(g);
+    const y=o.y||1.2, S=bk.sammler({bauteil:'schild'}), ST=MAT.farbe('anthrazit'), px2=o.b/2-0.06;
+    for(const sx of [-px2,px2]){ S.zyl(0.028,0.028,y+o.h/2,10,sx,(y+o.h/2)/2,0,ST,'stahl'); S.box(0.11,0.02,0.11,sx,0.012,0,ST,'stahl'); S.zyl(0.03,0.03,0.02,8,sx,y+o.h/2+0.01,0,ST,'stahl'); }
+    S.box(o.b+0.05,o.h+0.05,0.025,0,y,-0.016,MAT.farbe('basaltgrau'),'stahl');
+    S.fertig(g);
+    const f=flaeche(g,0,y,0.002,0); flaeche(g,0,y,-0.032,Math.PI); g.userData.flaeche=f; return g; }
+  if(o.rueck){ const S=bk.sammler({bauteil:'schild'}), c=Math.cos(o.ry||0), sn=Math.sin(o.ry||0);
+    S.box(o.b+0.04,o.h+0.04,0.02,(o.x||0)-0.012*sn,o.y||0,(o.z||0)-0.012*c,MAT.farbe(o.rueck===true?'anthrazit':o.rueck),'lackMetall',0,o.ry||0,0); S.fertig(parent||scene,{schatten:false}); }
+  return flaeche(parent||scene,o.x||0,o.y||0,o.z||0,o.ry);
 };
 /* Schild wieder abbauen (zeitweilige Schilder, z. B. Ausstellung 2.0): Mesh, Geometrie, Material und Textur frei, auch aus dem Cache */
 bk.schildWeg=function(me){ const m=me.material, t=m&&m.map;
-  for(const [k,v] of [..._bkSchildM]) if(v===m) _bkSchildM.delete(k);
+  for(const [k,v] of [..._bkSchildM]) for(const q in v) if(v[q]===m) delete v[q];
   for(const [k,v] of [..._bkSchildT]) if(v===t) _bkSchildT.delete(k);
   if(me.parent) me.parent.remove(me); me.geometry.dispose(); if(m) m.dispose(); if(t) t.dispose(); };
 bk.liste=function(){ return {schildTexturen:_bkSchildT.size,schildMaterialien:_bkSchildM.size}; };
@@ -1010,31 +1039,60 @@ bk.lampe=function(o){
     bk.inst(geoL,MAT.vc('leucht'),M,{parent:o.parent,bauteil:'lampe',art:'halle',schatten:false})];
   return {meshes,lampen};
 };
-/* Bodenmarkierung (ASR A1.8): gleiche Breiten und Farben ueberall.
-   o = {linien:[[x0,z0,x1,z1,farbe('gelb'|'weiss'|'gruen'),breite]] (Fahrwege gelb 0,12 m, Stellplaetze weiss/gelb 0,08 m),
-        rahmen:[{x0,x1,z0,z1,farbe,breite}] (Stellplatz/Feld umrandet), flaechen:[{x0,x1,z0,z1,art:'gehweg'|'sperr'}]
-        (Gehweg gruen, Sperrflaeche gelb-schwarz 45°), piktos:[{x,z,ry,g}] (Fussgaenger 0,8 m), y (Boden), parent,
+/* Bodenmarkierung (ASR A1.8): gleiche Breiten und Farben ueberall - JEDE Bodenmarkierung im Spiel (Einheit 15.10.: vorher
+   zusaetzlich ~60 Einzel-flat() in 05g/05m/05h/05r, MAT.basic-Striche in 11e, vier gemalte Texturen fuer Schrift und Sperrflaechen).
+   o = {linien:[[x0,z0,x1,z1,farbe('gelb'|'weiss'|'gruen'|'sperr' = Warnrand gelb-schwarz),breite,strich,luecke]] (Fahrwege gelb 0,12 m, Stellplaetze weiss/gelb
+          0,08 m; strich/luecke = gestrichelt, z. B. Fahrspur im Hof 0,6/0,4),
+        rahmen:[{x0,x1,z0,z1,farbe,breite,strich,luecke}] (Stellplatz/Feld umrandet, auch gestrichelt),
+        flaechen:[{x0,x1,z0,z1,art:'gehweg'|'sperr'|'frei'}] (Gehweg gruen, Sperrflaeche gelb-schwarz 45°, Freihalteflaeche
+          gelbe Schraffur 45° auf Beton),
+        lkw:[{x,z,ry,laenge,breite,v0}] (LKW-Stellplatz vor einem Tor: zwei Seitenlinien 14 m ab v0 = 0,4 m vor der Wand, Stopplinie,
+          fuenf Mittelstriche 0,1 x 0,5 m; x,z = Tormitte an der Wand, ry = Richtung vom Tor weg (0 = -z)),
+        schriften:[{text,x,z,b,h,ry}] (Bodenschrift Signalgelb auf dunklem Feld mit Rand - ANLIEFERUNG, VERSANDHOF),
+        piktos:[{x,z,ry,g}] (Fussgaenger 0,8 m), y (Boden), parent,
         schatten (true = empfaengt Sonnenschatten wie Aussenboeden; innen aus, wie die Hallenboeden)}
-   -> {meshes} je Material EIN Mesh (UV in Metern, Schraffur 0,4 m je Kachel) */
-bk.MARKIERUNG={fahrweg:0.12,stellplatz:0.08,gehweg:0.12,pikto:0.8};
+   -> {meshes} je Material EIN Mesh (UV in Metern, Schraffur 0,4 m je Kachel); Schrift je Text ein Mesh (Textur-Cache) */
+bk.MARKIERUNG={fahrweg:0.12,stellplatz:0.08,gehweg:0.12,pikto:0.8,lkwLaenge:14,lkwBreite:3.8,strich:0.1,strichL:0.5};
+const _bkBodenSchrift=new Map();
 bk.bodenmarkierung=function(o){
-  const y=o.y===undefined?0.015:o.y, T={gelb:[],weiss:[],gruen:[],sperr:[],pikto:[]};
+  const y=o.y===undefined?0.015:o.y, T={gelb:[],weiss:[],gruen:[],sperr:[],frei:[],pikto:[]};
   const quad=(k,cx,cz,w,d,ry,dy,uvM)=>{ const gg=new THREE.PlaneGeometry(w,d); gg.rotateX(-Math.PI/2); if(ry) gg.rotateY(ry); gg.translate(cx,y+dy,cz);
     if(uvM){ const p=gg.attributes.position, uv=gg.attributes.uv; for(let i=0;i<p.count;i++) uv.setXY(i,p.getX(i)/uvM,-p.getZ(i)/uvM); }
     T[k].push({geo:gg,m:new THREE.Matrix4()}); };
-  const linie=(x0,z0,x1,z1,f,b)=>{ const L=Math.hypot(x1-x0,z1-z0); if(L<0.01) return; quad(f||'gelb',(x0+x1)/2,(z0+z1)/2,L+(b||0.12),b||0.12,Math.atan2(-(z1-z0),x1-x0),0.005); };
-  for(const l of (o.linien||[])) linie(l[0],l[1],l[2],l[3],l[4],l[5]);
+  const strich=(x0,z0,x1,z1,f,b)=>{ const L=Math.hypot(x1-x0,z1-z0); if(L<0.01) return; quad(f||'gelb',(x0+x1)/2,(z0+z1)/2,L+(b||0.12),b||0.12,Math.atan2(-(z1-z0),x1-x0),0.005,f==='sperr'?0.4:0); };
+  const linie=(x0,z0,x1,z1,f,b,st,lu)=>{ if(!st){ strich(x0,z0,x1,z1,f,b); return; }
+    const L=Math.hypot(x1-x0,z1-z0), ux=(x1-x0)/L, uz=(z1-z0)/L, sb=b||0.12; let t=0;
+    while(t<L-0.001){ const e=Math.min(L,t+st); /* Strichlaenge ohne die Ueberlaenge der Linie (b) */
+      strich(x0+ux*(t+sb/2),z0+uz*(t+sb/2),x0+ux*(e-sb/2),z0+uz*(e-sb/2),f,sb); t=e+(lu||st); } };
+  for(const l of (o.linien||[])) linie(l[0],l[1],l[2],l[3],l[4],l[5],l[6],l[7]);
   for(const r of (o.rahmen||[])){ const b=r.breite||bk.MARKIERUNG.stellplatz, f=r.farbe||'gelb', h=b/2;
-    linie(r.x0+h,r.z0+h,r.x1-h,r.z0+h,f,b); linie(r.x0+h,r.z1-h,r.x1-h,r.z1-h,f,b);
-    linie(r.x0+h,r.z0+h,r.x0+h,r.z1-h,f,b); linie(r.x1-h,r.z0+h,r.x1-h,r.z1-h,f,b); }
+    linie(r.x0+h,r.z0+h,r.x1-h,r.z0+h,f,b,r.strich,r.luecke); linie(r.x0+h,r.z1-h,r.x1-h,r.z1-h,f,b,r.strich,r.luecke);
+    linie(r.x0+h,r.z0+h,r.x0+h,r.z1-h,f,b,r.strich,r.luecke); linie(r.x1-h,r.z0+h,r.x1-h,r.z1-h,f,b,r.strich,r.luecke); }
+  for(const q of (o.lkw||[])){ const M=bk.MARKIERUNG, L=q.laenge||M.lkwLaenge, B=q.breite||M.lkwBreite, c=Math.cos(q.ry||0), s=Math.sin(q.ry||0);
+    /* lokale (quer u, vom Tor weg v) -> Welt; v laeuft nach -z bei ry 0 */
+    const P=(u,v)=>[q.x+u*c-v*s,q.z-u*s-v*c];
+    const v0=q.v0===undefined?0.4:q.v0, b2=M.fahrweg/2;
+    for(const sx of [-1,1]){ const a=P(sx*B/2,v0+b2), e=P(sx*B/2,v0+L-b2); strich(a[0],a[1],e[0],e[1],'gelb',M.fahrweg); }
+    { const a=P(-B/2+b2,v0+L), e=P(B/2-b2,v0+L); strich(a[0],a[1],e[0],e[1],'gelb',M.fahrweg); }
+    for(let j=0;j<5;j++){ const a=P(0,1.2+j*1.1-M.strichL/2+M.strich/2), e=P(0,1.2+j*1.1+M.strichL/2-M.strich/2); strich(a[0],a[1],e[0],e[1],'gelb',M.strich); } }
   for(const f of (o.flaechen||[])){ const w=f.x1-f.x0, d=f.z1-f.z0;
-    if(f.art==='sperr') quad('sperr',(f.x0+f.x1)/2,(f.z0+f.z1)/2,w,d,0,0.003,0.4); else quad('gruen',(f.x0+f.x1)/2,(f.z0+f.z1)/2,w,d,0,0.003); }
+    if(f.art==='sperr'||f.art==='frei') quad(f.art,(f.x0+f.x1)/2,(f.z0+f.z1)/2,w,d,0,0.003,0.4); else quad('gruen',(f.x0+f.x1)/2,(f.z0+f.z1)/2,w,d,0,0.003); }
   for(const p of (o.piktos||[])){ const gg=new THREE.PlaneGeometry(p.g||0.8,p.g||0.8); gg.rotateX(-Math.PI/2); gg.rotateY(p.ry||0); gg.translate(p.x,y+0.006,p.z); T.pikto.push({geo:gg,m:new THREE.Matrix4()}); }
-  const MM={gelb:MAT.get('markierungGelb'),weiss:MAT.get('weissMatt'),gruen:MAT.get('markierungGruen'),sperr:MAT.get('sperrflaeche'),pikto:MAT.get('markierungPikto')};
+  const MM={gelb:MAT.get('markierungGelb'),weiss:MAT.get('weissMatt'),gruen:MAT.get('markierungGruen'),sperr:MAT.get('sperrflaeche'),frei:MAT.get('freihalteflaeche'),pikto:MAT.get('markierungPikto')};
   const meshes=[];
-  for(const k in T){ if(!T[k].length) continue; const me=new THREE.Mesh(merge(T[k]),MM[k]); T[k].forEach(t=>t.geo.dispose());
-    if(HIQ&&o.schatten) me.receiveShadow=true; me.userData.bauteil='bodenmarkierung'; me.userData.bauteilArt=k; me.matrixAutoUpdate=false; me.updateMatrix();
-    (o.parent||scene).add(me); meshes.push(me); }
+  const fertig=(me,k)=>{ if(HIQ&&o.schatten) me.receiveShadow=true; me.userData.bauteil='bodenmarkierung'; me.userData.bauteilArt=k; me.matrixAutoUpdate=false; me.updateMatrix();
+    (o.parent||scene).add(me); meshes.push(me); return me; };
+  for(const k in T){ if(!T[k].length) continue; const me=new THREE.Mesh(merge(T[k]),MM[k]); T[k].forEach(t=>t.geo.dispose()); fertig(me,k); }
+  /* Bodenschrift: Signalgelb auf halbdunklem Feld mit gelbem Rand (Pixel je Meter fest), Textur je Text geteilt */
+  for(const q of (o.schriften||[])){ const PXM=200, W=Math.round(q.b*PXM), H=Math.round(q.h*PXM), key=q.text+'|'+W+'|'+H;
+    let m=_bkBodenSchrift.get(key);
+    if(!m){ const t=tex(W,H,(g,W2,H2)=>{ g.clearRect(0,0,W2,H2); g.fillStyle=MAT.css('tiefschwarz',0.62); g.fillRect(0,0,W2,H2);
+        const r=Math.max(6,Math.round(0.03*PXM)); g.strokeStyle=MAT.css('signalgelb'); g.lineWidth=r; g.strokeRect(r/2,r/2,W2-r,H2-r);
+        g.textAlign='center'; g.textBaseline='middle'; fitFont(g,q.text,W2*0.86,Math.round(H2*0.48),BUN);
+        g.fillStyle=MAT.css('tiefschwarz',0.75); g.fillText(q.text,W2/2+H2*0.02,H2/2+H2*0.04); g.fillStyle=MAT.css('signalgelb'); g.fillText(q.text,W2/2,H2/2+H2*0.01); });
+      t.anisotropy=8; m=MAT.neu('bodenSchrift',{map:t}); _bkBodenSchrift.set(key,m); }
+    const gg=new THREE.PlaneGeometry(q.b,q.h); gg.rotateX(-Math.PI/2); if(q.ry) gg.rotateY(q.ry); gg.translate(q.x,y+0.007,q.z);
+    fertig(new THREE.Mesh(gg,m),'schrift').renderOrder=2; }
   return {meshes};
 };
 /* Fahrerloses Transportfahrzeug (FTS) fuer Paletten: flacher Fahrkoerper Lichtgrau, Hubdeck verzinkt, Rammschutz-Leiste
@@ -1130,12 +1188,12 @@ function _bkLokal(S,x,z,ry){ const c=Math.cos(ry||0), s=Math.sin(ry||0);
   return { P:(lx,lz)=>[x+lx*c+lz*s,z-lx*s+lz*c],
     box:(w,h,d,lx,y,lz,f,k)=>S.box(w,h,d,x+lx*c+lz*s,y,z-lx*s+lz*c,f,k,0,ry||0,0) }; }
 
-/* Drehfluegeltuer (Werk West, bk.drehtuer - Schiebe- und Haustueren stellt der Schritt Tueren um): Stahltuer, Brandschutztuer (T30, Feststellanlage) oder Glastuer. Zarge Anthrazit durch die Wand, Blatt Lichtgrau
+/* Drehfluegeltuer (Werk West; seit Einheit 15.10. bk.tuer art 'stahl'|'brand'|'glas'): Stahltuer, Brandschutztuer (T30, Feststellanlage) oder Glastuer. Zarge Anthrazit durch die Wand, Blatt Lichtgrau
    (Brandschutz mit rotem Kennzeichnungsschild), Druecker Stahl, Glastuer Alu-Rahmen mit Scheibe.
    Lokal: Wand laeuft in x (ry 0), Wandnormale z. o = {S (fremder Sammler: Tuer zu und unbeweglich), x, z, ry, breite 1,0, hoehe 2,1,
      dicke (Wand) 0,2, art 'stahl'|'brand'|'glas', anschlag ±1 (Band bei -x | +x), auf ±1 (oeffnet nach +z | -z), offen 0..1, parent}
    -> {g, fluegel, t, set(t01), kollision:{x0,x1,z0,z1} (Oeffnung, Welt - der Aufrufer legt sie an, solange die Tuer zu ist)} */
-bk.drehtuer=function(o){
+function _bkDrehtuer(o){
   o=Object.assign({breite:1.0,hoehe:2.1,dicke:0.2,art:'stahl',anschlag:1,auf:1,offen:0,ry:0},o||{});
   const F=MAT.farbe, B=o.breite, H=o.hoehe, D=o.dicke, ANTH=F('anthrazit');
   const blattF=o.art==='glas'?F('aluminium'):F('lichtgrau');
@@ -1154,15 +1212,15 @@ bk.drehtuer=function(o){
   const T={g:null,fluegel:null,t:0,set(){},kollision:null};
   { const ax=Math.abs(c)*(B/2)+Math.abs(s)*(D/2+0.02), az=Math.abs(s)*(B/2)+Math.abs(c)*(D/2+0.02); T.kollision={x0:o.x-ax,x1:o.x+ax,z0:o.z-az,z1:o.z+az}; }
   if(o.S){ const L=_bkLokal(o.S,o.x,o.z,o.ry); zarge(L); blatt(L,-o.anschlag*(B/2-0.01),0); return T; }
-  const g=new THREE.Group(); g.position.set(o.x,0,o.z); g.rotation.y=o.ry; g.userData.bauteil='drehtuer'; g.userData.bauteilArt=o.art; (o.parent||scene).add(g);
-  const Sz=bk.werkSammler('drehtuer'); zarge(_bkLokal(Sz,0,0,0)); Sz.fertig(g,{bauteil:'drehtuer',fest:true});
+  const g=new THREE.Group(); g.position.set(o.x,0,o.z); g.rotation.y=o.ry; g.userData.bauteil='tuer'; g.userData.bauteilArt=o.art; (o.parent||scene).add(g);
+  const Sz=bk.werkSammler('tuer'); zarge(_bkLokal(Sz,0,0,0)); Sz.fertig(g,{bauteil:'tuer',fest:true});
   const fl=new THREE.Group(); fl.position.x=-o.anschlag*(B/2-0.01); g.add(fl);
-  const Sb=bk.werkSammler('drehtuer'); blatt(_bkLokal(Sb,0,0,0),0,0); Sb.fertig(fl,{bauteil:'drehtuer'});
+  const Sb=bk.werkSammler('tuer'); blatt(_bkLokal(Sb,0,0,0),0,0); Sb.fertig(fl,{bauteil:'tuer'});
   T.g=g; T.fluegel=fl;
   T.set=t=>{ T.t=Math.max(0,Math.min(1,t)); fl.rotation.y=-o.auf*o.anschlag*T.t*1.55; };
   T.set(o.offen);
   return T;
-};
+}
 /* Treppe (Stahl, Werk West: Leitstand-Galerie): gerader Lauf in der Draufsicht von o.von nach o.bis ([x,z], Mitte), y0 -> y1.
    Wangen Anthrazit, Stufen verzinkt mit gelber Kante (Trittkante = Warnung), Gelaender Signalgelb (wie bk.zaun 'gelaender').
    o = {S, von, bis, breite, y0, y1, gelaender:[links,rechts]} -> {stufen, laenge, steigung} */
@@ -1374,7 +1432,7 @@ bk.zelle=function(o){
     if(!t){ W(d,h,z1-z0,xw,h/2,(z0+z1)/2); continue; }
     const tb=0.9, th=2.05, ta=t.z-tb/2, te=t.z+tb/2;
     W(d,h,ta-z0,xw,h/2,(z0+ta)/2); W(d,h,z1-te,xw,h/2,(te+z1)/2); W(d,h-th,tb,xw,(th+h)/2,t.z);
-    bk.drehtuer({S,x:xw,z:t.z,ry:Math.PI/2,breite:tb,hoehe:th,dicke:d,art:'stahl'});
+    bk.tuer({S,x:xw,z:t.z,ry:Math.PI/2,breite:tb,hoehe:th,dicke:d,art:'stahl'});
     const nx=id==='w'?-1:1; vorTuer(xw+nx*d/2,t.z,nx,0,[0,1]); out.tueren.push({x:xw,z:t.z,seite:id}); }
   /* Stirnwaende mit Durchreiche, Rahmen (Signalgelb) und Klappe (offen, pneumatisch) */
   if(B) for(const xw of [x0+d/2,x1-d/2]){ const za=B.z-B.b/2, zb=B.z+B.b/2, s=xw<(x0+x1)/2?-1:1, xa=xw+s*(d/2+0.013), kl=B.y1-B.y0, a=1.2;
@@ -1401,7 +1459,7 @@ bk.zelle=function(o){
       for(const sz of [-1,1]){ const zf=zw+sz*(d/2+0.012);
         for(const y of [fen.y-0.03,fen.y+fen.h+0.03]) S.box(fen.b+0.12,0.06,0.025,wx,y,zf,F('anthrazit'),'lackMetall');
         for(const x of [wx-fen.b/2-0.03,wx+fen.b/2+0.03]) S.box(0.06,fen.h,0.025,x,fy,zf,F('anthrazit'),'lackMetall'); } }
-    bk.drehtuer({S,x:t.x,z:zw,ry:0,breite:tb,hoehe:th,dicke:d,art:'stahl',anschlag:t.x<(x0+x1)/2?1:-1});
+    bk.tuer({S,x:t.x,z:zw,ry:0,breite:tb,hoehe:th,dicke:d,art:'stahl',anschlag:t.x<(x0+x1)/2?1:-1});
     const zo=zw+seite*(d/2);
     vorTuer(t.x,zo,0,seite,[t.x<(x0+x1)/2?1:-1,0]);
     if(o.schild&&seite>0) bk.schild(o.parent||scene,{text:o.schild.text,unter:o.schild.unter,b:1.25,h:0.4,x:(x0+x1)/2,y:Math.min(th+0.75,h-0.25),z:zo+0.012,ry:0});
@@ -1493,4 +1551,418 @@ bk.schildAtlas=function(o){
   pg.computeBoundingSphere(); sg.computeBoundingSphere();
   (o.parent||scene).add(platte); (o.parent||scene).add(schrift);
   return A;
+};
+
+/* =========================================================
+   Regal (Schritt "Einheit", 15.10.2026, docs/fundament/einheit.md)
+
+   Tom 15.10. (Fundament-Schritt 4): "Regale, Kassen, Fenster, Tueren, Schilder, Bodenmarkierungen einheitlich bauen -
+   Groessen und Arten bleiben, nur die Bauweise wird einheitlich." Vorher drei Regal-Bauweisen mit drei Farbsystemen:
+   createShelf/bauMoebel (06, Laden), createRack/rackMats (06, Lager: eigene Lochtextur je Stuetze, Boden je Ebene ein Mesh,
+   Traversen mit zwei Extra-Orangetoenen) und vmRegalBauen (11d, Packmaterial: Boeden Alu statt verzinkt).
+   Jetzt EIN Bauteil, die Art waehlt die Bauweise:
+     art 'laden'       Verkaufsmoebel nach SHELFKIND (klein, standard, hoch, kuehl, gondel, eck, gross, kasse = Wandregal/Gondel;
+                       tisch, tischgross = Verkaufstisch; gitter, gitter2, gitter3 = Gitterbox). Gestell je Warenseite EIN Mesh
+                       (Vertexfarben nach Rolle, Material MAT.vc('kunststoff'), Farben aus regalFarben - folgt der Wand),
+                       Rueckwand Lochblech (UV 0,4 m), Preisschild je Fach + Kopfschild (Bild, veraenderlich), Trefferflaeche je Fach.
+     art 'lager'       Lagerregal nach RACKKIND (standard, hoch, schwer): Stuetzen Lochprofil Signalblau (ein Mesh fuer alle 4),
+                       Rahmen/Traversen Signalblau/Signalorange (ein Mesh), Boeden verzinkt (ein Mesh), Inhaltsschild.
+     art 'fachboden'   kleines Fachbodenregal in einen fremden Sammler (Packmaterial an jedem Packplatz): Stuetzen Signalblau,
+                       Boeden verzinkt Silbergrau wie das Lagerregal.
+   Gleiche Sache = gleiche Farbe: Lagertechnik Stuetzen Signalblau, Traversen Signalorange (wie bk.hochregal), Boeden Silbergrau.
+   Die Spiel-Logik (Faecher/Level, Ware, Schilder malen, Stellplaetze, Kollision) bleibt in den Huellen createShelf/createRack/
+   vmRegalBauen - bk.regal baut und gibt die Haken zurueck.
+   o = {art, K (Art-Daten SHELFKIND/RACKKIND), g (Gruppe, steht schon am Platz), farben (laden: Rollenfarben regalFarben(K)),
+        px (laden: Schildaufloesung, REGAL_TEX)}  |  fachboden: {box(w,h,d,farbe,x,y,z,rx,ry,rz), breite, tiefe, hoehe, boeden:[y], rueckwand}
+   -> laden: {gestelle:[Mesh], faecher:[{li,face,tex,hit}], headTex, kopfG, headY, gitterM, leiste (Material Lichtleiste), top}
+      lager: {faecher:[{li,si,x,y,hit}], schildTex, meshes}
+      fachboden: {} (Teile im Sammler)
+   ========================================================= */
+let _bkLoch=null, _bkLeiste=null;
+function _bkBoxen(){ const GB={}; const f=(w,h,d)=>GB[w+'|'+h+'|'+d]||(GB[w+'|'+h+'|'+d]=new THREE.BoxGeometry(w,h,d)); f.weg=()=>{ for(const k in GB) GB[k].dispose(); }; return f; }
+bk.regal=function(o){
+  if(o.art==='lager') return _bkRegalLager(o);
+  if(o.art==='fachboden') return _bkRegalFachboden(o);
+  return _bkRegalLaden(o);
+};
+/* Rueckwand aller Verkaufsregale: EIN veraenderliches Material (Farbe folgt der Wand, regaleFaerben) */
+bk.regal.rueckwand=function(){ return _bkLoch||(_bkLoch=MAT.neu('lochblech')); };
+/* Lichtleiste unter den Boeden: EIN veraenderliches Material fuer alle Regale (Upgrade Regallicht schaltet es) */
+bk.regal.leiste=function(){ return _bkLeiste||(_bkLeiste=MAT.neu('lichtleiste')); };
+function _bkRegalLaden(o){
+  const K=o.K, g=o.g, RF=o.farben, PX=o.px||1, box=_bkBoxen();
+  const W=K.w, D=K.d, top=K.lv[K.lv.length-1]+fachHoehe(K,K.lv.length-1)+0.04, hw=W/2, iw=W-0.1;
+  const R={gestelle:[],faecher:[],headTex:null,kopfG:null,headY:0,gitterM:null,leiste:null,top};
+  const preis=(parent,y,z)=>{ const lt=tex(Math.round(700*PX),Math.round(80*PX),()=>{}); lt.anisotropy=8;
+    const m=plane(Math.min(0.46,iw*0.46),0.052,MAT.bild(lt),0,y,z,0,parent); m.userData.bauteil='regal'; m.userData.bauteilArt='preisschild'; return lt; };
+  const fach=(parent,li,face,lt)=>{ const yl=K.lv[li], h=fachHoehe(K,li), hit=bbox(iw,h,D,hitM,0,yl+h/2,0.01,parent,false); R.faecher.push({li,face,tex:lt,hit}); };
+  const gestell=(parent,st,schatten)=>{ st.forEach(x=>{ x.color=RF[x.rolle]; });
+    const m=new THREE.Mesh(merge(st),MAT.vc('kunststoff')); m.userData.rollen=st.map(x=>[x.rolle,x._n]); m.userData.regalK=K;
+    m.userData.bauteil='regal'; m.userData.bauteilArt=K.id; if(HIQ&&schatten!==false){ m.castShadow=true; m.receiveShadow=true; }
+    parent.add(m); R.gestelle.push(m); return m; };
+  if(K.bau){
+    const nL=K.lv.length, y=K.lv[nL-1], fh=K.oben, st=[], kopf=[]; let preisY, headY;
+    const fg=new THREE.Group(); g.add(fg);
+    if(K.bau==='tisch'){
+      /* Ladenbau-Tisch: dieselben Teile wie die Verkaufstische der Ausstellung 2.0 (bk.verkaufstischTeile) */
+      st.push(...bk.verkaufstischTeile(K,box)); preisY=[y-0.1];
+      /* Aktionsschild auf einem Steckpfosten hinten in der Mitte - es verschwindet, solange der Tisch leer ist */
+      kopf.push({geo:box(0.03,0.62,0.03),m:tm(0,y+fh+0.05,-D/2+0.08),rolle:'rahmen'});
+      headY=y+fh+0.42; kopf.push({geo:box(1.0,0.2,0.03),m:tm(0,headY,-D/2+0.08),rolle:'kopf'});
+    } else {
+      /* Gitterbox: Unterbau mit offenen Faechern (Seitenwangen, Rueckwand, Boeden mit Preisleiste), darueber die Wanne
+         (Bodenblech, Eckpfosten, Drahtgitter rundum, Rohrrahmen; vorn niedriger). Sockel 25 mm zurueckgesetzt, Wannenplatte
+         6 mm ueberstehend - keine zwei Flaechen in einer Ebene (03.10., Saegezaehne). */
+      const hw2=Math.min(0.62,fh+0.06), hv=Math.min(hw2-0.1,fh-0.08), SK=0.08;
+      for(const sx of [-1,1]) st.push({geo:box(0.03,y-SK,D),m:tm(sx*(W/2-0.015),(y+SK)/2,0),rolle:'seite'});
+      st.push({geo:box(W-0.06,y-SK,0.02),m:tm(0,(y+SK)/2,-D/2+0.01),rolle:'rueck'});
+      st.push({geo:box(W-0.05,SK,D-0.05),m:tm(0,SK/2,0),rolle:'fuss'});
+      preisY=[];
+      for(let li=0;li<nL-1;li++){ const yl=K.lv[li];
+        st.push({geo:box(W-0.06,0.025,D-0.03),m:tm(0,yl-0.012,0),rolle:'boden'});
+        st.push({geo:box(iw,0.05,0.014),m:tm(0,yl-0.02,D/2-0.013),rolle:'preis'}); preisY.push(yl-0.02); }
+      st.push({geo:box(W+0.012,0.04,D+0.012),m:tm(0,y-0.02,0),rolle:'boden'});
+      for(const sx of [-1,1]) for(const sz of [-1,1]) st.push({geo:box(0.035,hw2+0.02,0.035),m:tm(sx*(W/2-0.018),y+hw2/2,sz*(D/2-0.018)),rolle:'rahmen'});
+      st.push({geo:box(W,0.025,0.025),m:tm(0,y+hw2,-D/2+0.012),rolle:'rahmen'});
+      st.push({geo:box(W,0.025,0.025),m:tm(0,y+hv,D/2-0.012),rolle:'rahmen'});
+      for(const sx of [-1,1]) st.push({geo:box(0.025,0.025,D),m:tm(sx*(W/2-0.012),y+hw2,0),rolle:'rahmen'});
+      /* Drahtgitter: vier Flaechen in EINEM Mesh (vorher vier), UV 0,2 m je Kachel; Farbe folgt dem Rahmen (regaleFaerben) */
+      const gm=MAT.neu('gitterBox'); gm.color.copy(LIN(RF.rahmen)); R.gitterM=gm;
+      const wand=(w,h,x,yy,z,ry)=>{ const pg=new THREE.PlaneGeometry(w,h); MAT.kachel(pg,w/0.2,h/0.2); return {geo:pg,m:tm(x,yy,z,0,ry,0)}; };
+      const wg=[wand(W-0.04,hw2,0,y+hw2/2,-D/2+0.012,0),wand(W-0.04,hv,0,y+hv/2,D/2-0.012,0)];
+      for(const sx of [-1,1]) wg.push(wand(D-0.04,hw2,sx*(W/2-0.012),y+hw2/2,0,Math.PI/2));
+      const gw=new THREE.Mesh(merge(wg),gm); gw.userData.bauteil='regal'; gw.userData.bauteilArt='gitter'; fg.add(gw); wg.forEach(x=>x.geo.dispose());
+      preisY.push(y+hv-0.04); headY=y+hv+0.13;
+      /* Klappschild vorn am Rohrrahmen */
+      kopf.push({geo:box(0.9,0.2,0.02),m:tm(0,headY,D/2-0.004),rolle:'kopf'});
+    }
+    gestell(fg,st);
+    const kg=new THREE.Group(); fg.add(kg); R.kopfG=kg;
+    gestell(kg,kopf,false);
+    /* je Ebene Preisschild und Trefferflaeche (Unterbau-Faecher, Wanne bzw. Platte) */
+    K.lv.forEach((yl,li)=>{ const lt=preis(fg,preisY[li],D/2+(K.bau==='tisch'?-0.032:0.003)); fach(fg,li,0,lt); });
+    R.headTex=tex(Math.round(1024*PX),Math.round(160*PX),()=>{});
+    const hz=K.bau==='tisch'?-D/2+0.08+0.016:D/2+0.008, hwid=K.bau==='tisch'?0.96:0.86;
+    plane(hwid,0.17,MAT.bild(R.headTex,{side:THREE.DoubleSide}),0,headY,hz,0,kg).userData.bauteil='regal';
+    R.headY=headY; box.weg(); return R;
+  }
+  seitenVon(K).forEach((f,fi)=>{
+    const fg=new THREE.Group(); fg.position.set(f.ox,0,f.oz); fg.rotation.y=f.ry; g.add(fg);
+    const st=[], li0=[];
+    st.push({geo:box(0.05,top,D),m:tm(-hw+0.025,top/2,0),rolle:'rahmen'});
+    st.push({geo:box(0.05,top,D),m:tm( hw-0.025,top/2,0),rolle:'rahmen'});
+    st.push({geo:box(W,0.06,D),  m:tm(0,top+0.03,0),rolle:'rahmen'});
+    st.push({geo:box(iw,0.08,D-0.02),m:tm(0,0.04,0),rolle:'rahmen'});
+    for(const sx of [-1,1]) st.push({geo:box(0.022,top-0.08,D),m:tm(sx*(hw+0.005),top/2,0),rolle:'seite'});
+    /* Mittelsteher zwischen den Regalmodulen (jedes Modul fasst ganze Kartons) */
+    for(let k=1;k<(K.mod||1);k++) st.push({geo:box(STEHER,top-0.1,D-0.06),m:tm(-iw/2+k*(modBreite(K)+STEHER)-STEHER/2,top/2,-0.02),rolle:'rahmen'});
+    st.push({geo:box(W-0.06,0.14,0.03),m:tm(0,0.11,D/2-0.005),rolle:'blende'});
+    for(const sx of [-1,1]) for(const sz of [-1,1]) st.push({geo:box(0.09,0.04,0.09),m:tm(sx*(hw-0.1),0.02,sz*(D/2-0.1)),rolle:'fuss'});
+    /* Rueckwand: Lochblech (UV 0,4 m = 8 Loecher je Kachel, Loch 5 cm - vorher 5 Kacheln je Regal, also je nach Breite 2-5 cm),
+       im Kuehlregal weisser Kunststoff, im Kassenregal Lochblech Lichtgrau wie die Kasse */
+    { const rg=new THREE.BoxGeometry(iw,top-0.1,0.02); if(!K.cold) MAT.kachel(rg,iw/0.4,(top-0.1)/0.4);
+      const rw=new THREE.Mesh(rg,K.cold?MAT.get('kunststoffWeiss'):K.kasse?MAT.get('lochblechKasse'):bk.regal.rueckwand());
+      rw.position.set(0,top/2,-D/2+0.03); rw.userData.bauteil='regal'; rw.userData.bauteilArt='rueckwand'; if(HIQ){ rw.castShadow=true; rw.receiveShadow=true; } fg.add(rw); }
+    /* Kassenregal: Edelstahlleisten wie an der Kasse - vorn an der Deckplatte und ueber der Sockelblende (ein Mesh) */
+    if(K.kasse){ const S=bk.sammler({bauteil:'regal'}), A=MAT.farbe('aluminium');
+      S.box(W+0.012,0.03,0.02,0,top+0.045,D/2+0.004,A,'blank').box(W-0.04,0.022,0.02,0,0.19,D/2+0.006,A,'blank'); S.fertig(fg,{schatten:false}); }
+    K.lv.forEach((y,li)=>{
+      st.push({geo:box(iw,0.03,D-0.04),m:tm(0,y-0.015,0),rolle:'boden'});
+      st.push({geo:box(iw,0.05,0.014),m:tm(0,y-0.02,D/2-0.013),rolle:'preis'});
+      st.push({geo:box(iw,0.012,0.02),m:tm(0,y-0.045,D/2-0.011),rolle:'lippe'});
+      st.push({geo:box(iw-0.04,0.018,0.05),m:tm(0,y-0.055,-D/2+0.06),rolle:'rahmen'});
+      if(li>0||K.cold) li0.push({geo:box(iw-0.06,0.016,0.04),m:tm(0,y-0.048,D/2-0.07)});
+      const lt=preis(fg,y-0.02,D/2-0.004); fach(fg,li,fi,lt);
+    });
+    /* Kopfschild ueber jeder Warenseite (eine Textur fuer alle Seiten) */
+    if(fi===0) R.headTex=tex(Math.round(1024*PX),Math.round(160*PX),()=>{});
+    const hy=top+(K.cold?0.34:0.18);
+    st.push({geo:box(W-0.04,0.28,0.05),m:tm(0,hy,0.02),rolle:'kopf'});
+    plane(W-0.1,0.24,MAT.bild(R.headTex),0,hy,0.051,0,fg).userData.bauteil='regal';
+    gestell(fg,st);
+    if(li0.length){ const m=new THREE.Mesh(merge(li0),K.cold?MAT.get('lichtleisteKuehl'):(R.leiste=bk.regal.leiste())); m.userData.bauteil='regal'; m.userData.bauteilArt='lichtleiste'; fg.add(m); }
+    if(K.cold){
+      /* Glastueren (ein Mesh), Rahmen, Griffe und Kopfblende Alu (ein Mesh), Schild "GEKUEHLT" */
+      const S=bk.sammler({bauteil:'regal'}), AL=MAT.farbe('aluminium'), GR=MAT.farbe('lichtgrau'), gl=[];
+      for(const sx of [-1,1]){
+        gl.push({geo:box(W/2-0.02,top-0.14,0.03),m:tm(sx*W/4,top/2,D/2-0.002)});
+        S.box(0.03,top-0.14,0.04,sx*(W/2-0.03),top/2,D/2,AL,'stahl');
+        S.box(0.035,0.5,0.05,sx*0.06,top*0.55,D/2+0.03,GR,'stahl'); }
+      S.box(W,0.16,D,0,top+0.12,0,AL,'stahl');
+      S.fertig(fg);
+      const gm=new THREE.Mesh(merge(gl),MAT.get('glasScheibe')); gm.userData.bauteil='regal'; gm.userData.bauteilArt='glastuer'; fg.add(gm);
+      bk.schild(fg,{text:'GEKÜHLT  4 °C',stil:'info',b:W*0.8,h:0.11,y:top+0.12,z:D/2+0.005,leucht:true});
+    }
+  });
+  /* Eckregal: zwischen den Schenkeln ein Blindfeld (sonst schaut man durch den Spalt auf die Wand) - Teil des Gestells,
+     faerbt mit (vorher zwei eigene Materialien je Regal) */
+  if(K.art==='ecke'){ const r=(w,h,d)=>roundedBoxGeo(w,h,d,Math.min(0.02,Math.min(w,h,d)*0.17));
+    gestell(g,[{geo:r(0.52,top,0.52),m:tm(-0.6,top/2,-0.6),rolle:'seite'},{geo:r(0.56,0.06,0.56),m:tm(-0.6,top+0.03,-0.6),rolle:'rahmen'}]); }
+  R.headY=top+(K.cold?0.34:0.18);
+  box.weg(); return R;
+}
+function _bkRegalLager(o){
+  const K=o.K, g=o.g, F=MAT.farbe, box=_bkBoxen();
+  const HT=K.hoch, XO=K.w/2, ZO=K.zo, BW=K.w, fr=[], posts=[], decks=[];
+  const R={faecher:[],schildTex:null,meshes:[]};
+  /* Rahmen: Stuetzen (Lochprofil, ein Mesh), Fussplatten, Riegel und Diagonalverband ueber die ganze Rahmenhoehe */
+  for(const x of [-XO,XO]){
+    for(const z of [-ZO,ZO]){
+      const pg=new THREE.BoxGeometry(0.085,HT,0.075); MAT.kachel(pg,1,HT/2.34); posts.push({geo:pg,m:tm(x,HT/2,z)});
+      fr.push({geo:box(0.2,0.022,0.17),m:tm(x,0.011,z),color:F('anthrazit')});
+      for(const bx of [-0.06,0.06]) fr.push({geo:box(0.022,0.03,0.022),m:tm(x+bx,0.03,z),color:F('silbergrau')});
+    }
+    const nR=Math.max(3,Math.round(HT/0.7));
+    for(let k=0;k<nR;k++) fr.push({geo:box(0.04,0.04,2*ZO),m:tm(x,0.42+k*0.7,0),color:F('signalblau')});
+    for(let k=0;k<nR-1;k++) fr.push({geo:box(0.035,0.035,2*ZO*1.3+0.06),m:tm(x,0.77+k*0.7,0,(k%2?1:-1)*Math.atan2(0.7,2*ZO),0,0),color:F('signalblau')});
+  }
+  const sw=(K.sp.length>1?K.sp[1]-K.sp[0]:0.8)-0.02;
+  K.lv.forEach((y,li)=>{
+    for(const z of [-ZO+0.03,ZO-0.03]){
+      /* Traverse als Kastenprofil mit Auflagelippe - alles Signalorange (vorher zwei Extra-Toene fuer Licht/Schatten) */
+      fr.push({geo:box(BW,0.095,0.05),m:tm(0,y-0.05,z),color:F('signalorange')});
+      fr.push({geo:box(BW,0.022,0.062),m:tm(0,y-0.005,z),color:F('signalorange')});
+      fr.push({geo:box(BW,0.018,0.05),m:tm(0,y-0.098,z),color:F('signalorange')});
+      for(const x of [-BW/2,BW/2]){
+        fr.push({geo:box(0.05,0.14,0.07),m:tm(x,y-0.045,z),color:F('anthrazit')});
+        fr.push({geo:box(0.022,0.035,0.022),m:tm(x*0.94,y+0.02,z),color:F('lichtgrau')}); }
+    }
+    const dg=new THREE.BoxGeometry(BW-0.08,0.022,2*ZO-0.09); MAT.kachel(dg,3,1); decks.push({geo:dg,m:tm(0,y-0.005,0)});
+    K.sp.forEach((x,si)=>{ const hit=bbox(sw,0.74,2*ZO,hitM,x,y+0.37,0,g,false); R.faecher.push({li,si,x,y,hit}); });
+  });
+  const mk=(teile,mat,art)=>{ const m=new THREE.Mesh(merge(teile),mat); m.userData.bauteil='regal'; m.userData.bauteilArt=art;
+    if(HIQ){ m.castShadow=true; m.receiveShadow=true; } g.add(m); R.meshes.push(m); return m; };
+  mk(fr,MAT.vc('lackMetall'),'rahmen'); mk(posts,MAT.get('regalStuetze'),'stuetzen'); mk(decks,MAT.get('regalBoden'),'boeden');
+  posts.concat(decks).forEach(x=>x.geo.dispose()); box.weg();
+  /* Inhaltsschild: zeigt, was gerade im Regal liegt (gemalt von drawRackSchild) */
+  R.schildTex=tex(512,256,()=>{});
+  plane(0.52,0.26,MAT.neu('etikett',{map:R.schildTex}),-XO+0.34,1.6,ZO+0.012,0,g).userData.bauteil='regal';
+  bbox(0.56,0.3,0.012,MAT.ober('silbergrau','lackMetall'),-XO+0.34,1.6,ZO+0.004,g,false).userData.bauteil='regal';
+  return R;
+}
+/* Fachbodenregal in einen fremden Sammler: o.box(w,h,d,farbe,x,y,z,rx,ry,rz) in Regalkoordinaten (Front +z) */
+function _bkRegalFachboden(o){
+  const B=o.box, w=o.breite, d=o.tiefe, H=o.hoehe, BLAU=MAT.farbe('signalblau'), ZINK=MAT.farbe('silbergrau');
+  for(const sx of [-1,1]) for(const sz of [-1,1]) B(0.035,H,0.035,BLAU,sx*(w/2-0.018),H/2,sz*(d/2-0.018));
+  for(const sx of [-1,1]) for(const y of [0.3,1.1]) B(0.02,0.02,d-0.04,BLAU,sx*(w/2-0.018),y,0,0.6*(y>1?1:-1),0,0);
+  for(const y of o.boeden.concat([H])) B(w,0.022,d,ZINK,0,y-0.011,0);
+  /* Rueckwand aus Lochblech nur unten */
+  if(o.rueckwand) B(w-0.04,o.rueckwand,0.01,ZINK,0,0.1+o.rueckwand/2,-d/2+0.01);
+  return {};
+}
+
+/* =========================================================
+   Kasse (Schritt "Einheit", 15.10.2026, docs/fundament/einheit.md)
+
+   Vorher: Kassenplatz buildCheckout (06) aus 30 Einzelmeshes mit vier freien Materialien (Korpus, Blende, Sockel) und drei
+   eigenen Texturen je Kasse (Scanner, Tastatur, Laufband); SB-Terminal sbTerminal (06) als Geraete-Sammler mit eigenem Korpus-
+   Material. Jetzt EIN Bauteil in der Geraete-Bauweise (bk.sammler, Klassen lack/metall/matt/glas/leucht wie geraetBau):
+   gleiche Sache = gleiches Material - Korpus Weiss lackiert, Sockel Anthrazit, Leisten Alu blank, Gehaeuse Gummischwarz,
+   Anzeigen ueber die Palette (anzeigeGruen, laserRot, anzeigeBlau).
+     art 'kasse'    Kassenplatz 3,2 x 0,8 m mit Laufband, Scanner, Monitor auf Schwenkarm, Tastatur, Warentrenner
+                    o = {parent, name (Textur Namensblende), pos (Textur Kassenbildschirm)} -> {korpus (Verdecker), band (Textur, laeuft), meshes}
+     art 'sb'       SB-Terminal: Saeule mit Bildschirm, Bioptik-Scanner, Korbablage, Waage mit Tuetenhalter, Kartenterminal, Signalleuchte
+                    o = {parent, x, z, bildschirm (Textur)} -> {g, korpus, lamp, lampM (MAT.neu, veraenderlich: frei/besetzt/Hilfe)}
+     art 'sbTafel'  Rueckwand mit Schild "SB-KASSEN" auf zwei Pfosten: o = {parent, x, z, breite}
+   Die Spiel-Logik (Kassieren, Schlange, Trefferflaechen, Lampe schalten) bleibt in den Huellen buildCheckout/sbTerminal/buildSBKasse.
+   ========================================================= */
+bk.kasse=function(o){
+  const F=MAT.farbe, S=bk.sammler({form:{fase:0.02,faseMin:0.03},reihenfolge:['lack','metall','matt','glas','leucht'],bauteil:'kasse'});
+  const WEISS=F('weiss'), ANTH=F('anthrazit'), DUNK=F('gummischwarz'), ALU=F('aluminium'), NAVY=F('nachtblau');
+  if(o.art==='sbTafel'){ const g=o.parent, x=o.x, z=o.z, b=o.breite||3.6;
+    S.box(b,0.34,0.12,x,2.35,z,NAVY,'lack');
+    for(const sx of [x-1.6,x+1.6]) S.box(0.07,2.2,0.07,sx,1.15,z,F('silbergrau'),'metall');
+    S.fertig(g,{schatten:false});
+    bk.schild(g,{text:'SB-KASSEN',b:b-0.2,h:0.3,x,y:2.35,z:z+0.07,leucht:true});
+    return {}; }
+  if(o.art==='sb'){
+    const g=new THREE.Group(); g.position.set(o.x,0,o.z); g.userData.bauteil='kasse'; g.userData.bauteilArt='sb'; o.parent.add(g);
+    /* Korpus, Sockel, Front, Arbeitsplatte */
+    S.rund(0.78,0.84,0.66,0.03,0,0.5,0,WEISS,'lack');
+    S.box(0.72,0.08,0.6,0,0.04,0,ANTH,'matt')
+     .box(0.6,0.5,0.012,0,0.48,0.333,F('lichtgrau'),'lack')
+     .box(0.78,0.07,0.016,0,0.86,0.335,NAVY,'lack')
+     .box(0.7,0.05,0.012,0,0.13,0.334,ALU,'metall')
+     .rund(0.84,0.045,0.7,0.012,0,0.94,0,ANTH,'lack')
+     .box(0.84,0.022,0.012,0,0.93,0.352,ALU,'metall');
+    /* Scanner: Glasflaeche in der Platte, Laserkreuz, Scannerturm */
+    S.box(0.36,0.006,0.27,0,0.963,0.09,F('tiefschwarz'),'matt')
+     .box(0.32,0.004,0.23,0,0.966,0.09,ANTH,'glas')
+     .box(0.28,0.002,0.004,0,0.969,0.09,F('laserRot'),'leucht',0,0.45,0)
+     .box(0.28,0.002,0.004,0,0.969,0.09,F('laserRot'),'leucht',0,-0.45,0)
+     .rund(0.38,0.17,0.08,0.02,0,1.045,-0.1,DUNK,'matt')
+     .box(0.31,0.11,0.004,0,1.045,-0.059,ANTH,'glas')
+     .box(0.26,0.003,0.002,0,1.045,-0.056,F('laserRot'),'leucht');
+    /* Saeule mit Kappe, Bondrucker */
+    S.rund(0.3,0.86,0.16,0.04,0,1.39,-0.25,WEISS,'lack').rund(0.31,0.05,0.17,0.02,0,1.8,-0.25,NAVY,'lack');
+    S.rund(0.17,0.06,0.04,0.01,0,1.205,-0.155,DUNK,'matt').box(0.1,0.004,0.006,0,1.2,-0.134,F('tiefschwarz'),'matt').box(0.07,0.05,0.002,0,1.17,-0.132,F('cremeweiss'),'lack',0.15,0,0);
+    /* Bildschirmgehaeuse auf Augenhoehe, leicht nach oben gekippt */
+    const KX=-0.1, KY=1.53, KZ=-0.13;
+    S.pivot(0,KY,KZ,KX,0,0).rund(0.53,0.39,0.05,0.02,0,0,0,DUNK,'matt').box(0.012,0.012,0.004,0,0.178,0.026,F('tiefschwarz'),'leucht').pivot();
+    /* Kartenterminal rechts am kurzen Arm */
+    S.zyl(0.014,0.018,0.13,10,0.31,1.03,-0.12,ALU,'metall')
+     .pivot(0.31,1.14,-0.11,-0.55,-0.25,0).rund(0.1,0.17,0.035,0.012,0,0,0,DUNK,'matt').box(0.07,0.05,0.002,0,0.04,0.019,F('anzeigeBlau'),'leucht').box(0.07,0.055,0.004,0,-0.035,0.018,F('hellgrau'),'lack').pivot();
+    /* links Korbablage, rechts Waage mit Tuetenhalter */
+    S.rund(0.36,0.72,0.52,0.025,-0.6,0.36,0,WEISS,'lack').rund(0.4,0.035,0.56,0.01,-0.6,0.74,0,ANTH,'lack').box(0.4,0.02,0.012,-0.6,0.73,0.282,ALU,'metall');
+    S.rund(0.36,0.84,0.52,0.025,0.6,0.42,0,WEISS,'lack').box(0.38,0.018,0.48,0.6,0.85,0,ALU,'metall').box(0.3,0.006,0.4,0.6,0.862,0.0,F('hellgrau'),'matt');
+    for(const sx of [0.45,0.75]) S.zyl(0.011,0.011,0.5,8,sx,1.11,-0.22,ALU,'metall').zyl(0.009,0.009,0.34,8,sx,1.36,-0.06,ALU,'metall',Math.PI/2,0,0);
+    S.zyl(0.011,0.011,0.31,8,0.6,1.36,-0.22,ALU,'metall',0,0,Math.PI/2).box(0.26,0.26,0.2,0.6,1.0,-0.05,F('cremeweiss'),'matt');
+    /* Lichtsignal-Stange */
+    S.zyl(0.014,0.014,0.32,10,0,1.98,-0.25,ALU,'metall').zyl(0.056,0.056,0.016,14,0,2.228,-0.25,ALU,'metall');
+    const meshes=S.fertig(g), korpus=meshes.find(m=>m.userData.klasse==='lack');
+    /* Bildschirm (eigene Textur) */
+    const scr=plane(0.48,0.34,MAT.bild(o.bildschirm),0,KY+0.026*Math.sin(-KX),KZ+0.026*Math.cos(KX),0,g); scr.rotation.x=KX; scr.userData.bauteil='kasse';
+    const lampM=MAT.neu('ampelGruen',{emissiveIntensity:1.6});
+    const lamp=new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.05,0.11,14),lampM); lamp.position.set(0,2.165,-0.25); lamp.userData.bauteil='kasse'; g.add(lamp);
+    return {g,korpus,lamp,lampM,meshes};
+  }
+  /* art 'kasse': Kassenplatz. Lokal: x laengs (Band +x), z = Kundenseite +z */
+  const g=o.parent, BELT_A=o.bandA||1.45, BELT_B=o.bandB||0.12;
+  /* Korpus mit Sockelruecksprung, Edelstahlleiste, Frontblende zum Kunden mit Zierleiste */
+  S.rund(3.2,0.74,0.8,0.02,0,0.5,0,WEISS,'lack');
+  S.box(3.08,0.14,0.68,0,0.07,0,ANTH,'matt').box(3.22,0.04,0.82,0,0.15,0,ALU,'metall');
+  S.box(3.12,0.5,0.03,0,0.56,0.405,WEISS,'lack').box(3.14,0.045,0.035,0,0.82,0.408,ALU,'metall');
+  /* Arbeitsplatte mit gerundeter Vorderkante */
+  S.box(3.34,0.05,0.86,0,0.925,0,F('lichtgrau'),'lack').zyl(0.026,0.026,3.34,12,0,0.925,0.43,F('lichtgrau'),'lack',0,0,Math.PI/2);
+  /* Laufband: Seitenfuehrung Alu mit gelber Kante, Umlenkrollen, Endkappe */
+  const BL=BELT_A-BELT_B+0.12, BX=(BELT_A+BELT_B)/2;
+  for(const s2 of [-1,1]) S.box(BL+0.06,0.05,0.03,BX,0.965,s2*0.245,ALU,'metall').box(BL+0.06,0.012,0.012,BX,0.992,s2*0.245,F('signalgelb'),'matt');
+  for(const ex of [BELT_B-0.04,BELT_A+0.06]) S.zyl(0.03,0.03,0.47,14,ex,0.956,0,ALU,'metall',Math.PI/2,0,0);
+  S.box(0.07,0.1,0.5,BELT_A+0.12,0.94,0,ANTH,'lack');
+  /* Warentrenner */
+  S.pivot(BELT_A-0.25,0.985,0,0,0.08,0).box(0.035,0.055,0.42,0,0,0,NAVY,'matt').pivot();
+  /* Scanner: in die Platte eingelassene Glasscheibe mit Rahmen, gruene LED */
+  S.rund(0.5,0.05,0.44,0.012,-0.22,0.938,0,F('hellgrau'),'lack').box(0.42,0.035,0.36,-0.22,0.958,0,ANTH,'matt').box(0.026,0.026,0.01,-0.42,0.9775,0.16,F('anzeigeGruen'),'leucht');
+  /* Kassenmonitor auf Schwenkarm */
+  S.box(0.16,0.03,0.16,-0.8,0.96,-0.06,ANTH,'lack').zyl(0.022,0.028,0.34,12,-0.8,1.12,-0.06,ALU,'metall').box(0.04,0.04,0.16,-0.8,1.29,-0.01,ALU,'metall',0.5,0,0);
+  S.pivot(-0.8,1.4,-0.06,0.16,0,0).rund(0.44,0.32,0.035,0.01,0,0,0,DUNK,'matt').pivot().box(0.46,0.02,0.05,-0.8,1.23,-0.056,DUNK,'matt');
+  /* Tastatur (Wanne) auf der Bedienerseite vor dem Monitor, Kabel zur Kasse */
+  S.pivot(-0.8,0.954,-0.32,-0.06,0,0).rund(0.44,0.026,0.175,0.006,0,0,0,DUNK,'matt').pivot();
+  S.zyl(0.006,0.006,0.13,6,-0.8,0.952,-0.4,DUNK,'matt',1.35,0,0);
+  const meshes=S.fertig(g), korpus=meshes.find(m=>m.userData.klasse==='lack');
+  const R={korpus,meshes,band:null};
+  const flach=(w,h,mat,x,y,z,rx,ry,rz,par)=>{ const m=plane(w,h,mat,x,y,z,0,par||g); m.rotation.set(rx||0,ry||0,rz||0); m.userData.bauteil='kasse'; return m; };
+  /* Namensblende (Textur des Aufrufers: Ladenname) */
+  if(o.name) flach(1.5,0.2,MAT.neu('etikett',{map:o.name}),0.74,0.6,0.423);
+  /* Laufband: eigene Kopie der Bandtextur (sie laeuft - offset), Massstab 6 Kacheln ueber die UVs */
+  { const t=MAT.tex('kassenband').clone(); t.needsUpdate=true; R.band=t;
+    const bg=new THREE.BoxGeometry(BL,0.03,0.46); MAT.kachel(bg,6,1);
+    const bm=new THREE.Mesh(bg,MAT.neu('kassenband',{map:t})); bm.position.set(BX,0.956,0); bm.userData.bauteil='kasse'; bm.userData.bauteilArt='band'; g.add(bm); }
+  /* Warentrenner-Schild */
+  bk.schild(g,{text:'NÄCHSTER KUNDE',b:0.4,h:0.05,px:0.5,x:BELT_A-0.25+0.019*Math.cos(0.08),y:0.985,z:-0.019*Math.sin(0.08),ry:Math.PI/2+0.08});
+  /* Scannerscheibe, Tastaturfeld */
+  flach(0.38,0.32,MAT.get('scannerGlas'),-0.22,0.9765,0,-Math.PI/2,0,0);
+  flach(0.4,0.15,MAT.get('kassenTastatur'),-0.8,0.9685,-0.32,-Math.PI/2-0.06,0,Math.PI);
+  /* Kassenbildschirm (Textur des Aufrufers, drawPOS) */
+  if(o.pos){ const sg=new THREE.Group(); sg.position.set(-0.8,1.4,-0.06); sg.rotation.x=0.16; g.add(sg); flach(0.4,0.275,MAT.bild(o.pos),0,0,-0.02,0,Math.PI,0,sg); }
+  return R;
+};
+
+/* =========================================================
+   Tuer (Schritt "Einheit", 15.10.2026, docs/fundament/einheit.md) - JEDE Tuer im Spiel:
+     art 'stahl'|'brand'|'glas'  Drehfluegeltuer (vorher bk.drehtuer, Werk West, Kartonlager): siehe _bkDrehtuer
+     art 'schiebe'  automatische Ladenschiebetuer (Haupteingang, Eingang 2; vorher buildSchiebetuer 05f aus 30 Einzelmeshes):
+                    Antriebskasten Alu ueber der Oeffnung, Laufschiene, Bewegungsmelder innen/aussen, Bodenfuehrung, zwei Fluegel
+                    (Alu-Rahmen, Glas, Sicherheitsmarkierung, Laufwagen). o = {x (Mitte), z (Laufebene), breite (je Fluegel 1,24),
+                    hoehe 2,44, antrieb (Breite Antriebskasten 5,4), parent} -> {g, leaves:[Group links, rechts]} (bewegt 05f tuerSetD)
+     art 'streifen' PVC-Streifenvorhang in einem Durchgang (vorher streifenvorhang 05h): Traverse verzinkt, Streifen 30 cm mit
+                    6 cm Ueberlappung in EINEM Mesh. o = {laengs (Oeffnung laeuft in x), fest (Wandkoordinate), a0, a1, hoehe}
+                    -> {traverse, streifen}
+   Glas = MAT.get('glasScheibe') wie alle Scheiben (Fenster, Kuehlregal, Leitstand). Gleiche Sache = gleiches Material.
+   ========================================================= */
+bk.tuer=function(o){
+  if(o.art==='schiebe') return _bkSchiebetuer(o);
+  if(o.art==='streifen') return _bkStreifenvorhang(o);
+  return _bkDrehtuer(o);
+};
+function _bkSchiebetuer(o){
+  const F=MAT.farbe, HB=o.antrieb||5.4, W=o.breite||1.24, HH=o.hoehe||2.44, Z=o.z, ALU=F('aluminium'), ALUD=F('silbergrau'), DUNK=F('anthrazit');
+  const g=new THREE.Group(); g.position.x=o.x||0; g.userData.bauteil='tuer'; g.userData.bauteilArt='schiebe'; (o.parent||scene).add(g);
+  const S=bk.sammler({form:{fase:0.01,faseMin:0.03,lod0Kasten:true},bauteil:'tuer'});
+  /* Antriebskasten ueber der Oeffnung (reicht ueber beide Parktaschen), Abdeckung, Unterseite, Laufschiene */
+  S.box(HB,0.24,0.26,0,HH+0.14,Z-0.05,ALU,'kunststoff').box(HB+0.04,0.05,0.3,0,HH+0.27,Z-0.05,ALUD,'kunststoff')
+   .box(HB-0.1,0.05,0.2,0,HH+0.005,Z-0.05,DUNK,'kunststoff').box(HB-0.2,0.045,0.06,0,HH+0.05,Z-0.06,ALUD,'kunststoff');
+  /* Bewegungsmelder innen und aussen (aussen an der Fassade ueber der Oeffnung) */
+  for(const s of [-1,1]){ S.box(0.26,0.075,0.05,s*0.78,HH+0.05,Z-0.15,DUNK,'kunststoff',0.42,0,0); S.box(0.26,0.075,0.05,s*0.78,HH+0.2,Z+0.31,DUNK,'kunststoff',-0.42,0,0); }
+  /* Bodenfuehrung */
+  S.box(2.6,0.012,0.045,0,0.008,Z-0.02,ALUD,'kunststoff');
+  S.fertig(g,{schatten:false});
+  const leaves=[], glasM=MAT.get('glasScheibe'), mark=MAT.ober('weiss','kunststoff',{transparent:true,opacity:0.65});
+  for(const s of [-1,1]){
+    const lf=new THREE.Group(); g.add(lf); leaves.push(lf);
+    const L=bk.sammler({form:{fase:0.01,faseMin:0.03,lod0Kasten:true},bauteil:'tuer'});
+    L.box(W,0.09,0.055,0,HH-0.05,0,ALU,'kunststoff').box(W,0.11,0.055,0,0.055,0,ALU,'kunststoff')
+     .box(0.055,HH-0.12,0.055,-W/2+0.028,HH/2,0,ALU,'kunststoff').box(0.055,HH-0.12,0.055,W/2-0.028,HH/2,0,ALU,'kunststoff');
+    /* Laufwagen oben */
+    for(const dx of [-0.34,0.34]) L.box(0.09,0.05,0.05,dx,HH+0.02,-0.06,ALUD,'kunststoff').zyl(0.022,0.022,0.03,10,dx,HH+0.045,-0.06,DUNK,'kunststoff',0,0,Math.PI/2);
+    L.fertig(lf,{schatten:false});
+    const gl=new THREE.Mesh(new THREE.BoxGeometry(W-0.09,HH-0.2,0.022),glasM); gl.position.set(0,HH/2,0); gl.userData.bauteil='tuer'; lf.add(gl);
+    /* Sicherheitsmarkierung auf Griffhoehe */
+    const mk=new THREE.Mesh(new THREE.BoxGeometry(W-0.1,0.055,0.026),mark); mk.position.set(0,1.32,0); mk.userData.bauteil='tuer'; lf.add(mk);
+  }
+  return {g,leaves};
+}
+function _bkStreifenvorhang(o){
+  const len=o.a1-o.a0, mitte=(o.a0+o.a1)/2, H=o.hoehe-0.12, fest=o.fest;
+  /* Traverse mit Halteklemmen (verzinkt) */
+  const tr=new THREE.Mesh(o.laengs?new THREE.BoxGeometry(len+0.16,0.1,0.14):new THREE.BoxGeometry(0.14,0.1,len+0.16),MAT.get('stahlVerzinkt'));
+  tr.position.set(o.laengs?mitte:fest,o.hoehe-0.05,o.laengs?fest:mitte); tr.userData.bauteil='tuer'; tr.userData.bauteilArt='streifen'; scene.add(tr);
+  /* Streifen 30 cm, 6 cm Ueberlappung, leicht schraeg wie benutzt - alles in EIN Mesh */
+  const B=0.30, T=0.24, n=Math.max(2,Math.floor(len/T)), rest=(len-(n-1)*T-B)/2, geo=new THREE.BoxGeometry(B,H,0.006), teile=[];
+  for(let i=0;i<n;i++){ const a=o.a0+rest+B/2+i*T, kipp=(i%2?1:-1)*0.035;
+    teile.push({geo,color:MAT.farbe('weiss'),m:o.laengs?tm(a,H/2+0.02,fest,0,kipp,0):tm(fest,H/2+0.02,a,0,Math.PI/2+kipp,0)}); }
+  const m=new THREE.Mesh(merge(teile),MAT.get('pvcStreifen')); m.renderOrder=1; m.userData.bauteil='tuer'; m.userData.bauteilArt='streifen'; scene.add(m); geo.dispose();
+  return {traverse:tr,streifen:m};
+}
+
+/* =========================================================
+   Fenster (Schritt "Einheit", 15.10.2026, docs/fundament/einheit.md) - JEDES Fenster in Laden und Lager:
+     art 'schaufenster'  Glas buendig in der Laibung, schmale Leisten oben/unten, Mittelsprosse, Sohlbank aussen (Anthrazit wie
+                         die Profile - Tom: "das Hellgraue muss weg"; vorher an der Erweiterung noch hellgrau). Basisladen (05c),
+                         Erweiterungen (05e nachbarFassade), Eingang 2 Festfelder (05l).
+                         o = {felder:[{x0,x1,y0,y1,sprosse(true),bank(y0>0,2)}], z (Glasebene), zarge:[{x0,x1,y1}] (Tueroeffnung:
+                         Pfosten + Sturzprofil), pfosten:[x] (einzelne Pfosten ueber die volle Hoehe), parent, schmutz (Schmutzschicht je
+                         Feld, Spielzustand S.grime)}
+     art 'fluegel'       Lagerfenster mit zwei Fluegeln, Mittelpfosten, Griffen, Fensterbank aussen (Anthrazit) und innen (weiss); baut
+                         die Wand um die Oeffnungen (bk.wand: Pfeiler, Bruestung, Sturz). o = {felder:[{cx,b,y0,y1}], wand:{x0,x1,z0,z1,
+                         hoehe,innen,flaechen}}
+   Profile Stahl Anthrazit, Glas MAT.get('glasScheibe') (eine Scheibe fuer alles). Je Aufruf: Rahmen EIN Mesh (Sammler), Glas EIN Mesh.
+   -> {glas, rahmen:[Mesh], schmutz:[{mesh,mat}], waende:[Mesh]}
+   ========================================================= */
+bk.fenster=function(o){
+  const F=MAT.farbe, AN=F('anthrazit'), S=bk.sammler({bauteil:'fenster'}), gl=[], R={glas:null,rahmen:[],schmutz:[],waende:[]}, par=o.parent||scene;
+  const scheibe=(w,h,d,x,y,z)=>gl.push({geo:new THREE.BoxGeometry(w,h,d),m:tm(x,y,z)});
+  if(o.art==='fluegel'){
+    const W=o.wand, z0=W.z0, z1=W.z1, zm=(z0+z1)/2, H=W.hoehe;
+    const wand=(a,b,y0,y1)=>{ if(b-a>0.005&&y1-y0>0.005) R.waende.push(bk.wand({x0:a,x1:b,z0,z1,y0,y1,innen:W.innen,flaechen:W.flaechen,ue:0})); };
+    let x=W.x0;
+    for(const f of o.felder){ const FB=f.b, a=f.cx-FB/2, b=f.cx+FB/2, Y0=f.y0, Y1=f.y1, fh=Y1-Y0, cx=f.cx;
+      wand(x,a,0,H); wand(a,b,0,Y0); wand(a,b,Y1,H);
+      /* Rahmen in der Wandmitte, Mittelpfosten, Fluegelrahmen, Glas, Griffe innen */
+      S.box(FB,0.07,0.08,cx,Y1-0.035,zm,AN,'stahl').box(FB,0.07,0.08,cx,Y0+0.035,zm,AN,'stahl');
+      for(const sx of [-1,1]) S.box(0.07,fh,0.08,cx+sx*(FB/2-0.035),Y0+fh/2,zm,AN,'stahl');
+      S.box(0.06,fh-0.1,0.07,cx,Y0+fh/2,zm,AN,'stahl');
+      for(const sx of [-1,1]){ const fx=cx+sx*FB/4;
+        for(const dy of [0.075,fh-0.075]) S.box(FB/2-0.12,0.04,0.05,fx,Y0+dy,zm+0.01,AN,'stahl');
+        scheibe(FB/2-0.14,fh-0.2,0.012,fx,Y0+fh/2,zm);
+        S.box(0.025,0.12,0.03,cx+sx*0.1,Y0+fh/2,z0-0.01,F('aluminium'),'blank'); }
+      /* Fensterbank aussen (Anthrazit wie die Schaufenster) und innen (weiss) */
+      S.box(FB+0.08,0.03,0.2,cx,Y0-0.012,z1+0.06,AN,'stahl').box(FB+0.05,0.03,0.16,cx,Y0-0.012,z0-0.05,F('weiss'),'kunststoff');
+      x=b; }
+    wand(x,W.x1,0,H);
+  } else {
+    const z=o.z;
+    for(const f of o.felder){ const bw=f.x1-f.x0, bh=f.y1-f.y0, cx=(f.x0+f.x1)/2, cy=(f.y0+f.y1)/2;
+      scheibe(bw,bh,0.03,cx,cy,z);
+      S.box(bw,0.06,0.12,cx,f.y0+0.03,z,AN,'stahl').box(bw,0.06,0.12,cx,f.y1-0.03,z,AN,'stahl');
+      if(f.sprosse!==false) S.box(0.06,bh,0.1,cx,cy,z,AN,'stahl');
+      if(f.bank!==false&&f.y0>0.2) S.box(bw+0.2,0.05,0.3,cx,f.y0,z+0.2,AN,'stahl');
+      if(o.schmutz){ const m=MAT.neu('fensterSchmutz'), me=new THREE.Mesh(MAT.kachel(new THREE.BoxGeometry(bw-0.05,bh-0.04,0.015),2,1),m);
+        me.position.set(cx,cy,z-0.07); me.renderOrder=3; me.userData.bauteil='fenster'; me.userData.bauteilArt='schmutz'; par.add(me); R.schmutz.push({mesh:me,mat:m}); } }
+    for(const q of (o.zarge||[])){ const h=q.y1||2.5; for(const x of [q.x0,q.x1]) S.box(0.08,h,0.14,x,h/2,z,AN,'stahl'); S.box(q.x1-q.x0,0.08,0.14,(q.x0+q.x1)/2,h,z,AN,'stahl'); }
+    for(const p of (o.pfosten||[])) S.box(0.06,p.h,0.12,p.x,p.h/2,z,AN,'stahl');
+  }
+  R.rahmen=S.fertig(par);
+  if(gl.length){ R.glas=new THREE.Mesh(merge(gl),MAT.get('glasScheibe')); gl.forEach(q=>q.geo.dispose()); R.glas.userData.bauteil='fenster'; R.glas.userData.bauteilArt='glas'; par.add(R.glas); }
+  return R;
 };

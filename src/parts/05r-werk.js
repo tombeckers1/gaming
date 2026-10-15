@@ -175,8 +175,8 @@ function wkRohbau(){
     for(const s of WK_STR) absch(-70.1,s.zc,1.3,1.9,1);
     for(let k=0;k<3;k++) absch(-66.0,wkGasseZ(k),1.2,1.9,-1);
     S.fertig(scene,{fest:true});
-    for(const z of [-30,-17]){ bk.schild(scene,{text:'BRANDWAND',unter:'Öffnungen nur mit Brandschutzabschluss',b:1.6,h:0.45,x:-70.12,y:4.6,z,ry:Math.PI/2*-1,bg:MAT.css('feuerrot'),fg:MAT.css('weiss')});
-      bk.schild(scene,{text:'BRANDWAND',unter:'Werk · Verbindungsbau',b:1.6,h:0.45,x:-69.88,y:4.6,z,ry:Math.PI/2,bg:MAT.css('feuerrot'),fg:MAT.css('weiss')}); } }
+    for(const z of [-30,-17]){ bk.schild(scene,{text:'BRANDWAND',unter:'Öffnungen nur mit Brandschutzabschluss',b:1.6,h:0.45,x:-70.12,y:4.6,z,ry:Math.PI/2*-1,stil:'brand'});
+      bk.schild(scene,{text:'BRANDWAND',unter:'Werk · Verbindungsbau',b:1.6,h:0.45,x:-69.88,y:4.6,z,ry:Math.PI/2,stil:'brand'}); } }
   /* geschlossene Brandschutz-Blenden in den Oeffnungen (fallen, sobald die Straße laeuft) */
   { const bl=(x,z,b,h,i)=>{ const m=new THREE.Mesh(new THREE.BoxGeometry(0.06,h,b),MAT.get('kunststoffHellgrau')); m.position.set(x,h/2,z); m.userData.bauteil='brandschutzabschluss'; scene.add(m); WK_T.blende[i].push(m); };
     WK_STR.forEach((s,i)=>{ bl(-70.0,s.zc,1.3,1.9,i); bl(-66.1,wkGasseZ(s.gasse),1.2,1.9,i); });
@@ -184,14 +184,14 @@ function wkRohbau(){
     for(const s of WK_STR) col(-70.1,-69.9,s.zc-0.65,s.zc+0.65);
     for(let k=0;k<3;k++) col(-66.2,-66.0,wkGasseZ(k)-0.6,wkGasseZ(k)+0.6); }
   /* Tuere Verbindungsbau: Feuerschutztueren zweifluegelig, offen auf Feststellanlage; Werkseingang (oeffnet beim Naehern) */
-  for(const x of [-70.0,-66.1]){ for(const a of [1,-1]){ const T=bk.drehtuer({x,z:-9+a*0.5,ry:Math.PI/2,breite:1.0,hoehe:2.15,dicke:0.2,art:'brand',anschlag:a,auf:x>-68?-1:1,offen:1}); }
+  for(const x of [-70.0,-66.1]){ for(const a of [1,-1]){ const T=bk.tuer({x,z:-9+a*0.5,ry:Math.PI/2,breite:1.0,hoehe:2.15,dicke:0.2,art:'brand',anschlag:a,auf:x>-68?-1:1,offen:1}); }
     const S=bk.werkSammler('feststellanlage'); S.box(0.12,0.16,0.3,x+(x>-68?-0.12:0.12),2.42,-9,F('feuerrot'),'kunststoff'); S.zyl(0.07,0.07,0.04,10,x+(x>-68?-0.12:0.12),2.52,-9.3,F('weiss'),'kunststoff'); S.fertig(scene,{fest:true}); }
-  WK_T.tueren.push({T:bk.drehtuer({x:-73,z:-6.9,ry:0,breite:1.2,hoehe:2.2,dicke:0.2,art:'glas',anschlag:1,auf:-1}),x:-73,z:-6.9,r:2.0}); WK_T.tueren[WK_T.tueren.length-1].T.g.userData.wkAussen=true;
+  WK_T.tueren.push({T:bk.tuer({x:-73,z:-6.9,ry:0,breite:1.2,hoehe:2.2,dicke:0.2,art:'glas',anschlag:1,auf:-1}),x:-73,z:-6.9,r:2.0}); WK_T.tueren[WK_T.tueren.length-1].T.g.userData.wkAussen=true;
   /* Tor R6 (Rohstoffe) - Sektionaltor wie R2-R5, zu (Anlieferung der Rohstoffe kommt mit dem Produktions-Gameplay) */
   { const T=bk.tor({art:'sektional',fuehrung:'vertikal',breite:WTOR.w,hoehe:WTOR.h,wand:[-LW,0],blatt:-0.15,fahrzeug:2.55,nr:'6',bedien:1,x:WK.r6.x,z:Wr.z0,ry:-Math.PI/2});
     for(const r of T.kollision) col(r.x0,r.x1,r.z0,r.z1); col(WK.r6.x-WTOR.w/2,WK.r6.x+WTOR.w/2,Wr.z0-LW,Wr.z0); WK_T.r6=T; T.g.userData.wkAussen=true; }
   /* Gefahrstofftuer West (zu, Chemie-Box 1) */
-  { const S=bk.werkSammler('drehtuer'); bk.drehtuer({S,x:Wr.x0-LW/2,z:WK.westTuer,ry:Math.PI/2,breite:1.0,hoehe:2.1,dicke:LW,art:'brand'}); S.fertig(scene,{fest:true,nachher:me=>{ me.userData.wkAussen=true; }}); col(Wr.x0-LW,Wr.x0,WK.westTuer-0.6,WK.westTuer+0.6); }
+  { const S=bk.werkSammler('tuer'); bk.tuer({S,x:Wr.x0-LW/2,z:WK.westTuer,ry:Math.PI/2,breite:1.0,hoehe:2.1,dicke:LW,art:'brand'}); S.fertig(scene,{fest:true,nachher:me=>{ me.userData.wkAussen=true; }}); col(Wr.x0-LW,Wr.x0,WK.westTuer-0.6,WK.westTuer+0.6); }
   /* Leichtdach: helles Trapezblech, Lichtbaender (aussen sichtbar), Attika; Decke innen hell */
   { const x0=Wr.x0-LW*1.5, x1=WK.verb.x1-LW, z0=Wr.z0-LW*1.5, z1=Wr.z1+LW*1.5, w=x1-x0, d=z1-z0, cx=(x0+x1)/2, cz=(z0+z1)/2;
     const dach=new THREE.Mesh(bk.kastenM(w,0.25,d,1,cx,H+0.24,cz),MAT.get('wandBlech')); dach.position.set(cx,H+0.24,cz); dach.userData.bauteil='werkdach'; dach.userData.wkAussen=true;
@@ -238,18 +238,18 @@ function wkRohbau(){
     for(const y of [4.1,5.7]) S.box(8.0,0.08,0.14,-82,y,zr,F('aluminium'),'lackMetall');
     WK_T.glasBasis.push(...wkGlasNehmen(S)); S.fertig(scene,{fest:true}); }
   /* Technik-Tuer (zu) */
-  { const S=bk.werkSammler('drehtuer'); bk.drehtuer({S,x:-80,z:zr,ry:0,breite:1.0,hoehe:2.1,dicke:0.2,art:'stahl'}); S.fertig(scene,{fest:true}); col(-80.5,-79.5,zr-0.1,zr+0.1); }
+  { const S=bk.werkSammler('tuer'); bk.tuer({S,x:-80,z:zr,ry:0,breite:1.0,hoehe:2.1,dicke:0.2,art:'stahl'}); S.fertig(scene,{fest:true}); col(-80.5,-79.5,zr-0.1,zr+0.1); }
   /* Tueren mit Schliesser (oeffnen beim Naehern): Umkleide -> Werk, Inertlager (zweifluegelig), Labor */
-  for(const [x,b,a] of [[-74.5,1.0,1],[-89,1.0,-1]]) WK_T.tueren.push({T:bk.drehtuer({x,z:zr,ry:0,breite:b,hoehe:2.1,dicke:0.2,art:'stahl',anschlag:a,auf:-1}),x,z:zr,r:1.7});
-  for(const a of [1,-1]) WK_T.tueren.push({T:bk.drehtuer({x:-96+a*0.45,z:zr,ry:0,breite:0.9,hoehe:2.35,dicke:0.2,art:'stahl',anschlag:a,auf:-1}),x:-96,z:zr,r:2.0});
+  for(const [x,b,a] of [[-74.5,1.0,1],[-89,1.0,-1]]) WK_T.tueren.push({T:bk.tuer({x,z:zr,ry:0,breite:b,hoehe:2.1,dicke:0.2,art:'stahl',anschlag:a,auf:-1}),x,z:zr,r:1.7});
+  for(const a of [1,-1]) WK_T.tueren.push({T:bk.tuer({x:-96+a*0.45,z:zr,ry:0,breite:0.9,hoehe:2.35,dicke:0.2,art:'stahl',anschlag:a,auf:-1}),x:-96,z:zr,r:2.0});
   /* Raeume West (x −100…−92): Sternhaus, drei Trockenkammern (3,6 m, Decke) */
   const RW=3.6;
   wkWandMit('z',-27.5,zr-0.1,-92.1,-91.9,RW,[[-17.1,-15.9,2.2],[-26.53,-25.63,2.05],[-23.7,-22.8,2.05],[-20.87,-19.97,2.05]],'-x','putz','lager');
   for(const z of [-19,-21.83,-24.67]) wkW(Wr.x0,-92.1,z-0.1,z+0.1,0,RW,'+z',P,P);
   { const S=bk.werkSammler('decke'); S.box(8,0.2,16.5,-96,RW+0.1,(-27.5+zr)/2,F('weiss'),'matt'); S.fertig(scene,{fest:true});
-    const St=bk.werkSammler('drehtuer'); for(const z of [-26.08,-23.25,-20.42]) bk.drehtuer({S:St,x:-92,z,ry:Math.PI/2,breite:0.9,hoehe:2.05,dicke:0.2,art:'stahl'}); St.fertig(scene,{fest:true});
+    const St=bk.werkSammler('tuer'); for(const z of [-26.08,-23.25,-20.42]) bk.tuer({S:St,x:-92,z,ry:Math.PI/2,breite:0.9,hoehe:2.05,dicke:0.2,art:'stahl'}); St.fertig(scene,{fest:true});
     for(const z of [-26.08,-23.25,-20.42]) col(-92.1,-91.9,z-0.45,z+0.45); }
-  WK_T.tueren.push({T:bk.drehtuer({x:-92,z:-16.5,ry:Math.PI/2,breite:1.2,hoehe:2.2,dicke:0.2,art:'stahl',anschlag:1,auf:1}),x:-92,z:-16.5,r:1.8});
+  WK_T.tueren.push({T:bk.tuer({x:-92,z:-16.5,ry:Math.PI/2,breite:1.2,hoehe:2.2,dicke:0.2,art:'stahl',anschlag:1,auf:1}),x:-92,z:-16.5,r:1.8});
   /* Raeume Sued (z −34…−27,5): drei Chemie-Boxen, Satz-Ausgabe (Betonzellen ohne Band), Annahme, Leergut */
   { const S=bk.werkSammler('chemie'), C=[];
     const box=(x0,x1,tueren)=>{ const r=bk.zelle({S,x0,x1,z0:-33.8,z1:-27.5,h:RW,band:false,tueren}); C.push(r.kollision); };
@@ -423,12 +423,10 @@ function wkAussen(){
   beton(-118,-110,-27,-19,0.011);
   beton(-115,-100.2,WK.westTuer-1.0,WK.westTuer+1.0,0.0105); beton(-115,-113,-27,WK.westTuer-1.0,0.0105);
   /* Stellplatz vor R6 */
-  { const gelb=MAT.get('markierungGelb'), Z=Wr.z0;
-    for(const s of [-1,1]) flat(0.14,14,gelb,WK.r6.x+s*1.9,0.017,Z-7.4); flat(3.8,0.14,gelb,WK.r6.x,0.017,Z-14.4);
-    for(let j=0;j<5;j++) flat(0.1,0.5,gelb,WK.r6.x,0.017,Z-1.2-j*1.1); }
+  bk.bodenmarkierung({lkw:[{x:WK.r6.x,z:Wr.z0}],y:0.012,schatten:true});
   /* Gefahrstoffweg (gelb schraffiert) von der Gefahrstofftuer West durch die Erdwall-Luecke zum Mischhaus */
   bk.bodenmarkierung({flaechen:[{x0:-114.6,x1:-100.25,z0:WK.westTuer-0.6,z1:WK.westTuer+0.6,art:'sperr'},{x0:-114.6,x1:-113.4,z0:WK.westTuer+0.6,z1:-25.6,art:'sperr'}],y:0.012,schatten:true});
-  bk.schild(scene,{text:'GEFAHRSTOFFWEG',unter:'Keine Stapler · Nur Satz und Chemie',b:1.6,h:0.45,x:-100.23,y:2.7,z:WK.westTuer,ry:-Math.PI/2,bg:MAT.css('feuerrot'),fg:MAT.css('weiss')});
+  bk.schild(scene,{text:'GEFAHRSTOFFWEG',unter:'Keine Stapler · Nur Satz und Chemie',b:1.6,h:0.45,x:-100.23,y:2.7,z:WK.westTuer,ry:-Math.PI/2,stil:'brand'});
   /* Werkszaun Doppelstab 2 m: West mit Einfahrt (Schiebetor offen geparkt), Nord an der Strasse, Sued */
   const ZX=WK.zaunX, E=WK.einfahrt;
   bk.zaun({art:'doppelstab',von:[ZX,5.9],bis:[ZX,Hf.z0],hoehe:2.0,luecke:[[5.9-E[1],5.9-E[0]]]});
@@ -447,7 +445,7 @@ function wkAussen(){
     S.fertig(scene,{fest:true}); col(r.kollision.x0,r.kollision.x1,r.kollision.z0,r.kollision.z1);
     const mr=MAT.neu('ampelRot'), mg=MAT.neu('ampelGruen'); mr.emissiveIntensity=0; mg.emissiveIntensity=1.4;
     for(const [l,m] of [[Lm.rot,mr],[Lm.gruen,mg]]) if(l.length){ const me=new THREE.Mesh(merge(l),m); me.userData.bauteil='zelle'; me.userData.klasse='leuchte'; scene.add(me); }
-    bk.schild(scene,{text:'MISCHHAUS',unter:'Fernbedienter Mischer · Zutritt nur bei Stillstand',b:1.6,h:0.45,x:-114,y:2.75,z:Mi.z0-0.01,ry:Math.PI,bg:MAT.css('feuerrot'),fg:MAT.css('weiss')});
+    bk.schild(scene,{text:'MISCHHAUS',unter:'Fernbedienter Mischer · Zutritt nur bei Stillstand',b:1.6,h:0.45,x:-114,y:2.75,z:Mi.z0-0.01,ry:Math.PI,stil:'brand'});
     const E2=WK.erdwall, w=bk.erdwall({x0:E2.x0,x1:E2.x1,z0:E2.z0,z1:E2.z1,hoehe:4,fuss:3,krone:0.8,luecke:{seite:'s',von:E2.luecke[0],bis:E2.luecke[1]}});
     for(const c of w.kollision) col(c.x0,c.x1,c.z0,c.z1); }
 }

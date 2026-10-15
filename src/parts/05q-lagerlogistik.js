@@ -165,7 +165,7 @@ function llRohbau(){
   { const T=LL.tuer, z0=L3.z1, z1=L3.z1+LW;
     llW(-66-LW,T.x-T.b/2,z0,z1,0,H,'-z','lager','blech'); llW(T.x+T.b/2,-26+LW,z0,z1,0,H,'-z','lager','blech');
     llW(T.x-T.b/2,T.x+T.b/2,z0,z1,T.h,H,'-z','lager','blech',true);
-    LL_T.tuer=bk.drehtuer({x:T.x,z:z0+LW/2,ry:0,breite:T.b,hoehe:T.h,dicke:LW,art:'stahl',anschlag:1,auf:1});
+    LL_T.tuer=bk.tuer({x:T.x,z:z0+LW/2,ry:0,breite:T.b,hoehe:T.h,dicke:LW,art:'stahl',anschlag:1,auf:1});
     /* Wegenetz: zu (Personal und Kunden laufen nicht hinaus), der Spieler geht durch (15-player collide) */
     const c=col(T.x-T.b/2,T.x+T.b/2,z0,z1); c.nurNav=true; }
   /* Schleuse: Suedwand, Sturz zu ③, Sturz und Pfeiler zu ② (breit offen) */
@@ -189,7 +189,7 @@ function llRohbau(){
     Sx.fertig(scene,{fest:true});
     col(xg-0.06,xg+0.06,d0-b-0.1,d0-0.05);
     bk.bodenmarkierung({flaechen:[{x0:-27.2,x1:-26.1,z0:d0,z1:d1,art:'sperr'}],y:0.015});
-    bk.schild(scene,{text:'FEUERSCHUTZTOR',unter:'Schliessbereich freihalten',b:1.5,h:0.42,x:xg-0.05,y:3.65,z:(d0+d1)/2,ry:-Math.PI/2,bg:MAT.css('feuerrot'),fg:MAT.css('weiss')}); }
+    bk.schild(scene,{text:'FEUERSCHUTZTOR',unter:'Schliessbereich freihalten',b:1.5,h:0.42,x:xg-0.05,y:3.65,z:(d0+d1)/2,ry:-Math.PI/2,stil:'brand'}); }
   streifenvorhang(null,false,-26,d0,d1,3.0);
   /* Schnelllauftor N1 in der gelben Wand */
   LL_T.n1=bk.tor({art:'schnelllauf',breite:N.z1-N.z0,hoehe:N.h,wand:[-W,W],blatt:0,nr:null,bedien:1,ampel:false,vordach:false,dichtung:false,poller:false,x:-36,z:(N.z0+N.z1)/2,ry:0});
@@ -311,7 +311,7 @@ function llLicht(){
     S.zyl(0.08,0.08,10.4,seg,-26.4,5.2,-33.6,F('feuerrot'),'lackMetall');
     S.fertig(scene,{fest:true,schatten:false}); }
   /* Fluchtweg-Schilder (gruen) */
-  const fw={bg:MAT.css('signalgruen'),fg:MAT.css('weiss')};
+  const fw={stil:'flucht'};
   bk.schild(scene,Object.assign({text:'NOTAUSGANG',unter:'↑ Personaltür',b:1.2,h:0.38,x:-40,y:2.55,z:-7.03,ry:Math.PI},fw));
   bk.schild(scene,Object.assign({text:'FLUCHTWEG',unter:'← Kartonlager ③ · Laden',b:1.2,h:0.38,x:-36.12,y:3.55,z:-14.4,ry:-Math.PI/2},fw));
   bk.schild(scene,Object.assign({text:'FLUCHTWEG',unter:'→ Schleuse · Lager',b:1.2,h:0.38,x:-26.12,y:3.6,z:-21.6,ry:-Math.PI/2},fw));
@@ -350,7 +350,7 @@ function llAussen(){
   S.zyl(0.12,0.12,3.0,10,T.x+1.6,0.25,T.z-T.r-0.4,F('feuerrot'),'lackMetall',Math.PI/2,0,0);
   S.box(2.4,2.4,2.0,T.x+1.6,1.2,T.z-T.r-1.8,F('lichtgrau'),'lackMetall'); S.box(2.5,0.12,2.1,T.x+1.6,2.46,T.z-T.r-1.8,F('anthrazit'),'lackMetall');
   S.fertig(scene,{fest:true});
-  bk.schild(scene,{text:'SPRINKLERZENTRALE',unter:'Löschwasser 360 m³',b:1.5,h:0.42,x:T.x+1.6,y:2.0,z:T.z-T.r-2.82,ry:Math.PI,bg:MAT.css('feuerrot'),fg:MAT.css('weiss')});
+  bk.schild(scene,{text:'SPRINKLERZENTRALE',unter:'Löschwasser 360 m³',b:1.5,h:0.42,x:T.x+1.6,y:2.0,z:T.z-T.r-2.82,ry:Math.PI,stil:'brand'});
   col(T.x-T.r,T.x+T.r,T.z-T.r,T.z+T.r); col(T.x+0.4,T.x+2.8,T.z-T.r-2.8,T.z-T.r-0.8);
   /* Parkplatz: 8 Stellplaetze an der Hallenwand */
   const L=[]; for(let i=0;i<=8;i++){ const x=P.x0+i*2.5; L.push([x,P.z0,x,P.z0+5,'weiss',0.1]); }

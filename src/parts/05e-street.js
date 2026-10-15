@@ -7,20 +7,9 @@
    Im Norden steht die Ladenrueckwand, im Westen die Lagerwand, im
    Osten die Westwand des Rueckgebaeudes - eingezaeunt wird nur, was
    sonst offen waere. */
-let _warnTex=null;
-function warnTex(){
-  if(!_warnTex) _warnTex=tex(320,180,(g,W,Hh)=>{
-    g.fillStyle=MAT.css('signalgelb'); g.fillRect(0,0,W,Hh);
-    g.strokeStyle='#1f1f24'; g.lineWidth=8; g.strokeRect(6,6,W-12,Hh-12);
-    g.textAlign='center'; g.textBaseline='middle'; g.fillStyle='#1f1f24';
-    g.font=BUN(34); g.fillText('TESTFELD',W/2,48);
-    g.font=BAR(26); g.fillText('Zutritt nur für Personal',W/2,92);
-    g.fillText('Schutzbrille tragen',W/2,126);
-  });
-  return _warnTex;
-}
+/* Warnschild am Testfeldzaun: bk.schild im Warnstil (Signalgelb, Schrift Gummischwarz), Textur geteilt */
 function warnSchild(x,z,ry){
-  plane(1.6,0.9,new THREE.MeshStandardMaterial({side:THREE.DoubleSide,map:warnTex()}),x,1.2,z,ry,null);
+  bk.schild(scene,{text:'TESTFELD',unter:'Zutritt nur für Personal · Schutzbrille tragen',stil:'warn',b:1.6,h:0.9,x,y:1.2,z,ry,doppel:true});
 }
 /* Das Testfeld reicht jetzt von der Lagerwand bis an die Suedhalle.
    Im Norden steht der Lagergang, im Westen die Lagerwand, im Osten
@@ -1491,25 +1480,10 @@ function nachbarFassade(x0,x1,zid,unterzeile,eingang){
 
   /* ---------- Zustand „gehoert dir“: Schaufenster ---------- */
   const go=new THREE.Group(); g.add(go); zAdd(zid,go);
-  const glas=new THREE.MeshStandardMaterial({color:LIN(MAT.farbe('glasKlar')),transparent:true,opacity:0.16,roughness:0.05,metalness:0.2,depthWrite:false});
-  const prof=MAT.get('stahlAnthrazit');
-  const bank=MAT.get('kunststoffHellgrau');
-  OEFF.forEach(([a,b],i)=>{
-    if(i===eingang){ eingangsAchse(go,a,b,zf,ST,glas,prof); return; }
-    const y0=BR, y1=ST;
-    const bw=b-a, bh=y1-y0, bxc=(a+b)/2, byc=(y0+y1)/2;
-    /* Wie das Schaufenster im Basisladen (Tom, 26.09.): Glas buendig in
-       der Laibung, nur eine schmale Leiste oben und unten und eine
-       Mittelsprosse - kein umlaufender schwarzer Rahmen innen und aussen */
-    bbox(bw,bh,0.03,glas,bxc,byc,zf-0.1,go,false);
-    bbox(bw,0.06,0.12,prof,bxc,y0+0.03,zf-0.1,go,false);
-    bbox(bw,0.06,0.12,prof,bxc,y1-0.03,zf-0.1,go,false);
-    bbox(0.06,bh,0.1,prof,bxc,byc,zf-0.1,go,false);
-    /* Fensterbank nur aussen. Sie ragte 13 cm in den Laden hinein und
-       warf dort einen dunklen Schatten unter die ganze Fensterfront -
-       im Basisladen sitzt unter dem Fenster direkt die Sockelfarbe. */
-    if(y0>0.2) bbox(bw+0.16,0.06,0.26,bank,bxc,y0-0.02,zf+0.06,go,false);
-  });
+  /* Wie das Schaufenster im Basisladen (Tom, 26.09.): Glas buendig in der Laibung, schmale Leisten oben und unten, Mittelsprosse,
+     Sohlbank nur aussen - alles bk.fenster (04z), dieselbe Bauweise und Sohlbank Anthrazit wie am Basisladen (vorher hellgrau) */
+  bk.fenster({art:'schaufenster',z:zf-0.1,parent:go,felder:OEFF.filter((q,i)=>i!==eingang).map(([a,b])=>({x0:a,x1:b,y0:BR,y1:ST}))});
+  if(eingang!==undefined) eingangsAchse(go,OEFF[eingang][0],OEFF[eingang][1],zf,ST);
   if(eingang!==undefined&&EING2.x!==null){
     col(x0,EING2.x-1.28,zf-0.25,zf+0.05);
     col(EING2.x+1.28,x1,zf-0.25,zf+0.05);

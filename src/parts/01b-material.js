@@ -65,6 +65,10 @@ const MAT=(function(){
     /* Werk West (Etappe B, 15.10.): eigene Bedeutung - Erdung/Entladen (Kupferplatte an jeder Zellentuer, Pflicht in Pyro-Werken) */
     kupfer:           [0xb5713f,'Kupfer','Erdungsplatten an Zellentueren (Entladen), Kupferschienen','–'],
     glasKlar:         [0xd6ecff,'Glas klar','Toenung fuer Glas (immer transparent)','–'],
+    /* Anzeigen/LEDs an Geraeten (Einheit 15.10.): eigene Bedeutung - leuchtende Bedienanzeigen (Klasse leucht, unbeleuchtet) */
+    anzeigeGruen:     [0x37d977,'Anzeige gruen','LED/Signalleuchte bereit/frei (Kasse, SB-Kasse, Automat)','–'],
+    laserRot:         [0xd8262a,'Laser rot','Scannerlaser, rote Anzeige an Kassen','–'],
+    anzeigeBlau:      [0x3b7fd0,'Anzeige blau','Display Kartenterminal, Bildschirm-Grundton','–'],
     /* Licht (nur emissive, nicht angeglichen - Licht-Paket 05p) */
     lampeWarm:        [0xfff0d0,'Lampenlicht warm','Leuchtflaechen warmweiss','–']
   };
@@ -135,13 +139,31 @@ const MAT=(function(){
     markierungGruen:  {f:'signalgruen',k:'matt',polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-2,w:'Bodenmarkierung Gehweg gruen (Halle, Kartonlager)'},
     markierungPikto:  {f:0xffffff,tex:'fussgaenger',k:'matt',polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-4,w:'Fussgaenger-Piktogramm auf dem Gehweg (Textur fussgaenger, gruenes Feld)'},
     lichtband:        {f:'glasKlar',emissive:LIN(0xe4edf7),emissiveIntensity:0.9,k:'kunststoff',w:'Lichtband im Hallendach (Tageslicht, zugleich RWA) - nur MAT.neu, Leuchtstaerke folgt der Sonne (11f)'},
+    freihalteflaeche: {f:0xffffff,tex:'freihalteschraffur',transparent:true,depthWrite:false,k:'matt',polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-2,w:'Freihalteflaeche am Boden: gelbe Schraffur 45° auf dem Belag (Versandbereich, kuenftige Stationen; UV in Metern / 0,4)'},
+    bodenSchrift:     {f:0xffffff,k:'matt',transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-4,w:'Bodenschrift (ANLIEFERUNG, VERSANDHOF): eigene Textur je Text ueber bk.bodenmarkierung - nur MAT.neu mit map'},
     sperrflaeche:     {f:0xffffff,tex:'warnschraffur',k:'matt',polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-2,w:'Sperrflaeche gelb-schwarz am Boden (Warnschraffur, UV in Metern / 0,4)'},
     /* Werk West (Halle Etappe B, 15.10.): Betonzellen, Glas (Leitstand, Schnelllauftor), Erdwall, PVC-Behang */
     betonZelle:       {f:'cremeweiss',tex:'beton',k:'matt',w:'Betonzellen, Brandwaende und Satz-Bunker im Werk (bk.zelle) - UV in Metern / 2,4; Toenung Cremeweiss x graue Betontextur = sichtbar Steingrau (Steingrau selbst x Textur waere fast schwarz)'},
     glasScheibe:      {f:'glasKlar',k:'blank',transparent:true,opacity:0.24,depthWrite:false,w:'Glasscheibe klar (Leitstand-Front, Sichtfenster Schnelllauftor) - durchsichtig, getoent'},
     erdwall:          {f:0xffffff,tex:'rasen',k:'matt',w:'Erdwall/Boeschung mit Winterwiese (bk.erdwall) - UV in Metern / 4'},
     pvcBehang:        {f:'signalgelb',k:'kunststoff',side:THREE.DoubleSide,w:'Behang Schnelllauftor PVC (bk.tor art schnelllauf) - Warnfarbe, schnell bewegtes Teil'},
-    torWarn:          {f:0x3a2208,emissive:LIN(0xffb02a),emissiveIntensity:0,k:'kunststoff',w:'Rundumleuchte ueber dem Torantrieb (blinkt, solange das Tor faehrt) - nur MAT.neu'}
+    torWarn:          {f:0x3a2208,emissive:LIN(0xffb02a),emissiveIntensity:0,k:'kunststoff',w:'Rundumleuchte ueber dem Torantrieb (blinkt, solange das Tor faehrt) - nur MAT.neu'},
+    /* Einheit (15.10., Regale/Kassen/Fenster/Tueren/Schilder/Bodenmarkierung, docs/fundament/einheit.md): vorher je Bauort eigene
+       Materialien (pegMat, kasseRueckMat, _postM/_deckM in 06, coldGlass, Glas je Tuer/Fenster, regalPaketMat in 08b) */
+    lochblech:        {f:0xffffff,tex:'lochblech',k:'kunststoff',w:'Rueckwand Verkaufsregal: pulverbeschichtetes Lochblech, Loch 5 cm (UV 0,4 m je Kachel); Farbe folgt der Wand - nur MAT.neu'},
+    lochblechKasse:   {f:'lichtgrau',tex:'lochblech',k:'kunststoff',w:'Rueckwand Kassenregal: Lochblech lichtgrau wie die Kasse (UV 0,4 m je Kachel)'},
+    regalStuetze:     {f:'signalblau',tex:'lochprofil',k:'lackMetall',w:'Stuetzen der Lagerregale: Lochprofil Signalblau (wie Hochregal und Packmaterial-Regal), Kachel 2,34 m hoch (Lochabstand 10 cm)'},
+    regalBoden:       {f:0xffffff,tex:'stahlboden',k:'stahl',w:'Fachboden Lagerregal: verzinkte Stahlblechauflage mit Kantung (Kachel = 0,8 m)'},
+    regalPaket:       {f:0xffffff,tex:'regalPaket',k:'kunststoff',w:'Flachpaket eines Regals in Folie (LKW, getragen, abgestellt)'},
+    gitterBox:        {f:'aluminium',tex:'drahtgitter',alphaTest:0.4,side:THREE.DoubleSide,k:'stahl',w:'Drahtgitter der Gitterbox (UV 0,2 m je Kachel); Farbe folgt dem Regalgestell - nur MAT.neu'},
+    lichtleiste:      {f:'weiss',emissive:LIN(0xfff2dc),emissiveIntensity:0,k:'kunststoff',w:'Lichtleiste unter den Regalboeden - ein Material fuer alle Regale, das Upgrade Regallicht schaltet die Leuchtstaerke (nur MAT.neu)'},
+    lichtleisteKuehl: {f:'weiss',emissive:LIN(0xd6ecff),emissiveIntensity:1.1,k:'kunststoff',w:'Kuehlschrank-Innenlicht (kaltweiss, immer an)'},
+    etikett:          {f:0xffffff,k:'kunststoff',w:'bedrucktes Schild/Etikett mit eigener Textur (Hausstil-Schilder, Lagerplatz-Schild) - MAT.neu mit map, beleuchtet'},
+    scannerGlas:      {f:'gummischwarz',tex:'scannerGlas',k:'blank',w:'Scannerscheibe in der Kassenplatte (Glas mit Kratzern)'},
+    kassenTastatur:   {f:0xffffff,tex:'kassenTastatur',k:'kunststoff',w:'Kassentastatur (Tasten beschriftet, Summentaste gruen)'},
+    kassenband:       {f:0xffffff,tex:'kassenband',k:'matt',w:'Laufband der Kasse (Gummi mit Rillen; eigene Kopie der Textur, weil sie laeuft - offset)'},
+    pvcStreifen:      {f:0xffffff,vertexColors:true,transparent:true,opacity:0.38,side:THREE.DoubleSide,depthWrite:false,k:'kunststoff',w:'PVC-Streifenvorhang (bk.tuer art streifen): halbdurchsichtige Streifen'},
+    fensterSchmutz:   {f:0xffffff,tex:'fensterSchmutz',transparent:true,opacity:0,depthWrite:false,k:'matt',w:'Schmutzschicht auf den Schaufenstern (Spielzustand S.grime, Deckkraft je Fenster) - nur MAT.neu'}
   };
   /* Vertexfarben-Klassen (Sammler, bk.sammler): Farbe je Ecke, Oberflaeche je Klasse */
   const VC_KLASSE={
@@ -228,6 +250,10 @@ const MAT=(function(){
   function stdGeteilt(hex,o){ return geteilt(schluessel('std',hex,o),()=>std(hex,o),{farbe:tonVon(hex),klasse:null,wofuer:''}); }
   function tonVon(hex){ for(const k in FARBE) if(FARBE[k]===hex) return k; return null; }
   /* geteiltes MeshBasicMaterial (Farbe wie new MeshBasicMaterial({color:hex}) - ohne Linearisierung) */
+  /* eigenes unbeleuchtetes Bildmaterial (Schilder mit veraenderlichem Bild, Bildschirme, Preisschilder): Bild wird nicht vom Licht
+     veraendert (kein Tonwert). Eigen, nicht geteilt - die Textur gehoert genau einer Stelle (Einheit 15.10., vorher
+     new MeshBasicMaterial({map,toneMapped:false}) an ~30 Stellen) */
+  function bild(map,o){ zaehle('bild'); return new THREE.MeshBasicMaterial(Object.assign({map,toneMapped:false},o||{})); }
   function basic(hex,o){ return geteilt(schluessel('basic',hex,o),()=>new THREE.MeshBasicMaterial(Object.assign({color:hex},o||{}))); }
   /* Vertexfarben-Material je Klasse */
   function vc(klasse){ const kl=klasse||'standard';
@@ -238,7 +264,7 @@ const MAT=(function(){
   function css(name,a){ const h=hexVon(name); if(a===undefined) return '#'+(h>>>0).toString(16).padStart(6,'0'); return 'rgba('+(h>>16&255)+','+(h>>8&255)+','+(h&255)+','+a+')'; }
 
   /* ---------- geteilte prozedurale Texturen (lazy, einmal gemalt) ---------- */
-  const TEXTUR_W={fassade:'Aussenwand Faserzementtafeln (Fugen, Nieten, Sockel 62 cm) - Kachel 2,4 x 8 m ueber repeat, Wand-UV in Metern',lagerwand:'Lagerwand hell mit gelb-schwarzem Sockelband - Kachel 2,6 x 3,6 m ueber repeat',trapezblech:'Trapezblech Hallenwand, Sicke 0,4 m - Kachel 3,2 m ueber repeat',beton:'Beton (innen Lagerboden, aussen Hof) - eine Textur, Massstab ueber die UVs',doppelstab:'Doppelstabmatte (Zaeune, Absperrungen)',drahtgitter:'Drahtgitter/Schweissgitter (Gitterbox, Ladezonen-Absperrung) - Masche 5 cm, Farbe ueber das Material',warnschraffur:'Warnschraffur gelb/schwarz (Torkanten, Sperrflaechen, Bodenrahmen)',palettenMarke:'Paletten-Atlas 256 x 256: oben links Brand EPAL im Oval (Eck-Kloetze), oben rechts IPPC/HT-Stempel (Mittelkloetze), darunter Kiefern-Maserung (Streifen je Brett); Layout MAT.PALETTE_UV. Holzton kommt ueber Vertexfarben, Alterung ueber Instanzfarben',fussgaenger:'Fussgaenger-Piktogramm weiss auf Signalgruen (Gehweg-Markierung), 128 x 128',rasen:'Winterwiese 256 x 256 (Erdwall Werk West), Kachel 4 m ueber die UVs',torBlatt:'Torblatt-Atlas aller Ladetore (Optik alter R1, Tom 14.10.): Zeile 0 glatte Sektion lichtgrau, 1 Lichtband (4 Scheiben), 2 unterstes Panel aussen (Griffmulde), 3 weiss (Kleinteile ueber Vertexfarben)'};
+  const TEXTUR_W={fassade:'Aussenwand Faserzementtafeln (Fugen, Nieten, Sockel 62 cm) - Kachel 2,4 x 8 m ueber repeat, Wand-UV in Metern',lagerwand:'Lagerwand hell mit gelb-schwarzem Sockelband - Kachel 2,6 x 3,6 m ueber repeat',trapezblech:'Trapezblech Hallenwand, Sicke 0,4 m - Kachel 3,2 m ueber repeat',beton:'Beton (innen Lagerboden, aussen Hof) - eine Textur, Massstab ueber die UVs',doppelstab:'Doppelstabmatte (Zaeune, Absperrungen)',drahtgitter:'Drahtgitter/Schweissgitter (Gitterbox, Ladezonen-Absperrung) - Masche 5 cm, Farbe ueber das Material',warnschraffur:'Warnschraffur gelb/schwarz (Torkanten, Sperrflaechen, Bodenrahmen)',palettenMarke:'Paletten-Atlas 256 x 256: oben links Brand EPAL im Oval (Eck-Kloetze), oben rechts IPPC/HT-Stempel (Mittelkloetze), darunter Kiefern-Maserung (Streifen je Brett); Layout MAT.PALETTE_UV. Holzton kommt ueber Vertexfarben, Alterung ueber Instanzfarben',fussgaenger:'Fussgaenger-Piktogramm weiss auf Signalgruen (Gehweg-Markierung), 128 x 128',rasen:'Winterwiese 256 x 256 (Erdwall Werk West), Kachel 4 m ueber die UVs',lochblech:'Lochblech hell (Rueckwand Verkaufs-/Kassenregal), Kachel 0,4 m = 8 x 8 Loecher',lochprofil:'Lochprofil der Lagerregal-Stuetzen, Kachel 2,34 m hoch (23 Loecher), neutral (Farbe ueber das Material)',stahlboden:'Stahlblechauflage Lagerregal mit Kantung',regalPaket:'Flachpaket eines Regals in Folie mit Etikett',fensterSchmutz:'Schmutz auf Schaufenstern (Regenschlieren, Fingerabdruecke), Deckkraft je Fenster',freihalteschraffur:'Freihalteflaeche gelbe Schraffur 45° (transparent), Kachel 0,4 m',scannerGlas:'Scannerscheibe der Kasse',kassenTastatur:'Kassentastatur 768 x 384',kassenband:'Kassen-Laufband (Rillen); die Kasse nimmt eine eigene Kopie, weil das Band laeuft',torBlatt:'Torblatt-Atlas aller Ladetore (Optik alter R1, Tom 14.10.): Zeile 0 glatte Sektion lichtgrau, 1 Lichtband (4 Scheiben), 2 unterstes Panel aussen (Griffmulde), 3 weiss (Kleinteile ueber Vertexfarben)'};
   /* Fassadentafeln (vorher fassadeTex() in 05-world.js): Kachel zwei Tafeln breit, Fuge auf dem Kachelrand -
      wo sich die Textur wiederholt, sitzt eine Fuge; senkrecht ueber die volle Wandhoehe (Sockel unten bleibt) */
   const FASS={b:2.4, h:8.0, sockel:0.62, tafel:1.18};
@@ -364,6 +390,79 @@ const MAT=(function(){
         g.font='bold 20px Arial, sans-serif'; g.fillText('HT',144,49); g.font='9px Arial, sans-serif'; g.fillText('EPAL 4711 10 25',168,50);
         g.beginPath(); g.moveTo(228,12); g.lineTo(228,26); g.moveTo(228,16); g.lineTo(223,12); g.moveTo(228,16); g.lineTo(233,12); g.moveTo(228,21); g.lineTo(223,17); g.moveTo(228,21); g.lineTo(233,17); g.lineWidth=1.4; g.stroke(); });
       t.anisotropy=4; return t; },
+    /* Lochblech (vorher pegMat in 06, Malcode unveraendert): neutral hell, Farbe ueber das Material. Kachel = 8 x 8 Loecher = 0,4 m (Loch 5 cm) */
+    lochblech:()=>{ const t=tex(256,256,(g,W,H)=>{ g.fillStyle='#f4f5f6'; g.fillRect(0,0,W,H);
+        for(let i=0;i<1400;i++){ g.fillStyle=`rgba(${Math.random()<0.5?'255,255,255':'120,124,130'},${0.03+Math.random()*0.04})`; g.fillRect(Math.random()*W,Math.random()*H,2,2); }
+        for(let x=16;x<W;x+=32) for(let y=16;y<H;y+=32){ g.fillStyle='rgba(255,255,255,.7)'; g.fillRect(x-3,y-4,7,9); g.fillStyle='#3a3d43'; g.fillRect(x-3,y-5,6,9); g.fillStyle='#6a6e76'; g.fillRect(x-3,y-5,6,2); } });
+      t.wrapS=t.wrapT=THREE.RepeatWrapping; return t; },
+    /* Lochprofil der Regalstuetzen (vorher holeT in rackMats, 06): jetzt neutral, Signalblau kommt ueber das Material. Kachel = ganze Profilbreite x 2,34 m (23 Loecher) */
+    lochprofil:()=>{ const t=tex(64,512,(c,W,H)=>{
+        c.fillStyle='#ffffff'; c.fillRect(0,0,W,H);
+        c.fillStyle='rgba(255,255,255,.16)'; c.fillRect(0,0,6,H);
+        c.fillStyle='rgba(0,0,0,.24)'; c.fillRect(W-7,0,7,H);
+        for(let y=10;y<H-8;y+=22){ c.fillStyle='#7a8496'; c.fillRect(W/2-7,y,14,11); c.fillStyle='rgba(0,0,0,.45)'; c.fillRect(W/2-7,y+9,14,2); }
+        for(let i2=0;i2<700;i2++){ c.fillStyle=`rgba(0,0,0,${Math.random()*0.07})`; c.fillRect(Math.random()*W,Math.random()*H,2,2); } });
+      t.wrapS=t.wrapT=THREE.RepeatWrapping; return t; },
+    /* Stahlblechauflage Lagerregal (vorher boardT in rackMats, 06, Malcode unveraendert) */
+    stahlboden:()=>{ const t=tex(256,256,(c,W,H)=>{
+        const g0=c.createLinearGradient(0,0,0,H); g0.addColorStop(0,'#9aa1ac'); g0.addColorStop(0.45,'#aeb5c0'); g0.addColorStop(1,'#8f959f');
+        c.fillStyle=g0; c.fillRect(0,0,W,H);
+        for(let x=0;x<W;x+=64){ c.fillStyle='rgba(255,255,255,.08)'; c.fillRect(x,0,2,H); c.fillStyle='rgba(0,0,0,.08)'; c.fillRect(x+2,0,2,H); }
+        for(let i2=0;i2<600;i2++){ c.fillStyle=`rgba(255,255,255,${Math.random()*0.035})`; c.fillRect(Math.random()*W,Math.random()*H,2,2); }
+        c.fillStyle='rgba(40,46,56,.22)'; c.fillRect(0,0,W,4); c.fillRect(0,H-4,W,4); });
+      t.wrapS=t.wrapT=THREE.RepeatWrapping; t.anisotropy=8; return t; },
+    /* Flachpaket Regal (vorher regalPaketMat in 08b, Malcode unveraendert) */
+    regalPaket:()=>tex(256,128,(c,W,H)=>{
+        c.fillStyle='#b9bec6'; c.fillRect(0,0,W,H);
+        for(let i=0;i<900;i++){ c.fillStyle=`rgba(255,255,255,${Math.random()*0.16})`; c.fillRect(Math.random()*W,Math.random()*H,rand(4,22),1); }
+        c.fillStyle=css('anthrazit'); c.fillRect(W*0.22,0,8,H); c.fillRect(W*0.72,0,8,H);
+        c.fillStyle=css('cremeweiss'); c.fillRect(W*0.34,H*0.28,W*0.32,H*0.44);
+        c.strokeStyle='#8f959e'; c.lineWidth=2; c.strokeRect(W*0.34,H*0.28,W*0.32,H*0.44);
+        c.fillStyle=css('nachtblau'); c.font=BUN(15); c.textAlign='center'; c.textBaseline='middle';
+        c.fillText('REGALBAU',W*0.5,H*0.42);
+        c.fillStyle='#5a6070'; c.font=BAR(13); c.fillText('Stegemann',W*0.5,H*0.58); }),
+    /* Schmutz auf Schaufenstern (vorher grimeTex in 05f, Malcode unveraendert): Kachel = halbe Fensterbreite (UV 2 x 1) */
+    fensterSchmutz:()=>{ const t=tex(256,128,(g,W,H)=>{
+        g.clearRect(0,0,W,H); g.fillStyle='rgba(176,168,150,.5)'; g.fillRect(0,0,W,H);
+        for(let i=0;i<900;i++){ g.fillStyle=`rgba(120,110,92,${Math.random()*0.35})`; g.fillRect(Math.random()*W,Math.random()*H,rand(1,4),rand(1,4)); }
+        for(let i=0;i<26;i++){ const x=Math.random()*W, w=rand(2,9); const gr=g.createLinearGradient(x,0,x,H); gr.addColorStop(0,'rgba(90,84,70,.34)'); gr.addColorStop(1,'rgba(90,84,70,0)'); g.fillStyle=gr; g.fillRect(x,0,w,H); }
+        g.strokeStyle='rgba(210,205,190,.3)'; g.lineWidth=7;
+        for(let i=0;i<7;i++){ g.beginPath(); const y=rand(10,H-10); g.moveTo(0,y); g.bezierCurveTo(W*0.3,y+rand(-14,14),W*0.7,y+rand(-14,14),W,y+rand(-10,10)); g.stroke(); }
+        for(let i=0;i<14;i++){ g.fillStyle='rgba(150,142,120,.26)'; g.beginPath(); g.ellipse(Math.random()*W,Math.random()*H,rand(3,6),rand(4,8),Math.random(),0,Math.PI*2); g.fill(); }
+        const eg=g.createLinearGradient(0,H,0,H-26); eg.addColorStop(0,'rgba(90,82,66,.45)'); eg.addColorStop(1,'rgba(90,82,66,0)'); g.fillStyle=eg; g.fillRect(0,H-26,W,26); });
+      t.wrapS=t.wrapT=THREE.RepeatWrapping; return t; },
+    /* Freihalteschraffur (Einheit 15.10., vorher reserveTex in 05h je Flaeche neu gemalt): gelbe Linien 45° auf transparent, Kachel 0,4 m */
+    freihalteschraffur:()=>{ const t=tex(128,128,(g,W,H)=>{ g.clearRect(0,0,W,H); g.strokeStyle=css('signalgelb',0.6); g.lineWidth=11;
+        for(let d=-W;d<=2*W;d+=W){ g.beginPath(); g.moveTo(d,H); g.lineTo(d+H,0); g.stroke(); } });
+      t.wrapS=t.wrapT=THREE.RepeatWrapping; t.anisotropy=4; return t; },
+    /* Kasse (vorher in buildCheckout, 06, Malcode unveraendert): Scannerscheibe, Tastatur, Laufband */
+    scannerGlas:()=>tex(512,512,(g,W,H)=>{
+        g.fillStyle='#10141c'; g.fillRect(0,0,W,H);
+        const gl=g.createLinearGradient(0,0,W*0.7,H);
+        gl.addColorStop(0,'rgba(210,226,244,.24)'); gl.addColorStop(0.35,'rgba(210,226,244,.05)'); gl.addColorStop(0.62,'rgba(210,226,244,.14)'); gl.addColorStop(1,'rgba(210,226,244,.03)');
+        g.fillStyle=gl; g.fillRect(0,0,W,H);
+        for(let i=0;i<70;i++){ g.strokeStyle=`rgba(230,238,250,${rand(0.02,0.07)})`; g.lineWidth=rand(0.6,1.6); const x=Math.random()*W, y=Math.random()*H; g.beginPath(); g.moveTo(x,y); g.lineTo(x+rand(-70,70),y+rand(-18,18)); g.stroke(); }
+        for(let i=0;i<900;i++){ g.fillStyle=`rgba(255,255,255,${Math.random()*0.035})`; g.fillRect(Math.random()*W,Math.random()*H,2,2); } }),
+    kassenTastatur:()=>{ const t=tex(768,384,(g,W,H)=>{
+        g.fillStyle='#1b1f28'; g.fillRect(0,0,W,H);
+        const cols=8, rows=4, mx=26, my=22, cw=(W-mx*2)/cols, ch=(H-my*2)/rows;
+        const label=['7','8','9','STORNO','4','5','6','KARTE','1','2','3','BAR','0','00',',','SUMME'];
+        for(let r=0;r<rows;r++) for(let c=0;c<cols;c++){
+          const x=mx+c*cw+3, y=my+r*ch+3, w=cw-6, h=ch-6, isFn=c>=6, isSum=(r===3&&c>=6);
+          g.fillStyle='rgba(0,0,0,.55)'; g.fillRect(x+2,y+3,w,h);
+          const base=isSum?'#2f7a48':isFn?'#3d4658':'#e8e9ec', top=isSum?'#3f9a5c':isFn?'#4e596e':'#f7f8fa';
+          const gr=g.createLinearGradient(0,y,0,y+h); gr.addColorStop(0,top); gr.addColorStop(1,base); g.fillStyle=gr; g.fillRect(x,y,w,h);
+          g.fillStyle='rgba(255,255,255,.25)'; g.fillRect(x,y,w,2); g.fillStyle='rgba(0,0,0,.22)'; g.fillRect(x,y+h-2,w,2);
+          const t2=label[(r*4+(c%4))%label.length]; g.fillStyle=isFn||isSum?'#eef2f8':'#1b1f28'; g.textAlign='center'; g.textBaseline='middle'; g.font=BAR(t2.length>3?15:26); g.fillText(t2,x+w/2,y+h/2+1); }
+        g.strokeStyle='#0f1218'; g.lineWidth=10; g.strokeRect(5,5,W-10,H-10);
+        for(let i=0;i<500;i++){ g.fillStyle=`rgba(255,255,255,${Math.random()*0.03})`; g.fillRect(Math.random()*W,Math.random()*H,2,2); } });
+      t.anisotropy=8; return t; },
+    kassenband:()=>{ const t=tex(512,256,(g,W,H)=>{
+        g.fillStyle='#17181d'; g.fillRect(0,0,W,H);
+        for(let x=0;x<W;x+=26){ g.fillStyle='#252830'; g.fillRect(x,0,11,H); g.fillStyle='rgba(255,255,255,.07)'; g.fillRect(x+11,0,2,H); g.fillStyle='rgba(0,0,0,.35)'; g.fillRect(x+24,0,2,H); }
+        for(let i=0;i<5200;i++){ const v=Math.random(); g.fillStyle=`rgba(${v<0.5?0:255},${v<0.5?0:255},${v<0.5?0:255},${Math.random()*0.05})`; g.fillRect(Math.random()*W,Math.random()*H,2,2); }
+        for(let i=0;i<22;i++){ g.fillStyle=`rgba(0,0,0,${rand(0.05,0.14)})`; g.beginPath(); g.ellipse(Math.random()*W,Math.random()*H,rand(6,22),rand(4,12),Math.random()*3,0,Math.PI*2); g.fill(); } });
+      t.wrapS=t.wrapT=THREE.RepeatWrapping; return t; },
     torBlatt:()=>{ const t=tex(512,512,(c,W,H)=>{ const RH=H/4, M=W/3.26, MV=RH/0.588;
         const sektion=y0=>{ c.fillStyle=css('lichtgrau'); c.fillRect(0,y0,W,RH);
           /* Fuge: Nut oben, Feder unten (am alten Tor eigene Profile im Spalt) */
@@ -468,5 +567,5 @@ const MAT=(function(){
      der Szene) nur ein Hauch Lack und stark unscharf. */
   function bodenGlanz(f){ f=f||{}; const rau=f.rau!==undefined?f.rau:0.6, gl=f.glanz||0, teppich=f.art==='velours';
     return {roughness:teppich?1:Math.min(0.9,0.6+0.3*rau), env:teppich?0:Math.min(0.12,gl*0.25), lack:teppich?0:Math.min(0.12,0.04+gl*0.16), unschaerfe:0.35}; }
-  return {FARBE,PALETTE,PALETTE_UV:PAL_UV,KLASSE,REZEPT,bodenGlanz,get,ober,eigen,neu,kopie,std:stdGeteilt,basic,vc,farbe,css,tex:texGet,kachel,atlas,atlasPatch,atlasObc,stufe,liste,verstoesse,get wache(){ return wacheAn; }};
+  return {FARBE,PALETTE,PALETTE_UV:PAL_UV,KLASSE,REZEPT,bodenGlanz,get,ober,eigen,neu,kopie,std:stdGeteilt,basic,bild,vc,farbe,css,tex:texGet,kachel,atlas,atlasPatch,atlasObc,stufe,liste,verstoesse,get wache(){ return wacheAn; }};
 })();

@@ -360,13 +360,7 @@ function buildLagergang(){
   leuchtenRaster(Z,{x0:G.x0,x1:G.x1,z0:G.z0,z1:G.z1},G.h,3.4,2.6);
   roomAO(G.x0+0.02,G.x1-0.02,G.z0+0.02,G.z1-0.02);
   /* Hinweisschild ueber dem Durchgang zum Lager */
-  zAdd(Z,plane(1.5,0.3,new THREE.MeshBasicMaterial({toneMapped:false,side:THREE.DoubleSide,
-    map:tex(512,104,(g,W,H)=>{
-      g.fillStyle='#1b2340'; g.fillRect(0,0,W,H);
-      g.fillStyle=MAT.css('schildgold'); g.fillRect(0,H-7,W,7);
-      g.textAlign='center'; g.textBaseline='middle';
-      g.fillStyle='#e8ecf5'; g.font=BUN(36); g.fillText('◄  LAGER · GROSSHANDEL',W/2,H/2-3);
-    })}),mitteX,2.45,G.z1-0.06,Math.PI,null));
+  zAdd(Z,bk.schild(scene,{text:'◄  LAGER · GROSSHANDEL',b:1.5,h:0.3,x:mitteX,y:2.45,z:G.z1-0.06,ry:Math.PI,leucht:true,doppel:true}));
 }
 /* =========================================================
    Schleuse zwischen Lager und Grosshandel. Das Lager ist 6,4 m
@@ -380,36 +374,11 @@ function buildLagergang(){
    PVC-Streifen. Er haelt die Waerme und sieht aus wie das, was
    er ist. Kollision bekommt er keine, man geht hindurch.
    ========================================================= */
-let _pvcM=null;
-function pvcMat(){
-  if(!_pvcM) _pvcM=new THREE.MeshStandardMaterial({vertexColors:true,transparent:true,
-    opacity:0.38,roughness:0.3,metalness:0,side:THREE.DoubleSide,depthWrite:false});
-  return _pvcM;
-}
 function streifenvorhang(zid,laengs,fest,a0,a1,hoehe){
-  const len=a1-a0, mitte=(a0+a1)/2, H=hoehe-0.12;
-  /* Traverse mit Halteklemmen */
-  const stahl=MAT.get('stahlVerzinkt');
-  zAdd(zid,laengs
-    ? bbox(len+0.16,0.1,0.14,stahl,mitte,hoehe-0.05,fest,null,false)
-    : bbox(0.14,0.1,len+0.16,stahl,fest,hoehe-0.05,mitte,null,false));
-  /* Die Streifen ueberlappen sich um sechs Zentimeter, so wie an
-     jeder Laderampe. Alles in ein Mesh, sonst haengen an drei
-     Durchgaengen fuenfzig Einzelobjekte in der Szene. */
-  const B=0.30, T=0.24, n=Math.max(2,Math.floor(len/T));
-  const rest=(len-(n-1)*T-B)/2;
-  const geo=new THREE.BoxGeometry(B,H,0.006);
-  const teile=[];
-  for(let i=0;i<n;i++){
-    const a=a0+rest+B/2+i*T;
-    const kipp=(i%2?1:-1)*0.035;           /* leicht schraeg, wie benutzt */
-    teile.push({geo,color:i%2?MAT.farbe('weiss'):MAT.farbe('weiss'),
-      m:laengs?tm(a,H/2+0.02,fest,0,kipp,0):tm(fest,H/2+0.02,a,0,Math.PI/2+kipp,0)});
-  }
-  const m=new THREE.Mesh(merge(teile),pvcMat());
-  m.renderOrder=1; scene.add(m); zAdd(zid,m);
-  geo.dispose();
-  return m;
+  /* PVC-Streifen mit Traverse: bk.tuer art 'streifen' (04z) - hier nur die Zone (faellt/erscheint mit dem Ausbau) */
+  const T=bk.tuer({art:'streifen',laengs,fest,a0,a1,hoehe});
+  zAdd(zid,T.traverse); zAdd(zid,T.streifen);
+  return T.streifen;
 }
 function buildSchleuse(){
   const S2=LAY.schleuse, H=SCHLEUSE_H;
@@ -745,19 +714,10 @@ function packRegalImWeg(st){
 function vsZaunS(B,k){ return {box:(w,h,d,x,y,z,c,kl,rx,ry,rz)=>B(k,w,h,d,c,x,y,z,rx,ry,rz)}; }
 /* Versandbereich am Boden (Tom 09.10.: "gelbe Linie/Schraffur, keine Schrift"): hier waechst
    die Station noch hin - Regale und Moebel kommen dort nicht hin (PACK_FL) */
-function reserveTex(BW,BT){
-  const k=Math.min(200,1024/Math.max(BW,BT)), W=Math.max(16,Math.round(BW*k)), H=Math.max(16,Math.round(BT*k));
-  return tex(W,H,(c)=>{ c.clearRect(0,0,W,H);
-    c.strokeStyle=MAT.css('signalgelb',.95); c.lineWidth=Math.max(4,k*0.06); c.setLineDash([k*0.3,k*0.15]); c.strokeRect(c.lineWidth/2,c.lineWidth/2,W-c.lineWidth,H-c.lineWidth); c.setLineDash([]);
-    c.save(); c.beginPath(); c.rect(k*0.08,k*0.08,W-k*0.16,H-k*0.16); c.clip();
-    c.strokeStyle=MAT.css('signalgelb',.55); c.lineWidth=Math.max(3,k*0.035);
-    for(let d=-H;d<W;d+=k*0.35){ c.beginPath(); c.moveTo(d,H); c.lineTo(d+H,0); c.stroke(); }
-    c.restore(); });
-}
-function versandReserve(x0,x1,z0,z1){
-  const m=new THREE.Mesh(new THREE.PlaneGeometry(Math.abs(x1-x0),Math.abs(z1-z0)),new THREE.MeshStandardMaterial({map:reserveTex(Math.abs(x1-x0),Math.abs(z1-z0)),transparent:true,depthWrite:false,roughness:0.6,
-    polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2}));
-  m.rotation.x=-Math.PI/2; m.position.set((x0+x1)/2,0.022,(z0+z1)/2); return m;
+function versandReserve(x0,x1,z0,z1,g){
+  /* gestrichelter Rand und Freihalte-Schraffur (bk.bodenmarkierung, vorher reserveTex je Flaeche) */
+  const X0=Math.min(x0,x1), X1=Math.max(x0,x1), Z0=Math.min(z0,z1), Z1=Math.max(z0,z1);
+  return bk.bodenmarkierung({rahmen:[{x0:X0,x1:X1,z0:Z0,z1:Z1,farbe:'gelb',breite:0.06,strich:0.3,luecke:0.15}],flaechen:[{x0:X0+0.08,x1:X1-0.08,z0:Z0+0.08,z1:Z1-0.08,art:'frei'}],parent:g,y:0.017}).meshes;
 }
 /* Ladezone vor Rolltor V1 (Tom 09.10.): Spieler, Personal und Kunden kommen nicht vor das
    Tor - links und rechts gelbe Gitterabsperrung, dazwischen die offene Seite der Box. Nur
@@ -769,17 +729,9 @@ const LZ_ZAUN=[
 function ladezoneRechtecke(){ return LZ_ZAUN.map(f=>({x0:Math.min(f.ax,f.bx)-0.06,x1:Math.max(f.ax,f.bx)+0.06,z0:Math.min(f.az,f.bz)-0.06,z1:Math.max(f.az,f.bz)+0.06})); }
 function ladezoneBauen(g,B){
   for(const f of LZ_ZAUN) bk.zaun({art:'gitter',von:[f.ax,f.az],bis:[f.bx,f.bz],hoehe:1.25,S:vsZaunS(B,'lz'),parent:g});
-  /* Sperrflaeche am Boden: gelbe Schraegstreifen, Rand mit Warnstreifen */
-  const x0=LADEZONE.x0+0.05, x1=LADEZONE.x1-0.08, z0=ZELLE_Z1+0.1, z1=LADEZONE.z1-0.05, BW=x1-x0, BT=z1-z0, k=150;
-  const t=tex(Math.round(BW*k),Math.round(BT*k),(c,W,H)=>{ c.clearRect(0,0,W,H);
-    c.save(); c.beginPath(); c.rect(0,0,W,H); c.rect(16,16,W-32,H-32); c.clip('evenodd');
-    c.fillStyle=MAT.css('signalgelb'); c.fillRect(0,0,W,H); c.fillStyle='#1b1d22';
-    for(let d=-H;d<W+H;d+=30){ c.beginPath(); c.moveTo(d,0); c.lineTo(d+15,0); c.lineTo(d+15-H,H); c.lineTo(d-H,H); c.closePath(); c.fill(); }
-    c.restore();
-    c.strokeStyle=MAT.css('signalgelb',.5); c.lineWidth=10;
-    for(let d=-H;d<W;d+=70){ c.beginPath(); c.moveTo(d,H-16); c.lineTo(d+H,16); c.stroke(); } });
-  const fm=new THREE.Mesh(new THREE.PlaneGeometry(BW,BT),new THREE.MeshStandardMaterial({map:t,transparent:true,depthWrite:false,roughness:0.6,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2}));
-  fm.rotation.x=-Math.PI/2; fm.position.set((x0+x1)/2,0.021,(z0+z1)/2); g.add(fm);
+  /* Sperrflaeche am Boden: Warnrand gelb-schwarz, innen gelbe Schraffur (bk.bodenmarkierung) */
+  const x0=LADEZONE.x0+0.05, x1=LADEZONE.x1-0.08, z0=ZELLE_Z1+0.1, z1=LADEZONE.z1-0.05;
+  bk.bodenmarkierung({rahmen:[{x0,x1,z0,z1,farbe:'sperr',breite:0.08}],flaechen:[{x0:x0+0.08,x1:x1-0.08,z0:z0+0.08,z1:z1-0.08,art:'frei'}],parent:g,y:0.016});
 }
 /* Teile je Stufe: ab[s] gilt ab Stufe s, nur[s] genau in Stufe s */
 const packTeile={ab:[null,[],[],[]],nur:[null,[],[],[]],hits:[],portal:null};
@@ -897,23 +849,12 @@ function buildPackstation(){
     for(const [von,bis,art] of [[[x0,z1],[x0,z0],'gitter'],[[x0,z0],[x1,z0],'gitter'],[[x1,z1-0.15],[x1,z0+0.15],'gelaender']])
       bk.zaun({art,von,bis,S:vsZaunS(B,k),parent:g}).gitter.forEach(o=>reg(o,k));
     B(k,0.5,0.03,0.04,GELB,x0+0.3,0.02,z1-0.05); B(k,0.5,0.03,0.04,GELB,x1-0.3,0.02,z1-0.05);
-    /* Boden: Warnstreifen am Rand, Eckmarken der Palettenplaetze */
-    const PXM=200, W=Math.round((x1-x0)*PXM), H=Math.round((z1-z0)*PXM);
-    const ft=tex(W,H,(c)=>{ c.clearRect(0,0,W,H);
-      c.save(); c.beginPath(); c.rect(0,0,W,H); c.rect(18,18,W-36,H-36); c.clip('evenodd');
-      c.fillStyle=MAT.css('signalgelb'); c.fillRect(0,0,W,H); c.fillStyle='#1b1d22';
-      for(let d=-H;d<W+H;d+=34){ c.beginPath(); c.moveTo(d,0); c.lineTo(d+17,0); c.lineTo(d+17-H,H); c.lineTo(d-H,H); c.closePath(); c.fill(); }
-      c.restore();
-      c.strokeStyle=MAT.css('signalgelb',.9); c.lineWidth=6;
-      /* Bildzeile 0 liegt im Sueden (z0) */
-      for(let j=0;j<PAL_N[s];j++){ const p=PALETTEN[j], a=(p.x-0.65-x0)*PXM, b=(p.x+0.65-x0)*PXM, o=(p.z-0.45-z0)*PXM, u=(p.z+0.45-z0)*PXM, L=24;
-        c.beginPath(); c.moveTo(a,o+L); c.lineTo(a,o); c.lineTo(a+L,o); c.moveTo(b-L,o); c.lineTo(b,o); c.lineTo(b,o+L);
-        c.moveTo(b,u-L); c.lineTo(b,u); c.lineTo(b-L,u); c.moveTo(a+L,u); c.lineTo(a,u); c.lineTo(a,u-L); c.stroke(); } });
-    const fm=new THREE.Mesh(new THREE.PlaneGeometry(x1-x0,z1-z0),new THREE.MeshStandardMaterial({map:ft,transparent:true,depthWrite:false,roughness:0.6,
-      polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2}));
-    fm.rotation.x=-Math.PI/2; fm.position.set((x0+x1)/2,0.021,(z0+z1)/2); g.add(fm); reg(fm,k);
+    /* Boden: Warnrand gelb-schwarz, Eckmarken der Palettenplaetze (bk.bodenmarkierung, vorher eigene Textur je Stufe) */
+    { const E=0.12, ek=[]; for(let j=0;j<PAL_N[s];j++){ const p=PALETTEN[j], a=p.x-0.65, b=p.x+0.65, o=p.z-0.45, u=p.z+0.45;
+        for(const [x,z,dx,dz] of [[a,o,1,1],[b,o,-1,1],[b,u,-1,-1],[a,u,1,-1]]){ ek.push([x,z,x+dx*E,z,'gelb',0.03],[x,z,x,z+dz*E,'gelb',0.03]); } }
+      bk.bodenmarkierung({rahmen:[{x0,x1,z0,z1,farbe:'sperr',breite:0.09}],linien:ek,parent:g,y:0.016}).meshes.forEach(m=>reg(m,k)); }
     /* Versandbereich: wohin die Box noch waechst - gelb schraffiert, bis Stufe 3 */
-    if(s<3){ const r=versandReserve(x0,x1,ZELLE[3].z0,z0); g.add(r); reg(r,k); }
+    if(s<3) versandReserve(x0,x1,ZELLE[3].z0,z0,g).forEach(m=>reg(m,k));
   }
   ladezoneBauen(g,B);
   /* Paletten sind eigene Objekte (11e-palette.js): die Box zeigt sie dort. */
@@ -1033,30 +974,18 @@ function packSperre(id,g){
    Boden mit gelbem Rand und Schraffur an den Schmalseiten. Der zweite
    Packplatz suedlich des Bandes bekommt ein eigenes Stueck. */
 function versandFlaeche(g){
-  const flaeche=(x0,x1,z0,z1,k)=>{ const BW=x1-x0, BT=z1-z0;
-    const t=tex(Math.round(BW*200),Math.round(BT*200),(c,W,H)=>{
-      c.fillStyle='#57606c'; c.fillRect(0,0,W,H);
-      for(let i=0;i<W*H/100;i++){ c.fillStyle=`rgba(255,255,255,${Math.random()*0.03})`; c.fillRect(Math.random()*W,Math.random()*H,2,2); }
-      c.strokeStyle=MAT.css('signalgelb'); c.lineWidth=12; c.strokeRect(6,6,W-12,H-12);
-      c.save(); c.beginPath(); c.rect(0,0,W,H); c.clip();
-      c.strokeStyle=MAT.css('signalgelb',.75); c.lineWidth=9;
-      for(let y=-H;y<H*2;y+=30){ c.beginPath(); c.moveTo(W-50,y); c.lineTo(W,y-50); c.stroke(); }
-      c.restore(); });
-    const bo=new THREE.Mesh(new THREE.PlaneGeometry(BW,BT),new THREE.MeshStandardMaterial({map:t,roughness:0.62}));
-    bo.rotation.x=-Math.PI/2; bo.position.set((x0+x1)/2,0.02,(z0+z1)/2); g.add(bo);
-    if(k) packTeile.ab[k].push(bo); };
+  /* grauer Arbeitsboden, gelber Rand, Schraffur an der Schmalseite (bk.bodenmarkierung) */
+  const boden=MAT.ober('basaltgrau','matt');
+  const flaeche=(x0,x1,z0,z1,k)=>{
+    const bo=new THREE.Mesh(new THREE.PlaneGeometry(x1-x0,z1-z0),boden); bo.rotation.x=-Math.PI/2; bo.position.set((x0+x1)/2,0.02,(z0+z1)/2); g.add(bo);
+    const M=bk.bodenmarkierung({rahmen:[{x0,x1,z0,z1,farbe:'gelb',breite:0.06}],flaechen:[{x0:x1-0.3,x1:x1-0.06,z0:z0+0.06,z1:z1-0.06,art:'frei'}],parent:g,y:0.016}).meshes;
+    if(k){ packTeile.ab[k].push(bo); M.forEach(m=>packTeile.ab[k].push(m)); } };
   flaeche(-0.05,4.15,BAND.z-BAND.b/2-0.1,1.22,0);
   flaeche(1.6,4.15,-3.25,BAND.z-BAND.b/2-0.1,2);
   /* Schrift vor jedem Packplatz - nur fuer die Plaetze, die es in der
-     Stufe schon gibt, lesbar fuer den, der davor steht */
-  for(let i=0;i<3;i++){
-    const lt=tex(512,96,(c,W,H)=>{ c.clearRect(0,0,W,H); c.fillStyle=MAT.css('signalgelb',.88); c.textAlign='center'; c.textBaseline='middle';
-      fitFont(c,'PACKPLATZ '+(i+1),W-24,64,BUN); c.fillText('PACKPLATZ '+(i+1),W/2,H/2+3); });
-    const m=new THREE.Mesh(new THREE.PlaneGeometry(1.2,0.22),new THREE.MeshStandardMaterial({map:lt,transparent:true,depthWrite:false,roughness:0.6,
-      polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2}));
-    const p=ppW(i,0,1.32);
-    m.rotation.x=-Math.PI/2; if(VS_PP[i].s<0) m.rotation.z=Math.PI; m.position.set(p.x,0.021,p.z); g.add(m);
-    packTeile.ab[i+1].push(m);
+     Stufe schon gibt, lesbar fuer den, der davor steht (Bodenschrift aus dem Baukasten) */
+  for(let i=0;i<3;i++){ const p=ppW(i,0,1.32);
+    bk.bodenmarkierung({schriften:[{text:'PACKPLATZ '+(i+1),x:p.x,z:p.z,b:1.2,h:0.26,ry:VS_PP[i].s<0?Math.PI:0}],parent:g,y:0.016}).meshes.forEach(m=>packTeile.ab[i+1].push(m));
   }
 }
 let packSchildTex=null;
@@ -1122,37 +1051,11 @@ function westTor(cx,nr){
    ========================================================= */
 const LAGERFENSTER=[-17.6,-14.0,-10.4];
 function lagerFensterWand(){
-  const r=LAY.lnord, z0=r.z1, z1=r.z1+LW, H=LAGER_H;
-  const FB=1.7, Y0=1.35, Y1=2.6;                       /* Breite, Bruestung, Sturz */
-  const leib=MAT.ober('lichtgrau','matt');          /* Laibung: heller Putz */
-  const alu=MAT.get('stahlAnthrazit');
-  const glas=new THREE.MeshStandardMaterial({color:LIN(0x5d7288),transparent:true,opacity:0.38,roughness:0.05,metalness:0.2,side:THREE.DoubleSide,depthWrite:false});
-  const bankA=MAT.ober('aluminium','stahl'), bankI=MAT.get('kunststoffWeiss');
-  const W=(a,b,y0,y1)=>{ if(b-a>0.005&&y1-y0>0.005) wall(a,b,z0,z1,y0,y1,'-z',lagerWall,undefined,0,leib); };
-  let x=r.x0-LW;
-  for(const cx of LAGERFENSTER){
-    const a=cx-FB/2, b=cx+FB/2;
-    W(x,a,0,H);                    /* Pfeiler */
-    W(a,b,0,Y0);                   /* Bruestung */
-    W(a,b,Y1,H);                   /* Sturz */
-    /* Rahmen in der Wandmitte, zwei Fluegel mit Mittelpfosten */
-    const zm=(z0+z1)/2, fh=Y1-Y0;
-    bbox(FB,0.07,0.08,alu,cx,Y1-0.035,zm,null,false);
-    bbox(FB,0.07,0.08,alu,cx,Y0+0.035,zm,null,false);
-    for(const sx of [-1,1]) bbox(0.07,fh,0.08,alu,cx+sx*(FB/2-0.035),Y0+fh/2,zm,null,false);
-    bbox(0.06,fh-0.1,0.07,alu,cx,Y0+fh/2,zm,null,false);
-    /* Fluegelrahmen, etwas schmaler, dahinter das Glas */
-    for(const sx of [-1,1]){ const fx=cx+sx*FB/4;
-      for(const dy of [0.075,fh-0.075]) bbox(FB/2-0.12,0.04,0.05,alu,fx,Y0+dy,zm+0.01,null,false);
-      bbox(FB/2-0.14,fh-0.2,0.012,glas,fx,Y0+fh/2,zm,null,false);
-      /* Griff am Fluegel innen */
-      bbox(0.025,0.12,0.03,MAT.get('aluBlank'),cx+sx*0.1,Y0+fh/2,z0-0.01,null,false); }
-    /* Fensterbank aussen (Alu, leicht vorstehend) und innen */
-    bbox(FB+0.08,0.03,0.2,bankA,cx,Y0-0.012,z1+0.06,null,false);
-    bbox(FB+0.05,0.03,0.16,bankI,cx,Y0-0.012,z0-0.05,null,false);
-    x=b;
-  }
-  W(x,r.x1+LW,0,H);
+  /* Wand mit drei Oeffnungen (Pfeiler, Bruestung 1,35, Sturz 2,6) und Fluegelfenster: bk.fenster art 'fluegel' (04z) -
+     Profile Anthrazit, Glas wie alle Scheiben, Fensterbank aussen Anthrazit wie die Schaufenster, innen weiss */
+  const r=LAY.lnord, z0=r.z1, z1=r.z1+LW;
+  bk.fenster({art:'fluegel',felder:LAGERFENSTER.map(cx=>({cx,b:1.7,y0:1.35,y1:2.6})),
+    wand:{x0:r.x0-LW,x1:r.x1+LW,z0,z1,hoehe:LAGER_H,innen:'-z',flaechen:{innen:lagerWall,laibung:MAT.ober('lichtgrau','matt')}}});
   col(r.x0-LW,r.x1+LW,z0,z1);
 }
 /* Flutlichtmast fuer den Hof */
@@ -1320,8 +1223,8 @@ function buildLogistik(){
   /* --- Vorplatz, Zaun, Bauschild --- */
   MAT.kachel(flat(6.0,30.0,MAT.get('betonHof'),43.5,0.013,-1.0).geometry,3,14);
   MAT.kachel(flat(hw-2,5.5,MAT.get('betonHof'),hcx,0.012,ha.z1+2.8).geometry,10,3);
-  for(let i=0;i<4;i++){ const tz=ha.z0+3.4+i*5.6;
-    for(const s of [-1,1]) flat(4.4,0.14,MAT.get('markierungGelb'),ha.x0-2.6,0.017,tz+s*2.4); }
+  { const L=[]; for(let i=0;i<4;i++){ const tz=ha.z0+3.4+i*5.6; for(const s of [-1,1]) L.push([ha.x0-4.8,tz+s*2.4,ha.x0-0.4,tz+s*2.4,'gelb',bk.MARKIERUNG.fahrweg]); }
+    bk.bodenmarkierung({linien:L,y:0.012,schatten:true}); }
   /* Zaun mit Bauschild: faellt, sobald das Zentrum freigeschaltet wird */
   const Z=LOGI.zaun, ZH=2.4;
   /* Luecke fuer das Doppeltor (bis 14.10. lief die Matte mitten durch das Tor) */

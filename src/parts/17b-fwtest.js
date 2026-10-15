@@ -55,11 +55,11 @@ function fwMarke(i,bis,z){
   m.rotation.x=-Math.PI/2; m.position.set(-3.35,0.022,z); scene.add(m); fwTestMarken.push(m);
   /* dazu ein Stehschild an der Wandseite: der Bodenstreifen verschwindet
      von vorn hinter den Kartonreihen */
-  const sm=new THREE.MeshBasicMaterial({color:0xdddddd,map:tex(512,256,(c,W,H)=>{
+  const g=bk.schild(scene,{malen:(c,W,H)=>{
     c.fillStyle='#0e1226'; c.fillRect(0,0,W,H); c.fillStyle=s.farbe; c.fillRect(0,0,W,22); c.fillRect(0,H-22,W,22);
     c.textAlign='center'; c.textBaseline='middle'; c.fillStyle=s.farbe; fitFont(c,s.name,W-130/* Pfosten verdecken die Raender */,84,BUN); c.fillText(s.name,W/2,96);
-    c.fillStyle='#f2f5ff'; c.font=BAR(64); c.fillText(`Level ${s.ab}${bis>s.ab?'–'+bis:''}`,W/2,178); })});
-  const g=schild(-5.75,1.25,z-0.1,0.9,0.45,sm,std(0x5a616c,{metalness:0.6,roughness:0.45})); g.userData.fwSchild=sm; fwTestMarken.push(g);
+    c.fillStyle='#f2f5ff'; c.font=BAR(64); c.fillText(`Level ${s.ab}${bis>s.ab?'–'+bis:''}`,W/2,178); },pw:512,ph:256,b:0.9,h:0.45,x:-5.75,y:1.25,z:z-0.1,pfosten:true,leucht:true});
+  g.userData.fwSchild=g.userData.flaeche.material; fwTestMarken.push(g);
 }
 function fwMarkenWeg(){ fwTestMarken.forEach(m=>{ scene.remove(m);
   if(m.userData.fwSchild){ m.userData.fwSchild.map.dispose(); m.userData.fwSchild.dispose(); return; }

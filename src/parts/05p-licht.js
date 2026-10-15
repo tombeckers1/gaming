@@ -26,7 +26,7 @@
    - Glanz: Flaechen ohne Umgebungsbild spiegeln drinnen einen gleichmaessig hellen Raum
      (RAUM.spec) - Metall bleibt Metall, ohne wandernde Lichtpunkte.
    - Belichtung fest LI_BEL (1,05) drinnen wie draussen; keine Augenanpassung.
-   - Ultra Low (Lambert, Licht je Ecke): dieselbe Rechnung im Vertexshader, sonst nichts.
+   - Ultra Low (Lambert): dieselbe Raum-Entscheidung je Pixel (Lambert-Shader ergaenzt), sonst nichts.
    - Kontaktschatten unter Moebeln und Personen bleiben (ab Niedrig, ein Zeichenaufruf).
    Wegfall: 3 wandernde Punktlichter, Ladenstrahler (mit eigener Schattenkarte),
    Lichtflecken und Glanzbahnen - weniger Licht je Pixel, ein Schattendurchgang weniger.
@@ -45,42 +45,45 @@ const DECKE={l:null, h:3.3, neig:0.21, halb:16, x:1e9, z:1e9, n:0};
 (function raumShader(){
   const C=THREE.ShaderChunk;
   /* Test-Attrappe von three (Node, test.html): keine Shader - nichts zu tun */
-  if(!C||typeof C.lights_fragment_begin!=='string'||typeof C.lights_lambert_vertex!=='string'||!THREE.ShaderLib||!THREE.Vector4) return;
+  if(!C||typeof C.lights_fragment_begin!=='string'||!THREE.ShaderLib||!THREE.ShaderLib.lambert||typeof THREE.ShaderLib.lambert.fragmentShader!=='string'||!THREE.Vector4) return;
   const N=RAUM.n, V=[]; for(let i=0;i<N*2+1;i++) V.push(new THREE.Vector4());
   RAUM.werte=V;
   /* Werte an alle eingebauten Licht-Materialien: three kopiert die Uniform-Tabelle je Material
      (UniformsUtils.clone), Listen aber flach (slice) - die Vector4 darin bleiben dieselben
      Objekte, ein Setzen hier wirkt also in allen Materialien */
   for(const k of ['standard','physical','lambert','phong','toon']) if(THREE.ShaderLib[k]) THREE.ShaderLib[k].uniforms.raumL={value:V};
-  C.lights_pars_begin+=`
+  const GLSL=`
 #define RAUM_N ${N}
 uniform vec4 raumL[ ${N*2+1} ];
 /* x: Raumlicht-Staerke (0 = draussen), y: Sonnenanteil drinnen */
-vec2 raumAn( vec3 p, vec2 t ){
+vec2 raumAn( vec3 p ){
   for( int i = 0; i < RAUM_N; i ++ ){
     vec4 b = raumL[ 1 + i * 2 ]; vec4 q = raumL[ 2 + i * 2 ];
-    if( q.z > 0.0 && p.x > b.x - t.x && p.x < b.z + t.x && p.z > b.y - t.y && p.z < b.w + t.y && p.y > q.x && p.y < q.y ) return vec2( q.z, q.w );
+    if( q.z > 0.0 && p.x > b.x && p.x < b.z && p.z > b.y && p.z < b.w && p.y > q.x && p.y < q.y ) return vec2( q.z, q.w );
   }
   return vec2( 0.0, 1.0 );
 }
 vec3 raumIrr( float st, vec3 nW ){ return st * ( 0.8 + 0.2 * nW.y ) * vec3( 1.0, 0.965, 0.91 ) * PI; }
 `;
+  C.lights_pars_begin+=GLSL;
   /* Fragment (Standard, Physical, Phong, Toon) */
   let f=C.lights_fragment_begin;
-  f=f.replace('IncidentLight directLight;','IncidentLight directLight;\nvec3 raumP = cameraPosition + ( vec4( geometry.position, 0.0 ) * viewMatrix ).xyz;\nvec3 raumN = ( vec4( geometry.normal, 0.0 ) * viewMatrix ).xyz;\nvec2 raumA = raumAn( raumP, vec2( 0.0 ) );\nfloat raumSo = raumA.x > 0.0 ? raumA.y : 1.0;');
+  f=f.replace('IncidentLight directLight;','IncidentLight directLight;\nvec3 raumP = cameraPosition + ( vec4( geometry.position, 0.0 ) * viewMatrix ).xyz;\nvec3 raumN = ( vec4( geometry.normal, 0.0 ) * viewMatrix ).xyz;\nvec2 raumA = raumAn( raumP );\nfloat raumSo = raumA.x > 0.0 ? raumA.y : 1.0;');
   const dir=f.indexOf('#if ( NUM_DIR_LIGHTS > 0 ) && defined( RE_Direct )'), dirE=f.indexOf('#if ( NUM_RECT_AREA_LIGHTS');
   f=f.slice(0,dir)+f.slice(dir,dirE).replace('RE_Direct( directLight, geometry, material, reflectedLight );','directLight.color *= ( vec4( directLight.direction, 0.0 ) * viewMatrix ).y > 0.95 ? ( raumA.x > 0.0 ? 1.0 : 0.0 ) : raumSo;\n\t\tRE_Direct( directLight, geometry, material, reflectedLight );')+f.slice(dirE);
   f=f.replace(/(#if defined\( RE_IndirectSpecular \)\s*vec3 radiance = vec3\( 0\.0 \);)/,'#if defined( RE_IndirectDiffuse )\n\tif( raumA.x > 0.0 ) irradiance = irradiance * raumL[ 0 ].x + raumIrr( raumA.x, raumN );\n#endif\n$1\n#ifndef USE_ENVMAP\n\tradiance += raumA.x * raumL[ 0 ].y * vec3( 1.0, 0.965, 0.91 );\n#endif');
-  /* Lambert (Ultra Low): Licht je Ecke. Boden-, Decken- und Wandplatten enden oft unter der Nachbarwand (Ecke 10-20 cm
-     ausserhalb des Raums) - darum 0,3 m Luft entlang der Flaeche, keine quer dazu (Aussenseiten bleiben draussen).
-     Weltlage ueber modelMatrix: three laedt cameraPosition fuer Lambert nicht hoch (nur Standard/Phong/Toon/Shader) */
-  let l=C.lights_lambert_vertex;
-  l=l.replace('backGeometry.viewDir = geometry.viewDir;','backGeometry.viewDir = geometry.viewDir;\nvec3 raumN = ( vec4( geometry.normal, 0.0 ) * viewMatrix ).xyz;\nvec4 raumW = vec4( transformed, 1.0 );\n#ifdef USE_INSTANCING\n\traumW = instanceMatrix * raumW;\n#endif\nraumW = modelMatrix * raumW;\nvec2 raumA = raumAn( raumW.xyz, 0.3 * ( 1.0 - abs( raumN.xz ) ) );\nfloat raumSo = raumA.x > 0.0 ? raumA.y : 1.0;');
-  const ld=l.indexOf('#if NUM_DIR_LIGHTS > 0'), ldE=l.indexOf('#if NUM_HEMI_LIGHTS > 0');
-  l=l.slice(0,ld)+l.slice(ld,ldE).replace('directLightColor_Diffuse = PI * directLight.color;','directLightColor_Diffuse = PI * directLight.color * raumSo;')+l.slice(ldE)
-    +'\nif( raumA.x > 0.0 ){ vIndirectFront = vIndirectFront * raumL[ 0 ].x + raumIrr( raumA.x, raumN );\n#ifdef DOUBLE_SIDED\n\tvIndirectBack = vIndirectBack * raumL[ 0 ].x + raumIrr( raumA.x, -raumN );\n#endif\n}\n';
-  RAUM.ok=f.indexOf(': raumSo;\n\t\tRE_Direct')>0&&f.indexOf('raumIrr( raumA.x, raumN )')>0&&l.indexOf('* raumSo;')>0;
-  if(RAUM.ok){ C.lights_fragment_begin=f; C.lights_lambert_vertex=l; }
+  /* Lambert (Ultra Low): three rechnet das Licht je Ecke - die Boden- und Hallenplatten sind aber oft EIN Viereck ueber
+     mehrere Raeume (Ecken ausserhalb), dann blieb der Boden dunkel. Darum Weltlage und Normale als Varying und die
+     Raum-Entscheidung je Pixel: Himmelslicht drinnen auf RAUM.hemi, Raumlicht dazu, Sonne (ohne Schattenkarte) aus.
+     Weltlage ueber modelMatrix - three laedt cameraPosition fuer Lambert nicht hoch. */
+  const L=THREE.ShaderLib.lambert; let lv=L.vertexShader, lf=L.fragmentShader;
+  lv=lv.replace('#include <common>','#include <common>\nvarying vec3 vRaumW;\nvarying vec3 vRaumN;')
+       .replace('#include <lights_lambert_vertex>','#include <lights_lambert_vertex>\n{ vec4 raumW = vec4( transformed, 1.0 );\n#ifdef USE_INSTANCING\n\traumW = instanceMatrix * raumW;\n#endif\n\tvRaumW = ( modelMatrix * raumW ).xyz; vRaumN = ( vec4( geometry.normal, 0.0 ) * viewMatrix ).xyz; }');
+  lf=lf.replace('#include <common>','#include <common>\nvarying vec3 vRaumW;\nvarying vec3 vRaumN;'+GLSL)
+       .replace('#include <aomap_fragment>','{ vec2 raumA = raumAn( vRaumW );\n\tif( raumA.x > 0.0 ){ vec3 raumN = normalize( vRaumN );\n#ifdef DOUBLE_SIDED\n\t\tif( !gl_FrontFacing ) raumN = -raumN;\n#endif\n\t\treflectedLight.indirectDiffuse = reflectedLight.indirectDiffuse * raumL[ 0 ].x + raumIrr( raumA.x, raumN ) * BRDF_Diffuse_Lambert( diffuseColor.rgb );\n\t\treflectedLight.directDiffuse *= raumA.y; } }\n#include <aomap_fragment>');
+  const lamOk=lv.indexOf('vRaumW = ( modelMatrix')>0&&lf.indexOf('raumIrr( raumA.x, raumN ) * BRDF')>0;
+  RAUM.ok=f.indexOf(': raumSo;\n\t\tRE_Direct')>0&&f.indexOf('raumIrr( raumA.x, raumN )')>0&&lamOk;
+  if(RAUM.ok){ C.lights_fragment_begin=f; L.vertexShader=lv; L.fragmentShader=lf; }
 })();
 /* Raumliste aus den Daechern (dieselben Raeume wie Schnee, Kunden, Personal): Dachbereich ohne
    den Rand von 0,3 m bzw. 0,4 m ueber der Decke, dafuer 6 cm Luft - die Innenseite der Wand gehoert

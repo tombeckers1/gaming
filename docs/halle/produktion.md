@@ -103,3 +103,9 @@ regelmäßig bestellen (Liquidität!).
   `ausbau`, `gameplay` grün; `test.html`-Gameplay grün. Laufzeit-`waechter`: BUDGET Testfeld knapp über der Toleranz (398 > 393 Schatten) –
   **schon auf dem Ausgangsstand db8c425** rot (Testfeld 512 > 510 Aufrufe, Licht-Zwischenstand), nicht durch die Produktion; nicht neu geschrieben.
 - `tools/test/three-stub.js` ergänzt (Box3, Matrix3, InstancedMesh-Matrizen/Farben, Index der Box): test.html lud seit den Paletten (14.10.) nicht mehr.
+
+## Bilder
+`docs/halle/bilder-produktion/` (`tools/produktion/bilder.js`, real.html, swiftshader; vorher = db8c425): Leitstand-Bildschirme (Schau-Betrieb →
+Status/Auftrag/Stück je Stunde/Ausschuss/Reichweite; Störung: Kopf rot), Straße 1 im Betrieb, **Werker an seiner Straße** (Warnweste),
+Gefahrgut-LKW an Tor 6 (vorher: kein LKW), Laptop-Tab „Produktion“ im Leitstand. Befund: Leitstand-Blick zeigt Straße 1 nur angeschnitten
+(Blick steht mittig vor dem Pult) – die Anzeigen sind lesbar, wenn man am Pult nach links schaut.

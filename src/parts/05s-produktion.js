@@ -356,7 +356,7 @@ function pdLaptop(){
     const s=D.s[i], g=pdGrund(i), a=s.plan[0], K=a?pdKennzahlen(a.t,i):null;
     const status=g?(s.stoer?`<span class="warn">steht: ${g}</span>`:`steht: ${g}`):(phase==='open'?'läuft':'bereit (läuft, sobald der Laden offen ist)');
     h+=`<div class="row mitEinr"><div class="rm"><b>Straße ${i+1} · ${PD_KLASSE_NAME[i]} – ${status}</b>`+
-      `<small>Werker: ${pdPersonDa(PD_WERKER[i])?`${s.erf||0} Produktionstage Erfahrung · Ausschuss ${pz(pdAusschuss(i,s.pre?1:0))} · Effektqualität ${pz(pdQualitaet(i,s.pre?1:0))}`:'<span class="warn">keiner eingestellt (Team)</span>'}</small>`+
+      `<small>Werker: ${pdPersonDa(PD_WERKER[i])?`${s.erf||0} Produktionstag${(s.erf||0)===1?'':'e'} Erfahrung · Ausschuss ${pz(pdAusschuss(i,s.pre?1:0))} · Effektqualität ${pz(pdQualitaet(i,s.pre?1:0))}`:'<span class="warn">keiner eingestellt (Team)</span>'}</small>`+
       `<small>${kn(s.an?'Eingeschaltet':'Ausgeschaltet','pdan',{i},s.an)}${kn('Standard-Rohstoffe','pdqual',{i,v:0},!s.pre)}${kn('Premium-Rohstoffe','pdqual',{i,v:1},s.pre)}`+
       `${kn(s.b2b?'Großhandel nimmt Überschuss':'Nur für den eigenen Laden','pdb2b',{i},s.b2b)}`+
       `${s.stoer&&s.stoer.art==='zelle'&&lei?kn('Zelle '+s.stoer.st+' freigeben','pdfrei',{i},false):''}</small>`;

@@ -346,6 +346,18 @@ function abProtoZuenden(r){
   const pl=abPlatzStation(st,slot), it=Object.assign(abAufstellen(pl,id),{type:id,q:1,slot,kanal:kanalVon(st,slot),state:'bereit',proto:true});
   st.items.push(it); drawPult(); zuendeItem(st,it,true);
   return {frei:true,kanal:it.kanal,id}; }
+/* QS-Stichprobe der Eigenproduktion (Werk West, 05s pdQs): ein Stueck aus der Fertigung wird auf dem Testfeld gezuendet - gleicher Platz,
+   gleiche Mechanik, Effekt unveraendert; q = Effektqualitaet (Blindgaenger bei schlechter Qualitaet wie bei Lieferantenware),
+   it.qs: kein Hype, keine Erfahrung, nicht "selbst gezuendet" (das Stueck ist Teil der Produktion). Ohne Testfeld/freien Platz: frei false */
+function abStichprobe(t,q){
+  const sid=typeof stationOf==='function'?stationOf(t):null, st=sid&&typeof stations!=='undefined'?stations[sid]:null;
+  if(!st||!P[t]) return {frei:false};
+  const slot=sid==='moerser'?moerserRohr(t):freierPlatz(st);
+  if(slot<0||itemAufPlatz(st,slot)) return {frei:false};
+  const h=abAufstellen(abPlatzStation(st,slot),t); if(!h) return {frei:false};
+  const it=Object.assign(h,{type:t,q:q||1,slot,kanal:kanalVon(st,slot),state:'bereit',qs:true});
+  st.items.push(it); drawPult(); later(1.5,()=>zuendeItem(st,it,true));
+  return {frei:true,kanal:it.kanal}; }
 
 /* Testzugang (abschussregel.js) */
 try{ window.__abschuss={abForm,abPlatz,abPlatzStation,abMuendung,abKerze,abKerzenLoecher,abOben,abPool,abTeile,abAufstellen,abZuenden,abWeg,

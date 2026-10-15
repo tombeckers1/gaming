@@ -1,7 +1,8 @@
 /* Minimal THREE-Stub nur fuer den Logik-Smoketest (kein Rendering) */
 (function(){
 const T={};
-class Vector3{ project(){ this.x=0; this.y=0; this.z=0.5; return this; } lerpVectors(a,b,t){this.x=a.x+(b.x-a.x)*t;this.y=a.y+(b.y-a.y)*t;this.z=a.z+(b.z-a.z)*t;return this;} toArray(){return [this.x,this.y,this.z];}
+class Matrix3{ constructor(){ this.elements=[1,0,0,0,1,0,0,0,1]; } getNormalMatrix(){ return this; } setFromMatrix4(){ return this; } identity(){ return this; } }
+class Vector3{ applyMatrix3(){ return this; } project(){ this.x=0; this.y=0; this.z=0.5; return this; } lerpVectors(a,b,t){this.x=a.x+(b.x-a.x)*t;this.y=a.y+(b.y-a.y)*t;this.z=a.z+(b.z-a.z)*t;return this;} toArray(){return [this.x,this.y,this.z];}
 
   constructor(x,y,z){this.x=x||0;this.y=y||0;this.z=z||0;}
   subVectors(a,b){this.x=a.x-b.x;this.y=a.y-b.y;this.z=a.z-b.z;return this;}
@@ -82,7 +83,7 @@ class BufferGeometry{
   toNonIndexed(){return this.clone();}
   clone(){const g=new BufferGeometry(this._n);for(const k in this.attributes){const a=this.attributes[k];if(!a||!a.array)continue;g.attributes[k]=new BufferAttribute(a.array.slice(),a.itemSize);}return g;}
   applyMatrix4(){return this;}
-  computeBoundingSphere(){this.boundingSphere={radius:1};}
+  computeBoundingSphere(){this.boundingSphere={center:new Vector3(),radius:1};}
   computeVertexNormals(){const p=this.attributes.position;if(p&&!this.attributes.normal)this.attributes.normal=new BufferAttribute(new Float32Array(p.count*3),3);return this;}
   setIndex(){return this;}
   setDrawRange(a,b){this.drawRange={start:a,count:b};return this;}
@@ -97,7 +98,7 @@ function mkGeo(n){
   g.setAttribute('uv',new BufferAttribute(new Float32Array(n*2),2));
   return g;
 }
-class BoxGeometry extends BufferGeometry{constructor(w,h,d,a,b,c){const n=36*Math.max(1,(a||1)*(b||1));super(n);const g=mkGeo(n);this.attributes=g.attributes;this.parameters={width:w||1,height:h||1,depth:d||1};}}
+class BoxGeometry extends BufferGeometry{constructor(w,h,d,a,b,c){const n=36*Math.max(1,(a||1)*(b||1));super(n);const g=mkGeo(n);this.attributes=g.attributes;this.parameters={width:w||1,height:h||1,depth:d||1};const ix=new Uint16Array(n);for(let i=0;i<n;i++)ix[i]=i;this.index=new BufferAttribute(ix,1);}}
 class PlaneGeometry extends BufferGeometry{constructor(w,h){super(6);const g=mkGeo(6);this.attributes=g.attributes;this.parameters={width:w||1,height:h||1};}}
 class CylinderGeometry extends BufferGeometry{constructor(){super(48);const g=mkGeo(48);this.attributes=g.attributes;}}
 class SphereGeometry extends BufferGeometry{constructor(r,w,h){super(64);const n=64;const g=mkGeo(n);this.attributes=g.attributes;}}
@@ -143,8 +144,11 @@ class LineSegments extends Object3D{constructor(g,m){super();this.geometry=g;thi
 class InstancedBufferGeometry extends BufferGeometry{constructor(){super();this.instanceCount=Infinity;}}
 class InstancedBufferAttribute extends BufferAttribute{constructor(a,i){super(a,i);this.meshPerAttribute=1;}}
 class Sprite extends Object3D{constructor(m){super();this.material=m;}}
-class InstancedMesh extends Mesh{constructor(g,m,c){super(g,m);this.count=0;this.instanceMatrix=new BufferAttribute(new Float32Array(16*c),16);}
-  setMatrixAt(i,m){this._last=m;}}
+class InstancedMesh extends Mesh{constructor(g,m,c){super(g,m);this.count=c|0;this.instanceMatrix=new BufferAttribute(new Float32Array(16*c),16);this.instanceColor=null;}
+  setMatrixAt(i,m){this._last=m; const a=this.instanceMatrix.array, e=m&&m.elements; if(e&&a&&i*16+16<=a.length) for(let k=0;k<16;k++) a[i*16+k]=e[k];}
+  getMatrixAt(i,m){ const a=this.instanceMatrix.array; if(m&&m.elements&&a) for(let k=0;k<16;k++) m.elements[k]=a[i*16+k]; return m; }
+  setColorAt(i,c){ if(!this.instanceColor) this.instanceColor=new BufferAttribute(new Float32Array(3*Math.max(1,this.instanceMatrix.array.length/16)),3); const a=this.instanceColor.array; if(c&&a&&i*3+3<=a.length){ a[i*3]=c.r||0; a[i*3+1]=c.g||0; a[i*3+2]=c.b||0; } }
+  getColorAt(i,c){ const a=this.instanceColor&&this.instanceColor.array; if(c&&a){ c.r=a[i*3]; c.g=a[i*3+1]; c.b=a[i*3+2]; } return c; }}
 class Material{clone(){ const m=Object.create(Object.getPrototypeOf(this)); Object.assign(m,this); return m; } constructor(o){this.userData={};Object.assign(this,o||{});if(this.color===undefined)this.color=new Color(0xffffff);else if(typeof this.color==='number')this.color=new Color(this.color);}
   dispose(){}}
 class MeshStandardMaterial extends Material{}
@@ -183,12 +187,12 @@ class WebGLRenderer{
 }
 class Frustum{ setFromProjectionMatrix(){ return this; } intersectsSphere(){ return true; } intersectsObject(){ return true; } intersectsBox(){ return true; } containsPoint(){ return true; } }
 class Sphere{ constructor(c,r){ this.center=c||new Vector3(); this.radius=r||0; } set(c,r){ this.center.copy(c); this.radius=r; return this; } clone(){ return new Sphere(this.center.clone(),this.radius); } applyMatrix4(){ return this; } }
-class Box3{ constructor(a,b){ this.min=a||new Vector3(); this.max=b||new Vector3(); } setFromObject(){ return this; } getCenter(v){ return (v||new Vector3()).set(0,0,0); } getSize(v){ return (v||new Vector3()).set(1,1,1); } expandByPoint(){ return this; } containsPoint(){ return false; } getBoundingSphere(s){ return s||new Sphere(); } }
+class Box3{ constructor(a,b){ this.min=a||new Vector3(); this.max=b||new Vector3(); } setFromObject(){ return this; } isEmpty(){ return this.max.x<this.min.x||this.max.y<this.min.y||this.max.z<this.min.z; } set(a,b){ this.min.copy(a); this.max.copy(b); return this; } intersectsBox(){ return true; } makeEmpty(){ return this; } union(){ return this; } copy(o){ this.min.copy(o.min); this.max.copy(o.max); return this; } clone(){ return new Box3(this.min.clone(),this.max.clone()); } expandByObject(){ return this; } getCenter(v){ return (v||new Vector3()).set(0,0,0); } getSize(v){ return (v||new Vector3()).set(1,1,1); } expandByPoint(){ return this; } containsPoint(){ return false; } getBoundingSphere(s){ return s||new Sphere(); } }
 class LatheGeometry extends BufferGeometry{constructor(){super(48);const g=mkGeo(48);this.attributes=g.attributes;}}
 class RingGeometry extends BufferGeometry{constructor(){super(36);const g=mkGeo(36);this.attributes=g.attributes;}}
 class IcosahedronGeometry extends BufferGeometry{constructor(){super(60);const g=mkGeo(60);this.attributes=g.attributes;}}
 class OctahedronGeometry extends BufferGeometry{constructor(){super(24);const g=mkGeo(24);this.attributes=g.attributes;}}
-Object.assign(T,{Texture:CanvasTexture,Vector4,Sphere,Box3,LatheGeometry,RingGeometry,IcosahedronGeometry,OctahedronGeometry,Path:Shape,PCFShadowMap:1,Frustum,CatmullRomCurve3,TubeGeometry,Shape,ShapeGeometry,ExtrudeGeometry,DodecahedronGeometry,MeshPhysicalMaterial,PMREMGenerator,EquirectangularReflectionMapping:303,FrontSide:0,NormalBlending:1,Uniform,ShaderMaterial,WebGLRenderTarget,WebGLMultisampleRenderTarget,OrthographicCamera,LinearFilter:1006,NearestFilter:1003,RGBAFormat:1023,RGBFormat:1022,UnsignedByteType:1009,HalfFloatType:1016,Vector3,Vector2,Euler,Quaternion,Matrix4,Color,BufferAttribute,Float32BufferAttribute,BufferGeometry,BoxGeometry,PlaneGeometry,CylinderGeometry,SphereGeometry,ConeGeometry,TorusGeometry,CircleGeometry,Object3D,Group,Scene,Mesh,Points,LineSegments,LineBasicMaterial,InstancedBufferGeometry,InstancedBufferAttribute,Sprite,InstancedMesh,Material,MeshStandardMaterial,MeshBasicMaterial,PointsMaterial,SpriteMaterial,HemisphereLight,DirectionalLight,PointLight,SpotLight,PerspectiveCamera,Fog,CanvasTexture,Raycaster,WebGLRenderer,
+Object.assign(T,{Matrix3,Texture:CanvasTexture,Vector4,Sphere,Box3,LatheGeometry,RingGeometry,IcosahedronGeometry,OctahedronGeometry,Path:Shape,PCFShadowMap:1,Frustum,CatmullRomCurve3,TubeGeometry,Shape,ShapeGeometry,ExtrudeGeometry,DodecahedronGeometry,MeshPhysicalMaterial,PMREMGenerator,EquirectangularReflectionMapping:303,FrontSide:0,NormalBlending:1,Uniform,ShaderMaterial,WebGLRenderTarget,WebGLMultisampleRenderTarget,OrthographicCamera,LinearFilter:1006,NearestFilter:1003,RGBAFormat:1023,RGBFormat:1022,UnsignedByteType:1009,HalfFloatType:1016,Vector3,Vector2,Euler,Quaternion,Matrix4,Color,BufferAttribute,Float32BufferAttribute,BufferGeometry,BoxGeometry,PlaneGeometry,CylinderGeometry,SphereGeometry,ConeGeometry,TorusGeometry,CircleGeometry,Object3D,Group,Scene,Mesh,Points,LineSegments,LineBasicMaterial,InstancedBufferGeometry,InstancedBufferAttribute,Sprite,InstancedMesh,Material,MeshStandardMaterial,MeshBasicMaterial,PointsMaterial,SpriteMaterial,HemisphereLight,DirectionalLight,PointLight,SpotLight,PerspectiveCamera,Fog,CanvasTexture,Raycaster,WebGLRenderer,
   RepeatWrapping:1000,ClampToEdgeWrapping:1001,SRGBColorSpace:'srgb',LinearSRGBColorSpace:'srgb-linear',NoToneMapping:0,HalfFloatType:1016,FloatType:1015,REVISION:'161-stub',sRGBEncoding:3001,DoubleSide:2,BackSide:1,AdditiveBlending:2,ACESFilmicToneMapping:4,PCFSoftShadowMap:2,DynamicDrawUsage:35048});
 window.THREE=T;
 })();

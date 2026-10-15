@@ -7,21 +7,21 @@ Spalte „gelesen in“: wo der Wert (oder seine Gruppe) im Spiel benutzt wird. 
 
 | Größe | Wert | Bedeutung | gelesen in | Kette |
 |---|---|---|---|---|
-| `start` | geld 500, ruf 50, level 1, startDoy 273 | Spielstart | `02-data.js:481`, `18-save.js:6` |  |
+| `start` | geld 500, ruf 50, level 1, startDoy 273 | Spielstart | `02-data.js:487`, `18-save.js:6` |  |
 
 ## zeit
 
 | Größe | Wert | Bedeutung | gelesen in | Kette |
 |---|---|---|---|---|
-| `zeit` | oeffnen 480, schliessen 1.320, echtzeitSek 330 | Tageslaenge | `02-data.js:505`, `11c-versand.js:1216` |  |
+| `zeit` | oeffnen 480, schliessen 1.320, echtzeitSek 330 | Tageslaenge | `02-data.js:511`, `05s-produktion.js:58`, `11c-versand.js:1216` |  |
 
 ## saison
 
 | Größe | Wert | Bedeutung | gelesen in | Kette |
 |---|---|---|---|---|
-| `saison.regeln` | {m 11, ab 26, silvester true}; {m 11, ab 20, f 1,25}; {m 11, f 1,1}; {m 0, ab 1, bis 1, f 1,35}; {m 0, bis 14, f 0,8}; {m 0 / 1, f 0,72}; {m 2, f 0,8}; {m 3, ab 25, f 1,45}; {m 4, bis 2, f 1,3}; {m 3 / 4, f 0,9}; {m 5, f 1}; {m 6 / 7, f 1,15}; {m 8, f 0,88}; {m 9, ab 28, f 1,25}; {m 9, f 0,92}; {f 0,86} | erste passende Regel gilt: m = Monat (0 = Januar, Liste = mehrere), ab/bis = Tag im Monat | `02-data.js:494` | saison |
-| `saison.silvester` | ab 26, grund 1,5, jeTag 0,34 | 26.12. = 1,5 ... 31.12. = 3,2; ab 26.12. auch Wunsch F2 x1,9 und Menge +1 | `02-data.js:494` | saison |
-| `saison.wochentag` | 0,55 / 0,82 / 0,84 / 0,9 / 1 / 1,28 / 1,35 | So, Mo, Di, Mi, Do, Fr, Sa (WDMULT) | `02-data.js:502` | saison |
+| `saison.regeln` | {m 11, ab 26, silvester true}; {m 11, ab 20, f 1,25}; {m 11, f 1,1}; {m 0, ab 1, bis 1, f 1,35}; {m 0, bis 14, f 0,8}; {m 0 / 1, f 0,72}; {m 2, f 0,8}; {m 3, ab 25, f 1,45}; {m 4, bis 2, f 1,3}; {m 3 / 4, f 0,9}; {m 5, f 1}; {m 6 / 7, f 1,15}; {m 8, f 0,88}; {m 9, ab 28, f 1,25}; {m 9, f 0,92}; {f 0,86} | erste passende Regel gilt: m = Monat (0 = Januar, Liste = mehrere), ab/bis = Tag im Monat | `02-data.js:500` | saison |
+| `saison.silvester` | ab 26, grund 1,5, jeTag 0,34 | 26.12. = 1,5 ... 31.12. = 3,2; ab 26.12. auch Wunsch F2 x1,9 und Menge +1 | `02-data.js:500` | saison |
+| `saison.wochentag` | 0,55 / 0,82 / 0,84 / 0,9 / 1 / 1,28 / 1,35 | So, Mo, Di, Mi, Do, Fr, Sa (WDMULT) | `02-data.js:508` | saison |
 
 ## kunden
 
@@ -39,16 +39,16 @@ Spalte „gelesen in“: wo der Wert (oder seine Gruppe) im Spiel benutzt wird. 
 | `kunden.kauf` | jeMenge 0,18, kuehl 0,16, spanne 0,5 | (Gruppe) Ladenkunden | `10-customers.js:210` | preise |
 | `kunden.nachfrage` | nurLager 0,5, nirgends 0,3 | Wunschgewicht, wenn die Sorte nicht im Regal steht (sonst 1) | `10-customers.js:219` | zuwenig_ausbauen, leere_faecher |
 | `kunden.wunsch` | n 0,38 / 0,6 / 0,8, silvesterF2 1,9, hypeAb 40, hypeF2 1,3, zubehoer 1,1, jugendF2 0,12, profiF2 2,6, teuerAb 20, mittelAb 7, mittelEins 0,65, kleinMax 3, silvesterPlus 0,45 | (Gruppe) Ladenkunden | `10-customers.js:223` | saison, zuenden |
-| `kunden.profiAbLevel` | 8 | Kundentyp "Profi" erst ab Level 8 | `02-data.js:800` |  |
+| `kunden.profiAbLevel` | 8 | Kundentyp "Profi" erst ab Level 8 | `02-data.js:806` |  |
 | `kunden.dieb` | abLevel 4, grund 0,035, jeLevel 0,0035, maxLevelAnteil 0,05, kameras 0,5, security 0,35, alarm 0,7 | (Gruppe) Ladenkunden | `10-customers.js:248` | level, diebstahl |
 | `kunden.geduld` | min 75, max 110, jeRuf 0,3, heizung 30, klima 35, jeAmbiente 0,35, freundGrund 0,72, jeFreund 0,3 | (Gruppe) Ladenkunden | `10-customers.js:267` | leere_faecher, personal |
 | `kunden.gravurWunsch` | 0,3 | Anteil Kunden, die eine Gravur wollen (mit Automat) | `10-customers.js:270` |  |
-| `kunden.dreck` | chance 0,08, mitMuell 0,04, jeFleck 7 | Fleck je Kunde; Sauberkeit = 100 - 7 je Fleck | `02-data.js:855`, `10-customers.js:440` | sauberkeit |
-| `kunden.ambiente` | musik 6, regallicht 6, heizung 4, fensterDreck 12, wandMax 26, bodenMax 20 | (Gruppe) Ladenkunden | `02-data.js:864` | sauberkeit |
+| `kunden.dreck` | chance 0,08, mitMuell 0,04, jeFleck 7 | Fleck je Kunde; Sauberkeit = 100 - 7 je Fleck | `02-data.js:861`, `10-customers.js:440` | sauberkeit |
+| `kunden.ambiente` | musik 6, regallicht 6, heizung 4, fensterDreck 12, wandMax 26, bodenMax 20 | (Gruppe) Ladenkunden | `02-data.js:870` | sauberkeit |
 | `kunden.karteAnteil` | 0,6 | 60 % zahlen mit Karte (bar: +3 XP ohne Rueckgeld-Fehler) | `10-customers.js:394` |  |
-| `kunden.preisAmpel` | einige 0,2, viele 0,45 | Laptop-Hinweis 'Einige zoegern' / 'Viele lassen es liegen' (lo + x) - weicht von kauf.spanne 0,5 ab (fuers Balancing) | `17-laptop.js:19`, `17-laptop.js:20` |  |
+| `kunden.preisAmpel` | einige 0,2, viele 0,45 | Laptop-Hinweis 'Einige zoegern' / 'Viele lassen es liegen' (lo + x) - weicht von kauf.spanne 0,5 ab (fuers Balancing) | `17-laptop.js:21`, `17-laptop.js:22` |  |
 | `kunden.sb` | maxKorb 3, maxKorbBetreut 8, wahl 0,45, wahlBetreut 0,6, problemGrund 0,18, problemJeArtikel 0,025, problemMax 0,36 | (Gruppe) Ladenkunden | `10-customers.js:349` |  |
-| `kunden.hype` | max 100, verfallJeSek 1,1 | Hype aus dem Testfeld: + P.hype je Stueck, faellt 1,1/s, Tagesende 0 | `14b-shows.js:711`, `16-day.js:79`, `20-loop.js:162` | zuenden |
+| `kunden.hype` | max 100, verfallJeSek 1,1 | Hype aus dem Testfeld: + P.hype je Stueck, faellt 1,1/s, Tagesende 0 | `14b-shows.js:712`, `16-day.js:79`, `20-loop.js:162` | zuenden |
 
 ## ware
 
@@ -85,37 +85,37 @@ Spalte „gelesen in“: wo der Wert (oder seine Gruppe) im Spiel benutzt wird. 
 
 | Größe | Wert | Bedeutung | gelesen in | Kette |
 |---|---|---|---|---|
-| `einkauf.lieferSek` | 5 | s bis die Lieferung da ist (x Ereignis "Stau" 2,1) | `02-data.js:512` | markt |
-| `einkauf.liefergebuehr` | 5,9 | € je Bestellung (VERSAND - Namensfalle: das ist der EINGANG, nicht der Onlineversand) | `02-data.js:512` | markt |
-| `einkauf.lieferfreiAb` | 150 | € Warenwert, ab dem die Liefergebuehr entfaellt (VERSANDFREI) | `02-data.js:512` | markt |
-| `einkauf.lieferant.fachhandel.mult` | 1 | (Gruppe) Lieferanten (SUPPLIERS in 02-data): mult = Preisfaktor, qualitaet (Restposten: Blindgaenger), Mengenstaffel n/d (Rabatt) | `02-data.js:382` | markt |
-| `einkauf.lieferant.fachhandel.qualitaet` | 1 | (Gruppe) Lieferanten (SUPPLIERS in 02-data): mult = Preisfaktor, qualitaet (Restposten: Blindgaenger), Mengenstaffel n/d (Rabatt) | `02-data.js:382` | markt |
-| `einkauf.lieferant.fachhandel.staffel` | {n 1, d 0} | (Gruppe) Lieferanten (SUPPLIERS in 02-data): mult = Preisfaktor, qualitaet (Restposten: Blindgaenger), Mengenstaffel n/d (Rabatt) | `02-data.js:382` | markt |
-| `einkauf.lieferant.grosshandel.mult` | 1 | (Gruppe) Lieferanten (SUPPLIERS in 02-data): mult = Preisfaktor, qualitaet (Restposten: Blindgaenger), Mengenstaffel n/d (Rabatt) | `02-data.js:384` | markt, lagerlogistik |
-| `einkauf.lieferant.grosshandel.qualitaet` | 1 | (Gruppe) Lieferanten (SUPPLIERS in 02-data): mult = Preisfaktor, qualitaet (Restposten: Blindgaenger), Mengenstaffel n/d (Rabatt) | `02-data.js:384` | markt, lagerlogistik |
-| `einkauf.lieferant.grosshandel.staffel` | {n 10, d 0,1}; {n 20, d 0,18} | (Gruppe) Lieferanten (SUPPLIERS in 02-data): mult = Preisfaktor, qualitaet (Restposten: Blindgaenger), Mengenstaffel n/d (Rabatt) | `02-data.js:384` | markt, lagerlogistik |
-| `einkauf.lieferant.ratzke` | mult 0,6, qualitaet 0,86 | (Gruppe) Lieferanten (SUPPLIERS in 02-data): mult = Preisfaktor, qualitaet (Restposten: Blindgaenger), Mengenstaffel n/d (Rabatt) | `02-data.js:386` | markt, restposten |
+| `einkauf.lieferSek` | 5 | s bis die Lieferung da ist (x Ereignis "Stau" 2,1) | `02-data.js:518` | markt |
+| `einkauf.liefergebuehr` | 5,9 | € je Bestellung (VERSAND - Namensfalle: das ist der EINGANG, nicht der Onlineversand) | `02-data.js:518` | markt |
+| `einkauf.lieferfreiAb` | 150 | € Warenwert, ab dem die Liefergebuehr entfaellt (VERSANDFREI) | `02-data.js:518` | markt |
+| `einkauf.lieferant.fachhandel.mult` | 1 | (Gruppe) Lieferanten (SUPPLIERS in 02-data): mult = Preisfaktor, qualitaet (Restposten: Blindgaenger), Mengenstaffel n/d (Rabatt) | `02-data.js:388` | markt |
+| `einkauf.lieferant.fachhandel.qualitaet` | 1 | (Gruppe) Lieferanten (SUPPLIERS in 02-data): mult = Preisfaktor, qualitaet (Restposten: Blindgaenger), Mengenstaffel n/d (Rabatt) | `02-data.js:388` | markt |
+| `einkauf.lieferant.fachhandel.staffel` | {n 1, d 0} | (Gruppe) Lieferanten (SUPPLIERS in 02-data): mult = Preisfaktor, qualitaet (Restposten: Blindgaenger), Mengenstaffel n/d (Rabatt) | `02-data.js:388` | markt |
+| `einkauf.lieferant.grosshandel.mult` | 1 | (Gruppe) Lieferanten (SUPPLIERS in 02-data): mult = Preisfaktor, qualitaet (Restposten: Blindgaenger), Mengenstaffel n/d (Rabatt) | `02-data.js:390` | markt, lagerlogistik |
+| `einkauf.lieferant.grosshandel.qualitaet` | 1 | (Gruppe) Lieferanten (SUPPLIERS in 02-data): mult = Preisfaktor, qualitaet (Restposten: Blindgaenger), Mengenstaffel n/d (Rabatt) | `02-data.js:390` | markt, lagerlogistik |
+| `einkauf.lieferant.grosshandel.staffel` | {n 10, d 0,1}; {n 20, d 0,18} | (Gruppe) Lieferanten (SUPPLIERS in 02-data): mult = Preisfaktor, qualitaet (Restposten: Blindgaenger), Mengenstaffel n/d (Rabatt) | `02-data.js:390` | markt, lagerlogistik |
+| `einkauf.lieferant.ratzke` | mult 0,6, qualitaet 0,86 | (Gruppe) Lieferanten (SUPPLIERS in 02-data): mult = Preisfaktor, qualitaet (Restposten: Blindgaenger), Mengenstaffel n/d (Rabatt) | `02-data.js:392` | markt, restposten |
 | `einkauf.grosshandelslizenz` | 0,9 | Ausbau "Grosshandelslizenz": alle Einkaufspreise x0,9 (gilt nicht fuer Regale, Packmaterial) | `02-data.js:279`, `16-day.js:66` | markt |
-| `einkauf.pakete.rabatt` | tuete 0,62, kiste 0,58, palette 0,52 | (Gruppe) Wundertueten/Themenpakete: Preis = mittlerer Karton-EK x Kartons x Faktor, auf 5 € gerundet (mind. 5 €) | `17-laptop.js:341` | markt, restposten |
-| `einkauf.pakete.sonstige` | 0,7 | (Gruppe) Wundertueten/Themenpakete: Preis = mittlerer Karton-EK x Kartons x Faktor, auf 5 € gerundet (mind. 5 €) | `17-laptop.js:333`, `17-laptop.js:343` | markt, restposten |
-| `einkauf.pakete.themen` | 0,6 | (Gruppe) Wundertueten/Themenpakete: Preis = mittlerer Karton-EK x Kartons x Faktor, auf 5 € gerundet (mind. 5 €) | `17-laptop.js:333`, `17-laptop.js:343` | markt, restposten |
-| `einkauf.pakete.sorten` | 0,56 | (Gruppe) Wundertueten/Themenpakete: Preis = mittlerer Karton-EK x Kartons x Faktor, auf 5 € gerundet (mind. 5 €) | `17-laptop.js:333`, `17-laptop.js:343` | markt, restposten |
-| `einkauf.pakete.jackpot` | 0,12 | (Gruppe) Wundertueten/Themenpakete: Preis = mittlerer Karton-EK x Kartons x Faktor, auf 5 € gerundet (mind. 5 €) | `17-laptop.js:321` | markt, restposten |
-| `einkauf.pakete.teuerAb` | 6 | (Gruppe) Wundertueten/Themenpakete: Preis = mittlerer Karton-EK x Kartons x Faktor, auf 5 € gerundet (mind. 5 €) | `17-laptop.js:322` | markt, restposten |
-| `einkauf.pakete.runden` | 5 | (Gruppe) Wundertueten/Themenpakete: Preis = mittlerer Karton-EK x Kartons x Faktor, auf 5 € gerundet (mind. 5 €) | `17-laptop.js:391` | markt, restposten |
-| `einkauf.pakete.min` | 5 | (Gruppe) Wundertueten/Themenpakete: Preis = mittlerer Karton-EK x Kartons x Faktor, auf 5 € gerundet (mind. 5 €) | `17-laptop.js:391` | markt, restposten |
-| `einkauf.restposten.welle` | 70 / 260 | (Gruppe) Restposten-Ratzke: Angebote kommen in Wellen; wer viel Geld hat (druck -> 1), bekommt seltener und weniger | `17-laptop.js:371` | markt, restposten |
-| `einkauf.restposten.dauer` | 120 / 360 | (Gruppe) Restposten-Ratzke: Angebote kommen in Wellen; wer viel Geld hat (druck -> 1), bekommt seltener und weniger | `17-laptop.js:371` | markt, restposten |
-| `einkauf.restposten.max` | 8 | (Gruppe) Restposten-Ratzke: Angebote kommen in Wellen; wer viel Geld hat (druck -> 1), bekommt seltener und weniger | `17-laptop.js:371` | markt, restposten |
-| `einkauf.restposten.ersteWelle` | 15 / 40 | (Gruppe) Restposten-Ratzke: Angebote kommen in Wellen; wer viel Geld hat (druck -> 1), bekommt seltener und weniger | `17-laptop.js:371` | markt, restposten |
-| `einkauf.restposten.druck` | kostenMin 60, tageAb 4, tageSpanne 26, mitKredit 0,5 | (Gruppe) Restposten-Ratzke: Angebote kommen in Wellen; wer viel Geld hat (druck -> 1), bekommt seltener und weniger | `17-laptop.js:371` | kredit, markt, restposten |
-| `einkauf.restposten.leer` | grund 0,15, jeDruck 0,4 | (Gruppe) Restposten-Ratzke: Angebote kommen in Wellen; wer viel Geld hat (druck -> 1), bekommt seltener und weniger | `17-laptop.js:371` | markt, restposten |
-| `einkauf.restposten.viel` | grund 0,28, jeDruck -0,2 | (Gruppe) Restposten-Ratzke: Angebote kommen in Wellen; wer viel Geld hat (druck -> 1), bekommt seltener und weniger | `17-laptop.js:371` | markt, restposten |
-| `einkauf.restposten.vielN` | 3 / 3 | (Gruppe) Restposten-Ratzke: Angebote kommen in Wellen; wer viel Geld hat (druck -> 1), bekommt seltener und weniger | `17-laptop.js:371` | markt, restposten |
-| `einkauf.restposten.normalN` | 1 / 2 | (Gruppe) Restposten-Ratzke: Angebote kommen in Wellen; wer viel Geld hat (druck -> 1), bekommt seltener und weniger | `17-laptop.js:371` | markt, restposten |
-| `einkauf.restposten.vorrat` | zwei 0,35, drei 0,12 | (Gruppe) Restposten-Ratzke: Angebote kommen in Wellen; wer viel Geld hat (druck -> 1), bekommt seltener und weniger | `17-laptop.js:371` | markt, restposten |
-| `einkauf.restposten.preis` | 0,85 / 1,12 | (Gruppe) Restposten-Ratzke: Angebote kommen in Wellen; wer viel Geld hat (druck -> 1), bekommt seltener und weniger | `17-laptop.js:371` | markt, restposten |
-| `einkauf.restposten.takt` | grund 0,7, jeDruck 0,9 | (Gruppe) Restposten-Ratzke: Angebote kommen in Wellen; wer viel Geld hat (druck -> 1), bekommt seltener und weniger | `17-laptop.js:371` | markt, restposten |
+| `einkauf.pakete.rabatt` | tuete 0,62, kiste 0,58, palette 0,52 | (Gruppe) Wundertueten/Themenpakete: Preis = mittlerer Karton-EK x Kartons x Faktor, auf 5 € gerundet (mind. 5 €) | `17-laptop.js:343` | markt, restposten |
+| `einkauf.pakete.sonstige` | 0,7 | (Gruppe) Wundertueten/Themenpakete: Preis = mittlerer Karton-EK x Kartons x Faktor, auf 5 € gerundet (mind. 5 €) | `17-laptop.js:335`, `17-laptop.js:345` | markt, restposten |
+| `einkauf.pakete.themen` | 0,6 | (Gruppe) Wundertueten/Themenpakete: Preis = mittlerer Karton-EK x Kartons x Faktor, auf 5 € gerundet (mind. 5 €) | `17-laptop.js:335`, `17-laptop.js:345` | markt, restposten |
+| `einkauf.pakete.sorten` | 0,56 | (Gruppe) Wundertueten/Themenpakete: Preis = mittlerer Karton-EK x Kartons x Faktor, auf 5 € gerundet (mind. 5 €) | `17-laptop.js:335`, `17-laptop.js:345` | markt, restposten |
+| `einkauf.pakete.jackpot` | 0,12 | (Gruppe) Wundertueten/Themenpakete: Preis = mittlerer Karton-EK x Kartons x Faktor, auf 5 € gerundet (mind. 5 €) | `17-laptop.js:323` | markt, restposten |
+| `einkauf.pakete.teuerAb` | 6 | (Gruppe) Wundertueten/Themenpakete: Preis = mittlerer Karton-EK x Kartons x Faktor, auf 5 € gerundet (mind. 5 €) | `17-laptop.js:324` | markt, restposten |
+| `einkauf.pakete.runden` | 5 | (Gruppe) Wundertueten/Themenpakete: Preis = mittlerer Karton-EK x Kartons x Faktor, auf 5 € gerundet (mind. 5 €) | `17-laptop.js:393` | markt, restposten |
+| `einkauf.pakete.min` | 5 | (Gruppe) Wundertueten/Themenpakete: Preis = mittlerer Karton-EK x Kartons x Faktor, auf 5 € gerundet (mind. 5 €) | `17-laptop.js:393` | markt, restposten |
+| `einkauf.restposten.welle` | 70 / 260 | (Gruppe) Restposten-Ratzke: Angebote kommen in Wellen; wer viel Geld hat (druck -> 1), bekommt seltener und weniger | `17-laptop.js:373` | markt, restposten |
+| `einkauf.restposten.dauer` | 120 / 360 | (Gruppe) Restposten-Ratzke: Angebote kommen in Wellen; wer viel Geld hat (druck -> 1), bekommt seltener und weniger | `17-laptop.js:373` | markt, restposten |
+| `einkauf.restposten.max` | 8 | (Gruppe) Restposten-Ratzke: Angebote kommen in Wellen; wer viel Geld hat (druck -> 1), bekommt seltener und weniger | `17-laptop.js:373` | markt, restposten |
+| `einkauf.restposten.ersteWelle` | 15 / 40 | (Gruppe) Restposten-Ratzke: Angebote kommen in Wellen; wer viel Geld hat (druck -> 1), bekommt seltener und weniger | `17-laptop.js:373` | markt, restposten |
+| `einkauf.restposten.druck` | kostenMin 60, tageAb 4, tageSpanne 26, mitKredit 0,5 | (Gruppe) Restposten-Ratzke: Angebote kommen in Wellen; wer viel Geld hat (druck -> 1), bekommt seltener und weniger | `17-laptop.js:373` | kredit, markt, restposten |
+| `einkauf.restposten.leer` | grund 0,15, jeDruck 0,4 | (Gruppe) Restposten-Ratzke: Angebote kommen in Wellen; wer viel Geld hat (druck -> 1), bekommt seltener und weniger | `17-laptop.js:373` | markt, restposten |
+| `einkauf.restposten.viel` | grund 0,28, jeDruck -0,2 | (Gruppe) Restposten-Ratzke: Angebote kommen in Wellen; wer viel Geld hat (druck -> 1), bekommt seltener und weniger | `17-laptop.js:373` | markt, restposten |
+| `einkauf.restposten.vielN` | 3 / 3 | (Gruppe) Restposten-Ratzke: Angebote kommen in Wellen; wer viel Geld hat (druck -> 1), bekommt seltener und weniger | `17-laptop.js:373` | markt, restposten |
+| `einkauf.restposten.normalN` | 1 / 2 | (Gruppe) Restposten-Ratzke: Angebote kommen in Wellen; wer viel Geld hat (druck -> 1), bekommt seltener und weniger | `17-laptop.js:373` | markt, restposten |
+| `einkauf.restposten.vorrat` | zwei 0,35, drei 0,12 | (Gruppe) Restposten-Ratzke: Angebote kommen in Wellen; wer viel Geld hat (druck -> 1), bekommt seltener und weniger | `17-laptop.js:373` | markt, restposten |
+| `einkauf.restposten.preis` | 0,85 / 1,12 | (Gruppe) Restposten-Ratzke: Angebote kommen in Wellen; wer viel Geld hat (druck -> 1), bekommt seltener und weniger | `17-laptop.js:373` | markt, restposten |
+| `einkauf.restposten.takt` | grund 0,7, jeDruck 0,9 | (Gruppe) Restposten-Ratzke: Angebote kommen in Wellen; wer viel Geld hat (druck -> 1), bekommt seltener und weniger | `17-laptop.js:373` | markt, restposten |
 
 ## versand
 
@@ -134,9 +134,9 @@ Spalte „gelesen in“: wo der Wert (oder seine Gruppe) im Spiel benutzt wird. 
 | `versand.onlineDeckel` | 1,3 | Onlinepreis hoechstens 130 % vom Marktpreis | `11c-versand.js:168` | preise |
 | `versand.paketwertSchaetzung` | grund 12, jeLevel 0,6 | € Anzeige, solange keine Bestellung offen ist | `11c-versand.js:142` |  |
 | `versand.groesse` | anteilS 0,68, bisM 0,94, spaetAb 22, spaetS 0,5, spaetBisM 0,85 | Bestellgroesse: Anteil S / bis M, ab Level spaetAb grosszuegiger | `11c-versand.js:239` |  |
-| `versand.pauschale` | grund 40, jeRuf 1,6, jeLevel 4 | Marktplatz-Pauschale je Tag ab Onlineshop (auch mit Packstation, ohne Kosten): round(grund + jeRuf*Ruf + jeLevel*Level) - ist-analyse: ~52 % des Betriebsgewinns (fuers Balancing) | `01c-wirtschaft.js:403 (WF)` |  |
+| `versand.pauschale` | grund 40, jeRuf 1,6, jeLevel 4 | Marktplatz-Pauschale je Tag ab Onlineshop (auch mit Packstation, ohne Kosten): round(grund + jeRuf*Ruf + jeLevel*Level) - ist-analyse: ~52 % des Betriebsgewinns (fuers Balancing) | `01c-wirtschaft.js:450 (WF)` |  |
 | `versand.ddl` | pauschale 39, anfahrtSek 20 | € je Abholung (Herleitung 11e-palette.js Kopf), s Anfahrt | `11e-palette.js:32` | versandkosten |
-| `versand.strafe` | offenAb 8, offenJe 0,12, offenMax 2, wartendJe 0,06, wartendMax 3 | Ruf-Strafen am Abend | `16-day.js:196`, `16-day.js:208`, `17-laptop.js:1075`, `21b-handbuch.js:92` | versandkosten |
+| `versand.strafe` | offenAb 8, offenJe 0,12, offenMax 2, wartendJe 0,06, wartendMax 3 | Ruf-Strafen am Abend | `16-day.js:196`, `16-day.js:208`, `17-laptop.js:1077`, `21b-handbuch.js:92` | versandkosten |
 | `versand.material.ks` | preis 8,9, stueck 25 | (Gruppe) Packmaterial: Preis je Gebinde, Stueck je Gebinde, Verbrauch je Paket S/M/L | `11d-packmaterial.js:13` | versandkosten |
 | `versand.material.km` | preis 11,4, stueck 15 | (Gruppe) Packmaterial: Preis je Gebinde, Stueck je Gebinde, Verbrauch je Paket S/M/L | `11d-packmaterial.js:13` | versandkosten |
 | `versand.material.kl` | preis 12,8, stueck 8 | (Gruppe) Packmaterial: Preis je Gebinde, Stueck je Gebinde, Verbrauch je Paket S/M/L | `11d-packmaterial.js:13` | versandkosten |
@@ -163,11 +163,11 @@ Spalte „gelesen in“: wo der Wert (oder seine Gruppe) im Spiel benutzt wird. 
 | Größe | Wert | Bedeutung | gelesen in | Kette |
 |---|---|---|---|---|
 | `personal.lohnstufen` | 0,75 / 1 / 1,3 / 1,65 | Lohnstufen (WAGES in 11-staff): f x Grundlohn; f wirkt auf Tempo (0,55 + 0,48 f) und Freundlichkeit (= Schnitt der f) -> Preistoleranz (+(f-1)*0,12) und Geduld (0,72 + 0,3 f) | `11-staff.js:64`, `11-staff.js:65`, `11-staff.js:66`, `11-staff.js:67` | personal |
-| `personal.pause` | 0,3 | Saisonpause: 30 % Lohn, keine Arbeit, Rueckkehr ohne neue Einstellung | `11-staff.js:269`, `16-day.js:277`, `17-laptop.js:1025`, `17-laptop.js:1444` +2 | personal |
-| `personal.kuendigung` | unter 0,8, chanceTag 0,14 | Lohnstufe < 0,8: kuendigt mit 14 % je Tag (Ruf: ruf.kuendigung) | `11-staff.js:274` | personal |
+| `personal.pause` | 0,3 | Saisonpause: 30 % Lohn, keine Arbeit, Rueckkehr ohne neue Einstellung | `05s-produktion.js:262`, `05s-produktion.js:348`, `11-staff.js:272`, `16-day.js:282` +4 | personal |
+| `personal.kuendigung` | unter 0,8, chanceTag 0,14 | Lohnstufe < 0,8: kuendigt mit 14 % je Tag (Ruf: ruf.kuendigung) | `11-staff.js:277` | personal |
 | `personal.tempo` | grund 0,55, jeLohn 0,48 |  | `11-staff.js:127` | personal |
-| `personal.einstellung` | reinigung 250, auffueller 450, auffueller2 600, kassierer 600, kassierer2 600, kassierer3 600, security 800, packer 700, packer2 750, packer3 800 | € einmalig | `02-data.js:353`, `02-data.js:354`, `02-data.js:355`, `02-data.js:356` +6 | personal |
-| `personal.lohn` | reinigung 55, auffueller 110, auffueller2 130, kassierer 145, kassierer2 140, kassierer3 140, security 190, packer 165, packer2 170, packer3 175 | € Grundlohn je Tag (x Lohnstufe) | `02-data.js:353`, `02-data.js:354`, `02-data.js:355`, `02-data.js:356` +6 | personal |
+| `personal.einstellung` | reinigung 250, auffueller 450, auffueller2 600, kassierer 600, kassierer2 600, kassierer3 600, security 800, packer 700, packer2 750, packer3 800, werker1 900, werker2 900, werker3 900, mischer 1.200 |  | `02-data.js:353`, `02-data.js:354`, `02-data.js:355`, `02-data.js:356` +10 | personal, fabrik |
+| `personal.lohn` | reinigung 55, auffueller 110, auffueller2 130, kassierer 145, kassierer2 140, kassierer3 140, security 190, packer 165, packer2 170, packer3 175, werker1 150, werker2 150, werker3 150, mischer 175 |  | `02-data.js:353`, `02-data.js:354`, `02-data.js:355`, `02-data.js:356` +10 | personal, fabrik |
 
 ## deko
 
@@ -179,31 +179,31 @@ Spalte „gelesen in“: wo der Wert (oder seine Gruppe) im Spiel benutzt wird. 
 
 | Größe | Wert | Bedeutung | gelesen in | Kette |
 |---|---|---|---|---|
-| `wand.preis` | creme 0, weiss 50, salbei 140, sand 250, streifen 370, anthrazit 520, raute 670, terrakotta 780, ziegel 840, metro 960, beere 1.020, blume 1.210, holzvert 1.410, mitternacht 1.620, petrol 1.840, gold 2.060, gras 2.400, damast 2.900, moire 3.400, nussbaum 4.200, samt 5.600, marmorwand 7.800 |  | `02-data.js:429`, `02-data.js:430`, `02-data.js:431`, `02-data.js:432` +18 | sauberkeit |
+| `wand.preis` | creme 0, weiss 50, salbei 140, sand 250, streifen 370, anthrazit 520, raute 670, terrakotta 780, ziegel 840, metro 960, beere 1.020, blume 1.210, holzvert 1.410, mitternacht 1.620, petrol 1.840, gold 2.060, gras 2.400, damast 2.900, moire 3.400, nussbaum 4.200, samt 5.600, marmorwand 7.800 |  | `02-data.js:435`, `02-data.js:436`, `02-data.js:437`, `02-data.js:438` +18 | sauberkeit |
 
 ## boden
 
 | Größe | Wert | Bedeutung | gelesen in | Kette |
 |---|---|---|---|---|
-| `boden.preis` | grau 0, vinyl 70, holz 190, schach 340, eiche 520, fliese 720, beton 940, industrie 1.180, teppich 1.430, terrazzo 1.690, marmor 1.970, fischgraet 2.600, chevron 3.200, travertin 3.900, nussfisch 4.600, veneziano 5.400, marmorband 6.200, versailles 8.500 |  | `02-data.js:453`, `02-data.js:454`, `02-data.js:455`, `02-data.js:456` +14 | sauberkeit |
+| `boden.preis` | grau 0, vinyl 70, holz 190, schach 340, eiche 520, fliese 720, beton 940, industrie 1.180, teppich 1.430, terrazzo 1.690, marmor 1.970, fischgraet 2.600, chevron 3.200, travertin 3.900, nussfisch 4.600, veneziano 5.400, marmorband 6.200, versailles 8.500 |  | `02-data.js:459`, `02-data.js:460`, `02-data.js:461`, `02-data.js:462` +14 | sauberkeit |
 
 ## regal
 
 | Größe | Wert | Bedeutung | gelesen in | Kette |
 |---|---|---|---|---|
-| `regal.verkauf.klein` | grund 45, jeWeiteres 28 | (Gruppe) Preis = grund + jeWeiteres x schon aufgestellte derselben Art (regalPreis) | `02-data.js:534` |  |
-| `regal.verkauf.standard` | grund 130, jeWeiteres 70 | (Gruppe) Preis = grund + jeWeiteres x schon aufgestellte derselben Art (regalPreis) | `02-data.js:535` |  |
-| `regal.verkauf.hoch` | grund 260, jeWeiteres 95 | (Gruppe) Preis = grund + jeWeiteres x schon aufgestellte derselben Art (regalPreis) | `02-data.js:536` |  |
-| `regal.verkauf.kuehl` | grund 430, jeWeiteres 155 | (Gruppe) Preis = grund + jeWeiteres x schon aufgestellte derselben Art (regalPreis) | `02-data.js:537` |  |
-| `regal.verkauf.gondel` | grund 560, jeWeiteres 190 | (Gruppe) Preis = grund + jeWeiteres x schon aufgestellte derselben Art (regalPreis) | `02-data.js:539` |  |
-| `regal.verkauf.eck` | grund 480, jeWeiteres 165 | (Gruppe) Preis = grund + jeWeiteres x schon aufgestellte derselben Art (regalPreis) | `02-data.js:542` |  |
-| `regal.verkauf.gross` | grund 640, jeWeiteres 210 | (Gruppe) Preis = grund + jeWeiteres x schon aufgestellte derselben Art (regalPreis) | `02-data.js:547` |  |
-| `regal.verkauf.tisch` | grund 220, jeWeiteres 80 | (Gruppe) Preis = grund + jeWeiteres x schon aufgestellte derselben Art (regalPreis) | `02-data.js:552` |  |
-| `regal.verkauf.tischgross` | grund 340, jeWeiteres 120 | (Gruppe) Preis = grund + jeWeiteres x schon aufgestellte derselben Art (regalPreis) | `02-data.js:555` |  |
-| `regal.verkauf.gitter` | grund 140, jeWeiteres 50 | (Gruppe) Preis = grund + jeWeiteres x schon aufgestellte derselben Art (regalPreis) | `02-data.js:560` |  |
-| `regal.verkauf.gitter2` | grund 210, jeWeiteres 75 | (Gruppe) Preis = grund + jeWeiteres x schon aufgestellte derselben Art (regalPreis) | `02-data.js:561` |  |
-| `regal.verkauf.gitter3` | grund 290, jeWeiteres 100 | (Gruppe) Preis = grund + jeWeiteres x schon aufgestellte derselben Art (regalPreis) | `02-data.js:562` |  |
-| `regal.verkauf.kasse` | grund 120, jeWeiteres 60 | (Gruppe) Preis = grund + jeWeiteres x schon aufgestellte derselben Art (regalPreis) | `02-data.js:573` |  |
+| `regal.verkauf.klein` | grund 45, jeWeiteres 28 | (Gruppe) Preis = grund + jeWeiteres x schon aufgestellte derselben Art (regalPreis) | `02-data.js:540` |  |
+| `regal.verkauf.standard` | grund 130, jeWeiteres 70 | (Gruppe) Preis = grund + jeWeiteres x schon aufgestellte derselben Art (regalPreis) | `02-data.js:541` |  |
+| `regal.verkauf.hoch` | grund 260, jeWeiteres 95 | (Gruppe) Preis = grund + jeWeiteres x schon aufgestellte derselben Art (regalPreis) | `02-data.js:542` |  |
+| `regal.verkauf.kuehl` | grund 430, jeWeiteres 155 | (Gruppe) Preis = grund + jeWeiteres x schon aufgestellte derselben Art (regalPreis) | `02-data.js:543` |  |
+| `regal.verkauf.gondel` | grund 560, jeWeiteres 190 | (Gruppe) Preis = grund + jeWeiteres x schon aufgestellte derselben Art (regalPreis) | `02-data.js:545` |  |
+| `regal.verkauf.eck` | grund 480, jeWeiteres 165 | (Gruppe) Preis = grund + jeWeiteres x schon aufgestellte derselben Art (regalPreis) | `02-data.js:548` |  |
+| `regal.verkauf.gross` | grund 640, jeWeiteres 210 | (Gruppe) Preis = grund + jeWeiteres x schon aufgestellte derselben Art (regalPreis) | `02-data.js:553` |  |
+| `regal.verkauf.tisch` | grund 220, jeWeiteres 80 | (Gruppe) Preis = grund + jeWeiteres x schon aufgestellte derselben Art (regalPreis) | `02-data.js:558` |  |
+| `regal.verkauf.tischgross` | grund 340, jeWeiteres 120 | (Gruppe) Preis = grund + jeWeiteres x schon aufgestellte derselben Art (regalPreis) | `02-data.js:561` |  |
+| `regal.verkauf.gitter` | grund 140, jeWeiteres 50 | (Gruppe) Preis = grund + jeWeiteres x schon aufgestellte derselben Art (regalPreis) | `02-data.js:566` |  |
+| `regal.verkauf.gitter2` | grund 210, jeWeiteres 75 | (Gruppe) Preis = grund + jeWeiteres x schon aufgestellte derselben Art (regalPreis) | `02-data.js:567` |  |
+| `regal.verkauf.gitter3` | grund 290, jeWeiteres 100 | (Gruppe) Preis = grund + jeWeiteres x schon aufgestellte derselben Art (regalPreis) | `02-data.js:568` |  |
+| `regal.verkauf.kasse` | grund 120, jeWeiteres 60 | (Gruppe) Preis = grund + jeWeiteres x schon aufgestellte derselben Art (regalPreis) | `02-data.js:579` |  |
 | `regal.lager.standard` | grund 0, jeWeiteres 0 | (Gruppe) Preis = grund + jeWeiteres x schon aufgestellte derselben Art (regalPreis) | `06-fixtures.js:1150` |  |
 | `regal.lager.hoch` | grund 520, jeWeiteres 150 | (Gruppe) Preis = grund + jeWeiteres x schon aufgestellte derselben Art (regalPreis) | `06-fixtures.js:1151` |  |
 | `regal.lager.schwer` | grund 880, jeWeiteres 240 | (Gruppe) Preis = grund + jeWeiteres x schon aufgestellte derselben Art (regalPreis) | `06-fixtures.js:1152` |  |
@@ -226,12 +226,12 @@ Spalte „gelesen in“: wo der Wert (oder seine Gruppe) im Spiel benutzt wird. 
 
 | Größe | Wert | Bedeutung | gelesen in | Kette |
 |---|---|---|---|---|
-| `ziele.umsatz` | ziel 600 / 260, praemie 120 / 45 | (Gruppe) Wochenziele (GOALS in 02-data): Ziel = a + b*Level, Praemie = c + d*Level | `02-data.js:808` |  |
-| `ziele.kunden` | ziel 40 / 14, praemie 100 / 40 | (Gruppe) Wochenziele (GOALS in 02-data): Ziel = a + b*Level, Praemie = c + d*Level | `02-data.js:808` |  |
-| `ziele.artikel` | ziel 90 / 34, praemie 110 / 42 | (Gruppe) Wochenziele (GOALS in 02-data): Ziel = a + b*Level, Praemie = c + d*Level | `02-data.js:808` |  |
-| `ziele.f2` | ziel 30 / 16, praemie 150 / 55 | (Gruppe) Wochenziele (GOALS in 02-data): Ziel = a + b*Level, Praemie = c + d*Level | `02-data.js:808` |  |
-| `ziele.sauber` | tage 5, praemie 130 / 40 | (Gruppe) Wochenziele (GOALS in 02-data): Ziel = a + b*Level, Praemie = c + d*Level | `02-data.js:808` |  |
-| `ziele.gross` | levelJeAuftrag 5, praemie 200 / 60 | (Gruppe) Wochenziele (GOALS in 02-data): Ziel = a + b*Level, Praemie = c + d*Level | `02-data.js:808` |  |
+| `ziele.umsatz` | ziel 600 / 260, praemie 120 / 45 | (Gruppe) Wochenziele (GOALS in 02-data): Ziel = a + b*Level, Praemie = c + d*Level | `02-data.js:814` |  |
+| `ziele.kunden` | ziel 40 / 14, praemie 100 / 40 | (Gruppe) Wochenziele (GOALS in 02-data): Ziel = a + b*Level, Praemie = c + d*Level | `02-data.js:814` |  |
+| `ziele.artikel` | ziel 90 / 34, praemie 110 / 42 | (Gruppe) Wochenziele (GOALS in 02-data): Ziel = a + b*Level, Praemie = c + d*Level | `02-data.js:814` |  |
+| `ziele.f2` | ziel 30 / 16, praemie 150 / 55 | (Gruppe) Wochenziele (GOALS in 02-data): Ziel = a + b*Level, Praemie = c + d*Level | `02-data.js:814` |  |
+| `ziele.sauber` | tage 5, praemie 130 / 40 | (Gruppe) Wochenziele (GOALS in 02-data): Ziel = a + b*Level, Praemie = c + d*Level | `02-data.js:814` |  |
+| `ziele.gross` | levelJeAuftrag 5, praemie 200 / 60 | (Gruppe) Wochenziele (GOALS in 02-data): Ziel = a + b*Level, Praemie = c + d*Level | `02-data.js:814` |  |
 
 ## erfolg
 
@@ -254,9 +254,9 @@ Spalte „gelesen in“: wo der Wert (oder seine Gruppe) im Spiel benutzt wird. 
 
 | Größe | Wert | Bedeutung | gelesen in | Kette |
 |---|---|---|---|---|
-| `kredit.stufen` | {lvl 5, amount 1.000, term 10, rate 0,012}; {lvl 8, amount 2.500, term 12, rate 0,013}; {lvl 12, amount 5.000, term 14, rate 0,014}; {lvl 15, amount 10.000, term 16, rate 0,015}; {lvl 20, amount 25.000, term 20, rate 0,016}; {lvl 26, amount 60.000, term 24, rate 0,017} | Kreditstufen (Kopie landet im Spielstand: {amount,remaining,term,rate,paid}). rate = Zins je Tag auf den Rest; Rate = amount/term + Rest*rate (16-day loanDaily) | `02-data.js:422`, `01c-wirtschaft.js:400 (WF)` | kredit |
-| `kredit.tilgenKnoepfe` | 250 / 1.000 | € Sondertilgung im Laptop (dazu "Alles") | `17-laptop.js:1461` | kredit |
-| `kredit.dispo` | abLevel 4, grund 260, jeLevel 70, zinsTag 0,006 | (Gruppe) Bank: Kredit, Dispo | `16-day.js:169`, `16-day.js:171`, `16-day.js:244`, `01c-wirtschaft.js:396 (WF)` | zuviel_kaufen |
+| `kredit.stufen` | {lvl 5, amount 1.000, term 10, rate 0,012}; {lvl 8, amount 2.500, term 12, rate 0,013}; {lvl 12, amount 5.000, term 14, rate 0,014}; {lvl 15, amount 10.000, term 16, rate 0,015}; {lvl 20, amount 25.000, term 20, rate 0,016}; {lvl 26, amount 60.000, term 24, rate 0,017} | Kreditstufen (Kopie landet im Spielstand: {amount,remaining,term,rate,paid}). rate = Zins je Tag auf den Rest; Rate = amount/term + Rest*rate (16-day loanDaily) | `02-data.js:428`, `01c-wirtschaft.js:447 (WF)` | kredit |
+| `kredit.tilgenKnoepfe` | 250 / 1.000 | € Sondertilgung im Laptop (dazu "Alles") | `17-laptop.js:1465` | kredit |
+| `kredit.dispo` | abLevel 4, grund 260, jeLevel 70, zinsTag 0,006 | (Gruppe) Bank: Kredit, Dispo | `16-day.js:169`, `16-day.js:171`, `16-day.js:247`, `01c-wirtschaft.js:443 (WF)` | zuviel_kaufen |
 
 ## fix
 
@@ -269,40 +269,70 @@ Spalte „gelesen in“: wo der Wert (oder seine Gruppe) im Spiel benutzt wird. 
 | `fix.regalArt` | klein 4, standard 9, hoch 12, kuehl 18, gondel 14, eck 11, gross 13, gitter 3, gitter2 4, gitter3 5, tisch 6, tischgross 8 | € je Verkaufsregal | `16-day.js:165` | zuviel_kaufen, level |
 | `fix.regalStandard` | 9 | € fuer Regalarten ohne Eintrag (z. B. Kassenregal) | `16-day.js:174` | zuviel_kaufen, level |
 | `fix.hochregal` | 35 | € je Tag und aktiver Hochregal-Gasse (Strom und Wartung RBG, Foerderer, FTS) - ab Ausbau lagerlogistik | `02-data.js:306`, `02-data.js:309`, `02-data.js:310`, `16-day.js:176` | zuviel_kaufen, level, lagerlogistik, fabrik |
-| `fix.werk` | 45 | Werk West (Etappe B, 15.10.): Betrieb erst, wenn die Straßen produzieren (Produktions-Gameplay, WK.produktion in 05r) - im Schau-Betrieb kein Betrieb, keine Kosten. Danach je Tag: Werk (Heizung, Versicherung, Brandschutz-Wartung, Druckluft) – € je Tag fuer das Werk ab Produktion (05r wkFixkosten) | `05r-werk.js:42` | zuviel_kaufen, level, fabrik |
-| `fix.werkStrasse` | 30 | € je Tag und laufender Fertigungsstraße (Strom, Verschleiss) ab Produktion | `05r-werk.js:43` | zuviel_kaufen, level, fabrik |
+| `fix.werk` | 45 | Werk West (15.10.): Betrieb erst ab der ersten eingeschalteten Straße (S.pd.aktiv, 05s) - vorher keine Kosten. Danach je Tag: Werk (Heizung, Versicherung, Brandschutz-Wartung, Druckluft) – € je Tag fuer das Werk ab Produktion (05r wkFixkosten) | `02-data.js:309`, `05r-werk.js:43`, `05s-produktion.js:264`, `05s-produktion.js:347` | zuviel_kaufen, level, fabrik |
+| `fix.werkStrasse` | 30 | € je Tag und eingeschaltete Fertigungsstraße (Strom, Bereitschaft) - auch wenn sie steht | `02-data.js:309`, `05r-werk.js:44`, `05s-produktion.js:265`, `05s-produktion.js:347` | zuviel_kaufen, level, fabrik |
 
 ## tag
 
 | Größe | Wert | Bedeutung | gelesen in | Kette |
 |---|---|---|---|---|
-| `tag` | automat 45 |  | `16-day.js:209`, `16-day.js:223` |  |
+| `tag` | automat 45 |  | `16-day.js:211`, `16-day.js:225` |  |
+
+## produktion
+
+| Größe | Wert | Bedeutung | gelesen in | Kette |
+|---|---|---|---|---|
+| `produktion.roh.huelsen.preis` | 2,2 | (Gruppe) Rohstoffe: € je kg (Standard), gebinde = kg je Bestelleinheit, lager = Lagerort. Groessenordnung wie im Chemiehandel (Perchlorat/Nitrat 5-8 €/kg, Aluminium-/Magnaliumpulver 10-20 €/kg, Schwarzpulver gewerblich 8-15 €/kg, Pappe/Huelsen 1,5-3 €/kg) | `05s-produktion.js:54`, `05s-produktion.js:71`, `05s-produktion.js:98` | produktion |
+| `produktion.roh.huelsen.gebinde` | 100 | (Gruppe) Rohstoffe: € je kg (Standard), gebinde = kg je Bestelleinheit, lager = Lagerort. Groessenordnung wie im Chemiehandel (Perchlorat/Nitrat 5-8 €/kg, Aluminium-/Magnaliumpulver 10-20 €/kg, Schwarzpulver gewerblich 8-15 €/kg, Pappe/Huelsen 1,5-3 €/kg) | `05s-produktion.js:54`, `05s-produktion.js:71`, `05s-produktion.js:98` | produktion |
+| `produktion.roh.huelsen.lager` | inert | (Gruppe) Rohstoffe: € je kg (Standard), gebinde = kg je Bestelleinheit, lager = Lagerort. Groessenordnung wie im Chemiehandel (Perchlorat/Nitrat 5-8 €/kg, Aluminium-/Magnaliumpulver 10-20 €/kg, Schwarzpulver gewerblich 8-15 €/kg, Pappe/Huelsen 1,5-3 €/kg) | `05s-produktion.js:54`, `05s-produktion.js:71`, `05s-produktion.js:98` | produktion |
+| `produktion.roh.oxidator.preis` | 5,8 | (Gruppe) Rohstoffe: € je kg (Standard), gebinde = kg je Bestelleinheit, lager = Lagerort. Groessenordnung wie im Chemiehandel (Perchlorat/Nitrat 5-8 €/kg, Aluminium-/Magnaliumpulver 10-20 €/kg, Schwarzpulver gewerblich 8-15 €/kg, Pappe/Huelsen 1,5-3 €/kg) | `05s-produktion.js:54`, `05s-produktion.js:71`, `05s-produktion.js:98` | produktion |
+| `produktion.roh.oxidator.gebinde` | 25 | (Gruppe) Rohstoffe: € je kg (Standard), gebinde = kg je Bestelleinheit, lager = Lagerort. Groessenordnung wie im Chemiehandel (Perchlorat/Nitrat 5-8 €/kg, Aluminium-/Magnaliumpulver 10-20 €/kg, Schwarzpulver gewerblich 8-15 €/kg, Pappe/Huelsen 1,5-3 €/kg) | `05s-produktion.js:54`, `05s-produktion.js:71`, `05s-produktion.js:98` | produktion |
+| `produktion.roh.oxidator.lager` | oxi | (Gruppe) Rohstoffe: € je kg (Standard), gebinde = kg je Bestelleinheit, lager = Lagerort. Groessenordnung wie im Chemiehandel (Perchlorat/Nitrat 5-8 €/kg, Aluminium-/Magnaliumpulver 10-20 €/kg, Schwarzpulver gewerblich 8-15 €/kg, Pappe/Huelsen 1,5-3 €/kg) | `05s-produktion.js:54`, `05s-produktion.js:71`, `05s-produktion.js:98` | produktion |
+| `produktion.roh.metall.preis` | 13,5 | (Gruppe) Rohstoffe: € je kg (Standard), gebinde = kg je Bestelleinheit, lager = Lagerort. Groessenordnung wie im Chemiehandel (Perchlorat/Nitrat 5-8 €/kg, Aluminium-/Magnaliumpulver 10-20 €/kg, Schwarzpulver gewerblich 8-15 €/kg, Pappe/Huelsen 1,5-3 €/kg) | `05s-produktion.js:54`, `05s-produktion.js:71`, `05s-produktion.js:98` | produktion |
+| `produktion.roh.metall.gebinde` | 20 | (Gruppe) Rohstoffe: € je kg (Standard), gebinde = kg je Bestelleinheit, lager = Lagerort. Groessenordnung wie im Chemiehandel (Perchlorat/Nitrat 5-8 €/kg, Aluminium-/Magnaliumpulver 10-20 €/kg, Schwarzpulver gewerblich 8-15 €/kg, Pappe/Huelsen 1,5-3 €/kg) | `05s-produktion.js:54`, `05s-produktion.js:71`, `05s-produktion.js:98` | produktion |
+| `produktion.roh.metall.lager` | metall | (Gruppe) Rohstoffe: € je kg (Standard), gebinde = kg je Bestelleinheit, lager = Lagerort. Groessenordnung wie im Chemiehandel (Perchlorat/Nitrat 5-8 €/kg, Aluminium-/Magnaliumpulver 10-20 €/kg, Schwarzpulver gewerblich 8-15 €/kg, Pappe/Huelsen 1,5-3 €/kg) | `05s-produktion.js:54`, `05s-produktion.js:71`, `05s-produktion.js:98` | produktion |
+| `produktion.roh.schwarzpulver.preis` | 9,8 | (Gruppe) Rohstoffe: € je kg (Standard), gebinde = kg je Bestelleinheit, lager = Lagerort. Groessenordnung wie im Chemiehandel (Perchlorat/Nitrat 5-8 €/kg, Aluminium-/Magnaliumpulver 10-20 €/kg, Schwarzpulver gewerblich 8-15 €/kg, Pappe/Huelsen 1,5-3 €/kg) | `05s-produktion.js:54`, `05s-produktion.js:71`, `05s-produktion.js:98` | produktion |
+| `produktion.roh.schwarzpulver.gebinde` | 25 | (Gruppe) Rohstoffe: € je kg (Standard), gebinde = kg je Bestelleinheit, lager = Lagerort. Groessenordnung wie im Chemiehandel (Perchlorat/Nitrat 5-8 €/kg, Aluminium-/Magnaliumpulver 10-20 €/kg, Schwarzpulver gewerblich 8-15 €/kg, Pappe/Huelsen 1,5-3 €/kg) | `05s-produktion.js:54`, `05s-produktion.js:71`, `05s-produktion.js:98` | produktion |
+| `produktion.roh.schwarzpulver.lager` | sp | (Gruppe) Rohstoffe: € je kg (Standard), gebinde = kg je Bestelleinheit, lager = Lagerort. Groessenordnung wie im Chemiehandel (Perchlorat/Nitrat 5-8 €/kg, Aluminium-/Magnaliumpulver 10-20 €/kg, Schwarzpulver gewerblich 8-15 €/kg, Pappe/Huelsen 1,5-3 €/kg) | `05s-produktion.js:54`, `05s-produktion.js:71`, `05s-produktion.js:98` | produktion |
+| `produktion.premium` | 1,2 | Premium-Rohstoffe kosten x1,2 - weniger Ausschuss, bessere Effekte (qualitaet.gewRoh/qRoh): lohnt mit | `05s-produktion.js:54` | produktion |
+| `produktion.lieferpauschale` | 95 | € je Liefertag an Tor R6 (Gefahrgut-LKW nach ADR), egal wie viel | `05s-produktion.js:102`, `05s-produktion.js:107` | produktion |
+| `produktion.lieferTage` | 1 | heute bestellt -> morgen frueh an R6 | `05s-produktion.js:115`, `05s-produktion.js:127` |  |
+| `produktion.lager` | inert 2.000, oxi 600, metall 300, sp 400 | kg je Lagerort (Inertlager, drei Chemie-Boxen) - Grenze beim Bestellen | `05s-produktion.js:74`, `05s-produktion.js:401` | produktion |
+| `produktion.klasse` | {nemJeL 24, nemMin 20, huelseJeL 70, schwarz 0,5, oxi 0,6, takt 1,25, refL 8, taktMin 0,8, taktMax 4}; {nemJeL 45, nemMin 40, huelseJeL 55, schwarz 0,35, oxi 0,65, takt 3,5, refL 6, taktMin 2, taktMax 9}; {nemJeL 16, nemMin 30, huelseJeL 30, schwarz 0,4, oxi 0,62, takt 3, refL 20, taktMin 1,4, taktMax 8} | Rezept je Klasse aus der Groesse (Packmass in Litern): Satzgewicht NEM = nemJeL g/L (mind. nemMin g), Huelsen/Pappe huelseJeL g/L, schwarz = Anteil Schwarzpulver am NEM (Treib-/Ausstoss-/Zerlegerladung), Rest Sternsatz (oxi = Anteil Oxidator, Rest Metallpulver). Takt = s je Stueck bei refL Litern, mit der Wurzel der Groesse skaliert, zwischen taktMin und taktMax. Klasse 0 Raketen (rocketset), 1 Kugelbomben (shell), 2 Batterien (battery, fan) - die Reihenfolge der Straßen | `05s-produktion.js:19`, `05s-produktion.js:44`, `05s-produktion.js:219`, `05s-produktion.js:343` | produktion |
+| `produktion.band` | 0,45 / 0,6 | variable Kosten je Stueck (Standard-Rohstoffe) bleiben in diesem Band vom Katalog-Einkaufspreis: liegt das Rezept aus der Groesse ausserhalb, wird es als Ganzes skaliert (Effektaufwand) - Konzept: variable Kosten 45-60 % vom Einkauf | `05s-produktion.js:38` | produktion |
+| `produktion.tagSek` | 330 | Produktionszeit je Spieltag in s = Ladenoeffnung (zeit.echtzeitSek): Werker arbeiten 8-22 Uhr | `05s-produktion.js:56`, `05s-produktion.js:164` |  |
+| `produktion.ausgabeSek` | 6 | s je Palette ueber Sammelfoerderer und Brandwaende in die Gasse | `05s-produktion.js:181` |  |
+| `produktion.stauPaletten` | 3 | so viele fertige Paletten warten hoechstens auf einen Hochregalplatz, dann steht die Straße | `05s-produktion.js:184` | produktion |
+| `produktion.qualitaet` | erfahrungTage 20, ausschussMin 0,02, ausschussMax 0,15, gewErf 0,6, gewRoh 0,4, qMin 0,9, qErf 0,14, qRoh 0,1 | Qualitaet: Erfahrung e = Produktionstage des Werkers / erfahrungTage (max 1), r = Premium-Anteil der Rohstoffe. Ausschuss = ausschussMax - (ausschussMax-ausschussMin) x (gewErf*e + gewRoh*r); Effektqualitaet q = qMin + qErf*e + qRoh*r. q wirkt wie die Ware vom Lieferanten (Preistoleranz +(q-1)*kunden.kauf.jeMenge, Blindgaenger unter 1) und ueber die QS auf den Ruf | `05s-produktion.js:79`, `05s-produktion.js:80` | produktion |
+| `produktion.stoerung` | jeTag 0,7, selbstSek 110 | Stoerungen (keine Wartung - Tom 14.10.): im Schnitt jeTag je laufender Straße; der Werker behebt sie selbst nach selbstSek, der Spieler sofort (an der Station oder im Leitstand "Zelle freigeben") | `05s-produktion.js:19`, `05s-produktion.js:44`, `05s-produktion.js:219`, `05s-produktion.js:343` | produktion |
+| `produktion.kugelTrocknungTage` | 1 | Kugelbomben trocknen in der Trockenkammer: fertig am naechsten Spieltag | `05s-produktion.js:172` |  |
+| `produktion.grosshandel` | faktor 0,85, reserveKartons 6, qMin 0,9, qMax 1,12 | Werksverkauf an den Grosshandel (je Straße einschaltbar): am Abend holt eine Spedition alles aus dem Hochregal, was von der Eigenproduktion ueber reserveKartons je Sorte liegt. Preis = faktor x aktueller Einkaufspreis x Qualitaet (qMin..qMax geklemmt). Warum: der eigene Laden verkauft in Kapitel 8 nur ~35 Stueck je Klasse am Tag (gemessen in der Vorfuehrung) - das traegt die Fixkosten einer Straße nicht. Ein Werk lohnt sich erst mit Absatz an Wiederverkaeufer (Auslastung, Break-even). | `05s-produktion.js:272`, `05s-produktion.js:292` | produktion |
 
 ## ruf
 
 | Größe | Wert | Bedeutung | gelesen in | Kette |
 |---|---|---|---|---|
-| `ruf` | kaufOk 0,8, kaufMitFehl 0,2, fehlwunsch -0,4, leerGegangen -0,3, zuTeuer -0,5, geduldWeg -2, diebGestellt 0,6, diebEntkommen -1,8, sbAllein -0,4, sbHilfe 0,1, auftragErfuellt 2,5, auftragVerfehlt -4, pruefungGut 3, pruefungSchlecht -5, pruefungSauberAb 70, kuendigung -1, kontoMinus -3 | Jede Aenderung geht ueber rep(d) und wird auf 0..100 geklemmt. Ruf wirkt auf: Kunden je Tag (0,55 + Ruf/100), Preistoleranz (+Ruf/900), Geduld (+0,3*Ruf), Online-Besucher und -Pauschale. | `06-fixtures.js:404`, `10-customers.js:292`, `10-customers.js:302`, `10-customers.js:295` +11 | zuviel_kaufen, zuwenig_ausbauen, leere_faecher, preise, personal, sauberkeit, diebstahl, auftraege |
+| `ruf` | kaufOk 0,8, kaufMitFehl 0,2, fehlwunsch -0,4, leerGegangen -0,3, zuTeuer -0,5, geduldWeg -2, diebGestellt 0,6, diebEntkommen -1,8, sbAllein -0,4, sbHilfe 0,1, auftragErfuellt 2,5, auftragVerfehlt -4, pruefungGut 3, pruefungSchlecht -5, pruefungSauberAb 70, kuendigung -1, kontoMinus -3, qsJe 6, qsMax 1,5 | Jede Aenderung geht ueber rep(d) und wird auf 0..100 geklemmt. Ruf wirkt auf: Kunden je Tag (0,55 + Ruf/100), Preistoleranz (+Ruf/900), Geduld (+0,3*Ruf), Online-Besucher und -Pauschale. | `05s-produktion.js:195` | zuviel_kaufen, zuwenig_ausbauen, leere_faecher, preise, personal, sauberkeit, diebstahl, auftraege, produktion |
 
 ## xp
 
 | Größe | Wert | Bedeutung | gelesen in | Kette |
 |---|---|---|---|---|
-| `xp.kurve` | a 50, exp 1,55 | (Gruppe) Level-Kurve: XP bis zum naechsten Level = round(a * Level^exp). Level schaltet Lizenzen, Ausbauten, Personal, Kredite frei - Geld und Level sind getrennte Kurven (ist-analyse 3.3). | `01c-wirtschaft.js:402 (WF)` | level |
+| `xp.kurve` | a 50, exp 1,55 | (Gruppe) Level-Kurve: XP bis zum naechsten Level = round(a * Level^exp). Level schaltet Lizenzen, Ausbauten, Personal, Kredite frei - Geld und Level sind getrennte Kurven (ist-analyse 3.3). | `01c-wirtschaft.js:449 (WF)` | level |
 | `xp.kunde` | jeEuro 0,5, grund 4, barPassend 3 | je bezahltem Einkauf; +3 wenn bar ohne Rueckgeld-Fehler | `10-customers.js:409` | level |
-| `xp.tag` | grund 60, jeUmsatz 0,05, ohneBeschwerde 40 | Tages-XP = grund + Umsatz*jeUmsatz + (keiner genervt ? ohneBeschwerde : 0) | `16-day.js:218` | level |
-| `xp.jahr` | 200 | XP fuer ein volles Jahr | `16-day.js:290` | level |
+| `xp.tag` | grund 60, jeUmsatz 0,05, ohneBeschwerde 40 | Tages-XP = grund + Umsatz*jeUmsatz + (keiner genervt ? ohneBeschwerde : 0) | `16-day.js:220` | level |
+| `xp.jahr` | 200 | XP fuer ein volles Jahr | `16-day.js:295` | level |
 | `xp.kreditGetilgt` | 40 | (Gruppe) Level-Kurve: XP bis zum naechsten Level = round(a * Level^exp). Level schaltet Lizenzen, Ausbauten, Personal, Kredite frei - Geld und Level sind getrennte Kurven (ist-analyse 3.3). | `16-day.js:50` | kredit, level |
 | `xp.kapitel` | 40 | (Gruppe) Level-Kurve: XP bis zum naechsten Level = round(a * Level^exp). Level schaltet Lizenzen, Ausbauten, Personal, Kredite frei - Geld und Level sind getrennte Kurven (ist-analyse 3.3). | `19-hud.js:116` | level |
-| `xp.ausbauTeiler` | 12 | Geld ausgeben bringt XP (Luecke fuers Balancing: Level folgt Ausgaben) – Ausbau/Deko: Kosten/12 | `17-laptop.js:1705`, `17-laptop.js:1716`, `17-laptop.js:1721` | level |
-| `xp.lizenz` | teiler 14, bonus 30 | Lizenz: Kosten/14 + 30 | `17-laptop.js:198` | level |
+| `xp.ausbauTeiler` | 12 | Geld ausgeben bringt XP (Luecke fuers Balancing: Level folgt Ausgaben) – Ausbau/Deko: Kosten/12 | `17-laptop.js:1710`, `17-laptop.js:1721`, `17-laptop.js:1726` | level |
+| `xp.lizenz` | teiler 14, bonus 30 | Lizenz: Kosten/14 + 30 | `17-laptop.js:200` | level |
 | `xp.herausforderung` | teiler 10, bonus 25 | Praemie/10 + 25 | `02c-erfolge.js:173` | level |
 | `xp.wochenzielTeiler` | 3 | Wochenziel: Praemie/3 | `16-day.js:90` | level |
 | `xp.auftragAngenommen` | 20 | (Gruppe) Level-Kurve: XP bis zum naechsten Level = round(a * Level^exp). Level schaltet Lizenzen, Ausbauten, Personal, Kredite frei - Geld und Level sind getrennte Kurven (ist-analyse 3.3). | `10b-pyro.js:96` | level |
 | `xp.auftragErfuellt` | jeEuro 0,4, grund 40 | (Gruppe) Level-Kurve: XP bis zum naechsten Level = round(a * Level^exp). Level schaltet Lizenzen, Ausbauten, Personal, Kredite frei - Geld und Level sind getrennte Kurven (ist-analyse 3.3). | `10b-pyro.js:137` | level, auftraege |
-| `xp.restposten` | 20 | Wundertuete / Restposten-Angebot gekauft | `17-laptop.js:359`, `17-laptop.js:417` | level |
+| `xp.restposten` | 20 | Wundertuete / Restposten-Angebot gekauft | `17-laptop.js:361`, `17-laptop.js:419` | level |
 | `xp.eigeneRezeptur` | 180 | (Gruppe) Level-Kurve: XP bis zum naechsten Level = round(a * Level^exp). Level schaltet Lizenzen, Ausbauten, Personal, Kredite frei - Geld und Level sind getrennte Kurven (ist-analyse 3.3). | `02d-rezeptur.js:198` | level |
-| `xp.zuenden` | hypeTeiler 3, min 1 | je gezuendetem Stueck: max(1, Hype/3) | `14b-shows.js:711` | level |
+| `xp.zuenden` | hypeTeiler 3, min 1 | je gezuendetem Stueck: max(1, Hype/3) | `14b-shows.js:712` | level |
 | `xp.serieStufen` | 5 / 10 / 20 / 35 / 50 / 75 / 100 | Serie zufriedener Kunden: n*6 XP an den Stufen | `19-hud.js:168` | level |
 | `xp.serieJeKunde` | 6 | (Gruppe) Level-Kurve: XP bis zum naechsten Level = round(a * Level^exp). Level schaltet Lizenzen, Ausbauten, Personal, Kredite frei - Geld und Level sind getrennte Kurven (ist-analyse 3.3). | `19-hud.js:172` | level |
 | `xp.diebGestellt` | 25 | (Gruppe) Level-Kurve: XP bis zum naechsten Level = round(a * Level^exp). Level schaltet Lizenzen, Ausbauten, Personal, Kredite frei - Geld und Level sind getrennte Kurven (ist-analyse 3.3). | `10-customers.js:332` | level |
@@ -310,7 +340,7 @@ Spalte „gelesen in“: wo der Wert (oder seine Gruppe) im Spiel benutzt wird. 
 | `xp.einbau` | 20 | (Gruppe) Level-Kurve: XP bis zum naechsten Level = round(a * Level^exp). Level schaltet Lizenzen, Ausbauten, Personal, Kredite frei - Geld und Level sind getrennte Kurven (ist-analyse 3.3). | `08-boxes.js:164` | level |
 | `xp.gravur` | 12 | (Gruppe) Level-Kurve: XP bis zum naechsten Level = round(a * Level^exp). Level schaltet Lizenzen, Ausbauten, Personal, Kredite frei - Geld und Level sind getrennte Kurven (ist-analyse 3.3). | `06b-gravur.js:159` | level |
 | `xp.paketGepackt` | 3 | (Gruppe) Level-Kurve: XP bis zum naechsten Level = round(a * Level^exp). Level schaltet Lizenzen, Ausbauten, Personal, Kredite frei - Geld und Level sind getrennte Kurven (ist-analyse 3.3). | `11c-versand.js:694` | level |
-| `xp.dreckWeg` | 3 | (Gruppe) Level-Kurve: XP bis zum naechsten Level = round(a * Level^exp). Level schaltet Lizenzen, Ausbauten, Personal, Kredite frei - Geld und Level sind getrennte Kurven (ist-analyse 3.3). | `15-player.js:454` | level |
+| `xp.dreckWeg` | 3 | (Gruppe) Level-Kurve: XP bis zum naechsten Level = round(a * Level^exp). Level schaltet Lizenzen, Ausbauten, Personal, Kredite frei - Geld und Level sind getrennte Kurven (ist-analyse 3.3). | `15-player.js:457` | level |
 | `xp.fensterPutzen` | 4 | (Gruppe) Level-Kurve: XP bis zum naechsten Level = round(a * Level^exp). Level schaltet Lizenzen, Ausbauten, Personal, Kredite frei - Geld und Level sind getrennte Kurven (ist-analyse 3.3). | `05f-facade.js:219` | level |
 | `xp.sbHilfe` | 4 | (Gruppe) Level-Kurve: XP bis zum naechsten Level = round(a * Level^exp). Level schaltet Lizenzen, Ausbauten, Personal, Kredite frei - Geld und Level sind getrennte Kurven (ist-analyse 3.3). | `06-fixtures.js:405` | level |
 | `xp.packmaterialEinlagern` | 1 | (Gruppe) Level-Kurve: XP bis zum naechsten Level = round(a * Level^exp). Level schaltet Lizenzen, Ausbauten, Personal, Kredite frei - Geld und Level sind getrennte Kurven (ist-analyse 3.3). | `11d-packmaterial.js:320` | level |

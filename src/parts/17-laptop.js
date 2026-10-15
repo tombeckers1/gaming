@@ -7,8 +7,10 @@ let laptopOpen=false, startOpen=true, pauseOpen=false, ltab='order', resetArm=fa
    Lager-PC in der Versandecke = Bestellen, Onlineshop (Versandkosten, Aktionen, Statistik)
    und Team; Tablet im Laden = Ware bestellen. Das Handy bleibt, wie es ist. */
 const GERAETE={
-  buero :{name:'Büro-Laptop',tabs:['order','price','liz','up','deko','rez','shop'],zu:'Laptop zuklappen'},
-  lager :{name:'Lager-PC',tabs:['order','online','staff'],zu:'Abmelden'},
+  buero :{name:'Büro-Laptop',tabs:['order','price','liz','up','deko','rez','prod','shop'],zu:'Laptop zuklappen'},
+  lager :{name:'Lager-PC',tabs:['order','online','staff','prod'],zu:'Abmelden'},
+  /* Werk West (05s): Leitstand auf der Galerie - Produktion (mit "Zelle freigeben") und Team */
+  leitstand:{name:'Leitstand Werk West',tabs:['prod','staff'],zu:'Leitstand verlassen'},
   tablet:{name:'Tablet · Bestellen',tabs:['order'],zu:'Tablet weglegen'}};
 let lapGeraet='buero';
 function geraetTabs(){ return (GERAETE[lapGeraet]||GERAETE.buero).tabs; }
@@ -1453,6 +1455,8 @@ function lapZeichnen(body){
       const pause=has?`<small>${inPause(s.id)?`In Saisonpause · ${eur(r2(s.wage*wageOf(s.id)*WIRT.personal.pause))} pro Tag`:'Im Dienst'} <button data-a="pause" data-t="${s.id}" style="padding:4px 9px;font-size:14px;margin-left:6px;${inPause(s.id)?'background:var(--mint);color:var(--ink)':'background:rgba(242,245,255,.12);color:var(--snow)'}">${inPause(s.id)?'Zurück in den Dienst':'In Saisonpause schicken'}</button></small>`:'';
       return `<div class="row${lock?' locked':''}${prio?' mitEinr':''}"><div class="rm"><b>${s.name}</b><small>${s.desc}</small><small>Einstellung ${eur(s.hire)} · Grundlohn ${eur(s.wage)} pro Tag</small>${lohn}${pause}</div>`+
         (fehlt?`<small>braucht: ${(UPGRADES.find(u=>u.id===s.req)||{name:s.req}).name}</small>`:lock?`<small>ab Level ${s.lvl}</small>`:has?`<button class="red" data-a="fire" data-t="${s.id}">Kündigen</button>`:`<button data-a="hire" data-t="${s.id}" ${S.money<s.hire?'disabled':''}>Einstellen</button>`)+prio+'</div>'; }).join('');
+  } else if(ltab==='prod'){
+    const r=pdLaptop(); h=r.h; hint=r.hint;
   } else if(ltab==='bank'){
     const t=loanTier(), L=S.loan;
     hint=t?`Dein Kreditrahmen: ${eur(t.amount)}.`:`Kredite gibt es ab Level ${LOANS[0].lvl}.`;
@@ -1593,6 +1597,7 @@ function lapKlick(e,imHandy){
   else if(a==='einr'){ const [v,g]=b.dataset.v.split(':'), n=STAFF.find(x=>x.id===t).name;
     if(v==='hoch') einrHoch(t,g); else if(v==='runter') einrRunter(t,g); else einrSchalten(t,g);
     const r=einrAktiv(t); toast(r.length?`${n}: zuerst ${AUFGABEN[r[0]].name}.`:`${n}: alle Aufgaben aus - steht nur herum.`); }
+  else if(a&&a.indexOf('pd')===0&&typeof pdKlick==='function') pdKlick(a,b.dataset);
   else if(a==='loan') takeLoan(+b.dataset.v);
   else if(a==='repay') repayLoan(+b.dataset.v);
   else if(a==='open'){ openShop(); closeLaptop(true); return; }
@@ -1696,8 +1701,8 @@ function buyUp(id){
       else if(id==='lager_sued') toast('Der zweite Abschnitt ist offen. Die Wand dazwischen ist ganz weg.','money');
       else if(id==='lager_sued2') toast('Die Halle Süd ist komplett: 283 Quadratmeter am Stück.','money');
       else if(id==='lager_west') toast('Die Logistikhalle gehört dir: hinter der Schleuse, die Tore rechts an der Südwand. Mit jeder Stufe wird sie größer.','money');
-      else if(id==='fabrik') toast('Das Werk steht: Straße 1 baut Raketen im Schau-Betrieb, der Förderer bringt die Paletten in Gasse 2. Der Leitstand liegt oben über der Treppe neben der Umkleide.','money');
-      else if(id==='fabrik2'||id==='fabrik3') toast(`${id==='fabrik2'?'Straße 2 (Kugelbomben) und Gasse 3':'Straße 3 (Batterien)'} laufen. Vom Leitstand siehst du alle Straßen.`,'money');
+      else if(id==='fabrik') toast('Das Werk steht. Für die Produktion: Werker und Mischer einstellen (Team), Rohstoffe bestellen und einen Auftrag anlegen (Produktion). Der Leitstand liegt oben über der Treppe neben der Umkleide.','money');
+      else if(id==='fabrik2'||id==='fabrik3') toast(`${id==='fabrik2'?'Straße 2 (Kugelbomben) und Gasse 3':'Straße 3 (Batterien)'} stehen bereit – mit eigenem Werker und Auftrag laufen sie los. Vom Leitstand siehst du alle Straßen.`,'money');
       else if(id==='lagerlogistik') toast('Das Hochregal läuft: Lieferungen an Tor 2 bis 4 lagert das Regalbediengerät ein, Nachschub fährt nach ③. Durch N1 geht es ins Kartonlager.','money');
       else if(id==='eingang2'){ setEingang2(true); toast('Der zweite Eingang ist offen. Kunden nehmen ab jetzt die Tür, die näher liegt.','money'); }
       else if(id.indexOf('rampe')===0) toast(`${u.name.split(' ')[0]} Andockstation geht in Betrieb. Das Tor ist frei.`,'money');

@@ -319,6 +319,7 @@ function updateTarget(){
   sbLanes.forEach((l,i)=>{ if(l.hit&&sbNutzbar(i)&&nahDran(sbPos(i),R)) list.push(l.hit); });
   for(const k in stations) if(nahDran(stations[k].g.position,R)) list.push(stations[k].hit);
   list.push(lapHit,doorSign,posHit,cardHit);
+  if(typeof pdHits==='function') list.push(...pdHits());   /* Werk West: Leitstand-Pult, gestoerte Zelle (05s) */
   if(lapHit2&&lapHit2.parent&&lapHit2.parent.visible) list.push(lapHit2);
   if(typeof tabHit!=='undefined'&&tabHit) list.push(tabHit);
   if(pultHit) list.push(pultHit);
@@ -334,6 +335,7 @@ function updateTarget(){
 }
 function promptFor(t){
   if(t&&t.kind==='ddltel'&&typeof ddlTelPrompt==='function') return ddlTelPrompt();
+  if(t&&(t.kind==='pdleitstand'||t.kind==='pdstoer')) return pdPrompt(t);
   if(!t) return null; const c=S.carrying, reg=regCustomer();
   if(pdaOn&&!grabbed){ const pt=pdaTargetType(); if(pt) return {t:`Preisgerät: ${P[pt].short} · ${eur(S.prices[pt])}`,a:true}; }
   if(c&&c.vm&&['level','rslot','box','station','gravur'].indexOf(t.kind)>=0) return {t:'Versandmaterial gehört ins Packmaterial-Regal an der Packstation',a:false};
@@ -413,6 +415,7 @@ function doAction(){
   if(sprayOn&&!grabbed){ doSpray(); return; }
   if(!target) return;
   if(target.kind==='ddltel'){ ddlRufen(); return; }
+  if(target.kind==='pdleitstand'||target.kind==='pdstoer'){ pdAktion(target); return; }
   if(pdaOn&&!grabbed){ const t=pdaTargetType(); if(t){ openPDA(t); return; } }
   const k=target.kind, r=target.ref, reg=regCustomer();
   if(k==='placing') placeGrab();

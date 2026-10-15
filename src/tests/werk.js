@@ -1,5 +1,5 @@
 /* Halle Etappe B (15.10.): Werk West - Kauf fabrik/fabrik2/fabrik3, Bau erst beim Kauf, Waende/Kollision (Brandwaende, Tueren),
-   Leitstand ueber die Treppe begehbar (Bodenhoehe), Personaltuer der Halle, Welt bis x −124, Schau-Betrieb (Traeger, Portale,
+   Leitstand ueber die Treppe begehbar (Bodenhoehe), Personaltuer der Halle, Welt bis x −124, Betrieb mit Produktion (Traeger, Portale,
    Paletten in die Gasse), RBG in Gasse 2/3, Fixkosten, Wegenetz unveraendert (Groesse, Bauzeit), Speichern/Laden.
    Aufruf: node -r ./ladezeit-preload.js werk.js real.html   GEGENPROBE=1: Kollision der Brandwand entfernen -> muss anschlagen. */
 const { chromium } = require('/opt/node22/lib/node_modules/playwright');
@@ -75,8 +75,15 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   M(w.navTuer,'Personaltuer im Wegenetz offen (Personal liefe hinaus)');
   M(w.boden.leitstand===3.2&&Math.abs(w.boden.podest-1.6)<0.01&&w.boden.fuss===0&&w.boden.werk===0,'Bodenhoehen falsch: '+JSON.stringify(w.boden));
 
-  /* 3) Schau-Betrieb: Kamera im Werk, Traeger/Portale bewegen sich, Paletten erreichen die Gasse */
-  const sb=await p.evaluate(()=>{ const bb=window.__bb, o={}, st=bb.WK_T.str[0];
+  /* 3) Betrieb (seit 15.10. echte Produktion, 05s): ohne Auftrag steht die Straße; mit Werker, Mischer, Rohstoffen und Auftrag bei
+     offenem Laden laufen Traeger/Portale, Paletten erreichen die Gasse, Zellenampel rot */
+  const sb=await p.evaluate(()=>{ const bb=window.__bb, S=bb.S, o={}, st=bb.WK_T.str[0];
+    bb.run(0.5,0.05); o.stehtOhne=!bb.WK.zustand[0].laeuft;
+    S.lic=bb.LIZENZEN.map(l=>l.id); S.up.tag4=true; for(const id of ['mischer','werker1']){ S.staff[id]=true; bb.hireStaff(id); }
+    const D=bb.pdDaten(); for(const r in D.lager) D.lager[r].std=150;
+    bb.pdKlick('pdadd',{i:'0',t:'raketen',v:'40'}); bb.pdKlick('pdan',{i:'0'});
+    if(bb.phase!=='open'){ bb.phase='closed'; bb.clock=480; bb.openShop(); }
+    bb.run(0.2,0.05);
     bb.setView(-80,-16.5,-Math.PI/2,0); bb.kameraSetzen(); bb.renderFrame(0.016);
     o.sichtbar=bb.WK_H.visible&&bb.WK_D.visible;
     const m=new THREE.Matrix4(), pos=()=>{ st.traeger.getMatrixAt(0,m); return m.elements[12]; };
@@ -91,6 +98,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   M(sb.traeger&&sb.portal,'Schau-Betrieb bewegt sich nicht: '+JSON.stringify(sb));
   M(sb.paletten>=1,'keine Palette in Gasse 2 angekommen');
   M(sb.ampel>1,'Zellenampel nicht rot (Straße laeuft)');
+  M(sb.stehtOhne,'Straße laeuft ohne Auftrag/Werker (Schau-Betrieb ist seit der Produktion weg)');
 
   /* 4) 8.2 und 8.3 */
   const c=await p.evaluate(()=>{ const bb=window.__bb, o={}; bb.S.level=40; const f0=bb.fixedCosts();

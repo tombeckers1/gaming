@@ -264,6 +264,8 @@ function* gpAufbau(){
   if(typeof llOffen==='function'&&llOffen()&&typeof hrDaten==='function'){ const D=hrDaten();
     for(let i=0;i<180;i++) if(!D.p[i]&&(i*7)%10<7){ const t=gut[i%gut.length]; D.p[i]=[{t,c:P[t].box,q:1},{t,c:P[t].box,q:1},{t,c:P[t].box,q:1}]; }
     hrSync(); yield [0.985,'Hochregal einlagern']; }
+  /* Werk West (05s): Rohstoffe im Lager, Werker eingearbeitet, Auftraege je Straße - der Sprungpunkt "Werk" zeigt laufende Produktion */
+  if(typeof pdVorfuehrung==='function'){ pdVorfuehrung(); yield [0.99,'Werk: Produktion einrichten']; }
   /* Packmaterial-Regale voll (Erstausstattung) */
   if(typeof vmStand==='function'){ vmStand(0); for(let i=0;i<3;i++) VM_IDS.forEach(id=>{ S.vm[i][id]=VM[id].kap; }); vmRegalZeichnen(); }
   /* Laden auf, Spieler in den Verkauf */

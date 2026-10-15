@@ -59,6 +59,7 @@ uniform vec4 raumL[ ${N*2+1} ];
 /* x: Raumlicht-Staerke (0 = draussen), y: Sonnenanteil drinnen */
 vec2 raumAn( vec3 p ){
   for( int i = 0; i < RAUM_N; i ++ ){
+    if( float( i ) >= raumL[ 0 ].w ) break;
     vec4 b = raumL[ 1 + i * 2 ]; vec4 q = raumL[ 2 + i * 2 ];
     if( q.z > 0.0 && p.x > b.x && p.x < b.z && p.z > b.y && p.z < b.w && p.y > q.x && p.y < q.y ) return vec2( q.z, q.w );
   }
@@ -128,11 +129,16 @@ function deckeTakt(){
 function raumTakt(){
   const V=RAUM.werte, L=raumListe(); if(!V||!L.length) return;
   const schatten=raumSchatten(), st=RAUM.staerke+(schatten&&DECKE.l?0:RAUM.decke*0.85);
-  let sig=(schatten?'s':'-')+st+'|'+RAUM.hemi+'|'+RAUM.spec+'|'; for(const r of L) sig+=raumAktiv(r.d)?1:0;
+  /* Leistung: aktive Raeume vorn und nach Abstand zur Kamera sortiert - der Shader bricht beim ersten Treffer ab
+     (die meisten Pixel liegen im Raum des Spielers) und nach dem letzten aktiven Raum (raumL[0].w) */
+  const c=camera.position, A=L.filter(r=>raumAktiv(r.d));
+  const ab=r=>Math.hypot(Math.max(r.x0-c.x,0,c.x-r.x1),Math.max(r.z0-c.z,0,c.z-r.z1));
+  A.sort((p,q)=>ab(p)-ab(q));
+  let sig=(schatten?'s':'-')+st+'|'+RAUM.hemi+'|'+RAUM.spec+'|'; for(const r of A) sig+=L.indexOf(r)+',';
   if(sig===RAUM.sig) return; RAUM.sig=sig;
-  V[0].set(RAUM.hemi,RAUM.spec,0,0); let n=0;
-  for(let i=0;i<RAUM.n;i++){ const r=L[i], b=V[1+i*2], q=V[2+i*2];
-    if(r&&raumAktiv(r.d)){ b.set(r.x0,r.z0,r.x1,r.z1); q.set(-0.6,r.h,st,schatten?1:0); n++; }
+  const n=Math.min(A.length,RAUM.n); V[0].set(RAUM.hemi,RAUM.spec,0,n);
+  for(let i=0;i<RAUM.n;i++){ const r=A[i], b=V[1+i*2], q=V[2+i*2];
+    if(r){ b.set(r.x0,r.z0,r.x1,r.z1); q.set(-0.6,r.h,st,schatten?1:0); }
     else { b.set(0,0,0,0); q.set(0,0,0,0); } }
   RAUM.nAktiv=n; RAUM.nListe=L.length;
 }

@@ -1,6 +1,6 @@
 /* Verpackungs-Vorfuehrung 2.0 / Ausstellung (Tom, 15.10.: "jedes Produkt EINMAL auf einen Verkaufstisch, mit
    Name - dann sage ich dir, welche Verpackung nicht passt"). Prueft nach vp2.start():
-   - PRODUKTE  jedes Produkt der Vorfuehrung 1 (bb.vpProdukte) steht genau 1x in der Ausstellung und genau 1 Instanz im Pool
+   - PRODUKTE  jedes Produkt der Vorfuehrung 1 (bb.vpProdukte) und jedes nicht bestellbare (Gravur-Rakete) steht genau 1x in der Ausstellung und genau 1 Instanz im Pool
    - NUMMERN   1..N lueckenlos, sortiert nach Kategorie, dann Produkt-ID; Kategorien in der Reihenfolge vp2.KATS
    - SCHILD    Atlas: ein Schild je Produkt, jede Zelle bemalt; Platte + Schrift = genau 2 Meshes (alle Schilder)
    - PLATZ     jedes Stueck auf seinem Tisch (x/z innerhalb), Tische ueberschneiden sich nicht, alles im Raum, Gaenge >= 2,4 m
@@ -41,8 +41,8 @@ const BILDER=process.env.BILDER||'';
   if(start.ms>2500) o.produkte.push('Knopf blockiert das Spiel '+start.ms+' ms');
   await p.waitForFunction('window.__bb.vp2.fertig',null,{timeout:1200000,polling:500});
   console.log('Ausstellung fertig nach',dauer());
-  const info=await p.evaluate(()=>{ const bb=window.__bb, V=bb.vp2, P=bb.P, alle=bb.vpProdukte(), L=V.liste;
-    const r={n:L.length,alle:alle.length,mess:Object.assign({},V.mess),FL:V.FL,reihen:V.reihen.length,tische:V.tische.anzahl};
+  const info=await p.evaluate(()=>{ const bb=window.__bb, V=bb.vp2, P=bb.P, alle=bb.vpProdukte().concat(Object.keys(P).filter(t=>P[t].dims&&P[t].noOrder&&!P[t].rezept&&!P[t].eigen&&!bb.vpProdukte().includes(t))), L=V.liste;
+    const r={n:L.length,alle:alle.length,fehler:L.filter(e=>e.fehler).map(e=>e.t+': '+e.fehler),mess:Object.assign({},V.mess),FL:V.FL,reihen:V.reihen.length,tische:V.tische.anzahl};
     /* PRODUKTE */
     const zaehl={}; L.forEach(e=>zaehl[e.t]=(zaehl[e.t]||0)+1);
     const prod=[]; alle.forEach(t=>{ if(zaehl[t]!==1) prod.push(`${t}: ${zaehl[t]||0}x`); });
@@ -81,10 +81,10 @@ const BILDER=process.env.BILDER||'';
     r.tre=tre;
     return r; });
   if(BILDER){ fs.mkdirSync(BILDER,{recursive:true}); fs.writeFileSync(path.join(BILDER,'nummern.txt'),'Verpackungs-Ausstellung 2.0 - Nummer, Name, Kategorie, ID, Reihe\n'+info.nummern.join('\n')+'\n'); }
-  console.log(`Produkte: ${info.n} (Vorfuehrung 1: ${info.alle}), Tische ${info.tische}, Reihen ${info.reihen}, max ${info.maxStueckProTisch} je Tisch`);
+  console.log(`Produkte: ${info.n} (Vorfuehrung 1 + nicht bestellbare: ${info.alle}), Tische ${info.tische}, Reihen ${info.reihen}, max ${info.maxStueckProTisch} je Tisch`);
   console.log('Kategorien',JSON.stringify(info.kats));
   console.log('Raum',JSON.stringify(info.FL),'| Atlas',JSON.stringify(info.atlas),'| Aufbau/fertig',JSON.stringify(info.mess));
-  o.produkte.push(...info.prod); if(info.n!==info.alle) o.produkte.push(`Anzahl ${info.n} != ${info.alle}`);
+  o.produkte.push(...info.prod); o.produkte.push(...info.fehler.map(x=>'Modell fehlt: '+x)); if(info.n!==info.alle) o.produkte.push(`Anzahl ${info.n} != ${info.alle}`);
   o.nummern.push(...info.num);
   o.schild.push(...info.sch); if(info.atlas.n!==info.n) o.schild.push('Atlas n '+info.atlas.n); if(!info.atlas.platte||!info.atlas.schrift) o.schild.push('Atlas-Meshes nicht in der Gruppe'); if(info.schildMeshes!==2) o.schild.push('Schild-Meshes '+info.schildMeshes+' (erwartet 2)');
   o.platz.push(...info.pl); o.treffer.push(...info.tre); if(info.hits!==info.n) o.treffer.push('Trefferflaechen '+info.hits);

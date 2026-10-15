@@ -42,9 +42,11 @@ function vp2KatVon(t){
   if(sh==='assort') return 'sor';
   return 'bod';
 }
+/* Alle Produkte des Spiels mit Verpackung: die der Vorfuehrung 1 (vpProdukte) und die nicht bestellbaren (Gravur-Rakete), ohne eigene Rezepte */
+function vp2Produkte(){ return ORDER.filter(t=>{ const p=P[t]; return p&&p.dims&&!p.rezept&&!p.eigen; }); }
 /* Nummern und Reihenfolge: Kategorie, dann Produkt-ID - stabil, solange das Sortiment gleich bleibt */
 function vp2Sammeln(){
-  const L=vpProdukte().map(t=>{ const p=P[t]; return {t,kat:vp2KatVon(t),w:p.dims[0],hh:p.dims[1],d:p.dims[2],stat:0,hd:null}; });
+  const L=vp2Produkte().map(t=>{ const p=P[t]; return {t,kat:vp2KatVon(t),w:p.dims[0],hh:p.dims[1],d:p.dims[2],stat:0,hd:null}; });
   L.sort((a,b)=>(VP2_KATIDX[a.kat]-VP2_KATIDX[b.kat])||(a.t<b.t?-1:a.t>b.t?1:0));
   L.forEach((e,i)=>{ e.nr=i+1; e.i=i; e.stat=vp2Stat[e.t]|0; });
   return L;
@@ -135,9 +137,11 @@ function vp2Aufstellen(F){
 }
 /* ---------- Einraeumen (Stueck fuer Stueck, jedes Bild hoechstens ~25 ms) ---------- */
 function vp2Stueck(e){
-  if(!poolDa(e.t)){ TEX_FAKTOR=VP2_TEX; let pl; try{ pl=pools[e.t]; } finally { TEX_FAKTOR=GFX_START.tex; }
-    pl.vp=true; vp2Neu.add(e.t); pl.meshes.forEach(m=>{ m.castShadow=false; }); }
-  e.hd=pools[e.t].add(mx(e.x,e.y,e.z,0));
+  try{
+    if(!poolDa(e.t)){ TEX_FAKTOR=VP2_TEX; let pl; try{ pl=pools[e.t]; } finally { TEX_FAKTOR=GFX_START.tex; }
+      pl.vp=true; vp2Neu.add(e.t); pl.meshes.forEach(m=>{ m.castShadow=false; }); }
+    e.hd=pools[e.t].add(mx(e.x,e.y,e.z,0));
+  }catch(err){ e.fehler=String(err&&err.message||err); console.warn('Ausstellung: Modell fehlt fuer',e.t,e.fehler); }
 }
 function vp2Fuellen(lauf,i){
   if(!vp2An||lauf!==vp2Lauf) return;
@@ -179,11 +183,11 @@ function vp2ListeText(modus){
 function vp2Zeigen(bis){
   if(!vp2An) return;
   if(!vp2El){ vp2El=document.createElement('div'); vp2El.id='vp2Info';
-    const c=vp2C(); vp2El.style.cssText=`position:fixed;left:50%;top:${COARSE?'calc(env(safe-area-inset-top) + 50px)':'max(10px,env(safe-area-inset-top))'};transform:translateX(-50%);z-index:30;max-width:min(94vw,640px);background:${c.blau};color:${c.weiss};border-radius:10px;padding:5px 6px 5px 10px;font:600 ${COARSE?12:13}px Barlow,Arial,sans-serif;display:flex;${COARSE?'':'flex-wrap:wrap;'}gap:8px 8px;align-items:center;border-top:3px solid ${c.gold}`;
+    const c=vp2C(); vp2El.style.cssText=`position:fixed;left:50%;top:${COARSE?'calc(env(safe-area-inset-top) + 50px)':'max(10px,env(safe-area-inset-top))'};transform:translateX(-50%);z-index:30;width:max-content;max-width:94vw;box-sizing:border-box;background:${c.blau};color:${c.weiss};border-radius:10px;padding:5px 6px 5px 10px;font:600 ${COARSE?12:13}px Barlow,Arial,sans-serif;display:flex;${COARSE?'':'flex-wrap:wrap;'}gap:8px 8px;align-items:center;border-top:3px solid ${c.gold}`;
     document.body.appendChild(vp2El); }
   const z=vp2Zaehlen(), c=vp2C(), btn=`pointer-events:auto;font:700 ${COARSE?15:13}px Barlow,Arial,sans-serif;border:0;border-radius:8px;padding:${COARSE?'11px 15px':'7px 11px'};cursor:pointer;`;
   const txt=bis!==undefined?`Aufbau … ${bis} / ${vp2Liste.length}`:`${COARSE?'':vp2Liste.length+' Produkte · '}<span style="color:${c.gruen};filter:brightness(1.5)">✓ ${z[1]}</span> · <span style="color:${c.rot};filter:brightness(1.4)">✗ ${z[2]}</span> · offen ${z[0]}`;
-  vp2El.innerHTML=`<span style="flex:1 1 auto">${COARSE?'':'<b style="letter-spacing:.04em">AUSSTELLUNG 2.0</b> · '}${txt}</span><button id="vp2ListeKnopf" style="${btn}background:${c.grau};color:${c.weiss}">${COARSE?'Liste':'Liste (L)'}</button><button id="vp2AusKnopf" style="${btn}background:${c.gold};color:${c.dunkel}">${COARSE?'Ende':'Beenden (B)'}</button>`;
+  vp2El.innerHTML=`<span style="flex:1 1 auto;white-space:nowrap">${COARSE?'':'<b style="letter-spacing:.04em">AUSSTELLUNG 2.0</b> · '}${txt}</span><button id="vp2ListeKnopf" style="${btn}background:${c.grau};color:${c.weiss}">${COARSE?'Liste':'Liste (L)'}</button><button id="vp2AusKnopf" style="${btn}background:${c.gold};color:${c.dunkel}">${COARSE?'Ende':'Beenden (B)'}</button>`;
   const tipp=(id,f)=>{ const k=vp2El.querySelector(id); k.onclick=e=>{ e.stopPropagation(); f(); }; k.addEventListener('touchend',e=>{ e.preventDefault(); e.stopPropagation(); f(); },{passive:false}); };
   tipp('#vp2ListeKnopf',vp2ListeSchalten); tipp('#vp2AusKnopf',vp2Aus);
 }

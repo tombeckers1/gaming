@@ -7,7 +7,7 @@
    - HELL: nachts ist der Laden innen hell (Bodenblick > 120 von 255, Licht ueberall > 110), tagsueber nichts ausgebrannt (< 3 % reines Weiss)
    - MATT: Ladenboden matt (Rauheit >= 0,6, Spiegelung <= 0,12) fuer jeden Belag
    - KONTAKT / PERSON: Kontaktschatten unter der Kasse (Boden sichtbar dunkler) und unter einer Person, EIN Zeichenaufruf
-   - NIEDRIG: nur Kontaktschatten; ULTRALOW: keine Licht-Meshes, Raumlicht aber an (gleich hell)
+   - NIEDRIG / ULTRALOW: Kontaktschatten (ein Zeichenaufruf), Raumlicht an (gleich hell), kein Deckenlicht
    Gegenprobe: GEGENPROBE=1 schaltet Raumlicht und Kontaktschatten ab (Himmelslicht drinnen voll) -> HELL und KONTAKT melden.
    Aufruf: node -r ./ladezeit-preload.js licht.js real.html */
 const { chromium } = require('/opt/node22/lib/node_modules/playwright');
@@ -84,7 +84,8 @@ const zustand=()=>{ const bb=__bb, LI=bb.LI, R=bb.renderer, gl=R.getContext(), o
   pruef('FEHLER_NIEDRIG',!p.errs.length,p.errs.slice(0,3).join(' | ')); await p.close();
   p=await laden(b,'ultralow'); const u=await p.evaluate(zustand); console.log('ULTRALOW',JSON.stringify(u));
   allgemein('ULTRALOW',u);
-  pruef('ULTRALOW',!u.an&&u.licht===0,JSON.stringify({an:u.an,licht:u.licht}));
+  pruef('ULTRALOW',u.an&&u.licht===1&&u.callsSchatten===1&&u.n.moebel>=2,JSON.stringify({an:u.an,licht:u.licht,calls:u.callsSchatten,n:u.n}));
+  pruef('KONTAKT_ULTRALOW',u.dunkler>0.01,'Ultra Low: Boden am Kassenfuss nicht dunkler: '+u.dunkler);
   pruef('FEHLER_ULTRALOW',!p.errs.length,p.errs.slice(0,3).join(' | ')); await p.close();
   console.log(mangel.length?'MANGEL:\n'+mangel.join('\n'):'ALLES OK');
   console.log('ERRORS:',mangel.length?mangel.join(' | '):'keine'); await b.close();

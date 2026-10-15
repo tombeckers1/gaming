@@ -77,7 +77,7 @@ Geländer 1,1 m). Abweichung nur mit Grund (z. B. Spielbarkeit) im Bericht. Fehl
   **2** = ab Maximum (mehr Segmente/Fasen). Beispiel `bk.tor`: Zylindersegmente 6/10/14.
 - Texturauflösung/Anisotropie kommen aus `GFX_PROFIL` (`tx` 0,5 bei Ultra Low … 2,5 bei Ultra Extrem) – nicht selbst skalieren.
 - Kleinteile unter ~6 cm ohne Fase (`faseMin`), Bauteile liefern **eine** Geometrie je Oberflächenklasse (Sammler) statt vieler Meshes.
-- Ultra Low darf nie langsamer werden als vorher (Licht-Paket legt dort nichts an).
+- Ultra Low darf nie langsamer werden als vorher (Licht-Paket dort nur Kontaktschatten – ein Zeichenaufruf – und das Raumlicht im Shader).
 
 ## 6. Beschriftung und Schrift
 - **Hausstil** = Nachtblau-Fläche, Schildgold-Schrift: nur über `bk.schild(parent,{text,unter,b,h,…})` (Textur-Cache je Text+Größe).
@@ -100,7 +100,7 @@ keine Einzel-Schmutztexturen je Objekt, kein Zufallsschmutz pro Bau. Ein Abnutzu
   durch die Schattenkarte (Fenster/Tore, ab Mittel), ohne Schattenkarte drinnen aus. Neuer Raum = neuer Eintrag in `dachBereiche()`
   (20-loop) – dann hat er Dach, Schnee-Schutz und Licht zugleich. Keine Punktlichter, die dem Spieler folgen; keine Strahler je Raum.
 - **Boden** matt bis seidenmatt nur ueber `MAT.bodenGlanz(belag)` (Rauheit ≥ 0,62, Spiegelung ≤ 0,12) – keine Glanzbahnen.
-- Kontaktschatten unter jedem Möbel/jeder Person – **ein** Zeichenaufruf, ab Niedrig; Ultra Low legt nichts an (Raumlicht dort im Vertexshader).
+- Kontaktschatten unter jedem Möbel/jeder Person – **ein** Zeichenaufruf, auf allen Stufen (Niedrig/Ultra Low: einziger Schatten).
 - Neues Möbel/Bauteil auf dem Boden meldet sich beim Licht-Paket an (Kontaktschatten), statt eigenen Schatten zu malen.
 - Leuchten leuchten über `emissive` (Ton `lampeWarm`), veränderliche Leuchten über `MAT.neu` und `lampMats`; keine zusätzlichen
   Echtzeit-Lichtquellen ohne Messung (Leistung).

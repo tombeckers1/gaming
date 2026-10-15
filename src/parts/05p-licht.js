@@ -17,8 +17,8 @@
    Neu - ein RAUMLICHT im Shader (alle Stufen, kostet keinen Zeichenaufruf):
    - Jede Flaeche weiss, ob sie in einem Raum liegt (Weltlage gegen die Raumliste aus
      dachBereiche(), also dieselben Raeume, Zonen und Ausbaustufen wie Schnee/Kunden).
-     Drinnen bekommt sie gleichmaessiges Deckenlicht: von oben voll, seitlich 80 %, von
-     unten 60 % - Tag und Nacht gleich, an jedem Ort gleich, egal wohin man schaut.
+     Drinnen bekommt sie gleichmaessiges Deckenlicht: von oben voll, seitlich 85 %, von
+     unten 70 % - Tag und Nacht gleich, an jedem Ort gleich, egal wohin man schaut.
    - Das Himmelslicht wirkt drinnen nur noch zu RAUM.hemi (Tageslicht durch die Fenster),
      die Sonne nur, wo die Schattenkarte sie durchlaesst (Fenster, Tore: Sonnenflecken mit
      Schatten). Ohne Schattenkarte (Niedrig, Ultra Low, Handy) ist die Sonne drinnen aus -
@@ -27,7 +27,8 @@
      (RAUM.spec) - Metall bleibt Metall, ohne wandernde Lichtpunkte.
    - Belichtung fest LI_BEL (1,05) drinnen wie draussen; keine Augenanpassung.
    - Ultra Low (Lambert): dieselbe Raum-Entscheidung je Pixel (Lambert-Shader ergaenzt), sonst nichts.
-   - Kontaktschatten unter Moebeln und Personen bleiben (ab Niedrig, ein Zeichenaufruf).
+   - Kontaktschatten unter Moebeln und Personen: kraeftiger (Deckkraft 0,66-0,86, Personen 0,72), jetzt auf ALLEN Stufen
+     (ein Zeichenaufruf, kleine Flaechen) - auf Niedrig/Ultra Low der einzige Schatten.
    Wegfall: 3 wandernde Punktlichter, Ladenstrahler (mit eigener Schattenkarte),
    Lichtflecken und Glanzbahnen - weniger Licht je Pixel, ein Schattendurchgang weniger.
    ========================================================= */
@@ -35,13 +36,13 @@ const LI={an:false, schatten:null, objs:new Map(), personen:[], tS:0, n:{moebel:
 const LI_BEL=1.05; LI.bel=LI_BEL;
 /* Raumlicht: Staerke (Deckenlicht von oben), Anteil Himmelslicht drinnen, Glanz des Raums
    (Leuchtdichte der Umgebung je Staerke 1), hoechstens RAUM.n Raeume */
-const RAUM={n:24, staerke:0.5, decke:0.5, hemi:0.2, spec:0.32, werte:null, sig:'', liste:[], nAktiv:0, tS:-1e9};
-/* DECKENLICHT mit Schatten (ab Mittel): ein Richtungslicht fast senkrecht von oben (12 Grad geneigt), wirkt nur
+const RAUM={n:24, staerke:0.4, decke:0.65, hemi:0.2, spec:0.32, werte:null, sig:'', liste:[], nAktiv:0, tS:-1e9};
+/* DECKENLICHT mit Schatten (ab Mittel): ein Richtungslicht fast senkrecht von oben (14 Grad geneigt), wirkt nur
    drinnen (der Shader erkennt es an der Richtung) - Regale, Kassen, Personen, Kartons werfen weiche Schatten auf
    den Boden, untere Regalboeden liegen im Schatten der oberen. Die Schattenkarte deckt 32 x 32 m um den Spieler,
    das Licht sitzt 3,3 m hoch: Decken und Daecher liegen darueber und werfen keinen Schatten. Ohne Schattenkarte
    (Niedrig) ist es aus, das Raumlicht uebernimmt seinen Anteil (gleich hell). */
-const DECKE={l:null, h:3.3, neig:0.21, halb:16, x:1e9, z:1e9, n:0};
+const DECKE={l:null, h:3.3, neig:0.25, halb:16, x:1e9, z:1e9, n:0};
 (function raumShader(){
   const C=THREE.ShaderChunk;
   /* Test-Attrappe von three (Node, test.html): keine Shader - nichts zu tun */
@@ -63,7 +64,7 @@ vec2 raumAn( vec3 p ){
   }
   return vec2( 0.0, 1.0 );
 }
-vec3 raumIrr( float st, vec3 nW ){ return st * ( 0.8 + 0.2 * nW.y ) * vec3( 1.0, 0.965, 0.91 ) * PI; }
+vec3 raumIrr( float st, vec3 nW ){ return st * ( 0.85 + 0.15 * nW.y ) * vec3( 1.0, 0.965, 0.91 ) * PI; }
 `;
   C.lights_pars_begin+=GLSL;
   /* Fragment (Standard, Physical, Phong, Toon) */
@@ -181,7 +182,6 @@ function liMesh(n,fs,add,ro){
 function lichtAufbau(){
   raumTakt();
   try{
-    if(GFX_START===GFX_PROFIL.ultralow||GFX==='ultralow') return;
     if(String(THREE.REVISION).indexOf('stub')>=0||!THREE.InstancedMesh||!THREE.InstancedBufferAttribute) return;
     LI.schatten=liMesh(900,LI_SCH_FS,false,2);
     LI.an=true; LI.tS=-1e9;
@@ -237,7 +237,7 @@ function liMoebelSchatten(){
     if(typeof unterDach==='function'&&!unterDach(e.x,1,e.z)) continue;
     /* Saum nach Hoehe: hohe Regale werfen einen breiteren, dunkleren Schatten; der dunkelste
        Rand liegt knapp innerhalb der Stellflaeche (die ist mit etwas Luft bemessen) */
-    const f=clamp(0.16+e.h*0.13,0.2,0.5), dichte=clamp(0.5+e.h*0.08,0.5,0.72), ein=Math.min(0.08,e.w*0.2,e.d*0.2);
+    const f=clamp(0.2+e.h*0.15,0.25,0.6), dichte=clamp(0.66+e.h*0.1,0.66,0.86), ein=Math.min(0.08,e.w*0.2,e.d*0.2);
     liSetzen(S,n++,e.x,Math.max(0,e.y0)+0.04,e.z,e.ry,e.w-2*ein+2*f,e.d-2*ein+2*f,dichte,f,0);
   }
   LI.n.moebel=n; LI.nMoebel=n; LI.voll=true;
@@ -258,7 +258,7 @@ function liPersonenSchatten(){
   for(const o of LI.personen){ if(n>=S.instanceMatrix.count) break; if(!o.visible||!o.parent) continue;
     const e=o.matrixWorld.elements, x=e[12], y=e[13], z=e[14];
     if(y>1.2||y<-0.6||(typeof unterDach==='function'&&!unterDach(x,1,z))) continue;
-    liSetzen(S,n++,x,Math.max(0,y)+0.041,z,0,0.95,0.95,0.5,0.2,1); }
+    liSetzen(S,n++,x,Math.max(0,y)+0.041,z,0,1.05,1.05,0.72,0.2,1); }
   LI.n.personen=n-(LI.nMoebel||0);
   S.count=n;
   if(LI.voll){ LI.voll=false; liHoch(S,0,n); } else liHoch(S,LI.nMoebel||0,n);

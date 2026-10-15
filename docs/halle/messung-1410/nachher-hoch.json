@@ -1,0 +1,51 @@
+{
+ "hoch": {
+  "ansichten": {
+   "laden": {
+    "calls": 493,
+    "tris": 476442
+   },
+   "lager": {
+    "calls": 433,
+    "tris": 430412
+   },
+   "halleW": {
+    "calls": 276,
+    "tris": 361053
+   },
+   "hochregal": {
+    "calls": 148,
+    "tris": 254255
+   },
+   "wareneingang": {
+    "calls": 200,
+    "tris": 263411
+   },
+   "lager3": {
+    "calls": 200,
+    "tris": 219935
+   },
+   "schleuse": {
+    "calls": 298,
+    "tris": 292347
+   },
+   "dockHof": {
+    "calls": 541,
+    "tris": 591396
+   },
+   "strasse": {
+    "calls": 113,
+    "tris": 280379
+   }
+  },
+  "texturen": 247,
+  "texMB": 323.4,
+  "speicher": {
+   "geometries": 1540,
+   "textures": 256
+  },
+  "meshes": 2344,
+  "ll": true
+ },
+ "fehler": []
+}

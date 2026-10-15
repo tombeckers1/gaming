@@ -16,11 +16,11 @@ function hrStock(t){ if(!S||!S.hr) return 0; let n=0;
   for(const p of S.hr.p) if(p) for(const b of p) if(!t||b.t===t) n+=b.c;
   for(const l of S.hr.tr) for(const b of l.b) if(!t||b.t===t) n+=b.c;
   return n; }
-function hrBelegt(){ let n=0; if(S&&S.hr) for(const p of S.hr.p) if(p) n++; return n; }
+function hrBelegt(){ let n=0; if(S&&S.hr) for(const p of S.hr.p) if(p&&p.length) n++; return n; }
 function hrKapazitaet(){ let n=0; for(let k=0;k<3;k++) if(llGasseAktiv(k)) n+=hrPlaetze(k).length; return n; }
 /* Sichtbar machen: Paletten im Regal, RBG der aktiven Gassen */
 function hrSync(){ if(!LL_T||!LL_T.hr) return; const D=hrDaten(), L=[];
-  for(let i=0;i<LL_T.hr.plaetze.length;i++) if(D.p[i]) L.push(i); LL_T.hr.belegen(L); }
+  for(let i=0;i<LL_T.hr.plaetze.length;i++){ if(D.p[i]&&!D.p[i].length) D.p[i]=null; if(D.p[i]) L.push(i); } LL_T.hr.belegen(L); }
 function hrAnwenden(){
   if(!S) return;
   if(!llOffen()||!LL_T){ for(const f of HR.fts) if(f.g) f.g.visible=false; return; }
@@ -33,7 +33,7 @@ function hrAnwenden(){
   for(const f of HR.fts) f.g.visible=true;
   LL_D.traverse(o=>{ if(o.isMesh) o.castShadow=false; });   /* unter dem Hallendach kein Sonnenschatten */
   /* Ladungen, die beim Speichern unterwegs waren, kommen ins Regal (sonst auf einen Stellplatz) */
-  if(D.tr.length&&!HR.rbg.some(r=>r&&r.job)&&!HR.fts.some(f=>f.job)){ for(const l of D.tr.splice(0)){ const i=hrFreiPlatz(); if(i>=0) D.p[i]=l.b; else hrAufBoden(l.b); } }
+  if(D.tr.length&&!HR.rbg.some(r=>r&&r.job)&&!HR.fts.some(f=>f.job)){ for(const l of D.tr.splice(0)){ if(!l||!Array.isArray(l.b)||!l.b.length) continue; const i=hrFreiPlatz(); if(i>=0) D.p[i]=l.b; else hrAufBoden(l.b); } }
   hrSync(); llStellSicht();
 }
 function hrAufBoden(boxes){ boxes.forEach((b,i)=>spawnFloorBox(b.t,b.c,{x:-40+(i%4)*0.7,y:0.2,z:-31.5+Math.floor(i/4)*0.6,ry:0},b.q||1)); }
@@ -218,7 +218,7 @@ function hrAuslagerPlan(){
   const D=hrDaten(), P=hrPlaetze(0); if(!P.length) return null;
   const imLager=t=>stockOf(t)-hrStock(t);
   let best=-1, bw=1e9;
-  for(let i=0;i<P.length;i++){ const b=D.p[i]; if(!b||(HR.reserv&&HR.reserv[i])||b.length>frei) continue;
+  for(let i=0;i<P.length;i++){ const b=D.p[i]; if(!b||!b.length||(HR.reserv&&HR.reserv[i])||b.length>frei) continue;
     const t=b[0].t, offen=typeof vsReserviert==='function'?vsReserviert(t):0;
     const w=imLager(t)-offen*3+P[i].y*0.5;
     if(w<bw){ bw=w; best=i; } }
@@ -241,6 +241,7 @@ function hrAusTick(dt){
   if(!s){ return; }
   const b=D.shift(); putInSlot(s,b.t,b.c,b.q);
   const m=l.children[1+D.length]; if(m) m.visible=false;
+  if(!D.length){ hrLadungWeg(a.l); HR.aus=null; }
 }
 /* Aufgabe-Foerderer: Paletten laufen von der Fahrspur bis an die Gasse */
 function hrBandTick(dt){

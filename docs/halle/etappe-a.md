@@ -46,8 +46,37 @@ Balancing-Bot erreicht Kapitel 7 nicht, offen für das Balancing-Paket):
 - minus Betrieb 35 € → **≈ +490 €/Tag → Amortisation ≈ 38 Spieltage** (Ziel „große Stufen“ 15–30 Tage; bewusst etwas länger,
   weil Kapitel 7.3 die letzte Stufe vor der Fabrik ist und Fixkosten bei wenig Umschlag zum Minus führen sollen – Finanzbildung).
 
-## Messung (tools/halle/messen.js, vorher V134 / nachher, alle Ausbauten gekauft, swiftshader)
-_siehe unten, nach dem Messlauf eingetragen_
+## Leistung (Aufbau)
+- Gebaut wird erst beim Kauf; vorher nichts im Speicher (Zone `lagerlogistik`, `llBauen`).
+- Vier Gruppen: `LL_G` Rohbau (③, Schleuse, N1 – immer), `LL_H` Halleninhalt und `LL_D` bewegte Teile (RBG, FTS, Ladungen,
+  Stellplatz-Paletten; nicht in der Laufzeit-Bündelung) – **nur gezeichnet, wenn die Kamera in der Halle steht oder eine
+  Öffnung der Halle (Durchgang Schleuse, N1 offen, Ladetor offen) aus dem Raum davor im Blick hat** (`llSichtTakt`, je Bild,
+  aus `renderFrame`); `LL_A` Außenanlagen nur von außen. Über den Dächern (Draufsicht) alles.
+- Instanzen: Rahmen, Traversen, Gitterroste, Paletten und Ladung **aller drei Gassen** je ein InstancedMesh; Stellplatz-Paletten
+  ein InstancedMesh; 45 Hallenleuchten zwei InstancedMesh; Bodenschatten zusammengefasst.
+- Unter dem Hallendach kein Sonnenschatten (Halleninhalt, ③, Schleuse werfen keinen) – nur Dächer, Wände, Tank, Pforte.
+- Ultra Low: Rahmen ohne Diagonalen, Ladung als Block, Leuchten ohne Kühlrippen, Kästen ohne Fase.
+
+## Messung (tools/halle/messen.js + messvergleich.js, alle Ausbauten gekauft, Laufzeit-Bündelung an, swiftshader)
+Vorher V134 → nachher (Zeichenaufrufe Haupt- + Schattenpass je Bild; Dreiecke in Tausend). Rohdaten `messung-1410/`.
+
+| Stufe | laden | lager | halleW | hochregal | wareneingang | lager3 | schleuse | dockHof | strasse | Texturen MB | Meshes |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| ultralow Aufrufe | 431 → 442 | 364 → 372 | 117 → 208 | 66 → 110 | 85 → 173 | 108 → 146 | 125 → 228 | 505 → 515 | 91 → 85 | 281.3 → 292.4 | 2090 → 2336 |
+| ultralow Dreiecke (k) | 221 → 222 | 204 → 202 | 136 → 169 | 107 → 131 | 108 → 137 | 114 → 118 | 128 → 158 | 372 → 370 | 183 → 158 | | |
+| niedrig Aufrufe | 452 → 463 | 386 → 395 | 141 → 232 | 87 → 131 | 105 → 192 | 126 → 167 | 143 → 248 | 539 → 540 | 112 → 112 | 296.3 → 307.4 | 2093 → 2342 |
+| niedrig Dreiecke (k) | 394 → 395 | 373 → 374 | 251 → 320 | 204 → 253 | 206 → 264 | 211 → 216 | 225 → 287 | 527 → 525 | 280 → 288 | | |
+| hoch Aufrufe | 486 → 493 | 428 → 433 | 188 → 276 | 106 → 148 | 116 → 200 | 161 → 200 | 196 → 298 | 539 → 541 | 114 → 113 | 309.6 → 323.4 | 2098 → 2344 |
+| hoch Dreiecke (k) | 472 → 476 | 426 → 430 | 281 → 361 | 206 → 254 | 206 → 263 | 215 → 220 | 231 → 292 | 591 → 591 | 281 → 280 | | |
+| max Aufrufe | 953 → 967 | 858 → 866 | 380 → 565 | 210 → 298 | 232 → 401 | 326 → 408 | 392 → 600 | 1082 → 1086 | 225 → 220 | 312.3 → 323.4 | 2101 → 2347 |
+| max Dreiecke (k) | 943 → 945 | 888 → 858 | 596 → 708 | 415 → 531 | 415 → 552 | 434 → 444 | 466 → 611 | 1188 → 1175 | 562 → 561 | | |
+
+Befund: Ansichten ohne Blick in die Halle (Laden, Lager ①, Dock-Hof, Straße) **+0 … +14 Aufrufe (≤ 2,5 %)**, Dreiecke gleich –
+auch auf Ultra Low/Niedrig. In der Halle (halleW, Hochregal, Wareneingang) und mit Blick hinein (Schleuse von ② aus, ③)
+kommen **+40 … +110 Aufrufe (Ultra Low)** dazu: das ist der gekaufte Inhalt (3 Gassen, RBG, 2 FTS, 5 Anbruch-Regale,
+Förderer, Zaun, ~15 Schilder, Markierungen). Texturen +11 MB (Schilder, Piktogramm), Meshes +250. Speicherspitze der
+Max-Messung 12,9 GB (vorher 12,1 GB, aber anderer Ablauf: vorher Hoch und Max im selben Browser) – nicht sauber vergleichbar.
+Gemessen in swiftshader ohne Bildrate; ein FPS-Lauf steht aus (Tom misst auf seinem PC, UEBERGABE 00 Punkt 5).
 
 ## Bilder
 `docs/halle/bilder-1410/` (selbst angesehen, Befunde im Bericht).

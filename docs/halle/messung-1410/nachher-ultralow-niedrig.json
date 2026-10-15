@@ -1,0 +1,99 @@
+{
+ "ultralow": {
+  "ansichten": {
+   "laden": {
+    "calls": 442,
+    "tris": 221750
+   },
+   "lager": {
+    "calls": 372,
+    "tris": 201872
+   },
+   "halleW": {
+    "calls": 208,
+    "tris": 168917
+   },
+   "hochregal": {
+    "calls": 110,
+    "tris": 130799
+   },
+   "wareneingang": {
+    "calls": 173,
+    "tris": 137159
+   },
+   "lager3": {
+    "calls": 146,
+    "tris": 118489
+   },
+   "schleuse": {
+    "calls": 228,
+    "tris": 158281
+   },
+   "dockHof": {
+    "calls": 515,
+    "tris": 369786
+   },
+   "strasse": {
+    "calls": 85,
+    "tris": 158001
+   }
+  },
+  "texturen": 237,
+  "texMB": 292.4,
+  "speicher": {
+   "geometries": 1447,
+   "textures": 210
+  },
+  "meshes": 2336,
+  "ll": true
+ },
+ "niedrig": {
+  "ansichten": {
+   "laden": {
+    "calls": 463,
+    "tris": 395482
+   },
+   "lager": {
+    "calls": 395,
+    "tris": 374408
+   },
+   "halleW": {
+    "calls": 232,
+    "tris": 320351
+   },
+   "hochregal": {
+    "calls": 131,
+    "tris": 252557
+   },
+   "wareneingang": {
+    "calls": 192,
+    "tris": 263505
+   },
+   "lager3": {
+    "calls": 167,
+    "tris": 215955
+   },
+   "schleuse": {
+    "calls": 248,
+    "tris": 286687
+   },
+   "dockHof": {
+    "calls": 540,
+    "tris": 525230
+   },
+   "strasse": {
+    "calls": 112,
+    "tris": 288235
+   }
+  },
+  "texturen": 247,
+  "texMB": 307.4,
+  "speicher": {
+   "geometries": 1471,
+   "textures": 245
+  },
+  "meshes": 2342,
+  "ll": true
+ },
+ "fehler": []
+}

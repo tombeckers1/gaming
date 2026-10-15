@@ -864,11 +864,11 @@ const MAT=(function(){
     steingrau:        [0x9a958c,'Steingrau','Naturstein, Pflaster, Mauerwerk warm','≈ RAL 7030'],
     signalgelb:       [0xf9a800,'Signalgelb','Warnfarbe: Anfahrschutz, Bodenmarkierung, Absperrgitter, Kran, Torantrieb','RAL 1003'],
     schildgold:       [0xffd23f,'Schildgold','Hausstil-Schrift und -Rahmen auf Nachtblau (Schilder, Logo, Automat) - vorher zwei Golds (#ffd23f, #f2c230)','–'],
-    signalorange:     [0xed760e,'Signalorange','Blink-/Warnleuchten (Gehaeuse, Glas aus), Tasten','≈ RAL 2000'],
+    signalorange:     [0xed760e,'Signalorange','Blink-/Warnleuchten (Gehaeuse, Glas aus), Tasten, Traversen der Palettenregale (Hochregal)','≈ RAL 2000'],
     signalrot:        [0xd8352a,'Signalrot','Not-Halt, Ampel rot (aus), rote Bedienteile, Markierung rot','≈ RAL 3020'],
     feuerrot:         [0xaf2b1e,'Feuerrot','Brandschutz: Hydrant, Feuerloescher; dunkle Rotteile','RAL 3000'],
-    signalgruen:      [0x2f9e57,'Signalgruen','Ampel gruen (aus), Fluchtweg, gruene Bedienteile','≈ RAL 6024'],
-    signalblau:       [0x2a5a9e,'Signalblau','blaue Bedienteile, Regalrahmen blau, Hinweisschilder','≈ RAL 5005'],
+    signalgruen:      [0x2f9e57,'Signalgruen','Ampel gruen (aus), Fluchtweg, Gehweg-Markierung, gruene Bedienteile','≈ RAL 6024'],
+    signalblau:       [0x2a5a9e,'Signalblau','blaue Bedienteile, Regalrahmen blau (Stuetzen Hochregal), Hinweisschilder','≈ RAL 5005'],
     nachtblau:        [0x1b2340,'Nachtblau','Hausfarbe Schilder/Laden (mit Schildgold)','≈ RAL 5011'],
     tannengruen:      [0x2a4a33,'Tannengruen','Stadtmoebel gruen (Litfass, Baenke), Hecken-Kaesten','≈ RAL 6009'],
     holzPalette:      [0xc49a62,'Holz Palette','Europaletten, Kisten, helles Holz','–'],
@@ -941,6 +941,13 @@ const MAT=(function(){
     torBlatt:         {f:0xffffff,tex:'torBlatt',vertexColors:true,k:'lackMetall',w:'Torblatt aller Ladetore (Sektionen lichtgrau wie der alte R1, Lichtband, Warnstreifen) - Atlas torBlatt'},
     ampelRot:         {f:0x300808,emissive:LIN(0xff2a2a),emissiveIntensity:1.4,k:'kunststoff',w:'Torampel rot (Tor zu) - nur MAT.neu, Leuchtstaerke schaltet'},
     ampelGruen:       {f:0x082a12,emissive:LIN(0x3dff7a),emissiveIntensity:0,k:'kunststoff',w:'Torampel gruen (Tor offen) - nur MAT.neu, Leuchtstaerke schaltet'},
+    /* Halle Etappe A (14.10.): Gitterroste im Hochregal und Bodenmarkierung Gehweg (bk.hochregal, bk.bodenmarkierung).
+       Boden-Markierungen liegen 3-5 mm ueber dem Boden und schieben sich zusaetzlich per polygonOffset nach vorn. */
+    gitterRost:       {f:'silbergrau',tex:'drahtgitter',transparent:true,alphaTest:0.35,side:THREE.DoubleSide,k:'stahl',w:'Gitterrost verzinkt im Palettenregal (UV 0,2 m je Kachel, Masche 5 cm)'},
+    markierungGruen:  {f:'signalgruen',k:'matt',polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-2,w:'Bodenmarkierung Gehweg gruen (Halle, Kartonlager)'},
+    markierungPikto:  {f:0xffffff,tex:'fussgaenger',k:'matt',polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-4,w:'Fussgaenger-Piktogramm auf dem Gehweg (Textur fussgaenger, gruenes Feld)'},
+    lichtband:        {f:'glasKlar',emissive:LIN(0xe4edf7),emissiveIntensity:0.9,k:'kunststoff',w:'Lichtband im Hallendach (Tageslicht, zugleich RWA) - nur MAT.neu, Leuchtstaerke folgt der Sonne (11f)'},
+    sperrflaeche:     {f:0xffffff,tex:'warnschraffur',k:'matt',polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-2,w:'Sperrflaeche gelb-schwarz am Boden (Warnschraffur, UV in Metern / 0,4)'},
     torWarn:          {f:0x3a2208,emissive:LIN(0xffb02a),emissiveIntensity:0,k:'kunststoff',w:'Rundumleuchte ueber dem Torantrieb (blinkt, solange das Tor faehrt) - nur MAT.neu'}
   };
   /* Vertexfarben-Klassen (Sammler, bk.sammler): Farbe je Ecke, Oberflaeche je Klasse */
@@ -1038,7 +1045,7 @@ const MAT=(function(){
   function css(name,a){ const h=hexVon(name); if(a===undefined) return '#'+(h>>>0).toString(16).padStart(6,'0'); return 'rgba('+(h>>16&255)+','+(h>>8&255)+','+(h&255)+','+a+')'; }
 
   /* ---------- geteilte prozedurale Texturen (lazy, einmal gemalt) ---------- */
-  const TEXTUR_W={fassade:'Aussenwand Faserzementtafeln (Fugen, Nieten, Sockel 62 cm) - Kachel 2,4 x 8 m ueber repeat, Wand-UV in Metern',lagerwand:'Lagerwand hell mit gelb-schwarzem Sockelband - Kachel 2,6 x 3,6 m ueber repeat',trapezblech:'Trapezblech Hallenwand, Sicke 0,4 m - Kachel 3,2 m ueber repeat',beton:'Beton (innen Lagerboden, aussen Hof) - eine Textur, Massstab ueber die UVs',doppelstab:'Doppelstabmatte (Zaeune, Absperrungen)',drahtgitter:'Drahtgitter/Schweissgitter (Gitterbox, Ladezonen-Absperrung) - Masche 5 cm, Farbe ueber das Material',warnschraffur:'Warnschraffur gelb/schwarz (Torkanten, Sperrflaechen, Bodenrahmen)',palettenMarke:'Paletten-Atlas 256 x 256: oben links Brand EPAL im Oval (Eck-Kloetze), oben rechts IPPC/HT-Stempel (Mittelkloetze), darunter Kiefern-Maserung (Streifen je Brett); Layout MAT.PALETTE_UV. Holzton kommt ueber Vertexfarben, Alterung ueber Instanzfarben',torBlatt:'Torblatt-Atlas aller Ladetore (Optik alter R1, Tom 14.10.): Zeile 0 glatte Sektion lichtgrau, 1 Lichtband (4 Scheiben), 2 unterstes Panel aussen (Griffmulde), 3 weiss (Kleinteile ueber Vertexfarben)'};
+  const TEXTUR_W={fassade:'Aussenwand Faserzementtafeln (Fugen, Nieten, Sockel 62 cm) - Kachel 2,4 x 8 m ueber repeat, Wand-UV in Metern',lagerwand:'Lagerwand hell mit gelb-schwarzem Sockelband - Kachel 2,6 x 3,6 m ueber repeat',trapezblech:'Trapezblech Hallenwand, Sicke 0,4 m - Kachel 3,2 m ueber repeat',beton:'Beton (innen Lagerboden, aussen Hof) - eine Textur, Massstab ueber die UVs',doppelstab:'Doppelstabmatte (Zaeune, Absperrungen)',drahtgitter:'Drahtgitter/Schweissgitter (Gitterbox, Ladezonen-Absperrung) - Masche 5 cm, Farbe ueber das Material',warnschraffur:'Warnschraffur gelb/schwarz (Torkanten, Sperrflaechen, Bodenrahmen)',palettenMarke:'Paletten-Atlas 256 x 256: oben links Brand EPAL im Oval (Eck-Kloetze), oben rechts IPPC/HT-Stempel (Mittelkloetze), darunter Kiefern-Maserung (Streifen je Brett); Layout MAT.PALETTE_UV. Holzton kommt ueber Vertexfarben, Alterung ueber Instanzfarben',fussgaenger:'Fussgaenger-Piktogramm weiss auf Signalgruen (Gehweg-Markierung), 128 x 128',torBlatt:'Torblatt-Atlas aller Ladetore (Optik alter R1, Tom 14.10.): Zeile 0 glatte Sektion lichtgrau, 1 Lichtband (4 Scheiben), 2 unterstes Panel aussen (Griffmulde), 3 weiss (Kleinteile ueber Vertexfarben)'};
   /* Fassadentafeln (vorher fassadeTex() in 05-world.js): Kachel zwei Tafeln breit, Fuge auf dem Kachelrand -
      wo sich die Textur wiederholt, sitzt eine Fuge; senkrecht ueber die volle Wandhoehe (Sockel unten bleibt) */
   const FASS={b:2.4, h:8.0, sockel:0.62, tafel:1.18};
@@ -1103,6 +1110,14 @@ const MAT=(function(){
         for(let x=16;x<W;x+=51){ g.beginPath(); g.moveTo(x-2,0); g.lineTo(x-2,H); g.stroke(); }
       });
       t.wrapS=t.wrapT=THREE.RepeatWrapping; t.anisotropy=8; return t; },
+    /* Fussgaenger-Piktogramm (Halle Etappe A, 14.10.): gruenes Feld, weisse Figur im Schritt, wie Gehweg-Markierungen
+       in Logistikhallen (ASR A1.8 Verkehrswege). Eine Kachel = ein Piktogramm (0,8 m). */
+    fussgaenger:()=>{ const t=tex(128,128,(g,W,H)=>{ g.fillStyle=css('signalgruen'); g.fillRect(0,0,W,H);
+        g.fillStyle=css('weiss'); g.strokeStyle=css('weiss'); g.lineCap='round'; g.lineWidth=11;
+        g.beginPath(); g.arc(68,20,11,0,Math.PI*2); g.fill();
+        const L=(a,b,c,d)=>{ g.beginPath(); g.moveTo(a,b); g.lineTo(c,d); g.stroke(); };
+        L(64,40,58,76); L(58,76,40,108); L(58,76,78,94); L(78,94,76,116); L(62,46,40,64); L(62,46,86,62); });
+      t.wrapS=t.wrapT=THREE.ClampToEdgeWrapping; t.anisotropy=4; return t; },
     /* Drahtgitter (Schweissgitter), weiss, Farbe ueber das Material (13.10., vorher gitterTex() in 06 fuer die
        Gitterbox und vsGitterMat() in 05h fuer die Ladezone - zwei Malcodes, zwei Maschenweiten). Kachel = 4 Maschen,
        UV-Massstab 0,2 m je Kachel -> Masche 5 cm. */
@@ -1443,7 +1458,11 @@ const WIRT={
       lager_gross:6200, shop_ost:16000, shop_sued:34000, lager_sued:11000, lager_sued2:15000, lager_west:22000,
       rampe2:12000, lager_west2:30000, rampe3:15000, rampe4:20000, lager_west3:42000, rampe5:26000,
       packstation:6400, packstation2:5900, packstation3:6900, eingang2:11500, kasse2:3400, labor:9800,
-      labor2:16500, gravur:1200
+      labor2:16500, gravur:1200,
+      /* Halle Etappe A (14.10.): Hochregal Gasse 1 + RBG + I/O + ③ + Schleuse. Amortisation in docs/halle/etappe-a.md:
+         geschaetzt ~+520 €/Tag (Staffel 18 % statt 10 % auf den Grosshandels-Einkauf, Einraeumer-Wege gespart, Packer
+         kuerzer) minus Betrieb fix.hochregal -> ~38 Spieltage; Ziel "grosse Stufen" 15-30 Tage + Puffer (Kapitel 7) */
+      lagerlogistik:18500
     }
   },
   lizenz:{
@@ -1555,7 +1574,8 @@ const WIRT={
     levelAb:4,          // ab diesem Level kostet jedes weitere Level ...
     jeLevel:4,          // ... 4 € je Tag ("Level-Steuer", keine Miete/Flaeche - Luecke fuers Balancing)
     regalArt:{klein:4,standard:9,hoch:12,kuehl:18,gondel:14,eck:11,gross:13,gitter:3,gitter2:4,gitter3:5,tisch:6,tischgross:8},  // € je Verkaufsregal
-    regalStandard:9     // € fuer Regalarten ohne Eintrag (z. B. Kassenregal)
+    regalStandard:9,    // € fuer Regalarten ohne Eintrag (z. B. Kassenregal)
+    hochregal:35        // € je Tag und aktiver Hochregal-Gasse (Strom und Wartung RBG, Foerderer, FTS) - ab Ausbau lagerlogistik
   },
   tag:{
     automat:45          // € je Tag mit Deko "Getraenkeautomat"
@@ -1749,6 +1769,13 @@ const WIRT_KETTEN=[
      {text:'Hoch pokern ueber die Grenze kostet Versuche; Meisterbrief x{auftrag.meister} auf die Auszahlung.',ort:'10b-pyro.js:haggle',werte:['auftrag.nachgeben','auftrag.meister']},
      {text:'Erfuellt: Ruf +{ruf.auftragErfuellt}, XP; Kartons fehlen bei Abholung: Ruf {ruf.auftragVerfehlt}.',ort:'10b-pyro.js:finishOrder',werte:['ruf.auftragErfuellt','ruf.auftragVerfehlt','xp.auftragErfuellt']}],
    warum:'B2B-Geschäft: große Mengen, kleinere Marge, Lieferfähigkeit entscheidet.',luecken:[]},
+  {id:'lagerlogistik',entscheidung:'Hochregal und Kartonlager bauen (Lagerlogistik, Kapitel 7.3)',
+   folgen:[
+     {text:'Einmalig {ausbau.preis.lagerlogistik|€}; danach jeden Tag {fix.hochregal|€} je aktiver Gasse (Strom, Wartung RBG und FTS) in den Fixkosten.',ort:'16-day.js:fixedCosts',werte:['ausbau.preis.lagerlogistik','fix.hochregal']},
+     {text:'Lieferungen an Tor 2-4 landen auf Stellplaetzen und gehen automatisch ins Hochregal (180 Palettenplaetze in Gasse 1) - kein Einraeumen von Hand, Lagerplatz fuer grosse Grosshandels-Staffeln (ab {einkauf.lieferant.grosshandel.staffel.1.n} Kartons {einkauf.lieferant.grosshandel.staffel.1.d|%} Rabatt).',ort:'11f-hochregal.js:ftsEinJob',werte:['einkauf.lieferant.grosshandel']},
+     {text:'Bestand im Hochregal zaehlt fuer Onlinebestellungen; das RBG lagert in den Anbruch aus, die FTS bringen Nachschub nach ③ und ①, Packer picken auch im Anbruch.',ort:'11f-hochregal.js:hrTick',werte:[]}],
+   warum:'Fixkosten gegen Skaleneffekt: Ein automatisches Lager lohnt sich erst mit Menge - wer wenig umschlaegt, zahlt jeden Tag Betrieb fuer leere Plaetze.',
+   luecken:['Ersparnis (Staffel, Wege) ist geschaetzt, nicht im Balancing-Lauf gemessen - der Bot erreicht Kapitel 7 nicht.']},
   {id:'restposten',entscheidung:'Restposten und Wundertueten kaufen',
    folgen:[
      {text:'Preis = mittlerer Karton-Einkauf x Kartons x Faktor ({einkauf.pakete.sonstige} ... {einkauf.pakete.rabatt.palette}), gerundet auf {einkauf.pakete.runden} €.',ort:'17-laptop.js:packPreis',werte:['einkauf.pakete']},
@@ -2065,6 +2092,8 @@ const UPGRADES=[
   {id:'rampe4',kat:'flaeche',lvl:30,req:'lager_west2',name:'Andockstation 4',desc:'Das Tor in der erweiterten Halle. Vier Lieferungen gleichzeitig.',cost:()=>WIRT.ausbau.preis.rampe4,done:()=>S.up.rampe4},
   {id:'lager_west3',kat:'flaeche',lvl:30,req:'lager_west2',name:'Logistikhalle – Stufe 3',desc:'Die volle Halle: 40 mal 27 Meter und 11 Meter hoch, Platz für Hochregale bis unters Dach und das letzte Tor.',cost:()=>WIRT.ausbau.preis.lager_west3,done:()=>S.up.lager_west3},
   {id:'rampe5',kat:'flaeche',lvl:31,req:'lager_west3',name:'Andockstation 5',desc:'Das letzte Tor der Logistikhalle. Zusammen mit der Basisrampe rollen dann fünf Lieferungen gleichzeitig an — mehr gibt das Grundstück nicht her.',cost:()=>WIRT.ausbau.preis.rampe5,done:()=>S.up.rampe5},
+  /* Kapitel 7.3 (Halle Etappe A, 14.10.): die volle Halle wird zum Hochregallager (05q, 11f) */
+  {id:'lagerlogistik',kat:'flaeche',lvl:31,req:'lager_west3',kap:7,name:'Lagerlogistik – Hochregal und Kartonlager',desc:`Die Logistikhalle wird zum Hochregallager: Gasse 1 mit 180 Palettenplätzen und Regalbediengerät, Ein- und Auslagerung über Förderer, Anbruch zum Kommissionieren, Stellplätze am Wareneingang und zwei fahrerlose Transportfahrzeuge. Lieferungen an Tor 2 bis 4 gehen ab jetzt automatisch ins Hochregal, Nachschub fährt nach ③ und ①. Dazu das Kartonlager ③ mit gelber Wand und Schnelllauftor N1 – ①, ② und ③ sind ein Raum – und eine neue Schleuse. Die Lagerregale in der Halle ziehen nach ③ um. Betrieb ${WF.euro(WIRT.fix.hochregal,0)} am Tag.`,cost:()=>WIRT.ausbau.preis.lagerlogistik,done:()=>S.up.lagerlogistik},
   {id:'packstation',kat:'flaeche',lvl:25,req:'lager_sued2',name:'Packstation für den Versand',desc:`Ein Packplatz mit Packmaterial-Regal am hinteren Ende der großen Halle, dazu Förderband, Kran-Greifer und eine Palette in der gelben Box vor Rolltor V1. Das fertige Paket läuft übers Band, der Kran stapelt es auf die Palette. Abgeholt wird nur, wenn du DDL am Wandtelefon oder per Handy (Onlineshop) rufst – jede Abholung kostet eine Pauschale, dazu Porto je Paket (S ${WF.euro(WIRT.versand.porto[1],2)}, M ${WF.euro(WIRT.versand.porto[3],2)}, L ${WF.euro(WIRT.versand.porto[6],2)}). Der DDL-Fahrer lädt selbst. Ist die Palette voll, staut sich das Band. Zusammen mit dem Onlineshop kommen Bestellungen als echte Pakete herein.`,cost:()=>WIRT.ausbau.preis.packstation,done:()=>S.up.packstation},
   /* Ausbau der Packstation (Tom, 05.10.): weitere Packplaetze am selben
      Band, je mit Packmaterial-Regal und Wagen, und mehr Paletten unter
@@ -2456,6 +2485,12 @@ function mkRacks(){
   [-18.0,-22.0,-26.0].forEach(z=>{ add(-41.5,z,0,5.0,'lager_west'); add(-35.0,z,0,5.0,'lager_west'); });
   [-14.0,-18.0,-22.0,-26.0].forEach(z=>{ add(-52.5,z,0,6.4,'lager_west2'); add(-47.5,z,0,6.4,'lager_west2'); });
   [-12.0,-16.0,-20.0,-24.0,-28.0].forEach(z=>{ add(-63.0,z,0,6.4,'lager_west3'); add(-59.0,z,0,6.4,'lager_west3'); });
+  /* Halle Etappe A (14.10.): mit der Lagerlogistik wird die Halle zum Hochregallager - die freien Plaetze
+     dort entfallen (weg), dafuer bekommt das Kartonlager ③ zwei Reihen (Nordwand und gelbe Wand). Lagerregale,
+     die dort standen, ziehen beim Kauf um (llRaeumen, 11f); Plaetze am Ende der Liste, damit alte Staende passen. */
+  for(const sl of A) if(sl.zone&&sl.zone.indexOf('lager_west')===0) sl.weg='lagerlogistik';
+  [-34.6,-31.5,-28.4,-25.3,-22.2].forEach(x=>add(x,-7.55,Math.PI,5.0,'lagerlogistik'));
+  [-34.6,-31.5,-28.4].forEach(x=>add(x,-16.45,0,5.0,'lagerlogistik'));
   return A;
 }
 const RACKS=mkRacks();
@@ -4919,6 +4954,7 @@ function renderFrame(dt){
   if(typeof ladenLichtTakt==='function') ladenLichtTakt(dt||0.016);
   sonneNachfuehren();
   gruppenTakt();
+  if(typeof llSichtTakt==='function') llSichtTakt();   /* Halle Etappe A: Halleninhalt nur mit Blick in die Halle (05q) */
   if(typeof bk!=='undefined') bk.wandbildTakt();
   buendelTakt();
   schattenTakt();
@@ -14814,6 +14850,258 @@ bk.wandbild=function(erzwingen){
 bk.wandbildTakt=function(){ if(WB.aus) return; if(WB.sig===null||++WB.takt%10===0){ try{ bk.wandbild(); }catch(e){ WB.aus=true; WB.fehler=String(e&&e.message||e); for(const o of WB.liste) o.layers.set(0); if(WB.g) WB.g.visible=false; } } };
 
 /* =========================================================
+   Lagertechnik (Halle Etappe A, 14.10.2026, docs/halle/plan-1410.md): Hochregal, Regalbediengeraet,
+   Foerderer, Leuchten, Bodenmarkierung. Wiederholteile als InstancedMesh (eine Geometrie je Teil und
+   Detailstufe, geteilt ueber alle Gassen), Rest ueber bk.sammler. Farben nur aus MAT (Stuetzen
+   Signalblau, Traversen Signalorange, Anfahrschutz Signalgelb, Technik Anthrazit). Doku baukasten.md §2.
+   ========================================================= */
+/* Masse Hochregal (Skizze 1.1 / Branch halle-v7): Feld 2,9 m mit 3 Europaletten quer, Ebenen = Oberkante
+   Traverse (0 = Boden), Rahmentiefe 1,2 m, Hoehe 9,95 m */
+bk.HOCHREGAL={fb:2.9,tiefe:1.2,ebenen:[0,1.9,3.8,5.7,7.6],hoehe:9.95,felder:6,jeFeld:3,traverse:0.12};
+const _bkHR=new Map();
+function _bkHRGeo(k,f){ const key=k+':'+bk.lod(); let g=_bkHR.get(key); if(!g){ g=f(); _bkHR.set(key,g); } return g; }
+/* Ladung einer Regalpalette: 2 x 2 x 3 Kartons 0,4 x 0,4 x 0,6 m (Pappe), auf Ultra Low ein Block */
+bk.ladungGeo=function(){ return _bkHRGeo('ladung',()=>{
+  const S=bk.sammler({}), P=MAT.farbe('wellpappe');
+  if(bk.lod()===0){ S.box(0.8,1.2,1.2,0,0.6,0,P,'stumpf'); return S.geometrie('stumpf'); }
+  for(let iy=0;iy<3;iy++) for(let ix=0;ix<2;ix++) for(let iz=0;iz<2;iz++)
+    S.box(0.39,0.395,0.59,-0.2+ix*0.4,0.2+iy*0.4,-0.3+iz*0.6,P,'stumpf');
+  return S.geometrie('stumpf'); }); };
+/* Hochregal: je Gasse zwei Reihen (A: z0..z0+1,2, B: z0+2,8..z0+4,0), Gasse dazwischen (Mitte z0+2,0). Alle Gassen eines
+   Aufrufs teilen sich die InstancedMesh (Rahmen, Traversen, Gitterroste, Paletten, Ladung) - 3 Gassen = so viele
+   Zeichenaufrufe wie eine.
+   o = {x0, gassen:[{z0, nr, schieneOst (Schiene ueber das Regalende hinaus, m), schiene:false}], felder, parent, stirn:'ost'|'beide'}
+   (kurz: o.z0/o.nr fuer eine Gasse)
+   -> {g, meshes, gassen:[{z0,mitte,reihen,kollision,xs1,von,bis (Index in plaetze)}], plaetze:[{x,y,z,gasse,reihe,feld,ebene}],
+       x0, x1, hoehe, ebenen, belegen(liste der Indizes in plaetze)} */
+bk.hochregal=function(o){
+  const A=bk.HOCHREGAL, F=MAT.farbe, L=bk.lod(), fb=A.fb, x0=o.x0, nf=o.felder||A.felder, x1=x0+nf*fb, T=A.tiefe, H=A.hoehe;
+  const GL=o.gassen||[{z0:o.z0,nr:o.nr,schieneOst:o.schieneOst,schiene:o.schiene}];
+  const g=new THREE.Group(); g.userData.bauteil='hochregal'; (o.parent||scene).add(g);
+  const BLAU=F('signalblau'), ORANGE=F('signalorange');
+  /* Rahmen: zwei Stuetzen (Lochprofil 100 x 80) mit Fussplatte, waagerechte und diagonale Verbaende, Kopf bei H */
+  const rahmen=_bkHRGeo('rahmen',()=>{ const S=bk.sammler({});
+    for(const z of [0.05,T-0.05]){ S.box(0.1,H,0.08,0,H/2,z,BLAU,'lackMetall'); S.box(0.18,0.012,0.16,0,0.006,z,F('anthrazit'),'lackMetall'); }
+    const dy=1.25; for(let y=0.25,s=1;y<H-0.4;y+=dy,s=-s){ S.box(0.045,0.04,T-0.14,0,y,T/2,BLAU,'lackMetall');
+      if(L>0){ const y2=Math.min(H-0.15,y+dy), a=s>0?0.09:T-0.09, b=s>0?T-0.09:0.09, dz=b-a, dyy=y2-y;
+        S.box(0.035,Math.hypot(dz,dyy),0.035,0,(y+y2)/2,(a+b)/2,BLAU,'lackMetall',Math.atan2(dz,dyy),0,0); } }
+    return S.geometrie('lackMetall'); });
+  /* Traversenpaar eines Feldes (vorn + hinten), Oberkante = Ebene */
+  const trav=_bkHRGeo('traverse',()=>{ const S=bk.sammler({}), l=fb-0.1;
+    for(const z of [0.06,T-0.06]){ S.box(l,A.traverse,0.05,0,-A.traverse/2,z,ORANGE,'lackMetall'); if(L>1) for(const s of [-1,1]) S.box(0.07,0.16,0.06,s*(l/2-0.03),-0.08,z,ORANGE,'lackMetall'); }
+    return S.geometrie('lackMetall'); });
+  /* Gitterrost (Draht, verzinkt) auf jeder Traversenebene */
+  const rost=_bkHRGeo('rost',()=>{ const gg=new THREE.PlaneGeometry(fb-0.14,T-0.06); gg.rotateX(-Math.PI/2); gg.translate(0,0.004,T/2); return MAT.kachel(gg,(fb-0.14)/0.2,(T-0.06)/0.2); });
+  const mR=[], mT=[], mG=[], plaetze=[], gassen=[];
+  const S=bk.sammler({form:{fase:0.01,faseMin:0.05,lod0Kasten:true},bauteil:'hochregal'});
+  GL.forEach((q,k)=>{ const z0=q.z0, reihen=[{z0:z0,z1:z0+T},{z0:z0+2.8,z1:z0+2.8+T}], mitte=z0+2.0, xs1=x1+(q.schieneOst===undefined?1.6:q.schieneOst);
+    for(const r of reihen){
+      for(let i=0;i<=nf;i++) mR.push(tm(x0+i*fb,0,r.z0));
+      for(let j=0;j<nf;j++){ const cx=x0+(j+0.5)*fb;
+        for(let l=1;l<A.ebenen.length;l++){ mT.push(tm(cx,A.ebenen[l],r.z0)); mG.push(tm(cx,A.ebenen[l],r.z0)); }
+        mT.push(tm(cx,H,r.z0)); } }
+    /* Schienen der Gasse (Fahrschiene am Boden, Fuehrungsschiene oben an Querjochen), Anfahrschutz an der Stirn */
+    const xs0=x0-0.25;
+    if(q.schiene!==false){
+      S.box(xs1-xs0,0.06,0.09,(xs0+xs1)/2,0.03,mitte,F('silbergrau'),'stahl');
+      S.box(xs1-xs0,0.012,0.32,(xs0+xs1)/2,0.006,mitte,F('graphit'),'lackMetall');
+      S.box(xs1-x0+0.1,0.12,0.12,(x0+xs1)/2,H+0.3,mitte,F('anthrazit'),'lackMetall');
+      for(let i=0;i<=nf;i+=2) S.box(0.1,0.1,2.8-T+0.12,x0+i*fb,H+0.18,mitte,F('anthrazit'),'lackMetall');
+      for(const z of [mitte-0.85,mitte+0.85]) S.box(0.12,H+0.36,0.12,xs1-0.06,(H+0.36)/2,z,F('anthrazit'),'lackMetall');
+      S.box(0.12,0.12,1.82,xs1-0.06,H+0.3,mitte,F('anthrazit'),'lackMetall'); }
+    for(const r of reihen){ const xe=x1+0.18;
+      bk.anfahrschutz(S,{von:[xe,r.z0-0.04],bis:[xe,r.z1+0.04],hoehe:0.45,pfosten:1.3});
+      const zg=r.z0<mitte?r.z1-0.05:r.z0+0.05; S.box(0.22,0.4,0.2,x1,0.2,zg,F('signalgelb'),'lackMetall');
+      if(o.stirn==='beide') bk.anfahrschutz(S,{von:[x0-0.18,r.z0-0.04],bis:[x0-0.18,r.z1+0.04],hoehe:0.45,pfosten:1.3}); }
+    if(q.nr) bk.schild(g,{text:'GASSE '+q.nr,unter:(nf*A.jeFeld*A.ebenen.length*2)+' Palettenplätze',b:1.5,h:0.45,x:xs1+0.02,y:H-0.9,z:mitte,ry:Math.PI/2});
+    const von=plaetze.length;
+    reihen.forEach((r,ri)=>{ for(let j=0;j<nf;j++) for(let s2=0;s2<A.jeFeld;s2++) for(let l=0;l<A.ebenen.length;l++)
+      plaetze.push({x:x0+j*fb+0.1+(s2+0.5)*(fb-0.2)/A.jeFeld,y:A.ebenen[l]+(l?0.004:0),z:(r.z0+r.z1)/2,gasse:k,reihe:ri,feld:j,ebene:l}); });
+    gassen.push({z0,mitte,reihen,xs1,von,bis:plaetze.length,kollision:reihen.map(r=>({x0:x0-0.1,x1:x1+0.3,z0:r.z0-0.05,z1:r.z1+0.05}))}); });
+  const meshes=[bk.inst(rahmen,MAT.vc('lackMetall'),mR,{parent:g,bauteil:'hochregal',art:'rahmen'}),
+    bk.inst(trav,MAT.vc('lackMetall'),mT,{parent:g,bauteil:'hochregal',art:'traverse'}),
+    bk.inst(rost,MAT.get('gitterRost'),mG,{parent:g,bauteil:'hochregal',art:'gitterrost',schatten:false})];
+  meshes.push(...S.fertig(g,{bauteil:'hochregal',fest:true}));
+  /* Belegung: je belegtem Platz Europalette (bk.palette) mit Kartonladung - zwei InstancedMesh fuer alle Gassen.
+     Instanzfarbe (Alterung) wie bk.paletten - dasselbe Material teilt sich in r128 ein Shaderprogramm: alle Paletten-Instanzen
+     brauchen sie; bei der Ladung von Anfang an (spaeter angelegt bricht r128 beim Zeichnen). */
+  const mP=bk.inst(bk.palette('euro',{fein:L>1}),MAT.get('palette'),plaetze.map(p=>tm(p.x,p.y,p.z,0,Math.PI/2,0)),{parent:g,bauteil:'hochregal',art:'palette',schatten:false,farben:plaetze.map((p,i)=>bk.palFarbe(p.x,p.y,p.z,i))});
+  const mL=bk.inst(bk.ladungGeo(),MAT.vc('stumpf'),plaetze.map(p=>tm(p.x,p.y+bk.PALETTE.euro.h,p.z)),{parent:g,bauteil:'hochregal',art:'ladung',schatten:false,farben:plaetze.map(()=>new THREE.Color(1,1,1))});
+  const hell=new THREE.Color();
+  const belegen=liste=>{ let n=0;
+    for(const i of liste){ const p=plaetze[i]; if(!p) continue;
+      mP.setMatrixAt(n,tm(p.x,p.y,p.z,0,Math.PI/2+((i*7)%3-1)*0.02,0));
+      mL.setMatrixAt(n,tm(p.x+((i*13)%5-2)*0.006,p.y+bk.PALETTE.euro.h,p.z));
+      const v=0.86+((i*37)%11)/80; mL.setColorAt(n,hell.setRGB(v,v,v)); n++; }
+    mP.count=n; mL.count=n; mP.instanceMatrix.needsUpdate=true; mL.instanceMatrix.needsUpdate=true; if(mL.instanceColor) mL.instanceColor.needsUpdate=true;
+    mP.visible=mL.visible=n>0; return n; };
+  meshes.push(mP,mL); belegen([]);
+  return {g,meshes,gassen,plaetze,x0,x1,ebenen:A.ebenen,hoehe:H,belegen};
+};
+/* Regalbediengeraet (RBG) fuer eine Gasse: zwei Fahrkatzen (Signalgelb wie Kran), Mast Anthrazit, Hubwagen mit
+   Teleskopgabel bis zum Boden, Schaltschrank, Kopf an der Fuehrungsschiene, Warnleuchte. Gabelmitte = g.x (Ladung mittig).
+   o = {x, z (Gassenmitte), hoehe (Mast bis Fuehrungsschiene), parent}
+   -> {g (faehrt in x), hub (faehrt in y = Unterkante Gabel), gabel (faehrt in z, quer in die Reihe), set(x,y,z), yMin, meshes} */
+bk.rbg=function(o){
+  const F=MAT.farbe, L=bk.lod(), H=o.hoehe||10.2, GELB=F('signalgelb'), ANTH=F('anthrazit'), seg=[6,10,14][L];
+  const g=new THREE.Group(); g.position.set(o.x||0,0,o.z||0); g.userData.bauteil='rbg'; (o.parent||scene).add(g);
+  const S=bk.sammler({form:{fase:0.015,faseMin:0.06,seg:1,lod0Kasten:true},bauteil:'rbg'});
+  /* Fahrwerk: zwei Fahrkatzen auf der Bodenschiene, flacher Unterzug dazwischen (Hubwagen faehrt bis zum Boden) */
+  for(const dx of [-1.05,1.05]){ S.box(0.56,0.42,0.6,dx,0.3,0,GELB,'lackMetall'); S.box(0.6,0.04,0.64,dx,0.53,0,ANTH,'lackMetall');
+    S.zyl(0.15,0.15,0.2,seg,dx,0.15,0,ANTH,'lackMetall',Math.PI/2,0,0); S.box(0.08,0.2,0.4,dx+Math.sign(dx)*0.32,0.25,0,F('gummischwarz'),'lackMetall'); }
+  S.box(1.6,0.05,0.22,0,0.025,0,ANTH,'lackMetall');
+  /* Antrieb */
+  S.zyl(0.12,0.12,0.3,seg,1.05,0.68,0.16,F('mittelgrau'),'lackMetall',Math.PI/2,0,0); S.box(0.24,0.24,0.2,1.05,0.68,-0.12,ANTH,'lackMetall');
+  /* Mast (Kastenprofil) ueber der Fahrkatze Ost, Laufbahnen fuer den Hubwagen */
+  S.box(0.3,H-0.55,0.4,0.95,0.55+(H-0.55)/2,0,ANTH,'lackMetall');
+  for(const z of [-0.14,0.14]) S.box(0.04,H-0.6,0.06,0.78,0.3+(H-0.6)/2,z,F('silbergrau'),'lackMetall');
+  if(L>0) for(let y=1.2;y<H-0.6;y+=1.2) S.box(0.31,0.03,0.41,0.95,y,0,F('graphit'),'lackMetall');
+  /* Kopf mit Fuehrungsrollen an der oberen Schiene, Warnleuchte */
+  S.box(2.6,0.22,0.4,0,H-0.11,0,GELB,'lackMetall');
+  for(const z of [-0.09,0.09]) for(const x of [-1.0,1.0]) S.zyl(0.06,0.06,0.12,seg,x,H+0.06,z,ANTH,'lackMetall');
+  S.zyl(0.06,0.07,0.1,seg,0.0,H+0.05,0.12,ANTH,'lackMetall'); S.zyl(0.07,0.07,0.14,seg,0.0,H+0.17,0.12,F('signalorange'),'leucht');
+  /* Schaltschrank auf der Fahrkatze West, Display und Not-Halt */
+  S.box(0.46,1.4,0.5,-1.05,1.25,0,F('lichtgrau'),'lackMetall'); S.box(0.5,0.05,0.54,-1.05,1.97,0,ANTH,'lackMetall');
+  S.box(0.01,0.16,0.24,-1.285,1.6,0.05,F('signalblau'),'leucht'); S.zyl(0.035,0.035,0.03,seg,-1.29,1.35,-0.15,F('signalrot'),'lackMetall',0,0,Math.PI/2);
+  /* Energiekette am Mast */
+  if(L>0) S.box(0.06,H*0.5,0.14,1.13,0.6+H*0.25,0.16,F('gummischwarz'),'lackMetall');
+  const meshes=S.fertig(g,{bauteil:'rbg'});
+  /* Hubwagen (y = Unterkante Gabel): Traegerplatte am Mast, Gabeltraeger, Teleskopgabel quer in die Reihe */
+  const hub=new THREE.Group(); hub.position.y=0.5; g.add(hub);
+  const Sh=bk.sammler({form:{fase:0.012,faseMin:0.05,seg:1,lod0Kasten:true},bauteil:'rbg'});
+  Sh.box(0.12,0.9,0.72,0.66,0.45,0,GELB,'lackMetall'); Sh.box(0.2,0.1,0.72,0.5,0.06,0,ANTH,'lackMetall');
+  for(const z of [-0.33,0.33]) Sh.box(0.12,0.5,0.04,0.58,0.3,z,ANTH,'lackMetall');
+  meshes.push(...Sh.fertig(hub,{bauteil:'rbg'}));
+  const gabel=new THREE.Group(); hub.add(gabel);
+  const Sg=bk.sammler({bauteil:'rbg'});
+  for(const x of [-0.25,0.25]){ Sg.box(0.12,0.04,1.15,x,0.02,0,F('silbergrau'),'stahl'); Sg.box(0.1,0.025,1.1,x,0.05,0,F('graphit'),'stahl'); }
+  Sg.box(0.62,0.05,0.12,0.12,0.03,0,ANTH,'stahl');
+  meshes.push(...Sg.fertig(gabel,{bauteil:'rbg'}));
+  const R={g,hub,gabel,meshes,yMin:0.0,
+    set(x,y,z){ if(x!==undefined) g.position.x=x; if(y!==undefined) hub.position.y=Math.max(R.yMin,y); if(z!==undefined) gabel.position.z=z; }};
+  return R;
+};
+/* Rollenfoerderer (Paletten, 1 m breit): Seitenwangen Anthrazit, Rollen Stahl hell, Stuetzen verzinkt, Antrieb.
+   o = {von:[x,z], bis:[x,z], breite 1,0, hoehe (Oberkante Rollen) 0,55, teilung (Rollenabstand) 0,16, parent}
+   -> {meshes, laenge, y, punkt(t) -> {x,z} (t 0..1), ry, kollision {x0,x1,z0,z1}} */
+bk.foerderer=function(o){
+  const F=MAT.farbe, L=bk.lod(), seg=[6,8,12][L], [ax,az]=o.von, [bx,bz]=o.bis, dx=bx-ax, dz=bz-az, len=Math.hypot(dx,dz);
+  const B=o.breite||1.0, Hh=o.hoehe||0.55, t=o.teilung||(L?0.16:0.32), ry=Math.atan2(-dz,dx);
+  const g=new THREE.Group(); g.position.set(ax,0,az); g.rotation.y=ry; g.userData.bauteil='foerderer'; (o.parent||scene).add(g);
+  const S=bk.sammler({form:{fase:0.008,faseMin:0.04,lod0Kasten:true},bauteil:'foerderer'});
+  for(const s of [-1,1]){ S.box(len,0.14,0.05,len/2,Hh-0.05,s*(B/2+0.03),F('anthrazit'),'lackMetall'); }
+  const n=Math.max(2,Math.floor(len/t));
+  for(let i=0;i<n;i++) S.zyl(0.03,0.03,B,seg,(i+0.5)*len/n,Hh-0.03,0,F('hellgrau'),'stahl',Math.PI/2,0,0);
+  const ns=Math.max(2,Math.ceil(len/1.6)+1);
+  for(let i=0;i<ns;i++){ const x=Math.min(len-0.05,Math.max(0.05,i*len/(ns-1))); for(const s of [-1,1]){ S.box(0.06,Hh-0.12,0.06,x,(Hh-0.12)/2,s*(B/2-0.02),F('silbergrau'),'stahl'); bk.fuss(S,x,s*(B/2-0.02),0.12); }
+    S.box(0.05,0.05,B,x,0.18,0,F('silbergrau'),'stahl'); }
+  if(o.antrieb!==false){ S.box(0.3,0.24,0.22,len*0.5,Hh-0.22,-(B/2+0.18),F('graphit'),'lackMetall'); S.zyl(0.08,0.08,0.22,seg,len*0.5,Hh-0.22,-(B/2+0.36),F('mittelgrau'),'lackMetall',Math.PI/2,0,0); }
+  const meshes=S.fertig(g,{bauteil:'foerderer',fest:true});
+  const cx=[ax,bx], cz=[az,bz], w=B/2+0.1;
+  return {g,meshes,laenge:len,y:Hh,ry,punkt:u=>({x:ax+dx*u,z:az+dz*u}),
+    kollision:{x0:Math.min(...cx)-(Math.abs(dz)>Math.abs(dx)?w:0),x1:Math.max(...cx)+(Math.abs(dz)>Math.abs(dx)?w:0),z0:Math.min(...cz)-(Math.abs(dx)>=Math.abs(dz)?w:0),z1:Math.max(...cz)+(Math.abs(dx)>=Math.abs(dz)?w:0)}};
+};
+/* Leuchten.
+   art 'raster' (Deckenleuchten im Raster, vorher leuchtenRaster 05h): o = {id (Zone), r:{x0,x1,z0,z1}, y (Decke), ax, az, panel (Material
+       der Streuscheibe)} - zwei Meshes (Korpus, Scheibe), jede Leuchte meldet sich in LAMPEN an.
+   art 'halle' (Hallenleuchte, LED-Hallenstrahler linear 1,4 m an Pendeln): o = {punkte:[[x,z],...], y (Unterkante), decke (Pendel bis),
+       zone (LAMPEN-id), aus (Zone, mit der die Leuchte ausgeht), parent} - zwei InstancedMesh (Gehaeuse, Leuchtflaeche).
+   art 'strasse' (Mastleuchte, vorher lampTeile 05e): o.add(k,geo,matrix,farbe) bekommt die Teile in lokalen Koordinaten. */
+bk.lampe=function(o){
+  if(o.art==='strasse'){ const add=o.add, D=MAT.farbe('anthrazit'), MA=MAT.farbe('basaltgrau'), C=(a,b,h,s)=>new THREE.CylinderGeometry(a,b,h,s);
+    add('lack',C(0.15,0.19,0.34,14),tm(0,0.17,0),D);
+    add('lack',new THREE.BoxGeometry(0.1,0.16,0.02),tm(0,0.2,0.185),MAT.farbe('mittelgrau'));
+    add('lack',C(0.16,0.16,0.03,14),tm(0,0.35,0),D);
+    for(let i=0;i<4;i++){ const a=i/4*Math.PI*2; add('lack',new THREE.BoxGeometry(0.035,0.03,0.035),tm(Math.cos(a)*0.13,0.37,Math.sin(a)*0.13),MAT.farbe('silbergrau')); }
+    add('mast',C(0.075,0.11,4.4,14),tm(0,2.57,0),MA);
+    const R=0.9, seg=7;
+    for(let i=0;i<seg;i++){ const a0=i/seg*(Math.PI/2), a1=(i+1)/seg*(Math.PI/2);
+      const x0=Math.sin(a0)*R, y0=R-Math.cos(a0)*R, x1=Math.sin(a1)*R, y1=R-Math.cos(a1)*R;
+      add('lack',C(0.062,0.066,Math.hypot(x1-x0,y1-y0)*1.08,10),tm(0,4.77+(y0+y1)/2,(x0+x1)/2,Math.atan2(x1-x0,y1-y0),0,0),MA); }
+    const K=tm(0,5.63,0.9,0.06,0,0), k=(geo,x,y,z,c,key)=>add(key||'lack',geo,K.clone().multiply(tm(x,y,z)),c);
+    k(roundedBoxGeo(0.3,0.11,0.82,0.04),0,0.06,0,MAT.farbe('graphit'));
+    k(new THREE.BoxGeometry(0.26,0.03,0.74),0,0.005,0,MAT.farbe('mittelgrau'));
+    k(new THREE.BoxGeometry(0.24,0.045,0.7),0,-0.02,0,0xffffff,'lampe');
+    k(new THREE.BoxGeometry(0.16,0.09,0.16),0,0.06,-0.44,MAT.farbe('anthrazit'));
+    k(new THREE.BoxGeometry(0.24,0.02,0.6),0,0.125,0.02,MAT.farbe('basaltgrau'));
+    return null; }
+  if(o.art==='raster'){ const r=o.r, y=o.y, id=o.id;
+    const nx=Math.max(1,Math.round((r.x1-r.x0)/o.ax)), nz=Math.max(1,Math.round((r.z1-r.z0)/o.az));
+    /* Je hoeher die Halle, desto groesser die Leuchte - sonst haengen unter zwoelf Metern Decke nur noch Striche. */
+    const f=Math.max(1,y/3.8);
+    const gRev=new THREE.BoxGeometry(1.44*f,0.03*f,0.42*f), gFix=new THREE.BoxGeometry(1.36*f,0.028*f,0.36*f), gDif=new THREE.PlaneGeometry(1.26*f,0.28*f);
+    const korpus=[], diff=[], lampen=[];
+    for(let i=0;i<nx;i++) for(let k=0;k<nz;k++){ const x=r.x0+(i+0.5)*(r.x1-r.x0)/nx, z=r.z0+(k+0.5)*(r.z1-r.z0)/nz;
+      const L={x,y,z,id}; LAMPEN.push(L); lampen.push(L);
+      korpus.push({geo:gRev,m:tm(x,y-0.008*f,z),color:MAT.farbe('anthrazit')});
+      korpus.push({geo:gFix,m:tm(x,y-0.026*f,z),color:MAT.farbe('lichtgrau')});
+      diff.push({geo:gDif,m:tm(x,y-0.043*f,z,Math.PI/2,0,0)}); }
+    const mk=new THREE.Mesh(merge(korpus),MAT.vc('matt')), md=new THREE.Mesh(merge(diff),o.panel);
+    mk.userData.bauteil=md.userData.bauteil='lampe'; mk.userData.bauteilArt=md.userData.bauteilArt='raster';
+    (o.parent||scene).add(mk); (o.parent||scene).add(md);
+    if(id&&typeof zAdd==='function'){ zAdd(id,mk); zAdd(id,md); }
+    gRev.dispose(); gFix.dispose(); gDif.dispose();
+    return {meshes:[mk,md],lampen}; }
+  /* Hallenleuchte */
+  const L=bk.lod(), y=o.y, pend=Math.max(0,(o.decke||y)-y-0.12);
+  const geo=_bkHRGeo('hallenleuchte:'+pend.toFixed(2),()=>{ const S=bk.sammler({form:{fase:0.01,faseMin:0.04,lod0Kasten:true}});
+    S.box(1.42,0.09,0.3,0,0.06,0,MAT.farbe('anthrazit'),'lackMetall');
+    if(L>0) for(let i=-5;i<=5;i++) S.box(0.025,0.05,0.26,i*0.12,0.13,0,MAT.farbe('aluminium'),'lackMetall');
+    if(pend>0) for(const x of [-0.6,0.6]) S.box(0.012,pend,0.012,x,0.1+pend/2,0,MAT.farbe('silbergrau'),'lackMetall');
+    return S.geometrie('lackMetall'); });
+  const geoL=_bkHRGeo('hallenleuchte:flaeche',()=>merge([{geo:new THREE.BoxGeometry(1.32,0.02,0.22),m:tm(0,0.008,0),color:MAT.farbe('lampeWarm')}]));
+  const M=o.punkte.map(([x,z,ry])=>tm(x,y,z,0,ry||0,0)), lampen=[];
+  for(const [x,z] of o.punkte){ const Lp={x,y,z,id:o.zone||null}; if(o.aus) Lp.aus=o.aus; LAMPEN.push(Lp); lampen.push(Lp); }
+  const meshes=[bk.inst(geo,MAT.vc('lackMetall'),M,{parent:o.parent,bauteil:'lampe',art:'halle',schatten:false}),
+    bk.inst(geoL,MAT.vc('leucht'),M,{parent:o.parent,bauteil:'lampe',art:'halle',schatten:false})];
+  return {meshes,lampen};
+};
+/* Bodenmarkierung (ASR A1.8): gleiche Breiten und Farben ueberall.
+   o = {linien:[[x0,z0,x1,z1,farbe('gelb'|'weiss'|'gruen'),breite]] (Fahrwege gelb 0,12 m, Stellplaetze weiss/gelb 0,08 m),
+        rahmen:[{x0,x1,z0,z1,farbe,breite}] (Stellplatz/Feld umrandet), flaechen:[{x0,x1,z0,z1,art:'gehweg'|'sperr'}]
+        (Gehweg gruen, Sperrflaeche gelb-schwarz 45°), piktos:[{x,z,ry,g}] (Fussgaenger 0,8 m), y (Boden), parent,
+        schatten (true = empfaengt Sonnenschatten wie Aussenboeden; innen aus, wie die Hallenboeden)}
+   -> {meshes} je Material EIN Mesh (UV in Metern, Schraffur 0,4 m je Kachel) */
+bk.MARKIERUNG={fahrweg:0.12,stellplatz:0.08,gehweg:0.12,pikto:0.8};
+bk.bodenmarkierung=function(o){
+  const y=o.y===undefined?0.015:o.y, T={gelb:[],weiss:[],gruen:[],sperr:[],pikto:[]};
+  const quad=(k,cx,cz,w,d,ry,dy,uvM)=>{ const gg=new THREE.PlaneGeometry(w,d); gg.rotateX(-Math.PI/2); if(ry) gg.rotateY(ry); gg.translate(cx,y+dy,cz);
+    if(uvM){ const p=gg.attributes.position, uv=gg.attributes.uv; for(let i=0;i<p.count;i++) uv.setXY(i,p.getX(i)/uvM,-p.getZ(i)/uvM); }
+    T[k].push({geo:gg,m:new THREE.Matrix4()}); };
+  const linie=(x0,z0,x1,z1,f,b)=>{ const L=Math.hypot(x1-x0,z1-z0); if(L<0.01) return; quad(f||'gelb',(x0+x1)/2,(z0+z1)/2,L+(b||0.12),b||0.12,Math.atan2(-(z1-z0),x1-x0),0.005); };
+  for(const l of (o.linien||[])) linie(l[0],l[1],l[2],l[3],l[4],l[5]);
+  for(const r of (o.rahmen||[])){ const b=r.breite||bk.MARKIERUNG.stellplatz, f=r.farbe||'gelb', h=b/2;
+    linie(r.x0+h,r.z0+h,r.x1-h,r.z0+h,f,b); linie(r.x0+h,r.z1-h,r.x1-h,r.z1-h,f,b);
+    linie(r.x0+h,r.z0+h,r.x0+h,r.z1-h,f,b); linie(r.x1-h,r.z0+h,r.x1-h,r.z1-h,f,b); }
+  for(const f of (o.flaechen||[])){ const w=f.x1-f.x0, d=f.z1-f.z0;
+    if(f.art==='sperr') quad('sperr',(f.x0+f.x1)/2,(f.z0+f.z1)/2,w,d,0,0.003,0.4); else quad('gruen',(f.x0+f.x1)/2,(f.z0+f.z1)/2,w,d,0,0.003); }
+  for(const p of (o.piktos||[])){ const gg=new THREE.PlaneGeometry(p.g||0.8,p.g||0.8); gg.rotateX(-Math.PI/2); gg.rotateY(p.ry||0); gg.translate(p.x,y+0.006,p.z); T.pikto.push({geo:gg,m:new THREE.Matrix4()}); }
+  const MM={gelb:MAT.get('markierungGelb'),weiss:MAT.get('weissMatt'),gruen:MAT.get('markierungGruen'),sperr:MAT.get('sperrflaeche'),pikto:MAT.get('markierungPikto')};
+  const meshes=[];
+  for(const k in T){ if(!T[k].length) continue; const me=new THREE.Mesh(merge(T[k]),MM[k]); T[k].forEach(t=>t.geo.dispose());
+    if(HIQ&&o.schatten) me.receiveShadow=true; me.userData.bauteil='bodenmarkierung'; me.userData.bauteilArt=k; me.matrixAutoUpdate=false; me.updateMatrix();
+    (o.parent||scene).add(me); meshes.push(me); }
+  return {meshes};
+};
+/* Fahrerloses Transportfahrzeug (FTS) fuer Paletten: flacher Fahrkoerper Lichtgrau, Hubdeck verzinkt, Rammschutz-Leiste
+   Signalgelb rundum, Laserscanner vorn/hinten, Warnleuchte. o = {x,z,ry,parent} -> {g, deck (hebt in y), set(hub 0..1), meshes} */
+bk.fts=function(o){
+  o=o||{}; const F=MAT.farbe, L=bk.lod(), seg=[6,10,14][L];
+  const g=new THREE.Group(); g.position.set(o.x||0,0,o.z||0); g.rotation.y=o.ry||0; g.userData.bauteil='fts'; (o.parent||scene).add(g);
+  const S=bk.sammler({form:{fase:0.02,faseMin:0.05,seg:1,lod0Kasten:true},bauteil:'fts'});
+  S.box(1.3,0.22,0.78,0,0.15,0,F('lichtgrau'),'lackMetall');
+  S.box(1.34,0.06,0.82,0,0.08,0,F('signalgelb'),'lackMetall');
+  for(const x of [-0.45,0.45]) S.zyl(0.06,0.06,0.06,seg,x,0.06,0.34,F('gummischwarz'),'lackMetall',Math.PI/2,0,0), S.zyl(0.06,0.06,0.06,seg,x,0.06,-0.34,F('gummischwarz'),'lackMetall',Math.PI/2,0,0);
+  for(const s of [-1,1]){ S.zyl(0.05,0.05,0.06,seg,s*0.6,0.3,0,F('gummischwarz'),'lackMetall'); S.box(0.02,0.04,0.3,s*0.66,0.18,0,F('tiefschwarz'),'lackMetall'); }
+  S.zyl(0.035,0.035,0.08,seg,0.5,0.3,0.3,F('signalorange'),'leucht');
+  S.box(0.012,0.05,0.18,0.656,0.2,-0.2,F('signalblau'),'leucht');
+  const meshes=S.fertig(g,{bauteil:'fts'});
+  const deck=new THREE.Group(); deck.position.y=0.27; g.add(deck);
+  const Sd=bk.sammler({bauteil:'fts'}); Sd.box(1.1,0.03,0.7,0,0.015,0,F('silbergrau'),'stahl'); meshes.push(...Sd.fertig(deck,{bauteil:'fts'}));
+  return {g,deck,meshes,set(h){ deck.position.y=0.27+0.06*Math.max(0,Math.min(1,h)); }};
+};
+
+/* =========================================================
    Wände, Böden, Welt
    ========================================================= */
 const SKY_R=285;
@@ -17942,28 +18230,7 @@ function strSchrift(){
 
 /* ---------- Leuchte ---------- */
 /* Die Teile einer Leuchte in lokalen Koordinaten; add(k,geo,matrix,farbe) */
-function lampTeile(add){
-  const D=MAT.farbe('anthrazit'), MA=MAT.farbe('basaltgrau'), C=(a,b,h,s)=>new THREE.CylinderGeometry(a,b,h,s);
-  add('lack',C(0.15,0.19,0.34,14),tm(0,0.17,0),D);
-  add('lack',new THREE.BoxGeometry(0.1,0.16,0.02),tm(0,0.2,0.185),MAT.farbe('mittelgrau'));
-  add('lack',C(0.16,0.16,0.03,14),tm(0,0.35,0),D);
-  for(let i=0;i<4;i++){ const a=i/4*Math.PI*2; add('lack',new THREE.BoxGeometry(0.035,0.03,0.035),tm(Math.cos(a)*0.13,0.37,Math.sin(a)*0.13),MAT.farbe('silbergrau')); }
-  add('mast',C(0.075,0.11,4.4,14),tm(0,2.57,0),MA);
-  /* Bogen als kurze Segmente */
-  const R=0.9, seg=7;
-  for(let i=0;i<seg;i++){
-    const a0=i/seg*(Math.PI/2), a1=(i+1)/seg*(Math.PI/2);
-    const x0=Math.sin(a0)*R, y0=R-Math.cos(a0)*R, x1=Math.sin(a1)*R, y1=R-Math.cos(a1)*R;
-    add('lack',C(0.062,0.066,Math.hypot(x1-x0,y1-y0)*1.08,10),tm(0,4.77+(y0+y1)/2,(x0+x1)/2,Math.atan2(x1-x0,y1-y0),0,0),MA);
-  }
-  /* Leuchtenkopf mit Wanne, Halterung und Deckel */
-  const K=tm(0,5.63,0.9,0.06,0,0), k=(geo,x,y,z,c,key)=>add(key||'lack',geo,K.clone().multiply(tm(x,y,z)),c);
-  k(roundedBoxGeo(0.3,0.11,0.82,0.04),0,0.06,0,MAT.farbe('graphit'));
-  k(new THREE.BoxGeometry(0.26,0.03,0.74),0,0.005,0,MAT.farbe('mittelgrau'));
-  k(new THREE.BoxGeometry(0.24,0.045,0.7),0,-0.02,0,0xffffff,'lampe');
-  k(new THREE.BoxGeometry(0.16,0.09,0.16),0,0.06,-0.44,MAT.farbe('anthrazit'));
-  k(new THREE.BoxGeometry(0.24,0.02,0.6),0,0.125,0.02,MAT.farbe('basaltgrau'));
-}
+function lampTeile(add){ bk.lampe({art:'strasse',add}); }   /* Teile seit 14.10. in bk.lampe (04z) */
 /* Nachtlicht der Leuchten (Tom, 26.09.: "alles drum herum deutlich
    hochwertiger"). Zuerst lagen additive Flaechen ueber dem Boden: sie
    faerbten den Asphalt sandfarben, und wo Flicken und Markierungen per
@@ -19807,35 +20074,12 @@ function trennwand(id,laengs,fest,a0,a1,h,innen,aussen,face){
    ========================================================= */
 const SHOP_X2=LAY.shop.x1, LAGER_Z2=LAY.lnord.z1;
 
-let _panelM=null, _korpusM=null;
-function leuchtenMat(){
-  if(!_panelM){ _panelM=new THREE.MeshBasicMaterial({map:deckenDiffuse(),toneMapped:false});
-    _korpusM=new THREE.MeshStandardMaterial({vertexColors:true,metalness:0,roughness:0.72}); }
-  return _panelM;
-}
-/* Deckenleuchten im Raster. Eine grosse Halle bekommt schnell dreissig
-   Leuchten - als Einzelmeshes waere das teuer, deshalb wird das ganze
-   Raster zu zwei Meshes verschmolzen: Korpus und Leuchtflaeche. */
-function leuchtenRaster(id,r,y,ax,az){
-  leuchtenMat();
-  const nx=Math.max(1,Math.round((r.x1-r.x0)/ax)), nz=Math.max(1,Math.round((r.z1-r.z0)/az));
-  /* Je hoeher die Halle, desto groesser die Leuchte - sonst haengen
-     unter zwoelf Metern Decke nur noch Striche. */
-  const f=Math.max(1,y/3.8);
-  const gRev=new THREE.BoxGeometry(1.44*f,0.03*f,0.42*f), gFix=new THREE.BoxGeometry(1.36*f,0.028*f,0.36*f);
-  const gDif=new THREE.PlaneGeometry(1.26*f,0.28*f);
-  const korpus=[], diff=[];
-  for(let i=0;i<nx;i++) for(let k=0;k<nz;k++){
-    const x=r.x0+(i+0.5)*(r.x1-r.x0)/nx, z=r.z0+(k+0.5)*(r.z1-r.z0)/nz;
-    LAMPEN.push({x,y,z,id});
-    korpus.push({geo:gRev,m:tm(x,y-0.008*f,z),color:MAT.farbe('anthrazit')});
-    korpus.push({geo:gFix,m:tm(x,y-0.026*f,z),color:MAT.farbe('lichtgrau')});
-    diff.push({geo:gDif,m:tm(x,y-0.043*f,z,Math.PI/2,0,0)});
-  }
-  const mk=new THREE.Mesh(merge(korpus),_korpusM); scene.add(mk); zAdd(id,mk);
-  const md=new THREE.Mesh(merge(diff),_panelM); scene.add(md); zAdd(id,md);
-  gRev.dispose(); gFix.dispose(); gDif.dispose();
-}
+let _panelM=null;
+/* Streuscheibe der Deckenleuchten (Material; Korpus = MAT.vc('matt'), gleiche Werte wie vorher) */
+function deckenPanelMat(){ if(!_panelM) _panelM=new THREE.MeshBasicMaterial({map:deckenDiffuse(),toneMapped:false}); return _panelM; }
+/* Deckenleuchten im Raster - baut seit 14.10. bk.lampe({art:'raster'}) (04z, Halle Etappe A).
+   Das ganze Raster ist zwei Meshes: Korpus und Leuchtflaeche. */
+function leuchtenRaster(id,r,y,ax,az){ return bk.lampe({art:'raster',id,r,y,ax,az,panel:deckenPanelMat()}); }
 /* Eine ganze Halle in einem Rutsch.
    aussen sagt, welche Seiten eine echte Aussenwand bekommen;
    die uebrigen grenzen an einen Nachbarbereich. */
@@ -20334,6 +20578,9 @@ function buildAusbau(){
      -20,1 bis -19,9) - rechts neben dem Rolltor sprang sie sichtbar vor.
      Jetzt dieselbe Flucht innen und aussen; sie endet dort, wo die
      Rolltorwand beginnt (z -6,1), mit den ueblichen 6 mm Ueberlappung. */
+  /* 14.10. (Halle Etappe A): Ostwand von ②, alte Schleuse und ihre Streifenvorhaenge verschwinden mit dem
+     Ausbau "lagerlogistik" (neue Schleuse z −29,9…−17, ③ offen zu ②) - darum gesammelt in llAltSammle (05q) */
+  llAltSammle(()=>{
   durchbruchWand('lager_west',false,LAY.lsued.x0-LW/2,LAY.lsued.z0,-6.1+0.006,ST,lagerWall,undefined,3.0,HALLE_H,'+x');
   /* Nur das Stueck in der Schleuse zeigt nach aussen in den Gang -
      dort gehoert die Lagerwand hin, sonst stossen im Gang zwei
@@ -20345,6 +20592,7 @@ function buildAusbau(){
      statt blanker Loecher. */
   streifenvorhang('lager_west',false,LAY.lsued.x0-LW/2,ST[0][0],ST[0][1],3.0);
   streifenvorhang('lager_west',false,LAY.lwest.x1,ST[0][0],ST[0][1],3.0);
+  });
 
   /* ---------- Packstation, Rampen, Logistikzentrum ---------- */
   /* Die beiden Kopfwaende des Lagergangs. Sie ersetzen die
@@ -20385,6 +20633,7 @@ function buildAusbau(){
   buildVersandhof();
   buildLogistikHalle();
   buildLogistik();
+  buildLagerlogistik();
 }
 
 /* =========================================================
@@ -22636,6 +22885,8 @@ function logiStufeBauen(i){
   neu.forEach(o=>{ scene.remove(o); g.add(o); });
   cols.forEach(c=>dropCol(c));
   LOGI_COLS[i]=cols;
+  /* Stufe 3: Ostwand, Wandschatten und Raster-Leuchten weichen dem Ausbau "lagerlogistik" (05q) */
+  if(i===2&&typeof llAltHalle==='function') llAltHalle(g,cols);
 }
 /* Tore einmal bauen, eingeblendet werden sie mit ihrer Stufe */
 function logiToreBauen(){
@@ -22720,9 +22971,387 @@ function logiColSetzen(list,an){
 function logiAnwenden(){
   if(!LOGI_G.length) return;
   const z=logiZeige();
-  LOGI_G.forEach((g,i)=>{ g.visible=i===z; logiColSetzen(LOGI_COLS[i],i===z); });
+  const ll=typeof llOffen==='function'&&llOffen();
+  LOGI_G.forEach((g,i)=>{ g.visible=i===z; logiColSetzen(LOGI_COLS[i].filter(c=>LL_ALT.halleCols.indexOf(c)<0),i===z); });
+  if(LL_ALT.halle) LL_ALT.halle.visible=!ll;
+  logiColSetzen(LL_ALT.halleCols,z===2&&!ll);
   TOR_G.forEach((g,k)=>{ const an=TOR_STUFE[k]<=z; g.visible=an; logiColSetzen(TOR_COLS[k],an); });
   if(typeof navDirty==='function') navDirty();
+}
+/* =========================================================
+   Lagerlogistik – Halle Etappe A (Kapitel 7.3, Tom 14.10.2026: „bau mal die Halle komplett dran“)
+   Bauvorgabe docs/halle/plan-1410.md, Masse aus der Skizze docs/halle/skizze-1410.html (Z/LINIEN/TORE/WEGE).
+
+   Mit dem Ausbau „lagerlogistik“ (setzt Logistikhalle Stufe 3 voraus) wird die Halle zum Hochregallager:
+   - Kartonlager ③ (x −36…−19,9 / z −17…−7, 5 m) mit gelber Wand zur Halle und Schnelllauftor N1;
+     ①, ② und ③ sind ein Raum (die Wand ② ↔ ③ faellt).
+   - Neue Schleuse x −26…−19,9 / z −29,9…−17 (3,4 m) mit Brandschutz-Schiebetor + Streifenvorhang zur Halle,
+     breit offen zu ② und zur Versandecke. Die alte Schleuse (z −24…−17) wird ausgeblendet (LL_ALT).
+   - Hochregal 3 Gassen (bk.hochregal), Gasse 1 mit Regalbediengeraet (bk.rbg), Gassen 2/3 stehen leer
+     (kommen mit Kapitel 8 / 8.2, LL_GASSEN). I/O Ost mit Foerderern (bk.foerderer), Anbruch, Wareneingang-
+     Stellplaetze, Ausgang R5, Packmaterial, 13 Schnellplaetze, Bodenmarkierungen (bk.bodenmarkierung),
+     Hallenleuchten (bk.lampe 'halle'), Lichtbaender, Sprinkler, Fluchtwegschilder.
+   - Aussen: Sprinkler-Tank, Mitarbeiter-Parkplatz, Pforte.
+   Gebaut wird erst beim Kauf (vorher liegt nichts davon im Speicher). Die Lager-Logik steht in 11f.
+   ========================================================= */
+const LL={id:'lagerlogistik',
+  lager3:{x0:-36,x1:-19.9,z0:-17,z1:-7}, h3:5.0,
+  schleuse:{x0:-26,x1:-19.9,z0:-29.9,z1:-17},
+  durchgang:[-26.9,-23.1], n1:{x:-36,z0:-13.6,z1:-10.4,h:3.0},
+  hr:{x0:-65.7,z0:k=>-27.8+4.67*k}, io:{x0:-48.3,x1:-46},
+  anbruch:{x0:-46,x1:-42,z0:-28,z1:-14},
+  weing:{x0:-50,x1:-26.6,z0:-33.8,z1:-28.6}, wausg:{x0:-62,x1:-53,z0:-33.8,z1:-28.6},
+  packmat:{x0:-41.5,x1:-33,z0:-27.5,z1:-23}, schnell:{x0:-63.4,x1:-43.9,z0:-9.6,z1:-7.4},
+  aufgabe:{x:-47.4,z0:-29.7,z1:-27.2}, auslager:{z:-24.4,x0:-47.75,x1:-45.7},
+  spur:-29.15,                                   /* Fahrweg FTS vor den Stellplaetzen */
+  park:{x0:-58,x1:-38,z0:-5,z1:4}, pforte:{x0:-38,x1:-34,z0:0,z1:5}, tank:{x:-62.5,z:-0.5,r:3.6,h:9.0}
+};
+/* Gassen: Gasse 1 mit Kapitel 7.3, Gasse 2 mit Kapitel 8 (fabrik), Gasse 3 mit Kapitel 8.2 (fabrik2) - die
+   Ausbauten der Fertigung kommen in Etappe B; bis dahin stehen Gasse 2 und 3 als Regal ohne RBG. */
+const LL_GASSEN=[{up:'lagerlogistik',nr:1},{up:'fabrik',nr:2},{up:'fabrik2',nr:3}];
+function llOffen(){ return zoneOffen(LL.id)&&zoneOffen('lager_west3'); }
+function llGasseAktiv(k){ return llOffen()&&!!(S&&S.up&&S.up[LL_GASSEN[k].up]); }
+/* Bereiche, die mit dem Ausbau belegt sind (Moebel, Lagerregale, Kartons ziehen um; nichts darf hinein) */
+function llSperrRechtecke(){ const a=LL.anbruch, R=[];
+  R.push({x0:-66,x1:LL.io.x1+0.1,z0:-28.4,z1:-14.2});                     /* Hochregal + I/O */
+  R.push({x0:a.x0,x1:a.x1,z0:a.z0,z1:a.z1});                              /* Anbruch */
+  R.push({x0:LL.weing.x0,x1:LL.weing.x1,z0:-34,z1:LL.weing.z1});           /* Wareneingang */
+  R.push({x0:LL.wausg.x0,x1:LL.wausg.x1,z0:-34,z1:LL.wausg.z1});           /* Ausgang R5 */
+  R.push(LL.packmat); R.push(LL.schnell);
+  R.push({x0:-26.4,x1:-19.6,z0:-30.2,z1:-17.0});                          /* Schleuse */
+  R.push({x0:-36.2,x1:-33.0,z0:-13.8,z1:-10.2}); R.push({x0:-38.6,x1:-36.0,z0:-13.8,z1:-10.2});  /* vor und hinter N1 */
+  return R; }
+function llSperrt(x0,x1,z0,z1){ if(!llOffen()) return false;
+  for(const r of llSperrRechtecke()) if(x0<r.x1-0.02&&x1>r.x0+0.02&&z0<r.z1-0.02&&z1>r.z0+0.02) return true; return false; }
+
+/* ---------- Alte Teile, die mit dem Ausbau verschwinden ----------
+   05h baut die alte Schleuse (z −24…−17) samt Ostwand von ② und Streifenvorhaengen in llAltSammle;
+   05m verschiebt die alte Ostwand der Halle (Stufe 3) mit llAltHalle hierher. Sichtbarkeit/Kollision
+   schaltet llAnwenden. Lampen der alten Teile bekommen aus:'lagerlogistik'. */
+const LL_ALT={g:null,cols:[],halle:null,halleCols:[]};
+function llAltSammle(fn){
+  if(!LL_ALT.g){ LL_ALT.g=new THREE.Group(); LL_ALT.g.name='llAlt'; scene.add(LL_ALT.g); }
+  const vorS=new Set(scene.children), vorC=colliders.length, vorL=LAMPEN.length;
+  fn();
+  const zw=new Set(); for(const id in ZONEN) for(const c of ZONEN[id].wandCols) zw.add(c);
+  for(const o of scene.children.filter(o=>!vorS.has(o)&&o!==LL_ALT.g)){ scene.remove(o); LL_ALT.g.add(o); }
+  for(const c of colliders.slice(vorC)) if(!zw.has(c)) LL_ALT.cols.push(c);
+  for(let i=vorL;i<LAMPEN.length;i++) LAMPEN[i].aus=LL.id;
+}
+/* Stufe 3 der Logistikhalle: Ostwand, Bodenschatten an der Ostwand und Hallenschild ueber dem alten Durchgang */
+function llAltHalle(g,cols){
+  const alt=new THREE.Group(); alt.name='llAltHalle'; g.add(alt); LL_ALT.halle=alt;
+  for(const o of g.children.slice()){ if(o===alt) continue; o.updateMatrixWorld&&o.updateMatrixWorld(true);
+    const p=new THREE.Vector3(); o.getWorldPosition(p);
+    const wand=o.userData&&o.userData.aabb&&o.userData.aabb.x0>-26.4&&o.userData.aabb.x1<-25.6;
+    const ao=o.material===aoMatF&&Math.abs(p.x+26.2)<0.35;
+    const schild=o.isMesh&&o.geometry&&o.geometry.type==='PlaneGeometry'&&Math.abs(p.x+26.13)<0.05&&p.y>3;
+    const sockel=o.userData&&o.userData.bauteil==='wand'&&Math.abs(p.x+26)<0.4&&!o.userData.aabb;
+    if(wand||ao||schild||sockel){ g.remove(o); alt.add(o); } }
+  for(const c of cols) if(c.minX>-26.4&&c.maxX<-25.6) LL_ALT.halleCols.push(c);
+  /* Lampen der Stufe 3 ueber ③ (x −36…−26, z −17…−7) und die ganze alte Rasterbeleuchtung: aus mit dem Ausbau */
+  for(const L of LAMPEN) if(L.y>10&&L.x>-66&&L.x<-26&&L.z>-34&&L.z<-7&&!L.id) L.aus=LL.id;
+  for(const o of g.children.slice()) if(o.userData&&o.userData.bauteil==='lampe'&&o.userData.bauteilArt==='raster'){ g.remove(o); alt.add(o); }
+}
+/* Bodenschatten an der Westseite von ② (x −19,9) laufen durch die neuen Oeffnungen - mit dem Ausbau aus */
+function llAltAO(){ const out=[];
+  scene.traverse(o=>{ if(o.material!==aoMatF||!o.parent) return; const p=o.position; if(Math.abs(p.x+19.7)<0.25&&p.z<-6&&p.z>-30) out.push(o); });
+  return out; }
+
+/* Gruppen: LL_G Rohbau (③, Schleuse, Aussen - immer sichtbar), LL_H Halleninhalt (Hochregal, Zonen, Markierungen, Licht -
+   nur gezeichnet, wenn die Kamera in der Halle steht oder eine Oeffnung der Halle im Blick hat, llSichtTakt), LL_D bewegte
+   Teile (RBG, FTS, Ladungen, Stellplatz-Paletten; nicht in die Laufzeit-Buendelung) */
+let LL_G=null, LL_H=null, LL_D=null, LL_A=null, LL_COLS=[], LL_T=null, LL_AO=null;
+function buildLagerlogistik(){
+  zone(LL.id); zHook(LL.id,llAnwenden);
+}
+function llAnwenden(){
+  const an=llOffen();
+  if(an&&!LL_G) llBauen();
+  if(LL_G) LL_G.visible=an;
+  if(LL_H&&!an){ LL_H.visible=false; LL_D.visible=false; LL_A.visible=false; }
+  for(const c of LL_COLS){ const d=colliders.indexOf(c)>=0; if(an&&!d) colliders.push(c); else if(!an&&d) dropCol(c); }
+  if(LL_ALT.g) LL_ALT.g.visible=!an;
+  for(const c of LL_ALT.cols){ const d=colliders.indexOf(c)>=0; if(!an&&!d) colliders.push(c); else if(an&&d) dropCol(c); }
+  if(!LL_AO) LL_AO=llAltAO();
+  for(const o of LL_AO) o.userData.llAus=an;
+  for(const o of LL_AO) if(an) o.visible=false;
+  if(typeof logiAnwenden==='function') logiAnwenden();
+  if(typeof hrAnwenden==='function') hrAnwenden();
+  if(typeof navDirty==='function') navDirty();
+  if(an) later(0.4,()=>{ if(llOffen()&&typeof llRaeumen==='function') llRaeumen(); });
+}
+
+/* ---------- Bau (einmal, beim ersten Oeffnen) ---------- */
+function llBauen(){
+  const grp=(n,bnd)=>{ const g=new THREE.Group(); g.name=n; g.userData.inventar=true; if(bnd) g.userData._bnd=true; scene.add(g); return g; };
+  LL_G=grp('lagerlogistik'); LL_H=grp('lagerlogistikHalle'); LL_D=grp('lagerlogistikBewegt',true); LL_A=grp('lagerlogistikAussen');
+  LL_T={gassen:[],foerderer:{},n1:null,lichtband:null,tor:null,hr:null};
+  const vorC=colliders.length, vorL=LAMPEN.length;
+  /* alles, was eine Baufunktion in die Szene stellt, in ihre Gruppe; Kollisionen verwaltet llAnwenden */
+  const fang=(ziel,fn)=>{ const vorS=new Set(scene.children); fn(); for(const o of scene.children.filter(o=>!vorS.has(o))){ scene.remove(o); ziel.add(o); } };
+  fang(LL_G,()=>{ llRohbau(); }); fang(LL_A,()=>{ llAussen(); });
+  /* Bodenschatten von ③/Schleuse/Halle in EIN Mesh (sonst je Streifen ein Zeichenaufruf) */
+  { const ao=LL_G.children.filter(o=>o.isMesh&&o.material===aoMatF);
+    if(ao.length>1){ const teile=ao.map(o=>{ o.updateMatrix(); return {geo:o.geometry,m:o.matrix.clone()}; }); const m=new THREE.Mesh(merge(teile),aoMatF); m.renderOrder=1; m.matrixAutoUpdate=false; ao.forEach(o=>{ LL_G.remove(o); o.geometry.dispose(); }); LL_G.add(m); } }
+  fang(LL_H,()=>{ llHochregal(); llZonen(); llBoden(); llLicht(); });
+  /* unter dem Hallendach gibt es keine Sonne: Halleninhalt, ③ und Schleuse werfen keinen Sonnenschatten (spart den
+     Schattendurchgang); draussen nur Daecher, Tank und Pforte (Waende zeichnet das Wandbild mit eigenem Schatten) */
+  LL_H.traverse(o=>{ if(o.isMesh) o.castShadow=false; });
+  LL_G.traverse(o=>{ if(o.isMesh&&o.userData.bauteil!=='wand'&&!(o.material===MAT.get('anthrazitMatt'))) o.castShadow=false; });
+  LL_A.traverse(o=>{ if(o.isMesh&&!/sprinklertank|pforte/.test(o.userData.bauteil||'')) o.castShadow=false; });
+  LL_COLS=colliders.slice(vorC); for(const c of LL_COLS) dropCol(c);
+  for(let i=vorL;i<LAMPEN.length;i++) LAMPEN[i].id=LL.id;
+  bk.wandbild();
+}
+/* Wandstueck (Kollision nur, wenn es am Boden steht) */
+function llW(x0,x1,z0,z1,y0,y1,innen,fi,fa,still){
+  const m=bk.wand({x0,x1,z0,z1,y0,y1,innen,flaechen:{innen:fi,aussen:fa,laibung:'laibung'},ue:0,still});
+  if(y0<0.05) col(Math.min(x0,x1),Math.max(x0,x1),Math.min(z0,z1),Math.max(z0,z1));
+  return m; }
+function llRohbau(){
+  const GELB=MAT.ober('signalgelb','matt'), W=LW/2, H=11.0, h3=LL.h3, hs=SCHLEUSE_H, S2=LL.schleuse, L3=LL.lager3, N=LL.n1;
+  /* Boden der Schleuse und von ③ ausserhalb der Halle (x −26…−19,9) */
+  { const bo=new THREE.Mesh(MAT.kachel(new THREE.PlaneGeometry(S2.x1-S2.x0,L3.z1-S2.z0),(S2.x1-S2.x0)/2,(L3.z1-S2.z0)/2),MAT.get('betonBoden'));
+    bo.rotation.x=-Math.PI/2; bo.position.set((S2.x0+S2.x1)/2,0.016,(S2.z0+L3.z1)/2); scene.add(bo); }   /* wie die Hallenboeden: ohne Sonnenschatten */
+  /* Decken: ③ bei 5,0 m, Schleuse bei 3,4 m; Dach ueber dem Ostteil von ③ und ueber der Schleuse */
+  const decke=(x0,x1,z0,z1,y)=>{ const ce=new THREE.Mesh(new THREE.PlaneGeometry(x1-x0,z1-z0),MAT.get('weissMatt')); ce.rotation.x=Math.PI/2; ce.position.set((x0+x1)/2,y-0.01,(z0+z1)/2); scene.add(ce); };
+  decke(L3.x0+W,L3.x1,L3.z0+W,L3.z1,h3); decke(S2.x0+W,S2.x1,S2.z0,S2.z1-W,hs);
+  bbox(6.0,0.25,10.2,MAT.get('anthrazitMatt'),-23.0,h3+0.24,-11.9,null,true);
+  bbox(6.0,0.25,13.1,MAT.get('anthrazitMatt'),-23.0,hs+0.24,-23.55,null,true);
+  /* Gelbe Wand x −36 (zur Halle Signalgelb bis 5 m, darueber Paneel bis unters Hallendach), Tor N1 */
+  /* Stoesse der Teilstuecke liegen unter der Torzarge (senkrecht) bzw. in Sturzhoehe (waagerecht) - keine sichtbaren Haarfugen */
+  llW(-36-W,-36+W,L3.z0-W,N.z0,0,N.h,'+x','lager',GELB);
+  llW(-36-W,-36+W,N.z1,L3.z1,0,N.h,'+x','lager',GELB);
+  llW(-36-W,-36+W,L3.z0-W,L3.z1,N.h,h3,'+x','lager',GELB);
+  llW(-36-W,-36+W,L3.z0-W,L3.z1,h3,H,'+x','lager','blech',true);
+  /* Gelbe Wand z −17 (x −36…−26) */
+  llW(-36+W,-26-W,L3.z0-W,L3.z0+W,0,h3,'+z','lager',GELB);
+  llW(-36+W,-26-W,L3.z0-W,L3.z0+W,h3,H,'+z','lager','blech',true);
+  /* Brandwand x −26 zwischen Halle und Schleuse, Durchgang z −26,9…−23,1, Sturz 3,0 m */
+  const [d0,d1]=LL.durchgang;
+  llW(-26-W,-26+W,-34-W,S2.z0,0,H,'-x','lager','blech');
+  llW(-26-W,-26+W,S2.z0,d0,0,3.0,'-x','lager','lager');
+  llW(-26-W,-26+W,d1,L3.z0-W,0,3.0,'-x','lager','lager');
+  llW(-26-W,-26+W,S2.z0,L3.z0-W,3.0,hs,'-x','lager','lager');
+  llW(-26-W,-26+W,S2.z0,L3.z0-W,hs,H,'-x','lager','blech',true);
+  /* Ostwand der Halle ueber ③ (ab 5 m) */
+  llW(-26-W,-26+W,L3.z0-W,L3.z1+LW,h3,H,'-x','lager','blech',true);
+  /* Schleuse: Suedwand, Sturz zu ③, Sturz und Pfeiler zu ② (breit offen) */
+  llW(S2.x0+W,S2.x1-W,S2.z0-LW,S2.z0,0,hs,'+z','lager','blech');
+  llW(S2.x0+W,S2.x1-W,L3.z0-W,L3.z0+W,3.0,hs,'+z','lager','lager',true);
+  llW(S2.x0+W,S2.x1-W,L3.z0-W,L3.z0+W,hs,h3,'+z','lager','blech',true);
+  llW(S2.x1-LW,S2.x1,S2.z0-LW,S2.z0+0.4,0,hs,'+x','lager','lager');
+  llW(S2.x1-LW,S2.x1,S2.z0+0.4,L3.z0-W,3.0,hs,'+x','lager','lager',true);
+  llW(S2.x1-LW,S2.x1,S2.z0+0.4,L3.z0-W,hs,h3,'+x','lager','blech',true);
+  /* ② ↔ ③ (x −19,9): oben bleibt ein Sturz bis zur Decke, damit das Dach von ③ und ② buendig anschliesst */
+  /* ③ Nordwand ausserhalb der Halle (x −26…−20) + Eckstueck an der Rampe R1 */
+  llW(-26+W,S2.x1-LW,L3.z1,L3.z1+LW,0,h3,'-z','lager','blech');
+  llW(S2.x1-LW,S2.x1,L3.z1,-6.1+0.006,0,h3,'+x','lager','fassade');
+  /* Brandschutz-Schiebetor (offen geparkt auf der Hallenseite, faellt bei Alarm) + Streifenvorhang */
+  { const Sx=bk.sammler({form:{fase:0.01,faseMin:0.04,lod0Kasten:true},bauteil:'brandschutztor'}), F=MAT.farbe, b=d1-d0+0.4, xg=-26-W-0.12;
+    Sx.box(0.08,3.25,b,xg,1.625,d0-b/2-0.05,F('lichtgrau'),'lackMetall');
+    Sx.box(0.085,0.12,b,xg,0.5,d0-b/2-0.05,F('feuerrot'),'lackMetall'); Sx.box(0.085,0.12,b,xg,2.8,d0-b/2-0.05,F('feuerrot'),'lackMetall');
+    Sx.box(0.12,0.14,2*b+0.4,xg,3.34,d0-b/2+b/2,F('silbergrau'),'stahl');
+    for(const z of [d0-b-0.05,d0-0.05]) Sx.box(0.1,0.06,0.06,xg,3.26,z,F('anthrazit'),'stahl');
+    Sx.box(0.06,0.3,0.2,xg+0.02,3.0,d1+0.4,F('feuerrot'),'kunststoff');   /* Feststellanlage mit Rauchmelder */
+    Sx.fertig(scene,{fest:true});
+    col(xg-0.06,xg+0.06,d0-b-0.1,d0-0.05);
+    bk.bodenmarkierung({flaechen:[{x0:-27.2,x1:-26.1,z0:d0,z1:d1,art:'sperr'}],y:0.015});
+    bk.schild(scene,{text:'FEUERSCHUTZTOR',unter:'Schliessbereich freihalten',b:1.5,h:0.42,x:xg-0.05,y:3.65,z:(d0+d1)/2,ry:-Math.PI/2,bg:MAT.css('feuerrot'),fg:MAT.css('weiss')}); }
+  streifenvorhang(null,false,-26,d0,d1,3.0);
+  /* Schnelllauftor N1 in der gelben Wand */
+  LL_T.n1=bk.tor({art:'roll',breite:N.z1-N.z0,hoehe:N.h,wand:[-W,W],blatt:0,nr:null,bedien:1,ampel:false,vordach:false,dichtung:false,poller:false,x:-36,z:(N.z0+N.z1)/2,ry:0});
+  LL_T.n1.set(0); LL_T.n1t=0;
+  bk.schild(scene,{text:'N1',unter:'Kartonlager',b:0.9,h:0.4,x:-36-W-0.03,y:N.h+0.75,z:(N.z0+N.z1)/2,ry:-Math.PI/2});
+  bk.schild(scene,{text:'KARTONLAGER',unter:'③',b:1.6,h:0.5,x:-36-W-0.03,y:6.2,z:-12,ry:-Math.PI/2});
+  /* Gehweg durch ③ (gehoert zum Lager, nicht zum Halleninhalt) */
+  { const b=0.6, M=bk.MARKIERUNG; bk.bodenmarkierung({linien:[[-35.4,-12-b,-20.6,-12-b,'gruen',M.gehweg],[-35.4,-12+b,-20.6,-12+b,'gruen',M.gehweg]],
+      piktos:[{x:-31,z:-12,ry:Math.PI/2},{x:-24,z:-12,ry:Math.PI/2}],y:0.015}); }
+  /* ③ und Schleuse: Leuchtenraster wie im uebrigen Lager */
+  bk.lampe({art:'raster',r:LL.lager3,y:LL.h3,ax:3.6,az:3.4,panel:deckenPanelMat()});
+  bk.lampe({art:'raster',r:{x0:-26,x1:-19.9,z0:-29.9,z1:-17},y:SCHLEUSE_H,ax:3.0,az:3.2,panel:deckenPanelMat()});
+  /* Bodenschatten an den neuen Waenden */
+  roomAO(L3.x0+W,-26-W,L3.z0+W,L3.z1,null,{s:true,w:true});
+  roomAO(-26-W,S2.x1,L3.z0+W,L3.z1,null,{n:true});
+  roomAO(S2.x0+W,S2.x1,S2.z0,S2.z1,null,{s:true,w:true});
+  roomAO(-66,-26-W,-34,L3.z0-W,null,{e:true});
+  roomAO(-36-W,-26-W,-34,L3.z0-W,null,{n:true});
+  roomAO(-66,-36-W,L3.z0-W,-7,null,{e:true});
+}
+/* Hochregal 3 Gassen + RBG (Gasse 1 aktiv, 2/3 kommen spaeter) + I/O-Foerderer + Schutzzaun */
+function llHochregal(){
+  const R=bk.hochregal({x0:LL.hr.x0,gassen:[0,1,2].map(k=>({z0:LL.hr.z0(k),nr:k+1,schieneOst:k===0?2.2:0.6}))});
+  LL_T.hr=R;
+  R.gassen.forEach((G,k)=>{ for(const c of G.kollision) col(c.x0,c.x1,c.z0,c.z1); LL_T.gassen[k]={R:G,rbg:null,k}; });
+  /* Foerderer: Aufgabe (Hofseite -> Reihe A, Gasse 1), Auslagerung (Reihe B -> Anbruch) */
+  const A=LL.aufgabe, B=LL.auslager;
+  LL_T.foerderer.ein=bk.foerderer({von:[A.x,A.z0],bis:[A.x,A.z1],breite:1.0,hoehe:0.55});
+  LL_T.foerderer.aus=bk.foerderer({von:[B.x0,B.z],bis:[B.x1,B.z],breite:1.0,hoehe:0.55});
+  for(const f of [LL_T.foerderer.ein,LL_T.foerderer.aus]){ const c=f.kollision; col(c.x0,c.x1,c.z0,c.z1); }
+  /* Schutzzaun um I/O und Gassenenden (gelbes Gitter), Durchlass fuer die Foerderer */
+  const xz=LL.io.x1+0.05;
+  { const Sz=bk.sammler({form:{fase:0.006,faseMin:0.03,lod0Kasten:true},bauteil:'zaun'});   /* Pfosten/Holme aller drei Zaeune in einen Sammler */
+    bk.zaun({art:'gitter',von:[xz,-28.1],bis:[xz,-14.2],hoehe:2.0,luecke:[[B.z-0.65-(-28.1),B.z+0.65-(-28.1)]],S:Sz});
+    bk.zaun({art:'gitter',von:[-48.35,-28.1],bis:[xz,-28.1],hoehe:2.0,luecke:[[A.x-0.65+48.35,A.x+0.65+48.35]],S:Sz});
+    bk.zaun({art:'gitter',von:[-48.35,-14.2],bis:[xz,-14.2],hoehe:2.0,S:Sz});
+    Sz.fertig(scene,{fest:true,bauteil:'zaun'}); }
+  col(xz-0.06,xz+0.06,-28.1,B.z-0.65); col(xz-0.06,xz+0.06,B.z+0.65,-14.2);
+  col(-48.35,A.x-0.65,-28.16,-28.04); col(A.x+0.65,xz,-28.16,-28.04); col(-48.35,xz,-14.26,-14.14);
+  /* der ganze eingezaeunte Block (Gassen, I/O) ist fuer Personen gesperrt - auch im Wegenetz */
+  col(-66,xz,-28.1,-14.2);
+  bk.schild(scene,{text:'HOCHREGAL',unter:'Zutritt nur für Befugte · RBG-Bereich',b:1.6,h:0.5,x:xz+0.07,y:1.55,z:-15.6,ry:Math.PI/2});
+}
+/* Schild frei im Raum: haengt an zwei Abhaengern unter der Hallendecke (nie frei schwebend) */
+function llHaengend(o,decke){ bk.schild(scene,o); const S=bk.sammler({bauteil:'schild'}), c=Math.cos(o.ry||0), s=Math.sin(o.ry||0), y0=o.y+o.h/2, L=(decke||10.9)-y0;
+  for(const d of [-1,1]){ const dx=d*(o.b/2-0.1)*c, dz=-d*(o.b/2-0.1)*s; S.box(0.012,L,0.012,o.x+dx,y0+L/2,o.z+dz,MAT.farbe('silbergrau'),'stahl'); }
+  S.box(o.b,0.04,0.04,o.x,y0+0.02,o.z,MAT.farbe('anthrazit'),'lackMetall',0,o.ry||0,0); S.fertig(scene,{fest:true,schatten:false}); }
+/* Wareneingang-Stellplaetze, Ausgang R5, Packmaterial, Schnellplaetze, Anbruch-Kennzeichnung */
+function LLstell(){ /* Stellplaetze je Tor R2-R4: 2 Spalten x 3 Plaetze (Paletten 0,8 x 1,2 m) */
+  const out=[]; [-31,-38.5,-47.5].forEach((cx,ti)=>{ for(let r=0;r<(ti===2?2:3);r++) for(let s=0;s<2;s++) out.push({tor:ti,x:cx+(s?0.62:-0.62),z:-33.05+r*1.38,r,s}); });
+  return out; }
+const LL_STELL=LLstell();
+function llZonen(){
+  const F=MAT.farbe, P=[];
+  /* Packmaterial: Faltkartons auf Paletten (Pappe), Fuellmaterial-Ballen, Klebeband */
+  const S=bk.sammler({form:{fase:0.01,faseMin:0.05,lod0Kasten:true},bauteil:'packmaterial'});
+  const pm=LL.packmat, ps=[];
+  for(let i=0;i<5;i++){ ps.push({x:pm.x0+1.0+i*1.6,z:pm.z0+0.7}); ps.push({x:pm.x0+1.0+i*1.6,z:pm.z1-0.7}); }
+  ps.forEach((p,i)=>{ P.push({x:p.x,z:p.z,ry:Math.PI/2});
+    const y=bk.PALETTE.euro.h;
+    if(i%4===3){ for(let k=0;k<3;k++) S.box(0.78,0.42,0.56,p.x,y+0.21+k*0.42,p.z+(k%2?0.3:-0.3),F('weiss'),'kunststoff'); }
+    else { const n=6+(i*5)%5; for(let k=0;k<n;k++) S.box(0.76,0.1,1.16,p.x+((k*7)%3-1)*0.006,y+0.05+k*0.1,p.z,F('wellpappe'),'stumpf');
+      S.box(0.8,0.012,0.02,p.x,y+n*0.1-0.04,p.z-0.55,F('gummischwarz'),'kunststoff'); } });
+  for(let k=0;k<4;k++) S.zyl(0.06,0.06,0.05,10,pm.x1-0.6,0.9+k*0.06,pm.z0+2.25,F('wellpappe'),'kunststoff');
+  S.fertig(scene,{fest:true});
+  for(const p of ps) col(p.x-0.42,p.x+0.42,p.z-0.62,p.z+0.62);
+  bk.paletten(P,{gruppe:'ll:packmat',fein:bk.lod()>1});
+  llHaengend({text:'PACKMATERIAL',unter:'Kartons · Füllmaterial · Klebeband',b:1.6,h:0.5,x:(pm.x0+pm.x1)/2,y:3.6,z:pm.z0+0.6,ry:0});
+  /* Wareneingang: leere Paletten stehen auf den Stellplaetzen (LL_STELL), die Logik (11f) belegt sie */
+  bk.schild(scene,{text:'WARENEINGANG',unter:'Tor 2 – 4 · Stellplätze',b:1.8,h:0.5,x:-39.6,y:4.3,z:-33.9+0.02,ry:0});
+  bk.schild(scene,{text:'AUSGANG R5',unter:'Bereitstellung ganze Paletten',b:1.8,h:0.5,x:-60.6,y:4.3,z:-33.9+0.02,ry:0});
+  llHaengend({text:'ANBRUCH',unter:'Kommissionierung · Nachschub ③',b:1.6,h:0.5,x:-43.6,y:3.4,z:-21,ry:Math.PI/2});
+  bk.schild(scene,{text:'SCHNELLPLÄTZE',unter:'Schnelldreher · 13 Bodenplätze',b:1.8,h:0.5,x:-53.6,y:3.4,z:-7.02,ry:Math.PI});
+}
+/* Bodenmarkierungen: Fahrwege gelb, Gehwege gruen mit Piktogramm, Sperrflaechen, Stellplaetze */
+function llBoden(){
+  const M=bk.MARKIERUNG, L=[], R=[], Fl=[], Pk=[];
+  /* Fahrweg FTS: Spur vor den Stellplaetzen bis zur Aufgabe (Randlinien gelb) */
+  for(const z of [LL.spur-0.55,LL.spur+0.55]) L.push([LL.aufgabe.x+0.6,z,LL.weing.x1,z,'gelb',M.fahrweg]);
+  /* Wareneingang: Stellplaetze weiss umrandet, Bereich gelb */
+  for(const p of LL_STELL) R.push({x0:p.x-0.55,x1:p.x+0.55,z0:p.z-0.67,z1:p.z+0.67,farbe:'weiss',breite:0.06});
+  R.push({x0:LL.weing.x0,x1:LL.weing.x1,z0:LL.weing.z0,z1:LL.weing.z1+0.05,farbe:'gelb',breite:M.fahrweg});
+  /* Ausgang R5: 2 x 5 Stellplaetze */
+  for(let r=0;r<2;r++) for(let s=0;s<6;s++){ const x=LL.wausg.x0+0.9+s*1.45, z=-33.05+r*1.5; R.push({x0:x-0.55,x1:x+0.55,z0:z-0.67,z1:z+0.67,farbe:'weiss',breite:0.06}); }
+  R.push({x0:LL.wausg.x0,x1:LL.wausg.x1,z0:LL.wausg.z0,z1:LL.wausg.z1,farbe:'gelb',breite:M.fahrweg});
+  /* Packmaterial, Anbruch, Schnellplaetze (13 x 1,5 m) */
+  R.push({x0:LL.packmat.x0,x1:LL.packmat.x1,z0:LL.packmat.z0,z1:LL.packmat.z1,farbe:'gelb',breite:M.fahrweg});
+  R.push({x0:LL.anbruch.x0+0.1,x1:LL.anbruch.x1,z0:LL.anbruch.z0,z1:LL.anbruch.z1,farbe:'gelb',breite:M.fahrweg});
+  for(let i=0;i<13;i++){ const x0=LL.schnell.x0+i*1.5; R.push({x0,x1:x0+1.5,z0:LL.schnell.z0,z1:LL.schnell.z1,farbe:'weiss',breite:0.06}); }
+  /* Sperrflaechen: I/O vor den Foerderern, Gassenmuendungen */
+  Fl.push({x0:LL.aufgabe.x-0.55,x1:LL.aufgabe.x+0.55,z0:-30.95,z1:LL.aufgabe.z0-0.05,art:'sperr'});
+  /* Gehweg gruen: Hauptgang z −12 von ① durch N1 bis zur Westwand, dann zur Verbindungsbau-Tuer (z −9);
+     Packerweg von der Schleuse am Packmaterial vorbei zum Anbruch; Personaltuer x −40 */
+  const gw=(x0,z0,x1,z1)=>{ const b=0.6; if(z0===z1){ L.push([x0,z0-b,x1,z0-b,'gruen',M.gehweg]); L.push([x0,z0+b,x1,z0+b,'gruen',M.gehweg]); }
+    else { L.push([x0-b,z0,x0-b,z1,'gruen',M.gehweg]); L.push([x0+b,z0,x0+b,z1,'gruen',M.gehweg]); } };
+  gw(-64.5,-12,-36.6,-12); gw(-64.5,-11.4,-64.5,-9.6+0.6);
+  gw(-41.6,-25.0,-26.8,-25.0); gw(-40,-11.4,-40,-7.3);
+  for(const x of [-60,-52,-44]) Pk.push({x,z:-12,ry:Math.PI/2});
+  Pk.push({x:-36.0+5,z:-25.0,ry:Math.PI/2}); Pk.push({x:-40,z:-9.0,ry:0});
+  bk.bodenmarkierung({linien:L,rahmen:R,flaechen:Fl,piktos:Pk,y:0.015});
+}
+/* Licht: Hallenleuchten ueber den Gassen und im Rest der Halle, Leuchten in ③, Lichtbaender im Dach, Sprinkler, Fluchtwege */
+function llLicht(){
+  const pk=[];
+  for(let k=0;k<3;k++){ const zm=LL.hr.z0(k)+2.0; for(let i=0;i<6;i++) pk.push([LL.hr.x0+1.45+i*2.9,zm]); }
+  for(const x of [-63,-58,-53]) pk.push([x,-31.2]);
+  for(const x of [-44,-39,-34,-29]) for(const z of [-31.2,-26.0,-20.5]) pk.push([x,z]);
+  for(const x of [-64,-59,-54,-49,-44,-39]) pk.push([x,-11.6]);
+  bk.lampe({art:'halle',punkte:pk,y:9.0,decke:11.0,zone:LL.id});
+  /* Lichtbaender (zugleich Rauch- und Waermeabzug): helle Streifen in der Hallendecke, Tag hell, Nacht dunkel (11f) */
+  { const parts=[]; for(const z of [-30.5,-20.5,-10.5]) parts.push({geo:new THREE.PlaneGeometry(38,1.6),m:tm(-46,10.97,z,Math.PI/2,0,0),color:0xffffff});
+    LL_T.lichtband=new THREE.Mesh(merge(parts),MAT.neu('lichtband')); LL_T.lichtband.userData.bauteil='lichtband'; scene.add(LL_T.lichtband);
+    const S=bk.sammler({bauteil:'lichtband'}); for(const z of [-30.5,-20.5,-10.5]){ for(const s of [-1,1]) S.box(38.2,0.12,0.08,-46,10.92,z+s*0.84,MAT.farbe('aluminium'),'lackMetall'); }
+    S.fertig(scene,{fest:true,schatten:false}); }
+  /* Sprinkler (sparsam): drei Hauptleitungen Feuerrot unter der Decke, Abzweige mit Sprinklerkoepfen */
+  { const S=bk.sammler({bauteil:'sprinkler'}), F=MAT.farbe, seg=[6,8,10][bk.lod()];
+    for(const z of [-32.5,-23.3,-13.0]){ const xe=z>-17?-36.3:-26.3; S.zyl(0.06,0.06,xe+65.7,seg,(xe-65.7)/2,10.55,z,F('feuerrot'),'lackMetall',0,0,Math.PI/2);
+      for(let x=-64;x<=xe-1;x+=3){ S.zyl(0.025,0.025,0.35,seg,x,10.37,z,F('feuerrot'),'lackMetall'); S.zyl(0.03,0.02,0.05,seg,x,10.17,z,F('messing'),'blank'); } }
+    S.zyl(0.08,0.08,10.4,seg,-26.4,5.2,-33.6,F('feuerrot'),'lackMetall');
+    S.fertig(scene,{fest:true,schatten:false}); }
+  llTuer([1]);
+  /* Fluchtweg-Schilder (gruen) */
+  const fw={bg:MAT.css('signalgruen'),fg:MAT.css('weiss')};
+  bk.schild(scene,Object.assign({text:'NOTAUSGANG',unter:'↑ Personaltür',b:1.2,h:0.38,x:-40,y:2.55,z:-7.03,ry:Math.PI},fw));
+  bk.schild(scene,Object.assign({text:'FLUCHTWEG',unter:'← Kartonlager ③ · Laden',b:1.2,h:0.38,x:-36.12,y:3.55,z:-14.4,ry:-Math.PI/2},fw));
+  bk.schild(scene,Object.assign({text:'FLUCHTWEG',unter:'→ Schleuse · Lager',b:1.2,h:0.38,x:-26.12,y:3.6,z:-21.6,ry:-Math.PI/2},fw));
+  llHaengend(Object.assign({text:'NOTAUSGANG',unter:'↑ Personaltür',b:1.2,h:0.38,x:-48,y:3.2,z:-12.0,ry:-Math.PI/2},fw));
+}
+/* Aussen an der Strasse: Sprinkler-Tank, Mitarbeiter-Parkplatz, Pforte, Zaun */
+/* Personaltuer (Notausgang) in der Nordwand x −40: Stahltuer mit Panikstange; seite 1 = innen (Halle), −1 = aussen */
+function llTuer(seiten){
+  const S=bk.sammler({form:{fase:0.008,faseMin:0.03,lod0Kasten:true},bauteil:'notausgang'}), F=MAT.farbe;
+  for(const s of seiten){ const z=-7+s*-0.025+(s>0?0:LW+0.05);
+    S.box(1.1,2.12,0.04,-40,1.06,z,F('anthrazit'),'lackMetall'); S.box(1.0,2.04,0.03,-40,1.04,z+s*-0.02,F('lichtgrau'),'lackMetall');
+    if(s>0){ S.box(0.86,0.06,0.06,-40,1.05,z-0.07,F('silbergrau'),'stahl'); for(const x of [-0.4,0.4]) S.box(0.06,0.1,0.08,-40+x,1.05,z-0.05,F('anthrazit'),'lackMetall'); } }
+  S.fertig(scene,{fest:true});
+}
+/* Portale der Halle: Durchgang Schleuse, N1 (wenn offen), Ladetore R2-R5 (wenn offen) */
+const _llFr=new THREE.Frustum(), _llM=new THREE.Matrix4(), _llBox=new THREE.Box3(), _llA=new THREE.Vector3(), _llB=new THREE.Vector3();
+function llSichtTakt(){
+  if(!LL_H||!LL_G||!LL_G.visible) return;
+  const c=camera.position, x=c.x, z=c.z, oben=c.y>12;   /* ueber den Daechern (Draufsicht, Bilder): alles */
+  let v=oben||(x>-66&&x<-25.9&&z>-34.1&&z<-6.9&&!(x>-36&&z>-17));
+  /* von aussen nur durch eine Oeffnung, und nur aus dem Raum davor: Schleuse/Lager (Durchgang), ③/Lager (N1), Hof (Tore) */
+  if(!v){ camera.updateMatrixWorld(); _llM.multiplyMatrices(camera.projectionMatrix,camera.matrixWorldInverse); _llFr.setFromProjectionMatrix(_llM);
+    const P=(x0,y0,z0,x1,y1,z1)=>_llFr.intersectsBox(_llBox.set(_llA.set(x0,y0,z0),_llB.set(x1,y1,z1)));
+    const imLager=x>-26&&x<-8.1&&z>-30&&z<-15, imDritten=x>-36&&x<-8.1&&z>-17.2&&z<5.9;   /* Durchgang nur aus Schleuse und ② Sued (von ① aus verdecken Sturz und Waende) */
+    v=(imLager&&P(-26.3,0,LL.durchgang[0],-25.7,3.0,LL.durchgang[1]))||(imDritten&&LL_T.n1t>0.04&&P(-36.3,0,LL.n1.z0,-35.7,LL.n1.h,LL.n1.z1));
+    if(!v&&z<-34&&typeof WTORE!=='undefined') for(const T of WTORE) if(T&&T.t>0.04&&P(T.x-1.75,0,-34.3,T.x+1.75,3.1,-33.7)){ v=true; break; } }
+  LL_H.visible=v; LL_D.visible=v;
+  /* Aussenanlagen (Tank, Parkplatz, Pforte): nicht aus Halle, ③, Schleuse und dem Lager-Sueden (dort nur Waende dazwischen) */
+  LL_A.visible=oben||!((x>-66&&x<-8.1&&z>-34.1&&z<-6.0)||(x>-26&&x<-8.1&&z>-30&&z<-6)||(x>-7.9&&x<37.9&&z>-21.9&&z<5.9));   /* auch nicht aus dem Laden */
+}
+function llAussen(){
+  const F=MAT.farbe, T=LL.tank, P=LL.park, Pf=LL.pforte, seg=[16,28,40][bk.lod()];
+  /* Flaeche: Beton von der Hallenwand bis zum Gehweg */
+  MAT.kachel(flat(32,12.7,MAT.get('betonHof'),-50,0.012,-0.45).geometry,32/2.4,12.7/2.4);
+  /* Tank */
+  const S=bk.sammler({form:{fase:0.02,faseMin:0.06,lod0Kasten:true},bauteil:'sprinklertank'});
+  S.zyl(T.r,T.r,T.h,seg,T.x,T.h/2+0.3,T.z,F('lichtgrau'),'lackMetall'); S.zyl(T.r+0.15,T.r+0.15,0.3,seg,T.x,0.15,T.z,F('hellgrau'),'matt');
+  S.zyl(T.r*0.2,T.r+0.02,0.6,seg,T.x,T.h+0.6,T.z,F('lichtgrau'),'lackMetall');
+  for(let i=1;i<6;i++) S.zyl(T.r+0.01,T.r+0.01,0.04,seg,T.x,0.3+i*T.h/6,T.z,F('basaltgrau'),'stahl');
+  for(let y=0.6;y<T.h;y+=0.3) S.box(0.42,0.03,0.03,T.x+T.r+0.12,y,T.z+0.4,F('silbergrau'),'stahl');
+  for(const dz of [0.2,0.6]) S.box(0.04,T.h,0.04,T.x+T.r+0.12,T.h/2+0.3,T.z+dz,F('silbergrau'),'stahl');
+  S.zyl(0.12,0.12,3.0,10,T.x+1.6,0.25,T.z-T.r-0.4,F('feuerrot'),'lackMetall',Math.PI/2,0,0);
+  S.box(2.4,2.4,2.0,T.x+1.6,1.2,T.z-T.r-1.8,F('lichtgrau'),'lackMetall'); S.box(2.5,0.12,2.1,T.x+1.6,2.46,T.z-T.r-1.8,F('anthrazit'),'lackMetall');
+  S.fertig(scene,{fest:true});
+  bk.schild(scene,{text:'SPRINKLERZENTRALE',unter:'Löschwasser 360 m³',b:1.5,h:0.42,x:T.x+1.6,y:2.0,z:T.z-T.r-2.82,ry:Math.PI,bg:MAT.css('feuerrot'),fg:MAT.css('weiss')});
+  col(T.x-T.r,T.x+T.r,T.z-T.r,T.z+T.r); col(T.x+0.4,T.x+2.8,T.z-T.r-2.8,T.z-T.r-0.8);
+  /* Parkplatz: 8 Stellplaetze an der Hallenwand */
+  const L=[]; for(let i=0;i<=8;i++){ const x=P.x0+i*2.5; L.push([x,P.z0,x,P.z0+5,'weiss',0.1]); }
+  L.push([P.x0,P.z0+5,P.x1,P.z0+5,'weiss',0.1]);
+  bk.bodenmarkierung({linien:L,y:0.012,schatten:true});
+  /* Pforte: kleiner Bau mit Fensterband und Vordach */
+  const Wp=LW/2;
+  bk.wand({x0:Pf.x0,x1:Pf.x1,z0:Pf.z0,z1:Pf.z0+LW,y0:0,y1:3,innen:'+z',flaechen:{innen:'putz',aussen:'fassade'}});
+  bk.wand({x0:Pf.x0,x1:Pf.x1,z0:Pf.z1-LW,z1:Pf.z1,y0:0,y1:3,innen:'-z',flaechen:{innen:'putz',aussen:'fassade'}});
+  bk.wand({x0:Pf.x0,x1:Pf.x0+LW,z0:Pf.z0,z1:Pf.z1,y0:0,y1:1.0,innen:'+x',flaechen:{innen:'putz',aussen:'fassade'}});
+  bk.wand({x0:Pf.x0,x1:Pf.x0+LW,z0:Pf.z0,z1:Pf.z1,y0:2.3,y1:3,innen:'+x',flaechen:{innen:'putz',aussen:'fassade'}});
+  bk.wand({x0:Pf.x1-LW,x1:Pf.x1,z0:Pf.z0,z1:Pf.z1,y0:0,y1:3,innen:'-x',flaechen:{innen:'putz',aussen:'fassade'}});
+  const Sp=bk.sammler({form:{fase:0.01,faseMin:0.04,lod0Kasten:true},bauteil:'pforte'});
+  Sp.box(Pf.x1-Pf.x0+0.6,0.22,Pf.z1-Pf.z0+0.6,(Pf.x0+Pf.x1)/2-0.2,3.11,(Pf.z0+Pf.z1)/2,F('anthrazit'),'lackMetall');
+  Sp.box(0.06,1.3,Pf.z1-Pf.z0-2*LW,Pf.x0+Wp,1.65,(Pf.z0+Pf.z1)/2,F('glasKlar'),'glas');
+  for(const z of [Pf.z0+1.4,Pf.z0+2.6,Pf.z0+3.8]) Sp.box(0.08,1.3,0.06,Pf.x0+Wp,1.65,z,F('aluminium'),'lackMetall');
+  Sp.box(0.6,0.75,1.6,Pf.x0+0.55,0.75,(Pf.z0+Pf.z1)/2,F('lichtgrau'),'kunststoff');
+  Sp.fertig(scene,{fest:true});
+  bk.schild(scene,{text:'PFORTE',unter:'Werk · Logistik',b:1.3,h:0.4,x:(Pf.x0+Pf.x1)/2,y:2.75,z:Pf.z1+0.02,ry:0});
+  col(Pf.x0,Pf.x1,Pf.z0,Pf.z1);
+  llTuer([-1]);
+  /* Zaun zur Strasse mit Einfahrt (x −42…−38) und Westseite um den Tank */
+  bk.zaun({art:'doppelstab',von:[-66.2,5.9],bis:[Pf.x0,5.9],hoehe:2.0,luecke:[[66.2-42,66.2-38.2]]});
+  bk.zaun({art:'doppelstab',von:[-66.2,-6.9],bis:[-66.2,5.9],hoehe:2.0});
+  col(-66.2,-42,5.84,5.96); col(-66.3,-66.1,-6.9,5.9);
 }
 /* =========================================================
    Park hinter dem Testfeld (Tom, 26.09.: "diese graue Flaeche - ein
@@ -23536,7 +24165,7 @@ function liKasten(g){
   return n?_liB.clone():null;
 }
 function liRaeume(){
-  if(!LI.raeume){ const L=LAY; LI.raeume=[L.shop,{x0:-19.9,x1:-8.1,z0:-29.9,z1:5.9},L.schleuse,L.lw2,L.lwest].filter(Boolean); }
+  if(!LI.raeume){ const L=LAY; LI.raeume=[L.shop,{x0:-19.9,x1:-8.1,z0:-29.9,z1:5.9},L.schleuse,L.lw2,L.lwest,LL.lager3,LL.schleuse].filter(Boolean); }
   return LI.raeume;
 }
 function liRaum(x,z){ const R=liRaeume(); for(let i=0;i<R.length;i++){ const r=R[i]; if(x>r.x0-0.2&&x<r.x1+0.2&&z>r.z0-0.2&&z<r.z1+0.2) return i; } return -1; }
@@ -23602,7 +24231,7 @@ function liPersonenSchatten(){
 /* ---------- Lichtflecken unter den Deckenleuchten ---------- */
 function liFlecken(){
   const F=LI.flecken; let n=0;
-  for(const L of LAMPEN){ if(n>=F.instanceMatrix.count) break; if(L.id&&typeof zoneOffen==='function'&&!zoneOffen(L.id)) continue;
+  for(const L of LAMPEN){ if(n>=F.instanceMatrix.count) break; if(L.id&&typeof zoneOffen==='function'&&!zoneOffen(L.id)) continue; if(L.aus&&zoneOffen(L.aus)) continue;
     const h=L.y, r=clamp(h*0.5,1.7,5), k=clamp(0.2*3.6/h,0.1,0.2);
     liSetzen(F,n++,L.x,0.043,L.z,0,r*2.4,r*1.9,k,0,0); }
   F.count=n; liHoch(F,0,n); LI.n.flecken=n;
@@ -23619,7 +24248,7 @@ function liGlanz(){
   const spiegel=typeof PR!=='undefined'&&PR.an&&PR.sp&&PR.sp.k.value>0;
   if(spiegel||gfxNiedrig(GFX)||cy<0.3||cy>6){ G.count=0; LI.n.glanz=0; return; }
   const fx=-Math.sin(yaw), fz=-Math.cos(yaw), kand=[];
-  for(const L of LAMPEN){ if(L.id&&typeof zoneOffen==='function'&&!zoneOffen(L.id)) continue;
+  for(const L of LAMPEN){ if(L.id&&typeof zoneOffen==='function'&&!zoneOffen(L.id)) continue; if(L.aus&&zoneOffen(L.aus)) continue;
     const dx=L.x-cam.x, dz=L.z-cam.z, d=Math.hypot(dx,dz); if(d>24||d<0.3) continue;
     if((dx*fx+dz*fz)<-1.5) continue;
     kand.push({L,d}); }
@@ -24821,7 +25450,7 @@ function rackCount(k){ return racks.filter(r=>r.kind===k).length; }
 /* Ein Stellplatz nimmt nur Regale, die unter die Decke passen */
 function rackPasst(K,sl){ return K.hoch+0.5<=(sl.h||WH); }
 /* pack: den Stellplatz belegt ab dieser Stufe die Palettierstation (05h) */
-function racksOffen(){ return RACKS.filter(x=>(!x.zone||zoneOffen(x.zone))&&!(x.pack&&typeof packStufe==='function'&&packStufe()>=x.pack)); }
+function racksOffen(){ return RACKS.filter(x=>(!x.zone||zoneOffen(x.zone))&&!(x.weg&&zoneOffen(x.weg))&&!(x.pack&&typeof packStufe==='function'&&packStufe()>=x.pack)); }
 /* Grundriss eines Lagerregals: Traversen und Stuetzen samt Fussplatten */
 function rackRect(K,x,z,ry){ const w=K.w/2+0.05, d=K.zo+0.09, q=Math.abs(Math.round(Math.sin(ry||0)));
   return q?{x0:x-d,x1:x+d,z0:z-w,z1:z+w}:{x0:x-w,x1:x+w,z0:z-d,z1:z+d}; }
@@ -25549,7 +26178,7 @@ function stockOne(lv,quiet){
   if(c.count<=0) kartonLeer(c);
   updateCarry();
 }
-function stockOf(t){ let n=0; allLevels().forEach(l=>{ if(l.type===t) n+=l.count; }); floorBoxes.forEach(b=>{ if(b.type===t) n+=b.count; }); racks.forEach(r=>r.slots.forEach(s=>{ if(s.box&&s.box.type===t) n+=s.box.count; })); if(S.carrying&&S.carrying.type===t) n+=S.carrying.count; if(S.karre&&S.karre.stapel) S.karre.stapel.forEach(c=>{ if(c.type===t) n+=c.count; }); pending.forEach(p=>{ if(p.type===t) n+=P[t].box; }); return n; }
+function stockOf(t){ let n=0; allLevels().forEach(l=>{ if(l.type===t) n+=l.count; }); floorBoxes.forEach(b=>{ if(b.type===t) n+=b.count; }); racks.forEach(r=>r.slots.forEach(s=>{ if(s.box&&s.box.type===t) n+=s.box.count; })); if(S.carrying&&S.carrying.type===t) n+=S.carrying.count; if(S.karre&&S.karre.stapel) S.karre.stapel.forEach(c=>{ if(c.type===t) n+=c.count; }); pending.forEach(p=>{ if(p.type===t) n+=P[t].box; }); if(typeof hrStock==='function') n+=hrStock(t); return n; }
 function shelfStockOf(t){ let n=0; allLevels().forEach(l=>{ if(l.type===t) n+=l.count; }); return n; }
 
 /* =========================================================
@@ -26113,6 +26742,8 @@ function wbayFrei(){
    drei uebereinander, dann eine Reihe weiter in die Halle hinein
    (nach Norden, die Tore stehen in der Suedwand). */
 function wbaySlot(cx,n){
+  /* Halle Etappe A: mit der Lagerlogistik auf die Paletten der Stellplaetze (Tor 2-4, 11f) */
+  { const tor=WRAMPEN.indexOf(cx), s=typeof llStellSlot==='function'?llStellSlot(tor):null; if(s) return s; }
   const Z=LHALLE.z+1.7;
   const reihe=n%3, stapel=Math.floor(n/3)%3, tief=Math.floor(n/9);
   return {x:cx-0.95+reihe*0.95, y:0.2+stapel*0.41, z:Z+tief*1.05, ry:Math.PI/2+rand(-0.08,0.08)};
@@ -28259,7 +28890,8 @@ function vsQuellen(t){
   for(const lv of allLevels()) if(lv.type===t&&lv.count>0) L.push({kind:'level',ref:lv,n:lv.count,lager:false});
   return L;
 }
-function vsBestand(t){ return vsQuellen(t).reduce((a,q)=>a+q.n,0); }
+/* Hochregal (11f) zaehlt mit: das RBG lagert Gefragtes in den Anbruch aus, dort picken die Packer */
+function vsBestand(t){ return vsQuellen(t).reduce((a,q)=>a+q.n,0)+(typeof hrStock==='function'?hrStock(t):0); }
 function vsReserviert(t){ let n=0; for(const b of (S.bestellungen||[])) for(const l of b.pos) if(l.t===t) n+=Math.max(0,l.n-l.g); return n; }
 /* Eine neue Bestellung aus dem, was da ist. erz=true: auch ohne
    Ware (alte Spielstaende, die nur eine Zahl kannten). */
@@ -30367,6 +30999,309 @@ function vsPalLaden(){
   LD.pal=null; LD.ph='idle'; if(VT.state) vtEntfernen();
   /* bezahlt und gerufen, aber noch nicht da: er kommt trotzdem */
   DDL.warte=!!S.ddlUnterwegs; DDL.eta=DDL.warte?DDL_ANFAHRT*0.5:0; DDL.voll=!!S.boxVoll;
+}
+/* =========================================================
+   Hochregal-Logik (Halle Etappe A, 14.10.2026, plan-1410.md):
+   Wareneingang (Tor 2-4) -> Stellplaetze -> FTS -> Aufgabe-Foerderer -> RBG -> Gasse
+   Gasse -> RBG -> Auslager-Foerderer -> Anbruch (Lagerregale am I/O) -> Packer picken dort
+   Anbruch -> FTS -> Nachschub in die Lagerregale von ③, ② und ①.
+   Bestand im Hochregal zaehlt fuer Onlinebestellungen (stockOf/vsBestand). Spielstand: S.hr
+   {p:[Platz -> [{t,c,q}] | null], tr:[Ladung unterwegs]}. Welt: 05q (LL, LL_T), Bauteile: bk.hochregal/rbg/fts/foerderer.
+   ========================================================= */
+const HR={rbg:[],fts:[],anbruchT:0,tick:0,last:null,zahl:{ein:0,aus:0,nach:0}};   /* zahl: Paletten ein/aus, Nachschub-Fahrten (Tests, Vorfuehrung) */
+const HR_TEMPO={fahr:2.6,hub:0.9,gabel:0.6,foerder:0.55,fts:1.5};   /* m/s (RBG Fahren/Heben/Gabel, Foerderer, FTS) */
+const HR_JE_PALETTE=8;                                              /* Kartons je Regalpalette (2 x 2 x 2) */
+function hrDaten(){ if(!S.hr||!Array.isArray(S.hr.p)) S.hr={p:new Array(540).fill(null),tr:[]}; if(!Array.isArray(S.hr.tr)) S.hr.tr=[]; return S.hr; }
+function hrPlaetze(k){ const R=LL_T&&LL_T.hr; return R?R.plaetze.slice(k*180,(k+1)*180):[]; }
+/* Bestand je Sorte (Plaetze + Ladungen unterwegs) */
+function hrStock(t){ if(!S||!S.hr) return 0; let n=0;
+  for(const p of S.hr.p) if(p) for(const b of p) if(!t||b.t===t) n+=b.c;
+  for(const l of S.hr.tr) for(const b of l.b) if(!t||b.t===t) n+=b.c;
+  return n; }
+function hrBelegt(){ let n=0; if(S&&S.hr) for(const p of S.hr.p) if(p&&p.length) n++; return n; }
+function hrKapazitaet(){ let n=0; for(let k=0;k<3;k++) if(llGasseAktiv(k)) n+=hrPlaetze(k).length; return n; }
+/* Sichtbar machen: Paletten im Regal, RBG der aktiven Gassen */
+function hrSync(){ if(!LL_T||!LL_T.hr) return; const D=hrDaten(), L=[];
+  for(let i=0;i<LL_T.hr.plaetze.length;i++){ if(D.p[i]&&!D.p[i].length) D.p[i]=null; if(D.p[i]) L.push(i); } LL_T.hr.belegen(L); }
+function hrAnwenden(){
+  if(!S) return;
+  if(!llOffen()||!LL_T){ for(const f of HR.fts) if(f.g) f.g.visible=false; return; }
+  const D=hrDaten();
+  for(let k=0;k<3;k++){ const G=LL_T.gassen[k]; if(!G) continue;
+    if(llGasseAktiv(k)&&!G.rbg){ G.rbg=bk.rbg({x:LL.aufgabe.x,z:G.R.mitte,hoehe:LL_T.hr.hoehe+0.25,parent:LL_D}); G.rbg.k=k; G.rbg.job=null; HR.rbg[k]=G.rbg; }
+    if(G.rbg) G.rbg.g.visible=llGasseAktiv(k); }
+  if(!HR.fts.length){ HR.fts=[bk.fts({x:-44.5,z:LL.spur,ry:0,parent:LL_D}),bk.fts({x:-43.0,z:-16.2,ry:Math.PI/2,parent:LL_D})];
+    HR.fts.forEach((f,i)=>{ f.i=i; f.job=null; f.last=null; }); }
+  for(const f of HR.fts) f.g.visible=true;
+  LL_D.traverse(o=>{ if(o.isMesh) o.castShadow=false; });   /* unter dem Hallendach kein Sonnenschatten */
+  /* Ladungen, die beim Speichern unterwegs waren, kommen ins Regal (sonst auf einen Stellplatz) */
+  if(D.tr.length&&!HR.rbg.some(r=>r&&r.job)&&!HR.fts.some(f=>f.job)){ for(const l of D.tr.splice(0)){ if(!l||!Array.isArray(l.b)||!l.b.length) continue; const i=hrFreiPlatz(); if(i>=0) D.p[i]=l.b; else hrAufBoden(l.b); } }
+  hrSync(); llStellSicht();
+}
+function hrAufBoden(boxes){ boxes.forEach((b,i)=>spawnFloorBox(b.t,b.c,{x:-40+(i%4)*0.7,y:0.2,z:-31.5+Math.floor(i/4)*0.6,ry:0},b.q||1)); }
+/* naechster freier Platz: aktive Gassen, nah am I/O, unten zuerst */
+function hrFreiPlatz(){ const D=hrDaten(); let best=-1, bd=1e9;
+  for(let k=0;k<3;k++){ if(!llGasseAktiv(k)) continue; const P=hrPlaetze(k);
+    for(let i=0;i<P.length;i++){ const j=k*180+i; if(D.p[j]||HR.reserv&&HR.reserv[j]) continue; const p=P[i], d=Math.abs(p.x-LL.aufgabe.x)/HR_TEMPO.fahr+p.y/HR_TEMPO.hub; if(d<bd){ bd=d; best=j; } } }
+  return best; }
+
+/* ---------- Stellplaetze am Wareneingang (05q LL_STELL) ----------
+   Gefuellt von hinten nach vorn; eine leere Palette steht nur dort, wo dahinter nichts mehr liegt - so
+   blockiert keine leere Palette den Weg des FTS zu einer beladenen. */
+let LL_STELL_M=null;
+function llStellBoxen(p){ const out=[]; for(const b of floorBoxes){ const q=b.mesh.position; if(Math.abs(q.x-p.x)<0.5&&Math.abs(q.z-p.z)<0.62&&q.y>0.15&&q.y<1.2) out.push(b); } return out; }
+function llStellZustand(){ return LL_STELL.map(p=>({p,n:llStellBoxen(p).length})); }
+function llStellSicht(){
+  if(!LL_D) return;
+  /* alle Stellplatz-Paletten in EINEM InstancedMesh; ausgeblendete bekommen Groesse 0 */
+  if(!LL_STELL_M){ LL_STELL_M=bk.inst(bk.palette('euro',{fein:bk.lod()>1}),MAT.get('palette'),LL_STELL.map(p=>tm(p.x,0,p.z,0,Math.PI/2,0)),{parent:LL_D,bauteil:'palette',art:'stellplatz',schatten:false,farben:LL_STELL.map((p,i)=>bk.palFarbe(p.x,0,p.z,i))}); }
+  const Z=llStellZustand();
+  LL_STELL.forEach((p,i)=>{ const hinten=LL_STELL.filter(q=>q.tor===p.tor&&q.s===p.s&&q.r<p.r);
+    const belegt=Z[i].n>0, frei=!hinten.some(q=>Z[LL_STELL.indexOf(q)].n>0), weg=HR.fts.some(f=>f.job&&f.job.stell===i);
+    LL_STELL_M.setMatrixAt(i,(!weg&&(belegt||frei))?tm(p.x,0,p.z,0,Math.PI/2,0):tm(p.x,-1,p.z,0,0,0,0.0001,0.0001,0.0001)); });
+  LL_STELL_M.instanceMatrix.needsUpdate=true;
+}
+/* Abstellplatz fuer den n-ten Karton eines Westtors (08c wbaySlot) - null = alter Platz */
+function llStellSlot(tor){
+  if(!llOffen()||tor>2) return null;
+  const Z=llStellZustand();
+  for(let r=0;r<3;r++) for(let s=0;s<2;s++){ const i=LL_STELL.findIndex(q=>q.tor===tor&&q.r===r&&q.s===s); if(i<0) continue;
+    if(HR.fts.some(f=>f.job&&f.job.stell===i)) continue;
+    const n=Z[i].n; if(n>=HR_JE_PALETTE) continue;
+    const p=LL_STELL[i], lx=n%2, lz=Math.floor(n/2)%2, ly=Math.floor(n/4);
+    later(0.05,llStellSicht);
+    return {x:p.x-0.2+lx*0.4,y:bk.PALETTE.euro.h+0.2+ly*0.41,z:p.z-0.3+lz*0.6,ry:Math.PI/2+rand(-0.03,0.03)}; }
+  return null;
+}
+
+/* ---------- Bewegung ---------- */
+function hrNach(cur,ziel,v,dt){ const d=ziel-cur, s=v*dt; return Math.abs(d)<=s?ziel:cur+Math.sign(d)*s; }
+/* Ladung als sichtbare Gruppe: Palette + Kartons (Atlas je Sorte) */
+function hrLadung(boxes){ const g=new THREE.Group(); const pa=new THREE.Mesh(bk.palette('euro',{fein:bk.lod()>1}),MAT.get('palette')); pa.rotation.y=Math.PI/2; g.add(pa);
+  boxes.forEach((b,i)=>{ const m=bk.karton(b.t); m.rotation.y=Math.PI/2; m.position.set(-0.2+(i%2)*0.4,bk.PALETTE.euro.h+0.2+Math.floor(i/4)*0.41,-0.3+(Math.floor(i/2)%2)*0.6); g.add(m); });
+  g.userData.bauteil='ladung'; g.traverse(o=>{ if(o.isMesh) o.castShadow=false; }); LL_D.add(g); return g; }
+function hrLadungWeg(l){ if(l&&l.g){ l.g.parent&&l.g.parent.remove(l.g); l.g=null; } const D=hrDaten(), i=D.tr.indexOf(l.d); if(i>=0) D.tr.splice(i,1); }
+
+/* FTS: faehrt eine Punktliste ab (Drehen auf der Stelle, dann gerade) */
+function ftsFahre(f,dt){
+  const P=f.weg; if(!P||!P.length) return true;
+  const g=f.g, z=P[0], dx=z.x-g.position.x, dz=z.z-g.position.z, d=Math.hypot(dx,dz);
+  if(d<0.04){ P.shift(); return !P.length; }
+  const ry=Math.atan2(-dz,dx); let a=ry-g.rotation.y; while(a>Math.PI) a-=2*Math.PI; while(a<-Math.PI) a+=2*Math.PI;
+  /* fahrt rueckwaerts, wenn das kuerzer ist (FTS faehrt in beide Richtungen) */
+  if(Math.abs(a)>Math.PI/2){ a+=a>0?-Math.PI:Math.PI; }
+  if(Math.abs(a)>0.03){ g.rotation.y+=Math.sign(a)*Math.min(Math.abs(a),2.2*dt); return false; }
+  const s=Math.min(d,HR_TEMPO.fts*dt); g.position.x+=dx/d*s; g.position.z+=dz/d*s;
+  if(f.last&&f.last.g){ f.last.g.position.set(g.position.x,f.deck.position.y+0.03,g.position.z); f.last.g.rotation.y=g.rotation.y; }
+  return false;
+}
+function ftsWeg(f,ziel){ const g=f.g, a=V(g.position.x,0,g.position.z), b=V(ziel.x,0,ziel.z);
+  let w=null; try{ w=route(a,b); }catch(e){} return (w&&w.length?w.map(p=>({x:p.x,z:p.z})):[]).concat([{x:b.x,z:b.z}]); }
+
+/* FTS 1: Einlagern. Waehlt den vordersten beladenen Stellplatz (Tor ohne laufende Entladung oder Palette voll). */
+function ftsEinJob(){
+  const Z=llStellZustand(); let best=-1, bn=0;
+  LL_STELL.forEach((p,i)=>{ const n=Z[i].n; if(!n) return;
+    if(LL_STELL.some(q=>q.tor===p.tor&&q.s===p.s&&q.r>p.r&&Z[LL_STELL.indexOf(q)].n>0)) return;   /* davor steht noch eine */
+    const entlaedt=typeof wbays!=='undefined'&&wbays[p.tor]&&wbays[p.tor].state==='entladen';
+    if(entlaedt&&n<HR_JE_PALETTE) return;
+    if(n>bn){ bn=n; best=i; } });
+  return best;
+}
+function ftsTick(f,dt){
+  const j=f.job, g=f.g;
+  if(!j){
+    /* untaetig: hoechstens zweimal je Sekunde nach Arbeit suchen (Stellplaetze/Regale durchsuchen kostet) */
+    if(f.weg&&ftsFahre(f,dt)) f.weg=null;
+    if((f.warte=(f.warte||0)-dt)>0) return; f.warte=0.5;
+    if(f.i===0){ if(hrFreiPlatz()<0) return; const i=ftsEinJob(); if(i<0){ if(Math.hypot(g.position.x+44.5,g.position.z-LL.spur)>0.3&&!f.weg){ f.weg=[{x:g.position.x,z:LL.spur},{x:-44.5,z:LL.spur}]; } return; }
+      const p=LL_STELL[i]; f.job={art:'ein',stell:i,schritt:0}; f.weg=[{x:g.position.x,z:LL.spur},{x:p.x,z:LL.spur},{x:p.x,z:p.z}]; llStellSicht(); return; }
+    /* FTS 2: Nachschub aus dem Anbruch nach ③/②/① */
+    const n=hrNachschubPlan(); if(!n){ if(!f.weg&&Math.hypot(g.position.x+43.0,g.position.z+16.2)>0.4) f.weg=ftsWeg(f,{x:-43.0,z:-16.2}); return; }
+    f.job={art:'nach',plan:n,schritt:0}; f.weg=ftsWeg(f,n.von); return; }
+  if(j.art==='ein'){
+    if(j.schritt===0){ if(!ftsFahre(f,dt)) return;
+      const p=LL_STELL[j.stell], bx=llStellBoxen(p).filter(b=>!hrStaffBelegt(b));
+      const boxes=bx.map(b=>({t:b.type,c:b.count,q:b.q||1})); bx.forEach(b=>removeFloorBox(b));
+      if(!boxes.length){ f.job=null; llStellSicht(); return; }
+      const d={b:boxes}; hrDaten().tr.push(d); f.last={d,g:hrLadung(boxes)}; f.set(1);
+      j.schritt=1; f.weg=[{x:p.x,z:LL.spur},{x:LL.aufgabe.x+1.05,z:LL.spur}]; llStellSicht(); return; }
+    if(j.schritt===1){ if(!ftsFahre(f,dt)) return; j.schritt=2; j.t=0; return; }
+    /* Querfoerdern vom FTS auf den Aufgabe-Foerderer, dann Foerderer bis an die Gasse */
+    if(j.schritt===2){ const l=f.last.g; j.t+=dt; const u=Math.min(1,j.t/1.4);
+      l.position.set(LL.aufgabe.x+1.05*(1-u),0.55*u+0.33*(1-u),LL.spur); l.rotation.y=Math.PI*0; if(u<1) return;
+      f.set(0); HR.band=HR.band||[]; HR.band.push({l:f.last,z:LL.spur}); f.last=null; f.job=null; return; }
+  }
+  if(j.art==='nach'){
+    if(j.schritt===0){ if(!ftsFahre(f,dt)) return;
+      /* Kartons aus dem Anbruch auf das Deck */
+      const boxes=[]; for(const s of j.plan.slots){ if(!s.box) continue; boxes.push({t:s.box.type,c:s.box.count,q:s.box.q||1}); kisteZurueck(s.box); s.rk.g.remove(s.box.mesh); s.box=null; drawRackSchild(s.rk); }
+      if(!boxes.length){ f.job=null; return; }
+      const d={b:boxes}; hrDaten().tr.push(d); f.last={d,g:hrLadung(boxes)}; f.last.g.children[0].visible=false; f.set(1);
+      j.schritt=1; f.weg=ftsWeg(f,j.plan.nach); return; }
+    if(j.schritt===1){ if(!ftsFahre(f,dt)) return;
+      const rk=j.plan.rk; let k=0; const D=f.last.d.b;
+      for(const s of rk.slots){ if(!D.length) break; if(s.box) continue; const b=D.shift(); putInSlot(s,b.t,b.c,b.q); k++; }
+      if(D.length) hrAufBoden(D.splice(0));
+      HR.zahl.nach++; hrLadungWeg(f.last); f.last=null; f.set(0); f.job=null; return; }
+  }
+}
+/* Nachschub: Kartons im Anbruch, die gerade keine offene Bestellung braucht, in ein Lagerregal ①②③ mit Platz */
+function hrAnbruchRacks(){ const a=LL.anbruch; return racks.filter(r=>{ const p=r.g.position; return p.x>a.x0&&p.x<a.x1&&p.z>a.z0&&p.z<a.z1; }); }
+function hrLagerRacks(){ return racks.filter(r=>{ const p=r.g.position; return p.x>-36.2&&p.x<-8&&p.z>-17.2&&p.z<6; }); }
+/* Nachschub fuellt nur ③ (am Weg vom Anbruch) und laesst im Lager immer Platz fuer eine Lieferung an Rolltor 1
+   (HR_RESERVE freie Faecher) - sonst stuende der LKW an der Basisrampe, bis jemand Platz schafft (gemessen 14.10.:
+   Vorfuehrung, Versandmaterial kam nicht mehr ins Packmaterial-Regal) */
+const HR_RESERVE=18;
+function hrNachschubRacks(){ return racks.filter(r=>{ const p=r.g.position; return p.x>-36.2&&p.x<-19.9&&p.z>-17.2&&p.z<-6.8; }); }
+function hrStaffBelegt(s){ return Object.values(staff).some(o=>o&&o.src&&(o.src.slot===s||o.src.box===s)); }
+function hrNachschubPlan(){
+  const A=hrAnbruchRacks(); if(!A.length) return null;
+  const freiGesamt=hrLagerRacks().reduce((n,r)=>n+r.slots.filter(s=>!s.box).length,0);
+  if(freiGesamt<=HR_RESERVE) return null;
+  const ziel=hrNachschubRacks().map(r=>({r,frei:r.slots.filter(s=>!s.box).length})).filter(x=>x.frei>0);
+  if(!ziel.length) return null;
+  const IM={}; for(const r of hrLagerRacks()) for(const s of r.slots) if(s.box) IM[s.box.type]=(IM[s.box.type]||0)+s.box.count;
+  for(const lv of allLevels()) if(lv.type) IM[lv.type]=(IM[lv.type]||0)+lv.count;
+  const im=t=>IM[t]||0;
+  const kand=[]; for(const r of A) for(const s of r.slots) if(s.box&&!hrStaffBelegt(s)&&!(typeof vsReserviert==='function'&&vsReserviert(s.box.type)>0)) kand.push(s);
+  if(kand.length<2) return null;
+  kand.sort((a,b)=>im(a.box.type)-im(b.box.type));
+  const z=ziel.sort((a,b)=>b.frei-a.frei)[0], slots=kand.slice(0,Math.min(4,z.frei,freiGesamt-HR_RESERVE));
+  if(!slots.length) return null;
+  const rk=z.r, sn=Math.sin(rk.g.rotation.y), cs=Math.cos(rk.g.rotation.y), K=rackKindOf(rk), lz=K.zo+0.75;
+  const von=slots[0].rk.g.position, vy=slots[0].rk.g.rotation.y;
+  return {slots,rk,von:{x:von.x+Math.sin(vy)*(K.zo+0.75),z:von.z+Math.cos(vy)*(K.zo+0.75)},nach:{x:rk.g.position.x+sn*lz,z:rk.g.position.z+cs*lz}};
+}
+
+/* ---------- RBG ----------
+   Jobs: 'ein' (Palette vom Aufgabe-Foerderer an einen freien Platz), 'aus' (Platz -> Auslager-Foerderer -> Anbruch). */
+function rbgTick(R,dt){
+  const k=R.k, G=LL_T.gassen[k], P=LL_T.hr.plaetze, D=hrDaten(), ax=LL.aufgabe.x, aisle=G.R.mitte;
+  if(!R.job){
+    /* Einlagern hat Vorrang, sobald eine Palette am Ende des Aufgabe-Foerderers steht (Gasse 1 bedient die Aufgabe) */
+    const bereit=k===0&&HR.band&&HR.band.find(b=>b.z>=LL.aufgabe.z1-0.02);
+    if(bereit){ const i=hrFreiPlatz(); if(i>=0&&Math.floor(i/180)===k){ HR.reserv=HR.reserv||{}; HR.reserv[i]=true; R.job={art:'ein',platz:i,l:bereit.l,schritt:0}; HR.band.splice(HR.band.indexOf(bereit),1); } }
+    else if(k===0&&!HR.aus&&(HR.anbruchT-=dt)<=0){ HR.anbruchT=2.5; const j=hrAuslagerPlan(); if(j){ R.job=j; HR.reserv=HR.reserv||{}; HR.reserv[j.platz]=true; } }
+    if(!R.job) return; }
+  const j=R.job, g=R.g, hub=R.hub, gab=R.gabel;
+  const fahr=(x,y)=>{ g.position.x=hrNach(g.position.x,x,HR_TEMPO.fahr,dt); hub.position.y=hrNach(hub.position.y,y,HR_TEMPO.hub,dt); return Math.abs(g.position.x-x)<0.005&&Math.abs(hub.position.y-y)<0.005; };
+  const gabel=z=>{ gab.position.z=hrNach(gab.position.z,z,HR_TEMPO.gabel,dt); return Math.abs(gab.position.z-z)<0.004; };
+  const traeg=()=>{ if(j.l&&j.l.g){ const wp=new THREE.Vector3(); gab.getWorldPosition(wp); j.l.g.position.set(wp.x,wp.y+0.065,wp.z); j.l.g.rotation.y=0; } };
+  const p=j.platz>=0?P[j.platz]:null, pz=p?p.z-aisle:0, py=p?Math.max(0,p.y-0.06):0;
+  const ioY=0.55-0.08;
+  if(j.art==='ein'){
+    switch(j.schritt){
+      case 0: if(fahr(ax,ioY)) j.schritt=1; break;
+      case 1: if(gabel(LL.aufgabe.z1-aisle)) j.schritt=2; break;                        /* Gabel unter die Palette */
+      case 2: if(fahr(ax,ioY+0.12)){ j.schritt=3; } traeg(); break;
+      case 3: traeg(); if(gabel(0)) j.schritt=4; break;
+      case 4: traeg(); if(fahr(p.x,py+0.16)) j.schritt=5; break;
+      case 5: traeg(); if(gabel(pz)) j.schritt=6; break;
+      case 6: traeg(); if(fahr(p.x,py)){ D.p[j.platz]=j.l.d.b; delete HR.reserv[j.platz]; hrLadungWeg(j.l); hrSync(); j.l=null; j.schritt=7; HR.zahl.ein++; } break;
+      case 7: if(gabel(0)){ R.job=null; } break; }
+    return; }
+  if(j.art==='aus'){
+    switch(j.schritt){
+      case 0: if(fahr(p.x,py)) j.schritt=1; break;
+      case 1: if(gabel(pz)) j.schritt=2; break;
+      case 2: if(fahr(p.x,py+0.16)){ const b=D.p[j.platz]; D.p[j.platz]=null; delete HR.reserv[j.platz]; const d={b}; D.tr.push(d); j.l={d,g:hrLadung(b)}; hrSync(); j.schritt=3; } traeg(); break;
+      case 3: traeg(); if(gabel(0)) j.schritt=4; break;
+      case 4: traeg(); if(fahr(ax,ioY+0.16)) j.schritt=5; break;
+      case 5: traeg(); if(gabel(LL.auslager.z-aisle)) j.schritt=6; break;
+      case 6: traeg(); if(fahr(ax,ioY)){ HR.aus={l:j.l,x:j.l.g.position.x,t:0}; j.l=null; j.schritt=7; HR.zahl.aus++; } break;
+      case 7: if(gabel(0)){ R.job=null; } break; }
+  }
+}
+/* Auslagern in den Anbruch: Platz mit der Sorte, die am dringendsten fehlt, wenn im Anbruch genug Faecher frei sind */
+function hrAuslagerPlan(){
+  const A=hrAnbruchRacks(); if(!A.length) return null;
+  const frei=A.reduce((n,r)=>n+r.slots.filter(s=>!s.box).length,0); if(frei<1) return null;
+  const D=hrDaten(), P=hrPlaetze(0); if(!P.length) return null;
+  const imLager=t=>stockOf(t)-hrStock(t);
+  let best=-1, bw=1e9;
+  for(let i=0;i<P.length;i++){ const b=D.p[i]; if(!b||!b.length||(HR.reserv&&HR.reserv[i])||b.length>frei) continue;
+    const t=b[0].t, offen=typeof vsReserviert==='function'?vsReserviert(t):0;
+    const w=imLager(t)-offen*3+P[i].y*0.5;
+    if(w<bw){ bw=w; best=i; } }
+  if(best<0) return null;
+  /* nur auslagern, wenn die Sorte knapp ist oder der Anbruch fast leer */
+  const t=D.p[best][0].t, knapp=imLager(t)<P_box(t)*2||(typeof vsReserviert==='function'&&vsReserviert(t)>0);
+  const anbruchLeer=A.reduce((n,r)=>n+r.slots.filter(s=>s.box).length,0)<6;
+  if(!knapp&&!anbruchLeer) return null;
+  return {art:'aus',platz:best,schritt:0};
+}
+function P_box(t){ return (P[t]&&P[t].box)||1; }
+/* Auslager-Foerderer: Palette laeuft ans Ende, Kartons wandern einzeln in freie Anbruch-Faecher */
+function hrAusTick(dt){
+  const a=HR.aus; if(!a||!a.l||!a.l.g) return;
+  const l=a.l.g, xe=LL.auslager.x1-0.45;
+  if(l.position.x<xe-0.005){ l.position.x=hrNach(l.position.x,xe,HR_TEMPO.foerder,dt); l.position.y=0.55; l.position.z=LL.auslager.z; return; }
+  a.t-=dt; if(a.t>0) return; a.t=0.45;
+  const D=a.l.d.b; if(!D.length){ hrLadungWeg(a.l); HR.aus=null; return; }
+  const s=hrAnbruchRacks().flatMap(r=>r.slots).find(s=>!s.box);
+  if(!s){ return; }
+  const b=D.shift(); putInSlot(s,b.t,b.c,b.q);
+  const m=l.children[1+D.length]; if(m) m.visible=false;
+  if(!D.length){ hrLadungWeg(a.l); HR.aus=null; }
+}
+/* Aufgabe-Foerderer: Paletten laufen von der Fahrspur bis an die Gasse */
+function hrBandTick(dt){
+  if(!HR.band) return;
+  HR.band.forEach((b,i)=>{ const vor=HR.band.slice(0,i).filter(o=>o.z>b.z).map(o=>o.z-1.3), ziel=Math.min(LL.aufgabe.z1,...vor);
+    b.z=hrNach(b.z,ziel,HR_TEMPO.foerder,dt); if(b.l.g) b.l.g.position.set(LL.aufgabe.x,0.55,b.z); });
+}
+/* Schnelllauftor N1: oeffnet, sobald jemand in 3 m Naehe ist */
+function hrN1Tick(dt){
+  const T=LL_T&&LL_T.n1; if(!T) return;
+  const nah=(x,z)=>Math.abs(x+36)<3.2&&Math.abs(z+12)<2.6;
+  let auf=nah(pl.x,pl.z)||HR.fts.some(f=>nah(f.g.position.x,f.g.position.z));
+  if(!auf) for(const w of Object.values(staff)) if(w&&w.g&&nah(w.g.position.x,w.g.position.z)){ auf=true; break; }
+  if(!auf&&typeof customers!=='undefined') for(const c of customers) if(c.g&&nah(c.g.position.x,c.g.position.z)){ auf=true; break; }
+  LL_T.n1t=hrNach(LL_T.n1t,auf?1:0,auf?1.6:0.7,dt); T.set(LL_T.n1t);
+}
+function hrTick(dt){
+  if(!LL_T||!LL_G||!LL_G.visible||!S) return;   /* laeuft auch, wenn der Halleninhalt gerade nicht gezeichnet wird */
+  HR.tick+=dt;
+  for(const R of HR.rbg) if(R&&R.g.visible) rbgTick(R,dt);
+  for(const f of HR.fts) ftsTick(f,dt);
+  hrBandTick(dt); hrAusTick(dt); hrN1Tick(dt);
+  /* Lichtbaender: Tageslicht */
+  if(LL_T.lichtband&&typeof sun!=='undefined'){ const v=Math.max(0.05,Math.min(1,sun.intensity/1.6)); LL_T.lichtband.material.emissiveIntensity=0.15+0.85*v; }
+}
+/* ---------- Umzug beim Kauf: Lagerregale, Moebel und Kartons aus den belegten Bereichen ----------
+   Lagerregale ziehen auf freie Plaetze (③ zuerst, sonst ①/②); findet sich keiner, kommt ihr Inhalt ins
+   Hochregal und das Regal wird abgebaut (Kaufpreis ueber den Moebel-Abbau wie sonst). Kartons am Boden der
+   Sperrflaechen gehen auf die Stellplaetze (das FTS lagert sie ein). Einmal je Kauf, danach nichts mehr. */
+function llRaeumen(){
+  if(!llOffen()) return 0;
+  const R=llSperrRechtecke(), drin=r=>R.some(a=>r.x0<a.x1-0.02&&r.x1>a.x0+0.02&&r.z0<a.z1-0.02&&r.z1>a.z0+0.02);
+  let n=0;
+  /* Anbruch: 5 Lagerregale am I/O (einmal, mit dem Kauf) */
+  const D=hrDaten();
+  for(const rk of racks.slice()){ const K=rackKindOf(rk), g=rk.g, q=rackRect(K,g.position.x,g.position.z,g.rotation.y);
+    const a=LL.anbruch; if(g.position.x>a.x0&&g.position.x<a.x1&&g.position.z>a.z0&&g.position.z<a.z1) continue;   /* Anbruch selbst */
+    if(!drin(q)) continue;
+    const frei=rackPlatzFrei(K,rk).filter(sl=>{ const p=rackStellPlatz(K,sl); if(!p) return false; return !drin(rackRect(K,p.x,p.z,p.ry)); });
+    if(frei.length){ let best=frei[0], bd=1e9; for(const sl of frei){ const d=(sl.x-g.position.x)**2+(sl.z-g.position.z)**2; if(d<bd){ bd=d; best=sl; } }
+      const p=rackStellPlatz(K,best); placeMovable(rk.mov,p.x,p.z,p.ry); rk.slot=best; n++; continue; }
+    /* kein Platz: Inhalt ins Hochregal, Regal abbauen */
+    const boxes=[]; for(const s of rk.slots) if(s.box){ boxes.push({t:s.box.type,c:s.box.count,q:s.box.q||1}); s.rk.g.remove(s.box.mesh); s.box=null; }
+    while(boxes.length){ const i=hrFreiPlatz(); const b=boxes.splice(0,HR_JE_PALETTE); if(i>=0) D.p[i]=b; else hrAufBoden(b); }
+    if(typeof removeRack==='function'){ try{ removeRack(rk); }catch(e){} } n++; }
+  if(!S.ll||!S.ll.anbruch){ S.ll=Object.assign({},S.ll,{anbruch:true});
+    for(const z of [-26.6,-23.9,-21.2,-18.5,-15.8]) createRack(racks.length,{kind:'standard',x:-45.0,z,ry:Math.PI/2}); }
+  /* Moebel und Kartons am Boden in den Sperrflaechen */
+  for(const m of movables.slice()){ if(!m.g||m.g.visible===false||m.kind==='rack'||m.kind==='desk') continue;
+    const r=rectOf(m,m.g.position.x,m.g.position.z,m.g.rotation.y); if(!drin({x0:r.minX,x1:r.maxX,z0:r.minZ,z1:r.maxZ})) continue;
+    for(let rr=1;rr<20;rr+=0.5){ let ok=false; for(let a=0;a<16&&!ok;a++){ const x=m.g.position.x+Math.cos(a/16*Math.PI*2)*rr, z=m.g.position.z+Math.sin(a/16*Math.PI*2)*rr, q=rectOf(m,x,z,m.g.rotation.y);
+        if(drin({x0:q.minX,x1:q.maxX,z0:q.minZ,z1:q.maxZ})) continue; if(spotFree(m,x,z,m.g.rotation.y)){ placeMovable(m,x,z,m.g.rotation.y); ok=true; n++; } } if(ok) break; } }
+  for(const b of floorBoxes.slice()){ const p=b.mesh.position; if(LL_STELL.some(q=>Math.abs(p.x-q.x)<0.5&&Math.abs(p.z-q.z)<0.62)) continue;
+    if(!drin({x0:p.x-0.3,x1:p.x+0.3,z0:p.z-0.3,z1:p.z+0.3})) continue;
+    const i=hrFreiPlatz(); if(i<0) continue; D.p[i]=[{t:b.type,c:b.count,q:b.q||1}]; removeFloorBox(b); n++; }
+  hrSync(); llStellSicht(); if(typeof navDirty==='function') navDirty();
+  if(n) toast(`${n} Sache${n===1?'':'n'} aus der Halle umgestellt – Lagerregale stehen jetzt in ③, Kartons im Hochregal.`);
+  return n;
 }
 
 /* =========================================================
@@ -48857,9 +49792,13 @@ const UMBAU_RAUM=[
   {r:LAY.ls1,  z:'lager_gross'},
   {r:{x0:LAY.ls1.x0,x1:LAY.ls1.x1,z0:LAY.ls2.z0,z1:LAY.ls1.z1},z:'lager_sued'},
   {r:LAY.lsued,z:'lager_sued2'},
-  {r:LAY.lw1,z:'lager_west'},{r:LAY.lw2,z:'lager_west2'},{r:LAY.lwest,z:'lager_west3'}
+  {r:LAY.lw1,z:'lager_west'},{r:LAY.lw2,z:'lager_west2'},{r:LAY.lwest,z:'lager_west3'},
+  /* Halle Etappe A: Ostteil von ③ (x −26…−19,9) */
+  {r:{x0:-36,x1:-19.9,z0:-17,z1:-7},z:'lagerlogistik'}
 ];
 function imRaum(minX,maxX,minZ,maxZ){
+  /* Halle Etappe A: Hochregal, Anbruch, Stellplaetze, Packmaterial, Schleuse sind belegt (05q) */
+  if(typeof llSperrt==='function'&&llSperrt(minX,maxX,minZ,maxZ)) return false;
   return UMBAU_RAUM.some(b=>(!b.z||zoneOffen(b.z))&&
     minX>=b.r.x0+0.08&&maxX<=b.r.x1-0.08&&minZ>=b.r.z0+0.08&&maxZ<=b.r.z1-0.08);
 }
@@ -49705,6 +50644,8 @@ function dispoZins(){ return S.money<0?r2(-S.money*WIRT.kredit.dispo.zinsTag):0;
 function fixedCosts(){
   let f=WIRT.fix.grund+WIRT.fix.jeLagerregal*racks.length+Math.round(Math.max(0,S.level-WIRT.fix.levelAb)*WIRT.fix.jeLevel);
   shelves.forEach(sh=>f+=SHELFFIX[sh.kind]||WIRT.fix.regalStandard);
+  /* Halle Etappe A: Betrieb je aktiver Hochregal-Gasse */
+  if(typeof llGasseAktiv==='function') for(let k=0;k<3;k++) if(llGasseAktiv(k)) f+=WIRT.fix.hochregal;
   return f;
 }
 /* Die ersten Tage läuft es besser: Neueröffnung spricht sich herum */
@@ -51522,6 +52463,7 @@ function buyUp(id){
       else if(id==='lager_sued') toast('Der zweite Abschnitt ist offen. Die Wand dazwischen ist ganz weg.','money');
       else if(id==='lager_sued2') toast('Die Halle Süd ist komplett: 283 Quadratmeter am Stück.','money');
       else if(id==='lager_west') toast('Die Logistikhalle gehört dir: hinter der Schleuse, die Tore rechts an der Südwand. Mit jeder Stufe wird sie größer.','money');
+      else if(id==='lagerlogistik') toast('Das Hochregal läuft: Lieferungen an Tor 2 bis 4 lagert das Regalbediengerät ein, Nachschub fährt nach ③. Durch N1 geht es ins Kartonlager.','money');
       else if(id==='eingang2'){ setEingang2(true); toast('Der zweite Eingang ist offen. Kunden nehmen ab jetzt die Tür, die näher liegt.','money'); }
       else if(id.indexOf('rampe')===0) toast(`${u.name.split(' ')[0]} Andockstation geht in Betrieb. Das Tor ist frei.`,'money');
       else if(id==='packstation'){ drawPackSchild(); toast(S.up.onlineshop?'Die Packstation steht. Ab jetzt kommen Onlinebestellungen als Pakete herein.':'Die Packstation steht. Für den Versand brauchst du noch den Onlineshop.','money'); }
@@ -52543,6 +53485,8 @@ const GP_ORTE=[
   /* 09.10.: DDL auf Anruf - Blick vom Wandtelefon auf Ladezone und Rolltor V1 */
   ['DDL-Tor',     -14.6,-27.4, -0.62, -0.05],
   ['Logistik',    -30.0,-16.0, Math.PI*0.62, -0.05],
+  /* 14.10. (Halle Etappe A): vom Anbruch in Gasse 1 - RBG, Foerderer, Paletten bis unters Dach */
+  ['Hochregal',   -43.2,-25.6, Math.PI/2, 0.14],
   ['Testfeld',      0.3,-8.5, 0, 0.05]
 ];
 /* 03.10. (Tom: "die Gameplay-Vorfuehrung haengt, am Handy geht gar
@@ -52765,6 +53709,10 @@ function* gpAufbau(){
   let g=0, rn=0;
   for(const r of racks){ for(const sl of r.slots){ if(sl.box) continue; const t=gut[g++%gut.length]; try{ putInSlot(sl,t,P[t].box,1); }catch(e){} }
     yield [0.86+0.12*(++rn)/Math.max(1,racks.length),'Lager füllen']; }
+  /* Hochregal (Halle Etappe A): Gasse 1 zu gut zwei Dritteln mit der meistverkauften Ware, damit RBG und Anbruch arbeiten */
+  if(typeof llOffen==='function'&&llOffen()&&typeof hrDaten==='function'){ const D=hrDaten();
+    for(let i=0;i<180;i++) if(!D.p[i]&&(i*7)%10<7){ const t=gut[i%gut.length]; D.p[i]=[{t,c:P[t].box,q:1},{t,c:P[t].box,q:1},{t,c:P[t].box,q:1}]; }
+    hrSync(); yield [0.985,'Hochregal einlagern']; }
   /* Packmaterial-Regale voll (Erstausstattung) */
   if(typeof vmStand==='function'){ vmStand(0); for(let i=0;i<3;i++) VM_IDS.forEach(id=>{ S.vm[i][id]=VM[id].kap; }); vmRegalZeichnen(); }
   /* Laden auf, Spieler in den Verkauf */
@@ -52883,7 +53831,7 @@ function gpZeichnen(){
 /* Tasten waehrend der Vorfuehrung */
 function gpTaste(e){
   if(!gpAn) return false;
-  if(/^Digit[1-8]$/.test(e.code)){ gpSpringe(+e.code.slice(5)-1); return true; }
+  if(/^Digit[1-9]$/.test(e.code)){ gpSpringe(+e.code.slice(5)-1); return true; }
   if(e.code==='KeyT'){ gpTempoWechsel(); return true; }
   if(e.code==='KeyB'){ gpEnde(); return true; }
   return false;
@@ -52969,6 +53917,7 @@ function save(){
         .concat(Object.values(staff).filter(w=>w&&w.carry&&w.carry.vm).map(w=>w.carry.vm)),
       paketeBoden:einbauPakete.map(b=>Object.assign({regal:b.regal,einbau:b.einbau},mpos(b.mesh))),
       einbauBestellt:S.einbauBestellt||{},
+      hr:S.hr||null, ll:S.ll||null,
       boxes:floorBoxes.filter(b=>!b.test).map(b=>({type:b.type,count:b.count,q:b.q||1,kiste:b.kiste?1:0,x:+b.mesh.position.x.toFixed(2),y:+b.mesh.position.y.toFixed(2),z:+b.mesh.position.z.toFixed(2),ry:+b.mesh.rotation.y.toFixed(2)})).concat(pending.filter(p=>p.type&&P[p.type]).map(p=>({type:p.type,count:P[p.type].box,q:p.q||1}))).concat((typeof truck!=='undefined'&&truck?truck.cargo:[]).filter(c=>c.type&&P[c.type]).map(c=>({type:c.type,count:P[c.type].box,q:c.q||1})))};
     localStorage.setItem(KEY,JSON.stringify(d));
   }catch(e){}
@@ -53398,7 +54347,7 @@ function updateInnenlicht(dt){
   innenT-=dt;
   if(innenT<=0){ innenT=0.18;
     const fx=-Math.sin(yaw), fz=-Math.cos(yaw), px=pl.x+fx*2.5, pz=pl.z+fz*2.5;
-    const kand=[]; for(let i=0;i<LAMPEN.length;i++){ const L=LAMPEN[i]; if(L.id&&!zoneOffen(L.id)) continue;
+    const kand=[]; for(let i=0;i<LAMPEN.length;i++){ const L=LAMPEN[i]; if(L.id&&!zoneOffen(L.id)) continue; if(L.aus&&zoneOffen(L.aus)) continue;
       const d=Math.hypot(L.x-px,L.z-pz), dk=Math.hypot(L.x-pl.x,L.z-pl.z); if(d>16&&dk>16) continue;
       kand.push({i,d:Math.min(d,dk*1.15)}); }
     kand.sort((a,b)=>a.d-b.d);
@@ -53440,6 +54389,8 @@ function dachBereiche(){
   const g=_daecher.length;
   r({x0:GANG.x0,x1:GANG.x1,z0:GANG.z0,z1:GANG.z1},GANG.h);
   _daecher[g].zone='lager_west';
+  /* Halle Etappe A: Ostteil von ③ und neue Schleuse haben ihr Dach erst mit dem Ausbau */
+  r({x0:-26,x1:-19.9,z0:LL.schleuse.z0,z1:LL.lager3.z1},LL.h3); _daecher[_daecher.length-1].zone=LL.id;
   return _daecher;
 }
 function unterDach(x,y,z){
@@ -53523,7 +54474,7 @@ function step(dt){
     else if(!spawnWTruck(frei,ladung,sid,supplierOf(sid).name)) break;
   }
   updateSonne(pl.x,pl.z);
-  updateInnenlicht(dt); updateTruck(dt); updateWBays(dt); updateSchiebetuer(dt); updateVersand(dt); updatePaletten(dt); updateSchweber(dt); updateWischen(dt); updateSchoner(dt); updateZiel(dt); karreNachziehen(); karreFolgen(); kartonTick(dt);
+  updateInnenlicht(dt); updateTruck(dt); updateWBays(dt); if(typeof hrTick==='function') hrTick(dt); updateSchiebetuer(dt); updateVersand(dt); updatePaletten(dt); updateSchweber(dt); updateWischen(dt); updateSchoner(dt); updateZiel(dt); karreNachziehen(); karreFolgen(); kartonTick(dt);
   for(let i=timers.length-1;i>=0;i--){ timers[i].t-=dt; if(timers[i].t<=0){ const tm=timers[i]; timers.splice(i,1); if(tm.fw){ FW_KTX++; try{ tm.fn(); } finally { FW_KTX--; } } else tm.fn(); } }
   if(phase==='open') addGrime(dt*0.0016*(1+customers.length*0.05));
   hype=Math.max(0,hype-dt*WIRT.kunden.hype.verfallJeSek);
@@ -54072,7 +55023,7 @@ fontsReady().then(()=>{
   /* Shader fuers Feuerwerk vorab uebersetzen, solange das Startmenue
      steht - dann steht beim Losspielen und beim ersten Schuss nichts */
   setTimeout(()=>{ if(typeof shaderVorab==='function') shaderVorab(); },400);
-  window.__bb={MAT,bk,get S(){return S},get phase(){return phase},set phase(v){phase=v},set clock(v){clock=v},get clock(){return clock},pickUp,floorBoxes,shelves,racks,dekos,stockOne,openShop,step,customers,queue,belt,scanBelt,buyUp,buyDeko,get DS(){return DS},endDay,pending,save,openLaptop,closeLaptop,pl,addXP,hireStaff,fireStaff,staff,dirts,addDirt,movables,toggleBuild,setWall,setFloor,
+  window.__bb={MAT,bk,LL,LL_STELL,LL_GASSEN,get LL_T(){return LL_T},get LL_G(){return LL_G},LL_ALT,llOffen,llGasseAktiv,llSperrt,llSperrRechtecke,llRaeumen,HR,hrDaten,hrSync,hrStock,hrBelegt,hrKapazitaet,hrFreiPlatz,llStellSlot,llStellSicht,llStellBoxen,spawnFloorBox,hrTick,fixedCosts,get S(){return S},get phase(){return phase},set phase(v){phase=v},set clock(v){clock=v},get clock(){return clock},pickUp,floorBoxes,shelves,racks,dekos,stockOne,openShop,step,customers,queue,belt,scanBelt,buyUp,buyDeko,get DS(){return DS},endDay,pending,save,openLaptop,closeLaptop,pl,addXP,hireStaff,fireStaff,staff,dirts,addDirt,movables,toggleBuild,setWall,setFloor,
     stations,firePult,placeOnStation,igniteType,get order(){return order},get phone(){return phone},makeCall,answerPhone,haggle,acceptDeal,declineDeal,get truck(){return truck},spawnTruck,takeFromTruck,takeBox,dropBox,updateTruck,get door(){return door},get tuer(){return tuer},tuerSet,tuerNah,updateSchiebetuer,doorOpen,doorIsOpen,trailerOccupied,LR,lrFront,TOR,orderReady,orderLeft,shipOne,removeFloorBox,prioOf,setPrio,racks,updateCarry,spawnFloorBox,staff,SHELFKIND,layout,shelfCapOf,shelfAccepts,emptyLevel,dateInfo,dateStr,dateShort,seasonInfo,isSunday,dayMult,ruhetag,wageOf,setWage,friendliness,inPause,setPause,windowGrime,addGrime,cleanWindowTick,ambienteScore,bildBoost,fixedCosts,dailyWages,dispoLimit,verfuegbar,dispoZins,takeLoan,loanTier,loanDaily,EVENTS,GOALS,CUSTTYPES,UPGRADES,STAFF,stockOf,spawnInterval,pools,todayEvent,evv,rollEvent,rollMarket,newGoal,goalAdd,goalTick,ekFactor,marktText,xpFor,rollCustType,priceTol,buyChance,regCustomer,makeWishes,nachfrageFaktor,shelfStockOf,buildGravur,refillGrav,openGravInput,closeGravInput,get gravBlanks(){return gravBlanks},set gravBlanks(v){gravBlanks=v},orderBox,buyPack,cartAdd,cartAddPack,cartOrder,cartClear,cartDel,cartGoods,cartFee,cartTotal,cartBoxes,cartLines,LIEFERZEIT_SEK,VERSAND,VERSANDFREI,lieferSek,
     regaleImBlick,vsPK,VS_OPT,vsRouteLaenge,vsStopsBauen,vsBedarf,vsPQ:vsPunkteVon,scene,camera,P,NEUWARE,NEU_SHOWS,NEU_FONT,NEU_KUGEL,neuZuenden,PARK,restWelle,restTick,restDruck,restDaten,buyAngebot,grossOffen,updatePark,parkWasser:()=>_wasserM,parkTannen:()=>PARK_TANNEN,parkLeben:()=>parkEnten.concat(parkLeute).map(e=>({x:e.g.position.x,z:e.g.position.z})),pendingListe:()=>pending,einbauPakete,spawnPaket,paketAblegen,paketAufheben,EINBAU,PAKET_MASS,vorDieTuer,sbZiel,makeAuto,AUTOFORM,ladenInnen,stadtInfo:()=>({warn:beacons.length,kronen:KRONEN.length,stufen:SKYLINE_INFO.stufen,skyStile:SKYLINE_INFO.stile.size,stile:Object.keys(STADT_MATS).length}),clearStations,fachHoehe,kindOf,packKartonWert,SUPPLIERS,supplierFor,supplierOf,tierPrice,isUnlocked,lizLevel,renderLaptop,get lsup(){return lsup},set lsup(v){lsup=v},get lkat(){return lkat},set lkat(v){lkat=v},SPARTE,SPARTE_NAME,sparteVon,HEADNAME,headArt,catPill,ekRoh,ekDelta,ekTag,ekNiveau,ekPill,get ltab(){return ltab},set ltab(v){ltab=v},EFF,EFF_ALL,EFF_KLEIN,EFF_GROSS,EFF_PRO,SHOWS,kugelbombe,shot,mine,FW,stations,stationOf,placedCount,togglePDA,openPDA,closePDA,setPost,get postOn(){return postOn},get pdaOn(){return pdaOn},showLength,psHuge,psBig,psMid,psSmall,rockets,emitters,timersLen:()=>timers.length,timersLeeren:()=>{timers.length=0;},setView:(x,z,y,p)=>{pl.x=x;pl.z=z;yaw=y;pitch=p;aim=null;},schiebe:(x,z)=>{pl.x=x;pl.z=z;collide(pl,0.32);return{x:pl.x,z:pl.z};},PLZ_MAX,camYaw:()=>yaw,camPitch:()=>pitch,playerPos:()=>({x:pl.x,z:pl.z}),pultYaw:()=>pultHit?pultHit.parent.rotation.y:null,get pultHit(){return pultHit},applyShopName,shopName,shopSlogan,signTexPx:()=>signTex&&signTex.image?texCanvas(signTex).getContext('2d').getImageData(0,0,signTex.image.width,40).data.join(''):null,lagerWall,fwShot:shot,KUGEL_R,ROHR_INNEN,MOERSER_R,moerserRohr,sfx,WOLKEN,get master(){return master},ac,SORTE_NEU,sortenUmstellen,get shakeWert(){return shake},get ckG(){return ckG},get ckNameTex(){return ckNameTex},get ckMovable(){return ckMov},CK_HOME,CK_ALT,spotPos,queueApproach,ckTexPx:()=>ckNameTex&&ckNameTex.image?texCanvas(ckNameTex).getContext('2d').getImageData(0,0,ckNameTex.image.width,60).data.join(''):null,testfeldMitte,STATION_POS,aimAt,UPGRADES,upPic,PLAN,planFlaechen,uhrZeiger:()=>({std:uhrStd?+uhrStd.rotation.z.toFixed(4):0,min:uhrMin?+uhrMin.rotation.z.toFixed(4):0}),drawRackSchild,get snowPts(){return snowPts},buildStadt,updateStadt,get stadtBoxen(){return stadtBoxen},get stadtBaeume(){return stadtBaeume},buildFernbaeume,schwaerme,beacons,silhouetten,get verkehrPts(){return verkehrPts},get rauchPts(){return rauchPts},get flieger(){return flieger},stadtFrei,STADT_FREI,WALLS,FLOORS,bodenMalen,wandMalen,oberflaechenMuster,oberflaechenAnwenden,BODEN_KACHEL,WAND_B,WAND_H,bodenPx,wandPx,innenUmgebung,sockelM,get wallTex(){return wallTex},get floorTexRef(){return floorTexRef},get floorMat(){return floorMat},get shopWall(){return shopWall},renderOnline,onlineHint,onlineStufe,onlineZahlen,onlineListe,updateOnline,SCHILDBG,SCHILDFG,setSchild,schildBg,schildFg,repaintSchilder,updateHead,allLevels,addToLevel,putInSlot,regCustomer,ZONEN,zoneOffen,oeffneZone,applyZonen,SLOTS,RACKS,slotsOffen,colliders,LAY,LOGI,WRAMPEN,WTORE,updateSnow,unterDach,dachBereiche,get lapHit2(){return lapHit2},buildLagerTerminal,toggleTest,testLevel,buyUp,get toastLast(){return toastLast},__floorBoxen:()=>floorBoxes.length,WBAY_UP,wbays,dockPlaetze,wbayFrei,wbayOffen,spawnWTruck,updateWBays,wbaysInit,wtorSet,GANG,GANGTUER,buildLagergang,flaeche,WTOR,RACKKIND,route,NAV,navFrei,navIdx,navBuild,shelfStand,shelves,sbLanes,buildSBKasse,sbFrei,sbOffen,sbNutzbar,EING2,eingaenge,naechsterEingang,setEingang2,TUEREN,tuerSetD,tuerNahD,packBereit,packOne,paketWert,bestellungenProTag,pakete,ddlAbholung,updateVersand,VS_GR,VS_FELD,WG_PARK,vsNeueBestellung,vsAbgleich,vsKlasse,vsQuellen,vsBestand,vsErfuellbar,vsPlan,vsStapelP,vsPalZiel,vsSpielerPacken,vsSpielerBestellung,vsTischFrei,vsStatus,vsAufraeumen,vsLaden,vsBahn,vsPaketOffen,vsKlappen,vsFuellung,vsPaketZu,get vsTisch(){return vsPlaetze[0]?vsPlaetze[0].tisch:null},get vsWagen(){return vsPlaetze[0]?vsPlaetze[0].wagen:null},vsPlaetze,vsPortal,vsStufeGeaendert,packStufe,packStufeAnwenden,packTeile,VS_PP,VS_PZ,VS_TOP,VS_TB,ppW,BAND,ZELLE,ZELLE_Z1,PALETTEN,PAL_H,VS_MUSTER,vsKapazitaet,vsGelandet,vsCfg,vsNachfrage,vsGebuehr,VS_PORTO,VS_CFG_STD,vsBuchen,vsHits,vsPlatzAus,VM,VM_IDS,vmStand,vmReicht,vmVerbrauchen,vmEinlagern,vmBestellen,vmAuffuellen,vmBestellbar,vmGesamt,vmKapGesamt,vmUnterwegs,vmRegale,vmRegalZeichnen,vmWarnung,vmPlatzMit,vmLkwJob,vmStandPunkt,pullFromTruck,dumpTruck,createShelf,createRack,regalStellen,testKauf,regalAufbauen,orderRegal,REGALWARE,regalOf,regalKind,regalPreis,regalPlatz,regalOffen,startGame,promptFor,ERFOLGE,erfOffen,erfStufe,erfStand,erfZiel,erfFertig,erfAnteil,erfGeschafft,erfGesamt,stat,statAdd,statRekord,statVerkauf,bruchGesehen,gruppeVon,GRUPPE,TRAEGER,BRUCH,BRUCH_IDS,REZ_FARBEN,ETIKETT,traegerVon,traegerOffen,bruchOffen,bruchListe,rezeptWow,rezeptKosten,rezeptMarkt,rezeptHype,rezeptDauer,rezeptEntwicklung,rezeptGueltig,eigeneListe,eigenesEintragen,rezepteTick,rezProto,rezBauen,renderRezeptur,get entwurf(){return entwurf},set entwurf(v){entwurf=v},entwurfInit,ORDER,LIZENZEN,lizenzOf,hatLizenz,lizenzDaten,naechsteLizenz,buyLizenz,VOLA,volaOf,REGIME,marketOf,costOf,marktZiel,marktLuecke,meOf,miOf,marktDelta,marktNiveau,marktPhase,marktSchock,marktLabel,marktSchnitt,marktExtrem,marktChance,sortimentBreite,sortimentZug,bekanntheit,spawnInterval,rollMarkt,marktInit,inflOf,inflText,setPreisAufMarkt,igniteType,get packHit(){return packHit},get packTisch(){return packTisch},get packMov(){return packMov},zuendeKanal,zuendeAlle,alleKanaele,get pultText(){return pultText},drawPult,kanalItem,openZuend,closeZuend,get zuendOpen(){return zuendOpen},overlayOpen,pultTaster,zuendTick,TISCH_X,RAMPE_X,KANAL_START,bereitCount,brennDauer,muendung,pultLamps,RAKETEN_LOOK,RAKETEN_KL,makePerson,applyTOD,updateHUD,renderer,renderFrame,get DEMO(){return DEMO},LHALLE,LOGI_STUFEN,TOR_STUFE,logiStufe,logiZeige,logiAnwenden,LOGI_G,TOR_G,WTORE,tuAktion:(kind,ref)=>{ const alt=target; target={kind,ref}; try{ doAction(); } finally { target=alt; } },promptFor,KARREN,karreArt,karreAn,karreStapel,karreLast,karreNimmt,toggleKarre,updateKarre,setTutorial,tutorialAn,zielFuer,get zielAktuell(){return zielAktuell},get tipKey(){return tipKey},updateZiel,set DEMO(v){DEMO=v},kapitelVon,kapitelVoll,openHandy,closeHandy,toggleHandy,get handyOpen(){return handyOpen},get happ(){return happ},HANDY_APPS,renderHandy,shaderVorab,SCHONER,schonerMalen,updateSchoner,makeWischer,stelleWischer,get wischer(){return wischer},updateWischen,wischerPersonal,cleanTick,updateFireworks,FLASH,spurEnden,LR_LAMPE,schweber,kundenSymbol,geldSchwebt,get serie(){return serie},serieZufrieden,serieBricht,KAPITEL,kapitel,kapitelNr,kapitelAufstieg,WA,WA_SLOTS,vorDieTuer,SB_KASSIERER,sbBesetzt,sbLaneVon,sbKassiererPlatz,sbBetreuer,sbHeimPlatz,sbHelferPlatz,sbGeholfen,sbFreiNah,SB_SELBST,sbPos,MUSIK,STUECKE,musikAn,musikWeiter,musikVol,musikTick,spielSchritt,get mStep(){return mStep},set mStep(v){mStep=v;mTakte=0;},get mBus(){return mBus},get postHalf(){return postHalf},EFF_SCHWEIF,mitSchweif,KOEPFE,KLEID,UNIFORM,STAFFKOPF,faceCache,animPerson,personTuete,personTraegt,personGreif,FIG_DATEN,FIG_PERSONEN,PACKS,packPreis,packPool,packOffen,packContents,syncPakete,rotateGrab,cancelGrab,moebelTaste,moebelEinpacken,paketAuspacken,moebelImBlick,removeShelf,removeRack,PACK_FL,PACK_HOME,spotFree,rectOf,grab,placeGrab,updateGrab,get grabbed(){return grabbed},showPause,closePause,pauseSeite,pauseSeiteAktiv,zumStartbildschirm,fortsetzen,musikWahl,musikTitel,get startOpen(){return startOpen},get pauseOpen(){return pauseOpen},get target(){return target},einrOf,einrAktiv,einrHoch,einrRunter,einrSchalten,AUFGABEN,einrJob,kartonMat,kartonBild,kartonAtlasInfo,pools,shelfStockOf,removeFromLevel,fwLog:(a)=>{FW_LOG=a;},moerserRohr,ROHR_KALIBER,effPassen,EFF_FAMILIE,basisBlick,fwTestSchalten,fwTestProdukte,fwTestStapeln,get fwTestAn(){return fwTestAn},get fwTestBoxen(){return fwTestBoxen},get fwTestMarken(){return fwTestMarken},fwStufe,sonne:()=>sun.intensity,get fwUhr(){return FW_UHR},THEMEN,SHOW_BASIS,EFF,emittersListe:()=>emitters,show,SIGNATUR,showZeiten,showDauer,phDauer,musterWinkel,feuertopf,playShow,KAL,get rohrStreu(){return ROHR_STREU},vorfuehrungAn,vorfuehrungAus,vfNaechstes,vfZuenden,vfStopp,get vfAufraeumen(){return vfAufraeumen},vfSpringen,vfNote,vfText,vfTaste,get vfAn(){return vfAn},get vfGezuendet(){return vfGezuendet},get vfIdx(){return vfIdx},get vfLetzt(){return vfLetzt},get vfListe(){return vfListe},get vfEl(){return vfEl},set rohrStreu(v){ROHR_STREU=v},BUENDEL,bSammeln,bWaechter,buendelJetzt:()=>{ bSammeln(); bSammeln(); return BUENDEL.n; },NEU_TEST,get vfSonder(){return vfSonder},vpSchalten,vpStart,vpAus,vpStellplaetze,vpVerteilen,vpProdukte,vpFuellung,get vpAn(){return vpAn},get vpRegale(){return vpRegale},get vpPlan(){return vpPlan},get vpFertig(){return vpFertig},get SPIEL_RAUM(){return SPIEL_RAUM},vpZeilenMass,VP_ZEILEN,sucheText,sucheRang,drawFront,drawTop,drawSide,WARE_MOTIV,wareFront,wareTop,wareMarke,KAPPE,kleinTakt,texCanvas,get RES(){return RES},resSetzen,resRegeln,gfxMess,schildTaste,schildFertig,schildZiel,get schildOpen(){return schildOpen},get vpNamenM(){return vpNamenM},kisteTaste,kannRaus,kisteRaus,kisteMat,KISTE_STUECK,poolDa,poolWeg,VP_FL,modRaster,slotLocal,gfxAnwenden,gfxWaehlen,gfxMessen,gfxMess,gfxAnzeige,get GFX(){return GFX},get GFX_WAHL(){return GFX_WAHL},QUAL,rohrBedarf,rohrLayout,rohrSatz,istBatterie,batterieModell,zuendPlan,buildProduct,capOf,zuendFolge,rohrMund,korpusTeile,rohrGeometrie,poolsAus,istVerbundKarton,regalFarben,regaleFaerben,get ROHR_LOG(){return ROHR_LOG},set ROHR_LOG(v){ROHR_LOG=v},schattenSichtbar:()=>renderer.shadowMap.enabled&&sun.shadow.bias>-1,sfxVol,get SFX_VOL(){return SFX_VOL},GFX_PROFIL,GFX_START,GFX_NAME,PR,PRACHT,prUmgebung,LI,ladenLichtTakt,liMoebelSchatten,prMaterialien,gfxPixel,gfxSamples,schattenGr:()=>sun.shadow.mapSize.x,get postDiv(){return postDiv},festImBlick,makeWishes,VP_FORM,gpStart,gpEnde,gpSpringe,gpBauSchritt,gpTick,gpBestellen,gpBauSchritt,get gpFertig(){return gpFertig},get gpAn(){return gpAn},get gpVerlauf(){return gpVerlauf},GP_ORTE,wandRechtecke,wandSchub,moebelRect,rackRect,rackKindOf,stellPlatz,rackStellPlatz,rackPlatzFrei,racksEntwirren,regalNein,kasseReserve,gpPlan,gpVerteilen,GP_ABT,gpAbtVon,
     vsWelt,vdOffen,vdSetzen,ddlAbfahrt,ddlTelPrompt,boxBelegt,ddlStand,vsBoxVoll,vsAnnahme,vsQuote,vsQuoteStd,vsAktion,vsRabatt,vsPreis,vsListe,vsSaleFaktor,vsBesucheProTag,vsGratisHeute,onlineTag,onlineTagSchliessen,onlineErgebnis,onlineStatHtml,versandBereich,versandBereichRaeumen,placeMovable,LADEZONE,ladezoneRechtecke,PORTAL_Z0,DDL_PAUSCHALE,LAGERPC,get tabHit(){return tabHit},get lapGeraet(){return lapGeraet},GERAETE,vmKostenJe,openLaptop,lapKlick,ddlTelZeichnen,VS_PORTO,hubAufbauPark,V1,VT,VD,LD,HUB,DDL,vf,vfRueck,ddlSlot,vsStapelLage,vsPalZelle,vsPalZahl,ddlRufen,ddlAbholung,ddlLaeuft,updatePaletten,vsPalAbgleich,vsPalById,palZentrumWelt,vsPalObj,vsPalHits,vdIstOffen,vtBesetzt,vsPalGleitet,roboterBusy,hubKollision,DDL_SLOTS,rackR1Pack,vsHeim,vsKapazitaet,PACK_HOME,V1_HOF,PAL_N,ZELLE,PALETTEN,palPlaetze,vsPalNeu,

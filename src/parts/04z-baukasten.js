@@ -99,6 +99,11 @@ bk.schild=function(parent,o){
   me.position.set(o.x||0,o.y||0,o.z||0); me.rotation.y=o.ry||0; me.userData.bauteil='schild';
   (parent||scene).add(me); return me;
 };
+/* Schild wieder abbauen (zeitweilige Schilder, z. B. Ausstellung 2.0): Mesh, Geometrie, Material und Textur frei, auch aus dem Cache */
+bk.schildWeg=function(me){ const m=me.material, t=m&&m.map;
+  for(const [k,v] of [..._bkSchildM]) if(v===m) _bkSchildM.delete(k);
+  for(const [k,v] of [..._bkSchildT]) if(v===t) _bkSchildT.delete(k);
+  if(me.parent) me.parent.remove(me); me.geometry.dispose(); if(m) m.dispose(); if(t) t.dispose(); };
 bk.liste=function(){ return {schildTexturen:_bkSchildT.size,schildMaterialien:_bkSchildM.size}; };
 
 /* =========================================================
@@ -1369,4 +1374,82 @@ bk.zelle=function(o){
   /* Gummiboden innen */
   S.box(x1-x0-2*d,0.01,z1-z0-2*d,(x0+x1)/2,0.008,(z0+z1)/2,F('gummischwarz'),'matt');
   return out;
+};
+
+/* =========================================================
+   Verkaufstisch + Schild-Atlas (Verpackungs-Ausstellung 2.0, 15.10.2026)
+
+   Tom 15.10.: "Verkaufstische hin und jedes Produkt EINMAL drauf, mit dem Namen - dann sage ich dir,
+   welche Verpackung nicht passt." Rund 250 Tische mit je einem Schild waeren ohne Baukasten 250 Tische
+   (je mehrere Meshes, Texturen) und 250 Schilder. Darum:
+   - bk.verkaufstischTeile(K,box)  die Teile des Ladenbau-Tisches (SHELFKIND.tisch / tischgross), EINE
+                                   Quelle: bauMoebel (06) und bk.verkaufstisch benutzen sie, Optik wie im Laden
+   - bk.verkaufstisch({tische:[{x,z,ry,kind}],parent}) -> {mesh,anzahl,dispose()}  viele Tische = EIN Mesh
+                                   (Vertexfarben nach Rolle wie regalFarben, Material gestellMat)
+   - bk.schildAtlas({schilde:[{m,b,h}],zelle:{w,h},malen(g,i,w,h),status:{...}}) -> {platte,schrift,set(i,s),...}
+                                   viele Schilder = ZWEI Meshes: Platte (Vertexfarbe je Status) und Schrift
+                                   (ein Atlas, Zelle je Schild; Statusstreifen tauscht nur die UVs)
+   Doku: docs/fundament/baukasten.md (Ausstellung 2.0)
+   ========================================================= */
+bk.verkaufstischTeile=function(K,box){
+  const W=K.w, D=K.d, y=K.lv[K.lv.length-1], iw=W-0.1, st=[];
+  st.push({geo:box(W,0.04,D),m:tm(0,y-0.02,0),rolle:'platte'});
+  st.push({geo:box(W+0.01,0.02,D+0.01),m:tm(0,y-0.045,0),rolle:'rahmen'});
+  for(const sx of [-1,1]) for(const sz of [-1,1]) st.push({geo:box(0.05,y-0.06,0.05),m:tm(sx*(W/2-0.06),(y-0.06)/2,sz*(D/2-0.06)),rolle:'rahmen'});
+  for(const sz of [-1,1]) st.push({geo:box(W-0.12,0.08,0.025),m:tm(0,y-0.1,sz*(D/2-0.06)),rolle:'rahmen'});
+  for(const sx of [-1,1]) st.push({geo:box(0.025,0.08,D-0.12),m:tm(sx*(W/2-0.06),y-0.1,0),rolle:'rahmen'});
+  st.push({geo:box(W-0.14,0.02,D-0.14),m:tm(0,0.16,0),rolle:'platte'});
+  for(const sx of [-1,1]) for(const sz of [-1,1]) st.push({geo:box(0.06,0.015,0.06),m:tm(sx*(W/2-0.06),0.008,sz*(D/2-0.06)),rolle:'fuss'});
+  st.push({geo:box(iw,0.05,0.014),m:tm(0,y-0.1,D/2-0.04),rolle:'preis'});
+  return st;
+};
+bk.verkaufstisch=function(o){
+  const GB={}, box=(w,h,d)=>GB[w+'|'+h+'|'+d]||(GB[w+'|'+h+'|'+d]=new THREE.BoxGeometry(w,h,d)), teile=[];
+  for(const T of o.tische){ const K=SHELFKIND[T.kind||'tisch'], RF=regalFarben(K), M=tm(T.x,0,T.z,0,T.ry||0,0);
+    for(const q of bk.verkaufstischTeile(K,box)) teile.push({geo:q.geo,m:new THREE.Matrix4().multiplyMatrices(M,q.m),color:RF[q.rolle]}); }
+  const geo=merge(teile); for(const k in GB) GB[k].dispose();
+  const mesh=new THREE.Mesh(geo,gestellMat()); mesh.userData.bauteil='verkaufstisch';
+  (o.parent||scene).add(mesh);
+  return {mesh,anzahl:o.tische.length,dispose(){ if(mesh.parent) mesh.parent.remove(mesh); geo.dispose(); }};
+};
+/* o.schilde[i]={m:Matrix4 (Ebene b x h, Mitte im Ursprung, Blick +z -> Welt), b,h}; o.zelle={w,h} (Pixel der Vorlage),
+   o.spalten, o.malen(g,i,w,h) malt Schild i auf TRANSPARENT (Zelle w x h), o.status={w,h (Pixel), hm (Hoehe in m),
+   ton:[Palettenton je Status], malen:[fn(g,w,h)]}. set(i,s): Plattenfarbe und Statusstreifen. */
+bk.schildAtlas=function(o){
+  const n=o.schilde.length, cw=o.zelle.w, ch=o.zelle.h, ST=o.status, cols=o.spalten||12, rows=Math.max(1,Math.ceil(n/cols));
+  const sk=Math.max(o.skalaMin||0,Math.min(1,MAT.stufe().tx||1))*(o.skala||1);   /* Schrift bleibt lesbar: auch Ultra Low mindestens skalaMin */
+  const Wp=Math.max(64,Math.ceil(Math.max(cols*cw,ST.malen.length*ST.w)*sk)), Hp=Math.ceil((rows*ch+ST.h)*sk);
+  const c=document.createElement('canvas'); c.width=Wp; c.height=Hp; const g=c.getContext('2d'); g.scale(sk,sk);
+  const zelle=(x,y,w,h,f,a)=>{ g.save(); g.translate(x,y); g.beginPath(); g.rect(0,0,w,h); g.clip(); if(a===undefined) f(g,w,h); else f(g,a,w,h); g.restore(); };
+  for(let i=0;i<n;i++) zelle((i%cols)*cw,Math.floor(i/cols)*ch,cw,ch,o.malen,i);
+  ST.malen.forEach((f,k)=>zelle(k*ST.w,rows*ch,ST.w,ST.h,f));
+  const T=new THREE.CanvasTexture(c); T.anisotropy=GFX_START.ani; T.encoding=THREE.sRGBEncoding;
+  const uvR=(x,y,w,h)=>[(x*sk+0.5)/Wp,1-((y+h)*sk-0.5)/Hp,((x+w)*sk-0.5)/Wp,1-(y*sk+0.5)/Hp];
+  /* Platte (Rahmen r rundum) und Schrift (Schild + Statusstreifen) als je EIN Mesh */
+  const r=o.rand===undefined?0.012:o.rand, PP=new Float32Array(n*12), PN=new Float32Array(n*12), PC=new Float32Array(n*12), PI=new Uint32Array(n*6);
+  const SP=new Float32Array(n*24), SN=new Float32Array(n*24), SU=new Float32Array(n*16), SI=new Uint32Array(n*12);
+  const v=new THREE.Vector3(), nm=new THREE.Vector3(), nmat=new THREE.Matrix3();
+  const ecke=[[-1,-1],[1,-1],[1,1],[-1,1]];
+  for(let i=0;i<n;i++){ const S=o.schilde[i], b=S.b, h=S.h; nmat.getNormalMatrix(S.m); nm.set(0,0,1).applyMatrix3(nmat).normalize();
+    const quad=(P,N,off,q,hx,y0,y1,z)=>{ for(let k=0;k<4;k++){ v.set(ecke[k][0]*hx,ecke[k][1]<0?y0:y1,z).applyMatrix4(S.m); P.set([v.x,v.y,v.z],(off+k)*3); N.set([nm.x,nm.y,nm.z],(off+k)*3); } };
+    quad(PP,PN,i*4,0,b/2+r,-h/2-r,h/2+r,0);
+    quad(SP,SN,i*8,0,b/2,-h/2,h/2,0.003);
+    quad(SP,SN,i*8+4,0,b/2,-h/2,-h/2+ST.hm,0.0045);
+    const c0=uvR((i%cols)*cw,Math.floor(i/cols)*ch,cw,ch); SU.set([c0[0],c0[1],c0[2],c0[1],c0[2],c0[3],c0[0],c0[3]],i*16);
+    for(const [I,off] of [[PI,i*4],[SI,i*8],[SI,i*8+4]]){ const base=I===PI?i*6:i*12+(off===i*8?0:6); I.set([off,off+1,off+2,off,off+2,off+3],base); } }
+  const pg=new THREE.BufferGeometry(); pg.setAttribute('position',new THREE.BufferAttribute(PP,3)); pg.setAttribute('normal',new THREE.BufferAttribute(PN,3)); pg.setAttribute('color',new THREE.BufferAttribute(PC,3)); pg.setIndex(new THREE.BufferAttribute(PI,1));
+  const sg=new THREE.BufferGeometry(); sg.setAttribute('position',new THREE.BufferAttribute(SP,3)); sg.setAttribute('normal',new THREE.BufferAttribute(SN,3)); sg.setAttribute('uv',new THREE.BufferAttribute(SU,2)); sg.setIndex(new THREE.BufferAttribute(SI,1));
+  /* ungelit und ohne Tonwert: Schildfarben (Status!) und Schrift sehen bei jedem Licht gleich aus */
+  const platte=new THREE.Mesh(pg,MAT.vc('leucht')), mat=MAT.neu('weissMatt',{map:T,emissiveMap:T,emissive:MAT.farbe('weiss'),alphaTest:0.4,toneMapped:false}), schrift=new THREE.Mesh(sg,mat);
+  mat.color.setRGB(0,0,0);
+  platte.userData.bauteil=schrift.userData.bauteil='schildAtlas';
+  const farben=ST.ton.map(t=>LIN(MAT.farbe(t)));
+  const A={n,platte,schrift,tex:T,skala:sk,pixel:Wp*Hp,
+    set(i,s){ const F=farben[s]; for(let k=0;k<4;k++) PC.set([F.r,F.g,F.b],(i*4+k)*3); pg.attributes.color.needsUpdate=true;
+      const u=uvR(s*ST.w,rows*ch,ST.w,ST.h); SU.set([u[0],u[1],u[2],u[1],u[2],u[3],u[0],u[3]],i*16+8); sg.attributes.uv.needsUpdate=true; },
+    dispose(){ for(const m of [platte,schrift]) if(m.parent) m.parent.remove(m); pg.dispose(); sg.dispose(); T.dispose(); mat.dispose(); c.width=c.height=0; }};
+  for(let i=0;i<n;i++) A.set(i,(o.start&&o.start[i])||0);
+  pg.computeBoundingSphere(); sg.computeBoundingSphere();
+  (o.parent||scene).add(platte); (o.parent||scene).add(schrift);
+  return A;
 };

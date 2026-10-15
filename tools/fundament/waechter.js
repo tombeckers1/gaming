@@ -100,10 +100,12 @@ const BAUTEILE=[
   {bk:'rohrraster',woerter:['rohrraster'],wofuer:'Batterie-Rohr-Raster (Fertigung)'},
   {bk:'maschine',woerter:['maschine','maschinen'],wofuer:'Stationsmaschinen der Fertigung (Arten statt Kopien)'},
   {bk:'erdwall',woerter:['erdwall','schutzwall'],wofuer:'Erdwall um das Mischhaus'},
-  {bk:'zelle',woerter:['betonzelle','sicherheitszelle','fuellzelle'],wofuer:'Betonzelle (mannlose Station, Mischhaus, Chemie-Box)'}
+  {bk:'zelle',woerter:['betonzelle','sicherheitszelle','fuellzelle'],wofuer:'Betonzelle (mannlose Station, Mischhaus, Chemie-Box)'},
+  /* Verpackungs-Ausstellung 2.0 (15.10.) */
+  {bk:'verkaufstisch',woerter:['verkaufstisch','verkaufstische'],wofuer:'Ladenbau-Verkaufstische (viele in einem Mesh) - Optik wie SHELFKIND.tisch/tischgross'}
 ];
 /* Helfer im Baukasten (kein Bauteil, keine Namensregel) */
-const HELFER=['lod','kasten','stab','uvZeile','schildTex','liste','WB','PALETTE','inst','bandMat','bandTex','flaeche','flaecheArt','fuss','wandFlaeche','wandBildAdd','wandbildTakt','paletten','palFarbe','HOCHREGAL','ladungGeo','MARKIERUNG','kastenM','werkSammler','balken'];
+const HELFER=['lod','kasten','stab','uvZeile','schildTex','liste','WB','PALETTE','inst','bandMat','bandTex','flaeche','flaecheArt','fuss','wandFlaeche','wandBildAdd','wandbildTakt','paletten','palFarbe','HOCHREGAL','ladungGeo','MARKIERUNG','kastenM','werkSammler','balken','verkaufstischTeile','schildAtlas','schildWeg'];
 /* geloeschte Duplikate - duerfen nie zurueckkommen (Schritte Material, Angleichung, Tore, Feuerwerk) */
 const GELOESCHT=['torPanelMat','torBlattMat','westTorInnen','vdPanelMat','panelPose','strebe','concreteTex','gitterTex','gitterMat',
   'stationsModell','stationSlot','rampeMund','kerzeImRohr','stationsPool','vfMuendung','vfImRohr','hvLamellenTex','hvTor'];

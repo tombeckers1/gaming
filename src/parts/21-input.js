@@ -9,7 +9,7 @@ function requestLock(){
   try{ const r=canvas.requestPointerLock(); if(r&&r.catch) r.catch(()=>{ lockFailed=true; dragHint(); }); }catch(e){ lockFailed=true; dragHint(); }
 }
 let zuendOpen=false;
-function overlayOpen(){ return schildOpen||startOpen||laptopOpen||handyOpen||summaryOpen||pauseOpen||cashOpen||levelOpen||dealOpen||gravOpen||pdaOpen; }
+function overlayOpen(){ return schildOpen||startOpen||laptopOpen||handyOpen||summaryOpen||pauseOpen||cashOpen||levelOpen||dealOpen||gravOpen||pdaOpen||vp2ListeOffen; }
 /* =========================================================
    Zuendmodus am Pult (Tom, 25.09.): E am Pult schaltet ihn ein.
    Kein Fenster, keine Kamerafahrt - man schaut sich weiter frei um
@@ -203,6 +203,7 @@ addEventListener('keydown',e=>{
   if(e.code==='Escape'&&laptopOpen){ closeLaptop(false); return; }
   if(e.code==='Escape'&&cashOpen){ closeCash(false); return; }
   if(pdaOpen){ if(e.code==='Escape') closePDA(); return; }
+  if(vp2ListeOffen){ if(e.code==='Escape'||(e.code==='KeyL'&&e.target!==document.getElementById('vp2Text'))) vp2ListeZu(); return; }
   if(gravOpen){ if(e.code==='Escape') closeGravInput(false); if(e.code==='Enter') closeGravInput(true); return; }
   if(dealOpen){ if(e.code==='Escape') declineDeal(); return; }
   /* Feuerwerk-Vorfuehrung (Entwicklung): Leertaste zuendet das naechste */
@@ -210,6 +211,7 @@ addEventListener('keydown',e=>{
   if(vfAn&&S&&!overlayOpen()&&vfTaste(e)) return;
   /* Verpackungs-Vorfuehrung (Entwicklung): B beendet */
   if(vpAn&&S&&!overlayOpen()&&vpTaste(e)) return;
+  if(vp2An&&S&&!overlayOpen()&&vp2Taste(e)) return;
   /* Zuendmodus: Ziffern zuenden, alles andere geht normal weiter -
      laufen, umsehen, E. Esc ohne Mauszeiger-Sperre beendet ihn. */
   if(zuendOpen&&S&&!overlayOpen()){

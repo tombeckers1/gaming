@@ -49,6 +49,12 @@ Sammelförderer in die Gassen 2/3/1 (RBG Gasse 2/3 mit fabrik/fabrik2), Mischhau
 Restfehler A erledigt: N1 PVC-Schnelllauftor, Personaltür x −40 begehbar. Doku `docs/halle/etappe-b.md`, Bauteile `bk.zelle/drehtuer/
 treppe/portalgreifer/rohrraster/maschine/erdwall` (baukasten.md §2c), Test `src/tests/werk.js`, Bilder `docs/halle/bilder-1510/`.
 Offen: Produktions-Gameplay (Konzept freigegeben, `produktion-konzept.md`) auf den Schnittstellen `WK.zustand`, `wkAusgabe`, `WK.produktion`.
+**Verpackungs-Vorführung 2.0 / Ausstellung (15.10., Agent, Branch claude/verpackung2):** Laptop → Entwicklung → „Verpackungs-Vorführung 2.0 (Ausstellung)“. Eigener Raum
+(`17f-ausstellung.js`, weit ab von der Karte und von Vorführung 1): Reihen von Verkaufstischen (`bk.verkaufstisch`, Optik wie die Ladentische), nach Kategorien
+(Batterien, Raketen, Kugelbomben, Fontänen, Verbund, Kleinfeuerwerk F1, Zubehör, Essen, Getränke), jedes Produkt genau 1× als Einzelpackung, davor ein
+Schild mit Nr./Name/Kategorie/Level (`bk.schildAtlas`: alle Schilder = 2 Draw-Calls). Nummern stabil = Kategorie, dann Produkt-ID. **Freigabe:** E bzw. Aktion-Knopf auf ein Stück:
+offen → ✓ passt → ✗ passt nicht (Schild blau/grün/rot), Stand in localStorage `bb_vp2_freigabe_v1`; Knopf „Liste“ (Taste L) = Text zum Kopieren (Nr · Name · Kategorie · ID).
+Beenden: Knopf oder B. Test `src/tests/ausstellung.js` (`BILDER=<ordner>` schreibt Bilder), Doku `docs/fundament/baukasten.md` §2d, Bilder `docs/bilder/ausstellung-1510/`.
 **Beiseite (Tom 14.10.):** Feuerwerk-Fragen F1–F4, Feuerwerk wird jetzt nicht geändert.
 **Wochenlimit:** Tom 14.10. ~16 Uhr 41 %; Ziel höchstens ~1 %/h, Sa 14 Uhr ≤ 85 %. Ein Agent nach dem anderen, Sonnet für Routine.
 

@@ -805,16 +805,9 @@ function bauMoebel(K,sh,g,RF){
   const fg=new THREE.Group(); g.add(fg);
   let preisY, headY;
   if(K.bau==='tisch'){
-    /* Ladenbau-Tisch: weisse Platte mit Kantenumleimer, vier Vierkant-
-       beine, Zarge und eine Ablage darunter fuer Nachschub */
-    st.push({geo:box(W,0.04,D),m:tm(0,y-0.02,0),rolle:'platte'});
-    st.push({geo:box(W+0.01,0.02,D+0.01),m:tm(0,y-0.045,0),rolle:'rahmen'});
-    for(const sx of [-1,1]) for(const sz of [-1,1]) st.push({geo:box(0.05,y-0.06,0.05),m:tm(sx*(W/2-0.06),(y-0.06)/2,sz*(D/2-0.06)),rolle:'rahmen'});
-    for(const sz of [-1,1]) st.push({geo:box(W-0.12,0.08,0.025),m:tm(0,y-0.1,sz*(D/2-0.06)),rolle:'rahmen'});
-    for(const sx of [-1,1]) st.push({geo:box(0.025,0.08,D-0.12),m:tm(sx*(W/2-0.06),y-0.1,0),rolle:'rahmen'});
-    st.push({geo:box(W-0.14,0.02,D-0.14),m:tm(0,0.16,0),rolle:'platte'});
-    for(const sx of [-1,1]) for(const sz of [-1,1]) st.push({geo:box(0.06,0.015,0.06),m:tm(sx*(W/2-0.06),0.008,sz*(D/2-0.06)),rolle:'fuss'});
-    st.push({geo:box(iw,0.05,0.014),m:tm(0,y-0.1,D/2-0.04),rolle:'preis'});
+    /* Ladenbau-Tisch: Bauteile aus dem Baukasten (bk.verkaufstischTeile, 04z) - dieselben Teile braucht
+       die Verpackungs-Ausstellung 2.0 (17f) fuer ihre Tischreihen */
+    st.push(...bk.verkaufstischTeile(K,box));
     preisY=[y-0.1];
     /* Aktionsschild auf einem Steckpfosten hinten in der Mitte - eigenes
        Teil, es verschwindet, solange der Tisch leer ist */

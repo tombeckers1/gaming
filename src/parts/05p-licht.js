@@ -37,12 +37,12 @@ const LI_BEL=1.05; LI.bel=LI_BEL;
 /* Raumlicht: Staerke (Deckenlicht von oben), Anteil Himmelslicht drinnen, Glanz des Raums
    (Leuchtdichte der Umgebung je Staerke 1), hoechstens RAUM.n Raeume */
 const RAUM={n:24, staerke:0.4, decke:0.65, hemi:0.2, spec:0.32, werte:null, sig:'', liste:[], nAktiv:0, tS:-1e9};
-/* DECKENLICHT mit Schatten (ab Mittel): ein Richtungslicht fast senkrecht von oben (14 Grad geneigt), wirkt nur
+/* DECKENLICHT mit Schatten (ab Mittel): ein Richtungslicht fast senkrecht von oben (17 Grad geneigt, Schatten fallen zur Strassenseite - zum Spieler, der vom Eingang hereinschaut), wirkt nur
    drinnen (der Shader erkennt es an der Richtung) - Regale, Kassen, Personen, Kartons werfen weiche Schatten auf
    den Boden, untere Regalboeden liegen im Schatten der oberen. Die Schattenkarte deckt 32 x 32 m um den Spieler,
    das Licht sitzt 3,3 m hoch: Decken und Daecher liegen darueber und werfen keinen Schatten. Ohne Schattenkarte
    (Niedrig) ist es aus, das Raumlicht uebernimmt seinen Anteil (gleich hell). */
-const DECKE={l:null, h:3.3, neig:0.25, halb:16, x:1e9, z:1e9, n:0};
+const DECKE={l:null, h:3.3, neig:0.3, halb:16, x:1e9, z:1e9, n:0};
 (function raumShader(){
   const C=THREE.ShaderChunk;
   /* Test-Attrappe von three (Node, test.html): keine Shader - nichts zu tun */
@@ -121,7 +121,7 @@ function deckeTakt(){
   /* dem Spieler in 2-m-Schritten folgen (ganze Texel - die Schatten flimmern beim Gehen nicht) */
   const r=2, tx=Math.round(pl.x/r)*r, tz=Math.round(pl.z/r)*r;
   if(tx===DECKE.x&&tz===DECKE.z) return; DECKE.x=tx; DECKE.z=tz; l.shadow.needsUpdate=true;
-  l.target.position.set(tx,0,tz); l.position.set(tx-DECKE.h*DECKE.neig*0.6,DECKE.h,tz+DECKE.h*DECKE.neig*0.8);
+  l.target.position.set(tx,0,tz); l.position.set(tx+DECKE.h*DECKE.neig*0.35,DECKE.h,tz-DECKE.h*DECKE.neig*0.94);
   l.target.updateMatrixWorld(); l.updateMatrixWorld();
 }
 function raumTakt(){
@@ -166,7 +166,7 @@ void main(){
   vec2 p=(vUv-0.5)*vS;
   float a;
   if(vP.z>0.5){ vec2 q=(vUv-0.5)*2.0; float r=length(q); a=vP.x*exp(-3.2*r*r)*(1.0-smoothstep(0.75,1.0,r)); }
-  else { vec2 inner=max(vS*0.5-vP.y,vec2(0.001)); float d=length(max(abs(p)-inner,0.0)); float k=1.0-clamp(d/vP.y,0.0,1.0); a=vP.x*k*sqrt(k); }
+  else { vec2 inner=max(vS*0.5-vP.y,vec2(0.001)); float d=length(max(abs(p)-inner,0.0)); float k=1.0-clamp(d/vP.y,0.0,1.0); a=vP.x*pow(k,0.75); }
   gl_FragColor=vec4(0.0,0.0,0.0,a);
 }`;
 function liMesh(n,fs,add,ro){

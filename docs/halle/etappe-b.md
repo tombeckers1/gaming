@@ -62,7 +62,33 @@ Bewusst länger als 7.3 (38 Tage): größte Investition, lohnt nur mit Menge (Fi
 Balancing-Paket messen und ggf. nachstellen.
 
 ## Leistung
-MESSUNG_PLATZHALTER
+- Gebaut wird erst beim Kauf; Straße 2/3 erst mit ihrem Ausbau. Gruppen: `WK_G` außen (Wände im Wandbild, Dach, Boden, R6,
+  Werkseingang, Gefahrstofftür – immer), `WK_H` Werk-Inhalt inkl. Innenausbau (nur Kamera im Werk, über den Dächern oder aus dem
+  Verbindungsbau durch Tür/Förderöffnungen x −70), `WK_V` Verbindungsbau (dazu aus dem Hauptgang Nord der Halle durch die Tür x −66),
+  `WK_D` bewegte Teile (wie `WK_V`, Takt nur dann), `WK_A` Außenanlagen (nicht aus Werk/Halle/Lager/Laden).
+- Instanzen: Werkstückträger je Straße ein InstancedMesh (7), Kartonlagen je Palette eins (4), Paletten über `bk.paletten`-Gruppen,
+  Hallenleuchten zwei InstancedMesh; Zellen, Maschinen, Rohr-Raster je Straße in einen Sammler (wenige Meshes je Klasse).
+  Kein Sonnenschatten unter dem Dach (nur Wände und Dach werfen ihn). Ultra Low: Stations-/Zellentafeln ohne Schrift (−21 Aufrufe),
+  Kästen ohne Fase, weniger Segmente, Binder ohne Diagonalen.
+- Messung (`tools/halle/messen.js`, alle Ausbauten gekauft, Laufzeit-Bündelung an, swiftshader; Haupt- + Schattenpass je Bild;
+  vorher = V135/191d7ba, Rohdaten `messung-1510/`). **Maximum nicht messbar**: der Renderer wird im Container bei 13,8 GB vom
+  OOM-Killer beendet – auch schon mit dem alten Stand (vorher-Lauf abgestürzt).
+
+| Stufe | laden | lager | halleW | hochregal | wareneing. | lager3 | schleuse | dockHof | strasse | werkS1 | werkS3 | leitstand | verbind. | hofWest | mischhaus | Texturen MB | Meshes |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| ultralow Aufrufe | 442 → 438 | 373 → 372 | 208 → 216 | 110 → 144 | 173 → 192 | 146 → 171 | 228 → 259 | 517 → 506 | 90 → 88 | 30 → 193 | 30 → 190 | 86 → 235 | 33 → 227 | 268 → 153 | 66 → 64 | 289.8 → 308.7 | 2339 → 2759 |
+| ultralow Dreiecke (k) | 222 → 222 | 205 → 206 | 169 → 169 | 131 → 134 | 137 → 139 | 119 → 120 | 158 → 161 | 373 → 371 | 182 → 181 | 48 → 96 | 49 → 99 | 73 → 109 | 49 → 97 | 258 → 163 | 104 → 38 | | |
+| niedrig Aufrufe | 463 → 460 | 394 → 394 | 232 → 234 | 131 → 163 | 192 → 211 | 167 → 190 | 248 → 278 | 539 → 528 | 111 → 110 | 48 → 230 | 48 → 224 | 104 → 271 | 51 → 263 | 290 → 174 | 84 → 83 | 307.4 → 329.5 | 2342 → 2787 |
+| niedrig Dreiecke (k) | 395 → 379 | 366 → 357 | 320 → 297 | 251 → 240 | 262 → 249 | 215 → 202 | 286 → 274 | 520 → 506 | 279 → 262 | 144 → 279 | 144 → 280 | 169 → 295 | 144 → 282 | 369 → 247 | 200 → 119 | | |
+| hoch Aufrufe | 492 → 489 | 434 → 432 | 284 → 285 | 152 → 183 | 200 → 222 | 203 → 223 | 301 → 327 | 542 → 544 | 112 → 106 | 53 → 246 | 53 → 240 | 142 → 312 | 56 → 269 | 309 → 182 | 91 → 86 | 320.8 → 345.5 | 2344 → 2789 |
+| hoch Dreiecke (k) | 473 → 457 | 444 → 412 | 360 → 343 | 254 → 242 | 263 → 249 | 220 → 206 | 292 → 279 | 590 → 578 | 281 → 238 | 145 → 280 | 145 → 280 | 174 → 299 | 145 → 282 | 388 → 247 | 201 → 119 | | |
+
+Befund: Ansichten ohne Blick ins Werk (Laden, Lager ①, Dock-Hof, Straße) **−11 … +2 Aufrufe**, Dreiecke gleich oder weniger (Stadt
+rückt nach Westen) – auch auf Ultra Low/Niedrig. In der Halle (Hochregal, Wareneingang, ③, Schleuse) **+19 … +34 Aufrufe**: die
+beiden neuen RBG der Gassen 2/3 mit ihren Ladungen (gekaufter Inhalt). Im Werk/Verbindungsbau/Leitstand +150 … +215 Aufrufe (Ultra Low
+190–235 gesamt): das ist der gekaufte Inhalt (3 Straßen, ~45 Schilder mit eigener Textur, Räume). Texturen +19…25 MB (Schilder,
+Leitstand-Leinwand, Rasen), Meshes +420. Wegenetz unverändert (23 320 Zellen, Aufbau 2,9 → 5,6 ms, Rauschen). Ein FPS-Lauf steht aus
+(Tom misst auf seinem PC).
 
 ## Bilder
 `docs/halle/bilder-1510/` (selbst angesehen, Befunde im Bericht).

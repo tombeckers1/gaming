@@ -40,6 +40,9 @@ helles Licht im Laden, gute Schatten. Keine Unreal-Grafik.“
   three lädt `cameraPosition` für Lambert nicht hoch; je Ecke blieben große Bodenplatten über mehrere Räume dunkel).
 - **Entfernt:** 3 wandernde Punktlichter, Ladenstrahler (+ Schattendurchgang), Lichtflecken, Glanzbahnen, Augenanpassung.
 - Stilregeln §8 entsprechend neu.
+- **three-r128-Fehler behoben (Ultra Low):** `cube_uv_reflection_fragment` definiert `v1 0.276` usw. und steht im Lambert-Fragment vor
+  `bsdfs` – jedes Lambert-Material mit PMREM-Umgebungsbild brach beim Übersetzen ab und blieb unsichtbar (gefunden über den
+  Licht-Test, der Shaderfehler jetzt meldet). Die Makros werden nach dem Einbinden mit `#undef` freigegeben.
 
 ## Messung (tools/licht/bilder.js, Gameplay-Vorführung aufgebaut, 1280 × 720, swiftshader)
 Zeichenaufrufe je Bild (inkl. Schattenkarten und Bildeffekte), Ansichten Laden vom Eingang / Lager / Halle / Werk:

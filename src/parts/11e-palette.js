@@ -19,7 +19,7 @@
    Frame V1: lx laeuft vom Tor in den LKW (negativ = im Laderaum, positiv
    = in der Halle), lz seitlich; Welt = (V1.x - lz, V1.rz + lx).
    ========================================================= */
-const PAL_LG=1.2, PAL_BR=0.8, PAL_Y=0.09;          /* Europalette; PAL_Y: Hub am Hubwagen */
+const PAL_LG=1.2, PAL_BR=0.8;          /* Europalette */
 /* Abholung auf Anruf (Tom 09.10.; Anruf am Wandtelefon oder per Handy, Onlineshop-App).
    DDL_PAUSCHALE 39 EUR, nachgerechnet fuer Stufe 1 (1 Palette, ~90 S-Pakete Platz, Level 25):
    ~12 Bestellungen/Tag x Deckungsbeitrag ~26 EUR (Ware + Versandeinnahme) = 312, minus Porto
@@ -47,8 +47,10 @@ const vsPalObj={};          /* id -> {g,holz,pk,sig,cx,cz} */
 const palHits=[];           /* Trefferflaechen der Boxplaetze (Station) */
 const HUB={pal:null,g:null,park:null,t:0,von:null};
 const DDL={ruf:false,warte:false,eta:0,t:0,lad:0,voll:false,heute:0};
-const VT={g:null,rahmen:null,raum:null,bruecke:null,state:null,t:0,flap:0,cols:[],fahrer:null,flapCol:null};
-const LD={ph:'idle',t:0,pal:null,fig:null,jack:null,lx:-0.4,lz:0,ziel:null,agv:false};
+const VT={g:null,rahmen:null,raum:null,bruecke:null,state:null,t:0,flap:0,cols:[],flapCol:null};
+/* Fahrer und Hubwagen (ldUpdate): jx/jz = Gabelfuss, psi = Richtung der Gabel in (lx,lz), fx/fz/fpsi = Fahrer (haengt am Griff, wenn att),
+   pf = Weg, wd = Drehung auf der Stelle, hub 0..1 = Gabelhub, phi = Deichselwinkel, gang = Gehtempo (negativ = rueckwaerts) */
+const LD={ph:'idle',t:0,pal:null,fig:null,jack:null,slot:0,ziel:null,jx:0,jz:0,psi:0,fx:0,fz:0,fpsi:0,att:false,armW:0,hub:0,phi:0,phiZ:0,door:0,gang:0,pf:null,wd:null};
 const VD={g:null,panels:[],t:0,target:0,col:null,lampG:null,lampR:null,warn:null,sign:null,signHit:null};
 
 /* ---------------------------------------------------------
@@ -238,7 +240,7 @@ function vsPalStellen(p,o,sofort){
     g.position.set(o.cx,0,o.cz);
   } else if(p.ort==='l'){
     if(g.parent!==scene){ if(g.parent) g.parent.remove(g); scene.add(g); }
-    const s=ddlSlot(p.idx), w=vf(s.lx,s.lz); g.position.set(w.x,0.03,w.z); g.rotation.y=Math.PI/2; o.cx=null;
+    const s=ddlSlot(p.idx), w=vf(s.lx,s.lz); g.position.set(w.x,LADEBODEN_V1,w.z); g.rotation.y=Math.PI/2; o.cx=null;
   } else if(p.ort==='h'){
     if(g.parent!==scene){ if(g.parent) g.parent.remove(g); scene.add(g); }
     o.cx=null;
@@ -274,44 +276,20 @@ function hubDa(){ return zoneOffen('packstation'); }
    Karre, Kiste und Moebel, die danach fragen */
 function hubAn(){ return false; }
 function hubKollision(){}
-function hubModell(){
-  const g=new THREE.Group(), rot=MAT.ober('signalrot','lackMetall'), stahl=MAT.get('chromHell');
-  const gummi=MAT.get('gummi'), griff=MAT.get('kunststoffSchwarz');
-  /* Gabeln zeigen nach vorn (-z), unter die Palette */
-  for(const sx of [-0.27,0.27]){ rbox(0.16,0.055,1.1,0.012,stahl,sx,0.05,-0.78,g); rbox(0.16,0.05,0.2,0.01,stahl,sx,0.045,-1.42,g);
-    const r=new THREE.Mesh(new THREE.CylinderGeometry(0.04,0.04,0.07,12),gummi); r.rotation.z=Math.PI/2; r.position.set(sx,0.04,-1.3); g.add(r);
-    const r2=new THREE.Mesh(new THREE.CylinderGeometry(0.08,0.08,0.05,14),gummi); r2.rotation.z=Math.PI/2; r2.position.set(sx*0.9,0.08,-0.28); g.add(r2); }
-  rbox(0.7,0.14,0.2,0.02,rot,0,0.14,-0.24,g);
-  /* Deichsel mit Handgriff, schraeg zum Bediener */
-  const t=new THREE.Mesh(new THREE.CylinderGeometry(0.018,0.018,0.95,8),griff); t.position.set(0,0.52,-0.05); t.rotation.x=-0.62; g.add(t);
-  rbox(0.34,0.05,0.07,0.015,griff,0,0.93,0.2,g);
-  g.traverse(o=>{ if(o.isMesh&&HIQ) o.castShadow=true; });
-  return g;
-}
+/* Der Hubwagen ist ein Baukasten-Bauteil: bk.hubwagen (04z) */
 /* Kran oder Greifer gerade an den Paletten? Dann wartet der Fahrer. */
 function roboterBusy(){ return vsPortal.phase!=='ruhe'||vsBahn.some(e=>e.phase==='greifer'); }
-/* Palette aus der Schlange nehmen: sie gleitet an den Hubwagen */
+/* Palette aus der Schlange nehmen: sie haengt am Hubwagen, ldPose setzt ihre Lage jedes Bild (die Gabel steckt schon in ihr) */
 function palAufnehmen(p){
   const o=vsPalObjekt(p);
-  o.g.updateMatrixWorld(true); const w=new THREE.Vector3(); o.g.getWorldPosition(w);
-  const ry=o.g.rotation.y+(o.g.parent===packTisch?packTisch.rotation.y:0);
-  p.wx=w.x; p.wz=w.z; p.wry=ry; p.von={x:w.x,z:w.z,ry}; p.vt=0;
   p.ort='h'; p.idx=0;
-  vsPalStellen(p,o,true); o.g.position.set(w.x,PAL_Y,w.z); o.g.rotation.y=ry;
+  vsPalStellen(p,o,true);
   vsPalAbgleich(); syncPakete();
-}
-function palFolgen(p,z,dt){
-  const o=vsPalObj[p.id]; if(!o) return;
-  p.vt=Math.min(1,(p.vt||0)+dt/0.55);
-  const k=p.von&&p.vt<1?vsGlatt(p.vt):1, a=p.von||z;
-  const x=a.x+(z.x-a.x)*k, zz=a.z+(z.z-a.z)*k;
-  o.g.position.set(x,PAL_Y,zz); o.g.rotation.y=vsWinkel(a.ry,z.ry,k);
-  p.wx=x; p.wz=zz;
 }
 function hubAufbauPark(){
   if(HUB.park||!packTisch) return;
   /* der Hubwagen steht im Versandhof neben dem Tor, die Gabeln zeigen vom Tor weg */
-  HUB.park=hubModell(); HUB.park.position.set(V1.x+3.6,0.036,V1.wz-1.5); HUB.park.rotation.y=0; scene.add(HUB.park);
+  HUB.park=bk.hubwagen({x:V1.x+3.6,y:0.036,z:V1.wz-1.5,ry:0}).g;
 }
 
 /* ---------------------------------------------------------
@@ -411,7 +389,9 @@ function buildVersandhof(){
   const zm=new THREE.Mesh(new THREE.PlaneGeometry(4.6,1.3),new THREE.MeshBasicMaterial({transparent:true,depthWrite:false,map:tex(920,260,(c2,Wc,Hc)=>{ c2.clearRect(0,0,Wc,Hc);
     c2.fillStyle='rgba(18,20,26,.62)'; c2.fillRect(0,0,Wc,Hc); c2.strokeStyle=MAT.css('signalgelb'); c2.lineWidth=10; c2.strokeRect(5,5,Wc-10,Hc-10);
     c2.textAlign='center'; c2.textBaseline='middle'; c2.font=BUN(104); c2.fillStyle=MAT.css('signalgelb'); c2.fillText('VERSANDHOF',Wc/2,Hc/2+3); })}));
-  zm.rotation.x=-Math.PI/2; zm.rotation.z=0; zm.position.set(V1.x,0.045,hof.z1-2.4); zm.renderOrder=2; g.add(zm);
+  /* Hofschrift am Ende des Hofs, vor dem Fuehrerhaus des wartenden LKW - nie im Bereich des LKW (der Laderaum steht 3 m breit bis z -39,5, das
+     Fuehrerhaus bis -42,1); frueher bei z -32,5 mitten unter dem LKW und durch den Ladeboden zu sehen (Tom 15.10.) */
+  zm.rotation.x=-Math.PI/2; zm.rotation.z=0; zm.position.set(V1.x,0.045,hof.z0+2.3); zm.renderOrder=2; g.add(zm);
   /* Zaun: Doppelstabmatte aus dem Baukasten (bk.zaun, aussen) - vorher eigene Pfosten alle 2 m mit
      halbdurchsichtiger Scheibe (14.10., Fundament Schritt Zaeune) */
   for(const [a,b] of [[[hof.x0,hof.z1],[hof.x0,hof.z0]],[[hof.x1,hof.z1],[hof.x1,hof.z0]],[[hof.x0,hof.z0],[hof.x1,hof.z0]]])
@@ -458,8 +438,8 @@ function vtLaderaumOeffnen(){
   VT.cols=[L(-LR.w/2-0.2,-LR.w/2+0.02,-LR.len-0.3,0.2),L(LR.w/2-0.02,LR.w/2+0.2,-LR.len-0.3,0.2),L(-LR.w/2,LR.w/2,-LR.len-0.25,-LR.len-0.02)];
   void a;
   if(typeof navDirty==='function') navDirty();
-  if(!VT.fahrer){ VT.fahrer=makePerson({kopf:'CM07'}); VT.fahrer.visible=false; scene.add(VT.fahrer); }
-  { const w=vf(-LR.len+2.4,-LR.w/2-1.4); VT.fahrer.position.set(w.x,0,w.z); VT.fahrer.rotation.y=1.2; VT.fahrer.visible=true; }
+  /* Hubwagen steht an der Wand, der Fahrer sitzt im Fuehrerhaus und steigt durch den Durchstieg ein, wenn das Tor offen ist (ldUpdate) */
+  ldStowen();
 }
 function vtFlap(){ if(VT.bruecke) VT.bruecke.rotation.z=VT.flap*FLAP_MAX; }
 function vtRaumWeg(){
@@ -467,7 +447,7 @@ function vtRaumWeg(){
   if(VT.bruecke){ if(VT.bruecke.parent) VT.bruecke.parent.remove(VT.bruecke); VT.bruecke=null; }
   VT.cols.forEach(c=>dropCol(c)); VT.cols=[];
   if(VT.flapCol){ dropCol(VT.flapCol); VT.flapCol=null; }
-  if(VT.fahrer) VT.fahrer.visible=false;
+  if(LD.ph!=='idle') ldAbbruch(); else { if(LD.jack) LD.jack.g.visible=false; if(LD.fig) LD.fig.visible=false; }
   if(typeof navDirty==='function') navDirty();
 }
 function vtEntfernen(){
@@ -484,7 +464,6 @@ function vtBesetzt(){
   return false;
 }
 function vtUpdate(dt){
-  if(VT.fahrer&&VT.fahrer.visible) animPerson(VT.fahrer,false,dt,1);
   if(!VT.state) return;
   const g=VT.g;
   if(VT.state==='anfahrt'){
@@ -510,71 +489,215 @@ function vtUpdate(dt){
 }
 
 /* ---------------------------------------------------------
-   Der DDL-Fahrer am Hubwagen: holt die vorderste Palette aus der
-   Box, faehrt sie rueckwaerts in den Laderaum und stellt sie ab.
-   Seit 09.10. in jeder Stufe der Fahrer (vorher ab Stufe 2 ein
-   Hubwagen-Roboter des Ladens).
+   Der DDL-Fahrer am Hubwagen (neu 15.10.2026, Tom: "Hubwagen-Ablauf ist unlogisch - Hubwagen hinter sich, Palette davor").
+   Echter Ablauf, Frame V1 (lx vom Tor in den LKW, negativ = Laderaum), Hubwagen = bk.hubwagen:
+   - Er kommt aus dem Fuehrerhaus: der Durchstieg in der Stirnwand geht auf, er geht durch die Gasse zum Hubwagen, der mit der
+     Gabel zum Tor an der Wand steht (kein Auftauchen aus dem Nichts).
+   - SCHIEBEN: Gabel voran in die Palette (Taschen der Europalette, die Gabeln fluchten), PUMPEN (drei Hube, Palette steigt 8 cm),
+     ZIEHEN: rueckwaerts gehen, die Palette folgt; auf dem Wendeplatz am Tor dreht er Hubwagen samt Palette um 180 Grad,
+     SCHIEBEN: die Palette voran in den Laderaum durch die Gasse, auf ihren Platz, SENKEN (Hebel, Palette setzt auf),
+     ZIEHEN: der leere Hubwagen kommt rueckwaerts heraus, Wenden, die naechste Palette.
+   - Ist alles verladen: der Hubwagen wird zurueck an die Wand geschoben, der Fahrer geht durch die Gasse in sein Fuehrerhaus.
+   Fahrer steht 1,17 m hinter dem Gabelfuss (Hand am Griff), die Palettenmitte 0,575 m davor. Tempo: leer schieben 1,3 m/s, mit Last
+   1,0 m/s, ziehen 1,2 / 0,9 m/s, zu Fuss 1,4 m/s. Kurven laufen auf Bahnen mit Rundung (Gabel folgt der Bahn, kein Ruckeln).
    --------------------------------------------------------- */
+const HW_PAL=bk.HUBWAGEN.gabelL/2, HW_HAND=0.55;
+const LD_STOW={lx:-2.4,lz:-1.15};        /* Hubwagen an der Seitenwand nahe dem Heck, Gabel zum Tor */
+const LD_T={lx:0.6,lz:0.2};              /* Wendeplatz am Tor: Hubwagen samt Palette dreht sich frei (Zone -1,95..1,65 quer) */
+const LD_V={leer:1.3,last:1.0,zugLeer:1.2,zugLast:0.9,fuss:1.4};
+/* Boden unter dem Fahrer: Ladeboden und Bruecke 0,06, dahinter die Halle 0 (kurze Auffahrt) */
+function ldBoden(lx){ return LADEBODEN_V1*(1-vsGlatt((lx-1.5)/0.35)); }
+function ldWd(d){ while(d>Math.PI) d-=2*Math.PI; while(d<-Math.PI) d+=2*Math.PI; return d; }
+/* Linienzug w=[[lx,lz],..] mit Rundung r an den Ecken (Kreisbogen), dicht abgetastet */
+function ldRund(w,r){
+  const out=[[w[0][0],w[0][1]]];
+  for(let i=1;i<w.length-1;i++){
+    const a=w[i-1], b=w[i], c=w[i+1];
+    let ux=a[0]-b[0], uz=a[1]-b[1], vx=c[0]-b[0], vz=c[1]-b[1];
+    const lu=Math.hypot(ux,uz), lv=Math.hypot(vx,vz); if(lu<1e-6||lv<1e-6){ out.push([b[0],b[1]]); continue; }
+    ux/=lu; uz/=lu; vx/=lv; vz/=lv;
+    const th=Math.acos(clamp(ux*vx+uz*vz,-1,1));                 /* Innenwinkel an der Ecke */
+    if(th>Math.PI-0.03||th<0.03){ out.push([b[0],b[1]]); continue; }
+    const tn=Math.tan(th/2), t=Math.min(r/tn,lu*0.5,lv*0.5), rr=t*tn;
+    const p1=[b[0]+ux*t,b[1]+uz*t], p2=[b[0]+vx*t,b[1]+vz*t];
+    let bx=ux+vx, bz=uz+vz; const bl=Math.hypot(bx,bz); bx/=bl; bz/=bl;
+    const cd=rr/Math.sin(th/2), mx=b[0]+bx*cd, mz=b[1]+bz*cd;
+    const a1=Math.atan2(p1[1]-mz,p1[0]-mx), da=ldWd(Math.atan2(p2[1]-mz,p2[0]-mx)-a1), n=Math.max(2,Math.ceil(Math.abs(da)/0.12));
+    for(let k=0;k<=n;k++){ const an=a1+da*k/n; out.push([mx+Math.cos(an)*rr,mz+Math.sin(an)*rr]); } }
+  out.push([w[w.length-1][0],w[w.length-1][1]]);
+  return out;
+}
+/* modus 'vor' = Gabel voran (Fahrer schiebt), 'rueck' = Fahrer zieht, geht rueckwaerts, 'fuss' = Fahrer allein; slowL/slowV = langsam am Ende */
+function ldPfadSetzen(w,r,modus,v,o){
+  o=o||{};
+  /* Hubwagen: die Bahn beginnt in Richtung der Gabel (schieben) bzw. entgegen (ziehen) - die Gabel dreht sich erst in der Kurve */
+  if(modus!=='fuss'){ const sg=modus==='vor'?1:-1; w=[w[0],[w[0][0]+Math.cos(LD.psi)*0.3*sg,w[0][1]+Math.sin(LD.psi)*0.3*sg]].concat(w.slice(1)); }
+  const P=ldRund(w,r), C=[0]; for(let i=1;i<P.length;i++) C.push(C[i-1]+Math.hypot(P[i][0]-P[i-1][0],P[i][1]-P[i-1][1]));
+  LD.pf={P,C,len:C[C.length-1],s:0,modus,v,slowL:o.slowL||0,slowV:o.slowV||0.4,i:0,mitte:!!o.mitte};
+  ldPfadPunkt(LD.pf,true);
+}
+function ldPfadPunkt(pf,snap){
+  let i=pf.i; while(i<pf.P.length-2&&pf.C[i+1]<pf.s) i++; pf.i=i;
+  const a=pf.P[i], b=pf.P[i+1], sg=pf.C[i+1]-pf.C[i], t=sg>1e-9?clamp((pf.s-pf.C[i])/sg,0,1):0, tx=sg>1e-9?(b[0]-a[0])/sg:1, tz=sg>1e-9?(b[1]-a[1])/sg:0;
+  const x=a[0]+(b[0]-a[0])*t, z=a[1]+(b[1]-a[1])*t;
+  if(pf.modus==='fuss'){ LD.fx=x; LD.fz=z; LD.fpsi+=ldWd(Math.atan2(tz,tx)-LD.fpsi)*(snap?0:0.2); }
+  else { const h=pf.modus==='vor'?Math.atan2(tz,tx):Math.atan2(-tz,-tx); if(snap) LD.psi=h; else LD.psi+=ldWd(h-LD.psi)*0.25;
+    /* mitte: die Bahn gilt der Palettenmitte (Palette voran), der Gabelfuss folgt ihr - so schwenkt die Palette nie ueber die Bahn hinaus */
+    if(pf.mitte){ LD.jx=x-Math.cos(LD.psi)*HW_PAL; LD.jz=z-Math.sin(LD.psi)*HW_PAL; } else { LD.jx=x; LD.jz=z; } }
+}
+/* ein Schritt auf dem Weg; true = angekommen */
+function ldPfadLauf(dt){
+  const pf=LD.pf, rest=pf.len-pf.s; let v=pf.v;
+  if(pf.slowL&&rest<pf.slowL) v=pf.slowV+(pf.v-pf.slowV)*clamp(rest/pf.slowL,0,1);
+  v*=Math.min(1,0.2+pf.s/0.8,0.15+rest/0.6);                  /* sanft anfahren und abbremsen */
+  pf.s=Math.min(pf.len,pf.s+v*dt);
+  ldPfadPunkt(pf,false);
+  LD.gang=pf.modus==='rueck'?-v:v;
+  if(pf.s>=pf.len-1e-6){ LD.pf=null; LD.gang=0; return true; }
+  return false;
+}
+/* Drehung des Hubwagens samt Fahrer auf der Stelle (sign +1/-1 = Drehsinn), 180 Grad */
+function ldWende(sign,dauer){ LD.wd={von:LD.psi,bis:LD.psi+sign*Math.PI,dauer,t:0}; }
+function ldWendeLauf(dt){
+  const w=LD.wd; w.t+=dt; const k=vsGlatt(w.t/w.dauer); LD.psi=w.von+(w.bis-w.von)*k;
+  LD.gang=(k>0.02&&k<0.98)?0.8:0;
+  if(w.t>=w.dauer){ LD.wd=null; LD.gang=0; LD.psi=ldWd(w.bis); return true; }
+  return false;
+}
+/* Standpunkt des Fahrers hinter dem Griff */
+function ldStand(jx,jz,psi){ const e=bk.HUBWAGEN.griffZ+HW_HAND; return {lx:jx-Math.cos(psi)*e,lz:jz-Math.sin(psi)*e}; }
+/* Anfahrpunkt des Hubwagens vor der vordersten Palette der Box (Gabelfuss) */
+function ldBoxAnfahrt(){ const c=palZentrumWelt(0), f=vfRueck(c.x,c.z); return {lx:f.lx-HW_PAL,lz:f.lz}; }
+
 function ldBauen(){
   if(LD.jack) return;
-  LD.jack=hubModell(); LD.jack.visible=false; scene.add(LD.jack);
+  LD.jack=bk.hubwagen({}); LD.jack.g.visible=false;
   LD.fig=makePerson({kopf:'CM07'}); LD.fig.visible=false; scene.add(LD.fig);
 }
 function ldPose(dt){
-  /* Bediener bei (lx,lz) im Rahmen, blickt in die Halle (+lx = Welt +z): Rotation 0 */
-  const w=vf(LD.lx,LD.lz), aktiv=LD.ph!=='idle'&&LD.ph!=='fertig';
-  LD.fig.position.set(w.x,0,w.z); LD.fig.rotation.y=0; LD.fig.visible=aktiv;
-  LD.jack.position.set(w.x,0,w.z); LD.jack.rotation.y=0; LD.jack.visible=aktiv;
-  /* der wartende Fahrer neben dem LKW ist derselbe Mann */
-  if(VT.fahrer) VT.fahrer.visible=!aktiv&&!!VT.raum;
-  if(LD.pal){ const q=vf(LD.lx+1.3,LD.lz+(LD.ph==='fahren'||LD.ph==='absetzen'?(LD.sw||0):0)); palFolgen(LD.pal,{x:q.x,z:q.z,ry:Math.PI/2},dt||0.016); }
+  const K=bk.HUBWAGEN, d=[Math.cos(LD.psi),Math.sin(LD.psi)];
+  LD.phi+=(LD.phiZ-LD.phi)*Math.min(1,dt*14);
+  LD.jack.winkel(LD.phi); LD.jack.hub(LD.hub);
+  const gr=LD.jack.griff(LD.phi), fy=ldBoden(LD.jx), wj=vf(LD.jx,LD.jz);
+  LD.jack.g.position.set(wj.x,fy,wj.z); LD.jack.g.rotation.y=Math.PI-LD.psi;
+  if(LD.att){ const e=gr.z+HW_HAND; LD.fx=LD.jx-d[0]*e; LD.fz=LD.jz-d[1]*e; LD.fpsi=LD.psi; }
+  const wf=vf(LD.fx,LD.fz); LD.fig.position.set(wf.x,ldBoden(LD.fx),wf.z); LD.fig.rotation.y=-LD.fpsi;
+  if(LD.pal){ const o=vsPalObj[LD.pal.id];
+    if(o){ const wp=vf(LD.jx+d[0]*HW_PAL,LD.jz+d[1]*HW_PAL); o.g.position.set(wp.x,fy+K.hub*LD.hub,wp.z); o.g.rotation.y=Math.PI/2-LD.psi; } }
+  if(LD.fig.visible&&dt>0){
+    animPerson(LD.fig,Math.abs(LD.gang)>0.05,dt,LD.gang||1);
+    /* beide Haende am Griff: die Arme heben sich mit dem Griff (nach animPerson, dann folgt die Arm-IK) */
+    LD.armW+=((LD.att?1:0)-LD.armW)*Math.min(1,dt*5);
+    if(LD.armW>0.01){ const u=LD.fig.userData, rot=-1.0-(gr.y-1.19)/0.55;
+      for(const i of [0,1]) u.arms[i].rotation.x=u.arms[i].rotation.x*(1-LD.armW)+rot*LD.armW; }
+  }
+}
+/* Durchstieg in der Stirnwand: auf, solange der Fahrer in Naehe der Wand ist */
+function ldTuer(dt){
+  const t=VT.raum&&VT.raum.userData.tuer; if(!t) return;
+  const ziel=(LD.ph==='tuer'||(LD.fig&&LD.fig.visible&&LD.fx<-LR.len+2.0))?1:0, d=ziel-LD.door;
+  LD.door+=Math.sign(d)*Math.min(Math.abs(d),dt/0.9);
+  t.rotation.y=-1.75*vsGlatt(LD.door);
+}
+/* Der Hubwagen steht im Laderaum an der Wand, der Fahrer ist noch im Fuehrerhaus (bevor die Tuer aufgeht) */
+function ldStowen(){
+  ldBauen();
+  LD.ph='idle'; LD.t=0; LD.pal=null; LD.att=false; LD.armW=0; LD.hub=0; LD.phi=0; LD.phiZ=0; LD.door=0; LD.gang=0; LD.pf=null; LD.wd=null;
+  LD.jx=LD_STOW.lx; LD.jz=LD_STOW.lz; LD.psi=0; LD.fx=-LR.len-0.55; LD.fz=DURCHSTIEG.lz; LD.fpsi=0;
+  LD.jack.g.visible=true; LD.fig.visible=false; ldPose(0);
 }
 function ldNaechste(){
   const p=vsPalZelle()[0];
   return p&&vsPalZahl(p)>0?p:null;
 }
 function ldFreierPlatz(){ for(let i=0;i<DDL_SLOTS;i++) if(!S.paletten.some(q=>q.ort==='l'&&q.idx===i)) return i; return -1; }
+function ldArbeit(){ return !!ldNaechste()&&ldFreierPlatz()>=0; }
+function ldBereit(){ return !vsPalGleitet()&&!roboterBusy(); }
+/* Weg zur vordersten Palette: aus dem Laderaum (mit Last-frei) oder vom Wendeplatz, Gabel voran, am Ende langsam (Gabel faedelt ein) */
+function ldZumBox(){
+  const B=ldBoxAnfahrt(), j=[LD.jx,LD.jz];
+  const w=LD.jx<-0.5?[j,[-1.0,j[1]],[0.9,B.lz],[B.lx,B.lz]]:[j,[1.25,B.lz],[B.lx,B.lz]];
+  ldPfadSetzen(w,1.4,'vor',LD_V.leer,{slowL:1.3,slowV:0.45}); LD.ph='hin'; LD.t=0;
+}
 function ldUpdate(dt){
   if(!LD.jack) ldBauen();
+  ldTuer(dt);
   const aktiv=VT.state==='docked'&&vdIstOffen();
-  if(!aktiv){ if(LD.ph!=='idle'){ ldAbbruch(); } return; }
-  const v=1.0;
+  if(!aktiv){ if(LD.ph!=='idle') ldAbbruch(); return; }
+  LD.t+=dt;
+  const L=LR.len;
   switch(LD.ph){
     case 'idle': {
       /* wartet kurz; faehrt nicht, solange der Kran noch ein Paket absetzt */
-      if(DDL.t<DDL_RUF||vsPalGleitet()||roboterBusy()) break;
-      const p=ldNaechste(), slot=ldFreierPlatz(); if(!p||slot<0) break;
-      LD.ziel=ddlSlot(slot); LD.slot=slot; LD.pal=null; LD.x0=boxStandLx(); LD.lx=LD.x0; LD.lz=BOX_LZ; LD.lz0=BOX_LZ; LD.sw=0; LD.ph='hin'; LD.t=0; ldPose(dt); break; }
+      if(DDL.t<DDL_RUF||!ldBereit()||!ldArbeit()) break;
+      LD.fig.visible=true; LD.fx=-L-0.55; LD.fz=DURCHSTIEG.lz; LD.fpsi=0; LD.ph='tuer'; LD.t=0; break; }
+    case 'tuer': {
+      if(LD.t<0.85) break;
+      const G=ldStand(LD.jx,LD.jz,0);
+      ldPfadSetzen([[-L-0.55,DURCHSTIEG.lz],[-L+1.0,DURCHSTIEG.lz],[-5.4,0],[-4.4,G.lz],[G.lx,G.lz]],0.7,'fuss',LD_V.fuss); LD.ph='aus'; LD.t=0; break; }
+    case 'aus': { if(ldPfadLauf(dt)){ LD.att=true; LD.ph='greif'; LD.t=0; } break; }
+    case 'greif': { if(LD.t>=0.8&&ldBereit()) ldZumBox(); break; }
     case 'hin': {
-      /* ans Tor stellen und die Gabeln unter die vorderste Palette schieben */
-      LD.t+=dt; ldPose(dt); if(LD.t<0.9) break;
-      const p=ldNaechste(); if(!p){ LD.ph='idle'; break; }
-      palAufnehmen(p); p.lader=true; LD.pal=p; LD.ph='fahren'; LD.t=0; break; }
-    case 'fahren': {
-      /* rueckwaerts durch die Gasse in der Mitte des Laderaums; die Palette schwenkt erst zum Schluss
-         seitlich auf ihren Platz - der Fahrer kommt so nie an stehenden Paletten vorbei */
-      const ziel=LD.ziel.lx-1.3;
-      LD.lx=Math.max(ziel,LD.lx-v*dt);
-      const rest=LD.lx-ziel;
-      LD.lz=LD.lz0*(1-vsGlatt(clamp((LD.x0-LD.lx)/1.6,0,1)));
-      LD.sw=LD.ziel.lz*vsGlatt(clamp(1-rest/1.3,0,1));
-      ldPose(dt); if(LD.lx<=ziel+1e-6){ LD.ph='absetzen'; LD.t=0; } break; }
-    case 'absetzen': {
-      LD.t+=dt; ldPose(dt); if(LD.t<0.7) break;
-      const p=LD.pal; LD.pal=null; p.ort='l'; p.idx=LD.slot; p.lader=false; vsPalStellen(p,vsPalObj[p.id],true);
-      statAdd('paletten',1); sfx.thump(0.3); syncPakete(); LD.ph='zurueck'; LD.t=0; break; }
-    case 'zurueck': {
-      /* erst in die Fahrgasse, dann vorwaerts zum Tor */
-      if(Math.abs(LD.lz)>0.01){ LD.lz+=Math.sign(-LD.lz)*Math.min(Math.abs(LD.lz),dt*0.9); }
-      else LD.lx=Math.min(LD.x0,LD.lx+1.7*dt);
-      ldPose(dt); if(LD.lx>=LD.x0-1e-6&&Math.abs(LD.lz)<0.02){ LD.ph='idle'; LD.t=0; LD.jack.visible=false; LD.fig.visible=false; if(VT.fahrer) VT.fahrer.visible=!!VT.raum; } break; }
+      if(!LD.pf||ldPfadLauf(dt)){ LD.pf=null; LD.ph='pick'; LD.t=0; } break; }
+    case 'pick': {
+      /* Gabel steckt in der Palette: warten, bis der Kran fertig ist, dann die Palette an den Hubwagen nehmen */
+      if(LD.t<0.5||!ldBereit()) break;
+      const p=ldNaechste(), slot=ldFreierPlatz();
+      if(!p||slot<0){ ldPfadSetzen([[LD.jx,LD.jz],[1.2,LD.jz],[LD_T.lx,LD_T.lz]],1.5,'rueck',LD_V.zugLeer); LD.ph='leer'; LD.t=0; break; }
+      palAufnehmen(p); LD.pal=p; LD.slot=slot; LD.ziel=ddlSlot(slot); LD.hub=0; LD.ph='heben'; LD.t=0; break; }
+    case 'heben': {
+      /* drei Pumpenhube: Griff runter = Gabel hoch, Griff hoch = zurueck; Hub 0..1 = 8 cm */
+      const T=0.66, x=LD.t/T, k=Math.floor(x), f=x-k, n=3;
+      LD.phiZ=-0.12*Math.cos(2*Math.PI*f);
+      LD.hub=Math.min(1,(k+vsGlatt(Math.min(1,f*2)))/n);
+      if(LD.t>=T*n){ LD.hub=1; LD.phiZ=0; const B=ldBoxAnfahrt();
+        ldPfadSetzen([[B.lx,B.lz],[1.2,B.lz],[LD_T.lx,LD_T.lz]],1.5,'rueck',LD_V.zugLast); LD.ph='zieh'; LD.t=0; }
+      break; }
+    case 'zieh': {
+      if(ldPfadLauf(dt)){ ldWende(1,3.0); LD.ph='wende2'; LD.t=0; } break; }
+    case 'wende2': {
+      if(ldWendeLauf(dt)){
+        /* Palette voran in den Laderaum: durch die Gasse, kurz vor dem Platz seitlich auf die Spalte, die letzten Meter gerade */
+        const e=LD.ziel.lx, z=LD.ziel.lz, C0=[LD.jx+Math.cos(LD.psi)*HW_PAL,LD.jz+Math.sin(LD.psi)*HW_PAL];
+        /* Bahn der Palettenmitte: Gasse, lange sanfte Kurve auf die Spalte, die letzten 1,3 m gerade (Radius >= 3 m: die Palettenecke bleibt 5 cm
+           vor der Seitenwand) */
+        ldPfadSetzen([C0,[e+4.5,0],[e+1.3,z],[e,z]],3.0,'vor',LD_V.last,{slowL:1.2,slowV:0.4,mitte:true}); LD.ph='rein'; LD.t=0; }
+      break; }
+    case 'rein': {
+      if(ldPfadLauf(dt)){ LD.ph='senken'; LD.t=0; } break; }
+    case 'senken': {
+      /* Senkhebel: Palette setzt auf den Ladeboden auf */
+      const T=1.1; LD.phiZ=-0.1; LD.hub=Math.max(0,1-LD.t/T);
+      if(LD.t<T) break;
+      const p=LD.pal; LD.pal=null; LD.hub=0; LD.phiZ=0; p.ort='l'; p.idx=LD.slot; vsPalStellen(p,vsPalObj[p.id],true);
+      statAdd('paletten',1); sfx.thump(0.3); syncPakete();
+      const z=LD.ziel.lz;
+      ldPfadSetzen([[LD.jx,LD.jz],[LD.jx+1.5,z],[LD.jx+4.0,0],[LD_T.lx,LD_T.lz]],3.0,'rueck',LD_V.zugLeer); LD.ph='leer'; LD.t=0; break; }
+    case 'leer': {
+      if(ldPfadLauf(dt)){ LD.ph='s0'; LD.t=0; } break; }
+    case 's0': {
+      /* am Wendeplatz: noch eine Palette? sonst Hubwagen zurueckstellen */
+      if(ldArbeit()){ if(!ldBereit()) break; ldWende(-1,2.4); LD.ph='wende1'; LD.t=0; break; }
+      const P=[-3.0,LD_STOW.lz];
+      ldPfadSetzen([[LD_T.lx,LD_T.lz],[-0.5,LD_T.lz],[-1.7,P[1]],P],1.2,'vor',LD_V.leer); LD.ph='park'; LD.t=0; break; }
+    case 'wende1': { if(ldWendeLauf(dt)) ldZumBox(); break; }
+    case 'park': {
+      if(ldPfadLauf(dt)){ LD.ph='frei'; LD.t=0; } break; }
+    case 'frei': {
+      if(LD.t<0.5) break;
+      LD.att=false; LD.phiZ=0;
+      const f=[LD.fx,LD.fz];
+      ldPfadSetzen([f,[f[0],0],[-L+1.0,0],[-L-0.7,DURCHSTIEG.lz]],0.6,'fuss',LD_V.fuss); LD.ph='heim'; LD.t=0; break; }
+    case 'heim': {
+      if(ldPfadLauf(dt)||LD.fx<-L-0.35){ LD.pf=null; LD.gang=0; LD.fig.visible=false; LD.ph='idle'; LD.t=0; } break; }
   }
-  if(LD.fig&&LD.fig.visible) animPerson(LD.fig,LD.ph==='fahren'||LD.ph==='zurueck',dt,0.9);
+  ldPose(dt);
 }
 /* Truck weg oder Tor zu: die Palette kommt zurueck an den Anfang der Schlange */
 function ldAbbruch(){
-  if(LD.pal){ const p=LD.pal; LD.pal=null; p.lader=false; p.ort='z'; vsPalZelle().forEach(q=>{ if(q!==p) q.idx++; }); p.idx=0; const o=vsPalObj[p.id]; if(o){ vsPalStellen(p,o,true); o.cx=null; } vsPalAbgleich(); syncPakete(); }
-  LD.ph='idle'; LD.t=0; if(LD.jack) LD.jack.visible=false; if(LD.fig) LD.fig.visible=false;
+  if(LD.pal){ const p=LD.pal; LD.pal=null; p.ort='z'; vsPalZelle().forEach(q=>{ if(q!==p) q.idx++; }); p.idx=0; const o=vsPalObj[p.id]; if(o){ vsPalStellen(p,o,true); o.cx=null; } vsPalAbgleich(); syncPakete(); }
+  LD.ph='idle'; LD.t=0; LD.att=false; LD.pf=null; LD.wd=null; LD.hub=0; LD.phiZ=0; LD.gang=0;
+  if(LD.jack) LD.jack.g.visible=false; if(LD.fig) LD.fig.visible=false;
 }
 
 /* ---------------------------------------------------------

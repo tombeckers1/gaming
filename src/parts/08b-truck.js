@@ -10,6 +10,10 @@ const LR={rear:-20.05,len:9.4,w:3.0,h:2.88,z:-2};
 function lrFront(){ return LR.rear-LR.len; }
 /* Scharnier der Ladebordwand und ihr Ausschlag beim Hochklappen */
 const BRUECKE_X=-20.1, FLAP_MAX=1.5, FLAP_T=1.1;
+/* Oberkante des Ladebodens am Rolltor V1 = Oberkante der heruntergeklappten Bruecke (makeBruecke: y 0,035 + halbe Platte 0,025) */
+const LADEBODEN_V1=0.06;
+/* Durchstieg vom Fuehrerhaus in den Laderaum (nur DDL an V1): Breite, Hoehe, Mitte quer */
+const DURCHSTIEG={b:0.8,h:1.95,lz:0,tiefe:1.3,kabB:1.5};
 
 function liveryTex(name,col,innen){
   const hex='#'+new THREE.Color(col).getHexString();
@@ -142,7 +146,9 @@ function makeLaderaum(name,col,rahmen){
     for(let i=0;i<1400;i++){ c.fillStyle=`rgba(255,255,255,${Math.random()*0.04})`; c.fillRect(Math.random()*Wc,Math.random()*Hc,2,2); } });
   plank.wrapS=plank.wrapT=THREE.RepeatWrapping; plank.repeat.set(3,1);
   const fl=new THREE.Mesh(new THREE.PlaneGeometry(L,W),new THREE.MeshStandardMaterial({map:plank,roughness:0.88}));
-  fl.rotation.x=-Math.PI/2; fl.position.set(-L/2,0.025,0);
+  /* An V1 (rahmen) liegt der Ladeboden buendig mit der Ueberladebruecke (Oberkante 0,06) - und damit ueber der Betonplatte des
+     Versandhofs (0,036) samt Hofschrift und Fahrspurmarkierung (0,04-0,045), die sonst durch den Boden im Laderaum scheinen (15.10.) */
+  fl.rotation.x=-Math.PI/2; fl.position.set(-L/2,rahmen?LADEBODEN_V1:0.025,0);
   if(HIQ) fl.receiveShadow=true; g.add(fl);
   /* Seitenwaende: helle Sperrholzverkleidung mit feinen Stossfugen */
   const wallTexI=tex(512,256,(c,Wc,Hc)=>{
@@ -187,8 +193,30 @@ function makeLaderaum(name,col,rahmen){
   LR_LAMPE[1].position.set(g.position.x-L*0.85,HH-0.3,g.position.z); LR_LAMPE[1].intensity=0.6; }
   /* Stirnwand mit Lieferantenschrift */
   const fm=new THREE.MeshStandardMaterial({map:liveryTex(name,col,true),roughness:0.78});
-  const front=new THREE.Mesh(new THREE.PlaneGeometry(W,HH),fm);
-  front.rotation.y=Math.PI/2; front.position.set(-L+0.02,HH/2,0); g.add(front);
+  if(!rahmen){
+    const front=new THREE.Mesh(new THREE.PlaneGeometry(W,HH),fm);
+    front.rotation.y=Math.PI/2; front.position.set(-L+0.02,HH/2,0); g.add(front);
+  } else {
+    /* DDL: Stirnwand mit Durchstieg zum Fuehrerhaus - der Fahrer kommt aus dem Fahrzeug, nicht aus dem Nichts (15.10.).
+       Vier Stuecke um die Oeffnung, UV wie bei der ganzen Wand (u laeuft in Richtung -z der Gruppe). */
+    const D=DURCHSTIEG, z0=D.lz-D.b/2, z1=D.lz+D.b/2;
+    const stueck=(a0,a1,y0,y1)=>{ const geo=new THREE.PlaneGeometry(a1-a0,y1-y0), pos=geo.attributes.position, uv=geo.attributes.uv, c=(a0+a1)/2, cy=(y0+y1)/2;
+      for(let i=0;i<uv.count;i++){ uv.setXY(i,(W/2-(c-pos.getX(i)))/W,(cy+pos.getY(i))/HH); }
+      const m=new THREE.Mesh(geo,fm); m.rotation.y=Math.PI/2; m.position.set(-L+0.02,cy,c); g.add(m); };
+    stueck(-W/2,z0,0,HH); stueck(z1,W/2,0,HH); stueck(z0,z1,D.h,HH);
+    /* Fuehrerhaus hinter der Wand: dunkle Kabine, die Figur steht darin, bis die Tuer aufgeht */
+    const km=MAT.ober('anthrazit','matt',{side:THREE.DoubleSide}), kb=D.kabB, kt=D.tiefe, kx=-L-kt/2+0.02;
+    const kp=(w,h,x,y,z,ry,rx)=>{ const m=new THREE.Mesh(new THREE.PlaneGeometry(w,h),km); m.position.set(x,y,z); m.rotation.set(rx||0,ry||0,0); g.add(m); };
+    kp(kt,kb,kx,0.05,D.lz,0,-Math.PI/2);                       /* Boden */
+    kp(kt,kb,kx,2.1,D.lz,0,Math.PI/2);                          /* Decke */
+    kp(kt,2.1,kx,1.05,D.lz-kb/2,0,0); kp(kt,2.1,kx,1.05,D.lz+kb/2,0,0);   /* Seiten */
+    kp(kb,2.1,-L-kt+0.02,1.05,D.lz,Math.PI/2);                  /* Rueckwand */
+    /* Tuerblatt: angeschlagen an der +z-Kante, schwenkt in den Laderaum (g.userData.tuer.rotation.y: 0 zu, -1,75 offen) */
+    const tuer=new THREE.Group(); tuer.position.set(-L+0.045,0,z1); g.add(tuer);
+    const blatt=new THREE.Mesh(new THREE.BoxGeometry(0.04,D.h,D.b-0.01),MAT.ober('lichtgrau','matt')); blatt.position.set(0,D.h/2,-D.b/2); tuer.add(blatt);
+    const klinke=new THREE.Mesh(new THREE.BoxGeometry(0.03,0.03,0.12),MAT.ober('aluminium','blank')); klinke.position.set(0.03,1.0,-D.b+0.14); tuer.add(klinke);
+    g.userData.tuer=tuer;
+  }
   for(const s of [-1,1]) bbox(0.05,HH,0.07,alu,-L+0.05,HH/2,s*(W/2-0.07),g,false);
   /* Heck: Kantenschutz innen, Rahmen aussen gegen die Torlaibung */
   for(const s of [-1,1]) bbox(0.09,HH,0.09,alu,-0.05,HH/2,s*(W/2-0.05),g,false);

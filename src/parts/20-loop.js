@@ -70,6 +70,9 @@ function dachBereiche(){
   _daecher[g].zone='lager_west';
   /* Halle Etappe A: Ostteil von ③ und neue Schleuse haben ihr Dach erst mit dem Ausbau */
   r({x0:-26,x1:-19.9,z0:LL.schleuse.z0,z1:LL.lager3.z1},LL.h3); _daecher[_daecher.length-1].zone=LL.id;
+  /* Halle Etappe B: Werk + Verbindungsbau und Mischhaus haben ihr Dach mit dem Werk */
+  r({x0:WK.werk.x0-LW,x1:-66.2,z0:WK.werk.z0-LW,z1:WK.werk.z1+LW},WK.H); _daecher[_daecher.length-1].zone=WK.id;
+  r(WK.misch,WK.misch.h); _daecher[_daecher.length-1].zone=WK.id;
   return _daecher;
 }
 function unterDach(x,y,z){
@@ -153,7 +156,7 @@ function step(dt){
     else if(!spawnWTruck(frei,ladung,sid,supplierOf(sid).name)) break;
   }
   updateSonne(pl.x,pl.z);
-  updateInnenlicht(dt); updateTruck(dt); updateWBays(dt); if(typeof hrTick==='function') hrTick(dt); updateSchiebetuer(dt); updateVersand(dt); updatePaletten(dt); updateSchweber(dt); updateWischen(dt); updateSchoner(dt); updateZiel(dt); karreNachziehen(); karreFolgen(); kartonTick(dt);
+  updateInnenlicht(dt); updateTruck(dt); updateWBays(dt); if(typeof hrTick==='function') hrTick(dt); if(typeof wkTick==='function') wkTick(dt); updateSchiebetuer(dt); updateVersand(dt); updatePaletten(dt); updateSchweber(dt); updateWischen(dt); updateSchoner(dt); updateZiel(dt); karreNachziehen(); karreFolgen(); kartonTick(dt);
   for(let i=timers.length-1;i>=0;i--){ timers[i].t-=dt; if(timers[i].t<=0){ const tm=timers[i]; timers.splice(i,1); if(tm.fw){ FW_KTX++; try{ tm.fn(); } finally { FW_KTX--; } } else tm.fn(); } }
   if(phase==='open') addGrime(dt*0.0016*(1+customers.length*0.05));
   hype=Math.max(0,hype-dt*WIRT.kunden.hype.verfallJeSek);

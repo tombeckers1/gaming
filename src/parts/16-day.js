@@ -174,6 +174,8 @@ function fixedCosts(){
   shelves.forEach(sh=>f+=SHELFFIX[sh.kind]||WIRT.fix.regalStandard);
   /* Halle Etappe A: Betrieb je aktiver Hochregal-Gasse */
   if(typeof llGasseAktiv==='function') for(let k=0;k<3;k++) if(llGasseAktiv(k)) f+=WIRT.fix.hochregal;
+  /* Halle Etappe B: Werk erst ab Produktion (im Schau-Betrieb 0, 05r wkFixkosten) */
+  if(typeof wkFixkosten==='function') f+=wkFixkosten();
   return f;
 }
 /* Die ersten Tage läuft es besser: Neueröffnung spricht sich herum */

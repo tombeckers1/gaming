@@ -30,8 +30,12 @@ const PLZ_MAX=10.8;
 let SPIEL_RAUM=null;
 const keys={}; const joy={x:0,y:0,id:null,ox:0,oy:0};
 let sprayOn=false, sprayCool=0, build=false, grabbed=null, grabRy=0, grabHome=null;
+/* Werk West (Halle Etappe B, 15.10.): Bodenhoehe unter dem Spieler (Treppe und Leitstand-Galerie +3,2 m, 05r wkBoden) */
+function bodenHoehe(x,z){ return typeof wkBoden==='function'?wkBoden(x,z):0; }
+let plBoden=0;
 function collide(p,R){
   for(const c of colliders){
+    if(c.nurNav) continue;   /* Tuer, die nur der Spieler oeffnet (Personaltuer Halle): Wegenetz zu, Spieler darf durch */
     const cx=clamp(p.x,c.minX,c.maxX), cz=clamp(p.z,c.minZ,c.maxZ), dx=p.x-cx, dz=p.z-cz, d2=dx*dx+dz*dz;
     if(d2<R*R){
       if(d2>1e-8){ const d=Math.sqrt(d2); p.x=cx+dx/d*R; p.z=cz+dz/d*R; }
@@ -47,7 +51,8 @@ function collide(p,R){
      dasselbe Rechteck, auf dem auch das Navgitter steht. */
   /* Verpackungs-Vorfuehrung: eigener Raum ausserhalb der Karte */
   if(SPIEL_RAUM){ p.x=clamp(p.x,SPIEL_RAUM.x0+0.4,SPIEL_RAUM.x1-0.4); p.z=clamp(p.z,SPIEL_RAUM.z0+0.4,SPIEL_RAUM.z1-0.4); return; }
-  p.x=clamp(p.x,NAV.x0+0.4,NAV.x1-0.4); p.z=clamp(p.z,NAV.z0+0.4,PLZ_MAX);
+  /* mit dem Werk (Kapitel 8) reicht die Welt nach Westen bis x -124 - das Wegenetz der Kunden nicht (dort laeuft niemand) */
+  p.x=clamp(p.x,typeof wkWeltX0==='function'?wkWeltX0():NAV.x0+0.4,NAV.x1-0.4); p.z=clamp(p.z,NAV.z0+0.4,PLZ_MAX);
 }
 function look(dx,dy,s){ aim=null; yaw-=dx*s; pitch=clamp(pitch-dy*s,-1.45,1.45); }
 function updatePlayer(dt){
@@ -66,7 +71,8 @@ function updatePlayer(dt){
   const schrittNr=Math.floor(bobT/Math.PI);
   if(schrittNr!==schrittAlt){ schrittAlt=schrittNr; if(Math.hypot(pl.x-x0,pl.z-z0)>dt*0.8&&!paused) sfx.schritt(1,typeof unterDach==='function'?!unterDach(pl.x,1.0,pl.z):false); }
   const sx=shake>0?rand(-shake,shake)*0.15:0; shake=Math.max(0,shake-dt*1.5);
-  camera.position.set(pl.x+sx,1.65+Math.sin(bobT)*0.035+sx,pl.z);
+  { const bz=bodenHoehe(pl.x,pl.z); plBoden=Math.abs(bz-plBoden)>1.0?bz:plBoden+(bz-plBoden)*Math.min(1,dt*14); }
+  camera.position.set(pl.x+sx,1.65+plBoden+Math.sin(bobT)*0.035+sx,pl.z);
   updateAim(dt);
   camera.rotation.set(pitch,yaw,0);
   if(sprayCool>0) sprayCool-=dt;

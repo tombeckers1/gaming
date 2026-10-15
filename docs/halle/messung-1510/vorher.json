@@ -1,0 +1,218 @@
+{
+ "ultralow": {
+  "ansichten": {
+   "laden": {
+    "calls": 442,
+    "tris": 222346
+   },
+   "lager": {
+    "calls": 373,
+    "tris": 205004
+   },
+   "halleW": {
+    "calls": 208,
+    "tris": 169473
+   },
+   "hochregal": {
+    "calls": 110,
+    "tris": 131475
+   },
+   "wareneingang": {
+    "calls": 173,
+    "tris": 137835
+   },
+   "lager3": {
+    "calls": 146,
+    "tris": 119165
+   },
+   "schleuse": {
+    "calls": 228,
+    "tris": 158957
+   },
+   "dockHof": {
+    "calls": 517,
+    "tris": 373574
+   },
+   "strasse": {
+    "calls": 90,
+    "tris": 182411
+   },
+   "werkS1": {
+    "calls": 30,
+    "tris": 48822
+   },
+   "werkS3": {
+    "calls": 30,
+    "tris": 49276
+   },
+   "leitstand": {
+    "calls": 86,
+    "tris": 73854
+   },
+   "verbindung": {
+    "calls": 33,
+    "tris": 49124
+   },
+   "hofWest": {
+    "calls": 268,
+    "tris": 258681
+   },
+   "mischhaus": {
+    "calls": 66,
+    "tris": 104337
+   }
+  },
+  "texturen": 236,
+  "texMB": 289.8,
+  "speicher": {
+   "geometries": 1445,
+   "textures": 211
+  },
+  "meshes": 2339,
+  "ll": true
+ },
+ "niedrig": {
+  "ansichten": {
+   "laden": {
+    "calls": 463,
+    "tris": 395498
+   },
+   "lager": {
+    "calls": 394,
+    "tris": 366216
+   },
+   "halleW": {
+    "calls": 232,
+    "tris": 320251
+   },
+   "hochregal": {
+    "calls": 131,
+    "tris": 251881
+   },
+   "wareneingang": {
+    "calls": 192,
+    "tris": 262829
+   },
+   "lager3": {
+    "calls": 167,
+    "tris": 215279
+   },
+   "schleuse": {
+    "calls": 248,
+    "tris": 286011
+   },
+   "dockHof": {
+    "calls": 539,
+    "tris": 520024
+   },
+   "strasse": {
+    "calls": 111,
+    "tris": 279431
+   },
+   "werkS1": {
+    "calls": 48,
+    "tris": 144544
+   },
+   "werkS3": {
+    "calls": 48,
+    "tris": 144998
+   },
+   "leitstand": {
+    "calls": 104,
+    "tris": 169576
+   },
+   "verbindung": {
+    "calls": 51,
+    "tris": 144846
+   },
+   "hofWest": {
+    "calls": 290,
+    "tris": 369221
+   },
+   "mischhaus": {
+    "calls": 84,
+    "tris": 200975
+   }
+  },
+  "texturen": 247,
+  "texMB": 307.4,
+  "speicher": {
+   "geometries": 1486,
+   "textures": 247
+  },
+  "meshes": 2342,
+  "ll": true
+ },
+ "hoch": {
+  "ansichten": {
+   "laden": {
+    "calls": 492,
+    "tris": 473296
+   },
+   "lager": {
+    "calls": 434,
+    "tris": 444930
+   },
+   "halleW": {
+    "calls": 284,
+    "tris": 360553
+   },
+   "hochregal": {
+    "calls": 152,
+    "tris": 254599
+   },
+   "wareneingang": {
+    "calls": 200,
+    "tris": 263411
+   },
+   "lager3": {
+    "calls": 203,
+    "tris": 220199
+   },
+   "schleuse": {
+    "calls": 301,
+    "tris": 292611
+   },
+   "dockHof": {
+    "calls": 542,
+    "tris": 590274
+   },
+   "strasse": {
+    "calls": 112,
+    "tris": 281039
+   },
+   "werkS1": {
+    "calls": 53,
+    "tris": 145074
+   },
+   "werkS3": {
+    "calls": 53,
+    "tris": 145528
+   },
+   "leitstand": {
+    "calls": 142,
+    "tris": 174562
+   },
+   "verbindung": {
+    "calls": 56,
+    "tris": 145376
+   },
+   "hofWest": {
+    "calls": 309,
+    "tris": 388925
+   },
+   "mischhaus": {
+    "calls": 91,
+    "tris": 201509
+   }
+  },
+  "texturen": 246,
+  "texMB": 320.8,
+  "speicher": {
+   "geometries": 1550,
+   "textures": 257
+  },
+  "meshes": 2344,
+  "ll": true
+ }
+}

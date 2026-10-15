@@ -93,6 +93,8 @@ function logiStufeBauen(i){
   LOGI_COLS[i]=cols;
   /* Stufe 3: Ostwand, Wandschatten und Raster-Leuchten weichen dem Ausbau "lagerlogistik" (05q) */
   if(i===2&&typeof llAltHalle==='function') llAltHalle(g,cols);
+  /* Stufe 3: Westwand weicht der Brandwand des Werks (Halle Etappe B, 05r) */
+  if(i===2&&typeof wkAltHalle==='function') wkAltHalle(g,cols);
 }
 /* Tore einmal bauen, eingeblendet werden sie mit ihrer Stufe */
 function logiToreBauen(){
@@ -110,8 +112,6 @@ function logiHofBauen(){
   const r=LAY.hof2, Z=LHALLE.z;
   MAT.kachel(flat(r.x1-r.x0,r.z1-r.z0,MAT.get('betonHof'),
        (r.x0+r.x1)/2,0.013,(r.z0+r.z1)/2).geometry,(r.x1-r.x0)/2.4,(r.z1-r.z0)/2.4);
-  /* Zufahrt nach Westen hinaus */
-  MAT.kachel(flat(28,7.5,MAT.get('betonHof'),r.x0-14,0.012,-50.0).geometry,12,2);
   /* Stellplatzmarkierung vor jedem Tor: zwei Linien, Stopplinie, Mittelstriche */
   const gelb=MAT.get('markierungGelb');
   for(const cx of WRAMPEN){
@@ -123,11 +123,29 @@ function logiHofBauen(){
   const ZH=2.2, torA=-53.5, torB=-46.5;
   bk.zaun({art:'doppelstab',von:[r.x0,r.z0],bis:[r.x1,r.z0],hoehe:ZH});
   bk.zaun({art:'doppelstab',von:[r.x1,r.z0],bis:[r.x1,r.z1],hoehe:ZH});
+  /* Zufahrt nach Westen hinaus, Westzaun mit Einfahrt und Hinweisschild: weichen mit dem Werk dem Hof West (Halle Etappe B, 05r wkAltHof) */
+  const westAlt=logiSammle(()=>{
+  MAT.kachel(flat(28,7.5,MAT.get('betonHof'),r.x0-14,0.012,-50.0).geometry,12,2);
   bk.zaun({art:'doppelstab',von:[r.x0,r.z0],bis:[r.x0,r.z1],hoehe:ZH,luecke:[[torA-r.z0,torB-r.z0]]});   /* Einfahrt */
-  col(r.x0,r.x1,r.z0-0.1,r.z0+0.1);
-  col(r.x1-0.1,r.x1+0.1,r.z0,r.z1);
   col(r.x0-0.1,r.x0+0.1,r.z0,torA);
   col(r.x0-0.1,r.x0+0.1,torB,r.z1);
+  /* Hinweisschild an der Einfahrt */
+  { const px=r.x0+0.2, pz=torB+1.2;
+    bbox(0.1,2.4,0.1,MAT.get('zaunPfosten'),px,1.2,pz,null,false);
+    plane(1.5,0.95,new THREE.MeshStandardMaterial({side:THREE.DoubleSide,map:tex(300,190,(g,W,H)=>{
+      g.fillStyle='#1b2340'; g.fillRect(0,0,W,H);
+      g.strokeStyle=MAT.css('schildgold'); g.lineWidth=6; g.strokeRect(7,7,W-14,H-14);
+      g.textAlign='center'; g.textBaseline='middle';
+      g.fillStyle=MAT.css('schildgold'); g.font=BUN(30); g.fillText('LOGISTIKHOF',W/2,44);
+      g.fillStyle='#bcd0ea'; g.font=BAR(24);
+      g.fillText('Tor 2 – 5 · Auflieger',W/2,86);
+      g.fillText('Schrittgeschwindigkeit',W/2,118);
+      g.fillStyle='#ff9d92'; g.font=BAR(22); g.fillText('Rauchen und Feuer verboten',W/2,152); })}),
+      px,1.75,pz,Math.PI/2,null); }
+  });
+  if(typeof wkAltHof==='function') wkAltHof(westAlt.neu,westAlt.cols);
+  col(r.x0,r.x1,r.z0-0.1,r.z0+0.1);
+  col(r.x1-0.1,r.x1+0.1,r.z0,r.z1);
   /* Wartespur: abgestellte Auflieger laengs am West- und Ostrand -
      die Fahrspuren vor den Toren bleiben bis zum Suedzaun frei */
   for(const [n,f,x,ry] of [['Kowalski',TRUCKCOL.kowalski,r.x0+2.8,Math.PI/2],['Ratzke',TRUCKCOL.ratzke,r.x1-2.8,-Math.PI/2]]){
@@ -150,19 +168,6 @@ function logiHofBauen(){
     const h=new THREE.Mesh(new THREE.SphereGeometry(sw/2,HIQ?14:8,8),MAT.get('weissMatt'));
     h.scale.set(1,0.42,0.8); h.position.set(sx,0.1,sz); scene.add(h);
     col(sx-sw/2,sx+sw/2,sz-sw/2.6,sz+sw/2.6); }
-  /* Hinweisschild an der Einfahrt */
-  { const px=r.x0+0.2, pz=torB+1.2;
-    bbox(0.1,2.4,0.1,MAT.get('zaunPfosten'),px,1.2,pz,null,false);
-    plane(1.5,0.95,new THREE.MeshStandardMaterial({side:THREE.DoubleSide,map:tex(300,190,(g,W,H)=>{
-      g.fillStyle='#1b2340'; g.fillRect(0,0,W,H);
-      g.strokeStyle=MAT.css('schildgold'); g.lineWidth=6; g.strokeRect(7,7,W-14,H-14);
-      g.textAlign='center'; g.textBaseline='middle';
-      g.fillStyle=MAT.css('schildgold'); g.font=BUN(30); g.fillText('LOGISTIKHOF',W/2,44);
-      g.fillStyle='#bcd0ea'; g.font=BAR(24);
-      g.fillText('Tor 2 – 5 · Auflieger',W/2,86);
-      g.fillText('Schrittgeschwindigkeit',W/2,118);
-      g.fillStyle='#ff9d92'; g.font=BAR(22); g.fillText('Rauchen und Feuer verboten',W/2,152); })}),
-      px,1.75,pz,Math.PI/2,null); }
 }
 function buildLogistikHalle(){
   for(let i=0;i<LOGI_STUFEN.length;i++) logiStufeBauen(i);
@@ -178,9 +183,13 @@ function logiAnwenden(){
   if(!LOGI_G.length) return;
   const z=logiZeige();
   const ll=typeof llOffen==='function'&&llOffen();
-  LOGI_G.forEach((g,i)=>{ g.visible=i===z; logiColSetzen(LOGI_COLS[i].filter(c=>LL_ALT.halleCols.indexOf(c)<0),i===z); });
+  const wk=typeof wkOffen==='function'&&wkOffen(), WA=typeof WK_ALT!=='undefined'?WK_ALT:{halle:null,halleCols:[]};
+  LOGI_G.forEach((g,i)=>{ g.visible=i===z; logiColSetzen(LOGI_COLS[i].filter(c=>LL_ALT.halleCols.indexOf(c)<0&&WA.halleCols.indexOf(c)<0),i===z); });
   if(LL_ALT.halle) LL_ALT.halle.visible=!ll;
   logiColSetzen(LL_ALT.halleCols,z===2&&!ll);
+  /* Halle Etappe B: Westwand der Stufe 3 weicht der Brandwand des Werks */
+  if(WA.halle) WA.halle.visible=!wk;
+  logiColSetzen(WA.halleCols,z===2&&!wk);
   TOR_G.forEach((g,k)=>{ const an=TOR_STUFE[k]<=z; g.visible=an; logiColSetzen(TOR_COLS[k],an); });
   if(typeof navDirty==='function') navDirty();
 }

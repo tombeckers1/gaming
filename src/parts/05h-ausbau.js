@@ -669,6 +669,7 @@ function buildAusbau(){
   buildLogistikHalle();
   buildLogistik();
   buildLagerlogistik();
+  buildWerk();
 }
 
 /* =========================================================

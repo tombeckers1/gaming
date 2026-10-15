@@ -34,8 +34,12 @@ const GP_ORTE=[
   ['Logistik',    -30.0,-16.0, Math.PI*0.62, -0.05],
   /* 14.10. (Halle Etappe A): vom Anbruch in Gasse 1 - RBG, Foerderer, Paletten bis unters Dach */
   ['Hochregal',   -43.2,-25.6, Math.PI/2, 0.14],
-  ['Testfeld',      0.3,-8.5, 0, 0.05]
+  ['Testfeld',      0.3,-8.5, 0, 0.05],
+  /* 15.10. (Halle Etappe B): Werk West - mehrmals druecken = Rundgang: Leitstand-Blick, Straße 1, 2, 3, Verbindungsbau */
+  ['Werk',        -82.0,-9.6, 0, -0.3]
 ];
+const GP_WERK=[[-82.0,-9.6,0,-0.3],[-91.3,-11.7,-Math.PI/2+0.25,-0.12],[-91.3,-16.6,-Math.PI/2+0.22,-0.12],[-91.3,-22.1,-Math.PI/2+0.22,-0.12],[-68.6,-11.0,0.05,-0.08]];
+let gpWerkI=-1;
 /* 03.10. (Tom: "die Gameplay-Vorfuehrung haengt, am Handy geht gar
    nichts - massive Renderprobleme; mach, dass das langsam laedt"):
    frueher entstand alles in einem einzigen Rechenschritt (rund 20
@@ -269,7 +273,7 @@ function* gpAufbau(){
   if(!HIQ||gfxNiedrig(GFX)) yield* gpStatisch();
   gpFertig=true;
   gpPanel(); gpZeichnen(); requestAnimationFrame(gpFpsLauf);
-  toast('Gameplay-Vorführung: alles gebaut, Personal da, der Laden läuft. Tasten 1–7 springen in die Bereiche, T Zeitraffer, B beendet.','money');
+  toast('Gameplay-Vorführung: alles gebaut, Personal da, der Laden läuft. Tasten 1–9 und 0 springen in die Bereiche (0 Werk: mehrmals = Rundgang), T Zeitraffer, B beendet.','money');
 }
 /* 04.10. (Tom: am Handy "maximal fluessig, 30 fps"): gemessen kostete der
    Blick von den Kassen in den Laden rund 870 Zeichenaufrufe - allein die
@@ -310,6 +314,8 @@ function gpEnde(){
 }
 function gpSpringe(i){
   const o=GP_ORTE[i]; if(!o) return;
+  if(o[0]==='Werk'){ gpWerkI=(gpWerkI+1)%GP_WERK.length; const w=GP_WERK[gpWerkI]; pl.x=w[0]; pl.z=w[1]; yaw=w[2]; pitch=w[3]; aim=null; collide(pl,0.32); return; }
+  gpWerkI=-1;
   pl.x=o[1]; pl.z=o[2]; yaw=o[3]; pitch=o[4]; aim=null; collide(pl,0.32);
 }
 /* Bildrate fuer Tom (04.10.: "Hauptsache es laeuft mit 30 fps") - in der
@@ -372,13 +378,13 @@ function gpZeichnen(){
     (v.length>1?`<span style="color:${d>=0?'#6cf2a8':'#ff7a7a'}">seit gestern ${d>=0?'+':''}${eur(d)}</span>`:'')+
     (gpGestern?`<span>gestern ${eur(gpGestern.umsatz)} Umsatz</span>`:'')+spark+
     `<span style="flex-basis:100%;height:0"></span>`+
-    GP_ORTE.map((o,i)=>btn(`${i+1} ${o[0]}`,`data-ort="${i}"`)).join('')+
+    GP_ORTE.map((o,i)=>btn(`${(i+1)%10} ${o[0]}`,`data-ort="${i}"`)).join('')+
     btn(`T Zeitraffer ${gpTempo}×`,'data-gp="tempo"')+btn('B Beenden','data-gp="ende" style="background:#c0392b"');
 }
 /* Tasten waehrend der Vorfuehrung */
 function gpTaste(e){
   if(!gpAn) return false;
-  if(/^Digit[1-9]$/.test(e.code)){ gpSpringe(+e.code.slice(5)-1); return true; }
+  if(/^Digit[0-9]$/.test(e.code)){ gpSpringe(e.code==='Digit0'?9:+e.code.slice(5)-1); return true; }
   if(e.code==='KeyT'){ gpTempoWechsel(); return true; }
   if(e.code==='KeyB'){ gpEnde(); return true; }
   return false;

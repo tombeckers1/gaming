@@ -138,6 +138,25 @@ Danach `bk.<name>` in `tools/fundament/waechter.js` (`BAUTEILE` mit Namenswörte
   `bk.lampe` aktiviert die Namensregel „lampe/leuchte“: `leuchtenRaster` (05h) und `lampTeile` (05e) sind dafür Hüllen geworden.
 - Einsatz und Messung: `docs/halle/etappe-a.md`.
 
+## 2c. Halle Etappe B – Werk West (15.10.2026) – neue Bauteile und Materialien
+| Aufruf | Zweck |
+|---|---|
+| `bk.zelle(o)` | **Betonzelle** (mannlose Station, Mischhaus, Chemie-Box, Satz-Bunker): Wände Beton Steingrau 25 cm (`MAT.get('betonZelle')`, UV in Metern), Ausblasdach (Platten lichtgrau auf Stahlrahmen), Durchreiche mit Klappe (Feuerrot = Brandschutzabschluss) in beiden Stirnwänden (`band`, `false` = geschlossen), zwei versetzte Stahltüren (`tueren:[{seite:±1,x}|{seite:'w'/'o',z}]`), Kupferplatte + Ampel an jeder Tür (Lampen-Geometrien in `o.leuchten`, der Aufrufer schaltet sie je Straße über `MAT.neu('ampelRot'/'ampelGruen')`), Gummiboden, Zellenschild. Alles in einen fremden Sammler `o.S` (`bk.werkSammler`) → eine Straße = wenige Meshes. Rückgabe `{kollision,tueren}` |
+| `bk.drehtuer(o)` | **Drehflügeltür** (`art:'stahl'|'brand'|'glas'`): Zarge Anthrazit durch die Wand, Blatt Lichtgrau (Brandschutz mit rotem Schild), Drücker Stahl; mit `o.S` statisch (zu) in einen Sammler, sonst Gruppe mit `fluegel` und `set(t)` (öffnet um das Band). Schiebe-/Haustüren (`hausTuer`, `buildSchiebetuer`) stellt der Schritt Türen auf `bk.tuer` um – deshalb eigener Name und enge Wächter-Wörter |
+| `bk.treppe(o)` | gerader Stahllauf `von`→`bis`, `y0`→`y1`: Stufen verzinkt mit gelber Trittkante, Wangen Anthrazit, Geländer Signalgelb (wie `bk.zaun 'gelaender'`), `gelaender:[links,rechts]` |
+| `bk.portalgreifer(o)` | Portalgreifer aus Alu-Profil 90 mm (Referenzfoto): 4 Stützen, Längsträger, Brücke (x) + Hubachse (y), Greifer `zange`/`sauger`, Energiekette, Schaltkasten. `set(u,v)` – bewegt wird von außen (05r Schau-Betrieb) |
+| `bk.rohrraster(S,o)` | Batterie-Rohr-Raster (Alu-Platte, nx × nz Pappe-Rohre graphit, innen Pappe hell) in einen Sammler |
+| `bk.maschine(S,o)` | Stationsmaschine auf Alu-Gestell, **Arten statt Kopien**: `magazin, presse, fuell, zuendschnur, pruef, verpack, wickler, tunnel, banderole, spritz, verdaemm` |
+| `bk.erdwall(o)` | Erdwall-Ring mit Trapez-Querschnitt (Fuß 3 m, Krone 0,8 m, 4 m hoch), Ecken auf Gehrung, Lücke mit Beton-Stirnflächen, Oberfläche `MAT.get('erdwall')` (Textur `rasen`, UV in Metern / 4); optional Prallwand |
+| `bk.tor({art:'schnelllauf'})` | **PVC-Schnelllauftor** (N1): Zargen Anthrazit, Wickelkasten, Behang `MAT.get('pvcBehang')` (Signalgelb, schnell bewegtes Teil) mit Sichtfenster `glasScheibe`, Gummiabschluss; `set(t)` rollt auf |
+| `bk.foerderer({decke})` | neu: hängend (Abhänger bis zur Decke statt Stützen) – Überkopf-Förderer 4,2 m; `antrieb:false` |
+| Helfer `bk.kastenM`, `bk.werkSammler`, `bk.balken` | Kasten mit UV in Metern (Welt-Versatz → Körnung läuft über Stöße) · Sammler mit Klassen `beton`, `scheibe` (ohne Schatten), `rasen` · Balken zwischen zwei 3D-Punkten |
+
+Neue Töne/Rezepte/Texturen (`01b`): Ton **`kupfer`** (eigene Bedeutung: Erdung/Entladen an Zellentüren), Rezepte `betonZelle`, `glasScheibe`
+(durchsichtig, Leitstand/Schnelllauftor), `erdwall`, `pvcBehang`; Textur `rasen` (Winterwiese, Kachel 4 m). Steingrau trägt jetzt auch
+„Betonzellen, Brandwände“. Wächter: `drehtuer, treppe, portalgreifer, rohrraster, maschine, erdwall, zelle` in `BAUTEILE` (enge Wörter),
+`kastenM, werkSammler, balken` in `HELFER`. Einsatz, Messung: `docs/halle/etappe-b.md`.
+
 ## 3. Messung Schritte 3 + 4 (Wände, Zäune/Poller, 14.10.)
 Mit Laufzeit-Bündelung (Spielzustand): Hauptpass Laden 597 → 490, Lagerdock 635 → 495, Dock-Hof 739 → 561; Schattenpass 464–511 → 266–290
 (−40 … −44 %). Meshes im Graf 2 521 → 2 218, Zeichengruppen 3 381 → 2 516. Einzelheiten: `waende.md` §4, `zaeune.md` §4.

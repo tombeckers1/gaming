@@ -63,7 +63,7 @@ bk.sammler=function(opt){
         const mat=typeof mats==='function'?mats(k):((mats&&mats[k])||MAT.vc(k)); if(!mat) continue;
         let geo=merge(L[k]); if(o.geo) geo=o.geo(geo,k)||geo;
         const me=new THREE.Mesh(geo,mat);
-        const sch=typeof o.schatten==='function'?o.schatten(k):(HIQ&&o.schatten!==false&&k!=='leucht');
+        const sch=typeof o.schatten==='function'?o.schatten(k):(HIQ&&o.schatten!==false&&k!=='leucht'&&k!=='scheibe');
         if(sch){ me.castShadow=true; me.receiveShadow=true; }
         if(o.bauteil!==false){ me.userData.bauteil=o.bauteil||opt.bauteil||'sammler'; me.userData.klasse=k; }
         if(o.fest){ me.matrixAutoUpdate=false; me.updateMatrix(); }
@@ -315,6 +315,7 @@ bk.tor=function(o){
     mats:{blatt:MB,warn:MAT.get('warnschraffur')}});
   const T={g,art:o.art,o,panele:[],blatt:null,zu:0,auf:0,t:0,ampel:null,warn:null,kollision:[],statisch:[]};
   const lokal=[];                                   /* Kollision lokal -> am Ende in Welt */
+  const zylGeo0=(r1,r2,h,x,y,z,sg)=>({geo:new THREE.CylinderGeometry(r1,r2,h,sg),m:tm(x,y,z),color:0xffffff});
   const weiss=geo=>bk.uvZeile(geo,3);
 
   if(gitter){
@@ -332,6 +333,37 @@ bk.tor=function(o){
     return T;
   }
 
+  if(o.art==='schnelllauf'){
+    /* PVC-Schnelllauftor (innen: N1 Kartonlager, Halle Etappe B 15.10.): Seitenzargen Anthrazit mit Fuehrungsprofil verzinkt,
+       Wickelwelle im Kasten oben, Antrieb seitlich, Behang PVC Signalgelb (schnell bewegtes Teil = Warnfarbe) mit klarem
+       Sichtfenster 1,2-1,8 m, Unterkante Gummiabschluss. T.set(t): Behang rollt auf (Logik 11f). */
+    const Sx=bk.sammler({form:{fase:0.01,faseMin:0.05,seg:1,lod0Kasten:true},klasse:'lackMetall',bauteil:'tor'});
+    for(const s2 of [-1,1]){ const z=s2*(w2+0.07);
+      Sx.box(0.16,H+0.12,0.14,xb,(H+0.12)/2,z,ANTH,'lackMetall'); Sx.box(0.05,H,0.03,xb,H/2,z-s2*0.075,STAHL,'stahl');
+      Sx.box(0.22,0.02,0.2,xb,0.01,z,ANTH,'stahl'); }
+    Sx.box(0.36,0.4,W+0.44,xb,H+0.32,0,ANTH,'lackMetall'); Sx.box(0.37,0.03,W+0.45,xb,H+0.1,0,GRAPH,'lackMetall');
+    Sx.box(0.26,0.3,0.3,xb+0.06,H+0.32,ad*(w2+0.4),GRAPH,'lackMetall'); Sx.zyl(0.09,0.09,0.16,seg,xb+0.06,H+0.32,ad*(w2+0.62),GUMMI,'kunststoff',Math.PI/2,0,0);
+    for(const xs of [-1,1]) if(xs>0?innen:aussen){ Sx.box(0.08,0.26,0.16,xb+xs*0.14,1.4,bs*(w2+0.3),GELB,'kunststoff');
+      [F('signalgruen'),F('signalrot')].forEach((c2,k)=>Sx.box(0.03,0.05,0.05,xb+xs*0.19,1.45-k*0.08,bs*(w2+0.3),c2,'kunststoff')); }
+    const lw=[zylGeo0(0.06,0.075,0.1,xb,H+0.58,ad*(w2+0.2),seg)];
+    T.statisch=Sx.fertig(g,{bauteil:'tor',fest:true});
+    const beh=new THREE.Group(); beh.position.set(xb,H+0.1,0); g.add(beh);
+    const Sb=bk.sammler({bauteil:'tor',mats:{pvc:MAT.get('pvcBehang'),scheibe:MAT.get('glasScheibe')}});
+    const top=H+0.1, f0=top-1.8, f1=top-1.2, BW=W+0.06;
+    Sb.box(0.012,f0,BW,0,-f0/2,0,0xffffff,'pvc');
+    Sb.box(0.008,f1-f0,BW-0.3,0,-(f0+f1)/2,0,F('glasKlar'),'scheibe');
+    for(const s2 of [-1,1]) Sb.box(0.012,f1-f0,0.15,0,-(f0+f1)/2,s2*(BW/2-0.075),0xffffff,'pvc');
+    Sb.box(0.012,top-f1-0.08,BW,0,-(f1+top-0.08)/2,0,0xffffff,'pvc');
+    Sb.box(0.05,0.08,BW,0,-top+0.04,0,GUMMI,'kunststoff');
+    for(const y of [0.6,1.0]) Sb.box(0.02,0.03,BW-0.02,0,-(top-y),0,ANTH,'kunststoff');
+    const bm=Sb.fertig(beh,{bauteil:'tor',schatten:false}); bm.forEach(m=>{ m.userData.bauteilArt='schnelllauf'; });
+    T.panele=[beh]; T.blatt=beh;
+    const wm=MAT.neu('torWarn'); const wme=new THREE.Mesh(merge(lw),wm); wme.userData.bauteil='tor'; wme.userData.klasse='leuchte'; g.add(wme); T.warn=wm;
+    T.set=t=>{ t=Math.max(0,Math.min(1,t)); T.t=t; beh.scale.y=Math.max(0.03,1-t); beh.visible=t<0.97; };
+    T.set(o.offen);
+    g.traverse(me=>{ if(me.isMesh&&!me.userData.bauteilArt) me.userData.bauteilArt=o.art; });
+    return T;
+  }
   /* ---------- Aussenseite wie am alten R1: Zarge verzinkt, Torabdichtung, Puffer, Vordach mit Schnee, Poller ----------
      Masse vom alten R1 (05g bis V129), gemessen ab der Aussenwand xa und der Torkante w2. */
   if(aussen){
@@ -893,7 +925,8 @@ bk.rbg=function(o){
   return R;
 };
 /* Rollenfoerderer (Paletten, 1 m breit): Seitenwangen Anthrazit, Rollen Stahl hell, Stuetzen verzinkt, Antrieb.
-   o = {von:[x,z], bis:[x,z], breite 1,0, hoehe (Oberkante Rollen) 0,55, teilung (Rollenabstand) 0,16, parent}
+   o = {von:[x,z], bis:[x,z], breite 1,0, hoehe (Oberkante Rollen) 0,55, teilung (Rollenabstand) 0,16, decke (haengend bis zur Decke),
+        antrieb:false, parent}
    -> {meshes, laenge, y, punkt(t) -> {x,z} (t 0..1), ry, kollision {x0,x1,z0,z1}} */
 bk.foerderer=function(o){
   const F=MAT.farbe, L=bk.lod(), seg=[6,8,12][L], [ax,az]=o.von, [bx,bz]=o.bis, dx=bx-ax, dz=bz-az, len=Math.hypot(dx,dz);
@@ -903,8 +936,11 @@ bk.foerderer=function(o){
   for(const s of [-1,1]){ S.box(len,0.14,0.05,len/2,Hh-0.05,s*(B/2+0.03),F('anthrazit'),'lackMetall'); }
   const n=Math.max(2,Math.floor(len/t));
   for(let i=0;i<n;i++) S.zyl(0.03,0.03,B,seg,(i+0.5)*len/n,Hh-0.03,0,F('hellgrau'),'stahl',Math.PI/2,0,0);
-  const ns=Math.max(2,Math.ceil(len/1.6)+1);
-  for(let i=0;i<ns;i++){ const x=Math.min(len-0.05,Math.max(0.05,i*len/(ns-1))); for(const s of [-1,1]){ S.box(0.06,Hh-0.12,0.06,x,(Hh-0.12)/2,s*(B/2-0.02),F('silbergrau'),'stahl'); bk.fuss(S,x,s*(B/2-0.02),0.12); }
+  /* stehend: Stuetzen mit Fussplatte; haengend (o.decke = Hoehe der Decke, Ueberkopf-Foerderer Werk West): Abhaenger und Querjoch */
+  const ns=Math.max(2,Math.ceil(len/(o.decke?2.4:1.6))+1);
+  for(let i=0;i<ns;i++){ const x=Math.min(len-0.05,Math.max(0.05,i*len/(ns-1)));
+    if(o.decke){ const hl=o.decke-Hh; for(const s of [-1,1]) S.box(0.03,hl,0.03,x,Hh+hl/2,s*(B/2+0.04),F('silbergrau'),'stahl'); S.box(0.06,0.06,B+0.14,x,Hh-0.14,0,F('silbergrau'),'stahl'); continue; }
+    for(const s of [-1,1]){ S.box(0.06,Hh-0.12,0.06,x,(Hh-0.12)/2,s*(B/2-0.02),F('silbergrau'),'stahl'); bk.fuss(S,x,s*(B/2-0.02),0.12); }
     S.box(0.05,0.05,B,x,0.18,0,F('silbergrau'),'stahl'); }
   if(o.antrieb!==false){ S.box(0.3,0.24,0.22,len*0.5,Hh-0.22,-(B/2+0.18),F('graphit'),'lackMetall'); S.zyl(0.08,0.08,0.22,seg,len*0.5,Hh-0.22,-(B/2+0.36),F('mittelgrau'),'lackMetall',Math.PI/2,0,0); }
   const meshes=S.fertig(g,{bauteil:'foerderer',fest:true});
@@ -1010,4 +1046,282 @@ bk.fts=function(o){
   const deck=new THREE.Group(); deck.position.y=0.27; g.add(deck);
   const Sd=bk.sammler({bauteil:'fts'}); Sd.box(1.1,0.03,0.7,0,0.015,0,F('silbergrau'),'stahl'); meshes.push(...Sd.fertig(deck,{bauteil:'fts'}));
   return {g,deck,meshes,set(h){ deck.position.y=0.27+0.06*Math.max(0,Math.min(1,h)); }};
+};
+
+/* =========================================================
+   Werk West (Halle Etappe B, 15.10.2026, docs/halle/plan-1410.md, Referenzfoto docs/uebergabe/produktion-referenz.webp):
+   Betonzelle, Tuer, Treppe, Portalgreifer (Alu-Profil), Rohr-Raster, Stationsmaschinen, Erdwall. Doku: baukasten.md §2c.
+   Helle Industrie-Optik: Profile Aluminium, Technik Anthrazit, Beton Steingrau, Warnung Signalgelb, Brandschutz Feuerrot.
+   ========================================================= */
+/* Kasten mit UVs in Metern (Kachel k m, Standard 2,4 wie der Hofbeton): keine gestreckte Textur. ox/oy/oz = Weltlage der Mitte -
+   dann laeuft die Koernung ueber aneinanderstossende Stuecke weiter. Direkt im Array (das Testdoppel kennt getX/setXY nicht). */
+bk.kastenM=function(w,h,d,k,ox,oy,oz){
+  const g=new THREE.BoxGeometry(w,h,d), P=g.attributes.position, N=g.attributes.normal, U=g.attributes.uv, K=k||2.4;
+  if(!P||!N||!U||!P.array||!U.array) return g;
+  const p=P.array, n=N.array, uv=U.array, X=ox||0, Y=oy||0, Z=oz||0;
+  for(let i=0;i<P.count;i++){ const ax=Math.abs(n[i*3]), ay=Math.abs(n[i*3+1]), x=p[i*3]+X, y=p[i*3+1]+Y, z=p[i*3+2]+Z;
+    if(ay>0.5){ uv[i*2]=x/K; uv[i*2+1]=z/K; } else if(ax>0.5){ uv[i*2]=z/K; uv[i*2+1]=y/K; } else { uv[i*2]=x/K; uv[i*2+1]=y/K; } }
+  U.needsUpdate=true; return g;
+};
+/* Sammler fuers Werk: Klassen wie bk.sammler, dazu 'beton' (MAT 'betonZelle', UV in Metern), 'scheibe' (MAT 'glasScheibe', ohne
+   Schatten), 'rasen' (MAT 'erdwall') */
+bk.werkSammler=function(bauteil,form){
+  return bk.sammler({form:form||{fase:0.01,faseMin:0.04,lod0Kasten:true},bauteil,
+    mats:k=>k==='beton'?MAT.get('betonZelle'):k==='scheibe'?MAT.get('glasScheibe'):k==='rasen'?MAT.get('erdwall'):MAT.vc(k)});
+};
+/* Balken von Punkt a nach b ([x,y,z]) mit quadratischem Querschnitt d - Streben, Fachwerk, Treppenwangen, Handlaeufe */
+const _bkY=new THREE.Vector3(0,1,0);
+bk.balken=function(S,a,b,d,farbe,klasse,dz){
+  const v=new THREE.Vector3(b[0]-a[0],b[1]-a[1],b[2]-a[2]), L=v.length(); if(L<1e-4) return S;
+  const q=new THREE.Quaternion().setFromUnitVectors(_bkY,v.clone().normalize()), m=new THREE.Matrix4();
+  m.compose(new THREE.Vector3((a[0]+b[0])/2,(a[1]+b[1])/2,(a[2]+b[2])/2),q,new THREE.Vector3(1,1,1));
+  S.geo(new THREE.BoxGeometry(d,L,dz||d),m,farbe,klasse); return S;
+};
+/* Lokal -> Welt fuer Teile in einer gedrehten Wand (ry um y): liefert box(w,h,d,lx,y,lz,farbe,klasse) im fremden Sammler */
+function _bkLokal(S,x,z,ry){ const c=Math.cos(ry||0), s=Math.sin(ry||0);
+  return { P:(lx,lz)=>[x+lx*c+lz*s,z-lx*s+lz*c],
+    box:(w,h,d,lx,y,lz,f,k)=>S.box(w,h,d,x+lx*c+lz*s,y,z-lx*s+lz*c,f,k,0,ry||0,0) }; }
+
+/* Drehfluegeltuer (Werk West, bk.drehtuer - Schiebe- und Haustueren stellt der Schritt Tueren um): Stahltuer, Brandschutztuer (T30, Feststellanlage) oder Glastuer. Zarge Anthrazit durch die Wand, Blatt Lichtgrau
+   (Brandschutz mit rotem Kennzeichnungsschild), Druecker Stahl, Glastuer Alu-Rahmen mit Scheibe.
+   Lokal: Wand laeuft in x (ry 0), Wandnormale z. o = {S (fremder Sammler: Tuer zu und unbeweglich), x, z, ry, breite 1,0, hoehe 2,1,
+     dicke (Wand) 0,2, art 'stahl'|'brand'|'glas', anschlag ±1 (Band bei -x | +x), auf ±1 (oeffnet nach +z | -z), offen 0..1, parent}
+   -> {g, fluegel, t, set(t01), kollision:{x0,x1,z0,z1} (Oeffnung, Welt - der Aufrufer legt sie an, solange die Tuer zu ist)} */
+bk.drehtuer=function(o){
+  o=Object.assign({breite:1.0,hoehe:2.1,dicke:0.2,art:'stahl',anschlag:1,auf:1,offen:0,ry:0},o||{});
+  const F=MAT.farbe, B=o.breite, H=o.hoehe, D=o.dicke, ANTH=F('anthrazit');
+  const blattF=o.art==='glas'?F('aluminium'):F('lichtgrau');
+  const zarge=L=>{ for(const s of [-1,1]) L.box(0.06,H+0.03,D+0.04,s*(B/2+0.03),(H+0.03)/2,0,ANTH,'lackMetall');
+    L.box(B+0.12,0.06,D+0.04,0,H+0.03,0,ANTH,'lackMetall'); };
+  /* Blatt um das Band (lx = Bandseite): Teile relativ zur Bandachse, Blatt laeuft nach +bx */
+  const blatt=(L,bx,dz)=>{ const w=B-0.02, cx=bx+w/2*o.anschlag;
+    if(o.art==='glas'){ for(const s of [-1,1]) L.box(0.07,H-0.02,0.05,cx+s*(w/2-0.035),(H-0.02)/2,dz,blattF,'lackMetall');
+        for(const y of [0.06,H-0.06]) L.box(w,0.1,0.05,cx,y,dz,blattF,'lackMetall');
+        L.box(w-0.12,H-0.2,0.012,cx,H/2,dz,F('glasKlar'),'scheibe'); }
+    else { L.box(w,H-0.015,0.05,cx,(H-0.015)/2,dz,blattF,'lackMetall');
+      if(o.art==='brand') for(const s of [-1,1]) L.box(0.16,0.08,0.004,cx,1.62,dz+s*0.027,F('feuerrot'),'kunststoff'); }
+    const gx=cx+o.anschlag*(w/2-0.09);
+    for(const s of [-1,1]){ L.box(0.03,0.16,0.012,gx,1.05,dz+s*0.031,F('silbergrau'),'stahl'); L.box(0.13,0.022,0.022,gx-o.anschlag*0.05,1.08,dz+s*0.05,F('silbergrau'),'stahl'); } };
+  const c=Math.cos(o.ry), s=Math.sin(o.ry);
+  const T={g:null,fluegel:null,t:0,set(){},kollision:null};
+  { const ax=Math.abs(c)*(B/2)+Math.abs(s)*(D/2+0.02), az=Math.abs(s)*(B/2)+Math.abs(c)*(D/2+0.02); T.kollision={x0:o.x-ax,x1:o.x+ax,z0:o.z-az,z1:o.z+az}; }
+  if(o.S){ const L=_bkLokal(o.S,o.x,o.z,o.ry); zarge(L); blatt(L,-o.anschlag*(B/2-0.01),0); return T; }
+  const g=new THREE.Group(); g.position.set(o.x,0,o.z); g.rotation.y=o.ry; g.userData.bauteil='drehtuer'; g.userData.bauteilArt=o.art; (o.parent||scene).add(g);
+  const Sz=bk.werkSammler('drehtuer'); zarge(_bkLokal(Sz,0,0,0)); Sz.fertig(g,{bauteil:'drehtuer',fest:true});
+  const fl=new THREE.Group(); fl.position.x=-o.anschlag*(B/2-0.01); g.add(fl);
+  const Sb=bk.werkSammler('drehtuer'); blatt(_bkLokal(Sb,0,0,0),0,0); Sb.fertig(fl,{bauteil:'drehtuer'});
+  T.g=g; T.fluegel=fl;
+  T.set=t=>{ T.t=Math.max(0,Math.min(1,t)); fl.rotation.y=-o.auf*o.anschlag*T.t*1.55; };
+  T.set(o.offen);
+  return T;
+};
+/* Treppe (Stahl, Werk West: Leitstand-Galerie): gerader Lauf in der Draufsicht von o.von nach o.bis ([x,z], Mitte), y0 -> y1.
+   Wangen Anthrazit, Stufen verzinkt mit gelber Kante (Trittkante = Warnung), Gelaender Signalgelb (wie bk.zaun 'gelaender').
+   o = {S, von, bis, breite, y0, y1, gelaender:[links,rechts]} -> {stufen, laenge, steigung} */
+bk.treppe=function(o){
+  const S=o.S, F=MAT.farbe, [ax,az]=o.von, [bx,bz]=o.bis, L=Math.hypot(bx-ax,bz-az), ux=(bx-ax)/L, uz=(bz-az)/L, qx=-uz, qz=ux;
+  const y0=o.y0||0, y1=o.y1, H=y1-y0, n=Math.max(2,Math.round(H/0.19)), r=H/n, gg=L/n, B=o.breite||1.0, ry=Math.atan2(ux,uz);
+  const GELB=F('signalgelb');
+  for(let i=0;i<n;i++){ const t=(i+0.5)*gg, x=ax+ux*t, z=az+uz*t, y=y0+(i+1)*r;
+    S.box(B-0.08,0.035,gg+0.02,x,y-0.018,z,F('silbergrau'),'stahl',0,ry,0);
+    S.box(B-0.08,0.036,0.04,x+ux*(gg/2-0.01),y-0.017,z+uz*(gg/2-0.01),GELB,'lackMetall',0,ry,0); }
+  for(const s of [-1,1]){ const ox=qx*s*(B/2-0.02), oz=qz*s*(B/2-0.02);
+    bk.balken(S,[ax+ox-ux*0.05,y0+0.12,az+oz-uz*0.05],[bx+ox,y1-0.05,bz+oz],0.03,F('anthrazit'),'lackMetall',0.24);
+    const an=(o.gelaender||[true,true])[s<0?0:1]; if(!an) continue;
+    const px=ax+qx*s*(B/2-0.03), pz=az+qz*s*(B/2-0.03);
+    for(const t of [0.15,0.5,0.88]){ const x=px+ux*L*t, z=pz+uz*L*t, y=y0+H*t; S.box(0.04,1.0,0.04,x,y+0.5,z,GELB,'lackMetall'); }
+    for(const hy of [1.0,0.5]) bk.balken(S,[px,y0+hy,pz],[px+ux*L,y1+hy,pz+uz*L],0.04,GELB,'lackMetall'); }
+  return {stufen:n,laenge:L,steigung:H/L};
+};
+/* Portalgreifer (Alu-Profil 90 x 90 mm wie im Referenzfoto): vier Stuetzen mit Fussplatte, Laengstraeger in x, Bruecke (faehrt in x)
+   mit Hubachse (faehrt in y) und Greifer (Zange oder Sauger), Energiekette, Schaltkasten.
+   o = {x, z (Mitte), laenge (x), breite (z), hoehe, hub (Weg der Hubachse), greifer 'zange'|'sauger', parent}
+   -> {g, bruecke, hub, set(u 0..1 in x, v 0..1 abwaerts), meshes} - bewegt wird von aussen (Schau-Betrieb 05r) */
+bk.portalgreifer=function(o){
+  const F=MAT.farbe, L=bk.lod(), lx=o.laenge, bz=o.breite, H=o.hoehe||2.2, AL=F('aluminium'), p=0.09, HUB=o.hub||Math.max(0.3,H-1.7);
+  const g=new THREE.Group(); g.position.set(o.x,0,o.z); g.userData.bauteil='portalgreifer'; (o.parent||scene).add(g);
+  const form={fase:0.006,faseMin:0.03,lod0Kasten:true};
+  const S=bk.sammler({form,bauteil:'portalgreifer'});
+  for(const sx of [-1,1]) for(const sz of [-1,1]){ const x=sx*(lx/2-p/2), z=sz*(bz/2-p/2); S.box(p,H,p,x,H/2,z,AL,'stahl'); bk.fuss(S,x,z,0.16); }
+  for(const sz of [-1,1]){ const z=sz*(bz/2-p/2); S.box(lx,0.12,p,0,H-0.06,z,AL,'stahl');
+    if(L>0){ S.box(lx-0.04,0.014,0.006,0,H-0.06,z+sz*(p/2+0.002),F('mittelgrau'),'stahl'); S.box(lx-0.04,0.03,0.04,0,H+0.015,z,F('silbergrau'),'stahl'); } }
+  for(const sx of [-1,1]) S.box(p,0.09,bz-2*p,sx*(lx/2-p/2),H-0.045,0,AL,'stahl');
+  S.box(lx*0.55,0.05,0.07,-lx*0.2,H+0.055,bz/2-p/2,F('gummischwarz'),'kunststoff');
+  S.box(0.3,0.42,0.17,-(lx/2-p/2),1.35,-(bz/2+0.08),F('lichtgrau'),'lackMetall');
+  S.box(0.06,0.06,0.02,-(lx/2-p/2)+0.06,1.45,-(bz/2+0.175),F('signalrot'),'kunststoff');
+  const meshes=S.fertig(g,{bauteil:'portalgreifer',fest:true});
+  const bruecke=new THREE.Group(); bruecke.position.y=H; g.add(bruecke);
+  const Sb=bk.sammler({form,bauteil:'portalgreifer'});
+  Sb.box(0.16,0.12,bz-0.04,0,0.06,0,AL,'stahl'); Sb.box(0.24,0.22,0.24,0,0.0,0,F('anthrazit'),'lackMetall');
+  Sb.zyl(0.06,0.06,0.16,[6,10,12][L],0.0,0.2,0.0,F('mittelgrau'),'lackMetall');
+  meshes.push(...Sb.fertig(bruecke,{bauteil:'portalgreifer'}));
+  const hub=new THREE.Group(); bruecke.add(hub);
+  const Sh=bk.sammler({form,bauteil:'portalgreifer'});
+  Sh.box(0.08,1.1,0.08,0,-0.45,0,AL,'stahl'); Sh.box(0.28,0.07,0.2,0,-1.0,0,F('anthrazit'),'lackMetall');
+  if(o.greifer==='sauger') for(const sx of [-1,1]) for(const sz of [-1,1]) Sh.zyl(0.03,0.04,0.05,[6,8,10][L],sx*0.08,-1.06,sz*0.06,F('gummischwarz'),'kunststoff');
+  else for(const sx of [-1,1]) Sh.box(0.025,0.16,0.08,sx*0.1,-1.1,0,F('silbergrau'),'stahl');
+  meshes.push(...Sh.fertig(hub,{bauteil:'portalgreifer'}));
+  const R={g,bruecke,hub,meshes,laenge:lx,set(u,v){ if(u!==undefined) bruecke.position.x=(Math.max(0,Math.min(1,u))-0.5)*(lx-2*p-0.2); if(v!==undefined) hub.position.y=-Math.max(0,Math.min(1,v))*HUB; }};
+  return R;
+};
+/* Rohr-Raster (Batterie, wie im Referenzfoto): Alu-Grundplatte, nx x nz Pappe-Rohre (dunkel, innen hell) im Raster, in einen Sammler.
+   o = {x, y (Unterkante), z, nx, nz, r (Rohrradius), h (Rohrlaenge), teilung, platte:true} */
+bk.rohrraster=function(S,o){
+  const F=MAT.farbe, seg=[6,8,12][bk.lod()], r=o.r||0.03, h=o.h||0.3, t=o.teilung||2.6*r, nx=o.nx||6, nz=o.nz||6, y=o.y||0;
+  const bx=nx*t+0.06, bz=nz*t+0.06;
+  if(o.platte!==false){ S.box(bx,0.03,bz,o.x,y+0.015,o.z,F('aluminium'),'stahl'); S.box(bx-0.04,0.012,bz-0.04,o.x,y+0.036,o.z,F('gummischwarz'),'kunststoff'); }
+  const y0=y+(o.platte!==false?0.042:0);
+  for(let i=0;i<nx;i++) for(let k=0;k<nz;k++){ const x=o.x+(i-(nx-1)/2)*t, z=o.z+(k-(nz-1)/2)*t;
+    S.zyl(r,r,h,seg,x,y0+h/2,z,F('graphit'),'stumpf');
+    S.zyl(r*0.8,r*0.8,0.006,seg,x,y0+h-0.002,z,F('wellpappe'),'stumpf'); }
+  return S;
+};
+/* Stationsmaschine auf Alu-Gestell ueber dem Band (Werk West, 21 Stationen aus wenigen Arten - Parameter statt Kopie).
+   o = {art, x, z (Mitte), y (Oberkante Band), laenge (x), breite (z)} in einen Sammler. Arten:
+   'magazin' Huelsen-/Halbschalen-Magazin mit Rutsche, 'presse' Presse (hydraulisch), 'fuell' Dosierer mit Trichter (Satz, Sterne,
+   Ladung), 'zuendschnur' Spule mit Zufuehrung, 'pruef' Waage + Kamerabruecke + Bildschirm, 'verpack' Kartonierer mit Sichtfenster,
+   'wickler' Wickelautomat (Ring + Papierrolle), 'tunnel' Trockentunnel (Gehaeuse mit Luefter), 'banderole' Etikettierer,
+   'spritz' Einspritzkopf (Zuendschnur in die Bodenplatte), 'verdaemm' Verdaemmen und Deckel (Trichter + Pressplatte). */
+bk.maschine=function(S,o){
+  const F=MAT.farbe, L=bk.lod(), seg=[6,10,14][L], AL=F('aluminium'), ANTH=F('anthrazit'), x=o.x, z=o.z, y=o.y||0.9, lx=o.laenge||2.2, bz=o.breite||1.6, p=0.07;
+  /* Gestell: vier Alu-Stuetzen bis 2,1 m, Rahmen oben (alle Arten ausser Tunnel/Wickler) */
+  const gestell=(h,w,d)=>{ for(const sx of [-1,1]) for(const sz of [-1,1]){ S.box(p,h,p,x+sx*(w/2-p/2),h/2,z+sz*(d/2-p/2),AL,'stahl'); bk.fuss(S,x+sx*(w/2-p/2),z+sz*(d/2-p/2),0.14); }
+    for(const sz of [-1,1]) S.box(w,0.08,p,x,h-0.04,z+sz*(d/2-p/2),AL,'stahl'); for(const sx of [-1,1]) S.box(p,0.08,d,x+sx*(w/2-p/2),h-0.04,z,AL,'stahl'); };
+  const kasten=(w,h,d,xx,yy,zz,f,k)=>S.box(w,h,d,xx,yy,zz,f||F('lichtgrau'),k||'lackMetall');
+  switch(o.art){
+    case 'magazin': gestell(2.0,lx*0.7,bz);
+      kasten(lx*0.5,0.7,0.5,x,1.6,z-bz*0.25); bk.balken(S,[x,1.3,z-bz*0.2],[x,y+0.15,z],0.06,AL,'stahl',0.4);
+      for(let i=0;i<5;i++) S.zyl(0.03,0.03,0.42,seg,x-0.16+i*0.08,1.62,z-bz*0.25,F('wellpappe'),'stumpf',Math.PI/2,0,0); break;
+    case 'presse': kasten(0.9,0.3,0.9,x,2.55,z,ANTH); for(const sx of [-1,1]) for(const sz of [-1,1]) S.zyl(0.05,0.05,2.5,seg,x+sx*0.36,1.25,z+sz*0.36,F('silbergrau'),'blank');
+      S.zyl(0.11,0.11,0.8,seg,x,2.0,z,F('silbergrau'),'blank'); kasten(0.5,0.12,0.5,x,y+0.5,z,ANTH,'stahl'); kasten(0.95,0.08,0.95,x,0.04,z,ANTH,'stahl');
+      kasten(0.4,0.6,0.3,x+0.65,0.3,z-0.4,F('signalblau'),'lackMetall'); break;
+    case 'fuell': gestell(2.3,lx*0.7,bz*0.8);
+      S.zyl(0.32,0.08,0.55,seg,x,1.65,z,F('hellgrau'),'blank'); S.zyl(0.32,0.32,0.4,seg,x,2.1,z,F('hellgrau'),'blank');
+      S.zyl(0.05,0.05,0.4,seg,x,y+0.45,z,F('silbergrau'),'stahl'); kasten(0.3,0.18,0.3,x,1.3,z,ANTH); break;
+    case 'zuendschnur': gestell(1.8,lx*0.6,bz*0.7);
+      S.zyl(0.22,0.22,0.12,seg+4,x-0.2,1.45,z-bz*0.2,F('feuerrot'),'kunststoff',Math.PI/2,0,0); S.zyl(0.05,0.05,0.16,seg,x-0.2,1.45,z-bz*0.2,ANTH,'stahl',Math.PI/2,0,0);
+      bk.balken(S,[x-0.2,1.25,z-bz*0.2],[x+0.1,y+0.25,z],0.02,F('gummischwarz'),'kunststoff'); kasten(0.3,0.2,0.3,x+0.15,y+0.42,z,ANTH); break;
+    case 'pruef': gestell(2.1,lx*0.6,bz*0.9);
+      kasten(0.7,0.08,0.7,x,y+0.02,z,F('silbergrau'),'stahl'); kasten(0.18,0.12,0.12,x,1.95,z,ANTH); S.zyl(0.035,0.035,0.06,seg,x,1.86,z,F('tiefschwarz'),'blank');
+      kasten(0.04,0.4,0.55,x+lx*0.3,1.55,z+bz*0.48,ANTH); kasten(0.01,0.32,0.47,x+lx*0.3-0.025,1.55,z+bz*0.48,F('signalblau'),'leucht'); break;
+    case 'verpack': kasten(lx*0.8,1.9,bz*0.95,x,0.95,z);
+      S.box(lx*0.5,0.8,0.01,x,1.2,z+bz*0.475+0.004,F('glasKlar'),'scheibe'); S.box(lx*0.5,0.8,0.01,x,1.2,z-bz*0.475-0.004,F('glasKlar'),'scheibe');
+      kasten(lx*0.8+0.04,0.08,bz*0.95+0.04,x,1.92,z,ANTH); for(let i=0;i<6;i++) kasten(0.5,0.012,0.4,x-lx*0.55,0.6+i*0.015,z-bz*0.2,F('wellpappe'),'stumpf');
+      kasten(0.07,0.07,0.07,x+lx*0.4-0.1,1.7,z+bz*0.475+0.03,F('signalgruen'),'leucht'); break;
+    case 'wickler': gestell(1.9,lx*0.5,bz*0.9);
+      S.geo(new THREE.TorusGeometry(0.42,0.05,[6,8,10][L],[12,20,28][L]),tm(x,y+0.35,z,0,Math.PI/2,0),ANTH,'lackMetall');
+      S.zyl(0.16,0.16,0.3,seg,x,1.5,z-bz*0.3,F('weiss'),'stumpf',Math.PI/2,0,0); break;
+    case 'tunnel': kasten(lx*0.96,1.05,bz*0.85,x,y+0.45,z);
+      kasten(lx*0.96+0.04,0.06,bz*0.85+0.04,x,y+1.0,z,ANTH); for(let i=-1;i<=1;i++) S.zyl(0.2,0.2,0.18,seg,x+i*lx*0.3,y+1.12,z,F('mittelgrau'),'lackMetall');
+      for(let i=-1;i<=1;i+=2) kasten(0.012,0.9,bz*0.6,x+i*lx*0.48,y+0.4,z,F('gummischwarz'),'kunststoff');
+      kasten(0.14,0.14,0.02,x,y+0.75,z+bz*0.425+0.012,F('signalorange'),'leucht'); break;
+    case 'banderole': gestell(1.7,lx*0.5,bz*0.8);
+      S.zyl(0.18,0.18,0.1,seg+4,x,1.35,z-bz*0.25,F('weiss'),'stumpf'); S.zyl(0.06,0.06,0.12,seg,x,1.35,z-bz*0.25,ANTH,'stahl');
+      kasten(0.25,0.3,0.2,x+0.2,y+0.55,z,ANTH); break;
+    case 'spritz': gestell(2.0,lx*0.6,bz*0.8);
+      kasten(0.5,0.3,0.4,x,1.6,z,ANTH); for(let i=0;i<4;i++) S.zyl(0.015,0.015,0.5,seg,x-0.12+i*0.08,1.2,z,F('silbergrau'),'blank');
+      S.zyl(0.12,0.12,0.5,seg,x+0.5,1.4,z-bz*0.3,F('feuerrot'),'kunststoff'); break;
+    case 'verdaemm': gestell(2.1,lx*0.6,bz*0.8);
+      S.zyl(0.28,0.07,0.5,seg,x-0.25,1.65,z,F('hellgrau'),'blank'); kasten(0.5,0.06,0.5,x+0.25,y+0.6,z,F('silbergrau'),'stahl');
+      S.zyl(0.06,0.06,0.6,seg,x+0.25,1.2,z,F('silbergrau'),'blank'); break;
+    default: throw new Error('bk.maschine: Art unbekannt: '+o.art);
+  }
+  return S;
+};
+/* Erdwall (Schutzwall um das Mischhaus): Ring mit Trapez-Querschnitt um ein Rechteck (aussen x0..x1 / z0..z1): Fuss o.fuss (3 m),
+   Krone o.krone (0,8 m), Hoehe o.hoehe (4 m); Ecken auf Gehrung. Luecke in einer Seite (Zugang), Stirnflaechen als Beton-Stuetzwand,
+   davor versetzt eine Prallwand (Beton), damit kein gerader Weg nach aussen fuehrt. Oberflaeche Winterwiese (MAT 'erdwall', UV in
+   Metern / 4). o = {x0,x1,z0,z1, hoehe, fuss, krone, luecke:{seite:'s'|'n'|'w'|'o', von, bis (Weltkoordinate laengs)}, prallwand:true, parent}
+   -> {meshes, kollision:[{x0,x1,z0,z1}]} */
+bk.erdwall=function(o){
+  const H=o.hoehe||4, f=o.fuss||3, c=o.krone||0.8, a=(f-c)/2, K=4, S=bk.werkSammler('erdwall');
+  const prof=[[0,0],[a,H],[a+c,H],[f,0]];
+  const SEITEN={s:{O:[o.x0,o.z0],A:[1,0],N:[0,1],L:o.x1-o.x0},o:{O:[o.x1,o.z0],A:[0,1],N:[-1,0],L:o.z1-o.z0},
+                n:{O:[o.x1,o.z1],A:[-1,0],N:[0,-1],L:o.x1-o.x0},w:{O:[o.x0,o.z1],A:[0,-1],N:[1,0],L:o.z1-o.z0}};
+  const pos=[], nor=[], uv=[], kol=[];
+  const tri=(p,n,u)=>{ for(let i=0;i<3;i++){ pos.push(...p[i]); nor.push(...n); uv.push(...u[i]); } };
+  const quad=(p,n,u)=>{ /* p0..p3 im Kreis; Wicklung nach der Normale richten */
+    const e1=[p[1][0]-p[0][0],p[1][1]-p[0][1],p[1][2]-p[0][2]], e2=[p[2][0]-p[0][0],p[2][1]-p[0][1],p[2][2]-p[0][2]];
+    const cr=[e1[1]*e2[2]-e1[2]*e2[1],e1[2]*e2[0]-e1[0]*e2[2],e1[0]*e2[1]-e1[1]*e2[0]], ok=cr[0]*n[0]+cr[1]*n[1]+cr[2]*n[2]>0;
+    const q=ok?[0,1,2,0,2,3]:[0,2,1,0,3,2]; for(let k=0;k<6;k+=3) tri([p[q[k]],p[q[k+1]],p[q[k+2]]],n,[u[q[k]],u[q[k+1]],u[q[k+2]]]); };
+  for(const id in SEITEN){ const Sd=SEITEN[id], [Ox,Oz]=Sd.O, [Ax,Az]=Sd.A, [Nx,Nz]=Sd.N;
+    const P=(t,u,y)=>[Ox+Ax*t+Nx*u,y,Oz+Az*t+Nz*u];
+    let teile=[[0,Sd.L]];
+    if(o.luecke&&o.luecke.seite===id){ const t0=Math.abs(Ax)>0.5?(o.luecke.von-Ox)*Ax:(o.luecke.von-Oz)*Az, t1=Math.abs(Ax)>0.5?(o.luecke.bis-Ox)*Ax:(o.luecke.bis-Oz)*Az;
+      const g0=Math.min(t0,t1), g1=Math.max(t0,t1); teile=[[0,g0],[g1,Sd.L]]; }
+    for(const [ta,tb] of teile){ if(tb-ta<0.1) continue;
+      const lo=u=>ta===0?ta+u:ta, hi=u=>tb===Sd.L?tb-u:tb;
+      for(let i=0;i<3;i++){ const [u0,y0]=prof[i], [u1,y1]=prof[i+1], du=u1-u0, dy=y1-y0, nl=Math.hypot(du,dy), nu=-dy/nl, ny=du/nl;
+        const n=[Nx*nu,ny,Nz*nu], s0=0, s1=nl;
+        const p=[P(lo(u0),u0,y0),P(hi(u0),u0,y0),P(hi(u1),u1,y1),P(lo(u1),u1,y1)];
+        quad(p,n,[[lo(u0)/K,s0/K],[hi(u0)/K,s0/K],[hi(u1)/K,s1/K],[lo(u1)/K,s1/K]]); }
+      /* Stirnflaechen an der Luecke: Beton-Stuetzwand */
+      for(const [t,sg] of [[ta,-1],[tb,1]]){ if(t===0||t===Sd.L) continue;
+        const q=prof.map(([u,y])=>P(t,u,y)), nn=[Ax*sg,0,Az*sg];   /* zeigt in die Luecke */
+        const geo=new THREE.BufferGeometry(), arr=[], nrm=[], uvs=[];
+        const tr=(a2,b2,c2)=>{ const e1=[b2[0]-a2[0],b2[1]-a2[1],b2[2]-a2[2]], e2=[c2[0]-a2[0],c2[1]-a2[1],c2[2]-a2[2]], cz=[e1[1]*e2[2]-e1[2]*e2[1],e1[2]*e2[0]-e1[0]*e2[2],e1[0]*e2[1]-e1[1]*e2[0]];
+          const pts=(cz[0]*nn[0]+cz[2]*nn[2])>0?[a2,b2,c2]:[a2,c2,b2]; for(const pp of pts){ arr.push(...pp); nrm.push(...nn); uvs.push((pp[0]*Nx+pp[2]*Nz)/2.4,pp[1]/2.4); } };
+        tr(q[0],q[1],q[2]); tr(q[0],q[2],q[3]);
+        geo.setAttribute('position',new THREE.Float32BufferAttribute(arr,3)); geo.setAttribute('normal',new THREE.Float32BufferAttribute(nrm,3)); geo.setAttribute('uv',new THREE.Float32BufferAttribute(uvs,2));
+        S.geo(geo,new THREE.Matrix4(),0xffffff,'beton'); }
+      const a0=P(ta,0,0), a1=P(tb,f,0); kol.push({x0:Math.min(a0[0],a1[0]),x1:Math.max(a0[0],a1[0]),z0:Math.min(a0[2],a1[2]),z1:Math.max(a0[2],a1[2])}); } }
+  const geo=new THREE.BufferGeometry(); geo.setAttribute('position',new THREE.Float32BufferAttribute(pos,3)); geo.setAttribute('normal',new THREE.Float32BufferAttribute(nor,3)); geo.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));
+  S.geo(geo,new THREE.Matrix4(),0xffffff,'rasen');
+  /* Prallwand vor der Luecke (versetzt, Beton 30 cm, 2,6 m hoch) */
+  if(o.luecke&&o.prallwand!==false&&o.luecke.seite==='s'){ const g0=Math.min(o.luecke.von,o.luecke.bis), g1=Math.max(o.luecke.von,o.luecke.bis), zz=o.z0-2.2, x0=g0+1.2, x1=g1+2.4;
+    S.geo(bk.kastenM(x1-x0,2.6,0.3,2.4,(x0+x1)/2,1.3,zz),tm((x0+x1)/2,1.3,zz),0xffffff,'beton'); kol.push({x0,x1,z0:zz-0.15,z1:zz+0.15}); }
+  const meshes=S.fertig(o.parent||scene,{bauteil:'erdwall',fest:true});
+  return {meshes,kollision:kol};
+};
+/* Betonzelle (mannlose Station im Werk, "laeuft die Maschine, ist kein Mensch drin"): Waende Beton Steingrau 25 cm, Ausblasdach
+   (leichte Platten auf Stahlrahmen, blaest bei einer Verpuffung nach oben aus), Durchreiche mit Klappe (Feuerrot, Brandschutzabschluss)
+   in beiden Stirnwaenden fuer das Band, zwei versetzte Stahltueren (nie gegenueber), Kupferplatte (Entladen) und Ampel an jeder Tuer,
+   leitfaehiger Gummiboden innen, Zellenschild. Alles in den Sammler o.S (bk.werkSammler) - eine ganze Straße = wenige Meshes.
+   o = {S, x0,x1,z0,z1, h 4,0, d 0,25, band:{z,y0,y1,b}, tueren:[{seite:+1 (z1)|-1 (z0), x}], leuchten:{rot:[],gruen:[]} (Geometrien der
+   Ampeln, der Aufrufer schaltet sie je Straße ueber MAT.neu), schild:{text,unter}, parent (Schild)}
+   -> {kollision:{x0,x1,z0,z1}, tueren:[{x,z,seite}]} */
+bk.zelle=function(o){
+  const S=o.S, F=MAT.farbe, d=o.d||0.25, h=o.h||4.0, x0=o.x0, x1=o.x1, z0=o.z0, z1=o.z1, seg=[6,10,12][bk.lod()];
+  const B=o.band===false?null:(o.band||{z:(z0+z1)/2,y0:0.45,y1:1.35,b:0.9});
+  const W=(w,hh,dd,x,y,z)=>{ if(w>0.005&&hh>0.005&&dd>0.005) S.geo(bk.kastenM(w,hh,dd,2.4,x,y,z),tm(x,y,z),0xffffff,'beton'); };
+  const out={kollision:{x0,x1,z0,z1},tueren:[]};
+  /* Ampel und Kupferplatte vor einer Tuer (Mitte t, Normale nach aussen n=[nx,nz]) */
+  const vorTuer=(tx,tz,nx,nz,quer)=>{ const ry=Math.atan2(nx,nz);
+    S.box(0.9,0.008,0.6,tx+nx*0.32,0.004,tz+nz*0.32,F('kupfer'),'blank',0,ry,0);
+    const ax=tx+quer[0]*0.69+nx*0.045, az=tz+quer[1]*0.69+nz*0.045;
+    S.box(0.13,0.32,0.08,ax,2.2,az,F('anthrazit'),'lackMetall',0,ry,0);
+    if(o.leuchten) for(const [k,y] of [['rot',2.28],['gruen',2.12]]) o.leuchten[k].push({geo:new THREE.CylinderGeometry(0.045,0.045,0.03,seg),m:Math.abs(nx)>0.5?tm(ax+nx*0.045,y,az,0,0,Math.PI/2):tm(ax,y,az+nz*0.045,Math.PI/2,0,0),color:0xffffff}); };
+  /* geschlossene Stirnwaende (Chemie-Box, Satz-Bunker), auf Wunsch mit Tuer (seite 'w'|'o', z) */
+  if(!B) for(const xw of [x0+d/2,x1-d/2]){ const id=xw<(x0+x1)/2?'w':'o', t=(o.tueren||[]).find(q=>q.seite===id);
+    if(!t){ W(d,h,z1-z0,xw,h/2,(z0+z1)/2); continue; }
+    const tb=0.9, th=2.05, ta=t.z-tb/2, te=t.z+tb/2;
+    W(d,h,ta-z0,xw,h/2,(z0+ta)/2); W(d,h,z1-te,xw,h/2,(te+z1)/2); W(d,h-th,tb,xw,(th+h)/2,t.z);
+    bk.drehtuer({S,x:xw,z:t.z,ry:Math.PI/2,breite:tb,hoehe:th,dicke:d,art:'stahl'});
+    const nx=id==='w'?-1:1; vorTuer(xw+nx*d/2,t.z,nx,0,[0,1]); out.tueren.push({x:xw,z:t.z,seite:id}); }
+  /* Stirnwaende mit Durchreiche, Rahmen und Klappe (offen, pneumatisch) */
+  if(B) for(const xw of [x0+d/2,x1-d/2]){ const za=B.z-B.b/2, zb=B.z+B.b/2, s=xw<(x0+x1)/2?-1:1, xa=xw+s*(d/2+0.013), kl=B.y1-B.y0, a=1.2;
+    W(d,h,za-z0,xw,h/2,(z0+za)/2); W(d,h,z1-zb,xw,h/2,(zb+z1)/2); W(d,B.y0,B.b,xw,B.y0/2,B.z); W(d,h-B.y1,B.b,xw,(B.y1+h)/2,B.z);
+    for(const z of [za-0.025,zb+0.025]) S.box(0.026,kl+0.1,0.05,xa,(B.y0+B.y1)/2,z,F('anthrazit'),'stahl');
+    for(const y of [B.y0-0.025,B.y1+0.025]) S.box(0.026,0.05,B.b+0.1,xa,y,B.z,F('anthrazit'),'stahl');
+    S.box(0.02,kl,B.b-0.02,xa+s*Math.sin(a)*kl/2,B.y1+0.03-Math.cos(a)*kl/2,B.z,F('feuerrot'),'lackMetall',0,0,s*a);
+    S.zyl(0.025,0.025,0.5,seg,xa+s*0.16,B.y1+0.32,B.z-B.b/2+0.06,F('aluminium'),'blank',0,0,-s*0.7); }
+  /* Laengswaende mit je einer Tuer (versetzt) */
+  for(const zw of [z0+d/2,z1-d/2]){ const seite=zw>(z0+z1)/2?1:-1, t=(o.tueren||[]).find(q=>q.seite===seite), xa=x0+d, xb=x1-d;
+    if(!t){ W(xb-xa,h,d,(xa+xb)/2,h/2,zw); continue; }
+    const tb=0.9, th=2.05, ta=t.x-tb/2, te=t.x+tb/2;
+    W(ta-xa,h,d,(xa+ta)/2,h/2,zw); W(xb-te,h,d,(te+xb)/2,h/2,zw); W(tb,h-th,d,t.x,(th+h)/2,zw);
+    bk.drehtuer({S,x:t.x,z:zw,ry:0,breite:tb,hoehe:th,dicke:d,art:'stahl',anschlag:t.x<(x0+x1)/2?1:-1});
+    const zo=zw+seite*(d/2);
+    vorTuer(t.x,zo,0,seite,[t.x<(x0+x1)/2?1:-1,0]);
+    if(o.schild&&seite>0) bk.schild(o.parent||scene,{text:o.schild.text,unter:o.schild.unter,b:1.25,h:0.4,x:(x0+x1)/2,y:th+0.75,z:zo+0.012,ry:0});
+    out.tueren.push({x:t.x,z:zw,seite}); }
+  /* Ausblasdach: Stahlrahmen auf der Wandkrone, zwei leichte Platten, Mittelpfette */
+  for(const z of [z0+0.06,z1-0.06]) S.box(x1-x0,0.12,0.12,(x0+x1)/2,h+0.06,z,F('anthrazit'),'stahl');
+  for(const x of [x0+0.06,x1-0.06]) S.box(0.12,0.12,z1-z0-0.24,x,h+0.06,(z0+z1)/2,F('anthrazit'),'stahl');
+  S.box(x1-x0-0.24,0.1,0.08,(x0+x1)/2,h+0.05,(z0+z1)/2,F('anthrazit'),'stahl');
+  const pz=(z1-z0-0.16)/2;
+  for(const s of [-1,1]) S.box(x1-x0-0.1,0.05,pz-0.02,(x0+x1)/2,h+0.145,(z0+z1)/2+s*(pz/2+0.01),F('lichtgrau'),'kunststoff');
+  /* Gummiboden innen */
+  S.box(x1-x0-2*d,0.01,z1-z0-2*d,(x0+x1)/2,0.008,(z0+z1)/2,F('gummischwarz'),'matt');
+  return out;
 };

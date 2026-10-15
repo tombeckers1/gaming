@@ -47,7 +47,7 @@ const MAT=(function(){
     lichtgrau:        [0xdcdfe4,'Lichtgrau','Regalboeden, helle Verkleidungen, Kunststoff hellgrau, Torblatt aller Ladetore (alter R1)','≈ RAL 7035'],
     weiss:            [0xe8ecf2,'Weiss','Decken, Putz, Kunststoff weiss, Schnee, Etiketten','≈ RAL 9016'],
     cremeweiss:       [0xf2efe6,'Cremeweiss','warme Weisstoene: Fensterbaenke, Putz warm, Papier','≈ RAL 9001'],
-    steingrau:        [0x9a958c,'Steingrau','Naturstein, Pflaster, Mauerwerk warm','≈ RAL 7030'],
+    steingrau:        [0x9a958c,'Steingrau','Naturstein, Pflaster, Mauerwerk warm; Betonzellen und Brandwaende im Werk (Etappe B)','≈ RAL 7030'],
     signalgelb:       [0xf9a800,'Signalgelb','Warnfarbe: Anfahrschutz, Bodenmarkierung, Absperrgitter, Kran, Torantrieb','RAL 1003'],
     schildgold:       [0xffd23f,'Schildgold','Hausstil-Schrift und -Rahmen auf Nachtblau (Schilder, Logo, Automat) - vorher zwei Golds (#ffd23f, #f2c230)','–'],
     signalorange:     [0xed760e,'Signalorange','Blink-/Warnleuchten (Gehaeuse, Glas aus), Tasten, Traversen der Palettenregale (Hochregal)','≈ RAL 2000'],
@@ -62,6 +62,8 @@ const MAT=(function(){
     holzDunkel:       [0x4a3624,'Holz dunkel','Ladenfronten Holz, Tueren, Moebel dunkel','–'],
     wellpappe:        [0xc89b5c,'Wellpappe','Kartons, Packband braun','–'],
     messing:          [0xc9a14e,'Messing','Tuerklinken, Schluessel, Rahmen golden','–'],
+    /* Werk West (Etappe B, 15.10.): eigene Bedeutung - Erdung/Entladen (Kupferplatte an jeder Zellentuer, Pflicht in Pyro-Werken) */
+    kupfer:           [0xb5713f,'Kupfer','Erdungsplatten an Zellentueren (Entladen), Kupferschienen','–'],
     glasKlar:         [0xd6ecff,'Glas klar','Toenung fuer Glas (immer transparent)','–'],
     /* Licht (nur emissive, nicht angeglichen - Licht-Paket 05p) */
     lampeWarm:        [0xfff0d0,'Lampenlicht warm','Leuchtflaechen warmweiss','–']
@@ -134,6 +136,11 @@ const MAT=(function(){
     markierungPikto:  {f:0xffffff,tex:'fussgaenger',k:'matt',polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-4,w:'Fussgaenger-Piktogramm auf dem Gehweg (Textur fussgaenger, gruenes Feld)'},
     lichtband:        {f:'glasKlar',emissive:LIN(0xe4edf7),emissiveIntensity:0.9,k:'kunststoff',w:'Lichtband im Hallendach (Tageslicht, zugleich RWA) - nur MAT.neu, Leuchtstaerke folgt der Sonne (11f)'},
     sperrflaeche:     {f:0xffffff,tex:'warnschraffur',k:'matt',polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-2,w:'Sperrflaeche gelb-schwarz am Boden (Warnschraffur, UV in Metern / 0,4)'},
+    /* Werk West (Halle Etappe B, 15.10.): Betonzellen, Glas (Leitstand, Schnelllauftor), Erdwall, PVC-Behang */
+    betonZelle:       {f:'steingrau',tex:'beton',k:'matt',w:'Betonzellen, Brandwaende und Satz-Bunker im Werk (bk.zelle) - UV in Metern / 2,4'},
+    glasScheibe:      {f:'glasKlar',k:'blank',transparent:true,opacity:0.24,depthWrite:false,w:'Glasscheibe klar (Leitstand-Front, Sichtfenster Schnelllauftor) - durchsichtig, getoent'},
+    erdwall:          {f:0xffffff,tex:'rasen',k:'matt',w:'Erdwall/Boeschung mit Winterwiese (bk.erdwall) - UV in Metern / 4'},
+    pvcBehang:        {f:'signalgelb',k:'kunststoff',side:THREE.DoubleSide,w:'Behang Schnelllauftor PVC (bk.tor art schnelllauf) - Warnfarbe, schnell bewegtes Teil'},
     torWarn:          {f:0x3a2208,emissive:LIN(0xffb02a),emissiveIntensity:0,k:'kunststoff',w:'Rundumleuchte ueber dem Torantrieb (blinkt, solange das Tor faehrt) - nur MAT.neu'}
   };
   /* Vertexfarben-Klassen (Sammler, bk.sammler): Farbe je Ecke, Oberflaeche je Klasse */
@@ -231,7 +238,7 @@ const MAT=(function(){
   function css(name,a){ const h=hexVon(name); if(a===undefined) return '#'+(h>>>0).toString(16).padStart(6,'0'); return 'rgba('+(h>>16&255)+','+(h>>8&255)+','+(h&255)+','+a+')'; }
 
   /* ---------- geteilte prozedurale Texturen (lazy, einmal gemalt) ---------- */
-  const TEXTUR_W={fassade:'Aussenwand Faserzementtafeln (Fugen, Nieten, Sockel 62 cm) - Kachel 2,4 x 8 m ueber repeat, Wand-UV in Metern',lagerwand:'Lagerwand hell mit gelb-schwarzem Sockelband - Kachel 2,6 x 3,6 m ueber repeat',trapezblech:'Trapezblech Hallenwand, Sicke 0,4 m - Kachel 3,2 m ueber repeat',beton:'Beton (innen Lagerboden, aussen Hof) - eine Textur, Massstab ueber die UVs',doppelstab:'Doppelstabmatte (Zaeune, Absperrungen)',drahtgitter:'Drahtgitter/Schweissgitter (Gitterbox, Ladezonen-Absperrung) - Masche 5 cm, Farbe ueber das Material',warnschraffur:'Warnschraffur gelb/schwarz (Torkanten, Sperrflaechen, Bodenrahmen)',palettenMarke:'Paletten-Atlas 256 x 256: oben links Brand EPAL im Oval (Eck-Kloetze), oben rechts IPPC/HT-Stempel (Mittelkloetze), darunter Kiefern-Maserung (Streifen je Brett); Layout MAT.PALETTE_UV. Holzton kommt ueber Vertexfarben, Alterung ueber Instanzfarben',fussgaenger:'Fussgaenger-Piktogramm weiss auf Signalgruen (Gehweg-Markierung), 128 x 128',torBlatt:'Torblatt-Atlas aller Ladetore (Optik alter R1, Tom 14.10.): Zeile 0 glatte Sektion lichtgrau, 1 Lichtband (4 Scheiben), 2 unterstes Panel aussen (Griffmulde), 3 weiss (Kleinteile ueber Vertexfarben)'};
+  const TEXTUR_W={fassade:'Aussenwand Faserzementtafeln (Fugen, Nieten, Sockel 62 cm) - Kachel 2,4 x 8 m ueber repeat, Wand-UV in Metern',lagerwand:'Lagerwand hell mit gelb-schwarzem Sockelband - Kachel 2,6 x 3,6 m ueber repeat',trapezblech:'Trapezblech Hallenwand, Sicke 0,4 m - Kachel 3,2 m ueber repeat',beton:'Beton (innen Lagerboden, aussen Hof) - eine Textur, Massstab ueber die UVs',doppelstab:'Doppelstabmatte (Zaeune, Absperrungen)',drahtgitter:'Drahtgitter/Schweissgitter (Gitterbox, Ladezonen-Absperrung) - Masche 5 cm, Farbe ueber das Material',warnschraffur:'Warnschraffur gelb/schwarz (Torkanten, Sperrflaechen, Bodenrahmen)',palettenMarke:'Paletten-Atlas 256 x 256: oben links Brand EPAL im Oval (Eck-Kloetze), oben rechts IPPC/HT-Stempel (Mittelkloetze), darunter Kiefern-Maserung (Streifen je Brett); Layout MAT.PALETTE_UV. Holzton kommt ueber Vertexfarben, Alterung ueber Instanzfarben',fussgaenger:'Fussgaenger-Piktogramm weiss auf Signalgruen (Gehweg-Markierung), 128 x 128',rasen:'Winterwiese 256 x 256 (Erdwall Werk West), Kachel 4 m ueber die UVs',torBlatt:'Torblatt-Atlas aller Ladetore (Optik alter R1, Tom 14.10.): Zeile 0 glatte Sektion lichtgrau, 1 Lichtband (4 Scheiben), 2 unterstes Panel aussen (Griffmulde), 3 weiss (Kleinteile ueber Vertexfarben)'};
   /* Fassadentafeln (vorher fassadeTex() in 05-world.js): Kachel zwei Tafeln breit, Fuge auf dem Kachelrand -
      wo sich die Textur wiederholt, sitzt eine Fuge; senkrecht ueber die volle Wandhoehe (Sockel unten bleibt) */
   const FASS={b:2.4, h:8.0, sockel:0.62, tafel:1.18};
@@ -298,6 +305,12 @@ const MAT=(function(){
       t.wrapS=t.wrapT=THREE.RepeatWrapping; t.anisotropy=8; return t; },
     /* Fussgaenger-Piktogramm (Halle Etappe A, 14.10.): gruenes Feld, weisse Figur im Schritt, wie Gehweg-Markierungen
        in Logistikhallen (ASR A1.8 Verkehrswege). Eine Kachel = ein Piktogramm (0,8 m). */
+    /* Winterwiese (Etappe B, 15.10.): Erdwall um das Mischhaus. Kachel 4 m, Gras mit Schneeresten - wie der Park (05n), aber geteilt und kachelbar */
+    rasen:()=>{ const t=tex(256,256,(g,W,H)=>{ g.fillStyle='#56663f'; g.fillRect(0,0,W,H);
+        let sd=11; const rnd=()=>{ sd=(sd*1103515245+12345)&0x7fffffff; return sd/0x7fffffff; };
+        for(let i=0;i<5200;i++){ const v=rnd(); g.fillStyle=v<0.5?`rgba(40,52,28,${rnd()*0.35})`:`rgba(150,160,110,${rnd()*0.18})`; g.fillRect(rnd()*W,rnd()*H,1+rnd()*2,2+rnd()*3); }
+        for(let i=0;i<10;i++){ const x=rnd()*W, y=rnd()*H, r=8+rnd()*26, gr=g.createRadialGradient(x,y,0,x,y,r); gr.addColorStop(0,'rgba(236,240,246,.4)'); gr.addColorStop(1,'rgba(236,240,246,0)'); g.fillStyle=gr; g.fillRect(x-r,y-r,2*r,2*r); } });
+      t.wrapS=t.wrapT=THREE.RepeatWrapping; t.anisotropy=4; return t; },
     fussgaenger:()=>{ const t=tex(128,128,(g,W,H)=>{ g.fillStyle=css('signalgruen'); g.fillRect(0,0,W,H);
         g.fillStyle=css('weiss'); g.strokeStyle=css('weiss'); g.lineCap='round'; g.lineWidth=11;
         g.beginPath(); g.arc(68,20,11,0,Math.PI*2); g.fill();

@@ -16,8 +16,9 @@ const GP=process.env.GEGENPROBE==='1';
 async function laden(b,stufe){
   const p=await b.newPage({viewport:{width:480,height:300}});
   p.errs=[]; p.on('pageerror',e=>p.errs.push('PAGEERROR: '+e.message));
-  /* Shader-Fehler (three meldet sie nur auf der Konsole, das Objekt bleibt dann unsichtbar) */
-  p.on('console',m=>{ const t=m.text(); if(m.type()==='error'&&/shader|THREE\.WebGLProgram|ERROR: 0:/i.test(t)) p.errs.push('SHADER: '+t.slice(0,300)); });
+  /* Shader-Fehler (three meldet sie nur auf der Konsole, das Objekt bleibt dann unsichtbar) - im Spiel mitzaehlen, nicht per
+     p.on('console'): jede Konsolenmeldung haelt in Playwright ihre Argumente fest, der Browserprozess wuchs so auf 6 GB */
+  await p.addInitScript(()=>{ window.__shaderFehler=[]; const e=console.error; console.error=function(...a){ try{ const t=a.map(String).join(' '); if(/shader|WebGLProgram|ERROR: 0:/i.test(t)&&window.__shaderFehler.length<5) window.__shaderFehler.push(t.slice(0,300)); }catch(x){} return e.apply(this,a); }; });
   await H.laden(p,process.argv[2]);
   await p.evaluate(g=>{ localStorage.clear(); localStorage.setItem('bb_gfx',g); },stufe);
   await H.neuladen(p); await H.neuesSpiel(p,{stoppen:true});
@@ -59,6 +60,7 @@ const zustand=()=>{ const bb=__bb, LI=bb.LI, R=bb.renderer, gl=R.getContext(), o
     let dunkler=0; for(let i=0;i<a.length;i+=4) if(c[i]+c[i+1]+c[i+2]-(a[i]+a[i+1]+a[i+2])>24) dunkler++; out.dunkler=+(dunkler/(a.length/4)).toFixed(4);
     const c1=calls(); LI.schatten.visible=false; const c0=calls(); LI.schatten.visible=true; out.callsSchatten=c1-c0;
     const g=bb.makePerson({ct:0}); g.position.set(-2,0,-2); bb.scene.add(g); LI.tS=-1e9; bb.setView(-2,1.5,0,-0.4); bb.kameraSetzen(); bb.renderFrame(0.05); out.personen=LI.n.personen; bb.scene.remove(g); }
+  out.shader=window.__shaderFehler||[];
   return out; };
 (async()=>{
   const b=await chromium.launch({args:['--use-gl=swiftshader','--enable-unsafe-swiftshader','--no-sandbox']});
@@ -79,16 +81,16 @@ const zustand=()=>{ const bb=__bb, LI=bb.LI, R=bb.renderer, gl=R.getContext(), o
   pruef('KONTAKT',h.dunkler>0.01,'Boden am Kassenfuss nicht dunkler: '+h.dunkler+' der Pixel');
   pruef('PERSON',h.personen>=1,'kein Personenschatten');
   pruef('EIN_AUFRUF',h.callsSchatten===1,'Kontaktschatten kosten '+h.callsSchatten+' Zeichenaufrufe');
-  pruef('FEHLER_HOCH',!p.errs.length,p.errs.slice(0,3).join(' | ')); await p.close();
+  pruef('FEHLER_HOCH',!p.errs.length&&!h.shader.length,p.errs.concat(h.shader).slice(0,3).join(' | ')); await p.close();
   p=await laden(b,'niedrig'); const n=await p.evaluate(zustand); console.log('NIEDRIG',JSON.stringify(n));
   allgemein('NIEDRIG',n);
   pruef('NIEDRIG',n.an&&n.licht===1&&n.callsSchatten===1&&n.n.moebel>=2,JSON.stringify({an:n.an,licht:n.licht,calls:n.callsSchatten,n:n.n}));
-  pruef('FEHLER_NIEDRIG',!p.errs.length,p.errs.slice(0,3).join(' | ')); await p.close();
+  pruef('FEHLER_NIEDRIG',!p.errs.length&&!n.shader.length,p.errs.concat(n.shader).slice(0,3).join(' | ')); await p.close();
   p=await laden(b,'ultralow'); const u=await p.evaluate(zustand); console.log('ULTRALOW',JSON.stringify(u));
   allgemein('ULTRALOW',u);
   pruef('ULTRALOW',u.an&&u.licht===1&&u.callsSchatten===1&&u.n.moebel>=2,JSON.stringify({an:u.an,licht:u.licht,calls:u.callsSchatten,n:u.n}));
   pruef('KONTAKT_ULTRALOW',u.dunkler>0.01,'Ultra Low: Boden am Kassenfuss nicht dunkler: '+u.dunkler);
-  pruef('FEHLER_ULTRALOW',!p.errs.length,p.errs.slice(0,3).join(' | ')); await p.close();
+  pruef('FEHLER_ULTRALOW',!p.errs.length&&!u.shader.length,p.errs.concat(u.shader).slice(0,3).join(' | ')); await p.close();
   console.log(mangel.length?'MANGEL:\n'+mangel.join('\n'):'ALLES OK');
   console.log('ERRORS:',mangel.length?mangel.join(' | '):'keine'); await b.close();
 })();

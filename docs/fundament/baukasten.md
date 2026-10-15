@@ -61,7 +61,7 @@ später ändern will (Ampel, Lampe in `lampMats`, Regalfarbe, Hervorhebung, Ausb
 | `bk.lod()` | 0 = Ultra Low, 1 = Niedrig…Hoch, 2 = ab Maximum |
 | `bk.kasten(w,h,d,{fase,anteil,faseMin,seg,lod0Kasten})` | Kasten gefast oder einfach (Fase ≤ `fase`, ≤ `anteil`·kleinste Kante) |
 | `bk.sammler(opt)` | viele Teile → je Oberflächenklasse **ein** Mesh mit Vertexfarben |
-| `bk.schild(parent,{text,unter,b,h,x,y,z,ry,bg,fg,px})` | Schild im Hausstil (Nachtblau/Gold), Textur-Cache je Text+Größe |
+| `bk.schild(parent,{text,unter,stil,b,h,x,y,z,ry,px,leucht,doppel,pfosten,rueck,malen,pw,ph,schluessel})` | **jedes Schild**: Stil nach Bedeutung (`bk.SCHILD`: haus, info, warn, tafel, brand, flucht), Textur-Cache je Text+Stil+Größe; Sonderschild mit eigenem Malcode (`malen`); auf Pfosten, mit Rückblech, leuchtend, beidseitig (Einheit 15.10., §2e) |
 | `bk.tor(o)` | **jedes Tor im Spiel** (Ladetor sektional/roll, Attrappe, Zauntor) – eine Optik, Parameter statt Kopie; Doku `tore.md` |
 | `bk.poller(S,x,z,o)` | Poller in einen Sammler: `art:'anfahr'` (Industrie, gelb – Tore/Rampen) · `'stadt'` (Gehweg, graphit rund); gibt das Kollisionsrechteck zurück. Doku `zaeune.md` |
 | `bk.anfahrschutz(S,o)` | Rammschutz-Bügel aus Vierkantrohr (gelb) von `von` nach `bis` in einen Sammler (Mörser) |
@@ -202,3 +202,18 @@ nicht im Baukasten stehen (Tore, Fenster, Regale, Kassen, Lampen, Zäune, Poller
 `tools/fundament/katalog-seite.js`). Neue Baukasten-Bauteile erscheinen ohne Änderung automatisch; ein Objekt, das in den
 Baukasten wandert, wird aus `VORHER` gestrichen. Die Herkunft („Baufunktion“) kommt aus dem Zähl-Wrapper
 `pre.js`/`post.js`, den der Generator selbst einbaut (`KATALOG_PROFIL=0` schaltet ihn ab). Bilder ~3 MB, Lauf ~10 Min.
+
+## 2e. Einheit – Regale, Kassen, Fenster, Türen, Schilder, Bodenmarkierungen (15.10.2026)
+Je Kategorie EIN Bauteil, Arten statt Kopien; Inventar, Änderungen und Messung: `docs/fundament/einheit.md`.
+| Aufruf | Zweck |
+|---|---|
+| `bk.regal({art,K,g,farben,px})` | `'laden'` alle Verkaufsmöbel nach `SHELFKIND` (Wandregal, Gondel, Eck, Kühl, Groß, Kassenregal, Tisch, Gitterbox): Gestell je Warenseite ein Mesh (`MAT.vc('kunststoff')`, Rollenfarben `regalFarben`), Rückwand Lochblech (`bk.regal.rueckwand()`, UV 0,4 m), Preisschilder des Möbels in EINEM Bild (Zeile je Fach, `lv.zelle`) und einem Mesh je Seite, Lichtleiste (`bk.regal.leiste()`, ein Material für alle). `'lager'` alle Lagerregale nach `RACKKIND`: Stützen (Lochprofil, ein Mesh), Rahmen/Traversen (ein Mesh), Böden (ein Mesh), Inhaltsschild. `'fachboden'` kleines Fachbodenregal in einen fremden Sammler (Packmaterial). Rückgabe = Haken (Fächer mit Trefferfläche, Schildtexturen) |
+| `bk.kasse({art,...})` | `'kasse'` Kassenplatz (Laufband mit eigener Bandtextur-Kopie, Scanner, Monitor, Tastatur, Warentrenner) · `'sb'` SB-Terminal (Signalleuchte `MAT.neu('ampelGruen')`) · `'sbTafel'` Rückwand „SB-KASSEN“ – Geräte-Sammler mit Klassen lack/metall/matt/glas/leucht |
+| `bk.tuer({art,...})` | `'schiebe'` Ladenschiebetür (zwei Flügel, Rückgabe `leaves`) · `'stahl'|'brand'|'glas'` Drehflügeltür (vorher `bk.drehtuer`) · `'streifen'` PVC-Streifenvorhang |
+| `bk.fenster({art,...})` | `'schaufenster'` Felder mit Leisten, Mittelsprosse, Sohlbank Anthrazit, Türzarge, Pfosten, Schmutzschicht (`S.grime`) · `'fluegel'` Lagerfenster mit Wand (bk.wand) – Rahmen ein Mesh, Glas ein Mesh (`glasScheibe`) |
+| `bk.bodenmarkierung` (erweitert) | gestrichelte Linien/Rahmen, `lkw` (Stellplatz), `schriften` (Bodenschrift), `flaechen` art `frei` (Freihalteschraffur), Warnrand `farbe:'sperr'`, `boden(x,z)` (folgt dem Untergrund) |
+Neue Töne `anzeigeGruen`, `laserRot`, `anzeigeBlau` (Anzeigen/LEDs an Geräten), Rezepte `lochblech`, `lochblechKasse`, `regalStuetze`, `regalBoden`,
+`regalPaket`, `gitterBox`, `lichtleiste`, `lichtleisteKuehl`, `etikett`, `scannerGlas`, `kassenTastatur`, `kassenband`, `pvcStreifen`, `fensterSchmutz`,
+`freihalteflaeche`, `bodenSchrift`; Texturen `lochblech`, `lochprofil`, `stahlboden`, `regalPaket`, `scannerGlas`, `kassenTastatur`, `kassenband`,
+`fensterSchmutz`, `freihalteschraffur`; `MAT.bild(map)` = eigenes unbeleuchtetes Bildmaterial (Preisschilder, Bildschirme, Leuchtschilder).
+Wächter: `regal`, `kasse`, `tuer` (mit den Drehtür-Wörtern und `streifenvorhang`), `fenster` aktiv; `bk.drehtuer` entfällt (→ `bk.tuer`); `SCHILD` in `HELFER`.

@@ -221,7 +221,8 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     const bb=window.__bb; let n=0;
     bb.scene.traverse(o=>{
       if(!o.isMesh||!o.visible||!o.material||!o.material.map||!o.material.map.image) return;
-      const im=o.material.map.image; if(im.width!==280||im.height!==70) return;
+      /* Einheit 15.10.: Schilder baut bk.schild (userData.bauteil 'schild'), vorher eigene Textur 280 x 70 */
+      const im=o.material.map.image; if(o.userData.bauteil!=='schild'&&(im.width!==280||im.height!==70)) return;
       const bx=new THREE.Box3().setFromObject(o);
       if(bx.min.x>4.0&&bx.max.x<6.5&&bx.min.z>-6.3&&bx.max.z<-5.6) n++; });
     return n;

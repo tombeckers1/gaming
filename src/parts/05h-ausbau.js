@@ -968,14 +968,14 @@ function versandFlaeche(g){
   const boden=MAT.ober('basaltgrau','matt');
   const flaeche=(x0,x1,z0,z1,k)=>{
     const bo=new THREE.Mesh(new THREE.PlaneGeometry(x1-x0,z1-z0),boden); bo.rotation.x=-Math.PI/2; bo.position.set((x0+x1)/2,0.02,(z0+z1)/2); g.add(bo);
-    const M=bk.bodenmarkierung({rahmen:[{x0,x1,z0,z1,farbe:'gelb',breite:0.06}],flaechen:[{x0:x1-0.3,x1:x1-0.06,z0:z0+0.06,z1:z1-0.06,art:'frei'}],parent:g,y:0.016}).meshes;
+    const M=bk.bodenmarkierung({rahmen:[{x0,x1,z0,z1,farbe:'gelb',breite:0.06}],flaechen:[{x0:x1-0.3,x1:x1-0.06,z0:z0+0.06,z1:z1-0.06,art:'frei'}],parent:g,y:0.021}).meshes;   /* ueber dem Arbeitsboden (0,02) */
     if(k){ packTeile.ab[k].push(bo); M.forEach(m=>packTeile.ab[k].push(m)); } };
   flaeche(-0.05,4.15,BAND.z-BAND.b/2-0.1,1.22,0);
   flaeche(1.6,4.15,-3.25,BAND.z-BAND.b/2-0.1,2);
   /* Schrift vor jedem Packplatz - nur fuer die Plaetze, die es in der
      Stufe schon gibt, lesbar fuer den, der davor steht (Bodenschrift aus dem Baukasten) */
   for(let i=0;i<3;i++){ const p=ppW(i,0,1.32);
-    bk.bodenmarkierung({schriften:[{text:'PACKPLATZ '+(i+1),x:p.x,z:p.z,b:1.2,h:0.26,ry:VS_PP[i].s<0?Math.PI:0}],parent:g,y:0.016}).meshes.forEach(m=>packTeile.ab[i+1].push(m));
+    bk.bodenmarkierung({schriften:[{text:'PACKPLATZ '+(i+1),x:p.x,z:p.z,b:1.2,h:0.26,ry:VS_PP[i].s<0?Math.PI:0}],parent:g,y:0.021}).meshes.forEach(m=>packTeile.ab[i+1].push(m));
   }
 }
 let packSchildTex=null;

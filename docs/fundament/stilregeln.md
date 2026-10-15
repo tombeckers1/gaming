@@ -63,7 +63,10 @@ Klassen (`bk.sammler`, Klasse = gleiche Werte wie `MAT.ober`).
 | Tor-Attrappe Ost / Schiebetor Hof / Doppeltor Zaun | 3,6 × 4,2 · 4,2 × 2,3 · 6,22 × 2,4 m | `tore.md` §3 |
 | Verkaufsregal | Breite 1,0 (klein) / 2,0 m, Tiefe 0,52 m, Fachhöhen 0,56 m Raster (0,19 · 0,75 · 1,31 · 1,87) | `02-data.js` `SHELFKIND` |
 | Lagerregal | Breite 2,44 m (Schwerlast 3,30 m), Ebenen 0,14 · 0,94 · 1,74 (Hoch bis 3,66, Schwer 1,1 m Raster) | `06-fixtures.js` `RACKKIND` |
-| Bodenmarkierung | Linie 0,12–0,14 m breit, Mittelstrich 0,1 × 0,5 m, Höhe über Boden 0,017 m | `05g-dock.js`, `05m-logistik.js` |
+| Bodenmarkierung | Linie 0,12 m (Fahrweg/LKW-Stellplatz), Stellplatz innen 0,06–0,08 m, Mittelstrich 0,1 × 0,5 m, Fahrspur gestrichelt 0,6/0,4 m, LKW-Stellplatz 3,8 × 14 m | `bk.MARKIERUNG` (04z) |
+| Schaufenster | Brüstung 0,9 m, Sturz 2,4 m, Leisten 0,06 × 0,12 m, Mittelsprosse 0,06 m, Sohlbank 0,05 × 0,3 m (Anthrazit) | `bk.fenster` (04z) |
+| Lagerfenster | 1,7 × 1,25 m (Brüstung 1,35, Sturz 2,6), Rahmen 0,07 m, zwei Flügel | `bk.fenster` art `fluegel` |
+| Ladenregal-Rückwand | Lochblech, Lochabstand 5 cm (Kachel 0,4 m) | `bk.regal` |
 | Bodenschrift | Feld 5,2 × 1,6 m, Signalgelb auf dunklem Grund | `05g-dock.js` „ANLIEFERUNG“ |
 | Tornummer (`bk.schild`) | außen 0,8 × 0,62 m, innen 0,62 × 0,48 m | `04z-baukasten.js` `bk.tor` |
 | Großes Wandschild | 1,9 × 0,78 m (DDL Abholung) | `11e-palette.js` |
@@ -80,10 +83,18 @@ Geländer 1,1 m). Abweichung nur mit Grund (z. B. Spielbarkeit) im Bericht. Fehl
 - Ultra Low darf nie langsamer werden als vorher (Licht-Paket dort nur Kontaktschatten – ein Zeichenaufruf – und das Raumlicht im Shader).
 
 ## 6. Beschriftung und Schrift
+- **Jedes Schild über `bk.schild`** (Einheit 15.10.), Farben nach Bedeutung über den Stil (`bk.SCHILD`): **haus** = Nachtblau, Goldstreifen,
+  helle Schrift (Raum-/Durchgangsschilder, Tore, Gassen, Stationen, Kassen) · **info** = Signalblau/Weiß (Geräte, Lager-PC, Kühlregal,
+  Packmittel) · **warn** = Signalgelb/Gummischwarz (Gefahr, Zutritt) · **tafel** = Weiß/Nachtblau (Hausnummer, Hinweistafeln) ·
+  **brand** = Feuerrot/Weiß (Brandschutz) · **flucht** = Signalgrün/Weiß (Rettungswege). Sonderschilder mit eigenem Malcode (`malen`:
+  Ladenlogo, Carrier-Schild DDL, Kategorie-Marke) und veränderliche Anzeigen (Preis-, Kopf-, Türschild, Versandstatus) bauen ihr Mesh
+  ebenfalls über `bk.schild`/`bk.regal`. Keine freien `bg/fg` mehr.
 - **Hausstil** = Nachtblau-Fläche, Schildgold-Schrift: nur über `bk.schild(parent,{text,unter,b,h,…})` (Textur-Cache je Text+Größe).
   Ziffern auf Tornummern weiß. Titel in **Bungee** (`BUN(px)`), Unterzeilen in **Barlow Condensed** (`BAR(px)`), Text an die Fläche
   anpassen mit `fitFont`. ☑ (BAUTEIL schild: Funktion, die ein Schild selbst malt und baut, ohne `bk.schild`)
-- **Warnung** = Signalgelb auf Gummischwarz/dunklem Feld (Bodenschrift, Warnschilder); kein Gold.
+- **Warnung** = Signalgelb auf Gummischwarz/dunklem Feld (Bodenschrift, Warnschilder); kein Gold. Bodenschrift nur über
+  `bk.bodenmarkierung({schriften})` (Signalgelb auf halbdunklem Feld mit Rand).
+- **Glas**: eine Scheibe für alles – `MAT.get('glasScheibe')` (Schaufenster, Türen, Lagerfenster, Kühlregal, Leitstand).
 - Beträge in Texten nie als feste Zahl – aus `WIRT`/`eur(...)` erzeugen. ☑ (GELD „N €“ im Text)
 
 ## 7. Abnutzung und Schmutz

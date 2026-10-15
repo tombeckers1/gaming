@@ -1049,14 +1049,17 @@ bk.lampe=function(o){
         lkw:[{x,z,ry,laenge,breite,v0}] (LKW-Stellplatz vor einem Tor: zwei Seitenlinien 14 m ab v0 = 0,4 m vor der Wand, Stopplinie,
           fuenf Mittelstriche 0,1 x 0,5 m; x,z = Tormitte an der Wand, ry = Richtung vom Tor weg (0 = -z)),
         schriften:[{text,x,z,b,h,ry}] (Bodenschrift Signalgelb auf dunklem Feld mit Rand - ANLIEFERUNG, VERSANDHOF),
-        piktos:[{x,z,ry,g}] (Fussgaenger 0,8 m), y (Boden), parent,
+        piktos:[{x,z,ry,g}] (Fussgaenger 0,8 m), y (Boden), boden(x,z) (Hoehe des Untergrunds, z. B. Gehweg mit Gefaelle), parent,
         schatten (true = empfaengt Sonnenschatten wie Aussenboeden; innen aus, wie die Hallenboeden)}
    -> {meshes} je Material EIN Mesh (UV in Metern, Schraffur 0,4 m je Kachel); Schrift je Text ein Mesh (Textur-Cache) */
 bk.MARKIERUNG={fahrweg:0.12,stellplatz:0.08,gehweg:0.12,pikto:0.8,lkwLaenge:14,lkwBreite:3.8,strich:0.1,strichL:0.5};
 const _bkBodenSchrift=new Map();
 bk.bodenmarkierung=function(o){
   const y=o.y===undefined?0.015:o.y, T={gelb:[],weiss:[],gruen:[],sperr:[],frei:[],pikto:[]};
-  const quad=(k,cx,cz,w,d,ry,dy,uvM)=>{ const gg=new THREE.PlaneGeometry(w,d); gg.rotateX(-Math.PI/2); if(ry) gg.rotateY(ry); gg.translate(cx,y+dy,cz);
+  /* o.boden(x,z) = Hoehe des Untergrunds (z. B. Gehweg mit Gefaelle): Flaechen werden unterteilt und folgen ihm */
+  const folge=(gg,dy)=>{ if(!o.boden) return; const p=gg.attributes.position; for(let i=0;i<p.count;i++) p.setY(i,o.boden(p.getX(i),p.getZ(i))+dy); p.needsUpdate=true; };
+  const quad=(k,cx,cz,w,d,ry,dy,uvM)=>{ const n=o.boden?[Math.max(1,Math.ceil(w/0.25)),Math.max(1,Math.ceil(d/0.25))]:[1,1];
+    const gg=new THREE.PlaneGeometry(w,d,n[0],n[1]); gg.rotateX(-Math.PI/2); if(ry) gg.rotateY(ry); gg.translate(cx,y+dy,cz); folge(gg,dy);
     if(uvM){ const p=gg.attributes.position, uv=gg.attributes.uv; for(let i=0;i<p.count;i++) uv.setXY(i,p.getX(i)/uvM,-p.getZ(i)/uvM); }
     T[k].push({geo:gg,m:new THREE.Matrix4()}); };
   const strich=(x0,z0,x1,z1,f,b)=>{ const L=Math.hypot(x1-x0,z1-z0); if(L<0.01) return; quad(f||'gelb',(x0+x1)/2,(z0+z1)/2,L+(b||0.12),b||0.12,Math.atan2(-(z1-z0),x1-x0),0.005,f==='sperr'?0.4:0); };
@@ -1091,7 +1094,7 @@ bk.bodenmarkierung=function(o){
         g.textAlign='center'; g.textBaseline='middle'; fitFont(g,q.text,W2*0.86,Math.round(H2*0.48),BUN);
         g.fillStyle=MAT.css('tiefschwarz',0.75); g.fillText(q.text,W2/2+H2*0.02,H2/2+H2*0.04); g.fillStyle=MAT.css('signalgelb'); g.fillText(q.text,W2/2,H2/2+H2*0.01); });
       t.anisotropy=8; m=MAT.neu('bodenSchrift',{map:t}); _bkBodenSchrift.set(key,m); }
-    const gg=new THREE.PlaneGeometry(q.b,q.h); gg.rotateX(-Math.PI/2); if(q.ry) gg.rotateY(q.ry); gg.translate(q.x,y+0.007,q.z);
+    const gg=new THREE.PlaneGeometry(q.b,q.h,o.boden?Math.ceil(q.b/0.1):1,o.boden?Math.ceil(q.h/0.1):1); gg.rotateX(-Math.PI/2); if(q.ry) gg.rotateY(q.ry); gg.translate(q.x,y+0.007,q.z); folge(gg,0.007);
     fertig(new THREE.Mesh(gg,m),'schrift').renderOrder=2; }
   return {meshes};
 };

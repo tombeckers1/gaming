@@ -262,15 +262,9 @@ function lagerSperre(){
      12 cm am Bord) - die flach auf 2 cm liegende Markierung verschwand zur
      Strasse hin samt Schrift unter den Platten. Jetzt liegt sie Punkt fuer
      Punkt auf der Gehwegflaeche. */
-  const wg=new THREE.PlaneGeometry(2.7,1.75,27,18); wg.rotateX(-Math.PI/2); wg.translate(WA.x,0,WA.z);
-  { const pa=wg.attributes.position; for(let i=0;i<pa.count;i++) pa.setY(i,(typeof gehwegY==='function'?gehwegY(pa.getX(i),pa.getZ(i)):0.012)+0.008); pa.needsUpdate=true; }
-  const m=new THREE.Mesh(wg,new THREE.MeshBasicMaterial({transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2,
-    map:tex(540,350,(c,W,H)=>{ c.clearRect(0,0,W,H);
-      c.strokeStyle=MAT.css('signalgelb'); c.lineWidth=12; c.setLineDash([30,16]); c.strokeRect(10,10,W-20,H-20); c.setLineDash([]);
-      c.fillStyle=MAT.css('signalgelb',.95); c.font=BUN(46); c.textAlign='center'; c.textBaseline='middle';
-      c.fillText('WARENANNAHME',W/2,H-52); })}));
-  m.renderOrder=2; scene.add(m);
-  zWand(Z,m);
+  { const M=bk.bodenmarkierung({rahmen:[{x0:WA.x-1.35,x1:WA.x+1.35,z0:WA.z-0.875,z1:WA.z+0.875,farbe:'gelb',breite:0.06,strich:0.15,luecke:0.08}],
+      schriften:[{text:'WARENANNAHME',x:WA.x,z:WA.z+0.55,b:2.3,h:0.42}],y:0,boden:(x,z)=>(typeof gehwegY==='function'?gehwegY(x,z):0.012)+0.003}).meshes;
+    M.forEach(m=>zWand(Z,m)); }
 }
 /* Warenannahme vor der Tuer: sechs Stellplaetze, gestapelt */
 const WA={x:3.5,z:7.75};
@@ -282,10 +276,7 @@ function testfeldSperre(){
   /* Schild ueber dem Durchgang, wie das Schild an der Lagertuer.
      Es bleibt stehen, auch nachdem der Zugang gekauft ist - es
      sagt, wohin die Tuer fuehrt, nicht dass sie zu ist. */
-  plane(1.4,0.35,new THREE.MeshStandardMaterial({map:tex(280,70,(g,W,Hh)=>{
-    g.fillStyle=MAT.css('signalgelb'); g.fillRect(0,0,W,Hh);
-    g.fillStyle='#16181f'; g.font=BUN(38); g.textAlign='center'; g.textBaseline='middle';
-    g.fillText('TESTFELD',W/2,Hh/2+2); })}),(a+b)/2,2.85,z+0.12,0,null);
+  bk.schild(scene,{text:'TESTFELD',b:1.4,h:0.35,x:(a+b)/2,y:2.85,z:z+0.12,leucht:true});
   zWandCol(Z,col(a,b,z-0.14,z+0.14));
   tfHit=bbox(b-a-0.1,2.0,0.34,hitM,(a+b)/2,1.0,z,null,false);
   tfHit.userData={kind:'tfsperre'}; zWand(Z,tfHit);
@@ -442,8 +433,7 @@ function buildLagerTerminal(){
   const m=new THREE.Mesh(merge(VC),vcMat); if(HIQ){ m.castShadow=true; m.receiveShadow=true; } g.add(m);
   const sch=neuerSchoner(480,304,'Lager-PC');
   const sc=plane(0.52,0.32,new THREE.MeshBasicMaterial({toneMapped:false,map:sch.t}),0,1.48,-0.06,0,g); sch.mesh=sc;
-  const st=tex(256,64,(c,W,H)=>{ c.fillStyle='#2a5a9e'; c.fillRect(0,0,W,H); c.fillStyle='#fff'; c.textAlign='center'; c.textBaseline='middle'; fitFont(c,'LAGER-PC',W-20,40,BUN); c.fillText('LAGER-PC',W/2,H/2+2); });
-  plane(0.6,0.15,new THREE.MeshBasicMaterial({map:st,toneMapped:false}),0,1.95,-0.258,0,g);
+  bk.schild(g,{text:'LAGER-PC',stil:'info',b:0.6,h:0.15,px:0.5,y:1.95,z:-0.258,leucht:true});
   lapHit2=bbox(0.9,1.4,0.8,hitM,0,0.95,0.1,g,false);
   lapHit2.userData={kind:'laptop2'};
   zCol('lager_sued2',col(LAGERPC.x-0.36,LAGERPC.x+0.36,LAGERPC.z-0.32,LAGERPC.z+0.33));

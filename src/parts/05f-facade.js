@@ -164,7 +164,7 @@ function buildFacade(){
     col(x-0.2,x+0.2,7.3,7.7);
   }
   // Hausnummer
-  plane(0.34,0.34,new THREE.MeshStandardMaterial({map:tex(96,96,(g,W,Hh)=>{ g.fillStyle='#f2f5ff'; g.fillRect(0,0,W,Hh); g.strokeStyle='#0e1226'; g.lineWidth=5; g.strokeRect(5,5,W-10,Hh-10); g.fillStyle='#0e1226'; g.font=BUN(48); g.textAlign='center'; g.textBaseline='middle'; g.fillText('13',W/2,Hh/2+3); })}),1.55,2.28,6.13,0);
+  bk.schild(scene,{text:'13',stil:'tafel',b:0.34,h:0.34,px:0.6,x:1.55,y:2.28,z:6.13});
   /* Frueher lagen hier vier weisse Kloetze als "Schneewall" vor der
      Fassade - Tom: sieht nicht gut aus, weg damit. */
 }

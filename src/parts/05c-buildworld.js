@@ -174,7 +174,8 @@ function buildWorld(){
   roomAO(-19.9,-8.1,-5.9,5.9,null,{n:true,w:true,e:true});
   buildAusbau();
   buildFacade();
-  plane(1.4,0.35,new THREE.MeshStandardMaterial({map:tex(280,70,(g,W,Hh)=>{ g.fillStyle=MAT.css('signalgelb'); g.fillRect(0,0,W,Hh); g.fillStyle='#16181f'; g.font=BUN(40); g.textAlign='center'; g.textBaseline='middle'; g.fillText('LAGER',W/2,Hh/2+2); })}),-7.88,2.85,-2.5,Math.PI/2);
+  /* Raumschild ueber dem Durchgang zum Lager: Hausstil wie alle Durchgangsschilder (Einheit 15.10., vorher gelb/schwarz) */
+  bk.schild(scene,{text:'LAGER',b:1.4,h:0.35,x:-7.88,y:2.85,z:-2.5,ry:Math.PI/2,leucht:true});
   // Wanduhr: echtes Gehaeuse mit Glas, Zeiger laufen nach der Spielzeit
   {
     /* Die Uhr hing an der Ostwand. Die faellt jetzt beim ersten

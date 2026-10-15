@@ -12,8 +12,8 @@
      Paletten laufen durch beide Brandwaende ins Hochregal - EINE Update-Funktion (wkTick), nur wenn sichtbar.
    - Aussen: Hof West mit Werkszaun und Einfahrt, Mischhaus hinter dem Erdwall, Gefahrstoffweg.
    Gebaut wird erst beim Kauf (vorher liegt nichts davon im Speicher); Straße 2/3 erst mit fabrik2/fabrik3.
-   Schnittstelle Produktion (spaeter, produktion-konzept.md): WK.zustand[i] {laeuft, takt, ausgabe}, wkStrasseSetzen(i,laeuft),
-   wkAusgabe(i) (Palette erreicht die Gasse), WK.produktion (Fixkosten erst ab Produktion, wkFixkosten).
+   Produktion (05s-produktion.js, 15.10.): WK.zustand[i] {laeuft = produziert gerade, takt = Takt der Animation, ausgabe}, pdTick aus
+   wkTick, WK.produktion (= S.pd.aktiv: Werk-Fixkosten erst ab der ersten eingeschalteten Straße, wkFixkosten), Leitstand-Bildschirme.
    ========================================================= */
 const WK={id:'fabrik', werk:{x0:-100,x1:-70,z0:-34,z1:-7}, verb:{x0:-70,x1:-66}, H:6.0, raum:3.2,
   band:{x0:-91.0,p:18/7,y:0.92,b:0.5}, tief:1.65, zelleH:3.1, pal:{x:-71.65},
@@ -21,7 +21,7 @@ const WK={id:'fabrik', werk:{x0:-100,x1:-70,z0:-34,z1:-7}, verb:{x0:-70,x1:-66},
   treppe:{x0:-78,x1:-76,mitte:-77,fuss:-7.9,kopf:-10.15,z0:-11,y:1.6},
   misch:{x0:-116.5,x1:-111.5,z0:-25.5,z1:-20.5,h:3.2}, erdwall:{x0:-121,x1:-107,z0:-30,z1:-16,luecke:[-115,-112]},
   hof:{x0:-104,x1:-70,z0:-62,z1:-34}, zaunX:-124, einfahrt:[-54,-47], r6:{x:-84,b:3.4,h:3.4}, westTuer:-30.9,
-  produktion:false,                 /* Produktions-Gameplay noch nicht freigegeben: Straßen laufen als Schau-Betrieb */
+  produktion:false,                 /* true, sobald eine Straße eingeschaltet wurde (05s, S.pd.aktiv) - erst dann Werk-Fixkosten */
   zustand:[0,1,2].map(()=>({laeuft:false,takt:4.0,ausgabe:0})), zahl:{paletten:[0,0,0],takte:0}};
 /* Straßen (Skizze STRASSEN): Kuerzel, Arbeitsschritt, Zelle (mannlos), Maschine (bk.maschine-Art, 'portal' = Portalgreifer) */
 const WK_STR=[
@@ -38,9 +38,10 @@ function wkStrasseOffen(i){ return wkOffen()&&zoneOffen(WK_STR[i].up); }
 function wkGasseZ(k){ return LL.hr.z0(k)+2.0; }
 /* Welt reicht mit dem Werk bis x −124 (Spieler); Wegenetz bleibt, wo es ist - im Werk laeuft (noch) kein Personal */
 function wkWeltX0(){ return wkOffen()?WK.zaunX+0.4:NAV.x0+0.4; }
-/* Fixkosten Werk: erst, wenn produziert wird (WIRT.fix.werk/werkStrasse) - im Schau-Betrieb 0 */
-function wkFixkosten(){ if(!WK.produktion||!wkOffen()) return 0; let f=WIRT.fix.werk;
-  for(let i=0;i<3;i++) if(wkStrasseOffen(i)&&WK.zustand[i].laeuft) f+=WIRT.fix.werkStrasse; return f; }
+/* Fixkosten Werk: erst ab Produktion (WIRT.fix.werk), dazu je eingeschaltete Straße WIRT.fix.werkStrasse - auch wenn sie gerade
+   steht (Stoerung, Rohstoffe aus, Laden zu): eingeschaltet heisst Strom, Druckluft, Bereitschaft (05s pdStrasseAn) */
+function wkFixkosten(){ if(typeof S!=='undefined'&&S&&S.pd) WK.produktion=!!S.pd.aktiv; if(!WK.produktion||!wkOffen()) return 0; let f=WIRT.fix.werk;
+  for(let i=0;i<3;i++) if(typeof pdStrasseAn==='function'&&pdStrasseAn(i)) f+=WIRT.fix.werkStrasse; return f; }
 /* Bodenhoehe: Treppe (zwei Laeufe mit Podest bei 1,6 m) und Leitstand-Galerie +3,2 m. Unter dem Leitstand liegt die Technik -
    abgeschlossen, also gibt es im Grundriss keine Stelle mit zwei Ebenen. */
 function wkBoden(x,z){
@@ -51,9 +52,9 @@ function wkBoden(x,z){
   if(z>=T.fuss) return x>T.mitte?0:WK.raum;
   const t=(T.fuss-z)/L; return x>T.mitte?t*T.y:WK.raum-t*(WK.raum-T.y);
 }
-/* Schau-Betrieb einer Straße an/aus (Schnittstelle fuer das Produktions-Gameplay: Straße stoppen, Zelle freigeben) */
+/* Animation einer Straße an/aus (05s setzt laeuft je Bild aus dem Produktionszustand) */
 function wkStrasseSetzen(i,laeuft){ const z=WK.zustand[i]; if(!z) return; z.laeuft=!!laeuft&&wkStrasseOffen(i); wkAmpeln(); }
-/* Palette hat die Gasse erreicht: spaeter Fertigware ins Hochregal (S.hr), heute nur gezaehlt */
+/* Palette der Animation hat die Gasse erreicht (gezaehlt; die echte Fertigware lagert 05s pdAusgabeTick ins Hochregal ein) */
 function wkAusgabe(i){ WK.zahl.paletten[i]++; WK.zustand[i].ausgabe++; }
 
 /* ---------- Alte Teile, die mit dem Werk weichen (Westwand der Halle Stufe 3, Westzaun und Zufahrt des LKW-Hofs) ---------- */
@@ -81,7 +82,7 @@ function wkAnwenden(){
   if(an) for(let i=0;i<3;i++) if(wkStrasseOffen(i)&&!WK_T.str[i]) wkStrasseBauen(i);
   if(WK_T) WK_T.str.forEach((st,i)=>{ if(!st) return; const ja=wkStrasseOffen(i); st.g.visible=ja; st.d.visible=ja; st.v.visible=ja;
     for(const c of st.cols){ const d=colliders.indexOf(c)>=0; if(ja&&!d) colliders.push(c); else if(!ja&&d) dropCol(c); }
-    WK.zustand[i].laeuft=ja; if(WK_T.blende[i]) for(const b of WK_T.blende[i]) b.visible=!ja; });
+    WK.zustand[i].laeuft=ja&&typeof pdLaeuft==='function'&&pdLaeuft(i); if(WK_T.blende[i]) for(const b of WK_T.blende[i]) b.visible=!ja; });
   /* alte Westwand der Halle, Westzaun und Zufahrt des LKW-Hofs */
   if(WK_ALT.halle) WK_ALT.halle.visible=!an;
   if(WK_T) wkGlas();
@@ -526,23 +527,32 @@ function wkStrasseBauen(i){
 /* Ampeln aller Zellen: rot = Straße laeuft (Tuer zu), gruen = steht (Zelle frei) */
 function wkAmpeln(){ if(!WK_T) return; WK_T.str.forEach((st,i)=>{ if(!st||!st.ampel) return; const an=WK.zustand[i].laeuft;
   st.ampel.rot.emissiveIntensity=an?1.4:0; st.ampel.gruen.emissiveIntensity=an?0:1.4; }); }
-/* Leitstand-Bildschirme: je Straße Status und Ausstoß (Leinwand, wird bei jedem Kauf neu gemalt) */
+/* Leitstand-Bildschirme: je Straße zwei Anzeigen (Leinwand; 05s malt sie im Werk einmal je Sekunde neu). Links: Status, Auftrag,
+   Takt, Stueck heute. Rechts: Stationen (rot = Zelle, blinkt bei Stoerung), Ausschuss, Qualitaet, Rohstoff-Reichweite. */
 function wkMonitore(){
   if(!WK_T||!WK_T.monitor) return; const t=WK_T.monitor.t, c=t.image, g=c&&c.getContext&&c.getContext('2d'); if(!g) return;
-  const W=c.width/6, H=c.height;
-  for(let k=0;k<6;k++){ const i=k>>1, s=WK_STR[i], an=wkStrasseOffen(i), x0=k*W;
-    g.fillStyle=MAT.css('nachtblau'); g.fillRect(x0,0,W,H); g.fillStyle=MAT.css('anthrazit'); g.fillRect(x0,0,W,46);
+  const W=c.width/6, H=c.height, D=typeof S!=='undefined'&&S&&S.pd?S.pd:null, blink=Math.floor((WK_T.zeit||0)*2)%2===0;
+  const zahl=v=>String(v).replace('.',',');
+  for(let k=0;k<6;k++){ const i=k>>1, s=WK_STR[i], an=wkStrasseOffen(i), x0=k*W, p=D&&D.s?D.s[i]:null, grund=an&&typeof pdGrund==='function'?pdGrund(i):'';
+    const laeuft=an&&WK.zustand[i].laeuft, stoer=!!(p&&p.stoer);
+    g.fillStyle=MAT.css('nachtblau'); g.fillRect(x0,0,W,H); g.fillStyle=MAT.css(stoer?'signalrot':'anthrazit'); g.fillRect(x0,0,W,46);
     g.textAlign='left'; g.textBaseline='middle'; g.fillStyle=MAT.css('weiss'); fitFont(g,'STRASSE '+s.nr+' · '+s.name.toUpperCase(),W-28,30,BAR); g.fillText('STRASSE '+s.nr+' · '+s.name.toUpperCase(),x0+14,24);
-    if(k%2===0){ g.fillStyle=an?MAT.css('signalgruen'):MAT.css('mittelgrau'); g.fillRect(x0+14,70,26,26);
-      g.fillStyle=MAT.css('weiss'); g.font=BAR(34); g.fillText(an?(WK.zustand[i].laeuft?'LÄUFT':'STEHT'):'NICHT GEBAUT',x0+52,84);
-      const zl=(t2,yy)=>{ fitFont(g,t2,W-28,26,BAR); g.fillText(t2,x0+14,yy); };
-      g.fillStyle=MAT.css('lichtgrau'); zl(an?'Takt '+WK.zustand[i].takt.toFixed(1).replace('.',',')+' s · Schau-Betrieb':'Ausbau '+(i?'8.'+(i+1):'8'),134);
-      zl(an?'Ausgabe → Hochregal Gasse '+(s.gasse+1):'',176); }
+    const zl=(t2,yy)=>{ fitFont(g,t2,W-28,26,BAR); g.fillText(t2,x0+14,yy); };
+    if(k%2===0){ g.fillStyle=!an?MAT.css('mittelgrau'):stoer?(blink?MAT.css('signalrot'):MAT.css('nachtblau')):laeuft?MAT.css('signalgruen'):MAT.css('signalgelb'); g.fillRect(x0+14,70,26,26);
+      g.fillStyle=MAT.css('weiss'); g.font=BAR(34); g.fillText(!an?'NICHT GEBAUT':stoer?'STÖRUNG':laeuft?'LÄUFT':'STEHT',x0+52,84);
+      g.fillStyle=MAT.css('lichtgrau');
+      if(!an) zl('Ausbau '+(i?'8.'+(i+1):'8'),134);
+      else if(p&&p.plan&&p.plan.length&&P[p.plan[0].t]){ const a=p.plan[0];
+        zl(P[a.t].short+' · '+a.f+'/'+a.n+' Kartons',134); zl(pdProStunde(a.t)+' Stück/h · heute '+p.heute.stk+' Stück'+(grund&&!laeuft?' · '+grund:''),176); }
+      else zl(grund||'kein Auftrag',134); }
     else { g.strokeStyle=MAT.css('mittelgrau'); g.lineWidth=2; for(let j=0;j<7;j++){ const bx=x0+14+j*34; g.strokeRect(bx,70,28,28);
-        if(an){ g.fillStyle=s.st[j][2]?MAT.css('signalrot'):MAT.css('signalgruen'); g.fillRect(bx+4,74,20,20); } }
-      g.fillStyle=MAT.css('lichtgrau'); const zl=(t2,yy)=>{ fitFont(g,t2,W-28,26,BAR); g.fillText(t2,x0+14,yy); };
-      zl(an?'7 Stationen · '+s.st.filter(q=>q[2]).length+' Zellen (rot = mannlos)':'',134);
-      zl(an?'Qualität · Ausschuss: ab Produktion':'',176); } }
+        if(an){ const st=p&&p.stoer&&p.stoer.j===j; g.fillStyle=st?(blink?MAT.css('signalrot'):MAT.css('nachtblau')):s.st[j][2]?MAT.css('signalrot'):MAT.css('signalgruen'); g.fillRect(bx+4,74,20,20); } }
+      g.fillStyle=MAT.css('lichtgrau');
+      if(an&&p&&typeof pdAusschuss==='function'){ const ges=p.heute.stk+p.heute.aus;
+        zl('Ausschuss '+(ges?Math.round(p.heute.aus/ges*100):Math.round(pdAusschuss(i,p.pre?1:0)*100))+' % · Qualität '+Math.round(pdQualitaet(i,p.pre?1:0)*100)+' % · '+(p.pre?'Premium':'Standard'),134);
+        const RW=pdReichweite(); let m=Infinity, mr=''; for(const r of PD_ROH) if(RW[r]<m){ m=RW[r]; mr=r; }
+        zl(isFinite(m)?'Rohstoffe reichen '+zahl(Math.round(m*10)/10)+' Tage ('+PD_ROH_NAME[mr]+')':'Erfahrung '+(p.erf||0)+' Tage',176); }
+      else zl(an?'7 Stationen · '+s.st.filter(q=>q[2]).length+' Zellen (rot = mannlos)':'',134); } }
   t.needsUpdate=true;
 }
 
@@ -566,6 +576,7 @@ function wkSichtTakt(){
 /* ---------- Takt: Tueren (immer), Lichtbaender, Schau-Betrieb (nur wenn sichtbar), Ausgabe an die Gasse (immer, zeitbasiert) ---------- */
 function wkTick(dt){
   if(!WK_T||!WK_G||!WK_G.visible) return;
+  if(typeof pdTick==='function') pdTick(dt);   /* Produktion (05s): Rohstoffe, Takt, Ausgabe, Stoerungen, Leitstand */
   WK_T.zeit+=dt;
   for(const t of WK_T.tueren){ const ziel=Math.hypot(pl.x-t.x,pl.z-t.z)<t.r?1:0, a=t.T.t;
     if(a!==ziel) t.T.set(a+Math.sign(ziel-a)*Math.min(Math.abs(ziel-a),dt*2.4)); }

@@ -264,7 +264,10 @@ class Worker{
   }
   remove(){ if(this.job&&this.job.helfer===this) this.job.helfer=null; einrAufraeumen(this); if(this.kind==='packer') vsAufraeumen(this); if(this.carry&&this.carry.vm){ vmEinlagern(this.carry.pi===undefined?-1:this.carry.pi,this.carry.vm); this.carry=null; } scene.remove(this.g); personWeg(this.g); if(this.carry&&this.carry.count>0) spawnFloorBox(this.carry.type,this.carry.count,null,this.carry.q||1); }
 }
-function hireStaff(id){ if(staff[id]) return; staff[id]=new Worker(id); }
+function hireStaff(id){ if(staff[id]) return;
+  /* Werk West (05s): Werker und Mischer arbeiten an ihrer Straße bzw. im Mischhaus - keine Figur im Wegenetz */
+  const st=STAFF.find(x=>x.id===id); if(st&&st.werk!==undefined) return;
+  staff[id]=new Worker(id); }
 function fireStaff(id){ if(!staff[id]) return; staff[id].remove(); staff[id]=null; }
 function dailyWages(){ let w=0; STAFF.forEach(s=>{ if(S.staff[s.id]) w+=r2(s.wage*wageOf(s.id)*(inPause(s.id)?WIRT.personal.pause:1)); }); return r2(w); }
 /* Wer zu schlecht bezahlt wird, kündigt irgendwann */

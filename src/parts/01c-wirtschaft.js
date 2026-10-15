@@ -196,13 +196,10 @@ const WIRT={
          geschaetzt ~+520 €/Tag (Staffel 18 % statt 10 % auf den Grosshandels-Einkauf, Einraeumer-Wege gespart, Packer
          kuerzer) minus Betrieb fix.hochregal -> ~38 Spieltage; Ziel "grosse Stufen" 15-30 Tage + Puffer (Kapitel 7) */
       lagerlogistik:18500,
-      /* Halle Etappe B (15.10.): Werk West. Noch Schau-Betrieb (Straßen laufen sichtbar, produzieren aber nichts) -
-         Preise passen zur spaeteren Produktion (docs/halle/produktion-konzept.md, etappe-b.md §Preis):
-         eine Straße spart 40-55 % vom Einkauf der Klasse, die sie baut (Konzept: variable Kosten 45-60 %),
-         bei ~1.200 € Einkauf je Tag und Klasse in Kapitel 8 sind das ~550 €, minus Werker und Strom ~250 € = ~+300 €/Tag.
-         fabrik (Werk + Straße 1 + Gasse 2 mit RBG, 180 Palettenplaetze sofort nutzbar): ~+300 + ~60 (Lagerplatz) -> ~130 Tage;
-         bewusst laenger als 7.3 (38 Tage): groesste Investition, lohnt erst mit Menge (Finanzbildung: Fixkosten gegen Marge).
-         fabrik2/fabrik3 nutzen das Werk mit: je ~+300 €/Tag -> ~85 bzw. ~75 Spieltage. Messen im Balancing-Paket, wenn die Produktion laeuft. */
+      /* Halle Etappe B (15.10.): Werk West mit Produktion (05s, docs/halle/produktion.md, Rechner tools/produktion/rechner.js):
+         nur fuer den eigenen Laden (~35 Stueck je Klasse am Tag, in der Vorfuehrung gemessen) traegt eine Straße ihre Fixkosten
+         nicht; mit Grosshandel (produktion.grosshandel), gutem Produkt und wenig Stillstand: fabrik ~50 Spieltage (Ziel 30-60),
+         nachlaessig ~75, falsches Produkt ~200, nur Laden/Ueberproduktion nie. fabrik2/fabrik3 nutzen Werk und Mischer mit: ~25/~21 Tage. */
       fabrik:46000, fabrik2:26000, fabrik3:23000
     }
   },
@@ -222,8 +219,11 @@ const WIRT={
     pause:0.3,          // Saisonpause: 30 % Lohn, keine Arbeit, Rueckkehr ohne neue Einstellung
     kuendigung:{unter:0.8,chanceTag:0.14},   // Lohnstufe < 0,8: kuendigt mit 14 % je Tag (Ruf: ruf.kuendigung)
     tempo:{grund:0.55,jeLohn:0.48},
-    einstellung:{reinigung:250, auffueller:450, auffueller2:600, kassierer:600, kassierer2:600, kassierer3:600, security:800, packer:700, packer2:750, packer3:800},   // € einmalig
-    lohn:{reinigung:55, auffueller:110, auffueller2:130, kassierer:145, kassierer2:140, kassierer3:140, security:190, packer:165, packer2:170, packer3:175}   // € Grundlohn je Tag (x Lohnstufe)
+    einstellung:{reinigung:250, auffueller:450, auffueller2:600, kassierer:600, kassierer2:600, kassierer3:600, security:800, packer:700, packer2:750, packer3:800,
+      werker1:900, werker2:900, werker3:900, mischer:1200},   // € einmalig (Werk West: Werker je Straße, Mischer fuer den Satz aller Straßen)
+    lohn:{reinigung:55, auffueller:110, auffueller2:130, kassierer:145, kassierer2:140, kassierer3:140, security:190, packer:165, packer2:170, packer3:175,
+      werker1:150, werker2:150, werker3:150, mischer:175}   // € Grundlohn je Tag (x Lohnstufe). Werker/Mischer: Fachkraft mit Sprengstoff-
+      // Befaehigungsschein (SprengG §20), ueber dem Packer; laeuft auch, wenn die Straße steht (Produktion: Fixkosten gegen Marge)
   },
   deko:{ preis:{pflanze:70, stehtisch:95, muell:80, teppich:130, lichter:170, ventilator:210, baum:290, neon:480, automat:640, bild_raketen:180, bild_stadt:320, bild_sortiment:420, saeule:900, vitrine:1400, bild_meister:820} },
   wand:{ preis:{creme:0, weiss:50, salbei:140, sand:250, streifen:370, anthrazit:520, raute:670, terrakotta:780, ziegel:840, metro:960, beere:1020, blume:1210, holzvert:1410, mitternacht:1620, petrol:1840, gold:2060, gras:2400, damast:2900, moire:3400, nussbaum:4200, samt:5600, marmorwand:7800} },
@@ -317,13 +317,59 @@ const WIRT={
     regalArt:{klein:4,standard:9,hoch:12,kuehl:18,gondel:14,eck:11,gross:13,gitter:3,gitter2:4,gitter3:5,tisch:6,tischgross:8},  // € je Verkaufsregal
     regalStandard:9,    // € fuer Regalarten ohne Eintrag (z. B. Kassenregal)
     hochregal:35,       // € je Tag und aktiver Hochregal-Gasse (Strom und Wartung RBG, Foerderer, FTS) - ab Ausbau lagerlogistik
-    /* Werk West (Etappe B, 15.10.): Betrieb erst, wenn die Straßen produzieren (Produktions-Gameplay, WK.produktion in 05r) -
-       im Schau-Betrieb kein Betrieb, keine Kosten. Danach je Tag: Werk (Heizung, Versicherung, Brandschutz-Wartung, Druckluft) */
+    /* Werk West (15.10.): Betrieb erst ab der ersten eingeschalteten Straße (S.pd.aktiv, 05s) - vorher keine Kosten.
+       Danach je Tag: Werk (Heizung, Versicherung, Brandschutz-Wartung, Druckluft) */
     werk:45,            // € je Tag fuer das Werk ab Produktion (05r wkFixkosten)
-    werkStrasse:30      // € je Tag und laufender Fertigungsstraße (Strom, Verschleiss) ab Produktion
+    werkStrasse:30      // € je Tag und eingeschaltete Fertigungsstraße (Strom, Bereitschaft) - auch wenn sie steht
   },
   tag:{
     automat:45          // € je Tag mit Deko "Getraenkeautomat"
+  },
+  /* ---------- Produktion im Werk West (Produktions-Gameplay 15.10., 05s-produktion.js, docs/halle/produktion.md) ----------
+     Konzept docs/halle/produktion-konzept.md (Tom 14.10. freigegeben, OHNE Wartung): Eigenproduktion = Fixkosten gegen Marge.
+     Fixkosten: fix.werk + fix.werkStrasse (je eingeschaltete Straße), Loehne personal.lohn.werker1-3/mischer. */
+  produktion:{
+    /* Rohstoffe: € je kg (Standard), gebinde = kg je Bestelleinheit, lager = Lagerort. Groessenordnung wie im Chemiehandel
+       (Perchlorat/Nitrat 5-8 €/kg, Aluminium-/Magnaliumpulver 10-20 €/kg, Schwarzpulver gewerblich 8-15 €/kg, Pappe/Huelsen 1,5-3 €/kg) */
+    roh:{
+      huelsen:{preis:2.2,gebinde:100,lager:'inert'},
+      oxidator:{preis:5.8,gebinde:25,lager:'oxi'},
+      metall:{preis:13.5,gebinde:20,lager:'metall'},
+      schwarzpulver:{preis:9.8,gebinde:25,lager:'sp'}
+    },
+    premium:1.2,           // Premium-Rohstoffe kosten x1,2 - weniger Ausschuss, bessere Effekte (qualitaet.gewRoh/qRoh): lohnt mit
+                           // neuem Werker (Ausschuss 15 -> 10 %), mit erfahrenem etwa gleich auf - dann zaehlen Ruf (QS) und Grosshandelspreis
+    lieferpauschale:95,    // € je Liefertag an Tor R6 (Gefahrgut-LKW nach ADR), egal wie viel
+    lieferTage:1,          // heute bestellt -> morgen frueh an R6
+    lager:{inert:2000,oxi:600,metall:300,sp:400},   // kg je Lagerort (Inertlager, drei Chemie-Boxen) - Grenze beim Bestellen
+    /* Rezept je Klasse aus der Groesse (Packmass in Litern): Satzgewicht NEM = nemJeL g/L (mind. nemMin g), Huelsen/Pappe huelseJeL g/L,
+       schwarz = Anteil Schwarzpulver am NEM (Treib-/Ausstoss-/Zerlegerladung), Rest Sternsatz (oxi = Anteil Oxidator, Rest Metallpulver).
+       Takt = s je Stueck bei refL Litern, mit der Wurzel der Groesse skaliert, zwischen taktMin und taktMax.
+       Klasse 0 Raketen (rocketset), 1 Kugelbomben (shell), 2 Batterien (battery, fan) - die Reihenfolge der Straßen */
+    klasse:[
+      {nemJeL:24,nemMin:20,huelseJeL:70,schwarz:0.5,oxi:0.6,takt:1.25,refL:8,taktMin:0.8,taktMax:4},
+      {nemJeL:45,nemMin:40,huelseJeL:55,schwarz:0.35,oxi:0.65,takt:3.5,refL:6,taktMin:2,taktMax:9},
+      {nemJeL:16,nemMin:30,huelseJeL:30,schwarz:0.4,oxi:0.62,takt:3.0,refL:20,taktMin:1.4,taktMax:8}
+    ],
+    /* variable Kosten je Stueck (Standard-Rohstoffe) bleiben in diesem Band vom Katalog-Einkaufspreis: liegt das Rezept aus der Groesse
+       ausserhalb, wird es als Ganzes skaliert (Effektaufwand) - Konzept: variable Kosten 45-60 % vom Einkauf */
+    band:[0.45,0.6],
+    tagSek:330,            // Produktionszeit je Spieltag in s = Ladenoeffnung (zeit.echtzeitSek): Werker arbeiten 8-22 Uhr
+    ausgabeSek:6,          // s je Palette ueber Sammelfoerderer und Brandwaende in die Gasse
+    stauPaletten:3,        // so viele fertige Paletten warten hoechstens auf einen Hochregalplatz, dann steht die Straße
+    /* Qualitaet: Erfahrung e = Produktionstage des Werkers / erfahrungTage (max 1), r = Premium-Anteil der Rohstoffe.
+       Ausschuss = ausschussMax - (ausschussMax-ausschussMin) x (gewErf*e + gewRoh*r); Effektqualitaet q = qMin + qErf*e + qRoh*r.
+       q wirkt wie die Ware vom Lieferanten (Preistoleranz +(q-1)*kunden.kauf.jeMenge, Blindgaenger unter 1) und ueber die QS auf den Ruf */
+    qualitaet:{erfahrungTage:20,ausschussMin:0.02,ausschussMax:0.15,gewErf:0.6,gewRoh:0.4,qMin:0.9,qErf:0.14,qRoh:0.1},
+    /* Stoerungen (keine Wartung - Tom 14.10.): im Schnitt jeTag je laufender Straße; der Werker behebt sie selbst nach selbstSek,
+       der Spieler sofort (an der Station oder im Leitstand "Zelle freigeben") */
+    stoerung:{jeTag:0.7,selbstSek:110},
+    kugelTrocknungTage:1,  // Kugelbomben trocknen in der Trockenkammer: fertig am naechsten Spieltag
+    /* Werksverkauf an den Grosshandel (je Straße einschaltbar): am Abend holt eine Spedition alles aus dem Hochregal, was von der
+       Eigenproduktion ueber reserveKartons je Sorte liegt. Preis = faktor x aktueller Einkaufspreis x Qualitaet (qMin..qMax geklemmt).
+       Warum: der eigene Laden verkauft in Kapitel 8 nur ~35 Stueck je Klasse am Tag (gemessen in der Vorfuehrung) - das traegt
+       die Fixkosten einer Straße nicht. Ein Werk lohnt sich erst mit Absatz an Wiederverkaeufer (Auslastung, Break-even). */
+    grosshandel:{faktor:0.85,reserveKartons:6,qMin:0.9,qMax:1.12}
   },
   /* ---------- Ruf (0..100) ---------- */
   /* Jede Aenderung geht ueber rep(d) und wird auf 0..100 geklemmt. Ruf wirkt auf: Kunden je Tag
@@ -341,7 +387,8 @@ const WIRT={
     auftragErfuellt:2.5, auftragVerfehlt:-4,   // Grossauftraege (Telefon)
     pruefungGut:3, pruefungSchlecht:-5, pruefungSauberAb:70,   // Ereignis "Gewerbeaufsicht": Sauberkeit >= 70
     kuendigung:-1,      // Mitarbeiter kuendigt wegen Mindestlohn
-    kontoMinus:-3       // je Tagesabschluss mit Konto < 0
+    kontoMinus:-3,      // je Tagesabschluss mit Konto < 0
+    qsJe:6, qsMax:1.5   // QS-Stichprobe der Eigenproduktion (je Straße und Tag): Ruf (q-1) x 6, hoechstens +-1,5
   },
   /* ---------- Erfahrung ---------- */
   /* Level-Kurve: XP bis zum naechsten Level = round(a * Level^exp). Level schaltet Lizenzen,
@@ -525,9 +572,21 @@ const WIRT_KETTEN=[
    folgen:[
      {text:'Einmalig {ausbau.preis.fabrik|€} (Werk, Straße 1 Raketen, Hochregal-Gasse 2 mit RBG), {ausbau.preis.fabrik2|€} (Straße 2 Kugelbomben, Gasse 3) und {ausbau.preis.fabrik3|€} (Straße 3 Batterien).',ort:'02-data.js:UPGRADES',werte:['ausbau.preis.fabrik','ausbau.preis.fabrik2','ausbau.preis.fabrik3']},
      {text:'Jede neue Gasse kostet sofort {fix.hochregal|€} am Tag Betrieb (Fixkosten) und bringt 180 Palettenplaetze.',ort:'16-day.js:fixedCosts',werte:['fix.hochregal']},
-     {text:'Ab Produktion: Werk {fix.werk|€} und je laufender Straße {fix.werkStrasse|€} am Tag; im Schau-Betrieb (heute) 0.',ort:'05r-werk.js:wkFixkosten',werte:['fix.werk','fix.werkStrasse']}],
-   warum:'Eigenproduktion = Fixkosten gegen Marge: lohnt erst ab Menge, Break-even sichtbar (produktion-konzept.md).',
-   luecken:['Produktion (Rohstoffe, Rezepte, Takt, Qualität) fehlt noch - die Straßen laufen als Schau-Betrieb ohne Ertrag; Amortisation geschaetzt, nicht gemessen.']},
+     {text:'Ab der ersten eingeschalteten Straße: Werk {fix.werk|€} am Tag, je eingeschaltete Straße {fix.werkStrasse|€} - auch wenn sie gerade steht.',ort:'05r-werk.js:wkFixkosten',werte:['fix.werk','fix.werkStrasse']},
+     {text:'Personal: Mischer {personal.lohn.mischer|€} und je Straße ein Werker {personal.lohn.werker1|€} am Tag (Einstellung {personal.einstellung.mischer|€} / {personal.einstellung.werker1|€}); ohne Mischer steht das ganze Werk, ohne Werker seine Straße.',ort:'05s-produktion.js:pdGrund',werte:['personal.lohn','personal.einstellung']}],
+   warum:'Eigenproduktion = Fixkosten gegen Marge: lohnt erst ab Menge, Break-even sichtbar (produktion-konzept.md). Rechnung: tools/produktion/rechner.js, docs/halle/produktion.md.',
+   luecken:['Der Spielverlauf bis Kapitel 8 ist nicht mit dem Balancing-Bot gemessen; Amortisation aus dem Rechner (Katalog-EK, Markt 1,0) und einem Lauf in der Vorfuehrung.']},
+  {id:'produktion',entscheidung:'Produzieren: Rohstoffe, Produkt, Menge, Qualitaet, Grosshandel (Werk West)',
+   folgen:[
+     {text:'Rohstoffe je kg: Huelsen/Pappe {produktion.roh.huelsen.preis|€}, Oxidator {produktion.roh.oxidator.preis|€}, Metallpulver {produktion.roh.metall.preis|€}, Schwarzpulver {produktion.roh.schwarzpulver.preis|€}; Premium x{produktion.premium}; je Liefertag {produktion.lieferpauschale|€} Gefahrgut-LKW, Lieferung am naechsten Tag an Tor 6. Bezahlt wird bei der Bestellung (bis in den Dispo).',ort:'05s-produktion.js:pdBestellen',werte:['produktion.roh','produktion.premium','produktion.lieferpauschale']},
+     {text:'Lager begrenzt (Inertlager {produktion.lager.inert} kg, Chemie-Boxen {produktion.lager.oxi} / {produktion.lager.metall} / {produktion.lager.sp} kg): wer zu wenig bestellt, steht - Rohstoffe aus heisst Straße steht, Werker und Fixkosten laufen weiter.',ort:'05s-produktion.js:pdStueck',werte:['produktion.lager']},
+     {text:'Rezept aus Klasse und Groesse (Satzgewicht NEM, Huelsen); variable Kosten im Band {produktion.band.0|%}-{produktion.band.1|%} vom Einkauf - teure Ware mit kleinem Packmass spart am meisten je Stunde.',ort:'05s-produktion.js:pdRezept',werte:['produktion.klasse','produktion.band']},
+     {text:'Qualitaet: Ausschuss {produktion.qualitaet.ausschussMax|%} (neuer Werker, Standard) bis {produktion.qualitaet.ausschussMin|%} (nach {produktion.qualitaet.erfahrungTage} Produktionstagen, Premium); Effektqualitaet wirkt wie Lieferantenware auf Kaufbereitschaft und Blindgaenger und ueber die taegliche QS-Stichprobe auf den Ruf ((q-1) x {ruf.qsJe}).',ort:'05s-produktion.js:pdQs',werte:['produktion.qualitaet','ruf.qsJe','ruf.qsMax']},
+     {text:'Stoerungen (im Schnitt {produktion.stoerung.jeTag} je Tag und Straße): sofort freigeben (Station/Leitstand) oder der Werker braucht {produktion.stoerung.selbstSek} s - verlorene Zeit traegt dieselben Fixkosten.',ort:'05s-produktion.js:pdBeheben',werte:['produktion.stoerung']},
+     {text:'Werksverkauf: die Spedition holt abends alles ueber {produktion.grosshandel.reserveKartons} Kartons je Sorte fuer {produktion.grosshandel.faktor|%} vom Einkaufspreis x Qualitaet. Ohne Grosshandel bleibt Ueberproduktion als gebundenes Kapital im Hochregal, bis es voll ist (dann steht die Straße).',ort:'05s-produktion.js:pdGrosshandel',werte:['produktion.grosshandel','produktion.stauPaletten']}],
+   warum:'Deckungsbeitrag und Auslastung: die Straße kostet jeden Tag dasselbe (Werker, Strom, Werk, Mischer), jedes gute Stueck bringt (Einkauf bzw. Grosshandelspreis - Rohstoffe). Nur fuer den eigenen Laden (gemessen ~35 Stueck je Klasse am Tag) traegt sie ihre Fixkosten nicht - erst Menge (Grosshandel), die richtige Produktwahl und wenig Stillstand bringen die Amortisation in 30-60 Tage.',
+   quelle:'Kalkulation nach Deckungsbeitragsrechnung (variable vs. fixe Kosten, Break-even = Fixkosten / Stueckdeckungsbeitrag); Rohstoffpreise in der Groessenordnung des Chemiehandels',
+   luecken:['Rohstoffpreise folgen weder Markt noch Inflation (der Einkaufspreis der Ware schon) - mit der Zeit wird Produktion guenstiger im Verhaeltnis.','Der Grosshandel nimmt unbegrenzt ab (keine Nachfrage-Grenze) - die Kapazitaet der Straße ist die Grenze.','Eigenproduktion ist im Hochregal markiert; im Laden/Regal nicht mehr (Qualitaet geht mit).']},
   {id:'restposten',entscheidung:'Restposten und Wundertueten kaufen',
    folgen:[
      {text:'Preis = mittlerer Karton-Einkauf x Kartons x Faktor ({einkauf.pakete.sonstige} ... {einkauf.pakete.rabatt.palette}), gerundet auf {einkauf.pakete.runden} €.',ort:'17-laptop.js:packPreis',werte:['einkauf.pakete']},

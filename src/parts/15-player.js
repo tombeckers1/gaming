@@ -318,6 +318,7 @@ function updateTarget(){
   belt.forEach(b=>list.push(b.hit));
   sbLanes.forEach((l,i)=>{ if(l.hit&&sbNutzbar(i)&&nahDran(sbPos(i),R)) list.push(l.hit); });
   for(const k in stations) if(nahDran(stations[k].g.position,R)) list.push(stations[k].hit);
+  if(typeof vp2An!=='undefined'&&vp2An) for(const e of vp2Liste) if(e.hit&&nahDran(e.hit.position,R)) list.push(e.hit);
   list.push(lapHit,doorSign,posHit,cardHit);
   if(lapHit2&&lapHit2.parent&&lapHit2.parent.visible) list.push(lapHit2);
   if(typeof tabHit!=='undefined'&&tabHit) list.push(tabHit);
@@ -334,6 +335,7 @@ function updateTarget(){
 }
 function promptFor(t){
   if(t&&t.kind==='ddltel'&&typeof ddlTelPrompt==='function') return ddlTelPrompt();
+  if(t&&t.kind==='vpstueck') return vp2Prompt(t.ref);
   if(!t) return null; const c=S.carrying, reg=regCustomer();
   if(pdaOn&&!grabbed){ const pt=pdaTargetType(); if(pt) return {t:`Preisgerät: ${P[pt].short} · ${eur(S.prices[pt])}`,a:true}; }
   if(c&&c.vm&&['level','rslot','box','station','gravur'].indexOf(t.kind)>=0) return {t:'Versandmaterial gehört ins Packmaterial-Regal an der Packstation',a:false};
@@ -413,6 +415,7 @@ function doAction(){
   if(sprayOn&&!grabbed){ doSpray(); return; }
   if(!target) return;
   if(target.kind==='ddltel'){ ddlRufen(); return; }
+  if(target.kind==='vpstueck'){ vp2Weiter(target.ref); return; }
   if(pdaOn&&!grabbed){ const t=pdaTargetType(); if(t){ openPDA(t); return; } }
   const k=target.kind, r=target.ref, reg=regCustomer();
   if(k==='placing') placeGrab();

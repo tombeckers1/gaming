@@ -1493,7 +1493,9 @@ function lapZeichnen(body){
         /* 03.10. (Tom): das Spiel kurz vor dem Ende ansehen - alles gebaut, Personal, Kundschaft, Wirtschaft */
         `<div class="row"><div class="rm"><b>Gameplay-Vorführung <span class="warn">(nur Entwicklung)</span></b><small>Ein fast durchgespielter Laden: alle Flächen ausgebaut, alle Lizenzen, das ganze Team, Regale voller Ware, der Laden läuft von selbst Tag für Tag, morgens wird nachbestellt. Unten siehst du Kontostand, Umsatz, Kunden und den Verlauf; 1–7 springen in die Bereiche, T schaltet den Zeitraffer, B beendet. Dein Spielstand wird vorher gesichert und danach zurückgeholt.</small></div><button data-a="gameplay">Starten</button></div>`+
         /* 02.10. (Tom): alle Verpackungen im Regal auf einen Blick */
-        `<div class="row"><div class="rm"><b>Verpackungs-Vorführung <span class="warn">(nur Entwicklung)</span></b><small>Ein eigener Ausstellungsraum wie ein Supermarkt – Hauptgang, Quergang und Gänge zwischen allen Regalzeilen: Hochregal, Verkaufsregal, Mittelgondel, kleines Regal, Kühlschrank, Großverbund-Regal, Tische, Gitterboxen und Eckregale. Jedes Produkt füllt genau ein Fach – so sieht man jede Verpackung und wie sie im Regal steht. Beenden: Knopf oben oder B.</small></div><button data-a="verpackung">${vpAn?'Beenden':'Starten'}</button></div>`:'')+
+        `<div class="row"><div class="rm"><b>Verpackungs-Vorführung <span class="warn">(nur Entwicklung)</span></b><small>Ein eigener Ausstellungsraum wie ein Supermarkt – Hauptgang, Quergang und Gänge zwischen allen Regalzeilen: Hochregal, Verkaufsregal, Mittelgondel, kleines Regal, Kühlschrank, Großverbund-Regal, Tische, Gitterboxen und Eckregale. Jedes Produkt füllt genau ein Fach – so sieht man jede Verpackung und wie sie im Regal steht. Beenden: Knopf oben oder B.</small></div><button data-a="verpackung">${vpAn?'Beenden':'Starten'}</button></div>`+
+        /* 15.10. (Tom): jede Verpackung einzeln auf einem Verkaufstisch, mit Nummer und Freigabe */
+        `<div class="row"><div class="rm"><b>Verpackungs-Vorführung 2.0 (Ausstellung) <span class="warn">(nur Entwicklung)</span></b><small>Jedes Produkt genau einmal als Einzelstück auf einem Verkaufstisch, nach Kategorien in Reihen, davor ein Schild mit Nummer und Name. Aktion-Taste (E bzw. Aktion-Knopf) auf ein Stück: offen, passt, passt nicht – das Schild färbt sich grün oder rot. „Liste“ (L) zeigt die nicht freigegebenen zum Kopieren. Beenden: Knopf oben oder B.</small></div><button data-a="verpackung2">${vp2An?'Beenden':'Starten'}</button></div>`:'')+
       `<div class="row"><div class="rm"><b>Spielstand</b><small>Wird automatisch gespeichert.</small></div><button class="ghost" data-a="reset">${resetArm?'Wirklich löschen?':'Spielstand löschen'}</button></div>`;
   }
   body.innerHTML=h;
@@ -1605,6 +1607,7 @@ function lapKlick(e,imHandy){
   else if(a==='vfaenderung'){ vorfuehrungAn(vfAenderungListe(),'VORFÜHRUNG (ÄNDERUNGEN)'); return; }
   else if(a==='vfkugeln'){ vorfuehrungAn(vfKugelListe(),'KUGELBOMBEN-VORFÜHRUNG'); return; }
   else if(a==='verpackung'){ vpSchalten(); return; }
+  else if(a==='verpackung2'){ vp2Schalten(); return; }
   else if(a==='fwtestneu'){ const n=fwTestStapeln(); toast(`${n} Kartons neu gestapelt.`); }
   else if(a==='reset'){ if(!resetArm) resetArm=true; else { try{ localStorage.removeItem(KEY); }catch(err){} location.reload(); return; } }
   renderLaptop();

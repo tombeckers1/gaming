@@ -238,6 +238,7 @@ function vpAbbauen(){
 function vpSchalten(){ if(!FW_DEV) return; if(vpAn) vpAus(); else vpStart(); }
 function vpStart(){
   if(vpAn) return;
+  if(typeof vp2An!=='undefined'&&vp2An) vp2Aus();
   if(typeof vfAn!=='undefined'&&vfAn) vorfuehrungAus();
   if(fwTestAn) fwTestSchalten();
   vpVorher={x:pl.x,z:pl.z,yaw,pitch};

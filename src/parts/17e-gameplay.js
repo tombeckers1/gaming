@@ -78,6 +78,7 @@ function gpStart(){
   if(laptopOpen) closeLaptop(true);
   if(typeof vfAn!=='undefined'&&vfAn&&typeof vorfuehrungAus==='function') vorfuehrungAus();
   if(typeof vpAn!=='undefined'&&vpAn&&typeof vpAus==='function') vpAus();
+  if(typeof vp2An!=='undefined'&&vp2An&&typeof vp2Aus==='function') vp2Aus();
   DEMO=false;
   gpBau={gen:gpAufbau(),anteil:0,text:'Vorbereitung'};
   gpBauAnzeige();

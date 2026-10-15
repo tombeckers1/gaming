@@ -158,6 +158,14 @@ Neue Töne/Rezepte/Texturen (`01b`): Ton **`kupfer`** (eigene Bedeutung: Erdung/
 „Betonzellen, Brandwände“. Wächter: `drehtuer, treppe, portalgreifer, rohrraster, maschine, erdwall, zelle` in `BAUTEILE` (enge Wörter),
 `kastenM, werkSammler, balken` in `HELFER`. Einsatz, Messung: `docs/halle/etappe-b.md`.
 
+## 2d. Verpackungs-Ausstellung 2.0 (15.10.2026) – Verkaufstisch + Schild-Atlas
+| Aufruf | Zweck |
+|---|---|
+| `bk.verkaufstischTeile(K,box)` | die Teile des Ladenbau-Tisches (`SHELFKIND.tisch` / `tischgross`: Platte weiß, Zarge, vier Beine, Ablage, Füße) – **eine Quelle**: `bauMoebel` (06) und `bk.verkaufstisch` benutzen sie, die Tische im Laden sehen unverändert aus |
+| `bk.verkaufstisch({tische:[{x,z,ry,kind}],parent})` | viele Tische = **ein Mesh** (Vertexfarben nach Rolle wie `regalFarben`, Material `gestellMat`), `kind:'tisch'|'tischgross'` |
+| `bk.schildAtlas({schilde,zelle,malen,status,…})` | viele Schilder = **zwei Meshes**: Platte (Vertexfarbe je Status, `MAT.vc('kunststoff')`) + Schrift (ein Atlas, Zelle je Schild, `MAT.neu('weissMatt',{map,alphaTest})`); Statusstreifen tauscht nur die UVs, `set(i,status)` ohne Neuzeichnen; Auflösung × `min(1,MAT.stufe().tx)` |
+Einsatz: `src/parts/17f-ausstellung.js`. Wächter: `verkaufstisch` in `BAUTEILE` (enge Wörter), `verkaufstischTeile, schildAtlas` in `HELFER`.
+
 ## 3. Messung Schritte 3 + 4 (Wände, Zäune/Poller, 14.10.)
 Mit Laufzeit-Bündelung (Spielzustand): Hauptpass Laden 597 → 490, Lagerdock 635 → 495, Dock-Hof 739 → 561; Schattenpass 464–511 → 266–290
 (−40 … −44 %). Meshes im Graf 2 521 → 2 218, Zeichengruppen 3 381 → 2 516. Einzelheiten: `waende.md` §4, `zaeune.md` §4.

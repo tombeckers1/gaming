@@ -175,5 +175,6 @@ function frame(now){
   /* Tagesabschluss pausiert das Spiel - die Vorfuehrung schliesst ihn selbst */
   if(S&&paused&&typeof gpAn!=='undefined'&&gpAn&&(summaryOpen||levelOpen)) gpTick(0);
   regaleImBlick();
+  if(vp2An) vp2Takt();
   renderFrame(dt);
 }

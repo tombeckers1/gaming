@@ -25,7 +25,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     bb.run(1,0.05);
     o.offen=bb.wkOffen(); o.gebaut=!!bb.WK_G&&bb.WK_G.visible; o.str=bb.WK_T.str.map(s=>!!s); o.fixNach=bb.fixedCosts();
     o.gassen=bb.LL_T.gassen.map(G=>!!G.rbg&&G.rbg.g.visible); o.altWand=bb.WK_ALT.halle&&bb.WK_ALT.halle.visible; o.altHof=bb.WK_ALT.hof.some(m=>m.visible);
-    o.kapitel=bb.kapitelNr(); o.x0=bb.wkWeltX0(); o.n1=bb.LL_T.n1.art;
+    o.kapitel=!bb.KAPITEL[7].geplant&&bb.KAPITEL[7].up==='fabrik'; o.x0=bb.wkWeltX0(); o.n1=bb.LL_T.n1.art;
     const t1=performance.now(); bb.navBuild(); o.navMs1=Math.round((performance.now()-t1)*10)/10; o.nav1=bb.NAV.w*bb.NAV.h;
     return o; });
   console.log('KAUF',JSON.stringify(a));
@@ -35,7 +35,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   M(a.gassen[0]&&a.gassen[1]&&!a.gassen[2],'RBG in Gasse 1+2 erwartet: '+a.gassen);
   M(a.fixNach-a.fixVor===35,'Fixkosten: nur Betrieb Gasse 2 (35) erwartet, ist '+(a.fixNach-a.fixVor));
   M(a.altWand===false&&a.altHof===false,'alte Westwand/Hofzaun noch sichtbar');
-  M(a.kapitel===8,'Kapitel nicht 8: '+a.kapitel);
+  M(a.kapitel,'Kapitel 8 noch geplant oder nicht fabrik');
   M(a.x0vor>-67&&a.x0<-123,'Welt nicht nach Westen erweitert: '+a.x0vor+' -> '+a.x0);
   M(a.nav0===a.nav1,'Wegenetz-Groesse veraendert: '+a.nav0+' -> '+a.nav1);
   M(a.n1==='schnelllauf','N1 ist kein Schnelllauftor: '+a.n1);
@@ -53,11 +53,11 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
       let sprung=0; for(let i=1;i<hs.length;i++) sprung=Math.max(sprung,Math.abs(hs[i]-hs[i-1]));
       const e=bb.playerPos(); return {ok,abw:Math.round(max*100)/100,ende:[+e.x.toFixed(2),+e.z.toFixed(2)],hoehe:bb.wkBoden(e.x,e.z),sprung:Math.round(sprung*100)/100}; };
     /* Halle -> Verbindungsbau -> Umkleide -> Treppe -> Podest -> Leitstand */
-    o.leitstand=geh([[-60,-12],[-64.5,-9],[-67,-9],[-71,-9],[-73.5,-8.6],[-75.3,-7.5],[-76.5,-7.5],[-76.55,-10.5],[-77.5,-10.5],[-77.5,-7.5],[-79.5,-7.5],[-82,-9]]);
+    o.leitstand=geh([[-60,-12],[-64.5,-9],[-67,-9],[-71,-9],[-74,-8.8],[-75.3,-7.5],[-76.5,-7.5],[-76.55,-10.5],[-77.5,-10.5],[-77.5,-7.5],[-79.5,-7.5],[-82,-9]]);
     /* Umkleide -> Werk (Tuer z −11) -> Gang zwischen Straße 1 und 2 */
     o.werk=geh([[-72,-9.5],[-74.5,-10.2],[-74.5,-11.5],[-91.5,-11.6],[-91.5,-16.5],[-75,-16.5]]);
     /* Personaltuer der Halle x −40 nach draussen und aussen herum zum Werkseingang */
-    o.draussen=geh([[-40,-8.5],[-40,-5.5],[-50,-4.5],[-67,-3],[-73,-4],[-73,-6.0]]);
+    o.draussen=geh([[-40,-8.5],[-40,-5.5],[-45,-3],[-52,4.6],[-67,4.6],[-73,4.6],[-73,-6.0]]);
     o.navTuer=!bb.navFrei(bb.navIdx(-40,-6.9));
     o.boden={leitstand:bb.wkBoden(-82,-9),podest:bb.wkBoden(-77,-10.6),fuss:bb.wkBoden(-76.5,-7.5),werk:bb.wkBoden(-82,-14)};
     return o; },!!process.env.GEGENPROBE);
@@ -77,7 +77,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     o.sichtbar=bb.WK_H.visible&&bb.WK_D.visible;
     const m=new THREE.Matrix4(), pos=()=>{ st.traeger.getMatrixAt(0,m); return m.elements[12]; };
     const x0=pos(), b0=st.portale[0].P.bruecke.position.x+st.portale[0].P.hub.position.y, p0=bb.WK.zahl.paletten[0];
-    for(let i=0;i<20;i++){ bb.run(3,0.05); bb.renderFrame(0.016); }
+    for(let i=0;i<20;i++){ bb.run(3,0.05); bb.renderFrame(0.016); } bb.run(1.3,0.05); bb.renderFrame(0.016);
     o.traeger=Math.abs(pos()-x0)>0.1; o.portal=Math.abs(st.portale[0].P.bruecke.position.x+st.portale[0].P.hub.position.y-b0)>0.01;
     o.paletten=bb.WK.zahl.paletten[0]-p0; o.ampel=st.ampel.rot.emissiveIntensity;
     bb.setView(-14,-2,0,0); bb.kameraSetzen(); bb.renderFrame(0.016); o.ausLager=!bb.WK_H.visible;

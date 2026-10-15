@@ -111,10 +111,10 @@ function wkBauen(){
   bk.wandbild();
 }
 /* Wandstueck (Kollision nur, wenn es am Boden steht); fi/fa = Flaeche innen/aussen (Art oder Material) */
-function wkW(x0,x1,z0,z1,y0,y1,innen,fi,fa,still){
+function wkW(x0,x1,z0,z1,y0,y1,innen,fi,fa,still,ohneKol){
   if(x1-x0<0.01||z1-z0<0.01||y1-y0<0.01) return null;
   const m=bk.wand({x0,x1,z0,z1,y0,y1,innen,flaechen:{innen:fi,aussen:fa,laibung:'laibung'},ue:0,still});
-  if(y0<0.05) col(x0,x1,z0,z1);
+  if(y0<0.05&&!ohneKol) col(x0,x1,z0,z1);
   return m; }
 /* Wand mit Oeffnungen laengs einer Achse: laengs 'x' (Wand laeuft in x bei z0..z1) oder 'z'. oeff = [[a0,a1,hoehe],...] */
 function wkWandMit(laengs,a0,a1,q0,q1,h,oeff,innen,fi,fa){
@@ -190,7 +190,7 @@ function wkRohbau(){
   wkW(-86.1,-85.9,zr+0.1,Wr.z1,0,H,'+x',P,P);
   /* x −78: Technik | Treppe (unten), Leitstand | Treppe (oben) mit Tuer am oberen Podest */
   wkW(-78.1,-77.9,zr+0.1,-7.9,0,H,'+x',P,P); wkW(-78.1,-77.9,-7.1,Wr.z1,0,H,'+x',P,P);
-  wkW(-78.1,-77.9,-7.9,-7.1,0,R,'+x',P,P,true); wkW(-78.1,-77.9,-7.9,-7.1,R+2.1,H,'+x',P,P,true);
+  wkW(-78.1,-77.9,-7.9,-7.1,0,R,'+x',P,P,true,true);   /* unter der Leitstand-Tuer: Wand, aber keine Kollision (oben geht man durch) */ wkW(-78.1,-77.9,-7.9,-7.1,R+2.1,H,'+x',P,P,true);
   /* x −76: Treppe | Umkleide, Durchgang unten am Fuss der Treppe */
   wkW(-76.1,-75.9,zr+0.1,-7.9,0,H,'+x',P,P); wkW(-76.1,-75.9,-7.1,Wr.z1,0,H,'+x',P,P); wkW(-76.1,-75.9,-7.9,-7.1,2.15,H,'+x',P,P,true);
   /* Decken der Raumzeile bei 3,2 m (Leitstand: Galerieboden), Podeste der Treppe */
@@ -316,24 +316,24 @@ function wkRaeume(){
   C.push([-90.6,-87.4,-7.9,-7.1],[-87.6,-86.4,-8.5,-7.5],[-91.9,-90.5,-7.8,-7.1]);
   /* Leitstand (+3,2 m): Pult mit sechs Bildschirmen (Status je Straße, wkMonitore), zwei Stuehle, Wandbildschirm */
   { const y=WK.raum; S.box(5.6,0.05,0.9,-82.2,y+0.78,-10.15,F('lichtgrau'),'kunststoff'); S.box(5.6,0.74,0.7,-82.2,y+0.38,-10.05,F('anthrazit'),'lackMetall');
-    for(let i=0;i<6;i++){ const x=-84.6+i*0.96; S.box(0.06,0.32,0.06,x,y+0.97,-10.35,F('anthrazit'),'lackMetall'); S.box(0.86,0.52,0.05,x,y+1.33,-10.4,F('gummischwarz'),'kunststoff'); }
+    for(let i=0;i<6;i++){ const x=-84.6+i*0.96; S.box(0.05,0.16,0.05,x,y+0.88,-10.38,F('anthrazit'),'lackMetall'); S.box(0.66,0.4,0.04,x,y+1.12,-10.4,F('gummischwarz'),'kunststoff'); }
     for(const x of [-83.5,-80.9]){ S.zyl(0.26,0.26,0.08,seg,x,y+0.5,-9.35,F('gummischwarz'),'kunststoff'); S.box(0.48,0.55,0.08,x,y+0.85,-9.08,F('gummischwarz'),'kunststoff');
       S.zyl(0.03,0.03,0.42,seg,x,y+0.25,-9.35,F('silbergrau'),'stahl'); S.box(0.6,0.04,0.06,x,y+0.04,-9.35,F('anthrazit'),'stahl'); }
     S.box(1.6,0.9,0.05,-79.0,y+1.7,-7.12,F('gummischwarz'),'kunststoff');
     C.push([-85.0,-79.4,-10.55,-9.65]);
     /* Bildschirme: eine Leinwand (Canvas) fuer alle sechs Anzeigen, Leuchtbild */
     const t=tex(1536,256,()=>{}); const m=MAT.eigen('tiefschwarz','kunststoff',{map:t,emissiveMap:t,emissive:LIN(MAT.farbe('weiss')),emissiveIntensity:0.9});
-    const parts=[]; for(let i=0;i<6;i++){ const g=new THREE.PlaneGeometry(0.8,0.46), uv=g.attributes.uv;
+    const parts=[]; for(let i=0;i<6;i++){ const g=new THREE.PlaneGeometry(0.62,0.36), uv=g.attributes.uv;
       if(uv&&uv.array){ for(let k=0;k<uv.count;k++) uv.array[k*2]=(i+uv.array[k*2])/6; uv.needsUpdate=true; }
-      parts.push({geo:g,m:tm(-84.6+i*0.96,y+1.33,-10.372,0,0,0),color:0xffffff}); }
+      parts.push({geo:g,m:tm(-84.6+i*0.96,y+1.12,-10.378,0,0,0),color:0xffffff}); }
     const mon=new THREE.Mesh(merge(parts),m); mon.userData.bauteil='leitstand'; scene.add(mon); WK_T.monitor={t,m,mesh:mon}; }
-  /* Umkleide/ESD: Spinde, Bank, ESD-Pruefgeraet mit Erdungsplatte */
-  for(let i=0;i<8;i++) S.box(0.48,1.85,0.5,-75.6+i*0.5,0.93,-7.3,F('lichtgrau'),'lackMetall');
-  for(let i=0;i<8;i++) S.box(0.01,0.08,0.02,-75.4+i*0.5,1.2,-7.555,F('silbergrau'),'stahl');
-  S.box(2.0,0.05,0.38,-73.9,0.45,-8.6,F('holzPalette'),'stumpf'); for(const x of [-74.8,-73.0]) S.box(0.06,0.43,0.3,x,0.22,-8.6,F('anthrazit'),'lackMetall');
-  S.box(0.32,0.5,0.14,-71.0,1.35,-10.82,F('lichtgrau'),'kunststoff'); S.box(0.22,0.12,0.01,-71.0,1.45,-10.75,F('signalgruen'),'leucht');
-  S.box(0.8,0.012,0.6,-71.0,0.006,-10.35,F('kupfer'),'blank');
-  C.push([-75.9,-71.9,-7.6,-7.0],[-74.9,-72.9,-8.8,-8.4]);
+  /* Umkleide/ESD: Spinde an der Suedwand, Bank, ESD-Pruefgeraet neben der Tuer ins Werk, Erdungsplatte davor (Wege zu Treppe,
+     Werkseingang, Verbindungsbau und Werk bleiben frei) */
+  for(let i=0;i<4;i++){ S.box(0.48,1.85,0.5,-73.6+i*0.5,0.93,-10.65,F('lichtgrau'),'lackMetall'); S.box(0.01,0.08,0.02,-73.45+i*0.5,1.2,-10.395,F('silbergrau'),'stahl'); }
+  S.box(1.2,0.05,0.38,-71.1,0.45,-7.35,F('holzPalette'),'stumpf'); for(const x of [-71.6,-70.6]) S.box(0.06,0.43,0.3,x,0.22,-7.35,F('anthrazit'),'lackMetall');
+  S.box(0.32,0.5,0.14,-75.55,1.35,-10.82,F('lichtgrau'),'kunststoff'); S.box(0.22,0.12,0.01,-75.55,1.45,-10.745,F('signalgruen'),'leucht');
+  S.box(0.8,0.012,0.6,-74.5,0.006,-10.45,F('kupfer'),'blank');
+  C.push([-73.9,-71.8,-10.9,-10.38],[-71.75,-70.45,-7.55,-7.15]);
   /* Sternhaus: drei Dragiertrommeln (drehen im Schau-Betrieb), leitfaehiger Gummiboden, Werkbank mit Holzwerkzeug */
   S.box(7.8,0.006,7.8,-96,0.019,-15.0,F('gummischwarz'),'matt');
   for(const [x,z] of [[-98.2,-13.2],[-95.6,-13.2],[-98.2,-16.6]]){ S.box(0.9,0.85,0.7,x,0.43,z,F('lichtgrau'),'lackMetall'); S.box(0.95,0.05,0.75,x,0.88,z,F('anthrazit'),'lackMetall');
@@ -500,15 +500,17 @@ function wkMonitore(){
   const W=c.width/6, H=c.height;
   for(let k=0;k<6;k++){ const i=k>>1, s=WK_STR[i], an=wkStrasseOffen(i), x0=k*W;
     g.fillStyle=MAT.css('nachtblau'); g.fillRect(x0,0,W,H); g.fillStyle=MAT.css('anthrazit'); g.fillRect(x0,0,W,46);
-    g.textAlign='left'; g.textBaseline='middle'; g.fillStyle=MAT.css('weiss'); g.font=BAR(30); g.fillText('STRASSE '+s.nr+' · '+s.name.toUpperCase(),x0+14,24);
+    g.textAlign='left'; g.textBaseline='middle'; g.fillStyle=MAT.css('weiss'); fitFont(g,'STRASSE '+s.nr+' · '+s.name.toUpperCase(),W-28,30,BAR); g.fillText('STRASSE '+s.nr+' · '+s.name.toUpperCase(),x0+14,24);
     if(k%2===0){ g.fillStyle=an?MAT.css('signalgruen'):MAT.css('mittelgrau'); g.fillRect(x0+14,70,26,26);
       g.fillStyle=MAT.css('weiss'); g.font=BAR(34); g.fillText(an?(WK.zustand[i].laeuft?'LÄUFT':'STEHT'):'NICHT GEBAUT',x0+52,84);
-      g.font=BAR(26); g.fillStyle=MAT.css('lichtgrau'); g.fillText(an?'Takt '+WK.zustand[i].takt.toFixed(1).replace('.',',')+' s · Schau-Betrieb':'Ausbau '+(i?'8.'+(i+1):'8'),x0+14,134);
-      g.fillText(an?'Ausgabe → Hochregal Gasse '+(s.gasse+1):'',x0+14,176); }
+      const zl=(t2,yy)=>{ fitFont(g,t2,W-28,26,BAR); g.fillText(t2,x0+14,yy); };
+      g.fillStyle=MAT.css('lichtgrau'); zl(an?'Takt '+WK.zustand[i].takt.toFixed(1).replace('.',',')+' s · Schau-Betrieb':'Ausbau '+(i?'8.'+(i+1):'8'),134);
+      zl(an?'Ausgabe → Hochregal Gasse '+(s.gasse+1):'',176); }
     else { g.strokeStyle=MAT.css('mittelgrau'); g.lineWidth=2; for(let j=0;j<7;j++){ const bx=x0+14+j*34; g.strokeRect(bx,70,28,28);
         if(an){ g.fillStyle=s.st[j][2]?MAT.css('signalrot'):MAT.css('signalgruen'); g.fillRect(bx+4,74,20,20); } }
-      g.fillStyle=MAT.css('lichtgrau'); g.font=BAR(26); g.fillText(an?'7 Stationen · '+s.st.filter(q=>q[2]).length+' Zellen (rot = mannlos)':'',x0+14,134);
-      g.fillText(an?'Qualität · Ausschuss: ab Produktion':'',x0+14,176); } }
+      g.fillStyle=MAT.css('lichtgrau'); const zl=(t2,yy)=>{ fitFont(g,t2,W-28,26,BAR); g.fillText(t2,x0+14,yy); };
+      zl(an?'7 Stationen · '+s.st.filter(q=>q[2]).length+' Zellen (rot = mannlos)':'',134);
+      zl(an?'Qualität · Ausschuss: ab Produktion':'',176); } }
   t.needsUpdate=true;
 }
 

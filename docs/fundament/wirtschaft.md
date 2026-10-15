@@ -37,7 +37,7 @@ Alle Zahlen einzeln: [`wirtschaft-werte.md`](wirtschaft-werte.md).
 ### Zu viel auf einmal kaufen (Ware, Lizenz, Ausbau, Regale)
 - Ware, Regale, Packmaterial und Restposten gehen bis in den Dispo (Konto + Rahmen); Ausbau, Lizenz, Deko, Personal, Rezepte nur mit echtem Guthaben. → `16-day.js:170` (verfuegbar)
 - Dispo-Rahmen = 260 € + 70 € je Level (erst ab Level 4). → `16-day.js:169` (dispoLimit)
-- Im Minus kostet jeder Tag 0,6 % des Minusbetrags an Zinsen (rund 219 % im Jahr) und -3 Ruf. → `16-day.js:181` (endDay)
+- Im Minus kostet jeder Tag 0,6 % des Minusbetrags an Zinsen (rund 219 % im Jahr) und -3 Ruf. → `16-day.js:183` (endDay)
 - Weniger Ruf heisst weniger Kunden (x(0,55 + Ruf/100)) - und ohne Geld keine Ware, ohne Ware kein Umsatz: Abwaertsspirale, der Tagesabschluss warnt und nennt Auswege. → `16-day.js:124` (spawnInterval)
 - Jedes Verkaufsregal kostet zusaetzlich jeden Tag Fixkosten (4 € klein ... 18 € Kühlschrank), jedes Lagerregal 6 €. → `16-day.js:172` (fixedCosts)
 - **Warum:** Liquidität vor Rentabilität: wer alles in Bestand und Ausbau steckt, kann laufende Kosten nicht zahlen. Der Dispo verhindert, dass ein schlechter Tag das Spiel festfährt, ist aber teuer (0,6 % am Tag, rund 219 % im Jahr) - echte Dispozinsen sind zweistellig im Jahr, nicht dreistellig: bewusst überzeichnet, damit das Minus weh tut.
@@ -65,7 +65,7 @@ Alle Zahlen einzeln: [`wirtschaft-werte.md`](wirtschaft-werte.md).
 - Jedes Paket kostet festes Porto an DDL (S 2,00 €, M 3,50 €, L 5,00 €), jede Abholung 39 €, dazu Packmaterial je Paket. → `11c-versand.js:677` (vsBuchen)
 - Wie viele Kunden ueberhaupt kommen: 4 + 0,12 x Ruf + 0,35 x Level (zwischen 4 und 22) x Packstation-Stufe x Sale. → `11c-versand.js:148` (vsBasis)
 - Sale bringt mehr Bestellungen (Elastizitaet -1,5 auf alles, -2,62 je Produkt), jeder Rabatt-Euro fehlt aber am Ergebnis. → `11c-versand.js:126` (vsSaleFaktor)
-- Mehr als 8 offene Bestellungen am Abend und Pakete, die seit gestern warten, kosten Ruf. → `16-day.js:181` (endDay)
+- Mehr als 8 offene Bestellungen am Abend und Pakete, die seit gestern warten, kosten Ruf. → `16-day.js:183` (endDay)
 - **Warum:** Versandkosten sind der häufigste Grund für Kaufabbrüche (Baymard 2024/25: 39-48 % wegen Zusatzkosten; Lewis/Singh/Fay 2006). Gratisversand lockt viele kleine Pakete, deren Porto man selbst trägt - Deckungsbeitrag je Paket rechnen.
 - **Quelle:** Baymard Institute 2024/2025; Lewis, Singh, Fay 2006 (Marketing Science 25); UPS Pulse of the Online Shopper 2014 (58 % stocken auf); Bijmolt, van Heerde, Pieters 2005 (JMR 42, Elastizität -2,62)
 - **Lücke heute (fürs Balancing):** Die Marktplatz-Pauschale (40 + 1,6 x Ruf + 4 x Level je Tag) kommt ohne jede Kosten und unabhängig von Versandkosten, Sale, Bestand - laut ist-analyse rund die Hälfte des Betriebsgewinns. · Saison, Werbung, Hype, Sortiment wirken nicht auf Online. · Der Ladenpreis wirkt online nur über den Deckel x1,3 - kein Preisvergleich.
@@ -94,7 +94,7 @@ Alle Zahlen einzeln: [`wirtschaft-werte.md`](wirtschaft-werte.md).
 - **Lücke heute (fürs Balancing):** Löhne folgen weder Inflation noch Level noch Ergebnis.
 
 ### Saison und Silvester einplanen
-- Nachfrage je Datum (Tabelle saison.regeln, 31.12. = 1,5 + 5 x 0,34) mal Wochentag (Sa x1,35, So x0,55) bestimmt den Kundentakt. → `02-data.js:498` (dayMult)
+- Nachfrage je Datum (Tabelle saison.regeln, 31.12. = 1,5 + 5 x 0,34) mal Wochentag (Sa x1,35, So x0,55) bestimmt den Kundentakt. → `02-data.js:503` (dayMult)
 - Ab dem 26.12. wollen Kunden F2 x1,9 und öfter ein Stück mehr. → `10-customers.js:221` (makeWishes)
 - In der Nebensaison rufen Grosskunden oefter an (x bis 1,9). → `10b-pyro.js:23` (updatePhone)
 - **Warum:** Feuerwerk ist extrem saisonal (Deutschland: Verkauf 29.-31.12.). Vorrat, Personal und Liquidität müssen auf die Spitze hin geplant werden.
@@ -108,16 +108,16 @@ Alle Zahlen einzeln: [`wirtschaft-werte.md`](wirtschaft-werte.md).
 - **Lücke heute (fürs Balancing):** Inflation trifft keine Fixgrößen (Lohn, Fixkosten, Porto, DDL, Packmaterial, Ausbau, Regale). · SUPPLIERS.delay wird nirgends gelesen.
 
 ### Wachsen (Umsatz, Ausgaben -> Level)
-- XP je Kunde 0,5 je € + 4, je Tag 60 + 5 % vom Umsatz; Level-Kurve 50 x Level^1,55. → `02-data.js:754` (xpFor)
-- Auch Geld ausgeben bringt XP (Ausbau/Deko Kosten/12, Lizenz Kosten/14 + 30). → `17-laptop.js:1647` (buyUp)
+- XP je Kunde 0,5 je € + 4, je Tag 60 + 5 % vom Umsatz; Level-Kurve 50 x Level^1,55. → `02-data.js:759` (xpFor)
+- Auch Geld ausgeben bringt XP (Ausbau/Deko Kosten/12, Lizenz Kosten/14 + 30). → `17-laptop.js:1652` (buyUp)
 - Jedes Level ab 4 kostet 4 € Fixkosten am Tag mehr, hebt Dispo/Kredit, Bekanntheit (+0,019 je Level) und das Diebstahlrisiko. → `16-day.js:172` (fixedCosts)
 - **Warum:** Level ist der Fortschrittsanzeiger (Freischaltungen). Er sollte der wirtschaftlichen Leistung folgen, nicht nur der Spielzeit.
 - **Lücke heute (fürs Balancing):** Level und Geld sind getrennte Kurven: Ausgaben-XP lassen das Level dem Geld davonlaufen (ist-analyse 3.3). · Die Fixkosten sind eine "Level-Steuer", keine echte Miete.
 
 ### Laden sauber und schön halten
 - Jeder Kunde hinterlässt mit 8 % einen Fleck (mit Mülleimer 4 %); Sauberkeit = 100 - 7 je Fleck -> Kundentakt x(0,75 + Sauberkeit/300). → `16-day.js:124` (spawnInterval)
-- Ambiente (Deko, Musik, Licht, Wand/Boden) hebt Takt, Preistoleranz und Geduld. → `02-data.js:857` (ambienteScore)
-- Pruefung (Ereignis): Sauberkeit >= 70 bringt 3 Ruf, sonst -5. → `16-day.js:181` (endDay)
+- Ambiente (Deko, Musik, Licht, Wand/Boden) hebt Takt, Preistoleranz und Geduld. → `02-data.js:862` (ambienteScore)
+- Pruefung (Ereignis): Sauberkeit >= 70 bringt 3 Ruf, sonst -5. → `16-day.js:183` (endDay)
 - **Warum:** Einkaufserlebnis beeinflusst Zahlungsbereitschaft und Wiederkehr.
 
 ### Gegen Diebstahl sichern (Kameras, Security, Warensicherung)
@@ -128,7 +128,7 @@ Alle Zahlen einzeln: [`wirtschaft-werte.md`](wirtschaft-werte.md).
 
 ### Auf dem Testfeld zuenden (Hype)
 - Jedes gezuendete Stueck bringt seinen Hype (bis 100), fällt 1,1 je Sekunde; Hype hebt den Kundentakt (x(1 + Hype/50)) und über 40 die F2-Wünsche x1,3. → `14b-shows.js:702` (igniteType)
-- Die Ware ist weg (zum Einkaufswert als "Selbst gezuendet" im Tagesabschluss). → `16-day.js:181` (endDay)
+- Die Ware ist weg (zum Einkaufswert als "Selbst gezuendet" im Tagesabschluss). → `16-day.js:183` (endDay)
 - **Warum:** Marketing kostet Ware - Wirkung ist kurz und muss in den Umsatz der nächsten Minuten umschlagen.
 - **Lücke heute (fürs Balancing):** "Gewinn des Tages" zieht Selbst-Gezündetes ab, obwohl es nie vom Konto abgeht (doppelt gezählt).
 
@@ -140,10 +140,17 @@ Alle Zahlen einzeln: [`wirtschaft-werte.md`](wirtschaft-werte.md).
 
 ### Hochregal und Kartonlager bauen (Lagerlogistik, Kapitel 7.3)
 - Einmalig 18.500,00 €; danach jeden Tag 35,00 € je aktiver Gasse (Strom, Wartung RBG und FTS) in den Fixkosten. → `16-day.js:172` (fixedCosts)
-- Lieferungen an Tor 2-4 landen auf Stellplaetzen und gehen automatisch ins Hochregal (180 Palettenplaetze in Gasse 1) - kein Einraeumen von Hand, Lagerplatz fuer grosse Grosshandels-Staffeln (ab 20 Kartons 18 % Rabatt). → `11f-hochregal.js:97` (ftsEinJob)
-- Bestand im Hochregal zaehlt fuer Onlinebestellungen; das RBG lagert in den Anbruch aus, die FTS bringen Nachschub nach ③ und ①, Packer picken auch im Anbruch. → `11f-hochregal.js:253` (hrTick)
+- Lieferungen an Tor 2-4 landen auf Stellplaetzen und gehen automatisch ins Hochregal (180 Palettenplaetze in Gasse 1) - kein Einraeumen von Hand, Lagerplatz fuer grosse Grosshandels-Staffeln (ab 20 Kartons 18 % Rabatt). → `11f-hochregal.js:100` (ftsEinJob)
+- Bestand im Hochregal zaehlt fuer Onlinebestellungen; das RBG lagert in den Anbruch aus, die FTS bringen Nachschub nach ③ und ①, Packer picken auch im Anbruch. → `11f-hochregal.js:261` (hrTick)
 - **Warum:** Fixkosten gegen Skaleneffekt: Ein automatisches Lager lohnt sich erst mit Menge - wer wenig umschlaegt, zahlt jeden Tag Betrieb fuer leere Plaetze.
 - **Lücke heute (fürs Balancing):** Ersparnis (Staffel, Wege) ist geschaetzt, nicht im Balancing-Lauf gemessen - der Bot erreicht Kapitel 7 nicht.
+
+### Werk West bauen (Pyro-Fabrik, Kapitel 8 / 8.2 / 8.3)
+- Einmalig 46.000,00 € (Werk, Straße 1 Raketen, Hochregal-Gasse 2 mit RBG), 26.000,00 € (Straße 2 Kugelbomben, Gasse 3) und 23.000,00 € (Straße 3 Batterien). → `02-data.js:260` (UPGRADES)
+- Jede neue Gasse kostet sofort 35,00 € am Tag Betrieb (Fixkosten) und bringt 180 Palettenplaetze. → `16-day.js:172` (fixedCosts)
+- Ab Produktion: Werk 45,00 € und je laufender Straße 30,00 € am Tag; im Schau-Betrieb (heute) 0. → `05r-werk.js:42` (wkFixkosten)
+- **Warum:** Eigenproduktion = Fixkosten gegen Marge: lohnt erst ab Menge, Break-even sichtbar (produktion-konzept.md).
+- **Lücke heute (fürs Balancing):** Produktion (Rohstoffe, Rezepte, Takt, Qualität) fehlt noch - die Straßen laufen als Schau-Betrieb ohne Ertrag; Amortisation geschaetzt, nicht gemessen.
 
 ### Restposten und Wundertueten kaufen
 - Preis = mittlerer Karton-Einkauf x Kartons x Faktor (0,7 ... 0,52), gerundet auf 5 €. → `17-laptop.js:342` (packPreis)

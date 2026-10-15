@@ -137,9 +137,27 @@ const fs = require('fs');
       /* waehrend der LKW steht: ein Paket aufs Band - der Kran darf es nicht absetzen */
       n = 0; while (bb.VT.state !== 'docked' && n++ < 2000) bb.run(0.1, 0.05);
       o.docked = bb.VT.state;
+      /* Ablauf des Fahrers (15.10.): Phasenfolge, Auftauchen nur aus der Kabine, Gabel fluchtet, Hub, Tempo, keine Durchdringung */
+      const ab = {ph: [], torSichtbar: 0, ersteLage: null, hubMax: 0, fluchtMax: 0, winkelMax: 0, wandMax: 0, ueberMax: 0, vMax: 0, vRueck: 0, last: null};
+      const rah = (g) => { const w = new THREE.Vector3(); g.getWorldPosition(w); const f = bb.vfRueck(w.x, w.z), ry = g.rotation.y; return {lx: f.lx, lz: f.lz, y: w.y, ry}; };
       n = 0; while ((bb.VT.state || bb.ddlLaeuft()) && n++ < 30000) { bb.run(0.1, 0.05); if (bb.LD.ph !== 'idle') { fig = fig || (bb.LD.fig && bb.LD.fig.visible); }
-        if (bb.boxBelegt()) { belegt = true; if (bb.vsPortal.phase !== 'ruhe' && bb.vsPortal.phase !== 'saugen') kranImDock++; } }
-      o.fig = fig; o.belegt = belegt; o.kranImDock = kranImDock; o.nachAbholung = bb.vsGelandet(); o.z0 = z0; o.weg = !bb.VT.state; o.tor = bb.vdIstOffen();
+        if (bb.boxBelegt()) { belegt = true; if (bb.vsPortal.phase !== 'ruhe' && bb.vsPortal.phase !== 'saugen') kranImDock++; }
+        const LD = bb.LD; if (ab.ph[ab.ph.length - 1] !== LD.ph) ab.ph.push(LD.ph);
+        if (bb.VT.state === 'torauf' && LD.fig && LD.fig.visible) ab.torSichtbar++;
+        if (!ab.ersteLage && LD.fig && LD.fig.visible) ab.ersteLage = {ph: LD.ph, fx: LD.fx, fz: LD.fz};
+        if (LD.ph !== 'idle' && ab.last) { const v = Math.hypot(LD.jx - ab.last.jx, LD.jz - ab.last.jz) / 0.1; ab.vMax = Math.max(ab.vMax, v);
+          if (LD.ph === 'zieh' || LD.ph === 'leer') ab.vRueck = Math.max(ab.vRueck, v); }
+        ab.last = {jx: LD.jx, jz: LD.jz};
+        if (LD.pal) { const o2 = bb.vsPalObj[LD.pal.id]; if (o2) { const r = rah(o2.g), d = [Math.cos(LD.psi), Math.sin(LD.psi)], fl = bb.ldBoden ? bb.ldBoden(LD.jx) : 0;
+          if (LD.ph === 'rein' || LD.ph === 'zieh' || LD.ph === 'wende2') ab.hubMax = Math.max(ab.hubMax, r.y - fl);
+          /* Gabel steckt in der Palette: Mitte 0,575 vor dem Fuss, Palettenlaenge in Gabelrichtung */
+          ab.fluchtMax = Math.max(ab.fluchtMax, Math.hypot(r.lx - (LD.jx + d[0] * 0.575), r.lz - (LD.jz + d[1] * 0.575)));
+          const ax = [-Math.sin(r.ry), -Math.cos(r.ry)]; ab.winkelMax = Math.max(ab.winkelMax, Math.abs(ax[0] * d[1] - ax[1] * d[0]));
+          const cs = []; for (const a of [-0.6, 0.6]) for (const c of [-0.4, 0.4]) cs.push([r.lx + ax[0] * a - ax[1] * c, r.lz + ax[1] * a + ax[0] * c]);
+          for (const [x, z] of cs) { if (x < 0 && Math.abs(z) > 1.47) ab.wandMax = Math.max(ab.wandMax, Math.abs(z) - 1.47); if (x > -0.1 && x < 0.3 && Math.abs(z) > 1.6) ab.wandMax = Math.max(ab.wandMax, Math.abs(z) - 1.6); if (x < -9.3) ab.wandMax = Math.max(ab.wandMax, -9.3 - x); }
+          for (const q of S.paletten) { if (q.ort !== 'l') continue; const oq = bb.vsPalObj[q.id]; if (!oq) continue; const rq = rah(oq.g);
+            const sx = Math.abs(r.lx - rq.lx), sz = Math.abs(r.lz - rq.lz); if (Math.abs(Math.sin(r.ry)) > 0.97 && sx < 1.2 && sz < 0.8) ab.ueberMax = Math.max(ab.ueberMax, Math.min(1.2 - sx, 0.8 - sz)); } } } }
+      o.ab = ab; o.fig = fig; o.belegt = belegt; o.kranImDock = kranImDock; o.nachAbholung = bb.vsGelandet(); o.z0 = z0; o.weg = !bb.VT.state; o.tor = bb.vdIstOffen();
       o.paletten = S.paletten.map(q => q.ort).join('');
       bb.clock = 1320; bb.phase = 'after'; bb.endDay(); o.rows2 = document.getElementById('sRows').textContent;
       const L = S.onlineLog || []; o.log = L.length ? L[L.length - 1] : null;
@@ -151,11 +169,38 @@ const fs = require('fs');
     pruef('ANRUF' + st, d.prompt && d.prompt.a && d.gerufen && Math.abs(d.pauschale - d.soll) < 0.01 && Math.abs(d.dsDdl - d.soll) < 0.01, 'Anruf bucht die Pauschale nicht: ' + JSON.stringify({prompt: d.prompt, g: d.gerufen, p: d.pauschale, ds: d.dsDdl}));
     pruef('ANFAHRT' + st, d.anfahrtS >= 10 && d.anfahrtS <= 40 && d.docked === 'docked', 'DDL kommt nicht nach kurzer Zeit: ' + JSON.stringify({s: d.anfahrtS, dock: d.docked}));
     pruef('FAHRER' + st, d.fig, 'der DDL-Fahrer laedt nicht selbst (Stufe ' + st + ')');
+    { const ab = d.ab, reihe = ['tuer', 'aus', 'greif', 'hin', 'pick', 'heben', 'zieh', 'wende2', 'rein', 'senken', 'leer'];
+      const pos = reihe.map(x => ab.ph.indexOf(x));
+      pruef('ABLAUF' + st, pos.every((x, i) => x >= 0 && (i === 0 || x > pos[i - 1])) && ab.ph.includes('park') && ab.ph.includes('heim'), 'Ablauf Tuer-Hubwagen-schieben-heben-ziehen-wenden-schieben-senken-ziehen-parken fehlt: ' + ab.ph.join(','));
+      pruef('FAHRER_AUS_KABINE' + st, ab.torSichtbar === 0 && ab.ersteLage && ab.ersteLage.ph === 'tuer' && ab.ersteLage.fx < -9.4, 'Fahrer taucht auf, statt aus dem Fuehrerhaus zu kommen: ' + JSON.stringify({tor: ab.torSichtbar, erste: ab.ersteLage}));
+      pruef('PALETTE_HEBT' + st, ab.hubMax > 0.06 && ab.hubMax < 0.11, 'Palette hebt sich nicht sichtbar um 5-10 cm: ' + ab.hubMax.toFixed(3));
+      pruef('GABEL_FLUCHTET' + st, ab.fluchtMax < 0.02 && ab.winkelMax < 0.02, 'Gabel und Palette fluchten nicht: ' + JSON.stringify({mitte: +ab.fluchtMax.toFixed(3), winkel: +ab.winkelMax.toFixed(3)}));
+      pruef('KEINE_DURCHDRINGUNG' + st, (ab.wandMax || 0) < 0.03 && ab.ueberMax < 0.03, 'Palette dringt in Wand/LKW/Palette: ' + JSON.stringify({wand: ab.wandMax, ueber: ab.ueberMax}));
+      pruef('TEMPO' + st, ab.vMax <= 1.5 && ab.vMax >= 0.7 && ab.vRueck <= 1.3, 'Hubwagen nicht ca. 1 m/s: ' + JSON.stringify({max: +ab.vMax.toFixed(2), rueck: +ab.vRueck.toFixed(2)})); }
     pruef('BOX_BELEGT' + st, d.belegt && d.kranImDock === 0, 'waehrend der LKW steht, arbeitet der Kran: ' + d.kranImDock);
     pruef('ABGEHOLT' + st, d.weg && !d.tor && d.nachAbholung === 0 && /^z+$/.test(d.paletten), 'LKW faehrt nicht ab oder Pakete bleiben: ' + JSON.stringify({weg: d.weg, tor: d.tor, nach: d.nachAbholung, pal: d.paletten}));
     pruef('ABRECHNUNG' + st, /DDL-Abholung \(1×/.test(d.rows2 || '') && d.log && Math.abs(d.log.ddl - d.soll) < 0.01 && d.log.ddlN === 1, 'Pauschale fehlt in Tagesabrechnung oder Statistik: ' + JSON.stringify({log: d.log}));
     await bild('stufe' + st + '-nach-abholung');
   }
+
+  /* ---------- 4b. Ladeboden liegt ueber der Hofplatte, Hofschrift nicht im Bereich des LKW (15.10.) ---------- */
+  const lb = await p.evaluate(() => { const bb = window.__bb, o = {};
+    bb.ddlAbholung(); window.__fuell(40, 1); bb.ddlRufen(); let n = 0; while (bb.VT.state !== 'docked' && n++ < 4000) bb.run(0.1, 0.05);
+    const raum = bb.VT.raum; let boden = null; raum.traverse(m => { if (m.isMesh && m.geometry && m.geometry.parameters && Math.abs(m.geometry.parameters.width - bb.LR.len) < 0.01 && Math.abs(m.geometry.parameters.height - bb.LR.w) < 0.01 && m.position.y < 0.5) boden = m; });  /* Ladeboden, nicht die Decke */
+    o.bodenY = boden ? boden.position.y : null; let platte = null, schrift = null;
+    bb.VD.g.traverse(m => { if (m.isMesh && m.geometry && m.geometry.parameters) { const q = m.geometry.parameters; if (m.geometry.type === 'PlaneGeometry' && Math.abs(q.width - (bb.V1_HOF.x1 - bb.V1_HOF.x0)) < 0.01) platte = m; if (m.geometry.type === 'PlaneGeometry' && Math.abs(q.width - 4.6) < 0.01 && Math.abs(q.height - 1.3) < 0.01) schrift = m; } });
+    o.platteY = platte ? platte.position.y : null; o.schriftZ = schrift ? schrift.position.z : null; o.schriftHalb = 0.65; o.lkwEnde = bb.V1.rz - bb.LR.len - 2.7;
+    o.tuer = !!(raum.userData && raum.userData.tuer);
+    /* Gabel zeigt zum Tor, wenn der Hubwagen steht (Stellung an der Wand): Gabelspitze liegt weiter im LKW als der Fuss? Nein - Gabel zum Tor = +lx */
+    { const J = bb.LD.jack.g, v = new THREE.Vector3(0, 0.05, -1.1), w0 = new THREE.Vector3(); J.updateMatrixWorld(true); J.getWorldPosition(w0); const w1 = J.localToWorld(v.clone());
+      const f0 = bb.vfRueck(w0.x, w0.z), f1 = bb.vfRueck(w1.x, w1.z); o.gabelDir = +(f1.lx - f0.lx).toFixed(2); o.psi0 = bb.LD.psi; }
+    while ((bb.VT.state || bb.ddlLaeuft()) && n++ < 30000) bb.run(0.1, 0.05);
+    return o; });
+  console.log('LADEBODEN', JSON.stringify(lb));
+  pruef('LADEBODEN', lb.bodenY !== null && lb.platteY !== null && lb.bodenY > lb.platteY + 0.01, 'Ladeboden liegt nicht ueber der Hofplatte: ' + JSON.stringify(lb));
+  pruef('HOFSCHRIFT', lb.schriftZ !== null && lb.schriftZ + lb.schriftHalb < lb.lkwEnde, 'Hofschrift liegt im Bereich des LKW: ' + JSON.stringify(lb));
+  pruef('GABEL_ZUM_TOR', lb.gabelDir > 1.0, 'der Hubwagen an der Wand steht nicht mit der Gabel zum Tor: ' + lb.gabelDir);
+  pruef('DURCHSTIEG', lb.tuer, 'kein Durchstieg zum Fuehrerhaus im Laderaum');
 
   /* ---------- 5. Box voll: Paket wartet am Bandende, Meldung, nach der Abholung landet es ---------- */
   const bv = await p.evaluate(() => { const bb = window.__bb, S = bb.S, o = {};

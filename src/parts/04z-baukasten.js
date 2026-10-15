@@ -1050,6 +1050,47 @@ bk.fts=function(o){
   return {g,deck,meshes,set(h){ deck.position.y=0.27+0.06*Math.max(0,Math.min(1,h)); }};
 };
 
+/* ---------- Handhubwagen (15.10.2026, DDL-Fahrer; Doku baukasten.md) ----------
+   Gabeln zeigen nach -z (Spitze bei z -1,15), Deichsel nach +z, Ursprung = Gabelfuss auf dem Boden. Die Masse passen in die
+   Taschen der Europalette (bk.PALETTE euro: Taschen bei +-0,186, breit 0,2275, Hoehe 0,1): Gabelmitte +-0,186, Breite 0,15, Hoehe 0,075,
+   Hub 0,08. Rueckgabe {g, lift (Gabeln), deichsel (Gruppe), hub(0..1), winkel(phi), griff(phi)->{y,z}}: der Handgriff liegt in Ruhe bei
+   (griffY, griffZ) ueber dem Gabelfuss; phi dreht die Deichsel um ihr Lager (negativ = Griff hoch, Pumpen). */
+bk.HUBWAGEN={gabelX:0.186,gabelB:0.15,gabelL:1.15,gabelH:0.075,hub:0.08,lagerY:0.26,lagerZ:0.12,griffY:1.16,griffZ:0.62};
+bk.hubwagen=function(o){
+  o=o||{}; const F=MAT.farbe, K=bk.HUBWAGEN, seg=[6,10,14][bk.lod()];
+  const g=new THREE.Group(); g.position.set(o.x||0,o.y||0,o.z||0); g.rotation.y=o.ry||0; g.userData.bauteil='hubwagen'; (o.parent||scene).add(g);
+  const form={fase:0.01,faseMin:0.04,seg:1,lod0Kasten:true}, meshes=[];
+  /* Gestell am Boden: Gehaeuse (Pumpe) rot, Lenkraeder unter dem Fuss, Lastrollen an den Gabelspitzen */
+  const Sg=bk.sammler({form,bauteil:'hubwagen'});
+  Sg.box(0.3,0.2,0.2,0,0.2,K.lagerZ-0.02,F('signalrot'),'lackMetall');
+  for(const sx of [-1,1]){
+    Sg.zyl(0.09,0.09,0.05,seg,sx*0.07,0.09,0.12,F('gummischwarz'),'matt',0,0,Math.PI/2);
+    Sg.zyl(0.04,0.04,0.075,seg,sx*K.gabelX,0.04,-K.gabelL+0.06,F('gummischwarz'),'matt',0,0,Math.PI/2); }
+  Sg.box(0.09,0.05,0.14,0,0.12,0.12,F('graphit'),'lackMetall');
+  meshes.push(...Sg.fertig(g,{bauteil:'hubwagen'}));
+  /* Gabeln samt Fuss heben sich */
+  const lift=new THREE.Group(); g.add(lift);
+  const Sl=bk.sammler({form,bauteil:'hubwagen'}), gl=K.gabelL-0.1;
+  for(const sx of [-1,1]){
+    Sl.box(K.gabelB,K.gabelH,gl,sx*K.gabelX,0.012+K.gabelH/2,-gl/2-0.02,F('anthrazit'),'lackMetall');
+    Sl.box(K.gabelB-0.04,K.gabelH-0.03,0.1,sx*K.gabelX,0.012+K.gabelH/2-0.012,-gl-0.07,F('anthrazit'),'lackMetall'); }
+  Sl.box(2*K.gabelX+K.gabelB,0.08,0.1,0,0.012+0.04,0.04,F('anthrazit'),'lackMetall');
+  meshes.push(...Sl.fertig(lift,{bauteil:'hubwagen'}));
+  /* Deichsel: Rohr verzinkt, Handgriff mit Gummigriffen, roter Hebel (Senken) */
+  const deichsel=new THREE.Group(); deichsel.position.set(0,K.lagerY,K.lagerZ); g.add(deichsel);
+  const dy=K.griffY-K.lagerY, dz=K.griffZ-K.lagerZ, dl=Math.hypot(dy,dz), th=Math.atan2(dz,dy);
+  const Sd=bk.sammler({form,bauteil:'hubwagen'});
+  Sd.zyl(0.016,0.016,dl,seg,0,dy/2,dz/2,F('silbergrau'),'stahl',th,0,0);
+  Sd.box(0.4,0.035,0.05,0,dy,dz,F('anthrazit'),'lackMetall');
+  for(const sx of [-1,1]){ Sd.zyl(0.022,0.022,0.12,seg,sx*0.17,dy,dz,F('gummischwarz'),'matt',0,0,Math.PI/2); Sd.box(0.03,0.07,0.04,sx*0.2,dy-0.03,dz-0.01,F('anthrazit'),'lackMetall'); }
+  Sd.box(0.03,0.035,0.1,0.07,dy-0.05,dz-0.03,F('signalrot'),'lackMetall');
+  meshes.push(...Sd.fertig(deichsel,{bauteil:'hubwagen'}));
+  return {g,lift,deichsel,meshes,
+    hub(h){ lift.position.y=K.hub*Math.max(0,Math.min(1,h)); },
+    winkel(phi){ deichsel.rotation.x=phi; },
+    griff(phi){ const c=Math.cos(phi), s=Math.sin(phi); return {y:K.lagerY+dy*c-dz*s, z:K.lagerZ+dy*s+dz*c}; }};
+};
+
 /* =========================================================
    Werk West (Halle Etappe B, 15.10.2026, docs/halle/plan-1410.md, Referenzfoto docs/uebergabe/produktion-referenz.webp):
    Betonzelle, Tuer, Treppe, Portalgreifer (Alu-Profil), Rohr-Raster, Stationsmaschinen, Erdwall. Doku: baukasten.md §2c.

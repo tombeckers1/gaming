@@ -314,7 +314,9 @@ function figPose(u,dt,moving,speed){
   const AG=figAnim(man?'m_gehen':'w_gehen'), AS=figAnim(man?'m_stehen':'w_stehen');
   F.geh+=((moving?1:0)-F.geh)*Math.min(1,dt*7);
   /* Doppelschritt der Aufnahme, auf die Beinlaenge der Figur umgerechnet */
-  if(moving){ const sch=AG.schritt*B.wurzel[1]/AG.huefte*(F.root.parent?F.root.parent.scale.x:1); F.tw=(F.tw+dt*Math.max(0.6,speed||1.3)/sch)%1; }
+  if(moving){ const sch=AG.schritt*B.wurzel[1]/AG.huefte*(F.root.parent?F.root.parent.scale.x:1), sp=speed||1.3;
+    /* speed < 0: rueckwaerts gehen (Hubwagen ziehen) - die Aufnahme laeuft rueckwaerts */
+    F.tw=((F.tw+dt*Math.max(0.6,Math.abs(sp))/sch*(sp<0?-1:1))%1+1)%1; }
   F.ti=(F.ti+dt)%AS.dauer;
   for(const k of [0,1]) F.ov[k]+=(F.ovZiel[k]-F.ov[k])*Math.min(1,dt*10);
   if(u.greif){ u.greif.t+=dt; if(u.greif.t>=u.greif.dauer) u.greif=null; }

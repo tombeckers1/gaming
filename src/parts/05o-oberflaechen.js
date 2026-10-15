@@ -498,15 +498,15 @@ function oberflaechenAnwenden(){
     const P0=bodenPx(), rs=PRACHT>=1?0:1, n=reliefAus(P0>>rs,P0>>rs,(g,W,H)=>bodenMalen(g,W,H,f,true),(f.relief||2.4)*(rs?1:1.6));
     if(_bodenRelief) _bodenRelief.dispose(); _bodenRelief=n;
     if(n){ floorMat.normalMap=n; floorMat.normalScale=new THREE.Vector2(0.6,0.6); }
-    floorMat.roughness=f.rau!==undefined?f.rau:0.6; floorMat.metalness=0;
+    const bg=MAT.bodenGlanz(f); floorMat.roughness=bg.roughness; floorMat.metalness=0;
     /* Die Deckenleuchten heben helle Boeden bis an Weiss (Marmor: Textur
        213, im Bild 235 von 255) - dann verschwindet die Zeichnung. Die
        Albedo daempfen, je heller der Belag, desto mehr. */
     const hl=f.hell||0.86; floorMat.color.setRGB(hl,hl,hl);
-    const env=f.glanz?innenUmgebung(w.a):null;
-    floorMat.envMap=env; floorMat.envMapIntensity=(f.glanz||0)*0.6;
-    /* Pracht (03d): jeder Boden glaenzt ein wenig - der echte Raum spiegelt sich, je rauer, desto matter */
-    if(PR.env&&f.art!=='velours'){ floorMat.envMap=PR.env; floorMat.envMapIntensity=Math.max((f.glanz||0)*0.9,1.0); floorMat.roughness=Math.max(0.12,floorMat.roughness*0.5); }
+    /* 15.10. (Licht-Paket): matt bis seidenmatt nach MAT.bodenGlanz - vorher Rauheit 0,18-0,5 mit Spiegelung
+       bis 0,6, ab Maximum Rauheit halbiert und Spiegelung >= 1 (Tom: "glaenzt so komisch") */
+    const env=bg.env>0?(PR.env||innenUmgebung(w.a)):null;
+    floorMat.envMap=env; floorMat.envMapIntensity=bg.env;
     if(PR.an) prBodenGlanz();
     floorMat.needsUpdate=true; }
   /* Sockelleiste im dunklen Ton der Wand */

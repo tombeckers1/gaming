@@ -93,10 +93,14 @@ Regeln: Schmutz/Abnutzung nur als **Spielzustand** (mit Wirkung, z. B. Sauberkei
 keine Einzel-Schmutztexturen je Objekt, kein Zufallsschmutz pro Bau. Ein Abnutzungssystem für alle Bauteile wäre ein eigener Schritt
 (Vorschlag an Tom, nicht nebenbei).
 
-## 8. Licht (`src/parts/05p-licht.js`, Doku `docs/uebergabe/licht-0910.md`)
-- Innen Belichtung **0,74**, außen **1,05** (`LI_BEL`), Wechsel in 0,5 s; Feuerwerk unverändert.
-- Kontaktschatten unter jedem Möbel/jeder Person, Lichtflecken unter Deckenleuchten, Glanzbahnen ab Mittel – je **ein** Zeichenaufruf.
-  Ultra Low: nichts davon; Niedrig: nur Kontaktschatten + Belichtung.
+## 8. Licht (`src/parts/05p-licht.js`, Doku `docs/uebergabe/licht-1510.md`)
+- **Belichtung fest `LI_BEL` = 1,05**, drinnen wie draussen – keine Augenanpassung, keine Innen-Abdunklung in der Bildzusammenfuehrung.
+- **Innenlicht = Raumlicht im Shader** (`RAUM`): jede Flaeche in einem Raum aus `dachBereiche()` bekommt gleichmaessiges Deckenlicht
+  (von oben voll, seitlich 65 %, von unten 30 %), Tag und Nacht gleich; Himmelslicht drinnen nur zu `RAUM.hemi`, Sonne drinnen nur
+  durch die Schattenkarte (Fenster/Tore, ab Mittel), ohne Schattenkarte drinnen aus. Neuer Raum = neuer Eintrag in `dachBereiche()`
+  (20-loop) – dann hat er Dach, Schnee-Schutz und Licht zugleich. Keine Punktlichter, die dem Spieler folgen; keine Strahler je Raum.
+- **Boden** matt bis seidenmatt nur ueber `MAT.bodenGlanz(belag)` (Rauheit ≥ 0,62, Spiegelung ≤ 0,12) – keine Glanzbahnen.
+- Kontaktschatten unter jedem Möbel/jeder Person – **ein** Zeichenaufruf, ab Niedrig; Ultra Low legt nichts an (Raumlicht dort im Vertexshader).
 - Neues Möbel/Bauteil auf dem Boden meldet sich beim Licht-Paket an (Kontaktschatten), statt eigenen Schatten zu malen.
 - Leuchten leuchten über `emissive` (Ton `lampeWarm`), veränderliche Leuchten über `MAT.neu` und `lampMats`; keine zusätzlichen
   Echtzeit-Lichtquellen ohne Messung (Leistung).

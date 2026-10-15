@@ -462,5 +462,11 @@ const MAT=(function(){
     const atlanten=[...atlasListe.values()].map(A=>A.info());
     return {materialien:mats,texturen:texs,eigene:neuL,atlanten,geteilt:mats.length,abrufe,gespart:abrufe-mats.length,farben:Object.keys(FARBE).length,rezepte:Object.keys(REZEPT).length,katalog};
   }
-  return {FARBE,PALETTE,PALETTE_UV:PAL_UV,KLASSE,REZEPT,get,ober,eigen,neu,kopie,std:stdGeteilt,basic,vc,farbe,css,tex:texGet,kachel,atlas,atlasPatch,atlasObc,stufe,liste,verstoesse,get wache(){ return wacheAn; }};
+  /* Bodenbelaege im Laden (Licht-Paket 15.10., Tom: "der Boden glaenzt so komisch"): EINE Regel fuer alle Belaege
+     statt rau/glanz roh aus FLOORS. Matt bis seidenmatt - auch Marmor und geschliffener Beton sind im Laden
+     begangen und gewischt, nicht poliert: Rauheit 0,62-0,9, Spiegelung hoechstens 0,12, in Pracht (Spiegelbild
+     der Szene) nur ein Hauch Lack und stark unscharf. */
+  function bodenGlanz(f){ f=f||{}; const rau=f.rau!==undefined?f.rau:0.6, gl=f.glanz||0, teppich=f.art==='velours';
+    return {roughness:teppich?1:Math.min(0.9,0.6+0.3*rau), env:teppich?0:Math.min(0.12,gl*0.25), lack:teppich?0:Math.min(0.12,0.04+gl*0.16), unschaerfe:0.35}; }
+  return {FARBE,PALETTE,PALETTE_UV:PAL_UV,KLASSE,REZEPT,bodenGlanz,get,ober,eigen,neu,kopie,std:stdGeteilt,basic,vc,farbe,css,tex:texGet,kachel,atlas,atlasPatch,atlasObc,stufe,liste,verstoesse,get wache(){ return wacheAn; }};
 })();

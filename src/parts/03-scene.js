@@ -61,8 +61,11 @@ function updateSonne(x,z){
   sun.position.set(x+SONNE_OFF.x,SONNE_OFF.y,z+SONNE_OFF.z);
   sun.target.updateMatrixWorld();
 }
-const shopSpot=new THREE.SpotLight(0xfff1dc,1.35,24,1.2,0.8,1.1); shopSpot.position.set(-0.5,3.45,-0.3); shopSpot.target.position.set(-0.5,0,-0.3); if(GFX!=='ultralow'){ scene.add(shopSpot); scene.add(shopSpot.target); }
-if(HIQ&&GFX!=='ultralow'){ shopSpot.castShadow=true; shopSpot.shadow.mapSize.set(1024,1024); shopSpot.shadow.camera.near=0.5; shopSpot.shadow.camera.far=9; shopSpot.shadow.bias=-0.0008; shopSpot.shadow.normalBias=0.02; }
+/* Ladenstrahler (bis 15.10.): ein Spot mit eigener Schattenkarte mitten im Basisladen - ein heller Fleck
+   nur dort, Schatten strahlenfoermig von einem Punkt. Das Innenlicht kommt jetzt gleichmaessig aus dem
+   Raumlicht (05p); der Strahler bleibt als Objekt (Pracht/Schattenwerte fragen ihn ab), haengt aber nicht
+   mehr in der Szene - ein Schattendurchgang und ein Licht je Pixel weniger. */
+const shopSpot=new THREE.SpotLight(0xfff1dc,0,24,1.2,0.8,1.1); shopSpot.position.set(-0.5,3.45,-0.3); shopSpot.target.position.set(-0.5,0,-0.3);
 /* Schattenwerte je Grafikstufe - nur Zahlen, keine Shader-Aenderung.
    niedrig: Versatz -10 laesst jeden Punkt beleuchtet (keine Schatten)
    und die Karte wird nicht mehr neu gezeichnet (schattenTakt). */
@@ -82,7 +85,9 @@ schattenWerte(GFX);
    vorher, also keine Shader-Neuuebersetzung, kein Mehrpreis) sitzt unter den Deckenleuchten, die dem
    Spieler am naechsten liegen, und wandert mit ihm. Die Leuchten melden sich in LAMPEN an. */
 const LAMPEN=[];
-const INNEN_N=GFX==='ultralow'?1:GFX==='niedrig'?2:3;
+/* 15.10. (Licht-Paket, Tom: "in eine bestimmte Richtung wird es hell"): die wandernden Punktlichter
+   folgten dem Blick - das Licht kommt jetzt aus dem Raumlicht im Shader (05p), gleich an jedem Ort. */
+const INNEN_N=0;
 const innenLichter=[];
 for(let i=0;i<INNEN_N;i++){ const l=new THREE.PointLight(0xffe9cf,0,12.5,1.35); l.position.set(0,3,0); scene.add(l); innenLichter.push({l,tx:0,ty:3,tz:0,lampe:-1,an:0}); }
 /* Ultra Low: Hof- und Regallicht haengen nicht in der Szene (jedes Licht kostet in jedem Pixel) */

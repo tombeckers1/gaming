@@ -128,7 +128,7 @@ const PR_ART={
   lack:  {t:0.8, n:0.03,r:0.45,c:0.00,mc:0.04,mr:0.30,env:0.6},
   karton:{t:0.55,n:0.20,r:0.30,c:0.18,mc:0.06,mr:0.20,env:0.25},
   druck: {t:0.35,n:0.10,r:0.30,c:0.06,mc:0.00,mr:0.15,env:0.45, tx:'karton'},
-  boden: {t:1.6, n:0.05,r:0.50,c:0.10,mc:0.08,mr:0.45,env:1.0, tx:'beton'},
+  boden: {t:1.6, n:0.05,r:0.50,c:0.10,mc:0.08,mr:0.45,env:0.12, tx:'beton'},   /* 15.10.: Spiegelung 1,0 -> 0,12 (MAT.bodenGlanz) */
   wand:  {t:0.9, n:0.22,r:0.20,c:0.08,mc:0.06,mr:0.20,env:0.3, tx:'putz'}
 };
 /* Art eines Materials: Markierung (userData.pr) geht vor, sonst nach Eigenschaften */
@@ -260,9 +260,10 @@ function prVeredeln(m,o){
 function prBodenGlanz(){
   const P=floorMat&&floorMat.userData.prSpP; if(!P) return;
   let f=FLOORS[0]; try{ if(typeof S!=='undefined'&&S) f=floorSet(); }catch(e){}
-  const rau=f.rau!==undefined?f.rau:0.6;
+  /* 15.10. (Licht-Paket): nur ein Hauch Lack, stark unscharf (MAT.bodenGlanz) - vorher Lack 0,75-1 */
+  const bg=MAT.bodenGlanz(f);
   if(f.art==='velours') P.value.set(0,-1,0.04,0);
-  else P.value.set(clamp(0.75+(f.glanz||0)*0.6,0.75,1),clamp(rau*0.18,0.03,0.15),0.05+(f.glanz||0)*0.06,0);
+  else P.value.set(bg.lack,bg.unschaerfe,0.04,0);
 }
 /* Boden fuer die Spiegelung: flach, waagrecht, auf Hoehe der Ebene */
 const _prB=new THREE.Box3(), _prS=new THREE.Vector3();

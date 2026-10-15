@@ -1,60 +1,86 @@
-/* Licht im Laden (05p, 10.10., Tom: "sieht alles noch so naja aus"):
-   - HOCH: Kontaktschatten (Moebel + Personen), Lichtflecken und Glanzbahnen sind angelegt
-   - KONTAKT: am Fuss der Kasse wird der Boden mit Kontaktschatten sichtbar dunkler
-   - PERSON: eine Person im Laden bekommt einen runden Schatten
-   - AUGE: drinnen weniger Belichtung, draussen (Testfeld, Feuerwerk) unveraendert 1,05,
-     die Gradierung der Bildzusammenfuehrung ist draussen aus
-   - NIEDRIG: nur die Kontaktschatten (ein Zeichenaufruf), keine Lichtflecken, kein Glanz
-   - ULTRALOW: nichts davon in der Szene, Belichtung unveraendert (nicht teurer als vorher)
-   Gegenprobe: GEGENPROBE=1 schaltet Kontaktschatten und Augenanpassung ab -> KONTAKT und AUGE melden.
-   Aufruf: node licht.js real.html */
+/* Licht und Schatten innen (05p, Licht-Paket 15.10., Tom: "immer so dunkel, in eine Richtung wird es hell, Boden glaenzt komisch"):
+   - RAUM: Raumlicht im Shader angelegt (Chunks gepatcht, Raeume aus dachBereiche aktiv), keine wandernden Punktlichter, kein Ladenstrahler
+   - BELICHTUNG: fest 1,05 drinnen wie draussen (keine Augenanpassung), keine Innen-Abdunklung in der Bildzusammenfuehrung
+   - DREHEN: an drei Orten (Laden, Laden Sued, Lager) einmal ganz umdrehen (12 Blicke) - Nachbarbilder springen nicht (< 12 Grauwerte),
+     Tag und Nacht
+   - GLEICH: nachts sind Laden, Sued und Lager gleich hell (mittlere Helligkeit des Blicks auf den Boden, Abweichung < 18 %)
+   - HELL: nachts ist der Laden innen hell (Bodenblick > 120 von 255), tagsueber nichts ausgebrannt (< 3 % reines Weiss)
+   - MATT: Ladenboden matt (Rauheit >= 0,6, Spiegelung <= 0,12) fuer jeden Belag
+   - KONTAKT / PERSON: Kontaktschatten unter der Kasse (Boden sichtbar dunkler) und unter einer Person, EIN Zeichenaufruf
+   - NIEDRIG: nur Kontaktschatten; ULTRALOW: keine Licht-Meshes, Raumlicht aber an (gleich hell)
+   Gegenprobe: GEGENPROBE=1 schaltet Raumlicht und Kontaktschatten ab -> HELL, GLEICH und KONTAKT melden.
+   Aufruf: node -r ./ladezeit-preload.js licht.js real.html */
 const { chromium } = require('/opt/node22/lib/node_modules/playwright');
+const H=require(require('path').join(__dirname,'../../tools/test/start-hilfe.js'));
 const GP=process.env.GEGENPROBE==='1';
 async function laden(b,stufe){
-  const p=await b.newPage({viewport:{width:640,height:400}});
-  p.setDefaultTimeout(900000); p.errs=[]; p.on('pageerror',e=>p.errs.push('PAGEERROR: '+e.message));
-  await p.addInitScript(s=>{ try{ if(!sessionStorage.getItem('x')){ localStorage.clear(); sessionStorage.setItem('x','1'); } localStorage.setItem('bb_gfx',s); }catch(e){} },stufe);
-  await p.goto('file://'+process.argv[2],{timeout:900000,waitUntil:'domcontentloaded'});
-  await p.waitForFunction("!!window.__bb&&!!document.querySelector('#startBtns button:not([disabled])')",null,{timeout:900000,polling:1000});
-  await p.evaluate(()=>{ document.querySelector('#startBtns button:last-child').click(); document.getElementById('nameGo').click(); });
-  await p.waitForFunction("!document.getElementById('start').classList.contains('show')",null,{timeout:900000,polling:1000});
-  if(GP) await p.evaluate(()=>{ const LI=__bb.LI; if(LI.schatten) LI.schatten.material.visible=false; LI.bel.innen=LI.bel.aussen; });
+  const p=await b.newPage({viewport:{width:480,height:300}});
+  p.errs=[]; p.on('pageerror',e=>p.errs.push('PAGEERROR: '+e.message));
+  await H.laden(p,process.argv[2]);
+  await p.evaluate(g=>{ localStorage.clear(); localStorage.setItem('bb_gfx',g); },stufe);
+  await H.neuladen(p); await H.neuesSpiel(p,{stoppen:true});
+  await p.evaluate(gp=>{ const bb=window.__bb; bb.S.level=99; bb.S.money=9e6; for(const u of bb.UPGRADES) if(!u.geplant) bb.S.up[u.id]=true; try{ bb.applyZonen(); }catch(e){} bb.run(1,0.05);
+    if(gp){ const R=bb.RAUM; R.staerke=0; R.hemi=1; R.sig=''; if(bb.LI.schatten) bb.LI.schatten.material.visible=false; } },GP);
   return p;
 }
 const zustand=()=>{ const bb=__bb, LI=bb.LI, R=bb.renderer, gl=R.getContext(), out={};
   const px=()=>{ const W=gl.drawingBufferWidth,H=gl.drawingBufferHeight,a=new Uint8Array(W*H*4); gl.readPixels(0,0,W,H,gl.RGBA,gl.UNSIGNED_BYTE,a); return a; };
+  const hell=()=>{ const a=px(); let s=0,n=0,w=0; for(let i=0;i<a.length;i+=16){ const l=0.2126*a[i]+0.7152*a[i+1]+0.0722*a[i+2]; s+=l; n++; if(l>=250) w++; } return {m:s/n,w:w/n}; };
   const calls=()=>{ R.info.autoReset=false; R.info.reset(); bb.renderFrame(0.016); R.info.autoReset=true; return R.info.render.calls; };
+  const bild=(x,z,yaw,pitch,uhr)=>{ bb.setView(x,z,yaw,pitch); bb.clock=uhr; bb.run(0.05,0.05); bb.clock=uhr; bb.kameraSetzen(); bb.renderFrame(0.05); return hell(); };
   let licht=0; bb.scene.traverse(o=>{ if(o.userData&&o.userData._licht) licht++; });
-  out.an=LI.an; out.fehler=LI.fehler; out.licht=licht; out.flecken=!!LI.flecken; out.glanzMesh=!!LI.glanz;
+  let punkt=0, spot=0; bb.scene.traverse(o=>{ if(o.isPointLight) punkt++; if(o.isSpotLight) spot++; });
+  out.an=LI.an; out.fehler=LI.fehler; out.licht=licht; out.punkt=punkt; out.spot=spot; out.raumOk=!!bb.RAUM.ok; out.raeume=bb.RAUM.nAktiv; out.raumListe=bb.RAUM.nListe;
+  /* Drehen an drei Orten, Tag und Nacht */
+  out.dreh={}; out.boden={};
+  for(const [uhr,tz] of [[600,'tag'],[1320,'nacht']]) for(const [k,x,z] of [['laden',-2,1],['sued',22,-13],['lager',-14,-2]]){
+    const w=[]; for(let i=0;i<=12;i++) w.push(bild(x,z,i*Math.PI/6,-0.1,uhr).m);
+    let mx=0; for(let i=1;i<w.length;i++) mx=Math.max(mx,Math.abs(w[i]-w[i-1]));
+    out.dreh[k+'-'+tz]={sprung:+mx.toFixed(1),min:+Math.min(...w).toFixed(1),max:+Math.max(...w).toFixed(1)};
+    const b=bild(x,z,0,-0.75,uhr); out.boden[k+'-'+tz]={m:+b.m.toFixed(1),weiss:+(b.w*100).toFixed(2)};
+    if(tz==='tag'){ const q=bild(x,z,0,-0.05,uhr); out.boden[k+'-'+tz].weissBlick=+(q.w*100).toFixed(2); } }
+  out.exp=+R.toneMappingExposure.toFixed(3);
+  /* draussen am Testfeld: gleiche Belichtung */
+  const m=bb.testfeldMitte(); bild(m.x,m.z+9,0,0.2,600); out.expAussen=+R.toneMappingExposure.toFixed(3);
+  /* Boden matt fuer jeden Belag */
+  const fm=bb.floorMat; let rmin=1, emax=0; const alt=bb.S.floor;
+  for(const f of bb.FLOORS){ bb.S.floor=f.id; bb.oberflaechenAnwenden(); if(f.art!=='velours'){ rmin=Math.min(rmin,fm.roughness); emax=Math.max(emax,fm.envMap?fm.envMapIntensity:0); } }
+  bb.S.floor=alt; bb.oberflaechenAnwenden(); out.bodenRau=+rmin.toFixed(2); out.bodenEnv=+emax.toFixed(2);
   /* Kasse von schraeg vorn, Blick auf den Fuss */
-  const k=bb.CK_HOME; bb.setView(k.x-2.6,k.z+0.4,-1.5,-0.55); LI.tS=-1e9; bb.shot(); const a=px();
-  out.n=JSON.parse(JSON.stringify(LI.n)); out.exp=+R.toneMappingExposure.toFixed(3);
-  if(LI.schatten){ const v=LI.schatten.visible; LI.schatten.visible=false; bb.shot(); const b=px(); LI.schatten.visible=v;
-    let dunkler=0; for(let i=0;i<a.length;i+=4) if(b[i]+b[i+1]+b[i+2]-(a[i]+a[i+1]+a[i+2])>24) dunkler++; out.dunkler=+(dunkler/(a.length/4)).toFixed(4);
-    const c1=calls(); LI.schatten.visible=false; const c0=calls(); LI.schatten.visible=true; out.callsSchatten=c1-c0; }
-  /* Person mitten im Laden */
-  const g=bb.makePerson({ct:0}); g.position.set(-2,0,-2); bb.scene.add(g); LI.tS=-1e9; bb.setView(-2,1.5,0,-0.4); bb.shot(); out.personen=LI.n.personen; bb.scene.remove(g);
-  /* Glanz im Laden, Blick in die Tiefe */
-  bb.setView(2.2,4.6,0.35,-0.12); bb.shot(); out.glanz=LI.n.glanz; out.expInnen=+R.toneMappingExposure.toFixed(3);
-  /* draussen am Testfeld */
-  const m=bb.testfeldMitte(); bb.setView(m.x,m.z+9,0,0.2); bb.shot(); bb.shot(); out.expAussen=+R.toneMappingExposure.toFixed(3); out.innenAussen=LI.innen;
+  if(LI.schatten){ const k=bb.CK_HOME; bb.setView(k.x-2.6,k.z+0.4,-1.5,-0.55); LI.tS=-1e9; bb.clock=600; bb.kameraSetzen(); bb.renderFrame(0.05); const a=px();
+    out.n=JSON.parse(JSON.stringify(LI.n));
+    const v=LI.schatten.visible; LI.schatten.visible=false; bb.renderFrame(0.05); const c=px(); LI.schatten.visible=v;
+    let dunkler=0; for(let i=0;i<a.length;i+=4) if(c[i]+c[i+1]+c[i+2]-(a[i]+a[i+1]+a[i+2])>24) dunkler++; out.dunkler=+(dunkler/(a.length/4)).toFixed(4);
+    const c1=calls(); LI.schatten.visible=false; const c0=calls(); LI.schatten.visible=true; out.callsSchatten=c1-c0;
+    const g=bb.makePerson({ct:0}); g.position.set(-2,0,-2); bb.scene.add(g); LI.tS=-1e9; bb.setView(-2,1.5,0,-0.4); bb.kameraSetzen(); bb.renderFrame(0.05); out.personen=LI.n.personen; bb.scene.remove(g); }
   return out; };
 (async()=>{
   const b=await chromium.launch({args:['--use-gl=swiftshader','--enable-unsafe-swiftshader','--no-sandbox']});
   const mangel=[]; const pruef=(n,ok,was)=>{ if(!ok) mangel.push(n+': '+was); };
+  const allgemein=(t,h)=>{
+    pruef('RAUM_'+t,h.raumOk&&h.raeume>=8&&h.punkt<=2&&h.spot===0,'Raumlicht '+h.raumOk+', aktive Raeume '+h.raeume+'/'+h.raumListe+', Punktlichter '+h.punkt+', Spots '+h.spot);
+    pruef('BELICHTUNG_'+t,h.exp===1.05&&h.expAussen===1.05,'drinnen '+h.exp+', draussen '+h.expAussen);
+    for(const k in h.dreh) pruef('DREHEN_'+t,h.dreh[k].sprung<12,k+' springt beim Drehen um '+h.dreh[k].sprung);
+    const n=['laden','sued','lager'].map(k=>h.boden[k+'-nacht'].m), mn=Math.min(...n), mx=Math.max(...n);
+    pruef('GLEICH_'+t,mx/mn<1.18,'nachts Boden Laden/Sued/Lager '+n.join(' / '));
+    pruef('HELL_'+t,h.boden['laden-nacht'].m>120,'Laden nachts Bodenblick nur '+h.boden['laden-nacht'].m);
+    for(const k of ['laden','sued','lager']) pruef('WEISS_'+t,h.boden[k+'-tag'].weiss<3&&h.boden[k+'-tag'].weissBlick<3,k+' tagsueber ausgebrannt: '+JSON.stringify(h.boden[k+'-tag']));
+    pruef('MATT_'+t,h.bodenRau>=0.6&&h.bodenEnv<=0.12,'Boden Rauheit min '+h.bodenRau+', Spiegelung max '+h.bodenEnv);
+  };
   let p=await laden(b,'hoch'); const h=await p.evaluate(zustand); console.log('HOCH',JSON.stringify(h));
-  pruef('HOCH',h.an&&!h.fehler&&h.licht===3&&h.n.moebel>=2&&h.n.flecken>=20,JSON.stringify(h));
+  allgemein('HOCH',h);
+  pruef('HOCH',h.an&&!h.fehler&&h.licht===1&&h.n.moebel>=2,JSON.stringify({an:h.an,fehler:h.fehler,licht:h.licht,n:h.n}));
   pruef('KONTAKT',h.dunkler>0.01,'Boden am Kassenfuss nicht dunkler: '+h.dunkler+' der Pixel');
   pruef('PERSON',h.personen>=1,'kein Personenschatten');
-  pruef('GLANZ',h.glanz>=3,'nur '+h.glanz+' Glanzbahnen im Laden');
-  pruef('AUGE',h.expInnen<0.9&&h.expAussen===1.05&&h.innenAussen===0,'Belichtung drinnen '+h.expInnen+', draussen '+h.expAussen+' (soll 1,05)');
   pruef('EIN_AUFRUF',h.callsSchatten===1,'Kontaktschatten kosten '+h.callsSchatten+' Zeichenaufrufe');
   pruef('FEHLER_HOCH',!p.errs.length,p.errs.slice(0,3).join(' | ')); await p.close();
   p=await laden(b,'niedrig'); const n=await p.evaluate(zustand); console.log('NIEDRIG',JSON.stringify(n));
-  pruef('NIEDRIG',n.an&&n.licht===1&&!n.flecken&&!n.glanzMesh&&n.callsSchatten===1&&n.n.moebel>=2,JSON.stringify(n));
+  allgemein('NIEDRIG',n);
+  pruef('NIEDRIG',n.an&&n.licht===1&&n.callsSchatten===1&&n.n.moebel>=2,JSON.stringify({an:n.an,licht:n.licht,calls:n.callsSchatten,n:n.n}));
   pruef('FEHLER_NIEDRIG',!p.errs.length,p.errs.slice(0,3).join(' | ')); await p.close();
   p=await laden(b,'ultralow'); const u=await p.evaluate(zustand); console.log('ULTRALOW',JSON.stringify(u));
-  pruef('ULTRALOW',!u.an&&u.licht===0&&u.expInnen===1.05,JSON.stringify(u));
+  allgemein('ULTRALOW',u);
+  pruef('ULTRALOW',!u.an&&u.licht===0,JSON.stringify({an:u.an,licht:u.licht}));
   pruef('FEHLER_ULTRALOW',!p.errs.length,p.errs.slice(0,3).join(' | ')); await p.close();
   console.log(mangel.length?'MANGEL:\n'+mangel.join('\n'):'ALLES OK');
   console.log('ERRORS:',mangel.length?mangel.join(' | '):'keine'); await b.close();

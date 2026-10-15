@@ -321,8 +321,8 @@ function renderFrame(dt){
     matComp.uniforms.tDiffuse.value=rtScene.texture;
     matComp.uniforms.tBloom.value=rtA.texture;
     matComp.uniforms.time.value=postT;
-    /* Laden-Licht (05p): drinnen satte Mitteltoene - draussen (Feuerwerk) unveraendert */
-    matComp.uniforms.innen.value=typeof LI!=='undefined'&&LI.an?LI.innen:0;
+    /* 15.10.: keine Innen-Abdunklung mehr (pow 1,2 je nach Kameraort liess die Raeume dunkel und springen) */
+    matComp.uniforms.innen.value=0;
     renderer.setRenderTarget(null); renderer.render(quadScene,quadCam);
   }catch(e){ postOK=false; if(renderer.setRenderTarget) renderer.setRenderTarget(null); renderer.render(scene,camera); }
 }

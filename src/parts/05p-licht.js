@@ -1,39 +1,131 @@
 /* =========================================================
-   Licht im Laden (10.10., Tom: "sieht alles noch so naja aus")
+   Licht und Schatten innen (Licht-Paket 15.10., ersetzt die Fassung vom 10.10.)
 
-   Der Laden war gleichmaessig hell wie ein Foto mit Blitz: Himmelslicht
-   ueberall gleich, Regale standen ohne Schatten auf dem Boden, der Boden
-   hatte keine Lichtflecken unter den Leuchten und keinen Glanz. Was gute
-   Spiele hier machen, ohne teure Echtzeit-Verschattung:
+   Tom, 15.10.: "Wenn man durch die Raeume laeuft, ist es immer so dunkel, und wenn
+   man in eine bestimmte Richtung geht, wird es hell - macht keinen Sinn, muss gleich
+   ausgeleuchtet sein. Auf der Verkaufsflaeche glaenzt der Boden so komisch."
+   Ursachen (gemessen, docs/uebergabe/licht-1510.md):
+   - AUGENANPASSUNG: drinnen Belichtung 0,74 statt 1,05, dazu in der Bildzusammenfuehrung
+     eine Gamma-Abdunklung (pow 1,2) - je nach Kameraort umgeblendet: Raeume dunkel,
+     Helligkeit springt an jeder Tuer und an jeder Stelle, die "unterDach" anders sieht.
+   - WANDERNDE LICHTER: das Innenlicht waren 3 Punktlichter, die den Leuchten vor dem
+     Blick des Spielers folgten - drehte man sich, wanderte das Licht mit, Ecken ohne
+     Licht blieben dunkel; nachts sank das Himmelslicht auf 0,16, dann gab es fast nur sie.
+   - GLANZ: Glanzbahnen (Spiegelbild der Leuchten, zum Betrachter gezogen) plus Boden-
+     Rauheit 0,3-0,5 mit Umgebungsbild (ab Maximum Rauheit halbiert und Spiegelung >= 1).
 
-   - KONTAKTSCHATTEN: unter jedem Moebel (Regal, Kasse, Tisch, Lagerregal,
-     Packtisch, Karton auf dem Boden) ein weicher dunkler Saum, der nach
-     aussen ausläuft - Breite nach Hoehe des Moebels. Unter jeder Person
-     ein runder Schatten, der mitlaeuft. Alles in EINEM Zeichenaufruf
-     (Instanzen), die Lage wird alle 2 s abgeglichen, die Personen jedes Bild.
-   - LICHTFLECKEN: unter jeder Deckenleuchte ein warmer, weich auslaufender
-     Lichtkegel auf dem Boden - zwischen den Leuchten bleibt es etwas
-     dunkler, der Raum bekommt Tiefe. Ein Zeichenaufruf fuer alle Leuchten.
-   - GLANZ (ab Mittel, solange die echte Bodenspiegelung aus Pracht nicht
-     laeuft): die naechsten Leuchten spiegeln sich als weiche, zum
-     Betrachter gezogene Lichtbahnen im Boden - wie auf versiegeltem Estrich.
-     Lage aus der Spiegelgeometrie (Leuchte unter den Boden gespiegelt,
-     Sichtstrahl schneidet die Bodenebene), Staerke nach Blickwinkel
-     (Fresnel) und Belag. Ein Zeichenaufruf.
-
-   - AUGENANPASSUNG: drinnen Belichtung 0,74 statt 1,05 (weisse Regale und
-     heller Boden liefen in reines Weiss), dazu in der Bildzusammenfuehrung
-     (ab Mittel) sattere Mitteltoene. Draussen - Strasse, Testfeld,
-     Feuerwerk - bleibt alles wie gehabt; der Wechsel dauert eine halbe
-     Sekunde wie beim Auge.
-
-   Ultra Low legt nichts davon an (bleibt so schnell wie bisher). Niedrig
-   bekommt nur die Kontaktschatten (ein Zeichenaufruf, kleine Flaechen;
-   keine Echtzeit-Schatten - dort sind sie der einzige Schatten ueberhaupt)
-   und die Augenanpassung (nur ein Zahlenwert).
+   Neu - ein RAUMLICHT im Shader (alle Stufen, kostet keinen Zeichenaufruf):
+   - Jede Flaeche weiss, ob sie in einem Raum liegt (Weltlage gegen die Raumliste aus
+     dachBereiche(), also dieselben Raeume, Zonen und Ausbaustufen wie Schnee/Kunden).
+     Drinnen bekommt sie gleichmaessiges Deckenlicht: von oben voll, seitlich 65 %, von
+     unten 30 % - Tag und Nacht gleich, an jedem Ort gleich, egal wohin man schaut.
+   - Das Himmelslicht wirkt drinnen nur noch zu RAUM.hemi (Tageslicht durch die Fenster),
+     die Sonne nur, wo die Schattenkarte sie durchlaesst (Fenster, Tore: Sonnenflecken mit
+     Schatten). Ohne Schattenkarte (Niedrig, Ultra Low, Handy) ist die Sonne drinnen aus -
+     sonst schiene sie durchs Dach.
+   - Glanz: Flaechen ohne Umgebungsbild spiegeln drinnen einen gleichmaessig hellen Raum
+     (RAUM.spec) - Metall bleibt Metall, ohne wandernde Lichtpunkte.
+   - Belichtung fest LI_BEL (1,05) drinnen wie draussen; keine Augenanpassung.
+   - Ultra Low (Lambert, Licht je Ecke): dieselbe Rechnung im Vertexshader, sonst nichts.
+   - Kontaktschatten unter Moebeln und Personen bleiben (ab Niedrig, ein Zeichenaufruf).
+   Wegfall: 3 wandernde Punktlichter, Ladenstrahler (mit eigener Schattenkarte),
+   Lichtflecken und Glanzbahnen - weniger Licht je Pixel, ein Schattendurchgang weniger.
    ========================================================= */
-const LI={an:false, schatten:null, flecken:null, glanz:null, objs:new Map(), personen:[], tS:0, sig:'', n:{moebel:0,personen:0,flecken:0,glanz:0}, fehler:null, raeume:null, innen:0, cx:1e9, cz:1e9};
-const LI_BEL={aussen:1.05, innen:0.74}; LI.bel=LI_BEL;
+const LI={an:false, schatten:null, objs:new Map(), personen:[], tS:0, n:{moebel:0,personen:0}, fehler:null, raum:null};
+const LI_BEL=1.05; LI.bel=LI_BEL;
+/* Raumlicht: Staerke (Deckenlicht von oben), Anteil Himmelslicht drinnen, Glanz des Raums
+   (Leuchtdichte der Umgebung je Staerke 1), hoechstens RAUM.n Raeume */
+const RAUM={n:24, staerke:0.7, decke:0.38, hemi:0.25, spec:0.32, werte:null, sig:'', liste:[], nAktiv:0, tS:-1e9};
+/* DECKENLICHT mit Schatten (ab Mittel): ein Richtungslicht fast senkrecht von oben (10 Grad geneigt), wirkt nur
+   drinnen (der Shader erkennt es an der Richtung) - Regale, Kassen, Personen, Kartons werfen weiche Schatten auf
+   den Boden, untere Regalboeden liegen im Schatten der oberen. Die Schattenkarte deckt 32 x 32 m um den Spieler,
+   das Licht sitzt 3,3 m hoch: Decken und Daecher liegen darueber und werfen keinen Schatten. Ohne Schattenkarte
+   (Niedrig) ist es aus, das Raumlicht uebernimmt seinen Anteil (gleich hell). */
+const DECKE={l:null, h:3.3, neig:0.176, halb:16, x:1e9, z:1e9};
+(function raumShader(){
+  const C=THREE.ShaderChunk;
+  /* Test-Attrappe von three (Node, test.html): keine Shader - nichts zu tun */
+  if(!C||typeof C.lights_fragment_begin!=='string'||typeof C.lights_lambert_vertex!=='string'||!THREE.ShaderLib||!THREE.Vector4) return;
+  const N=RAUM.n, V=[]; for(let i=0;i<N*2+1;i++) V.push(new THREE.Vector4());
+  RAUM.werte=V;
+  /* Werte an alle eingebauten Licht-Materialien: three kopiert die Uniform-Tabelle je Material
+     (UniformsUtils.clone), Listen aber flach (slice) - die Vector4 darin bleiben dieselben
+     Objekte, ein Setzen hier wirkt also in allen Materialien */
+  for(const k of ['standard','physical','lambert','phong','toon']) if(THREE.ShaderLib[k]) THREE.ShaderLib[k].uniforms.raumL={value:V};
+  C.lights_pars_begin+=`
+#define RAUM_N ${N}
+uniform vec4 raumL[ ${N*2+1} ];
+/* x: Raumlicht-Staerke (0 = draussen), y: Sonnenanteil drinnen */
+vec2 raumAn( vec3 p ){
+  for( int i = 0; i < RAUM_N; i ++ ){
+    vec4 b = raumL[ 1 + i * 2 ]; vec4 q = raumL[ 2 + i * 2 ];
+    if( q.z > 0.0 && p.x > b.x && p.x < b.z && p.z > b.y && p.z < b.w && p.y > q.x && p.y < q.y ) return vec2( q.z, q.w );
+  }
+  return vec2( 0.0, 1.0 );
+}
+vec3 raumIrr( float st, vec3 nW ){ return st * ( 0.75 + 0.25 * nW.y ) * vec3( 1.0, 0.965, 0.91 ) * PI; }
+`;
+  /* Fragment (Standard, Physical, Phong, Toon) */
+  let f=C.lights_fragment_begin;
+  f=f.replace('IncidentLight directLight;','IncidentLight directLight;\nvec3 raumP = cameraPosition + ( vec4( geometry.position, 0.0 ) * viewMatrix ).xyz;\nvec3 raumN = ( vec4( geometry.normal, 0.0 ) * viewMatrix ).xyz;\nvec2 raumA = raumAn( raumP );\nfloat raumSo = raumA.x > 0.0 ? raumA.y : 1.0;');
+  const dir=f.indexOf('#if ( NUM_DIR_LIGHTS > 0 ) && defined( RE_Direct )'), dirE=f.indexOf('#if ( NUM_RECT_AREA_LIGHTS');
+  f=f.slice(0,dir)+f.slice(dir,dirE).replace('RE_Direct( directLight, geometry, material, reflectedLight );','directLight.color *= ( vec4( directLight.direction, 0.0 ) * viewMatrix ).y > 0.95 ? ( raumA.x > 0.0 ? 1.0 : 0.0 ) : raumSo;\n\t\tRE_Direct( directLight, geometry, material, reflectedLight );')+f.slice(dirE);
+  f=f.replace(/(#if defined\( RE_IndirectSpecular \)\s*vec3 radiance = vec3\( 0\.0 \);)/,'#if defined( RE_IndirectDiffuse )\n\tif( raumA.x > 0.0 ) irradiance = irradiance * raumL[ 0 ].x + raumIrr( raumA.x, raumN );\n#endif\n$1\n#ifndef USE_ENVMAP\n\tradiance += raumA.x * raumL[ 0 ].y * vec3( 1.0, 0.965, 0.91 );\n#endif');
+  /* Lambert (Ultra Low): Licht je Ecke */
+  let l=C.lights_lambert_vertex;
+  l=l.replace('backGeometry.viewDir = geometry.viewDir;','backGeometry.viewDir = geometry.viewDir;\nvec3 raumN = ( vec4( geometry.normal, 0.0 ) * viewMatrix ).xyz;\nvec2 raumA = raumAn( cameraPosition + ( vec4( mvPosition.xyz, 0.0 ) * viewMatrix ).xyz );\nfloat raumSo = raumA.x > 0.0 ? raumA.y : 1.0;');
+  const ld=l.indexOf('#if NUM_DIR_LIGHTS > 0'), ldE=l.indexOf('#if NUM_HEMI_LIGHTS > 0');
+  l=l.slice(0,ld)+l.slice(ld,ldE).replace('directLightColor_Diffuse = PI * directLight.color;','directLightColor_Diffuse = PI * directLight.color * raumSo;')+l.slice(ldE)
+    +'\nif( raumA.x > 0.0 ){ vIndirectFront = vIndirectFront * raumL[ 0 ].x + raumIrr( raumA.x, raumN );\n#ifdef DOUBLE_SIDED\n\tvIndirectBack = vIndirectBack * raumL[ 0 ].x + raumIrr( raumA.x, -raumN );\n#endif\n}\n';
+  RAUM.ok=f.indexOf(': raumSo;\n\t\tRE_Direct')>0&&f.indexOf('raumIrr( raumA.x, raumN )')>0&&l.indexOf('* raumSo;')>0;
+  if(RAUM.ok){ C.lights_fragment_begin=f; C.lights_lambert_vertex=l; }
+})();
+/* Raumliste aus den Daechern (dieselben Raeume wie Schnee, Kunden, Personal): Dachbereich ohne
+   den Rand von 0,3 m bzw. 0,4 m ueber der Decke, dafuer 6 cm Luft - die Innenseite der Wand gehoert
+   zum Raum, die Aussenseite (20 cm weiter) nicht */
+function raumListe(){
+  if(RAUM.liste.length||typeof dachBereiche!=='function') return RAUM.liste;
+  for(const d of dachBereiche()) RAUM.liste.push({d,x0:d.x0+0.24,x1:d.x1-0.24,z0:d.z0+0.24,z1:d.z1-0.24,h:d.h-0.34});
+  return RAUM.liste;
+}
+function raumAktiv(d){ return (!d.zone||(typeof zoneOffen==='function'&&zoneOffen(d.zone)))&&(d.stufe===undefined||typeof logiZeige!=='function'||logiZeige()===d.stufe); }
+/* Werte setzen, wenn sich Zonen, Ausbaustufe oder Grafikstufe aendern (sonst nichts zu tun) */
+function raumSchatten(){ return !!(renderer.shadowMap.enabled&&sun.castShadow&&!gfxNiedrig(GFX)&&sun.shadow.bias>-1); }
+/* Deckenlicht beim Laden anlegen (vor dem ersten Shader - die Zahl der Lichter steht dann fest), gleiche Bedingung
+   wie die Sonnenschatten: so bleibt der Wechsel Niedrig <-> Hoch ohne Shader-Neubau */
+if(RAUM.werte&&HIQ&&GFX!=='ultralow'&&renderer.shadowMap.enabled){
+  const l=new THREE.DirectionalLight(MAT.farbe('lampeWarm'),0); l.castShadow=true; const c=l.shadow.camera;
+  c.left=-DECKE.halb; c.right=DECKE.halb; c.top=DECKE.halb; c.bottom=-DECKE.halb; c.near=0.05; c.far=DECKE.h+0.6;
+  l.shadow.bias=-0.0008; l.shadow.normalBias=0.03; l.userData.decke=true;
+  scene.add(l); scene.add(l.target); DECKE.l=l;
+}
+function deckeTakt(){
+  const l=DECKE.l; if(!l) return;
+  const an=raumSchatten();
+  l.intensity=an?RAUM.decke:0; l.shadow.bias=an?-0.0008:-10;
+  const g=GFX_PROFIL[GFX]||GFX_PROFIL.hoch, gr=Math.min(2048,g.sch,renderer.capabilities.maxTextureSize||2048);
+  if(l.shadow.mapSize.x!==gr){ l.shadow.mapSize.set(gr,gr); if(l.shadow.map){ l.shadow.map.dispose(); l.shadow.map=null; } }
+  l.shadow.radius=g.rad*1.6;
+  /* dem Spieler in 2-m-Schritten folgen (ganze Texel - die Schatten flimmern beim Gehen nicht) */
+  const r=2, tx=Math.round(pl.x/r)*r, tz=Math.round(pl.z/r)*r;
+  if(tx===DECKE.x&&tz===DECKE.z) return; DECKE.x=tx; DECKE.z=tz;
+  l.target.position.set(tx,0,tz); l.position.set(tx-DECKE.h*DECKE.neig*0.6,DECKE.h,tz+DECKE.h*DECKE.neig*0.8);
+  l.target.updateMatrixWorld(); l.updateMatrixWorld();
+}
+function raumTakt(){
+  const V=RAUM.werte, L=raumListe(); if(!V||!L.length) return;
+  const schatten=raumSchatten(), st=RAUM.staerke+(schatten&&DECKE.l?0:RAUM.decke*0.85);
+  let sig=(schatten?'s':'-')+st+'|'+RAUM.hemi+'|'+RAUM.spec+'|'; for(const r of L) sig+=raumAktiv(r.d)?1:0;
+  if(sig===RAUM.sig) return; RAUM.sig=sig;
+  V[0].set(RAUM.hemi,RAUM.spec,0,0); let n=0;
+  for(let i=0;i<RAUM.n;i++){ const r=L[i], b=V[1+i*2], q=V[2+i*2];
+    if(r&&raumAktiv(r.d)){ b.set(r.x0,r.z0,r.x1,r.z1); q.set(-0.6,r.h,st,schatten?1:0); n++; }
+    else { b.set(0,0,0,0); q.set(0,0,0,0); } }
+  RAUM.nAktiv=n; RAUM.nListe=L.length;
+}
+/* Liegt ein Punkt im Raumlicht? (fuer Tests und Kontaktschatten, gleiche Regel wie der Shader) */
+function raumAn(x,y,z){ const V=RAUM.werte; if(!V) return 0; for(let i=0;i<RAUM.n;i++){ const b=V[1+i*2], q=V[2+i*2];
+  if(q.z>0&&x>b.x&&x<b.z&&z>b.y&&z<b.w&&y>q.x&&y<q.y) return q.z; } return 0; }
 const LI_GEO_VS=`
 varying vec2 vUv;
 varying vec3 vP;
@@ -65,20 +157,6 @@ void main(){
   else { vec2 inner=max(vS*0.5-vP.y,vec2(0.001)); float d=length(max(abs(p)-inner,0.0)); float k=1.0-clamp(d/vP.y,0.0,1.0); a=vP.x*k*sqrt(k); }
   gl_FragColor=vec4(0.0,0.0,0.0,a);
 }`;
-/* Licht: vP.x Staerke, vP.z 0 Lichtfleck (rund, weich) / 1 Glanzbahn (laenglich, mit Kern) */
-const LI_LICHT_FS=`
-uniform vec3 farbe;
-varying vec2 vUv;
-varying vec3 vP;
-varying vec2 vS;
-void main(){
-  vec2 q=(vUv-0.5)*2.0;
-  float r2=dot(q,q), i;
-  if(vP.z>0.5) i=exp(-(q.x*q.x*9.0+q.y*q.y*4.5))*0.75+exp(-(q.x*q.x*2.6+q.y*q.y*1.6))*0.3;
-  else i=exp(-2.6*r2);
-  i*=1.0-smoothstep(0.82,1.0,sqrt(r2));
-  gl_FragColor=vec4(farbe*i*vP.x,1.0);
-}`;
 function liMesh(n,fs,add,ro){
   const g=new THREE.PlaneGeometry(1,1); g.rotateX(-Math.PI/2);
   const m=new THREE.ShaderMaterial({uniforms:{farbe:{value:new THREE.Color(1,0.93,0.82)}},vertexShader:LI_GEO_VS,fragmentShader:fs,transparent:true,depthWrite:false,
@@ -90,13 +168,11 @@ function liMesh(n,fs,add,ro){
   scene.add(o); return o;
 }
 function lichtAufbau(){
+  raumTakt();
   try{
     if(GFX_START===GFX_PROFIL.ultralow||GFX==='ultralow') return;
     if(String(THREE.REVISION).indexOf('stub')>=0||!THREE.InstancedMesh||!THREE.InstancedBufferAttribute) return;
     LI.schatten=liMesh(900,LI_SCH_FS,false,2);
-    /* Niedrig: nur die Kontaktschatten (kleine Flaechen) - Lichtflecken und Glanz liegen
-       grossflaechig auf dem Boden und kosten Fuellrate, die ein alter Rechner nicht hat */
-    if(!gfxNiedrig(GFX)){ LI.flecken=liMesh(400,LI_LICHT_FS,true,3); LI.glanz=liMesh(24,LI_LICHT_FS,true,4); }
     LI.an=true; LI.tS=-1e9;
   }catch(e){ LI.fehler=String(e&&e.message||e); LI.an=false; }
 }
@@ -117,11 +193,6 @@ function liKasten(g){
     _liRel.multiplyMatrices(_liInv,o.matrixWorld); _liB2.copy(ge.boundingBox).applyMatrix4(_liRel); _liB.union(_liB2); n++; });
   return n?_liB.clone():null;
 }
-function liRaeume(){
-  if(!LI.raeume){ const L=LAY; LI.raeume=[L.shop,{x0:-19.9,x1:-8.1,z0:-29.9,z1:5.9},L.schleuse,L.lw2,L.lwest,LL.lager3,LL.schleuse].filter(Boolean); }
-  return LI.raeume;
-}
-function liRaum(x,z){ const R=liRaeume(); for(let i=0;i<R.length;i++){ const r=R[i]; if(x>r.x0-0.2&&x<r.x1+0.2&&z>r.z0-0.2&&z<r.z1+0.2) return i; } return -1; }
 /* Hoehe eines Moebels (einmal je Lage/Bestueckung gemessen) */
 function liHoehe(g){
   const e=g.matrixWorld.elements, sig=Math.round(e[12]*20)+','+Math.round(e[14]*20)+','+Math.round(e[0]*20)+','+g.children.length;
@@ -155,7 +226,7 @@ function liMoebelSchatten(){
     if(typeof unterDach==='function'&&!unterDach(e.x,1,e.z)) continue;
     /* Saum nach Hoehe: hohe Regale werfen einen breiteren, dunkleren Schatten; der dunkelste
        Rand liegt knapp innerhalb der Stellflaeche (die ist mit etwas Luft bemessen) */
-    const f=clamp(0.16+e.h*0.13,0.2,0.5), dichte=clamp(0.42+e.h*0.08,0.45,0.66), ein=Math.min(0.08,e.w*0.2,e.d*0.2);
+    const f=clamp(0.16+e.h*0.13,0.2,0.5), dichte=clamp(0.5+e.h*0.08,0.5,0.72), ein=Math.min(0.08,e.w*0.2,e.d*0.2);
     liSetzen(S,n++,e.x,Math.max(0,e.y0)+0.04,e.z,e.ry,e.w-2*ein+2*f,e.d-2*ein+2*f,dichte,f,0);
   }
   LI.n.moebel=n; LI.nMoebel=n; LI.voll=true;
@@ -181,66 +252,16 @@ function liPersonenSchatten(){
   S.count=n;
   if(LI.voll){ LI.voll=false; liHoch(S,0,n); } else liHoch(S,LI.nMoebel||0,n);
 }
-/* ---------- Lichtflecken unter den Deckenleuchten ---------- */
-function liFlecken(){
-  const F=LI.flecken; let n=0;
-  for(const L of LAMPEN){ if(n>=F.instanceMatrix.count) break; if(L.id&&typeof zoneOffen==='function'&&!zoneOffen(L.id)) continue; if(L.aus&&zoneOffen(L.aus)) continue;
-    const h=L.y, r=clamp(h*0.5,1.7,5), k=clamp(0.2*3.6/h,0.1,0.2);
-    liSetzen(F,n++,L.x,0.043,L.z,0,r*2.4,r*1.9,k,0,0); }
-  F.count=n; liHoch(F,0,n); LI.n.flecken=n;
-}
-/* ---------- Glanzbahnen: Spiegelbild der naechsten Leuchten im Boden ---------- */
-function liGlanzStaerke(raum){
-  if(raum!==0) return raum===1?0.7:0.6;
-  let f=null; try{ f=typeof floorSet==='function'?floorSet():null; }catch(e){}
-  if(!f) return 0.8; if(f.art==='velours') return 0;
-  return clamp(0.55+(f.glanz||0)*0.5+(0.6-(f.rau!==undefined?f.rau:0.6))*0.6,0.35,1.15);
-}
-function liGlanz(){
-  const G=LI.glanz, cam=camera.position, cy=cam.y;
-  const spiegel=typeof PR!=='undefined'&&PR.an&&PR.sp&&PR.sp.k.value>0;
-  if(spiegel||gfxNiedrig(GFX)||cy<0.3||cy>6){ G.count=0; LI.n.glanz=0; return; }
-  const fx=-Math.sin(yaw), fz=-Math.cos(yaw), kand=[];
-  for(const L of LAMPEN){ if(L.id&&typeof zoneOffen==='function'&&!zoneOffen(L.id)) continue; if(L.aus&&zoneOffen(L.aus)) continue;
-    const dx=L.x-cam.x, dz=L.z-cam.z, d=Math.hypot(dx,dz); if(d>24||d<0.3) continue;
-    if((dx*fx+dz*fz)<-1.5) continue;
-    kand.push({L,d}); }
-  kand.sort((a,b)=>a.d-b.d);
-  const gl=[]; let n=0;
-  for(const k of kand){ if(n>=G.instanceMatrix.count) break; const L=k.L, H=L.y-0.05;
-    /* Leuchte unter den Boden gespiegelt: (x, -H, z); der Sichtstrahl trifft den Boden bei t */
-    const t=cy/(cy+H), px=cam.x+(L.x-cam.x)*t, pz=cam.z+(L.z-cam.z)*t;
-    const raum=liRaum(L.x,L.z); if(raum<0||liRaum(px,pz)!==raum) continue;
-    if(gl[raum]===undefined) gl[raum]=liGlanzStaerke(raum); const g=gl[raum]; if(g<=0) continue;
-    const dh=Math.hypot(px-cam.x,pz-cam.z), sinA=cy/Math.hypot(dh,cy);       /* Neigung des Blicks zum Boden */
-    const fres=0.3+0.7*Math.pow(1-sinA,2);
-    const ferne=1-clamp((k.d-14)/10,0,1);
-    const ry=Math.atan2(px-cam.x,pz-cam.z);
-    const lang=0.8+2.8*(1-sinA)+H*0.12, breit=0.6+H*0.04;
-    liSetzen(G,n++,px,0.045,pz,ry,breit,lang,0.66*g*fres*ferne,0,1); }
-  G.count=n; liHoch(G,0,n); LI.n.glanz=n;
-}
 function ladenLichtTakt(dt){
+  /* Belichtung fest - drinnen wie draussen (keine Augenanpassung mehr) */
+  renderer.toneMappingExposure=LI_BEL;
+  try{ deckeTakt(); }catch(e){ LI.fehler=String(e&&e.message||e); }
+  const jetzt=performance.now();
+  if(jetzt-RAUM.tS>500){ RAUM.tS=jetzt; try{ raumTakt(); }catch(e){ LI.fehler=String(e&&e.message||e); } }
   if(!LI.an) return;
   try{
-    const nied=gfxNiedrig(GFX);
-    if(LI.flecken){ LI.flecken.visible=!nied;
-      const sig=LAMPEN.length+'|'+(typeof S!=='undefined'&&S&&S.up?Object.keys(S.up).filter(k=>S.up[k]).length:0);
-      if(sig!==LI.sig){ LI.sig=sig; liFlecken(); } }
     /* alle 2 s nach der Uhr (nicht nach dt: Testbilder zeichnen mit festem dt, dazwischen laeuft das Spiel weiter) */
-    const jetzt=performance.now();
     if(jetzt-LI.tS>2000){ LI.tS=jetzt; liMoebelSchatten(); liPersonen(); }
     liPersonenSchatten();
-    if(LI.glanz) liGlanz();
-    /* Augenanpassung: drinnen etwas weniger Belichtung - weisse Regale und heller Boden
-       liefen sonst in reines Weiss, die Leuchten (nicht tonwertgemappt) heben sich ab.
-       Draussen (Feuerwerk, Strasse) bleibt alles wie gehabt. Ein Sprung der Kamera
-       (Teleport, Testbild) passt sofort an. */
-    const c=camera.position, drin=typeof unterDach==='function'&&unterDach(c.x,1,c.z)?1:0;
-    const sprung=Math.abs(c.x-LI.cx)+Math.abs(c.z-LI.cz)>3; LI.cx=c.x; LI.cz=c.z;
-    /* nach der Uhr (wie die Schatten): Testbilder liegen Sekunden auseinander und sind dann angepasst */
-    const tA=Math.min(1,Math.max(0,(jetzt-(LI.tA||jetzt))/1000)); LI.tA=jetzt;
-    LI.innen=sprung?drin:LI.innen+(drin-LI.innen)*Math.min(1,tA*2.5);
-    renderer.toneMappingExposure=LI_BEL.aussen+(LI_BEL.innen-LI_BEL.aussen)*LI.innen;
-  }catch(e){ LI.fehler=String(e&&e.message||e); LI.an=false; renderer.toneMappingExposure=LI_BEL.aussen; for(const o of [LI.schatten,LI.flecken,LI.glanz]) if(o) o.visible=false; }
+  }catch(e){ LI.fehler=String(e&&e.message||e); LI.an=false; if(LI.schatten) LI.schatten.visible=false; }
 }

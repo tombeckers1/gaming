@@ -16,6 +16,8 @@ const GP=process.env.GEGENPROBE==='1';
 async function laden(b,stufe){
   const p=await b.newPage({viewport:{width:480,height:300}});
   p.errs=[]; p.on('pageerror',e=>p.errs.push('PAGEERROR: '+e.message));
+  /* Shader-Fehler (three meldet sie nur auf der Konsole, das Objekt bleibt dann unsichtbar) */
+  p.on('console',m=>{ const t=m.text(); if(m.type()==='error'&&/shader|THREE\.WebGLProgram|ERROR: 0:/i.test(t)) p.errs.push('SHADER: '+t.slice(0,300)); });
   await H.laden(p,process.argv[2]);
   await p.evaluate(g=>{ localStorage.clear(); localStorage.setItem('bb_gfx',g); },stufe);
   await H.neuladen(p); await H.neuesSpiel(p,{stoppen:true});

@@ -1,6 +1,7 @@
 // Licht-Bilder und Helligkeits-Lauf (Licht-Paket 15.10.). Immer unter der Sperre starten:
 //   flock /tmp/bb-testlock-licht node -r <arbeitsordner>/ladezeit-preload.js tools/licht/bilder.js <real.html> <ordner> <gfx> [bilder|lauf] [tag]
-// zaehlen: Zeichenaufrufe (inkl. Schattenkarten und Bildeffekte) und Bildzeit je Ansicht. Modi kombinierbar: bilder,zaehlen,lauf
+// zaehlen: Zeichenaufrufe (inkl. Schattenkarten und Bildeffekte) und Bildzeit je Ansicht, Mittel ueber 2 Bilder (Mittel: 6 -
+//         dort zeichnet die Sonne ihre Schattenkarte nur jedes 3. Bild). Modi kombinierbar: bilder,zaehlen,lauf
 // bilder: feste Kameras (Laden vom Eingang/von der Kasse erhoeht wie das Referenzbild, Gang, Lager, Versand, Halle, Werk, Sued)
 //         je Tag (10:00) und Nacht (22:00) -> <ordner>/<ansicht>-<tag|nacht>-<gfx><tag>.jpg; Mittelwert je Bild in mittel.json
 // lauf:   Gang durch die Raeume (ein Bild je 3 m, 480 x 270) mit Kameradrehung (6 Blicke je Wegpunkt), mittlere Bildhelligkeit je Bild
@@ -57,15 +58,15 @@ const WEG=[[0,4],[0,-3],[14,1],[22,-12],[4,-3],[-7.4,1.0],[-14,-8],[-14,-22],[-3
   }
   if(MOD.includes('zaehlen')){
     /* Zeichenaufrufe je Bild (alles: Schattenkarten, Szene, Bildeffekte) und Bildzeit (swiftshader, nur als Vergleichswert) */
-    const r=await p.evaluate(({ANS})=>{ const bb=window.__bb, R=bb.renderer, cam=bb.camera, o={};
+    const r=await p.evaluate(({ANS,gfx})=>{ const bb=window.__bb, R=bb.renderer, cam=bb.camera, o={};
       for(const k of ['ladenEingang','lager','halle','werk']){ const v=ANS[k]; const dx=v.t[0]-v.p[0], dz=v.t[2]-v.p[2], yaw=Math.atan2(-dx,-dz);
         bb.setView(v.p[0],v.p[2],yaw,0); bb.clock=600; bb.run(0.4,0.05); bb.clock=600; bb.applyTOD();
         const f=()=>{ bb.kameraSetzen(); cam.position.set(v.p[0],v.p[1],v.p[2]); cam.lookAt(v.t[0],v.t[1],v.t[2]); cam.updateMatrixWorld(); };
         for(let i=0;i<2;i++){ f(); bb.renderFrame(0.05); }
         const gl=R.getContext(), px=new Uint8Array(4); let calls=0, tris=0, ms=0;
-        for(let i=0;i<2;i++){ f(); R.info.autoReset=false; R.info.reset(); const t=performance.now(); bb.renderFrame(0.05); gl.readPixels(0,0,1,1,gl.RGBA,gl.UNSIGNED_BYTE,px); ms+=performance.now()-t; calls+=R.info.render.calls; tris+=R.info.render.triangles; R.info.autoReset=true; }
-        o[k]={calls:Math.round(calls/2),tris:Math.round(tris/2),ms:Math.round(ms/2)}; }
-      return o; },{ANS});
+        const NB=gfx==='mittel'?6:2; for(let i=0;i<NB;i++){ f(); R.info.autoReset=false; R.info.reset(); const t=performance.now(); bb.renderFrame(0.05); gl.readPixels(0,0,1,1,gl.RGBA,gl.UNSIGNED_BYTE,px); ms+=performance.now()-t; calls+=R.info.render.calls; tris+=R.info.render.triangles; R.info.autoReset=true; }
+        o[k]={calls:Math.round(calls/NB),tris:Math.round(tris/NB),ms:Math.round(ms/NB)}; }
+      return o; },{ANS,gfx});
     fs.writeFileSync(path.join(out,'zaehlen-'+gfx+tag+'.json'),JSON.stringify(r,null,1));
     console.log('ZAEHLEN',gfx,JSON.stringify(r));
   }

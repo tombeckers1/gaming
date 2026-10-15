@@ -80,9 +80,10 @@ vec3 raumIrr( float st, vec3 nW ){ return st * ( 0.85 + 0.15 * nW.y ) * vec3( 1.
   const L=THREE.ShaderLib.lambert; let lv=L.vertexShader, lf=L.fragmentShader;
   lv=lv.replace('#include <common>','#include <common>\nvarying vec3 vRaumW;\nvarying vec3 vRaumN;')
        .replace('#include <lights_lambert_vertex>','#include <lights_lambert_vertex>\n{ vec4 raumW = vec4( transformed, 1.0 );\n#ifdef USE_INSTANCING\n\traumW = instanceMatrix * raumW;\n#endif\n\tvRaumW = ( modelMatrix * raumW ).xyz; vRaumN = ( vec4( geometry.normal, 0.0 ) * viewMatrix ).xyz; }');
-  lf=lf.replace('#include <common>','#include <common>\nvarying vec3 vRaumW;\nvarying vec3 vRaumN;'+GLSL)
+  /* raumAn/raumL kommen ueber lights_pars_begin (steht auch im Lambert-Fragment) - hier nur die Varyings */
+  lf=lf.replace('#include <common>','#include <common>\nvarying vec3 vRaumW;\nvarying vec3 vRaumN;')
        .replace('#include <aomap_fragment>','{ vec2 raumA = raumAn( vRaumW );\n\tif( raumA.x > 0.0 ){ vec3 raumN = normalize( vRaumN );\n#ifdef DOUBLE_SIDED\n\t\tif( !gl_FrontFacing ) raumN = -raumN;\n#endif\n\t\treflectedLight.indirectDiffuse = reflectedLight.indirectDiffuse * raumL[ 0 ].x + raumIrr( raumA.x, raumN ) * BRDF_Diffuse_Lambert( diffuseColor.rgb );\n\t\treflectedLight.directDiffuse *= raumA.y; } }\n#include <aomap_fragment>');
-  const lamOk=lv.indexOf('vRaumW = ( modelMatrix')>0&&lf.indexOf('raumIrr( raumA.x, raumN ) * BRDF')>0;
+  const lamOk=lv.indexOf('vRaumW = ( modelMatrix')>0&&lf.indexOf('raumIrr( raumA.x, raumN ) * BRDF')>0&&lf.indexOf('#include <lights_pars_begin>')>0;
   RAUM.ok=f.indexOf(': raumSo;\n\t\tRE_Direct')>0&&f.indexOf('raumIrr( raumA.x, raumN )')>0&&lamOk;
   if(RAUM.ok){ C.lights_fragment_begin=f; L.vertexShader=lv; L.fragmentShader=lf; }
 })();

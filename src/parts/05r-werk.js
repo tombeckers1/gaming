@@ -104,6 +104,9 @@ function wkBauen(){
   fang(WK_H,()=>{ wkInnen(); wkRaeume(); wkBoden2(); wkLicht(); });
   fang(WK_A,()=>{ wkAussen(); });
   /* unter dem Dach kein Sonnenschatten (spart den Schattendurchgang): Inhalt nie, Rohbau nur Waende und Dach */
+  /* Rohbau: aussen sichtbar bleiben nur Waende (Wandbild), Dach, Boden und die Aussentore/-tueren; Innenausbau (Decken, Treppe, Tueren,
+     Chemie-Boxen, Glasfront, Brandschutzabschluesse) wird wie der Inhalt nur mit Blick ins Werk gezeichnet */
+  for(const o of WK_G.children.slice()) if(o.userData.bauteil!=='wand'&&!o.userData.wkAussen){ WK_G.remove(o); WK_H.add(o); }
   wkVerbTeilen(WK_H,WK_V);
   WK_H.traverse(o=>{ if(o.isMesh) o.castShadow=false; }); WK_V.traverse(o=>{ if(o.isMesh) o.castShadow=false; });
   WK_G.traverse(o=>{ if(o.isMesh&&o.userData.bauteil!=='wand'&&o.userData.bauteil!=='werkdach') o.castShadow=false; });
@@ -133,7 +136,7 @@ function wkRohbau(){
   const Wr=WK.werk, H=WK.H, B=MAT.get('betonZelle'), F=MAT.farbe;
   /* Boden Werk + Verbindungsbau (wie die Hallenboeden: ohne Sonnenschatten) */
   { const w=WK.verb.x1-Wr.x0, d=Wr.z1-Wr.z0, bo=new THREE.Mesh(MAT.kachel(new THREE.PlaneGeometry(w,d),w/2,d/2),MAT.get('betonBoden'));
-    bo.rotation.x=-Math.PI/2; bo.position.set((Wr.x0+WK.verb.x1)/2,0.015,(Wr.z0+Wr.z1)/2); scene.add(bo); }
+    bo.rotation.x=-Math.PI/2; bo.position.set((Wr.x0+WK.verb.x1)/2,0.015,(Wr.z0+Wr.z1)/2); bo.userData.wkAussen=true; scene.add(bo); }
   /* Aussenwaende: Trapezblech aussen, Lagerwand innen (wie die Halle) */
   wkWandMit('x',Wr.x0-LW,WK.verb.x1-LW,Wr.z1,Wr.z1+LW,H,[[-73.6,-72.4,2.2]],'-z','lager','blech');            /* Nord, Werkseingang */
   wkWandMit('x',Wr.x0-LW,WK.verb.x1-LW,Wr.z0-LW,Wr.z0,H,[[WK.r6.x-WTOR.w/2,WK.r6.x+WTOR.w/2,WTOR.h]],'+z','lager','blech');   /* Sued, Tor R6 */
@@ -168,21 +171,21 @@ function wkRohbau(){
   /* Tuere Verbindungsbau: Feuerschutztueren zweifluegelig, offen auf Feststellanlage; Werkseingang (oeffnet beim Naehern) */
   for(const x of [-70.0,-66.1]){ for(const a of [1,-1]){ const T=bk.drehtuer({x,z:-9+a*0.5,ry:Math.PI/2,breite:1.0,hoehe:2.15,dicke:0.2,art:'brand',anschlag:a,auf:x>-68?-1:1,offen:1}); }
     const S=bk.werkSammler('feststellanlage'); S.box(0.12,0.16,0.3,x+(x>-68?-0.12:0.12),2.42,-9,F('feuerrot'),'kunststoff'); S.zyl(0.07,0.07,0.04,10,x+(x>-68?-0.12:0.12),2.52,-9.3,F('weiss'),'kunststoff'); S.fertig(scene,{fest:true}); }
-  WK_T.tueren.push({T:bk.drehtuer({x:-73,z:-6.9,ry:0,breite:1.2,hoehe:2.2,dicke:0.2,art:'glas',anschlag:1,auf:-1}),x:-73,z:-6.9,r:2.0});
+  WK_T.tueren.push({T:bk.drehtuer({x:-73,z:-6.9,ry:0,breite:1.2,hoehe:2.2,dicke:0.2,art:'glas',anschlag:1,auf:-1}),x:-73,z:-6.9,r:2.0}); WK_T.tueren[WK_T.tueren.length-1].T.g.userData.wkAussen=true;
   /* Tor R6 (Rohstoffe) - Sektionaltor wie R2-R5, zu (Anlieferung der Rohstoffe kommt mit dem Produktions-Gameplay) */
   { const T=bk.tor({art:'sektional',fuehrung:'vertikal',breite:WTOR.w,hoehe:WTOR.h,wand:[-LW,0],blatt:-0.15,fahrzeug:2.55,nr:'6',bedien:1,x:WK.r6.x,z:Wr.z0,ry:-Math.PI/2});
-    for(const r of T.kollision) col(r.x0,r.x1,r.z0,r.z1); col(WK.r6.x-WTOR.w/2,WK.r6.x+WTOR.w/2,Wr.z0-LW,Wr.z0); WK_T.r6=T; }
+    for(const r of T.kollision) col(r.x0,r.x1,r.z0,r.z1); col(WK.r6.x-WTOR.w/2,WK.r6.x+WTOR.w/2,Wr.z0-LW,Wr.z0); WK_T.r6=T; T.g.userData.wkAussen=true; }
   /* Gefahrstofftuer West (zu, Chemie-Box 1) */
-  { const S=bk.werkSammler('drehtuer'); bk.drehtuer({S,x:Wr.x0-LW/2,z:WK.westTuer,ry:Math.PI/2,breite:1.0,hoehe:2.1,dicke:LW,art:'brand'}); S.fertig(scene,{fest:true}); col(Wr.x0-LW,Wr.x0,WK.westTuer-0.6,WK.westTuer+0.6); }
+  { const S=bk.werkSammler('drehtuer'); bk.drehtuer({S,x:Wr.x0-LW/2,z:WK.westTuer,ry:Math.PI/2,breite:1.0,hoehe:2.1,dicke:LW,art:'brand'}); S.fertig(scene,{fest:true,nachher:me=>{ me.userData.wkAussen=true; }}); col(Wr.x0-LW,Wr.x0,WK.westTuer-0.6,WK.westTuer+0.6); }
   /* Leichtdach: helles Trapezblech, Lichtbaender (aussen sichtbar), Attika; Decke innen hell */
   { const x0=Wr.x0-LW*1.5, x1=WK.verb.x1-LW, z0=Wr.z0-LW*1.5, z1=Wr.z1+LW*1.5, w=x1-x0, d=z1-z0, cx=(x0+x1)/2, cz=(z0+z1)/2;
-    const dach=new THREE.Mesh(bk.kastenM(w,0.25,d,1,cx,H+0.24,cz),MAT.get('wandBlech')); dach.position.set(cx,H+0.24,cz); dach.userData.bauteil='werkdach';
+    const dach=new THREE.Mesh(bk.kastenM(w,0.25,d,1,cx,H+0.24,cz),MAT.get('wandBlech')); dach.position.set(cx,H+0.24,cz); dach.userData.bauteil='werkdach'; dach.userData.wkAussen=true;
     if(HIQ){ dach.castShadow=true; dach.receiveShadow=true; } scene.add(dach);
     const S=bk.werkSammler('werkdach');
     for(const s of WK_STR) S.box(26.2,0.08,1.7,-85,H+0.4,s.zc,F('glasKlar'),'kunststoff');
     for(const [ax,az,bx,bz] of [[x0,z0,x1,z0],[x0,z1,x1,z1]]) S.box(bx-ax,0.3,0.12,(ax+bx)/2,H+0.5,az,F('anthrazit'),'lackMetall');
     for(const x of [x0,x1]) S.box(0.12,0.3,d,x,H+0.5,cz,F('anthrazit'),'lackMetall');
-    S.fertig(scene,{fest:true,schatten:false});
+    S.fertig(scene,{fest:true,schatten:false,nachher:me=>{ me.userData.wkAussen=true; }});
     const ce=new THREE.Mesh(new THREE.PlaneGeometry(WK.verb.x1-Wr.x0,Wr.z1-Wr.z0),MAT.get('weissMatt')); ce.rotation.x=Math.PI/2; ce.position.set((Wr.x0+WK.verb.x1)/2,H-0.01,(Wr.z0+Wr.z1)/2); scene.add(ce); }
   /* Raumzeile Nord (z −11…−7): Inertlager, QS-Labor, Technik unter dem Leitstand (Galerie +3,2 m, Glasfront), Treppe, Umkleide */
   const R=WK.raum, zr=-11, P='putz';
